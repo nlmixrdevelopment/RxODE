@@ -257,14 +257,14 @@ solve(m1, ev,
 In addition to adding fixed doses and fixed sampling times, you can
 have windows where you sample and draw doses from.  For dosing windows
 you specify the time as an ordered numerical vector with the lowest
-dosing time and the highest dosing time.
+dosing time and the highest dosing time in a list
 
 In this example, you start with a dosing time with a 6 hour dosing window:
 
 ```{r}
 set.seed(42)
 ev <- et(timeUnits="hr") %>%
-    et(time=c(0,6), amt=10000, until = set_units(2, days), ii=12) %>% # loading doses
+    et(time=list(c(0,6)), amt=10000, until = set_units(2, days), ii=12) %>% # loading doses
     et(id=1:4)
 
 ev
@@ -282,7 +282,7 @@ Of course in reality the dosing interval may only be 2 hours:
 ```{r}
 set.seed(42)
 ev <- et(timeUnits="hr") %>%
-    et(time=c(0,2), amt=10000, until = set_units(2, days), ii=12) %>% # loading doses
+    et(time=list(c(0,2)), amt=10000, until = set_units(2, days), ii=12) %>% # loading doses
     et(id=1:4) %>%
     et(seq(0,48,length.out=200))
 
@@ -297,7 +297,7 @@ element ordered numeric vector.
 ```{r}
 set.seed(42)
 ev <- et(timeUnits="hr") %>%
-    et(time=c(0,2), amt=10000, until = set_units(2, days), ii=12) %>% # loading doses
+    et(time=list(c(0,2)), amt=10000, until = set_units(2, days), ii=12) %>% # loading doses
     et(id=1:4)
 
 ## Create 20 samples in the first 24 hours and 20 samples in the second 24 hours

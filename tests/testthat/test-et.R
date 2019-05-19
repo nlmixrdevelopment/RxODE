@@ -311,9 +311,6 @@ rxPermissive({
     test_that("Window Errors", {
         expect_error(et(list(c(1,0))))
         expect_error(et(list(c(0,1,2))))
-        expect_error(et(c(0,2),amt=30, doSampling=TRUE));
-        expect_error(et(c(0,2,3),amt=30))
-        expect_error(et(c(2,0),amt=30))
     })
     context("until is inclusive")
     test_that("until is inclusive",{
@@ -324,7 +321,10 @@ rxPermissive({
 
     context("et Expected errors")
     test_that("et errors",{
-        expect_error(et(list(c(1,2),c(3,4)), amt=3))
+        expect_error(et(list(c(2,1),c(3,4)), amt=3))
+        expect_error(et(list(c(1,2),c(3)), amt=3))
+        expect_error(et(list(c(1,2),c(3), c(1,2,3)), amt=3))
+        expect_error(et(list(c(1,2),c(3), TRUE), amt=3))
     })
 
 

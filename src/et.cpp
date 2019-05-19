@@ -1260,7 +1260,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
 	  unroll=true;
 	}
       } else {
-	stop("For dosing window you need to specify window in order, e.g. et(time=c(0,2),amt=3).");
+	stop("For dosing window you need to specify window in order, e.g. et(time=list(c(0,2)),amt=3).");
       }
     } else {
       stop("Dosing time or time windows must only be 1-2 elements.");
@@ -2314,7 +2314,7 @@ RObject et_(List input, List et__){
 	  }
 	}
       } else {
-	if (timeIx != -1 && rxIs(input[timeIx], "list")) stop("'time' cannot be a list on a dosing record");
+	bool doWindow=false;
 	if (evidIx == -1 && !cmtNeg) evid[0]=1;
 	else if (evidIx == -1 && cmtNeg){
 	  evid[0]=2;
@@ -2412,8 +2412,15 @@ RObject et_(List input, List et__){
 	  ss[0] = 0.0;
 	}
 	NumericVector time;
+	List timeList;
 	if (timeIx != -1){
-	  time = as<NumericVector>(input[timeIx]);
+	  if (rxIs(input[timeIx], "list")){
+	    doWindow=true;
+	    timeList = input[timeIx];
+	    time = as<NumericVector>(timeList[0]);
+	  } else {
+	    time = as<NumericVector>(input[timeIx]);
+	  }
 	} else {
 	  time = NumericVector(1);
 	  time[0] = 0;
@@ -2439,7 +2446,10 @@ RObject et_(List input, List et__){
 	  if (rxIs(until, "units")){
 	    until = setUnits(until, as<std::string>(units[1]));
 	  }
-	  if (time.size() == 1){
+	  if (!doWindow || time.size() == 1){
+	    if (time.size() != 1){
+	      stop("'until' does not make sense with multiple dosing times.");
+	    }
 	    double tmp = until[0] - time[0] - ii[0];
 	    if (tmp > 0){
 	      tmp = tmp/ii[0];
@@ -2452,7 +2462,7 @@ RObject et_(List input, List et__){
 	    } else {
 	      addl[0] = 0;
 	    }
-	  } else if (time.size() == 2){
+	  } else if (doWindow && time.size() == 2){
 	    double tmp = until[0] - time[1] - ii[0];
 	    if (tmp > 0){
 	      tmp = tmp/ii[0];
@@ -2465,6 +2475,8 @@ RObject et_(List input, List et__){
 	    } else {
 	      addl[0] = 0;
 	    }
+	  } else {
+	    stop("Dosing windows can only have 1-2 items in them");
 	  }
 	} else {
 	  addl = IntegerVector(1);
@@ -2491,8 +2503,35 @@ RObject et_(List input, List et__){
 	if (addl[0] > 0 && ii[0] <= 0){
 	  stop("Additional doses require an inter-dose interval (ii).");
 	}
-	return etUpdateObj(etAddDose(time, cmt, amt[0], rate[0], ii[0], addl[0], evid[0], ss[0], dur[0],
-				     id, turnOnShowCmt, doSampling, as<List>(curEt)),doUpdateObj, inputSolve);
+	List ret;
+	if (doWindow){
+	  ret = etAddDose(time, cmt, amt[0], rate[0], ii[0], addl[0], evid[0], ss[0], dur[0],
+			  id, turnOnShowCmt, doSampling, as<List>(curEt));
+	  for (int i = 1; i < timeList.size(); i++){
+	    if (rxIs(timeList[i], "numeric") || rxIs(timeList[i], "integer") ||
+		rxIs(timeList[i],"units")){
+	      time = as<NumericVector>(timeList[i]);
+	      if (time.size() > 2){
+		stop("Dosing time window lists can have 1-2 numeric entries in them");
+	      }
+	      ret = etAddDose(time, cmt, amt[0], rate[0], ii[0], addl[0], evid[0], ss[0], dur[0],
+			      id, turnOnShowCmt, doSampling, ret);
+	    } else {
+	      stop("The dosing window list needs to be numeric values only.");
+	    }
+	  }
+	} else {
+	  NumericVector time0(1);
+	  time0[0] = time[0];
+	  ret = etAddDose(time0, cmt, amt[0], rate[0], ii[0], addl[0], evid[0], ss[0], dur[0],
+				     id, turnOnShowCmt, doSampling, as<List>(curEt));
+	  for (int i = 1; i < time.size(); i++){
+	    time0[0] = time[i];
+	    ret = etAddDose(time0, cmt, amt[0], rate[0], ii[0], addl[0], evid[0], ss[0], dur[0],
+			    id, turnOnShowCmt, doSampling, ret);
+	  }
+	}
+	return etUpdateObj(ret, doUpdateObj, inputSolve);
       }
     }
   } else {
