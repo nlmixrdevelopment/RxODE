@@ -177,8 +177,8 @@ rxSymPyStart <- function(){
             }
         }
     }
-    start("reticulate");
     start("SnakeCharmR");
+    start("reticulate");
     if (is.null(.rxSymPy$started)){
         rxCat("RxODE requires SymPy for this function.\n");
         rxCat("We recommend you install SymPy for Python and then interact with Python using reticulate.\n");
