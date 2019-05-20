@@ -1042,3 +1042,80 @@ drop_units.rxSolve <- function(x){
 ## [21] is.na         melt          merge         na.omit       names<-
 ## [26] Ops           print         show          slotsFromS3   split
 ## [31] subset        tail          transform     unique        within
+
+
+##'@export
+confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...){
+    p1 <-eff <-Percentile <-sim.id <-id <-p2 <-p50 <-p05 <- p95 <- . <- NULL
+    RxODE::rxReq("dplyr")
+    RxODE::rxReq("tidyr")
+    if (level <=0 || level >=1){
+        stop("simulation summaries must be between 0 and 1");
+    }
+    .stk <- rxStack(object, parm);
+    .a <- (1-level)/2;
+    .p <- c(.a, 0.5, 1-.a);
+    .lst <- list(lvl=paste0("p",.p*100),
+                 parm=levels(.stk$trt));
+    class(.lst) <- "rxHidden";
+    if (object$env$args$nStud <= 1){
+        if (object$env$args$nSub < 2500){
+            warning("In order to put confidence bands around the intervals, you need at least 2500 simulations.")
+            message("Summarizing data")
+            .ret <- .stk %>% dplyr::group_by(time, trt) %>%
+                dplyr::do(data.frame(p1=.p, eff=quantile(.$value, probs=.p))) %>%
+                dplyr::mutate(Percentile=factor(sprintf("%s%%",p1*100)))
+            .cls <- c("rxSolveConfint1", class(.ret));
+            attr(.cls, ".rx") <- .lst
+            class(.ret) <- .cls
+            message("done.")
+            ## .ret <- ggplot2::ggplot(.ret,aes(time,eff,col=Percentile,fill=Percentile)) +
+            ##     ggplot2::geom_line(size=1.2)
+            return(.ret)
+        } else {
+            .n <- round(sqrt(object$env$args$nSub));
+        }
+    } else {
+        .n <- object$env$args$nStud;
+    }
+    message("Summarizing data")
+    .ret <- .stk %>% dplyr::mutate(id=sim.id%%.n) %>% dplyr::group_by(id,time,trt) %>%
+        dplyr::do(data.frame(p1=.p, eff=quantile(.$value, probs=.p))) %>%
+        dplyr::group_by(p1, time, trt) %>%
+        dplyr::do(data.frame(p2=.p, eff=quantile(.$eff, probs=.p))) %>%
+        dplyr::ungroup()  %>% dplyr::mutate(p2=sprintf("p%s",p2*100))%>%
+        tidyr::spread(p2,eff) %>% dplyr::mutate(Percentile=factor(sprintf("%s%%",p1*100)));
+    message("done.")
+    .cls <- c("rxSolveConfint2", class(.ret));
+    attr(.cls, ".rx") <- .lst
+    class(.ret) <- .cls
+    return(.ret);
+}
+
+##'@export
+plot.rxSolveConfint1 <- function(x,y,...){
+    p1 <-eff <-Percentile <-sim.id <-id <-p2 <-p50 <-p05 <- p95 <- . <- NULL
+    .lvl <- attr(class(x), ".rx")$lvl
+    .parm <- attr(class(x), ".rx")$parm
+    .ret <- ggplot2::ggplot(x,ggplot2::aes(time,eff,col=Percentile,fill=Percentile)) +
+        ggplot2::geom_line(size=1.2);
+    if (length(.parm) > 1){
+        .ret <- .ret + facet_wrap( ~ trt, scales="free_y")
+    }
+    return(.ret)
+}
+
+##'@export
+plot.rxSolveConfint2 <- function(x,y,...){
+    p1 <-eff <-Percentile <-sim.id <-id <-p2 <-p50 <-p05 <- p95 <- . <- NULL
+    .lvl <- attr(class(x), ".rx")$lvl
+    .parm <- attr(class(x), ".rx")$parm
+    .ret <- ggplot2::ggplot(x,ggplot2::aes(time,p50,col=Percentile,fill=Percentile)) +
+        ggplot2::geom_ribbon(ggplot2::aes_string(ymin=.lvl[1],ymax=.lvl[3]),alpha=0.5)+
+        ggplot2::geom_line(size=1.2);
+    if (length(.parm) > 1){
+        .ret <- .ret + facet_wrap( ~ trt, scales="free_y")
+    }
+    return(.ret)
+}
+
