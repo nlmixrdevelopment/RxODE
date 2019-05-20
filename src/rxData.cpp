@@ -2782,7 +2782,7 @@ SEXP rxSolve_(const RObject &obj,
     op->ncoresRV = nCoresRV;
     op->isChol = (int)(sigmaIsChol);
     unsigned int nsub = 0;
-    unsigned int nobs = 0, ndoses = 0;
+    unsigned int nobs = 0, ndoses = 0, nevid2=0;
     unsigned int i, j;
     int ncov =0, curcovi = 0;
     double tmp, hmax1 = 0.0, hmax1m = 0.0, hmax1mo, hmax1s=0.0,
@@ -3167,8 +3167,11 @@ SEXP rxSolve_(const RObject &obj,
 	  hmax1 = 0.0;
           lastId=id[i];
 	  j=i;
+	  ind->ndoses=0;
+	  ind->nevid2=0;
 	  ndoses=0;
 	  nobs=0;
+	  nevid2=0;
 	  tlast = NA_REAL;
         }
 	// Create index
@@ -3180,6 +3183,7 @@ SEXP rxSolve_(const RObject &obj,
           ndoses++; nall++; j++;
         } else {
           nobs++; nobst++; nall++;
+	  if (_globals.gevid[i] == 2) ind->nevid2++;
 	  if (_globals.gevid[i] == 0) nobs2t++;
 	  if (!ISNA(tlast)){
             tmp = time0[i]-tlast;
@@ -3444,6 +3448,7 @@ SEXP rxSolve_(const RObject &obj,
 	      ind->HMAX = indS.HMAX;
 	      ind->idose = &(indS.idose[0]);
 	      ind->ndoses = indS.ndoses;
+	      ind->nevid2 = indS.nevid2;
 	      ind->dose = &(indS.dose[0]);
 	      ind->ii   = &(indS.ii[0]);
 	      ind->evid =&(indS.evid[0]);

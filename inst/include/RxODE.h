@@ -94,6 +94,7 @@ typedef struct {
   int *rc;
   double *cov_ptr;
   int n_all_times;
+  int nevid2;
   int ixds;
   int ndoses;
   double *all_times;
