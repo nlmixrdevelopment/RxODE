@@ -1,4 +1,7 @@
 rex::register_shortcuts("RxODE");
+
+R_NegInf <- -Inf # Hack for Rcpp->R initial values problem
+R_PosInf <- Inf
 ##' Create an ODE-based model specification
 ##'
 ##' Create a dynamic ODE-based model object suitably for translation

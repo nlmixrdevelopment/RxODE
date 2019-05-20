@@ -261,7 +261,9 @@ RObject rxSimSigma(const RObject &sigma,
 		   int ncores,
 		   const bool &isChol,
 		   int nObs,
-		   const bool checkNames = true){
+		   const bool checkNames = true,
+		   NumericVector lowerIn =NumericVector::create(R_NegInf),
+		   NumericVector upperIn = NumericVector::create(R_PosInf)){
   if (nObs < 1) stop("Refusing to simulate %d items",nObs); 
   if (rxIs(sigma, "numeric.matrix")){
     // FIXME more distributions
@@ -278,7 +280,7 @@ RObject rxSimSigma(const RObject &sigma,
       }
       dimnames = sigmaM.attr("dimnames");
       simNames = as<StringVector>(dimnames[1]);
-      addNames = true;
+      addNames=true;
     } else if (sigmaM.hasAttribute("dimnames")){
       dimnames = sigmaM.attr("dimnames");
       simNames = as<StringVector>(dimnames[1]);
@@ -286,24 +288,86 @@ RObject rxSimSigma(const RObject &sigma,
     }
     NumericMatrix simMat(nObs,sigmaM.ncol());
     NumericVector m(sigmaM.ncol());
+    NumericVector lower(sigmaM.ncol());
+    NumericVector upper(sigmaM.ncol());
+    if (lowerIn.hasAttribute("names")){
+      // Named
+      CharacterVector lowN = lowerIn.attr("names");
+      for (int j = simNames.size(); j--;){
+	lower[j] = R_NegInf;
+	for (int k = lowN.size(); k--;){
+	  if (lowN[k] == simNames[j]){
+	    lower[j] = lowerIn[k];
+	    break;
+	  }
+	}
+      }
+    } else if (lowerIn.size() == 1){
+      std::fill_n(lower.begin(), lower.size(), lowerIn[0]);
+    } else if (lowerIn.size() == lower.size()){
+      lower = lowerIn;
+    } else {
+      stop("Lower bounds needs to be a named vector, a single value or exactly the same size.");
+    }
+    if (upperIn.hasAttribute("names")){
+      // Named
+      CharacterVector upN = upperIn.attr("names");
+      for (int j = simNames.size(); j--;){
+	upper[j] = R_NegInf;
+	for (int k = upN.size(); k--;){
+	  if (upN[k] == simNames[j]){
+	    upper[j] = upperIn[k];
+	    break;
+	  }
+	}
+      }
+    } else if (upperIn.size() == 1){
+      std::fill_n(upper.begin(), upper.size(), upperIn[0]);
+    } else if (!upperIn.hasAttribute("names") && upperIn.size() == upper.size()){
+      upper = upperIn;
+    } else {
+      stop("Upper bounds needs to be a named vector, a single value or exactly the same size.");
+    }
+
     // Ncores = 1?  Should it be parallelized when it can be...?
     // Note that if so, the number of cores also affects the output.
-    if (df.isNULL()){
-      Function rmvn = as<Function>(mvnfast["rmvn"]);
-      rmvn(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
-	   _["isChol"]=isChol, _["A"] = simMat); // simMat is updated with the random deviates
-    } else {
-      double df2 = as<double>(df);
-      if (R_FINITE(df2)){
-        Function rmvt = as<Function>(mvnfast["rmvt"]);
-        rmvt(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["df"] = df,
-	     _["ncores"]=ncores, _["isChol"]=isChol, _["A"] = simMat);
+    int totSim = 0;
+    while (totSim < nObs){
+      int curSimN = nObs - totSim;
+      NumericMatrix simMat0(curSimN,sigmaM.ncol());
+      if (df.isNULL()){
+	Function rmvn = as<Function>(mvnfast["rmvn"]);
+	rmvn(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
+	     _["isChol"]=isChol, _["A"] = simMat0); // simMat is updated with the random deviates
       } else {
-        Function rmvn = as<Function>(mvnfast["rmvn"]);
-        rmvn(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
-	     _["isChol"]=isChol, _["A"] = simMat);
+	double df2 = as<double>(df);
+	if (R_FINITE(df2)){
+	  Function rmvt = as<Function>(mvnfast["rmvt"]);
+	  rmvt(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["df"] = df,
+	       _["ncores"]=ncores, _["isChol"]=isChol, _["A"] = simMat0);
+	} else {
+	  Function rmvn = as<Function>(mvnfast["rmvn"]);
+	  rmvn(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
+	       _["isChol"]=isChol, _["A"] = simMat0);
+	}
+      }
+      // Reject any bad simulations if needed
+      for (int i = 0; i < curSimN; i++){
+	bool goodSim = true;
+	for (int j = sigmaM.ncol(); j--;){
+	  double cur = simMat0(i, j);
+	  if (cur <= lower[j] || cur >= upper[j]){
+	    goodSim=false;
+	    break;
+	  }
+	}
+	if (goodSim){
+	  simMat(totSim, _) = simMat0(i, _);
+	  totSim++;
+	}
       }
     }
+    
     if (addNames){
       simMat.attr("dimnames") = List::create(R_NilValue, simNames);
     }
@@ -1829,6 +1893,10 @@ SEXP rxGetFromChar(char *ptr, std::string var){
 //' @param params Named Vector of RxODE model parameters
 //'
 //' @param thetaMat Named theta matrix.
+//' 
+//' @param thetaLower Lower bounds for simulated population parameter variability (by default -Inf)
+//'
+//' @param thetaUpper Upper bounds for simulated population unexplained variability (by default Inf)
 //'
 //' @param thetaDf The degrees of freedom of a t-distribution for
 //'     simulation.  By default this is \code{NULL} which is
@@ -1843,6 +1911,10 @@ SEXP rxGetFromChar(char *ptr, std::string var){
 //'        realization of the parameters.
 //'
 //' @param omega Named omega matrix.
+//'
+//' @param omegaLower Lower bounds for simulated ETAs (by default -Inf)
+//'
+//' @param omegaUpper Upper bounds for simulated ETAs (by default Inf)
 //'
 //' @param omegaDf The degrees of freedom of a t-distribution for
 //'     simulation.  By default this is \code{NULL} which is
@@ -1859,7 +1931,11 @@ SEXP rxGetFromChar(char *ptr, std::string var){
 //' @param nObs Number of observations to simulate (with \code{sigma} matrix)
 //'
 //' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
-//'     indivdual parameters, residuals are updated after solve is completed. 
+//'     indivdual parameters, residuals are updated after solve is completed.
+//'
+//' @param sigmaLower Lower bounds for simulated unexplained variability (by default -Inf)
+//'
+//' @param sigmaUpper Upper bounds for simulated unexplained variability (by default Inf)
 //'
 //' @inheritParams rxSolve
 //'
@@ -1879,13 +1955,19 @@ SEXP rxGetFromChar(char *ptr, std::string var){
 List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
                      const Nullable<NumericMatrix> &omega= R_NilValue,
                      const Nullable<NumericVector> &omegaDf= R_NilValue,
+		     const NumericVector &omegaLower = NumericVector::create(R_NegInf),
+		     const NumericVector &omegaUpper = NumericVector::create(R_PosInf),
                      const bool &omegaIsChol = false,
                      int nSub = 1,
                      const Nullable<NumericMatrix> &thetaMat = R_NilValue,
+		     const NumericVector &thetaLower = NumericVector::create(R_NegInf),
+		     const NumericVector &thetaUpper = NumericVector::create(R_PosInf),
                      const Nullable<NumericVector> &thetaDf  = R_NilValue,
                      const bool &thetaIsChol = false,
                      int nStud = 1,
                      const Nullable<NumericMatrix> sigma = R_NilValue,
+		     const NumericVector &sigmaLower = NumericVector::create(R_NegInf),
+		     const NumericVector &sigmaUpper = NumericVector::create(R_PosInf),
                      const Nullable<NumericVector> &sigmaDf= R_NilValue,
                      const bool &sigmaIsChol = false,
                      int nCoresRV = 1,
@@ -1955,7 +2037,8 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 	stop("'thetaMat' must be symmetric");
       }
     }
-    thetaM = as<NumericMatrix>(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf), nCoresRV, thetaIsChol, nStud));
+    thetaM = as<NumericMatrix>(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf), nCoresRV, thetaIsChol, nStud,
+					  true, thetaLower, thetaUpper));
     thetaN = as<CharacterVector>((as<List>(thetaM.attr("dimnames")))[1]);
     for (i = 0; i < parN.size(); i++){
       thetaPar[i] = -1;
@@ -2046,9 +2129,11 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     if (ocol > 0){
       if (dfSub > 0 && nStud > 1){
         // nm = ret0[j]; // parameter column
-        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaList[i]), as<RObject>(omegaDf), nCoresRV, false, nSub,false));
+        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaList[i]), as<RObject>(omegaDf), nCoresRV, false, nSub,
+					   false, omegaLower, omegaUpper));
       } else {
-        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaMC), as<RObject>(omegaDf), nCoresRV, true, nSub,false));
+        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaMC), as<RObject>(omegaDf), nCoresRV, true, nSub,
+					   false, omegaLower, omegaUpper));
       }
       for (j=pcol; j < pcol+ocol; j++){
         nm = ret0[j];
@@ -2061,9 +2146,11 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     if (scol > 0){
       if (simSubjects){
         if (dfObs > 0  && nStud > 1){
-          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, false, nObs*nSub, false));
+          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, false, nObs*nSub,
+					     false, sigmaLower, sigmaUpper));
         } else {
-          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaMC), as<RObject>(sigmaDf), nCoresRV, true, nObs*nSub, false));
+          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaMC), as<RObject>(sigmaDf), nCoresRV, true, nObs*nSub,
+					     false, sigmaLower, sigmaUpper));
         }
         for (j = 0; j < scol; j++){
           for (k = 0; k < nObs*nSub; k++){
@@ -2073,9 +2160,11 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
         }
       } else {
         if (dfObs > 0  && nStud > 1){
-          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, false, nObs, false));
+          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, false, nObs,
+					     false, sigmaLower, sigmaUpper));
         } else {
-          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaMC), as<RObject>(sigmaDf), nCoresRV, true, nObs, false));
+          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaMC), as<RObject>(sigmaDf), nCoresRV, true, nObs,
+					     false, sigmaLower, sigmaUpper));
         }
         for (j = 0; j < scol; j++){
           for (k = 0; k < nObs; k++){
@@ -2782,7 +2871,7 @@ SEXP rxSolve_(const RObject &obj,
     op->ncoresRV = nCoresRV;
     op->isChol = (int)(sigmaIsChol);
     unsigned int nsub = 0;
-    unsigned int nobs = 0, ndoses = 0, nevid2=0;
+    unsigned int nobs = 0, ndoses = 0;
     unsigned int i, j;
     int ncov =0, curcovi = 0;
     double tmp, hmax1 = 0.0, hmax1m = 0.0, hmax1mo, hmax1s=0.0,
@@ -2867,9 +2956,18 @@ SEXP rxSolve_(const RObject &obj,
 	  }
 	}
       }
-      List lst = rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol,
-				 nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
-				 sigma, sigmaDf, sigmaIsChol, nCoresRV, curObs,
+      List lst = rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf,
+				 as<NumericVector>(rxControl["omegaLower"]),
+				 as<NumericVector>(rxControl["omegaUpper"]),
+				 omegaIsChol,
+				 nSub0, thetaMat,
+				 as<NumericVector>(rxControl["thetaLower"]),
+				 as<NumericVector>(rxControl["thetaUpper"]),
+				 thetaDf, thetaIsChol, nStud,
+				 sigma,
+				 as<NumericVector>(rxControl["sigmaLower"]),
+				 as<NumericVector>(rxControl["sigmaUpper"]),
+				 sigmaDf, sigmaIsChol, nCoresRV, curObs,
 				 dfSub, dfObs, simSubjects);
       par1 =  as<RObject>(lst);
       usePar1=true;
@@ -3171,7 +3269,6 @@ SEXP rxSolve_(const RObject &obj,
 	  ind->nevid2=0;
 	  ndoses=0;
 	  nobs=0;
-	  nevid2=0;
 	  tlast = NA_REAL;
         }
 	// Create index

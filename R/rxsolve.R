@@ -7,11 +7,15 @@ rxControl <- function(scale = NULL,
                       cores,
                       covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
                       addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
+                      sigmaLower=-Inf, sigmaUpper=Inf,
                       nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
                       amountUnits = NA_character_, timeUnits = "hours", stiff,
-                      theta = NULL, eta = NULL, addDosing=FALSE,
+                      theta = NULL,
+                      thetaLower=-Inf, thetaUpper=Inf,
+                      eta = NULL, addDosing=FALSE,
                       stateTrim=Inf, updateObject=FALSE,
                       omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
+                      omegaLower=-Inf, omegaUpper=Inf,
                       nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
                       nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
                       seed=NULL, nsim=NULL,
@@ -154,7 +158,10 @@ rxControl <- function(scale = NULL,
                  by=by,
                  length.out=length.out,
                  iCov=iCov,
-                 keep=keep, keepF=character(0), keepI=character(0));
+                 keep=keep, keepF=character(0), keepI=character(0),
+                 omegaLower=omegaLower, omegaUpper=omegaUpper,
+                 sigmaLower=sigmaLower, sigmaUpper=sigmaUpper,
+                 thetaLower=thetaLower, thetaUpper=thetaUpper);
     return(.ret)
 }
 
@@ -563,6 +570,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         .setupOnly <- .lst$.setupOnly;
     }
     .ctl <- rxControl(...,events=events,params=params);
+    print(.ctl)
     if (!is.null(.pipelineThetaMat) && is.null(.ctl$thetaMat)){
         .ctl$thetaMat <- .pipelineThetaMat;
     }

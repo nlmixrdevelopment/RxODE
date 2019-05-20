@@ -232,6 +232,10 @@ rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
 #' @param params Named Vector of RxODE model parameters
 #'
 #' @param thetaMat Named theta matrix.
+#' 
+#' @param thetaLower Lower bounds for simulated population parameter variability (by default -Inf)
+#'
+#' @param thetaUpper Upper bounds for simulated population unexplained variability (by default Inf)
 #'
 #' @param thetaDf The degrees of freedom of a t-distribution for
 #'     simulation.  By default this is \code{NULL} which is
@@ -246,6 +250,10 @@ rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
 #'        realization of the parameters.
 #'
 #' @param omega Named omega matrix.
+#'
+#' @param omegaLower Lower bounds for simulated ETAs (by default -Inf)
+#'
+#' @param omegaUpper Upper bounds for simulated ETAs (by default Inf)
 #'
 #' @param omegaDf The degrees of freedom of a t-distribution for
 #'     simulation.  By default this is \code{NULL} which is
@@ -262,7 +270,11 @@ rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
 #' @param nObs Number of observations to simulate (with \code{sigma} matrix)
 #'
 #' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
-#'     indivdual parameters, residuals are updated after solve is completed. 
+#'     indivdual parameters, residuals are updated after solve is completed.
+#'
+#' @param sigmaLower Lower bounds for simulated unexplained variability (by default -Inf)
+#'
+#' @param sigmaUpper Upper bounds for simulated unexplained variability (by default Inf)
 #'
 #' @inheritParams rxSolve
 #'
@@ -278,8 +290,8 @@ rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
 #' @author Matthew L.Fidler
 #'
 #' @export
-rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaDf = NULL, sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, dfSub = 0, dfObs = 0, simSubjects = TRUE) {
-    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, sigma, sigmaDf, sigmaIsChol, nCoresRV, nObs, dfSub, dfObs, simSubjects)
+rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaLower = as.numeric( c(R_NegInf)), omegaUpper = as.numeric( c(R_PosInf)), omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaLower = as.numeric( c(R_NegInf)), thetaUpper = as.numeric( c(R_PosInf)), thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaLower = as.numeric( c(R_NegInf)), sigmaUpper = as.numeric( c(R_PosInf)), sigmaDf = NULL, sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, dfSub = 0, dfObs = 0, simSubjects = TRUE) {
+    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaLower, omegaUpper, omegaIsChol, nSub, thetaMat, thetaLower, thetaUpper, thetaDf, thetaIsChol, nStud, sigma, sigmaLower, sigmaUpper, sigmaDf, sigmaIsChol, nCoresRV, nObs, dfSub, dfObs, simSubjects)
 }
 
 #' Free the C solving information.
