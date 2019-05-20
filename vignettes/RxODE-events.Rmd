@@ -257,7 +257,7 @@ solve(m1, ev,
 In addition to adding fixed doses and fixed sampling times, you can
 have windows where you sample and draw doses from.  For dosing windows
 you specify the time as an ordered numerical vector with the lowest
-dosing time and the highest dosing time in a list
+dosing time and the highest dosing time inside a list.
 
 In this example, you start with a dosing time with a 6 hour dosing window:
 

@@ -175,7 +175,7 @@ handle units and `ggforce` to handle the plotting.
 Now that you have learned the basics of RxODE, there are a few things
 you may wish to explore:
 
-- Simulating in a pipeline (tidyverse style of simulation/updating)
+- [Simulating in a pipeline](RxODE-pipeline.html) (tidyverse style of simulation/updating)
 - [Dynamic RxODE solved datasets](RxODE-data-frame.html)
 - Multiple-subject simulations (with and without variability)
 - Simulation from already existing data
