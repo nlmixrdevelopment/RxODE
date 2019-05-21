@@ -1101,7 +1101,7 @@ confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...){
 
 ##'@export
 plot.rxSolveConfint1 <- function(x,y,...){
-    p1 <-eff <-Percentile <-sim.id <-id <-p2 <-p50 <-p05 <- p95 <- . <- NULL
+    p1 <-eff <- time<-Percentile <-sim.id <-id <-p2 <-p50 <-p05 <- p95 <- . <- NULL
     .lvl <- attr(class(x), ".rx")$lvl
     .parm <- attr(class(x), ".rx")$parm
     .ret <- ggplot2::ggplot(x,ggplot2::aes(time,eff,col=Percentile,fill=Percentile)) +
@@ -1114,7 +1114,7 @@ plot.rxSolveConfint1 <- function(x,y,...){
 
 ##'@export
 plot.rxSolveConfint2 <- function(x,y,...){
-    p1 <-eff <-Percentile <-sim.id <-id <-p2 <-p50 <-p05 <- p95 <- . <- NULL
+    p1 <- time <- eff <-Percentile <-sim.id <-id <-p2 <-p50 <-p05 <- p95 <- . <- NULL
     .lvl <- attr(class(x), ".rx")$lvl
     .parm <- attr(class(x), ".rx")$parm
     .ret <- ggplot2::ggplot(x,ggplot2::aes(time,p50,col=Percentile,fill=Percentile)) +
