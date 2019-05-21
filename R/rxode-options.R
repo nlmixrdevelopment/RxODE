@@ -45,7 +45,7 @@
 }
 
 .rxTempDir0 <- NULL;
-.cacheDefault <- "~/.rxCache";
+.cacheDefault <- NULL;
 ##' Get the RxODE temporary directory
 ##'
 ##' @return RxODE temporary directory.
@@ -55,7 +55,7 @@ rxTempDir <- function(){
         .tmp <- Sys.getenv("rxTempDir")
         if (.tmp == ""){
             if (is.null(.cacheDefault)){
-                assignInMyNamespace(".cacheDefault", tempdir());
+                assignInMyNamespace(".cacheDefault", "~/.rxCache");
             }
             if (getOption("RxODE.cache.directory", .cacheDefault) != "."){
                 .tmp <- getOption("RxODE.cache.directory", .cacheDefault);
