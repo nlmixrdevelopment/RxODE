@@ -23,19 +23,20 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   hmin = 0L, hmax = NA, hmaxSd = 0, hini = 0, maxordn = 12L,
   maxords = 5L, ..., cores, covsInterpolation = c("locf", "linear",
   "nocb", "midpoint"), addCov = FALSE, matrix = FALSE, sigma = NULL,
-  sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE,
-  nDisplayProgress = 10000L, amountUnits = NA_character_,
-  timeUnits = "hours", stiff, theta = NULL, eta = NULL,
+  sigmaDf = NULL, sigmaLower = -Inf, sigmaUpper = Inf,
+  nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L,
+  amountUnits = NA_character_, timeUnits = "hours", stiff,
+  theta = NULL, thetaLower = -Inf, thetaUpper = Inf, eta = NULL,
   addDosing = FALSE, stateTrim = Inf, updateObject = FALSE,
-  omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L,
-  thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L,
-  dfSub = 0, dfObs = 0, returnType = c("rxSolve", "matrix",
-  "data.frame", "data.frame.TBS"), seed = NULL, nsim = NULL,
-  minSS = 7, maxSS = 70000, atolSS = 1e-09, rtolSS = 1e-09,
-  params = NULL, events = NULL, istateReset = TRUE,
-  subsetNonmem = TRUE, linLog = FALSE, maxAtolRtolFactor = 0.1,
-  from = NULL, to = NULL, by = NULL, length.out = NULL,
-  iCov = NULL, keep = NULL)
+  omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
+  omegaLower = -Inf, omegaUpper = Inf, nSub = 1L, thetaMat = NULL,
+  thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0,
+  dfObs = 0, returnType = c("rxSolve", "matrix", "data.frame",
+  "data.frame.TBS"), seed = NULL, nsim = NULL, minSS = 7,
+  maxSS = 70000, atolSS = 1e-09, rtolSS = 1e-09, params = NULL,
+  events = NULL, istateReset = TRUE, subsetNonmem = TRUE,
+  linLog = FALSE, maxAtolRtolFactor = 0.1, from = NULL, to = NULL,
+  by = NULL, length.out = NULL, iCov = NULL, keep = NULL)
 
 rxSolve(object, ...)
 
@@ -165,6 +166,10 @@ observation in the solved system.}
 \item{sigmaDf}{Degrees of freedom of the sigma t-distribution.  By
 default it is equivalent to \code{Inf}, or a normal distribution.}
 
+\item{sigmaLower}{Lower bounds for simulated unexplained variability (by default -Inf)}
+
+\item{sigmaUpper}{Upper bounds for simulated unexplained variability (by default Inf)}
+
 \item{nCoresRV}{Number of cores used for the simulation of the
 sigma variables.  By default this is 1. This uses the package
 \code{\link[mvnfast]{rmvn}} and \code{\link[mvnfast]{rmvt}}.
@@ -204,6 +209,10 @@ data as an RxODE event table.}
 
 \item{theta}{A vector of parameters that will be named THETA[#] and
 added to parameters}
+
+\item{thetaLower}{Lower bounds for simulated population parameter variability (by default -Inf)}
+
+\item{thetaUpper}{Upper bounds for simulated population unexplained variability (by default Inf)}
 
 \item{eta}{A vector of parameters that will be named ETA[#] and
 added to parameters}
@@ -262,6 +271,10 @@ distribution instead of a t-distribution.}
 \item{omegaIsChol}{Indicates if the \code{omega} supplied is a
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
+
+\item{omegaLower}{Lower bounds for simulated ETAs (by default -Inf)}
+
+\item{omegaUpper}{Upper bounds for simulated ETAs (by default Inf)}
 
 \item{nSub}{Number between subject variabilities (ETAs) simulated for every 
 realization of the parameters.}

@@ -98,16 +98,8 @@ navbar:
           href: articles/RxODE-intro.html
         - text: "RxODE mini language syntax"
           href: articles/RxODE-syntax.html
-        - text: "--------------------------"
-        - text: "Events and Simulations & RxODE data frames"
-        - text: "Creating Dosing Events & Observations"
-          href: articles/RxODE-events.html
         - text: "Speeding up RxODE ODE solving"
           href: articles/speed.html
-        - text: "Multiple Subject RxODE Simulation"
-          href: articles/RxODE-sim-var.html
-        - text: "Interactive RxODE Data Frames"
-          href: articles/RxODE-data-frame.html
         - text: "--------------------------"
         - text: "Advanced Features, Model Types, Technical Details"
         - text: "RxODE model types"
@@ -124,6 +116,16 @@ navbar:
           href: articles/RxODE-stiff.html
         - text: "Adding compiled RxODE models to your package"
           href: articles/RxODE-rxUse.html
+  - text: "Dosing"
+    icon: fa-pills
+    href: articles/RxODE-events.html
+  - text: "Simulations"
+    icon: fa-laptop-medical
+    menu:
+        - text: "Single Subject ODE solving"
+        - text: "Multiple Subject RxODE Simulation"
+          href: articles/RxODE-sim-var.html
+	- text: "Using Prior Data for ODE solving"
   - text: "Tutorial"
     icon: fa-life-ring
     href: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf

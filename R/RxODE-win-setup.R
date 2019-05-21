@@ -253,7 +253,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
         if (file.exists(.x)){
             Sys.setenv(BINPREF=gsub("([^/])$", "\\1/", gsub("\\\\", "/", .normalizePath(.x))));
         }
-        .exists <- try(file.exists(.rtoolsBase));
+        .exists <- try(file.exists(.rtoolsBase), silent=TRUE);
         if (inherits(.exists, "try-error")) .exists <- FALSE
         if (.exists){
             .gcc <- list.files(.rtoolsBase, "gcc",full.names=TRUE)[1]
@@ -364,14 +364,20 @@ rxWinPythonSetup <- function(){
     if (file.access(paste(.base, "/Lib/site-packages", sep=""),2)==-1){
       stop("The Python library path does not appear to be writeable. Please rectify this situation, restart R, and try again.")
     }
-    .tmp <- try(rxSymPyVersion())
+    .tmp <- try({rxSymPyVersion()})
     if (inherits(.tmp, "try-error")){
-        ## system(sprintf("%s/python -m pip install pip", .rxPythonBaseWin()))
-        ## system(sprintf("%s/python -m pip install sympy", .rxPythonBaseWin()))
-        ## system(sprintf("%s/python -m pip install numpy", .rxPythonBaseWin()))
         system(sprintf("%s/python -m pip install --upgrade pip", .rxPythonBaseWin()))
         system(sprintf("%s/python -m pip install --upgrade sympy", .rxPythonBaseWin()))
         system(sprintf("%s/python -m pip install --upgrade numpy", .rxPythonBaseWin()))
+    }
+    utils::install.packages("reticulate");
+    .tmp <- try({rxSymPyVersion()});
+    if (inherits(.tmp, "try-error")){
+        remotes::install_github("nlmixrdevelopment/SnakeCharmR")
+        .tmp <- try({rxSymPyVersion()});
+        if (inherits(.tmp, "try-errror")){
+            stop("Cannot setup RxODE<->sympy link");
+        }
     }
 }
 

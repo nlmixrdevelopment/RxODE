@@ -5,8 +5,13 @@
 \title{Simulate Parameters from a Theta/Omega specification}
 \usage{
 rxSimThetaOmega(params = NULL, omega = NULL, omegaDf = NULL,
-  omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL,
-  thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaDf = NULL,
+  omegaLower = as.numeric(c(R_NegInf)),
+  omegaUpper = as.numeric(c(R_PosInf)), omegaIsChol = FALSE,
+  nSub = 1L, thetaMat = NULL, thetaLower = as.numeric(c(R_NegInf)),
+  thetaUpper = as.numeric(c(R_PosInf)), thetaDf = NULL,
+  thetaIsChol = FALSE, nStud = 1L, sigma = NULL,
+  sigmaLower = as.numeric(c(R_NegInf)),
+  sigmaUpper = as.numeric(c(R_PosInf)), sigmaDf = NULL,
   sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, dfSub = 0,
   dfObs = 0, simSubjects = TRUE)
 }
@@ -20,6 +25,10 @@ simulation.  By default this is \code{NULL} which is
 equivalent to \code{Inf} degrees, or to simulate from a normal
 distribution instead of a t-distribution.}
 
+\item{omegaLower}{Lower bounds for simulated ETAs (by default -Inf)}
+
+\item{omegaUpper}{Upper bounds for simulated ETAs (by default Inf)}
+
 \item{omegaIsChol}{Indicates if the \code{omega} supplied is a
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
@@ -28,6 +37,10 @@ symmetric matrix.}
 realization of the parameters.}
 
 \item{thetaMat}{Named theta matrix.}
+
+\item{thetaLower}{Lower bounds for simulated population parameter variability (by default -Inf)}
+
+\item{thetaUpper}{Upper bounds for simulated population unexplained variability (by default Inf)}
 
 \item{thetaDf}{The degrees of freedom of a t-distribution for
 simulation.  By default this is \code{NULL} which is
@@ -43,6 +56,10 @@ parameters.}
 
 \item{sigma}{Matrix for residual variation.  Adds a "NA" value for each of the 
 indivdual parameters, residuals are updated after solve is completed.}
+
+\item{sigmaLower}{Lower bounds for simulated unexplained variability (by default -Inf)}
+
+\item{sigmaUpper}{Upper bounds for simulated unexplained variability (by default Inf)}
 
 \item{sigmaDf}{Degrees of freedom of the sigma t-distribution.  By
 default it is equivalent to \code{Inf}, or a normal distribution.}

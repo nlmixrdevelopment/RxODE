@@ -1053,7 +1053,7 @@ drop_units.rxSolve <- function(x){
 
 ##'@export
 confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...){
-    p1 <-eff <-Percentile <-sim.id <-id <-p2 <-p50 <-p05 <- p95 <- . <- NULL
+    p1 <-eff <-Percentile <-sim.id <-id <-p2 <-p50 <-p05 <- p95 <- . <- time <- trt <- NULL
     RxODE::rxReq("dplyr")
     RxODE::rxReq("tidyr")
     if (level <=0 || level >=1){
@@ -1070,7 +1070,7 @@ confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...){
             warning("In order to put confidence bands around the intervals, you need at least 2500 simulations.")
             message("Summarizing data")
             .ret <- .stk %>% dplyr::group_by(time, trt) %>%
-                dplyr::do(data.frame(p1=.p, eff=quantile(.$value, probs=.p))) %>%
+                dplyr::do(data.frame(p1=.p, eff=stats::quantile(.$value, probs=.p))) %>%
                 dplyr::mutate(Percentile=factor(sprintf("%s%%",p1*100)))
             .cls <- c("rxSolveConfint1", class(.ret));
             attr(.cls, ".rx") <- .lst
@@ -1087,9 +1087,9 @@ confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...){
     }
     message("Summarizing data")
     .ret <- .stk %>% dplyr::mutate(id=sim.id%%.n) %>% dplyr::group_by(id,time,trt) %>%
-        dplyr::do(data.frame(p1=.p, eff=quantile(.$value, probs=.p))) %>%
+        dplyr::do(data.frame(p1=.p, eff=stats::quantile(.$value, probs=.p))) %>%
         dplyr::group_by(p1, time, trt) %>%
-        dplyr::do(data.frame(p2=.p, eff=quantile(.$eff, probs=.p))) %>%
+        dplyr::do(data.frame(p2=.p, eff=stats::quantile(.$eff, probs=.p))) %>%
         dplyr::ungroup()  %>% dplyr::mutate(p2=sprintf("p%s",p2*100))%>%
         tidyr::spread(p2,eff) %>% dplyr::mutate(Percentile=factor(sprintf("%s%%",p1*100)));
     message("done.")
