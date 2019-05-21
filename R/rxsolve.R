@@ -570,7 +570,6 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         .setupOnly <- .lst$.setupOnly;
     }
     .ctl <- rxControl(...,events=events,params=params);
-    print(.ctl)
     if (!is.null(.pipelineThetaMat) && is.null(.ctl$thetaMat)){
         .ctl$thetaMat <- .pipelineThetaMat;
     }
