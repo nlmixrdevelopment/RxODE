@@ -14,10 +14,10 @@
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
-    "version": "3.5.1",
+    "version": "3.6.0",
     "url": "https://r-project.org"
   },
-  "runtimePlatform": "R version 3.5.1 (2018-07-02)",
+  "runtimePlatform": "R version 3.6.0 (2019-04-26)",
   "provider": {
     "@id": "https://cran.r-project.org",
     "@type": "Organization",
@@ -256,14 +256,7 @@
     {
       "@type": "SoftwareApplication",
       "identifier": "SnakeCharmR",
-      "name": "SnakeCharmR",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=SnakeCharmR"
+      "name": "SnakeCharmR"
     },
     {
       "@type": "SoftwareApplication",
@@ -401,7 +394,14 @@
     {
       "@type": "SoftwareApplication",
       "identifier": "installr",
-      "name": "installr"
+      "name": "installr",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=installr"
     }
   ],
   "softwareRequirements": [
@@ -409,7 +409,7 @@
       "@type": "SoftwareApplication",
       "identifier": "R",
       "name": "R",
-      "version": ">= 3.4.0"
+      "version": ">= 3.5.0"
     },
     {
       "@type": "SoftwareApplication",
@@ -772,5 +772,6 @@
       }
     }
   ],
-  "relatedLink": "https://CRAN.R-project.org/package=RxODE"
+  "relatedLink": "https://CRAN.R-project.org/package=RxODE",
+  "fileSize": "22547.421KB"
 }

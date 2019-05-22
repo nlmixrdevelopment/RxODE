@@ -29,7 +29,7 @@ Authors@R: c(
    )
 Maintainer: Wenping Wang <wwang8198@gmail.com>
 Depends:
-    R (>= 3.4.0)
+    R (>= 3.5.0)
 Suggests:
     knitr,
     DT,
