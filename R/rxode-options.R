@@ -51,15 +51,24 @@
     ## From https://github.com/wch/r-source/blob/269f9f7b867e4611fa729019e874bce578907f34/src/main/sysutils.c#L1634
     if (!is.null(.rxGetTemp0)) return(.rxGetTemp0);
     .tmp = Sys.getenv("TMPDIR");
-    if (!dir.exists(.tmp)) {
+    if (!dir.exists(.tmp) || !assertthat::is.writeable(.tmp)) {
         .tmp <- Sys.getenv("TMP");
-        if (!dir.exists(.tmp)) {
+        if (!dir.exists(.tmp) || !assertthat::is.writeable(.tmp)) {
             .tmp <- Sys.getenv("TEMP");
-            if (!dir.exists(.tmp)){
+            if (!dir.exists(.tmp) || !assertthat::is.writeable(.tmp)){
                 if ( .Platform$OS.type == "windows"){
                     .tmp <- getenv("R_USER");
                 } else {
                     .tmp <- .tmp
+                }
+                if (!assertthat::is.writeable(.tmp)){
+                    .tmp <- tempdir()
+                }
+                if (!assertthat::is.writeable(.tmp)){
+                    .tmp <- getwd();
+                }
+                if (!assertthat::is.writeable(.tmp)){
+                    stop("Cannot figure out a writeable cache directory.")
                 }
             }
         }
