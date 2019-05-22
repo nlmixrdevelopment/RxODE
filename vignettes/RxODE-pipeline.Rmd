@@ -280,7 +280,7 @@ if (file.exists(system.file("pipeline-sim0.rds", package = "RxODE"))){
                 thetaLower=0, # Make sure the rates are reasonable
                 dfSub=760, dfObs=95) %>% # Solve the simulation
         confint(c("pt","q","qp","pstar"),level=0.90); # Create Simulation intervals
-    save(sim0,file=file.path(system.file(package = "RxODE"), "pipeline-sim0.rds"))
+    save(sim0,file=file.path(system.file(package = "RxODE"), "pipeline-sim0.rds"), version = 2)
 }
 sim0 %>% plot() # Plot the simulation intervals
 ```
@@ -326,7 +326,7 @@ if (file.exists(system.file("pipeline-sim2.rds", package = "RxODE"))){
     ## confidence intervals
 
     sim2 <- sim1 %>% confint(c("pt","q","qp","pstar"),level=0.90); # Create Simulation intervals
-    save(sim2, file = file.path(system.file(package = "RxODE"), "pipeline-sim2.rds"))
+    save(sim2, file = file.path(system.file(package = "RxODE"), "pipeline-sim2.rds"), version = 2)
 }
 
 sim2 %>% plot()

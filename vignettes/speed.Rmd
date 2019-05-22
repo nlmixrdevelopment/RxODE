@@ -121,7 +121,7 @@ if (file.exists(system.file("benchAll.rds", package = "RxODE"))){
     load(file=system.file("benchAll.rds", package = "RxODE"));
 } else {
     bench <- microbenchmark(runFor(), runSapply(), runSingleThread(),run2Thread())
-    save(bench,file=file.path(system.file(package = "RxODE"), "benchAll.rds"));
+    save(bench,file=file.path(system.file(package = "RxODE"), "benchAll.rds"), version = 2);
 }
 print(bench)
 ```
@@ -149,7 +149,7 @@ if (file.exists(system.file("benchThread.rds", package = "RxODE"))){
     bench <- eval(parse(text=sprintf("microbenchmark(%s)",
                                      paste(paste0("runThread(", 1:12,")"),
                                            collapse=","))))
-    save(bench,file=file.path(system.file(package = "RxODE"), "benchThread.rds"));
+    save(bench,file=file.path(system.file(package = "RxODE"), "benchThread.rds"), version = 2);
 }
 
 print(bench)
