@@ -11,15 +11,12 @@
         try({dyn.unload(.path)}, silent=TRUE)
     }
 }
-
-RxODE.cache.directory <- NULL
-
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
-    assignInMyNamespace("RxODE.cache.directory",rxTempDir());
     rxPermissive(respect=TRUE); ## need to call respect on the first time
     suppressMessages(.rxWinRtoolsPath(retry=NA))
+    rxTempDir();
     if (!interactive()){
         setProgSupported(0);
     }
@@ -27,7 +24,6 @@ RxODE.cache.directory <- NULL
 
 .onAttach <- function(libname, pkgname){
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
-    assignInMyNamespace("RxODE.cache.directory",rxTempDir());
     rxPermissive(respect=TRUE); ## need to call respect on the first time
     if (!.rxWinRtoolsPath(retry=NA)){
         ## nocov start
@@ -37,6 +33,7 @@ RxODE.cache.directory <- NULL
     if (!interactive()){
         setProgSupported(0);
     }
+    rxTempDir();
 }
 
 .onUnload <- function (libpath) {
@@ -45,39 +42,6 @@ RxODE.cache.directory <- NULL
     rxSolveFree();
     library.dynam.unload("RxODE", libpath)
     ## nocov end
-}
-
-
-## Get the temp directory;  This cannot change based on R session or doparallel will fail.
-.rxGetTemp0 <- NULL
-.rxGetTemp <- function(){
-    ## From https://github.com/wch/r-source/blob/269f9f7b867e4611fa729019e874bce578907f34/src/main/sysutils.c#L1634
-    if (!is.null(.rxGetTemp0)) return(.rxGetTemp0);
-    .tmp = Sys.getenv("TMPDIR");
-    if (!dir.exists(.tmp) || !assertthat::is.writeable(.tmp)) {
-        .tmp <- Sys.getenv("TMP");
-        if (!dir.exists(.tmp) || !assertthat::is.writeable(.tmp)) {
-            .tmp <- Sys.getenv("TEMP");
-            if (!dir.exists(.tmp) || !assertthat::is.writeable(.tmp)){
-                if ( .Platform$OS.type == "windows"){
-                    .tmp <- getenv("R_USER");
-                } else {
-                    .tmp <- .tmp
-                }
-                if (!assertthat::is.writeable(.tmp)){
-                    .tmp <- tempdir()
-                }
-                if (!assertthat::is.writeable(.tmp)){
-                    .tmp <- getwd();
-                }
-                if (!assertthat::is.writeable(.tmp)){
-                    stop("Cannot figure out a writeable cache directory.")
-                }
-            }
-        }
-    }
-    assignInMyNamespace(".rxGetTemp0", .tmp);
-    return(.tmp);
 }
 
 .rxTempDir0 <- NULL;
@@ -91,7 +55,7 @@ rxTempDir <- function(){
         .tmp <- Sys.getenv("rxTempDir")
         if (.tmp == ""){
             if (is.null(.cacheDefault)){
-                assignInMyNamespace(".cacheDefault", file.path(.rxGetTemp(), ".rxCache"));
+                assignInMyNamespace(".cacheDefault", paste0(sub("Rtmp.*","",tempdir()),".rxCache"));
             }
             if (getOption("RxODE.cache.directory", .cacheDefault) != "."){
                 .tmp <- getOption("RxODE.cache.directory", .cacheDefault);
@@ -144,6 +108,7 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.verbose                  =c(TRUE, TRUE),
               RxODE.suppress.syntax.info     =c(FALSE, FALSE),
               RxODE.sympy.engine             =c("", ""),
+              RxODE.cache.directory          =c(.cacheDefault, .cacheDefault),
               RxODE.syntax.assign.state      =c(FALSE, FALSE),
               RxODE.tempfiles                =c(TRUE, TRUE),
               RxODE.sympy.run.internal       =c(FALSE, FALSE),
@@ -164,6 +129,7 @@ RxODE.calculate.sensitivity <- NULL
 RxODE.verbose <- NULL
 RxODE.suppress.syntax.info <- NULL
 RxODE.sympy.engine <- NULL
+RxODE.cache.directory <- NULL
 RxODE.delete.unnamed <- NULL
 RxODE.syntax.assign.state <- NULL
 RxODE.tempfiles <- NULL;
