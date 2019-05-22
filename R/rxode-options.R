@@ -57,7 +57,7 @@
             .tmp <- Sys.getenv("TEMP");
             if (!dir.exists(.tmp)){
                 if ( .Platform$OS.type == "windows"){
-                    .tmp <- getenv("R_USER"); //
+                    .tmp <- getenv("R_USER");
                 } else {
                     .tmp <- .tmp
                 }

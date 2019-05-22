@@ -409,7 +409,7 @@
       "@type": "SoftwareApplication",
       "identifier": "R",
       "name": "R",
-      "version": ">= 3.5.0"
+      "version": ">= 3.4.0"
     },
     {
       "@type": "SoftwareApplication",
@@ -773,5 +773,5 @@
     }
   ],
   "relatedLink": "https://CRAN.R-project.org/package=RxODE",
-  "fileSize": "22547.421KB"
+  "fileSize": "22547.565KB"
 }
