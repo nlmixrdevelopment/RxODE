@@ -44,6 +44,30 @@
     ## nocov end
 }
 
+
+## Get the temp directory;  This cannot change based on R session or doparallel will fail.
+.rxGetTemp0 <- NULL
+.rxGetTemp <- function(){
+    ## From https://github.com/wch/r-source/blob/269f9f7b867e4611fa729019e874bce578907f34/src/main/sysutils.c#L1634
+    if (!is.null(.rxGetTemp0)) return(.rxGetTemp0);
+    .tmp = Sys.getenv("TMPDIR");
+    if (!dir.exists(.tmp)) {
+        .tmp <- Sys.getenv("TMP");
+        if (!dir.exists(.tmp)) {
+            .tmp <- Sys.getenv("TEMP");
+            if (!dir.exists(.tmp)){
+                if ( .Platform$OS.type == "windows"){
+                    .tmp <- getenv("R_USER"); //
+                } else {
+                    .tmp <- .tmp
+                }
+            }
+        }
+    }
+    assignInMyNamespace(".rxGetTemp0", .tmp);
+    return(.tmp);
+}
+
 .rxTempDir0 <- NULL;
 .cacheDefault <- NULL;
 ##' Get the RxODE temporary directory
@@ -55,7 +79,7 @@ rxTempDir <- function(){
         .tmp <- Sys.getenv("rxTempDir")
         if (.tmp == ""){
             if (is.null(.cacheDefault)){
-                assignInMyNamespace(".cacheDefault", "~/.rxCache");
+                assignInMyNamespace(".cacheDefault", file.path(.rxGetTemp(), ".rxCache"));
             }
             if (getOption("RxODE.cache.directory", .cacheDefault) != "."){
                 .tmp <- getOption("RxODE.cache.directory", .cacheDefault);
