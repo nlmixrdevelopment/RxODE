@@ -296,31 +296,38 @@ way you want.  The internal method of simulating the new parameters is
 exported too.
 
 ```{r}
-library(dplyr)
-pars <- rxInits(Ribba2012);
-pars <- pars[regexpr("(prop|eta)",names(pars)) == -1]
-print(pars)
+if (file.exists("pipeline-sim0.rds")){
+    load("pipeline-sim2.rds");
+} else {
+    library(dplyr)
+    pars <- rxInits(Ribba2012);
+    pars <- pars[regexpr("(prop|eta)",names(pars)) == -1]
+    print(pars)
 
-## This is the exported method for simulation of Theta/Omega internally in RxODE
-df <- rxSimThetaOmega(params=pars, omega=omega,dfSub=760,
-                      thetaMat=thetaMat, thetaLower=0, nSub=60,nStud=60) %>%
-    filter(tkde > tlambdap) %>% as.tbl()
-## You could also simulate more and bind them together to a data frame.
-print(df)
+    ## This is the exported method for simulation of Theta/Omega internally in RxODE
+    df <- rxSimThetaOmega(params=pars, omega=omega,dfSub=760,
+                          thetaMat=thetaMat, thetaLower=0, nSub=60,nStud=60) %>%
+        filter(tkde > tlambdap) %>% as.tbl()
+    ## You could also simulate more and bind them together to a data frame.
+    print(df)
 
-## Quick check to make sure that all the parameters are OK.
-all(df$tkde>df$tlambdap)
+    ## Quick check to make sure that all the parameters are OK.
+    all(df$tkde>df$tlambdap)
 
-sim1 <- Ribba2012 %>% # Use RxODE
-    et(time.units="months") %>% # Pipe to a new event table
-    et(amt=1, time=50, until=58, ii=1.5) %>% # Add dosing every 1.5 months
-    et(0, 250, by=0.5) %>% # Add some sampling times (not required)
-    rxSolve(df)
+    sim1 <- Ribba2012 %>% # Use RxODE
+        et(time.units="months") %>% # Pipe to a new event table
+        et(amt=1, time=50, until=58, ii=1.5) %>% # Add dosing every 1.5 months
+        et(0, 250, by=0.5) %>% # Add some sampling times (not required)
+        rxSolve(df)
 
-## Note this information looses information about which ID is in a
-## "study", so it summarizes the confidence intervals by dividing the
-## subjects into sqrt(#subjects) subjects and then summarizes the
-## confidence intervals
+    ## Note this information looses information about which ID is in a
+    ## "study", so it summarizes the confidence intervals by dividing the
+    ## subjects into sqrt(#subjects) subjects and then summarizes the
+    ## confidence intervals
 
-sim2 <- sim1 %>% confint(c("pt","q","qp","pstar"),level=0.90); # Create Simulation intervals
+    sim2 <- sim1 %>% confint(c("pt","q","qp","pstar"),level=0.90); # Create Simulation intervals
+    save(sim2, file = "pipeline-sim2.rds")
+}
+
+sim2 %>% plot()
 ```

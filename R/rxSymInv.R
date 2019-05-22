@@ -48,7 +48,7 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
     } else {
         diag.xform <- match.arg(diag.xform)
         rxCat("Diagonal form: ", diag.xform, "\n");
-        rxPrint(mat1);
+        print(mat1);
         num <- as.vector(mat1[upper.tri(mat1,TRUE)]);
         i <- 0;
         num <- sapply(num, function(x){
@@ -480,9 +480,9 @@ rxSymInvCholCreate <- function(mat,
 ##'@export
 print.rxSymInvChol <- function(x, ...){ #nocov start
     d <- dim(x$fmat)[1]
-    rxCat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
-    rxPrint(x$fmat);
-    rxCat("Use `rxSymInvChol' for the matrix.\n");
+    cat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
+    print(x$fmat);
+    cat("Use `rxSymInvChol' for the matrix.\n");
 } #nocov end
 
 ##'@export
@@ -506,11 +506,11 @@ print.rxSymInvChol <- function(x, ...){ #nocov start
 ##'@export
 print.rxSymInvCholEnv <- function(x, ...){ # nocov start
     if (is.null(x$theta)){
-        message(sprintf("Uninitialized $theta, please assign (requires %s arguments)!", x$ntheta))
+        cat(sprintf("Uninitialized $theta, please assign (requires %s arguments)!\n", x$ntheta))
     } else {
-        message(sprintf("$theta=c(%s) for:\n", paste(x$theta, collapse=", ")))
+        cat(sprintf("$theta=c(%s) for:\n\n", paste(x$theta, collapse=", ")))
         print(x$invobj$fmat)
-        message("\nThis allows accessing $omegaInv, $omega, etc. For a full list see str(.)");
+        cat("\nThis allows accessing $omegaInv, $omega, etc. For a full list see str(.)\n");
     }
 } #nocov end
 

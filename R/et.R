@@ -549,8 +549,7 @@ print.rxEt <- function(x,...){
         .units <- x$.units;
         .maxId <- length(x$IDs)
         if (.maxId !=1){
-            cat(sprintf("   %s individuals\n",
-                        .maxId))
+            cat(sprintf("   %s individuals\n", .maxId))
         }
         cat(sprintf("   %s dosing records (see %s$%s(); add with %s or %s)\n",
                     x$ndose, crayon::yellow(bound), crayon::blue("get.dosing"),

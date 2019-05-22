@@ -857,22 +857,22 @@ print.RxODE <- function(x, ...){
     } else {
         .dll <- substr(.dll, 1, nchar(.dll) - nchar(.Platform$dynlib.ext) - 1)
     }
-    message(paste0(crayon::bold("RxODE "), as.vector(RxODE::rxVersion()["version"]), " model named ",.pkg,
+    cat(paste0(crayon::bold("RxODE "), as.vector(RxODE::rxVersion()["version"]), " model named ",.pkg,
                    crayon::yellow$bold(.dll), .new, " model (", .ico, .msg,
-                   .msg2, ")."))
+                   .msg2, ")."), "\n")
     if (!any(names(list(...)) == "rxSuppress") && .valid){
         .cur <- RxODE::rxState(x);
         if (length(.cur) > 0)
-            message(paste0(crayon::yellow(.bound), crayon::blue$bold("$state"), ": ", paste(.cur, collapse=", ")))
+            cat(paste0(crayon::yellow(.bound), crayon::blue$bold("$state"), ": ", paste(.cur, collapse=", "), "\n"))
         .cur <- x$stateExtra
         if (length(.cur) > 0)
-            message(paste0(crayon::yellow(.bound), crayon::blue$bold("$stateExtra"), ": ", paste(.cur, collapse=", ")))
+            cat(paste0(crayon::yellow(.bound), crayon::blue$bold("$stateExtra"), ": ", paste(.cur, collapse=", "), "\n"))
         .cur <- RxODE::rxParams(x);
         if (length(.cur) > 0)
-            message(paste0(crayon::yellow(.bound), crayon::blue$bold("$params"), ": ", paste(.cur, collapse=", ")))
+            cat(paste0(crayon::yellow(.bound), crayon::blue$bold("$params"), ": ", paste(.cur, collapse=", "), "\n"))
         .cur <- RxODE::rxLhs(x);
         if (length(.cur) > 0)
-            message(paste0(crayon::yellow(.bound), crayon::blue$bold("$lhs"), ": ", paste(.cur, collapse=", ")))
+            cat(paste0(crayon::yellow(.bound), crayon::blue$bold("$lhs"), ": ", paste(.cur, collapse=", "), "\n"))
     }
     invisible(x)
     ##nocov end
@@ -883,19 +883,19 @@ print.rxModelVars <- function(x, ...)
 {
     ## nocov start
     .bound <- .getBound(x, parent.frame(2));
-    message("RxODE model variables (see str to see all variables)");
+    cat("RxODE model variables (see str to see all variables)");
     .cur <- x$state;
     if (length(.cur) > 0)
-        message(paste0(crayon::yellow(.bound), crayon::blue$bold("$state"), ": ", paste(.cur, collapse=", ")))
+        cat(paste0(crayon::yellow(.bound), crayon::blue$bold("$state"), ": ", paste(.cur, collapse=", "), "\n"))
     .cur <- x$stateExtra;
     if (length(.cur) > 0)
-        message(paste0(crayon::yellow(.bound), crayon::blue$bold("$stateExtra"), ": ", paste(.cur, collapse=", ")))
+        cat(paste0(crayon::yellow(.bound), crayon::blue$bold("$stateExtra"), ": ", paste(.cur, collapse=", "), "\n"))
     .cur <- x$params;
     if (length(.cur) > 0)
-        message(paste0(crayon::yellow(.bound), crayon::blue$bold("$params"), ": ", paste(.cur, collapse=", ")))
+        cat(paste0(crayon::yellow(.bound), crayon::blue$bold("$params"), ": ", paste(.cur, collapse=", "), "\n"))
     .cur <- x$lhs;
     if (length(.cur) > 0)
-        message(paste0(crayon::yellow(.bound), crayon::blue$bold("$lhs"), ": ", paste(.cur, collapse=", ")))
+        cat(paste0(crayon::yellow(.bound), crayon::blue$bold("$lhs"), ": ", paste(.cur, collapse=", "), "\n"))
     invisible(x)
     ## nocov end
 }
