@@ -91,7 +91,12 @@ times](RxODE-events.html#add-doses-and-samples-within-a-sampling-window)).
 Once this is complete you can simulate using the `rxSolve` routine:
 
 ```{r}
-sim  <- rxSolve(mod,theta,ev,omega=omega,nSub=100)
+if (file.exists("sim-var-sim.rds")){
+    load("sim-var-sim.rds")
+} else {
+    sim  <- rxSolve(mod,theta,ev,omega=omega,nSub=100)
+    save(sim, file = "sim-var-sim.rds")
+}
 ```
 
 To quickly look and customize your simulation you use the default
@@ -147,16 +152,22 @@ with the simulated data. Below,  the 5th, 50th, and 95th percentiles
 of the simulated data are plotted. 
 
 ```{r}
-
 library(dplyr)
+library(ggplot2)
 
-p <- c(0.05, 0.5, 0.95);
-s <-sim %>% group_by(time) %>%
-    do(data.frame(p=p, eff=quantile(.$eff, probs=p), 
-                  eff.n = length(.$eff), eff.avg = mean(.$eff),
-                  centr=quantile(.$centr, probs=p),
-                  centr.n=length(.$centr),centr.avg = mean(.$centr))) %>%
-    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+if (file.exists("sim-var-s.rds")){
+    load("sim-var-s.rds")
+} else {
+    p <- c(0.05, 0.5, 0.95);
+    s <-sim %>% group_by(time) %>%
+        do(data.frame(p=p, eff=quantile(.$eff, probs=p), 
+                      eff.n = length(.$eff), eff.avg = mean(.$eff),
+                      centr=quantile(.$centr, probs=p),
+                      centr.n=length(.$centr),centr.avg = mean(.$centr))) %>%
+        mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+    save(s, file = "sim-var-s.rds")
+}
+
 
 ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
     xlab("Time")
@@ -200,25 +211,16 @@ theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central
 sigma <- lotri(eff.err ~ 0.1, cp.err ~ 0.1)
 
 
-sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma)
+if (file.exists("sim-var-s1.rds")){
+    load("sim-var-s1.rds")
+} else {
+    sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma)
+    s <- confint(sim, c("eff", "centr"));
+    save(s, file = "sim-var-s1.rds");
+}
 
-p <- c(0.05, 0.5, 0.95);
-s <-sim %>% group_by(time) %>%
-    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
-                  eff.n = length(.$e), eff.avg = mean(.$e),
-                  centr=quantile(.$cp, probs=p),
-                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
-    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
-
-ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
-    xlab("Time")
+plot(s)
 ```
-
-```{r}
-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
-    xlab("Time") + guides(color=FALSE)
-```
-
 
 ### Simulation of Individuals
 
@@ -305,25 +307,16 @@ tmp <- matrix(rnorm(8^2), 8, 8)
 tMat <- tcrossprod(tmp, tmp) / (8 ^ 2)
 dimnames(tMat) <- list(NULL, names(theta))
 
-sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
-     dfSub=10, dfObs=100)
+if (file.exists("sim-var-s2.rds")){
+    load("sim-var-s2.rds")
+} else {
+    sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+                    dfSub=10, dfObs=100)
 
-p <- c(0.05, 0.5, 0.95);
-s <-sim %>% group_by(time) %>%
-    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
-                  eff.n = length(.$e), eff.avg = mean(.$e),
-                  centr=quantile(.$cp, probs=p),
-                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
-    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
-
-ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
-    xlab("Time")
-```
-
-
-```{r}
-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
-    xlab("Time") + guides(color=FALSE)
+    s <-sim %>% confint(c("centr", "eff"))
+    save(sim, s, file = "sim-var-s2.rds");
+}
+plot(s)
 ```
 
 If you wish you can see what `omega` and `sigma` was used for each
@@ -345,27 +338,23 @@ the `omega` or `sigma` matrices, you can turn off this feature by
 specifying the `simVariability = FALSE` option when solving:
 
 ```{r}
-sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
-                simVariability=FALSE);
 
-p <- c(0.05, 0.5, 0.95);
-s <-sim %>% group_by(time) %>%
-    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
-                  eff.n = length(.$e), eff.avg = mean(.$e),
-                  centr=quantile(.$cp, probs=p),
-                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
-    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+if (file.exists("sim-var-s3.rds")){
+    load("sim-var-s3.rds")
+} else {
+
+    sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+                    simVariability=FALSE);
+
+    s <-sim %>% confint(c("centr", "eff"))
+    save(sim, s, file = "sim-var-s3.rds");
+
+}
 
 
-ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
-    xlab("Time")
-
+plot(s)
 ```
 
-```{r}
-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
-    xlab("Time") + guides(color=FALSE)
-```
 
 Note since realizations of `omega` and `sigma` were not simulated, `$omega.list` and
 `$sigma.list` both return `NULL`.
@@ -388,25 +377,19 @@ random deviates with `mvnfast` (either `mvnfast::rmvn()` or
 For example:
 
 ```{r}
-sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
-                nCoresRV=2);
+if (file.exists("sim-var-s4.rds")){
+    load("sim-var-s4.rds")
+} else {
 
-p <- c(0.05, 0.5, 0.95);
-s <-sim %>% group_by(time) %>%
-    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
-                  eff.n = length(.$e), eff.avg = mean(.$e),
-                  centr=quantile(.$cp, probs=p),
-                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
-    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+    sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+                    nCoresRV=2);
 
+    p <- c(0.05, 0.5, 0.95);
+    s <-sim %>% confint(c("eff", "centr"))
+    save(sim, s, file = "sim-var-s4.rds")
+}
 
-ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
-    xlab("Time")
-```
-
-```{r}
-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
-    xlab("Time") + guides(color=FALSE)
+plot(s)
 ```
 
 The default for this is `1` core since the result depends on the
