@@ -11,12 +11,15 @@
         try({dyn.unload(.path)}, silent=TRUE)
     }
 }
+
+RxODE.cache.directory <- NULL
+
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
+    assignInMyNamespace("RxODE.cache.directory",rxTempDir());
     rxPermissive(respect=TRUE); ## need to call respect on the first time
     suppressMessages(.rxWinRtoolsPath(retry=NA))
-    rxTempDir();
     if (!interactive()){
         setProgSupported(0);
     }
@@ -24,6 +27,7 @@
 
 .onAttach <- function(libname, pkgname){
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
+    assignInMyNamespace("RxODE.cache.directory",rxTempDir());
     rxPermissive(respect=TRUE); ## need to call respect on the first time
     if (!.rxWinRtoolsPath(retry=NA)){
         ## nocov start
@@ -33,7 +37,6 @@
     if (!interactive()){
         setProgSupported(0);
     }
-    rxTempDir();
 }
 
 .onUnload <- function (libpath) {
@@ -141,7 +144,6 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.verbose                  =c(TRUE, TRUE),
               RxODE.suppress.syntax.info     =c(FALSE, FALSE),
               RxODE.sympy.engine             =c("", ""),
-              RxODE.cache.directory          =c(.cacheDefault, .cacheDefault),
               RxODE.syntax.assign.state      =c(FALSE, FALSE),
               RxODE.tempfiles                =c(TRUE, TRUE),
               RxODE.sympy.run.internal       =c(FALSE, FALSE),
@@ -162,7 +164,6 @@ RxODE.calculate.sensitivity <- NULL
 RxODE.verbose <- NULL
 RxODE.suppress.syntax.info <- NULL
 RxODE.sympy.engine <- NULL
-RxODE.cache.directory <- NULL
 RxODE.delete.unnamed <- NULL
 RxODE.syntax.assign.state <- NULL
 RxODE.tempfiles <- NULL;
