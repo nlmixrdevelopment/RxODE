@@ -10,6 +10,7 @@ env:
    - CODECOV_TOKEN: c1a47ffb-e5b5-420a-a0ed-6df480bcb833
 
 r:
+  - 3.4
   - 3.5
   - 3.6
   - devel
@@ -24,6 +25,8 @@ matrix:
   - r: devel
     os: linux
   - r: devel
+    os: osx
+  - r: 3.4
     os: osx
   - r: 3.5
     os: osx

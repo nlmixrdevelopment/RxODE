@@ -117,11 +117,11 @@ run2Thread <- function(){
 Now the moment of truth, the timings:
 
 ```{r}
-if (file.exists("benchAll.rds")){
-    load(file="benchAll.rds");
+if (file.exists(system.file("benchAll.rds", package = "RxODE"))){
+    load(file=system.file("benchAll.rds", package = "RxODE"));
 } else {
     bench <- microbenchmark(runFor(), runSapply(), runSingleThread(),run2Thread())
-    save(bench,file="benchAll.rds");
+    save(bench,file=file.path(system.file(package = "RxODE"), "benchAll.rds"));
 }
 print(bench)
 ```
@@ -143,13 +143,13 @@ runThread <- function(n){
     solve(mod1, params.all, ev, cores=n)[,c("sim.id", "time", "eff")]
 }
 
-if (file.exists("benchThread.rds")){
-    load(file="benchThread.rds");
+if (file.exists(system.file("benchThread.rds", package = "RxODE"))){
+    load(file=system.file("benchThread.rds", package = "RxODE"));
 } else {
     bench <- eval(parse(text=sprintf("microbenchmark(%s)",
                                      paste(paste0("runThread(", 1:12,")"),
                                            collapse=","))))
-    save(bench,file="benchThread.rds");
+    save(bench,file=file.path(system.file(package = "RxODE"), "benchThread.rds"));
 }
 
 print(bench)

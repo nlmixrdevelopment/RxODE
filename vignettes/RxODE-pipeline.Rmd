@@ -268,8 +268,8 @@ summary of simulations, `RxODE` also provides this ability by the
 ```{r}
 ## This takes a little more time; Most of the time is the summary
 ## time.
-if (file.exists("pipeline-sim0.rds")){
-    load("pipeline-sim0.rds");
+if (file.exists(system.file("pipeline-sim0.rds", package = "RxODE"))){
+    load(system.file("pipeline-sim0.rds", package = "RxODE"));
 } else {
     sim0 <- Ribba2012 %>% # Use RxODE
         et(time.units="months") %>% # Pipe to a new event table
@@ -280,7 +280,7 @@ if (file.exists("pipeline-sim0.rds")){
                 thetaLower=0, # Make sure the rates are reasonable
                 dfSub=760, dfObs=95) %>% # Solve the simulation
         confint(c("pt","q","qp","pstar"),level=0.90); # Create Simulation intervals
-    save(sim0,file="pipeline-sim0.rds")
+    save(sim0,file=file.path(system.file(package = "RxODE"), "pipeline-sim0.rds"))
 }
 sim0 %>% plot() # Plot the simulation intervals
 ```
@@ -296,8 +296,8 @@ way you want.  The internal method of simulating the new parameters is
 exported too.
 
 ```{r}
-if (file.exists("pipeline-sim0.rds")){
-    load("pipeline-sim2.rds");
+if (file.exists(system.file("pipeline-sim2.rds", package = "RxODE"))){
+    load(system.file("pipeline-sim2.rds", package = "RxODE"));
 } else {
     library(dplyr)
     pars <- rxInits(Ribba2012);
@@ -326,7 +326,7 @@ if (file.exists("pipeline-sim0.rds")){
     ## confidence intervals
 
     sim2 <- sim1 %>% confint(c("pt","q","qp","pstar"),level=0.90); # Create Simulation intervals
-    save(sim2, file = "pipeline-sim2.rds")
+    save(sim2, file = file.path(system.file(package = "RxODE"), "pipeline-sim2.rds"))
 }
 
 sim2 %>% plot()
