@@ -186,22 +186,23 @@ rxSetProd <- function(type=c("long double", "double", "logify")){
 ##' @export
 rxC14 <- function(){
     ## nocov start
-    if (.Platform$OS.type!="windows") stop("This only helps setup C++14 on windows")
     .dotR <- file.path(Sys.getenv("HOME"), ".R")
     if (!file.exists(.dotR)) dir.create(dotR)
-    .M <- file.path(.dotR, "Makevars.win")
+    .M <- file.path(.dotR, ifelse(.Platform$OS.type!="windows", "Makevars.win", "Makevars"))
     if (!file.exists(.M)) file.create(.M)
     .lines <-suppressWarnings(readLines(.M));
     .write <- FALSE
     .w <- which(regexpr(rex::rex(any_spaces, "CXX14", any_spaces, "="), .lines) != -1)
     if (length(.w)==0L){
         .write <- TRUE
-        .lines[length(.lines)+1] <- "CXX14=$(BINPREF)g++ $(M_ARCH)"
+        .lines[length(.lines)+1] <- ifelse(.Platform$OS.type!="windows","CXX14=$(BINPREF)g++ $(M_ARCH)", "CXX14=g++")
     }
-    .w <- which(regexpr(rex::rex(any_spaces, "CXX14STD", any_spaces, "="), .lines) != -1)
-    if (length(.w)==0L){
-        .write <- TRUE
-        .lines[length(.lines)+1] <- "CXX14STD=-std=c++1y"
+    if (.Platform$OS.type!="windows"){
+        .w <- which(regexpr(rex::rex(any_spaces, "CXX14STD", any_spaces, "="), .lines) != -1)
+        if (length(.w)==0L){
+            .write <- TRUE
+            .lines[length(.lines)+1] <- "CXX14STD=-std=c++1y"
+        }
     }
     .w <- which(regexpr(rex::rex(any_spaces, "CXX14FLAGS", any_spaces, "="), .lines) != -1)
     if (length(.w)==0L){
@@ -210,10 +211,10 @@ rxC14 <- function(){
     }
     if (.write) {
         writeLines(.lines, .M);
-        message("C++14 setup in windows")
+        message("C++14 setup")
     } else {
         message("C++14 was already setup")
     }
-    return(invisible(NULL));
+    return(invisible(""));
     ## nocov end
 }
