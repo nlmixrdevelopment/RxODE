@@ -187,7 +187,7 @@ rxSetProd <- function(type=c("long double", "double", "logify")){
 rxC14 <- function(){
     ## nocov start
     .dotR <- file.path(Sys.getenv("HOME"), ".R")
-    if (!file.exists(.dotR)) dir.create(dotR)
+    if (!file.exists(.dotR)) dir.create(.dotR)
     .M <- file.path(.dotR, ifelse(.Platform$OS.type!="windows", "Makevars.win", "Makevars"))
     if (!file.exists(.M)) file.create(.M)
     .lines <-suppressWarnings(readLines(.M));
