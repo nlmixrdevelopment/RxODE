@@ -1,9 +1,0 @@
-* Move InfusionRate[] from global to local (per model). Remove
-  limitation to 99 entries.
-
-* eventTable(), expand the encoded/packed "evid" column 
-  in the event table?  (e.g., provide columns flags for infusion vs 
-  bolus, etc.)
-
-* Define methods for EventTable objects (plot, points/lines, summary, 
-  any other?)
