@@ -43,7 +43,7 @@
 ##'     dosing regimen simulation web application. Users may want to
 ##'     modify the code to experiment creating shiny applications for
 ##'     their specific \code{RxODE} models.
-##' @seealso \code{\link{RxODE}},\code{\link{eventTable}}, and the package \pkg{shiny} (\url{shiny.rstudio.com}).
+##' @seealso \code{\link{RxODE}},\code{\link{eventTable}}, and the package \pkg{shiny} (\url{https://shiny.rstudio.com}).
 ##'
 ##' @examples
 ##' \dontrun{

@@ -69,7 +69,7 @@ runApp("myapp")
 }
 }
 \seealso{
-\code{\link{RxODE}},\code{\link{eventTable}}, and the package \pkg{shiny} (\url{shiny.rstudio.com}).
+\code{\link{RxODE}},\code{\link{eventTable}}, and the package \pkg{shiny} (\url{https://shiny.rstudio.com}).
 }
 \concept{PK/PD}
 \concept{pharmacometrics}
