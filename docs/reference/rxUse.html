@@ -95,19 +95,11 @@
     <li>
       <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
     </li>
-    <li class="divider"></li>
-    <li class="dropdown-header">Events and Simulations &amp; RxODE data frames</li>
     <li>
-      <a href="../articles/RxODE-events.html">Creating Dosing Events &amp; Observations</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
       <a href="../articles/speed.html">Speeding up RxODE ODE solving</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-data-frame.html">Interactive RxODE Data Frames</a>
     </li>
     <li class="divider"></li>
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -132,6 +124,29 @@
     <li>
       <a href="../articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
     </li>
+  </ul>
+</li>
+<li>
+  <a href="../articles/RxODE-events.html">
+    <span class="fa fa-pills"></span>
+     
+    Dosing
+  </a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-laptop-medical"></span>
+     
+    Simulations
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
+    </li>
+    <li class="dropdown-header">Using Prior Data for ODE solving</li>
   </ul>
 </li>
 <li>
@@ -186,7 +201,7 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>rxUse</span>(<span class='no'>obj</span>, <span class='kw'>overwrite</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>compress</span> <span class='kw'>=</span> <span class='st'>"bzip2"</span>)</pre>
+    <pre class="usage"><span class='fu'>rxUse</span>(<span class='no'>obj</span>, <span class='kw'>overwrite</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>compress</span> <span class='kw'>=</span> <span class='st'>"bzip2"</span>, <span class='kw'>internal</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -204,6 +219,10 @@ files. If you really want to do so, set this to <code>TRUE</code>.</p></td>
       <th>compress</th>
       <td><p>Choose the type of compression used by <code><a href='https://www.rdocumentation.org/packages/base/topics/save'>save()</a></code>.
 Should be one of "gzip", "bzip2", or "xz".</p></td>
+    </tr>
+    <tr>
+      <th>internal</th>
+      <td><p>If this is run internally.  By default this is FALSE</p></td>
     </tr>
     </table>
     

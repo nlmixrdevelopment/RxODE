@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Free the C solving information. — rxSolveFree • RxODE</title>
+<title>Clear/Set pipeline — .clearPipe • RxODE</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -37,9 +37,9 @@
 
 
 
-<meta property="og:title" content="Free the C solving information. — rxSolveFree" />
+<meta property="og:title" content="Clear/Set pipeline — .clearPipe" />
 
-<meta property="og:description" content="Take the ODE C system and free it." />
+<meta property="og:description" content="Clear/Set pipeline" />
 
 <meta property="og:image" content="/logo.png" />
 <meta name="twitter:card" content="summary" />
@@ -190,24 +190,107 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Free the C solving information.</h1>
+    <h1>Clear/Set pipeline</h1>
     
-    <div class="hidden name"><code>rxSolveFree.Rd</code></div>
+    <div class="hidden name"><code>dot-clearPipe.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Take the ODE C system and free it.</p>
+    <p>Clear/Set pipeline</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>rxSolveFree</span>()</pre>
-        
+    <pre class="usage"><span class='fu'>.clearPipe</span>(<span class='kw'>rx</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>rx</th>
+      <td><p>RxODE object</p></td>
+    </tr>
+    <tr>
+      <th>inits</th>
+      <td><p>a vector of initial values of the state variables
+(e.g., amounts in each compartment), and the order in this
+vector must be the same as the state variables (e.g., PK/PD
+compartments);</p></td>
+    </tr>
+    <tr>
+      <th>events</th>
+      <td><p>an <code>eventTable</code> object describing the input
+(e.g., doses) to the dynamic system and observation sampling
+time points (see <code><a href='eventTable.html'>eventTable</a></code>);</p></td>
+    </tr>
+    <tr>
+      <th>params</th>
+      <td><p>a numeric named vector with values for every
+parameter in the ODE system; the names must correspond to the
+parameter identifiers used in the ODE specification;</p></td>
+    </tr>
+    <tr>
+      <th>iCov</th>
+      <td><p>A data frame of individual non-time varying covariates
+to combine with the <code>params</code> to form a parameter
+data.frame.</p></td>
+    </tr>
+    <tr>
+      <th>keep</th>
+      <td><p>Columns to keep from either the input dataset or the
+<code>iCov</code> dataset.  With the <code>iCov</code> dataset, the column
+is kept once per line.  For the input dataset, if any records
+are added to the data LOCF (Last Observation Carried forward)
+imputation is performed.</p></td>
+    </tr>
+    <tr>
+      <th>thetaMat</th>
+      <td><p>Named theta matrix.</p></td>
+    </tr>
+    <tr>
+      <th>omega</th>
+      <td><p>Estimate of Covariance matrix. When omega is a list,
+assume it is a block matrix and convert it to a full matrix
+for simulations.</p></td>
+    </tr>
+    <tr>
+      <th>sigma</th>
+      <td><p>Named sigma covariance or Cholesky decomposition of a
+covariance matrix.  The names of the columns indicate
+parameters that are simulated.  These are simulated for every
+observation in the solved system.</p></td>
+    </tr>
+    <tr>
+      <th>dfObs</th>
+      <td><p>Degrees of freedom to sample the unexplained variaiblity matrix from the 
+inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.</p></td>
+    </tr>
+    <tr>
+      <th>dfSub</th>
+      <td><p>Degrees of freedom to sample the between subject variaiblity matrix from the 
+inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.</p></td>
+    </tr>
+    <tr>
+      <th>nSub</th>
+      <td><p>Number between subject variabilities (ETAs) simulated for every 
+realization of the parameters.</p></td>
+    </tr>
+    <tr>
+      <th>nStud</th>
+      <td><p>Number virtual studies to characterize uncertainty in estimated 
+parameters.</p></td>
+    </tr>
+    </table>
+    
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
+      <li><a href="#arguments">Arguments</a></li>
                 </ul>
 
   </div>

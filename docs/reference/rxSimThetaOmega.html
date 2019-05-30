@@ -95,19 +95,11 @@
     <li>
       <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
     </li>
-    <li class="divider"></li>
-    <li class="dropdown-header">Events and Simulations &amp; RxODE data frames</li>
     <li>
-      <a href="../articles/RxODE-events.html">Creating Dosing Events &amp; Observations</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
       <a href="../articles/speed.html">Speeding up RxODE ODE solving</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-data-frame.html">Interactive RxODE Data Frames</a>
     </li>
     <li class="divider"></li>
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -132,6 +124,29 @@
     <li>
       <a href="../articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
     </li>
+  </ul>
+</li>
+<li>
+  <a href="../articles/RxODE-events.html">
+    <span class="fa fa-pills"></span>
+     
+    Dosing
+  </a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-laptop-medical"></span>
+     
+    Simulations
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
+    </li>
+    <li class="dropdown-header">Using Prior Data for ODE solving</li>
   </ul>
 </li>
 <li>
@@ -187,8 +202,13 @@
     </div>
 
     <pre class="usage"><span class='fu'>rxSimThetaOmega</span>(<span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>omegaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigmaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>omegaLower</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/numeric'>as.numeric</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='no'>R_NegInf</span>)),
+  <span class='kw'>omegaUpper</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/numeric'>as.numeric</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='no'>R_PosInf</span>)), <span class='kw'>omegaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaLower</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/numeric'>as.numeric</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='no'>R_NegInf</span>)),
+  <span class='kw'>thetaUpper</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/numeric'>as.numeric</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='no'>R_PosInf</span>)), <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>sigmaLower</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/numeric'>as.numeric</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='no'>R_NegInf</span>)),
+  <span class='kw'>sigmaUpper</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/numeric'>as.numeric</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='no'>R_PosInf</span>)), <span class='kw'>sigmaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>sigmaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nCoresRV</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>nObs</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>,
   <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>simSubjects</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
     
@@ -211,6 +231,14 @@ equivalent to <code>Inf</code> degrees, or to simulate from a normal
 distribution instead of a t-distribution.</p></td>
     </tr>
     <tr>
+      <th>omegaLower</th>
+      <td><p>Lower bounds for simulated ETAs (by default -Inf)</p></td>
+    </tr>
+    <tr>
+      <th>omegaUpper</th>
+      <td><p>Upper bounds for simulated ETAs (by default Inf)</p></td>
+    </tr>
+    <tr>
       <th>omegaIsChol</th>
       <td><p>Indicates if the <code>omega</code> supplied is a
 Cholesky decomposed matrix instead of the traditional
@@ -224,6 +252,14 @@ realization of the parameters.</p></td>
     <tr>
       <th>thetaMat</th>
       <td><p>Named theta matrix.</p></td>
+    </tr>
+    <tr>
+      <th>thetaLower</th>
+      <td><p>Lower bounds for simulated population parameter variability (by default -Inf)</p></td>
+    </tr>
+    <tr>
+      <th>thetaUpper</th>
+      <td><p>Upper bounds for simulated population unexplained variability (by default Inf)</p></td>
     </tr>
     <tr>
       <th>thetaDf</th>
@@ -247,6 +283,14 @@ parameters.</p></td>
       <th>sigma</th>
       <td><p>Matrix for residual variation.  Adds a "NA" value for each of the 
 indivdual parameters, residuals are updated after solve is completed.</p></td>
+    </tr>
+    <tr>
+      <th>sigmaLower</th>
+      <td><p>Lower bounds for simulated unexplained variability (by default -Inf)</p></td>
+    </tr>
+    <tr>
+      <th>sigmaUpper</th>
+      <td><p>Upper bounds for simulated unexplained variability (by default Inf)</p></td>
     </tr>
     <tr>
       <th>sigmaDf</th>

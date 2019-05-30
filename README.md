@@ -1,4 +1,5 @@
 <img src="https://raw.githubusercontent.com/nlmixrdevelopment/RxODE/master/vignettes/logo.png" width="120" alt="RxODE logo (by Justin Wilkins)" style="position:absolute; top:0; right:0; padding:10px; border: 0;">
+
 # RxODE
 
 [![Build Status](https://travis-ci.org/nlmixrdevelopment/RxODE.svg?branch=master)](https://travis-ci.org/nlmixrdevelopment/RxODE)

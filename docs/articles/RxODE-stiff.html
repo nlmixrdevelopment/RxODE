@@ -60,19 +60,11 @@
     <li>
       <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
     </li>
-    <li class="divider">
-    <li class="dropdown-header">Events and Simulations &amp; RxODE data frames</li>
     <li>
-      <a href="../articles/RxODE-events.html">Creating Dosing Events &amp; Observations</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
       <a href="../articles/speed.html">Speeding up RxODE ODE solving</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-data-frame.html">Interactive RxODE Data Frames</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -97,6 +89,29 @@
     <li>
       <a href="../articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
     </li>
+  </ul>
+</li>
+<li>
+  <a href="../articles/RxODE-events.html">
+    <span class="fa fa-pills"></span>
+     
+    Dosing
+  </a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-laptop-medical"></span>
+     
+    Simulations
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
+    </li>
+    <li class="dropdown-header">Using Prior Data for ODE solving</li>
   </ul>
 </li>
 <li>
@@ -141,7 +156,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE Jacobian specification and Stiff Systems</h1>
             
-            <h4 class="date">2019-05-15</h4>
+            <h4 class="date">2019-05-30</h4>
       
       
       <div class="hidden name"><code>RxODE-stiff.Rmd</code></div>
@@ -155,9 +170,13 @@
 <a href="#stiff-odes-with-jacobian-specification" class="anchor"></a>Stiff ODEs with Jacobian Specification</h1>
 <p>Occasionally, you may come across a <a href="https://en.wikipedia.org/wiki/Stiff_equation"><strong>stiff</strong> differential equation</a>, that is a differential equation that is numerically unstable and small variations in parameters cause different solutions to the ODEs. One way to tackle this is to choose a stiff-solver, or hybrid stiff solver (like the default LSODA). Typically this is enough. However exact Jacobian solutions may increase the stability of the ODE. (Note the Jacobian is the derivative of the ODE specification with respect to each variable). In RxODE you can specify the Jacobian with the <code>df(state)/dy(variable)=</code> statement. A classic ODE that has stiff properties under various conditions is the <a href="http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/math_anal/diffeq6.html">van dar Pol</a> differential equations.</p>
 <p>In RxODE these can be specified by the following:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RxODE)
-
-Vtpol2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RxODE)</code></pre></div>
+<pre><code>## Registered S3 methods overwritten by 'ggplot2':
+##   method         from 
+##   [.quosures     rlang
+##   c.quosures     rlang
+##   print.quosures rlang</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Vtpol2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
     d<span class="op">/</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/TDist">dt</a></span>(y)  =<span class="st"> </span>dy
     d<span class="op">/</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/TDist">dt</a></span>(dy) =<span class="st"> </span>mu<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>y<span class="op">^</span><span class="dv">2</span>)<span class="op">*</span>dy <span class="op">-</span><span class="st"> </span>y
     ## Jacobian

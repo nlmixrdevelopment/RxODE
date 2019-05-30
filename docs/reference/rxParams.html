@@ -96,19 +96,11 @@ ODE system, and can be used to pipe parameters into an RxODE solve" />
     <li>
       <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
     </li>
-    <li class="divider"></li>
-    <li class="dropdown-header">Events and Simulations &amp; RxODE data frames</li>
     <li>
-      <a href="../articles/RxODE-events.html">Creating Dosing Events &amp; Observations</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
       <a href="../articles/speed.html">Speeding up RxODE ODE solving</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-data-frame.html">Interactive RxODE Data Frames</a>
     </li>
     <li class="divider"></li>
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -133,6 +125,29 @@ ODE system, and can be used to pipe parameters into an RxODE solve" />
     <li>
       <a href="../articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
     </li>
+  </ul>
+</li>
+<li>
+  <a href="../articles/RxODE-events.html">
+    <span class="fa fa-pills"></span>
+     
+    Dosing
+  </a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-laptop-medical"></span>
+     
+    Simulations
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
+    </li>
+    <li class="dropdown-header">Using Prior Data for ODE solving</li>
   </ul>
 </li>
 <li>
@@ -193,17 +208,20 @@ ODE system, and can be used to pipe parameters into an RxODE solve</p>
 <span class='co'># S3 method for RxODE</span>
 <span class='fu'>rxParams</span>(<span class='no'>obj</span>, <span class='kw'>constants</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='no'>...</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
+  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
 
 <span class='co'># S3 method for rxSolve</span>
 <span class='fu'>rxParams</span>(<span class='no'>obj</span>, <span class='kw'>constants</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='no'>...</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
+  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
 
 <span class='co'># S3 method for rxEt</span>
 <span class='fu'>rxParams</span>(<span class='no'>obj</span>, <span class='no'>...</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
+  <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
 
 <span class='fu'>rxParam</span>(<span class='no'>obj</span>, <span class='no'>...</span>)</pre>
     
@@ -281,6 +299,16 @@ observation in the solved system.</p></td>
       <th>dfObs</th>
       <td><p>Degrees of freedom to sample the unexplained variaiblity matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.</p></td>
+    </tr>
+    <tr>
+      <th>nSub</th>
+      <td><p>Number between subject variabilities (ETAs) simulated for every 
+realization of the parameters.</p></td>
+    </tr>
+    <tr>
+      <th>nStud</th>
+      <td><p>Number virtual studies to characterize uncertainty in estimated 
+parameters.</p></td>
     </tr>
     </table>
     

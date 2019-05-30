@@ -98,6 +98,8 @@ navbar:
           href: articles/RxODE-intro.html
         - text: "RxODE mini language syntax"
           href: articles/RxODE-syntax.html
+        - text: "RxODE with piping ie %>%"
+          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html
         - text: "Speeding up RxODE ODE solving"
           href: articles/speed.html
         - text: "--------------------------"
@@ -124,8 +126,8 @@ navbar:
     menu:
         - text: "Single Subject ODE solving"
         - text: "Multiple Subject RxODE Simulation"
-          href: articles/RxODE-sim-var.html
-	- text: "Using Prior Data for ODE solving"
+          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html
+        - text: "Using Prior Data for ODE solving"
   - text: "Tutorial"
     icon: fa-life-ring
     href: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf

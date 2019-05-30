@@ -60,19 +60,11 @@
     <li>
       <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
     </li>
-    <li class="divider">
-    <li class="dropdown-header">Events and Simulations &amp; RxODE data frames</li>
     <li>
-      <a href="../articles/RxODE-events.html">Creating Dosing Events &amp; Observations</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
       <a href="../articles/speed.html">Speeding up RxODE ODE solving</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-data-frame.html">Interactive RxODE Data Frames</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -97,6 +89,29 @@
     <li>
       <a href="../articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
     </li>
+  </ul>
+</li>
+<li>
+  <a href="../articles/RxODE-events.html">
+    <span class="fa fa-pills"></span>
+     
+    Dosing
+  </a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-laptop-medical"></span>
+     
+    Simulations
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
+    </li>
+    <li class="dropdown-header">Using Prior Data for ODE solving</li>
   </ul>
 </li>
 <li>
@@ -141,7 +156,7 @@
     <div class="page-header toc-ignore">
       <h1>Changing RxODE compartment numbers</h1>
             
-            <h4 class="date">2019-05-15</h4>
+            <h4 class="date">2019-05-30</h4>
       
       
       <div class="hidden name"><code>RxODE-cmt.Rmd</code></div>
@@ -154,8 +169,13 @@
 <h1 class="hasAnchor">
 <a href="#how-rxode-assigns-compartment-numbers" class="anchor"></a>How RxODE assigns compartment numbers</h1>
 <p>RxODE automatically assigns compartment numbers when parsing. For example, with the Mavoglurant PBPK model the following model may be used:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RxODE)
-pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RxODE)</code></pre></div>
+<pre><code>#&gt; Registered S3 methods overwritten by 'ggplot2':
+#&gt;   method         from 
+#&gt;   [.quosures     rlang
+#&gt;   c.quosures     rlang
+#&gt;   print.quosures rlang</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
     KbBR =<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(lKbBR)
     KbMU =<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(lKbMU)
     KbAD =<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(lKbAD)
@@ -238,8 +258,8 @@ pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.
 })</code></pre></div>
 <p>If you look at the summary, you can see where RxODE assigned the compartment number(s)</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(pbpk)</code></pre></div>
-<pre><code>#&gt; RxODE 0.9.0-6 model named rx_5bde43cdae98ba564bf47874b52fb052 model (ready).</code></pre>
-<pre><code>#&gt; DLL: /home/matt/.rxCache/rx_5bde43cdae98ba564bf47874b52fb052__.rxd/rx_5bde43cdae98ba564bf47874b52fb052_.so
+<pre><code>#&gt; RxODE 0.9.0-6 model named rx_679c9aafa985a10a84272291e52f8053_x6 model (ready). 
+#&gt; DLL: C:\Users\fidlema3\AppData\Local\Temp\1\RXCACH~1\rx_679c9aafa985a10a84272291e52f8053_x64_.rxd/rx_679c9aafa985a10a84272291e52f8053_x64.dll
 #&gt; -- User supplied parameters: --------------------------------------------------- 
 #&gt;      lKbBR      lKbMU      lKbAD     lCLint eta.LClint      lKbBO      lKbRB 
 #&gt;         NA         NA         NA         NA         NA         NA         NA 
@@ -440,10 +460,10 @@ pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.
 })</code></pre></div>
 <p>You can see this change in the simple printout</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pbpk2</code></pre></div>
-<pre><code>#&gt; RxODE 0.9.0-6 model named rx_8bfb4fe62f95653fbaeaba6e06280262 model (ready).</code></pre>
-<pre><code>#&gt; x$state: Venous_Blood, Skin, Lungs, Heart, Brain, Muscles, Adipose, Spleen, Pancreas, Liver, Stomach, Gut, Bones, Kidneys, Arterial_Blood, Rest_of_Body</code></pre>
-<pre><code>#&gt; x$params: lKbBR, lKbMU, lKbAD, lCLint, eta.LClint, lKbBO, lKbRB, WT, BP, fup</code></pre>
-<pre><code>#&gt; x$lhs: KbBR, KbMU, KbAD, CLint, KbBO, KbRB, CO, QHT, QBR, QMU, QAD, QSK, QSP, QPA, QLI, QST, QGU, QHA, QBO, QKI, QRB, QLU, VLU, VHT, VBR, VMU, VAD, VSK, VSP, VPA, VLI, VST, VGU, VBO, VKI, VAB, VVB, VRB, fub, KbLU, KbHT, KbSK, KbSP, KbPA, KbLI, KbST, KbGU, KbKI, S15, C15</code></pre>
+<pre><code>#&gt; RxODE 0.9.0-6 model named rx_370a661e00658abfac03c74a59b5c6da_x6 model (ready). 
+#&gt; x$state: Venous_Blood, Skin, Lungs, Heart, Brain, Muscles, Adipose, Spleen, Pancreas, Liver, Stomach, Gut, Bones, Kidneys, Arterial_Blood, Rest_of_Body
+#&gt; x$params: lKbBR, lKbMU, lKbAD, lCLint, eta.LClint, lKbBO, lKbRB, WT, BP, fup
+#&gt; x$lhs: KbBR, KbMU, KbAD, CLint, KbBO, KbRB, CO, QHT, QBR, QMU, QAD, QSK, QSP, QPA, QLI, QST, QGU, QHA, QBO, QKI, QRB, QLU, VLU, VHT, VBR, VMU, VAD, VSK, VSP, VPA, VLI, VST, VGU, VBO, VKI, VAB, VVB, VRB, fub, KbLU, KbHT, KbSK, KbSP, KbPA, KbLI, KbST, KbGU, KbKI, S15, C15</code></pre>
 <p>The first two compartments are <code>Venous_Blood</code> followed by <code>Skin</code>.</p>
 </div>
 <div id="appending-compartments-to-the-model" class="section level1">
@@ -458,11 +478,11 @@ pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.
     <span class="kw">cmt</span>(eff);
 })
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(ode.1c.ka)</code></pre></div>
-<pre><code>#&gt; RxODE 0.9.0-6 model named rx_4aa413233a9f8a6ea4e4d1839adab8ed model (ready).</code></pre>
-<pre><code>#&gt; $state: depot, center</code></pre>
-<pre><code>#&gt; $stateExtra: eff</code></pre>
-<pre><code>#&gt; $params: V, KA, CL</code></pre>
-<pre><code>#&gt; $lhs: C2</code></pre>
+<pre><code>#&gt; RxODE 0.9.0-6 model named rx_585addf8e57159b094f5ceafb4802b33_x6 model (ready). 
+#&gt; $state: depot, center
+#&gt; $stateExtra: eff
+#&gt; $params: V, KA, CL
+#&gt; $lhs: C2</code></pre>
 <p>Where as this is not:</p>
 <pre><code>ode.1c.ka &lt;- RxODE({
     cmt(eff);

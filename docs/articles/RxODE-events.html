@@ -60,19 +60,11 @@
     <li>
       <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
     </li>
-    <li class="divider">
-    <li class="dropdown-header">Events and Simulations &amp; RxODE data frames</li>
     <li>
-      <a href="../articles/RxODE-events.html">Creating Dosing Events &amp; Observations</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
       <a href="../articles/speed.html">Speeding up RxODE ODE solving</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-data-frame.html">Interactive RxODE Data Frames</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -97,6 +89,29 @@
     <li>
       <a href="../articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
     </li>
+  </ul>
+</li>
+<li>
+  <a href="../articles/RxODE-events.html">
+    <span class="fa fa-pills"></span>
+     
+    Dosing
+  </a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-laptop-medical"></span>
+     
+    Simulations
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
+    </li>
+    <li class="dropdown-header">Using Prior Data for ODE solving</li>
   </ul>
 </li>
 <li>
@@ -141,7 +156,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE Events</h1>
             
-            <h4 class="date">2019-05-15</h4>
+            <h4 class="date">2019-05-30</h4>
       
       
       <div class="hidden name"><code>RxODE-events.Rmd</code></div>
@@ -258,8 +273,13 @@
 <a href="#creating-rxodes-event-tables" class="anchor"></a>Creating RxODE’s event tables</h2>
 <p>An event table in RxODE is a specialized data frame that acts as a container for all of RxODE’s events and observation times.</p>
 <p>To create an RxODE event table you may use the code <code><a href="../reference/eventTable.html">eventTable()</a></code>, <code><a href="../reference/et.html">et()</a></code>, or even create your own data frame with the right event information contained in it.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RxODE)
-(ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/eventTable.html">eventTable</a></span>());</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RxODE)</code></pre></div>
+<pre><code>#&gt; Registered S3 methods overwritten by 'ggplot2':
+#&gt;   method         from 
+#&gt;   [.quosures     rlang
+#&gt;   c.quosures     rlang
+#&gt;   print.quosures rlang</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/eventTable.html">eventTable</a></span>());</code></pre></div>
 <pre><code>#&gt; --------------------------- EventTable with 0 records -------------------------- 
 #&gt;    0 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    0 observation times (see x$get.sampling(); add with add.sampling or et)
@@ -371,7 +391,7 @@ ev</code></pre></div>
 #&gt; # A tibble: 1 x 5
 #&gt;    time   amt    ii  addl  evid
 #&gt;     [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
-#&gt; 1     0 10000    12     5     1
+#&gt; 1     0 10000    12     6     1
 #&gt; --------------------------------------------------------------------------------</code></pre>
 <p>Which gives:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(C2)</code></pre></div>
@@ -424,7 +444,7 @@ ev</code></pre></div>
 #&gt;    time   amt    ii  addl  evid
 #&gt;     [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
 #&gt; 1     0    NA    NA    NA     0
-#&gt; 2     0 10000    12     5     1
+#&gt; 2     0 10000    12     6     1
 #&gt; 3     4    NA    NA    NA     0
 #&gt; 4     8    NA    NA    NA     0
 #&gt; 5    12    NA    NA    NA     0
@@ -456,7 +476,7 @@ ev</code></pre></div>
 #&gt;       id      time   amt    ii  addl  evid
 #&gt;    &lt;int&gt;       [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
 #&gt;  1     1 0.0000000    NA    NA    NA     0
-#&gt;  2     1 0.0000000 10000    12     5     1
+#&gt;  2     1 0.0000000 10000    12     6     1
 #&gt;  3     1 0.2412060    NA    NA    NA     0
 #&gt;  4     1 0.4824121    NA    NA    NA     0
 #&gt;  5     1 0.7236181    NA    NA    NA     0
@@ -477,11 +497,11 @@ ev</code></pre></div>
 <div id="add-doses-and-samples-within-a-sampling-window" class="section level3">
 <h3 class="hasAnchor">
 <a href="#add-doses-and-samples-within-a-sampling-window" class="anchor"></a>Add doses and samples within a sampling window</h3>
-<p>In addition to adding fixed doses and fixed sampling times, you can have windows where you sample and draw doses from. For dosing windows you specify the time as an ordered numerical vector with the lowest dosing time and the highest dosing time.</p>
+<p>In addition to adding fixed doses and fixed sampling times, you can have windows where you sample and draw doses from. For dosing windows you specify the time as an ordered numerical vector with the lowest dosing time and the highest dosing time inside a list.</p>
 <p>In this example, you start with a dosing time with a 6 hour dosing window:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">42</span>)
 ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">0</span>,<span class="dv">6</span>), <span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">until =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/units/topics/set_units">set_units</a></span>(<span class="dv">2</span>, days), <span class="dt">ii=</span><span class="dv">12</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># loading doses</span>
+<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">0</span>,<span class="dv">6</span>)), <span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">until =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/units/topics/set_units">set_units</a></span>(<span class="dv">2</span>, days), <span class="dt">ii=</span><span class="dv">12</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># loading doses</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">id=</span><span class="dv">1</span><span class="op">:</span><span class="dv">4</span>)
 
 ev</code></pre></div>
@@ -518,7 +538,7 @@ ev</code></pre></div>
 <p>Of course in reality the dosing interval may only be 2 hours:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">42</span>)
 ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">0</span>,<span class="dv">2</span>), <span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">until =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/units/topics/set_units">set_units</a></span>(<span class="dv">2</span>, days), <span class="dt">ii=</span><span class="dv">12</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># loading doses</span>
+<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">0</span>,<span class="dv">2</span>)), <span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">until =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/units/topics/set_units">set_units</a></span>(<span class="dv">2</span>, days), <span class="dt">ii=</span><span class="dv">12</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># loading doses</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">id=</span><span class="dv">1</span><span class="op">:</span><span class="dv">4</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>,<span class="dv">48</span>,<span class="dt">length.out=</span><span class="dv">200</span>))
 
@@ -527,7 +547,7 @@ ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html"
 <p>The same sort of thing can be specified with sampling times. To specify the sampling times in terms of a sampling window, you can create a list of the sampling times. Each sampling time will be a two element ordered numeric vector.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">42</span>)
 ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">0</span>,<span class="dv">2</span>), <span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">until =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/units/topics/set_units">set_units</a></span>(<span class="dv">2</span>, days), <span class="dt">ii=</span><span class="dv">12</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># loading doses</span>
+<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">0</span>,<span class="dv">2</span>)), <span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">until =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/units/topics/set_units">set_units</a></span>(<span class="dv">2</span>, days), <span class="dt">ii=</span><span class="dv">12</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># loading doses</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">id=</span><span class="dv">1</span><span class="op">:</span><span class="dv">4</span>)
 
 ## Create 20 samples in the first 24 hours and 20 samples in the second 24 hours
@@ -538,7 +558,7 @@ samples &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdoc
 ev &lt;-<span class="st"> </span>ev <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(samples)
 
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(m1, ev, <span class="dt">params=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/data.frame">data.frame</a></span>(<span class="dt">KA=</span><span class="fl">0.294</span><span class="op">*</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">rnorm</a></span>(<span class="dv">4</span>)), <span class="fl">18.6</span><span class="op">*</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">rnorm</a></span>(<span class="dv">4</span>)))) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/geom_point">geom_point</a></span>()</code></pre></div>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(m1, ev, <span class="dt">params=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/data.frame">data.frame</a></span>(<span class="dt">KA=</span><span class="fl">0.294</span><span class="op">*</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">rnorm</a></span>(<span class="dv">4</span>)), <span class="fl">18.6</span><span class="op">*</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">rnorm</a></span>(<span class="dv">4</span>)))) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(C2) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>()</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
 <p>This shows the flexibility in dosing and sampling that the RxODE event tables allow.</p>
 </div>
@@ -654,7 +674,7 @@ ev</code></pre></div>
 #&gt;         time   amt    ii  addl  evid
 #&gt;          [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
 #&gt;  1 0.0000000    NA    NA    NA     0
-#&gt;  2 0.0000000 10000    12     1     1
+#&gt;  2 0.0000000 10000    12     2     1
 #&gt;  3 0.2424242    NA    NA    NA     0
 #&gt;  4 0.4848485    NA    NA    NA     0
 #&gt;  5 0.7272727    NA    NA    NA     0
@@ -687,7 +707,7 @@ ev</code></pre></div>
 #&gt;         time   amt    ii  addl  evid   dur
 #&gt;          [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;   [h]
 #&gt;  1 0.0000000    NA    NA    NA     0    NA
-#&gt;  2 0.0000000 10000    12     1     1     8
+#&gt;  2 0.0000000 10000    12     2     1     8
 #&gt;  3 0.2424242    NA    NA    NA     0    NA
 #&gt;  4 0.4848485    NA    NA    NA     0    NA
 #&gt;  5 0.7272727    NA    NA    NA     0    NA
@@ -715,7 +735,7 @@ ev</code></pre></div>
 #&gt;         time   amt  rate    ii  addl  evid
 #&gt;          [h] &lt;dbl&gt; &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
 #&gt;  1 0.0000000    NA    NA    NA    NA     0
-#&gt;  2 0.0000000 10000  1250    12     1     1
+#&gt;  2 0.0000000 10000  1250    12     2     1
 #&gt;  3 0.2424242    NA    NA    NA    NA     0
 #&gt;  4 0.4848485    NA    NA    NA    NA     0
 #&gt;  5 0.7272727    NA    NA    NA    NA     0
@@ -748,12 +768,12 @@ ev</code></pre></div>
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(gridExtra)
 
 p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev, <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dt">fdepot=</span><span class="fl">1.25</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/lims">ylim</a></span>(<span class="dv">0</span>,<span class="dv">5000</span>)
+<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot.window">ylim</a></span>(<span class="dv">0</span>,<span class="dv">5000</span>)
 
 p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev, <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dt">fdepot=</span><span class="fl">0.25</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>)<span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/lims">ylim</a></span>(<span class="dv">0</span>,<span class="dv">5000</span>)
+<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>)<span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot.window">ylim</a></span>(<span class="dv">0</span>,<span class="dv">5000</span>)
 
-<span class="kw"><a href="https://www.rdocumentation.org/packages/gridExtra/topics/arrangeGrob">grid.arrange</a></span>(p1,p2, <span class="dt">nrow=</span><span class="dv">1</span>)</code></pre></div>
+<span class="kw">grid.arrange</span>(p1,p2, <span class="dt">nrow=</span><span class="dv">1</span>)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-36-1.png" width="700"></p>
 </div>
 <div id="modeled-rate-and-duration-of-infusion" class="section level3">
@@ -773,7 +793,7 @@ ev</code></pre></div>
 #&gt;         time   amt  rate    ii  addl  evid
 #&gt;          [h] &lt;dbl&gt; &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
 #&gt;  1 0.0000000    NA    NA    NA    NA     0
-#&gt;  2 0.0000000 10000    -2    12     1     1
+#&gt;  2 0.0000000 10000    -2    12     2     1
 #&gt;  3 0.2424242    NA    NA    NA    NA     0
 #&gt;  4 0.4848485    NA    NA    NA    NA     0
 #&gt;  5 0.7272727    NA    NA    NA    NA     0
@@ -801,7 +821,7 @@ ev</code></pre></div>
 #&gt;         time   amt  rate    ii  addl  evid
 #&gt;          [h] &lt;dbl&gt; &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
 #&gt;  1 0.0000000    NA    NA    NA    NA     0
-#&gt;  2 0.0000000 10000    -1    12     1     1
+#&gt;  2 0.0000000 10000    -1    12     2     1
 #&gt;  3 0.2424242    NA    NA    NA    NA     0
 #&gt;  4 0.4848485    NA    NA    NA    NA     0
 #&gt;  5 0.7272727    NA    NA    NA    NA     0
@@ -866,9 +886,9 @@ ev</code></pre></div>
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
 
 <span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev,<span class="dt">maxsteps=</span><span class="dv">10000</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(C2) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/annotate">annotate</a></span>(<span class="st">"rect"</span>, <span class="dt">xmin=</span><span class="dv">0</span>, <span class="dt">xmax=</span><span class="dv">24</span>, <span class="dt">ymin=</span><span class="op">-</span><span class="ot">Inf</span>, <span class="dt">ymax=</span><span class="ot">Inf</span>, <span class="dt">alpha=</span><span class="fl">0.2</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/annotate">annotate</a></span>(<span class="st">"text"</span>, <span class="dt">x=</span><span class="fl">12.5</span>, <span class="dt">y=</span><span class="dv">7</span>, <span class="dt">label=</span><span class="st">"Initial Steady State Period"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/annotate">annotate</a></span>(<span class="st">"text"</span>, <span class="dt">x=</span><span class="dv">44</span>,   <span class="dt">y=</span><span class="dv">7</span>, <span class="dt">label=</span><span class="st">"Steady State AM/PM dosing"</span>)</code></pre></div>
+<span class="st">    </span><span class="kw">annotate</span>(<span class="st">"rect"</span>, <span class="dt">xmin=</span><span class="dv">0</span>, <span class="dt">xmax=</span><span class="dv">24</span>, <span class="dt">ymin=</span><span class="op">-</span><span class="ot">Inf</span>, <span class="dt">ymax=</span><span class="ot">Inf</span>, <span class="dt">alpha=</span><span class="fl">0.2</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">annotate</span>(<span class="st">"text"</span>, <span class="dt">x=</span><span class="fl">12.5</span>, <span class="dt">y=</span><span class="dv">7</span>, <span class="dt">label=</span><span class="st">"Initial Steady State Period"</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">annotate</span>(<span class="st">"text"</span>, <span class="dt">x=</span><span class="dv">44</span>,   <span class="dt">y=</span><span class="dv">7</span>, <span class="dt">label=</span><span class="st">"Steady State AM/PM dosing"</span>)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-43-1.png" width="700"></p>
 <p>You can see that it takes a full dose cycle to reach the true complex steady state dosing.</p>
 </div>

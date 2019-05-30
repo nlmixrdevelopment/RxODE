@@ -60,19 +60,11 @@
     <li>
       <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
     </li>
-    <li class="divider">
-    <li class="dropdown-header">Events and Simulations &amp; RxODE data frames</li>
     <li>
-      <a href="../articles/RxODE-events.html">Creating Dosing Events &amp; Observations</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
       <a href="../articles/speed.html">Speeding up RxODE ODE solving</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-data-frame.html">Interactive RxODE Data Frames</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -97,6 +89,29 @@
     <li>
       <a href="../articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
     </li>
+  </ul>
+</li>
+<li>
+  <a href="../articles/RxODE-events.html">
+    <span class="fa fa-pills"></span>
+     
+    Dosing
+  </a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-laptop-medical"></span>
+     
+    Simulations
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
+    </li>
+    <li class="dropdown-header">Using Prior Data for ODE solving</li>
   </ul>
 </li>
 <li>
@@ -141,7 +156,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE Data Frames</h1>
             
-            <h4 class="date">2019-05-15</h4>
+            <h4 class="date">2019-05-30</h4>
       
       
       <div class="hidden name"><code>RxODE-data-frame.Rmd</code></div>
@@ -258,9 +273,9 @@ x &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumenta
 <p>The solved object acts as a <code>data.frame</code> or <code>tbl</code> that can be filtered by <code>dpylr</code>. For example you could filter it easily.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(dplyr)
 ## You can  drop units for comparisons and filtering
-x &lt;-<span class="st"> </span>mod1 <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(theta,ev,inits) <span class="op">%&gt;%</span><span class="st"> </span>drop_units <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span>(time <span class="op">&lt;=</span><span class="st"> </span><span class="dv">3</span>) <span class="op">%&gt;%</span><span class="st"> </span>as.tbl
+x &lt;-<span class="st"> </span>mod1 <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(theta,ev,inits) <span class="op">%&gt;%</span><span class="st"> </span>drop_units <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/filter">filter</a></span>(time <span class="op">&lt;=</span><span class="st"> </span><span class="dv">3</span>) <span class="op">%&gt;%</span><span class="st"> </span>as.tbl
 ## or keep them and compare with the proper units.
-x &lt;-<span class="st"> </span>mod1 <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(theta,ev,inits) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span>(time <span class="op">&lt;=</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/units/topics/set_units">set_units</a></span>(<span class="dv">3</span>, hr)) <span class="op">%&gt;%</span><span class="st"> </span>as.tbl
+x &lt;-<span class="st"> </span>mod1 <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(theta,ev,inits) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/filter">filter</a></span>(time <span class="op">&lt;=</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/units/topics/set_units">set_units</a></span>(<span class="dv">3</span>, hr)) <span class="op">%&gt;%</span><span class="st"> </span>as.tbl
 x
 <span class="co">#&gt; # A tibble: 4 x 7</span>
 <span class="co">#&gt;    time    C2    C3  depot centr  peri   eff</span>

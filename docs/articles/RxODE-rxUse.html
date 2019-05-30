@@ -60,19 +60,11 @@
     <li>
       <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
     </li>
-    <li class="divider">
-    <li class="dropdown-header">Events and Simulations &amp; RxODE data frames</li>
     <li>
-      <a href="../articles/RxODE-events.html">Creating Dosing Events &amp; Observations</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
       <a href="../articles/speed.html">Speeding up RxODE ODE solving</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-data-frame.html">Interactive RxODE Data Frames</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -97,6 +89,29 @@
     <li>
       <a href="../articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
     </li>
+  </ul>
+</li>
+<li>
+  <a href="../articles/RxODE-events.html">
+    <span class="fa fa-pills"></span>
+     
+    Dosing
+  </a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-laptop-medical"></span>
+     
+    Simulations
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
+    </li>
+    <li class="dropdown-header">Using Prior Data for ODE solving</li>
   </ul>
 </li>
 <li>
@@ -154,7 +169,7 @@
 <h1 class="hasAnchor">
 <a href="#using-pre-compiled-models-in-your-packages" class="anchor"></a>Using Pre-compiled models in your packages</h1>
 <p>If you have a package and would like to include pre-compiled RxODE models in your package you can. To illustrate, lets start with a blank package</p>
-<pre><code><a href="https://www.rdocumentation.org/packages/base/topics/library">library(RxODE)
+<pre><code>library(RxODE)
 library(usethis)
 pkgPath  &lt;- file.path(rxTempDir(),"MyRxModel")
 create_package(pkgPath);
@@ -176,14 +191,14 @@ idr &lt;- RxODE({
 
 rxUse(idr); ## Add the idr model to your package
 rxUse(); # Update the compiled RxODE sources for all of your packages
-</a></code></pre>
+</code></pre>
 <p>The <code><a href="../reference/rxUse.html">rxUse()</a></code> will: - Create <code>RxODE</code> sources and move them into the package’s <code>src/</code> directory. If there is only R source in the package, it will also finish off the directory with an <code>library-init.c</code> which registers all the RxODE models in the package for use in R. - Create stub R documentation for each of the models your are including in your package. You will be able to see the R documentation when loading your package by the standard <code>?</code> interface.</p>
 <p>You will still need to: - Export at least one function. If you do not have a function that you wish to export, you can add a re-export of <code>RxODE</code> using roxygen as follows:</p>
 <pre><code><a href="../reference/RxODE.html">##' @importFrom RxODE RxODE
 ##' @export
 RxODE::RxODE</a></code></pre>
 <p>If you want to use <code>Suggests</code> instead of <code>Depends</code> in your package, you way want to export all of RxODE’s normal routines</p>
-<pre><code><a href="../reference/RxODE.html">##' @importFrom RxODE RxODE
+<pre><code>##' @importFrom RxODE RxODE
 ##' @export
 RxODE::RxODE
 
@@ -246,7 +261,7 @@ RxODE::cvPost
 # This is actually from `magrittr` but allows less imports
 ##' @importFrom RxODE %&gt;%
 ##' @export
-RxODE::`%&gt;%`</a></code></pre>
+RxODE::`%&gt;%`</code></pre>
 <ul>
 <li>You also need to instruct R to load the model library models included in the model’s dll. This is done by:</li>
 </ul>
@@ -254,14 +269,14 @@ RxODE::`%&gt;%`</a></code></pre>
 ##' @useDynLib rxModels, .registration=TRUE</code></pre>
 <p>If you want to integrate with other sources in your <code>Rcpp</code> or <code>C</code>/<code>Fortan</code> based packages, you need to include <code>rxModels-compiled.h</code> and: - Add the define macro <code>compiledModelCall</code> to the list of registered <code>.Call</code> functions. - Register C interface to allow model solving by <code>R_init0_rxModels_RxODE_models()</code> (again <code>rxModels</code> would be replaced by your package name).</p>
 <p>Once this is complete, you can compile/document by the standard methods:</p>
-<pre><code><a href="https://www.rdocumentation.org/packages/devtools/topics/load_all">devtools::load_all()
+<pre><code>devtools::load_all()
 devtools::document()
-devtools::install()</a></code></pre>
+devtools::install()</code></pre>
 <p>If you load the package with a new version of RxODE, the models will be recompiled when they are used.</p>
 <p>However, if you want the models recompiled for the most recent version of RxODE, you simply need to call <code><a href="../reference/rxUse.html">rxUse()</a></code> again in the project directory followed by the standard methods for install/create a package.</p>
-<pre><code><a href="https://www.rdocumentation.org/packages/devtools/topics/load_all">devtools::load_all()
+<pre><code>devtools::load_all()
 devtools::document()
-devtools::install()</a></code></pre>
+devtools::install()</code></pre>
 <p><strong>Note</strong> you do not have to include the <code>RxODE</code> code required to generate the model to regenerate the RxODE c-code in the <code>src</code> directory. As with all RxODE objects, a <code>summary</code> will show one way to recreate the same model.</p>
 <p>An example of compiled models package can be found in the <a href="https://github.com/nlmixrdevelopment/rxModels">rxModels</a> repository.</p>
 </div>

@@ -96,19 +96,11 @@ solve a ODE system." />
     <li>
       <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
     </li>
-    <li class="divider"></li>
-    <li class="dropdown-header">Events and Simulations &amp; RxODE data frames</li>
     <li>
-      <a href="../articles/RxODE-events.html">Creating Dosing Events &amp; Observations</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
       <a href="../articles/speed.html">Speeding up RxODE ODE solving</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-data-frame.html">Interactive RxODE Data Frames</a>
     </li>
     <li class="divider"></li>
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -133,6 +125,29 @@ solve a ODE system." />
     <li>
       <a href="../articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
     </li>
+  </ul>
+</li>
+<li>
+  <a href="../articles/RxODE-events.html">
+    <span class="fa fa-pills"></span>
+     
+    Dosing
+  </a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-laptop-medical"></span>
+     
+    Simulations
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
+    </li>
+    <li class="dropdown-header">Using Prior Data for ODE solving</li>
   </ul>
 </li>
 <li>
@@ -193,19 +208,20 @@ solve a ODE system.</p>
   <span class='kw'>hmin</span> <span class='kw'>=</span> <span class='fl'>0L</span>, <span class='kw'>hmax</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>hmaxSd</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>hini</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>maxordn</span> <span class='kw'>=</span> <span class='fl'>12L</span>,
   <span class='kw'>maxords</span> <span class='kw'>=</span> <span class='fl'>5L</span>, <span class='no'>...</span>, <span class='no'>cores</span>, <span class='kw'>covsInterpolation</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"locf"</span>, <span class='st'>"linear"</span>,
   <span class='st'>"nocb"</span>, <span class='st'>"midpoint"</span>), <span class='kw'>addCov</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>matrix</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>sigmaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nCoresRV</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>sigmaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>nDisplayProgress</span> <span class='kw'>=</span> <span class='fl'>10000L</span>, <span class='kw'>amountUnits</span> <span class='kw'>=</span> <span class='fl'>NA_character_</span>,
-  <span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hours"</span>, <span class='no'>stiff</span>, <span class='kw'>theta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>eta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>sigmaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigmaLower</span> <span class='kw'>=</span> -<span class='fl'>Inf</span>, <span class='kw'>sigmaUpper</span> <span class='kw'>=</span> <span class='fl'>Inf</span>,
+  <span class='kw'>nCoresRV</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>sigmaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nDisplayProgress</span> <span class='kw'>=</span> <span class='fl'>10000L</span>,
+  <span class='kw'>amountUnits</span> <span class='kw'>=</span> <span class='fl'>NA_character_</span>, <span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hours"</span>, <span class='no'>stiff</span>,
+  <span class='kw'>theta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaLower</span> <span class='kw'>=</span> -<span class='fl'>Inf</span>, <span class='kw'>thetaUpper</span> <span class='kw'>=</span> <span class='fl'>Inf</span>, <span class='kw'>eta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>addDosing</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>stateTrim</span> <span class='kw'>=</span> <span class='fl'>Inf</span>, <span class='kw'>updateObject</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='fl'>1L</span>,
-  <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>,
-  <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"rxSolve"</span>, <span class='st'>"matrix"</span>,
-  <span class='st'>"data.frame"</span>, <span class='st'>"data.frame.TBS"</span>), <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>minSS</span> <span class='kw'>=</span> <span class='fl'>7</span>, <span class='kw'>maxSS</span> <span class='kw'>=</span> <span class='fl'>70000</span>, <span class='kw'>atolSS</span> <span class='kw'>=</span> <span class='fl'>1e-09</span>, <span class='kw'>rtolSS</span> <span class='kw'>=</span> <span class='fl'>1e-09</span>,
-  <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>istateReset</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>subsetNonmem</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>linLog</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>maxAtolRtolFactor</span> <span class='kw'>=</span> <span class='fl'>0.1</span>,
-  <span class='kw'>from</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>to</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>length.out</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
+  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>omegaLower</span> <span class='kw'>=</span> -<span class='fl'>Inf</span>, <span class='kw'>omegaUpper</span> <span class='kw'>=</span> <span class='fl'>Inf</span>, <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"rxSolve"</span>, <span class='st'>"matrix"</span>, <span class='st'>"data.frame"</span>,
+  <span class='st'>"data.frame.TBS"</span>), <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>minSS</span> <span class='kw'>=</span> <span class='fl'>7</span>,
+  <span class='kw'>maxSS</span> <span class='kw'>=</span> <span class='fl'>70000</span>, <span class='kw'>atolSS</span> <span class='kw'>=</span> <span class='fl'>1e-09</span>, <span class='kw'>rtolSS</span> <span class='kw'>=</span> <span class='fl'>1e-09</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>istateReset</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>subsetNonmem</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>linLog</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>maxAtolRtolFactor</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>from</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>to</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>by</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>length.out</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
 
 <span class='fu'>rxSolve</span>(<span class='no'>object</span>, <span class='no'>...</span>)
 
@@ -387,6 +403,14 @@ observation in the solved system.</p></td>
 default it is equivalent to <code>Inf</code>, or a normal distribution.</p></td>
     </tr>
     <tr>
+      <th>sigmaLower</th>
+      <td><p>Lower bounds for simulated unexplained variability (by default -Inf)</p></td>
+    </tr>
+    <tr>
+      <th>sigmaUpper</th>
+      <td><p>Upper bounds for simulated unexplained variability (by default Inf)</p></td>
+    </tr>
+    <tr>
       <th>nCoresRV</th>
       <td><p>Number of cores used for the simulation of the
 sigma variables.  By default this is 1. This uses the package
@@ -437,6 +461,14 @@ data as an RxODE event table.</p></td>
       <th>theta</th>
       <td><p>A vector of parameters that will be named THETA[#] and
 added to parameters</p></td>
+    </tr>
+    <tr>
+      <th>thetaLower</th>
+      <td><p>Lower bounds for simulated population parameter variability (by default -Inf)</p></td>
+    </tr>
+    <tr>
+      <th>thetaUpper</th>
+      <td><p>Upper bounds for simulated population unexplained variability (by default Inf)</p></td>
     </tr>
     <tr>
       <th>eta</th>
@@ -502,6 +534,14 @@ distribution instead of a t-distribution.</p></td>
       <td><p>Indicates if the <code>omega</code> supplied is a
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.</p></td>
+    </tr>
+    <tr>
+      <th>omegaLower</th>
+      <td><p>Lower bounds for simulated ETAs (by default -Inf)</p></td>
+    </tr>
+    <tr>
+      <th>omegaUpper</th>
+      <td><p>Upper bounds for simulated ETAs (by default Inf)</p></td>
     </tr>
     <tr>
       <th>nSub</th>
