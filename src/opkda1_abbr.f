@@ -302,7 +302,8 @@ C
 C----------------------- END OF SUBROUTINE DINTDY ----------------------
       END
 *DECK DSOLSY
-      SUBROUTINE DSOLSY (WM, IWM, X, TEM)
+      SUBROUTINE DSOLSY (WM, IWM, X)
+C     SUBROUTINE DSOLSY (WM, IWM, X, TEM)
 C***BEGIN PROLOGUE  DSOLSY
 C***SUBSIDIARY
 C***PURPOSE  ODEPACK linear system solver.
@@ -347,8 +348,10 @@ C           enable interrupt/restart feature. (ACH)
 C***END PROLOGUE  DSOLSY
 C**End
       INTEGER IWM
-      DOUBLE PRECISION WM, X, TEM
-      DIMENSION WM(*), IWM(*), X(*), TEM(*)
+      DOUBLE PRECISION WM, X
+      DIMENSION WM(*), IWM(*), X(*)
+C     DOUBLE PRECISION WM, X, TEM
+C     DIMENSION WM(*), IWM(*), X(*), TEM(*)
       INTEGER IOWND, IOWNS,
      1   ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,
      2   LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,

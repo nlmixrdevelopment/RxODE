@@ -642,12 +642,20 @@ C
       DOUBLE PRECISION R1, R2
       INTEGER NMES, NERR, LEVEL, NI, I1, I2, NR
       CHARACTER*(*) MSG
-      CHARACTER(LEN=51) MSG1
-      CHARACTER(LEN=61) MSG2
 C
 C  Declare local variables.
 C
       INTEGER LUNIT, IXSAV, MESFLG
+C
+C  inserted by WW to suppress -Wunused-variable & -Wunused-dummy-argument
+C
+      I1 = 0
+      I2 = 0
+      NERR = 0
+      NI = 0
+      NR = 0
+      R1 = 0.0D0
+      R2 = 0.0D0
 C
 C  Get logical unit number and message print flag.
 C
