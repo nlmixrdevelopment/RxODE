@@ -119,22 +119,26 @@ navbar:
         - text: "Adding compiled RxODE models to your package"
           href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-rxUse.html
   - text: "Dosing"
-    icon: fa-pills
+    icon: fas fa-stethoscope
     href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-events.html
   - text: "Simulations"
-    icon: fa-laptop-medical
+    icon: fas fa-desktop
     menu:
         - text: "Single Subject ODE solving"
         - text: "Multiple Subject RxODE Simulation"
           href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html
         - text: "Using Prior Data for ODE solving"
   - text: "Tutorial"
-    icon: fa-life-ring
+    icon: fas fa-life-ring
     href: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf
   - text: "Functions"
     icon: fa-file-code-o
     href: https://nlmixrdevelopment.github.io/RxODE/reference/index.html
   right:
+  - icon: fas fa-archive
+    menu:
+      - text: nlmixr
+        href: https://nlmixrdevelopment.github.io/nlmixr/
   - icon: fa-github fa-lg
     href: https://github.com/nlmixrdevelopment/RxODE
   - icon: fa-download

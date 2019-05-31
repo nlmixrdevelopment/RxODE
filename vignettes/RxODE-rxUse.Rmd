@@ -1,4 +1,4 @@
-e.u---
+---
 title: "Compiled RxODE models in Packages"
 author: "Matthew Fidler"
 date: "4/18/2019"
