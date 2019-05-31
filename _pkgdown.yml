@@ -101,7 +101,7 @@ navbar:
         - text: "RxODE with piping ie %>%"
           href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html
         - text: "Speeding up RxODE ODE solving"
-          href: articles/speed.html
+          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html
         - text: "--------------------------"
         - text: "Advanced Features, Model Types, Technical Details"
         - text: "RxODE model types"
