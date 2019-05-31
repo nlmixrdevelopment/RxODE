@@ -1008,30 +1008,34 @@ plot.rxSolve <- function(x,y,...){
     if (any(names(.dat)=="id")){
         .dat$id <- factor(.dat$id);
         if (length(.cmts)==1){
-            ggplot(.dat,ggplot2::aes(time,value,color=id))+
+            .ret <- ggplot(.dat,ggplot2::aes(time,value,color=id))+
                 geom_line(size=1.2) + ylab(.cmts)
         } else {
-            ggplot(.dat,ggplot2::aes(time,value,color=id))+
+            .ret <- ggplot(.dat,ggplot2::aes(time,value,color=id))+
                 geom_line(size=1.2) +facet_wrap( ~ trt, scales="free_y")
         }
     } else if (any(names(.dat)=="sim.id")){
         .dat$sim.id <- factor(.dat$sim.id);
         if (length(.cmts)==1){
-            ggplot(.dat,ggplot2::aes(time,value,color=sim.id))+
+            .ret <- ggplot(.dat,ggplot2::aes(time,value,color=sim.id))+
                 geom_line(size=1.2) + ylab(.cmts)
         } else {
-            ggplot(.dat,ggplot2::aes(time,value,color=sim.id))+
+            .ret <- ggplot(.dat,ggplot2::aes(time,value,color=sim.id))+
                 geom_line(size=1.2) +facet_wrap( ~ trt, scales="free_y")
         }
     } else {
         if (length(.cmts)==1){
-            ggplot(.dat,ggplot2::aes(time,value))+
+            .ret <- ggplot(.dat,ggplot2::aes(time,value))+
                 geom_line(size=1.2) + ylab(.cmts)
         } else {
-            ggplot(.dat,ggplot2::aes(time,value))+
+            .ret <- ggplot(.dat,ggplot2::aes(time,value))+
                 geom_line(size=1.2) +facet_wrap(~ trt, scales="free_y")
         }
     }
+    if (getOption("RxODE.theme_bw", TRUE)){
+        .ret <- .ret + ggplot2::theme_bw()
+    }
+    return(.ret)
     ## nocov end
 }
 
@@ -1109,6 +1113,9 @@ plot.rxSolveConfint1 <- function(x,y,...){
     if (length(.parm) > 1){
         .ret <- .ret + facet_wrap( ~ trt, scales="free_y")
     }
+    if (getOption("RxODE.theme_bw", TRUE)){
+        .ret <- .ret + ggplot2::theme_bw()
+    }
     return(.ret)
 }
 
@@ -1122,6 +1129,9 @@ plot.rxSolveConfint2 <- function(x,y,...){
         ggplot2::geom_line(size=1.2);
     if (length(.parm) > 1){
         .ret <- .ret + facet_wrap( ~ trt, scales="free_y")
+    }
+    if (getOption("RxODE.theme_bw", TRUE)){
+        .ret <- .ret + ggplot2::theme_bw()
     }
     return(.ret)
 }
