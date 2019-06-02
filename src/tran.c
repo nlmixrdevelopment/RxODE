@@ -162,7 +162,7 @@ int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
   rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1, rx_syntax_allow_assign_state = 0,
   maxSumProdN = 0, SumProdLD = 0, good_jac=1, extraCmt=0;
 
-char s_aux_info[64*MXSYM];
+char s_aux_info[64*MXSYM*4];
 
 
 typedef struct symtab {
@@ -845,8 +845,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    tb.dvid[i+1]=atoi(v+1);
 	    if (tb.dvid[i+1] == 0) error("dvid() cannot have zeros in it");
 	    sAppend(&sbt, ",%d", tb.dvid[i+1]);
+	    Free(v);
 	  }
 	  sAppend(&sbNrm, "%s);\n", sbt.s);
+	  Free(v);
 	  continue;
 	} else {
 	  error("RxODE only supports one dvid() statement per model");
@@ -1400,6 +1402,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sAppend(&sb,  "%s",v);
 	sAppend(&sbDt,"%s",v);
 	sAppend(&sbt, "%s(0)",v);
+	Free(v);
       }
 
       if ((i==0 && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0))) ||
@@ -2420,6 +2423,7 @@ void reset (){
   tb.fdn        = 0;
   tb.linCmt     = 0;
   tb.isPi       = 0;
+  tb.ini_i      = 0;
   tb.hasDepot   = 0;
   tb.hasCentral = 0;
   tb.hasKa      = 0;
@@ -2695,7 +2699,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   
   SEXP params = PROTECT(allocVector(STRSXP, tb.pi));pro++;
   SEXP lhs    = PROTECT(allocVector(STRSXP, tb.li));pro++;
-
 
   SEXP inin  = PROTECT(allocVector(STRSXP, tb.isPi + tb.ini_i));pro++;
   SEXP ini   = PROTECT(allocVector(REALSXP, tb.isPi + tb.ini_i));pro++;
