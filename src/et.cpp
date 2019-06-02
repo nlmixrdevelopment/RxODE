@@ -472,11 +472,11 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
       
       // nme[8] = "addl";
       tmpI = as<IntegerVector>(lst[8]);
-      tmpI[i] = NA_REAL;
+      tmpI[i] = NA_INTEGER;
   
       // nme[10] = "ss";
       tmpI = as<IntegerVector>(lst[10]);
-      tmpI[i] = NA_REAL;
+      tmpI[i] = NA_INTEGER;
       
       // nme[11] = "dur";
       tmpN = as<NumericVector>(lst[11]);
@@ -655,11 +655,11 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
       
       // nme[8] = "addl";
       tmpI = as<IntegerVector>(lst[8]); // id
-      tmpI[i] = NA_REAL;
+      tmpI[i] = NA_INTEGER;
   
       // nme[10] = "ss";
       tmpI = as<IntegerVector>(lst[10]); // id
-      tmpI[i] = NA_REAL;
+      tmpI[i] = NA_INTEGER;
 
       // nme[11] = "dur";
       tmpN = as<NumericVector>(lst[11]); // id
