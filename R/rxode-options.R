@@ -55,7 +55,7 @@ rxTempDir <- function(){
         .tmp <- Sys.getenv("rxTempDir")
         if (.tmp == ""){
             if (is.null(.cacheDefault)){
-                assignInMyNamespace(".cacheDefault", paste0(sub("Rtmp.*","",tempdir()),".rxCache"));
+                assignInMyNamespace(".cacheDefault", file.path(tempdir(),".rxCache"));
             }
             if (getOption("RxODE.cache.directory", .cacheDefault) != "."){
                 .tmp <- getOption("RxODE.cache.directory", .cacheDefault);
