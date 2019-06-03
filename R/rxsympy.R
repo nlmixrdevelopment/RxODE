@@ -1396,7 +1396,7 @@ genCmtMod <- function(mod){
 rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, sum.prod=FALSE, pred.minus.dv=TRUE,
                              theta.derivs=FALSE,only.numeric=FALSE,
                              grad.internal=FALSE, theta.internal=FALSE,
-                             optExpression=TRUE, run.internal=TRUE,#RxODE.sympy.run.internal,
+                             optExpression=TRUE, run.internal=RxODE.sympy.run.internal,
                              interaction=TRUE){
     rxSolveFree();
     good.fns <- c(".GlobalEnv", "package:RxODE", "package:nlmixr")
