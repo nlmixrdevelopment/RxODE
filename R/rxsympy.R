@@ -334,7 +334,7 @@ rxSymPyReserved <- function(){
     if (.rxSymPy$started != "reticulate"){
         vars <- eval(parse(text=sprintf("c(%s)", substr(vars, 2, nchar(vars) - 1))));
     }
-    return(c(vars, "lambda"))
+    return(c(vars, "lambda", "N", "E1"))
 }
 
 ##' Add undefined variables to SymPy
