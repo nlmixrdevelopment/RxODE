@@ -14,6 +14,7 @@
 ##'     number of cores
 ##' @param clear Boolean telling if you should clear the progress bar
 ##'     after completion (as if it wasn't displayed).  By default this is TRUE
+##' @param error With rxProgressAbort this is the error that is displayed
 ##' @return All return NULL invisibly.
 ##' @author Matthew L. Fidler
 ##' @examples
@@ -50,6 +51,6 @@ rxProgressStop <- function(clear=TRUE){
 
 ##' @rdname rxProgress
 ##' @export
-rxProgressAbort <- function(){
-    invisible(.Call(`_rxProgressAbort`));
+rxProgressAbort <- function(error="Aborted calculation"){
+    invisible(.Call(`_rxProgressAbort`, error));
 }

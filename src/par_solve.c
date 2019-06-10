@@ -170,10 +170,10 @@ SEXP _rxProgressStop(SEXP clear){
   return R_NilValue;
 }
 
-SEXP _rxProgressAbort(){
+SEXP _rxProgressAbort(SEXP str){
   if (rxt.d != rxt.n || rxt.cur != rxt.n){
     par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 0);
-    error("Aborted calculation");
+    error(CHAR(STRING_ELT(str,0)));
   }
   return R_NilValue;
 }
