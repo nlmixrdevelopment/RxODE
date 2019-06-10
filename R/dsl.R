@@ -354,6 +354,7 @@ rxSymPyFEnv$Rx_pow_di <- binaryOp2("**");
 rxSymPyFEnv$log1p <- functionOp2("log(1 + (", "))");
 rxSymPyFEnv$log1pmx <- functionBrewx("(log(1 + (<%=x%>))-(<%=x%>))");
 rxSymPyFEnv$expm1 <- functionOp2("(exp(", ")-1)");
+rxSymPyFEnv$log10 <- functionOp2("(log(", ")/log(10))");
 rxSymPyFEnv$abs <- function(e1) {
     .e1 <- paste(e1);
     if (.e1 == "0") return("rx_eff_abs_0__");
@@ -378,13 +379,12 @@ rxPrintOp <- function(op){
 ## equivalent functions
 sympy.equiv.f <- c("acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
                    "cos", "cosh", "digamma", "erf", "erfc", "exp", "factorial",
-                   "gamma", "log10", "sin", "sinh", "sqrt", "tan",
+                   "gamma", "sin", "sinh", "sqrt", "tan",
                    "tanh", "trigamma", "log", "rxTBS", "rxTBSd")
 for (f in sympy.equiv.f){
     rxSymPyFEnv[[f]] <- functionOp(f);
     sympyRxFEnv[[f]] <- functionOp(f);
 }
-
 
 dsl.factor.pi.1 <- function(x){
     mult.split <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s),mult=TRUE)", x)));
@@ -600,19 +600,11 @@ rxSymPyFEnv$log2 <- function(e1){
     }
 }
 
-rxSymPyFEnv$log10 <- function(e1){
-    if (e1 == "E" || e1 == "exp(1)" || e1 == "e"){
-        return("1/log(10)");
-    } else {
-        return(paste0("log10(", e1, ")"));
-    }
-}
-
 sympyRxFEnv$log10 <- function(e1){
     if (e1 == "M_E" || e1 == "exp(1)" || e1 == "e"){
         return("M_LOG10E");
     } else {
-        return(paste0("log10(", e1, ")"));
+        return(paste0("log(", e1, ")/log(10)"));
     }
 }
 sympyRxFEnv[["/"]] <- function(e1, e2, sep="/"){
