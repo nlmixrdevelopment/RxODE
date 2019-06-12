@@ -1872,7 +1872,14 @@ extern "C" void setInits(SEXP init){
 
 extern "C" SEXP getInits(){
   getRxModels();
-  return as<SEXP>(_rxModels[".init"]);
+  if (_rxModels.exists(".init")){
+    return as<SEXP>(_rxModels[".init"]);
+  } else {
+    NumericVector ret(0);
+    CharacterVector retN(0);
+    ret.attr("names") = retN;
+    return as<SEXP>(ret);
+  }
 }
   
 SEXP rxGetFromChar(char *ptr, std::string var){
