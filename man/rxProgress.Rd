@@ -13,7 +13,7 @@ rxTick()
 
 rxProgressStop(clear = TRUE)
 
-rxProgressAbort()
+rxProgressAbort(error = "Aborted calculation")
 }
 \arguments{
 \item{num}{Tot number of operations to track}
@@ -23,6 +23,8 @@ number of cores}
 
 \item{clear}{Boolean telling if you should clear the progress bar
 after completion (as if it wasn't displayed).  By default this is TRUE}
+
+\item{error}{With rxProgressAbort this is the error that is displayed}
 }
 \value{
 All return NULL invisibly.
