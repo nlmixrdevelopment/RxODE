@@ -1873,7 +1873,8 @@ extern "C" void setInits(SEXP init){
 extern "C" SEXP getInits(){
   getRxModels();
   if (_rxModels.exists(".init")){
-    return as<SEXP>(_rxModels[".init"]);
+    NumericVector ret = as<NumericVector>(_rxModels[".init"]);
+    return as<SEXP>(ret);
   } else {
     NumericVector ret(0);
     CharacterVector retN(0);
