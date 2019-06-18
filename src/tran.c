@@ -710,6 +710,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
   char buf[1024];
   char buf2[1024];
+  buf[0]='\0';
+  buf2[0]='\0';
   double d;
   if ((nodeHas(identifier) || nodeHas(identifier_r) ||
        nodeHas(identifier_r_no_output)  ||
@@ -1613,6 +1615,9 @@ void err_msg(int chk, const char *msg, int code)
 void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str, int show_ode) {
   int i, j, k;
   char buf[64], buf1[64],buf2[64];
+  buf[0]='\0';
+  buf1[0]='\0';
+  buf2[0]='\0';
   sAppend(&sbOut, "%s", pre_str);
   if (scenario == 0 || scenario == 2){
     // show_ode = 1 dydt
@@ -1722,6 +1727,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   int i, j, islhs,pi = 0,li = 0, o=0, statei = 0, sensi=0, normi=0,fdi=0,
     in_str=0;
   char buf[512], buf2[512];
+  buf[0]='\0';buf2[0]='\0';
   for (i=0; i<tb.nv; i++) {
     islhs = tb.lh[i];
     if (islhs>1 && islhs != 19) continue;      /* is a state var */
@@ -2090,6 +2096,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
   } else {
     int i, j, k;
     char buf[64];
+    buf[0]='\0';
     if (show_ode == 1){
       sAppendN(&sbOut,"#include <RxODE_model_shared.h>\n",32);
       int mx = maxSumProdN;
