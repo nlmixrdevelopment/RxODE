@@ -1,5 +1,5 @@
 ## This is based on https://stat.ethz.ch/pipermail/r-devel/2010-September/058488.html
-AC_INIT(RxODE, 0.6 , matthew.fidler@gmail.com)
+AC_INIT(RxODE, 0.9 , matthew.fidler@gmail.com)
 AC_CONFIG_SRCDIR([src/init.c])
 
 # find R home and set CC/CFLAGS
@@ -34,7 +34,10 @@ if test "${ac_pkg_openmp}" = no; then
   OPENMP_CFLAGS=''
 fi
 
+OPENMP_CXXFLAGS="${OPENMP_CFLAGS}"
+
 AC_SUBST(OPENMP_CFLAGS)
+AC_SUBST(OPENMP_CXXFLAGS)
 
 AC_CONFIG_FILES([src/Makevars])
 AC_OUTPUT
