@@ -392,6 +392,9 @@ for (f in sympy.equiv.f){
     sympyRxFEnv[[f]] <- functionOp(f);
 }
 
+rxSymPyFEnv[["log"]] <- functionOp("log");
+sympyRxFEnv[["log"]] <- functionOp("log");
+
 dsl.factor.pi.1 <- function(x){
     mult.split <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s),mult=TRUE)", x)));
     w <- which(mult.split == "M_PI");
