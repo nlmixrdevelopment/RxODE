@@ -35,7 +35,7 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
     if (any(diag(mat1) == 0)){
         stop("Diagonal elements must be non-zero.");
     }
-    cache.file <- file.path(ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory),
+    cache.file <- file.path(rxTempDir(),
                             sprintf("rx_%s2.inv",
                                     digest::digest(deparse(list(mat1, diag.xform)))));
     cache.file2 <- file.path(system.file("inv", package="RxODE"), cache.file);
