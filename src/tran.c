@@ -2561,6 +2561,11 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   char *in;
   char buf[1024], buf2[512], df[128], dy[128];
   int i, j, islhs, pi=0, li=0, ini_i = 0,k=0, l=0, m=0, p=0;
+  // Make sure buffers are initialized.
+  buf2[0]='\0';
+  buf[0]='\0';
+  df[0]='\0';
+  dy[0]='\0';
 
   isEsc=INTEGER(isEscIn)[0];
 
