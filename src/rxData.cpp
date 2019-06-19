@@ -1881,7 +1881,19 @@ extern "C" int getInits(char *s_aux_info, int *o){
 	std::string cur = as<std::string>(retN[i]);
 	sprintf( s_aux_info + *o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",i, cur.c_str());
 	*o = (int)strlen(s_aux_info);
-	sprintf(s_aux_info+*o,"    REAL(ini)[%d] = %.16f;\n",i, ret[i]);
+	if (NumericVector::is_na(ret[i])){
+	  sprintf(s_aux_info+*o,"    REAL(ini)[%d] = NA_REAL;\n",i);
+	} else if (is_infinite(ret[i])){
+	  if (ret[i] > 0){
+	    sprintf(s_aux_info+*o,"    REAL(ini)[%d] = R_PosInf;\n",i)
+	  } else {
+	    sprintf(s_aux_info+*o,"    REAL(ini)[%d] = R_NegInf;\n",i)
+	  }
+	} else if (is_nan(ret[i])){
+	  sprintf(s_aux_info+*o,"    REAL(ini)[%d] = R_NaN;\n",i)
+	} else {
+	  sprintf(s_aux_info+*o,"    REAL(ini)[%d] = %.16f;\n",i, ret[i]);
+	}
 	*o = (int)strlen(s_aux_info);
       }
       return retS;
