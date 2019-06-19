@@ -74,7 +74,7 @@
 #endif
 
 void setInits(SEXP init);
-SEXP getInits();
+int getInits(char *s_aux_info, int *o);
 
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
@@ -1883,16 +1883,15 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   
   s_aux_info[0] = '\0';
   o    = 0;
-  SEXP ini = PROTECT(getInits());
-  SEXP inin = PROTECT(getAttrib(ini,   R_NamesSymbol));
+  tb.ini_i = getInits(s_aux_info, &o); 
 
-  tb.ini_i = length(ini);
-  for (i = 0; i < tb.ini_i; i++){
-    sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",i, CHAR(STRING_ELT(inin, i)));
-    o = (int)strlen(s_aux_info);
-    sprintf(s_aux_info+o,"    REAL(ini)[%d] = %.16f;\n",i, REAL(ini)[i]);
-    o = (int)strlen(s_aux_info);
-  }
+  /* tb.ini_i = length(ini); */
+  /* for (i = 0; i < tb.ini_i; i++){ */
+  /*   sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",i, CHAR(STRING_ELT(inin, i))); */
+  /*   o = (int)strlen(s_aux_info); */
+  /*   sprintf(s_aux_info+o,"    REAL(ini)[%d] = %.16f;\n",i, REAL(ini)[i]); */
+  /*   o = (int)strlen(s_aux_info); */
+  /* } */
   
   sAppend(&sbOut, "    SEXP ini    = PROTECT(allocVector(REALSXP,%d));pro++;\n",tb.ini_i);
   sAppend(&sbOut, "    SEXP inin   = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ini_i);
@@ -2086,7 +2085,6 @@ sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%smtime\", (DL_FUNC) %smtime);\n
   sAppend(&sbOut, "\nvoid R_unload_%s (DllInfo *info){\n  // Free resources required for single subject solve.\n  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));\n",
 	  libname2, prefix);
   sAppend(&sbOut, "  if (!isNull(_mv)){\n    _rxRmModelLib(\"%smodel_vars\");\n  }\n  UNPROTECT(1);\n}\n", prefix);
-  UNPROTECT(2);
 }
 
 

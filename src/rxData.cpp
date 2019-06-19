@@ -1870,16 +1870,26 @@ extern "C" void setInits(SEXP init){
   _rxModels[".init"] = init;
 }
 
-extern "C" SEXP getInits(){
+extern "C" int getInits(char *s_aux_info, int *o){
   getRxModels();
   if (_rxModels.exists(".init")){
-    NumericVector ret = as<NumericVector>(_rxModels[".init"]);
-    return as<SEXP>(ret);
+    if (rxIs(_rxModels[".init"], "numeric") || rxIs(_rxModels[".init"], "integer")){
+      NumericVector ret = as<NumericVector>(_rxModels[".init"]);
+      StringVector retN = ret.attr("names");
+      int retS = ret.size();
+      for (int i = 0; i < retS; i++){
+	std::string cur = as<std::string>(retN[i]);
+	sprintf( s_aux_info + *o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",i, cur.c_str());
+	*o = (int)strlen(s_aux_info);
+	sprintf(s_aux_info+*o,"    REAL(ini)[%d] = %.16f;\n",i, ret[i]);
+	*o = (int)strlen(s_aux_info);
+      }
+      return retS;
+    } else {
+      return 0;
+    }
   } else {
-    NumericVector ret(0);
-    CharacterVector retN(0);
-    ret.attr("names") = retN;
-    return as<SEXP>(ret);
+    return 0;
   }
 }
   
