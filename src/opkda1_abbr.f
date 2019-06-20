@@ -290,13 +290,15 @@ C60     DKY(I) = R*DKY(I)
       RETURN
 C
  80   MSG = 'DINTDY-  K (=I1) illegal      '
-      CALL XERRWD (MSG, 30, 51, 0, 1, K, 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 30, 51, 0, 1, K, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (51, 0)
       IFLAG = -1
       RETURN
  90   MSG = 'DINTDY-  T (=R1) illegal      '
-      CALL XERRWD (MSG, 30, 52, 0, 0, 0, 0, 1, T, 0.0D0)
-      MSG='      T not in interval TCUR - HU (= R1) to TCUR (=R2)      '
-      CALL XERRWD (MSG, 60, 52, 0, 0, 0, 0, 2, TP, TN)
+c     CALL XERRWD (MSG, 30, 52, 0, 0, 0, 0, 1, T, 0.0D0)
+c     MSG='      T not in interval TCUR - HU (= R1) to TCUR (=R2)      '
+c     CALL XERRWD (MSG, 60, 52, 0, 0, 0, 0, 2, TP, TN)
+      CALL XERRWD (52, 0)
       IFLAG = -2
       RETURN
 C----------------------- END OF SUBROUTINE DINTDY ----------------------

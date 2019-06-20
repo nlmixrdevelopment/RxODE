@@ -1144,23 +1144,25 @@ C-----------------------------------------------------------------------
       IF (LRW .GE. LENRW) GO TO 65
       INSUFR = 2
       LEWT = LEN1C + 1
-      MSG='DLSODA-  Warning.. RWORK length is sufficient for now, but  '
-      CALL XERRWD (MSG, 60, 103, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG='      may not be later.  Integration will proceed anyway.   '
-      CALL XERRWD (MSG, 60, 103, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG = '      Length needed is LENRW = I1, while LRW = I2.'
-      CALL XERRWD (MSG, 50, 103, 0, 2, LENRW, LRW, 0, 0.0D0, 0.0D0)
+c     MSG='DLSODA-  Warning.. RWORK length is sufficient for now, but  '
+c     CALL XERRWD (MSG, 60, 103, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG='      may not be later.  Integration will proceed anyway.   '
+c     CALL XERRWD (MSG, 60, 103, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG = '      Length needed is LENRW = I1, while LRW = I2.'
+c     CALL XERRWD (MSG, 50, 103, 0, 2, LENRW, LRW, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (103, 0)
  65   LSAVF = LEWT + N
       LACOR = LSAVF + N
       INSUFI = 0
       IF (LIW .GE. LENIW) GO TO 70
       INSUFI = 2
-      MSG='DLSODA-  Warning.. IWORK length is sufficient for now, but  '
-      CALL XERRWD (MSG, 60, 104, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG='      may not be later.  Integration will proceed anyway.   '
-      CALL XERRWD (MSG, 60, 104, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG = '      Length needed is LENIW = I1, while LIW = I2.'
-      CALL XERRWD (MSG, 50, 104, 0, 2, LENIW, LIW, 0, 0.0D0, 0.0D0)
+c     MSG='DLSODA-  Warning.. IWORK length is sufficient for now, but  '
+c     CALL XERRWD (MSG, 60, 104, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG='      may not be later.  Integration will proceed anyway.   '
+c     CALL XERRWD (MSG, 60, 104, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG = '      Length needed is LENIW = I1, while LIW = I2.'
+c     CALL XERRWD (MSG, 50, 104, 0, 2, LENIW, LIW, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (104, 0)
  70   CONTINUE
 C Check RTOL and ATOL for legality. ------------------------------------
       RTOLI = RTOL(1)
@@ -1355,17 +1357,19 @@ C260    RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1)
  280  IF ((TN + H) .NE. TN) GO TO 290
       NHNIL = NHNIL + 1
       IF (NHNIL .GT. MXHNIL) GO TO 290
-      MSG = 'DLSODA-  Warning..Internal T (=R1) and H (=R2) are'
-      CALL XERRWD (MSG, 60, 101, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG='      such that in the machine, T + H = T on the next step  '
-      CALL XERRWD (MSG, 60, 101, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG = '     (H = step size). Solver will continue anyway.'
-      CALL XERRWD (MSG, 50, 101, 0, 0, 0, 0, 2, TN, H)
+c     MSG = 'DLSODA-  Warning..Internal T (=R1) and H (=R2) are'
+c     CALL XERRWD (MSG, 60, 101, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG='      such that in the machine, T + H = T on the next step  '
+c     CALL XERRWD (MSG, 60, 101, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG = '     (H = step size). Solver will continue anyway.'
+c     CALL XERRWD (MSG, 50, 101, 0, 0, 0, 0, 2, TN, H)
+      CALL XERRWD (101, 0)
       IF (NHNIL .LT. MXHNIL) GO TO 290
-      MSG = 'DLSODA-  Above warning has been issued I1 times.  '
-      CALL XERRWD (MSG, 50, 102, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG = '     It will not be issued again for this problem.'
-      CALL XERRWD (MSG, 50, 102, 0, 1, MXHNIL, 0, 0, 0.0D0, 0.0D0)
+c     MSG = 'DLSODA-  Above warning has been issued I1 times.  '
+c     CALL XERRWD (MSG, 50, 102, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG = '     It will not be issued again for this problem.'
+c     CALL XERRWD (MSG, 50, 102, 0, 1, MXHNIL, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (102, 0)
  290  CONTINUE
 C-----------------------------------------------------------------------
 C   CALL DSTODA(NEQ,Y,YH,NYH,YH,EWT,SAVF,ACOR,WM,IWM,F,JAC,DPRJA,DSOLSY)
@@ -1399,15 +1403,18 @@ C-----------------------------------------------------------------------
       JSTART = -1
       IF (IXPR .EQ. 0) GO TO 310
       IF (METH .EQ. 2) THEN
-      MSG='DLSODA- A switch to the BDF (stiff) method has occurred     '
-      CALL XERRWD (MSG, 60, 105, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG='DLSODA- A switch to the BDF (stiff) method has occurred     '
+c     CALL XERRWD (MSG, 60, 105, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (105, 0)
       ENDIF
       IF (METH .EQ. 1) THEN
-      MSG='DLSODA- A switch to the Adams (nonstiff) method has occurred'
-      CALL XERRWD (MSG, 60, 106, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG='DLSODA- A switch to the Adams (nonstiff) method has occurred'
+c     CALL XERRWD (MSG, 60, 106, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (106, 0)
       ENDIF
-      MSG='     at T = R1,  tentative step size H = R2,  step NST = I1 '
-      CALL XERRWD (MSG, 60, 107, 0, 1, NST, 0, 2, TN, H)
+c     MSG='     at T = R1,  tentative step size H = R2,  step NST = I1 '
+c     CALL XERRWD (MSG, 60, 107, 0, 1, NST, 0, 2, TN, H)
+      CALL XERRWD (107, 0)
 C310  GO TO (320, 400, 330, 340, 350), ITASK
  310  IF (ITASK .EQ. 1) GO TO 320
       IF (ITASK .EQ. 2) GO TO 400
@@ -1476,53 +1483,60 @@ C The optional outputs are loaded into the work arrays before returning.
 C-----------------------------------------------------------------------
 C The maximum number of steps was taken before reaching TOUT. ----------
  500  MSG = 'DLSODA-  At current T (=R1), MXSTEP (=I1) steps   '
-      CALL XERRWD (MSG, 50, 201, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG = '      taken on this call before reaching TOUT     '
-      CALL XERRWD (MSG, 50, 201, 0, 1, MXSTEP, 0, 1, TN, 0.0D0)
+c     CALL XERRWD (MSG, 50, 201, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG = '      taken on this call before reaching TOUT     '
+c     CALL XERRWD (MSG, 50, 201, 0, 1, MXSTEP, 0, 1, TN, 0.0D0)
+      CALL XERRWD (201, 0)
       ISTATE = -1
       GO TO 580
 C EWT(i) .le. 0.0 for some i (not at start of problem). ----------------
  510  EWTI = RWORK(LEWT+I-1)
-      MSG = 'DLSODA-  At T (=R1), EWT(I1) has become R2 .le. 0.'
-      CALL XERRWD (MSG, 50, 202, 0, 1, I, 0, 2, TN, EWTI)
+c     MSG = 'DLSODA-  At T (=R1), EWT(I1) has become R2 .le. 0.'
+c     CALL XERRWD (MSG, 50, 202, 0, 1, I, 0, 2, TN, EWTI)
+      CALL XERRWD (202, 0)
       ISTATE = -6
       GO TO 580
 C Too much accuracy requested for machine precision. -------------------
  520  MSG = 'DLSODA-  At T (=R1), too much accuracy requested  '
-      CALL XERRWD (MSG, 50, 203, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG = '      for precision of machine..  See TOLSF (=R2) '
-      CALL XERRWD (MSG, 50, 203, 0, 0, 0, 0, 2, TN, TOLSF)
+c     CALL XERRWD (MSG, 50, 203, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG = '      for precision of machine..  See TOLSF (=R2) '
+c     CALL XERRWD (MSG, 50, 203, 0, 0, 0, 0, 2, TN, TOLSF)
+      CALL XERRWD (203, 0)
       RWORK(14) = TOLSF
       ISTATE = -2
       GO TO 580
 C KFLAG = -1.  Error test failed repeatedly or with ABS(H) = HMIN. -----
  530  MSG = 'DLSODA-  At T(=R1) and step size H(=R2), the error'
-      CALL XERRWD (MSG, 50, 204, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG = '      test failed repeatedly or with ABS(H) = HMIN'
-      CALL XERRWD (MSG, 50, 204, 0, 0, 0, 0, 2, TN, H)
+c     CALL XERRWD (MSG, 50, 204, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG = '      test failed repeatedly or with ABS(H) = HMIN'
+c     CALL XERRWD (MSG, 50, 204, 0, 0, 0, 0, 2, TN, H)
+      CALL XERRWD (204, 0)
       ISTATE = -4
       GO TO 560
 C KFLAG = -2.  Convergence failed repeatedly or with ABS(H) = HMIN. ----
  540  MSG = 'DLSODA-  At T (=R1) and step size H (=R2), the    '
-      CALL XERRWD (MSG, 50, 205, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG = '      corrector convergence failed repeatedly     '
-      CALL XERRWD (MSG, 50, 205, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG = '      or with ABS(H) = HMIN   '
-      CALL XERRWD (MSG, 30, 205, 0, 0, 0, 0, 2, TN, H)
+c     CALL XERRWD (MSG, 50, 205, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG = '      corrector convergence failed repeatedly     '
+c     CALL XERRWD (MSG, 50, 205, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG = '      or with ABS(H) = HMIN   '
+c     CALL XERRWD (MSG, 30, 205, 0, 0, 0, 0, 2, TN, H)
+      CALL XERRWD (205, 0)
       ISTATE = -5
       GO TO 560
 C RWORK length too small to proceed. -----------------------------------
  550  MSG = 'DLSODA-  At current T(=R1), RWORK length too small'
-      CALL XERRWD (MSG, 50, 206, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG='      to proceed.  The integration was otherwise successful.'
-      CALL XERRWD (MSG, 60, 206, 0, 0, 0, 0, 1, TN, 0.0D0)
+c     CALL XERRWD (MSG, 50, 206, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG='      to proceed.  The integration was otherwise successful.'
+c     CALL XERRWD (MSG, 60, 206, 0, 0, 0, 0, 1, TN, 0.0D0)
+      CALL XERRWD (206, 0)
       ISTATE = -7
       GO TO 580
 C IWORK length too small to proceed. -----------------------------------
  555  MSG = 'DLSODA-  At current T(=R1), IWORK length too small'
-      CALL XERRWD (MSG, 50, 207, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG='      to proceed.  The integration was otherwise successful.'
-      CALL XERRWD (MSG, 60, 207, 0, 0, 0, 0, 1, TN, 0.0D0)
+c     CALL XERRWD (MSG, 50, 207, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG='      to proceed.  The integration was otherwise successful.'
+c     CALL XERRWD (MSG, 60, 207, 0, 0, 0, 0, 1, TN, 0.0D0)
+      CALL XERRWD (207, 0)
       ISTATE = -7
       GO TO 580
 C Compute IMXER if relevant. -------------------------------------------
@@ -1561,104 +1575,134 @@ C First the error message routine is called.  If the illegal input
 C is a negative ISTATE, the run is aborted (apparent infinite loop).
 C-----------------------------------------------------------------------
  601  MSG = 'DLSODA-  ISTATE (=I1) illegal.'
-      CALL XERRWD (MSG, 30, 1, 0, 1, ISTATE, 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 30, 1, 0, 1, ISTATE, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (1, 0)
       IF (ISTATE .LT. 0) GO TO 800
       GO TO 700
  602  MSG = 'DLSODA-  ITASK (=I1) illegal. '
-      CALL XERRWD (MSG, 30, 2, 0, 1, ITASK, 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 30, 2, 0, 1, ITASK, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (2, 0)
       GO TO 700
  603  MSG = 'DLSODA-  ISTATE .gt. 1 but DLSODA not initialized.'
-      CALL XERRWD (MSG, 50, 3, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 50, 3, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (3, 0)
       GO TO 700
  604  MSG = 'DLSODA-  NEQ (=I1) .lt. 1     '
-      CALL XERRWD (MSG, 30, 4, 0, 1, NEQ(1), 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 30, 4, 0, 1, NEQ(1), 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (4, 0)
       GO TO 700
  605  MSG = 'DLSODA-  ISTATE = 3 and NEQ increased (I1 to I2). '
-      CALL XERRWD (MSG, 50, 5, 0, 2, N, NEQ(1), 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 50, 5, 0, 2, N, NEQ(1), 0, 0.0D0, 0.0D0)
+      CALL XERRWD (5, 0)
       GO TO 700
  606  MSG = 'DLSODA-  ITOL (=I1) illegal.  '
-      CALL XERRWD (MSG, 30, 6, 0, 1, ITOL, 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 30, 6, 0, 1, ITOL, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (6, 0)
       GO TO 700
  607  MSG = 'DLSODA-  IOPT (=I1) illegal.  '
-      CALL XERRWD (MSG, 30, 7, 0, 1, IOPT, 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 30, 7, 0, 1, IOPT, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (7, 0)
       GO TO 700
  608  MSG = 'DLSODA-  JT (=I1) illegal.    '
-      CALL XERRWD (MSG, 30, 8, 0, 1, JT, 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 30, 8, 0, 1, JT, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (8, 0)
       GO TO 700
  609  MSG = 'DLSODA-  ML (=I1) illegal: .lt.0 or .ge.NEQ (=I2) '
-      CALL XERRWD (MSG, 50, 9, 0, 2, ML, NEQ(1), 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 50, 9, 0, 2, ML, NEQ(1), 0, 0.0D0, 0.0D0)
+      CALL XERRWD (9, 0)
       GO TO 700
  610  MSG = 'DLSODA-  MU (=I1) illegal: .lt.0 or .ge.NEQ (=I2) '
-      CALL XERRWD (MSG, 50, 10, 0, 2, MU, NEQ(1), 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 50, 10, 0, 2, MU, NEQ(1), 0, 0.0D0, 0.0D0)
+      CALL XERRWD (10, 0)
       GO TO 700
  611  MSG = 'DLSODA-  IXPR (=I1) illegal.  '
-      CALL XERRWD (MSG, 30, 11, 0, 1, IXPR, 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 30, 11, 0, 1, IXPR, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (11, 0)
       GO TO 700
  612  MSG = 'DLSODA-  MXSTEP (=I1) .lt. 0  '
-      CALL XERRWD (MSG, 30, 12, 0, 1, MXSTEP, 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 30, 12, 0, 1, MXSTEP, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (12, 0)
       GO TO 700
  613  MSG = 'DLSODA-  MXHNIL (=I1) .lt. 0  '
-      CALL XERRWD (MSG, 30, 13, 0, 1, MXHNIL, 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 30, 13, 0, 1, MXHNIL, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (13, 0)
       GO TO 700
  614  MSG = 'DLSODA-  TOUT (=R1) behind T (=R2)      '
-      CALL XERRWD (MSG, 40, 14, 0, 0, 0, 0, 2, TOUT, T)
-      MSG = '      Integration direction is given by H0 (=R1)  '
-      CALL XERRWD (MSG, 50, 14, 0, 0, 0, 0, 1, H0, 0.0D0)
+c     CALL XERRWD (MSG, 40, 14, 0, 0, 0, 0, 2, TOUT, T)
+c     MSG = '      Integration direction is given by H0 (=R1)  '
+c     CALL XERRWD (MSG, 50, 14, 0, 0, 0, 0, 1, H0, 0.0D0)
+      CALL XERRWD (14, 0)
       GO TO 700
  615  MSG = 'DLSODA-  HMAX (=R1) .lt. 0.0  '
-      CALL XERRWD (MSG, 30, 15, 0, 0, 0, 0, 1, HMAX, 0.0D0)
+c     CALL XERRWD (MSG, 30, 15, 0, 0, 0, 0, 1, HMAX, 0.0D0)
+      CALL XERRWD (15, 0)
       GO TO 700
  616  MSG = 'DLSODA-  HMIN (=R1) .lt. 0.0  '
-      CALL XERRWD (MSG, 30, 16, 0, 0, 0, 0, 1, HMIN, 0.0D0)
+c     CALL XERRWD (MSG, 30, 16, 0, 0, 0, 0, 1, HMIN, 0.0D0)
+      CALL XERRWD (16, 0)
       GO TO 700
  617  MSG='DLSODA-  RWORK length needed, LENRW (=I1), exceeds LRW (=I2)'
-      CALL XERRWD (MSG, 60, 17, 0, 2, LENRW, LRW, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 60, 17, 0, 2, LENRW, LRW, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (17, 0)
       GO TO 700
  618  MSG='DLSODA-  IWORK length needed, LENIW (=I1), exceeds LIW (=I2)'
-      CALL XERRWD (MSG, 60, 18, 0, 2, LENIW, LIW, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 60, 18, 0, 2, LENIW, LIW, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (18, 0)
       GO TO 700
  619  MSG = 'DLSODA-  RTOL(I1) is R1 .lt. 0.0        '
-      CALL XERRWD (MSG, 40, 19, 0, 1, I, 0, 1, RTOLI, 0.0D0)
+c     CALL XERRWD (MSG, 40, 19, 0, 1, I, 0, 1, RTOLI, 0.0D0)
+      CALL XERRWD (19, 0)
       GO TO 700
  620  MSG = 'DLSODA-  ATOL(I1) is R1 .lt. 0.0        '
-      CALL XERRWD (MSG, 40, 20, 0, 1, I, 0, 1, ATOLI, 0.0D0)
+c     CALL XERRWD (MSG, 40, 20, 0, 1, I, 0, 1, ATOLI, 0.0D0)
+      CALL XERRWD (20, 0)
       GO TO 700
  621  EWTI = RWORK(LEWT+I-1)
-      MSG = 'DLSODA-  EWT(I1) is R1 .le. 0.0         '
-      CALL XERRWD (MSG, 40, 21, 0, 1, I, 0, 1, EWTI, 0.0D0)
+c     MSG = 'DLSODA-  EWT(I1) is R1 .le. 0.0         '
+c     CALL XERRWD (MSG, 40, 21, 0, 1, I, 0, 1, EWTI, 0.0D0)
+      CALL XERRWD (21, 0)
       GO TO 700
  622  MSG='DLSODA-  TOUT(=R1) too close to T(=R2) to start integration.'
-      CALL XERRWD (MSG, 60, 22, 0, 0, 0, 0, 2, TOUT, T)
+c     CALL XERRWD (MSG, 60, 22, 0, 0, 0, 0, 2, TOUT, T)
+      CALL XERRWD (22, 0)
       GO TO 700
  623  MSG='DLSODA-  ITASK = I1 and TOUT (=R1) behind TCUR - HU (= R2)  '
-      CALL XERRWD (MSG, 60, 23, 0, 1, ITASK, 0, 2, TOUT, TP)
+c     CALL XERRWD (MSG, 60, 23, 0, 1, ITASK, 0, 2, TOUT, TP)
+      CALL XERRWD (23, 0)
       GO TO 700
  624  MSG='DLSODA-  ITASK = 4 or 5 and TCRIT (=R1) behind TCUR (=R2)   '
-      CALL XERRWD (MSG, 60, 24, 0, 0, 0, 0, 2, TCRIT, TN)
+c     CALL XERRWD (MSG, 60, 24, 0, 0, 0, 0, 2, TCRIT, TN)
+      CALL XERRWD (24, 0)
       GO TO 700
  625  MSG='DLSODA-  ITASK = 4 or 5 and TCRIT (=R1) behind TOUT (=R2)   '
-      CALL XERRWD (MSG, 60, 25, 0, 0, 0, 0, 2, TCRIT, TOUT)
+c     CALL XERRWD (MSG, 60, 25, 0, 0, 0, 0, 2, TCRIT, TOUT)
+      CALL XERRWD (25, 0)
       GO TO 700
  626  MSG = 'DLSODA-  At start of problem, too much accuracy   '
-      CALL XERRWD (MSG, 50, 26, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG='      requested for precision of machine..  See TOLSF (=R1) '
-      CALL XERRWD (MSG, 60, 26, 0, 0, 0, 0, 1, TOLSF, 0.0D0)
+c     CALL XERRWD (MSG, 50, 26, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     MSG='      requested for precision of machine..  See TOLSF (=R1) '
+c     CALL XERRWD (MSG, 60, 26, 0, 0, 0, 0, 1, TOLSF, 0.0D0)
+      CALL XERRWD (26, 0)
       RWORK(14) = TOLSF
       GO TO 700
  627  MSG = 'DLSODA-  Trouble in DINTDY.  ITASK = I1, TOUT = R1'
-      CALL XERRWD (MSG, 50, 27, 0, 1, ITASK, 0, 1, TOUT, 0.0D0)
+c     CALL XERRWD (MSG, 50, 27, 0, 1, ITASK, 0, 1, TOUT, 0.0D0)
+      CALL XERRWD (27, 0)
       GO TO 700
  628  MSG = 'DLSODA-  MXORDN (=I1) .lt. 0  '
-      CALL XERRWD (MSG, 30, 28, 0, 1, MXORDN, 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 30, 28, 0, 1, MXORDN, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (28, 0)
       GO TO 700
  629  MSG = 'DLSODA-  MXORDS (=I1) .lt. 0  '
-      CALL XERRWD (MSG, 30, 29, 0, 1, MXORDS, 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 30, 29, 0, 1, MXORDS, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (29, 0)
 C
  700  ISTATE = -3
       RETURN
 C
  800  MSG = 'DLSODA-  Run aborted.. apparent infinite loop.    '
-      CALL XERRWD (MSG, 50, 303, 2, 0, 0, 0, 0, 0.0D0, 0.0D0)
+c     CALL XERRWD (MSG, 50, 303, 2, 0, 0, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (303, 2)
       RETURN
 C----------------------- End of Subroutine DLSODA ----------------------
       END
