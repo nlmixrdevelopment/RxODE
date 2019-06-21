@@ -304,4 +304,4 @@ rxPermissive({
     ## devtools::install();library(RxODE);rxTest("cov")
     rxClean()
 
-}, silent=TRUE, cran=TRUE)
+}, silent=TRUE)
