@@ -145,8 +145,7 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  int *on, int *ix,
 			  int *slvr_counter, int *dadt_counter, int *jac_counter,
 			  double *InfusionRate, int *BadDose, int *idose,
-			  double *scale, int *stateIgnore, double *mtime,
-			  double *solveSave);
+			  double *scale, int *stateIgnore, double *mtime);
 void rxOptionsIniEnsure0(int mx);
 
 void R_init_RxODE(DllInfo *info){
