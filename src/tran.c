@@ -572,6 +572,7 @@ typedef struct nodeInfo {
   int transit3;
   int cmt_statement;
   int dvid_statementI;
+  int ifelse;
 } nodeInfo;
 
 #define NIB(what) ni.what
@@ -624,6 +625,7 @@ void niReset(nodeInfo *ni){
   ni->transit3 = -1;
   ni->cmt_statement = -1;
   ni->dvid_statementI = -1;
+  ni->ifelse = -1;
 }
 
 
@@ -803,7 +805,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	   nodeHas(rate) || nodeHas(dur))) continue;
       
       if ((i == 3 || i < 2) && nodeHas(der_rhs)) continue;
-      
 
       if (nodeHas(dfdy)     && i< 2)   continue;
       if (nodeHas(dfdy_rhs) && i< 2)   continue;
@@ -824,6 +825,26 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) continue;
       if (i != 0 && nodeHas(dvid_statementI)) continue;
       tb.fn = (nodeHas(function) && i==0) ? 1 : 0;
+
+      if (nodeHas(ifelse)){
+	if (i == 1){
+	  aAppendN("((", 2);
+	  sAppendN(&sbt,"ifelse(", 7);
+	  continue;
+	} else if (i == 3){
+	  aAppendN(") ? (", 5);
+	  sAppendN(&sbt,",", 1);
+	  continue;
+	} else if (i == 5){
+	  aAppendN(") : (", 5);
+	  sAppendN(&sbt,",", 1);
+	  continue;
+	} else if (i == 7){
+	  aAppendN("))", 2);
+	  sAppendN(&sbt,")", 1);
+	  continue;
+	}
+      }
 
       if (tb.fn) depth = 0;
 

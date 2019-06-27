@@ -114,8 +114,11 @@ primary_expression
   | transit2
   | transit3
   | function
+  | ifelse     
   | '(' additive_expression ')'
   ;
+
+ifelse : 'ifelse' '(' logical_or_expression ',' additive_expression ',' additive_expression ')' ;
 
 function : identifier '(' (additive_expression)* (',' additive_expression)* ')' ;
 
