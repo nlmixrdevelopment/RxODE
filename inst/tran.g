@@ -30,7 +30,7 @@ cmt_statement
     : 'cmt' '(' identifier_r_no_output ')';
 
 printf_statement
-  : printf_command '(' string (',' additive_expression )* ')';
+  : printf_command '(' string (',' logical_or_expression )* ')';
 
 printf_command
   : 'printf' | 'Rprintf' | 'print';
@@ -42,11 +42,11 @@ decimalintN
   : '-'? decimalint;
 ini0      : identifier_r '(0)' ('=' | '<-' ) ini_const;
 
-ini0f     : identifier_r '(0)' ('=' | '<-' ) additive_expression;
+ini0f     : identifier_r '(0)' ('=' | '<-' ) logical_or_expression;
 
 ini        : identifier_r ('=' | '<-' ) ini_const;
 
-derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-' | '~') ('+' | '-' | ) additive_expression;
+derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-' | '~') ('+' | '-' | ) logical_or_expression;
 der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
 
 // transit(n,mtt) -> transit3(t,n,mtt)
@@ -55,21 +55,21 @@ transit2   : 'transit' '(' trans_const ',' trans_const ')';
 // transit(n,mtt, bio) -> transit4(t,n,mtt,bio)
 transit3   : 'transit' '(' trans_const ',' trans_const ',' trans_const ')';
 
-dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
+dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) logical_or_expression;
 dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
-fbio        : ('f' | 'F')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
-alag        : ('lag' | 'alag')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
-rate        : 'rate'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
-dur        : 'dur'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
+fbio        : ('f' | 'F')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_or_expression;
+alag        : ('lag' | 'alag')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_or_expression;
+rate        : 'rate'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_or_expression;
+dur        : 'dur'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_or_expression;
 
 
 
 end_statement : (';')* ;
 
-assignment : identifier_r  ('=' | '<-' | '~' ) additive_expression;
+assignment : identifier_r  ('=' | '<-' | '~' ) logical_or_expression;
 
-mtime     : 'mtime' '(' identifier_r_no_output ')' ('=' | '<-' | '~') additive_expression;
+mtime     : 'mtime' '(' identifier_r_no_output ')' ('=' | '<-' | '~') logical_or_expression;
 
 logical_or_expression : logical_and_expression 
     (('||' | '|')  logical_and_expression)* ;
@@ -114,8 +114,8 @@ primary_expression
   | transit2
   | transit3
   | function
-  | ifelse     
-  | '(' additive_expression ')'
+  | ifelse
+  | '(' logical_or_expression ')'
   ;
 
 ifelse : 'ifelse' '(' logical_or_expression ',' additive_expression ',' additive_expression ')' ;

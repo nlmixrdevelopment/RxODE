@@ -40,7 +40,6 @@ rxPermissive({
             a = ifelse(cnd <= 1, 1.0, ifelse(cnd <= 2, 2, ifelse(cnd <= 3, 3, 100)))
             tmp = cnd
         })
-        ## The prefered syntax is only if / else but it still works...
         tmp <- rxSolve(m, c(cnd=1), et(0.1))
         expect_equal(tmp$tmp, 1)
         expect_equal(tmp$a, 1)
@@ -58,9 +57,29 @@ rxPermissive({
         expect_equal(tmp$a, 100)
     })
 
-    
+    test_that("embedded logical expressions", {
+        m <- RxODE({
+            a = (cnd == 1) * 1.0 + (cnd == 2) * 2 + (cnd == 3) * 3
+            tmp = cnd
+        })
 
-    
+        tmp <- rxSolve(m, c(cnd=1), et(0.1))
+        expect_equal(tmp$tmp, 1)
+        expect_equal(tmp$a, 1)
 
+        tmp <- rxSolve(m, c(cnd=2), et(0.1))
+        expect_equal(tmp$tmp, 2)
+        expect_equal(tmp$a, 2)
+
+        tmp <- rxSolve(m, c(cnd=3), et(0.1))
+        expect_equal(tmp$tmp, 3)
+        expect_equal(tmp$a, 3)
+
+        tmp <- rxSolve(m, c(cnd=4), et(0.1))
+        expect_equal(tmp$tmp, 4)
+        expect_equal(tmp$a, 0)
+        
+    })
+    
     ##
 })
