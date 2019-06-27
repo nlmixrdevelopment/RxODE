@@ -562,7 +562,7 @@ typedef struct nodeInfo {
   int prod;
   int rate;
   int selection_statement;
-  int selection_statement__8;
+  int selection_statement__9;
   int sign;
   int sum;
   int theta0;
@@ -573,6 +573,7 @@ typedef struct nodeInfo {
   int cmt_statement;
   int dvid_statementI;
   int ifelse;
+  int ifelse_statement;
 } nodeInfo;
 
 #define NIB(what) ni.what
@@ -615,7 +616,7 @@ void niReset(nodeInfo *ni){
   ni->rate = -1;
   ni->rate = -1;
   ni->selection_statement = -1;
-  ni->selection_statement__8 = -1;
+  ni->selection_statement__9 = -1;
   ni->sign = -1;
   ni->sum = -1;
   ni->theta = -1;
@@ -626,6 +627,7 @@ void niReset(nodeInfo *ni){
   ni->cmt_statement = -1;
   ni->dvid_statementI = -1;
   ni->ifelse = -1;
+  ni->ifelse_statement=-1;
 }
 
 
@@ -827,7 +829,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       tb.fn = (nodeHas(function) && i==0) ? 1 : 0;
 
       if (nodeHas(ifelse)){
-	if (i == 1){
+	if (i == 0){
+	  continue;
+	} else if (i == 1){
 	  aAppendN("((", 2);
 	  sAppendN(&sbt,"ifelse(", 7);
 	  continue;
@@ -842,6 +846,44 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	} else if (i == 7){
 	  aAppendN("))", 2);
 	  sAppendN(&sbt,")", 1);
+	  continue;
+	}
+      }
+      if (nodeHas(ifelse_statement)){
+	if (i == 0){
+	  continue;
+	} else if (i == 1){
+	  aAppendN("if (", 4);
+	  sAppendN(&sbt, "if (", 4);
+	  continue;
+	} else if (i == 3){
+	  aType(TLOGIC);
+	  aAppendN(") {", 3);
+	  sAppendN(&sbt,") {", 3);
+	  addLine(&sbPm, "%s\n", sb.s);
+	  addLine(&sbPmDt, "%s\n", sbDt.s);
+	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  sb.o=0;sbDt.o=0; sbt.o=0;
+	  continue;
+	} else if (i == 5){
+	  sb.o=0;sbDt.o=0; sbt.o=0;
+	  aType(TLOGIC);
+	  aAppendN("}\nelse {", 8);
+	  sAppendN(&sbt,"}\nelse {", 1);
+	  addLine(&sbPm, "%s\n", sb.s);
+	  addLine(&sbPmDt, "%s\n", sbDt.s);
+	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  continue;
+	} else if (i == 7){
+	  sb.o=0;sbDt.o=0; sbt.o=0;
+	  aType(TLOGIC);
+	  aAppendN("}", 1);
+	  sAppendN(&sbt,"}", 1);
+	  addLine(&sbPm, "%s\n", sb.s);
+	  addLine(&sbPmDt, "%s\n", sbDt.s);
+	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  continue;
+	} else if (i == 8){
 	  continue;
 	}
       }
@@ -1123,7 +1165,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sAppend(&sbNrm, "%s\n", sbt.s);
         continue;
       }
-      if (nodeHas(selection_statement__8) && i==0) {
+      if (nodeHas(selection_statement__9) && i==0) {
 	sb.o = 0; sbDt.o = 0; sbt.o = 0;
 	aType(TLOGIC);
 	aAppendN("}\nelse {", 8);

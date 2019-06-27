@@ -18,10 +18,14 @@ statement
   | dvid_statementI end_statement
   | compound_statement
   | selection_statement
+  | ifelse_statement
   | end_statement ;
 
 
 compound_statement : '{' statement_list? '}' ;
+
+ifelse_statement
+   : 'ifelse' '(' logical_or_expression ','  statement ',' statement ')' end_statement;
 
 selection_statement
   : 'if' '(' logical_or_expression ')' statement ('else' statement)?;
@@ -118,9 +122,9 @@ primary_expression
   | '(' logical_or_expression ')'
   ;
 
-ifelse : 'ifelse' '(' logical_or_expression ',' additive_expression ',' additive_expression ')' ;
+ifelse : 'ifelse' '(' logical_or_expression ',' logical_or_expression ',' logical_or_expression ')' ;
 
-function : identifier '(' (additive_expression)* (',' additive_expression)* ')' ;
+function : identifier '(' (logical_or_expression)* (',' logical_or_expression)* ')' ;
 
 ini_const : '-'? constant;
 trans_const: identifier_r | '-'? constant;

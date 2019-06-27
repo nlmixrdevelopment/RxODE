@@ -80,6 +80,34 @@ rxPermissive({
         expect_equal(tmp$a, 0)
         
     })
+
+    test_that("ifelse with assignments", {
+        m <- RxODE({
+            ifelse(cnd <= 1, a = 1.0, a = 2.0);
+            tmp = cnd
+        })
+
+        tmp <- rxSolve(m, c(cnd=1), et(0.1))
+        expect_equal(tmp$tmp, 1)
+        expect_equal(tmp$a, 1)
+
+        tmp <- rxSolve(m, c(cnd=2), et(0.1))
+        expect_equal(tmp$tmp, 2)
+        expect_equal(tmp$a, 2)
+
+        m <- RxODE({
+            ifelse(cnd <= 1, a <- 1.0, a <- 2.0);
+            tmp = cnd
+        })
+
+        tmp <- rxSolve(m, c(cnd=1), et(0.1))
+        expect_equal(tmp$tmp, 1)
+        expect_equal(tmp$a, 1)
+
+        tmp <- rxSolve(m, c(cnd=2), et(0.1))
+        expect_equal(tmp$tmp, 2)
+        expect_equal(tmp$a, 2)
+    })
     
     ##
 })
