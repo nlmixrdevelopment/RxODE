@@ -166,6 +166,78 @@ rxSymPyFEnv$solveLinB <- function(...){
 rxSymPyFEnv$diff <- rxSymPyFEnv$Derivative
 rxSymPyFEnv$D <- rxSymPyFEnv$Derivative;
 
+rxSymPyFEnv$`=` <- function(a, b){
+    return(paste0(a, "=", b))
+}
+
+rxSymPyFEnv$`==` <- function(a, b){
+    return(paste0("rxEq(", a, ",", b, ")"))
+}
+
+rxSymPyFEnv$`!=` <- function(a, b){
+    return(paste0("rxNeq(", a, ",", b, ")"))
+}
+
+rxSymPyFEnv$`<=` <- function(a, b){
+    return(paste0("rxLeq(", a, ",", b, ")"))
+}
+
+rxSymPyFEnv$`>=` <- function(a, b){
+    return(paste0("rxGeq(", a, ",", b, ")"))
+}
+
+rxSymPyFEnv$`<` <- function(a, b){
+    return(paste0("rxLt(", a, ",", b, ")"))
+}
+
+rxSymPyFEnv$`>` <- function(a, b){
+    return(paste0("rxGt(", a, ",", b, ")"))
+}
+
+rxSymPyFEnv$`&` <- function(a, b){
+    return(paste0("rxAnd(", a, ",", b, ")"))
+}
+
+rxSymPyFEnv$`&&` <- rxSymPyFEnv$`&`
+
+rxSymPyFEnv$`|` <- function(a, b){
+    return(paste0("rxOr(", a, ",", b, ")"))
+}
+
+rxSymPyFEnv$`||` <- rxSymPyFEnv$`|`
+
+sympyRxFEnv$rxOr <- function(a, b){
+    paste0("(", a, "||", b, ")")
+}
+
+sympyRxFEnv$rxAnd <- function(a, b){
+    paste0("(", a, "&&", b, ")")
+}
+
+sympyRxFEnv$rxLt <- function(a, b){
+    paste0("(", a, "<", b, ")")
+}
+
+sympyRxFEnv$rxGt <- function(a, b){
+    paste0("(", a, ">", b, ")")
+}
+
+sympyRxFEnv$rxEq <- function(a, b){
+    paste0("(", a, "==", b, ")")
+}
+
+sympyRxFEnv$rxNeq <- function(a, b){
+    paste0("(", a, "!=", b, ")")
+}
+
+sympyRxFEnv$rxLeq <- function(a, b){
+    paste0("(", a, "<=", b, ")")
+}
+
+sympyRxFEnv$rxGeq <- function(a, b){
+    paste0("(", a, ">=", b, ")")
+}
+
 for (op in c("+", "-", "*")){
     rxSymPyFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
     sympyRxFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
@@ -1071,8 +1143,9 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
         if (length(x) == 1){
             names(x) <- NULL;
             txt  <- gsub(rex::rex(boundary,or("cmt","dvid"),"(",except_any_of(")"),")"), "", x,perl=TRUE)
+            txt <- gsub("([^!<>=])[=]([^=])", "\\1 = \\2", txt);
             txt <- strsplit(gsub(";", "\n", txt), "\n+")[[1]];
-            txt <- strsplit(txt, rex::rex(or("=", "~", "<-")));
+            txt <- strsplit(txt, rex::rex(or(" = ", "~", "<-")));
             tmp <- unlist(lapply(txt, function(x){length(x)}));
             if (length(tmp) > 1){
                 if (all(tmp == 1)){

@@ -457,7 +457,7 @@ rxSymPyFunctions <- function(functions){
 ##' @export
 rxSymPySetup <- function(model, envir=parent.frame()){
     if (identical(model, "")) return(invisible());
-    rxSymPyFunctions(c("rxTBS", "rxTBSd"));
+    rxSymPyFunctions(c("rxTBS", "rxTBSd", "rxEq", "rxNeq", "rxLt", "rxGt", "rxGeq", "rxLeq", "rxAnd", "rxOr"));
     setup <- rxToSymPy(model, envir=envir);
     const <- rxInits(model, rxLines=TRUE);
     if (!identical(const, "")) setup <- c(rxToSymPy(const, envir=envir), setup);

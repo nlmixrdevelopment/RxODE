@@ -65,6 +65,17 @@
 
 .rxOptEnv[["-"]] <- .rxOptBin("-");
 
+.rxOptEnv[["&&"]] <- binaryOp("&&");
+.rxOptEnv[["||"]] <- binaryOp("||");
+.rxOptEnv[["|"]] <- binaryOp("|");
+.rxOptEnv[["&"]] <- binaryOp("&");
+.rxOptEnv[["=="]] <- binaryOp("==");
+.rxOptEnv[["<="]] <- binaryOp("<=");
+.rxOptEnv[[">="]] <- binaryOp(">=");
+.rxOptEnv[["<"]] <- binaryOp("<");
+.rxOptEnv[[">"]] <- binaryOp(">");
+.rxOptEnv[["!="]] <- binaryOp("!=");
+
 .rxOptEnv$"[" <- function(name, val){
     .n <- toupper(name)
     .err <- "RxODE only supports THETA[#] and ETA[#] numbers."
