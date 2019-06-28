@@ -146,7 +146,7 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  int *slvr_counter, int *dadt_counter, int *jac_counter,
 			  double *InfusionRate, int *BadDose, int *idose,
 			  double *scale, int *stateIgnore, double *mtime);
-void rxOptionsIniEnsure0(int mx);
+void rxOptionsIniEnsure(int mx);
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
@@ -238,7 +238,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_current_fn_pointer_id", (DL_FUNC) &RxODE_current_fn_pointer_id);
   R_RegisterCCallable("RxODE","getRxSolve_", (DL_FUNC) &getRxSolve_);
   R_RegisterCCallable("RxODE", "rxSingleSolve", (DL_FUNC) &rxSingleSolve);
-  R_RegisterCCallable("RxODE", "rxOptionsIniEnsure0", (DL_FUNC) &rxOptionsIniEnsure0);
+  R_RegisterCCallable("RxODE", "rxOptionsIniEnsure0", (DL_FUNC) &rxOptionsIniEnsure);
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},

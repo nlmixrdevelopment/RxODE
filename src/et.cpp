@@ -2220,6 +2220,7 @@ RObject et_(List input, List et__){
 	      warning("Dose amount is ignored with EVID=2 or EVID=3");
 	    }
 	  }
+	  amt = clone(amt);
 	  amt[0] = NA_REAL;
 	  isObs = false;
 	}
@@ -2317,8 +2318,10 @@ RObject et_(List input, List et__){
 	bool doWindow=false;
 	if (evidIx == -1 && !cmtNeg) evid[0]=1;
 	else if (evidIx == -1 && cmtNeg){
+	  evid=clone(evid);
 	  evid[0]=2;
-	  amt[0] = NA_REAL;
+	  amt=clone(amt);
+	  amt[0] = NA_REAL; // This is where the changed
 	}
 	////////////////////////////////////////////////////////////////////////////////
 	// Dose
