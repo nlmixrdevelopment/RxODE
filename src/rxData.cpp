@@ -2471,7 +2471,7 @@ void updateSolveEnvPost(Environment e){
 
 extern "C" void rxOptionsFree();
 extern "C" void rxOptionsIni();
-extern "C" rx_solving_options_ind *rxOptionsIniEnsure(int mx);
+extern "C" void rxOptionsIniEnsure(int mx);
 // extern "C" void rxOptionsFreeFocei();
 
 //' Free the C solving information.
