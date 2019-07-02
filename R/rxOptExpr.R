@@ -176,6 +176,8 @@ rxOptExpr <- function(x){
                         return(paste(as.character(x[[1]]),
                                      .f2(x[[2]])))
                     }
+                } else if (identical(x[[1]], quote(`[`))){
+                    return(paste0(.f2(x[[2]]), "[", .f2(x[[3]]), "]"));
                 } else {
                     .ret0 <- lapply(x, .f2);
                     .ret <- paste0(.ret0[[1]], "(")
