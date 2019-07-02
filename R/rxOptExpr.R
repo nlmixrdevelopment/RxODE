@@ -65,16 +65,16 @@
 
 .rxOptEnv[["-"]] <- .rxOptBin("-");
 
-.rxOptEnv[["&&"]] <- binaryOp("&&");
-.rxOptEnv[["||"]] <- binaryOp("||");
-.rxOptEnv[["|"]] <- binaryOp("|");
-.rxOptEnv[["&"]] <- binaryOp("&");
-.rxOptEnv[["=="]] <- binaryOp("==");
-.rxOptEnv[["<="]] <- binaryOp("<=");
-.rxOptEnv[[">="]] <- binaryOp(">=");
-.rxOptEnv[["<"]] <- binaryOp("<");
-.rxOptEnv[[">"]] <- binaryOp(">");
-.rxOptEnv[["!="]] <- binaryOp("!=");
+.rxOptEnv[["&&"]] <- .rxOptBin("&&");
+.rxOptEnv[["||"]] <- .rxOptBin("||");
+.rxOptEnv[["|"]] <- .rxOptBin("|");
+.rxOptEnv[["&"]] <- .rxOptBin("&");
+.rxOptEnv[["=="]] <- .rxOptBin("==");
+.rxOptEnv[["<="]] <- .rxOptBin("<=");
+.rxOptEnv[[">="]] <- .rxOptBin(">=");
+.rxOptEnv[["<"]] <- .rxOptBin("<");
+.rxOptEnv[[">"]] <- .rxOptBin(">");
+.rxOptEnv[["!="]] <- .rxOptBin("!=");
 
 .rxOptEnv$"[" <- function(name, val){
     .n <- toupper(name)
@@ -146,11 +146,51 @@ rxOptExpr <- function(x){
     .rxOptEnv$.exclude <- "";
     .lines <- strsplit(rxNorm(x), "\n")[[1]];
     .f <- function(line, onlyRet=FALSE){
-        .silent <- (regexpr("[~]", line) != -1)
-        .l2 <- strsplit(line, "[=~]")[[1]]
-        if (length(.l2) == 2){
-            if (regexpr(rex::rex("if", any_spaces, "("), .l2[1]) != -1) return(line);
-            .l1 <- gsub(" +", "", .l2[1])
+        .expr <- eval(parse(text=paste0("quote({",line,"})")))
+        .expr <- .expr[[2]];
+        .silent <- identical(.expr[[1]], quote(`~`))
+        .f2 <- function(x){
+            if (is.name(x) || is.atomic(x)){
+                return(as.character(x))
+            } else if (is.call(x)){
+                if (identical(x[[1]], quote(`*`)) ||
+                    identical(x[[1]], quote(`^`)) ||
+                    identical(x[[1]], quote(`+`)) ||
+                    identical(x[[1]], quote(`-`)) ||
+                    identical(x[[1]], quote(`/`)) ||
+                    identical(x[[1]], quote(`==`)) ||
+                    identical(x[[1]], quote(`>=`)) ||
+                    identical(x[[1]], quote(`<=`)) ||
+                    identical(x[[1]], quote(`>`)) ||
+                    identical(x[[1]], quote(`<`)) ||
+                    identical(x[[1]], quote(`!=`)) ||
+                    identical(x[[1]], quote(`&&`)) ||
+                    identical(x[[1]], quote(`||`)) ||
+                    identical(x[[1]], quote(`&`)) ||
+                    identical(x[[1]], quote(`|`))){
+                    if (length(x) == 3){
+                        return(paste0(.f2(x[[2]]), as.character(x[[1]]),
+                                      .f2(x[[3]])));
+                    } else {
+                        ## Unary Operators
+                        return(paste(as.character(x[[1]]),
+                                     .f2(x[[2]])))
+                    }
+                } else {
+                    .ret0 <- lapply(x, .f2);
+                    .ret <- paste0(.ret0[[1]], "(")
+                    if (.ret == "((") .ret <- "("
+                    .ret0 <- .ret0[-1];
+                    .ret <- paste0(.ret, paste(unlist(.ret0), collapse=", "), ")");
+                    return(.ret)
+                }
+            }
+        }
+        if (length(.expr) == 3){
+            .x2 <- .expr[[2]];
+            .x3 <- .expr[[3]]
+            .l2 <- c(.f2(.x2), .f2(.x3))
+            .l1 <- gsub(" +", "", .l2[1]);
             .rxOptEnv$.exclude <- .l1;
             .ret <- eval(parse(text=sprintf(".rxOptExpr(quote(%s))", gsub(";$", "",.l2[2]))));
             if (.silent){
