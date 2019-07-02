@@ -29,6 +29,7 @@ rxPrune <- function(x){
                     .ret <- .f(.x2[[1]], envir=envir);
                 }
                 .if <- .if[-length(.if)];
+                envir$.if <- .if
                 return(.ret)
             } else if (identical(x[[1]], quote(`(`))){
                 return(paste0("(", .f(x[[2]], envir=envir), ")"))
@@ -45,6 +46,7 @@ rxPrune <- function(x){
                 identical(x[[1]], quote(`||`)) ||
                 identical(x[[1]], quote(`&`)) ||
                 identical(x[[1]], quote(`|`))){
+
                 .ret <- paste0(.f(x[[2]], envir=envir), as.character(x[[1]]),
                                .f(x[[3]], envir=envir))
                 return(.ret)
@@ -57,21 +59,8 @@ rxPrune <- function(x){
                        identical(x[[1]], quote(`~`))){
                 if (length(envir$.if > 0)){
                     .if <- paste(paste0("(", envir$.if, ")"), collapse="*");
-                    .ret0 <- paste0(.f(x[[2]], envir=envir), as.character(x[[1]]), .if, "*(",
-                              .f(x[[3]], envir=envir), ")", ifelse(any(envir$.else == as.character(x[[2]])), paste0("+", as.character(x[[2]])), ""))
-                    .ret <- "";
-                    ## if (length(envir$.logic) != length(envir$.logic2)){
-                    ##     if (length(envir$.logic2) == 0){
-                    ##         .ret <- paste0(paste(paste0("rx_lgl_", seq_along(envir$.logic), "~(", envir$.logic, ")"), collapse="\n"), "\n");
-                    ##         envir$.logic2 <- envir$.logic;
-                    ##     } else {
-                    ##         .logic <- envir$.logic
-                    ##         .logic <- .logic[-seq_along(envir$.logic2)];
-                    ##         .ret <- paste0(paste(paste0("rx_lgl_", seq_along(.logic) + length(envir$.logic2), "~(", .logic, ")"), collapse="\n"), "\n");
-                    ##         envir$.logic2 <- envir$.logic;
-                    ##     }
-                    ## }
-                    return(paste0(.ret, .ret0));
+                    return(paste0(.f(x[[2]], envir=envir), as.character(x[[1]]), .if, "*(",
+                              .f(x[[3]], envir=envir), ")", ifelse(any(envir$.else == as.character(x[[2]])), paste0("+", as.character(x[[2]])), "")))
                 } else {
                     return(paste0(.f(x[[2]], envir=envir), as.character(x[[1]]),
                               .f(x[[3]], envir=envir)));
@@ -81,14 +70,20 @@ rxPrune <- function(x){
                        identical(x[[1]], quote(`+`)) ||
                        identical(x[[1]], quote(`-`)) ||
                        identical(x[[1]], quote(`/`))){
-                if (length(x == 3)){
+                if (length(x) == 3){
                     return(paste0(.f(x[[2]], envir=envir), as.character(x[[1]]),
-                              .f(x[[3]], envir=envir)));
+                                  .f(x[[3]], envir=envir)));
                 } else {
                     ## Unary Operators
+                    return(paste(as.character(x[[1]]),
+                                 .f(x[[2]], envir=envir)))
                 }
             } else {
-                return(as.call(lapply(x, .f, envir=envir)))
+                .ret0 <- lapply(x, .f, envir=envir);
+                .ret <- paste0(.ret0[[1]], "(")
+                .ret0 <- .ret0[-1];
+                .ret <- paste0(.ret, paste(unlist(.ret0), collapse=", "), ")");
+                return(.ret)
             }
         } else {
             ## is.pairlist OR is.atomic OR unknown...
