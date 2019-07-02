@@ -2935,6 +2935,7 @@ SEXP rxSolve_(const RObject &obj,
       int curObs = 0;
       rx->nall = 0;
       rx->nobs = 0;
+      rx->nobs2 = 0;
       if (rxIs(ev1,"event.data.frame")||
 	  rxIs(ev1,"event.matrix")){
 	if (rxcId > -1){
