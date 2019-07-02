@@ -17,13 +17,14 @@ rxPrune <- function(x){
                 .if[length(.if) + 1] <- .f(x[[2]], envir=envir);
                 envir$.if <- .if
                 .x2 <- x[-(1:2)]
-                envir$.else <- c();
                 if (length(.x2) == 2){
                     .ret1 <- .f(.x2[[1]], envir=envir);
                     .if[length(.if)] <- paste0("1-(", .if[length(.if)], ")");
                     envir$.if <- .if
-                    envir$.else <- findLhs(eval(parse(text=paste0("quote({", .ret1, "})"))));
+                    .else <- envir$.else;
+                    envir$.else <- unique(c(findLhs(eval(parse(text=paste0("quote({", .ret1, "})"))))));
                     .ret2 <- .f(.x2[[2]], envir=envir);
+                    envir$.else <- .else
                     .ret <- paste0(.ret1, "\n", .ret2);
                 } else if (length(.x2) == 1){
                     .ret <- .f(.x2[[1]], envir=envir);
@@ -78,6 +79,11 @@ rxPrune <- function(x){
                     return(paste(as.character(x[[1]]),
                                  .f(x[[2]], envir=envir)))
                 }
+            } else if (identical(x[[1]], quote(`ifelse`))){
+                .f2 <- .f(x[[2]], envir=envir);
+                .f3 <- .f(x[[3]], envir=envir);
+                .f4 <- .f(x[[4]], envir=envir);
+                return(paste0("((", .f2, ")*(", .f3, ")+(1-(", .f2, "))*(", .f4, "))"));
             } else {
                 .ret0 <- lapply(x, .f, envir=envir);
                 .ret <- paste0(.ret0[[1]], "(")
