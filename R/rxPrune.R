@@ -3,9 +3,9 @@
 ##' This prunse branches from RxODE.
 ##'
 ##' @param x RxODE model that can be accessed by rxNorm
-##' @return Pruned RxODE model text.  All logical expressions are
-##'     collapsed to rx_lgl_# and are at the beginning of the file.
+##' @return Pruned RxODE model text.
 ##' @author Matthew L. Fidler
+##' @keywords internal
 ##' @export
 rxPrune <- function(x){
     .f <- function(x, envir=parent.frame()){
