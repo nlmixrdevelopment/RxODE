@@ -10,12 +10,12 @@ rxPrune(x)
 \item{x}{RxODE model that can be accessed by rxNorm}
 }
 \value{
-Pruned RxODE model text.  All logical expressions are
-    collapsed to rx_lgl_# and are at the beginning of the file.
+Pruned RxODE model text.
 }
 \description{
-This prunse branches from RxODE.
+This prunes branches from RxODE.
 }
 \author{
 Matthew L. Fidler
 }
+\keyword{internal}

@@ -87,10 +87,10 @@ rxPrune <- function(x){
                 .ret <- paste0(.ret, paste(unlist(.ret0), collapse=", "), ")");
                 return(.ret)
             }
-        } else {
+        } else { ## nocov start
             ## is.pairlist OR is.atomic OR unknown...
             stop("Unsupported expression.");
-        }
+        } ## nocov end
     }
     .env <- new.env(parent=emptyenv())
     .env$.if <- c();
