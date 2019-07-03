@@ -1,6 +1,6 @@
 ##' Prune branches from RxODE
 ##'
-##' This prunse branches from RxODE.
+##' This prunes branches from RxODE.
 ##'
 ##' @param x RxODE model that can be accessed by rxNorm
 ##' @return Pruned RxODE model text.
@@ -51,10 +51,6 @@ rxPrune <- function(x){
                 .ret <- paste0(.f(x[[2]], envir=envir), as.character(x[[1]]),
                                .f(x[[3]], envir=envir))
                 return(.ret)
-                ## if (!any(envir$.logic == .ret)){
-                ##     envir$.logic[length(envir$.logic) + 1] <- .ret
-                ## }
-                ## return(paste0("rx_lgl_", which(envir$.logic == .ret)));
             } else if (identical(x[[1]], quote(`=`)) ||
                        identical(x[[1]], quote(`<-`)) ||
                        identical(x[[1]], quote(`~`))){
@@ -97,8 +93,6 @@ rxPrune <- function(x){
         }
     }
     .env <- new.env(parent=emptyenv())
-    .env$.logic <- c();
-    .env$.logic2 <- c();
     .env$.if <- c();
     .ret <- .f(eval(parse(text=paste0("quote({", rxNorm(x), "})"))), envir=.env);
     return(.ret)
