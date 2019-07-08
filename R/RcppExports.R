@@ -43,6 +43,10 @@ etTrans <- function(inData, obj, addCmt = FALSE, dropUnits = FALSE, allTimeVar =
     .Call(`_RxODE_etTrans`, inData, obj, addCmt, dropUnits, allTimeVar, keepDosingOnly, combineDvid, keep)
 }
 
+rxExpandGrid_ <- function(c1, c2) {
+    .Call(`_RxODE_rxExpandGrid_`, c1, c2)
+}
+
 #' Check the type of an object using Rcpp
 #'
 #' @param obj Object to check

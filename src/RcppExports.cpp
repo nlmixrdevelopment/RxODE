@@ -104,6 +104,41 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxExpandGrid_
+List rxExpandGrid_(RObject& c1, RObject& c2);
+static SEXP _RxODE_rxExpandGrid__try(SEXP c1SEXP, SEXP c2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< RObject& >::type c1(c1SEXP);
+    Rcpp::traits::input_parameter< RObject& >::type c2(c2SEXP);
+    rcpp_result_gen = Rcpp::wrap(rxExpandGrid_(c1, c2));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _RxODE_rxExpandGrid_(SEXP c1SEXP, SEXP c2SEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_RxODE_rxExpandGrid__try(c1SEXP, c2SEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 // rxIs
 bool rxIs(const RObject& obj, std::string cls);
 static SEXP _RxODE_rxIs_try(SEXP objSEXP, SEXP clsSEXP) {
@@ -1464,6 +1499,7 @@ END_RCPP
 static int _RxODE_RcppExport_validate(const char* sig) { 
     static std::set<std::string> signatures;
     if (signatures.empty()) {
+        signatures.insert("List(*rxExpandGrid_)(RObject&,RObject&)");
         signatures.insert("bool(*rxIs)(const RObject&,std::string)");
         signatures.insert("Function(*getRxFn)(std::string)");
         signatures.insert("SEXP(*dynLoad)(std::string)");
@@ -1508,6 +1544,7 @@ static int _RxODE_RcppExport_validate(const char* sig) {
 
 // registerCCallable (register entry points for exported C++ functions)
 RcppExport SEXP _RxODE_RcppExport_registerCCallable() { 
+    R_RegisterCCallable("RxODE", "_RxODE_rxExpandGrid_", (DL_FUNC)_RxODE_rxExpandGrid__try);
     R_RegisterCCallable("RxODE", "_RxODE_rxIs", (DL_FUNC)_RxODE_rxIs_try);
     R_RegisterCCallable("RxODE", "_RxODE_getRxFn", (DL_FUNC)_RxODE_getRxFn_try);
     R_RegisterCCallable("RxODE", "_RxODE_dynLoad", (DL_FUNC)_RxODE_dynLoad_try);

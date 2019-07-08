@@ -27,6 +27,27 @@ namespace RxODE {
         }
     }
 
+    inline List rxExpandGrid_(RObject& c1, RObject& c2) {
+        typedef SEXP(*Ptr_rxExpandGrid_)(SEXP,SEXP);
+        static Ptr_rxExpandGrid_ p_rxExpandGrid_ = NULL;
+        if (p_rxExpandGrid_ == NULL) {
+            validateSignature("List(*rxExpandGrid_)(RObject&,RObject&)");
+            p_rxExpandGrid_ = (Ptr_rxExpandGrid_)R_GetCCallable("RxODE", "_RxODE_rxExpandGrid_");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxExpandGrid_(Shield<SEXP>(Rcpp::wrap(c1)), Shield<SEXP>(Rcpp::wrap(c2)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<List >(rcpp_result_gen);
+    }
+
     inline bool rxIs(const RObject& obj, std::string cls) {
         typedef SEXP(*Ptr_rxIs)(SEXP,SEXP);
         static Ptr_rxIs p_rxIs = NULL;
