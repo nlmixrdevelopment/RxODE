@@ -4,18 +4,21 @@
 \alias{rxExpandGrid}
 \title{Faster expand.grid}
 \usage{
-rxExpandGrid(x, y)
+rxExpandGrid(x, y, type = 0L)
 }
 \arguments{
 \item{x}{first element (must be character)}
 
 \item{y}{second element (must be character)}
+
+\item{type}{Internal type=0L is traditional expand gridn and
+type=1L is jacobian expand grid (adds symbols)}
 }
 \value{
 Expand grid
 }
 \description{
-Faster expand.grid
+Only support x and y as characters right now
 }
 \examples{
 

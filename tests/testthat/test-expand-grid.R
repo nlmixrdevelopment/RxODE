@@ -19,4 +19,27 @@ rxPermissive({
         expect_true(x$x[1] < x$x[2]);
     })
 
-}, on.validate=TRUE)
+    f <- function(){
+        tmp <- setNames(data.frame(expand.grid.jc(letters, letters),
+                          stringsAsFactors=FALSE), c("s1", "s2"));
+        tmp <- cbind(tmp, with(tmp,data.frame(
+                                       rx=paste0("df(", s1, ")/dy(", s1, ")"),
+                                       sym=paste0("__d_df_", s1, "_dy_", s2, "__"),
+                                       line=paste0("__d_df_", s1, "_dy_", s2, "__=diff(rx__d_dt_", s1, "__, ", s2, ")"))))
+        return(tmp)
+    }
+
+    x <- microbenchmark::microbenchmark(
+                             rxExpandGrid(letters, letters, 1L),
+                             f())
+
+    x <- as.data.frame(x) %>%
+        group_by(expr) %>%
+        summarize(x=median(time)) %>%
+        arrange(expr)
+
+    test_that("rxExpandGrid is faster that expand.grid.jc", {
+        expect_true(x$x[1] < x$x[2]);
+    })
+
+}, cran=FALSE)
