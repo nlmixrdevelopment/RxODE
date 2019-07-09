@@ -31,6 +31,7 @@ rxExpandGrid <- function(x, y, type=0L){
     rxExpandGrid_(x, y, type)
 }
 
+## Assumes model is loaded.
 .rxJacobian <- function(model, vars=TRUE){
     if (rxIs(vars,"logical")){
         if (vars){
@@ -59,6 +60,33 @@ rxExpandGrid <- function(x, y, type=0L){
         .l <- rxSymPy(.l)
         rxTick();
         paste0(x["rx"], "=", rxFromSymPy(.l));
+    })
+    rxProgressStop();
+    return(.ret)
+}
+
+## Assumes .rxJacobian called on model c(state,vars)
+.rxSens <- function(model, vars){
+    .state <- rxState(model);
+    .grd <- rxExpandSens_(.state, vars);
+    rxCat("Calculate Sensitivites\n");
+    rxProgress(dim(.grd)[1]);
+    on.exit({rxProgressAbort()});
+    rxSymPyVars(.grd$ddtS);
+    rxSymPyVars(.grd$ddS2);
+    .ret <- apply(.grd, 1, function(x){
+        .l <- x["line"];
+        .l <- rxSymPy(.l)
+        .ret <- paste0(x["ddt"], "=", rxFromSymPy(.l));
+        if (any(rxSymPy.vars == x["s0"])){
+            .l <- x["s0D"];
+            .l <- rxSymPy(.l);
+            if (.l != "0"){
+                .ret <- paste0(.ret, "\n", x["s0r"], "=", rxFromSymPy(.l), "+0.0");
+            }
+        }
+        rxTick();
+        return(.ret);
     })
     rxProgressStop();
     return(.ret)

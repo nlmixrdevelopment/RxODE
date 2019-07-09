@@ -47,6 +47,10 @@ rxExpandGrid_ <- function(c1, c2, type) {
     .Call(`_RxODE_rxExpandGrid_`, c1, c2, type)
 }
 
+rxExpandSens_ <- function(state, calcSens) {
+    .Call(`_RxODE_rxExpandSens_`, state, calcSens)
+}
+
 #' Check the type of an object using Rcpp
 #'
 #' @param obj Object to check
