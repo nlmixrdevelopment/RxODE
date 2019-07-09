@@ -41,7 +41,7 @@ List rxExpandGrid_(RObject &c1, RObject &c2, RObject &type){
 	out1[i] = s1;
 	out2[i] = s2;
 	out3[i] = "df(" + s1 + ")/dy(" + s2 + ")";
-	std::string sDf = "__d_df_" + s1 + "_dy_" + s2 + "__";
+	std::string sDf = "rx__df_" + s1 + "_dy_" + s2 + "__";
 	out4[i] = sDf;
 	out5[i] = sDf + " = diff(rx__d_dt_" + s1 + "__, " +
 	  s2 +")";

@@ -31,6 +31,39 @@ rxExpandGrid <- function(x, y, type=0L){
     rxExpandGrid_(x, y, type)
 }
 
+.rxJacobian <- function(model, vars=TRUE){
+    if (rxIs(vars,"logical")){
+        if (vars){
+            .pars  <- .rxParams(model, FALSE);
+            if (any(.pars=="ETA[1]")){
+                .pars  <- .pars[regexpr(rex::rex(start,"ETA[",any_numbers,"]"), .pars) != -1]
+            }
+            .jac <- rxExpandGrid(rxState(model),
+                                 c(rxState(model), .pars),
+                                 1L);
+        } else  {
+            .jac <- rxExpandGrid(rxState(model),
+                                 rxState(model),
+                                 1L);
+        }
+    } else if (rxIs(vars,"character")){
+        .jac <- rxExpandGrid(rxState(model),
+                             c(rxState(model), vars),
+                             1L)
+    }
+    rxCat("Calculate Jacobian\n");
+    rxProgress(dim(.jac)[1]);
+    on.exit({rxProgressAbort()});
+    .ret <- apply(.jac, 1, function(x){
+        .l <- x["line"];
+        .l <- rxSymPy(.l)
+        rxTick();
+        paste0(x["rx"], "=", rxFromSymPy(.l));
+    })
+    rxProgressStop();
+    return(.ret)
+}
+
 
 
 ## norm <- RxODE("

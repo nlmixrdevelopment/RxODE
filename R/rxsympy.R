@@ -445,7 +445,7 @@ rxSymPyFunctions <- function(functions){
     return(invisible());
 }
 
-
+.rxSymPyModel <- NULL
 ##' Setup a SymPy environment that sets up the specified RxODE model.
 ##'
 ##' @param model RxODE family of objects
@@ -457,6 +457,7 @@ rxSymPyFunctions <- function(functions){
 ##' @export
 rxSymPySetup <- function(model, envir=parent.frame()){
     if (identical(model, "")) return(invisible());
+    if (identical(model, .rxSymPyModel)) return(invisible());
     rxSymPyFunctions(c("rxTBS", "rxTBSd", "rxEq", "rxNeq", "rxLt", "rxGt", "rxGeq", "rxLeq", "rxAnd", "rxOr"));
     setup <- rxToSymPy(model, envir=envir);
     const <- rxInits(model, rxLines=TRUE);
@@ -469,6 +470,7 @@ rxSymPySetup <- function(model, envir=parent.frame()){
         names(tmp) <- NULL;
         rxSymPyExec(tmp);
     }
+    assignInMyNamespace(".rxSymPyModel", model);
     return(invisible());
 }
 
