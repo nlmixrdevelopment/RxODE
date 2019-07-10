@@ -38,9 +38,9 @@ rxPermissive({
     })
 
     test_that("transit compartment translation.",{
-        test_that(rxToSE(transit(n, mtt, bio)),
+        expect_equal(rxToSE(transit(n, mtt, bio)),
                   "exp(log((bio)*(podo))+log(n + 1)-log(mtt)+(n)*((log(n+1)-log(mtt))+log(t))-((n+1)/(mtt))*(t)-loggamma(1+n))")
-        test_that(rxToSE(transit(n, mtt)),
+        expect_equal(rxToSE(transit(n, mtt)),
                   "exp(log(podo)+(log(n+1)-log(mtt))+(n)*((log(n+1)-log(mtt))+ log(t))-((n + 1)/(mtt))*(t)-loggamma(1+n))")
     })
 
