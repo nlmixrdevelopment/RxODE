@@ -27,7 +27,11 @@
 
 .rxSEeq <- c("acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
              "cos", "cosh", "erf", "erfc", "exp", "gamma", "sin", "sinh",
-             "sqrt", "tan", "tanh", "log", "abs", "asinh")
+             "sqrt", "tan", "tanh", "log", "abs", "asinh",
+             "rxTBS", "rxTBSd", "rxTBSd2")
+
+## "rxTBS", "rxTBSd"
+
 
 .rxSEcnt <- c("M_E" = "E",
               "M_PI" = "pi",
@@ -186,18 +190,38 @@ rxToSE <- function(x, envir=NULL){
             } else {
                 stop("Only THETA[#] or ETA[#] are supported")
             }
+        } else if (identical(x[[1]], quote(`psigamma`))){
+            if (length(x == 3)){
+                .a <- .rxToSE(x[[2]], envir=envir);
+                .b <- .rxToSE(x[[3]], envir=envir);
+                return(paste0("polygamma(", .b, ",", .a, "))"))
+            } else {
+                stop("psigamma() takes 2 arguments");
+            }
         } else if (identical(x[[1]], quote(`log1pmx`))){
-            .a <- as.character(x[[2]]);
-            return(paste0("(log(1+", .a, ")-(", .a, "))"))
+            if (length(x == 2)){
+                .a <- .rxToSE(x[[2]], envir=envir);
+                return(paste0("(log(1+", .a, ")-(", .a, "))"))
+            } else {
+                stop("log1pmx() only takes 1 argument");
+            }
         } else if (identical(x[[1]], quote(`choose`))){
-            .n <- as.character(x[[2]])
-            .k <- as.character(x[[3]])
-            return(paste0("gamma(", .n, "+1)/(gamma(",
-                          .k, "+1)*gamma(", .n, "-(", .k, ")+1))"));
+            if (length(x) == 3){
+                .n <- .rxToSE(x[[2]], envir=envir)
+                .k <- .rxToSE(x[[3]], envir=envir)
+                return(paste0("gamma(", .n, "+1)/(gamma(",
+                              .k, "+1)*gamma(", .n, "-(", .k, ")+1))"));
+            } else {
+                stop("choose() takes 2 arguments")
+            }
         } else if (identical(x[[1]], quote(`lchoose`))){
-            .n <- as.character(x[[2]])
-            .k <- as.character(x[[3]])
-            return(paste0("(loggamma(", .n, "+1)-loggamma(", .k, "+1)-loggamma(", .n, "-(", .k, ")+1))"))
+            if (length(x) == 3){
+                .n <- .rxToSE(x[[2]], envir=envir)
+                .k <- .rxToSE(x[[3]], envir=envir)
+                return(paste0("(loggamma(", .n, "+1)-loggamma(", .k, "+1)-loggamma(", .n, "-(", .k, ")+1))"))
+            } else {
+                stop("lchoose() takes 2 arguments")
+            }
         } else if (identical(x[[1]], quote(`transit`))){
             if (length(x) == 4){
                 ##transit(n, mtt, bio)
