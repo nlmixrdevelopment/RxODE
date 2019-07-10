@@ -62,6 +62,8 @@
               "M_LN10" = "log(10)");
 ## "rxTBS", "rxTBSd"
 
+.rxSEreserved <- c("e", "E", "EulerGamma", "Catalan", "GoldenRatio", "I");
+
 ##' RxODE to symengine.R
 ##'
 ##' @param x expression
@@ -104,7 +106,7 @@ rxToSE <- function(x, envir=NULL){
 ##'@rdname
 ##'@export
 .rxToSE <- function(x, envir=NULL){
-    .cnst <- c("e", "E");
+    .cnst <- .rxSEreserved
     if (is.name(x) || is.atomic(x)){
         .ret <- as.character(x)
         if (any(.ret == .cnst)){
@@ -298,7 +300,7 @@ rxToSE <- function(x, envir=NULL){
 ##' @export
 rxS <- function(x){
     .symengine <- (attr(x, "package") == "symengine")
-    .cnst <- c("e", "E");
+    .cnst <- .rxSEreserved
     if (.symengine){
     } else {
         .env <- new.env(parent = loadNamespace("symengine"))
