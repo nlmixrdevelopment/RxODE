@@ -44,8 +44,23 @@ rxPermissive({
                   "exp(log(podo)+(log(n+1)-log(mtt))+(n)*((log(n+1)-log(mtt))+ log(t))-((n + 1)/(mtt))*(t)-loggamma(1+n))")
     })
 
-    test_that("unknown functions throw errors.", {
+    test_that("unknown functions throw errors. rxToSE", {
         expect_error(rxToSE(matt(3)));
+    })
+
+    test_that("Theta/eta conversion rxToSE", {
+        expect_equal(rxToSE(THETA[1]), "THETA_1_")
+        expect_equal(rxToSE(ETA[1]), "ETA_1_")
+        expect_equal(rxToSE(df(matt) / dy(THETA[1])), "rx__df_matt_dy_THETA_1___")
+        expect_equal(rxToSE(df(matt) / dy(ETA[1])), "rx__df_matt_dy_ETA_1___")
+        expect_error(rxToSE(THETA[0]))
+        expect_error(rxToSE(ETA[0]))
+        expect_error(rxToSE(THETA[0.5]))
+        expect_error(rxToSE(ETA[0.5]))
+        expect_error(rxToSE(THETA[a]))
+        expect_error(rxToSE(ETA[a]))
+        expect_error(rxToSE(THETA["b"]))
+        expect_error(rxToSE(ETA["b"]))
     })
 
     context("Test DSL rxToSymPy")

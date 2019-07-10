@@ -99,14 +99,14 @@ rxToSE <- function(x, envir=NULL){
                     ##df(%s)/dy(%s)
                     if (identical(.x2, quote(`d`)) &&
                         identical(.x3[[1]], quote(`dt`))){
-                        .state <- as.character(.x3[[2]]);
+                        .state <- .rxToSE(.x3[[2]], envir=envir);
                         return(paste0("rx__d_dt_", .state, "__"));
                     } else {
                         if (length(.x2) == 2 && length(.x3) == 2){
                             if (identical(.x2[[1]], quote(`df`)) &&
                                 identical(.x3[[1]], quote(`dy`))){
-                                .state <- as.character(.x2[[2]]);
-                                .var <- as.character(.x3[[2]]);
+                                .state <- .rxToSE(.x2[[2]], envir=envir);
+                                .var <- .rxToSE(.x3[[2]], envir=envir);
                                 return(paste0("rx__df_", .state,
                                               "_dy_", .var, "__"));
                             }
@@ -137,6 +137,26 @@ rxToSE <- function(x, envir=NULL){
                 if (inherits(envir, "environment")){
                     assign(.var, .expr, envir=envir)
                 }
+            }
+        } else if (identical(x[[1]], quote(`[`))){
+            .type <- toupper(as.character(x[[2]]))
+            if (any(.type == c("THETA", "ETA"))){
+                if (is.numeric(x[[3]])){
+                    .num <- x[[3]]
+                    if (round(.num) == .num){
+                        if (.num > 0){
+                            return(paste0(.type, "_", .num, "_"))
+                        } else {
+                            stop("Only THETA[#] or ETA[#] are supported")
+                        }
+                    } else {
+                        stop("Only THETA[#] or ETA[#] are supported")
+                    }
+                } else {
+                    stop("Only THETA[#] or ETA[#] are supported")
+                }
+            } else {
+                stop("Only THETA[#] or ETA[#] are supported")
             }
         } else if (identical(x[[1]], quote(`log1pmx`))){
             .a <- as.character(x[[2]]);
