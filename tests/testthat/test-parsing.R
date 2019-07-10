@@ -480,6 +480,10 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
 
     options(RxODE.syntax.assign = TRUE)
 
+    goodParse("x=ifelse(!matt,0,1)", "x=ifelse(!matt,0,1)")
+    goodParse("x=ifelse(!(matt),0,1)", "x=ifelse(!(matt),0,1)")
+    goodParse("x=ifelse((!matt),0,1)", "x=ifelse((!matt),0,1)")
+
     goodParse("mix lincmt with lags etc", "popCl <- 1
     popV <- 20
     popKa <- 1
