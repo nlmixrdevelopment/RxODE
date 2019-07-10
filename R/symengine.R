@@ -28,6 +28,32 @@
 .rxSEeq <- c("acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
              "cos", "cosh", "erf", "erfc", "exp", "gamma", "sin", "sinh",
              "sqrt", "tan", "tanh", "log", "abs", "asinh")
+
+.rxSEcnt <- c("M_E" = "E",
+              "M_PI" = "pi",
+              "M_PI_2" = "pi/2",
+              "M_PI_4" = "pi/4",
+              "M_1_PI" = "1/pi",
+              "M_2_PI" = "2/pi",
+              "M_2PI" = "2*pi",
+              "M_SQRT_PI" = "sqrt(pi)",
+              "M_2_SQRTPI" = "2/sqrt(pi)",
+              "M_1_SQRT_2PI" = "1/sqrt(2*pi)",
+              "M_SQRT_2" = "sqrt(2)",
+              "M_SQRT_3" = "sqrt(3)",
+              "M_SQRT_32" = "sqrt(32)",
+              "M_SQRT_2dPI" = "sqrt(2/pi)",
+              "M_LN_SQRT_PI" = "log(sqrt(pi))",
+              "M_LN_SQRT_2PI" = "log(sqrt(2*pi))",
+              "M_LN_SQRT_PId2" = "log(sqrt(pi/2))",
+              "M_SQRT2" = "sqrt(2)",
+              "M_SQRT3" = "sqrt(3)",
+              "M_SQRT32" = "sqrt(32)",
+              "M_LOG10_2" = "log10(2)",
+              "M_LOG2E" = "1/log(2)",
+              "M_LOG10E" = "log10(E)",
+              "M_LN2" = "log(2)",
+              "M_LN10" = "log(10)");
 ## "rxTBS", "rxTBSd"
 
 ##' RxODE to symengine.R
@@ -78,7 +104,9 @@ rxToSE <- function(x, envir=NULL){
         if (any(.ret == .cnst)){
             return(paste0("rx_SymPy_Res_", .ret));
         } else {
-            return(.ret)
+            .ret0 <- .rxSEcnt[.ret];
+            if (is.na(.ret0)) return(.ret)
+            return(setNames(.ret0, NULL));
         }
     } else if (is.call(x)){
         if (identical(x[[1]], quote(`(`))){
