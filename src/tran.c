@@ -3142,6 +3142,7 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   gCode(9); // mtime
   gCode(4); // Registration
   fclose(fpIO);
+  reset();
   return R_NilValue;
 }
 
