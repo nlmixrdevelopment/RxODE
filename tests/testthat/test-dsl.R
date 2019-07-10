@@ -1,5 +1,6 @@
 rxPermissive({
     context("Test DSL rxToSE")
+
     test_that("d/dt(x) parsing", {
         expect_equal(rxToSE(d/dt(matt)), "rx__d_dt_matt__")
         expect_equal(rxToSE(d / dt( matt )), "rx__d_dt_matt__")
@@ -34,6 +35,17 @@ rxPermissive({
 
         expect_equal(rxToSE(choose(n, k)),"gamma(n+1)/(gamma(k+1)*gamma(n-(k)+1))")
         expect_equal(rxToSE(lchoose(n, k)), "(loggamma(n+1)-loggamma(k+1)-loggamma(n-(k)+1))")
+    })
+
+    test_that("transit compartment translation.",{
+        test_that(rxToSE(transit(n, mtt, bio)),
+                  "exp(log((bio)*(podo))+log(n + 1)-log(mtt)+(n)*((log(n+1)-log(mtt))+log(t))-((n+1)/(mtt))*(t)-loggamma(1+n))")
+        test_that(rxToSE(transit(n, mtt)),
+                  "exp(log(podo)+(log(n+1)-log(mtt))+(n)*((log(n+1)-log(mtt))+ log(t))-((n + 1)/(mtt))*(t)-loggamma(1+n))")
+    })
+
+    test_that("unknown functions throw errors.", {
+        expect_error(rxToSE(matt(3)));
     })
 
     context("Test DSL rxToSymPy")

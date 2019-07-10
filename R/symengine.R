@@ -25,6 +25,11 @@
                     "Rx_pow"=c("(", ")^(", ")")
                     )
 
+.rxSEeq <- c("acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
+             "cos", "cosh", "erf", "erfc", "exp", "gamma", "sin", "sinh",
+             "sqrt", "tan", "tanh", "log", "abs", "asinh")
+## "rxTBS", "rxTBSd"
+
 ##' RxODE to symengine.R
 ##'
 ##' @param x expression
@@ -145,6 +150,24 @@ rxToSE <- function(x, envir=NULL){
             .n <- as.character(x[[2]])
             .k <- as.character(x[[3]])
             return(paste0("(loggamma(", .n, "+1)-loggamma(", .k, "+1)-loggamma(", .n, "-(", .k, ")+1))"))
+        } else if (identical(x[[1]], quote(`transit`))){
+            if (length(x) == 4){
+                ##transit(n, mtt, bio)
+                .n <- as.character(x[[2]]);
+                .mtt <- as.character(x[[3]]);
+                .bio <- as.character(x[[4]]);
+                return(paste0("exp(log((", .bio, ")*(podo))+log(",
+                              .n, " + 1)-log(", .mtt, ")+(", .n,
+                              ")*((log(", .n, "+1)-log(", .mtt,
+                              "))+log(t))-((", .n, "+1)/(", .mtt,
+                              "))*(t)-loggamma(1+", .n, "))"))
+            } else if (length(x) == 3){
+                .n <- as.character(x[[2]]);
+                .mtt <- as.character(x[[3]]);
+                return(paste0("exp(log(podo)+(log(", .n, "+1)-log(", .mtt, "))+(", .n, ")*((log(", .n, "+1)-log(", .mtt, "))+ log(t))-((", .n, " + 1)/(", .mtt, "))*(t)-loggamma(1+", .n, "))"))
+            } else {
+                stop("'transit' can only take 2-3 arguments");
+            }
         } else {
             if (length(x[[1]]) == 1){
                 .x1 <- as.character(x[[1]])
@@ -164,10 +187,14 @@ rxToSE <- function(x, envir=NULL){
                 }
             }
             .ret0 <- lapply(x, .rxToSE, envir=envir);
-            .ret <- paste0(.ret0[[1]], "(")
-            .ret0 <- .ret0[-1];
-            .ret <- paste0(.ret, paste(unlist(.ret0), collapse=", "), ")");
-            return(.ret)
+            if (any(paste(.ret0[[1]]) == .rxSEeq)){
+                .ret <- paste0(.ret0[[1]], "(")
+                .ret0 <- .ret0[-1];
+                .ret <- paste0(.ret, paste(unlist(.ret0), collapse=", "), ")");
+                return(.ret)
+            } else {
+                stop(sprintf("%s() not supported in RxODE", paste(.ret0[[1]])));
+            }
         }
     } else {
         stop("Unsupported expression.");
