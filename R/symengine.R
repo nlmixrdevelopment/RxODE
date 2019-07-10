@@ -5,7 +5,6 @@
                     "trigamma"=c("polygamma(1,", ")"),
                     "tetragamma"=c("polygamma(2, ", ")"),
                     "pentagamma"=c("polygamma(3, ", ")"),
-                    "lbeta"=c("log(beta(", "))"),
                     "cospi"=c("cos(pi * (", "))"),
                     "sinpi"=c("sin(pi * (", "))"),
                     "tanpi"=c("tan(pi * (", "))"),
@@ -22,13 +21,16 @@
                     "R_pow"=c("(", ")^(", ")"),
                     "R_pow_di"=c("(", ")^(", ")"),
                     "Rx_pow_di"=c("(", ")^(", ")"),
-                    "Rx_pow"=c("(", ")^(", ")")
+                    "Rx_pow"=c("(", ")^(", ")"),
+                    "lbeta"=c("log(beta(", ",", "))")
                     )
-
-.rxSEeq <- c("acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
-             "cos", "cosh", "erf", "erfc", "exp", "gamma", "sin", "sinh",
-             "sqrt", "tan", "tanh", "log", "abs", "asinh",
-             "rxTBS", "rxTBSd", "rxTBSd2")
+## atan2
+.rxSEeq <- c("acos"=1, "acosh"=1, "asin"=1, "atan"=1,
+             "atanh"=1, "beta"=2,
+             "cos"=1, "cosh"=1, "erf"=1, "erfc"=1,
+             "exp"=1, "gamma"=1, "sin"=1, "sinh"=1,
+             "sqrt"=1, "tan"=1, "tanh"=1, "log"=1, "abs"=1, "asinh"=1,
+             "rxTBS"=3, "rxTBSd"=3, "rxTBSd2"=3)
 
 ## "rxTBS", "rxTBSd"
 
@@ -243,27 +245,39 @@ rxToSE <- function(x, envir=NULL){
         } else {
             if (length(x[[1]]) == 1){
                 .x1 <- as.character(x[[1]])
-                if (length(x) == 2){
-                    .xc <- .rxSEsingle[[.x1]];
-                    if (!is.null(.xc)){
+                .xc <- .rxSEsingle[[.x1]];
+                if (!is.null(.xc)){
+                    if (length(x) == 2){
                         return(paste0(.xc[1], as.character(x[[2]]), .xc[2]))
+                    } else {
+                        stop(sprintf("%s() only acceps 1 argument", .x1));
                     }
-                } else if (length(x) == 3){
-                    .x1 <- as.character(x[[1]])
-                    .xc <- .rxSEdouble[[.x1]];
-                    if (!is.null(.xc)){
+                }
+                .xc <- .rxSEdouble[[.x1]];
+                if (!is.null(.xc)){
+                    if (length(x) == 3){
+                        .x1 <- as.character(x[[1]])
                         return(paste0(.xc[1], as.character(x[[2]]), .xc[2],
                                       as.character(x[[3]]),
                                       .xc[3]))
+                    } else {
+                        stop(sprintf("%s() only acceps 2 arguments", .x1));
                     }
                 }
             }
             .ret0 <- lapply(x, .rxToSE, envir=envir);
-            if (any(paste(.ret0[[1]]) == .rxSEeq)){
-                .ret <- paste0(.ret0[[1]], "(")
-                .ret0 <- .ret0[-1];
-                .ret <- paste0(.ret, paste(unlist(.ret0), collapse=", "), ")");
-                return(.ret)
+            .nargs <- .rxSEeq[paste(.ret0[[1]])];
+            if (!is.na(.nargs)){
+                if (.nargs == length(.ret0) - 1){
+                    .ret <- paste0(.ret0[[1]], "(")
+                    .ret0 <- .ret0[-1];
+                    .ret <- paste0(.ret, paste(unlist(.ret0), collapse=","), ")");
+                    return(.ret)
+                } else {
+                    stop(sprintf("%s() takes %s arguments",
+                                 paste(.ret0[[1]]),
+                                 .nargs))
+                }
             } else {
                 stop(sprintf("%s() not supported in RxODE", paste(.ret0[[1]])));
             }
