@@ -27,12 +27,13 @@
 ##'  microbenchmark::microbenchmark(rxExpandGrid(letters, letters), expand.grid.jc(letters, letters))
 ##' }
 ##' @export
-rxExpandGrid <- function(x, y, type=0L){
-    rxExpandGrid_(x, y, type)
+rxExpandGrid <- function(x, y, type=0L, symengine=FALSE){
+    rxExpandGrid_(x, y, type, symengine)
 }
 
 ## Assumes model is loaded.
 .rxJacobian <- function(model, vars=TRUE){
+    .symengine <- rxIs(model, "rxS");
     if (rxIs(vars,"logical")){
         if (vars){
             .pars  <- .rxParams(model, FALSE);
@@ -41,26 +42,38 @@ rxExpandGrid <- function(x, y, type=0L){
             }
             .jac <- rxExpandGrid(rxState(model),
                                  c(rxState(model), .pars),
-                                 1L);
+                                 1L, .symengine);
         } else  {
             .jac <- rxExpandGrid(rxState(model),
                                  rxState(model),
-                                 1L);
+                                 1L, .symengine);
         }
     } else if (rxIs(vars,"character")){
         .jac <- rxExpandGrid(rxState(model),
                              c(rxState(model), vars),
-                             1L)
+                             1L, .symengine)
     }
     rxCat("Calculate Jacobian\n");
     rxProgress(dim(.jac)[1]);
     on.exit({rxProgressAbort()});
-    .ret <- apply(.jac, 1, function(x){
-        .l <- x["line"];
-        .l <- rxSymPy(.l)
-        rxTick();
-        paste0(x["rx"], "=", rxFromSymPy(.l));
-    })
+    if (.symengine){
+        .ret <- apply(.jac, 1, function(x){
+            .l <- x["line"];
+            .l <- eval(parse(text=.l));
+            rxTick();
+            ## FIXME
+            ## rxFromSymEngine(.l)
+            paste0(x["rx"], "=", as.character(.l));
+        })
+    } else {
+        .ret <- apply(.jac, 1, function(x){
+            .l <- x["line"];
+            .l <- rxSymPy(.l)
+            rxTick();
+            paste0(x["rx"], "=", rxFromSymPy(.l));
+        })
+    }
+
     rxProgressStop();
     return(.ret)
 }

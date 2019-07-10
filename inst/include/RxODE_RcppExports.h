@@ -27,17 +27,17 @@ namespace RxODE {
         }
     }
 
-    inline List rxExpandGrid_(RObject& c1, RObject& c2, RObject& type) {
-        typedef SEXP(*Ptr_rxExpandGrid_)(SEXP,SEXP,SEXP);
+    inline List rxExpandGrid_(RObject& c1, RObject& c2, RObject& type, bool symengine = false) {
+        typedef SEXP(*Ptr_rxExpandGrid_)(SEXP,SEXP,SEXP,SEXP);
         static Ptr_rxExpandGrid_ p_rxExpandGrid_ = NULL;
         if (p_rxExpandGrid_ == NULL) {
-            validateSignature("List(*rxExpandGrid_)(RObject&,RObject&,RObject&)");
+            validateSignature("List(*rxExpandGrid_)(RObject&,RObject&,RObject&,bool)");
             p_rxExpandGrid_ = (Ptr_rxExpandGrid_)R_GetCCallable("RxODE", "_RxODE_rxExpandGrid_");
         }
         RObject rcpp_result_gen;
         {
             RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_rxExpandGrid_(Shield<SEXP>(Rcpp::wrap(c1)), Shield<SEXP>(Rcpp::wrap(c2)), Shield<SEXP>(Rcpp::wrap(type)));
+            rcpp_result_gen = p_rxExpandGrid_(Shield<SEXP>(Rcpp::wrap(c1)), Shield<SEXP>(Rcpp::wrap(c2)), Shield<SEXP>(Rcpp::wrap(type)), Shield<SEXP>(Rcpp::wrap(symengine)));
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();

@@ -1,4 +1,41 @@
 rxPermissive({
+    context("Test DSL rxToSE")
+    test_that("d/dt(x) parsing", {
+        expect_equal(rxToSE(d/dt(matt)), "rx__d_dt_matt__")
+        expect_equal(rxToSE(d / dt( matt )), "rx__d_dt_matt__")
+    })
+
+    test_that("df(x)/dy(x) parsing", {
+        expect_equal(rxToSE(df(matt)/dy(ruth)), "rx__df_matt_dy_ruth__")
+        expect_equal(rxToSE(df(matt) / dy( ruth )), "rx__df_matt_dy_ruth__")
+    })
+
+    test_that("function translation", {
+        expect_equal(rxToSE(gammafn(a)), "gamma(a)")
+        expect_equal(rxToSE(lgammafn(a)), "loggamma(a)")
+        expect_equal(rxToSE(lgammafn(a)), "loggamma(a)")
+        expect_equal(rxToSE(tetragamma(a)), "polygamma(2, a)")
+        expect_equal(rxToSE(pentagamma(a)), "polygamma(3, a)")
+        expect_equal(rxToSE(lbeta(a)), "log(beta(a))")
+        expect_equal(rxToSE(lgamma1p(a)), "loggamma(a+1)")
+        expect_equal(rxToSE(cospi(a)), "cos(pi * (a))")
+        expect_equal(rxToSE(sinpi(a)), "sin(pi * (a))")
+        expect_equal(rxToSE(tanpi(a)), "tan(pi * (a))")
+        expect_equal(rxToSE(log1p(a)), "log(1+a)")
+        expect_equal(rxToSE(log1pmx(a)), "(log(1+a)-(a))")
+        expect_equal(rxToSE(expm1(a)), "(exp(a)-1)")
+
+        expect_equal(rxToSE(pow(a, b)), "(a)^(b)")
+        expect_equal(rxToSE(R_pow(a, b)), "(a)^(b)")
+        expect_equal(rxToSE(Rx_pow_di(a, b)), "(a)^(b)")
+        expect_equal(rxToSE(Rx_pow(a, b)), "(a)^(b)")
+        expect_equal(rxToSE(R_pow_di(a, b)), "(a)^(b)")
+        expect_equal(rxToSE(factorial(n)),"gamma(n+1)")
+
+        expect_equal(rxToSE(choose(n, k)),"gamma(n+1)/(gamma(k+1)*gamma(n-(k)+1))")
+        expect_equal(rxToSE(lchoose(n, k)), "(loggamma(n+1)-loggamma(k+1)-loggamma(n-(k)+1))")
+    })
+
     context("Test DSL rxToSymPy")
 
     test_that("d/dt(x) parsing", {

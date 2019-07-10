@@ -4,7 +4,7 @@ using namespace Rcpp;
 bool rxIs(const RObject &obj, std::string cls);
 
 //[[Rcpp::export]]
-List rxExpandGrid_(RObject &c1, RObject &c2, RObject &type){
+List rxExpandGrid_(RObject &c1, RObject &c2, RObject &type, bool symengine=false){
   if (rxIs(c1, "character") && rxIs(c2, "character")){
     CharacterVector in1 = as<CharacterVector>(c1);
     CharacterVector in2 = as<CharacterVector>(c2);
@@ -43,8 +43,13 @@ List rxExpandGrid_(RObject &c1, RObject &c2, RObject &type){
 	out3[i] = "df(" + s1 + ")/dy(" + s2 + ")";
 	std::string sDf = "rx__df_" + s1 + "_dy_" + s2 + "__";
 	out4[i] = sDf;
-	out5[i] = sDf + " = diff(rx__d_dt_" + s1 + "__, " +
-	  s2 +")";
+	if (symengine){
+	  out5[i] = "assign(\"" + sDf + "\",with(model,D(rx__d_dt_" +
+	    s1 + "__, " + s2 +")), envir=model)";
+	} else {
+	  out5[i] = sDf + " = diff(rx__d_dt_" + s1 + "__, " +
+	    s2 +")";
+	}
       }
       List out(5);
       out[0] = out1;

@@ -342,7 +342,7 @@ RxODE <- function(model, modName = basename(wd),
                 model <- model[-1];
                 model <- model[-length(model)];
             }
-            model <- paste(model, collapse="\n");
+            model <- paste(model, collapse="\n");e
         } else if (is(model, "RxODE")){
             package <- get("package", model)
             if (!is.null(package)){

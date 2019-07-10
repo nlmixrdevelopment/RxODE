@@ -43,8 +43,8 @@ etTrans <- function(inData, obj, addCmt = FALSE, dropUnits = FALSE, allTimeVar =
     .Call(`_RxODE_etTrans`, inData, obj, addCmt, dropUnits, allTimeVar, keepDosingOnly, combineDvid, keep)
 }
 
-rxExpandGrid_ <- function(c1, c2, type) {
-    .Call(`_RxODE_rxExpandGrid_`, c1, c2, type)
+rxExpandGrid_ <- function(c1, c2, type, symengine = FALSE) {
+    .Call(`_RxODE_rxExpandGrid_`, c1, c2, type, symengine)
 }
 
 rxExpandSens_ <- function(state, calcSens) {

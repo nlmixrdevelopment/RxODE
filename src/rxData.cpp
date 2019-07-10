@@ -428,6 +428,10 @@ List rxModelVars_(const RObject &obj){
   if (rxIs(obj, "rxModelVars")){
     List ret(obj);
     return ret;
+  } else if (rxIs(obj, "rxS")){
+    Environment e = as<Environment>(obj);
+    List ret = as<List>(e["..mv"]);
+    return ret;
   } else if (rxIs(obj,"RxODE")) {
     Environment e = as<Environment>(obj);
     List rxDll = as<List>(e["rxDll"]);

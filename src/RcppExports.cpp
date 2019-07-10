@@ -105,22 +105,23 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxExpandGrid_
-List rxExpandGrid_(RObject& c1, RObject& c2, RObject& type);
-static SEXP _RxODE_rxExpandGrid__try(SEXP c1SEXP, SEXP c2SEXP, SEXP typeSEXP) {
+List rxExpandGrid_(RObject& c1, RObject& c2, RObject& type, bool symengine);
+static SEXP _RxODE_rxExpandGrid__try(SEXP c1SEXP, SEXP c2SEXP, SEXP typeSEXP, SEXP symengineSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< RObject& >::type c1(c1SEXP);
     Rcpp::traits::input_parameter< RObject& >::type c2(c2SEXP);
     Rcpp::traits::input_parameter< RObject& >::type type(typeSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxExpandGrid_(c1, c2, type));
+    Rcpp::traits::input_parameter< bool >::type symengine(symengineSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxExpandGrid_(c1, c2, type, symengine));
     return rcpp_result_gen;
 END_RCPP_RETURN_ERROR
 }
-RcppExport SEXP _RxODE_rxExpandGrid_(SEXP c1SEXP, SEXP c2SEXP, SEXP typeSEXP) {
+RcppExport SEXP _RxODE_rxExpandGrid_(SEXP c1SEXP, SEXP c2SEXP, SEXP typeSEXP, SEXP symengineSEXP) {
     SEXP rcpp_result_gen;
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_RxODE_rxExpandGrid__try(c1SEXP, c2SEXP, typeSEXP));
+        rcpp_result_gen = PROTECT(_RxODE_rxExpandGrid__try(c1SEXP, c2SEXP, typeSEXP, symengineSEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
@@ -1535,7 +1536,7 @@ END_RCPP
 static int _RxODE_RcppExport_validate(const char* sig) { 
     static std::set<std::string> signatures;
     if (signatures.empty()) {
-        signatures.insert("List(*rxExpandGrid_)(RObject&,RObject&,RObject&)");
+        signatures.insert("List(*rxExpandGrid_)(RObject&,RObject&,RObject&,bool)");
         signatures.insert("List(*rxExpandSens_)(CharacterVector,CharacterVector)");
         signatures.insert("bool(*rxIs)(const RObject&,std::string)");
         signatures.insert("Function(*getRxFn)(std::string)");
