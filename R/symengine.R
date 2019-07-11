@@ -412,6 +412,22 @@ rxFromSE <- function(x){
                 } else {
                     return(.rxFromSE(x));
                 }
+            } else if (identical(x[[1]], quote(`-`))){
+                if (length(x) == 3){
+                    if (inherits(x[[2]], "numeric")){
+                        if (x[[2]] == 1){
+                            x <- x[-2];
+                            envir$found <- TRUE
+                            return(.rxFromSE(x));
+                        } else {
+                            return(.rxFromSE(x));
+                        }
+                    } else {
+                        return(.rxFromSE(x));
+                    }
+                } else {
+                    return(.rxFromSE(x));
+                }
             } else {
                 return(.rxFromSE(x))
             }
