@@ -14,7 +14,8 @@
                     "lgamma1p"=c("loggamma(", "+1)"),
                     "expm1"=c("(exp(", ")-1)"),
                     "log10"=c("log(", ")/log(10)"),
-                    "log2"=c("log(", ")/log(2)")
+                    "log2"=c("log(", ")/log(2)"),
+                    "log1pexp"=c("log(1+exp(", "))")
                     )
 
 .SEsingle <- list("loggamma"=c("lgamma(", ")"))
@@ -590,6 +591,16 @@ rxFromSE <- function(x){
                         if (!is.na(.tmp0)){
                             .ret <- .rxP1rmF(.x2)
                             if (.ret[[2]]){
+                                if (.tmp0 == "log1p"){
+                                    .tmp <- eval(parse(text=paste0("quote(", .ret[[1]], ")")))
+                                    if (length(.tmp) > 1){
+                                        if (identical(.tmp[[1]], quote(`exp`))){
+                                            .tmp <- .tmp[[-1]];
+                                            .tmp0 <- "log1pexp"
+                                            .ret[[1]] <- .rxFromSE(.tmp);
+                                        }
+                                    }
+                                }
                                 return(paste0(.tmp0, "(",
                                               .ret[[1]],
                                               ")"))
@@ -612,6 +623,7 @@ rxFromSE <- function(x){
                                               ")"))
                             }
                         }
+                        .tmp0 <- .x1
                     }
                     .ret <- paste0(.tmp0, "(")
                     .ret0 <- .ret0[-1];
