@@ -61,10 +61,9 @@ rxExpandGrid <- function(x, y, type=0L, symengine=FALSE){
             .l <- x["line"];
             .l <- eval(parse(text=.l));
             rxTick();
-            ## FIXME
-            ## rxFromSymEngine(.l)
-            paste0(x["rx"], "=", as.character(.l));
+            paste0(x["rx"], "=", rxFromSE(.l));
         })
+        assign(".jacobian", .ret, envir=model);
     } else {
         .ret <- apply(.jac, 1, function(x){
             .l <- x["line"];
@@ -73,7 +72,6 @@ rxExpandGrid <- function(x, y, type=0L, symengine=FALSE){
             paste0(x["rx"], "=", rxFromSymPy(.l));
         })
     }
-
     rxProgressStop();
     return(.ret)
 }

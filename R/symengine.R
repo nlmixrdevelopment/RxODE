@@ -68,9 +68,9 @@
               "M_SQRT2" = "sqrt(2)",
               "M_SQRT3" = "sqrt(3)",
               "M_SQRT32" = "sqrt(32)",
-              "M_LOG10_2" = "log10(2)",
+              "M_LOG10_2" = "log(2)/log(10)",
               "M_LOG2E" = "1/log(2)",
-              "M_LOG10E" = "log10(E)",
+              "M_LOG10E" = "1/log(10)",
               "M_LN2" = "log(2)",
               "M_LN10" = "log(10)");
 ## "rxTBS", "rxTBSd"
@@ -165,15 +165,16 @@ rxToSE <- function(x, envir=NULL){
                                               "_dy_", .var, "__"));
                             }
                         }
-                        return(paste0(.rxToSE(.x2, envir=envir),
+                        .ret <- paste0(.rxToSE(.x2, envir=envir),
                                       as.character(x[[1]]),
-                                      .rxToSE(.x3, envir=envir)))
+                                      .rxToSE(.x3, envir=envir))
                     }
                 } else {
-                    return(paste0(.rxToSE(x[[2]], envir=envir),
+                    .ret <- paste0(.rxToSE(x[[2]], envir=envir),
                                   as.character(x[[1]]),
-                                  .rxToSE(x[[3]], envir=envir)));
+                                  .rxToSE(x[[3]], envir=envir))
                 }
+                return(.ret)
             } else {
                 ## Unary Operators
                 return(paste(as.character(x[[1]]),
@@ -294,6 +295,7 @@ rxToSE <- function(x, envir=NULL){
                     .ret <- paste0(.ret0[[1]], "(")
                     .ret0 <- .ret0[-1];
                     .ret <- paste0(.ret, paste(unlist(.ret0), collapse=","), ")");
+                    if (.ret == "exp(1)") return("E");
                     return(.ret)
                 } else {
                     stop(sprintf("%s() takes %s arguments",
@@ -391,6 +393,18 @@ rxFromSE <- function(x){
                 } else {
                     return(.rxFromSE(x));
                 }
+            } else if (identical(x[[1]], quote(`/`))){
+                .x2 <- as.character(x[[2]])
+                .x3 <- as.character(x[[3]])
+                if (length(.x2) == 1){
+                    if (.x2 == "pi"){
+                        envir$found <- TRUE
+                        x[[2]] <- 1;
+                        return(.rxFromSE(x));
+                    }
+                    return(paste0(.f(x[[2]], envir), "/",
+                                  .f(x[[3]], envir)))
+                }
             } else {
                 return(.rxFromSE(x))
             }
@@ -470,6 +484,7 @@ rxFromSE <- function(x){
         if (!is.na(.ret0)){
             return(.ret0)
         }
+        if (.ret == "E") return("M_E");
         return(sub(.regRate, "rate(\\1)",
                sub(.regDur,"dur(\\1)",
                sub(.regLag,"alag(\\1)",
@@ -496,12 +511,41 @@ rxFromSE <- function(x){
             if (length(x) == 3){
                 .x2 <- x[[2]];
                 .x3 <- x[[3]];
-                return(paste0(.rxFromSE(.x2),
+                .ret <- paste0(.rxFromSE(.x2),
                               as.character(x[[1]]),
-                              .rxFromSE(.x3)))
+                              .rxFromSE(.x3))
+                ## FIXME parsing to figure out if *2 or *0.5 *0.4 is in
+                ## expression
+                if (any(.ret == c("pi*2", "2*pi")))
+                    return("M_2PI");
+                if (any(.ret == c("pi/2", "pi*0.5", "0.5*pi")))
+                    return("M_PI_2");
+                if (any(.ret == c("pi/4", "pi*0.25", "0.25*pi")))
+                    return("M_PI_4");
+                if (.ret == "1/pi") return("M_1_PI")
+                if (.ret == "2/pi") return("M_2_PI")
+                if (any(.ret == c("(M_2_PI)^0.5", "(M_2_PI)^(1/2)",
+                                  "M_2_PI^0.5", "M_2_PI^(1/2)")))
+                    return("M_SQRT_2dPI")
+
+                if (any(.ret == c("(pi)^0.5", "(pi)^(1/2)",
+                                  "pi^0.5", "pi^(1/2)")))
+                    return("M_SQRT_PI")
+                if (.ret == "log(2)/log(10)") return("M_LOG10_2")
+                if (.ret == "1/log(10)") return("M_LOG10E")
+                if (.ret == "1/log(2)") return("M_LOG2E")
+                if (any(.ret == c("2/M_SQRT_PI", "2/(M_SQRT_PI)")))
+                    return("M_2_SQRTPI")
+                if (any(.ret == c("1/sqrt(M_2PI)",
+                                  "1/(M_2PI^0.5)", "1/(M_2PI^(1/2))",
+                                  "1/((M_2PI)^0.5)", "1/((M_2PI)^(1/2))")))
+                    return("M_1_SQRT_2PI")
+                return(.ret)
             } else {
-                return(paste0(as.character(x[[1]]),
-                         .rxFromSE(x[[2]])))
+                .ret <- paste0(as.character(x[[1]]),
+                         .rxFromSE(x[[2]]))
+
+                return(.ret)
             }
         } else if (identical(x[[1]], quote(`=`)) ||
                    identical(x[[1]], quote(`<-`)) ||
@@ -605,9 +649,22 @@ rxFromSE <- function(x){
                                               .ret[[1]],
                                               ")"))
                             } else {
-                                return(paste0(.x1, "(",
+                                .ret <- paste0(.x1, "(",
                                               .ret[[1]],
-                                              ")"))
+                                              ")")
+                                if (.ret == "log(2)") return("M_LN2");
+                                if (.ret == "log(10)") return("M_LN10");
+                                if (.ret == "log(M_SQRT_PI)")
+                                    return("M_LN_SQRT_PI")
+                                if (.ret == c("log(M_SQRT_2dPI)"))
+                                    return("M_LN_SQRT_PId2")
+                                if (any(.ret == c("log(sqrt(M_2PI))",
+                                                  "log((M_2PI)^0.5)",
+                                                  "log((M_2PI)^(1/2))",
+                                                  "log(M_2PI^0.5)",
+                                                  "log(M_2PI^(1/2))")))
+                                    return("M_LN_SQRT_2PI")
+                                return(.ret)
                             }
                         }
                         .tmp0 <- .SE1m[.x1];
@@ -629,6 +686,16 @@ rxFromSE <- function(x){
                     .ret0 <- .ret0[-1];
                     .ret <- paste0(.ret, paste(unlist(.ret0), collapse=","),
                                    ")");
+                    if (.ret == "exp(1)") return("M_E");
+                    if (.ret == "sin(pi)") return("0");
+                    if (.ret == "cos(pi)") return("1");
+                    if (.ret == "tan(pi)") return("0");
+                    if (.ret == "sqrt(3)") return("M_SQRT_3");
+                    if (.ret == "sqrt(2)") return("M_SQRT_2");
+                    if (.ret == "sqrt(32)") return("M_SQRT_32");
+                    if (.ret == "sqrt(pi)") return("M_SQRT_PI");
+                    if (.ret == "sqrt(M_2_PI)")
+                        return("M_SQRT_2dPI");
                     return(.ret)
                 } else {
                     stop(sprintf("%s() takes %s arguments",

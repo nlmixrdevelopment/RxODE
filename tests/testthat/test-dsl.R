@@ -63,6 +63,7 @@ rxPermissive({
 
         expect_equal(rxToSE(tanpi(a)), "tan(pi*(a))")
         expect_equal(rxFromSE(tan(pi * a)), "tanpi(a)")
+        expect_equal(rxFromSE("tan(pi/2)"), "tanpi(1/2)")
 
         expect_equal(rxToSE(log1pmx(a)), "(log(1+a)-(a))")
         expect_equal(rxToSE(expm1(a)), "(exp(a)-1)")
@@ -89,65 +90,113 @@ rxPermissive({
 
         ## expect_equal(rxFromSymPy(log((1 + x)^2)), "log1p(Rx_pow_di(x, 2)+2 * x)")
         ## expect_equal(rxFromSymPy(log((0.75 + x)^2)), "log1p(Rx_pow_di(x, 2)+1.5 * x-0.4375)")
-        ## expect_equal(rxFromSymPy(E), "M_E")
-        ## expect_equal(rxToSymPy(M_E), "E")
-        ## expect_equal(rxFromSymPy(log(2)), "M_LN2")
-        ## expect_equal(rxFromSymPy(log(10)), "M_LN10")
-        ## expect_equal(rxToSymPy("M_LN2"), "log(2)")
-        ## expect_equal(rxToSymPy("M_LN10"), "log(10)")
-        ## expect_equal(rxFromSymPy("log(sqrt(pi))"), "M_LN_SQRT_PI")
-        ## expect_equal(rxFromSymPy("log(pi**0.5)"), "M_LN_SQRT_PI")
-        ## expect_equal(rxToSymPy("M_LN_SQRT_PI"), "log(sqrt(pi))")
-        ## expect_equal(rxFromSymPy("log(sqrt(pi/2))"), "M_LN_SQRT_PId2")
-        ## expect_equal(rxToSymPy("M_LN_SQRT_PId2"), "log(sqrt(pi/2))")
-        ## expect_equal(rxFromSymPy("log(sqrt(2*pi))"), "M_LN_SQRT_2PI")
-        ## expect_equal(rxFromSymPy("log(sqrt(pi*2))"), "M_LN_SQRT_2PI")
-        ## expect_equal(rxFromSymPy("log((pi*2)**0.5)"),"M_LN_SQRT_2PI")
-        ## expect_equal(rxToSymPy("M_LN_SQRT_2PI"), "log(sqrt(2*pi))")
-        ## expect_equal(rxFromSymPy("log((pi/2)^0.5)"), "M_LN_SQRT_PId2")
-        ## expect_equal(rxFromSymPy("log((pi/2)^(0.5))"),"M_LN_SQRT_PId2")
-        ## expect_equal(rxFromSymPy("sqrt(3)"), "M_SQRT_3")
-        ## expect_equal(rxToSymPy("M_SQRT_3"), "sqrt(3)")
-        ## expect_equal(rxFromSymPy("sqrt(2)"), "M_SQRT_2")
-        ## expect_equal(rxToSymPy("M_SQRT_2"), "sqrt(2)")
-        ## expect_equal(rxFromSymPy("sqrt(32)"), "M_SQRT_32")
-        ## expect_equal(rxToSymPy("M_SQRT_32"), "sqrt(32)")
-        ## expect_equal(rxFromSymPy("sqrt(pi)"), "M_SQRT_PI")
-        ## expect_equal(rxToSymPy("M_SQRT_PI"), "sqrt(pi)")
-        ## expect_equal(rxFromSymPy("sqrt(2/pi)"), "M_SQRT_2dPI")
-        ## expect_equal(rxFromSymPy("2*pi*matt"), "M_2PI * matt")
-        ## expect_equal(rxFromSymPy("pi*2*matt"), "M_2PI * matt")
+        expect_equal(rxFromSE(E), "M_E")
+        expect_equal(rxToSE(M_E), "E")
+
+        expect_equal(rxToSE(exp(1)), "E")
+        expect_equal(rxFromSE(exp(1)), "M_E")
+
+        expect_equal(rxFromSE(log(2)), "M_LN2")
+        expect_equal(rxFromSE(log(10)), "M_LN10")
+
+        expect_equal(rxToSE("M_LN2"), "log(2)")
+        expect_equal(rxFromSE("log(2)"), "M_LN2")
+
+        expect_equal(rxToSE("M_LN10"), "log(10)")
+        expect_equal(rxFromSE("log(10)"), "M_LN10")
+
+        expect_equal(rxToSE("M_LN_SQRT_PI"), "log(sqrt(pi))")
+        expect_equal(rxFromSE("log(sqrt(pi))"), "M_LN_SQRT_PI")
+        expect_equal(rxFromSE("log(pi**0.5)"), "M_LN_SQRT_PI")
+        expect_equal(rxFromSE("log(pi^0.5)"), "M_LN_SQRT_PI")
+        expect_equal(rxFromSE("log(pi^(1/2))"), "M_LN_SQRT_PI")
+        expect_equal(rxFromSE("log(pi**(1/2))"), "M_LN_SQRT_PI")
+
+        expect_equal(rxToSE("M_LN_SQRT_PId2"), "log(sqrt(pi/2))")
+        expect_equal(rxFromSE(log(sqrt(pi/2))), "M_LN_SQRT_PId2")
+        expect_equal(rxFromSE(log(sqrt(pi * 0.5))), "M_LN_SQRT_PId2")
+        expect_equal(rxFromSE(log(sqrt(0.5 * pi))), "M_LN_SQRT_PId2")
+
+        expect_equal(rxFromSE(log((pi/2) ^ 0.5)), "M_LN_SQRT_PId2")
+        expect_equal(rxFromSE(log((pi * 0.5) ^ 0.5)), "M_LN_SQRT_PId2")
+        expect_equal(rxFromSE(log((0.5 * pi) ^ 0.5)), "M_LN_SQRT_PId2")
+
+        expect_equal(rxFromSE(log((pi/2) ** 0.5)), "M_LN_SQRT_PId2")
+        expect_equal(rxFromSE(log((pi * 0.5) ** 0.5)), "M_LN_SQRT_PId2")
+        expect_equal(rxFromSE(log((0.5 * pi) ** 0.5)), "M_LN_SQRT_PId2")
+
+        expect_equal(rxFromSE(log((pi/2) ** (1 / 2))), "M_LN_SQRT_PId2")
+        expect_equal(rxFromSE(log((pi * 0.5) ** (1 / 2))), "M_LN_SQRT_PId2")
+        expect_equal(rxFromSE(log((0.5 * pi) ** (1 / 2))), "M_LN_SQRT_PId2")
+
+        expect_equal(rxFromSE(log((pi/2) ^ (1 / 2))), "M_LN_SQRT_PId2")
+        expect_equal(rxFromSE(log((pi * 0.5) ^ (1 / 2))), "M_LN_SQRT_PId2")
+        expect_equal(rxFromSE(log((0.5 * pi) ^ (1 / 2))), "M_LN_SQRT_PId2")
+
+        expect_equal(rxToSE("M_LN_SQRT_2PI"), "log(sqrt(2*pi))")
+        expect_equal(rxFromSE(log((pi * 2) ^ 0.5)), "M_LN_SQRT_2PI")
+        expect_equal(rxFromSE(log((2 * pi) ^ 0.5)), "M_LN_SQRT_2PI")
+
+        expect_equal(rxFromSE(log((pi * 2) ** 0.5)), "M_LN_SQRT_2PI")
+        expect_equal(rxFromSE(log((2 * pi) ** 0.5)), "M_LN_SQRT_2PI")
+
+        expect_equal(rxFromSE(log((pi * 2) ** (1 / 2))), "M_LN_SQRT_2PI")
+        expect_equal(rxFromSE(log((2 * pi) ** (1 / 2))), "M_LN_SQRT_2PI")
+
+        expect_equal(rxFromSE(log((pi * 2) ^ (1 / 2))), "M_LN_SQRT_2PI")
+        expect_equal(rxFromSE(log((2 * pi) ^ (1 / 2))), "M_LN_SQRT_2PI")
+
+
+        expect_equal(rxToSE("M_SQRT_3"), "sqrt(3)")
+        expect_equal(rxFromSE("sqrt(3)"), "M_SQRT_3")
+
+        expect_equal(rxToSE("M_SQRT_2"), "sqrt(2)")
+        expect_equal(rxFromSE("sqrt(2)"), "M_SQRT_2")
+
+        expect_equal(rxToSE("M_SQRT_32"), "sqrt(32)")
+        expect_equal(rxFromSE("sqrt(32)"), "M_SQRT_32")
+
+        expect_equal(rxToSE("M_SQRT_PI"), "sqrt(pi)")
+        expect_equal(rxFromSE("sqrt(pi)"), "M_SQRT_PI")
+
+        expect_equal(rxToSE("M_SQRT_2dPI"), "sqrt(2/pi)")
+        expect_equal(rxFromSE("sqrt(2/pi)"), "M_SQRT_2dPI")
+        expect_equal(rxFromSE("(2/pi)^0.5"), "M_SQRT_2dPI")
+        expect_equal(rxFromSE("(2/pi)^(1/2)"), "M_SQRT_2dPI")
+
+        expect_equal(rxToSE("M_PI_2"), "pi/2")
+        expect_equal(rxFromSE("pi*0.5"), "M_PI_2")
+        expect_equal(rxFromSE("0.5*pi"), "M_PI_2")
+        expect_equal(rxFromSE("pi/2"), "M_PI_2")
+
+        expect_equal(rxToSE("M_PI_4"), "pi/4")
+        expect_equal(rxFromSE("pi*0.25"), "M_PI_4")
+        expect_equal(rxFromSE("0.25*pi"), "M_PI_4")
+        expect_equal(rxFromSE("pi/4"), "M_PI_4")
+
+        expect_equal(rxFromSE("1/pi"), "M_1_PI")
+        expect_equal(rxToSE("M_1_PI"), "1/pi")
+
+        expect_equal(rxFromSE("2/pi"), "M_2_PI")
+        expect_equal(rxToSE("M_2_PI"), "2/pi")
+
+        expect_equal(rxToSE("M_2_SQRTPI"), "2/sqrt(pi)")
+        expect_equal(rxFromSE("2/sqrt(pi)"), "M_2_SQRTPI")
+        expect_equal(rxFromSE("2/(pi^0.5)"), "M_2_SQRTPI")
+
+        expect_equal(rxToSE(M_1_SQRT_2PI), "1/sqrt(2*pi)")
+        expect_equal(rxFromSE("1/sqrt(2*pi)"), "M_1_SQRT_2PI")
+        expect_equal(rxFromSE("1/sqrt(pi*2)"), "M_1_SQRT_2PI")
+        expect_equal(rxFromSE("1/((pi*2)^(1/2))"), "M_1_SQRT_2PI")
+        expect_equal(rxFromSE("1/((pi*2)^0.5)"), "M_1_SQRT_2PI")
+
+        expect_equal(rxToSE(log10(a)), "log(a)/log(10)")
+        expect_equal(rxToSE(log2(a)), "log(a)/log(2)")
+        ## FIXME log10 log2? fromSE?
+
+
         ## expect_equal(rxFromSymPy("3 + 4*3+2+2*matt*pi"), "3 + 4 * 3 + 2 + matt * M_2PI")
         ## expect_equal(rxFromSymPy("3 + 4*3+2+pi*matt*2"), "3 + 4 * 3 + 2 + matt * M_2PI")
-        ## expect_equal(rxFromSymPy("pi/2"), "M_PI_2")
-        ## expect_equal(rxFromSymPy("pi/4"), "M_PI_4")
-        ## expect_equal(rxFromSymPy("1/pi"), "M_1_PI")
-        ## expect_equal(rxFromSymPy("2/pi"), "M_2_PI")
-        ## expect_equal(rxFromSymPy("2/sqrt(pi)"), "M_2_SQRTPI")
-        ## expect_equal(rxFromSymPy("1/sqrt(2*pi)"), "M_1_SQRT_2PI")
-        ## expect_equal(rxFromSymPy("1/sqrt(pi*2)"), "M_1_SQRT_2PI")
-        ## ## Test conversions
-        ## expect_equal(rxFromSymPy("log(matt)/log(10)"), "log10(matt)")
-        ## expect_equal(rxFromSymPy("log(matt)/log(2)"), "log2(matt)")
-        ## expect_equal(rxToSymPy("matt*M_LOG10E"), "matt * log10(E)")
-        ## expect_equal(rxToSymPy("matt*M_LOG2E"), "matt/log(2)")
-        ## expect_equal(rxFromSymPy("matt*log10(E)"), "matt * M_LOG10E")
-        ## expect_equal(rxFromSymPy("matt/log(2)"), "matt * M_LOG2E")
-        ## expect_equal(rxFromSymPy("matt/log(10)"), "matt * M_LOG10E")
-        ## expect_equal(rxFromSymPy("matt/log(2)"), "matt * M_LOG2E")
-        ## expect_equal(rxFromSymPy("1/log(2)"), "M_LOG2E")
-        ## expect_equal(rxFromSymPy("1/log(10)"), "M_LOG10E")
-        ## expect_equal(rxToSymPy("log2(exp(1))"), "1/log(2)")
-        ## expect_equal(rxToSymPy("log2(M_E)"), "1/log(2)")
-        ## expect_equal(rxToSymPy("log10(exp(1))"), "1/log(10)")
-        ## expect_equal(rxToSymPy("log10(M_E)"), "1/log(10)")
-        ## expect_equal(rxFromSymPy("sin(pi)"), "sinpi(1)")
-        ## expect_equal(rxFromSymPy("sin(2*pi)"), "sinpi(2)")
-        ## expect_equal(rxFromSymPy("cos(2*pi)"), "cospi(2)")
-        ## expect_equal(rxFromSymPy("tan(2*pi)"), "tanpi(2)")
-        ## expect_equal(rxFromSymPy("tan(pi/2)"), "tanpi(1/2)")
-        ## expect_equal(rxFromSymPy("tan((pi/2)^2+pi)"), "tanpi(M_PI_2 + 1)")
-        ## expect_equal(rxFromSymPy("tan((pi/2)^2+pi+1)"), "tan(Rx_pow_di(M_PI_2, 2) + M_PI + 1)")
     })
 
     test_that("transit compartment translation.",{
