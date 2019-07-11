@@ -181,17 +181,16 @@ typedef struct symtab {
   vLines ss;
   /* char ss[64*MXSYM]; */                     /* symbol string: all vars*/
   vLines de;             /* symbol string: all Des*/
-  char ddt[MXSYM];
-  int lh[MXSYM];        /* lhs symbols? =9 if a state var*/
-  int ini[MXSYM];        /* initial variable assignment =2 if there are two assignments */
-  int mtime[MXSYM];
-  double iniv[MXSYM];        /* Initial values */
-  int ini0[MXSYM];        /* state initial variable assignment =2 if there are two assignments */
-  int di[MXDER];        /* ith of state vars */
-  int idi[MXDER];       /* should ith state variable be ignored 0/1 */
-  int idu[MXDER];       /* Has the ith state been used in a derivative expression? */
-  int fdi[MXDER];        /* Functional initialization of state variable */
-  int dvid[MXDER];
+  int *lh;        /* lhs symbols? =9 if a state var*/
+  int *ini;        /* initial variable assignment =2 if there are two assignments */
+  int *mtime;
+  double *iniv;        /* Initial values */
+  int *ini0;        /* state initial variable assignment =2 if there are two assignments */
+  int *di;        /* ith of state vars */
+  int *idi;       /* should ith state variable be ignored 0/1 */
+  int *idu;       /* Has the ith state been used in a derivative expression? */
+  int *fdi;        /* Functional initialization of state variable */
+  int *dvid;
   int dvidn;
   int nv;                       /* nbr of symbols */
   int ix;                       /* ith of curr symbol */
@@ -208,9 +207,9 @@ typedef struct symtab {
   int isPi; // # pi?
   int linCmt; // Unparsed linear compartment
   // Save Jacobian information
-  int df[MXSYM];
-  int dy[MXSYM];
-  int sdfdy[MXSYM];
+  int *df;
+  int *dy;
+  int *sdfdy;
   int cdf;
   int ndfdy;
   int maxtheta;
@@ -220,6 +219,8 @@ typedef struct symtab {
   int hasDepotCmt;
   int hasCentralCmt;
   int hasKa;
+  int allocS;
+  int allocD;
 } symtab;
 symtab tb;
 
@@ -521,6 +522,17 @@ int new_or_ith(const char *s) {
       return 0;
     }
   }
+  if (NV+1 > tb.allocS){
+    tb.allocS += MXSYM;
+    tb.lh = Realloc(tb.lh, tb.allocS, int);
+    tb.ini= Realloc(tb.ini, tb.allocS, int);
+    tb.mtime=Realloc(tb.mtime, tb.allocS, int);
+    tb.iniv=Realloc(tb.iniv, tb.allocS, double);
+    tb.ini0=Realloc(tb.ini0, tb.allocS, int);
+    tb.df=Realloc(tb.df, tb.allocS, int);
+    tb.dy=Realloc(tb.dy, tb.allocS, int);
+    tb.sdfdy=Realloc(tb.sdfdy, tb.allocS, int);
+  }
   return 1;
 }
 
@@ -633,6 +645,14 @@ int new_de(const char *s){
       tb.id = i;
       return 0;
     }
+  }
+  if (tb.de.n + 1 > tb.allocD){
+    tb.allocD+=MXDER;
+    tb.di=Realloc(tb.di, tb.allocD, int);
+    tb.idi=Realloc(tb.idi, tb.allocD, int);
+    tb.idu=Realloc(tb.idu, tb.allocD, int);
+    tb.fdi=Realloc(tb.fdi, tb.allocD, int);
+    tb.dvid=Realloc(tb.dvid, tb.allocD, int);
   }
   return 1;
 }
@@ -1142,7 +1162,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    tb.hasCentralCmt = 1;
 	  }
 	}
-        sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
 	  if (rx_syntax_require_ode_first){
 	    if (nodeHas(cmt_statement)){
@@ -1258,7 +1277,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       if (nodeHas(derivative) && i==2) {
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
 	  tb.statei++;
 	  if (strncmp(v, "rx__sens_", 3) == 0){
@@ -1394,7 +1412,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if ((i==0 && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0))) ||
 	  (i == 2 && nodeHas(mtime))){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	tb.ddt[0]='\0';
         if ((rx_syntax_allow_ini && nodeHas(ini)) || nodeHas(ini0)){
 	  sb.o =0; sbDt.o =0;
           /* aAppendN("(__0__)", 7); */
@@ -2380,9 +2397,34 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     }
   }
 }
-  
+
+void parseFree(){
+  sFree(&sb);
+  sFree(&sbDt);
+  sFree(&sbt);
+  sFree(&sbNrm);
+  lineFree(&sbPm);
+  lineFree(&sbPmDt);
+  lineFree(&(tb.ss));
+  lineFree(&(tb.de));
+
+  Free(tb.lh);
+  Free(tb.ini);
+  Free(tb.mtime);
+  Free(tb.iniv);
+  Free(tb.ini0);
+  Free(tb.di);
+  Free(tb.idi);
+  Free(tb.idu);
+  Free(tb.fdi);
+  Free(tb.dvid);
+  Free(tb.df);
+  Free(tb.dy);
+  Free(tb.sdfdy);
+}
 void reset (){
   // Reset sb/sbt string buffers
+  parseFree();
   sIni(&sb);
   sIni(&sbDt);
   sIni(&sbt);
@@ -2393,17 +2435,25 @@ void reset (){
   lineIni(&(tb.ss));
   lineIni(&(tb.de));
   
+  tb.lh=Calloc(MXSYM, int);
+  tb.ini=Calloc(MXSYM, int);
+  tb.mtime=Calloc(MXSYM, int);
+  tb.iniv=Calloc(MXSYM, double);
+  tb.ini0=Calloc(MXSYM, int);
+  
+  tb.di=Calloc(MXDER, int);
+  tb.idi=Calloc(MXDER, int);
+  tb.idu=Calloc(MXDER, int);
+  tb.fdi=Calloc(MXDER, int);
+  tb.dvid=Calloc(MXDER, int);
+  tb.df=Calloc(MXSYM, int);
+  tb.dy=Calloc(MXSYM, int);
+  tb.sdfdy=Calloc(MXSYM, int);
+
+  tb.allocS=MXSYM;
+  tb.allocD=MXDER;
+    
   // Reset Arrays
-  memset(tb.lh,		0, MXSYM*sizeof(int));
-  memset(tb.ini,	0, MXSYM*sizeof(int));
-  memset(tb.mtime,	0, MXSYM*sizeof(int));
-  memset(tb.di,		0, MXDER*sizeof(int));
-  memset(tb.fdi,        0, MXDER*sizeof(int));
-  memset(tb.dy,		0, MXSYM*sizeof(int));
-  memset(tb.sdfdy,	0, MXSYM*sizeof(int));
-  memset(tb.idu,        0, MXDER*sizeof(int));
-  memset(tb.idi,        0, MXDER*sizeof(int));
-  memset(tb.dvid,       0, MXDER*sizeof(int));
   // Reset integers
   tb.dvidn      = 0;
   NV		= 0;
