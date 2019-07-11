@@ -180,9 +180,8 @@ typedef struct vLines {
 typedef struct symtab {
   vLines ss;
   /* char ss[64*MXSYM]; */                     /* symbol string: all vars*/
-  char de[64*MXSYM];             /* symbol string: all Des*/
+  vLines de;             /* symbol string: all Des*/
   char ddt[MXSYM];
-  int deo[MXSYM];        /* offest of des */
   int lh[MXSYM];        /* lhs symbols? =9 if a state var*/
   int ini[MXSYM];        /* initial variable assignment =2 if there are two assignments */
   int mtime[MXSYM];
@@ -198,7 +197,6 @@ typedef struct symtab {
   int ix;                       /* ith of curr symbol */
   int id;                       /* ith of curr symbol */
   int fn;                       /* curr symbol a fn?*/
-  int nd;                       /* nbr of dydt */
   int pos_de;
   int ini_i; // #ini
   int statei; // # states
@@ -633,10 +631,9 @@ void niReset(nodeInfo *ni){
 
 
 int new_de(const char *s){
-  int i, len, len_s=(int)strlen(s);
-  for (i=0; i<tb.nd; i++) {
-    len = tb.deo[i+1] - tb.deo[i] - 1;
-    if (!strncmp(tb.de+tb.deo[i], s, max(len, len_s))) { /* note we need take the max in order not to match a sub-string */
+  int i;
+  for (i=0; i<tb.de.n; i++) {
+    if (!strcmp(tb.de.line[i], s)) { 
       tb.id = i;
       return 0;
     }
@@ -1194,8 +1191,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if ((nodeHas(fbio) || nodeHas(alag) || 
 	   nodeHas(dur) || nodeHas(rate) ||
 	   nodeHas(cmt_statement)) && i==2) {
-        /* sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate(%d) +", tb.nd, tb.nd); */
-        /* sb.o = strlen(sb.s); */
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	int hasLhs=0;
 	if (nodeHas(cmt_statement)){
@@ -1227,32 +1222,32 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  tb.statei++;
 	  if (nodeHas(fbio)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
-	    sAppend(&sb, "_f[%d] = ", tb.nd);
-	    sAppend(&sbDt, "_f[%d] = ", tb.nd);
+	    sAppend(&sb, "_f[%d] = ", tb.de.n);
+	    sAppend(&sbDt, "_f[%d] = ", tb.de.n);
 	    sAppend(&sbt, "f(%s)=", v);
 	    if (foundF == 0) needSort+=1;// & 1 when F
 	    foundF=1;
 	    aType(FBIO);
 	  } else if (nodeHas(alag)){
 	    sb.o=0; sbDt.o=0; sbt.o=0;
-	    sAppend(&sb, "_alag[%d] = ", tb.nd);
-	    sAppend(&sbDt, "_alag[%d] = ", tb.nd);
+	    sAppend(&sb, "_alag[%d] = ", tb.de.n);
+	    sAppend(&sbDt, "_alag[%d] = ", tb.de.n);
 	    sAppend(&sbt, "alag(%s)=", v);
 	    if (foundLag == 0) needSort+=2; // & 2 when alag
 	    foundLag=1;
 	    aType(ALAG); 
 	  } else if (nodeHas(dur)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
-	    sAppend(&sb, "_dur[%d] = ", tb.nd);
-	    sAppend(&sbDt, "_dur[%d] = ", tb.nd);
+	    sAppend(&sb, "_dur[%d] = ", tb.de.n);
+	    sAppend(&sbDt, "_dur[%d] = ", tb.de.n);
 	    sAppend(&sbt, "dur(%s)=", v);
 	    if (foundDur == 0) needSort+=4;// & 4 when dur
 	    foundDur=1;
 	    aType(DUR);
           } else if (nodeHas(rate)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
-	    sAppend(&sb, "_rate[%d] = ", tb.nd);
-	    sAppend(&sbDt, "_rate[%d] = ", tb.nd);
+	    sAppend(&sb, "_rate[%d] = ", tb.de.n);
+	    sAppend(&sbDt, "_rate[%d] = ", tb.de.n);
 	    sAppend(&sbt, "rate(%s)=", v);
 	    if (foundRate == 0) needSort+=8;// & 8 when rate
 	    foundRate=1;
@@ -1263,16 +1258,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbNrm, "%s;\n", sbt.s);
 	  }
           new_or_ith(v);
-	  aProp(tb.nd);
+	  aProp(tb.de.n);
           /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
           tb.lh[tb.ix] = 9;
 	  if (hasLhs){
 	    tb.lh[tb.ix] = 19;
 	  }	  
-          tb.di[tb.nd] = tb.ix;
-          sprintf(tb.de+tb.pos_de, "%s,", v);
-          tb.pos_de += strlen(v)+1;
-          tb.deo[++tb.nd] = tb.pos_de;
+          tb.di[tb.de.n] = tb.ix;
+	  addLine(&(tb.de),"%s",v);
         } else {
           new_or_ith(v);
 	  aProp(tb.ix);
@@ -1340,9 +1333,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  sb.o =0; sbDt.o =0;
 	  aType(TDDT);
-	  aProp(tb.nd);
-          sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(_IR[%d] ", tb.nd, tb.nd, tb.nd);
-	  sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(_IR[%d] ", tb.nd, tb.nd, tb.nd);
+	  aProp(tb.de.n);
+          sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(_IR[%d] ", tb.de.n, tb.de.n, tb.de.n);
+	  sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(_IR[%d] ", tb.de.n, tb.de.n, tb.de.n);
 	  sbt.o=0;
           sAppend(&sbt, "d/dt(%s)", v);
 	  new_or_ith(v);
@@ -1355,21 +1348,19 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             trans_syntax_error_report_fn0(buf);
           }
 	  tb.lh[tb.ix] = 9;
-          tb.di[tb.nd] = tb.ix;
-          sprintf(tb.de+tb.pos_de, "%s,", v);
-          tb.pos_de += (int)strlen(v)+1;
+          tb.di[tb.de.n] = tb.ix;
+	  addLine(&(tb.de),"%s",v);
 	  Free(v);
 	  xpn = d_get_child(pn,4);
           v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  tb.idu[tb.nd] = 1;
+	  tb.idu[tb.de.n-1] = 1;
           if (!strcmp("~",v)){
-            tb.idi[tb.nd] = 1;
+            tb.idi[tb.de.n-1] = 1;
 	    sAppendN(&sbt, "~", 1);
           } else {
-	    tb.idi[tb.nd] = 0;
+	    tb.idi[tb.de.n-1] = 0;
 	    sAppendN(&sbt, "=", 1);
 	  }
-          tb.deo[++tb.nd] = tb.pos_de;
         } else {
 	  new_or_ith(v);
 	  /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
@@ -1681,7 +1672,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     // show_ode == 9 functional mtimes
     if (show_ode == 2 || show_ode == 0){
       //__DDtStateVar_#__
-      for (i = 0; i < tb.nd; i++){
+      for (i = 0; i < tb.de.n; i++){
 	if (scenario == 0){
 	  sAppend(&sbOut,"  __DDtStateVar_%d__,\n",i);
 	} else {
@@ -1813,7 +1804,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
     o = (int)strlen(s_aux_info);
   }
   int nExtra=0;
-  for (i=0; i<tb.nd; i++) {                     /* name state vars */
+  for (i=0; i<tb.de.n; i++) {                     /* name state vars */
     buf = tb.ss.line[tb.di[i]];
     if (tb.idu[i] == 1){
       if (strncmp(buf, "rx__sens_", 9) == 0){
@@ -2199,7 +2190,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     } else if (show_ode == 5){
       if (foundF){
 	sAppend(&sbOut,  "// Functional based bioavailability (returns amount)\ndouble %sF(int _cSub,  int _cmt, double _amt, double t){\n  double _f[%d]={1};\n  (void)_f;\n",
-		prefix, tb.nd);
+		prefix, tb.de.n);
       } else {
 	sAppend(&sbOut,  "// Functional based bioavailability\ndouble %sF(int _cSub,  int _cmt, double _amt, double t){\n return _amt;\n",
 		prefix);
@@ -2207,7 +2198,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     } else if (show_ode == 6){
       if (foundLag){
 	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t){\n  double _alag[%d]={0};\n  (void)_alag;\n",
-		prefix, tb.nd);
+		prefix, tb.de.n);
       } else {
 	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t){\n return t;\n",
 		prefix);
@@ -2215,7 +2206,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     } else if (show_ode == 7){
       if (foundRate){
 	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n  double _rate[%d]={0};\n  (void)_rate;\n",
-		prefix, tb.nd);
+		prefix, tb.de.n);
       } else {
 	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
 		prefix);
@@ -2223,7 +2214,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     } else if (show_ode == 8){
       if (foundDur){
 	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n  double _dur[%d]={0};\n  (void)_dur;\n",
-		prefix, tb.nd);
+		prefix, tb.de.n);
       } else {
 	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
 		prefix);
@@ -2274,7 +2265,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       prnt_vars(1, 1, "", "\n",show_ode);                   /* pass system pars */
       if (show_ode != 7 && show_ode != 5 &&
 	  show_ode != 6 && show_ode != 8 && show_ode != 9){
-	for (i=0; i<tb.nd; i++) {                   /* name state vars */
+	for (i=0; i<tb.de.n; i++) {                   /* name state vars */
 	  buf = tb.ss.line[tb.di[i]];
 	  sAppendN(&sbOut, "  ", 2);
 	  for (k = 0; k < (int)strlen(buf); k++){
@@ -2385,7 +2376,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       sAppendN(&sbOut,  "}\n", 2);
     } else if (show_ode == 3){
       if (foundF0){
-	for (i = 0; i < tb.nd; i++){
+	for (i = 0; i < tb.de.n; i++){
 	  buf=tb.ss.line[tb.di[i]];
 	  sAppend(&sbOut, "  __zzStateVar__[%d]=((double)(_ON[%d]))*(",i,i);
 	  for (k = 0; k < (int)strlen(buf); k++){
@@ -2463,9 +2454,9 @@ void reset (){
   lineIni(&sbPmDt);
 
   lineIni(&(tb.ss));
+  lineIni(&(tb.de));
+  
   // Reset Arrays
-  memset(tb.de,		0, 64*MXSYM*sizeof(char));
-  memset(tb.deo,	0, MXSYM*sizeof(int));
   memset(tb.lh,		0, MXSYM*sizeof(int));
   memset(tb.ini,	0, MXSYM*sizeof(int));
   memset(tb.mtime,	0, MXSYM*sizeof(int));
@@ -2482,7 +2473,6 @@ void reset (){
   tb.ix		= 0;
   tb.id		= 0;
   tb.fn		= 0;
-  tb.nd		= 0;
   tb.pos_de	= 0;
   tb.ini_i	= 0;
   tb.nExtra     = 0;
@@ -2581,7 +2571,7 @@ void trans_internal(char* parse_file, int isStr){
     for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
       buf1=tb.ss.line[tb.df[i]];
       found=0;
-      for (j=0; j<tb.nd; j++) {                     /* name state vars */
+      for (j=0; j<tb.de.n; j++) {                     /* name state vars */
         buf2=tb.ss.line[tb.di[j]];
 	if (!strcmp(buf1, buf2)){
 	  found=1;
@@ -2596,7 +2586,7 @@ void trans_internal(char* parse_file, int isStr){
       // Now the dy()
       buf1=tb.ss.line[tb.dy[i]];
       found=0;
-      for (j=0; j<tb.nd; j++) {                     /* name state vars */
+      for (j=0; j<tb.de.n; j++) {                     /* name state vars */
         buf2=tb.ss.line[tb.di[j]];
         if (!strcmp(buf1, buf2)){
           found=1;
@@ -2831,7 +2821,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SEXP model  = PROTECT(allocVector(STRSXP,1));pro++;
   SEXP modeln = PROTECT(allocVector(STRSXP,1));pro++;
   k=0;j=0;l=0;m=0,p=0;
-  for (i=0; i<tb.nd; i++) {                     /* name state vars */
+  for (i=0; i<tb.de.n; i++) {                     /* name state vars */
     buf=tb.ss.line[tb.di[i]];
     if (tb.idu[i] == 1){
       if (strncmp(buf,"rx__sens_", 9) == 0){
