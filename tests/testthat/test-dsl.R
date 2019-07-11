@@ -20,6 +20,7 @@ rxPermissive({
     })
 
     test_that("function translation", {
+
         expect_equal(rxToSE(gammafn(a)), "gamma(a)")
         expect_error(rxToSE(gammafn(a, b)))
         expect_error(rxFromSE(gamma(a, b)))
@@ -46,14 +47,22 @@ rxPermissive({
         expect_equal(rxToSE(lgamma1p(a)), "loggamma(a+1)")
         expect_equal(rxFromSE(loggamma(a + 1)), "lgamma1p(a)")
         expect_equal(rxFromSE(loggamma(1 + a)), "lgamma1p(a)")
-        expect_equal(rxFromSE(loggamma(a + 1 + b)), "lgamma1p(a+b)")
+        expect_equal(rxFromSE(loggamma(a + 1 + b)), "lgamma1p(a + b)")
 
         expect_equal(rxToSE(log1p(a)), "log(1+a)")
         expect_equal(rxFromSE(log(a + 1)), "log1p(a)")
 
         expect_equal(rxToSE(cospi(a)), "cos(pi*(a))")
+        expect_equal(rxFromSE(cos(pi * a)), "cospi(a)")
+        expect_equal(rxFromSE(cos(pi * (a))), "cospi(a)")
+
+        expect_equal(rxFromSE(cos(b * pi * a)), "cospi(b * a)")
+
         expect_equal(rxToSE(sinpi(a)), "sin(pi*(a))")
+        expect_equal(rxFromSE(sin(pi * a)), "sinpi(a)")
+
         expect_equal(rxToSE(tanpi(a)), "tan(pi*(a))")
+        expect_equal(rxFromSE(tan(pi * a)), "tanpi(a)")
 
         expect_equal(rxToSE(log1pmx(a)), "(log(1+a)-(a))")
         expect_equal(rxToSE(expm1(a)), "(exp(a)-1)")

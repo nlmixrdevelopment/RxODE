@@ -40,6 +40,10 @@
 .SE1p <-c("loggamma"="lgamma1p",
           "log"="log1p")
 
+.SE1m <-c("cos"="cospi",
+          "sin"="sinpi",
+          "tan"="tanpi");
+
 ## "rxTBS", "rxTBSd"
 
 
@@ -341,6 +345,43 @@ rxFromSE <- function(x){
     return(.rxFromSE(eval(parse(text=paste0("quote({", x, "})")))))
 }
 
+.rxM1rmF <- function(x){
+    .env <- new.env(parent=emptyenv())
+    .env$found <- FALSE
+    .f <- function(x, envir){
+        if (is.call(x)){
+            if (identical(x[[1]], quote(`*`))){
+                if (length(x) == 3){
+                    .x2 <- as.character(x[[2]])
+                    .x3 <- as.character(x[[3]])
+                    if (length(.x3) == 1){
+                        if (.x3 == "pi"){
+                            envir$found <- TRUE
+                            return(.rxFromSE(x[[2]]));
+                        }
+                    }
+                    if (length(.x2) == 1){
+                        if (.x2 == "pi"){
+                            envir$found <- TRUE
+                            return(.rxFromSE(x[[3]]));
+                        }
+                    }
+                    return(paste0(.f(x[[2]], envir), "*",
+                                  .f(x[[3]], envir)))
+                } else {
+                    return(.rxFromSE(x));
+                }
+            } else {
+                return(.rxFromSE(x))
+            }
+        } else {
+            return(.rxFromSE(x))
+        }
+    }
+    .ret <- .rxFromSE(dsl.strip.paren(.f(x, .env)))
+    return(list(.ret, .env$found))
+}
+
 .rxP1rmF <- function(x){
     .env <- new.env(parent=emptyenv())
     .env$found <- FALSE
@@ -378,7 +419,7 @@ rxFromSE <- function(x){
             return(.rxFromSE(x))
         }
     }
-    .ret <- .f(x, .env)
+    .ret <- .rxFromSE(dsl.strip.paren(.f(x, .env)))
     return(list(.ret, .env$found))
 }
 
@@ -443,9 +484,10 @@ rxFromSE <- function(x){
                 } else if (.a == "2"){
                     return(paste0("tetragamma(", .b, ")"))
                 } else if (.a == "3"){
-                    return(paste0("pentagamma(",.b, ")"))
+                    return(paste0("pentagamma(", .b, ")"))
                 } else {
-                    return(paste0("psigamma(", .b, ",", .a, "))"))
+                    return(paste0("psigamma(", .b, ",",
+                                  .a, ")"))
                 }
             } else {
                 stop("polygamma() takes 2 arguments");
@@ -457,17 +499,22 @@ rxFromSE <- function(x){
                 if (!is.null(.xc)){
                     if (length(x) == 2){
                         .x2 <- x[[2]];
-                        if (identical(.x2[[1]], quote(`+`))){
-                            .tmp0 <- .SE1p[.x1];
-                            if (!is.na(.tmp0)){
-                                .ret <- .rxP1rmF(.x2)
-                                if (.ret[[2]]){
-                                    return(paste0(.tmp0, "(",
-                                                  .ret[[1]], ")"))
+                        if (length(.x2) != 1){
+                            if (identical(.x2[[1]], quote(`+`))){
+                                .tmp0 <- .SE1p[.x1];
+                                if (!is.na(.tmp0)){
+                                    .ret <- .rxP1rmF(.x2)
+                                    if (.ret[[2]]){
+                                        .r1 <- .ret[[1]];
+                                        return(paste0(.tmp0, "(",
+                                                      .r1,
+                                                      ")"))
+                                    }
                                 }
+                                return(paste0(.xc[1], .ret[[1]], .xc[2]))
                             }
-                            return(paste0(.xc[1], .ret[[1]], .xc[2]))
                         }
+
                         return(paste0(.xc[1], .rxFromSE(x[[2]]), .xc[2]))
                     } else {
                         stop(sprintf("%s() only acceps 1 argument", .x1));
@@ -496,7 +543,8 @@ rxFromSE <- function(x){
                     }
                 }
             }
-            .ret0 <- lapply(x, .rxFromSE);
+            .ret0 <- lapply(unlist(lapply(unlist(lapply(x, .rxFromSE)),
+                                          dsl.strip.paren)), .rxFromSE);
             .nargs <- .rxSEeq[paste(.ret0[[1]])];
             if (!is.na(.nargs)){
                 if (.nargs == length(.ret0) - 1){
@@ -508,16 +556,32 @@ rxFromSE <- function(x){
                             .ret <- .rxP1rmF(.x2)
                             if (.ret[[2]]){
                                 return(paste0(.tmp0, "(",
-                                              .ret[[1]], ")"))
+                                              .ret[[1]],
+                                              ")"))
                             } else {
                                 return(paste0(.x1, "(",
-                                              .ret[[1]], ")"))
+                                              .ret[[1]],
+                                              ")"))
+                            }
+                        }
+                        .tmp0 <- .SE1m[.x1];
+                        if (!is.na(.tmp0)){
+                            .ret <- .rxM1rmF(.x2)
+                            if (.ret[[2]]){
+                                return(paste0(.tmp0, "(",
+                                              .ret[[1]],
+                                              ")"))
+                            } else {
+                                return(paste0(.x1, "(",
+                                              .ret[[1]],
+                                              ")"))
                             }
                         }
                     }
                     .ret <- paste0(.tmp0, "(")
                     .ret0 <- .ret0[-1];
-                    .ret <- paste0(.ret, paste(unlist(.ret0), collapse=","), ")");
+                    .ret <- paste0(.ret, paste(unlist(.ret0), collapse=","),
+                                   ")");
                     return(.ret)
                 } else {
                     stop(sprintf("%s() takes %s arguments",
