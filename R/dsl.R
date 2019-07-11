@@ -282,7 +282,7 @@ dsl.strip.paren <- function(x){
         if (is.call(x)){
             if (length(x) == 1){
                 return(x)
-            } else if (as.character(x[[1]]) == "("){
+            } else if (identical(x[[1]], quote(`(`))){
                 return(strip.it(x[[2]]));
             } else {
                 return(x)

@@ -47,7 +47,7 @@ rxPermissive({
         expect_equal(rxToSE(lgamma1p(a)), "loggamma(a+1)")
         expect_equal(rxFromSE(loggamma(a + 1)), "lgamma1p(a)")
         expect_equal(rxFromSE(loggamma(1 + a)), "lgamma1p(a)")
-        expect_equal(rxFromSE(loggamma(a + 1 + b)), "lgamma1p(a + b)")
+        expect_equal(rxFromSE(loggamma(a + 1 + b)), "lgamma1p(a+b)")
 
         expect_equal(rxToSE(log1p(a)), "log(1+a)")
         expect_equal(rxFromSE(log(a + 1)), "log1p(a)")
@@ -56,7 +56,7 @@ rxPermissive({
         expect_equal(rxFromSE(cos(pi * a)), "cospi(a)")
         expect_equal(rxFromSE(cos(pi * (a))), "cospi(a)")
 
-        expect_equal(rxFromSE(cos(b * pi * a)), "cospi(b * a)")
+        expect_equal(rxFromSE(cos(b * pi * a)), "cospi(b*a)")
 
         expect_equal(rxToSE(sinpi(a)), "sin(pi*(a))")
         expect_equal(rxFromSE(sin(pi * a)), "sinpi(a)")

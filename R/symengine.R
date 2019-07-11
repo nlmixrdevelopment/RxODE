@@ -74,7 +74,12 @@
               "M_LN10" = "log(10)");
 ## "rxTBS", "rxTBSd"
 
-.rxSEreserved <- c("e", "E", "EulerGamma", "Catalan", "GoldenRatio", "I");
+.rxSEreserved <- list("e"="M_E",
+                      "E"="M_E",
+                      "EulerGamma"=0.57721566490153286060651209008240243104215933593992,
+                      "Catalan"=0.915965594177219015054603514932384110774,
+                      "GoldenRatio"="(1+sqrt(5)/2)",
+                      "I"=1i);
 
 ##' RxODE to symengine.R
 ##'
@@ -118,7 +123,7 @@ rxToSE <- function(x, envir=NULL){
 ##'@rdname
 ##'@export
 .rxToSE <- function(x, envir=NULL){
-    .cnst <- .rxSEreserved
+    .cnst <- names(.rxSEreserved)
     if (is.name(x) || is.atomic(x)){
         .ret <- as.character(x)
         if (any(.ret == .cnst)){
@@ -345,6 +350,20 @@ rxFromSE <- function(x){
     return(.rxFromSE(eval(parse(text=paste0("quote({", x, "})")))))
 }
 
+.stripP <- function(x){
+    if (is.call(x)){
+        if (length(x) == 1){
+            return(x)
+        } else if (identical(x[[1]], quote(`(`))){
+            return(.stripP(x[[2]]));
+        } else {
+            return(x)
+        }
+    } else {
+        return(x);
+    }
+}
+
 .rxM1rmF <- function(x){
     .env <- new.env(parent=emptyenv())
     .env$found <- FALSE
@@ -357,13 +376,13 @@ rxFromSE <- function(x){
                     if (length(.x3) == 1){
                         if (.x3 == "pi"){
                             envir$found <- TRUE
-                            return(.rxFromSE(x[[2]]));
+                            return(.rxFromSE(.stripP(x[[2]])));
                         }
                     }
                     if (length(.x2) == 1){
                         if (.x2 == "pi"){
                             envir$found <- TRUE
-                            return(.rxFromSE(x[[3]]));
+                            return(.rxFromSE(.stripP(x[[3]])));
                         }
                     }
                     return(paste0(.f(x[[2]], envir), "*",
@@ -378,7 +397,7 @@ rxFromSE <- function(x){
             return(.rxFromSE(x))
         }
     }
-    .ret <- .rxFromSE(dsl.strip.paren(.f(x, .env)))
+    .ret <- .f(x, .env)
     return(list(.ret, .env$found))
 }
 
@@ -392,7 +411,7 @@ rxFromSE <- function(x){
                     if (inherits(x[[3]], "numeric")) {
                         if (x[[3]] == 1){
                             envir$found <- TRUE
-                            return(.rxFromSE(x[[2]]));
+                            return(.rxFromSE(.stripP(x[[2]])));
                         } else {
                             return(paste0(.f(x[[2]], envir),
                                           "+", as.character(x[[3]])));
@@ -401,7 +420,7 @@ rxFromSE <- function(x){
                     if (inherits(x[[2]], "numeric")) {
                         if (x[[2]] == 1){
                             envir$found <- TRUE
-                            return(.rxFromSE(x[[3]]));
+                            return(.rxFromSE(.stripP(x[[3]])));
                         } else {
                             return(paste0(as.character(x[[2]]), "+",
                                           .f(x[[3]], envir)));
@@ -435,14 +454,15 @@ rxFromSE <- function(x){
             return(.rxFromSE(x))
         }
     }
-    .ret <- .rxFromSE(dsl.strip.paren(.f(x, .env)))
+    .ret <- .f(x, .env)
     return(list(.ret, .env$found))
 }
 
 ##'@export
 ##'@rdname rxToSE
 .rxFromSE <- function(x){
-    .cnst <- setNames(.rxSEreserved, paste0("rx_SymPy_Res_", .rxSEreserved))
+    .cnst <- setNames(names(.rxSEreserved),
+                      paste0("rx_SymPy_Res_", names(.rxSEreserved)))
     if (is.name(x) || is.atomic(x)){
         .ret <- as.character(x)
         .ret0 <- .cnst[.ret];
@@ -559,8 +579,7 @@ rxFromSE <- function(x){
                     }
                 }
             }
-            .ret0 <- lapply(unlist(lapply(unlist(lapply(x, .rxFromSE)),
-                                          dsl.strip.paren)), .rxFromSE);
+            .ret0 <- lapply(lapply(x, .stripP), .rxFromSE)
             .nargs <- .rxSEeq[paste(.ret0[[1]])];
             if (!is.na(.nargs)){
                 if (.nargs == length(.ret0) - 1){
@@ -622,30 +641,30 @@ rxFromSE <- function(x){
 ##' @author Matthew Fidler
 ##' @export
 rxS <- function(x){
-    .cnst <- .rxSEreserved
-        .env <- new.env(parent = loadNamespace("symengine"))
-        .env$..mv <- rxModelVars(x);
-        .pars <- c(rxParams(x), rxState(x), "podo", "t", "time", "tlast", "rx_lambda_", "rx_yj_", "rx1c");
-        ## EulerGamma=0.57721566490153286060651209008240243104215933593992
-        ## S("I")
-        ## S("pi")
-        ## S("E")
-        ## S("") # EulerGamma
-        ## S("Catalan") = 0.915965594177219015054603514932384110774
-        ## S("GoldenRatio") = 1+sqrt(5)/2
-        ## S("inf")
-        ## S("nan")
-        sapply(.pars, function(x){
-            if (any(.cnst == x)){
-                .tmp <- paste0("rx_SymPy_Res_", x);
-                assign(.tmp, S(.tmp), envir=.env)
-            } else {
-                assign(x, S(x), envir=.env)
-            }
-        })
-        .expr <- eval(parse(text=paste0("quote({",rxNorm(mod),"})")));
-        .ret <- rxToSE(.expr, .env)
-        class(.env) <- "rxS";
-        return(.env)
-    }
+    .cnst <- names(.rxSEreserved)
+    .env <- new.env(parent = loadNamespace("symengine"))
+    .env$..mv <- rxModelVars(x);
+    .pars <- c(rxParams(x), rxState(x), "podo", "t", "time", "tlast", "rx_lambda_", "rx_yj_", "rx1c");
+    ## EulerGamma=0.57721566490153286060651209008240243104215933593992
+    ## S("I")
+    ## S("pi")
+    ## S("E")
+    ## S("") # EulerGamma
+    ## S("Catalan") = 0.915965594177219015054603514932384110774
+    ## S("GoldenRatio") = 1+sqrt(5)/2
+    ## S("inf")
+    ## S("nan")
+    sapply(.pars, function(x){
+        if (any(.cnst == x)){
+            .tmp <- paste0("rx_SymPy_Res_", x);
+            assign(.tmp, symengine::Symbol(.tmp), envir=.env)
+        } else {
+            assign(x, symengine::Symbol(x), envir=.env)
+        }
+    })
+    .expr <- eval(parse(text=paste0("quote({",rxNorm(mod),"})")));
+    .ret <- rxToSE(.expr, .env)
+    class(.env) <- "rxS";
+    return(.env)
+}
 
