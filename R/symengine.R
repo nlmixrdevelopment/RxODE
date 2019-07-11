@@ -3,11 +3,11 @@
                     "lgamma"=c("loggamma(", ")"),
                     "digamma"=c("polygamma(0,", ")"),
                     "trigamma"=c("polygamma(1,", ")"),
-                    "tetragamma"=c("polygamma(2, ", ")"),
-                    "pentagamma"=c("polygamma(3, ", ")"),
-                    "cospi"=c("cos(pi * (", "))"),
-                    "sinpi"=c("sin(pi * (", "))"),
-                    "tanpi"=c("tan(pi * (", "))"),
+                    "tetragamma"=c("polygamma(2,", ")"),
+                    "pentagamma"=c("polygamma(3,", ")"),
+                    "cospi"=c("cos(pi*(", "))"),
+                    "sinpi"=c("sin(pi*(", "))"),
+                    "tanpi"=c("tan(pi*(", "))"),
                     "log1p"=c("log(1+", ")"),
                     "expm1"=c("(exp(", ")-1)"),
                     "factorial"=c("gamma(", "+1)"),
@@ -17,6 +17,8 @@
                     "log2"=c("log(", ")/log(2)")
                     )
 
+.SEsingle <- list("loggamma"=c("lgamma(", ")"))
+
 .rxSEdouble <- list("pow"=c("(", ")^(", ")"),
                     "R_pow"=c("(", ")^(", ")"),
                     "R_pow_di"=c("(", ")^(", ")"),
@@ -24,6 +26,9 @@
                     "Rx_pow"=c("(", ")^(", ")"),
                     "lbeta"=c("log(beta(", ",", "))")
                     )
+
+.SEdouble <- list("lbeta"=c("lbeta(", ",", ")"))
+
 ## atan2
 .rxSEeq <- c("acos"=1, "acosh"=1, "asin"=1, "atan"=1,
              "atanh"=1, "beta"=2,
@@ -31,6 +36,9 @@
              "exp"=1, "gamma"=1, "sin"=1, "sinh"=1,
              "sqrt"=1, "tan"=1, "tanh"=1, "log"=1, "abs"=1, "asinh"=1,
              "rxTBS"=3, "rxTBSd"=3, "rxTBSd2"=3)
+
+.SE1p <-c("loggamma"="lgamma1p",
+          "log"="log1p")
 
 ## "rxTBS", "rxTBSd"
 
@@ -229,17 +237,17 @@ rxToSE <- function(x, envir=NULL){
         } else if (identical(x[[1]], quote(`transit`))){
             if (length(x) == 4){
                 ##transit(n, mtt, bio)
-                .n <- as.character(x[[2]]);
-                .mtt <- as.character(x[[3]]);
-                .bio <- as.character(x[[4]]);
+                .n <- .rxToSE(x[[2]], envir=envir);
+                .mtt <- .rxToSE(x[[3]], envir=envir);
+                .bio <- .rxToSE(x[[4]], envir=envir);
                 return(paste0("exp(log((", .bio, ")*(podo))+log(",
                               .n, " + 1)-log(", .mtt, ")+(", .n,
                               ")*((log(", .n, "+1)-log(", .mtt,
                               "))+log(t))-((", .n, "+1)/(", .mtt,
                               "))*(t)-loggamma(1+", .n, "))"))
             } else if (length(x) == 3){
-                .n <- as.character(x[[2]]);
-                .mtt <- as.character(x[[3]]);
+                .n <- .rxToSE(x[[2]], envir=envir);
+                .mtt <- .rxToSE(x[[3]], envir=envir);
                 return(paste0("exp(log(podo)+(log(", .n, "+1)-log(", .mtt, "))+(", .n, ")*((log(", .n, "+1)-log(", .mtt, "))+ log(t))-((", .n, " + 1)/(", .mtt, "))*(t)-loggamma(1+", .n, "))"))
             } else {
                 stop("'transit' can only take 2-3 arguments");
@@ -250,17 +258,19 @@ rxToSE <- function(x, envir=NULL){
                 .xc <- .rxSEsingle[[.x1]];
                 if (!is.null(.xc)){
                     if (length(x) == 2){
-                        return(paste0(.xc[1], as.character(x[[2]]), .xc[2]))
+                        return(paste0(.xc[1], .rxToSE(x[[2]], envir=envir),
+                                      .xc[2]))
                     } else {
                         stop(sprintf("%s() only acceps 1 argument", .x1));
                     }
                 }
                 .xc <- .rxSEdouble[[.x1]];
                 if (!is.null(.xc)){
+                    .x1 <- as.character(x[[1]])
                     if (length(x) == 3){
-                        .x1 <- as.character(x[[1]])
-                        return(paste0(.xc[1], as.character(x[[2]]), .xc[2],
-                                      as.character(x[[3]]),
+                        return(paste0(.xc[1], .rxToSE(x[[2]], envir=envir),
+                                      .xc[2],
+                                      .rxToSE(x[[3]], envir=envir),
                                       .xc[3]))
                     } else {
                         stop(sprintf("%s() only acceps 2 arguments", .x1));
@@ -289,6 +299,239 @@ rxToSE <- function(x, envir=NULL){
     }
 }
 
+##'@rdname rxToSE
+##'@export
+rxFromSE <- function(x){
+    if (is(substitute(x),"character")){
+        return(.rxFromSE(eval(parse(text=paste0("quote({", x, "})")))))
+    } else if (is(substitute(x), "{")){
+        x <- deparse(substitute(x));
+        if (x[1] == "{"){
+            x <- x[-1];
+            x <- x[-length(x)];
+        }
+        x <- paste(x, collapse="\n");
+    } else {
+        .xc <- as.character(substitute(x));
+        x <- substitute(x);
+        if (length(.xc == 1)){
+            .found <- FALSE
+            .frames <- seq(1, sys.nframe());
+            .frames <- .frames[.frames != 0];
+            for (.f in .frames){
+                .env <- parent.frame(.f);
+                if (exists(.xc, envir=.env)){
+                    .val2 <- try(get(.xc, envir=.env), silent=TRUE);
+                    if (inherits(.val2, "character")){
+                        .val2 <- eval(parse(text=paste0("quote({", .val2, "})")))
+                        return(.rxFromSE(.val2))
+                    } else {
+                        if (!is.null(attr(class(.val2), "package"))){
+                            if (attr(class(.val2), "package") == "symengine"){
+                                .val2 <- eval(parse(text=paste0("quote({", as.character(.val2), "})")))
+                                return(.rxFromSE(.val2))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return(.rxFromSE(x))
+    }
+    return(.rxFromSE(eval(parse(text=paste0("quote({", x, "})")))))
+}
+
+.rxP1rmF <- function(x){
+    .env <- new.env(parent=emptyenv())
+    .env$found <- FALSE
+    .f <- function(x, envir){
+        if (is.call(x)){
+            if (identical(x[[1]], quote(`+`))){
+                if (length(x) == 3){
+                    if (inherits(x[[3]], "numeric")) {
+                        if (x[[3]] == 1){
+                            envir$found <- TRUE
+                            return(.rxFromSE(x[[2]]));
+                        } else {
+                            return(paste0(.f(x[[2]], envir),
+                                          "+", as.character(x[[3]])));
+                        }
+                    }
+                    if (inherits(x[[2]], "numeric")) {
+                        if (x[[2]] == 1){
+                            envir$found <- TRUE
+                            return(.rxFromSE(x[[3]]));
+                        } else {
+                            return(paste0(as.character(x[[2]]), "+",
+                                          .f(x[[3]], envir)));
+                        }
+                    }
+                    return(paste0(.f(x[[2]], envir), "+",
+                                  .f(x[[3]], envir)))
+                } else {
+                    return(.rxFromSE(x));
+                }
+            } else {
+                return(.rxFromSE(x))
+            }
+        } else {
+            return(.rxFromSE(x))
+        }
+    }
+    .ret <- .f(x, .env)
+    return(list(.ret, .env$found))
+}
+
+##'@export
+##'@rdname rxToSE
+.rxFromSE <- function(x){
+    .cnst <- setNames(.rxSEreserved, paste0("rx_SymPy_Res_", .rxSEreserved))
+    if (is.name(x) || is.atomic(x)){
+        .ret <- as.character(x)
+        .ret0 <- .cnst[.ret];
+        if (!is.na(.ret0)){
+            return(.ret0)
+        }
+        return(sub(.regRate, "rate(\\1)",
+               sub(.regDur,"dur(\\1)",
+               sub(.regLag,"alag(\\1)",
+               sub(.regF, "f(\\1)",
+               sub(regIni0, "\\1(0)",
+               sub(regDfDy, "df(\\1)/dy(\\2)",
+               sub(regDfDyTh, "df(\\1)/dy(\\2[\\3])",
+               sub(regDDt, "d/dt(\\1)",
+               sub(rex::rex(start, regThEt, end),
+                       "\\1[\\2]", .ret))))))))))
+    } else if (is.call(x)){
+        if (identical(x[[1]], quote(`(`))){
+            return(paste0("(", .rxFromSE(x[[2]]), ")"))
+        } else if (identical(x[[1]], quote(`{`))){
+            .x2 <- x[-1];
+            return(paste(lapply(.x2, .rxFromSE),
+                         collapse="\n"));
+        } else if (identical(x[[1]], quote(`*`)) ||
+                   identical(x[[1]], quote(`^`)) ||
+                   identical(x[[1]], quote(`+`)) ||
+                   identical(x[[1]], quote(`-`)) ||
+                   identical(x[[1]], quote(`/`))){
+            ## Unary Operators
+            if (length(x) == 3){
+                .x2 <- x[[2]];
+                .x3 <- x[[3]];
+                return(paste0(.rxFromSE(.x2),
+                              as.character(x[[1]]),
+                              .rxFromSE(.x3)))
+            } else {
+                return(paste0(as.character(x[[1]]),
+                         .rxFromSE(x[[2]])))
+            }
+        } else if (identical(x[[1]], quote(`=`)) ||
+                   identical(x[[1]], quote(`<-`)) ||
+                   identical(x[[1]], quote(`~`))){
+            .var <- .rxFromSE(x[[2]]);
+            .val <- .rxFromSE(x[[3]]);
+        } else if (identical(x[[1]], quote(`[`))){
+            stop("[...] expressions not supported")
+        } else if (identical(x[[1]], quote(`polygamma`))){
+            if (length(x == 3)){
+                .a <- .rxFromSE(x[[2]]);
+                .b <- .rxFromSE(x[[3]]);
+                if (.a == "0"){
+                    return(paste0("digamma(", .b, ")"))
+                } else if (.a == "1"){
+                    return(paste0("trigamma(", .b, ")"))
+                } else if (.a == "2"){
+                    return(paste0("tetragamma(", .b, ")"))
+                } else if (.a == "3"){
+                    return(paste0("pentagamma(",.b, ")"))
+                } else {
+                    return(paste0("psigamma(", .b, ",", .a, "))"))
+                }
+            } else {
+                stop("polygamma() takes 2 arguments");
+            }
+        }  else {
+            if (length(x[[1]]) == 1){
+                .x1 <- as.character(x[[1]])
+                .xc <- .SEsingle[[.x1]];
+                if (!is.null(.xc)){
+                    if (length(x) == 2){
+                        .x2 <- x[[2]];
+                        if (identical(.x2[[1]], quote(`+`))){
+                            .tmp0 <- .SE1p[.x1];
+                            if (!is.na(.tmp0)){
+                                .ret <- .rxP1rmF(.x2)
+                                if (.ret[[2]]){
+                                    return(paste0(.tmp0, "(",
+                                                  .ret[[1]], ")"))
+                                }
+                            }
+                            return(paste0(.xc[1], .ret[[1]], .xc[2]))
+                        }
+                        return(paste0(.xc[1], .rxFromSE(x[[2]]), .xc[2]))
+                    } else {
+                        stop(sprintf("%s() only acceps 1 argument", .x1));
+                    }
+                }
+                .xc <- .SEdouble[[.x1]];
+                if (!is.null(.xc)){
+                    if (length(x) == 3){
+                        .x1 <- .rxFromSE(x[[1]])
+                        return(paste0(.xc[1], .rxFromSE(x[[2]]), .xc[2],
+                                      .rxFromSE(x[[3]]),
+                                      .xc[3]))
+                    } else {
+                        stop(sprintf("%s() only acceps 2 arguments", .x1));
+                    }
+                }
+            }
+            if (length(x) == 2){
+                if (identical(x[[1]], quote(`log`))){
+                    if (length(x[[2]]) == 3){
+                        if (identical(x[[2]][[1]], quote(`beta`))){
+                            .tmp <- x[[2]];
+                            .tmp[[1]] <- quote(`lbeta`);
+                            return(.rxFromSE(.tmp))
+                        }
+                    }
+                }
+            }
+            .ret0 <- lapply(x, .rxFromSE);
+            .nargs <- .rxSEeq[paste(.ret0[[1]])];
+            if (!is.na(.nargs)){
+                if (.nargs == length(.ret0) - 1){
+                    .x1 <- as.character(.ret0[[1]]);
+                    if (.nargs == 1){
+                        .tmp0 <- .SE1p[.x1];
+                        .x2 <- x[[2]];
+                        if (!is.na(.tmp0)){
+                            .ret <- .rxP1rmF(.x2)
+                            if (.ret[[2]]){
+                                return(paste0(.tmp0, "(",
+                                              .ret[[1]], ")"))
+                            } else {
+                                return(paste0(.x1, "(",
+                                              .ret[[1]], ")"))
+                            }
+                        }
+                    }
+                    .ret <- paste0(.tmp0, "(")
+                    .ret0 <- .ret0[-1];
+                    .ret <- paste0(.ret, paste(unlist(.ret0), collapse=","), ")");
+                    return(.ret)
+                } else {
+                    stop(sprintf("%s() takes %s arguments",
+                                 paste(.ret0[[1]]),
+                                 .nargs))
+                }
+            } else {
+                stop(sprintf("%s() not supported in symengine->RxODE", paste(.ret0[[1]])));
+            }
+        }
+    } else {
+        stop("Unsupported expression.");
+    }
+}
 
 ##' .. content for \description{} (no empty lines) ..
 ##'
@@ -299,10 +542,7 @@ rxToSE <- function(x, envir=NULL){
 ##' @author Matthew Fidler
 ##' @export
 rxS <- function(x){
-    .symengine <- (attr(x, "package") == "symengine")
     .cnst <- .rxSEreserved
-    if (.symengine){
-    } else {
         .env <- new.env(parent = loadNamespace("symengine"))
         .env$..mv <- rxModelVars(x);
         .pars <- c(rxParams(x), rxState(x), "podo", "t", "time", "tlast", "rx_lambda_", "rx_yj_", "rx1c");
@@ -328,4 +568,4 @@ rxS <- function(x){
         class(.env) <- "rxS";
         return(.env)
     }
-}
+

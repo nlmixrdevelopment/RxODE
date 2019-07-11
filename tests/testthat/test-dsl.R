@@ -3,27 +3,58 @@ rxPermissive({
 
     test_that("d/dt(x) parsing", {
         expect_equal(rxToSE(d/dt(matt)), "rx__d_dt_matt__")
+        expect_equal(rxFromSE(rx__d_dt_matt__), "d/dt(matt)")
         expect_equal(rxToSE(d / dt( matt )), "rx__d_dt_matt__")
+        expect_equal(rxFromSE("rx__d_dt_matt__"), "d/dt(matt)")
+        tmp <- symengine::Symbol("rx__d_dt_matt__")
+        expect_equal(rxFromSE(tmp), "d/dt(matt)")
     })
 
     test_that("df(x)/dy(x) parsing", {
         expect_equal(rxToSE(df(matt)/dy(ruth)), "rx__df_matt_dy_ruth__")
+        expect_equal(rxFromSE(rx__df_matt_dy_ruth__), "df(matt)/dy(ruth)")
         expect_equal(rxToSE(df(matt) / dy( ruth )), "rx__df_matt_dy_ruth__")
+        expect_equal(rxFromSE("rx__df_matt_dy_ruth__"), "df(matt)/dy(ruth)")
+        tmp <- symengine::Symbol("rx__df_matt_dy_ruth__")
+        expect_equal(rxFromSE(tmp), "df(matt)/dy(ruth)")
     })
 
     test_that("function translation", {
         expect_equal(rxToSE(gammafn(a)), "gamma(a)")
         expect_error(rxToSE(gammafn(a, b)))
+        expect_error(rxFromSE(gamma(a, b)))
+
         expect_equal(rxToSE(lgammafn(a)), "loggamma(a)")
         expect_equal(rxToSE(lgammafn(a)), "loggamma(a)")
-        expect_equal(rxToSE(tetragamma(a)), "polygamma(2, a)")
-        expect_equal(rxToSE(pentagamma(a)), "polygamma(3, a)")
+        expect_equal(rxFromSE(loggamma(a)), "lgamma(a)")
+
+        expect_equal(rxToSE(digamma(a)), "polygamma(0,a)")
+        expect_equal(rxFromSE(polygamma(0, a)), "digamma(a)")
+
+        expect_equal(rxToSE(trigamma(a)), "polygamma(1,a)")
+        expect_equal(rxFromSE(polygamma(1, a)), "trigamma(a)")
+
+        expect_equal(rxToSE(tetragamma(a)), "polygamma(2,a)")
+        expect_equal(rxFromSE(polygamma(2,a)), "tetragamma(a)")
+
+        expect_equal(rxToSE(pentagamma(a)), "polygamma(3,a)")
+        expect_equal(rxFromSE(polygamma(3, a)), "pentagamma(a)")
+
         expect_equal(rxToSE(lbeta(a, b)), "log(beta(a,b))")
+        expect_equal(rxFromSE(log(beta(a, b))), "lbeta(a,b)")
+
         expect_equal(rxToSE(lgamma1p(a)), "loggamma(a+1)")
-        expect_equal(rxToSE(cospi(a)), "cos(pi * (a))")
-        expect_equal(rxToSE(sinpi(a)), "sin(pi * (a))")
-        expect_equal(rxToSE(tanpi(a)), "tan(pi * (a))")
+        expect_equal(rxFromSE(loggamma(a + 1)), "lgamma1p(a)")
+        expect_equal(rxFromSE(loggamma(1 + a)), "lgamma1p(a)")
+        expect_equal(rxFromSE(loggamma(a + 1 + b)), "lgamma1p(a+b)")
+
         expect_equal(rxToSE(log1p(a)), "log(1+a)")
+        expect_equal(rxFromSE(log(a + 1)), "log1p(a)")
+
+        expect_equal(rxToSE(cospi(a)), "cos(pi*(a))")
+        expect_equal(rxToSE(sinpi(a)), "sin(pi*(a))")
+        expect_equal(rxToSE(tanpi(a)), "tan(pi*(a))")
+
         expect_equal(rxToSE(log1pmx(a)), "(log(1+a)-(a))")
         expect_equal(rxToSE(expm1(a)), "(exp(a)-1)")
         expect_equal(rxToSE(pow(a, b)), "(a)^(b)")
