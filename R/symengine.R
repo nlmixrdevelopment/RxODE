@@ -1,6 +1,6 @@
 .rxSEsingle <- list("gammafn"=c("gamma(", ")"),
-                    "lgammafn"=c("log(gamma(", "))"),
-                    "lgamma"=c("log(gamma(", "))"),
+                    "lgammafn"=c("loggamma(", ")"),
+                    "lgamma"=c("loggamma(", ")"),
                     "digamma"=c("polygamma(0,", ")"),
                     "trigamma"=c("polygamma(1,", ")"),
                     "tetragamma"=c("polygamma(2,", ")"),
@@ -11,7 +11,7 @@
                     "log1p"=c("log(1+", ")"),
                     "expm1"=c("(exp(", ")-1)"),
                     "factorial"=c("gamma(", "+1)"),
-                    "lgamma1p"=c("log(gamma(", "+1))"),
+                    "lgamma1p"=c("loggamma(", "+1)"),
                     "expm1"=c("(exp(", ")-1)"),
                     "log10"=c("log(", ")/log(10)"),
                     "log2"=c("log(", ")/log(2)"),
@@ -193,6 +193,34 @@ rxToSE <- function(x, envir=NULL){
                 if (inherits(envir, "rxS") ||
                     inherits(envir, "environment")){
                     assign(.var, .expr, envir=envir)
+                    if (regexpr(rex::rex(or(.regRate,
+                                            .regDur,
+                                            .regLag,
+                                            .regF,
+                                            regIni0,
+                                            regDDt)), .var) != -1){
+                        .rx <- paste0(rxFromSE(.var), "=",
+                                      rxFromSE(.expr));
+                        if (regexpr(rex::rex(or(regSens, regSensEtaTheta)),
+                                    .var) != -1){
+                            assign("..sens0", c(envir$..sens0, .rx),
+                               envir=envir)
+                        } else {
+                            assign("..ddt", c(envir$..ddt, .rx),
+                               envir=envir)
+                        }
+                    } else if (regexpr(rex::rex(or(regDfDy,
+                                                   regDfDyTh)), .var) != -1){
+                        .rx <- paste0(rxFromSE(.var), "=",
+                                      rxFromSE(.expr))
+                        assign("..jac0", c(envir$..jac0, .rx),
+                               envir=envir)
+                    } else if (!identical(x[[1]], quote(`~`))) {
+                        .rx <- paste0(rxFromSE(.var), "=",
+                                      rxFromSE(.expr))
+                        assign("..lhs", c(envir$..lhs, .rx),
+                               envir=envir)
+                    }
                 }
             }
         } else if (identical(x[[1]], quote(`[`))){
@@ -219,7 +247,7 @@ rxToSE <- function(x, envir=NULL){
             if (length(x == 3)){
                 .a <- .rxToSE(x[[2]], envir=envir);
                 .b <- .rxToSE(x[[3]], envir=envir);
-                return(paste0("polygamma(", .b, ",", .a, "))"))
+                return(paste0("polygamma(", .b, ",", .a, ")"))
             } else {
                 stop("psigamma() takes 2 arguments");
             }
@@ -243,7 +271,7 @@ rxToSE <- function(x, envir=NULL){
             if (length(x) == 3){
                 .n <- .rxToSE(x[[2]], envir=envir)
                 .k <- .rxToSE(x[[3]], envir=envir)
-                return(paste0("(log(gamma(", .n, "+1))-log(gamma(", .k, "+1))-log(gamma(", .n, "-(", .k, ")+1)))"))
+                return(paste0("(loggamma(", .n, "+1)-loggamma(", .k, "+1)-loggamma(", .n, "-(", .k, ")+1))"))
             } else {
                 stop("lchoose() takes 2 arguments")
             }
@@ -257,11 +285,11 @@ rxToSE <- function(x, envir=NULL){
                               .n, " + 1)-log(", .mtt, ")+(", .n,
                               ")*((log(", .n, "+1)-log(", .mtt,
                               "))+log(t))-((", .n, "+1)/(", .mtt,
-                              "))*(t)-log(gamma(1+", .n, ")))"))
+                              "))*(t)-loggamma(1+", .n, "))"))
             } else if (length(x) == 3){
                 .n <- .rxToSE(x[[2]], envir=envir);
                 .mtt <- .rxToSE(x[[3]], envir=envir);
-                return(paste0("exp(log(podo)+(log(", .n, "+1)-log(", .mtt, "))+(", .n, ")*((log(", .n, "+1)-log(", .mtt, "))+ log(t))-((", .n, " + 1)/(", .mtt, "))*(t)-log(gamma(1+", .n, ")))"))
+                return(paste0("exp(log(podo)+(log(", .n, "+1)-log(", .mtt, "))+(", .n, ")*((log(", .n, "+1)-log(", .mtt, "))+ log(t))-((", .n, " + 1)/(", .mtt, "))*(t)-loggamma(1+", .n, "))"))
             } else {
                 stop("'transit' can only take 2-3 arguments");
             }
@@ -492,6 +520,14 @@ rxFromSE <- function(x){
         .ret0 <- .cnst[.ret];
         if (!is.na(.ret0)){
             return(.ret0)
+        }
+        .ret0 <- .rxSEreserved[[.ret]];
+        if (!is.null(.ret0)){
+            if (is.character(.ret0)){
+                return(.ret0);
+            } else if (is.numeric(.ret0)){
+                return(sprintf("%.16f", .ret0));
+            }
         }
         if (.ret == "E") return("M_E");
         return(sub(.regRate, "rate(\\1)",
@@ -732,6 +768,16 @@ rxS <- function(x){
     .cnst <- names(.rxSEreserved)
     .env <- new.env(parent = loadNamespace("symengine"))
     .env$..mv <- rxModelVars(x);
+    .env$..jac0 <- c();
+    .env$..ddt <- c();
+    .env$..sens0 <- c();
+    .env$..lhs <- c();
+    .env$polygamma <- function(a, b){
+        symengine::S(paste0("polygamma(",as.character(a),",",as.character(b),")"))
+    }
+    .env$loggamma <- function(a){
+        symengine::S(paste0("loggamma(",as.character(a),")"))
+    }
     .pars <- c(rxParams(x), rxState(x), "podo", "t", "time", "tlast", "rx_lambda_", "rx_yj_", "rx1c");
     ## EulerGamma=0.57721566490153286060651209008240243104215933593992
     ## S("I")
@@ -750,7 +796,7 @@ rxS <- function(x){
             assign(x, symengine::Symbol(x), envir=.env)
         }
     })
-    .expr <- eval(parse(text=paste0("quote({",rxNorm(mod),"})")));
+    .expr <- eval(parse(text=paste0("quote({",rxNorm(x),"})")));
     .ret <- .rxToSE(.expr, .env)
     class(.env) <- "rxS";
     return(.env)
