@@ -304,15 +304,6 @@ extern rx_solve *getRxSolve_(){
   return &rx_global;
 }
 
-rx_solving_options *getRxOp(rx_solve *rx){
-  /* if(!R_ExternalPtrAddr(rx->op)){ */
-  /*   error("Cannot get global ode solver options."); */
-  /* } */
-  /* return (rx_solving_options*)(R_ExternalPtrAddr(rx->op)); */
-  /* return &op_global; */
-  return rx->op;
-}
-
 rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
   return &(rx->subjects[id]);
 }
