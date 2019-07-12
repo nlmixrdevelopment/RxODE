@@ -144,3 +144,51 @@ List rxExpandSens_(CharacterVector state, CharacterVector calcSens){
   out.attr("row.names") = IntegerVector::create(NA_INTEGER, -lenF);
   return out;
 }
+
+
+//[[Rcpp::export]]
+List rxExpandSens2_(CharacterVector state, CharacterVector s1, CharacterVector s2){
+  // rx__d_dt_rx__sens_V1_BY_V2____
+  int len1 = state.size();
+  int len2 = s1.size();
+  int len3 = s2.size();
+  int lenF = len1*len2*len3;
+  CharacterVector ddt(lenF);
+  CharacterVector ddtS(lenF);
+  CharacterVector ddtS2(lenF);
+  CharacterVector line(lenF);
+  int i1, i2, i3;
+  for (int i = lenF; i--;){
+    i1 = i % len1;
+    i2 = (int)(floor(i / len1)) % len2;
+    i3 = floor(i / (len1*len2));
+    std::string cS = as<std::string>(state[i1]);
+    std::string cS1 = as<std::string>(s1[i2]);
+    std::string cS2 = as<std::string>(s2[i3]);
+    std::string sensSp = "rx__sens_" + cS + "_BY_" + cS1 + "_BY_" + cS2 + "__";
+    ddt[i] = "d/dt("+ sensSp + ")";
+    std::string curLine= "rx__d_dt_rx__sens_" + cS + "_BY_" + cS1 + "_BY_" + cS2 + "____";
+    ddtS[i] = curLine;
+    ddtS2[i] = sensSp;
+    curLine = "assign(\"" + curLine + "\", with(model,";
+    std::string v1 = "rx__d_dt_rx__sens_"+cS+"_BY_"+cS2+"____";
+    curLine += "D("+v1+","+cS1+")";
+    for (int j = len1; j--;){
+      std::string s2 = as<std::string>(state[j]);
+      curLine += "+D("+v1+","+s2+")*rx__sens_"+s2+"_BY_"+cS1+
+	"__+rx__sens_"+s2+"_BY_"+cS1+"_BY_"+cS2+"__*rx__df_"+
+	cS + "_dy_"+s2+"__";
+    }
+    curLine += "),envir=model))";
+    line[i] = curLine;
+  }
+  List out(4);
+  out[0] = ddt;
+  out[1] = ddtS;
+  out[2] = ddtS2;
+  out[3] = line;
+  out.attr("names") = CharacterVector::create("ddt","ddtS","ddS2","line");
+  out.attr("class") = "data.frame";
+  out.attr("row.names") = IntegerVector::create(NA_INTEGER, -lenF);
+  return out;  
+}

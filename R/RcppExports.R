@@ -51,6 +51,10 @@ rxExpandSens_ <- function(state, calcSens) {
     .Call(`_RxODE_rxExpandSens_`, state, calcSens)
 }
 
+rxExpandSens2_ <- function(state, s1, s2) {
+    .Call(`_RxODE_rxExpandSens2_`, state, s1, s2)
+}
+
 #' Check the type of an object using Rcpp
 #'
 #' @param obj Object to check

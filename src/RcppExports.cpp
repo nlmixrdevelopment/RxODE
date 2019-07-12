@@ -175,6 +175,42 @@ RcppExport SEXP _RxODE_rxExpandSens_(SEXP stateSEXP, SEXP calcSensSEXP) {
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// rxExpandSens2_
+List rxExpandSens2_(CharacterVector state, CharacterVector s1, CharacterVector s2);
+static SEXP _RxODE_rxExpandSens2__try(SEXP stateSEXP, SEXP s1SEXP, SEXP s2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< CharacterVector >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type s1(s1SEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type s2(s2SEXP);
+    rcpp_result_gen = Rcpp::wrap(rxExpandSens2_(state, s1, s2));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _RxODE_rxExpandSens2_(SEXP stateSEXP, SEXP s1SEXP, SEXP s2SEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_RxODE_rxExpandSens2__try(stateSEXP, s1SEXP, s2SEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 // rxIs
 bool rxIs(const RObject& obj, std::string cls);
 static SEXP _RxODE_rxIs_try(SEXP objSEXP, SEXP clsSEXP) {
@@ -1537,6 +1573,7 @@ static int _RxODE_RcppExport_validate(const char* sig) {
     if (signatures.empty()) {
         signatures.insert("List(*rxExpandGrid_)(RObject&,RObject&,RObject&)");
         signatures.insert("List(*rxExpandSens_)(CharacterVector,CharacterVector)");
+        signatures.insert("List(*rxExpandSens2_)(CharacterVector,CharacterVector,CharacterVector)");
         signatures.insert("bool(*rxIs)(const RObject&,std::string)");
         signatures.insert("Function(*getRxFn)(std::string)");
         signatures.insert("SEXP(*dynLoad)(std::string)");
@@ -1583,6 +1620,7 @@ static int _RxODE_RcppExport_validate(const char* sig) {
 RcppExport SEXP _RxODE_RcppExport_registerCCallable() { 
     R_RegisterCCallable("RxODE", "_RxODE_rxExpandGrid_", (DL_FUNC)_RxODE_rxExpandGrid__try);
     R_RegisterCCallable("RxODE", "_RxODE_rxExpandSens_", (DL_FUNC)_RxODE_rxExpandSens__try);
+    R_RegisterCCallable("RxODE", "_RxODE_rxExpandSens2_", (DL_FUNC)_RxODE_rxExpandSens2__try);
     R_RegisterCCallable("RxODE", "_RxODE_rxIs", (DL_FUNC)_RxODE_rxIs_try);
     R_RegisterCCallable("RxODE", "_RxODE_getRxFn", (DL_FUNC)_RxODE_getRxFn_try);
     R_RegisterCCallable("RxODE", "_RxODE_dynLoad", (DL_FUNC)_RxODE_dynLoad_try);
