@@ -1,6 +1,6 @@
 .rxSEsingle <- list("gammafn"=c("gamma(", ")"),
-                    "lgammafn"=c("loggamma(", ")"),
-                    "lgamma"=c("loggamma(", ")"),
+                    "lgammafn"=c("log(gamma(", "))"),
+                    "lgamma"=c("log(gamma(", "))"),
                     "digamma"=c("polygamma(0,", ")"),
                     "trigamma"=c("polygamma(1,", ")"),
                     "tetragamma"=c("polygamma(2,", ")"),
@@ -11,7 +11,7 @@
                     "log1p"=c("log(1+", ")"),
                     "expm1"=c("(exp(", ")-1)"),
                     "factorial"=c("gamma(", "+1)"),
-                    "lgamma1p"=c("loggamma(", "+1)"),
+                    "lgamma1p"=c("log(gamma(", "+1))"),
                     "expm1"=c("(exp(", ")-1)"),
                     "log10"=c("log(", ")/log(10)"),
                     "log2"=c("log(", ")/log(2)"),
@@ -186,10 +186,12 @@ rxToSE <- function(x, envir=NULL){
             .var <- .rxToSE(x[[2]], envir=envir);
             if (inherits(x[[3]], "numeric")){
             } else {
-                .expr <- eval(parse(text=paste0("with(.env, ",
-                                                .rxToSE(x[[3]],
-                                                       envir=envir), ")")));
-                if (inherits(envir, "environment")){
+                .expr <- paste0("with(envir, ",
+                                     .rxToSE(x[[3]],
+                                             envir=envir), ")")
+                .expr <- eval(parse(text=.expr));
+                if (inherits(envir, "rxS") ||
+                    inherits(envir, "environment")){
                     assign(.var, .expr, envir=envir)
                 }
             }
@@ -241,7 +243,7 @@ rxToSE <- function(x, envir=NULL){
             if (length(x) == 3){
                 .n <- .rxToSE(x[[2]], envir=envir)
                 .k <- .rxToSE(x[[3]], envir=envir)
-                return(paste0("(loggamma(", .n, "+1)-loggamma(", .k, "+1)-loggamma(", .n, "-(", .k, ")+1))"))
+                return(paste0("(log(gamma(", .n, "+1))-log(gamma(", .k, "+1))-log(gamma(", .n, "-(", .k, ")+1)))"))
             } else {
                 stop("lchoose() takes 2 arguments")
             }
@@ -255,11 +257,11 @@ rxToSE <- function(x, envir=NULL){
                               .n, " + 1)-log(", .mtt, ")+(", .n,
                               ")*((log(", .n, "+1)-log(", .mtt,
                               "))+log(t))-((", .n, "+1)/(", .mtt,
-                              "))*(t)-loggamma(1+", .n, "))"))
+                              "))*(t)-log(gamma(1+", .n, ")))"))
             } else if (length(x) == 3){
                 .n <- .rxToSE(x[[2]], envir=envir);
                 .mtt <- .rxToSE(x[[3]], envir=envir);
-                return(paste0("exp(log(podo)+(log(", .n, "+1)-log(", .mtt, "))+(", .n, ")*((log(", .n, "+1)-log(", .mtt, "))+ log(t))-((", .n, " + 1)/(", .mtt, "))*(t)-loggamma(1+", .n, "))"))
+                return(paste0("exp(log(podo)+(log(", .n, "+1)-log(", .mtt, "))+(", .n, ")*((log(", .n, "+1)-log(", .mtt, "))+ log(t))-((", .n, " + 1)/(", .mtt, "))*(t)-log(gamma(1+", .n, ")))"))
             } else {
                 stop("'transit' can only take 2-3 arguments");
             }
@@ -303,7 +305,14 @@ rxToSE <- function(x, envir=NULL){
                                  .nargs))
                 }
             } else {
-                stop(sprintf("%s() not supported in RxODE", paste(.ret0[[1]])));
+                .fun <- paste(.ret0[[1]])
+                .ret0 <- .ret0[-1];
+                .ret <- paste0("(", paste(unlist(.ret0), collapse=","), ")");
+                if (.ret == "(0)"){
+                    return(paste0("rx_", .fun, "_ini_0__"))
+                } else {
+                    stop(sprintf("%s() not supported in RxODE", .fun));
+                }
             }
         }
     } else {
@@ -742,7 +751,7 @@ rxS <- function(x){
         }
     })
     .expr <- eval(parse(text=paste0("quote({",rxNorm(mod),"})")));
-    .ret <- rxToSE(.expr, .env)
+    .ret <- .rxToSE(.expr, .env)
     class(.env) <- "rxS";
     return(.env)
 }

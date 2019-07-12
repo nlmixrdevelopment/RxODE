@@ -25,8 +25,8 @@ rxPermissive({
         expect_error(rxToSE(gammafn(a, b)))
         expect_error(rxFromSE(gamma(a, b)))
 
-        expect_equal(rxToSE(lgammafn(a)), "loggamma(a)")
-        expect_equal(rxToSE(lgammafn(a)), "loggamma(a)")
+        expect_equal(rxToSE(lgammafn(a)), "log(gamma(a))")
+        expect_equal(rxToSE(lgammafn(a)), "log(gamma(a))")
         expect_equal(rxFromSE(loggamma(a)), "lgamma(a)")
 
         expect_equal(rxToSE(digamma(a)), "polygamma(0,a)")
@@ -44,7 +44,7 @@ rxPermissive({
         expect_equal(rxToSE(lbeta(a, b)), "log(beta(a,b))")
         expect_equal(rxFromSE(log(beta(a, b))), "lbeta(a,b)")
 
-        expect_equal(rxToSE(lgamma1p(a)), "loggamma(a+1)")
+        expect_equal(rxToSE(lgamma1p(a)), "log(gamma(a+1))")
         expect_equal(rxFromSE(loggamma(a + 1)), "lgamma1p(a)")
         expect_equal(rxFromSE(loggamma(1 + a)), "lgamma1p(a)")
         expect_equal(rxFromSE(loggamma(a + 1 + b)), "lgamma1p(a+b)")
@@ -80,7 +80,7 @@ rxPermissive({
         expect_error(rxToSE(beta(a)))
 
         expect_equal(rxToSE(choose(n, k)),"gamma(n+1)/(gamma(k+1)*gamma(n-(k)+1))")
-        expect_equal(rxToSE(lchoose(n, k)), "(loggamma(n+1)-loggamma(k+1)-loggamma(n-(k)+1))")
+        expect_equal(rxToSE(lchoose(n, k)), "(log(gamma(n+1))-log(gamma(k+1))-log(gamma(n-(k)+1)))")
 
         expect_equal(rxFromSE(log(-x + 1)), "log1p(-x)");
         expect_equal(rxFromSE(log(1 - x)), "log1p(-x)");
@@ -201,9 +201,9 @@ rxPermissive({
 
     test_that("transit compartment translation.",{
         expect_equal(rxToSE(transit(n, mtt, bio)),
-                  "exp(log((bio)*(podo))+log(n + 1)-log(mtt)+(n)*((log(n+1)-log(mtt))+log(t))-((n+1)/(mtt))*(t)-loggamma(1+n))")
+                  "exp(log((bio)*(podo))+log(n + 1)-log(mtt)+(n)*((log(n+1)-log(mtt))+log(t))-((n+1)/(mtt))*(t)-log(gamma(1+n)))")
         expect_equal(rxToSE(transit(n, mtt)),
-                  "exp(log(podo)+(log(n+1)-log(mtt))+(n)*((log(n+1)-log(mtt))+ log(t))-((n + 1)/(mtt))*(t)-loggamma(1+n))")
+                  "exp(log(podo)+(log(n+1)-log(mtt))+(n)*((log(n+1)-log(mtt))+ log(t))-((n + 1)/(mtt))*(t)-log(gamma(1+n)))")
     })
 
     test_that("unknown functions throw errors. rxToSE", {

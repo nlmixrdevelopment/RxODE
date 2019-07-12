@@ -27,8 +27,8 @@
 ##'  microbenchmark::microbenchmark(rxExpandGrid(letters, letters), expand.grid.jc(letters, letters))
 ##' }
 ##' @export
-rxExpandGrid <- function(x, y, type=0L, symengine=FALSE){
-    rxExpandGrid_(x, y, type, symengine)
+rxExpandGrid <- function(x, y, type=0L){
+    rxExpandGrid_(x, y, type)
 }
 
 ## Assumes model is loaded.
@@ -36,69 +36,67 @@ rxExpandGrid <- function(x, y, type=0L, symengine=FALSE){
     .symengine <- rxIs(model, "rxS");
     if (rxIs(vars,"logical")){
         if (vars){
-            .pars  <- .rxParams(model, FALSE);
+            .pars  <- .rxParams(model, TRUE);
             if (any(.pars=="ETA[1]")){
                 .pars  <- .pars[regexpr(rex::rex(start,"ETA[",any_numbers,"]"), .pars) != -1]
             }
             .jac <- rxExpandGrid(rxState(model),
                                  c(rxState(model), .pars),
-                                 1L, .symengine);
+                                 1L);
         } else  {
+            .pars <- c();
             .jac <- rxExpandGrid(rxState(model),
                                  rxState(model),
-                                 1L, .symengine);
+                                 1L);
         }
     } else if (rxIs(vars,"character")){
+        .pars <- vars;
         .jac <- rxExpandGrid(rxState(model),
                              c(rxState(model), vars),
-                             1L, .symengine)
+                             1L)
     }
+    assign("..vars", .pars, envir=model);
     rxCat("Calculate Jacobian\n");
     rxProgress(dim(.jac)[1]);
     on.exit({rxProgressAbort()});
-    if (.symengine){
-        .ret <- apply(.jac, 1, function(x){
-            .l <- x["line"];
-            .l <- eval(parse(text=.l));
-            rxTick();
-            paste0(x["rx"], "=", rxFromSE(.l));
-        })
-        assign(".jacobian", .ret, envir=model);
-    } else {
-        .ret <- apply(.jac, 1, function(x){
-            .l <- x["line"];
-            .l <- rxSymPy(.l)
-            rxTick();
-            paste0(x["rx"], "=", rxFromSymPy(.l));
-        })
-    }
+    .ret <- apply(.jac, 1, function(x){
+        .l <- x["line"];
+        .l <- eval(parse(text=.l));
+        rxTick();
+        paste0(x["rx"], "=", rxFromSE(.l));
+    })
+    assign("..jacobian", .ret, envir=model);
     rxProgressStop();
     return(.ret)
 }
 
 ## Assumes .rxJacobian called on model c(state,vars)
-.rxSens <- function(model, vars){
+.rxSens <- function(model){
     .state <- rxState(model);
+    vars <- get("..vars", envir=model);
     .grd <- rxExpandSens_(.state, vars);
     rxCat("Calculate Sensitivites\n");
     rxProgress(dim(.grd)[1]);
     on.exit({rxProgressAbort()});
-    rxSymPyVars(.grd$ddtS);
-    rxSymPyVars(.grd$ddS2);
+    lapply(c(.grd$ddtS, .grd$ddS2), function(x){
+        assign(x, symengine::Symbol(x), envir=model)
+    })
     .ret <- apply(.grd, 1, function(x){
         .l <- x["line"];
-        .l <- rxSymPy(.l)
-        .ret <- paste0(x["ddt"], "=", rxFromSymPy(.l));
-        if (any(rxSymPy.vars == x["s0"])){
+        .l <- eval(parse(text=.l));
+        .ret <- paste0(x["ddt"], "=", rxFromSE(.l));
+        if (exists(x["s0"], envir=model)){
             .l <- x["s0D"];
-            .l <- rxSymPy(.l);
+            .l <- eval(parse(text=.l));
             if (.l != "0"){
-                .ret <- paste0(.ret, "\n", x["s0r"], "=", rxFromSymPy(.l), "+0.0");
+                .ret <- paste0(.ret, "\n", x["s0r"], "=", rxFromSE(.l),
+                               "+0.0");
             }
         }
         rxTick();
         return(.ret);
     })
+    assign("..sens", .ret, envir=model);
     rxProgressStop();
     return(.ret)
 }

@@ -4,7 +4,7 @@ using namespace Rcpp;
 bool rxIs(const RObject &obj, std::string cls);
 
 //[[Rcpp::export]]
-List rxExpandGrid_(RObject &c1, RObject &c2, RObject &type, bool symengine=false){
+List rxExpandGrid_(RObject &c1, RObject &c2, RObject &type){
   if (rxIs(c1, "character") && rxIs(c2, "character")){
     CharacterVector in1 = as<CharacterVector>(c1);
     CharacterVector in2 = as<CharacterVector>(c2);
@@ -43,13 +43,8 @@ List rxExpandGrid_(RObject &c1, RObject &c2, RObject &type, bool symengine=false
 	out3[i] = "df(" + s1 + ")/dy(" + s2 + ")";
 	std::string sDf = "rx__df_" + s1 + "_dy_" + s2 + "__";
 	out4[i] = sDf;
-	if (symengine){
-	  out5[i] = "assign(\"" + sDf + "\",with(model,D(rx__d_dt_" +
-	    s1 + "__, " + s2 +")), envir=model)";
-	} else {
-	  out5[i] = sDf + " = diff(rx__d_dt_" + s1 + "__, " +
-	    s2 +")";
-	}
+	out5[i] = "assign(\"" + sDf + "\",with(model,D(rx__d_dt_" +
+	  s1 + "__, " + s2 +")), envir=model)";
       }
       List out(5);
       out[0] = out1;
@@ -103,19 +98,20 @@ List rxExpandSens_(CharacterVector state, CharacterVector calcSens){
       curSens + "____";
     ddtS[i] = curLine;
     ddtS2[i] = sensSp;
-    curLine += " = ";
+    curLine = "assign(\"" + curLine + "\", with(model,";
     for (int j = len1; j--;){
       std::string curState2=as<std::string>(state[j]);
       // sprintf("df(%s)/dy(%s)*rx__sens_%s_BY_%s__", s1, rxToSymPy(s2), s2, rxToSymPy(sns))
       curLine += "rx__df_"+curState+"_dy_"+curState2+
 	"__*rx__sens_"+curState2+"_BY_"+curSens+"__+";
     }
-    curLine += "rx__df_"+curState+ "_dy_"+curSens+"__";
+    curLine += "rx__df_"+curState+ "_dy_"+curSens+"__),envir=model)";
     line[i] = curLine;
     std::string tmp = "rx_" + curState  + "_ini_0__";
     state0[i] = tmp;
     state0r[i] = sensSp + "(0)";
-    stateD[i] = "diff(" + tmp + "," + curSens + ")";
+    stateD[i] = "assign(\"rx_"+sensSp+"_ini_0__\",with(model,D(" +
+      tmp + "," + curSens + ")),envir=model))";
     rateS[i] = "rx_rate_" + curState + "_";
     rateR[i] = "rate(" + curState + ")";
     durS[i] = "rx_dur_" + curState + "_";
