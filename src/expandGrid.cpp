@@ -111,7 +111,7 @@ List rxExpandSens_(CharacterVector state, CharacterVector calcSens){
     state0[i] = tmp;
     state0r[i] = sensSp + "(0)";
     stateD[i] = "assign(\"rx_"+sensSp+"_ini_0__\",with(model,D(" +
-      tmp + "," + curSens + ")),envir=model))";
+      tmp + "," + curSens + ")),envir=model)";
     rateS[i] = "rx_rate_" + curState + "_";
     rateR[i] = "rate(" + curState + ")";
     durS[i] = "rx_dur_" + curState + "_";
@@ -157,6 +157,8 @@ List rxExpandSens2_(CharacterVector state, CharacterVector s1, CharacterVector s
   CharacterVector ddtS(lenF);
   CharacterVector ddtS2(lenF);
   CharacterVector line(lenF);
+  CharacterVector state0r(lenF);
+  CharacterVector stateD(lenF);
   int i1, i2, i3;
   for (int i = lenF; i--;){
     i1 = i % len1;
@@ -179,15 +181,20 @@ List rxExpandSens2_(CharacterVector state, CharacterVector s1, CharacterVector s
 	"__+rx__sens_"+s2+"_BY_"+cS1+"_BY_"+cS2+"__*rx__df_"+
 	cS + "_dy_"+s2+"__";
     }
-    curLine += "),envir=model))";
+    curLine += "),envir=model)";
     line[i] = curLine;
+    state0r[i] = sensSp + "(0)";
+    stateD[i] = "assign(\"rx_"+sensSp+"_ini_0__\",with(model,D(D(rx_" +
+      cS + "_ini_0__," + cS1 + "),"+cS2+")),envir=model)";
   }
-  List out(4);
+  List out(6);
   out[0] = ddt;
   out[1] = ddtS;
   out[2] = ddtS2;
   out[3] = line;
-  out.attr("names") = CharacterVector::create("ddt","ddtS","ddS2","line");
+  out[4] = state0r;
+  out[5] = stateD;
+  out.attr("names") = CharacterVector::create("ddt","ddtS","ddS2","line","s0r","s0D");
   out.attr("class") = "data.frame";
   out.attr("row.names") = IntegerVector::create(NA_INTEGER, -lenF);
   return out;  
