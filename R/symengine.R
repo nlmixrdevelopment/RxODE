@@ -776,9 +776,11 @@ rxS <- function(x){
     .env$..ddt <- c();
     .env$..sens0 <- c();
     .env$..lhs <- c();
+    .env$..polygamma <- symengine::S("polygamma(a, b)");
+    .env$..a <- symengine::Symbol("a");
+    .env$..b <- symengine::Symbol("b");
     .env$polygamma <- function(a, b){
-        .e <- symengine::S("polygamma(a, b)")
-        symengine::subs(symengine::subs(.e, symengine::Symbol("a"), a), symengine::Symbol("b"),  b)
+        symengine::subs(symengine::subs(..polygamma, ..a, a), ..b,  b)
     }
     .env$loggamma <- function(a){
         lgamma(a)
