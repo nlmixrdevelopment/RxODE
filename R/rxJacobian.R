@@ -71,11 +71,15 @@ rxExpandGrid <- function(x, y, type=0L){
 }
 
 ## Assumes .rxJacobian called on model c(state,vars)
-.rxSens <- function(model){
+.rxSens <- function(model, vars, vars2, msg="Calculate Sensitivites"){
     .state <- rxState(model);
-    vars <- get("..vars", envir=model);
-    .grd <- rxExpandSens_(.state, vars);
-    rxCat("Calculate Sensitivites\n");
+    if (missing(vars)) vars <- get("..vars", envir=model);
+    if (!missing(vars2)){
+        .grd <- rxExpandSens2_(.state, vars, vars2);
+    } else {
+        .grd <- rxExpandSens_(.state, vars);
+    }
+    message(msg);
     rxProgress(dim(.grd)[1]);
     on.exit({rxProgressAbort()});
     lapply(c(.grd$ddtS, .grd$ddS2), function(x){
@@ -96,12 +100,14 @@ rxExpandGrid <- function(x, y, type=0L){
         rxTick();
         return(.ret);
     })
-    assign("..sens", .ret, envir=model);
+    if (missing(vars2)){
+        assign("..sens", .ret, envir=model);
+    } else {
+        assign("..sens2", .ret, envir=model);
+    }
     rxProgressStop();
     return(.ret)
 }
-
-
 
 ## norm <- RxODE("
 ## d/dt(y)  = dy

@@ -159,6 +159,7 @@ List rxExpandSens2_(CharacterVector state, CharacterVector s1, CharacterVector s
   CharacterVector line(lenF);
   CharacterVector state0r(lenF);
   CharacterVector stateD(lenF);
+  CharacterVector s0(lenF);
   int i1, i2, i3;
   for (int i = lenF; i--;){
     i1 = i % len1;
@@ -184,17 +185,19 @@ List rxExpandSens2_(CharacterVector state, CharacterVector s1, CharacterVector s
     curLine += "),envir=model)";
     line[i] = curLine;
     state0r[i] = sensSp + "(0)";
+    s0[i] = "rx_" + cS + "_ini_0__";
     stateD[i] = "assign(\"rx_"+sensSp+"_ini_0__\",with(model,D(D(rx_" +
       cS + "_ini_0__," + cS1 + "),"+cS2+")),envir=model)";
   }
-  List out(6);
+  List out(7);
   out[0] = ddt;
   out[1] = ddtS;
   out[2] = ddtS2;
   out[3] = line;
   out[4] = state0r;
   out[5] = stateD;
-  out.attr("names") = CharacterVector::create("ddt","ddtS","ddS2","line","s0r","s0D");
+  out[6] = s0;
+  out.attr("names") = CharacterVector::create("ddt","ddtS","ddS2","line","s0r","s0D","s0");
   out.attr("class") = "data.frame";
   out.attr("row.names") = IntegerVector::create(NA_INTEGER, -lenF);
   return out;  
