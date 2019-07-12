@@ -777,10 +777,11 @@ rxS <- function(x){
     .env$..sens0 <- c();
     .env$..lhs <- c();
     .env$polygamma <- function(a, b){
-        symengine::S(paste0("polygamma(",as.character(a),",",as.character(b),")"))
+        .e <- symengine::S("polygamma(a, b)")
+        symengine::subs(symengine::subs(.e, symengine::Symbol("a"), a), symengine::Symbol("b"),  b)
     }
     .env$loggamma <- function(a){
-        symengine::S(paste0("loggamma(",as.character(a),")"))
+        lgamma(a)
     }
     .pars <- c(rxParams(x), rxState(x), "podo", "t", "time", "tlast", "rx_lambda_", "rx_yj_", "rx1c");
     ## EulerGamma=0.57721566490153286060651209008240243104215933593992
