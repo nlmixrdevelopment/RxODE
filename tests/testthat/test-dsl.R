@@ -1,5 +1,5 @@
 rxPermissive({
-    context("Test DSL rxToSE")
+    context("Test symengine<->RxODE dsl")
 
     test_that("d/dt(x) parsing", {
         expect_equal(rxToSE(d/dt(matt)), "rx__d_dt_matt__")
@@ -19,7 +19,7 @@ rxPermissive({
         expect_equal(rxFromSE(tmp), "df(matt)/dy(ruth)")
     })
 
-    test_that("function translation", {
+    test_that("function and constant translation", {
 
         expect_equal(rxToSE(gammafn(a)), "gamma(a)")
         expect_error(rxToSE(gammafn(a, b)))
@@ -90,6 +90,7 @@ rxPermissive({
 
         ## expect_equal(rxFromSymPy(log((1 + x)^2)), "log1p(Rx_pow_di(x, 2)+2 * x)")
         ## expect_equal(rxFromSymPy(log((0.75 + x)^2)), "log1p(Rx_pow_di(x, 2)+1.5 * x-0.4375)")
+
         expect_equal(rxFromSE(E), "M_E")
         expect_equal(rxToSE(M_E), "E")
 

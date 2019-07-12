@@ -701,7 +701,11 @@ rxFromSE <- function(x){
                                 if (.ret == "log(10)") return("M_LN10");
                                 if (.ret == "log(M_SQRT_PI)")
                                     return("M_LN_SQRT_PI")
-                                if (.ret == c("log(M_SQRT_2dPI)"))
+                                if (any(.ret == c("log(sqrt(M_PI_2))",
+                                              "log((M_PI_2)^(1/2))",
+                                              "log((M_PI_2)^0.5)",
+                                              "log(M_PI_2^(1/2))",
+                                              "log(M_PI_2^0.5)")))
                                     return("M_LN_SQRT_PId2")
                                 if (any(.ret == c("log(sqrt(M_2PI))",
                                                   "log((M_2PI)^0.5)",
