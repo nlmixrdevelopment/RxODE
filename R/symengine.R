@@ -384,6 +384,7 @@ rxToSE <- function(x, envir=NULL){
 ##'@rdname rxToSE
 ##'@export
 rxFromSE <- function(x){
+
     if (is(substitute(x),"character")){
         return(.rxFromSE(eval(parse(text=paste0("quote({", .rxUnXi(x), "})")))))
     } else if (is(substitute(x), "{")){
@@ -393,6 +394,7 @@ rxFromSE <- function(x){
             x <- x[-length(x)];
         }
         x <- .rxUnXi(paste(x, collapse="\n"));
+        return(.rxFromSE(eval(parse(text=paste0("quote({", x, "})")))))
     } else {
         .xc <- as.character(substitute(x));
         x <- substitute(x);
@@ -418,7 +420,7 @@ rxFromSE <- function(x){
                 }
             }
         }
-        x <- .rxUnXi(x);
+        x <- eval(parse(text=paste("quote(", .rxUnXi(paste(deparse(x), collapse=" ")), ")")));
         return(.rxFromSE(x))
     }
     x <- .rxUnXi(x);
@@ -832,7 +834,7 @@ rxFromSE <- function(x){
                     }
                 }
                 .ret <- .subs(.fun)
-                return(.rxFromSE(print(.ret)))
+                return(.rxFromSE(.ret))
             } else {
                 stop(sprintf("%s() not supported in symengine->RxODE", paste(.ret0[[1]])));
             }
