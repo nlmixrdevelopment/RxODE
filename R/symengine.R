@@ -73,6 +73,7 @@
               "M_LOG10E" = "1/log(10)",
               "M_LN2" = "log(2)",
               "M_LN10" = "log(10)");
+
 ## "rxTBS", "rxTBSd"
 
 .rxSEreserved <- list("e"="M_E",
@@ -81,6 +82,34 @@
                       "Catalan"=0.915965594177219015054603514932384110774,
                       "GoldenRatio"="(1+sqrt(5)/2)",
                       "I"=1i);
+
+## diff(rxTBS(a,lambda,yj),a)
+.rxD <- new.env(parent=emptyenv());
+## This environment is a derivative table;
+## For example:
+## Derivative(f(a,b,c), a) = fa()
+## Derivative(f(a,b,c), b) = fb()
+## Derivative(f(a,b,c), c) = fc()
+## Then
+##
+## .rxD$f <- list(fa(a,b,c), fb(a,b,c), fc(a,b,c))
+##
+##  fa translates the arguments to the derivative with respect to a
+##  fb translates the arguments to the derivative with respect to b
+##
+## If any of the list is NULL then RxODE won't know how to take a
+## derivative with respect to the argument.
+##
+## If the list is shorter than the length of the arguments then the
+## argument then the derivative of arguments that are not specified
+## cannot be taken.
+.rxD$rxTBS <- list(function(a, lambda, yj){
+    paste0("rxTBSd(", a, ",", lambda, ",", yj, ")")
+})
+
+.rxD$rxTBSd <- list(function(a, lambda, yj){
+    paste0("rxTBSd2(", a, ",", lambda, ",", yj, ")")
+})
 
 ##' RxODE to symengine.R
 ##'
@@ -348,18 +377,22 @@ rxToSE <- function(x, envir=NULL){
     }
 }
 
+.rxUnXi <- function(x){
+    gsub("_xi_([[:digit:]]*)", "rx_xi_\\1", x);
+}
+
 ##'@rdname rxToSE
 ##'@export
 rxFromSE <- function(x){
     if (is(substitute(x),"character")){
-        return(.rxFromSE(eval(parse(text=paste0("quote({", x, "})")))))
+        return(.rxFromSE(eval(parse(text=paste0("quote({", .rxUnXi(x), "})")))))
     } else if (is(substitute(x), "{")){
         x <- deparse(substitute(x));
         if (x[1] == "{"){
             x <- x[-1];
             x <- x[-length(x)];
         }
-        x <- paste(x, collapse="\n");
+        x <- .rxUnXi(paste(x, collapse="\n"));
     } else {
         .xc <- as.character(substitute(x));
         x <- substitute(x);
@@ -372,12 +405,12 @@ rxFromSE <- function(x){
                 if (exists(.xc, envir=.env)){
                     .val2 <- try(get(.xc, envir=.env), silent=TRUE);
                     if (inherits(.val2, "character")){
-                        .val2 <- eval(parse(text=paste0("quote({", .val2, "})")))
+                        .val2 <- eval(parse(text=paste0("quote({", .rxUnXi(.val2), "})")))
                         return(.rxFromSE(.val2))
                     } else {
                         if (!is.null(attr(class(.val2), "package"))){
                             if (attr(class(.val2), "package") == "symengine"){
-                                .val2 <- eval(parse(text=paste0("quote({", as.character(.val2), "})")))
+                                .val2 <- eval(parse(text=paste0("quote({", .rxUnXi(as.character(.val2)), "})")))
                                 return(.rxFromSE(.val2))
                             }
                         }
@@ -385,8 +418,10 @@ rxFromSE <- function(x){
                 }
             }
         }
+        x <- .rxUnXi(x);
         return(.rxFromSE(x))
     }
+    x <- .rxUnXi(x);
     return(.rxFromSE(eval(parse(text=paste0("quote({", x, "})")))))
 }
 
@@ -674,6 +709,7 @@ rxFromSE <- function(x){
             if (!is.na(.nargs)){
                 if (.nargs == length(.ret0) - 1){
                     .x1 <- as.character(.ret0[[1]]);
+                    .tmp0 <- .x1
                     if (.nargs == 1){
                         .tmp0 <- .SE1p[.x1];
                         .x2 <- x[[2]];
@@ -751,6 +787,52 @@ rxFromSE <- function(x){
                                  paste(.ret0[[1]]),
                                  .nargs))
                 }
+            } else if (identical(x[[1]], quote(`Derivative`))){
+                if (length(x) == 3){
+                    .fun <- as.character(x[[2]])
+                    .var <- .rxFromSE(x[[3]])
+                    .args <- .fun[-1];
+                    .args <- lapply(.args, .rxFromSE)
+                    .with <- which(.var == .args)
+                    .errD <- function(){
+                        stop(sprintf("Cannot figure out the `%s` derivative with respect to `%s`", .fun[1], .var[1]))
+                    }
+                    if (length(.with) != 1){
+                        .errD()
+                    }
+                    if (exists(.fun[1], envir=.rxD)){
+                        .funLst <- get(.fun[1], envir=.rxD);
+                        if (length(.funLst) < .with){
+                            .errD()
+                        }
+                        .derFun <- .funLst[[.with]];
+                        if (is.null(.derFun)){
+                            .errD()
+                        }
+                        return(do.call(.derFun, as.list(.args)));
+                    } else {
+                        stop(sprintf("RxODE/symengine does not know how to take a derivative of `%s`", .fun[1]))
+                    }
+                } else {
+                    stop("Derivative() conversion only takes one function and one argument")
+                }
+            } else if (identical(x[[1]], quote(`Subs`))){
+                .fun <- eval(parse(text=paste0("quote(", .rxFromSE(x[[2]]), ")")))
+                .what <- .stripP(x[[3]])
+                .with <- .stripP(x[[4]])
+                .subs <- function(x){
+                    if (identical(x, .what)){
+                        return(.with);
+                    } else if (is.call(x)) {
+                        as.call(lapply(x, .subs))
+                    } else if (is.pairlist(x)) {
+                        as.pairlist(lapply(x, .subs))
+                    } else {
+                        return(x);
+                    }
+                }
+                .ret <- .subs(.fun)
+                return(.rxFromSE(print(.ret)))
             } else {
                 stop(sprintf("%s() not supported in symengine->RxODE", paste(.ret0[[1]])));
             }
