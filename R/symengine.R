@@ -381,10 +381,19 @@ rxToSE <- function(x, envir=NULL){
     gsub("_xi_([[:digit:]]*)", "rx_xi_\\1", x);
 }
 
+
+## 0L = error
+## 1L = forward
+## 2L = central
+.rxFromNumDer <- 0L
+.rxHasNumDer <- FALSE
+
 ##'@rdname rxToSE
 ##'@export
-rxFromSE <- function(x){
-
+rxFromSE <- function(x, unknownDerivatives=c("central", "forward", "error")){
+    .unknown <- c("central"=2L, "forward"=1L, "error"=0L)
+    assignInMyNamespace(".rxFromNumDer", .unknown[match.arg(unknownDerivatives)])
+    assignInMyNamespace(".rxHasNumDer", FALSE)
     if (is(substitute(x),"character")){
         return(.rxFromSE(eval(parse(text=paste0("quote({", .rxUnXi(x), "})")))))
     } else if (is(substitute(x), "{")){
@@ -394,7 +403,8 @@ rxFromSE <- function(x){
             x <- x[-length(x)];
         }
         x <- .rxUnXi(paste(x, collapse="\n"));
-        return(.rxFromSE(eval(parse(text=paste0("quote({", x, "})")))))
+        .ret <- .rxFromSE(eval(parse(text=paste0("quote({", x, "})"))));
+        return(.ret)
     } else {
         .xc <- as.character(substitute(x));
         x <- substitute(x);
@@ -408,12 +418,14 @@ rxFromSE <- function(x){
                     .val2 <- try(get(.xc, envir=.env), silent=TRUE);
                     if (inherits(.val2, "character")){
                         .val2 <- eval(parse(text=paste0("quote({", .rxUnXi(.val2), "})")))
-                        return(.rxFromSE(.val2))
+                        .ret <- .rxFromSE(.val2)
+                        return(.ret)
                     } else {
                         if (!is.null(attr(class(.val2), "package"))){
                             if (attr(class(.val2), "package") == "symengine"){
                                 .val2 <- eval(parse(text=paste0("quote({", .rxUnXi(as.character(.val2)), "})")))
-                                return(.rxFromSE(.val2))
+                                .ret <- .rxFromSE(.val2)
+                                return(.ret)
                             }
                         }
                     }
@@ -421,10 +433,12 @@ rxFromSE <- function(x){
             }
         }
         x <- eval(parse(text=paste("quote(", .rxUnXi(paste(deparse(x), collapse=" ")), ")")));
-        return(.rxFromSE(x))
+        .ret <- .rxFromSE(x)
+        return(.ret)
     }
     x <- .rxUnXi(x);
-    return(.rxFromSE(eval(parse(text=paste0("quote({", x, "})")))))
+    .ret <- .rxFromSE(eval(parse(text=paste0("quote({", x, "})"))))
+    return(.ret)
 }
 
 .stripP <- function(x){
@@ -796,24 +810,56 @@ rxFromSE <- function(x){
                     .args <- .fun[-1];
                     .args <- lapply(.args, .rxFromSE)
                     .with <- which(.var == .args)
-                    .errD <- function(){
-                        stop(sprintf("Cannot figure out the `%s` derivative with respect to `%s`", .fun[1], .var[1]))
+                    .errD <- function(force=FALSE){
+                        if (!force && .rxFromNumDer != 0L){
+                            ## Can calculate forward or central
+                            ## difference instead.
+                            ## Warn
+                            if (.rxFromNumDer == 1L){
+                                ## Forward
+                                .a1 <- .args
+                                .fn <- .fun[1];
+                                .a1[.with] <- paste0("(", .a1[.with], ")+rx_f_delta")
+                                .a2 <- .args
+                                assignInMyNamespace(".rxHasNumDer", TRUE)
+                                return(paste0("(", .fn, "(", paste0(.a1, collapse=",") ,")-",
+                                       .fn, "(", paste0(.a2, collapse=","), "))/rx_f_delta"))
+                            } else if (.rxFromNumDer == 2L) {
+                                ## Central
+                                .a1 <- .args
+                                .fn <- .fun[1];
+                                .a1[.with] <- paste0(.a1[.with], "-0.5*rx_c_delta")
+                                .a2 <- .args
+                                .a2[.with] <- paste0(.a2[.with], "+0.5*rx_c_delta")
+                                assignInMyNamespace(".rxHasNumDer", TRUE)
+                                return(paste0("(", .fn, "(", paste0(.a1, collapse=",") ,")-",
+                                       .fn, "(", paste0(.a2, collapse=","), "))/rx_c_delta"))
+                            } else {
+                                stop("Only forward and central differences are supported")
+                            }
+                        } else {
+                            stop(sprintf("Cannot figure out the `%s` derivative with respect to `%s`", .fun[1], .var[1]))
+                        }
                     }
                     if (length(.with) != 1){
-                        .errD()
+                        .errD(force=TRUE)
                     }
                     if (exists(.fun[1], envir=.rxD)){
                         .funLst <- get(.fun[1], envir=.rxD);
                         if (length(.funLst) < .with){
-                            .errD()
+                            return(.errD())
                         }
                         .derFun <- .funLst[[.with]];
                         if (is.null(.derFun)){
-                            .errD()
+                            return(.errD())
                         }
                         return(do.call(.derFun, as.list(.args)));
                     } else {
-                        stop(sprintf("RxODE/symengine does not know how to take a derivative of `%s`", .fun[1]))
+                        if (.rxFromNumDer == 0L){
+                            stop(sprintf("RxODE/symengine does not know how to take a derivative of `%s`", .fun[1]))
+                        } else {
+                            return(.errD())
+                        }
                     }
                 } else {
                     stop("Derivative() conversion only takes one function and one argument")
