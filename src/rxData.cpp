@@ -1710,8 +1710,19 @@ extern "C" void gFree(){
   _globals.gmtime=NULL;
   _globals.gmtimen=0;
   if (_globals.gParPos != NULL) Free(_globals.gParPos);
+  _globals.gParPos=NULL;
   if (_globals.gParPos2 != NULL) Free(_globals.gParPos2);
+  _globals.gParPos2=NULL;
   _globals.gParPosn = 0;
+  if (_globals.slvr_counter != NULL) Free(_globals.slvr_counter);
+  _globals.slvr_counter=NULL;
+  _globals.slvr_countern=0;
+  if (_globals.jac_counter != NULL) Free(_globals.jac_counter);
+  _globals.jac_counter=NULL;
+  _globals.jac_countern=0;
+  if (_globals.dadt_counter != NULL) Free(_globals.dadt_counter);
+  _globals.dadt_counter=NULL;
+  _globals.dadt_countern=0;
 }
 
 arma::mat rwish5(double nu, int p){
