@@ -82,6 +82,5 @@ rxPermissive({
     rxClean()
     expect_error(RxODE("a=fun(d,b,c)"))
     expect_error(rxFromSE("Derivative(fun(a,b,c),a)"))
-
 })
 })

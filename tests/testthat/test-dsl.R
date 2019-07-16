@@ -236,6 +236,66 @@ rxPermissive({
                      "(2*a+b)*rxTBSd(a*b+a^2,b,c)")
     })
 
+    test_that("logic tests", {
+
+        expect_equal(rxFromSE("rxEq(a,b)"), "(a==b)")
+        expect_equal(rxFromSE("rxNeq(a,b)"), "(a!=b)")
+        expect_equal(rxFromSE("rxLt(a,b)"), "(a<b)")
+        expect_equal(rxFromSE("rxGt(a,b)"), "(a>b)")
+        expect_equal(rxFromSE("rxGeq(a,b)"), "(a>=b)")
+        expect_equal(rxFromSE("rxLeq(a,b)"), "(a<=b)")
+        expect_equal(rxFromSE("rxAnd(a,b)"), "(a&&b)")
+        expect_equal(rxFromSE("rxOr(a,b)"), "(a||b)")
+        expect_equal(rxFromSE("rxNot(rxOr(a,b))"), "(!((a||b)))")
+
+        expect_equal(rxToSE("(a==b)"), "(rxEq(a,b))")
+        expect_equal(rxToSE("(a!=b)"), "(rxNeq(a,b))")
+        expect_equal(rxToSE("(a>=b)"), "(rxGeq(a,b))")
+        expect_equal(rxToSE("(a<=b)"), "(rxLeq(a,b))")
+        expect_equal(rxToSE("(a<b)"), "(rxLt(a,b))")
+        expect_equal(rxToSE("(a>b)"), "(rxGt(a,b))")
+        expect_equal(rxToSE("(a&b)"), "(rxAnd(a,b))")
+        expect_equal(rxToSE("(a&&b)"), "(rxAnd(a,b))")
+        expect_equal(rxToSE("(a|b)"), "(rxOr(a,b))")
+        expect_equal(rxToSE("(a||b)"), "(rxOr(a,b))")
+        expect_equal(rxToSE("!(a||b)"), "rxNot((rxOr(a,b)))")
+
+        expect_equal(rxFromSE("Derivative(rxEq(a,b), a)"),
+                     "(-20*tanh(10*(a-b))+20*tanh(10*(a-b))^3)")
+        expect_equal(rxFromSE("Derivative(rxEq(a,b), b)"),
+                     "(20*tanh(10*(a-b))-20*tanh(10*(a-b))^3)")
+
+        expect_equal(rxFromSE("Derivative(rxGeq(a,b), a)"),
+                     "(5-5*tanh(4.60512018348798+10*(a-b))^2)")
+        expect_equal(rxFromSE("Derivative(rxGeq(a,b), b)"),
+                     "(-5+5*tanh(4.60512018348798+10*(a-b))^2)")
+
+        expect_equal(rxFromSE("Derivative(rxLeq(a,b), a)"),
+                     "(-5+5*tanh(-4.60512018348798+10*(a-b))^2)")
+        expect_equal(rxFromSE("Derivative(rxLeq(a,b), b)"),
+                     "(5-5*tanh(-4.60512018348798+10*(a-b))^2)")
+
+        expect_equal(rxFromSE("Derivative(rxLt(a,b), a)"),
+                     "(-5+5*tanh(4.60512018348798+10*(a-b))^2)")
+        expect_equal(rxFromSE("Derivative(rxLt(a,b), b)"),
+                     "(5-5*tanh(4.60512018348798+10*(a-b))^2)")
+
+        expect_equal(rxFromSE("Derivative(rxGt(a,b), a)"),
+                     "(5-5*tanh(-4.60512018348798+10*(a-b))^2)")
+        expect_equal(rxFromSE("Derivative(rxGt(a,b), b)"),
+                     "(-5+5*tanh(-4.60512018348798+10*(a-b))^2)")
+
+        expect_equal(rxFromSE("Derivative(rxOr(a,b), a)"),
+                     "(1-(b))")
+        expect_equal(rxFromSE("Derivative(rxOr(a,b), b)"),
+                     "(1-(a))")
+
+        expect_equal(rxFromSE("Derivative(rxNot(a), a)"),
+                     "(-1)")
+
+
+    })
+
     context("Test DSL rxToSymPy")
 
     test_that("d/dt(x) parsing", {

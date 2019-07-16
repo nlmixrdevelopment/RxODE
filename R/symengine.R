@@ -15,20 +15,40 @@
                     "expm1"=c("(exp(", ")-1)"),
                     "log10"=c("log(", ")/log(10)"),
                     "log2"=c("log(", ")/log(2)"),
-                    "log1pexp"=c("log(1+exp(", "))")
+                    "log1pexp"=c("log(1+exp(", "))"),
+                    "!"=c("rxNot(", ")")
                     )
 
-.SEsingle <- list("loggamma"=c("lgamma(", ")"))
+.SEsingle <- list("loggamma"=c("lgamma(", ")"),
+                  "rxNot"=c("(!(", "))"))
 
 .rxSEdouble <- list("pow"=c("(", ")^(", ")"),
                     "R_pow"=c("(", ")^(", ")"),
                     "R_pow_di"=c("(", ")^(", ")"),
                     "Rx_pow_di"=c("(", ")^(", ")"),
                     "Rx_pow"=c("(", ")^(", ")"),
-                    "lbeta"=c("log(beta(", ",", "))")
+                    "lbeta"=c("log(beta(", ",", "))"),
+                    "=="=c("rxEq(", ",", ")"),
+                    "!="=c("rxNeq(", ",", ")"),
+                    ">="=c("rxGeq(", ",", ")"),
+                    "<="=c("rxLeq(", ",", ")"),
+                    "<"=c("rxLt(", ",", ")"),
+                    ">"=c("rxGt(", ",", ")"),
+                    "&&"=c("rxAnd(", ",", ")"),
+                    "||"=c("rxOr(", ",", ")"),
+                    "&"=c("rxAnd(", ",", ")"),
+                    "|"=c("rxOr(", ",", ")")
                     )
 
-.SEdouble <- list("lbeta"=c("lbeta(", ",", ")"))
+.SEdouble <- list("lbeta"=c("lbeta(", ",", ")"),
+                  "rxEq"=c("(", "==", ")"),
+                  "rxNeq"=c("(", "!=", ")"),
+                  "rxGeq"=c("(", ">=", ")"),
+                  "rxLeq"=c("(", "<=", ")"),
+                  "rxGt"=c("(", ">", ")"),
+                  "rxLt"=c("(", "<", ")"),
+                  "rxAnd"=c("(", "&&", ")"),
+                  "rxOr"=c("(", "||", ")"))
 
 ## atan2
 .rxSEeq <- c("acos"=1, "acosh"=1, "asin"=1, "atan"=1,
@@ -218,6 +238,124 @@ rxRmFun <- function(name){
 .rxD$rxTBSd <- list(function(a, lambda, yj){
     paste0("rxTBSd2(", a, ",", lambda, ",", yj, ")")
 })
+
+.rxD$..k <- 10
+.rxD$..tol <- 1e-4
+## Approx a==b by
+##(1-tanh(k*(a-b))^2)
+.rxD$rxEq <- list(
+    function(a, b){
+    .ab <- paste0("(", a, "-", b, ")");
+    return(paste0("(", -2 * .rxD$..k, "*tanh(", .rxD$..k, "*", .ab, ")+",
+                  2*.rxD$..k, "*tanh(", .rxD$..k, "*", .ab, ")^3)"))
+}, function(a, b){
+    .ab <- paste0("(", a, "-", b, ")");
+    return(paste0("(", 2 * .rxD$..k, "*tanh(", .rxD$..k, "*", .ab, ")-",
+                  2*.rxD$..k, "*tanh(", .rxD$..k, "*", .ab, ")^3)"))
+})
+
+.rxD$rxGeq <- list(
+    function(a, b){
+    .delta <- atanh(2*.rxD$..tol-1);
+    ## approx is (1/2+1/2*tanh(k*(a-b)-delta))
+    .ab <- paste0("(", a, "-", b, ")");
+    ## (1/2)*k + (-1/2)*k*tanh(-delta + k*(a - b))^2
+    return(paste0("(", .rxD$..k / 2, "-", .rxD$..k / 2, "*tanh(", -.delta,
+           "+", .rxD$..k, "*", .ab, ")^2)"))
+}, function(a, b){
+    .delta <- atanh(2*.rxD$..tol-1);
+    ## approx is (1/2+1/2*tanh(k*(a-b)-delta))
+    .ab <- paste0("(", a, "-", b, ")");
+    ## (1/2)*k + (-1/2)*k*tanh(-delta + k*(a - b))^2
+    return(paste0("(", -.rxD$..k / 2, "+", .rxD$..k / 2, "*tanh(", -.delta,
+           "+", .rxD$..k, "*", .ab, ")^2)"))
+})
+
+.rxD$rxLeq <- list(
+    function(a, b){
+    .delta <- atanh(2*.rxD$..tol-1);
+    ## approx is (1/2-1/2*tanh(k*(a-b)+delta))
+    .ab <- paste0("(", a, "-", b, ")");
+    return(paste0("(", -.rxD$..k / 2, "+", .rxD$..k / 2, "*tanh(", .delta,
+           "+", .rxD$..k, "*", .ab, ")^2)"))
+}, function(a, b){
+    .delta <- atanh(2*.rxD$..tol-1);
+    ## approx is (1/2-1/2*tanh(k*(a-b)+delta))
+    .ab <- paste0("(", a, "-", b, ")");
+    return(paste0("(", .rxD$..k / 2, "-", .rxD$..k / 2, "*tanh(", .delta,
+           "+", .rxD$..k, "*", .ab, ")^2)"))
+})
+
+
+.rxD$rxLt <- list(
+    function(a, b){
+    ## Approx is 1/2-1/2*tanh(k*(a-b)-delta)
+    .delta <- atanh(2*.rxD$..tol-1);
+    .ab <- paste0("(", a, "-", b, ")");
+    ## (-1/2)*k + (1/2)*k*tanh(-delta + k*(a - b))^2
+    return(paste0("(", -.rxD$..k / 2, "+", .rxD$..k / 2, "*tanh(", -.delta,
+           "+", .rxD$..k, "*", .ab, ")^2)"))
+},
+function(a, b){
+    ## Approx is 1/2-1/2*tanh(k*(a-b)-delta)
+    .delta <- atanh(2*.rxD$..tol-1);
+    .ab <- paste0("(", a, "-", b, ")");
+    ## (-1/2)*k + (1/2)*k*tanh(-delta + k*(a - b))^2
+    return(paste0("(", .rxD$..k / 2, "-", .rxD$..k / 2, "*tanh(", -.delta,
+                  "+", .rxD$..k, "*", .ab, ")^2)"))
+})
+
+
+.rxD$rxGt <- list(
+    function(a, b){
+    ## delta <- atanh(2*tol-1);
+    ## 1/2+1/2*tanh(k*(a-b)+delta)
+    .delta <- atanh(2*.rxD$..tol-1);
+    .ab <- paste0("(", a, "-", b, ")");
+    ## (1/2)*k + (-1/2)*k*tanh(delta + k*(a - b))^2
+    return(paste0("(", .rxD$..k / 2, "-", .rxD$..k / 2, "*tanh(", .delta,
+           "+", .rxD$..k, "*", .ab, ")^2)"))
+},
+function(a, b){
+    ## delta <- atanh(2*tol-1);
+    ## 1/2+1/2*tanh(k*(a-b)+delta)
+    .delta <- atanh(2*.rxD$..tol-1);
+    .ab <- paste0("(", a, "-", b, ")");
+    ## (-1/2)*k + (1/2)*k*tanh(delta + k*(a - b))^2
+    return(paste0("(", -.rxD$..k / 2, "+", .rxD$..k / 2, "*tanh(", .delta,
+           "+", .rxD$..k, "*", .ab, ")^2)"))
+})
+
+.rxD$rxAnd <- list(
+    function(a, b){
+    ## a*b
+    return(b)
+}, function(a, b){
+    ## a*b
+    return(a)
+})
+
+.rxD$rxOr <- list(
+    function(a, b){
+    ## Using DeMorgan's Theorem
+    ## a+b = 1-(1-a)*(1-b)
+    return(paste0("(1-(", b, "))"))
+}, function(a, b){
+    return(paste0("(1-(", a, "))"))
+})
+
+
+.rxD$rxNot <- list(
+    function(a){
+    ## 1 - a
+    return("(-1)")
+})
+
+## Approx a>=b by
+## 1/2-1/2*tanh(k*x+delta)=1-tol
+## 1/2-1+tol=1/2*tanh(k*x+delta)
+## atanh(2*tol-1)= delta
+## 1/2-1/2*tanh(k*(a-b)+delta)
 
 
 ##' Add to RxODE's derivative tables
