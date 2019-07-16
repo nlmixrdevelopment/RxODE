@@ -38,6 +38,114 @@
              "sqrt"=1, "tan"=1, "tanh"=1, "log"=1, "abs"=1, "asinh"=1,
              "rxTBS"=3, "rxTBSd"=3, "rxTBSd2"=3)
 
+.rxSEeqUsr <- c()
+
+.rxCcode <- c()
+.symengineFs <- new.env(parent=emptyenv())
+
+.extraCnow <- "";
+.extraC <- function(extraC=NULL){
+    if (!is.null(extraC)){
+        if (file.exists(extraC)){
+            .ret <- sprintf("#include \"%s\"\n", extraC);
+        } else {
+            .ret <- paste(extraC, collapse="\n");
+        }
+    } else {
+        .ret <- ""
+    }
+    if (length(.rxCcode) > 0L){
+        .ret <- sprintf("%s\n%s\n", .ret, paste(.rxCcode, collapse="\n"));
+    }
+    assignInMyNamespace(".extraCnow", .ret);
+    return(invisible());
+}
+
+##' Add user function to RxODE
+##'
+##' This adds a user function to RxODE that can be called.  If needed,
+##' these functions can be differentiated by numerical differences or
+##' by adding the derivatives to RxODE's internal derivative table
+##' with \code{\link{rxD}}
+##'
+##' @param name This gives the name of the user function
+##' @param args This gives the arguments of the user function
+##' @param cCode This is the C-code for the new function
+##' @return nothing if successful
+##' @author Matthew L. Fidler
+##' @examples
+##'
+##'
+##' \dontrun{
+##' ## Right now RxODE is not aware of the function f
+##' ## Therefore it cannot translate it to symengine or
+##' ## Compile a model with it.
+##'
+##' RxODE("a=fun(a,b,c)")
+##'
+##' ## Note for this approach to work, it cannot interfere with C
+##' ## function names or reserved RxODE specical terms.  Therefore
+##' ## f(x) would not work since f is an alias for bioaviability.
+##' }
+##'
+##' fun <- "
+##' double fun(double a, double b, double c) {
+##'   return a*a+b*a+c;
+##' }
+##' " ## C-code for function
+##'
+##' rxFun("fun",c("a","b","c"), fun) ## Added function
+##'
+##' ## Now RxODE knows how to translate this function to symengine
+##'
+##' rxToSE("f(a,b,c)")
+##'
+##' ## And will take a central difference when calculating derivatives
+##'
+##' rxFromSE("Derivative(f(a,b,c),a)")
+##'
+##' ## Of course, you could specify the derivative table manually
+##' rxD("fun", list(function(a,b,c){
+##'   paste0("2*",a,"+",b);
+##' },
+##'     function(a,b,c){
+##'      return(a)
+##'     },
+##'     function(a,b,c){
+##'       return("0.0")
+##' } ))
+##'
+##'
+##' @export
+rxFun <- function(name, args, cCode){
+    if (!is.character(name) || length(name) != 1L)
+        stop("name argument must be a length-one character vector")
+    if (missing(cCode)) stop("A new function requires a C function so it can be used in RxODE")
+    if (any(name == names(.rxSEeqUsr))){
+        stop(sprintf("Already defined user function '%s', remove it fist (rxRmFun).", name));
+    }
+    assignInMyNamespace(".rxSEeqUsr", c(.rxSEeqUsr, setNames(length(args), name)))
+    assignInMyNamespace(".rxCcode", c(.rxCcode, setNames(cCode, name)))
+    .symengineFs[[name]] <- symengine::FunctionSymbol(name, args)
+    return(invisible())
+}
+
+##' @rdname
+##' @export
+rxRmFun <- function(name){
+    if (!is.character(name) || length(name) != 1L)
+        stop("name argument must be a length-one character vector")
+    if (!any(name == names(.rxSEeqUsr))){
+        stop(sprintf("No user function '%s' to remove", name))
+    }
+    .w <- which(name == names(.rxSEeqUsr))
+    if (length(.w) == 1L) assignInMyNamespace(".rxSEeqUsr", .rxSEeqUsr[-.w])
+    .w <- which(name == names(.rxCcode))
+    if (length(.w) == 1L) assignInMyNamespace(".rxCcode", .rxCcode[-.w])
+    if (exists(name, envir=.rxD)) rm(list=name, envir=.rxD);
+    return(invisible())
+}
+
 .SE1p <-c("loggamma"="lgamma1p",
           "log"="log1p")
 
@@ -110,6 +218,41 @@
 .rxD$rxTBSd <- list(function(a, lambda, yj){
     paste0("rxTBSd2(", a, ",", lambda, ",", yj, ")")
 })
+
+
+##' Add to RxODE's derivative tables
+##'
+##' @param name Function Name
+##' @param derivatives A list of functions. Each function takes the
+##'     same number of arguments as the original function.  The first
+##'     function will construct the derivative with respect to the
+##'     first argument; The second function will construct the
+##'     derivitive with respect to the second argument, and so on.
+##' @return If successful, nothing
+##' @author Matthew Fidler
+##' @export
+##' @examples
+##' ## Add an arbitrary list of derivative functions
+##' ## In this case the fun(x,y) is assumed to be 0.5*x^2+0.5*y^2
+##'
+##' rxD("fun", list(function(x,y){return(x)},
+##'                 function(x,y){return(y)}
+##'                 ))
+##'
+rxD <- function(name, derivatives){
+    if (!inherits(derivatives, "list") || length(derivatives) == 0L){
+        stop("Derivatives must be a list of functions with at least 1 element");
+    }
+    if (!all(sapply(derivatives, function(x) (inherits(x, "function") || is.null(x))))){
+        stop("Derivatives must be a list of functions with at least 1 element")
+    }
+    if (exists(name, envir=.rxD)){
+        warning(sprintf("Replacing defined derivatives for `%s`", name))
+    }
+    assign(name, derivatives, envir=.rxD)
+    return(invisible())
+}
+
 
 ##' RxODE to symengine.R
 ##'
@@ -348,7 +491,8 @@ rxToSE <- function(x, envir=NULL){
                 }
             }
             .ret0 <- lapply(x, .rxToSE, envir=envir);
-            .nargs <- .rxSEeq[paste(.ret0[[1]])];
+            .SEeq <- c(.rxSEeq, .rxSEeqUsr)
+            .nargs <- .SEeq[paste(.ret0[[1]])];
             if (!is.na(.nargs)){
                 if (.nargs == length(.ret0) - 1){
                     .ret <- paste0(.ret0[[1]], "(")
@@ -386,14 +530,12 @@ rxToSE <- function(x, envir=NULL){
 ## 1L = forward
 ## 2L = central
 .rxFromNumDer <- 0L
-.rxHasNumDer <- FALSE
 
 ##'@rdname rxToSE
 ##'@export
 rxFromSE <- function(x, unknownDerivatives=c("central", "forward", "error")){
     .unknown <- c("central"=2L, "forward"=1L, "error"=0L)
     assignInMyNamespace(".rxFromNumDer", .unknown[match.arg(unknownDerivatives)])
-    assignInMyNamespace(".rxHasNumDer", FALSE)
     if (is(substitute(x),"character")){
         return(.rxFromSE(eval(parse(text=paste0("quote({", .rxUnXi(x), "})")))))
     } else if (is(substitute(x), "{")){
@@ -721,7 +863,8 @@ rxFromSE <- function(x, unknownDerivatives=c("central", "forward", "error")){
                 }
             }
             .ret0 <- lapply(lapply(x, .stripP), .rxFromSE)
-            .nargs <- .rxSEeq[paste(.ret0[[1]])];
+            .SEeq <- c(.rxSEeq, .rxSEeqUsr)
+            .nargs <- .SEeq[paste(.ret0[[1]])];
             if (!is.na(.nargs)){
                 if (.nargs == length(.ret0) - 1){
                     .x1 <- as.character(.ret0[[1]]);
@@ -821,7 +964,6 @@ rxFromSE <- function(x, unknownDerivatives=c("central", "forward", "error")){
                                 .fn <- .fun[1];
                                 .a1[.with] <- paste0("(", .a1[.with], ")+rx_f_delta")
                                 .a2 <- .args
-                                assignInMyNamespace(".rxHasNumDer", TRUE)
                                 return(paste0("(", .fn, "(", paste0(.a1, collapse=",") ,")-",
                                        .fn, "(", paste0(.a2, collapse=","), "))/rx_f_delta"))
                             } else if (.rxFromNumDer == 2L) {
@@ -831,7 +973,6 @@ rxFromSE <- function(x, unknownDerivatives=c("central", "forward", "error")){
                                 .a1[.with] <- paste0(.a1[.with], "-0.5*rx_c_delta")
                                 .a2 <- .args
                                 .a2[.with] <- paste0(.a2[.with], "+0.5*rx_c_delta")
-                                assignInMyNamespace(".rxHasNumDer", TRUE)
                                 return(paste0("(", .fn, "(", paste0(.a1, collapse=",") ,")-",
                                        .fn, "(", paste0(.a2, collapse=","), "))/rx_c_delta"))
                             } else {

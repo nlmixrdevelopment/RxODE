@@ -4,7 +4,7 @@
 \alias{rxExpandGrid}
 \title{Faster expand.grid}
 \usage{
-rxExpandGrid(x, y, type = 0L, symengine = FALSE)
+rxExpandGrid(x, y, type = 0L)
 }
 \arguments{
 \item{x}{first element (must be character)}

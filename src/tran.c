@@ -419,7 +419,7 @@ void curLineType(vLines *sbb, int propId){
 vLines sbPm, sbPmDt;
 sbuf sbNrm;
 
-char *extra_buf, *model_prefix, *md5 = NULL;
+char *model_prefix, *md5 = NULL;
 int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0, needSort=0;
 
 sbuf sbOut;
@@ -2190,6 +2190,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       } else {
 	sAppendN(&sbOut,"#define _CMT CMT\n", 17);
       }
+      sAppendN(&sbOut,"#include \"extraC.h\"\n", 20);
       sAppend(&sbOut, "extern void  %sode_solver_solvedata (rx_solve *solve){\n  _solveData = solve;\n}\n",prefix);
       sAppend(&sbOut, "extern rx_solve *%sode_solver_get_solvedata(){\n  return _solveData;\n}\n", prefix);
       sAppend(&sbOut, "SEXP %smodel_vars();\n", prefix);
@@ -2670,7 +2671,7 @@ void trans_internal(char* parse_file, int isStr){
   free_D_Parser(p);
 }
 
-SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr,
+SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 		  SEXP isEscIn){
   char *in;
   char *buf, *df, *dy;
@@ -2694,18 +2695,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   set_d_rdebug_grammar_level(0);
   set_d_verbose_level(0);
   rx_podo = 0;
-  if (isString(extra_c) && length(extra_c) == 1){
-    in = r_dup_str(CHAR(STRING_ELT(extra_c,0)),0);
-    extra_buf = r_sbuf_read(in);
-    if (!((intptr_t) extra_buf)){ 
-      extra_buf = (char *) R_alloc(1,sizeof(char));
-      extra_buf[0]='\0';
-    }
-  } else {
-    extra_buf = (char *) R_alloc(1,sizeof(char));
-    extra_buf[0] = '\0';
-  }
-
   /* orig = r_dup_str(CHAR(STRING_ELT(orig_file,0)),0); */
   in = r_dup_str(CHAR(STRING_ELT(parse_file,0)),0);
   

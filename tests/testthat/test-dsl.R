@@ -231,6 +231,7 @@ rxPermissive({
         expect_equal(rxFromSE("Derivative(rxTBSd(a, b, c), a)"), "rxTBSd2(a,b,c)")
         expect_error(rxFromSE("Derivative(rxTBSd2(a, b, c), a)", unknownDerivatives="error"))
         expect_error(rxFromSE("Derivative(rxTBS(a, b, c), d)", unknownDerivatives="error") )
+        expect_error(rxFromSE("Derivative(f(a, b, c), a)", unknownDerivatives="forward"))
         expect_equal(rxFromSE("(2*a + b)*Subs(Derivative(rxTBS(_xi_1, b, c), _xi_1), (_xi_1), (a*b + a^2))"),
                      "(2*a+b)*rxTBSd(a*b+a^2,b,c)")
     })

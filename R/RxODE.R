@@ -395,24 +395,26 @@ RxODE <- function(model, modName = basename(wd),
     .env$compile <- eval(bquote(function(){
         with(.(.env), {
             .lwd <- getwd();
+            .rx <- base::loadNamespace("RxODE");
             if (!file.exists(wd))
                 dir.create(wd, recursive = TRUE)
             if (file.exists(wd))
                 setwd(wd);
             on.exit(setwd(.lwd));
+            .rx$.extraC(extraC);
             if (missing.modName){
-                .rxDll <- RxODE::rxCompile(.mv, extraC = extraC, debug = debug,
-                                           package=.(.env$package));
+                .rxDll <- .rx$rxCompile(.mv, debug = debug,
+                                        package=.(.env$package));
             } else {
-                .rxDll <- RxODE::rxCompile(.mv, dir=mdir, extraC = extraC,
-                                           debug = debug, modName = modName,
-                                           package=.(.env$package));
+                .rxDll <- rx$rxCompile(.mv, dir=mdir,
+                                       debug = debug, modName = modName,
+                                       package=.(.env$package));
             }
             assign("rxDll", .rxDll, envir=.(.env));
             assign(".mv", .rxDll$modVars, envir=.(.env));
         });
     }));
-
+    .extraC(extraC);
     .env$compile();
     .env$get.modelVars <- eval(bquote(function(){
         with(.(.env), {
@@ -539,7 +541,6 @@ RxODE <- function(model, modName = basename(wd),
                 get.modelVars = eval(bquote(function(){with(.(.env), get.modelVars())})),
                 delete = eval(bquote(function(){with(.(.env), delete())})),
                 get.index = eval(bquote(function(...){with(.(.env), get.index(...))})),
-                extraC    = .env$extraC,
                 .rxDll    = .env$rxDll,
                 rxDll=eval(bquote(function(){with(.(.env), return(rxDll))})));
     tmp <- list2env(tmp, parent=.env);
@@ -1100,7 +1101,6 @@ print.rxCoefSolve <- function(x, ...){
 ##' @author Matthew L.Fidler
 ##' @export rxMd5
 rxMd5 <- function(model,         # Model File
-                  extraC  = NULL, # Extra C
                   ...){
     ## rxMd5 returns MD5 of model file.
     ## digest(file = TRUE) includes file times, so it doesn't work for this needs.
@@ -1118,16 +1118,11 @@ rxMd5 <- function(model,         # Model File
                 stop("Unknown model.");
             }
         }
-        if (is(extraC, "character")){
-            if (file.exists(extraC)){
-                .ret <- c(.ret, gsub(rex::rex(or(any_spaces, any_newlines)), "", readLines(extraC), perl = TRUE));
-            }
-        }
         rxSyncOptions();
         .tmp <- c(RxODE.syntax.assign, RxODE.syntax.star.pow, RxODE.syntax.require.semicolon, RxODE.syntax.allow.dots,
                   RxODE.syntax.allow.ini0, RxODE.syntax.allow.ini, RxODE.calculate.jacobian,
                   RxODE.calculate.sensitivity);
-        .ret <- c(.ret, .tmp);
+        .ret <- c(.ret, .tmp, .rxCcode);
         if (is.null(.md5Rx)){
             .tmp <- getLoadedDLLs()$RxODE;
             class(.tmp) <- "list";
@@ -1185,7 +1180,6 @@ rxMd5 <- function(model,         # Model File
 ##' @author Matthew L.Fidler
 ##' @export
 rxTrans <- function(model,
-                    extraC      = NULL,                                       # Extra C file(s)
                     modelPrefix = "",                                         # Model Prefix
                     md5         = "",                                         # Md5 of model
                     modName     = NULL,                                       # Model name for DLL
@@ -1198,7 +1192,6 @@ rxTrans <- function(model,
 ##' @rdname rxTrans
 ##' @export
 rxTrans.default <- function(model,
-                            extraC      = NULL,                                       # Extra C file(s)
                             modelPrefix = "",                                         # Model Prefix
                             md5         = "",                                         # Md5 of model
                             modName     = NULL,                                       # Model name for DLL
@@ -1215,7 +1208,6 @@ rxTrans.default <- function(model,
 ##' @rdname rxTrans
 ##' @export
 rxTrans.character <- function(model,
-                              extraC      = NULL,                                       # Extra C file(s)
                               modelPrefix = "",                                         # Model Prefix
                               md5         = "",                                         # Md5 of model
                               modName     = NULL,                                       # Model name for DLL
@@ -1228,10 +1220,10 @@ rxTrans.character <- function(model,
         .isStr <- 1L;
     }
     if (missing(md5)){
-        md5 <- rxMd5(model, extraC)$digest
+        md5 <- rxMd5(model)$digest
     }
     RxODE::rxReq("dparser");
-    .ret <- .Call(`_RxODE_trans`, model, extraC, modelPrefix, md5, .isStr,
+    .ret <- .Call(`_RxODE_trans`, model, modelPrefix, md5, .isStr,
                   as.integer(crayon::has_color()));
     if (inherits(.ret, "try-error")){
         message("Model")
@@ -1246,7 +1238,7 @@ rxTrans.character <- function(model,
                                                   .ret$ini,
                                                   .ret$state,
                                                   .ret$params,
-                                                  .ret$lhs), extraC)$digest);
+                                                  .ret$lhs))$digest);
     .ret$timeId <- .rxTimeId(md5["parsed_md5"])
     .ret$md5 <- md5;
     if (.isStr == 1L){
@@ -1311,7 +1303,7 @@ rxDllLoaded <- rxIsLoaded
 ##' @seealso \code{\link{RxODE}}
 ##' @author Matthew L.Fidler
 ##' @export
-rxCompile <- function(model, dir, prefix, extraC = NULL, force = FALSE, modName = NULL,
+rxCompile <- function(model, dir, prefix, force = FALSE, modName = NULL,
                       package=NULL,
                       ...){
     UseMethod("rxCompile")
@@ -1323,7 +1315,6 @@ rxCompile <- function(model, dir, prefix, extraC = NULL, force = FALSE, modName 
 rxCompile.rxModelVars <-  function(model, # Model
                                    dir=NULL, # Directory
                                    prefix=NULL,     # Prefix
-                                   extraC  = NULL,  # Extra C File.
                                    force   = FALSE, # Force compile
                                    modName = NULL,  # Model Name
                                    package=NULL,
@@ -1457,6 +1448,9 @@ rxCompile.rxModelVars <-  function(model, # Model
                 sink(.Makevars);
                 cat(.ret);
                 sink();
+                sink(.normalizePath(file.path(.dir, "extraC.h")));
+                cat(.extraCnow);
+                sink()
                 ## Change working directory
                 setwd(.dir);
                 try(dyn.unload(.cDllFile), silent = TRUE);
@@ -1502,7 +1496,7 @@ rxCompile.rxModelVars <-  function(model, # Model
     }
     .call <- function(...){return(.Call(...))};
     .args <- list(model = model, dir = .dir, prefix = prefix,
-                 extraC = extraC, force = force, modName = modName,
+                  force = force, modName = modName,
                  ...);
     if (is.null(.allModVars)){
         stop("Something went wrong in compilation");
@@ -1510,7 +1504,6 @@ rxCompile.rxModelVars <-  function(model, # Model
     ret <- suppressWarnings({list(dll     = .cDllFile,
                                   c       = .cFile,
                                   model   = .allModVars$model["normModel"],
-                                  extra   = extraC,
                                   modVars = .allModVars,
                                   .call   = .call,
                                   args    = .args)});
@@ -1532,9 +1525,6 @@ rxCompile.rxDll <- function(model, ...){
     }
     if (any(names(.rxDllArgs) == "prefix")){
         .args$prefix <- .rxDllArgs$prefix;
-    }
-    if (any(names(.rxDllArgs) == "extraC")){
-        .args$extraC <- .rxDllArgs$extraC;
     }
     if (any(names(.rxDllArgs) == "force")){
         .args$force <- .rxDllArgs$force;

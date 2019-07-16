@@ -1,4 +1,4 @@
-# RxODE 0.9.0-9
+# RxODE xxxx
 * Added ability to prune branching with `rxPrune`. This converts
   `if`/`else` or `ifelse` to single line statements without any
   `if`/`then` branching within them.
@@ -8,4 +8,13 @@
   - `if (logic){ expr} else if (logic) {expr} else {}`.  The preferred
     syntax is still only `if`/`else` and the corresponding parsed code
     reflects this preference.
+* Switched to `symengine` instead of using `sympy`
+  - Remove dependence on python.
+  - Since symengine is C-based and doesn't require the python
+    interface it is much faster than `sympy`, though some functions in
+    `sympy` are no longer accessible.
+
+* Added arbitrary function definition to RxODE using `rxFun`
+  - Requires function, arguments and corresponding C-code
+  - Derivatives (if required) can be added to the derivative table `rxD`
 * Added a `NEWS.md` file to track changes to the package.
