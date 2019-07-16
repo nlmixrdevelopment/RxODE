@@ -406,7 +406,7 @@ RxODE <- function(model, modName = basename(wd),
                 .rxDll <- .rx$rxCompile(.mv, debug = debug,
                                         package=.(.env$package));
             } else {
-                .rxDll <- rx$rxCompile(.mv, dir=mdir,
+                .rxDll <- .rx$rxCompile(.mv, dir=mdir,
                                        debug = debug, modName = modName,
                                        package=.(.env$package));
             }
