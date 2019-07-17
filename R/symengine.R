@@ -174,8 +174,6 @@ rxRmFun <- function(name){
           "tan"="tanpi");
 
 ## "rxTBS", "rxTBSd"
-
-
 .rxSEcnt <- c("M_E" = "E",
               "M_PI" = "pi",
               "M_PI_2" = "pi/2",
@@ -540,6 +538,26 @@ rxToSE <- function(x, envir=NULL){
                     .num <- x[[3]]
                     if (round(.num) == .num){
                         if (.num > 0){
+                            if (inherits(envir, "rxS") ||
+                                inherits(envir, "environment")){
+                                if (.type == "THETA"){
+                                    if (exists("..maxTheta", envir=envir)){
+                                        .m <- get("..maxTheta", envir=envir)
+                                    } else {
+                                        .m <- 0;
+                                    }
+                                    .m <- max(.m, .num);
+                                    assign("..maxTheta",.m, envir=envir)
+                                } else {
+                                    if (exists("..maxEta", envir=envir)){
+                                        .m <- get("..maxEta", envir=envir)
+                                    } else {
+                                        .m <- 0;
+                                    }
+                                    .m <- max(.m, .num);
+                                    assign("..maxEta", .m, envir=envir)
+                                }
+                            }
                             return(paste0(.type, "_", .num, "_"))
                         } else {
                             stop("Only THETA[#] or ETA[#] are supported")
@@ -1169,12 +1187,10 @@ rxFromSE <- function(x, unknownDerivatives=c("central", "forward", "error")){
     }
 }
 
-##' .. content for \description{} (no empty lines) ..
+##' Load a model into a symengine environment
 ##'
-##' .. content for \details{} ..
-##' @title
-##' @param x
-##' @return
+##' @param x RxODE object
+##' @return RxODE/symengine environment
 ##' @author Matthew Fidler
 ##' @export
 rxS <- function(x){
@@ -1209,6 +1225,8 @@ rxS <- function(x){
             .tmp <- paste0("rx_SymPy_Res_", x);
             assign(.tmp, symengine::Symbol(.tmp), envir=.env)
         } else {
+            .tmp <- rxToSE(x);
+            assign(.tmp, symengine::Symbol(.tmp), envir=.env)
             assign(x, symengine::Symbol(x), envir=.env)
         }
     })

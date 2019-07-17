@@ -38,15 +38,15 @@ rxPrune <- function(x){
                 .x2 <- x[-1];
                 return(paste(lapply(.x2, .f, envir=envir), collapse="\n"));
             } else if (identical(x[[1]], quote(`==`)) ||
-                identical(x[[1]], quote(`>=`)) ||
-                identical(x[[1]], quote(`<=`)) ||
-                identical(x[[1]], quote(`>`)) ||
-                identical(x[[1]], quote(`<`)) ||
-                identical(x[[1]], quote(`!=`)) ||
-                identical(x[[1]], quote(`&&`)) ||
-                identical(x[[1]], quote(`||`)) ||
-                identical(x[[1]], quote(`&`)) ||
-                identical(x[[1]], quote(`|`))){
+                       identical(x[[1]], quote(`>=`)) ||
+                       identical(x[[1]], quote(`<=`)) ||
+                       identical(x[[1]], quote(`>`)) ||
+                       identical(x[[1]], quote(`<`)) ||
+                       identical(x[[1]], quote(`!=`)) ||
+                       identical(x[[1]], quote(`&&`)) ||
+                       identical(x[[1]], quote(`||`)) ||
+                       identical(x[[1]], quote(`&`)) ||
+                       identical(x[[1]], quote(`|`))){
 
                 .ret <- paste0(.f(x[[2]], envir=envir), as.character(x[[1]]),
                                .f(x[[3]], envir=envir))
@@ -57,10 +57,10 @@ rxPrune <- function(x){
                 if (length(envir$.if > 0)){
                     .if <- paste(paste0("(", envir$.if, ")"), collapse="*");
                     return(paste0(.f(x[[2]], envir=envir), as.character(x[[1]]), .if, "*(",
-                              .f(x[[3]], envir=envir), ")", ifelse(any(envir$.else == as.character(x[[2]])), paste0("+", as.character(x[[2]])), "")))
+                                  .f(x[[3]], envir=envir), ")", ifelse(any(envir$.else == as.character(x[[2]])), paste0("+", as.character(x[[2]])), "")))
                 } else {
                     return(paste0(.f(x[[2]], envir=envir), as.character(x[[1]]),
-                              .f(x[[3]], envir=envir)));
+                                  .f(x[[3]], envir=envir)));
                 }
             } else if (identical(x[[1]], quote(`*`)) ||
                        identical(x[[1]], quote(`^`)) ||
@@ -80,6 +80,26 @@ rxPrune <- function(x){
                 .f3 <- .f(x[[3]], envir=envir);
                 .f4 <- .f(x[[4]], envir=envir);
                 return(paste0("((", .f2, ")*(", .f3, ")+(1-(", .f2, "))*(", .f4, "))"));
+            } else if (identical(x[[1]], quote(`[`))){
+                .type <- toupper(as.character(x[[2]]))
+                if (any(.type == c("THETA", "ETA"))){
+                    if (is.numeric(x[[3]])){
+                        .num <- x[[3]]
+                        if (round(.num) == .num){
+                            if (.num > 0){
+                                return(paste0(.type, "[", .num, "]"))
+                            } else {
+                                stop("Only THETA[#] or ETA[#] are supported")
+                            }
+                        } else {
+                            stop("Only THETA[#] or ETA[#] are supported")
+                        }
+                    } else {
+                        stop("Only THETA[#] or ETA[#] are supported")
+                    }
+                } else {
+                    stop("Only THETA[#] or ETA[#] are supported")
+                }
             } else {
                 .ret0 <- lapply(x, .f, envir=envir);
                 .ret <- paste0(.ret0[[1]], "(")
