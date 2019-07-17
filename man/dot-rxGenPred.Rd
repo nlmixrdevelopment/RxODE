@@ -6,8 +6,18 @@
 \usage{
 .rxGenPred(obj, predfn, errfn, init)
 }
+\arguments{
+\item{obj}{RxODE object}
+
+\item{predfn}{Prediction function}
+
+\item{errfn}{Error function}
+
+\item{init}{Initialization parameters for scaling.}
+}
 \value{
-RxODE model variables augmented with pred/error information
+A list of (1) RxODE model variables augmented with
+    pred/error information and (2) extra error variables created.
 }
 \description{
 Generate Augmented Pred/err RxODE model

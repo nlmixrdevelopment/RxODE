@@ -73,39 +73,44 @@ rxExpandGrid <- function(x, y, type=0L){
 ## Assumes .rxJacobian called on model c(state,vars)
 .rxSens <- function(model, vars, vars2, msg="Calculate Sensitivites"){
     .state <- rxState(model);
-    if (missing(vars)) vars <- get("..vars", envir=model);
-    if (!missing(vars2)){
-        .grd <- rxExpandSens2_(.state, vars, vars2);
-    } else {
-        .grd <- rxExpandSens_(.state, vars);
-    }
-    message(msg);
-    rxProgress(dim(.grd)[1]);
-    on.exit({rxProgressAbort()});
-    lapply(c(.grd$ddtS, .grd$ddS2), function(x){
-        assign(x, symengine::Symbol(x), envir=model)
-    })
-    .ret <- apply(.grd, 1, function(x){
-        .l <- x["line"];
-        .l <- eval(parse(text=.l));
-        .ret <- paste0(x["ddt"], "=", rxFromSE(.l));
-        if (exists(x["s0"], envir=model)){
-            .l <- x["s0D"];
-            .l <- eval(parse(text=.l));
-            if (.l != "0"){
-                .ret <- paste0(.ret, "\n", x["s0r"], "=", rxFromSE(.l),
-                               "+0.0");
-            }
+    if (length(.state) > 0L){
+        if (missing(vars)) vars <- get("..vars", envir=model);
+        if (!missing(vars2)){
+            .grd <- rxExpandSens2_(.state, vars, vars2);
+        } else {
+            .grd <- rxExpandSens_(.state, vars);
         }
-        rxTick();
-        return(.ret);
-    })
-    if (missing(vars2)){
-        assign("..sens", .ret, envir=model);
+        message(msg);
+        rxProgress(dim(.grd)[1]);
+        on.exit({rxProgressAbort()});
+        lapply(c(.grd$ddtS, .grd$ddS2), function(x){
+            assign(x, symengine::Symbol(x), envir=model)
+        })
+        .ret <- apply(.grd, 1, function(x){
+            .l <- x["line"];
+            .l <- eval(parse(text=.l));
+            .ret <- paste0(x["ddt"], "=", rxFromSE(.l));
+            if (exists(x["s0"], envir=model)){
+                .l <- x["s0D"];
+                .l <- eval(parse(text=.l));
+                if (.l != "0"){
+                    .ret <- paste0(.ret, "\n", x["s0r"], "=", rxFromSE(.l),
+                                   "+0.0");
+                }
+            }
+            rxTick();
+            return(.ret);
+        })
+        if (missing(vars2)){
+            assign("..sens", .ret, envir=model);
+        } else {
+            assign("..sens2", .ret, envir=model);
+        }
+        rxProgressStop();
     } else {
-        assign("..sens2", .ret, envir=model);
+        assign("..sens", NULL, envir=model)
+        .ret <- NULL
     }
-    rxProgressStop();
     return(.ret)
 }
 
@@ -306,9 +311,9 @@ rxExpandGrid <- function(x, y, type=0L){
     .prd <- paste0("rx_pred_=", rxFromSE(.prd))
     .r <- get("rx_r_", envir=.s);
     .r <- paste0("rx_r_=", rxFromSE(.r))
-    .yj <- get("rx_yj_", envir=.s);
+    .yj <- paste(get("rx_yj_", envir=.s));
     .yj <- paste0("rx_yj_~", rxFromSE(.yj))
-    .lambda <- get("rx_lambda_", envir=.s);
+    .lambda <- paste(get("rx_lambda_", envir=.s));
     .lambda <- paste0("rx_lambda_~", rxFromSE(.lambda))
     .s$..pred <- paste(c(.s$..stateInfo["state"],
                          .s$..ddt,
@@ -343,9 +348,9 @@ rxExpandGrid <- function(x, y, type=0L){
     .prd <- paste0("rx_pred_=", rxFromSE(.prd))
     .r <- get("rx_r_", envir=.s);
     .r <- paste0("rx_r_=", rxFromSE(.r))
-    .yj <- get("rx_yj_", envir=.s);
+    .yj <- paste(get("rx_yj_", envir=.s));
     .yj <- paste0("rx_yj_~", rxFromSE(.yj))
-    .lambda <- get("rx_lambda_", envir=.s);
+    .lambda <- paste(get("rx_lambda_", envir=.s));
     .lambda <- paste0("rx_lambda_~", rxFromSE(.lambda))
     .s$..inner <- paste(c(.s$..ddt,
                           .s$..sens,
@@ -358,7 +363,6 @@ rxExpandGrid <- function(x, y, type=0L){
                           .s$..stateInfo["statef"],
                           .s$..stateInfo["dvid"],
                           ""), collapse="\n")
-    .s$..extraProps <- .rxFindPow(.s$..inner)
     if (sum.prod){
         message("Stabilizing round off errors in inner problem...", appendLF=FALSE);
         .s$..inner <- rxSumProdModel(.s$..inner);
@@ -442,12 +446,39 @@ rxExpandGrid <- function(x, y, type=0L){
 }
 
 
-
+##' Setup Pred function based on RxODE object.
+##'
+##' This is for the so-called inner problem.
+##'
+##' @param obj RxODE object
+##' @param predfn Prediction function
+##' @param pkpars Pk Pars function
+##' @param errfn Error function
+##' @param init Initialization parameters for scaling.
+##' @param grad Boolaen indicated if the the equations for the
+##'     gradient be calculated
+##' @param sum.prod A boolean determining if RxODE should use more
+##'     numerically stable sums/products.
+##' @param pred.minus.dv Boolean stating if the FOCEi objective
+##'     function is based on PRED-DV (like NONMEM).  Default TRUE.
+##' @param only.numeric Instead of setting up the sensitivities for
+##'     the inner problem, modify the RxODE to use numeric
+##'     differentiation for the numeric inner problem only.
+##' @param optExpression Optimize the model text for computer
+##'     evaluation.
+##' @param interaction Boolean to determine if dR^2/deta is calculated
+##'     for FOCEi (not needed for FOCE)
+##' @return RxODE object expanded with predfn and with calculated
+##'     sensitivities.
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+##' @importFrom utils find
 rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
                       grad=FALSE, sum.prod=FALSE, pred.minus.dv=TRUE,
                       only.numeric=FALSE,
                       optExpression=TRUE,
-                      interaction=TRUE){
+                      interaction=TRUE, ...){
     assignInMyNamespace("rxErrEnv.lambda", NULL);
     assignInMyNamespace("rxErrEnv.yj", NULL);
     assignInMyNamespace("rxSymPyExpThetas", c());
@@ -482,8 +513,12 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
                  extraProps=.s$..extraTheta##,
                  ## cache.file=cache.file
                  )
+    class(.ret) <- "rxFocei";
     return(.ret)
 }
+##'@rdname rxSEinner
+##'@export
+rxSymPySetupPred <- rxSEinner
 
 ## norm <- RxODE("
 ## d/dt(y)  = dy

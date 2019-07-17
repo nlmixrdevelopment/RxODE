@@ -6,6 +6,11 @@
 \usage{
 .rxGenPkpars(rx, pkpars, init)
 }
+\arguments{
+\item{pkpars}{Pk Pars function}
+
+\item{init}{Initialization parameters for scaling.}
+}
 \value{
 New model augmented by pred function
 }

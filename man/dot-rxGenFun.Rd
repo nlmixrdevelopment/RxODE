@@ -6,6 +6,17 @@
 \usage{
 .rxGenFun(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL)
 }
+\arguments{
+\item{obj}{RxODE object}
+
+\item{predfn}{Prediction function}
+
+\item{pkpars}{Pk Pars function}
+
+\item{errfn}{Error function}
+
+\item{init}{Initialization parameters for scaling.}
+}
 \value{
 Sympy environment
 }

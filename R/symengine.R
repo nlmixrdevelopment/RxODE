@@ -57,7 +57,8 @@
              "cos"=1, "cosh"=1, "erf"=1, "erfc"=1,
              "exp"=1, "gamma"=1, "sin"=1, "sinh"=1,
              "sqrt"=1, "tan"=1, "tanh"=1, "log"=1, "abs"=1, "asinh"=1,
-             "rxTBS"=3, "rxTBSd"=3, "rxTBSd2"=3)
+             "rxTBS"=3, "rxTBSd"=3, "rxTBSd2"=3,
+             "solveLinB"=19)
 
 .rxSEeqUsr <- c()
 
@@ -396,8 +397,8 @@ rxD <- function(name, derivatives){
 ##' @param x expression
 ##' @param envir \code{NULL}
 ##' @return
-##' @export
 ##' @author Matthew L. Fidler
+##' @export
 rxToSE <- function(x, envir=NULL){
     if (is(substitute(x),"character")){
         force(x);
@@ -438,10 +439,22 @@ rxToSE <- function(x, envir=NULL){
     if (is.name(x) || is.atomic(x)){
         .ret <- as.character(x)
         if (any(.ret == .cnst)){
-            return(paste0("rx_SymPy_Res_", .ret));
+            .ret <- paste0("rx_SymPy_Res_", .ret);
+            if (.isEnv && is.name(x)){
+                if (!exists(.ret, envir=envir))
+                    assign(.ret, symengine::Symbol(.ret), envir=envir)
+            }
+            return(.ret);
         } else {
             .ret0 <- .rxSEcnt[.ret];
-            if (is.na(.ret0)) return(.ret)
+            if (is.na(.ret0)){
+                if (.isEnv && is.name(x)){
+                    ## message(.ret)
+                    if (!exists(.ret, envir=envir))
+                        assign(.ret, symengine::Symbol(.ret), envir=envir)
+                }
+                return(.ret)
+            }
             return(setNames(.ret0, NULL));
         }
     } else if (is.call(x)){
@@ -495,6 +508,9 @@ rxToSE <- function(x, envir=NULL){
                    identical(x[[1]], quote(`~`))){
             .var <- .rxToSE(x[[2]], envir=envir);
             if (inherits(x[[3]], "numeric")){
+                if (.isEnv){
+                    assign(.var, x[[3]], envir=envir)
+                }
             } else {
                 .expr <- paste0("with(envir,",
                                      .rxToSE(x[[3]],
@@ -712,7 +728,7 @@ rxToSE <- function(x, envir=NULL){
                 envir$..curCall <- c(envir$..curCall,
                                      as.character(x[[1]]))
             }
-            .ret0 <- lapply(x, .rxToSE, envir=envir);
+            .ret0 <- c(list(as.character(x[[1]])), lapply(x[-1], .rxToSE, envir=envir));
             if (.isEnv) envir$..curCall <- .lastCall
             .SEeq <- c(.rxSEeq, .rxSEeqUsr)
             .nargs <- .SEeq[paste(.ret0[[1]])];
@@ -725,9 +741,9 @@ rxToSE <- function(x, envir=NULL){
                     if (.ret == "exp(1)") return("E");
                     return(.ret)
                 } else {
-                    stop(sprintf("%s() takes %s arguments",
+                    stop(sprintf("%s() takes %s arguments (has %s)",
                                  paste(.ret0[[1]]),
-                                 .nargs))
+                                 .nargs, length(.ret0) - 1))
                 }
             } else {
                 .fun <- paste(.ret0[[1]])
@@ -735,6 +751,8 @@ rxToSE <- function(x, envir=NULL){
                 .ret <- paste0("(", paste(unlist(.ret0), collapse=","), ")");
                 if (.ret == "(0)"){
                     return(paste0("rx_", .fun, "_ini_0__"))
+                } else if (any(.fun == c("cmt", "dvid"))){
+                    return("")
                 } else {
                     stop(sprintf("%s() not supported in RxODE", .fun));
                 }
@@ -754,10 +772,12 @@ rxToSE <- function(x, envir=NULL){
 ## 1L = forward
 ## 2L = central
 .rxFromNumDer <- 0L
+.rxDelta <- (.Machine$double.eps)^(1/3)
+
 
 ##'@rdname rxToSE
 ##'@export
-rxFromSE <- function(x, unknownDerivatives=c("central", "forward", "error")){
+rxFromSE <- function(x, unknownDerivatives=c("error", "central", "forward")){
     .unknown <- c("central"=2L, "forward"=1L, "error"=0L)
     assignInMyNamespace(".rxFromNumDer", .unknown[match.arg(unknownDerivatives)])
     if (is(substitute(x),"character")){
@@ -1186,19 +1206,19 @@ rxFromSE <- function(x, unknownDerivatives=c("central", "forward", "error")){
                                 ## Forward
                                 .a1 <- .args
                                 .fn <- .fun[1];
-                                .a1[.with] <- paste0("(", .a1[.with], ")+rx_f_delta")
+                                .a1[.with] <- paste0("(", .a1[.with], ")+", .rxDelta)
                                 .a2 <- .args
                                 return(paste0("(", .fn, "(", paste0(.a1, collapse=",") ,")-",
-                                       .fn, "(", paste0(.a2, collapse=","), "))/rx_f_delta"))
+                                       .fn, "(", paste0(.a2, collapse=","), "))/", .rxDelta))
                             } else if (.rxFromNumDer == 2L) {
                                 ## Central
                                 .a1 <- .args
                                 .fn <- .fun[1];
-                                .a1[.with] <- paste0(.a1[.with], "-0.5*rx_c_delta")
+                                .a1[.with] <- paste0(.a1[.with], "-", (0.5 * .rxDelta))
                                 .a2 <- .args
-                                .a2[.with] <- paste0(.a2[.with], "+0.5*rx_c_delta")
+                                .a2[.with] <- paste0(.a2[.with], "+", (0.5 * .rxDelta))
                                 return(paste0("(", .fn, "(", paste0(.a1, collapse=",") ,")-",
-                                       .fn, "(", paste0(.a2, collapse=","), "))/rx_c_delta"))
+                                       .fn, "(", paste0(.a2, collapse=","), "))/", .rxDelta))
                             } else {
                                 stop("Only forward and central differences are supported")
                             }
@@ -1255,6 +1275,12 @@ rxFromSE <- function(x, unknownDerivatives=c("central", "forward", "error")){
     }
 }
 
+.rxFunction <- function(name){
+    .f <- function(...){1};
+    body(.f) <- bquote(return(symengine::FunctionSymbol(.(name), unlist(list(...)))))
+    return(.f)
+}
+
 ##' Load a model into a symengine environment
 ##'
 ##' @param x RxODE object
@@ -1269,6 +1295,10 @@ rxS <- function(x){
     .env$..ddt <- c();
     .env$..sens0 <- c();
     .env$..lhs <- c();
+    .env$rxTBS <- .rxFunction("rxTBS")
+    .env$rxTBSd <- .rxFunction("rxTBSd")
+    .env$rxTBSd2 <- .rxFunction("rxTBSd2")
+    .env$solveLinB <- .rxFunction("solveLinB");
     .env$..polygamma <- symengine::S("polygamma(_rx_a, _rx_b)");
     .env$..a <- symengine::Symbol("_rx_a");
     .env$..b <- symengine::Symbol("_rx_b");
@@ -1282,10 +1312,15 @@ rxS <- function(x){
     .env$loggamma <- function(a){
         lgamma(a)
     }
-    .pars <- c(rxParams(x), rxState(x), "podo", "t", "time", "tlast", "rx1c");
+    .pars <- c(rxParams(x), rxState(x),
+               "podo", "t", "time", "tlast", "rx1c", "rx__PTR__");
     ## default lambda/yj values
     .env$rx_lambda_ <- symengine::S("1")
     .env$rx_yj_ <- symengine::S("2")
+
+    sapply(names(.rxSEeqUsr), function(x){
+        assign(.rxFunction(x), x, envir=.env);
+    })
     ## EulerGamma=0.57721566490153286060651209008240243104215933593992
     ## S("I")
     ## S("pi")
@@ -1310,4 +1345,3 @@ rxS <- function(x){
     class(.env) <- "rxS";
     return(.env)
 }
-
