@@ -114,6 +114,7 @@ SEXP _RxODE_rxExpandGrid_(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxExpandSens_(SEXP, SEXP);
 SEXP _RxODE_rxExpandSens2_(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxExpandFEta_(SEXP, SEXP, SEXP);
+SEXP _RxODE_rxRepR0_(SEXP);
 
 extern int rxIsCurrentC(SEXP obj);
 
@@ -216,6 +217,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxExpandSens_", (DL_FUNC) &_RxODE_rxExpandSens_, 2},
     {"_RxODE_rxExpandSens2_",(DL_FUNC) &_RxODE_rxExpandSens2_, 3},
     {"_RxODE_rxExpandFEta_", (DL_FUNC) &_RxODE_rxExpandFEta_, 3},
+    {"_RxODE_rxRepR0_", (DL_FUNC) &_RxODE_rxRepR0_, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

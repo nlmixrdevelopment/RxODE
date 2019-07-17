@@ -59,6 +59,10 @@ rxExpandFEta_ <- function(state, neta, pred) {
     .Call(`_RxODE_rxExpandFEta_`, state, neta, pred)
 }
 
+rxRepR0_ <- function(neta) {
+    .Call(`_RxODE_rxRepR0_`, neta)
+}
+
 #' Check the type of an object using Rcpp
 #'
 #' @param obj Object to check

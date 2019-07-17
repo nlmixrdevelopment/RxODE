@@ -526,8 +526,11 @@ rxToSE <- function(x, envir=NULL){
                     } else if (!identical(x[[1]], quote(`~`))) {
                         .rx <- paste0(rxFromSE(.var), "=",
                                       rxFromSE(.expr))
-                        assign("..lhs", c(envir$..lhs, .rx),
-                               envir=envir)
+                        if (!any(.var == c("rx_pred_", "rx_r_"))){
+                            assign("..lhs", c(envir$..lhs, .rx),
+                                   envir=envir)
+                        }
+
                     }
                 }
             }
@@ -1204,6 +1207,8 @@ rxS <- function(x){
     .env$..polygamma <- symengine::S("polygamma(_rx_a, _rx_b)");
     .env$..a <- symengine::Symbol("_rx_a");
     .env$..b <- symengine::Symbol("_rx_b");
+    .env$..s0 <- symengine::S("0")
+    .env$..extraProps <- NULL
     .env$polygamma <- function(a, b){
         symengine::subs(symengine::subs(..polygamma, ..a, a), ..b,  b)
     }

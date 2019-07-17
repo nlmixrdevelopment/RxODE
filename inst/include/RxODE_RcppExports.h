@@ -111,6 +111,27 @@ namespace RxODE {
         return Rcpp::as<List >(rcpp_result_gen);
     }
 
+    inline std::string rxRepR0_(int neta) {
+        typedef SEXP(*Ptr_rxRepR0_)(SEXP);
+        static Ptr_rxRepR0_ p_rxRepR0_ = NULL;
+        if (p_rxRepR0_ == NULL) {
+            validateSignature("std::string(*rxRepR0_)(int)");
+            p_rxRepR0_ = (Ptr_rxRepR0_)R_GetCCallable("RxODE", "_RxODE_rxRepR0_");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxRepR0_(Shield<SEXP>(Rcpp::wrap(neta)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<std::string >(rcpp_result_gen);
+    }
+
     inline bool rxIs(const RObject& obj, std::string cls) {
         typedef SEXP(*Ptr_rxIs)(SEXP,SEXP);
         static Ptr_rxIs p_rxIs = NULL;

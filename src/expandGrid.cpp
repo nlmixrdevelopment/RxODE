@@ -259,3 +259,13 @@ List rxExpandFEta_(CharacterVector state, int neta, int pred){
   out.attr("row.names") = IntegerVector::create(NA_INTEGER, -neta);
   return out;
 }
+
+//[[Rcpp::export]]
+std::string rxRepR0_(int neta){
+  std::string cur = "rx_r_";
+  for (int j = neta; j--;){
+    cur = "symengine::subs(" + cur+ ",ETA_" + std::to_string(j+1) + "_,..s0)";
+  }
+  cur = "assign(\"rx_r\",with(.s,"+cur+"),envir=.s)";
+  return cur;
+}
