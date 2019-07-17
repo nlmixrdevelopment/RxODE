@@ -1,22 +1,23 @@
-.rxSEsingle <- list("gammafn"=c("gamma(", ")"),
-                    "lgammafn"=c("loggamma(", ")"),
-                    "lgamma"=c("loggamma(", ")"),
-                    "digamma"=c("polygamma(0,", ")"),
-                    "trigamma"=c("polygamma(1,", ")"),
-                    "tetragamma"=c("polygamma(2,", ")"),
-                    "pentagamma"=c("polygamma(3,", ")"),
-                    "cospi"=c("cos(pi*(", "))"),
-                    "sinpi"=c("sin(pi*(", "))"),
-                    "tanpi"=c("tan(pi*(", "))"),
-                    "log1p"=c("log(1+", ")"),
-                    "expm1"=c("(exp(", ")-1)"),
-                    "factorial"=c("gamma(", "+1)"),
-                    "lgamma1p"=c("loggamma(", "+1)"),
-                    "expm1"=c("(exp(", ")-1)"),
-                    "log10"=c("log(", ")/log(10)"),
-                    "log2"=c("log(", ")/log(2)"),
-                    "log1pexp"=c("log(1+exp(", "))"),
-                    "!"=c("rxNot(", ")")
+## first.arg second.arg and type of function
+.rxSEsingle <- list("gammafn"=c("gamma(", ")", "gamma"),
+                    "lgammafn"=c("loggamma(", ")", "lgamma"),
+                    "lgamma"=c("loggamma(", ")", "lgamma"),
+                    "digamma"=c("polygamma(0,", ")", "psigamma"),
+                    "trigamma"=c("polygamma(1,", ")", "psigamma"),
+                    "tetragamma"=c("polygamma(2,", ")", "psigamma"),
+                    "pentagamma"=c("polygamma(3,", ")", "psigamma"),
+                    "cospi"=c("cos(pi*(", "))", "cos"),
+                    "sinpi"=c("sin(pi*(", "))", "sin"),
+                    "tanpi"=c("tan(pi*(", "))", "tan"),
+                    "log1p"=c("log(1+", ")", "log"),
+                    "expm1"=c("(exp(", ")-1)", "exp"),
+                    "factorial"=c("gamma(", "+1)", "gamma"),
+                    "lgamma1p"=c("loggamma(", "+1)", "lgamma"),
+                    "expm1"=c("(exp(", ")-1)", "exp"),
+                    "log10"=c("log(", ")/log(10)", "log"),
+                    "log2"=c("log(", ")/log(2)", "log"),
+                    "log1pexp"=c("log(1+exp(", "))", "log1pexp"),
+                    "!"=c("rxNot(", ")", "")
                     )
 
 .SEsingle <- list("loggamma"=c("lgamma(", ")"),
@@ -433,6 +434,7 @@ rxToSE <- function(x, envir=NULL){
 ##'@export
 .rxToSE <- function(x, envir=NULL){
     .cnst <- names(.rxSEreserved)
+    .isEnv <- inherits(envir, "rxS") || inherits(envir, "environment")
     if (is.name(x) || is.atomic(x)){
         .ret <- as.character(x)
         if (any(.ret == .cnst)){
@@ -494,12 +496,11 @@ rxToSE <- function(x, envir=NULL){
             .var <- .rxToSE(x[[2]], envir=envir);
             if (inherits(x[[3]], "numeric")){
             } else {
-                .expr <- paste0("with(envir, ",
+                .expr <- paste0("with(envir,",
                                      .rxToSE(x[[3]],
                                              envir=envir), ")")
                 .expr <- eval(parse(text=.expr));
-                if (inherits(envir, "rxS") ||
-                    inherits(envir, "environment")){
+                if (.isEnv){
                     assign(.var, .expr, envir=envir)
                     if (regexpr(rex::rex(or(.regRate,
                                             .regDur,
@@ -541,8 +542,7 @@ rxToSE <- function(x, envir=NULL){
                     .num <- x[[3]]
                     if (round(.num) == .num){
                         if (.num > 0){
-                            if (inherits(envir, "rxS") ||
-                                inherits(envir, "environment")){
+                            if (.isEnv){
                                 if (.type == "THETA"){
                                     if (exists("..maxTheta", envir=envir)){
                                         .m <- get("..maxTheta", envir=envir)
@@ -550,6 +550,14 @@ rxToSE <- function(x, envir=NULL){
                                         .m <- 0;
                                     }
                                     .m <- max(.m, .num);
+                                    .funs <- envir$..curCall
+                                    .funs <- .funs[.funs != ""]
+                                    if (length(.funs) > 0){
+                                        .funs <- paste(.funs, collapse=".")
+                                        envir$..extraTheta[[.funs]] <-
+                                            unique(c(envir$..extraTheta[[.funs]],
+                                                     .num))
+                                    }
                                     assign("..maxTheta",.m, envir=envir)
                                 } else {
                                     if (exists("..maxEta", envir=envir)){
@@ -558,6 +566,14 @@ rxToSE <- function(x, envir=NULL){
                                         .m <- 0;
                                     }
                                     .m <- max(.m, .num);
+                                    .funs <- envir$..curCall
+                                    .funs <- .funs[.funs != ""]
+                                    if (length(.funs) > 0){
+                                        .funs <- paste(.funs, collapse=".")
+                                        envir$..extraEta[[.funs]] <-
+                                        unique(c(envir$..extraEta[[.funs]],
+                                                 .num))
+                                    }
                                     assign("..maxEta", .m, envir=envir)
                                 }
                             }
@@ -576,23 +592,38 @@ rxToSE <- function(x, envir=NULL){
             }
         } else if (identical(x[[1]], quote(`psigamma`))){
             if (length(x == 3)){
+                if (.isEnv){
+                    .lastCall <- envir$..curCall
+                    envir$..curCall <- c(envir$..curCall, "psigamma")
+                }
                 .a <- .rxToSE(x[[2]], envir=envir);
                 .b <- .rxToSE(x[[3]], envir=envir);
+                if (.isEnv) envir$..curCall <- .lastCall
                 return(paste0("polygamma(", .b, ",", .a, ")"))
             } else {
                 stop("psigamma() takes 2 arguments");
             }
         } else if (identical(x[[1]], quote(`log1pmx`))){
             if (length(x == 2)){
+                if (.isEnv){
+                    .lastCall <- envir$..curCall
+                    envir$..curCall <- c(envir$..curCall, "log")
+                }
                 .a <- .rxToSE(x[[2]], envir=envir);
+                if (.isEnv) envir$..curCall <- .lastCall
                 return(paste0("(log(1+", .a, ")-(", .a, "))"))
             } else {
                 stop("log1pmx() only takes 1 argument");
             }
         } else if (identical(x[[1]], quote(`choose`))){
             if (length(x) == 3){
+                if (.isEnv){
+                    .lastCall <- envir$..curCall
+                    envir$..curCall <- c(envir$..curCall, "gamma")
+                }
                 .n <- .rxToSE(x[[2]], envir=envir)
                 .k <- .rxToSE(x[[3]], envir=envir)
+                if (.isEnv) envir$..curCall <- .lastCall
                 return(paste0("gamma(", .n, "+1)/(gamma(",
                               .k, "+1)*gamma(", .n, "-(", .k, ")+1))"));
             } else {
@@ -600,8 +631,13 @@ rxToSE <- function(x, envir=NULL){
             }
         } else if (identical(x[[1]], quote(`lchoose`))){
             if (length(x) == 3){
+                if (.isEnv){
+                    .lastCall <- envir$..curCall
+                    envir$..curCall <- c(envir$..curCall, "lgamma")
+                }
                 .n <- .rxToSE(x[[2]], envir=envir)
                 .k <- .rxToSE(x[[3]], envir=envir)
+                if (.isEnv) envir$..curCall <- .lastCall
                 return(paste0("(loggamma(", .n, "+1)-loggamma(", .k, "+1)-loggamma(", .n, "-(", .k, ")+1))"))
             } else {
                 stop("lchoose() takes 2 arguments")
@@ -609,17 +645,32 @@ rxToSE <- function(x, envir=NULL){
         } else if (identical(x[[1]], quote(`transit`))){
             if (length(x) == 4){
                 ##transit(n, mtt, bio)
+                if (.isEnv){
+                    .lastCall <- envir$..curCall
+                    envir$..curCall <- c(envir$..curCall, "lgamma")
+                }
                 .n <- .rxToSE(x[[2]], envir=envir);
+                if (.isEnv) {
+                    envir$..curCall <- .lastCall
+                    .lastCall <- envir$..curCall
+                    envir$..curCall <- c(envir$..curCall, "log")
+                }
                 .mtt <- .rxToSE(x[[3]], envir=envir);
                 .bio <- .rxToSE(x[[4]], envir=envir);
+                if (.isEnv) envir$..curCall <- .lastCall
                 return(paste0("exp(log((", .bio, ")*(podo))+log(",
                               .n, " + 1)-log(", .mtt, ")+(", .n,
                               ")*((log(", .n, "+1)-log(", .mtt,
                               "))+log(t))-((", .n, "+1)/(", .mtt,
                               "))*(t)-loggamma(1+", .n, "))"))
             } else if (length(x) == 3){
+                if (.isEnv){
+                    .lastCall <- envir$..curCall
+                    envir$..curCall <- c(envir$..curCall, "lgamma")
+                }
                 .n <- .rxToSE(x[[2]], envir=envir);
                 .mtt <- .rxToSE(x[[3]], envir=envir);
+                if (.isEnv) envir$..curCall <- .lastCall
                 return(paste0("exp(log(podo)+(log(", .n, "+1)-log(", .mtt, "))+(", .n, ")*((log(", .n, "+1)-log(", .mtt, "))+ log(t))-((", .n, " + 1)/(", .mtt, "))*(t)-loggamma(1+", .n, "))"))
             } else {
                 stop("'transit' can only take 2-3 arguments");
@@ -630,8 +681,14 @@ rxToSE <- function(x, envir=NULL){
                 .xc <- .rxSEsingle[[.x1]];
                 if (!is.null(.xc)){
                     if (length(x) == 2){
-                        return(paste0(.xc[1], .rxToSE(x[[2]], envir=envir),
-                                      .xc[2]))
+                        if (.isEnv){
+                            .lastCall <- envir$..curCall
+                            envir$..curCall <- c(envir$..curCall, .xc[3])
+                        }
+                        .ret <- paste0(.xc[1], .rxToSE(x[[2]], envir=envir),
+                                       .xc[2])
+                        if (.isEnv) envir$..curCall <- .lastCall
+                        return(.ret)
                     } else {
                         stop(sprintf("%s() only acceps 1 argument", .x1));
                     }
@@ -640,20 +697,28 @@ rxToSE <- function(x, envir=NULL){
                 if (!is.null(.xc)){
                     .x1 <- as.character(x[[1]])
                     if (length(x) == 3){
-                        return(paste0(.xc[1], .rxToSE(x[[2]], envir=envir),
+                        .ret <- paste0(.xc[1], .rxToSE(x[[2]], envir=envir),
                                       .xc[2],
                                       .rxToSE(x[[3]], envir=envir),
-                                      .xc[3]))
+                                      .xc[3]);
+                        return(.ret)
                     } else {
                         stop(sprintf("%s() only acceps 2 arguments", .x1));
                     }
                 }
             }
+            if (.isEnv){
+                .lastCall <- envir$..curCall
+                envir$..curCall <- c(envir$..curCall,
+                                     as.character(x[[1]]))
+            }
             .ret0 <- lapply(x, .rxToSE, envir=envir);
+            if (.isEnv) envir$..curCall <- .lastCall
             .SEeq <- c(.rxSEeq, .rxSEeqUsr)
             .nargs <- .SEeq[paste(.ret0[[1]])];
             if (!is.na(.nargs)){
                 if (.nargs == length(.ret0) - 1){
+
                     .ret <- paste0(.ret0[[1]], "(")
                     .ret0 <- .ret0[-1];
                     .ret <- paste0(.ret, paste(unlist(.ret0), collapse=","), ")");
@@ -1208,7 +1273,9 @@ rxS <- function(x){
     .env$..a <- symengine::Symbol("_rx_a");
     .env$..b <- symengine::Symbol("_rx_b");
     .env$..s0 <- symengine::S("0")
-    .env$..extraProps <- NULL
+    .env$..extraTheta <- list()
+    .env$..extraEta <- list()
+    .env$..curCall <- character(0)
     .env$polygamma <- function(a, b){
         symengine::subs(symengine::subs(..polygamma, ..a, a), ..b,  b)
     }

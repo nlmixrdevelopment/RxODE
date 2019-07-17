@@ -477,9 +477,9 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
                  theta=NULL,
                  ## warn=.zeroSens,
                  pred.minus.dv=pred.minus.dv,
-                 log.thetas=rxSymPyExpThetas,
-                 log.etas=rxSymPyExpEtas,
-                 extraProps=.s$..extraProps##,
+                 log.thetas=.s$..extraTheta[["exp"]],
+                 log.etas=.s$..extraEta[["exp"]],
+                 extraProps=.s$..extraTheta##,
                  ## cache.file=cache.file
                  )
     return(.ret)
