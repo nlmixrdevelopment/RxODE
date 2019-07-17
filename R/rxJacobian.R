@@ -190,7 +190,8 @@ rxExpandGrid <- function(x, y, type=0L){
 ##' Generate Augmented Pred/err RxODE model
 ##'
 ##' @inheritParams rxSEinner
-##' @return RxODE model variables augmented with pred/error information
+##' @return A list of (1) RxODE model variables augmented with
+##'     pred/error information and (2) extra error variables created.
 ##' @author Matthew L Fidler
 .rxGenPred <- function(obj, predfn, errfn, init){
     .extraPars <- c();
@@ -213,7 +214,7 @@ rxExpandGrid <- function(x, y, type=0L){
     .predMod <- rxGetModel(.predMod)
     .full <- paste0(rxNorm(obj), "\n", rxNorm(.predMod));
     .full <- rxGetModel(.full);
-    return(.full);
+    return(list(.full, .extraPars));
 }
 
 ##' Generate and load RxODE function into sympy environment
@@ -229,10 +230,12 @@ rxExpandGrid <- function(x, y, type=0L){
     .checkGood(pkpars);
     .checkGood(errfn);
     ## Probably need assignInMyNamespace...
-    message("Combining pred/pk/error...", appendLF=FALSE)
+    message("Creating full model...", appendLF=FALSE)
     .stateInfo <- .rxGenFunState(obj);
     .newmod <- .rxGenPkpars(obj, pkpars, init);
     .newmod <- .rxGenPred(.newmod, predfn, errfn, init);
+    .extraPars <- .newmod[[2]]
+    .newmod <- .newmod[[1]]
     message("done.")
     message("Pruning branches...", appendLF=FALSE)
     .newmod <-rxGetModel(rxPrune(.newmod));
@@ -253,17 +256,99 @@ rxExpandGrid <- function(x, y, type=0L){
     .s <- .rxGenFun(obj, predfn, pkpars, errfn, init)
     .etaVars <- paste0("ETA_", seq(1, .s$..maxEta), "_")
     .stateVars <- rxState(.s)
+    .s <- .rxGenFun(obj, predfn, pkpars, errfn, init)
     .rxJacobian(.s, c(.stateVars, .etaVars))
     .rxSens(.s, .etaVars)
     return(.s)
 }
 
-
-.rxGenHdEta <- function(){
-    ## Equation 19
+##' Generate the d(err)/d(eta) values for FO related methods
+##'
+##' @inheritParams rxSEinner
+##' @return RxODE/symengine environment
+##' @author Matthew L. Fidler
+.rxGenHdEta <- function(obj, predfn, pkpars=NULL, errfn=NULL,
+                        init=NULL, pred.minus.dv=TRUE){
+    ## Equation 19 in Almquist
+    .s <- .rxGenEtaS(obj, predfn, pkpars, errfn, init)
+    .stateVars <- rxState(.s)
+    .grd <- rxExpandFEta_(.stateVars, .s$..maxEta,
+                          ifelse(pred.minus.dv, 1L, 2L))
+    if (.useUtf()){
+        rxCat("Calculate \u2202(f)/\u2202(\u03B7)\n");
+    } else {
+        rxCat("Calculate d(f)/d(eta)\n");
+    }
+    rxProgress(dim(.grd)[1]);
+    on.exit({rxProgressAbort()});
+    .ret <- apply(.grd, 1, function(x){
+        .l <- x["calc"];
+        .l <- eval(parse(text=.l));
+        .ret <- paste0(x["dfe"], "=", rxFromSE(.l));
+        rxTick();
+        return(.ret);
+    })
+    .s$..HdEta <- .ret;
+    .s$..pred.minus.dv <- pred.minus.dv;
+    rxProgressStop();
+    return(.s)
 }
-
-
+##' Generate peices for FOCEi inner problem
+##'
+##' @inheritParams rxSEinner
+##' @return RxODE/symengine environment
+##' @author Matthew L. Fidler
+.rxGenFocei <- function(obj, predfn, pkpars=NULL, errfn=NULL,
+                        init=NULL, pred.minus.dv=TRUE,
+                        sum.prod=FALSE,
+                        optExpression=TRUE){
+    .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv)
+    .stateVars <- rxState(.s)
+    .grd <- rxExpandFEta_(.stateVars, .s$..maxEta, FALSE)
+    if (.useUtf()){
+        rxCat("Calculate \u2202(R\u00B2)/\u2202(\u03B7)\n");
+    } else {
+        rxCat("Calculate d(R^2)/d(eta)\n");
+    }
+    rxProgress(dim(.grd)[1]);
+    on.exit({rxProgressAbort()});
+    .ret <- apply(.grd, 1, function(x){
+        .l <- x["calc"];
+        .l <- eval(parse(text=.l));
+        .ret <- paste0(x["dfe"], "=", rxFromSE(.l));
+        rxTick();
+        return(.ret);
+    })
+    .s$..REta <- .ret;
+    rxProgressStop();
+    .prd <- get("rx_pred_", envir=.s);
+    .prd <- paste0("rx_pred_=", rxFromSE(.prd))
+    .r <- get("rx_r_", envir=.s);
+    .r <- paste0("rx_r_=", rxFromSE(.r))
+    .yj <- get("rx_yj_", envir=.s);
+    .yj <- paste0("rx_yj_~", rxFromSE(.yj))
+    .lambda <- get("rx_lambda_", envir=.s);
+    .lambda <- paste0("rx_lambda_~", rxFromSE(.lambda))
+    .s$..inner <- paste(c(.s$..ddt,
+                          .s$..sens,
+                          .yj,
+                          .lambda,
+                          .prd,
+                          .s$..HdEta,
+                          .r,
+                          .s$..REta), collapse="\n")
+    if (sum.prod){
+        message("Stabilizing round off errors in inner problem...", appendLF=FALSE);
+        .s$..inner <- rxSumProdModel(.s$..inner);
+        message("done");
+    }
+    if (optExpression){
+        message("Optimizing inner problem...", appendLF=FALSE)
+        .s$..inner <- rxOptExpr(.s$..inner)
+        message("done");
+    }
+    return(.s)
+}
 
 rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, sum.prod=FALSE, pred.minus.dv=TRUE,
                       theta.derivs=FALSE,only.numeric=FALSE,

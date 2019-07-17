@@ -90,6 +90,27 @@ namespace RxODE {
         return Rcpp::as<List >(rcpp_result_gen);
     }
 
+    inline List rxExpandFEta_(CharacterVector state, int neta, int pred) {
+        typedef SEXP(*Ptr_rxExpandFEta_)(SEXP,SEXP,SEXP);
+        static Ptr_rxExpandFEta_ p_rxExpandFEta_ = NULL;
+        if (p_rxExpandFEta_ == NULL) {
+            validateSignature("List(*rxExpandFEta_)(CharacterVector,int,int)");
+            p_rxExpandFEta_ = (Ptr_rxExpandFEta_)R_GetCCallable("RxODE", "_RxODE_rxExpandFEta_");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxExpandFEta_(Shield<SEXP>(Rcpp::wrap(state)), Shield<SEXP>(Rcpp::wrap(neta)), Shield<SEXP>(Rcpp::wrap(pred)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<List >(rcpp_result_gen);
+    }
+
     inline bool rxIs(const RObject& obj, std::string cls) {
         typedef SEXP(*Ptr_rxIs)(SEXP,SEXP);
         static Ptr_rxIs p_rxIs = NULL;

@@ -202,3 +202,60 @@ List rxExpandSens2_(CharacterVector state, CharacterVector s1, CharacterVector s
   out.attr("row.names") = IntegerVector::create(NA_INTEGER, -lenF);
   return out;  
 }
+
+//[[Rcpp::export]]
+List rxExpandFEta_(CharacterVector state, int neta, int pred){
+  CharacterVector fe(neta);
+  CharacterVector calcS(neta);
+  int nstate = state.size();
+  for (int i = 0; i < neta; i++){
+    std::string etaN = std::to_string(i+1);
+    std::string feta;
+    std::string calc;
+
+    switch(pred){
+    case 2:
+      feta = "rx__sens_rx_pred__BY_ETA_" +
+	etaN + "___";
+      calc = "assign(\"" + feta + "\",with(.s,-D(rx_pred_, ETA_" +
+	etaN + "_)";
+      for (int j = nstate; j--;){
+	calc += "-rx__sens_" + state[j] + "_BY_ETA_" + etaN +
+	  "___*D(rx_pred_,"+ state[j] + ")";
+      }
+      calc += "), envir=.s)";
+      break;
+    case 1:
+      feta = "rx__sens_rx_pred__BY_ETA_" +
+	etaN + "___";
+      calc = "assign(\"" + feta + "\",with(.s,D(rx_pred_, ETA_" +
+	etaN + "_)";
+      for (int j = nstate; j--;){
+	calc += "+rx__sens_" + state[j] + "_BY_ETA_" + etaN +
+	  "___*D(rx_pred_,"+ state[j] + ")";
+      }
+      calc += "), envir=.s)";
+      break;
+    case 0:
+      feta = "rx__sens_rx_r__BY_ETA_" +
+	etaN + "___";
+      calc = "assign(\"" + feta + "\",with(.s,D(rx_r_,ETA_" +
+	etaN + "_)";
+      for (int j = nstate; j--;){
+	calc += "+rx__sens_" + state[j] + "_BY_ETA_" + etaN +
+	  "___*D(rx_r_,"+ state[j] + ")";
+      }
+      calc += "), envir=.s)";
+      break;
+    }
+    fe[i] = feta;
+    calcS[i] = calc;
+  }
+  List out(2);
+  out[0] = fe;
+  out[1] = calcS;
+  out.attr("names") = CharacterVector::create("dfe","calc");
+  out.attr("class") = "data.frame";
+  out.attr("row.names") = IntegerVector::create(NA_INTEGER, -neta);
+  return out;
+}

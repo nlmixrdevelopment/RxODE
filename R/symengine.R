@@ -1210,7 +1210,10 @@ rxS <- function(x){
     .env$loggamma <- function(a){
         lgamma(a)
     }
-    .pars <- c(rxParams(x), rxState(x), "podo", "t", "time", "tlast", "rx_lambda_", "rx_yj_", "rx1c");
+    .pars <- c(rxParams(x), rxState(x), "podo", "t", "time", "tlast", "rx1c");
+    ## default lambda/yj values
+    .env$rx_lambda_ <- symengine::S("1")
+    .env$rx_yj_ <- symengine::S("2")
     ## EulerGamma=0.57721566490153286060651209008240243104215933593992
     ## S("I")
     ## S("pi")
