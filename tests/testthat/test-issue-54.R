@@ -118,7 +118,7 @@ rxPermissive({
     test_that("prune checks", {
 
         tmp <- "C2=centr/V;\nC3=peri/V2;\nd/dt(depot)=-KA*depot;\nd/dt(centr)=KA*depot-CL*C2-Q*C2+Q*C3;\nd/dt(peri)=Q*C2-Q*C3;\nC4=CMT;\nif(CMT==1){\nprd=depot;\n}\nif(CMT==2){\nprd=centr;\n}\nif(CMT==3){\nprd=peri;\n}\n"
-        expect_equal(rxPrune(tmp), "C2=centr/V\nC3=peri/V2\nd/dt(depot)=- KA*depot\nd/dt(centr)=KA*depot-CL*C2-Q*C2+Q*C3\nd/dt(peri)=Q*C2-Q*C3\nC4=CMT\nprd=(CMT==1)*(depot)\nprd=(CMT==2)*(centr)\nprd=(CMT==3)*(peri)")
+        expect_equal(rxPrune(tmp), "C2=centr/V\nC3=peri/V2\nd/dt(depot)=- KA*depot\nd/dt(centr)=KA*depot-CL*C2-Q*C2+Q*C3\nd/dt(peri)=Q*C2-Q*C3\nC4=CMT\nprd=(CMT==1)*(depot)\nprd=(CMT==2)*(centr)+(1-((CMT==2)))*(prd)\nprd=(CMT==3)*(peri)+(1-((CMT==3)))*(prd)")
 
         ## Advanced context pruining:
         m <- RxODE({
@@ -175,6 +175,72 @@ rxPermissive({
         expect_equal(length(tmp1[[1]]), 3L);
         expect_true(regexpr("rx_lgl_1", tmp1[[2]]) != -1)
         expect_equal(rxNorm(m), rxNorm(rxVarToLogic(tmp1[[1]],tmp1[[2]])))
+
+        m <- RxODE({
+            a = 100;
+            if (cnd <= 1){
+                a = 1.0
+            }
+            if (cnd > 1 && cnd <= 2){
+                a = 2.0
+            }
+            if (cnd > 2 && cnd <= 3){
+                a = 3.
+            }
+            tmp = cnd
+        })
+
+        tmp <- rxSolve(m, c(cnd=1), et(0.1))
+        expect_equal(tmp$tmp, 1)
+        expect_equal(tmp$a, 1)
+
+        tmp <- rxSolve(m, c(cnd=2), et(0.1))
+        expect_equal(tmp$tmp, 2)
+        expect_equal(tmp$a, 2)
+
+        tmp <- rxSolve(m, c(cnd=3), et(0.1))
+        expect_equal(tmp$tmp, 3)
+        expect_equal(tmp$a, 3)
+
+        tmp <- rxSolve(m, c(cnd=4), et(0.1))
+        expect_equal(tmp$tmp, 4)
+        expect_equal(tmp$a, 100)
+
+        m <- RxODE(rxPrune(m))
+
+        tmp <- rxSolve(m, c(cnd=1), et(0.1))
+        expect_equal(tmp$tmp, 1)
+        expect_equal(tmp$a, 1)
+
+        tmp <- rxSolve(m, c(cnd=2), et(0.1))
+        expect_equal(tmp$tmp, 2)
+        expect_equal(tmp$a, 2)
+
+        tmp <- rxSolve(m, c(cnd=3), et(0.1))
+        expect_equal(tmp$tmp, 3)
+        expect_equal(tmp$a, 3)
+
+        tmp <- rxSolve(m, c(cnd=4), et(0.1))
+        expect_equal(tmp$tmp, 4)
+        expect_equal(tmp$a, 100)
+
+        m <- RxODE(rxOptExpr(rxNorm(m)))
+
+        tmp <- rxSolve(m, c(cnd=1), et(0.1))
+        expect_equal(tmp$tmp, 1)
+        expect_equal(tmp$a, 1)
+
+        tmp <- rxSolve(m, c(cnd=2), et(0.1))
+        expect_equal(tmp$tmp, 2)
+        expect_equal(tmp$a, 2)
+
+        tmp <- rxSolve(m, c(cnd=3), et(0.1))
+        expect_equal(tmp$tmp, 3)
+        expect_equal(tmp$a, 3)
+
+        tmp <- rxSolve(m, c(cnd=4), et(0.1))
+        expect_equal(tmp$tmp, 4)
+        expect_equal(tmp$a, 100)
 
         m <- RxODE({
             a = ifelse(cnd <= 1, 1.0, ifelse(cnd <= 2, 2, ifelse(cnd <= 3, 3, 100)))

@@ -47,7 +47,6 @@ rxPrune <- function(x){
                        identical(x[[1]], quote(`||`)) ||
                        identical(x[[1]], quote(`&`)) ||
                        identical(x[[1]], quote(`|`))){
-
                 .ret <- paste0(.f(x[[2]], envir=envir), as.character(x[[1]]),
                                .f(x[[3]], envir=envir))
                 return(.ret)
@@ -55,11 +54,24 @@ rxPrune <- function(x){
                        identical(x[[1]], quote(`<-`)) ||
                        identical(x[[1]], quote(`~`))){
                 if (length(envir$.if > 0)){
+                    .f2 <- .f(x[[2]], envir=envir)
                     .if <- paste(paste0("(", envir$.if, ")"), collapse="*");
-                    return(paste0(.f(x[[2]], envir=envir), as.character(x[[1]]), .if, "*(",
-                                  .f(x[[3]], envir=envir), ")", ifelse(any(envir$.else == as.character(x[[2]])), paste0("+", as.character(x[[2]])), "")))
+                    if (any(envir$.def1 == .f2)){
+                        .ret <- paste0(.f2, as.character(x[[1]]), .if, "*(",
+                                       .f(x[[3]], envir=envir), ")+(1-(", .if, "))*(",
+                                       .f2, ")");
+                    } else {
+                        .ret <- paste0(.f2, as.character(x[[1]]), .if, "*(",
+                                       .f(x[[3]], envir=envir), ")",
+                                       ifelse(any(envir$.else == .f2),
+                                              paste0("+", .f2),""))
+                    }
+                    assign(".def1", unique(c(envir$.def1, .f2)), envir)
+                    return(.ret)
                 } else {
-                    return(paste0(.f(x[[2]], envir=envir), as.character(x[[1]]),
+                    .f2 <- .f(x[[2]], envir=envir)
+                    assign(".def1", unique(c(envir$.def1, .f2)), envir)
+                    return(paste0(.f2, as.character(x[[1]]),
                                   .f(x[[3]], envir=envir)));
                 }
             } else if (identical(x[[1]], quote(`*`)) ||
@@ -114,6 +126,7 @@ rxPrune <- function(x){
     }
     .env <- new.env(parent=emptyenv())
     .env$.if <- c();
+    .env$.def1 <- c();
     .ret <- .f(eval(parse(text=paste0("quote({", rxNorm(x), "})"))), envir=.env);
     return(.ret)
 }
