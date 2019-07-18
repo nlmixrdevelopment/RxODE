@@ -27,7 +27,7 @@ rxPermissive({
         expect_error(rxFromSE("fun(a)"))
 
         expect_equal(rxFromSE("Derivative(fun(a,b,c),a)"),
-                     "(fun(a-0.5*rx_c_delta,b,c)-fun(a+0.5*rx_c_delta,b,c))/rx_c_delta")
+                     "(fun(a-0.5*rx_c_delta,b,c)-fun(a+0.5*rx_c_delta,b,c))/rx_c_delta", unknownDerivatives="central")
         expect_equal(rxFromSE("Derivative(fun(a,b,c),a)", unknownDerivatives = "forward"),
                      "(fun((a)+rx_f_delta,b,c)-fun(a,b,c))/rx_f_delta")
         expect_error(rxFromSE("Derivative(fun(a,b,c),a)", unknownDerivatives = "error"))
