@@ -423,6 +423,8 @@ rxToSE <- function(x, envir=NULL){
                     if (inherits(.val2, "character")){
                         .val2 <- eval(parse(text=paste0("quote({", .val2, "})")))
                         return(.rxToSE(.val2, envir))
+                    } else if (inherits(.val2, "numeric") || inherits(.val2, "integer")){
+                        return(sprintf("%s", .val2))
                     }
                 }
             }
@@ -441,8 +443,10 @@ rxToSE <- function(x, envir=NULL){
         if (any(.ret == .cnst)){
             .ret <- paste0("rx_SymPy_Res_", .ret);
             if (.isEnv && is.name(x)){
-                if (!exists(.ret, envir=envir))
-                    assign(.ret, symengine::Symbol(.ret), envir=envir)
+                if (substr(x, 1, 1) != "."){
+                    if (!exists(.ret, envir=envir))
+                        assign(.ret, symengine::Symbol(.ret), envir=envir)
+                }
             }
             return(.ret);
         } else {
@@ -450,8 +454,10 @@ rxToSE <- function(x, envir=NULL){
             if (is.na(.ret0)){
                 if (.isEnv && is.name(x)){
                     ## message(.ret)
-                    if (!exists(.ret, envir=envir))
-                        assign(.ret, symengine::Symbol(.ret), envir=envir)
+                    if (substr(x, 1, 1) != "."){
+                        if (!exists(.ret, envir=envir))
+                            assign(.ret, symengine::Symbol(.ret), envir=envir)
+                    }
                 }
                 return(.ret)
             }
@@ -806,6 +812,8 @@ rxFromSE <- function(x, unknownDerivatives=c("error", "central", "forward")){
                         .val2 <- eval(parse(text=paste0("quote({", .rxUnXi(.val2), "})")))
                         .ret <- .rxFromSE(.val2)
                         return(.ret)
+                    } else if (inherits(.val2, "numeric") || inherits(.val2, "integer")){
+                        return(sprintf("%s", .val2))
                     } else {
                         if (!is.null(attr(class(.val2), "package"))){
                             if (attr(class(.val2), "package") == "symengine"){
@@ -1299,6 +1307,8 @@ rxS <- function(x){
     .env$rxTBSd <- .rxFunction("rxTBSd")
     .env$rxTBSd2 <- .rxFunction("rxTBSd2")
     .env$solveLinB <- .rxFunction("solveLinB");
+    for (.f in c("rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt", "rxGt", "rxAnd", "rxOr", "rxNot"))
+        assign(.f, .rxFunction(.f), envir=.env)
     .env$..polygamma <- symengine::S("polygamma(_rx_a, _rx_b)");
     .env$..a <- symengine::Symbol("_rx_a");
     .env$..b <- symengine::Symbol("_rx_b");

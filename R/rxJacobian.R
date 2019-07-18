@@ -93,7 +93,7 @@ rxExpandGrid <- function(x, y, type=0L){
             if (exists(x["s0"], envir=model)){
                 .l <- x["s0D"];
                 .l <- eval(parse(text=.l));
-                if (.l != "0"){
+                if (paste(.l) != "0"){
                     .ret <- paste0(.ret, "\n", x["s0r"], "=", rxFromSE(.l),
                                    "+0.0");
                 }
