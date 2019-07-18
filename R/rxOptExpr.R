@@ -190,16 +190,21 @@ rxOptExpr <- function(x){
         }
         if (length(.expr) == 3){
             .x2 <- .expr[[2]];
-            .x3 <- .expr[[3]]
+            .x3 <- .expr[[3]];
             .l2 <- c(.f2(.x2), .f2(.x3))
             .l1 <- gsub(" +", "", .l2[1]);
             .rxOptEnv$.exclude <- .l1;
-            .ret <- eval(parse(text=sprintf(".rxOptExpr(quote(%s))", gsub(";$", "",.l2[2]))));
-            if (.silent){
-                return(paste0(.l1, " ~ ", .ret))
+            .x1 <- as.character(.expr[[1]]);
+            if (any(.x1 == c("=", "~", "<-"))){
+                .ret <- eval(parse(text=sprintf(".rxOptExpr(quote(%s))", gsub(";$", "",.l2[2]))));
+                if (.silent){
+                    return(paste0(.l1, " ~ ", .ret))
+                } else {
+                    if (onlyRet) return(.ret)
+                    return(paste0(.l1, " = ", .ret))
+                }
             } else {
-                if (onlyRet) return(.ret)
-                return(paste0(.l1, " = ", .ret))
+                return(line)
             }
         } else {
             return(line)
