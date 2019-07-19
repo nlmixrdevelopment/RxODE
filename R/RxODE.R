@@ -640,8 +640,9 @@ RxODE <- function(model, modName = basename(wd),
             .tmp1 <- .s$..jacobian
             if (!calcJac) .tmp1 <- ""
             .tmp2 <- .s$..lhs
-            if (!collapseModel) .tmp2 <- ""
+            if (collapseModel) .tmp2 <- ""
             .new <- paste(c(.s$..stateInfo["state"],
+                            .s$..lhs0,
                             .s$..ddt,
                             .tmp1,
                             .s$..sens,

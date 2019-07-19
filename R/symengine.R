@@ -513,7 +513,9 @@ rxToSE <- function(x, envir=NULL){
                    identical(x[[1]], quote(`<-`)) ||
                    identical(x[[1]], quote(`~`))){
             .var <- .rxToSE(x[[2]], envir=envir);
+            .isNum <- FALSE
             if (inherits(x[[3]], "numeric") || inherits(x[[3]], "integer")){
+                .isNum <- TRUE
                 if (.isEnv){
                     if (envir$..doConst){
                         assign(.var, x[[3]], envir=envir)
@@ -556,10 +558,18 @@ rxToSE <- function(x, envir=NULL){
                     .rx <- paste0(rxFromSE(.var), "=",
                                   rxFromSE(.expr))
                     if (!any(.var == c("rx_pred_", "rx_r_"))){
-                        assign("..lhs", c(envir$..lhs, .rx),
+                        if (.isNum){
+                            assign("..lhs0", c(envir$..lhs, .rx),
                                envir=envir)
+                        } else {
+                            assign("..lhs", c(envir$..lhs, .rx),
+                               envir=envir)
+                        }
                     }
-
+                } else {
+                    .rx <- paste0(rxFromSE(.var), "=",
+                                  rxFromSE(.expr))
+                    message(sprintf("Didn't add %s", .rx))
                 }
             }
         } else if (identical(x[[1]], quote(`[`))){
@@ -1308,6 +1318,7 @@ rxS <- function(x, doConst=TRUE){
     .env$..ddt <- c();
     .env$..sens0 <- c();
     .env$..lhs <- c();
+    .env$..lhs0 <- c();
     .env$..doConst <- doConst
     .env$rxTBS <- .rxFunction("rxTBS")
     .env$rxTBSd <- .rxFunction("rxTBSd")

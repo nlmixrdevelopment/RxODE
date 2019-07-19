@@ -320,6 +320,7 @@ rxExpandGrid <- function(x, y, type=0L){
     .lambda <- paste(get("rx_lambda_", envir=.s));
     .lambda <- paste0("rx_lambda_~", rxFromSE(.lambda))
     .s$..pred <- paste(c(.s$..stateInfo["state"],
+                         .s$..lhs0,
                          .s$..ddt,
                          .yj,
                          .lambda,
