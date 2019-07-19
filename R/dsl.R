@@ -842,53 +842,40 @@ sympyRxFEnv$polygamma <- function(n, z){
 
 ## Add sympy->C mini DSL for omega parsing
 
-rxSymPyC <- new.env(parent = emptyenv())
-rxSymPyC$"**" <- function(a, b){
-    a <- dsl.strip.paren(a);
-    b <- dsl.strip.paren(b);
-    num <- suppressWarnings({as.numeric(b)});
-    if (is.na(num)){
-        return(sprinf("R_pow(%s, %s)", a, b))
-    } else if (num == round(num)) {
-        return(sprintf("R_pow_di(%s, %s)", a, b));
-    } else if (num == 0.5){
-        return(sprintf("sqrt(%s)", a));
-    } else {
-        return(sprintf("Rx_pow(%s, %s)", a, b));
-    }
-}
-rxSymPyC$"^" <- rxSymPyC$"**"
+symengineC <- new.env(parent = emptyenv())
+symengineC$"**" <- dsl.to.pow
+symengineC$"^" <- dsl.to.pow
 
-rxSymPyC$S <- function(x){
+symengineC$S <- function(x){
     sprintf("%s", x);
 }
 
 for (f in sympy.equiv.f){
-    rxSymPyC[[f]] <- functionOp(f);
+    symengineC[[f]] <- functionOp(f);
 }
-rxSymPyC$"(" <- unaryOp("(", ")")
+symengineC$"(" <- unaryOp("(", ")")
 for (op in c("+", "-", "*")){
-    rxSymPyC[[op]] <- binaryOp(paste0(" ", op, " "));
+    symengineC[[op]] <- binaryOp(paste0(" ", op, " "));
 }
 
-rxSymPyC[["/"]] <- function(e1, e2){
+symengineC[["/"]] <- function(e1, e2){
     sprintf("%s /( (%s == 0) ? %s : %s)", e1, e2, .Machine$double.eps, e2)
 }
 
 
-unknownCSymPy <- function(op){
+unknownCsymengine <- function(op){
     force(op)
     function(...){
         stop(sprintf("RxODE doesn't support '%s' translation for Omega translation.", op));
     }
 }
 
-sympyCEnv <- function(expr){
+symengineCEnv <- function(expr){
     ## Known functions
     calls <- allCalls(expr)
-    callList <- setNames(lapply(calls, unknownCSymPy), calls)
+    callList <- setNames(lapply(calls, unknownCsymengine), calls)
     callEnv <- list2env(callList);
-    rxSymPyFEnv <- cloneEnv(rxSymPyC, callEnv);
+    rxSymPyFEnv <- cloneEnv(symengineC, callEnv);
     names <- allNames(expr)
     ## Replace time with t.
     n1 <- names;
@@ -899,18 +886,13 @@ sympyCEnv <- function(expr){
     n2 <- gsub("None", "NA_REAL", n2);
     w <- n2[n2 == "t"];
     symbol.list <- setNames(as.list(n2), n1);
-    symbol.env <- list2env(symbol.list, parent=rxSymPyC);
+    symbol.env <- list2env(symbol.list, parent=symengineC);
     return(symbol.env)
 }
 
-sympyC <- function(x){
-    if (is(substitute(x),"character")){
-        return(eval(parse(text=sprintf("RxODE:::sympyC(quote(%s))", x))))
-    } else if (is(substitute(x),"name")){
-        return(eval(parse(text=sprintf("RxODE:::sympyC(%s)", deparse(x)))));
-    } else {
-        return(eval(x, sympyCEnv(x)))
-    }
+seC <- function(x){
+    expr <-eval(parse(text=sprintf("quote(%s)", as.character(x))))
+    .ret <- eval(expr, symengineCEnv(expr))
 }
 
 
