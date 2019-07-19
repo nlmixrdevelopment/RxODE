@@ -4,7 +4,7 @@
 \alias{rxS}
 \title{Load a model into a symengine environment}
 \usage{
-rxS(x)
+rxS(x, doConst = TRUE)
 }
 \arguments{
 \item{x}{RxODE object}

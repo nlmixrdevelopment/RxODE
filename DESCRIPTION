@@ -41,7 +41,6 @@ Suggests:
     devtools,
     covr,
     rmarkdown,
-    SnakeCharmR,
     dplyr (>= 0.8.0),
     tidyr,
     tibble,
@@ -51,7 +50,6 @@ Suggests:
     scales,
     stringi,
     htmltools,
-    reticulate,
     rlang,
     installr
 Imports:
@@ -78,7 +76,8 @@ Imports:
     utils,
     assertthat,
     lotri,
-    remotes
+    remotes,
+    symengine
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model

@@ -319,14 +319,20 @@ rxExpandGrid <- function(x, y, type=0L){
     .yj <- paste0("rx_yj_~", rxFromSE(.yj))
     .lambda <- paste(get("rx_lambda_", envir=.s));
     .lambda <- paste0("rx_lambda_~", rxFromSE(.lambda))
+    .lhs0 <- .s$..lhs0
+    if (is.null(.lhs0)) .lhs0 <- ""
+    .lhs <- .s$..lhs
+    if (is.null(.lhs)) .lhs <- ""
+    .ddt <- .s$..ddt
+    if (is.null(.ddt)) .ddt <- ""
     .s$..pred <- paste(c(.s$..stateInfo["state"],
-                         .s$..lhs0,
-                         .s$..ddt,
+                         .lhs0,
+                         .ddt,
                          .yj,
                          .lambda,
                          .prd,
                          .r,
-                         .s$..lhs,
+                         .lhs,
                          .s$..stateInfo["statef"],
                          .s$..stateInfo["dvid"],
                          ""), collapse="\n")
@@ -357,8 +363,12 @@ rxExpandGrid <- function(x, y, type=0L){
     .yj <- paste0("rx_yj_~", rxFromSE(.yj))
     .lambda <- paste(get("rx_lambda_", envir=.s));
     .lambda <- paste0("rx_lambda_~", rxFromSE(.lambda))
-    .s$..inner <- paste(c(.s$..ddt,
-                          .s$..sens,
+    .ddt <- .s$..ddt
+    if (is.null(.ddt)) .ddt <- character(0)
+    .sens <- .s$..sens
+    if (is.null(.sens)) .sens <- character(0)
+    .s$..inner <- paste(c(.ddt,
+                          .sens,
                           .yj,
                           .lambda,
                           .prd,
@@ -379,7 +389,6 @@ rxExpandGrid <- function(x, y, type=0L){
         message("done");
     }
     .s$..inner <- paste0(.s$..stateInfo["state"],"\n", .s$..inner);
-
 }
 ##' Generate FOCE without interaction
 ##'
@@ -449,6 +458,12 @@ rxExpandGrid <- function(x, y, type=0L){
     .rxFinalizePred(.s, sum.prod, optExpression)
     return(.s);
 }
+
+rxSymPyAbsLog <- FALSE
+rxSymPyLogSign <- c()
+
+rxSymPyExpThetas <- c()
+rxSymPyExpEtas <- c()
 
 
 ##' Setup Pred function based on RxODE object.

@@ -8,7 +8,7 @@
 \usage{
 rxToSE(x, envir = NULL)
 
-rxFromSE(x, unknownDerivatives = c("central", "forward", "error"))
+rxFromSE(x, unknownDerivatives = c("forward", "central", "error"))
 
 .rxFromSE(x)
 }

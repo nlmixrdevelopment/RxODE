@@ -48,7 +48,6 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
     } else {
         diag.xform <- match.arg(diag.xform)
         rxCat("Diagonal form: ", diag.xform, "\n");
-        ## print(mat1);
         num <- as.vector(mat1[upper.tri(mat1,TRUE)]);
         i <- 0;
         num <- sapply(num, function(x){
