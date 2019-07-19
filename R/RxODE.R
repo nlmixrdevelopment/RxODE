@@ -676,8 +676,9 @@ RxODE <- function(model, modName = basename(wd),
             .tmp1 <- .s$..jacobian
             if (!.calcJac) .tmp1 <- ""
             .tmp2 <- .s$..lhs
-            if (!collapseModel) .tmp2 <- ""
+            if (collapseModel) .tmp2 <- ""
             .new <- paste(c(.s$..stateInfo["state"],
+                            .s$..lhs0,
                             .s$..ddt,
                             .tmp1,
                             .tmp2,
@@ -702,12 +703,37 @@ RxODE <- function(model, modName = basename(wd),
             if (length(rxState(.ret)) <= 0){
                 stop("Jacobians do not make sense for models without ODEs.")
             }
-            .new <- .rxSymPyJacobian(.ret);
+            .stateInfo <- .rxGenFunState(.ret);
+            .s <- .rxLoadPrune(.ret, FALSE);
+            .s$..stateInfo <- .stateInfo
+            .rxJacobian(.s)
+            .tmp1 <- .s$..jacobian
+            if (!.calcJac) .tmp1 <- ""
+            .tmp2 <- .s$..lhs
+            if (collapseModel) .tmp2 <- ""
+            .new <- paste(c(.s$..stateInfo["state"],
+                            .s$..lhs0,
+                            .s$..ddt,
+                            .tmp1,
+                            .tmp2,
+                            .s$..stateInfo["statef"],
+                            .s$..stateInfo["dvid"],
+                            ""), collapse="\n")
             .ret <- rxModelVars(.new);
         } else {
             ## remove Jacobian
-            .new <- setNames(gsub(rex::rex(or(.ret$dfdy), "=", anything, "\n"), "",
-                                      .ret$model["normModel"]), NULL);
+            .stateInfo <- .rxGenFunState(.ret);
+            .s <- .rxLoadPrune(.ret, FALSE);
+            .s$..stateInfo <- .stateInfo
+            .tmp2 <- .s$..lhs
+            if (collapseModel) .tmp2 <- ""
+            .new <- paste(c(.s$..stateInfo["state"],
+                            .s$..lhs0,
+                            .s$..ddt,
+                            .tmp2,
+                            .s$..stateInfo["statef"],
+                            .s$..stateInfo["dvid"],
+                            ""), collapse="\n")
             .ret <- rxModelVars(.new);
         }
     }

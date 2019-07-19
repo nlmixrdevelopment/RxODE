@@ -559,7 +559,7 @@ rxToSE <- function(x, envir=NULL){
                                   rxFromSE(.expr))
                     if (!any(.var == c("rx_pred_", "rx_r_"))){
                         if (.isNum){
-                            assign("..lhs0", c(envir$..lhs, .rx),
+                            assign("..lhs0", c(envir$..lhs0, .rx),
                                envir=envir)
                         } else {
                             assign("..lhs", c(envir$..lhs, .rx),
