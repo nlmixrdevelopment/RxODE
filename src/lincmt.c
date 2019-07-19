@@ -55,7 +55,7 @@ static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_in
 extern double getTime(int idx, rx_solving_options_ind *ind);
 
 double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
-		 double d_A, double d_A2, double d_alpha, //
+		 double d_A, double d_A2, double d_alpha,
 		 double d_B, double d_B2, double d_beta,
 		 double d_C, double d_C2, double d_gamma,
 		 double d_ka,
@@ -63,7 +63,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 		 double d_tlag, double d_tlag2, double d_F, double d_F2,
 		 // Rate and dur can only apply to central compartment even w/ oral dosing
 		 // Therefore, only 1 model rate is possible with RxODE
-		 double d_rate, double d_dur, int dPar){
+		 double d_rate, double d_dur){
   unsigned int ncmt = 1;
   double beta1=0, gamma1=0, alpha1=0;
   double alpha = d_alpha;
@@ -87,6 +87,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
       beta1 = 1.0/beta;
       alpha1 = 1.0/alpha;
     }
+    
   } else if (d_beta > 0.){
     ncmt = 2;
     if (op->linLog){
@@ -121,7 +122,6 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
   // When tadr - tlag < 0 ignore the dose.
   m = _locateDoseIndex(t, ind);
   int ndoses = ind->ndoses;
-  int in2=0;
   for(l=m+1; l--;){// Optimized for loop as https://www.thegeekstuff.com/2015/01/c-cpp-code-optimization/
     cur=0;
     //super-position
@@ -135,18 +135,16 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
     C = d_C;
     tlag = d_tlag;
     F = d_F;
-    in2=0;
     if (cmt != linCmt){
       if (!oral){
 	continue;
       } else if (cmt != linCmt+1) continue;
       oral = 0; // Switch to "central" compartment
-      A = d_A2; 
+      A = d_A2;
       B = d_B2;
       C = d_C2;
       tlag = d_tlag2;
       F = d_F2;
-      in2=1;
     }
     switch(whI){
     case 7:
@@ -234,511 +232,82 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  rate *= F;
 	}
       }
-      if (wh0 == 10 || wh0 == 20){ // steady state
+      if (wh0 == 10 || wh0 == 20){
 	if (tinf >= tau){
 	  error("Infusion time greater then inter-dose interval, ss cannot be calculated.");
 	} 
 	if (thisT < tinf){ // during infusion
-	  if (dPar==0){
-	    if (op->linLog){
-	      expr1= logRate+alpha1;
-	      cur += A*exp(expr1+log1mex(alpha*thisT))+
-		A*exp(expr1-alpha*tau+log1mex(alpha*tinf)-alpha*(thisT-tinf)-log1mex(alpha*tau));
-	      if (ncmt >= 2){
-		expr1= logRate+beta1;
-		cur += B*exp(expr1+log1mex(beta*thisT))+
-		  B*exp(expr1-beta*tau+log1mex(beta*tinf)-beta*(thisT-tinf)-log1mex(beta*tau));
-		if (ncmt >= 3){
-		  expr1= logRate+gamma1;
-		  cur += C*exp(expr1+log1mex(gamma*thisT))+
-		    C*exp(expr1-gamma*tau+log1mex(gamma*tinf)-gamma*(thisT-tinf)-log1mex(gamma*tau));
-		}
-	      }
-	    } else {
-	      cur += rate*A*alpha1*((1-exp(-alpha*thisT))+
-				    exp(-alpha*tau)*(1-exp(-alpha*tinf))*
-				    exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
-	      if (ncmt >= 2){
-		cur += rate*B*beta1*((1-exp(-beta*thisT))+
-				     exp(-beta*tau)*(1-exp(-beta*tinf))*
-				     exp(-beta*(thisT-tinf))/
-				     (1-exp(-beta*tau)));
-		if (ncmt >= 3){
-		  cur += rate*C*gamma1*((1-exp(-gamma*thisT))+
-					exp(-gamma*tau)*(1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/
-					(1-exp(-gamma*tau)));
-		}
-	      }
-	    }
-	    if (wh0 == 10) return (ret+cur);
-	    break;
-	  } else if (dPar == 1){
-	    // dA
-	    if (in2==0){
-	      cur += rate*alpha1*((1-exp(-alpha*thisT))+
-				  exp(-alpha*tau)*(1-exp(-alpha*tinf))*
-				  exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
-	    }
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 2){
-	    // dA2
-	    if (in2!=0){
-	      cur += rate*alpha1*((1-exp(-alpha*thisT))+
-				  exp(-alpha*tau)*(1-exp(-alpha*tinf))*
-				  exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
-	    }
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 3){
-	    // dalpha
-	    cur += -rate*A*(1 + exp(-alpha*(thisT - tinf) - tau*alpha)*(1 - exp(-tinf*alpha))/(1 - exp(-tau*alpha)) - exp(-thisT*alpha))/(alpha*alpha) + rate*(exp(-thisT*alpha)*thisT + exp(-alpha*(thisT - tinf) - tau*alpha - tinf*alpha)*tinf/(1 - exp(-tau*alpha)) - exp(-alpha*(thisT - tinf) - 2*tau*alpha)*tau*(1 - exp(-tinf*alpha))/R_pow_di(1 - exp(-tau*alpha),2) + exp(-alpha*(thisT - tinf) - tau*alpha)*(-tau - thisT + tinf)*(1 - exp(-tinf*alpha))/(1 - exp(-tau*alpha)))/alpha;
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 4 && ncmt >= 2) {
-	    // dB1
-	    if (in2 == 0 && ncmt >= 2){
-	      cur += rate*beta1*((1-exp(-beta*thisT))+
-				 exp(-beta*tau)*(1-exp(-beta*tinf))*
-				 exp(-beta*(thisT-tinf))/
-				 (1-exp(-beta*tau)));
-	    }
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 5 && ncmt >= 2){
-	    // dB2
-	    if (in2 != 0){
-	      cur += rate*beta1*((1-exp(-beta*thisT))+
-				 exp(-beta*tau)*(1-exp(-beta*tinf))*
-				 exp(-beta*(thisT-tinf))/
-				 (1-exp(-beta*tau)));
-	    }
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 6 && ncmt >= 2){
-	    // dBeta
-	    cur += -B*rate*(1 + exp(-beta*(thisT - tinf) - tau*beta)*(1 - exp(-tinf*beta))/(1 - exp(-tau*beta)) - exp(-beta*thisT))/(beta*beta) + B*rate*(exp(-beta*thisT)*thisT + exp(-beta*(thisT - tinf) - tau*beta - tinf*beta)*tinf/(1 - exp(-tau*beta)) - exp(-beta*(thisT - tinf) - 2*tau*beta)*tau*(1 - exp(-tinf*beta))/R_pow_di(1 - exp(-tau*beta), 2) + exp(-beta*(thisT - tinf) - tau*beta)*(1 - exp(-tinf*beta))*(-tau - thisT + tinf)/(1 - exp(-tau*beta)))/beta;
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 7 && ncmt >= 3){
-	    // dC1
-	    if (in2 == 0){
-	      cur += rate*gamma1*((1-exp(-gamma*thisT))+
-				    exp(-gamma*tau)*(1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/
-				    (1-exp(-gamma*tau)));
-	    }
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 8 && ncmt >= 3){
-	    // dC2
-	    if (in2 != 0){
-	      cur += rate*gamma1*((1-exp(-gamma*thisT))+
-				    exp(-gamma*tau)*(1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/
-				    (1-exp(-gamma*tau)));
-	    }
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 9 && ncmt >= 3){
-	    // dGamma
-	    cur += -C*rate*(1 + exp(-gamma*(thisT - tinf) - tau*gamma)*(1 - exp(-tinf*gamma))/(1 - exp(-tau*gamma)) - exp(-thisT*gamma))/(gamma*gamma) + C*rate*(exp(-thisT*gamma)*thisT + exp(-gamma*(thisT - tinf) - tau*gamma - tinf*gamma)*tinf/(1 - exp(-tau*gamma)) - exp(-gamma*(thisT - tinf) - 2*tau*gamma)*tau*(1 - exp(-tinf*gamma))/R_pow_di(1 - exp(-tau*gamma),2) + exp(-gamma*(thisT - tinf) - tau*gamma)*(-tau - thisT + tinf)*(1 - exp(-tinf*gamma))/(1 - exp(-tau*gamma)))/gamma;
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 10){
-	    // dKa
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 11){
-	    // dTlag1
-	    if (in2==0){
-	      cur += -A*rate*alpha1*(exp(-thisT*alpha)*alpha - exp(-alpha*(thisT - tinf) - tau*alpha)*alpha*(1 - exp(-tinf*alpha))/(1 - exp(-tau*alpha)));
-	      if (ncmt >= 2){
-		cur += -B*rate*beta1*(exp(-beta*thisT)*beta - exp(-beta*(thisT - tinf) - tau*beta)*beta*(1 - exp(-tinf*beta))/(1 - exp(-tau*beta)));
-		if (ncmt >= 3){
-		  cur += -C*rate*gamma1*(exp(-thisT*gamma)*gamma - exp(-gamma*(thisT - tinf) - tau*gamma)*gamma*(1 - exp(-tinf*gamma))/(1 - exp(-tau*gamma)));
-		}
-	      }
-	    }
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 12){
-	    // dTlag2
-	    if (in2!=0){
-	      cur += -A*rate*alpha1*(exp(-thisT*alpha)*alpha - exp(-alpha*(thisT - tinf) - tau*alpha)*alpha*(1 - exp(-tinf*alpha))/(1 - exp(-tau*alpha)));
-	      if (ncmt >= 2){
-		cur += -B*rate*beta1*(exp(-beta*thisT)*beta - exp(-beta*(thisT - tinf) - tau*beta)*beta*(1 - exp(-tinf*beta))/(1 - exp(-tau*beta)));
-		if (ncmt >= 3){
-		  cur += -C*rate*gamma1*(exp(-thisT*gamma)*gamma - exp(-gamma*(thisT - tinf) - tau*gamma)*gamma*(1 - exp(-tinf*gamma))/(1 - exp(-tau*gamma)));
-		}
-	      }
-	    }
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 13){
-	    // dF1
-	    if (in2==0){
-	      if (whI == 1){
-		// Duration where tinfM=tinf*F
-		cur += A*rate*alpha1*(exp(-alpha*(thisT - tinf) - tau*alpha - tinf*alpha)*alpha/(1 - exp(-tau*alpha)) + exp(-alpha*(thisT - tinf) - tau*alpha)*alpha*(1 - exp(-tinf*alpha))/(1 - exp(-tau*alpha)))*tinf/F;
-		if (ncmt >= 2){
-		  cur += B*rate*beta1*(exp(-beta*(thisT - tinf) - tau*beta - tinf*beta)*beta/(1 - exp(-tau*beta)) + exp(-beta*(thisT - tinf) - tau*beta)*beta*(1 - exp(-tinf*beta))/(1 - exp(-tau*beta)))*tinf/F;
-		  if (ncmt >= 3){
-		    cur += C*rate*(exp(-gamma*(thisT - tinf) - tau*gamma - tinf*gamma)*gamma/(1 - exp(-tau*gamma)) + exp(-gamma*(thisT - tinf) - tau*gamma)*gamma*(1 - exp(-tinf*gamma))/(1 - exp(-tau*gamma)))*gamma1*tinf/F;
-		  }
-		}
-	      } else {
-		// Rate where rate=F*rate0
-		cur += A*alpha1*((1-exp(-alpha*thisT))+
-				 exp(-alpha*tau)*(1-exp(-alpha*tinf))*
-				 exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)))*rate/F;
-		if (ncmt >= 2){
-		  cur += B*beta1*((1-exp(-beta*thisT))+
-				  exp(-beta*tau)*(1-exp(-beta*tinf))*
-				  exp(-beta*(thisT-tinf))/
-				  (1-exp(-beta*tau)))*rate/F;
-		  if (ncmt >= 3){
-		    cur += C*gamma1*((1-exp(-gamma*thisT))+
-				     exp(-gamma*tau)*(1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/
-				     (1-exp(-gamma*tau)))*rate/F;
-		  }
-		}
-	      }
-	    }
-	  } else if (dPar == 14){
-	    // dF2
-	    if (in2!=0){
-	      if (whI == 1){
-		// Duration where tinfM=tinf*F
-		cur += A*rate*alpha1*(exp(-alpha*(thisT - tinf) - tau*alpha - tinf*alpha)*alpha/(1 - exp(-tau*alpha)) + exp(-alpha*(thisT - tinf) - tau*alpha)*alpha*(1 - exp(-tinf*alpha))/(1 - exp(-tau*alpha)))*tinf/F;
-		if (ncmt >= 2){
-		  cur += B*rate*beta1*(exp(-beta*(thisT - tinf) - tau*beta - tinf*beta)*beta/(1 - exp(-tau*beta)) + exp(-beta*(thisT - tinf) - tau*beta)*beta*(1 - exp(-tinf*beta))/(1 - exp(-tau*beta)))*tinf/F;
-		  if (ncmt >= 3){
-		    cur += C*rate*(exp(-gamma*(thisT - tinf) - tau*gamma - tinf*gamma)*gamma/(1 - exp(-tau*gamma)) + exp(-gamma*(thisT - tinf) - tau*gamma)*gamma*(1 - exp(-tinf*gamma))/(1 - exp(-tau*gamma)))*gamma1*tinf/F;
-		  }
-		}
-	      } else {
-		// Rate where rate=F*rate0
-		cur += A*alpha1*((1-exp(-alpha*thisT))+
-				 exp(-alpha*tau)*(1-exp(-alpha*tinf))*
-				 exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)))*rate/F;
-		if (ncmt >= 2){
-		  cur += B*beta1*((1-exp(-beta*thisT))+
-				  exp(-beta*tau)*(1-exp(-beta*tinf))*
-				  exp(-beta*(thisT-tinf))/
-				  (1-exp(-beta*tau)))*rate/F;
-		  if (ncmt >= 3){
-		    cur += C*gamma1*((1-exp(-gamma*thisT))+
-				     exp(-gamma*tau)*(1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/
-				     (1-exp(-gamma*tau)))*rate/F;
-		  }
-		}
-	      }
-	    }
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 15){
-	    // dRate -- Fixed infusion not modeled
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 16){
-	    // dDuration -- Fixed infusion not modeled
-	    if (wh0 == 10) return (ret+cur);
-	  }
-	} else { // after infusion
-	  if (dPar==0){
-	    if (op->linLog){
-	      expr1=logRate+alpha1;
-	      cur += A*exp(expr1+log1mex(alpha*tinf)-alpha*(thisT-tinf)-log1mex(alpha*tau));
-	      if (ncmt >= 2){
-		expr1=logRate+beta1;
-		cur += B*exp(expr1+log1mex(beta*tinf)-beta*(thisT-tinf)-log1mex(beta*tau));
-		if (ncmt >= 3){
-		  expr1=logRate+gamma1;
-		  cur += C*exp(expr1+log1mex(gamma*tinf)-gamma*(thisT-tinf)-log1mex(gamma*tau));
-		}
-	      }
-	    } else {
-	      cur += rate*A*alpha1*((1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
-	      if (ncmt >= 2){
-		cur += rate*B*beta1*((1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/(1-exp(-beta*tau)));
-		if (ncmt >= 3){
-		  cur += rate*C*gamma1*((1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/(1-exp(-gamma*tau)));
-		}
-	      }
-	    }
-	    if (wh0 == 10) return (ret+cur);
-	  } else if (dPar == 1){
-	    // dA
-	    if (in2==0){
-	      cur += rate*alpha1*((1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
-	    }
-	  } else if (dPar == 2){
-	    // dA2
-	    if (in2 != 0){
-	      cur += rate*alpha1*((1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
-	    }
-	  } else if (dPar == 3){
-	    // dalpha
-	    cur += -exp(-alpha*(thisT - tinf))*rate*(1 - exp(-tinf*alpha))/(alpha*alpha*(1 - exp(-tau*alpha))) + exp(-alpha*(thisT - tinf) - tinf*alpha)*tinf*rate/(alpha*(1 - exp(-tau*alpha))) - exp(-alpha*(thisT - tinf))*rate*(thisT - tinf)*(1 - exp(-tinf*alpha))/(alpha*(1 - exp(-tau*alpha))) - exp(-alpha*(thisT - tinf) - tau*alpha)*tau*rate*(1 - exp(-tinf*alpha))/(alpha*R_pow_di(1 - exp(-tau*alpha),2));
-	  } else if (dPar == 4 && ncmt >= 2){
-	    // dB1
-	    if (in2==0){
-	      cur += rate*beta1*((1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/(1-exp(-beta*tau)));
-	    }
-	  } else if (dPar == 5 && ncmt >= 2){
-	    // dB2
-	    if (in2!=0){
-	      cur += rate*beta1*((1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/(1-exp(-beta*tau)));
-	    }
-	  } else if (dPar == 6 && ncmt >= 2){
-	    // dBeta
-	    cur += -B*exp(-beta*(thisT - tinf))*rate*(1 - exp(-tinf*beta))/(beta*beta*(1 - exp(-tau*beta))) + B*exp(-beta*(thisT - tinf) - tinf*beta)*tinf*rate/(beta*(1 - exp(-tau*beta))) - B*exp(-beta*(thisT - tinf))*rate*(1 - exp(-tinf*beta))*(thisT - tinf)/(beta*(1 - exp(-tau*beta))) - B*exp(-beta*(thisT - tinf) - tau*beta)*tau*rate*(1 - exp(-tinf*beta))/(beta*R_pow_di(1 - exp(-tau*beta),2));
-	  } else if (dPar == 7 && ncmt >= 3){
-	    // dC1
-	    if (in2==0){
-	      cur += rate*gamma1*((1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/(1-exp(-gamma*tau)));
-	    }
-	  } else if (dPar == 8 && ncmt >= 3){
-	    // dC2
-	    if (in2!=0){
-	      cur += rate*gamma1*((1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/(1-exp(-gamma*tau)));
-	    }
-	  } else if (dPar == 9 && ncmt >= 3){
-	    // dGamma
-	    cur += -C*exp(-gamma*(thisT - tinf))*rate*(1 - exp(-tinf*gamma))/(gamma*gamma*(1 - exp(-tau*gamma))) + C*exp(-gamma*(thisT - tinf) - tinf*gamma)*tinf*rate/(gamma*(1 - exp(-tau*gamma))) - C*exp(-gamma*(thisT - tinf))*rate*(thisT - tinf)*(1 - exp(-tinf*gamma))/(gamma*(1 - exp(-tau*gamma))) - C*exp(-gamma*(thisT - tinf) - tau*gamma)*tau*rate*(1 - exp(-tinf*gamma))/(gamma*R_pow_di(1 - exp(-tau*gamma),2));
-	  } else if (dPar == 10){
-	    // dKa
-	  } else if (dPar == 11){
-	    // dTlag1
-	    if (in2 == 0){
-	      cur += A*exp(-alpha*(thisT - tinf))*rate*alpha*alpha1*(1 - exp(-tinf*alpha))/(1 - exp(-tau*alpha));
-	      if (ncmt >= 2){
-		cur += B*exp(-beta*(thisT - tinf))*rate*beta*beta1*(1 - exp(-tinf*beta))/(1 - exp(-tau*beta));
-		if (ncmt >= 3){
-		  cur += C*exp(-gamma*(thisT - tinf))*rate*gamma*gamma1*(1 - exp(-tinf*gamma))/(1 - exp(-tau*gamma));
-		}
-	      }
-	    }
-	  } else if (dPar == 12){
-	    // dTlag2
-	    if (in2 != 0){
-	      cur += A*exp(-alpha*(thisT - tinf))*rate*alpha*alpha1*(1 - exp(-tinf*alpha))/(1 - exp(-tau*alpha));
-	      if (ncmt >= 2){
-		cur += B*exp(-beta*(thisT - tinf))*rate*beta*beta1*(1 - exp(-tinf*beta))/(1 - exp(-tau*beta));
-		if (ncmt >= 3){
-		  cur += C*exp(-gamma*(thisT - tinf))*rate*gamma*gamma1*(1 - exp(-tinf*gamma))/(1 - exp(-tau*gamma));
-		}
-	      }
-	    }
-	  } else if (dPar == 13){
-	    // dF1
-	    if (in2==0){
-	      if (whI == 1){
-		// Duration where tinfM=tinf*F
-		cur += A*exp(-alpha*(thisT - tinf) - tinf*alpha)*rate*alpha*alpha1/(1 - exp(-tau*alpha)) + A*exp(-alpha*(thisT - tinf))*rate*alpha*alpha1*(1 - exp(-tinf*alpha))/(1 - exp(-tau*alpha))*tinf/F;
-		if (ncmt >= 2){
-		  cur += B*exp(-beta*(thisT - tinf) - tinf*beta)*rate*beta*beta1/(1 - exp(-tau*beta)) + B*exp(-beta*(thisT - tinf))*rate*beta*beta1*(1 - exp(-tinf*beta))/(1 - exp(-tau*beta))*tinf/F;
-		  if (ncmt >= 3){
-		    cur += C*exp(-gamma*(thisT - tinf) - tinf*gamma)*rate*gamma*gamma1/(1 - exp(-tau*gamma)) + C*exp(-gamma*(thisT - tinf))*rate*gamma*gamma1*(1 - exp(-tinf*gamma))/(1 - exp(-tau*gamma))*tinf/F;
-		  }
-		}
-	      } else {
-		// Rate where rate=F*rate0
-		cur += rate*A*alpha1*((1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)))/F;
-		if (ncmt >= 2){
-		  cur += rate*B*beta1*((1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/(1-exp(-beta*tau)))/F;
-		  if (ncmt >= 3){
-		    cur += rate*C*gamma1*((1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/(1-exp(-gamma*tau)))/F;
-		  }
-		}
-	      }
-	    }
-	  } else if (dPar == 14){
-	    // dF2
-	    if (in2!=0){
-	      if (whI == 1){
-		// Duration where tinfM=tinf*F
-		cur += A*exp(-alpha*(thisT - tinf) - tinf*alpha)*rate*alpha*alpha1/(1 - exp(-tau*alpha)) + A*exp(-alpha*(thisT - tinf))*rate*alpha*alpha1*(1 - exp(-tinf*alpha))/(1 - exp(-tau*alpha))*tinf/F;
-		if (ncmt >= 2){
-		  cur += B*exp(-beta*(thisT - tinf) - tinf*beta)*rate*beta*beta1/(1 - exp(-tau*beta)) + B*exp(-beta*(thisT - tinf))*rate*beta*beta1*(1 - exp(-tinf*beta))/(1 - exp(-tau*beta))*tinf/F;
-		  if (ncmt >= 3){
-		    cur += C*exp(-gamma*(thisT - tinf) - tinf*gamma)*rate*gamma*gamma1/(1 - exp(-tau*gamma)) + C*exp(-gamma*(thisT - tinf))*rate*gamma*gamma1*(1 - exp(-tinf*gamma))/(1 - exp(-tau*gamma))*tinf/F;
-		  }
-		}
-	      } else {
-		// Rate where rate=F*rate0
-		cur += rate*A*alpha1*((1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)))/F;
-		if (ncmt >= 2){
-		  cur += rate*B*beta1*((1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/(1-exp(-beta*tau)))/F;
-		  if (ncmt >= 3){
-		    cur += rate*C*gamma1*((1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/(1-exp(-gamma*tau)))/F;
-		  }
-		}
-	      }
-	    }
-	  } else if (dPar == 15){
-	    // dRate -- Fixed infusion not modeled
-	  } else if (dPar == 16){
-	    // dDuration -- Fixed infusion not modeled
-	  }
-	}
-	if (wh0 == 10) return (ret+cur);
-      } else {
-	// Non steady state
-	t1  = ((thisT < tinf) ? thisT : tinf);        //during infusion
-	t2  = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion	  
-	if (dPar==0){
 	  if (op->linLog){
-	    cur +=  A*exp(logRate+alpha1+log1mex(alpha*t1)-alpha*t2);
+	    expr1= logRate+alpha1;
+	    cur += A*exp(expr1+log1mex(alpha*thisT))+
+	      A*exp(expr1-alpha*tau+log1mex(alpha*tinf)-alpha*(thisT-tinf)-log1mex(alpha*tau));
 	    if (ncmt >= 2){
-	      cur +=  B*exp(logRate+beta1+log1mex(beta*t1)-beta*t2);
+	      expr1= logRate+beta1;
+	      cur += B*exp(expr1+log1mex(beta*thisT))+
+		B*exp(expr1-beta*tau+log1mex(beta*tinf)-beta*(thisT-tinf)-log1mex(beta*tau));
 	      if (ncmt >= 3){
-		cur +=  C*exp(logRate+gamma1+log1mex(gamma*t1)-gamma*t2);
+		expr1= logRate+gamma1;
+		cur += C*exp(expr1+log1mex(gamma*thisT))+
+		  C*exp(expr1-gamma*tau+log1mex(gamma*tinf)-gamma*(thisT-tinf)-log1mex(gamma*tau));
 	      }
 	    }
 	  } else {
-	    cur +=  rate*A*alpha1*(1.0-exp(-alpha*t1))*exp(-alpha*t2);
+	    cur += rate*A*alpha1*((1-exp(-alpha*thisT))+
+				  exp(-alpha*tau)*(1-exp(-alpha*tinf))*
+				  exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
 	    if (ncmt >= 2){
-	      cur +=  rate*B*beta1*(1.0-exp(-beta*t1))*exp(-beta*t2);
+	      cur += rate*B*beta1*((1-exp(-beta*thisT))+
+				   exp(-beta*tau)*(1-exp(-beta*tinf))*
+				   exp(-beta*(thisT-tinf))/
+				   (1-exp(-beta*tau)));
 	      if (ncmt >= 3){
-		cur +=  rate*C*gamma1*(1.0-exp(-gamma*t1))*exp(-gamma*t2);
+		cur += rate*C*gamma1*((1-exp(-gamma*thisT))+
+				      exp(-gamma*tau)*(1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/
+				      (1-exp(-gamma*tau)));
 	      }
 	    }
 	  }
-	} else if (dPar == 2){
-	  // dA
-	  if (in2 == 0){
-	    cur += rate*alpha1*(1.0-exp(-alpha*t1))*exp(-alpha*t2);
-	  }
-	} else if (dPar == 3){
-	  // dA2
-	  if (in2 != 0){
-	    cur += rate*alpha1*(1.0-exp(-alpha*t1))*exp(-alpha*t2);
-	  }
-	} else if (dPar == 4){
-	  // dAlpha
-	  cur += -A*exp(-t2*alpha)*rate*(1.0 - exp(-t1*alpha))/(alpha*alpha) + A*exp(-t1*alpha - t2*alpha)*t1*rate/alpha - A*exp(-t2*alpha)*t2*rate*(1.0 - exp(-t1*alpha))/alpha;
-	} else if (dPar == 5 && ncmt >= 2){
-	  // dB1
-	  if (in2 == 0){
-	    cur +=  rate*beta1*(1.0-exp(-beta*t1))*exp(-beta*t2);
-	  }
-	} else if (dPar == 5 && ncmt >= 2){
-	  // dB2
-	  if (in2 != 0){
-	    cur +=  rate*beta1*(1.0-exp(-beta*t1))*exp(-beta*t2);
-	  }
-	} else if (dPar == 6 && ncmt >= 2){
-	  // dBeta
-	  cur += -B*exp(-t2*beta)*rate*(1.0 - exp(-t1*beta))/(beta*beta) + B*exp(-t1*beta - t2*beta)*t1*rate/beta - B*exp(-t2*beta)*t2*rate*(1.0 - exp(-t1*beta))/beta;
-	} else if (dPar == 7 && ncmt >= 3){
-	  //dC1
-	  if (in2==0){
-	    cur += rate*gamma1*(1.0-exp(-gamma*t1))*exp(-gamma*t2);
-	  }
-	} else if (dPar == 8 && ncmt >= 3){
-	  //dC2
-	  if (in2 != 0){
-	    cur += rate*gamma1*(1.0-exp(-gamma*t1))*exp(-gamma*t2);
-	  }
-	} else if (dPar == 9 && ncmt >= 3){
-	  //dGamma
-	  cur += -C*exp(-t2*gamma)*rate*(1.0 - exp(-t1*gamma))/(gamma*gamma) + C*exp(-t1*gamma - t2*gamma)*t1*rate/gamma - C*exp(-t2*gamma)*t2*rate*(1.0 - exp(-t1*gamma))/gamma;
-	} else if (dPar == 10){
-	  // dKa
-	} else if (dPar == 11){
-	  // dTlag1
-	  if (in2 == 0){
-	    if (thisT < tinf){
-	      /* t1 = thisT; */
-	      /* t2 = 0; */
-	      cur += -A*exp(-thisT*alpha)*rate*alpha*alpha1;
-	      if (ncmt >= 2){
-		cur +=  -B*exp(-beta*thisT)*rate*beta*beta1;
-		if (ncmt >= 3){
-		  cur +=  -C*exp(-thisT*gamma)*rate*gamma*gamma1;
-		}
+	  if (wh0 == 10) return (ret+cur);
+	} else { // after infusion
+	  if (op->linLog){
+	    expr1=logRate+alpha1;
+	    cur += A*exp(expr1+log1mex(alpha*tinf)-alpha*(thisT-tinf)-log1mex(alpha*tau));
+	    if (ncmt >= 2){
+	      expr1=logRate+beta1;
+	      cur += B*exp(expr1+log1mex(beta*tinf)-beta*(thisT-tinf)-log1mex(beta*tau));
+	      if (ncmt >= 3){
+		expr1=logRate+gamma1;
+		cur += C*exp(expr1+log1mex(gamma*tinf)-gamma*(thisT-tinf)-log1mex(gamma*tau));
 	      }
-	    } else {
-	      /* t1 = tinf; */
-	      /* t2 = ThisT-tinf; */
-	      cur +=  A*exp(-alpha*(thisT - tinf))*rate*alpha*alpha1*(1.0 - exp(-tinf*alpha));
-	      if (ncmt >= 2){
-		cur +=  B*exp(-beta*(thisT - tinf))*rate*beta*beta1*(1.0 - exp(-tinf*beta));
-		if (ncmt >= 3){
-		  cur +=  C*exp(-gamma*(thisT - tinf))*rate*gamma*gamma1*(1.0 - exp(-tinf*gamma));
-		}
+	    }
+	  } else {
+	    cur += rate*A*alpha1*((1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
+	    if (ncmt >= 2){
+	      cur += rate*B*beta1*((1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/(1-exp(-beta*tau)));
+	      if (ncmt >= 3){
+		cur += rate*C*gamma1*((1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/(1-exp(-gamma*tau)));
 	      }
 	    }
 	  }
-	} else if (dPar == 12){
-	  // dTlag2
-	  if (in2 != 0){
-	    if (thisT < tinf){
-	      /* t1 = thisT; */
-	      /* t2 = 0; */
-	      cur += -A*exp(-thisT*alpha)*rate*alpha*alpha1;
-	      if (ncmt >= 2){
-		cur +=  -B*exp(-beta*thisT)*rate*beta*beta1;
-		if (ncmt >= 3){
-		  cur +=  -C*exp(-thisT*gamma)*rate*gamma*gamma1;
-		}
-	      }
-	    } else {
-	      /* t1 = tinf; */
-	      /* t2 = ThisT-tinf; */
-	      cur +=  A*exp(-alpha*(thisT - tinf))*rate*alpha*alpha1*(1.0 - exp(-tinf*alpha));
-	      if (ncmt >= 2){
-		cur +=  B*exp(-beta*(thisT - tinf))*rate*beta*beta1*(1.0 - exp(-tinf*beta));
-		if (ncmt >= 3){
-		  cur +=  C*exp(-gamma*(thisT - tinf))*rate*gamma*gamma1*(1.0 - exp(-tinf*gamma));
-		}
-	      }
+	  if (wh0 == 10) return (ret+cur);
+	}
+      } else {
+	t1  = ((thisT < tinf) ? thisT : tinf);        //during infusion
+	t2  = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
+	if (op->linLog){
+	  cur +=  A*exp(logRate+alpha1+log1mex(alpha*t1)-alpha*t2);
+	  if (ncmt >= 2){
+	    cur +=  B*exp(logRate+beta1+log1mex(beta*t1)-beta*t2);
+	    if (ncmt >= 3){
+	      cur +=  C*exp(logRate+gamma1+log1mex(gamma*t1)-gamma*t2);
 	    }
 	  }
-	} else if (dPar == 13){
-	  // dF1
-	  if (in2!=0){
-	    if (whI == 1){
-	      // Duration where tinfM=tinf*F
-	      if (thisT < tinf){
-		/* t1 = thisT; */
-		/* t2 = 0; */
-	      } else {
-		/* t1 = tinf; */
-		/* t2 = ThisT-tinf; */
-		cur +=  A*exp(-alpha*(thisT - tinf) - tinf*alpha)*rate*alpha*alpha1 + A*exp(-alpha*(thisT - tinf))*rate*alpha*alpha1*(1.0 - exp(-tinf*alpha))*tinf/F;
-		if (ncmt >= 2){
-		  cur +=  B*exp(-beta*(thisT - tinf) - tinf*beta)*rate*beta*beta1 + B*exp(-beta*(thisT - tinf))*rate*beta*beta1*(1.0 - exp(-tinf*beta))*tinf/F;
-		  if (ncmt >= 3){
-		    cur +=  C*exp(-gamma*(thisT - tinf) - tinf*gamma)*rate*gamma*gamma1 + C*exp(-gamma*(thisT - tinf))*rate*gamma*gamma1*(1.0 - exp(-tinf*gamma))*tinf/F;
-		  }
-		}
-	      }
-	    } else {
-	      // Rate where rate=F*rate0
-	      cur +=  rate*A*alpha1*(1.0-exp(-alpha*t1))*exp(-alpha*t2)/F;
-	      if (ncmt >= 2){
-		cur +=  rate*B*beta1*(1.0-exp(-beta*t1))*exp(-beta*t2)/F;
-		if (ncmt >= 3){
-		  cur +=  rate*C*gamma1*(1.0-exp(-gamma*t1))*exp(-gamma*t2)/F;
-		}
-	      }
-	    }
-	  }
-	} else if (dPar == 14){
-	  // dF2
-	  if (in2 == 0){
-	    if (whI == 1){
-	      // Duration where tinfM=tinf*F
-	      if (thisT < tinf){
-		/* t1 = thisT; */
-		/* t2 = 0; */
-	      } else {
-		/* t1 = tinf; */
-		/* t2 = ThisT-tinf; */
-		cur +=  A*exp(-alpha*(thisT - tinf) - tinf*alpha)*rate*alpha*alpha1 + A*exp(-alpha*(thisT - tinf))*rate*alpha*alpha1*(1.0 - exp(-tinf*alpha))*tinf/F;
-		if (ncmt >= 2){
-		  cur +=  B*exp(-beta*(thisT - tinf) - tinf*beta)*rate*beta*beta1 + B*exp(-beta*(thisT - tinf))*rate*beta*beta1*(1.0 - exp(-tinf*beta))*tinf/F;
-		  if (ncmt >= 3){
-		    cur +=  C*exp(-gamma*(thisT - tinf) - tinf*gamma)*rate*gamma*gamma1 + C*exp(-gamma*(thisT - tinf))*rate*gamma*gamma1*(1.0 - exp(-tinf*gamma))*tinf/F;
-		  }
-		}
-	      }
-	    } else {
-	      // Rate where rate=F*rate0
-	      cur +=  rate*A*alpha1*(1.0-exp(-alpha*t1))*exp(-alpha*t2)/F;
-	      if (ncmt >= 2){
-		cur +=  rate*B*beta1*(1.0-exp(-beta*t1))*exp(-beta*t2)/F;
-		if (ncmt >= 3){
-		  cur +=  rate*C*gamma1*(1.0-exp(-gamma*t1))*exp(-gamma*t2)/F;
-		}
-	      }
+	} else {
+	  cur +=  rate*A*alpha1*(1.0-exp(-alpha*t1))*exp(-alpha*t2);
+	  if (ncmt >= 2){
+	    cur +=  rate*B*beta1*(1.0-exp(-beta*t1))*exp(-beta*t2);
+	    if (ncmt >= 3){
+	      cur +=  rate*C*gamma1*(1.0-exp(-gamma*t1))*exp(-gamma*t2);
 	    }
 	  }
 	}
@@ -751,271 +320,55 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	thisT = tT -tlag;
 	if (thisT < 0) continue;
 	tau = ind->ii[l];
-	if (dPar==0){
-	  if (op->linLog){
-	    expr1 = log(dose)+log(F);
-	    res = ((oral == 1) ? exp(expr1-ka*thisT-log1mex(ka*tau)) : 0.0);
-	    cur += A*(exp(expr1-alpha*thisT-log1mex(alpha*tau))-res);
-	    if (ncmt >= 2){
-	      cur +=  B*(exp(expr1-beta*thisT-log1mex(beta*tau))-res);
-	      if (ncmt >= 3){
-		cur += C*(exp(expr1-gamma*thisT-log1mex(gamma*tau))-res);
-	      }
-	    }
-	  } else {
-	    res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	    cur += dose*F*A*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
-	    if (ncmt >= 2){
-	      cur +=  dose*F*B*(exp(-beta*thisT)/(1-exp(-beta*tau))-res);
-	      if (ncmt >= 3){
-		cur += dose*F*C*(exp(-gamma*thisT)/(1-exp(-gamma*tau))-res);
-	      }
-	    }
-	  }
-	  // ss=1 is equivalent to a reset + ss dose
-	  if (wh0 == 10) return(ret+cur);
-	} else if (dPar == 1){
-	  // dA1
-	  if (in2 == 0){
-	    res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	    cur += dose*F*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
-	  }
-	} else if (dPar == 2) {
-	  // dA2
-	  if (in2 != 0){
-	    res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	    cur += dose*F*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
-	  }
-	} else if (dPar == 3){
-	  // dAlpha
+	if (op->linLog){
 	  res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	  cur += A*F*dose*(-exp(-thisT*alpha)*thisT/(1-exp(-tau*alpha))-exp(-tau*alpha-thisT*alpha)*tau/R_pow_di(1-exp(-tau*alpha),2));
-	} else if (dPar == 4 && ncmt >= 2){
-	  // dB1
-	  if (in2 == 0){
-	    res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	    cur += dose*F*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
-	  }
-	} else if (dPar == 5 && ncmt >= 2){
-	  // dB2
-	  if (in2 != 0){
-	    res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	    cur += dose*F*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
-	  }
-	} else if (dPar == 6 && ncmt >= 2){
-	  // dBeta
-	  res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	  cur +=  B*F*dose*(-exp(-beta*thisT)*thisT/(1-exp(-tau*beta))-exp(-beta*thisT-tau*beta)*tau/R_pow_di(1-exp(-tau*beta),2));
-	} else if (dPar == 7 && ncmt >= 3){
-	  // dC1
-	  if (in2 == 0){
-	    res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	    cur += dose*F*C*(exp(-gamma*thisT)/(1-exp(-gamma*tau))-res);
-	  }
-	} else if (dPar == 8 && ncmt >= 3){
-	  if (in2 != 0){
-	    res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	    cur += dose*F*C*(exp(-gamma*thisT)/(1-exp(-gamma*tau))-res);
-	  }
-	} else if (dPar == 9 && ncmt >= 3){
-	  res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	  cur += C*F*dose*(-exp(-thisT*gamma)*thisT/(1-exp(-tau*gamma))-exp(-tau*gamma-thisT*gamma)*tau/R_pow_di(1-exp(-tau*gamma),2));
-	} else if (dPar == 10){
-	  /* res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0); */
-	  if (oral == 1){
-	    cur += A*F*dose*(exp(-ka*thisT)*thisT/(1-exp(-ka*tau))+exp(-ka*tau-ka*thisT)*tau/R_pow_di(1-exp(-ka*tau),2));
-	    if (ncmt >= 2){
-	      cur +=  B*F*dose*(exp(-ka*thisT)*thisT/(1-exp(-ka*tau))+exp(-ka*tau-ka*thisT)*tau/R_pow_di(1-exp(-ka*tau),2));
-	      if (ncmt >= 3){
-		cur += C*F*dose*(exp(-ka*thisT)*thisT/(1-exp(-ka*tau))+exp(-ka*tau-ka*thisT)*tau/R_pow_di(1-exp(-ka*tau),2));
-	      }
+	  cur += dose*F*A*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
+	  if (ncmt >= 2){
+	    cur +=  dose*F*B*(exp(-beta*thisT)/(1-exp(-beta*tau))-res);
+	    if (ncmt >= 3){
+	      cur += dose*F*C*(exp(-gamma*thisT)/(1-exp(-gamma*tau))-res);
 	    }
 	  }
-	} else if (dPar == 11){
-	  // dTlag1
-	  // thisT = tT -tlag;
-	  if (in2==0){
-	    res = ((oral == 1) ? -exp(-ka*thisT)*ka/(1-exp(-ka*tau)) : 0.0);
-	    cur += A*F*dose*(-exp(-thisT*alpha)*alpha/(1-exp(-tau*alpha))-res);
-	    if (ncmt >= 2){
-	      cur += -B*F*dose*(-exp(-beta*thisT)*beta/(1-exp(-tau*beta))-res);
-	      if (ncmt >= 3){
-		cur += -C*F*dose*(-exp(-thisT*gamma)*gamma/(1-exp(-tau*gamma))-res);
-	      }
-	    }
-	  }
-	} else if (dPar == 12){
-	  // dTlag2
-	  if (in2!=0){
-	    res = ((oral == 1) ? -exp(-ka*thisT)*ka/(1-exp(-ka*tau)) : 0.0);
-	    cur += A*F*dose*(-exp(-thisT*alpha)*alpha/(1-exp(-tau*alpha))-res);
-	    if (ncmt >= 2){
-	      cur += -B*F*dose*(-exp(-beta*thisT)*beta/(1-exp(-tau*beta))-res);
-	      if (ncmt >= 3){
-		cur += -C*F*dose*(-exp(-thisT*gamma)*gamma/(1-exp(-tau*gamma))-res);
-	      }
-	    }
-	  }
-	} else if (dPar == 13){
-	  // dF1
-	  if (in2==0){
-	    res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	    cur += dose*A*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
-	    if (ncmt >= 2){
-	      cur +=  dose*B*(exp(-beta*thisT)/(1-exp(-beta*tau))-res);
-	      if (ncmt >= 3){
-		cur += dose*C*(exp(-gamma*thisT)/(1-exp(-gamma*tau))-res);
-	      }
-	    }
-	  }
-	} else if (dPar == 14){
-	  // dF2
-	  if (in2!=0){
-	    res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	    cur += dose*A*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
-	    if (ncmt >= 2){
-	      cur +=  dose*B*(exp(-beta*thisT)/(1-exp(-beta*tau))-res);
-	      if (ncmt >= 3){
-		cur += dose*C*(exp(-gamma*thisT)/(1-exp(-gamma*tau))-res);
-	      }
+	} else {
+	  expr1 = log(dose)+log(F);
+	  res = ((oral == 1) ? exp(expr1-ka*thisT-log1mex(ka*tau)) : 0.0);
+	  cur += A*(exp(expr1-alpha*thisT-log1mex(alpha*tau))-res);
+	  if (ncmt >= 2){
+	    cur +=  B*(exp(expr1-beta*thisT-log1mex(beta*tau))-res);
+	    if (ncmt >= 3){
+	      cur += C*(exp(expr1-gamma*thisT-log1mex(gamma*tau))-res);
 	    }
 	  }
 	}
+	// ss=1 is equivalent to a reset + ss dose
+	if (wh0 == 10) return(ret+cur);
       } else if (wh0 == 30) {
 	error("You cannot turn off a compartment with a solved system.");
       } else {
 	tT = t - ind->all_times[ind->idose[l]];
 	thisT = tT -tlag;
-	if (dPar == 0){
-	  if (thisT < 0) continue;
-	  if (op->linLog){
-	    expr1 = log(dose)+log(F);
-	    res = ((oral == 1) ? exp(expr1-ka*thisT) : 0.0);
-	    cur +=  A*(exp(expr1-alpha*thisT)-res);
-	    if (ncmt >= 2){
-	      cur +=  B*(exp(expr1-beta*thisT)-res);
-	      if (ncmt >= 3){
-		cur += C*(exp(expr1-gamma*thisT)-res);
-	      }
-	    }
-	  } else {
-	    res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	    cur +=  dose*F*A*(exp(-alpha*thisT)-res);
-	    if (ncmt >= 2){
-	      cur +=  dose*F*B*(exp(-beta*thisT)-res);
-	      if (ncmt >= 3){
-		cur += dose*F*C*(exp(-gamma*thisT)-res);
-	      }
+	if (thisT < 0) continue;
+	if (op->linLog){
+	  expr1 = log(dose)+log(F);
+	  res = ((oral == 1) ? exp(expr1-ka*thisT) : 0.0);
+	  cur +=  A*(exp(expr1-alpha*thisT)-res);
+	  if (ncmt >= 2){
+	    cur +=  B*(exp(expr1-beta*thisT)-res);
+	    if (ncmt >= 3){
+	      cur += C*(exp(expr1-gamma*thisT)-res);
 	    }
 	  }
-	} else if (dPar == 1){
-	  // dA1
-	  if (in2==0){
-	    res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	    cur +=  dose*F*(exp(-alpha*thisT)-res);
-	  }
-	} else if (dPar == 2){
-	  // dA2
-	  if (in2!=0){
-	    res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	    cur +=  dose*F*(exp(-alpha*thisT)-res);
-	  }
-	} else if (dPar == 3){
-	  // dAlpha
+	} else {
 	  res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	  cur +=  -F*exp(-thisT*alpha)*dose*thisT;
-	} else if (dPar == 4 && ncmt >= 2){
-	  // dB1
-	  if (in2==0){
-	    res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	    cur +=  dose*F*(exp(-beta*thisT)-res);
-	  }
-	} else if (dPar == 5 && ncmt >= 2){
-	  // dB2
-	  if (in2!=0){
-	    res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	    cur +=  dose*F*(exp(-beta*thisT)-res);
-	  }
-	} else if (dPar == 6 && ncmt >= 2){
-	  // dBeta
-	  res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	  cur += -B*F*exp(-beta*thisT)*dose*thisT;
-	} else if (dPar == 7 && ncmt >= 3){
-	  // dC1
-	  res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	  if (in2==0){
-	    cur += dose*F*(exp(-gamma*thisT)-res);
-	  }
-	} else if (dPar == 8 && ncmt >= 3) {
-	  // dC2
-	  res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	  if (in2!=0){
-	    cur += dose*F*(exp(-gamma*thisT)-res);
-	  }
-	} else if (dPar == 9 && ncmt >= 3){
-	  // dGamma
-	  res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	  cur += -C*F*exp(-thisT*gamma)*dose*thisT;
-	} else if (dPar == 10){
-	  //dKa
-	  if (oral == 1){
-	    cur +=  A*F*exp(-ka*thisT)*dose*thisT;
-	    if (ncmt >= 2){
-	      cur +=  B*F*exp(-ka*thisT)*dose*thisT;
-	      if (ncmt >= 3){
-		cur += C*F*exp(-ka*thisT)*dose*thisT;
-	      }
-	    }
-	  }
-	} else if (dPar == 11){
-	  //dTlag1
-	  if (in2==0){
-	    res = ((oral == 1) ? -exp(-ka*thisT)*ka : 0.0);
-	    cur +=  -A*F*dose*(-exp(-thisT*alpha)*alpha - res);
-	    if (ncmt >= 2){
-	      cur +=  -B*F*dose*(-exp(-beta*thisT)*beta - res);
-	      if (ncmt >= 3){
-		cur += -C*F*dose*(-exp(-thisT*gamma)*gamma - res);
-	      }
-	    }
-	  }
-	} else if (dPar == 12){
-	  //dTlag2
-	  if (in2!=1){
-	    res = ((oral == 1) ? -exp(-ka*thisT)*ka : 0.0);
-	    cur +=  -A*F*dose*(-exp(-thisT*alpha)*alpha - res);
-	    if (ncmt >= 2){
-	      cur +=  -B*F*dose*(-exp(-beta*thisT)*beta - res);
-	      if (ncmt >= 3){
-		cur += -C*F*dose*(-exp(-thisT*gamma)*gamma - res);
-	      }
-	    }
-	  }
-	} else if (dPar == 13){
-	  //dF1
-	  if (in2==0){
-	    res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	    cur +=  dose*A*(exp(-alpha*thisT)-res);
-	    if (ncmt >= 2){
-	      cur +=  dose*B*(exp(-beta*thisT)-res);
-	      if (ncmt >= 3){
-		cur += dose*C*(exp(-gamma*thisT)-res);
-	      }
-	    }
-	  }
-	} else if (dPar == 14){
-	  //dF2
-	  if (in2!=0){
-	    res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	    cur +=  dose*A*(exp(-alpha*thisT)-res);
-	    if (ncmt >= 2){
-	      cur +=  dose*B*(exp(-beta*thisT)-res);
-	      if (ncmt >= 3){
-		cur += dose*C*(exp(-gamma*thisT)-res);
-	      }
+	  cur +=  dose*F*A*(exp(-alpha*thisT)-res);
+	  if (ncmt >= 2){
+	    cur +=  dose*F*B*(exp(-beta*thisT)-res);
+	    if (ncmt >= 3){
+	      cur += dose*F*C*(exp(-gamma*thisT)-res);
 	    }
 	  }
 	}
+	
       }
       break;
     default:
@@ -1042,6 +395,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
   } //l
   return ret;
 }
+
 
 /* Authors: Robert Gentleman and Ross Ihaka and The R Core Team */
 /* Taken directly from https://github.com/wch/r-source/blob/922777f2a0363fd6fe07e926971547dd8315fc24/src/library/stats/src/approx.c*/

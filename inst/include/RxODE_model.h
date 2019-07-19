@@ -78,7 +78,7 @@ typedef double (*solveLinB_p) (rx_solve *rx, unsigned int id, double t, int linC
 			       double d_B, double d_B2, double d_beta,
 			       double d_C, double d_C2, double d_gamma,
 			       double d_ka, double d_tlag, double d_tlag2, double d_F, double d_F2,
-			       double d_rate, double d_dur, int dPar);
+			       double d_rate, double d_dur);
 
 
 typedef void (*_update_par_ptr_p)(double t, unsigned int id, rx_solve *rx, int idx);
@@ -105,7 +105,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 		 double d_C, double d_C2, double d_gamma,
 		 double d_ka, double d_tlag, double d_tlag2,
 		 double d_F, double d_F2,
-		 double d_rate, double d_dur, int dPar);
+		 double d_rate, double d_dur);
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
 SEXP _RxODE_rxAssignPtr(SEXP);
 #else

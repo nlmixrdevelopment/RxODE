@@ -351,31 +351,6 @@ function(a, b){
     return("(-1)")
 })
 
-.rxD$solveLinB <- list(
-    function(rx, id, t, linCmt, d_A, d_A2, d_alpha,
-             d_B, d_B2, d_beta, d_C, d_C2, d_gamma,
-             d_ka, d_tlag, d_tlag2, d_F, d_F2,
-             d_rate, d_dur, dPar){
-    stop("Cannot take the linCmt derivative with respect to rx; Dont ask.");
-},
-function(rx, id, t, linCmt, d_A, d_A2, d_alpha,
-             d_B, d_B2, d_beta, d_C, d_C2, d_gamma,
-             d_ka, d_tlag, d_tlag2, d_F, d_F2,
-             d_rate, d_dur, dPar){
-    stop("Cannot take linCmt derivative with respect to id")
-},
-function(rx, id, t, linCmt, d_A, d_A2, d_alpha,
-         d_B, d_B2, d_beta, d_C, d_C2, d_gamma,
-         d_ka, d_tlag, d_tlag2, d_F, d_F2,
-         d_rate, d_dur, dPar){
-    if (dPar != "0") stop("Can't take higer order derivatives")
-    return("solveLinB(", paste(c(rx, id, t, linCmt, d_A, d_A2, d_alpha,
-         d_B, d_B2, d_beta, d_C, d_C2, d_gamma,
-         d_ka, d_tlag, d_tlag2, d_F, d_F2,
-         d_rate, d_dur), collapse=","), ",1)")
-}
-)
-
 ## Approx a>=b by
 ## 1/2-1/2*tanh(k*x+delta)=1-tol
 ## 1/2-1+tol=1/2*tanh(k*x+delta)
