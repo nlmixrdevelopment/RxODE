@@ -783,7 +783,7 @@ rxToSE <- function(x, envir=NULL){
 
 ##'@rdname rxToSE
 ##'@export
-rxFromSE <- function(x, unknownDerivatives=c("error", "central", "forward")){
+rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
     .unknown <- c("central"=2L, "forward"=1L, "error"=0L)
     assignInMyNamespace(".rxFromNumDer", .unknown[match.arg(unknownDerivatives)])
     if (is(substitute(x),"character")){
