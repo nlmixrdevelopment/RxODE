@@ -136,7 +136,7 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ", calcSens=TRUE)
-
+``
     norm <- RxODE(sens, calcSens=FALSE)
     expect_false(norm$calcJac);
     expect_false(norm$calcSens);

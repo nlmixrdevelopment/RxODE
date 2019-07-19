@@ -623,21 +623,38 @@ RxODE <- function(model, modName = basename(wd),
             if (length(rxState(.ret)) == 0L){
                 stop("Sensitivities do not make sense for models without ODEs.")
             }
+            .stateInfo <- .rxGenFunState(.ret);
+            .s <- .rxLoadPrune(.ret, FALSE);
+            .s$..stateInfo <- .stateInfo
+            .rxJacobian(.s)
             if (!is(calcJac, "logical")){
                 calcJac <- FALSE
             }
             if (is.null(calcJac)) calcJac <- FALSE
-            if (!calcJac & length(.ret$dfdy) != 0L){
-                ## Remove the Jacobian from the cur
-                .new <- setNames(gsub(rex::rex(or(.ret$dfdy), "=", anything, "\n"), "",
-                                      .ret$model["normModel"]), NULL);
-                .ret <- rxModelVars(.new);
+            if (rxIs(calcSens,"logical")){
+                if (calcSens){
+                    calcSens <- .rxParams(model, TRUE);
+                }
             }
-            .new <- rxSymPySensitivity(.ret, calcSens=calcSens, calcJac=calcJac,
-                                       collapseModel=collapseModel);
+            .rxSens(.s, calcSens);
+            .tmp1 <- .s$..jacobian
+            if (!calcJac) .tmp1 <- ""
+            .tmp2 <- .s$..lhs
+            if (!collapseModel) .tmp2 <- ""
+            .new <- paste(c(.s$..stateInfo["state"],
+                            .s$..ddt,
+                            .tmp1,
+                            .s$..sens,
+                            .tmp2,
+                            .s$..stateInfo["statef"],
+                            .s$..stateInfo["dvid"],
+                            ""), collapse="\n")
             .ret <- rxModelVars(.new);
         } else {
             ## calcSens=FALSE removes the sensitivity equations.
+            .stateInfo <- .rxGenFunState(.ret);
+            .s <- .rxLoadPrune(.ret, FALSE);
+            .s$..stateInfo <- .stateInfo
             if (length(.ret$sens) != 0){
                 .new <- setNames(gsub(rex::rex("d/dt(", or(.ret$sens), ")=", anything, "\n"), "",
                                       .ret$model["normModel"]), NULL);
@@ -651,17 +668,22 @@ RxODE <- function(model, modName = basename(wd),
                     }
                 }
             }
-            if (.calcJac & length(.ret$dfdy) == 0){
+            if (.calcJac){
+                .rxJacobian(.s)
                 ## calcJac=TRUE, calcSens=FALSE
-                .new <- .rxSymPyJacobian(.ret);
-                .ret <- rxModelVars(.new);
-            } else if (!.calcJac & length(.ret$dfdy) != 0){
-                ## calcJac=FALSE, calcSens=FALSE
-                ## Now remove Jacobian too.
-                .new <- setNames(gsub(rex::rex(or(.ret$dfdy), "=", anything, "\n"), "",
-                                      .ret$model["normModel"]), NULL);
-                .ret <- rxModelVars(.new);
             }
+            .tmp1 <- .s$..jacobian
+            if (!.calcJac) .tmp1 <- ""
+            .tmp2 <- .s$..lhs
+            if (!collapseModel) .tmp2 <- ""
+            .new <- paste(c(.s$..stateInfo["state"],
+                            .s$..ddt,
+                            .tmp1,
+                            .tmp2,
+                            .s$..stateInfo["statef"],
+                            .s$..stateInfo["dvid"],
+                            ""), collapse="\n")
+            .ret <- rxModelVars(.new);
         }
     } else if (!is.null(calcJac)){
         if (length(.ret$sens) != 0){

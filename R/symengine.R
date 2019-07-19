@@ -455,7 +455,7 @@ rxToSE <- function(x, envir=NULL){
                 if (.isEnv && is.name(x)){
                     ## message(.ret)
                     if (substr(x, 1, 1) != "."){
-                        if (!exists(.ret, envir=envir))
+                        if (!exists(.ret, envir=envir) && is.name(x))
                             assign(.ret, symengine::Symbol(.ret), envir=envir)
                     }
                 }
@@ -513,10 +513,13 @@ rxToSE <- function(x, envir=NULL){
                    identical(x[[1]], quote(`<-`)) ||
                    identical(x[[1]], quote(`~`))){
             .var <- .rxToSE(x[[2]], envir=envir);
-            if (inherits(x[[3]], "numeric")){
+            if (inherits(x[[3]], "numeric") || inherits(x[[3]], "integer")){
                 if (.isEnv){
-                    assign(.var, x[[3]], envir=envir)
+                    if (envir$..doConst){
+                        assign(.var, x[[3]], envir=envir)
+                    }
                 }
+                .expr <- x[[3]]
             } else {
                 .expr <- paste0("with(envir,",
                                      .rxToSE(x[[3]],
@@ -524,37 +527,39 @@ rxToSE <- function(x, envir=NULL){
                 .expr <- eval(parse(text=.expr));
                 if (.isEnv){
                     assign(.var, .expr, envir=envir)
-                    if (regexpr(rex::rex(or(.regRate,
-                                            .regDur,
-                                            .regLag,
-                                            .regF,
-                                            regIni0,
-                                            regDDt)), .var) != -1){
-                        .rx <- paste0(rxFromSE(.var), "=",
-                                      rxFromSE(.expr));
-                        if (regexpr(rex::rex(or(regSens, regSensEtaTheta)),
-                                    .var) != -1){
-                            assign("..sens0", c(envir$..sens0, .rx),
+                }
+            }
+            if (.isEnv){
+                if (regexpr(rex::rex(or(.regRate,
+                                        .regDur,
+                                        .regLag,
+                                        .regF,
+                                        regIni0,
+                                        regDDt)), .var) != -1){
+                    .rx <- paste0(rxFromSE(.var), "=",
+                                  rxFromSE(.expr));
+                    if (regexpr(rex::rex(or(regSens, regSensEtaTheta)),
+                                .var) != -1){
+                        assign("..sens0", c(envir$..sens0, .rx),
                                envir=envir)
-                        } else {
-                            assign("..ddt", c(envir$..ddt, .rx),
+                    } else {
+                        assign("..ddt", c(envir$..ddt, .rx),
                                envir=envir)
-                        }
-                    } else if (regexpr(rex::rex(or(regDfDy,
-                                                   regDfDyTh)), .var) != -1){
-                        .rx <- paste0(rxFromSE(.var), "=",
-                                      rxFromSE(.expr))
-                        assign("..jac0", c(envir$..jac0, .rx),
-                               envir=envir)
-                    } else if (!identical(x[[1]], quote(`~`))) {
-                        .rx <- paste0(rxFromSE(.var), "=",
-                                      rxFromSE(.expr))
-                        if (!any(.var == c("rx_pred_", "rx_r_"))){
-                            assign("..lhs", c(envir$..lhs, .rx),
-                                   envir=envir)
-                        }
-
                     }
+                } else if (regexpr(rex::rex(or(regDfDy,
+                                               regDfDyTh)), .var) != -1){
+                    .rx <- paste0(rxFromSE(.var), "=",
+                                  rxFromSE(.expr))
+                    assign("..jac0", c(envir$..jac0, .rx),
+                           envir=envir)
+                } else if (!identical(x[[1]], quote(`~`))) {
+                    .rx <- paste0(rxFromSE(.var), "=",
+                                  rxFromSE(.expr))
+                    if (!any(.var == c("rx_pred_", "rx_r_"))){
+                        assign("..lhs", c(envir$..lhs, .rx),
+                               envir=envir)
+                    }
+
                 }
             }
         } else if (identical(x[[1]], quote(`[`))){
@@ -1295,7 +1300,7 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
 ##' @return RxODE/symengine environment
 ##' @author Matthew Fidler
 ##' @export
-rxS <- function(x){
+rxS <- function(x, doConst=TRUE){
     .cnst <- names(.rxSEreserved)
     .env <- new.env(parent = loadNamespace("symengine"))
     .env$..mv <- rxModelVars(x);
@@ -1303,6 +1308,7 @@ rxS <- function(x){
     .env$..ddt <- c();
     .env$..sens0 <- c();
     .env$..lhs <- c();
+    .env$..doConst <- doConst
     .env$rxTBS <- .rxFunction("rxTBS")
     .env$rxTBSd <- .rxFunction("rxTBSd")
     .env$rxTBSd2 <- .rxFunction("rxTBSd2")

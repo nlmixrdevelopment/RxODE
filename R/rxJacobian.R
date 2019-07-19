@@ -33,7 +33,6 @@ rxExpandGrid <- function(x, y, type=0L){
 
 ## Assumes model is loaded.
 .rxJacobian <- function(model, vars=TRUE){
-    .symengine <- rxIs(model, "rxS");
     if (rxIs(vars,"logical")){
         if (vars){
             .pars  <- .rxParams(model, TRUE);
@@ -222,6 +221,16 @@ rxExpandGrid <- function(x, y, type=0L){
     return(list(.full, .extraPars));
 }
 
+.rxLoadPrune <- function(mod, doConst=TRUE){
+    message("Pruning branches...", appendLF=FALSE)
+    .newmod <-rxGetModel(rxPrune(mod));
+    message("done.")
+    message("Loading into symengine environment...", appendLF=FALSE)
+    .newmod <- rxS(.newmod, doConst);
+    message("done.")
+    return(.newmod)
+}
+
 ##' Generate and load RxODE function into sympy environment
 ##'
 ##' @inheritParams rxSEinner
@@ -242,14 +251,9 @@ rxExpandGrid <- function(x, y, type=0L){
     .extraPars <- .newmod[[2]]
     .newmod <- .newmod[[1]]
     message("done.")
-    message("Pruning branches...", appendLF=FALSE)
-    .newmod <-rxGetModel(rxPrune(.newmod));
-    message("done.")
-    message("Loading into symengine environment...", appendLF=FALSE)
-    .newmod <- rxS(.newmod);
+    .newmod <- .rxLoadPrune(.newmod)
     .newmod$..stateInfo <- .stateInfo
     .newmod$..extraPars <- .extraPars
-    message("done.")
     return(.newmod)
 }
 ##' Generate the ETA sensitivities for FO related methods
