@@ -1624,6 +1624,17 @@ RcppExport SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP objSEXP, SEXP whatSEXP, SEX
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// rxOptRep_
+RObject rxOptRep_(RObject input);
+RcppExport SEXP _RxODE_rxOptRep_(SEXP inputSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type input(inputSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxOptRep_(input));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxStack
 List rxStack(List Data, Nullable<CharacterVector> vars);
 RcppExport SEXP _RxODE_rxStack(SEXP DataSEXP, SEXP varsSEXP) {

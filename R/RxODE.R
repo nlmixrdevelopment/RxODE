@@ -1256,7 +1256,7 @@ rxTrans.default <- function(model,
 
 ##' @rdname rxTrans
 ##' @export
-rxTrans.character <- function(model,
+rxTrans.character <- memoise::memoise(function(model,
                               modelPrefix = "",                                         # Model Prefix
                               md5         = "",                                         # Md5 of model
                               modName     = NULL,                                       # Model name for DLL
@@ -1303,7 +1303,7 @@ rxTrans.character <- function(model,
     } else {
         return(c(.ret$trans, .ret$md5));
     }
-}
+})
 
 ##' @rdname rxIsLoaded
 ##' @export

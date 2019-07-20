@@ -342,9 +342,7 @@ rxExpandGrid <- function(x, y, type=0L){
         message("done");
     }
     if (optExpression){
-        message("Optimizing Predictions/EBE model...", appendLF=FALSE)
-        .s$..pred <- rxOptExpr(.s$..pred)
-        message("done");
+        .s$..pred <- rxOptExpr(.s$..pred, "EBE model")
     }
 }
 ##' Finalize inner RxODE based on symengine saved info
@@ -384,9 +382,7 @@ rxExpandGrid <- function(x, y, type=0L){
         message("done");
     }
     if (optExpression){
-        message("Optimizing inner problem...", appendLF=FALSE)
-        .s$..inner <- rxOptExpr(.s$..inner)
-        message("done");
+        .s$..inner <- rxOptExpr(.s$..inner, "inner model")
     }
     .s$..inner <- paste0(.s$..stateInfo["state"],"\n", .s$..inner);
 }

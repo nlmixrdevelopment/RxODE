@@ -140,101 +140,87 @@
 ##'     modified.
 ##' @author Matthew L. Fidler
 ##' @export
-rxOptExpr <- function(x){
+rxOptExpr <- function(x, msg="model"){
     .rxOptEnv$.list <- list();
     .rxOptEnv$.rep <- list();
     .rxOptEnv$.exclude <- "";
-    .lines <- strsplit(rxNorm(x), "\n")[[1]];
-    .f <- function(line, onlyRet=FALSE){
-        .expr <- eval(parse(text=paste0("quote({",line,"})")))
-        .expr <- .expr[[2]];
-        .silent <- identical(.expr[[1]], quote(`~`))
-        .f2 <- function(x){
-            if (is.name(x) || is.atomic(x)){
-                return(as.character(x))
-            } else if (is.call(x)){
-                if (identical(x[[1]], quote(`*`)) ||
-                    identical(x[[1]], quote(`^`)) ||
-                    identical(x[[1]], quote(`+`)) ||
-                    identical(x[[1]], quote(`-`)) ||
-                    identical(x[[1]], quote(`/`)) ||
-                    identical(x[[1]], quote(`==`)) ||
-                    identical(x[[1]], quote(`>=`)) ||
-                    identical(x[[1]], quote(`<=`)) ||
-                    identical(x[[1]], quote(`>`)) ||
-                    identical(x[[1]], quote(`<`)) ||
-                    identical(x[[1]], quote(`!=`)) ||
-                    identical(x[[1]], quote(`&&`)) ||
-                    identical(x[[1]], quote(`||`)) ||
-                    identical(x[[1]], quote(`&`)) ||
-                    identical(x[[1]], quote(`|`))){
-                    if (length(x) == 3){
-                        return(paste0(.f2(x[[2]]), as.character(x[[1]]),
-                                      .f2(x[[3]])));
-                    } else {
-                        ## Unary Operators
-                        return(paste(as.character(x[[1]]),
-                                     .f2(x[[2]])))
-                    }
-                } else if (identical(x[[1]], quote(`[`))){
-                    return(paste0(.f2(x[[2]]), "[", .f2(x[[3]]), "]"));
-                } else {
-                    .ret0 <- lapply(x, .f2);
-                    .ret <- paste0(.ret0[[1]], "(")
-                    if (.ret == "((") .ret <- "("
-                    .ret0 <- .ret0[-1];
-                    .ret <- paste0(.ret, paste(unlist(.ret0), collapse=", "), ")");
+    .f <- function(x, onlyRet=FALSE, progress=FALSE){
+        if (is.name(x) || is.atomic(x)){
+            return(as.character(x))
+        } else if (is.call(x)){
+            .x2 <- x[-1];
+            if (identical(x[[1]], quote(`{`))){
+                ## Probably can implement a progress bar here.
+                if (progress){
+                    rxProgress(length(.x2));
+                    on.exit({rxProgressAbort("Stopped optimizing duplicate expressions")});
+                    .ret <- unlist(lapply(.x2, function(x){
+                        rxTick()
+                        .f(x)
+                    }))
+                    rxProgressStop();
                     return(.ret)
-                }
-            }
-        }
-        if (length(.expr) == 3){
-            .x2 <- .expr[[2]];
-            .x3 <- .expr[[3]];
-            .l2 <- c(.f2(.x2), .f2(.x3))
-            .l1 <- gsub(" +", "", .l2[1]);
-            .rxOptEnv$.exclude <- .l1;
-            .x1 <- as.character(.expr[[1]]);
-            if (any(.x1 == c("=", "~", "<-"))){
-                .ret <- eval(parse(text=sprintf(".rxOptExpr(quote(%s))", gsub(";$", "",.l2[2]))));
-                if (.silent){
-                    return(paste0(.l1, " ~ ", .ret))
                 } else {
-                    if (onlyRet) return(.ret)
-                    return(paste0(.l1, " = ", .ret))
+                    return(unlist(lapply(.x2, .f, onlyRet=onlyRet)))
                 }
+            } else if (identical(x[[1]], quote(`*`)) ||
+                identical(x[[1]], quote(`^`)) ||
+                identical(x[[1]], quote(`+`)) ||
+                identical(x[[1]], quote(`-`)) ||
+                identical(x[[1]], quote(`/`)) ||
+                identical(x[[1]], quote(`==`)) ||
+                identical(x[[1]], quote(`>=`)) ||
+                identical(x[[1]], quote(`<=`)) ||
+                identical(x[[1]], quote(`>`)) ||
+                identical(x[[1]], quote(`<`)) ||
+                identical(x[[1]], quote(`!=`)) ||
+                identical(x[[1]], quote(`&&`)) ||
+                identical(x[[1]], quote(`||`)) ||
+                identical(x[[1]], quote(`&`)) ||
+                identical(x[[1]], quote(`|`))){
+                if (length(x) == 3){
+                    return(paste0(.f(x[[2]], onlyRet=onlyRet), as.character(x[[1]]),
+                                  .f(x[[3]], onlyRet=onlyRet)));
+                } else {
+                    ## Unary Operators
+                    return(paste(as.character(x[[1]]),
+                                 .f(x[[2]], onlyRet=onlyRet)))
+                }
+            } else if (identical(x[[1]], quote(`~`)) ||
+                       identical(x[[1]], quote(`=`)) ||
+                       identical(x[[1]], quote(`<-`))){
+                if (onlyRet){
+                    return(.rxOptExpr(x[[3]]));
+                } else {
+                    return(paste0(.f(x[[2]]),
+                       ifelse(identical(x[[1]], quote(`<-`)), "=", as.character(x[[1]])),
+                       .rxOptExpr(x[[3]])))
+                }
+            } else if (identical(x[[1]], quote(`[`))){
+                return(paste0(.f(x[[2]]), "[", .f(x[[3]]), "]"));
             } else {
-                return(line)
+                .ret0 <- lapply(x, .f);
+                .ret <- paste0(.ret0[[1]], "(")
+                if (.ret == "((") .ret <- "("
+                .ret0 <- .ret0[-1];
+                .ret <- paste0(.ret, paste(unlist(.ret0), collapse=", "), ")");
+                return(.ret)
             }
-        } else {
-            return(line)
         }
     }
-    .ret <- sapply(.lines, .f)
+    message(paste0("Finding duplicate expressions in ", msg, "..."))
+    .p <- eval(parse(text=paste0("quote({", x, "})")))
+    .lines <- .f(.p, progress=TRUE)
     .rxOptEnv$.list <- .rxOptEnv$.list[which(unlist(.rxOptEnv$.list) > 1L)];
     .exprs <- names(.rxOptEnv$.list)[order(nchar(names(.rxOptEnv$.list)))];
     .exprs <- .exprs[regexpr(rex::rex(start, regNum, end), .exprs, perl=TRUE) == -1]
     .exprs <- .exprs[regexpr(rex::rex(start, or("THETA[", "ETA["), any_numbers, "]", end), .exprs, perl=TRUE) == -1]
-    .exprsI <- sprintf("rx_expr_%03d", seq_along(.exprs))
     if (length(.exprs) > 0){
-        .rxOptEnv$.rep <- setNames(as.list(.exprsI), .exprs)
+        .rp <- rxOptRep_(.exprs)
+        .rxOptEnv$.rep <- as.list(.rp[[1]]);
         .rxOptEnv$.exclude <- ""
-        .lines0 <- sapply(.lines, .f);
-        while(TRUE){
-            .exprs0 <- sapply(paste("rx_dummy = ", .exprs), .f, onlyRet=TRUE)
-            .w <- which(.exprs0 != .exprsI);
-            .exprs[.w] <- .exprs0[.w]
-            .rxOptEnv$.rep <- setNames(as.list(.exprsI), .exprs)
-            .rxOptEnv$.exclude <- ""
-            .linesf <- sapply(.lines0, .f);
-            if (all(.linesf == .lines0)){
-                break;
-            } else {
-                .lines0 <- .linesf
-            }
-        }
-        .ret <- c(sprintf("rx_expr_%03d ~ %s", seq_along(.exprs), .exprs), .linesf);
-        return(paste(.ret, collapse="\n"))
+        message(paste0("Optimizing duplicate expressions in ", msg, "..."))
+        return(paste(c(.rp[[2]], .f(.p, progress=TRUE)), collapse="\n"))
     } else {
         return(x)
     }

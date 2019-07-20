@@ -527,6 +527,10 @@ rxSymInvCholEnvCalculate <- function(obj, what, theta = NULL) {
     .Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, what, theta)
 }
 
+rxOptRep_ <- function(input) {
+    .Call(`_RxODE_rxOptRep_`, input)
+}
+
 #' Stack a solved object for things like ggplot
 #'
 #' @param Data is a RxODE object to be stacked.
