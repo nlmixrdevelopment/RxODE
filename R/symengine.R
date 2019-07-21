@@ -401,11 +401,12 @@ rxD <- function(name, derivatives){
 ##' RxODE to symengine.R
 ##'
 ##' @param x expression
-##' @param envir \code{NULL}
+##' @param envir default is \code{NULL}; Environment to put symengine variables in.
+##' @param progress shows progress bar if true.
 ##' @return
 ##' @author Matthew L. Fidler
 ##' @export
-rxToSE <- function(x, envir=NULL){
+rxToSE <- function(x, envir=NULL, progress=FALSE){
     if (is(substitute(x),"character")){
         force(x);
     } else if (is(substitute(x), "{")){
@@ -428,20 +429,20 @@ rxToSE <- function(x, envir=NULL){
                     .val2 <- try(get(.xc, envir=.env), silent=TRUE);
                     if (inherits(.val2, "character")){
                         .val2 <- eval(parse(text=paste0("quote({", .val2, "})")))
-                        return(.rxToSE(.val2, envir))
+                        return(.rxToSE(.val2, envir, progress))
                     } else if (inherits(.val2, "numeric") || inherits(.val2, "integer")){
                         return(sprintf("%s", .val2))
                     }
                 }
             }
         }
-        return(.rxToSE(x, envir))
+        return(.rxToSE(x, envir, progress))
     }
-    return(.rxToSE(eval(parse(text=paste0("quote({", x, "})"))), envir))
+    return(.rxToSE(eval(parse(text=paste0("quote({", x, "})"))), envir, progress))
 }
 ##'@rdname
 ##'@export
-.rxToSE <- function(x, envir=NULL){
+.rxToSE <- function(x, envir=NULL, progress=FALSE){
     .cnst <- names(.rxSEreserved)
     .isEnv <- inherits(envir, "rxS") || inherits(envir, "environment")
     if (is.name(x) || is.atomic(x)){
@@ -473,9 +474,20 @@ rxToSE <- function(x, envir=NULL){
         if (identical(x[[1]], quote(`(`))){
             return(paste0("(", .rxToSE(x[[2]], envir=envir), ")"))
         } else if (identical(x[[1]], quote(`{`))){
-            .x2 <- x[-1];
-            return(paste(lapply(.x2, .rxToSE, envir=envir),
-                         collapse="\n"));
+            if (progress){
+                rxProgress(length(.x2));
+                on.exit({rxProgressAbort()});
+                .ret <- paste(lapply(.x2, function(x){
+                    rxTick
+                    .rxToSE(x, envir=envir)
+                }), collapse="\n")
+                rxProgressStop();
+                return(.ret)
+            } else {
+                .x2 <- x[-1];
+                return(paste(lapply(.x2, .rxToSE, envir=envir),
+                             collapse="\n"));
+            }
         } else if (identical(x[[1]], quote(`*`)) ||
                    identical(x[[1]], quote(`^`)) ||
                    identical(x[[1]], quote(`+`)) ||
@@ -757,10 +769,10 @@ rxToSE <- function(x, envir=NULL){
             .ret0 <- c(list(as.character(x[[1]])), lapply(x[-1], .rxToSE, envir=envir));
             if (.isEnv) envir$..curCall <- .lastCall
             .SEeq <- c(.rxSEeq, .rxSEeqUsr)
+            if (.isEnv && as.character(.ret0[[1]]) == "solveLinB") envir$..solveLinB <- TRUE
             .nargs <- .SEeq[paste(.ret0[[1]])];
             if (!is.na(.nargs)){
                 if (.nargs == length(.ret0) - 1){
-
                     .ret <- paste0(.ret0[[1]], "(")
                     .ret0 <- .ret0[-1];
                     .ret <- paste0(.ret, paste(unlist(.ret0), collapse=","), ")");
@@ -975,6 +987,8 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
     return(list(.ret, .env$found))
 }
 
+.rxAssignLinB <- FALSE
+
 ##'@export
 ##'@rdname rxToSE
 .rxFromSE <- function(x){
@@ -1138,6 +1152,9 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
             }
             .ret0 <- lapply(lapply(x, .stripP), .rxFromSE)
             .SEeq <- c(.rxSEeq, .rxSEeqUsr)
+            if (.rxAssignLinB && paste(.ret0[[1]]) == "solveLinB"){
+                return("rx1c");
+            }
             .nargs <- .SEeq[paste(.ret0[[1]])];
             if (!is.na(.nargs)){
                 if (.nargs == length(.ret0) - 1){
@@ -1321,6 +1338,7 @@ rxS <- function(x, doConst=TRUE){
     .cnst <- names(.rxSEreserved)
     .env <- new.env(parent = loadNamespace("symengine"))
     .env$..mv <- rxModelVars(x);
+    .env$..solveLinB <- FALSE
     .env$..jac0 <- c();
     .env$..ddt <- c();
     .env$..sens0 <- c();

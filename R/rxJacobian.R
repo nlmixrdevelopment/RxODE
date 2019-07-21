@@ -225,9 +225,11 @@ rxExpandGrid <- function(x, y, type=0L){
     message("Pruning branches...", appendLF=FALSE)
     .newmod <-rxGetModel(rxPrune(mod));
     message("done.")
-    message("Loading into symengine environment...", appendLF=FALSE)
+    ## message("Loading into symengine environment...", appendLF=FALSE)
+    message("Loading into symengine environment")
     .newmod <- rxS(.newmod, doConst);
-    message("done.")
+    .newmod <- .genCmtMod(.newmod, doConst);
+    ## message("done.")
     return(.newmod)
 }
 
