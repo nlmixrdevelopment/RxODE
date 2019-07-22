@@ -739,7 +739,7 @@ void solveSS_1(int *neq,
 		  0,              /* for stabilized step size control */
 		  0,              /* maximal step size */
 		  0,            /* initial step size */
-		  0,            /* maximal number of allowed steps */
+		  op->mxstep,            /* maximal number of allowed steps */
 		  1,            /* switch for the choice of the coefficients */
 		  -1,                     /* test for stiffness */
 		  0,                      /* number of components for which dense outpout is required */
@@ -1479,7 +1479,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
                       0,              /* for stabilized step size control */
                       0,              /* maximal step size */
                       0,            /* initial step size */
-                      0,            /* maximal number of allowed steps */
+                      op->mxstep, /* maximal number of allowed steps */
                       1,            /* switch for the choice of the coefficients */
                       -1,                     /* test for stiffness */
                       0,                      /* number of components for which dense outpout is required */
