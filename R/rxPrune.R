@@ -94,24 +94,9 @@ rxPrune <- function(x){
                 return(paste0("((", .f2, ")*(", .f3, ")+(1-(", .f2, "))*(", .f4, "))"));
             } else if (identical(x[[1]], quote(`[`))){
                 .type <- toupper(as.character(x[[2]]))
-                if (any(.type == c("THETA", "ETA"))){
-                    if (is.numeric(x[[3]])){
-                        .num <- x[[3]]
-                        if (round(.num) == .num){
-                            if (.num > 0){
-                                return(paste0(.type, "[", .num, "]"))
-                            } else {
-                                stop("Only THETA[#] or ETA[#] are supported")
-                            }
-                        } else {
-                            stop("Only THETA[#] or ETA[#] are supported")
-                        }
-                    } else {
-                        stop("Only THETA[#] or ETA[#] are supported")
-                    }
-                } else {
-                    stop("Only THETA[#] or ETA[#] are supported")
-                }
+                ## Since only THETA/ETA are allowed with RxODE pruning
+                ## only will take legal RxODE; Therefore just paste these.
+                return(paste0(.type, "[", .num, "]"))
             } else {
                 .ret0 <- lapply(x, .f, envir=envir);
                 .ret <- paste0(.ret0[[1]], "(")

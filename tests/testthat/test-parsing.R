@@ -656,4 +656,10 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     d/dt(ce) = keo*(cp-ce)
     effect = E0 - Emax*(Ce^gamma)/((Ce^gamma)+(Ec50^gamma));")
 
+    badParse("a = theta[0]")
+    badParse("a = eta[0]")
+    goodParse("a = theta[1]")
+    goodParse("a = eta[1]")
+    badParse("a = matt[1]")
+
 }, silent=TRUE);

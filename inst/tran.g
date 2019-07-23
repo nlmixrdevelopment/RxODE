@@ -139,8 +139,8 @@ identifier_r_no_output: identifier_r_no_output_1 | identifier_r_no_output_2 | id
 
 identifier_r_extra: 'transit' | 'lag' | 'alag' | 'f'| 'F' | 'r' | 'rate' | 'd' | 'dur';
 
-theta: ('THETA' | 'theta') '[' decimalint ']';
-eta: ('ETA' | 'eta') '[' decimalint ']';
+theta: ('THETA' | 'theta') '[' decimalintNo0 ']';
+eta: ('ETA' | 'eta') '[' decimalintNo0 ']';
 theta0: ('THETA' | 'theta' | 'ETA' | 'eta');
 
 theta_noout: ('THETA' | 'theta') '[' decimalint ']';
@@ -148,6 +148,7 @@ eta_noout: ('ETA' | 'eta') '[' decimalint ']';
 theta0_noout: ('THETA' | 'theta' | 'ETA' | 'eta');
 
 
+decimalintNo0: "([1-9][0-9]*)" $term -1;
 decimalint: "0|([1-9][0-9]*)" $term -1;
 string: "\"([^\"\\]|\\[^])*\"";
 float1: "([0-9]+.[0-9]*|[0-9]*.[0-9]+)([eE][\-\+]?[0-9]+)?" $term -2;
