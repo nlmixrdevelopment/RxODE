@@ -1655,7 +1655,13 @@ extern "C" int *gsiVSetup(int n){
   return _globals.gsiV;
 }
 
+double *_rxGetErrs = NULL;
+void rxFreeErrs(){
+  Free(_rxGetErrs);
+}
+
 extern "C" void gFree(){
+  Free(_rxGetErrs);
   if (_globals.gsiV != NULL) Free(_globals.gsiV);
   _globals.gsiVn=0;
   if (_globals.gsvar != NULL) Free(_globals.gsvar);
@@ -1867,7 +1873,10 @@ extern "C" double *rxGetErrs(){
   getRxModels();
   if (_rxModels.exists(".sigma")){
     NumericMatrix sigma = _rxModels[".sigma"];
-    return &sigma[0];
+    Free(_rxGetErrs);
+    _rxGetErrs = Calloc(sigma.ncol()*sigma.nrow(),double);
+    std::copy(sigma.begin(),sigma.end(),&_rxGetErrs[0]);
+    return _rxGetErrs;
   }
   return NULL;
 }
@@ -1890,7 +1899,8 @@ extern "C" void setInits(SEXP init){
 extern "C" int getInits(char *s_aux_info, int *o){
   getRxModels();
   if (_rxModels.exists(".init")){
-    if (rxIs(_rxModels[".init"], "numeric") || rxIs(_rxModels[".init"], "integer")){
+    if (rxIs(_rxModels[".init"], "numeric") ||
+	rxIs(_rxModels[".init"], "integer")){
       NumericVector ret = as<NumericVector>(_rxModels[".init"]);
       StringVector retN = ret.attr("names");
       int retS = ret.size();
