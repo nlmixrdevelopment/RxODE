@@ -1906,7 +1906,7 @@ extern "C" int getInits(char *s_aux_info, int *o){
 	std::string cur = as<std::string>(retN[i]);
 	sprintf( s_aux_info + *o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",i, cur.c_str());
 	*o = (int)strlen(s_aux_info);
-	curD = as<double>(ret[i]); // Conditional jump or move depends on uninitialised value(s)
+	curD = (double)(ret[i]); // Conditional jump or move depends on uninitialised value(s)
 	if (ISNA(curD)){
 	  sprintf(s_aux_info+*o,"    REAL(ini)[%d] = NA_REAL;\n",i);
 	} else{
