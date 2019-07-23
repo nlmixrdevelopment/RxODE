@@ -64,6 +64,7 @@ typedef struct {
   int ncoresRV;
   int isChol;
   int *svar;
+  int nsvar;
   int abort;
   int minSS;
   int maxSS;

@@ -1226,6 +1226,7 @@ typedef struct {
   
   int *gsvar;
   int gsvarn;
+  int nsvar;
   int *gsiV;
   int gsiVn;
   //
@@ -2734,6 +2735,7 @@ SEXP rxSolve_(const RObject &obj,
     RObject par1ini;
     bool swappedEvents = false;
     bool doMean=true;
+    int nsvar = 0;
     NumericVector initsC;
     if (rxIs(par0, "rx.event")){
       // Swapped events and parameters
@@ -3424,6 +3426,7 @@ SEXP rxSolve_(const RObject &obj,
 	for (j = sigmaN.size(); j--;){
           if (sigmaN[j] == pars[i]){
 	    _globals.gsvar[j] = i;
+	    nsvar++;
 	    _globals.gParPos[i] = 0; // These are set at run-time and "dont" matter.
 	    curPar = true;
             eGparPos[i]=_globals.gParPos[i];
@@ -3478,6 +3481,7 @@ SEXP rxSolve_(const RObject &obj,
       stop(errStr);
     }
     op->svar = &_globals.gsvar[0];
+    op->nsvar = nsvar;
     // Now setup the rest of the rx_solve object
     if (nPopPar != 1 && nPopPar % rx->nsub != 0){
       stop("The number of parameters (%d) solved by RxODE for multi-subject data needs to be a multiple of the number of subjects (%d).",nPopPar, rx->nsub);
