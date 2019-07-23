@@ -4,7 +4,7 @@
 \alias{as.tbl.rxEt}
 \title{Convert to tbl}
 \usage{
-as.tbl.rxEt(x, ...)
+\method{as.tbl}{rxEt}(x, ...)
 }
 \arguments{
 \item{x}{RxODE event table}

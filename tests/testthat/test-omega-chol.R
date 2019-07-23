@@ -1,10 +1,6 @@
 set.seed(42)
-for (d in seq(1, ifelse(identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true"), 4, rxSymInvCholN()))){
-    if (identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true")){
-        dgs <- c("log", "identity")
-    } else {
-        dgs <- c("sqrt")
-    }
+for (d in seq(1, rxSymInvCholN())){
+    dgs <- c("sqrt", "log", "identity")
     for (dg in dgs){
         test_that("omega chol", {
             context(sprintf("Omega Cholesky %sx%s, %s", d, d, dg));

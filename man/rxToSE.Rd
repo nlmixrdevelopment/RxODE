@@ -6,7 +6,7 @@
 \alias{.rxFromSE}
 \title{RxODE to symengine.R}
 \usage{
-rxToSE(x, envir = NULL)
+rxToSE(x, envir = NULL, progress = FALSE)
 
 rxFromSE(x, unknownDerivatives = c("forward", "central", "error"))
 
@@ -15,7 +15,9 @@ rxFromSE(x, unknownDerivatives = c("forward", "central", "error"))
 \arguments{
 \item{x}{expression}
 
-\item{envir}{\code{NULL}}
+\item{envir}{default is \code{NULL}; Environment to put symengine variables in.}
+
+\item{progress}{shows progress bar if true.}
 }
 \description{
 RxODE to symengine.R

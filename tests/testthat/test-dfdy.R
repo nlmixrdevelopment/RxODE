@@ -247,5 +247,5 @@ d/dt(cen) = ka*depot-k*cen
     ## tmp <- RxODE(mod, calcSens=list(eta=c("eta_ka", "eta_mtt"), theta=c("cl", "vc")));
 });
 
-}, silent=TRUE, on.validate=TRUE)
+}, silent=TRUE)
 

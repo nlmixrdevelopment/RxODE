@@ -371,4 +371,4 @@ rxPermissive({
     ##     expect_false(any(rxLhs(cond$inner) == "T0"))
     ## })
 
-}, silent=TRUE, on.validate=TRUE)
+}, silent=TRUE)

@@ -311,4 +311,4 @@ rxPermissive({
         ## expect_equal(class(pk2), "rxFocei")
     })
 
-},  silent=TRUE, on.validate=TRUE)
+},  silent=TRUE)

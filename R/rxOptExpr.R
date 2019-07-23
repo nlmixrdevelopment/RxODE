@@ -128,6 +128,72 @@
 .rxOptExpr <- function(x){
     return(eval(x, .rxOptGetEnv(x)))
 }
+
+..rxOpt <- function(x, onlyRet=FALSE, progress=FALSE){
+    if (is.name(x) || is.atomic(x)){
+        return(as.character(x))
+    } else if (is.call(x)){
+        .x2 <- x[-1];
+        if (identical(x[[1]], quote(`{`))){
+            ## Probably can implement a progress bar here.
+            if (progress){
+                rxProgress(length(.x2));
+                on.exit({rxProgressAbort("Stopped optimizing duplicate expressions")});
+                .ret <- unlist(lapply(.x2, function(x){
+                    rxTick()
+                    ..rxOpt(x)
+                }))
+                rxProgressStop();
+                return(.ret)
+            } else {
+                return(unlist(lapply(.x2, ..rxOpt, onlyRet=onlyRet)))
+            }
+        } else if (identical(x[[1]], quote(`*`)) ||
+                   identical(x[[1]], quote(`^`)) ||
+                   identical(x[[1]], quote(`+`)) ||
+                   identical(x[[1]], quote(`-`)) ||
+                   identical(x[[1]], quote(`/`)) ||
+                   identical(x[[1]], quote(`==`)) ||
+                   identical(x[[1]], quote(`>=`)) ||
+                   identical(x[[1]], quote(`<=`)) ||
+                   identical(x[[1]], quote(`>`)) ||
+                   identical(x[[1]], quote(`<`)) ||
+                   identical(x[[1]], quote(`!=`)) ||
+                   identical(x[[1]], quote(`&&`)) ||
+                   identical(x[[1]], quote(`||`)) ||
+                   identical(x[[1]], quote(`&`)) ||
+                   identical(x[[1]], quote(`|`))){
+            if (length(x) == 3){
+                return(paste0(..rxOpt(x[[2]], onlyRet=onlyRet), as.character(x[[1]]),
+                              ..rxOpt(x[[3]], onlyRet=onlyRet)));
+            } else {
+                ## Unary Operators
+                return(paste(as.character(x[[1]]),
+                             ..rxOpt(x[[2]], onlyRet=onlyRet)))
+            }
+        } else if (identical(x[[1]], quote(`~`)) ||
+                   identical(x[[1]], quote(`=`)) ||
+                   identical(x[[1]], quote(`<-`))){
+            if (onlyRet){
+                return(.rxOptExpr(x[[3]]));
+            } else {
+                return(paste0(..rxOpt(x[[2]]),
+                              ifelse(identical(x[[1]], quote(`<-`)), "=", as.character(x[[1]])),
+                              .rxOptExpr(x[[3]])))
+            }
+        } else if (identical(x[[1]], quote(`[`))){
+            return(paste0(..rxOpt(x[[2]]), "[", ..rxOpt(x[[3]]), "]"));
+        } else {
+            .ret0 <- lapply(x, ..rxOpt);
+            .ret <- paste0(.ret0[[1]], "(")
+            if (.ret == "((") .ret <- "("
+            .ret0 <- .ret0[-1];
+            .ret <- paste0(.ret, paste(unlist(.ret0), collapse=", "), ")");
+            return(.ret)
+        }
+    }
+}
+
 ##' Optimize RxODE for computer evaluation
 ##'
 ##' This optimizes RxODE code for computer evaluation by only
@@ -144,73 +210,9 @@ rxOptExpr <- function(x, msg="model"){
     .rxOptEnv$.list <- list();
     .rxOptEnv$.rep <- list();
     .rxOptEnv$.exclude <- "";
-    .f <- function(x, onlyRet=FALSE, progress=FALSE){
-        if (is.name(x) || is.atomic(x)){
-            return(as.character(x))
-        } else if (is.call(x)){
-            .x2 <- x[-1];
-            if (identical(x[[1]], quote(`{`))){
-                ## Probably can implement a progress bar here.
-                if (progress){
-                    rxProgress(length(.x2));
-                    on.exit({rxProgressAbort("Stopped optimizing duplicate expressions")});
-                    .ret <- unlist(lapply(.x2, function(x){
-                        rxTick()
-                        .f(x)
-                    }))
-                    rxProgressStop();
-                    return(.ret)
-                } else {
-                    return(unlist(lapply(.x2, .f, onlyRet=onlyRet)))
-                }
-            } else if (identical(x[[1]], quote(`*`)) ||
-                identical(x[[1]], quote(`^`)) ||
-                identical(x[[1]], quote(`+`)) ||
-                identical(x[[1]], quote(`-`)) ||
-                identical(x[[1]], quote(`/`)) ||
-                identical(x[[1]], quote(`==`)) ||
-                identical(x[[1]], quote(`>=`)) ||
-                identical(x[[1]], quote(`<=`)) ||
-                identical(x[[1]], quote(`>`)) ||
-                identical(x[[1]], quote(`<`)) ||
-                identical(x[[1]], quote(`!=`)) ||
-                identical(x[[1]], quote(`&&`)) ||
-                identical(x[[1]], quote(`||`)) ||
-                identical(x[[1]], quote(`&`)) ||
-                identical(x[[1]], quote(`|`))){
-                if (length(x) == 3){
-                    return(paste0(.f(x[[2]], onlyRet=onlyRet), as.character(x[[1]]),
-                                  .f(x[[3]], onlyRet=onlyRet)));
-                } else {
-                    ## Unary Operators
-                    return(paste(as.character(x[[1]]),
-                                 .f(x[[2]], onlyRet=onlyRet)))
-                }
-            } else if (identical(x[[1]], quote(`~`)) ||
-                       identical(x[[1]], quote(`=`)) ||
-                       identical(x[[1]], quote(`<-`))){
-                if (onlyRet){
-                    return(.rxOptExpr(x[[3]]));
-                } else {
-                    return(paste0(.f(x[[2]]),
-                       ifelse(identical(x[[1]], quote(`<-`)), "=", as.character(x[[1]])),
-                       .rxOptExpr(x[[3]])))
-                }
-            } else if (identical(x[[1]], quote(`[`))){
-                return(paste0(.f(x[[2]]), "[", .f(x[[3]]), "]"));
-            } else {
-                .ret0 <- lapply(x, .f);
-                .ret <- paste0(.ret0[[1]], "(")
-                if (.ret == "((") .ret <- "("
-                .ret0 <- .ret0[-1];
-                .ret <- paste0(.ret, paste(unlist(.ret0), collapse=", "), ")");
-                return(.ret)
-            }
-        }
-    }
     message(paste0("Finding duplicate expressions in ", msg, "..."))
     .p <- eval(parse(text=paste0("quote({", x, "})")))
-    .lines <- .f(.p, progress=TRUE)
+    .lines <- ..rxOpt(.p, progress=TRUE)
     .rxOptEnv$.list <- .rxOptEnv$.list[which(unlist(.rxOptEnv$.list) > 1L)];
     .exprs <- names(.rxOptEnv$.list)[order(nchar(names(.rxOptEnv$.list)))];
     .exprs <- .exprs[regexpr(rex::rex(start, regNum, end), .exprs, perl=TRUE) == -1]
@@ -220,7 +222,7 @@ rxOptExpr <- function(x, msg="model"){
         .rxOptEnv$.rep <- as.list(.rp[[1]]);
         .rxOptEnv$.exclude <- ""
         message(paste0("Optimizing duplicate expressions in ", msg, "..."))
-        return(paste(c(.rp[[2]], .f(.p, progress=TRUE)), collapse="\n"))
+        return(paste(c(.rp[[2]], ..rxOpt(.p, progress=TRUE)), collapse="\n"))
     } else {
         return(x)
     }

@@ -171,11 +171,6 @@ rxPermissive({
         expect_equal(tmp$tmp, 4)
         expect_equal(tmp$a, 100)
 
-        tmp1 <- rxLogicToVar(m)
-        expect_equal(length(tmp1[[1]]), 3L);
-        expect_true(regexpr("rx_lgl_1", tmp1[[2]]) != -1)
-        expect_equal(rxNorm(m), rxNorm(rxVarToLogic(tmp1[[1]],tmp1[[2]])))
-
         m <- RxODE({
             a = 100;
             if (cnd <= 1){
@@ -283,10 +278,6 @@ rxPermissive({
         expect_equal(tmp$tmp, 4)
         expect_equal(tmp$a, 100)
 
-        tmp1 <- rxLogicToVar(m)
-        expect_equal(length(tmp1[[1]]), 3L);
-        expect_true(regexpr("rx_lgl_1", tmp1[[2]]) != -1)
-        expect_equal(rxNorm(m), rxNorm(rxVarToLogic(tmp1[[1]],tmp1[[2]])))
 
         m <- RxODE({
             ifelse(cnd <= 1, a = 1.0, a = 2.0);
@@ -313,11 +304,6 @@ rxPermissive({
         expect_equal(tmp$tmp, 2)
         expect_equal(tmp$a, 2)
 
-        tmp1 <- rxLogicToVar(m)
-        expect_equal(length(tmp1[[1]]), 1L);
-        expect_true(regexpr("rx_lgl_1", tmp1[[2]]) != -1)
-        expect_equal(rxNorm(m), rxNorm(rxVarToLogic(tmp1[[1]],tmp1[[2]])))
-
         m <- RxODE({
             ifelse(cnd <= 1, a <- 1.0, a <- 2.0);
             tmp = cnd
@@ -342,11 +328,6 @@ rxPermissive({
         tmp <- rxSolve(m, c(cnd=2), et(0.1))
         expect_equal(tmp$tmp, 2)
         expect_equal(tmp$a, 2)
-
-        tmp1 <- rxLogicToVar(m)
-        expect_equal(length(tmp1[[1]]), 1L);
-        expect_true(regexpr("rx_lgl_1", tmp1[[2]]) != -1)
-        expect_equal(rxNorm(m), rxNorm(rxVarToLogic(tmp1[[1]],tmp1[[2]])))
 
         m <- RxODE({
             a = (cnd == 1) * 1.0 + (cnd == 2) * 2 + (cnd == 3) * 3
@@ -388,11 +369,6 @@ rxPermissive({
         tmp <- rxSolve(m, c(cnd=4), et(0.1))
         expect_equal(tmp$tmp, 4)
         expect_equal(tmp$a, 0)
-
-        tmp1 <- rxLogicToVar(m)
-        expect_equal(length(tmp1[[1]]), 3L);
-        expect_true(regexpr("rx_lgl_1", tmp1[[2]]) != -1)
-        expect_equal(rxNorm(m), rxNorm(rxVarToLogic(tmp1[[1]],tmp1[[2]])))
 
     })
 
