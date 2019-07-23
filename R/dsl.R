@@ -178,7 +178,6 @@ rxAddReturn <- function(fn, ret=TRUE){
 
 ## Start DSL based on http://adv-r.had.co.nz/dsl.html
 ## These operators are called to create the language and are not called in tests.
-## nocov start
 unaryOp <- function(left, right) {
     force(left)
     force(right)
@@ -382,9 +381,6 @@ seC <- function(x){
     expr <-eval(parse(text=sprintf("quote(%s)", as.character(x))))
     .ret <- eval(expr, symengineCEnv(expr))
 }
-
-
-## nocov end
 
 sympyTransit4 <- function(t, n, mtt, bio, podo="podo", tlast="tlast"){
     ktr <- paste0("((", n, " + 1)/(", mtt, "))");

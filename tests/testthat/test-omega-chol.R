@@ -1,13 +1,15 @@
 set.seed(42)
-for (d in seq(1, rxSymInvCholN())){
-    dgs <- c("sqrt", "log", "identity")
-    for (dg in dgs){
+dgs <- c("sqrt", "log", "identity")
+for (dg in dgs){
+    for (d in seq(1, ifelse(dg == "sqrt", rxSymInvCholN(), 4))){
         test_that("omega chol", {
             context(sprintf("Omega Cholesky %sx%s, %s", d, d, dg));
             ## Creating covariance matrix
             tmp <- matrix(rnorm(d^2), d, d)
             mcov <- tcrossprod(tmp, tmp)
             v <- rxSymInvCholCreate(mcov, dg)
+            expect_equal(v$ntheta, sum((lower.tri(mcov,TRUE))*1))
+            expect_equal(length(v$xType), sum((lower.tri(mcov,TRUE))*1))
             expect_equal(v$omega,mcov,tolerance=1e-4)
             expect_equal(v$omegaInv, solve(mcov),tolerance=1e-4)
             expect_equal(v$chol.omegaInv, chol(solve(mcov)),tolerance=1e-4)

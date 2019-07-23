@@ -26,10 +26,10 @@ rxPermissive({
         expect_error(rxToSE("fun(a)"))
         expect_error(rxFromSE("fun(a)"))
 
-        expect_equal(rxFromSE("Derivative(fun(a,b,c),a)"),
-                     "(fun(a-0.5*rx_c_delta,b,c)-fun(a+0.5*rx_c_delta,b,c))/rx_c_delta", unknownDerivatives="central")
+        expect_equal(rxFromSE("Derivative(fun(a,b,c),a)", unknownDerivatives="central"),
+                     "(fun(a-3.02772722619667e-06,b,c)-fun(a+3.02772722619667e-06,b,c))/6.05545445239334e-06")
         expect_equal(rxFromSE("Derivative(fun(a,b,c),a)", unknownDerivatives = "forward"),
-                     "(fun((a)+rx_f_delta,b,c)-fun(a,b,c))/rx_f_delta")
+                     "(fun((a)+6.05545445239334e-06,b,c)-fun(a,b,c))/6.05545445239334e-06")
         expect_error(rxFromSE("Derivative(fun(a,b,c),a)", unknownDerivatives = "error"))
 
         ## now add derivative table
@@ -52,8 +52,8 @@ rxPermissive({
                                   })))
 
         expect_equal(rxFromSE("Derivative(fun(a1,b1,c1),a1)"), "2*a1+b1")
-        expect_equal(rxFromSE("Derivative(fun(a,b,c),b)"),
-                     "(fun(a,b-0.5*rx_c_delta,c)-fun(a,b+0.5*rx_c_delta,c))/rx_c_delta")
+        expect_equal(rxFromSE("Derivative(fun(a,b,c),b)", unknownDerivatives="central"),
+                     "(fun(a,b-3.02772722619667e-06,c)-fun(a,b+3.02772722619667e-06,c))/6.05545445239334e-06")
 
         expect_warning(rxD("fun", list(NULL, function(a,b,c){
                                       paste0(a);
@@ -62,8 +62,8 @@ rxPermissive({
         expect_equal(rxFromSE("Derivative(fun(a,b,c),b)"),
                      "a")
 
-        expect_equal(rxFromSE("Derivative(fun(a,b,c),a)"),
-                     "(fun(a-0.5*rx_c_delta,b,c)-fun(a+0.5*rx_c_delta,b,c))/rx_c_delta")
+        expect_equal(rxFromSE("Derivative(fun(a,b,c),a)", unknownDerivatives="central"),
+                     "(fun(a-3.02772722619667e-06,b,c)-fun(a+3.02772722619667e-06,b,c))/6.05545445239334e-06")
 
         expect_error(rxD("fun", "matt"))
         expect_error(rxD("fun", list()))
@@ -72,8 +72,8 @@ rxPermissive({
         ## Errors do not replace derivative table
         expect_equal(rxFromSE("Derivative(fun(a,b,c),b)"),
                      "a")
-        expect_equal(rxFromSE("Derivative(fun(a,b,c),a)"),
-                     "(fun(a-0.5*rx_c_delta,b,c)-fun(a+0.5*rx_c_delta,b,c))/rx_c_delta")
+        expect_equal(rxFromSE("Derivative(fun(a,b,c),a)", unknownDerivatives="central"),
+                     "(fun(a-3.02772722619667e-06,b,c)-fun(a+3.02772722619667e-06,b,c))/6.05545445239334e-06")
 
     expect_error(rxRmFun(list("a")))
     expect_error(rxRmFun("a"))

@@ -293,13 +293,27 @@ rxExpandGrid <- function(x, y, type=0L){
     }
     rxProgress(dim(.grd)[1]);
     on.exit({rxProgressAbort()});
+    .any.zero <- FALSE
+    .all.zero <- TRUE
     .ret <- apply(.grd, 1, function(x){
         .l <- x["calc"];
         .l <- eval(parse(text=.l));
         .ret <- paste0(x["dfe"], "=", rxFromSE(.l));
+        .zErr <- suppressWarnings(try(as.numeric(get(x["dfe"], .s)),silent=TRUE))
+        if (identical(.zErr, 0)){
+            .any.zero <<- TRUE
+        } else if (.all.zero){
+            .all.zero <<- FALSE
+        }
         rxTick();
         return(.ret);
     })
+    if (.all.zero){
+        stop("None of the predictions depend on the ETAs")
+    }
+    if (.any.zero){
+        warning("Some of the predictions do not depend on ETAs.")
+    }
     .s$..HdEta <- .ret;
     .s$..pred.minus.dv <- pred.minus.dv;
     rxProgressStop();
