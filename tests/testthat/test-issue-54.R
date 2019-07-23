@@ -370,6 +370,37 @@ rxPermissive({
         expect_equal(tmp$tmp, 4)
         expect_equal(tmp$a, 0)
 
+        m <- RxODE({
+            if (cnd <= 1){
+                a = theta[1]
+            } else if (cnd <= 2){
+                a = 2.0
+            } else if (cnd <= 3){
+                a = 3.
+            } else {
+                a = 100;
+            }
+            tmp = cnd
+        })
+
+        m <- RxODE(rxOptExpr(rxPrune(m)))
+
+        tmp <- rxSolve(m, c(cnd=1, `THETA[1]`=1), et(0.1))
+        expect_equal(tmp$tmp, 1)
+        expect_equal(tmp$a, 1)
+
+        tmp <- rxSolve(m, c(cnd=2, `THETA[1]`=1), et(0.1))
+        expect_equal(tmp$tmp, 2)
+        expect_equal(tmp$a, 2)
+
+        tmp <- rxSolve(m, c(cnd=3, `THETA[1]`=1), et(0.1))
+        expect_equal(tmp$tmp, 3)
+        expect_equal(tmp$a, 3)
+
+        tmp <- rxSolve(m, c(cnd=4, `THETA[1]`=1), et(0.1))
+        expect_equal(tmp$tmp, 4)
+        expect_equal(tmp$a, 100)
+
     })
 
 }, cran=TRUE)

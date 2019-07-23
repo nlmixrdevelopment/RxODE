@@ -86,7 +86,7 @@
             .type <- toupper(as.character(x[[2]]))
             ## Since only THETA/ETA are allowed with RxODE pruning
             ## only will take legal RxODE; Therefore just paste these.
-            return(paste0(.type, "[", .num, "]"))
+            return(paste0(.type, "[", x[[3]], "]"))
         } else {
             .ret0 <- lapply(x, .rxPrune, envir=envir);
             .ret <- paste0(.ret0[[1]], "(")
