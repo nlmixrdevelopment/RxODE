@@ -1895,39 +1895,13 @@ extern "C" void setInits(SEXP init){
 
 extern "C" int getInits(char *s_aux_info, int *o){
   getRxModels();
-  double curD=0;
   if (_rxModels.exists(".init")){
-    if (rxIs(_rxModels[".init"], "numeric") ||
-	rxIs(_rxModels[".init"], "integer")){
-      NumericVector ret = as<NumericVector>(_rxModels[".init"]);
-      StringVector retN = ret.attr("names");
-      int retS = ret.size();
-      for (int i = 0; i < retS; i++){
-	std::string cur = as<std::string>(retN[i]);
-	sprintf( s_aux_info + *o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",i, cur.c_str());
-	*o = (int)strlen(s_aux_info);
-	curD = (double)(ret[i]); // Conditional jump or move depends on uninitialised value(s)
-	if (ISNA(curD)){
-	  sprintf(s_aux_info+*o,"    REAL(ini)[%d] = NA_REAL;\n",i);
-	} else{
-	  if (!R_FINITE(curD)){
-	    if (ret[i] > 0){
-	      sprintf(s_aux_info+*o,"    REAL(ini)[%d] = R_PosInf;\n",i);
-	    } else {
-	      sprintf(s_aux_info+*o,"    REAL(ini)[%d] = R_NegInf;\n",i);
-	    }
-	  } else if (ISNAN(curD)){
-	    sprintf(s_aux_info+*o,"    REAL(ini)[%d] = R_NaN;\n",i);
-	  } else {
-	    sprintf(s_aux_info+*o,"    REAL(ini)[%d] = %.16f;\n",i, curD);
-	  }
-	}
-	*o = (int)strlen(s_aux_info);
-      }
-      return retS;
-    } else {
-      return 0;
-    }
+    List init = _rxModels[".init"];
+    int ret = as<int>(init[0]);
+    std::string str = as<std::string>(init[1]);
+    sprintf( s_aux_info + *o,"%s",str.c_str());
+    *o = (int)strlen(s_aux_info);
+    return ret;
   } else {
     return 0;
   }
