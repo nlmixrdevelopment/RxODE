@@ -1,6 +1,6 @@
 # -*- mode: makefile-gmake -*-
-CXX_STD     = CXX11
-
+CXX_STD     = CXX14
+@CXX14STD@
 ################################################################################
 ## Package library flags.
 PKG_LIBS    = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) @OPENMP_CFLAGS@
