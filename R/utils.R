@@ -1,3 +1,6 @@
+.cliRule <- function(...){
+    cat(utils::capture.output(cli::rule(...)), "\n", sep="")
+}
 .normalizePath <- function(path, ...){
     ifelse(.Platform$OS.type=="windows",
            suppressWarnings(utils::shortPathName(normalizePath(path, ...))),

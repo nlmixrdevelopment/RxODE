@@ -985,9 +985,9 @@ print.rxCoef <- function(x, ...){
     ## nocov start
     .rxDllObj <- x$RxODE;
     if (length(rxParams(.rxDllObj)) > 0){
-        cat(cli::rule(left="User supplied parameters:"), "\n");
+        .cliRule(left="User supplied parameters:");
         print(RxODE::rxInits(.rxDllObj, c(), RxODE::rxParams(.rxDllObj), NA, TRUE))
-        cat(cli::rule(left="User initial conditions:"), "\n");
+        .cliRule(left="User initial conditions:");
         .tmp <- RxODE::rxInits(.rxDllObj, c(), RxODE::rxState(.rxDllObj), 0, TRUE);
         if (length(x$sens) > 0){
             .tmp <- .tmp[regexpr(getFromNamespace("regSens", "RxODE"), names(.tmp)) == -1];
@@ -996,17 +996,17 @@ print.rxCoef <- function(x, ...){
         print(.tmp);
     }
     if (length(x$fn.ini) > 0){
-        cat(cli::rule(left="Parameter-based initial conditions:"), "\n");
+        .cliRule(left="Parameter-based initial conditions:");
         print(x$fn.ini);
     }
-    cat(cli::rule(left="Compartments:"), "\n");
+    .cliRule(left="Compartments:");
     .tmp <- RxODE::rxState(.rxDllObj);
     if (length(.tmp) > 0){
         names(.tmp) <- paste0("cmt=", seq_along(.tmp));
         if (length(x$sens) > 0){
             .tmp1 <- .tmp[regexpr(getFromNamespace("regSens", "RxODE"), .tmp) == -1];
             print(.tmp1);
-            cli::rule(left="Sensitivities:")
+            .cliRule(left="Sensitivities:")
             .tmp2 <- gsub(getFromNamespace("regSens", "RxODE"), "d/dt(d(\\1)/d(\\2))",
                           .tmp[regexpr(regSens, .tmp) != -1]);
             print(.tmp2);
@@ -1467,11 +1467,11 @@ rxCompile.rxModelVars <-  function(model, # Model
                 .out <- sys::exec_internal(cmd = .cmd, args = .args, error=FALSE);
                 .badBuild <- function(msg){
                     message(msg);
-                    message(cli::rule(left="stdout output"));
+                    cli::rule(left="stdout output");
                     message(paste(rawToChar(.out$stdout),sep="\n"))
-                    message(cli::rule(left="stderr output"));
+                    cli::rule(left="stderr output");
                     message(paste(rawToChar(.out$stderr),sep="\n"))
-                    message(cli::rule(left="c source"));
+                    cli::rule(left="c source");
                     message(paste(readLines(.cFile),collapse="\n"))
                     stop(msg, call.=FALSE);
                 }
