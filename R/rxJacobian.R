@@ -228,7 +228,6 @@ rxExpandGrid <- function(x, y, type=0L){
     ## message("Loading into symengine environment...", appendLF=FALSE)
     message("Loading into symengine environment")
     .newmod <- rxS(.newmod, doConst);
-    .newmod <- .genCmtMod(.newmod, doConst);
     ## message("done.")
     return(.newmod)
 }

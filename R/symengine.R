@@ -64,7 +64,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
              "exp"=1, "gamma"=1, "sin"=1, "sinh"=1,
              "sqrt"=1, "tan"=1, "tanh"=1, "log"=1, "abs"=1, "asinh"=1,
              "rxTBS"=3, "rxTBSd"=3, "rxTBSd2"=3,
-             "solveLinB"=19)
+             "linCmtA"=18)
 
 .rxSEeqUsr <- c()
 
@@ -769,7 +769,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE){
             .ret0 <- c(list(as.character(x[[1]])), lapply(x[-1], .rxToSE, envir=envir));
             if (.isEnv) envir$..curCall <- .lastCall
             .SEeq <- c(.rxSEeq, .rxSEeqUsr)
-            if (.isEnv && as.character(.ret0[[1]]) == "solveLinB") envir$..solveLinB <- TRUE
+            if (.isEnv && as.character(.ret0[[1]]) == "linCmtA") envir$..linCmtA <- TRUE
             .nargs <- .SEeq[paste(.ret0[[1]])];
             if (!is.na(.nargs)){
                 if (.nargs == length(.ret0) - 1){
@@ -1152,7 +1152,7 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
             }
             .ret0 <- lapply(lapply(x, .stripP), .rxFromSE)
             .SEeq <- c(.rxSEeq, .rxSEeqUsr)
-            if (.rxAssignLinB && paste(.ret0[[1]]) == "solveLinB"){
+            if (.rxAssignLinB && paste(.ret0[[1]]) == "linCmtA"){
                 return("rx1c");
             }
             .nargs <- .SEeq[paste(.ret0[[1]])];
@@ -1338,7 +1338,7 @@ rxS <- function(x, doConst=TRUE){
     .cnst <- names(.rxSEreserved)
     .env <- new.env(parent = loadNamespace("symengine"))
     .env$..mv <- rxModelVars(x);
-    .env$..solveLinB <- FALSE
+    .env$..linCmtA <- FALSE
     .env$..jac0 <- c();
     .env$..ddt <- c();
     .env$..sens0 <- c();
@@ -1348,7 +1348,7 @@ rxS <- function(x, doConst=TRUE){
     .env$rxTBS <- .rxFunction("rxTBS")
     .env$rxTBSd <- .rxFunction("rxTBSd")
     .env$rxTBSd2 <- .rxFunction("rxTBSd2")
-    .env$solveLinB <- .rxFunction("solveLinB");
+    .env$linCmtA <- .rxFunction("linCmtA");
     for (.f in c("rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt", "rxGt", "rxAnd", "rxOr", "rxNot"))
         assign(.f, .rxFunction(.f), envir=.env)
     .env$..polygamma <- symengine::S("polygamma(_rx_a, _rx_b)");
