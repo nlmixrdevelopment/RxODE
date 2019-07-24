@@ -1,6 +1,8 @@
 rxPermissive({
+
     tol  <- 1e-6 ## Current difference for all equations
     rxClean()
+    ll <- FALSE
 
     for (ll in c(TRUE, FALSE)){
         context(sprintf("Test the solved equations (%s)", ifelse(ll, "linlog", "linear")))
@@ -253,6 +255,7 @@ rxPermissive({
 
 
         test_that("2 compartment solved models and ODEs same.", {
+            expect_equal(s.2cK$C2, s.2c$C2, tolerance=tol)
             expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
             expect_equal(o.2c$C2, s.2cK$C2, tolerance=tol)
             expect_equal(o.2c$C2, s.2cA1$C2, tolerance=tol)
