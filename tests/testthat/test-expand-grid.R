@@ -16,6 +16,7 @@ rxPermissive({
 
     context("Faster Expand Grid")
     test_that("rxExpandGrid is faster that expand.grid.jc", {
+        skip_if(Sys.getenv("covr") == "true")
         expect_true(x$x[1] < x$x[2]);
     })
 
@@ -39,6 +40,7 @@ rxPermissive({
         arrange(expr)
 
     test_that("rxExpandGrid is faster that expand.grid.jc", {
+        skip_if(Sys.getenv("covr") == "true")
         expect_true(x$x[1] < x$x[2]);
     })
 
