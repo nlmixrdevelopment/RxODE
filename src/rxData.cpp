@@ -1230,6 +1230,7 @@ typedef struct {
   
   int *gsvar;
   int gsvarn;
+  int nsvar;
   int *gsiV;
   int gsiVn;
   //
@@ -1899,37 +1900,12 @@ extern "C" void setInits(SEXP init){
 extern "C" int getInits(char *s_aux_info, int *o){
   getRxModels();
   if (_rxModels.exists(".init")){
-    if (rxIs(_rxModels[".init"], "numeric") ||
-	rxIs(_rxModels[".init"], "integer")){
-      NumericVector ret = as<NumericVector>(_rxModels[".init"]);
-      StringVector retN = ret.attr("names");
-      int retS = ret.size();
-      for (int i = 0; i < retS; i++){
-	std::string cur = as<std::string>(retN[i]);
-	sprintf( s_aux_info + *o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",i, cur.c_str());
-	*o = (int)strlen(s_aux_info);
-	if (NumericVector::is_na(ret[i])){
-	  sprintf(s_aux_info+*o,"    REAL(ini)[%d] = NA_REAL;\n",i);
-	} else{
-	  double curD = ret[i];
-	  if (std::isinf(curD)){
-	    if (ret[i] > 0){
-	      sprintf(s_aux_info+*o,"    REAL(ini)[%d] = R_PosInf;\n",i);
-	    } else {
-	      sprintf(s_aux_info+*o,"    REAL(ini)[%d] = R_NegInf;\n",i);
-	    }
-	  } else if (std::isnan(curD)){
-	    sprintf(s_aux_info+*o,"    REAL(ini)[%d] = R_NaN;\n",i);
-	  } else {
-	    sprintf(s_aux_info+*o,"    REAL(ini)[%d] = %.16f;\n",i, curD);
-	  }
-	}
-	*o = (int)strlen(s_aux_info);
-      }
-      return retS;
-    } else {
-      return 0;
-    }
+    List init = _rxModels[".init"];
+    int ret = as<int>(init[0]);
+    std::string str = as<std::string>(init[1]);
+    sprintf( s_aux_info + *o,"%s",str.c_str());
+    *o = (int)strlen(s_aux_info);
+    return ret;
   } else {
     return 0;
   }
@@ -2738,6 +2714,7 @@ SEXP rxSolve_(const RObject &obj,
     RObject par1ini;
     bool swappedEvents = false;
     bool doMean=true;
+    int nsvar = 0;
     NumericVector initsC;
     if (rxIs(par0, "rx.event")){
       // Swapped events and parameters
@@ -3428,6 +3405,7 @@ SEXP rxSolve_(const RObject &obj,
 	for (j = sigmaN.size(); j--;){
           if (sigmaN[j] == pars[i]){
 	    _globals.gsvar[j] = i;
+	    nsvar++;
 	    _globals.gParPos[i] = 0; // These are set at run-time and "dont" matter.
 	    curPar = true;
             eGparPos[i]=_globals.gParPos[i];
@@ -3482,6 +3460,7 @@ SEXP rxSolve_(const RObject &obj,
       stop(errStr);
     }
     op->svar = &_globals.gsvar[0];
+    op->nsvar = nsvar;
     // Now setup the rest of the rx_solve object
     if (nPopPar != 1 && nPopPar % rx->nsub != 0){
       stop("The number of parameters (%d) solved by RxODE for multi-subject data needs to be a multiple of the number of subjects (%d).",nPopPar, rx->nsub);

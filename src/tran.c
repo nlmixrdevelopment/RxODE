@@ -2942,7 +2942,32 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       SET_STRING_ELT(params,pi++,mkChar(bufw));
     }
   }
-  setInits(ini);
+  SEXP ini2s = PROTECT(allocVector(STRSXP,1));pro++;
+  SEXP ini2   = PROTECT(allocVector(VECSXP, 2));pro++;
+  SEXP ini2i = PROTECT(allocVector(INTSXP,1));pro++;
+  tb.ini_i = length(ini);
+  int o=0;
+  for (i = 0; i < tb.ini_i; i++){
+    sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",i, CHAR(STRING_ELT(inin, i)));
+    o = (int)strlen(s_aux_info);
+    if (ISNA(REAL(ini)[i])){
+      sprintf(s_aux_info+o,"    REAL(ini)[%d] = NA_REAL;\n",i);
+    } else if (ISNAN(REAL(ini)[i])){
+      sprintf(s_aux_info+o,"    REAL(ini)[%d] = R_NaN;\n",i);
+    } else if (R_FINITE(REAL(ini)[i])){
+      sprintf(s_aux_info+o,"    REAL(ini)[%d] = %.16f;\n",i, REAL(ini)[i]);
+    } else if (REAL(ini)[i] > 0){
+      sprintf(s_aux_info+o,"    REAL(ini)[%d] = R_PosInf;\n",i);
+    } else {
+      sprintf(s_aux_info+o,"    REAL(ini)[%d] = R_NegInf;\n",i);
+    }
+    o = (int)strlen(s_aux_info);
+  }
+  INTEGER(ini2i)[0] = tb.ini_i;
+  SET_VECTOR_ELT(ini2, 0, ini2i);
+  SET_STRING_ELT(ini2s,0,mkChar(s_aux_info));
+  SET_VECTOR_ELT(ini2, 1, ini2s);
+  setInits(ini2);
 
   SET_STRING_ELT(names,0,mkChar("params"));
   SET_VECTOR_ELT(lst,  0,params);

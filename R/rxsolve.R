@@ -739,7 +739,7 @@ solve.rxEt <- solve.rxSolve
     .isDplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
     ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
     df <- x$params.single
-    pars.msg <- cli::rule(left=paste0(crayon::bold("Parameters"), " (",
+    pars.msg <- .cliRule(left=paste0(crayon::bold("Parameters"), " (",
                                       crayon::yellow(bound), crayon::bold$blue("$params"), "):"));
     if (!is.null(df)){
         cat(pars.msg, "\n");
@@ -759,8 +759,8 @@ solve.rxEt <- solve.rxSolve
     }
     df <- x$covs;
     if (!is.null(df)){
-        cat(cli::rule(left=paste0(crayon::bold("Covariates"), " (",
-                                  crayon::yellow(bound), crayon::bold$blue("$covs"), "):")), "\n");
+        .cliRule(left=paste0(crayon::bold("Covariates"), " (",
+                                  crayon::yellow(bound), crayon::bold$blue("$covs"), "):"))
         if (!.isDplyr){
             print(head(as.matrix(df), n = n));
         } else {
@@ -768,8 +768,8 @@ solve.rxEt <- solve.rxSolve
         }
     }
 
-    cat(cli::rule(left=paste0(crayon::bold("Initial Conditions"),
-                              " (", crayon::yellow(bound), crayon::bold$blue("$inits"), "):")), "\n")
+    .cliRule(left=paste0(crayon::bold("Initial Conditions"),
+                              " (", crayon::yellow(bound), crayon::bold$blue("$inits"), "):"))
     print(x$inits);
     if (any(names(x) == "sim.id")){
         .uncert <- character(0)
@@ -800,7 +800,7 @@ print.rxSolve <- function(x, ...){
     ##nocov start
     if (rxIs(x, "rxSolve")){
         bound <- .getBound(x, parent.frame(2));
-        cat(cli::rule(center=crayon::bold("Solved RxODE object"), line="bar2"), "\n");
+        .cliRule(center=crayon::bold("Solved RxODE object"), line="bar2")
         args <- as.list(match.call(expand.dots = TRUE));
         if (any(names(args) == "n")){
             n <- args$n;
@@ -815,13 +815,13 @@ print.rxSolve <- function(x, ...){
         .isDplyr <- .sharedPrint(x, n, width, bound)
         ## inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
         ## print(inits);
-        cat(cli::rule(left=crayon::bold("First part of data (object):")), "\n");
+        .cliRule(left=crayon::bold("First part of data (object):"))
         if (!.isDplyr){
             print(head(as.matrix(x), n = n));
         } else {
             print(dplyr::as.tbl(x), n = n, width = width);
         }
-        message(cli::rule(line="bar2"))
+        .cliRule(line="bar2")
     } else {
         print.data.frame(x)
     }
@@ -834,9 +834,9 @@ summary.rxSolve <- function(object, ...){
     ## nocov start
     if (rxIs(object, "rxSolve")){
         bound <- .getBound(object, parent.frame(2));
-        cat(cli::rule(center=crayon::bold("Summary of Solved RxODE object"), line="bar2"), "\n");
-        cat(cli::rule(left=paste0(crayon::bold("Model"),
-                                  " (", crayon::yellow(bound), crayon::bold$blue("$model"), "):")), "\n");
+        .cliRule(center=crayon::bold("Summary of Solved RxODE object"), line="bar2")
+        .cliRule(left=paste0(crayon::bold("Model"),
+                                  " (", crayon::yellow(bound), crayon::bold$blue("$model"), "):"));
         cat(rxNorm(object), "\n");
         args <- as.list(match.call(expand.dots = TRUE));
         if (any(names(args) == "n")){
@@ -850,9 +850,9 @@ summary.rxSolve <- function(object, ...){
             width <- NULL;
         }
         .sharedPrint(object, n, width, bound)
-        cat(cli::rule(left=crayon::bold("Summary of solved data:")), "\n");
+        .cliRule(left=crayon::bold("Summary of solved data:"))
         print(summary.data.frame(object))
-        cat(cli::rule(line="bar2"), "\n")
+        .cliRule(line="bar2")
     } else {
         class(object) <- "data.frame"
         NextMethod("summary", object);
@@ -986,12 +986,12 @@ dimnames.rxSolve <- function(x){
 ##'@export
 print.rxModelText <- function(x, ...){
     ## nocov start
-    cat(cli::rule(center=crayon::bold("RxODE Model Syntax"), line="bar2"), "\n");
+    .cliRule(center=crayon::bold("RxODE Model Syntax"), line="bar2");
     .code <- deparse(body(eval(parse(text=paste("function(){",as.vector(x),"}")))))
     .code[1]  <- "RxODE({"
     .code[length(.code)]  <- "})";
     cat(paste(.code,collapse="\n"), "\n");
-    cat(cli::rule(line="bar2"), "\n");
+    .cliRule(line="bar2")
     ## nocov end
 }
 

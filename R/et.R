@@ -543,7 +543,7 @@ print.rxEt <- function(x,...){
     ## nocov start
     if (rxIs(x, "rxEt")){
         bound <- .getBound(x, parent.frame(2));
-        cat(cli::rule(center=crayon::bold(paste0("EventTable with ",x$nobs+x$ndose, " records"))), "\n");
+        .cliRule(center=crayon::bold(paste0("EventTable with ",x$nobs+x$ndose, " records")));
         ## sprintf(" with %s records%s:\n", x$nobs+x$ndose,
         ##                                           ifelse(x$maxId==1, "", sprintf(" (%d IDs)", abs(x$maxId))))
         .units <- x$.units;
@@ -558,10 +558,10 @@ print.rxEt <- function(x,...){
                     x$nobs, crayon::yellow(bound), crayon::blue("get.sampling"),
                     crayon::blue("add.sampling"), crayon::blue("et")))
         if (x$nobs!=0 | x$ndose!=0){
-            cat(cli::rule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":"))), "\n");
+            .cliRule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":")));
             print(dplyr::as.tbl(data.frame(x)));
         }
-        cat(cli::rule(), "\n");
+        .cliRule();
         invisible(x)
     } else {
         print.data.frame(x)
