@@ -395,6 +395,184 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
   } //l
   return ret;
 }
+double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
+	       int cmt, int trans, 
+	       double p1, double v1,
+	       double p2, double p3,
+	       double p4, double p5,
+	       double d_ka, double d_tlag, double d_tlag2, double d_F, double d_F2,
+	       // Rate and dur can only apply to central compartment even w/ oral dosing
+	       // Therefore, only 1 model rate is possible with RxODE
+	       double d_rate, double d_dur){
+  double rx_k=0;
+  double rx_v=0;
+
+  double rx_k12=0;
+  double rx_k21=0;
+  
+  double rx_k13=0;
+  double rx_k31=0;
+  double d_alpha = 0;
+  double d_A = 0;
+  double d_A2 = 0;
+  double d_beta = 0;
+  double d_B = 0;
+  double d_B2 = 0;
+  double d_gamma = 0;
+  double d_C = 0;
+  double d_C2 = 0;
+  if (trans >= 10){
+    // Direct translation
+    if (trans == 11){
+      d_A = 1/v1;
+    } else {
+      d_A = v1;
+    }
+    d_alpha = p1;
+    d_beta = p2;
+    d_B = p3;
+    d_gamma = p4;
+    d_C = p5;
+    if (d_ka > 0){
+      if (d_gamma > 0){
+	d_A2 = d_A;
+	d_B2 = d_B;
+	d_C2 = d_C;
+	d_A = d_ka / (d_ka - d_alpha) * d_A;
+	d_B = d_ka / (d_ka - d_beta) * d_B;
+	d_C = d_ka / (d_ka - d_gamma) * d_C;
+      } else if (d_beta > 0){
+	d_A2 = d_A;
+	d_B2 = d_B;
+	d_A = d_ka / (d_ka - d_alpha) * d_A;
+	d_B = d_ka / (d_ka - d_beta) * d_B;
+      } else {
+	d_A2 = d_A;
+	d_A = d_ka / (d_ka - d_alpha) * d_A;
+      }
+    }
+  } else {
+    if (cmt == 1){
+      switch(trans){
+      case 1: // cl v
+	rx_k = p1/v1; // k = CL/V
+	rx_v = v1;
+	break;
+      case 2: // k V
+	rx_k = p1;
+	rx_v = v1;
+	break;
+      default:
+	error("invalid trans (1 cmt trans %d).", trans);
+      }
+      if (d_ka > 0){
+	d_alpha = rx_k;
+	d_A = d_ka / (d_ka - d_alpha) / rx_v;
+	d_A2 = 1.0 / rx_v;
+      } else {
+	d_alpha = rx_k;
+	d_A = 1.0 / rx_v;
+      }
+    } else if (cmt == 2){
+      switch (trans){
+      case 1: // cl=p1 v=v1 q=p2 vp=p3
+	rx_k = p1/v1; // k = CL/V
+	rx_v = v1;
+	rx_k12 = p2/v1; // k12 = Q/V
+	rx_k21 = p2/p3; // k21 = Q/Vp
+	break;
+      case 2: // k=p1, v1=v k12=p2 k21=p3
+	rx_k = p1;
+	rx_v = v1;
+	rx_k12 = p2;
+	rx_k21 = p3;
+	break;
+      case 3: // cl=p1 v=v1 q=p2 vss=p3
+	rx_k = p1/v1; // k = CL/V
+	rx_v = v1;
+	rx_k12 = p2/v1; // k12 = Q/V
+	rx_k21 = p2/(p3-v1); // k21 = Q/(Vss-V)
+	break;
+      case 4: // alpha=p1 beta=p2 k21=p3
+	rx_v = v1;
+	rx_k21 = p3;
+	rx_k = p1*p2/rx_k21; // p1 = alpha p2 = beta
+	rx_k12 = p1 + p2 - rx_k21 - rx_k;
+	break;
+      case 5: // alpha=p1 beta=p2 aob=p3
+	rx_v=v1;
+	rx_k21 = (p3*p2+p1)/(p3+1);
+	rx_k = (p1*p2)/rx_k21;
+	rx_k12 = p1+p2 - rx_k21 - rx_k;
+	break;
+      default:
+	error("invalid trans (2 cmt trans %d).", trans);
+      }
+      double tmp = rx_k12+rx_k21+rx_k;
+      d_beta = 0.5 * (tmp - sqrt(tmp * tmp - 4.0 * rx_k21 * rx_k));
+      d_alpha = rx_k21 * rx_k / d_beta;
+      if (d_ka > 0){
+	d_A = d_ka / (d_ka - d_alpha) * (d_alpha - rx_k21) / (d_alpha - d_beta) / rx_v;
+	d_B = d_ka / (d_ka - d_beta) * (d_beta - rx_k21) / (d_beta - d_alpha) / rx_v;
+	d_A2 = (d_alpha - rx_k21) / (d_alpha - d_beta) / rx_v;
+	d_B2 = (d_beta - rx_k21) / (d_beta - d_alpha) / rx_v;
+      } else {
+	d_A = (d_alpha - rx_k21) / (d_alpha - d_beta) / rx_v;
+	d_B = (d_beta - rx_k21) / (d_beta - d_alpha) / rx_v;
+	d_A2 = 0;
+	d_B2 = 0;
+      }
+    } else if (cmt == 3){
+      switch (trans){
+      case 1: // cl v q vp
+	rx_k = p1/v1; // k = CL/V
+	rx_v = v1;
+	rx_k12 = p2/v1; // k12 = Q/V
+	rx_k21 = p2/p3; // k21 = Q/Vp
+	rx_k13 = p4/v1; // k31 = Q2/V
+	rx_k31 = p4/p5; // k31 = Q2/Vp2
+	break;
+      case 2: // k=p1 v=v1 k12=p2 k21=p3 k13=p4 k31=p5
+	rx_k = p1;
+	rx_v = v1;
+	rx_k12 = p2;
+	rx_k21 = p3;
+	rx_k13 = p4;
+	rx_k31 = p5;
+	break;
+      default:
+	error("invalid trans (3 cmt trans %d).", trans);
+      }
+      double rx_a0 = rx_k * rx_k21 * rx_k31;
+      double rx_a1 = rx_k * rx_k31 + rx_k21 * rx_k31 + rx_k21 * rx_k13 + rx_k * rx_k21 + rx_k31 * rx_k12;
+      double rx_a2 = rx_k + rx_k12 + rx_k13 + rx_k21 + rx_k31;
+      double rx_p = rx_a1 - rx_a2 * rx_a2 / 3.0;
+      double rx_q = 2.0 * rx_a2 * rx_a2 * rx_a2 / 27.0 - rx_a1 * rx_a2 /3.0 + rx_a0;
+      double rx_r1 = sqrt(-rx_p * rx_p * rx_p / 27.0);
+      double rx_r2 = 2 * pow(rx_r1,1.0/3.0);
+      double rx_theta = acos(-rx_q / (2.0 * rx_r1)) / 3.0;
+      d_alpha = -(cos(rx_theta) * rx_r2 - rx_a2 / 3.0);
+      d_beta = -(cos(rx_theta + M_2PI/3.0) * rx_r2 - rx_a2 / 3.0);
+      d_gamma = -(cos(rx_theta + 4.0 / 3.0 * M_PI) * rx_r2 - rx_a2 / 3.0);
+      d_A = (rx_k21 - d_alpha) * (rx_k31 - d_alpha) / (d_alpha - d_beta) / (d_alpha - d_gamma) / rx_v;
+      d_B = (rx_k21 - d_beta) * (rx_k31 - d_beta) / (d_beta - d_alpha) / (d_beta - d_gamma) / rx_v;
+      d_C = (rx_k21 - d_gamma) * (rx_k31 - d_gamma) / (d_gamma - d_alpha) / (d_gamma - d_beta) / rx_v;
+      if (d_ka > 0){
+	d_A2 = d_A;
+	d_B2 = d_B;
+	d_C2 = d_C;
+	d_A = d_ka / (d_ka - d_alpha) * d_A;
+	d_B = d_ka / (d_ka - d_beta) * d_B;
+	d_C = d_ka / (d_ka - d_gamma) * d_C;
+      }
+    } else {
+      error("Only 1-3 compartment linCmt() are supported");
+    }
+  }
+  return solveLinB(rx, id, t, linCmt, d_A, d_A2, d_alpha, d_B, d_B2, d_beta,
+		   d_C, d_C2, d_gamma, d_ka, d_tlag, d_tlag2, d_F, d_F2,
+		   d_rate, d_dur);
+}
 
 
 /* Authors: Robert Gentleman and Ross Ihaka and The R Core Team */

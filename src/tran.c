@@ -697,9 +697,9 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     aAppendN("linCmt", 6);
     sAppendN(&sbt,"linCmt", 6);
     tb.linCmt=1;
-  } else if (nodeHas(identifier) && !strcmp("solveLinB",value)){
-    aAppendN("solveLinB", 9);
-    sAppendN(&sbt,"solveLinB", 9);
+  } else if (nodeHas(identifier) && !strcmp("linCmtA",value)){
+    aAppendN("linCmtA", 7);
+    sAppendN(&sbt,"linCmtA", 7);
     tb.linCmt=2;
   } else {
     // Apply fix for dot.syntax

@@ -127,13 +127,15 @@ void rxOptionsIni();
 void rxOptionsIniData();
 /* void rxOptionsIniFocei(); */
 
-double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
-		 double d_A, double d_A2, double d_alpha,
-		 double d_B, double d_B2, double d_beta,
-		 double d_C, double d_C2, double d_gamma,
-		 double d_ka, double d_tlag, double d_tlag2,
-		 double d_F, double d_F2,
-		 double d_rate, double d_dur);
+double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
+	       int ncmt, int trans, double d_ka,
+	       double p1, double v1,
+	       double p2, double p3,
+	       double p4, double p5,
+	       double d_tlag, double d_tlag2, double d_F, double d_F2,
+	       // Rate and dur can only apply to central compartment even w/ oral dosing
+	       // Therefore, only 1 model rate is possible with RxODE
+	       double d_rate, double d_dur);
 
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
 
@@ -232,7 +234,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "par_progress", (DL_FUNC) par_progress);
   R_RegisterCCallable("RxODE", "isRstudio", (DL_FUNC) isRstudio);
   R_RegisterCCallable("RxODE", "ind_solve", (DL_FUNC) ind_solve);
-  R_RegisterCCallable("RxODE", "solveLinB", (DL_FUNC) solveLinB);
+  R_RegisterCCallable("RxODE", "linCmtA", (DL_FUNC) linCmtA);
   R_RegisterCCallable("RxODE", "_update_par_ptr", (DL_FUNC) _update_par_ptr);
   R_RegisterCCallable("RxODE","rxRmModelLib", (DL_FUNC) rxRmModelLib);
   R_RegisterCCallable("RxODE","rxGetModelLib", (DL_FUNC) rxGetModelLib);
