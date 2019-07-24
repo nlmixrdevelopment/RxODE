@@ -378,7 +378,7 @@ rxPermissive({
         s.2cT <- sol.2cT %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et,linLog=ll)
 
         test_that("2 compartment oral solved models and ODEs same.", {
-            expect_equal(o.2c$C2, gs.2c$C2, tolerance=tol)
+            expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
             expect_equal(o.2c$C2, s.2cK$C2, tolerance=tol)
             expect_equal(o.2c$C2, s.2cA1$C2, tolerance=tol)
             expect_equal(o.2c$C2, s.2cA2$C2, tolerance=tol)
