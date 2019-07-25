@@ -370,7 +370,7 @@ function(a, b){
         .args <- unlist(list(...))
         if (.args[6] != "0") stop("Cannot take a second derivative")
         .args[6] <- .(i)
-        return(paste0("lincmtB(", paste(.args, collapse=","), ")"))
+        return(paste0("linCmtB(", paste(.args, collapse=","), ")"))
     })
     return(.fun)
 }
@@ -1357,10 +1357,12 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
 ##' Load a model into a symengine environment
 ##'
 ##' @param x RxODE object
+##' @param doConst Load constants into the environment as well.
+##' @inheritParams rxToSE
 ##' @return RxODE/symengine environment
 ##' @author Matthew Fidler
 ##' @export
-rxS <- function(x, doConst=TRUE){
+rxS <- function(x, doConst=TRUE, promoteLinSens=FALSE){
     .cnst <- names(.rxSEreserved)
     .env <- new.env(parent = loadNamespace("symengine"))
     .env$..mv <- rxModelVars(x);
@@ -1418,6 +1420,7 @@ rxS <- function(x, doConst=TRUE){
             assign(x, symengine::Symbol(x), envir=.env)
         }
     })
+    assignInMyNamespace(".promoteLinB", promoteLinSens);
     .expr <- eval(parse(text=paste0("quote({",rxNorm(x),"})")));
     .ret <- .rxToSE(.expr, .env)
     class(.env) <- "rxS";

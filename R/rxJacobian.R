@@ -221,13 +221,14 @@ rxExpandGrid <- function(x, y, type=0L){
     return(list(.full, .extraPars));
 }
 
-.rxLoadPrune <- function(mod, doConst=TRUE){
-    message("Pruning branches...", appendLF=FALSE)
+.rxLoadPrune <- function(mod, doConst=TRUE, promoteLinSens=FALSE, extra=""){
+    message(sprintf("Pruning branches%s...", ifelse(extra == "", "", paste0(" of ", extra))),
+            appendLF=FALSE)
     .newmod <-rxGetModel(rxPrune(mod));
     message("done.")
     ## message("Loading into symengine environment...", appendLF=FALSE)
-    message("Loading into symengine environment")
-    .newmod <- rxS(.newmod, doConst);
+    message("Loading %sinto symengine environment", ifelse(extra == "", "", paste0(extra, " ")));
+    .newmod <- rxS(.newmod, doConst, promoteLinSens=promoteLinSens);
     ## message("done.")
     return(.newmod)
 }
@@ -238,7 +239,8 @@ rxExpandGrid <- function(x, y, type=0L){
 ##' @return Sympy environment
 ##' @author Matthew Fidler
 .rxGenFun <- function(obj, predfn, pkpars=NULL, errfn=NULL,
-                      init=NULL){
+                      init=NULL,
+                      promoteLinSens=FALSE){
     rxSolveFree();
     rxTempDir();
     .checkGood(predfn);
@@ -251,8 +253,8 @@ rxExpandGrid <- function(x, y, type=0L){
     .newmod <- .rxGenPred(.newmod, predfn, errfn, init);
     .extraPars <- .newmod[[2]]
     .newmod <- .newmod[[1]]
+    .newmod <- .rxLoadPrune(.newmod, promoteLinSens=promoteLinSens, extra="full model")
     message("done.")
-    .newmod <- .rxLoadPrune(.newmod)
     .newmod$..stateInfo <- .stateInfo
     .newmod$..extraPars <- .extraPars
     return(.newmod)
@@ -263,11 +265,13 @@ rxExpandGrid <- function(x, y, type=0L){
 ##' @return RxODE/symengine environment
 ##' @author Matthew L. Fidler
 .rxGenEtaS <- function(obj, predfn, pkpars=NULL, errfn=NULL,
-                        init=NULL){
-    .s <- .rxGenFun(obj, predfn, pkpars, errfn, init)
+                        init=NULL, promoteLinSens=FALSE){
+    .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
+                    promoteLinSens=promoteLinSens)
     .etaVars <- paste0("ETA_", seq(1, .s$..maxEta), "_")
     .stateVars <- rxState(.s)
-    .s <- .rxGenFun(obj, predfn, pkpars, errfn, init)
+    .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
+                    promoteLinSens=promoteLinSens)
     .rxJacobian(.s, c(.stateVars, .etaVars))
     .rxSens(.s, .etaVars)
     return(.s)
@@ -279,9 +283,11 @@ rxExpandGrid <- function(x, y, type=0L){
 ##' @return RxODE/symengine environment
 ##' @author Matthew L. Fidler
 .rxGenHdEta <- function(obj, predfn, pkpars=NULL, errfn=NULL,
-                        init=NULL, pred.minus.dv=TRUE){
+                        init=NULL, pred.minus.dv=TRUE,
+                        promoteLinSens=FALSE){
     ## Equation 19 in Almquist
-    .s <- .rxGenEtaS(obj, predfn, pkpars, errfn, init)
+    .s <- .rxGenEtaS(obj, predfn, pkpars, errfn, init,
+                     promoteLinSens=promoteLinSens)
     .stateVars <- rxState(.s)
     .grd <- rxExpandFEta_(.stateVars, .s$..maxEta,
                           ifelse(pred.minus.dv, 1L, 2L))
@@ -407,10 +413,12 @@ rxExpandGrid <- function(x, y, type=0L){
 ##' @return RxODE/symengine environment
 ##' @author Matthew Fidler
 .rxGenFoce <- function(obj, predfn, pkpars=NULL, errfn=NULL,
-                        init=NULL, pred.minus.dv=TRUE,
-                        sum.prod=FALSE,
-                       optExpression=TRUE){
-    .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv)
+                       init=NULL, pred.minus.dv=TRUE,
+                       sum.prod=FALSE,
+                       optExpression=TRUE,
+                       promoteLinSens=FALSE){
+    .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv,
+                      promoteLinSens=promoteLinSens)
     .s$..REta <- NULL;
     ## Take etas from rx_r
     eval(parse(text=rxRepR0_(.s$..maxEta)))
@@ -428,8 +436,10 @@ rxExpandGrid <- function(x, y, type=0L){
 .rxGenFocei <- function(obj, predfn, pkpars=NULL, errfn=NULL,
                         init=NULL, pred.minus.dv=TRUE,
                         sum.prod=FALSE,
-                        optExpression=TRUE){
-    .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv)
+                        optExpression=TRUE,
+                        promoteLinSens=FALSE){
+    .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv,
+                      promoteLinSens=promoteLinSens)
     .stateVars <- rxState(.s)
     .grd <- rxExpandFEta_(.stateVars, .s$..maxEta, FALSE)
     if (.useUtf()){
@@ -501,6 +511,7 @@ rxSymPyExpEtas <- c()
 ##'     for FOCEi (not needed for FOCE)
 ##' @return RxODE object expanded with predfn and with calculated
 ##'     sensitivities.
+##' @inheritParams rxS
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
@@ -509,7 +520,8 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
                       grad=FALSE, sum.prod=FALSE, pred.minus.dv=TRUE,
                       only.numeric=FALSE,
                       optExpression=TRUE,
-                      interaction=TRUE, ...){
+                      interaction=TRUE, ...,
+                      promoteLinSens=FALSE){
     assignInMyNamespace("rxErrEnv.lambda", NULL);
     assignInMyNamespace("rxErrEnv.yj", NULL);
     assignInMyNamespace("rxSymPyExpThetas", c());
@@ -519,10 +531,12 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
                         sum.prod, optExpression)
     } else if (interaction){
         .s <- .rxGenFocei(obj, predfn, pkpars, errfn, init, pred.minus.dv,
-                          sum.prod, optExpression);
+                          sum.prod, optExpression,
+                          promoteLinSens=promoteLinSens);
     } else {
         .s <- .rxGenFoce(obj, predfn, pkpars, errfn, init, pred.minus.dv,
-                         sum.prod, optExpression);
+                         sum.prod, optExpression,
+                         promoteLinSens=promoteLinSens);
     }
     .toRx <- function(x, msg){
         if (is.null(x)) return(NULL)
