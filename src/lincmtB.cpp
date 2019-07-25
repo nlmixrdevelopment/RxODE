@@ -194,28 +194,25 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	}
       }
       unsigned int ncmt = 1;
-      stan::math::var beta1=0, gamma1=0, alpha1=0;
-      stan::math::var alpha = d_alpha;
-      stan::math::var beta = d_beta;
-      stan::math::var gamma = d_gamma;
-      stan::math::var ka = d_ka;
-      stan::math::var tlag = d_tlag;
+#undef beta
+#define beta1 (1/d_beta)
+#define gamma1 (1/d_gamma)
+#define alpha1 (1/d_alpha)
+#define alpha d_alpha
+#define beta d_beta
+#define gamma  d_gamma
+#define ka  d_ka
+#define tlag  d_tlag
       stan::math::var F = d_F;
       stan::math::var A = d_A;
       stan::math::var B = d_B;
-      stan::math::var C = d_C;
+      stan::math::var C = d_B;
       if (d_gamma > 0.){
 	ncmt = 3;
-	gamma1 = 1.0/gamma; // 1/gamma log(1)-log(gamma) = -log(gamma)
-	beta1 = 1.0/beta;
-	alpha1 = 1.0/alpha;
       } else if (d_beta > 0.){
 	ncmt = 2;
-	beta1 = 1.0/beta;
-	alpha1 = 1.0/alpha;
       } else if (d_alpha > 0.){
 	ncmt = 1;
-	alpha1 = 1.0/alpha;
       } else {
 	return 0.0;
       }
@@ -226,7 +223,8 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
       int evid, wh, wh100, whI, wh0;
       stan::math::var thisT = 0.0;
       double dose = 0;
-      stan::math::var tT = 0.0, res, t1, t2, tinf = 0, tau = 0, cur = 0;
+      stan::math::var res, cur = 0, tinf = 0;
+      double tau = 0, tT = 0.0;
       stan::math::var rate=0;
       
       // don't need to adjust based on tlag t is the most conservative.
@@ -407,8 +405,10 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	      } 
 	    }
 	  } else {
-	    t1  = ((thisT < tinf) ? thisT : tinf);        //during infusion
-	    t2  = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
+	    //during infusion
+#define t1 ((thisT < tinf) ? thisT : tinf)
+	    // after infusion
+#define t2 ((thisT > tinf) ? thisT - tinf : 0.0)
 	    cur +=  rate*A*alpha1*(1.0-stan::math::exp(-alpha*t1))*stan::math::exp(-alpha*t2);
 	    if (ncmt >= 2){
 	      cur +=  rate*B*beta1*(1.0-stan::math::exp(-beta*t1))*stan::math::exp(-beta*t2);
@@ -417,6 +417,8 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	      }
 	    }
 	  }
+#undef t1
+#undef t2
 	  break;
 	case 0:
 	  if (wh0 == 10 || wh0 == 20){
@@ -494,4 +496,12 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
       return ind->diffB[val]; // Was a reset event.
     }
   }
+#undef beta1
+#undef gamma1
+#undef alpha1
+#undef alpha
+#undef beta
+#undef gamma
+#undef ka
+#undef tlag
 }

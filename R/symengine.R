@@ -64,7 +64,8 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
              "exp"=1, "gamma"=1, "sin"=1, "sinh"=1,
              "sqrt"=1, "tan"=1, "tanh"=1, "log"=1, "abs"=1, "asinh"=1,
              "rxTBS"=3, "rxTBSd"=3, "rxTBSd2"=3,
-             "linCmtA"=18)
+             "linCmtA"=18,
+             "linCmtB"=19)
 
 .rxSEeqUsr <- c()
 
@@ -363,6 +364,24 @@ function(a, b){
 ## atanh(2*tol-1)= delta
 ## 1/2-1/2*tanh(k*(a-b)+delta)
 
+.linCmtBgen <- function(i){
+    .fun <- function(...){};
+    body(.fun) <- bquote({
+        .args <- unlist(list(...))
+        if (.args[6] != "0") stop("Cannot take a second derivative")
+        .args[6] <- .(i)
+        return(paste0("lincmtB(", paste(.args, collapse=","), ")"))
+    })
+    return(.fun)
+}
+
+.rxD$linCmtB <- c(list(function(...){stop("Bad linCmtB derivative")},
+                       function(...){stop("Bad linCmtB derivative")},
+                       function(...){stop("Bad linCmtB derivative")},
+                       function(...){stop("Bad linCmtB derivative")},
+                       function(...){stop("Bad linCmtB derivative")},
+                       function(...){stop("Bad linCmtB derivative")}),
+                  lapply(1:13, .linCmtBgen));
 
 ##' Add to RxODE's derivative tables
 ##'
@@ -398,15 +417,21 @@ rxD <- function(name, derivatives){
 }
 
 
+.promoteLinB <- FALSE
 ##' RxODE to symengine.R
 ##'
 ##' @param x expression
-##' @param envir default is \code{NULL}; Environment to put symengine variables in.
+##' @param envir default is \code{NULL}; Environment to put symengine
+##'     variables in.
 ##' @param progress shows progress bar if true.
+##' @param promoteLinSens Promote solved linear compartment systems to
+##'     sensitivity-based solutions.
 ##' @return
 ##' @author Matthew L. Fidler
 ##' @export
-rxToSE <- function(x, envir=NULL, progress=FALSE){
+rxToSE <- function(x, envir=NULL, progress=FALSE,
+                   promoteLinSens=FALSE){
+    assignInMyNamespace(".promoteLinB", promoteLinSens);
     if (is(substitute(x),"character")){
         force(x);
     } else if (is(substitute(x), "{")){
@@ -540,14 +565,12 @@ rxToSE <- function(x, envir=NULL, progress=FALSE){
                     }
                 }
                 .expr <- x[[3]]
-            } else {
+            } else if (.isEnv){
                 .expr <- paste0("with(envir,",
-                                     .rxToSE(x[[3]],
-                                             envir=envir), ")")
+                                .rxToSE(x[[3]],
+                                        envir=envir), ")")
                 .expr <- eval(parse(text=.expr));
-                if (.isEnv){
-                    assign(.var, .expr, envir=envir)
-                }
+                assign(.var, .expr, envir=envir)
             }
             if (.isEnv){
                 if (regexpr(rex::rex(or(.regRate,
@@ -769,8 +792,15 @@ rxToSE <- function(x, envir=NULL, progress=FALSE){
             .ret0 <- c(list(as.character(x[[1]])), lapply(x[-1], .rxToSE, envir=envir));
             if (.isEnv) envir$..curCall <- .lastCall
             .SEeq <- c(.rxSEeq, .rxSEeqUsr)
-            if (.isEnv && as.character(.ret0[[1]]) == "linCmtA") envir$..linCmtA <- TRUE
-            .nargs <- .SEeq[paste(.ret0[[1]])];
+            .curName <- paste(.ret0[[1]])
+            .nargs <- .SEeq[.curName];
+            if (.promoteLinB && .curName == "linCmtA"){
+                .ret0 <- c(list("linCmtB"),
+                           .ret0[2:6],
+                           list("0"),
+                           .ret0[-c(1, 2:6)]);
+                .nargs <- .nargs + 1
+            }
             if (!is.na(.nargs)){
                 if (.nargs == length(.ret0) - 1){
                     .ret <- paste0(.ret0[[1]], "(")
@@ -987,7 +1017,6 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
     return(list(.ret, .env$found))
 }
 
-.rxAssignLinB <- FALSE
 
 ##'@export
 ##'@rdname rxToSE
@@ -1152,9 +1181,6 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
             }
             .ret0 <- lapply(lapply(x, .stripP), .rxFromSE)
             .SEeq <- c(.rxSEeq, .rxSEeqUsr)
-            if (.rxAssignLinB && paste(.ret0[[1]]) == "linCmtA"){
-                return("rx1c");
-            }
             .nargs <- .SEeq[paste(.ret0[[1]])];
             if (!is.na(.nargs)){
                 if (.nargs == length(.ret0) - 1){
@@ -1338,7 +1364,6 @@ rxS <- function(x, doConst=TRUE){
     .cnst <- names(.rxSEreserved)
     .env <- new.env(parent = loadNamespace("symengine"))
     .env$..mv <- rxModelVars(x);
-    .env$..linCmtA <- FALSE
     .env$..jac0 <- c();
     .env$..ddt <- c();
     .env$..sens0 <- c();
@@ -1349,6 +1374,7 @@ rxS <- function(x, doConst=TRUE){
     .env$rxTBSd <- .rxFunction("rxTBSd")
     .env$rxTBSd2 <- .rxFunction("rxTBSd2")
     .env$linCmtA <- .rxFunction("linCmtA");
+    .env$linCmtB <- .rxFunction("linCmtB");
     for (.f in c("rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt", "rxGt", "rxAnd", "rxOr", "rxNot"))
         assign(.f, .rxFunction(.f), envir=.env)
     .env$..polygamma <- symengine::S("polygamma(_rx_a, _rx_b)");
