@@ -4,6 +4,218 @@ extern "C" int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 namespace stan {
   namespace math {
+
+    using std::exp;
+    using stan::math::exp;
+    using std::sqrt;
+    using stan::math::sqrt;
+    using std::pow;
+    using stan::math::pow;
+    using std::acos;
+    using stan::math::acos;
+    using std::cos;
+    using stan::math::cos;
+
+    //micro to macro conversion
+    template <class T>
+    Eigen::Matrix<T, Eigen::Dynamic, 2>
+    micros2macros(const Eigen::Matrix<T, Eigen::Dynamic, 1>& p,
+		  const int ncmt,
+		  const int oral,
+		  const int trans,
+		  T ka){
+      Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncmt,3);
+#define ALPHA g(0,0)
+#define A     g(0,1)
+#define A2    g(0,2)
+#define BETA  g(1,0)
+#define B     g(1,1)
+#define B2    g(1,2)
+#define GAMMA g(1,0)
+#define C     g(1,1)
+#define C2    g(1,2)
+#define P1    p[0]
+#define V1    p[1]
+#define P2    p[2]
+#define P3    p[3]
+#define P4    p[4]
+#define P5    p[5]
+      if (trans >= 10){
+	ALPHA = P1; // alpha
+	// A
+	if (trans == 11){
+	  A = 1/V1;
+	} else {
+	  A = V1;
+	}
+	A2 = 0;// A2
+	if (ncmt == 2 || ncmt == 3){
+	  BETA = P2; // beta
+	  B = P3; // B
+	  B2 = 0; // B2
+	  if (ncmt == 3){
+	    GAMMA = P4; //gamma
+	    C = P5; //C
+	    C2 = 0; // C2
+	  }
+	}
+	if (oral == 1){
+	  if (ncmt == 3){
+	    A2 = A; // A2=A
+	    B2 = B; // B2=B
+	    C2 = C; // C2=C
+	    A = ka / (ka - ALPHA) * A;
+	    B = ka / (ka - BETA) * B;
+	    C = ka / (ka - GAMMA) * C;
+	  } else if (ncmt == 2){
+	    A2 = A;
+	    B2 = B;
+	    A = ka / (ka - ALPHA) * A;
+	    B = ka / (ka - BETA) * B;
+	  } else {
+	    A2 = A;
+	    A = ka / (ka - ALPHA) * A;
+	  }
+	}
+      } else {
+	T rx_k, rx_v, rx_k12, rx_k21, rx_k13, rx_k31;
+	if (ncmt == 1){
+	  switch(trans){
+	  case 1: // cl v
+	    rx_k = P1/V1; // k = CL/V
+	    rx_v = V1;
+	    break;
+	  case 2: // k V
+	    rx_k = P1;
+	    rx_v = V1;
+	    break;
+	  default:
+	    throw std::invalid_argument("invalid trans.");
+	  }
+	  if (ka > 0){
+	    ALPHA = rx_k;
+	    A = ka / (ka - ALPHA) / rx_v;
+	    A2 = 1.0 / rx_v;
+	  } else {
+	    ALPHA = rx_k;
+	    A = 1.0 / rx_v;
+	  }
+	} else if (ncmt == 2){
+	  switch (trans){
+	  case 1: // cl=p1 v=v1 q=p2 vp=p3
+	    rx_k = P1/V1; // k = CL/V
+	    rx_v = V1;
+	    rx_k12 = P2/V1; // k12 = Q/V
+	    rx_k21 = P2/P3; // k21 = Q/Vp
+	    break;
+	  case 2: // k=p1, v1=v k12=p2 k21=p3
+	    rx_k = P1;
+	    rx_v = V1;
+	    rx_k12 = P2;
+	    rx_k21 = P3;
+	    break;
+	  case 3: // cl=p1 v=v1 q=p2 vss=p3
+	    rx_k = P1/V1; // k = CL/V
+	    rx_v = V1;
+	    rx_k12 = P2/V1; // k12 = Q/V
+	    rx_k21 = P2/(P3-V1); // k21 = Q/(Vss-V)
+	    break;
+	  case 4: // alpha=p1 beta=p2 k21=p3
+	    rx_v = V1;
+	    rx_k21 = P3;
+	    rx_k = P1*P2/rx_k21; // p1 = alpha p2 = beta
+	    rx_k12 = P1 + P2 - rx_k21 - rx_k;
+	    break;
+	  case 5: // alpha=p1 beta=p2 aob=p3
+	    rx_v=V1;
+	    rx_k21 = (P3*P2+P1)/(P3+1);
+	    rx_k = (P1*P2)/rx_k21;
+	    rx_k12 = P1+P2 - rx_k21 - rx_k;
+	    break;
+	  default:
+	    throw std::invalid_argument("invalid trans (2cmt).");
+	  }
+	  T rx_tmp = rx_k12+rx_k21+rx_k;
+	  BETA = 0.5 * (rx_tmp - pow(rx_tmp * rx_tmp - 4.0 * rx_k21 * rx_k, 0.5));
+	  ALPHA = rx_k21 * rx_k / BETA;
+	  if (oral == 1){
+	    A = ka / (ka - ALPHA) * (ALPHA - rx_k21) / (ALPHA - BETA) / rx_v;
+	    B = ka / (ka - BETA) * (BETA - rx_k21) / (BETA - ALPHA) / rx_v;
+	    A2 = (ALPHA - rx_k21) / (ALPHA - BETA) / rx_v;
+	    B2 = (BETA - rx_k21) / (BETA - ALPHA) / rx_v;
+	  } else {
+	    A = (ALPHA - rx_k21) / (ALPHA - BETA) / rx_v;
+	    B = (BETA - rx_k21) / (BETA - ALPHA) / rx_v;
+	    A2 = 0;
+	    B2 = 0;
+	  }
+	} else if (ncmt == 3){
+	  switch (trans){
+	  case 1: // cl v q vp
+	    rx_k = P1/V1; // k = CL/V
+	    rx_v = V1;
+	    rx_k12 = P2/V1; // k12 = Q/V
+	    rx_k21 = P2/P3; // k21 = Q/Vp
+	    rx_k13 = P4/V1; // k31 = Q2/V
+	    rx_k31 = P4/P5; // k31 = Q2/Vp2
+	    break;
+	  case 2: // k=p1 v=v1 k12=p2 k21=p3 k13=p4 k31=p5
+	    rx_k = P1;
+	    rx_v = V1;
+	    rx_k12 = P2;
+	    rx_k21 = P3;
+	    rx_k13 = P4;
+	    rx_k31 = P5;
+	    break;
+	  default:
+	    throw std::invalid_argument("invalid trans (3cmt).");
+	  }
+	  T rx_a0, rx_a1, rx_a2, rx_p, rx_q, rx_r1, rx_r2, rx_theta;
+	  rx_a0 = rx_k * rx_k21 * rx_k31;
+	  rx_a1 = rx_k * rx_k31 + rx_k21 * rx_k31 + rx_k21 * rx_k13 + rx_k * rx_k21 + rx_k31 * rx_k12;
+	  rx_a2 = rx_k + rx_k12 + rx_k13 + rx_k21 + rx_k31;
+	  rx_p = rx_a1 - rx_a2 * rx_a2 / 3.0;
+	  rx_q = 2.0 * rx_a2 * rx_a2 * rx_a2 / 27.0 - rx_a1 * rx_a2 /3.0 + rx_a0;
+	  rx_r1 = pow(-rx_p * rx_p * rx_p / 27.0, 0.5);
+	  rx_r2 = 2 * pow(rx_r1,1.0/3.0);
+	  rx_theta = acos(-rx_q / (2.0 * rx_r1)) / 3.0;
+	  ALPHA = -(cos(rx_theta) * rx_r2 - rx_a2 / 3.0);
+	  BETA = -(cos(rx_theta + M_2PI/3.0) * rx_r2 - rx_a2 / 3.0);
+	  GAMMA = -(cos(rx_theta + 4.0 / 3.0 * M_PI) * rx_r2 - rx_a2 / 3.0);
+	  A = (rx_k21 - ALPHA) * (rx_k31 - ALPHA) / (ALPHA - BETA) / (ALPHA - GAMMA) / rx_v;
+	  B = (rx_k21 - BETA) * (rx_k31 - BETA) / (BETA - ALPHA) / (BETA - GAMMA) / rx_v;
+	  C = (rx_k21 - GAMMA) * (rx_k31 - GAMMA) / (GAMMA - ALPHA) / (GAMMA - BETA) / rx_v;
+	  if (oral == 1){
+	    A2 = A;
+	    B2 = B;
+	    C2 = C;
+	    A = ka / (ka - ALPHA) * A;
+	    B = ka / (ka - BETA) * B;
+	    C = ka / (ka - GAMMA) * C;
+	  }
+	} else {
+	  throw std::invalid_argument("1-3 compartments are supported");
+	}
+      }
+#undef ALPHA
+#undef A
+#undef A2
+#undef BETA
+#undef B
+#undef B2
+#undef GAMMA
+#undef C
+#undef C2
+#undef P1
+#undef V1
+#undef P2
+#undef P3
+#undef P4
+#undef P5
+      return g;
+    }
+
+
 extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
 		   int i_cmt, int trans, int val,
 		   double dd_p1, double dd_v1,
