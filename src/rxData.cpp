@@ -3281,6 +3281,7 @@ SEXP rxSolve_(const RObject &obj,
           }
 	  // Setup the pointers.
           ind->id             = nsub+1;
+	  ind->bT = NA_REAL;
 	  ind->allCovWarn = 0;
 	  ind->wrongSSDur=0;
 	  ind->timeReset=1;

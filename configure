@@ -587,6 +587,7 @@ PACKAGE_URL=''
 ac_unique_file="src/init.c"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+ISYSTEM
 CXX14STD
 OPENMP_CXXFLAGS
 OPENMP_CFLAGS
@@ -2685,6 +2686,13 @@ fi
 OPENMP_CXXFLAGS="${OPENMP_CFLAGS}"
 CXX14STD=""
 
+ISYSTEM="I"
+if test "${GCC}" = yes; then
+  ISYSTEM="isystem"
+fi
+
+
+
 
 
 
@@ -3846,6 +3854,8 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
+
+
 
 
 echo --------[begin src/Makevars]--------

@@ -137,6 +137,16 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       // Therefore, only 1 model rate is possible with RxODE
 	       double d_rate, double d_dur);
 
+double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
+	       int i_cmt, int trans, int val,
+	       double dd_p1, double dd_v1,
+	       double dd_p2, double dd_p3,
+	       double dd_p4, double dd_p5,
+	       double dd_ka,
+	       double dd_tlag, double dd_tlag2,
+	       double dd_F, double dd_F2,
+	       double dd_rate, double dd_dur);
+
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
 
 int par_progress(int c, int n, int d, int cores, clock_t t0, int stop);
@@ -235,6 +245,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "isRstudio", (DL_FUNC) isRstudio);
   R_RegisterCCallable("RxODE", "ind_solve", (DL_FUNC) ind_solve);
   R_RegisterCCallable("RxODE", "linCmtA", (DL_FUNC) linCmtA);
+  R_RegisterCCallable("RxODE", "linCmtB", (DL_FUNC) linCmtB);
   R_RegisterCCallable("RxODE", "_update_par_ptr", (DL_FUNC) _update_par_ptr);
   R_RegisterCCallable("RxODE","rxRmModelLib", (DL_FUNC) rxRmModelLib);
   R_RegisterCCallable("RxODE","rxGetModelLib", (DL_FUNC) rxGetModelLib);

@@ -37,13 +37,22 @@ fi
 OPENMP_CXXFLAGS="${OPENMP_CFLAGS}"
 CXX14STD=""
 
+ISYSTEM="I"
+if test "${GCC}" = yes; then
+  ISYSTEM="isystem"
+fi
+
+
 
 AC_SUBST(OPENMP_CFLAGS)
 AC_SUBST(OPENMP_CXXFLAGS)
 AC_SUBST(CXX14STD)
+AC_SUBST(ISYSTEM)
 
 AC_CONFIG_FILES([src/Makevars])
 AC_OUTPUT
+
+ 
 
 echo --------[[begin src/Makevars]]--------
 cat src/Makevars

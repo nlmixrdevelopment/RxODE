@@ -2,10 +2,14 @@ rxPermissive({
 
     tol  <- 1e-6 ## Current difference for all equations
     rxClean()
-    ll <- FALSE
+    type <- 1
 
-    for (ll in c(TRUE, FALSE)){
-        context(sprintf("Test the solved equations (%s)", ifelse(ll, "linlog", "linear")))
+    for (type in 1:3){
+
+        .txt <- switch(type, "linlog", "linear", "sensitivitiy");
+        ll <- switch(type, TRUE, FALSE, FALSE);
+        sens <- switch(type, FALSE, FALSE, TRUE);
+        context(sprintf("Test the solved equations (%s)", .txt))
 
         et <- eventTable() %>% add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
             add.sampling(seq(0, 48, length.out=200))
@@ -26,34 +30,34 @@ rxPermissive({
             V <- theta[1];
             CL <- theta[2];
             C2 = linCmt();
-        })
+        }, linCmtSens=sens)
 
         ode.2cK <- RxODE({
             V <- theta[1];
             CLx <- theta[2];
             K <- CLx/V
             C2 = linCmt();
-        })
+        }, linCmtSens=sens)
 
         ode.2cA1 <- RxODE({
             V <- theta[1];
             CLx <- theta[2];
             alpha <- CLx/V
             C2 = linCmt();
-        })
+        }, linCmtSens=sens)
 
         ode.2cA2 <- RxODE({
             A <- 1/theta[1];
             CLx <- theta[2];
             alpha <- CLx*A
             C2 = linCmt();
-        })
+        }, linCmtSens=sens)
 
         ## Instead of specifying parameters in the solved system, you can
         ## specify them in the linCmt variable.
         ode.1cs2 <- RxODE({
             C2 = linCmt(CL, V);
-        })
+        }, linCmtSens=sens)
 
         test_that("linear compartment model gives extraCmt=1",{
             expect_equal(rxModelVars(ode.1cs2)$extraCmt,1L);
@@ -112,7 +116,7 @@ rxPermissive({
 
         sol.1c.ka <- RxODE({
             C2 = linCmt(V, CL, KA);
-        })
+        }, linCmtSens=sens)
 
         ode.2cK <- RxODE({
             V <- theta[1];
@@ -120,7 +124,7 @@ rxPermissive({
             Ka <- theta[3]
             K <- CLx/V
             C2 = linCmt();
-        })
+        }, linCmtSens=sens)
 
         ode.2cA1 <- RxODE({
             V <- theta[1];
@@ -128,7 +132,7 @@ rxPermissive({
             Ka <- theta[3]
             alpha <- CLx/V
             C2 = linCmt();
-        })
+        }, linCmtSens=sens)
 
         ode.2cA2 <- RxODE({
             A <- 1/theta[1];
@@ -136,7 +140,7 @@ rxPermissive({
             Ka <- theta[3];
             alpha <- CLx*A
             C2 = linCmt();
-        })
+        }, linCmtSens=sens)
 
 
         test_that("linear oral model gives extraCmt=2",{
@@ -176,7 +180,7 @@ rxPermissive({
 
         sol.2c <- RxODE({
             C2=linCmt(V, CL, V2, Q1);
-        })
+        }, linCmtSens=sens)
 
         sol.2cK <- RxODE({
             V <- theta[1]
@@ -187,7 +191,7 @@ rxPermissive({
             K12 <- Q/V
             K21 <- Q/V2x
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         ## A1 in terms of A, alpha, B, beta
 
@@ -207,7 +211,7 @@ rxPermissive({
             A <- (alpha - K21x)/(alpha - beta)/Vx
             B <- (beta - K21x)/(beta - alpha)/Vx
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         ## A2 V, alpha, beta, k21
         sol.2cA2 <- RxODE({
@@ -224,7 +228,7 @@ rxPermissive({
                                   Kx))
             alpha <- K21 * Kx/beta
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         ## A3 alpha, beta, aob
         sol.2cA3 <- RxODE({
@@ -244,7 +248,7 @@ rxPermissive({
             Bx <- (beta - K21x)/(beta - alpha)/V
             aob <- Ax/Bx
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et,linLog=ll)
         s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q1=10), events=et,linLog=ll)
@@ -273,7 +277,7 @@ rxPermissive({
 
         sol.2c.ka <- RxODE({
             C2=linCmt(V, CL, V2, Q, KA);
-        })
+        }, linCmtSens=sens)
 
         sol.2cK <- RxODE({
             V <- theta[1]
@@ -285,7 +289,7 @@ rxPermissive({
             K12 <- Q/V
             K21 <- Q/V2x
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         ## A1 in terms of A, alpha, B, beta
 
@@ -306,7 +310,7 @@ rxPermissive({
             A <- (alpha - K21x)/(alpha - beta)/Vx
             B <- (beta - K21x)/(beta - alpha)/Vx
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         ## A2 V, alpha, beta, k21
         sol.2cA2 <- RxODE({
@@ -324,7 +328,7 @@ rxPermissive({
                                   Kx))
             alpha <- K21 * Kx/beta
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         ## A3 alpha, beta, aob
         sol.2cA3 <- RxODE({
@@ -345,7 +349,7 @@ rxPermissive({
             Bx <- (beta - K21x)/(beta - alpha)/V
             aob <- Ax/Bx
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         sol.2cSS <- RxODE({
             V <- theta[1]
@@ -355,7 +359,7 @@ rxPermissive({
             Ka <- theta[5]
             Vss <- V+V2x
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         sol.2cT <- RxODE({
             V <- theta[1]
@@ -364,7 +368,7 @@ rxPermissive({
             Q <- theta[4]
             Ka <- theta[5]
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
 
 
@@ -407,7 +411,7 @@ rxPermissive({
         sol.3c <- RxODE({
             ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
             C2=linCmt(V, CL, V2, Q, Q2, V3);
-        })
+        }, linCmtSens=sens)
 
         sol.3cK <- RxODE({
             V <- theta[1]
@@ -422,7 +426,7 @@ rxPermissive({
             k13 <- Q2x/V
             k31 <- Q2x/V3x
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         sol.3cA1 <- RxODE({
             Vx <- theta[1]
@@ -452,7 +456,7 @@ rxPermissive({
             B <- (K21x - beta) * (K31x - beta)/(beta - alpha)/(beta - gamma)/Vx
             C <- (K21x - gamma) * (K31x - gamma)/(gamma - alpha)/(gamma - beta)/Vx
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         sol.3cVp <- RxODE({
             V <- theta[1]
@@ -462,7 +466,7 @@ rxPermissive({
             Q2 <- theta[5]
             Vp2 <- theta[6]
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         sol.3cVt <- RxODE({
             V <- theta[1]
@@ -472,7 +476,7 @@ rxPermissive({
             Q2 <- theta[5]
             Vt2 <- theta[6]
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll)
 
@@ -512,7 +516,7 @@ rxPermissive({
         sol.3c.ka <- RxODE({
             ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
             C2=linCmt(V, CL, V2, Q, Q2, V3, KA);
-        })
+        }, linCmtSens=sens)
 
         sol.3cK <- RxODE({
             V <- theta[1]
@@ -528,7 +532,7 @@ rxPermissive({
             k13 <- Q2x/V
             k31 <- Q2x/V3x
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         sol.3cA1 <- RxODE({
             Vx <- theta[1]
@@ -559,14 +563,12 @@ rxPermissive({
             B <- (K21x - beta) * (K31x - beta)/(beta - alpha)/(beta - gamma)/Vx
             C <- (K21x - gamma) * (K31x - gamma)/(gamma - alpha)/(gamma - beta)/Vx
             C2=linCmt();
-        })
+        }, linCmtSens=sens)
 
         o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,linLog=ll)
         s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,linLog=ll)
         s.3cK <- sol.3cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,linLog=ll)
         s.3cA1 <- sol.3cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,linLog=ll)
-
-
 
         test_that("3 compartment oral solved models and ODEs same.", {
             expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
@@ -583,7 +585,7 @@ rxPermissive({
             expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
         })
 
-        context(sprintf("Infusion Models (%s)", ifelse(ll, "linlog", "linear")))
+        context(sprintf("Infusion Models (%s)", .txt))
 
         et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=6, dosing.interval=8) %>%
             add.sampling(seq(0, 48, length.out=200))
@@ -604,13 +606,13 @@ rxPermissive({
             V <- theta[1];
             CL <- theta[2];
             C2 = linCmt();
-        })
+        }, linCmtSens=sens)
 
         ## Instead of specifying parameters in the solved system, you can
         ## specify them in the linCmt variable.
         ode.1cs2 <- RxODE({
             C2 = linCmt(CL, V);
-        })
+        }, linCmtSens=sens)
 
         ## The solved systems can be mixed with ODE solving routines (to
         ## speed them up a bit...?)
@@ -646,7 +648,7 @@ rxPermissive({
 
         sol.2c <- RxODE({
             C2=linCmt(V, CL, V2, Q);
-        })
+        }, linCmtSens=sens)
 
         o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et,linLog=ll)
 
@@ -676,7 +678,7 @@ rxPermissive({
         sol.3c <- RxODE({
             ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
             C2=linCmt(V, CL, V2, Q, Q2, V3);
-        })
+        }, linCmtSens=sens)
 
         o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll)
 
@@ -694,7 +696,7 @@ rxPermissive({
             expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
         })
 
-        context(sprintf("Infusion + Bolus (%s)", ifelse(ll, "linlog", "linear")))
+        context(sprintf("Infusion + Bolus (%s)", .txt))
 
         et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=6, dosing.interval=8) %>%
             add.dosing(dose=1.5, nbr.doses=6, dosing.interval=8) %>%
@@ -711,13 +713,13 @@ rxPermissive({
             V <- theta[1];
             CL <- theta[2];
             C2 = linCmt();
-        })
+        }, linCmtSens=sens)
 
         ## Instead of specifying parameters in the solved system, you can
         ## specify them in the linCmt variable.
         ode.1cs2 <- RxODE({
             C2 = linCmt(CL, V);
-        })
+        }, linCmtSens=sens)
 
         ## The solved systems can be mixed with ODE solving routines (to
         ## speed them up a bit...?)
@@ -742,7 +744,7 @@ rxPermissive({
 
         sol.2c <- RxODE({
             C2=linCmt(V, CL, V2, Q);
-        })
+        }, linCmtSens=sens)
 
         o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et,linLog=ll)
 
@@ -764,7 +766,7 @@ rxPermissive({
         sol.3c <- RxODE({
             ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
             C2=linCmt(V, CL, V2, Q, Q2, V3);
-        })
+        }, linCmtSens=sens)
 
         o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll)
 
@@ -774,7 +776,7 @@ rxPermissive({
             expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
         })
 
-        context(sprintf("Oral + Infusion + Bolus Models (%s)", ifelse(ll, "linlog", "linear")))
+        context(sprintf("Oral + Infusion + Bolus Models (%s)", .txt))
 
         et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
             add.dosing(dose=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
@@ -789,7 +791,7 @@ rxPermissive({
 
         sol.1c.ka <- RxODE({
             C2 = linCmt(V, CL, KA);
-        })
+        }, linCmtSens=sens)
 
         o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et,linLog=ll)
         s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et,linLog=ll)
@@ -808,7 +810,7 @@ rxPermissive({
 
         sol.2c.ka <- RxODE({
             C2=linCmt(V, CL, V2, Q, KA);
-        })
+        }, linCmtSens=sens)
 
         o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3), events=et,linLog=ll)
 
@@ -831,7 +833,7 @@ rxPermissive({
         sol.3c.ka <- RxODE({
             ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
             C2=linCmt(V, CL, V2, Q, Q2, V3, KA);
-        })
+        }, linCmtSens=sens)
 
         o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,linLog=ll)
 
@@ -841,7 +843,7 @@ rxPermissive({
             expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
         })
 
-        context(sprintf("Modeled bio-availability (%s)", ifelse(ll, "linlog", "linear")))
+        context(sprintf("Modeled bio-availability (%s)", .txt))
 
         et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
             add.dosing(dose=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
@@ -860,7 +862,7 @@ rxPermissive({
             C2 = linCmt(V, CL, KA);
             f(depot) = fDepot
             f(central) = fCenter
-        })
+        }, linCmtSens=sens)
 
         for (fd in c(0.5,1,2)){
             for (fc in c(0.5,1,2)){
@@ -882,13 +884,13 @@ rxPermissive({
             f(centr) = fCenter
             ## FIXME:
             ## f(central) should throw an error
-        })
+        }, linCmtSens=sens)
 
         sol.2c.ka <- RxODE({
             C2=linCmt(V, CL, V2, Q, KA);
             f(depot) = fDepot
             f(central) = fCenter
-        })
+        }, linCmtSens=sens)
 
         for (fd in c(0.5,1,2)){
             for (fc in c(0.5,1,2)){
@@ -917,7 +919,7 @@ rxPermissive({
             C2=linCmt(V, CL, V2, Q, Q2, V3, KA);
             f(depot) = fDepot
             f(central) = fCenter
-        })
+        }, linCmtSens=sens)
 
         for (fd in c(0.5,1,2)){
             for (fc in c(0.5,1,2)){
@@ -931,7 +933,7 @@ rxPermissive({
             }
         }
 
-        context(sprintf("Modeled lag time (%s)", ifelse(ll, "linlog", "linear")))
+        context(sprintf("Modeled lag time (%s)", .txt))
 
         et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
             add.dosing(dose=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
@@ -944,13 +946,13 @@ rxPermissive({
             d/dt(center) = KA * depot - CL*C2
             alag(depot) = lagDepot
             alag(center) = lagCenter
-        })
+        }, linCmtSens=sens)
 
         sol.1c.ka <- RxODE({
             C2 = linCmt(V, CL, KA);
             alag(depot) = lagDepot
             alag(central) = lagCenter
-        })
+        }, linCmtSens=sens)
 
         for (fd in c(1,2,10)){
             for (fc in c(1,2,10)){
@@ -976,7 +978,7 @@ rxPermissive({
             C2=linCmt(V, CL, V2, Q, KA);
             alag(depot) = lagDepot
             alag(central) = lagCenter
-        })
+        }, linCmtSens=sens)
 
         for (fd in c(1,2,10)){
             for (fc in c(1,2,10)){
@@ -998,14 +1000,14 @@ rxPermissive({
             d/dt(peri2) = Q2 * C2 - Q2 * C4
             alag(depot) = lagDepot
             alag(centr) = lagCenter
-        })
+        }, linCmtSens=sens)
 
         sol.3c.ka <- RxODE({
             ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
             C2=linCmt(V, CL, V2, Q, Q2, V3, KA);
             alag(depot) = lagDepot
             alag(central) = lagCenter
-        })
+        }, linCmtSens=sens)
 
         for (fd in c(1,2,10)){
             for (fc in c(1,2,10)){
@@ -1019,7 +1021,7 @@ rxPermissive({
             }
         }
 
-        context(sprintf("Modeled rate (%s)", ifelse(ll, "linlog", "linear")))
+        context(sprintf("Modeled rate (%s)", .txt))
 
         ode.1c <- RxODE({
             C2 = center/V;
@@ -1030,7 +1032,7 @@ rxPermissive({
         sol.1c <- RxODE({
             C2 = linCmt(CL, V);
             rate(central) = rt
-        })
+        }, linCmtSens=sens)
 
         et <- eventTable() %>% add.dosing(dose=3, rate=-1, nbr.doses=3, cmt=1,dosing.interval=12) %>%
             add.sampling(seq(0, 36, length.out=200))
@@ -1049,12 +1051,12 @@ rxPermissive({
             d/dt(centr) = - CL*C2 - Q*C2 + Q*C3;
             d/dt(peri)  = Q*C2 - Q*C3;
             rate(centr) = rt
-        })
+        }, linCmtSens=sens)
 
         sol.2c <- RxODE({
             C2=linCmt(V, CL, V2, Q);
             rate(central) = rt
-        })
+        }, linCmtSens=sens)
 
         for (rt in seq(0.5, 1, 1.5)){
             o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, rt=rt), events=et,linLog=ll)
@@ -1078,7 +1080,7 @@ rxPermissive({
             ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
             C2=linCmt(V, CL, V2, Q, Q2, V3);
             rate(central) = rt
-        })
+        }, linCmtSens=sens)
 
         for (rt in seq(0.5, 1, 1.5)){
             s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, rt=rt), events=et,linLog=ll)
@@ -1088,7 +1090,7 @@ rxPermissive({
             })
         }
 
-        context(sprintf("Modeled duration (%s)", ifelse(ll, "linlog", "linear")))
+        context(sprintf("Modeled duration (%s)", .txt))
 
         ode.1c <- RxODE({
             C2 = center/V;
@@ -1099,7 +1101,7 @@ rxPermissive({
         sol.1c <- RxODE({
             C2 = linCmt(CL, V);
             dur(central) = dr
-        })
+        }, linCmtSens=sens)
 
         et <- eventTable() %>% add.dosing(dose=3, rate=-2, nbr.doses=3, cmt=1,dosing.interval=12) %>%
             add.sampling(seq(0, 36, length.out=200))
@@ -1123,7 +1125,7 @@ rxPermissive({
         sol.2c <- RxODE({
             C2=linCmt(V, CL, V2, Q);
             dur(central) = dr
-        })
+        }, linCmtSens=sens)
 
         for (dur in seq(0.5, 1, 1.5)){
             o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, dr=dur), events=et,linLog=ll)
@@ -1147,7 +1149,7 @@ rxPermissive({
             ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
             C2=linCmt(V, CL, V2, Q, Q2, V3);
             dur(central) = dr
-        })
+        }, linCmtSens=sens)
 
         for (dur in seq(0.5, 1, 1.5)){
             o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, dr=dur), events=et,linLog=ll)
@@ -1187,7 +1189,7 @@ rxPermissive({
             C2 = linCmt(CL, V);
             mtime(t1) = mt1
             mtime(t2) = mt2
-        })
+        }, linCmtSens=sens)
 
         et <- eventTable() %>%
             add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%

@@ -16,7 +16,7 @@ void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 
 // Linear compartment models/functions
 
-static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind){
+extern int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind){
   // Uses bisection for slightly faster lookup of dose index.
   int i, j, ij, idose;
   i = 0;

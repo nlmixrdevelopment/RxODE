@@ -34,7 +34,8 @@ findLhs <- function(x) {
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
-rxLinCmtTrans <- function(modText){
+##' @noRd
+rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
     .vars <- c();
     .old  <- getOption("RxODE.syntax.require.ode.first", TRUE)
     if (.old){
@@ -572,7 +573,12 @@ rxLinCmtTrans <- function(modText){
                 .lines[length(.lines) + 1] <- "rx_p5 ~ 0";
             }
         }
-        .solve <- sprintf("linCmtA(rx__PTR__, t, %s, %s, %s, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, rx_ka, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur)", .linCmt, .ncmt, .trans);
+        if (linCmtSens){
+            .solve <- sprintf("linCmtB(rx__PTR__, t, %s, %s, %s, 0, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, rx_ka, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur)", .linCmt, .ncmt, .trans);
+        } else {
+            .solve <- sprintf("linCmtA(rx__PTR__, t, %s, %s, %s, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, rx_ka, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur)", .linCmt, .ncmt, .trans);
+        }
+
         .lines <- paste(.lines, collapse="\n");
         .txt <- paste(sub(.re, sprintf("%s\n\\1%s\\3", .lines, .solve), .txt), collapse="\n");
         ## Put in extra compartment information

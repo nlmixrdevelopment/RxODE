@@ -133,6 +133,7 @@ SEXP _RxODE_rxAssignPtr(SEXP);
 #else
 _update_par_ptr_p _update_par_ptr=NULL;
 linCmtA_p linCmtA;
+linCmtB_p linCmtB;
 _rx_asgn _RxODE_rxAssignPtr =NULL;
 void _assignFuns(){
   if (_assign_ptr == NULL){
@@ -147,6 +148,7 @@ void _assignFuns(){
     _sumType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_sum_get");
     _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
     linCmtA=(linCmtA_p)R_GetCCallable("RxODE", "linCmtA");
+    linCmtB=(linCmtB_p)R_GetCCallable("RxODE", "linCmtB");
     _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
   }
 }

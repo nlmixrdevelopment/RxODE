@@ -701,6 +701,10 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     aAppendN("linCmtA", 7);
     sAppendN(&sbt,"linCmtA", 7);
     tb.linCmt=2;
+  } else if (nodeHas(identifier) && !strcmp("linCmtB",value)){
+    aAppendN("linCmtB", 7);
+    sAppendN(&sbt,"linCmtB", 7);
+    tb.linCmt=2;
   } else {
     // Apply fix for dot.syntax
     for (i = 0; i < (int)strlen(value); i++){

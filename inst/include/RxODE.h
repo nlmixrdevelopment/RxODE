@@ -3,10 +3,18 @@
 #define __RxODE_H__
 #define isDose(evid) ((evid) == 3 || (evid) >= 100)
 #define isObs(evid) ((evid) == 0 || (evid) == 2 || ((evid) >= 10 && (evid) <= 99))
+
+#ifdef _isRxODE_
+#else
 #if defined(__cplusplus)
 #include "RxODE_RcppExports.h"
+#endif
+#endif
+
+#if defined(__cplusplus)
 extern "C" {
 #endif
+  
 #include <stdio.h>
 #include <stdarg.h>
 #include <R.h>
@@ -75,6 +83,8 @@ typedef struct {
 
 
 typedef struct {
+  double bT;
+  double diffB[14];
   int *slvr_counter;
   int *dadt_counter;
   int *jac_counter;

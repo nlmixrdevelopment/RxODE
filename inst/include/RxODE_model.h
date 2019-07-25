@@ -83,6 +83,16 @@ typedef double (*linCmtA_p) (rx_solve *rx, unsigned int id, double t, int linCmt
 			     // Therefore, only 1 model rate is possible with RxODE
 			     double d_rate, double d_dur);
 
+typedef double (*linCmtB_p) (rx_solve *rx, unsigned int id, double t, int linCmt,
+	       int i_cmt, int trans, int val,
+	       double dd_p1, double dd_v1,
+	       double dd_p2, double dd_p3,
+	       double dd_p4, double dd_p5,
+	       double dd_ka,
+	       double dd_tlag, double dd_tlag2,
+	       double dd_F, double dd_F2,
+	       double dd_rate, double dd_dur);
+
 
 typedef void (*_update_par_ptr_p)(double t, unsigned int id, rx_solve *rx, int idx);
 
@@ -111,10 +121,21 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       // Rate and dur can only apply to central compartment even w/ oral dosing
 	       // Therefore, only 1 model rate is possible with RxODE
 	       double d_rate, double d_dur);
+
+double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
+	       int i_cmt, int trans, int val,
+	       double dd_p1, double dd_v1,
+	       double dd_p2, double dd_p3,
+	       double dd_p4, double dd_p5,
+	       double dd_ka,
+	       double dd_tlag, double dd_tlag2,
+	       double dd_F, double dd_F2,
+	       double dd_rate, double dd_dur);
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
 SEXP _RxODE_rxAssignPtr(SEXP);
 #else
 extern linCmtA_p linCmtA;
+extern linCmtB_p linCmtB;
 extern _update_par_ptr_p _update_par_ptr;
 extern _rx_asgn _RxODE_rxAssignPtr;
 #endif
