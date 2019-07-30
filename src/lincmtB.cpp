@@ -232,6 +232,8 @@ namespace stan {
     T res, cur = 0, tinf = 0;
     T tau = 0, tT = 0.0;
     T rate=0;
+    // After parameters (2*ncmt)
+    // ka, tlag1, tlag2, f1, f2, rate1, rate2, dur1, dur2
     T ka	= params[2 * ncmt];
     tlag(0,0)	= params[2 * ncmt + 1];
     tlag(0,1)	= params[2 * ncmt + 2];
