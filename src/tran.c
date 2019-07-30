@@ -2755,7 +2755,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
   SEXP inin  = PROTECT(allocVector(STRSXP, tb.isPi + tb.ini_i));pro++;
   SEXP ini   = PROTECT(allocVector(REALSXP, tb.isPi + tb.ini_i));pro++;
-  for (int i=tb.isPi + tb.ini_i;i--;) ini[i] = 0.0;
+  for (int i=tb.isPi + tb.ini_i;i--;) REAL(ini)[i] = 0.0;
 
   SEXP version  = PROTECT(allocVector(STRSXP, 3));pro++;
   SEXP versionn = PROTECT(allocVector(STRSXP, 3)); pro++;
@@ -2809,7 +2809,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   } else if (redo){
     inin  = PROTECT(allocVector(STRSXP, tb.ini_i));pro++;
     ini   = PROTECT(allocVector(REALSXP, tb.ini_i));pro++;
-    for (int i = tb.ini_i; i--;) ini[i] = 0.0;
+    for (int i = tb.ini_i; i--;) REAL(ini)[i] = 0.0;
     ini_i=0;
     o = 0;
     for (i = 0; i < NV; i++){
