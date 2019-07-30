@@ -589,6 +589,7 @@ int handle_evid(int evid, int neq,
       }
       if (!ind->doSS && ind->wh0 == 20){
 	// Save for adding at the end
+	Free(ind->solveSave);
 	ind->solveSave = Calloc(neq, double);
 	memcpy(ind->solveSave, yp, neq*sizeof(double));
       }
