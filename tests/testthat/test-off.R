@@ -2,7 +2,10 @@ rxPermissive({
 
     library(dplyr);
 
-    for (m in c("liblsoda", "lsoda", "dop853")){
+    ms <- c("liblsoda", "lsoda", "dop853")
+    if (grepl('SunOS',Sys.info()['sysname'])) ms <- "lsoda"
+
+    for (m in ms){
         context(sprintf("Test turning compartment off (%s)", m));
         mod1 <-RxODE({
             KA=2.94E-01;
