@@ -20,7 +20,10 @@ rxPermissive({
     et2 <- eventTable() %>% add.dosing(start.time=0.5,dose=3, nbr.doses=6, dosing.interval=8) %>%
         add.sampling(0:4)
 
-    for (m in c("liblsoda", "lsoda", "dop853")){
+    ms <- c("liblsoda", "lsoda", "dop853")
+    if (grepl('SunOS',Sys.info()['sysname'])) ms <- "lsoda"
+
+    for (m in ms){
 
         s <- solve(ode.1c,et, addDosing=TRUE, method=m)
         test_that("ode newind works with dose first",{

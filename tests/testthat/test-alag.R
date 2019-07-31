@@ -13,8 +13,10 @@ rxPermissive({
             d/dt(intestine) = -a*intestine
             alag(intestine)    = 2
             d/dt(blood)     = a*intestine - b*blood
-        })
-    for (m in c("liblsoda", "lsoda", "dop853")){
+    })
+    ms <- c("liblsoda", "lsoda", "dop853");
+    if (grepl('SunOS',Sys.info()['sysname'])) ms <- "lsoda"
+    for (m in ms){
         context(sprintf("Test absorption lag-time with IV dosing (%s)",m))
 
         obs <- units::set_units(seq(0,10,by=1/24),"days");
