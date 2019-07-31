@@ -1220,7 +1220,10 @@ void rxOptionsFree(){
 
   global_rworki = 0;
   Free(global_rworkp);
-
+  for (int i = max_inds_global; i--;){
+    rx_solving_options_ind *ind = &inds_global[i];
+    if (ind->solveSave != NULL) Free(ind->solveSave);
+  }
   max_inds_global = 0;
   Free(inds_global);
 
@@ -2410,7 +2413,6 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 
 
 // rxSolveOldC
-void protectOld();
 extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  int *evidp, int *ntime,
 			  double *initsp, double *dosep,
@@ -2422,7 +2424,6 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  double *InfusionRate, int *BadDose, int *idose,
 			  double *scale, int *stateIgnore, double *mtime){
   double *theta = get_theta(_theta);
-  /* protectOld(); */
   rx_solve *rx = &rx_global;
   rx_solving_options *op = &op_global;
   rx_solving_options_ind *ind = &inds_global[subid];
