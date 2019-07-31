@@ -263,9 +263,19 @@ List etEmpty(CharacterVector units){
 }
 
 List etSort(List curEt){
-  std::vector<double> time = as<std::vector<double>>(curEt["time"]);
-  std::vector<int> id = as<std::vector<int>>(curEt["id"]);
-  std::vector<int> evid = as<std::vector<int>>(curEt["evid"]);
+  std::vector<double> time;
+  NumericVector curTime = as<NumericVector>(curEt["time"]);
+  int size = curTime.size();
+  time.reserve(size);
+  std::copy(curTime.begin(), curTime.end(),std::back_inserter(time));
+  std::vector<int> id;
+  id.reserve(size);
+  IntegerVector curId = as<IntegerVector>(curEt["id"]);
+  std::copy(curId.begin(), curId.end(), std::back_inserter(id));
+  std::vector<int> evid;
+  evid.reserve(size);
+  IntegerVector curEvid = as<IntegerVector>(curEt["evid"]);
+  std::copy(curEvid.begin(), curEvid.end(), std::back_inserter(evid));
   std::vector<int> idx(id.size());
   std::iota(idx.begin(),idx.end(),0);
   std::sort(idx.begin(),idx.end(),
@@ -335,13 +345,29 @@ List etSimulate(List curEt){
 
 
 List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShowCmt, List curEt){
-  std::vector<double> time = as<std::vector<double>>(curEt["time"]);
-  std::vector<double> low = as<std::vector<double>>(curEt["low"]);
-  std::vector<double> high = as<std::vector<double>>(curEt["high"]);
-  std::vector<int> id = as<std::vector<int>>(curEt["id"]);
-  int oldSize =id.size();
-  std::vector<int> idx(oldSize+windowLst.size()*IDs.size());
-  std::vector<int> evid = as<std::vector<int>>(curEt["evid"]);
+  NumericVector curTime = as<NumericVector>(curEt["time"]);
+  int oldSize = curTime.size();
+  int size = oldSize + windowLst.size()*IDs.size();
+  std::vector<double> time;
+  time.reserve(size);
+  std::copy(curTime.begin(),curTime.end(), std::back_inserter(time));
+  std::vector<double> low;
+  NumericVector curLow = as<NumericVector>(curEt["low"]);
+  low.reserve(size);
+  std::copy(curLow.begin(),curLow.end(), std::back_inserter(low));
+  std::vector<double> high;
+  high.reserve(size);
+  NumericVector curHigh = as<NumericVector>(curEt["high"]);
+  std::copy(curHigh.begin(), curHigh.end(),std::back_inserter(high));
+  std::vector<int> id;
+  id.reserve(size);
+  IntegerVector curId = as<IntegerVector>(curEt["id"]);
+  std::copy(curId.begin(), curId.end(),std::back_inserter(id));
+  std::vector<int> idx(size);
+  IntegerVector curEvid = as<IntegerVector>(curEt["evid"]);
+  std::vector<int> evid;
+  evid.reserve(size);
+  std::copy(curEvid.begin(), curEvid.end(), std::back_inserter(evid));
   std::iota(idx.begin(),idx.end(),0);
   double c = 0;
   CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
@@ -537,14 +563,20 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
   List eOld = cls.attr(".RxODE.lst");
   List e = clone(eOld);
 
-  std::vector<double> time = as<std::vector<double>>(curEt["time"]);
-  std::vector<int> id = as<std::vector<int>>(curEt["id"]);
-  int oldSize =id.size();
-  std::vector<int> idx(oldSize+newTimes.size()*IDs.size());
-  std::vector<int> evid = as<std::vector<int>>(curEt["evid"]);
+  std::vector<double> time;
+  IntegerVector curId = as<IntegerVector>(curEt["id"]);
+  int oldSize =curId.size();
+  int extraSize = newTimes.size()*IDs.size();
+  time.reserve(extraSize);
+  NumericVector curTime = as<NumericVector>(curEt["time"]);
+  std::vector<int> id;
+  id.reserve(extraSize);
+  std::vector<int> idx(oldSize+extraSize);
+  std::vector<int> evid;
+  evid.reserve(extraSize);
+  IntegerVector curEvid = as<IntegerVector>(curEt["evid"]);
   std::iota(idx.begin(),idx.end(),0);
   int nobs = 0;
-
   for (int j = IDs.size(); j--;){
     for (int i = newTimes.size(); i--;){
       id.push_back(IDs[j]);
@@ -554,17 +586,37 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
     }
   }
   std::sort(idx.begin(),idx.end(),
-	    [id,time,evid](int a, int b){
-	      if (id[a] == id[b]){
-		if (time[a] == time[b]){
-		  if (evid[a] == evid[b]){
+	    [id, time, evid, curId, curTime, curEvid, oldSize](int a, int b){
+	      int ida, evida, idb, evidb;
+	      double timea, timeb;
+	      if (a < oldSize){
+		ida = curId[a];
+		timea = curTime[a];
+		evida = curEvid[a];
+	      } else {
+		ida = id[a-oldSize];
+		timea = time[a-oldSize];
+		evida = evid[a-oldSize];
+	      }
+	      if (b < oldSize){
+		idb = curId[b];
+		timeb = curTime[b];
+		evidb = curEvid[b];
+	      } else {
+		idb = id[b-oldSize];
+		timeb = time[b-oldSize];
+		evidb = evid[b-oldSize];
+	      }
+	      if (ida == idb){
+		if (timea == timeb){
+		  if (evida == evidb){
 		    return a < b;
 		  }
-		  return evid[a] < evid[b];
+		  return evida < evidb;
 		}
-		return time[a] < time[b];
+		return timea < timeb;
 	      }
-	      return id[a] < id[b];
+	      return ida < idb;
 	    });
 
   List lst(curEt.size());
@@ -574,56 +626,57 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
   lst.attr("names") = curEt.attr("names");
   int i, j;
   // nme[0] = "id";
-  lst[0] = IntegerVector(id.size());
+  lst[0] = IntegerVector(idx.size());
       
   // nme[1] = "time";
-  lst[2] = NumericVector(id.size());
+  lst[2] = NumericVector(idx.size());
       
   // nme[2] = "low";
-  lst[1] = NumericVector(id.size());
+  lst[1] = NumericVector(idx.size());
       
   // nme[3] = "high";
-  lst[3] = NumericVector(id.size());
+  lst[3] = NumericVector(idx.size());
       
   // nme[4] = "cmt";
   bool isCmtInt = false;
   if (rxIs(cmt, "integer")){
-    lst[4] = IntegerVector(id.size());
+    lst[4] = IntegerVector(idx.size());
     isCmtInt=true;
   } else {
-    lst[4] = CharacterVector(id.size());
+    lst[4] = CharacterVector(idx.size());
   }
       
   // nme[5] = "amt";
-  lst[5] = NumericVector(id.size());
+  lst[5] = NumericVector(idx.size());
 
   // nme[6] = "rate";
-  lst[6] = NumericVector(id.size());
+  lst[6] = NumericVector(idx.size());
       
   // nme[7] = "ii";
-  lst[7] = NumericVector(id.size());
+  lst[7] = NumericVector(idx.size());
       
   // nme[8] = "addl";
-  lst[8] = IntegerVector(id.size());
+  lst[8] = IntegerVector(idx.size());
   
   // nme[9] = "evid";
-  lst[9] = IntegerVector(id.size());
+  lst[9] = IntegerVector(idx.size());
       
   // nme[10] = "ss";
-  lst[10] = IntegerVector(id.size());
+  lst[10] = IntegerVector(idx.size());
 
   // nme[11] = "dur";
-  lst[11] = NumericVector(id.size());
+  lst[11] = NumericVector(idx.size());
   for (i = idx.size(); i--;){
-    tmpI = as<IntegerVector>(lst[0]); // id
-    tmpI[i] = id[idx[i]];
-    
-    tmpI = as<IntegerVector>(lst[9]); // evid
-    tmpI[i] = evid[idx[i]];
-
-    tmpN = as<NumericVector>(lst[2]); // time
-    tmpN[i] = time[idx[i]];
     if (idx[i] >= oldSize){
+      tmpI = as<IntegerVector>(lst[0]); // id
+      tmpI[i] = id[idx[i]-oldSize];
+    
+      tmpI = as<IntegerVector>(lst[9]); // evid
+      tmpI[i] = evid[idx[i]-oldSize];
+
+      tmpN = as<NumericVector>(lst[2]); // time
+      tmpN[i] = time[idx[i]-oldSize];
+
       // low
       tmpN = as<NumericVector>(lst[1]);
       tmpN[i] = NA_REAL;
@@ -665,6 +718,14 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
       tmpN = as<NumericVector>(lst[11]); // id
       tmpN[i] = NA_REAL;
     } else {
+      tmpI = as<IntegerVector>(lst[0]); // id
+      tmpI[i] = curId[idx[i]];
+    
+      tmpI = as<IntegerVector>(lst[9]); // evid
+      tmpI[i] = curEvid[idx[i]];
+
+      tmpN = as<NumericVector>(lst[2]); // time
+      tmpN[i] = curTime[idx[i]];
       // low
       for (j = 12; j--;){
 	if (rxIs(curEt[j], "numeric")){
