@@ -4,7 +4,8 @@
 \alias{.rxGenEtaS}
 \title{Generate the ETA sensitivities for FO related methods}
 \usage{
-.rxGenEtaS(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL)
+.rxGenEtaS(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
+  promoteLinSens = FALSE)
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -16,6 +17,9 @@
 \item{errfn}{Error function}
 
 \item{init}{Initialization parameters for scaling.}
+
+\item{promoteLinSens}{Promote solved linear compartment systems to
+sensitivity-based solutions.}
 }
 \value{
 RxODE/symengine environment

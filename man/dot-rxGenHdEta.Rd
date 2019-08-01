@@ -5,7 +5,7 @@
 \title{Generate the d(err)/d(eta) values for FO related methods}
 \usage{
 .rxGenHdEta(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  pred.minus.dv = TRUE)
+  pred.minus.dv = TRUE, promoteLinSens = FALSE)
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -20,6 +20,9 @@
 
 \item{pred.minus.dv}{Boolean stating if the FOCEi objective
 function is based on PRED-DV (like NONMEM).  Default TRUE.}
+
+\item{promoteLinSens}{Promote solved linear compartment systems to
+sensitivity-based solutions.}
 }
 \value{
 RxODE/symengine environment

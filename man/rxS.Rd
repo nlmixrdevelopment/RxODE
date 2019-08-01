@@ -4,10 +4,15 @@
 \alias{rxS}
 \title{Load a model into a symengine environment}
 \usage{
-rxS(x, doConst = TRUE)
+rxS(x, doConst = TRUE, promoteLinSens = FALSE)
 }
 \arguments{
 \item{x}{RxODE object}
+
+\item{doConst}{Load constants into the environment as well.}
+
+\item{promoteLinSens}{Promote solved linear compartment systems to
+sensitivity-based solutions.}
 }
 \value{
 RxODE/symengine environment

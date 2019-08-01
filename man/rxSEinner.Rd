@@ -8,12 +8,12 @@
 rxSEinner(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   grad = FALSE, sum.prod = FALSE, pred.minus.dv = TRUE,
   only.numeric = FALSE, optExpression = TRUE, interaction = TRUE,
-  ...)
+  ..., promoteLinSens = FALSE)
 
 rxSymPySetupPred(obj, predfn, pkpars = NULL, errfn = NULL,
   init = NULL, grad = FALSE, sum.prod = FALSE,
   pred.minus.dv = TRUE, only.numeric = FALSE, optExpression = TRUE,
-  interaction = TRUE, ...)
+  interaction = TRUE, ..., promoteLinSens = FALSE)
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -44,6 +44,9 @@ evaluation.}
 
 \item{interaction}{Boolean to determine if dR^2/deta is calculated
 for FOCEi (not needed for FOCE)}
+
+\item{promoteLinSens}{Promote solved linear compartment systems to
+sensitivity-based solutions.}
 }
 \value{
 RxODE object expanded with predfn and with calculated

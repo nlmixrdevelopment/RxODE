@@ -6,7 +6,7 @@
 \alias{.rxFromSE}
 \title{RxODE to symengine.R}
 \usage{
-rxToSE(x, envir = NULL, progress = FALSE)
+rxToSE(x, envir = NULL, progress = FALSE, promoteLinSens = FALSE)
 
 rxFromSE(x, unknownDerivatives = c("forward", "central", "error"))
 
@@ -15,9 +15,13 @@ rxFromSE(x, unknownDerivatives = c("forward", "central", "error"))
 \arguments{
 \item{x}{expression}
 
-\item{envir}{default is \code{NULL}; Environment to put symengine variables in.}
+\item{envir}{default is \code{NULL}; Environment to put symengine
+variables in.}
 
 \item{progress}{shows progress bar if true.}
+
+\item{promoteLinSens}{Promote solved linear compartment systems to
+sensitivity-based solutions.}
 }
 \description{
 RxODE to symengine.R

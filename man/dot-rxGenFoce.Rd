@@ -5,7 +5,8 @@
 \title{Generate FOCE without interaction}
 \usage{
 .rxGenFoce(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  pred.minus.dv = TRUE, sum.prod = FALSE, optExpression = TRUE)
+  pred.minus.dv = TRUE, sum.prod = FALSE, optExpression = TRUE,
+  promoteLinSens = FALSE)
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -26,6 +27,9 @@ numerically stable sums/products.}
 
 \item{optExpression}{Optimize the model text for computer
 evaluation.}
+
+\item{promoteLinSens}{Promote solved linear compartment systems to
+sensitivity-based solutions.}
 }
 \value{
 RxODE/symengine environment
