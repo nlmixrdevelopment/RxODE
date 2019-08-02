@@ -1673,7 +1673,7 @@ extern "C" void gFree(){
   _globals.grc=NULL;
   _globals.grcn=0;
   if (_globals.gBadDose != NULL) Free(_globals.gBadDose);
-  _globals.gBadDose=NULL:
+  _globals.gBadDose=NULL;
   _globals.gBadDosen=0;
   if (_globals.gevid != NULL) Free(_globals.gevid);
   _globals.gevid=NULL;
