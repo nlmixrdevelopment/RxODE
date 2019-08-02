@@ -20,8 +20,6 @@
 #define SBTPTR sbt.s+sbt.o
 #define NV tb.ss.n
 
-D_Parser *_p = NULL;
-
 #define STRINGIFY(...) STRINGIFY_AUX(__VA_ARGS__)
 #define STRINGIFY_AUX(...) #__VA_ARGS__
 
@@ -2437,6 +2435,7 @@ void parseFree(){
   Free(tb.df);
   Free(tb.dy);
   Free(tb.sdfdy);
+  freeP();
 }
 void reset (){
   // Reset sb/sbt string buffers
