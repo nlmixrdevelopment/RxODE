@@ -1658,17 +1658,22 @@ void rxFreeErrs(){
 extern "C" void gFree(){
   Free(_rxGetErrs);
   if (_globals.gsiV != NULL) Free(_globals.gsiV);
+  _globals.gsiV=NULL;
   _globals.gsiVn=0;
   if (_globals.gsvar != NULL) Free(_globals.gsvar);
+  _globals.gsvar=NULL;
   _globals.gsvarn=0;
   if (_globals.gpar_cov != NULL) Free(_globals.gpar_cov);
+  _globals.gpar_cov=NULL;
   _globals.gpar_covn=0;
   if (_globals.gidose != NULL) Free(_globals.gidose);
+  _globals.gidose=NULL;
   _globals.gidosen=0;
-  if (_globals.grc != NULL && _globals.grcn != -1) Free(_globals.grc);
+  if (_globals.grc != NULL) Free(_globals.grc);
   _globals.grc=NULL;
   _globals.grcn=0;
   if (_globals.gBadDose != NULL) Free(_globals.gBadDose);
+  _globals.gBadDose=NULL:
   _globals.gBadDosen=0;
   if (_globals.gevid != NULL) Free(_globals.gevid);
   _globals.gevid=NULL;
@@ -1677,20 +1682,25 @@ extern "C" void gFree(){
   _globals.gpars=NULL;
   _globals.gparsn=0;
   if (_globals.grtol2 != NULL) Free(_globals.grtol2);
+  _globals.grtol2=NULL;
   _globals.grtol2n=0;
   if (_globals.gatol2 != NULL) Free(_globals.gatol2);
+  _globals.gatol2=NULL;
   _globals.gatol2n=0;
   if (_globals.gscale != NULL) Free(_globals.gscale);
+  _globals.gscale=NULL;
   _globals.gscalen=0;
   if (_globals.ginits != NULL) Free(_globals.ginits);
   _globals.ginits=NULL;
   _globals.ginitsn=0;
   if (_globals.gcov != NULL) Free(_globals.gcov);
+  _globals.gcov=NULL;
   _globals.gcovn=0;
   if (_globals.glhs != NULL) Free(_globals.glhs);
   _globals.glhs=NULL;
   _globals.glhsn=0;
   if (_globals.gamt != NULL) Free(_globals.gamt);
+  _globals.gamt=NULL;
   if (_globals.gii != NULL) Free(_globals.gii);
   _globals.gamt=NULL;
   _globals.gii=NULL;
@@ -1704,6 +1714,7 @@ extern "C" void gFree(){
   if (_globals.gdv != NULL) Free(_globals.gdv);
   _globals.gdvn=0;
   if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
+  _globals.gInfusionRate=NULL;
   _globals.gInfusionRaten=0;
   if (_globals.gsolve != NULL) Free(_globals.gsolve);
   _globals.gsolve=NULL;
