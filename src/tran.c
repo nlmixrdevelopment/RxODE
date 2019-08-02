@@ -20,6 +20,8 @@
 #define SBTPTR sbt.s+sbt.o
 #define NV tb.ss.n
 
+D_Parser *_p = NULL;
+
 #define STRINGIFY(...) STRINGIFY_AUX(__VA_ARGS__)
 #define STRINGIFY_AUX(...) #__VA_ARGS__
 
@@ -717,7 +719,11 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
 }
 char *gBuf;
 int gBufLast;
-D_Parser *curP;
+D_Parser *curP=NULL;
+void freeP(){
+  if (curP != NULL) free_D_Parser(curP);
+  curP = NULL;
+}
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
   nodeInfo ni;
@@ -851,7 +857,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  tb.dvid[0]=atoi(v);
 	  Free(v);
-	  if (tb.dvid[0] == 0) error("dvid() cannot have zeros in it");
+	  if (tb.dvid[0] == 0){
+	    freeP();
+	    error("dvid() cannot have zeros in it");
+	  }
 	  sAppend(&sbt, "dvid(%d", tb.dvid[0]);
 	  xpn = d_get_child(pn,3);
 	  tb.dvidn = d_get_number_of_children(xpn)+1;
@@ -860,7 +869,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    xpn2 = d_get_child(xpn, i);
 	    v = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
 	    tb.dvid[i+1]=atoi(v+1);
-	    if (tb.dvid[i+1] == 0) error("dvid() cannot have zeros in it");
+	    if (tb.dvid[i+1] == 0){
+	      Free(v);
+	      freeP();
+	      error("dvid() cannot have zeros in it");
+	    }
 	    sAppend(&sbt, ",%d", tb.dvid[i+1]);
 	    Free(v);
 	  }
@@ -868,6 +881,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  Free(v);
 	  continue;
 	} else {
+	  freeP();
 	  error("RxODE only supports one dvid() statement per model");
 	}
 	continue;
@@ -1598,7 +1612,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 void err_msgP(int chk, const char *msg, int code, D_Parser *p)
 {
   if(!chk) {
-    free_D_Parser(p);
+    freeP();
     error("%s",msg);
   }
 }
@@ -1606,6 +1620,7 @@ void err_msgP(int chk, const char *msg, int code, D_Parser *p)
 void err_msg(int chk, const char *msg, int code)
 {
   if(!chk) {
+    freeP();
     error("%s",msg);
   }
 }
@@ -2521,6 +2536,7 @@ void writeSb(sbuf *sbb, FILE *fp){
     register unsigned written = fwrite(sbb->s + totalWritten, 1, toWrite, fp);
     if( toWrite != written){
       fclose(fp);
+      freeP();
       error("IO error writing parsed C file.");
     } else{
       totalWritten += written; // add the written bytes
@@ -2528,6 +2544,7 @@ void writeSb(sbuf *sbb, FILE *fp){
   }
   if (totalWritten != sbb->o) {
     fclose(fp);
+    freeP();
     error("IO error writing parsed C file.");
   }
 }
@@ -2605,7 +2622,7 @@ void trans_internal(char* parse_file, int isStr){
   } else {
     rx_syntax_error = 1;
   }
-  free_D_Parser(p);
+  freeP();
 }
 
 SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr,
@@ -2650,6 +2667,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   if (isString(prefix) && length(prefix) == 1){
     model_prefix = r_dup_str(CHAR(STRING_ELT(prefix,0)),0);
   } else {
+    freeP();
     error("model prefix must be specified");
   }
 
@@ -3106,6 +3124,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
       if (isEsc)REprintf("\n\033[1m================================================================================\033[0m\n");
       else REprintf("\n================================================================================\n");
     }
+    freeP();
     error("Syntax Errors (see above)");
   }
   /* Free(sbPm); Free(sbNrm); */
@@ -3114,6 +3133,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
 SEXP _RxODE_parseModel(SEXP type){
   if (!sbPm.o){
+    freeP();
     error("Model no longer loaded in memory.");
   }
   int iT = INTEGER(type)[0];
@@ -3157,12 +3177,15 @@ SEXP _RxODE_isLinCmt(){
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
 		    SEXP pMd5, SEXP timeId, SEXP fixInis){
   if (!sbPm.o || !sbNrm.o){
+    freeP();
     error("Nothing in output queue to write");
   }
   if (!isString(c_file) || length(c_file) != 1){
+    freeP();
     error("c_file should only be 1 file");
   }
   if (length(libname) != 2){
+    freeP();
     error("libname needs 2 elements");
   }
   fpIO = fopen(CHAR(STRING_ELT(c_file,0)), "wb");
