@@ -22,6 +22,12 @@
 #endif
 
 
+void *_gCtx=NULL;
+void lsodaFree(){
+  if (_gCtx != NULL) lsoda_free(_gCtx);
+  _gCtx=NULL;
+}
+
 rx_solve rx_global;
 
 rx_solving_options op_global;
@@ -173,6 +179,7 @@ SEXP _rxProgressStop(SEXP clear){
 SEXP _rxProgressAbort(SEXP str){
   if (rxt.d != rxt.n || rxt.cur != rxt.n){
     par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 0);
+    lsodaFree();
     error(CHAR(STRING_ELT(str,0)));
   }
   return R_NilValue;
@@ -340,6 +347,7 @@ void updateRate(int idx, rx_solving_options_ind *ind){
     if (ind->idose[m] == idx){
       j=m;
     } else {
+      lsodaFree();
       error("Corrupted event table during sort (1).");
     }
     double dur, rate, amt;
@@ -356,8 +364,10 @@ void updateRate(int idx, rx_solving_options_ind *ind){
       rx_solving_options *op = &op_global;
       if (ind->cmt < op->neq){
 	if (rx->needSort & 8){
+	  lsodaFree();
 	  error("Rate is zero/negative");
 	} else {
+	  lsodaFree();
 	  // FIXME don't error out with linear compartmental model
 	  error("Modeled rate requested in event table, but not in model; use 'rate(cmt) ='");
 	}
@@ -387,6 +397,7 @@ void updateDur(int idx, rx_solving_options_ind *ind){
     if (ind->idose[m] == idx){
       j=m;
     } else {
+      lsodaFree();
       error("Corrupted event table during sort (2).");
     }
     double dur, rate, amt;
@@ -402,8 +413,10 @@ void updateDur(int idx, rx_solving_options_ind *ind){
       rx_solving_options *op = &op_global;
       if (ind->cmt < op->neq){
 	if (rx->needSort & 4){
+	  lsodaFree();
 	  error("Duration is zero/negative (dur=%f; cmt=%d; amt=%f)", dur, ind->cmt+1, amt);
 	} else {
+	  lsodaFree();
 	  error("Modeled duration requested in event table, but not in model; use 'dur(cmt) ='");
 	}
       }
@@ -423,21 +436,25 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
       getWh(ind->evid[idx-1], &wh, &cmt, &wh100, &whI, &wh0);
       if (whI != 8){
 	// FIXME can crash parallel runs and cause many issues.  Need to defer to end.
+	lsodaFree();
 	error("Data error 686 (whI = %d; evid=%d)", whI, ind->evid[idx-1]);
       }
       updateDur(idx-1, ind);
     } else {
+      lsodaFree();
       error("Data Error -6\n");
     }
     break;
   case 8:
     if (idx >= ind->n_all_times){
       // error: Last record, can't be used.
+      lsodaFree();
       error("Data Error 8\n");
     } else {
       int wh, cmt, wh100, whI, wh0;
       getWh(ind->evid[idx+1], &wh, &cmt, &wh100, &whI, &wh0);
       if (whI != 6){
+	lsodaFree();
 	error("Data error 886 (whI=%d, evid=%d to %d)\n", whI,
 	      ind->evid[idx], ind->evid[idx+1]);
       }
@@ -449,10 +466,12 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
       int wh, cmt, wh100, whI, wh0;
       getWh(ind->evid[idx-1], &wh, &cmt, &wh100, &whI, &wh0);
       if (whI != 9){
+	lsodaFree();
 	error("Data error 797 (whI = %d; evid=%d)", whI, ind->evid[idx-1]);
       }
       updateRate(idx-1, ind);
     } else {
+      lsodaFree();
       error("Data Error -7\n");
     }
     break;
@@ -460,11 +479,13 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
     // This calculates the rate and the duration and then assigns it to the next record
     if (idx >= ind->n_all_times){
       // error: Last record, can't be used.
+      lsodaFree();
       error("Data Error 9\n");
     } else {
       int wh, cmt, wh100, whI, wh0;
       getWh(ind->evid[idx+1], &wh, &cmt, &wh100, &whI, &wh0);
       if (whI != 7){
+	lsodaFree();
 	error("Data error 997 (whI=%d, evid=%d to %d)\n", whI,
 	      ind->evid[idx], ind->evid[idx+1]);
       }
@@ -486,6 +507,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
       if (ind->idose[m] == idx){
 	j=m;
       } else {
+	lsodaFree();
 	error("Corrupted event table during sort (1).");
       }
       if (ind->dose[j] > 0){
@@ -498,7 +520,10 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	int k;
 	for (k = j; k--;){
 	  if (ind->evid[ind->idose[j]] == ind->evid[ind->idose[k]]) break;
-	  if (k == 0) error("corrupted event table");
+	  if (k == 0) {
+	    lsodaFree();
+	    error("corrupted event table");
+	  }
 	}
 	double f = AMT(ind->id, ind->cmt, 1.0, ind->all_times[ind->idose[j-1]]);
 	double durOld = (ind->all_times[ind->idose[j]] - ind->all_times[ind->idose[k]]); 
@@ -506,6 +531,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	double t = ind->all_times[ind->idose[k]]+dur;
 	return LAG(ind->id, ind->cmt, t);
       } else {
+	lsodaFree();
 	error("Corrupted events.");
       }
     }
@@ -531,6 +557,7 @@ int handle_evid(int evid, int neq,
     wh = ind->wh;
     cmt = ind->cmt;
     if (cmt<0) {
+      lsodaFree();
       error("Supplied an invalid EVID (EVID=%d)", evid);
     }
     if (cmt >= neq){
@@ -558,6 +585,7 @@ int handle_evid(int evid, int neq,
 	if (ind->idose[m] == ind->ix[ind->idx]){
 	  ind->ixds=m;
 	} else {
+	  lsodaFree();
 	  error("Corrupted event table; EVID=%d: %d %d %d", evid, ind->idose[m], ind->ix[ind->idx],
 		ind->idx);
 	}
@@ -577,6 +605,7 @@ int handle_evid(int evid, int neq,
 	  }
 	}
 	if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
+	  lsodaFree();
 	  error("The event table has been corrupted; ind->idx: %d ind->ixds: %d ind->idose: %d.",
 		ind->ix[ind->idx], ind->ixds, ind->idose[ind->ixds]);
 	}
@@ -600,6 +629,7 @@ int handle_evid(int evid, int neq,
 	ind->on[cmt] = 1;
 	InfusionRate[cmt] -= dose[ind->ixds+1];
 	if (ind->wh0 == 20 && AMT(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
+	  lsodaFree();
 	  error("SS=2 & Modeled F does not work");
 	}
 	break;
@@ -609,6 +639,7 @@ int handle_evid(int evid, int neq,
 	// Probably should throw an error if the infusion rate is on still.
 	InfusionRate[cmt] += dose[ind->ixds]*((double)(ind->on[cmt]));
 	if (ind->wh0 == 20 && AMT(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
+	  lsodaFree();
 	  error("SS=2 & Modeled F does not work");
 	}
 	break;
@@ -619,6 +650,7 @@ int handle_evid(int evid, int neq,
 	tmp = AMT(id, cmt, dose[ind->ixds], xout);
 	InfusionRate[cmt] += tmp;
 	if (ind->wh0 == 20 && tmp != dose[ind->ixds]){
+	  lsodaFree();
 	  error("SS=2 & Modeled F does not work");
 	}
 	break;
@@ -626,6 +658,7 @@ int handle_evid(int evid, int neq,
 	ind->on[cmt] = 1;
 	InfusionRate[cmt] += dose[ind->ixds];
 	if (ind->wh0 == 20 && dose[ind->ixds] > 0 && AMT(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
+	  lsodaFree();
 	  error("SS=2 & Modeled F does not work");
 	}
 	break;
@@ -816,6 +849,7 @@ void handleSS(int *neq,
 	ei++;
       }
       if (ind->ix[ei] != ind->idose[infEixds]){
+	lsodaFree();
 	error("Cannot figure out infusion end time.");
       }
     }
@@ -967,6 +1001,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
     .state = 1
   };
   lsoda_prepare(&ctx, &opt);
+  _gCtx = &ctx;
   ind = &(rx->subjects[neq[1]]);
   ind->ixds = 0;
   ind->id = neq[1];
@@ -1039,7 +1074,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
     }
   }
-  lsoda_free(&ctx);
+  lsodaFree();
 }
 
 extern void ind_liblsoda(rx_solve *rx, int solveid, 
@@ -1636,6 +1671,7 @@ extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
   if (i < op->nlhs){
     return(ind->lhs[i]);
   } else {
+    lsodaFree();
     error("Trying to access an equation that isn't calculated. lhs(%d/%d)\n",i, op->nlhs);
   }
   return 0;
@@ -1652,6 +1688,7 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
     if (ind->evid[ind->ix[i]]) ind->tlast = getTime(ind->ix[i], ind);
     calc_lhs((int)id, getTime(ind->ix[i], ind), solve+i*op->neq, lhs);
   } else {
+    lsodaFree();
     error("LHS cannot be calculated (%dth entry).",i);
   }
 }
@@ -1693,6 +1730,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int nall = rx->nall;
   int errNcol = rxGetErrsNcol();
   if (op->nsvar != errNcol){
+    lsodaFree();
     error("The simulated residual errors do not match the model specification (%d=%d)",op->nsvar, errNcol);
   }
   int doDose;
@@ -1792,6 +1830,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int pro = 0;
   if (op->badSolve){
     if (nidCols == 0){
+      lsodaFree();
       error("Could not solve the system.");
     } else {
       warning("Some ID(s) could not solve the ODEs correctly; These values are replaced with NA.");
