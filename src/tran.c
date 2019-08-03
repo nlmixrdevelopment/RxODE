@@ -2750,10 +2750,12 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
       // There is an compartment that doesn't have a derivative
       if (tb.linCmt == 0){
 	UNPROTECT(pro);
+	freeP();
 	error("Compartment '%s' needs differential equations defined", buf);
       } else if (!strcmp("depot", buf) || !strcmp("central", buf)) {
       } else {
 	UNPROTECT(pro);
+	freeP();
 	error("Compartment '%s' needs differential equations defined", buf);
       }
     } else if (offCmt == 1 && tb.idu[i] == 0){
@@ -2889,6 +2891,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     } else {
       if (tb.fdi[i]){
 	UNPROTECT(pro);
+	freeP();
 	error("Initialization of non-ODE compartment '%s' makes no sense", buf);
       }
       SET_STRING_ELT(extraState, p++, mkChar(buf));
