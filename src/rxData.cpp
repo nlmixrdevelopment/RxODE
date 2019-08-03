@@ -2480,9 +2480,8 @@ void updateSolveEnvPost(Environment e){
 extern "C" void rxOptionsFree();
 extern "C" void rxOptionsIni();
 extern "C" void rxOptionsIniEnsure(int mx);
-// extern "C" void rxOptionsFreeFocei();
-
-//' Free the C solving information.
+extern "C" void parseFree();
+//' Free the C solving/parsing information.
 //'
 //' Take the ODE C system and free it.
 //'
@@ -2494,7 +2493,7 @@ LogicalVector rxSolveFree(){
   rxOptionsFree();
   rxOptionsIni();
   rxOptionsIniData();
-  // rxOptionsFreeFocei();
+  parseFree();
   return LogicalVector::create(true);
 }
 extern "C" void RxODE_assign_fn_pointers(SEXP);
