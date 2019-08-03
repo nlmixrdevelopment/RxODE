@@ -2942,6 +2942,7 @@ SEXP rxSolve_(const RObject &obj,
       }
       unsigned int nSub0 = 0;
       int curObs = 0;
+      rx->nevid9 = 0;
       rx->nall = 0;
       rx->nobs = 0;
       rx->nobs2 = 0;
@@ -2953,6 +2954,7 @@ SEXP rxSolve_(const RObject &obj,
 	  IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
 	  int lastid= id[id.size()-1]+42;
 	  rx->nall = evid.size();
+	  int evid9=0;
 	  for (unsigned int j = rx->nall; j--;){
 	    if (lastid != id[j]){
 	      lastid=id[j];
@@ -2960,16 +2962,21 @@ SEXP rxSolve_(const RObject &obj,
 	    }
 	    if (isObs(evid[j])) rx->nobs++;
 	    if (evid[j] == 0) rx->nobs2++;
+	    if (evid[j] == 9) evid9++;
 	  }
+	  rx->nevid9 = evid9;
 	} else {
 	  nSub0 =1;
 	  DataFrame dataf = as<DataFrame>(ev1);
           IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
           rx->nall = evid.size();
+	  int evid9=0;
           for (unsigned int j =rx->nall; j--;){
             if (isObs(evid[j])) rx->nobs++;
 	    if (evid[j] == 0) rx->nobs2++;
+	    if (evid[j] == 9) evid9++;
           }
+	  rx->nevid9= evid9;
 	}
       }
       if (nSub > 1 && nSub0 > 1 && nSub != nSub0){
@@ -2984,11 +2991,11 @@ SEXP rxSolve_(const RObject &obj,
       } else {
 	LogicalVector addDosing1 = as<LogicalVector>(addDosing);
 	if (LogicalVector::is_na(addDosing1[0])){
-	  curObs = rx->nall;
+	  curObs = rx->nall - rx->nevid9;
 	} if (addDosing1[0]){
-	  curObs = rx->nall;
+	  curObs = rx->nall - rx->nevid9;
 	} else {
-	  curObs = rx->nobs;
+	  curObs = rx->nobs - rx->nevid9;
 	}
       }
       if (rxIs(as<RObject>(thetaMat), "matrix")){
@@ -3253,7 +3260,7 @@ SEXP rxSolve_(const RObject &obj,
       // Get the number of subjects
       // Get the number of observations
       // Get the number of doses
-      unsigned int nall = 0, nobst=0, lasti =0, ii=0, nobs2t=0;
+      unsigned int nall = 0, nobst=0, lasti =0, ii=0, nobs2t=0, nevid9=0;
       nsub = 0;
       ind = &(rx->subjects[0]);
       ind->idx=0;
@@ -3325,6 +3332,7 @@ SEXP rxSolve_(const RObject &obj,
           nobs++; nobst++; nall++;
 	  if (_globals.gevid[i] == 2) ind->nevid2++;
 	  if (_globals.gevid[i] == 0) nobs2t++;
+	  if (_globals.gevid[i] == 9) nevid9++;
 	  if (!ISNA(tlast)){
             tmp = time0[i]-tlast;
             if (tmp < 0){
@@ -3354,6 +3362,7 @@ SEXP rxSolve_(const RObject &obj,
       rx->nobs = nobst;
       rx->nobs2 = nobs2t;
       rx->nall = nall;
+      rx->nevid9 = nevid9;
       // Finalize the prior individual
       ind->n_all_times    = ndoses+nobs;
       ind->cov_ptr = &(_globals.gcov[curcovi]);
@@ -3813,7 +3822,7 @@ SEXP rxSolve_(const RObject &obj,
       CharacterVector units = CharacterVector::create(amountUnits[0], timeUnits[0]);
       units.names() = CharacterVector::create("dosing","time");
       e["units"] = units;
-      e["nobs"] = rx->nobs;
+      e["nobs"] = rx->nobs - rx->nevid9;
       e["args.object"] = object;
       e["dll"] = rxDll(object);
       e["args.par0"] = par1ini;

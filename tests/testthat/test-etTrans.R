@@ -3,7 +3,7 @@ require(RxODE);
 rxPermissive({
 
     context("etTrans checks");
-
+    rxSetIni0(FALSE)
     mod <- RxODE("
 a = 6
 b = 0.6
@@ -98,7 +98,7 @@ d/dt(blood)     = a*intestine - b*blood
     et <- et() %>% et(amt=3,time=0.24,evid=4)
 
     test_that("EVID=4 makes sense", {
-        expect_equal(RxODE:::etTrans(et, mod, keepDosingOnly=TRUE)$EVID, c(3L, 101L))
+        expect_equal(expect_warning(RxODE:::etTrans(et, mod, keepDosingOnly=TRUE)$EVID), c(3L, 101L))
     })
 
 
@@ -818,7 +818,30 @@ d/dt(blood)     = a*intestine - b*blood
     test_that("dat3 has evid w/amt 0", {
         expect_equal(dat3$EVID, c(101L, 2L, 0L, 0L, 0L, 101L, 2L, 0L, 0L, 0L))
         expect_equal(dat3$AMT, c(0, NA, NA, NA, NA, 0, NA, NA, NA, NA))
+    })
+
+    context("X(0)=ini at zero or elsewhere (#105)")
+
+    test_that("X(0) should be at time zero", {
+
+        mod <- RxODE("    x1(0) = x10\n    d/dt(x1) = a * x1\n    Volume = x1;\ncmt(Volume);\n\n    nlmixr_pred <- Volume")
+
+        rxSetIni0(FALSE)
+        RawData2 <- data.frame( ID = c(  1, 1, 1, 2, 2, 2 ),
+                               TIME = c(  3, 4, 5, 3, 4, 5 ),
+                               DV = c(  30, 80, 250, 40, 150, 400 ))
+        dat1 <- expect_warning(etTrans(RawData2, mod))
+
+        expect_equal(dat1$TIME, RawData2$TIME)
+
+        rxSetIni0(TRUE)
+        dat1 <- etTrans(RawData2, mod)
+
+        expect_equal(dat1$TIME, c(0, 3, 4, 5, 0, 3, 4, 5 ))
+        expect_equal(dat1$EVID, c(9L, 0L, 0L, 0L, 9L, 0L, 0L, 0L))
 
     })
+
+
 
 }, cran=TRUE, silent=TRUE)

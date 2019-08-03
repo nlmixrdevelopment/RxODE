@@ -426,6 +426,7 @@ void updateDur(int idx, rx_solving_options_ind *ind){
 
 extern double getTime(int idx, rx_solving_options_ind *ind){
   int evid = ind->evid[idx];
+  if (evid == 9) return 0;
   if (evid >= 10 && evid <= 99) return ind->mtime[evid-10];
   if (isObs(evid)) return ind->all_times[idx];
   getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
@@ -1725,9 +1726,9 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int nkeep0 = rx->nKeep0;
   int nkeep  = rx->nKeepF;
   int nlhs = op->nlhs;
-  int nobs = rx->nobs;
+  int nobs = rx->nobs - rx->nevid9;
   int nsim = rx->nsim;
-  int nall = rx->nall;
+  int nall = rx->nall - rx->nevid9;
   int errNcol = rxGetErrsNcol();
   if (op->nsvar != errNcol){
     lsodaFree();
@@ -1798,7 +1799,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 	      di++;
 	    }
 	  } else if (isObs(evid)){
-	    if (evid < 10){
+	    if (evid < 9){
 	      rx->nr++;
 	    }
 	  }
@@ -1895,6 +1896,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       }	
       for (i = 0; i < ntimes; i++){
         evid = ind->evid[ind->ix[i]];
+	if (evid == 9) continue;
 	if (subsetEvid == 1){
 	  if (isObs(evid) && evid >= 10) continue;
 	  if (isDose(evid)){

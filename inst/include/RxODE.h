@@ -2,7 +2,7 @@
 #ifndef __RxODE_H__
 #define __RxODE_H__
 #define isDose(evid) ((evid) == 3 || (evid) >= 100)
-#define isObs(evid) ((evid) == 0 || (evid) == 2 || ((evid) >= 10 && (evid) <= 99))
+#define isObs(evid) ((evid) == 0 || (evid) == 2 || ((evid) >= 9 && (evid) <= 99))
 #if defined(__cplusplus)
 #include "RxODE_RcppExports.h"
 extern "C" {
@@ -130,6 +130,7 @@ typedef struct {
   int nsub;
   int nsim;
   int nall;
+  int nevid9;
   int nobs;
   int nobs2;
   int nr;

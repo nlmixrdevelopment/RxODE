@@ -21,6 +21,17 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
     .Call(`_RxODE_etRep_`, curEt, times, wait, ids, handleSamples, waitType, ii)
 }
 
+#' Set Initial conditions to time zero instead of the first observed/dosed time
+#'
+#' @param ini0 When TRUE (default), set initial conditions to time
+#'   zero. Otherwise the initial conditions are the first observed
+#'   time.
+#'
+#' @export
+rxSetIni0 <- function(ini0 = TRUE) {
+    .Call(`_RxODE_rxSetIni0`, ini0)
+}
+
 #' Event translation for RxODE
 #'
 #' @param inData Data frame to translate
