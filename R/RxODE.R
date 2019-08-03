@@ -582,7 +582,8 @@ RxODE <- function(model, modName = basename(wd),
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
- rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
+rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
+    on.exit(rxSolveFree());
     if (is(substitute(model), "call")){
         model <- model;
     }
@@ -1222,6 +1223,7 @@ rxTrans.character <- function(model,
                               modName     = NULL,                                       # Model name for DLL
                               modVars     = FALSE,                                      # Return modVars
                               ...){
+    on.exit(rxSolveFree());
     ## rxTrans returns a list of compiled properties
     if (file.exists(model)){
         .isStr <- 0L;
