@@ -749,6 +749,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (mdvCol != -1 && inMdv[i] == 1){
 	cevid = 2;
       }
+      if (dvCol != -1 && ISNA(inDv[i])){
+	if (amtCol==-1){
+	  cevid=2;
+	} else if (ISNA(inAmt[i]) || inAmt[i] == 0){
+	  cevid=2;
+	}
+      }
       if (std::find(obsId.begin(), obsId.end(), cid) == obsId.end()){
 	obsId.push_back(cid);
       }
@@ -866,16 +873,21 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	idxO.push_back(curIdx);curIdx++;
 	ndose++;
 	// + cmt needs to turn on cmts.
-	id.push_back(cid);
-	evid.push_back(cevid);
-	cmtF.push_back(cmt);
-	time.push_back(ctime);
-	amt.push_back(0.0);
-	ii.push_back(0.0);
-	idx.push_back(i);
-	dv.push_back(NA_REAL);
-	idxO.push_back(curIdx);curIdx++;
-	ndose++;
+	// This gives a zero dose to cmt
+	if (cmtCol != -1 && cmt > 0 && cmt <= baseSize){
+	  // Turn on state with dose
+	  id.push_back(cid);
+	  evid.push_back(cevid);
+	  cmtF.push_back(cmt);
+	  time.push_back(ctime);
+	  amt.push_back(0.0);
+	  ii.push_back(0.0);
+	  idx.push_back(i);
+	  dv.push_back(NA_REAL);
+	  idxO.push_back(curIdx);curIdx++;
+	  ndose++;
+	}
+	
 	cevid = -1;
       }
       break;
