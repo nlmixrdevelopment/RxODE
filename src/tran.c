@@ -718,8 +718,17 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
 char *gBuf;
 int gBufLast;
 D_Parser *curP=NULL;
+D_ParseNode *_pn;
+
 void freeP(){
-  if (curP != NULL) free_D_Parser(curP);
+  if (curP != NULL){
+    if (_pn){
+      free_D_ParseTreeBelow(curP,_pn);
+      free_D_ParseNode(curP,_pn);
+      _pn=0;
+    }
+    free_D_Parser(curP);
+  }
   curP = NULL;
 }
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
@@ -816,6 +825,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
         continue;
       }
+      
       if ((i == 3 || i == 4 || i < 2) &&
 	  (nodeHas(derivative) ||nodeHas(fbio) || nodeHas(alag) ||
 	   nodeHas(rate) || nodeHas(dur))) continue;
@@ -1407,7 +1417,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    Free(v);
 	  } 
 	}
-        
         continue;
       }
 
@@ -1598,7 +1607,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     if (nodeHas(power_expression)) {
       aAppendN(")", 1);
     }
-
   }
 }
 
@@ -2552,25 +2560,24 @@ static void rxSyntaxError(struct D_Parser *ap);
 void trans_internal(char* parse_file, int isStr){
   char *buf1, *buf2, bufe[2048];
   int i,j,found,islhs;
-  D_ParseNode *pn;
   /* any number greater than sizeof(D_ParseNode_User) will do;
      below 1024 is used */
-  D_Parser *p = new_D_Parser(&parser_tables_RxODE, 1024);
-  curP = p;
-  p->save_parse_tree = 1;
-  p->syntax_error_fn = rxSyntaxError;
+  curP = new_D_Parser(&parser_tables_RxODE, 1024);
+  curP->save_parse_tree = 1;
+  curP->initial_scope = NULL; 
+  curP->syntax_error_fn = rxSyntaxError;
   if (isStr){
     gBuf = parse_file;
   } else {
       gBuf = r_sbuf_read(parse_file);
-      err_msgP((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2, p);
+      err_msgP((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2, curP);
   }
   sIni(&sbNrm);
   lineIni(&sbPm);
   lineIni(&sbPmDt);
   
-  if ((pn=dparse(p, gBuf, (int)strlen(gBuf))) && !p->syntax_errors) {
-    wprint_parsetree(parser_tables_RxODE, pn, 0, wprint_node, NULL);
+  if ((_pn=dparse(curP, gBuf, (int)strlen(gBuf))) && !curP->syntax_errors) {
+    wprint_parsetree(parser_tables_RxODE, _pn, 0, wprint_node, NULL);
     // Determine Jacobian vs df/dvar
     for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
       buf1=tb.ss.line[tb.df[i]];
