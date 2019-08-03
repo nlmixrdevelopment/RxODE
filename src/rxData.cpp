@@ -2883,10 +2883,9 @@ SEXP rxSolve_(const RObject &obj,
     CharacterVector trans = mv["trans"];
     // Make sure the model variables are assigned...
     // This fixes random issues on windows where the solves are done and the data set cannot be solved.
-    std::string ptrS = (as<std::string>(trans["model_vars"]));
     getRxModels();
-    _rxModels[ptrS] = mv;
-    sprintf(op->modNamePtr, "%s", ptrS.c_str());
+    _rxModels[as<std::string>(trans["model_vars"])] = mv;
+    sprintf(op->modNamePtr, "%s", (as<std::string>(trans["model_vars"])).c_str());
     // approx fun options
     op->is_locf = covs_interpolation;
     if (op->is_locf == 0){//linear

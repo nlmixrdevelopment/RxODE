@@ -842,6 +842,6 @@ d/dt(blood)     = a*intestine - b*blood
 
     })
 
-
+    rxSetIni0(TRUE)
 
 }, cran=TRUE, silent=TRUE)
