@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{rxSolveFree}
 \alias{rxSolveFree}
-\title{Free the C solving information.}
+\title{Free the C solving/parsing information.}
 \usage{
 rxSolveFree()
 }
