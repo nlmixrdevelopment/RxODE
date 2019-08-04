@@ -583,7 +583,6 @@ RxODE <- function(model, modName = basename(wd),
 ##' @export
 ##' @keywords internal
 rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
-    on.exit(rxSolveFree());
     if (is(substitute(model), "call")){
         model <- model;
     }
