@@ -1223,7 +1223,6 @@ rxTrans.character <- function(model,
                               modName     = NULL,                                       # Model name for DLL
                               modVars     = FALSE,                                      # Return modVars
                               ...){
-    on.exit(rxSolveFree());
     ## rxTrans returns a list of compiled properties
     if (file.exists(model)){
         .isStr <- 0L;
