@@ -122,6 +122,7 @@ typedef struct {
   int wrongSSDur;
   int timeReset;
   int _newind;
+  int err;
 } rx_solving_options_ind;
 
 typedef struct {
@@ -145,6 +146,7 @@ typedef struct {
   int nKeep0;
   int nKeepF;
   int istateReset;
+  int setupOnly;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);

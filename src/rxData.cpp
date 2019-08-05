@@ -3293,6 +3293,7 @@ SEXP rxSolve_(const RObject &obj,
           ind->id             = nsub+1;
 	  ind->allCovWarn = 0;
 	  ind->wrongSSDur=0;
+	  ind->err = 0;
 	  ind->timeReset=1;
           ind->lambda         =1.0;
           ind->yj             = 0;
@@ -3727,6 +3728,7 @@ SEXP rxSolve_(const RObject &obj,
     }
     IntegerVector si = mv["state.ignore"];
     rx->stateIgnore = &si[0];
+    rx->setupOnly=setupOnly;
     int doTBS = (rx->matrix == 3);
     if (doTBS) rx->matrix=2;
     List dat = RxODE_df(doDose, doTBS);
@@ -4693,13 +4695,22 @@ extern "C" void doSort(rx_solving_options_ind *ind){
       ind->all_times[j] = ind->all_times[j-1];
     }
   }
-  std::sort(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
-	    [&ind](int a, int b){
-	      double ta=getTime(a, ind);
-	      double tb = getTime(b, ind);
-	      if (ta == tb) return a < b;
-	      return ta < tb;
-	    });
+  try {
+    std::sort(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
+	      [&ind](int a, int b){
+		double ta=getTime(a, ind);
+		if (ind->err){
+		  throw std::runtime_error("error");
+		}
+		double tb = getTime(b, ind);
+		if (ind->err){
+		  throw std::runtime_error("error");
+		}
+		if (ta == tb) return a < b;
+		return ta < tb;
+	      });
+  } catch(...){
+  }
 }
 
 //[[Rcpp::export]]
