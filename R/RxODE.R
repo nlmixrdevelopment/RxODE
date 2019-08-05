@@ -329,6 +329,7 @@ RxODE <- function(model, modName = basename(wd),
                   filename = NULL, extraC = NULL, debug = FALSE, calcJac=NULL, calcSens=NULL,
                   collapseModel=FALSE, package=NULL, ...,
                   linCmtSens=FALSE) {
+    on.exit(rxSolveFree());
     rxTempDir();
     if (!is.null(package)){
         if (missing(modName)){
@@ -588,7 +589,7 @@ RxODE <- function(model, modName = basename(wd),
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
- rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
+rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
     if (is(substitute(model), "call")){
         model <- model;
     }

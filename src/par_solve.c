@@ -20,7 +20,94 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#define RSprintf(fmt,...) if (_setSilentErr == 0) REprintf(fmt,__VA_ARGS__);
+#define RSprintf0(fmt) if (_setSilentErr == 0) REprintf(fmt);
+int _setSilentErr=0;
+void setSilentErr(int silent){
+  _setSilentErr = silent;
+}
 
+extern int getSilentErr(){return _setSilentErr;}
+
+void printErr(int err, int id){
+  RSprintf("Recovered solving errors for internal ID %d (%d):\n", id+1, err);
+  if (err & 1){
+    RSprintf0("  Corrupted event table during sort (1)\n");
+  }
+  if (err & 2){
+    RSprintf0("  Rate is zero/negative\n");
+  }
+  if (err & 4){
+    RSprintf0("  Modeled rate requested in event table, but not in model; use 'rate(cmt) ='\n");
+  }
+  if (err & 4){
+    RSprintf0("  Modeled rate requested in event table, but not in model; use 'rate(cmt) ='\n");
+  }
+  if (err & 8){
+    RSprintf0("  Corrupted event table during sort (2)\n");
+  }
+  if (err & 16){
+    RSprintf0("  Duration is zero/negative\n");
+  }
+  if (err & 32){
+    RSprintf0("  Modeled duration requested in event table, but not in model; use 'dur(cmt) ='\n");
+  }
+  if (err & 64){
+    RSprintf0("  Data error 686\n");
+  }
+  if (err & 128){
+    RSprintf0("  Data Error -6\n");
+  }
+  if (err & 256){
+    RSprintf0("  Data Error 8\n");
+  }
+  if (err & 512){
+    RSprintf0("  Data error 886\n");
+  }
+  if (err & 1024){
+    RSprintf0("  Data error 797\n");
+  }
+  if (err & 2048){
+    RSprintf0("  Data Error -7\n");
+  }
+  if (err & 4096){
+    RSprintf0("  Data Error 9\n");
+  }
+  if (err & 8192){
+    RSprintf0("  Data error 997\n");
+  }
+  if (err & 16384){
+    RSprintf0("  Corrupted event table during sort (1)\n");
+  }
+  if (err & 32768){
+    RSprintf0("  Corrupted event table\n");
+  }
+  if (err & 131072){
+    RSprintf0("  Corrupted events\n");
+  }
+  if (err & 65536){
+    RSprintf0("  Supplied an invalid EVID\n");
+  }
+  if (err & 262144){
+    RSprintf0("  Corrupted event table\n");
+  }
+  if (err & 524288){
+    RSprintf0("  The event table has been corrupted\n");
+  }
+  if (err & 1048576){
+    RSprintf0("  SS=2 & Modeled F does not work\n");
+  }
+  if (err & 2097152){
+    RSprintf0("  SS=2 & Modeled F does not work\n");
+  }
+  if (err & 4194304){
+    RSprintf0("  SS=2 & Modeled F does not work\n");
+  }
+  if (err & 8388608){
+    RSprintf0(" Rate is zero/negative\n");
+  }
+  
+}
 
 rx_solve rx_global;
 
@@ -89,31 +176,31 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
       }
     } else {
       if (nticks > curTicks){
-        REprintf("\r");
+        RSprintf0("\r");
         int i;
         for (i = 0; i < nticks; i++){
           if (i == 0) {
-            REprintf("%%[");
+            RSprintf0("%%[");
           } else if (i % 5 == 0) {
-            REprintf("|");
+            RSprintf0("|");
           } else {
-            REprintf("=");
+            RSprintf0("=");
           }
         }
         for (i = nticks; i < 50; i++){
-          REprintf(" ");
+          RSprintf0(" ");
         }
-        REprintf("] ");
+        RSprintf0("] ");
         if (nticks < 50) Rprintf(" ");
         if (cores > 1){
-          REprintf("%02.f%%; ncores=%d; ",100*progress,cores);
+          RSprintf("%02.f%%; ncores=%d; ",100*progress,cores);
         } else {
-          REprintf("%02.f%%; ",100*progress,cores);
+          RSprintf("%02.f%%; ",100*progress,cores);
         }
         clock_t t = clock() - t0;
-        REprintf(" %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
+        RSprintf(" %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
         if (stop){
-          REprintf("Stopped Calculation!\n");
+          RSprintf0("Stopped Calculation!\n");
         }
       }
     }
@@ -160,7 +247,7 @@ SEXP _rxProgressStop(SEXP clear){
       /* Rprintf("\r                                                                                \r"); */
       Rprintf("\n");
     } else {
-      REprintf("\r                                                                                \r");
+      RSprintf0("\r                                                                                \r");
     }
   } else {
     par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
@@ -340,7 +427,11 @@ void updateRate(int idx, rx_solving_options_ind *ind){
     if (ind->idose[m] == idx){
       j=m;
     } else {
-      error("Corrupted event table during sort (1).");
+      if (!(ind->err & 1)){
+	ind->err += 1;
+      }
+      return;
+      /* error("Corrupted event table during sort (1)."); */
     }
     double dur, rate, amt;
     amt  = AMT(ind->id, ind->cmt, ind->dose[j], t);
@@ -356,10 +447,18 @@ void updateRate(int idx, rx_solving_options_ind *ind){
       rx_solving_options *op = &op_global;
       if (ind->cmt < op->neq){
 	if (rx->needSort & 8){
-	  error("Rate is zero/negative");
+	  if (!(ind->err & 2)){
+	    ind->err += 2;
+	    /* error("Rate is zero/negative"); */
+	  }
+	  return;
 	} else {
 	  // FIXME don't error out with linear compartmental model
-	  error("Modeled rate requested in event table, but not in model; use 'rate(cmt) ='");
+	  if (!(ind->err & 4)){
+	    ind->err += 4;
+	  }
+	  return;
+	  /* error("Modeled rate requested in event table, but not in model; use 'rate(cmt) ='"); */
 	}
       }
       // error rate is zero/negative
@@ -387,7 +486,11 @@ void updateDur(int idx, rx_solving_options_ind *ind){
     if (ind->idose[m] == idx){
       j=m;
     } else {
-      error("Corrupted event table during sort (2).");
+      if (!(ind->err & 8)){
+	ind->err += 8;
+      }
+      return;
+      /* error("Corrupted event table during sort (2)."); */
     }
     double dur, rate, amt;
     amt  = AMT(ind->id, ind->cmt, ind->dose[j], t);
@@ -402,9 +505,17 @@ void updateDur(int idx, rx_solving_options_ind *ind){
       rx_solving_options *op = &op_global;
       if (ind->cmt < op->neq){
 	if (rx->needSort & 4){
-	  error("Duration is zero/negative (dur=%f; cmt=%d; amt=%f)", dur, ind->cmt+1, amt);
+	  if (!(ind->err & 16)){
+	    ind->err += 16;
+	  }
+	  return;
+	  /* error("Duration is zero/negative (dur=%f; cmt=%d; amt=%f)", dur, ind->cmt+1, amt); */
 	} else {
-	  error("Modeled duration requested in event table, but not in model; use 'dur(cmt) ='");
+	  if (!(ind->err & 32)){
+	    ind->err += 32;
+	  }
+	  return;
+	  /* error("Modeled duration requested in event table, but not in model; use 'dur(cmt) ='"); */
 	}
       }
     }
@@ -413,6 +524,7 @@ void updateDur(int idx, rx_solving_options_ind *ind){
 
 extern double getTime(int idx, rx_solving_options_ind *ind){
   int evid = ind->evid[idx];
+  if (evid == 9) return 0;
   if (evid >= 10 && evid <= 99) return ind->mtime[evid-10];
   if (isObs(evid)) return ind->all_times[idx];
   getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
@@ -423,23 +535,39 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
       getWh(ind->evid[idx-1], &wh, &cmt, &wh100, &whI, &wh0);
       if (whI != 8){
 	// FIXME can crash parallel runs and cause many issues.  Need to defer to end.
-	error("Data error 686 (whI = %d; evid=%d)", whI, ind->evid[idx-1]);
+	if (!(ind->err & 64)){
+	  ind->err += 64;
+	}
+	return 0.0;
+	/* error("Data error 686 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
       }
       updateDur(idx-1, ind);
     } else {
-      error("Data Error -6\n");
+      if (!(ind->err & 128)){
+	ind->err += 128;
+      }
+      return 0.0;
+      /* error("Data Error -6\n"); */
     }
     break;
   case 8:
     if (idx >= ind->n_all_times){
       // error: Last record, can't be used.
-      error("Data Error 8\n");
+      if (!(ind->err & 256)){
+	ind->err += 256;
+      }
+      /* error("Data Error 8\n"); */
+      return 0.0;
     } else {
       int wh, cmt, wh100, whI, wh0;
       getWh(ind->evid[idx+1], &wh, &cmt, &wh100, &whI, &wh0);
       if (whI != 6){
-	error("Data error 886 (whI=%d, evid=%d to %d)\n", whI,
-	      ind->evid[idx], ind->evid[idx+1]);
+	if (!(ind->err & 512)){
+	  ind->err += 512;
+	}
+	return 0.0;
+	/* error("Data error 886 (whI=%d, evid=%d to %d)\n", whI, */
+	/*       ind->evid[idx], ind->evid[idx+1]); */
       }
       updateDur(idx, ind);
     }
@@ -449,24 +577,40 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
       int wh, cmt, wh100, whI, wh0;
       getWh(ind->evid[idx-1], &wh, &cmt, &wh100, &whI, &wh0);
       if (whI != 9){
-	error("Data error 797 (whI = %d; evid=%d)", whI, ind->evid[idx-1]);
+	if (!(ind->err & 1024)){
+	  ind->err += 1024;
+	}
+	/* error("Data error 797 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
+	return 0.0;
       }
       updateRate(idx-1, ind);
     } else {
-      error("Data Error -7\n");
+      if (!(ind->err & 2048)){
+	ind->err += 2048;
+      }
+      /* error("Data Error -7\n"); */
+      return 0;
     }
     break;
   case 9:
     // This calculates the rate and the duration and then assigns it to the next record
     if (idx >= ind->n_all_times){
       // error: Last record, can't be used.
-      error("Data Error 9\n");
+      if (!(ind->err & 4096)){
+	ind->err += 4096;
+      }
+      /* error("Data Error 9\n"); */
+      return 0.0;
     } else {
       int wh, cmt, wh100, whI, wh0;
       getWh(ind->evid[idx+1], &wh, &cmt, &wh100, &whI, &wh0);
       if (whI != 7){
-	error("Data error 997 (whI=%d, evid=%d to %d)\n", whI,
-	      ind->evid[idx], ind->evid[idx+1]);
+	if (!(ind->err & 8192)){
+	  ind->err += 8192;
+	}
+	return 0.0;
+	/* error("Data error 997 (whI=%d, evid=%d to %d)\n", whI, */
+	/*       ind->evid[idx], ind->evid[idx+1]); */
       }
       updateRate(idx, ind);
     }
@@ -486,7 +630,11 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
       if (ind->idose[m] == idx){
 	j=m;
       } else {
-	error("Corrupted event table during sort (1).");
+	if (!(ind->err & 16384)){
+	  ind->err += 16384;
+	}
+	return 0.0;
+	/* error("Corrupted event table during sort (1)."); */
       }
       if (ind->dose[j] > 0){
 	return LAG(ind->id, ind->cmt, ind->all_times[idx]);
@@ -498,7 +646,13 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	int k;
 	for (k = j; k--;){
 	  if (ind->evid[ind->idose[j]] == ind->evid[ind->idose[k]]) break;
-	  if (k == 0) error("corrupted event table");
+	  if (k == 0) {
+	    if (!(ind->err & 32768)){
+	      ind->err += 32768;
+	    }
+	    return 0.0;
+	    /* error("corrupted event table"); */
+	  }
 	}
 	double f = AMT(ind->id, ind->cmt, 1.0, ind->all_times[ind->idose[j-1]]);
 	double durOld = (ind->all_times[ind->idose[j]] - ind->all_times[ind->idose[k]]); 
@@ -506,7 +660,11 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	double t = ind->all_times[ind->idose[k]]+dur;
 	return LAG(ind->id, ind->cmt, t);
       } else {
-	error("Corrupted events.");
+	/* error("Corrupted events."); */
+	if (!(ind->err & 131072)){
+	  ind->err += 131072;
+	}
+	return 0.0;
       }
     }
     break;
@@ -531,7 +689,11 @@ int handle_evid(int evid, int neq,
     wh = ind->wh;
     cmt = ind->cmt;
     if (cmt<0) {
-      error("Supplied an invalid EVID (EVID=%d)", evid);
+      if (!(ind->err & 65536)){
+	ind->err += 65536;
+      }
+      return 0;
+      /* error("Supplied an invalid EVID (EVID=%d)", evid); */
     }
     if (cmt >= neq){
       foundBad = 0;
@@ -558,8 +720,13 @@ int handle_evid(int evid, int neq,
 	if (ind->idose[m] == ind->ix[ind->idx]){
 	  ind->ixds=m;
 	} else {
-	  error("Corrupted event table; EVID=%d: %d %d %d", evid, ind->idose[m], ind->ix[ind->idx],
-		ind->idx);
+	  //262144
+	  if (!(ind->err & 262144)){
+	    ind->err += 262144;
+	  }
+	  return 0;
+	  /* error("Corrupted event table; EVID=%d: %d %d %d", evid, ind->idose[m], ind->ix[ind->idx], */
+	  /* 	ind->idx); */
 	}
 	// Need to adjust ixdsr
 	for(j = ind->ixds; j--;){
@@ -577,8 +744,13 @@ int handle_evid(int evid, int neq,
 	  }
 	}
 	if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
-	  error("The event table has been corrupted; ind->idx: %d ind->ixds: %d ind->idose: %d.",
-		ind->ix[ind->idx], ind->ixds, ind->idose[ind->ixds]);
+	  //524288
+	  if (!(ind->err & 524288)){
+	    ind->err += 524288;
+	  }
+	  return 0;
+	  /* error("The event table has been corrupted; ind->idx: %d ind->ixds: %d ind->idose: %d.", */
+	  /* 	ind->ix[ind->idx], ind->ixds, ind->idose[ind->ixds]); */
 	}
       }
       if (ind->wh0 == 30){
@@ -600,7 +772,11 @@ int handle_evid(int evid, int neq,
 	ind->on[cmt] = 1;
 	InfusionRate[cmt] -= dose[ind->ixds+1];
 	if (ind->wh0 == 20 && AMT(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
-	  error("SS=2 & Modeled F does not work");
+	  if (!(ind->err & 1048576)){
+	    ind->err += 1048576;
+	  }
+	  return 0;
+	  /* error("SS=2 & Modeled F does not work"); */
 	}
 	break;
       case 7: // End modeled rate
@@ -609,7 +785,11 @@ int handle_evid(int evid, int neq,
 	// Probably should throw an error if the infusion rate is on still.
 	InfusionRate[cmt] += dose[ind->ixds]*((double)(ind->on[cmt]));
 	if (ind->wh0 == 20 && AMT(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
-	  error("SS=2 & Modeled F does not work");
+	  /* error("SS=2 & Modeled F does not work"); */
+	  if (!(ind->err & 2097152)){
+	    ind->err += 2097152;
+	  }
+	  return 0;
 	}
 	break;
       case 2:
@@ -619,14 +799,21 @@ int handle_evid(int evid, int neq,
 	tmp = AMT(id, cmt, dose[ind->ixds], xout);
 	InfusionRate[cmt] += tmp;
 	if (ind->wh0 == 20 && tmp != dose[ind->ixds]){
-	  error("SS=2 & Modeled F does not work");
+	  /* error("SS=2 & Modeled F does not work"); */
+	  if (!(ind->err & 4194304)){
+	    ind->err += 4194304;
+	  }
+	  return 0;
 	}
 	break;
       case 1:
 	ind->on[cmt] = 1;
 	InfusionRate[cmt] += dose[ind->ixds];
 	if (ind->wh0 == 20 && dose[ind->ixds] > 0 && AMT(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
-	  error("SS=2 & Modeled F does not work");
+	  /* error("SS=2 & Modeled F does not work"); */
+	  if (!(ind->err & 4194304)){
+	    ind->err += 4194304;
+	  }
 	}
 	break;
       case 0:
@@ -695,9 +882,17 @@ void solveSS_1(int *neq,
   case 2:
     lsoda(ctx, yp, &xp, xout);
     if (*istate <= 0) {
-      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
+      RSprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
       ind->rc[0] = *istate;
       // Bad Solve => NA
+      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+      op->badSolve = 1;
+      *i = ind->n_all_times-1; // Get out of here!
+      j=op->maxSS;
+      break;
+    } else if (ind->err){
+      printErr(ind->err, ind->id);
+      ind->rc[0] = -1000;
       for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
       op->badSolve = 1;
       *i = ind->n_all_times-1; // Get out of here!
@@ -711,9 +906,17 @@ void solveSS_1(int *neq,
 		     istate, &giopt, global_rworkp,
 		     &glrw, global_iworkp, &gliw, jdum_lsoda, &global_jt);
     if (*istate <= 0) {
-      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
+      RSprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
       ind->rc[0] = *istate;
       // Bad Solve => NA
+      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+      op->badSolve = 1;
+      *i = ind->n_all_times-1; // Get out of here!
+      j=op->maxSS;
+      break;
+    } else if (ind->err){
+      printErr(ind->err, ind->id);
+      ind->rc[0] = -1000;
       for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
       op->badSolve = 1;
       *i = ind->n_all_times-1; // Get out of here!
@@ -750,6 +953,14 @@ void solveSS_1(int *neq,
     if (idid < 0) {
       ind->rc[0] = idid;
       // Bad Solve => NA
+      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+      op->badSolve = 1;
+      *i = ind->n_all_times-1; // Get out of here!
+      j=op->maxSS;
+      break;
+    } else if (ind->err){
+      printErr(ind->err, ind->id);
+      ind->rc[0] = -1000;
       for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
       op->badSolve = 1;
       *i = ind->n_all_times-1; // Get out of here!
@@ -816,7 +1027,12 @@ void handleSS(int *neq,
 	ei++;
       }
       if (ind->ix[ei] != ind->idose[infEixds]){
-	error("Cannot figure out infusion end time.");
+	/* error("Cannot figure out infusion end time."); */
+	if (!(ind->err & 8388608)){
+	  ind->err += 8388608;
+	  /* error("Rate is zero/negative"); */
+	}
+	return;
       }
     }
     // First Reset
@@ -865,6 +1081,11 @@ void handleSS(int *neq,
 	ind->wrongSSDur=1;
 	// Bad Solve => NA
 	for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	op->badSolve = 1;
+	*i = nx-1; // Get out of here!
+      } else if (ind->err){
+	printErr(ind->err, ind->id);
+	for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	op->badSolve = 1;
 	*i = nx-1; // Get out of here!
       } else {
@@ -996,18 +1217,33 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
     xout = getTime(ind->ix[i], ind);
     yp = ret+neq[0]*i;
     if(ind->evid[ind->ix[i]] != 3 && xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
-      lsoda(&ctx, yp, &xp, xout);
-      if (ctx.state <= 0) {
-        /* REprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
-        *rc = ctx.state;
-        // Bad Solve => NA
-        for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-        op->badSolve = 1;
-        i = nx-1; // Get out of here!
+      if (ind->err){
+	*rc = -1000;
+	// Bad Solve => NA
+	for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	op->badSolve = 1;
+	i = nx-1; // Get out of here!
       } else {
-	if (R_FINITE(rx->stateTrim)){
-	  double top=fabs(rx->stateTrim);
-	  for (unsigned int j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
+	lsoda(&ctx, yp, &xp, xout);
+	if (ctx.state <= 0) {
+	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
+	  *rc = ctx.state;
+	  // Bad Solve => NA
+	  for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	  op->badSolve = 1;
+	  i = nx-1; // Get out of here!
+	} else if (ind->err){
+	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
+	  *rc = ctx.state;
+	  // Bad Solve => NA
+	  for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	  op->badSolve = 1;
+	  i = nx-1; // Get out of here!
+	} else {
+	  if (R_FINITE(rx->stateTrim)){
+	    double top=fabs(rx->stateTrim);
+	    for (unsigned int j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
+	  }
 	}
       }
     }
@@ -1133,7 +1369,7 @@ extern void par_liblsoda(rx_solve *rx){
       /* Rprintf("\r                                                                                \r"); */
       Rprintf("\n");
     } else {
-      REprintf("\r                                                                                \r");
+      RSprintf0("\r                                                                                \r");
     }
   }
 }
@@ -1293,23 +1529,37 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
     xout = getTime(ind->ix[i], ind);
     yp   = ind->solve+neq[0]*i;
     if(ind->evid[ind->ix[i]] != 3 && xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp))) {
-      F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &gitol, &(op->RTOL), &(op->ATOL), &gitask,
-		       &istate, &giopt, rwork, &lrw, iwork, &liw, jdum, &jt);
-      if (istate <= 0) {
-	REprintf("IDID=%d, %s\n", istate, err_msg_ls[-(istate)-1]);
-	ind->rc[0] = istate;
+      if (ind->err){
+	ind->rc[0] = -1000;
 	// Bad Solve => NA
 	for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	op->badSolve = 1;
 	i = ind->n_all_times-1; // Get out of here!
       } else {
-	if (R_FINITE(rx->stateTrim)){
-	  double top=fabs(rx->stateTrim);
-	  for (j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
+	F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &gitol, &(op->RTOL), &(op->ATOL), &gitask,
+			 &istate, &giopt, rwork, &lrw, iwork, &liw, jdum, &jt);
+	if (istate <= 0) {
+	  RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-(istate)-1]);
+	  ind->rc[0] = istate;
+	  // Bad Solve => NA
+	  for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	  op->badSolve = 1;
+	  i = ind->n_all_times-1; // Get out of here!
+	} else if (ind->err){
+	  ind->rc[0] = -1000;
+	  // Bad Solve => NA
+	  for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	  op->badSolve = 1;
+	  i = ind->n_all_times-1; // Get out of here!
+	} else {
+	  if (R_FINITE(rx->stateTrim)){
+	    double top=fabs(rx->stateTrim);
+	    for (j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
+	  }
 	}
+	ind->slvr_counter[0]++;
+	//dadt_counter = 0;
       }
-      ind->slvr_counter[0]++;
-      //dadt_counter = 0;
     }
     ind->_newind = 2;
     if (!op->badSolve){
@@ -1353,7 +1603,7 @@ extern void ind_lsoda(rx_solve *rx, int solveid,
   double *rwork;
   int *iwork;
   if (global_debug)
-    REprintf("JT: %d\n",cjt);
+    RSprintf("JT: %d\n",cjt);
   rwork = global_rwork(lrw+1);
   iwork = global_iwork(liw+1);
   ind_lsoda0(rx, &op_global, solveid, neq, rwork, lrw, iwork, liw, cjt,
@@ -1377,7 +1627,7 @@ extern void par_lsoda(rx_solve *rx){
   
   
   if (global_debug)
-    REprintf("JT: %d\n",jt);
+    RSprintf("JT: %d\n",jt);
   rwork = global_rwork(lrw+1);
   iwork = global_iwork(liw+1);
   
@@ -1461,42 +1711,58 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
     xout = getTime(ind->ix[i], ind);
     yp = &ret[neq[0]*i];
     if (global_debug){
-      REprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
+      RSprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
     }
     if(ind->evid[ind->ix[i]] != 3 && xout-xp>DBL_EPSILON*max(fabs(xout),fabs(xp)))
       {
-        idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
-                      c_dydt,       /* function computing the value of f(x,y) */
-                      xp,           /* initial x-value */
-                      yp,           /* initial values for y */
-                      xout,         /* final x-value (xend-x may be positive or negative) */
-                      &rtol,          /* relative error tolerance */
-                      &atol,          /* absolute error tolerance */
-                      itol,         /* switch for rtoler and atoler */
-                      solout,         /* function providing the numerical solution during integration */
-                      iout,         /* switch for calling solout */
-                      NULL,           /* messages stream */
-                      DBL_EPSILON,    /* rounding unit */
-                      0,              /* safety factor */
-                      0,              /* parameters for step size selection */
-                      0,
-                      0,              /* for stabilized step size control */
-                      0,              /* maximal step size */
-                      0,            /* initial step size */
-                      op->mxstep, /* maximal number of allowed steps */
-                      1,            /* switch for the choice of the coefficients */
-                      -1,                     /* test for stiffness */
-                      0,                      /* number of components for which dense outpout is required */
-                      NULL,           /* indexes of components for which dense output is required, >= nrdens */
-                      0                       /* declared length of icon */
-                      );
+	if (ind->err){
+	  printErr(ind->err, ind->id);
+	  *rc = idid;
+	  // Bad Solve => NA
+	  for (j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
+	  op->badSolve = 1;
+	  i = nx-1; // Get out of here!
+	} else {
+	  idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
+			c_dydt,       /* function computing the value of f(x,y) */
+			xp,           /* initial x-value */
+			yp,           /* initial values for y */
+			xout,         /* final x-value (xend-x may be positive or negative) */
+			&rtol,          /* relative error tolerance */
+			&atol,          /* absolute error tolerance */
+			itol,         /* switch for rtoler and atoler */
+			solout,         /* function providing the numerical solution during integration */
+			iout,         /* switch for calling solout */
+			NULL,           /* messages stream */
+			DBL_EPSILON,    /* rounding unit */
+			0,              /* safety factor */
+			0,              /* parameters for step size selection */
+			0,
+			0,              /* for stabilized step size control */
+			0,              /* maximal step size */
+			0,            /* initial step size */
+			op->mxstep, /* maximal number of allowed steps */
+			1,            /* switch for the choice of the coefficients */
+			-1,                     /* test for stiffness */
+			0,                      /* number of components for which dense outpout is required */
+			NULL,           /* indexes of components for which dense output is required, >= nrdens */
+			0                       /* declared length of icon */
+			);
+	}
         if (idid<0) {
-            REprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
-            *rc = idid;
-            // Bad Solve => NA
-            for (j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
-            op->badSolve = 1;
-            i = nx-1; // Get out of here!
+	  RSprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
+	  *rc = idid;
+	  // Bad Solve => NA
+	  for (j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
+	  op->badSolve = 1;
+	  i = nx-1; // Get out of here!
+	} else if (ind->err){
+	  printErr(ind->err, ind->id);
+	  *rc = idid;
+	  // Bad Solve => NA
+	  for (j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
+	  op->badSolve = 1;
+	  i = nx-1; // Get out of here!
 	} else {
 	  if (R_FINITE(rx->stateTrim)){
 	    double top=fabs(rx->stateTrim);
@@ -1581,7 +1847,7 @@ void par_dop(rx_solve *rx){
       /* Rprintf("\r                                                                                \r"); */
       Rprintf("\n");
     } else {
-      REprintf("\r                                                                                \r");
+      RSprintf0("\r                                                                                \r");
     }
   }
 }
@@ -1688,9 +1954,9 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int nkeep0 = rx->nKeep0;
   int nkeep  = rx->nKeepF;
   int nlhs = op->nlhs;
-  int nobs = rx->nobs;
+  int nobs = rx->nobs - rx->nevid9;
   int nsim = rx->nsim;
-  int nall = rx->nall;
+  int nall = rx->nall - rx->nevid9;
   int errNcol = rxGetErrsNcol();
   if (op->nsvar != errNcol){
     error("The simulated residual errors do not match the model specification (%d=%d)",op->nsvar, errNcol);
@@ -1760,7 +2026,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 	      di++;
 	    }
 	  } else if (isObs(evid)){
-	    if (evid < 10){
+	    if (evid < 9){
 	      rx->nr++;
 	    }
 	  }
@@ -1856,6 +2122,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       }	
       for (i = 0; i < ntimes; i++){
         evid = ind->evid[ind->ix[i]];
+	if (evid == 9) continue;
 	if (subsetEvid == 1){
 	  if (isObs(evid) && evid >= 10) continue;
 	  if (isDose(evid)){

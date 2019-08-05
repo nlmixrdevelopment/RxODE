@@ -21,6 +21,17 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
     .Call(`_RxODE_etRep_`, curEt, times, wait, ids, handleSamples, waitType, ii)
 }
 
+#' Set Initial conditions to time zero instead of the first observed/dosed time
+#'
+#' @param ini0 When TRUE (default), set initial conditions to time
+#'   zero. Otherwise the initial conditions are the first observed
+#'   time.
+#'
+#' @export
+rxSetIni0 <- function(ini0 = TRUE) {
+    .Call(`_RxODE_rxSetIni0`, ini0)
+}
+
 #' Event translation for RxODE
 #'
 #' @param inData Data frame to translate
@@ -314,7 +325,7 @@ rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaLo
     .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaLower, omegaUpper, omegaIsChol, nSub, thetaMat, thetaLower, thetaUpper, thetaDf, thetaIsChol, nStud, sigma, sigmaLower, sigmaUpper, sigmaDf, sigmaIsChol, nCoresRV, nObs, dfSub, dfObs, simSubjects)
 }
 
-#' Free the C solving information.
+#' Free the C solving/parsing information.
 #'
 #' Take the ODE C system and free it.
 #'
@@ -478,6 +489,10 @@ rxUpdateTrans_ <- function(ret, prefix, libName) {
 
 dropUnitsRxSolve <- function(x) {
     .Call(`_RxODE_dropUnitsRxSolve`, x)
+}
+
+rxSetSilentErr <- function(silent) {
+    .Call(`_RxODE_rxSetSilentErr`, silent)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

@@ -218,6 +218,20 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false,
   return IntegerVector::create(0);
 }
 
+bool _ini0=true;
+//' Set Initial conditions to time zero instead of the first observed/dosed time
+//'
+//' @param ini0 When TRUE (default), set initial conditions to time
+//'   zero. Otherwise the initial conditions are the first observed
+//'   time.
+//'
+//' @export
+//[[Rcpp::export]]
+bool rxSetIni0(bool ini0 = true){
+  _ini0=ini0;
+  return _ini0;
+}
+
 extern void setFkeep(List keep);
 
 //' Event translation for RxODE
@@ -384,6 +398,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   // EVID = 2; Non-observation, possibly covariate
   // EVID = 3; Reset ODE states to zero; Non-observation event
   // EVID = 4; Reset and then dose event;  Illegal
+  // EVID = 9; Non-observation event to ini system at time zero; This is to set the INIs at the correct place.
   // EVID = 10-99; mtime events (from ODE system)
   // When EVID > 100
   // EVID: ## # ## ##
@@ -438,6 +453,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   std::vector<int> id;
   std::vector<int> allId;
   std::vector<int> obsId;
+  std::vector<int> zeroId;
   std::vector<int> doseId;
   std::vector<int> evid;
   std::vector<double> time;
@@ -610,8 +626,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     if (std::isinf(ctime)){
       stop("Infinite times are not allowed");
     }
+    if (ctime < 0){
+      stop("Negative times are not allowed");
+    }
     if (iiCol == -1) cii = 0;
     else cii = inIi[i];
+    
     if (std::find(allId.begin(), allId.end(), cid) == allId.end()){
       allId.push_back(cid);
       // New ID
@@ -749,6 +769,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (mdvCol != -1 && inMdv[i] == 1){
 	cevid = 2;
       }
+      if (dvCol != -1 && ISNA(inDv[i])){
+	if (amtCol==-1){
+	  cevid=2;
+	} else if (ISNA(inAmt[i]) || inAmt[i] == 0){
+	  cevid=2;
+	}
+      }
       if (std::find(obsId.begin(), obsId.end(), cid) == obsId.end()){
 	obsId.push_back(cid);
       }
@@ -823,6 +850,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	evid.push_back(cevid);
 	cmtF.push_back(cmt);
 	time.push_back(ctime);
+	if (ctime == 0){
+	  if (std::find(zeroId.begin(), zeroId.end(), cid) == zeroId.end()){
+	    zeroId.push_back(cid);
+	  }
+	}
 	amt.push_back(NA_REAL);
 	ii.push_back(0.0);
 	idx.push_back(i);
@@ -859,6 +891,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	evid.push_back(2);
 	cmtF.push_back(cmt);
 	time.push_back(ctime);
+	if (ctime == 0){
+	  if (std::find(zeroId.begin(), zeroId.end(), cid) == zeroId.end()){
+	    zeroId.push_back(cid);
+	  }
+	}
 	amt.push_back(NA_REAL);
 	ii.push_back(0.0);
 	idx.push_back(i);
@@ -866,16 +903,21 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	idxO.push_back(curIdx);curIdx++;
 	ndose++;
 	// + cmt needs to turn on cmts.
-	id.push_back(cid);
-	evid.push_back(cevid);
-	cmtF.push_back(cmt);
-	time.push_back(ctime);
-	amt.push_back(0.0);
-	ii.push_back(0.0);
-	idx.push_back(i);
-	dv.push_back(NA_REAL);
-	idxO.push_back(curIdx);curIdx++;
-	ndose++;
+	// This gives a zero dose to cmt
+	if (cmtCol != -1 && cmt > 0 && cmt <= baseSize){
+	  // Turn on state with dose
+	  id.push_back(cid);
+	  evid.push_back(cevid);
+	  cmtF.push_back(cmt);
+	  time.push_back(ctime);
+	  amt.push_back(0.0);
+	  ii.push_back(0.0);
+	  idx.push_back(i);
+	  dv.push_back(NA_REAL);
+	  idxO.push_back(curIdx);curIdx++;
+	  ndose++;
+	}
+	
 	cevid = -1;
       }
       break;
@@ -891,6 +933,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       evid.push_back(3);
       cmtF.push_back(cmt);
       time.push_back(ctime);
+      if (ctime == 0){
+	if (std::find(zeroId.begin(), zeroId.end(), cid) == zeroId.end()){
+	  zeroId.push_back(cid);
+	}
+      }
       amt.push_back(NA_REAL);
       ii.push_back(0.0);
       idx.push_back(i);
@@ -907,6 +954,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       evid.push_back(3);
       cmtF.push_back(cmt);
       time.push_back(ctime);
+      if (ctime == 0){
+	if (std::find(zeroId.begin(), zeroId.end(), cid) == zeroId.end()){
+	  zeroId.push_back(cid);
+	}
+      }
       amt.push_back(NA_REAL);
       ii.push_back(0.0);
       idx.push_back(-1);
@@ -941,6 +993,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       evid.push_back(cevid);
       cmtF.push_back(cmt);
       time.push_back(ctime);
+      if (ctime == 0){
+	if (std::find(zeroId.begin(), zeroId.end(), cid) == zeroId.end()){
+	  zeroId.push_back(cid);
+	}
+      }
       if (flg >= 10){
 	ii.push_back(cii);
 	if (caddl > 0){
@@ -1043,6 +1100,36 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       warning(idWarn.c_str());
       redoId=true;
     }
+  }
+  if (zeroId.size() != allId.size()){
+    std::string idWarn = "IDs without zero-time start at the first observed time:";
+    for (j = allId.size(); j--;){
+      if (std::find(zeroId.begin(), zeroId.end(), allId[j]) == zeroId.end()){
+	bool skipIt=false;
+	if (!keepDosingOnly){
+	  // Excluded from list
+	  if (std::find(obsId.begin(), obsId.end(), allId[j]) == obsId.end()){
+	    skipIt=true;
+	  }
+	}
+	if (!skipIt){
+	  if (!_ini0){
+	    idWarn = idWarn + " " +as<std::string>(idLvl[allId[j]-1]);
+	  } else {
+	    id.push_back(allId[j]);
+	    evid.push_back(9);
+	    cmtF.push_back(0);
+	    time.push_back(0.0);
+	    amt.push_back(NA_REAL);
+	    ii.push_back(0.0);
+	    dv.push_back(NA_REAL);
+	    idx.push_back(-1);
+	    idxO.push_back(curIdx);curIdx++;	  
+	  }
+	}
+      }
+    }
+    if (!_ini0) warning(idWarn.c_str());
   }
   std::sort(idxO.begin(),idxO.end(),
 	    [id,time,evid,amt,doseId,keepDosingOnly](int a, int b){

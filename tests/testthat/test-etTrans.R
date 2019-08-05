@@ -3,7 +3,7 @@ require(RxODE);
 rxPermissive({
 
     context("etTrans checks");
-
+    rxSetIni0(FALSE)
     mod <- RxODE("
 a = 6
 b = 0.6
@@ -98,7 +98,7 @@ d/dt(blood)     = a*intestine - b*blood
     et <- et() %>% et(amt=3,time=0.24,evid=4)
 
     test_that("EVID=4 makes sense", {
-        expect_equal(RxODE:::etTrans(et, mod, keepDosingOnly=TRUE)$EVID, c(3L, 101L))
+        expect_equal(expect_warning(RxODE:::etTrans(et, mod, keepDosingOnly=TRUE)$EVID), c(3L, 101L))
     })
 
 
@@ -748,5 +748,100 @@ d/dt(blood)     = a*intestine - b*blood
         expect_warning(etTrans(d, mod),"'ss'")
     })
 
+    context("DV=NA test, Issue #106")
+
+    mod <- RxODE("    x1(0) = x10\n    d/dt(x1) = a * x1\n    Volume = x1;\ncmt(Volume);\n\n    nlmixr_pred <- Volume")
+
+    test_that("DV=NA", {
+        RawData2 <- data.frame( ID = c( 1, 1, 1, 1, 2, 2, 2, 2 ),
+                               TIME = c( 0, 3, 4, 5, 0, 3, 4, 5 ),
+                               DV = c( NA, 30, 80, 250, NA, 40, 150, 400 ))
+
+        dat1 <- etTrans(RawData2, mod)
+
+        RawData2a <- data.frame( ID = c( 1, 1, 1, 1, 2, 2, 2, 2 ),
+                                TIME = c( 0, 3, 4, 5, 0, 3, 4, 5 ),
+                                DV = c( NA, 30, 80, 250, NA, 40, 150, 400 ),
+                                AMT = c( NA, NA, NA, NA, NA, NA, NA, NA )
+                                )
+
+        dat1a <- etTrans(RawData2a, mod)
+
+        RawData2b <- data.frame( ID = c( 1, 1, 1, 1, 2, 2, 2, 2 ),
+                                TIME = c( 0, 3, 4, 5, 0, 3, 4, 5 ),
+                                DV = c( NA, 30, 80, 250, NA, 40, 150, 400 ),
+                                AMT = c( 0, 0, 0, 0, 0, 0, 0, 0 )
+                                )
+
+        dat1b <- etTrans(RawData2b, mod)
+
+
+        RawData2c <- data.frame( ID = c( 1, 1, 1, 1, 2, 2, 2, 2 ),
+                                TIME = c( 0, 3, 4, 5, 0, 3, 4, 5 ),
+                                DV = c( NA, 30, 80, 250, NA, 40, 150, 400 ),
+                                AMT = c( 1, 0, 0, 0, 1, 0, 0, 0 )
+                                )
+        dat1c <- etTrans(RawData2c, mod)
+
+        expect_equal(dat1a$EVID, c(2L, 0L, 0L, 0L, 2L, 0L, 0L, 0L))
+        expect_equal(dat1a$EVID, dat1b$EVID)
+        expect_equal(dat1c$EVID, c(101L, 0L, 0L, 0L, 101L, 0L, 0L, 0L))
+    })
+
+    RawData3 <- data.frame( ID = c( 1, 1, 1, 1, 2, 2, 2, 2 ),
+                       TIME = c( 0, 3, 4, 5, 0, 3, 4, 5 ),
+                       DV = c( 0, 30, 80, 250, 0, 40, 150, 400 ),
+                       EVID = c( 2, 0, 0, 0, 2, 0, 0, 0 ))
+
+    dat2 <- etTrans(RawData3, mod)
+
+    RawData4 <- data.frame( ID = c( 1, 1, 1, 1, 2, 2, 2, 2 ),
+                       TIME = c( 0, 3, 4, 5, 0, 3, 4, 5 ),
+                       DV = c( 0, 30, 80, 250, 0, 40, 150, 400 ),
+                       EVID = c( 2, 0, 0, 0, 2, 0, 0, 0 ),
+                       CMT = c( 1, 0, 0, 0, 1, 0, 0, 0 ))
+
+    dat3 <- etTrans(RawData4, mod)
+
+    RawData5 <- data.frame( ID = c( 1, 1, 1, 1, 2, 2, 2, 2 ),
+                       TIME = c( 0, 3, 4, 5, 0, 3, 4, 5 ),
+                       DV = c( 0, 30, 80, 250, 0, 40, 150, 400 ),
+                       EVID = c( 2, 0, 0, 0, 2, 0, 0, 0 ),
+                       CMT = c( 2, 0, 0, 0, 2, 0, 0, 0 ))
+
+    dat4 <- etTrans(RawData5, mod)
+
+    test_that("dat2=dat4", {
+        expect_equal(as.data.frame(dat2), as.data.frame(dat4))
+    })
+
+    test_that("dat3 has evid w/amt 0", {
+        expect_equal(dat3$EVID, c(101L, 2L, 0L, 0L, 0L, 101L, 2L, 0L, 0L, 0L))
+        expect_equal(dat3$AMT, c(0, NA, NA, NA, NA, 0, NA, NA, NA, NA))
+    })
+
+    context("X(0)=ini at zero or elsewhere (#105)")
+
+    test_that("X(0) should be at time zero", {
+
+        mod <- RxODE("    x1(0) = x10\n    d/dt(x1) = a * x1\n    Volume = x1;\ncmt(Volume);\n\n    nlmixr_pred <- Volume")
+
+        rxSetIni0(FALSE)
+        RawData2 <- data.frame( ID = c(  1, 1, 1, 2, 2, 2 ),
+                               TIME = c(  3, 4, 5, 3, 4, 5 ),
+                               DV = c(  30, 80, 250, 40, 150, 400 ))
+        dat1 <- expect_warning(etTrans(RawData2, mod))
+
+        expect_equal(dat1$TIME, RawData2$TIME)
+
+        rxSetIni0(TRUE)
+        dat1 <- etTrans(RawData2, mod)
+
+        expect_equal(dat1$TIME, c(0, 3, 4, 5, 0, 3, 4, 5 ))
+        expect_equal(dat1$EVID, c(9L, 0L, 0L, 0L, 9L, 0L, 0L, 0L))
+
+    })
+
+    rxSetIni0(TRUE)
 
 }, cran=TRUE, silent=TRUE)

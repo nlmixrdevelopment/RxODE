@@ -1662,17 +1662,22 @@ void rxFreeErrs(){
 extern "C" void gFree(){
   Free(_rxGetErrs);
   if (_globals.gsiV != NULL) Free(_globals.gsiV);
+  _globals.gsiV=NULL;
   _globals.gsiVn=0;
   if (_globals.gsvar != NULL) Free(_globals.gsvar);
+  _globals.gsvar=NULL;
   _globals.gsvarn=0;
   if (_globals.gpar_cov != NULL) Free(_globals.gpar_cov);
+  _globals.gpar_cov=NULL;
   _globals.gpar_covn=0;
   if (_globals.gidose != NULL) Free(_globals.gidose);
+  _globals.gidose=NULL;
   _globals.gidosen=0;
-  if (_globals.grc != NULL && _globals.grcn != -1) Free(_globals.grc);
+  if (_globals.grc != NULL) Free(_globals.grc);
   _globals.grc=NULL;
   _globals.grcn=0;
   if (_globals.gBadDose != NULL) Free(_globals.gBadDose);
+  _globals.gBadDose=NULL;
   _globals.gBadDosen=0;
   if (_globals.gevid != NULL) Free(_globals.gevid);
   _globals.gevid=NULL;
@@ -1681,20 +1686,25 @@ extern "C" void gFree(){
   _globals.gpars=NULL;
   _globals.gparsn=0;
   if (_globals.grtol2 != NULL) Free(_globals.grtol2);
+  _globals.grtol2=NULL;
   _globals.grtol2n=0;
   if (_globals.gatol2 != NULL) Free(_globals.gatol2);
+  _globals.gatol2=NULL;
   _globals.gatol2n=0;
   if (_globals.gscale != NULL) Free(_globals.gscale);
+  _globals.gscale=NULL;
   _globals.gscalen=0;
   if (_globals.ginits != NULL) Free(_globals.ginits);
   _globals.ginits=NULL;
   _globals.ginitsn=0;
   if (_globals.gcov != NULL) Free(_globals.gcov);
+  _globals.gcov=NULL;
   _globals.gcovn=0;
   if (_globals.glhs != NULL) Free(_globals.glhs);
   _globals.glhs=NULL;
   _globals.glhsn=0;
   if (_globals.gamt != NULL) Free(_globals.gamt);
+  _globals.gamt=NULL;
   if (_globals.gii != NULL) Free(_globals.gii);
   _globals.gamt=NULL;
   _globals.gii=NULL;
@@ -1708,6 +1718,7 @@ extern "C" void gFree(){
   if (_globals.gdv != NULL) Free(_globals.gdv);
   _globals.gdvn=0;
   if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
+  _globals.gInfusionRate=NULL;
   _globals.gInfusionRaten=0;
   if (_globals.gsolve != NULL) Free(_globals.gsolve);
   _globals.gsolve=NULL;
@@ -2473,9 +2484,8 @@ void updateSolveEnvPost(Environment e){
 extern "C" void rxOptionsFree();
 extern "C" void rxOptionsIni();
 extern "C" void rxOptionsIniEnsure(int mx);
-// extern "C" void rxOptionsFreeFocei();
-
-//' Free the C solving information.
+extern "C" void parseFree();
+//' Free the C solving/parsing information.
 //'
 //' Take the ODE C system and free it.
 //'
@@ -2487,9 +2497,10 @@ LogicalVector rxSolveFree(){
   rxOptionsFree();
   rxOptionsIni();
   rxOptionsIniData();
-  // rxOptionsFreeFocei();
+  parseFree();
   return LogicalVector::create(true);
 }
+
 extern "C" void RxODE_assign_fn_pointers(SEXP);
 
 List keepIcov;
@@ -2876,10 +2887,9 @@ SEXP rxSolve_(const RObject &obj,
     CharacterVector trans = mv["trans"];
     // Make sure the model variables are assigned...
     // This fixes random issues on windows where the solves are done and the data set cannot be solved.
-    std::string ptrS = (as<std::string>(trans["model_vars"]));
     getRxModels();
-    _rxModels[ptrS] = mv;
-    sprintf(op->modNamePtr, "%s", ptrS.c_str());
+    _rxModels[as<std::string>(trans["model_vars"])] = mv;
+    sprintf(op->modNamePtr, "%s", (as<std::string>(trans["model_vars"])).c_str());
     // approx fun options
     op->is_locf = covs_interpolation;
     if (op->is_locf == 0){//linear
@@ -2935,6 +2945,7 @@ SEXP rxSolve_(const RObject &obj,
       }
       unsigned int nSub0 = 0;
       int curObs = 0;
+      rx->nevid9 = 0;
       rx->nall = 0;
       rx->nobs = 0;
       rx->nobs2 = 0;
@@ -2946,6 +2957,7 @@ SEXP rxSolve_(const RObject &obj,
 	  IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
 	  int lastid= id[id.size()-1]+42;
 	  rx->nall = evid.size();
+	  int evid9=0;
 	  for (unsigned int j = rx->nall; j--;){
 	    if (lastid != id[j]){
 	      lastid=id[j];
@@ -2953,16 +2965,21 @@ SEXP rxSolve_(const RObject &obj,
 	    }
 	    if (isObs(evid[j])) rx->nobs++;
 	    if (evid[j] == 0) rx->nobs2++;
+	    if (evid[j] == 9) evid9++;
 	  }
+	  rx->nevid9 = evid9;
 	} else {
 	  nSub0 =1;
 	  DataFrame dataf = as<DataFrame>(ev1);
           IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
           rx->nall = evid.size();
+	  int evid9=0;
           for (unsigned int j =rx->nall; j--;){
             if (isObs(evid[j])) rx->nobs++;
 	    if (evid[j] == 0) rx->nobs2++;
+	    if (evid[j] == 9) evid9++;
           }
+	  rx->nevid9= evid9;
 	}
       }
       if (nSub > 1 && nSub0 > 1 && nSub != nSub0){
@@ -2977,11 +2994,11 @@ SEXP rxSolve_(const RObject &obj,
       } else {
 	LogicalVector addDosing1 = as<LogicalVector>(addDosing);
 	if (LogicalVector::is_na(addDosing1[0])){
-	  curObs = rx->nall;
+	  curObs = rx->nall - rx->nevid9;
 	} if (addDosing1[0]){
-	  curObs = rx->nall;
+	  curObs = rx->nall - rx->nevid9;
 	} else {
-	  curObs = rx->nobs;
+	  curObs = rx->nobs - rx->nevid9;
 	}
       }
       if (rxIs(as<RObject>(thetaMat), "matrix")){
@@ -3246,7 +3263,7 @@ SEXP rxSolve_(const RObject &obj,
       // Get the number of subjects
       // Get the number of observations
       // Get the number of doses
-      unsigned int nall = 0, nobst=0, lasti =0, ii=0, nobs2t=0;
+      unsigned int nall = 0, nobst=0, lasti =0, ii=0, nobs2t=0, nevid9=0;
       nsub = 0;
       ind = &(rx->subjects[0]);
       ind->idx=0;
@@ -3282,6 +3299,7 @@ SEXP rxSolve_(const RObject &obj,
 	  ind->bT = NA_REAL;
 	  ind->allCovWarn = 0;
 	  ind->wrongSSDur=0;
+	  ind->err = 0;
 	  ind->timeReset=1;
           ind->lambda         =1.0;
           ind->yj             = 0;
@@ -3319,6 +3337,7 @@ SEXP rxSolve_(const RObject &obj,
           nobs++; nobst++; nall++;
 	  if (_globals.gevid[i] == 2) ind->nevid2++;
 	  if (_globals.gevid[i] == 0) nobs2t++;
+	  if (_globals.gevid[i] == 9) nevid9++;
 	  if (!ISNA(tlast)){
             tmp = time0[i]-tlast;
             if (tmp < 0){
@@ -3348,6 +3367,7 @@ SEXP rxSolve_(const RObject &obj,
       rx->nobs = nobst;
       rx->nobs2 = nobs2t;
       rx->nall = nall;
+      rx->nevid9 = nevid9;
       // Finalize the prior individual
       ind->n_all_times    = ndoses+nobs;
       ind->cov_ptr = &(_globals.gcov[curcovi]);
@@ -3807,7 +3827,7 @@ SEXP rxSolve_(const RObject &obj,
       CharacterVector units = CharacterVector::create(amountUnits[0], timeUnits[0]);
       units.names() = CharacterVector::create("dosing","time");
       e["units"] = units;
-      e["nobs"] = rx->nobs;
+      e["nobs"] = rx->nobs - rx->nevid9;
       e["args.object"] = object;
       e["dll"] = rxDll(object);
       e["args.par0"] = par1ini;
@@ -4680,13 +4700,22 @@ extern "C" void doSort(rx_solving_options_ind *ind){
       ind->all_times[j] = ind->all_times[j-1];
     }
   }
-  std::sort(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
-	    [&ind](int a, int b){
-	      double ta=getTime(a, ind);
-	      double tb = getTime(b, ind);
-	      if (ta == tb) return a < b;
-	      return ta < tb;
-	    });
+  try {
+    std::sort(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
+	      [&ind](int a, int b){
+		double ta=getTime(a, ind);
+		if (ind->err){
+		  throw std::runtime_error("error");
+		}
+		double tb = getTime(b, ind);
+		if (ind->err){
+		  throw std::runtime_error("error");
+		}
+		if (ta == tb) return a < b;
+		return ta < tb;
+	      });
+  } catch(...){
+  }
 }
 
 //[[Rcpp::export]]
@@ -4703,4 +4732,11 @@ List dropUnitsRxSolve(List x){
     }
   }
   return ret;
+}
+
+extern "C" void setSilentErr(int silent);
+//[[Rcpp::export]]
+bool rxSetSilentErr(int silent){
+  setSilentErr(silent);
+  return true;
 }

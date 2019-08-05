@@ -193,6 +193,8 @@ rxStrict <- function(expr, silent=.isTestthat(), respect=FALSE,
 rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
                       rxclean=.isTestthat(),
                       cran=FALSE, on.validate=FALSE){
+    rxSetSilentErr(1L);
+    on.exit(rxSetSilentErr(0L));
     do.it <- TRUE
     if (!identical(Sys.getenv("NOT_CRAN"), "true") && !cran){
         ## on Cran, but only tested when not on cran, skip.

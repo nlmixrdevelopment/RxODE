@@ -86,6 +86,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxSetIni0
+bool rxSetIni0(bool ini0);
+RcppExport SEXP _RxODE_rxSetIni0(SEXP ini0SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< bool >::type ini0(ini0SEXP);
+    rcpp_result_gen = Rcpp::wrap(rxSetIni0(ini0));
+    return rcpp_result_gen;
+END_RCPP
+}
 // etTrans
 List etTrans(List inData, const RObject& obj, bool addCmt, bool dropUnits, bool allTimeVar, bool keepDosingOnly, Nullable<LogicalVector> combineDvid, CharacterVector keep);
 RcppExport SEXP _RxODE_etTrans(SEXP inDataSEXP, SEXP objSEXP, SEXP addCmtSEXP, SEXP dropUnitsSEXP, SEXP allTimeVarSEXP, SEXP keepDosingOnlySEXP, SEXP combineDvidSEXP, SEXP keepSEXP) {
@@ -1517,6 +1528,40 @@ RcppExport SEXP _RxODE_dropUnitsRxSolve(SEXP xSEXP) {
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// rxSetSilentErr
+bool rxSetSilentErr(int silent);
+static SEXP _RxODE_rxSetSilentErr_try(SEXP silentSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< int >::type silent(silentSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxSetSilentErr(silent));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _RxODE_rxSetSilentErr(SEXP silentSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_RxODE_rxSetSilentErr_try(silentSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 // rxInv
 NumericVector rxInv(SEXP matrix);
 static SEXP _RxODE_rxInv_try(SEXP matrixSEXP) {
@@ -1692,6 +1737,7 @@ static int _RxODE_RcppExport_validate(const char* sig) {
         signatures.insert("SEXP(*getProgSupported)()");
         signatures.insert("List(*rxUpdateTrans_)(List,std::string,std::string)");
         signatures.insert("List(*dropUnitsRxSolve)(List)");
+        signatures.insert("bool(*rxSetSilentErr)(int)");
         signatures.insert("NumericVector(*rxInv)(SEXP)");
         signatures.insert("RObject(*rxSymInvChol)(RObject,Nullable<NumericVector>,std::string,int)");
         signatures.insert("RObject(*rxSymInvCholEnvCalculate)(List,std::string,Nullable<NumericVector>)");
@@ -1741,6 +1787,7 @@ RcppExport SEXP _RxODE_RcppExport_registerCCallable() {
     R_RegisterCCallable("RxODE", "_RxODE_getProgSupported", (DL_FUNC)_RxODE_getProgSupported_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxUpdateTrans_", (DL_FUNC)_RxODE_rxUpdateTrans__try);
     R_RegisterCCallable("RxODE", "_RxODE_dropUnitsRxSolve", (DL_FUNC)_RxODE_dropUnitsRxSolve_try);
+    R_RegisterCCallable("RxODE", "_RxODE_rxSetSilentErr", (DL_FUNC)_RxODE_rxSetSilentErr_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxInv", (DL_FUNC)_RxODE_rxInv_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSymInvChol", (DL_FUNC)_RxODE_rxSymInvChol_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSymInvCholEnvCalculate", (DL_FUNC)_RxODE_rxSymInvCholEnvCalculate_try);
