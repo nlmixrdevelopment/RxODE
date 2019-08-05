@@ -471,6 +471,10 @@ dropUnitsRxSolve <- function(x) {
     .Call(`_RxODE_dropUnitsRxSolve`, x)
 }
 
+rxSetSilentErr <- function(silent) {
+    .Call(`_RxODE_rxSetSilentErr`, silent)
+}
+
 #' Invert matrix using Rcpp Armadilo.  
 #'
 #' @param matrix matrix to be inverted.

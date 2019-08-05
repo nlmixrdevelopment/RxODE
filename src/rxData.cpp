@@ -2496,6 +2496,7 @@ LogicalVector rxSolveFree(){
   parseFree();
   return LogicalVector::create(true);
 }
+
 extern "C" void RxODE_assign_fn_pointers(SEXP);
 
 List keepIcov;
@@ -3728,7 +3729,6 @@ SEXP rxSolve_(const RObject &obj,
     }
     IntegerVector si = mv["state.ignore"];
     rx->stateIgnore = &si[0];
-    rx->setupOnly=setupOnly;
     int doTBS = (rx->matrix == 3);
     if (doTBS) rx->matrix=2;
     List dat = RxODE_df(doDose, doTBS);
@@ -4727,4 +4727,11 @@ List dropUnitsRxSolve(List x){
     }
   }
   return ret;
+}
+
+extern "C" void setSilentErr(int silent);
+//[[Rcpp::export]]
+bool rxSetSilentErr(int silent){
+  setSilentErr(silent);
+  return true;
 }

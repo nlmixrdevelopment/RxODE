@@ -759,6 +759,27 @@ namespace RxODE {
         return Rcpp::as<List >(rcpp_result_gen);
     }
 
+    inline bool rxSetSilentErr(int silent) {
+        typedef SEXP(*Ptr_rxSetSilentErr)(SEXP);
+        static Ptr_rxSetSilentErr p_rxSetSilentErr = NULL;
+        if (p_rxSetSilentErr == NULL) {
+            validateSignature("bool(*rxSetSilentErr)(int)");
+            p_rxSetSilentErr = (Ptr_rxSetSilentErr)R_GetCCallable("RxODE", "_RxODE_rxSetSilentErr");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxSetSilentErr(Shield<SEXP>(Rcpp::wrap(silent)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<bool >(rcpp_result_gen);
+    }
+
     inline NumericVector rxInv(SEXP matrix) {
         typedef SEXP(*Ptr_rxInv)(SEXP);
         static Ptr_rxInv p_rxInv = NULL;

@@ -20,90 +20,91 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-
-void *_gCtx=NULL;
-void lsodaFree(){
-  if (_gCtx != NULL) lsoda_free(_gCtx);
-  _gCtx=NULL;
+#define RSprintf(fmt,...) if (_setSilentErr == 0) REprintf(fmt,__VA_ARGS__);
+#define RSprintf0(fmt) if (_setSilentErr == 0) REprintf(fmt);
+int _setSilentErr=0;
+void setSilentErr(int silent){
+  _setSilentErr = silent;
 }
 
+extern int getSilentErr(){return _setSilentErr;}
+
 void printErr(int err, int id){
-  REprintf("Recovered solving errors for ID %d (%d):\n", id, err);
+  RSprintf("Recovered solving errors for internal ID %d (%d):\n", id+1, err);
   if (err & 1){
-    REprintf("  Corrupted event table during sort (1)\n");
+    RSprintf0("  Corrupted event table during sort (1)\n");
   }
   if (err & 2){
-    REprintf("  Rate is zero/negative\n");
+    RSprintf0("  Rate is zero/negative\n");
   }
   if (err & 4){
-    REprintf("  Modeled rate requested in event table, but not in model; use 'rate(cmt) ='\n");
+    RSprintf0("  Modeled rate requested in event table, but not in model; use 'rate(cmt) ='\n");
   }
   if (err & 4){
-    REprintf("  Modeled rate requested in event table, but not in model; use 'rate(cmt) ='\n");
+    RSprintf0("  Modeled rate requested in event table, but not in model; use 'rate(cmt) ='\n");
   }
   if (err & 8){
-    REprintf("  Corrupted event table during sort (2)\n");
+    RSprintf0("  Corrupted event table during sort (2)\n");
   }
   if (err & 16){
-    REprintf("  Duration is zero/negative\n");
+    RSprintf0("  Duration is zero/negative\n");
   }
   if (err & 32){
-    REprintf("  Modeled duration requested in event table, but not in model; use 'dur(cmt) ='\n");
+    RSprintf0("  Modeled duration requested in event table, but not in model; use 'dur(cmt) ='\n");
   }
   if (err & 64){
-    REprintf("  Data error 686\n");
+    RSprintf0("  Data error 686\n");
   }
   if (err & 128){
-    REprintf("  Data Error -6\n");
+    RSprintf0("  Data Error -6\n");
   }
   if (err & 256){
-    REprintf("  Data Error 8\n");
+    RSprintf0("  Data Error 8\n");
   }
   if (err & 512){
-    REprintf("  Data error 886\n");
+    RSprintf0("  Data error 886\n");
   }
   if (err & 1024){
-    REprintf("  Data error 797\n");
+    RSprintf0("  Data error 797\n");
   }
   if (err & 2048){
-    REprintf("  Data Error -7\n");
+    RSprintf0("  Data Error -7\n");
   }
   if (err & 4096){
-    REprintf("  Data Error 9\n");
+    RSprintf0("  Data Error 9\n");
   }
   if (err & 8192){
-    REprintf("  Data error 997\n");
+    RSprintf0("  Data error 997\n");
   }
   if (err & 16384){
-    REprintf("  Corrupted event table during sort (1)\n");
+    RSprintf0("  Corrupted event table during sort (1)\n");
   }
   if (err & 32768){
-    REprintf("  Corrupted event table\n");
+    RSprintf0("  Corrupted event table\n");
   }
   if (err & 131072){
-    REprintf("  Corrupted events\n");
+    RSprintf0("  Corrupted events\n");
   }
   if (err & 65536){
-    REprintf("  Supplied an invalid EVID\n");
+    RSprintf0("  Supplied an invalid EVID\n");
   }
   if (err & 262144){
-    REprintf("  Corrupted event table\n");
+    RSprintf0("  Corrupted event table\n");
   }
   if (err & 524288){
-    REprintf("  The event table has been corrupted\n");
+    RSprintf0("  The event table has been corrupted\n");
   }
   if (err & 1048576){
-    REprintf("  SS=2 & Modeled F does not work\n");
+    RSprintf0("  SS=2 & Modeled F does not work\n");
   }
   if (err & 2097152){
-    REprintf("  SS=2 & Modeled F does not work\n");
+    RSprintf0("  SS=2 & Modeled F does not work\n");
   }
   if (err & 4194304){
-    REprintf("  SS=2 & Modeled F does not work\n");
+    RSprintf0("  SS=2 & Modeled F does not work\n");
   }
   if (err & 8388608){
-    REprintf(" Rate is zero/negative\n");
+    RSprintf0(" Rate is zero/negative\n");
   }
   
 }
@@ -175,31 +176,31 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
       }
     } else {
       if (nticks > curTicks){
-        REprintf("\r");
+        RSprintf0("\r");
         int i;
         for (i = 0; i < nticks; i++){
           if (i == 0) {
-            REprintf("%%[");
+            RSprintf0("%%[");
           } else if (i % 5 == 0) {
-            REprintf("|");
+            RSprintf0("|");
           } else {
-            REprintf("=");
+            RSprintf0("=");
           }
         }
         for (i = nticks; i < 50; i++){
-          REprintf(" ");
+          RSprintf0(" ");
         }
-        REprintf("] ");
+        RSprintf0("] ");
         if (nticks < 50) Rprintf(" ");
         if (cores > 1){
-          REprintf("%02.f%%; ncores=%d; ",100*progress,cores);
+          RSprintf("%02.f%%; ncores=%d; ",100*progress,cores);
         } else {
-          REprintf("%02.f%%; ",100*progress,cores);
+          RSprintf("%02.f%%; ",100*progress,cores);
         }
         clock_t t = clock() - t0;
-        REprintf(" %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
+        RSprintf(" %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
         if (stop){
-          REprintf("Stopped Calculation!\n");
+          RSprintf0("Stopped Calculation!\n");
         }
       }
     }
@@ -246,7 +247,7 @@ SEXP _rxProgressStop(SEXP clear){
       /* Rprintf("\r                                                                                \r"); */
       Rprintf("\n");
     } else {
-      REprintf("\r                                                                                \r");
+      RSprintf0("\r                                                                                \r");
     }
   } else {
     par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
@@ -881,7 +882,7 @@ void solveSS_1(int *neq,
   case 2:
     lsoda(ctx, yp, &xp, xout);
     if (*istate <= 0) {
-      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
+      RSprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
       ind->rc[0] = *istate;
       // Bad Solve => NA
       for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
@@ -905,7 +906,7 @@ void solveSS_1(int *neq,
 		     istate, &giopt, global_rworkp,
 		     &glrw, global_iworkp, &gliw, jdum_lsoda, &global_jt);
     if (*istate <= 0) {
-      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
+      RSprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
       ind->rc[0] = *istate;
       // Bad Solve => NA
       for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
@@ -1187,7 +1188,6 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
     .state = 1
   };
   lsoda_prepare(&ctx, &opt);
-  _gCtx = &ctx;
   ind = &(rx->subjects[neq[1]]);
   ind->ixds = 0;
   ind->id = neq[1];
@@ -1226,14 +1226,14 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
       } else {
 	lsoda(&ctx, yp, &xp, xout);
 	if (ctx.state <= 0) {
-	  /* REprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
+	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
 	  *rc = ctx.state;
 	  // Bad Solve => NA
 	  for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	  op->badSolve = 1;
 	  i = nx-1; // Get out of here!
 	} else if (ind->err){
-	  /* REprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
+	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
 	  *rc = ctx.state;
 	  // Bad Solve => NA
 	  for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
@@ -1275,7 +1275,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
     }
   }
-  if (!rx->setupOnly) lsodaFree();
+  lsoda_free(&ctx);
 }
 
 extern void ind_liblsoda(rx_solve *rx, int solveid, 
@@ -1369,7 +1369,7 @@ extern void par_liblsoda(rx_solve *rx){
       /* Rprintf("\r                                                                                \r"); */
       Rprintf("\n");
     } else {
-      REprintf("\r                                                                                \r");
+      RSprintf0("\r                                                                                \r");
     }
   }
 }
@@ -1539,7 +1539,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 	F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &gitol, &(op->RTOL), &(op->ATOL), &gitask,
 			 &istate, &giopt, rwork, &lrw, iwork, &liw, jdum, &jt);
 	if (istate <= 0) {
-	  REprintf("IDID=%d, %s\n", istate, err_msg_ls[-(istate)-1]);
+	  RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-(istate)-1]);
 	  ind->rc[0] = istate;
 	  // Bad Solve => NA
 	  for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
@@ -1603,7 +1603,7 @@ extern void ind_lsoda(rx_solve *rx, int solveid,
   double *rwork;
   int *iwork;
   if (global_debug)
-    REprintf("JT: %d\n",cjt);
+    RSprintf("JT: %d\n",cjt);
   rwork = global_rwork(lrw+1);
   iwork = global_iwork(liw+1);
   ind_lsoda0(rx, &op_global, solveid, neq, rwork, lrw, iwork, liw, cjt,
@@ -1627,7 +1627,7 @@ extern void par_lsoda(rx_solve *rx){
   
   
   if (global_debug)
-    REprintf("JT: %d\n",jt);
+    RSprintf("JT: %d\n",jt);
   rwork = global_rwork(lrw+1);
   iwork = global_iwork(liw+1);
   
@@ -1711,7 +1711,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
     xout = getTime(ind->ix[i], ind);
     yp = &ret[neq[0]*i];
     if (global_debug){
-      REprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
+      RSprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
     }
     if(ind->evid[ind->ix[i]] != 3 && xout-xp>DBL_EPSILON*max(fabs(xout),fabs(xp)))
       {
@@ -1750,7 +1750,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
 			);
 	}
         if (idid<0) {
-	  REprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
+	  RSprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
 	  *rc = idid;
 	  // Bad Solve => NA
 	  for (j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
@@ -1847,7 +1847,7 @@ void par_dop(rx_solve *rx){
       /* Rprintf("\r                                                                                \r"); */
       Rprintf("\n");
     } else {
-      REprintf("\r                                                                                \r");
+      RSprintf0("\r                                                                                \r");
     }
   }
 }
