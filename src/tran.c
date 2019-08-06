@@ -424,7 +424,9 @@ void curLineType(vLines *sbb, int propId){
 vLines sbPm, sbPmDt;
 sbuf sbNrm;
 
-char *model_prefix, *md5 = NULL;
+char *model_prefix;
+const char *md5 = NULL;
+int badMd5 = 0;
 int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0, needSort=0;
 
 sbuf sbOut;
@@ -2078,7 +2080,11 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   
   // md5 values
   sAppendN(&sbOut, "    SET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n", 48);
-  sAppend(&sbOut, "    SET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
+  if (badMd5){
+    sAppendN(&sbOut, "    SET_STRING_ELT(mmd5,0,mkChar(\"\"));\n", 39);
+  } else {
+    sAppend(&sbOut, "    SET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
+  }
   sAppendN(&sbOut, "    SET_STRING_ELT(mmd5n,1,mkChar(\"parsed_md5\"));\n", 50);
   sAppend(&sbOut, "    SET_STRING_ELT(mmd5,1,mkChar(\"%s\"));\n", pMd5);
   
@@ -2599,7 +2605,6 @@ void reset (){
   foundF=0;
   foundF0=0;
   nmtime=0;
-  Free(md5);
   syntaxErrorExtra=0;
   lastSyntaxErrorLine=0;
   gBufLast=0;
@@ -2738,16 +2743,13 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   }
 
   if (isString(model_md5) && length(model_md5) == 1){
-    Free(md5);
-    md5 = rc_dup_str(CHAR(STRING_ELT(model_md5,0)),0);
+    md5 = CHAR(STRING_ELT(model_md5,0));
+    badMd5 = 0;
     if (strlen(md5)!= 32){
-      md5 = Calloc(1,char);
-      md5[0] = '\0';
+      badMd5=1;
     }
   } else {
-    Free(md5);
-    md5 = Calloc(1,char);
-    md5[0] = '\0';
+    badMd5=1;
   }
   
   trans_internal(in, isStr);

@@ -133,6 +133,8 @@ typedef struct {
   int timeReset;
   int _newind;
   int err;
+  double linCmtT;
+  double linCmtB[13];
 } rx_solving_options_ind;
 
 typedef struct {

@@ -22,6 +22,7 @@
 #include "ode.h"
 #define rxModelVars(a) rxModelVars_(a)
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
+void resetSolveLinB();
 using namespace Rcpp;
 using namespace arma;
 
@@ -3300,6 +3301,7 @@ SEXP rxSolve_(const RObject &obj,
 	  ind->allCovWarn = 0;
 	  ind->wrongSSDur=0;
 	  ind->err = 0;
+	  ind->linCmtT = NA_REAL;
 	  ind->timeReset=1;
           ind->lambda         =1.0;
           ind->yj             = 0;
