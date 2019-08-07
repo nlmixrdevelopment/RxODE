@@ -998,13 +998,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  zeroId.push_back(cid);
 	}
       }
-      if (flg >= 10){
-	ii.push_back(cii);
-	if (caddl > 0){
+      ii.push_back(cii);
+      if (flg >= 10 && caddl > 0){
 	  stop("ss with addl not supported yet.");
-	}
-      } else {
-	ii.push_back(0.0);
       }
       idx.push_back(i);
       dv.push_back(NA_REAL);
