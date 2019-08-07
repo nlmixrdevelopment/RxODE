@@ -430,7 +430,7 @@ rxD <- function(name, derivatives){
 ##' @author Matthew L. Fidler
 ##' @export
 rxToSE <- function(x, envir=NULL, progress=FALSE,
-                   promoteLinSens=FALSE){
+                   promoteLinSens=TRUE){
     assignInMyNamespace(".promoteLinB", promoteLinSens);
     if (is(substitute(x),"character")){
         force(x);

@@ -221,7 +221,7 @@ rxExpandGrid <- function(x, y, type=0L){
     return(list(.full, .extraPars));
 }
 
-.rxLoadPrune <- function(mod, doConst=TRUE, promoteLinSens=FALSE, extra=""){
+.rxLoadPrune <- function(mod, doConst=TRUE, promoteLinSens=TRUE, extra=""){
     message(sprintf("Pruning branches%s...", ifelse(extra == "", "", paste0(" of ", extra))),
             appendLF=FALSE)
     .newmod <-rxGetModel(rxPrune(mod));
@@ -240,7 +240,7 @@ rxExpandGrid <- function(x, y, type=0L){
 ##' @author Matthew Fidler
 .rxGenFun <- function(obj, predfn, pkpars=NULL, errfn=NULL,
                       init=NULL,
-                      promoteLinSens=FALSE){
+                      promoteLinSens=TRUE){
     rxSolveFree();
     rxTempDir();
     .checkGood(predfn);
@@ -265,7 +265,7 @@ rxExpandGrid <- function(x, y, type=0L){
 ##' @return RxODE/symengine environment
 ##' @author Matthew L. Fidler
 .rxGenEtaS <- function(obj, predfn, pkpars=NULL, errfn=NULL,
-                        init=NULL, promoteLinSens=FALSE){
+                        init=NULL, promoteLinSens=TRUE){
     .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
                     promoteLinSens=promoteLinSens)
     .etaVars <- paste0("ETA_", seq(1, .s$..maxEta), "_")
@@ -284,7 +284,7 @@ rxExpandGrid <- function(x, y, type=0L){
 ##' @author Matthew L. Fidler
 .rxGenHdEta <- function(obj, predfn, pkpars=NULL, errfn=NULL,
                         init=NULL, pred.minus.dv=TRUE,
-                        promoteLinSens=FALSE){
+                        promoteLinSens=TRUE){
     ## Equation 19 in Almquist
     .s <- .rxGenEtaS(obj, predfn, pkpars, errfn, init,
                      promoteLinSens=promoteLinSens)
@@ -416,7 +416,7 @@ rxExpandGrid <- function(x, y, type=0L){
                        init=NULL, pred.minus.dv=TRUE,
                        sum.prod=FALSE,
                        optExpression=TRUE,
-                       promoteLinSens=FALSE){
+                       promoteLinSens=TRUE){
     .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv,
                       promoteLinSens=promoteLinSens)
     .s$..REta <- NULL;
@@ -437,7 +437,7 @@ rxExpandGrid <- function(x, y, type=0L){
                         init=NULL, pred.minus.dv=TRUE,
                         sum.prod=FALSE,
                         optExpression=TRUE,
-                        promoteLinSens=FALSE){
+                        promoteLinSens=TRUE){
     .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv,
                       promoteLinSens=promoteLinSens)
     .stateVars <- rxState(.s)
@@ -521,7 +521,7 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
                       only.numeric=FALSE,
                       optExpression=TRUE,
                       interaction=TRUE, ...,
-                      promoteLinSens=FALSE){
+                      promoteLinSens=TRUE){
     assignInMyNamespace("rxErrEnv.lambda", NULL);
     assignInMyNamespace("rxErrEnv.yj", NULL);
     assignInMyNamespace("rxSymPyExpThetas", c());

@@ -134,7 +134,7 @@ typedef struct {
   int _newind;
   int err;
   double linCmtT;
-  double linCmtB[13];
+  double linCmtB[14];
 } rx_solving_options_ind;
 
 typedef struct {

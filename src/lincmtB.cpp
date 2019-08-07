@@ -64,17 +64,23 @@ namespace stan {
 	    A2 = A; // A2=A
 	    B2 = B; // B2=B
 	    C2 = C; // C2=C
-	    A = ka / (ka - ALPHA) * A;
-	    B = ka / (ka - BETA) * B;
-	    C = ka / (ka - GAMMA) * C;
+	    T tmp = ka - ALPHA +DOUBLE_EPS;
+	    A = ka / tmp * A;
+	    tmp = ka - BETA + DOUBLE_EPS;
+	    B = ka / tmp * B;
+	    tmp = ka - GAMMA + DOUBLE_EPS;
+	    C = ka / tmp * C;
 	  } else if (ncmt == 2){
 	    A2 = A;
 	    B2 = B;
-	    A = ka / (ka - ALPHA) * A;
-	    B = ka / (ka - BETA) * B;
+	    T tmp = ka - ALPHA + DOUBLE_EPS;
+	    A = ka / tmp * A;
+	    tmp = ka - BETA + DOUBLE_EPS;
+	    B = ka / tmp * B;
 	  } else {
 	    A2 = A;
-	    A = ka / (ka - ALPHA) * A;
+	    T tmp = ka - ALPHA + DOUBLE_EPS;
+	    A = ka / tmp * A;
 	  }
 	}
       } else {
@@ -94,7 +100,8 @@ namespace stan {
 	  }
 	  if (ka > 0){
 	    ALPHA = rx_k;
-	    A = ka / (ka - ALPHA) / rx_v;
+	    T tmp = ka - ALPHA + DOUBLE_EPS;
+	    A = ka / tmp / rx_v;
 	    A2 = 1.0 / rx_v;
 	  } else {
 	    ALPHA = rx_k;
@@ -138,14 +145,18 @@ namespace stan {
 	  T rx_tmp = rx_k12+rx_k21+rx_k;
 	  BETA = 0.5 * (rx_tmp - pow(rx_tmp * rx_tmp - 4.0 * rx_k21 * rx_k, 0.5));
 	  ALPHA = rx_k21 * rx_k / BETA;
+	  T AmB = ALPHA - BETA + DOUBLE_EPS;
+	  T BmA = -AmB;
 	  if (oral == 1){
-	    A = ka / (ka - ALPHA) * (ALPHA - rx_k21) / (ALPHA - BETA) / rx_v;
-	    B = ka / (ka - BETA) * (BETA - rx_k21) / (BETA - ALPHA) / rx_v;
-	    A2 = (ALPHA - rx_k21) / (ALPHA - BETA) / rx_v;
-	    B2 = (BETA - rx_k21) / (BETA - ALPHA) / rx_v;
+	    T kmA = ka - ALPHA+ DOUBLE_EPS;
+	    T kmB = ka - BETA + DOUBLE_EPS;
+	    A = ka / (kmA) * (ALPHA - rx_k21) / (AmB) / rx_v;
+	    B = ka / (kmB) * (BETA - rx_k21) / (BmA) / rx_v;
+	    A2 = (ALPHA - rx_k21) / (AmB) / rx_v;
+	    B2 = (BETA - rx_k21) / (BmA) / rx_v;
 	  } else {
-	    A = (ALPHA - rx_k21) / (ALPHA - BETA) / rx_v;
-	    B = (BETA - rx_k21) / (BETA - ALPHA) / rx_v;
+	    A = (ALPHA - rx_k21) / (AmB) / rx_v;
+	    B = (BETA - rx_k21) / (BmA) / rx_v;
 	    A2 = 0;
 	    B2 = 0;
 	  }
@@ -178,20 +189,29 @@ namespace stan {
 	  rx_q = 2.0 * rx_a2 * rx_a2 * rx_a2 / 27.0 - rx_a1 * rx_a2 /3.0 + rx_a0;
 	  rx_r1 = pow(-rx_p * rx_p * rx_p / 27.0, 0.5);
 	  rx_r2 = 2 * pow(rx_r1,1.0/3.0);
-	  rx_theta = acos(-rx_q / (2.0 * rx_r1)) / 3.0;
+	  rx_theta = acos(-rx_q / (2.0 * rx_r1 + DOUBLE_EPS)) / 3.0;
 	  ALPHA = -(cos(rx_theta) * rx_r2 - rx_a2 / 3.0);
 	  BETA = -(cos(rx_theta + M_2PI/3.0) * rx_r2 - rx_a2 / 3.0);
 	  GAMMA = -(cos(rx_theta + 4.0 / 3.0 * M_PI) * rx_r2 - rx_a2 / 3.0);
-	  A = (rx_k21 - ALPHA) * (rx_k31 - ALPHA) / (ALPHA - BETA) / (ALPHA - GAMMA) / rx_v;
-	  B = (rx_k21 - BETA) * (rx_k31 - BETA) / (BETA - ALPHA) / (BETA - GAMMA) / rx_v;
-	  C = (rx_k21 - GAMMA) * (rx_k31 - GAMMA) / (GAMMA - ALPHA) / (GAMMA - BETA) / rx_v;
+	  T AmB = ALPHA - BETA + DOUBLE_EPS;
+	  T BmA = -AmB;
+	  T AmG = ALPHA - GAMMA + DOUBLE_EPS;
+	  T GmA = -AmG;
+	  T BmG = BETA - GAMMA + DOUBLE_EPS;
+	  T GmB = -BmG;
+	  A = (rx_k21 - ALPHA) * (rx_k31 - ALPHA) / (AmB) / (AmG) / rx_v;
+	  B = (rx_k21 - BETA) * (rx_k31 - BETA) / (BmA) / (BmG) / rx_v;
+	  C = (rx_k21 - GAMMA) * (rx_k31 - GAMMA) / (GmA) / (GmB) / rx_v;
 	  if (oral == 1){
 	    A2 = A;
 	    B2 = B;
 	    C2 = C;
-	    A = ka / (ka - ALPHA) * A;
-	    B = ka / (ka - BETA) * B;
-	    C = ka / (ka - GAMMA) * C;
+	    T kmA = ka - ALPHA + DOUBLE_EPS;
+	    T kmB = ka - BETA + DOUBLE_EPS;
+	    T kmG = ka - GAMMA + DOUBLE_EPS;
+	    A = ka / (kmA) * A;
+	    B = ka / (kmB) * B;
+	    C = ka / (kmG) * C;
 	  }
 	} else {
 	  throw std::invalid_argument("1-3 compartments are supported");
@@ -228,8 +248,7 @@ namespace stan {
       unsigned int  l = 0, p = 0;
       int evid, wh, wh100, whI, wh0;
       T thisT = 0.0;
-      T dose = 0;
-      double doseD = 0;
+      double dose = 0;
       T res, tinf = 0;
       T tau = 0, tT = 0.0;
       T rate=0;
@@ -238,7 +257,7 @@ namespace stan {
       T ka	= params[2 * ncmt];
       tlag(0,0)	= params[2 * ncmt + 1];
       tlag(0,1)	= params[2 * ncmt + 2];
-      FF(0,0)      = params[2 * ncmt + 3];
+      FF(0,0)   = params[2 * ncmt + 3];
       FF(0,1)	= params[2 * ncmt + 4];
       T d_rate	= params[2 * ncmt + 5];
       T d_dur	= params[2 * ncmt + 6];
@@ -264,7 +283,6 @@ namespace stan {
 	}
 	getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
 	dose = ind->dose[l];
-	doseD = ind->dose[l];
 	shiftF=0;
 	oral=oral0;
 	if (cmt != linCmt){
@@ -292,113 +310,114 @@ namespace stan {
 	    rate  = dose/d_dur;
 	  }
 	  dose=NA_REAL;
-	  doseD=NA_REAL;
 	case 2:
 	case 1:
-	    if (oral) throw std::invalid_argument("Infusions to depot are not possible with the linear solved system");
-	    if (wh0 == 30){
-	      throw std::invalid_argument("You cannot turn off a compartment with a solved system.");
+	  if (oral) throw std::invalid_argument("Infusions to depot are not possible with the linear solved system");
+	  if (wh0 == 30){
+	    throw std::invalid_argument("You cannot turn off a compartment with a solved system.");
+	  }
+	  // Steady state
+	  if (ISNA(dose)){
+	  } else if (dose > 0){
+	    // During infusion
+	    tT = t - ind->all_times[ind->idose[l]] ;
+	    thisT = tT - TLAG;
+	    p = l+1;
+	    while (p < ndoses && ind->dose[p] != -dose){
+	      p++;
 	    }
-	    // Steady state
-	    if (ISNA(doseD)){
-	    } else if (dose > 0){
-	      // During infusion
-	      tT = t - ind->all_times[ind->idose[l]] ;
-	      thisT = tT - TLAG;
-	      p = l+1;
-	      while (p < ndoses && ind->dose[p] != -doseD){
-		p++;
-	      }
-	      if (ind->dose[p] != -doseD){
-		throw std::invalid_argument("Could not find an end to the infusion.  Check the event table.");
-	      }
-	      tinf  = ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
-	      tau = ind->ii[l];
-	      rate  = dose;
-	      if (tT >= tinf) continue;
-	    } else {
-	      // After  infusion
-	      p = l-1;
-	      while (p > 0 && ind->dose[p] != -doseD){
-		p--;
-	      }
-	      if (ind->dose[p] != -doseD){
-		throw std::invalid_argument("Could not find a start to the infusion.  Check the event table.");
-	      }
-	      tinf  = ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]];
-	      tau = ind->ii[p];
-	      tT = t - ind->all_times[ind->idose[p]];
-	      thisT = tT -TLAG;
-	      rate  = -dose;
+	    if (ind->dose[p] != -dose){
+	      throw std::invalid_argument("Could not find an end to the infusion.  Check the event table.");
 	    }
-	    if (thisT < 0) continue;
-	    if (F <= 0) throw std::invalid_argument("Bioavailability cannot be negative or zero.");
-	    if (whI == 1){ // Duration changes
-	      tinf = tinf*F;
-	    } else { // Rate Changes
-	      rate *= F;
+	    tinf  = ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
+	    tau = ind->ii[l];
+	    rate  = dose;
+	    if (tT >= tinf) continue;
+	  } else {
+	    // After  infusion
+	    p = l-1;
+	    while (p > 0 && ind->dose[p] != -dose){
+	      p--;
 	    }
-	    if (wh0 == 10 || wh0 == 20){
-	      if (tinf >= tau){
-		throw std::invalid_argument("Infusion time greater then inter-dose interval, ss cannot be calculated.");
+	    if (ind->dose[p] != -dose){
+	      throw std::invalid_argument("Could not find a start to the infusion.  Check the event table.");
+	    }
+	    tinf  = ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]];
+	    tau = ind->ii[p];
+	    tT = t - ind->all_times[ind->idose[p]];
+	    thisT = tT -TLAG;
+	    rate  = -dose;
+	  }
+	  if (thisT < 0) continue;
+	  if (F <= 0) throw std::invalid_argument("Bioavailability cannot be negative or zero.");
+	  if (whI == 1){ // Duration changes
+	    tinf = tinf*F;
+	  } else { // Rate Changes
+	    rate *= F;
+	  }
+	  if (wh0 == 10 || wh0 == 20){
+	    if (tinf >= tau){
+	      throw std::invalid_argument("Infusion time greater then inter-dose interval, ss cannot be calculated.");
+	    }
+	    if (thisT < tinf){ // during infusion
+	      for (int jj = ncmt; jj--;){
+		ret += rate*A*(1/ALPHA)*((1-exp(-ALPHA*thisT))+
+					 exp(-ALPHA*tau)*(1-exp(-ALPHA*tinf))*
+					 exp(-ALPHA*(thisT-tinf))/(1-exp(-ALPHA*tau)));
 	      }
-	      if (thisT < tinf){ // during infusion
-		for (int jj = ncmt; jj--;){
-		  ret += rate*A*(1/ALPHA)*((1-exp(-ALPHA*thisT))+
-					   exp(-ALPHA*tau)*(1-exp(-ALPHA*tinf))*
-					   exp(-ALPHA*(thisT-tinf))/(1-exp(-ALPHA*tau)));
-		}
-		if (wh0 == 10){
-		  return g;
-		} 
-	      } else { // after infusion
-		for (int jj = ncmt; jj--;)
-		  ret += rate*A*(1/ALPHA)*((1-exp(-ALPHA*tinf))*exp(-ALPHA*(thisT-tinf))/(1-exp(-ALPHA*tau)));
-		if (wh0 == 10){
-		  return g; // Was a reset event.
-		} 
+	      if (wh0 == 10){
+		return g;
+	      } 
+	    } else { // after infusion
+	      for (int jj = ncmt; jj--;){
+		ret += rate*A*(1/ALPHA)*((1-exp(-ALPHA*tinf))*exp(-ALPHA*(thisT-tinf))/(1-exp(-ALPHA*tau)));
 	      }
-	    } else {
-	      //during infusion
+	      if (wh0 == 10){
+		return g; // Was a reset event.
+	      } 
+	    }
+	  } else {
+	    //during infusion
 #define t1 ((thisT < tinf) ? thisT : tinf)
-	      // after infusion
+	    // after infusion
 #define t2 ((thisT > tinf) ? thisT - tinf : 0.0)
-	      for (int jj = ncmt; jj--;)
-		ret +=  rate*A*(1/ALPHA)*(1.0-exp(-ALPHA*t1))*exp(-ALPHA*t2);
+	    for (int jj = ncmt; jj--;){
+	      ret +=  rate*A*(1/ALPHA)*(1.0-exp(-ALPHA*t1))*exp(-ALPHA*t2);
 	    }
+	  }
 #undef t1
 #undef t2
-	    break;
-	  case 0:
-	    if (wh0 == 10 || wh0 == 20){
-	      // steady state
-	      tT = t - ind->all_times[ind->idose[l]];
-	      thisT = tT -TLAG;
-	      if (thisT < 0) continue;
-	      tau = ind->ii[l];
-	      res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	      for (int jj = ncmt; jj--;){
-		ret += dose*F*A*(exp(-ALPHA*thisT)/(1-exp(-ALPHA*tau))-res);
-	      }
-	      // ss=1 is equivalent to a reset + ss dose
-	      if (wh0 == 10){
-		return g;  // Was a reset event.
-	      }
-	    } else if (wh0 == 30) {
-	      throw std::invalid_argument("You cannot turn off a compartment with a solved system.");
-	    } else {
-	      tT = t - ind->all_times[ind->idose[l]];
-	      thisT = tT -TLAG;
-	      if (thisT < 0) continue;
-	      res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	      for (int jj = ncmt; jj--;)
-		ret +=  dose*F*A*(exp(-ALPHA*thisT)-res);
+	  break;
+	case 0:
+	  if (wh0 == 10 || wh0 == 20){
+	    // steady state
+	    tT = t - ind->all_times[ind->idose[l]];
+	    thisT = tT -TLAG;
+	    if (thisT < 0) continue;
+	    tau = ind->ii[l];
+	    res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
+	    for (int jj = ncmt; jj--;){
+	      ret += dose*F*A*(exp(-ALPHA*thisT)/(1-exp(-ALPHA*tau))-res);
 	    }
-	    break;
-	  default:
-	    throw std::invalid_argument("Invalid evid in linear solved system.");
+	    // ss=1 is equivalent to a reset + ss dose
+	    if (wh0 == 10){
+	      return g;  // Was a reset event.
+	    }
+	  } else if (wh0 == 30) {
+	    throw std::invalid_argument("You cannot turn off a compartment with a solved system.");
+	  } else {
+	    tT = t - ind->all_times[ind->idose[l]];
+	    thisT = tT -TLAG;
+	    if (thisT < 0) continue;
+	    res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
+	    for (int jj = ncmt; jj--;)
+	      ret +=  dose*F*A*(exp(-ALPHA*thisT)-res);
 	  }
+	  break;
+	default:
+	  throw std::invalid_argument("Invalid evid in linear solved system.");
 	}
+      }
 #undef ret
 #undef A
 #undef F
@@ -496,24 +515,26 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
     ind->linCmtB[3] = J(0,2);
     ind->linCmtB[4] = J(0,3);
     if (ncmt == 3){
-      ind->linCmtB[4] = J(0,4);
-      ind->linCmtB[5] = J(0,5);
+      ind->linCmtB[5] = J(0,4);
+      ind->linCmtB[6] = J(0,5);
     } else {
-      ind->linCmtB[4] = 0;
       ind->linCmtB[5] = 0;
+      ind->linCmtB[6] = 0;
     }
   } else {
     ind->linCmtB[3] = 0;
     ind->linCmtB[4] = 0;
-    ind->linCmtB[4] = 0;
     ind->linCmtB[5] = 0;
+    ind->linCmtB[6] = 0;
   }
-  ind->linCmtB[6] = J(0,2*ncmt);
-  ind->linCmtB[7] = J(0,2*ncmt+1);
-  ind->linCmtB[8] = J(0,2*ncmt+2);
-  ind->linCmtB[9] = J(0,2*ncmt+3);
-  ind->linCmtB[10] = J(0,2*ncmt+4);
-  ind->linCmtB[11] = J(0,2*ncmt+5);
-  ind->linCmtB[12] = J(0,2*ncmt+6);
+  ind->linCmtB[7]  = J(0,2*ncmt);
+  ind->linCmtB[8]  = J(0,2*ncmt+1);
+  ind->linCmtB[9]  = J(0,2*ncmt+2);
+  ind->linCmtB[10] = J(0,2*ncmt+3);
+  ind->linCmtB[11] = J(0,2*ncmt+4);
+  ind->linCmtB[12] = J(0,2*ncmt+5);
+  ind->linCmtB[13] = J(0,2*ncmt+6);
+  // Rprintf("id:%d\t%f\t%f\t%f\t%f\t%f\t%f\n", ind->id, t, ind->linCmtB[0], ind->linCmtB[1], ind->linCmtB[2], ind->linCmtB[3], ind->linCmtB[4]);
+  // Rprintf("\t%f\t%f\t%f\t%f\t%f\n", params(0,0), params(1,0), params(2,0), params(3,0), params(2*ncmt,0));
   return ind->linCmtB[val];
 }
