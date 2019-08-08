@@ -835,7 +835,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                         return(paste0("rx_lag_", .ret0[[1]], "_"))
                     } else if (any(.fun == c("F", "f"))){
                         return(paste0("rx_f_", .ret0[[1]], "_"))
-                    } else if (.fun == c("rate", "dur")){
+                    } else if (any(.fun == c("rate", "dur"))){
                         return(paste0("rx_", .fun, "_", .ret0[[1]], "_"))
                     }
                 }
@@ -1083,13 +1083,14 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
                    identical(x[[1]], quote(`+`)) ||
                    identical(x[[1]], quote(`-`)) ||
                    identical(x[[1]], quote(`/`))){
-            ## Unary Operators
             if (length(x) == 3){
+                .x1 <- as.character(x[[1]]);
                 .x2 <- x[[2]];
+                .x2 <- .rxFromSE(.x2)
                 .x3 <- x[[3]];
-                .ret <- paste0(.rxFromSE(.x2),
-                              as.character(x[[1]]),
-                              .rxFromSE(.x3))
+                .x3 <- .rxFromSE(.x3)
+                if (.x1 == "^" && .x3 == "1") return(.x2)
+                .ret <- paste0(.x2,.x1,.x3);
                 ## FIXME parsing to figure out if *2 or *0.5 *0.4 is in
                 ## expression
                 if (any(.ret == c("pi*2", "2*pi")))
@@ -1118,9 +1119,9 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
                     return("M_1_SQRT_2PI")
                 return(.ret)
             } else {
+                ## Unary Operators
                 .ret <- paste0(as.character(x[[1]]),
                          .rxFromSE(x[[2]]))
-
                 return(.ret)
             }
         } else if (identical(x[[1]], quote(`=`)) ||

@@ -21,6 +21,7 @@ rxPermissive({
 
     test_that("function and constant translation", {
 
+        expect_equal(rxFromSE("x^1"), "x")
         expect_equal(rxToSE(gammafn(a)), "gamma(a)")
         expect_error(rxToSE(gammafn(a, b)))
         expect_error(rxFromSE(gamma(a, b)))
@@ -198,6 +199,7 @@ rxPermissive({
 
         ## expect_equal(rxFromSymPy("3 + 4*3+2+2*matt*pi"), "3 + 4 * 3 + 2 + matt * M_2PI")
         ## expect_equal(rxFromSymPy("3 + 4*3+2+pi*matt*2"), "3 + 4 * 3 + 2 + matt * M_2PI")
+
     })
 
     test_that("transit compartment translation.",{
@@ -267,6 +269,7 @@ rxPermissive({
 
         expect_equal(rxFromSE("Derivative(rxGeq(a,b), a)"),
                      "(5-5*tanh(4.60512018348798+10*(a-b))^2)")
+
         expect_equal(rxFromSE("Derivative(rxGeq(a,b), b)"),
                      "(-5+5*tanh(4.60512018348798+10*(a-b))^2)")
 
@@ -293,17 +296,18 @@ rxPermissive({
         expect_equal(rxFromSE("Derivative(rxNot(a), a)"),
                      "(-1)")
 
-
     })
 
     context("Test factor expansion by `rxSplitPlusQ'")
     test_that("rxSplitPlusQ", {
+
         expect_equal(rxSplitPlusQ(quote(a*exp(b+c)+d*log(e-f)-g*f)), c("a * exp(b + c)", "d * log(e - f)", "- g * f"))
         expect_equal(rxSplitPlusQ(quote(-a*exp(b+c)+d*log(e-f)-g*f)), c("-a * exp(b + c)", "d * log(e - f)", "- g * f"))
         expect_equal(rxSplitPlusQ(quote( + a*exp(b+c)+d*log(e-f)-g*f)), c("+a * exp(b + c)", "d * log(e - f)", "- g * f"))
         expect_equal(rxSplitPlusQ(quote( + a*exp(b+c))), "+a * exp(b + c)")
         expect_equal(rxSplitPlusQ(quote(center)), "center");
         expect_equal(rxSplitPlusQ(quote(0)), "0");
+
     })
 
     context("Test Error DSLs")
@@ -352,15 +356,16 @@ rxPermissive({
     }
 
     test_that("linCmt promotion and derivatives",{
-        test_that(rxToSE("linCmtA(rx__PTR__,t,0,1,1,THETA[2],THETA[1],0,0,0,0,0,0,0,1,1,0,0)",promoteLinSens=TRUE),
-                  "lincmtB(rx__PTR__,t,0,1,1,0,THETA_2_,THETA_1_,0,0,0,0,0,0,0,1,1,0,0)")
-        test_that(rxToSE("linCmtA(rx__PTR__,t,0,1,1,THETA[2],THETA[1],0,0,0,0,0,0,0,1,1,0,0)",promoteLinSens=FALSE),
+
+        expect_equal(rxToSE("linCmtA(rx__PTR__,t,0,1,1,THETA[2],THETA[1],0,0,0,0,0,0,0,1,1,0,0)",promoteLinSens=TRUE),
+                  "linCmtB(rx__PTR__,t,0,1,1,0,THETA_2_,THETA_1_,0,0,0,0,0,0,0,1,1,0,0)")
+        expect_equal(rxToSE("linCmtA(rx__PTR__,t,0,1,1,THETA[2],THETA[1],0,0,0,0,0,0,0,1,1,0,0)",promoteLinSens=FALSE),
                   "linCmtA(rx__PTR__,t,0,1,1,THETA_2_,THETA_1_,0,0,0,0,0,0,0,1,1,0,0)")
         for (i in 1:13){
-            .tmp <- paste0("Derivative(lincmtB(rx__PTR__,t,0,1,1,0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13), p", i, ")");
-            expect_equal(rxFromSE(.tmp), paste0("lincmtB(rx__PTR__,t,0,1,1,",i, ",p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13)"))
+            .tmp <- paste0("Derivative(linCmtB(rx__PTR__,t,0,1,1,0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13), p", i, ")");
+            expect_equal(rxFromSE(.tmp), paste0("linCmtB(rx__PTR__,t,0,1,1,",i, ",p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13)"))
         }
-        rxFromSE("lincmtB(rx__PTR__,t,0,1,1,0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13)")
+        rxFromSE("linCmtB(rx__PTR__,t,0,1,1,0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13)")
     })
 })
 
