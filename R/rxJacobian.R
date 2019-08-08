@@ -569,7 +569,7 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
                  log.etas=.s$..extraEta[["exp"]],
                  extraProps=.s$..extraTheta,
                  eventTheta=.s$..eventTheta,
-                 eventEta=.s$..eventEta,
+                 eventEta=.s$..eventEta## ,
                  ## cache.file=cache.file
                  )
     class(.ret) <- "rxFocei";
