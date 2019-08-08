@@ -265,10 +265,15 @@ rxExpandGrid <- function(x, y, type=0L){
 ##' @return RxODE/symengine environment
 ##' @author Matthew L. Fidler
 .rxGenEtaS <- function(obj, predfn, pkpars=NULL, errfn=NULL,
-                        init=NULL, promoteLinSens=TRUE){
+                       init=NULL, promoteLinSens=TRUE,
+                       theta=FALSE){
     .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
                     promoteLinSens=promoteLinSens)
-    .etaVars <- paste0("ETA_", seq(1, .s$..maxEta), "_")
+    if (theta){
+        .thetaVars <- paste0("THETA_", seq(1, .s$..maxTheta), "_")
+    } else {
+        .etaVars <- paste0("ETA_", seq(1, .s$..maxEta), "_")
+    }
     .stateVars <- rxState(.s)
     .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
                     promoteLinSens=promoteLinSens)
@@ -284,10 +289,12 @@ rxExpandGrid <- function(x, y, type=0L){
 ##' @author Matthew L. Fidler
 .rxGenHdEta <- function(obj, predfn, pkpars=NULL, errfn=NULL,
                         init=NULL, pred.minus.dv=TRUE,
-                        promoteLinSens=TRUE){
+                        promoteLinSens=TRUE,
+                        theta=FALSE){
     ## Equation 19 in Almquist
     .s <- .rxGenEtaS(obj, predfn, pkpars, errfn, init,
-                     promoteLinSens=promoteLinSens)
+                     promoteLinSens=promoteLinSens,
+                     theta=theta)
     .stateVars <- rxState(.s)
     .grd <- rxExpandFEta_(.stateVars, .s$..maxEta,
                           ifelse(pred.minus.dv, 1L, 2L))
@@ -416,9 +423,10 @@ rxExpandGrid <- function(x, y, type=0L){
                        init=NULL, pred.minus.dv=TRUE,
                        sum.prod=FALSE,
                        optExpression=TRUE,
-                       promoteLinSens=TRUE){
+                       promoteLinSens=TRUE,
+                       theta=FALSE){
     .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv,
-                      promoteLinSens=promoteLinSens)
+                      promoteLinSens=promoteLinSens, theta=theta)
     .s$..REta <- NULL;
     ## Take etas from rx_r
     eval(parse(text=rxRepR0_(.s$..maxEta)))
@@ -437,9 +445,9 @@ rxExpandGrid <- function(x, y, type=0L){
                         init=NULL, pred.minus.dv=TRUE,
                         sum.prod=FALSE,
                         optExpression=TRUE,
-                        promoteLinSens=TRUE){
+                        promoteLinSens=TRUE, theta=FALSE){
     .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv,
-                      promoteLinSens=promoteLinSens)
+                      promoteLinSens=promoteLinSens, theta=theta)
     .stateVars <- rxState(.s)
     .grd <- rxExpandFEta_(.stateVars, .s$..maxEta, FALSE)
     if (.useUtf()){
@@ -472,8 +480,9 @@ rxExpandGrid <- function(x, y, type=0L){
 .rxGenEBE <- function(obj, predfn, pkpars=NULL, errfn=NULL,
                       init=NULL, pred.minus.dv=TRUE,
                       sum.prod=FALSE,
-                      optExpression=TRUE){
-    .s <- .rxGenEtaS(obj, predfn, pkpars, errfn, init)
+                      optExpression=TRUE,
+                      theta=FALSE){
+    .s <- .rxGenEtaS(obj, predfn, pkpars, errfn, init, theta=theta)
     .s$..inner <- NULL
     .s$..outer <- NULL
     .rxFinalizePred(.s, sum.prod, optExpression)
@@ -509,6 +518,8 @@ rxSymPyExpEtas <- c()
 ##'     evaluation.
 ##' @param interaction Boolean to determine if dR^2/deta is calculated
 ##'     for FOCEi (not needed for FOCE)
+##' @param theta Calculate THETA derivatives instead of ETA
+##'     derivatives.  By default FALSE
 ##' @return RxODE object expanded with predfn and with calculated
 ##'     sensitivities.
 ##' @inheritParams rxS
@@ -521,22 +532,23 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
                       only.numeric=FALSE,
                       optExpression=TRUE,
                       interaction=TRUE, ...,
-                      promoteLinSens=TRUE){
+                      promoteLinSens=TRUE,
+                      theta=FALSE){
     assignInMyNamespace("rxErrEnv.lambda", NULL);
     assignInMyNamespace("rxErrEnv.yj", NULL);
     assignInMyNamespace("rxSymPyExpThetas", c());
     assignInMyNamespace("rxSymPyExpEtas", c());
     if (only.numeric){
         .s <- .rxGenEBE(obj, predfn, pkpars, errfn, init, pred.minus.dv,
-                        sum.prod, optExpression)
+                        sum.prod, optExpression, theta=theta)
     } else if (interaction){
         .s <- .rxGenFocei(obj, predfn, pkpars, errfn, init, pred.minus.dv,
                           sum.prod, optExpression,
-                          promoteLinSens=promoteLinSens);
+                          promoteLinSens=promoteLinSens, theta=theta);
     } else {
         .s <- .rxGenFoce(obj, predfn, pkpars, errfn, init, pred.minus.dv,
                          sum.prod, optExpression,
-                         promoteLinSens=promoteLinSens);
+                         promoteLinSens=promoteLinSens, theta=theta);
     }
     .toRx <- function(x, msg){
         if (is.null(x)) return(NULL)
@@ -555,7 +567,9 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
                  pred.minus.dv=pred.minus.dv,
                  log.thetas=.s$..extraTheta[["exp"]],
                  log.etas=.s$..extraEta[["exp"]],
-                 extraProps=.s$..extraTheta##,
+                 extraProps=.s$..extraTheta,
+                 eventTheta=.s$..eventTheta,
+                 eventEta=.s$..eventEta,
                  ## cache.file=cache.file
                  )
     class(.ret) <- "rxFocei";

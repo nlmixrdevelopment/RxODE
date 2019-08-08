@@ -566,11 +566,17 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                 }
                 .expr <- x[[3]]
             } else if (.isEnv){
+                if (length(x[[2]]) == 2){
+                    if (any(as.character(x[[2]][[1]]) == c("alag", "lag", "F", "f", "rate", "dur"))){
+                        envir$..eventAssign <- TRUE
+                    }
+                }
                 .expr <- paste0("with(envir,",
                                 .rxToSE(x[[3]],
                                         envir=envir), ")")
                 .expr <- eval(parse(text=.expr));
                 assign(.var, .expr, envir=envir)
+                envir$..eventAssign <- FALSE
             }
             if (.isEnv){
                 if (regexpr(rex::rex(or(.regRate,
@@ -636,6 +642,10 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                                                      .num))
                                     }
                                     assign("..maxTheta",.m, envir=envir)
+                                    if (envir$..eventAssign){
+                                        assign("..eventTheta", sort(unique(c(.num, envir$..eventTheta))),
+                                               envir=envir)
+                                    }
                                 } else {
                                     if (exists("..maxEta", envir=envir)){
                                         .m <- get("..maxEta", envir=envir)
@@ -652,6 +662,10 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                                                  .num))
                                     }
                                     assign("..maxEta", .m, envir=envir)
+                                    if (envir$..eventAssign){
+                                        assign("..eventEta", sort(unique(c(.num, envir$..eventEta))),
+                                               envir=envir)
+                                    }
                                 }
                             }
                             return(paste0(.type, "_", .num, "_"))
@@ -816,6 +830,15 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
             } else {
                 .fun <- paste(.ret0[[1]])
                 .ret0 <- .ret0[-1];
+                if (length(.ret0) == 1L){
+                    if (any(.fun == c("alag", "lag"))){
+                        return(paste0("rx_lag_", .ret0[[1]], "_"))
+                    } else if (any(.fun == c("F", "f"))){
+                        return(paste0("rx_f_", .ret0[[1]], "_"))
+                    } else if (.fun == c("rate", "dur")){
+                        return(paste0("rx_", .fun, "_", .ret0[[1]], "_"))
+                    }
+                }
                 .ret <- paste0("(", paste(unlist(.ret0), collapse=","), ")");
                 if (.ret == "(0)"){
                     return(paste0("rx_", .fun, "_ini_0__"))
@@ -1386,6 +1409,9 @@ rxS <- function(x, doConst=TRUE, promoteLinSens=FALSE){
     .env$..extraTheta <- list()
     .env$..extraEta <- list()
     .env$..curCall <- character(0)
+    .env$..eventAssign <- FALSE
+    .env$..eventTheta <- c();
+    .env$..eventEta <- c();
     .env$polygamma <- function(a, b){
         symengine::subs(symengine::subs(..polygamma, ..a, a), ..b,  b)
     }
