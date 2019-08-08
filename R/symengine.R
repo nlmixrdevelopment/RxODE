@@ -63,9 +63,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
              "cos"=1, "cosh"=1, "erf"=1, "erfc"=1,
              "exp"=1, "gamma"=1, "sin"=1, "sinh"=1,
              "sqrt"=1, "tan"=1, "tanh"=1, "log"=1, "abs"=1, "asinh"=1,
-             "rxTBS"=3, "rxTBSd"=3, "rxTBSd2"=3,
-             "linCmtA"=18,
-             "linCmtB"=19)
+             "rxTBS"=3, "rxTBSd"=3, "rxTBSd2"=3, "linCmtA"=18, "linCmtB"=19)
 
 .rxSEeqUsr <- c()
 
@@ -557,6 +555,13 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                    identical(x[[1]], quote(`~`))){
             .var <- .rxToSE(x[[2]], envir=envir);
             .isNum <- FALSE
+            if (.isEnv){
+                if (length(x[[2]]) == 2){
+                    if (any(as.character(x[[2]][[1]]) == c("alag", "lag", "F", "f", "rate", "dur"))){
+                        envir$..eventVars <- unique(c(.var, envir$..eventVars))
+                    }
+                }
+            }
             if (inherits(x[[3]], "numeric") || inherits(x[[3]], "integer")){
                 .isNum <- TRUE
                 if (.isEnv){
@@ -566,17 +571,11 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                 }
                 .expr <- x[[3]]
             } else if (.isEnv){
-                if (length(x[[2]]) == 2){
-                    if (any(as.character(x[[2]][[1]]) == c("alag", "lag", "F", "f", "rate", "dur"))){
-                        envir$..eventAssign <- TRUE
-                    }
-                }
                 .expr <- paste0("with(envir,",
                                 .rxToSE(x[[3]],
                                         envir=envir), ")")
                 .expr <- eval(parse(text=.expr));
                 assign(.var, .expr, envir=envir)
-                envir$..eventAssign <- FALSE
             }
             if (.isEnv){
                 if (regexpr(rex::rex(or(.regRate,
@@ -642,10 +641,6 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                                                      .num))
                                     }
                                     assign("..maxTheta",.m, envir=envir)
-                                    if (envir$..eventAssign){
-                                        assign("..eventTheta", sort(unique(c(.num, envir$..eventTheta))),
-                                               envir=envir)
-                                    }
                                 } else {
                                     if (exists("..maxEta", envir=envir)){
                                         .m <- get("..maxEta", envir=envir)
@@ -662,10 +657,6 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                                                  .num))
                                     }
                                     assign("..maxEta", .m, envir=envir)
-                                    if (envir$..eventAssign){
-                                        assign("..eventEta", sort(unique(c(.num, envir$..eventEta))),
-                                               envir=envir)
-                                    }
                                 }
                             }
                             return(paste0(.type, "_", .num, "_"))
@@ -1410,9 +1401,7 @@ rxS <- function(x, doConst=TRUE, promoteLinSens=FALSE){
     .env$..extraTheta <- list()
     .env$..extraEta <- list()
     .env$..curCall <- character(0)
-    .env$..eventAssign <- FALSE
-    .env$..eventTheta <- c();
-    .env$..eventEta <- c();
+    .env$..eventVars <- c()
     .env$polygamma <- function(a, b){
         symengine::subs(symengine::subs(..polygamma, ..a, a), ..b,  b)
     }

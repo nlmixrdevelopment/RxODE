@@ -364,6 +364,16 @@ rxExpandGrid <- function(x, y, type=0L){
                          .s$..stateInfo["statef"],
                          .s$..stateInfo["dvid"],
                          ""), collapse="\n")
+    .s$..pred.nolhs <- paste(c(.s$..stateInfo["state"],
+                               .lhs0,
+                               .ddt,
+                               .yj,
+                               .lambda,
+                               .prd,
+                               .r,
+                               .s$..stateInfo["statef"],
+                               .s$..stateInfo["dvid"],
+                               ""), collapse="\n")
     if (sum.prod){
         message("Stabilizing round off errors in Predictions/EBE model...", appendLF=FALSE);
         .s$..pred <- rxSumProdModel(.s$..pred);
@@ -557,19 +567,50 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
         message("done")
         return(.ret);
     }
+    .eventTheta <- rep(0L,.s$..maxTheta)
+    .eventEta <- rep(0L,.s$..maxEta)
+    for (.v in .s$..eventVars){
+        .vars <- rxGetModel(paste0("rx_lhs=", as.character(get(.v, envir=.s))))$params
+        for (.v2 in .vars){
+            .reg <- rex::rex(start, "ETA_", capture(any_numbers), "_", end)
+            if (regexpr(.reg, .v2) != -1){
+                .num <- as.numeric(sub(.reg, "\\1", .v2))
+                .eventEta[.num] <- 1L;
+            }
+            .reg <- rex::rex(start, "THETA_", capture(any_numbers), "_", end)
+            if (regexpr(.reg, .v2) != -1){
+                .num <- as.numeric(sub(.reg, "\\1", .v2))
+                .eventTheta[.num] <- 1L;
+            }
+        }
+    }
+    pred.opt <- NULL
+    if (any(.eventEta == 1L)){
+        if (sum.prod){
+            message("Stabilizing round off errors in Events FD model...", appendLF=FALSE);
+            .s$..pred.nolhs <- rxSumProdModel(.s$..pred.nolhs);
+            message("done");
+        }
+        if (optExpression){
+            .s$..pred.nolhs <- rxOptExpr(.s$..pred.nolhs, "Events FD model")
+        }
+        pred.opt <- .s$..pred.nolhs
+    }
     .ret <- list(obj=obj,
                  pred.only=.toRx(.s$..pred, "Compiling EBE model..."),
                  inner=.toRx(.s$..inner, "Compiling inner model..."),
                  extra.pars=.s$..extraPars,
                  outer=.toRx(.s$..outer),
+                 pred.nolhs=.toRx(pred.opt, "Compiling Events FD model..."),
                  theta=NULL,
                  ## warn=.zeroSens,
                  pred.minus.dv=pred.minus.dv,
                  log.thetas=.s$..extraTheta[["exp"]],
                  log.etas=.s$..extraEta[["exp"]],
                  extraProps=.s$..extraTheta,
-                 eventTheta=.s$..eventTheta,
-                 eventEta=.s$..eventEta## ,
+                 eventTheta=.eventTheta,
+                 eventEta=.eventEta
+                 ## ,
                  ## cache.file=cache.file
                  )
     class(.ret) <- "rxFocei";
