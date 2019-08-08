@@ -586,7 +586,7 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
     }
     pred.opt <- NULL
     inner <- .toRx(.s$..inner, "Compiling inner model...");
-    if (any(.eventEta == 1L) && !is.null(.s$..inner)){
+    if (any(.eventEta == 1L) && !is.null(inner)){
         if (sum.prod){
             message("Stabilizing round off errors in Events FD model...", appendLF=FALSE);
             .s$..pred.nolhs <- rxSumProdModel(.s$..pred.nolhs);
@@ -602,7 +602,6 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
     .ret <- list(obj=obj,
                  inner=inner,
                  pred.only=.toRx(.s$..pred, "Compiling EBE model..."),
-                 inner=.toRx(.s$..inner, "Compiling inner model..."),
                  extra.pars=.s$..extraPars,
                  outer=.toRx(.s$..outer),
                  pred.nolhs=.toRx(pred.opt, "Compiling Events FD model..."),
