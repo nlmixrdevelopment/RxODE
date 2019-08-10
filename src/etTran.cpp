@@ -642,6 +642,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   int ccens=0;
   bool warnCensNA=false;
   bool censNone=true;
+  bool swapDvLimit=false;
   // cens = NA_INTEGER with LIMIT is M2
   for (int i = 0; i < inTime.size(); i++){
     if (idCol == -1) cid = 1;
@@ -650,7 +651,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     else cdv = inDv[i];
     if (censCol == -1) ccens = NA_INTEGER;
     else ccens = inCens[i];
-    if (ccens != 0 && ccens != 1 && ccens != -1 && !IntegerVector::is_na(ccens))
+    if (ccens != 0 && ccens != 1 &&
+	ccens != -1 && !IntegerVector::is_na(ccens))
       stop("Censoring column can only be -1, 0 or 1");
     if (ISNA(cdv) && ccens != 0){
       if (!IntegerVector::is_na(ccens)){
@@ -835,10 +837,24 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	amt.push_back(NA_REAL);
 	ii.push_back(0.0);
 	idx.push_back(i);
-	dv.push_back(cdv);
 	cens.push_back(ccens);
-	if (ccens!=0) censNone=false;    
-	limit.push_back(climit);
+	if (ccens!=0) censNone=false;
+	if (ccens == 1 && !std::isinf(climit)){
+	  // limit should be lower than dv
+	  if (cdv < climit){
+	    dv.push_back(climit);
+	    limit.push_back(cdv);
+	    swapDvLimit=true;
+	  } else if (cdv == climit){
+	    stop("limit (%f) cannot equal dv (%f)", climit, cdv);
+	  } else {
+	    dv.push_back(cdv);
+	    limit.push_back(climit);
+	  }
+	} else {
+	  dv.push_back(cdv);
+	  limit.push_back(climit);
+	}
 	idxO.push_back(curIdx);curIdx++;
 	cevid = -1;
       } else {
@@ -859,7 +875,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	      }
 	    }
 	  }
-	  if (combineDvidB && dvidCol != -1 && !IntegerVector::is_na(inDvid[i]) &&
+	  if (combineDvidB && dvidCol != -1 &&
+	      !IntegerVector::is_na(inDvid[i]) &&
 	      inDvid[i]>0){
 	    if (goodCmt && cmt != inDvid[i] && cmt != 1 && cmt != 0){
 	      stop("'cmt' and 'dvid' specify different compartments; Please correct.");
@@ -902,10 +919,24 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	amt.push_back(NA_REAL);
 	ii.push_back(0.0);
 	idx.push_back(i);
-	dv.push_back(cdv);
-	limit.push_back(climit);
 	cens.push_back(ccens);
-	if (ccens!=0) censNone=false;    
+	if (ccens!=0) censNone=false;
+	if (ccens == 1 && !std::isinf(climit)){
+	  // limit should be lower than dv
+	  if (cdv < climit){
+	    dv.push_back(climit);
+	    limit.push_back(cdv);
+	    swapDvLimit=true;
+	  } else if (cdv == climit){
+	    stop("limit (%f) cannot equal dv (%f)", climit, cdv);
+	  } else {
+	    dv.push_back(cdv);
+	    limit.push_back(climit);
+	  }
+	} else {
+	  dv.push_back(cdv);
+	  limit.push_back(climit);
+	}
 	idxO.push_back(curIdx);curIdx++;
 	cevid = -1;
       }
@@ -1275,7 +1306,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     warning("While censoring is included in dataset, no observations are censored.");
     censAdd=0;
   }
-
+  if (swapDvLimit){
+    warning("dv and limit swapped since limit > dv");
+  }
   int limitAdd = 0;
   if (limitCol != -1) limitAdd=1;
   List lst = List(baseSize+censAdd+limitAdd+covCol.size());
