@@ -4,6 +4,7 @@ rxPermissive({
 
     context("etTrans checks");
     rxSetIni0(FALSE)
+
     mod <- RxODE("
 a = 6
 b = 0.6
@@ -844,4 +845,39 @@ d/dt(blood)     = a*intestine - b*blood
 
     rxSetIni0(TRUE)
 
+    test_that("censoring checks", {
+
+        mod <- RxODE("
+a = 6
+b = 0.6
+d/dt(intestine) = -a*intestine
+d/dt(blood)     = a*intestine - b*blood
+")
+
+    et <- eventTable()
+    et$add.dosing(dose=2/24,rate=2,start.time=0,
+                  nbr.doses=10,dosing.interval=1)
+    et <- et %>% et(0, 24, by=0.1)
+
+    tmp <- et;
+    tmp$limit <- 3
+    expect_error(RxODE:::etTrans(tmp, mod))
+
+    tmp <- et;
+    tmp$cens <- 0
+    tmp$cens[1] <- 2
+
+    expect_error(RxODE:::etTrans(tmp, mod))
+
+    tmp <- et;
+    tmp$cens <- 0
+    tmp$dv <- 3
+    tmp$cens[2] <- 1
+
+    ret <- expect_warning(RxODE::etTrans(tmp, mod))
+    expect_false(any(names(ret) == "CENS"))
+
+})
+
 }, cran=TRUE, silent=TRUE)
+

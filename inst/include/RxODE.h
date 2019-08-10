@@ -111,6 +111,8 @@ typedef struct {
   double *all_times;
   int *ix;
   double *dv;
+  double *limit;
+  int *cens;
   int *idose;
   int *on;
   int idosen;

@@ -34,13 +34,15 @@ List etImportEventTable(List inData);
 RObject et_(List input, List et__);
 void setEvCur(RObject cur);
 
-int rxcEvid = -1;
-int rxcTime = -1;
-int rxcAmt  = -1;
-int rxcId   = -1;
-int rxcDv   = -1;
-int rxcLen  = -1;
-int rxcIi   = -1;
+int rxcEvid  = -1;
+int rxcTime  = -1;
+int rxcAmt   = -1;
+int rxcId    = -1;
+int rxcDv    = -1;
+int rxcLimit = -1;
+int rxcCens  = -1;
+int rxcLen   = -1;
+int rxcIi    = -1;
 bool resetCache = true;
 bool rxHasEventNames(CharacterVector &nm){
   int len = nm.size();
@@ -221,6 +223,28 @@ bool rxIs(const RObject &obj, std::string cls){
 	  rxcId   = 0;
 	  rxcDv   = 5;
 	  rxcIi   = 4;
+	  CharacterVector nm = obj.attr("names");
+	  if (nm.size() >= 7 && as<std::string>(nm[6])=="CMT"){
+	    if (nm.size()>= 8){
+	      if (as<std::string>(nm[7])=="CENS"){
+		rxcCens = 7;
+		if (nm.size()>=9 && as<std::string>(nm[8])=="LIMIT"){
+		  rxcLimit=8;
+		}
+	      } else if (as<std::string>(nm[7]) == "LIMIT"){
+		rxcLimit=7;
+	      }
+	    }
+	  } else if (nm.size() >= 7){
+	    if (as<std::string>(nm[6])=="CENS"){
+	      rxcCens = 6;
+	      if (nm.size() >= 8 && as<std::string>(nm[7])=="LIMIT"){
+		rxcLimit = 7;
+	      }
+	    } else if (as<std::string>(nm[6])=="LIMIT") {
+	      rxcLimit = 6;
+	    }
+	  }
 	  return true;
 	} else {
 	  // Check for event.data.frame
@@ -1195,6 +1219,10 @@ typedef struct {
   int gixn;
   int gall_timesn;
   double *gdv;
+  double *glimit;
+  int glimitn;
+  int *gcens;
+  int gcensn;
   int gdvn;
   double *gamt;
   double *gii;
@@ -1262,6 +1290,10 @@ extern "C" void rxOptionsIniData(){
   _globals.gall_timesn=0;//NALL;
   _globals.gdv = NULL;//Calloc(NALL,double);
   _globals.gdvn=0;//NALL;
+  _globals.glimit = NULL;//Calloc(NALL,double);
+  _globals.glimitn=0;//NALL;
+  _globals.gcens = NULL;//Calloc(NALL,double);
+  _globals.gcensn=0;//NALL;
   _globals.gamt = NULL;//Calloc(NDOSES,double);
   _globals.gamtn=0;//NDOSES;
   _globals.glhs = NULL;//Calloc(NPARS,double);
@@ -1392,6 +1424,34 @@ void gdvSetup(int n){
     else _globals.gdv = Realloc(_globals.gdv, cur, double);
     _globals.gdvn=cur;
   }
+}
+
+void glimitSetup(int n){
+  if (_globals.glimitn < n){
+    int cur = n;
+    if (_globals.glimit == NULL) _globals.glimit = Calloc(cur, double);
+    else _globals.glimit = Realloc(_globals.glimit, cur, double);
+    _globals.glimitn=cur;
+  }
+}
+
+extern "C" double getLimit(rx_solving_options_ind* ind, int i){
+  if (_globals.glimitn == 0) return R_NegInf;
+  return ind->limit[i];
+}
+
+void gcensSetup(int n){
+  if (_globals.gcensn < n){
+    int cur = n;
+    if (_globals.gcens == NULL) _globals.gcens = Calloc(cur, int);
+    else _globals.gcens = Realloc(_globals.gcens, cur, int);
+    _globals.gcensn=cur;
+  }
+}
+
+extern "C" int getCens(rx_solving_options_ind* ind, int i){
+  if (_globals.gcensn == 0) return 0;
+  return ind->cens[i];
 }
 
 void gamtSetup(int n){
@@ -1718,6 +1778,8 @@ extern "C" void gFree(){
   _globals.gixn=0;
   if (_globals.gdv != NULL) Free(_globals.gdv);
   _globals.gdvn=0;
+  if (_globals.glimit != NULL) Free(_globals.glimit);
+  _globals.glimitn=0;
   if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
   _globals.gInfusionRate=NULL;
   _globals.gInfusionRaten=0;
@@ -3226,6 +3288,18 @@ SEXP rxSolve_(const RObject &obj,
         gdvSetup(dv.size());
         std::copy(dv.begin(), dv.end(), &_globals.gdv[0]);
       }
+      IntegerVector cens;
+      if (rxcCens > -1){
+	dv = as<IntegerVector>(dataf[rxcCens]);
+        gcensSetup(cens.size());
+        std::copy(cens.begin(), cens.end(), &_globals.gcens[0]);
+      }
+      NumericVector limit;
+      if (rxcLimit > -1){
+	limit = as<NumericVector>(dataf[rxcLimit]);
+        glimitSetup(limit.size());
+        std::copy(limit.begin(), limit.end(), &_globals.glimit[0]);
+      }
       NumericVector amt   = dataf[rxcAmt];
       NumericVector datIi(amt.size());
       if (rxcIi > -1){
@@ -3309,6 +3383,12 @@ SEXP rxSolve_(const RObject &obj,
           ind->all_times      = &_globals.gall_times[i];
 	  if (rxcDv > -1){
 	    ind->dv = &_globals.gdv[i];
+	  }
+	  if (rxcLimit > -1){
+	    ind->limit = &_globals.glimit[i];
+	  }
+	  if (rxcCens > -1){
+	    ind->cens = &_globals.gcens[i];
 	  }
           ind->evid           = &_globals.gevid[i];
 	  ind->idose          = &_globals.gidose[i];

@@ -314,7 +314,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
     dvCol=-1, ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol=-1, j,
-    mdvCol=-1, dvidCol=-1;
+    mdvCol=-1, dvidCol=-1, censCol=-1, limitCol=-1;
   std::string tmpS;
   
   CharacterVector pars = as<CharacterVector>(mv["params"]);
@@ -343,6 +343,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     else if (tmpS == "ii")   iiCol=i;
     else if (tmpS == "mdv") mdvCol=i;
     else if (tmpS == "dvid") dvidCol=i;
+    else if (tmpS == "cens") censCol=i;
+    else if (tmpS == "limit") limitCol=i;
     for (j = keep.size(); j--;){
       if (as<std::string>(dName[i]) == as<std::string>(keep[j])){
 	if (tmpS == "evid") stop("Cannot keep 'evid'; try 'addDosing'");
@@ -459,11 +461,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   std::vector<double> time;
   std::vector<double> amt;
   std::vector<double> ii;
+  std::vector<double> limit;
   std::vector<int> idx;
   std::vector<int> cmtF;
   std::vector<int> dvidF;
   std::vector<double> dv;
   std::vector<int> idxO;
+  std::vector<int> cens;
   if (timeCol== -1){
     stop("time is required in dataset.");
   }
@@ -598,6 +602,24 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       stop("The dependent variable (dv) needs to be a number");
     }
   }
+  IntegerVector inCens;
+  if (censCol != -1){
+    if (rxIs(inData[censCol], "integer") || rxIs(inData[censCol], "numeric") ||
+	rxIs(inData[censCol], "logical")){
+      inCens = as<IntegerVector>(inData[censCol]);
+    } else {
+      stop("The censoring variable (cens) needs to be a number");
+    }
+  }
+  NumericVector inLimit;
+  if (limitCol != -1){
+    if (rxIs(inData[limitCol], "integer") || rxIs(inData[limitCol], "numeric") ||
+	rxIs(inData[limitCol], "logical")){
+      inLimit = as<NumericVector>(inData[limitCol]);
+    } else {
+      stop("The limit variable (limit) needs to be a number");
+    }
+  }
   int flg = 0;
   int cid = 0;
   int nMtime = as<int>(mv["nMtime"]);
@@ -615,14 +637,31 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   double dur =0.0;
   double camt;
   int curIdx=0;
-  double cdv;
+  double cdv, climit;
   int nobs=0, ndose=0;
+  int ccens=0;
+  bool warnCensNA=false;
+  bool censNone=true;
+  // cens = NA_INTEGER with LIMIT is M2
   for (int i = 0; i < inTime.size(); i++){
     if (idCol == -1) cid = 1;
     else cid = inId[i];
     if (dvCol == -1) cdv = NA_REAL;
     else cdv = inDv[i];
+    if (censCol == -1) ccens = NA_INTEGER;
+    else ccens = inCens[i];
+    if (ccens != 0 && ccens != 1 && ccens != -1 && !IntegerVector::is_na(ccens))
+      stop("Censoring column can only be -1, 0 or 1");
+    if (ISNA(cdv) && ccens != 0){
+      if (!IntegerVector::is_na(ccens)){
+	warnCensNA=true;
+	ccens=0;
+      }
+    }
     ctime=inTime[i];
+    if (limitCol == -1) climit = R_NegInf;
+    else climit = inLimit[i];
+    if (ISNA(climit)) climit = R_NegInf;
     if (std::isinf(ctime)){
       stop("Infinite times are not allowed");
     }
@@ -644,6 +683,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	amt.push_back(NA_REAL);
 	ii.push_back(0.0);
 	dv.push_back(NA_REAL);
+	cens.push_back(0);
+	limit.push_back(NA_REAL);
 	idx.push_back(-1);
 	idxO.push_back(curIdx);curIdx++;
       }
@@ -795,6 +836,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	ii.push_back(0.0);
 	idx.push_back(i);
 	dv.push_back(cdv);
+	cens.push_back(ccens);
+	if (ccens!=0) censNone=false;    
+	limit.push_back(climit);
 	idxO.push_back(curIdx);curIdx++;
 	cevid = -1;
       } else {
@@ -859,6 +903,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	ii.push_back(0.0);
 	idx.push_back(i);
 	dv.push_back(cdv);
+	limit.push_back(climit);
+	cens.push_back(ccens);
+	if (ccens!=0) censNone=false;    
 	idxO.push_back(curIdx);curIdx++;
 	cevid = -1;
       }
@@ -900,6 +947,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	ii.push_back(0.0);
 	idx.push_back(i);
 	dv.push_back(NA_REAL);
+	limit.push_back(NA_REAL);
+	cens.push_back(0);
 	idxO.push_back(curIdx);curIdx++;
 	ndose++;
 	// + cmt needs to turn on cmts.
@@ -914,6 +963,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  ii.push_back(0.0);
 	  idx.push_back(i);
 	  dv.push_back(NA_REAL);
+	  limit.push_back(NA_REAL);
+	  cens.push_back(0);
 	  idxO.push_back(curIdx);curIdx++;
 	  ndose++;
 	}
@@ -942,6 +993,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       ii.push_back(0.0);
       idx.push_back(i);
       dv.push_back(NA_REAL);
+      limit.push_back(NA_REAL);
+      cens.push_back(0);
       idxO.push_back(curIdx);curIdx++;
       ndose++;
       cevid = -1;
@@ -963,6 +1016,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       ii.push_back(0.0);
       idx.push_back(-1);
       dv.push_back(NA_REAL);
+      limit.push_back(NA_REAL);
+      cens.push_back(0);
       idxO.push_back(curIdx);curIdx++;
       ndose++;
       // Now use the transformed compartment
@@ -1004,6 +1059,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
       idx.push_back(i);
       dv.push_back(NA_REAL);
+      limit.push_back(NA_REAL);
+      cens.push_back(0);
       idxO.push_back(curIdx);curIdx++;
       ndose++;
       if (rateI > 2){
@@ -1017,6 +1074,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	ii.push_back(0.0);
 	idx.push_back(-1);
 	dv.push_back(NA_REAL);
+	limit.push_back(NA_REAL);
+	cens.push_back(0);
 	idxO.push_back(curIdx);curIdx++;
 	ndose++;
       } else if (rateI == 1 || rateI == 2){
@@ -1032,6 +1091,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	ii.push_back(0.0);
 	idx.push_back(-1);
 	dv.push_back(NA_REAL);
+	limit.push_back(NA_REAL);
+	cens.push_back(0);
 	idxO.push_back(curIdx);curIdx++;
 	ndose++;
       } else {
@@ -1047,6 +1108,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  ii.push_back(0.0);
 	  idx.push_back(-1);
 	  dv.push_back(NA_REAL);
+	  limit.push_back(NA_REAL);
+	  cens.push_back(0);
 	  idxO.push_back(curIdx);curIdx++;
 	  ndose++;
 	
@@ -1061,6 +1124,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    ii.push_back(0.0);
 	    idx.push_back(-1);
 	    dv.push_back(NA_REAL);
+	    limit.push_back(NA_REAL);
+	    cens.push_back(0);
 	    idxO.push_back(curIdx);curIdx++;
 	    ndose++;
 	  } else if (rateI == 1 || rateI == 2){
@@ -1074,6 +1139,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    ii.push_back(0.0);
 	    idx.push_back(-1);
 	    dv.push_back(NA_REAL);
+	    limit.push_back(NA_REAL);
+	    cens.push_back(0);
 	    idxO.push_back(curIdx);curIdx++;
 	    ndose++;
 	  } else {
@@ -1119,6 +1186,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    amt.push_back(NA_REAL);
 	    ii.push_back(0.0);
 	    dv.push_back(NA_REAL);
+	    limit.push_back(NA_REAL);
+	    cens.push_back(0);
 	    idx.push_back(-1);
 	    idxO.push_back(curIdx);curIdx++;	  
 	  }
@@ -1127,6 +1196,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
     if (!_ini0) warning(idWarn.c_str());
   }
+  if (warnCensNA) warning("Censoring missing DV values do not make sense.");
   std::sort(idxO.begin(),idxO.end(),
 	    [id,time,evid,amt,doseId,keepDosingOnly](int a, int b){
 	      // Bad IDs are pushed to the end to be popped off.
@@ -1199,9 +1269,18 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   } else {
     baseSize = 6;
   }
-  List lst = List(baseSize+covCol.size());
-  std::vector<bool> sub0(baseSize+covCol.size(), true);
-  CharacterVector nme(baseSize+covCol.size());
+  int censAdd = 0;
+  if (censCol != -1) censAdd=1;
+  if (censAdd && censNone) {
+    warning("While censoring is included in dataset, no observations are censored.");
+    censAdd=0;
+  }
+
+  int limitAdd = 0;
+  if (limitCol != -1) limitAdd=1;
+  List lst = List(baseSize+censAdd+limitAdd+covCol.size());
+  std::vector<bool> sub0(baseSize+censAdd+limitAdd+covCol.size(), true);
+  CharacterVector nme(baseSize+censAdd+limitAdd+covCol.size());
   
   lst[0] = IntegerVector(idxO.size()-rmAmt);
   nme[0] = "ID";
@@ -1221,9 +1300,23 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   lst[5] = NumericVector(idxO.size()-rmAmt);
   nme[5] = "DV";
 
+  int cmtAdd = 0;
   if (baseSize == 7){
     lst[6] = IntegerVector(idxO.size()-rmAmt);
     nme[6] = "CMT";
+    cmtAdd=1;
+  }
+
+  if (censAdd){
+    lst[baseSize] = IntegerVector(idxO.size()-rmAmt);
+    nme[baseSize] = "CENS";
+    baseSize++;
+  }
+  
+  if (limitAdd){
+    lst[baseSize] = NumericVector(idxO.size()-rmAmt);
+    nme[baseSize] = "LIMIT";
+    baseSize++;
   }
   
 
@@ -1266,6 +1359,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   std::vector<int> covParPosTV;
   bool cmtFadd = false;
   int jj = idxO.size()-rmAmt;
+  int kk;
   for (i =idxO.size(); i--;){
     if (idxO[i] != -1){
       jj--;
@@ -1293,9 +1387,21 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       nvTmp[jj]=ii[idxO[i]];
       nvTmp = as<NumericVector>(lst[5]);
       nvTmp[jj]=dv[idxO[i]];
-      if (baseSize == 7){
-	ivTmp = as<IntegerVector>(lst[6]);
+      kk = 6;
+      if (cmtAdd){
+	ivTmp = as<IntegerVector>(lst[kk]);
 	ivTmp[jj] = cmtF[idxO[i]];
+	kk++;
+      }
+      if (censAdd){
+	ivTmp = as<IntegerVector>(lst[kk]);
+	ivTmp[jj] = cens[idxO[i]];
+	kk++;
+      }
+      if (limitAdd){
+	nvTmp = as<NumericVector>(lst[kk]);
+	nvTmp[jj] = limit[idxO[i]];
+	kk++;
       }
       // Now add the other items.
       added=false;

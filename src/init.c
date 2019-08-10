@@ -169,6 +169,9 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  double *scale, int *stateIgnore, double *mtime);
 void rxOptionsIniEnsure(int mx);
 
+double getLimit(rx_solving_options_ind* ind, int i);
+int getCens(rx_solving_options_ind* ind, int i);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
@@ -250,6 +253,8 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "ind_solve", (DL_FUNC) ind_solve);
   R_RegisterCCallable("RxODE", "linCmtA", (DL_FUNC) linCmtA);
   R_RegisterCCallable("RxODE", "linCmtB", (DL_FUNC) linCmtB);
+  R_RegisterCCallable("RxODE", "getLimit", (DL_FUNC) getLimit);
+  R_RegisterCCallable("RxODE", "getCens", (DL_FUNC) getCens);
   R_RegisterCCallable("RxODE", "_update_par_ptr", (DL_FUNC) _update_par_ptr);
   R_RegisterCCallable("RxODE","rxRmModelLib", (DL_FUNC) rxRmModelLib);
   R_RegisterCCallable("RxODE","rxGetModelLib", (DL_FUNC) rxGetModelLib);
