@@ -71,6 +71,10 @@ bool rxHasEventNames(CharacterVector &nm){
         rxcDv = i;
       } else if (as<std::string>(nm[i]) == "ii" || as<std::string>(nm[i]) == "II" || as<std::string>(nm[i]) == "Ii"){
 	rxcIi = i;
+      } else if (as<std::string>(nm[i]) == "cens" || as<std::string>(nm[i]) == "CENS" || as<std::string>(nm[i]) == "Cens"){
+	rxcCens = i;
+      } else if (as<std::string>(nm[i]) == "limit" || as<std::string>(nm[i]) == "LIMIT" || as<std::string>(nm[i]) == "Limit"){
+	rxcLimit = i;
       }
     }
   }
@@ -1438,7 +1442,8 @@ void glimitSetup(int n){
 }
 
 extern "C" double getLimit(rx_solving_options_ind* ind, int i){
-  if (_globals.glimitn == 0) return NA_REAL;
+  rx_solve* rx = getRxSolve_();
+  if (rx->limit == 0) return NA_REAL;
   return ind->limit[i];
 }
 
@@ -1452,7 +1457,8 @@ void gcensSetup(int n){
 }
 
 extern "C" int getCens(rx_solving_options_ind* ind, int i){
-  if (_globals.gcensn == 0) return 0;
+  rx_solve* rx = getRxSolve_();
+  if (rx->cens == 0) return NA_REAL;
   return ind->cens[i];
 }
 
@@ -3291,13 +3297,17 @@ SEXP rxSolve_(const RObject &obj,
         std::copy(dv.begin(), dv.end(), &_globals.gdv[0]);
       }
       IntegerVector cens;
+      rx->cens=0;
       if (rxcCens > -1){
-	dv = as<IntegerVector>(dataf[rxcCens]);
+	cens = as<IntegerVector>(dataf[rxcCens]);
         gcensSetup(cens.size());
         std::copy(cens.begin(), cens.end(), &_globals.gcens[0]);
+	rx->cens=1;
       }
       NumericVector limit;
+      rx->limit=0;
       if (rxcLimit > -1){
+	rx->limit=1;
 	limit = as<NumericVector>(dataf[rxcLimit]);
         glimitSetup(limit.size());
         std::copy(limit.begin(), limit.end(), &_globals.glimit[0]);

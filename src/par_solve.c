@@ -1451,11 +1451,12 @@ void rxOptionsIni(){
 }
 
 void rxOptionsFree(){
-  global_iworki = 0;
-  Free(global_iworkp);
+  if (global_iworki != 0) Free(global_iworkp);
 
+
+  if (global_rworki != 0) Free(global_rworkp);
   global_rworki = 0;
-  Free(global_rworkp);
+  global_iworki = 0;
   for (int i = max_inds_global; i--;){
     rx_solving_options_ind *ind = &inds_global[i];
     if (ind->solveSave != NULL) Free(ind->solveSave);

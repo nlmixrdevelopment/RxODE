@@ -160,6 +160,8 @@ typedef struct {
   int nKeep0;
   int nKeepF;
   int istateReset;
+  int cens;
+  int limit;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);
