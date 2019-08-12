@@ -55,6 +55,8 @@ bool rxHasEventNames(CharacterVector &nm){
     rxcId   = -1;
     rxcDv   = -1;
     rxcIi   = -1;
+    rxcLimit = -1;
+    rxcCens = -1;
     rxcLen  = len;
     for (unsigned int i = len; i--;){
       if (as<std::string>(nm[i]) == "evid" || as<std::string>(nm[i]) == "EVID" || as<std::string>(nm[i]) == "Evid"){
