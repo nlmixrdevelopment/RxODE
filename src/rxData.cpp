@@ -1436,7 +1436,7 @@ void glimitSetup(int n){
 }
 
 extern "C" double getLimit(rx_solving_options_ind* ind, int i){
-  if (_globals.glimitn == 0) return R_NegInf;
+  if (_globals.glimitn == 0) return NA_REAL;
   return ind->limit[i];
 }
 
