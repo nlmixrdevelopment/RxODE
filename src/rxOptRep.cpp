@@ -70,7 +70,15 @@ RObject rxOptRep_(RObject input){
   int len = inp.length();
   CharacterVector out(len);
   CharacterVector outn(len);
-  if (len == 1) return inp;
+  if (len == 1) {
+    List ret(2);
+    CharacterVector outn = CharacterVector::create("rx_expr_0");
+    outn.attr("names") = inp;
+    ret[0] = outn;
+    std::string outE = "rx_expr_0~" + as<std::string>(inp[0]) + "\n";
+    ret[1] = CharacterVector::create(outE);
+    return as<RObject>(ret);
+  }
   out[0] = inp[0];
   outn[0] = "rx_expr_0";
   std::string outE = "rx_expr_0~" + as<std::string>(inp[0]) + "\n";
