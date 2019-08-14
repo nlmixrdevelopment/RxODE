@@ -79,6 +79,7 @@ typedef struct {
   double atolSS;
   double rtolSS;
   int linLog;
+  int advanLinCmt;
 } rx_solving_options;
 
 
@@ -137,6 +138,8 @@ typedef struct {
   int err;
   double linCmtT;
   double linCmtB[14];
+  double *linCmtAdvan;
+  int linCmtAdvanSetup;
 } rx_solving_options_ind;
 
 typedef struct {

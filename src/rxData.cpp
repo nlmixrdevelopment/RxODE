@@ -2781,6 +2781,7 @@ SEXP rxSolve_(const RObject &obj,
     rx->istateReset = as<int>(rxControl["istateReset"]);
     op->stiff = method;
     op->linLog=as<int>(rxControl["linLog"]);
+    op->advanLinCmt = as<int>(rxControl["advanLinCmt"]);
     if (method != 2){
       op->cores =1;
     } else {
@@ -3388,6 +3389,8 @@ SEXP rxSolve_(const RObject &obj,
 	  ind->wrongSSDur=0;
 	  ind->err = 0;
 	  ind->linCmtT = NA_REAL;
+	  ind->linCmtAdvan=NULL;
+	  ind->linCmtAdvanSetup=0;
 	  ind->timeReset=1;
           ind->lambda         =1.0;
           ind->yj             = 0;

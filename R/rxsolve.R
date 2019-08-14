@@ -19,12 +19,13 @@ rxControl <- function(scale = NULL,
                       nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
                       nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
                       seed=NULL, nsim=NULL,
-                      minSS=7, maxSS=70000,
+                      minSS=5, maxSS=70000,
                       atolSS=1e-9, rtolSS=1e-9,
                       params=NULL,events=NULL,
                       istateReset=TRUE,
                       subsetNonmem=TRUE,
                       linLog=FALSE,
+                      advanLinCmt=FALSE,
                       maxAtolRtolFactor=0.1,
                       from=NULL,
                       to=NULL,
@@ -151,7 +152,7 @@ rxControl <- function(scale = NULL,
                  atolSS=atolSS[1], rtolSS=rtolSS[1],
                  istateReset=istateReset,
                  subsetNonmem=subsetNonmem,
-                 linLog=linLog, hmaxSd=hmaxSd,
+                 linLog=linLog, advanLinCmt=advanLinCmt, hmaxSd=hmaxSd,
                  maxAtolRtolFactor=maxAtolRtolFactor,
                  from=from,
                  to=to,
@@ -428,7 +429,13 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param linLog Boolean indicating if linear compartment models be
 ##'     calculated more accurately in the log-space (slower) By
-##'     default this is off (\code{FALSE})
+##'     default this is off (\code{FALSE}).  This only applies to
+##'     solving linear compartmental models using the superposition
+##'     principle
+##'
+##' @param advanLinCmt Boolean indicating if linear comparmental
+##'     solutions are solved with ADVAN-style (Abuhelwa 2015)
+##'     solutions instead of superpositioning
 ##'
 ##' @param maxAtolRtolFactor The maximum atol/rtol that FOCEi and
 ##'     other routines may adjust to.  By default 0.1
