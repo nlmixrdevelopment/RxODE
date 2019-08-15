@@ -70,7 +70,7 @@ bool rxHasEventNames(CharacterVector &nm){
     }
   }
   resetCache = true;
-  if (rxcEvid >= 0 && rxcTime >= 0){
+  if (rxcTime >= 0){
     return true;
   } else {
     return false;
