@@ -269,10 +269,14 @@ rxExpandGrid <- function(x, y, type=0L){
                        theta=FALSE){
     .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
                     promoteLinSens=promoteLinSens)
-    if (theta){
-        .thetaVars <- paste0("THETA_", seq(1, .s$..maxTheta), "_")
-    } else {
+    .etaVars <- c()
+    if (theta && exists("..maxTheta", .s)){
+        .etaVars <- paste0("THETA_", seq(1, .s$..maxTheta), "_")
+    } else if (exists("..maxEta", .s)) {
         .etaVars <- paste0("ETA_", seq(1, .s$..maxEta), "_")
+    }
+    if (length(.etaVars) == 0L){
+        stop("Cannot identify pararmeters for senstivity analysis.");
     }
     .stateVars <- rxState(.s)
     .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
@@ -492,7 +496,7 @@ rxExpandGrid <- function(x, y, type=0L){
                       sum.prod=FALSE,
                       optExpression=TRUE,
                       theta=FALSE){
-    .s <- .rxGenEtaS(obj, predfn, pkpars, errfn, init, theta=theta)
+    .s <- .rxGenFun(obj, predfn, pkpars, errfn, init)
     .s$..inner <- NULL
     .s$..outer <- NULL
     .rxFinalizePred(.s, sum.prod, optExpression)
@@ -567,8 +571,16 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
         message("done")
         return(.ret);
     }
-    .eventTheta <- rep(0L,.s$..maxTheta)
-    .eventEta <- rep(0L,.s$..maxEta)
+    if (exists("..maxTheta", .s)){
+        .eventTheta <- rep(0L,.s$..maxTheta)
+    } else {
+        .eventTheta <- integer();
+    }
+    if (exists("..maxEta", .s)){
+        .eventEta <- rep(0L,.s$..maxEta)
+    } else {
+        .eventEta <- integer();
+    }
     for (.v in .s$..eventVars){
         .vars <- rxGetModel(paste0("rx_lhs=", as.character(get(.v, envir=.s))))$params
         for (.v2 in .vars){
