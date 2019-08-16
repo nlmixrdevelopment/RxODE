@@ -478,16 +478,14 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
     rx_solving_options_ind *ind;
     ind = &(rx->subjects[id]);
     rx_solving_options *op = rx->op;
-    if (op->neq > 0){
-      // Update all covariate parameters
-      int k;
-      int ncov = op->ncov;
-      if (op->do_par_cov){
-	for (k = ncov; k--;){
-	  if (op->par_cov[k]){
-	    double *y = ind->cov_ptr + ind->n_all_times*k;
-	    ind->par_ptr[op->par_cov[k]-1] = getValue(idx, y, ind);
-	  }
+    // Update all covariate parameters
+    int k;
+    int ncov = op->ncov;
+    if (op->do_par_cov){
+      for (k = ncov; k--;){
+	if (op->par_cov[k]){
+	  double *y = ind->cov_ptr + ind->n_all_times*k;
+	  ind->par_ptr[op->par_cov[k]-1] = getValue(idx, y, ind);
 	}
       }
     }
@@ -495,24 +493,22 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
     rx_solving_options_ind *ind;
     ind = &(rx->subjects[id]);
     rx_solving_options *op = rx->op;
-    if (op->neq > 0){
-      // Update all covariate parameters
-      int k;
-      int ncov = op->ncov;
-      if (op->do_par_cov){
-	for (k = ncov; k--;){
-	  if (op->par_cov[k]){
-	    double *par_ptr = ind->par_ptr;
-	    double *all_times = ind->all_times;
-	    double *y = ind->cov_ptr + ind->n_all_times*k;
-	    if (idx > 0 && idx < ind->n_all_times && t == all_times[idx]){
-	      par_ptr[op->par_cov[k]-1] = getValue(idx, y, ind);
-	    } else {
-	      // Use the same methodology as approxfun.
-	      ind->ylow = getValue(0, y, ind);/* cov_ptr[ind->n_all_times*k]; */
-	      ind->yhigh = getValue(ind->n_all_times-1, y, ind);/* cov_ptr[ind->n_all_times*k+ind->n_all_times-1]; */
-	      par_ptr[op->par_cov[k]-1] = rx_approxP(t, y, ind->n_all_times, op, ind);
-	    }
+    // Update all covariate parameters
+    int k;
+    int ncov = op->ncov;
+    if (op->do_par_cov){
+      for (k = ncov; k--;){
+	if (op->par_cov[k]){
+	  double *par_ptr = ind->par_ptr;
+	  double *all_times = ind->all_times;
+	  double *y = ind->cov_ptr + ind->n_all_times*k;
+	  if (idx > 0 && idx < ind->n_all_times && t == all_times[idx]){
+	    par_ptr[op->par_cov[k]-1] = getValue(idx, y, ind);
+	  } else {
+	    // Use the same methodology as approxfun.
+	    ind->ylow = getValue(0, y, ind);/* cov_ptr[ind->n_all_times*k]; */
+	    ind->yhigh = getValue(ind->n_all_times-1, y, ind);/* cov_ptr[ind->n_all_times*k+ind->n_all_times-1]; */
+	    par_ptr[op->par_cov[k]-1] = rx_approxP(t, y, ind->n_all_times, op, ind);
 	  }
 	}
       }

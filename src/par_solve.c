@@ -1870,21 +1870,29 @@ void ind_solve(rx_solve *rx, unsigned int cid,
       ind_dop(rx, cid, c_dydt, u_inis);
       break;
     }
+  } else {
+    assignFuns();
   }
 }
 
 inline void par_solve(rx_solve *rx){
   rx_solving_options *op = &op_global;
   if (op->neq != 0){
-    if (op->stiff == 2){
+    switch(op->stiff){
+    case 2:
       par_liblsoda(rx);
-    } else if (op->stiff == 1){
+      break;
+    case 1:
       // lsoda
       par_lsoda(rx);
-    } else if (op->stiff == 0){
+      break;
+    case 0:
       // dop
       par_dop(rx);
+      break;
     }
+  } else {
+    assignFuns();
   }
 }
 
