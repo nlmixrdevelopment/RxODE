@@ -549,6 +549,15 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     } else {
       stop("Event id (evid) needs to be an integer");
     }
+  } else if (mdvCol != -1){
+    evidCol = mdvCol;
+    mdvCol=-1;
+    if (rxIs(inData[evidCol], "integer") || rxIs(inData[evidCol], "numeric") ||
+	rxIs(inData[evidCol], "logical")){
+      inEvid = as<IntegerVector>(inData[evidCol]);
+    } else {
+      stop("Missing DV (mdv) needs to be an integer");
+    }
   } else if (methodCol != -1){
     inEvid = convertMethod(inData[methodCol]);
   }
