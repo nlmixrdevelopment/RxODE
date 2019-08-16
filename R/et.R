@@ -171,9 +171,6 @@ et <- function(x, ..., envir=parent.frame()){
     assignInMyNamespace(".pipelineNStud", nStud)
 }
 
-
-
-
 ##' @rdname et
 ##' @export
 et.RxODE <- function(x,...,envir=parent.frame()){

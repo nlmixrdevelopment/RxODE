@@ -233,6 +233,7 @@ bool rxSetIni0(bool ini0 = true){
 }
 
 extern void setFkeep(List keep);
+IntegerVector convertMethod(RObject method);
 
 //' Event translation for RxODE
 //'
@@ -314,7 +315,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
     dvCol=-1, ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol=-1, j,
-    mdvCol=-1, dvidCol=-1;
+    mdvCol=-1, dvidCol=-1, methodCol = -1;
   std::string tmpS;
   
   CharacterVector pars = as<CharacterVector>(mv["params"]);
@@ -335,8 +336,14 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     if (tmpS == "id") idCol=i;
     else if (tmpS == "evid") evidCol=i;
     else if (tmpS == "time") timeCol=i;
-    else if (tmpS == "amt") amtCol=i;
-    else if (tmpS == "cmt") cmtCol=i;
+    else if (tmpS == "amt" || tmpS == "value"){
+      if (amtCol != -1) stop("Can only specify either 'amt' or 'value'");
+      amtCol=i;
+    }
+    else if (tmpS == "cmt" || tmpS == "ytype" || tmpS == "state" || tmpS == "var"){
+      if (cmtCol != -1) stop("Can only specify either 'cmt', 'ytype', 'state' or 'var'");
+      cmtCol=i;
+    }
     else if (tmpS == "dv") dvCol=i;
     else if (tmpS == "ss")   ssCol=i;
     else if (tmpS == "rate") rateCol=i;
@@ -345,6 +352,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     else if (tmpS == "ii")   iiCol=i;
     else if (tmpS == "mdv") mdvCol=i;
     else if (tmpS == "dvid") dvidCol=i;
+    else if (tmpS == "method") methodCol=i;
     for (j = keep.size(); j--;){
       if (as<std::string>(dName[i]) == as<std::string>(keep[j])){
 	if (tmpS == "evid") stop("Cannot keep 'evid'; try 'addDosing'");
@@ -416,7 +424,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   // EVID: ## # ## ##
   //       c2 I c1 xx
   // c2 = Compartment numbers over 100
-  //  I = Infusion Flag
+  //  I = Infusion Flag/ Special event flag
   //      0 = no Infusion
   //      1 = Infusion, AMT=rate (mg/hr for instance)
   //      2 = Infusion, duration is fixed
@@ -424,8 +432,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   //      8 = Duration is modeled, AMT=dose; Rate = AMT/(Modeled Duration) NONMEM RATE=-2
   //      7 = Turn off modeled rate compartment
   //      6 = Turn off modeled duration
+  //      4 = Replacement event
+  //      5 = Multiplication event
   // c1 = Compartment numbers below 99
   // xx = 1, regular event
+  // xx = 9, Hidden Zero event to make sure that X(0) happens at time 0
   // xx = 10, steady state event SS=1
   // xx = 20, steady state event + last observed info.
   // xx = 30, Turn off compartment
@@ -538,6 +549,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     } else {
       stop("Event id (evid) needs to be an integer");
     }
+  } else if (methodCol != -1){
+    inEvid = convertMethod(inData[methodCol]);
   }
   IntegerVector inMdv;
   if (mdvCol != -1){
@@ -982,6 +995,20 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (rateI == 0) allInf=false;
       else allBolus=false;
       break;
+    case 5: // replace
+      if (rateI != 0) stop("Cannot have an infusion event with a replacement event");
+      rateI=4;
+      cevid = cmt100*100000+rateI*10000+cmt99*100+flg;
+      allInf=false;
+      allBolus=false;
+      break;
+    case 6: // multiply
+      if (rateI != 0) stop("Cannot have an infusion event with a multiplication event");
+      rateI=5;
+      cevid = cmt100*100000+rateI*10000+cmt99*100+flg;
+      allInf=false;
+      allBolus=false;
+      break;
     default:
       if (cevid > 10 && cevid < 99){
 	continue;
@@ -1018,7 +1045,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       dv.push_back(NA_REAL);
       idxO.push_back(curIdx);curIdx++;
       ndose++;
-      if (rateI > 2){
+      if (rateI > 2 && rateI != 4 && rateI != 5){
 	amt.push_back(camt);
 	// turn off
 	id.push_back(cid);
@@ -1062,7 +1089,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  idxO.push_back(curIdx);curIdx++;
 	  ndose++;
 	
-	  if (rateI > 2){
+	  if (rateI > 2 && rateI != 4 && rateI != 5){
 	    amt.push_back(camt);
 	    // turn off
 	    id.push_back(cid);

@@ -816,6 +816,18 @@ int handle_evid(int evid, int neq,
 	  }
 	}
 	break;
+      case 4: // replace
+	ind->on[cmt] = 1;
+	ind->podo = 0;
+	ind->tlast = xout;
+	yp[cmt] = AMT(id, cmt, dose[ind->ixds], xout);     //dosing before obs
+	break;
+      case 5: //multiply
+	ind->on[cmt] = 1;
+	ind->podo = 0;
+	ind->tlast = xout;
+	yp[cmt] *= AMT(id, cmt, dose[ind->ixds], xout);     //dosing before obs
+	break;
       case 0:
 	if (do_transit_abs) {
 	  ind->on[cmt] = 1;
@@ -2213,7 +2225,13 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 		  dfi[ii] = -2; // evid
 		} else {
 		  if (curAmt > 0) {
-		    dfi[ii] = 1; // evid
+		    if (whI == 4){
+		      dfi[ii] = 5;
+		    } else if (whI == 5){
+		      dfi[ii] = 6;
+		    } else {
+		      dfi[ii] = 1; // evid
+		    }
 		  } else {
 		    if (whI == 1){
 		      dullRate=0;
@@ -2221,6 +2239,10 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 		    } else if (whI == 2) {
 		      dullDur=0;
 		      dfi[ii] = -20; // evid
+		    } else if (whI == 4){
+		      dfi[ii] = 5;
+		    } else if (whI == 5){
+		      dfi[ii] = 6;
 		    } else {
 		      dfi[ii] = 1;
 		    }
