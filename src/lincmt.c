@@ -726,18 +726,18 @@ static inline void realizeBolus(double *Alast, // Last amounts
 	double b = E1*E2+E3*(E1+E2)-k12*k21-k13*k31;
 	double c = E1*E2*E3-E3*k12*k21-E2*k13*k31;
 
-	double m = (3*b - a*a)/3;
-	double n = (2*a*a*a - 9*a*b + 27*c)/27;
-	double Q = (n*n)/4 + (m*m*m)/27;
+	double m = (3.*b - a*a)/3.;
+	double n = (2.*a*a*a - 9.*a*b + 27.*c)/27.;
+	double Q = (n*n)/4. + (m*m*m)/27.;
 
 	double alpha = sqrt(-1*Q);
-	double beta = -1*n/2;
+	double beta = -1*n/2.;
 	double gamma = sqrt(beta*beta+alpha*alpha);
 	double theta = atan2(alpha,beta);
 
-	double g13 = pow(gamma, 1/3);
-	double c3 = cos(theta/3);
-	double s3 = sqrt(3)*sin(theta/3);
+	double g13 = pow(gamma, 1./3.);
+	double c3 = cos(theta/3.);
+	double s3 = sqrt(3.)*sin(theta/3.);
 	double lambda1 = a/3 + g13*(c3 + s3);
 	double lambda2 = a/3 + g13*(c3 - s3);
 	double lambda3 = a/3 -(2*g13*c3);
@@ -826,21 +826,21 @@ static inline void realizeBolus(double *Alast, // Last amounts
 	double b = E2*E3+E4*(E2+E3)-k23*k32-k24*k42;
 	double c = E2*E3*E4-E4*k23*k32-E3*k24*k42;
 
-	double m = (3*b - a*a)/3;
-	double n = (2*a*a*a - 9*a*b + 27*c)/27;
-	double Q = (n*n)/4 + (m*m*m)/27;
+	double m = (3.*b - a*a)/3.;
+	double n = (2.*a*a*a - 9.*a*b + 27.*c)/27.;
+	double Q = (n*n)/4. + (m*m*m)/27.;
 
 	double alpha = sqrt(-1*Q);
 	double beta = -1*n/2;
 	double gamma = sqrt(beta*beta+alpha*alpha);
 	double theta = atan2(alpha,beta);
 
-	double g13 = pow(gamma, 1/3);
-	double c3 = cos(theta/3);
-	double s3 = sqrt(3)*sin(theta/3);
-	double lambda1 = a/3 + g13*(c3 + s3);
-	double lambda2 = a/3 + g13*(c3 - s3);
-	double lambda3 = a/3 -(2*g13*c3);
+	double g13 = pow(gamma, 1./3.);
+	double c3 = cos(theta/3.);
+	double s3 = sqrt(3.)*sin(theta/3.);
+	double lambda1 = a/3. + g13*(c3 + s3);
+	double lambda2 = a/3. + g13*(c3 - s3);
+	double lambda3 = a/3. -(2.*g13*c3);
 	
 	double B = Alast[2]*k32+Alast[3]*k42;
 	double C = E4*Alast[2]*k32+E3*Alast[3]*k42;
@@ -906,18 +906,18 @@ static inline void realizeBolus(double *Alast, // Last amounts
 	double b = E1*E2+E3*(E1+E2)-k12*k21-k13*k31;
 	double c = E1*E2*E3-E3*k12*k21-E2*k13*k31;
 	
-	double m = (3*b - a*a)/3;
-	double n = (2*a*a*a - 9*a*b + 27*c)/27;
-	double Q = (n*n)/4 + (m*m*m)/27;
+	double m = (3.*b - a*a)/3.;
+	double n = (2.*a*a*a - 9.*a*b + 27.*c)/27.;
+	double Q = (n*n)/4. + (m*m*m)/27.;
 
 	double alpha = sqrt(-1*Q);
-	double beta = -1*n/2;
+	double beta = -1*n/2.;
 	double gamma = sqrt(beta*beta+alpha*alpha);
 	double theta = atan2(alpha,beta);
 
-	double g13 = pow(gamma, 1/3);
-	double c3 = cos(theta/3);
-	double s3 = sqrt(3)*sin(theta/3);
+	double g13 = pow(gamma, 1./3.);
+	double c3 = cos(theta/3.);
+	double s3 = sqrt(3)*sin(theta/3.);
 	double lambda1 = a/3 + g13*(c3 + s3);
 	double lambda2 = a/3 + g13*(c3 - s3);
 	double lambda3 = a/3 -(2*g13*c3);
@@ -1237,7 +1237,7 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	/* setLinCmt(-100, 0, 0, 1, 1, 0, 0); */
 	/* return Alast[oral0]/rx_v; */
       }
-      if (i < ind->n_all_times){
+      if (i+1 < ind->n_all_times){
 	xout = getTime(ind->ix[i+1], ind);
 	if (xout > t){
 	  xout = t;
