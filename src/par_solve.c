@@ -2555,7 +2555,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(ikeepNames, i));
     jj++;
   }
-  SEXP fkeepNames = PROTECT(get_ikeepn()); pro++;
+  SEXP fkeepNames = PROTECT(get_fkeepn()); pro++;
   for (i = 0; i < nkeep; i++){
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(fkeepNames, i));
     jj++;

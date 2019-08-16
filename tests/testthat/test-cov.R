@@ -344,9 +344,9 @@ rxPermissive({
             d/dt(matt) = 0
         })
 
-        x1 <- rxSolve(mod, dfadvan, keep="CRCL")
+        x1 <- rxSolve(mod, dfadvan, keep="CLCR")
 
-        x2 <- rxSolve(mod2, dfadvan, keep="CRCL")
+        x2 <- expect_warning(rxSolve(mod2, dfadvan, keep="CRCL"))
 
         expect_equal(x1$CL, x2$CL)
     })

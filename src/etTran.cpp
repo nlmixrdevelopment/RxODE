@@ -325,6 +325,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   bool allBolus = true;
   bool allInf = true;
   int mxCmt = 0;
+  std::vector<int> keepI(keep.size(), 0);
+
   for (i = lName.size(); i--;){
     tmpS0= as<std::string>(lName[i]);
     tmpS = as<std::string>(lName[i]);
@@ -347,6 +349,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (as<std::string>(dName[i]) == as<std::string>(keep[j])){
 	if (tmpS == "evid") stop("Cannot keep 'evid'; try 'addDosing'");
 	keepCol.push_back(i);
+	keepI[j] = 1;
 	break;
       }
     }
@@ -373,6 +376,15 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	break;
       }
     }
+  }
+  if ((int)(keepCol.size())!=(int)keep.size()){
+    std::string wKeep = "Cannot keep missing columns:";
+    for (j = 0; j < keep.size(); j++){
+      if (keepI[j] == 0){
+	wKeep += " " + as<std::string>(keep[j]);
+      }
+    }
+    warning(wKeep);
   }
   List covUnits(covCol.size());
   CharacterVector covUnitsN(covCol.size());
