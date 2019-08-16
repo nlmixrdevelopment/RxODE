@@ -37,22 +37,29 @@ In general, RxODE event tables follow NONMEM convention with the exceptions:
       bioavailability will change the infusion duration since
       `rate`/`amt` are fixed in the input data.
  - Some infrequent NONMEM columns are not supported: `pcmt`, `call`.
+ - Additional events are supported:
+   - `evid=5` or replace event; This replaces the value of a
+       compartment with the value specified in the `amt` column. This
+       is equivalent to `deSolve`=`replace`.
+   - `evid=6` or multiply event; This multiplies the value in the
+     compartment with the value specified by the `amt` column.  This
+     is equivalent to `deSolve`=`multiply`.
  
  Here are the legal entries to a data table:
  
-| Data Item | Meaning               | Notes                                                              |
-|-----------|-----------------------|--------------------------------------------------------------------|
-| id        | Individual identifier | Must be an integer > 0, sorted                                     |
-| time      | Individual time       | For each ID must be ascending and non-negative                     |
-| amt       | dose amount           | Positive for doses zero/NA for observations                        |
-| rate      | infusion rate         | When specified the infusion duration will be dur=amt/rate          |
-|           |                       | rate = -1, rate modeled; rate = -2, duration modeled               |
-| dur       | infusion duration     | When specified the infusion rate will be rate = amt/dur            |
-| evid      | event ID              | 0=Observation; 1=Dose; 2=Other; 3=Reset; 4=Reset+Dose              |
-| cmt       | Compartment           | Represents compartment #/name for dose/observation                 |
-| ss        | Steady State Flag     | 0 = non-steady-state; 1=steady state; 2=steady state +prior states |
-| ii        | Inter-dose Interval   | Time between doses.                                                |
-| addl      | # of additional doses | Number of doses like the current dose.                             |
+| Data Item | Meaning               | Notes                                                                        |
+|-----------|-----------------------|------------------------------------------------------------------------------|
+| id        | Individual identifier | Must be an integer > 0, sorted                                               |
+| time      | Individual time       | For each ID must be ascending and non-negative                               |
+| amt       | dose amount           | Positive for doses zero/NA for observations                                  |
+| rate      | infusion rate         | When specified the infusion duration will be dur=amt/rate                    |
+|           |                       | rate = -1, rate modeled; rate = -2, duration modeled                         |
+| dur       | infusion duration     | When specified the infusion rate will be rate = amt/dur                      |
+| evid      | event ID              | 0=Observation; 1=Dose; 2=Other; 3=Reset; 4=Reset+Dose; 5=Replace; 6=Multiply |
+| cmt       | Compartment           | Represents compartment #/name for dose/observation                           |
+| ss        | Steady State Flag     | 0 = non-steady-state; 1=steady state; 2=steady state +prior states           |
+| ii        | Inter-dose Interval   | Time between doses.                                                          |
+| addl      | # of additional doses | Number of doses like the current dose.                                       |
 
 
 Other notes:
@@ -61,6 +68,8 @@ Other notes:
    document) or the NONMEM-style evid described above.
  - NONMEM's `DV` is not required; RxODE is a ODE solving framework.
  - NONMEM's `MDV` is not required, since it is captured in `EVID`
+ - Instead of NONMEM-compatible data, it can accept `deSolve` compatible data-frames
+
  
 When returning the RxODE solved data-set there are a few additional
 event ids (EVID):
@@ -730,7 +739,7 @@ Monolix and nlmixr, described above.
 Classically, RxODE supported event coding in a single event id `evid` described in the following table.
 
 
-| 100+ cmt | Infusion Flag                 | <99 Cmt  | SS flag & Turning of Compartment                          |
+| 100+ cmt | Infusion/Event Flag           | <99 Cmt  | SS flag & Turning of Compartment                          |
 |----------|-------------------------------|----------|-----------------------------------------------------------|
 | 100+ cmt | 0 = bolus dose                | < 99 cmt | 1 = dose                                                  |
 |          | 1 = infusion (rate)           |          | 10 = Steady state 1 (equivalent to SS=1)                  |
@@ -739,13 +748,18 @@ Classically, RxODE supported event coding in a single event id `evid` described 
 |          | 7 = turn off modeled rate     |          |                                                           |
 |          | 8 = turn on modeled duration  |          |                                                           |
 |          | 9 = turn on modeled rate      |          |                                                           |
+|          | 4 = replace event             |          |                                                           |
+|          | 5 = multiply event            |          |                                                           |
 
 The classic EVID concatenate the numbers in the above table, so an
 infusion would to compartment 1 would be `10101` and an infusion to compartment 199 would be `119901`.
 
 EVID = 0 (observations), EVID=2 (other type event) and EVID=3 are all
-supported.  EVID 10-99 represents modeled time interventions, similar
-to NONMEM's MTIME. This along with amount (amt) and time columns specify the events in the ODE system.
+supported.  Internally an EVID=9 is a non-observation event and makes
+sure the system is initialized to zero; EVID=9 should not be manually
+set. EVID 10-99 represents modeled time interventions, similar to
+NONMEM's MTIME. This along with amount (amt) and time columns specify
+the events in the ODE system.
 
 For infusions specified with EVIDs > 100 the amt column represents the rate value.
 

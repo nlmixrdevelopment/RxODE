@@ -792,11 +792,81 @@ CharacterVector deparseUnit(NumericVector nv){
   }
 }
 
+IntegerVector convertMethod(RObject method){
+  IntegerVector oldEvid;
+  if (rxIs(method, "character")){
+    CharacterVector tmp = as<CharacterVector>(method);
+    oldEvid = IntegerVector(tmp.size());
+    for (int jj = tmp.size(); jj--;){
+      std::string cur = (as<std::string>(tmp[jj])).substr(0,1);
+      // (1 = replace, 2 = add, 3 = multiply)
+      if (cur == "A" || cur == "a" || cur == "2"){
+	oldEvid[jj] = 1;
+      } else if (cur == "m" || cur == "M" || cur == "3"){
+	oldEvid[jj] = 6;
+      } else if (cur == "r" || cur == "R" || cur == "1"){
+	oldEvid[jj] = 5;
+      } else {
+	stop("Unknown method: '%s'", (as<std::string>(tmp[jj])).c_str());
+      }
+    }
+  } else if (rxIs(method, "factor")){
+    IntegerVector tmp = as<IntegerVector>(method);
+    oldEvid = IntegerVector(tmp.size());
+    CharacterVector lvl = tmp.attr("levels");
+    IntegerVector trans(lvl.size());
+    for (int jj = lvl.size(); jj--;){
+      std::string cur = (as<std::string>(lvl[jj])).substr(0,1);
+      if (cur == "A" || cur == "a" || cur == "2"){
+	trans[jj] = 1;
+      } else if (cur == "m" || cur == "M" || cur == "3"){
+	trans[jj] = 6;
+      } else if (cur == "r" || cur == "R" || cur == "1"){
+	trans[jj] = 5;
+      } else {
+	stop("Unknown method: '%s'", (as<std::string>(lvl[jj])).c_str());
+      }
+    }
+    for (int jj = tmp.size(); jj--;){
+      oldEvid[jj] = trans[tmp[jj]-1];
+    }
+  } else if (rxIs(method, "numeric") || rxIs(method, "integer")){
+    IntegerVector tmp = as<IntegerVector>(method);
+    oldEvid = IntegerVector(tmp.size());
+    for (int jj = tmp.size(); jj--;){
+      // (1 = replace, 2 = add, 3 = multiply)
+      if (tmp[jj] == 1.){
+	oldEvid[jj] = 5;
+      } else if (tmp[jj] == 2.){
+	oldEvid[jj] = 1;
+      } else if (tmp[jj] == 3.){
+	oldEvid[jj] = 6;
+      }
+    }
+  } else if (rxIs(method, "integer")){
+    IntegerVector tmp = as<IntegerVector>(method);
+    oldEvid = IntegerVector(tmp.size());
+    for (int jj = tmp.size(); jj--;){
+      // (1 = replace, 2 = add, 3 = multiply)
+      if (tmp[jj] == 1.){
+	oldEvid[jj] = 5;
+      } else if (tmp[jj] == 2.){
+	oldEvid[jj] = 1;
+      } else if (tmp[jj] == 3.){
+	oldEvid[jj] = 6;
+      }
+    }
+  }
+  return oldEvid;
+}
+
 List etImportEventTable(List inData){
-  CharacterVector lName = as<CharacterVector>(inData.attr("names"));
+  CharacterVector lName0 = as<CharacterVector>(inData.attr("names"));
+  CharacterVector lName = clone(lName0);
+  //var=cmt time value=amt method->evid from deSolve
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
     ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol = -1, j,
-    mdvCol =-1;
+    mdvCol =-1, methodCol=-1;
   std::string tmpS;
   for (i = lName.size(); i--;){
     tmpS = as<std::string>(lName[i]);
@@ -805,14 +875,24 @@ List etImportEventTable(List inData){
     if (tmpS == "id") idCol=i;
     else if (tmpS == "evid") evidCol=i;
     else if (tmpS == "time") timeCol=i;
-    else if (tmpS == "amt") amtCol=i;
-    else if (tmpS == "cmt" || tmpS == "ytype" || tmpS == "state") cmtCol=i;
+    else if (tmpS == "amt" || tmpS == "value") {
+      if (amtCol != -1) stop("Can only specify either 'amt' or 'value'");
+      amtCol=i;
+    }
+    else if (tmpS == "cmt" || tmpS == "ytype" || tmpS == "state" || tmpS == "var"){
+      if (cmtCol != -1) stop("Can only specify either 'cmt', 'ytype', 'state' or 'var'");
+      cmtCol=i;
+    }
     else if (tmpS == "ss")   ssCol=i;
     else if (tmpS == "rate") rateCol=i;
     else if (tmpS == "addl") addlCol=i;
     else if (tmpS == "ii")   iiCol=i;
-    else if (tmpS == "dur" || tmpS == "duration") durCol=i;
+    else if (tmpS == "dur" || tmpS == "duration") {
+      if (durCol !=-1) stop("Can only specify either 'duration' or 'dur'");
+      durCol=i;
+    }
     else if (tmpS == "mdv") mdvCol=i;
+    else if (tmpS == "method") methodCol=i;
   }
   NumericVector oldTime;
   if (timeCol == -1){
@@ -825,12 +905,23 @@ List etImportEventTable(List inData){
     if (mdvCol != -1){
       evidCol = mdvCol;
       oldEvid=as<IntegerVector>(inData[evidCol]);
+      if (methodCol != -1){
+	warning("Using 'mdv' instead of 'method'");
+      }
+    } else if (methodCol != -1){
+      oldEvid = convertMethod(inData[methodCol]);
     } else {
       oldEvid = IntegerVector(oldTime.size());
       std::fill(oldEvid.begin(), oldEvid.end(), 0);
     }
-  } else  {
-      oldEvid=as<IntegerVector>(inData[evidCol]);
+  } else {
+    if (mdvCol != -1){
+      warning("Using 'evid' instead of 'mdv'");
+    }
+    if (methodCol != -1){
+      warning("Using 'evid' instead of 'method'");
+    }
+    oldEvid=as<IntegerVector>(inData[evidCol]);
   }
   std::vector<int> evid;
   
@@ -915,7 +1006,10 @@ List etImportEventTable(List inData){
   if (cmtCol == -1){
     oldCmt = IntegerVector(oldEvid.size(), 0);
   } else {
-    if (rxIs(inData[cmtCol], "integer") || rxIs(inData[cmtCol], "numeric")){
+    if (rxIs(inData[cmtCol], "factor")){
+      oldCmtC = as<CharacterVector>(inData[cmtCol]);
+      cmtC=true;
+    } else if (rxIs(inData[cmtCol], "integer") || rxIs(inData[cmtCol], "numeric")){
       oldCmt = as<IntegerVector>(inData[cmtCol]);
     } else if (rxIs(inData[cmtCol], "character")){
       oldCmtC = as<CharacterVector>(inData[cmtCol]);
@@ -973,7 +1067,7 @@ List etImportEventTable(List inData){
 	ss.push_back(NA_INTEGER);
 	nobs++;
       }
-    } else if (oldEvid[i] <= 4){
+    } else if (oldEvid[i] <= 6){
       id.push_back(oldId[i]);
       if (std::find(uIds.begin(), uIds.end(), oldId[i]) == uIds.end()){
 	uIds.push_back(oldId[i]);
@@ -986,7 +1080,9 @@ List etImportEventTable(List inData){
 	if (oldCmt[i] > 1) show["cmt"] = true;
       }
       amt.push_back(oldAmt[i]);
+      if (oldEvid[i] >= 5 && oldRate[i] != 0) stop("replacement/multiplication events cannot be combined with infusions");
       rate.push_back(oldRate[i]);
+      if (oldEvid[i] >= 5 && oldDur[i] != 0) stop("replacement/multiplication events cannot be combined with infusions");
       dur.push_back(oldDur[i]);
       if (oldRate[i] > 0) show["rate"] = true;
       if (oldDur[i] > 0) show["dur"] = true;
@@ -2640,6 +2736,9 @@ RObject et_(List input, List et__){
     }
   }
   if (doRet) return etUpdateObj(as<List>(curEt),doUpdateObj, inputSolve);
+  if (input.size() == 1 && rxIs(input[0], "data.frame")){
+    return etImportEventTable(as<List>(input[0]));
+  }
   stop("Cannot figure out what type of EventTable you are trying to create.");
   // Should never get here...
   List ret(0);

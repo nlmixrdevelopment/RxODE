@@ -302,6 +302,56 @@ rxPermissive({
 
     }
     ## devtools::install();library(RxODE);rxTest("cov")
+
+    context("time-varying covariates work with ODEs")
+
+    test_that("time varying covariates lhs", {
+
+        dfadvan <- structure(list(ID = c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+                                         1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+                                         2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L,
+                                         2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L),
+                                  TIME = c(0L, 1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L, 12L, 13L, 14L, 15L,
+                                           16L, 17L, 18L, 19L, 20L, 21L, 22L, 23L, 24L, 0L, 1L, 2L, 3L,
+                                           4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L, 12L, 13L, 14L, 15L, 16L,
+                                           17L, 18L, 19L, 20L, 21L, 22L, 23L, 24L), AMT = c(100L, 0L, 0L,
+                                                                                            0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L, 0L,
+                                                                                            0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L, 0L, 0L, 0L,
+                                                                                            0L, 0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+                                                                                            0L, 0L, 0L, 0L), MDV = c(1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+                                                                                                                     0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+                                                                                                                     0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L,
+                                                                                                                     0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L), CLCR = c(120L, 120L,
+                                                                                                                                                                           120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L,
+                                                                                                                                                                           120L, 120L, 120L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L,
+                                                                                                                                                                           30L, 30L, 30L, 30L, 30L, 30L, 120L, 120L, 120L, 120L, 120L, 120L,
+                                                                                                                                                                           120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L,
+                                                                                                                                                                           120L, 120L, 120L, 120L)),
+                             row.names = c(NA, -52L), class = "data.frame")
+
+        mod <- RxODE({
+            CLpop <- 2       # clearance
+            Vpop  <- 10      # central volume of distribution
+            CL <- CLpop*(CLCR/100)
+            V  <- Vpop
+        })
+
+        mod2 <- RxODE({
+            CLpop <- 2       # clearance
+            Vpop  <- 10      # central volume of distribution
+            CL <- CLpop*(CLCR/100)
+            V  <- Vpop
+            d/dt(matt) = 0
+        })
+
+        x1 <- rxSolve(mod, dfadvan, keep="CLCR")
+
+        x2 <- expect_warning(rxSolve(mod2, dfadvan, keep="CRCL"))
+
+        expect_equal(x1$CL, x2$CL)
+    })
+
     rxClean()
+
 
 }, silent=TRUE)
