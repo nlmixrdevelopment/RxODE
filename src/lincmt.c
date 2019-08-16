@@ -816,12 +816,11 @@ static inline void realizeBolus(double *Alast, // Last amounts
       } else if (ncmt == 3){
 	double k30 = 0;
 	double k40 = 0;
-	double k23 = k12;
-	double k32 = k21;
-	double k24 = k13;
-	double k42 = k31;
-	double k20 = k10;
-
+#define k23 k12
+#define k32 k21
+#define k24 k13
+#define k42 k31
+#define k20 k10
 	double E2 = k20+k23+k24;
 	double E3 = k32+k30;
 	double E4 = k42+k40;
@@ -876,6 +875,11 @@ static inline void realizeBolus(double *Alast, // Last amounts
 	  Alast[3] = A4term1+A4term2+A4term3;  //Amount in the second-peripheral compartment
 	  Alast[0] = Alast1;
 	}
+#undef k23 
+#undef k32 
+#undef k24
+#undef k42 
+#undef k20
       }
     } else {
       // Bolus dose without an infusion
@@ -997,6 +1001,18 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
       rx_k13 = p4;
       rx_k31 = p5;
       break;
+    case 11:
+      // FIXME -- add warning
+      return linCmtAA(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_ka, d_tlag, d_tlag2,  d_F,  d_F2, d_rate, d_dur);
+      /* REprintf("V, alpha, beta, k21 are not supported with ADVAN routines"); */
+      /* return NA_REAL; */
+      break;
+    case 10:
+      // FIXME -- add warning
+      return linCmtAA(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_ka, d_tlag, d_tlag2,  d_F,  d_F2, d_rate, d_dur);
+      break;
     default:
       REprintf("invalid trans (3 cmt trans %d).\n", trans);
       return NA_REAL;
@@ -1033,6 +1049,18 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
       rx_k21 = (p3*p2+p1)/(p3+1);
       rx_k = (p1*p2)/rx_k21;
       rx_k12 = p1+p2 - rx_k21 - rx_k;
+      break;
+    case 11: // A2 V, alpha, beta, k21
+      // FIXME -- add warning
+      return linCmtAA(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_ka, d_tlag, d_tlag2,  d_F,  d_F2, d_rate, d_dur);
+      /* REprintf("V, alpha, beta, k21 are not supported with ADVAN routines"); */
+      /* return NA_REAL; */
+      break;
+    case 10: // A, alpha, B, beta
+      // FIXME -- add warning
+      return linCmtAA(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_ka, d_tlag, d_tlag2,  d_F,  d_F2, d_rate, d_dur);
       break;
     default:
       REprintf("invalid trans (2 cmt trans %d).\n", trans);
