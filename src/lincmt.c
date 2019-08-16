@@ -1155,6 +1155,8 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	case 9: // modeled rate.
 	case 8: // modeled duration.
 	  // Rate already calculated and saved in the next dose record
+	  doObs;
+	  tlast=xout;
 	  Alast[ncmt+oral0]  -= ind->dose[ind->ixds+1];
 	  /* if (wh0 == 20 && AMT(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){ */
 	  /*   if (!(ind->err & 1048576)){ */
@@ -1166,13 +1168,21 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  break;
 	case 7: // End modeled rate
 	case 6: // end modeled duration
+	  doObs;
+	  tlast=xout;
 	  Alast[ncmt+oral0] += ind->dose[ind->ixds];
 	  break;
 	case 2:
 	  // In this case bio-availability changes the rate, but the duration remains constant.
 	  // rate = amt/dur
+	  doObs;
+	  tlast=xout;
 	  Alast[ncmt+oral0] += ind->dose[ind->ixds]*F[cmtOff];
 	  break;
+	case 1:
+	  doObs;
+	  tlast=xout;
+	  Alast[ncmt+oral0] += ind->dose[ind->ixds];
 	}
 	if (wh0 == 10 || wh0 == 20) {
 	  if (whI == 0){ // Oral/IV dose
@@ -1225,8 +1235,10 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    }
 	  }
 	} else {
-	  doDose;
-	  tlast = xout;
+	  if (whI == 0){
+	    doDose;
+	    tlast = xout;
+	  }
 	}
       }
       if (xout == t){
