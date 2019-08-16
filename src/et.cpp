@@ -793,7 +793,8 @@ CharacterVector deparseUnit(NumericVector nv){
 }
 
 List etImportEventTable(List inData){
-  CharacterVector lName = as<CharacterVector>(inData.attr("names"));
+  CharacterVector lName0 = as<CharacterVector>(inData.attr("names"));
+  CharacterVector lName = clone(lName0);
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
     ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol = -1, j,
     mdvCol =-1;
