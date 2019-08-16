@@ -795,7 +795,8 @@ CharacterVector deparseUnit(NumericVector nv){
 List etImportEventTable(List inData){
   CharacterVector lName = as<CharacterVector>(inData.attr("names"));
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
-    ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol = -1, j;
+    ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol = -1, j,
+    mdvCol =-1;
   std::string tmpS;
   for (i = lName.size(); i--;){
     tmpS = as<std::string>(lName[i]);
@@ -811,9 +812,26 @@ List etImportEventTable(List inData){
     else if (tmpS == "addl") addlCol=i;
     else if (tmpS == "ii")   iiCol=i;
     else if (tmpS == "dur" || tmpS == "duration") durCol=i;
+    else if (tmpS == "mdv") mdvCol=i;
   }
-  if (evidCol == -1) stop("Need evid column.");
-  IntegerVector oldEvid=as<IntegerVector>(inData[evidCol]);
+  NumericVector oldTime;
+  if (timeCol == -1){
+    stop("Need a time column");
+  } else {
+    oldTime=as<NumericVector>(inData[timeCol]);
+  }
+  IntegerVector oldEvid;
+  if (evidCol == -1) {
+    if (mdvCol != -1){
+      evidCol = mdvCol;
+      oldEvid=as<IntegerVector>(inData[evidCol]);
+    } else {
+      oldEvid = IntegerVector(oldTime.size());
+      std::fill(oldEvid.begin(), oldEvid.end(), 0);
+    }
+  } else  {
+      oldEvid=as<IntegerVector>(inData[evidCol]);
+  }
   std::vector<int> evid;
   
   IntegerVector oldId;
@@ -825,13 +843,7 @@ List etImportEventTable(List inData){
   std::vector<int> id;
   
   std::vector<double> low;
-
-  NumericVector oldTime;
-  if (timeCol == -1){
-    stop("Need a time column");
-  } else {
-    oldTime=as<NumericVector>(inData[timeCol]);
-  }
+  
   std::vector<double> time;
   std::vector<double> high;
   
