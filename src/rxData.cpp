@@ -421,206 +421,187 @@ SEXP dynLoad(std::string dll){
   return ret;
 }
 
+List rxModelVars_(const RObject &obj); // model variables section
 
-// [[Rcpp::export]]
-List rxModelVars_(const RObject &obj){
-  getRxModels();
-  if (rxIs(obj, "rxModelVars")){
-    List ret(obj);
+List rxModelVars_RxODE(const RObject &obj){
+  Environment e = as<Environment>(obj);
+  List rxDll = as<List>(e["rxDll"]);
+  List ret = as<List>(rxDll["modVars"]);
+  RObject pkgR = e["package"];
+  if (rxIs(pkgR,"NULL")){
     return ret;
-  } else if (rxIs(obj,"RxODE")) {
-    Environment e = as<Environment>(obj);
-    List rxDll = as<List>(e["rxDll"]);
-    List ret = as<List>(rxDll["modVars"]);
-    RObject pkgR = e["package"];
-    if (rxIs(pkgR,"NULL")){
+  } else {
+    bool isV;
+    Function isValid = e["isValid"];
+    isV = as<bool>(isValid());
+    if (isV){
       return ret;
     } else {
-      bool isV;
-      Function isValid = e["isValid"];
-      isV = as<bool>(isValid());
-      if (isV){
+      std::string sobj = as<std::string>(e["modName"]);
+      if (sobj.find("_new")!=std::string::npos){
 	return ret;
-      } else {
-	std::string sobj = as<std::string>(e["modName"]);
-	if (sobj.find("_new")!=std::string::npos){
+      }
+      Function pkgLoaded = getRxFn(".rxPkgLoaded");
+      isV = as<bool>(pkgLoaded(pkgR));
+      if (isV){
+	Environment ns;
+	if (as<std::string>(pkgR) == "RxODE"){
 	  return ret;
+	} else {
+	  ns=loadNamespace(pkgR);
 	}
-	Function pkgLoaded = getRxFn(".rxPkgLoaded");
-	isV = as<bool>(pkgLoaded(pkgR));
-	if (isV){
-	  Environment ns;
-	  if (as<std::string>(pkgR) == "RxODE"){
+	if (ns.exists(".rxUpdated")){
+	  Environment rxU = ns[".rxUpdated"];
+	  if (rxU.exists(sobj)){
+	    e = rxU[sobj];
+	    rxDll = e["rxDll"];
+	    ret = rxDll["modVars"];
 	    return ret;
 	  } else {
-	    ns=loadNamespace(pkgR);
-	  }
-	  if (ns.exists(".rxUpdated")){
-	    Environment rxU = ns[".rxUpdated"];
-	    if (rxU.exists(sobj)){
-	      e = rxU[sobj];
-	      rxDll = e["rxDll"];
-	      ret = rxDll["modVars"];
-	      return ret;
-	    } else {
-	      Function rxode = getRxFn("RxODE");
-	      e["modName"] = sobj + "_new"; // For RxODE parsing add "new"
-	      Environment newRx = rxode(e);
-	      e["modName"] = sobj; // Put back
-	      rxU[sobj] = newRx;
-	      return rxModelVars_(as<RObject>(newRx));
-	    }
-	  } else {
-	    return ret;
+	    Function rxode = getRxFn("RxODE");
+	    e["modName"] = sobj + "_new"; // For RxODE parsing add "new"
+	    Environment newRx = rxode(e);
+	    e["modName"] = sobj; // Put back
+	    rxU[sobj] = newRx;
+	    return rxModelVars_(as<RObject>(newRx));
 	  }
 	} else {
 	  return ret;
 	}
-      }
-    }
-  } else if (rxIs(obj,"rxSolve")){
-    CharacterVector cls = obj.attr("class");
-    Environment e = as<Environment>(cls.attr(".RxODE.env"));
-    return  rxModelVars_(as<RObject>(e["args.object"]));
-  } else if (rxIs(obj,"rxDll")){
-    List lobj = (as<List>(obj))["modVars"];
-    return lobj;
-  } else if (rxIs(obj, "environment")){
-    Environment e = as<Environment>(obj);
-    if (e.exists("args.object")){
-      return rxModelVars_(e["args.object"]);
-    } else {
-      CharacterVector cls = obj.attr("class");
-      int i = 0;
-      Rprintf("Class:\t");
-      for (i = 0; i < cls.size(); i++){
-        Rprintf("%s\t", (as<std::string>(cls[i])).c_str());
-      }
-      Rprintf("\n");
-      stop("Need an RxODE-type object to extract model variables from.");
-    }
-  } else if (rxIs(obj, "character")){
-    CharacterVector modList = as<CharacterVector>(obj);
-    if (modList.size() == 1){
-      std::string sobj =as<std::string>(obj);
-      if (sobj == ""){
-	// Blank RxODE model
-	List ret(20);
-	CharacterVector retN(20);
-	ret[0]  = CharacterVector::create(); // params
-	retN[0] = "params";
-	ret[1]  = CharacterVector::create(); // lhs
-	retN[1] = "lhs";
-	ret[2]  = CharacterVector::create(); // state
-	retN[2] = "state";
-	ret[3]  = CharacterVector::create(); // trans
-	retN[3] = "trans";
-	ret[4]  = CharacterVector::create(_["normModel"] = ""); // model
-	retN[4] = "model";
-	ret[5]  = NumericVector::create(); // ini
-	retN[5] = "ini";
-	ret[6]  = LogicalVector::create(false); // podo
-	retN[6] = "podo";
-	ret[7]  = LogicalVector::create(); // dfdy
-	retN[7] = "dfdy";
-	ret[8]  = LogicalVector::create(); // sens
-	retN[8] = "sens";
-	ret[9]  = LogicalVector::create(); // fn.ini
-	retN[9] = "fn.ini";
-	ret[10] = IntegerVector::create(); // state.ignore
-	retN[10] = "state.ignore";
-	ret[11] = CharacterVector::create(); // version
-	retN[11] = "version";
-	ret[12] = CharacterVector::create(); // normal.state
-	retN[12] = "normal.state";
-	ret[13] = IntegerVector::create(0); // need sort
-	retN[13] = "needSort";
-	ret[14] = IntegerVector::create(0); // nMtime
-	retN[14] = "nMtime";
-	ret[15] = IntegerVector::create(0); // extraCmt
-	retN[15] = "extraCmt";
-	ret[16] = CharacterVector::create(); // stateExtra
-	retN[16] = "stateExtra";
-	ret[17] = IntegerVector::create(); // dvid
-	retN[17] = "dvid";
-	ret[18] = IntegerVector::create(0); // timeId
-	retN[18] = "timeId";
-	ret[19] =CharacterVector::create(_["file_md5"] = "", _["parsed_md5"] = ""); // md5
-	retN[19] = "md5";
-	ret.attr("names") = retN;
-	ret.attr("class") = "rxModelVars";
+      } else {
 	return ret;
-      } else if (fileExists(sobj)){
-	Function f = getRxFn(".rxModelVarsCharacter");
-	return f(obj);
-      } else if ((sobj.find("=") == std::string::npos) &&
-	  (sobj.find("<-") == std::string::npos) &&
-          (sobj.find("~") == std::string::npos)){
-        if (_rxModels.exists(sobj)){
-          RObject obj1 = _rxModels.get(sobj);
-          if (rxIs(obj1, "rxModelVars")){
-            return as<List>(obj1);
-          } else if (rxIs(obj1, "RxODE")){
-            return rxModelVars_(obj1);
-          }
-        }
-        std::string sobj1 = sobj + "_model_vars";
-        if (_rxModels.exists(sobj1)){
-          RObject obj1 = _rxModels.get(sobj1);
-          if (rxIs(obj1, "rxModelVars")){
-            return as<List>(obj1);
-          }
-        }
-        Function get("get",R_BaseNamespace);
-        List platform = get(_["x"]=".Platform", _["envir"] = R_BaseEnv);
-        sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) + "_model_vars";
-        if (_rxModels.exists(sobj1)){
-          RObject obj1 = _rxModels.get(sobj1);
-          if (rxIs(obj1, "rxModelVars")){
-            return as<List>(obj1);
-          }
-        }
-        Function filePath("file.path", R_BaseNamespace);
-        Function getwd("getwd", R_BaseNamespace);
-        sobj1 = as<std::string>(getwd());
-        std::string sobj2 = sobj + ".d";
-        std::string sobj3 = sobj + "_" + as<std::string>(platform["r_arch"]) +
-          as<std::string>(platform["dynlib.ext"]);
-        sobj1 = as<std::string>(filePath(sobj1,sobj2, sobj3));
-        if (fileExists(sobj1)){
-          Rcout << "Path: " << sobj1 << "\n";
-          dynLoad(sobj1);
-          sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) +
-            "_model_vars";
-          Function call(".Call", R_BaseNamespace);
-          List ret = as<List>(call(sobj1));
-          return ret;
-        }
       }
-    } else if (modList.hasAttribute("names")){
-      bool containsPrefix = false;
-      CharacterVector modListNames = modList.names();
-      for (int i = 0; i < modListNames.size(); i++){
-	if (modListNames[i] == "prefix"){
-	  containsPrefix=true;
-	  break;
+    }
+  }
+}
+List rxModelVars_blank(){
+  List ret(20);
+  CharacterVector retN(20);
+  ret[0]  = CharacterVector::create(); // params
+  retN[0] = "params";
+  ret[1]  = CharacterVector::create(); // lhs
+  retN[1] = "lhs";
+  ret[2]  = CharacterVector::create(); // state
+  retN[2] = "state";
+  ret[3]  = CharacterVector::create(); // trans
+  retN[3] = "trans";
+  ret[4]  = CharacterVector::create(_["normModel"] = ""); // model
+  retN[4] = "model";
+  ret[5]  = NumericVector::create(); // ini
+  retN[5] = "ini";
+  ret[6]  = LogicalVector::create(false); // podo
+  retN[6] = "podo";
+  ret[7]  = LogicalVector::create(); // dfdy
+  retN[7] = "dfdy";
+  ret[8]  = LogicalVector::create(); // sens
+  retN[8] = "sens";
+  ret[9]  = LogicalVector::create(); // fn.ini
+  retN[9] = "fn.ini";
+  ret[10] = IntegerVector::create(); // state.ignore
+  retN[10] = "state.ignore";
+  ret[11] = CharacterVector::create(); // version
+  retN[11] = "version";
+  ret[12] = CharacterVector::create(); // normal.state
+  retN[12] = "normal.state";
+  ret[13] = IntegerVector::create(0); // need sort
+  retN[13] = "needSort";
+  ret[14] = IntegerVector::create(0); // nMtime
+  retN[14] = "nMtime";
+  ret[15] = IntegerVector::create(0); // extraCmt
+  retN[15] = "extraCmt";
+  ret[16] = CharacterVector::create(); // stateExtra
+  retN[16] = "stateExtra";
+  ret[17] = IntegerVector::create(); // dvid
+  retN[17] = "dvid";
+  ret[18] = IntegerVector::create(0); // timeId
+  retN[18] = "timeId";
+  ret[19] =CharacterVector::create(_["file_md5"] = "", _["parsed_md5"] = ""); // md5
+  retN[19] = "md5";
+  ret.attr("names") = retN;
+  ret.attr("class") = "rxModelVars";
+  return ret;
+}
+List rxModelVars_character(const RObject &obj){
+  CharacterVector modList = as<CharacterVector>(obj);
+  if (modList.size() == 1){
+    std::string sobj =as<std::string>(obj);
+    if (sobj == ""){
+      // Blank RxODE model
+      return rxModelVars_blank();
+    } else if (fileExists(sobj)){
+      // From file
+      Function f = getRxFn(".rxModelVarsCharacter");
+      return f(obj);
+    } else if ((sobj.find("=") == std::string::npos) &&
+	       (sobj.find("<-") == std::string::npos) &&
+	       (sobj.find("~") == std::string::npos)){
+      if (_rxModels.exists(sobj)){
+	RObject obj1 = _rxModels.get(sobj);
+	if (rxIs(obj1, "rxModelVars")){
+	  return as<List>(obj1);
+	} else if (rxIs(obj1, "RxODE")){
+	  return rxModelVars_(obj1);
 	}
       }
-      if (containsPrefix){
-	std::string mvstr = as<std::string>(modList["prefix"]) + "model_vars";
-        if(_rxModels.exists(mvstr)){
-          RObject obj1 = _rxModels.get(mvstr);
-          if (rxIs(obj1, "rxModelVars")){
-            return as<List>(obj1);
-          }
-        }
+      std::string sobj1 = sobj + "_model_vars";
+      if (_rxModels.exists(sobj1)){
+	RObject obj1 = _rxModels.get(sobj1);
+	if (rxIs(obj1, "rxModelVars")){
+	  return as<List>(obj1);
+	}
+      }
+      Function get("get",R_BaseNamespace);
+      List platform = get(_["x"]=".Platform", _["envir"] = R_BaseEnv);
+      sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) + "_model_vars";
+      if (_rxModels.exists(sobj1)){
+	RObject obj1 = _rxModels.get(sobj1);
+	if (rxIs(obj1, "rxModelVars")){
+	  return as<List>(obj1);
+	}
+      }
+      Function filePath("file.path", R_BaseNamespace);
+      Function getwd("getwd", R_BaseNamespace);
+      sobj1 = as<std::string>(getwd());
+      std::string sobj2 = sobj + ".d";
+      std::string sobj3 = sobj + "_" + as<std::string>(platform["r_arch"]) +
+	as<std::string>(platform["dynlib.ext"]);
+      sobj1 = as<std::string>(filePath(sobj1,sobj2, sobj3));
+      if (fileExists(sobj1)){
+	Rcout << "Path: " << sobj1 << "\n";
+	dynLoad(sobj1);
+	sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) +
+	  "_model_vars";
+	Function call(".Call", R_BaseNamespace);
+	List ret = as<List>(call(sobj1));
+	return ret;
       }
     }
-    // fileExists(const std::string& name)
-    Function f = getRxFn(".rxModelVarsCharacter");
-    return f(obj);
-  } else if (rxIs(obj,"list")){
-    bool params=false, lhs=false, state=false, trans=false, ini=false, model=false, md5=false, podo=false, dfdy=false;
+  } else if (modList.hasAttribute("names")){
+    bool containsPrefix = false;
+    CharacterVector modListNames = modList.names();
+    for (int i = 0; i < modListNames.size(); i++){
+      if (modListNames[i] == "prefix"){
+	containsPrefix=true;
+	break;
+      }
+    }
+    if (containsPrefix){
+      std::string mvstr = as<std::string>(modList["prefix"]) + "model_vars";
+      if(_rxModels.exists(mvstr)){
+	RObject obj1 = _rxModels.get(mvstr);
+	if (rxIs(obj1, "rxModelVars")){
+	  return as<List>(obj1);
+	}
+      }
+    }
+  }
+  // fileExists(const std::string& name)
+  Function f = getRxFn(".rxModelVarsCharacter");
+  return f(obj);
+}
+
+List rxModelVars_list(const RObject &obj){
+  bool params=false, lhs=false, state=false, trans=false, ini=false, model=false, md5=false, podo=false, dfdy=false;
     List lobj  = as<List>(obj);
     CharacterVector nobj = lobj.names();
     for (int i = 0; i < nobj.size(); i++){
@@ -649,6 +630,41 @@ List rxModelVars_(const RObject &obj){
       }
     }
     stop("Cannot figure out the model variables.");
+}
+
+// [[Rcpp::export]]
+List rxModelVars_(const RObject &obj){
+  getRxModels();
+  if (rxIs(obj, "rxModelVars")){
+    List ret(obj);
+    return ret;
+  } else if (rxIs(obj,"RxODE")) {
+    return rxModelVars_RxODE(obj);
+  } else if (rxIs(obj,"rxSolve")){
+    CharacterVector cls = obj.attr("class");
+    Environment e = as<Environment>(cls.attr(".RxODE.env"));
+    return  rxModelVars_(as<RObject>(e["args.object"]));
+  } else if (rxIs(obj,"rxDll")){
+    List lobj = (as<List>(obj))["modVars"];
+    return lobj;
+  } else if (rxIs(obj, "environment")){
+    Environment e = as<Environment>(obj);
+    if (e.exists("args.object")){
+      return rxModelVars_(e["args.object"]);
+    } else {
+      CharacterVector cls = obj.attr("class");
+      int i = 0;
+      Rprintf("Class:\t");
+      for (i = 0; i < cls.size(); i++){
+        Rprintf("%s\t", (as<std::string>(cls[i])).c_str());
+      }
+      Rprintf("\n");
+      stop("Need an RxODE-type object to extract model variables from.");
+    }
+  } else if (rxIs(obj, "character")){
+    return rxModelVars_character(obj);
+  } else if (rxIs(obj,"list")){
+    return rxModelVars_list(obj);
   } else if (rxIs(obj,"NULL")) {
       stop("A NULL object does not have any RxODE model variables");
   } else {
@@ -2333,6 +2349,8 @@ List getEtRxsolve(Environment e){
   return e[".et"];
 }
 
+// This updates the evironment post solve after running.  Defers some
+// computational cost until the rxSolve is looked at by the user.
 void updateSolveEnvPost(Environment e){
   if (!e.exists("params.dat")){
     List mv = rxModelVars(as<RObject>(e));
@@ -2521,7 +2539,7 @@ extern "C" SEXP get_ikeepn(){
 extern "C" SEXP get_fkeepn(){
   return as<SEXP>(keepFcov.attr("names"));
 }
-
+int _gsetupOnly;
 //[[Rcpp::export]]
 SEXP rxSolve_(const RObject &obj,
 	      const List &rxControl,
@@ -3707,6 +3725,7 @@ SEXP rxSolve_(const RObject &obj,
       }
       return as<SEXP>(LogicalVector::create(true));
     }
+    _gsetupOnly=setupOnly;
     par_solve(rx);
     if (op->abort){
       rxSolveFree();
