@@ -362,7 +362,7 @@ namespace RxODE {
         return Rcpp::as<LogicalVector >(rcpp_result_gen);
     }
 
-    inline SEXP rxSolve_(const RObject& obj, const List& rxControl, const Nullable<CharacterVector>& specParams = R_NilValue, const Nullable<List>& extraArgs = R_NilValue, const RObject& params = R_NilValue, const RObject& events = R_NilValue, const RObject& inits = R_NilValue, const int setupOnly = 0) {
+    inline SEXP rxSolve_(const RObject& obj, const List& rxControl, const Nullable<CharacterVector>& specParams, const Nullable<List>& extraArgs, const RObject& params, const RObject& events, const RObject& inits, const int setupOnly) {
         typedef SEXP(*Ptr_rxSolve_)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
         static Ptr_rxSolve_ p_rxSolve_ = NULL;
         if (p_rxSolve_ == NULL) {
