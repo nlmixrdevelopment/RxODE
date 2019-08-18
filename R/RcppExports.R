@@ -335,7 +335,7 @@ rxSolveFree <- function() {
     .Call(`_RxODE_rxSolveFree`)
 }
 
-rxSolve_ <- function(obj, rxControl, specParams = NULL, extraArgs = NULL, params = NULL, events = NULL, inits = NULL, setupOnly = 0L) {
+rxSolve_ <- function(obj, rxControl, specParams, extraArgs, params, events, inits, setupOnly) {
     .Call(`_RxODE_rxSolve_`, obj, rxControl, specParams, extraArgs, params, events, inits, setupOnly)
 }
 

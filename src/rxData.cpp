@@ -86,6 +86,87 @@ bool rxHasEventNames(CharacterVector &nm){
   }
 }
 
+bool rxIs_list(const RObject &obj, std::string cls){
+  bool hasCls = obj.hasAttribute("class");
+  if (hasCls){
+    CharacterVector classattr = obj.attr("class");
+    bool hasDf = false;
+    bool hasEt = false;
+    std::string cur;
+    for (unsigned int i = classattr.size(); i--; ){
+      cur = as<std::string>(classattr[i]);
+      if (cur == cls){
+	if (cls == "rxEt"){
+	  List ce = as<List>(classattr.attr(".RxODE.lst"));
+	  List lobj = List(obj);
+	  int nobs = ce["nobs"];
+	  int ndose = ce["ndose"];
+	  if (lobj.size() != 12){
+	    lobj.attr("class") = CharacterVector::create("data.frame");
+	    return false;
+	  }
+	  if ( (as<IntegerVector>(lobj[0])).size() != ndose + nobs){
+	    lobj.attr("class") = CharacterVector::create("data.frame");
+	    return false;
+	  }
+	  return true;
+	} else if (cls == "rxSolve"){
+	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
+	  List lobj = List(obj);
+	  CharacterVector cls2= CharacterVector::create("data.frame");
+	  if (as<int>(e["check.ncol"]) != lobj.size()){
+	    lobj.attr("class") = cls2;
+	    return false;
+	  }
+	  int nrow = (as<NumericVector>(lobj[0])).size();
+	  if (as<int>(e["check.nrow"]) != nrow){
+	    lobj.attr("class") = cls2;
+	    return false;
+	  }
+	  CharacterVector cn = CharacterVector(e["check.names"]);
+	  if (cn.size() != lobj.size()){
+	    lobj.attr("class") = cls2;
+	    return false;
+	  }
+	  CharacterVector cn2 = CharacterVector(lobj.names());
+	  for (int j = 0; j < cn.size();j++){
+	    if (cn[j] != cn2[j]){
+	      lobj.attr("class") = cls2;
+	      return false;
+	    }
+	  }
+	  return true;
+	} else {
+	  return true;
+	}
+      } else if (cur == "data.frame"){
+	hasDf=true;
+      }
+    }
+    if (hasDf && (cls == "rx.event" || cls == "event.data.frame")){
+      if (classattr[0] == "rxEtTran"){
+	rxcEvid = 2;
+	rxcTime = 1;
+	rxcAmt  = 3;
+	rxcId   = 0;
+	rxcDv   = 5;
+	rxcIi   = 4;
+	return true;
+      } else {
+	// Check for event.data.frame
+	CharacterVector cv =as<CharacterVector>((as<DataFrame>(obj)).names());
+	return rxHasEventNames(cv);
+      }
+    } else if (hasEt) {
+      return (cls == "rx.event");
+    } else {
+      return false;
+    }
+  } else {
+    return (cls == "list");
+  }
+}
+
 //' Check the type of an object using Rcpp
 //'
 //' @param obj Object to check
@@ -165,106 +246,7 @@ bool rxIs(const RObject &obj, std::string cls){
       return (cls == "character");
     }
   case VECSXP:
-    hasCls = obj.hasAttribute("class");
-    if (hasCls){
-      CharacterVector classattr = obj.attr("class");
-      bool hasDf = false;
-      bool hasEt = false;
-      std::string cur;
-      for (unsigned int i = classattr.size(); i--; ){
-	cur = as<std::string>(classattr[i]);
-	if (cur == cls){
-	  if (cls == "rxEt"){
-	    List ce = as<List>(classattr.attr(".RxODE.lst"));
-	    List lobj = List(obj);
-	    int nobs = ce["nobs"];
-	    int ndose = ce["ndose"];
-	    if (lobj.size() != 12){
-	      lobj.attr("class") = CharacterVector::create("data.frame");
-	      return false;
-	    }
-	    if ( (as<IntegerVector>(lobj[0])).size() != ndose + nobs){
-	      lobj.attr("class") = CharacterVector::create("data.frame");
-	      return false;
-	    }
-	    return true;
-	  } else if (cls == "rxSolve"){
-	    Environment e = as<Environment>(classattr.attr(".RxODE.env"));
-	    List lobj = List(obj);
-	    CharacterVector cls2= CharacterVector::create("data.frame");
-	    if (as<int>(e["check.ncol"]) != lobj.size()){
-	      lobj.attr("class") = cls2;
-	      return false;
-	    }
-	    int nrow = (as<NumericVector>(lobj[0])).size();
-	    if (as<int>(e["check.nrow"]) != nrow){
-	      lobj.attr("class") = cls2;
-	      return false;
-	    }
-	    CharacterVector cn = CharacterVector(e["check.names"]);
-	    if (cn.size() != lobj.size()){
-	      lobj.attr("class") = cls2;
-	      return false;
-	    }
-	    CharacterVector cn2 = CharacterVector(lobj.names());
-	    for (int j = 0; j < cn.size();j++){
-	      if (cn[j] != cn2[j]){
-		lobj.attr("class") = cls2;
-		return false;
-	      }
-	    }
-	    return true;
-	  } else {
-	    return true;
-	  }
-	} else if (cur == "data.frame"){
-	  hasDf=true;
-        }
-      }
-      if (hasDf && (cls == "rx.event" || cls == "event.data.frame")){
-	if (classattr[0] == "rxEtTran"){
-	  rxcEvid = 2;
-	  rxcTime = 1;
-	  rxcAmt  = 3;
-	  rxcId   = 0;
-	  rxcDv   = 5;
-	  rxcIi   = 4;
-	  CharacterVector nm = obj.attr("names");
-	  if (nm.size() >= 7 && as<std::string>(nm[6])=="CMT"){
-	    if (nm.size()>= 8){
-	      if (as<std::string>(nm[7])=="CENS"){
-		rxcCens = 7;
-		if (nm.size()>=9 && as<std::string>(nm[8])=="LIMIT"){
-		  rxcLimit=8;
-		}
-	      } else if (as<std::string>(nm[7]) == "LIMIT"){
-		rxcLimit=7;
-	      }
-	    }
-	  } else if (nm.size() >= 7){
-	    if (as<std::string>(nm[6])=="CENS"){
-	      rxcCens = 6;
-	      if (nm.size() >= 8 && as<std::string>(nm[7])=="LIMIT"){
-		rxcLimit = 7;
-	      }
-	    } else if (as<std::string>(nm[6])=="LIMIT") {
-	      rxcLimit = 6;
-	    }
-	  }
-	  return true;
-	} else {
-	  // Check for event.data.frame
-	  CharacterVector cv =as<CharacterVector>((as<DataFrame>(obj)).names());
-	  return rxHasEventNames(cv);
-	}
-      } else if (hasEt) {
-	return (cls == "rx.event");
-      } else {
-	return false;
-      }
-    } else {
-      return (cls == "list");
-    }
+    return rxIs_list(obj, cls);
   case 4: // environment
     hasCls = obj.hasAttribute("class");
     if (hasCls){
@@ -452,210 +434,187 @@ SEXP dynLoad(std::string dll){
   return ret;
 }
 
+List rxModelVars_(const RObject &obj); // model variables section
 
-// [[Rcpp::export]]
-List rxModelVars_(const RObject &obj){
-  getRxModels();
-  if (rxIs(obj, "rxModelVars")){
-    List ret(obj);
+List rxModelVars_RxODE(const RObject &obj){
+  Environment e = as<Environment>(obj);
+  List rxDll = as<List>(e["rxDll"]);
+  List ret = as<List>(rxDll["modVars"]);
+  RObject pkgR = e["package"];
+  if (rxIs(pkgR,"NULL")){
     return ret;
-  } else if (rxIs(obj, "rxS")){
-    Environment e = as<Environment>(obj);
-    List ret = as<List>(e["..mv"]);
-    return ret;
-  } else if (rxIs(obj,"RxODE")) {
-    Environment e = as<Environment>(obj);
-    List rxDll = as<List>(e["rxDll"]);
-    List ret = as<List>(rxDll["modVars"]);
-    RObject pkgR = e["package"];
-    if (rxIs(pkgR,"NULL")){
+  } else {
+    bool isV;
+    Function isValid = e["isValid"];
+    isV = as<bool>(isValid());
+    if (isV){
       return ret;
     } else {
-      bool isV;
-      Function isValid = e["isValid"];
-      isV = as<bool>(isValid());
-      if (isV){
+      std::string sobj = as<std::string>(e["modName"]);
+      if (sobj.find("_new")!=std::string::npos){
 	return ret;
-      } else {
-	std::string sobj = as<std::string>(e["modName"]);
-	if (sobj.find("_new")!=std::string::npos){
+      }
+      Function pkgLoaded = getRxFn(".rxPkgLoaded");
+      isV = as<bool>(pkgLoaded(pkgR));
+      if (isV){
+	Environment ns;
+	if (as<std::string>(pkgR) == "RxODE"){
 	  return ret;
+	} else {
+	  ns=loadNamespace(pkgR);
 	}
-	Function pkgLoaded = getRxFn(".rxPkgLoaded");
-	isV = as<bool>(pkgLoaded(pkgR));
-	if (isV){
-	  Environment ns;
-	  if (as<std::string>(pkgR) == "RxODE"){
+	if (ns.exists(".rxUpdated")){
+	  Environment rxU = ns[".rxUpdated"];
+	  if (rxU.exists(sobj)){
+	    e = rxU[sobj];
+	    rxDll = e["rxDll"];
+	    ret = rxDll["modVars"];
 	    return ret;
 	  } else {
-	    ns=loadNamespace(pkgR);
-	  }
-	  if (ns.exists(".rxUpdated")){
-	    Environment rxU = ns[".rxUpdated"];
-	    if (rxU.exists(sobj)){
-	      e = rxU[sobj];
-	      rxDll = e["rxDll"];
-	      ret = rxDll["modVars"];
-	      return ret;
-	    } else {
-	      Function rxode = getRxFn("RxODE");
-	      e["modName"] = sobj + "_new"; // For RxODE parsing add "new"
-	      Environment newRx = rxode(e);
-	      e["modName"] = sobj; // Put back
-	      rxU[sobj] = newRx;
-	      return rxModelVars_(as<RObject>(newRx));
-	    }
-	  } else {
-	    return ret;
+	    Function rxode = getRxFn("RxODE");
+	    e["modName"] = sobj + "_new"; // For RxODE parsing add "new"
+	    Environment newRx = rxode(e);
+	    e["modName"] = sobj; // Put back
+	    rxU[sobj] = newRx;
+	    return rxModelVars_(as<RObject>(newRx));
 	  }
 	} else {
 	  return ret;
 	}
-      }
-    }
-  } else if (rxIs(obj,"rxSolve")){
-    CharacterVector cls = obj.attr("class");
-    Environment e = as<Environment>(cls.attr(".RxODE.env"));
-    return  rxModelVars_(as<RObject>(e["args.object"]));
-  } else if (rxIs(obj,"rxDll")){
-    List lobj = (as<List>(obj))["modVars"];
-    return lobj;
-  } else if (rxIs(obj, "environment")){
-    Environment e = as<Environment>(obj);
-    if (e.exists("args.object")){
-      return rxModelVars_(e["args.object"]);
-    } else {
-      CharacterVector cls = obj.attr("class");
-      int i = 0;
-      Rprintf("Class:\t");
-      for (i = 0; i < cls.size(); i++){
-        Rprintf("%s\t", (as<std::string>(cls[i])).c_str());
-      }
-      Rprintf("\n");
-      stop("Need an RxODE-type object to extract model variables from.");
-    }
-  } else if (rxIs(obj, "character")){
-    CharacterVector modList = as<CharacterVector>(obj);
-    if (modList.size() == 1){
-      std::string sobj =as<std::string>(obj);
-      if (sobj == ""){
-	// Blank RxODE model
-	List ret(20);
-	CharacterVector retN(20);
-	ret[0]  = CharacterVector::create(); // params
-	retN[0] = "params";
-	ret[1]  = CharacterVector::create(); // lhs
-	retN[1] = "lhs";
-	ret[2]  = CharacterVector::create(); // state
-	retN[2] = "state";
-	ret[3]  = CharacterVector::create(); // trans
-	retN[3] = "trans";
-	ret[4]  = CharacterVector::create(_["normModel"] = ""); // model
-	retN[4] = "model";
-	ret[5]  = NumericVector::create(); // ini
-	retN[5] = "ini";
-	ret[6]  = LogicalVector::create(false); // podo
-	retN[6] = "podo";
-	ret[7]  = LogicalVector::create(); // dfdy
-	retN[7] = "dfdy";
-	ret[8]  = LogicalVector::create(); // sens
-	retN[8] = "sens";
-	ret[9]  = LogicalVector::create(); // fn.ini
-	retN[9] = "fn.ini";
-	ret[10] = IntegerVector::create(); // state.ignore
-	retN[10] = "state.ignore";
-	ret[11] = CharacterVector::create(); // version
-	retN[11] = "version";
-	ret[12] = CharacterVector::create(); // normal.state
-	retN[12] = "normal.state";
-	ret[13] = IntegerVector::create(0); // need sort
-	retN[13] = "needSort";
-	ret[14] = IntegerVector::create(0); // nMtime
-	retN[14] = "nMtime";
-	ret[15] = IntegerVector::create(0); // extraCmt
-	retN[15] = "extraCmt";
-	ret[16] = CharacterVector::create(); // stateExtra
-	retN[16] = "stateExtra";
-	ret[17] = IntegerVector::create(); // dvid
-	retN[17] = "dvid";
-	ret[18] = IntegerVector::create(0); // timeId
-	retN[18] = "timeId";
-	ret[19] =CharacterVector::create(_["file_md5"] = "", _["parsed_md5"] = ""); // md5
-	retN[19] = "md5";
-	ret.attr("names") = retN;
-	ret.attr("class") = "rxModelVars";
+      } else {
 	return ret;
-      } else if (fileExists(sobj)){
-	Function f = getRxFn(".rxModelVarsCharacter");
-	return f(obj);
-      } else if ((sobj.find("=") == std::string::npos) &&
-	  (sobj.find("<-") == std::string::npos) &&
-          (sobj.find("~") == std::string::npos)){
-        if (_rxModels.exists(sobj)){
-          RObject obj1 = _rxModels.get(sobj);
-          if (rxIs(obj1, "rxModelVars")){
-            return as<List>(obj1);
-          } else if (rxIs(obj1, "RxODE")){
-            return rxModelVars_(obj1);
-          }
-        }
-        std::string sobj1 = sobj + "_model_vars";
-        if (_rxModels.exists(sobj1)){
-          RObject obj1 = _rxModels.get(sobj1);
-          if (rxIs(obj1, "rxModelVars")){
-            return as<List>(obj1);
-          }
-        }
-        Function get("get",R_BaseNamespace);
-        List platform = get(_["x"]=".Platform", _["envir"] = R_BaseEnv);
-        sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) + "_model_vars";
-        if (_rxModels.exists(sobj1)){
-          RObject obj1 = _rxModels.get(sobj1);
-          if (rxIs(obj1, "rxModelVars")){
-            return as<List>(obj1);
-          }
-        }
-        Function filePath("file.path", R_BaseNamespace);
-        Function getwd("getwd", R_BaseNamespace);
-        sobj1 = as<std::string>(getwd());
-        std::string sobj2 = sobj + ".d";
-        std::string sobj3 = sobj + "_" + as<std::string>(platform["r_arch"]) +
-          as<std::string>(platform["dynlib.ext"]);
-        sobj1 = as<std::string>(filePath(sobj1,sobj2, sobj3));
-        if (fileExists(sobj1)){
-          Rcout << "Path: " << sobj1 << "\n";
-          dynLoad(sobj1);
-          sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) +
-            "_model_vars";
-          Function call(".Call", R_BaseNamespace);
-          List ret = as<List>(call(sobj1));
-          return ret;
-        }
       }
-    } else if (modList.hasAttribute("names")){
-      bool containsPrefix = false;
-      CharacterVector modListNames = modList.names();
-      for (int i = 0; i < modListNames.size(); i++){
-	if (modListNames[i] == "prefix"){
-	  containsPrefix=true;
-	  break;
+    }
+  }
+}
+List rxModelVars_blank(){
+  List ret(20);
+  CharacterVector retN(20);
+  ret[0]  = CharacterVector::create(); // params
+  retN[0] = "params";
+  ret[1]  = CharacterVector::create(); // lhs
+  retN[1] = "lhs";
+  ret[2]  = CharacterVector::create(); // state
+  retN[2] = "state";
+  ret[3]  = CharacterVector::create(); // trans
+  retN[3] = "trans";
+  ret[4]  = CharacterVector::create(_["normModel"] = ""); // model
+  retN[4] = "model";
+  ret[5]  = NumericVector::create(); // ini
+  retN[5] = "ini";
+  ret[6]  = LogicalVector::create(false); // podo
+  retN[6] = "podo";
+  ret[7]  = LogicalVector::create(); // dfdy
+  retN[7] = "dfdy";
+  ret[8]  = LogicalVector::create(); // sens
+  retN[8] = "sens";
+  ret[9]  = LogicalVector::create(); // fn.ini
+  retN[9] = "fn.ini";
+  ret[10] = IntegerVector::create(); // state.ignore
+  retN[10] = "state.ignore";
+  ret[11] = CharacterVector::create(); // version
+  retN[11] = "version";
+  ret[12] = CharacterVector::create(); // normal.state
+  retN[12] = "normal.state";
+  ret[13] = IntegerVector::create(0); // need sort
+  retN[13] = "needSort";
+  ret[14] = IntegerVector::create(0); // nMtime
+  retN[14] = "nMtime";
+  ret[15] = IntegerVector::create(0); // extraCmt
+  retN[15] = "extraCmt";
+  ret[16] = CharacterVector::create(); // stateExtra
+  retN[16] = "stateExtra";
+  ret[17] = IntegerVector::create(); // dvid
+  retN[17] = "dvid";
+  ret[18] = IntegerVector::create(0); // timeId
+  retN[18] = "timeId";
+  ret[19] =CharacterVector::create(_["file_md5"] = "", _["parsed_md5"] = ""); // md5
+  retN[19] = "md5";
+  ret.attr("names") = retN;
+  ret.attr("class") = "rxModelVars";
+  return ret;
+}
+List rxModelVars_character(const RObject &obj){
+  CharacterVector modList = as<CharacterVector>(obj);
+  if (modList.size() == 1){
+    std::string sobj =as<std::string>(obj);
+    if (sobj == ""){
+      // Blank RxODE model
+      return rxModelVars_blank();
+    } else if (fileExists(sobj)){
+      // From file
+      Function f = getRxFn(".rxModelVarsCharacter");
+      return f(obj);
+    } else if ((sobj.find("=") == std::string::npos) &&
+	       (sobj.find("<-") == std::string::npos) &&
+	       (sobj.find("~") == std::string::npos)){
+      if (_rxModels.exists(sobj)){
+	RObject obj1 = _rxModels.get(sobj);
+	if (rxIs(obj1, "rxModelVars")){
+	  return as<List>(obj1);
+	} else if (rxIs(obj1, "RxODE")){
+	  return rxModelVars_(obj1);
 	}
       }
-      if (containsPrefix){
-	std::string mvstr = as<std::string>(modList["prefix"]) + "model_vars";
-        if(_rxModels.exists(mvstr)){
-          RObject obj1 = _rxModels.get(mvstr);
-          if (rxIs(obj1, "rxModelVars")){
-            return as<List>(obj1);
-          }
-        }
+      std::string sobj1 = sobj + "_model_vars";
+      if (_rxModels.exists(sobj1)){
+	RObject obj1 = _rxModels.get(sobj1);
+	if (rxIs(obj1, "rxModelVars")){
+	  return as<List>(obj1);
+	}
+      }
+      Function get("get",R_BaseNamespace);
+      List platform = get(_["x"]=".Platform", _["envir"] = R_BaseEnv);
+      sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) + "_model_vars";
+      if (_rxModels.exists(sobj1)){
+	RObject obj1 = _rxModels.get(sobj1);
+	if (rxIs(obj1, "rxModelVars")){
+	  return as<List>(obj1);
+	}
+      }
+      Function filePath("file.path", R_BaseNamespace);
+      Function getwd("getwd", R_BaseNamespace);
+      sobj1 = as<std::string>(getwd());
+      std::string sobj2 = sobj + ".d";
+      std::string sobj3 = sobj + "_" + as<std::string>(platform["r_arch"]) +
+	as<std::string>(platform["dynlib.ext"]);
+      sobj1 = as<std::string>(filePath(sobj1,sobj2, sobj3));
+      if (fileExists(sobj1)){
+	Rcout << "Path: " << sobj1 << "\n";
+	dynLoad(sobj1);
+	sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) +
+	  "_model_vars";
+	Function call(".Call", R_BaseNamespace);
+	List ret = as<List>(call(sobj1));
+	return ret;
       }
     }
-    // fileExists(const std::string& name)
-    Function f = getRxFn(".rxModelVarsCharacter");
-    return f(obj);
-  } else if (rxIs(obj,"list")){
-    bool params=false, lhs=false, state=false, trans=false, ini=false, model=false, md5=false, podo=false, dfdy=false;
+  } else if (modList.hasAttribute("names")){
+    bool containsPrefix = false;
+    CharacterVector modListNames = modList.names();
+    for (int i = 0; i < modListNames.size(); i++){
+      if (modListNames[i] == "prefix"){
+	containsPrefix=true;
+	break;
+      }
+    }
+    if (containsPrefix){
+      std::string mvstr = as<std::string>(modList["prefix"]) + "model_vars";
+      if(_rxModels.exists(mvstr)){
+	RObject obj1 = _rxModels.get(mvstr);
+	if (rxIs(obj1, "rxModelVars")){
+	  return as<List>(obj1);
+	}
+      }
+    }
+  }
+  // fileExists(const std::string& name)
+  Function f = getRxFn(".rxModelVarsCharacter");
+  return f(obj);
+}
+
+List rxModelVars_list(const RObject &obj){
+  bool params=false, lhs=false, state=false, trans=false, ini=false, model=false, md5=false, podo=false, dfdy=false;
     List lobj  = as<List>(obj);
     CharacterVector nobj = lobj.names();
     for (int i = 0; i < nobj.size(); i++){
@@ -684,6 +643,45 @@ List rxModelVars_(const RObject &obj){
       }
     }
     stop("Cannot figure out the model variables.");
+}
+
+// [[Rcpp::export]]
+List rxModelVars_(const RObject &obj){
+  getRxModels();
+  if (rxIs(obj, "rxModelVars")){
+    List ret(obj);
+    return ret;
+  } else if (rxIs(obj,"RxODE")) {
+    return rxModelVars_RxODE(obj);
+  } else if (rxIs(obj, "rxS")){
+    Environment e = as<Environment>(obj);
+    List ret = as<List>(e["..mv"]);
+    return ret;
+  } else if (rxIs(obj,"rxSolve")){
+    CharacterVector cls = obj.attr("class");
+    Environment e = as<Environment>(cls.attr(".RxODE.env"));
+    return  rxModelVars_(as<RObject>(e["args.object"]));
+  } else if (rxIs(obj,"rxDll")){
+    List lobj = (as<List>(obj))["modVars"];
+    return lobj;
+  } else if (rxIs(obj, "environment")){
+    Environment e = as<Environment>(obj);
+    if (e.exists("args.object")){
+      return rxModelVars_(e["args.object"]);
+    } else {
+      CharacterVector cls = obj.attr("class");
+      int i = 0;
+      Rprintf("Class:\t");
+      for (i = 0; i < cls.size(); i++){
+        Rprintf("%s\t", (as<std::string>(cls[i])).c_str());
+      }
+      Rprintf("\n");
+      stop("Need an RxODE-type object to extract model variables from.");
+    }
+  } else if (rxIs(obj, "character")){
+    return rxModelVars_character(obj);
+  } else if (rxIs(obj,"list")){
+    return rxModelVars_list(obj);
   } else if (rxIs(obj,"NULL")) {
       stop("A NULL object does not have any RxODE model variables");
   } else {
@@ -2408,6 +2406,8 @@ List getEtRxsolve(Environment e){
   return e[".et"];
 }
 
+// This updates the evironment post solve after running.  Defers some
+// computational cost until the rxSolve is looked at by the user.
 void updateSolveEnvPost(Environment e){
   if (!e.exists("params.dat")){
     List mv = rxModelVars(as<RObject>(e));
@@ -2597,15 +2597,107 @@ extern "C" SEXP get_fkeepn(){
   return as<SEXP>(keepFcov.attr("names"));
 }
 
+SEXP rxSolve_(const RObject &obj, const List &rxControl, const Nullable<CharacterVector> &specParams,
+	      const Nullable<List> &extraArgs, const RObject &params, const RObject &events,
+	      const RObject &inits, const int setupOnly);
+
+SEXP rxSolve_update(const RObject &object, const List &rxControl,
+		    const Nullable<CharacterVector> &specParams,
+		    const Nullable<List> &extraArgs,
+		    const RObject &params, const RObject &events, const RObject &inits,
+		    const bool &isRxSolve, const bool &isEnvironment,
+		    const bool &updateObject){
+  bool update_params = false,
+    update_events = false,
+    update_inits = false;
+  if (specParams.isNull()){
+    warning("No additional parameters were specified; Returning fit...");
+    return object;
+  }
+  CharacterVector specs = CharacterVector(specParams);
+  int n = specs.size(), i;
+  for (i = n; i--;){
+    if (as<std::string>(specs[i]) == "params")
+      update_params = true;
+    else if (as<std::string>(specs[i]) == "events")
+      update_events = true;
+    else if (as<std::string>(specs[i]) == "inits")
+      update_inits = true;
+  }
+  // Now update
+  Environment e;
+  List lobj;
+  if (isRxSolve){
+    lobj = as<List>(object);
+    CharacterVector classattr = object.attr("class");
+    e = as<Environment>(classattr.attr(".RxODE.env"));
+  } else  { // if (rxIs(object, "environment")) 
+    e = as<Environment>(object);
+    lobj = as<List>(e["obj"]);
+  }
+  getRxModels();
+  if (e.exists("params.dat")){
+    e.remove("params.dat");
+  }
+  if (e.exists(".et")){
+    e.remove(".et");
+  }
+  if(e.exists(".sigma")){
+    _rxModels[".sigma"]=as<NumericMatrix>(e[".sigma"]);
+  }
+  if(e.exists(".sigmaL")){
+    _rxModels[".sigmaL"]=as<List>(e[".sigmaL"]);
+  }
+  if(e.exists(".omegaL")){
+    _rxModels[".omegaL"] = as<List>(e[".omegaL"]);
+  }
+  if(e.exists(".theta")){
+    _rxModels[".theta"] = as<NumericMatrix>(e[".theta"]);
+  }
+  RObject new_params;
+  RObject new_events;
+  if (rxIs(params, "rx.event")){
+    new_events = params;
+    new_params = events;
+  } else {
+    new_params = update_params ? params : e["args.params"];
+    new_events = update_events ? events : e["args.events"];
+  }
+    
+  RObject new_inits = update_inits ? inits : e["args.inits"];
+  List newRxControl = clone(rxControl);
+  RObject new_object = as<RObject>(e["args.object"]);
+  newRxControl["updateObject"] = false;
+  List dat = as<List>(rxSolve_(new_object, newRxControl, R_NilValue, extraArgs,
+			       new_params, new_events, new_inits, 0));
+  if (updateObject && as<bool>(e[".real.update"])){
+    List old = as<List>(rxCurObj);
+    //Should I zero out the List...?
+    CharacterVector oldNms = old.names();
+    CharacterVector nms = dat.names();
+    if (oldNms.size() == nms.size()){
+      int i;
+      for (i = 0; i < nms.size(); i++){
+	old[as<std::string>(nms[i])] = as<SEXP>(dat[as<std::string>(nms[i])]);
+      }
+      old.attr("class") = dat.attr("class");
+      old.attr("row.names") = dat.attr("row.names");
+      return old;
+    } else {
+      warning("Cannot update object...");
+      return dat;
+    }
+  }
+  e[".real.update"] = true;
+  return dat;
+}
+int _gsetupOnly;
 //[[Rcpp::export]]
-SEXP rxSolve_(const RObject &obj,
-	      const List &rxControl,
-	      const Nullable<CharacterVector> &specParams = R_NilValue,
-	      const Nullable<List> &extraArgs = R_NilValue,
-	      const RObject &params = R_NilValue,
-	      const RObject &events = R_NilValue,
-	      const RObject &inits = R_NilValue,
-	      const int setupOnly = 0){
+SEXP rxSolve_(const RObject &obj, const List &rxControl,
+	      const Nullable<CharacterVector> &specParams,
+	      const Nullable<List> &extraArgs,
+	      const RObject &params, const RObject &events, const RObject &inits,
+	      const int setupOnly){
   if (rxIs(rxControl,"rxControl")){
     stop("Control list not setup correctly.");
   }
@@ -2661,89 +2753,9 @@ SEXP rxSolve_(const RObject &obj,
     object =obj;
   }
   if (isRxSolve || isEnvironment){
-    bool update_params = false,
-      update_events = false,
-      update_inits = false;
-    if (specParams.isNull()){
-      warning("No additional parameters were specified; Returning fit...");
-      return object;
-    }
-    CharacterVector specs = CharacterVector(specParams);
-    int n = specs.size(), i;
-    for (i = n; i--;){
-      if (as<std::string>(specs[i]) == "params")
-	update_params = true;
-      else if (as<std::string>(specs[i]) == "events")
-	update_events = true;
-      else if (as<std::string>(specs[i]) == "inits")
-	update_inits = true;
-    }
-    // Now update
-    Environment e;
-    List obj;
-    if (isRxSolve){
-      obj = as<List>(obj);
-      CharacterVector classattr = object.attr("class");
-      e = as<Environment>(classattr.attr(".RxODE.env"));
-    } else  { // if (rxIs(object, "environment")) 
-      e = as<Environment>(object);
-      obj = as<List>(e["obj"]);
-    }
-    getRxModels();
-    if (e.exists("params.dat")){
-      e.remove("params.dat");
-    }
-    if (e.exists(".et")){
-      e.remove(".et");
-    }
-    if(e.exists(".sigma")){
-      _rxModels[".sigma"]=as<NumericMatrix>(e[".sigma"]);
-    }
-    if(e.exists(".sigmaL")){
-      _rxModels[".sigmaL"]=as<List>(e[".sigmaL"]);
-    }
-    if(e.exists(".omegaL")){
-      _rxModels[".omegaL"] = as<List>(e[".omegaL"]);
-    }
-    if(e.exists(".theta")){
-      _rxModels[".theta"] = as<NumericMatrix>(e[".theta"]);
-    }
-    RObject new_params;
-    RObject new_events;
-    if (rxIs(params, "rx.event")){
-      new_events = params;
-      new_params = events;
-    } else {
-      new_params = update_params ? params : e["args.params"];
-      new_events = update_events ? events : e["args.events"];
-    }
-    
-    RObject new_inits = update_inits ? inits : e["args.inits"];
-    List newRxControl = clone(rxControl);
-    RObject new_object = as<RObject>(e["args.object"]);
-    newRxControl["updateObject"] = false;
-    List dat = as<List>(rxSolve_(new_object, newRxControl, R_NilValue, extraArgs,
-				 new_params, new_events, new_inits));
-    if (updateObject && as<bool>(e[".real.update"])){
-      List old = as<List>(rxCurObj);
-      //Should I zero out the List...?
-      CharacterVector oldNms = old.names();
-      CharacterVector nms = dat.names();
-      if (oldNms.size() == nms.size()){
-	int i;
-	for (i = 0; i < nms.size(); i++){
-	  old[as<std::string>(nms[i])] = as<SEXP>(dat[as<std::string>(nms[i])]);
-	}
-	old.attr("class") = dat.attr("class");
-	old.attr("row.names") = dat.attr("row.names");
-	return old;
-      } else {
-	warning("Cannot update object...");
-	return dat;
-      }
-    }
-    e[".real.update"] = true;
-    return dat;
+    return rxSolve_update(object, rxControl, specParams,
+			  extraArgs, params, events, inits,
+			  isRxSolve,  isEnvironment, updateObject);
   } else {
     // Load model
     bool fromIni = false;
@@ -3809,6 +3821,7 @@ SEXP rxSolve_(const RObject &obj,
       }
       return as<SEXP>(LogicalVector::create(true));
     }
+    _gsetupOnly=setupOnly;
     par_solve(rx);
     if (op->abort){
       rxSolveFree();
@@ -3955,10 +3968,145 @@ SEXP rxSolve_(const RObject &obj,
   return R_NilValue;
 }
 
+
+RObject rxSolveGet_rxSolve(RObject &obj, std::string &sarg, LogicalVector &exact,
+			   List &lst){
+  int i, j, n;
+  rxCurObj = obj;
+  CharacterVector cls = lst.attr("class");
+  Environment e = as<Environment>(cls.attr(".RxODE.env"));
+  if (sarg == "env"){
+    return as<RObject>(e);
+  }
+  if (sarg == "model"){
+    List mv = rxModelVars(obj);
+    CharacterVector mods = mv["model"];
+    CharacterVector retS = as<std::string>(mods["model"]);
+    retS.attr("class") = "RxODE.modeltext";
+    return(retS);
+  }
+  updateSolveEnvPost(e);
+  if (e.exists(sarg)){
+    return e[sarg];
+  }
+  if (sarg == "params" || sarg == "par" || sarg == "pars" || sarg == "param"){
+    List ret = clone(as<List>(e["params.dat"]));
+    return ret;
+  } else if (sarg == "inits" || sarg == "init"){
+    NumericVector ret = clone(as<NumericVector>(e["inits.dat"]));
+    return ret;
+  } else if (sarg == "t"){
+    return lst["time"];
+  } else if ((sarg == "theta.mat" || sarg == "thetaMat") && e.exists(".theta")){
+    return e[".theta"];
+  } else if ((sarg == "sigma.list" || sarg == "sigmaList") && e.exists(".sigmaL")){
+    return e[".sigmaL"];
+  } else if ((sarg == "omega.list" || sarg == "omegaList") && e.exists(".omegaL")){
+    return e[".omegaL"];
+  }
+  // Now parameters
+  List pars = clone(List(e["params.dat"]));
+  CharacterVector nmp = pars.names();
+  n = pars.size();
+  for (i = n; i--;){
+    if (nmp[i] == sarg){
+      return pars[sarg];
+    }
+  }
+  // // Now inis.
+  // Function sub("sub", R_BaseNamespace);
+  NumericVector ini = clone(NumericVector(e["inits.dat"]));
+  CharacterVector nmi = ini.names();
+  n = ini.size();
+  std::string cur;
+  NumericVector retN(1);
+  for (i = n; i--; ){
+    cur = as<std::string>(nmi[i]) + "0";
+    if (cur == sarg){
+      retN = ini[i];
+      return as<RObject>(retN);
+    }
+    cur = as<std::string>(nmi[i]) + "_0";
+    if (cur == sarg){
+      retN = ini[i];
+      return as<RObject>(retN);
+    }
+    cur = as<std::string>(nmi[i]) + ".0";
+    if (cur == sarg){
+      retN = ini[i];
+      return as<RObject>(retN);
+    }
+    cur = as<std::string>(nmi[i]) + "[0]";
+    if (cur == sarg){
+      retN = ini[i];
+      return as<RObject>(retN);
+    }
+    cur = as<std::string>(nmi[i]) + "(0)";
+    if (cur == sarg){
+      retN = ini[i];
+      return as<RObject>(retN);
+    }
+    cur = as<std::string>(nmi[i]) + "{0}";
+    if (cur == sarg){
+      retN = ini[i];
+      return as<RObject>(retN);
+    }
+  }
+  List mv = rxModelVars(obj);
+  if (sarg == "rx" || sarg == "rxode" || sarg == "RxODE"){
+    CharacterVector trans = mv["trans"];
+    getRxModels();
+    std::string pre = as<std::string>(trans["prefix"]);
+    if (_rxModels.exists(pre)){
+      return as<RObject>(_rxModels[pre]);
+    }
+  }
+  CharacterVector normState = mv["normal.state"];;
+  CharacterVector parsC = mv["params"];
+  CharacterVector lhsC = mv["lhs"];
+  for (i = normState.size(); i--;){
+    for (j = parsC.size(); j--; ){
+      std::string test = "_sens_" + as<std::string>(normState[i]) + "_" + as<std::string>(parsC[j]);
+      if (test == sarg){
+	test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(parsC[j]) + "__";
+	return lst[test];
+      }
+      test = as<std::string>(normState[i]) + "_" + as<std::string>(parsC[j]);
+      if (test == sarg){
+	test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(parsC[j]) + "__";
+	return lst[test];
+      }
+      test = as<std::string>(normState[i]) + "." + as<std::string>(parsC[j]);
+      if (test == sarg){
+	test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(parsC[j]) + "__";
+	return lst[test];
+      }
+    }
+    for (j = lhsC.size(); j--;){
+      std::string test = "_sens_" + as<std::string>(normState[i]) + "_" + as<std::string>(lhsC[j]);
+      if (test == sarg){
+	test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(lhsC[j]) + "__";
+	return lst[test];
+      }
+      test = as<std::string>(normState[i]) + "_" + as<std::string>(lhsC[j]);
+      if (test == sarg){
+	test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(lhsC[j]) + "__";
+	return lst[test];
+      }
+      test = as<std::string>(normState[i]) + "." + as<std::string>(lhsC[j]);
+      if (test == sarg){
+	test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(lhsC[j]) + "__";
+	return lst[test];
+      }
+    }
+  }
+  return R_NilValue;
+}
+
 //[[Rcpp::export]]
 RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
   std::string sarg;
-  int i, j, n;
+  int i, n;
   if (rxIs(obj, "data.frame")){
     List lst = as<List>(obj);
     if (rxIs(arg, "character")){
@@ -3985,133 +4133,9 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	}
       }
       if (rxIs(obj, "rxSolve")){
-	rxCurObj = obj;
-	CharacterVector cls = lst.attr("class");
-	Environment e = as<Environment>(cls.attr(".RxODE.env"));
-	if (sarg == "env"){
-	  return as<RObject>(e);
-	}
-	if (sarg == "model"){
-	  List mv = rxModelVars(obj);
-	  CharacterVector mods = mv["model"];
-	  CharacterVector retS = as<std::string>(mods["model"]);
-	  retS.attr("class") = "RxODE.modeltext";
-	  return(retS);
-	}
-        updateSolveEnvPost(e);
-        if (e.exists(sarg)){
-          return e[sarg];
-        }
-        if (sarg == "params" || sarg == "par" || sarg == "pars" || sarg == "param"){
-	  List ret = clone(as<List>(e["params.dat"]));
-          return ret;
-	} else if (sarg == "inits" || sarg == "init"){
-	  NumericVector ret = clone(as<NumericVector>(e["inits.dat"]));
-          return ret;
-	} else if (sarg == "t"){
-	  return lst["time"];
-	} else if ((sarg == "theta.mat" || sarg == "thetaMat") && e.exists(".theta")){
-	  return e[".theta"];
-	} else if ((sarg == "sigma.list" || sarg == "sigmaList") && e.exists(".sigmaL")){
-	  return e[".sigmaL"];
-	} else if ((sarg == "omega.list" || sarg == "omegaList") && e.exists(".omegaL")){
-          return e[".omegaL"];
-	}
-	// Now parameters
-	List pars = clone(List(e["params.dat"]));
-	CharacterVector nmp = pars.names();
-	n = pars.size();
-	for (i = n; i--;){
-	  if (nmp[i] == sarg){
-	    return pars[sarg];
-	  }
-	}
-	// // Now inis.
-	// Function sub("sub", R_BaseNamespace);
-	NumericVector ini = clone(NumericVector(e["inits.dat"]));
-	CharacterVector nmi = ini.names();
-	n = ini.size();
-        std::string cur;
-        NumericVector retN(1);
-        for (i = n; i--; ){
-	  cur = as<std::string>(nmi[i]) + "0";
-	  if (cur == sarg){
-	    retN = ini[i];
-	    return as<RObject>(retN);
-	  }
-	  cur = as<std::string>(nmi[i]) + "_0";
-          if (cur == sarg){
-	    retN = ini[i];
-            return as<RObject>(retN);
-          }
-          cur = as<std::string>(nmi[i]) + ".0";
-          if (cur == sarg){
-            retN = ini[i];
-            return as<RObject>(retN);
-          }
-          cur = as<std::string>(nmi[i]) + "[0]";
-          if (cur == sarg){
-	    retN = ini[i];
-            return as<RObject>(retN);
-          }
-          cur = as<std::string>(nmi[i]) + "(0)";
-          if (cur == sarg){
-	    retN = ini[i];
-	    return as<RObject>(retN);
-          }
-          cur = as<std::string>(nmi[i]) + "{0}";
-          if (cur == sarg){
-	    retN = ini[i];
-            return as<RObject>(retN);
-          }
-	}
-	List mv = rxModelVars(obj);
-	if (sarg == "rx" || sarg == "rxode" || sarg == "RxODE"){
-          CharacterVector trans = mv["trans"];
-	  getRxModels();
-	  std::string pre = as<std::string>(trans["prefix"]);
-          if (_rxModels.exists(pre)){
-	    return as<RObject>(_rxModels[pre]);
-	  }
-	}
-	CharacterVector normState = mv["normal.state"];;
-	CharacterVector parsC = mv["params"];
-        CharacterVector lhsC = mv["lhs"];
-	for (i = normState.size(); i--;){
-	  for (j = parsC.size(); j--; ){
-	    std::string test = "_sens_" + as<std::string>(normState[i]) + "_" + as<std::string>(parsC[j]);
-	    if (test == sarg){
-	      test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(parsC[j]) + "__";
-	      return lst[test];
-	    }
-            test = as<std::string>(normState[i]) + "_" + as<std::string>(parsC[j]);
-            if (test == sarg){
-              test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(parsC[j]) + "__";
-	      return lst[test];
-	    }
-            test = as<std::string>(normState[i]) + "." + as<std::string>(parsC[j]);
-            if (test == sarg){
-              test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(parsC[j]) + "__";
-              return lst[test];
-            }
-	  }
-          for (j = lhsC.size(); j--;){
-            std::string test = "_sens_" + as<std::string>(normState[i]) + "_" + as<std::string>(lhsC[j]);
-            if (test == sarg){
-              test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(lhsC[j]) + "__";
-              return lst[test];
-            }
-            test = as<std::string>(normState[i]) + "_" + as<std::string>(lhsC[j]);
-            if (test == sarg){
-              test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(lhsC[j]) + "__";
-              return lst[test];
-            }
-            test = as<std::string>(normState[i]) + "." + as<std::string>(lhsC[j]);
-            if (test == sarg){
-              test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(lhsC[j]) + "__";
-              return lst[test];
-            }
-          }
+	RObject ret0 = rxSolveGet_rxSolve(obj, sarg, exact, lst);
+	if (!rxIs(ret0, "NULL")){
+	  return ret0;
 	}
       }
     } else {
@@ -4148,22 +4172,22 @@ RObject rxSolveUpdate(RObject obj,
 			  R_NilValue,
                           value, //defrx_params,
                           defrx_events,
-                          defrx_inits);
+                          defrx_inits, 0);
 	} else if (sarg == "events"){
 	  return rxSolve_(obj,rxControl,
 			  CharacterVector::create("events"),
 			  R_NilValue,
 			  defrx_params,
 			  value, // defrx_events,
-			  defrx_inits);
+			  defrx_inits, 0);
 	} else if (sarg == "inits"){
 	  return rxSolve_(obj, rxControl,
                           CharacterVector::create("inits"),
 			  R_NilValue,
                           defrx_params,
                           defrx_events,
-                          as<RObject>(value) //defrx_inits,
-			  );
+                          as<RObject>(value), //defrx_inits,
+			  0);
 	} else if (sarg == "t" || sarg == "time"){
 	  CharacterVector classattr = obj.attr("class");
           Environment e = as<Environment>(classattr.attr(".RxODE.env"));
@@ -4198,7 +4222,7 @@ RObject rxSolveUpdate(RObject obj,
 				R_NilValue,
 				pars, //defrx_params,
 				defrx_events,
-				defrx_inits);
+				defrx_inits, 0);
 	      } else if (val.size() == nc){
 		// Change parameter -> Covariate
 		List newPars(pars.size()-1);
@@ -4231,7 +4255,7 @@ RObject rxSolveUpdate(RObject obj,
 				R_NilValue,
 				newPars, //defrx_params,
 				newEvents,
-				defrx_inits);
+				defrx_inits, 0);
 	      }
 	      return R_NilValue;
 	    }
@@ -4251,7 +4275,7 @@ RObject rxSolveUpdate(RObject obj,
 				R_NilValue,
 				defrx_params,
 				events,
-				defrx_inits);
+				defrx_inits, 0);
 	      } else if (val.size() == np){
 		// Change Covariate -> Parameter
 		List newPars(pars.size()+1);
@@ -4284,7 +4308,7 @@ RObject rxSolveUpdate(RObject obj,
 				R_NilValue,
 				newPars,//defrx_params,
 				newEvents,
-				defrx_inits);
+				defrx_inits, 0);
 	      }
 	    }
 	  }
@@ -4334,7 +4358,7 @@ RObject rxSolveUpdate(RObject obj,
 			      R_NilValue,
 			      defrx_params,
 			      defrx_events,
-			      ini);
+			      ini, 0);
 	    }
 	  }
 	  return R_NilValue;
