@@ -22,6 +22,34 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cvPost
+RObject cvPost(double nu, RObject omega, int n, bool omegaIsChol, bool returnChol);
+RcppExport SEXP _RxODE_cvPost(SEXP nuSEXP, SEXP omegaSEXP, SEXP nSEXP, SEXP omegaIsCholSEXP, SEXP returnCholSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< RObject >::type omega(omegaSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< bool >::type omegaIsChol(omegaIsCholSEXP);
+    Rcpp::traits::input_parameter< bool >::type returnChol(returnCholSEXP);
+    rcpp_result_gen = Rcpp::wrap(cvPost(nu, omega, n, omegaIsChol, returnChol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rinvchisq
+NumericVector rinvchisq(const int n, const double& nu, const double& scale);
+RcppExport SEXP _RxODE_rinvchisq(SEXP nSEXP, SEXP nuSEXP, SEXP scaleSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< const double& >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< const double& >::type scale(scaleSEXP);
+    rcpp_result_gen = Rcpp::wrap(rinvchisq(n, nu, scale));
+    return rcpp_result_gen;
+END_RCPP
+}
 // etUpdate
 RObject etUpdate(RObject obj, RObject arg, RObject value, LogicalVector exact);
 RcppExport SEXP _RxODE_etUpdate(SEXP objSEXP, SEXP argSEXP, SEXP valueSEXP, SEXP exactSEXP) {
@@ -514,80 +542,6 @@ RcppExport SEXP _RxODE_atolRtolFactor_(SEXP factorSEXP) {
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
         rcpp_result_gen = PROTECT(_RxODE_atolRtolFactor__try(factorSEXP));
-    }
-    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
-    if (rcpp_isInterrupt_gen) {
-        UNPROTECT(1);
-        Rf_onintr();
-    }
-    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
-    if (rcpp_isLongjump_gen) {
-        Rcpp::internal::resumeJump(rcpp_result_gen);
-    }
-    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
-    if (rcpp_isError_gen) {
-        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
-        UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
-    }
-    UNPROTECT(1);
-    return rcpp_result_gen;
-}
-// cvPost
-RObject cvPost(double nu, RObject omega, int n, bool omegaIsChol, bool returnChol);
-static SEXP _RxODE_cvPost_try(SEXP nuSEXP, SEXP omegaSEXP, SEXP nSEXP, SEXP omegaIsCholSEXP, SEXP returnCholSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< RObject >::type omega(omegaSEXP);
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< bool >::type omegaIsChol(omegaIsCholSEXP);
-    Rcpp::traits::input_parameter< bool >::type returnChol(returnCholSEXP);
-    rcpp_result_gen = Rcpp::wrap(cvPost(nu, omega, n, omegaIsChol, returnChol));
-    return rcpp_result_gen;
-END_RCPP_RETURN_ERROR
-}
-RcppExport SEXP _RxODE_cvPost(SEXP nuSEXP, SEXP omegaSEXP, SEXP nSEXP, SEXP omegaIsCholSEXP, SEXP returnCholSEXP) {
-    SEXP rcpp_result_gen;
-    {
-        Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_RxODE_cvPost_try(nuSEXP, omegaSEXP, nSEXP, omegaIsCholSEXP, returnCholSEXP));
-    }
-    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
-    if (rcpp_isInterrupt_gen) {
-        UNPROTECT(1);
-        Rf_onintr();
-    }
-    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
-    if (rcpp_isLongjump_gen) {
-        Rcpp::internal::resumeJump(rcpp_result_gen);
-    }
-    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
-    if (rcpp_isError_gen) {
-        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
-        UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
-    }
-    UNPROTECT(1);
-    return rcpp_result_gen;
-}
-// rinvchisq
-NumericVector rinvchisq(const int n, const double& nu, const double& scale);
-static SEXP _RxODE_rinvchisq_try(SEXP nSEXP, SEXP nuSEXP, SEXP scaleSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< const int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< const double& >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< const double& >::type scale(scaleSEXP);
-    rcpp_result_gen = Rcpp::wrap(rinvchisq(n, nu, scale));
-    return rcpp_result_gen;
-END_RCPP_RETURN_ERROR
-}
-RcppExport SEXP _RxODE_rinvchisq(SEXP nSEXP, SEXP nuSEXP, SEXP scaleSEXP) {
-    SEXP rcpp_result_gen;
-    {
-        Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_RxODE_rinvchisq_try(nSEXP, nuSEXP, scaleSEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
@@ -1521,8 +1475,6 @@ static int _RxODE_RcppExport_validate(const char* sig) {
         signatures.insert("NumericVector(*rxSetupIni)(const RObject&,RObject)");
         signatures.insert("NumericVector(*rxSetupScale)(const RObject&,RObject,Nullable<List>)");
         signatures.insert("void(*atolRtolFactor_)(double)");
-        signatures.insert("RObject(*cvPost)(double,RObject,int,bool,bool)");
-        signatures.insert("NumericVector(*rinvchisq)(const int,const double&,const double&)");
         signatures.insert("List(*rxSimThetaOmega)(const Nullable<NumericVector>&,const Nullable<NumericMatrix>&,const Nullable<NumericVector>&,const NumericVector&,const NumericVector&,const bool&,int,const Nullable<NumericMatrix>&,const NumericVector&,const NumericVector&,const Nullable<NumericVector>&,const bool&,int,const Nullable<NumericMatrix>,const NumericVector&,const NumericVector&,const Nullable<NumericVector>&,const bool&,int,int,double,double,bool)");
         signatures.insert("LogicalVector(*rxSolveFree)()");
         signatures.insert("SEXP(*rxSolve_)(const RObject&,const List&,const Nullable<CharacterVector>&,const Nullable<List>&,const RObject&,const RObject&,const RObject&,const int)");
@@ -1566,8 +1518,6 @@ RcppExport SEXP _RxODE_RcppExport_registerCCallable() {
     R_RegisterCCallable("RxODE", "_RxODE_rxSetupIni", (DL_FUNC)_RxODE_rxSetupIni_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSetupScale", (DL_FUNC)_RxODE_rxSetupScale_try);
     R_RegisterCCallable("RxODE", "_RxODE_atolRtolFactor_", (DL_FUNC)_RxODE_atolRtolFactor__try);
-    R_RegisterCCallable("RxODE", "_RxODE_cvPost", (DL_FUNC)_RxODE_cvPost_try);
-    R_RegisterCCallable("RxODE", "_RxODE_rinvchisq", (DL_FUNC)_RxODE_rinvchisq_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSimThetaOmega", (DL_FUNC)_RxODE_rxSimThetaOmega_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSolveFree", (DL_FUNC)_RxODE_rxSolveFree_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSolve_", (DL_FUNC)_RxODE_rxSolve__try);

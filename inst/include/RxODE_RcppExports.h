@@ -278,48 +278,6 @@ namespace RxODE {
             throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
     }
 
-    inline RObject cvPost(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false) {
-        typedef SEXP(*Ptr_cvPost)(SEXP,SEXP,SEXP,SEXP,SEXP);
-        static Ptr_cvPost p_cvPost = NULL;
-        if (p_cvPost == NULL) {
-            validateSignature("RObject(*cvPost)(double,RObject,int,bool,bool)");
-            p_cvPost = (Ptr_cvPost)R_GetCCallable("RxODE", "_RxODE_cvPost");
-        }
-        RObject rcpp_result_gen;
-        {
-            RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_cvPost(Shield<SEXP>(Rcpp::wrap(nu)), Shield<SEXP>(Rcpp::wrap(omega)), Shield<SEXP>(Rcpp::wrap(n)), Shield<SEXP>(Rcpp::wrap(omegaIsChol)), Shield<SEXP>(Rcpp::wrap(returnChol)));
-        }
-        if (rcpp_result_gen.inherits("interrupted-error"))
-            throw Rcpp::internal::InterruptedException();
-        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
-            throw Rcpp::LongjumpException(rcpp_result_gen);
-        if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
-        return Rcpp::as<RObject >(rcpp_result_gen);
-    }
-
-    inline NumericVector rinvchisq(const int n = 1, const double& nu = 1.0, const double& scale = 1) {
-        typedef SEXP(*Ptr_rinvchisq)(SEXP,SEXP,SEXP);
-        static Ptr_rinvchisq p_rinvchisq = NULL;
-        if (p_rinvchisq == NULL) {
-            validateSignature("NumericVector(*rinvchisq)(const int,const double&,const double&)");
-            p_rinvchisq = (Ptr_rinvchisq)R_GetCCallable("RxODE", "_RxODE_rinvchisq");
-        }
-        RObject rcpp_result_gen;
-        {
-            RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_rinvchisq(Shield<SEXP>(Rcpp::wrap(n)), Shield<SEXP>(Rcpp::wrap(nu)), Shield<SEXP>(Rcpp::wrap(scale)));
-        }
-        if (rcpp_result_gen.inherits("interrupted-error"))
-            throw Rcpp::internal::InterruptedException();
-        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
-            throw Rcpp::LongjumpException(rcpp_result_gen);
-        if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
-        return Rcpp::as<NumericVector >(rcpp_result_gen);
-    }
-
     inline List rxSimThetaOmega(const Nullable<NumericVector>& params = R_NilValue, const Nullable<NumericMatrix>& omega = R_NilValue, const Nullable<NumericVector>& omegaDf = R_NilValue, const NumericVector& omegaLower = NumericVector::create(R_NegInf), const NumericVector& omegaUpper = NumericVector::create(R_PosInf), const bool& omegaIsChol = false, int nSub = 1, const Nullable<NumericMatrix>& thetaMat = R_NilValue, const NumericVector& thetaLower = NumericVector::create(R_NegInf), const NumericVector& thetaUpper = NumericVector::create(R_PosInf), const Nullable<NumericVector>& thetaDf = R_NilValue, const bool& thetaIsChol = false, int nStud = 1, const Nullable<NumericMatrix> sigma = R_NilValue, const NumericVector& sigmaLower = NumericVector::create(R_NegInf), const NumericVector& sigmaUpper = NumericVector::create(R_PosInf), const Nullable<NumericVector>& sigmaDf = R_NilValue, const bool& sigmaIsChol = false, int nCoresRV = 1, int nObs = 1, double dfSub = 0, double dfObs = 0, bool simSubjects = true) {
         typedef SEXP(*Ptr_rxSimThetaOmega)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
         static Ptr_rxSimThetaOmega p_rxSimThetaOmega = NULL;
