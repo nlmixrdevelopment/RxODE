@@ -433,6 +433,8 @@ void F77_NAME(dlsoda)(
                       int *);
 
 extern rx_solve *getRxSolve_(){
+  if (set_solve == NULL)
+    error("RxODE model function pointers are not setup.");
   set_solve(&rx_global);
   return &rx_global;
 }
