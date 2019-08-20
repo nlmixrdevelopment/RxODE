@@ -1624,7 +1624,7 @@ sympyEnv <- function(expr){
     n2 <- names;
     n2[n2 == "time"] <- "t";
     ## Replace f with rx_pred_
-    n2[n2 == "f"] <- "rx_pred_f_"
+    ## n2[n2 == "f"] <- "rx_pred_f_"
     n2 <- gsub(rex::rex("."), "__DoT__", n2)
     ## Replace print functions with nothing.
     n2[regexpr(regPrint, n2) != -1] <- "";
@@ -2153,7 +2153,7 @@ rxErrEnv <- function(expr){
     if (any(n2 == "rx_r")){stop("Use return() for errors.")}
     ## n2[n2 == "err"] <- "rx_r_";
     ## n2[n2 == "error"] <- "rx_r_";
-    n2[n2 == "f"] <- "rx_pred_f_";
+    ## n2[n2 == "f"] <- "rx_pred_f_";
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxErrFEnv);
     return(symbol.env)
