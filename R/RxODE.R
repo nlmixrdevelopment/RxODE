@@ -2,6 +2,26 @@ rex::register_shortcuts("RxODE");
 
 R_NegInf <- -Inf # Hack for Rcpp->R initial values problem
 R_PosInf <- Inf
+
+.dynProtect <- "";
+
+##' Protect dll(s) from unloading
+##'
+##' @param dlls is a list of dlls that shouldn't be unloaded
+##'
+##' @export
+##' @author Matthew Fidler
+rxDynProtect <- function(dlls){
+    assignInMyNamespace(".dynProtect", dlls);
+}
+.rxDynUnload <- function(dll, unload=FALSE){
+    if (!unload){
+        return(!any(dll == .dynProtect));
+    } else if (!any(dll == .dynProtect)) {
+        sapply(dyn.unload, dll)
+    }
+}
+
 ##' Create an ODE-based model specification
 ##'
 ##' Create a dynamic ODE-based model object suitably for translation
@@ -549,7 +569,7 @@ RxODE <- function(model, modName = basename(wd),
     .env$calcJac <- (length(.mv$dfdy) > 0);
     .env$calcSens <- (length(.mv$sens) > 0)
     class(.env) <- "RxODE"
-    reg.finalizer(.env, eval(bquote(function(...){try(dyn.unload(.(rxDll(.env))), silent=TRUE)})));
+    reg.finalizer(.env, eval(bquote(function(...){try(.rxDynUnload(.(rxDll(.env))), silent=TRUE)})));
     RxODE::rxForget();
     if (!is.null(.env$package)){
         .o <- rxDll(.env);
