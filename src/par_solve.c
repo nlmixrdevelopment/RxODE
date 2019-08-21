@@ -28,6 +28,7 @@ void setSilentErr(int silent){
 }
 
 extern int getSilentErr(){return _setSilentErr;}
+extern int isMemLock();
 
 void printErr(int err, int id){
   RSprintf("Recovered solving errors for internal ID %d (%d):\n", id+1, err);
@@ -1465,26 +1466,28 @@ void rxOptionsIni(){
 }
 
 void rxOptionsFree(){
-  global_iworki = 0;
-  Free(global_iworkp);
+  if (!isMemLock()){
+    global_iworki = 0;
+    Free(global_iworkp);
 
-  global_rworki = 0;
-  Free(global_rworkp);
-  for (int i = max_inds_global; i--;){
-    rx_solving_options_ind *ind = &inds_global[i];
-    if (ind->solveSave != NULL) Free(ind->solveSave);
+    global_rworki = 0;
+    Free(global_rworkp);
+    for (int i = max_inds_global; i--;){
+      rx_solving_options_ind *ind = &inds_global[i];
+      if (ind->solveSave != NULL) Free(ind->solveSave);
+    }
+    max_inds_global = 0;
+    Free(inds_global);
+
+    global_InfusionRatei = 0;
+    Free(global_InfusionRatep);
+
+    global_BadDosei = 0;
+    Free(global_BadDosep);
+
+    global_scalei = 0;
+    Free(global_scalep);
   }
-  max_inds_global = 0;
-  Free(inds_global);
-
-  global_InfusionRatei = 0;
-  Free(global_InfusionRatep);
-
-  global_BadDosei = 0;
-  Free(global_BadDosep);
-
-  global_scalei = 0;
-  Free(global_scalep);
 }
 
 

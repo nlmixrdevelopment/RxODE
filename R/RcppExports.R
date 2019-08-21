@@ -305,6 +305,18 @@ rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaLo
     .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaLower, omegaUpper, omegaIsChol, nSub, thetaMat, thetaLower, thetaUpper, thetaDf, thetaIsChol, nStud, sigma, sigmaLower, sigmaUpper, sigmaDf, sigmaIsChol, nCoresRV, nObs, dfSub, dfObs, simSubjects)
 }
 
+#' Lock the freeing routines
+#'
+#' This makes sure that the freeing routines are not called.
+#'
+#' @param lock This determines if the freeing is stopped
+#'
+#' @keywords internal
+#' @export
+rxLockFree <- function(lock) {
+    invisible(.Call(`_RxODE_rxLockFree`, lock))
+}
+
 #' Free the C solving/parsing information.
 #'
 #' Take the ODE C system and free it.
@@ -412,7 +424,7 @@ rxIsLoaded <- function(obj) {
 
 #' Load RxODE object
 #'
-#' @param obj A RxODE family of objects 
+#' @param obj A RxODE family of objects
 #'
 #' @return Boolean returning if the RxODE library is loaded.
 #'

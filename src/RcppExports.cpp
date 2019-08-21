@@ -617,6 +617,39 @@ RcppExport SEXP _RxODE_rxSimThetaOmega(SEXP paramsSEXP, SEXP omegaSEXP, SEXP ome
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// rxLockFree
+void rxLockFree(int lock);
+static SEXP _RxODE_rxLockFree_try(SEXP lockSEXP) {
+BEGIN_RCPP
+    Rcpp::traits::input_parameter< int >::type lock(lockSEXP);
+    rxLockFree(lock);
+    return R_NilValue;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _RxODE_rxLockFree(SEXP lockSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_RxODE_rxLockFree_try(lockSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 // rxSolveFree
 LogicalVector rxSolveFree();
 static SEXP _RxODE_rxSolveFree_try() {
@@ -1476,6 +1509,7 @@ static int _RxODE_RcppExport_validate(const char* sig) {
         signatures.insert("NumericVector(*rxSetupScale)(const RObject&,RObject,Nullable<List>)");
         signatures.insert("void(*atolRtolFactor_)(double)");
         signatures.insert("List(*rxSimThetaOmega)(const Nullable<NumericVector>&,const Nullable<NumericMatrix>&,const Nullable<NumericVector>&,const NumericVector&,const NumericVector&,const bool&,int,const Nullable<NumericMatrix>&,const NumericVector&,const NumericVector&,const Nullable<NumericVector>&,const bool&,int,const Nullable<NumericMatrix>,const NumericVector&,const NumericVector&,const Nullable<NumericVector>&,const bool&,int,int,double,double,bool)");
+        signatures.insert("void(*rxLockFree)(int)");
         signatures.insert("LogicalVector(*rxSolveFree)()");
         signatures.insert("SEXP(*rxSolve_)(const RObject&,const List&,const Nullable<CharacterVector>&,const Nullable<List>&,const RObject&,const RObject&,const RObject&,const int)");
         signatures.insert("RObject(*rxSolveGet)(RObject,RObject,LogicalVector)");
@@ -1519,6 +1553,7 @@ RcppExport SEXP _RxODE_RcppExport_registerCCallable() {
     R_RegisterCCallable("RxODE", "_RxODE_rxSetupScale", (DL_FUNC)_RxODE_rxSetupScale_try);
     R_RegisterCCallable("RxODE", "_RxODE_atolRtolFactor_", (DL_FUNC)_RxODE_atolRtolFactor__try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSimThetaOmega", (DL_FUNC)_RxODE_rxSimThetaOmega_try);
+    R_RegisterCCallable("RxODE", "_RxODE_rxLockFree", (DL_FUNC)_RxODE_rxLockFree_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSolveFree", (DL_FUNC)_RxODE_rxSolveFree_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSolve_", (DL_FUNC)_RxODE_rxSolve__try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSolveGet", (DL_FUNC)_RxODE_rxSolveGet_try);
