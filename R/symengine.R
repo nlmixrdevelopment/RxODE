@@ -1392,7 +1392,8 @@ rxS <- function(x, doConst=TRUE, promoteLinSens=FALSE){
     .env$rxTBSd2 <- .rxFunction("rxTBSd2")
     .env$linCmtA <- .rxFunction("linCmtA");
     .env$linCmtB <- .rxFunction("linCmtB");
-    for (.f in c("rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt", "rxGt", "rxAnd", "rxOr", "rxNot"))
+    for (.f in c("rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt",
+                 "rxGt", "rxAnd", "rxOr", "rxNot"))
         assign(.f, .rxFunction(.f), envir=.env)
     .env$..polygamma <- symengine::S("polygamma(_rx_a, _rx_b)");
     .env$..a <- symengine::Symbol("_rx_a");

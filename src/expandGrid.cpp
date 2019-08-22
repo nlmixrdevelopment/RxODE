@@ -44,7 +44,7 @@ List rxExpandGrid_(RObject &c1, RObject &c2, RObject &type){
 	std::string sDf = "rx__df_" + s1 + "_dy_" + s2 + "__";
 	out4[i] = sDf;
 	out5[i] = "assign(\"" + sDf + "\",with(model,D(rx__d_dt_" +
-	  s1 + "__, " + s2 +")), envir=model)";
+	  s1 + "__, \"" + s2 +"\")), envir=model)";
       }
       List out(5);
       out[0] = out1;
@@ -111,7 +111,7 @@ List rxExpandSens_(CharacterVector state, CharacterVector calcSens){
     state0[i] = tmp;
     state0r[i] = sensSp + "(0)";
     stateD[i] = "assign(\"rx_"+sensSp+"_ini_0__\",with(model,D(" +
-      tmp + "," + curSens + ")),envir=model)";
+      tmp + ",\"" + curSens + "\")),envir=model)";
     rateS[i] = "rx_rate_" + curState + "_";
     rateR[i] = "rate(" + curState + ")";
     durS[i] = "rx_dur_" + curState + "_";
@@ -175,10 +175,10 @@ List rxExpandSens2_(CharacterVector state, CharacterVector s1, CharacterVector s
     ddtS2[i] = sensSp;
     curLine = "assign(\"" + curLine + "\", with(model,";
     std::string v1 = "rx__d_dt_rx__sens_"+cS+"_BY_"+cS2+"____";
-    curLine += "D("+v1+","+cS1+")";
+    curLine += "D("+v1+",\""+cS1+"\")";
     for (int j = len1; j--;){
       std::string s2 = as<std::string>(state[j]);
-      curLine += "+D("+v1+","+s2+")*rx__sens_"+s2+"_BY_"+cS1+
+      curLine += "+D("+v1+",\""+s2+"\")*rx__sens_"+s2+"_BY_"+cS1+
 	"__+rx__sens_"+s2+"_BY_"+cS1+"_BY_"+cS2+"__*rx__df_"+
 	cS + "_dy_"+s2+"__";
     }
@@ -187,7 +187,7 @@ List rxExpandSens2_(CharacterVector state, CharacterVector s1, CharacterVector s
     state0r[i] = sensSp + "(0)";
     s0[i] = "rx_" + cS + "_ini_0__";
     stateD[i] = "assign(\"rx_"+sensSp+"_ini_0__\",with(model,D(D(rx_" +
-      cS + "_ini_0__," + cS1 + "),"+cS2+")),envir=model)";
+      cS + "_ini_0__,\"" + cS1 + "\"),\""+cS2+"\")),envir=model)";
   }
   List out(7);
   out[0] = ddt;
