@@ -2561,6 +2561,83 @@ SEXP rxSolve_update(const RObject &object, const List &rxControl,
   e[".real.update"] = true;
   return dat;
 }
+
+// Generate environment for saving solving information
+Environment rxSolve_genenv(List& dat,
+			   IntegerVector& eGparPos, bool& fromIni,
+			   int &nSize, rx_solve* rx,
+			   NumericVector &initsC,
+			   CharacterVector &amountUnits, CharacterVector &timeUnits,
+			   RObject &object, RObject &par1ini,
+			   bool &swappedEvents,
+			   bool &usePar1,
+			   RObject& par1, const RObject& params,
+			   const RObject& events,
+			   const RObject &inits,
+			   const List &rxControl){
+  IntegerVector slvr_counterIv(nSize);
+  IntegerVector dadt_counterIv(nSize);
+  IntegerVector  jac_counterIv(nSize);
+  std::copy(&_globals.slvr_counter[0], &_globals.slvr_counter[0] + nSize, slvr_counterIv.begin());
+  std::copy(&_globals.dadt_counter[0], &_globals.dadt_counter[0] + nSize, dadt_counterIv.begin());
+  std::copy(&_globals.jac_counter[0], &_globals.jac_counter[0] + nSize, jac_counterIv.begin());
+  Function newEnv("new.env", R_BaseNamespace);
+  Environment e = newEnv(_["size"] = 29, _["parent"] = RxODEenv());
+  getRxModels();
+  if(_rxModels.exists(".theta")){
+    e[".theta"] = as<NumericMatrix>(_rxModels[".theta"]);
+    _rxModels.remove(".theta");
+  }
+  if(_rxModels.exists(".sigma")){
+    e[".sigma"] = as<NumericMatrix>(_rxModels[".sigma"]);
+    _rxModels.remove(".sigma");
+  }
+  if(_rxModels.exists(".omegaL")){
+    e[".omegaL"] = as<List>(_rxModels[".omegaL"]);
+    _rxModels.remove(".omegaL");
+  }
+  if(_rxModels.exists(".sigmaL")){
+    e[".sigmaL"] = as<List>(_rxModels[".sigmaL"]);
+    _rxModels.remove(".sigmaL");
+  }
+  e["check.nrow"] = rx->nr;
+  e["check.ncol"] = dat.size();
+  e["check.names"] = dat.names();
+  e[".par.pos"] = eGparPos;
+  e[".par.pos.ini"] = fromIni;
+  e[".slvr.counter"] = slvr_counterIv;
+  e[".dadt.counter"] = dadt_counterIv;
+  e[".jac.counter"] = jac_counterIv;
+  e[".nsub"] = rx->nsub;
+  e[".nsim"] = rx->nsim;
+  e["inits.dat"] = initsC;
+  CharacterVector units = CharacterVector::create(amountUnits[0], timeUnits[0]);
+  units.names() = CharacterVector::create("dosing","time");
+  e["units"] = units;
+  e["nobs"] = rx->nobs - rx->nevid9;
+  e["args.object"] = object;
+  e["dll"] = rxDll(object);
+  e["args.par0"] = par1ini;
+  if (!swappedEvents){
+    if (usePar1){
+      e["args.params"] = par1;
+    } else {
+      e["args.params"] = params;
+    }
+    e["args.events"] = events;
+  } else {
+    if (usePar1){
+      e["args.params"] = par1;
+    } else {
+      e["args.params"] = events;
+    }
+    e["args.events"] = params;
+  }
+  e["args.inits"] = inits;
+  e["args"] = rxControl;
+  e[".real.update"] = true;
+  return e;
+}
 void rxAssignPtr(SEXP object);
 int _gsetupOnly;
 //[[Rcpp::export]]
@@ -2713,7 +2790,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	double from = 0.0;
 	NumericVector tmp;
 	IntegerVector tmpI;
-	if (rxIs(rxControl["from"], "integer") || rxIs(rxControl["from"], "numeric")){
+	if (rxIs(rxControl["from"], "integer") ||
+	    rxIs(rxControl["from"], "numeric")){
 	  tmp = as<NumericVector>(rxControl["from"]);
 	  if (tmp.size() != 1){
 	    stop("'from' must be of length 1");
@@ -3725,8 +3803,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     }
     dat.attr("class") = CharacterVector::create("data.frame");
     List xtra;
-    int nr = rx->nr;
-    int nc = dat.size();
     if (rx->add_cov && (rx->matrix == 2 || rx->matrix == 0) && covUnits.hasAttribute("names")){
       CharacterVector nmC = covUnits.attr("names");
       NumericVector tmpN, tmpN2;
@@ -3757,7 +3833,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
         dat.attr("class") = "data.frame";
 	return dat;
       } else {
-        NumericMatrix tmpM(nr,nc);
+        NumericMatrix tmpM(rx->nr, dat.size());
         for (unsigned int i = dat.size(); i--;){
           tmpM(_,i) = as<NumericVector>(dat[i]);
         }
@@ -3765,74 +3841,16 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
         return tmpM;
       }
     } else {
-      IntegerVector slvr_counterIv(nSize);
-      IntegerVector dadt_counterIv(nSize);
-      IntegerVector  jac_counterIv(nSize);
-      std::copy(&_globals.slvr_counter[0], &_globals.slvr_counter[0] + nSize, slvr_counterIv.begin());
-      std::copy(&_globals.dadt_counter[0], &_globals.dadt_counter[0] + nSize, dadt_counterIv.begin());
-      std::copy(&_globals.jac_counter[0], &_globals.jac_counter[0] + nSize, jac_counterIv.begin());
-
-      rxSolveFree();
-      
-      Function newEnv("new.env", R_BaseNamespace);
-      Environment e = newEnv(_["size"] = 29, _["parent"] = RxODEenv());
-      getRxModels();
-      if(_rxModels.exists(".theta")){
-  	e[".theta"] = as<NumericMatrix>(_rxModels[".theta"]);
-  	_rxModels.remove(".theta");
-      }
-      if(_rxModels.exists(".sigma")){
-  	e[".sigma"] = as<NumericMatrix>(_rxModels[".sigma"]);
-  	_rxModels.remove(".sigma");
-      }
-      if(_rxModels.exists(".omegaL")){
-  	e[".omegaL"] = as<List>(_rxModels[".omegaL"]);
-  	_rxModels.remove(".omegaL");
-      }
-      if(_rxModels.exists(".sigmaL")){
-  	e[".sigmaL"] = as<List>(_rxModels[".sigmaL"]);
-  	_rxModels.remove(".sigmaL");
-      }
-      e["check.nrow"] = nr;
-      e["check.ncol"] = nc;
-      e["check.names"] = dat.names();
-      
-      e[".par.pos"] = eGparPos;
-      e[".par.pos.ini"] = fromIni;
-      e[".slvr.counter"] = slvr_counterIv;
-      e[".dadt.counter"] = dadt_counterIv;
-      e[".jac.counter"] = jac_counterIv;
-      e[".nsub"] = rx->nsub;
-      e[".nsim"] = rx->nsim;
-      e["inits.dat"] = initsC;
-      CharacterVector units = CharacterVector::create(amountUnits[0], timeUnits[0]);
-      units.names() = CharacterVector::create("dosing","time");
-      e["units"] = units;
-      e["nobs"] = rx->nobs - rx->nevid9;
-      e["args.object"] = object;
-      e["dll"] = rxDll(object);
-      e["args.par0"] = par1ini;
-      if (!swappedEvents){
-	if (usePar1){
-          e["args.params"] = par1;
-	} else {
-	  e["args.params"] = params;
-	}
-  	e["args.events"] = events;
-      } else {
-        if (usePar1){
-          e["args.params"] = par1;
-        } else {
-          e["args.params"] = events;
-        }
-  	e["args.events"] = params;
-      }
-      e["args.inits"] = inits;
-      e["args"] = rxControl;
-      e[".real.update"] = true;
       CharacterVector cls= CharacterVector::create("rxSolve", "data.frame");
-      cls.attr(".RxODE.env") = e;    
+      cls.attr(".RxODE.env") = rxSolve_genenv(dat, eGparPos,
+					      fromIni, nSize,rx, initsC,
+					      amountUnits, timeUnits,
+					      object, par1ini,
+					      swappedEvents, usePar1,
+					      par1, params, events,
+					      inits, rxControl);
       dat.attr("class") = cls;
+      rxSolveFree();
       return(dat);
     }
   }
