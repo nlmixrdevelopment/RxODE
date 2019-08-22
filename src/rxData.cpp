@@ -2562,6 +2562,148 @@ SEXP rxSolve_update(const RObject &object, const List &rxControl,
   return dat;
 }
 
+// This updates the event table with sequences and other similar items
+void rxSolve_ev1Update(const RObject &obj, bool &hasCmt, RObject& ev1,
+		       const List &rxControl, rx_solve* rx){
+  if (rxIs(ev1, "rxEt")){
+    CharacterVector cls = ev1.attr("class");
+    List etE = cls.attr(".RxODE.lst");
+    int nobs = etE["nobs"];
+    if (nobs == 0){
+      // warning("Adding observations, for more control use et/add.sampling.");
+      // KEEP/DROP?
+      List ev1a = etTrans(as<List>(ev1), obj, hasCmt, false, false, true, R_NilValue,
+			  rxControl["keepF"]);
+      rx->nKeepF = keepFcov.size();
+      int lenOut = 200;
+      double by = NA_REAL;
+      double to;
+      double from = 0.0;
+      NumericVector tmp;
+      IntegerVector tmpI;
+      if (rxIs(rxControl["from"], "integer") ||
+	  rxIs(rxControl["from"], "numeric")){
+	tmp = as<NumericVector>(rxControl["from"]);
+	if (tmp.size() != 1){
+	  stop("'from' must be of length 1");
+	}
+	from = tmp[0];
+      }
+      if (rxIs(rxControl["to"], "integer") || rxIs(rxControl["to"], "numeric")){
+	tmp = as<NumericVector>(rxControl["to"]);
+	if (tmp.size() != 1){
+	  stop("'to' must be of length 1");
+	}
+	to = tmp[0];
+      } else {
+	to = (max(as<NumericVector>(ev1a["TIME"]))+24);
+      }
+      if (rxIs(rxControl["by"], "integer") || rxIs(rxControl["by"], "numeric")){
+	tmp = as<NumericVector>(rxControl["by"]);
+	if (tmp.size() != 1){
+	  stop("'by' must be of length 1");
+	}
+	by = tmp[0];
+      }
+      if (rxIs(rxControl["length.out"], "integer") || rxIs(rxControl["length.out"], "numeric")){
+	tmpI = as<IntegerVector>(rxControl["length.out"]);
+	if (tmpI.size() != 1){
+	  stop("'length.out' must be of length 1");
+	}
+	lenOut = tmpI[0];
+	if (!ISNA(by)){
+	  // Matches seq(0,1,by=0.1,length.out=3)
+	  // stop("too many arguments");
+	  stop("Cannot use both 'by' and 'length.out' for RxODE simulations");
+	}
+	by = (to-from)/(lenOut-1);
+      } else if (ISNA(by)) {
+	lenOut=200;
+	by = (to-from)/(lenOut-1);
+      } else {
+	lenOut= (int)((to-from)/by+1.0);
+      }
+      NumericVector newObs(lenOut);
+      // ((to - from)/(length.out - 1))
+      List et = as<List>(ev1);
+      for (int i = lenOut; i--;){
+	newObs[i]=by*i+from;
+      }
+      rx->nobs2 = lenOut;
+      ev1 = et_(List::create(newObs), as<List>(ev1));
+    }
+  }
+  if (rxIs(ev1, "data.frame") && !rxIs(ev1, "rxEtTrans")){
+    ev1 = as<List>(etTrans(as<List>(ev1), obj, hasCmt, false, false, true, R_NilValue,
+			   rxControl["keepF"]));
+    rx->nKeepF = keepFcov.size();
+    rxcEvid = 2;
+    rxcTime = 1;
+    rxcAmt  = 3;
+    rxcId   = 0;
+    rxcDv   = 5;
+    rxcIi   = 4;
+  }
+  if (rxIs(ev1, "rxEtTrans")){
+    CharacterVector cls = ev1.attr("class");
+    List tmpL = cls.attr(".RxODE.lst");
+    rx->nobs2 = as<int>(tmpL["nobs"]);
+  }
+}
+
+
+// This creates the final dataset from the currently solved object.
+// Most of this is a direct C call, but some items are done in C++
+List rxSolve_df(rx_solve* rx, rx_solving_options* op,
+		List &mv, bool &addTimeUnits, RObject &timeUnitsU,
+		List &covUnits, Nullable<LogicalVector> &addDosing,
+		const List &rxControl){
+  if (op->abort){
+    rxSolveFree();
+    stop("Aborted solve.");
+  }
+  int doDose = 0;
+  if (addDosing.isNull()){
+    // only evid=0
+    doDose=-1;
+  } else {
+    LogicalVector addDosing1 = as<LogicalVector>(addDosing);
+    if (LogicalVector::is_na(addDosing1[0])){
+      doDose = 1;
+    } else if (addDosing1[0]){
+      doDose = 2;
+      if (as<bool>(rxControl["subsetNonmem"])) doDose = 3;
+    } else {
+      doDose = 0;
+    }
+  }
+  IntegerVector si = mv["state.ignore"];
+  rx->stateIgnore = &si[0];
+  int doTBS = (rx->matrix == 3);
+  if (doTBS) rx->matrix=2;
+  List dat = RxODE_df(doDose, doTBS);
+  if (addTimeUnits){
+    NumericVector tmpN = as<NumericVector>(dat["time"]);
+    tmpN.attr("class") = "units";
+    tmpN.attr("units") = timeUnitsU;
+  }
+  dat.attr("class") = CharacterVector::create("data.frame");
+  if (rx->add_cov && (rx->matrix == 2 || rx->matrix == 0) &&
+      covUnits.hasAttribute("names")){
+    CharacterVector nmC = covUnits.attr("names");
+    NumericVector tmpN, tmpN2;
+    for (int i = nmC.size(); i--;){
+      tmpN = covUnits[i];
+      if (rxIs(tmpN, "units")){
+	tmpN2 = dat[as<std::string>(nmC[i])];
+	tmpN2.attr("class") = "units";
+	tmpN2.attr("units") = tmpN.attr("units");
+      }
+    }
+  }
+  return dat;
+}
+
 // Generate environment for saving solving information
 Environment rxSolve_genenv(List& dat,
 			   IntegerVector& eGparPos, bool& fromIni,
@@ -2638,6 +2780,7 @@ Environment rxSolve_genenv(List& dat,
   e[".real.update"] = true;
   return e;
 }
+
 void rxAssignPtr(SEXP object);
 int _gsetupOnly;
 //[[Rcpp::export]]
@@ -2774,90 +2917,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       par1=rxInits(obj);
       fromIni=true;
     }
-    if (rxIs(ev1, "rxEt")){
-      CharacterVector cls = ev1.attr("class");
-      List etE = cls.attr(".RxODE.lst");
-      int nobs = etE["nobs"];
-      if (nobs == 0){
-    	// warning("Adding observations, for more control use et/add.sampling.");
-	// KEEP/DROP?
-    	List ev1a = etTrans(as<List>(ev1), obj, hasCmt, false, false, true, R_NilValue,
-			    rxControl["keepF"]);
-	rx->nKeepF = keepFcov.size();
-	int lenOut = 200;
-	double by = NA_REAL;
-	double to;
-	double from = 0.0;
-	NumericVector tmp;
-	IntegerVector tmpI;
-	if (rxIs(rxControl["from"], "integer") ||
-	    rxIs(rxControl["from"], "numeric")){
-	  tmp = as<NumericVector>(rxControl["from"]);
-	  if (tmp.size() != 1){
-	    stop("'from' must be of length 1");
-	  }
-	  from = tmp[0];
-	}
-	if (rxIs(rxControl["to"], "integer") || rxIs(rxControl["to"], "numeric")){
-	  tmp = as<NumericVector>(rxControl["to"]);
-	  if (tmp.size() != 1){
-	    stop("'to' must be of length 1");
-	  }
-	  to = tmp[0];
-	} else {
-	  to = (max(as<NumericVector>(ev1a["TIME"]))+24);
-	}
-	if (rxIs(rxControl["by"], "integer") || rxIs(rxControl["by"], "numeric")){
-	  tmp = as<NumericVector>(rxControl["by"]);
-	  if (tmp.size() != 1){
-	    stop("'by' must be of length 1");
-	  }
-	  by = tmp[0];
-	}
-	if (rxIs(rxControl["length.out"], "integer") || rxIs(rxControl["length.out"], "numeric")){
-	  tmpI = as<IntegerVector>(rxControl["length.out"]);
-	  if (tmpI.size() != 1){
-	    stop("'length.out' must be of length 1");
-	  }
-	  lenOut = tmpI[0];
-	  if (!ISNA(by)){
-	    // Matches seq(0,1,by=0.1,length.out=3)
-	    // stop("too many arguments");
-	    stop("Cannot use both 'by' and 'length.out' for RxODE simulations");
-	  }
-	  by = (to-from)/(lenOut-1);
-	} else if (ISNA(by)) {
-	  lenOut=200;
-	  by = (to-from)/(lenOut-1);
-	} else {
-	  lenOut= (int)((to-from)/by+1.0);
-	}
-    	NumericVector newObs(lenOut);
-    	// ((to - from)/(length.out - 1))
-    	List et = as<List>(ev1);
-    	for (int i = lenOut; i--;){
-    	  newObs[i]=by*i+from;
-    	}
-	rx->nobs2 = lenOut;
-    	ev1 = et_(List::create(newObs), as<List>(ev1));
-      }
-    }
-    if (rxIs(ev1, "data.frame") && !rxIs(ev1, "rxEtTrans")){
-      ev1 = as<List>(etTrans(as<List>(ev1), obj, hasCmt, false, false, true, R_NilValue,
-			     rxControl["keepF"]));
-      rx->nKeepF = keepFcov.size();
-      rxcEvid = 2;
-      rxcTime = 1;
-      rxcAmt  = 3;
-      rxcId   = 0;
-      rxcDv   = 5;
-      rxcIi   = 4;
-    }
-    if (rxIs(ev1, "rxEtTrans")){
-      CharacterVector cls = ev1.attr("class");
-      List tmpL = cls.attr(".RxODE.lst");
-      rx->nobs2 = as<int>(tmpL["nobs"]);
-    }
+    rxSolve_ev1Update(obj, hasCmt, ev1, rxControl, rx);
     // Now get the parameters (and covariates)
     //
     // Unspecified parameters can be found in the modVars["ini"]
@@ -3772,49 +3832,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     }
     _gsetupOnly=setupOnly;
     par_solve(rx);
-    if (op->abort){
-      rxSolveFree();
-      stop("Aborted solve.");
-    }
-    int doDose = 0;
-    if (addDosing.isNull()){
-      // only evid=0
-      doDose=-1;
-    } else {
-      LogicalVector addDosing1 = as<LogicalVector>(addDosing);
-      if (LogicalVector::is_na(addDosing1[0])){
-	doDose = 1;
-      } else if (addDosing1[0]){
-	doDose = 2;
-	if (as<bool>(rxControl["subsetNonmem"])) doDose = 3;
-      } else {
-	doDose = 0;
-      }
-    }
-    IntegerVector si = mv["state.ignore"];
-    rx->stateIgnore = &si[0];
-    int doTBS = (rx->matrix == 3);
-    if (doTBS) rx->matrix=2;
-    List dat = RxODE_df(doDose, doTBS);
-    if (addTimeUnits){
-      NumericVector tmpN = as<NumericVector>(dat["time"]);
-      tmpN.attr("class") = "units";
-      tmpN.attr("units") = timeUnitsU;
-    }
-    dat.attr("class") = CharacterVector::create("data.frame");
-    List xtra;
-    if (rx->add_cov && (rx->matrix == 2 || rx->matrix == 0) && covUnits.hasAttribute("names")){
-      CharacterVector nmC = covUnits.attr("names");
-      NumericVector tmpN, tmpN2;
-      for (i = nmC.size(); i--;){
-	tmpN = covUnits[i];
-	if (rxIs(tmpN, "units")){
-	  tmpN2 = dat[as<std::string>(nmC[i])];
-	  tmpN2.attr("class") = "units";
-	  tmpN2.attr("units") = tmpN.attr("units");
-	}
-      }
-    }
+    List dat = rxSolve_df(rx, op, mv, addTimeUnits, timeUnitsU,
+			  covUnits, addDosing, rxControl);
     if (rx->matrix){
       rxSolveFree();
       if(_rxModels.exists(".sigma")){
