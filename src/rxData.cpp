@@ -2490,6 +2490,12 @@ typedef struct{
   bool fromIni = false;
   IntegerVector eGparPos;
   CharacterVector sigmaN;
+  NumericVector parNumeric;
+  DataFrame parDf;
+  NumericMatrix parMat;
+  int parType = 1;
+  int nPopPar = 1;
+  CharacterVector nmP;
 } rxSolve_t;
 
 SEXP rxSolve_(const RObject &obj, const List &rxControl, const Nullable<CharacterVector> &specParams,
@@ -2677,6 +2683,166 @@ void rxSolve_ev1Update(const RObject &obj, const List &rxControl,
     CharacterVector cls = ev1.attr("class");
     List tmpL = cls.attr(".RxODE.lst");
     rx->nobs2 = as<int>(tmpL["nobs"]);
+  }
+}
+
+
+// This will setup the parNumeric, parDf, or parMat for solving. It
+// will also set the parameter type.
+void rxSolve_parSetup(const RObject &obj, const List &rxControl,
+		      const Nullable<CharacterVector> &specParams,
+		      const Nullable<List> &extraArgs,
+		      CharacterVector& pars, RObject &ev1,
+		      const RObject &inits, rxSolve_t& rxSolveDat){
+  rx_solve* rx = getRxSolve_();
+  RObject theta = rxControl["theta"];
+  RObject eta = rxControl["eta"];
+  if (!theta.isNULL() || !eta.isNULL()){
+    rxSolveDat.usePar1=true;
+    rxSolveDat.par1 = rxSetupParamsThetaEta(rxSolveDat.par1, theta, eta);
+  }
+  if (rxIs(rxSolveDat.par1, "numeric") || rxIs(rxSolveDat.par1, "integer")){
+    rxSolveDat.parNumeric = as<NumericVector>(rxSolveDat.par1);
+    if (rxSolveDat.parNumeric.hasAttribute("names")){
+      rxSolveDat.nmP = rxSolveDat.parNumeric.names();
+    } else if (rxSolveDat.parNumeric.size() == pars.size()) {
+      rxSolveDat.nmP = pars;
+    } else {
+      stop("If parameters are not named, they must match the order and size of the parameters in the model.");
+    }
+    RObject iCov = rxControl["iCov"];
+    if (!rxIs(iCov, "NULL")){
+      // Create a data frame
+      CharacterVector keepC, keepCf;
+      if (rxIs(rxControl["keepI"], "character")){
+	keepC = as<CharacterVector>(rxControl["keepI"]);
+      }
+      IntegerVector keepIv(keepC.size());
+      std::fill_n(keepIv.begin(), keepC.size(), -1);
+      List lstT=as<List>(iCov);
+      rxSolveDat.parDf = as<DataFrame>(iCov);
+      int nr = rxSolveDat.parDf.nrows();
+      List lstF(rxSolveDat.parNumeric.size()+lstT.size());
+      CharacterVector nmF(lstF.size());
+      CharacterVector nmL = rxSolveDat.nmP;
+      CharacterVector nmT = lstT.attr("names");
+      for (int ii = rxSolveDat.parNumeric.size(); ii--;){
+	NumericVector tmp(nr);
+	std::fill_n(tmp.begin(), nr, rxSolveDat.parNumeric[ii]);
+	lstF[ii] = tmp;
+	nmF[ii] = nmL[ii];
+      }
+      int nKeepi=0;
+      for (int ii=lstT.size(); ii--;){
+	lstF[ii+rxSolveDat.parNumeric.size()] = lstT[ii];
+	nmF[ii+rxSolveDat.parNumeric.size()] = nmT[ii];
+	for (int jj = keepC.size(); jj--;){
+	  if (nmT[ii] == keepC[jj]){
+	    keepIv[jj] = ii;
+	    nKeepi++;
+	    break;
+	  }
+	}
+      }
+      keepIcov=List(nKeepi);
+      keepCf = CharacterVector(nKeepi);
+      int iii=0;
+      for (int ii=keepC.size(); ii--;){
+	if (keepIv[ii] != -1){
+	  keepIcov[iii] = lstT[keepIv[ii]];
+	  keepCf[iii++] = nmT[keepIv[ii]];
+	}
+      }
+      keepIcov.attr("names") = keepCf;
+      keepIcov.attr("class") = "data.frame";
+      keepIcov.attr("row.names") = lstT.attr("row.names");
+      rx->nKeep0 = nKeepi;
+      lstF.attr("names") = nmF;
+      lstF.attr("class") = "data.frame";
+      lstF.attr("row.names") = lstT.attr("row.names");
+      rxSolveDat.par1 = as<RObject>(lstF);
+      rxSolveDat.parDf = as<DataFrame>(rxSolveDat.par1);
+      rxSolveDat.parType = 2;
+      rxSolveDat.nmP = rxSolveDat.parDf.names();
+      rxSolveDat.nPopPar = rxSolveDat.parDf.nrows();
+      rxSolveDat.usePar1=true;
+    }
+  } else if (rxIs(rxSolveDat.par1, "data.frame")){
+    RObject iCov = rxControl["iCov"];
+    if (!rxIs(iCov, "NULL")){
+      List lstT=as<List>(iCov);
+      List lst = as<List>(rxSolveDat.par1);
+      List lstF(lst.size()+lstT.size());
+      CharacterVector nmF(lstF.size());
+      CharacterVector nmL = lst.attr("names");
+      CharacterVector nmT = lstT.attr("names");
+      for (int ii = lst.size(); ii--;){
+	lstF[ii] = lst[ii];
+	nmF[ii] = nmL[ii];
+      }
+      int nKeepi=0;
+      CharacterVector keepC, keepCf;
+      if (rxIs(rxControl["keepI"], "character")){
+	keepC = as<CharacterVector>(rxControl["keepI"]);
+      }
+      IntegerVector keepIv(keepC.size());
+      for (int ii=lstT.size(); ii--;){
+	lstF[ii+lst.size()] = lstT[ii];
+	nmF[ii+lst.size()] = nmT[ii];
+	for (int jj = keepC.size(); jj--;){
+	  if (nmT[ii] == keepC[jj]){
+	    keepIv[jj] = ii;
+	    nKeepi++;
+	    break;
+	  }
+	}
+      }
+      keepIcov=List(nKeepi);
+      keepCf = CharacterVector(nKeepi);
+      int iii=0;
+      for (int ii=keepC.size(); ii--;){
+	if (keepIv[ii] != -1){
+	  keepIcov[iii] = lstT[keepIv[ii]];
+	  keepCf[iii++] = nmT[keepIv[ii]];
+	}
+      }
+      keepIcov.attr("names") = keepCf;
+      keepIcov.attr("class") = "data.frame";
+      keepIcov.attr("row.names") = lstT.attr("row.names");
+      rx->nKeep0 = nKeepi;
+      lstF.attr("names") = nmF;
+      lstF.attr("class") = "data.frame";
+      lstF.attr("row.names") = lst.attr("row.names");
+      rxSolveDat.par1 = as<RObject>(lstF);
+    }
+    rxSolveDat.parDf = as<DataFrame>(rxSolveDat.par1);
+    rxSolveDat.parType = 2;
+    rxSolveDat.nmP = rxSolveDat.parDf.names();
+    rxSolveDat.nPopPar = rxSolveDat.parDf.nrows();
+  } else if (rxIs(rxSolveDat.par1, "matrix")){
+    RObject iCov = rxControl["iCov"];
+    if (!rxIs(iCov, "NULL")){
+      stop("matrix parameters with iCov data frame is not supported.");
+    }
+    rxSolveDat.parMat = as<NumericMatrix>(rxSolveDat.par1);
+    rxSolveDat.nPopPar = rxSolveDat.parMat.nrow();
+    rxSolveDat.parType = 3;
+    if (rxSolveDat.parMat.hasAttribute("dimnames")){
+      Nullable<CharacterVector> colnames0 = as<Nullable<CharacterVector>>((as<List>(rxSolveDat.parMat.attr("dimnames")))[1]);
+      if (colnames0.isNull()){
+	if (rxSolveDat.parMat.ncol() == pars.size()){
+	  rxSolveDat.nmP = pars;
+	} else {
+	  stop("If parameters are not named, they must match the order and size of the parameters in the model.");
+	}
+      } else {
+	rxSolveDat.nmP = CharacterVector(colnames0);
+      }
+    } else if (rxSolveDat.parMat.ncol() == pars.size()) {
+      rxSolveDat.nmP = pars;
+    } else {
+      stop("If parameters are not named, they must match the order and size of the parameters in the model.");
+    }
   }
 }
 
@@ -2961,8 +3127,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   int matrix = as<int>(rxControl["matrix"]);
   int nDisplayProgress = as<int>(rxControl["nDisplayProgress"]);
   double stateTrim = as<double>(rxControl["stateTrim"]);
-  RObject theta = rxControl["theta"];
-  RObject eta = rxControl["eta"];
   RObject object;
   rxSolve_t rxSolveDat;
   rxSolveDat.updateObject = as<bool>(rxControl["updateObject"]);  
@@ -3159,162 +3323,15 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       rxSolveDat.covUnits = evT["covUnits"];
     }
     rxSolveDat.par1ini = rxSolveDat.par1;
+    // This will update par1 with simulated values
     rxSolve_simulate(obj, rxControl, specParams, extraArgs,
 		     params, ev1, inits, rxSolveDat);
-    int parType = 1;
-    NumericVector parNumeric;
-    DataFrame parDf;
-    NumericMatrix parMat;
-    CharacterVector nmP;
-    int nPopPar = 1;
-    if (!theta.isNULL() || !eta.isNULL()){
-      rxSolveDat.usePar1=true;
-      rxSolveDat.par1 = rxSetupParamsThetaEta(rxSolveDat.par1, theta, eta);
-    }
-    if (rxIs(rxSolveDat.par1, "numeric") || rxIs(rxSolveDat.par1, "integer")){
-      parNumeric = as<NumericVector>(rxSolveDat.par1);
-      if (parNumeric.hasAttribute("names")){
-        nmP = parNumeric.names();
-      } else if (parNumeric.size() == pars.size()) {
-        nmP = pars;
-      } else {
-        stop("If parameters are not named, they must match the order and size of the parameters in the model.");
-      }
-      RObject iCov = rxControl["iCov"];
-      if (!rxIs(iCov, "NULL")){
-	// Create a data frame
-	CharacterVector keepC, keepCf;
-	if (rxIs(rxControl["keepI"], "character")){
-	  keepC = as<CharacterVector>(rxControl["keepI"]);
-	}
-	IntegerVector keepIv(keepC.size());
-	std::fill_n(keepIv.begin(), keepC.size(), -1);
-	List lstT=as<List>(iCov);
-	parDf = as<DataFrame>(iCov);
-	int nr = parDf.nrows();
-	List lstF(parNumeric.size()+lstT.size());
-	CharacterVector nmF(lstF.size());
-	CharacterVector nmL = nmP;
-	CharacterVector nmT = lstT.attr("names");
-	for (int ii = parNumeric.size(); ii--;){
-	  NumericVector tmp(nr);
-	  std::fill_n(tmp.begin(), nr, parNumeric[ii]);
-	  lstF[ii] = tmp;
-	  nmF[ii] = nmL[ii];
-	}
-	int nKeepi=0;
-	for (int ii=lstT.size(); ii--;){
-	  lstF[ii+parNumeric.size()] = lstT[ii];
-	  nmF[ii+parNumeric.size()] = nmT[ii];
-	  for (int jj = keepC.size(); jj--;){
-	    if (nmT[ii] == keepC[jj]){
-	      keepIv[jj] = ii;
-	      nKeepi++;
-	      break;
-	    }
-	  }
-	}
-	keepIcov=List(nKeepi);
-	keepCf = CharacterVector(nKeepi);
-	int iii=0;
-	for (int ii=keepC.size(); ii--;){
-	  if (keepIv[ii] != -1){
-	    keepIcov[iii] = lstT[keepIv[ii]];
-	    keepCf[iii++] = nmT[keepIv[ii]];
-	  }
-	}
-	keepIcov.attr("names") = keepCf;
-	keepIcov.attr("class") = "data.frame";
-	keepIcov.attr("row.names") = lstT.attr("row.names");
-	rx->nKeep0 = nKeepi;
-	lstF.attr("names") = nmF;
-	lstF.attr("class") = "data.frame";
-	lstF.attr("row.names") = lstT.attr("row.names");
-	rxSolveDat.par1 = as<RObject>(lstF);
-	parDf = as<DataFrame>(rxSolveDat.par1);
-	parType = 2;
-	nmP = parDf.names();
-	nPopPar = parDf.nrows();
-	rxSolveDat.usePar1=true;
-      }
-    } else if (rxIs(rxSolveDat.par1, "data.frame")){
-      RObject iCov = rxControl["iCov"];
-      if (!rxIs(iCov, "NULL")){
-	List lstT=as<List>(iCov);
-	List lst = as<List>(rxSolveDat.par1);
-	List lstF(lst.size()+lstT.size());
-	CharacterVector nmF(lstF.size());
-	CharacterVector nmL = lst.attr("names");
-	CharacterVector nmT = lstT.attr("names");
-	for (int ii = lst.size(); ii--;){
-	  lstF[ii] = lst[ii];
-	  nmF[ii] = nmL[ii];
-	}
-	int nKeepi=0;
-	CharacterVector keepC, keepCf;
-	if (rxIs(rxControl["keepI"], "character")){
-	  keepC = as<CharacterVector>(rxControl["keepI"]);
-	}
-	IntegerVector keepIv(keepC.size());
-	for (int ii=lstT.size(); ii--;){
-	  lstF[ii+lst.size()] = lstT[ii];
-	  nmF[ii+lst.size()] = nmT[ii];
-	  for (int jj = keepC.size(); jj--;){
-	    if (nmT[ii] == keepC[jj]){
-	      keepIv[jj] = ii;
-	      nKeepi++;
-	      break;
-	    }
-	  }
-	}
-	keepIcov=List(nKeepi);
-	keepCf = CharacterVector(nKeepi);
-	int iii=0;
-	for (int ii=keepC.size(); ii--;){
-	  if (keepIv[ii] != -1){
-	    keepIcov[iii] = lstT[keepIv[ii]];
-	    keepCf[iii++] = nmT[keepIv[ii]];
-	  }
-	}
-	keepIcov.attr("names") = keepCf;
-	keepIcov.attr("class") = "data.frame";
-	keepIcov.attr("row.names") = lstT.attr("row.names");
-	rx->nKeep0 = nKeepi;
-	lstF.attr("names") = nmF;
-	lstF.attr("class") = "data.frame";
-	lstF.attr("row.names") = lst.attr("row.names");
-	rxSolveDat.par1 = as<RObject>(lstF);
-      }
-      parDf = as<DataFrame>(rxSolveDat.par1);
-      parType = 2;
-      nmP = parDf.names();
-      nPopPar = parDf.nrows();
-    } else if (rxIs(rxSolveDat.par1, "matrix")){
-      RObject iCov = rxControl["iCov"];
-      if (!rxIs(iCov, "NULL")){
-	stop("matrix parameters with iCov data frame is not supported.");
-      }
-      parMat = as<NumericMatrix>(rxSolveDat.par1);
-      nPopPar = parMat.nrow();
-      parType = 3;
-      if (parMat.hasAttribute("dimnames")){
-        Nullable<CharacterVector> colnames0 = as<Nullable<CharacterVector>>((as<List>(parMat.attr("dimnames")))[1]);
-        if (colnames0.isNull()){
-          if (parMat.ncol() == pars.size()){
-            nmP = pars;
-          } else {
-            stop("If parameters are not named, they must match the order and size of the parameters in the model.");
-          }
-        } else {
-          nmP = CharacterVector(colnames0);
-        }
-      } else if (parMat.ncol() == pars.size()) {
-        nmP = pars;
-      } else {
-        stop("If parameters are not named, they must match the order and size of the parameters in the model.");
-      }
-    }
-    rxOptionsIniEnsure(nPopPar); // 1 simulation per parameter specification
+    // This will setup the parameteters
+    rxSolve_parSetup(obj, rxControl, specParams, extraArgs,
+		     pars, ev1, inits, rxSolveDat);
+    rxOptionsIniEnsure(rxSolveDat.nPopPar); // 1 simulation per parameter specification
+
+    // Setup some data-based parameters like hmax
     if (rxIs(ev1,"event.data.frame")||
 	rxIs(ev1,"event.matrix")){
       // data.frame or matrix
@@ -3589,8 +3606,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       }
       // Next, check to see if this is a user-specified parameter
       if (!curPar){
-        for (j = nmP.size(); j--;){
-          if (nmP[j] == pars[i]){
+        for (j = rxSolveDat.nmP.size(); j--;){
+          if (rxSolveDat.nmP[j] == pars[i]){
             curPar = true;
             _globals.gParPos[i] = j + 1;
             rxSolveDat.eGparPos[i]=_globals.gParPos[i];
@@ -3636,11 +3653,11 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->svar = &_globals.gsvar[0];
     op->nsvar = nsvar;
     // Now setup the rest of the rx_solve object
-    if (nPopPar != 1 && nPopPar % rx->nsub != 0){
-      stop("The number of parameters (%d) solved by RxODE for multi-subject data needs to be a multiple of the number of subjects (%d).",nPopPar, rx->nsub);
+    if (rxSolveDat.nPopPar != 1 && rxSolveDat.nPopPar % rx->nsub != 0){
+      stop("The number of parameters (%d) solved by RxODE for multi-subject data needs to be a multiple of the number of subjects (%d).",rxSolveDat.nPopPar, rx->nsub);
     }
-    rxSolveDat.nSize = nPopPar*rx->nsub;
-    if (nPopPar == 1) rxSolveDat.nSize = rx->nsub;
+    rxSolveDat.nSize = rxSolveDat.nPopPar*rx->nsub;
+    if (rxSolveDat.nPopPar == 1) rxSolveDat.nSize = rx->nsub;
 
     gInfusionRateSetup(op->neq*rxSolveDat.nSize);
     // std::fill_n(&_globals.gInfusionRate[0], op->neq*nSize, 0.0);
@@ -3663,7 +3680,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     glhsSetup(lhs.size()*rxSolveDat.nSize);
     // std::fill_n(&_globals.glhs[0],lhs.size()*nSize,0.0);
 
-    rx->nsim = nPopPar / rx->nsub;
+    rx->nsim = rxSolveDat.nPopPar / rx->nsub;
     if (rx->nsim < 1) rx->nsim=1;
 
     gsolveSetup(rx->nall*rx->nsub*state.size()*rx->nsim);
@@ -3678,37 +3695,37 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 
     int curEvent = 0, curIdx = 0;
     
-    switch(parType){
+    switch(rxSolveDat.parType){
     case 1: // NumericVector
       {
-	if (nPopPar != 1) stop("Something is wrong... nPopPar != 1 but parameters are specified as a NumericVector.");
+	if (rxSolveDat.nPopPar != 1) stop("Something is wrong... nPopPar != 1 but parameters are specified as a NumericVector.");
 	// Convert to DataFrame to simplify code.
-	List parDfL(parNumeric.size());
-	for (i = parNumeric.size(); i--;){
-	  parDfL[i] = NumericVector(rx->nsub,parNumeric[i]);
+	List parDfL(rxSolveDat.parNumeric.size());
+	for (i = rxSolveDat.parNumeric.size(); i--;){
+	  parDfL[i] = NumericVector(rx->nsub,rxSolveDat.parNumeric[i]);
 	}
-	parDfL.attr("names") = nmP;
+	parDfL.attr("names") = rxSolveDat.nmP;
 	parDfL.attr("row.names") = IntegerVector::create(NA_INTEGER,-rx->nsub);
 	parDfL.attr("class") = CharacterVector::create("data.frame");
-	parDf = as<DataFrame>(parDfL);
-	parType = 2;
-	nPopPar = parDf.nrows();
+	rxSolveDat.parDf = as<DataFrame>(parDfL);
+	rxSolveDat.parType = 2;
+	rxSolveDat.nPopPar = rxSolveDat.parDf.nrows();
 	rx->nsim=1;
       }
     case 2: // DataFrame
       // Convert to NumericMatrix
       {
-	unsigned int parDfi = parDf.size();
-	parMat = NumericMatrix(nPopPar,parDfi);
+	unsigned int parDfi = rxSolveDat.parDf.size();
+	rxSolveDat.parMat = NumericMatrix(rxSolveDat.nPopPar,parDfi);
 	while (parDfi--){
-	  parMat(_,parDfi)=NumericVector(parDf[parDfi]);
+	  rxSolveDat.parMat(_,parDfi)=NumericVector(rxSolveDat.parDf[parDfi]);
 	}
-	parMat.attr("dimnames") = List::create(R_NilValue, parDf.names());
+	rxSolveDat.parMat.attr("dimnames") = List::create(R_NilValue, rxSolveDat.parDf.names());
       }
     case 3: // NumericMatrix
       {
-	gparsCovSetup(npars, nPopPar, ev1, rx);
-        for (unsigned int j = 0; j < (unsigned int)nPopPar; j++){
+	gparsCovSetup(npars, rxSolveDat.nPopPar, ev1, rx);
+        for (unsigned int j = 0; j < (unsigned int)rxSolveDat.nPopPar; j++){
 	  for (unsigned int k = 0; k < (unsigned int)npars; k++){
 	    i = k+npars*j;
 	    if (ISNA(_globals.gpars[i])){
@@ -3716,7 +3733,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 		_globals.gpars[i] = 0;
 	      } else if (_globals.gParPos[k] > 0){
 		// posPar[i] = j + 1;
-		_globals.gpars[i] = parMat(j, _globals.gParPos[k]-1);
+		_globals.gpars[i] = rxSolveDat.parMat(j, _globals.gParPos[k]-1);
 	      } else {
 		// posPar[i] = -j - 1;
 		_globals.gpars[i] = mvIni[-_globals.gParPos[k]-1];
