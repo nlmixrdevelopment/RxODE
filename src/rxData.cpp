@@ -751,7 +751,6 @@ CharacterVector rxParams_(const RObject &obj){
   return ret;
 }
 
-
 //' Jacobian and parameter derivatives
 //'
 //' Return Jacobain and parameter derivatives
@@ -911,6 +910,7 @@ NumericVector rxInits0(const RObject &obj,
   }
   return ret;
 }
+
 //' Initial Values and State values for a RxODE object
 //'
 //' Returns the initial values of the rxDll object
@@ -1000,10 +1000,15 @@ NumericVector rxSetupIni(const RObject &obj,
 //' Setup the initial conditions.
 //'
 //' @param obj RxODE object
+//' 
 //' @param inits A numeric vector of initial conditions.
+//' 
 //' @param extraArgs A list of extra args to parse for initial conditions.
+//' 
 //' @author Matthew L. Fidler
+//' 
 //' @keywords internal
+//' 
 //' @export
 //[[Rcpp::export]]
 NumericVector rxSetupScale(const RObject &obj,
@@ -2484,6 +2489,7 @@ typedef struct{
   int nSize;
   bool fromIni = false;
   IntegerVector eGparPos;
+  CharacterVector sigmaN;
 } rxSolve_t;
 
 SEXP rxSolve_(const RObject &obj, const List &rxControl, const Nullable<CharacterVector> &specParams,
@@ -2492,8 +2498,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl, const Nullable<Characte
 
 
 SEXP rxSolve_update(const RObject &object, const List &rxControl, const Nullable<CharacterVector> &specParams,
-	      const Nullable<List> &extraArgs, const RObject &params, const RObject &events,
-	      const RObject &inits, rxSolve_t& rxSolveDat){
+		    const Nullable<List> &extraArgs, const RObject &params, const RObject &events,
+		    const RObject &inits, rxSolve_t& rxSolveDat){
   bool update_params = false,
     update_events = false,
     update_inits = false;
@@ -2674,6 +2680,132 @@ void rxSolve_ev1Update(const RObject &obj, const List &rxControl,
   }
 }
 
+void rxSolve_simulate(const RObject &obj, const List &rxControl,
+		      const Nullable<CharacterVector> &specParams,
+		      const Nullable<List> &extraArgs,
+		      const RObject &params, RObject &ev1,
+		      const RObject &inits, rxSolve_t& rxSolveDat){
+  rx_solve* rx = getRxSolve_();
+  rx_solving_options* op = rx->op;
+  
+  Nullable<NumericMatrix> omega = as<Nullable<NumericMatrix>>(rxControl["omega"]);
+  Nullable<NumericVector> omegaDf = as<Nullable<NumericVector>>(rxControl["omegaDf"]);
+  bool omegaIsChol = as<bool>(rxControl["omegaIsChol"]);
+
+  Nullable<NumericMatrix> thetaMat = as<Nullable<NumericMatrix>>(rxControl["thetaMat"]);
+  Nullable<NumericVector> thetaDf = as<Nullable<NumericVector>>(rxControl["thetaDf"]);
+  bool thetaIsChol = as<bool>(rxControl["thetaIsChol"]);
+  
+  Nullable<NumericMatrix> sigma= (rxControl["sigma"]);
+  Nullable<NumericVector> sigmaDf= (rxControl["sigmaDf"]);
+  bool sigmaIsChol= as<bool>(rxControl["sigmaIsChol"]);
+  op->isChol = (int)(sigmaIsChol);
+
+  unsigned int nSub = as<unsigned int>(rxControl["nSub"]);
+  unsigned int nStud = as<unsigned int>(rxControl["nStud"]);
+  double dfSub=as<double>(rxControl["dfSub"]);
+  double dfObs=as<double>(rxControl["dfObs"]);
+  
+  int nCoresRV = as<int>(rxControl["nCoresRV"]);
+  
+  bool simSubjects = false;
+  
+  op->ncoresRV = nCoresRV;
+
+  if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
+    // Simulated Variable3
+    if (!rxIs(rxSolveDat.par1, "numeric")){
+      stop("When specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a data.frame/matrix.");
+    }
+    unsigned int nSub0 = 0;
+    int curObs = 0;
+    rx->nevid9 = 0;
+    rx->nall = 0;
+    rx->nobs = 0;
+    rx->nobs2 = 0;
+    if (rxIs(ev1,"event.data.frame")||
+	rxIs(ev1,"event.matrix")){
+      if (rxcId > -1){
+	DataFrame dataf = as<DataFrame>(ev1);
+	IntegerVector id = as<IntegerVector>(dataf[rxcId]);
+	IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
+	int lastid= id[id.size()-1]+42;
+	rx->nall = evid.size();
+	int evid9=0;
+	for (unsigned int j = rx->nall; j--;){
+	  if (lastid != id[j]){
+	    lastid=id[j];
+	    nSub0++;
+	  }
+	  if (isObs(evid[j])) rx->nobs++;
+	  if (evid[j] == 0) rx->nobs2++;
+	  if (evid[j] == 9) evid9++;
+	}
+	rx->nevid9 = evid9;
+      } else {
+	nSub0 =1;
+	DataFrame dataf = as<DataFrame>(ev1);
+	IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
+	rx->nall = evid.size();
+	int evid9=0;
+	for (unsigned int j =rx->nall; j--;){
+	  if (isObs(evid[j])) rx->nobs++;
+	  if (evid[j] == 0) rx->nobs2++;
+	  if (evid[j] == 9) evid9++;
+	}
+	rx->nevid9= evid9;
+      }
+    }
+    if (nSub > 1 && nSub0 > 1 && nSub != nSub0){
+      stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.");
+    } else if (nSub > 1 && nSub0 == 1) {
+      nSub0 = nSub;
+      simSubjects = true;
+    }
+    if (rxSolveDat.addDosing.isNull()){
+      // only evid=0
+      curObs= rx->nobs2;
+    } else {
+      LogicalVector addDosing1 = as<LogicalVector>(rxSolveDat.addDosing);
+      if (LogicalVector::is_na(addDosing1[0])){
+	curObs = rx->nall - rx->nevid9;
+      } if (addDosing1[0]){
+	curObs = rx->nall - rx->nevid9;
+      } else {
+	curObs = rx->nobs - rx->nevid9;
+      }
+    }
+    if (rxIs(as<RObject>(thetaMat), "matrix")){
+      if (!thetaIsChol){
+	arma::mat tmpM = as<arma::mat>(thetaMat);
+	if (!tmpM.is_sympd()){
+	  stop("'thetaMat' must be symmetric");
+	}
+      }
+    }
+    List lst = rxSimThetaOmega(as<Nullable<NumericVector>>(rxSolveDat.par1), omega, omegaDf,
+			       as<NumericVector>(rxControl["omegaLower"]),
+			       as<NumericVector>(rxControl["omegaUpper"]),
+			       omegaIsChol,
+			       nSub0, thetaMat,
+			       as<NumericVector>(rxControl["thetaLower"]),
+			       as<NumericVector>(rxControl["thetaUpper"]),
+			       thetaDf, thetaIsChol, nStud,
+			       sigma,
+			       as<NumericVector>(rxControl["sigmaLower"]),
+			       as<NumericVector>(rxControl["sigmaUpper"]),
+			       sigmaDf, sigmaIsChol, nCoresRV, curObs,
+			       dfSub, dfObs, simSubjects);
+    rxSolveDat.par1 =  as<RObject>(lst);
+    rxSolveDat.usePar1=true;
+    // The parameters are in the same format as they would be if they were
+    // specified as part of the original dataset.
+  }
+  // .sigma could be reassigned in an update, so check outside simulation function.
+  if (_rxModels.exists(".sigma")){
+    rxSolveDat.sigmaN= as<CharacterVector>((as<List>((as<NumericMatrix>(_rxModels[".sigma"])).attr("dimnames")))[1]);
+  }
+}
 
 // This creates the final dataset from the currently solved object.
 // Most of this is a direct C call, but some items are done in C++
@@ -2827,24 +2959,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   int covs_interpolation = as<int>(rxControl["covsInterpolation"]);
   bool addCov = as<bool>(rxControl["addCov"]);
   int matrix = as<int>(rxControl["matrix"]);
-  Nullable<NumericMatrix> sigma= (rxControl["sigma"]);
-  Nullable<NumericVector> sigmaDf= (rxControl["sigmaDf"]); //15
-  int nCoresRV = as<int>(rxControl["nCoresRV"]);
-  bool sigmaIsChol= as<bool>(rxControl["sigmaIsChol"]);
   int nDisplayProgress = as<int>(rxControl["nDisplayProgress"]);
   double stateTrim = as<double>(rxControl["stateTrim"]);
   RObject theta = rxControl["theta"];
   RObject eta = rxControl["eta"];
-  Nullable<NumericMatrix> omega = as<Nullable<NumericMatrix>>(rxControl["omega"]);
-  Nullable<NumericVector> omegaDf = as<Nullable<NumericVector>>(rxControl["omegaDf"]);
-  bool omegaIsChol = as<bool>(rxControl["omegaIsChol"]);
-  unsigned int nSub = as<unsigned int>(rxControl["nSub"]);
-  Nullable<NumericMatrix> thetaMat = as<Nullable<NumericMatrix>>(rxControl["thetaMat"]);
-  Nullable<NumericVector> thetaDf = as<Nullable<NumericVector>>(rxControl["thetaDf"]);
-  bool thetaIsChol = as<bool>(rxControl["thetaIsChol"]);
-  unsigned int nStud = as<unsigned int>(rxControl["nStud"]);
-  double dfSub=as<double>(rxControl["dfSub"]);
-  double dfObs=as<double>(rxControl["dfObs"]);
   RObject object;
   rxSolve_t rxSolveDat;
   rxSolveDat.updateObject = as<bool>(rxControl["updateObject"]);  
@@ -3022,8 +3140,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     }
     op->extraCmt=op->neq+as<int>(rxSolveDat.mv["extraCmt"]);
     op->nDisplayProgress = nDisplayProgress;
-    op->ncoresRV = nCoresRV;
-    op->isChol = (int)(sigmaIsChol);
     unsigned int nsub = 0;
     unsigned int nobs = 0, ndoses = 0;
     unsigned int i, j;
@@ -3034,9 +3150,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // Covariate options
     // Simulation variabiles
     // int *svar;
-    CharacterVector sigmaN;
     rxSolveDat.usePar1 = false;
-    bool simSubjects = false;
     rxSolveDat.addTimeUnits = false;
     if (rxIs(ev1, "rxEtTran")){
       CharacterVector cls = ev1.attr("class");
@@ -3044,100 +3158,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       evT.attr("class") = R_NilValue;
       rxSolveDat.covUnits = evT["covUnits"];
     }
-    rxSolveDat.par1ini = rxSolveDat.par1;      
-    if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
-      // Simulated Variable3
-      if (!rxIs(rxSolveDat.par1, "numeric")){
-        stop("When specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a data.frame/matrix.");
-      }
-      unsigned int nSub0 = 0;
-      int curObs = 0;
-      rx->nevid9 = 0;
-      rx->nall = 0;
-      rx->nobs = 0;
-      rx->nobs2 = 0;
-      if (rxIs(ev1,"event.data.frame")||
-	  rxIs(ev1,"event.matrix")){
-	if (rxcId > -1){
-	  DataFrame dataf = as<DataFrame>(ev1);
-          IntegerVector id = as<IntegerVector>(dataf[rxcId]);
-	  IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
-	  int lastid= id[id.size()-1]+42;
-	  rx->nall = evid.size();
-	  int evid9=0;
-	  for (unsigned int j = rx->nall; j--;){
-	    if (lastid != id[j]){
-	      lastid=id[j];
-	      nSub0++;
-	    }
-	    if (isObs(evid[j])) rx->nobs++;
-	    if (evid[j] == 0) rx->nobs2++;
-	    if (evid[j] == 9) evid9++;
-	  }
-	  rx->nevid9 = evid9;
-	} else {
-	  nSub0 =1;
-	  DataFrame dataf = as<DataFrame>(ev1);
-          IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
-          rx->nall = evid.size();
-	  int evid9=0;
-          for (unsigned int j =rx->nall; j--;){
-            if (isObs(evid[j])) rx->nobs++;
-	    if (evid[j] == 0) rx->nobs2++;
-	    if (evid[j] == 9) evid9++;
-          }
-	  rx->nevid9= evid9;
-	}
-      }
-      if (nSub > 1 && nSub0 > 1 && nSub != nSub0){
-        stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.");
-      } else if (nSub > 1 && nSub0 == 1) {
-	nSub0 = nSub;
-        simSubjects = true;
-      }
-      if (rxSolveDat.addDosing.isNull()){
-	// only evid=0
-	curObs= rx->nobs2;
-      } else {
-	LogicalVector addDosing1 = as<LogicalVector>(rxSolveDat.addDosing);
-	if (LogicalVector::is_na(addDosing1[0])){
-	  curObs = rx->nall - rx->nevid9;
-	} if (addDosing1[0]){
-	  curObs = rx->nall - rx->nevid9;
-	} else {
-	  curObs = rx->nobs - rx->nevid9;
-	}
-      }
-      if (rxIs(as<RObject>(thetaMat), "matrix")){
-	if (!thetaIsChol){
-	  arma::mat tmpM = as<arma::mat>(thetaMat);
-	  if (!tmpM.is_sympd()){
-	    stop("'thetaMat' must be symmetric");
-	  }
-	}
-      }
-      List lst = rxSimThetaOmega(as<Nullable<NumericVector>>(rxSolveDat.par1), omega, omegaDf,
-				 as<NumericVector>(rxControl["omegaLower"]),
-				 as<NumericVector>(rxControl["omegaUpper"]),
-				 omegaIsChol,
-				 nSub0, thetaMat,
-				 as<NumericVector>(rxControl["thetaLower"]),
-				 as<NumericVector>(rxControl["thetaUpper"]),
-				 thetaDf, thetaIsChol, nStud,
-				 sigma,
-				 as<NumericVector>(rxControl["sigmaLower"]),
-				 as<NumericVector>(rxControl["sigmaUpper"]),
-				 sigmaDf, sigmaIsChol, nCoresRV, curObs,
-				 dfSub, dfObs, simSubjects);
-      rxSolveDat.par1 =  as<RObject>(lst);
-      rxSolveDat.usePar1=true;
-      // The parameters are in the same format as they would be if they were
-      // specified as part of the original dataset.
-    }
-    // .sigma could be reassigned in an update, so check outside simulation function.
-    if (_rxModels.exists(".sigma")){
-      sigmaN = as<CharacterVector>((as<List>((as<NumericMatrix>(_rxModels[".sigma"])).attr("dimnames")))[1]);
-    }
+    rxSolveDat.par1ini = rxSolveDat.par1;
+    rxSolve_simulate(obj, rxControl, specParams, extraArgs,
+		     params, ev1, inits, rxSolveDat);
     int parType = 1;
     NumericVector parNumeric;
     DataFrame parDf;
@@ -3539,7 +3562,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       List tmpCov1 = e["cov1"];
       mvCov1N = tmpCov1.attr("names");
     }
-    gsvarSetup(sigmaN.size());
+    gsvarSetup(rxSolveDat.sigmaN.size());
     for (i = npars; i--;){
       curPar = false;
       // Check to see if this is a covariate.
@@ -3553,8 +3576,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       }
       // Check for the sigma-style simulated parameters.
       if (!curPar){
-	for (j = sigmaN.size(); j--;){
-          if (sigmaN[j] == pars[i]){
+	for (j = rxSolveDat.sigmaN.size(); j--;){
+          if (rxSolveDat.sigmaN[j] == pars[i]){
 	    _globals.gsvar[j] = i;
 	    nsvar++;
 	    _globals.gParPos[i] = 0; // These are set at run-time and "dont" matter.
