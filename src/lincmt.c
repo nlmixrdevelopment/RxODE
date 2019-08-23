@@ -51,6 +51,21 @@ extern int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind)
   }
   return i;
 }
+
+static inline double _getDur(int l, rx_solving_options_ind *ind, int backward){
+  int i = 1-2*backward;
+  int p = l+i;
+  double dose = ind->dose[l];
+  while (p < ind->ndoses && ind->dose[p] != -dose){
+      p+=i;
+  }
+  if (ind->dose[p] != -dose){
+      error("Could not find an end/beginning to the infusion.  Check the event table.");
+  }
+  return ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
+}
+
+
 extern double getTime(int idx, rx_solving_options_ind *ind);
 
 static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCmt,
@@ -284,7 +299,6 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
   // don't need to adjust based on tlag t is the most conservative.
   // When tadr - tlag < 0 ignore the dose.
   m = _locateDoseIndex(t, ind);
-  int ndoses = ind->ndoses;
   for(l=m+1; l--;){// Optimized for loop as https://www.thegeekstuff.com/2015/01/c-cpp-code-optimization/
     cur=0;
     //super-position
@@ -350,14 +364,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
 	// During infusion
 	tT = t - ind->all_times[ind->idose[l]] ;
 	thisT = tT - tlag;
-	p = l+1;
-	while (p < ndoses && ind->dose[p] != -dose){
-	  p++;
-	}
-	if (ind->dose[p] != -dose){
-	  error("Could not find an end to the infusion.  Check the event table.");
-	}
-	tinf  = ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
+	tinf  = _getDur(l, ind, 0);
 	tau = ind->ii[l];
 	if (op->linLog){
 	  logRate = log(dose);
@@ -367,14 +374,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
 	if (tT >= tinf) continue;
       } else {
 	// After  infusion
-	p = l-1;
-	while (p > 0 && ind->dose[p] != -dose){
-	  p--;
-	}
-	if (ind->dose[p] != -dose){
-	  error("Could not find a start to the infusion.  Check the event table.");
-	}
-	tinf  = ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]];
+	tinf  = _getDur(l, ind, 1);
 	tau = ind->ii[p];
 	tT = t - ind->all_times[ind->idose[p]];
 	thisT = tT -tlag;
@@ -387,7 +387,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
       if (thisT < 0) continue;
       if (F <= 0) error("Bioavailability cannot be negative or zero.");
       if (whI == 1){ // Duration changes
-	tinf = tinf*F;
+	tinf *=F;
       } else { // Rate Changes
 	if (op->linLog){
 	  logRate += log(F);
@@ -1184,54 +1184,75 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  tlast=xout;
 	  Alast[ncmt+oral0] += ind->dose[ind->ixds];
 	}
-	if (wh0 == 10 || wh0 == 20) {
-	  if (whI == 0){ // Oral/IV dose
-	    // steady state event SS=2
-	    // steady state event SS=1
-	    double tau = ind->ii[ind->ixds];
-	    double tmp = xout;
-	    double lastSum = 0.0, curSum = 0.0;
-	    // Turn off RATE and reset compartments
-	    if (wh0 == 20){
-	      xout=tmp;
-	      doObs;
-	      for (int ii = ncmt + oral0+2; ii--; ){
-		Asave[ii] = Alast[ii];
-		Alast[ii] = 0;
-	      }
-	    } else {
-	      for (int ii = ncmt + oral0+2; ii--; ){
-		Alast[ii] = 0;
-	      }
+	double rate  = 0;
+	if (whI != 0) rate = -ind->dose[ind->ixds+1];
+
+	if ((whI == 0 || rate > 0) && (wh0 == 10 || wh0 == 20)) {
+	  // steady state event SS=2
+	  // steady state event SS=1
+	  double tau = ind->ii[ind->ixds];
+	  double tmp = xout;
+	  double lastSum = 0.0, curSum = 0.0, tinf = 0;
+	  // Turn off RATE and reset compartments
+	  if (wh0 == 20){
+	    xout=tmp;
+	    doObs;
+	    for (int ii = ncmt + oral0+2; ii--; ){
+	      Asave[ii] = Alast[ii];
+	      Alast[ii] = 0;
 	    }
-	  
-	    for (int j = 0; j < op->maxSS; j++){
-	      xout = 0;
-	      tlast = 0;
+	  } else {
+	    for (int ii = ncmt + oral0+2; ii--; ){
+	      Alast[ii] = 0;
+	    }
+	  }
+	  if (whI == 1 || whI == 2){
+	    if (rate <= 0) continue;
+	    tinf = _getDur(ind->ixds, ind, 0);
+	    if (whI == 2)rate*=F[cmtOff];
+	    else tinf*=F[cmtOff];
+	  }
+	  for (int j = 0; j < op->maxSS; j++){
+	    xout = 0;
+	    tlast = 0;
+	    if (whI == 0){
 	      doDose;
 	      xout = tau;
 	      doObs;
-	      if (j == op->minSS -1){
-		lastSum =0.0;
-		for (int k = ncmt + oral0 ; k--;) lastSum += Alast[k];
-	      } else if (j >= op->minSS){
-		curSum = 0.0;
-		for (int k = ncmt + oral0; k--;) curSum += Alast[k];
-		if (fabs(curSum-lastSum) < op->rtolSS*fabs(curSum) + op->atolSS){
-		  j = op->maxSS+1;
-		}
-		lastSum=curSum;
-	      }
+	    } else {
+	      doObs;
+	      Alast[ncmt+oral0] += rate;
+	      xout  = tinf;
+	      doObs;
+	      tlast = tinf;
+	      Alast[ncmt+oral0] -= rate;
+	      xout = tau;
+	      doObs;
 	    }
-	    xout = 0;
-	    tlast =0;
-	    doDose;
-	    xout = tmp;
-	    tlast = tmp;
-	    if (wh0 == 20){
-	      for (int ii = ncmt + oral0; ii--; ){
-		Alast[ii] += Asave[ii];
+	    if (j == op->minSS -1){
+	      lastSum =0.0;
+	      for (int k = ncmt + oral0 ; k--;) lastSum += Alast[k];
+	    } else if (j >= op->minSS){
+	      curSum = 0.0;
+	      for (int k = ncmt + oral0; k--;) curSum += Alast[k];
+	      if (fabs(curSum-lastSum) < op->rtolSS*fabs(curSum) + op->atolSS){
+		j = op->maxSS+1;
 	      }
+	      lastSum=curSum;
+	    }
+	  }
+	  xout = 0;
+	  tlast =0;
+	  if (whI == 0){
+	    doDose;
+	  } else {
+	    Alast[ncmt+oral0] += rate;
+	  }
+	  xout = tmp;
+	  tlast = tmp;
+	  if (wh0 == 20){
+	    for (int ii = ncmt + oral0; ii--; ){
+	      Alast[ii] += Asave[ii];
 	    }
 	  }
 	} else {
