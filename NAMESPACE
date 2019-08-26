@@ -226,6 +226,7 @@ if(getRversion() >= "3.6.0") {
 }
 importFrom(PreciseSums,fsum)
 importFrom(Rcpp,evalCpp)
+importFrom(expm,expm)
 importFrom(ggforce,ScaleContinuousPositionUnit)
 importFrom(ggforce,facet_grid_paginate)
 importFrom(ggforce,facet_wrap_paginate)

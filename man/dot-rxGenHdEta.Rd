@@ -5,7 +5,7 @@
 \title{Generate the d(err)/d(eta) values for FO related methods}
 \usage{
 .rxGenHdEta(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  pred.minus.dv = TRUE, promoteLinSens = FALSE)
+  pred.minus.dv = TRUE, promoteLinSens = TRUE, theta = FALSE)
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -23,6 +23,9 @@ function is based on PRED-DV (like NONMEM).  Default TRUE.}
 
 \item{promoteLinSens}{Promote solved linear compartment systems to
 sensitivity-based solutions.}
+
+\item{theta}{Calculate THETA derivatives instead of ETA
+derivatives.  By default FALSE}
 }
 \value{
 RxODE/symengine environment

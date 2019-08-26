@@ -6,7 +6,7 @@
 \usage{
 .rxGenFocei(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   pred.minus.dv = TRUE, sum.prod = FALSE, optExpression = TRUE,
-  promoteLinSens = FALSE)
+  promoteLinSens = TRUE, theta = FALSE)
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -30,6 +30,9 @@ evaluation.}
 
 \item{promoteLinSens}{Promote solved linear compartment systems to
 sensitivity-based solutions.}
+
+\item{theta}{Calculate THETA derivatives instead of ETA
+derivatives.  By default FALSE}
 }
 \value{
 RxODE/symengine environment

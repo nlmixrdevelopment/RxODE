@@ -64,6 +64,7 @@ SEXP _RxODE_rxCores();
 SEXP _RxODE_rxAssignPtr(SEXP objectSEXP);
 SEXP _RxODE_dynLoad(SEXP dllSEXP);
 SEXP _RxODE_rxOptRep_(SEXP);
+SEXP _RxODE_rxExpmMat(SEXP, SEXP, SEXP);
 SEXP RxODE_get_mv();
 
 static R_NativePrimitiveArgType RxODE_Sum_t[] = {
@@ -118,6 +119,7 @@ SEXP _RxODE_rxExpandSens_(SEXP, SEXP);
 SEXP _RxODE_rxExpandSens2_(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxExpandFEta_(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxRepR0_(SEXP);
+SEXP _RxODE_rxExpm(SEXP, SEXP, SEXP);
 
 extern int rxIsCurrentC(SEXP obj);
 
@@ -239,6 +241,8 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxOptRep_", (DL_FUNC) &_RxODE_rxOptRep_, 1},
     {"_RxODE_rxSetIni0", (DL_FUNC) &_RxODE_rxSetIni0, 1},
     {"_RxODE_rxSetSilentErr", (DL_FUNC) &_RxODE_rxSetSilentErr, 1},
+    {"_RxODE_rxExpmMat", (DL_FUNC) &_RxODE_rxExpmMat, 3},
+    {"_RxODE_rxExpm", (DL_FUNC) &_RxODE_rxExpm, 3},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

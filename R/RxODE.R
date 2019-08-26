@@ -316,6 +316,7 @@ R_PosInf <- Inf
 ##' @concept Pharmacokinetics (PK)
 ##' @concept Pharmacodynamics (PD)
 ##' @useDynLib RxODE, .registration=TRUE
+##' @importFrom expm expm
 ##' @importFrom mvnfast rmvn
 ##' @importFrom PreciseSums fsum
 ##' @importFrom Rcpp evalCpp

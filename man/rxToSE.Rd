@@ -6,7 +6,7 @@
 \alias{.rxFromSE}
 \title{RxODE to symengine.R}
 \usage{
-rxToSE(x, envir = NULL, progress = FALSE, promoteLinSens = FALSE)
+rxToSE(x, envir = NULL, progress = FALSE, promoteLinSens = TRUE)
 
 rxFromSE(x, unknownDerivatives = c("forward", "central", "error"))
 

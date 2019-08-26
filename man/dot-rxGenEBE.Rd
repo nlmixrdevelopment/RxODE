@@ -5,7 +5,8 @@
 \title{Generate peices for EBE only problem}
 \usage{
 .rxGenEBE(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  pred.minus.dv = TRUE, sum.prod = FALSE, optExpression = TRUE)
+  pred.minus.dv = TRUE, sum.prod = FALSE, optExpression = TRUE,
+  theta = FALSE)
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -26,6 +27,9 @@ numerically stable sums/products.}
 
 \item{optExpression}{Optimize the model text for computer
 evaluation.}
+
+\item{theta}{Calculate THETA derivatives instead of ETA
+derivatives.  By default FALSE}
 }
 \value{
 RxODE/symengine environment

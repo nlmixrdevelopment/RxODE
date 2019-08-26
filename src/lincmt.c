@@ -53,16 +53,26 @@ extern int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind)
 }
 
 static inline double _getDur(int l, rx_solving_options_ind *ind, int backward){
-  int i = 1-2*backward;
-  int p = l+i;
   double dose = ind->dose[l];
-  while (p < ind->ndoses && ind->dose[p] != -dose){
-      p+=i;
+  if (backward){
+    int p = l-1;
+    while (p > 0 && ind->dose[p] != -dose){
+      p--;
+    }
+    if (ind->dose[p] != -dose){
+      error("Could not find a start to the infusion.  Check the event table.");	
+    }
+    return ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]];
+  } else {
+    int p = l+1;
+    while (p < ind->ndoses && ind->dose[p] != -dose){
+      p++;
+    }
+    if (ind->dose[p] != -dose){
+      error("Could not find an end to the infusion.  Check the event table.");
+    }
+    return ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
   }
-  if (ind->dose[p] != -dose){
-      error("Could not find an end/beginning to the infusion.  Check the event table.");
-  }
-  return ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
 }
 
 
@@ -364,7 +374,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
 	// During infusion
 	tT = t - ind->all_times[ind->idose[l]] ;
 	thisT = tT - tlag;
-	tinf  = _getDur(l, ind, 0);
+	tinf = _getDur(ind->ixds, ind, 0);
 	tau = ind->ii[l];
 	if (op->linLog){
 	  logRate = log(dose);
@@ -374,7 +384,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
 	if (tT >= tinf) continue;
       } else {
 	// After  infusion
-	tinf  = _getDur(l, ind, 1);
+	tinf = _getDur(ind->ixds, ind, 1);
 	tau = ind->ii[p];
 	tT = t - ind->all_times[ind->idose[p]];
 	thisT = tT -tlag;
@@ -693,6 +703,7 @@ static inline void realizeBolus(double *Alast, // Last amounts
   if (Doserate > 0){
     if (oral0){
       // FIXME bolus with infusion in oral one-compartment model
+      error("Mixed oral and iv infusions are not supported with advan compartments");
     } else {
       // Bolus with infusion
       if (ncmt == 1){
@@ -1092,6 +1103,14 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
     ind->linCmtAdvan = Calloc((ncmt+oral0+2)*ind->n_all_times, double);
     for (int ii = ind->n_all_times; ii--; ) ind->linCmtAdvan[ii] = NA_REAL;
     ind->linCmtAdvanSetup=1;
+  } else if (t < ind->all_times[0] && ind->linCmtAdvanSetup!=2){
+    ind->linCmtAdvan[0] = NA_REAL;
+    ind->linCmtAdvanSetup=3;
+  } else if (t == ind->all_times[0] && ind->linCmtAdvanSetup!=2){
+    for (int ii = ind->n_all_times; ii--; ) ind->linCmtAdvan[ii] = NA_REAL;
+    ind->linCmtAdvanSetup=2;
+  } else {
+    ind->linCmtAdvanSetup=3;
   }
   double F[2] = {d_F, d_F2};
   double Alast[6] = {0};

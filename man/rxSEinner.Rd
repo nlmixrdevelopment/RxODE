@@ -8,12 +8,12 @@
 rxSEinner(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   grad = FALSE, sum.prod = FALSE, pred.minus.dv = TRUE,
   only.numeric = FALSE, optExpression = TRUE, interaction = TRUE,
-  ..., promoteLinSens = FALSE)
+  ..., promoteLinSens = TRUE, theta = FALSE)
 
 rxSymPySetupPred(obj, predfn, pkpars = NULL, errfn = NULL,
   init = NULL, grad = FALSE, sum.prod = FALSE,
   pred.minus.dv = TRUE, only.numeric = FALSE, optExpression = TRUE,
-  interaction = TRUE, ..., promoteLinSens = FALSE)
+  interaction = TRUE, ..., promoteLinSens = TRUE, theta = FALSE)
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -47,6 +47,9 @@ for FOCEi (not needed for FOCE)}
 
 \item{promoteLinSens}{Promote solved linear compartment systems to
 sensitivity-based solutions.}
+
+\item{theta}{Calculate THETA derivatives instead of ETA
+derivatives.  By default FALSE}
 }
 \value{
 RxODE object expanded with predfn and with calculated

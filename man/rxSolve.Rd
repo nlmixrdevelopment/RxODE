@@ -32,11 +32,12 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   omegaLower = -Inf, omegaUpper = Inf, nSub = 1L, thetaMat = NULL,
   thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0,
   dfObs = 0, returnType = c("rxSolve", "matrix", "data.frame",
-  "data.frame.TBS"), seed = NULL, nsim = NULL, minSS = 7,
+  "data.frame.TBS"), seed = NULL, nsim = NULL, minSS = 5,
   maxSS = 70000, atolSS = 1e-09, rtolSS = 1e-09, params = NULL,
   events = NULL, istateReset = TRUE, subsetNonmem = TRUE,
-  linLog = FALSE, maxAtolRtolFactor = 0.1, from = NULL, to = NULL,
-  by = NULL, length.out = NULL, iCov = NULL, keep = NULL)
+  linLog = FALSE, advanLinCmt = FALSE, maxAtolRtolFactor = 0.1,
+  from = NULL, to = NULL, by = NULL, length.out = NULL,
+  iCov = NULL, keep = NULL)
 
 rxSolve(object, ...)
 
@@ -344,7 +345,13 @@ not reset the ISTATE variable with doses.}
 
 \item{linLog}{Boolean indicating if linear compartment models be
 calculated more accurately in the log-space (slower) By
-default this is off (\code{FALSE})}
+default this is off (\code{FALSE}).  This only applies to
+solving linear compartmental models using the superposition
+principle}
+
+\item{advanLinCmt}{Boolean indicating if linear comparmental
+solutions are solved with ADVAN-style (Abuhelwa 2015)
+solutions instead of superpositioning}
 
 \item{maxAtolRtolFactor}{The maximum atol/rtol that FOCEi and
 other routines may adjust to.  By default 0.1}

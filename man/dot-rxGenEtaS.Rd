@@ -5,7 +5,7 @@
 \title{Generate the ETA sensitivities for FO related methods}
 \usage{
 .rxGenEtaS(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  promoteLinSens = FALSE)
+  promoteLinSens = TRUE, theta = FALSE)
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -20,6 +20,9 @@
 
 \item{promoteLinSens}{Promote solved linear compartment systems to
 sensitivity-based solutions.}
+
+\item{theta}{Calculate THETA derivatives instead of ETA
+derivatives.  By default FALSE}
 }
 \value{
 RxODE/symengine environment

@@ -5,7 +5,7 @@
 \title{Generate and load RxODE function into sympy environment}
 \usage{
 .rxGenFun(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  promoteLinSens = FALSE)
+  promoteLinSens = TRUE)
 }
 \arguments{
 \item{obj}{RxODE object}
