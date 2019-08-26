@@ -569,7 +569,7 @@ RxODE <- function(model, modName = basename(wd),
     .env$calcJac <- (length(.mv$dfdy) > 0);
     .env$calcSens <- (length(.mv$sens) > 0)
     class(.env) <- "RxODE"
-    reg.finalizer(.env, eval(bquote(function(...){try(.rxDynUnload(.(rxDll(.env))), silent=TRUE)})));
+    reg.finalizer(.env, eval(bquote(function(...){try(.rxDynUnload(.(rxDll(.env, unload=TRUE))), silent=TRUE)})));
     RxODE::rxForget();
     if (!is.null(.env$package)){
         .o <- rxDll(.env);
