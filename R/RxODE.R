@@ -4,6 +4,7 @@ R_NegInf <- -Inf # Hack for Rcpp->R initial values problem
 R_PosInf <- Inf
 
 .dynProtect <- "";
+.dynUnloadLater <- "";
 
 ##' Protect dll(s) from unloading
 ##'
@@ -15,10 +16,26 @@ rxDynProtect <- function(dlls){
     assignInMyNamespace(".dynProtect", dlls);
 }
 .rxDynUnload <- function(dll, unload=FALSE){
+    .unloadExtra <- function(){
+        sapply(.dynUnloadLater, function(x){
+            if (!any(x == .dynProtect)){
+                .name <- basename(x)
+                .name <- substr(.name, 0, nchar(.name) - nchar(.Platform$dynlib.ext))
+                if (!is.null(getLoadedDLLs()[[.name]])){
+                    dyn.unload(x);
+                }
+            }
+        })
+    }
     if (!unload){
         return(!any(dll == .dynProtect));
     } else if (!any(dll == .dynProtect)) {
-        sapply(dyn.unload, dll)
+        dyn.unload(dll);
+        .unloadExtra();
+    } else {
+        .new <- unique(c(dll, .dynUnloadLater))
+        assignInMyNamespace(".dynUnloadLater", .new);
+        .unloadExtra();
     }
 }
 
@@ -569,7 +586,7 @@ RxODE <- function(model, modName = basename(wd),
     .env$calcJac <- (length(.mv$dfdy) > 0);
     .env$calcSens <- (length(.mv$sens) > 0)
     class(.env) <- "RxODE"
-    reg.finalizer(.env, eval(bquote(function(...){try(.rxDynUnload(.(rxDll(.env, unload=TRUE))), silent=TRUE)})));
+    reg.finalizer(.env, eval(bquote(function(...){try(.rxDynUnload(.(rxDll(.env)),  unload=TRUE), silent=TRUE)})));
     RxODE::rxForget();
     if (!is.null(.env$package)){
         .o <- rxDll(.env);
