@@ -12,7 +12,6 @@
 #include <RcppArmadillo.h>
 #include <Rmath.h>
 #include <thread>
-#include <chrono>
 #include <string>
 #include <vector>
 #include <sys/stat.h>
@@ -1674,100 +1673,95 @@ extern "C" int *gsiVSetup(int n){
   return _globals.gsiV;
 }
 
-int _lock = 0;
 double *_rxGetErrs = NULL;
 void rxFreeErrs(){
-  if (!_lock){
-    Free(_rxGetErrs);
-  }
+  Free(_rxGetErrs);
 }
 
-extern "C" void gFree( int force){
-  if (!_lock || force){
-    Free(_rxGetErrs);
-    if (_globals.gsiV != NULL) Free(_globals.gsiV);
-    _globals.gsiV=NULL;
-    _globals.gsiVn=0;
-    if (_globals.gsvar != NULL) Free(_globals.gsvar);
-    _globals.gsvar=NULL;
-    _globals.gsvarn=0;
-    if (_globals.gpar_cov != NULL) Free(_globals.gpar_cov);
-    _globals.gpar_cov=NULL;
-    _globals.gpar_covn=0;
-    if (_globals.gidose != NULL) Free(_globals.gidose);
-    _globals.gidose=NULL;
-    _globals.gidosen=0;
-    if (_globals.grc != NULL) Free(_globals.grc);
-    _globals.grc=NULL;
-    _globals.grcn=0;
-    if (_globals.gBadDose != NULL) Free(_globals.gBadDose);
-    _globals.gBadDose=NULL;
-    _globals.gBadDosen=0;
-    if (_globals.gevid != NULL) Free(_globals.gevid);
-    _globals.gevid=NULL;
-    _globals.gevidn=0;
-    if (_globals.gpars != NULL) Free(_globals.gpars);
-    _globals.gpars=NULL;
-    _globals.gparsn=0;
-    if (_globals.grtol2 != NULL) Free(_globals.grtol2);
-    _globals.grtol2=NULL;
-    _globals.grtol2n=0;
-    if (_globals.gatol2 != NULL) Free(_globals.gatol2);
-    _globals.gatol2=NULL;
-    _globals.gatol2n=0;
-    if (_globals.gscale != NULL) Free(_globals.gscale);
-    _globals.gscale=NULL;
-    _globals.gscalen=0;
-    if (_globals.ginits != NULL) Free(_globals.ginits);
-    _globals.ginits=NULL;
-    _globals.ginitsn=0;
-    if (_globals.gcov != NULL) Free(_globals.gcov);
-    _globals.gcov=NULL;
-    _globals.gcovn=0;
-    if (_globals.glhs != NULL) Free(_globals.glhs);
-    _globals.glhs=NULL;
-    _globals.glhsn=0;
-    if (_globals.gamt != NULL) Free(_globals.gamt);
-    _globals.gamt=NULL;
-    if (_globals.gii != NULL) Free(_globals.gii);
-    _globals.gamt=NULL;
-    _globals.gii=NULL;
-    _globals.gamtn=0;
-    if (_globals.gall_times != NULL) Free(_globals.gall_times);
-    _globals.gall_times=NULL;
-    _globals.gall_timesn=0;
-    if (_globals.gix != NULL) Free(_globals.gix);
-    _globals.gix=NULL;
-    _globals.gixn=0;
-    if (_globals.gdv != NULL) Free(_globals.gdv);
-    _globals.gdvn=0;
-    if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
-    _globals.gInfusionRate=NULL;
-    _globals.gInfusionRaten=0;
-    if (_globals.gsolve != NULL) Free(_globals.gsolve);
-    _globals.gsolve=NULL;
-    _globals.gsolven=0;
-    if (_globals.gon != NULL&& _globals.gonn>0) Free(_globals.gon);
-    _globals.gon=NULL;
-    _globals.gonn=0;
-    if (_globals.gmtime != NULL&& _globals.gmtimen>0) Free(_globals.gmtime);
-    _globals.gmtime=NULL;
-    _globals.gmtimen=0;
-    if (_globals.gParPos != NULL) Free(_globals.gParPos);
-    _globals.gParPos=NULL;
-    if (_globals.gParPos2 != NULL) Free(_globals.gParPos2);
-    _globals.gParPos2=NULL;
-    _globals.gParPosn = 0;
-    if (_globals.slvr_counter != NULL) Free(_globals.slvr_counter);
-    _globals.slvr_counter=NULL;
-    _globals.slvr_countern=0;
-    if (_globals.jac_counter != NULL) Free(_globals.jac_counter);
-    _globals.jac_counter=NULL;
-    _globals.jac_countern=0;
-    if (_globals.dadt_counter != NULL) Free(_globals.dadt_counter);
-    _globals.dadt_counter=NULL;
-    _globals.dadt_countern=0;
-  }
+extern "C" void gFree(){
+  Free(_rxGetErrs);
+  if (_globals.gsiV != NULL) Free(_globals.gsiV);
+  _globals.gsiV=NULL;
+  _globals.gsiVn=0;
+  if (_globals.gsvar != NULL) Free(_globals.gsvar);
+  _globals.gsvar=NULL;
+  _globals.gsvarn=0;
+  if (_globals.gpar_cov != NULL) Free(_globals.gpar_cov);
+  _globals.gpar_cov=NULL;
+  _globals.gpar_covn=0;
+  if (_globals.gidose != NULL) Free(_globals.gidose);
+  _globals.gidose=NULL;
+  _globals.gidosen=0;
+  if (_globals.grc != NULL) Free(_globals.grc);
+  _globals.grc=NULL;
+  _globals.grcn=0;
+  if (_globals.gBadDose != NULL) Free(_globals.gBadDose);
+  _globals.gBadDose=NULL;
+  _globals.gBadDosen=0;
+  if (_globals.gevid != NULL) Free(_globals.gevid);
+  _globals.gevid=NULL;
+  _globals.gevidn=0;
+  if (_globals.gpars != NULL) Free(_globals.gpars);
+  _globals.gpars=NULL;
+  _globals.gparsn=0;
+  if (_globals.grtol2 != NULL) Free(_globals.grtol2);
+  _globals.grtol2=NULL;
+  _globals.grtol2n=0;
+  if (_globals.gatol2 != NULL) Free(_globals.gatol2);
+  _globals.gatol2=NULL;
+  _globals.gatol2n=0;
+  if (_globals.gscale != NULL) Free(_globals.gscale);
+  _globals.gscale=NULL;
+  _globals.gscalen=0;
+  if (_globals.ginits != NULL) Free(_globals.ginits);
+  _globals.ginits=NULL;
+  _globals.ginitsn=0;
+  if (_globals.gcov != NULL) Free(_globals.gcov);
+  _globals.gcov=NULL;
+  _globals.gcovn=0;
+  if (_globals.glhs != NULL) Free(_globals.glhs);
+  _globals.glhs=NULL;
+  _globals.glhsn=0;
+  if (_globals.gamt != NULL) Free(_globals.gamt);
+  _globals.gamt=NULL;
+  if (_globals.gii != NULL) Free(_globals.gii);
+  _globals.gamt=NULL;
+  _globals.gii=NULL;
+  _globals.gamtn=0;
+  if (_globals.gall_times != NULL) Free(_globals.gall_times);
+  _globals.gall_times=NULL;
+  _globals.gall_timesn=0;
+  if (_globals.gix != NULL) Free(_globals.gix);
+  _globals.gix=NULL;
+  _globals.gixn=0;
+  if (_globals.gdv != NULL) Free(_globals.gdv);
+  _globals.gdvn=0;
+  if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
+  _globals.gInfusionRate=NULL;
+  _globals.gInfusionRaten=0;
+  if (_globals.gsolve != NULL) Free(_globals.gsolve);
+  _globals.gsolve=NULL;
+  _globals.gsolven=0;
+  if (_globals.gon != NULL&& _globals.gonn>0) Free(_globals.gon);
+  _globals.gon=NULL;
+  _globals.gonn=0;
+  if (_globals.gmtime != NULL&& _globals.gmtimen>0) Free(_globals.gmtime);
+  _globals.gmtime=NULL;
+  _globals.gmtimen=0;
+  if (_globals.gParPos != NULL) Free(_globals.gParPos);
+  _globals.gParPos=NULL;
+  if (_globals.gParPos2 != NULL) Free(_globals.gParPos2);
+  _globals.gParPos2=NULL;
+  _globals.gParPosn = 0;
+  if (_globals.slvr_counter != NULL) Free(_globals.slvr_counter);
+  _globals.slvr_counter=NULL;
+  _globals.slvr_countern=0;
+  if (_globals.jac_counter != NULL) Free(_globals.jac_counter);
+  _globals.jac_counter=NULL;
+  _globals.jac_countern=0;
+  if (_globals.dadt_counter != NULL) Free(_globals.dadt_counter);
+  _globals.dadt_counter=NULL;
+  _globals.dadt_countern=0;
 }
 
 extern "C" double *rxGetErrs(){
@@ -2379,22 +2373,6 @@ extern "C" void rxOptionsIni();
 extern "C" void rxOptionsIniEnsure(int mx);
 extern "C" void parseFree();
 extern "C" void rxClearFuns();
-
-
-//' Lock the freeing routines
-//'
-//' This makes sure that the freeing routines are not called.
-//'
-//' @param lock This determines if the freeing is stopped
-//'
-//' @keywords internal
-//' @export
-//[[Rcpp::export]] 
-void rxLockFree(int lock){
-  _lock = lock;
-}
-extern "C" int isMemLock(){return _lock;}
-
 //' Free the C solving/parsing information.
 //'
 //' Take the ODE C system and free it.
@@ -2403,16 +2381,13 @@ extern "C" int isMemLock(){return _lock;}
 //' @export
 // [[Rcpp::export]]
 LogicalVector rxSolveFree(){
-  if (!_lock){
-    gFree(0);
-    rxOptionsFree();
-    rxOptionsIni();
-    rxOptionsIniData();
-    parseFree();
-    rxClearFuns();
-    return LogicalVector::create(true);
-  }
-  return LogicalVector::create(false);
+  gFree();
+  rxOptionsFree();
+  rxOptionsIni();
+  rxOptionsIniData();
+  parseFree();
+  rxClearFuns();
+  return LogicalVector::create(true);
 }
 
 extern "C" void RxODE_assign_fn_pointers(SEXP);
@@ -4431,7 +4406,7 @@ bool rxIsLoaded(RObject obj){
 
 //' Load RxODE object
 //'
-//' @param obj A RxODE family of objects
+//' @param obj A RxODE family of objects 
 //'
 //' @return Boolean returning if the RxODE library is loaded.
 //'
@@ -4440,25 +4415,16 @@ bool rxIsLoaded(RObject obj){
 //' @export
 //[[Rcpp::export]]
 bool rxDynLoad(RObject obj){
-  for(int n = 4; n--;){
-    if (!rxIsLoaded(obj)){
-      std::string file = rxDll(obj);
-      if (fileExists(file)){
-	dynLoad(file);
-      } else {
-	Nullable<Environment> e1 = rxRxODEenv(obj);
-	if (!e1.isNull()){
-	  Environment e = as<Environment>(e1);
-	  Function compile = as<Function>(e["compile"]);
-	  compile();
-	}
-      }
-    }
-    if (rxIsLoaded(obj)){
-      break;
+  if (!rxIsLoaded(obj)){
+    std::string file = rxDll(obj);
+    if (fileExists(file)){
+      dynLoad(file);
     } else {
-      if (n!=1){
-	std::this_thread::sleep_for(std::chrono::milliseconds(250));
+      Nullable<Environment> e1 = rxRxODEenv(obj);
+      if (!e1.isNull()){
+	Environment e = as<Environment>(e1);
+	Function compile = as<Function>(e["compile"]);
+	compile();
       }
     }
   }

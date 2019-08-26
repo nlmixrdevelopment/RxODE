@@ -299,26 +299,6 @@ namespace RxODE {
         return Rcpp::as<List >(rcpp_result_gen);
     }
 
-    inline void rxLockFree(int lock) {
-        typedef SEXP(*Ptr_rxLockFree)(SEXP);
-        static Ptr_rxLockFree p_rxLockFree = NULL;
-        if (p_rxLockFree == NULL) {
-            validateSignature("void(*rxLockFree)(int)");
-            p_rxLockFree = (Ptr_rxLockFree)R_GetCCallable("RxODE", "_RxODE_rxLockFree");
-        }
-        RObject rcpp_result_gen;
-        {
-            RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_rxLockFree(Shield<SEXP>(Rcpp::wrap(lock)));
-        }
-        if (rcpp_result_gen.inherits("interrupted-error"))
-            throw Rcpp::internal::InterruptedException();
-        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
-            throw Rcpp::LongjumpException(rcpp_result_gen);
-        if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
-    }
-
     inline LogicalVector rxSolveFree() {
         typedef SEXP(*Ptr_rxSolveFree)();
         static Ptr_rxSolveFree p_rxSolveFree = NULL;
