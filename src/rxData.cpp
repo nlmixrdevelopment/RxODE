@@ -4673,6 +4673,7 @@ bool rxDynLoad(RObject obj){
 //' @export
 //[[Rcpp::export]]
 bool rxDynUnload(RObject obj){
+  Function canUnload = getRxFn(".rxDynUnload");
   if (rxIs(obj, "RxODE")){
     Environment e = as<Environment>(obj);
     Nullable<CharacterVector> pkg = e["package"];
@@ -4689,7 +4690,11 @@ bool rxDynUnload(RObject obj){
   if (rxIsLoaded(obj)){
     Function dynUnload("dyn.unload", R_BaseNamespace);
     std::string file = rxDll(obj);
-    dynUnload(file);
+    if (as<bool>(canUnload(file))){
+      dynUnload(file);
+    } else {
+      return false;
+    }
   } 
   rxRmModelLib_(ptr);
   return !(rxIsLoaded(obj));
