@@ -26,8 +26,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
                     "!"=c("rxNot(", ")", "")
                     )
 
-.SEsingle <- list("loggamma"=c("lgamma(", ")"),
-                  "rxNot"=c("(!(", "))"))
+.SEsingle <- list("rxNot"=c("(!(", "))"))
 
 .rxSEdouble <- list("pow"=c("(", ")^(", ")"),
                     "R_pow"=c("(", ")^(", ")"),
@@ -58,12 +57,35 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
                   "rxOr"=c("(", "||", ")"))
 
 ## atan2
-.rxSEeq <- c("acos"=1, "acosh"=1, "asin"=1, "atan"=1,
-             "atanh"=1, "beta"=2,
-             "cos"=1, "cosh"=1, "erf"=1, "erfc"=1,
-             "exp"=1, "gamma"=1, "sin"=1, "sinh"=1,
-             "sqrt"=1, "tan"=1, "tanh"=1, "log"=1, "abs"=1, "asinh"=1,
-             "rxTBS"=3, "rxTBSd"=3, "rxTBSd2"=3, "linCmtA"=18, "linCmtB"=19)
+.rxSEeq <- c(
+    "abs"=1,
+    "acos"=1,
+    "acosh"=1,
+    "asin"=1,
+    "asinh"=1,
+    "atan"=1,
+    "atan2"=2,
+    "atanh"=1,
+    "beta"=2,
+    "cos"=1,
+    "cosh"=1,
+    "erf"=1,
+    "erfc"=1,
+    "exp"=1,
+    "gamma"=1,
+    "linCmtA"=18,
+    "linCmtB"=19,
+    "log"=1,
+    "polygamma"=2,
+    "rxTBS"=3,
+    "rxTBSd"=3,
+    "rxTBSd2"=3,
+    "sin"=1,
+    "sinh"=1,
+    "sqrt"=1,
+    "tan"=1,
+    "tanh"=1
+)
 
 .rxSEeqUsr <- c()
 
@@ -1395,20 +1417,19 @@ rxS <- function(x, doConst=TRUE, promoteLinSens=FALSE){
     for (.f in c("rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt",
                  "rxGt", "rxAnd", "rxOr", "rxNot"))
         assign(.f, .rxFunction(.f), envir=.env)
-    .env$..polygamma <- symengine::S("polygamma(_rx_a, _rx_b)");
-    .env$..a <- symengine::Symbol("_rx_a");
-    .env$..b <- symengine::Symbol("_rx_b");
     .env$..s0 <- symengine::S("0")
     .env$..extraTheta <- list()
     .env$..extraEta <- list()
     .env$..curCall <- character(0)
     .env$..eventVars <- c()
     .env$polygamma <- function(a, b){
-        symengine::subs(symengine::subs(..polygamma, ..a, a), ..b,  b)
+        ## symengine::subs(symengine::subs(..polygamma, ..a, a), ..b,  b)
+        symengine::psigamma(b, a)
     }
     .env$loggamma <- function(a){
-        lgamma(a)
+        symengine::lgamma(a)
     }
+
     .pars <- c(rxParams(x), rxState(x),
                "podo", "t", "time", "tlast", "rx1c", "rx__PTR__");
     ## default lambda/yj values
