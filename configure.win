@@ -1,5 +1,5 @@
 #! /bin/sh
-echo "if(!file.exists(\"src/Makevars.win\")) writeLines(gsub(\"@OPENMP_CXXFLAGS@\",\"\$(SHLIB_OPENMP_CXXFLAGS)\",gsub(\"@OPENMP_CFLAGS@\",\"\$(SHLIB_OPENMP_CFLAGS)\",suppressWarnings(readLines(\"src/Makevars.in\")))),\"src/Makevars.win\")" > build.R
+echo "if(!file.exists(\"src/Makevars.win\")) writeLines(gsub(\"@OPENMP_CXXFLAGS@\",\"-fopenmp\",gsub(\"@OPENMP_CFLAGS@\",\"\-fopenmp\",suppressWarnings(readLines(\"src/Makevars.in\")))),\"src/Makevars.win\")" > build.R
 ${R_HOME}/bin/R CMD BATCH build.R
 rm build.R
 rm build.Rout
