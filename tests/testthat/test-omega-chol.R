@@ -3,6 +3,8 @@ dgs <- c("sqrt", "log", "identity")
 for (dg in dgs){
     for (d in seq(1, ifelse(dg == "sqrt", rxSymInvCholN(), 4))){
         test_that("omega chol", {
+            skip_on("solaris")
+            skop_on("windows")
             context(sprintf("Omega Cholesky %sx%s, %s", d, d, dg));
             ## Creating covariance matrix
             tmp <- matrix(rnorm(d^2), d, d)
