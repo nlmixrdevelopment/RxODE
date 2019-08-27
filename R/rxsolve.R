@@ -561,7 +561,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         stop("Duplicate arguments do not make sense.");
     }
     if (any(names(.xtra)=="covs")){
-        stop("Covariates can no longer be specified by 'covs' include them in the event dataset.");
+        stop("Covariates can no longer be specified by 'covs';\n  include them in the event dataset.\n\nIndividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\nTime varying covariates: modify input event data-frame or\n  eventTable to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the value in the model\n");
     }
     .nms <- names(as.list(match.call())[-1]);
     .lst <- list(...);
