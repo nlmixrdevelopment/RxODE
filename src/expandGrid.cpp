@@ -3,6 +3,8 @@
 using namespace Rcpp;
 bool rxIs(const RObject &obj, std::string cls);
 
+std::string symengineRes(std::string val);
+
 //[[Rcpp::export]]
 List rxExpandGrid_(RObject &c1, RObject &c2, RObject &type){
   if (rxIs(c1, "character") && rxIs(c2, "character")){
@@ -41,10 +43,10 @@ List rxExpandGrid_(RObject &c1, RObject &c2, RObject &type){
 	out1[i] = s1;
 	out2[i] = s2;
 	out3[i] = "df(" + s1 + ")/dy(" + s2 + ")";
-	std::string sDf = "rx__df_" + s1 + "_dy_" + s2 + "__";
+	std::string sDf = "rx__df_" + symengineRes(s1) + "_dy_" + symengineRes(s2) + "__";
 	out4[i] = sDf;
 	out5[i] = "assign(\"" + sDf + "\",with(model,D(rx__d_dt_" +
-	  s1 + "__, \"" + s2 +"\")), envir=model)";
+	  symengineRes(s1) + "__, \"" + symengineRes(s2) + "\")), envir=model)";
       }
       List out(5);
       out[0] = out1;
@@ -94,7 +96,7 @@ List rxExpandSens_(CharacterVector state, CharacterVector calcSens){
     std::string curSens = as<std::string>(calcSens[i2]);
     std::string sensSp = "rx__sens_" + curState + "_BY_" + curSens + "__";
     ddt[i] = "d/dt("+ sensSp + ")";
-    std::string curLine= "rx__d_dt_rx__sens_" + curState + "_BY_" +
+    std::string curLine= "rx__d_dt_rx__sens_" + symengineRes(curState) + "_BY_" +
       curSens + "____";
     ddtS[i] = curLine;
     ddtS2[i] = sensSp;
@@ -168,26 +170,31 @@ List rxExpandSens2_(CharacterVector state, CharacterVector s1, CharacterVector s
     std::string cS = as<std::string>(state[i1]);
     std::string cS1 = as<std::string>(s1[i2]);
     std::string cS2 = as<std::string>(s2[i3]);
-    std::string sensSp = "rx__sens_" + cS + "_BY_" + cS1 + "_BY_" + cS2 + "__";
+    std::string sensSp = "rx__sens_" + symengineRes(cS) + "_BY_" +
+      symengineRes(cS1) + "_BY_" + symengineRes(cS2) + "__";
     ddt[i] = "d/dt("+ sensSp + ")";
-    std::string curLine= "rx__d_dt_rx__sens_" + cS + "_BY_" + cS1 + "_BY_" + cS2 + "____";
+    std::string curLine= "rx__d_dt_rx__sens_" + symengineRes(cS) +
+      "_BY_" + symengineRes(cS1) + "_BY_" + symengineRes(cS2) + "____";
     ddtS[i] = curLine;
     ddtS2[i] = sensSp;
     curLine = "assign(\"" + curLine + "\", with(model,";
-    std::string v1 = "rx__d_dt_rx__sens_"+cS+"_BY_"+cS2+"____";
+    std::string v1 = "rx__d_dt_rx__sens_"+symengineRes(cS)+"_BY_"+
+      symengineRes(cS2)+"____";
     curLine += "D("+v1+",\""+cS1+"\")";
     for (int j = len1; j--;){
       std::string s2 = as<std::string>(state[j]);
-      curLine += "+D("+v1+",\""+s2+"\")*rx__sens_"+s2+"_BY_"+cS1+
-	"__+rx__sens_"+s2+"_BY_"+cS1+"_BY_"+cS2+"__*rx__df_"+
-	cS + "_dy_"+s2+"__";
+      curLine += "+D("+v1+",\""+s2+"\")*rx__sens_"+symengineRes(s2)+"_BY_"+symengineRes(cS1)+
+	"__+rx__sens_"+symengineRes(s2)+"_BY_"+symengineRes(cS1)+"_BY_"+symengineRes(cS2)+
+	"__*rx__df_"+
+	symengineRes(cS) + "_dy_"+symengineRes(s2)+"__";
     }
     curLine += "),envir=model)";
     line[i] = curLine;
     state0r[i] = sensSp + "(0)";
-    s0[i] = "rx_" + cS + "_ini_0__";
+    s0[i] = "rx_" + symengineRes(cS) + "_ini_0__";
     stateD[i] = "assign(\"rx_"+sensSp+"_ini_0__\",with(model,D(D(rx_" +
-      cS + "_ini_0__,\"" + cS1 + "\"),\""+cS2+"\")),envir=model)";
+      symengineRes(cS) + "_ini_0__,\"" + symengineRes(cS1) + "\"),\""+symengineRes(cS2)+
+      "\")),envir=model)";
   }
   List out(7);
   out[0] = ddt;
@@ -220,8 +227,8 @@ List rxExpandFEta_(CharacterVector state, int neta, int pred){
       calc = "assign(\"" + feta + "\",with(.s,-D(rx_pred_, ETA_" +
 	etaN + "_)";
       for (int j = nstate; j--;){
-	calc += "-rx__sens_" + state[j] + "_BY_ETA_" + etaN +
-	  "___*D(rx_pred_,"+ state[j] + ")";
+	calc += "-rx__sens_" + symengineRes(as<std::string>(state[j])) + "_BY_ETA_" + etaN +
+	  "___*D(rx_pred_,\""+ symengineRes(as<std::string>(state[j])) + "\")";
       }
       calc += "), envir=.s)";
       break;
@@ -231,8 +238,8 @@ List rxExpandFEta_(CharacterVector state, int neta, int pred){
       calc = "assign(\"" + feta + "\",with(.s,D(rx_pred_, ETA_" +
 	etaN + "_)";
       for (int j = nstate; j--;){
-	calc += "+rx__sens_" + state[j] + "_BY_ETA_" + etaN +
-	  "___*D(rx_pred_,"+ state[j] + ")";
+	calc += "+rx__sens_" + symengineRes(as<std::string>(state[j])) + "_BY_ETA_" + etaN +
+	  "___*D(rx_pred_,"+ symengineRes(as<std::string>(state[j])) + ")";
       }
       calc += "), envir=.s)";
       break;
@@ -242,8 +249,8 @@ List rxExpandFEta_(CharacterVector state, int neta, int pred){
       calc = "assign(\"" + feta + "\",with(.s,D(rx_r_,ETA_" +
 	etaN + "_)";
       for (int j = nstate; j--;){
-	calc += "+rx__sens_" + state[j] + "_BY_ETA_" + etaN +
-	  "___*D(rx_r_,"+ state[j] + ")";
+	calc += "+rx__sens_" + symengineRes(as<std::string>(state[j])) + "_BY_ETA_" + etaN +
+	  "___*D(rx_r_,"+ symengineRes(as<std::string>(state[j])) + ")";
       }
       calc += "), envir=.s)";
       break;

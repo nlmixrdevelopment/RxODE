@@ -402,6 +402,9 @@ RxODE <- function(model, modName = basename(wd),
         }
     }
     .env <- new.env(parent=baseenv())
+    .env$.rxTransCode <- "SEXP matLst = PROTECT(allocVector(VECSXP, 0));pro++;\n SET_VECTOR_ELT(lst,  18, matLst);\n";
+    .setTransCode(.env$.rxTransCode);
+    on.exit(.setTransCode("bad"), add=TRUE);
     .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel);
     if (.Call(`_RxODE_isLinCmt`) == 1L){
         .env$.mv <- rxLinCmtTrans(.env$.mv, linCmtSens=linCmtSens);
@@ -445,7 +448,8 @@ RxODE <- function(model, modName = basename(wd),
                 dir.create(wd, recursive = TRUE)
             if (file.exists(wd))
                 setwd(wd);
-            on.exit(setwd(.lwd));
+            .rx$.setTransCode(get(".rxTransCode", envir=.(.env)));
+            on.exit({setwd(.lwd); .rx$.setTransCode("bad")});
             .rx$.extraC(extraC);
             if (missing.modName){
                 .rxDll <- .rx$rxCompile(.mv, debug = debug,
@@ -1299,6 +1303,18 @@ rxTrans.default <- function(model,
     }
 }
 
+.rxTransCode <- "bad";
+##' Set translation extra code
+##'
+##' @param x Code to set
+##' @return nothing
+##' @author Matthew Fidler
+##' @keywords internal
+##' @noRd
+.setTransCode <- function(x="bad"){
+    assignInMyNamespace(".rxTransCode", x);
+}
+
 ##' @rdname rxTrans
 ##' @export
 rxTrans.character <- memoise::memoise(function(model,
@@ -1318,7 +1334,8 @@ rxTrans.character <- memoise::memoise(function(model,
     }
     RxODE::rxReq("dparser");
     .ret <- .Call(`_RxODE_trans`, model, modelPrefix, md5, .isStr,
-                  as.integer(crayon::has_color()));
+                  as.integer(crayon::has_color()),
+                  .rxTransCode);
     if (inherits(.ret, "try-error")){
         message("Model")
         if (.isStr == 0L){

@@ -1,8 +1,150 @@
+dfadvan <- structure(list(ID = c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L,
+2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L), TIME = c(0L, 1L, 2L,
+3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L, 12L, 13L, 14L, 15L,
+16L, 17L, 18L, 19L, 20L, 21L, 22L, 23L, 24L, 0L, 1L, 2L, 3L,
+4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L, 12L, 13L, 14L, 15L, 16L,
+17L, 18L, 19L, 20L, 21L, 22L, 23L, 24L), AMT = c(100L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L), MDV = c(1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L), CLCR = c(120L, 120L,
+120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L,
+120L, 120L, 120L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L,
+30L, 30L, 30L, 30L, 30L, 30L, 120L, 120L, 120L, 120L, 120L, 120L,
+120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L,
+120L, 120L, 120L, 120L)), row.names = c(NA, -52L), class = "data.frame")
+
+dfadvanR <-structure(list(ID = c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 2L,
+2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L,
+2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L,
+2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L
+), TIME = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 20.5, 20.5,
+22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52,
+54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 84,
+86, 88, 90, 92, 94, 96, 98, 100, 0, 2, 4, 6, 8, 10, 12, 14, 16,
+18, 20, 20.5, 20.5, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42,
+44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74,
+76, 78, 80, 82, 84, 86, 88, 90, 92, 94, 96, 98, 100), AMT = c(100L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 100L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L), MDV = c(1L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L), RATE = c(2L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 2L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 2L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 2L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+0L, 0L, 0L, 0L, 0L, 0L), CLCR = c(120L, 120L, 120L, 120L, 120L,
+120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L,
+120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L,
+120L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L,
+30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L,
+30L, 60L, 60L, 60L, 60L, 60L, 60L, 60L, 60L, 60L, 60L, 60L, 60L,
+60L, 60L, 60L, 60L, 60L, 60L, 60L, 60L, 60L, 60L, 120L, 120L,
+120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L,
+120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L,
+120L, 120L, 120L, 120L, 120L, 120L, 120L), DV = c(NA, NA, NA,
+NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
+-106L))
+
 rxPermissive({
 
     tol  <- 1e-6 ## Current difference for all equations
     rxClean()
     type <- 4
+
+    ## context("time-varying linCmt advan tests")
+
+    ## test_that("time varing advan", {
+
+        ## advan
+
+
+        ## mod1iv <- RxODE({
+        ##     CLpop ~ 2       # clearance
+        ##     Vpop ~ 10      # central volume of distribution
+        ##     CL <- CLpop*(CLCR/100)
+        ##     V <- Vpop
+        ##     cp = linCmt()
+        ## })
+
+        ## tmp2 <- rxSolve(mod1iv, events=dfadvan, advanLinCmt=TRUE)
+
+        ## plot(tmp2, cp) + geom_vline(xintercept=14) +
+        ##     geom_vline(xintercept=4)
+
+        ## mod2iv <- RxODE({
+        ##     CLpop <- 2       # clearance
+        ##     V1pop <- 10      # central volume of distribution
+        ##     Qpop  <- 1       # inter-compartmental clearance
+        ##     V2pop <- 25      # peripheral volume of distribution
+        ##     CL <- CLpop*(CLCR/100)           #creatinine clearance (CLCR) added as a covariate on CL
+        ##     V1 <- V1pop
+        ##     Q  <- Qpop
+        ##     V2 <- V2pop
+        ##     cp <- linCmt()
+        ## })
+
+        ## tmp2 <- rxSolve(mod2iv, events=dfadvan, advanLinCmt=TRUE)
+
+        ## plot(tmp2, cp) + geom_vline(xintercept=14) +
+        ##     geom_vline(xintercept=4)
+
+        ## mod3iv <- RxODE({
+        ##     CLpop  <- 2          # clearance
+        ##     V1pop  <- 10         # central volume of distribution
+        ##     Q12pop <- 0.5        # inter-compartmental clearance (1)
+        ##     V2pop  <- 30         # peripheral volume of distribution (1)
+        ##     Q13pop <- 0.3        # inter-compartmental clearance (2)
+        ##     V3pop  <- 40         # peripheral volume of distribution (2)
+        ##     CL  <- CLpop*(CLCR/100)    #creatinine clearance (CLCR) added as a covariate on CL
+        ##     V1  <- V1pop
+        ##     Q <- Q12pop
+        ##     V2  <- V2pop
+        ##     Q2 <- Q13pop
+        ##     V3  <- V3pop
+        ##     cp <- linCmt()
+        ## })
+
+        ## tmp3 <- rxSolve(mod3iv, events=dfadvan, advanLinCmt=TRUE)
+
+        ## plot(tmp2, cp) + geom_vline(xintercept=14) +
+        ##     geom_vline(xintercept=4)
+
+        ## tmp1 <- rxSolve(mod1iv, events=dfadvanR, advanLinCmt=FALSE)
+
+        ## plot(tmp1, cp) + geom_vline(xintercept=52) +
+        ##     geom_vline(xintercept=40) + facet_wrap( ~ id)
+
+    ## })
+
+    ## stop()
+
 
     for (type in 1:3){
 
@@ -482,6 +624,7 @@ rxPermissive({
         o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll,advanLinCmt=advan)
 
         s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll,advanLinCmt=advan)
+
         s.3cK <- sol.3cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll,advanLinCmt=advan)
         s.3cA1 <- sol.3cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll,advanLinCmt=advan)
         s.3cVp <- sol.3cVp %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll,advanLinCmt=advan)
@@ -777,73 +920,74 @@ rxPermissive({
             expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
         })
 
-        context(sprintf("Oral + Infusion + Bolus Models (%s)", .txt))
+        if(!advan){
+            context(sprintf("Oral + Infusion + Bolus Models (%s)", .txt))
 
-        et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
-            add.dosing(dose=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
-            add.dosing(dose=1.5, nbr.doses=3, dosing.interval=16,cmt=1,start.time=8) %>%
-            add.sampling(seq(0, 48, length.out=200))
+            et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
+                add.dosing(dose=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
+                add.dosing(dose=1.5, nbr.doses=3, dosing.interval=16,cmt=1,start.time=8) %>%
+                add.sampling(seq(0, 48, length.out=200))
 
-        ode.1c.ka <- RxODE({
-            C2 = center/V;
-            d / dt(depot) = -KA * depot
-            d/dt(center) = KA * depot - CL*C2
-        })
+            ode.1c.ka <- RxODE({
+                C2 = center/V;
+                d / dt(depot) = -KA * depot
+                d/dt(center) = KA * depot - CL*C2
+            })
 
-        sol.1c.ka <- RxODE({
-            C2 = linCmt(V, CL, KA);
-        }, linCmtSens=sens)
+            sol.1c.ka <- RxODE({
+                C2 = linCmt(V, CL, KA);
+            }, linCmtSens=sens)
 
-        o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et,linLog=ll,advanLinCmt=advan)
-        s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et,linLog=ll,advanLinCmt=advan)
+            o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et,linLog=ll,advanLinCmt=advan)
+            s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et,linLog=ll,advanLinCmt=advan)
 
-        test_that("1 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
-            expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
-        })
+            test_that("1 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
+                expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
+            })
 
-        ode.2c.ka <- RxODE({
-            C2 = centr/V;
-            C3 = peri/V2;
-            d/dt(depot) =-KA*depot;
-            d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
-            d/dt(peri)  =                    Q*C2 - Q*C3;
-        })
+            ode.2c.ka <- RxODE({
+                C2 = centr/V;
+                C3 = peri/V2;
+                d/dt(depot) =-KA*depot;
+                d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+                d/dt(peri)  =                    Q*C2 - Q*C3;
+            })
 
-        sol.2c.ka <- RxODE({
-            C2=linCmt(V, CL, V2, Q, KA);
-        }, linCmtSens=sens)
+            sol.2c.ka <- RxODE({
+                C2=linCmt(V, CL, V2, Q, KA);
+            }, linCmtSens=sens)
 
-        o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3), events=et,linLog=ll,advanLinCmt=advan)
+            o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3), events=et,linLog=ll,advanLinCmt=advan)
 
-        s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3), events=et,linLog=ll,advanLinCmt=advan)
+            s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3), events=et,linLog=ll,advanLinCmt=advan)
 
-        test_that("2 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
-            expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
-        })
+            test_that("2 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
+                expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
+            })
 
-        ode.3c.ka <- RxODE({
-            C2 = centr/V;
-            C3 = peri/V2;
-            C4 = peri2 / V3
-            d/dt(depot) =-KA*depot;
-            d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
-            d/dt(peri)  = Q*C2 - Q*C3;
-            d / dt(peri2) = Q2 * C2 - Q2 * C4
-        })
+            ode.3c.ka <- RxODE({
+                C2 = centr/V;
+                C3 = peri/V2;
+                C4 = peri2 / V3
+                d/dt(depot) =-KA*depot;
+                d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
+                d/dt(peri)  = Q*C2 - Q*C3;
+                d / dt(peri2) = Q2 * C2 - Q2 * C4
+            })
 
-        sol.3c.ka <- RxODE({
-            ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
-            C2=linCmt(V, CL, V2, Q, Q2, V3, KA);
-        }, linCmtSens=sens)
+            sol.3c.ka <- RxODE({
+                ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+                C2=linCmt(V, CL, V2, Q, Q2, V3, KA);
+            }, linCmtSens=sens)
 
-        o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,linLog=ll,advanLinCmt=advan)
+            o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,linLog=ll,advanLinCmt=advan)
 
-        s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,linLog=ll,advanLinCmt=advan)
+            s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,linLog=ll,advanLinCmt=advan)
 
-        test_that("3 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
-            expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
-        })
-
+            test_that("3 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
+                expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
+            })
+        }
         context(sprintf("Modeled bio-availability (%s)", .txt))
 
         et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
@@ -936,7 +1080,8 @@ rxPermissive({
 
         context(sprintf("Modeled lag time (%s)", .txt))
 
-        et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
+        et <- eventTable() %>%
+            add.dosing(dose=3, rate=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
             add.dosing(dose=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
             add.dosing(dose=1.5, nbr.doses=3, dosing.interval=16,cmt=1,start.time=8) %>%
             add.sampling(seq(0, 48, length.out=200))
@@ -1035,7 +1180,8 @@ rxPermissive({
             rate(central) = rt
         }, linCmtSens=sens)
 
-        et <- eventTable() %>% add.dosing(dose=3, rate=-1, nbr.doses=3, cmt=1,dosing.interval=12) %>%
+        et <- eventTable() %>%
+            add.dosing(dose=3, rate=-1, nbr.doses=3, cmt=1,dosing.interval=12) %>%
             add.sampling(seq(0, 36, length.out=200))
 
         for (rt in seq(0.5, 1, 1.5)){
@@ -1728,3 +1874,5 @@ rxPermissive({
     })
 
 }, silent=TRUE)
+
+

@@ -22,7 +22,6 @@ d/dt(y3) = a3*y1*y2
 
     out <- solve(rigid,et)
 
-
     test_that("modelvars", {
         expect_equal(rxModelVars(rigid), rxModelVars(rigid$cmpMgr$rxDll()))
         expect_equal(rxModelVars(rigid), rxModelVars(out))

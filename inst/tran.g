@@ -13,6 +13,8 @@ statement
   | derivative end_statement
   | dfdy       end_statement
   | mtime      end_statement
+  | mat0       end_statement
+  | matF       end_statement
   | printf_statement end_statement
   | cmt_statement end_statement
   | dvid_statementI end_statement
@@ -72,6 +74,10 @@ dur        : 'dur'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_o
 end_statement : (';')* ;
 
 assignment : identifier_r  ('=' | '<-' | '~' ) logical_or_expression;
+
+mat0: '_rxM' '=' logical_or_expression;
+
+matF: '_rxF' '=' logical_or_expression;
 
 mtime     : 'mtime' '(' identifier_r_no_output ')' ('=' | '<-' | '~') logical_or_expression;
 

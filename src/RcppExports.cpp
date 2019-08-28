@@ -320,6 +320,17 @@ RcppExport SEXP _RxODE_rxRepR0_(SEXP netaSEXP) {
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// rxIndLin_
+std::string rxIndLin_(CharacterVector states);
+RcppExport SEXP _RxODE_rxIndLin_(SEXP statesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< CharacterVector >::type states(statesSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxIndLin_(states));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxExpmMat
 List rxExpmMat(const arma::mat& m0, const arma::vec& InfusionRate, const arma::mat& yp);
 RcppExport SEXP _RxODE_rxExpmMat(SEXP m0SEXP, SEXP InfusionRateSEXP, SEXP ypSEXP) {

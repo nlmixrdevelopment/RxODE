@@ -3,6 +3,34 @@
 #include "../inst/include/RxODE.h"
 using namespace Rcpp;
 
+std::string symengineRes(std::string val){
+  if (val == "e" ||
+      val == "E" ||
+      val == "EulerGamma" ||
+      val == "Catalan" ||
+      val == "GoldenRatio" ||
+      val == "I"){
+    return "rx_SymPy_Res_" + val;
+  }
+  return val;
+}
+
+// Create R source for creating a Inductive linearization matrix
+// Assume .states=the states in the model
+// Assume .env= symengine environment
+//[[Rcpp::export]]
+std::string rxIndLin_(CharacterVector states){
+  std::string ret = "matrix(c(";
+  std::string n = "c(";
+  for (int i = 0; i < states.size(); i++){
+    ret += ".rxIndLinLine(.env$rx__d_dt_"+symengineRes(as<std::string>(states[i]))+ "__" + ",.states),";
+    n += "\"" + states[i] +"\",";
+  }
+  ret += "NULL)," + std::to_string(states.size()) + "," + std::to_string(states.size()+1) +
+    ",TRUE,list(" + n +"NULL)," + n + "\"_rxF\")))";
+  return ret;
+}
+
 // expm::expm method="PadeRBS" is faster than rexpokit::expm BUT
 // expm::expm method="Higham08" is "better" and has a C interface.  It
 // is slower, though.

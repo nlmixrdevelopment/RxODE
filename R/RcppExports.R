@@ -128,6 +128,10 @@ rxRepR0_ <- function(neta) {
 #' This addst the columns indicating infusions if needed.
 NULL
 
+rxIndLin_ <- function(states) {
+    .Call(`_RxODE_rxIndLin_`, states)
+}
+
 #' Enhance the Matrix for expm
 #' This addst the columns indicating infusions if needed.
 #' @param m0 Initial matrix

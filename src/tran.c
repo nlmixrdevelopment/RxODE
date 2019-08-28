@@ -425,6 +425,7 @@ vLines sbPm, sbPmDt;
 sbuf sbNrm;
 
 char *model_prefix;
+char *extra_indLin;
 const char *md5 = NULL;
 int badMd5 = 0;
 int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0, needSort=0;
@@ -1915,8 +1916,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
-  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 20));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 20));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 21));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 21));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
   sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
   sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
@@ -2070,11 +2071,18 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst, 17, sDvid);\n", 36);
 
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,18,mkChar(\"timeId\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  18,timeInt);\n", 38);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,19,mkChar(\"timeId\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  19,timeInt);\n", 38);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,19,mkChar(\"md5\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  19,mmd5);\n", 34);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,18,mkChar(\"indLin\"));\n", 47);
+  // FIX with extra
+  /* sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  19, R_NilValue);\n", 42); */
+  sAppend(&sbOut,"%s", extra_indLin);
+  /* sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  19,indLin);\n", 38); */
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,20,mkChar(\"md5\"));\n", 43);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  20,mmd5);\n", 34);
 
   // const char *rxVersion(const char *what)
   
@@ -2709,7 +2717,7 @@ void trans_internal(char* parse_file, int isStr){
 }
 
 SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
-		  SEXP isEscIn){
+		  SEXP isEscIn, SEXP inLinExtra){
   char *in;
   char *buf, *df, *dy;
   char bufw[1024], bufw2[2100];
@@ -2740,6 +2748,13 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   } else {
     freeP();
     error("model prefix must be specified");
+  }
+
+  if (isString(inLinExtra) && length(inLinExtra) == 1){
+    extra_indLin = r_dup_str(CHAR(STRING_ELT(inLinExtra,0)),0);
+  } else {
+    freeP();
+    error("Extra inductive linearization model variables must be specified");
   }
 
   if (isString(model_md5) && length(model_md5) == 1){
@@ -2788,8 +2803,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   tb.li=li;
   
   int pro = 0;
-  SEXP lst   = PROTECT(allocVector(VECSXP, 18));pro++;
-  SEXP names = PROTECT(allocVector(STRSXP, 18));pro++;
+  SEXP lst   = PROTECT(allocVector(VECSXP, 19));pro++;
+  SEXP names = PROTECT(allocVector(STRSXP, 19));pro++;
 
   SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;
   int *iNeedSort  = INTEGER(sNeedSort);
@@ -3085,6 +3100,10 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   SEXP sDvid = PROTECT(allocVector(INTSXP,tb.dvidn));pro++;
   for (i = 0; i < tb.dvidn; i++) INTEGER(sDvid)[i]=tb.dvid[i];
   SET_VECTOR_ELT(lst,  17, sDvid);
+
+  SET_STRING_ELT(names, 18, mkChar("indLin"));
+  SEXP matLst = PROTECT(allocVector(VECSXP, 0));pro++;
+  SET_VECTOR_ELT(lst,  18, matLst);
 
   sprintf(bufw,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
   SET_STRING_ELT(trann,0,mkChar("lib.name"));
