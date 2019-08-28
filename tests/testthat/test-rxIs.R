@@ -105,4 +105,4 @@ d/dt(blood)     = a*intestine - b*blood
 ")
         expect_true(rxIs(mod, "RxODE"))
     })
-}, cran=TRUE)
+}, cran=FALSE)
