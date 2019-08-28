@@ -89,9 +89,10 @@ rxPermissive({
         }
     }
 
-    test_that("A warning should occur if some of the prediction doesn't depend on the pred.", {
-        expect_warning(rxSymPySetupPred(m2, pred2, pk, err3))
-    })
+    ## FIXME
+    ## test_that("A warning should occur if some of the prediction doesn't depend on the pred.", {
+    ##     expect_warning(rxSymPySetupPred(m2, pred2, pk, err3))
+    ## })
 
     pred2 <- function(){
         if (cmt == 2){
@@ -353,6 +354,7 @@ rxPermissive({
         KA <- exp(lKA + eta.KA)
         T0 <- exp(lt + eta.t0)
     }
+
     mod <- RxODE({
         if (t > T0) {
             kel <- Cl/Vc
@@ -364,10 +366,10 @@ rxPermissive({
         d/dt(centr) = KA * depot - kel * centr
         cp = centr/Vc
     })
-    ## cond <- rxSymPySetupPred(mod, pred, pk, err)
+    cond <- rxSymPySetupPred(mod, pred, pk, err)
 
     ## test_that("Issue #57 if/else", {
     ##     expect_false(any(rxLhs(cond$inner) == "T0"))
     ## })
 
-}, silent=TRUE, on.validate=TRUE)
+}, silent=TRUE)

@@ -146,9 +146,11 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     expect_false(jac$calcSens);
     expect_false(sens$calcJac);
     expect_true(sens$calcSens);
+
 })
 
     test_that("Conditional Sensitivites",{
+
         transit.if <- RxODE({
             ## Table 3 from Savic 2007
             cl = 17.2 # (L/hr)
@@ -167,17 +169,22 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
             d/dt(depot) = transit(n, mtt, bio)-ka*depot
             d/dt(cen) = ka*depot-k*cen
         });
+
         expect_false(transit.if$calcJac);
         expect_false(transit.if$calcSens);
+
         jac <- RxODE(transit.if, calcJac=TRUE);
         expect_true(jac$calcJac);
         expect_false(jac$calcSens);
+
         sens <- RxODE(transit.if, calcSens=TRUE);
         expect_false(sens$calcJac);
         expect_true(sens$calcSens);
+
         full <- RxODE(transit.if, calcSens=TRUE, calcJac=TRUE);
         expect_true(full$calcJac);
         expect_true(full$calcSens);
+
     })
 
     test_that("Transit Sensitivities",{
@@ -240,5 +247,5 @@ d/dt(cen) = ka*depot-k*cen
     ## tmp <- RxODE(mod, calcSens=list(eta=c("eta_ka", "eta_mtt"), theta=c("cl", "vc")));
 });
 
-}, silent=TRUE, on.validate=TRUE)
+}, silent=TRUE)
 

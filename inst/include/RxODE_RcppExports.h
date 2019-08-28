@@ -6,7 +6,7 @@
 
 #include "RxODE_types.h"
 #include "RxODE_types.h"
-#include <RcppArmadillo.h>
+#include <RcppEigen.h>
 #include <Rcpp.h>
 
 namespace RxODE {
@@ -25,6 +25,111 @@ namespace RxODE {
                     "C++ function with signature '" + std::string(sig) + "' not found in RxODE");
             }
         }
+    }
+
+    inline List rxExpandGrid_(RObject& c1, RObject& c2, RObject& type) {
+        typedef SEXP(*Ptr_rxExpandGrid_)(SEXP,SEXP,SEXP);
+        static Ptr_rxExpandGrid_ p_rxExpandGrid_ = NULL;
+        if (p_rxExpandGrid_ == NULL) {
+            validateSignature("List(*rxExpandGrid_)(RObject&,RObject&,RObject&)");
+            p_rxExpandGrid_ = (Ptr_rxExpandGrid_)R_GetCCallable("RxODE", "_RxODE_rxExpandGrid_");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxExpandGrid_(Shield<SEXP>(Rcpp::wrap(c1)), Shield<SEXP>(Rcpp::wrap(c2)), Shield<SEXP>(Rcpp::wrap(type)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<List >(rcpp_result_gen);
+    }
+
+    inline List rxExpandSens_(CharacterVector state, CharacterVector calcSens) {
+        typedef SEXP(*Ptr_rxExpandSens_)(SEXP,SEXP);
+        static Ptr_rxExpandSens_ p_rxExpandSens_ = NULL;
+        if (p_rxExpandSens_ == NULL) {
+            validateSignature("List(*rxExpandSens_)(CharacterVector,CharacterVector)");
+            p_rxExpandSens_ = (Ptr_rxExpandSens_)R_GetCCallable("RxODE", "_RxODE_rxExpandSens_");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxExpandSens_(Shield<SEXP>(Rcpp::wrap(state)), Shield<SEXP>(Rcpp::wrap(calcSens)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<List >(rcpp_result_gen);
+    }
+
+    inline List rxExpandSens2_(CharacterVector state, CharacterVector s1, CharacterVector s2) {
+        typedef SEXP(*Ptr_rxExpandSens2_)(SEXP,SEXP,SEXP);
+        static Ptr_rxExpandSens2_ p_rxExpandSens2_ = NULL;
+        if (p_rxExpandSens2_ == NULL) {
+            validateSignature("List(*rxExpandSens2_)(CharacterVector,CharacterVector,CharacterVector)");
+            p_rxExpandSens2_ = (Ptr_rxExpandSens2_)R_GetCCallable("RxODE", "_RxODE_rxExpandSens2_");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxExpandSens2_(Shield<SEXP>(Rcpp::wrap(state)), Shield<SEXP>(Rcpp::wrap(s1)), Shield<SEXP>(Rcpp::wrap(s2)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<List >(rcpp_result_gen);
+    }
+
+    inline List rxExpandFEta_(CharacterVector state, int neta, int pred) {
+        typedef SEXP(*Ptr_rxExpandFEta_)(SEXP,SEXP,SEXP);
+        static Ptr_rxExpandFEta_ p_rxExpandFEta_ = NULL;
+        if (p_rxExpandFEta_ == NULL) {
+            validateSignature("List(*rxExpandFEta_)(CharacterVector,int,int)");
+            p_rxExpandFEta_ = (Ptr_rxExpandFEta_)R_GetCCallable("RxODE", "_RxODE_rxExpandFEta_");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxExpandFEta_(Shield<SEXP>(Rcpp::wrap(state)), Shield<SEXP>(Rcpp::wrap(neta)), Shield<SEXP>(Rcpp::wrap(pred)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<List >(rcpp_result_gen);
+    }
+
+    inline std::string rxRepR0_(int neta) {
+        typedef SEXP(*Ptr_rxRepR0_)(SEXP);
+        static Ptr_rxRepR0_ p_rxRepR0_ = NULL;
+        if (p_rxRepR0_ == NULL) {
+            validateSignature("std::string(*rxRepR0_)(int)");
+            p_rxRepR0_ = (Ptr_rxRepR0_)R_GetCCallable("RxODE", "_RxODE_rxRepR0_");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxRepR0_(Shield<SEXP>(Rcpp::wrap(neta)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<std::string >(rcpp_result_gen);
     }
 
     inline bool rxIs(const RObject& obj, std::string cls) {

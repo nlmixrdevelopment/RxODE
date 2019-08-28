@@ -104,6 +104,55 @@ etTrans <- function(inData, obj, addCmt = FALSE, dropUnits = FALSE, allTimeVar =
     .Call(`_RxODE_etTrans`, inData, obj, addCmt, dropUnits, allTimeVar, keepDosingOnly, combineDvid, keep)
 }
 
+rxExpandGrid_ <- function(c1, c2, type) {
+    .Call(`_RxODE_rxExpandGrid_`, c1, c2, type)
+}
+
+rxExpandSens_ <- function(state, calcSens) {
+    .Call(`_RxODE_rxExpandSens_`, state, calcSens)
+}
+
+rxExpandSens2_ <- function(state, s1, s2) {
+    .Call(`_RxODE_rxExpandSens2_`, state, s1, s2)
+}
+
+rxExpandFEta_ <- function(state, neta, pred) {
+    .Call(`_RxODE_rxExpandFEta_`, state, neta, pred)
+}
+
+rxRepR0_ <- function(neta) {
+    .Call(`_RxODE_rxRepR0_`, neta)
+}
+
+#' Enhance the Matrix for expm
+#' This addst the columns indicating infusions if needed.
+NULL
+
+#' Enhance the Matrix for expm
+#' This addst the columns indicating infusions if needed.
+#' @param m0 Initial matrix
+#' @param InfusionRate is a vector of infusion rates
+#' @param yp is the last known state concentrations
+#'
+#' This is mostly for testing
+#' @noRd
+rxExpmMat <- function(m0, InfusionRate, yp) {
+    .Call(`_RxODE_rxExpmMat`, m0, InfusionRate, yp)
+}
+
+#' Armadillo interface to R package expm
+#'
+#' @param inMat is the in matrix
+#' @param t is the time for the calculation
+#'
+#' @inheritParams expm::expm
+#'
+#' @return expm(t*X)
+#' @noRd
+rxExpm <- function(inMat, t = 1, method = "Higham08.b") {
+    .Call(`_RxODE_rxExpm`, inMat, t, method)
+}
+
 #' Check the type of an object using Rcpp
 #'
 #' @param obj Object to check
@@ -225,10 +274,15 @@ rxSetupIni <- function(obj, inits = NULL) {
 #' Setup the initial conditions.
 #'
 #' @param obj RxODE object
+#' 
 #' @param inits A numeric vector of initial conditions.
+#' 
 #' @param extraArgs A list of extra args to parse for initial conditions.
+#' 
 #' @author Matthew L. Fidler
+#' 
 #' @keywords internal
+#' 
 #' @export
 rxSetupScale <- function(obj, scale = NULL, extraArgs = NULL) {
     .Call(`_RxODE_rxSetupScale`, obj, scale, extraArgs)
@@ -520,6 +574,10 @@ rxSymInvChol <- function(invObjOrMatrix, theta = NULL, type = "cholOmegaInv", th
 
 rxSymInvCholEnvCalculate <- function(obj, what, theta = NULL) {
     .Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, what, theta)
+}
+
+rxOptRep_ <- function(input) {
+    .Call(`_RxODE_rxOptRep_`, input)
 }
 
 #' Stack a solved object for things like ggplot

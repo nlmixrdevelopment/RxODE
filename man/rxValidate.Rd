@@ -5,13 +5,12 @@
 \alias{rxTest}
 \title{Validate RxODE}
 \usage{
-rxValidate(full = TRUE)
+rxValidate(type = NULL)
 
-rxTest(full = TRUE)
+rxTest(type = NULL)
 }
 \arguments{
-\item{full}{Should a full validation be performed?  (By default
-\code{TRUE})}
+\item{type}{Type of test or fitler of test type}
 }
 \description{
 This allows easy vaildation/qualification of nlmixr by running the

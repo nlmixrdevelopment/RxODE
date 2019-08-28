@@ -34,7 +34,8 @@ findLhs <- function(x) {
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
-rxLinCmtTrans <- function(modText){
+##' @noRd
+rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
     .vars <- c();
     .old  <- getOption("RxODE.syntax.require.ode.first", TRUE)
     if (.old){
@@ -324,11 +325,13 @@ rxLinCmtTrans <- function(modText){
             if (toupper(.v) !=.vs[1]){
                 .vs <- c(.v, .vs);
             }
-            .lines[length(.lines) + 1] <- sprintf("rx_v ~ %s", .v);
-            .lines[length(.lines) + 1] <- sprintf("rx_k ~ %s/%s", .cl, .v);
+            .trans <- 1;
+            .lines[length(.lines) + 1] <- sprintf("rx_v1 ~ %s", .v);
+            .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s", .cl);
             .hasVss  <- FALSE
             if (any(.varsUp == "VSS")){
                 .ncmt <- 2;
+                .trans <- 3;
                 .Q <- .getVar(c("CLD", .qs[1]));
                 .vss <- .getVar("VSS");
                 .hasVss <- TRUE
@@ -342,11 +345,12 @@ rxLinCmtTrans <- function(modText){
                 if (any(regexpr("^V[0-9]*$", .tmp)!=-1)){
                     stop("Cannot have Volumes other than Vss and central volume defined.");
                 }
-                .lines[length(.lines) + 1] <- sprintf("rx_k12 ~ %s/%s", .Q, .v);
-                .lines[length(.lines) + 1] <- sprintf("rx_k21 ~ %s/(%s-%s)", .Q, .vss, .v);
+                .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s", .Q);
+                .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s", .vss);
             } else if ((any(.varsUp == .vs[2]) || any(.varsUp==.vs[3]) ||
                         any(.varsUp == "VP"))){
                 .ncmt <- 2;
+                .trans <- 1
                 .Q <- .getVar(c("CLD",.qs[1]));
                 .v2 <- .getVar(c("VP", .vs[2], .vs[3]));
                 if (toupper(.v2)==.vs[3]){
@@ -358,10 +362,11 @@ rxLinCmtTrans <- function(modText){
                 if (toupper(.Q) !=.qs[1]){
                     .qs  <- c(.Q,.qs);
                 }
-                .lines[length(.lines) + 1] <- sprintf("rx_k12 ~ %s/%s", .Q, .v);
-                .lines[length(.lines) + 1] <- sprintf("rx_k21 ~ %s/%s", .Q, .v2);
+                .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s", .Q);
+                .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s", .v2);
             } else if (any(.varsUp == "VT")){
                 .ncmt <- 2;
+                .trans <- 1
                 .Q <- .getVar(c("CLD", .qs[1]));
                 if (toupper(.Q)=="CLD"){
                     .qs  <- c("CLD",.qs);
@@ -370,8 +375,8 @@ rxLinCmtTrans <- function(modText){
                 if (toupper(.v2) !=.vs[2]){
                     .vs  <- c(.vs[1], .v2, .vs[-1]);
                 }
-                .lines[length(.lines) + 1] <- sprintf("rx_k12 ~ %s/%s", .Q, .v);
-                .lines[length(.lines) + 1] <- sprintf("rx_k21 ~ %s/%s", .Q, .v2);
+                .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s", .Q);
+                .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s", .v2);
             } else if (any(.varsUp==.qs[1])){
                 stop(sprintf("Defined '%s' without corresponding volume", .qs[1]));
             } else if (any(.varsUp=="CLD")){
@@ -382,28 +387,31 @@ rxLinCmtTrans <- function(modText){
                     stop("Vss only supported with 2 compartment models.")
                 }
                 .ncmt <- 3;
+                .trans <- 1;
                 .v3 <- .getVar(.vs[3]);
                 .q2 <- .getVar(c("CLD2", .qs[2]));
-                .lines[length(.lines) + 1] <- sprintf("rx_k13 ~ %s/%s", .q2, .v);
-                .lines[length(.lines) + 1] <- sprintf("rx_k31 ~ %s/%s", .q2, .v3);
+                .lines[length(.lines) + 1] <- sprintf("rx_p4 ~ %s", .q2);
+                .lines[length(.lines) + 1] <- sprintf("rx_p5 ~ %s", .v3);
             } else if (any(.varsUp=="VP2")){
                 if (.hasVss){
                     stop("Vss only supported with 2 compartment models")
                 }
                 .ncmt <- 3;
+                .trans <- 1
                 .v3 <- .getVar("VP2");
                 .q2 <- .getVar(c(.qs[2],"CLD2"));
-                .lines[length(.lines) + 1] <- sprintf("rx_k13 ~ %s/%s", .q2, .v);
-                .lines[length(.lines) + 1] <- sprintf("rx_k31 ~ %s/%s", .q2, .v3);
+                .lines[length(.lines) + 1] <- sprintf("rx_p4 ~ %s", .q2);
+                .lines[length(.lines) + 1] <- sprintf("rx_p5 ~ %s", .v3);
             } else if (any(.varsUp == "VT2")) {
                 if (.hasVss){
                     stop("Vss only supported with 2 compartment models")
                 }
                 .ncmt <- 3;
+                .trans <- 1
                 .v3 <- .getVar("VT2");
                 .q2 <- .getVar(c(.qs[2], "CLD2"));
-                .lines[length(.lines) + 1] <- sprintf("rx_k13 ~ %s/%s", .q2, .v);
-                .lines[length(.lines) + 1] <- sprintf("rx_k31 ~ %s/%s", .q2, .v3);
+                .lines[length(.lines) + 1] <- sprintf("rx_p4 ~ %s", .q2);
+                .lines[length(.lines) + 1] <- sprintf("rx_p5 ~ %s", .v3);
             } else if (any(.varsUp==.qs[2])){
                 if (.hasVss){
                     stop("Vss only supported with 2 compartment models")
@@ -424,14 +432,16 @@ rxLinCmtTrans <- function(modText){
             if (toupper(.v) !=.vs[1]){
                 .vs <- c(.v, .vs);
             }
-            .lines[length(.lines) + 1] <- sprintf("rx_v ~ %s", .v);
-            .lines[length(.lines) + 1] <- sprintf("rx_k ~ %s", .k);
+            .lines[length(.lines) + 1] <- sprintf("rx_v1 ~ %s", .v);
+            .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s", .k);
+            .trans <- 2
             if (any(.varsUp == "K12") || any(.varsUp == "K21")){
                 .ncmt <- 2;
+                .trans <- 2
                 .k12 <- .getVar("K12")
                 .k21 <- .getVar("K21")
-                .lines[length(.lines) + 1] <- sprintf("rx_k12 ~ %s", .k12);
-                .lines[length(.lines) + 1] <- sprintf("rx_k21 ~ %s", .k21);
+                .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s", .k12);
+                .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s", .k21);
             }
             if (any(.varsUp == "K13") || any(.varsUp=="K31")){
                 if (.ncmt !=2){
@@ -440,11 +450,13 @@ rxLinCmtTrans <- function(modText){
                 .ncmt <- 3;
                 .k13 <- .getVar("K13")
                 .k31 <- .getVar("K31")
-                .lines[length(.lines) + 1] <- sprintf("rx_k13 ~ %s", .k13);
-                .lines[length(.lines) + 1] <- sprintf("rx_k31 ~ %s", .k31);
+                .trans <- 2
+                .lines[length(.lines) + 1] <- sprintf("rx_p4 ~ %s", .k13);
+                .lines[length(.lines) + 1] <- sprintf("rx_p5 ~ %s", .k31);
             }
         } else if (any(.varsUp == "AOB")){
             .ncmt <- 2;
+            .trans <- 5
             .v <- .getVar(c("V", "VC", .vs[1]));
             if (toupper(.v)=="V" && any(.varsUp=="VC")){
                 stop(sprintf("Ambiguous %s/%s specification", .v, .getVar("VC")))
@@ -458,12 +470,13 @@ rxLinCmtTrans <- function(modText){
             .aob <- .getVar("AOB");
             .alpha <- .getVar("ALPHA");
             .beta <- .getVar("BETA");
-            .lines[length(.lines) + 1] <- sprintf("rx_v ~ %s", .v);
-            .lines[length(.lines) + 1] <- sprintf("rx_k21 ~ (%s*%s+%s)/(%s+1)", .aob, .beta, .alpha, .aob);
-            .lines[length(.lines) + 1] <- sprintf("rx_k ~ (%s*%s)/rx_k21", .alpha, .beta)
-            .lines[length(.lines) + 1] <- sprintf("rx_k12 ~ %s+%s - rx_k21 - rx_k", .alpha, .beta);
+            .lines[length(.lines) + 1] <- sprintf("rx_v1 ~ %s", .v);
+            .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s", .alpha);
+            .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s", .beta)
+            .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s", .aob);
         } else if (any(.varsUp == "ALPHA") && any(.varsUp == "BETA") && any(.varsUp == "K21")){
             .ncmt <- 2;
+            .trans <- 4
             .k21 <- .getVar("K21");
             .alpha <- .getVar("ALPHA");
             .beta <- .getVar("BETA");
@@ -477,14 +490,16 @@ rxLinCmtTrans <- function(modText){
             if (toupper(.v) !=.vs[1]){
                 .vs <- c(.v, .vs);
             }
-            .lines[length(.lines) + 1] <- sprintf("rx_v ~ %s", .v);
-            .lines[length(.lines) + 1] <- sprintf("rx_k21 ~ %s", .k21);
-            .lines[length(.lines) + 1] <- sprintf("rx_k ~ (%s*%s)/rx_k21", .alpha, .beta);
-            .lines[length(.lines) + 1] <- sprintf("rx_k12 ~ %s+%s - rx_k21 - rx_k", .alpha, .beta);
+            .lines[length(.lines) + 1] <- sprintf("rx_v1 ~ %s", .v);
+            .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s", .k21);
+            .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s", .alpha);
+            .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s", .beta);
         } else if (any(.varsUp == "ALPHA") && any(.varsUp == "A")) {
+            .trans <- 10
             .isDirect  <- TRUE
         } else if (any(.varsUp=="ALPHA")){
             .ncmt <- 1;
+            .trans <- 11
             .v <- .getVar(c("V", "VC", .vs[1]));
             .alpha <- .getVar("ALPHA");
             if (toupper(.v)=="V" && any(.varsUp=="VC")){
@@ -505,9 +520,8 @@ rxLinCmtTrans <- function(modText){
             if (any(.varsUp=="BETA")){
                 stop("Beta requires AOB or K21 parameter.");
             }
-            .lines[length(.lines) + 1] <- sprintf("rx_v ~ %s", .v);
-            .lines[length(.lines) + 1] <- sprintf("rx_k ~ %s", .alpha);
-
+            .lines[length(.lines) + 1] <- sprintf("rx_v1 ~ %s", .v);
+            .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s", .alpha);
         } else {
             stop("Could not figure out the linCmt() from the defined parameters.")
         }
@@ -521,128 +535,50 @@ rxLinCmtTrans <- function(modText){
                     ## 3 cmt
                     .gamma <- .getVar("GAMMA");
                     .c <- .getVar("C");
-                    .lines[length(.lines) + 1] <- sprintf("rx_alpha ~ %s;", .alpha);
-                    .lines[length(.lines) + 1] <- sprintf("rx_beta ~ %s;", .beta);
-                    .lines[length(.lines) + 1] <- sprintf("rx_gamma ~ %s;", .gamma);
-                    .lines[length(.lines) + 1] <- sprintf("rx_A ~ %s;",.a);
-                    .lines[length(.lines) + 1] <- sprintf("rx_B ~ %s;",.b);
-                    .lines[length(.lines) + 1] <- sprintf("rx_C ~ %s;",.c);
-                    if (.oral){
-                        .lines[length(.lines) + 1] <- "rx_A2 ~ rx_A";
-                        .lines[length(.lines) + 1] <- "rx_B2 ~ rx_B";
-                        .lines[length(.lines) + 1] <- "rx_C2 ~ rx_C";
-                        .lines[length(.lines) + 1] <- "rx_A ~ rx_ka / (rx_ka - rx_alpha) * rx_A";
-                        .lines[length(.lines) + 1] <- "rx_B ~ rx_ka / (rx_ka - rx_beta) * rx_B";
-                        .lines[length(.lines) + 1] <- "rx_C ~ rx_ka / (rx_ka - rx_gamma) * rx_C";
-                    } else {
-                        .lines[length(.lines) + 1] <- "rx_A2 ~ 0";
-                        .lines[length(.lines) + 1] <- "rx_B2 ~ 0";
-                        .lines[length(.lines) + 1] <- "rx_C2 ~ 0";
-                    }
+                    .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s;", .alpha);
+                    .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s;", .beta);
+                    .lines[length(.lines) + 1] <- sprintf("rx_p4 ~ %s;", .gamma);
+                    .lines[length(.lines) + 1] <- sprintf("rx_v1 ~ %s;",.a);
+                    .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s;",.b);
+                    .lines[length(.lines) + 1] <- sprintf("rx_p5 ~ %s;",.c);
                 } else {
                     ## 2 cmt
-                    .lines[length(.lines) + 1] <- sprintf("rx_alpha ~ %s", .alpha);
-                    .lines[length(.lines) + 1] <- sprintf("rx_beta ~ %s", .beta);
-                    if (.oral){
-                        .lines[length(.lines) + 1] <- sprintf("rx_A ~ rx_ka / (rx_ka - rx_alpha) * %s", .a);
-                        .lines[length(.lines) + 1] <- sprintf("rx_B ~ rx_ka / (rx_ka - rx_beta) * %s;", .b);
-                        .lines[length(.lines) + 1] <- sprintf("rx_A2 ~ %s", .a)
-                        .lines[length(.lines) + 1] <- sprintf("rx_B2 ~ %s", .b);
-                    } else {
-                        .lines[length(.lines) + 1] <-  sprintf("rx_A ~ %s;", .a)
-                        .lines[length(.lines) + 1] <- sprintf("rx_B ~ %s;", .b);
-                        .lines[length(.lines) + 1] <-  "rx_A2 ~ 0"
-                        .lines[length(.lines) + 1] <- "rx_B2 ~ 0";
-                    }
-                    .lines[length(.lines) + 1] <- "rx_gamma ~ 0";
-                    .lines[length(.lines) + 1] <- "rx_C ~ 0";
-                    .lines[length(.lines) + 1]  <- "rx_C2 ~ 0";
-
+                    .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s", .alpha);
+                    .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s", .beta);
+                    .lines[length(.lines) + 1] <-  sprintf("rx_v1 ~ %s;", .a)
+                    .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s;", .b);
+                    .lines[length(.lines) + 1] <- "rx_p4 ~ 0";
+                    .lines[length(.lines) + 1] <- "rx_p5 ~ 0";
                 }
             } else {
                 if (any(.varsUp=="GAMMA") || any(.varsUp=="C")){
                     stop("A three compartment model requires BETA/B");
                 }
                 ## 1 cmt
-                .lines[length(.lines) + 1] <- sprintf("rx_alpha ~ %s", .alpha);
-                if (.oral){
-                    .lines[length(.lines) + 1] <- sprintf("rx_A ~ rx_ka / (rx_ka - rx_alpha) * %s", .a);
-                    .lines[length(.lines) + 1] <- sprintf("rx_A2 ~ %s", .a);
-                } else {
-                    .lines[length(.lines) + 1] <- sprintf("rx_A ~ %s", .a);
-                    .lines[length(.lines) + 1] <- "rx_A2 ~ 0.0";
-                }
-
-                .lines[length(.lines) + 1] <- "rx_beta ~ 0";
-                .lines[length(.lines) + 1] <- "rx_B ~ 0";
-                .lines[length(.lines) + 1] <- "rx_B2 ~ 0";
-                .lines[length(.lines) + 1] <- "rx_gamma ~ 0";
-                .lines[length(.lines) + 1] <- "rx_C ~ 0";
-                .lines[length(.lines) + 1] <- "rx_C2 ~ 0";
+                .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s", .alpha);
+                .lines[length(.lines) + 1] <- sprintf("rx_v1 ~ %s", .a);
+                .lines[length(.lines) + 1] <- "rx_p2 ~ 0";
+                .lines[length(.lines) + 1] <- "rx_p3 ~ 0";
+                .lines[length(.lines) + 1] <- "rx_p4 ~ 0";
+                .lines[length(.lines) + 1] <- "rx_p5 ~ 0";
             }
         } else {
             if (.ncmt == 1){
-                .lines[length(.lines) + 1] <- "rx_alpha ~ rx_k";
-                if (.oral){
-                    .lines[length(.lines) + 1] <- "rx_A ~ rx_ka / (rx_ka - rx_alpha) / rx_v";
-                    .lines[length(.lines) + 1] <- "rx_A2 ~ 1.0 / rx_v";
-                } else {
-                    .lines[length(.lines) + 1] <- "rx_A ~ 1.0 / rx_v";
-                    .lines[length(.lines) + 1] <- "rx_A2 ~ 0.0";
-                }
-                .lines[length(.lines) + 1] <- "rx_beta ~ 0";
-                .lines[length(.lines) + 1] <- "rx_B ~ 0";
-                .lines[length(.lines) + 1] <- "rx_B2 ~ 0";
-                .lines[length(.lines) + 1] <- "rx_gamma ~ 0";
-                .lines[length(.lines) + 1] <- "rx_C ~ 0";
-                .lines[length(.lines) + 1] <- "rx_C2 ~ 0";
+                .lines[length(.lines) + 1] <- "rx_p2 ~ 0";
+                .lines[length(.lines) + 1] <- "rx_p3 ~ 0";
+                .lines[length(.lines) + 1] <- "rx_p4 ~ 0";
+                .lines[length(.lines) + 1] <- "rx_p5 ~ 0";
             } else if (.ncmt == 2){
-                .lines[length(.lines) + 1] <- "rx_beta  ~ 0.5 * (rx_k12 + rx_k21 + rx_k - sqrt((rx_k12 + rx_k21 + rx_k) * (rx_k12 + rx_k21 + rx_k) - 4.0 * rx_k21 * rx_k))"
-                .lines[length(.lines) + 1] <-  "rx_alpha ~ rx_k21 * rx_k / rx_beta"
-                if (.oral){
-                    .lines[length(.lines) + 1] <-  "rx_A ~ rx_ka / (rx_ka - rx_alpha) * (rx_alpha - rx_k21) / (rx_alpha - rx_beta) / rx_v"
-                    .lines[length(.lines) + 1] <- "rx_B ~ rx_ka / (rx_ka - rx_beta) * (rx_beta - rx_k21) / (rx_beta - rx_alpha) / rx_v;"
-                    .lines[length(.lines) + 1] <-  "rx_A2 ~ (rx_alpha - rx_k21) / (rx_alpha - rx_beta) / rx_v"
-                    .lines[length(.lines) + 1] <- "rx_B2 ~ (rx_beta - rx_k21) / (rx_beta - rx_alpha) / rx_v;"
-                } else {
-                    .lines[length(.lines) + 1] <-  "rx_A ~ (rx_alpha - rx_k21) / (rx_alpha - rx_beta) / rx_v"
-                    .lines[length(.lines) + 1] <- "rx_B ~ (rx_beta - rx_k21) / (rx_beta - rx_alpha) / rx_v;"
-                    .lines[length(.lines) + 1] <-  "rx_A2 ~ 0"
-                    .lines[length(.lines) + 1] <- "rx_B2 ~ 0";
-                }
-                .lines[length(.lines) + 1] <- "rx_gamma ~ 0";
-                .lines[length(.lines) + 1] <- "rx_C ~ 0";
-                .lines[length(.lines) + 1]  <- "rx_C2 ~ 0";
-            } else if (.ncmt == 3){
-                .lines[length(.lines) + 1] <- "rx_a0 ~ rx_k * rx_k21 * rx_k31";
-                .lines[length(.lines) + 1] <- "rx_a1 ~ rx_k * rx_k31 + rx_k21 * rx_k31 + rx_k21 * rx_k13 + rx_k * rx_k21 + rx_k31 * rx_k12";
-                .lines[length(.lines) + 1] <- "rx_a2 ~ rx_k + rx_k12 + rx_k13 + rx_k21 + rx_k31"
-                .lines[length(.lines) + 1] <- "rx_p ~ rx_a1 - rx_a2 * rx_a2 / 3.0";
-                .lines[length(.lines) + 1] <- "rx_q ~ 2.0 * rx_a2 * rx_a2 * rx_a2 / 27.0 - rx_a1 * rx_a2 /3.0 + rx_a0"
-                .lines[length(.lines) + 1] <- "rx_r1 ~ sqrt(-rx_p * rx_p * rx_p / 27.0)";
-                .lines[length(.lines) + 1] <- "rx_r2 ~ 2 * rx_r1^(1.0/3.0)";
-                .lines[length(.lines) + 1] <- "rx_theta ~ acos(-rx_q / (2.0 * rx_r1)) / 3.0"
-                .lines[length(.lines) + 1] <- "rx_alpha ~ -(cos(rx_theta) * rx_r2 - rx_a2 / 3.0)"
-                .lines[length(.lines) + 1] <- "rx_beta ~ -(cos(rx_theta + 2.0 / 3.0 * pi) * rx_r2 - rx_a2 / 3.0)"
-                .lines[length(.lines) + 1] <- "rx_gamma ~ -(cos(rx_theta + 4.0 / 3.0 * pi) * rx_r2 - rx_a2 / 3.0)";
-                .lines[length(.lines) + 1] <- "rx_A ~ (rx_k21 - rx_alpha) * (rx_k31 - rx_alpha) / (rx_alpha - rx_beta) / (rx_alpha - rx_gamma) / rx_v;"
-                .lines[length(.lines) + 1] <- "rx_B ~ (rx_k21 - rx_beta) * (rx_k31 - rx_beta) / (rx_beta - rx_alpha) / (rx_beta - rx_gamma) / rx_v;"
-                .lines[length(.lines) + 1] <- "rx_C ~ (rx_k21 - rx_gamma) * (rx_k31 - rx_gamma) / (rx_gamma - rx_alpha) / (rx_gamma - rx_beta) / rx_v;"
-                if (.oral){
-                    .lines[length(.lines) + 1] <- "rx_A2 ~ rx_A";
-                    .lines[length(.lines) + 1] <- "rx_B2 ~ rx_B";
-                    .lines[length(.lines) + 1] <- "rx_C2 ~ rx_C";
-                    .lines[length(.lines) + 1] <- "rx_A ~ rx_ka / (rx_ka - rx_alpha) * rx_A";
-                    .lines[length(.lines) + 1] <- "rx_B ~ rx_ka / (rx_ka - rx_beta) * rx_B";
-                    .lines[length(.lines) + 1] <- "rx_C ~ rx_ka / (rx_ka - rx_gamma) * rx_C";
-                } else {
-                    .lines[length(.lines) + 1] <- "rx_A2 ~ 0";
-                    .lines[length(.lines) + 1] <- "rx_B2 ~ 0";
-                    .lines[length(.lines) + 1] <- "rx_C2 ~ 0";
-                }
+                .lines[length(.lines) + 1] <- "rx_p4 ~ 0";
+                .lines[length(.lines) + 1] <- "rx_p5 ~ 0";
             }
         }
-        .solve <- sprintf("solveLinB(rx__PTR__, t, %s, rx_A, rx_A2, rx_alpha, rx_B, rx_B2, rx_beta, rx_C, rx_C2, rx_gamma, rx_ka, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur)", .linCmt);
+        if (linCmtSens){
+            .solve <- sprintf("linCmtB(rx__PTR__, t, %s, %s, %s, 0, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, rx_ka, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur)", .linCmt, .ncmt, .trans);
+        } else {
+            .solve <- sprintf("linCmtA(rx__PTR__, t, %s, %s, %s, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, rx_ka, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur)", .linCmt, .ncmt, .trans);
+        }
+
         .lines <- paste(.lines, collapse="\n");
         .txt <- paste(sub(.re, sprintf("%s\n\\1%s\\3", .lines, .solve), .txt), collapse="\n");
         ## Put in extra compartment information

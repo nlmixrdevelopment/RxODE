@@ -228,6 +228,6 @@ rxPermissive({
     ## tmp <- rxSymPySetupPred(ode3, pred, pk, err)
 
 
-}, silent=TRUE, on.validate=TRUE)
+}, silent=TRUE)
 
 

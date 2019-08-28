@@ -480,6 +480,10 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
 
     options(RxODE.syntax.assign = TRUE)
 
+    goodParse("x=ifelse(!matt,0,1)", "x=ifelse(!matt,0,1)")
+    goodParse("x=ifelse(!(matt),0,1)", "x=ifelse(!(matt),0,1)")
+    goodParse("x=ifelse((!matt),0,1)", "x=ifelse((!matt),0,1)")
+
     goodParse("mix lincmt with lags etc", "popCl <- 1
     popV <- 20
     popKa <- 1
@@ -651,5 +655,11 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     cp <- linCmt()
     d/dt(ce) = keo*(cp-ce)
     effect = E0 - Emax*(Ce^gamma)/((Ce^gamma)+(Ec50^gamma));")
+
+    badParse("theta0", "a = theta[0]")
+    badParse("eta0", "a = eta[0]")
+    goodParse("theta1", "a = theta[1]")
+    goodParse("eta1", "a = eta[1]")
+    badParse("matt1", "a = matt[1]")
 
 }, silent=TRUE);

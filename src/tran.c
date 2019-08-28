@@ -424,7 +424,9 @@ void curLineType(vLines *sbb, int propId){
 vLines sbPm, sbPmDt;
 sbuf sbNrm;
 
-char *extra_buf, *model_prefix, *md5 = NULL;
+char *model_prefix;
+const char *md5 = NULL;
+int badMd5 = 0;
 int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0, needSort=0;
 
 sbuf sbOut;
@@ -576,7 +578,7 @@ typedef struct nodeInfo {
   int prod;
   int rate;
   int selection_statement;
-  int selection_statement__8;
+  int selection_statement__9;
   int sign;
   int sum;
   int theta0;
@@ -586,6 +588,8 @@ typedef struct nodeInfo {
   int transit3;
   int cmt_statement;
   int dvid_statementI;
+  int ifelse;
+  int ifelse_statement;
 } nodeInfo;
 
 #define NIB(what) ni.what
@@ -628,7 +632,7 @@ void niReset(nodeInfo *ni){
   ni->rate = -1;
   ni->rate = -1;
   ni->selection_statement = -1;
-  ni->selection_statement__8 = -1;
+  ni->selection_statement__9 = -1;
   ni->sign = -1;
   ni->sum = -1;
   ni->theta = -1;
@@ -638,6 +642,8 @@ void niReset(nodeInfo *ni){
   ni->transit3 = -1;
   ni->cmt_statement = -1;
   ni->dvid_statementI = -1;
+  ni->ifelse = -1;
+  ni->ifelse_statement=-1;
 }
 
 
@@ -698,9 +704,13 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     aAppendN("linCmt", 6);
     sAppendN(&sbt,"linCmt", 6);
     tb.linCmt=1;
-  } else if (nodeHas(identifier) && !strcmp("solveLinB",value)){
-    aAppendN("solveLinB", 9);
-    sAppendN(&sbt,"solveLinB", 9);
+  } else if (nodeHas(identifier) && !strcmp("linCmtA",value)){
+    aAppendN("linCmtA", 7);
+    sAppendN(&sbt,"linCmtA", 7);
+    tb.linCmt=2;
+  } else if (nodeHas(identifier) && !strcmp("linCmtB",value)){
+    aAppendN("linCmtB", 7);
+    sAppendN(&sbt,"linCmtB", 7);
     tb.linCmt=2;
   } else {
     // Apply fix for dot.syntax
@@ -836,7 +846,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	   nodeHas(rate) || nodeHas(dur))) continue;
       
       if ((i == 3 || i < 2) && nodeHas(der_rhs)) continue;
-      
 
       if (nodeHas(dfdy)     && i< 2)   continue;
       if (nodeHas(dfdy_rhs) && i< 2)   continue;
@@ -857,6 +866,66 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) continue;
       if (i != 0 && nodeHas(dvid_statementI)) continue;
       tb.fn = (nodeHas(function) && i==0) ? 1 : 0;
+
+      if (nodeHas(ifelse)){
+	if (i == 0){
+	  continue;
+	} else if (i == 1){
+	  aAppendN("((", 2);
+	  sAppendN(&sbt,"ifelse(", 7);
+	  continue;
+	} else if (i == 3){
+	  aAppendN(") ? (", 5);
+	  sAppendN(&sbt,",", 1);
+	  continue;
+	} else if (i == 5){
+	  aAppendN(") : (", 5);
+	  sAppendN(&sbt,",", 1);
+	  continue;
+	} else if (i == 7){
+	  aAppendN("))", 2);
+	  sAppendN(&sbt,")", 1);
+	  continue;
+	}
+      }
+      if (nodeHas(ifelse_statement)){
+	if (i == 0){
+	  continue;
+	} else if (i == 1){
+	  aAppendN("if (", 4);
+	  sAppendN(&sbt, "if (", 4);
+	  continue;
+	} else if (i == 3){
+	  aType(TLOGIC);
+	  aAppendN(") {", 3);
+	  sAppendN(&sbt,") {", 3);
+	  addLine(&sbPm, "%s\n", sb.s);
+	  addLine(&sbPmDt, "%s\n", sbDt.s);
+	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  sb.o=0;sbDt.o=0; sbt.o=0;
+	  continue;
+	} else if (i == 5){
+	  sb.o=0;sbDt.o=0; sbt.o=0;
+	  aType(TLOGIC);
+	  aAppendN("}\nelse {", 8);
+	  sAppendN(&sbt,"}\nelse {", 1);
+	  addLine(&sbPm, "%s\n", sb.s);
+	  addLine(&sbPmDt, "%s\n", sbDt.s);
+	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  continue;
+	} else if (i == 7){
+	  sb.o=0;sbDt.o=0; sbt.o=0;
+	  aType(TLOGIC);
+	  aAppendN("}", 1);
+	  sAppendN(&sbt,"}", 1);
+	  addLine(&sbPm, "%s\n", sb.s);
+	  addLine(&sbPmDt, "%s\n", sbDt.s);
+	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  continue;
+	} else if (i == 8){
+	  continue;
+	}
+      }
 
       if (tb.fn) depth = 0;
 
@@ -1140,7 +1209,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sAppend(&sbNrm, "%s\n", sbt.s);
         continue;
       }
-      if (nodeHas(selection_statement__8) && i==0) {
+      if (nodeHas(selection_statement__9) && i==0) {
 	sb.o = 0; sbDt.o = 0; sbt.o = 0;
 	aType(TLOGIC);
 	aAppendN("}\nelse {", 8);
@@ -2011,7 +2080,11 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   
   // md5 values
   sAppendN(&sbOut, "    SET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n", 48);
-  sAppend(&sbOut, "    SET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
+  if (badMd5){
+    sAppendN(&sbOut, "    SET_STRING_ELT(mmd5,0,mkChar(\"\"));\n", 39);
+  } else {
+    sAppend(&sbOut, "    SET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
+  }
   sAppendN(&sbOut, "    SET_STRING_ELT(mmd5n,1,mkChar(\"parsed_md5\"));\n", 50);
   sAppend(&sbOut, "    SET_STRING_ELT(mmd5,1,mkChar(\"%s\"));\n", pMd5);
   
@@ -2154,6 +2227,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       } else {
 	sAppendN(&sbOut,"#define _CMT CMT\n", 17);
       }
+      sAppendN(&sbOut,"#include \"extraC.h\"\n", 20);
       sAppend(&sbOut, "extern void  %sode_solver_solvedata (rx_solve *solve){\n  _solveData = solve;\n}\n",prefix);
       sAppend(&sbOut, "extern rx_solve *%sode_solver_get_solvedata(){\n  return _solveData;\n}\n", prefix);
       sAppend(&sbOut, "SEXP %smodel_vars();\n", prefix);
@@ -2531,7 +2605,6 @@ void reset (){
   foundF=0;
   foundF0=0;
   nmtime=0;
-  Free(md5);
   syntaxErrorExtra=0;
   lastSyntaxErrorLine=0;
   gBufLast=0;
@@ -2635,7 +2708,7 @@ void trans_internal(char* parse_file, int isStr){
   freeP();
 }
 
-SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr,
+SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 		  SEXP isEscIn){
   char *in;
   char *buf, *df, *dy;
@@ -2659,18 +2732,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   set_d_rdebug_grammar_level(0);
   set_d_verbose_level(0);
   rx_podo = 0;
-  if (isString(extra_c) && length(extra_c) == 1){
-    in = r_dup_str(CHAR(STRING_ELT(extra_c,0)),0);
-    extra_buf = r_sbuf_read(in);
-    if (!((intptr_t) extra_buf)){ 
-      extra_buf = (char *) R_alloc(1,sizeof(char));
-      extra_buf[0]='\0';
-    }
-  } else {
-    extra_buf = (char *) R_alloc(1,sizeof(char));
-    extra_buf[0] = '\0';
-  }
-
   /* orig = r_dup_str(CHAR(STRING_ELT(orig_file,0)),0); */
   in = r_dup_str(CHAR(STRING_ELT(parse_file,0)),0);
   
@@ -2682,16 +2743,13 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   }
 
   if (isString(model_md5) && length(model_md5) == 1){
-    Free(md5);
-    md5 = rc_dup_str(CHAR(STRING_ELT(model_md5,0)),0);
+    md5 = CHAR(STRING_ELT(model_md5,0));
+    badMd5 = 0;
     if (strlen(md5)!= 32){
-      md5 = Calloc(1,char);
-      md5[0] = '\0';
+      badMd5=1;
     }
   } else {
-    Free(md5);
-    md5 = Calloc(1,char);
-    md5[0] = '\0';
+    badMd5=1;
   }
   
   trans_internal(in, isStr);
@@ -3226,6 +3284,7 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   gCode(9); // mtime
   gCode(4); // Registration
   fclose(fpIO);
+  reset();
   return R_NilValue;
 }
 

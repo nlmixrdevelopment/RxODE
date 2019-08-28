@@ -48,7 +48,6 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
     } else {
         diag.xform <- match.arg(diag.xform)
         rxCat("Diagonal form: ", diag.xform, "\n");
-        print(mat1);
         num <- as.vector(mat1[upper.tri(mat1,TRUE)]);
         i <- 0;
         num <- sapply(num, function(x){
@@ -73,7 +72,7 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
         if (diag.xform == "sqrt"){
             ## The diagonal elements are assumed to be estimated as sqrt
             diag(mat2) <- sprintf("%s=2", diag(mat2))
-            diag(mat1) <- sprintf("%s**2", diag(mat1))
+            diag(mat1) <- sprintf("%s^2", diag(mat1))
         } else if (diag.xform == "log"){
             ## The diagonal elements are assumed to be estimated as log
             diag(mat2) <- sprintf("%s=3", diag(mat2))
@@ -90,29 +89,11 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
         mat2 <- as.vector(mat2)
         mat2 <- mat2[mat2 != "0"]
         omat <- fmat <- mat1;
-        sdiag <- sprintf("(%s)**2", diag(omat))
-        sympy.mat <- sprintf("Matrix([%s])", paste(apply(mat1, 1, function(x){
-                                                 return(sprintf("[%s]", paste(x, collapse=", ")))
-                                             }), collapse=", "))
         vars <- paste0("t", seq(0, i - 1))
-        syms <- paste(vars, collapse=", ");
-        if (length(vars) == 1){
-            rxSymPyExec(sprintf("%s = Symbol('%s')",syms, syms));
-        } else {
-            rxSymPyExec(sprintf("%s = symbols('%s')",syms, syms));
-        }
+        sdiag <- sprintf("(%s)^2", diag(omat))
+        se.mat <- symengine::Matrix(omat)
         rxCat("Calculate symbolic inverse:  t(chol.mat) %*% chol.mat ...");
-        sympy.inv <- rxSymPy(sprintf("((Matrix([%s])).transpose()).multiply(Matrix([%s]))", sympy.mat, sympy.mat));
-        sympy.inv <- gsub("[\n\t ]*", "", sympy.inv)
-        mat.reg <- rex::rex(start, or(group(any_spaces, "["),
-                                      group(any_spaces, "Matrix([[")), any_spaces,
-                            capture(anything), any_spaces,
-                            or(group("]", any_spaces, end),
-                               group("]])", any_spaces, end)));
-        mat.sep.reg <- rex::rex(or(group("]", any_spaces, ",", any_spaces, "["),
-                                   group(any_spaces, ",", any_spaces)))
-        sympy.inv <- gsub(mat.reg, "\\1", strsplit(sympy.inv, "\n")[[1]]);
-        sympy.inv <- matrix(unlist(strsplit(sympy.inv, mat.sep.reg)), d, byrow=TRUE);
+        se.inv <- symengine::t(se.mat) %*% se.mat
         rxCat("done\n")
         ## Then take the derivatives
         ## These are used in equations #28 and #47
@@ -155,53 +136,46 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
         i <- 0;
         j <- 0;
 
-        ## FIXME: this derivative expression is always the same. There should be a simpler way to express this...
-        diag <- paste(sapply(diags, function(x){
-            y <- -(x + 2);
-            i <<- 0
-            z <- sprintf("    %sif (theta_n == %s){\n%s\n    }",ifelse(y == 0, "", "else "), x - 1,
-                         paste(sapply(sdiag, function(z){
-                             cnt()
-                             z <- rxSymPy(sprintf("diff(%s,t%s)", z, y))
-                             ret <- sprintf("      REAL(ret)[%s] = %s;", i, sympyC(z));
-                             i <<- i + 1;
-                             return(ret)
-                         }), collapse="\n"))
-            z;
-        }), collapse="\n");
+        .m1 <- symengine::Matrix(sdiag)
+        diag <- paste(lapply(diags, function(x){
+            .m <- symengine::D(.m1, symengine::S(paste0("t", -(x + 2))))
+            .n <- dim(.m)[1]
+            .str <- paste(sapply(seq(1, .n), function(d){
+                sprintf("      REAL(ret)[%s] = %s;", d - 1, seC(.m[d, 1]))
+            }), collapse="\n")
+            sprintf("    %sif (theta_n == %s){\n%s\n    }",ifelse(-(x + 2) == 0, "", "else "), x - 1,
+                         .str)
+        }), collapse="\n")
+        ## FIXME: this derivative expression is always the same. There
+        ## should be a simpler way to express this...
         i <- 0;
         omega0 <- sprintf("    if (theta_n == 0){\n%s\n    }",
                           paste(sapply(as.vector(omat), function(x){
-                              cnt();
-                              ret <- sprintf("      REAL(ret)[%s] = %s;", i, sympyC(x));
+                              ret <- sprintf("      REAL(ret)[%s] = %s;", i, seC(x));
                               i <<- i + 1;
                               return(ret);
                           }), collapse="\n"))
         i <- 0;
         omega1 <- sprintf("    else if (theta_n == -1){\n%s\n    }",
-                          paste(sapply(as.vector(sympy.inv), function(x){
+                          paste(sapply(as.vector(se.inv), function(x){
                               cnt();
-                              ret <- sprintf("      REAL(ret)[%s] = %s;", i, sympyC(x));
+                              ret <- sprintf("      REAL(ret)[%s] = %s;", i, seC(x));
                               i <<- i + 1;
                               return(ret);
                           }), collapse="\n"))
-        omega1p <- paste(unlist(lapply(vars, function(v){
+        omega1p <- paste(unlist(lapply(vars, function(x){
             i <<- 0;
             j <<- j + 1;
-            return(sprintf("    else if (theta_n == %s){\n%s\n    }", j,
-                           paste(sapply(as.vector(sympy.inv),
-                                        function(x){
-                               if (x == "0"){
-                                   ret <- "0";
-                               } else {
-                                   cnt()
-                                   ret <- rxSymPy(sprintf("diff(%s,%s)", x, v));
-                               }
-                               ret <- sprintf("      REAL(ret)[%s] = %s;", i, sympyC(ret));
-                               i <<- i + 1;
-                               return(ret);
-                           }),
-                           collapse="\n")))})), collapse="\n")
+            sprintf("    else if (theta_n == %s){\n%s\n    }", j,
+                    paste(sapply(as.vector(symengine::D(se.inv, symengine::S(x))),
+                                 function(x){
+                        ret <- sprintf("      REAL(ret)[%s] = %s;", i, seC(x));
+                        i <<- i + 1;
+                        return(ret)
+                    }), collapse="\n"))
+        })), collapse="\n")
+        ##
+
         mat2 <- sprintf("if (theta_n== NA_INTEGER){\n    SEXP ret=  PROTECT(allocVector(INTSXP,%s));\n%s\n    UNPROTECT(1);\n    return(ret);  \n}\n",
                         length(mat2), paste(paste(gsub(rex::rex("t", capture(any_numbers), "="), "    INTEGER(ret)[\\1]=", mat2), ";", sep=""),
                                             collapse="\n"));
@@ -220,8 +194,8 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
             src <- paste(src, collapse="\n");
         }
         rxCat("done\n");
-        fmat <- matrix(sapply(as.vector(fmat), function(x){force(x);return(rxFromSymPy(x))}), d);
-        ret <- src;
+        fmat <- matrix(sapply(as.vector(fmat), function(x){force(x);return(rxFromSE(x))}), d);
+        ret <- paste0("#define Rx_pow_di R_pow_di\n#define Rx_pow R_pow\n", src);
         ret <- list(ret, fmat);
         if (allow.cache){
             save(ret, file=cache.file);

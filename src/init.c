@@ -34,7 +34,7 @@ SEXP _rxProgressStop(SEXP);
 SEXP _rxProgressAbort(SEXP);
 SEXP _RxODE_codeLoaded();
 
-SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP isStr, SEXP);
+SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP isStr, SEXP);
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname, SEXP pMd5, SEXP timeId,
 		    SEXP fixInis);
 SEXP _RxODE_parseModel(SEXP type);
@@ -63,6 +63,8 @@ SEXP _RxODE_rxAssignPtr(SEXP);
 SEXP _RxODE_rxCores();
 SEXP _RxODE_rxAssignPtr(SEXP objectSEXP);
 SEXP _RxODE_dynLoad(SEXP dllSEXP);
+SEXP _RxODE_rxOptRep_(SEXP);
+SEXP _RxODE_rxExpmMat(SEXP, SEXP, SEXP);
 SEXP RxODE_get_mv();
 
 static R_NativePrimitiveArgType RxODE_Sum_t[] = {
@@ -112,6 +114,13 @@ SEXP _RxODE_getProgSupported();
 SEXP _RxODE_rxSetIni0(SEXP);
 SEXP _RxODE_rxSetSilentErr(SEXP silentSEXP);
 
+SEXP _RxODE_rxExpandGrid_(SEXP, SEXP, SEXP);
+SEXP _RxODE_rxExpandSens_(SEXP, SEXP);
+SEXP _RxODE_rxExpandSens2_(SEXP, SEXP, SEXP);
+SEXP _RxODE_rxExpandFEta_(SEXP, SEXP, SEXP);
+SEXP _RxODE_rxRepR0_(SEXP);
+SEXP _RxODE_rxExpm(SEXP, SEXP, SEXP);
+
 extern int rxIsCurrentC(SEXP obj);
 
 rx_solve *getRxSolve_();
@@ -122,13 +131,25 @@ void rxOptionsIni();
 void rxOptionsIniData();
 /* void rxOptionsIniFocei(); */
 
-double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
-		 double d_A, double d_A2, double d_alpha,
-		 double d_B, double d_B2, double d_beta,
-		 double d_C, double d_C2, double d_gamma,
-		 double d_ka, double d_tlag, double d_tlag2,
-		 double d_F, double d_F2,
-		 double d_rate, double d_dur);
+double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
+	       int ncmt, int trans, double d_ka,
+	       double p1, double v1,
+	       double p2, double p3,
+	       double p4, double p5,
+	       double d_tlag, double d_tlag2, double d_F, double d_F2,
+	       // Rate and dur can only apply to central compartment even w/ oral dosing
+	       // Therefore, only 1 model rate is possible with RxODE
+	       double d_rate, double d_dur);
+
+double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
+	       int i_cmt, int trans, int val,
+	       double dd_p1, double dd_v1,
+	       double dd_p2, double dd_p3,
+	       double dd_p4, double dd_p5,
+	       double dd_ka,
+	       double dd_tlag, double dd_tlag2,
+	       double dd_F, double dd_F2,
+	       double dd_rate, double dd_dur);
 
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
 
@@ -150,13 +171,16 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  double *scale, int *stateIgnore, double *mtime);
 void rxOptionsIniEnsure(int mx);
 
+double getLimit(rx_solving_options_ind* ind, int i);
+int getCens(rx_solving_options_ind* ind, int i);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
     {"_rxTick", (DL_FUNC) &_rxTick, 0},
     {"_rxProgressStop", (DL_FUNC) &_rxProgressStop, 1},
     {"_rxProgressAbort", (DL_FUNC) &_rxProgressAbort, 1},
-    {"_RxODE_trans", (DL_FUNC) &_RxODE_trans, 6},
+    {"_RxODE_trans", (DL_FUNC) &_RxODE_trans, 5},
     {"_RxODE_codegen", (DL_FUNC) &_RxODE_codegen, 6},
     {"_RxODE_codeLoaded", (DL_FUNC) &_RxODE_codeLoaded, 0},
     {"_RxODE_parseModel", (DL_FUNC) &_RxODE_parseModel, 1},
@@ -209,8 +233,16 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSolve_", (DL_FUNC) &_RxODE_rxSolve_, 8},
     {"_RxODE_dropUnitsRxSolve", (DL_FUNC) &_RxODE_dropUnitsRxSolve, 1},
     {"_RxODE_atolRtolFactor_", (DL_FUNC) &_RxODE_atolRtolFactor_, 1},
+    {"_RxODE_rxExpandGrid_", (DL_FUNC) &_RxODE_rxExpandGrid_, 3},
+    {"_RxODE_rxExpandSens_", (DL_FUNC) &_RxODE_rxExpandSens_, 2},
+    {"_RxODE_rxExpandSens2_",(DL_FUNC) &_RxODE_rxExpandSens2_, 3},
+    {"_RxODE_rxExpandFEta_", (DL_FUNC) &_RxODE_rxExpandFEta_, 3},
+    {"_RxODE_rxRepR0_", (DL_FUNC) &_RxODE_rxRepR0_, 1},
+    {"_RxODE_rxOptRep_", (DL_FUNC) &_RxODE_rxOptRep_, 1},
     {"_RxODE_rxSetIni0", (DL_FUNC) &_RxODE_rxSetIni0, 1},
     {"_RxODE_rxSetSilentErr", (DL_FUNC) &_RxODE_rxSetSilentErr, 1},
+    {"_RxODE_rxExpmMat", (DL_FUNC) &_RxODE_rxExpmMat, 3},
+    {"_RxODE_rxExpm", (DL_FUNC) &_RxODE_rxExpm, 3},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
@@ -223,7 +255,10 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "par_progress", (DL_FUNC) par_progress);
   R_RegisterCCallable("RxODE", "isRstudio", (DL_FUNC) isRstudio);
   R_RegisterCCallable("RxODE", "ind_solve", (DL_FUNC) ind_solve);
-  R_RegisterCCallable("RxODE", "solveLinB", (DL_FUNC) solveLinB);
+  R_RegisterCCallable("RxODE", "linCmtA", (DL_FUNC) linCmtA);
+  R_RegisterCCallable("RxODE", "linCmtB", (DL_FUNC) linCmtB);
+  R_RegisterCCallable("RxODE", "getLimit", (DL_FUNC) getLimit);
+  R_RegisterCCallable("RxODE", "getCens", (DL_FUNC) getCens);
   R_RegisterCCallable("RxODE", "_update_par_ptr", (DL_FUNC) _update_par_ptr);
   R_RegisterCCallable("RxODE","rxRmModelLib", (DL_FUNC) rxRmModelLib);
   R_RegisterCCallable("RxODE","rxGetModelLib", (DL_FUNC) rxGetModelLib);

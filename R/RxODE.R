@@ -103,6 +103,11 @@ rxDynProtect <- function(dlls){
 ##'
 ##' @param ... ignored arguments.
 ##'
+##' @param linCmtSens A boolean indicating if the linCmt() soultions
+##'     should be calculated with derivatives (sensitivites) to each
+##'     parameter. This is useful for FOCEi and similar calculations.
+##'     By default this is \code{FALSE}.
+##'
 ##' The \dQuote{Rx} in the name \code{RxODE} is meant to suggest the
 ##' abbreviation \emph{Rx} for a medical prescription, and thus to
 ##' suggest the package emphasis on pharmacometrics modeling, including
@@ -348,6 +353,7 @@ rxDynProtect <- function(dlls){
 ##' @concept Pharmacokinetics (PK)
 ##' @concept Pharmacodynamics (PD)
 ##' @useDynLib RxODE, .registration=TRUE
+##' @importFrom expm expm
 ##' @importFrom mvnfast rmvn
 ##' @importFrom PreciseSums fsum
 ##' @importFrom Rcpp evalCpp
@@ -359,7 +365,8 @@ rxDynProtect <- function(dlls){
 RxODE <- function(model, modName = basename(wd),
                   wd = getwd(),
                   filename = NULL, extraC = NULL, debug = FALSE, calcJac=NULL, calcSens=NULL,
-                  collapseModel=FALSE, package=NULL, ...) {
+                  collapseModel=FALSE, package=NULL, ...,
+                  linCmtSens=FALSE) {
     on.exit(rxSolveFree());
     rxTempDir();
     if (!is.null(package)){
@@ -397,7 +404,7 @@ RxODE <- function(model, modName = basename(wd),
     .env <- new.env(parent=baseenv())
     .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel);
     if (.Call(`_RxODE_isLinCmt`) == 1L){
-        .env$.mv <- rxLinCmtTrans(.env$.mv);
+        .env$.mv <- rxLinCmtTrans(.env$.mv, linCmtSens=linCmtSens);
     }
     model <- rxNorm(.env$.mv);
     class(model) <- "rxModelText"
@@ -433,24 +440,26 @@ RxODE <- function(model, modName = basename(wd),
     .env$compile <- eval(bquote(function(){
         with(.(.env), {
             .lwd <- getwd();
+            .rx <- base::loadNamespace("RxODE");
             if (!file.exists(wd))
                 dir.create(wd, recursive = TRUE)
             if (file.exists(wd))
                 setwd(wd);
             on.exit(setwd(.lwd));
+            .rx$.extraC(extraC);
             if (missing.modName){
-                .rxDll <- RxODE::rxCompile(.mv, extraC = extraC, debug = debug,
-                                           package=.(.env$package));
+                .rxDll <- .rx$rxCompile(.mv, debug = debug,
+                                        package=.(.env$package));
             } else {
-                .rxDll <- RxODE::rxCompile(.mv, dir=mdir, extraC = extraC,
-                                           debug = debug, modName = modName,
-                                           package=.(.env$package));
+                .rxDll <- .rx$rxCompile(.mv, dir=mdir,
+                                       debug = debug, modName = modName,
+                                       package=.(.env$package));
             }
             assign("rxDll", .rxDll, envir=.(.env));
             assign(".mv", .rxDll$modVars, envir=.(.env));
         });
     }));
-
+    .extraC(extraC);
     .env$compile();
     .env$get.modelVars <- eval(bquote(function(){
         with(.(.env), {
@@ -577,7 +586,6 @@ RxODE <- function(model, modName = basename(wd),
                 get.modelVars = eval(bquote(function(){with(.(.env), get.modelVars())})),
                 delete = eval(bquote(function(){with(.(.env), delete())})),
                 get.index = eval(bquote(function(...){with(.(.env), get.index(...))})),
-                extraC    = .env$extraC,
                 .rxDll    = .env$rxDll,
                 rxDll=eval(bquote(function(){with(.(.env), return(rxDll))})));
     tmp <- list2env(tmp, parent=.env);
@@ -660,21 +668,39 @@ rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
             if (length(rxState(.ret)) == 0L){
                 stop("Sensitivities do not make sense for models without ODEs.")
             }
+            .stateInfo <- .rxGenFunState(.ret);
+            .s <- .rxLoadPrune(.ret, FALSE);
+            .s$..stateInfo <- .stateInfo
+            .rxJacobian(.s)
             if (!is(calcJac, "logical")){
                 calcJac <- FALSE
             }
             if (is.null(calcJac)) calcJac <- FALSE
-            if (!calcJac & length(.ret$dfdy) != 0L){
-                ## Remove the Jacobian from the cur
-                .new <- setNames(gsub(rex::rex(or(.ret$dfdy), "=", anything, "\n"), "",
-                                      .ret$model["normModel"]), NULL);
-                .ret <- rxModelVars(.new);
+            if (rxIs(calcSens,"logical")){
+                if (calcSens){
+                    calcSens <- .rxParams(model, TRUE);
+                }
             }
-            .new <- rxSymPySensitivity(.ret, calcSens=calcSens, calcJac=calcJac,
-                                       collapseModel=collapseModel);
+            .rxSens(.s, calcSens);
+            .tmp1 <- .s$..jacobian
+            if (!calcJac) .tmp1 <- ""
+            .tmp2 <- .s$..lhs
+            if (collapseModel) .tmp2 <- ""
+            .new <- paste(c(.s$..stateInfo["state"],
+                            .s$..lhs0,
+                            .s$..ddt,
+                            .tmp1,
+                            .s$..sens,
+                            .tmp2,
+                            .s$..stateInfo["statef"],
+                            .s$..stateInfo["dvid"],
+                            ""), collapse="\n")
             .ret <- rxModelVars(.new);
         } else {
             ## calcSens=FALSE removes the sensitivity equations.
+            .stateInfo <- .rxGenFunState(.ret);
+            .s <- .rxLoadPrune(.ret, FALSE);
+            .s$..stateInfo <- .stateInfo
             if (length(.ret$sens) != 0){
                 .new <- setNames(gsub(rex::rex("d/dt(", or(.ret$sens), ")=", anything, "\n"), "",
                                       .ret$model["normModel"]), NULL);
@@ -688,17 +714,23 @@ rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
                     }
                 }
             }
-            if (.calcJac & length(.ret$dfdy) == 0){
+            if (.calcJac){
+                .rxJacobian(.s)
                 ## calcJac=TRUE, calcSens=FALSE
-                .new <- .rxSymPyJacobian(.ret);
-                .ret <- rxModelVars(.new);
-            } else if (!.calcJac & length(.ret$dfdy) != 0){
-                ## calcJac=FALSE, calcSens=FALSE
-                ## Now remove Jacobian too.
-                .new <- setNames(gsub(rex::rex(or(.ret$dfdy), "=", anything, "\n"), "",
-                                      .ret$model["normModel"]), NULL);
-                .ret <- rxModelVars(.new);
             }
+            .tmp1 <- .s$..jacobian
+            if (!.calcJac) .tmp1 <- ""
+            .tmp2 <- .s$..lhs
+            if (collapseModel) .tmp2 <- ""
+            .new <- paste(c(.s$..stateInfo["state"],
+                            .s$..lhs0,
+                            .s$..ddt,
+                            .tmp1,
+                            .tmp2,
+                            .s$..stateInfo["statef"],
+                            .s$..stateInfo["dvid"],
+                            ""), collapse="\n")
+            .ret <- rxModelVars(.new);
         }
     } else if (!is.null(calcJac)){
         if (length(.ret$sens) != 0){
@@ -716,12 +748,37 @@ rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
             if (length(rxState(.ret)) <= 0){
                 stop("Jacobians do not make sense for models without ODEs.")
             }
-            .new <- .rxSymPyJacobian(.ret);
+            .stateInfo <- .rxGenFunState(.ret);
+            .s <- .rxLoadPrune(.ret, FALSE);
+            .s$..stateInfo <- .stateInfo
+            .rxJacobian(.s)
+            .tmp1 <- .s$..jacobian
+            if (!.calcJac) .tmp1 <- ""
+            .tmp2 <- .s$..lhs
+            if (collapseModel) .tmp2 <- ""
+            .new <- paste(c(.s$..stateInfo["state"],
+                            .s$..lhs0,
+                            .s$..ddt,
+                            .tmp1,
+                            .tmp2,
+                            .s$..stateInfo["statef"],
+                            .s$..stateInfo["dvid"],
+                            ""), collapse="\n")
             .ret <- rxModelVars(.new);
         } else {
             ## remove Jacobian
-            .new <- setNames(gsub(rex::rex(or(.ret$dfdy), "=", anything, "\n"), "",
-                                      .ret$model["normModel"]), NULL);
+            .stateInfo <- .rxGenFunState(.ret);
+            .s <- .rxLoadPrune(.ret, FALSE);
+            .s$..stateInfo <- .stateInfo
+            .tmp2 <- .s$..lhs
+            if (collapseModel) .tmp2 <- ""
+            .new <- paste(c(.s$..stateInfo["state"],
+                            .s$..lhs0,
+                            .s$..ddt,
+                            .tmp2,
+                            .s$..stateInfo["statef"],
+                            .s$..stateInfo["dvid"],
+                            ""), collapse="\n")
             .ret <- rxModelVars(.new);
         }
     }
@@ -1138,7 +1195,6 @@ print.rxCoefSolve <- function(x, ...){
 ##' @author Matthew L.Fidler
 ##' @export rxMd5
 rxMd5 <- function(model,         # Model File
-                  extraC  = NULL, # Extra C
                   ...){
     ## rxMd5 returns MD5 of model file.
     ## digest(file = TRUE) includes file times, so it doesn't work for this needs.
@@ -1156,16 +1212,11 @@ rxMd5 <- function(model,         # Model File
                 stop("Unknown model.");
             }
         }
-        if (is(extraC, "character")){
-            if (file.exists(extraC)){
-                .ret <- c(.ret, gsub(rex::rex(or(any_spaces, any_newlines)), "", readLines(extraC), perl = TRUE));
-            }
-        }
         rxSyncOptions();
         .tmp <- c(RxODE.syntax.assign, RxODE.syntax.star.pow, RxODE.syntax.require.semicolon, RxODE.syntax.allow.dots,
                   RxODE.syntax.allow.ini0, RxODE.syntax.allow.ini, RxODE.calculate.jacobian,
                   RxODE.calculate.sensitivity);
-        .ret <- c(.ret, .tmp);
+        .ret <- c(.ret, .tmp, .rxCcode);
         if (is.null(.md5Rx)){
             .tmp <- getLoadedDLLs()$RxODE;
             class(.tmp) <- "list";
@@ -1223,7 +1274,6 @@ rxMd5 <- function(model,         # Model File
 ##' @author Matthew L.Fidler
 ##' @export
 rxTrans <- function(model,
-                    extraC      = NULL,                                       # Extra C file(s)
                     modelPrefix = "",                                         # Model Prefix
                     md5         = "",                                         # Md5 of model
                     modName     = NULL,                                       # Model name for DLL
@@ -1236,7 +1286,6 @@ rxTrans <- function(model,
 ##' @rdname rxTrans
 ##' @export
 rxTrans.default <- function(model,
-                            extraC      = NULL,                                       # Extra C file(s)
                             modelPrefix = "",                                         # Model Prefix
                             md5         = "",                                         # Md5 of model
                             modName     = NULL,                                       # Model name for DLL
@@ -1252,8 +1301,7 @@ rxTrans.default <- function(model,
 
 ##' @rdname rxTrans
 ##' @export
-rxTrans.character <- function(model,
-                              extraC      = NULL,                                       # Extra C file(s)
+rxTrans.character <- memoise::memoise(function(model,
                               modelPrefix = "",                                         # Model Prefix
                               md5         = "",                                         # Md5 of model
                               modName     = NULL,                                       # Model name for DLL
@@ -1266,10 +1314,10 @@ rxTrans.character <- function(model,
         .isStr <- 1L;
     }
     if (missing(md5)){
-        md5 <- rxMd5(model, extraC)$digest
+        md5 <- rxMd5(model)$digest
     }
     RxODE::rxReq("dparser");
-    .ret <- .Call(`_RxODE_trans`, model, extraC, modelPrefix, md5, .isStr,
+    .ret <- .Call(`_RxODE_trans`, model, modelPrefix, md5, .isStr,
                   as.integer(crayon::has_color()));
     if (inherits(.ret, "try-error")){
         message("Model")
@@ -1284,7 +1332,7 @@ rxTrans.character <- function(model,
                                                   .ret$ini,
                                                   .ret$state,
                                                   .ret$params,
-                                                  .ret$lhs), extraC)$digest);
+                                                  .ret$lhs))$digest);
     .ret$timeId <- .rxTimeId(md5["parsed_md5"])
     .ret$md5 <- md5;
     if (.isStr == 1L){
@@ -1300,7 +1348,7 @@ rxTrans.character <- function(model,
     } else {
         return(c(.ret$trans, .ret$md5));
     }
-}
+})
 
 ##' @rdname rxIsLoaded
 ##' @export
@@ -1349,7 +1397,7 @@ rxDllLoaded <- rxIsLoaded
 ##' @seealso \code{\link{RxODE}}
 ##' @author Matthew L.Fidler
 ##' @export
-rxCompile <- function(model, dir, prefix, extraC = NULL, force = FALSE, modName = NULL,
+rxCompile <- function(model, dir, prefix, force = FALSE, modName = NULL,
                       package=NULL,
                       ...){
     UseMethod("rxCompile")
@@ -1361,7 +1409,6 @@ rxCompile <- function(model, dir, prefix, extraC = NULL, force = FALSE, modName 
 rxCompile.rxModelVars <-  function(model, # Model
                                    dir=NULL, # Directory
                                    prefix=NULL,     # Prefix
-                                   extraC  = NULL,  # Extra C File.
                                    force   = FALSE, # Force compile
                                    modName = NULL,  # Model Name
                                    package=NULL,
@@ -1495,6 +1542,9 @@ rxCompile.rxModelVars <-  function(model, # Model
                 sink(.Makevars);
                 cat(.ret);
                 sink();
+                sink(.normalizePath(file.path(.dir, "extraC.h")));
+                cat(.extraCnow);
+                sink()
                 ## Change working directory
                 setwd(.dir);
                 try(dyn.unload(.cDllFile), silent = TRUE);
@@ -1540,7 +1590,7 @@ rxCompile.rxModelVars <-  function(model, # Model
     }
     .call <- function(...){return(.Call(...))};
     .args <- list(model = model, dir = .dir, prefix = prefix,
-                 extraC = extraC, force = force, modName = modName,
+                  force = force, modName = modName,
                  ...);
     if (is.null(.allModVars)){
         stop("Something went wrong in compilation");
@@ -1548,7 +1598,6 @@ rxCompile.rxModelVars <-  function(model, # Model
     ret <- suppressWarnings({list(dll     = .cDllFile,
                                   c       = .cFile,
                                   model   = .allModVars$model["normModel"],
-                                  extra   = extraC,
                                   modVars = .allModVars,
                                   .call   = .call,
                                   args    = .args)});
@@ -1570,9 +1619,6 @@ rxCompile.rxDll <- function(model, ...){
     }
     if (any(names(.rxDllArgs) == "prefix")){
         .args$prefix <- .rxDllArgs$prefix;
-    }
-    if (any(names(.rxDllArgs) == "extraC")){
-        .args$extraC <- .rxDllArgs$extraC;
     }
     if (any(names(.rxDllArgs) == "force")){
         .args$force <- .rxDllArgs$force;

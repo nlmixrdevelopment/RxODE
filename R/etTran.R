@@ -124,6 +124,7 @@
     stop("Cannot figure out a numeric time")
 }
 
+## nocov start
 ##'@export
 print.rxEtTran <- function(x,...){
     print(as.data.frame(x));
@@ -134,4 +135,4 @@ print.rxEtTran <- function(x,...){
     cat("\nCompartment translation:\n");
     print(data.frame("Compartment Name"=.lst$cmtInfo,"Compartment Number"=seq_along(.lst$cmtInfo),
                      check.names=FALSE))
-}
+} ## nocov end

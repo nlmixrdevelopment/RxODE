@@ -6,7 +6,7 @@
 \usage{
 RxODE(model, modName = basename(wd), wd = getwd(), filename = NULL,
   extraC = NULL, debug = FALSE, calcJac = NULL, calcSens = NULL,
-  collapseModel = FALSE, package = NULL, ...)
+  collapseModel = FALSE, package = NULL, ..., linCmtSens = FALSE)
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:
@@ -66,7 +66,12 @@ LHS variables when calculating sensitivities.}
 
 \item{package}{Package name for pre-compiled binaries.}
 
-\item{...}{ignored arguments.
+\item{...}{ignored arguments.}
+
+\item{linCmtSens}{A boolean indicating if the linCmt() soultions
+    should be calculated with derivatives (sensitivites) to each
+    parameter. This is useful for FOCEi and similar calculations.
+    By default this is \code{FALSE}.
 
 The \dQuote{Rx} in the name \code{RxODE} is meant to suggest the
 abbreviation \emph{Rx} for a medical prescription, and thus to

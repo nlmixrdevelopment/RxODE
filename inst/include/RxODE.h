@@ -3,10 +3,18 @@
 #define __RxODE_H__
 #define isDose(evid) ((evid) == 3 || (evid) >= 100)
 #define isObs(evid) ((evid) == 0 || (evid) == 2 || ((evid) >= 9 && (evid) <= 99))
+
+#ifdef _isRxODE_
+#else
 #if defined(__cplusplus)
 #include "RxODE_RcppExports.h"
+#endif
+#endif
+
+#if defined(__cplusplus)
 extern "C" {
 #endif
+  
 #include <stdio.h>
 #include <stdarg.h>
 #include <R.h>
@@ -71,10 +79,13 @@ typedef struct {
   double atolSS;
   double rtolSS;
   int linLog;
+  int advanLinCmt;
 } rx_solving_options;
 
 
 typedef struct {
+  double bT;
+  double diffB[14];
   int *slvr_counter;
   int *dadt_counter;
   int *jac_counter;
@@ -101,6 +112,8 @@ typedef struct {
   double *all_times;
   int *ix;
   double *dv;
+  double *limit;
+  int *cens;
   int *idose;
   int *on;
   int idosen;
@@ -123,6 +136,10 @@ typedef struct {
   int timeReset;
   int _newind;
   int err;
+  double linCmtT;
+  double linCmtB[14];
+  double *linCmtAdvan;
+  int linCmtAdvanSetup;
 } rx_solving_options_ind;
 
 typedef struct {
@@ -146,6 +163,8 @@ typedef struct {
   int nKeep0;
   int nKeepF;
   int istateReset;
+  int cens;
+  int limit;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);

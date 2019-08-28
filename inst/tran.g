@@ -18,10 +18,14 @@ statement
   | dvid_statementI end_statement
   | compound_statement
   | selection_statement
+  | ifelse_statement
   | end_statement ;
 
 
 compound_statement : '{' statement_list? '}' ;
+
+ifelse_statement
+   : 'ifelse' '(' logical_or_expression ','  statement ',' statement ')' end_statement;
 
 selection_statement
   : 'if' '(' logical_or_expression ')' statement ('else' statement)?;
@@ -30,7 +34,7 @@ cmt_statement
     : 'cmt' '(' identifier_r_no_output ')';
 
 printf_statement
-  : printf_command '(' string (',' additive_expression )* ')';
+  : printf_command '(' string (',' logical_or_expression )* ')';
 
 printf_command
   : 'printf' | 'Rprintf' | 'print';
@@ -42,11 +46,11 @@ decimalintN
   : '-'? decimalint;
 ini0      : identifier_r '(0)' ('=' | '<-' ) ini_const;
 
-ini0f     : identifier_r '(0)' ('=' | '<-' ) additive_expression;
+ini0f     : identifier_r '(0)' ('=' | '<-' ) logical_or_expression;
 
 ini        : identifier_r ('=' | '<-' ) ini_const;
 
-derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-' | '~') ('+' | '-' | ) additive_expression;
+derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-' | '~') ('+' | '-' | ) logical_or_expression;
 der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
 
 // transit(n,mtt) -> transit3(t,n,mtt)
@@ -55,21 +59,21 @@ transit2   : 'transit' '(' trans_const ',' trans_const ')';
 // transit(n,mtt, bio) -> transit4(t,n,mtt,bio)
 transit3   : 'transit' '(' trans_const ',' trans_const ',' trans_const ')';
 
-dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
+dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) logical_or_expression;
 dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
-fbio        : ('f' | 'F')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
-alag        : ('lag' | 'alag')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
-rate        : 'rate'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
-dur        : 'dur'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
+fbio        : ('f' | 'F')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_or_expression;
+alag        : ('lag' | 'alag')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_or_expression;
+rate        : 'rate'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_or_expression;
+dur        : 'dur'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_or_expression;
 
 
 
 end_statement : (';')* ;
 
-assignment : identifier_r  ('=' | '<-' | '~' ) additive_expression;
+assignment : identifier_r  ('=' | '<-' | '~' ) logical_or_expression;
 
-mtime     : 'mtime' '(' identifier_r_no_output ')' ('=' | '<-' | '~') additive_expression;
+mtime     : 'mtime' '(' identifier_r_no_output ')' ('=' | '<-' | '~') logical_or_expression;
 
 logical_or_expression : logical_and_expression 
     (('||' | '|')  logical_and_expression)* ;
@@ -79,7 +83,9 @@ logical_and_expression : equality_expression0
 
 equality_expression0 : equality_expression |
     '(' equality_expression ')' |
-    '!' '(' equality_expression ')';
+    '!' '(' equality_expression ')' |
+    '(' '!' identifier_r ')' |
+     '!' identifier_r;
 
 equality_expression : relational_expression 
     (('!=' | '==' ) relational_expression)* ;
@@ -114,10 +120,13 @@ primary_expression
   | transit2
   | transit3
   | function
-  | '(' additive_expression ')'
+  | ifelse
+  | '(' logical_or_expression ')'
   ;
 
-function : identifier '(' (additive_expression)* (',' additive_expression)* ')' ;
+ifelse : 'ifelse' '(' logical_or_expression ',' logical_or_expression ',' logical_or_expression ')' ;
+
+function : identifier '(' (logical_or_expression)* (',' logical_or_expression)* ')' ;
 
 ini_const : '-'? constant;
 trans_const: identifier_r | '-'? constant;
@@ -128,10 +137,10 @@ identifier_r: identifier_r_extra | identifier_r_1 | identifier_r_2 ;
 
 identifier_r_no_output: identifier_r_no_output_1 | identifier_r_no_output_2 | identifier_r_extra;
 
-identifier_r_extra: 'transit' | 'lag' | 'alag' | 'f'| 'F' | 'r' | 'rate' | 'd' | 'dur';
+identifier_r_extra: 'transit' | 'lag' | 'alag' | 'f'| 'F' | 'rate' | 'dur';
 
-theta: ('THETA' | 'theta') '[' decimalint ']';
-eta: ('ETA' | 'eta') '[' decimalint ']';
+theta: ('THETA' | 'theta') '[' decimalintNo0 ']';
+eta: ('ETA' | 'eta') '[' decimalintNo0 ']';
 theta0: ('THETA' | 'theta' | 'ETA' | 'eta');
 
 theta_noout: ('THETA' | 'theta') '[' decimalint ']';
@@ -139,6 +148,7 @@ eta_noout: ('ETA' | 'eta') '[' decimalint ']';
 theta0_noout: ('THETA' | 'theta' | 'ETA' | 'eta');
 
 
+decimalintNo0: "([1-9][0-9]*)" $term -1;
 decimalint: "0|([1-9][0-9]*)" $term -1;
 string: "\"([^\"\\]|\\[^])*\"";
 float1: "([0-9]+.[0-9]*|[0-9]*.[0-9]+)([eE][\-\+]?[0-9]+)?" $term -2;

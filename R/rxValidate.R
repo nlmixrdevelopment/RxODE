@@ -2,26 +2,22 @@
 ##'
 ##' This allows easy vaildation/qualification of nlmixr by running the
 ##' testing suite on your system.
-##' @param full Should a full validation be performed?  (By default
-##'     \code{TRUE})
+##' @param type Type of test or fitler of test type
 ##' @author Matthew L. Fidler
 ##' @export
-rxValidate <- function(full=TRUE){
+rxValidate <- function(type=NULL){
     ## rxVersion(" Validation", TRUE);
-    if (is.character(full)){
-        if (full=="covr"){
+    if (is.character(type)){
+        if (type=="covr"){
             Sys.setenv("NOT_CRAN"="true", "covr"="true");
             covr::report()
         } else {
             old.wd <- getwd();
-            on.exit({setwd(old.wd); Sys.setenv(RxODE_VALIDATION_FULL="false", NOT_CRAN="")});
-            Sys.setenv(RxODE_VALIDATION_FULL="false", "NOT_CRAN"="true")
+            on.exit({setwd(old.wd); Sys.setenv(NOT_CRAN="")});
+            Sys.setenv("NOT_CRAN"="true")
             path <- file.path(system.file("tests", package = "RxODE"),"testthat")
             setwd(path)
-            testthat::test_dir(path, filter=full);
-            Sys.setenv(RxODE_VALIDATION_FULL="true")
-            Sys.getenv("RxODE_VALIDATION_FULL")
-            testthat::test_dir(path, filter=full);
+            testthat::test_dir(path, filter=type);
         }
     } else {
         old.wd <- getwd();
@@ -42,13 +38,6 @@ rxValidate <- function(full=TRUE){
         message("================================================================================")
         Sys.setenv("NOT_CRAN"="true")
         testthat::test_dir(path);
-        if (full){
-            message("================================================================================")
-            message("Full Validation tests")
-            message("================================================================================")
-            Sys.setenv(RxODE_VALIDATION_FULL="true")
-            testthat::test_dir(path);
-        }
     }
 }
 

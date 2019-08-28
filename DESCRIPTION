@@ -41,7 +41,6 @@ Suggests:
     devtools,
     covr,
     rmarkdown,
-    SnakeCharmR,
     dplyr (>= 0.8.0),
     tidyr,
     tibble,
@@ -51,7 +50,6 @@ Suggests:
     scales,
     stringi,
     htmltools,
-    reticulate,
     rlang,
     installr
 Imports:
@@ -77,7 +75,11 @@ Imports:
     utils,
     assertthat,
     lotri,
-    remotes
+    remotes,
+    symengine,
+    StanHeaders(>= 2.18.0),
+    BH, RcppArmadillo(>= 0.9.300.2.0),
+    expm
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
@@ -97,6 +99,6 @@ License: GPL (>= 2)
 URL: https://nlmixrdevelopment.github.io/RxODE/
 RoxygenNote: 6.1.1
 Biarch: true
-LinkingTo: dparser(>= 0.1.8), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.9.300.2.0), PreciseSums (>= 0.3)
+LinkingTo: dparser(>= 0.1.8), PreciseSums (>= 0.3), RcppEigen (>= 0.3.3.3.0)
 Encoding: UTF-8
 LazyData: true

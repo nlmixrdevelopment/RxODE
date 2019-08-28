@@ -169,4 +169,5 @@ rxPermissive({
         expect_equal(class(focei.mod1), "rxFocei");
         ## expect_equal(class(focei.mod2), "rxFocei");
     })
-}, silent=TRUE, on.validate=TRUE)
+
+}, silent=TRUE)

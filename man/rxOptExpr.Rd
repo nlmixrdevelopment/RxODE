@@ -4,7 +4,7 @@
 \alias{rxOptExpr}
 \title{Optimize RxODE for computer evaluation}
 \usage{
-rxOptExpr(x)
+rxOptExpr(x, msg = "model")
 }
 \arguments{
 \item{x}{RxODE model that can be access by rxNorm}

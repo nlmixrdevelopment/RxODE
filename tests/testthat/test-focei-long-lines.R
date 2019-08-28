@@ -22,10 +22,9 @@ rxPermissive({
 
     focei.mm.mod2 <- rxSymPySetupPred(mm, pred, mypar3, err=function(){prop(0.1)}, sum.prod=TRUE);
 
-    ## FIXME: should the lines be split?  Logify is one approach, but
-    ## perhaps just a split...?
+
     test_that("long lines are handled...",{
         expect_equal(class(focei.mm.mod2), "rxFocei");
     })
 
-}, silent=TRUE, on.validate=TRUE)
+}, silent=TRUE)

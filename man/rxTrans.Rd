@@ -6,14 +6,14 @@
 \alias{rxTrans.character}
 \title{Translate the model to C code if needed}
 \usage{
-rxTrans(model, extraC = NULL, modelPrefix = "", md5 = "",
+rxTrans(model, modelPrefix = "", md5 = "", modName = NULL,
+  modVars = FALSE, ...)
+
+\method{rxTrans}{default}(model, modelPrefix = "", md5 = "",
   modName = NULL, modVars = FALSE, ...)
 
-\method{rxTrans}{default}(model, extraC = NULL, modelPrefix = "",
-  md5 = "", modName = NULL, modVars = FALSE, ...)
-
-\method{rxTrans}{character}(model, extraC = NULL, modelPrefix = "",
-  md5 = "", modName = NULL, modVars = FALSE, ...)
+\method{rxTrans}{character}(model, modelPrefix = "", md5 = "",
+  modName = NULL, modVars = FALSE, ...)
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:
@@ -33,11 +33,6 @@ rxTrans(model, extraC = NULL, modelPrefix = "", md5 = "",
 (see also the \code{filename} argument). For
     details, see the sections \dQuote{Details} and
     \dQuote{\code{RxODE Syntax}} below.}
-
-\item{extraC}{Extra c code to include in the model.  This can be
-useful to specify functions in the model.  These C functions
-should usually take \code{double} precision arguments, and
-return \code{double} precision values.}
 
 \item{modelPrefix}{Prefix of the model functions that will be
 compiled to make sure that multiple RxODE objects can coexist
