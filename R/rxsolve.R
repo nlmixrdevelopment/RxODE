@@ -32,7 +32,8 @@ rxControl <- function(scale = NULL,
                       by=NULL,
                       length.out=NULL,
                       iCov=NULL,
-                      keep=NULL){
+                      keep=NULL,
+                      indLinDelta=0.05){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -162,7 +163,8 @@ rxControl <- function(scale = NULL,
                  keep=keep, keepF=character(0), keepI=character(0),
                  omegaLower=omegaLower, omegaUpper=omegaUpper,
                  sigmaLower=sigmaLower, sigmaUpper=sigmaUpper,
-                 thetaLower=thetaLower, thetaUpper=thetaUpper);
+                 thetaLower=thetaLower, thetaUpper=thetaUpper,
+                 indLinDelta=indLinDelta);
     return(.ret)
 }
 

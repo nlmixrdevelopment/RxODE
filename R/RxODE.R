@@ -1871,6 +1871,11 @@ summary.rxDll <- function(object, ...){
         cat("\nCalculated Variables:\n");
         print(RxODE::rxLhs(object));
     }
+    .mv <- rxModelVars(object);
+    if (length(.mv$indLin) > 0){
+        .cliRule(left="Inductive Linearization Matrix/Matrices:")
+        print(.mv$indLin);
+    }
     .tmp <- as.vector(RxODE::rxModelVars(object)$model["normModel"])
     class(.tmp) <- "rxModelText"
     print(.tmp)

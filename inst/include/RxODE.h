@@ -71,6 +71,7 @@ typedef struct {
   double hmax2; // Determined by diff
   double *rtol2;
   double *atol2;
+  double indLinDelta;
   int nDisplayProgress;
   int ncoresRV;
   int isChol;

@@ -102,6 +102,10 @@
     if (!all(.ret1 == "0")){
         .code <- c(.code, paste("_rxF=", as.vector(.ret1)))
         .codeSave <- c("SEXP matLst = PROTECT(allocVector(VECSXP, 2));pro++;",
+                       "SEXP matNme = PROTECT(allocVector(STRSXP, 2));pro++;",
+                       "SET_STRING_ELT(matNme, 0, mkChar(\"A\"));",
+                       "SET_STRING_ELT(matNme, 1, mkChar(\"f\"));",
+                       "setAttrib(matLst, R_NamesSymbol, matNme);",
                        ## mat0 setup the nstate x nstate matrix for
                        ## inductive linearization
                        sprintf("SEXP mat0 = PROTECT(allocMatrix(STRSXP, %s, %s));pro++;", dim(.ret0)[1], dim(.ret0)[2]),
@@ -130,6 +134,9 @@
     } else {
         ## Only ME solution, others not needed
         .codeSave <- c("SEXP matLst = PROTECT(allocVector(VECSXP, 1));pro++;",
+                       "SEXP matNme = PROTECT(allocVector(STRSXP, 1));pro++;",
+                       "SET_STRING_ELT(matNme, 0, mkChar(\"A\"));",
+                       "setAttrib(matLst, R_NamesSymbol, matNme);",
                        ## mat0 setup the nstate x nstate matrix for
                        ## inductive linearization
                        sprintf("SEXP mat0 = PROTECT(allocMatrix(STRSXP, %s, %s));pro++;", dim(.ret0)[1], dim(.ret0)[2]),

@@ -3722,6 +3722,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->maxSS = as<int>(rxControl["maxSS"]);
     op->atolSS = as<double>(rxControl["atolSS"]);
     op->rtolSS = as<double>(rxControl["rtolSS"]);
+    op->indLinDelta=as<double>(rxControl["indLinDelta"]);
     
     gatol2Setup(op->neq);
     grtol2Setup(op->neq);
