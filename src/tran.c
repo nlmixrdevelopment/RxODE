@@ -882,7 +882,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (nodeHas(matF)){
 	aType(TMATF);
 	sb.o =0; sbDt.o =0;
-	sAppend(&sb, "_matf[%d] = _InfusionRate[%d] + ", tb.matnf,tb.matnf);
+	sAppend(&sb, "_matf[%d] = _InfusionRate[%d] + _extraF[%d]*__zzStateVar__[%d] + ", tb.matnf,tb.matnf, tb.matnf, tb.matnf);
 	tb.matnf++;
       }
       tb.fn = (nodeHas(function) && i==0) ? 1 : 0;
@@ -2335,7 +2335,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       sAppend(&sbOut, "// Matrix Exponential (%d)\nvoid %sME(int _cSub, double t, double *_mat){\n",
 	      tb.matn, prefix);
     } else if (show_ode == 11){
-      sAppend(&sbOut, "// Inductive linearization Matf\nvoid %sIndF(int _cSub, double _t, double t, double *_matf, const double *__zzStateVar__, const double *_InfusionRate){\n", prefix);
+      sAppend(&sbOut, "// Inductive linearization Matf\nvoid %sIndF(int _cSub, double _t, double t, double *_matf, const double *__zzStateVar__, const double *_InfusionRate, double *_extraF){\n", prefix);
     } else {
       sAppend(&sbOut,  "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n", prefix);
     }

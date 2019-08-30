@@ -124,11 +124,13 @@ arma::mat rxExpm(const arma::mat& inMat, double t = 1,
 //' @return Returns a status for solving
 extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
 		      double *InfusionRate_, int *on_, double *rtol, double *atol,
-		      int maxsteps, t_ME ME, int doIndLin,
+		      int maxsteps, int doIndLin, int locf, t_ME ME, 
 		      t_IndF IndF){
   arma::mat m0(neq, neq);
+  double tcov = tf;
+  if (locf) tcov = tp;
   // For now this is LOCF; If NOCB tp should be tf
-  ME(cSub, tp, m0.memptr()); // Calculate the initial A matrix based on current time/parameters
+  ME(cSub, tcov, m0.memptr()); // Calculate the initial A matrix based on current time/parameters
   if (doIndLin){
     // These are simple linear with no f
     // Hence there is no need for the 
@@ -146,18 +148,40 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
   } else {
     // In this case the inital matrix should not be expanded. The
     // infusions are put into the F function
+    arma::mat invA;
+    bool canInvert = inv(invA, m0);
+    arma::vec extraF(neq, arm::fill::zeros);
+    arma::mat E(invA.n_rows, invA.n_rows, arma::fill::eye);
+    int invCount=0;
+    while (!canInvert){
+      // Add to the diagonal until you can invert
+      //
+      // At the same remove from the extraF so you can use the
+      // inductive linearization approach while adjusting the A matrix
+      // to be non-singular.
+      //
+      // FIXME max number of tries
+      // FIXME change 0.1
+      m0 = m0 + 0.1*E;
+      extraF = extraF-0.1;
+      canInvert = inv(invA, m0);
+      invCount++;
+      if (invCount > maxsteps){
+	std::fill_n(&yp_[0], neq, NA_REAL);
+	return 2;
+      }
+    }
     arma::mat expAT = rxExpm(m0, tf-tp);
     const arma::vec y0(yp_, neq);
     arma::vec expATy0 = expAT*y0;
-    arma::mat invA = inv(m0);
-    arma::mat E(invA.n_rows, invA.n_rows, arma::fill::eye);
+
     arma::mat facM = (expAT-E)*invA;
     arma::vec f(neq);
     double *fptr = f.memptr();
     // For LOCF tp for NOCB tf
-    IndF(cSub, tp, tf, fptr, yp_, InfusionRate_);
+    IndF(cSub, tcov, tf, fptr, yp_, InfusionRate_, extraF.memptr());
     arma::vec yLast = expATy0+facM*f;
-    IndF(cSub, tp, tf, fptr, yLast.memptr(), InfusionRate_);
+    IndF(cSub, tcov, tf, fptr, yLast.memptr(), InfusionRate_, extraF.memptr());
     arma::vec yCur = expATy0+facM*f;
     bool converge=false;
     for (int i = 0; i < maxsteps; ++i){
@@ -172,7 +196,7 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
 	break;
       }
       yLast = yCur;
-      IndF(cSub, tp, tf, fptr, yLast.memptr(), InfusionRate_);
+      IndF(cSub, tcov, tf, fptr, yLast.memptr(), InfusionRate_, extraF.memptr());
       yCur = expATy0+facM*f;
     }
     if (!converge){
