@@ -311,6 +311,9 @@ t_RATE RATE = NULL;
 t_DUR DUR = NULL;
 t_calc_mtime calc_mtime = NULL;
 
+t_ME ME = NULL;
+t_IndF IndF = NULL;
+
 void calcMtime(int solveid, double *mtime){
   calc_mtime(solveid,mtime);
 }
@@ -367,7 +370,8 @@ int *global_iworkp;
 void rxUpdateFuns(SEXP trans){
   const char *lib, *s_dydt, *s_calc_jac, *s_calc_lhs, *s_inis, *s_dydt_lsoda_dum, *s_dydt_jdum_lsoda, 
     *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_AMT, *s_LAG, *s_RATE,
-    *s_DUR, *s_mtime, *s_theta, *s_assignFuns;
+    *s_DUR, *s_mtime, *s_theta, *s_assignFuns,
+    *s_ME, *s_IndF;
   lib = CHAR(STRING_ELT(trans, 0));
   s_dydt = CHAR(STRING_ELT(trans, 3));
   s_calc_jac = CHAR(STRING_ELT(trans, 4));
@@ -384,6 +388,8 @@ void rxUpdateFuns(SEXP trans){
   s_DUR=CHAR(STRING_ELT(trans, 17));
   s_mtime=CHAR(STRING_ELT(trans, 18));
   s_assignFuns=CHAR(STRING_ELT(trans, 19));
+  s_ME=CHAR(STRING_ELT(trans, 20));
+  s_IndF=CHAR(STRING_ELT(trans, 21));
   s_theta=CHAR(STRING_ELT(trans, 7));
   global_jt = 2;
   global_mf = 22;  
@@ -408,6 +414,8 @@ void rxUpdateFuns(SEXP trans){
   LAG = (t_LAG) R_GetCCallable(lib, s_LAG);
   RATE = (t_RATE) R_GetCCallable(lib, s_RATE);
   DUR = (t_DUR) R_GetCCallable(lib, s_DUR);
+  ME  = (t_ME) R_GetCCallable(lib, s_ME);
+  IndF  = (t_IndF) R_GetCCallable(lib, s_IndF);
   calc_mtime = (t_calc_mtime) R_GetCCallable(lib, s_mtime);
   get_theta = (t_get_theta) R_GetCCallable(lib, s_theta);
   assignFuns = R_GetCCallable(lib, s_assignFuns);

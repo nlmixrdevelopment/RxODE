@@ -36,10 +36,12 @@ std::string rxIndLin_(CharacterVector states){
 // is slower, though.
 
 //' Enhance the Matrix for expm
-//' This addst the columns indicating infusions if needed.
+//' This adds the columns indicating infusions if needed.
+//' It should also take away columns depending on if a compartment is "on"
 void enhanceMatrix(const arma::mat& m0, const arma::vec& InfusionRate,
-		   const arma::mat& yp,
+		   const arma::vec& yp, const arma::ivec& on,
 		   arma::mat &mout, arma::mat &ypout){
+  // FIXME on is not used right now.
   unsigned int nrow = m0.n_rows;
   if (nrow != m0.n_cols)
     stop("m0 needs to be a square matrix");
@@ -73,15 +75,16 @@ void enhanceMatrix(const arma::mat& m0, const arma::vec& InfusionRate,
 //' @param m0 Initial matrix
 //' @param InfusionRate is a vector of infusion rates
 //' @param yp is the last known state concentrations
+//' @param on is the vector of on/off compartment states
 //'
 //' This is mostly for testing
 //' @noRd
 //[[Rcpp::export]]
 List rxExpmMat(const arma::mat& m0, const arma::vec& InfusionRate,
-	       const arma::mat& yp){
+	       const arma::vec& yp, const arma::ivec &on){
   arma::mat mout;
   arma::vec ypout;
-  enhanceMatrix(m0, InfusionRate, yp, mout, ypout);
+  enhanceMatrix(m0, InfusionRate, yp, on, mout, ypout);
   List ret(2);
   ret[0] = wrap(mout);
   ret[1] = wrap(ypout);
@@ -105,4 +108,80 @@ arma::mat rxExpm(const arma::mat& inMat, double t = 1,
   Function expm = expmNS["expm"];
   arma::mat out0 =t*inMat;
   return as<arma::mat>(expm(out0,_["method"]=method));
+}
+
+//' Inductive linearization solver
+//'
+//' @param cSub = Current subject number
+//' @param neq - Number of equations
+//' @param tp - Prior time point/time zeor
+//' @param yp - Prior state;  vector size = neq; Final state is updated here
+//' @param tf - Final Time
+//' @param InfusionRate = Rates of each comparment;  vector size = neq
+//' @param rtol - rtol based on cmt#; vector size = neq
+//' @param atol - atol based on cmt#
+//' 
+//' @return Returns a status for solving
+extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
+		      double *InfusionRate_, int *on_, double *rtol, double *atol,
+		      int maxsteps, t_ME ME, int doIndLin,
+		      t_IndF IndF){
+  arma::mat m0(neq, neq);
+  // For now this is LOCF; If NOCB tp should be tf
+  ME(cSub, tp, m0.memptr()); // Calculate the initial A matrix based on current time/parameters
+  if (doIndLin){
+    // These are simple linear with no f
+    // Hence there is no need for the 
+    const arma::vec InfusionRate(InfusionRate_, neq, false, true);
+    const arma::vec yp(yp_, neq);
+    const arma::ivec on(on_, neq, false, true);
+    arma::mat inMat;
+    arma::mat mexp;
+    arma::mat ypout;
+    enhanceMatrix(m0, InfusionRate, yp, on, inMat, ypout);
+    arma::mat expAT = rxExpm(inMat, tf-tp);
+    arma::vec meSol = expAT*yp;
+    std::copy(meSol.begin(), meSol.end(), yp_);
+    return 0;
+  } else {
+    // In this case the inital matrix should not be expanded. The
+    // infusions are put into the F function
+    arma::mat expAT = rxExpm(m0, tf-tp);
+    const arma::vec y0(yp_, neq);
+    arma::vec expATy0 = expAT*y0;
+    arma::mat invA = inv(m0);
+    arma::mat E(invA.n_rows, invA.n_rows, arma::fill::eye);
+    arma::mat facM = (expAT-E)*invA;
+    arma::vec f(neq);
+    double *fptr = f.memptr();
+    // For LOCF tp for NOCB tf
+    IndF(cSub, tp, tf, fptr, yp_, InfusionRate_);
+    arma::vec yLast = expATy0+facM*f;
+    IndF(cSub, tp, tf, fptr, yLast.memptr(), InfusionRate_);
+    arma::vec yCur = expATy0+facM*f;
+    bool converge=false;
+    for (int i = 0; i < maxsteps; ++i){
+      converge=true;
+      for (int j=neq;j--;){
+	if (fabs(yCur[j]-yLast[j]) >= rtol[j]*fabs(yCur[j])+atol[j]){
+	  converge = false;
+	  break;
+	}
+      }
+      if (converge){
+	break;
+      }
+      yLast = yCur;
+      IndF(cSub, tp, tf, fptr, yLast.memptr(), InfusionRate_);
+      yCur = expATy0+facM*f;
+    }
+    if (!converge){
+      std::fill_n(&yp_[0], neq, NA_REAL);
+      return 1;
+    } else {
+      std::copy(yCur.begin(), yCur.end(), &yp_[0]);
+      return 0;
+    }
+  }
+  return 0;
 }

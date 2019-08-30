@@ -332,15 +332,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxExpmMat
-List rxExpmMat(const arma::mat& m0, const arma::vec& InfusionRate, const arma::mat& yp);
-RcppExport SEXP _RxODE_rxExpmMat(SEXP m0SEXP, SEXP InfusionRateSEXP, SEXP ypSEXP) {
+List rxExpmMat(const arma::mat& m0, const arma::vec& InfusionRate, const arma::vec& yp, const arma::ivec& on);
+RcppExport SEXP _RxODE_rxExpmMat(SEXP m0SEXP, SEXP InfusionRateSEXP, SEXP ypSEXP, SEXP onSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type m0(m0SEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type InfusionRate(InfusionRateSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type yp(ypSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxExpmMat(m0, InfusionRate, yp));
+    Rcpp::traits::input_parameter< const arma::vec& >::type yp(ypSEXP);
+    Rcpp::traits::input_parameter< const arma::ivec& >::type on(onSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxExpmMat(m0, InfusionRate, yp, on));
     return rcpp_result_gen;
 END_RCPP
 }

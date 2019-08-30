@@ -56,6 +56,8 @@
 #define PFPRN 16
 #define TASSIGN 17
 #define TMTIME 18
+#define TMAT0 19
+#define TMATF 20
 
 #define NOASSIGN "'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'"
 #define NEEDSEMI "Lines need to end with ';'\n     To match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'"
@@ -226,6 +228,8 @@ typedef struct symtab {
   int hasKa;
   int allocS;
   int allocD;
+  int matn;
+  int matnf;
 } symtab;
 symtab tb;
 
@@ -591,6 +595,8 @@ typedef struct nodeInfo {
   int dvid_statementI;
   int ifelse;
   int ifelse_statement;
+  int mat0;
+  int matF;
 } nodeInfo;
 
 #define NIB(what) ni.what
@@ -645,6 +651,8 @@ void niReset(nodeInfo *ni){
   ni->dvid_statementI = -1;
   ni->ifelse = -1;
   ni->ifelse_statement=-1;
+  ni->mat0 = -1;
+  ni->matF = -1;
 }
 
 
@@ -865,9 +873,21 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if ((nodeHas(theta) || nodeHas(eta)) && i != 2) continue;
       if (nodeHas(mtime) && (i == 0 || i == 1 || i == 3)) continue;
       if (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) continue;
-      if (i != 0 && nodeHas(dvid_statementI)) continue;
+      if (i != 2 && (nodeHas(mat0) || nodeHas(matF))) continue;
+      if (nodeHas(mat0)){
+	aType(TMAT0);
+	sb.o =0; sbDt.o =0;
+	sAppend(&sb, "_mat[%d] = ", tb.matn++);
+      }
+      if (nodeHas(matF)){
+	aType(TMATF);
+	sb.o =0; sbDt.o =0;
+	sAppend(&sb, "_matf[%d] = _InfusionRate[%d] + ", tb.matnf,tb.matnf);
+	tb.matnf++;
+      }
       tb.fn = (nodeHas(function) && i==0) ? 1 : 0;
 
+      
       if (nodeHas(ifelse)){
 	if (i == 0){
 	  continue;
@@ -1103,6 +1123,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  case DUR:
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn("Model-based duration cannot depend on Jacobian values");
+	    break;
+	  case TMAT0:
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn("Model-based matricies cannot depend on Jacobian values");
 	    break;
 	  default: {
 	    aType(TJAC);
@@ -1467,6 +1491,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  updateSyntaxCol();
 	  trans_syntax_error_report_fn("Model-based duration cannot depend on state values");
 	  break;
+	case TMAT0:
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn("Model-based matricies cannot depend on state values");
 	default:
 	  {
 	    updateSyntaxCol();
@@ -1646,6 +1673,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       addLine(&sbPm,     "%s;\n", sb.s);
       addLine(&sbPmDt,   "%s;\n", sbDt.s);
       sAppend(&sbNrm, "%s;\n", sbt.s);
+    } else if ((nodeHas(mat0) || nodeHas(matF))){
+      addLine(&sbPm,     "%s;\n", sb.s);
+      addLine(&sbPmDt,   "%s;\n", sbDt.s);
+      /* sAppend(&sbNrm, "", sbt.s); */
     } else if (nodeHas(derivative)){
       addLine(&sbPm,     "%s);\n", sb.s);
       addLine(&sbPmDt,   "%s);\n", sbDt.s);
@@ -1721,6 +1752,8 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     // show_ode == 7 functional rate
     // show_ode == 8 functional duration
     // show_ode == 9 functional mtimes
+    // show_ode == 10 ME matrix
+    // show_ode == 11 Inductive vector
     if (show_ode == 2 || show_ode == 0){
       //__DDtStateVar_#__
       for (i = 0; i < tb.de.n; i++){
@@ -1938,8 +1971,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "    SEXP normState= PROTECT(allocVector(STRSXP, %d));pro++;\n",statei-sensi);
   sAppend(&sbOut, "    SEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));pro++;\n",fdi);
   sAppend(&sbOut, "    SEXP dfdy     = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ndfdy);
-  sAppendN(&sbOut, "    SEXP tran     = PROTECT(allocVector(STRSXP, 20));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP trann    = PROTECT(allocVector(STRSXP, 20));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP tran     = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP trann    = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP model    = PROTECT(allocVector(STRSXP, 1));pro++;\n", 59);
@@ -2160,6 +2193,12 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,19,mkChar(\"assignFuns\"));\n", 51);
   sAppend(&sbOut,  "    SET_STRING_ELT(tran, 19,mkChar(\"%sassignFuns\"));\n", prefix);
 
+  sAppendN(&sbOut, "    SET_STRING_ELT(trann,20,mkChar(\"ME\"));\n", 43);
+  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 20,mkChar(\"%sME\"));\n", prefix);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(trann,21,mkChar(\"IndF\"));\n", 45);
+  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 21,mkChar(\"%sIndF\"));\n", prefix);
+
   sAppendN(&sbOut, "    setAttrib(tran, R_NamesSymbol, trann);\n", 43);
   sAppendN(&sbOut, "    setAttrib(mmd5, R_NamesSymbol, mmd5n);\n", 43);
   sAppendN(&sbOut, "    setAttrib(model, R_NamesSymbol, modeln);\n", 45);
@@ -2201,7 +2240,9 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sLag\", (DL_FUNC) %sLag);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sRate\", (DL_FUNC) %sRate);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sDur\", (DL_FUNC) %sDur);\n", libname, prefix, prefix);
-sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%smtime\", (DL_FUNC) %smtime);\n", libname, prefix, prefix);
+  sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%smtime\", (DL_FUNC) %smtime);\n", libname, prefix, prefix);
+  sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sME\", (DL_FUNC) %sME);\n", libname, prefix, prefix);
+  sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sIndF\", (DL_FUNC) %sIndF);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sdydt_liblsoda\", (DL_FUNC) %sdydt_liblsoda);\n", libname, prefix, prefix);
   sAppend(&sbOut,"}\n//Initialize the dll to match RxODE's calls\nvoid R_init_%s(DllInfo *info){\n  // Get C callables on load; Otherwise it isn't thread safe\n  R_init0_%s();", libname2, libname2);
   sAppend(&sbOut, "\n  static const R_CallMethodDef callMethods[]  = {\n    {\"%smodel_vars\", (DL_FUNC) &%smodel_vars, 0},\n    {NULL, NULL, 0}\n  };\n",
@@ -2290,20 +2331,27 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppend(&sbOut,  "// Model Times\nvoid %smtime(int _cSub, double *_mtime){\n",
 		prefix);
       }
-      
+    } else if (show_ode == 10){
+      sAppend(&sbOut, "// Matrix Exponential (%d)\nvoid %sME(int _cSub, double t, double *_mat){\n",
+	      tb.matn, prefix);
+    } else if (show_ode == 11){
+      sAppend(&sbOut, "// Inductive linearization Matf\nvoid %sIndF(int _cSub, double _t, double t, double *_matf, const double *__zzStateVar__, const double *_InfusionRate){\n", prefix);
     } else {
       sAppend(&sbOut,  "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n", prefix);
     }
     if ((show_ode == 2 && found_jac == 1 && good_jac == 1) ||
 	(show_ode != 2 && show_ode != 3 && show_ode != 5  && show_ode != 8 &&
-	 show_ode !=0 && show_ode != 9) ||
+	 show_ode != 7 && show_ode != 6 &&
+	 show_ode !=0 && show_ode != 9 && show_ode != 10 && show_ode != 11) ||
 	(show_ode == 8 && foundDur) ||
 	(show_ode == 7 && foundRate) ||
 	(show_ode == 6 && foundLag) ||
 	(show_ode == 5 && foundF) ||
 	(show_ode == 3 && foundF0) || 
 	(show_ode == 0 && tb.li) ||
-	(show_ode == 9 && nmtime)){
+	(show_ode == 9 && nmtime) ||
+	(show_ode == 10 && tb.matn) ||
+	(show_ode == 11 && tb.matnf)){
       prnt_vars(0, 0, "  double ", "\n",show_ode);     /* declare all used vars */
       if (maxSumProdN > 0 || SumProdLD > 0){
 	int mx = maxSumProdN;
@@ -2322,12 +2370,15 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppendN(&sbOut, "  _update_par_ptr(0.0, _cSub, _solveData, _idx);\n", 49);
       } else if (show_ode == 6 || show_ode == 7 || show_ode == 8 || show_ode == 9){
 	sAppendN(&sbOut, "  _update_par_ptr(NA_REAL, _cSub, _solveData, _idx);\n", 53);
+      } else if (show_ode == 11){
+	sAppendN(&sbOut, "  _update_par_ptr(_t, _cSub, _solveData, _idx);\n", 48);
       } else {
 	sAppendN(&sbOut, "  _update_par_ptr(t, _cSub, _solveData, _idx);\n", 47);
       }
       prnt_vars(1, 1, "", "\n",show_ode);                   /* pass system pars */
       if (show_ode != 7 && show_ode != 5 &&
-	  show_ode != 6 && show_ode != 8 && show_ode != 9){
+	  show_ode != 6 && show_ode != 8 && show_ode != 9 &&
+	  show_ode != 10){
 	for (i=0; i<tb.de.n; i++) {                   /* name state vars */
 	  buf = tb.ss.line[tb.di[i]];
 	  sAppendN(&sbOut, "  ", 2);
@@ -2394,7 +2445,8 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	case TDDT:
 	  // d/dt()
 	  if (show_ode != 3 && show_ode != 5 && show_ode != 6 &&
-	      show_ode != 7 && show_ode != 8 && show_ode != 9){
+	      show_ode != 7 && show_ode != 8 && show_ode != 9 &&
+	      show_ode !=10 && show_ode != 11){
 	    sAppend(&sbOut, "  %s", show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
 	  }
 	  break;
@@ -2406,6 +2458,16 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  break;
 	case TLOGIC:
 	  sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  break;
+	case TMAT0:
+	  if (show_ode == 10){
+	    sAppend(&sbOut,"  %s", sbPm.line[i]);
+	  }
+	  break;
+	case TMATF:
+	  if (show_ode == 11){
+	    sAppend(&sbOut,"  %s", sbPm.line[i]);
+	  }
 	  break;
 	default:
 	  Rprintf("Ignored line: \"%s\"\n\tlProp: %d\tlType: %d\n", sbPm.line[i],
@@ -2590,6 +2652,8 @@ void reset (){
   tb.hasKa      = 0;
   tb.hasDepotCmt = 0;
   tb.hasCentralCmt = 0;
+  tb.matn=0;
+  tb.matnf=0;
   // reset globals
   good_jac = 1;
   found_jac = 0;
@@ -2814,8 +2878,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   int *iMtime  = INTEGER(sMtime);
   iMtime[0] = (int)nmtime;
   
-  SEXP tran  = PROTECT(allocVector(STRSXP, 20));pro++;
-  SEXP trann = PROTECT(allocVector(STRSXP, 20));pro++;
+  SEXP tran  = PROTECT(allocVector(STRSXP, 22));pro++;
+  SEXP trann = PROTECT(allocVector(STRSXP, 22));pro++;
 
   int offCmt=0,nExtra = 0;
   for (int i = 0; i < tb.statei; i++){
@@ -3187,6 +3251,14 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   SET_STRING_ELT(trann,19,mkChar("assignFuns"));
   SET_STRING_ELT(tran, 19,mkChar(bufw));
 
+  sprintf(bufw,"%sME",model_prefix);
+  SET_STRING_ELT(trann,20,mkChar("ME"));
+  SET_STRING_ELT(tran, 20,mkChar(bufw));
+
+  sprintf(bufw,"%sIndF",model_prefix);
+  SET_STRING_ELT(trann,21,mkChar("IndF"));
+  SET_STRING_ELT(tran, 21,mkChar(bufw));
+
   SET_STRING_ELT(modeln,0,mkChar("normModel"));
   SET_STRING_ELT(model,0,mkChar(sbNrm.s));
   
@@ -3261,6 +3333,11 @@ SEXP _RxODE_codeLoaded(){
   return pm;
 }
 
+SEXP _RxODE_clearTrans(){
+  reset();
+  return R_NilValue;
+}
+
 SEXP _RxODE_isLinCmt(){
   SEXP ret = PROTECT(allocVector(INTSXP, 1));
   INTEGER(ret)[0]=tb.linCmt;
@@ -3301,6 +3378,8 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   gCode(7);
   gCode(8);
   gCode(9); // mtime
+  gCode(10); //mat
+  gCode(11); //matF
   gCode(4); // Registration
   fclose(fpIO);
   reset();

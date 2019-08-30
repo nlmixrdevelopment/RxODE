@@ -125,7 +125,22 @@ rxRepR0_ <- function(neta) {
 }
 
 #' Enhance the Matrix for expm
-#' This addst the columns indicating infusions if needed.
+#' This adds the columns indicating infusions if needed.
+#' It should also take away columns depending on if a compartment is "on"
+NULL
+
+#' Inductive linearization solver
+#'
+#' @param cSub = Current subject number
+#' @param neq - Number of equations
+#' @param tp - Prior time point/time zeor
+#' @param yp - Prior state;  vector size = neq; Final state is updated here
+#' @param tf - Final Time
+#' @param InfusionRate = Rates of each comparment;  vector size = neq
+#' @param rtol - rtol based on cmt#; vector size = neq
+#' @param atol - atol based on cmt#
+#' 
+#' @return Returns a status for solving
 NULL
 
 rxIndLin_ <- function(states) {
@@ -137,11 +152,12 @@ rxIndLin_ <- function(states) {
 #' @param m0 Initial matrix
 #' @param InfusionRate is a vector of infusion rates
 #' @param yp is the last known state concentrations
+#' @param on is the vector of on/off compartment states
 #'
 #' This is mostly for testing
 #' @noRd
-rxExpmMat <- function(m0, InfusionRate, yp) {
-    .Call(`_RxODE_rxExpmMat`, m0, InfusionRate, yp)
+rxExpmMat <- function(m0, InfusionRate, yp, on) {
+    .Call(`_RxODE_rxExpmMat`, m0, InfusionRate, yp, on)
 }
 
 #' Armadillo interface to R package expm

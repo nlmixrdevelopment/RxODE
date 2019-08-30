@@ -366,7 +366,8 @@ RxODE <- function(model, modName = basename(wd),
                   wd = getwd(),
                   filename = NULL, extraC = NULL, debug = FALSE, calcJac=NULL, calcSens=NULL,
                   collapseModel=FALSE, package=NULL, ...,
-                  linCmtSens=FALSE) {
+                  linCmtSens=FALSE,
+                  indLin=FALSE) {
     on.exit(rxSolveFree());
     rxTempDir();
     if (!is.null(package)){
@@ -405,7 +406,8 @@ RxODE <- function(model, modName = basename(wd),
     .env$.rxTransCode <- "SEXP matLst = PROTECT(allocVector(VECSXP, 0));pro++;\n SET_VECTOR_ELT(lst,  18, matLst);\n";
     .setTransCode(.env$.rxTransCode);
     on.exit(.setTransCode("bad"), add=TRUE);
-    .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel);
+    .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel, indLin=indLin);
+    .env$.rxTransCode <- .rxTransCode
     if (.Call(`_RxODE_isLinCmt`) == 1L){
         .env$.mv <- rxLinCmtTrans(.env$.mv, linCmtSens=linCmtSens);
     }
@@ -631,7 +633,7 @@ RxODE <- function(model, modName = basename(wd),
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
-rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
+rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL, indLin=FALSE){
     if (is(substitute(model), "call")){
         model <- model;
     }
@@ -785,6 +787,13 @@ rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
                             ""), collapse="\n")
             .ret <- rxModelVars(.new);
         }
+    }
+    if (indLin){
+        .ret0 <- .rxIndLin(.ret);
+        .new <- paste0(rxNorm(.ret), "\n", .ret0[[3]])
+        .setTransCode(.ret0[[4]]);
+        .Call(`_RxODE_clearTrans`);
+        .ret <- rxModelVars(.new);
     }
     return(.ret);
 }
@@ -1345,7 +1354,7 @@ rxTrans.character <- memoise::memoise(function(model,
         }
         stop("Cannot Create RxODE model");
     }
-    md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(c(.ret$model["normModel"],
+    md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(c(.ret$model["normModel"],.rxTransCode,
                                                   .ret$ini,
                                                   .ret$state,
                                                   .ret$params,
