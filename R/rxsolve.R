@@ -1,7 +1,7 @@
 ##'@rdname rxSolve
 ##'@export
 rxControl <- function(scale = NULL,
-                      method = c("liblsoda", "lsoda", "dop853"),
+                      method = c("liblsoda", "lsoda", "dop853", "indLin"),
                       transitAbs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
                       maxsteps = 70000L, hmin = 0L, hmax = NA, hmaxSd= 0, hini = 0, maxordn = 12L, maxords = 5L, ...,
                       cores,
@@ -33,7 +33,7 @@ rxControl <- function(scale = NULL,
                       length.out=NULL,
                       iCov=NULL,
                       keep=NULL,
-                      indLinDelta=0.05){
+                      indLinDelta=1){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -86,7 +86,7 @@ rxControl <- function(scale = NULL,
         matrix <- as.integer(matrix);
     }
     if (!rxIs(method, "integer")){
-        .methodIdx <- c("lsoda"=1, "dop853"=0, "liblsoda"=2);
+        .methodIdx <- c("lsoda"=1, "dop853"=0, "liblsoda"=2, "indLin"=3);
         method <- as.integer(.methodIdx[method]);
     }
     if (Sys.info()[["sysname"]] == "SunOS" && method == 2){
@@ -210,6 +210,8 @@ rxControl <- function(scale = NULL,
 ##'       solving, but allows user Jacobian specification.
 ##' \item \code{"dop853"} -- DOP853 solver.  Does not support parallel thread-based
 ##'         solving nor user Jacobain specification
+##' \item \code{"indLin"} -- Solving through inductive linearization.  The RxODE dll
+##'         must be setup specially to use this solving routine.
 ##' }
 ##'
 ##' @param transitAbs boolean indicating if this is a transit

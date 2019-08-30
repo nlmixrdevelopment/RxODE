@@ -1,6 +1,10 @@
+#define ARMA_DONT_USE_OPENMP // Known to cause speed problems
+#include <iostream>
 #include <RcppArmadillo.h>
 #include <algorithm>
 #include "../inst/include/RxODE.h"
+#define ARMA_DONT_PRINT_ERRORS
+#define ARMA_DONT_USE_OPENMP // Known to cause speed problems
 using namespace Rcpp;
 
 std::string symengineRes(std::string val){
@@ -39,7 +43,7 @@ std::string rxIndLin_(CharacterVector states){
 //' This adds the columns indicating infusions if needed.
 //' It should also take away columns depending on if a compartment is "on"
 void enhanceMatrix(const arma::mat& m0, const arma::vec& InfusionRate,
-		   const arma::vec& yp, const arma::ivec& on,
+		   const arma::vec& yp, const int *on,
 		   arma::mat &mout, arma::mat &ypout){
   // FIXME on is not used right now.
   unsigned int nrow = m0.n_rows;
@@ -49,25 +53,7 @@ void enhanceMatrix(const arma::mat& m0, const arma::vec& InfusionRate,
     stop("yp needs to be the same dimension as m0.");
   if (InfusionRate.n_elem != nrow)
     stop("InfusionRate needs to be the same dimension as m0.");
-  unsigned int i, nInf=0;
-  arma::vec ypExtra(nrow);
-  arma::mat m0extra(nrow, nrow);
-  for (i = 0; i < nrow; i++){
-    if (InfusionRate[i] != 0.0){
-      nInf++;
-      m0extra.resize(nrow*nInf,0);
-      m0extra[nrow*(nInf-1)+i]=1;
-      ypExtra[i] = InfusionRate[i];
-    }
-  }
-  if (nInf == 0){
-    mout = m0;
-    ypout=yp;
-    return;
-  }
-  mout = join_cols(join_rows(m0, m0extra.cols(0,nInf)),
-		   arma::mat(nInf, nInf+nrow, arma::fill::zeros));
-  ypout= join_cols(yp, ypExtra.head(nInf));
+  
 }
 
 //' Enhance the Matrix for expm
@@ -84,7 +70,7 @@ List rxExpmMat(const arma::mat& m0, const arma::vec& InfusionRate,
 	       const arma::vec& yp, const arma::ivec &on){
   arma::mat mout;
   arma::vec ypout;
-  enhanceMatrix(m0, InfusionRate, yp, on, mout, ypout);
+  enhanceMatrix(m0, InfusionRate, yp, on.memptr(), mout, ypout);
   List ret(2);
   ret[0] = wrap(mout);
   ret[1] = wrap(ypout);
@@ -102,7 +88,7 @@ List rxExpmMat(const arma::mat& m0, const arma::vec& InfusionRate,
 //' @noRd
 //[[Rcpp::export]]
 arma::mat rxExpm(const arma::mat& inMat, double t = 1,
-		 std::string method="Higham08.b"){
+		 std::string method="PadeRBS"){
   Function loadNamespace("loadNamespace", R_BaseNamespace);
   Environment expmNS = loadNamespace("expm");
   Function expm = expmNS["expm"];
@@ -130,17 +116,19 @@ arma::mat rxExpm(const arma::mat& inMat, double t = 1,
 //' 
 //' @return Returns a status for solving
 //' 
-//'   0 = Successful solve
+//'   1 = Successful solve
 //' 
-//'   1 = Maximum number of iterations reached when doing
-//'       inductive linearization
+//'   -1 = Maximum number of iterations reached when doing
+//'        inductive linearization
 //' 
-//'   2 = Maximum number of iterations reached when trying to
-//'       make the matrix invertable.
+//'   -2 = Maximum number of iterations reached when trying to
+//'        make the matrix invertable.
 extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
 		      double *InfusionRate_, int *on_, double *rtol, double *atol,
 		      int maxsteps, int doIndLin, int locf, double delta,
 		      t_ME ME, t_IndF IndF){
+  std::ostream nullstream(0);
+  arma::set_cerr_stream(nullstream);
   arma::mat m0(neq, neq);
   double tcov = tf;
   if (locf) tcov = tp;
@@ -149,24 +137,41 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
   if (!doIndLin){
     // These are simple linear with no f
     // Hence there is no need for matrix inversion
-    const arma::vec InfusionRate(InfusionRate_, neq, false, true);
+    const arma::vec InfusionRate(InfusionRate_, neq);
     const arma::vec yp(yp_, neq);
-    const arma::ivec on(on_, neq, false, true);
     arma::mat inMat;
     arma::mat mexp;
     arma::mat ypout;
-    enhanceMatrix(m0, InfusionRate, yp, on, inMat, ypout);
-    arma::mat expAT = rxExpm(inMat, tf-tp);
-    arma::vec meSol = expAT*yp;
-    std::copy(meSol.begin(), meSol.end(), yp_);
-    return 0;
+    unsigned int i, nInf=0;
+    arma::vec ypExtra(neq);
+    arma::mat m0extra(neq, neq, arma::fill::zeros);
+    arma::mat mout;
+    for (i = 0; i < (unsigned int)neq; i++){
+      if (InfusionRate[i] != 0.0){
+	nInf++;
+	m0extra[neq*(nInf-1)+i]=1;
+	ypExtra[i] = InfusionRate[i];
+      }
+    }
+    if (nInf == 0){
+      mout = m0;
+      ypout=yp;
+    } else {
+      mout = join_cols(join_rows(m0, m0extra.cols(0,nInf-1)),
+		       arma::mat(nInf, nInf+neq, arma::fill::zeros));
+      ypout= join_cols(yp, ypExtra.head(nInf));
+    }
+    arma::mat expAT = rxExpm(mout, tf-tp);
+    arma::vec meSol = expAT*ypout;
+    std::copy(meSol.begin(), meSol.end()-nInf, yp_);
+    return 1;
   } else {
     // In this case the inital matrix should not be expanded. The
     // infusions are put into the F function
     arma::mat invA;
     bool canInvert = inv(invA, m0);
     arma::vec extraF(neq, arma::fill::zeros);
-    arma::mat E(invA.n_rows, invA.n_rows, arma::fill::eye);
+    arma::mat E(neq, neq, arma::fill::eye);
     int invCount=0;
     while (!canInvert){
       // Add to the diagonal until you can invert
@@ -179,7 +184,7 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
       invCount++;
       if (invCount > maxsteps){
 	std::fill_n(&yp_[0], neq, NA_REAL);
-	return 2;
+	return -2;
       }
     }
     arma::mat expAT = rxExpm(m0, tf-tp);
@@ -206,17 +211,37 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
       if (converge){
 	break;
       }
+      if (i % 100 == 0){
+	// Reset matricies
+	m0 = m0 + delta*E;
+	extraF = extraF-delta;
+	canInvert = inv(invA, m0);
+	while (!canInvert){
+	  m0 = m0 + delta*E;
+	  extraF = extraF-delta;
+	  canInvert = inv(invA, m0);
+	  invCount++;
+	  if (invCount > maxsteps){
+	    std::fill_n(&yp_[0], neq, NA_REAL);
+	    return -2;
+	  }
+	}
+	expAT=rxExpm(m0, tf-tp);
+	expATy0 = expAT*y0;
+	facM = (expAT-E)*invA;
+      }
       yLast = yCur;
       IndF(cSub, tcov, tf, fptr, yLast.memptr(), InfusionRate_, extraF.memptr());
       yCur = expATy0+facM*f;
     }
     if (!converge){
-      std::fill_n(&yp_[0], neq, NA_REAL);
+      std::copy(yCur.begin(), yCur.end(), &yp_[0]);
+      // std::fill_n(&yp_[0], neq, NA_REAL);
       return 1;
     } else {
       std::copy(yCur.begin(), yCur.end(), &yp_[0]);
-      return 0;
+      return 1;
     }
   }
-  return 0;
+  return 1;
 }

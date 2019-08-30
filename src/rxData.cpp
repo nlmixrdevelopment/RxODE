@@ -3723,6 +3723,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->atolSS = as<double>(rxControl["atolSS"]);
     op->rtolSS = as<double>(rxControl["rtolSS"]);
     op->indLinDelta=as<double>(rxControl["indLinDelta"]);
+    List indLin = rxSolveDat.mv["indLin"];
+    op->doIndLin= (indLin.size() == 2);
     
     gatol2Setup(op->neq);
     grtol2Setup(op->neq);

@@ -13,6 +13,11 @@
   - Since symengine is C-based and doesn't require the python
     interface it is much faster than `sympy`, though some functions in
     `sympy` are no longer accessible.
+	
+* Added new ODE solving method "indLin", or inductive linearization.
+  When the full model is a linear ODE system this becomes simply the
+  matrix exponential solution.  Currently this requires a different
+  setup.
 
 * Added arbitrary function definition to RxODE using `rxFun`
   - Requires function, arguments and corresponding C-code

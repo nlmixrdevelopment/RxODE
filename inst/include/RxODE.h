@@ -84,6 +84,7 @@ typedef struct {
   double rtolSS;
   int linLog;
   int advanLinCmt;
+  int doIndLin;
 } rx_solving_options;
 
 
