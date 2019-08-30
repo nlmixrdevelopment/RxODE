@@ -150,7 +150,7 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
     // infusions are put into the F function
     arma::mat invA;
     bool canInvert = inv(invA, m0);
-    arma::vec extraF(neq, arm::fill::zeros);
+    arma::vec extraF(neq, arma::fill::zeros);
     arma::mat E(invA.n_rows, invA.n_rows, arma::fill::eye);
     int invCount=0;
     while (!canInvert){
