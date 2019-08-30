@@ -118,22 +118,37 @@ arma::mat rxExpm(const arma::mat& inMat, double t = 1,
 //' @param yp - Prior state;  vector size = neq; Final state is updated here
 //' @param tf - Final Time
 //' @param InfusionRate = Rates of each comparment;  vector size = neq
+//' @param on Indicator for if the compartment is "on"
 //' @param rtol - rtol based on cmt#; vector size = neq
 //' @param atol - atol based on cmt#
+//' @param maxsteps Maximum number of steps
+//' @param doIndLin Integer to say if inductive linearization is needed.
+//' @param locf Do LOCF interpolation for covariates
+//' @param delta The delta added to the matrix to make it invertible
+//' @param ME the RxODE matrix exponential function
+//' @param IndF The RxODE Inductive Linearization function F
 //' 
 //' @return Returns a status for solving
+//' 
+//'   0 = Successful solve
+//' 
+//'   1 = Maximum number of iterations reached when doing
+//'       inductive linearization
+//' 
+//'   2 = Maximum number of iterations reached when trying to
+//'       make the matrix invertable.
 extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
 		      double *InfusionRate_, int *on_, double *rtol, double *atol,
-		      int maxsteps, int doIndLin, int locf, t_ME ME, 
-		      t_IndF IndF){
+		      int maxsteps, int doIndLin, int locf, double delta,
+		      t_ME ME, t_IndF IndF){
   arma::mat m0(neq, neq);
   double tcov = tf;
   if (locf) tcov = tp;
-  // For now this is LOCF; If NOCB tp should be tf
+  // LOCF=tp; If NOCB tp should be tf
   ME(cSub, tcov, m0.memptr()); // Calculate the initial A matrix based on current time/parameters
-  if (doIndLin){
+  if (!doIndLin){
     // These are simple linear with no f
-    // Hence there is no need for the 
+    // Hence there is no need for matrix inversion
     const arma::vec InfusionRate(InfusionRate_, neq, false, true);
     const arma::vec yp(yp_, neq);
     const arma::ivec on(on_, neq, false, true);
@@ -156,14 +171,10 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
     while (!canInvert){
       // Add to the diagonal until you can invert
       //
-      // At the same remove from the extraF so you can use the
-      // inductive linearization approach while adjusting the A matrix
-      // to be non-singular.
-      //
-      // FIXME max number of tries
-      // FIXME change 0.1
-      m0 = m0 + 0.1*E;
-      extraF = extraF-0.1;
+      // At the same remove from the extraF so you can still use the
+      // inductive linearization approach.
+      m0 = m0 + delta*E;
+      extraF = extraF-delta;
       canInvert = inv(invA, m0);
       invCount++;
       if (invCount > maxsteps){
