@@ -404,8 +404,8 @@ RxODE <- function(model, modName = basename(wd),
     }
     .env <- new.env(parent=baseenv())
     .env$.rxTransCode <- "SEXP matLst = PROTECT(allocVector(VECSXP, 0));pro++;\n SET_VECTOR_ELT(lst,  18, matLst);\n";
-    .setTransCode(.env$.rxTransCode);
-    on.exit(.setTransCode("bad"), add=TRUE);
+    .setTransCode(.env$.rxTransCode, "");
+    on.exit(.setTransCode("bad", ""), add=TRUE);
     .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel, indLin=indLin);
     .env$.rxTransCode <- .rxTransCode
     if (.Call(`_RxODE_isLinCmt`) == 1L){
@@ -791,7 +791,7 @@ rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL, i
     if (indLin){
         .ret0 <- .rxIndLin(.ret);
         .new <- paste0(rxNorm(.ret), "\n", .ret0[[3]])
-        .setTransCode(.ret0[[4]]);
+        .setTransCode(.ret0[[4]], .ret0[[3]]);
         .Call(`_RxODE_clearTrans`);
         .ret <- rxModelVars(.new);
     }
@@ -1229,7 +1229,7 @@ rxMd5 <- function(model,         # Model File
         .tmp <- c(RxODE.syntax.assign, RxODE.syntax.star.pow, RxODE.syntax.require.semicolon, RxODE.syntax.allow.dots,
                   RxODE.syntax.allow.ini0, RxODE.syntax.allow.ini, RxODE.calculate.jacobian,
                   RxODE.calculate.sensitivity);
-        .ret <- c(.ret, .tmp, .rxCcode);
+        .ret <- c(.ret, .tmp, .rxCcode, .rxTransCode, .rxMECode);
         if (is.null(.md5Rx)){
             .tmp <- getLoadedDLLs()$RxODE;
             class(.tmp) <- "list";
@@ -1313,6 +1313,7 @@ rxTrans.default <- function(model,
 }
 
 .rxTransCode <- "bad";
+.rxMECode <- "";
 ##' Set translation extra code
 ##'
 ##' @param x Code to set
@@ -1320,8 +1321,9 @@ rxTrans.default <- function(model,
 ##' @author Matthew Fidler
 ##' @keywords internal
 ##' @noRd
-.setTransCode <- function(x="bad"){
+.setTransCode <- function(x="bad", y=""){
     assignInMyNamespace(".rxTransCode", x);
+    assignInMyNamespace(".rxMECode", y);
 }
 
 ##' @rdname rxTrans
@@ -1344,7 +1346,7 @@ rxTrans.character <- memoise::memoise(function(model,
     RxODE::rxReq("dparser");
     .ret <- .Call(`_RxODE_trans`, model, modelPrefix, md5, .isStr,
                   as.integer(crayon::has_color()),
-                  .rxTransCode);
+                  .rxTransCode, .rxMECode);
     if (inherits(.ret, "try-error")){
         message("Model")
         if (.isStr == 0L){
@@ -1354,7 +1356,7 @@ rxTrans.character <- memoise::memoise(function(model,
         }
         stop("Cannot Create RxODE model");
     }
-    md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(c(.ret$model["normModel"],.rxTransCode,
+    md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(c(.ret$model,
                                                   .ret$ini,
                                                   .ret$state,
                                                   .ret$params,

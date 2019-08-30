@@ -430,6 +430,7 @@ sbuf sbNrm;
 
 char *model_prefix;
 char *extra_indLin;
+char *me_code;
 const char *md5 = NULL;
 int badMd5 = 0;
 int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0, needSort=0;
@@ -1975,8 +1976,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SEXP trann    = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP model    = PROTECT(allocVector(STRSXP, 1));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP modeln   = PROTECT(allocVector(STRSXP, 1));pro++;\n", 59);
+  sAppendN(&sbOut, "    SEXP model    = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
+  sAppendN(&sbOut, "    SEXP modeln   = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP version    = PROTECT(allocVector(STRSXP, 3));pro++;\n", 61);
   sAppendN(&sbOut, "    SEXP versionn   = PROTECT(allocVector(STRSXP, 3));pro++;\n", 61);
   
@@ -2027,6 +2028,42 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
     }
   }
   sAppendN(&sbOut, "\"));\n", 5);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(modeln,1,mkChar(\"indLin\"));\n", 47);
+  sAppendN(&sbOut, "    SET_STRING_ELT(model,1,mkChar(\"", 35);
+  in_str=0;
+  int strL = strlen(me_code);
+  for (i = 0; i < strL; i++){
+    if (me_code[i] == '"'){
+      if (in_str==1){
+	in_str=0;
+      } else {
+	in_str=1;
+      }
+      sAppendN(&sbOut, "\\\"", 2);
+    } else if (me_code[i] == '\''){
+      if (in_str==1){
+	in_str=0;
+      } else {
+	in_str=1;
+      }
+      sAppendN(&sbOut, "'", 1);
+    } else if (me_code[i] == ' '){
+      if (in_str==1){
+	sAppendN(&sbOut, " ", 1);
+      }
+    } else if (me_code[i] == '\n'){
+      sAppendN(&sbOut, "\\n", 2);
+    } else if (me_code[i] == '\t'){
+      sAppendN(&sbOut, "\\t", 2);
+    } else if (me_code[i] == '\\'){
+      sAppendN(&sbOut, "\\\\", 2);
+    } else if (me_code[i] >= 33  && me_code[i] <= 126){ // ASCII only
+      sPut(&sbOut, me_code[i]);
+    }
+  }
+  sAppendN(&sbOut, "\"));\n", 5);
+  
   
   s_aux_info[0] = '\0';
   o    = 0;
@@ -2411,16 +2448,20 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	switch(sbPm.lType[i]){
 	case TMTIME:
 	case TASSIGN:
-	  sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  if (show_ode != 10 && show_ode != 11){
+	    sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  }
 	  break;
 	case TINI:
 	  // See if this is an ini or a reclaimed expression.
-	  if (sbPm.lProp[i] >= 0 ){
-	    tb.ix = sbPm.lProp[i];
-	    if (tb.lh[tb.ix] == 1){
-	      sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  if (show_ode != 10 && show_ode != 11){
+	    if (sbPm.lProp[i] >= 0 ){
+	      tb.ix = sbPm.lProp[i];
+	      if (tb.lh[tb.ix] == 1){
+		sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	      }
 	    }
-	  }	  
+	  }
 	  break;
 	case TF0:
 	  // functional ini
@@ -2457,7 +2498,9 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  }
 	  break;
 	case TLOGIC:
-	  sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  if (show_ode != 10 && show_ode != 11){
+	    sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  }
 	  break;
 	case TMAT0:
 	  if (show_ode == 10){
@@ -2781,7 +2824,7 @@ void trans_internal(char* parse_file, int isStr){
 }
 
 SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
-		  SEXP isEscIn, SEXP inLinExtra){
+		  SEXP isEscIn, SEXP inLinExtra, SEXP inME){
   char *in;
   char *buf, *df, *dy;
   char bufw[1024], bufw2[2100];
@@ -2819,6 +2862,13 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   } else {
     freeP();
     error("Extra inductive linearization model variables must be specified");
+  }
+
+  if (isString(inME) && length(inME) == 1){
+    me_code = r_dup_str(CHAR(STRING_ELT(inME,0)),0);
+  } else {
+    freeP();
+    error("Extra ME code must be specified");
   }
 
   if (isString(model_md5) && length(model_md5) == 1){
@@ -3011,8 +3061,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 
   setAttrib(ini,   R_NamesSymbol, inin);  
   
-  SEXP model  = PROTECT(allocVector(STRSXP,1));pro++;
-  SEXP modeln = PROTECT(allocVector(STRSXP,1));pro++;
+  SEXP model  = PROTECT(allocVector(STRSXP,2));pro++;
+  SEXP modeln = PROTECT(allocVector(STRSXP,2));pro++;
   k=0;j=0;l=0;m=0,p=0;
   for (i=0; i<tb.de.n; i++) {                     /* name state vars */
     buf=tb.ss.line[tb.di[i]];
@@ -3261,6 +3311,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 
   SET_STRING_ELT(modeln,0,mkChar("normModel"));
   SET_STRING_ELT(model,0,mkChar(sbNrm.s));
+
+  SET_STRING_ELT(modeln,1,mkChar("indLin"));
+  SET_STRING_ELT(model,1,mkChar(me_code));
   
   setAttrib(tran,  R_NamesSymbol, trann);
   setAttrib(lst,   R_NamesSymbol, names);
