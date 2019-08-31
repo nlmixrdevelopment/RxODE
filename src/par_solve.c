@@ -367,6 +367,15 @@ int global_debug = 0;
 double *global_rworkp;
 int *global_iworkp;
 
+unsigned int global_rworki = 0;
+double *global_rwork(unsigned int mx){ 
+  if (mx >= global_rworki){
+    global_rworki = mx+1024;
+    global_rworkp = Realloc(global_rworkp, global_rworki, double);
+  }
+  return global_rworkp;
+}
+
 void rxUpdateFuns(SEXP trans){
   const char *lib, *s_dydt, *s_calc_jac, *s_calc_lhs, *s_inis, *s_dydt_lsoda_dum, *s_dydt_jdum_lsoda, 
     *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_AMT, *s_LAG, *s_RATE,
@@ -934,8 +943,8 @@ void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtr
 
 int indLin(int cSub, int neq, double tp, double *yp_, double tf,
 	   double *InfusionRate_, int *on_, double *rtol, double *atol,
-	   int maxsteps, int doIndLin, int locf, double delta,
-	   t_ME ME, t_IndF IndF);
+	   int maxsteps, int doIndLin, int locf, int perterbMatrix,
+	   double delta, double *rwork, t_ME ME, t_IndF IndF);
 
 void solveSS_1(int *neq, 
 	       int *BadDose,
@@ -955,6 +964,8 @@ void solveSS_1(int *neq,
   case 3:
     idid = indLin(ind->id, op->neq, xp, yp, xout, ind->InfusionRate, ind->on, op->rtol2, op->atol2,
 		  op->mxstep, op->doIndLin, (op->is_locf!=2), op->indLinDelta,
+		  op->indLinPerterbMatrix,
+		  global_rwork(4*op->neq + 8*op->neq*op->neq),
 		  ME, IndF);
     if (idid <= 0) {
       /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
@@ -1316,6 +1327,8 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
       } else {
 	idid = indLin(solveid, op->neq, xp, yp, xout, ind->InfusionRate, ind->on, op->rtol2, op->atol2,
 		      op->mxstep, op->doIndLin, (op->is_locf!=2), op->indLinDelta,
+		      op->indLinPerterbMatrix,
+		      global_rwork(4*op->neq + 8*op->neq*op->neq),
 		      ME, IndF);
 	if (idid <= 0) {
 	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
@@ -1621,17 +1634,6 @@ extern void par_liblsoda(rx_solve *rx){
     }
   }
 }
-
-unsigned int global_rworki = 0;
-double *global_rwork(unsigned int mx){ 
-  if (mx >= global_rworki){
-    global_rworki = mx+1024;
-    global_rworkp = Realloc(global_rworkp, global_rworki, double);
-  }
-  return global_rworkp;
-}
-
-
 
 unsigned int global_iworki = 0;
 int *global_iwork(unsigned int mx){

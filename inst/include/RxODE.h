@@ -72,6 +72,7 @@ typedef struct {
   double *rtol2;
   double *atol2;
   double indLinDelta;
+  int indLinPerterbMatrix;
   int nDisplayProgress;
   int ncoresRV;
   int isChol;
