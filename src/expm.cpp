@@ -77,6 +77,10 @@ List rxExpmMat(const arma::mat& m0, const arma::vec& InfusionRate,
   return ret;
 }
 
+
+bool expm_assign=false;
+SEXP expm_s;
+
 //' Armadillo interface to R package expm
 //'
 //' @param inMat is the in matrix
@@ -89,9 +93,13 @@ List rxExpmMat(const arma::mat& m0, const arma::vec& InfusionRate,
 //[[Rcpp::export]]
 arma::mat rxExpm(const arma::mat& inMat, double t = 1,
 		 std::string method="PadeRBS"){
-  Function loadNamespace("loadNamespace", R_BaseNamespace);
-  Environment expmNS = loadNamespace("expm");
-  Function expm = expmNS["expm"];
+  if (!expm_assign){
+    Function loadNamespace("loadNamespace", R_BaseNamespace);
+    Environment expmNS = loadNamespace("expm");
+    expm_s = expmNS["expm"];
+    expm_assign=true;
+  }
+  Function expm = as<Function>(expm_s);
   arma::mat out0 =t*inMat;
   return as<arma::mat>(expm(out0,_["method"]=method));
 }
