@@ -35,74 +35,8 @@ std::string rxIndLin_(CharacterVector states){
   return ret;
 }
 
-// expm::expm method="PadeRBS" is faster than rexpokit::expm BUT
-// expm::expm method="Higham08" is "better" and has a C interface.  It
-// is slower, though.
-
-//' Enhance the Matrix for expm
-//' This adds the columns indicating infusions if needed.
-//' It should also take away columns depending on if a compartment is "on"
-void enhanceMatrix(const arma::mat& m0, const arma::vec& InfusionRate,
-		   const arma::vec& yp, const int *on,
-		   arma::mat &mout, arma::mat &ypout){
-  // FIXME on is not used right now.
-  unsigned int nrow = m0.n_rows;
-  if (nrow != m0.n_cols)
-    stop("m0 needs to be a square matrix");
-  if (yp.n_elem != nrow)
-    stop("yp needs to be the same dimension as m0.");
-  if (InfusionRate.n_elem != nrow)
-    stop("InfusionRate needs to be the same dimension as m0.");
-  
-}
-
-//' Enhance the Matrix for expm
-//' This addst the columns indicating infusions if needed.
-//' @param m0 Initial matrix
-//' @param InfusionRate is a vector of infusion rates
-//' @param yp is the last known state concentrations
-//' @param on is the vector of on/off compartment states
-//'
-//' This is mostly for testing
-//' @noRd
-//[[Rcpp::export]]
-List rxExpmMat(const arma::mat& m0, const arma::vec& InfusionRate,
-	       const arma::vec& yp, const arma::ivec &on){
-  arma::mat mout;
-  arma::vec ypout;
-  enhanceMatrix(m0, InfusionRate, yp, on.memptr(), mout, ypout);
-  List ret(2);
-  ret[0] = wrap(mout);
-  ret[1] = wrap(ypout);
-  return ret;
-}
-
-
 bool expm_assign=false;
 SEXP expm_s;
-
-//' Armadillo interface to R package expm
-//'
-//' @param inMat is the in matrix
-//' @param t is the time for the calculation
-//'
-//' @inheritParams expm::expm
-//'
-//' @return expm(t*X)
-//' @noRd
-//[[Rcpp::export]]
-arma::mat rxExpm(const arma::mat& inMat, double t = 1,
-		 std::string method="PadeRBS"){
-  if (!expm_assign){
-    Function loadNamespace("loadNamespace", R_BaseNamespace);
-    Environment expmNS = loadNamespace("expm");
-    expm_s = expmNS["expm"];
-    expm_assign=true;
-  }
-  Function expm = as<Function>(expm_s);
-  arma::mat out0 =t*inMat;
-  return as<arma::mat>(expm(out0,_["method"]=method));
-}
 
 //' Inductive linearization solver
 //'
@@ -176,7 +110,7 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
     if (nInf == 0){
       arma::mat expAT(ptr, neq, neq, false, false);
       ptr += neq*neq;
-      expAT = rxExpm(m0, tf-tp);
+      expAT = arma::expmat(m0*(tf-tp));
       arma::vec meSol(ptr, neq, false, false);
       ptr += neq;
       meSol = expAT*yp;
@@ -198,7 +132,7 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
       ptr += (neq+nInf);
       arma::mat expAT(ptr, neq+nInf, neq+nInf, false, false);
       ptr += (neq+nInf)*(neq+nInf);
-      expAT = rxExpm(mout, tf-tp);
+      expAT = arma::expmat(mout*(tf-tp));
       arma::vec meSol(ptr, neq+nInf, false, false);
       std::copy(meSol.begin(), meSol.begin()+neq, yp_);
       return 1;
@@ -243,7 +177,7 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
     }
     arma::mat expAT(ptr, neq, neq, false, false);
     ptr += neq*neq;
-    expAT = rxExpm(m0, tf-tp);
+    expAT = arma::expmat(m0*(tf-tp));
     const arma::vec y0(yp_, neq);
     arma::mat expATy0(ptr, neq, neq, false, false);
     ptr+= neq;
@@ -290,7 +224,7 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
 	    return -2;
 	  }
 	}
-	expAT=rxExpm(m0, tf-tp);
+	expAT=arma::expmat(m0*(tf-tp));
 	expATy0 = expAT*y0;
 	facM = (expAT-E)*invA;
       }

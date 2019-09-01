@@ -124,11 +124,6 @@ rxRepR0_ <- function(neta) {
     .Call(`_RxODE_rxRepR0_`, neta)
 }
 
-#' Enhance the Matrix for expm
-#' This adds the columns indicating infusions if needed.
-#' It should also take away columns depending on if a compartment is "on"
-NULL
-
 #' Inductive linearization solver
 #'
 #' @param cSub = Current subject number
@@ -137,40 +132,29 @@ NULL
 #' @param yp - Prior state;  vector size = neq; Final state is updated here
 #' @param tf - Final Time
 #' @param InfusionRate = Rates of each comparment;  vector size = neq
+#' @param on Indicator for if the compartment is "on"
 #' @param rtol - rtol based on cmt#; vector size = neq
 #' @param atol - atol based on cmt#
+#' @param maxsteps Maximum number of steps
+#' @param doIndLin Integer to say if inductive linearization is needed.
+#' @param locf Do LOCF interpolation for covariates
+#' @param delta The delta added to the matrix to make it invertible
+#' @param ME the RxODE matrix exponential function
+#' @param IndF The RxODE Inductive Linearization function F
 #' 
 #' @return Returns a status for solving
+#' 
+#'   1 = Successful solve
+#' 
+#'   -1 = Maximum number of iterations reached when doing
+#'        inductive linearization
+#' 
+#'   -2 = Maximum number of iterations reached when trying to
+#'        make the matrix invertable.
 NULL
 
 rxIndLin_ <- function(states) {
     .Call(`_RxODE_rxIndLin_`, states)
-}
-
-#' Enhance the Matrix for expm
-#' This addst the columns indicating infusions if needed.
-#' @param m0 Initial matrix
-#' @param InfusionRate is a vector of infusion rates
-#' @param yp is the last known state concentrations
-#' @param on is the vector of on/off compartment states
-#'
-#' This is mostly for testing
-#' @noRd
-rxExpmMat <- function(m0, InfusionRate, yp, on) {
-    .Call(`_RxODE_rxExpmMat`, m0, InfusionRate, yp, on)
-}
-
-#' Armadillo interface to R package expm
-#'
-#' @param inMat is the in matrix
-#' @param t is the time for the calculation
-#'
-#' @inheritParams expm::expm
-#'
-#' @return expm(t*X)
-#' @noRd
-rxExpm <- function(inMat, t = 1, method = "Higham08.b") {
-    .Call(`_RxODE_rxExpm`, inMat, t, method)
 }
 
 #' Check the type of an object using Rcpp

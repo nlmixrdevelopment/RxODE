@@ -331,33 +331,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rxExpmMat
-List rxExpmMat(const arma::mat& m0, const arma::vec& InfusionRate, const arma::vec& yp, const arma::ivec& on);
-RcppExport SEXP _RxODE_rxExpmMat(SEXP m0SEXP, SEXP InfusionRateSEXP, SEXP ypSEXP, SEXP onSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type m0(m0SEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type InfusionRate(InfusionRateSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type yp(ypSEXP);
-    Rcpp::traits::input_parameter< const arma::ivec& >::type on(onSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxExpmMat(m0, InfusionRate, yp, on));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rxExpm
-arma::mat rxExpm(const arma::mat& inMat, double t, std::string method);
-RcppExport SEXP _RxODE_rxExpm(SEXP inMatSEXP, SEXP tSEXP, SEXP methodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type inMat(inMatSEXP);
-    Rcpp::traits::input_parameter< double >::type t(tSEXP);
-    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxExpm(inMat, t, method));
-    return rcpp_result_gen;
-END_RCPP
-}
 // rxIs
 bool rxIs(const RObject& obj, std::string cls);
 static SEXP _RxODE_rxIs_try(SEXP objSEXP, SEXP clsSEXP) {
