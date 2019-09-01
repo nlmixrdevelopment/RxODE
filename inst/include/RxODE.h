@@ -146,6 +146,7 @@ typedef struct {
   double linCmtB[14];
   double *linCmtAdvan;
   int linCmtAdvanSetup;
+  int cacheME;
 } rx_solving_options_ind;
 
 typedef struct {

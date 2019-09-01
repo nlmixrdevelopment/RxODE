@@ -3144,6 +3144,7 @@ void rxSolve_datSetupHmax(const RObject &obj, const List &rxControl,
 	ind->linCmtT = NA_REAL;
 	ind->linCmtAdvan=NULL;
 	ind->linCmtAdvanSetup=0;
+	ind->cacheME=0;
 	ind->timeReset=1;
 	ind->lambda         =1.0;
 	ind->yj             = 0;

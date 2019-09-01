@@ -821,6 +821,7 @@ int handle_evid(int evid, int neq,
       if (ind->wh0 == 30){
 	yp[cmt]=op_global.inits[cmt];
 	InfusionRate[cmt] = 0;
+	ind->cacheME=0;
 	ind->on[cmt] = 0;
 	return 1;
       }
@@ -835,6 +836,7 @@ int handle_evid(int evid, int neq,
       case 8: // modeled duration.
 	// Rate already calculated and saved in the next dose record
 	ind->on[cmt] = 1;
+	ind->cacheME=0;
 	InfusionRate[cmt] -= dose[ind->ixds+1];
 	if (ind->wh0 == 20 && getAmt(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
 	  if (!(ind->err & 1048576)){
@@ -849,6 +851,7 @@ int handle_evid(int evid, int neq,
 	// If cmt is off, don't remove rate....
 	// Probably should throw an error if the infusion rate is on still.
 	InfusionRate[cmt] += dose[ind->ixds]*((double)(ind->on[cmt]));
+	ind->cacheME=0;
 	if (ind->wh0 == 20 && getAmt(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
 	  /* error("SS=2 & Modeled F does not work"); */
 	  if (!(ind->err & 2097152)){
@@ -863,6 +866,7 @@ int handle_evid(int evid, int neq,
 	ind->on[cmt] = 1;
 	tmp = getAmt(id, cmt, dose[ind->ixds], xout);
 	InfusionRate[cmt] += tmp;
+	ind->cacheME=0;
 	if (ind->wh0 == 20 && tmp != dose[ind->ixds]){
 	  /* error("SS=2 & Modeled F does not work"); */
 	  if (!(ind->err & 4194304)){
@@ -874,6 +878,7 @@ int handle_evid(int evid, int neq,
       case 1:
 	ind->on[cmt] = 1;
 	InfusionRate[cmt] += dose[ind->ixds];
+	ind->cacheME=0;
 	if (ind->wh0 == 20 && dose[ind->ixds] > 0 && getAmt(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
 	  /* error("SS=2 & Modeled F does not work"); */
 	  if (!(ind->err & 4194304)){
@@ -944,7 +949,7 @@ void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtr
 int indLin(int cSub, int neq, double tp, double *yp_, double tf,
 	   double *InfusionRate_, int *on_, double *rtol, double *atol,
 	   int maxsteps, int doIndLin, int locf, int perterbMatrix,
-	   double delta, double *rwork, t_ME ME, t_IndF IndF);
+	   double delta, double *rwork, int *cache, t_ME ME, t_IndF IndF);
 
 void solveSS_1(int *neq, 
 	       int *BadDose,
@@ -966,6 +971,7 @@ void solveSS_1(int *neq,
 		  op->mxstep, op->doIndLin, (op->is_locf!=2), op->indLinDelta,
 		  op->indLinPerterbMatrix,
 		  global_rwork(4*op->neq + 8*op->neq*op->neq),
+		  &(ind->cacheME),
 		  ME, IndF);
     if (idid <= 0) {
       /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
@@ -1143,6 +1149,7 @@ void handleSS(int *neq,
     for (j = neq[0]; j--;) {
       ind->InfusionRate[j] = 0;
       ind->on[j] = 1;
+      ind->cacheME=0;
     }
     memcpy(yp,op->inits, neq[0]*sizeof(double));
     u_inis(neq[1], yp); // Update initial conditions @ current time
@@ -1299,6 +1306,7 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   for (int j = neq[0]; j--;) {
     ind->InfusionRate[j] = 0;
     ind->on[j] = 1;
+    ind->cacheME=0;
   }
   dose = ind->dose;
   ret = ind->solve;
@@ -1329,6 +1337,7 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
 		      op->mxstep, op->doIndLin, (op->is_locf!=2), op->indLinDelta,
 		      op->indLinPerterbMatrix,
 		      global_rwork(4*op->neq + 8*op->neq*op->neq),
+		      &(ind->cacheME),
 		      ME, IndF);
 	if (idid <= 0) {
 	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
@@ -1359,6 +1368,7 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
 	for (j = neq[0]; j--;) {
 	  ind->InfusionRate[j] = 0;
 	  ind->on[j] = 1;
+	  ind->cacheME=0;
 	}
 	memcpy(yp,inits, neq[0]*sizeof(double));
 	u_inis(neq[1], yp); // Update initial conditions @ current time
@@ -1461,6 +1471,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   for (int j = neq[0]; j--;) {
     ind->InfusionRate[j] = 0;
     ind->on[j] = 1;
+    ind->cacheME=0;
   }
   dose = ind->dose;
   ret = ind->solve;
@@ -1517,6 +1528,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
 	for (j = neq[0]; j--;) {
 	  ind->InfusionRate[j] = 0;
 	  ind->on[j] = 1;
+	  ind->cacheME=0;
 	}
 	memcpy(yp,inits, neq[0]*sizeof(double));
 	u_inis(neq[1], yp); // Update initial conditions @ current time
@@ -1950,6 +1962,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   for (int j = neq[0]; j--;) {
     ind->InfusionRate[j] = 0;
     ind->on[j] = 1;
+    ind->cacheME=0;
   }
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
@@ -2032,6 +2045,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
 	for (j = neq[0]; j--;) {
 	  ind->InfusionRate[j] = 0;
 	  ind->on[j] = 1;
+	  ind->cacheME=0;
 	}
 	memcpy(yp, op->inits, neq[0]*sizeof(double));
 	u_inis(neq[1], yp); // Update initial conditions @ current time

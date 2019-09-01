@@ -52,7 +52,12 @@ SEXP expm_s;
 //' @param maxsteps Maximum number of steps
 //' @param doIndLin Integer to say if inductive linearization is needed.
 //' @param locf Do LOCF interpolation for covariates
+//' @param perterbMatrix The number of iterations that are performed
+//'     before perterbing the matrix.
 //' @param delta The delta added to the matrix to make it invertible
+//' @param cache
+//'    0 = no Cache
+//'    When doIndLin == 0, cache > 0 = nInf-1
 //' @param ME the RxODE matrix exponential function
 //' @param IndF The RxODE Inductive Linearization function F
 //' 
@@ -68,9 +73,8 @@ SEXP expm_s;
 extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
 		      double *InfusionRate_, int *on_, double *rtol, double *atol,
 		      int maxsteps, int doIndLin, int locf,
-		      int perterbMatrix,
-		      double delta, double *rwork,
-		      t_ME ME, t_IndF IndF){
+		      int perterbMatrix, double delta,
+		      double *rwork, int *cache, t_ME ME, t_IndF IndF){
   std::ostream nullstream(0);
   arma::set_cerr_stream(nullstream);
   double *ptr = &rwork[0];
@@ -79,7 +83,7 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
   double tcov = tf;
   if (locf) tcov = tp;
   // LOCF=tp; If NOCB tp should be tf
-  ME(cSub, tcov, m0.memptr()); // Calculate the initial A matrix based on current time/parameters
+  if (*cache == 0) ME(cSub, tcov, m0.memptr()); // Calculate the initial A matrix based on current time/parameters
   if (!doIndLin){
     // Total possible enhanced matrix is (neq+neq)x(neq+neq)
     // Total possible initial value is (neq+neq)
@@ -98,14 +102,18 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
     ptr += neq;
     arma::mat m0extra(ptr, neq, neq, false, false);
     ptr += neq*neq;
-    m0extra.zeros();
-    // arma::mat mout;
-    for (i = 0; i < (unsigned int)neq; i++){
-      if (InfusionRate[i] != 0.0){
-	nInf++;
-	m0extra[neq*(nInf-1)+i]=1;
-	ypExtra[i] = InfusionRate[i];
+    if (*cache == 0){
+      m0extra.zeros();
+      // arma::mat mout;
+      for (i = 0; i < (unsigned int)neq; i++){
+	if (InfusionRate[i] != 0.0){
+	  nInf++;
+	  m0extra[neq*(nInf-1)+i]=1;
+	  ypExtra[i] = InfusionRate[i];
+	}
       }
+    } else {
+      nInf = *cache-1;
     }
     if (nInf == 0){
       arma::mat expAT(ptr, neq, neq, false, false);
@@ -115,23 +123,27 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
       ptr += neq;
       meSol = expAT*yp;
       std::copy(meSol.begin(), meSol.end(), yp_);
+      *cache = 1;
       return 1;
       // mout = m0;
       // ypout=yp;
     } else {
       arma::mat mout(ptr, neq+nInf, neq+nInf, false, false);
       ptr += (neq+nInf)*(neq+nInf);
-      mout.zeros();
-      for (int j = neq; j--;){
-	std::copy(m0.colptr(j), m0.colptr(j)+neq, mout.colptr(j));
-      }
-      for (int j = nInf; j--;){
-	std::copy(m0extra.colptr(j),m0extra.colptr(j)+neq, mout.colptr(neq+j));
+      if (*cache == 0){
+	mout.zeros();
+	for (int j = neq; j--;){
+	  std::copy(m0.colptr(j), m0.colptr(j)+neq, mout.colptr(j));
+	}
+	for (int j = nInf; j--;){
+	  std::copy(m0extra.colptr(j),m0extra.colptr(j)+neq, mout.colptr(neq+j));
+	}
       }
       arma::vec ypout(ptr, neq+nInf, false, false);
       ptr += (neq+nInf);
       arma::mat expAT(ptr, neq+nInf, neq+nInf, false, false);
       ptr += (neq+nInf)*(neq+nInf);
+      // Unfortunately the tf-tp may change so we cann't cache this.
       expAT = arma::expmat(mout*(tf-tp));
       arma::vec meSol(ptr, neq+nInf, false, false);
       std::copy(meSol.begin(), meSol.begin()+neq, yp_);
@@ -155,24 +167,26 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
     ptr += neq*neq;
     bool canInvert = inv(invA, m0);
     arma::vec extraF(ptr, neq, false, false);
-    extraF.zeros();
     ptr += neq;
     arma::mat E(ptr, neq, neq, false, false);
     ptr += neq*neq;
-    E.eye();
     int invCount=0;
-    while (!canInvert){
-      // Add to the diagonal until you can invert
-      //
-      // At the same remove from the extraF so you can still use the
-      // inductive linearization approach.
-      m0 = m0 + delta*E;
-      extraF = extraF-delta;
-      canInvert = inv(invA, m0);
-      invCount++;
-      if (invCount > maxsteps){
-	std::fill_n(&yp_[0], neq, NA_REAL);
-	return -2;
+    if (*cache == 0){
+      extraF.zeros();
+      E.eye();
+      while (!canInvert){
+	// Add to the diagonal until you can invert
+	//
+	// At the same remove from the extraF so you can still use the
+	// inductive linearization approach.
+	m0 = m0 + delta*E;
+	extraF = extraF-delta;
+	canInvert = inv(invA, m0);
+	invCount++;
+	if (invCount > maxsteps){
+	  std::fill_n(&yp_[0], neq, NA_REAL);
+	  return -2;
+	}
       }
     }
     arma::mat expAT(ptr, neq, neq, false, false);
@@ -231,6 +245,7 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
       yLast = yCur;
       IndF(cSub, tcov, tf, fptr, yLast.memptr(), InfusionRate_, extraF.memptr());
       yCur = expATy0+facM*f;
+      *cache = 1;
     }
     if (!converge){
       std::copy(yCur.begin(), yCur.end(), &yp_[0]);

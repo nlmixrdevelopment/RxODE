@@ -656,6 +656,11 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
 	if (op->par_cov[k]){
 	  double *y = ind->cov_ptr + ind->n_all_times*k;
 	  ind->par_ptr[op->par_cov[k]-1] = getValue(idx, y, ind);
+	  if (idx == 0){
+	    ind->cacheME=0;
+	  } else if (getValue(idx, y, ind) != getValue(idx-1, y, ind)) {
+	    ind->cacheME=0;
+	  }
 	}
       }
     }
@@ -674,11 +679,18 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
 	  double *y = ind->cov_ptr + ind->n_all_times*k;
 	  if (idx > 0 && idx < ind->n_all_times && t == all_times[idx]){
 	    par_ptr[op->par_cov[k]-1] = getValue(idx, y, ind);
+	    if (idx == 0){
+	      ind->cacheME=0;
+	    } else if (getValue(idx, y, ind) != getValue(idx-1, y, ind)) {
+	      ind->cacheME=0;
+	    }
 	  } else {
 	    // Use the same methodology as approxfun.
 	    ind->ylow = getValue(0, y, ind);/* cov_ptr[ind->n_all_times*k]; */
 	    ind->yhigh = getValue(ind->n_all_times-1, y, ind);/* cov_ptr[ind->n_all_times*k+ind->n_all_times-1]; */
 	    par_ptr[op->par_cov[k]-1] = rx_approxP(t, y, ind->n_all_times, op, ind);
+	    // Don't need to reset ME because solver doesn't use the
+	    // times in-between.
 	  }
 	}
       }
