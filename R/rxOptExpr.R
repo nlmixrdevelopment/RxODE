@@ -218,6 +218,11 @@ rxOptExpr <- function(x, msg="model"){
     .exprs <- .exprs[regexpr(rex::rex(start, regNum, end), .exprs, perl=TRUE) == -1]
     .exprs <- .exprs[regexpr(rex::rex(start, or("THETA[", "ETA["), any_numbers, "]", end), .exprs, perl=TRUE) == -1]
     if (length(.exprs) > 0){
+        ## Take out unary [-] that way
+        ## expr1=-ka
+        ## expr2 = expr-ka
+        ## will not become expr = exprka where exprka isn't defined.
+        .exprs <- .exprs[regexpr("^[-]", .exprs) == -1]
         .rp <- rxOptRep_(.exprs)
         .rxOptEnv$.rep <- as.list(.rp[[1]]);
         .rxOptEnv$.exclude <- ""
