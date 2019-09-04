@@ -33,8 +33,10 @@ rxControl <- function(scale = NULL,
                       length.out=NULL,
                       iCov=NULL,
                       keep=NULL,
-                      indLinDelta=1,
-                      indLinPerterbMatrix=100){
+                      indLinPhiTol=1e-7,
+                      indLinPhiM=1,
+                      indLinMatExpType=1L,
+                      indLinPhiAnorm=2){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -165,8 +167,10 @@ rxControl <- function(scale = NULL,
                  omegaLower=omegaLower, omegaUpper=omegaUpper,
                  sigmaLower=sigmaLower, sigmaUpper=sigmaUpper,
                  thetaLower=thetaLower, thetaUpper=thetaUpper,
-                 indLinDelta=indLinDelta,
-                 indLinPerterbMatrix=indLinPerterbMatrix);
+                 indLinPhiM=indLinPhiM,
+                 indLinPhiTol=indLinPhiTol,
+                 indLinMatExpType=as.integer(indLinMatExpType),
+                 indLinPhiAnorm=indLinPhiAnorm);
     return(.ret)
 }
 

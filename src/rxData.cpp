@@ -3723,8 +3723,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->maxSS = as<int>(rxControl["maxSS"]);
     op->atolSS = as<double>(rxControl["atolSS"]);
     op->rtolSS = as<double>(rxControl["rtolSS"]);
-    op->indLinDelta=as<double>(rxControl["indLinDelta"]);
-    op->indLinPerterbMatrix = as<int>(rxControl["indLinPerterbMatrix"]);
+    op->indLinPhiTol=as<double>(rxControl["indLinPhiTol"]);
+    op->indLinMatExpType=as<int>(rxControl["indLinMatExpType"]);
+    op->indLinPhiM = as<int>(rxControl["indLinPhiM"]);
+    op->indLinPhiAnorm = as<int>(rxControl["indLinPhiAnorm"]);
     List indLin = rxSolveDat.mv["indLin"];
     op->doIndLin= (indLin.size() == 2);
     

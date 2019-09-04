@@ -35,6 +35,139 @@ std::string rxIndLin_(CharacterVector states){
   return ret;
 }
 
+static inline arma::mat matrixExp(arma::mat& mat, int& type){
+  switch(type){
+  default:
+    return (arma::expmat(mat));
+  }
+}
+
+//' phiv3
+//'
+//' Approximates w = exp(t*A)*v + t*phi(t*A)*u using Krylov
+//' subspace projection, where phi(z) = (exp(z)-1)/z and w is
+//' the solution of the nonhomogeneous ODE w' = Aw + u, w(0) = v.
+//' 
+//' @param t Solve time
+//' @param A Exponential matrix A
+//' @param u U vector; Equivalent to F in indLin
+//' @param v Initial condition vector
+//' @param anorm absoulte normalization value for round-off error.
+//' @param tol Tolerance
+//' @param maxsteps Maximum number of steps
+//' 
+//' @author Roger B. Sidje, Wenping Wang, Matthew Fidler
+//' 
+arma::mat phiv3(double t, const arma::mat& A, const arma::vec& u,
+		const arma::vec& v,
+		double anorm, double tol, int m,
+		int type){
+  int n = A.n_rows, mxrej=100, mb=m, k1=3;
+  double btol=1.0e-7, gamma=0.9, delta=1.2;
+  double t_out=fabs(t), t_new=0, t_now=0, s_error=0;
+  double eps=std::numeric_limits<double>::epsilon();
+  double rndoff=anorm*eps; if(tol < eps) tol = sqrt(eps);
+  int mh=m+3;
+  arma::mat H0(mh, mh, arma::fill::zeros);
+  arma::mat w = v;
+  double xm=1.0/double(m);
+  arma::mat F, H, Ht;
+  arma::mat V(n, m+1);
+  arma::mat p;
+  arma::mat av;
+  double beta;
+  double err_loc, avnorm=0;
+  double s;
+  double h=0;
+  int i, j, mx;
+  
+  for (int istep = 0; t_now < t_out; ++istep) {
+    H = H0;
+    V.col(0) = A*w + u;
+    beta = norm(V.col(0));
+    if (beta==0) break;
+    V.col(0) /= beta;
+    if (istep == 0) {
+       double fact = (pow((m+1)/M_E, m+1))*sqrt(M_2PI*(m+1));
+       t_new = (1.0/anorm)*pow((fact*tol)/(4*beta*anorm),xm);
+       s = pow(10.0,floor(log10(t_new))-1.0);
+       t_new = ceil(t_new/s)*s;
+    }
+    double t_step = fmin( t_out-t_now,t_new );
+    for (j = 0; j < m; ++j) {
+       p = A*V.col(j);
+       for (i = 0; i <= j; ++i) {
+	 H(i,j) = arma::dot(V.col(i),p.col(0));
+	 p -= H(i,j)*V.col(i);
+       }
+       s = norm(p);
+       if (s < btol) {
+          k1 = 0;
+          mb = j;
+          t_step = t_out-t_now;
+          break;
+       }
+       H(j+1,j) = s;
+       V.col(j+1) = p/s;
+    }
+    H(0,mb) = 1;
+    if (k1 != 0) {
+       H(m,m+1) = 1; H(m+1,m+2) = 1;
+       h = H(m,m-1); H(m,m-1) = 0;
+       av=A*V.col(m);
+       avnorm = norm(av);
+    }
+    for (int irej = 0; irej < mxrej; ++irej) {
+      //cout << t_step << endl;
+      mx = mb + std::max(1,k1);
+      Ht = t_step*H.submat(0, 0, mx-1, mx-1);
+      F = matrixExp(Ht, type);
+      if (k1 == 0) {
+	err_loc = btol;
+	break;
+      } else {
+	F(m  ,m) = h*F(m-1,m+1);
+	F(m+1,m) = h*F(m-1,m+2);
+	double p1 = fabs( beta*F(m,  m));
+	double p2 = fabs( beta*F(m+1,m) * avnorm);
+	if (p1 > 10.0*p2) {
+	  err_loc = p2;
+	  xm = 1.0/double(m+1);
+	} else if (p1 > p2) {
+	  err_loc = (p1*p2)/(p1-p2);
+	  xm = 1.0/double(m+1);
+	} else {
+	  err_loc = p1;
+	  xm = 1.0/double(m);
+	}
+      }
+      if (err_loc <= delta*t_step*tol)
+	break;
+      else {
+	t_step = gamma * t_step * pow(t_step*tol/err_loc, xm);
+	double s = pow(10.0, floor(log10(t_step))-1.0);
+	t_step = ceil(t_step/s) * s;
+	if (irej == mxrej){
+	  // FIXME must reject the point and put NA in...
+	  stop("The requested tolerance is too high.\n");
+	}
+      }
+    }
+    mx = mb + std::max( 0, k1-2 );
+    if (mx > 0){
+      w += V.submat(0, 0, n-1, mx-1)*(beta*F.submat(0, mb, mx-1, mb));
+    }
+    t_now += t_step;
+    t_new = gamma * t_step * pow(t_step*tol/err_loc, xm);
+    s = pow(10.0, floor(log10(t_new))-1.0);
+    t_new = ceil(t_new/s) * s;
+
+    err_loc = fmax(err_loc, rndoff);
+    s_error += err_loc;
+  }
+  return w;
+}
+
 bool expm_assign=false;
 SEXP expm_s;
 
@@ -52,9 +185,8 @@ SEXP expm_s;
 //' @param maxsteps Maximum number of steps
 //' @param doIndLin Integer to say if inductive linearization is needed.
 //' @param locf Do LOCF interpolation for covariates
-//' @param perterbMatrix The number of iterations that are performed
-//'     before perterbing the matrix.
-//' @param delta The delta added to the matrix to make it invertible
+//' @param m Expokits m parameter
+//' @param tol Expokit's tol parameter
 //' @param cache
 //'    0 = no Cache
 //'    When doIndLin == 0, cache > 0 = nInf-1
@@ -67,14 +199,12 @@ SEXP expm_s;
 //' 
 //'   -1 = Maximum number of iterations reached when doing
 //'        inductive linearization
-//' 
-//'   -2 = Maximum number of iterations reached when trying to
-//'        make the matrix invertable.
 extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
 		      double *InfusionRate_, int *on_, double *rtol, double *atol,
 		      int maxsteps, int doIndLin, int locf,
-		      int perterbMatrix, double delta,
-		      double *rwork, int *cache, t_ME ME, t_IndF IndF){
+		      int phiM, double phiTol, double phiAnorm,
+		      double *rwork, int *cache, int type,
+		      t_ME ME, t_IndF  IndF){
   std::ostream nullstream(0);
   arma::set_cerr_stream(nullstream);
   double *ptr = &rwork[0];
@@ -130,6 +260,8 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
     } else {
       arma::mat mout(ptr, neq+nInf, neq+nInf, false, false);
       ptr += (neq+nInf)*(neq+nInf);
+      arma::vec ypout(ptr, neq+nInf, false, false);
+      ptr += (neq+nInf);
       if (*cache == 0){
 	mout.zeros();
 	for (int j = neq; j--;){
@@ -138,84 +270,44 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
 	for (int j = nInf; j--;){
 	  std::copy(m0extra.colptr(j),m0extra.colptr(j)+neq, mout.colptr(neq+j));
 	}
+	std::copy(yp.begin(),yp.end(),ypout.begin());
+	std::copy(ypExtra.begin(),ypExtra.end(), ypout.begin()+neq);
       }
-      arma::vec ypout(ptr, neq+nInf, false, false);
-      ptr += (neq+nInf);
       arma::mat expAT(ptr, neq+nInf, neq+nInf, false, false);
       ptr += (neq+nInf)*(neq+nInf);
       // Unfortunately the tf-tp may change so we cann't cache this.
-      expAT = arma::expmat(mout*(tf-tp));
+      expAT = mout*(tf-tp);
+      expAT = matrixExp(expAT, type);
       arma::vec meSol(ptr, neq+nInf, false, false);
+      meSol = expAT*ypout;
       std::copy(meSol.begin(), meSol.begin()+neq, yp_);
       return 1;
     }
   } else {
     // In this case the inital matrix should not be expanded. The
     // infusions are put into the F function
-    //
-    // invA = neq*neq
-    // m0 = neq*neq
-    // E = neq*neq
-    // expAT = neq*neq;
-    // facM = neq*neq
+    const arma::vec InfusionRate(InfusionRate_, neq, false, false);
+
+    const arma::vec yp(yp_, neq, false, false);
     
-    // extraF = neq
-    // expATy0 = neq
-    // f = neq
-    // neq*3+ 5*neq^2
-    arma::mat invA(ptr, neq, neq, false, false);
-    ptr += neq*neq;
-    bool canInvert = inv(invA, m0);
-    arma::vec extraF(ptr, neq, false, false);
+    arma::vec u(ptr, neq, false, false);
     ptr += neq;
-    arma::mat E(ptr, neq, neq, false, false);
-    ptr += neq*neq;
-    int invCount=0;
-    if (*cache == 0){
-      extraF.zeros();
-      E.eye();
-      while (!canInvert){
-	// Add to the diagonal until you can invert
-	//
-	// At the same remove from the extraF so you can still use the
-	// inductive linearization approach.
-	m0 = m0 + delta*E;
-	extraF = extraF-delta;
-	canInvert = inv(invA, m0);
-	invCount++;
-	if (invCount > maxsteps){
-	  std::fill_n(&yp_[0], neq, NA_REAL);
-	  return -2;
-	}
-      }
-    }
-    arma::mat expAT(ptr, neq, neq, false, false);
-    ptr += neq*neq;
-    expAT = arma::expmat(m0*(tf-tp));
-    const arma::vec y0(yp_, neq);
-    arma::mat expATy0(ptr, neq, neq, false, false);
-    ptr+= neq;
-    expATy0 = expAT*y0;
-    arma::mat facM(ptr, neq, neq, false, false);
-    ptr += neq*neq;
-    facM = (expAT-E)*invA;
-    arma::vec f(ptr, neq, false, false);
-    ptr+= neq;
-    double *fptr = f.memptr();
+    arma::vec w(ptr, neq, false, false);
+    ptr += neq;
+    arma::vec wLast(ptr, neq, false, false);
+    ptr += neq;
+    double *fptr = u.memptr();
     // For LOCF tp for NOCB tf
-    IndF(cSub, tcov, tf, fptr, yp_, InfusionRate_, extraF.memptr());
-    arma::vec yLast(ptr, neq, false, false);
-    ptr += neq;
-    yLast = expATy0+facM*f;
-    IndF(cSub, tcov, tf, fptr, yLast.memptr(), InfusionRate_, extraF.memptr());
-    arma::vec yCur(ptr, neq, false, false);
-    ptr += neq;
-    yCur = expATy0+facM*f;
-    bool converge=false;
+    IndF(cSub, tcov, tf, fptr, yp_, InfusionRate_);
+    // IndF(cSub, tcov, tf, fptr, yp_, InfusionRate_, u.memptr())
+    wLast = phiv3((tf-tp), m0, u, yp, phiAnorm, phiTol, phiM, type);
+    IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_);
+    w=phiv3((tf-tp), m0, u, yp, phiAnorm, phiTol, phiM, type);
+    bool converge = false;
     for (int i = 0; i < maxsteps; ++i){
       converge=true;
       for (int j=neq;j--;){
-	if (fabs(yCur[j]-yLast[j]) >= rtol[j]*fabs(yCur[j])+atol[j]){
+	if (fabs(w[j]-wLast[j]) >= rtol[j]*fabs(w[j])+atol[j]){
 	  converge = false;
 	  break;
 	}
@@ -223,36 +315,16 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
       if (converge){
 	break;
       }
-      if (i % perterbMatrix == 0){
-	// Reset matricies
-	m0 = m0 + delta*E;
-	extraF = extraF-delta;
-	canInvert = inv(invA, m0);
-	while (!canInvert){
-	  m0 = m0 + delta*E;
-	  extraF = extraF-delta;
-	  canInvert = inv(invA, m0);
-	  invCount++;
-	  if (invCount > maxsteps){
-	    std::fill_n(&yp_[0], neq, NA_REAL);
-	    return -2;
-	  }
-	}
-	expAT=arma::expmat(m0*(tf-tp));
-	expATy0 = expAT*y0;
-	facM = (expAT-E)*invA;
-      }
-      yLast = yCur;
-      IndF(cSub, tcov, tf, fptr, yLast.memptr(), InfusionRate_, extraF.memptr());
-      yCur = expATy0+facM*f;
-      *cache = 1;
+      wLast = w;
+      IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_);
+      w=phiv3((tf-tp), m0, u, yp, phiAnorm, phiTol, phiM, type);
     }
     if (!converge){
-      std::copy(yCur.begin(), yCur.end(), &yp_[0]);
+      std::copy(w.begin(), w.end(), &yp_[0]);
       // std::fill_n(&yp_[0], neq, NA_REAL);
       return 1;
     } else {
-      std::copy(yCur.begin(), yCur.end(), &yp_[0]);
+      std::copy(w.begin(), w.end(), &yp_[0]);
       return 1;
     }
   }
