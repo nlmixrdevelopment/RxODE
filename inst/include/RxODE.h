@@ -75,6 +75,7 @@ typedef struct {
   double indLinPhiAnorm;
   int indLinPhiM;
   int indLinMatExpType;
+  int indLinMatExpOrder;
   int nDisplayProgress;
   int ncoresRV;
   int isChol;

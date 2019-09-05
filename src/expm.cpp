@@ -35,10 +35,23 @@ std::string rxIndLin_(CharacterVector states){
   return ret;
 }
 
-static inline arma::mat matrixExp(arma::mat& mat, int& type){
+extern "C" void F77_NAME(matexprbs)(int *ideg, int *m, double *t, double *H, int *iflag);
+
+static inline arma::mat matrixExp(arma::mat& H, double t, int& type,
+				  int& order){
   switch(type){
+  case 2:
+    {
+      int iflag=0;
+      int m = H.n_rows;
+      // FIXME C++ implementation for threading.
+      F77_CALL(matexprbs)(&order, &m, &t, &H[0], &iflag);
+      return H;
+    }
+    break;
   default:
-    return (arma::expmat(mat));
+    arma::mat mat2 = t*H;
+    return (arma::expmat(mat2));
   }
 }
 
@@ -55,13 +68,16 @@ static inline arma::mat matrixExp(arma::mat& mat, int& type){
 //' @param anorm absoulte normalization value for round-off error.
 //' @param tol Tolerance
 //' @param maxsteps Maximum number of steps
+//'
+//' Converted from fortran by Wenping and then converted to armadillo
+//'   by Matt
 //' 
 //' @author Roger B. Sidje, Wenping Wang, Matthew Fidler
 //' 
 arma::mat phiv3(double t, const arma::mat& A, const arma::vec& u,
 		const arma::vec& v,
 		double anorm, double tol, int m,
-		int type){
+		int type, int order){
   int n = A.n_rows, mxrej=100, mb=m, k1=3;
   double btol=1.0e-7, gamma=0.9, delta=1.2;
   double t_out=fabs(t), t_new=0, t_now=0, s_error=0;
@@ -71,7 +87,7 @@ arma::mat phiv3(double t, const arma::mat& A, const arma::vec& u,
   arma::mat H0(mh, mh, arma::fill::zeros);
   arma::mat w = v;
   double xm=1.0/double(m);
-  arma::mat F, H, Ht;
+  arma::mat F, H;
   arma::mat V(n, m+1);
   arma::mat p;
   arma::mat av;
@@ -120,8 +136,8 @@ arma::mat phiv3(double t, const arma::mat& A, const arma::vec& u,
     for (int irej = 0; irej < mxrej; ++irej) {
       //cout << t_step << endl;
       mx = mb + std::max(1,k1);
-      Ht = t_step*H.submat(0, 0, mx-1, mx-1);
-      F = matrixExp(Ht, type);
+      arma::mat Ht = H.submat(0, 0, mx-1, mx-1);
+      F = matrixExp(Ht, t_step,type, order);
       if (k1 == 0) {
 	err_loc = btol;
 	break;
@@ -174,19 +190,12 @@ SEXP expm_s;
 //' Inductive linearization solver
 //'
 //' @param cSub = Current subject number
-//' @param neq - Number of equations
+//' @param op - RxODE solving options
 //' @param tp - Prior time point/time zeor
 //' @param yp - Prior state;  vector size = neq; Final state is updated here
 //' @param tf - Final Time
 //' @param InfusionRate = Rates of each comparment;  vector size = neq
 //' @param on Indicator for if the compartment is "on"
-//' @param rtol - rtol based on cmt#; vector size = neq
-//' @param atol - atol based on cmt#
-//' @param maxsteps Maximum number of steps
-//' @param doIndLin Integer to say if inductive linearization is needed.
-//' @param locf Do LOCF interpolation for covariates
-//' @param m Expokits m parameter
-//' @param tol Expokit's tol parameter
 //' @param cache
 //'    0 = no Cache
 //'    When doIndLin == 0, cache > 0 = nInf-1
@@ -199,12 +208,21 @@ SEXP expm_s;
 //' 
 //'   -1 = Maximum number of iterations reached when doing
 //'        inductive linearization
-extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
-		      double *InfusionRate_, int *on_, double *rtol, double *atol,
-		      int maxsteps, int doIndLin, int locf,
-		      int phiM, double phiTol, double phiAnorm,
-		      double *rwork, int *cache, int type,
+extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, double tf,
+		      double *InfusionRate_, int *on_, 
+		      double *rwork, int *cache,
 		      t_ME ME, t_IndF  IndF){
+  int neq = op->neq;
+  double *rtol=op->rtol2;
+  double *atol=op->atol2;
+  int maxsteps=op->mxstep;
+  int doIndLin=op->doIndLin;
+  int locf=(op->is_locf!=2);
+  int phiM=op->indLinPhiM;
+  double phiTol=op->indLinPhiTol;
+  double phiAnorm = op->indLinPhiAnorm;
+  int type = op->indLinMatExpType;
+  int order = op->indLinMatExpOrder;
   std::ostream nullstream(0);
   arma::set_cerr_stream(nullstream);
   double *ptr = &rwork[0];
@@ -213,7 +231,8 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
   double tcov = tf;
   if (locf) tcov = tp;
   // LOCF=tp; If NOCB tp should be tf
-  if (*cache == 0) ME(cSub, tcov, m0.memptr()); // Calculate the initial A matrix based on current time/parameters
+  // Calculate the initial A matrix based on current time/parameters
+  if (*cache == 0) ME(cSub, tcov, m0.memptr()); 
   if (!doIndLin){
     // Total possible enhanced matrix is (neq+neq)x(neq+neq)
     // Total possible initial value is (neq+neq)
@@ -276,8 +295,7 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
       arma::mat expAT(ptr, neq+nInf, neq+nInf, false, false);
       ptr += (neq+nInf)*(neq+nInf);
       // Unfortunately the tf-tp may change so we cann't cache this.
-      expAT = mout*(tf-tp);
-      expAT = matrixExp(expAT, type);
+      expAT = matrixExp(expAT, (tf-tp), type, order);
       arma::vec meSol(ptr, neq+nInf, false, false);
       meSol = expAT*ypout;
       std::copy(meSol.begin(), meSol.begin()+neq, yp_);
@@ -300,9 +318,9 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
     // For LOCF tp for NOCB tf
     IndF(cSub, tcov, tf, fptr, yp_, InfusionRate_);
     // IndF(cSub, tcov, tf, fptr, yp_, InfusionRate_, u.memptr())
-    wLast = phiv3((tf-tp), m0, u, yp, phiAnorm, phiTol, phiM, type);
+    wLast = phiv3((tf-tp), m0, u, yp, phiAnorm, phiTol, phiM, type, order);
     IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_);
-    w=phiv3((tf-tp), m0, u, yp, phiAnorm, phiTol, phiM, type);
+    w=phiv3((tf-tp), m0, u, yp, phiAnorm, phiTol, phiM, type, order);
     bool converge = false;
     for (int i = 0; i < maxsteps; ++i){
       converge=true;
@@ -317,7 +335,7 @@ extern "C" int indLin(int cSub, int neq, double tp, double *yp_, double tf,
       }
       wLast = w;
       IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_);
-      w=phiv3((tf-tp), m0, u, yp, phiAnorm, phiTol, phiM, type);
+      w=phiv3((tf-tp), m0, u, yp, phiAnorm, phiTol, phiM, type, order);
     }
     if (!converge){
       std::copy(w.begin(), w.end(), &yp_[0]);

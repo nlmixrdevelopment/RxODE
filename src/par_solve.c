@@ -946,13 +946,10 @@ static char *err_msg_ls[]=
 //dummy solout fn
 void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtrn){}
 
-int indLin(int cSub, int neq, double tp, double *yp_, double tf,
-	   double *InfusionRate_, int *on_, double *rtol, double *atol,
-	   int maxsteps, int doIndLin, int locf,
-	   int phiM,
-	   double phiTol, double phiAnorm,
-	   double *rwork,
-	   int *cache, int type, t_ME ME, t_IndF IndF);
+int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, double tf,
+		      double *InfusionRate_, int *on_, 
+		      double *rwork, int *cache,
+		      t_ME ME, t_IndF  IndF);
 
 void solveSS_1(int *neq, 
 	       int *BadDose,
@@ -970,15 +967,9 @@ void solveSS_1(int *neq,
   int j=0, idid;
   switch(op->stiff){
   case 3:
-    idid = indLin(ind->id, op->neq, xp, yp, xout, ind->InfusionRate, ind->on, op->rtol2, op->atol2,
-		  op->mxstep, op->doIndLin,
-		  (op->is_locf!=2),
-		  op->indLinPhiM,
-		  op->indLinPhiTol,
-		  op->indLinPhiAnorm,
+    idid = indLin(ind->id, op, xp, yp, xout, ind->InfusionRate, ind->on, 
 		  global_rwork(4*op->neq + 8*op->neq*op->neq),
 		  &(ind->cacheME),
-		  op->indLinMatExpType,
 		  ME, IndF);
     if (idid <= 0) {
       /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
@@ -1340,14 +1331,9 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
 	op->badSolve = 1;
 	i = nx-1; // Get out of here!
       } else {
-	idid = indLin(solveid, op->neq, xp, yp, xout, ind->InfusionRate, ind->on, op->rtol2, op->atol2,
-		      op->mxstep, op->doIndLin, (op->is_locf!=2),
-		      op->indLinPhiM,
-		      op->indLinPhiTol,
-		      op->indLinPhiAnorm,
+	idid = indLin(solveid, op, xp, yp, xout, ind->InfusionRate, ind->on, 
 		      global_rwork(4*op->neq + 8*op->neq*op->neq),
 		      &(ind->cacheME),
-		      op->indLinMatExpType,
 		      ME, IndF);
 	if (idid <= 0) {
 	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
