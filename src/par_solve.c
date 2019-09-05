@@ -1289,7 +1289,7 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   double *InfusionRate;
   double *dose;
   double *ret;
-  double xout;
+  double xout, xoutp;
   int *rc;
   double *yp;
   inits = op->inits;
@@ -1311,6 +1311,7 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   x = ind->all_times;
   rc= ind->rc;
   double xp = x[0];
+  xoutp=xp;
   //--- inits the system
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
@@ -1331,10 +1332,11 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
 	op->badSolve = 1;
 	i = nx-1; // Get out of here!
       } else {
-	idid = indLin(solveid, op, xp, yp, xout, ind->InfusionRate, ind->on, 
+	idid = indLin(solveid, op, xoutp, yp, xout, ind->InfusionRate, ind->on, 
 		      global_rwork(4*op->neq + 8*op->neq*op->neq),
 		      &(ind->cacheME),
 		      ME, IndF);
+	xoutp=xout;
 	if (idid <= 0) {
 	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
 	  *rc = idid;
@@ -2124,7 +2126,7 @@ void ind_solve(rx_solve *rx, unsigned int cid,
     switch (op->stiff){
     case 3:
       ind_indLin(rx, cid, u_inis, ME, IndF);
-      /* ind_solve(rx, cid, ); */
+      break;
     case 2: 
       ind_liblsoda(rx, cid, dydt_lls, u_inis);
       break;
@@ -2146,6 +2148,7 @@ inline void par_solve(rx_solve *rx){
     switch(op->stiff){
     case 3:
       par_indLin(rx);
+      break;
     case 2:
       par_liblsoda(rx);
       break;
