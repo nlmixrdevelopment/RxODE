@@ -3,6 +3,7 @@
     .tmp <- rxFromSE(.tmp); ## Convert SE->RxODE; Changes things like X^1 -> X
     .ret <- eval(parse(text=paste0("rxSplitPlusQ(quote(", .tmp, "))")));
     .lst <- list()
+    .fullIndLin <- FALSE
     ## This adds the x to the name environment in the .lst list above.
     .addIt <- function(x, name){
         .cur <- .lst
@@ -51,11 +52,18 @@
                 any(sapply(.pars, function(y){any(y == states)}))
             }))
             if (.dep){
+                .fullIndLin <<- TRUE
                 .expr <- .multCollapse(.mult)
                 .addIt(.expr, "_rxF");
             } else {
-                .expr <- .multCollapse(.rest)
-                .addIt(.expr, .state);
+                if (length(.rest) == 0){
+                    .addIt("1", .state);
+                } else if (length(.rest) == 1 && .rest[1] == "-1"){
+                    .addIt("-1", .state);
+                } else {
+                    .expr <- .multCollapse(.rest)
+                    .addIt(.expr, .state);
+                }
             }
         } else {
             ## Something else is here.
@@ -63,10 +71,10 @@
             .addIt(.expr, "_rxF")
         }
     })
-    sapply(c(states, "_rxF"), function(x){
+    c(sapply(c(states, "_rxF"), function(x){
         if (any(names(.lst) == x)) return(gsub("[+][-]", "-", paste(.lst[[x]], collapse="+")))
         return("0");
-    })
+    }), paste0(.fullIndLin))
 }
 
 ##' This creates the inductive linearization pieces to integrate into
@@ -82,7 +90,7 @@
 ##'
 ##' \item Matrix Exponential initial matrix A for exp(t*A)
 ##'
-##' \item Inductive Linerization vecto for F
+##' \item Inductive Linerization vector for F
 ##'
 ##' \item Extra RxODE code for model generation
 ##'
@@ -98,13 +106,15 @@
     .ret <- eval(parse(text=rxIndLin_(.states)))
     .ret0 <- .ret[.states, .states, drop = FALSE]
     .ret1 <- .ret[, "_rxF", drop = FALSE]
+    .fullIndLin <- any(.ret[, "indLin"] == "TRUE")
     .code <- paste0("_rxM=", as.vector(.ret0), ";");
     if (!all(.ret1 == "0")){
         .code <- c(.code, paste("_rxF=", as.vector(.ret1)))
-        .codeSave <- c("SEXP matLst = PROTECT(allocVector(VECSXP, 2));pro++;",
-                       "SEXP matNme = PROTECT(allocVector(STRSXP, 2));pro++;",
+        .codeSave <- c("SEXP matLst = PROTECT(allocVector(VECSXP, 3));pro++;",
+                       "SEXP matNme = PROTECT(allocVector(STRSXP, 3));pro++;",
                        "SET_STRING_ELT(matNme, 0, mkChar(\"A\"));",
                        "SET_STRING_ELT(matNme, 1, mkChar(\"f\"));",
+                       "SET_STRING_ELT(matNme, 2, mkChar(\"fullIndLin\"));",
                        "setAttrib(matLst, R_NamesSymbol, matNme);",
                        ## mat0 setup the nstate x nstate matrix for
                        ## inductive linearization
@@ -129,6 +139,9 @@
                        "setAttrib(matF,R_DimNamesSymbol, matFn);",
                        "SET_VECTOR_ELT(matLst, 0, mat0);",
                        "SET_VECTOR_ELT(matLst, 1, matF);",
+                       "SEXP fullIndLin = PROTECT(allocVector(LGLSXP, 1)); pro++;",
+                       paste0("LOGICAL(fullIndLin)[0] = ", ifelse(.fullIndLin, "1", "0"), ";"),
+                       "SET_VECTOR_ELT(matLst, 2, fullIndLin);",
                        "SET_VECTOR_ELT(lst,  18, matLst);"
                        );
     } else {
@@ -154,6 +167,7 @@
     ## Generate extra RxODE code for generating right functions.
     .code <- paste(.code, collapse="\n");
     ## Generate C code for .ret0 and .ret1
-    return(list(.ret0, .ret1, .code,
-                paste(.codeSave, collapse="\n")));
+    .ret <- list(.ret0, .ret1, .code,
+                 paste(.codeSave, collapse="\n"));
+    return(.ret);
 }

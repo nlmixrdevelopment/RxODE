@@ -35,9 +35,10 @@ rxControl <- function(scale = NULL,
                       keep=NULL,
                       indLinPhiTol=1e-7,
                       indLinPhiM=1,
-                      indLinMatExpType=2L,## 1=arma::expomat; 2=matexprbs
-                      indLinPhiAnorm=2,
-                      indLinMatExpOrder=8L){
+                      indLinMatExpType=2L,## 1=arma::expomat; 2=matexprbs; 3=
+                      indLinMatExpOrder=6L,
+                      indLinDelta=2,
+                      indLinPerterbMatrix=100L){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -171,8 +172,9 @@ rxControl <- function(scale = NULL,
                  indLinPhiM=indLinPhiM,
                  indLinPhiTol=indLinPhiTol,
                  indLinMatExpType=as.integer(indLinMatExpType),
-                 indLinPhiAnorm=indLinPhiAnorm,
-                 indLinMatExpOrder=as.integer(indLinMatExpOrder));
+                 indLinMatExpOrder=as.integer(indLinMatExpOrder),
+                 indLinDelta=indLinDelta,
+                 indLinPerterbMatrix=indLinPerterbMatrix);
     return(.ret)
 }
 

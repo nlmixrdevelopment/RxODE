@@ -2,6 +2,30 @@ context("Test inductive linearization")
 
 test_that("Matrix exponential alone works", {
 
+    ## Case 1 ME alone from wikipedia
+    mod <- RxODE({
+        d/dt(x) = 2 * x - y + z
+        d/dt(y) = 3 * y - 1 * z
+        d/dt(z) = 2 * x + y + 3 * z
+        x(0) = 0.1
+        y(0) = 0.1
+        z(0) = 0.1
+    }, indLin=TRUE)
+
+    ## Case 2 ME alone with inhomogenous systems
+    m <- rxSolve(mod, et(seq(0, 24, length.out=50)), method="indLin")
+
+    mod <- RxODE({
+        d/dt(x) = 2 * x - y + z + exp(2 * t)
+        d/dt(y) = 3 * y - 1 * z
+        d/dt(z) = 2 * x + y + 3 * z + exp(2 * t)
+        x(0) = 0.1
+        y(0) = 0.1
+        z(0) = 0.1
+    }, indLin=TRUE)
+
+    m <- rxSolve(mod, et(seq(0, 24, length.out=50)), method="indLin")
+
     mod <- RxODE("
 a = 6
 b = 0.6
@@ -19,7 +43,19 @@ d/dt(blood)     = a*intestine - b*blood
 
     pk2 <- rxSolve(mod,et, method="liblsoda");
 
-    expect_equal(as.data.frame(pk), as.data.frame(pk2))
+    expect_equal(as.data.frame(pk), as.data.frame(pk2), tol=1e-5)
+
+    plot(microbenchmark::microbenchmark(rxSolve(mod,et, method="indLin",indLinMatExpType=1L),rxSolve(mod,et, method="indLin",indLinMatExpType=2L), rxSolve(mod,et, method="indLin",indLinMatExpType=3L), rxSolve(mod,et, method="lsoda")), log="y")
+
+    et2 <- eventTable(time.units="days")
+    et2$add.sampling(seq(0,10,by=1 / 24))
+    et2$add.dosing(dose=2,start.time=0,
+                   nbr.doses=10,dosing.interval=1)
+
+    pk <- rxSolve(mod,et2, method="indLin");
+
+    pk2 <- rxSolve(mod,et2, method="liblsoda");
+
 
     mmModel <- RxODE({
         ka = 0.2
@@ -39,6 +75,13 @@ d/dt(blood)     = a*intestine - b*blood
     pk <- rxSolve(mmModel,et, method="indLin");
 
     pk2 <- rxSolve(mmModel,et, method="liblsoda");
+
+    gridExtra::grid.arrange(plot(pk), plot(pk2))
+
+    tmp <- RxODE({
+        d/dt(y)  = dy
+        d/dt(dy) = mu*(1-y^2)*dy - y
+    })
 
     expect_equal(as.data.frame(pk), as.data.frame(pk2))
 

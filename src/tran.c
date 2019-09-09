@@ -2612,7 +2612,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
   }
 }
 
-void parseFree(){
+void parseFree(int last){
   sFree(&sb);
   sFree(&sbDt);
   sFree(&sbt);
@@ -2636,10 +2636,14 @@ void parseFree(){
   Free(tb.dy);
   Free(tb.sdfdy);
   freeP();
+  if (last){
+    Free(model_prefix);
+    Free(extra_indLin);
+  }
 }
 void reset (){
   // Reset sb/sbt string buffers
-  parseFree();
+  parseFree(0);
   sIni(&sb);
   sIni(&sbDt);
   sIni(&sbt);
@@ -2849,16 +2853,17 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   rx_podo = 0;
   /* orig = r_dup_str(CHAR(STRING_ELT(orig_file,0)),0); */
   in = r_dup_str(CHAR(STRING_ELT(parse_file,0)),0);
-  
   if (isString(prefix) && length(prefix) == 1){
-    model_prefix = r_dup_str(CHAR(STRING_ELT(prefix,0)),0);
+    Free(model_prefix);
+    model_prefix = (char*)rc_dup_str(CHAR(STRING_ELT(prefix,0)),0);
   } else {
     freeP();
     error("model prefix must be specified");
   }
 
   if (isString(inLinExtra) && length(inLinExtra) == 1){
-    extra_indLin = r_dup_str(CHAR(STRING_ELT(inLinExtra,0)),0);
+    Free(extra_indLin);
+    extra_indLin = (char*)rc_dup_str(CHAR(STRING_ELT(inLinExtra,0)),0);
   } else {
     freeP();
     error("Extra inductive linearization model variables must be specified");

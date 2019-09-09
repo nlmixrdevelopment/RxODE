@@ -966,8 +966,23 @@ print.RxODE <- function(x, ...){
         .dll <- substr(.dll, 1, nchar(.dll) - nchar(.Platform$dynlib.ext) - 1)
     }
     cat(paste0(crayon::bold("RxODE "), as.vector(RxODE::rxVersion()["version"]), " model named ",.pkg,
-                   crayon::yellow$bold(.dll), .new, " model (", .ico, .msg,
-                   .msg2, ")."), "\n")
+               crayon::yellow$bold(.dll), .new, " model (", .ico, .msg,
+               .msg2, ")."), "\n")
+    .indLin <- rxModelVars(x)$indLin;
+    if (length(.indLin) > 0){
+        cat(crayon::bold("  indLin: "));
+        if (length(.indLin) != 3){
+            cat(crayon::yellow("homogenous matrix exponential"));
+        } else {
+            if (.indLin[[3]]){
+                cat(crayon::yellow("full matrix exponential+inductive linearization"))
+            } else {
+                cat(paste0(crayon::red("in"), crayon::yellow("homogenous matrix exponential")));
+            }
+        }
+
+        cat("\n");
+    }
     if (!any(names(list(...)) == "rxSuppress") && .valid){
         .cur <- RxODE::rxState(x);
         if (length(.cur) > 0)

@@ -2430,7 +2430,7 @@ void updateSolveEnvPost(Environment e){
 extern "C" void rxOptionsFree();
 extern "C" void rxOptionsIni();
 extern "C" void rxOptionsIniEnsure(int mx);
-extern "C" void parseFree();
+extern "C" void parseFree(int last);
 extern "C" void rxClearFuns();
 //' Free the C solving/parsing information.
 //'
@@ -2444,7 +2444,7 @@ LogicalVector rxSolveFree(){
   rxOptionsFree();
   rxOptionsIni();
   rxOptionsIniData();
-  parseFree();
+  parseFree(0);
   rxClearFuns();
   return LogicalVector::create(true);
 }
@@ -3726,11 +3726,16 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->indLinPhiTol=as<double>(rxControl["indLinPhiTol"]);
     op->indLinMatExpType=as<int>(rxControl["indLinMatExpType"]);
     op->indLinPhiM = as<int>(rxControl["indLinPhiM"]);
-    op->indLinPhiAnorm = as<int>(rxControl["indLinPhiAnorm"]);
     op->indLinMatExpOrder=as<int>(rxControl["indLinMatExpOrder"]);
     List indLin = rxSolveDat.mv["indLin"];
-    op->doIndLin= (indLin.size() == 2);
-    
+    op->doIndLin=0;
+    if (indLin.size() == 3){
+      if (as<bool>(indLin[2])){
+	op->doIndLin=2;
+      } else {
+	op->doIndLin=1;
+      }
+    }
     gatol2Setup(op->neq);
     grtol2Setup(op->neq);
     std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);

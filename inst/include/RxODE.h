@@ -72,7 +72,6 @@ typedef struct {
   double *rtol2;
   double *atol2;
   double indLinPhiTol;
-  double indLinPhiAnorm;
   int indLinPhiM;
   int indLinMatExpType;
   int indLinMatExpOrder;

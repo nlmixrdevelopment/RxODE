@@ -30,16 +30,31 @@ std::string rxIndLin_(CharacterVector states){
     ret += ".rxIndLinLine(.env$rx__d_dt_"+symengineRes(as<std::string>(states[i]))+ "__" + ",.states),";
     n += "\"" + states[i] +"\",";
   }
-  ret += "NULL)," + std::to_string(states.size()) + "," + std::to_string(states.size()+1) +
-    ",TRUE,list(" + n +"NULL)," + n + "\"_rxF\")))";
+  ret += "NULL)," + std::to_string(states.size()) + "," + std::to_string(states.size()+2) +
+    ",TRUE,list(" + n +"NULL)," + n + "\"_rxF\",\"indLin\")))";
   return ret;
 }
 
 extern "C" void F77_NAME(matexprbs)(int *ideg, int *m, double *t, double *H, int *iflag);
 
+extern "C" void matexp_MH09(double *x, int n, const int p, double *ret);
+
 static inline arma::mat matrixExp(arma::mat& H, double t, int& type,
 				  int& order){
   switch(type){
+  case 3:
+    {
+    int p = order;
+    if (p > 13) p = 13;
+    int n = H.n_rows;
+    arma::mat Hin = H*t;
+    arma::mat Hout(Hin.n_rows,Hin.n_cols);
+    double *x = Hin.memptr();
+    double *ret = Hout.memptr();
+    matexp_MH09(x, n, p, ret);
+    return Hout;
+    break;
+  }
   case 2:
     {
       int iflag=0;
@@ -54,133 +69,133 @@ static inline arma::mat matrixExp(arma::mat& H, double t, int& type,
     return (arma::expmat(mat2));
   }
 }
+// extern "C" typedef void (*matvec_t) (double *, double *, double *, int *);
 
-//' phiv3
-//'
-//' Approximates w = exp(t*A)*v + t*phi(t*A)*u using Krylov
-//' subspace projection, where phi(z) = (exp(z)-1)/z and w is
-//' the solution of the nonhomogeneous ODE w' = Aw + u, w(0) = v.
-//' 
-//' @param t Solve time
-//' @param A Exponential matrix A
-//' @param u U vector; Equivalent to F in indLin
-//' @param v Initial condition vector
-//' @param anorm absoulte normalization value for round-off error.
-//' @param tol Tolerance
-//' @param maxsteps Maximum number of steps
-//'
-//' Converted from fortran by Wenping and then converted to armadillo
-//'   by Matt
-//' 
-//' @author Roger B. Sidje, Wenping Wang, Matthew Fidler
-//' 
-arma::mat phiv3(double t, const arma::mat& A, const arma::vec& u,
-		const arma::vec& v,
-		double anorm, double tol, int m,
-		int type, int order){
-  int n = A.n_rows, mxrej=100, mb=m, k1=3;
-  double btol=1.0e-7, gamma=0.9, delta=1.2;
-  double t_out=fabs(t), t_new=0, t_now=0, s_error=0;
-  double eps=std::numeric_limits<double>::epsilon();
-  double rndoff=anorm*eps; if(tol < eps) tol = sqrt(eps);
-  int mh=m+3;
-  arma::mat H0(mh, mh, arma::fill::zeros);
-  arma::mat w = v;
-  double xm=1.0/double(m);
-  arma::mat F, H;
-  arma::mat V(n, m+1);
-  arma::mat p;
-  arma::mat av;
-  double beta;
-  double err_loc, avnorm=0;
-  double s;
-  double h=0;
-  int i, j, mx;
-  
-  for (int istep = 0; t_now < t_out; ++istep) {
-    H = H0;
-    V.col(0) = A*w + u;
+// extern "C" typedef void (*DGPADM_t)(int *ideg, int *mx, double *t,
+// 				    double *, int *mh, double *,
+// 				    int *lfree, int *iwsp, int *iexph,
+// 				    int *ns, int *iflag, int *type);
+
+// extern "C" void F77_NAME(DSPHIV)(int *n, int *m, double *t,
+// 				 double *u, double *v, double *w,
+// 				 double *tol, double *anorm,
+// 				 double *wsp, int *lwsp,
+// 				 int *iwsp, int *liwsp, matvec_t,
+// 				 int *iflag, double *A, DGPADM_t,
+// 				 int *type, int *ideg, int *mxstep);
+
+arma::vec phiv(double t, arma::mat& A, arma::vec& u,
+	       arma::vec& v, rx_solving_options *op){
+  double tol = op->indLinPhiTol;
+  int m = op->indLinPhiM;
+  int order = op->indLinMatExpOrder;
+  int type = op->indLinMatExpType;
+  int n = A.n_rows;
+  if (m <= 0) m = std::min(n, 30);
+  double anorm = arma::norm(A, "inf");
+  int mxrej = 10;  double btol  = 1.0e-7; 
+  double gamma = 0.9; double delta = 1.2; 
+  int mb    = m; double t_out   = fabs(t);
+  int istep = 0; double t_new   = 0;
+  double t_now = 0; double s_error = 0;
+  double rndoff= anorm*DOUBLE_EPS;
+  double sgn = (0.0 < t) - (t > 0.0);
+  int k1 = 3, ireject = 0, mx=0;
+  double xm = 1.0/m; 
+  arma::vec w = v;
+  arma::mat V, H, F, tmp;
+  arma::vec p;
+  double beta=0, fact=0, s=0, t_step=0, h=0, avnorm=0, err_loc=0, p1, p2;
+  while (t_now < t_out){
+    V = arma::mat(n, m+1, arma::fill::zeros);
+    H = arma::mat(m+3, m+3, arma::fill::zeros);
+    V.col(0) = A*w+u;
     beta = norm(V.col(0));
-    if (beta==0) break;
     V.col(0) /= beta;
-    if (istep == 0) {
-       double fact = (pow((m+1)/M_E, m+1))*sqrt(M_2PI*(m+1));
-       t_new = (1.0/anorm)*pow((fact*tol)/(4*beta*anorm),xm);
-       s = pow(10.0,floor(log10(t_new))-1.0);
-       t_new = ceil(t_new/s)*s;
+    if (istep == 0){
+      fact = R_pow_di((m+1)/M_E,m+1)*sqrt(M_2PI*(m+1));
+      t_new = (1/anorm)*pow((fact*tol)/(4*beta*anorm),xm);
+      s = R_pow_di(10,(floor(log10(t_new))-1));
+      t_new = ceil(t_new/s)*s; 
     }
-    double t_step = fmin( t_out-t_now,t_new );
-    for (j = 0; j < m; ++j) {
-       p = A*V.col(j);
-       for (i = 0; i <= j; ++i) {
-	 H(i,j) = arma::dot(V.col(i),p.col(0));
-	 p -= H(i,j)*V.col(i);
-       }
-       s = norm(p);
-       if (s < btol) {
-          k1 = 0;
-          mb = j;
-          t_step = t_out-t_now;
-          break;
-       }
-       H(j+1,j) = s;
-       V.col(j+1) = p/s;
+    istep++;
+    t_step = std::min( t_out-t_now,t_new );
+    for (int j = 0; j < m; ++j){
+      p = A*V.col(j);
+      for (int i = 0; i < j; ++i){
+	tmp = V.col(i).t()*p;
+	H(i,j) = tmp(0,0);
+	p = p-H(i,j)*V.col(i);
+      }
+      s = norm(p); 
+      if (s < btol){
+	k1 = 0;
+	mb = j;
+	t_step = t_out-t_now;
+	break;
+      }
+      H(j+1,j) = s;
+      V.col(j+1) = (1/s)*p;
     }
-    H(0,mb) = 1;
-    if (k1 != 0) {
-       H(m,m+1) = 1; H(m+1,m+2) = 1;
-       h = H(m,m-1); H(m,m-1) = 0;
-       av=A*V.col(m);
-       avnorm = norm(av);
+    H(0,mb) = 1; 
+    if (k1 != 0){
+      H(m,m+1) = 1;
+      H(m+1,m+2) = 1;
+      h = H(m,m-1);
+      H(m,m-1) = 0;
+      avnorm = norm(A*V.col(m-1)); 
     }
-    for (int irej = 0; irej < mxrej; ++irej) {
-      //cout << t_step << endl;
+    ireject = 0;
+    while(ireject <= mxrej){
       mx = mb + std::max(1,k1);
-      arma::mat Ht = H.submat(0, 0, mx-1, mx-1);
-      F = matrixExp(Ht, t_step,type, order);
-      if (k1 == 0) {
-	err_loc = btol;
+      F = H(arma::span(0,mx-1),arma::span(0,mx-1));
+      F = matrixExp(F, sgn*t_step, type, order);
+      if (k1 == 0){
+	err_loc = btol; 
 	break;
       } else {
-	F(m  ,m) = h*F(m-1,m+1);
+	F(m,m) = h*F(m-1,m+1);
 	F(m+1,m) = h*F(m-1,m+2);
-	double p1 = fabs( beta*F(m,  m));
-	double p2 = fabs( beta*F(m+1,m) * avnorm);
-	if (p1 > 10.0*p2) {
+	p1 = fabs( beta*F(m,m) );
+	p2 = fabs( beta*F(m+1,m) * avnorm );
+	if (p1 > 10*p2){
 	  err_loc = p2;
-	  xm = 1.0/double(m+1);
-	} else if (p1 > p2) {
+	  xm = 1.0/m;
+	} else if (p1 > p2){
 	  err_loc = (p1*p2)/(p1-p2);
-	  xm = 1.0/double(m+1);
-	} else {
+	  xm = 1.0/m;
+	} else{
 	  err_loc = p1;
-	  xm = 1.0/double(m);
+	  xm = 1.0/(m-1.0);
 	}
       }
-      if (err_loc <= delta*t_step*tol)
+      if (err_loc <= delta * t_step*tol){
 	break;
-      else {
+      } else {
 	t_step = gamma * t_step * pow(t_step*tol/err_loc, xm);
-	double s = pow(10.0, floor(log10(t_step))-1.0);
+	s = R_pow_di(10,floor(log10(t_step))-1);
 	t_step = ceil(t_step/s) * s;
-	if (irej == mxrej){
-	  // FIXME must reject the point and put NA in...
-	  stop("The requested tolerance is too high.\n");
+	if (ireject == mxrej){
+	  stop("The requested tolerance is too high.");
 	}
+	ireject = ireject + 1;
       }
     }
-    mx = mb + std::max( 0, k1-2 );
-    if (mx > 0){
-      w += V.submat(0, 0, n-1, mx-1)*(beta*F.submat(0, mb, mx-1, mb));
+    if (k1-2 > 0){
+      mx = mb + k1-2;
+    } else {
+      mx = mb;
     }
-    t_now += t_step;
+    w = V.cols(0,mx-1)*(beta*F(arma::span(0,mx-1),arma::span(mb,mb))) + w;
+  
+    t_now = t_now + t_step;
     t_new = gamma * t_step * pow(t_step*tol/err_loc, xm);
-    s = pow(10.0, floor(log10(t_new))-1.0);
+    s = R_pow_di(10.0, floor(log10(t_new))-1);
     t_new = ceil(t_new/s) * s;
-
-    err_loc = fmax(err_loc, rndoff);
-    s_error += err_loc;
+    err_loc = std::max(err_loc,rndoff);
+    s_error = s_error + err_loc;
   }
+  // err = s_error
   return w;
 }
 
@@ -218,22 +233,20 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
   int maxsteps=op->mxstep;
   int doIndLin=op->doIndLin;
   int locf=(op->is_locf!=2);
-  int phiM=op->indLinPhiM;
-  double phiTol=op->indLinPhiTol;
-  double phiAnorm = op->indLinPhiAnorm;
+  // int phiM=op->indLinPhiM;
+  // double phiTol=op->indLinPhiTol;
+  // double phiAnorm = op->indLinPhiAnorm;
   int type = op->indLinMatExpType;
   int order = op->indLinMatExpOrder;
   std::ostream nullstream(0);
   arma::set_cerr_stream(nullstream);
-  double *ptr = &rwork[0];
-  arma::mat m0(ptr, neq, neq, false, false);
-  ptr += neq*neq;
+  arma::mat m0(neq, neq);
   double tcov = tf;
   if (locf) tcov = tp;
   // LOCF=tp; If NOCB tp should be tf
   // Calculate the initial A matrix based on current time/parameters
-  if (*cache == 0) ME(cSub, tcov, m0.memptr()); 
-  if (!doIndLin){
+  ME(cSub, tcov, m0.memptr()); 
+  if (doIndLin == 0){
     // Total possible enhanced matrix is (neq+neq)x(neq+neq)
     // Total possible initial value is (neq+neq)
     // expAt is (neq+neq)x(neq+neq)
@@ -247,56 +260,37 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
     // arma::mat mexp;
     // arma::mat ypout;
     unsigned int i, nInf=0;
-    arma::vec ypExtra(ptr, neq, false, false);
-    ptr += neq;
-    arma::mat m0extra(ptr, neq, neq, false, false);
-    ptr += neq*neq;
-    if (*cache == 0){
-      m0extra.zeros();
-      // arma::mat mout;
-      for (i = 0; i < (unsigned int)neq; i++){
-	if (InfusionRate[i] != 0.0){
-	  nInf++;
-	  m0extra[neq*(nInf-1)+i]=1;
-	  ypExtra[i] = InfusionRate[i];
-	}
+    arma::vec ypExtra(neq);
+    arma::mat m0extra(neq, neq, arma::fill::zeros);
+    for (i = 0; i < (unsigned int)neq; i++){
+      if (InfusionRate[i] != 0.0){
+	nInf++;
+	m0extra[neq*(nInf-1)+i]=1;
+	ypExtra[i] = InfusionRate[i];
       }
-    } else {
-      nInf = *cache-1;
     }
     if (nInf == 0){
-      arma::mat expAT(ptr, neq, neq, false, false);
-      ptr += neq*neq;
-      expAT = arma::expmat(m0*(tf-tp));
-      arma::vec meSol(ptr, neq, false, false);
-      ptr += neq;
+      arma::mat expAT(neq, neq);
+      expAT = matrixExp(m0, tf-tp, type, order);
+      arma::vec meSol(neq);
       meSol = expAT*yp;
       std::copy(meSol.begin(), meSol.end(), yp_);
-      *cache = 1;
       return 1;
-      // mout = m0;
-      // ypout=yp;
     } else {
-      arma::mat mout(ptr, neq+nInf, neq+nInf, false, false);
-      ptr += (neq+nInf)*(neq+nInf);
-      arma::vec ypout(ptr, neq+nInf, false, false);
-      ptr += (neq+nInf);
-      if (*cache == 0){
-	mout.zeros();
-	for (int j = neq; j--;){
-	  std::copy(m0.colptr(j), m0.colptr(j)+neq, mout.colptr(j));
-	}
-	for (int j = nInf; j--;){
-	  std::copy(m0extra.colptr(j),m0extra.colptr(j)+neq, mout.colptr(neq+j));
-	}
-	std::copy(yp.begin(),yp.end(),ypout.begin());
-	std::copy(ypExtra.begin(),ypExtra.end(), ypout.begin()+neq);
+      arma::mat mout(neq+nInf, neq+nInf, arma::fill::zeros);
+      arma::vec ypout(neq+nInf);
+      for (int j = neq; j--;){
+	std::copy(m0.colptr(j), m0.colptr(j)+neq, mout.colptr(j));
       }
-      arma::mat expAT(ptr, neq+nInf, neq+nInf, false, false);
-      ptr += (neq+nInf)*(neq+nInf);
-      // Unfortunately the tf-tp may change so we cann't cache this.
-      expAT = matrixExp(expAT, (tf-tp), type, order);
-      arma::vec meSol(ptr, neq+nInf, false, false);
+      for (int j = nInf; j--;){
+	std::copy(m0extra.colptr(j),m0extra.colptr(j)+neq, mout.colptr(neq+j));
+      }
+      std::copy(yp.begin(),yp.end(),ypout.begin());
+      std::copy(ypExtra.begin(),ypExtra.end(), ypout.begin()+neq);
+      arma::mat expAT(neq+nInf, neq+nInf);
+      // Unfortunately the tf-tp may change so we can not cache this.
+      expAT = matrixExp(mout, (tf-tp), type, order);
+      arma::vec meSol(neq+nInf);
       meSol = expAT*ypout;
       std::copy(meSol.begin(), meSol.begin()+neq, yp_);
       return 1;
@@ -306,36 +300,37 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
     // infusions are put into the F function
     const arma::vec InfusionRate(InfusionRate_, neq, false, false);
 
-    const arma::vec yp(yp_, neq, false, false);
-    
-    arma::vec u(ptr, neq, false, false);
-    ptr += neq;
-    arma::vec w(ptr, neq, false, false);
-    ptr += neq;
-    arma::vec wLast(ptr, neq, false, false);
-    ptr += neq;
+    arma::vec yp(yp_, neq, false, false);
+    arma::vec u(neq);
+    arma::vec w(neq);
+    arma::vec wLast(neq);
     double *fptr = u.memptr();
     // For LOCF tp for NOCB tf
+    // IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_);
     IndF(cSub, tcov, tf, fptr, yp_, InfusionRate_);
-    // IndF(cSub, tcov, tf, fptr, yp_, InfusionRate_, u.memptr())
-    wLast = phiv3((tf-tp), m0, u, yp, phiAnorm, phiTol, phiM, type, order);
+    wLast = phiv((tf-tp), m0, u, yp, op);
+    if (doIndLin==1){
+      // For inhomogenous systems we can return here.
+      std::copy(wLast.begin(), wLast.end(), &yp_[0]);
+      return 1;
+    }
     IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_);
-    w=phiv3((tf-tp), m0, u, yp, phiAnorm, phiTol, phiM, type, order);
+    w=phiv((tf-tp), m0, u, yp, op);
     bool converge = false;
     for (int i = 0; i < maxsteps; ++i){
       converge=true;
       for (int j=neq;j--;){
-	if (fabs(w[j]-wLast[j]) >= rtol[j]*fabs(w[j])+atol[j]){
-	  converge = false;
-	  break;
-	}
+    	if (fabs(w[j]-wLast[j]) >= rtol[j]*fabs(w[j])+atol[j]){
+    	  converge = false;
+    	  break;
+    	}
       }
       if (converge){
-	break;
+    	break;
       }
       wLast = w;
       IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_);
-      w=phiv3((tf-tp), m0, u, yp, phiAnorm, phiTol, phiM, type, order);
+      w=phiv((tf-tp), m0, u, yp, op);
     }
     if (!converge){
       std::copy(w.begin(), w.end(), &yp_[0]);
