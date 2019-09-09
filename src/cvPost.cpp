@@ -41,8 +41,10 @@ NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
     return ret;
   } else {
     arma::mat Z = rwish5(nu, p);
+    // Old Method:
     // Backsolve isn't available in armadillo
-    arma::mat Z2 = arma::trans(arma::inv(trimatu(Z)));
+    // arma::mat Z2 = arma::trans(arma::inv(trimatu(Z)));
+    arma::mat Z2 = arma::trans(arma::solve(trimatu(Z), eye(p, p)));
     arma::mat cv5;
     if (omegaIsChol){
       cv5 = S;
