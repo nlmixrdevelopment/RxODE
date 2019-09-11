@@ -27,11 +27,12 @@ std::string rxIndLin_(CharacterVector states){
   std::string ret = "matrix(c(";
   std::string n = "c(";
   for (int i = 0; i < states.size(); i++){
-    ret += ".rxIndLinLine(.env$rx__d_dt_"+symengineRes(as<std::string>(states[i]))+ "__" + ",.states),";
+    ret += ".rxIndLinLine(.env$rx__d_dt_"+symengineRes(as<std::string>(states[i]))+
+      "__" + ",.states, \""+ as<std::string>(states[i]) + "\"),";
     n += "\"" + states[i] +"\",";
   }
-  ret += "NULL)," + std::to_string(states.size()) + "," + std::to_string(states.size()+2) +
-    ",TRUE,list(" + n +"NULL)," + n + "\"_rxF\",\"indLin\")))";
+  ret += "NULL)," + std::to_string(states.size()) + "," + std::to_string(states.size()+3) +
+    ",TRUE,list(" + n +"NULL)," + n + "\"_rxF\",\"indLin\",\"ind\")))";
   return ret;
 }
 
@@ -86,117 +87,143 @@ static inline arma::mat matrixExp(arma::mat& H, double t, int& type,
 
 arma::vec phiv(double t, arma::mat& A, arma::vec& u,
 	       arma::vec& v, rx_solving_options *op){
-  double tol = op->indLinPhiTol;
-  int m = op->indLinPhiM;
+
+  int n = A.n_rows;
   int order = op->indLinMatExpOrder;
   int type = op->indLinMatExpType;
-  int n = A.n_rows;
-  if (m <= 0) m = std::min(n, 30);
-  double anorm = arma::norm(A, "inf");
-  int mxrej = 10;  double btol  = 1.0e-7; 
-  double gamma = 0.9; double delta = 1.2; 
-  int mb    = m; double t_out   = fabs(t);
-  int istep = 0; double t_new   = 0;
-  double t_now = 0; double s_error = 0;
-  double rndoff= anorm*DOUBLE_EPS;
-  double sgn = (0.0 < t) - (t > 0.0);
-  int k1 = 3, ireject = 0, mx=0;
-  double xm = 1.0/m; 
-  arma::vec w = v;
-  arma::mat V, H, F, tmp;
-  arma::vec p;
-  double beta=0, fact=0, s=0, t_step=0, h=0, avnorm=0, err_loc=0, p1, p2;
-  while (t_now < t_out){
-    V = arma::mat(n, m+1, arma::fill::zeros);
-    H = arma::mat(m+3, m+3, arma::fill::zeros);
-    V.col(0) = A*w+u;
-    beta = norm(V.col(0));
-    V.col(0) /= beta;
-    if (istep == 0){
-      fact = R_pow_di((m+1)/M_E,m+1)*sqrt(M_2PI*(m+1));
-      t_new = (1/anorm)*pow((fact*tol)/(4*beta*anorm),xm);
-      s = R_pow_di(10,(floor(log10(t_new))-1));
-      t_new = ceil(t_new/s)*s; 
-    }
-    istep++;
-    t_step = std::min( t_out-t_now,t_new );
-    for (int j = 0; j < m; ++j){
-      p = A*V.col(j);
-      for (int i = 0; i < j; ++i){
-	tmp = V.col(i).t()*p;
-	H(i,j) = tmp(0,0);
-	p = p-H(i,j)*V.col(i);
-      }
-      s = norm(p); 
-      if (s < btol){
-	k1 = 0;
-	mb = j;
-	t_step = t_out-t_now;
-	break;
-      }
-      H(j+1,j) = s;
-      V.col(j+1) = (1/s)*p;
-    }
-    H(0,mb) = 1; 
-    if (k1 != 0){
-      H(m,m+1) = 1;
-      H(m+1,m+2) = 1;
-      h = H(m,m-1);
-      H(m,m-1) = 0;
-      avnorm = norm(A*V.col(m-1)); 
-    }
-    ireject = 0;
-    while(ireject <= mxrej){
-      mx = mb + std::max(1,k1);
-      F = H(arma::span(0,mx-1),arma::span(0,mx-1));
-      F = matrixExp(F, sgn*t_step, type, order);
-      if (k1 == 0){
-	err_loc = btol; 
-	break;
-      } else {
-	F(m,m) = h*F(m-1,m+1);
-	F(m+1,m) = h*F(m-1,m+2);
-	p1 = fabs( beta*F(m,m) );
-	p2 = fabs( beta*F(m+1,m) * avnorm );
-	if (p1 > 10*p2){
-	  err_loc = p2;
-	  xm = 1.0/m;
-	} else if (p1 > p2){
-	  err_loc = (p1*p2)/(p1-p2);
-	  xm = 1.0/m;
-	} else{
-	  err_loc = p1;
-	  xm = 1.0/(m-1.0);
-	}
-      }
-      if (err_loc <= delta * t_step*tol){
-	break;
-      } else {
-	t_step = gamma * t_step * pow(t_step*tol/err_loc, xm);
-	s = R_pow_di(10,floor(log10(t_step))-1);
-	t_step = ceil(t_step/s) * s;
-	if (ireject == mxrej){
-	  stop("The requested tolerance is too high.");
-	}
-	ireject = ireject + 1;
-      }
-    }
-    if (k1-2 > 0){
-      mx = mb + k1-2;
-    } else {
-      mx = mb;
-    }
-    w = V.cols(0,mx-1)*(beta*F(arma::span(0,mx-1),arma::span(mb,mb))) + w;
-  
-    t_now = t_now + t_step;
-    t_new = gamma * t_step * pow(t_step*tol/err_loc, xm);
-    s = R_pow_di(10.0, floor(log10(t_new))-1);
-    t_new = ceil(t_new/s) * s;
-    err_loc = std::max(err_loc,rndoff);
-    s_error = s_error + err_loc;
+  switch(n){
+  case 1: {
+    // m = 0
+    // I don't think we *should* run into this case, but...
+    arma::vec w(1);
+    double eAt = exp(t*A(0,0));
+    w(0) = eAt*v(0) + (eAt-1)/A(0,0)*u(0);
+    return w;
   }
-  // err = s_error
-  return w;
+  case 2: {
+    // m=1
+    double d= (A(0,0)*A(1,1)-A(0,1)*A(1,0));
+    d = 1.0/d;
+    arma::mat22 Ainv;
+    Ainv(0,0) = A(1,1)*d;
+    Ainv(1,1) = A(0,0)*d;
+    Ainv(0,1) = -A(0,1)*d;
+    Ainv(1,0) = -A(0,1)*d;
+    arma::mat22 expAt = matrixExp(A, t, type, order);
+    arma::vec w = expAt*v + (expAt-arma::eye(2,2))*Ainv*u;
+    return w;
+  }
+  default: {
+    double tol = op->indLinPhiTol;
+    int m = op->indLinPhiM;
+    if (m <= 0) m = std::min(n, 30);
+    double anorm = arma::norm(A, "inf");
+    int mxrej = 10;  double btol  = 1.0e-7; 
+    double gamma = 0.9; double delta = 1.2; 
+    int mb    = m; double t_out   = fabs(t);
+    int istep = 0; double t_new   = 0;
+    double t_now = 0; double s_error = 0;
+    double rndoff= anorm*DOUBLE_EPS;
+    double sgn = (0.0 < t) - (t > 0.0);
+    int k1 = 3, ireject = 0, mx=0;
+    double xm = 1.0/m; 
+    arma::vec w = v;
+    arma::mat V, H, F, tmp;
+    arma::vec p;
+    double beta=0, fact=0, s=0, t_step=0, h=0, avnorm=0, err_loc=0, p1, p2;
+    while (t_now < t_out){
+      V = arma::mat(n, m+1, arma::fill::zeros);
+      H = arma::mat(m+3, m+3, arma::fill::zeros);
+      V.col(0) = A*w+u;
+      beta = norm(V.col(0));
+      V.col(0) /= beta;
+      if (istep == 0){
+	fact = R_pow_di((m+1)/M_E,m+1)*sqrt(M_2PI*(m+1));
+	t_new = (1/anorm)*pow((fact*tol)/(4*beta*anorm),xm);
+	s = R_pow_di(10,(floor(log10(t_new))-1));
+	t_new = ceil(t_new/s)*s; 
+      }
+      istep++;
+      t_step = std::min( t_out-t_now,t_new );
+      for (int j = 0; j < m; ++j){
+	p = A*V.col(j);
+	for (int i = 0; i < j; ++i){
+	  tmp = V.col(i).t()*p;
+	  H(i,j) = tmp(0,0);
+	  p = p-H(i,j)*V.col(i);
+	}
+	s = norm(p); 
+	if (s < btol){
+	  k1 = 0;
+	  mb = j;
+	  t_step = t_out-t_now;
+	  break;
+	}
+	H(j+1,j) = s;
+	V.col(j+1) = (1/s)*p;
+      }
+      H(0,mb) = 1; 
+      if (k1 != 0){
+	H(m,m+1) = 1;
+	H(m+1,m+2) = 1;
+	h = H(m,m-1);
+	H(m,m-1) = 0;
+	avnorm = norm(A*V.col(m-1)); 
+      }
+      ireject = 0;
+      while(ireject <= mxrej){
+	mx = mb + std::max(1,k1);
+	F = H(arma::span(0,mx-1),arma::span(0,mx-1));
+	F = matrixExp(F, sgn*t_step, type, order);
+	if (k1 == 0){
+	  err_loc = btol; 
+	  break;
+	} else {
+	  F(m,m) = h*F(m-1,m+1);
+	  F(m+1,m) = h*F(m-1,m+2);
+	  p1 = fabs( beta*F(m,m) );
+	  p2 = fabs( beta*F(m+1,m) * avnorm );
+	  if (p1 > 10*p2){
+	    err_loc = p2;
+	    xm = 1.0/m;
+	  } else if (p1 > p2){
+	    err_loc = (p1*p2)/(p1-p2);
+	    xm = 1.0/m;
+	  } else{
+	    err_loc = p1;
+	    xm = 1.0/(m-1.0);
+	  }
+	}
+	if (err_loc <= delta * t_step*tol){
+	  break;
+	} else {
+	  t_step = gamma * t_step * pow(t_step*tol/err_loc, xm);
+	  s = R_pow_di(10,floor(log10(t_step))-1);
+	  t_step = ceil(t_step/s) * s;
+	  if (ireject == mxrej){
+	    stop("The requested tolerance is too high.");
+	  }
+	  ireject = ireject + 1;
+	}
+      }
+      if (k1-2 > 0){
+	mx = mb + k1-2;
+      } else {
+	mx = mb;
+      }
+      w = V.cols(0,mx-1)*(beta*F(arma::span(0,mx-1),arma::span(mb,mb))) + w;
+  
+      t_now = t_now + t_step;
+      t_new = gamma * t_step * pow(t_step*tol/err_loc, xm);
+      s = R_pow_di(10.0, floor(log10(t_new))-1);
+      t_new = ceil(t_new/s) * s;
+      err_loc = std::max(err_loc,rndoff);
+      s_error = s_error + err_loc;
+    }
+    // err = s_error
+    return w;
+  }
+  }
 }
 
 bool expm_assign=false;
@@ -232,6 +259,8 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
   double *atol=op->atol2;
   int maxsteps=op->mxstep;
   int doIndLin=op->doIndLin;
+  int indLinPerterb=10;
+  double indLinAmt=1.0;
   int locf=(op->is_locf!=2);
   // int phiM=op->indLinPhiM;
   // double phiTol=op->indLinPhiTol;
@@ -270,10 +299,18 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
       }
     }
     if (nInf == 0){
-      arma::mat expAT(neq, neq);
-      expAT = matrixExp(m0, tf-tp, type, order);
-      arma::vec meSol(neq);
-      meSol = expAT*yp;
+      // arma::mat expAT(neq, neq);
+      // expAT = matrixExp(m0, tf-tp, type, order);
+      // arma::vec meSol(neq);
+      // meSol = expAT*yp;
+      // std::copy(meSol.begin(), meSol.end(), yp_);
+      // const arma::vec InfusionRate(InfusionRate_, neq, false, false);
+      // Try phiv
+      arma::vec yp(yp_, neq, false, false);
+      arma::vec u(neq,arma::fill::zeros);
+      arma::vec w(neq);
+      double *fptr = u.memptr();
+      arma::vec meSol = phiv((tf-tp), m0, u, yp, op);
       std::copy(meSol.begin(), meSol.end(), yp_);
       return 1;
     } else {
@@ -287,10 +324,10 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
       }
       std::copy(yp.begin(),yp.end(),ypout.begin());
       std::copy(ypExtra.begin(),ypExtra.end(), ypout.begin()+neq);
+      arma::vec meSol(neq+nInf);
       arma::mat expAT(neq+nInf, neq+nInf);
       // Unfortunately the tf-tp may change so we can not cache this.
       expAT = matrixExp(mout, (tf-tp), type, order);
-      arma::vec meSol(neq+nInf);
       meSol = expAT*ypout;
       std::copy(meSol.begin(), meSol.begin()+neq, yp_);
       return 1;
@@ -299,24 +336,26 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
     // In this case the inital matrix should not be expanded. The
     // infusions are put into the F function
     const arma::vec InfusionRate(InfusionRate_, neq, false, false);
-
     arma::vec yp(yp_, neq, false, false);
     arma::vec u(neq);
+    arma::vec extra(neq,arma::fill::zeros);
     arma::vec w(neq);
     arma::vec wLast(neq);
     double *fptr = u.memptr();
-    // For LOCF tp for NOCB tf
-    // IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_);
-    IndF(cSub, tcov, tf, fptr, yp_, InfusionRate_);
-    wLast = phiv((tf-tp), m0, u, yp, op);
     if (doIndLin==1){
+      // For LOCF tp for NOCB tf
+      // IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_);
+      IndF(cSub, tcov, tf, fptr, yp_, InfusionRate_,extra.memptr());
+      wLast = phiv((tf-tp), m0, u, yp, op);
       // For inhomogenous systems we can return here.
       std::copy(wLast.begin(), wLast.end(), &yp_[0]);
       return 1;
     }
-    IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_);
+    stop("Inductive lin");
+    IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_,extra.memptr());
     w=phiv((tf-tp), m0, u, yp, op);
     bool converge = false;
+    Rprintf("tf: %f:\n",tf);
     for (int i = 0; i < maxsteps; ++i){
       converge=true;
       for (int j=neq;j--;){
@@ -328,11 +367,13 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
       if (converge){
     	break;
       }
-      wLast = w;
-      IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_);
+      wLast = w+DOUBLE_EPS; // Try to break out of infinite loop.
+      IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_,extra.memptr());
       w=phiv((tf-tp), m0, u, yp, op);
+      print(wrap(w.t()));
     }
     if (!converge){
+      Rprintf("Did not converge!");
       std::copy(w.begin(), w.end(), &yp_[0]);
       // std::fill_n(&yp_[0], neq, NA_REAL);
       return 1;

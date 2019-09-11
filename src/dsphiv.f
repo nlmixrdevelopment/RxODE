@@ -1,18 +1,15 @@
 * The following changes were made:
 *     - removed any printout information
-*     - Made DGPADM an external routine
 *     - Made matvec take the arguments matvec( x, y, A, n)
 *----------------------------------------------------------------------|
       subroutine DSPHIV( n, m, t, u, v, w, tol, anorm,
-     .     wsp,lwsp, iwsp,liwsp, matvec, iflag, A, DGPADM,
-     .     type, ideg, mxstep)
+     .     wsp,lwsp, iwsp,liwsp, matvec, iflag, A, ideg, mxstep)
 
       implicit none
-      integer n, m, lwsp, liwsp, iflag, iwsp(liwsp), type, ideg, mxstep
+      integer n, m, lwsp, liwsp, iflag, iwsp(liwsp), ideg, mxstep
       double precision t, tol, anorm, u(n), v(n), w(n), wsp(lwsp)
       double precision A(n,n)
       external matvec
-      external DGPADM
 
 *-----Purpose----------------------------------------------------------|
 *
@@ -133,9 +130,17 @@
 *---  check restrictions on input parameters ...
       iflag = 0
       if ( lwsp.lt.n*(m+3)+5*(m+3)**2+ideg+1 ) iflag = -1
+      if ( iflag.ne.0 ) then
+         call rexit('bad sizes (in input of DSPHIV; -1)')
+      end if
       if ( liwsp.lt.m+3 ) iflag = -2
+      if ( iflag.ne.0 ) then
+         call rexit('bad sizes (in input of DSPHIV; -2)')
+      end if
       if ( m.ge.n .or. m.le.0 ) iflag = -3
-      if ( iflag.ne.0 ) stop 'bad sizes (in input of DSPHIV)'
+      if ( iflag.ne.0 ) then
+         call rexit('bad sizes (in input of DSPHIV; -3)')
+      end if
 *
 *---  initialisations ...
 *
@@ -257,7 +262,7 @@
 
 *---  irreducible rational Pade approximation ...
       call DGPADM( ideg, mx, sgn*t_step, wsp(ih),mh,
-     .              wsp(ifree),lfree, iwsp, iexph, ns, iflag, type)
+     .              wsp(ifree),lfree, iwsp, iexph, ns, iflag)
       iexph = ifree + iexph - 1
       iphih = iexph + mbrkdwn*mx
       nscale = nscale + ns

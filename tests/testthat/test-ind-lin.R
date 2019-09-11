@@ -56,13 +56,63 @@ d/dt(blood)     = a*intestine - b*blood
 
     pk2 <- rxSolve(mod,et2, method="liblsoda");
 
+    ## Inductive linearization
+    mmModel <- RxODE({
+        ka = 1
+        Vc = 1
+        Vmax <- 0.00734
+        Km = 0.3672
+        Cp = center / Vc
+        d/dt(center) =  - Vmax/(Km + Cp) * Cp
+    }, indLin=TRUE)
+
+
+    ## Inductive + 1x1 matrix
+    ## FIXME this should be inductive too...
+    mmModel <- RxODE({
+        ka = 1
+        Vc = 1
+        Vmax <- 0.00734
+        Km = 0.3672
+        d/dt(depot) = -ka * depot
+        d/dt(center) = ka * depot - Vmax/(Km + Cp) * Cp
+        Cp = center / Vc
+    }, indLin=TRUE)
+
+    ## This is inductive
+    mmModel <- RxODE({
+        ka = 1
+        Vc = 1
+        Vmax <- 0.00734
+        Km = 0.3672
+        d/dt(depot) = -ka * depot
+        Cp = center / Vc
+        d/dt(center) = ka * depot - Vmax/(Km + Cp) * Cp
+    }, indLin=TRUE)
 
     mmModel <- RxODE({
-        ka = 0.2
-        Vc = 4.7
-        Vmax <- 7
-        Km = 5.7
+        ka = 1
+        Vc = 1
+        Vmax <- 0.00734
+        Km = 0.3672
+        V4 <- 4.3
+        Q  <- 1.5
+        K12<- Q/Vc
+        K21<- Q/Vp
         d/dt(depot) = -ka * depot
+        d/dt(center) = ka * depot - Vmax/(Km + Cp) * Cp + K21*periph-K12*centr
+        d/dt(periph) =-K21*periph+K12*center;
+        Cp = center / Vc
+    }, indLin=TRUE)
+
+
+    ## Inductive linearization
+    mmModel <- RxODE({
+        ka = 1
+        Vc = 1
+        Vmax <- 0.00734
+        Km = 0.3672
+        d/dt(depot) = -ka * depot + exp(-t)
         Cp = center / Vc
         d/dt(center) = ka * depot - Vmax/(Km + Cp) * Cp
     }, indLin=TRUE)

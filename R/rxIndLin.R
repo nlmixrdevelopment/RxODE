@@ -1,4 +1,4 @@
-.rxIndLinLine <- function(line, states){
+.rxIndLinLine <- function(line, states, state0){
     .tmp <- symengine::expand(line) ## Expand line
     .tmp <- rxFromSE(.tmp); ## Convert SE->RxODE; Changes things like X^1 -> X
     .ret <- eval(parse(text=paste0("rxSplitPlusQ(quote(", .tmp, "))")));
@@ -71,10 +71,27 @@
             .addIt(.expr, "_rxF")
         }
     })
-    c(sapply(c(states, "_rxF"), function(x){
+    .ret <- sapply(c(states, "_rxF"), function(x){
         if (any(names(.lst) == x)) return(gsub("[+][-]", "-", paste(.lst[[x]], collapse="+")))
         return("0");
-    }), paste0(.fullIndLin))
+    });
+    ## Check for an independet solution ie -ka*depot
+    .tmp2 <- .ret[!(names(.ret) %in% c(state0, "_rxF"))];
+    ## FIXME put infusions in EVERYWHERE for _rxF, that way when dropping it will get the right number.
+    if (all(.tmp2 == "0")){
+        ## independent solution
+        .eAt <- sprintf("exp(%s*t)", .ret[state0]);
+        if (.ret["_rxF"] == "0"){
+            .ind <- sprintf("%s*(%s)+(%s-1)/(%s)*(rxInf[%d])", .eAt, state0, .eAt, .ret[state0], which(state0 == states) - 1);
+        } else if (.ret[state0] != "0"){
+            .ind <- sprintf("%s*(%s)+(%s-1)/(%s)*(%s+rxInf[%d])", .eAt, state0, .eAt, .ret[state0], .ret["_rxF"], which(state0 == states) - 1);
+        } else {
+            stop("Cannot calculate this by inductive linearization?");
+        }
+    } else {
+        .ind <- ""
+    }
+    return(c(.ret, paste0(.fullIndLin), .ind))
 }
 
 ##' This creates the inductive linearization pieces to integrate into
@@ -104,10 +121,39 @@
     .env <- .rxLoadPrune(model, doConst=doConst)
     .states <- rxState(.env);
     .ret <- eval(parse(text=rxIndLin_(.states)))
+    .fullIndLin <- any(.ret[, "indLin"] == "TRUE")
+    if (.fullIndLin){
+        .w <- which(.ret[, "ind"] != "")
+        if (length(.w) > 0){
+            .ind <- .ret[, "ind"];
+            .w2 <- which(.ind == "");
+            .w3 <- which(.ind != "");
+            if (length(.w2) > 0){
+                .ind[.w2] <- .states[.w2];
+            }
+            for (.i in .w3){
+                .tmp <- paste0(.ret[,.states[.i]], "*", .states[.i], "+")
+                .tmp[which(.ret[, .states[.i]] == "0")] <- "";
+                .ret[, "_rxF"] <- gsub("[+][-]", "-", paste0(.tmp, .ret[, "_rxF"]));
+            }
+            .ret <- .ret[-.w3, -.w3, drop = FALSE];
+            .w2 <- setNames(.w2 - 1, NULL);
+            .oldStates <- .states
+            .code <- paste(paste0("_rxI=", .ind, ";"), collapse="\n");
+            .states <- .states[.states %in% dimnames(.ret)[[1]]];
+        } else {
+            .w2 <- integer(0);
+            .oldStates <- .states
+            .code <- NULL;
+        }
+    } else {
+        .w2 <- integer(0);
+        .oldStates <- .states
+        .code <- NULL;
+    }
     .ret0 <- .ret[.states, .states, drop = FALSE]
     .ret1 <- .ret[, "_rxF", drop = FALSE]
-    .fullIndLin <- any(.ret[, "indLin"] == "TRUE")
-    .code <- paste0("_rxM=", as.vector(.ret0), ";");
+    .code <- c(.code, paste0("_rxM=", as.vector(.ret0), ";"));
     if (!all(.ret1 == "0")){
         .code <- c(.code, paste("_rxF=", as.vector(.ret1)))
         .codeSave <- c("SEXP matLst = PROTECT(allocVector(VECSXP, 3));pro++;",
@@ -120,11 +166,14 @@
                        ## inductive linearization
                        sprintf("SEXP mat0 = PROTECT(allocMatrix(STRSXP, %s, %s));pro++;", dim(.ret0)[1], dim(.ret0)[2]),
                        paste(paste0("SET_STRING_ELT(mat0, ", seq_along(as.vector(.ret0)) - 1, ",mkChar(\"", as.vector(.ret0), "\"));"), collapse="\n"),
+                       sprintf("SEXP mat0nn = PROTECT(allocVector(STRSXP, %s));pro++;", dim(.ret0)[[1]]),
+                       paste(paste0("SET_STRING_ELT(mat0nn, ", seq_along(dimnames(.ret0)[[1]]) - 1,
+                                    ",mkChar(\"", dimnames(.ret0)[[1]], "\"));"), collapse="\n"),
                        ## Assumes state is the SEXP that we can use for
                        ## state names.
                        "SEXP mat0n = PROTECT(allocVector(VECSXP, 2));pro++;",
-                       "SET_VECTOR_ELT(mat0n, 0, state);",
-                       "SET_VECTOR_ELT(mat0n, 1, state);",
+                       "SET_VECTOR_ELT(mat0n, 0, mat0nn);",
+                       "SET_VECTOR_ELT(mat0n, 1, mat0nn);",
                        "setAttrib(mat0, R_DimNamesSymbol, mat0n);",
                        ## Now setup matF or the F matrix from inductive linearization
                        sprintf("SEXP matF = PROTECT(allocMatrix(STRSXP, %s, %s));pro++;", dim(.ret1)[1], dim(.ret1)[2]),

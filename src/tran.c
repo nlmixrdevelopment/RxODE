@@ -58,6 +58,7 @@
 #define TMTIME 18
 #define TMAT0 19
 #define TMATF 20
+#define TMATI 21
 
 #define NOASSIGN "'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'"
 #define NEEDSEMI "Lines need to end with ';'\n     To match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'"
@@ -598,6 +599,7 @@ typedef struct nodeInfo {
   int ifelse_statement;
   int mat0;
   int matF;
+  int matI;
 } nodeInfo;
 
 #define NIB(what) ni.what
@@ -654,6 +656,7 @@ void niReset(nodeInfo *ni){
   ni->ifelse_statement=-1;
   ni->mat0 = -1;
   ni->matF = -1;
+  ni->matI = -1;
 }
 
 
@@ -874,7 +877,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if ((nodeHas(theta) || nodeHas(eta)) && i != 2) continue;
       if (nodeHas(mtime) && (i == 0 || i == 1 || i == 3)) continue;
       if (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) continue;
-      if (i != 2 && (nodeHas(mat0) || nodeHas(matF))) continue;
+      if (i != 2 && (nodeHas(mat0) || nodeHas(matF) || nodeHas(matI))) continue;
       if (nodeHas(mat0)){
 	aType(TMAT0);
 	sb.o =0; sbDt.o =0;
@@ -883,8 +886,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (nodeHas(matF)){
 	aType(TMATF);
 	sb.o =0; sbDt.o =0;
-	sAppend(&sb, "_matf[%d] = _InfusionRate[%d] + ", tb.matnf, tb.matnf);
+	sAppend(&sb, "_matf[%d] = _extra[%d] + ", tb.matnf, tb.matnf, tb.matnf);
 	tb.matnf++;
+      }
+      if (nodeHas(matI)){
+	aType(TMATI);
+	sb.o =0; sbDt.o =0;
+	sAppend(&sb, "_mati[%d] = ", tb.matnf);
       }
       tb.fn = (nodeHas(function) && i==0) ? 1 : 0;
 
@@ -1674,7 +1682,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       addLine(&sbPm,     "%s;\n", sb.s);
       addLine(&sbPmDt,   "%s;\n", sbDt.s);
       sAppend(&sbNrm, "%s;\n", sbt.s);
-    } else if ((nodeHas(mat0) || nodeHas(matF))){
+    } else if ((nodeHas(mat0) || nodeHas(matF) || nodeHas(matI))){
       addLine(&sbPm,     "%s;\n", sb.s);
       addLine(&sbPmDt,   "%s;\n", sbDt.s);
       /* sAppend(&sbNrm, "", sbt.s); */
@@ -2372,7 +2380,10 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       sAppend(&sbOut, "// Matrix Exponential (%d)\nvoid %sME(int _cSub, double t, double *_mat){\n",
 	      tb.matn, prefix);
     } else if (show_ode == 11){
-      sAppend(&sbOut, "// Inductive linearization Matf\nvoid %sIndF(int _cSub, double _t, double t, double *_matf, const double *__zzStateVar__, const double *_InfusionRate){\n", prefix);
+      sAppend(&sbOut, "// Inductive linearization Matf\nvoid %sIndF(int _cSub, double _t, double t, double *_matf, const double *__zzStateVar__, const double *_InfusionRate, const double *_extra){\n", prefix);
+    } else if (show_ode == 12){
+      sAppend(&sbOut, "// Inductive linearization independent compartment(s)\nvoid %sIndCmt(int _cSub, double _t, double t, double *_mati, const double *__zzStateVar__, const double *_InfusionRate, const double *_extra){\n", prefix);
+      
     } else {
       sAppend(&sbOut,  "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n", prefix);
     }
@@ -2509,6 +2520,11 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  break;
 	case TMATF:
 	  if (show_ode == 11){
+	    sAppend(&sbOut,"  %s", sbPm.line[i]);
+	  }
+	  break;
+	case TMATI:
+	  if (show_ode == 12){
 	    sAppend(&sbOut,"  %s", sbPm.line[i]);
 	  }
 	  break;

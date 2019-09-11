@@ -15,6 +15,7 @@ statement
   | mtime      end_statement
   | mat0       end_statement
   | matF       end_statement
+  | matI       end_statement
   | printf_statement end_statement
   | cmt_statement end_statement
   | dvid_statementI end_statement
@@ -78,6 +79,8 @@ assignment : identifier_r  ('=' | '<-' | '~' ) logical_or_expression;
 mat0: '_rxM' '=' logical_or_expression;
 
 matF: '_rxF' '=' logical_or_expression;
+                                        
+matI: '_rxI' '=' logical_or_expression;
 
 mtime     : 'mtime' '(' identifier_r_no_output ')' ('=' | '<-' | '~') logical_or_expression;
 
@@ -149,8 +152,8 @@ theta: ('THETA' | 'theta') '[' decimalintNo0 ']';
 eta: ('ETA' | 'eta') '[' decimalintNo0 ']';
 theta0: ('THETA' | 'theta' | 'ETA' | 'eta');
 
-theta_noout: ('THETA' | 'theta') '[' decimalint ']';
-eta_noout: ('ETA' | 'eta') '[' decimalint ']';
+theta_noout: ('THETA' | 'theta') '[' decimalintNo0 ']';
+eta_noout: ('ETA' | 'eta') '[' decimalintNo0 ']';
 theta0_noout: ('THETA' | 'theta' | 'ETA' | 'eta');
 
 

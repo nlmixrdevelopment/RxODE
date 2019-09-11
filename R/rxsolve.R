@@ -34,7 +34,7 @@ rxControl <- function(scale = NULL,
                       iCov=NULL,
                       keep=NULL,
                       indLinPhiTol=1e-7,
-                      indLinPhiM=1,
+                      indLinPhiM=0L,
                       indLinMatExpType=2L,## 1=arma::expomat; 2=matexprbs; 3=
                       indLinMatExpOrder=6L,
                       indLinDelta=2,
