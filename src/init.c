@@ -295,6 +295,7 @@ void R_init_RxODE(DllInfo *info){
 void parseFree(int last);
 void rxOptionsFree();
 void gFree();
+void rxFreeLast();
 /* void rxOptionsFreeFocei(); */
 void R_unload_RxODE(DllInfo *info){
   gFree();
@@ -302,5 +303,6 @@ void R_unload_RxODE(DllInfo *info){
   rxOptionsIni();
   rxOptionsIniData();
   parseFree(1);
+  rxFreeLast();
   /* rxOptionsFreeFocei(); */
 }

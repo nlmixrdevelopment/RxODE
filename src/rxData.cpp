@@ -1827,8 +1827,8 @@ extern "C" double *rxGetErrs(){
   getRxModels();
   if (_rxModels.exists(".sigma")){
     NumericMatrix sigma = _rxModels[".sigma"];
-    Free(_rxGetErrs);
-    _rxGetErrs = Calloc(sigma.ncol()*sigma.nrow(),double);
+    if (_rxGetErrs == NULL) _rxGetErrs = Calloc(sigma.ncol()*sigma.nrow(), double);
+    else _rxGetErrs = Realloc(_rxGetErrs, sigma.ncol()*sigma.nrow(), double);
     std::copy(sigma.begin(),sigma.end(),&_rxGetErrs[0]);
     return _rxGetErrs;
   }
@@ -2440,12 +2440,12 @@ extern "C" void rxClearFuns();
 //' @export
 // [[Rcpp::export]]
 LogicalVector rxSolveFree(){
-  gFree();
   rxOptionsFree();
   rxOptionsIni();
   rxOptionsIniData();
   parseFree(0);
   rxClearFuns();
+  gFree();
   return LogicalVector::create(true);
 }
 

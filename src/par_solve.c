@@ -271,8 +271,8 @@ t_set_solve set_solve = NULL;
 
 void rxOptionsIniEnsure(int mx){
   if (mx >= max_inds_global){
-    Free(inds_global);
-    inds_global =Calloc(mx+1024, rx_solving_options_ind);
+    if (inds_global == NULL) inds_global = Calloc(mx+1024, rx_solving_options_ind);
+    else inds_global = Realloc(inds_global, mx+1024, rx_solving_options_ind);
     max_inds_global = mx+1024;
     rx_global.subjects = inds_global;
   }
@@ -1686,8 +1686,13 @@ int *global_BadDose(unsigned int mx){
 }
 
 void rxOptionsIni(){
-  max_inds_global = 1024;
-  inds_global =Calloc(1024, rx_solving_options_ind);
+  if (1024 >= max_inds_global){
+    max_inds_global+= 1024;
+    if (inds_global == NULL)
+      inds_global = Calloc(max_inds_global, rx_solving_options_ind);
+    else
+      inds_global = Realloc(inds_global, max_inds_global, rx_solving_options_ind);
+  }
 
   global_iworki = 1024*4;
   global_iworkp=Calloc(1024*4, int);
@@ -1716,14 +1721,7 @@ void rxOptionsFree(){
 
   if (global_rworki != 0) Free(global_rworkp);
   global_rworki = 0;
-  global_iworki = 0;
-  for (int i = max_inds_global; i--;){
-    rx_solving_options_ind *ind = &inds_global[i];
-    if (ind->solveSave != NULL) Free(ind->solveSave);
-    if (ind->linCmtAdvan != NULL) Free(ind->linCmtAdvan);
-  }
-  max_inds_global = 0;
-  Free(inds_global);
+  Free(global_rworkp);
 
   global_InfusionRatei = 0;
   Free(global_InfusionRatep);
@@ -1733,6 +1731,15 @@ void rxOptionsFree(){
 
   global_scalei = 0;
   Free(global_scalep);
+}
+
+void rxFreeLast(){
+  for (int i = max_inds_global; i--;){
+    rx_solving_options_ind *ind = &inds_global[i];
+    if (ind->solveSave != NULL) Free(ind->solveSave);
+  }
+  max_inds_global = 0;
+  Free(inds_global);
 }
 
 
