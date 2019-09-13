@@ -14,17 +14,25 @@ test_that("Matrix exponential alone works", {
 
     ## Case 2 ME alone with inhomogenous systems
     m <- rxSolve(mod, et(seq(0, 24, length.out=50)), method="indLin")
+    m2 <- rxSolve(mod, et(seq(0, 24, length.out=50)), method="lsoda")
+
+    expect_equal(as.data.frame(m), as.data.frame(m2), tol=1e-5)
 
     mod <- RxODE({
-        d/dt(x) = 2 * x - y + z + exp(2 * t)
+        d/dt(x) = 2 * x - y + z + exp(-2 * t)
         d/dt(y) = 3 * y - 1 * z
-        d/dt(z) = 2 * x + y + 3 * z + exp(2 * t)
+        d/dt(z) = 2 * x + y + 3 * z + exp(-2 * t)
         x(0) = 0.1
         y(0) = 0.1
         z(0) = 0.1
     }, indLin=TRUE)
 
     m <- rxSolve(mod, et(seq(0, 24, length.out=50)), method="indLin")
+    m2 <- rxSolve(mod, et(seq(0, 24, length.out=50)), method="lsoda")
+
+    gridExtra::grid.arrange(plot(m), plot(m2))
+
+    expect_equal(as.data.frame(m), as.data.frame(m2), tol=1e-5)
 
     mod <- RxODE("
 a = 6
@@ -142,27 +150,48 @@ d/dt(blood)     = a*intestine - b*blood
 
     expect_equal(as.data.frame(pk), as.data.frame(pk2), tol=7e-5)
 
+    mmModel <- RxODE({
+        ka = 1
+        Vc = 1
+        Vmax <- 0.00734
+        Km = 0.3672
+        d/dt(depot) = -ka * depot
+        Cp = center / Vc
+        d/dt(center) = ka * depot - Vmax/(Km + Cp) * Cp + 5 * exp(-0.5 * t)
+    }, indLin=TRUE)
+
+    pk <- rxSolve(mmModel,et, method="indLin");
+    pk2 <- rxSolve(mmModel,et, method="lsoda");
+    gridExtra::grid.arrange(plot(pk), plot(pk2))
+
     plot(microbenchmark::microbenchmark(rxSolve(mmModel,et, method="indLin",indLinMatExpType=1L),rxSolve(mmModel,et, method="indLin",indLinMatExpType=2L), rxSolve(mmModel,et, method="indLin",indLinMatExpType=3L), rxSolve(mmModel,et, method="lsoda")), log="y")
 
     ## Van der Pol Equation
     ## mu = 1000 stiff
     ## me = 1 non-stiff
     van <- RxODE({
+        y(0) = 2
         d/dt(y)  = dy
         d/dt(dy) = mu*(1-y^2)*dy - y
     }, indLin=TRUE)
 
     et <- eventTable();
-    et$add.sampling(seq(0, 10, length.out=200));
-    et$add.dosing(20, start.time=0);
+    et$add.sampling(seq(0, 3000, length.out=200));
 
     s1 <- rxSolve(van, et, c(mu=1000), method="lsoda")
     s2 <- rxSolve(van, et, c(mu=1000), method="indLin")
+    s3 <- rxSolve(van, et, c(mu=1000), method="dop853")
+
+    gridExtra::grid.arrange(plot(s1), plot(s2), plot(s3))
 
     expect_equal(as.data.frame(s1), as.data.frame(s2))
 
     s1 <- rxSolve(van, et, c(mu=1), method="lsoda")
     s2 <- rxSolve(van, et, c(mu=1), method="indLin")
+    s3 <- rxSolve(van, et, c(mu=1), method="dop853")
+
+    gridExtra::grid.arrange(plot(s1), plot(s2), plot(s3))
+
     expect_equal(as.data.frame(s1), as.data.frame(s2))
 
 
