@@ -703,7 +703,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       stop("Infinite times are not allowed");
     }
     if (ctime < 0 && _ini0){
-      doWarnNeg=true
+      doWarnNeg=true;
     }
     if (iiCol == -1) cii = 0;
     else cii = inIi[i];
