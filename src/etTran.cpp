@@ -651,6 +651,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   int curIdx=0;
   double cdv;
   int nobs=0, ndose=0;
+  bool doWarnNeg=false;
   for (int i = 0; i < inTime.size(); i++){
     if (idCol == -1) cid = 1;
     else cid = inId[i];
@@ -660,8 +661,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     if (std::isinf(ctime)){
       stop("Infinite times are not allowed");
     }
-    if (ctime < 0){
-      stop("Negative times are not allowed");
+    if (ctime < 0 && _ini0){
+      doWarnNeg=true
     }
     if (iiCol == -1) cii = 0;
     else cii = inIi[i];
@@ -1519,5 +1520,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   lstF.attr("names") = nmeF;
   lstF.attr("class") = cls;
   lstF.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt);
+  if (doWarnNeg){
+    warning("With negative times, compartments initialize at time zero\nor first negative observed time.");
+  }
   return lstF;
 }
