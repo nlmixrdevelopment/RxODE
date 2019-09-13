@@ -323,16 +323,13 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
     return meOnly(cSub, yp_, yp_, tp, tf, tcov, InfusionRate_, on_, ME, op);
   }
   case 3: {
-    // Matrix exponential without
+    // Matrix exponential  +  inductive linearzation 
     arma::vec wLast(neq);
     arma::vec w(yp_, neq);
     arma::vec y0 = w;
-    int nlin = op->indLinN;
-    op->indLinN=0;
     // Update first value
     meOnly(cSub, w.memptr(), y0.memptr(), tp, tf, tcov, InfusionRate_, on_, ME, op);
     // Don't update rest
-    op->indLinN=nlin;
     wLast = w;
     meOnly(cSub, w.memptr(), y0.memptr(), tp, tf, tcov, InfusionRate_, on_, ME, op);
     bool converge = false;
@@ -354,10 +351,52 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
     std::copy(w.begin(), w.begin()+neq, yp_);
     return 1;
   }
-  case 2:
+  case 2: {
+    // This will not changed with IndLin
+    arma::vec u(neq);
+    arma::vec yp(yp_, neq, false, false);
+    IndF(cSub, tcov, tf, u.memptr());
+    arma::mat m0(neq, neq);
+    ME(cSub, tcov, tf, m0.memptr(), yp_);
+    arma::vec w = phiv((tf-tp), m0, u, yp, op);
+    std::copy(w.begin(), w.begin()+neq, yp_);
+    return 1;
+  }
   case 4: {
-    // Matrix exponential with + u
-    stop("Need fix this.");
+    // Matrix exponential with + u and inductive linearization
+    // This will not changed with IndLin
+    arma::vec u(neq);
+    IndF(cSub, tcov, tf, u.memptr());
+    arma::mat m0(neq, neq);
+    ME(cSub, tcov, tf, m0.memptr(), yp_);
+    arma::vec wLast(neq);
+    arma::vec w(yp_, neq);
+    arma::vec yp(yp_, neq, false, false);
+    // Update first value
+    w = phiv((tf-tp), m0, u, yp, op);
+    wLast = w;
+    // Now update matrix
+    ME(cSub, tcov, tf, m0.memptr(), w.memptr());
+    w = phiv((tf-tp), m0, u, yp, op);
+    bool converge = false;
+    for (int i = 0; i < maxsteps; ++i){
+      converge=true;
+      for (int j=op->indLinN;j--;){
+    	if (fabs(w[op->indLin[j]]-wLast[op->indLin[j]]) >= rtol[op->indLin[j]]*fabs(w[op->indLin[j]])+
+	    atol[op->indLin[j]]){
+    	  converge = false;
+    	  break;
+    	}
+      }
+      if (converge){
+    	break;
+      }
+      wLast = w;
+      ME(cSub, tcov, tf, m0.memptr(), w.memptr());
+      w = phiv((tf-tp), m0, u, yp, op);
+    }
+    std::copy(w.begin(), w.begin()+neq, yp_);
+    return 1;
   }
   default:
     stop("Unsupported");

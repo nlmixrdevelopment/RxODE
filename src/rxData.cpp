@@ -3738,8 +3738,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	op->indLin = Calloc(op->indLinN,int);
 	std::copy(indLinItems.begin(), indLinItems.end(), op->indLin);
 	if (me){
+	  // homogenous ME + IndLin
 	  op->doIndLin=3;
 	} else {
+	  // inhomogenous ME + IndLin
 	  op->doIndLin=4;
 	}
       } else {
