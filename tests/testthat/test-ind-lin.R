@@ -194,8 +194,6 @@ d/dt(blood)     = a*intestine - b*blood
 
     expect_equal(as.data.frame(s1), as.data.frame(s2))
 
-
-
     ## microbenchmark::microbenchmark(rxSolve(mmModel,et, method="indLin"),
     ##                                rxSolve(mmModel,et, method="liblsoda"))
 

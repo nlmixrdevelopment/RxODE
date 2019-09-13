@@ -1,3 +1,29 @@
+.rxIndLinStrategy <- "curState";
+##' This sets the inductive linearization stratedy for matrix building
+##'
+##' When there is more than one state in a ODE that cannot be
+##' separated this specifies how it is incorporated into the matrix
+##' exponential.
+##'
+##' @param strategy The strategy for inductive linearization matrix building
+##'
+##' \itemize{
+##'
+##' \item[curState] Prefer parameterizing in terms of the current
+##'    state, followed by the first state observed in the term.
+##'
+##' \item[split] Split the paramterization between all states in the
+##' term by dividing each by the number of states in the term and then
+##' adding a matrix term for each state.
+##'
+##' }
+##'
+##' @return Nothing
+##' @author Matthew L. Fidler
+##' @export
+rxIndLinStrategy <- function(strategy=c("curState", "split")){
+    assignInMyNamespace(".rxIndLinStrategy",match.arg(strategy));
+}
 .rxIndLinLine <- function(line, states, state0){
     .tmp <- symengine::expand(line) ## Expand line
     .tmp <- rxFromSE(.tmp); ## Convert SE->RxODE; Changes things like X^1 -> X
@@ -15,19 +41,11 @@
         .lst <<- .cur;
     }
     ## This fixes the multiplication so that -1*x becomes -x and *1* becomes *
-    .fixMult <- function(.mult){
-        .mult <- .mult[.mult != "1"];
-        .w <- which(.mult == "-1");
-        if (length(.w) > 0){
-            .mult[.w + 1] <- paste0("-", .mult[.w + 1]);
-            .mult <- .mult[-.w];
-        }
-        return(.mult);
-    }
+    ## Also changes y^2*z*1/y to y^1 to y
     ## This collapses a character vector with "*" between it
     ## If we have *1/x this becomes simply /x
     .multCollapse <- function(x){
-        gsub("[*]1[/] *", "/", paste(.fixMult(x), collapse="*"))
+        as.character(symengine::S(paste(x, collapse="*")))
     }
     sapply(.ret, function(x){
         .mult <- eval(parse(text=paste0("rxSplitPlusQ(quote(", x, "),mult=TRUE)")))
@@ -44,7 +62,7 @@
         .curStates <- unlist(lapply(.mult, function(x){
             .pars <- rxModelVars(paste0("rx_expr=", x))$params
             return(.pars[.pars %in% states]);
-        }))
+       }))
         .addState <- function(.state, .mult){
             .num <- which(.mult == .state)
             if (length(.num) == 0){
@@ -78,13 +96,22 @@
         if (length(.curStates) == 1){
             .addState(.curStates, .mult)
         } else if (length(.curStates) > 1) {
-            if (any(.curStates == state0)){
-                ## If there is d/dt(state1) = ... (state1*state2*state3) ...
-                ## or some other complex expression prefer expressing
-                .addState(state0, .mult);
+            if (.rxIndLinStrategy == "split"){
+                ## Use strategy #3, split between all the compartments
+                .extra <- paste0("1/", length(.curStates))
+                for (.s in .curStates){
+                    .addState(.s, c(.mult, .extra));
+                }
             } else {
-                ## Otherwise just use the first state identified.
-                .addState(.curStates[1], .mult);
+                if (any(.curStates == state0)){
+                    ## If there is d/dt(state1) = ... (state1*state2*state3) ...
+                    ## or some other complex expression prefer expressing
+                    .addState(state0, .mult);
+                } else {
+                    ## Otherwise just use the first state identified.
+                    ## Strategy #1 just add the first
+                    .addState(.curStates[1], .mult);
+                }
             }
         } else {
             ## This is some "constant" or time-base experssion that
