@@ -3729,11 +3729,27 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->indLinMatExpOrder=as<int>(rxControl["indLinMatExpOrder"]);
     List indLin = rxSolveDat.mv["indLin"];
     op->doIndLin=0;
-    if (indLin.size() == 3){
+    if (indLin.size() == 4){
+      int me = rxIs(indLin[1], "NULL");
       if (as<bool>(indLin[2])){
-	op->doIndLin=2;
+	// Inductive linearization
+	IntegerVector indLinItems = as<IntegerVector>(indLin[3]);
+	op->indLinN = indLinItems.size();
+	op->indLin = Calloc(op->indLinN,int);
+	std::copy(indLinItems.begin(), indLinItems.end(), op->indLin);
+	if (me){
+	  op->doIndLin=3;
+	} else {
+	  op->doIndLin=4;
+	}
       } else {
-	op->doIndLin=1;
+	op->indLinN = 0;
+	op->indLin = NULL;
+	if (me){
+	  op->doIndLin=1;
+	} else {
+	  op->doIndLin=2;
+	}
       }
     }
     gatol2Setup(op->neq);
@@ -3978,6 +3994,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       }
       if (rx->matrix == 2){
         dat.attr("class") = "data.frame";
+	Free(op->indLin);
 	return dat;
       } else {
         NumericMatrix tmpM(rx->nr, dat.size());
@@ -3985,6 +4002,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
           tmpM(_,i) = as<NumericVector>(dat[i]);
         }
         tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
+	Free(op->indLin);
         return tmpM;
       }
     } else {
@@ -3995,6 +4013,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       // eGparPos
       dat.attr("class") = cls;
       rxSolveFree();
+      Free(op->indLin);
       return(dat);
     }
   }

@@ -31,8 +31,8 @@ std::string rxIndLin_(CharacterVector states){
       "__" + ",.states, \""+ as<std::string>(states[i]) + "\"),";
     n += "\"" + states[i] +"\",";
   }
-  ret += "NULL)," + std::to_string(states.size()) + "," + std::to_string(states.size()+3) +
-    ",TRUE,list(" + n +"NULL)," + n + "\"_rxF\",\"indLin\",\"ind\")))";
+  ret += "NULL)," + std::to_string(states.size()) + "," + std::to_string(states.size()+2) +
+    ",TRUE,list(" + n +"NULL)," + n + "\"_rxF\",\"indLin\")))";
   return ret;
 }
 
@@ -229,6 +229,55 @@ arma::vec phiv(double t, arma::mat& A, arma::vec& u,
 bool expm_assign=false;
 SEXP expm_s;
 
+int meOnly(int cSub, double *yc_, double *yp_, double tp, double tf, double tcov,
+	   double *InfusionRate_, int *on_, t_ME ME, rx_solving_options *op){
+  int neq = op->neq;
+  int type = op->indLinMatExpType;
+  int order = op->indLinMatExpOrder;
+  arma::mat m0(neq, neq);
+  ME(cSub, tcov, tf, m0.memptr(), yc_);
+  const arma::vec InfusionRate(InfusionRate_, neq, false, false);
+  arma::vec yp(yp_, neq, false, true);
+  arma::vec yc(yc_, neq, false, true);
+  // arma::mat inMat;
+  // arma::mat mexp;
+  // arma::mat ypout;
+  unsigned int i, nInf=0;
+  arma::vec ypExtra(neq);
+  arma::mat m0extra(neq, neq);
+  for (i = 0; i < (unsigned int)neq; i++){
+    if (InfusionRate[i] != 0.0){
+      nInf++;
+      m0extra[neq*(nInf-1)+i]=1;
+      ypExtra[i] = InfusionRate[i];
+    }
+  }
+  if (nInf == 0){
+    arma::mat expAT(neq, neq);
+    expAT = matrixExp(m0, tf-tp, type, order);
+    yc = expAT*yp;
+    return 1;
+  } else {
+    arma::mat mout(neq+nInf, neq+nInf, arma::fill::zeros);
+    arma::vec ypout(neq+nInf);
+    for (int j = neq; j--;){
+      std::copy(m0.colptr(j), m0.colptr(j)+neq, mout.colptr(j));
+    }
+    for (int j = nInf; j--;){
+      std::copy(m0extra.colptr(j),m0extra.colptr(j)+neq, mout.colptr(neq+j));
+    }
+    std::copy(yp.begin(),yp.end(),ypout.begin());
+    std::copy(ypExtra.begin(),ypExtra.end(), ypout.begin()+neq);
+    arma::vec meSol(neq+nInf);
+    arma::mat expAT(neq+nInf, neq+nInf);
+    // Unfortunately the tf-tp may change so we can not cache this.
+    expAT = matrixExp(mout, (tf-tp), type, order);
+    meSol = expAT*ypout;
+    std::copy(meSol.begin(), meSol.begin()+neq, yc_);
+    return 1;
+  }
+}
+
 //' Inductive linearization solver
 //'
 //' @param cSub = Current subject number
@@ -252,114 +301,46 @@ SEXP expm_s;
 //'        inductive linearization
 extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, double tf,
 		      double *InfusionRate_, int *on_, 
-		      double *rwork, int *cache,
 		      t_ME ME, t_IndF  IndF){
   int neq = op->neq;
   double *rtol=op->rtol2;
   double *atol=op->atol2;
   int maxsteps=op->mxstep;
   int doIndLin=op->doIndLin;
-  int indLinPerterb=10;
-  double indLinAmt=1.0;
-  int locf=(op->is_locf!=2);
+  // int indLinPerterb=10;
+  // double indLinAmt=1.0;
   // int phiM=op->indLinPhiM;
   // double phiTol=op->indLinPhiTol;
   // double phiAnorm = op->indLinPhiAnorm;
-  int type = op->indLinMatExpType;
-  int order = op->indLinMatExpOrder;
   std::ostream nullstream(0);
   arma::set_cerr_stream(nullstream);
-  arma::mat m0(neq, neq);
+  
+  int locf=(op->is_locf!=2);
   double tcov = tf;
   if (locf) tcov = tp;
-  // LOCF=tp; If NOCB tp should be tf
-  // Calculate the initial A matrix based on current time/parameters
-  ME(cSub, tcov, m0.memptr()); 
-  if (doIndLin == 0){
-    // Total possible enhanced matrix is (neq+neq)x(neq+neq)
-    // Total possible initial value is (neq+neq)
-    // expAt is (neq+neq)x(neq+neq)
-    // Total possible output is (neq+neq)
-    // =4*neq + 8*neq^2
-    // These are simple linear with no f
-    // Hence there is no need for matrix inversion
-    const arma::vec InfusionRate(InfusionRate_, neq, false, false);
-    const arma::vec yp(yp_, neq, false, false);
-    // arma::mat inMat;
-    // arma::mat mexp;
-    // arma::mat ypout;
-    unsigned int i, nInf=0;
-    arma::vec ypExtra(neq);
-    arma::mat m0extra(neq, neq, arma::fill::zeros);
-    for (i = 0; i < (unsigned int)neq; i++){
-      if (InfusionRate[i] != 0.0){
-	nInf++;
-	m0extra[neq*(nInf-1)+i]=1;
-	ypExtra[i] = InfusionRate[i];
-      }
-    }
-    if (nInf == 0){
-      // arma::mat expAT(neq, neq);
-      // expAT = matrixExp(m0, tf-tp, type, order);
-      // arma::vec meSol(neq);
-      // meSol = expAT*yp;
-      // std::copy(meSol.begin(), meSol.end(), yp_);
-      // const arma::vec InfusionRate(InfusionRate_, neq, false, false);
-      // Try phiv
-      arma::vec yp(yp_, neq, false, false);
-      arma::vec u(neq,arma::fill::zeros);
-      arma::vec w(neq);
-      double *fptr = u.memptr();
-      arma::vec meSol = phiv((tf-tp), m0, u, yp, op);
-      std::copy(meSol.begin(), meSol.end(), yp_);
-      return 1;
-    } else {
-      arma::mat mout(neq+nInf, neq+nInf, arma::fill::zeros);
-      arma::vec ypout(neq+nInf);
-      for (int j = neq; j--;){
-	std::copy(m0.colptr(j), m0.colptr(j)+neq, mout.colptr(j));
-      }
-      for (int j = nInf; j--;){
-	std::copy(m0extra.colptr(j),m0extra.colptr(j)+neq, mout.colptr(neq+j));
-      }
-      std::copy(yp.begin(),yp.end(),ypout.begin());
-      std::copy(ypExtra.begin(),ypExtra.end(), ypout.begin()+neq);
-      arma::vec meSol(neq+nInf);
-      arma::mat expAT(neq+nInf, neq+nInf);
-      // Unfortunately the tf-tp may change so we can not cache this.
-      expAT = matrixExp(mout, (tf-tp), type, order);
-      meSol = expAT*ypout;
-      std::copy(meSol.begin(), meSol.begin()+neq, yp_);
-      return 1;
-    }
-  } else {
-    // In this case the inital matrix should not be expanded. The
-    // infusions are put into the F function
-    const arma::vec InfusionRate(InfusionRate_, neq, false, false);
-    arma::vec yp(yp_, neq, false, false);
-    arma::vec u(neq);
-    arma::vec extra(neq,arma::fill::zeros);
-    arma::vec w(neq);
+  switch(doIndLin){
+  case 1: {
+    return meOnly(cSub, yp_, yp_, tp, tf, tcov, InfusionRate_, on_, ME, op);
+  }
+  case 3: {
+    // Matrix exponential without
     arma::vec wLast(neq);
-    double *fptr = u.memptr();
-    if (doIndLin==1){
-      // For LOCF tp for NOCB tf
-      // IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_);
-      IndF(cSub, tcov, tf, fptr, yp_, InfusionRate_,extra.memptr());
-      wLast = phiv((tf-tp), m0, u, yp, op);
-      // For inhomogenous systems we can return here.
-      std::copy(wLast.begin(), wLast.end(), &yp_[0]);
-      return 1;
-    }
-    stop("Inductive lin");
-    IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_,extra.memptr());
-    w=phiv((tf-tp), m0, u, yp, op);
+    arma::vec w(yp_, neq);
+    arma::vec y0 = w;
+    int nlin = op->indLinN;
+    op->indLinN=0;
+    // Update first value
+    meOnly(cSub, w.memptr(), y0.memptr(), tp, tf, tcov, InfusionRate_, on_, ME, op);
+    // Don't update rest
+    op->indLinN=nlin;
+    wLast = w;
+    meOnly(cSub, w.memptr(), y0.memptr(), tp, tf, tcov, InfusionRate_, on_, ME, op);
     bool converge = false;
-    Rprintf("tf: %f:\n",tf);
     for (int i = 0; i < maxsteps; ++i){
       converge=true;
-      for (int j=neq;j--;){
-    	if (fabs(w[j]-wLast[j]) >= rtol[j]*fabs(w[j])+atol[j]){
+      for (int j=op->indLinN;j--;){
+    	if (fabs(w[op->indLin[j]]-wLast[op->indLin[j]]) >= rtol[op->indLin[j]]*fabs(w[op->indLin[j]])+
+	    atol[op->indLin[j]]){
     	  converge = false;
     	  break;
     	}
@@ -367,20 +348,78 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
       if (converge){
     	break;
       }
-      wLast = w+DOUBLE_EPS; // Try to break out of infinite loop.
-      IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_,extra.memptr());
-      w=phiv((tf-tp), m0, u, yp, op);
-      print(wrap(w.t()));
+      wLast = w;
+      meOnly(cSub, w.memptr(), y0.memptr(), tp, tf, tcov, InfusionRate_, on_, ME, op);
     }
-    if (!converge){
-      Rprintf("Did not converge!");
-      std::copy(w.begin(), w.end(), &yp_[0]);
-      // std::fill_n(&yp_[0], neq, NA_REAL);
-      return 1;
-    } else {
-      std::copy(w.begin(), w.end(), &yp_[0]);
-      return 1;
-    }
+    std::copy(w.begin(), w.begin()+neq, yp_);
+    return 1;
   }
+  case 2:
+  case 4: {
+    // Matrix exponential with + u
+    stop("Need fix this.");
+  }
+  default:
+    stop("Unsupported");
+  }
+  // if (doIndLin == 0){
+  //   // Total possible enhanced matrix is (neq+neq)x(neq+neq)
+  //   // Total possible initial value is (neq+neq)
+  //   // expAt is (neq+neq)x(neq+neq)
+  //   // Total possible output is (neq+neq)
+  //   // =4*neq + 8*neq^2
+  //   // These are simple linear with no f
+  //   // Hence there is no need for matrix inversion
+  // }
+  // else {
+  //   // In this case the inital matrix should not be expanded. The
+  //   // infusions are put into the F function
+  //   const arma::vec InfusionRate(InfusionRate_, neq, false, false);
+  //   arma::vec yp(yp_, neq, false, false);
+  //   arma::vec u(neq);
+  //   arma::vec extra(neq,arma::fill::zeros);
+  //   arma::vec w(neq);
+  //   arma::vec wLast(neq);
+  //   double *fptr = u.memptr();
+  //   if (doIndLin==1){
+  //     // For LOCF tp for NOCB tf
+  //     // IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_);
+  //     IndF(cSub, tcov, tf, fptr, yp_, InfusionRate_);
+  //     wLast = phiv((tf-tp), m0, u, yp, op);
+  //     // For inhomogenous systems we can return here.
+  //     std::copy(wLast.begin(), wLast.end(), &yp_[0]);
+  //     return 1;
+  //   }
+  //   stop("Inductive lin");
+  //   IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_,extra.memptr());
+  //   w=phiv((tf-tp), m0, u, yp, op);
+  //   bool converge = false;
+  //   Rprintf("tf: %f:\n",tf);
+  //   for (int i = 0; i < maxsteps; ++i){
+  //     converge=true;
+  //     for (int j=neq;j--;){
+  //   	if (fabs(w[j]-wLast[j]) >= rtol[j]*fabs(w[j])+atol[j]){
+  //   	  converge = false;
+  //   	  break;
+  //   	}
+  //     }
+  //     if (converge){
+  //   	break;
+  //     }
+  //     wLast = w+DOUBLE_EPS; // Try to break out of infinite loop.
+  //     IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_,extra.memptr());
+  //     w=phiv((tf-tp), m0, u, yp, op);
+  //     print(wrap(w.t()));
+  //   }
+  //   if (!converge){
+  //     Rprintf("Did not converge!");
+  //     std::copy(w.begin(), w.end(), &yp_[0]);
+  //     // std::fill_n(&yp_[0], neq, NA_REAL);
+  //     return 1;
+  //   } else {
+  //     std::copy(w.begin(), w.end(), &yp_[0]);
+  //     return 1;
+  //   }
+  // }
   return 1;
 }

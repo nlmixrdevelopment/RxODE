@@ -56,6 +56,8 @@ d/dt(blood)     = a*intestine - b*blood
 
     pk2 <- rxSolve(mod,et2, method="liblsoda");
 
+    expect_equal(as.data.frame(pk), as.data.frame(pk2), tol=1e-5)
+
     ## Inductive linearization
     mmModel <- RxODE({
         ka = 1
@@ -64,6 +66,16 @@ d/dt(blood)     = a*intestine - b*blood
         Km = 0.3672
         Cp = center / Vc
         d/dt(center) =  - Vmax/(Km + Cp) * Cp
+    }, indLin=TRUE)
+
+
+    mmModel <- RxODE({
+        ka = 1
+        Vc = 1
+        Vmax <- 0.00734
+        Km = 0.3672
+        Cp = center / Vc
+        d/dt(center) =  - Vmax/(Km + Cp) * Cp + exp(-10 * t)
     }, indLin=TRUE)
 
 
@@ -99,10 +111,10 @@ d/dt(blood)     = a*intestine - b*blood
         Q  <- 1.5
         K12<- Q/Vc
         K21<- Q/Vp
-        d/dt(depot) = -ka * depot
-        d/dt(center) = ka * depot - Vmax/(Km + Cp) * Cp + K21*periph-K12*centr
-        d/dt(periph) =-K21*periph+K12*center;
         Cp = center / Vc
+        d/dt(depot) = -ka * depot
+        d/dt(center) = ka * depot - Vmax/(Km + Cp) * Cp + K21*periph-K12*center
+        d/dt(periph) =-K21*periph+K12*center;
     }, indLin=TRUE)
 
 
@@ -112,7 +124,7 @@ d/dt(blood)     = a*intestine - b*blood
         Vc = 1
         Vmax <- 0.00734
         Km = 0.3672
-        d/dt(depot) = -ka * depot + exp(-t)
+        d/dt(depot) = -ka * depot
         Cp = center / Vc
         d/dt(center) = ka * depot - Vmax/(Km + Cp) * Cp
     }, indLin=TRUE)
@@ -128,30 +140,50 @@ d/dt(blood)     = a*intestine - b*blood
 
     gridExtra::grid.arrange(plot(pk), plot(pk2))
 
-    tmp <- RxODE({
+    expect_equal(as.data.frame(pk), as.data.frame(pk2), tol=7e-5)
+
+    plot(microbenchmark::microbenchmark(rxSolve(mmModel,et, method="indLin",indLinMatExpType=1L),rxSolve(mmModel,et, method="indLin",indLinMatExpType=2L), rxSolve(mmModel,et, method="indLin",indLinMatExpType=3L), rxSolve(mmModel,et, method="lsoda")), log="y")
+
+    ## Van der Pol Equation
+    ## mu = 1000 stiff
+    ## me = 1 non-stiff
+    van <- RxODE({
         d/dt(y)  = dy
         d/dt(dy) = mu*(1-y^2)*dy - y
-    })
+    }, indLin=TRUE)
 
-    expect_equal(as.data.frame(pk), as.data.frame(pk2))
+    et <- eventTable();
+    et$add.sampling(seq(0, 10, length.out=200));
+    et$add.dosing(20, start.time=0);
+
+    s1 <- rxSolve(van, et, c(mu=1000), method="lsoda")
+    s2 <- rxSolve(van, et, c(mu=1000), method="indLin")
+
+    expect_equal(as.data.frame(s1), as.data.frame(s2))
+
+    s1 <- rxSolve(van, et, c(mu=1), method="lsoda")
+    s2 <- rxSolve(van, et, c(mu=1), method="indLin")
+    expect_equal(as.data.frame(s1), as.data.frame(s2))
+
+
 
     ## microbenchmark::microbenchmark(rxSolve(mmModel,et, method="indLin"),
     ##                                rxSolve(mmModel,et, method="liblsoda"))
 
 })
 
-## iSec <- RxODE({
-##     d/dt(Ga) = -ka * Ga
-##     d/dt(Gt) = ka * Ga - ka * Gt
-##     Gprod = Gss * (Clg + Clgi * Iss)
-##     d/dt(Gc) = ka * Gt - Gprod + Q / Vp * Gp - (Clg + Clgi * Ie + Q) / Vg * Gc
-##     Gc(0) = Gss * Vg
-##     d/dt(Gp) = -Q / Vp * Gp + Q / Vg * Gc
-##     d/dt(Ge) = Gc * Kge - Ge * Kge
-##     d/dt(I) = (Iss * Cli) * (1 + Sincr * Gt) * (Ge / Gss) ^ IPRG - Cli / Vi * I
-##     I(0) = Iss * Vi
-##     d/dt(Ie) = kie * I - kie * Ie
-## }, indLin=TRUE)
+iSec <- RxODE({
+    d/dt(Ga) = -ka * Ga
+    d/dt(Gt) = ka * Ga - ka * Gt
+    Gprod = Gss * (Clg + Clgi * Iss)
+    d/dt(Gc) = ka * Gt - Gprod + Q / Vp * Gp - (Clg + Clgi * Ie + Q) / Vg * Gc
+    Gc(0) = Gss * Vg
+    d/dt(Gp) = -Q / Vp * Gp + Q / Vg * Gc
+    d/dt(Ge) = Gc * Kge - Ge * Kge
+    d/dt(I) = (Iss * Cli) * (1 + Sincr * Gt) * (Ge / Gss) ^ IPRG - Cli / Vi * I
+    I(0) = Iss * Vi
+    d/dt(Ie) = kie * I - kie * Ie
+}, indLin=TRUE)
 
 ## iVL <- RxODE({
 ##     d/dt(Tni) = lambda - (1 - INHrti) * gamma * Tni * Vin - dni * Tni

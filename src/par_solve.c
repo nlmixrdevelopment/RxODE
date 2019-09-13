@@ -948,7 +948,6 @@ void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtr
 
 int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, double tf,
 		      double *InfusionRate_, int *on_, 
-		      double *rwork, int *cache,
 		      t_ME ME, t_IndF  IndF);
 
 void solveSS_1(int *neq, 
@@ -968,8 +967,6 @@ void solveSS_1(int *neq,
   switch(op->stiff){
   case 3:
     idid = indLin(ind->id, op, xp, yp, xout, ind->InfusionRate, ind->on, 
-		  global_rwork(4*op->neq + 8*op->neq*op->neq),
-		  &(ind->cacheME),
 		  ME, IndF);
     if (idid <= 0) {
       /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
@@ -1333,8 +1330,6 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
 	i = nx-1; // Get out of here!
       } else {
 	idid = indLin(solveid, op, xoutp, yp, xout, ind->InfusionRate, ind->on, 
-		      global_rwork(4*op->neq + 8*op->neq*op->neq),
-		      &(ind->cacheME),
 		      ME, IndF);
 	xoutp=xout;
 	if (idid <= 0) {

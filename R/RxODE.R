@@ -971,16 +971,19 @@ print.RxODE <- function(x, ...){
     .indLin <- rxModelVars(x)$indLin;
     if (length(.indLin) > 0){
         cat(crayon::bold("  indLin: "));
-        if (length(.indLin) != 3){
-            cat(crayon::yellow("homogenous matrix exponential"));
-        } else {
-            if (.indLin[[3]]){
-                cat(crayon::yellow("full matrix exponential+inductive linearization"))
+        if (.indLin[["fullIndLin"]]){
+            if (is.null(.indLin[["f"]])){
+                cat(paste0(crayon::yellow("homogenous matrix exponential + Inductive Linearization")))
             } else {
-                cat(paste0(crayon::red("in"), crayon::yellow("homogenous matrix exponential")));
+                cat(paste0(crayon::red("in"), crayon::yellow("homogenous matrix exponential + Inductive Linearization")))
+            }
+        } else {
+            if (is.null(.indLin[["f"]])){
+                cat(crayon::yellow("homogenous matrix exponential"));
+            } else {
+                cat(paste0(crayon::red("in"), crayon::yellow("homogenous matrix exponential")))
             }
         }
-
         cat("\n");
     }
     if (!any(names(list(...)) == "rxSuppress") && .valid){

@@ -37,8 +37,8 @@ typedef double (*t_DUR)(int _cSub,  int _cmt, double _amt, double t);
 
 typedef void (*t_calc_mtime)(int cSub, double *mtime);
   
-typedef void (*t_ME)(int _cSub, double t, double *_mat);
-typedef void (*t_IndF)(int _cSub, double _t, double t, double *_mat, const double *__zzStateVar__, const double *_InfusionRate, const double *_extra);
+typedef void (*t_ME)(int _cSub, double _t, double t, double *_mat, const double *__zzStateVar__);
+typedef void (*t_IndF)(int _cSub, double _t, double t, double *_mat, const double *__zzStateVar__);
 
 typedef struct {
   // These options should not change based on an individual solve
@@ -71,6 +71,8 @@ typedef struct {
   double hmax2; // Determined by diff
   double *rtol2;
   double *atol2;
+  int *indLin;
+  int indLinN;
   double indLinPhiTol;
   int indLinPhiM;
   int indLinMatExpType;
