@@ -1521,7 +1521,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   lstF.attr("class") = cls;
   lstF.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt);
   if (doWarnNeg){
-    warning("With negative times, compartments initialize at time zero\nor first negative observed time.");
+    warning("With negative times, compartments initialize at time zero\nor first negative observed time.\nUse `rxSetIni0(FALSE)` to initialize at first observed time");
   }
   return lstF;
 }
