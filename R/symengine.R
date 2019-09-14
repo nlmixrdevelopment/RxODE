@@ -527,12 +527,42 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                     .rxToSE(x, envir=envir)
                 }), collapse="\n")
                 rxProgressStop();
-                return(.ret)
             } else {
                 .x2 <- x[-1];
-                return(paste(lapply(.x2, .rxToSE, envir=envir),
-                             collapse="\n"));
+                .ret <- paste(lapply(.x2, .rxToSE, envir=envir),
+                             collapse="\n")
             }
+            ## Assign and evaluate deferred items.
+            if (.isEnv){
+                for (.var in names(envir$..ddt..)){
+                    .expr <- envir$..ddt..[[.var]];
+                    .expr <- eval(parse(text=.expr));
+                    assign(.var, .expr, envir=envir)
+                    .rx <- paste0(rxFromSE(.var), "=",
+                                  rxFromSE(.expr));
+                    assign("..ddt", c(envir$..ddt, .rx),
+                           envir=envir)
+                }
+                for (.var in names(envir$..sens0..)){
+                    .expr <- envir$..sens0..[[.var]];
+                    .expr <- eval(parse(text=.expr));
+                    assign(.var, .expr, envir=envir)
+                    .rx <- paste0(rxFromSE(.var), "=",
+                                  rxFromSE(.expr));
+                    assign("..sens0", c(envir$..sens0, .rx),
+                           envir=envir)
+                }
+                for (.var in names(envir$..jac0..)){
+                    .expr <- envir$..jac0..[[.var]];
+                    .expr <- eval(parse(text=.expr));
+                    assign(.var, .expr, envir=envir)
+                    .rx <- paste0(rxFromSE(.var), "=",
+                                  rxFromSE(.expr));
+                    assign("..jac0", c(envir$..jac0, .rx),
+                           envir=envir)
+                }
+            }
+            return(.ret);
         } else if (identical(x[[1]], quote(`*`)) ||
                    identical(x[[1]], quote(`^`)) ||
                    identical(x[[1]], quote(`+`)) ||
@@ -592,37 +622,39 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                     }
                 }
                 .expr <- x[[3]]
-            } else if (.isEnv){
+            }
+            if (.isEnv){
                 .expr <- paste0("with(envir,",
                                 .rxToSE(x[[3]],
                                         envir=envir), ")")
-                .expr <- eval(parse(text=.expr));
-                assign(.var, .expr, envir=envir)
-            }
-            if (.isEnv){
                 if (regexpr(rex::rex(or(.regRate,
                                         .regDur,
                                         .regLag,
                                         .regF,
                                         regIni0,
                                         regDDt)), .var) != -1){
-                    .rx <- paste0(rxFromSE(.var), "=",
-                                  rxFromSE(.expr));
                     if (regexpr(rex::rex(or(regSens, regSensEtaTheta)),
                                 .var) != -1){
-                        assign("..sens0", c(envir$..sens0, .rx),
-                               envir=envir)
+                        .lst <- get("..sens0..", envir=envir);
+                        .lst[[var]] <- .expr
+                        assign("..sens0..", .lst, envir=envir);
                     } else {
-                        assign("..ddt", c(envir$..ddt, .rx),
-                               envir=envir)
+                        .lst <- get("..ddt..", envir=envir);
+                        .lst[[.var]] <- .expr
+                        assign("..ddt..", .lst, envir=envir);
                     }
                 } else if (regexpr(rex::rex(or(regDfDy,
                                                regDfDyTh)), .var) != -1){
-                    .rx <- paste0(rxFromSE(.var), "=",
-                                  rxFromSE(.expr))
-                    assign("..jac0", c(envir$..jac0, .rx),
-                           envir=envir)
+                    .lst <- get("..jac0..", envir=envir);
+                    .lst[[.var]] <- .expr
+                    assign("..jac0..", .lst, envir=envir);
                 } else if (!identical(x[[1]], quote(`~`))) {
+                    .expr <- eval(parse(text=.expr));
+                    .isNum <- (inherits(.expr, "numeric") || inherits(.expr, "integer"));
+                    if ((.isNum && envir$..doConst) ||
+                        (!.isNum)){
+                        assign(.var, .expr, envir=envir)
+                    }
                     .rx <- paste0(rxFromSE(.var), "=",
                                   rxFromSE(.expr))
                     if (!any(.var == c("rx_pred_", "rx_r_"))){
@@ -635,8 +667,12 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                         }
                     }
                 } else {
-                    .rx <- paste0(rxFromSE(.var), "=",
+                    .expr <- eval(parse(text=.expr));
+                    if (envir$..doConst || !is.numeric(.expr)){
+                        assign(.var, .expr, envir=envir)
+                        .rx <- paste0(rxFromSE(.var), "=",
                                   rxFromSE(.expr))
+                    }
                 }
             }
         } else if (identical(x[[1]], quote(`[`))){
@@ -1404,8 +1440,11 @@ rxS <- function(x, doConst=TRUE, promoteLinSens=FALSE){
     .env <- new.env(parent = loadNamespace("symengine"))
     .env$..mv <- rxModelVars(x);
     .env$..jac0 <- c();
+    .env$..jac0.. <- list();
     .env$..ddt <- c();
+    .env$..ddt.. <- list();
     .env$..sens0 <- c();
+    .env$..sens0.. <- list();
     .env$..lhs <- c();
     .env$..lhs0 <- c();
     .env$..doConst <- doConst
