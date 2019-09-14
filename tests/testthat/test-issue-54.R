@@ -58,6 +58,7 @@ rxPermissive({
         tmp <- rxSolve(m, c(cnd=4), et(0.1))
         expect_equal(tmp$tmp, 4)
         expect_equal(tmp$a, 100)
+
     })
 
     test_that("embedded logical expressions", {
@@ -112,6 +113,7 @@ rxPermissive({
         tmp <- rxSolve(m, c(cnd=2), et(0.1))
         expect_equal(tmp$tmp, 2)
         expect_equal(tmp$a, 2)
+
     })
     ##
     context("Pruning checks");
