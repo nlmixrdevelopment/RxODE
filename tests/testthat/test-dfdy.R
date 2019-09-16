@@ -122,7 +122,8 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
         rxDelete(jac);
         rxDelete(sens);
         rxDelete(norm);
-        rxDelete(full);
+    rxDelete(full);
+
     })
 
     test_that("Jacobian and sensitivity specified.", {

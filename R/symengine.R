@@ -198,7 +198,8 @@ rxRmFun <- function(name){
     return(invisible())
 }
 
-.SE1p <-c("lgamma"="lgamma1p",
+.SE1p <-c("loggamma"="lgamma1p",
+          "lgamma"="lgamma1p",
           "log"="log1p")
 
 .SE1m <-c("cos"="cospi",
@@ -639,7 +640,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                     if (regexpr(rex::rex(or(regSens, regSensEtaTheta)),
                                 .var) != -1){
                         .lst <- get("..sens0..", envir=envir);
-                        .lst[[var]] <- .expr
+                        .lst[[.var]] <- .expr
                         assign("..sens0..", .lst, envir=envir);
                     } else {
                         .lst <- get("..ddt..", envir=envir);
@@ -1128,7 +1129,10 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
             return(paste0("(", .rxFromSE(x[[2]]), ")"))
         } else if (identical(x[[1]], quote(`{`))){
             .x2 <- x[-1];
-            return(paste(lapply(.x2, .rxFromSE),
+            return(paste(lapply(.x2, function(x){
+                .ret <- .rxFromSE(x)
+                return(.ret)
+            }),
                          collapse="\n"));
         } else if (identical(x[[1]], quote(`*`)) ||
                    identical(x[[1]], quote(`^`)) ||
@@ -1223,7 +1227,7 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
                                                       ")"))
                                     }
                                 }
-                                return(paste0(.xc[1], .ret[[1]], .xc[2]))
+                                return(paste0(.xc[1], .x2[[1]], .xc[2]))
                             }
                         }
 
@@ -1468,10 +1472,6 @@ rxS <- function(x, doConst=TRUE, promoteLinSens=FALSE){
         ## symengine::subs(symengine::subs(..polygamma, ..a, a), ..b,  b)
         symengine::psigamma(b, a)
     }
-    .env$loggamma <- function(a){
-        lgamma(a)
-    }
-
     .pars <- c(rxParams(x), rxState(x),
                "podo", "t", "time", "tlast", "rx1c", "rx__PTR__");
     ## default lambda/yj values

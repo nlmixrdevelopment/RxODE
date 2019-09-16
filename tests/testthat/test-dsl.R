@@ -29,6 +29,8 @@ rxPermissive({
         expect_equal(rxToSE(lgammafn(a)), "lgamma(a)")
         expect_equal(rxToSE(lgammafn(a)), "lgamma(a)")
         expect_equal(rxFromSE(loggamma(a)), "lgamma(a)")
+        expect_equal(rxFromSE(loggamma(1+a)), "lgamma1p(a)")
+        expect_equal(rxFromSE(lgamma(1+a)), "lgamma1p(a)")
 
         expect_equal(rxToSE(digamma(a)), "polygamma(0,a)")
         expect_equal(rxFromSE(polygamma(0, a)), "digamma(a)")
