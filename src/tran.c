@@ -869,6 +869,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
       if (nodeHas(transit2) && i == 1) continue;
       if (nodeHas(transit3) && i == 1) continue;
+      if (nodeHas(dvid_statementI) && i != 0) continue;
 
 
       if ((nodeHas(theta) || nodeHas(eta)) && i != 2) continue;
@@ -985,7 +986,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  continue;
 	} else {
 	  freeP();
-	  error("RxODE only supports one dvid() statement per model");
+	  error("RxODE only supports one dvid() statement per model %d", tb.dvidn);
 	}
 	continue;
       }
