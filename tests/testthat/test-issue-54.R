@@ -405,4 +405,64 @@ rxPermissive({
 
     })
 
+    context("cimet pruning checks")
+
+    test_that("cimet pruning checks", {
+
+        cimet.1 <- RxODE({
+            dose <- 300
+            eta.ka <- 0
+            eta.cl <- 0
+            eta.v <- 0
+            eta.tgap <- 0
+            eta.rkeb <- 0
+            add.err <- 0
+            tka <- log(0.5)
+            tcl <- log(60)
+            tv <- log(25)
+            ttgap <- log(2)
+            trkeb <- log(0.5)
+            ka <- exp(tka + eta.ka)
+            cl <- exp(tcl + eta.cl)
+            v <- exp(tv + eta.v)
+            tgap <- exp(ttgap + eta.tgap)
+            rkeb <- exp(trkeb + eta.rkeb)
+            #
+            bile <- 1
+            if (t < tgap){
+                bile <- 0
+            }
+            #
+            ha <- exp(-(cl/v)*tgap)/((cl/v) - ka)
+            hb <- exp(-ka*tgap)*(cl/v)/ka/((cl/v) - ka)
+            tote <- ka*dose*(1/ka + ha - hb)
+            #
+            hc <- exp(-(cl/v)*t) - exp(-ka*t)
+            timh <- bile*(t - tgap)
+            hd <- exp(-(cl/v)*timh) - exp(-ka*timh)
+            #
+            cp <-dose/v*ka/(ka-(cl/v))*hc + bile*rkeb*tote/v*ka/(ka - (cl/v))*hd
+            #
+            cp <- cp + add.err # + prop(prop.err)
+        })
+
+        et <- et(seq(0, 24, length.out=90))
+
+        s1 <- rxSolve(cimet.1, et)
+
+        cimet.2 <- RxODE(rxPrune(cimet.1))
+
+        s2 <- rxSolve(cimet.2, et)
+
+        expect_equal(s1$cp, s2$cp)
+
+        cimet.3 <- RxODE(rxOptExpr(rxPrune(cimet.1)))
+
+        s3 <- rxSolve(cimet.3, et)
+
+        expect_equal(s1$cp, s3$cp)
+
+    })
+
+
 }, cran=TRUE)

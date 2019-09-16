@@ -10,6 +10,7 @@
             } else {
                 ## message(sprintf("%s->%s", .ret, .new))
                 ## print(.rxOptEnv$.rep)
+                .rxOptEnv$.new <- c(.rxOptEnv$.new, .new);
                 return(.new)
             }
         }
@@ -41,6 +42,7 @@
             } else {
                 ## message(sprintf("%s->%s", .ret, .new))
                 ## print(.rxOptEnv$.rep)
+                .rxOptEnv$.new <- c(.rxOptEnv$.new, .new);
                 return(.new)
             }
         }
@@ -111,6 +113,8 @@
 .rxOptEnv$.list <- list();
 .rxOptEnv$.rep <- list();
 .rxOptEnv$.exclude <- "";
+.rxOptEnv$.new <- c();
+.rxOptEnv$.added <- c();
 
 .rxOptGetEnv <- function(expr){
     ## Known functions
@@ -129,7 +133,7 @@
     return(eval(x, .rxOptGetEnv(x)))
 }
 
-..rxOpt <- function(x, onlyRet=FALSE, progress=FALSE){
+..rxOpt <- function(x, progress=FALSE){
     if (is.name(x) || is.atomic(x)){
         return(as.character(x))
     } else if (is.call(x)){
@@ -146,7 +150,7 @@
                 rxProgressStop();
                 return(.ret)
             } else {
-                return(unlist(lapply(.x2, ..rxOpt, onlyRet=onlyRet)))
+                return(unlist(lapply(.x2, ..rxOpt)))
             }
         } else if (identical(x[[1]], quote(`*`)) ||
                    identical(x[[1]], quote(`^`)) ||
@@ -164,23 +168,43 @@
                    identical(x[[1]], quote(`&`)) ||
                    identical(x[[1]], quote(`|`))){
             if (length(x) == 3){
-                return(paste0(..rxOpt(x[[2]], onlyRet=onlyRet), as.character(x[[1]]),
-                              ..rxOpt(x[[3]], onlyRet=onlyRet)));
+                return(paste0(..rxOpt(x[[2]]), as.character(x[[1]]),
+                              ..rxOpt(x[[3]])));
             } else {
                 ## Unary Operators
                 return(paste(as.character(x[[1]]),
-                             ..rxOpt(x[[2]], onlyRet=onlyRet)))
+                             ..rxOpt(x[[2]])))
             }
         } else if (identical(x[[1]], quote(`~`)) ||
                    identical(x[[1]], quote(`=`)) ||
                    identical(x[[1]], quote(`<-`))){
-            if (onlyRet){
-                return(.rxOptExpr(x[[3]]));
-            } else {
-                return(paste0(..rxOpt(x[[2]]),
-                              ifelse(identical(x[[1]], quote(`<-`)), "=", as.character(x[[1]])),
-                              .rxOptExpr(x[[3]])))
+            .rxOptEnv$.new <- c();
+            .ret <- paste0(..rxOpt(x[[2]]),
+                          ifelse(identical(x[[1]], quote(`<-`)), "=", as.character(x[[1]])),
+                          .rxOptExpr(x[[3]]))
+            .extra <- c()
+            if (length(.rxOptEnv$.new) > 0){
+                for (.i in seq_along(.rxOptEnv$.rep)){
+                    if (any(.rxOptEnv$.rep[[.i]] == .rxOptEnv$.new) &&
+                        !any(.rxOptEnv$.rep[[.i]] == .rxOptEnv$.added)){
+                        .cur <- c(.rxOptEnv$.rep[[.i]]);
+                        if (.i != 1) {
+                            for (.j in seq(1, .i - 1)){
+                                if (!any(.rxOptEnv$.rep[[.j]] == .rxOptEnv$.added) &&
+                                    regexpr(rex::rex(or(.cur)), names(.rxOptEnv$.rep)[.j]) != -1){
+                                    .extra <- c(.extra, paste0(.rxOptEnv$.rep[[.j]], "~", names(.rxOptEnv$.rep)[.j]));
+                                    .rxOptEnv$.added <- c(.rxOptEnv$.added,
+                                                          .rxOptEnv$.rep[.j]);
+                                }
+                            }
+                        }
+                        .extra <- c(.extra, paste0(.rxOptEnv$.rep[[.i]], "~", names(.rxOptEnv$.rep)[.i]));
+                                .rxOptEnv$.added <- c(.rxOptEnv$.added,
+                                                      .rxOptEnv$.rep[.i]);
+                    }
+                }
             }
+            return(paste(c(.extra, .ret), collapse="\n"));
         } else if (identical(x[[1]], quote(`[`))){
             return(paste0(..rxOpt(x[[2]]), "[", ..rxOpt(x[[3]]), "]"));
         } else {
@@ -209,6 +233,7 @@
 rxOptExpr <- function(x, msg="model"){
     .rxOptEnv$.list <- list();
     .rxOptEnv$.rep <- list();
+    .rxOptEnv$.added <- c();
     .rxOptEnv$.exclude <- "";
     message(paste0("Finding duplicate expressions in ", msg, "..."))
     .p <- eval(parse(text=paste0("quote({", x, "})")))
@@ -222,12 +247,26 @@ rxOptExpr <- function(x, msg="model"){
         ## expr1=-ka
         ## expr2 = expr-ka
         ## will not become expr = exprka where exprka isn't defined.
-        .exprs <- .exprs[regexpr("^[-]", .exprs) == -1]
+        .exprs <- .exprs[regexpr("^[-]", .exprs) == -1];
         .rp <- rxOptRep_(.exprs)
         .rxOptEnv$.rep <- as.list(.rp[[1]]);
         .rxOptEnv$.exclude <- ""
         message(paste0("Optimizing duplicate expressions in ", msg, "..."))
-        return(paste(c(.rp[[2]], ..rxOpt(.p, progress=TRUE)), collapse="\n"))
+        .opt <- ..rxOpt(.p, progress=TRUE);
+        ## .w <- which(regexpr(rex::rex("rx_expr_", numbers), .opt) != -1);
+        ## .pre <- NULL;
+        ## if (length(.w) > 0){
+        ##     .w <- .w[1];
+        ##     .pre <- .opt[seq(1, .w - 1)];
+        ##     .opt <- .opt[-seq(1, .w - 1)];
+        ##     print(.pre);
+        ##     cat(print(.rp[[2]]))
+        ##     print(.opt);
+        ##     stop();
+        ## }
+
+        ## print(.opt)
+        return(paste(.opt, collapse="\n"))
     } else {
         return(x)
     }
