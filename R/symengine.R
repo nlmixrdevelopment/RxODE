@@ -6,8 +6,9 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 
 ## first.arg second.arg and type of function
 .rxSEsingle <- list("gammafn"=c("gamma(", ")", "gamma"),
-                    "lgammafn"=c("loggamma(", ")", "lgamma"),
-                    "lgamma"=c("loggamma(", ")", "lgamma"),
+                    "lgammafn"=c("lgamma(", ")", "lgamma"),
+                    "lgamma"=c("lgamma(", ")", "lgamma"),
+                    "loggamma"=c("lgamma(", ")", "lgamma"),
                     "digamma"=c("polygamma(0,", ")", "psigamma"),
                     "trigamma"=c("polygamma(1,", ")", "psigamma"),
                     "tetragamma"=c("polygamma(2,", ")", "psigamma"),
@@ -18,7 +19,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
                     "log1p"=c("log(1+", ")", "log"),
                     "expm1"=c("(exp(", ")-1)", "exp"),
                     "factorial"=c("gamma(", "+1)", "gamma"),
-                    "lgamma1p"=c("loggamma(", "+1)", "lgamma"),
+                    "lgamma1p"=c("lgamma(", "+1)", "lgamma"),
                     "expm1"=c("(exp(", ")-1)", "exp"),
                     "log10"=c("log(", ")/log(10)", "log"),
                     "log2"=c("log(", ")/log(2)", "log"),
@@ -26,7 +27,8 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
                     "!"=c("rxNot(", ")", "")
                     )
 
-.SEsingle <- list("rxNot"=c("(!(", "))"))
+.SEsingle <- list("rxNot"=c("(!(", "))"),
+                  "loggamma"=c("lgamma(", ")"))
 
 .rxSEdouble <- list("pow"=c("(", ")^(", ")"),
                     "R_pow"=c("(", ")^(", ")"),
@@ -58,6 +60,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 
 ## atan2
 .rxSEeq <- c(
+    "lgamma"=1,
     "abs"=1,
     "acos"=1,
     "acosh"=1,
@@ -195,7 +198,7 @@ rxRmFun <- function(name){
     return(invisible())
 }
 
-.SE1p <-c("loggamma"="lgamma1p",
+.SE1p <-c("lgamma"="lgamma1p",
           "log"="log1p")
 
 .SE1m <-c("cos"="cospi",
@@ -778,7 +781,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                 .n <- .rxToSE(x[[2]], envir=envir)
                 .k <- .rxToSE(x[[3]], envir=envir)
                 if (.isEnv) envir$..curCall <- .lastCall
-                return(paste0("(loggamma(", .n, "+1)-loggamma(", .k, "+1)-loggamma(", .n, "-(", .k, ")+1))"))
+                return(paste0("(lgamma(", .n, "+1)-lgamma(", .k, "+1)-lgamma(", .n, "-(", .k, ")+1))"))
             } else {
                 stop("lchoose() takes 2 arguments")
             }
@@ -802,7 +805,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                               .n, " + 1)-log(", .mtt, ")+(", .n,
                               ")*((log(", .n, "+1)-log(", .mtt,
                               "))+log(t))-((", .n, "+1)/(", .mtt,
-                              "))*(t)-loggamma(1+", .n, "))"))
+                              "))*(t)-lgamma(1+", .n, "))"))
             } else if (length(x) == 3){
                 if (.isEnv){
                     .lastCall <- envir$..curCall
@@ -811,7 +814,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                 .n <- .rxToSE(x[[2]], envir=envir);
                 .mtt <- .rxToSE(x[[3]], envir=envir);
                 if (.isEnv) envir$..curCall <- .lastCall
-                return(paste0("exp(log(podo)+(log(", .n, "+1)-log(", .mtt, "))+(", .n, ")*((log(", .n, "+1)-log(", .mtt, "))+ log(t))-((", .n, " + 1)/(", .mtt, "))*(t)-loggamma(1+", .n, "))"))
+                return(paste0("exp(log(podo)+(log(", .n, "+1)-log(", .mtt, "))+(", .n, ")*((log(", .n, "+1)-log(", .mtt, "))+ log(t))-((", .n, " + 1)/(", .mtt, "))*(t)-lgamma(1+", .n, "))"))
             } else {
                 stop("'transit' can only take 2-3 arguments");
             }
@@ -1466,7 +1469,7 @@ rxS <- function(x, doConst=TRUE, promoteLinSens=FALSE){
         symengine::psigamma(b, a)
     }
     .env$loggamma <- function(a){
-        symengine::lgamma(a)
+        lgamma(a)
     }
 
     .pars <- c(rxParams(x), rxState(x),
