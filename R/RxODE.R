@@ -1247,7 +1247,7 @@ rxMd5 <- function(model,         # Model File
         .tmp <- c(RxODE.syntax.assign, RxODE.syntax.star.pow, RxODE.syntax.require.semicolon, RxODE.syntax.allow.dots,
                   RxODE.syntax.allow.ini0, RxODE.syntax.allow.ini, RxODE.calculate.jacobian,
                   RxODE.calculate.sensitivity);
-        .ret <- c(.ret, .tmp, .rxCcode, .rxTransCode, .rxMECode);
+        .ret <- c(.ret, .tmp, .rxCcode);
         if (is.null(.md5Rx)){
             .tmp <- getLoadedDLLs()$RxODE;
             class(.tmp) <- "list";
