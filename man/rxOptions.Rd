@@ -25,7 +25,7 @@ elsewhere, otherwise the options are not changed.}
 \item{rxclean}{when TRUE, call rxClean before and after the expr
 is called.}
 
-\item{cran}{When specifyed and true, run on CRAN. Otherwise it is skipped on cran.}
+\item{cran}{When specifyed and true, run on CRAN. Otherwise it is skipped on CRAN.}
 
 \item{on.validate}{When TRUE run only when validating.}
 }
@@ -36,7 +36,7 @@ This is a backend for \code{rxPermissive} (with
 }
 \details{
 When \code{expr} is missing and \code{op.rx} is NULL, this
-desplays the current RxODE options.
+displays the current RxODE options.
 }
 \author{
 Matthew L. Fidler

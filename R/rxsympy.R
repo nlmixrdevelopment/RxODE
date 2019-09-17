@@ -536,7 +536,7 @@ rxSplitLines <- function(lhs, rhs, limit=1100){
 ##' @param model RxODE models
 ##' @param df is a string for the state in the df(.)/dy(.).  If
 ##'     missing and dy is missing, all the df(.)/dy(.) components are
-##'     calulated according to the \code{vars} parameter below.
+##'     calculated according to the \code{vars} parameter below.
 ##' @param dy is a string for the state or varaible in the df(.)/dy(.).
 ##' @param vars is a boolean indicating if parameters will be included
 ##'     for the dy component in the df(.)/dy(.), instead of just state
@@ -604,7 +604,7 @@ rxSymPyDfDyFull <- function(model, vars, cond){
 
 ##' Calculate the full Jacobian for a model
 ##'
-##' This expand the model to caluclate the Jacobian.  This requires
+##' This expand the model to calculate the Jacobian.  This requires
 ##' rSymPy.
 ##'
 ##' @param model RxODE family of objects
@@ -1366,7 +1366,7 @@ genCmtMod <- function(mod){
 ##' @param pkpars Pk Pars function
 ##' @param errfn Error function
 ##' @param init Initialization parameters for scaling.
-##' @param grad Boolaen indicated if the the equations for the
+##' @param grad Boolean indicated if the the equations for the
 ##'     gradient be calculated
 ##' @param sum.prod A boolean determining if RxODE should use more
 ##'     numerically stable sums/products.

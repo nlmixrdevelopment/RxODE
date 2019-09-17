@@ -316,7 +316,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
                     }
                 }
             }
-            ## Last Cran check for Rtools is qpdf
+            ## Last CRAN check for Rtools is qpdf
             .qpdf <- c(paste0(.rtoolsBase, "/qpdf/bin"), paste0(rxPhysicalDrives(), "/qpdf/bin"))
             for (.p in .qpdf){
                 if (file.exists(.p)){

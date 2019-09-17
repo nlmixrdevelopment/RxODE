@@ -16,8 +16,8 @@ removableDrive <- function(driveRoot) {
 #'        covariance matrix simulation.
 #' @param omega Estimate of Covariance matrix.
 #' @param n Number of Matrices to sample.  By default this is 1.
-#' @param omegaIsChol is an indicator of if the omega matrix is in the cholesky decomposition. 
-#' @param returnChol Return the cholesky decomposition of the covariance matrix sample.
+#' @param omegaIsChol is an indicator of if the omega matrix is in the Cholesky decomposition. 
+#' @param returnChol Return the Cholesky decomposition of the covariance matrix sample.
 #'
 #' @return a matrix (n=1) or a list of matricies (n > 1)
 #'
@@ -226,7 +226,7 @@ rxSetupIni <- function(obj, inits = NULL) {
 #'
 #' @param obj RxODE object
 #' @param inits A numeric vector of initial conditions.
-#' @param extraArgs A list of extra args to parse for initial conditions.
+#' @param extraArgs A list of extra arguments to parse for initial conditions.
 #' @author Matthew L. Fidler
 #' @keywords internal
 #' @export
@@ -475,7 +475,7 @@ rxSetSilentErr <- function(silent) {
     .Call(`_RxODE_rxSetSilentErr`, silent)
 }
 
-#' Invert matrix using Rcpp Armadilo.  
+#' Invert matrix using RcppArmadillo.  
 #'
 #' @param matrix matrix to be inverted.
 #' @return inverse or pseudo inverse of matrix.

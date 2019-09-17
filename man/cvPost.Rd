@@ -14,9 +14,9 @@ covariance matrix simulation.}
 
 \item{n}{Number of Matrices to sample.  By default this is 1.}
 
-\item{omegaIsChol}{is an indicator of if the omega matrix is in the cholesky decomposition.}
+\item{omegaIsChol}{is an indicator of if the omega matrix is in the Cholesky decomposition.}
 
-\item{returnChol}{Return the cholesky decomposition of the covariance matrix sample.}
+\item{returnChol}{Return the Cholesky decomposition of the covariance matrix sample.}
 }
 \value{
 a matrix (n=1) or a list of matricies (n > 1)

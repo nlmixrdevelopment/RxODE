@@ -47,10 +47,10 @@ rxCat <- function(a, ...){
 ##'
 ##' This cleans up any DLLs created by text files
 ##'
-##' @param wd What directory should be cleand
+##' @param wd What directory should be cleaned
 ##'
-##' This cleans up all files named rx-*.dll and associated files as
-##' well as call_dvode.o and associated files
+##' This cleans up all files named \code{rx-*.dll} and associated files as
+##' well as \code{call_dvode.o} and associated files
 ##'
 ##' @return TRUE if successful
 ##'

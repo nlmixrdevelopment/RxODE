@@ -150,7 +150,7 @@ RxODE.syntax.require.ode.first <- NULL
 ##' @param respect when TRUE, respect any options that are specified.
 ##'     This is called at startup, but really should not be called
 ##'     elsewhere, otherwise the options are not changed.
-##' @param cran When specifyed and true, run on CRAN. Otherwise it is skipped on cran.
+##' @param cran When specifyed and true, run on CRAN. Otherwise it is skipped on CRAN.
 ##' @param on.validate When TRUE run only when validating.
 ##' @param silent when true, also silence the syntax errors and
 ##'     interactive output (useful in testing).
@@ -184,7 +184,7 @@ rxStrict <- function(expr, silent=.isTestthat(), respect=FALSE,
 ##' \code{op.rx} =\code{1})
 ##'
 ##' When \code{expr} is missing and \code{op.rx} is NULL, this
-##' desplays the current RxODE options.
+##' displays the current RxODE options.
 ##'
 ##' @inheritParams rxPermissive
 ##' @param op.rx A numeric for strict (1) or permissive (2) syntax.

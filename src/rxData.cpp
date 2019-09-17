@@ -989,12 +989,13 @@ NumericVector rxSetupIni(const RObject &obj,
 //'
 //' @param obj RxODE object
 //' @param inits A numeric vector of initial conditions.
-//' @param extraArgs A list of extra args to parse for initial conditions.
+//' @param extraArgs A list of extra arguments to parse for initial conditions.
 //' @author Matthew L. Fidler
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
-NumericVector rxSetupScale(const RObject &obj,
+NumericVector
+rxSetupScale(const RObject &obj,
 			   RObject scale = R_NilValue,
 			   Nullable<List> extraArgs = R_NilValue){
   List modVars = rxModelVars(obj);

@@ -31,7 +31,7 @@ each variable). In RxODE you can specify the Jacobian with the
 `df(state)/dy(variable)=` statement.  A classic ODE that has stiff
 properties under various conditions is
 the
-[van dar Pol ](http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/math_anal/diffeq6.html) differential
+[Van der Pol](http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/math_anal/diffeq6.html) differential
 equations.
 
 In RxODE these can be specified by the following:

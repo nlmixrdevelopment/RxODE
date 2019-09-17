@@ -50,8 +50,10 @@ xlab("")
 ```
 
 
-Another option is to specify the transit compartment function `transit` syntax.  This specifies the parameters
-`transit(number of transit compartments, mean transit time, bioavailibility)`.  The bioavailibity term is optional.
+Another option is to specify the transit compartment function
+`transit` syntax.  This specifies the parameters `transit(number of
+transit compartments, mean transit time, bioavailability)`.  The
+bioavailability term is optional.
 
 Using the `transit` code also automatically turns on the `transit_abs`
 option.  Therefore, the same model can be specified by:

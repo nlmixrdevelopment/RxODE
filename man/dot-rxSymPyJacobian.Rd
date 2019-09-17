@@ -13,7 +13,7 @@
 RxODE syntax for model with Jacobian specified.
 }
 \description{
-This expand the model to caluclate the Jacobian.  This requires
+This expand the model to calculate the Jacobian.  This requires
 rSymPy.
 }
 \author{

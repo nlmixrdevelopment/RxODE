@@ -62,7 +62,7 @@ ev$ctime <- (ev$time+set_units(8,hr)) %% 24
 
 ```
 
-Now there is a covariate present, the system can be solved using the cov option
+Now there is a covariate present, the system can be solved using the `cov` option
 
 ```{r}
 r1 <- solve(mod3, ev, covs_interpolation="linear")

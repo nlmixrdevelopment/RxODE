@@ -455,7 +455,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
 ##' Creates an object for calculating Omega/Omega^-1 and derivatives
 ##'
 ##' @param mat Initial Omega matrix
-##' @param diag.xform transformation to diagonal elements of OMEGA. or chol(Omega^-1)
+##' @param diag.xform transformation to diagonal elements of OMEGA. or \code{chol(Omega^-1)}
 ##' @param create.env -- Create an environment to calculate the inverses. (By default TRUE)
 ##' @param envir -- Environment to evaluate function, bu default it is the parent frame.
 ##' @return A rxSymInv object OR a rxSymInv environment

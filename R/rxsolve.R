@@ -192,7 +192,7 @@ rxControl <- function(scale = NULL,
 ##'     data.frame.
 ##'
 ##' @param scale a numeric named vector with scaling for ode
-##'     parameters of the system.  The names must correstond to the
+##'     parameters of the system.  The names must correspond to the
 ##'     parameter identifiers in the ODE specification. Each of the
 ##'     ODE variables will be divided by the scaling factor.  For
 ##'     example \code{scale=c(center=2)} will divide the center ODE
@@ -389,9 +389,9 @@ rxControl <- function(scale = NULL,
 ##' @param rtolSS Relative tolerance to check if a solution arrived at
 ##'     steady state.
 ##'
-##' @param istateReset When TRUE, reset the ISTATE variable to 1 for
-##'     lsoda and liblsoda with doses, like deSolve; When FALSE, do
-##'     not reset the ISTATE variable with doses.
+##' @param istateReset When \code{TRUE}, reset the \code{ISTATE} variable to 1 for
+##'     lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do
+##'     not reset the \code{ISTATE} variable with doses.
 ##'
 ##' @param addDosing Boolean indicating if the solve should add RxODE
 ##'     EVID and related columns.  This will also include dosing

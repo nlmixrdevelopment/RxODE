@@ -7,10 +7,10 @@
 rxClean(wd)
 }
 \arguments{
-\item{wd}{What directory should be cleand
+\item{wd}{What directory should be cleaned
 
-This cleans up all files named rx-*.dll and associated files as
-well as call_dvode.o and associated files}
+This cleans up all files named \code{rx-*.dll} and associated files as
+well as \code{call_dvode.o} and associated files}
 }
 \value{
 TRUE if successful

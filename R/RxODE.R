@@ -132,10 +132,10 @@ rxDynProtect <- function(dlls){
 ##' end-of-line marker).  \strong{NB:} Comments are not allowed inside
 ##' statements.
 ##'
-##' A block of statements is a set of statements delimeted by curly
+##' A block of statements is a set of statements delimited by curly
 ##' braces, \sQuote{\code{\{ ... \}}}. Statements can be either
 ##' assignments or conditional \code{if} statements. Assignment
-##' statements can be: (1) \dQuote{simple} assignmets, where the left
+##' statements can be: (1) \dQuote{simple} assignments, where the left
 ##' hand is an identifier (i.e., variable), (2) special
 ##' \dQuote{time-derivative} assignments, where the left hand specifies
 ##' the change of that variable with respect to time e.g.,
@@ -232,7 +232,7 @@ rxDynProtect <- function(dlls){
 ##'
 ##'           The output of \dQuote{solve} is a matrix with as many rows as there
 ##'           are sampled time points and as many columns as system variables
-##'           (as defined by the ODEs and additional assigments in the RxODE model
+##'           (as defined by the ODEs and additional assignments in the RxODE model
 ##'               code).}
 ##'
 ##'       \item{isValid}{a function that (naively) checks for model validity,
@@ -244,7 +244,7 @@ rxDynProtect <- function(dlls){
 ##'           that dynamically loads the object code if needed.}
 ##'       \item{dynUnload}{a function with no argument that unloads
 ##'           the model object code.}
-##'       \item{delete}{removes all created model files, including C and DDL files.
+##'       \item{delete}{removes all created model files, including C and DLL files.
 ##'           The model object is no longer valid and should be removed, e.g.,
 ##'           \code{rm(m1)}.}
 ##'       \item{run}{deprecated, use \code{solve}.}

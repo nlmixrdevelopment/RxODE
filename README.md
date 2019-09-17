@@ -30,7 +30,7 @@ configured to avoid compilation issues during the use of `RxODE`.
 
 In a nutshell, installing `RxODE` is very straight forwad, but installing
 and configuring `Rtools` is a bit more delicate and you need to 
-carefully follow the instructions in the "R Installation and Adminstration" 
+carefully follow the instructions in the "R Installation and Administration" 
 manual, in particular Section 6.3, and Appendix D "The Windows Toolset". 
 We point out a couple of details worth extra attention.  Please read on.
 

@@ -22,7 +22,7 @@ rxSymPySetupPred(obj, predfn, pkpars = NULL, errfn = NULL,
 
 \item{init}{Initialization parameters for scaling.}
 
-\item{grad}{Boolaen indicated if the the equations for the
+\item{grad}{Boolean indicated if the the equations for the
 gradient be calculated}
 
 \item{sum.prod}{A boolean determining if RxODE should use more

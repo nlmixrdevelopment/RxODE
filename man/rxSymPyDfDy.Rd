@@ -11,7 +11,7 @@ rxSymPyDfDy(model, df, dy, vars = FALSE)
 
 \item{df}{is a string for the state in the df(.)/dy(.).  If
 missing and dy is missing, all the df(.)/dy(.) components are
-calulated according to the \code{vars} parameter below.}
+calculated according to the \code{vars} parameter below.}
 
 \item{dy}{is a string for the state or varaible in the df(.)/dy(.).}
 

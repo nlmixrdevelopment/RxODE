@@ -69,7 +69,7 @@ rxSolve(object, ...)
 }
 \arguments{
 \item{scale}{a numeric named vector with scaling for ode
-parameters of the system.  The names must correstond to the
+parameters of the system.  The names must correspond to the
 parameter identifiers in the ODE specification. Each of the
 ODE variables will be divided by the scaling factor.  For
 example \code{scale=c(center=2)} will divide the center ODE
@@ -336,9 +336,9 @@ parameter identifiers used in the ODE specification;}
 (e.g., doses) to the dynamic system and observation sampling
 time points (see \code{\link{eventTable}});}
 
-\item{istateReset}{When TRUE, reset the ISTATE variable to 1 for
-lsoda and liblsoda with doses, like deSolve; When FALSE, do
-not reset the ISTATE variable with doses.}
+\item{istateReset}{When \code{TRUE}, reset the \code{ISTATE} variable to 1 for
+lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do
+not reset the \code{ISTATE} variable with doses.}
 
 \item{subsetNonmem}{subset to NONMEM compatible EVIDs only.  By default TRUE.}
 
