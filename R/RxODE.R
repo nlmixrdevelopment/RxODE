@@ -1239,6 +1239,10 @@ rxMd5 <- function(model,         # Model File
         } else {
             if (any(names(model)=="normModel")){
                 .ret <- setNames(model["normModel"], NULL);
+                if (any(names(model) == "indLin")){
+                    .ret <- setNames(paste0(.ret, "\n",
+                                            model["indLin"]), NULL)
+                }
             } else {
                 stop("Unknown model.");
             }

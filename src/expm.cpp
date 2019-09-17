@@ -399,7 +399,7 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
     return 1;
   }
   default:
-    stop("Unsupported");
+    stop("Unsupported IndLin Code: %d", doIndLin);
   }
   // if (doIndLin == 0){
   //   // Total possible enhanced matrix is (neq+neq)x(neq+neq)
