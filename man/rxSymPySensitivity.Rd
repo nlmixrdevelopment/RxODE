@@ -17,7 +17,7 @@ all the known parameters.  When \code{FALSE} raise an error.}
 \item{calcJac}{A boolean that determines if the Jacobian should be
 calculated.}
 
-\item{keepState}{State parameters to keep the sensitivites for.}
+\item{keepState}{State parameters to keep the sensitivities for.}
 
 \item{collapseModel}{A boolean to collapse the model that each
 expression only depends on the unspecified parameters (instead on LHS quantities).}

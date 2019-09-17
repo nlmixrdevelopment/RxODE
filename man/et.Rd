@@ -22,7 +22,7 @@ et(x, ..., envir = parent.frame())
 }
 \arguments{
 \item{x}{This is the first argument supplied to the event table.
-This is named to allow \code{et} to be used in a piple-line
+This is named to allow \code{et} to be used in a pipe-line
 with arbitrary objects.}
 
 \item{...}{Times or event tables.  They can also be one of the named arguments below.}
@@ -144,7 +144,8 @@ should be added at the same time as a dosing time.  By default
 this is \code{FALSE}.}
 
 \item{by}{When there are no observations in the event table, this
-is the amount to increment for the observations between `from` and `to`.}
+is the amount to increment for the observations between \code{from}
+and \code{to}.}
 
 \item{length.out}{The number of observations to create if there
 isn't any observations in the event table. By default this is 200.}

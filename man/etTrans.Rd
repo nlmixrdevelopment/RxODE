@@ -22,9 +22,9 @@ etTrans(inData, obj, addCmt = FALSE, dropUnits = FALSE,
 \item{keepDosingOnly}{keep the individuals who only have dosing records and any
 trailing dosing records after the last observation.}
 
-\item{combineDvid}{is a boolean indicating if RxODE will use DVID on observation
-records to change the cmt value; Useful for multiple-endpoint nlmixr models.  By default
-this is determined by code{option("RxODE.combine.dvid")} and if the option has not been set,
+\item{combineDvid}{is a boolean indicating if RxODE will use \code{DVID} on observation
+records to change the \code{cmt} value; Useful for multiple-endpoint nlmixr models.  By default
+this is determined by \code{option("RxODE.combine.dvid")} and if the option has not been set,
 this is \code{TRUE}. This typically does not affect RxODE simulations.}
 
 \item{keep}{This is a named vector of items you want to keep in the final RxODE dataset.

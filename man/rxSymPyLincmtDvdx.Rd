@@ -17,7 +17,7 @@ rxSymPyLincmtDvdx(model, ncmt, parameterization, optExpression = TRUE)
 expression.}
 }
 \value{
-RxODE model expressing dvdx
+RxODE model expressing \code{dvdx}
 }
 \description{
 This creates the dv/dx RxODE model for a linear solved system

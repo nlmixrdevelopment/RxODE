@@ -10,7 +10,7 @@ rxSymPyVars(model)
 \item{model}{RxODE family of objects}
 }
 \description{
-This creates SymPy variables for later evaulation in the CAS SymPy.
+This creates SymPy variables for later evaluation in the CAS SymPy.
 }
 \author{
 Matthew L. Fidler

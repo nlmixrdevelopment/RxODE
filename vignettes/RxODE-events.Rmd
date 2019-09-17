@@ -578,7 +578,7 @@ rxSolve(m1, ev, c(durDepot=7)) %>% plot(depot, C2) +
 
 ```
 
-Similarly, you may also model rate.  This is equaivlent to NONMEM's
+Similarly, you may also model rate.  This is equivalent to NONMEM's
 `rate=-1` and is how RxODE's event table specifies the data item as
 well. You can also use `rate=model` as a mnemonic:
 
@@ -884,7 +884,7 @@ compartments under 100, this is coded as:
 	 
 	 
 For compartments greater or equal to 100, the 100s place and above
-digits are transfered to the 100,000th place digit. For doses to the
+digits are transferred to the 100,000th place digit. For doses to the
 99th compartment the `evid` for a bolus dose would be `9901` and the
 `evid` for an infusion would be `19901`.  For a bolus dose to the
 `199`th compartment the `evid` for the bolus dose would be

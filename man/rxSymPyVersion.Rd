@@ -11,7 +11,7 @@ rxSymPyVersion(numeric = TRUE)
 release should be a number.}
 }
 \value{
-Verson of sympy that is running.
+Version of sympy that is running.
 }
 \description{
 Return the version of SymPy that is running

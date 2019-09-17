@@ -278,7 +278,7 @@ rxControl <- function(scale = NULL,
 ##'     to the output matrix or data frame. By default this is
 ##'     disabled.
 ##'
-##' @param matrix A boolean inticating if a matrix should be returned
+##' @param matrix A boolean indicating if a matrix should be returned
 ##'     instead of the RxODE's solved object.
 ##'
 ##' @param sigma Named sigma covariance or Cholesky decomposition of a
@@ -315,7 +315,7 @@ rxControl <- function(scale = NULL,
 ##' @param stiff a logical (\code{TRUE} by default) indicating whether
 ##'     the ODE system is stiff or not.
 ##'
-##'     For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
+##'     For stiff ODE systems (\code{stiff = TRUE}), \code{RxODE} uses the
 ##'     LSODA (Livermore Solver for Ordinary Differential Equations)
 ##'     Fortran package, which implements an automatic method switching
 ##'     for stiff and non-stiff problems along the integration
@@ -335,7 +335,7 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param stateTrim When amounts/concentrations in one of the states
 ##'     are above this value, trim them to be this value. By default
-##'     Inf.  Also trims to -stateTrim for lage negative
+##'     Inf.  Also trims to -stateTrim for large negative
 ##'     amounts/concentrations
 ##'
 ##' @param updateObject This is an internally used flag to update the
@@ -430,20 +430,22 @@ rxControl <- function(scale = NULL,
 ##'     calculated more accurately in the log-space (slower) By
 ##'     default this is off (\code{FALSE})
 ##'
-##' @param maxAtolRtolFactor The maximum atol/rtol that FOCEi and
-##'     other routines may adjust to.  By default 0.1
+##' @param maxAtolRtolFactor The maximum \code{atol}/\code{rtol} that
+##'     FOCEi and other routines may adjust to.  By default 0.1
 ##'
 ##' @param from When there is no observations in the event table,
 ##'     start observations at this value. By default this is zero.
 ##'
 ##' @param to When there is no observations in the event table, end
-##'     observations at this value. By default this is 24 + maximum dose time.
+##'     observations at this value. By default this is 24 + maximum
+##'     dose time.
 ##'
 ##' @param length.out The number of observations to create if there
 ##'     isn't any observations in the event table. By default this is 200.
 ##'
 ##' @param by When there are no observations in the event table, this
-##'     is the amount to increment for the observations between `from` and `to`.
+##'     is the amount to increment for the observations between \code{from}
+##'     and \code{to}.
 ##'
 ##' @param keep Columns to keep from either the input dataset or the
 ##'     \code{iCov} dataset.  With the \code{iCov} dataset, the column
@@ -459,11 +461,11 @@ rxControl <- function(scale = NULL,
 ##'     It also stores information about the call to allow dynamic
 ##'     updating of the solved object.
 ##'
-##'     The operations for the object are simialar to a data-frame, but
+##'     The operations for the object are similar to a data-frame, but
 ##'     expand the \code{$} and \code{[[""]]} access operators and
 ##'     assignment operators to resolve based on different parameter
 ##'     values, initial conditions, solver parameters, or events (by
-##'     updaing the \code{time} variable).
+##'     updating the \code{time} variable).
 ##'
 ##'     You can call the \code{\link{eventTable}} methods on the solved
 ##'     object to update the event table and resolve the system of
@@ -970,7 +972,7 @@ dimnames.rxSolve <- function(x){
 ##' Update Solved object with '+'
 ##'
 ##' @param solved Solved object
-##' @param new New information added tothe table.
+##' @param new New information added to the table.
 ##' @return new solved object
 ##' @author Matthew L. Fidler
 ##' @export

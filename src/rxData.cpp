@@ -1862,7 +1862,7 @@ SEXP rxGetFromChar(char *ptr, std::string var){
 //' @param nObs Number of observations to simulate (with \code{sigma} matrix)
 //'
 //' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
-//'     indivdual parameters, residuals are updated after solve is completed.
+//'     individual parameters, residuals are updated after solve is completed.
 //'
 //' @param sigmaLower Lower bounds for simulated unexplained variability (by default -Inf)
 //'
@@ -1870,10 +1870,10 @@ SEXP rxGetFromChar(char *ptr, std::string var){
 //'
 //' @inheritParams rxSolve
 //'
-//' @param dfSub Degrees of freedom to sample the between subject variaiblity matrix from the 
+//' @param dfSub Degrees of freedom to sample the between subject variability matrix from the 
 //'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
 //'
-//' @param dfObs Degrees of freedom to sample the unexplained variaiblity matrix from the 
+//' @param dfObs Degrees of freedom to sample the unexplained variability matrix from the 
 //'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution. 
 //'
 //' @param simSubjects boolean indicated RxODE should simulate subjects in studies (\code{TRUE}, 

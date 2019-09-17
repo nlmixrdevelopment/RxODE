@@ -11,9 +11,9 @@ rxParseErr(x, base.theta, ret = "rx_r_", init = NULL)
 
 \item{base.theta}{Base theta to start numbering add(.) and prop(.) from.}
 
-\item{ret}{Intenral return type.  Should not be changed by the user...}
+\item{ret}{Internal return type.  Should not be changed by the user...}
 
-\item{init}{Initilization vector}
+\item{init}{Initialization vector}
 }
 \value{
 RxODE transformed text

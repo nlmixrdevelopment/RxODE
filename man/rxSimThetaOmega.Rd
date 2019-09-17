@@ -55,7 +55,7 @@ symmetric matrix.}
 parameters.}
 
 \item{sigma}{Matrix for residual variation.  Adds a "NA" value for each of the 
-indivdual parameters, residuals are updated after solve is completed.}
+individual parameters, residuals are updated after solve is completed.}
 
 \item{sigmaLower}{Lower bounds for simulated unexplained variability (by default -Inf)}
 
@@ -77,10 +77,10 @@ threaded ODE solving.}
 
 \item{nObs}{Number of observations to simulate (with \code{sigma} matrix)}
 
-\item{dfSub}{Degrees of freedom to sample the between subject variaiblity matrix from the 
+\item{dfSub}{Degrees of freedom to sample the between subject variability matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
-\item{dfObs}{Degrees of freedom to sample the unexplained variaiblity matrix from the 
+\item{dfObs}{Degrees of freedom to sample the unexplained variability matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
 \item{simSubjects}{boolean indicated RxODE should simulate subjects in studies (\code{TRUE}, 

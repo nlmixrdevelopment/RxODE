@@ -1,6 +1,6 @@
 ##' Validate RxODE
 ##'
-##' This allows easy vaildation/qualification of nlmixr by running the
+##' This allows easy validation/qualification of nlmixr by running the
 ##' testing suite on your system.
 ##' @param full Should a full validation be performed?  (By default
 ##'     \code{TRUE})

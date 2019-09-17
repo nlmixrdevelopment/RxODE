@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxode-options.R
 \name{rxSyncOptions}
 \alias{rxSyncOptions}
-\title{Sync options with RxODE varaibles}
+\title{Sync options with RxODE variables}
 \usage{
 rxSyncOptions()
 }

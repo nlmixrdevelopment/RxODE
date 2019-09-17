@@ -10,7 +10,7 @@
 \item{x}{RxODE list of lines to remove}
 }
 \value{
-RxODE lines with df/dy removed.
+RxODE lines with \code{df/dy} removed.
 }
 \description{
 Remove Jacobian

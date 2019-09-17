@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxSymPyExists}
 \alias{rxSymPyExists}
-\title{Does the varaible exist in the SymPy Python environment?}
+\title{Does the variable exist in the SymPy Python environment?}
 \usage{
 rxSymPyExists(var)
 }
@@ -13,7 +13,7 @@ rxSymPyExists(var)
 boolean
 }
 \description{
-Does the varaible exist in the SymPy Python environment?
+Does the variable exist in the SymPy Python environment?
 }
 \author{
 Matthew L. Fidler

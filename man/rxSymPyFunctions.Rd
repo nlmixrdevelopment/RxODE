@@ -10,7 +10,7 @@ rxSymPyFunctions(functions)
 \item{functions}{a list of functions}
 }
 \description{
-This creates SymPy unspecified functions for later evaulation in the CAS SymPy.
+This creates SymPy unspecified functions for later evaluation in the CAS SymPy.
 }
 \author{
 Matthew L. Fidler

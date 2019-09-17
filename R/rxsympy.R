@@ -22,7 +22,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 }
 ##' Remove Jacobian
 ##' @param x RxODE list of lines to remove
-##' @return RxODE lines with df/dy removed.
+##' @return RxODE lines with \code{df/dy} removed.
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 .rxRmJac <- function(x){
@@ -43,17 +43,17 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
     return(x[regexpr(getFromNamespace("regPrint", "RxODE"), x) == -1]);
 }
 
-##' Expand if/else clauses into mutiple different types of lines.
+##' Expand if/else clauses into multiple different types of lines.
 ##'
 ##'
 ##' @param model Model can be a character, or a RxODE model.  It needs
 ##'     to have normalized syntax, that is \code{if (...)\{} has to be
 ##'     on the same line.  The \code{else} statement must be on its
 ##'     own line with the closing bracket of the \code{if} statement
-##'     on the previous line.  This \code{else} statment must also
+##'     on the previous line.  This \code{else} statement must also
 ##'     contain the opening bracket, like the code \code{else \{}
 ##' @param removeInis A boolean indicating if parameter
-##'     initializations should be removed from the model.
+##'     initialization should be removed from the model.
 ##' @param removePrint A boolean indicating if printing statements
 ##'     should be removed from the model.
 ##' @return A named character vector. The names of the vector are the
@@ -310,7 +310,7 @@ rxSymPy0 <- function(...){
 ##'
 ##' @param numeric boolean that specifies if the major and minor
 ##'     release should be a number.
-##' @return Verson of sympy that is running.
+##' @return Version of sympy that is running.
 ##' @author Matthew L. Fidler
 ##' @export
 rxSymPyVersion <- function(numeric=TRUE){
@@ -323,7 +323,7 @@ rxSymPyVersion <- function(numeric=TRUE){
 
 ##' Return a list of reserved functions and variables from sympy
 ##'
-##' @return List of reserevd functions and variaibles from sympy.
+##' @return List of reserved functions and variables from sympy.
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
@@ -390,7 +390,7 @@ rxSyPyAddVars <- function(txt){
 
 ##' Setup SymPy variables
 ##'
-##' This creates SymPy variables for later evaulation in the CAS SymPy.
+##' This creates SymPy variables for later evaluation in the CAS SymPy.
 ##'
 ##' @param model RxODE family of objects
 ##' @return NULL
@@ -426,7 +426,7 @@ rxSymPyVars <- function(model){
 
 ##' Setup SymPy functions
 ##'
-##' This creates SymPy unspecified functions for later evaulation in the CAS SymPy.
+##' This creates SymPy unspecified functions for later evaluation in the CAS SymPy.
 ##'
 ##' @param functions a list of functions
 ##' @return NULL
@@ -500,8 +500,8 @@ rxSymPySetupIf <- function(model){
 ##' @param rhs Right handed side to construct
 ##' @param limit the number of characters for the expression to be
 ##'     before it is split.  By default this is 1100
-##' @return an expression where the lhs is constructed iteratevly by
-##'     splitting the lhs and adding it iteratevly to the lhs.
+##' @return an expression where the lhs is constructed iteratively by
+##'     splitting the lhs and adding it iteratively to the lhs.
 ##'
 ##' For example:
 ##'
@@ -515,7 +515,7 @@ rxSymPySetupIf <- function(model){
 ##'
 ##' When calling rxSplitLines("lhs", "1+2+3", 0)
 ##'
-##' This is to deal with the unwieldly lines that sometimes come out
+##' This is to deal with the unwieldy lines that sometimes come out
 ##' of SymPy.
 ##'
 ##' @author Matthew L. Fidler
@@ -537,7 +537,7 @@ rxSplitLines <- function(lhs, rhs, limit=1100){
 ##' @param df is a string for the state in the df(.)/dy(.).  If
 ##'     missing and dy is missing, all the df(.)/dy(.) components are
 ##'     calculated according to the \code{vars} parameter below.
-##' @param dy is a string for the state or varaible in the df(.)/dy(.).
+##' @param dy is a string for the state or variable in the df(.)/dy(.).
 ##' @param vars is a boolean indicating if parameters will be included
 ##'     for the dy component in the df(.)/dy(.), instead of just state
 ##'     variables (required for sensitivity equations).
@@ -635,7 +635,7 @@ rxSymPyDfDyFull <- function(model, vars, cond){
     return(model);
 }
 
-##' Does the varaible exist in the SymPy Python environment?
+##' Does the variable exist in the SymPy Python environment?
 ##'
 ##' @param var Variable to be tested.
 ##' @return boolean
@@ -883,7 +883,7 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
 ##'     all the known parameters.  When \code{FALSE} raise an error.
 ##' @param calcJac A boolean that determines if the Jacobian should be
 ##'     calculated.
-##' @param keepState State parameters to keep the sensitivites for.
+##' @param keepState State parameters to keep the sensitivities for.
 ##'
 ##' @param collapseModel A boolean to collapse the model that each
 ##'     expression only depends on the unspecified parameters (instead on LHS quantities).
@@ -1018,11 +1018,11 @@ rxSymPyClean <- function(full=FALSE){
     if (full) rxGc();
 }
 
-##' Add a return statment to a function.
+##' Add a return statement to a function.
 ##'
 ##' @param fn Function to deparse
 ##' @param ret boolean stating if a return statement will be added.
-##' @return Function with parens removed and add a return statment.
+##' @return Function with parens removed and add a return statement.
 ##' @author Matthew L. Fidler
 rxAddReturn <- function(fn, ret=TRUE){
     txt <- deparse(body(fn));
@@ -1385,8 +1385,8 @@ genCmtMod <- function(mod){
 ##'     evaluation.
 ##' @param run.internal Boolean to see if the function should be run
 ##'     internally.
-##' @param interaction Boolean to determine if dR^2/deta is calculated
-##'     for FOCEi (not needed for FOCE)
+##' @param interaction Boolean to determine if \code{dR^2/deta} is
+##'     calculated for FOCEi (not needed for FOCE)
 ##' @return RxODE object expanded with predfn and with calculated
 ##'     sensitivities.
 ##' @author Matthew L. Fidler
@@ -2024,7 +2024,7 @@ rxFoExpandEta <-function(expr){
 ##' @param parameterization Integer representing parameterization type
 ##' @param optExpression boolean indicating if you should optimize the
 ##'     expression.
-##' @return RxODE model expressing dvdx
+##' @return RxODE model expressing \code{dvdx}
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export

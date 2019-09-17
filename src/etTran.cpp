@@ -244,9 +244,9 @@ IntegerVector convertMethod(RObject method);
 //' @param allTimeVar Treat all covariates as if they were time-varying
 //' @param keepDosingOnly keep the individuals who only have dosing records and any
 //'   trailing dosing records after the last observation.
-//' @param combineDvid is a boolean indicating if RxODE will use DVID on observation
-//'     records to change the cmt value; Useful for multiple-endpoint nlmixr models.  By default
-//'     this is determined by code{option("RxODE.combine.dvid")} and if the option has not been set,
+//' @param combineDvid is a boolean indicating if RxODE will use \code{DVID} on observation
+//'     records to change the \code{cmt} value; Useful for multiple-endpoint nlmixr models.  By default
+//'     this is determined by \code{option("RxODE.combine.dvid")} and if the option has not been set,
 //'     this is \code{TRUE}. This typically does not affect RxODE simulations.
 //' @param keep This is a named vector of items you want to keep in the final RxODE dataset.
 //'     For added RxODE event records (if seen), last observation carried forward will be used.

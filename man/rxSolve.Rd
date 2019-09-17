@@ -155,7 +155,7 @@ solving (ie thread-safe methods like "liblsoda").}
 to the output matrix or data frame. By default this is
 disabled.}
 
-\item{matrix}{A boolean inticating if a matrix should be returned
+\item{matrix}{A boolean indicating if a matrix should be returned
 instead of the RxODE's solved object.}
 
 \item{sigma}{Named sigma covariance or Cholesky decomposition of a
@@ -196,7 +196,7 @@ data as an RxODE event table.}
 \item{stiff}{a logical (\code{TRUE} by default) indicating whether
     the ODE system is stiff or not.
 
-    For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
+    For stiff ODE systems (\code{stiff = TRUE}), \code{RxODE} uses the
     LSODA (Livermore Solver for Ordinary Differential Equations)
     Fortran package, which implements an automatic method switching
     for stiff and non-stiff problems along the integration
@@ -250,7 +250,7 @@ first model time, 102 is the second etc.
 
 \item{stateTrim}{When amounts/concentrations in one of the states
 are above this value, trim them to be this value. By default
-Inf.  Also trims to -stateTrim for lage negative
+Inf.  Also trims to -stateTrim for large negative
 amounts/concentrations}
 
 \item{updateObject}{This is an internally used flag to update the
@@ -293,10 +293,10 @@ symmetric matrix.}
 \item{nStud}{Number virtual studies to characterize uncertainty in estimated 
 parameters.}
 
-\item{dfSub}{Degrees of freedom to sample the between subject variaiblity matrix from the 
+\item{dfSub}{Degrees of freedom to sample the between subject variability matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
-\item{dfObs}{Degrees of freedom to sample the unexplained variaiblity matrix from the 
+\item{dfObs}{Degrees of freedom to sample the unexplained variability matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
 \item{returnType}{This tells what type of object is returned.  The currently supported types are:
@@ -346,17 +346,19 @@ not reset the \code{ISTATE} variable with doses.}
 calculated more accurately in the log-space (slower) By
 default this is off (\code{FALSE})}
 
-\item{maxAtolRtolFactor}{The maximum atol/rtol that FOCEi and
-other routines may adjust to.  By default 0.1}
+\item{maxAtolRtolFactor}{The maximum \code{atol}/\code{rtol} that
+FOCEi and other routines may adjust to.  By default 0.1}
 
 \item{from}{When there is no observations in the event table,
 start observations at this value. By default this is zero.}
 
 \item{to}{When there is no observations in the event table, end
-observations at this value. By default this is 24 + maximum dose time.}
+observations at this value. By default this is 24 + maximum
+dose time.}
 
 \item{by}{When there are no observations in the event table, this
-is the amount to increment for the observations between `from` and `to`.}
+is the amount to increment for the observations between \code{from}
+and \code{to}.}
 
 \item{length.out}{The number of observations to create if there
 isn't any observations in the event table. By default this is 200.}
@@ -396,11 +398,11 @@ An \dQuote{rxSolve} solve object that stores the solved
     It also stores information about the call to allow dynamic
     updating of the solved object.
 
-    The operations for the object are simialar to a data-frame, but
+    The operations for the object are similar to a data-frame, but
     expand the \code{$} and \code{[[""]]} access operators and
     assignment operators to resolve based on different parameter
     values, initial conditions, solver parameters, or events (by
-    updaing the \code{time} variable).
+    updating the \code{time} variable).
 
     You can call the \code{\link{eventTable}} methods on the solved
     object to update the event table and resolve the system of

@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxExpandIfElse}
 \alias{rxExpandIfElse}
-\title{Expand if/else clauses into mutiple different types of lines.}
+\title{Expand if/else clauses into multiple different types of lines.}
 \usage{
 rxExpandIfElse(model, removeInis = TRUE, removePrint = TRUE)
 }
@@ -11,11 +11,11 @@ rxExpandIfElse(model, removeInis = TRUE, removePrint = TRUE)
 to have normalized syntax, that is \code{if (...)\{} has to be
 on the same line.  The \code{else} statement must be on its
 own line with the closing bracket of the \code{if} statement
-on the previous line.  This \code{else} statment must also
+on the previous line.  This \code{else} statement must also
 contain the opening bracket, like the code \code{else \{}}
 
 \item{removeInis}{A boolean indicating if parameter
-initializations should be removed from the model.}
+initialization should be removed from the model.}
 
 \item{removePrint}{A boolean indicating if printing statements
 should be removed from the model.}
@@ -26,7 +26,7 @@ A named character vector. The names of the vector are the
     logical conditions.
 }
 \description{
-Expand if/else clauses into mutiple different types of lines.
+Expand if/else clauses into multiple different types of lines.
 }
 \author{
 Matthew L. Fidler

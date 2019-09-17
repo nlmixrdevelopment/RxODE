@@ -140,7 +140,7 @@ RxODE.syntax.require.ode.first <- NULL
     return(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != -1) # nolint
 }
 
-##' Permissive or Strict RxODE sytax options
+##' Permissive or Strict RxODE syntax options
 ##'
 ##' This sets the RxODE syntax to be permissive or strict
 ##'
@@ -150,11 +150,11 @@ RxODE.syntax.require.ode.first <- NULL
 ##' @param respect when TRUE, respect any options that are specified.
 ##'     This is called at startup, but really should not be called
 ##'     elsewhere, otherwise the options are not changed.
-##' @param cran When specifyed and true, run on CRAN. Otherwise it is skipped on CRAN.
+##' @param cran When specified and true, run on CRAN. Otherwise it is skipped on CRAN.
 ##' @param on.validate When TRUE run only when validating.
 ##' @param silent when true, also silence the syntax errors and
 ##'     interactive output (useful in testing).
-##' @param rxclean when TRUE, call rxClean before and after the expr
+##' @param rxclean when TRUE, call rxClean before and after the \code{expr}
 ##'     is called.
 ##' @author Matthew L. Fidler
 ##' @export
@@ -274,7 +274,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
     }
 }
 
-##' Sync options with RxODE varaibles
+##' Sync options with RxODE variables
 ##'
 ##' Accessing RxODE options via getOption slows down solving.  This
 ##' allows the options to be synced with variables.

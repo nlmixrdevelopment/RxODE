@@ -7,7 +7,7 @@
 rxSymPyReserved()
 }
 \value{
-List of reserevd functions and variaibles from sympy.
+List of reserved functions and variables from sympy.
 }
 \description{
 Return a list of reserved functions and variables from sympy

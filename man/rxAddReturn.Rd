@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxAddReturn}
 \alias{rxAddReturn}
-\title{Add a return statment to a function.}
+\title{Add a return statement to a function.}
 \usage{
 rxAddReturn(fn, ret = TRUE)
 }
@@ -12,10 +12,10 @@ rxAddReturn(fn, ret = TRUE)
 \item{ret}{boolean stating if a return statement will be added.}
 }
 \value{
-Function with parens removed and add a return statment.
+Function with parens removed and add a return statement.
 }
 \description{
-Add a return statment to a function.
+Add a return statement to a function.
 }
 \author{
 Matthew L. Fidler

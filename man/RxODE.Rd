@@ -35,7 +35,7 @@ simple ASCII alphanumeric characters starting with a letter.}
 
 \item{wd}{character string with a working directory where to
 create a subdirectory according to \code{modName}. When
-specified, a subdirectoy named after the
+specified, a subdirectory named after the
 \dQuote{\code{modName.d}} will be created and populated with a
 C file, a dynamic loading library, plus various other working
 files. If missing, the files are created (and removed) in the
@@ -59,7 +59,7 @@ compiled with verbose debugging information turned on.}
 Jacobain according to the specified ODEs.}
 
 \item{calcSens}{boolean indicating if RxODE will calculate the
-sennsitivities according to the specified ODEs.}
+sensitivities according to the specified ODEs.}
 
 \item{collapseModel}{boolean indicating if RxODE will remove all
 LHS variables when calculating sensitivities.}
@@ -118,15 +118,15 @@ An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang
 
 
           \code{stiff}: a logical (\code{TRUE} by default) indicating whether
-          the ODE system is stifff or not.
+          the ODE system is stiff or not.
 
-          For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses
+          For stiff ODE systems (\code{stiff = TRUE}), \code{RxODE} uses
           the LSODA (Livermore Solver for Ordinary Differential Equations)
           Fortran package, which implements an automatic method switching
           for stiff and non-stiff problems along the integration interval,
           authored by Hindmarsh and Petzold (2003).
 
-          For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses DOP853,
+          For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses \code{DOP853},
           an explicit Runge-Kutta method of order 8(5, 3) of Dormand and Prince
           as implemented in C by Hairer and Wanner (1993).
 
@@ -218,10 +218,10 @@ The values of these variables at pre-specified time points are
 saved as part of the fitted/integrated/solved model (see
 \code{\link{eventTable}}, in particular its member function
 \code{add.sampling} that defines a set of time points at which to
-capture a snapshot of the syste via the values of these variables).
+capture a snapshot of the system via the values of these variables).
 
 The ODE specification mini-language is parsed with the help of the
-open source tool \emph{DParser}, Plevyak (2015).
+open source tool \code{dparser}, Plevyak (2015).
 }
 
 \examples{
@@ -305,8 +305,8 @@ Hairer, E., Norsett, S. P., and Wanner, G.
 2nd edition, Springer Series in Computational Mathematics,
 Springer-Verlag (1993).
 
-Plevyek, J.
-\emph{Dparser}, \url{http://dparser.sourceforge.net}. Web. 12 Oct. 2015.
+Plevyak, J.
+\emph{\code{dparser}}, \url{http://dparser.sourceforge.net}. Web. 12 Oct. 2015.
 }
 \seealso{
 \code{\link{eventTable}}, \code{\link{et}}, \code{\link{add.sampling}}, \code{\link{add.dosing}}

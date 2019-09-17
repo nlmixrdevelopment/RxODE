@@ -6,9 +6,9 @@ R_PosInf <- Inf
 .dynProtect <- "";
 .dynUnloadLater <- "";
 
-##' Protect dll(s) from unloading
+##' Protect DLL(s) from unloading
 ##'
-##' @param dlls is a list of dlls that shouldn't be unloaded
+##' @param dlls is a list of DLLs that shouldn't be unloaded
 ##'
 ##' @export
 ##' @author Matthew Fidler
@@ -70,7 +70,7 @@ rxDynProtect <- function(dlls){
 ##'
 ##' @param wd character string with a working directory where to
 ##'     create a subdirectory according to \code{modName}. When
-##'     specified, a subdirectoy named after the
+##'     specified, a subdirectory named after the
 ##'     \dQuote{\code{modName.d}} will be created and populated with a
 ##'     C file, a dynamic loading library, plus various other working
 ##'     files. If missing, the files are created (and removed) in the
@@ -91,7 +91,7 @@ rxDynProtect <- function(dlls){
 ##'     compiled with verbose debugging information turned on.
 ##'
 ##' @param calcSens boolean indicating if RxODE will calculate the
-##'     sennsitivities according to the specified ODEs.
+##'     sensitivities according to the specified ODEs.
 ##'
 ##' @param calcJac boolean indicating if RxODE will calculate the
 ##'     Jacobain according to the specified ODEs.
@@ -176,10 +176,10 @@ rxDynProtect <- function(dlls){
 ##' saved as part of the fitted/integrated/solved model (see
 ##' \code{\link{eventTable}}, in particular its member function
 ##' \code{add.sampling} that defines a set of time points at which to
-##' capture a snapshot of the syste via the values of these variables).
+##' capture a snapshot of the system via the values of these variables).
 ##'
 ##' The ODE specification mini-language is parsed with the help of the
-##' open source tool \emph{DParser}, Plevyak (2015).
+##' open source tool \code{dparser}, Plevyak (2015).
 ##'
 ##'
 ##' @return An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang (2001))
@@ -210,15 +210,15 @@ rxDynProtect <- function(dlls){
 ##'
 ##'
 ##'           \code{stiff}: a logical (\code{TRUE} by default) indicating whether
-##'           the ODE system is stifff or not.
+##'           the ODE system is stiff or not.
 ##'
-##'           For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses
+##'           For stiff ODE systems (\code{stiff = TRUE}), \code{RxODE} uses
 ##'           the LSODA (Livermore Solver for Ordinary Differential Equations)
 ##'           Fortran package, which implements an automatic method switching
 ##'           for stiff and non-stiff problems along the integration interval,
 ##'           authored by Hindmarsh and Petzold (2003).
 ##'
-##'           For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses DOP853,
+##'           For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses \code{DOP853},
 ##'           an explicit Runge-Kutta method of order 8(5, 3) of Dormand and Prince
 ##'           as implemented in C by Hairer and Wanner (1993).
 ##'
@@ -275,8 +275,8 @@ rxDynProtect <- function(dlls){
 ##' 2nd edition, Springer Series in Computational Mathematics,
 ##' Springer-Verlag (1993).
 ##'
-##' Plevyek, J.
-##' \emph{Dparser}, \url{http://dparser.sourceforge.net}. Web. 12 Oct. 2015.
+##' Plevyak, J.
+##' \emph{\code{dparser}}, \url{http://dparser.sourceforge.net}. Web. 12 Oct. 2015.
 ##'
 ##' @author Melissa Hallow, Wenping Wang and Matthew Fidler
 ##'
@@ -1658,9 +1658,12 @@ rxCondition <- function(obj, condition=NULL){
 ##'     condition is not set via \code{rxCondition}, return the whole
 ##'     code with all the conditional settings intact.  When a
 ##'     condition is set with \code{rxCondition}, use that condition.
-##' @param removeInis A boolean indicating if paramter initilizations will be removed from the model
-##' @param removeJac A boolean indicating if the Jacobians will be removed.
-##' @param removeSens A boolean indicating if the sensitivities will be removed.
+##' @param removeInis A boolean indicating if parameter initialization
+##'     will be removed from the model
+##' @param removeJac A boolean indicating if the Jacobians will be
+##'     removed.
+##' @param removeSens A boolean indicating if the sensitivities will
+##'     be removed.
 ##' @return Normalized Normal syntax (no comments)
 ##' @author Matthew L. Fidler
 ##' @export

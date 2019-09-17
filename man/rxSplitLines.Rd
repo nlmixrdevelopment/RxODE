@@ -15,8 +15,8 @@ rxSplitLines(lhs, rhs, limit = 1100)
 before it is split.  By default this is 1100}
 }
 \value{
-an expression where the lhs is constructed iteratevly by
-    splitting the lhs and adding it iteratevly to the lhs.
+an expression where the lhs is constructed iteratively by
+    splitting the lhs and adding it iteratively to the lhs.
 
 For example:
 
@@ -30,7 +30,7 @@ lhs = lhs + 3
 
 When calling rxSplitLines("lhs", "1+2+3", 0)
 
-This is to deal with the unwieldly lines that sometimes come out
+This is to deal with the unwieldy lines that sometimes come out
 of SymPy.
 }
 \description{

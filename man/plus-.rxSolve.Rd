@@ -9,7 +9,7 @@
 \arguments{
 \item{solved}{Solved object}
 
-\item{new}{New information added tothe table.}
+\item{new}{New information added to the table.}
 }
 \value{
 new solved object

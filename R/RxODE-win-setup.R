@@ -4,7 +4,7 @@
 ##' This excludes network drives.  See
 ##' \url{https://www.forensicmag.com/article/2012/06/windows-7-registry-forensics-part-5}
 ##'
-##' @param duplicates Return drives with duplicate entires in
+##' @param duplicates Return drives with duplicate entries in
 ##'     \code{SYSTEM\\MountedDevices}; These are likely removable media.  By default this is \code{FALSE}
 ##' @return Drives with letters
 ##' @author Matthew L. Fidler

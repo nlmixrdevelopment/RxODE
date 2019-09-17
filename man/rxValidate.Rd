@@ -14,7 +14,7 @@ rxTest(full = TRUE)
 \code{TRUE})}
 }
 \description{
-This allows easy vaildation/qualification of nlmixr by running the
+This allows easy validation/qualification of nlmixr by running the
 testing suite on your system.
 }
 \author{

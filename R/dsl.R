@@ -1588,8 +1588,8 @@ rxParsePred <- function(x, init=NULL, err=NULL){
 ##'
 ##' @param x error function
 ##' @param base.theta Base theta to start numbering add(.) and prop(.) from.
-##' @param ret Intenral return type.  Should not be changed by the user...
-##' @param init Initilization vector
+##' @param ret Internal return type.  Should not be changed by the user...
+##' @param init Initialization vector
 ##' @return RxODE transformed text
 ##' @keywords internal
 ##' @author Matthew L. Fidler

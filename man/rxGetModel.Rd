@@ -11,7 +11,7 @@ rxGetModel(model, calcSens = NULL, calcJac = NULL,
 \item{model}{RxODE specification}
 
 \item{calcSens}{boolean indicating if RxODE will calculate the
-sennsitivities according to the specified ODEs.}
+sensitivities according to the specified ODEs.}
 
 \item{calcJac}{boolean indicating if RxODE will calculate the
 Jacobain according to the specified ODEs.}

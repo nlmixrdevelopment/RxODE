@@ -15,11 +15,14 @@ condition is not set via \code{rxCondition}, return the whole
 code with all the conditional settings intact.  When a
 condition is set with \code{rxCondition}, use that condition.}
 
-\item{removeInis}{A boolean indicating if paramter initilizations will be removed from the model}
+\item{removeInis}{A boolean indicating if parameter initialization
+will be removed from the model}
 
-\item{removeJac}{A boolean indicating if the Jacobians will be removed.}
+\item{removeJac}{A boolean indicating if the Jacobians will be
+removed.}
 
-\item{removeSens}{A boolean indicating if the sensitivities will be removed.}
+\item{removeSens}{A boolean indicating if the sensitivities will
+be removed.}
 }
 \value{
 Normalized Normal syntax (no comments)

@@ -2,15 +2,15 @@
 % Please edit documentation in R/RxODE.R
 \name{rxDynProtect}
 \alias{rxDynProtect}
-\title{Protect dll(s) from unloading}
+\title{Protect DLL(s) from unloading}
 \usage{
 rxDynProtect(dlls)
 }
 \arguments{
-\item{dlls}{is a list of dlls that shouldn't be unloaded}
+\item{dlls}{is a list of DLLs that shouldn't be unloaded}
 }
 \description{
-Protect dll(s) from unloading
+Protect DLL(s) from unloading
 }
 \author{
 Matthew Fidler

@@ -94,7 +94,7 @@ x
 
 # Updating the data-set interactively 
 However it isn't just a simple data object.  You can use the solved
-object to update paramters on the fly, or even change the sampling
+object to update parameters on the fly, or even change the sampling
 time.
 
 
@@ -125,7 +125,7 @@ plot(x)
 ```
 
 ## Modifying observation times for RxODE
-Notice that the inital effect is now `2`.
+Notice that the initial effect is now `2`.
 
 You can also change the sampling times easily by this method by
 changing `t` or `time`.  For example:
@@ -153,7 +153,7 @@ plot(x)
 ```
 
 
-You can access/change all the parametrs, initilizations or events with
+You can access/change all the parameters, initialization(s) or events with
 the `$params`, `$inits`, `$events` accessor syntax, similar to what is
 used above.
 
