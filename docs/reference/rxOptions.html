@@ -74,7 +74,7 @@ op.rx =1)" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
       </span>
     </div>
 
@@ -101,7 +101,7 @@ op.rx =1)" />
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html">Speeding up RxODE ODE solving</a>
     </li>
     <li class="divider"></li>
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -144,11 +144,15 @@ op.rx =1)" />
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html">Single Subject ODE solving</a>
+    </li>
     <li>
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
     </li>
-    <li class="dropdown-header">Using Prior Data for ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -248,12 +252,12 @@ elsewhere, otherwise the options are not changed.</p></td>
     </tr>
     <tr>
       <th>rxclean</th>
-      <td><p>when TRUE, call rxClean before and after the expr
+      <td><p>when TRUE, call rxClean before and after the <code>expr</code>
 is called.</p></td>
     </tr>
     <tr>
       <th>cran</th>
-      <td><p>When specifyed and true, run on CRAN. Otherwise it is skipped on cran.</p></td>
+      <td><p>When specified and true, run on CRAN. Otherwise it is skipped on CRAN.</p></td>
     </tr>
     <tr>
       <th>on.validate</th>
@@ -264,7 +268,7 @@ is called.</p></td>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>When <code>expr</code> is missing and <code>op.rx</code> is NULL, this
-desplays the current RxODE options.</p>
+displays the current RxODE options.</p>
     
 
   </div>

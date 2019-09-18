@@ -73,7 +73,7 @@ into fast C code" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
       </span>
     </div>
 
@@ -100,7 +100,7 @@ into fast C code" />
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html">Speeding up RxODE ODE solving</a>
     </li>
     <li class="divider"></li>
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -143,11 +143,15 @@ into fast C code" />
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html">Single Subject ODE solving</a>
+    </li>
     <li>
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
     </li>
-    <li class="dropdown-header">Using Prior Data for ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -250,7 +254,7 @@ simple ASCII alphanumeric characters starting with a letter.</p></td>
       <th>wd</th>
       <td><p>character string with a working directory where to
 create a subdirectory according to <code>modName</code>. When
-specified, a subdirectoy named after the
+specified, a subdirectory named after the
 &#8220;<code>modName.d</code>&#8221; will be created and populated with a
 C file, a dynamic loading library, plus various other working
 files. If missing, the files are created (and removed) in the
@@ -284,7 +288,7 @@ Jacobain according to the specified ODEs.</p></td>
     <tr>
       <th>calcSens</th>
       <td><p>boolean indicating if RxODE will calculate the
-sennsitivities according to the specified ODEs.</p></td>
+sensitivities according to the specified ODEs.</p></td>
     </tr>
     <tr>
       <th>collapseModel</th>
@@ -349,15 +353,15 @@ with the function <code><a href='eventTable.html'>eventTable</a></code>.</p></td
 
 
           <code>stiff</code>: a logical (<code>TRUE</code> by default) indicating whether
-          the ODE system is stifff or not.
+          the ODE system is stiff or not.
 
-          For stiff ODE sytems (<code>stiff = TRUE</code>), <code>RxODE</code> uses
+          For stiff ODE systems (<code>stiff = TRUE</code>), <code>RxODE</code> uses
           the LSODA (Livermore Solver for Ordinary Differential Equations)
           Fortran package, which implements an automatic method switching
           for stiff and non-stiff problems along the integration interval,
           authored by Hindmarsh and Petzold (2003).
 
-          For non-stiff systems (<code>stiff = FALSE</code>), <code>RxODE</code> uses DOP853,
+          For non-stiff systems (<code>stiff = FALSE</code>), <code>RxODE</code> uses <code>DOP853</code>,
           an explicit Runge-Kutta method of order 8(5, 3) of Dormand and Prince
           as implemented in C by Hairer and Wanner (1993).
 
@@ -371,7 +375,7 @@ with the function <code><a href='eventTable.html'>eventTable</a></code>.</p></td
 
           The output of &#8220;solve&#8221; is a matrix with as many rows as there
           are sampled time points and as many columns as system variables
-          (as defined by the ODEs and additional assigments in the RxODE model
+          (as defined by the ODEs and additional assignments in the RxODE model
               code).</p></dd>
 
       <dt>isValid</dt><dd><p>a function that (naively) checks for model validity,
@@ -383,7 +387,7 @@ with the function <code><a href='eventTable.html'>eventTable</a></code>.</p></td
           that dynamically loads the object code if needed.</p></dd>
       <dt>dynUnload</dt><dd><p>a function with no argument that unloads
           the model object code.</p></dd>
-      <dt>delete</dt><dd><p>removes all created model files, including C and DDL files.
+      <dt>delete</dt><dd><p>removes all created model files, including C and DLL files.
           The model object is no longer valid and should be removed, e.g.,
           <code><a href='https://www.rdocumentation.org/packages/base/topics/rm'>rm(m1)</a></code>.</p></dd>
       <dt>run</dt><dd><p>deprecated, use <code>solve</code>.</p></dd>
@@ -401,10 +405,10 @@ statements terminated by semi-colons, &#8216;<code>;</code>&#8217;, and
 optional comments (comments are delimited by <code>#</code> and an
 end-of-line marker).  <strong>NB:</strong> Comments are not allowed inside
 statements.</p>
-<p>A block of statements is a set of statements delimeted by curly
+<p>A block of statements is a set of statements delimited by curly
 braces, &#8216;<code>{ ... }</code>&#8217;. Statements can be either
 assignments or conditional <code>if</code> statements. Assignment
-statements can be: (1) &#8220;simple&#8221; assignmets, where the left
+statements can be: (1) &#8220;simple&#8221; assignments, where the left
 hand is an identifier (i.e., variable), (2) special
 &#8220;time-derivative&#8221; assignments, where the left hand specifies
 the change of that variable with respect to time e.g.,
@@ -440,9 +444,9 @@ plus the underscore &#8216;_&#8217; character.  <strong>NB:</strong> the dot
 saved as part of the fitted/integrated/solved model (see
 <code><a href='eventTable.html'>eventTable</a></code>, in particular its member function
 <code>add.sampling</code> that defines a set of time points at which to
-capture a snapshot of the syste via the values of these variables).</p>
+capture a snapshot of the system via the values of these variables).</p>
 <p>The ODE specification mini-language is parsed with the help of the
-open source tool <em>DParser</em>, Plevyak (2015).</p>
+open source tool <code>dparser</code>, Plevyak (2015).</p>
     
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
@@ -462,8 +466,8 @@ Siam J. Sci. Stat. Comput. 4 (1983), pp. 136-148.</p>
 <em>Solving ordinary differential equations I, nonstiff problems</em>.
 2nd edition, Springer Series in Computational Mathematics,
 Springer-Verlag (1993).</p>
-<p>Plevyek, J.
-<em>Dparser</em>, <a href='http://dparser.sourceforge.net'>http://dparser.sourceforge.net</a>. Web. 12 Oct. 2015.</p>
+<p>Plevyak, J.
+<em><code>dparser</code></em>, <a href='http://dparser.sourceforge.net'>http://dparser.sourceforge.net</a>. Web. 12 Oct. 2015.</p>
     
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
@@ -485,10 +489,10 @@ Springer-Verlag (1993).</p>
 "</span>
 
 <span class='no'>m1</span> <span class='kw'>&lt;-</span> <span class='fu'>RxODE</span>(<span class='kw'>model</span> <span class='kw'>=</span> <span class='no'>ode</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/print'>print</a></span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; RxODE 0.9.0-6 model named rx_bbca90b344d0e3fc151868605e74c352_x6 model (ready). 
-#&gt; $state: depot, centr, peri, eff
-#&gt; $params: V2, V3, KA, CL, Q, Kin, Kout, EC50
-#&gt; $lhs: C2, C3</div><div class='input'>
+<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/print'>print</a></span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>0.9.1-7 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_64fa2e4e17860a732cbf2a5e69d3853d</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
+#&gt; </span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff
+#&gt; </span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50
+#&gt; </span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</div><div class='input'>
 <span class='co'># Step 2 - Create the model input as an EventTable,</span>
 <span class='co'># including dosing and observation (sampling) events</span>
 
@@ -531,26 +535,28 @@ Springer-Verlag (1993).</p>
 
 <span class='no'>qd.cp</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/solve'>solve</a></span>(<span class='no'>m1</span>, <span class='no'>theta</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='no'>qd</span>, <span class='no'>inits</span>);
 
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/print'>print</a></span>(<span class='no'>qd.cp</span>)</div><div class='output co'>#&gt; ______________________________ Solved RxODE object _____________________________ 
-#&gt; -- Parameters ($params): ------------------------------------------------------- 
+<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/print'>print</a></span>(<span class='no'>qd.cp</span>)</div><div class='output co'>#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ </span><span style='font-weight: bold;'>Solved RxODE object</span><span> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+#&gt; ── </span><span style='font-weight: bold;'>Parameters</span><span> (</span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>): ───────────────────────────────────────────────────────
+#&gt;  
 #&gt;      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 #&gt;  40.200 297.000   0.291  18.600  10.500   1.000   1.000 200.000 
-#&gt; -- Initial Conditions ($inits): ------------------------------------------------ 
+#&gt; ── </span><span style='font-weight: bold;'>Initial Conditions</span><span> (</span><span style='color: #0000BB;font-weight: bold;'>$inits</span><span>): ────────────────────────────────────────────────
 #&gt; depot centr  peri   eff 
 #&gt;     0     0     0     1 
-#&gt; -- First part of data (object): ------------------------------------------------ 
-#&gt; # A tibble: 37 x 7
+#&gt; ── </span><span style='font-weight: bold;'>First part of data (object):</span><span> ────────────────────────────────────────────────
+#&gt; </span><span style='color: #555555;'># A tibble: 37 x 7</span><span>
 #&gt;    time    C2    C3  depot centr  peri   eff
-#&gt;     [h] &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-#&gt; 1     0   0   0     10000     0     0   1   
-#&gt; 2     1  44.0 0.911  7475. 1769.  271.  1.08
-#&gt; 3     2  54.5 2.65   5588. 2191.  787.  1.18
-#&gt; 4     3  51.7 4.42   4177. 2076. 1314.  1.23
-#&gt; 5     4  44.4 5.94   3122. 1784. 1765.  1.23
-#&gt; 6     5  36.5 7.14   2334. 1466. 2120.  1.21
-#&gt; # ... with 31 more rows</div><div class='output co'>#&gt; <span class='message'>________________________________________________________________________________</span></div><div class='input'>
+#&gt;     </span><span style='color: #555555;'>[h]</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span>  </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span>
+#&gt; </span><span style='color: #555555;'>1</span><span>     0   0   0     </span><span style='text-decoration: underline;'>10</span><span>000     0     0   1   
+#&gt; </span><span style='color: #555555;'>2</span><span>     1  44.0 0.911  </span><span style='text-decoration: underline;'>7</span><span>475. </span><span style='text-decoration: underline;'>1</span><span>769.  271.  1.08
+#&gt; </span><span style='color: #555555;'>3</span><span>     2  54.5 2.65   </span><span style='text-decoration: underline;'>5</span><span>588. </span><span style='text-decoration: underline;'>2</span><span>191.  787.  1.18
+#&gt; </span><span style='color: #555555;'>4</span><span>     3  51.7 4.42   </span><span style='text-decoration: underline;'>4</span><span>177. </span><span style='text-decoration: underline;'>2</span><span>076. </span><span style='text-decoration: underline;'>1</span><span>314.  1.23
+#&gt; </span><span style='color: #555555;'>5</span><span>     4  44.4 5.94   </span><span style='text-decoration: underline;'>3</span><span>122. </span><span style='text-decoration: underline;'>1</span><span>784. </span><span style='text-decoration: underline;'>1</span><span>765.  1.23
+#&gt; </span><span style='color: #555555;'>6</span><span>     5  36.5 7.14   </span><span style='text-decoration: underline;'>2</span><span>334. </span><span style='text-decoration: underline;'>1</span><span>466. </span><span style='text-decoration: underline;'>2</span><span>120.  1.21
+#&gt; </span><span style='color: #555555;'># … with 31 more rows</span><span>
+#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</div><div class='input'>
 <span class='fu'><a href='https://www.rdocumentation.org/packages/graphics/topics/plot'>plot</a></span>(<span class='no'>qd.cp</span>)</div><div class='img'><img src='RxODE-1.png' alt='' width='700' height='433' /></div><div class='input'>
-</div></pre>
+</div></span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>

@@ -37,7 +37,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
       </span>
     </div>
 
@@ -64,7 +64,7 @@
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html">Speeding up RxODE ODE solving</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -107,11 +107,15 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-<li class="dropdown-header">Single Subject ODE solving</li>
+<li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html">Single Subject ODE solving</a>
+    </li>
     <li>
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
     </li>
-    <li class="dropdown-header">Using Prior Data for ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -169,7 +173,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE Covariates</h1>
             
-            <h4 class="date">2019-05-30</h4>
+            <h4 class="date">2019-09-17</h4>
       
       
       <div class="hidden name"><code>RxODE-covariates.Rmd</code></div>
@@ -209,19 +213,20 @@ ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/eventTab
 
 ## Create data frame of  8 am dosing for the first dose
 ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="op">$</span>time<span class="op">+</span><span class="kw"><a href="https://www.rdocumentation.org/packages/units/topics/set_units">set_units</a></span>(<span class="dv">8</span>,hr)) <span class="op">%%</span><span class="st"> </span><span class="dv">24</span></code></pre></div>
-<p>Now there is a covariate present, the system can be solved using the cov option</p>
+<p>Now there is a covariate present, the system can be solved using the <code>cov</code> option</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r1 &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(mod3, ev, <span class="dt">covs_interpolation=</span><span class="st">"linear"</span>)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(r1)
-<span class="co">#&gt; ___________________________ Solved RxODE object ___________________________ </span>
-<span class="co">#&gt; -- Parameters ($params): -------------------------------------------------- </span>
+<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
+<span class="co">#&gt; ── Parameters ($params): ──────────────────────────────────────────────────</span>
+<span class="co">#&gt;  </span>
 <span class="co">#&gt;         KA         CL         V2          Q         V3       Kin0 </span>
 <span class="co">#&gt;   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 </span>
 <span class="co">#&gt;       Kout       EC50         Tz        amp         pi </span>
 <span class="co">#&gt;   1.000000 200.000000   8.000000   0.100000   3.141593 </span>
-<span class="co">#&gt; -- Initial Conditions ($inits): ------------------------------------------- </span>
+<span class="co">#&gt; ── Initial Conditions ($inits): ───────────────────────────────────────────</span>
 <span class="co">#&gt; eff </span>
 <span class="co">#&gt;   1 </span>
-<span class="co">#&gt; -- First part of data (object): ------------------------------------------- </span>
+<span class="co">#&gt; ── First part of data (object): ───────────────────────────────────────────</span>
 <span class="co">#&gt; # A tibble: 100 x 4</span>
 <span class="co">#&gt;        time    C2   Kin   eff</span>
 <span class="co">#&gt;         [h] &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span>
@@ -231,27 +236,29 @@ ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="o
 <span class="co">#&gt; 4 1.4545455  51.8  1.09  1.22</span>
 <span class="co">#&gt; 5 1.9393939  54.8  1.09  1.27</span>
 <span class="co">#&gt; 6 2.4242424  54.6  1.08  1.30</span>
-<span class="co">#&gt; # ... with 94 more rows</span></code></pre></div>
+<span class="co">#&gt; # … with 94 more rows</span>
+<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span></code></pre></div>
 <p>When solving ODE equations, the solver may sample times outside of the data. When this happens, this ODE solver uses linear interpolation between the covariate values. This is the default value. It is equivalent to R’s <code>approxfun</code> with <code>method="linear"</code>, which is the default <code>approxfun</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
-<span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,C2) <span class="op">+</span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,C2) <span class="op">+</span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-4-1.png" width="100%"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,eff) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,eff) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-5-1.png" width="100%"></p>
 <p>Note that the linear approximation in this case leads to some kinks in the solved system at 24-hours where the covariate has a linear interpolation between near 24 and near 0.</p>
 <p>In RxODE, covariate interpolation can also be the last observation carried forward, or constant approximation. This is equivalent to R’s <code>approxfun</code> with <code>method="constant"</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r1 &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(mod3, ev,<span class="dt">covs_interpolation=</span><span class="st">"constant"</span>)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(r1)
-<span class="co">#&gt; ___________________________ Solved RxODE object ___________________________ </span>
-<span class="co">#&gt; -- Parameters ($params): -------------------------------------------------- </span>
+<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
+<span class="co">#&gt; ── Parameters ($params): ──────────────────────────────────────────────────</span>
+<span class="co">#&gt;  </span>
 <span class="co">#&gt;         KA         CL         V2          Q         V3       Kin0 </span>
 <span class="co">#&gt;   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 </span>
 <span class="co">#&gt;       Kout       EC50         Tz        amp         pi </span>
 <span class="co">#&gt;   1.000000 200.000000   8.000000   0.100000   3.141593 </span>
-<span class="co">#&gt; -- Initial Conditions ($inits): ------------------------------------------- </span>
+<span class="co">#&gt; ── Initial Conditions ($inits): ───────────────────────────────────────────</span>
 <span class="co">#&gt; eff </span>
 <span class="co">#&gt;   1 </span>
-<span class="co">#&gt; -- First part of data (object): ------------------------------------------- </span>
+<span class="co">#&gt; ── First part of data (object): ───────────────────────────────────────────</span>
 <span class="co">#&gt; # A tibble: 100 x 4</span>
 <span class="co">#&gt;        time    C2   Kin   eff</span>
 <span class="co">#&gt;         [h] &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span>
@@ -261,26 +268,28 @@ ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="o
 <span class="co">#&gt; 4 1.4545455  51.8  1.09  1.22</span>
 <span class="co">#&gt; 5 1.9393939  54.8  1.09  1.27</span>
 <span class="co">#&gt; 6 2.4242424  54.6  1.08  1.31</span>
-<span class="co">#&gt; # ... with 94 more rows</span></code></pre></div>
+<span class="co">#&gt; # … with 94 more rows</span>
+<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span></code></pre></div>
 <p>which gives the following plots:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-7-1.png" width="100%"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,eff) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,eff) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-8-1.png" width="100%"></p>
 <p>In this case, the plots seem to be smoother.</p>
 <p>You can also use NONMEM’s preferred interpolation style of next observation carried backward (NOCB):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r1 &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(mod3, ev,<span class="dt">covs_interpolation=</span><span class="st">"nocb"</span>)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(r1)
-<span class="co">#&gt; ___________________________ Solved RxODE object ___________________________ </span>
-<span class="co">#&gt; -- Parameters ($params): -------------------------------------------------- </span>
+<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
+<span class="co">#&gt; ── Parameters ($params): ──────────────────────────────────────────────────</span>
+<span class="co">#&gt;  </span>
 <span class="co">#&gt;         KA         CL         V2          Q         V3       Kin0 </span>
 <span class="co">#&gt;   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 </span>
 <span class="co">#&gt;       Kout       EC50         Tz        amp         pi </span>
 <span class="co">#&gt;   1.000000 200.000000   8.000000   0.100000   3.141593 </span>
-<span class="co">#&gt; -- Initial Conditions ($inits): ------------------------------------------- </span>
+<span class="co">#&gt; ── Initial Conditions ($inits): ───────────────────────────────────────────</span>
 <span class="co">#&gt; eff </span>
 <span class="co">#&gt;   1 </span>
-<span class="co">#&gt; -- First part of data (object): ------------------------------------------- </span>
+<span class="co">#&gt; ── First part of data (object): ───────────────────────────────────────────</span>
 <span class="co">#&gt; # A tibble: 100 x 4</span>
 <span class="co">#&gt;        time    C2   Kin   eff</span>
 <span class="co">#&gt;         [h] &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span>
@@ -290,11 +299,12 @@ ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="o
 <span class="co">#&gt; 4 1.4545455  51.8  1.09  1.21</span>
 <span class="co">#&gt; 5 1.9393939  54.8  1.09  1.27</span>
 <span class="co">#&gt; 6 2.4242424  54.6  1.08  1.30</span>
-<span class="co">#&gt; # ... with 94 more rows</span></code></pre></div>
+<span class="co">#&gt; # … with 94 more rows</span>
+<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span></code></pre></div>
 <p>which gives the following plots:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-10-1.png" width="100%"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,eff) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,eff) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-11-1.png" width="100%"></p>
   </div>
 

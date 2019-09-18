@@ -37,7 +37,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
       </span>
     </div>
 
@@ -64,7 +64,7 @@
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html">Speeding up RxODE ODE solving</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -107,11 +107,15 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-<li class="dropdown-header">Single Subject ODE solving</li>
+<li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html">Single Subject ODE solving</a>
+    </li>
     <li>
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
     </li>
-    <li class="dropdown-header">Using Prior Data for ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -169,7 +173,7 @@
     <div class="page-header toc-ignore">
       <h1>Introduction to RxODE</h1>
             
-            <h4 class="date">2019-05-30</h4>
+            <h4 class="date">2019-09-17</h4>
       
       
       <div class="hidden name"><code>RxODE-intro.Rmd</code></div>
@@ -188,14 +192,9 @@
 <a href="#description-of-rxode-illustrated-through-an-example" class="anchor"></a>Description of RxODE illustrated through an example</h1>
 <p>The model equations can be specified through a text string, a model file or an R expression. Both differential and algebraic equations are permitted. Differential equations are specified by <code>d/dt(var_name) =</code>. Each equation can be separated by a semicolon.</p>
 <p>To load <code>RxODE</code> package and compile the model:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RxODE)</code></pre></div>
-<pre><code>## Registered S3 methods overwritten by 'ggplot2':
-##   method         from 
-##   [.quosures     rlang
-##   c.quosures     rlang
-##   print.quosures rlang</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(units)</code></pre></div>
-<pre><code>## udunits system database from c:/R/nlmixr_1.1.0-8/R/library/units/share/udunits</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RxODE)
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(units)</code></pre></div>
+<pre><code>## udunits system database from /usr/share/udunits</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod1 &lt;-<span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
     C2 =<span class="st"> </span>centr<span class="op">/</span>V2;
     C3 =<span class="st"> </span>peri<span class="op">/</span>V3;
@@ -425,14 +424,15 @@ eff
 <p>You can also solve this and create a RxODE data frame:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod1 <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(theta, ev, inits);
 x</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________ 
-## -- Parameters (x$params): ------------------------------------------------- 
+<pre><code>## ___________________________ Solved RxODE object ___________________________
+## -- Parameters (x$params): -------------------------------------------------
+##  
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 ##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000 
-## -- Initial Conditions (x$inits): ------------------------------------------ 
+## -- Initial Conditions (x$inits): ------------------------------------------
 ## depot centr  peri   eff 
 ##     0     0     0     1 
-## -- First part of data (object): ------------------------------------------- 
+## -- First part of data (object): -------------------------------------------
 ## # A tibble: 241 x 7
 ##    time    C2    C3  depot centr  peri   eff
 ##     [h] &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
@@ -442,14 +442,14 @@ x</code></pre></div>
 ## 4     3  51.9 4.46   4140. 2087. 1324.  1.23
 ## 5     4  44.5 5.98   3085. 1789. 1776.  1.23
 ## 6     5  36.5 7.18   2299. 1467. 2132.  1.21
-## # ... with 235 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+## # ... with 235 more rows
+## ___________________________________________________________________________</code></pre>
 <p>This returns a modified data frame. You can see the compartment values in the plot below:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
-<span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(x,C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(x,C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-intro_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 <p>Or,</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(x,eff)  <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(x,eff)  <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-intro_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 <p>Note that the labels are automatically labeled with the units from the initial event table. This is because RxODE uses the <code>units</code> package to handle units and <code>ggforce</code> to handle the plotting.</p>
 </div>

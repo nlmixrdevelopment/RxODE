@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
       </span>
     </div>
 
@@ -99,7 +99,7 @@
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html">Speeding up RxODE ODE solving</a>
     </li>
     <li class="divider"></li>
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -142,11 +142,15 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html">Single Subject ODE solving</a>
+    </li>
     <li>
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
     </li>
-    <li class="dropdown-header">Using Prior Data for ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -248,9 +252,9 @@ trailing dosing records after the last observation.</p></td>
     </tr>
     <tr>
       <th>combineDvid</th>
-      <td><p>is a boolean indicating if RxODE will use DVID on observation
-records to change the cmt value; Useful for multiple-endpoint nlmixr models.  By default
-this is determined by codeoption("RxODE.combine.dvid") and if the option has not been set,
+      <td><p>is a boolean indicating if RxODE will use <code>DVID</code> on observation
+records to change the <code>cmt</code> value; Useful for multiple-endpoint nlmixr models.  By default
+this is determined by <code><a href='https://www.rdocumentation.org/packages/base/topics/options'>option("RxODE.combine.dvid")</a></code> and if the option has not been set,
 this is <code>TRUE</code>. This typically does not affect RxODE simulations.</p></td>
     </tr>
     <tr>

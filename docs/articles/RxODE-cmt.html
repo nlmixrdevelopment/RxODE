@@ -37,7 +37,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
       </span>
     </div>
 
@@ -64,7 +64,7 @@
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html">Speeding up RxODE ODE solving</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -107,11 +107,15 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-<li class="dropdown-header">Single Subject ODE solving</li>
+<li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html">Single Subject ODE solving</a>
+    </li>
     <li>
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
     </li>
-    <li class="dropdown-header">Using Prior Data for ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -169,7 +173,7 @@
     <div class="page-header toc-ignore">
       <h1>Changing RxODE compartment numbers</h1>
             
-            <h4 class="date">2019-05-30</h4>
+            <h4 class="date">2019-09-17</h4>
       
       
       <div class="hidden name"><code>RxODE-cmt.Rmd</code></div>
@@ -182,13 +186,8 @@
 <h1 class="hasAnchor">
 <a href="#how-rxode-assigns-compartment-numbers" class="anchor"></a>How RxODE assigns compartment numbers</h1>
 <p>RxODE automatically assigns compartment numbers when parsing. For example, with the Mavoglurant PBPK model the following model may be used:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RxODE)</code></pre></div>
-<pre><code>#&gt; Registered S3 methods overwritten by 'ggplot2':
-#&gt;   method         from 
-#&gt;   [.quosures     rlang
-#&gt;   c.quosures     rlang
-#&gt;   print.quosures rlang</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RxODE)
+pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
     KbBR =<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(lKbBR)
     KbMU =<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(lKbMU)
     KbAD =<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(lKbAD)
@@ -271,14 +270,14 @@
 })</code></pre></div>
 <p>If you look at the summary, you can see where RxODE assigned the compartment number(s)</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(pbpk)</code></pre></div>
-<pre><code>#&gt; RxODE 0.9.0-6 model named rx_fb89ccd633a00bdec755e1071d3c1399_x6 model (ready). 
-#&gt; DLL: C:\Users\fidlema3\AppData\Local\Temp\1\RXCACH~1\RX_FB8~1.RXD/rx_fb89ccd633a00bdec755e1071d3c1399_x64.dll
-#&gt; -- User supplied parameters: --------------------------------------------------- 
+<pre><code>#&gt; RxODE 0.9.1-7 model named rx_5619e1600d51a5fba350dbe8e68cc4ef model (ready). 
+#&gt; DLL: /tmp/Rtmp8VtYUS/.rxCache/rx_5619e1600d51a5fba350dbe8e68cc4ef__.rxd/rx_5619e1600d51a5fba350dbe8e68cc4ef_.so
+#&gt; -- User supplied parameters: ---------------------------------------------------
 #&gt;      lKbBR      lKbMU      lKbAD     lCLint eta.LClint      lKbBO      lKbRB 
 #&gt;         NA         NA         NA         NA         NA         NA         NA 
 #&gt;         WT         BP        fup 
 #&gt;         NA      0.610      0.028 
-#&gt; -- User initial conditions: ---------------------------------------------------- 
+#&gt; -- User initial conditions: ----------------------------------------------------
 #&gt;          Lungs          Heart          Brain        Muscles        Adipose 
 #&gt;              0              0              0              0              0 
 #&gt;           Skin         Spleen       Pancreas          Liver        Stomach 
@@ -287,7 +286,7 @@
 #&gt;              0              0              0              0              0 
 #&gt;   Rest_of_Body 
 #&gt;              0 
-#&gt; -- Compartments: --------------------------------------------------------------- 
+#&gt; -- Compartments: ---------------------------------------------------------------
 #&gt;            cmt=1            cmt=2            cmt=3            cmt=4 
 #&gt;          "Lungs"          "Heart"          "Brain"        "Muscles" 
 #&gt;            cmt=5            cmt=6            cmt=7            cmt=8 
@@ -304,7 +303,7 @@
 #&gt; [28] "VSK"   "VSP"   "VPA"   "VLI"   "VST"   "VGU"   "VBO"   "VKI"   "VAB"  
 #&gt; [37] "VVB"   "VRB"   "fub"   "KbLU"  "KbHT"  "KbSK"  "KbSP"  "KbPA"  "KbLI" 
 #&gt; [46] "KbST"  "KbGU"  "KbKI"  "S15"   "C15"  
-#&gt; ______________________________ RxODE Model Syntax ______________________________ 
+#&gt; ______________________________ RxODE Model Syntax ______________________________
 #&gt; RxODE({
 #&gt;     KbBR = exp(lKbBR)
 #&gt;     KbMU = exp(lKbMU)
@@ -473,7 +472,7 @@
 })</code></pre></div>
 <p>You can see this change in the simple printout</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pbpk2</code></pre></div>
-<pre><code>#&gt; RxODE 0.9.0-6 model named rx_bb9197217b8d5616bdf0bebe1f2c09cb_x6 model (ready). 
+<pre><code>#&gt; RxODE 0.9.1-7 model named rx_0da25a4d0f8351c8ad7ae5a255f6ba82 model (ready). 
 #&gt; x$state: Venous_Blood, Skin, Lungs, Heart, Brain, Muscles, Adipose, Spleen, Pancreas, Liver, Stomach, Gut, Bones, Kidneys, Arterial_Blood, Rest_of_Body
 #&gt; x$params: lKbBR, lKbMU, lKbAD, lCLint, eta.LClint, lKbBO, lKbRB, WT, BP, fup
 #&gt; x$lhs: KbBR, KbMU, KbAD, CLint, KbBO, KbRB, CO, QHT, QBR, QMU, QAD, QSK, QSP, QPA, QLI, QST, QGU, QHA, QBO, QKI, QRB, QLU, VLU, VHT, VBR, VMU, VAD, VSK, VSP, VPA, VLI, VST, VGU, VBO, VKI, VAB, VVB, VRB, fub, KbLU, KbHT, KbSK, KbSP, KbPA, KbLI, KbST, KbGU, KbKI, S15, C15</code></pre>
@@ -491,7 +490,7 @@
     <span class="kw">cmt</span>(eff);
 })
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(ode.1c.ka)</code></pre></div>
-<pre><code>#&gt; RxODE 0.9.0-6 model named rx_507f30f9f48fdd21f73b3863e807a683_x6 model (ready). 
+<pre><code>#&gt; RxODE 0.9.1-7 model named rx_bfc41058ae08a7ef1c0c597d1fa85883 model (ready). 
 #&gt; $state: depot, center
 #&gt; $stateExtra: eff
 #&gt; $params: V, KA, CL

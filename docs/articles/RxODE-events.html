@@ -37,7 +37,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
       </span>
     </div>
 
@@ -64,7 +64,7 @@
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html">Speeding up RxODE ODE solving</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -107,11 +107,15 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-<li class="dropdown-header">Single Subject ODE solving</li>
+<li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html">Single Subject ODE solving</a>
+    </li>
     <li>
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
     </li>
-    <li class="dropdown-header">Using Prior Data for ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -169,7 +173,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE Events</h1>
             
-            <h4 class="date">2019-05-30</h4>
+            <h4 class="date">2019-09-17</h4>
       
       
       <div class="hidden name"><code>RxODE-events.Rmd</code></div>
@@ -193,13 +197,18 @@
 </ul>
 </li>
 <li>Some infrequent NONMEM columns are not supported: <code>pcmt</code>, <code>call</code>.</li>
+<li>Additional events are supported:</li>
+<li>
+<code>evid=5</code> or replace event; This replaces the value of a compartment with the value specified in the <code>amt</code> column. This is equivalent to <code>deSolve</code>=<code>replace</code>.</li>
+<li>
+<code>evid=6</code> or multiply event; This multiplies the value in the compartment with the value specified by the <code>amt</code> column. This is equivalent to <code>deSolve</code>=<code>multiply</code>.</li>
 </ul>
 <p>Here are the legal entries to a data table:</p>
 <table class="table">
 <colgroup>
-<col width="11%">
-<col width="22%">
-<col width="65%">
+<col width="10%">
+<col width="20%">
+<col width="68%">
 </colgroup>
 <thead><tr class="header">
 <th>Data Item</th>
@@ -240,7 +249,7 @@
 <tr class="odd">
 <td>evid</td>
 <td>event ID</td>
-<td>0=Observation; 1=Dose; 2=Other; 3=Reset; 4=Reset+Dose</td>
+<td>0=Observation; 1=Dose; 2=Other; 3=Reset; 4=Reset+Dose; 5=Replace; 6=Multiply</td>
 </tr>
 <tr class="even">
 <td>cmt</td>
@@ -270,6 +279,7 @@
 <li>NONMEM’s <code>DV</code> is not required; RxODE is a ODE solving framework.</li>
 <li>NONMEM’s <code>MDV</code> is not required, since it is captured in <code>EVID</code>
 </li>
+<li>Instead of NONMEM-compatible data, it can accept <code>deSolve</code> compatible data-frames</li>
 </ul>
 <p>When returning the RxODE solved data-set there are a few additional event ids (EVID):</p>
 <ul>
@@ -286,20 +296,15 @@
 <a href="#creating-rxodes-event-tables" class="anchor"></a>Creating RxODE’s event tables</h2>
 <p>An event table in RxODE is a specialized data frame that acts as a container for all of RxODE’s events and observation times.</p>
 <p>To create an RxODE event table you may use the code <code><a href="../reference/eventTable.html">eventTable()</a></code>, <code><a href="../reference/et.html">et()</a></code>, or even create your own data frame with the right event information contained in it.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RxODE)</code></pre></div>
-<pre><code>#&gt; Registered S3 methods overwritten by 'ggplot2':
-#&gt;   method         from 
-#&gt;   [.quosures     rlang
-#&gt;   c.quosures     rlang
-#&gt;   print.quosures rlang</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/eventTable.html">eventTable</a></span>());</code></pre></div>
-<pre><code>#&gt; --------------------------- EventTable with 0 records -------------------------- 
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RxODE)
+(ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/eventTable.html">eventTable</a></span>());</code></pre></div>
+<pre><code>#&gt; --------------------------- EventTable with 0 records --------------------------
 #&gt;    0 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    0 observation times (see x$get.sampling(); add with add.sampling or et)
 #&gt; --------------------------------------------------------------------------------</code></pre>
 <p>or</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>());</code></pre></div>
-<pre><code>#&gt; --------------------------- EventTable with 0 records -------------------------- 
+<pre><code>#&gt; --------------------------- EventTable with 0 records --------------------------
 #&gt;    0 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    0 observation times (see x$get.sampling(); add with add.sampling or et)
 #&gt; --------------------------------------------------------------------------------</code></pre>
@@ -378,10 +383,10 @@ ev &lt;-<span class="st"> </span>ev <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/add.dosing.html">add.dosing</a></span>(<span class="dt">dose=</span><span class="dv">5000</span>, <span class="dt">nbr.doses=</span><span class="dv">14</span>, <span class="dt">dosing.interval=</span><span class="dv">12</span>)<span class="co"># maintenance</span>
 
 ev</code></pre></div>
-<pre><code>#&gt; --------------------------- EventTable with 2 records -------------------------- 
+<pre><code>#&gt; --------------------------- EventTable with 2 records --------------------------
 #&gt;    2 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    0 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 2 x 5
 #&gt;    time   amt    ii  addl  evid
 #&gt;     [h]  [mg]   [h] &lt;int&gt; &lt;int&gt;
@@ -397,10 +402,10 @@ ev</code></pre></div>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">until =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/units/topics/set_units">set_units</a></span>(<span class="dv">3</span>, days), <span class="dt">ii=</span><span class="dv">12</span>) <span class="co"># loading doses</span>
 
 ev</code></pre></div>
-<pre><code>#&gt; --------------------------- EventTable with 1 records -------------------------- 
+<pre><code>#&gt; --------------------------- EventTable with 1 records --------------------------
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    0 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 1 x 5
 #&gt;    time   amt    ii  addl  evid
 #&gt;     [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
@@ -424,10 +429,10 @@ ev<span class="op">$</span><span class="kw"><a href="../reference/add.dosing.htm
 ev<span class="op">$</span><span class="kw"><a href="../reference/add.sampling.html">add.sampling</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dt">by=</span><span class="dv">4</span>))
 
 ev</code></pre></div>
-<pre><code>#&gt; --------------------------- EventTable with 8 records -------------------------- 
+<pre><code>#&gt; --------------------------- EventTable with 8 records --------------------------
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    7 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 8 x 5
 #&gt;    time   amt    ii  addl  evid
 #&gt;     [h]  [mg]   [h] &lt;int&gt; &lt;int&gt;
@@ -449,10 +454,10 @@ ev</code></pre></div>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dt">by=</span><span class="dv">4</span>))
 
 ev</code></pre></div>
-<pre><code>#&gt; --------------------------- EventTable with 8 records -------------------------- 
+<pre><code>#&gt; --------------------------- EventTable with 8 records --------------------------
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    7 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 8 x 5
 #&gt;    time   amt    ii  addl  evid
 #&gt;     [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
@@ -480,11 +485,11 @@ ev</code></pre></div>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">id=</span><span class="dv">1</span><span class="op">:</span><span class="dv">4</span>)
 
 ev</code></pre></div>
-<pre><code>#&gt; -------------------------- EventTable with 804 records ------------------------- 
+<pre><code>#&gt; -------------------------- EventTable with 804 records -------------------------
 #&gt;    4 individuals
 #&gt;    4 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    800 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 804 x 6
 #&gt;       id      time   amt    ii  addl  evid
 #&gt;    &lt;int&gt;       [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
@@ -518,11 +523,11 @@ ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html"
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">id=</span><span class="dv">1</span><span class="op">:</span><span class="dv">4</span>)
 
 ev</code></pre></div>
-<pre><code>#&gt; -------------------------- EventTable with 16 records -------------------------- 
+<pre><code>#&gt; -------------------------- EventTable with 16 records --------------------------
 #&gt;    4 individuals
 #&gt;    16 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    0 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 16 x 6
 #&gt;       id   low       time  high   amt  evid
 #&gt;    &lt;int&gt;   [h]        [h]   [h] &lt;dbl&gt; &lt;int&gt;
@@ -571,7 +576,7 @@ samples &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdoc
 ev &lt;-<span class="st"> </span>ev <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(samples)
 
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(m1, ev, <span class="dt">params=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/data.frame">data.frame</a></span>(<span class="dt">KA=</span><span class="fl">0.294</span><span class="op">*</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">rnorm</a></span>(<span class="dv">4</span>)), <span class="fl">18.6</span><span class="op">*</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">rnorm</a></span>(<span class="dv">4</span>)))) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(C2) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>()</code></pre></div>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(m1, ev, <span class="dt">params=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/data.frame">data.frame</a></span>(<span class="dt">KA=</span><span class="fl">0.294</span><span class="op">*</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">rnorm</a></span>(<span class="dv">4</span>)), <span class="fl">18.6</span><span class="op">*</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">rnorm</a></span>(<span class="dv">4</span>)))) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span>()</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
 <p>This shows the flexibility in dosing and sampling that the RxODE event tables allow.</p>
 </div>
@@ -662,7 +667,7 @@ et &lt;-<span class="st"> </span><span class="kw"><a href="../reference/etRbind.
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>,<span class="dv">150</span>,<span class="dt">length.out=</span><span class="dv">500</span>));
 
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
-<span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, et) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/facet_wrap">facet_wrap</a></span>( <span class="op">~</span><span class="st"> </span>id)</code></pre></div>
+<span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, et) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span>( <span class="op">~</span><span class="st"> </span>id)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-26-1.png" width="700"></p>
 </div>
 </div>
@@ -679,10 +684,10 @@ et &lt;-<span class="st"> </span><span class="kw"><a href="../reference/etRbind.
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
 
 ev</code></pre></div>
-<pre><code>#&gt; -------------------------- EventTable with 101 records ------------------------- 
+<pre><code>#&gt; -------------------------- EventTable with 101 records -------------------------
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    100 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 101 x 5
 #&gt;         time   amt    ii  addl  evid
 #&gt;          [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
@@ -699,7 +704,7 @@ ev</code></pre></div>
 #&gt; # ... with 91 more rows
 #&gt; --------------------------------------------------------------------------------</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(C2) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
+<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-28-1.png" width="700"></p>
 </div>
 <div id="constant-infusion-in-terms-of-duration-and-rate" class="section level3">
@@ -712,10 +717,10 @@ ev</code></pre></div>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
 
 ev</code></pre></div>
-<pre><code>#&gt; -------------------------- EventTable with 101 records ------------------------- 
+<pre><code>#&gt; -------------------------- EventTable with 101 records -------------------------
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    100 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 101 x 6
 #&gt;         time   amt    ii  addl  evid   dur
 #&gt;          [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;   [h]
@@ -732,7 +737,7 @@ ev</code></pre></div>
 #&gt; # ... with 91 more rows
 #&gt; --------------------------------------------------------------------------------</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot, C2) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
+<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-30-1.png" width="700"></p>
 <p>It can be also specified by the <code>rate</code> component:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
@@ -740,10 +745,10 @@ ev</code></pre></div>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
 
 ev</code></pre></div>
-<pre><code>#&gt; -------------------------- EventTable with 101 records ------------------------- 
+<pre><code>#&gt; -------------------------- EventTable with 101 records -------------------------
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    100 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 101 x 6
 #&gt;         time   amt  rate    ii  addl  evid
 #&gt;          [h] &lt;dbl&gt; &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
@@ -760,16 +765,16 @@ ev</code></pre></div>
 #&gt; # ... with 91 more rows
 #&gt; --------------------------------------------------------------------------------</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot, C2) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
+<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-32-1.png" width="700"></p>
 <p>These are the same with the exception of how bioavailability changes the infusion.</p>
 <p>In the case of modeling <code>rate</code>, a bioavailability decrease, decreases the infusion duration, as in NONMEM. For example:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev, <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dt">fdepot=</span><span class="fl">0.25</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot, C2) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
+<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-33-1.png" width="700"></p>
 <p>Similarly increasing the bioavailability increases the infusion duration.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev, <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dt">fdepot=</span><span class="fl">1.25</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot, C2) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
+<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-34-1.png" width="700"></p>
 <p>The rationale for this behavior is that the <code>rate</code> and <code>amt</code> are specified by the event table, so the only thing that can change with a bioavailability increase is the duration of the infusion.</p>
 <p>If you specify the <code>amt</code> and <code>dur</code> components in the event table, bioavailability changes affect the <code>rate</code> of infusion.</p>
@@ -781,12 +786,12 @@ ev</code></pre></div>
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(gridExtra)
 
 p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev, <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dt">fdepot=</span><span class="fl">1.25</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot.window">ylim</a></span>(<span class="dv">0</span>,<span class="dv">5000</span>)
+<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span>(<span class="dv">0</span>,<span class="dv">5000</span>)
 
 p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev, <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dt">fdepot=</span><span class="fl">0.25</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>)<span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot.window">ylim</a></span>(<span class="dv">0</span>,<span class="dv">5000</span>)
+<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>)<span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span>(<span class="dv">0</span>,<span class="dv">5000</span>)
 
-<span class="kw">grid.arrange</span>(p1,p2, <span class="dt">nrow=</span><span class="dv">1</span>)</code></pre></div>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/gridExtra/topics/arrangeGrob">grid.arrange</a></span>(p1,p2, <span class="dt">nrow=</span><span class="dv">1</span>)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-36-1.png" width="700"></p>
 </div>
 <div id="modeled-rate-and-duration-of-infusion" class="section level3">
@@ -798,10 +803,10 @@ p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
 
 ev</code></pre></div>
-<pre><code>#&gt; -------------------------- EventTable with 101 records ------------------------- 
+<pre><code>#&gt; -------------------------- EventTable with 101 records -------------------------
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    100 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 101 x 6
 #&gt;         time   amt  rate    ii  addl  evid
 #&gt;          [h] &lt;dbl&gt; &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
@@ -818,18 +823,18 @@ ev</code></pre></div>
 #&gt; # ... with 91 more rows
 #&gt; --------------------------------------------------------------------------------</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev, <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dt">durDepot=</span><span class="dv">7</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot, C2) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
+<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-38-1.png" width="700"></p>
-<p>Similarly, you may also model rate. This is equaivlent to NONMEM’s <code>rate=-1</code> and is how RxODE’s event table specifies the data item as well. You can also use <code>rate=model</code> as a mnemonic:</p>
+<p>Similarly, you may also model rate. This is equivalent to NONMEM’s <code>rate=-1</code> and is how RxODE’s event table specifies the data item as well. You can also use <code>rate=model</code> as a mnemonic:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">ii=</span><span class="dv">12</span>,<span class="dt">until=</span><span class="dv">24</span>, <span class="dt">rate=</span>model) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
 
 ev</code></pre></div>
-<pre><code>#&gt; -------------------------- EventTable with 101 records ------------------------- 
+<pre><code>#&gt; -------------------------- EventTable with 101 records -------------------------
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    100 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 101 x 6
 #&gt;         time   amt  rate    ii  addl  evid
 #&gt;          [h] &lt;dbl&gt; &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
@@ -846,7 +851,7 @@ ev</code></pre></div>
 #&gt; # ... with 91 more rows
 #&gt; --------------------------------------------------------------------------------</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev, <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dt">rateDepot=</span><span class="dv">10000</span><span class="op">/</span><span class="dv">3</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot, C2) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
+<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-40-1.png" width="700"></p>
 </div>
 <div id="steady-state" class="section level3">
@@ -858,10 +863,10 @@ ev</code></pre></div>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
 
 ev</code></pre></div>
-<pre><code>#&gt; -------------------------- EventTable with 101 records ------------------------- 
+<pre><code>#&gt; -------------------------- EventTable with 101 records -------------------------
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    100 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 101 x 5
 #&gt;         time   amt    ii  evid    ss
 #&gt;          [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
@@ -899,9 +904,9 @@ ev</code></pre></div>
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
 
 <span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev,<span class="dt">maxsteps=</span><span class="dv">10000</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(C2) <span class="op">+</span>
-<span class="st">    </span><span class="kw">annotate</span>(<span class="st">"rect"</span>, <span class="dt">xmin=</span><span class="dv">0</span>, <span class="dt">xmax=</span><span class="dv">24</span>, <span class="dt">ymin=</span><span class="op">-</span><span class="ot">Inf</span>, <span class="dt">ymax=</span><span class="ot">Inf</span>, <span class="dt">alpha=</span><span class="fl">0.2</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">annotate</span>(<span class="st">"text"</span>, <span class="dt">x=</span><span class="fl">12.5</span>, <span class="dt">y=</span><span class="dv">7</span>, <span class="dt">label=</span><span class="st">"Initial Steady State Period"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">annotate</span>(<span class="st">"text"</span>, <span class="dt">x=</span><span class="dv">44</span>,   <span class="dt">y=</span><span class="dv">7</span>, <span class="dt">label=</span><span class="st">"Steady State AM/PM dosing"</span>)</code></pre></div>
+<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/annotate.html">annotate</a></span>(<span class="st">"rect"</span>, <span class="dt">xmin=</span><span class="dv">0</span>, <span class="dt">xmax=</span><span class="dv">24</span>, <span class="dt">ymin=</span><span class="op">-</span><span class="ot">Inf</span>, <span class="dt">ymax=</span><span class="ot">Inf</span>, <span class="dt">alpha=</span><span class="fl">0.2</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/annotate.html">annotate</a></span>(<span class="st">"text"</span>, <span class="dt">x=</span><span class="fl">12.5</span>, <span class="dt">y=</span><span class="dv">7</span>, <span class="dt">label=</span><span class="st">"Initial Steady State Period"</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/annotate.html">annotate</a></span>(<span class="st">"text"</span>, <span class="dt">x=</span><span class="dv">44</span>,   <span class="dt">y=</span><span class="dv">7</span>, <span class="dt">label=</span><span class="st">"Steady State AM/PM dosing"</span>)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-43-1.png" width="700"></p>
 <p>You can see that it takes a full dose cycle to reach the true complex steady state dosing.</p>
 </div>
@@ -915,10 +920,10 @@ ev</code></pre></div>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
 
 ev</code></pre></div>
-<pre><code>#&gt; -------------------------- EventTable with 102 records ------------------------- 
+<pre><code>#&gt; -------------------------- EventTable with 102 records -------------------------
 #&gt;    2 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    100 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 102 x 5
 #&gt;         time   amt    ii  addl  evid
 #&gt;          [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
@@ -944,10 +949,10 @@ ev</code></pre></div>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
 
 ev</code></pre></div>
-<pre><code>#&gt; -------------------------- EventTable with 102 records ------------------------- 
+<pre><code>#&gt; -------------------------- EventTable with 102 records -------------------------
 #&gt;    2 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    100 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 102 x 5
 #&gt;         time   amt    ii  addl  evid
 #&gt;          [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
@@ -977,10 +982,10 @@ ev</code></pre></div>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
 
 ev</code></pre></div>
-<pre><code>#&gt; -------------------------- EventTable with 102 records ------------------------- 
+<pre><code>#&gt; -------------------------- EventTable with 102 records -------------------------
 #&gt;    2 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    100 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: ------------------------------------------------------------ 
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 102 x 6
 #&gt;         time cmt         amt    ii  addl  evid
 #&gt;          [h] &lt;chr&gt;     &lt;dbl&gt;   [h] &lt;int&gt; &lt;int&gt;
@@ -1033,7 +1038,7 @@ ev</code></pre></div>
 </colgroup>
 <thead><tr class="header">
 <th>100+ cmt</th>
-<th>Infusion Flag</th>
+<th>Infusion/Event Flag</th>
 <th>&lt;99 Cmt</th>
 <th>SS flag &amp; Turning of Compartment</th>
 </tr></thead>
@@ -1080,10 +1085,22 @@ ev</code></pre></div>
 <td></td>
 <td></td>
 </tr>
+<tr class="even">
+<td></td>
+<td>4 = replace event</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>5 = multiply event</td>
+<td></td>
+<td></td>
+</tr>
 </tbody>
 </table>
 <p>The classic EVID concatenate the numbers in the above table, so an infusion would to compartment 1 would be <code>10101</code> and an infusion to compartment 199 would be <code>119901</code>.</p>
-<p>EVID = 0 (observations), EVID=2 (other type event) and EVID=3 are all supported. EVID 10-99 represents modeled time interventions, similar to NONMEM’s MTIME. This along with amount (amt) and time columns specify the events in the ODE system.</p>
+<p>EVID = 0 (observations), EVID=2 (other type event) and EVID=3 are all supported. Internally an EVID=9 is a non-observation event and makes sure the system is initialized to zero; EVID=9 should not be manually set. EVID 10-99 represents modeled time interventions, similar to NONMEM’s MTIME. This along with amount (amt) and time columns specify the events in the ODE system.</p>
 <p>For infusions specified with EVIDs &gt; 100 the amt column represents the rate value.</p>
 <p>For Infusion flags 1 and 2 <code>+amt</code> turn on the infusion to a specific compartment <code>-amt</code> turn off the infusion to a specific compartment. To specify a dose/duration you place the dosing records at the time the duration starts or stops.</p>
 <p>For modeled rate/duration infusion flags the on infusion flag must be followed by an off infusion record.</p>
@@ -1363,7 +1380,7 @@ ev</code></pre></div>
 <li>The infusion rate is captured in the <code>amt</code> column</li>
 <li>The infusion is turned off by subtracting <code>amt</code> with the same <code>evid</code> at the stop of the infusion.</li>
 </ul>
-<p>For compartments greater or equal to 100, the 100s place and above digits are transfered to the 100,000th place digit. For doses to the 99th compartment the <code>evid</code> for a bolus dose would be <code>9901</code> and the <code>evid</code> for an infusion would be <code>19901</code>. For a bolus dose to the <code>199</code>th compartment the <code>evid</code> for the bolus dose would be <code>109901</code>. An infusion dosing record for the <code>199</code>th compartment would be <code>119901</code>.</p>
+<p>For compartments greater or equal to 100, the 100s place and above digits are transferred to the 100,000th place digit. For doses to the 99th compartment the <code>evid</code> for a bolus dose would be <code>9901</code> and the <code>evid</code> for an infusion would be <code>19901</code>. For a bolus dose to the <code>199</code>th compartment the <code>evid</code> for the bolus dose would be <code>109901</code>. An infusion dosing record for the <code>199</code>th compartment would be <code>119901</code>.</p>
 </div>
 </div>
   </div>

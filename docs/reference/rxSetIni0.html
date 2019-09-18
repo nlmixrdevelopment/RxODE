@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Clear memoise cache for RxODE — rxForget • RxODE</title>
+<title>Set Initial conditions to time zero instead of the first observed/dosed time — rxSetIni0 • RxODE</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -37,9 +37,9 @@
 
 
 
-<meta property="og:title" content="Clear memoise cache for RxODE — rxForget" />
+<meta property="og:title" content="Set Initial conditions to time zero instead of the first observed/dosed time — rxSetIni0" />
 
-<meta property="og:description" content="Clear memoise cache for RxODE" />
+<meta property="og:description" content="Set Initial conditions to time zero instead of the first observed/dosed time" />
 
 <meta property="og:image" content="/logo.png" />
 <meta name="twitter:card" content="summary" />
@@ -207,28 +207,38 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Clear memoise cache for RxODE</h1>
+    <h1>Set Initial conditions to time zero instead of the first observed/dosed time</h1>
     
-    <div class="hidden name"><code>rxForget.Rd</code></div>
+    <div class="hidden name"><code>rxSetIni0.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Clear memoise cache for RxODE</p>
+    <p>Set Initial conditions to time zero instead of the first observed/dosed time</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>rxForget</span>()</pre>
-        
+    <pre class="usage"><span class='fu'>rxSetIni0</span>(<span class='kw'>ini0</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>ini0</th>
+      <td><p>When TRUE (default), set initial conditions to time
+zero. Otherwise the initial conditions are the first observed
+time.</p></td>
+    </tr>
+    </table>
+    
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
+      <li><a href="#arguments">Arguments</a></li>
                 </ul>
 
-    <h2>Author</h2>
-    <p>Matthew L. Fidler</p>
   </div>
 </div>
 

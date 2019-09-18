@@ -37,7 +37,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
       </span>
     </div>
 
@@ -64,7 +64,7 @@
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html">Speeding up RxODE ODE solving</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -107,11 +107,15 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-<li class="dropdown-header">Single Subject ODE solving</li>
+<li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html">Single Subject ODE solving</a>
+    </li>
     <li>
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
     </li>
-    <li class="dropdown-header">Using Prior Data for ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -169,7 +173,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE and Shiny</h1>
             
-            <h4 class="date">2019-05-30</h4>
+            <h4 class="date">2019-09-17</h4>
       
       
       <div class="hidden name"><code>RxODE-shiny.Rmd</code></div>
@@ -183,12 +187,12 @@
 <a href="#facilities-for-generating-r-shiny-applications" class="anchor"></a>Facilities for generating R shiny applications</h1>
 <p>An example of creating an R <a href="http://shiny.rstudio.com">shiny application</a> to interactively explore responses of various complex dosing regimens is available at <a href="http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator" class="uri">http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator</a>. Shiny applications like this one may be programmatically created with the experimental function <code><a href="../reference/genShinyApp.template.html">genShinyApp.template()</a></code>.</p>
 <p>The above application includes widgets for varying the dose, dosing regimen, dose cycle, and number of cycles.</p>
-<pre><code>
+<pre><code><a href="../reference/genShinyApp.template.html">
 genShinyApp.template(appDir = "shinyExample", verbose=TRUE)
 
 library(shiny)
 runApp("shinyExample")
-</code></pre>
+</a></code></pre>
 <p><a href="http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator">Click here to go to the Shiny App</a></p>
 </div>
 <div id="exploring-parameter-fits-graphically-using-shiny" class="section level1">

@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
       </span>
     </div>
 
@@ -99,7 +99,7 @@
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html">Speeding up RxODE ODE solving</a>
     </li>
     <li class="divider"></li>
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -142,11 +142,15 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html">Single Subject ODE solving</a>
+    </li>
     <li>
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
     </li>
-    <li class="dropdown-header">Using Prior Data for ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -218,7 +222,8 @@
   <span class='kw'>init</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>grad</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>sum.prod</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>pred.minus.dv</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>theta.derivs</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>only.numeric</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>grad.internal</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>theta.internal</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>optExpression</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>run.internal</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>interaction</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+  <span class='kw'>optExpression</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>run.internal</span> <span class='kw'>=</span> <span class='no'>RxODE.sympy.run.internal</span>,
+  <span class='kw'>interaction</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -245,7 +250,7 @@
     </tr>
     <tr>
       <th>grad</th>
-      <td><p>Boolaen indicated if the the equations for the
+      <td><p>Boolean indicated if the the equations for the
 gradient be calculated</p></td>
     </tr>
     <tr>
@@ -291,8 +296,8 @@ internally.</p></td>
     </tr>
     <tr>
       <th>interaction</th>
-      <td><p>Boolean to determine if dR^2/deta is calculated
-for FOCEi (not needed for FOCE)</p></td>
+      <td><p>Boolean to determine if <code>dR^2/deta</code> is
+calculated for FOCEi (not needed for FOCE)</p></td>
     </tr>
     </table>
     

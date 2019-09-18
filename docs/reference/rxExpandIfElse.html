@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Expand if/else clauses into mutiple different types of lines. — rxExpandIfElse • RxODE</title>
+<title>Expand if/else clauses into multiple different types of lines. — rxExpandIfElse • RxODE</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -37,9 +37,9 @@
 
 
 
-<meta property="og:title" content="Expand if/else clauses into mutiple different types of lines. — rxExpandIfElse" />
+<meta property="og:title" content="Expand if/else clauses into multiple different types of lines. — rxExpandIfElse" />
 
-<meta property="og:description" content="Expand if/else clauses into mutiple different types of lines." />
+<meta property="og:description" content="Expand if/else clauses into multiple different types of lines." />
 
 <meta property="og:image" content="/logo.png" />
 <meta name="twitter:card" content="summary" />
@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
       </span>
     </div>
 
@@ -99,7 +99,7 @@
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html">Speeding up RxODE ODE solving</a>
     </li>
     <li class="divider"></li>
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -142,11 +142,15 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li class="dropdown-header">Single Subject ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html">Single Subject ODE solving</a>
+    </li>
     <li>
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
     </li>
-    <li class="dropdown-header">Using Prior Data for ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -203,14 +207,14 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Expand if/else clauses into mutiple different types of lines.</h1>
+    <h1>Expand if/else clauses into multiple different types of lines.</h1>
     
     <div class="hidden name"><code>rxExpandIfElse.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Expand if/else clauses into mutiple different types of lines.</p>
+    <p>Expand if/else clauses into multiple different types of lines.</p>
     
     </div>
 
@@ -225,13 +229,13 @@
 to have normalized syntax, that is <code>if (...){</code> has to be
 on the same line.  The <code>else</code> statement must be on its
 own line with the closing bracket of the <code>if</code> statement
-on the previous line.  This <code>else</code> statment must also
+on the previous line.  This <code>else</code> statement must also
 contain the opening bracket, like the code <code>else {</code></p></td>
     </tr>
     <tr>
       <th>removeInis</th>
       <td><p>A boolean indicating if parameter
-initializations should be removed from the model.</p></td>
+initialization should be removed from the model.</p></td>
     </tr>
     <tr>
       <th>removePrint</th>

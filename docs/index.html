@@ -48,7 +48,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
       </span>
     </div>
 
@@ -75,7 +75,7 @@
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html">Speeding up RxODE ODE solving</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
@@ -118,11 +118,15 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-<li class="dropdown-header">Single Subject ODE solving</li>
+<li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html">Single Subject ODE solving</a>
+    </li>
     <li>
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
     </li>
-    <li class="dropdown-header">Using Prior Data for ODE solving</li>
+    <li>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -194,7 +198,7 @@
 <h2 class="hasAnchor">
 <a href="#windows-setup-the-cfortran-compilers" class="anchor"></a>Windows – Setup the c/fortran compilers</h2>
 <p>These notes briefly describe steps to properly install <code>RxODE</code> and to ensure <code>Rtools</code> (<a href="https://cran.r-project.org/bin/windows/Rtools/" class="uri">https://cran.r-project.org/bin/windows/Rtools/</a>) are properly configured to avoid compilation issues during the use of <code>RxODE</code>.</p>
-<p>In a nutshell, installing <code>RxODE</code> is very straight forwad, but installing and configuring <code>Rtools</code> is a bit more delicate and you need to carefully follow the instructions in the “R Installation and Adminstration” manual, in particular Section 6.3, and Appendix D “The Windows Toolset”. We point out a couple of details worth extra attention. Please read on.</p>
+<p>In a nutshell, installing <code>RxODE</code> is very straight forward, but installing and configuring <code>Rtools</code> is a bit more delicate and you need to carefully follow the instructions in the “R Installation and Administration” manual, in particular Section 6.3, and Appendix D “The Windows Toolset”. We point out a couple of details worth extra attention. Please read on.</p>
 <div id="steps" class="section level3">
 <h3 class="hasAnchor">
 <a href="#steps" class="anchor"></a>Steps:</h3>
@@ -225,15 +229,15 @@
 <li>
 <p>Obtain the <code>RxODE</code> package, either from github or CRAN. The installation requires use of the gcc compiler, so you’ll know if Step 1 was successfully executed.</p>
 <ul>
-<li><p>CRAN. Use the usual method for installing pacakges from CRAN.</p></li>
+<li><p>CRAN. Use the usual method for installing packages from CRAN.</p></li>
 <li><p>GitHub. First install the <code>devtools</code> package (if needed) and then <code>RxODE</code> from GitHub. You may want to avoid using a library folder that has spaces in its name (see question 4.1 in the “R for Windows FAQ” and the pointers therein). As of <code>RxODE</code> version 0.5-1, we’ve been able to test installations on folder with spaces in their name, but you may want to be on the safe side.</p></li>
 </ul>
 <p><code>install.packages("devtools")   library("devtools", lib = "C:/Rlib")   install_github("nlmixrdevelopment/RxODE")</code></p>
 </li>
 <li>
 <p>Test the <code>RxODE</code> installation:</p>
-<pre><code>library("RxODE", lib = "C:/Rlib")
-demo("demo1","RxODE")</code></pre>
+<pre><code><a href="https://www.rdocumentation.org/packages/base/topics/library">library("RxODE", lib = "C:/Rlib")
+demo("demo1","RxODE")</a></code></pre>
 </li>
 </ol>
 <p>If the demo runs without error, click on the plot window and see if a new plot comes up each time. If so, <code>RxODE</code> has been installed correctly.</p>

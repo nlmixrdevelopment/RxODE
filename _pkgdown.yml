@@ -101,7 +101,7 @@ navbar:
         - text: "RxODE with piping ie %>%"
           href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html
         - text: "Speeding up RxODE ODE solving"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html
+          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html
         - text: "--------------------------"
         - text: "Advanced Features, Model Types, Technical Details"
         - text: "RxODE model types"
@@ -125,9 +125,11 @@ navbar:
     icon: fas fa-desktop
     menu:
         - text: "Single Subject ODE solving"
+          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html
         - text: "Multiple Subject RxODE Simulation"
           href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html
         - text: "Using Prior Data for ODE solving"
+          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html
   - text: "Tutorial"
     icon: fas fa-life-ring
     href: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf
