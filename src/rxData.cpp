@@ -1268,57 +1268,84 @@ rx_globals _globals;
 
 
 extern "C" void rxOptionsIniData(){
+  Free(_globals.gsolve);
   _globals.gsolve = NULL;//Calloc(NCMT*NALL,double);
   _globals.gsolven=0;//NCMT*NALL;
+  Free(_globals.gon);
   _globals.gon = NULL;//Calloc(NCMT*NALL,double);
   _globals.gonn=0;
+  Free(_globals.gmtime);
   _globals.gmtime = NULL;//Calloc(NCMT*NALL,double);
   _globals.gmtimen=0;//NCMT*NALL;
+  Free(_globals.gInfusionRate);
   _globals.gInfusionRate = NULL;//Calloc(NCMT,double);
   _globals.gInfusionRaten=0;//NCMT;
+  Free(_globals.gall_times);
   _globals.gall_times = NULL;//Calloc(NALL,double);
+  Free(_globals.gix);
   _globals.gix = NULL;//Calloc(NALL,double);
   _globals.gall_timesn=0;//NALL;
+  Free(_globals.gdv);
   _globals.gdv = NULL;//Calloc(NALL,double);
   _globals.gdvn=0;//NALL;
+  Free(_globals.gamt);
   _globals.gamt = NULL;//Calloc(NDOSES,double);
   _globals.gamtn=0;//NDOSES;
+  Free(_globals.glhs);
   _globals.glhs = NULL;//Calloc(NPARS,double);
   _globals.glhsn=0;//NPARS;
+  Free(_globals.gcov);
   _globals.gcov = NULL;//Calloc(NALL*10,double);
   _globals.gcovn=0;//NALL*10;
+  Free(_globals.ginits);
   _globals.ginits = NULL;//Calloc(NCMT,double);
   _globals.ginitsn=0;//NCMT;
+  Free(_globals.gscale);
   _globals.gscale = NULL;//Calloc(NCMT,double);
   _globals.gscalen=0;//NCMT;
+  Free(_globals.gatol2);
   _globals.gatol2 = NULL;//Calloc(NCMT,double);
   _globals.gatol2n=0;//NCMT;
+  Free(_globals.grtol2);
   _globals.grtol2 = NULL;//Calloc(NCMT,double);
   _globals.grtol2n=0;//NCMT;
+  Free(_globals.gpars);
   _globals.gpars = NULL;//Calloc(NPARS,double);
   _globals.gparsn=0;//NPARS;
   //ints
+  Free(_globals.gevid);
   _globals.gevid = NULL;//Calloc(NALL, int);
   _globals.gevidn = 0;//NALL;
+  Free(_globals.gBadDose);
   _globals.gBadDose = NULL;//Calloc(NCMT, int);
   _globals.gBadDosen = 0;//NCMT;
+  Free(_globals.grc);
   _globals.grc = NULL;//Calloc(MAXIDS, int);
   _globals.grcn = 0;//MAXIDS;
+  Free(_globals.gidose);
   _globals.gidose = NULL;//Calloc(NALL, int);
   _globals.gidosen = 0;//NALL;
+  Free(_globals.gpar_cov);
   _globals.gpar_cov = NULL;//Calloc(NCMT, int);
   _globals.gpar_covn = 0;//NCMT;
+  Free(_globals.gParPos);
   _globals.gParPos = NULL;//Calloc(NCMT, int);
+  Free(_globals.gParPos2);
   _globals.gParPos2 = NULL;//Calloc(NCMT, int);
   _globals.gParPosn = 0;//NCMT;
+  Free(_globals.gsvar);
   _globals.gsvar = NULL;//Calloc(NPARS, int);
   _globals.gsvarn = 0;//NPARS;
+  Free(_globals.gsiV);
   _globals.gsiV = NULL;//Calloc(NCMT, int);
   _globals.gsiVn = 0;//NCMT;
+  Free(_globals.slvr_counter);
   _globals.slvr_counter = NULL;//Calloc(MAXIDS, int);
   _globals.slvr_countern = 0;//MAXIDS;
+  Free(_globals.dadt_counter);
   _globals.dadt_counter = NULL;//Calloc(MAXIDS, int);
   _globals.dadt_countern = 0;//MAXIDS;
+  Free(_globals.jac_counter);
   _globals.jac_counter = NULL;//Calloc(MAXIDS, int);
   _globals.jac_countern = 0;//MAXIDS;
 }
@@ -1681,86 +1708,86 @@ void rxFreeErrs(){
 
 extern "C" void gFree(){
   Free(_rxGetErrs);
-  if (_globals.gsiV != NULL) Free(_globals.gsiV);
+  Free(_globals.gsiV);
   _globals.gsiV=NULL;
   _globals.gsiVn=0;
-  if (_globals.gsvar != NULL) Free(_globals.gsvar);
+  Free(_globals.gsvar);
   _globals.gsvar=NULL;
   _globals.gsvarn=0;
-  if (_globals.gpar_cov != NULL) Free(_globals.gpar_cov);
+  Free(_globals.gpar_cov);
   _globals.gpar_cov=NULL;
   _globals.gpar_covn=0;
-  if (_globals.gidose != NULL) Free(_globals.gidose);
+  Free(_globals.gidose);
   _globals.gidose=NULL;
   _globals.gidosen=0;
-  if (_globals.grc != NULL) Free(_globals.grc);
+  Free(_globals.grc);
   _globals.grc=NULL;
   _globals.grcn=0;
-  if (_globals.gBadDose != NULL) Free(_globals.gBadDose);
+  Free(_globals.gBadDose);
   _globals.gBadDose=NULL;
   _globals.gBadDosen=0;
-  if (_globals.gevid != NULL) Free(_globals.gevid);
+  Free(_globals.gevid);
   _globals.gevid=NULL;
   _globals.gevidn=0;
-  if (_globals.gpars != NULL) Free(_globals.gpars);
+  Free(_globals.gpars);
   _globals.gpars=NULL;
   _globals.gparsn=0;
-  if (_globals.grtol2 != NULL) Free(_globals.grtol2);
+  Free(_globals.grtol2);
   _globals.grtol2=NULL;
   _globals.grtol2n=0;
-  if (_globals.gatol2 != NULL) Free(_globals.gatol2);
+  Free(_globals.gatol2);
   _globals.gatol2=NULL;
   _globals.gatol2n=0;
-  if (_globals.gscale != NULL) Free(_globals.gscale);
+  Free(_globals.gscale);
   _globals.gscale=NULL;
   _globals.gscalen=0;
-  if (_globals.ginits != NULL) Free(_globals.ginits);
+  Free(_globals.ginits);
   _globals.ginits=NULL;
   _globals.ginitsn=0;
-  if (_globals.gcov != NULL) Free(_globals.gcov);
+  Free(_globals.gcov);
   _globals.gcov=NULL;
   _globals.gcovn=0;
-  if (_globals.glhs != NULL) Free(_globals.glhs);
+  Free(_globals.glhs);
   _globals.glhs=NULL;
   _globals.glhsn=0;
-  if (_globals.gamt != NULL) Free(_globals.gamt);
+  Free(_globals.gamt);
   _globals.gamt=NULL;
-  if (_globals.gii != NULL) Free(_globals.gii);
+  Free(_globals.gii);
   _globals.gamt=NULL;
   _globals.gii=NULL;
   _globals.gamtn=0;
-  if (_globals.gall_times != NULL) Free(_globals.gall_times);
+  Free(_globals.gall_times);
   _globals.gall_times=NULL;
   _globals.gall_timesn=0;
-  if (_globals.gix != NULL) Free(_globals.gix);
+  Free(_globals.gix);
   _globals.gix=NULL;
   _globals.gixn=0;
-  if (_globals.gdv != NULL) Free(_globals.gdv);
+  Free(_globals.gdv);
   _globals.gdvn=0;
-  if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
+  Free(_globals.gInfusionRate);
   _globals.gInfusionRate=NULL;
   _globals.gInfusionRaten=0;
-  if (_globals.gsolve != NULL) Free(_globals.gsolve);
+  Free(_globals.gsolve);
   _globals.gsolve=NULL;
   _globals.gsolven=0;
-  if (_globals.gon != NULL&& _globals.gonn>0) Free(_globals.gon);
+  Free(_globals.gon);
   _globals.gon=NULL;
   _globals.gonn=0;
-  if (_globals.gmtime != NULL&& _globals.gmtimen>0) Free(_globals.gmtime);
+  Free(_globals.gmtime);
   _globals.gmtime=NULL;
   _globals.gmtimen=0;
-  if (_globals.gParPos != NULL) Free(_globals.gParPos);
+  Free(_globals.gParPos);
   _globals.gParPos=NULL;
-  if (_globals.gParPos2 != NULL) Free(_globals.gParPos2);
+  Free(_globals.gParPos2);
   _globals.gParPos2=NULL;
   _globals.gParPosn = 0;
-  if (_globals.slvr_counter != NULL) Free(_globals.slvr_counter);
+  Free(_globals.slvr_counter);
   _globals.slvr_counter=NULL;
   _globals.slvr_countern=0;
-  if (_globals.jac_counter != NULL) Free(_globals.jac_counter);
+  Free(_globals.jac_counter);
   _globals.jac_counter=NULL;
   _globals.jac_countern=0;
-  if (_globals.dadt_counter != NULL) Free(_globals.dadt_counter);
+  Free(_globals.dadt_counter);
   _globals.dadt_counter=NULL;
   _globals.dadt_countern=0;
 }
@@ -2573,6 +2600,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     object =obj;
   }
   if (isRxSolve || isEnvironment){
+    rxSolveFree();
     return rxSolve_update(object, rxControl, specParams,
 			  extraArgs, params, events, inits,
 			  isRxSolve,  isEnvironment, updateObject);
@@ -3537,23 +3565,23 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       if (setupOnly == 2){
 	// Partial free
 	// mtime needs to be setup and used.
-	if (_globals.gmtime != NULL) Free(_globals.gmtime);
+	Free(_globals.gmtime);
 	_globals.gmtime=NULL;
 	_globals.gmtimen=0;
 	// par_cov needs to be specified.
-	if (_globals.gpar_cov != NULL) Free(_globals.gpar_cov);
+	Free(_globals.gpar_cov);
 	_globals.gpar_covn=0;
 
-	if (_globals.gsiV != NULL) Free(_globals.gsiV);
+	Free(_globals.gsiV);
 	_globals.gsiVn=0;
-	if (_globals.gsvar != NULL) Free(_globals.gsvar);
+	Free(_globals.gsvar);
 	_globals.gsvarn=0;
 
 	// idose provided
-	if (_globals.gidose != NULL) Free(_globals.gidose);
+	Free(_globals.gidose);
 	_globals.gidosen=0;
 	// Rc provided
-	if (_globals.grc != NULL) Free(_globals.grc);
+	Free(_globals.grc);
 	_globals.grc=NULL;
 	_globals.grcn=0;
 	// Baddose setup on single solve
@@ -3575,41 +3603,41 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	if (_globals.gscale != NULL) Free(_globals.gscale);
 	_globals.gscalen=0;
 	// Set initial conditions
-	if (_globals.ginits != NULL) Free(_globals.ginits);
+	Free(_globals.ginits);
 	_globals.ginits=NULL;
 	_globals.ginitsn=0;
 	// Cov needs to be provided
-	if (_globals.gcov != NULL) Free(_globals.gcov);
+	Free(_globals.gcov);
 	_globals.gcovn=0;
 	// lhs needs to be provided
-	if (_globals.glhs != NULL) Free(_globals.glhs);
+	Free(_globals.glhs);
 	_globals.glhs=NULL;
 	_globals.glhsn=0;
 	// dose needs to be provided.  So does ii
-	if (_globals.gamt != NULL) Free(_globals.gamt);
-	if (_globals.gii != NULL) Free(_globals.gii);
+	Free(_globals.gamt);
+	Free(_globals.gii);
 	_globals.gamt=NULL;
 	_globals.gii=NULL;
 	_globals.gamtn=0;
 	// Times need to be provided.
-	if (_globals.gall_times != NULL) Free(_globals.gall_times);
+	Free(_globals.gall_times);
 	_globals.gall_times=NULL;
 	_globals.gall_timesn=0;
-	if (_globals.gix != NULL) Free(_globals.gix);
+	Free(_globals.gix);
 	_globals.gix=NULL;
 	_globals.gixn=0;
-	if (_globals.gdv != NULL) Free(_globals.gdv);
+	Free(_globals.gdv);
 	_globals.gdvn=0;
-	if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
+	Free(_globals.gInfusionRate);
 	_globals.gInfusionRaten=0;
-	if (_globals.gsolve != NULL) Free(_globals.gsolve);
+	Free(_globals.gsolve);
 	_globals.gsolve=NULL;
 	_globals.gsolven=0;
-	if (_globals.gon != NULL&& _globals.gonn>0) Free(_globals.gon);
+	Free(_globals.gon);
 	_globals.gon=NULL;
 	_globals.gonn=0;
-	if (_globals.gParPos != NULL) Free(_globals.gParPos);
-	if (_globals.gParPos2 != NULL) Free(_globals.gParPos2);
+	Free(_globals.gParPos);
+	Free(_globals.gParPos2);
 	_globals.gParPosn = 0;
       }
       return as<SEXP>(LogicalVector::create(true));
@@ -3677,6 +3705,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       }
       if (rx->matrix == 2){
         dat.attr("class") = "data.frame";
+	rxSolveFree();
 	return dat;
       } else {
         NumericMatrix tmpM(nr,nc);
@@ -3684,6 +3713,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
           tmpM(_,i) = as<NumericVector>(dat[i]);
         }
         tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
+	rxSolveFree();
         return tmpM;
       }
     } else {
@@ -3755,9 +3785,11 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       CharacterVector cls= CharacterVector::create("rxSolve", "data.frame");
       cls.attr(".RxODE.env") = e;    
       dat.attr("class") = cls;
+      rxSolveFree();
       return(dat);
     }
   }
+  rxSolveFree();
   return R_NilValue;
 }
 
