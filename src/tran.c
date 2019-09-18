@@ -102,8 +102,8 @@ int R_get_option(const char *option, int def){
   return ret;
 }
 
-// Taken from dparser and changed to use R_alloc
-int r_buf_read(const char *pathname, char **buf, int *len) {
+// Taken from dparser and changed to use Calloc
+int rc_buf_read(const char *pathname, char **buf, int *len) {
   struct stat sb;
   int fd;
 
@@ -115,7 +115,7 @@ int r_buf_read(const char *pathname, char **buf, int *len) {
   memset(&sb, 0, sizeof(sb));
   fstat(fd, &sb);
   *len = sb.st_size;
-  *buf = (char*)R_alloc(*len + 2,sizeof(char));
+  *buf = Calloc(*len + 2,char);
   // MINGW likes to convert cr lf => lf which messes with the size
   size_t real_size = read(fd, *buf, *len);
   (*buf)[real_size] = 0;
@@ -125,11 +125,11 @@ int r_buf_read(const char *pathname, char **buf, int *len) {
   return *len;
 }
 
-// Taken from dparser and changed to use R_alloc
-char * r_sbuf_read(const char *pathname) {
+// Taken from dparser and changed to use Calloc
+char * rc_sbuf_read(const char *pathname) {
   char *buf;
   int len;
-  if (r_buf_read(pathname, &buf, &len) < 0)
+  if (rc_buf_read(pathname, &buf, &len) < 0)
     return NULL;
   return buf;
 }
@@ -2425,7 +2425,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
   }
 }
 
-void parseFree(){
+void parseFree(int last){
   sFree(&sb);
   sFree(&sbDt);
   sFree(&sbt);
@@ -2449,10 +2449,15 @@ void parseFree(){
   Free(tb.dy);
   Free(tb.sdfdy);
   freeP();
+  if (last){
+    Free(extra_buf);
+    Free(model_prefix);
+    Free(md5);
+  }
 }
 void reset (){
   // Reset sb/sbt string buffers
-  parseFree();
+  parseFree(0);
   sIni(&sb);
   sIni(&sbDt);
   sIni(&sbt);
@@ -2573,7 +2578,7 @@ void trans_internal(char* parse_file, int isStr){
   if (isStr){
     gBuf = parse_file;
   } else {
-      gBuf = r_sbuf_read(parse_file);
+      gBuf = rc_sbuf_read(parse_file);
       err_msgP((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2, curP);
   }
   sIni(&sbNrm);
@@ -2632,12 +2637,15 @@ void trans_internal(char* parse_file, int isStr){
   } else {
     rx_syntax_error = 1;
   }
+  if (!isStr){
+    Free(gBuf);
+  }
   freeP();
 }
 
 SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr,
 		  SEXP isEscIn){
-  char *in;
+  char *in = NULL;
   char *buf, *df, *dy;
   char bufw[1024], bufw2[2100];
   int i, j, islhs, pi=0, li=0, ini_i = 0,k=0, l=0, m=0, p=0;
@@ -2660,22 +2668,24 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   set_d_verbose_level(0);
   rx_podo = 0;
   if (isString(extra_c) && length(extra_c) == 1){
-    in = r_dup_str(CHAR(STRING_ELT(extra_c,0)),0);
-    extra_buf = r_sbuf_read(in);
-    if (!((intptr_t) extra_buf)){ 
-      extra_buf = (char *) R_alloc(1,sizeof(char));
+    in = rc_dup_str(CHAR(STRING_ELT(extra_c,0)),0);
+    Free(extra_buf);
+    extra_buf = rc_sbuf_read(in);
+    Free(in);
+    if (!((intptr_t) extra_buf)){
+      Free(extra_buf);
+      extra_buf = Calloc(1,char);
       extra_buf[0]='\0';
     }
   } else {
-    extra_buf = (char *) R_alloc(1,sizeof(char));
+    Free(extra_buf);
+    extra_buf =  Calloc(1,char);
     extra_buf[0] = '\0';
   }
 
-  /* orig = r_dup_str(CHAR(STRING_ELT(orig_file,0)),0); */
-  in = r_dup_str(CHAR(STRING_ELT(parse_file,0)),0);
-  
   if (isString(prefix) && length(prefix) == 1){
-    model_prefix = r_dup_str(CHAR(STRING_ELT(prefix,0)),0);
+    Free(model_prefix);
+    model_prefix = rc_dup_str(CHAR(STRING_ELT(prefix,0)),0);
   } else {
     freeP();
     error("model prefix must be specified");
@@ -2693,8 +2703,10 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     md5 = Calloc(1,char);
     md5[0] = '\0';
   }
-  
+
+  in = rc_dup_str(CHAR(STRING_ELT(parse_file,0)),0);  
   trans_internal(in, isStr);
+  Free(in);
   extraCmt = 0;
   if (tb.linCmt){
     if (tb.hasKa){

@@ -2399,7 +2399,7 @@ void updateSolveEnvPost(Environment e){
 extern "C" void rxOptionsFree();
 extern "C" void rxOptionsIni();
 extern "C" void rxOptionsIniEnsure(int mx);
-extern "C" void parseFree();
+extern "C" void parseFree(int last);
 extern "C" void rxClearFuns();
 //' Free the C solving/parsing information.
 //'
@@ -2412,7 +2412,7 @@ LogicalVector rxSolveFree(){
   rxOptionsFree();
   rxOptionsIni();
   rxOptionsIniData();
-  parseFree();
+  parseFree(0);
   rxClearFuns();
   gFree();
   return LogicalVector::create(true);
