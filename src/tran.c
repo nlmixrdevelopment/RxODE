@@ -115,7 +115,7 @@ int rc_buf_read(const char *pathname, char **buf, int *len) {
   memset(&sb, 0, sizeof(sb));
   fstat(fd, &sb);
   *len = sb.st_size;
-  *buf = Calloc(*len + 2,char);
+  *buf = Calloc(*len + 3,char);
   // MINGW likes to convert cr lf => lf which messes with the size
   size_t real_size = read(fd, *buf, *len);
   (*buf)[real_size] = 0;
@@ -2704,9 +2704,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     md5[0] = '\0';
   }
 
-  in = rc_dup_str(CHAR(STRING_ELT(parse_file,0)),0);  
+  in = CHAR(STRING_ELT(parse_file,0));
   trans_internal(in, isStr);
-  Free(in);
   extraCmt = 0;
   if (tb.linCmt){
     if (tb.hasKa){
