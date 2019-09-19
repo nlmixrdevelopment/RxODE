@@ -763,8 +763,6 @@ int handle_evid(int evid, int neq,
       }
       if (!ind->doSS && ind->wh0 == 20){
 	// Save for adding at the end
-	Free(ind->solveSave);
-	ind->solveSave = Calloc(neq, double);
 	memcpy(ind->solveSave, yp, neq*sizeof(double));
       }
       switch(ind->whI){
@@ -1164,7 +1162,6 @@ void handleSS(int *neq,
     if (doSS2){
       // Add at the end
       for (j = neq[0];j--;) yp[j]+=ind->solveSave[j];
-      Free(ind->solveSave);
     }
     ind->idx=*i;
     getWh(ind->evid[ind->ix[*i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
@@ -1485,10 +1482,6 @@ void rxOptionsFree(){
 }
 
 void rxFreeLast(){
-  for (int i = max_inds_global; i--;){
-    rx_solving_options_ind *ind = &inds_global[i];
-    if (ind->solveSave != NULL) Free(ind->solveSave);
-  }
   max_inds_global = 0;
   Free(inds_global);
 }

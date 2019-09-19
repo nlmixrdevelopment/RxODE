@@ -2453,6 +2453,7 @@ void parseFree(int last){
     Free(extra_buf);
     Free(model_prefix);
     Free(md5);
+    Free(gBuf);
   }
 }
 void reset (){
@@ -2571,21 +2572,25 @@ void trans_internal(char* parse_file, int isStr){
   int i,j,found,islhs;
   /* any number greater than sizeof(D_ParseNode_User) will do;
      below 1024 is used */
+  freeP();
   curP = new_D_Parser(&parser_tables_RxODE, 1024);
   curP->save_parse_tree = 1;
   curP->initial_scope = NULL; 
   curP->syntax_error_fn = rxSyntaxError;
   if (isStr){
+    Free(gBuf);
     gBuf = parse_file;
   } else {
-      gBuf = rc_sbuf_read(parse_file);
-      err_msgP((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2, curP);
+    Free(gBuf);
+    gBuf = rc_sbuf_read(parse_file);
+    Free(parse_file);
+    err_msgP((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2, curP);
   }
   sIni(&sbNrm);
   lineIni(&sbPm);
   lineIni(&sbPmDt);
   
-  if ((_pn=dparse(curP, gBuf, (int)strlen(gBuf))) && !curP->syntax_errors) {
+  if ((_pn= dparse(curP, gBuf, (int)strlen(gBuf))) && !curP->syntax_errors) {
     wprint_parsetree(parser_tables_RxODE, _pn, 0, wprint_node, NULL);
     // Determine Jacobian vs df/dvar
     for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
@@ -2636,9 +2641,6 @@ void trans_internal(char* parse_file, int isStr){
     }
   } else {
     rx_syntax_error = 1;
-  }
-  if (!isStr){
-    Free(gBuf);
   }
   freeP();
 }
@@ -2704,7 +2706,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     md5[0] = '\0';
   }
 
-  in = CHAR(STRING_ELT(parse_file,0));
+  in = rc_dup_str(CHAR(STRING_ELT(parse_file,0)),0);
   trans_internal(in, isStr);
   extraCmt = 0;
   if (tb.linCmt){
@@ -3154,6 +3156,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     }
     freeP();
     error("Syntax Errors (see above)");
+  } else {
+    freeP();
   }
   /* Free(sbPm); Free(sbNrm); */
   return lst;

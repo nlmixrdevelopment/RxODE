@@ -235,6 +235,7 @@ bool rxSetIni0(bool ini0 = true){
 extern void setFkeep(List keep);
 IntegerVector convertMethod(RObject method);
 
+boolean warnedNeg=false;
 //' Event translation for RxODE
 //'
 //' @param inData Data frame to translate
@@ -1521,7 +1522,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   lstF.attr("class") = cls;
   lstF.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt);
   if (doWarnNeg){
-    warning("With negative times, compartments initialize at first negative observed time.\nWith positive times, compartments initialize at time zero\nUse `rxSetIni0(FALSE)` to initialize at first observed time");
+    if (!warnedNeg){
+      warning("\nWith negative times, compartments initialize at first negative observed time.\nWith positive times, compartments initialize at time zero\nUse `rxSetIni0(FALSE)` to initialize at first observed time\nThis warning is displayed once per session.");
+      warnedNeg=true;
+    } 
   }
   return lstF;
 }

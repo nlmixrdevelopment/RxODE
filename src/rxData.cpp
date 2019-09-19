@@ -3441,7 +3441,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->nsim = nPopPar / rx->nsub;
     if (rx->nsim < 1) rx->nsim=1;
 
-    gsolveSetup(rx->nall*rx->nsub*state.size()*rx->nsim);
+    // gsolveSetup includes 1 ind->solveSave 
+
+    gsolveSetup(rx->nall*(rx->nsub+1)*state.size()*rx->nsim);
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
     gOnSetup(rx->nsub*rx->nsim*state.size());
@@ -3451,7 +3453,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     gmtimeSetup(rx->nMtime*rx->nsub*rx->nsim);
 
 
-    int curEvent = 0, curIdx = 0;
+    int curEvent = 0, curIdx = 0, curSolve=0;
     
     switch(parType){
     case 1: // NumericVector
@@ -3500,6 +3502,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	  }
 	}
 	curEvent=0;
+	curSolve=0;
 	curIdx=0;
 	int curOn=0;
 	rx_solving_options_ind indS;
@@ -3546,10 +3549,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    }
 	    int eLen = op->neq*ind->n_all_times;
 
-	    ind->solve = &_globals.gsolve[curEvent];
+	    ind->solve = &_globals.gsolve[curSolve];
 	    ind->ix = &_globals.gix[curIdx];
 	    std::iota(ind->ix,ind->ix+ind->n_all_times,0);
 	    curEvent += eLen;
+	    curSolve += eLen;
+	    ind->solveSave = &_globals.gsolve[curSolve];
+	    curSolve += op->neq;
 	    ind->on=&_globals.gon[curOn];
 	    curOn +=op->neq;
 	    curIdx += ind->n_all_times;
