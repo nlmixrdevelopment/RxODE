@@ -10,10 +10,8 @@ List rxModelVars_(const RObject &obj);
 bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
 
-IntegerVector curDvid;
-
-IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false,
-		    int stateSize = 0, int sensSize=0){
+IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid,
+		    int stateSize, int sensSize, IntegerVector& curDvid){
   RObject cmtInfo = R_NilValue;
   List extraCmt;
   if (rxIs(inCmt, "numeric") || rxIs(inCmt, "integer")){
@@ -269,7 +267,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     combineDvidB = as<bool>(getOption("RxODE.combine.dvid", true));
   }
   List mv = rxModelVars_(obj);
-  curDvid = clone(as<IntegerVector>(mv["dvid"]));
+  IntegerVector curDvid = clone(as<IntegerVector>(mv["dvid"]));
   CharacterVector trans = mv["trans"];
   if (rxIs(inData,"rxEtTran")){
     CharacterVector cls = inData.attr("class");
@@ -511,14 +509,15 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   RObject cmtInfo = R_NilValue;
   if (cmtCol != -1){
     inCmt = as<IntegerVector>(toCmt(inData[cmtCol], state, false,
-				    state0.size(), stateS.size()));//as<IntegerVector>();
+				    state0.size(), stateS.size(), curDvid));//as<IntegerVector>();
     cmtInfo = inCmt.attr("cmtNames");
     inCmt.attr("cmtNames") = R_NilValue;
   }
   IntegerVector inDvid;
   if (dvidCol != -1){
     inDvid = as<IntegerVector>(toCmt(inData[dvidCol], state, true,
-				     state0.size(), stateS.size()));//as<IntegerVector>();
+				     state0.size(), stateS.size(),
+				     curDvid));//as<IntegerVector>();
     inDvid.attr("cmtNames") = R_NilValue;
   }
   int tmpCmt = 1;

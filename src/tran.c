@@ -2572,7 +2572,6 @@ void trans_internal(char* parse_file, int isStr){
   int i,j,found,islhs;
   /* any number greater than sizeof(D_ParseNode_User) will do;
      below 1024 is used */
-  freeP();
   curP = new_D_Parser(&parser_tables_RxODE, 1024);
   curP->save_parse_tree = 1;
   curP->initial_scope = NULL; 
