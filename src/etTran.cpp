@@ -235,7 +235,7 @@ bool rxSetIni0(bool ini0 = true){
 extern void setFkeep(List keep);
 IntegerVector convertMethod(RObject method);
 
-boolean warnedNeg=false;
+bool warnedNeg=false;
 //' Event translation for RxODE
 //'
 //' @param inData Data frame to translate
