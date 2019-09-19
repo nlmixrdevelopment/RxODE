@@ -33,7 +33,7 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0,
   dfObs = 0, returnType = c("rxSolve", "matrix", "data.frame",
   "data.frame.TBS"), seed = NULL, nsim = NULL, minSS = 7,
-  maxSS = 100, atolSS = 1e-09, rtolSS = 1e-09, params = NULL,
+  maxSS = 1000L, atolSS = 1e-09, rtolSS = 1e-09, params = NULL,
   events = NULL, istateReset = TRUE, subsetNonmem = TRUE,
   linLog = FALSE, maxAtolRtolFactor = 0.1, from = NULL, to = NULL,
   by = NULL, length.out = NULL, iCov = NULL, keep = NULL)
