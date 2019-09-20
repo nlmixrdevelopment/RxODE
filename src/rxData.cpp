@@ -2621,8 +2621,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	break;
       }
     }
-    // Assign Pointers
-    rxAssignPtr(mv);
     // Get the C solve object
     rx_solve* rx = getRxSolve_();
     rx_solving_options* op = rx->op;
@@ -3115,6 +3113,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
         stop("If parameters are not named, they must match the order and size of the parameters in the model.");
       }
     }
+    rxAssignPtr(mv);
     rxOptionsIniEnsure(nPopPar); // 1 simulation per parameter specification
     if (rxIs(ev1,"event.data.frame")||
 	rxIs(ev1,"event.matrix")){
@@ -4509,7 +4508,7 @@ bool rxDynUnload(RObject obj){
       return false;
     }
   } 
-  rxRmModelLib_(ptr);
+  rxRmModelLib_(ptr); // Clears all pointers
   return !(rxIsLoaded(obj));
 }
 
