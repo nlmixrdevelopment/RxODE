@@ -64,10 +64,10 @@ rxControl <- function(scale = NULL,
         if (rxIs(stiff, "logical")){
             if (stiff){
                 method <- "lsoda"
-                warning("stiff=TRUE has been replaced with method = \"lsoda\".")
+                .Deprecated("method = \"lsoda\"",old="stiff=TRUE")
             } else {
                 method <- "dop853"
-                warning("stiff=FALSE has been replaced with method = \"dop853\".")
+                .Deprecated("method = \"dop853\"",old="stiff=FALSE")
             }
         }
     } else {
@@ -563,7 +563,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         stop("Duplicate arguments do not make sense.");
     }
     if (any(names(.xtra)=="covs")){
-        stop("Covariates can no longer be specified by 'covs';\n  include them in the event dataset.\n\nIndividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\nTime varying covariates: modify input event data-frame or\n  eventTable to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the value in the model\n");
+        stop("Covariates can no longer be specified by 'covs';\n  include them in the event dataset.\n\nIndividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\nTime varying covariates: modify input event data-frame or\n  eventTable to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the variable in the model\n");
     }
     .nms <- names(as.list(match.call())[-1]);
     .lst <- list(...);
