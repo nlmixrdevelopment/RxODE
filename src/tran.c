@@ -65,6 +65,8 @@
 #define NOSTATE "Defined 'df(%s)/dy(%s)', but '%s' is not a state"
 #define NOSTATEVAR "Defined 'df(%s)/dy(%s)', but '%s' is not a state or variable"
 #define ODEFIRST "ODEs compartment 'd/dt(%s)' must be defined before changing its properties (f/alag/rate/dur).\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this will RxODE numbers compartments based on first occurance of property or ODE"
+#define ZERODVID "dvid() cannot have zeros in it"
+#define ONEDVID "RxODE only supports one dvid() statement per model"
 
 #include <string.h>
 #include <stdlib.h>
@@ -723,15 +725,15 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
 char *gBuf;
 int gBufLast;
 D_Parser *curP=NULL;
-D_ParseNode *_pn;
+D_ParseNode *_pn = 0;
 
 void freeP(){
+  if (_pn){
+    free_D_ParseTreeBelow(curP,_pn);
+    free_D_ParseNode(curP,_pn);
+  }
+  _pn=0;
   if (curP != NULL){
-    if (_pn){
-      free_D_ParseTreeBelow(curP,_pn);
-      free_D_ParseNode(curP,_pn);
-      _pn=0;
-    }
     free_D_Parser(curP);
   }
   curP = NULL;
@@ -871,8 +873,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  tb.dvid[0]=atoi(v);
 	  Free(v);
 	  if (tb.dvid[0] == 0){
-	    freeP();
-	    error("dvid() cannot have zeros in it");
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(ZERODVID);
 	  }
 	  sAppend(&sbt, "dvid(%d", tb.dvid[0]);
 	  xpn = d_get_child(pn,3);
@@ -884,8 +886,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    tb.dvid[i+1]=atoi(v+1);
 	    if (tb.dvid[i+1] == 0){
 	      Free(v);
-	      freeP();
-	      error("dvid() cannot have zeros in it");
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(ZERODVID);
 	    }
 	    sAppend(&sbt, ",%d", tb.dvid[i+1]);
 	    Free(v);
@@ -894,8 +896,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  Free(v);
 	  continue;
 	} else {
-	  freeP();
-	  error("RxODE only supports one dvid() statement per model");
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn(ZERODVID);
 	}
 	continue;
       }
@@ -1615,23 +1617,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   }
 }
 
-/* void retieve_var(int i, char *buf) { */
-/*   // No need to copy, just retreive. */
-/*   buf = tb.ss.line[i]; */
-/* } */
-
-void err_msgP(int chk, const char *msg, int code, D_Parser *p)
-{
-  if(!chk) {
-    freeP();
-    error("%s",msg);
-  }
-}
-
 void err_msg(int chk, const char *msg, int code)
 {
   if(!chk) {
-    freeP();
     error("%s",msg);
   }
 }
@@ -2448,12 +2436,12 @@ void parseFree(int last){
   Free(tb.df);
   Free(tb.dy);
   Free(tb.sdfdy);
-  freeP();
   if (last){
     Free(extra_buf);
     Free(model_prefix);
     Free(md5);
     Free(gBuf);
+    freeP();
   }
 }
 void reset (){
@@ -2554,7 +2542,6 @@ void writeSb(sbuf *sbb, FILE *fp){
     register unsigned written = fwrite(sbb->s + totalWritten, 1, toWrite, fp);
     if( toWrite != written){
       fclose(fp);
-      freeP();
       error("IO error writing parsed C file.");
     } else{
       totalWritten += written; // add the written bytes
@@ -2562,18 +2549,18 @@ void writeSb(sbuf *sbb, FILE *fp){
   }
   if (totalWritten != sbb->o) {
     fclose(fp);
-    freeP();
     error("IO error writing parsed C file.");
   }
 }
 static void rxSyntaxError(struct D_Parser *ap);
+
 void trans_internal(char* parse_file, int isStr){
   char *buf1, *buf2, bufe[2048];
   int i,j,found,islhs;
-  /* any number greater than sizeof(D_ParseNode_User) will do;
-     below 1024 is used */
-  curP = new_D_Parser(&parser_tables_RxODE, 1024);
+  freeP();
+  curP = new_D_Parser(&parser_tables_RxODE, sizeof(D_ParseNode_User));
   curP->save_parse_tree = 1;
+  curP->error_recovery = 1;
   curP->initial_scope = NULL; 
   curP->syntax_error_fn = rxSyntaxError;
   if (isStr){
@@ -2583,13 +2570,16 @@ void trans_internal(char* parse_file, int isStr){
     Free(gBuf);
     gBuf = rc_sbuf_read(parse_file);
     Free(parse_file);
-    err_msgP((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2, curP);
+    err_msg((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2);
   }
   sIni(&sbNrm);
   lineIni(&sbPm);
   lineIni(&sbPmDt);
   
-  if ((_pn= dparse(curP, gBuf, (int)strlen(gBuf))) && !curP->syntax_errors) {
+  _pn= dparse(curP, gBuf, (int)strlen(gBuf));
+  if (!_pn || curP->syntax_errors) {
+    rx_syntax_error = 1;
+  } else {
     wprint_parsetree(parser_tables_RxODE, _pn, 0, wprint_node, NULL);
     // Determine Jacobian vs df/dvar
     for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
@@ -2638,10 +2628,7 @@ void trans_internal(char* parse_file, int isStr){
         trans_syntax_error_report_fn0(bufe);
       }
     }
-  } else {
-    rx_syntax_error = 1;
   }
-  freeP();
 }
 
 SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr,
@@ -2688,7 +2675,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     Free(model_prefix);
     model_prefix = rc_dup_str(CHAR(STRING_ELT(prefix,0)),0);
   } else {
-    freeP();
     error("model prefix must be specified");
   }
 
@@ -2766,13 +2752,19 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
       // There is an compartment that doesn't have a derivative
       if (tb.linCmt == 0){
 	UNPROTECT(pro);
-	freeP();
-	error("Compartment '%s' needs differential equations defined", buf);
+	char *v = rc_dup_str(buf, 0);
+	sprintf(buf, "Compartment '%s' needs differential equations defined", v);
+	Free(v);
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(buf);
       } else if (!strcmp("depot", buf) || !strcmp("central", buf)) {
       } else {
 	UNPROTECT(pro);
-	freeP();
-	error("Compartment '%s' needs differential equations defined", buf);
+	char *v = rc_dup_str(buf, 0);
+	sprintf(buf, "Compartment '%s' needs differential equations defined", v);
+	Free(v);
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(buf);
       }
     } else if (offCmt == 1 && tb.idu[i] == 0){
       nExtra++;
@@ -2907,8 +2899,11 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     } else {
       if (tb.fdi[i]){
 	UNPROTECT(pro);
-	freeP();
-	error("Initialization of non-ODE compartment '%s' makes no sense", buf);
+	updateSyntaxCol();
+	char *v = rc_dup_str(buf, 0);
+	sprintf(buf, "Initialization of non-ODE compartment '%s' makes no sense", v);
+	Free(v);
+	trans_syntax_error_report_fn(buf);
       }
       SET_STRING_ELT(extraState, p++, mkChar(buf));
     }
@@ -3153,18 +3148,14 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 	RSprintf0("\n================================================================================\n");
       }
     }
-    freeP();
     error("Syntax Errors (see above)");
-  } else {
-    freeP();
-  }
+  } 
   /* Free(sbPm); Free(sbNrm); */
   return lst;
 }
 
 SEXP _RxODE_parseModel(SEXP type){
   if (!sbPm.o){
-    freeP();
     error("Model no longer loaded in memory.");
   }
   int iT = INTEGER(type)[0];
@@ -3208,15 +3199,12 @@ SEXP _RxODE_isLinCmt(){
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
 		    SEXP pMd5, SEXP timeId, SEXP fixInis){
   if (!sbPm.o || !sbNrm.o){
-    freeP();
     error("Nothing in output queue to write");
   }
   if (!isString(c_file) || length(c_file) != 1){
-    freeP();
     error("c_file should only be 1 file");
   }
   if (length(libname) != 2){
-    freeP();
     error("libname needs 2 elements");
   }
   fpIO = fopen(CHAR(STRING_ELT(c_file,0)), "wb");
@@ -3273,6 +3261,7 @@ static void rxSyntaxError(struct D_Parser *ap) {
     for (; lastSyntaxErrorLine < p->user.loc.line; lastSyntaxErrorLine++){
       buf = getLine(gBuf, lastSyntaxErrorLine, &gBufLast);
       RSprintf("\n:%03d: %s", lastSyntaxErrorLine, buf);
+      Free(buf);
     }
     char *after = 0;
     ZNode *z = p->snode_hash.last_all ? p->snode_hash.last_all->zns.v[0] : 0;
@@ -3409,6 +3398,7 @@ static void trans_syntax_error_report_fn(char *err) {
     for (; lastSyntaxErrorLine < p->user.loc.line; lastSyntaxErrorLine++){
       buf = getLine(gBuf, lastSyntaxErrorLine, &gBufLast);
       RSprintf("\n:%03d: %s", lastSyntaxErrorLine, buf);
+      Free(buf);
     }
     if (lastSyntaxErrorLine < p->user.loc.line){
       RSprintf0("\n");
