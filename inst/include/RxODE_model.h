@@ -83,6 +83,10 @@ typedef double (*solveLinB_p) (rx_solve *rx, unsigned int id, double t, int linC
 
 typedef void (*_update_par_ptr_p)(double t, unsigned int id, rx_solve *rx, int idx);
 
+typedef rx_solve *(*_getRxSolve_t)();
+
+_getRxSolve_t _getRxSolve_;
+
 void _assignFuns();
 
 

@@ -282,7 +282,7 @@ void rxOptionsIniEnsure(int mx){
     op->rtol2 = getRol(op->neq, op->RTOL);
     op->atol2 = getAol(op->neq, op->ATOL);
   }
-  set_solve(&rx_global);
+  /* set_solve(&rx_global); */
 }
 
 t_dydt dydt = NULL;
@@ -365,6 +365,7 @@ void rxUpdateFuns(SEXP trans){
   calc_mtime = (t_calc_mtime) R_GetCCallable(lib, s_mtime);
   get_theta = (t_get_theta) R_GetCCallable(lib, s_theta);
   assignFuns = R_GetCCallable(lib, s_assignFuns);
+  /* set_solve(&rx_global); */
 }
 
 void rxClearFuns(){
@@ -386,10 +387,13 @@ void F77_NAME(dlsoda)(
                       void (*)(int *, double *, double *, int *, int *, double *, int *),
                       int *);
 
+extern rx_solve *getRxSolve2_(){
+  return &rx_global;
+}
 extern rx_solve *getRxSolve_(){
-  if (set_solve == NULL)
-    error("RxODE model function pointers are not setup.");
-  set_solve(&rx_global);
+  /* if (set_solve == NULL) */
+  /*   error("RxODE model function pointers are not setup."); */
+  /* set_solve(&rx_global); */
   return &rx_global;
 }
 
@@ -1173,7 +1177,6 @@ void handleSS(int *neq,
 
 extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt_t opt, int solveid, 
 			  t_dydt_liblsoda dydt_liblsoda, t_update_inis u_inis){
-  assignFuns();
   int i;
   int neq[2];
   neq[0] = op->neq;
@@ -1291,7 +1294,6 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
 
 extern void ind_liblsoda(rx_solve *rx, int solveid, 
 			 t_dydt_liblsoda dydt, t_update_inis u_inis){
-  assignFuns();
   rx_solving_options *op = &op_global;
   struct lsoda_opt_t opt = {0};
   opt.ixpr = 0; // No extra printing...
@@ -1314,7 +1316,6 @@ extern void ind_liblsoda(rx_solve *rx, int solveid,
 
 
 extern void par_liblsoda(rx_solve *rx){
-  assignFuns();
   rx_solving_options *op = &op_global;
 #ifdef _OPENMP
   int cores = op->cores;
@@ -1492,7 +1493,6 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
                        t_dydt_lsoda_dum dydt_lsoda,
                        t_update_inis u_inis,
                        t_jdum_lsoda jdum){
-  assignFuns();
   rx_solving_options_ind *ind;
   double *yp;
   void *ctx = NULL;
@@ -1606,7 +1606,6 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 extern void ind_lsoda(rx_solve *rx, int solveid,
                       t_dydt_lsoda_dum dydt_ls, t_update_inis u_inis, t_jdum_lsoda jdum,
 		      int cjt){
-  assignFuns();
   int neq[2];
   neq[0] = op_global.neq;
   neq[1] = 0;
@@ -1624,7 +1623,6 @@ extern void ind_lsoda(rx_solve *rx, int solveid,
 }
 
 extern void par_lsoda(rx_solve *rx){
-  assignFuns();
   int nsub = rx->nsub, nsim = rx->nsim;
   int displayProgress = (op_global.nDisplayProgress <= nsim*nsub);
   clock_t t0 = clock();
@@ -1667,7 +1665,6 @@ extern void par_lsoda(rx_solve *rx){
 extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq, 
                      t_dydt c_dydt,
                      t_update_inis u_inis){
-  assignFuns();
   double rtol=op->RTOL, atol=op->ATOL;
   int itol=0;           //0: rtol/atol scalars; 1: rtol/atol vectors
   int iout=0;           //iout=0: solout() NEVER called
@@ -1815,7 +1812,6 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
 
 extern void ind_dop(rx_solve *rx, int solveid,
 		    t_dydt c_dydt, t_update_inis u_inis){
-  assignFuns();
   rx_solving_options *op = &op_global;
   int neq[2];
   neq[0] = op->neq;
@@ -1824,7 +1820,6 @@ extern void ind_dop(rx_solve *rx, int solveid,
 }
 
 void par_dop(rx_solve *rx){
-  assignFuns();
   rx_solving_options *op = &op_global;
   int nsub = rx->nsub, nsim = rx->nsim;
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
@@ -1870,6 +1865,7 @@ void ind_solve(rx_solve *rx, unsigned int cid,
 	       t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
 	       t_dydt c_dydt, t_update_inis u_inis,
 	       int jt){
+  assignFuns();
   rx_solving_options *op = &op_global;
   if (op->neq !=  0){
     switch (op->stiff){
@@ -1883,12 +1879,11 @@ void ind_solve(rx_solve *rx, unsigned int cid,
       ind_dop(rx, cid, c_dydt, u_inis);
       break;
     }
-  } else {
-    assignFuns();
-  }
+  } 
 }
 
 inline void par_solve(rx_solve *rx){
+  assignFuns();
   rx_solving_options *op = &op_global;
   if (op->neq != 0){
     switch(op->stiff){
@@ -1904,9 +1899,7 @@ inline void par_solve(rx_solve *rx){
       par_dop(rx);
       break;
     }
-  } else {
-    assignFuns();
-  }
+  } 
 }
 
 rx_solve *_globalRx = NULL;

@@ -665,6 +665,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     }
     .ctl$keepI <- .keepI
     .ctl$keepF <- .keepF
+    rxDynProtect(rxDll(object)); # Protects dll from garbage collection
     .ret <- rxSolve_(object, .ctl, .nms, .xtra,
                      params, events, inits,setupOnly=.setupOnly);
 }

@@ -102,6 +102,7 @@ double _transit3P(double t, unsigned int id, double n, double mtt){
   return exp(log(_solveData->subjects[id].podo)+lktr+n*(lktr+log(tc))-ktr*(tc)-lgamma1p(n));
 }
 
+
 #ifdef _isRxODE_
 double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 		 double d_A, double d_A2, double d_alpha,
@@ -113,6 +114,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
 void _assignFuns(){
   if (_assign_ptr == NULL){
+    _getRxSolve_ = (_getRxSolve_t) R_GetCCallable("RxODE","getRxSolve_");
     _assign_ptr=(RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
     _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
     _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
@@ -125,6 +127,7 @@ void _assignFuns(){
     _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
     /* solveLinB=(solveLinB_p)R_GetCCallable("RxODE", "solveLinB"); */
     /* _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr"); */
+    _solveData = _getRxSolve_();
   }
 }
 SEXP _RxODE_rxAssignPtr(SEXP);
@@ -134,6 +137,7 @@ solveLinB_p solveLinB;
 _rx_asgn _RxODE_rxAssignPtr =NULL;
 void _assignFuns(){
   if (_assign_ptr == NULL){
+    _getRxSolve_ = (_getRxSolve_t) R_GetCCallable("RxODE","getRxSolve_");
     _assign_ptr=(RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
     _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
     _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
@@ -146,6 +150,7 @@ void _assignFuns(){
     _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
     solveLinB=(solveLinB_p)R_GetCCallable("RxODE", "solveLinB");
     _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
+    _solveData = _getRxSolve_();
   }
 }
 #endif // compiling in RxODE

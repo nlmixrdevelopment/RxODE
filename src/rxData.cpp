@@ -2622,7 +2622,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       }
     }
     // Get the C solve object
-    rx_solve* rx = getRxSolve_();
+    rx_solve* rx = getRxSolve2_();
     rx_solving_options* op = rx->op;
     rx_solving_options_ind* ind;
     rx->nKeep0 = 0;
@@ -4300,10 +4300,9 @@ void rxAssignPtr(SEXP object = R_NilValue){
   CharacterVector trans = mv["trans"];
   RxODE_assign_fn_pointers_((as<std::string>(trans["model_vars"])).c_str());
   rxUpdateFuns(as<SEXP>(trans));
-  getRxSolve_();
   // Update rxModels environment.
   getRxModels();
-  
+
   std::string ptr = as<std::string>(trans["model_vars"]); 
   if (!_rxModels.exists(ptr)){
     _rxModels[ptr] = mv;

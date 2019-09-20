@@ -155,6 +155,7 @@ typedef double *(*t_get_theta)(double *theta);
 typedef void *(*t_assignFuns)();
 
 rx_solve *getRxSolve_();
+rx_solve *getRxSolve2_();
 rx_solve *getRxSolve(SEXP ptr);
 
 void par_solve(rx_solve *rx);
