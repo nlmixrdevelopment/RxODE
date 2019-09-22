@@ -343,6 +343,32 @@ List etSimulate(List curEt){
   }
 }
 
+void etUpdateCanResize(List &lst, LogicalVector& show, List& eOld, IntegerVector& IDs,
+		       List& e){
+  bool showId = show["id"];
+  std::vector<int> uIds = as<std::vector<int>>(eOld["IDs"]);
+  bool turnOnShowId = false;
+  if (!showId && uIds.size() == 1 && IDs.size() >= 1 && uIds[0] != IDs[0]) {
+    uIds[0] = IDs[0];
+    IntegerVector tmpI = as<IntegerVector>(lst[0]);
+    std::fill(tmpI.begin(), tmpI.end(), IDs[0]);
+    turnOnShowId = true;
+  }
+  for (int i = IDs.size(); i--;){
+    if (std::find(uIds.begin(), uIds.end(), IDs[i]) == uIds.end()){
+      uIds.push_back(IDs[i]);
+    }
+  }
+  if ((int)IDs.size() == (int)uIds.size() && as<bool>(eOld["canResize"])){
+    e["canResize"] = true;
+  } else {
+    e["canResize"] = false;
+  }
+  e["IDs"] = wrap(uIds);
+  if (turnOnShowId || uIds.size() > 1){
+    show["id"] = true;
+  }
+}
 
 List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShowCmt, List curEt){
   NumericVector curTime = as<NumericVector>(curEt["time"]);
@@ -531,21 +557,7 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
   if (turnOnShowCmt){
     show["cmt"] = true;
   }
-  std::vector<double> uIds = as<std::vector<double>>(eOld["IDs"]);
-  for (i = IDs.size(); i--;){
-    if (std::find(uIds.begin(), uIds.end(), IDs[i]) == uIds.end()){
-      uIds.push_back(IDs[i]);
-    }
-  }
-  if ((int)IDs.size() == (int)uIds.size() && as<bool>(eOld["canResize"])){
-    e["canResize"] = true;
-  } else {
-    e["canResize"] = false;
-  }
-  e["IDs"] = wrap(uIds);
-  if (uIds.size() > 1){
-    show["id"] = true;
-  }
+  etUpdateCanResize(lst, show, eOld, IDs, e);
   show["low"] = true;
   show["high"] = true;
   e["show"] = show;
@@ -750,21 +762,7 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
   if (turnOnShowCmt){
     show["cmt"] = true;
   }
-  std::vector<double> uIds = as<std::vector<double>>(eOld["IDs"]);
-  for (i = IDs.size(); i--;){
-    if (std::find(uIds.begin(), uIds.end(), IDs[i]) == uIds.end()){
-      uIds.push_back(IDs[i]);
-    }
-  }
-  if (uIds.size() > 1){
-    show["id"] = true;
-  }
-  if ((int)IDs.size() == (int)uIds.size() && as<bool>(eOld["canResize"])){
-    e["canResize"] = true;
-  } else {
-    e["canResize"] = false;
-  }
-  e["IDs"] = wrap(uIds);
+  etUpdateCanResize(lst, show, eOld, IDs, e);
   e["show"] = show;
   e.attr("names") = eOld.attr("names");
   e.attr("class") = "rxHidden";//eOld.attr("class");
@@ -1382,7 +1380,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   bool unroll=false;
   for (j = IDs.size(); j--;){
     if (curTime.size() == 1){
-      id.push_back(j+1);
+      id.push_back(IDs[j]);
       evid.push_back(curEvid);
       time.push_back(curTime[0]);
       low.push_back(NA_REAL);
@@ -1409,7 +1407,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
 	if (doSampling){
 	  stop("do.sampling is not supported with dose windows");
 	}
-	id.push_back(j+1);
+	id.push_back(IDs[j]);
 	evid.push_back(curEvid);
 	low.push_back(curTime[0]);
 	high.push_back(curTime[1]);
@@ -1417,7 +1415,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
 	time.push_back(c);
 	ndose++;
 	for (i = addl; i--;){
-	  id.push_back(j+1);
+	  id.push_back(IDs[j]);
 	  evid.push_back(curEvid);
 	  a = curTime[0]+ (i+1)*ii;
 	  b = curTime[1]+ (i+1)*ii;
@@ -1434,7 +1432,6 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
     } else {
       stop("Dosing time or time windows must only be 1-2 elements.");
     }
-    
   }
   std::vector<int> idx(time.size());
   std::iota(idx.begin(),idx.end(),0);
@@ -1582,21 +1579,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   if (turnOnShowCmt){
     show["cmt"] = true;
   }
-  std::vector<double> uIds = as<std::vector<double>>(eOld["IDs"]);
-  for (i = IDs.size(); i--;){
-    if (std::find(uIds.begin(), uIds.end(), IDs[i]) == uIds.end()){
-      uIds.push_back(IDs[i]);
-    }
-  }
-  if ((int)IDs.size() == (int)uIds.size() && as<bool>(eOld["canResize"])){
-    e["canResize"] = true;
-  } else {
-    e["canResize"] = false;
-  }
-  e["IDs"] = wrap(uIds);
-  if (uIds.size() > 1){
-    show["id"] = true;
-  }
+  etUpdateCanResize(lst, show, eOld, IDs, e);
   show["amt"] = true;
   if (rate != 0){
     show["rate"] = true;
@@ -1633,7 +1616,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   return lst;
 }
 
-RObject etUpdateObj(List curEt, bool update, bool rxSolve){
+RObject etUpdateObj(List curEt, bool update, bool rxSolve, bool turnOnId){
   List lst = clone(curEt);
   CharacterVector cls=clone(as<CharacterVector>(curEt.attr("class")));
   List e = clone(as<List>(cls.attr(".RxODE.lst")));
@@ -1683,6 +1666,10 @@ RObject etUpdateObj(List curEt, bool update, bool rxSolve){
     lst["rate"] = setUnits(lst["rate"], "");
   }
   e["units"] = units;
+  if (turnOnId){
+    LogicalVector show = as<LogicalVector>(e["show"]);
+    show["id"] = true;
+  }
   cls.attr(".RxODE.lst") = e;
   lst.attr("class") = cls;
   int len = as<int>(e["nobs"]) +as<int>(e["ndose"]);
@@ -1789,7 +1776,14 @@ List etResizeId(List curEt, IntegerVector IDs){
   CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
   List eOld = cls.attr(".RxODE.lst");
   List e = clone(eOld);
+  LogicalVector show = as<LogicalVector>(e["show"]);
+  bool showId = as<bool>(show["id"]);
   std::vector<int> oldIDs = as<std::vector<int>>(e["IDs"]);
+  if (!showId && oldIDs.size() == 1 && IDs.size() >= 1){
+    oldIDs[0] = IDs[0];
+    IntegerVector tmpI = as<IntegerVector>(curEt[0]);
+    std::fill(tmpI.begin(), tmpI.end(),IDs[0]);
+  }
   // Check IDs to remove
   int i;
   std::vector<int> rmIds;
@@ -1999,7 +1993,8 @@ RObject getEtSolve(List et__){
 //[[Rcpp::export]]
 RObject et_(List input, List et__){
   // Create or modify new event table
-  double doRet = false;
+  bool doRet = false;
+  bool turnOnId = false;
   bool turnOnShowCmt = false;
   bool doUpdateObj = false;
   RObject curEt;
@@ -2012,7 +2007,7 @@ RObject et_(List input, List et__){
 	curEt = evCur;
 	foundEt=true;
       } else if (as<std::string>(et__[0]) == "import"){
-	return etUpdateObj(etImportEventTable(as<List>(input["data"])), true, false);
+	return etUpdateObj(etImportEventTable(as<List>(input["data"])), true, false, true);
       }
     } else if (rxIs(et__, "rxEt")) {
       foundEt=true;
@@ -2139,10 +2134,10 @@ RObject et_(List input, List et__){
 	} else if (nm[0] == "get.dose"){
 	  return e["nobs"];
 	} else if (nm[0] == "simulate"){
-	  return etUpdateObj(etSimulate(as<List>(curEt)), doUpdateObj, inputSolve);
+	  return etUpdateObj(etSimulate(as<List>(curEt)), doUpdateObj, inputSolve, true);
 	} else if (nm[0] == "copy"){
 	  // Make sure that the object is cloned
-	  return etUpdateObj(as<List>(curEt),false, false);
+	  return etUpdateObj(as<List>(curEt),false, false, false);
 	} else if (nm[0] == "get.EventTable"){
 	  e.attr("class") = R_NilValue;
 	  if (as<int>(e["nobs"]) == 0 && as<int>(e["ndose"]) == 0){
@@ -2278,6 +2273,7 @@ RObject et_(List input, List et__){
       if (idIx != -1){
       	id    = as<IntegerVector>(input[idIx]);
 	curEt = as<RObject>(etResizeId(as<List>(curEt), id));
+	turnOnId=true;
 	doRet=true;
       } else {
       	id = as<IntegerVector>(e["IDs"]);
@@ -2476,11 +2472,13 @@ RObject et_(List input, List et__){
 		time = setUnits(time, "");
 	      }
 	    }
-	    return etUpdateObj(etAddTimes(time, id, cmt, turnOnShowCmt, as<List>(curEt)),
-			       doUpdateObj, inputSolve);
+	    RObject ret = etUpdateObj(etAddTimes(time, id, cmt, turnOnShowCmt, as<List>(curEt)),
+				      doUpdateObj, inputSolve, turnOnId);
+	    return ret;
 	  } else if (rxIs(input[timeIx], "list")){
-	    return etUpdateObj(etAddWindow(as<List>(input[timeIx]), id, cmt, turnOnShowCmt, as<List>(curEt)),
-			       doUpdateObj, inputSolve);
+	    RObject ret = etUpdateObj(etAddWindow(as<List>(input[timeIx]), id, cmt, turnOnShowCmt, as<List>(curEt)),
+				      doUpdateObj, inputSolve, turnOnId);
+	    return ret;
 	  }
 	}
       } else {
@@ -2703,7 +2701,7 @@ RObject et_(List input, List et__){
 			    id, turnOnShowCmt, doSampling, ret);
 	  }
 	}
-	return etUpdateObj(ret, doUpdateObj, inputSolve);
+	return etUpdateObj(ret, doUpdateObj, inputSolve, turnOnId);
       }
     }
   } else {
@@ -2735,7 +2733,10 @@ RObject et_(List input, List et__){
       return et_(input, et);
     }
   }
-  if (doRet) return etUpdateObj(as<List>(curEt),doUpdateObj, inputSolve);
+  if (doRet){
+    return etUpdateObj(as<List>(curEt),doUpdateObj, inputSolve,
+			      turnOnId);
+  }
   if (input.size() == 1 && rxIs(input[0], "data.frame")){
     return etImportEventTable(as<List>(input[0]));
   }
