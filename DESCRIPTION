@@ -13,6 +13,7 @@ Authors@R: c(
    person("Justin", "Wilkins", 
       role = "ctb", email = "justin.wilkins@occams.com", comment=c(ORCID="0000-0002-7099-9396")),
    person("Simon", "Frost", role="ctb"),
+   person("Goro", "Fuji",  role="ctb", email="gfuji@cpan.org"),
    person("Heng", "Li", role="ctb"),
    person("Yu", "Feng", role="ctb"),	
    person("Alan", "Hindmarsh",role="ctb"),

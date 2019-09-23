@@ -1,6 +1,7 @@
 #include <RcppArmadillo.h>
 #include <algorithm>
 #include "../inst/include/RxODE.h"
+#include "timsort.h"
 
 #define rxModelVars(a) rxModelVars_(a)
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
@@ -1176,42 +1177,41 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
     if (!_ini0) warning(idWarn.c_str());
   }
-  std::sort(idxO.begin(),idxO.end(),
-	    [id,time,evid,amt,doseId,keepDosingOnly](int a, int b){
-	      // Bad IDs are pushed to the end to be popped off.
-	      if (!keepDosingOnly){
-		if (doseId.size() > 0 && !(std::find(doseId.begin(), doseId.end(), id[a]) == doseId.end())){
-		  return false;
-		}
-		if (doseId.size() > 0 && !(std::find(doseId.begin(), doseId.end(), id[b]) == doseId.end())){
-		  return true;
-		}
-	      }
-	      if (id[a] == id[b]){
-		if (time[a] == time[b]){
-		  if (evid[a] == evid[b]){
-		    return a < b;
-		  }
-		  // Reset should be before all other events.
-		  if (evid[a] == 3){
-		    return true;
-		  }
-		  if (evid[b] == 3){
-		    return false;
-		  }
-		  // Zero amts turn on and off compartments and should be first.
-		  if (amt[a] == 0){
-		    return true;
-		  }
-		  if (amt[b] == 0){
-		    return false;
-		  }
-		  return evid[a] > evid[b];
-		}
-		return time[a] < time[b];
-	      }
-	      return id[a] < id[b];
-	    });
+  gfx::timsort(idxO.begin(),idxO.end(),
+	       [id,time,evid,amt,doseId,keepDosingOnly](int a, int b){
+		 if (id[a] == id[b]){
+		   if (time[a] == time[b]){
+		     if (evid[a] == evid[b]){
+		       return a < b;
+		     }
+		     if (evid[a] == 3){
+		       return true;
+		     }
+		     if (evid[b] == 3){
+		       return false;
+		     }
+		     // Zero amts turn on and off compartments and should be first.
+		     if (evid[a] != 0 && amt[a] == 0){
+		       return true;
+		     }
+		     if (evid[b] != 0 && amt[b] == 0){
+		       return false;
+		     }
+		     return evid[a] > evid[b];
+		   }
+		   return time[a] < time[b];
+		 }
+		 // Bad IDs are pushed to the end to be popped off.
+		 if (!keepDosingOnly){
+		   if (doseId.size() > 0 && !(std::find(doseId.begin(), doseId.end(), id[a]) == doseId.end())){
+		     return false;
+		   }
+		   if (doseId.size() > 0 && !(std::find(doseId.begin(), doseId.end(), id[b]) == doseId.end())){
+		     return true;
+		   }
+		 }
+		 return id[a] < id[b];
+	       });
   if (!keepDosingOnly && doseId.size() > 0){
     while (idxO.size() > 0 && std::find(doseId.begin(), doseId.end(), id[idxO.back()]) != doseId.end()){
       idxO.pop_back();

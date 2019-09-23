@@ -20,6 +20,7 @@
 #include <climits>
 #include "../inst/include/RxODE.h"
 #include "ode.h"
+#include "timsort.h"
 #define rxModelVars(a) rxModelVars_(a)
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 using namespace Rcpp;
@@ -4655,7 +4656,7 @@ extern "C" void doSort(rx_solving_options_ind *ind){
     }
   }
   try {
-    std::sort(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
+    gfx::timsort(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
 	      [&ind](int a, int b){
 		double ta=getTime(a, ind);
 		if (ind->err){

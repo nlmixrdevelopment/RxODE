@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+#include "timsort.h"
 using namespace Rcpp;
 
 bool rxIs(const RObject &obj, std::string cls);
@@ -278,19 +279,19 @@ List etSort(List curEt){
   std::copy(curEvid.begin(), curEvid.end(), std::back_inserter(evid));
   std::vector<int> idx(id.size());
   std::iota(idx.begin(),idx.end(),0);
-  std::sort(idx.begin(),idx.end(),
-	    [id,time,evid](int a, int b){
-	      if (id[a] == id[b]){
-		if (time[a] == time[b]){
-		  if (evid[a] == evid[b]){
-		    return a < b;
-		  }
-		  return evid[a] < evid[b];
-		}
-		return time[a] < time[b];
-	      }
-	      return id[a] < id[b];
-	    });
+  gfx::timsort(idx.begin(),idx.end(),
+    [id,time,evid](int a, int b){
+      if (id[a] == id[b]){
+	if (time[a] == time[b]){
+	  if (evid[a] == evid[b]){
+	    return a < b;
+	  }
+	  return evid[a] < evid[b];
+	}
+	return time[a] < time[b];
+      }
+      return id[a] < id[b];
+    });
   List newEt(curEt.size());
   int i, j, newSize = time.size();
   IntegerVector tmpI, tmpI2;
@@ -424,19 +425,19 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
       nobs++;
     }
   }
-  std::sort(idx.begin(),idx.end(),
-	    [id,time,evid](int a, int b){
-	      if (id[a] == id[b]){
-		if (time[a] == time[b]){
-		  if (evid[a] == evid[b]){
-		    return a < b;
-		  }
-		  return evid[a] < evid[b];
-		}
-		return time[a] < time[b];
-	      }
-	      return id[a] < id[b];
-	    });
+  gfx::timsort(idx.begin(),idx.end(),
+	       [id,time,evid](int a, int b){
+		 if (id[a] == id[b]){
+		   if (time[a] == time[b]){
+		     if (evid[a] == evid[b]){
+		       return a < b;
+		     }
+		     return evid[a] < evid[b];
+		   }
+		   return time[a] < time[b];
+		 }
+		 return id[a] < id[b];
+	       });
   List lst(curEt.size());
   IntegerVector tmpI = as<IntegerVector>(curEt["id"]), tmpI2;
   NumericVector tmpN, tmpN2;
@@ -597,39 +598,39 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
       nobs++;
     }
   }
-  std::sort(idx.begin(),idx.end(),
-	    [id, time, evid, curId, curTime, curEvid, oldSize](int a, int b){
-	      int ida, evida, idb, evidb;
-	      double timea, timeb;
-	      if (a < oldSize){
-		ida = curId[a];
-		timea = curTime[a];
-		evida = curEvid[a];
-	      } else {
-		ida = id[a-oldSize];
-		timea = time[a-oldSize];
-		evida = evid[a-oldSize];
-	      }
-	      if (b < oldSize){
-		idb = curId[b];
-		timeb = curTime[b];
-		evidb = curEvid[b];
-	      } else {
-		idb = id[b-oldSize];
-		timeb = time[b-oldSize];
-		evidb = evid[b-oldSize];
-	      }
-	      if (ida == idb){
-		if (timea == timeb){
-		  if (evida == evidb){
-		    return a < b;
-		  }
-		  return evida < evidb;
-		}
-		return timea < timeb;
-	      }
-	      return ida < idb;
-	    });
+  gfx::timsort(idx.begin(),idx.end(),
+	       [id, time, evid, curId, curTime, curEvid, oldSize](int a, int b){
+		 int ida, evida, idb, evidb;
+		 double timea, timeb;
+		 if (a < oldSize){
+		   ida = curId[a];
+		   timea = curTime[a];
+		   evida = curEvid[a];
+		 } else {
+		   ida = id[a-oldSize];
+		   timea = time[a-oldSize];
+		   evida = evid[a-oldSize];
+		 }
+		 if (b < oldSize){
+		   idb = curId[b];
+		   timeb = curTime[b];
+		   evidb = curEvid[b];
+		 } else {
+		   idb = id[b-oldSize];
+		   timeb = time[b-oldSize];
+		   evidb = evid[b-oldSize];
+		 }
+		 if (ida == idb){
+		   if (timea == timeb){
+		     if (evida == evidb){
+		       return a < b;
+		     }
+		     return evida < evidb;
+		   }
+		   return timea < timeb;
+		 }
+		 return ida < idb;
+	       });
 
   List lst(curEt.size());
   IntegerVector tmpI = as<IntegerVector>(curEt["id"]), tmpI2;
@@ -1435,19 +1436,19 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   }
   std::vector<int> idx(time.size());
   std::iota(idx.begin(),idx.end(),0);
-  std::sort(idx.begin(),idx.end(),
-	    [id,time,evid](int a, int b){
-	      if (id[a] == id[b]){
-		if (time[a] == time[b]){
-		  if (evid[a] == evid[b]){
-		    return a < b;
-		  }
-		  return evid[a] < evid[b];
-		}
-		return time[a] < time[b];
-	      }
-	      return id[a] < id[b];
-	    });
+  gfx::timsort(idx.begin(),idx.end(),
+	       [id,time,evid](int a, int b){
+		 if (id[a] == id[b]){
+		   if (time[a] == time[b]){
+		     if (evid[a] == evid[b]){
+		       return a < b;
+		     }
+		     return evid[a] < evid[b];
+		   }
+		   return time[a] < time[b];
+		 }
+		 return id[a] < id[b];
+	       });
 
   List lst(curEt.size());
   IntegerVector tmpI = as<IntegerVector>(curEt["id"]), tmpI2;
@@ -2980,19 +2981,19 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
     timeDelta += maxTime;
   }
   if (needSort){
-    std::sort(idx.begin(),idx.end(),
-	      [id,time,evid](int a, int b){
-		if (id[a] == id[b]){
-		  if (time[a] == time[b]){
-		    if (evid[a] == evid[b]){
-		      return a < b;
-		    }
-		    return evid[a] < evid[b];
-		  }
-		  return time[a] < time[b];
-		}
-		return id[a] < id[b];
-	      });
+    gfx::timsort(idx.begin(),idx.end(),
+		 [id,time,evid](int a, int b){
+		   if (id[a] == id[b]){
+		     if (time[a] == time[b]){
+		       if (evid[a] == evid[b]){
+			 return a < b;
+		       }
+		       return evid[a] < evid[b];
+		     }
+		     return time[a] < time[b];
+		   }
+		   return id[a] < id[b];
+		 });
   }
   if (!gotUnits){
     stop("No events table found for seq/rep/rbind/c.");
