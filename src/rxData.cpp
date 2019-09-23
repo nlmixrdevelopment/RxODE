@@ -2399,7 +2399,7 @@ void updateSolveEnvPost(Environment e){
 
 extern "C" void rxOptionsFree();
 extern "C" void rxOptionsIni();
-extern "C" void rxOptionsIniEnsure(int mx);
+extern "C" void rxOptionsIniEnsure(int mx, int atol2);
 extern "C" void parseFree(int last);
 extern "C" void rxClearFuns();
 //' Free the C solving/parsing information.
@@ -3114,8 +3114,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
         stop("If parameters are not named, they must match the order and size of the parameters in the model.");
       }
     }
+    // Error
     rxAssignPtr(mv);
-    rxOptionsIniEnsure(nPopPar); // 1 simulation per parameter specification
+    rxOptionsIniEnsure(nPopPar, 1);
+    // 1 simulation per parameter specification
     if (rxIs(ev1,"event.data.frame")||
 	rxIs(ev1,"event.matrix")){
       // data.frame or matrix
@@ -3222,6 +3224,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    } else {
 	      ind->HMAX = hmax0;
 	    }
+	    rxOptionsIniEnsure(nsub+1, 0);
             ind = &(rx->subjects[nsub]);
 	    ind->idx=0;
           }

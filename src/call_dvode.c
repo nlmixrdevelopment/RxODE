@@ -47,7 +47,7 @@ extern SEXP RxODE_get_mv(){
 
 extern void rxode_assign_rx(rx_solve *rx);
 
-void rxOptionsIniEnsure(int mx);
+void rxOptionsIniEnsure(int mx, int atol2);
 rx_solve *getRxSolve_();
 int *global_BadDose(unsigned int mx);
 double *global_InfusionRate(unsigned int mx);

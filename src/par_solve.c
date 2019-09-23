@@ -113,7 +113,7 @@ rx_solve rx_global;
 
 rx_solving_options op_global;
 
-rx_solving_options_ind *inds_global;
+rx_solving_options_ind *inds_global = NULL;
 int max_inds_global = 0, gitol=0, gitask = 1, giopt = 0, gliw=0, glrw = 0;
 
 void par_flush_console() {
@@ -269,18 +269,20 @@ double *getAol(int n, double atol);
 double *getRol(int n, double rtol);
 t_set_solve set_solve = NULL;
 
-void rxOptionsIniEnsure(int mx){
+void rxOptionsIniEnsure(int mx, int atol2){
   if (mx >= max_inds_global){
-    Free(inds_global);
-    inds_global = Calloc(mx+1024, rx_solving_options_ind);
     max_inds_global = mx+1024;
+    if (inds_global == NULL) inds_global = Calloc(max_inds_global, rx_solving_options_ind);
+    else inds_global = Realloc(inds_global, max_inds_global, rx_solving_options_ind);
     rx_global.subjects = inds_global;
   }
-  rx_solving_options *op = &op_global;
-  if (op->stiff == 2){
-    // FIXME for some reason not always being saved
-    op->rtol2 = getRol(op->neq, op->RTOL);
-    op->atol2 = getAol(op->neq, op->ATOL);
+  if (atol2){
+    rx_solving_options *op = &op_global;
+    if (op->stiff == 2){
+      // FIXME for some reason not always being saved
+      op->rtol2 = getRol(op->neq, op->RTOL);
+      op->atol2 = getAol(op->neq, op->ATOL);
+    }
   }
   /* set_solve(&rx_global); */
 }
@@ -1438,12 +1440,6 @@ int *global_BadDose(unsigned int mx){
 }
 
 void rxOptionsIni(){
-  if (1024 >= max_inds_global){
-    max_inds_global = 1024;
-    Free(inds_global);
-    inds_global = Calloc(max_inds_global, rx_solving_options_ind);
-  }
-
   global_iworki = 1024*4;
   global_iworkp=Calloc(1024*4, int);
   
