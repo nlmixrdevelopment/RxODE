@@ -1912,7 +1912,7 @@ List etResizeId(List curEt, IntegerVector IDs){
       for (i = newIds.size(); i--;){
   	oldIDs.push_back(newIds[i]);
       }
-      std::sort(oldIDs.begin(),oldIDs.end()); // Less expensive, then whole table doesn't need to be sorted.
+      gfx::timsort(oldIDs.begin(),oldIDs.end()); // Less expensive, then whole table doesn't need to be sorted.
       int j;
       IntegerVector tmpI, tmpI2;
       NumericVector tmpN, tmpN2;

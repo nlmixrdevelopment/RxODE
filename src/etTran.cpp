@@ -113,7 +113,7 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid,
 	}
 	if (warnDvid.size() > 1){
 	  std::string warn = "Undefined 'dvid' integer values in data: ";
-	  std::sort(warnDvid.begin(), warnDvid.end());
+	  gfx::timsort(warnDvid.begin(), warnDvid.end());
 	  for (int i = 0; i < (int)(warnDvid.size()-1); i++){
 	    warn = warn + std::to_string(warnDvid[i]) + ", ";
 	  }
