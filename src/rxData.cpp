@@ -3144,7 +3144,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       IntegerVector id(evid.size(), 1);
       if (rxcId > -1){
         id    = as<IntegerVector>(dataf[rxcId]);
-	int lastid = id[id.size()-1];
+	int lastid = NA_INTEGER;
 	int nid = 0;
 	for (int ii = 0; ii < id.size(); ii++){
 	  if (id[ii] != lastid){
@@ -3152,13 +3152,17 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    nid++;
 	  }
 	}
+	// if (nid == 0){
+	//   stop("Empty data.");
+	// } else 
 	if (nid == nPopPar || nPopPar == 1){
 	  rxOptionsIniEnsure(nid);
 	} else {
 	  rxOptionsIniEnsure(nid*nPopPar);
 	}
       } else {
-	rxOptionsIniEnsure(nPopPar);
+	if (nPopPar == 0) rxOptionsIniEnsure(1);
+	else rxOptionsIniEnsure(nPopPar);
       }
       NumericVector time0 = dataf[rxcTime];
       if (rxIs(time0, "units")){

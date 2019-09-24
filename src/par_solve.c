@@ -273,6 +273,9 @@ void rxOptionsIniEnsure(int mx){
   if (mx >= max_inds_global){
     max_inds_global = mx;
     if (max_inds_global  < 1024) max_inds_global=1024;
+    // For memory tests
+    /* Free(inds_global); */
+    /* inds_global = Calloc(max_inds_global, rx_solving_options_ind); */
     if (inds_global == NULL) inds_global = Calloc(max_inds_global, rx_solving_options_ind);
     else inds_global = Realloc(inds_global, max_inds_global, rx_solving_options_ind);
   }
@@ -1483,6 +1486,7 @@ void rxOptionsFree(){
 void rxFreeLast(){
   max_inds_global = 0;
   Free(inds_global);
+  inds_global=NULL;
 }
 
 
