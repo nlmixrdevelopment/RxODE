@@ -1352,7 +1352,7 @@ extern "C" void rxOptionsIniData(){
 }
 
 void gOnSetup(int n){
-  if (_globals.gonn < 0){
+  if (_globals.gonn <= 0){
     _globals.gonn=0;
     Free(_globals.gon);
     _globals.gon=NULL;
@@ -1368,7 +1368,7 @@ void gOnSetup(int n){
 }
 
 void gsolveSetup(int n){
-  if (_globals.gsolven < 0){
+  if (_globals.gsolven <= 0){
     _globals.gsolven=0;
     Free(_globals.gsolve);
     _globals.gsolve=NULL;
@@ -1382,7 +1382,7 @@ void gsolveSetup(int n){
 }
 
 void gmtimeSetup(int n){
-  if (_globals.gmtimen < 0){
+  if (_globals.gmtimen <= 0){
     _globals.gmtimen=0;
     Free(_globals.gmtime);
     _globals.gmtime=NULL;
@@ -1405,7 +1405,7 @@ void gInfusionRateSetup(int n){
 }
 
 void gix_Setup(int n){
-  if (_globals.gixn < 0){
+  if (_globals.gixn <= 0){
     _globals.gixn=0;
     Free(_globals.gix);
     _globals.gix=NULL;
@@ -1419,7 +1419,7 @@ void gix_Setup(int n){
 }
 
 void gall_timesSetup(int n){
-  if (_globals.gall_timesn < 0){
+  if (_globals.gall_timesn <= 0){
     _globals.gall_timesn=0;
     Free(_globals.gall_times);
     _globals.gall_times=NULL;
@@ -1442,7 +1442,7 @@ void gdvSetup(int n){
 }
 
 void gamtSetup(int n){
-  if (_globals.gamtn < 0){
+  if (_globals.gamtn <= 0){
     _globals.gamtn = 0;
     Free(_globals.gamt);
     _globals.gamt  = NULL;
@@ -1483,7 +1483,7 @@ void gcovSetup(int n){
 }
 
 void ginitsSetup(int n){
-  if (_globals.ginitsn < 0){
+  if (_globals.ginitsn <= 0){
     Free(_globals.ginits);
     _globals.ginits = NULL;
     _globals.ginitsn = 0;
@@ -1554,7 +1554,7 @@ extern "C" double * getRol(int n, double rtol){
 }
 
 void gparsSetup(int n){
-  if (_globals.gparsn < 0){
+  if (_globals.gparsn <= 0){
     _globals.gparsn=0;
     Free(_globals.gpars);
     _globals.gpars=NULL;
@@ -1587,7 +1587,7 @@ void gparsCovSetup(int npars, int nPopPar, RObject ev1,rx_solve* rx){
 }
 
 void gevidSetup(int n){
-  if (_globals.gevidn < 0){
+  if (_globals.gevidn <= 0){
     _globals.gevidn = 0;
     Free(_globals.gevid);
     _globals.gevid = NULL;
@@ -1610,7 +1610,7 @@ void gBadDoseSetup(int n){
 }
 
 void grcSetup(int n){
-  if (_globals.grcn < 0){
+  if (_globals.grcn <= 0){
     _globals.grcn=0;
     Free(_globals.grc);
     _globals.grc=NULL;
@@ -3445,7 +3445,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (rx->nsim < 1) rx->nsim=1;
 
     // gsolveSetup includes 1 ind->solveSave 
-
     gsolveSetup(rx->nall*(rx->nsub+1)*state.size()*rx->nsim);
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
@@ -3512,6 +3511,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	for (unsigned int simNum = rx->nsim; simNum--;){
 	  for (unsigned int id = rx->nsub; id--;){
 	    unsigned int cid = id+simNum*rx->nsub;
+	    rxOptionsIniEnsure(cid+1, 0);
 	    ind = &(rx->subjects[cid]);
 	    ind->idx=0;
 	    ind->par_ptr = &_globals.gpars[cid*npars];
@@ -3532,6 +3532,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    ind->jac_counter = &_globals.jac_counter[cid];
 	    if (simNum){
 	      // Assign the pointers to the shared data
+	      rxOptionsIniEnsure(id+1, 0);
 	      indS = rx->subjects[id];
 	      if (op->do_par_cov){
 		ind->cov_ptr = indS.cov_ptr;
