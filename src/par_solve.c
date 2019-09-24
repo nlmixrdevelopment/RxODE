@@ -269,22 +269,18 @@ double *getAol(int n, double atol);
 double *getRol(int n, double rtol);
 t_set_solve set_solve = NULL;
 
-void rxOptionsIniEnsure(int mx, int atol2){
-  if (mx >= max_inds_global){
-    max_inds_global = mx+1024;
-    if (inds_global == NULL) inds_global = Calloc(max_inds_global, rx_solving_options_ind);
-    else inds_global = Realloc(inds_global, max_inds_global, rx_solving_options_ind);
-    rx_global.subjects = inds_global;
+void rxOptionsIniEnsure(int mx){
+  max_inds_global = mx;
+  Free(inds_global);
+  inds_global = Calloc(max_inds_global, rx_solving_options_ind);
+  rx_solve *rx=(&rx_global);
+  rx->subjects = inds_global;  
+  rx_solving_options *op = &op_global;
+  if (op->stiff == 2){
+    // FIXME for some reason not always being saved
+    op->rtol2 = getRol(op->neq, op->RTOL);
+    op->atol2 = getAol(op->neq, op->ATOL);
   }
-  if (atol2){
-    rx_solving_options *op = &op_global;
-    if (op->stiff == 2){
-      // FIXME for some reason not always being saved
-      op->rtol2 = getRol(op->neq, op->RTOL);
-      op->atol2 = getAol(op->neq, op->ATOL);
-    }
-  }
-  /* set_solve(&rx_global); */
 }
 
 t_dydt dydt = NULL;
@@ -396,6 +392,10 @@ extern rx_solve *getRxSolve_(){
   /* if (set_solve == NULL) */
   /*   error("RxODE model function pointers are not setup."); */
   /* set_solve(&rx_global); */
+  rx_solve *rx;
+  rx = &rx_global;
+  rx->subjects = inds_global;
+  rx->op = &op_global;
   return &rx_global;
 }
 
@@ -693,15 +693,17 @@ int handle_evid(int evid, int neq,
   int wh = evid, cmt, foundBad, j;
   double tmp;
   if (wh) {
+    getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
     /* wh100 = ind->wh100; */
     wh = ind->wh;
     cmt = ind->cmt;
     if (cmt<0) {
       if (!(ind->err & 65536)){
 	ind->err += 65536;
+	/* Rprintf("Supplied an invalid EVID (EVID=%d; cmt %d)", evid, cmt); */
       }
       return 0;
-      /* error("Supplied an invalid EVID (EVID=%d)", evid); */
+      
     }
     if (cmt >= neq){
       foundBad = 0;
@@ -1117,7 +1119,6 @@ void handleSS(int *neq,
 	  xout2 = xp2+dur;
 	  ind->idx=*i;
 	  ind->ixds = infBixds;
-	  getWh(ind->evid[ind->idose[infBixds]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
 	  handle_evid(ind->evid[ind->idose[infBixds]], neq[0], BadDose, InfusionRate, dose, yp,
 		      op->do_transit_abs, xout, neq[1], ind);
 	  // yp is last solve or y0
@@ -1130,7 +1131,6 @@ void handleSS(int *neq,
 	  xout2 = xp2+dur2;
 	  ind->ixds = infEixds;
 	  ind->idx=ei;
-	  getWh(ind->evid[ind->idose[infEixds]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
 	  handle_evid(ind->evid[ind->idose[infEixds]], neq[0], BadDose, InfusionRate, dose, yp,
 		      op->do_transit_abs, xout+dur, neq[1], ind);
 	  if (j == op->minSS -1){
@@ -1170,7 +1170,6 @@ void handleSS(int *neq,
       for (j = neq[0];j--;) yp[j]+=ind->solveSave[j];
     }
     ind->idx=*i;
-    getWh(ind->evid[ind->ix[*i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
     handle_evid(ind->evid[ind->ix[*i]], neq[0], BadDose, InfusionRate, dose, yp,
 		op->do_transit_abs, xout, neq[1], ind);
     ind->doSS=0;

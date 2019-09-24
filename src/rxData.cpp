@@ -1367,7 +1367,12 @@ void gOnSetup(int n){
   }
 }
 
+LogicalVector rxSolveFree();
 void gsolveSetup(int n){
+  if (n < 0){
+    rxSolveFree();
+    stop("Memory overflow;  Cannot allocate memory; Try reducing the problem");
+  }
   if (_globals.gsolven <= 0){
     _globals.gsolven=0;
     Free(_globals.gsolve);
@@ -2399,7 +2404,7 @@ void updateSolveEnvPost(Environment e){
 
 extern "C" void rxOptionsFree();
 extern "C" void rxOptionsIni();
-extern "C" void rxOptionsIniEnsure(int mx, int atol2);
+extern "C" void rxOptionsIniEnsure(int mx);
 extern "C" void parseFree(int last);
 extern "C" void rxClearFuns();
 //' Free the C solving/parsing information.
@@ -3116,8 +3121,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     }
     // Error
     rxAssignPtr(mv);
-    rxOptionsIniEnsure(nPopPar, 1);
-    // 1 simulation per parameter specification
     if (rxIs(ev1,"event.data.frame")||
 	rxIs(ev1,"event.matrix")){
       // data.frame or matrix
@@ -3141,6 +3144,21 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       IntegerVector id(evid.size(), 1);
       if (rxcId > -1){
         id    = as<IntegerVector>(dataf[rxcId]);
+	int lastid = id[id.size()-1];
+	int nid = 0;
+	for (int ii = 0; ii < id.size(); ii++){
+	  if (id[ii] != lastid){
+	    lastid = id[ii];
+	    nid++;
+	  }
+	}
+	if (nid == nPopPar || nPopPar == 1){
+	  rxOptionsIniEnsure(nid);
+	} else {
+	  rxOptionsIniEnsure(nid*nPopPar);
+	}
+      } else {
+	rxOptionsIniEnsure(nPopPar);
       }
       NumericVector time0 = dataf[rxcTime];
       if (rxIs(time0, "units")){
@@ -3224,7 +3242,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    } else {
 	      ind->HMAX = hmax0;
 	    }
-	    rxOptionsIniEnsure(nsub+1, 0);
             ind = &(rx->subjects[nsub]);
 	    ind->idx=0;
           }
@@ -3326,6 +3343,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       } else {
 	ind->HMAX = hmax0;
       }
+    } else {
+      stop("Data not provided");
     }
     // Make sure the user input all the parmeters.
     gParPosSetup(npars);
@@ -3444,8 +3463,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->nsim = nPopPar / rx->nsub;
     if (rx->nsim < 1) rx->nsim=1;
 
-    // gsolveSetup includes 1 ind->solveSave 
-    gsolveSetup(rx->nall*(rx->nsub+1)*state.size()*rx->nsim);
+    // gsolveSetup includes 1 ind->solveSave per subject
+    gsolveSetup((rx->nall+rx->nsub)*state.size()*rx->nsim);
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
     gOnSetup(rx->nsub*rx->nsim*state.size());
@@ -3511,7 +3530,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	for (unsigned int simNum = rx->nsim; simNum--;){
 	  for (unsigned int id = rx->nsub; id--;){
 	    unsigned int cid = id+simNum*rx->nsub;
-	    rxOptionsIniEnsure(cid+1, 0);
 	    ind = &(rx->subjects[cid]);
 	    ind->idx=0;
 	    ind->par_ptr = &_globals.gpars[cid*npars];
@@ -3532,7 +3550,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    ind->jac_counter = &_globals.jac_counter[cid];
 	    if (simNum){
 	      // Assign the pointers to the shared data
-	      rxOptionsIniEnsure(id+1, 0);
 	      indS = rx->subjects[id];
 	      if (op->do_par_cov){
 		ind->cov_ptr = indS.cov_ptr;
