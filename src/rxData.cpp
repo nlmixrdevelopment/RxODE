@@ -2780,6 +2780,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->maxSS = as<int>(rxControl["maxSS"]);
     op->atolSS = as<double>(rxControl["atolSS"]);
     op->rtolSS = as<double>(rxControl["rtolSS"]);
+    op->strictSS = as<int>(rxControl["strictSS"]);
     
     gatol2Setup(op->neq);
     grtol2Setup(op->neq);
@@ -3468,7 +3469,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (rx->nsim < 1) rx->nsim=1;
 
     // gsolveSetup includes 1 ind->solveSave per subject
-    gsolveSetup((rx->nall+rx->nsub)*state.size()*rx->nsim);
+    gsolveSetup((rx->nall+2*rx->nsub)*state.size()*rx->nsim);
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
     gOnSetup(rx->nsub*rx->nsim*state.size());
@@ -3580,6 +3581,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    curEvent += eLen;
 	    curSolve += eLen;
 	    ind->solveSave = &_globals.gsolve[curSolve];
+	    curSolve += op->neq;
+	    ind->solveLast = &_globals.gsolve[curSolve];
 	    curSolve += op->neq;
 	    ind->on=&_globals.gon[curOn];
 	    curOn +=op->neq;

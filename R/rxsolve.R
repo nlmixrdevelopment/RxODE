@@ -21,6 +21,7 @@ rxControl <- function(scale = NULL,
                       seed=NULL, nsim=NULL,
                       minSS=7, maxSS=1000L,
                       atolSS=1e-9, rtolSS=1e-9,
+                      strictSS=FALSE,
                       params=NULL,events=NULL,
                       istateReset=TRUE,
                       subsetNonmem=TRUE,
@@ -149,6 +150,7 @@ rxControl <- function(scale = NULL,
                  nsim=nsim,
                  minSS=minSS, maxSS=maxSS,
                  atolSS=atolSS[1], rtolSS=rtolSS[1],
+                 strictSS=as.integer(strictSS),
                  istateReset=istateReset,
                  subsetNonmem=subsetNonmem,
                  linLog=linLog, hmaxSd=hmaxSd,
@@ -388,6 +390,19 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param rtolSS Relative tolerance to check if a solution arrived at
 ##'     steady state.
+##'
+##' @param strictSS Boolean indicating if a strict steady-state is
+##'     required. If a strict steady-state is (\code{TRUE}) required
+##'     then at least \code{minSS} doses are administered and the
+##'     total number of steady states doses will continue until
+##'     \code{maxSS} is reached, or \code{atolSS} and \code{rtolSS}
+##'     have been reached.  However, if ODE solving problems occur
+##'     after the \code{minSS} has been reached the whole subject is
+##'     considered an invalid solve. If \code{strictSS} is
+##'     \code{FALSE} then as long as \code{minSS} has been reached the
+##'     last good solve before ODE solving problems occur is
+##'     considered the steady state, even though either \code{atolSS},
+##'     \code{rtolSS} or \code{maxSS} have not been achieved.
 ##'
 ##' @param istateReset When \code{TRUE}, reset the \code{ISTATE} variable to 1 for
 ##'     lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do

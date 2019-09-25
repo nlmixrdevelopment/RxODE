@@ -903,26 +903,27 @@ void solveSS_1(int *neq,
 	       rx_solving_options_ind *ind,
 	       t_update_inis u_inis,
 	       void *ctx){
-  int j=0, idid;
+  int idid;
   switch(op->stiff){
   case 2:
     lsoda(ctx, yp, &xp, xout);
     if (*istate <= 0) {
       RSprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
-      ind->rc[0] = *istate;
+      /* ind->rc[0] = *istate; */
+      ind->rc[0] = -2019;
       // Bad Solve => NA
-      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-      op->badSolve = 1;
-      *i = ind->n_all_times-1; // Get out of here!
-      j=op->maxSS;
+      /* for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL; */
+      /* op->badSolve = 1; */
+      /* *i = ind->n_all_times-1; */ // Get out of here!
+      /* j=op->maxSS; */
       break;
     } else if (ind->err){
       printErr(ind->err, ind->id);
-      ind->rc[0] = -1000;
-      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-      op->badSolve = 1;
+      ind->rc[0] = -2019;
+      /* for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL; */
+      /* op->badSolve = 1; */
       *i = ind->n_all_times-1; // Get out of here!
-      j=op->maxSS;
+      /* j=op->maxSS; */
       break;
     }
     break;
@@ -933,20 +934,20 @@ void solveSS_1(int *neq,
 		     &glrw, global_iworkp, &gliw, jdum_lsoda, &global_jt);
     if (*istate <= 0) {
       RSprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
-      ind->rc[0] = *istate;
+      ind->rc[0] = -2019;/* *istate; */
       // Bad Solve => NA
-      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-      op->badSolve = 1;
-      *i = ind->n_all_times-1; // Get out of here!
-      j=op->maxSS;
+      /* for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL; */
+      /* op->badSolve = 1; */
+      /* *i = ind->n_all_times-1; // Get out of here! */
+      /* j=op->maxSS; */
       break;
     } else if (ind->err){
       printErr(ind->err, ind->id);
-      ind->rc[0] = -1000;
-      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-      op->badSolve = 1;
-      *i = ind->n_all_times-1; // Get out of here!
-      j=op->maxSS;
+      ind->rc[0] = -2019;
+      /* for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL; */
+      /* op->badSolve = 1; */
+      /* *i = ind->n_all_times-1; // Get out of here! */
+      /* j=op->maxSS; */
       break;
     }
     break;
@@ -977,27 +978,27 @@ void solveSS_1(int *neq,
 		  0                       /* declared length of icon */
 		  );
     if (idid < 0) {
-      ind->rc[0] = idid;
+      ind->rc[0] = -2019;
       // Bad Solve => NA
-      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-      op->badSolve = 1;
-      *i = ind->n_all_times-1; // Get out of here!
-      j=op->maxSS;
+      /* for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL; */
+      /* op->badSolve = 1; */
+      /* *i = ind->n_all_times-1; // Get out of here! */
+      /* j=op->maxSS; */
       break;
     } else if (ind->err){
       printErr(ind->err, ind->id);
-      ind->rc[0] = -1000;
-      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-      op->badSolve = 1;
+      /* ind->rc[0] = -1000; */
+      /* for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL; */
+      /* op->badSolve = 1; */
       *i = ind->n_all_times-1; // Get out of here!
-      j=op->maxSS;
+      /* j=op->maxSS; */
       break;
     }
     break;
   }
 }
 
-void handleSS(int *neq, 
+void handleSS(int *neq,
 	      int *BadDose,
 	      double *InfusionRate,
 	      double *dose,
@@ -1078,22 +1079,39 @@ void handleSS(int *neq,
 	xout2 = xp2+ind->ii[ind->ixds];
 	// Use "real" xout for handle_evid functions.
 	ind->idx=*i;
-	if (*i == nx-1){
-	  op->badSolve = 1;
-	  break;
-	}
 	handle_evid(ind->evid[ind->ix[*i]], neq[0], BadDose, InfusionRate, dose, yp,
 		    op->do_transit_abs, xout, neq[1], ind);
 	// yp is last solve or y0
 	solveSS_1(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs,
 		  xout2, xp2, id, i, nx, istate, op, ind, u_inis, ctx);
 	ind->ixds--; // This dose stays in place
-	if (j == op->minSS -1){
-	  lastSum =0.0;
-	  for (k = neq[0]; k--;) lastSum += fabs(yp[k]);
+	if (j <= op->minSS -1){
+	  if (ind->rc[0]== -2019){
+	    for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	    op->badSolve = 1;
+	    *i = ind->n_all_times-1;
+	    break;
+	  }
+	  if (j == op->minSS -1){
+	    lastSum =0.0;
+	    for (k = neq[0]; k--;) {
+	      ind->solveLast[k] = yp[k];
+	      lastSum += fabs(yp[k]);
+	    }
+	  }
 	} else if (j >= op->minSS){
 	  curSum = 0.0;
-	  for (k = neq[0]; k--;) curSum += fabs(yp[k]);
+	  if (ind->rc[0] == -2019){
+	    for (k = neq[0]; k--;) {
+	      yp[k] = ind->solveLast[k];
+	    }
+	    ind->rc[0] = 2019;
+	    break;
+	  }
+	  for (k = neq[0]; k--;){
+	    ind->solveLast[k] = yp[k];
+	    curSum += fabs(yp[k]);
+	  }	    
 	  if (fabs(curSum-lastSum) < op->rtolSS*fabs(curSum) + op->atolSS){
 	    break;
 	  }
@@ -1118,10 +1136,6 @@ void handleSS(int *neq,
 	// Infusion
 	for (j = 0; j < op->maxSS; j++){
 	  // Turn on Infusion, solve (0-dur)
-	  if (*i == nx-1){
-	    op->badSolve = 1;
-	    break;
-	  }
 	  xout2 = xp2+dur;
 	  ind->idx=*i;
 	  ind->ixds = infBixds;
@@ -1139,25 +1153,75 @@ void handleSS(int *neq,
 	  ind->idx=ei;
 	  handle_evid(ind->evid[ind->idose[infEixds]], neq[0], BadDose, InfusionRate, dose, yp,
 		      op->do_transit_abs, xout+dur, neq[1], ind);
-	  if (j == op->minSS -1){
-	    lastSum =0.0;
-	    for (k = neq[0]; k--;) lastSum += fabs(yp[k]);
+	  if (j <= op->minSS -1){
+	    if (ind->rc[0]== -2019){
+	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	      op->badSolve = 1;
+	      *i = ind->n_all_times-1;
+	      break;
+	    }
+	    if (j == op->minSS -1){
+	      lastSum =0.0;
+	      for (k = neq[0]; k--;) {
+		lastSum += fabs(yp[k]);
+		ind->solveLast[k] = yp[k];
+	      }
+	    }
 	  } else if (j >= op->minSS){
+	    if (ind->rc[0]== -2019){
+	      if (op->strictSS){
+                for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+                op->badSolve = 1;
+                *i = ind->n_all_times-1;
+              } else {
+                for (k = neq[0]; k--;){
+                  yp[k] = ind->solveLast[k];
+                }
+                ind->rc[0] = 2019;
+              }
+	      break;
+	    }
 	    curSum = 0.0;
-	    for (k = neq[0]; k--;) curSum += fabs(yp[k]);
+	    for (k = neq[0]; k--;) {
+	      curSum += fabs(yp[k]);
+	      ind->solveLast[k] = yp[k];
+	    }
 	  }
 	  // yp is last solve or y0
 	  *istate=1;
 	  solveSS_1(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs,
 		    xout2, xp2, id, i, nx, istate, op, ind, u_inis, ctx);
-	  if (*i == nx-1){
-	    op->badSolve = 1;
-	    break;
-	  }
-	  if (j == op->minSS -1){
-	    for (k = neq[0]; k--;) lastSum += fabs(yp[k]);
+	  if (j <= op->minSS -1){
+	    if (ind->rc[0]== -2019){
+	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	      op->badSolve = 1;
+	      *i = ind->n_all_times-1;
+	      break;
+	    }
+	    if (j == op->minSS-1){
+	      for (k = neq[0]; k--;){
+		ind->solveLast[k] = yp[k];
+		lastSum += fabs(yp[k]);
+	      }
+	    }
 	  } else if (j >= op->minSS){
-	    for (k = neq[0]; k--;) curSum += fabs(yp[k]);
+	    if (ind->rc[0]== -2019){
+	      if (op->strictSS){
+		for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+                op->badSolve = 1;
+                *i = ind->n_all_times-1;
+              } else {
+		for (k = neq[0]; k--;){
+                  yp[k] = ind->solveLast[k];
+                }
+		ind->rc[0] = 2019;
+              }
+	      break;
+	    }	  
+	    for (k = neq[0]; k--;){
+	      ind->solveLast[k] = yp[k];
+	      curSum += fabs(yp[k]);
+	    }
 	    if (fabs(curSum-lastSum) < op->rtolSS*fabs(curSum) + op->atolSS){
 	      break;
 	    }
