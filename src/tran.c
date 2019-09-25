@@ -304,7 +304,7 @@ static void sPut(sbuf *sbb, char what){
 }
 
 void sAppend(sbuf *sbb, const char *format, ...){
-  char what[MXBUF*2];
+  char what[MXBUF*2+1];
   int n = 0;
   va_list argptr, copy;
   va_start(argptr, format);
