@@ -29,6 +29,12 @@ typedef double (*t_DUR)(int _cSub,  int _cmt, double _amt, double t);
 
 typedef void (*t_calc_mtime)(int cSub, double *mtime);
 
+typedef struct sbuf {
+  char *s;        /* curr print buffer */
+  int sN;
+  int o;                        /* offset of print buffer */
+} sbuf;
+
 typedef struct {
   // These options should not change based on an individual solve
   int badSolve;

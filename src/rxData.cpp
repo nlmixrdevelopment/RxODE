@@ -1825,14 +1825,15 @@ extern "C" void setInits(SEXP init){
   _rxModels[".init"] = init;
 }
 
-extern "C" int getInits(char *s_aux_info, int *o){
+extern "C" void sAppend(sbuf *sbb, const char *format, ...);
+
+extern "C" int getInits(sbuf *s_aux_info){
   getRxModels();
   if (_rxModels.exists(".init")){
     List init = _rxModels[".init"];
     int ret = as<int>(init[0]);
     std::string str = as<std::string>(init[1]);
-    sprintf( s_aux_info + *o,"%s",str.c_str());
-    *o = (int)strlen(s_aux_info);
+    sAppend(s_aux_info, "%s",str.c_str());
     return ret;
   } else {
     return 0;

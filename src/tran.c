@@ -10,12 +10,16 @@
 #include <R_ext/Rdynload.h>
 #include <Rmath.h>
 #include "tran.g.d_parser.c"
+#include "../inst/include/RxODE.h"
 #define max(a,b) (a)>(b) ? (a):(b)
 #define min(a,b) (a)<(b) ? (a):(b)
 #define MXSYM 50000
 #define MXDER 5000
 #define MXLEN 12000
 #define MXBUF 48000
+/* #define MXBUF 5 */
+#define MXLINE 1000
+/* #define MXLINE 5 */
 #define SBPTR sb.s+sb.o
 #define SBTPTR sbt.s+sbt.o
 #define NV tb.ss.n
@@ -82,7 +86,7 @@ extern int getSilentErr();
 #define RSprintf0(fmt) if (getSilentErr() == 0) REprintf(fmt)
 
 void setInits(SEXP init);
-int getInits(char *s_aux_info, int *o);
+int getInits(sbuf *s_aux_info);
 
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
@@ -108,7 +112,6 @@ int R_get_option(const char *option, int def){
 int rc_buf_read(const char *pathname, char **buf, int *len) {
   struct stat sb;
   int fd;
-
   *buf = 0;
   *len = 0;
   fd = open(pathname, O_RDONLY);
@@ -170,7 +173,8 @@ int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
   rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1, rx_syntax_allow_assign_state = 0,
   maxSumProdN = 0, SumProdLD = 0, good_jac=1, extraCmt=0;
 
-char s_aux_info[64*MXSYM*4];
+sbuf s_aux_info;
+/* char s_aux_info[64*MXSYM*4]; */
 
 typedef struct vLines {
   char *s;
@@ -181,6 +185,7 @@ typedef struct vLines {
   char **line;
   int *lProp;
   int *lType;
+  int *os;
 } vLines;
 
 
@@ -231,45 +236,22 @@ typedef struct symtab {
 } symtab;
 symtab tb;
 
-typedef struct sbuf {
-  char *s;        /* curr print buffer */
-  int sN;
-  int o;                        /* offset of print buffer */
-} sbuf;
-
-sbuf sb, sbDt;                        /* buffer w/ current parsed & translated line */
+sbuf sb, sbDt; /* buffer w/ current parsed & translated line */
 sbuf sbt;
 
 void sIniTo(sbuf *sbb, int to){
-  if (sbb->sN <= to) {
-    if (sbb->sN <= 0){
-      sbb->s = Calloc(to, char);
-      sbb->sN = to;
-      sbb->s[0]='\0';
-      sbb->o=0;
-    } else {
-      Free(sbb->s);
-      sbb->s = Calloc(to, char);
-      sbb->sN = to;
-      sbb->s[0]='\0';
-      sbb->o=0;
-    }
-  } else {
-    sbb->s[0]='\0';
-    sbb->o=0;
-  }
+  sbb->s = Calloc(to, char);
+  sbb->sN = to;
+  sbb->s[0]='\0';
+  sbb->o=0;
+}
+static inline void sClear(sbuf *sbb){
+  sbb->s[0]='\0';
+  sbb->o=0;
 }
 
 void sIni(sbuf *sbb){
-  if (sbb->sN <= 0){
-    sbb->s = Calloc(MXBUF, char);
-    sbb->sN = MXBUF;
-    sbb->s[0]='\0';
-    sbb->o=0;
-  } else {
-    sbb->s[0]='\0';
-    sbb->o=0;
-  }
+  sIniTo(sbb, 10);
 }
 
 void sFree(sbuf *sbb){
@@ -284,8 +266,8 @@ void sFreeIni(sbuf *sbb){
 }
 
 void sAppendN(sbuf *sbb, const char *what, int n){
-  if (sbb->sN <= n + sbb->o){
-    int mx = sbb->o + n + MXBUF;
+  if (sbb->sN <= 2 + n + sbb->o){
+    int mx = sbb->o + 2 + n + MXBUF;
     sbb->s = Realloc(sbb->s, mx, char);
     sbb->sN = mx;
   }
@@ -294,67 +276,64 @@ void sAppendN(sbuf *sbb, const char *what, int n){
 }
 
 static void sPut(sbuf *sbb, char what){
-  if (sbb->sN <= 1 + sbb->o){
-    int mx = sbb->o + 1 + MXBUF;
+  if (sbb->sN <= 2 + sbb->o){
+    int mx = sbb->o + 2 + MXBUF;
     sbb->s = Realloc(sbb->s, mx, char);
     sbb->sN = mx;
   }
   sprintf(sbb->s+sbb->o, "%c", what);
   sbb->o++;
 }
-
 void sAppend(sbuf *sbb, const char *format, ...){
-  char what[MXBUF*2+1];
   int n = 0;
   va_list argptr, copy;
   va_start(argptr, format);
   va_copy(copy, argptr);
-  // Try first.
-  n = vsnprintf(what, MXBUF*2, format, argptr);
-  va_end(argptr);
-  char *what2;
-  int use2=0;
-  if (n >= MXBUF*2){
-    // Its too big;  Allocate it.
-    what2 = Calloc(n+1, char);
-    vsnprintf(what2, n, format, copy);
-    use2=1;
-  }
+  n = vsnprintf(NULL, 0, format, copy) + 1;
   va_end(copy);
-  
-  if (sbb->sN <= n + 1 + sbb->o){
+  if (sbb->sN <= sbb->o + n + 1){
     int mx = sbb->o + n + 1 + MXBUF;
     sbb->s = Realloc(sbb->s, mx, char);
     sbb->sN = mx;
   }
-  if (use2){
-    sprintf(sbb->s+sbb->o, "%s", what2);
-    Free(what2);
-  } else {
-    sprintf(sbb->s+sbb->o, "%s", what);
+  vsprintf(sbb->s+ sbb->o, format, argptr);
+  va_end(argptr);
+  sbb->o += n-1;
+}
+
+void sPrint(sbuf *sbb, const char *format, ...){
+  sClear(sbb);
+  int n = 0;
+  va_list argptr, copy;
+  va_start(argptr, format);
+  va_copy(copy, argptr);
+  n = vsnprintf(NULL, 0, format, copy) + 1;
+  va_end(copy);
+  if (sbb->sN <= sbb->o + n + 1){
+    int mx = sbb->o + n + 1 + MXBUF;
+    sbb->s = Realloc(sbb->s, mx, char);
+    sbb->sN = mx;
   }
-  sbb->o +=n;
+  vsprintf(sbb->s+ sbb->o, format, argptr);
+  va_end(argptr);
+  sbb->o += n-1;
 }
 
 void lineIni(vLines *sbb){
-  if (sbb->sN <= 0){
-    sbb->s = Calloc(MXBUF, char);
-    sbb->sN = MXBUF;
-    sbb->s[0]='\0';
-    sbb->o=0;
-  } else {
-    sbb->s[0]='\0';
-    sbb->o=0;
-  }
-  if (sbb->nL < 1000){
-    Free(sbb->lProp);
-    Free(sbb->line);
-    Free(sbb->lType);
-    sbb->lProp = Calloc(1000, int);
-    sbb->lType = Calloc(1000, int);
-    sbb->line = Calloc(1000, char*);
-    sbb->nL=1000;
-  }
+  Free(sbb->s);
+  sbb->s = Calloc(MXBUF, char);
+  sbb->sN = MXBUF;
+  sbb->s[0]='\0';
+  sbb->o=0;
+  Free(sbb->lProp);
+  Free(sbb->line);
+  Free(sbb->lType);
+  Free(sbb->os);
+  sbb->lProp = Calloc(MXLINE, int);
+  sbb->lType = Calloc(MXLINE, int);
+  sbb->line = Calloc(MXLINE, char*);
+  sbb->os = Calloc(MXLINE, int);
+  sbb->nL=MXLINE;
   sbb->lProp[0] = -1;
   sbb->lType[0] = 0;
   sbb->n = 0;
@@ -366,52 +345,49 @@ void lineFree(vLines *sbb){
   Free(sbb->lProp);
   Free(sbb->lType);
   Free(sbb->line);
+  Free(sbb->os);
   sbb->sN=0;
   sbb->nL=0;
 }
 
 void addLine(vLines *sbb, const char *format, ...){
-  char what[MXBUF*2];
   int n = 0;
   va_list argptr, copy;
   va_start(argptr, format);
   va_copy(copy, argptr);
   // Try first.
-  n = vsnprintf(what, MXBUF*2, format, argptr);
-  va_end(argptr);
-  char *what2;
-  int use2=0;
-  if (n >= MXBUF*2){
-    // Its too big;  Allocate it.
-    what2 = Calloc(n+1, char);
-    vsnprintf(what2, n, format, copy);
-    use2=1;
+  n = vsnprintf(NULL, 0, format, copy);
+  if (n < 0){
+    error("Encoding error in addLine");
   }
   va_end(copy);
-  
-  if (sbb->sN <= n + 1 + sbb->o){
-    int mx = sbb->o + n + 1 + MXBUF;
+  if (sbb->sN <= sbb->o + n + 1){
+    int mx = sbb->sN + n + 1 + MXBUF;
     sbb->s = Realloc(sbb->s, mx, char);
+    // The sbb->line are not correct any longer because the pointer for sbb->s has been updated;
+    // Fix them
+    for (int i = sbb->n; i--;){
+      sbb->line[i] = &(sbb->s[sbb->os[i]]);
+    }
     sbb->sN = mx;
   }
-  if (use2){
-    sprintf(sbb->s+sbb->o, "%s", what2);
-    Free(what2);
-  } else {
-    sprintf(sbb->s+sbb->o, "%s", what);
-  }
+  vsprintf(sbb->s + sbb->o, format, argptr);
+  va_end(argptr);
   if (sbb->n + 1 >= sbb->nL){
-    int mx = sbb->n + 1000;
+    int mx = sbb->nL + n + MXLINE;
     sbb->lProp = Realloc(sbb->lProp, mx, int);
     sbb->lType = Realloc(sbb->lType, mx, int);
     sbb->line = Realloc(sbb->line, mx, char*);
+    sbb->os = Realloc(sbb->os, mx, int);
+    sbb->nL = mx;
   }
   sbb->line[sbb->n]=&(sbb->s[sbb->o]);
-  sbb->o +=n+1; // Add the \0 at the end.
+  sbb->os[sbb->n]= sbb->o;
+  sbb->o += n + 1; // n should include the \0 character
   sbb->n = sbb->n+1;
   sbb->lProp[sbb->n] = -1;
-  sbb->lType[sbb->n] = 0;  
-
+  sbb->lType[sbb->n] = 0;
+  sbb->os[sbb->n]= sbb->o;
 }
 
 void curLineProp(vLines *sbb, int propId){
@@ -744,10 +720,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   niReset(&ni);
   int nch = d_get_number_of_children(pn), i, k, ii, found, safe_zero = 0;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
-  char buf[1024];
-  char buf2[1024];
-  buf[0]='\0';
-  buf2[0]='\0';
+  sbuf buf;
+  sIni(&buf);
   double d;
   if ((nodeHas(identifier) || nodeHas(identifier_r) ||
        nodeHas(identifier_r_no_output)  ||
@@ -933,13 +907,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       
       if (nodeHas(theta)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        sprintf(buf,"_THETA_%s_",v);
+        sPrint(&buf,"_THETA_%s_",v);
 	ii = strtoimax(v,NULL,10);
 	if (ii > tb.maxtheta){
 	  tb.maxtheta =ii;
 	}
-	if (new_or_ith(buf)){
-	  addLine(&(tb.ss),"%s",buf);
+	if (new_or_ith(buf.s)){
+	  addLine(&(tb.ss),"%s",buf.s);
         }
         sAppend(&sb,"_THETA_%s_",v);
 	sAppend(&sbDt,"_THETA_%s_",v);
@@ -954,9 +928,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         if (ii > tb.maxeta){
           tb.maxeta =ii;
         }
-        sprintf(buf,"_ETA_%s_",v);
-        if (new_or_ith(buf)){
-	  addLine(&(tb.ss),"%s",buf);
+        sPrint(&buf,"_ETA_%s_",v);
+        if (new_or_ith(buf.s)){
+	  addLine(&(tb.ss),"%s",buf.s);
         }
         sAppend(&sb, "_ETA_%s_",v);
 	sAppend(&sbDt, "_ETA_%s_",v);
@@ -1042,8 +1016,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbt,"df(%s)/dy(",v);
 	    if (new_de(v)){
 	      updateSyntaxCol();
-	      sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state",v);
-	      trans_syntax_error_report_fn(buf);
+	      sPrint(&buf,"d/dt(%s) needs to be defined before using a Jacobians for this state",v);
+	      trans_syntax_error_report_fn(buf.s);
 	    } else {
 	      sAppend(&sb, "__PDStateVar__[%d*(__NROWPD__)+",tb.id);
 	    }
@@ -1059,8 +1033,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppend(&sbt,"df(%s)/dy(",v);
 	  if (new_de(v)){
 	    updateSyntaxCol();
-	    sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state",v);
-            trans_syntax_error_report_fn(buf);
+	    sPrint(&buf,"d/dt(%s) needs to be defined before using a Jacobians for this state",v);
+            trans_syntax_error_report_fn(buf.s);
 	  } else {
 	    sAppend(&sb,"__PDStateVar__[%d*(__NROWPD__)+",tb.id);
 	  }
@@ -1075,17 +1049,17 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	ii = 0;
 	if (strstr(v,"THETA[") != NULL){
 	  good_jac=0;
-	  sprintf(buf,"_THETA_%.*s_",(int)(strlen(v))-7,v+6);
+	  sPrint(&buf,"_THETA_%.*s_",(int)(strlen(v))-7,v+6);
 	  sAppend(&sbt, "%s)",v);
 	  sAppendN(&sb, "0]", 2);
-	  sAppend(&sbDt, "%s__",buf);
+	  sAppend(&sbDt, "%s__",buf.s);
 	  ii = 1;
 	} else if (strstr(v,"ETA[") != NULL) {
 	  good_jac=0;
-	  sprintf(buf,"_ETA_%.*s_",(int)(strlen(v))-5,v+4);
+	  sPrint(&buf,"_ETA_%.*s_",(int)(strlen(v))-5,v+4);
           sAppend(&sbt, "%s)",v);
           sAppendN(&sb, "0]",2);
-	  sAppend(&sbDt, "%s__",buf);
+	  sAppend(&sbDt, "%s__",buf.s);
           ii = 1;
         } else {
 	  sAppend(&sbDt, "%s__",v);
@@ -1103,7 +1077,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           aAppendN(" = ", 3);
           sAppendN(&sbt ,"=", 1);
 	  if (ii == 1){
-	    new_or_ith(buf);
+	    new_or_ith(buf.s);
           } else {
 	    new_or_ith(v);
           }
@@ -1128,15 +1102,16 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       //inits
       if (nodeHas(selection_statement) && i==1) {
 	sb.o = 0; sbDt.o = 0; sbt.o = 0;
-        aAppendN("if (", 4);
+	sAppendN(&sb, "if (", 4);
+	sAppendN(&sbDt, "if (", 4);
         sAppendN(&sbt,"if (", 4);
         continue;
       }
       if (nodeHas(selection_statement) && i==3) {
-        sAppend(&sb, " {", 2);
-	sAppend(&sbDt, " {", 2);
-        sAppend(&sbt, "{", 1);
 	aType(TLOGIC);
+	/* aType(100); */
+        aAppendN("{", 1);
+        sAppendN(&sbt, "{", 1);
 	addLine(&sbPm, "%s\n", sb.s);
 	addLine(&sbPmDt, "%s\n", sbDt.s);
 	sAppend(&sbNrm, "%s\n", sbt.s);
@@ -1201,8 +1176,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      tb.hasCentral = 1;
 	    } else {
 	      updateSyntaxCol();
-	      sprintf(buf,ODEFIRST,v);
-	      trans_syntax_error_report_fn(buf);
+	      sPrint(&buf,ODEFIRST,v);
+	      trans_syntax_error_report_fn(buf.s);
 	    }
 	  }
 	  tb.statei++;
@@ -1329,8 +1304,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
 	       tb.lh[tb.ix] == 1)){
 	    updateSyntaxCol();
-            sprintf(buf,"Cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'",v,v);
-            trans_syntax_error_report_fn0(buf);
+            sPrint(&buf,"Cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'",v,v);
+            trans_syntax_error_report_fn0(buf.s);
           }
 	  tb.lh[tb.ix] = 9;
           tb.di[tb.de.n] = tb.ix;
@@ -1404,11 +1379,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    updateSyntaxCol();
 	    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	    if (new_de(v)){
-	      sprintf(buf2,"d/dt(%s)",v);
+	      /* sPrint(&buf2,"d/dt(%s)",v); */
 	      updateSyntaxCol();
-	      sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
+	      sPrint(&buf,"Tried to use d/dt(%s) before it was defined",v);
 	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(buf);
+	      trans_syntax_error_report_fn(buf.s);
 	    } else {
 	      if (sbPm.lType[sbPm.n] == TJAC){
 		sAppend(&sb,   "__DDtStateVar_%d__", tb.id);
@@ -1463,14 +1438,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      tb.lh[tb.ix] = 19;
 	    } else {
 	      updateSyntaxCol();
-	      sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
-	      trans_syntax_error_report_fn(buf);
+	      sPrint(&buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
+	      trans_syntax_error_report_fn(buf.s);
 	    }
           }
           if (!rx_syntax_allow_ini0 && nodeHas(ini0)){
-            sprintf(buf,NOINI0,v);
+            sPrint(&buf,NOINI0,v);
 	    updateSyntaxCol();
-            trans_syntax_error_report_fn(buf);
+            trans_syntax_error_report_fn(buf.s);
           }
         } else {
           sb.o = 0; sbDt.o = 0;
@@ -1492,9 +1467,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      new_or_ith(v);
 	      tb.lh[tb.ix] = 19;
 	    } else {
-	      sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
+	      sPrint(&buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
 	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(buf);
+	      trans_syntax_error_report_fn(buf.s);
 	      
 	    }
             
@@ -1554,9 +1529,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    if (tb.lh[tb.ix] != 1){
 	      tb.lh[tb.ix] = 1;
 	      if (nodeHas(ini0) && tb.ini0[tb.ix] == 1){
-		sprintf(buf,"Cannot have conditional initial conditions for %s",v);
+		sPrint(&buf,"Cannot have conditional initial conditions for %s",v);
 		updateSyntaxCol();
-		trans_syntax_error_report_fn(buf);
+		trans_syntax_error_report_fn(buf.s);
 	      } else if (tb.ini0[tb.ix] == 1){
 		tb.iniv[tb.ix] = NA_REAL;
 		tb.ini_i--;
@@ -1603,9 +1578,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     
     if (nodeHas(selection_statement)){
       sb.o = 0; sbDt.o = 0; sbt.o = 0;
-      aAppendN("}", 1);
-      sAppendN(&sbt,"}", 1);
       aType(TLOGIC);
+      /* aType(300); */
+      sAppendN(&sb, "}", 1);
+      sAppendN(&sbDt, "}", 1);
+      sAppendN(&sbt, "}", 1);
+
       addLine(&sbPm,   "%s\n", sb.s);
       addLine(&sbPmDt, "%s\n", sbDt.s);
       sAppend(&sbNrm,  "%s\n", sbt.s);
@@ -1615,6 +1593,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       aAppendN(")", 1);
     }
   }
+  sFree(&buf); 
 }
 
 void err_msg(int chk, const char *msg, int code)
@@ -1735,101 +1714,94 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
 
 void print_aux_info(char *model, const char *prefix, const char *libname, const char *pMd5, const char *timeId,
 		    const char *libname2){
-  int i, j, islhs,pi = 0,li = 0, o=0, statei = 0, sensi=0, normi=0,fdi=0,
+  int i, j, islhs,pi = 0,li = 0, statei = 0, sensi=0, normi=0,fdi=0,
     in_str=0;
   char *buf;
-  char bufw[1024];
+  sbuf bufw;
+  sIni(&bufw);
+  sClear(&s_aux_info);
+  /* char bufw[1024]; */
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
     if (islhs>1 && islhs != 19) continue;      /* is a state var */
     buf = tb.ss.line[i];
     if (islhs == 1 || islhs == 19){
-      sprintf(s_aux_info+o, "  SET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n", li++, buf);
+      sAppend(&s_aux_info, "  SET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n", li++, buf);
     } else {
       int foundIt=0;
       for (j = 1; j <= tb.maxtheta;j++){
-        sprintf(bufw,"_THETA_%d_",j);
-        if (!strcmp(buf,bufw)){
-          sprintf(bufw,"THETA[%d]",j);
+	sPrint(&bufw,"_THETA_%d_",j);
+        if (!strcmp(buf,bufw.s)){
+          sPrint(&bufw,"THETA[%d]",j);
 	  foundIt=1;
 	  break;
         }
       }
       if (!foundIt){
 	for (j = 1; j <= tb.maxeta;j++){
-	  sprintf(bufw,"_ETA_%d_",j);
-	  if (!strcmp(buf,bufw)){
-	    sprintf(bufw,"ETA[%d]",j);
+	  sPrint(&bufw,"_ETA_%d_",j);
+	  if (!strcmp(buf,bufw.s)){
+	    sPrint(&bufw,"ETA[%d]",j);
 	    foundIt=1;
 	    break;
 	  }
 	}
       }
       if (!foundIt){
-	sprintf(bufw, "%s", buf);
+	sPrint(&bufw, "%s", buf);
       }
-      sprintf(s_aux_info+o, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, bufw);
+      sAppend(&s_aux_info, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, bufw.s);
     }
-    o = (int)strlen(s_aux_info);
   }
   int nExtra=0;
   for (i=0; i<tb.de.n; i++) {                     /* name state vars */
     buf = tb.ss.line[tb.di[i]];
     if (tb.idu[i] == 1){
       if (strncmp(buf, "rx__sens_", 9) == 0){
-	sprintf(s_aux_info+o, "    SET_STRING_ELT(sens,%d,mkChar(\"%s\"));\n", sensi++, buf);
-	o = (int)strlen(s_aux_info);
-	sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
-	o = (int)strlen(s_aux_info);
-	sprintf(s_aux_info+o, "    _SR[%d] = %d;\n", statei-1, tb.idi[i]);
+	sAppend(&s_aux_info, "    SET_STRING_ELT(sens,%d,mkChar(\"%s\"));\n", sensi++, buf);
+	sAppend(&s_aux_info, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
+	sAppend(&s_aux_info, "    _SR[%d] = %d;\n", statei-1, tb.idi[i]);
       } else {
-	sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
-	o = (int)strlen(s_aux_info);
-	sprintf(s_aux_info+o, "    SET_STRING_ELT(normState,%d,mkChar(\"%s\"));\n", normi++, buf);
-	o = (int)strlen(s_aux_info);
-	sprintf(s_aux_info+o, "    _SR[%d] = %d;\n", statei-1, tb.idi[i]);
+	sAppend(&s_aux_info, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
+	sAppend(&s_aux_info, "    SET_STRING_ELT(normState,%d,mkChar(\"%s\"));\n", normi++, buf);
+	sAppend(&s_aux_info, "    _SR[%d] = %d;\n", statei-1, tb.idi[i]);
       }
       if (tb.fdi[i]){
-	o = (int)strlen(s_aux_info);
-	sprintf(s_aux_info+o, "    SET_STRING_ELT(fn_ini,%d,mkChar(\"%s\"));\n", fdi++, buf);
+	sAppend(&s_aux_info, "    SET_STRING_ELT(fn_ini,%d,mkChar(\"%s\"));\n", fdi++, buf);
       }
-      o = (int)strlen(s_aux_info);
     } else {
-      sprintf(s_aux_info+o, "    SET_STRING_ELT(extraState, %d, mkChar(\"%s\"));\n", nExtra++, buf);
-      o = (int)strlen(s_aux_info);
+      sAppend(&s_aux_info, "    SET_STRING_ELT(extraState, %d, mkChar(\"%s\"));\n", nExtra++, buf);
     }
     
   }
   for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
     buf=tb.ss.line[tb.df[i]];
-    sprintf(s_aux_info+o, "    SET_STRING_ELT(dfdy,%d,mkChar(\"df(%s)/dy(", i, buf);
-    o = (int)strlen(s_aux_info);
+    sAppend(&s_aux_info, "    SET_STRING_ELT(dfdy,%d,mkChar(\"df(%s)/dy(", i, buf);
     buf = tb.ss.line[tb.dy[i]];
     int foundIt=0;
     for (j = 1; j <= tb.maxtheta;j++){
-      sprintf(bufw,"_THETA_%d_",j);
-      if (!strcmp(buf,bufw)){
-        sprintf(bufw,"THETA[%d]",j);
+      sPrint(&bufw,"_THETA_%d_",j);
+      if (!strcmp(buf,bufw.s)){
+        sPrint(&bufw,"THETA[%d]",j);
 	foundIt=1;
 	break;
       }
     }
     if (!foundIt){
       for (j = 1; j <= tb.maxeta;j++){
-	sprintf(bufw,"_ETA_%d_",j);
-	if (!strcmp(buf,bufw)){
-	  sprintf(bufw,"ETA[%d]",j);
+	sPrint(&bufw,"_ETA_%d_",j);
+	if (!strcmp(buf,bufw.s)){
+	  sAppend(&bufw,"ETA[%d]",j);
 	  foundIt=1;
 	  break;
 	}
       }
     }
     if (!foundIt){
-      sprintf(bufw,"%s",buf);
+      sAppend(&bufw,"%s",buf);
     }
     
-    sprintf(s_aux_info+o, "%s)\"));\n",bufw);
-    o = (int)strlen(s_aux_info);
+    sAppend(&s_aux_info, "%s)\"));\n",bufw.s);
   }
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
@@ -1873,7 +1845,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(versionn,1,mkChar(\"repo\"));\n", 47);
   sAppendN(&sbOut, "    SET_STRING_ELT(versionn,2,mkChar(\"md5\"));\n", 46);
 
-  sAppend(&sbOut, "%s",s_aux_info);
+  sAppend(&sbOut, "%s",s_aux_info.s);
   // Save for outputting in trans
   tb.fdn = fdi;
   tb.pi = pi;
@@ -1912,22 +1884,12 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
     }
   }
   sAppendN(&sbOut, "\"));\n", 5);
-  
-  s_aux_info[0] = '\0';
-  o    = 0;
-  tb.ini_i = getInits(s_aux_info, &o); 
-
-  /* tb.ini_i = length(ini); */
-  /* for (i = 0; i < tb.ini_i; i++){ */
-  /*   sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",i, CHAR(STRING_ELT(inin, i))); */
-  /*   o = (int)strlen(s_aux_info); */
-  /*   sprintf(s_aux_info+o,"    REAL(ini)[%d] = %.16f;\n",i, REAL(ini)[i]); */
-  /*   o = (int)strlen(s_aux_info); */
-  /* } */
+  sClear(&s_aux_info);
+  tb.ini_i = getInits(&s_aux_info); 
   
   sAppend(&sbOut, "    SEXP ini    = PROTECT(allocVector(REALSXP,%d));pro++;\n",tb.ini_i);
   sAppend(&sbOut, "    SEXP inin   = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ini_i);
-  sAppend(&sbOut, "%s",s_aux_info);
+  sAppend(&sbOut, "%s",s_aux_info.s);
   // Vector Names
   sAppendN(&sbOut, "    SET_STRING_ELT(names,0,mkChar(\"params\"));\n", 46);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  0,params);\n", 36);
@@ -2117,6 +2079,7 @@ sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%smtime\", (DL_FUNC) %smtime);\n
   sAppend(&sbOut, "\nvoid R_unload_%s (DllInfo *info){\n  // Free resources required for single subject solve.\n  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));\n",
 	  libname2, prefix);
   sAppend(&sbOut, "  if (!isNull(_mv)){\n    _rxRmModelLib(\"%smodel_vars\");\n  }\n  UNPROTECT(1);\n}\n", prefix);
+  sFree(&bufw);
 }
 
 
@@ -2314,8 +2277,11 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
 	  break;
 	default:
-	  Rprintf("Ignored line: \"%s\"\n\tlProp: %d\tlType: %d\n", sbPm.line[i],
-		  sbPm.lProp[i], sbPm.lType[i]);
+	  REprintf("Line Number: %d\n", i);
+	  REprintf("Type: %d\n", sbPm.lType[i]);
+	  REprintf("Line: %s\n", sbPm.line[i]);
+	  REprintf("PmDt Line: %s\n", sbPmDt.line[i]);
+	  REprintf("Prop: %d\n", sbPm.lProp[i]);
 	}
       }
       // End statements
@@ -2418,6 +2384,7 @@ void parseFree(int last){
   sFree(&sbDt);
   sFree(&sbt);
   sFree(&sbNrm);
+  sFree(&s_aux_info);
   lineFree(&sbPm);
   lineFree(&sbPmDt);
   lineFree(&(tb.ss));
@@ -2441,6 +2408,7 @@ void parseFree(int last){
     Free(model_prefix);
     Free(md5);
     Free(gBuf);
+    sFree(&sbOut);
     freeP();
   }
 }
@@ -2451,6 +2419,8 @@ void reset (){
   sIni(&sbDt);
   sIni(&sbt);
   sIni(&sbNrm);
+  sIni(&s_aux_info);
+
   lineIni(&sbPm);
   lineIni(&sbPmDt);
 
@@ -2508,7 +2478,6 @@ void reset (){
   rx_syntax_error = 0;
   rx_suppress_syntax_info=0;
   rx_podo = 0;
-  memset(s_aux_info,         0, 64*MXSYM);
   rx_syntax_assign = 0;
   rx_syntax_star_pow = 0;
   rx_syntax_require_semicolon = 0;
@@ -2565,13 +2534,16 @@ void trans_internal(char* parse_file, int isStr){
   curP->syntax_error_fn = rxSyntaxError;
   if (isStr){
     Free(gBuf);
-    gBuf = parse_file;
+    // Should be able to use gBuf directly, but I believe it cause
+    // problems with R's garbage collection, so duplicate the string.
+    gBuf = (char*)rc_dup_str(parse_file, 0);
   } else {
     Free(gBuf);
     gBuf = rc_sbuf_read(parse_file);
     Free(parse_file);
     err_msg((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2);
   }
+  sFree(&sbNrm);
   sIni(&sbNrm);
   lineIni(&sbPm);
   lineIni(&sbPmDt);
@@ -2635,7 +2607,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 		  SEXP isEscIn){
   char *in = NULL;
   char *buf, *df, *dy;
-  char bufw[1024], bufw2[2100];
+  sbuf bufw, bufw2;
+  sIni(&bufw); sIni(&bufw2);
   int i, j, islhs, pi=0, li=0, ini_i = 0,k=0, l=0, m=0, p=0;
   // Make sure buffers are initialized.
   isEsc=INTEGER(isEscIn)[0];
@@ -2675,6 +2648,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     Free(model_prefix);
     model_prefix = rc_dup_str(CHAR(STRING_ELT(prefix,0)),0);
   } else {
+    sFree(&bufw); sFree(&bufw2);
     error("model prefix must be specified");
   }
 
@@ -2693,6 +2667,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
   in = rc_dup_str(CHAR(STRING_ELT(parse_file,0)),0);
   trans_internal(in, isStr);
+  Free(in);
   extraCmt = 0;
   if (tb.linCmt){
     if (tb.hasKa){
@@ -2708,11 +2683,11 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     }
   } else {
     if (tb.hasDepot && rx_syntax_require_ode_first){
-      sprintf(bufw2,ODEFIRST,"depot");
-      trans_syntax_error_report_fn0(bufw2);
+      sPrint(&bufw2, ODEFIRST, "depot");
+      trans_syntax_error_report_fn0(bufw2.s);
     } else if (tb.hasCentral && rx_syntax_require_ode_first){
-      sprintf(bufw2,ODEFIRST,"central");
-      trans_syntax_error_report_fn0(bufw2);
+      sPrint(&bufw2, ODEFIRST, "depot");
+      trans_syntax_error_report_fn0(bufw2.s);
     }
   }
   for (i=0; i<NV; i++) {
@@ -2805,7 +2780,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
   ini_i=0;
   int redo = 0;
-  int o=0;
   for (i = 0; i < NV; i++){
     buf=tb.ss.line[i];
     if (tb.ini[i] == 1 && tb.lh[i] != 1){
@@ -2814,30 +2788,26 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 	tb.isPi=0;
 	break;
       }
-      sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i,
+      sAppend(&s_aux_info,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i,
 	      buf);
-      o = (int)strlen(s_aux_info);
       SET_STRING_ELT(inin,ini_i,mkChar(buf));
       if (ISNA(tb.iniv[i])){
-	sprintf(s_aux_info+o,"    REAL(ini)[%d] = NA_REAL;\n",ini_i);
+	sAppend(&s_aux_info,"    REAL(ini)[%d] = NA_REAL;\n",ini_i);
       } else if (ISNAN(tb.iniv[i])){
-	sprintf(s_aux_info+o,"    REAL(ini)[%d] = R_NaN;\n",ini_i);
+	sAppend(&s_aux_info,"    REAL(ini)[%d] = R_NaN;\n",ini_i);
       } else if (R_FINITE(tb.iniv[i])){
-	sprintf(s_aux_info+o,"    REAL(ini)[%d] = %.16f;\n",ini_i, tb.iniv[i]);
+	sAppend(&s_aux_info,"    REAL(ini)[%d] = %.16f;\n",ini_i, tb.iniv[i]);
       } else if (tb.iniv[i] > 0){
-	sprintf(s_aux_info+o,"    REAL(ini)[%d] = R_PosInf;\n",ini_i);
+	sAppend(&s_aux_info,"    REAL(ini)[%d] = R_PosInf;\n",ini_i);
       } else {
-	sprintf(s_aux_info+o,"    REAL(ini)[%d] = R_NegInf;\n",ini_i);
+	sAppend(&s_aux_info,"    REAL(ini)[%d] = R_NegInf;\n",ini_i);
       }
-      o = (int)strlen(s_aux_info);
       REAL(ini)[ini_i++] = tb.iniv[i];
     }
   }
   if (tb.isPi){
-    sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"pi\"));\n",ini_i);
-    o = (int)strlen(s_aux_info);
-    sprintf(s_aux_info+o,"    REAL(ini)[%d] = M_PI;\n",ini_i);
-    o = (int)strlen(s_aux_info);
+    sAppend(&s_aux_info,"    SET_STRING_ELT(inin,%d,mkChar(\"pi\"));\n",ini_i);
+    sAppend(&s_aux_info,"    REAL(ini)[%d] = M_PI;\n",ini_i);
     SET_STRING_ELT(inin,ini_i,mkChar("pi"));
     REAL(ini)[ini_i++] = M_PI;
   } else if (redo){
@@ -2845,7 +2815,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     ini   = PROTECT(allocVector(REALSXP, tb.ini_i));pro++;
     for (int i = tb.ini_i; i--;) REAL(ini)[i] = NA_REAL;
     ini_i=0;
-    o = 0;
     for (i = 0; i < NV; i++){
       buf=tb.ss.line[i];
       if (tb.ini[i] == 1 && tb.lh[i] != 1){
@@ -2854,22 +2823,20 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 	  tb.isPi=0;
 	  break;
 	}
-	sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i,
+	sAppend(&s_aux_info,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i,
 		buf);
-	o = (int)strlen(s_aux_info);
 	SET_STRING_ELT(inin,ini_i,mkChar(buf));
 	if (ISNA(tb.iniv[i])){
-	  sprintf(s_aux_info+o,"    REAL(ini)[%d] = NA_REAL;\n",ini_i);
+	  sAppend(&s_aux_info,"    REAL(ini)[%d] = NA_REAL;\n",ini_i);
 	} else if (ISNAN(tb.iniv[i])){
-	  sprintf(s_aux_info+o,"    REAL(ini)[%d] = R_NaN;\n",ini_i);
+	  sAppend(&s_aux_info,"    REAL(ini)[%d] = R_NaN;\n",ini_i);
 	} else if (R_FINITE(tb.iniv[i])){
-	  sprintf(s_aux_info+o,"    REAL(ini)[%d] = %.16f;\n",ini_i, tb.iniv[i]);
+	  sAppend(&s_aux_info,"    REAL(ini)[%d] = %.16f;\n",ini_i, tb.iniv[i]);
 	} else if (tb.iniv[i] > 0){
-	  sprintf(s_aux_info+o,"    REAL(ini)[%d] = R_PosInf;\n",ini_i);
+	  sAppend(&s_aux_info,"    REAL(ini)[%d] = R_PosInf;\n",ini_i);
 	} else {
-	  sprintf(s_aux_info+o,"    REAL(ini)[%d] = R_NegInf;\n",ini_i);
+	  sAppend(&s_aux_info,"    REAL(ini)[%d] = R_NegInf;\n",ini_i);
 	}
-	o = (int)strlen(s_aux_info);
 	REAL(ini)[ini_i++] = tb.iniv[i];
       }
     }
@@ -2913,26 +2880,26 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     dy=tb.ss.line[tb.dy[i]];
     int foundIt=0;
     for (j = 1; j <= tb.maxtheta;j++){
-      sprintf(bufw,"_THETA_%d_",j);
-      if (!strcmp(dy,bufw)){
-        sprintf(bufw,"THETA[%d]",j);
+      sPrint(&bufw,"_THETA_%d_",j);
+      if (!strcmp(dy,bufw.s)){
+        sPrint(&bufw,"THETA[%d]",j);
 	foundIt=1;
 	break;
       }
     }
     if (!foundIt){
       for (j = 1; j <= tb.maxeta;j++){
-	sprintf(bufw,"_ETA_%d_",j);
-	if (!strcmp(dy,bufw)){
-	  sprintf(bufw,"ETA[%d]",j);
+	sPrint(&bufw,"_ETA_%d_",j);
+	if (!strcmp(dy,bufw.s)){
+	  sPrint(&bufw,"ETA[%d]",j);
 	}
       }
     }
     if (!foundIt){
-      sprintf(bufw,"%s",dy);
+      sPrint(&bufw,"%s",dy);
     }
-    sprintf(bufw2,"df(%s)/dy(%s)",df,bufw);
-    SET_STRING_ELT(dfdy,i,mkChar(bufw2));
+    sPrint(&bufw2,"df(%s)/dy(%s)",df,bufw.s);
+    SET_STRING_ELT(dfdy,i,mkChar(bufw2.s));
   }
   li=0, pi=0;
   for (i=0; i<NV; i++) {
@@ -2944,27 +2911,27 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     } else {
       int foundIt=0;
       for (j = 1; j <= tb.maxtheta;j++){
-	sprintf(bufw,"_THETA_%d_",j);
-	if (!strcmp(buf, bufw)){
-	  sprintf(bufw,"THETA[%d]",j);
+	sPrint(&bufw,"_THETA_%d_",j);
+	if (!strcmp(buf, bufw.s)){
+	  sPrint(&bufw,"THETA[%d]",j);
 	  foundIt=1;
 	  break;
 	}
       }
       if (!foundIt){
 	for (j = 1; j <= tb.maxeta;j++){
-	  sprintf(bufw,"_ETA_%d_",j);
-	  if (!strcmp(buf, bufw)){
-	    sprintf(bufw,"ETA[%d]",j);
+	  sPrint(&bufw,"_ETA_%d_",j);
+	  if (!strcmp(buf, bufw.s)){
+	    sPrint(&bufw,"ETA[%d]",j);
 	    foundIt=1;
 	    break;
 	  }
 	}
       }
       if (!foundIt){
-	sprintf(bufw, "%s", buf);
+	sPrint(&bufw, "%s", buf);
       }
-      SET_STRING_ELT(params,pi++,mkChar(bufw));
+      SET_STRING_ELT(params,pi++,mkChar(bufw.s));
     }
   }
   SEXP ini2s = PROTECT(allocVector(STRSXP,1));pro++;
@@ -2973,7 +2940,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   tb.ini_i = length(ini);
   INTEGER(ini2i)[0] = tb.ini_i;
   SET_VECTOR_ELT(ini2, 0, ini2i);
-  SET_STRING_ELT(ini2s,0,mkChar(s_aux_info));
+  SET_STRING_ELT(ini2s,0,mkChar(s_aux_info.s));
   SET_VECTOR_ELT(ini2, 1, ini2s);
   setInits(ini2);
 
@@ -3035,9 +3002,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   for (i = 0; i < tb.dvidn; i++) INTEGER(sDvid)[i]=tb.dvid[i];
   SET_VECTOR_ELT(lst,  17, sDvid);
 
-  sprintf(bufw,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
+  sPrint(&bufw,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
   SET_STRING_ELT(trann,0,mkChar("lib.name"));
-  SET_STRING_ELT(tran,0,mkChar(bufw));
+  SET_STRING_ELT(tran,0,mkChar(bufw.s));
   
   SET_STRING_ELT(trann,1,mkChar("jac"));
   if (found_jac == 1 && good_jac == 1){
@@ -3047,75 +3014,75 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   }
   
   SET_STRING_ELT(trann,2,mkChar("prefix"));
-  SET_STRING_ELT(tran,2,mkChar(bufw));
+  SET_STRING_ELT(tran,2,mkChar(bufw.s));
 
-  sprintf(bufw,"%sdydt",model_prefix);
+  sPrint(&bufw,"%sdydt",model_prefix);
   SET_STRING_ELT(trann,3,mkChar("dydt"));
-  SET_STRING_ELT(tran,3,mkChar(bufw)) ;
+  SET_STRING_ELT(tran,3,mkChar(bufw.s)) ;
 
-  sprintf(bufw,"%scalc_jac",model_prefix);
+  sPrint(&bufw,"%scalc_jac",model_prefix);
   SET_STRING_ELT(trann,4,mkChar("calc_jac"));
-  SET_STRING_ELT(tran, 4,mkChar(bufw));
+  SET_STRING_ELT(tran, 4,mkChar(bufw.s));
 
-  sprintf(bufw,"%scalc_lhs",model_prefix);
+  sPrint(&bufw,"%scalc_lhs",model_prefix);
   SET_STRING_ELT(trann,5,mkChar("calc_lhs"));
-  SET_STRING_ELT(tran, 5,mkChar(bufw));
+  SET_STRING_ELT(tran, 5,mkChar(bufw.s));
 
-  sprintf(bufw,"%smodel_vars",model_prefix);
+  sPrint(&bufw,"%smodel_vars",model_prefix);
   SET_STRING_ELT(trann,6,mkChar("model_vars"));
-  SET_STRING_ELT(tran, 6,mkChar(bufw));
+  SET_STRING_ELT(tran, 6,mkChar(bufw.s));
 
-  sprintf(bufw,"%stheta",model_prefix);
+  sPrint(&bufw,"%stheta",model_prefix);
   SET_STRING_ELT(trann,7,mkChar("theta"));
-  SET_STRING_ELT(tran, 7,mkChar(bufw));
+  SET_STRING_ELT(tran, 7,mkChar(bufw.s));
 
-  sprintf(bufw,"%sinis",model_prefix);
+  sPrint(&bufw,"%sinis",model_prefix);
   SET_STRING_ELT(trann,8,mkChar("inis"));
-  SET_STRING_ELT(tran, 8,mkChar(bufw));
+  SET_STRING_ELT(tran, 8,mkChar(bufw.s));
 
-  sprintf(bufw,"%sdydt_lsoda",model_prefix);
+  sPrint(&bufw,"%sdydt_lsoda",model_prefix);
   SET_STRING_ELT(trann,9,mkChar("dydt_lsoda"));
-  SET_STRING_ELT(tran, 9,mkChar(bufw));
+  SET_STRING_ELT(tran, 9,mkChar(bufw.s));
 
-  sprintf(bufw,"%scalc_jac_lsoda",model_prefix);
+  sPrint(&bufw,"%scalc_jac_lsoda",model_prefix);
   SET_STRING_ELT(trann,10,mkChar("calc_jac_lsoda"));
-  SET_STRING_ELT(tran, 10,mkChar(bufw));
+  SET_STRING_ELT(tran, 10,mkChar(bufw.s));
 
-  sprintf(bufw,"%sode_solver_solvedata",model_prefix);
+  sPrint(&bufw,"%sode_solver_solvedata",model_prefix);
   SET_STRING_ELT(trann,11,mkChar("ode_solver_solvedata"));
-  SET_STRING_ELT(tran, 11,mkChar(bufw));
+  SET_STRING_ELT(tran, 11,mkChar(bufw.s));
   
-  sprintf(bufw,"%sode_solver_get_solvedata",model_prefix);
+  sPrint(&bufw,"%sode_solver_get_solvedata",model_prefix);
   SET_STRING_ELT(trann,12,mkChar("ode_solver_get_solvedata"));
-  SET_STRING_ELT(tran, 12,mkChar(bufw));
+  SET_STRING_ELT(tran, 12,mkChar(bufw.s));
 
-  sprintf(bufw,"%sdydt_liblsoda",model_prefix);
+  sPrint(&bufw,"%sdydt_liblsoda",model_prefix);
   SET_STRING_ELT(trann,13,mkChar("dydt_liblsoda"));
-  SET_STRING_ELT(tran, 13,mkChar(bufw));
+  SET_STRING_ELT(tran, 13,mkChar(bufw.s));
 
-  sprintf(bufw,"%sF",model_prefix);
+  sPrint(&bufw,"%sF",model_prefix);
   SET_STRING_ELT(trann,14,mkChar("F"));
-  SET_STRING_ELT(tran, 14,mkChar(bufw));
+  SET_STRING_ELT(tran, 14,mkChar(bufw.s));
 
-  sprintf(bufw,"%sLag",model_prefix);
+  sPrint(&bufw,"%sLag",model_prefix);
   SET_STRING_ELT(trann,15,mkChar("Lag"));
-  SET_STRING_ELT(tran, 15,mkChar(bufw));
+  SET_STRING_ELT(tran, 15,mkChar(bufw.s));
 
-  sprintf(bufw,"%sRate",model_prefix);
+  sPrint(&bufw,"%sRate",model_prefix);
   SET_STRING_ELT(trann,16,mkChar("Rate"));
-  SET_STRING_ELT(tran, 16,mkChar(bufw));
+  SET_STRING_ELT(tran, 16,mkChar(bufw.s));
 
-  sprintf(bufw,"%sDur",model_prefix);
+  sPrint(&bufw,"%sDur",model_prefix);
   SET_STRING_ELT(trann,17,mkChar("Dur"));
-  SET_STRING_ELT(tran, 17,mkChar(bufw));
+  SET_STRING_ELT(tran, 17,mkChar(bufw.s));
 
-  sprintf(bufw,"%smtime",model_prefix);
+  sPrint(&bufw,"%smtime",model_prefix);
   SET_STRING_ELT(trann,18,mkChar("mtime"));
-  SET_STRING_ELT(tran, 18,mkChar(bufw));
+  SET_STRING_ELT(tran, 18,mkChar(bufw.s));
 
-  sprintf(bufw,"%sassignFuns",model_prefix);
+  sPrint(&bufw,"%sassignFuns",model_prefix);
   SET_STRING_ELT(trann,19,mkChar("assignFuns"));
-  SET_STRING_ELT(tran, 19,mkChar(bufw));
+  SET_STRING_ELT(tran, 19,mkChar(bufw.s));
 
   SET_STRING_ELT(modeln,0,mkChar("normModel"));
   SET_STRING_ELT(model,0,mkChar(sbNrm.s));
@@ -3148,9 +3115,10 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 	RSprintf0("\n================================================================================\n");
       }
     }
+    sFree(&bufw); sFree(&bufw2);
     error("Syntax Errors (see above)");
-  } 
-  /* Free(sbPm); Free(sbNrm); */
+  }
+  sFree(&bufw); sFree(&bufw2);
   return lst;
 }
 
@@ -3209,6 +3177,7 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   }
   fpIO = fopen(CHAR(STRING_ELT(c_file,0)), "wb");
   err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
+  sFree(&sbOut);
   sIniTo(&sbOut, (int)((sbPm.sN)*5.3));
   // show_ode = 1 dydt
   // show_ode = 2 Jacobian
