@@ -2601,6 +2601,7 @@ void trans_internal(char* parse_file, int isStr){
       }
     }
   }
+  Free(parse_file);
 }
 
 SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr,
@@ -2667,7 +2668,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
   in = rc_dup_str(CHAR(STRING_ELT(parse_file,0)),0);
   trans_internal(in, isStr);
-  Free(in);
   extraCmt = 0;
   if (tb.linCmt){
     if (tb.hasKa){
