@@ -208,7 +208,7 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
       clock_t t = clock() - t0;
       double ts = ((double)t)/CLOCKS_PER_SEC;
       if (ts < 60){
-	Rprintf("0:00:%.1f", ts);
+	Rprintf("0:00:%02.1f", ts);
       } else {
 	double f = floor(ts/60);
 	double s = ts-f*60;
