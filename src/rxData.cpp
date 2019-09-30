@@ -2782,6 +2782,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->atolSS = as<double>(rxControl["atolSS"]);
     op->rtolSS = as<double>(rxControl["rtolSS"]);
     op->strictSS = as<int>(rxControl["strictSS"]);
+    op->addlSS = as<int>(rxControl["addlSS"]);
     
     gatol2Setup(op->neq);
     grtol2Setup(op->neq);

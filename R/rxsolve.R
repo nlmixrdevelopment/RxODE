@@ -21,7 +21,7 @@ rxControl <- function(scale = NULL,
                       seed=NULL, nsim=NULL,
                       minSS=7, maxSS=1000L,
                       atolSS=1e-9, rtolSS=1e-9,
-                      strictSS=FALSE,
+                      strictSS=FALSE, addlSS=TRUE,
                       params=NULL,events=NULL,
                       istateReset=TRUE,
                       subsetNonmem=TRUE,
@@ -151,6 +151,7 @@ rxControl <- function(scale = NULL,
                  minSS=minSS, maxSS=maxSS,
                  atolSS=atolSS[1], rtolSS=rtolSS[1],
                  strictSS=as.integer(strictSS),
+                 addlSS=as.integer(addlSS),
                  istateReset=istateReset,
                  subsetNonmem=subsetNonmem,
                  linLog=linLog, hmaxSd=hmaxSd,
@@ -403,6 +404,10 @@ rxControl <- function(scale = NULL,
 ##'     last good solve before ODE solving problems occur is
 ##'     considered the steady state, even though either \code{atolSS},
 ##'     \code{rtolSS} or \code{maxSS} have not been achieved.
+##'
+##' @param addlSS Once additional dosing achieves steady use that
+##'     solution instead of calling the ode solver to calculate the
+##'     solution.
 ##'
 ##' @param istateReset When \code{TRUE}, reset the \code{ISTATE} variable to 1 for
 ##'     lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do
