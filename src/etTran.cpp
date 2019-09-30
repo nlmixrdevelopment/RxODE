@@ -234,7 +234,6 @@ bool rxSetIni0(bool ini0 = true){
 extern void setFkeep(List keep);
 IntegerVector convertMethod(RObject method);
 
-extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 bool warnedNeg=false;
 //' Event translation for RxODE
 //'
@@ -328,9 +327,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   bool allInf = true;
   int mxCmt = 0;
   std::vector<int> keepI(keep.size(), 0);
-  // ========================================
-  // Look for the correct names
-  // ========================================
+
   for (i = lName.size(); i--;){
     tmpS0= as<std::string>(lName[i]);
     tmpS = as<std::string>(lName[i]);
@@ -397,12 +394,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
     warning(wKeep);
   }
-  // ========================================
-  //
-  // Look at the covariate columns for units and see if CMT is in the
-  // model as a "covariate."
-  //
-  // ========================================
   List covUnits(covCol.size());
   CharacterVector covUnitsN(covCol.size());
   NumericVector nvTmp, nvTmp2;
@@ -422,9 +413,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     covUnits[i] = nvTmp2;
   }
   covUnits.attr("names") = covUnitsN;
-  // ========================================
-  // Need to translate all known input to the standardized input below:
-  // 
   // EVID = 0; Observations
   // EVID = 1; is illegal, but converted from NONMEM
   // EVID = 2; Non-observation, possibly covariate
@@ -452,30 +440,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   // xx = 10, steady state event SS=1
   // xx = 20, steady state event + last observed info.
   // xx = 30, Turn off compartment
-  // xx = 40, addl add doses
-  // xx = 50, IV rate on
-  // xx = 60, IV rate off
-  // xx = 70, mult dose
   // Steady state events need a II data item > 0
-
-  // ========================================
-  //
-  // Since this translation is done in context of the model, get the
-  // sensitivity, state and extra state properties.
-  //
-  // ========================================
+  
   CharacterVector state0 = as<CharacterVector>(mv["state"]);
   CharacterVector stateE = as<CharacterVector>(mv["stateExtra"]);
   CharacterVector stateS = as<CharacterVector>(mv["sens"]);
   int extraCmt  = as<int>(mv["extraCmt"]);
-  //
-  // Enlarge compartments; This is for the linear solved systems; Even
-  // though the model does not technically have these ODE compartments
-  // defined.
-  //
-  // As seen by the below model, the "depot" and "central"
-  // compartments are currently defined by the model
-  // 
+  // Enlarge compartments
   if (extraCmt == 2){
     CharacterVector newState(state0.size()+2);
     for (int j = state0.size();j--;) newState[j] = state0[j];
@@ -495,16 +466,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   for (int i = 0; i < stateE.size(); i++){
     state[i+state0.size()] = stateE[i];
   }
-  // Now adjust the compartment numbers if needed.  This is to adjust
-  // the extra DVID items so they actually are part of the CMT data
-  // specification.
+  // Now adjust the compartment numbers if needed.
   int baseSize = state0.size() - stateS.size();
   for (int i = curDvid.size(); i--;){
     if (curDvid[i] > baseSize){
       curDvid[i] = stateS.size()+curDvid[i];
     }
   }
-  // This defines the items in the final dataset
   std::vector<int> id;
   std::vector<int> allId;
   std::vector<int> obsId;
@@ -526,35 +494,18 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   if (rxIs(inData[timeCol], "numeric") || rxIs(inData[timeCol], "integer")){
     inTime = as<NumericVector>(inData[timeCol]);
   } else {
-    //
-    // To support the NONMEM standard DATE TIME and other types of
-    // date/time we convert in R itself with the non-exported
-    // ".convertExtra" function
-    //
     List newInData = clone(inData);
     Function convDate = rx[".convertExtra"];
     newInData =  convDate(newInData);
-    // We restart the process with the newly created dataset.
     return etTrans(newInData, obj, addCmt, dropUnits, allTimeVar, keepDosingOnly, combineDvid);
   }
-  // If there is time units, save the unit information
+  // save units information
   bool addTimeUnits = false;
   RObject timeUnits;
   if (rxIs(inTime, "units")){
     addTimeUnits=true;
     timeUnits=inTime.attr("units");
   }
-  // This is the code that converts to a compartment number.
-  // Note this compartment is based on:
-  //
-  // - Compartment names defined in the RxODE model (Note -cmt turns a
-  //   compartment off.
-  //
-  // - Compartment numbers based on the first compartment number in
-  //   the RxODE model
-  //
-  // - The DVID values without any corresponding cmt values.
-  //
   IntegerVector inCmt;
   RObject cmtInfo = R_NilValue;
   if (cmtCol != -1){
@@ -563,9 +514,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     cmtInfo = inCmt.attr("cmtNames");
     inCmt.attr("cmtNames") = R_NilValue;
   }
-  //
-  // This is the dvid conversion similar to above.
-  //
   IntegerVector inDvid;
   if (dvidCol != -1){
     inDvid = as<IntegerVector>(toCmt(inData[dvidCol], state, true,
@@ -577,23 +525,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   IntegerVector inId;
   CharacterVector idLvl;
   if (idCol != -1){
-    // 
-    // SAEM and possibly other types of methods requires IDs to start
-    // at 1 and then go to the maximum number ID without any missing IDs.  So it would be numbered 1, 2, 3 instead of 1, 3, 5
-    //
-    // There is 1 R call here that converts the ID to a factor
-    //
-    // FIXME R can be slow and this likely can be done in C/C++ as well
     Function convId = rx[".convertId"];
     inId = convId(inData[idCol]);//as<IntegerVector>();
     idLvl = inId.attr("levels");
   } else {
-    // In this case, there is no ID, just assume that this is a single
-    // solve dataset.
     // warning("ID=1 added to dataset");
     idLvl = CharacterVector::create("1");
   }
-  // Get Steady state information (if present)
   IntegerVector inSs;
   if (ssCol != -1){
     if (rxIs(inData[ssCol], "integer") || rxIs(inData[ssCol], "numeric") ||
@@ -604,7 +542,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       stop("Steady state column (ss) needs to be an integer");
     }
   }
-  // Get EVID information if present
   IntegerVector inEvid;
   if (evidCol != -1){
     if (rxIs(inData[evidCol], "integer") || rxIs(inData[evidCol], "numeric") ||
@@ -614,7 +551,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       stop("Event id (evid) needs to be an integer");
     }
   } else if (mdvCol != -1){
-    // NONMEM likes the MDV column.  This allows this to work with MDV.
     evidCol = mdvCol;
     mdvCol=-1;
     if (rxIs(inData[evidCol], "integer") || rxIs(inData[evidCol], "numeric") ||
@@ -624,12 +560,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       stop("Missing DV (mdv) needs to be an integer");
     }
   } else if (methodCol != -1){
-    // Method comes from deSolve style of datasets.  There method can
-    // equal (1 = replace, 2 = add, 3 = multiply). Since we are in R it
-    // makes sense to support deSolve input datasets.
     inEvid = convertMethod(inData[methodCol]);
   }
-  // Get the NONMEM-style MDV variable.
   IntegerVector inMdv;
   if (mdvCol != -1){
     if (rxIs(inData[mdvCol], "integer") || rxIs(inData[mdvCol], "numeric") ||
@@ -639,7 +571,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       stop("Missing dependent variable (mdv) needs to be an integer");
     }
   }
-  // Get the rate column information
   NumericVector inRate;
   if (rateCol != -1){
     if (rxIs(inData[rateCol], "integer") || rxIs(inData[rateCol], "numeric") ||
@@ -649,7 +580,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       stop("'rate' needs to be a number");
     }
   }
-  // Get the duration column information
+
   NumericVector inDur;
   if (durCol != -1){
     if (rxIs(inData[durCol], "integer") || rxIs(inData[durCol], "numeric") ||
@@ -659,8 +590,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       stop("'dur' needs to be a number");
     }
   }
-  // See if the amt column has units. If so then the amount can be
-  // cast in units at the end of the solve. 
+  
   bool addAmtUnits = false;
   RObject amtUnits;
   NumericVector inAmt;
@@ -676,7 +606,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       stop("Amount (amt) needs to be a number");
     }
   }
-  // Get inter-dose interval
   NumericVector inIi;
   if (iiCol != -1){
     if (rxIs(inData[iiCol], "integer") || rxIs(inData[iiCol], "numeric") ||
@@ -686,7 +615,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       stop("Inter-dose interval (ii) needs to be a number.");
     }
   }
-  // Get addl dose information
   IntegerVector inAddl;
   if (addlCol != -1){
     if (rxIs(inData[addlCol], "integer") || rxIs(inData[addlCol], "numeric")||
@@ -696,9 +624,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       stop("Number of additional doses (addl) needs to be an integer");
     }
   }
-  // Get the observation column, if present.  This is really for
-  // nlimixr datasets, but is handled in RxODE properly.
-  // 
   NumericVector inDv;
   if (dvCol != -1){
     if (rxIs(inData[dvCol], "integer") || rxIs(inData[dvCol], "numeric") ||
@@ -728,22 +653,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   double cdv;
   int nobs=0, ndose=0;
   bool doWarnNeg=false;
-  //========================================
-  // Now we loop though the input dataset and do the following:
-  //
-  // - This unrolls additional doses, addl realizes each dose
-  //
-  // - This adds 2 events for evid=4, 
-  //
-  // - This also adds an evid=9 for every item without a zero
-  //   observation
-  //
-  // - Infusion records add an infusion ON record and a infusion OFF
-  //   record.
-  // 
-  // - It also tracks the ID#s without observations (to drop)
-  // 
-  // =======================================
   for (int i = 0; i < inTime.size(); i++){
     if (idCol == -1) cid = 1;
     else cid = inId[i];
@@ -1139,11 +1048,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  zeroId.push_back(cid);
 	}
       }
-      if (caddl > 0){
-	ii.push_back(0.0);
-      } else {
-	ii.push_back(cii);
-      }
+      ii.push_back(cii);
       if (flg >= 10 && caddl > 0){
 	  stop("ss with addl not supported yet.");
       }
@@ -1272,7 +1177,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
     if (!_ini0) warning(idWarn.c_str());
   }
-  // Sort the dataset; Use timsort
   gfx::timsort(idxO.begin(),idxO.end(),
 	       [id,time,evid,amt,doseId,keepDosingOnly](int a, int b){
 		 if (id[a] == id[b]){
@@ -1316,8 +1220,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   if (idxO.size()==0) stop("Empty data.");
   int lastId = id[idxO.back()]+42;
   int rmAmt = 0;
-  // Remove trailing doses; These doses add to computation time but do
-  // not add anything to the observations.
+  // Remove trailing doses
   if (!keepDosingOnly){
     for (j =idxO.size(); j--; ){
       if (lastId != id[idxO[j]]){
@@ -1345,9 +1248,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   } else {
     baseSize = 6;
   }
-  // =======================================
-  // Create the output dataset
-  // ========================================
   List lst = List(baseSize+covCol.size());
   std::vector<bool> sub0(baseSize+covCol.size(), true);
   CharacterVector nme(baseSize+covCol.size());
@@ -1382,6 +1282,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 
   lst1[0] = IntegerVector(nid);
   nme1[0] = "ID";
+  
   for (j = 0; j < (int)(covCol.size()); j++){
     if (as<std::string>(lName[covCol[j]]) == "cmt"){
       lst[baseSize+j] = IntegerVector(idxO.size()-rmAmt);
@@ -1414,13 +1315,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   std::vector<int> covParPosTV;
   bool cmtFadd = false;
   int jj = idxO.size()-rmAmt;
-  // ========================================
-  //
-  // This fills in the dataset based on the sorted order above.  While
-  // doing this it tracks the time-varying covariates and the
-  // covariates that are the same for each individual.
-  //
-  // ========================================
   for (i =idxO.size(); i--;){
     if (idxO[i] != -1){
       jj--;
@@ -1526,11 +1420,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     tmpN.attr("class") = "units";
     tmpN.attr("units") = amtUnits;
   }
-  //
-  // Now subset based on time-varying covariates, the time invariant
-  // covariates are stored as parameters and not changed for each
-  // individual.
-  //
+  // Now subset based on time-varying covariates
   List lstF;
   CharacterVector nmeF;
   if (allTimeVar){
@@ -1558,118 +1448,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       j++;
     }
   }
-  //
-  IntegerVector idO = lst[0];
-  NumericVector timeO = lst[1];
-  IntegerVector evidO = lst[2];
-  NumericVector amtO = lst[3];
-  NumericVector iiO = lst[4];
-  double tlast = NA_REAL, lastII = NA_REAL, curII=NA_REAL,
-    lastAmt = NA_REAL, lastII2 = NA_REAL;
-  int wh=0, wh100=0, whI=0, wh0=0, lastCmt=NA_INTEGER, lastWh0 = NA_INTEGER,
-    lastI = NA_INTEGER, lastI2 = NA_INTEGER, lastI3=NA_INTEGER;
-  // ========================================
-  //
-  // Here is where we calculate which doses are repeated. This
-  // information is used to accelerate solving by caching steady state
-  // solutions once the system has reached steady state.  If it isn't
-  // done first, it can be too expensive to calculate this on the fly,
-  // leading to very little benefit.
-  //
-  // This needs at least 3 identical doses in a row to start the flags
-  //
-  // ========================================
-  for (i = 0; i < (int)(evidO.size()); i++){
-    if (!isObs(evidO[i])){
-      getWh(evidO[i], &wh, &cmt, &wh100, &whI, &wh0);
-      if ( wh0 == 1  && whI != 4){
-	switch (whI){
-	case 1: // Infusion w/constant rate
-	case 2: // Infusion w/constant duration
-	case 6: // End Duration
-	case 7: // End modeled rate
-	case 8: // modeled duration
-	case 9: // modeled rate
-	  if ((lastCmt == cmt  && amtO[i] == -lastAmt) ||
-	      (IntegerVector::is_na(lastCmt) && NumericVector::is_na(lastAmt))){
-	    curII = timeO[i] - tlast;
-	    if (amtO[i] > 0){
-	      // turn on infusion
-	      if (fabs(curII-lastII) < sqrt(DOUBLE_EPS)){
-		evidO[i] += 49; // x01  + 49  = x50
-		if (lastWh0 == 1){
-		  evidO[lastI] += 49;
-		  evidO[lastI2] += 49;
-		}
-		wh0 = 50;
-	      }
-	      lastWh0 = wh0;
-	      tlast = timeO[i];
-	      lastII = curII;
-	      lastI2 = lastI;
-	      lastI=i;
-	    } else {
-	      // turn off infusion
-	      if (fabs(curII-lastII2) < sqrt(DOUBLE_EPS)){
-		evidO[i] += 59; // x01  + 49  = x60
-		if (lastWh0 == 1){
-		  evidO[lastI3] += 59;
-		  wh0 = 1;
-		} else {
-		  wh0 = 60;
-		}
-	      }
-	      lastII2 = curII;
-	      lastI3=i;
-	    }
-	  } else {
-	    lastII = NA_REAL;
-	    lastII2 = NA_REAL;
-	    lastAmt = NA_REAL;
-	    lastCmt = NA_INTEGER;
-	  }
-	  break;
-	case 5: // Multiply
-	case 0: // Bolus dose
-	  if ((lastCmt == cmt && amtO[i] == lastAmt) ||
-	      (IntegerVector::is_na(lastCmt) && NumericVector::is_na(lastAmt))){
-	    curII = timeO[i] - tlast;
-	    if (fabs(curII -lastII) < sqrt(DOUBLE_EPS)){
-	      if (lastWh0 == 1){
-		if (whI == 0){
-		  evidO[lastI]  += 39;
-		  evidO[lastI2]  += 39;
-		} else {
-		  evidO[lastI]  += 69;
-		  evidO[lastI2]  += 69;
-		}
-	      }
-	      if (whI == 0){
-		evidO[i] += 39; // x01  + 39  = x40
-		wh0=40;
-	      } else {
-		evidO[i] += 69; // x01  + 69  = x70
-		wh0=70;
-	      }
-	    }
-	    lastII = curII;
-	  } else {
-	    lastII = NA_REAL;
-	    lastII2 = NA_REAL;
-	    lastAmt = NA_REAL;
-	    lastCmt = NA_INTEGER;
-	  }
-	  tlast = timeO[i];
-	  lastI2=lastI;
-	  lastI=i;
-	  break;
-	}
-      }
-      lastAmt = amtO[i];
-      lastCmt=cmt;
-      lastWh0=wh0;
-    }
-  }
+
   CharacterVector cls = CharacterVector::create("rxEtTran","data.frame");
   
   IntegerVector tmp = lst1F[0];

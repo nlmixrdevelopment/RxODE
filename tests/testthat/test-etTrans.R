@@ -844,49 +844,4 @@ d/dt(blood)     = a*intestine - b*blood
 
     rxSetIni0(TRUE)
 
-    context("Adding flag for repeated doses")
-
-    test_that("addl bolus doses", {
-
-        mod <- RxODE("
-a = 6
-b = 0.6
-d/dt(intestine) = -a*intestine
-d/dt(blood)     = a*intestine - b*blood
-")
-    et <- et(amt=3, addl=4, ii=4)
-    trn1 <- etTrans(et %>% as.data.frame, mod, keepDosingOnly = TRUE)
-    expect_equal(trn1$EVID, c(140L, 140L, 140L, 140L, 140L));
-
-    et <- et(amt=3, addl=4, ii=4, evid=6)
-    trn1 <- etTrans(et %>% as.data.frame, mod, keepDosingOnly = TRUE)
-    expect_true(all(trn1$EVID == 50170));
-
-    et <- et(amt=3, addl=4, ii=4) %>% et(amt=4, addl=4, ii=4, time=2)
-    trn1 <- etTrans(et %>% as.data.frame, mod, keepDosingOnly = TRUE)
-    expect_equal(trn1$EVID,
-                 c(101L, 101L, 101L, 101L, 101L, 101L, 101L, 101L, 101L, 101L))
-    ## detect without addl
-    et <- et(amt=3) %>% et(time=4, amt=3) %>% et(time=8, amt=3)
-    trn1 <- etTrans(et %>% as.data.frame, mod, keepDosingOnly = TRUE)
-    expect_equal(trn1$EVID, c(140L, 140L, 140L))
-
-    et <- et(amt=3) %>% et(time=4, amt=3)
-    trn1 <- etTrans(et %>% as.data.frame, mod, keepDosingOnly = TRUE)
-    expect_equal(trn1$EVID, c(101L, 101L))
-
-})
-
-
-  mod <- RxODE("
-a = 6
-b = 0.6
-d/dt(intestine) = -a*intestine
-d/dt(blood)     = a*intestine - b*blood
-")
-
-    et <- et(amt=2/24,rate=2,start.time=0, ii=3, addl=10)
-    trn1 <- etTrans(et %>% as.data.frame, mod, keepDosingOnly = TRUE)
-
-
 }, cran=TRUE, silent=TRUE)

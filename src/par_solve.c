@@ -706,28 +706,6 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
   return LAG(ind->id, ind->cmt, ind->all_times[idx]);
 }
 
-int notSS(int evid, double *yp, rx_solving_options_ind *ind){
-  if (isObs(evid)) return 1;
-  if (!ind->atSS) return 1;
-  getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
-  if (ind->atSS == ind->wh0){
-    rx_solving_options *op = &op_global;
-    if (ind->atSS == 60){
-      for (int k = op->neq; k--;) {
-	yp[k] += ind->addSS2[k];
-      }
-    } else {
-      for (int k = op->neq; k--;) {
-	yp[k] += ind->addSS1[k];
-      }
-    }
-    return 0;
-  }
-  ind->atSS = 0;
-  ind->nAddl = 0;
-  return 1;
-}
-
 
 int handle_evid(int evid, int neq, 
 		int *BadDose,
@@ -738,10 +716,6 @@ int handle_evid(int evid, int neq,
 		double xout, int id,
 		rx_solving_options_ind *ind){
   if (isObs(evid)) return 0;
-  if (ind->atSS){
-    ind->ixds++;
-    return 0;
-  }
   int wh = evid, cmt, foundBad, j;
   double tmp;
   if (wh) {
@@ -905,67 +879,6 @@ int handle_evid(int evid, int neq,
 	  yp[cmt] += AMT(id, cmt, dose[ind->ixds], xout);     //dosing before obs
 	}
       }
-      rx_solving_options *op = &op_global;
-      if (op->addlSS){
-	switch(ind->wh0){
-	case 70: // multiply
-	case 40: // bolus
-	  if (ind->nAddl ==op->minSS -1){
-	    ind->lastSum =0.0;
-	    for (int k = op->neq; k--;) {
-	      ind->lastSum += fabs(yp[k]);
-	    }
-	  } else if (ind->nAddl >= op->minSS) {
-	    double curSum = 0.0;
-	    for (int k = op->neq; k--;) {
-	      curSum += fabs(yp[k]);
-	    }
-	    if (fabs(curSum- ind->lastSum) < op->rtolSS*fabs(curSum) + op->atolSS){
-	      ind->atSS = ind->wh0;
-	      ind->addSS1 = yp;
-	    }
-	    ind->lastSum = curSum;
-	  }
-	  ind->nAddl++;
-	  break;
-	case 50: // rate on
-	  if (ind->nAddl ==op->minSS -1){
-	    ind->lastSum =0.0;
-	    for (int k = op->neq; k--;) {
-	      ind->lastSum += fabs(yp[k]);
-	    }
-	  } else if (ind->nAddl >= op->minSS) {
-	    ind->curSum = 0.0;
-	    for (int k = op->neq; k--;) {
-	      ind->curSum += fabs(yp[k]);
-	    }
-	  }
-	  ind->addSS1 = yp;
-	  break;
-	case 60: // rate off
-	  if (ind->nAddl ==op->minSS -1){
-	    for (int k = op->neq; k--;) {
-	      ind->lastSum += fabs(yp[k]);
-	    }
-	  } else if (ind->nAddl >= op->minSS) {
-	    for (int k = op->neq; k--;) {
-	      ind->curSum += fabs(yp[k]);
-	    }
-	    if (fabs(ind->curSum - ind->lastSum) <
-		op->rtolSS*fabs(ind->curSum) + op->atolSS){
-	      ind->atSS = 60;
-	      ind->addSS2 = yp;
-	    }
-	    ind->lastSum = ind->curSum;
-	  }
-	  ind->nAddl++;
-	  break;
-	default:
-	  ind->nAddl=0;
-	  ind->atSS=0;
-	}
-      }
-      
       /* istate = 1; */
       ind->ixds++;
       /* xp = xout; */
@@ -1402,8 +1315,6 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   unsigned int j;
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
   if (rx->needSort) doSort(ind);
-  ind->atSS = 0;
-  ind->nAddl = 0;
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
   ind->_newind = 1;
   for(i=0; i<nx; i++) {
@@ -1418,8 +1329,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
 	op->badSolve = 1;
 	i = nx-1; // Get out of here!
       } else {
-	if (notSS(ind->evid[ind->ix[i]], yp, ind)) lsoda(&ctx, yp, &xp, xout);
-	else ctx.state = 1;
+	lsoda(&ctx, yp, &xp, xout);
 	if (ctx.state <= 0) {
 	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
 	  *rc = ctx.state;
@@ -1711,8 +1621,6 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   u_inis(neq[1], ind->solve); // Update initial conditions
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
   if (rx->needSort) doSort(ind);
-  ind->atSS = 0;
-  ind->nAddl = 0;
   unsigned int j;
   ind->_newind = 1;
   for(i=0; i < ind->n_all_times; i++) {
@@ -1727,10 +1635,8 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 	op->badSolve = 1;
 	i = ind->n_all_times-1; // Get out of here!
       } else {
-	if (notSS(ind->evid[ind->ix[i]], yp, ind))
-	  F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &gitol, &(op->RTOL), &(op->ATOL), &gitask,
-			   &istate, &giopt, rwork, &lrw, iwork, &liw, jdum, &jt);
-	else istate = 1;
+	F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &gitol, &(op->RTOL), &(op->ATOL), &gitask,
+			 &istate, &giopt, rwork, &lrw, iwork, &liw, jdum, &jt);
 	if (istate <= 0) {
 	  RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-(istate)-1]);
 	  ind->rc[0] = istate;
@@ -1893,8 +1799,6 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   u_inis(neq[1], ret); // Update initial conditions
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
   if (rx->needSort) doSort(ind);
-  ind->atSS = 0;
-  ind->nAddl = 0;
   //--- inits the system
   unsigned int j;
   ind->_newind = 1;
@@ -1915,33 +1819,31 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
 	  op->badSolve = 1;
 	  i = nx-1; // Get out of here!
 	} else {
-	  if (notSS(ind->evid[ind->ix[i]], yp, ind))
-	    idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
-			  c_dydt,       /* function computing the value of f(x,y) */
-			  xp,           /* initial x-value */
-			  yp,           /* initial values for y */
-			  xout,         /* final x-value (xend-x may be positive or negative) */
-			  &rtol,          /* relative error tolerance */
-			  &atol,          /* absolute error tolerance */
-			  itol,         /* switch for rtoler and atoler */
-			  solout,         /* function providing the numerical solution during integration */
-			  iout,         /* switch for calling solout */
-			  NULL,           /* messages stream */
-			  DBL_EPSILON,    /* rounding unit */
-			  0,              /* safety factor */
-			  0,              /* parameters for step size selection */
-			  0,
-			  0,              /* for stabilized step size control */
-			  0,              /* maximal step size */
-			  0,            /* initial step size */
-			  op->mxstep, /* maximal number of allowed steps */
-			  1,            /* switch for the choice of the coefficients */
-			  -1,                     /* test for stiffness */
-			  0,                      /* number of components for which dense outpout is required */
-			  NULL,           /* indexes of components for which dense output is required, >= nrdens */
-			  0                       /* declared length of icon */
-			  );
-	  else idid=1;
+	  idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
+			c_dydt,       /* function computing the value of f(x,y) */
+			xp,           /* initial x-value */
+			yp,           /* initial values for y */
+			xout,         /* final x-value (xend-x may be positive or negative) */
+			&rtol,          /* relative error tolerance */
+			&atol,          /* absolute error tolerance */
+			itol,         /* switch for rtoler and atoler */
+			solout,         /* function providing the numerical solution during integration */
+			iout,         /* switch for calling solout */
+			NULL,           /* messages stream */
+			DBL_EPSILON,    /* rounding unit */
+			0,              /* safety factor */
+			0,              /* parameters for step size selection */
+			0,
+			0,              /* for stabilized step size control */
+			0,              /* maximal step size */
+			0,            /* initial step size */
+			op->mxstep, /* maximal number of allowed steps */
+			1,            /* switch for the choice of the coefficients */
+			-1,                     /* test for stiffness */
+			0,                      /* number of components for which dense outpout is required */
+			NULL,           /* indexes of components for which dense output is required, >= nrdens */
+			0                       /* declared length of icon */
+			);
 	}
         if (idid<0) {
 	  RSprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
@@ -2300,8 +2202,6 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       ind->_newind = 1;
       if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
       if (rx->needSort) doSort(ind);
-      ind->atSS = 0;
-      ind->nAddl = 0;
       nBadDose = ind->nBadDose;
       BadDose = ind->BadDose;
       ntimes = ind->n_all_times;

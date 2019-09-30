@@ -78,7 +78,6 @@ typedef struct {
   double rtolSS;
   int linLog;
   int strictSS;
-  int addlSS;
 } rx_solving_options;
 
 
@@ -132,12 +131,6 @@ typedef struct {
   int timeReset;
   int _newind;
   int err;
-  double lastSum;
-  double curSum;
-  int nAddl;
-  int atSS;
-  double *addSS1;
-  double *addSS2;
 } rx_solving_options_ind;
 
 typedef struct {
