@@ -133,75 +133,95 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
     int isSupported = isProgSupported();
     if (isSupported == -1){
     } else if (isSupported == 0){
-      if (nticks > curTicks){
-        int i;
-        for (i = curTicks; i < nticks; i++){
-          if (i == 0) {
-            Rprintf("[");
-          } else if (i % 5 == 0) {
-            Rprintf("|");
-          } else {
-            Rprintf("=");
-          }
-        }
+      int i;
+      for (i = curTicks; i < nticks; i++){
+	if (i == 0) {
+	  Rprintf("[");
+	} else if (i % 5 == 0) {
+	  Rprintf("|");
+	} else {
+	  Rprintf("=");
+	}
       }
     } else if (isRstudio()){
-      if (nticks > curTicks){
-	Rprintf("\r");
-        int i;
-        for (i = 0; i < nticks; i++){
-          if (i == 0) {
-            Rprintf("[");
-          } else if (i % 5 == 0) {
-            Rprintf("|");
-          } else {
-            Rprintf("=");
-          }
-        }
-        for (i = nticks; i < 50; i++){
-          Rprintf(" ");
-        }
-        Rprintf("] ");
-        if (nticks < 50) Rprintf(" ");
-        if (cores > 1){
-          Rprintf("%02.f%%; ncores=%d; ",100*progress,cores);
-        } else {
-          Rprintf("%02.f%%; ",100*progress,cores);
-        }
-        clock_t t = clock() - t0;
-        Rprintf(" %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
-        if (stop){
-          Rprintf("Stopped Calculation!\n");
-        }
+      Rprintf("\r");
+      int i;
+      for (i = 0; i < nticks; i++){
+	if (i == 0) {
+	  Rprintf("[");
+	} else if (i % 5 == 0) {
+	  Rprintf("|");
+	} else {
+	  Rprintf("=");
+	}
+      }
+      for (i = nticks; i < 50; i++){
+	Rprintf(" ");
+      }
+      Rprintf("] ");
+      if (nticks < 50) Rprintf(" ");
+      if (cores > 1){
+	Rprintf("%02.f%%; n=%d; ",100*progress,cores);
+      } else {
+	Rprintf("%02.f%%; ",100*progress,cores);
+      }
+      clock_t t = clock() - t0;
+      double ts = ((double)t)/CLOCKS_PER_SEC;
+      if (ts < 60){
+	Rprintf("0:00:%02.1f", ts);
+      } else {
+	double f = floor(ts/60);
+	double s = ts-f*60;
+	if (f > 60){
+	  double h = floor(f/60);
+	  f = f-h*60;
+	  Rprintf("%.0f:%02.0f:%02.1f", h, f, s);
+	} else {
+	  Rprintf("0:%02.0f:%02.1f", f, s);
+	}
+      }
+      if (stop){
+	Rprintf("Stopped Calculation!\n");
       }
     } else {
-      if (nticks > curTicks){
-        RSprintf0("\r");
-        int i;
-        for (i = 0; i < nticks; i++){
-          if (i == 0) {
-            RSprintf0("%%[");
-          } else if (i % 5 == 0) {
-            RSprintf0("|");
-          } else {
-            RSprintf0("=");
-          }
-        }
-        for (i = nticks; i < 50; i++){
-          RSprintf0(" ");
-        }
-        RSprintf0("] ");
-        if (nticks < 50) Rprintf(" ");
-        if (cores > 1){
-          RSprintf("%02.f%%; ncores=%d; ",100*progress,cores);
-        } else {
-          RSprintf("%02.f%%; ",100*progress,cores);
-        }
-        clock_t t = clock() - t0;
-        RSprintf(" %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
-        if (stop){
-          RSprintf0("Stopped Calculation!\n");
-        }
+      RSprintf0("\r");
+      int i;
+      for (i = 0; i < nticks; i++){
+	if (i == 0) {
+	  RSprintf0("%%[");
+	} else if (i % 5 == 0) {
+	  RSprintf0("|");
+	} else {
+	  RSprintf0("=");
+	}
+      }
+      for (i = nticks; i < 50; i++){
+	RSprintf0(" ");
+      }
+      RSprintf0("] ");
+      if (nticks < 50) Rprintf(" ");
+      if (cores > 1){
+	RSprintf("%02.f%%; n=%d; ",100*progress,cores);
+      } else {
+	RSprintf("%02.f%%; ",100*progress,cores);
+      }
+      clock_t t = clock() - t0;
+      double ts = ((double)t)/CLOCKS_PER_SEC;
+      if (ts < 60){
+	Rprintf("0:00:%.1f", ts);
+      } else {
+	double f = floor(ts/60);
+	double s = ts-f*60;
+	if (f > 60){
+	  double h = floor(f/60);
+	  f = f-h*60;
+	  Rprintf("%.0f:%02.0f:%02.1f", h, f, s);
+	} else {
+	  Rprintf("0:%02.0f:%02.1f", f, s);
+	}
+      }
+      if (stop){
+	RSprintf0("Stopped Calculation!\n");
       }
     }
     par_flush_console();
