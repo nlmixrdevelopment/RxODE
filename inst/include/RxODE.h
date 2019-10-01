@@ -74,8 +74,6 @@ typedef struct {
   int abort;
   int minSS;
   int maxSS;
-  double atolSS;
-  double rtolSS;
   int linLog;
   int strictSS;
 } rx_solving_options;
@@ -98,6 +96,7 @@ typedef struct {
   double *mtime;
   double *solveSave;
   double *solveLast;
+  double *solveLast2;
   double *lhs;
   int  *evid;
   int *rc;

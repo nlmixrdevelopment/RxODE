@@ -168,16 +168,16 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
       clock_t t = clock() - t0;
       double ts = ((double)t)/CLOCKS_PER_SEC;
       if (ts < 60){
-	Rprintf("0:00:%02.1f", ts);
+	Rprintf("0:00:%02f ", floor(ts));
       } else {
 	double f = floor(ts/60);
 	double s = ts-f*60;
-	if (f > 60){
+	if (f >= 60){
 	  double h = floor(f/60);
 	  f = f-h*60;
-	  Rprintf("%.0f:%02.0f:%02.1f", h, f, s);
+	  Rprintf("%.0f:%02.0f:%02f ", h, f, floor(s));
 	} else {
-	  Rprintf("0:%02.0f:%02.1f", f, s);
+	  Rprintf("0:%02.0f:%02f ", f, floor(s));
 	}
       }
       if (stop){
@@ -208,16 +208,16 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
       clock_t t = clock() - t0;
       double ts = ((double)t)/CLOCKS_PER_SEC;
       if (ts < 60){
-	Rprintf("0:00:%02.1f", ts);
+	Rprintf("0:00:%02f ", floor(ts));
       } else {
 	double f = floor(ts/60);
 	double s = ts-f*60;
-	if (f > 60){
+	if (f >= 60){
 	  double h = floor(f/60);
 	  f = f-h*60;
-	  Rprintf("%.0f:%02.0f:%02.1f", h, f, s);
+	  Rprintf("%.0f:%02.0f:%02f ", h, f, floor(s));
 	} else {
-	  Rprintf("0:%02.0f:%02.1f", f, s);
+	  Rprintf("0:%02.0f:%02f", f, floor(s));
 	}
       }
       if (stop){
@@ -302,11 +302,8 @@ void rxOptionsIniEnsure(int mx){
   rx_solve *rx=(&rx_global);
   rx->subjects = inds_global;  
   rx_solving_options *op = &op_global;
-  if (op->stiff == 2){
-    // FIXME for some reason not always being saved
-    op->rtol2 = getRol(op->neq, op->RTOL);
-    op->atol2 = getAol(op->neq, op->ATOL);
-  }
+  op->rtol2 = getRol(op->neq, op->RTOL);
+  op->atol2 = getAol(op->neq, op->ATOL);
 }
 
 t_dydt dydt = NULL;
@@ -1091,7 +1088,8 @@ void handleSS(int *neq,
     u_inis(neq[1], yp); // Update initial conditions @ current time
     if (rx->istateReset) *istate = 1;
     int k;
-    double curSum = 0.0, lastSum=0.0, xp2, xout2;
+    double xp2, xout2;
+    int canBreak=0;
     xp2 = xp;
     if (dur == 0){
       // Oral
@@ -1105,6 +1103,7 @@ void handleSS(int *neq,
 	solveSS_1(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs,
 		  xout2, xp2, id, i, nx, istate, op, ind, u_inis, ctx);
 	ind->ixds--; // This dose stays in place
+	canBreak=1;
 	if (j <= op->minSS -1){
 	  if (ind->rc[0]== -2019){
 	    for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
@@ -1112,15 +1111,11 @@ void handleSS(int *neq,
 	    *i = ind->n_all_times-1;
 	    break;
 	  }
-	  if (j == op->minSS -1){
-	    lastSum =0.0;
-	    for (k = neq[0]; k--;) {
-	      ind->solveLast[k] = yp[k];
-	      lastSum += fabs(yp[k]);
-	    }
+	  for (k = neq[0]; k--;) {
+	    ind->solveLast[k] = yp[k];
 	  }
+	  canBreak=0;
 	} else if (j >= op->minSS){
-	  curSum = 0.0;
 	  if (ind->rc[0] == -2019){
 	    for (k = neq[0]; k--;) {
 	      yp[k] = ind->solveLast[k];
@@ -1129,13 +1124,14 @@ void handleSS(int *neq,
 	    break;
 	  }
 	  for (k = neq[0]; k--;){
+	    if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast[k])/8.0){
+	      canBreak=0;
+	    }
 	    ind->solveLast[k] = yp[k];
-	    curSum += fabs(yp[k]);
 	  }	    
-	  if (fabs(curSum-lastSum) < op->rtolSS*fabs(curSum) + op->atolSS){
+	  if (canBreak){
 	    break;
 	  }
-	  lastSum=curSum;
 	}
 	*istate=1;
 	xp2 = xout2;
@@ -1156,6 +1152,7 @@ void handleSS(int *neq,
 	// Infusion
 	for (j = 0; j < op->maxSS; j++){
 	  // Turn on Infusion, solve (0-dur)
+	  canBreak=1;
 	  xout2 = xp2+dur;
 	  ind->idx=*i;
 	  ind->ixds = infBixds;
@@ -1180,13 +1177,10 @@ void handleSS(int *neq,
 	      *i = ind->n_all_times-1;
 	      break;
 	    }
-	    if (j == op->minSS -1){
-	      lastSum =0.0;
-	      for (k = neq[0]; k--;) {
-		lastSum += fabs(yp[k]);
-		ind->solveLast[k] = yp[k];
-	      }
+	    for (k = neq[0]; k--;) {
+	      ind->solveLast[k] = yp[k];
 	    }
+	    canBreak=0;
 	  } else if (j >= op->minSS){
 	    if (ind->rc[0]== -2019){
 	      if (op->strictSS){
@@ -1199,12 +1193,12 @@ void handleSS(int *neq,
                 }
                 ind->rc[0] = 2019;
               }
-	      break;
 	    }
-	    curSum = 0.0;
 	    for (k = neq[0]; k--;) {
-	      curSum += fabs(yp[k]);
 	      ind->solveLast[k] = yp[k];
+	      if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast[k])/8.0){
+		canBreak=0;
+	      }
 	    }
 	  }
 	  // yp is last solve or y0
@@ -1220,10 +1214,14 @@ void handleSS(int *neq,
 	    }
 	    if (j == op->minSS-1){
 	      for (k = neq[0]; k--;){
-		ind->solveLast[k] = yp[k];
-		lastSum += fabs(yp[k]);
+		ind->solveLast2[k] = yp[k];
+	      }
+	    } else {
+	      for (k = neq[0]; k--;){
+		ind->solveLast2[k] = yp[k];
 	      }
 	    }
+	    canBreak=0;
 	  } else if (j >= op->minSS){
 	    if (ind->rc[0]== -2019){
 	      if (op->strictSS){
@@ -1232,20 +1230,21 @@ void handleSS(int *neq,
                 *i = ind->n_all_times-1;
               } else {
 		for (k = neq[0]; k--;){
-                  yp[k] = ind->solveLast[k];
+                  yp[k] = ind->solveLast2[k];
                 }
 		ind->rc[0] = 2019;
               }
 	      break;
-	    }	  
-	    for (k = neq[0]; k--;){
-	      ind->solveLast[k] = yp[k];
-	      curSum += fabs(yp[k]);
 	    }
-	    if (fabs(curSum-lastSum) < op->rtolSS*fabs(curSum) + op->atolSS){
+	    for (k = neq[0]; k--;){
+	      if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast2[k])/8.0){
+		  canBreak=0;
+	      }		
+	      ind->solveLast2[k] = yp[k];
+	    }
+	    if (canBreak){
 	      break;
 	    }
-	    lastSum=curSum;
 	  }
 	  xp2 = xout2;
 	}

@@ -20,7 +20,6 @@ rxControl <- function(scale = NULL,
                       nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
                       seed=NULL, nsim=NULL,
                       minSS=7, maxSS=1000L,
-                      atolSS=1e-9, rtolSS=1e-9,
                       strictSS=FALSE,
                       params=NULL,events=NULL,
                       istateReset=TRUE,
@@ -106,6 +105,12 @@ rxControl <- function(scale = NULL,
     if (any(names(.xtra)=="covs")){
         stop("Covariates can no longer be specified by 'covs' include them in the event dataset.");
     }
+    if (any(names(.xtra) == "atolSS")){
+        stop("atolSS is controlled by atol now.");
+    }
+    if (any(names(.xtra) == "rtolSS")){
+        stop("rtolSS is controlled by rtol now.");
+    }
     if (missing(cores)){
         cores <- RxODE::rxCores();
     }
@@ -149,7 +154,6 @@ rxControl <- function(scale = NULL,
                  seed=seed,
                  nsim=nsim,
                  minSS=minSS, maxSS=maxSS,
-                 atolSS=atolSS[1], rtolSS=rtolSS[1],
                  strictSS=as.integer(strictSS),
                  istateReset=istateReset,
                  subsetNonmem=subsetNonmem,
@@ -385,24 +389,19 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param maxSS Maximum number of iterations for a steady-state dose
 ##'
-##' @param atolSS Absolute tolerance to check if a solution arrived at
-##'     steady state.
-##'
-##' @param rtolSS Relative tolerance to check if a solution arrived at
-##'     steady state.
-##'
 ##' @param strictSS Boolean indicating if a strict steady-state is
 ##'     required. If a strict steady-state is (\code{TRUE}) required
 ##'     then at least \code{minSS} doses are administered and the
 ##'     total number of steady states doses will continue until
-##'     \code{maxSS} is reached, or \code{atolSS} and \code{rtolSS}
-##'     have been reached.  However, if ODE solving problems occur
-##'     after the \code{minSS} has been reached the whole subject is
-##'     considered an invalid solve. If \code{strictSS} is
-##'     \code{FALSE} then as long as \code{minSS} has been reached the
-##'     last good solve before ODE solving problems occur is
-##'     considered the steady state, even though either \code{atolSS},
-##'     \code{rtolSS} or \code{maxSS} have not been achieved.
+##'     \code{maxSS} is reached, or \code{atol} and \code{rtol} for
+##'     every compartment have been reached.  However, if ODE solving
+##'     problems occur after the \code{minSS} has been reached the
+##'     whole subject is considered an invalid solve. If
+##'     \code{strictSS} is \code{FALSE} then as long as \code{minSS}
+##'     has been reached the last good solve before ODE solving
+##'     problems occur is considered the steady state, even though
+##'     either \code{atol}, \code{rtol} or \code{maxSS} have not
+##'     been achieved.
 ##'
 ##' @param istateReset When \code{TRUE}, reset the \code{ISTATE} variable to 1 for
 ##'     lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do

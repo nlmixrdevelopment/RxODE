@@ -33,11 +33,10 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0,
   dfObs = 0, returnType = c("rxSolve", "matrix", "data.frame",
   "data.frame.TBS"), seed = NULL, nsim = NULL, minSS = 7,
-  maxSS = 1000L, atolSS = 1e-09, rtolSS = 1e-09, strictSS = FALSE,
-  params = NULL, events = NULL, istateReset = TRUE,
-  subsetNonmem = TRUE, linLog = FALSE, maxAtolRtolFactor = 0.1,
-  from = NULL, to = NULL, by = NULL, length.out = NULL,
-  iCov = NULL, keep = NULL)
+  maxSS = 1000L, strictSS = FALSE, params = NULL, events = NULL,
+  istateReset = TRUE, subsetNonmem = TRUE, linLog = FALSE,
+  maxAtolRtolFactor = 0.1, from = NULL, to = NULL, by = NULL,
+  length.out = NULL, iCov = NULL, keep = NULL)
 
 rxSolve(object, ...)
 
@@ -323,24 +322,19 @@ eventTable)}
 
 \item{maxSS}{Maximum number of iterations for a steady-state dose}
 
-\item{atolSS}{Absolute tolerance to check if a solution arrived at
-steady state.}
-
-\item{rtolSS}{Relative tolerance to check if a solution arrived at
-steady state.}
-
 \item{strictSS}{Boolean indicating if a strict steady-state is
 required. If a strict steady-state is (\code{TRUE}) required
 then at least \code{minSS} doses are administered and the
 total number of steady states doses will continue until
-\code{maxSS} is reached, or \code{atolSS} and \code{rtolSS}
-have been reached.  However, if ODE solving problems occur
-after the \code{minSS} has been reached the whole subject is
-considered an invalid solve. If \code{strictSS} is
-\code{FALSE} then as long as \code{minSS} has been reached the
-last good solve before ODE solving problems occur is
-considered the steady state, even though either \code{atolSS},
-\code{rtolSS} or \code{maxSS} have not been achieved.}
+\code{maxSS} is reached, or \code{atol} and \code{rtol} for
+every compartment have been reached.  However, if ODE solving
+problems occur after the \code{minSS} has been reached the
+whole subject is considered an invalid solve. If
+\code{strictSS} is \code{FALSE} then as long as \code{minSS}
+has been reached the last good solve before ODE solving
+problems occur is considered the steady state, even though
+either \code{atolSS}, \code{rtolSS} or \code{maxSS} have not
+been achieved.}
 
 \item{params}{a numeric named vector with values for every
 parameter in the ODE system; the names must correspond to the
