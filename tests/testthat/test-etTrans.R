@@ -844,4 +844,26 @@ d/dt(blood)     = a*intestine - b*blood
 
     rxSetIni0(TRUE)
 
+    context("Constant infusion taken to steady state")
+    test_that("RxODE constant infusion taken to steady state", {
+
+        mod <- RxODE("
+a = 6
+b = 0.6
+d/dt(intestine) = -a*intestine
+d/dt(blood)     = a*intestine - b*blood
+")
+
+    trn1 <- etTrans(et(amt=0,rate=10,ss=1),mod,keepDosingOnly = TRUE) %>% as.data.frame
+    expect_equal(structure(list(ID = structure(1L, class = "factor", .Label = "1"),
+                               TIME = 0, EVID = 10140L, AMT = 10, II = 0, DV = NA_real_),
+                          class = "data.frame", row.names = c(NA, -1L)), trn1)
+
+    trn1 <- etTrans(et(amt=0,rate=-1,ss=1),mod,keepDosingOnly = TRUE) %>% as.data.frame
+
+    expect_equal(structure(list(ID = structure(1L, class = "factor", .Label = "1"),
+                               TIME = 0, EVID = 90140L, AMT = 0, II = 0, DV = NA_real_),
+                          class = "data.frame", row.names = c(NA, -1L)), trn1)
+})
+
 }, cran=TRUE, silent=TRUE)

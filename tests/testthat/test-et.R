@@ -410,5 +410,24 @@ rxPermissive({
         expect_error(et(list(c(1,2),c(3), TRUE), amt=3))
     })
 
+    context("et steady state constant infusion")
+    test_that("et steady state constant infusion", {
+
+        expect_error(et(amt=0, rate=10, ii=0, ss=2))
+        expect_error(et(amt=0, rate=10, ii=2, ss=1))
+        expect_error(et(amt=0, rate=-2, ii=0, ss=1))
+        expect_error(et(rate=10, ii=0, ss=2))
+        expect_error(et(rate=10, ii=2, ss=1))
+        expect_error(et(rate=-2, ii=0, ss=1))
+
+        t1 <- et(amt=0, rate=10, ii=0, ss=1) %>% as.data.frame
+        t2 <- et(rate=10, ii=0, ss=1) %>% as.data.frame
+        expect_equal(t1, t2)
+
+        t1 <- et(amt=0, rate=-1, ii=0, ss=1) %>% as.data.frame
+        t2 <- et(rate=-1, ii=0, ss=1) %>% as.data.frame
+        expect_equal(t1, t2)
+
+    })
 
 }, silent=TRUE, cran=TRUE)

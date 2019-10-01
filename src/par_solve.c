@@ -559,150 +559,201 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
   if (evid >= 10 && evid <= 99) return ind->mtime[evid-10];
   if (isObs(evid)) return ind->all_times[idx];
   getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
-  switch(ind->whI){
-  case 6:
-    if (idx > 0){
-      int wh, cmt, wh100, whI, wh0;
-      getWh(ind->evid[idx-1], &wh, &cmt, &wh100, &whI, &wh0);
-      if (whI != 8){
-	// FIXME can crash parallel runs and cause many issues.  Need to defer to end.
-	if (!(ind->err & 64)){
-	  ind->err += 64;
-	}
-	return 0.0;
-	/* error("Data error 686 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
-      }
-      updateDur(idx-1, ind);
-    } else {
-      if (!(ind->err & 128)){
-	ind->err += 128;
-      }
-      return 0.0;
-      /* error("Data Error -6\n"); */
-    }
-    break;
-  case 8:
-    if (idx >= ind->n_all_times){
-      // error: Last record, can't be used.
-      if (!(ind->err & 256)){
-	ind->err += 256;
-      }
-      /* error("Data Error 8\n"); */
-      return 0.0;
-    } else {
-      int wh, cmt, wh100, whI, wh0;
-      getWh(ind->evid[idx+1], &wh, &cmt, &wh100, &whI, &wh0);
-      if (whI != 6){
-	if (!(ind->err & 512)){
-	  ind->err += 512;
-	}
-	return 0.0;
-	/* error("Data error 886 (whI=%d, evid=%d to %d)\n", whI, */
-	/*       ind->evid[idx], ind->evid[idx+1]); */
-      }
-      updateDur(idx, ind);
-    }
-    break;
-  case 7:
-    if (idx > 0){
-      int wh, cmt, wh100, whI, wh0;
-      getWh(ind->evid[idx-1], &wh, &cmt, &wh100, &whI, &wh0);
-      if (whI != 9){
-	if (!(ind->err & 1024)){
-	  ind->err += 1024;
-	}
-	/* error("Data error 797 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
-	return 0.0;
-      }
-      updateRate(idx-1, ind);
-    } else {
-      if (!(ind->err & 2048)){
-	ind->err += 2048;
-      }
-      /* error("Data Error -7\n"); */
-      return 0;
-    }
-    break;
-  case 9:
-    // This calculates the rate and the duration and then assigns it to the next record
-    if (idx >= ind->n_all_times){
-      // error: Last record, can't be used.
-      if (!(ind->err & 4096)){
-	ind->err += 4096;
-      }
-      /* error("Data Error 9\n"); */
-      return 0.0;
-    } else {
-      int wh, cmt, wh100, whI, wh0;
-      getWh(ind->evid[idx+1], &wh, &cmt, &wh100, &whI, &wh0);
-      if (whI != 7){
-	if (!(ind->err & 8192)){
-	  ind->err += 8192;
-	}
-	return 0.0;
-	/* error("Data error 997 (whI=%d, evid=%d to %d)\n", whI, */
-	/*       ind->evid[idx], ind->evid[idx+1]); */
-      }
-      updateRate(idx, ind);
-    }
-    break;
-  case 1:
-    {
-      int j;
-      // Find the amount
-      // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
-      int l = 0, r = ind->ndoses-1, m=0;
-      while(l <= r){
-	m = floor((l+r)/2);
-	if (ind->idose[m] < idx) l = m+1;
-	else if (ind->idose[m] > idx) r = m-1;
-	else break;
-      }
-      if (ind->idose[m] == idx){
-	j=m;
-      } else {
-	if (!(ind->err & 16384)){
-	  ind->err += 16384;
-	}
-	return 0.0;
-	/* error("Corrupted event table during sort (1)."); */
-      }
-      if (ind->dose[j] > 0){
-	return LAG(ind->id, ind->cmt, ind->all_times[idx]);
-      } else if (ind->dose[j] < 0){
-	// f*amt/rate=dur
-	// amt/rate=durOld
-	// f = dur/durOld
-	// f*durOld = dur
-	int k;
-	for (k = j; k--;){
-	  if (ind->evid[ind->idose[j]] == ind->evid[ind->idose[k]]) break;
-	  if (k == 0) {
-	    if (!(ind->err & 32768)){
-	      ind->err += 32768;
-	    }
-	    return 0.0;
-	    /* error("corrupted event table"); */
+  if (ind->wh0 == 40){
+  } else {
+    switch(ind->whI){
+    case 6:
+      if (idx > 0){
+	int wh, cmt, wh100, whI, wh0;
+	getWh(ind->evid[idx-1], &wh, &cmt, &wh100, &whI, &wh0);
+	if (whI != 8){
+	  // FIXME can crash parallel runs and cause many issues.  Need to defer to end.
+	  if (!(ind->err & 64)){
+	    ind->err += 64;
 	  }
+	  return 0.0;
+	  /* error("Data error 686 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
 	}
-	double f = AMT(ind->id, ind->cmt, 1.0, ind->all_times[ind->idose[j-1]]);
-	double durOld = (ind->all_times[ind->idose[j]] - ind->all_times[ind->idose[k]]); 
-	double dur = f*durOld;
-	double t = ind->all_times[ind->idose[k]]+dur;
-	return LAG(ind->id, ind->cmt, t);
+	updateDur(idx-1, ind);
       } else {
-	/* error("Corrupted events."); */
-	if (!(ind->err & 131072)){
-	  ind->err += 131072;
+	if (!(ind->err & 128)){
+	  ind->err += 128;
 	}
 	return 0.0;
+	/* error("Data Error -6\n"); */
       }
+      break;
+    case 8:
+      if (idx >= ind->n_all_times){
+	// error: Last record, can't be used.
+	if (!(ind->err & 256)){
+	  ind->err += 256;
+	}
+	/* error("Data Error 8\n"); */
+	return 0.0;
+      } else {
+	int wh, cmt, wh100, whI, wh0;
+	getWh(ind->evid[idx+1], &wh, &cmt, &wh100, &whI, &wh0);
+	if (whI != 6){
+	  if (!(ind->err & 512)){
+	    ind->err += 512;
+	  }
+	  return 0.0;
+	  /* error("Data error 886 (whI=%d, evid=%d to %d)\n", whI, */
+	  /*       ind->evid[idx], ind->evid[idx+1]); */
+	}
+	updateDur(idx, ind);
+      }
+      break;
+    case 7:
+      if (idx > 0){
+	int wh, cmt, wh100, whI, wh0;
+	getWh(ind->evid[idx-1], &wh, &cmt, &wh100, &whI, &wh0);
+	if (whI != 9){
+	  if (!(ind->err & 1024)){
+	    ind->err += 1024;
+	  }
+	  /* error("Data error 797 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
+	  return 0.0;
+	}
+	updateRate(idx-1, ind);
+      } else {
+	if (!(ind->err & 2048)){
+	  ind->err += 2048;
+	}
+	/* error("Data Error -7\n"); */
+	return 0;
+      }
+      break;
+    case 9:
+      // This calculates the rate and the duration and then assigns it to the next record
+      if (idx >= ind->n_all_times){
+	// error: Last record, can't be used.
+	if (!(ind->err & 4096)){
+	  ind->err += 4096;
+	}
+	/* error("Data Error 9\n"); */
+	return 0.0;
+      } else {
+	int wh, cmt, wh100, whI, wh0;
+	getWh(ind->evid[idx+1], &wh, &cmt, &wh100, &whI, &wh0);
+	if (whI != 7){
+	  if (!(ind->err & 8192)){
+	    ind->err += 8192;
+	  }
+	  return 0.0;
+	  /* error("Data error 997 (whI=%d, evid=%d to %d)\n", whI, */
+	  /*       ind->evid[idx], ind->evid[idx+1]); */
+	}
+	updateRate(idx, ind);
+      }
+      break;
+    case 1:
+      {
+	int j;
+	// Find the amount
+	// bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
+	int l = 0, r = ind->ndoses-1, m=0;
+	while(l <= r){
+	  m = floor((l+r)/2);
+	  if (ind->idose[m] < idx) l = m+1;
+	  else if (ind->idose[m] > idx) r = m-1;
+	  else break;
+	}
+	if (ind->idose[m] == idx){
+	  j=m;
+	} else {
+	  if (!(ind->err & 16384)){
+	    ind->err += 16384;
+	  }
+	  return 0.0;
+	  /* error("Corrupted event table during sort (1)."); */
+	}
+	if (ind->dose[j] > 0){
+	  return LAG(ind->id, ind->cmt, ind->all_times[idx]);
+	} else if (ind->dose[j] < 0){
+	  // f*amt/rate=dur
+	  // amt/rate=durOld
+	  // f = dur/durOld
+	  // f*durOld = dur
+	  int k;
+	  for (k = j; k--;){
+	    if (ind->evid[ind->idose[j]] == ind->evid[ind->idose[k]]) break;
+	    if (k == 0) {
+	      if (!(ind->err & 32768)){
+		ind->err += 32768;
+	      }
+	      return 0.0;
+	      /* error("corrupted event table"); */
+	    }
+	  }
+	  double f = AMT(ind->id, ind->cmt, 1.0, ind->all_times[ind->idose[j-1]]);
+	  double durOld = (ind->all_times[ind->idose[j]] - ind->all_times[ind->idose[k]]); 
+	  double dur = f*durOld;
+	  double t = ind->all_times[ind->idose[k]]+dur;
+	  return LAG(ind->id, ind->cmt, t);
+	} else {
+	  /* error("Corrupted events."); */
+	  if (!(ind->err & 131072)){
+	    ind->err += 131072;
+	  }
+	  return 0.0;
+	}
+      }
+      break;
     }
-    break;
   }
   return LAG(ind->id, ind->cmt, ind->all_times[idx]);
 }
 
+inline static int syncIdx(rx_solving_options_ind *ind){
+  if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
+    // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
+    int l = 0, r = ind->ndoses-1, m=0;
+    while(l <= r){
+      m = floor((l+r)/2);
+      if (ind->idose[m] < ind->ix[ind->idx]) l = m+1;
+      else if (ind->idose[m] > ind->ix[ind->idx]) r = m-1;
+      else break;
+    }
+    if (ind->idose[m] == ind->ix[ind->idx]){
+      ind->ixds=m;
+    } else {
+      //262144
+      if (!(ind->err & 262144)){
+	ind->err += 262144;
+      }
+      return 0;
+      /* error("Corrupted event table; EVID=%d: %d %d %d", evid, ind->idose[m], ind->ix[ind->idx], */
+      /* 	ind->idx); */
+    }
+    // Need to adjust ixdsr
+    for(int j = ind->ixds; j--;){
+      if (ind->ix[ind->idx] == ind->idose[j]){
+	ind->ixds = j;
+	break;
+      }
+    }
+    if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
+      for(int j = ind->ixds+1; j< ind->ndoses; j++){
+	if (ind->ix[ind->idx] == ind->idose[j]){
+	  ind->ixds = j;
+	  break;
+	}
+      }
+    }
+    if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
+      //524288
+      if (!(ind->err & 524288)){
+	ind->err += 524288;
+      }
+      return 0;
+      /* error("The event table has been corrupted; ind->idx: %d ind->ixds: %d ind->idose: %d.", */
+      /* 	ind->ix[ind->idx], ind->ixds, ind->idose[ind->ixds]); */
+    }
+  }
+  return 1;
+}
 
 int handle_evid(int evid, int neq, 
 		int *BadDose,
@@ -717,6 +768,10 @@ int handle_evid(int evid, int neq,
   double tmp;
   if (wh) {
     getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
+    if (ind->wh0 == 40){
+      ind->ixds++;
+      return 1;
+    }
     /* wh100 = ind->wh100; */
     wh = ind->wh;
     cmt = ind->cmt;
@@ -741,51 +796,7 @@ int handle_evid(int evid, int neq,
 	ind->nBadDose++;
       }
     } else {
-      if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
-	// bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
-	int l = 0, r = ind->ndoses-1, m=0;
-	while(l <= r){
-	  m = floor((l+r)/2);
-	  if (ind->idose[m] < ind->ix[ind->idx]) l = m+1;
-	  else if (ind->idose[m] > ind->ix[ind->idx]) r = m-1;
-	  else break;
-	}
-	if (ind->idose[m] == ind->ix[ind->idx]){
-	  ind->ixds=m;
-	} else {
-	  //262144
-	  if (!(ind->err & 262144)){
-	    ind->err += 262144;
-	  }
-	  return 0;
-	  /* error("Corrupted event table; EVID=%d: %d %d %d", evid, ind->idose[m], ind->ix[ind->idx], */
-	  /* 	ind->idx); */
-	}
-	// Need to adjust ixdsr
-	for(j = ind->ixds; j--;){
-	  if (ind->ix[ind->idx] == ind->idose[j]){
-	    ind->ixds = j;
-	    break;
-	  }
-	}
-	if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
-	  for(j = ind->ixds+1; j< ind->ndoses; j++){
-	    if (ind->ix[ind->idx] == ind->idose[j]){
-	      ind->ixds = j;
-	      break;
-	    }
-	  }
-	}
-	if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
-	  //524288
-	  if (!(ind->err & 524288)){
-	    ind->err += 524288;
-	  }
-	  return 0;
-	  /* error("The event table has been corrupted; ind->idx: %d ind->ixds: %d ind->idose: %d.", */
-	  /* 	ind->ix[ind->idx], ind->ixds, ind->idose[ind->ixds]); */
-	}
-      }
+      if (syncIdx(ind) == 0) return 0;
       if (ind->wh0 == 30){
 	yp[cmt]=op_global.inits[cmt];
 	InfusionRate[cmt] = 0;
@@ -1031,17 +1042,21 @@ void handleSS(int *neq,
   rx_solve *rx = &rx_global;
   int j;
   int doSS2=0;
+  int doSSinf=0;
   /* Rprintf("evid: %d\n", ind->evid[ind->ixds-1]); */
-  if ((ind->wh0 == 20 || ind->wh0 == 10) &&
-      ind->ii[ind->ixds-1] > 0){
+  if (((ind->wh0 == 20 || ind->wh0 == 10) &&
+      ind->ii[ind->ixds-1] > 0) || ind->wh0 == 40){
     ind->doSS=1;
-    ind->ixds--; // This dose stays in place
+    ind->ixds--; // This dose stays in place; Reverse dose
     if (ind->wh0 == 20){
       doSS2=1;
+    } else if (ind->wh0 == 40){
+      doSSinf=1;
     }
     double dur = 0, dur2=0;
     int infBixds =0, infEixds = 0, ei=0, wh, cmt, wh100, whI, wh0, oldI;
-    if (ind->whI == 1 || ind->whI == 2){
+    if (doSSinf){
+    } else if (ind->whI == 1 || ind->whI == 2){
       oldI = ind->whI;
       infBixds = ind->ixds;
       // Find the next fixed length infusion that is turned off.
@@ -1065,7 +1080,8 @@ void handleSS(int *neq,
       dur2 = ind->ii[ind->ixds] - dur;
     }
     /* bi = *i; */
-    if (ind->whI == 1 || ind->whI == 2 || ind->whI == 8 || ind->whI == 9){
+    if (ind->wh0 == 40){
+    } else if (ind->whI == 1 || ind->whI == 2 || ind->whI == 8 || ind->whI == 9){
       ei = *i;
       while(ind->ix[ei] != ind->idose[infEixds] && ei < ind->n_all_times){
 	ei++;
@@ -1091,8 +1107,44 @@ void handleSS(int *neq,
     double xp2, xout2;
     int canBreak=0;
     xp2 = xp;
-    if (dur == 0){
-      // Oral
+    if (doSSinf){
+      double rate;
+      ind->idx=*i;
+      // Rate is fixed, so modifying bio-availability doesn't change duration.
+      if (ind->whI == 9){
+	rate  = RATE(ind->id, ind->cmt, 0.0, ind->all_times[ind->idose[ind->ixds]]);
+      } else {
+	rate = ind->dose[ind->ixds];
+      }
+      ind->InfusionRate[ind->cmt] = rate;
+      ind->on[ind->cmt] = 1;
+      for (j = 0; j < op->maxSS; j++){
+	xout2 = xp2+24.0;
+	solveSS_1(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs,
+		  xout2, xp2, id, i, nx, istate, op, ind, u_inis, ctx);
+	canBreak=1;
+	if (j == 0){
+	  for (k = neq[0]; k--;) {
+	    ind->solveLast[k] = yp[k];
+	  }
+	  canBreak=0;
+	} else {
+	  for (k = neq[0]; k--;){
+	    if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast[k])/8.0){
+	      canBreak=0;
+	    }
+	    ind->solveLast[k] = yp[k];
+	  }
+	  if (canBreak){
+	    ind->InfusionRate[ind->cmt] = 0.0;
+	    break;
+	  }
+	}
+	xp2=xout;
+	*istate=1;
+      }
+    } else if (dur == 0){
+      // Oral or Steady State Infusion
       for (j = 0; j < op->maxSS; j++){
 	xout2 = xp2+ind->ii[ind->ixds];
 	// Use "real" xout for handle_evid functions.
@@ -1128,7 +1180,7 @@ void handleSS(int *neq,
 	      canBreak=0;
 	    }
 	    ind->solveLast[k] = yp[k];
-	  }	    
+	  }
 	  if (canBreak){
 	    break;
 	  }
@@ -1259,8 +1311,10 @@ void handleSS(int *neq,
       for (j = neq[0];j--;) yp[j]+=ind->solveSave[j];
     }
     ind->idx=*i;
-    handle_evid(ind->evid[ind->ix[*i]], neq[0], BadDose, InfusionRate, dose, yp,
-		op->do_transit_abs, xout, neq[1], ind);
+    if (!doSSinf){
+      handle_evid(ind->evid[ind->ix[*i]], neq[0], BadDose, InfusionRate, dose, yp,
+		  op->do_transit_abs, xout, neq[1], ind);
+    }
     ind->doSS=0;
   }
 }

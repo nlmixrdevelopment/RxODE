@@ -281,5 +281,31 @@ rxPermissive({
                 }
             }
         }
+
+        context("Constant Infusion steady state")
+
+        test_that("constant infusion steady state", {
+            ode.1cR <- RxODE({
+                V <- 20
+                Cl <- 1
+                C2 = center/V;
+                fc = 1
+                d/dt(center) ~ - Cl*C2
+                rate(center) = rateIn
+                f(center) = fc
+            })
+
+            s <- rxSolve(ode.1cR, c(rateIn=3), et(amt=0, rate=10, ss=1))
+
+            expect_equal(s$C2[1], 10, tol=1e-5)
+
+            s <- rxSolve(ode.1cR, c(rateIn=3), et(amt=0, rate=-1, ss=1))
+
+            expect_equal(s$C2[1], 3, tol=1e-5)
+        })
+
+
+
+
     }
 }, cran=TRUE, silent=TRUE)

@@ -428,18 +428,19 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   //      0 = no Infusion
   //      1 = Infusion, AMT=rate (mg/hr for instance)
   //      2 = Infusion, duration is fixed
-  //      9 = Rate is modeled, AMT=dose; Duration = AMT/(Modeled Rate) NONMEM RATE=-1
-  //      8 = Duration is modeled, AMT=dose; Rate = AMT/(Modeled Duration) NONMEM RATE=-2
-  //      7 = Turn off modeled rate compartment
-  //      6 = Turn off modeled duration
   //      4 = Replacement event
   //      5 = Multiplication event
+  //      6 = Turn off modeled duration
+  //      7 = Turn off modeled rate compartment
+  //      8 = Duration is modeled, AMT=dose; Rate = AMT/(Modeled Duration) NONMEM RATE=-2
+  //      9 = Rate is modeled, AMT=dose; Duration = AMT/(Modeled Rate) NONMEM RATE=-1
   // c1 = Compartment numbers below 99
   // xx = 1, regular event
   // xx = 9, Hidden Zero event to make sure that X(0) happens at time 0
   // xx = 10, steady state event SS=1
   // xx = 20, steady state event + last observed info.
   // xx = 30, Turn off compartment
+  // xx = 40, Steady state constant infusion
   // Steady state events need a II data item > 0
   
   CharacterVector state0 = as<CharacterVector>(mv["state"]);
@@ -685,6 +686,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
       nid++;
     }
+
+    // Amt
+    if (amtCol == -1) camt = 0.0;
+    else camt = inAmt[i];
     
     // SS flag
     flg=1;
@@ -693,6 +698,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     else if (IntegerVector::is_na(inSs[i])) flg=1;
     else if (inSs[i] == 1 && cii > 0) flg=10;
     else if (inSs[i] == 2 && cii > 0) flg=20;
+    else if (inSs[i] == 1 && cii == 0 && camt == 0.0){
+      flg=40;
+    }
+
     if (cmtCol != -1){
       tmpCmt = inCmt[i];
       if (inCmt[i] == 0){
@@ -725,10 +734,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       cmt99=cmt-cmt100*100; 
     }
     mxCmt = max2(cmt,mxCmt);
-
-    // Amt
-    if (amtCol == -1) camt = 0.0;
-    else camt = inAmt[i];
     
     rateI = 0;
     // Rate
@@ -740,6 +745,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	rateI = 9;
       } else if (rate == -2.0){
 	// duration is modeled
+	if (flg == 40){
+	  stop("When using steady state constant infusion modeling duration doesn't make sense.");
+	}
 	rateI = 8;
       } else if (rate > 0){
 	// Rate is fixed
@@ -756,12 +764,21 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       // if (inDur[i] > 0)
       if (inDur[i] == -1.0){
 	// rate is modeled
+	if (flg == 40){
+	  stop("Specifying duration with a steady state constant infusion makes no sense.");
+	}
 	rateI = 9;
       } else if (inDur[i] == -2.0){
 	// duration is modeled
+	if (flg == 40){
+	  stop("Specifying duration with a steady state constant infusion makes no sense.");
+	}
 	rateI = 8;
       } else if (inDur[i] > 0){
 	// Duration is fixed
+	if (flg == 40){
+	  stop("Specifying duration with a steady state constant infusion makes no sense.");
+	}
 	if (evidCol == -1 || inEvid[i] == 1 || inEvid[i] == 4){
 	  rateI = 2;
 	  rate = camt/inDur[i];
@@ -1056,7 +1073,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       dv.push_back(NA_REAL);
       idxO.push_back(curIdx);curIdx++;
       ndose++;
-      if (rateI > 2 && rateI != 4 && rateI != 5){
+      if (rateI > 2 && rateI != 4 && rateI != 5 && flg != 40){
 	amt.push_back(camt);
 	// turn off
 	id.push_back(cid);
@@ -1074,16 +1091,18 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	dur = camt/rate;
 	amt.push_back(rate); // turn on
 	// turn off
-	id.push_back(cid);
-	evid.push_back(cevid);
-	cmtF.push_back(cmt);
-	time.push_back(ctime+dur);
-	amt.push_back(-rate);
-	ii.push_back(0.0);
-	idx.push_back(-1);
-	dv.push_back(NA_REAL);
-	idxO.push_back(curIdx);curIdx++;
-	ndose++;
+	if (flg != 40){
+	  id.push_back(cid);
+	  evid.push_back(cevid);
+	  cmtF.push_back(cmt);
+	  time.push_back(ctime+dur);
+	  amt.push_back(-rate);
+	  ii.push_back(0.0);
+	  idx.push_back(-1);
+	  dv.push_back(NA_REAL);
+	  idxO.push_back(curIdx);curIdx++;
+	  ndose++;
+	}
       } else {
 	amt.push_back(camt);
       }

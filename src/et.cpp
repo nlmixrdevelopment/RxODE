@@ -2361,7 +2361,8 @@ RObject et_(List input, List et__){
 	    amt = setUnits(amt, "");
 	  }
 	}
-	isObs = false;
+	if (amt[0] == 0) isObs = true;
+	else isObs = false;
       }
       if (cmtNeg && isObs){
 	isObs = false;
@@ -2392,7 +2393,13 @@ RObject et_(List input, List et__){
 	}
       } else {
 	evid = IntegerVector(1);
-      }	
+      }
+      bool ssInf = false;
+      if (isObs && rateIx != -1 && ssIx!=-1){
+	isObs = false;
+	amt[0] = 0.0;
+	ssInf=true;
+      }
       if (isObs){
 	if (evidIx == -1) evid[0]=0;
 	IntegerVector addl;// = 0;
@@ -2536,6 +2543,11 @@ RObject et_(List input, List et__){
 	      stop("Rate is cannot be converted and added to this table.");
 	    }
 	  }
+	  if (ssInf){
+	    if (rate[0] != -1 && rate[0] <= 0.0){
+	      stop("steady state constant infusion dosing records must have rate=-1 or positive rate");
+	    }
+	  }
 	  dur = NumericVector(1);
 	  dur[0] = 0;
 	} else {
@@ -2660,10 +2672,18 @@ RObject et_(List input, List et__){
 	    stop("ii requires non zero additional doses (addl/until/nbr.doses) or steady state dosing (ii: %f, ss: %d; addl: %d).", ii[0], ss[0], addl[0]);
 	  }
 	}
+	if (ssInf && ss[0] != 1){
+	  stop("ss must be 1 when specifying a steady-state constant infusion.");
+	}
 	if (ss[0] < 0 || ss[0] > 2){
 	  stop("ss must be 0, 1 or 2.");
 	} if (ss[0] > 0 && ii[0] <= 0){
-	  stop("ii required with ss.");
+	  if (!ssInf){
+	    stop("ii required with ss.");
+	  }
+	}
+	if (ssInf && ii[0] > 0){
+	  stop("ii cannot be used with steady state constant infusion.");
 	}
 	if (ss[0] > 1 && time.size() > 1){
 	  stop("Steady state (ss) is not supported with dosing windows.");
