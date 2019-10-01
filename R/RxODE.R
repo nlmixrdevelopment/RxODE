@@ -13,6 +13,9 @@ R_PosInf <- Inf
 ##' @export
 ##' @author Matthew Fidler
 rxDynProtect <- function(dlls){
+    if (any(sapply(dlls, function(x){any(x == .dynUnloadLater)}))){
+        assignInMyNamespace(".dynUnloadLater", unique(.dynUnloadLater[!(.dynUnloadLater %in% dlls)]))
+    }
     assignInMyNamespace(".dynProtect", dlls);
 }
 .rxDynUnload <- function(dll, unload=FALSE){
