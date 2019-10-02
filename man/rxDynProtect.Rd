@@ -4,7 +4,7 @@
 \alias{rxDynProtect}
 \title{Protect DLL(s) from unloading}
 \usage{
-rxDynProtect(dlls)
+rxDynProtect(dll)
 }
 \arguments{
 \item{dlls}{is a list of DLLs that shouldn't be unloaded}
