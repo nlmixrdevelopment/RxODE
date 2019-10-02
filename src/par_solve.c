@@ -1118,14 +1118,21 @@ void handleSS(int *neq,
       }
       ind->InfusionRate[ind->cmt] = rate;
       ind->on[ind->cmt] = 1;
+      double infStep = op->infSSstep, a1, t1;
+      // Based on http://www.rxkinetics.com/theo.html
       for (j = 0; j < op->maxSS; j++){
-	xout2 = xp2+op->infSSstep;
+	if (j == 0) xout2 = xp2+1; // the first level drawn one hour after infusion
+	else xout2 = xp2+infStep; 
 	solveSS_1(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs,
 		  xout2, xp2, id, i, nx, istate, op, ind, u_inis, ctx);
 	canBreak=1;
-	if (j == 0){
+	if (j <= op->minSS -1){
 	  for (k = neq[0]; k--;) {
 	    ind->solveLast[k] = yp[k];
+	  }
+	  if (j == 0) {
+	    a1 = yp[ind->cmt];
+	    t1 = xout2;
 	  }
 	  canBreak=0;
 	} else {
@@ -1138,6 +1145,10 @@ void handleSS(int *neq,
 	  if (canBreak){
 	    ind->InfusionRate[ind->cmt] = 0.0;
 	    break;
+	  } else {
+	    // Assumes that this is at least one half life.
+	    double a2 = yp[ind->cmt];	  
+	    infStep = max2(infStep,M_LN2/(rate/(a1+a2) + 2*(a1-a2)/((a1+a2)*(xout-t1))));
 	  }
 	}
 	xp2=xout;
