@@ -20,6 +20,8 @@ rxControl <- function(scale = NULL,
                       nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
                       seed=NULL, nsim=NULL,
                       minSS=7, maxSS=1000L,
+                      infSSstep=420,
+                      ssAdjust=1,
                       strictSS=FALSE,
                       params=NULL,events=NULL,
                       istateReset=TRUE,
@@ -155,6 +157,8 @@ rxControl <- function(scale = NULL,
                  nsim=nsim,
                  minSS=minSS, maxSS=maxSS,
                  strictSS=as.integer(strictSS),
+                 infSSstep=as.double(infSSstep),
+                 ssAdjust=as.double(ssAdjust),
                  istateReset=istateReset,
                  subsetNonmem=subsetNonmem,
                  linLog=linLog, hmaxSd=hmaxSd,
@@ -402,6 +406,14 @@ rxControl <- function(scale = NULL,
 ##'     problems occur is considered the steady state, even though
 ##'     either \code{atol}, \code{rtol} or \code{maxSS} have not
 ##'     been achieved.
+##'
+##' @param infSSstep Step size for determining if a constant infusion
+##'     has reached steady state.  By default this is large value,
+##'     420.
+##'
+##' @param ssAdjust Steady state tolerance adjustment when compared to
+##'     the overall \code{atol} and \code{rtol}.  The effective
+##'     tolerances are multiplied by this value.
 ##'
 ##' @param istateReset When \code{TRUE}, reset the \code{ISTATE} variable to 1 for
 ##'     lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do

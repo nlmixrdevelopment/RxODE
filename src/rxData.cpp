@@ -2780,6 +2780,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->minSS = as<int>(rxControl["minSS"]);
     op->maxSS = as<int>(rxControl["maxSS"]);
     op->strictSS = as<int>(rxControl["strictSS"]);
+    op->infSSstep = as<double>(rxControl["infSSstep"]);
+    op->ssAdjust = as<double>(rxControl["ssAdjust"]);
+
     
     gatol2Setup(op->neq);
     grtol2Setup(op->neq);

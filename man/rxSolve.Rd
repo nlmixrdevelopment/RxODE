@@ -33,10 +33,11 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0,
   dfObs = 0, returnType = c("rxSolve", "matrix", "data.frame",
   "data.frame.TBS"), seed = NULL, nsim = NULL, minSS = 7,
-  maxSS = 1000L, strictSS = FALSE, params = NULL, events = NULL,
-  istateReset = TRUE, subsetNonmem = TRUE, linLog = FALSE,
-  maxAtolRtolFactor = 0.1, from = NULL, to = NULL, by = NULL,
-  length.out = NULL, iCov = NULL, keep = NULL)
+  maxSS = 1000L, infSSstep = 420, ssAdjust = 8, strictSS = FALSE,
+  params = NULL, events = NULL, istateReset = TRUE,
+  subsetNonmem = TRUE, linLog = FALSE, maxAtolRtolFactor = 0.1,
+  from = NULL, to = NULL, by = NULL, length.out = NULL,
+  iCov = NULL, keep = NULL)
 
 rxSolve(object, ...)
 
@@ -321,6 +322,14 @@ eventTable)}
 \item{minSS}{Minimum number of iterations for a steady-state dose}
 
 \item{maxSS}{Maximum number of iterations for a steady-state dose}
+
+\item{infSSstep}{Step size for determining if a constant infusion
+has reached steady state.  By default this is large value,
+420.}
+
+\item{ssAdjust}{Steady state tolerance adjustment when compared to
+the overall \code{atol} and \code{rtol}.  The effective
+tolerances are multiplied by this value.}
 
 \item{strictSS}{Boolean indicating if a strict steady-state is
 required. If a strict steady-state is (\code{TRUE}) required

@@ -76,6 +76,8 @@ typedef struct {
   int maxSS;
   int linLog;
   int strictSS;
+  double infSSstep;
+  double ssAdjust;
 } rx_solving_options;
 
 

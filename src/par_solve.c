@@ -168,16 +168,16 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
       clock_t t = clock() - t0;
       double ts = ((double)t)/CLOCKS_PER_SEC;
       if (ts < 60){
-	Rprintf("0:00:%02f ", floor(ts));
+	Rprintf("0:00:%02.f ", floor(ts));
       } else {
 	double f = floor(ts/60);
 	double s = ts-f*60;
 	if (f >= 60){
 	  double h = floor(f/60);
 	  f = f-h*60;
-	  Rprintf("%.0f:%02.0f:%02f ", h, f, floor(s));
+	  Rprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
 	} else {
-	  Rprintf("0:%02.0f:%02f ", f, floor(s));
+	  Rprintf("0:%02.f:%02.f ", f, floor(s));
 	}
       }
       if (stop){
@@ -208,16 +208,16 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
       clock_t t = clock() - t0;
       double ts = ((double)t)/CLOCKS_PER_SEC;
       if (ts < 60){
-	Rprintf("0:00:%02f ", floor(ts));
+	Rprintf("0:00:%02.f ", floor(ts));
       } else {
 	double f = floor(ts/60);
 	double s = ts-f*60;
 	if (f >= 60){
 	  double h = floor(f/60);
 	  f = f-h*60;
-	  Rprintf("%.0f:%02.0f:%02f ", h, f, floor(s));
+	  Rprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
 	} else {
-	  Rprintf("0:%02.0f:%02f", f, floor(s));
+	  Rprintf("0:%02.f:%02.f", f, floor(s));
 	}
       }
       if (stop){
@@ -1119,7 +1119,7 @@ void handleSS(int *neq,
       ind->InfusionRate[ind->cmt] = rate;
       ind->on[ind->cmt] = 1;
       for (j = 0; j < op->maxSS; j++){
-	xout2 = xp2+24.0;
+	xout2 = xp2+op->infSSstep;
 	solveSS_1(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs,
 		  xout2, xp2, id, i, nx, istate, op, ind, u_inis, ctx);
 	canBreak=1;
@@ -1130,7 +1130,7 @@ void handleSS(int *neq,
 	  canBreak=0;
 	} else {
 	  for (k = neq[0]; k--;){
-	    if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast[k])/8.0){
+	    if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast[k])/op->ssAdjust){
 	      canBreak=0;
 	    }
 	    ind->solveLast[k] = yp[k];
@@ -1176,7 +1176,7 @@ void handleSS(int *neq,
 	    break;
 	  }
 	  for (k = neq[0]; k--;){
-	    if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast[k])/8.0){
+	    if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast[k])/op->ssAdjust){
 	      canBreak=0;
 	    }
 	    ind->solveLast[k] = yp[k];
@@ -1248,7 +1248,7 @@ void handleSS(int *neq,
 	    }
 	    for (k = neq[0]; k--;) {
 	      ind->solveLast[k] = yp[k];
-	      if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast[k])/8.0){
+	      if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast[k])/op->ssAdjust){
 		canBreak=0;
 	      }
 	    }
@@ -1264,14 +1264,8 @@ void handleSS(int *neq,
 	      *i = ind->n_all_times-1;
 	      break;
 	    }
-	    if (j == op->minSS-1){
-	      for (k = neq[0]; k--;){
-		ind->solveLast2[k] = yp[k];
-	      }
-	    } else {
-	      for (k = neq[0]; k--;){
-		ind->solveLast2[k] = yp[k];
-	      }
+	    for (k = neq[0]; k--;){
+	      ind->solveLast2[k] = yp[k];
 	    }
 	    canBreak=0;
 	  } else if (j >= op->minSS){
@@ -1289,7 +1283,7 @@ void handleSS(int *neq,
 	      break;
 	    }
 	    for (k = neq[0]; k--;){
-	      if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast2[k])/8.0){
+	      if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast2[k])/op->ssAdjust){
 		  canBreak=0;
 	      }		
 	      ind->solveLast2[k] = yp[k];

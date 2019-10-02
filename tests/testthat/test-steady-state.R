@@ -285,6 +285,7 @@ rxPermissive({
         context("Constant Infusion steady state")
 
         test_that("constant infusion steady state", {
+
             ode.1cR <- RxODE({
                 V <- 20
                 Cl <- 1
@@ -303,9 +304,6 @@ rxPermissive({
 
             expect_equal(s$C2[1], 3, tol=1e-5)
         })
-
-
-
 
     }
 }, cran=TRUE, silent=TRUE)
