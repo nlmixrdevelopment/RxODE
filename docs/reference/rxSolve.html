@@ -235,10 +235,10 @@ solve a ODE system.</p>
   <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>,
   <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"rxSolve"</span>, <span class='st'>"matrix"</span>, <span class='st'>"data.frame"</span>,
   <span class='st'>"data.frame.TBS"</span>), <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>minSS</span> <span class='kw'>=</span> <span class='fl'>7</span>,
-  <span class='kw'>maxSS</span> <span class='kw'>=</span> <span class='fl'>70000</span>, <span class='kw'>atolSS</span> <span class='kw'>=</span> <span class='fl'>1e-09</span>, <span class='kw'>rtolSS</span> <span class='kw'>=</span> <span class='fl'>1e-09</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>istateReset</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>subsetNonmem</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>linLog</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>maxAtolRtolFactor</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>from</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>to</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>by</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>length.out</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
+  <span class='kw'>maxSS</span> <span class='kw'>=</span> <span class='fl'>1000L</span>, <span class='kw'>strictSS</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>istateReset</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>subsetNonmem</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>linLog</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>maxAtolRtolFactor</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>from</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>to</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>length.out</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
 
 <span class='fu'>rxSolve</span>(<span class='no'>object</span>, <span class='no'>...</span>)
 
@@ -630,14 +630,20 @@ eventTable)</p></td>
       <td><p>Maximum number of iterations for a steady-state dose</p></td>
     </tr>
     <tr>
-      <th>atolSS</th>
-      <td><p>Absolute tolerance to check if a solution arrived at
-steady state.</p></td>
-    </tr>
-    <tr>
-      <th>rtolSS</th>
-      <td><p>Relative tolerance to check if a solution arrived at
-steady state.</p></td>
+      <th>strictSS</th>
+      <td><p>Boolean indicating if a strict steady-state is
+required. If a strict steady-state is (<code>TRUE</code>) required
+then at least <code>minSS</code> doses are administered and the
+total number of steady states doses will continue until
+<code>maxSS</code> is reached, or <code>atol</code> and <code>rtol</code> for
+every compartment have been reached.  However, if ODE solving
+problems occur after the <code>minSS</code> has been reached the
+whole subject is considered an invalid solve. If
+<code>strictSS</code> is <code>FALSE</code> then as long as <code>minSS</code>
+has been reached the last good solve before ODE solving
+problems occur is considered the steady state, even though
+either <code>atolSS</code>, <code>rtolSS</code> or <code>maxSS</code> have not
+been achieved.</p></td>
     </tr>
     <tr>
       <th>params</th>

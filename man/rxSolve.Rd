@@ -333,7 +333,7 @@ whole subject is considered an invalid solve. If
 \code{strictSS} is \code{FALSE} then as long as \code{minSS}
 has been reached the last good solve before ODE solving
 problems occur is considered the steady state, even though
-either \code{atolSS}, \code{rtolSS} or \code{maxSS} have not
+either \code{atol}, \code{rtol} or \code{maxSS} have not
 been achieved.}
 
 \item{params}{a numeric named vector with values for every
