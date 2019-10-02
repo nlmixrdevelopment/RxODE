@@ -9,6 +9,7 @@
 #include "dop853.h"
 #include "common.h"
 #include "lsoda.h"
+#define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 // Yay easy parallel support
 // For Mac, see: http://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/ (as far as I can tell)
 // and https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac
@@ -1118,10 +1119,10 @@ void handleSS(int *neq,
       }
       ind->InfusionRate[ind->cmt] = rate;
       ind->on[ind->cmt] = 1;
-      double infStep = op->infSSstep, a1, t1;
-      // Based on http://www.rxkinetics.com/theo.html
+      double infStep = op->infSSstep, a1=1.0, t1=xp2+1.0;
+      // Based on http://www.rxkinetics.com/theo.html -- Chiou method
       for (j = 0; j < op->maxSS; j++){
-	if (j == 0) xout2 = xp2+1; // the first level drawn one hour after infusion
+	if (j == 0) xout2 = xp2+1.; // the first level drawn one hour after infusion
 	else xout2 = xp2+infStep; 
 	solveSS_1(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs,
 		  xout2, xp2, id, i, nx, istate, op, ind, u_inis, ctx);
@@ -1132,7 +1133,6 @@ void handleSS(int *neq,
 	  }
 	  if (j == 0) {
 	    a1 = yp[ind->cmt];
-	    t1 = xout2;
 	  }
 	  canBreak=0;
 	} else {
