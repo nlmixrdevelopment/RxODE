@@ -3471,7 +3471,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (rx->nsim < 1) rx->nsim=1;
 
     // gsolveSetup includes 1 ind->solveSave per subject, ind->solveLast, ind->solveLast2
-    gsolveSetup((rx->nall+4*rx->nsub)*state.size()*rx->nsim);
+    gsolveSetup((rx->nall+3*rx->nsub)*state.size()*rx->nsim);
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
     gOnSetup(rx->nsub*rx->nsim*state.size());
