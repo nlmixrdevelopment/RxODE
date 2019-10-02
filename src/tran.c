@@ -2199,19 +2199,23 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  show_ode != 6 && show_ode != 8 && show_ode != 9){
 	for (i=0; i<tb.de.n; i++) {                   /* name state vars */
 	  buf = tb.ss.line[tb.di[i]];
-	  sAppendN(&sbOut, "  ", 2);
-	  for (k = 0; k < (int)strlen(buf); k++){
-	    if (buf[k] == '.'){
-	      sAppendN(&sbOut, "_DoT_", 5);
-	      if (rx_syntax_allow_dots == 0){
-		updateSyntaxCol();
-		trans_syntax_error_report_fn(NODOT);
+	  if(tb.idu[i] != 0){
+	    sAppendN(&sbOut, "  ", 2);
+	    for (k = 0; k < (int)strlen(buf); k++){
+	      if (buf[k] == '.'){
+		sAppendN(&sbOut, "_DoT_", 5);
+		if (rx_syntax_allow_dots == 0){
+		  updateSyntaxCol();
+		  trans_syntax_error_report_fn(NODOT);
+		}
+	      } else {
+		sPut(&sbOut, buf[k]);
 	      }
-	    } else {
-	      sPut(&sbOut, buf[k]);
 	    }
+	    sAppend(&sbOut, " = __zzStateVar__[%d]*((double)(_ON[%d]));\n", i, i);	  
+	  } else {
+	    break;
 	  }
-	  sAppend(&sbOut, " = __zzStateVar__[%d]*((double)(_ON[%d]));\n", i, i);
 	}
 	sAppendN(&sbOut, "\n", 1);
       }

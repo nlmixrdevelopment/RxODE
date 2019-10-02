@@ -3466,9 +3466,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 
     glhsSetup(lhs.size()*nSize);
     // std::fill_n(&_globals.glhs[0],lhs.size()*nSize,0.0);
-
-    rx->nsim = nPopPar / rx->nsub;
-    if (rx->nsim < 1) rx->nsim=1;
+    if (nPopPar % rx->nsub == 0) rx->nsim = nPopPar / rx->nsub;
+    else rx->nsim=1;
 
     // gsolveSetup includes 1 ind->solveSave per subject, ind->solveLast, ind->solveLast2
     gsolveSetup((rx->nall+3*rx->nsub)*state.size()*rx->nsim);
