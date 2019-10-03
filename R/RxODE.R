@@ -3,7 +3,8 @@ rex::register_shortcuts("RxODE");
 R_NegInf <- -Inf # Hack for Rcpp->R initial values problem
 R_PosInf <- Inf
 
-.dynProtect <- FALSE;
+.dynProtect <- "";
+.dynUnloadLater <- "";
 
 ##' Protect DLL(s) from unloading
 ##'
@@ -11,15 +12,33 @@ R_PosInf <- Inf
 ##'
 ##' @export
 ##' @author Matthew Fidler
-rxDynProtect <- function(dll){
-    if (dll == "") {assignInMyNamespace(".dynProtect", FALSE);}
-    else {assignInMyNamespace(".dynProtect", TRUE);}
+rxDynProtect <- function(dlls){
+    if (any(sapply(dlls, function(x){any(x == .dynUnloadLater)}))){
+        assignInMyNamespace(".dynUnloadLater", unique(.dynUnloadLater[!(.dynUnloadLater %in% dlls)]))
+    }
+    assignInMyNamespace(".dynProtect", dlls);
 }
 .rxDynUnload <- function(dll, unload=FALSE){
-    if (!.dynProtect && unload){
+    .unloadExtra <- function(){
+        sapply(.dynUnloadLater, function(x){
+            if (!any(x == .dynProtect)){
+                .name <- basename(x)
+                .name <- substr(.name, 0, nchar(.name) - nchar(.Platform$dynlib.ext))
+                if (!is.null(getLoadedDLLs()[[.name]])){
+                    dyn.unload(x);
+                }
+            }
+        })
+    }
+    if (!unload){
+        return(!any(dll == .dynProtect));
+    } else if (!any(dll == .dynProtect)) {
         dyn.unload(dll);
+        .unloadExtra();
     } else {
-        return(.dynProtect);
+        .new <- unique(c(dll, .dynUnloadLater))
+        assignInMyNamespace(".dynUnloadLater", .new);
+        .unloadExtra();
     }
 }
 
