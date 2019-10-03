@@ -16,8 +16,10 @@ rxDynProtect <- function(dll){
     else {assignInMyNamespace(".dynProtect", TRUE);}
 }
 .rxDynUnload <- function(dll, unload=FALSE){
-    if (!.dynProtect){
+    if (!.dynProtect && unload){
         dyn.unload(dll);
+    } else {
+        return(.dynProtect);
     }
 }
 

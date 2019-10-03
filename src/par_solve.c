@@ -291,15 +291,10 @@ double *getRol(int n, double rtol);
 t_set_solve set_solve = NULL;
 
 void rxOptionsIniEnsure(int mx){
-  if (mx >= max_inds_global){
-    max_inds_global = mx;
-    if (max_inds_global  < 1024) max_inds_global=1024;
-    // For memory tests
-    Free(inds_global);
-    inds_global = Calloc(max_inds_global, rx_solving_options_ind);
-    /* if (inds_global == NULL) inds_global = Calloc(max_inds_global, rx_solving_options_ind); */
-    /* else inds_global = Realloc(inds_global, max_inds_global, rx_solving_options_ind); */
-  }
+  Free(inds_global);
+  max_inds_global = mx;
+  max_inds_global=mx;
+  inds_global = Calloc(max_inds_global, rx_solving_options_ind);
   rx_solve *rx=(&rx_global);
   rx->subjects = inds_global;  
   rx_solving_options *op = &op_global;
