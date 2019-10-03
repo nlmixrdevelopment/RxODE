@@ -1207,9 +1207,7 @@ typedef struct {
   int *gon;
   int gonn;
   double *gsolve;
-  int gsolven;
   double *gInfusionRate;
-  int gInfusionRaten;
   double *gall_times;
   int *gix;
   int gixn;
@@ -1220,13 +1218,10 @@ typedef struct {
   double *gii;
   int gamtn;
   double *glhs;
-  int glhsn;
   double *gcov;
   int gcovn;
   double *ginits;
-  int ginitsn;
   double *gscale;
-  int gscalen;
   double *gatol2;
   int gatol2n;
   double *grtol2;
@@ -1262,7 +1257,6 @@ typedef struct {
   int *jac_counter;
   int jac_countern;
   double *gmtime;
-  int gmtimen;
 } rx_globals;
 
 rx_globals _globals;
@@ -1271,16 +1265,9 @@ rx_globals _globals;
 extern "C" void rxOptionsIniData(){
   Free(_globals.gsolve);
   _globals.gsolve = NULL;//Calloc(NCMT*NALL,double);
-  _globals.gsolven=0;//NCMT*NALL;
   Free(_globals.gon);
   _globals.gon = NULL;//Calloc(NCMT*NALL,double);
   _globals.gonn=0;
-  Free(_globals.gmtime);
-  _globals.gmtime = NULL;//Calloc(NCMT*NALL,double);
-  _globals.gmtimen=0;//NCMT*NALL;
-  Free(_globals.gInfusionRate);
-  _globals.gInfusionRate = NULL;//Calloc(NCMT,double);
-  _globals.gInfusionRaten=0;//NCMT;
   Free(_globals.gall_times);
   _globals.gall_times = NULL;//Calloc(NALL,double);
   Free(_globals.gix);
@@ -1292,18 +1279,9 @@ extern "C" void rxOptionsIniData(){
   Free(_globals.gamt);
   _globals.gamt = NULL;//Calloc(NDOSES,double);
   _globals.gamtn=0;//NDOSES;
-  Free(_globals.glhs);
-  _globals.glhs = NULL;//Calloc(NPARS,double);
-  _globals.glhsn=0;//NPARS;
   Free(_globals.gcov);
   _globals.gcov = NULL;//Calloc(NALL*10,double);
   _globals.gcovn=0;//NALL*10;
-  Free(_globals.ginits);
-  _globals.ginits = NULL;//Calloc(NCMT,double);
-  _globals.ginitsn=0;//NCMT;
-  Free(_globals.gscale);
-  _globals.gscale = NULL;//Calloc(NCMT,double);
-  _globals.gscalen=0;//NCMT;
   Free(_globals.gatol2);
   _globals.gatol2 = NULL;//Calloc(NCMT,double);
   _globals.gatol2n=0;//NCMT;
@@ -1368,46 +1346,6 @@ void gOnSetup(int n){
 }
 
 LogicalVector rxSolveFree();
-void gsolveSetup(int n){
-  if (n < 0){
-    rxSolveFree();
-    stop("Memory overflow;  Cannot allocate memory; Try reducing the problem");
-  }
-  if (_globals.gsolven <= 0){
-    _globals.gsolven=0;
-    Free(_globals.gsolve);
-    _globals.gsolve=NULL;
-  }
-  if (_globals.gsolven < n){
-    int cur = n;
-    if (_globals.gsolve == NULL) _globals.gsolve = Calloc(cur, double);
-    else _globals.gsolve = Realloc(_globals.gsolve, cur, double);
-    _globals.gsolven=cur;
-  }
-}
-
-void gmtimeSetup(int n){
-  if (_globals.gmtimen <= 0){
-    _globals.gmtimen=0;
-    Free(_globals.gmtime);
-    _globals.gmtime=NULL;
-  }
-  if (_globals.gmtimen < n){
-    int cur = n;
-    if (_globals.gmtime == NULL) _globals.gmtime = Calloc(cur, double);
-    else _globals.gmtime = Realloc(_globals.gmtime, cur, double);
-    _globals.gmtimen=cur;
-  }
-}
-
-void gInfusionRateSetup(int n){
-  if (_globals.gInfusionRaten < n){
-    int cur = n;
-    if (_globals.gInfusionRate == NULL) _globals.gInfusionRate = Calloc(cur, double);
-    else _globals.gInfusionRate = Realloc(_globals.gInfusionRate, cur, double);
-    _globals.gInfusionRaten=cur;
-  }
-}
 
 void gix_Setup(int n){
   if (_globals.gixn <= 0){
@@ -1464,49 +1402,12 @@ void gamtSetup(int n){
   }
 }
 
-void glhsSetup(int n){
-  if (_globals.glhsn < n){
-    _globals.glhsn=0;
-    Free(_globals.glhs);
-    _globals.glhs=NULL;
-  }
-  if (_globals.glhsn < n){
-    int cur = n;
-    if (_globals.glhs == NULL) _globals.glhs = Calloc(cur, double);
-    else _globals.glhs = Realloc(_globals.glhs, cur, double);
-    _globals.glhsn =cur;
-  }
-}
-
 void gcovSetup(int n){
   if (_globals.gcovn < n){
     int cur = n;
     if (_globals.gcov == NULL) _globals.gcov = Calloc(cur, double);
     else _globals.gcov = Realloc(_globals.gcov, cur, double);
     _globals.gcovn = cur;
-  }
-}
-
-void ginitsSetup(int n){
-  if (_globals.ginitsn <= 0){
-    Free(_globals.ginits);
-    _globals.ginits = NULL;
-    _globals.ginitsn = 0;
-  }
-  if (_globals.ginitsn < n){
-    int cur = n;
-    if (_globals.ginits == NULL) _globals.ginits = Calloc(cur, double);
-    else _globals.ginits = Realloc(_globals.ginits, cur, double);
-    _globals.ginitsn = cur;
-  }
-}
-
-void gscaleSetup(int n){
-  if (_globals.gscalen < n){
-    int cur = n;
-    if (_globals.gscale == NULL) _globals.gscale = Calloc(cur, double);
-    else _globals.gscale = Realloc(_globals.gscale, cur, double);
-    _globals.gscalen = cur;
   }
 }
 
@@ -1713,6 +1614,8 @@ void rxFreeErrs(){
 }
 
 extern "C" void gFree(){
+  Free(_globals.gsolve);
+  _globals.gsolve=NULL;  
   Free(_rxGetErrs);
   Free(_globals.gsiV);
   _globals.gsiV=NULL;
@@ -1744,18 +1647,9 @@ extern "C" void gFree(){
   Free(_globals.gatol2);
   _globals.gatol2=NULL;
   _globals.gatol2n=0;
-  Free(_globals.gscale);
-  _globals.gscale=NULL;
-  _globals.gscalen=0;
-  Free(_globals.ginits);
-  _globals.ginits=NULL;
-  _globals.ginitsn=0;
   Free(_globals.gcov);
   _globals.gcov=NULL;
   _globals.gcovn=0;
-  Free(_globals.glhs);
-  _globals.glhs=NULL;
-  _globals.glhsn=0;
   Free(_globals.gamt);
   _globals.gamt=NULL;
   Free(_globals.gii);
@@ -1770,18 +1664,9 @@ extern "C" void gFree(){
   _globals.gixn=0;
   Free(_globals.gdv);
   _globals.gdvn=0;
-  Free(_globals.gInfusionRate);
-  _globals.gInfusionRate=NULL;
-  _globals.gInfusionRaten=0;
-  Free(_globals.gsolve);
-  _globals.gsolve=NULL;
-  _globals.gsolven=0;
   Free(_globals.gon);
   _globals.gon=NULL;
   _globals.gonn=0;
-  Free(_globals.gmtime);
-  _globals.gmtime=NULL;
-  _globals.gmtimen=0;
   Free(_globals.gParPos);
   _globals.gParPos=NULL;
   Free(_globals.gParPos2);
@@ -2408,6 +2293,7 @@ extern "C" void rxOptionsIni();
 extern "C" void rxOptionsIniEnsure(int mx);
 extern "C" void parseFree(int last);
 extern "C" void rxClearFuns();
+int _gsetupOnly = 0;
 //' Free the C solving/parsing information.
 //'
 //' Take the ODE C system and free it.
@@ -2416,15 +2302,18 @@ extern "C" void rxClearFuns();
 //' @export
 // [[Rcpp::export]]
 LogicalVector rxSolveFree(){
-  rxOptionsFree();
-  rxOptionsIni();
-  rxOptionsIniData();
-  parseFree(0);
-  rxClearFuns();
-  gFree();
-  return LogicalVector::create(true);
+  if (!_gsetupOnly){
+    rxOptionsFree();
+    rxOptionsIni();
+    rxOptionsIniData();
+    parseFree(0);
+    rxClearFuns();
+    gFree();
+    return LogicalVector::create(true);
+  } else {
+    return LogicalVector::create(false);
+  }
 }
-
 extern "C" void RxODE_assign_fn_pointers(SEXP);
 
 List keepIcov;
@@ -2545,7 +2434,6 @@ SEXP rxSolve_update(const RObject &object, const List &rxControl,
   return dat;
 }
 void rxAssignPtr(SEXP object);
-int _gsetupOnly;
 //[[Rcpp::export]]
 SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const Nullable<CharacterVector> &specParams,
@@ -2554,6 +2442,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const int setupOnly){
   if (rxIs(rxControl,"rxControl")){
     stop("Control list not setup correctly.");
+  }
+  if (_gsetupOnly){
+    _gsetupOnly = 0;
+    rxSolveFree();
   }
   maxAtolRtolFactor = as<double>(rxControl["maxAtolRtolFactor"]);
   RObject scale = rxControl["scale"];
@@ -2797,16 +2689,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->mxstep = maxsteps;
     op->MXORDN = maxordn;
     op->MXORDS = maxords;
-    // The initial conditions cannot be changed for each individual; If
-    // they do they need to be a parameter.
-    initsC = rxInits(object, inits, state, 0.0);
-    ginitsSetup(initsC.size());
-    std::copy(initsC.begin(), initsC.end(), &_globals.ginits[0]);
-    op->inits = &_globals.ginits[0];
-    NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
-    gscaleSetup(scaleC.size());
-    std::copy(scaleC.begin(),scaleC.end(),&_globals.gscale[0]);
-    op->scale = &_globals.gscale[0];
     //
     int transit = 0;
     if (transit_abs.isNull()){
@@ -3445,9 +3327,30 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     }
     int nSize = nPopPar*rx->nsub;
     if (nPopPar == 1) nSize = rx->nsub;
+    if (nPopPar % rx->nsub == 0) rx->nsim = nPopPar / rx->nsub;
+    else rx->nsim=1;
 
-    gInfusionRateSetup(op->neq*nSize);
-    // std::fill_n(&_globals.gInfusionRate[0], op->neq*nSize, 0.0);
+    // gsolveSetup includes 1 ind->solveSave per subject, ind->solveLast, ind->solveLast2
+    int n1 = (rx->nall+3*rx->nsub)*state.size()*rx->nsim;
+    int n2 = rx->nMtime*rx->nsub*rx->nsim;
+    int n3 = op->neq*nSize;
+    initsC = rxInits(object, inits, state, 0.0);
+    int n4 = initsC.size();
+    int n5 = lhs.size()*nSize;
+    // The initial conditions cannot be changed for each individual; If
+    // they do they need to be a parameter.
+    NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
+    int n6 = scaleC.size();
+    _globals.gsolve = Calloc(n1+n2+n3+n4+n5+n6, double);// [n1]
+    _globals.gmtime = _globals.gsolve +n1; // [n2]
+    _globals.gInfusionRate = _globals.gmtime + n2; //[n3]
+    _globals.ginits = _globals.gInfusionRate + n3; // [n4]
+    std::copy(initsC.begin(), initsC.end(), &_globals.ginits[0]);
+    op->inits = &_globals.ginits[0];
+    _globals.glhs = _globals.ginits + n4; // [n5]
+    _globals.gscale = _globals.glhs + n5; //[n6]
+    std::copy(scaleC.begin(),scaleC.end(),&_globals.gscale[0]);
+    op->scale = &_globals.gscale[0];
 
     gBadDoseSetup(op->neq*nSize);
     // std::fill_n(&_globals.gBadDose[0], op->neq*nSize, 0);
@@ -3464,21 +3367,12 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     gjac_counterSetup(nSize);
     // std::fill_n(&_globals.jac_counter[0], nSize, 0);
 
-    glhsSetup(lhs.size()*nSize);
-    // std::fill_n(&_globals.glhs[0],lhs.size()*nSize,0.0);
-    if (nPopPar % rx->nsub == 0) rx->nsim = nPopPar / rx->nsub;
-    else rx->nsim=1;
-
-    // gsolveSetup includes 1 ind->solveSave per subject, ind->solveLast, ind->solveLast2
-    gsolveSetup((rx->nall+3*rx->nsub)*state.size()*rx->nsim);
+    
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
     gOnSetup(rx->nsub*rx->nsim*state.size());
 
     gix_Setup(rx->nall*rx->nsim);
-    
-    gmtimeSetup(rx->nMtime*rx->nsub*rx->nsim);
-
 
     int curEvent = 0, curIdx = 0, curSolve=0;
     
@@ -3598,88 +3492,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     default: 
       stop("Something is wrong here.");
     }
+    _gsetupOnly=setupOnly;
     if (setupOnly){
-      if (setupOnly == 2){
-	// Partial free
-	// mtime needs to be setup and used.
-	Free(_globals.gmtime);
-	_globals.gmtime=NULL;
-	_globals.gmtimen=0;
-	// par_cov needs to be specified.
-	Free(_globals.gpar_cov);
-	_globals.gpar_covn=0;
-
-	Free(_globals.gsiV);
-	_globals.gsiVn=0;
-	Free(_globals.gsvar);
-	_globals.gsvarn=0;
-
-	// idose provided
-	Free(_globals.gidose);
-	_globals.gidosen=0;
-	// Rc provided
-	Free(_globals.grc);
-	_globals.grc=NULL;
-	_globals.grcn=0;
-	// Baddose setup on single solve
-	if (_globals.gBadDose != NULL) Free(_globals.gBadDose);
-	_globals.gBadDosen=0;
-	// Evid provided
-	if (_globals.gevid != NULL) Free(_globals.gevid);
-	_globals.gevid=NULL;
-	_globals.gevidn=0;
-	// gpar setup
-	if (_globals.gpars != NULL && _globals.gparsn>0) Free(_globals.gpars);
-	_globals.gpars=NULL;
-	_globals.gparsn=0;
-	// Tolerances need to be saved.
-	// if (_globals.grtol2 != NULL) Free(_globals.grtol2);
-	// _globals.grtol2n=0;
-	// if (_globals.gatol2 != NULL) Free(_globals.gatol2);
-	// _globals.gatol2n=0;
-	if (_globals.gscale != NULL) Free(_globals.gscale);
-	_globals.gscalen=0;
-	// Set initial conditions
-	Free(_globals.ginits);
-	_globals.ginits=NULL;
-	_globals.ginitsn=0;
-	// Cov needs to be provided
-	Free(_globals.gcov);
-	_globals.gcovn=0;
-	// lhs needs to be provided
-	Free(_globals.glhs);
-	_globals.glhs=NULL;
-	_globals.glhsn=0;
-	// dose needs to be provided.  So does ii
-	Free(_globals.gamt);
-	Free(_globals.gii);
-	_globals.gamt=NULL;
-	_globals.gii=NULL;
-	_globals.gamtn=0;
-	// Times need to be provided.
-	Free(_globals.gall_times);
-	_globals.gall_times=NULL;
-	_globals.gall_timesn=0;
-	Free(_globals.gix);
-	_globals.gix=NULL;
-	_globals.gixn=0;
-	Free(_globals.gdv);
-	_globals.gdvn=0;
-	Free(_globals.gInfusionRate);
-	_globals.gInfusionRaten=0;
-	Free(_globals.gsolve);
-	_globals.gsolve=NULL;
-	_globals.gsolven=0;
-	Free(_globals.gon);
-	_globals.gon=NULL;
-	_globals.gonn=0;
-	Free(_globals.gParPos);
-	Free(_globals.gParPos2);
-	_globals.gParPosn = 0;
-      }
       return as<SEXP>(LogicalVector::create(true));
     }
-    _gsetupOnly=setupOnly;
     par_solve(rx);
     if (op->abort){
       rxSolveFree();
