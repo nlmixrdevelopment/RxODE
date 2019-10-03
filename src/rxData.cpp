@@ -1204,13 +1204,11 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 
 
 typedef struct {
-  int *gon;
-  int gonn;
-  double *gsolve;
+  int *gon = NULL;
+  double *gsolve = NULL;
   double *gInfusionRate;
   double *gall_times;
   int *gix;
-  int gixn;
   int gall_timesn;
   double *gdv;
   int gdvn;
@@ -1225,35 +1223,27 @@ typedef struct {
   double *gatol2;
   double *grtol2;
   double *gpars;
-  int gparsn;
   //ints
   int *gevid;
   int gevidn;
   int *gBadDose;
-  int gBadDosen;
   int *grc;
-  int grcn;
   int *gidose;
   int gidosen;
   int *gpar_cov;
   int gpar_covn;
   
   int *gParPos;
-  int gParPosn;
   int *gParPos2;
   
   int *gsvar;
-  int gsvarn;
   int nsvar;
   int *gsiV;
   int gsiVn;
   //
   int *slvr_counter;
-  int slvr_countern;
   int *dadt_counter;
-  int dadt_countern;
   int *jac_counter;
-  int jac_countern;
   double *gmtime;
 } rx_globals;
 
@@ -1264,13 +1254,14 @@ extern "C" void rxOptionsIniData(){
   Free(_globals.gsolve);
   _globals.gsolve = NULL;//Calloc(NCMT*NALL,double);
   Free(_globals.gon);
-  _globals.gon = NULL;//Calloc(NCMT*NALL,double);
-  _globals.gonn=0;
+  _globals.gon = NULL;
+  Free(_globals.gpars);
+  _globals.gpars = NULL;
+  Free(_globals.gParPos);
+  _globals.gParPos = NULL;//Calloc(NCMT, int);
+  
   Free(_globals.gall_times);
   _globals.gall_times = NULL;//Calloc(NALL,double);
-  Free(_globals.gix);
-  _globals.gix = NULL;//Calloc(NALL,double);
-  _globals.gall_timesn=0;//NALL;
   Free(_globals.gdv);
   _globals.gdv = NULL;//Calloc(NALL,double);
   _globals.gdvn=0;//NALL;
@@ -1280,78 +1271,23 @@ extern "C" void rxOptionsIniData(){
   Free(_globals.gcov);
   _globals.gcov = NULL;//Calloc(NALL*10,double);
   _globals.gcovn=0;//NALL*10;
-  Free(_globals.gpars);
-  _globals.gpars = NULL;//Calloc(NPARS,double);
-  _globals.gparsn=0;//NPARS;
   //ints
   Free(_globals.gevid);
   _globals.gevid = NULL;//Calloc(NALL, int);
   _globals.gevidn = 0;//NALL;
-  Free(_globals.gBadDose);
-  _globals.gBadDose = NULL;//Calloc(NCMT, int);
-  _globals.gBadDosen = 0;//NCMT;
-  Free(_globals.grc);
-  _globals.grc = NULL;//Calloc(MAXIDS, int);
-  _globals.grcn = 0;//MAXIDS;
   Free(_globals.gidose);
   _globals.gidose = NULL;//Calloc(NALL, int);
   _globals.gidosen = 0;//NALL;
   Free(_globals.gpar_cov);
   _globals.gpar_cov = NULL;//Calloc(NCMT, int);
   _globals.gpar_covn = 0;//NCMT;
-  Free(_globals.gParPos);
-  _globals.gParPos = NULL;//Calloc(NCMT, int);
-  Free(_globals.gParPos2);
-  _globals.gParPos2 = NULL;//Calloc(NCMT, int);
-  _globals.gParPosn = 0;//NCMT;
-  Free(_globals.gsvar);
-  _globals.gsvar = NULL;//Calloc(NPARS, int);
-  _globals.gsvarn = 0;//NPARS;
+  
   Free(_globals.gsiV);
   _globals.gsiV = NULL;//Calloc(NCMT, int);
   _globals.gsiVn = 0;//NCMT;
-  Free(_globals.slvr_counter);
-  _globals.slvr_counter = NULL;//Calloc(MAXIDS, int);
-  _globals.slvr_countern = 0;//MAXIDS;
-  Free(_globals.dadt_counter);
-  _globals.dadt_counter = NULL;//Calloc(MAXIDS, int);
-  _globals.dadt_countern = 0;//MAXIDS;
-  Free(_globals.jac_counter);
-  _globals.jac_counter = NULL;//Calloc(MAXIDS, int);
-  _globals.jac_countern = 0;//MAXIDS;
-}
-
-void gOnSetup(int n){
-  if (_globals.gonn <= 0){
-    _globals.gonn=0;
-    Free(_globals.gon);
-    _globals.gon=NULL;
-  }
-  if (_globals.gonn < n){
-    int cur = n;
-    if (_globals.gon == NULL) _globals.gon = Calloc(cur, int);
-    else _globals.gon = Realloc(_globals.gon, cur, int);
-    // Everything is on by default
-    std::fill_n(&_globals.gon[0], cur, 1);
-    _globals.gonn=cur;
-  }
 }
 
 LogicalVector rxSolveFree();
-
-void gix_Setup(int n){
-  if (_globals.gixn <= 0){
-    _globals.gixn=0;
-    Free(_globals.gix);
-    _globals.gix=NULL;
-  }
-  if (_globals.gixn < n){
-    int cur = n;
-    if (_globals.gix == NULL) _globals.gix = Calloc(cur, int);
-    else _globals.gix = Realloc(_globals.gix, cur, int);
-    _globals.gixn=cur;
-  }
-}
 
 void gall_timesSetup(int n){
   if (_globals.gall_timesn <= 0){
@@ -1425,23 +1361,9 @@ extern "C" double * getRol(int n, double rtol){
   return _globals.grtol2;
 }
 
-void gparsSetup(int n){
-  if (_globals.gparsn <= 0){
-    _globals.gparsn=0;
-    Free(_globals.gpars);
-    _globals.gpars=NULL;
-  }
-  if (_globals.gparsn < n){
-    int cur = n;
-    if (_globals.gpars == NULL) _globals.gpars = Calloc(cur, double);
-    else _globals.gpars = Realloc(_globals.gpars, cur, double);
-    cur = _globals.gparsn;
-  }
-}
-
 void gparsCovSetup(int npars, int nPopPar, RObject ev1,rx_solve* rx){
   // Fill the parameters with NA.
-  gparsSetup(npars*nPopPar);
+  _globals.gpars = Calloc(npars*nPopPar, double);
   std::fill_n(&_globals.gpars[0], npars*nPopPar, NA_REAL);
   if (rxIs(ev1, "rxEtTran")){
     CharacterVector tmpCls = ev1.attr("class");
@@ -1472,59 +1394,6 @@ void gevidSetup(int n){
   }
 }
 
-void gBadDoseSetup(int n){
-  if (_globals.gBadDosen < n){
-    int cur = n;
-    if (_globals.gBadDose == NULL) _globals.gBadDose = Calloc(cur, int);
-    else _globals.gBadDose = Realloc(_globals.gBadDose, cur, int);
-    _globals.gBadDosen  = cur;
-  }
-}
-
-void grcSetup(int n){
-  if (_globals.grcn <= 0){
-    _globals.grcn=0;
-    Free(_globals.grc);
-    _globals.grc=NULL;
-  }
-  if (_globals.grcn < n){
-    int cur = n;
-    if (_globals.grc == NULL) _globals.grc = Calloc(cur, int);
-    else _globals.grc = Realloc(_globals.grc, cur, int);
-    _globals.grcn  = cur;
-  }
-}
-
-extern "C" int *gslvr_counterSetup(int n){
-  if (_globals.slvr_countern < n){
-    int cur = n;
-    if (_globals.slvr_counter == NULL) _globals.slvr_counter = Calloc(cur, int);
-    else _globals.slvr_counter = Realloc(_globals.slvr_counter, cur, int);
-    _globals.slvr_countern = cur;
-  }
-  return _globals.slvr_counter;
-}
-
-extern "C" int *gdadt_counterSetup(int n){
-  if (_globals.dadt_countern < n){
-    int cur = n;
-    if (_globals.dadt_counter == NULL) _globals.dadt_counter = Calloc(cur, int);
-    else _globals.dadt_counter = Realloc(_globals.dadt_counter, cur, int);
-    _globals.dadt_countern = cur;
-  }
-  return _globals.dadt_counter;
-}
-
-extern "C" int *gjac_counterSetup(int n){
-  if (_globals.jac_countern < n){
-    int cur = n;
-    if (_globals.jac_counter == NULL) _globals.jac_counter = Calloc(cur, int);
-    else _globals.jac_counter = Realloc(_globals.jac_counter, cur, int);
-    _globals.jac_countern = cur;
-  }
-  return _globals.jac_counter;
-}
-
 extern "C" int *gidoseSetup(int n){
   if (_globals.gidosen < n){
     int cur = n;
@@ -1541,26 +1410,6 @@ void gpar_covSetup(int n){
     if (_globals.gpar_cov == NULL) _globals.gpar_cov = Calloc(cur, int);
     else _globals.gpar_cov = Realloc(_globals.gpar_cov, cur, int);
     _globals.gpar_covn = cur;
-  }
-}
-
-void gParPosSetup(int n){
-  if (_globals.gParPosn < n){
-    int cur = n;
-    if (_globals.gParPos == NULL) _globals.gParPos = Calloc(cur, int);
-    else _globals.gParPos = Realloc(_globals.gParPos, cur, int);
-    if (_globals.gParPos2 == NULL) _globals.gParPos2 = Calloc(cur, int);
-    else _globals.gParPos2 = Realloc(_globals.gParPos2, cur, int);
-    _globals.gParPosn = cur;
-  }
-}
-
-void gsvarSetup(int n){
-  if (_globals.gsvarn < n){
-    int cur = n;
-    if (_globals.gsvar == NULL) _globals.gsvar = Calloc(cur, int);
-    else _globals.gsvar = Realloc(_globals.gsvar, cur, int);
-    _globals.gsvarn = cur;
   }
 }
 
@@ -1581,32 +1430,27 @@ void rxFreeErrs(){
 
 extern "C" void gFree(){
   Free(_globals.gsolve);
-  _globals.gsolve=NULL;  
+  _globals.gsolve=NULL;
+  Free(_globals.gon);
+  _globals.gon=NULL;
+  Free(_globals.gpars);
+  _globals.gpars=NULL;
+  Free(_globals.gParPos);
+  _globals.gParPos=NULL;
+  
   Free(_rxGetErrs);
   Free(_globals.gsiV);
   _globals.gsiV=NULL;
   _globals.gsiVn=0;
-  Free(_globals.gsvar);
-  _globals.gsvar=NULL;
-  _globals.gsvarn=0;
   Free(_globals.gpar_cov);
   _globals.gpar_cov=NULL;
   _globals.gpar_covn=0;
   Free(_globals.gidose);
   _globals.gidose=NULL;
   _globals.gidosen=0;
-  Free(_globals.grc);
-  _globals.grc=NULL;
-  _globals.grcn=0;
-  Free(_globals.gBadDose);
-  _globals.gBadDose=NULL;
-  _globals.gBadDosen=0;
   Free(_globals.gevid);
   _globals.gevid=NULL;
   _globals.gevidn=0;
-  Free(_globals.gpars);
-  _globals.gpars=NULL;
-  _globals.gparsn=0;
   Free(_globals.gcov);
   _globals.gcov=NULL;
   _globals.gcovn=0;
@@ -1619,28 +1463,8 @@ extern "C" void gFree(){
   Free(_globals.gall_times);
   _globals.gall_times=NULL;
   _globals.gall_timesn=0;
-  Free(_globals.gix);
-  _globals.gix=NULL;
-  _globals.gixn=0;
   Free(_globals.gdv);
   _globals.gdvn=0;
-  Free(_globals.gon);
-  _globals.gon=NULL;
-  _globals.gonn=0;
-  Free(_globals.gParPos);
-  _globals.gParPos=NULL;
-  Free(_globals.gParPos2);
-  _globals.gParPos2=NULL;
-  _globals.gParPosn = 0;
-  Free(_globals.slvr_counter);
-  _globals.slvr_counter=NULL;
-  _globals.slvr_countern=0;
-  Free(_globals.jac_counter);
-  _globals.jac_counter=NULL;
-  _globals.jac_countern=0;
-  Free(_globals.dadt_counter);
-  _globals.dadt_counter=NULL;
-  _globals.dadt_countern=0;
 }
 
 extern "C" double *rxGetErrs(){
@@ -3187,8 +3011,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     } else {
       stop("Data not provided");
     }
-    // Make sure the user input all the parmeters.
-    gParPosSetup(npars);
+    // Make sure the user input all the parameters.
+    _globals.gParPos = Calloc(npars*2 + sigmaN.size(), int);// [npars]
+    _globals.gParPos2 =  _globals.gParPos + npars; // [npars]
+    _globals.gsvar =  _globals.gParPos2 + npars;//[sigmaN.size()]
     std::string errStr = "";
     bool allPars = true;
     bool curPar = false;
@@ -3200,7 +3026,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       List tmpCov1 = e["cov1"];
       mvCov1N = tmpCov1.attr("names");
     }
-    gsvarSetup(sigmaN.size());
+    
     for (i = npars; i--;){
       curPar = false;
       // Check to see if this is a covariate.
@@ -3310,30 +3136,20 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     std::copy(atolNV.begin(), atolNV.begin() + min2(op->neq, atolNV.size()), &_globals.gatol2[0]);
     std::copy(rtolNV.begin(), rtolNV.begin() + min2(op->neq, rtolNV.size()), &_globals.grtol2[0]);
     op->atol2 = &_globals.gatol2[0];
-    op->rtol2 = &_globals.grtol2[0];    
-
-    gBadDoseSetup(op->neq*nSize);
-    // std::fill_n(&_globals.gBadDose[0], op->neq*nSize, 0);
-    
-    grcSetup(nSize);
-    // std::fill_n(&_globals.grc[0], nSize, 0);
-
-    gslvr_counterSetup(nSize);
-    // std::fill_n(&_globals.slvr_counter[0], nSize, 0);
-    
-    gdadt_counterSetup(nSize);
-    // std::fill_n(&_globals.dadt_counter[0], nSize, 0);
-
-    gjac_counterSetup(nSize);
-    // std::fill_n(&_globals.jac_counter[0], nSize, 0);
-
-    
+    op->rtol2 = &_globals.grtol2[0];
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
-    gOnSetup(rx->nsub*rx->nsim*state.size());
+    n1 = rx->nsub*rx->nsim*state.size();
+    _globals.gon = Calloc(n1+n3 + 4*nSize + rx->nall*rx->nsim, int); // [n1]
+    std::fill_n(&_globals.gon[0], n1, 1);
+    _globals.gBadDose = _globals.gon+n1; // [n3]
+    _globals.grc = _globals.gBadDose + n3; //[nSize]
+    _globals.slvr_counter = _globals.grc + nSize; //[nSize]
+    _globals.dadt_counter = _globals.slvr_counter + nSize; // [nSize]
+    _globals.jac_counter = _globals.dadt_counter + nSize; // [nSize]
+    _globals.gix=_globals.jac_counter+nSize; // rx->nall*rx->nsim
 
-    gix_Setup(rx->nall*rx->nsim);
-
+    
     int curEvent = 0, curIdx = 0, curSolve=0;
     
     switch(parType){
