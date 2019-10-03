@@ -1209,15 +1209,11 @@ typedef struct {
   double *gInfusionRate;
   double *gall_times;
   int *gix;
-  int gall_timesn;
   double *gdv;
-  int gdvn;
   double *gamt;
   double *gii;
-  int gamtn;
   double *glhs;
   double *gcov;
-  int gcovn;
   double *ginits;
   double *gscale;
   double *gatol2;
@@ -1225,21 +1221,16 @@ typedef struct {
   double *gpars;
   //ints
   int *gevid;
-  int gevidn;
   int *gBadDose;
   int *grc;
   int *gidose;
-  int gidosen;
   int *gpar_cov;
-  int gpar_covn;
   
   int *gParPos;
   int *gParPos2;
   
   int *gsvar;
   int nsvar;
-  int *gsiV;
-  int gsiVn;
   //
   int *slvr_counter;
   int *dadt_counter;
@@ -1249,95 +1240,7 @@ typedef struct {
 
 rx_globals _globals;
 
-
-extern "C" void rxOptionsIniData(){
-  Free(_globals.gsolve);
-  _globals.gsolve = NULL;//Calloc(NCMT*NALL,double);
-  Free(_globals.gon);
-  _globals.gon = NULL;
-  Free(_globals.gpars);
-  _globals.gpars = NULL;
-  Free(_globals.gParPos);
-  _globals.gParPos = NULL;//Calloc(NCMT, int);
-  
-  Free(_globals.gall_times);
-  _globals.gall_times = NULL;//Calloc(NALL,double);
-  Free(_globals.gdv);
-  _globals.gdv = NULL;//Calloc(NALL,double);
-  _globals.gdvn=0;//NALL;
-  Free(_globals.gamt);
-  _globals.gamt = NULL;//Calloc(NDOSES,double);
-  _globals.gamtn=0;//NDOSES;
-  Free(_globals.gcov);
-  _globals.gcov = NULL;//Calloc(NALL*10,double);
-  _globals.gcovn=0;//NALL*10;
-  //ints
-  Free(_globals.gevid);
-  _globals.gevid = NULL;//Calloc(NALL, int);
-  _globals.gevidn = 0;//NALL;
-  Free(_globals.gidose);
-  _globals.gidose = NULL;//Calloc(NALL, int);
-  _globals.gidosen = 0;//NALL;
-  Free(_globals.gpar_cov);
-  _globals.gpar_cov = NULL;//Calloc(NCMT, int);
-  _globals.gpar_covn = 0;//NCMT;
-  
-  Free(_globals.gsiV);
-  _globals.gsiV = NULL;//Calloc(NCMT, int);
-  _globals.gsiVn = 0;//NCMT;
-}
-
 LogicalVector rxSolveFree();
-
-void gall_timesSetup(int n){
-  if (_globals.gall_timesn <= 0){
-    _globals.gall_timesn=0;
-    Free(_globals.gall_times);
-    _globals.gall_times=NULL;
-  }
-  if (_globals.gall_timesn < n){
-    int cur = n;
-    if (_globals.gall_times == NULL) _globals.gall_times = Calloc(cur, double);
-    else _globals.gall_times = Realloc(_globals.gall_times, cur, double);
-    _globals.gall_timesn=cur;
-  }
-}
-
-void gdvSetup(int n){
-  if (_globals.gdvn < n){
-    int cur = n;
-    if (_globals.gdv == NULL) _globals.gdv = Calloc(cur, double);
-    else _globals.gdv = Realloc(_globals.gdv, cur, double);
-    _globals.gdvn=cur;
-  }
-}
-
-void gamtSetup(int n){
-  if (_globals.gamtn <= 0){
-    _globals.gamtn = 0;
-    Free(_globals.gamt);
-    _globals.gamt  = NULL;
-    Free(_globals.gii);
-    _globals.gii   = NULL;
-  }
-  if (_globals.gamtn < n){
-    int cur = n;
-    if (_globals.gamt == NULL) _globals.gamt = Calloc(cur, double);
-    else _globals.gamt = Realloc(_globals.gamt, cur, double);
-    if (_globals.gii == NULL) _globals.gii = Calloc(cur, double);
-    else _globals.gii = Realloc(_globals.gii, cur, double);
-    _globals.gamtn = cur;
-  }
-}
-
-void gcovSetup(int n){
-  if (_globals.gcovn < n){
-    int cur = n;
-    if (_globals.gcov == NULL) _globals.gcov = Calloc(cur, double);
-    else _globals.gcov = Realloc(_globals.gcov, cur, double);
-    _globals.gcovn = cur;
-  }
-}
 
 double maxAtolRtolFactor = 0.1;
 
@@ -1380,49 +1283,6 @@ void gparsCovSetup(int npars, int nPopPar, RObject ev1,rx_solve* rx){
   }
 }
 
-void gevidSetup(int n){
-  if (_globals.gevidn <= 0){
-    _globals.gevidn = 0;
-    Free(_globals.gevid);
-    _globals.gevid = NULL;
-  }
-  if (_globals.gevidn < n){
-    int cur = n;
-    if (_globals.gevid == NULL) _globals.gevid = Calloc(cur, int);
-    else _globals.gevid = Realloc(_globals.gevid, cur, int);
-    _globals.gevidn  = cur;
-  }
-}
-
-extern "C" int *gidoseSetup(int n){
-  if (_globals.gidosen < n){
-    int cur = n;
-    if (_globals.gidose == NULL) _globals.gidose = Calloc(cur, int);
-    else _globals.gidose = Realloc(_globals.gidose, cur, int);
-    _globals.gidosen = cur;
-  }
-  return _globals.gidose;
-}
-
-void gpar_covSetup(int n){
-  if (_globals.gpar_covn < n){
-    int cur = n;
-    if (_globals.gpar_cov == NULL) _globals.gpar_cov = Calloc(cur, int);
-    else _globals.gpar_cov = Realloc(_globals.gpar_cov, cur, int);
-    _globals.gpar_covn = cur;
-  }
-}
-
-extern "C" int *gsiVSetup(int n){
-  if (_globals.gsiVn < n){
-    int cur = n;
-    if (_globals.gsiV == NULL) _globals.gsiV = Calloc(cur, int);
-    else _globals.gsiV = Realloc(_globals.gsiV, cur, int);
-    _globals.gsiVn = cur;
-  }
-  return _globals.gsiV;
-}
-
 double *_rxGetErrs = NULL;
 void rxFreeErrs(){
   Free(_rxGetErrs);
@@ -1437,34 +1297,15 @@ extern "C" void gFree(){
   _globals.gpars=NULL;
   Free(_globals.gParPos);
   _globals.gParPos=NULL;
-  
-  Free(_rxGetErrs);
-  Free(_globals.gsiV);
-  _globals.gsiV=NULL;
-  _globals.gsiVn=0;
-  Free(_globals.gpar_cov);
-  _globals.gpar_cov=NULL;
-  _globals.gpar_covn=0;
-  Free(_globals.gidose);
-  _globals.gidose=NULL;
-  _globals.gidosen=0;
   Free(_globals.gevid);
   _globals.gevid=NULL;
-  _globals.gevidn=0;
-  Free(_globals.gcov);
-  _globals.gcov=NULL;
-  _globals.gcovn=0;
-  Free(_globals.gamt);
-  _globals.gamt=NULL;
-  Free(_globals.gii);
-  _globals.gamt=NULL;
-  _globals.gii=NULL;
-  _globals.gamtn=0;
   Free(_globals.gall_times);
   _globals.gall_times=NULL;
-  _globals.gall_timesn=0;
-  Free(_globals.gdv);
-  _globals.gdvn=0;
+  Free(_globals.gcov);
+  _globals.gcov=NULL;
+
+  
+  Free(_rxGetErrs);
 }
 
 extern "C" double *rxGetErrs(){
@@ -2086,17 +1927,12 @@ int _gsetupOnly = 0;
 //' @export
 // [[Rcpp::export]]
 LogicalVector rxSolveFree(){
-  if (!_gsetupOnly){
-    rxOptionsFree();
-    rxOptionsIni();
-    rxOptionsIniData();
-    parseFree(0);
-    rxClearFuns();
-    gFree();
-    return LogicalVector::create(true);
-  } else {
-    return LogicalVector::create(false);
-  }
+  rxOptionsFree();
+  rxOptionsIni();
+  parseFree(0);
+  rxClearFuns();
+  gFree();
+  LogicalVector::create(true);
 }
 extern "C" void RxODE_assign_fn_pointers(SEXP);
 
@@ -2229,8 +2065,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   }
   if (_gsetupOnly){
     _gsetupOnly = 0;
-    rxSolveFree();
   }
+  rxSolveFree();
   maxAtolRtolFactor = as<double>(rxControl["maxAtolRtolFactor"]);
   RObject scale = rxControl["scale"];
   int method = as<int>(rxControl["method"]);
@@ -2283,7 +2119,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     object =obj;
   }
   if (isRxSolve || isEnvironment){
-    rxSolveFree();
     return rxSolve_update(object, rxControl, specParams,
 			  extraArgs, params, events, inits,
 			  isRxSolve,  isEnvironment, updateObject);
@@ -2797,11 +2632,16 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	}
       }
       DataFrame dataf = as<DataFrame>(ev1);
-      // Copy the information and make sure there is enough room.
-      // - evid
+      CharacterVector dfNames = dataf.names();
+      int dfN = dfNames.size();
       IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
-      gevidSetup(evid.size());
+      _globals.gevid = Calloc(2*evid.size()+dfN, int);
       std::copy(evid.begin(),evid.end(), &_globals.gevid[0]);
+      _globals.gidose = _globals.gevid + evid.size();
+      _globals.gpar_cov = _globals.gidose + evid.size();//[dfN];
+
+      int ntot = 1;
+
       IntegerVector id(evid.size(), 1);
       if (rxcId > -1){
         id    = as<IntegerVector>(dataf[rxcId]);
@@ -2817,28 +2657,30 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	//   stop("Empty data.");
 	// } else 
 	if (nid == nPopPar || nPopPar == 1){
-	  rxOptionsIniEnsure(nid);
+	  ntot = nid;
 	} else {
-	  rxOptionsIniEnsure(nid*nPopPar);
+	  ntot = nid*nPopPar;
 	}
       } else {
-	if (nPopPar == 0) rxOptionsIniEnsure(1);
-	else rxOptionsIniEnsure(nPopPar);
+	if (nPopPar != 0) ntot = nPopPar;
       }
       NumericVector time0 = dataf[rxcTime];
       if (rxIs(time0, "units")){
 	addTimeUnits=true;
 	timeUnitsU=time0.attr("units");
       }
-
       tlast = time0[0];
       // - all_times
-      gall_timesSetup(time0.size());
+      rxOptionsIniEnsure(ntot);
+      _globals.gall_times = Calloc(4*time0.size(), double);
       std::copy(time0.begin(), time0.end(), &_globals.gall_times[0]);
+      _globals.gdv = _globals.gall_times + time0.size(); // Perhaps allocate zero size if missing?
+      _globals.gamt = _globals.gdv + time0.size(); 
+      _globals.gii = _globals.gamt + time0.size();
+
       NumericVector dv;
       if (rxcDv > -1){
 	dv = as<NumericVector>(dataf[rxcDv]);
-        gdvSetup(dv.size());
         std::copy(dv.begin(), dv.end(), &_globals.gdv[0]);
       }
       NumericVector amt   = dataf[rxcAmt];
@@ -2848,16 +2690,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       } else {
 	std::fill_n(datIi.begin(), datIi.size(), 0.0);
       }
-      // Make sure that everything can take the correct sizes
-      // - amt
-      gamtSetup(amt.size());
-      // - idose
-      gidoseSetup(amt.size());
       // Get covariates
-      CharacterVector dfNames = dataf.names();
-      int dfN = dfNames.size();
       // - par cov needs to be at lest the size of the dataframe names.
-      gpar_covSetup(dfN);
       ncov = 0;
       std::vector<int> covPos(dfN);
       curcovi=0;
@@ -2874,7 +2708,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       op->ncov=ncov;
       op->do_par_cov = (ncov > 0);
       // Make sure the covariates are a #ncov * all times size
-      gcovSetup(ncov * amt.size());
+      _globals.gcov = Calloc(ncov * amt.size(), double);
       unsigned int ids = id.size();
       // Get the number of subjects
       // Get the number of observations
@@ -3109,7 +2943,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     else rx->nsim=1;
 
     // gsolveSetup includes 1 ind->solveSave per subject, ind->solveLast, ind->solveLast2
-    int n1 = (rx->nall+3*rx->nsub)*state.size()*rx->nsim;
+    int n0 = (rx->nall+3*rx->nsub)*state.size()*rx->nsim;
     int n2 = rx->nMtime*rx->nsub*rx->nsim;
     int n3 = op->neq*nSize;
     initsC = rxInits(object, inits, state, 0.0);
@@ -3119,8 +2953,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // they do they need to be a parameter.
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
-    _globals.gsolve = Calloc(n1+n2+n3+n4+n5+n6+ 2*op->neq, double);// [n1]
-    _globals.gmtime = _globals.gsolve +n1; // [n2]
+    _globals.gsolve = Calloc(n0+n2+n3+n4+n5+n6+ 2*op->neq, double);// [n0]
+    _globals.gmtime = _globals.gsolve +n0; // [n2]
     _globals.gInfusionRate = _globals.gmtime + n2; //[n3]
     _globals.ginits = _globals.gInfusionRate + n3; // [n4]
     std::copy(initsC.begin(), initsC.end(), &_globals.ginits[0]);
@@ -3139,7 +2973,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->rtol2 = &_globals.grtol2[0];
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
-    n1 = rx->nsub*rx->nsim*state.size();
+    int n1 = rx->nsub*rx->nsim*state.size();
     _globals.gon = Calloc(n1+n3 + 4*nSize + rx->nall*rx->nsim, int); // [n1]
     std::fill_n(&_globals.gon[0], n1, 1);
     _globals.gBadDose = _globals.gon+n1; // [n3]
@@ -3245,11 +3079,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      ind->doSS = 0;
 	    }
 	    int eLen = op->neq*ind->n_all_times;
-
-	    ind->solve = &_globals.gsolve[curSolve];
 	    ind->ix = &_globals.gix[curIdx];
 	    std::iota(ind->ix,ind->ix+ind->n_all_times,0);
 	    curEvent += eLen;
+	    ind->solve = &_globals.gsolve[curSolve];
 	    curSolve += eLen;
 	    ind->solveLast = &_globals.gsolve[curSolve];
 	    curSolve += op->neq;
@@ -3274,7 +3107,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     }
     par_solve(rx);
     if (op->abort){
-      rxSolveFree();
       stop("Aborted solve.");
     }
     int doDose = 0;
@@ -3319,7 +3151,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       }
     }
     if (rx->matrix){
-      rxSolveFree();
       if(_rxModels.exists(".sigma")){
       	_rxModels.remove(".sigma");
       }
@@ -3334,7 +3165,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       }
       if (rx->matrix == 2){
         dat.attr("class") = "data.frame";
-	rxSolveFree();
 	return dat;
       } else {
         NumericMatrix tmpM(nr,nc);
@@ -3342,7 +3172,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
           tmpM(_,i) = as<NumericVector>(dat[i]);
         }
         tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
-	rxSolveFree();
         return tmpM;
       }
     } else {
@@ -3352,8 +3181,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       std::copy(&_globals.slvr_counter[0], &_globals.slvr_counter[0] + nSize, slvr_counterIv.begin());
       std::copy(&_globals.dadt_counter[0], &_globals.dadt_counter[0] + nSize, dadt_counterIv.begin());
       std::copy(&_globals.jac_counter[0], &_globals.jac_counter[0] + nSize, jac_counterIv.begin());
-
-      rxSolveFree();
       
       Function newEnv("new.env", R_BaseNamespace);
       Environment e = newEnv(_["size"] = 29, _["parent"] = RxODEenv());
@@ -3414,11 +3241,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       CharacterVector cls= CharacterVector::create("rxSolve", "data.frame");
       cls.attr(".RxODE.env") = e;    
       dat.attr("class") = cls;
-      rxSolveFree();
       return(dat);
     }
   }
-  rxSolveFree();
   return R_NilValue;
 }
 

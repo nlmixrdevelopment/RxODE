@@ -344,7 +344,6 @@ RxODE <- function(model, modName = basename(wd),
                   wd = getwd(),
                   filename = NULL, extraC = NULL, debug = FALSE, calcJac=NULL, calcSens=NULL,
                   collapseModel=FALSE, package=NULL, ...) {
-    on.exit(rxSolveFree());
     rxTempDir();
     if (!is.null(package)){
         if (missing(modName)){

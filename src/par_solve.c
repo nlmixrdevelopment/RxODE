@@ -115,7 +115,7 @@ rx_solve rx_global;
 rx_solving_options op_global;
 
 rx_solving_options_ind *inds_global = NULL;
-int max_inds_global = 0, gitol=0, gitask = 1, giopt = 0, gliw=0, glrw = 0;
+int gitol=0, gitask = 1, giopt = 0, gliw=0, glrw = 0;
 
 void par_flush_console() {
 #if !defined(WIN32) && !defined(__WIN32) && !defined(__WIN32__)
@@ -290,9 +290,7 @@ t_set_solve set_solve = NULL;
 
 void rxOptionsIniEnsure(int mx){
   Free(inds_global);
-  max_inds_global = mx;
-  max_inds_global=mx;
-  inds_global = Calloc(max_inds_global, rx_solving_options_ind);
+  inds_global = Calloc(mx, rx_solving_options_ind);
   rx_solve *rx=(&rx_global);
   rx->subjects = inds_global;  
 }
@@ -1164,7 +1162,7 @@ void handleSS(int *neq,
 	    *i = ind->n_all_times-1;
 	    break;
 	  }
-	  for (k = neq[0]; k--;) {
+ 	  for (k = op->neq; k--;) {
 	    ind->solveLast[k] = yp[k];
 	  }
 	  canBreak=0;
@@ -1286,7 +1284,7 @@ void handleSS(int *neq,
 	    for (k = neq[0]; k--;){
 	      if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast2[k])/op->ssAdjust){
 		  canBreak=0;
-	      }		
+	      }
 	      ind->solveLast2[k] = yp[k];
 	    }
 	    if (canBreak){
@@ -1616,7 +1614,6 @@ void rxOptionsFree(){
 }
 
 void rxFreeLast(){
-  max_inds_global = 0;
   Free(inds_global);
   inds_global=NULL;
 }

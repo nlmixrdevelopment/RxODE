@@ -119,7 +119,6 @@ rx_solve *getRxSolve_();
 // Remove these functions later...
 
 void rxOptionsIni();
-void rxOptionsIniData();
 /* void rxOptionsIniFocei(); */
 
 double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
@@ -148,7 +147,6 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  int *slvr_counter, int *dadt_counter, int *jac_counter,
 			  double *InfusionRate, int *BadDose, int *idose,
 			  double *scale, int *stateIgnore, double *mtime);
-void rxOptionsIniEnsure(int mx);
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
@@ -242,7 +240,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_current_fn_pointer_id", (DL_FUNC) &RxODE_current_fn_pointer_id);
   R_RegisterCCallable("RxODE","getRxSolve_", (DL_FUNC) &getRxSolve_);
   R_RegisterCCallable("RxODE", "rxSingleSolve", (DL_FUNC) &rxSingleSolve);
-  R_RegisterCCallable("RxODE", "rxOptionsIniEnsure0", (DL_FUNC) &rxOptionsIniEnsure);
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},
@@ -253,7 +250,6 @@ void R_init_RxODE(DllInfo *info){
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info, FALSE);
   rxOptionsIni();
-  rxOptionsIniData();
   /* rxOptionsIniFocei(); */
 }
 
@@ -261,13 +257,10 @@ void parseFree(int last);
 void rxOptionsFree();
 void gFree();
 void rxFreeLast();
-/* void rxOptionsFreeFocei(); */
 void R_unload_RxODE(DllInfo *info){
   gFree();
   rxOptionsFree();
   rxOptionsIni();
-  rxOptionsIniData();
   parseFree(1);
   rxFreeLast();
-  /* rxOptionsFreeFocei(); */
 }

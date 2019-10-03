@@ -39,7 +39,6 @@
 .onUnload <- function (libpath) {
     ## nocov start
     .unloadRx()
-    rxSolveFree();
     library.dynam.unload("RxODE", libpath)
     ## nocov end
 }

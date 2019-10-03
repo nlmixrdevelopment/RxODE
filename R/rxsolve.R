@@ -524,7 +524,6 @@ rxSolve <- function(object, ...){
 ##' @export
 rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...){
     on.exit({
-        rxSolveFree();
         .clearPipe();
     });
     .applyParams <- FALSE
