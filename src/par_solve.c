@@ -286,8 +286,6 @@ SEXP _rxProgressAbort(SEXP str){
   return R_NilValue;
 }
 
-double *getAol(int n, double atol);
-double *getRol(int n, double rtol);
 t_set_solve set_solve = NULL;
 
 void rxOptionsIniEnsure(int mx){
@@ -297,9 +295,6 @@ void rxOptionsIniEnsure(int mx){
   inds_global = Calloc(max_inds_global, rx_solving_options_ind);
   rx_solve *rx=(&rx_global);
   rx->subjects = inds_global;  
-  rx_solving_options *op = &op_global;
-  op->rtol2 = getRol(op->neq, op->RTOL);
-  op->atol2 = getAol(op->neq, op->ATOL);
 }
 
 t_dydt dydt = NULL;

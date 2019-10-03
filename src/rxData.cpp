@@ -1223,9 +1223,7 @@ typedef struct {
   double *ginits;
   double *gscale;
   double *gatol2;
-  int gatol2n;
   double *grtol2;
-  int grtol2n;
   double *gpars;
   int gparsn;
   //ints
@@ -1282,12 +1280,6 @@ extern "C" void rxOptionsIniData(){
   Free(_globals.gcov);
   _globals.gcov = NULL;//Calloc(NALL*10,double);
   _globals.gcovn=0;//NALL*10;
-  Free(_globals.gatol2);
-  _globals.gatol2 = NULL;//Calloc(NCMT,double);
-  _globals.gatol2n=0;//NCMT;
-  Free(_globals.grtol2);
-  _globals.grtol2 = NULL;//Calloc(NCMT,double);
-  _globals.grtol2n=0;//NCMT;
   Free(_globals.gpars);
   _globals.gpars = NULL;//Calloc(NPARS,double);
   _globals.gparsn=0;//NPARS;
@@ -1411,31 +1403,13 @@ void gcovSetup(int n){
   }
 }
 
-void gatol2Setup(int n){
-  if (_globals.gatol2n < n){
-    int cur = n;
-    if (_globals.gatol2 == NULL) _globals.gatol2 = Calloc(cur, double);
-    else _globals.gatol2 = Realloc(_globals.gatol2, cur, double);
-    _globals.gatol2n = cur;
-  }
-}
-
-void grtol2Setup(int n){
-  if (_globals.grtol2n < n){
-    int cur = n;
-    if (_globals.grtol2 == NULL) _globals.grtol2 = Calloc(cur, double);
-    else _globals.grtol2 = Realloc(_globals.grtol2, cur, double);
-    _globals.grtol2n = cur;
-  }
-}
-
 double maxAtolRtolFactor = 0.1;
 
 //[[Rcpp::export]]
 void atolRtolFactor_(double factor){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
-  for (int i = _globals.grtol2n;i--;){
+  for (int i = op->neq;i--;){
     _globals.grtol2[i] = min2(_globals.grtol2[i]*factor, maxAtolRtolFactor);
     _globals.gatol2[i] = min2(_globals.gatol2[i]*factor, maxAtolRtolFactor);
   }
@@ -1444,18 +1418,10 @@ void atolRtolFactor_(double factor){
 }
 
 extern "C" double * getAol(int n, double atol){
-  gatol2Setup(n+1);
-  if (_globals.gatol2[0] != atol){
-    std::fill_n(&_globals.gatol2[0], n+1, atol);
-  }
   return _globals.gatol2;
 }
 
 extern "C" double * getRol(int n, double rtol){
-  grtol2Setup(n+1);
-  if (_globals.grtol2[0] != rtol){
-    std::fill_n(&_globals.grtol2[0], n+1, rtol);
-  }
   return _globals.grtol2;
 }
 
@@ -1641,12 +1607,6 @@ extern "C" void gFree(){
   Free(_globals.gpars);
   _globals.gpars=NULL;
   _globals.gparsn=0;
-  Free(_globals.grtol2);
-  _globals.grtol2=NULL;
-  _globals.grtol2n=0;
-  Free(_globals.gatol2);
-  _globals.gatol2=NULL;
-  _globals.gatol2n=0;
   Free(_globals.gcov);
   _globals.gcov=NULL;
   _globals.gcovn=0;
@@ -2676,14 +2636,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->ssAdjust = as<double>(rxControl["ssAdjust"]);
 
     
-    gatol2Setup(op->neq);
-    grtol2Setup(op->neq);
-    std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);
-    std::fill_n(&_globals.grtol2[0],op->neq, rtolNV[0]);
-    std::copy(atolNV.begin(), atolNV.begin() + min2(op->neq, atolNV.size()), &_globals.gatol2[0]);
-    std::copy(rtolNV.begin(), rtolNV.begin() + min2(op->neq, rtolNV.size()), &_globals.grtol2[0]);
-    op->atol2 = &_globals.gatol2[0];
-    op->rtol2 = &_globals.grtol2[0];
     op->H0 = hini;
     op->HMIN = hmin;
     op->mxstep = maxsteps;
@@ -3341,7 +3293,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // they do they need to be a parameter.
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
-    _globals.gsolve = Calloc(n1+n2+n3+n4+n5+n6, double);// [n1]
+    _globals.gsolve = Calloc(n1+n2+n3+n4+n5+n6+ 2*op->neq, double);// [n1]
     _globals.gmtime = _globals.gsolve +n1; // [n2]
     _globals.gInfusionRate = _globals.gmtime + n2; //[n3]
     _globals.ginits = _globals.gInfusionRate + n3; // [n4]
@@ -3351,6 +3303,14 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _globals.gscale = _globals.glhs + n5; //[n6]
     std::copy(scaleC.begin(),scaleC.end(),&_globals.gscale[0]);
     op->scale = &_globals.gscale[0];
+    _globals.gatol2=_globals.gscale + n6; //[op->neq]
+    _globals.grtol2=_globals.gatol2 + op->neq; //[op->neq]
+    std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);
+    std::fill_n(&_globals.grtol2[0],op->neq, rtolNV[0]);
+    std::copy(atolNV.begin(), atolNV.begin() + min2(op->neq, atolNV.size()), &_globals.gatol2[0]);
+    std::copy(rtolNV.begin(), rtolNV.begin() + min2(op->neq, rtolNV.size()), &_globals.grtol2[0]);
+    op->atol2 = &_globals.gatol2[0];
+    op->rtol2 = &_globals.grtol2[0];    
 
     gBadDoseSetup(op->neq*nSize);
     // std::fill_n(&_globals.gBadDose[0], op->neq*nSize, 0);
