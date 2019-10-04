@@ -1246,6 +1246,8 @@ double maxAtolRtolFactor = 0.1;
 
 //[[Rcpp::export]]
 void atolRtolFactor_(double factor){
+  // To adjust this per thread (as will be needed in nlmixr focei) you
+  // need to have tolerances for EACH id.
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   for (int i = op->neq;i--;){
@@ -1932,8 +1934,9 @@ LogicalVector rxSolveFree(){
   parseFree(0);
   rxClearFuns();
   gFree();
-  LogicalVector::create(true);
+  return LogicalVector::create(true);
 }
+
 extern "C" void RxODE_assign_fn_pointers(SEXP);
 
 List keepIcov;
