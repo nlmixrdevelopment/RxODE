@@ -556,7 +556,9 @@ print.rxEt <- function(x,...){
                     crayon::blue("add.sampling"), crayon::blue("et")))
         if (x$nobs!=0 | x$ndose!=0){
             .cliRule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":")));
-            print(dplyr::as.tbl(data.frame(x)));
+            assignInMyNamespace(".rmCls", FALSE);
+            on.exit(assignInMyNamespace(".rmCls", TRUE))
+            print(tibble::as_tibble(data.frame(x)));
         }
         .cliRule();
         invisible(x)
@@ -1027,12 +1029,15 @@ as.et.default <- function(x,...){
     .e <- et();
     .e$import.EventTable(as.data.frame(x));
     return(.e);
-}
 
+}
+.rmCls <- TRUE
 ##'@export
 as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...){
     if (rxIs(x, "rxEt")){
-        .tmp <- x[,x$show,drop = FALSE];
+        .x <- x
+        if (.rmCls) .x <- rxEtRmCls(.x);
+        .tmp <- .x[,.x$show,drop = FALSE];
         class(.tmp) <- c("rxEt2", "data.frame");
         return(as.data.frame(.tmp, row.names = NULL, optional = FALSE, ...))
     } else {
@@ -1052,11 +1057,13 @@ as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...){
 as.tbl.rxEt <- function(x, ...){
     rxReq("dplyr");
     if (rxIs(x, "rxEt")){
-        .tmp <- x[,x$show,drop = FALSE];
+        .x <- x
+        if (.rmCls) .x <- rxEtRmCls(.x);
+        .tmp <- .x[,.x$show,drop = FALSE];
         class(.tmp) <- c("rxEt2", "data.frame");
-        return(dplyr::as.tbl(.tmp, ...))
+        return(tibble::as_tibble(.tmp, ...))
     } else {
-        return(dplyr::as.tbl(x, ...))
+        return(tibble::as_tibble(x, ...))
     }
 }
 
@@ -1090,7 +1097,120 @@ etExpand <- function(et){
     .Call(`_RxODE_et_`, list(expand=TRUE), et)
 }
 
-
 ##' @importFrom magrittr %>%
 ##' @export
 magrittr::`%>%`
+
+##' EVID formatting for tibble and other places.
+##'
+##' This is to make an EVID more readable by non
+##' pharmacometricians. It displays what each means and allows it to
+##' be displayed in a tibble.
+##'
+##' @param x Item to be converted to a RxODE EVID specification.
+##'
+##' @examples
+##'
+##' rxEvid(1:7)
+##'
+##' @export
+rxEvid <- function(x){
+    return(structure(x, class="rxEvid"))
+}
+
+##'@rdname rxEvid
+##' @export
+as.rxEvid <- rxEvid;
+
+##'@rdname rxEvid
+##' @export
+c.rxEvid <- function(x, ...){
+    return(as.rxEvid(NextMethod()))
+}
+
+##'@rdname rxEvid
+##'@export
+`[.rxEvid` <- function(x, ...){
+    return(as.rxEvid(NextMethod()))
+}
+.colorFmt.rxEvid <- function(x, ...){
+    .x <- unclass(x);
+    .x <-
+        ifelse(.x == 0, paste0(crayon::blue$bold("0"), ":", crayon::white("Observation")),
+        ifelse(.x == 1, paste0(crayon::blue$bold("1"), ":", crayon::yellow("Dose (Add)")),
+        ifelse(.x == 2, paste0(crayon::blue$bold("2"), ":", crayon::yellow("Other")),
+        ifelse(.x == 3, paste0(crayon::blue$bold("3"), ":", crayon::red("Reset")),
+        ifelse(.x == 4, paste0(crayon::blue$bold("4"), ":", crayon::red("Reset"), "&", crayon::yellow("Dose")),
+        ifelse(.x == 5, paste0(crayon::blue$bold("5"), ":", crayon::red("Replace")),
+        ifelse(.x == 6, paste0(crayon::blue$bold("6"), ":", crayon::yellow("Multiply")),
+               paste0(crayon::blue$red(.x), ":", crayon::red("Unknown")))))))))
+    return(format(.x))
+}
+
+##'@rdname rxEvid
+##'@export
+as.character.rxEvid <- function(x, ...){
+    .x <- unclass(x);
+    .x <-
+        ifelse(.x == 0, "0:Observation",
+        ifelse(.x == 1, "1:Dose (Add)",
+        ifelse(.x == 2, "2:Other",
+        ifelse(.x == 3, "3:Reset",
+        ifelse(.x == 4, "4:Reset&Dose",
+        ifelse(.x == 5, "5:Replace",
+        ifelse(.x == 6, "6:Multiply",
+               paste0(.x, ":Unknown"))))))))
+    return(x)
+}
+
+##'@rdname rxEvid
+##'@export
+format.rxEvid <- function(x, ...){
+    .x <- unclass(x)
+    as.character.rxEvid(.x);
+}
+
+##'@rdname rxEvid
+##' @export
+print.rxEvid <- function(x, ...){
+    cat(paste(.colorFmt.rxEvid(x),collapse="\n"),"\n")
+    return(invisible(x))
+}
+
+##'@rdname rxEvid
+##' @export
+`[[.rxEvid` <- function(x, ...) {
+  as.rxEvid(NextMethod())
+}
+
+##'@rdname rxEvid
+##' @export
+`units<-.rxEvid` <- function(x, value) {
+    stop("'evid' is unitless");
+}
+
+
+##'@rdname rxEvid
+##' @export
+`[<-.rxEvid` <- function(x, i, value) {
+    as.rxEvid(NextMethod())
+}
+
+##'@rdname rxEvid
+##'@export
+type_sum.rxEvid <- function(x){
+    "evid"
+}
+
+##'@rdname rxEvid
+##'@export
+pillar_shaft.rxEvid <- function(x, ...){
+    .x <- .colorFmt.rxEvid(x)
+    pillar::new_pillar_shaft_simple(.x, align = "left")
+}
+
+##'@rdname rxEvid
+#' @inheritParams base::as.data.frame
+#' @param nm Name of column in new data frame
+#' @export
+as.data.frame.rxEvid <- base::as.data.frame.difftime

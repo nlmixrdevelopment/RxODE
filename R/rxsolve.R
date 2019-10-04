@@ -764,7 +764,7 @@ solve.rxEt <- solve.rxSolve
 
 .sharedPrint <- function(x, n, width, bound=""){
     ## nocov start
-    .isDplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
+    .isDplyr <- requireNamespace("tibble", quietly = TRUE) && RxODE.display.tbl;
     ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
     df <- x$params.single
     pars.msg <- .cliRule(left=paste0(crayon::bold("Parameters"), " (",
@@ -780,7 +780,7 @@ solve.rxEt <- solve.rxSolve
                 if (!.isDplyr){
                     print(head(as.matrix(df), n = n));
                 } else {
-                    print(dplyr::as.tbl(df), n = n, width = width);
+                    print(tibble::as_tibble(df), n = n, width = width);
                 }
             }
         }
@@ -792,7 +792,7 @@ solve.rxEt <- solve.rxSolve
         if (!.isDplyr){
             print(head(as.matrix(df), n = n));
         } else {
-            print(dplyr::as.tbl(df), n = n, width = width);
+            print(tibble::as_tibble(df), n = n, width = width);
         }
     }
 
@@ -847,7 +847,7 @@ print.rxSolve <- function(x, ...){
         if (!.isDplyr){
             print(head(as.matrix(x), n = n));
         } else {
-            print(dplyr::as.tbl(x), n = n, width = width);
+            print(tibble::as_tibble(x), n = n, width = width);
         }
         .cliRule(line="bar2")
     } else {

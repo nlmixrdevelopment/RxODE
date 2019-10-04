@@ -114,6 +114,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxEtRmCls
+List rxEtRmCls(List et);
+RcppExport SEXP _RxODE_rxEtRmCls(SEXP etSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type et(etSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxEtRmCls(et));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxSetIni0
 bool rxSetIni0(bool ini0);
 RcppExport SEXP _RxODE_rxSetIni0(SEXP ini0SEXP) {

@@ -221,9 +221,12 @@ List etEmpty(CharacterVector units){
       
   nme[8] = "addl";
   lst[8] = IntegerVector(0);
-      
+
+  IntegerVector tmp = IntegerVector(0);
+  tmp.attr("class") = "rxEvid";
+  
   nme[9] = "evid";
-  lst[9] = IntegerVector(0);
+  lst[9] = tmp;
       
   nme[10] = "ss";
   lst[10] = IntegerVector(0);
@@ -480,7 +483,9 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
   lst[8] = IntegerVector(id.size());
   
   // nme[9] = "evid";
-  lst[9] = IntegerVector(id.size());
+  IntegerVector tmpEvid = IntegerVector(id.size());
+  tmpEvid.attr("class") = "rxEvid";
+  lst[9] = tmpEvid;
       
   // nme[10] = "ss";
   lst[10] = IntegerVector(id.size());
@@ -675,7 +680,9 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
   lst[8] = IntegerVector(idx.size());
   
   // nme[9] = "evid";
-  lst[9] = IntegerVector(idx.size());
+  IntegerVector tmpEvid = IntegerVector(idx.size());
+  tmpEvid.attr("class") = "rxEvid";
+  lst[9] = tmpEvid;
       
   // nme[10] = "ss";
   lst[10] = IntegerVector(idx.size());
@@ -1343,7 +1350,9 @@ List etImportEventTable(List inData){
   lst[8] = wrap(addl);
       
   // nme[9] = "evid";
-  lst[9] = wrap(evid);
+  IntegerVector tmpEvid = wrap(evid);
+  tmpEvid.attr("class") = "rxEvid";
+  lst[9] = tmpEvid;
       
   // nme[10] = "ss";
   lst[10] = wrap(ss);
@@ -1456,7 +1465,9 @@ List etExpandAddl(List curEt){
   lst[8] = IntegerVector(id.size());
   
   // nme[9] = "evid";
-  lst[9] = IntegerVector(id.size());
+  IntegerVector tmpEvid = IntegerVector(id.size());
+  tmpEvid.attr("class") = "rxEvid";
+  lst[9] = tmpEvid;
       
   // nme[10] = "ss";
   lst[10] = IntegerVector(id.size());
@@ -1641,7 +1652,9 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   lst[8] = IntegerVector(id.size());
   
   // nme[9] = "evid";
-  lst[9] = IntegerVector(id.size());
+  IntegerVector tmpEvid = IntegerVector(id.size());
+  tmpEvid.attr("class") = "rxEvid";
+  lst[9] = tmpEvid;
       
   // nme[10] = "ss";
   lst[10] = IntegerVector(id.size());
@@ -3207,7 +3220,9 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
   lst[8] = IntegerVector(id.size());
   
   // nme[9] = "evid";
-  lst[9] = IntegerVector(id.size());
+  IntegerVector tmpEvid = IntegerVector(id.size());
+  tmpEvid.attr("class") = "rxEvid";
+  lst[9] = tmpEvid;
       
   // nme[10] = "ss";
   lst[10] = IntegerVector(id.size());
@@ -3283,7 +3298,6 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
     show["id"] = false;
     e["IDs"] = wrap(IDs);
   }
-  
   cls.attr(".RxODE.lst") = e;
   lst.attr("class") = cls;
   lst.attr("row.names") = IntegerVector::create(NA_INTEGER, -(nobs+ndose));
@@ -3313,4 +3327,13 @@ List etRep_(RObject curEt, int times, NumericVector wait, IntegerVector ids, int
   return etSeq_(seqLst, handleSamples, waitType, ii, false,0,
 		len*times, (IDs.size() != 1), e["units"],
 		e["show"], rxIs(curEt, "integer"));
+}
+
+//[[Rcpp::export]]
+List rxEtRmCls(List et){
+  List newEt = clone(et);
+  IntegerVector evid = newEt["evid"];
+  evid.attr("class")  = R_NilValue;
+  newEt["evid"] = evid;
+  return newEt;
 }
