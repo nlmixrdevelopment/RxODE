@@ -430,6 +430,8 @@ rxPermissive({
 
     })
 
+    context("et addl")
+
     test_that("et addl expand", {
         ev <- et(amt=3,ii=24,until=120);
         tmp <- etExpand(ev)
