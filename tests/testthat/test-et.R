@@ -430,4 +430,15 @@ rxPermissive({
 
     })
 
+    test_that("et addl expand", {
+        ev <- et(amt=3,ii=24,until=120);
+        tmp <- etExpand(ev)
+        expect_equal(ev$amt, 3)
+        expect_equal(tmp$time, c(0, 24, 48, 72, 96, 120))
+        ev$expand()
+        expect_equal(ev$time, c(0, 24, 48, 72, 96, 120))
+    })
+
+
+
 }, silent=TRUE, cran=TRUE)

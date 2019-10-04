@@ -582,6 +582,7 @@ str.rxEt <- function(object, ...){
     cat(" $ get.units        :function ()  \n");
     cat(" $ import.EventTable:function ()  \n");
     cat(" $ copy             :function ()  \n");
+    cat(" $ expand           :function ()  \n");
     return(invisible(NextMethod("str", ...)))
     ## nocov end
 }
@@ -1070,6 +1071,23 @@ as.tbl.rxEt <- function(x, ...){
 ##' @export
 is.rxEt <- function(x){
     .Call(`_RxODE_rxIs`, x, "rxEt");
+}
+##' Expand additional doses
+##'
+##' @param et Event table to expand additional doses for.
+##' @return New event table with `addl` doses expanded
+##' @author Matthew Fidler
+##' @examples
+##' ev <- et(amt=3,ii=24,until=240);
+##' print(ev)
+##' etExpand(ev) # expands event table, but doesn't modify it
+##'
+##' print(ev)
+##'
+##' ev$expand() ## Expands the current event table and saves it in ev
+##' @export
+etExpand <- function(et){
+    .Call(`_RxODE_et_`, list(expand=TRUE), et)
 }
 
 
