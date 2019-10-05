@@ -1798,6 +1798,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
       }
     }
     if (!foundIt){
+      sClear(&bufw);
       sAppend(&bufw,"%s",buf);
     }
     
@@ -2900,6 +2901,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
       }
     }
     if (!foundIt){
+      sClear(&bufw);
       sPrint(&bufw,"%s",dy);
     }
     sPrint(&bufw2,"df(%s)/dy(%s)",df,bufw.s);
