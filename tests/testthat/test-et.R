@@ -443,26 +443,34 @@ rxPermissive({
 
     ev <- et(amt=3,ii=24,until=120) %>% et(amt=3, rate=dur);
 
+    context("conversion to common data frame types")
     test_that("data.table conversion", {
         library(data.table)
         tmp <- data.table(ev)
-        expect_true(names(tmp) == c("time", "amt", "rate", "ii", "addl", "evid"))
-        expect_false(inheirts(tmp$rate, "rxRateDur"))
-        expect_false(inheirts(tmp$evid, "rxEvid"))
+        expect_equal(names(tmp), c("time", "amt", "rate", "ii", "addl", "evid"))
+        expect_false(inherits(tmp$rate, "rxRateDur"))
+        expect_false(inherits(tmp$evid, "rxEvid"))
     })
 
     test_that("data.frame conversion", {
         tmp <- data.frame(ev)
-        expect_true(names(tmp) == c("time", "amt", "rate", "ii", "addl", "evid"))
-        expect_false(inheirts(tmp$rate, "rxRateDur"))
-        expect_false(inheirts(tmp$evid, "rxEvid"))
+        expect_equal(names(tmp), c("time", "amt", "rate", "ii", "addl", "evid"))
+        expect_false(inherits(tmp$rate, "rxRateDur"))
+        expect_false(inherits(tmp$evid, "rxEvid"))
     })
 
     test_that("tibble conversion", {
         tmp <- tibble::as_tibble(ev)
-        expect_true(names(tmp) == c("time", "amt", "rate", "ii", "addl", "evid"))
-        expect_false(inheirts(tmp$rate, "rxRateDur"))
-        expect_false(inheirts(tmp$evid, "rxEvid"))
+        expect_equal(names(tmp), c("time", "amt", "rate", "ii", "addl", "evid"))
+        expect_false(inherits(tmp$rate, "rxRateDur"))
+        expect_false(inherits(tmp$evid, "rxEvid"))
+    })
+
+    test_that("tibble conversion #2", {
+        tmp <- dplyr::as.tbl(ev)
+        expect_equal(names(tmp), c("time", "amt", "rate", "ii", "addl", "evid"))
+        expect_false(inherits(tmp$rate, "rxRateDur"))
+        expect_false(inherits(tmp$evid, "rxEvid"))
     })
 
 }, silent=TRUE, cran=TRUE)

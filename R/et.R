@@ -1061,8 +1061,8 @@ as.data.table.rxEt <- function (x, keep.rownames = FALSE, ...){
 ##' @return tibble
 ##'
 ##' @export as.tbl.rxEt
-as.tbl.rxEt <- function(x, ...){
-    rxReq("dplyr");
+as_tibble.rxEt <- function(x, ...){
+    rxReq("tibble");
     if (rxIs(x, "rxEt")){
         .x <- x
         if (.rmCls) .x <- rxEtRmCls(.x);
@@ -1071,6 +1071,21 @@ as.tbl.rxEt <- function(x, ...){
         return(tibble::as_tibble(.tmp, ...))
     } else {
         return(tibble::as_tibble(x, ...))
+    }
+}
+
+##'@rdname as_tibble.rxEt
+##'@export
+as.tbl.rxEt <- function(x, ...){
+    rxReq("dplyr");
+    if (rxIs(x, "rxEt")){
+        .x <- x
+        if (.rmCls) .x <- rxEtRmCls(.x);
+        .tmp <- .x[,.x$show,drop = FALSE];
+        class(.tmp) <- c("rxEt2", "data.frame");
+        return(dplyr::as.tbl(.tmp, ...))
+    } else {
+        return(dplyr::as.tbl(x, ...))
     }
 }
 
