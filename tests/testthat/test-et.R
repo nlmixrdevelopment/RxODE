@@ -229,9 +229,9 @@ rxPermissive({
         et <- et();
         et$import.EventTable(etDf);
 
+
         expect_equal(et$ii, e$ii)
         expect_equal(et$rate, e$rate)
-
     })
 
     test_that("seq works with wait", {
@@ -441,6 +441,28 @@ rxPermissive({
         expect_equal(ev$time, c(0, 24, 48, 72, 96, 120))
     })
 
+    ev <- et(amt=3,ii=24,until=120) %>% et(amt=3, rate=dur);
 
+    test_that("data.table conversion", {
+        library(data.table)
+        tmp <- data.table(ev)
+        expect_true(names(tmp) == c("time", "amt", "rate", "ii", "addl", "evid"))
+        expect_false(inheirts(tmp$rate, "rxRateDur"))
+        expect_false(inheirts(tmp$evid, "rxEvid"))
+    })
+
+    test_that("data.frame conversion", {
+        tmp <- data.frame(ev)
+        expect_true(names(tmp) == c("time", "amt", "rate", "ii", "addl", "evid"))
+        expect_false(inheirts(tmp$rate, "rxRateDur"))
+        expect_false(inheirts(tmp$evid, "rxEvid"))
+    })
+
+    test_that("tibble conversion", {
+        tmp <- tibble::as_tibble(ev)
+        expect_true(names(tmp) == c("time", "amt", "rate", "ii", "addl", "evid"))
+        expect_false(inheirts(tmp$rate, "rxRateDur"))
+        expect_false(inheirts(tmp$evid, "rxEvid"))
+    })
 
 }, silent=TRUE, cran=TRUE)

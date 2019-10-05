@@ -1045,6 +1045,13 @@ as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...){
     }
 }
 
+.datatable.aware=TRUE
+##'@export
+as.data.table.rxEt <- function (x, keep.rownames = FALSE, ...){
+    rxReq("data.table")
+    return(data.table::as.data.table(as.data.frame.rxEt(x, ...), keep.rownames=keep.rownames, ...))
+}
+
 ##' Convert to tbl
 ##'
 ##' @param x RxODE event table
@@ -1143,8 +1150,8 @@ c.rxEvid <- function(x, ...){
         ifelse(.x == 4, paste0(crayon::blue$bold("4"), ":", crayon::red("Reset"), "&", crayon::yellow("Dose")),
         ifelse(.x == 5, paste0(crayon::blue$bold("5"), ":", crayon::red("Replace")),
         ifelse(.x == 6, paste0(crayon::blue$bold("6"), ":", crayon::yellow("Multiply")),
-               paste0(crayon::blue$red(.x), ":", crayon::red("Unknown")))))))))
-    return(format(.x))
+               paste0(crayon::blue$red(.x), ":", crayon::red("Invalid")))))))))
+    return(format(.x, align="left"))
 }
 
 ##'@rdname rxEvid
@@ -1159,15 +1166,15 @@ as.character.rxEvid <- function(x, ...){
         ifelse(.x == 4, "4:Reset&Dose",
         ifelse(.x == 5, "5:Replace",
         ifelse(.x == 6, "6:Multiply",
-               paste0(.x, ":Unknown"))))))))
-    return(x)
+               paste0(.x, ":Invalid"))))))))
+    return(.x)
 }
 
 ##'@rdname rxEvid
 ##'@export
 format.rxEvid <- function(x, ...){
     .x <- unclass(x)
-    as.character.rxEvid(.x);
+    format(as.character.rxEvid(.x), align="left", width=12);
 }
 
 ##'@rdname rxEvid
@@ -1214,3 +1221,138 @@ pillar_shaft.rxEvid <- function(x, ...){
 #' @param nm Name of column in new data frame
 #' @export
 as.data.frame.rxEvid <- base::as.data.frame.difftime
+
+##' Creates a rxRateDur object
+##'
+##' This is primarily to display information about rate
+##'
+##' @param x rxRateDur data
+##'
+##'@export
+rxRateDur <- function(x){
+    return(structure(x, class="rxRateDur"))
+}
+
+##'@rdname rxRateDur
+##'@export
+`[.rxRateDur` <- function(x, ...){
+    return(as.rxRateDur(NextMethod()))
+}
+
+##'@rdname rxRateDur
+##' @export
+as.rxRateDur <- rxRateDur;
+
+##'@rdname rxEvid
+##' @export
+c.rxRateDur <- function(x, ...){
+    return(as.rxRateDur(NextMethod()))
+}
+
+##'@rdname rxRateDur
+##'@export
+as.character.rxRateDur <- function(x, ...){
+    .x <- unclass(x);
+    .x <-
+        ifelse(.x == -1, "-1:rate",
+        ifelse(.x == -2, "-2:dur",
+        ifelse(.x < 0, paste0(as.character(.x), ":Invalid"),
+               sprintf(" %-8g", .x))))
+    return(.x)
+}
+
+.fmt <- function(x, width=9){
+    .g <- sprintf(paste0(" %-", width - 1, "g"), unclass(x))
+    .f <- sprintf(paste0(" %-", width - 1, "f"), unclass(x))
+    .ncg <- nchar(.g)
+    .ncf <- nchar(.f)
+    .ret <- ifelse(.ncg == width, .g,
+            ifelse(.ncf == width, .f, .g))
+    return(.ret)
+}
+
+
+.colorFmt.rxRateDur <- function(x, ...){
+    .x <- unclass(x);
+    .x <-
+        ifelse(.x == -1, paste0(crayon::red("-1"), ":", crayon::yellow("rate")),
+        ifelse(.x == -2, paste0(crayon::red("-2"), ":", crayon::yellow("dur")),
+        ifelse(.x < 0, paste0(crayon::red(as.character(.x)), ":", crayon::red("Invalid")),
+               .fmt(.x))))
+    return(.x)
+}
+
+##'@export
+print.rxRateDur <- function(x, ...){
+    cat(paste(.colorFmt.rxRateDur(x),collapse="\n"),"\n")
+    return(invisible(x))
+}
+
+##'@rdname rxEvid
+##'@export
+format.rxRateDur <- function(x, ...){
+    .x <- unclass(x)
+    format(as.character.rxRateDur(.x), align="left");
+}
+
+##'@rdname rxRateDur
+##' @export
+`[[.rxRateDur` <- function(x, ...) {
+  as.rxRateDur(NextMethod())
+}
+
+##'@rdname rxRateDur
+##' @export
+`[<-.rxRateDur` <- function(x, i, value) {
+    as.rxRateDur(NextMethod())
+}
+
+##'@rdname rxRateDur
+##'@export
+type_sum.rxRateDur <- function(x){
+    .unit <- attr(x, "units")
+    if (!is.null(.unit)){
+        .tmp <- x;
+        class(.tmp) <- "units"
+        return(pillar::type_sum(.tmp))
+    } else {
+        return("rate/dur")
+    }
+}
+
+##'@rdname rxRateDur
+##'@export
+pillar_shaft.rxRateDur <- function(x, ...){
+    .x <- .colorFmt.rxRateDur(x)
+    pillar::new_pillar_shaft_simple(.x, align = "left", width=10)
+}
+
+##'@rdname rxRateDur
+#' @inheritParams base::as.data.frame
+#' @param nm Name of column in new data frame
+#' @export
+as.data.frame.rxRateDur <- base::as.data.frame.difftime
+
+#' @export
+set_units.rxRateDur <- function(x, value, ..., mode = units::units_options("set_units_mode")){
+    if (inherits(x, "units")){
+        .ret <- x;
+        .ret0 <- unclass(x)
+        .w1 <- which(.ret0 == -1)
+        .w2 <- which(.ret0 == -2);
+        .lst <- as.list(match.call())[-1]
+        class(.ret0) <- "units"
+        .lst[[1]] <- .ret0
+        .ret <- do.call(units::set_units, .lst)
+        if (length(.w1) > 0) .ret[.w1] <- -1
+        if (length(.w2) > 0) .ret[.w2] <- -2
+        class(.ret) <- c("rxRateDur", "units")
+        return(.ret)
+    } else {
+        .lst <- as.list(match.call())[-1]
+        .lst[[1]] <- unclass(x);
+        .ret <- do.call(units::set_units, .lst)
+        class(.ret) <- c("rxRateDur", "units")
+        return(.ret)
+    }
+}

@@ -101,6 +101,14 @@ bool rxIs_list(const RObject &obj, std::string cls){
 	      IntegerVector evid = lobj["evid"];
 	      evid.attr("class") = R_NilValue;
 	    }
+	    if (lobj.containsElementNamed("rate")){
+	      NumericVector rate = lobj["rate"];
+	      rate.attr("class") = R_NilValue;
+	    }
+	    if (lobj.containsElementNamed("dur")){
+	      NumericVector dur = lobj["dur"];
+	      dur.attr("class") = R_NilValue;
+	    }
 	    lobj.attr("class") = CharacterVector::create("data.frame");
 	    return false;
 	  }
@@ -108,6 +116,14 @@ bool rxIs_list(const RObject &obj, std::string cls){
 	    if (lobj.containsElementNamed("evid")){
 	      IntegerVector evid = lobj["evid"];
 	      evid.attr("class") = R_NilValue;
+	    }
+	    if (lobj.containsElementNamed("rate")){
+	      NumericVector rate = lobj["rate"];
+	      rate.attr("class") = R_NilValue;
+	    }
+	    if (lobj.containsElementNamed("dur")){
+	      NumericVector dur = lobj["dur"];
+	      dur.attr("class") = R_NilValue;
 	    }
 	    lobj.attr("class") = CharacterVector::create("data.frame");
 	    return false;

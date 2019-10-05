@@ -19,13 +19,30 @@ Environment unitsPkg = loadNamespace2("units");
 NumericVector setUnits(NumericVector obj, std::string unit){
   Function f = as<Function>(unitsPkg["set_units"]);
   if (unit == ""){
-    obj.attr("class") = R_NilValue;
-    obj.attr("units") = R_NilValue;
-    return obj;
+    NumericVector obj2 = clone(obj);
+    obj2.attr("class") = R_NilValue;
+    obj2.attr("units") = R_NilValue;
+    return obj2;
   } else {
     return as<NumericVector>(f(_["x"] = obj, _["value"] = unit, _["mode"] = "standard"));
   }
 }
+
+NumericVector setRateDurUnits(NumericVector obj, std::string unit){
+  Function f = as<Function>(unitsPkg["set_units"]);
+  if (unit == ""){
+    NumericVector obj2 = clone(obj);
+    obj2.attr("class") = "rxRateDur";
+    obj2.attr("units") = R_NilValue;
+    return obj2;
+  } else {
+    NumericVector ret = as<NumericVector>(f(_["x"] = obj, _["value"] = unit, _["mode"] = "standard"));
+    ret.attr("class") = CharacterVector::create("rxRateDur", "units");
+    return ret;
+  }
+}
+
+
 
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 
@@ -49,7 +66,23 @@ RObject etUpdate(RObject obj,
 	}
 	List lst = as<List>(obj);
 	if (lst.containsElementNamed(sarg.c_str())){
-	  return(as<RObject>(lst[sarg]));
+	  if (sarg == "rate" || sarg == "dur"){
+	    NumericVector ret = clone(as<NumericVector>(lst[sarg]));
+	    CharacterVector cls = ret.attr("class");
+	    if (cls.size() != 1){
+	      ret.attr("class") = CharacterVector::create("units");
+	    } else {
+	      ret.attr("class") = R_NilValue;
+	    }
+	    return(as<RObject>(ret));
+	  } else if (sarg == "evid"){
+	    IntegerVector ret = clone(as<IntegerVector>(lst[sarg]));
+	    CharacterVector cls = ret.attr("class");
+	    ret.attr("class") = R_NilValue;
+	    return(as<RObject>(ret));
+	  } else {
+	    return(as<RObject>(lst[sarg]));
+	  }
 	}
       }
     } else {
@@ -213,8 +246,10 @@ List etEmpty(CharacterVector units){
   nme[5] = "amt";
   lst[5] = NumericVector(0);
 
+  NumericVector tmpRate = NumericVector(0);
+  tmpRate.attr("class") = "rxRateDur";
   nme[6] = "rate";
-  lst[6] = NumericVector(0);
+  lst[6] = tmpRate;
       
   nme[7] = "ii";
   lst[7] = NumericVector(0);
@@ -231,8 +266,10 @@ List etEmpty(CharacterVector units){
   nme[10] = "ss";
   lst[10] = IntegerVector(0);
 
+  NumericVector tmpDur = NumericVector(0);
+  tmpDur.attr("class") = "rxRateDur";
   nme[11] = "dur";
-  lst[11] = IntegerVector(0);
+  lst[11] = tmpDur;
 
   e.attr("class") = "rxHidden";
 
@@ -246,11 +283,11 @@ List etEmpty(CharacterVector units){
     lst["time"] = setUnits(lst["time"], as<std::string>(units[1]));
     lst["high"] = setUnits(lst["high"], as<std::string>(units[1]));
     lst["ii"]  = setUnits(lst["ii"],  as<std::string>(units[1]));
-    lst["dur"]  = setUnits(lst["dur"],  as<std::string>(units[1]));
+    lst["dur"]  = setRateDurUnits(lst["dur"],  as<std::string>(units[1]));
   } else {
     lst["low"]  = setUnits(lst["low"], "");
     lst["ii"]  = setUnits(lst["ii"], "");
-    lst["dur"]  = setUnits(lst["dur"], "");
+    lst["dur"]  = setRateDurUnits(lst["dur"], "");
     lst["time"] = setUnits(lst["time"],"");
     lst["high"] = setUnits(lst["high"], "");
   }
@@ -262,9 +299,9 @@ List etEmpty(CharacterVector units){
   if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
     // Empty event table do not need to handle -1 and -2
     std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
-    lst["rate"] = setUnits(lst["rate"], rateUnit);
+    lst["rate"] = setRateDurUnits(lst["rate"], rateUnit);
   } else {
-    lst["rate"] = setUnits(lst["rate"], "");
+    lst["rate"] = setRateDurUnits(lst["rate"], "");
   }
   return lst;
 }
@@ -474,7 +511,9 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
   lst[5] = NumericVector(id.size());
 
   // nme[6] = "rate";
-  lst[6] = NumericVector(id.size());
+  NumericVector tmpRate = NumericVector(id.size());
+  tmpRate.attr("class") = "rxRateDur";
+  lst[6] = tmpRate;
       
   // nme[7] = "ii";
   lst[7] = NumericVector(id.size());
@@ -491,7 +530,9 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
   lst[10] = IntegerVector(id.size());
   
   // nme[11]= "dur"
-  lst[11] = NumericVector(id.size());
+  NumericVector tmpDur = NumericVector(id.size());
+  tmpDur.attr("class") = "rxRateDur";
+  lst[11] = tmpDur;
   for (i = idx.size(); i--;){
     tmpI = as<IntegerVector>(lst[0]); // id
     tmpI[i] = id[idx[i]];
@@ -671,7 +712,9 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
   lst[5] = NumericVector(idx.size());
 
   // nme[6] = "rate";
-  lst[6] = NumericVector(idx.size());
+  NumericVector tmpRate = NumericVector(idx.size());
+  tmpRate.attr("class") = "rxRateDur";
+  lst[6] = tmpRate;
       
   // nme[7] = "ii";
   lst[7] = NumericVector(idx.size());
@@ -688,7 +731,9 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
   lst[10] = IntegerVector(idx.size());
 
   // nme[11] = "dur";
-  lst[11] = NumericVector(idx.size());
+  NumericVector tmpDur = NumericVector(idx.size());
+  tmpDur.attr("class") = "rxRateDur";
+  lst[11] = tmpDur;
   for (i = idx.size(); i--;){
     if (idx[i] >= oldSize){
       tmpI = as<IntegerVector>(lst[0]); // id
@@ -968,7 +1013,7 @@ List etImportEventTable(List inData){
   } else {
     oldDur = as<NumericVector>(inData[durCol]);
     if (rxIs(oldTime, "units")){
-      oldDur = setUnits(oldDur, as<std::string>(deparseUnit(oldTime)));
+      oldDur = setRateDurUnits(oldDur, as<std::string>(deparseUnit(oldTime)));
     }
   }
   
@@ -1312,25 +1357,14 @@ List etImportEventTable(List inData){
   oldRate = wrap(rate);
   if (doAmt && doTime){
     std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
-    NumericVector rateSpecial = NumericVector::create(-1,-2);
     if (haveRateUnits){
       oldRate.attr("class") = "units";
       oldRate.attr("units") = rateUnits;
-      rateSpecial.attr("class") = "units";
-      rateSpecial.attr("units") = rateUnits;
+    } else {
+      oldRate.attr("class") = "rxRateDur";
     }
     // Rate conversion of -1 and -2 NEED to be ignored.
-    oldRate = setUnits(oldRate, rateUnit);
-    if (haveRateUnits){
-      rateSpecial = setUnits(rateSpecial, rateUnit);
-      for (i = oldRate.size(); i--;){
-	if (oldRate[i] == rateSpecial[0]){
-	  oldRate[i] = -1;
-	} else if (oldRate[i] == rateSpecial[1]){
-	  oldRate[i] = -2;
-	}
-      }
-    }
+    oldRate = setRateDurUnits(oldRate, rateUnit);
   } else if (haveRateUnits){
     stop("Amt/time needs units to convert the rate to the right units to import the data.");
   }
@@ -1360,8 +1394,10 @@ List etImportEventTable(List inData){
   // nme[11] = "dur"
   tmpNv = wrap(dur);
   if (doTime){
-    tmpNv.attr("class") = "units";
+    tmpNv.attr("class") = CharacterVector::create("rxRateDur", "units");
     tmpNv.attr("units") = timeUnitInfo;
+  } else {
+    tmpNv.attr("class") = "rxRateDur";
   }
   lst[11] = tmpNv;
   
@@ -1456,7 +1492,9 @@ List etExpandAddl(List curEt){
   lst[5] = NumericVector(id.size());
 
   // nme[6] = "rate";
-  lst[6] = NumericVector(id.size());
+  NumericVector tmpRate = NumericVector(id.size());
+  tmpRate.attr("class") = "rxRateDur";
+  lst[6] = tmpRate;
       
   // nme[7] = "ii";
   lst[7] = NumericVector(id.size());
@@ -1473,7 +1511,9 @@ List etExpandAddl(List curEt){
   lst[10] = IntegerVector(id.size());
 
   //nme[11] = "dur"
-  lst[11] = NumericVector(id.size());
+  NumericVector tmpDur = NumericVector(id.size());
+  tmpDur.attr("class") = "rxRateDur";
+  lst[11] = tmpDur;
   IntegerVector tmpI, tmpI2;
   NumericVector tmpN, tmpN2;
   CharacterVector tmpC, tmpC2;
@@ -1643,7 +1683,9 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   lst[5] = NumericVector(id.size());
 
   // nme[6] = "rate";
-  lst[6] = NumericVector(id.size());
+  NumericVector tmpRate = NumericVector(id.size());
+  tmpRate.attr("class") = "rxRateDur";
+  lst[6] = tmpRate;
       
   // nme[7] = "ii";
   lst[7] = NumericVector(id.size());
@@ -1660,7 +1702,9 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   lst[10] = IntegerVector(id.size());
 
   //nme[11] = "dur"
-  lst[11] = NumericVector(id.size());
+  NumericVector tmpDur = NumericVector(id.size());
+  tmpDur.attr("class") = "rxRateDur";
+  lst[11] = tmpDur;
   
   for (i = idx.size(); i--;){
     tmpI = as<IntegerVector>(lst[0]); // id
@@ -1789,14 +1833,14 @@ RObject etUpdateObj(List curEt, bool update, bool rxSolve, bool turnOnId){
   CharacterVector units = e["units"];
   if (!CharacterVector::is_na(units[1])){
     lst["ii"]  = setUnits(lst["ii"],  as<std::string>(units[1]));
-    lst["dur"]  = setUnits(lst["dur"],  as<std::string>(units[1]));
+    lst["dur"]  = setRateDurUnits(lst["dur"],  as<std::string>(units[1]));
     lst["low"]  = setUnits(lst["low"],  as<std::string>(units[1]));
     lst["time"] = setUnits(lst["time"], as<std::string>(units[1]));
     lst["high"] = setUnits(lst["high"], as<std::string>(units[1]));
     if (units[1] == "") units[1] = NA_STRING;
   } else {
     lst["ii"]  = setUnits(lst["ii"], "");
-    lst["dur"]  = setUnits(lst["dur"], "");
+    lst["dur"]  = setRateDurUnits(lst["dur"], "");
     lst["low"]  = setUnits(lst["low"],  "");
     lst["time"] = setUnits(lst["time"], "");
     lst["high"] = setUnits(lst["high"], "");
@@ -1812,24 +1856,13 @@ RObject etUpdateObj(List curEt, bool update, bool rxSolve, bool turnOnId){
     NumericVector oldRate = as<NumericVector>(lst["rate"]);
     if (rxIs(oldRate, "units")){
       // Preserve -1 and -2, they shouldn't convert.
-      NumericVector rateSpecial = NumericVector::create(-1,-2);
-      rateSpecial.attr("class") = "units";
-      rateSpecial.attr("units") = oldRate.attr("units");
-      oldRate=setUnits(oldRate, rateUnit);
-      rateSpecial = setUnits(rateSpecial, rateUnit);
-      for (int i = oldRate.size(); i--;){
-	if (oldRate[i] == rateSpecial[0]){
-	  oldRate[i] = -1;
-	} else if (oldRate[i] == rateSpecial[1]){
-	  oldRate[i] = -2;
-	}
-      }
+      oldRate=setRateDurUnits(oldRate, rateUnit);
       lst["rate"] = oldRate;
     } else {
-      lst["rate"] = setUnits(oldRate, rateUnit);
+      lst["rate"] = setRateDurUnits(oldRate, rateUnit);
     }
   } else {
-    lst["rate"] = setUnits(lst["rate"], "");
+    lst["rate"] = setRateDurUnits(lst["rate"], "");
   }
   e["units"] = units;
   if (turnOnId){
@@ -1888,13 +1921,13 @@ RObject etSetUnit(List curEt, CharacterVector units){
   if (as<std::string>(oldUnits[1]) != as<std::string>(units[1])){
     if (!CharacterVector::is_na(units[1])){
       lst["ii"]  = setUnits(lst["ii"],  as<std::string>(units[1]));
-      lst["dur"]  = setUnits(lst["dur"],  as<std::string>(units[1]));
+      lst["dur"]  = setRateDurUnits(lst["dur"],  as<std::string>(units[1]));
       lst["low"]  = setUnits(lst["low"],  as<std::string>(units[1]));
       lst["time"] = setUnits(lst["time"], as<std::string>(units[1]));
       lst["high"] = setUnits(lst["high"], as<std::string>(units[1]));
     } else {
       lst["ii"]  = setUnits(lst["ii"],  "");
-      lst["dur"]  = setUnits(lst["dur"],  "");
+      lst["dur"]  = setRateDurUnits(lst["dur"],  "");
       lst["low"]  = setUnits(lst["low"],  "");
       lst["time"] = setUnits(lst["time"], "");
       lst["high"] = setUnits(lst["high"], "");
@@ -1913,24 +1946,13 @@ RObject etSetUnit(List curEt, CharacterVector units){
     NumericVector oldRate = as<NumericVector>(lst["rate"]);
     if (rxIs(oldRate, "units")){
       // Preserve -1 and -2, they shouldn't convert.
-      NumericVector rateSpecial = NumericVector::create(-1,-2);
-      rateSpecial.attr("class") = "units";
-      rateSpecial.attr("units") = oldRate.attr("units");
-      oldRate=setUnits(oldRate, rateUnit);
-      rateSpecial = setUnits(rateSpecial, rateUnit);
-      for (int i = oldRate.size(); i--;){
-	if (oldRate[i] == rateSpecial[0]){
-	  oldRate[i] = -1;
-	} else if (oldRate[i] == rateSpecial[1]){
-	  oldRate[i] = -2;
-	}
-      }
+      oldRate=setRateDurUnits(oldRate, rateUnit);
       lst["rate"] = oldRate;
     } else {
-      lst["rate"] = setUnits(oldRate, rateUnit);
+      lst["rate"] = setRateDurUnits(oldRate, rateUnit);
     }
   } else {
-    lst["rate"] = setUnits(lst["rate"], "");
+    lst["rate"] = setRateDurUnits(lst["rate"], "");
   }
   cls.attr(".RxODE.lst") = e;
   lst.attr("class") = cls;
@@ -2539,7 +2561,7 @@ RObject et_(List input, List et__){
       }
       IntegerVector evid;
       if (evidIx != -1){
-	evid = as<IntegerVector>(input[evidIx]);
+	evid = clone(as<IntegerVector>(input[evidIx]));
 	if (evid.size()!= 1){
 	  stop("evid cannot be a vector");
 	}
@@ -2594,14 +2616,14 @@ RObject et_(List input, List et__){
 	  if (durIx != -1){
 	    stop("Cannot specify 'dur' AND 'rate' for a dose, please pick one.");
 	  }
-	  rate = as<NumericVector>(input[rateIx]);
+	  rate = clone(as<NumericVector>(input[rateIx]));
 	  if (rate.size() != 1) stop("rate cannot be a vector");
 	  if (rate[0] != 0.0){
 	    stop("rate needs a dose/amt.");
 	  }
 	} else {
 	  if (durIx != -1){
-	    NumericVector dur = as<NumericVector>(input[durIx]);
+	    NumericVector dur = clone(as<NumericVector>(input[durIx]));
 	    if (dur.size() != 1) stop("dur cannot be a vector");
 	    if (dur[0] != 0){
 	      stop("dur needs a dose/amt.");
@@ -2696,7 +2718,7 @@ RObject et_(List input, List et__){
 	  if (durIx != -1){
 	    stop("Cannot specify 'dur' AND 'rate' for a dose, please pick one.");
 	  }
-	  rate = as<NumericVector>(input[rateIx]);
+	  rate = clone(as<NumericVector>(input[rateIx]));
 	  if (rate.size() != 1) stop("rate cannot be a vector.");
 	  if (rxIs(rate, "units")){
 	    CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
@@ -2708,7 +2730,7 @@ RObject et_(List input, List et__){
 		stop("-1 and -2 rates do not make sense with units.");
 	      }
 	      std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
-	      rate = setUnits(rate,rateUnit);
+	      rate = setRateDurUnits(rate,rateUnit);
 	    } else {
 	      stop("Rate is cannot be converted and added to this table.");
 	    }
@@ -2722,7 +2744,7 @@ RObject et_(List input, List et__){
 	  dur[0] = 0;
 	} else {
 	  if (durIx != -1){
-	    dur = as<NumericVector>(input[durIx]);
+	    dur = clone(as<NumericVector>(input[durIx]));
 	    rate = NumericVector(1);
 	    rate[0] = 0;
 	    if (dur.size() != 1) stop("dur cannot be a vector");
@@ -2732,17 +2754,21 @@ RObject et_(List input, List et__){
 	      CharacterVector units = e["units"];
 	      if (!CharacterVector::is_na(units[1])){
 		std::string durUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
-		dur = setUnits(dur,as<std::string>(units[1]));
+		dur = setRateDurUnits(dur,as<std::string>(units[1]));
 		// While units are converted, the units that matter are the rate units.
 	      } else {
 		stop("Dur is cannot be converted and added to this table.");
 	      }
+	    } else {
+	      dur.attr("class") = "rxRateDur";
 	    }
 	  } else {
 	    rate = NumericVector(1);
 	    rate[0] = 0.0;
+	    rate.attr("class") = "rxRateDur";
 	    dur = NumericVector(1);
 	    dur[0] = 0.0;
+	    dur.attr("class") = "rxRateDur";
 	  }
 	}
 	NumericVector ii;// =0.0;
@@ -3211,7 +3237,9 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
   lst[5] = NumericVector(id.size());
 
   // nme[6] = "rate";
-  lst[6] = NumericVector(id.size());
+  NumericVector tmpRate = NumericVector(id.size());
+  tmpRate.attr("class") = "rxRateDur";
+  lst[6] = tmpRate;
       
   // nme[7] = "ii";
   lst[7] = NumericVector(id.size());
@@ -3228,7 +3256,9 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
   lst[10] = IntegerVector(id.size());
 
   // nme[11] = "dur"
-  lst[11] = NumericVector(id.size());
+  NumericVector tmpDur = NumericVector(id.size());
+  tmpDur.attr("class") = "rxRateDur";
+  lst[11] = tmpDur;
 
   IntegerVector tmpI, tmpI2;
   NumericVector tmpN, tmpN2;
@@ -3335,5 +3365,21 @@ List rxEtRmCls(List et){
   IntegerVector evid = newEt["evid"];
   evid.attr("class")  = R_NilValue;
   newEt["evid"] = evid;
+  NumericVector rate = newEt["rate"];
+  CharacterVector tmpC  = rate.attr("class");
+  if (tmpC.size() != 1){
+    rate.attr("class") = CharacterVector::create("units");
+  } else {
+    rate.attr("class") = R_NilValue;
+  }
+  newEt["rate"] = rate;
+  NumericVector dur = newEt["dur"];
+  tmpC  = dur.attr("class");
+  if (tmpC.size() != 1){
+    dur.attr("class") = CharacterVector::create("units");
+  } else {
+    dur.attr("class") = R_NilValue;
+  }
+  newEt["dur"] = dur;
   return newEt;
 }
