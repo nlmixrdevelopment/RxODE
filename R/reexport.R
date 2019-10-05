@@ -129,3 +129,7 @@ ggplot2::xlab
 ##'@importFrom lotri lotri
 ##'@export
 lotri::lotri
+
+##'@importFrom pillar type_sum
+##'@export
+pillar::type_sum

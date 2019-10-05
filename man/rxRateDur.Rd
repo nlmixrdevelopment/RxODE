@@ -24,7 +24,7 @@ as.rxRateDur(x)
 
 \method{[}{rxRateDur}(x, i) <- value
 
-type_sum.rxRateDur(x)
+\method{type_sum}{rxRateDur}(x)
 
 pillar_shaft.rxRateDur(x, ...)
 

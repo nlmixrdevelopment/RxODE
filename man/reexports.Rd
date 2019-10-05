@@ -19,6 +19,7 @@
 \alias{ylab}
 \alias{xlab}
 \alias{lotri}
+\alias{type_sum}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -33,6 +34,8 @@ below to see their documentation.
   \item{lotri}{\code{\link[lotri]{lotri}}}
 
   \item{magrittr}{\code{\link[magrittr]{\%>\%}}}
+
+  \item{pillar}{\code{\link[pillar]{type_sum}}}
 
   \item{units}{\code{\link[units]{set_units}}, \code{\link[units]{drop_units}}}
 }}

@@ -1060,7 +1060,7 @@ as.data.table.rxEt <- function (x, keep.rownames = FALSE, ...){
 ##'
 ##' @return tibble
 ##'
-##' @export as.tbl.rxEt
+##' @export as_tibble.rxEt
 as_tibble.rxEt <- function(x, ...){
     rxReq("tibble");
     if (rxIs(x, "rxEt")){
