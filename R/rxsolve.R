@@ -33,7 +33,8 @@ rxControl <- function(scale = NULL,
                       by=NULL,
                       length.out=NULL,
                       iCov=NULL,
-                      keep=NULL){
+                      keep=NULL,
+                      idFactor=TRUE){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -171,7 +172,8 @@ rxControl <- function(scale = NULL,
                  keep=keep, keepF=character(0), keepI=character(0),
                  omegaLower=omegaLower, omegaUpper=omegaUpper,
                  sigmaLower=sigmaLower, sigmaUpper=sigmaUpper,
-                 thetaLower=thetaLower, thetaUpper=thetaUpper);
+                 thetaLower=thetaLower, thetaUpper=thetaUpper,
+                 idFactor=idFactor);
     return(.ret)
 }
 
@@ -479,6 +481,10 @@ rxControl <- function(scale = NULL,
 ##'     are added to the data LOCF (Last Observation Carried forward)
 ##'     imputation is performed.
 ##'
+##' @param idFactor This boolean indicates if original ID values
+##'     should be maintained. This changes the default sequentially
+##'     ordered ID to a factor with the original ID values in the
+##'     original dataset.  By default this is enabled.
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time

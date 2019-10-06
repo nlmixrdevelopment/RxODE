@@ -2132,6 +2132,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   unsigned int nStud = as<unsigned int>(rxControl["nStud"]);
   double dfSub=as<double>(rxControl["dfSub"]);
   double dfObs=as<double>(rxControl["dfObs"]);
+  bool idFactor = as<bool>(rxControl["idFactor"]);
   RObject object;
   bool isRxSolve = rxIs(obj, "rxSolve");
   bool isEnvironment = rxIs(obj, "environment");
@@ -2198,6 +2199,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     bool swappedEvents = false;
     bool doMean=true;
     int nsvar = 0;
+    bool labelID=false;
+    CharacterVector idLevels;
     NumericVector initsC;
     if (rxIs(par0, "rx.event")){
       // Swapped events and parameters
@@ -2225,6 +2228,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	// KEEP/DROP?
     	List ev1a = etTrans(as<List>(ev1), obj, hasCmt, false, false, true, R_NilValue,
 			    rxControl["keepF"]);
+	labelID=true;
+	CharacterVector tmpC = ev1a.attr("class");
+	List tmpL = tmpC.attr(".RxODE.lst");
+	idLevels = as<CharacterVector>(tmpL["idLvl"]);
 	rx->nKeepF = keepFcov.size();
 	int lenOut = 200;
 	double by = NA_REAL;
@@ -2286,6 +2293,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (rxIs(ev1, "data.frame") && !rxIs(ev1, "rxEtTrans")){
       ev1 = as<List>(etTrans(as<List>(ev1), obj, hasCmt, false, false, true, R_NilValue,
 			     rxControl["keepF"]));
+      labelID=true;
+      CharacterVector tmpC = ev1.attr("class");
+      List tmpL = tmpC.attr(".RxODE.lst");
+      idLevels = as<CharacterVector>(tmpL["idLvl"]);
       rx->nKeepF = keepFcov.size();
       rxcEvid = 2;
       rxcTime = 1;
@@ -3156,6 +3167,11 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     int doTBS = (rx->matrix == 3);
     if (doTBS) rx->matrix=2;
     List dat = RxODE_df(doDose, doTBS);
+    if (idFactor && labelID && rx->nsub > 1){
+      IntegerVector did = as<IntegerVector>(dat["id"]);
+      did.attr("class") = "factor";
+      did.attr("levels") = idLevels;
+    }
     if (addTimeUnits){
       NumericVector tmpN = as<NumericVector>(dat["time"]);
       tmpN.attr("class") = "units";
