@@ -3,6 +3,7 @@
 #' @param x see \link[pillar]{type_sum}
 #' @param ... see \link[pillar]{type_sum}
 #' @param width see \link[pillar]{type_sum}
+#' @S3method type_sum units
 #' @export type_sum.units
 type_sum.units <- loadNamespace("units")$type_sum.units
 
@@ -14,6 +15,7 @@ format_type_sum.type_sum_units  <- loadNamespace("units")$format_type_sum.type_s
 #'@name tibble
 pillar_shaft.units <- loadNamespace("units")$pillar_shaft.units
 
+##'@S3method type_sum mixed_units
 #' @export type_sum.mixed_units
 #'@name tibble
 type_sum.mixed_units <- loadNamespace("units")$type_sum.mixed_units
@@ -55,7 +57,9 @@ geom_line <- ggplot2::geom_line
 ##'@export
 facet_wrap <- ggplot2::facet_wrap
 
+##'@S3method scale_type units
 ##'@export scale_type.units
+##'@name tibble
 scale_type.units <- loadNamespace("ggforce")$scale_type.units
 
 
