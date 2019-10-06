@@ -105,22 +105,22 @@ navbar:
         - text: "--------------------------"
         - text: "Advanced Features, Model Types, Technical Details"
         - text: "RxODE model types"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-model-types.html
+          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-model-types.html
         - text: "Chainging RxODE compartment numbers"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-cmt.html
+          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-cmt.html
         - text: "RxODE transit compartment models"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-transit-compartments.html
+          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-transit-compartments.html
         - text: "Using Shiny with RxODE"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-shiny.html
+          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-shiny.html
         - text: "How RxODE handles time-varying covariates"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-covariates.html
+          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-covariates.html
         - text: "Stiff Systems and Jacobian specification"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-stiff.html
+          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-stiff.html
         - text: "Adding compiled RxODE models to your package"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-rxUse.html
+          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-rxUse.html
   - text: "Dosing"
     icon: fas fa-stethoscope
-    href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-events.html
+    href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-events.html
   - text: "Simulations"
     icon: fas fa-desktop
     menu:

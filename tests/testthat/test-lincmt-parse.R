@@ -101,8 +101,8 @@ rxPermissive({
     apply(tran1, 1, .fun)
 
     .clDf <- do.call(rbind, .clDf);
-    try(write.csv(.clDf, file=devtools::package_file("vignettes/cl-lincmt.csv"),
-                  row.names=FALSE))
+    ## try(write.csv(.clDf, file=devtools::package_file("vignettes/cl-lincmt.csv"),
+    ##               row.names=FALSE))
 
     tran2  <- expand.grid(Ka=c("ka",NA),
                           Vc=c("v","vc","v1", NA),
@@ -189,8 +189,8 @@ rxPermissive({
     apply(tran2, 1, .fun)
 
     .kDf <- do.call(rbind, .kDf);
-    try(write.csv(.kDf, file=devtools::package_file("vignettes/kel-lincmt.csv"),
-              row.names=FALSE))
+    ## try(write.csv(.kDf, file=devtools::package_file("vignettes/kel-lincmt.csv"),
+    ##           row.names=FALSE))
 
     tran3  <- expand.grid(Ka=c("ka",NA),
                           Vc=c("v","vc","v1", NA),
@@ -320,8 +320,8 @@ rxPermissive({
 
 
     .kAlpha <- do.call(rbind, .kAlpha);
-    try(write.csv(.kAlpha, file=devtools::package_file("vignettes/alpha-lincmt.csv"),
-                  row.names=FALSE))
+    ## try(write.csv(.kAlpha, file=devtools::package_file("vignettes/alpha-lincmt.csv"),
+    ##               row.names=FALSE))
 
 
 }, on.validate=TRUE);

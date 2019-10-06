@@ -105,30 +105,30 @@ solve a ODE system." />
     <li class="divider"></li>
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-model-types.html">RxODE model types</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-model-types.html">RxODE model types</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-cmt.html">Chainging RxODE compartment numbers</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-cmt.html">Chainging RxODE compartment numbers</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-transit-compartments.html">RxODE transit compartment models</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-transit-compartments.html">RxODE transit compartment models</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-shiny.html">Using Shiny with RxODE</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-shiny.html">Using Shiny with RxODE</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
+      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
     </li>
   </ul>
 </li>
 <li>
-  <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-events.html">
+  <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-events.html">
     <span class="fas fa fas fa-stethoscope"></span>
      
     Dosing
@@ -234,8 +234,8 @@ solve a ODE system.</p>
   <span class='kw'>omegaLower</span> <span class='kw'>=</span> -<span class='fl'>Inf</span>, <span class='kw'>omegaUpper</span> <span class='kw'>=</span> <span class='fl'>Inf</span>, <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>,
   <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"rxSolve"</span>, <span class='st'>"matrix"</span>, <span class='st'>"data.frame"</span>,
-  <span class='st'>"data.frame.TBS"</span>), <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>minSS</span> <span class='kw'>=</span> <span class='fl'>7</span>,
-  <span class='kw'>maxSS</span> <span class='kw'>=</span> <span class='fl'>1000L</span>, <span class='kw'>infSSstep</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>ssAdjust</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>strictSS</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='st'>"data.frame.TBS"</span>), <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>minSS</span> <span class='kw'>=</span> <span class='fl'>10L</span>,
+  <span class='kw'>maxSS</span> <span class='kw'>=</span> <span class='fl'>1000L</span>, <span class='kw'>infSSstep</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>ssAdjust</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>strictSS</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>istateReset</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>subsetNonmem</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>linLog</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>maxAtolRtolFactor</span> <span class='kw'>=</span> <span class='fl'>0.1</span>,
   <span class='kw'>from</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>to</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>length.out</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,

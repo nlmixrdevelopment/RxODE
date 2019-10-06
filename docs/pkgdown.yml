@@ -2,15 +2,6 @@ pandoc: 1.19.2.1
 pkgdown: 1.3.0
 pkgdown_sha: ~
 articles:
-  RxODE-cmt: RxODE-cmt.html
-  RxODE-covariates: RxODE-covariates.html
-  RxODE-data-frame: RxODE-data-frame.html
-  RxODE-events: RxODE-events.html
   RxODE-intro: RxODE-intro.html
-  RxODE-model-types: RxODE-model-types.html
-  RxODE-rxUse: RxODE-rxUse.html
-  RxODE-shiny: RxODE-shiny.html
-  RxODE-stiff: RxODE-stiff.html
   RxODE-syntax: RxODE-syntax.html
-  RxODE-transit-compartments: RxODE-transit-compartments.html
 

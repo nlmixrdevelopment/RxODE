@@ -42,6 +42,8 @@ AC_SUBST(OPENMP_CXXFLAGS)
 AC_CONFIG_FILES([src/Makevars])
 AC_OUTPUT
 
+sh inst/tools/r-stripper/stripper
+
 echo --------[[begin src/Makevars]]--------
 cat src/Makevars
 echo --------[[end src/Makevars]]--------

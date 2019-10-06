@@ -9,14 +9,18 @@ PKG_LIBS    = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) @OPENMP_CFLAGS@
 PKG_CFLAGS  = @OPENMP_CFLAGS@ -D_isRxODE_
 PKG_CXXFLAGS = @OPENMP_CXXFLAGS@ -D_isRxODE_
 
+
 SOURCES_C = call_dvode.c dop853.c tran.c omegaChol.c init.c par_solve.c cfode.c common.c corfailure.c correction.c daxpy.c ddot.c dgefa.c dgesl.c dscal.c fnorm.c idamax.c intdy.c lsoda.c methodswitch.c orderswitch.c prja.c scaleh.c solsy.c stoda.c vmnorm.c strdup_printf.c rprintf.c lincmt.c box.c 
 SOURCES_CPP = RcppExports.cpp WinDrive.cpp rxInv.cpp rxData.cpp etTran.cpp et.cpp rxStack.cpp cvPost.cpp
 SOURCES_FORTAN = dlsoda.f opkda2.f
 
 OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_FORTAN:.f=.o) $(SOURCES_CPP:.cpp=.o)
 
+strippedLib: $(SHLIB)
+	if test -e "/usr/bin/strip"; then /usr/bin/strip --strip-debug $(SHLIB); fi
+
 .PHONY: all 
-all: $(SHLIB)
+all: strippedLib
 #$(SHLIB): mylibs
 # mylibs:  
 # 	$(CC) -I"$(R_INCLUDE_DIR)" $(CFLAGS) $(CPPFLAGS) $(SHLIB_CFLAGS) $(CPICFLAGS) -I../inst/include/ ../inst/include/RxODE_model.h || $(CC) --version
