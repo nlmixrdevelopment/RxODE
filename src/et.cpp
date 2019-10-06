@@ -983,7 +983,15 @@ List etImportEventTable(List inData){
   if (idCol == -1){
     oldId=IntegerVector(oldEvid.size(), 1);
   } else {
-    oldId=as<IntegerVector>(inData[idCol]);
+    if (rxIs(inData[idCol], "integer")){
+      oldId=as<IntegerVector>(inData[idCol]);
+    } else if (rxIs(inData[idCol], "character")){
+      Environment rx = RxODEenv();
+      Function convId = rx[".convertId"];
+      oldId = convId(inData[idCol]);
+    } else {
+      stop("ID type is unknown.");
+    }
   }
   std::vector<int> id;
   

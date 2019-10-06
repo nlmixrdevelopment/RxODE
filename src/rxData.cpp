@@ -1803,6 +1803,7 @@ void updateSolveEnvPost(Environment e){
     RObject parso = e["args.params"];
     IntegerVector ppos = e[".par.pos"];
     bool IsIni = e[".par.pos.ini"];
+    CharacterVector idLevels = as<CharacterVector>(e[".idLevels"]);
     if (rxIs(parso, "numeric") || rxIs(parso, "integer") ||
 	rxIs(parso, "NULL")){
       double *tmp=Calloc(ppos.size(),double);
@@ -1881,8 +1882,13 @@ void updateSolveEnvPost(Environment e){
 	for (unsigned int k = parsdf.nrow(); k--;){
 	  tmp[k] = (k % nsub)+1;
 	}
+	if (idLevels.size() > 0){
+	  tmp.attr("class") = CharacterVector::create("factor");
+	  tmp.attr("levels") = idLevels;
+	}
 	prsl[j] = tmp;
 	prsn[j]="id";
+	
 	j++;
       }
       for (i = 0; i < ppos.size();i++){
@@ -2577,8 +2583,14 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	usePar1=true;
       }
     } else if (rxIs(par1, "data.frame")){
+      Function sortId = getRxFn(".sortId");
+      if (idLevels.size() > 0){
+	par1 = sortId(par1, idLevels);
+	usePar1=true;
+      }
       RObject iCov = rxControl["iCov"];
       if (!rxIs(iCov, "NULL")){
+	iCov = sortId(iCov, idLevels, "iCov");
 	List lstT=as<List>(iCov);
 	List lst = as<List>(par1);
 	List lstF(lst.size()+lstT.size());
@@ -3247,7 +3259,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       e["check.nrow"] = nr;
       e["check.ncol"] = nc;
       e["check.names"] = dat.names();
-      
+      e[".idLevels"] = as<CharacterVector>(idLevels);
       e[".par.pos"] = eGparPos;
       e[".par.pos.ini"] = fromIni;
       e[".slvr.counter"] = slvr_counterIv;
