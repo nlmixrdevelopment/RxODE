@@ -544,6 +544,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
   IntegerVector inEvid;
+  bool evidIsMDV = false;
   if (evidCol != -1){
     if (rxIs(inData[evidCol], "integer") || rxIs(inData[evidCol], "numeric") ||
 	rxIs(inData[evidCol], "logical")){
@@ -554,6 +555,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   } else if (mdvCol != -1){
     evidCol = mdvCol;
     mdvCol=-1;
+    evidIsMDV=true;
     if (rxIs(inData[evidCol], "integer") || rxIs(inData[evidCol], "numeric") ||
 	rxIs(inData[evidCol], "logical")){
       inEvid = as<IntegerVector>(inData[evidCol]);
@@ -813,6 +815,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
     } else {
       cevid = inEvid[i];
+    }
+    if (evidIsMDV && cevid == 1 && camt == 0){
+      cevid=2;
     }
     switch(cevid){
     case 0:

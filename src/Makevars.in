@@ -17,7 +17,7 @@ SOURCES_FORTAN = dlsoda.f opkda2.f
 OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_FORTAN:.f=.o) $(SOURCES_CPP:.cpp=.o)
 
 strippedLib: $(SHLIB)
-	if test -e "/usr/bin/strip"; then /usr/bin/strip --strip-debug $(SHLIB); fi
+	if test -e "/usr/bin/strip"; then /usr/bin/strip -s $(SHLIB); fi
 
 .PHONY: all 
 all: strippedLib
