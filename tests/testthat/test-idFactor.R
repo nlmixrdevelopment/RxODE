@@ -25,6 +25,15 @@ rxPermissive({
         tmp <- rxSolve(mod, d, idFactor=FALSE)
         expect_false(inherits(tmp$id, "factor"))
 
+        d2 <- d
+        d2$ID <- factor(d2$ID, c(1:10, 12), letters[c(1:10, 12)])
+
+        tmp <- rxSolve(mod, d2)
+
+        tmp <- rxSolve(mod, d, idFactor=FALSE)
+        expect_true(inherits(tmp$id, "factor"))
+        expect_equal(levels(tmp$id), letters[c(1:10, 12)])
+
     })
 
 

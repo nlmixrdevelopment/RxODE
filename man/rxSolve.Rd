@@ -37,7 +37,7 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   params = NULL, events = NULL, istateReset = TRUE,
   subsetNonmem = TRUE, linLog = FALSE, maxAtolRtolFactor = 0.1,
   from = NULL, to = NULL, by = NULL, length.out = NULL,
-  iCov = NULL, keep = NULL)
+  iCov = NULL, keep = NULL, idFactor = TRUE)
 
 rxSolve(object, ...)
 
@@ -389,6 +389,11 @@ data.frame.}
 is kept once per line.  For the input dataset, if any records
 are added to the data LOCF (Last Observation Carried forward)
 imputation is performed.}
+
+\item{idFactor}{This boolean indicates if original ID values
+should be maintained. This changes the default sequentially
+ordered ID to a factor with the original ID values in the
+original dataset.  By default this is enabled.}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE
