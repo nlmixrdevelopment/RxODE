@@ -1046,7 +1046,11 @@ as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...){
 }
 
 .datatable.aware=TRUE
-##'@export
+##' Convert an event table to a data.table
+##'
+##' @inheritParams data.table::as.data.table
+##'
+##'@export as.data.table.rxEt
 as.data.table.rxEt <- function (x, keep.rownames = FALSE, ...){
     rxReq("data.table")
     return(data.table::as.data.table(as.data.frame.rxEt(x, ...), keep.rownames=keep.rownames, ...))
@@ -1075,7 +1079,7 @@ as_tibble.rxEt <- function(x, ...){
 }
 
 ##'@rdname as_tibble.rxEt
-##'@export
+##'@export as.tbl.rxEt
 as.tbl.rxEt <- function(x, ...){
     rxReq("dplyr");
     if (rxIs(x, "rxEt")){
@@ -1130,6 +1134,8 @@ magrittr::`%>%`
 ##' be displayed in a tibble.
 ##'
 ##' @param x Item to be converted to a RxODE EVID specification.
+##'
+##' @param ... Other parameters
 ##'
 ##' @examples
 ##'
@@ -1205,14 +1211,12 @@ print.rxEvid <- function(x, ...){
   as.rxEvid(NextMethod())
 }
 
-##'@rdname rxEvid
 ##' @export
 `units<-.rxEvid` <- function(x, value) {
     stop("'evid' is unitless");
 }
 
 
-##'@rdname rxEvid
 ##' @export
 `[<-.rxEvid` <- function(x, i, value) {
     as.rxEvid(NextMethod())
@@ -1231,10 +1235,11 @@ pillar_shaft.rxEvid <- function(x, ...){
     pillar::new_pillar_shaft_simple(.x, align = "left")
 }
 
-##'@rdname rxEvid
-#' @inheritParams base::as.data.frame
-#' @param nm Name of column in new data frame
-#' @export
+##' Convert to data.frame
+##'
+##' @inheritParams base::as.data.frame
+##' @param nm Name of column in new data frame
+##' @export
 as.data.frame.rxEvid <- base::as.data.frame.difftime
 
 ##' Creates a rxRateDur object
@@ -1316,7 +1321,6 @@ format.rxRateDur <- function(x, ...){
   as.rxRateDur(NextMethod())
 }
 
-##'@rdname rxRateDur
 ##' @export
 `[<-.rxRateDur` <- function(x, i, value) {
     as.rxRateDur(NextMethod())
