@@ -1221,10 +1221,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           new_or_ith(v);
 	  aProp(tb.de.n);
           /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
-          tb.lh[tb.ix] = 9;
 	  if (hasLhs){
-	    tb.lh[tb.ix] = 19;
-	  }	  
+	    if (tb.lh[tb.ix] == 10 || tb.lh[tb.ix] == 29){
+	      tb.lh[tb.ix] = 29;
+	    } else {
+	      tb.lh[tb.ix] = 19;
+	    }
+	  } else {
+	    tb.lh[tb.ix] = 9;
+	  }
           tb.di[tb.de.n] = tb.ix;
 	  addLine(&(tb.de),"%s",v);
         } else {
@@ -1435,7 +1440,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           if (nodeHas(ini) && !new_de(v)){
 	    if (tb.idu[tb.id] == 0){
 	      new_or_ith(v);
-	      tb.lh[tb.ix] = 19;
+	      if (tb.lh[tb.ix] == 10 || tb.lh[tb.ix] == 29){
+		tb.lh[tb.ix] = 29;
+	      } else {
+		tb.lh[tb.ix] = 19;
+	      }
 	    } else {
 	      updateSyntaxCol();
 	      sPrint(&buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
@@ -1465,7 +1474,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    if (tb.idu[tb.id] == 0){
 	      // Change to 19 for LHS w/stateExtra
 	      new_or_ith(v);
-	      tb.lh[tb.ix] = 19;
+	      if (tb.lh[tb.ix] == 10 || tb.lh[tb.ix] == 29){
+		tb.lh[tb.ix] = 29;
+	      } else {
+		tb.lh[tb.ix] = 19;
+	      }
 	    } else {
 	      sPrint(&buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
 	      updateSyntaxCol();
@@ -1772,7 +1785,6 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
     } else {
       sAppend(&s_aux_info, "    SET_STRING_ELT(extraState, %d, mkChar(\"%s\"));\n", nExtra++, buf);
     }
-    
   }
   for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
     buf=tb.ss.line[tb.df[i]];

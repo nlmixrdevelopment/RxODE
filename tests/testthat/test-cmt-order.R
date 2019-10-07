@@ -486,6 +486,22 @@ if (file.exists("warfarin.rda")){
             expect_equal(tmp$stateExtra, "cp")
 
         })
+
+        test_that("cmt() and hidden lhs variables",{
+
+            tmp  <- RxODE({
+                d/dt(depot) ~ -ka * depot
+                d/dt(center) ~ ka * depot - cl/v * center
+                cp ~ 3;
+                cmt(cp);
+            })
+
+            expect_equal(class(tmp), "RxODE")
+            expect_equal(tmp$lhs, character(0))
+            expect_equal(tmp$stateExtra, "cp")
+
+        })
+
     }, cran=TRUE)
 }
 
