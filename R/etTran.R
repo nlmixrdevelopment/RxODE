@@ -15,7 +15,7 @@
 }
 
 .sortId <- function(idData, goodLvl, type="parameter",
-                    simSubjects){
+                    warnIdSort){
     .n <- tolower(names(idData));
     .w <- which(.n == "id");
     .nid <- length(goodLvl);
@@ -38,7 +38,7 @@
         return(.idData)
     } else if (length(.w) == 0L) {
         if (length(idData[, 1]) > 1){
-            if (!simSubjects && .nid > 1)
+            if (warnIdSort && .nid > 1)
                 warning(sprintf("ID missing in %s dataset;\n Parameters are assumed to have the same order as the IDs in the event dataset", type));
         }
         return(idData);

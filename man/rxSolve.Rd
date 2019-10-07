@@ -38,7 +38,7 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   subsetNonmem = TRUE, linLog = FALSE, maxAtolRtolFactor = 0.1,
   from = NULL, to = NULL, by = NULL, length.out = NULL,
   iCov = NULL, keep = NULL, idFactor = TRUE, mxhnil = 0,
-  hmxi = 0)
+  hmxi = 0, warnIdSort = TRUE)
 
 rxSolve(object, ...)
 
@@ -406,6 +406,10 @@ hmxi = 0.0 is allowed and corresponds to an infinite hmax
 (default).  hmin and hmxi may be changed at any time, but will
 not take effect until the next change of H is considered.
 This option is only considered with method=liblsoda.}
+
+\item{warnIdSort}{Warn if the ID is not present and RxODE assumes
+the order of the parameters/iCov are the same as the order of
+the parameters in the input dataset.}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE

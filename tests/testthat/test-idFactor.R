@@ -58,6 +58,11 @@ rxPermissive({
 
         tmp2 <- rxSolve(mod, d, parData2)
 
+        parData3 <- parData[, names(parData) != "id"];
+
+        expect_warning(rxSolve(mod, d, parData3))
+        expect_warning(rxSolve(mod, d, parData3, warnIdSort=FALSE), regexp = NA);
+
         expect_equal(data.frame(tmp1),data.frame(tmp2))
         expect_equal(data.frame(tmp1$params),data.frame(tmp2$params))
 

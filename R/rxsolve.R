@@ -36,7 +36,8 @@ rxControl <- function(scale = NULL,
                       keep=NULL,
                       idFactor=TRUE,
                       mxhnil=0,
-                      hmxi=0.0){
+                      hmxi=0.0,
+                      warnIdSort=TRUE){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -176,7 +177,7 @@ rxControl <- function(scale = NULL,
                  sigmaLower=sigmaLower, sigmaUpper=sigmaUpper,
                  thetaLower=thetaLower, thetaUpper=thetaUpper,
                  idFactor=idFactor,
-                 mxhnil=mxhnil, hmxi=hmxi);
+                 mxhnil=mxhnil, hmxi=hmxi, warnIdSort=warnIdSort);
     return(.ret)
 }
 
@@ -499,6 +500,10 @@ rxControl <- function(scale = NULL,
 ##'     should be maintained. This changes the default sequentially
 ##'     ordered ID to a factor with the original ID values in the
 ##'     original dataset.  By default this is enabled.
+##'
+##' @param warnIdSort Warn if the ID is not present and RxODE assumes
+##'     the order of the parameters/iCov are the same as the order of
+##'     the parameters in the input dataset.
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time

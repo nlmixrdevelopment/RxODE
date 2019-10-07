@@ -2141,6 +2141,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   bool idFactor = as<bool>(rxControl["idFactor"]);
   RObject object;
   bool isRxSolve = rxIs(obj, "rxSolve");
+  bool warnIdSort = as<bool>(rxControl["warnIdSort"]);
   bool isEnvironment = rxIs(obj, "environment");
   if (updateObject && !isRxSolve && !isEnvironment){
     if (rxIs(rxCurObj, "rxSolve")){
@@ -2531,10 +2532,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
         stop("If parameters are not named, they must match the order and size of the parameters in the model.");
       }
       RObject iCov = rxControl["iCov"];
+      if (warnIdSort && didSim){
+	warnIdSort = false;
+      }
       if (!rxIs(iCov, "NULL")){
 	// Create a data frame
 	Function sortId = getRxFn(".sortId");
-	iCov = sortId(iCov, idLevels, "iCov", didSim);
+	iCov = sortId(iCov, idLevels, "iCov", warnIdSort);
 	CharacterVector keepC, keepCf;
 	if (rxIs(rxControl["keepI"], "character")){
 	  keepC = as<CharacterVector>(rxControl["keepI"]);
@@ -2592,12 +2596,12 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     } else if (rxIs(par1, "data.frame")){
       Function sortId = getRxFn(".sortId");
       if (idLevels.size() > 0){
-	par1 = sortId(par1, idLevels, "parameters", didSim);
+	par1 = sortId(par1, idLevels, "parameters", warnIdSort);
 	usePar1=true;
       }
       RObject iCov = rxControl["iCov"];
       if (!rxIs(iCov, "NULL")){
-	iCov = sortId(iCov, idLevels, "iCov", didSim);
+	iCov = sortId(iCov, idLevels, "iCov", warnIdSort);
 	List lstT=as<List>(iCov);
 	List lst = as<List>(par1);
 	List lstF(lst.size()+lstT.size());
