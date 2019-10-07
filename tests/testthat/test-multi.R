@@ -160,7 +160,9 @@ rxPermissive({
         m1$dynUnload()
         m2$dynUnload()
         m3$dynUnload()
-        expect_equal(unlink(test.dir, recursive = TRUE),0) # 0==success, 1==failed
+        .ret <- unlink(test.dir, recursive = TRUE);
+        skip_on_os("windows")
+        expect_equal(.ret,0) # 0==success, 1==failed
     })
 }, silent=TRUE, cran=TRUE);
 
