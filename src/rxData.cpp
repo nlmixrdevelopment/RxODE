@@ -2403,6 +2403,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     CharacterVector sigmaN;
     bool usePar1 = false;
     bool simSubjects = false;
+    bool didSim = false;
     bool addTimeUnits = false;
     RObject timeUnitsU;
     List covUnits;
@@ -2412,7 +2413,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       evT.attr("class") = R_NilValue;
       covUnits = evT["covUnits"];
     }
-    par1ini = par1;      
+    par1ini = par1;
     if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
       // Simulated Variable3
       if (!rxIs(par1, "numeric")){
@@ -2497,6 +2498,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 				 as<NumericVector>(rxControl["sigmaUpper"]),
 				 sigmaDf, sigmaIsChol, nCoresRV, curObs,
 				 dfSub, dfObs, simSubjects);
+      didSim = true;
       par1 =  as<RObject>(lst);
       usePar1=true;
       // The parameters are in the same format as they would be if they were
@@ -2528,6 +2530,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       RObject iCov = rxControl["iCov"];
       if (!rxIs(iCov, "NULL")){
 	// Create a data frame
+	Function sortId = getRxFn(".sortId");
+	iCov = sortId(iCov, idLevels, "iCov", didSim);
 	CharacterVector keepC, keepCf;
 	if (rxIs(rxControl["keepI"], "character")){
 	  keepC = as<CharacterVector>(rxControl["keepI"]);
@@ -2540,7 +2544,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	List lstF(parNumeric.size()+lstT.size());
 	CharacterVector nmF(lstF.size());
 	CharacterVector nmL = nmP;
-	CharacterVector nmT = lstT.attr("names");
+	CharacterVector nmT = as<CharacterVector>(lstT.attr("names"));
 	for (int ii = parNumeric.size(); ii--;){
 	  NumericVector tmp(nr);
 	  std::fill_n(tmp.begin(), nr, parNumeric[ii]);
@@ -2585,12 +2589,12 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     } else if (rxIs(par1, "data.frame")){
       Function sortId = getRxFn(".sortId");
       if (idLevels.size() > 0){
-	par1 = sortId(par1, idLevels);
+	par1 = sortId(par1, idLevels, "parameters", didSim);
 	usePar1=true;
       }
       RObject iCov = rxControl["iCov"];
       if (!rxIs(iCov, "NULL")){
-	iCov = sortId(iCov, idLevels, "iCov");
+	iCov = sortId(iCov, idLevels, "iCov", didSim);
 	List lstT=as<List>(iCov);
 	List lst = as<List>(par1);
 	List lstF(lst.size()+lstT.size());

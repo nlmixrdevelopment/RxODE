@@ -603,6 +603,12 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         .setupOnly <- .lst$.setupOnly;
     }
     .ctl <- rxControl(...,events=events,params=params);
+    .n1 <- setdiff(intersect(tolower(names(params)),tolower(names(.ctl$iCov))),"id")
+    .n2 <- c(.n1, setdiff(intersect(tolower(names(events)),tolower(names(.ctl$iCov))),"id"))
+    .n1 <- unique(c(.n1, .n2))
+    if (length(.n1) > 0){
+        stop(sprintf("iCov has information contained in parameters/event data;\nDuplicate columns: %s", paste(.n1, collapse=", ")));
+    }
     if (!is.null(.pipelineThetaMat) && is.null(.ctl$thetaMat)){
         .ctl$thetaMat <- .pipelineThetaMat;
     }

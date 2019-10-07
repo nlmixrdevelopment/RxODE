@@ -14,9 +14,11 @@
     factor(.pid, levels=.lvl, labels=.lab);
 }
 
-.sortId <- function(idData, goodLvl, type="parameter"){
+.sortId <- function(idData, goodLvl, type="parameter",
+                    simSubjects){
     .n <- tolower(names(idData));
     .w <- which(.n == "id");
+    .nid <- length(goodLvl);
     if (length(.w) == 1){
         .idData <- idData;
         .oId <- .idData[[.w]];
@@ -31,20 +33,25 @@
         .idData <- .idData[order(.idData[[.w]]), ];
         .idData <- .idData[, -.w, drop = FALSE];
         if (length(.idData[, 1]) == 0)
-            stop("There are no IDs left to solve")
+            stop(sprintf("There are no IDs left to solve in %s data", type))
         if (.wrn != "") warning(.wrn)
         return(.idData)
     } else if (length(.w) == 0L) {
-        warning(sprintf("ID missing in %s dataset\n; Parameters are assumed to have the same order as the IDs in the event dataset", type));
+        if (length(idData[, 1]) > 1){
+            if (!simSubjects && .nid > 1)
+                warning(sprintf("ID missing in %s dataset;\n Parameters are assumed to have the same order as the IDs in the event dataset", type));
+        }
         return(idData);
     } else {
-        warning(sprintf("Unable to detect ID correctly in %s dataset\nParameters are assumed to have the same order as the IDs", type));
-        .idData <- idData[, -.w];
+        if (length(idData[, 1]) > 1){
+            warning(sprintf("Unable to detect ID correctly in %s dataset\nParameters are assumed to have the same order as the IDs", type));
+        }
+        .idData <- idData[, -.w, drop = FALSE];
         return(.idData);
     }
 }
 
-.ConvertExtra <- function(dat){
+.convertExtra <- function(dat){
     d <- as.data.frame(dat);
     .colNames0 <- colnames(d)
     col.names <- toupper(.colNames0);
