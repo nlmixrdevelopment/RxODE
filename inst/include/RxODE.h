@@ -78,6 +78,8 @@ typedef struct {
   int strictSS;
   double infSSstep;
   double ssAdjust;
+  int mxhnil;
+  double hmxi;
 } rx_solving_options;
 
 

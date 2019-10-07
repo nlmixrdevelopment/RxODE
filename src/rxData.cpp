@@ -2176,6 +2176,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // Get the C solve object
     rx_solve* rx = getRxSolve2_();
     rx_solving_options* op = rx->op;
+    op->mxhnil = as<int>(rxControl["mxhnil"]);
+    op->hmxi = as<double>(rxControl["hmxi"]);
+
     rx_solving_options_ind* ind;
     rx->nKeep0 = 0;
     rx->nKeepF = 0;

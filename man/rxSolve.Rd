@@ -37,7 +37,8 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   params = NULL, events = NULL, istateReset = TRUE,
   subsetNonmem = TRUE, linLog = FALSE, maxAtolRtolFactor = 0.1,
   from = NULL, to = NULL, by = NULL, length.out = NULL,
-  iCov = NULL, keep = NULL, idFactor = TRUE)
+  iCov = NULL, keep = NULL, idFactor = TRUE, mxhnil = 0,
+  hmxi = 0)
 
 rxSolve(object, ...)
 
@@ -394,6 +395,17 @@ imputation is performed.}
 should be maintained. This changes the default sequentially
 ordered ID to a factor with the original ID values in the
 original dataset.  By default this is enabled.}
+
+\item{mxhnil}{maximum number of messages printed (per problem)
+warning that T + H = T on a step (H = step size).  This must
+be positive to result in a non-default value.  The default
+value is 0 (or infinite).}
+
+\item{hmxi}{inverse of the maximum absolute value of H to be used.
+hmxi = 0.0 is allowed and corresponds to an infinite hmax
+(default).  hmin and hmxi may be changed at any time, but will
+not take effect until the next change of H is considered.
+This option is only considered with method=liblsoda.}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE

@@ -34,7 +34,9 @@ rxControl <- function(scale = NULL,
                       length.out=NULL,
                       iCov=NULL,
                       keep=NULL,
-                      idFactor=TRUE){
+                      idFactor=TRUE,
+                      mxhnil=0,
+                      hmxi=0.0){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -173,7 +175,8 @@ rxControl <- function(scale = NULL,
                  omegaLower=omegaLower, omegaUpper=omegaUpper,
                  sigmaLower=sigmaLower, sigmaUpper=sigmaUpper,
                  thetaLower=thetaLower, thetaUpper=thetaUpper,
-                 idFactor=idFactor);
+                 idFactor=idFactor,
+                 mxhnil=mxhnil, hmxi=hmxi);
     return(.ret)
 }
 
@@ -258,6 +261,17 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param maxords The maximum order to be allowed for the stiff (BDF)
 ##'     method.  The default value is 5.  This can be between 1 and 5.
+##'
+##' @param mxhnil maximum number of messages printed (per problem)
+##'     warning that T + H = T on a step (H = step size).  This must
+##'     be positive to result in a non-default value.  The default
+##'     value is 0 (or infinite).
+##'
+##' @param hmxi inverse of the maximum absolute value of H to be used.
+##'     hmxi = 0.0 is allowed and corresponds to an infinite hmax
+##'     (default).  hmin and hmxi may be changed at any time, but will
+##'     not take effect until the next change of H is considered.
+##'     This option is only considered with method=liblsoda.
 ##'
 ##' @param ... Other arguments including scaling factors for each
 ##'     compartment.  This includes S# = numeric will scale a compartment

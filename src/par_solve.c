@@ -1439,13 +1439,13 @@ extern void ind_liblsoda(rx_solve *rx, int solveid,
   opt.atol = op->atol2;
   opt.itask = 1;
   opt.mxstep = op->mxstep;
-  opt.mxhnil = 0;
+  opt.mxhnil = op->mxhnil;
   opt.mxordn = op->MXORDN;
   opt.mxords = op->MXORDS;
   opt.h0 = op->H0;
   opt.hmax = op->hmax2;
   opt.hmin = op->HMIN;
-  opt.hmxi = 0.0;
+  opt.hmxi = op->hmxi;
   /* ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis); */
   ind_liblsoda0(rx, op, opt, solveid, dydt, u_inis);
 }
@@ -1470,13 +1470,13 @@ extern void par_liblsoda(rx_solve *rx){
   opt.atol = op->atol2;
   opt.itask = 1;
   opt.mxstep = op->mxstep;
-  opt.mxhnil = 0;
+  opt.mxhnil = op->mxhnil;
   opt.mxordn = op->MXORDN;
   opt.mxords = op->MXORDS;
   opt.h0 = op->H0;
   opt.hmax = op->hmax2;
   opt.hmin = op->HMIN;
-  opt.hmxi = 0.0;
+  opt.hmxi = op->hmxi;
   int curTick=0;
   int cur=0;
   // Breaking of of loop ideas came from http://www.thinkingparallel.com/2007/06/29/breaking-out-of-loops-in-openmp/
@@ -1515,7 +1515,6 @@ extern void par_liblsoda(rx_solve *rx){
     int doIt = isProgSupported();
     if (doIt == -1){
     } else if (isRstudio() || doIt == 0){
-      /* Rprintf("\r                                                                                \r"); */
       Rprintf("\n");
     } else {
       RSprintf0("\r                                                                                \r");
@@ -1649,7 +1648,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   
   iwork[4] = 0; // ixpr
   iwork[5] = op->mxstep; // mxstep 
-  iwork[6] = 0; // MXHNIL 
+  iwork[6] = op->mxhnil; // MXHNIL 
   iwork[7] = op->MXORDN; // MXORDN 
   iwork[8] = op->MXORDS;  // MXORDS
     
