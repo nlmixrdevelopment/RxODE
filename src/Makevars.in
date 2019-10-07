@@ -16,12 +16,13 @@ SOURCES_FORTAN = dlsoda.f opkda2.f
 
 OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_FORTAN:.f=.o) $(SOURCES_CPP:.cpp=.o)
 
-strippedLib: $(SHLIB)
-	if test -e "/usr/bin/strip"; then /usr/bin/strip -s $(SHLIB); fi
+# strippedLib: $(SHLIB)
+# 	if test -e "/usr/bin/strip"; then /usr/bin/strip -s $(SHLIB); fi
 
 .PHONY: all 
-all: strippedLib
-#$(SHLIB): mylibs
+# all: strippedLib
+# $(SHLIB): mylibs
+all: $(SHLIB)
 # mylibs:  
 # 	$(CC) -I"$(R_INCLUDE_DIR)" $(CFLAGS) $(CPPFLAGS) $(SHLIB_CFLAGS) $(CPICFLAGS) -I../inst/include/ ../inst/include/RxODE_model.h || $(CC) --version
 
