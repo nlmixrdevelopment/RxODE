@@ -112,10 +112,10 @@ rxControl <- function(scale = NULL,
         stop("Covariates can no longer be specified by 'covs' include them in the event dataset.");
     }
     if (any(names(.xtra) == "atolSS")){
-        stop("atolSS is controlled by atol now.");
+        warning("atolSS is ignored and controlled by atol now.");
     }
     if (any(names(.xtra) == "rtolSS")){
-        stop("rtolSS is controlled by rtol now.");
+        warning("rtolSS is ignored and controlled by rtol now.");
     }
     if (missing(cores)){
         cores <- RxODE::rxCores();
