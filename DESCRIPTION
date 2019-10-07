@@ -24,7 +24,7 @@ Authors@R: c(
    person("Hadley", "Wickham", role="ctb"),
    person("G", "Grothendieck", role="ctb"),
    person("Robert", "Gentleman",role="ctb"),
-   person("Daniel C.", "Dillon", role="ctb"),  # for rstripper
+   person("Daniel C.", "Dillon", role="ctb"),
    person("Ross", "Ihaka",role="ctb"),
    person("R core team", role="cph"),
    person("odepack authors", role="cph")
