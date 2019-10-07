@@ -14,6 +14,18 @@
     factor(.pid, levels=.lvl, labels=.lab);
 }
 
+.warnIdSort0 <- TRUE
+##' Turn on/off warnings for ID sorting.
+##'
+##' @param warnIdSort Boolean for if the sorting warning is turned on or off.
+##' @return Nothing
+##' @author Matthew Fidler
+##' @export
+.setWarnIdSort <- function(warnIdSort=TRUE){
+    assignInMyNamespace(".warnIdSort0", warnIdSort);
+    invisible()
+}
+
 .sortId <- function(idData, goodLvl, type="parameter",
                     warnIdSort){
     .n <- tolower(names(idData));
@@ -38,7 +50,7 @@
         return(.idData)
     } else if (length(.w) == 0L) {
         if (length(idData[, 1]) > 1){
-            if (warnIdSort && .nid > 1)
+            if (warnIdSort && .warnIdSort0 && .nid > 1)
                 warning(sprintf("ID missing in %s dataset;\n Parameters are assumed to have the same order as the IDs in the event dataset", type));
         }
         return(idData);

@@ -2535,6 +2535,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       if (warnIdSort && didSim){
 	warnIdSort = false;
       }
+      if (setupOnly){
+	warnIdSort = false;
+      }
       if (!rxIs(iCov, "NULL")){
 	// Create a data frame
 	Function sortId = getRxFn(".sortId");
