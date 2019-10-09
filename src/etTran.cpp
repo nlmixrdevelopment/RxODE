@@ -1264,7 +1264,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
   if (idxO.size()-rmAmt <= 0) stop("Empty data.");
-  nid = obsId.size();
+  if (!keepDosingOnly){
+    nid = obsId.size();
+  } else {
+    nid = allId.size();
+  }
   NumericVector fPars = NumericVector(pars.size()*nid, NA_REAL);
   // sorted create the vectors/list
   if (addCmt && !hasCmt){
@@ -1332,8 +1336,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
 
   IntegerVector ivTmp;
-  // Since we removed the -1 in idx, you can get the last id here.
-  lastId = id[idxO.back()]+1;
+  lastId = NA_INTEGER;
   bool addId = false, added=false;
   int idx1=nid, nTv=0;
   std::vector<int> covParPosTV;
@@ -1347,6 +1350,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (lastId != id[idxO[i]]){
 	addId=true;
 	idx1--;
+	if (idx1 < 0) stop("Number of individuals not calculated correctly...");
 	// Add ID
 	ivTmp = as<IntegerVector>(lst1[0]);
 	ivTmp[idx1] = id[idxO[i]];
@@ -1383,7 +1387,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    nvTmp[jj] = nvTmp[jj-1];
 	  }
 	} else {
-	  // These keepers are added.
+	  // These keep variables are added.
 	  nvTmp2   = as<NumericVector>(inData[keepCol[j]]);
 	  nvTmp[jj] = nvTmp2[idx[idxO[i]]];
 	}
@@ -1472,9 +1476,14 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       j++;
     }
   }
-
   CharacterVector cls = CharacterVector::create("rxEtTran","data.frame");
-  
+  if (covCol.size() == 0 && !rxIs(lst1F[0], "integer") && !redoId){
+    stop("Corrupted event table");
+    IntegerVector tmpI(nid);
+    std::iota(tmpI.begin(),tmpI.end(), 1);
+    lst1F[0] = tmpI;
+    nme1F[0] = "ID";
+  }
   IntegerVector tmp = lst1F[0];
   if (redoId){
     Function convId = rx[".convertId"];

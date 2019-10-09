@@ -866,4 +866,17 @@ d/dt(blood)     = a*intestine - b*blood
                           class = "data.frame", row.names = c(NA, -1L)), trn1)
 })
 
+    ## etTrans example from xgxr + nlmixr + ggpmx
+    test_that("etTrans", {
+
+        lst <- readRDS("test-etTrans-1.rds");
+
+        t0 <- expect_warning(etTrans(lst$events,RxODE(lst$object), FALSE, FALSE, FALSE, FALSE, NULL, character(0)))
+        expect_true(inherits(t0, "rxEtTran"))
+
+        t1 <- etTrans(lst$events,RxODE(lst$object), FALSE, FALSE, FALSE, TRUE, NULL, character(0))
+        expect_true(inherits(t1, "rxEtTran"))
+    })
+
+
 }, cran=TRUE, silent=TRUE)
