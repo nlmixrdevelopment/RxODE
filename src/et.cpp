@@ -983,7 +983,7 @@ List etImportEventTable(List inData){
   if (idCol == -1){
     oldId=IntegerVector(oldEvid.size(), 1);
   } else {
-    if (rxIs(inData[idCol], "integer")){
+    if (rxIs(inData[idCol], "integer") || rxIs(inData[idCol], "numeric")){
       oldId=as<IntegerVector>(inData[idCol]);
     } else if (rxIs(inData[idCol], "character")){
       Environment rx = RxODEenv();
