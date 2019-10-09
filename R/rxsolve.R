@@ -798,20 +798,22 @@ solve.rxEt <- solve.rxSolve
     .isDplyr <- requireNamespace("tibble", quietly = TRUE) && RxODE.display.tbl;
     ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
     df <- x$params.single
-    pars.msg <- .cliRule(left=paste0(crayon::bold("Parameters"), " (",
-                                      crayon::yellow(bound), crayon::bold$blue("$params"), "):"));
-    if (!is.null(df)){
-        cat(pars.msg, "\n");
-        print(df)
-    } else {
-        df <- x$pars
+    if (length(df) > 0){
+        pars.msg <- .cliRule(left=paste0(crayon::bold("Parameters"), " (",
+                                         crayon::yellow(bound), crayon::bold$blue("$params"), "):"));
         if (!is.null(df)){
             cat(pars.msg, "\n");
-            if (rxIs(df, "data.frame")){
-                if (!.isDplyr){
-                    print(head(as.matrix(df), n = n));
-                } else {
-                    print(tibble::as_tibble(df), n = n, width = width);
+            print(df)
+        } else {
+            df <- x$pars
+            if (!is.null(df)){
+                cat(pars.msg, "\n");
+                if (rxIs(df, "data.frame")){
+                    if (!.isDplyr){
+                        print(head(as.matrix(df), n = n));
+                    } else {
+                        print(tibble::as_tibble(df), n = n, width = width);
+                    }
                 }
             }
         }
