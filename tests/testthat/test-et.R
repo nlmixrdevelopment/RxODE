@@ -445,6 +445,9 @@ rxPermissive({
 
     context("conversion to common data frame types")
     test_that("data.table conversion", {
+        skip_on_os("mac")
+        skip_on_os("solaris")
+        skip_on_os("windows")
         library(data.table)
         tmp <- data.table(ev)
         expect_equal(names(tmp), c("time", "amt", "rate", "ii", "addl", "evid"))
