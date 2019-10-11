@@ -1242,6 +1242,8 @@ typedef struct {
   double *gscale;
   double *gatol2;
   double *grtol2;
+  double *gssAtol;
+  double *gssRtol;
   double *gpars;
   //ints
   int *gevid;
@@ -2106,6 +2108,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   Nullable<LogicalVector> transit_abs = rxControl["transitAbs"];
   NumericVector atolNV = as<NumericVector>(rxControl["atol"]);
   NumericVector rtolNV = as<NumericVector>(rxControl["rtol"]);
+  NumericVector atolNVss = as<NumericVector>(rxControl["ssAtol"]);
+  NumericVector rtolNVss = as<NumericVector>(rxControl["ssRtol"]);
   int maxsteps = as<int>(rxControl["maxsteps"]);
   double hmin = as<double>(rxControl["hmin"]);
   Nullable<NumericVector> hmax = rxControl["hmax"];
@@ -2340,8 +2344,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->maxSS = as<int>(rxControl["maxSS"]);
     op->strictSS = as<int>(rxControl["strictSS"]);
     op->infSSstep = as<double>(rxControl["infSSstep"]);
-    op->ssAdjust = as<double>(rxControl["ssAdjust"]);
-
     
     op->H0 = hini;
     op->HMIN = hmin;
@@ -3017,7 +3019,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // they do they need to be a parameter.
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
-    _globals.gsolve = Calloc(n0+n2+n3+n4+n5+n6+ 2*op->neq, double);// [n0]
+    _globals.gsolve = Calloc(n0+n2+n3+n4+n5+n6+ 4*op->neq, double);// [n0]
     _globals.gmtime = _globals.gsolve +n0; // [n2]
     _globals.gInfusionRate = _globals.gmtime + n2; //[n3]
     _globals.ginits = _globals.gInfusionRate + n3; // [n4]
@@ -3027,14 +3029,23 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _globals.gscale = _globals.glhs + n5; //[n6]
     std::copy(scaleC.begin(),scaleC.end(),&_globals.gscale[0]);
     op->scale = &_globals.gscale[0];
-    _globals.gatol2=_globals.gscale + n6; //[op->neq]
-    _globals.grtol2=_globals.gatol2 + op->neq; //[op->neq]
+    _globals.gatol2=_globals.gscale   + n6; //[op->neq]
+    _globals.grtol2=_globals.gatol2   + op->neq;  //[op->neq]
+    _globals.gssRtol=_globals.grtol2  + op->neq; //[op->neq]
+    _globals.gssAtol=_globals.gssRtol + op->neq; //[op->neq]
     std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);
     std::fill_n(&_globals.grtol2[0],op->neq, rtolNV[0]);
     std::copy(atolNV.begin(), atolNV.begin() + min2(op->neq, atolNV.size()), &_globals.gatol2[0]);
     std::copy(rtolNV.begin(), rtolNV.begin() + min2(op->neq, rtolNV.size()), &_globals.grtol2[0]);
+
+    std::fill_n(&_globals.gssAtol[0],op->neq, atolNVss[0]);
+    std::fill_n(&_globals.gssRtol[0],op->neq, rtolNVss[0]);
+    std::copy(atolNVss.begin(), atolNVss.begin() + min2(op->neq, atolNVss.size()), &_globals.gssAtol[0]);
+    std::copy(rtolNVss.begin(), rtolNVss.begin() + min2(op->neq, rtolNVss.size()), &_globals.gssRtol[0]);
     op->atol2 = &_globals.gatol2[0];
     op->rtol2 = &_globals.grtol2[0];
+    op->ssAtol = _globals.gssAtol;
+    op->ssRtol = _globals.gssRtol;
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
     int n1 = rx->nsub*rx->nsim*state.size();

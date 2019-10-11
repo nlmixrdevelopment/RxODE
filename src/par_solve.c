@@ -1125,7 +1125,7 @@ void handleSS(int *neq,
 	  canBreak=0;
 	} else {
 	  for (k = neq[0]; k--;){
-	    if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast[k])/op->ssAdjust){
+	    if (op->ssRtol[k]*fabs(yp[k]) + op->ssAtol[k] <= fabs(yp[k]-ind->solveLast[k])){
 	      canBreak=0;
 	    }
 	    ind->solveLast[k] = yp[k];
@@ -1175,7 +1175,7 @@ void handleSS(int *neq,
 	    break;
 	  }
 	  for (k = neq[0]; k--;){
-	    if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast[k])/op->ssAdjust){
+	    if (op->ssRtol[k]*fabs(yp[k]) + op->ssAtol[k] <= fabs(yp[k]-ind->solveLast[k])){
 	      canBreak=0;
 	    }
 	    ind->solveLast[k] = yp[k];
@@ -1247,7 +1247,7 @@ void handleSS(int *neq,
 	    }
 	    for (k = neq[0]; k--;) {
 	      ind->solveLast[k] = yp[k];
-	      if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast[k])/op->ssAdjust){
+	      if (op->ssRtol[k]*fabs(yp[k]) + op->ssAtol[k] <= fabs(yp[k]-ind->solveLast[k])){
 		canBreak=0;
 	      }
 	    }
@@ -1282,7 +1282,7 @@ void handleSS(int *neq,
 	      break;
 	    }
 	    for (k = neq[0]; k--;){
-	      if (op->rtol2[k]*fabs(yp[k]) + op->atol2[k] <= fabs(yp[k]-ind->solveLast2[k])/op->ssAdjust){
+	      if (op->ssRtol[k]*fabs(yp[k]) + op->ssAtol[k] <= fabs(yp[k]-ind->solveLast2[k])){
 		  canBreak=0;
 	      }
 	      ind->solveLast2[k] = yp[k];

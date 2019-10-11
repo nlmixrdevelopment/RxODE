@@ -4,7 +4,7 @@
 \alias{as.data.table.rxEt}
 \title{Convert an event table to a data.table}
 \usage{
-\method{as.data.table}{rxEt}(x, keep.rownames = FALSE, ...)
+as.data.table.rxEt(x, keep.rownames = FALSE, ...)
 }
 \arguments{
 \item{x}{An R object.}

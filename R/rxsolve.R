@@ -21,7 +21,6 @@ rxControl <- function(scale = NULL,
                       seed=NULL, nsim=NULL,
                       minSS=10L, maxSS=1000L,
                       infSSstep=12,
-                      ssAdjust=1,
                       strictSS=TRUE,
                       params=NULL,events=NULL,
                       istateReset=TRUE,
@@ -37,7 +36,8 @@ rxControl <- function(scale = NULL,
                       idFactor=TRUE,
                       mxhnil=0,
                       hmxi=0.0,
-                      warnIdSort=TRUE){
+                      warnIdSort=TRUE,
+                      ssAtol = 1.0e-8, ssRtol = 1.0e-6){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -162,7 +162,6 @@ rxControl <- function(scale = NULL,
                  minSS=minSS, maxSS=maxSS,
                  strictSS=as.integer(strictSS),
                  infSSstep=as.double(infSSstep),
-                 ssAdjust=as.double(ssAdjust),
                  istateReset=istateReset,
                  subsetNonmem=subsetNonmem,
                  linLog=linLog, hmaxSd=hmaxSd,
@@ -177,7 +176,8 @@ rxControl <- function(scale = NULL,
                  sigmaLower=sigmaLower, sigmaUpper=sigmaUpper,
                  thetaLower=thetaLower, thetaUpper=thetaUpper,
                  idFactor=idFactor,
-                 mxhnil=mxhnil, hmxi=hmxi, warnIdSort=warnIdSort);
+                 mxhnil=mxhnil, hmxi=hmxi, warnIdSort=warnIdSort,
+                 ssAtol=ssAtol, ssRtol = ssRtol);
     return(.ret)
 }
 
@@ -428,9 +428,11 @@ rxControl <- function(scale = NULL,
 ##'     has reached steady state.  By default this is large value,
 ##'     420.
 ##'
-##' @param ssAdjust Steady state tolerance adjustment when compared to
-##'     the overall \code{atol} and \code{rtol}.  The effective
-##'     tolerances are multiplied by this value.
+##' @param ssAtol Steady state atol convergence factor.  Can be
+##'     a vector based on each state.
+##'
+##' @param ssRtol Steady state rtol convergence factor.  Can be a
+##'     vector based on each state.
 ##'
 ##' @param istateReset When \code{TRUE}, reset the \code{ISTATE} variable to 1 for
 ##'     lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do

@@ -66,6 +66,8 @@ typedef struct {
   double hmax2; // Determined by diff
   double *rtol2;
   double *atol2;
+  double *ssRtol;
+  double *ssAtol;
   int nDisplayProgress;
   int ncoresRV;
   int isChol;
@@ -77,7 +79,6 @@ typedef struct {
   int linLog;
   int strictSS;
   double infSSstep;
-  double ssAdjust;
   int mxhnil;
   double hmxi;
 } rx_solving_options;
