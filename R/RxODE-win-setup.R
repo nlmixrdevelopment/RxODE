@@ -119,7 +119,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
 })
 
 .rxRtoolsBaseWin <- memoise::memoise(function(retry=FALSE){
-    if (.Platform$OS.type == "unix"){
+    if (.Platform$OS.type == "unix" || getOption("RxODE.rtools.setup", FALSE)){
         return("");
     } else {
         for (.i in rxPhysicalDrives()){
@@ -225,7 +225,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
 .rxWinRtoolsPath <- function(rm.rtools=TRUE, rm.python=TRUE, retry=FALSE){
     ## Note that devtools seems to assume that rtools/bin is setup
     ## appropriately, and figures out the c compiler from there.
-    if (.Platform$OS.type == "unix"){
+    if (.Platform$OS.type == "unix" || getOption("RxODE.rtools.setup", FALSE)){
         return(TRUE)
     } else {
         .path <- unique(sapply(sub(rex::rex('"', end), "", sub(rex::rex(start, '"'), "",

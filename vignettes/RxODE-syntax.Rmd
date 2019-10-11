@@ -13,7 +13,6 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>")
-options(knitr.table.format = "html")
 ```
 
 ## Introduction
