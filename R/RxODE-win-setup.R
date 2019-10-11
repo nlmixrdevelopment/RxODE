@@ -197,6 +197,9 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
                         return(.rtools)
                     } else {
                         if (is.na(retry)) return(FALSE)
+                        if (file.exists(file.path(Sys.getenv("BINPREF"), "gcc"))){
+                            return(NULL)
+                        }
                         if (retry){
                             stop("This package requires Rtools!\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding.")
                         }
@@ -249,6 +252,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
         ## Look in the registry...
         ## This is taken from devtools and adapted.
         .rtoolsBase <- .rxRtoolsBaseWin(retry=retry);
+        if (is.null(.rtoolsBase)) return("");
         .x <- file.path(.rtoolsBase, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin"));
         if (file.exists(.x)){
             Sys.setenv(BINPREF=gsub("([^/])$", "\\1/", gsub("\\\\", "/", .normalizePath(.x))));
