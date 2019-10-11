@@ -554,6 +554,11 @@ print.rxEt <- function(x,...){
         cat(sprintf("   %s observation times (see %s$%s(); add with %s or %s)\n",
                     x$nobs, crayon::yellow(bound), crayon::blue("get.sampling"),
                     crayon::blue("add.sampling"), crayon::blue("et")))
+        if (x$show["addl"]){
+            cat(sprintf("   multiple doses in `addl` columns, expand with %s$%s(); or %s(%s)\n",
+                        crayon::yellow(bound), crayon::blue("expand"),
+                        crayon::blue("etExpand"), crayon::yellow(bound)))
+        }
         if (x$nobs!=0 | x$ndose!=0){
             .cliRule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":")));
             assignInMyNamespace(".rmCls", FALSE);
