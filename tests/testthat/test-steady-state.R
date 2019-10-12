@@ -307,4 +307,4 @@ rxPermissive({
         })
 
     }
-}, cran=TRUE, silent=TRUE)
+}, cran=FALSE, silent=TRUE)
