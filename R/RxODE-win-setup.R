@@ -255,7 +255,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
         if (is.null(.rtoolsBase)) return("");
         .x <- file.path(.rtoolsBase, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin"));
         if (file.exists(.x)){
-            Sys.setenv(BINPREF=gsub("([^/])$", "\\1/", gsub("\\\\", "/", .normalizePath(.x))));
+            Sys.setenv(rxBINPREF=gsub("([^/])$", "\\1/", gsub("\\\\", "/", .normalizePath(.x))));
         }
         .exists <- try(file.exists(.rtoolsBase), silent=TRUE);
         if (inherits(.exists, "try-error")) .exists <- FALSE

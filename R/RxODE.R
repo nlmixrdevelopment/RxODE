@@ -1504,6 +1504,13 @@ rxCompile.rxModelVars <-  function(model, # Model
                 .cmd <- file.path(R.home("bin"), "R");
                 RxODE::rxReq("sys");
                 .args <- c("CMD", "SHLIB", basename(.cFile));
+                .rxBinpref <- Sys.getenv("rxBINPREF");
+                if (.rxBinpref != ""){
+                    .oldBinpref <- Sys.getenv("BINPREF");
+                    Sys.setenv("BINPREF"=.rxBinpref);
+                    on.exit(Sys.setenv("BINPREF"=.oldBinpref), add=TRUE);
+                }
+
                 .out <- sys::exec_internal(cmd = .cmd, args = .args, error=FALSE);
                 .badBuild <- function(msg){
                     message(msg);
