@@ -1266,7 +1266,7 @@ typedef struct {
 
 rx_globals _globals;
 
-LogicalVector rxSolveFree();
+SEXP rxSolveFree();
 
 double maxAtolRtolFactor = 0.1;
 
@@ -1960,13 +1960,14 @@ int _gsetupOnly = 0;
 //' @keywords internal
 //' @export
 // [[Rcpp::export]]
-LogicalVector rxSolveFree(){
+SEXP rxSolveFree(){
   rxOptionsFree();
   rxOptionsIni();
   parseFree(0);
   rxClearFuns();
   gFree();
-  return LogicalVector::create(true);
+  // LogicalVector::create(true);
+  return R_NilValue;
 }
 
 extern "C" void RxODE_assign_fn_pointers(SEXP);
