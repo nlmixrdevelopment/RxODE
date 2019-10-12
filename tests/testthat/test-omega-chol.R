@@ -33,6 +33,8 @@ for (d in seq(1, ifelse(identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true"), 
     }
 
     test_that("diagonal indicator give correct values",{
+        skip_on_os("solaris")
+        skip_on_os("windows")
         tmp <- rxSymInvCholCreate(matrix(c(1,0.9,0,0.9,1,0,0,0,1),ncol=3));
         expect_equal(tmp$theta.diag,c(TRUE, FALSE, TRUE, TRUE))
         tmp <- rxSymInvCholCreate(matrix(c(1,0.9,0.9,1),ncol=2));
