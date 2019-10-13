@@ -1939,7 +1939,7 @@ int _gsetupOnly = 0;
 LogicalVector rxSolveFree(){
   rxOptionsFree();
   rxOptionsIni();
-  parseFree(0);
+  parseFree(1);
   rxClearFuns();
   gFree();
   return LogicalVector::create(true);
