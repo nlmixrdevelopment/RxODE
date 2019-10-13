@@ -1,8 +1,38 @@
+.etAddCls <- function(x){
+    if (inherits(x, "rxEt")){
+        .x <- x;
+        .cls <- class(x);
+        class(.x) <- "data.frame"
+        if (!is.null(.x[["evid"]])){
+            class(.x[["evid"]]) <- "rxEvid";
+
+            .tmp <- .x[["rate"]];
+            .cls2 <- class(.tmp);
+            if (!inherits(.cls2, "rxRateDur")){
+                class(.tmp) <- c("rxRateDur", .cls2);
+            }
+            .x[["rate"]] <- .tmp
+
+            .tmp <- .x[["dur"]];
+            .cls2 <- class(.tmp);
+            if (!inherits(.cls2, "rxRateDur")){
+                class(.tmp) <- c("rxRateDur", .cls2);
+            }
+            .x[["dur"]] <- .tmp
+            class(.x) <- .cls
+            return(.x)
+        } else {
+            return(x)
+        }
+    } else {
+        return(x)
+    }
+}
 ##' Event Table Function
 ##'
 ##' @param ... Times or event tables.  They can also be one of the named arguments below.
 ##'
-##' @param time Time is the time of the dose or the sampling times.
+##' @param time Time is the time of the dose or the sampling tsimes.
 ##'     This can also be unspecified and is determined by the object
 ##'     type (list or numeric/integer).
 ##'
@@ -514,7 +544,7 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
     .lst <- lapply(.lst,function(x){
         eval(x,envir)
     });
-    .Call(`_RxODE_et_`, .lst, list())
+    .etAddCls(.Call(`_RxODE_et_`, .lst, list()))
 }
 
 ##' @export
@@ -528,7 +558,7 @@ simulate.rxEt <- function (object, nsim = 1, seed = NULL, ...){
     if (is.null(.pipelineRx) || .name != "."){
         if (!missing(nsim)) warning("'nsim' is ignored when simulating event tables");
         if(!is.null(seed)) set.seed(seed);
-        return(.Call(`_RxODE_et_`, list(simulate=TRUE), object))
+        return(.etAddCls(.Call(`_RxODE_et_`, list(simulate=TRUE), object)))
     } else {
         return(rxSolve(object, ..., seed=seed, nsim=nsim));
     }
@@ -610,7 +640,7 @@ str.rxHidden <- function(object,...){
 
 ##'@export
 drop_units.rxEt <- function(x){
-    .Call(`_RxODE_et_`, list(amountUnits=NA_character_, timeUnits=NA_character_), x)
+    .etAddCls(.Call(`_RxODE_et_`, list(amountUnits=NA_character_, timeUnits=NA_character_), x))
 }
 
 ##'@export
@@ -624,17 +654,17 @@ set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units
     }
     if (identical(value, units::unitless)){
         warning("Clearing both amount and time units; For more precise control use et(amountUnits=\"\") or et(timeUnits=\"\")")
-        return(suppressWarnings({.Call(`_RxODE_et_`, list(amountUnits="", timeUnits=""), x)}))
+        return(suppressWarnings({.etAddCls(.Call(`_RxODE_et_`, list(amountUnits="", timeUnits=""), x))}))
     } else {
         if (!rxIs(value, "character")) value <- deparse(value);
         .tUnit <- units::set_units(1, "sec", mode="standard");
         .isTime <- try(units::set_units(units::set_units(1, value, mode="standard"), "sec"), silent=TRUE);
         if (inherits(.isTime, "try-error")){
             ## Amount
-            return(.Call(`_RxODE_et_`, list(amountUnits=value), x))
+            return(.etAddCls(.Call(`_RxODE_et_`, list(amountUnits=value), x)))
         } else {
             ##
-            return(.Call(`_RxODE_et_`, list(timeUnits=value), x));
+            return(.etAddCls(.Call(`_RxODE_et_`, list(timeUnits=value), x)));
         }
     }
 }
@@ -685,7 +715,7 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, d
         .lst$dosing.interval <- 0.0;
     }
 
-    .Call(`_RxODE_et_`, .lst, eventTable);
+    .etAddCls(.Call(`_RxODE_et_`, .lst, eventTable));
 }
 
 ##' Add sampling to eventTable
@@ -705,7 +735,7 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, d
 add.sampling <- function(eventTable, time, time.units = NA){
     .lst <- list(time=time);
     if (!is.na(time.units)) .lst$time.units <- time.units;
-    .Call(`_RxODE_et_`, .lst, eventTable);
+    return(.etAddCls(.Call(`_RxODE_et_`, .lst, eventTable)));
 }
 
 
@@ -866,7 +896,7 @@ eventTable <- function(amount.units = NA, time.units = NA){
     .lst <- list()
     if (!missing(amount.units)) .lst$amount.units <- amount.units;
     if (!missing(time.units)) .lst$time.units <- time.units
-    .Call(`_RxODE_et_`, .lst, list())
+    .etAddCls(.Call(`_RxODE_et_`, .lst, list()))
 }
 
 ##' Sequence of event tables
@@ -927,9 +957,9 @@ etSeq <- function(...,samples=c("clear", "use"), waitII=c("smart", "+ii"), ii=24
     ## etSeq_(List ets, bool clearSampling=clearSampling);
     .sampleIx <- c(clear=0L,use=1L);
     .waitIx <- c(smart=0L, `+ii`=1L)
-    .Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(samples)],NULL),
+    .etAddCls(.Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(samples)],NULL),
           setNames(.waitIx[match.arg(waitII)],NULL), as.double(ii), FALSE, 0L,
-          0L, TRUE, character(0),logical(0),FALSE);
+          0L, TRUE, character(0),logical(0),FALSE));
 }
 ##' Combining event tables
 ##'
@@ -960,10 +990,10 @@ etRbind <- function(...,samples=c("use", "clear"),waitII=c("smart", "+ii"),
     .sampleIx <- c(clear=0L,use=1L);
     .waitIx <- c(smart=0L, `+ii`=1L);
     .idIx <- c(merge=0L,unique=1L);
-    .Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(samples)],NULL),
-          setNames(.waitIx[match.arg(waitII)],NULL), as.double(0), TRUE,
-          setNames(.idIx[match.arg(id)],NULL),
-          0L, TRUE, character(0),logical(0),FALSE);
+    .etAddCls(.Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(samples)],NULL),
+                    setNames(.waitIx[match.arg(waitII)],NULL), as.double(0), TRUE,
+                    setNames(.idIx[match.arg(id)],NULL),
+                    0L, TRUE, character(0),logical(0),FALSE));
 }
 
 ##'@rdname etRbind
@@ -1010,9 +1040,9 @@ etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, id=integer
     .waitIx <- c(smart=0L, `+ii`=1L)
     if (!is.na(length.out)) stop("'length.out' makes no sense with event tables");
     if (!is.na(each)) stop("'each' makes no sense with event tables");
-    .Call(`_RxODE_etRep_`, x, as.integer(times),
-          wait, as.integer(id), setNames(.sampleIx[match.arg(samples)],NULL),
-          setNames(.waitIx[match.arg(waitII)],NULL), as.double(ii))
+    .etAddCls(.Call(`_RxODE_etRep_`, x, as.integer(times),
+                    wait, as.integer(id), setNames(.sampleIx[match.arg(samples)],NULL),
+                    setNames(.waitIx[match.arg(waitII)],NULL), as.double(ii)))
 }
 
 ##'@rdname etRep
@@ -1125,7 +1155,7 @@ is.rxEt <- function(x){
 ##' ev$expand() ## Expands the current event table and saves it in ev
 ##' @export
 etExpand <- function(et){
-    .Call(`_RxODE_et_`, list(expand=TRUE), et)
+    .etAddCls(.Call(`_RxODE_et_`, list(expand=TRUE), et))
 }
 
 ##' @importFrom magrittr %>%

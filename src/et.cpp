@@ -246,22 +246,17 @@ List etEmpty(CharacterVector units){
   nme[5] = "amt";
   lst[5] = NumericVector(0);
 
-  NumericVector tmpRate = NumericVector(0);
-  tmpRate.attr("class") = "rxRateDur";
   nme[6] = "rate";
-  lst[6] = tmpRate;
+  lst[6] = NumericVector(0);
       
   nme[7] = "ii";
   lst[7] = NumericVector(0);
       
   nme[8] = "addl";
   lst[8] = IntegerVector(0);
-
-  IntegerVector tmp = IntegerVector(0);
-  tmp.attr("class") = "rxEvid";
   
   nme[9] = "evid";
-  lst[9] = tmp;
+  lst[9] = IntegerVector(0);
       
   nme[10] = "ss";
   lst[10] = IntegerVector(0);
@@ -511,9 +506,7 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
   lst[5] = NumericVector(id.size());
 
   // nme[6] = "rate";
-  NumericVector tmpRate = NumericVector(id.size());
-  tmpRate.attr("class") = "rxRateDur";
-  lst[6] = tmpRate;
+  lst[6] = NumericVector(id.size());
       
   // nme[7] = "ii";
   lst[7] = NumericVector(id.size());
@@ -522,17 +515,13 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
   lst[8] = IntegerVector(id.size());
   
   // nme[9] = "evid";
-  IntegerVector tmpEvid = IntegerVector(id.size());
-  tmpEvid.attr("class") = "rxEvid";
-  lst[9] = tmpEvid;
+  lst[9] = IntegerVector(id.size());
       
   // nme[10] = "ss";
   lst[10] = IntegerVector(id.size());
   
   // nme[11]= "dur"
-  NumericVector tmpDur = NumericVector(id.size());
-  tmpDur.attr("class") = "rxRateDur";
-  lst[11] = tmpDur;
+  lst[11] = NumericVector(id.size());
   for (i = idx.size(); i--;){
     tmpI = as<IntegerVector>(lst[0]); // id
     tmpI[i] = id[idx[i]];
@@ -712,9 +701,7 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
   lst[5] = NumericVector(idx.size());
 
   // nme[6] = "rate";
-  NumericVector tmpRate = NumericVector(idx.size());
-  tmpRate.attr("class") = "rxRateDur";
-  lst[6] = tmpRate;
+  lst[6] = NumericVector(idx.size());
       
   // nme[7] = "ii";
   lst[7] = NumericVector(idx.size());
@@ -723,17 +710,13 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
   lst[8] = IntegerVector(idx.size());
   
   // nme[9] = "evid";
-  IntegerVector tmpEvid = IntegerVector(idx.size());
-  tmpEvid.attr("class") = "rxEvid";
-  lst[9] = tmpEvid;
+  lst[9] = IntegerVector(idx.size());
       
   // nme[10] = "ss";
   lst[10] = IntegerVector(idx.size());
 
   // nme[11] = "dur";
-  NumericVector tmpDur = NumericVector(idx.size());
-  tmpDur.attr("class") = "rxRateDur";
-  lst[11] = tmpDur;
+  lst[11] = NumericVector(idx.size());
   for (i = idx.size(); i--;){
     if (idx[i] >= oldSize){
       tmpI = as<IntegerVector>(lst[0]); // id
@@ -1392,9 +1375,7 @@ List etImportEventTable(List inData){
   lst[8] = wrap(addl);
       
   // nme[9] = "evid";
-  IntegerVector tmpEvid = wrap(evid);
-  tmpEvid.attr("class") = "rxEvid";
-  lst[9] = tmpEvid;
+  lst[9] = wrap(evid);
       
   // nme[10] = "ss";
   lst[10] = wrap(ss);
@@ -1511,17 +1492,13 @@ List etExpandAddl(List curEt){
   lst[8] = IntegerVector(id.size());
   
   // nme[9] = "evid";
-  IntegerVector tmpEvid = IntegerVector(id.size());
-  tmpEvid.attr("class") = "rxEvid";
-  lst[9] = tmpEvid;
+  lst[9] = IntegerVector(id.size());
       
   // nme[10] = "ss";
   lst[10] = IntegerVector(id.size());
 
   //nme[11] = "dur"
-  NumericVector tmpDur = NumericVector(id.size());
-  tmpDur.attr("class") = "rxRateDur";
-  lst[11] = tmpDur;
+  lst[11] = NumericVector(id.size());
   IntegerVector tmpI, tmpI2;
   NumericVector tmpN, tmpN2;
   CharacterVector tmpC, tmpC2;
@@ -1691,9 +1668,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   lst[5] = NumericVector(id.size());
 
   // nme[6] = "rate";
-  NumericVector tmpRate = NumericVector(id.size());
-  tmpRate.attr("class") = "rxRateDur";
-  lst[6] = tmpRate;
+  lst[6] = NumericVector(id.size());
       
   // nme[7] = "ii";
   lst[7] = NumericVector(id.size());
@@ -1710,9 +1685,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   lst[10] = IntegerVector(id.size());
 
   //nme[11] = "dur"
-  NumericVector tmpDur = NumericVector(id.size());
-  tmpDur.attr("class") = "rxRateDur";
-  lst[11] = tmpDur;
+  lst[11] = NumericVector(id.size());
   
   for (i = idx.size(); i--;){
     tmpI = as<IntegerVector>(lst[0]); // id
@@ -3264,9 +3237,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
   lst[10] = IntegerVector(id.size());
 
   // nme[11] = "dur"
-  NumericVector tmpDur = NumericVector(id.size());
-  tmpDur.attr("class") = "rxRateDur";
-  lst[11] = tmpDur;
+  lst[11] = NumericVector(id.size());
 
   IntegerVector tmpI, tmpI2;
   NumericVector tmpN, tmpN2;
