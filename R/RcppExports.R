@@ -80,10 +80,6 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
     .Call(`_RxODE_etRep_`, curEt, times, wait, ids, handleSamples, waitType, ii)
 }
 
-rxEtRmCls <- function(et) {
-    .Call(`_RxODE_rxEtRmCls`, et)
-}
-
 #' Set Initial conditions to time zero instead of the first observed/dosed time
 #'
 #' @param ini0 When TRUE (default), set initial conditions to time

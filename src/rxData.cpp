@@ -97,34 +97,10 @@ bool rxIs_list(const RObject &obj, std::string cls){
 	  int nobs = ce["nobs"];
 	  int ndose = ce["ndose"];
 	  if (lobj.size() != 12){
-	    if (lobj.containsElementNamed("evid")){
-	      IntegerVector evid = lobj["evid"];
-	      evid.attr("class") = R_NilValue;
-	    }
-	    if (lobj.containsElementNamed("rate")){
-	      NumericVector rate = lobj["rate"];
-	      rate.attr("class") = R_NilValue;
-	    }
-	    if (lobj.containsElementNamed("dur")){
-	      NumericVector dur = lobj["dur"];
-	      dur.attr("class") = R_NilValue;
-	    }
 	    lobj.attr("class") = CharacterVector::create("data.frame");
 	    return false;
 	  }
 	  if ( (as<IntegerVector>(lobj[0])).size() != ndose + nobs){
-	    if (lobj.containsElementNamed("evid")){
-	      IntegerVector evid = lobj["evid"];
-	      evid.attr("class") = R_NilValue;
-	    }
-	    if (lobj.containsElementNamed("rate")){
-	      NumericVector rate = lobj["rate"];
-	      rate.attr("class") = R_NilValue;
-	    }
-	    if (lobj.containsElementNamed("dur")){
-	      NumericVector dur = lobj["dur"];
-	      dur.attr("class") = R_NilValue;
-	    }
 	    lobj.attr("class") = CharacterVector::create("data.frame");
 	    return false;
 	  }

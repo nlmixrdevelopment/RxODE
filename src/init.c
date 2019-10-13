@@ -111,7 +111,6 @@ SEXP _RxODE_setProgSupported(SEXP);
 SEXP _RxODE_getProgSupported();
 SEXP _RxODE_rxSetIni0(SEXP);
 SEXP _RxODE_rxSetSilentErr(SEXP silentSEXP);
-SEXP _RxODE_rxEtRmCls(SEXP);
 
 extern int rxIsCurrentC(SEXP obj);
 
@@ -210,7 +209,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_atolRtolFactor_", (DL_FUNC) &_RxODE_atolRtolFactor_, 1},
     {"_RxODE_rxSetIni0", (DL_FUNC) &_RxODE_rxSetIni0, 1},
     {"_RxODE_rxSetSilentErr", (DL_FUNC) &_RxODE_rxSetSilentErr, 1},
-    {"_RxODE_rxEtRmCls", (DL_FUNC) &_RxODE_rxEtRmCls, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
