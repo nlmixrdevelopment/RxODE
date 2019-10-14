@@ -1,5 +1,3 @@
-// Modified by Matthew Fidler to take out the evil asserts and use R errors instead.
-#include <Rcpp.h>
 /*
  * C++ implementation of timsort
  *
@@ -7,7 +5,8 @@
  * - http://svn.python.org/projects/python/trunk/Objects/listobject.c
  * - http://cr.openjdk.java.net/~martin/webrevs/openjdk7/timsort/raw_files/new/src/share/classes/java/util/TimSort.java
  *
- * Copyright (c) 2011 Fuji, Goro (gfx) <gfuji@cpan.org>. C++03/move-compliance modifications by Matt Bentley 2017 (mattreecebentley@gmail.com)
+ * Copyright (c) 2011 Fuji, Goro (gfx) <gfuji@cpan.org>.
+ * Copyright (c) 2019 Morwenn.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -31,50 +30,61 @@
 #ifndef GFX_TIMSORT_HPP
 #define GFX_TIMSORT_HPP
 
+#include <algorithm>
+#include <functional>
+#include <iterator>
 #include <vector>
-#define STRINGIFY(...) STRINGIFY_AUX(__VA_ARGS__)
-#define STRINGIFY_AUX(...) #__VA_ARGS__
-#define nodeHas(what) (NIB(what) == -1 ? (NIB(what) = !strcmp(STRINGIFY(what), name)) : NIB(what))
-#include <algorithm> // std::copy
-#include <functional> // std::less
 
-#ifdef ENABLE_TIMSORT_LOG
-#include <iostream>
-#define GFX_TIMSORT_LOG(expr) (std::clog << "# " << __func__ << ": " << expr << std::endl)
+#ifdef GFX_TIMSORT_ENABLE_ASSERT
+#   include <cassert>
+#   define GFX_TIMSORT_ASSERT(expr) assert(expr)
 #else
-#define GFX_TIMSORT_LOG(expr) ((void)0)
+#   define GFX_TIMSORT_ASSERT(expr) ((void)0)
 #endif
 
-// If compiler supports both type traits and move semantics - will cover most but not all compilers/std libraries:
-#if (defined(_MSC_VER) && _MSC_VER >= 1700) || ((defined(__cplusplus) && __cplusplus >= 201103L && !defined(_LIBCPP_VERSION)) && ((!defined(__GNUC__) || __GNUC__ >= 5)) && (!defined(__GLIBCXX__) ||  __GLIBCXX__ >= 20150422))
-	#include <iterator> // iterator_traits
-	#include <utility> // std::move
+#ifdef GFX_TIMSORT_ENABLE_LOG
+#   include <iostream>
+#   define GFX_TIMSORT_LOG(expr) (std::clog << "# " << __func__ << ": " << expr << std::endl)
+#else
+#   define GFX_TIMSORT_LOG(expr) ((void)0)
+#endif
 
-	#define GFX_TIMSORT_MOVE(x) (std::is_move_constructible<value_t>::value && std::is_move_assignable<value_t>::value) ? std::move(x) : (x)
-	#define GFX_TIMSORT_MOVE_RANGE(in1, in2, out) \
-		if (std::is_move_constructible<value_t>::value && std::is_move_assignable<value_t>::value) \
-		{ \
-			std::move((in1), (in2), (out)); \
-		} \
-		else \
-		{ \
-			std::copy((in1), (in2), (out)); \
-		}
-	#define GFX_TIMSORT_MOVE_BACKWARD(in1, in2, out) \
-		if (std::is_move_constructible<value_t>::value && std::is_move_assignable<value_t>::value) \
-		{ \
-			std::move_backward((in1), (in2), (out)); \
-		} \
-		else \
-		{ \
-			std::copy_backward((in1), (in2), (out)); \
-		}
+// If GFX_TIMSORT_USE_STD_MOVE is not defined, try to define it as follows:
+// - Check standard feature-testing macro
+// - Check non-standard feature-testing macro
+// - Check C++ standard (disable if < C++11)
+// - Check compiler-specific versions known to support move semantics
+
+#ifndef GFX_TIMSORT_USE_STD_MOVE
+#   if defined(__cpp_rvalue_references)
+#       define GFX_TIMSORT_USE_STD_MOVE 1
+#   elif defined(__has_feature)
+#       if __has_feature(cxx_rvalue_references)
+#           define GFX_TIMSORT_USE_STD_MOVE 1
+#       else
+#           define GFX_TIMSORT_USE_STD_MOVE 0
+#       endif
+#   elif !(defined(__cplusplus) && __cplusplus >= 201103L)
+#       define GFX_TIMSORT_USE_STD_MOVE 0
+#   elif defined(_MSC_VER) && _MSC_VER >= 1700
+#       define GFX_TIMSORT_USE_STD_MOVE 1
+#   elif defined(__GNUC__) && (__GNUC__ >= 5 || (__GNUC__ >= 4 && __GNUC_MINOR__ >= 6))
+#       define GFX_TIMSORT_USE_STD_MOVE 1
+#   else
+#       define GFX_TIMSORT_USE_STD_MOVE 0
+#   endif
+#endif
+
+#if GFX_TIMSORT_USE_STD_MOVE
+	#include <utility>
+	#define GFX_TIMSORT_MOVE(x) std::move(x)
+	#define GFX_TIMSORT_MOVE_RANGE(in1, in2, out) std::move((in1), (in2), (out));
+	#define GFX_TIMSORT_MOVE_BACKWARD(in1, in2, out) std::move_backward((in1), (in2), (out));
 #else
 	#define GFX_TIMSORT_MOVE(x) (x)
-	#define GFX_TIMSORT_MOVE_RANGE(in1, in2, out) std::copy((in1), (in2), (out)); 
+	#define GFX_TIMSORT_MOVE_RANGE(in1, in2, out) std::copy((in1), (in2), (out));
 	#define GFX_TIMSORT_MOVE_BACKWARD(in1, in2, out) std::copy_backward((in1), (in2), (out));
 #endif
-
 
 
 namespace gfx {
@@ -87,60 +97,25 @@ namespace gfx {
  * Same as std::stable_sort(first, last).
  */
 template <typename RandomAccessIterator>
-inline void timsort(RandomAccessIterator const first, RandomAccessIterator const last);
+void timsort(RandomAccessIterator const first, RandomAccessIterator const last);
 
 /**
- * Same as std::stable_sort(first, last, c).
+ * Same as std::stable_sort(first, last, compare).
  */
-template <typename RandomAccessIterator, typename LessFunction>
-inline void timsort(RandomAccessIterator const first, RandomAccessIterator const last, LessFunction compare);
+template <typename RandomAccessIterator, typename Compare>
+void timsort(RandomAccessIterator const first, RandomAccessIterator const last, Compare compare);
 
 // ---------------------------------------
 // Implementation
 // ---------------------------------------
 
-template <typename Value, typename LessFunction> class Compare {
-  public:
-    typedef Value value_type;
-    typedef LessFunction func_type;
-
-    Compare(LessFunction f) : less_(f) {
-    }
-    Compare(const Compare<value_type, func_type> &other) : less_(other.less_) {
-    }
-
-    bool lt(value_type x, value_type y) {
-        return less_(x, y);
-    }
-    bool le(value_type x, value_type y) {
-        return less_(x, y) || !less_(y, x);
-    }
-    bool gt(value_type x, value_type y) {
-        return !less_(x, y) && less_(y, x);
-    }
-    bool ge(value_type x, value_type y) {
-        return !less_(x, y);
-    }
-
-    func_type &less_function() {
-        return less_;
-    }
-
-  private:
-    func_type less_;
-};
-
-template <typename RandomAccessIterator, typename LessFunction> class TimSort {
+template <typename RandomAccessIterator, typename Compare> class TimSort {
     typedef RandomAccessIterator iter_t;
     typedef typename std::iterator_traits<iter_t>::value_type value_t;
     typedef typename std::iterator_traits<iter_t>::reference ref_t;
     typedef typename std::iterator_traits<iter_t>::difference_type diff_t;
-    typedef Compare<const value_t &, LessFunction> compare_t;
 
     static const int MIN_MERGE = 32;
-
-    compare_t comp_;
-
     static const int MIN_GALLOP = 7;
 
     int minGallop_; // default to MIN_GALLOP
@@ -157,8 +132,8 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
     };
     std::vector<run> pending_;
 
-    static void sort(iter_t const lo, iter_t const hi, compare_t c) {
-        if (!(lo <= hi)){Rcpp::stop("Error sorting: assert(lo <= hi).");};
+    static void sort(iter_t const lo, iter_t const hi, Compare compare) {
+        GFX_TIMSORT_ASSERT(lo <= hi);
 
         diff_t nRemaining = (hi - lo);
         if (nRemaining < 2) {
@@ -166,49 +141,49 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
         }
 
         if (nRemaining < MIN_MERGE) {
-            diff_t const initRunLen = countRunAndMakeAscending(lo, hi, c);
+            diff_t const initRunLen = countRunAndMakeAscending(lo, hi, compare);
             GFX_TIMSORT_LOG("initRunLen: " << initRunLen);
-            binarySort(lo, hi, lo + initRunLen, c);
+            binarySort(lo, hi, lo + initRunLen, compare);
             return;
         }
 
-        TimSort ts(c);
+        TimSort ts;
         diff_t const minRun = minRunLength(nRemaining);
         iter_t cur = lo;
         do {
-            diff_t runLen = countRunAndMakeAscending(cur, hi, c);
+            diff_t runLen = countRunAndMakeAscending(cur, hi, compare);
 
             if (runLen < minRun) {
                 diff_t const force = std::min(nRemaining, minRun);
-                binarySort(cur, cur + force, cur + runLen, c);
+                binarySort(cur, cur + force, cur + runLen, compare);
                 runLen = force;
             }
 
             ts.pushRun(cur, runLen);
-            ts.mergeCollapse();
+            ts.mergeCollapse(compare);
 
             cur += runLen;
             nRemaining -= runLen;
         } while (nRemaining != 0);
 
-        if (!(cur == hi)){Rcpp::stop("Error sorting: assert(cur == hi).");};
-        ts.mergeForceCollapse();
-        if (!(ts.pending_.size() == 1)){Rcpp::stop("Error sorting: assert(ts.pending_.size() == 1).");};
+        GFX_TIMSORT_ASSERT(cur == hi);
+        ts.mergeForceCollapse(compare);
+        GFX_TIMSORT_ASSERT(ts.pending_.size() == 1);
 
         GFX_TIMSORT_LOG("size: " << (hi - lo) << " tmp_.size(): " << ts.tmp_.size()
                                  << " pending_.size(): " << ts.pending_.size());
-    } // sort()
+    }
 
-    static void binarySort(iter_t const lo, iter_t const hi, iter_t start, compare_t compare) {
-        if (!(lo <= start && start <= hi)){Rcpp::stop("Error sorting: assert(lo <= start && start <= hi).");};
+    static void binarySort(iter_t const lo, iter_t const hi, iter_t start, Compare compare) {
+        GFX_TIMSORT_ASSERT(lo <= start && start <= hi);
         if (start == lo) {
             ++start;
         }
         for (; start < hi; ++start) {
-            if (!(lo <= start)){Rcpp::stop("Error sorting: assert(lo <= start).");};
-            /*const*/ value_t pivot = GFX_TIMSORT_MOVE(*start);
+            GFX_TIMSORT_ASSERT(lo <= start);
+            value_t pivot = GFX_TIMSORT_MOVE(*start);
 
-            iter_t const pos = std::upper_bound(lo, start, pivot, compare.less_function());
+            iter_t const pos = std::upper_bound(lo, start, pivot, compare);
             for (iter_t p = start; p > pos; --p) {
                 *p = GFX_TIMSORT_MOVE(*(p - 1));
             }
@@ -216,21 +191,21 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
         }
     }
 
-    static diff_t countRunAndMakeAscending(iter_t const lo, iter_t const hi, compare_t compare) {
-        if (!(lo < hi)){Rcpp::stop("Error sorting: assert(lo < hi).");};
+    static diff_t countRunAndMakeAscending(iter_t const lo, iter_t const hi, Compare compare) {
+        GFX_TIMSORT_ASSERT(lo < hi);
 
         iter_t runHi = lo + 1;
         if (runHi == hi) {
             return 1;
         }
 
-        if (compare.lt(*(runHi++), *lo)) { // descending
-            while (runHi < hi && compare.lt(*runHi, *(runHi - 1))) {
+        if (compare(*(runHi++), *lo)) { // decreasing
+            while (runHi < hi && compare(*runHi, *(runHi - 1))) {
                 ++runHi;
             }
             std::reverse(lo, runHi);
-        } else { // ascending
-            while (runHi < hi && compare.ge(*runHi, *(runHi - 1))) {
+        } else { // non-decreasing
+            while (runHi < hi && !compare(*runHi, *(runHi - 1))) {
                 ++runHi;
             }
         }
@@ -239,7 +214,7 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
     }
 
     static diff_t minRunLength(diff_t n) {
-        if (!(n >= 0)){Rcpp::stop("Error sorting: assert(n >= 0).");};
+        GFX_TIMSORT_ASSERT(n >= 0);
 
         diff_t r = 0;
         while (n >= MIN_MERGE) {
@@ -249,14 +224,17 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
         return n + r;
     }
 
-    TimSort(compare_t c) : comp_(c), minGallop_(MIN_GALLOP) {
+    TimSort() : minGallop_(MIN_GALLOP) {
     }
+
+    // Silence GCC -Winline warning
+    ~TimSort() {}
 
     void pushRun(iter_t const runBase, diff_t const runLen) {
         pending_.push_back(run(runBase, runLen));
     }
 
-    void mergeCollapse() {
+    void mergeCollapse(Compare compare) {
         while (pending_.size() > 1) {
             diff_t n = pending_.size() - 2;
 
@@ -265,39 +243,39 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
                 if (pending_[n - 1].len < pending_[n + 1].len) {
                     --n;
                 }
-                mergeAt(n);
+                mergeAt(n, compare);
             } else if (pending_[n].len <= pending_[n + 1].len) {
-                mergeAt(n);
+                mergeAt(n, compare);
             } else {
                 break;
             }
         }
     }
 
-    void mergeForceCollapse() {
+    void mergeForceCollapse(Compare compare) {
         while (pending_.size() > 1) {
             diff_t n = pending_.size() - 2;
 
             if (n > 0 && pending_[n - 1].len < pending_[n + 1].len) {
                 --n;
             }
-            mergeAt(n);
+            mergeAt(n, compare);
         }
     }
 
-    void mergeAt(diff_t const i) {
+    void mergeAt(diff_t const i, Compare compare) {
         diff_t const stackSize = pending_.size();
-        if (!(stackSize >= 2)){Rcpp::stop("Error sorting: assert(stackSize >= 2).");};
-        if (!(i >= 0)){Rcpp::stop("Error sorting: assert(i >= 0).");};
-        if (!(i == stackSize - 2 || i == stackSize - 3)){Rcpp::stop("Error sorting: assert(i == stackSize - 2 || i == stackSize - 3).");};
+        GFX_TIMSORT_ASSERT(stackSize >= 2);
+        GFX_TIMSORT_ASSERT(i >= 0);
+        GFX_TIMSORT_ASSERT(i == stackSize - 2 || i == stackSize - 3);
 
         iter_t base1 = pending_[i].base;
         diff_t len1 = pending_[i].len;
         iter_t base2 = pending_[i + 1].base;
         diff_t len2 = pending_[i + 1].len;
 
-        if (!(len1 > 0 && len2 > 0)){Rcpp::stop("Error sorting: assert(len1 > 0 && len2 > 0).");};
-        if (!(base1 + len1 == base2)){Rcpp::stop("Error sorting: assert(base1 + len1 == base2).");};
+        GFX_TIMSORT_ASSERT(len1 > 0 && len2 > 0);
+        GFX_TIMSORT_ASSERT(base1 + len1 == base2);
 
         pending_[i].len = len1 + len2;
 
@@ -307,8 +285,8 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
 
         pending_.pop_back();
 
-        diff_t const k = gallopRight(*base2, base1, len1, 0);
-        if (!(k >= 0)){Rcpp::stop("Error sorting: assert(k >= 0).");};
+        diff_t const k = gallopRight(*base2, base1, len1, 0, compare);
+        GFX_TIMSORT_ASSERT(k >= 0);
 
         base1 += k;
         len1 -= k;
@@ -317,28 +295,29 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
             return;
         }
 
-        len2 = gallopLeft(*(base1 + (len1 - 1)), base2, len2, len2 - 1);
-        if (!(len2 >= 0)){Rcpp::stop("Error sorting: assert(len2 >= 0).");};
+        len2 = gallopLeft(*(base1 + (len1 - 1)), base2, len2, len2 - 1, compare);
+        GFX_TIMSORT_ASSERT(len2 >= 0);
         if (len2 == 0) {
             return;
         }
 
         if (len1 <= len2) {
-            mergeLo(base1, len1, base2, len2);
+            mergeLo(base1, len1, base2, len2, compare);
         } else {
-            mergeHi(base1, len1, base2, len2);
+            mergeHi(base1, len1, base2, len2, compare);
         }
     }
 
-    template <typename Iter> diff_t gallopLeft(ref_t key, Iter const base, diff_t const len, diff_t const hint) {
-        if (!(len > 0 && hint >= 0 && hint < len)){Rcpp::stop("Error sorting: assert(len > 0 && hint >= 0 && hint < len).");};
+    template <typename Iter>
+    diff_t gallopLeft(ref_t key, Iter const base, diff_t const len, diff_t const hint, Compare compare) {
+        GFX_TIMSORT_ASSERT(len > 0 && hint >= 0 && hint < len);
 
         diff_t lastOfs = 0;
         diff_t ofs = 1;
 
-        if (comp_.gt(key, *(base + hint))) {
+        if (compare(*(base + hint), key)) {
             diff_t const maxOfs = len - hint;
-            while (ofs < maxOfs && comp_.gt(key, *(base + (hint + ofs)))) {
+            while (ofs < maxOfs && compare(*(base + (hint + ofs)), key)) {
                 lastOfs = ofs;
                 ofs = (ofs << 1) + 1;
 
@@ -354,7 +333,7 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
             ofs += hint;
         } else {
             diff_t const maxOfs = hint + 1;
-            while (ofs < maxOfs && comp_.le(key, *(base + (hint - ofs)))) {
+            while (ofs < maxOfs && !compare(*(base + (hint - ofs)), key)) {
                 lastOfs = ofs;
                 ofs = (ofs << 1) + 1;
 
@@ -370,20 +349,21 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
             lastOfs = hint - ofs;
             ofs = hint - tmp;
         }
-        if (!(-1 <= lastOfs && lastOfs < ofs && ofs <= len)){Rcpp::stop("Error sorting: assert(-1 <= lastOfs && lastOfs < ofs && ofs <= len).");};
+        GFX_TIMSORT_ASSERT(-1 <= lastOfs && lastOfs < ofs && ofs <= len);
 
-        return std::lower_bound(base + (lastOfs + 1), base + ofs, key, comp_.less_function()) - base;
+        return std::lower_bound(base + (lastOfs + 1), base + ofs, key, compare) - base;
     }
 
-    template <typename Iter> diff_t gallopRight(ref_t key, Iter const base, diff_t const len, diff_t const hint) {
-        if (!(len > 0 && hint >= 0 && hint < len)){Rcpp::stop("Error sorting: assert(len > 0 && hint >= 0 && hint < len).");};
+    template <typename Iter>
+    diff_t gallopRight(ref_t key, Iter const base, diff_t const len, diff_t const hint, Compare compare) {
+        GFX_TIMSORT_ASSERT(len > 0 && hint >= 0 && hint < len);
 
         diff_t ofs = 1;
         diff_t lastOfs = 0;
 
-        if (comp_.lt(key, *(base + hint))) {
+        if (compare(key, *(base + hint))) {
             diff_t const maxOfs = hint + 1;
-            while (ofs < maxOfs && comp_.lt(key, *(base + (hint - ofs)))) {
+            while (ofs < maxOfs && compare(key, *(base + (hint - ofs)))) {
                 lastOfs = ofs;
                 ofs = (ofs << 1) + 1;
 
@@ -400,7 +380,7 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
             ofs = hint - tmp;
         } else {
             diff_t const maxOfs = len - hint;
-            while (ofs < maxOfs && comp_.ge(key, *(base + (hint + ofs)))) {
+            while (ofs < maxOfs && !compare(key, *(base + (hint + ofs)))) {
                 lastOfs = ofs;
                 ofs = (ofs << 1) + 1;
 
@@ -415,13 +395,36 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
             lastOfs += hint;
             ofs += hint;
         }
-        if (!(-1 <= lastOfs && lastOfs < ofs && ofs <= len)){Rcpp::stop("Error sorting: assert(-1 <= lastOfs && lastOfs < ofs && ofs <= len).");};
+        GFX_TIMSORT_ASSERT(-1 <= lastOfs && lastOfs < ofs && ofs <= len);
 
-        return std::upper_bound(base + (lastOfs + 1), base + ofs, key, comp_.less_function()) - base;
+        return std::upper_bound(base + (lastOfs + 1), base + ofs, key, compare) - base;
     }
 
-    void mergeLo(iter_t const base1, diff_t len1, iter_t const base2, diff_t len2) {
-        if (!(len1 > 0 && len2 > 0 && base1 + len1 == base2)){Rcpp::stop("Error sorting: assert(len1 > 0 && len2 > 0 && base1 + len1 == base2).");};
+    static void rotateLeft(iter_t first, iter_t last)
+    {
+        value_t tmp = GFX_TIMSORT_MOVE(*first);
+        iter_t last_1 = GFX_TIMSORT_MOVE_RANGE(first + 1, last, first);
+        *last_1 = GFX_TIMSORT_MOVE(tmp);
+    }
+
+    static void rotateRight(iter_t first, iter_t last)
+    {
+        iter_t last_1 = last - 1;
+        value_t tmp = GFX_TIMSORT_MOVE(*last_1);
+        GFX_TIMSORT_MOVE_BACKWARD(first, last_1, last);
+        *first = GFX_TIMSORT_MOVE(tmp);
+    }
+
+
+    void mergeLo(iter_t const base1, diff_t len1, iter_t const base2, diff_t len2, Compare compare) {
+        GFX_TIMSORT_ASSERT(len1 > 0 && len2 > 0 && base1 + len1 == base2);
+
+        if (len1 == 1) {
+            return rotateLeft(base1, base2 + len2);
+        }
+        if (len2 == 1) {
+            return rotateRight(base1, base2 + len2);
+        }
 
         copy_to_tmp(base1, len1);
 
@@ -430,53 +433,39 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
         iter_t dest = base1;
 
         *(dest++) = GFX_TIMSORT_MOVE(*(cursor2++));
-        if (--len2 == 0) {
-            GFX_TIMSORT_MOVE_RANGE(cursor1, cursor1 + len1, dest);
-            return;
-        }
-        if (len1 == 1) {
-            GFX_TIMSORT_MOVE_RANGE(cursor2, cursor2 + len2, dest);
-            *(dest + len2) = GFX_TIMSORT_MOVE(*cursor1);
-            return;
-        }
+        --len2;
 
         int minGallop(minGallop_);
 
         // outer:
         while (true) {
-            int count1 = 0;
-            int count2 = 0;
+            diff_t count1 = 0;
+            diff_t count2 = 0;
 
-            bool break_outer = false;
             do {
-                if (!(len1 > 1 && len2 > 0)){Rcpp::stop("Error sorting: assert(len1 > 1 && len2 > 0).");};
+                GFX_TIMSORT_ASSERT(len1 > 1 && len2 > 0);
 
-                if (comp_.lt(*cursor2, *cursor1)) {
+                if (compare(*cursor2, *cursor1)) {
                     *(dest++) = GFX_TIMSORT_MOVE(*(cursor2++));
                     ++count2;
                     count1 = 0;
                     if (--len2 == 0) {
-                        break_outer = true;
-                        break;
+                        goto epilogue;
                     }
                 } else {
                     *(dest++) = GFX_TIMSORT_MOVE(*(cursor1++));
                     ++count1;
                     count2 = 0;
                     if (--len1 == 1) {
-                        break_outer = true;
-                        break;
+                        goto epilogue;
                     }
                 }
             } while ((count1 | count2) < minGallop);
-            if (break_outer) {
-                break;
-            }
 
             do {
-                if (!(len1 > 1 && len2 > 0)){Rcpp::stop("Error sorting: assert(len1 > 1 && len2 > 0).");};
+                GFX_TIMSORT_ASSERT(len1 > 1 && len2 > 0);
 
-                count1 = gallopRight(*cursor2, cursor1, len1, 0);
+                count1 = gallopRight(*cursor2, cursor1, len1, 0, compare);
                 if (count1 != 0) {
                     GFX_TIMSORT_MOVE_BACKWARD(cursor1, cursor1 + count1, dest + count1);
                     dest += count1;
@@ -484,38 +473,31 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
                     len1 -= count1;
 
                     if (len1 <= 1) {
-                        break_outer = true;
-                        break;
+                        goto epilogue;
                     }
                 }
                 *(dest++) = GFX_TIMSORT_MOVE(*(cursor2++));
                 if (--len2 == 0) {
-                    break_outer = true;
-                    break;
+                    goto epilogue;
                 }
 
-                count2 = gallopLeft(*cursor1, cursor2, len2, 0);
+                count2 = gallopLeft(*cursor1, cursor2, len2, 0, compare);
                 if (count2 != 0) {
                     GFX_TIMSORT_MOVE_RANGE(cursor2, cursor2 + count2, dest);
                     dest += count2;
                     cursor2 += count2;
                     len2 -= count2;
                     if (len2 == 0) {
-                        break_outer = true;
-                        break;
+                        goto epilogue;
                     }
                 }
                 *(dest++) = GFX_TIMSORT_MOVE(*(cursor1++));
                 if (--len1 == 1) {
-                    break_outer = true;
-                    break;
+                    goto epilogue;
                 }
 
                 --minGallop;
             } while ((count1 >= MIN_GALLOP) | (count2 >= MIN_GALLOP));
-            if (break_outer) {
-                break;
-            }
 
             if (minGallop < 0) {
                 minGallop = 0;
@@ -523,118 +505,113 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
             minGallop += 2;
         } // end of "outer" loop
 
+        epilogue: // merge what is left from either cursor1 or cursor2
+
         minGallop_ = std::min(minGallop, 1);
 
         if (len1 == 1) {
-            if (!(len2 > 0)){Rcpp::stop("Error sorting: assert(len2 > 0).");};
+            GFX_TIMSORT_ASSERT(len2 > 0);
             GFX_TIMSORT_MOVE_RANGE(cursor2, cursor2 + len2, dest);
             *(dest + len2) = GFX_TIMSORT_MOVE(*cursor1);
         } else {
-            if (!(len1 != 0 && "Comparison function violates its general contract")){Rcpp::stop("Error sorting: assert(len1 != 0 && \"Comparison function violates its general contract\").");};
-            if (!(len2 == 0)){Rcpp::stop("Error sorting: assert(len2 == 0).");};
-            if (!(len1 > 1)){Rcpp::stop("Error sorting: assert(len1 > 1).");};
+            GFX_TIMSORT_ASSERT(len1 != 0 && "Comparison function violates its general contract");
+            GFX_TIMSORT_ASSERT(len2 == 0);
+            GFX_TIMSORT_ASSERT(len1 > 1);
             GFX_TIMSORT_MOVE_RANGE(cursor1, cursor1 + len1, dest);
         }
     }
 
-    void mergeHi(iter_t const base1, diff_t len1, iter_t const base2, diff_t len2) {
-        if (!(len1 > 0 && len2 > 0 && base1 + len1 == base2)){Rcpp::stop("Error sorting: assert(len1 > 0 && len2 > 0 && base1 + len1 == base2).");};
+    void mergeHi(iter_t const base1, diff_t len1, iter_t const base2, diff_t len2, Compare compare) {
+        GFX_TIMSORT_ASSERT(len1 > 0 && len2 > 0 && base1 + len1 == base2);
+
+        if (len1 == 1) {
+            return rotateLeft(base1, base2 + len2);
+        }
+        if (len2 == 1) {
+            return rotateRight(base1, base2 + len2);
+        }
 
         copy_to_tmp(base2, len2);
 
-        iter_t cursor1 = base1 + (len1 - 1);
+        iter_t cursor1 = base1 + len1;
         tmp_iter_t cursor2 = tmp_.begin() + (len2 - 1);
         iter_t dest = base2 + (len2 - 1);
 
-        *(dest--) = GFX_TIMSORT_MOVE(*(cursor1--));
-        if (--len1 == 0) {
-            GFX_TIMSORT_MOVE_RANGE(tmp_.begin(), tmp_.begin() + len2, dest - (len2 - 1));
-            return;
-        }
-        if (len2 == 1) {
-            dest -= len1;
-            cursor1 -= len1;
-            GFX_TIMSORT_MOVE_BACKWARD(cursor1 + 1, cursor1 + (1 + len1), dest + (1 + len1));
-            *dest = GFX_TIMSORT_MOVE(*cursor2);
-            return;
-        }
+        *(dest--) = GFX_TIMSORT_MOVE(*(--cursor1));
+        --len1;
 
         int minGallop(minGallop_);
 
         // outer:
         while (true) {
-            int count1 = 0;
-            int count2 = 0;
+            diff_t count1 = 0;
+            diff_t count2 = 0;
 
-            bool break_outer = false;
+            // The next loop is a hot path of the algorithm, so we decrement
+            // eagerly the cursor so that it always points directly to the value
+            // to compare, but we have to implement some trickier logic to make
+            // sure that it points to the next value again by the end of said loop
+            --cursor1;
+
             do {
-                if (!(len1 > 0 && len2 > 1)){Rcpp::stop("Error sorting: assert(len1 > 0 && len2 > 1).");};
+                GFX_TIMSORT_ASSERT(len1 > 0 && len2 > 1);
 
-                if (comp_.lt(*cursor2, *cursor1)) {
-                    *(dest--) = GFX_TIMSORT_MOVE(*(cursor1--));
+                if (compare(*cursor2, *cursor1)) {
+                    *(dest--) = GFX_TIMSORT_MOVE(*cursor1);
                     ++count1;
                     count2 = 0;
                     if (--len1 == 0) {
-                        break_outer = true;
-                        break;
+                        goto epilogue;
                     }
+                    --cursor1;
                 } else {
                     *(dest--) = GFX_TIMSORT_MOVE(*(cursor2--));
                     ++count2;
                     count1 = 0;
                     if (--len2 == 1) {
-                        break_outer = true;
-                        break;
+                        ++cursor1; // See comment before the loop
+                        goto epilogue;
                     }
                 }
             } while ((count1 | count2) < minGallop);
-            if (break_outer) {
-                break;
-            }
+            ++cursor1; // See comment before the loop
 
             do {
-                if (!(len1 > 0 && len2 > 1)){Rcpp::stop("Error sorting: assert(len1 > 0 && len2 > 1).");};
+                GFX_TIMSORT_ASSERT(len1 > 0 && len2 > 1);
 
-                count1 = len1 - gallopRight(*cursor2, base1, len1, len1 - 1);
+                count1 = len1 - gallopRight(*cursor2, base1, len1, len1 - 1, compare);
                 if (count1 != 0) {
                     dest -= count1;
                     cursor1 -= count1;
                     len1 -= count1;
-                    GFX_TIMSORT_MOVE_BACKWARD(cursor1 + 1, cursor1 + (1 + count1), dest + (1 + count1));
+                    GFX_TIMSORT_MOVE_BACKWARD(cursor1, cursor1 + count1, dest + (1 + count1));
 
                     if (len1 == 0) {
-                        break_outer = true;
-                        break;
+                        goto epilogue;
                     }
                 }
                 *(dest--) = GFX_TIMSORT_MOVE(*(cursor2--));
                 if (--len2 == 1) {
-                    break_outer = true;
-                    break;
+                    goto epilogue;
                 }
 
-                count2 = len2 - gallopLeft(*cursor1, tmp_.begin(), len2, len2 - 1);
+                count2 = len2 - gallopLeft(*(cursor1 - 1), tmp_.begin(), len2, len2 - 1, compare);
                 if (count2 != 0) {
                     dest -= count2;
                     cursor2 -= count2;
                     len2 -= count2;
                     GFX_TIMSORT_MOVE_RANGE(cursor2 + 1, cursor2 + (1 + count2), dest + 1);
                     if (len2 <= 1) {
-                        break_outer = true;
-                        break;
+                        goto epilogue;
                     }
                 }
-                *(dest--) = GFX_TIMSORT_MOVE(*(cursor1--));
+                *(dest--) = GFX_TIMSORT_MOVE(*(--cursor1));
                 if (--len1 == 0) {
-                    break_outer = true;
-                    break;
+                    goto epilogue;
                 }
 
                 minGallop--;
             } while ((count1 >= MIN_GALLOP) | (count2 >= MIN_GALLOP));
-            if (break_outer) {
-                break;
-            }
 
             if (minGallop < 0) {
                 minGallop = 0;
@@ -642,46 +619,56 @@ template <typename RandomAccessIterator, typename LessFunction> class TimSort {
             minGallop += 2;
         } // end of "outer" loop
 
+        epilogue: // merge what is left from either cursor1 or cursor2
+
         minGallop_ = std::min(minGallop, 1);
 
         if (len2 == 1) {
-            if (!(len1 > 0)){Rcpp::stop("Error sorting: assert(len1 > 0).");};
+            GFX_TIMSORT_ASSERT(len1 > 0);
             dest -= len1;
-            GFX_TIMSORT_MOVE_BACKWARD(cursor1 + (1 - len1), cursor1 + 1, dest + (1 + len1));
+            GFX_TIMSORT_MOVE_BACKWARD(cursor1 - len1, cursor1, dest + (1 + len1));
             *dest = GFX_TIMSORT_MOVE(*cursor2);
         } else {
-            if (!(len2 != 0 && "Comparison function violates its general contract")){Rcpp::stop("Error sorting: assert(len2 != 0 && \"Comparison function violates its general contract\").");};
-            if (!(len1 == 0)){Rcpp::stop("Error sorting: assert(len1 == 0).");};
-            if (!(len2 > 1)){Rcpp::stop("Error sorting: assert(len2 > 1).");};
+            GFX_TIMSORT_ASSERT(len2 != 0 && "Comparison function violates its general contract");
+            GFX_TIMSORT_ASSERT(len1 == 0);
+            GFX_TIMSORT_ASSERT(len2 > 1);
             GFX_TIMSORT_MOVE_RANGE(tmp_.begin(), tmp_.begin() + len2, dest - (len2 - 1));
         }
     }
 
-    void copy_to_tmp(iter_t const begin, diff_t const len) {
-        tmp_.clear();
-        tmp_.reserve(len);
-        GFX_TIMSORT_MOVE_RANGE(begin, begin + len, std::back_inserter(tmp_));
+    void copy_to_tmp(iter_t const begin, diff_t len) {
+#if GFX_TIMSORT_USE_STD_MOVE
+        tmp_.assign(std::make_move_iterator(begin),
+                    std::make_move_iterator(begin + len));
+#else
+        tmp_.assign(begin, begin + len);
+#endif
     }
 
-    // the only interface is the friend timsort() function
-    template <typename IterT, typename LessT> friend void timsort(IterT first, IterT last, LessT c);
+    template <typename IterT, typename LessT>
+    friend void timsort(IterT first, IterT last, LessT c);
 };
 
 template <typename RandomAccessIterator>
-inline void timsort(RandomAccessIterator const first, RandomAccessIterator const last) {
+void timsort(RandomAccessIterator const first, RandomAccessIterator const last) {
     typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
     timsort(first, last, std::less<value_type>());
 }
 
-template <typename RandomAccessIterator, typename LessFunction>
-inline void timsort(RandomAccessIterator const first, RandomAccessIterator const last, LessFunction compare) {
-    TimSort<RandomAccessIterator, LessFunction>::sort(first, last, compare);
+template <typename RandomAccessIterator, typename Compare>
+void timsort(RandomAccessIterator const first, RandomAccessIterator const last, Compare compare) {
+    TimSort<RandomAccessIterator, Compare>::sort(first, last, compare);
 }
 
 } // namespace gfx
 
+#undef GFX_TIMSORT_ENABLE_ASSERT
+#undef GFX_TIMSORT_ASSERT
+#undef GFX_TIMSORT_ENABLE_LOG
 #undef GFX_TIMSORT_LOG
 #undef GFX_TIMSORT_MOVE
 #undef GFX_TIMSORT_MOVE_RANGE
 #undef GFX_TIMSORT_MOVE_BACKWARD
+#undef GFX_TIMSORT_USE_STD_MOVE
+
 #endif // GFX_TIMSORT_HPP
