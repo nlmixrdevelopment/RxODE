@@ -1,5 +1,10 @@
 #include <Rcpp.h>
 #include "timsort.h"
+#ifdef rxSortStd
+#define SORT std::sort
+#else
+#define SORT gfx::timsort
+#endif
 using namespace Rcpp;
 
 bool rxIs(const RObject &obj, std::string cls);
@@ -281,19 +286,19 @@ List etSort(List curEt){
   std::copy(curEvid.begin(), curEvid.end(), std::back_inserter(evid));
   std::vector<int> idx(id.size());
   std::iota(idx.begin(),idx.end(),0);
-  gfx::timsort(idx.begin(),idx.end(),
-    [id,time,evid](int a, int b){
-      if (id[a] == id[b]){
-	if (time[a] == time[b]){
-	  if (evid[a] == evid[b]){
-	    return a < b;
-	  }
-	  return evid[a] < evid[b];
-	}
-	return time[a] < time[b];
-      }
-      return id[a] < id[b];
-    });
+  SORT(idx.begin(),idx.end(),
+       [id,time,evid](int a, int b){
+	 if (id[a] == id[b]){
+	   if (time[a] == time[b]){
+	     if (evid[a] == evid[b]){
+	       return a < b;
+	     }
+	     return evid[a] < evid[b];
+	   }
+	   return time[a] < time[b];
+	 }
+	 return id[a] < id[b];
+       });
   List newEt(curEt.size());
   int i, j, newSize = time.size();
   IntegerVector tmpI, tmpI2;
@@ -427,19 +432,19 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
       nobs++;
     }
   }
-  gfx::timsort(idx.begin(),idx.end(),
-	       [id,time,evid](int a, int b){
-		 if (id[a] == id[b]){
-		   if (time[a] == time[b]){
-		     if (evid[a] == evid[b]){
-		       return a < b;
-		     }
-		     return evid[a] < evid[b];
-		   }
-		   return time[a] < time[b];
-		 }
-		 return id[a] < id[b];
-	       });
+  SORT(idx.begin(),idx.end(),
+       [id,time,evid](int a, int b){
+	 if (id[a] == id[b]){
+	   if (time[a] == time[b]){
+	     if (evid[a] == evid[b]){
+	       return a < b;
+	     }
+	     return evid[a] < evid[b];
+	   }
+	   return time[a] < time[b];
+	 }
+	 return id[a] < id[b];
+       });
   List lst(curEt.size());
   IntegerVector tmpI = as<IntegerVector>(curEt["id"]), tmpI2;
   NumericVector tmpN, tmpN2;
@@ -600,39 +605,39 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
       nobs++;
     }
   }
-  gfx::timsort(idx.begin(),idx.end(),
-	       [id, time, evid, curId, curTime, curEvid, oldSize](int a, int b){
-		 int ida, evida, idb, evidb;
-		 double timea, timeb;
-		 if (a < oldSize){
-		   ida = curId[a];
-		   timea = curTime[a];
-		   evida = curEvid[a];
-		 } else {
-		   ida = id[a-oldSize];
-		   timea = time[a-oldSize];
-		   evida = evid[a-oldSize];
-		 }
-		 if (b < oldSize){
-		   idb = curId[b];
-		   timeb = curTime[b];
-		   evidb = curEvid[b];
-		 } else {
-		   idb = id[b-oldSize];
-		   timeb = time[b-oldSize];
-		   evidb = evid[b-oldSize];
-		 }
-		 if (ida == idb){
-		   if (timea == timeb){
-		     if (evida == evidb){
-		       return a < b;
-		     }
-		     return evida < evidb;
-		   }
-		   return timea < timeb;
-		 }
-		 return ida < idb;
-	       });
+  SORT(idx.begin(),idx.end(),
+       [id, time, evid, curId, curTime, curEvid, oldSize](int a, int b){
+	 int ida, evida, idb, evidb;
+	 double timea, timeb;
+	 if (a < oldSize){
+	   ida = curId[a];
+	   timea = curTime[a];
+	   evida = curEvid[a];
+	 } else {
+	   ida = id[a-oldSize];
+	   timea = time[a-oldSize];
+	   evida = evid[a-oldSize];
+	 }
+	 if (b < oldSize){
+	   idb = curId[b];
+	   timeb = curTime[b];
+	   evidb = curEvid[b];
+	 } else {
+	   idb = id[b-oldSize];
+	   timeb = time[b-oldSize];
+	   evidb = evid[b-oldSize];
+	 }
+	 if (ida == idb){
+	   if (timea == timeb){
+	     if (evida == evidb){
+	       return a < b;
+	     }
+	     return evida < evidb;
+	   }
+	   return timea < timeb;
+	 }
+	 return ida < idb;
+       });
 
   List lst(curEt.size());
   IntegerVector tmpI = as<IntegerVector>(curEt["id"]), tmpI2;
@@ -1400,19 +1405,19 @@ List etExpandAddl(List curEt){
   }
   std::vector<int> idx(time.size());
   std::iota(idx.begin(),idx.end(),0);
-  gfx::timsort(idx.begin(),idx.end(),
-	       [id,time,evid](int a, int b){
-		 if (id[a] == id[b]){
-		   if (time[a] == time[b]){
-		     if (evid[a] == evid[b]){
-		       return a < b;
-		     }
-		     return evid[a] < evid[b];
-		   }
-		   return time[a] < time[b];
-		 }
-		 return id[a] < id[b];
-	       });
+  SORT(idx.begin(),idx.end(),
+       [id,time,evid](int a, int b){
+	 if (id[a] == id[b]){
+	   if (time[a] == time[b]){
+	     if (evid[a] == evid[b]){
+	       return a < b;
+	     }
+	     return evid[a] < evid[b];
+	   }
+	   return time[a] < time[b];
+	 }
+	 return id[a] < id[b];
+       });
 
   List lst(curEt.size());
 
@@ -1581,7 +1586,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   }
   std::vector<int> idx(time.size());
   std::iota(idx.begin(),idx.end(),0);
-  gfx::timsort(idx.begin(),idx.end(),
+  SORT(idx.begin(),idx.end(),
 	       [id,time,evid](int a, int b){
 		 if (id[a] == id[b]){
 		   if (time[a] == time[b]){
@@ -2032,7 +2037,7 @@ List etResizeId(List curEt, IntegerVector IDs){
       for (i = newIds.size(); i--;){
   	oldIDs.push_back(newIds[i]);
       }
-      gfx::timsort(oldIDs.begin(),oldIDs.end()); // Less expensive, then whole table doesn't need to be sorted.
+      SORT(oldIDs.begin(),oldIDs.end()); // Less expensive, then whole table doesn't need to be sorted.
       int j;
       IntegerVector tmpI, tmpI2;
       NumericVector tmpN, tmpN2;
@@ -3125,19 +3130,19 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
     timeDelta += maxTime;
   }
   if (needSort){
-    gfx::timsort(idx.begin(),idx.end(),
-		 [id,time,evid](int a, int b){
-		   if (id[a] == id[b]){
-		     if (time[a] == time[b]){
-		       if (evid[a] == evid[b]){
-			 return a < b;
-		       }
-		       return evid[a] < evid[b];
-		     }
-		     return time[a] < time[b];
-		   }
-		   return id[a] < id[b];
-		 });
+    SORT(idx.begin(),idx.end(),
+	 [id,time,evid](int a, int b){
+	   if (id[a] == id[b]){
+	     if (time[a] == time[b]){
+	       if (evid[a] == evid[b]){
+		 return a < b;
+	       }
+	       return evid[a] < evid[b];
+	     }
+	     return time[a] < time[b];
+	   }
+	   return id[a] < id[b];
+	 });
   }
   if (!gotUnits){
     stop("No events table found for seq/rep/rbind/c.");

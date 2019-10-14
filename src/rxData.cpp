@@ -21,6 +21,11 @@
 #include "../inst/include/RxODE.h"
 #include "ode.h"
 #include "timsort.h"
+#ifdef rxSortStd
+#define SORT std::sort
+#else
+#define SORT gfx::timsort
+#endif
 #define rxModelVars(a) rxModelVars_(a)
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 using namespace Rcpp;
@@ -4160,19 +4165,19 @@ extern "C" void doSort(rx_solving_options_ind *ind){
     }
   }
   try {
-    gfx::timsort(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
-	      [&ind](int a, int b){
-		double ta=getTime(a, ind);
-		if (ind->err){
-		  throw std::runtime_error("error");
-		}
-		double tb = getTime(b, ind);
-		if (ind->err){
-		  throw std::runtime_error("error");
-		}
-		if (ta == tb) return a < b;
-		return ta < tb;
-	      });
+    SORT(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
+	 [&ind](int a, int b){
+	   double ta=getTime(a, ind);
+	   if (ind->err){
+	     throw std::runtime_error("error");
+	   }
+	   double tb = getTime(b, ind);
+	   if (ind->err){
+	     throw std::runtime_error("error");
+	   }
+	   if (ta == tb) return a < b;
+	   return ta < tb;
+	 });
   } catch(...){
   }
 }
