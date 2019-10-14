@@ -707,7 +707,7 @@ d/dt(blood)     = a*intestine - b*blood
     d1 <- data.frame(DV=0, DATE=c("10-1-86", "10-1-86", "10-2-86"), TIME=c("9.15", "14:40", "8:30"), stringsAsFactors=F)
 
     test_that("Bad Date/Time combination", {
-        expect_error(etTrans(d1, mod), rex::rex("The date time format was not correctly specified."))
+        expect_error(etTrans(d1, mod))
     })
 
     ## Test mixed classic RxODE and NONMEM inputs
