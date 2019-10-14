@@ -2516,6 +2516,7 @@ void reset (){
   lastSyntaxErrorLine=0;
   gBufLast=0;
   lastStrLoc=0;
+  needSort=0;
 }
 
 void writeSb(sbuf *sbb, FILE *fp){
