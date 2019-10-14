@@ -375,7 +375,6 @@ void rxUpdateFuns(SEXP trans){
   calc_mtime = (t_calc_mtime) R_GetCCallable(lib, s_mtime);
   get_theta = (t_get_theta) R_GetCCallable(lib, s_theta);
   assignFuns = R_GetCCallable(lib, s_assignFuns);
-  /* set_solve(&rx_global); */
 }
 
 void rxClearFuns(){

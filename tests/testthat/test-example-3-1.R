@@ -40,9 +40,8 @@ rxPermissive({
         })
 
         head(cbind(out1, out2, out1.ns, out2.ns), n = 15)
+        rxClean()
     }
-
     options(old)
 
-    rxClean()
 }, silent = TRUE);

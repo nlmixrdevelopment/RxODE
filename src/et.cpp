@@ -19,10 +19,9 @@ Environment unitsPkg = loadNamespace2("units");
 NumericVector setUnits(NumericVector obj, std::string unit){
   Function f = as<Function>(unitsPkg["set_units"]);
   if (unit == ""){
-    NumericVector obj2 = clone(obj);
-    obj2.attr("class") = R_NilValue;
-    obj2.attr("units") = R_NilValue;
-    return obj2;
+    obj.attr("class") = R_NilValue;
+    obj.attr("units") = R_NilValue;
+    return obj;
   } else {
     return as<NumericVector>(f(_["x"] = obj, _["value"] = unit, _["mode"] = "standard"));
   }
@@ -258,7 +257,6 @@ List etEmpty(CharacterVector units){
     lst["amt"] = setUnits(lst["amt"], "");
   }
   if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
-    // Empty event table do not need to handle -1 and -2
     std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
     lst["rate"] = setUnits(lst["rate"], rateUnit);
   } else {
@@ -1318,7 +1316,6 @@ List etImportEventTable(List inData){
       oldRate.attr("class") = "units";
       oldRate.attr("units") = rateUnits;
     }
-    // Rate conversion of -1 and -2 NEED to be ignored.
     oldRate = setUnits(oldRate, rateUnit);
   } else if (haveRateUnits){
     stop("Amt/time needs units to convert the rate to the right units to import the data.");
@@ -1794,7 +1791,6 @@ RObject etUpdateObj(List curEt, bool update, bool rxSolve, bool turnOnId){
     std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
     NumericVector oldRate = as<NumericVector>(lst["rate"]);
     if (rxIs(oldRate, "units")){
-      // Preserve -1 and -2, they shouldn't convert.
       oldRate=setUnits(oldRate, rateUnit);
       lst["rate"] = oldRate;
     } else {
@@ -1880,11 +1876,9 @@ RObject etSetUnit(List curEt, CharacterVector units){
     }
   }
   if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
-    // FIXME -1 and -2
     std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
     NumericVector oldRate = as<NumericVector>(lst["rate"]);
     if (rxIs(oldRate, "units")){
-      // Preserve -1 and -2, they shouldn't convert.
       oldRate=setUnits(oldRate, rateUnit);
       lst["rate"] = oldRate;
     } else {
@@ -2664,7 +2658,6 @@ RObject et_(List input, List et__){
 	    List e = clone(as<List>(cls.attr(".RxODE.lst")));
 	    CharacterVector units = e["units"];
 	    if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
-	      // FIXME -1 and -2
 	      if (rate[0] < 0){
 		stop("-1 and -2 rates do not make sense with units.");
 	      }
