@@ -270,7 +270,7 @@ List etEmpty(CharacterVector units){
   return lst;
 }
 
-List etSort(List curEt){
+List etSort(List& curEt){
   std::vector<double> time;
   NumericVector curTime = as<NumericVector>(curEt["time"]);
   int size = curTime.size();
@@ -1767,7 +1767,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   return lst;
 }
 
-RObject etUpdateObj(List curEt, bool update, bool rxSolve, bool turnOnId){
+RObject etUpdateObj(List curEt, bool& update, bool& rxSolve, const bool& turnOnId){
   List lst = clone(curEt);
   CharacterVector cls=clone(as<CharacterVector>(curEt.attr("class")));
   List e = clone(as<List>(cls.attr(".RxODE.lst")));
@@ -2133,7 +2133,8 @@ RObject et_(List input, List et__){
 	curEt = evCur;
 	foundEt=true;
       } else if (as<std::string>(et__[0]) == "import"){
-	return etUpdateObj(etImportEventTable(as<List>(input["data"])), true, false, true);
+	bool bt = true, bf = false;
+	return etUpdateObj(etImportEventTable(as<List>(input["data"])), bt, bf, bt);
       }
     } else if (rxIs(et__, "rxEt")) {
       foundEt=true;
@@ -2261,10 +2262,12 @@ RObject et_(List input, List et__){
 	} else if (nm[0] == "get.dose"){
 	  return e["nobs"];
 	} else if (nm[0] == "simulate"){
-	  return etUpdateObj(etSimulate(as<List>(curEt)), doUpdateObj, inputSolve, true);
+	  bool bt = true;
+	  return etUpdateObj(etSimulate(as<List>(curEt)), doUpdateObj, inputSolve, bt);
 	} else if (nm[0] == "copy"){
 	  // Make sure that the object is cloned
-	  return etUpdateObj(as<List>(curEt),false, false, false);
+	  bool bf=false;
+	  return etUpdateObj(as<List>(curEt),bf, bf, bf);
 	} else if (nm[0] == "get.EventTable"){
 	  e.attr("class") = R_NilValue;
 	  if (as<int>(e["nobs"]) == 0 && as<int>(e["ndose"]) == 0){

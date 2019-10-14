@@ -16,8 +16,8 @@ List rxModelVars_(const RObject &obj);
 bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
 
-IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid,
-		    int stateSize, int sensSize, IntegerVector& curDvid){
+IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
+		    const int stateSize, const int sensSize, IntegerVector& curDvid){
   RObject cmtInfo = R_NilValue;
   List extraCmt;
   if (rxIs(inCmt, "numeric") || rxIs(inCmt, "integer")){
