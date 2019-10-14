@@ -1484,10 +1484,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   CharacterVector cls = CharacterVector::create("rxEtTran","data.frame");
   if (covCol.size() == 0 && !rxIs(lst1F[0], "integer") && !redoId){
     stop("Corrupted event table");
-    IntegerVector tmpI(nid);
-    std::iota(tmpI.begin(),tmpI.end(), 1);
-    lst1F[0] = tmpI;
-    nme1F[0] = "ID";
   }
   IntegerVector tmp = lst1F[0];
   if (redoId){
