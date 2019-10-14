@@ -110,8 +110,6 @@ rxPermissive({
 
 
     ## Now with rxGetModel
-    rxClean();
-
     m1 <- rxGetModel({C2 = centr/V2;
         C3 = peri/V3;
         d/dt(depot) =-KA*depot;

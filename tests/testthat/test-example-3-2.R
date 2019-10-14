@@ -44,5 +44,4 @@ rxPermissive({
     ## par(old)
 
 
-    rxClean()
 }, silent=TRUE)

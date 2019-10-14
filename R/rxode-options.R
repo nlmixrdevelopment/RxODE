@@ -153,13 +153,10 @@ RxODE.syntax.require.ode.first <- NULL
 ##' @param on.validate When TRUE run only when validating.
 ##' @param silent when true, also silence the syntax errors and
 ##'     interactive output (useful in testing).
-##' @param rxclean when TRUE, call rxClean before and after the \code{expr}
-##'     is called.
 ##' @author Matthew L. Fidler
 ##' @export
 rxPermissive <- function(expr, silent=.isTestthat(),
                          respect=FALSE,
-                         rxclean=.isTestthat(),
                          cran=FALSE, on.validate=FALSE){
     args  <- as.list(match.call())[-1];
     args$op.rx <- 2;
@@ -168,7 +165,6 @@ rxPermissive <- function(expr, silent=.isTestthat(),
 ##' @rdname rxPermissive
 ##' @export
 rxStrict <- function(expr, silent=.isTestthat(), respect=FALSE,
-                     rxclean=.isTestthat(),
                      cran=FALSE, on.validate=FALSE){
     ## nocov start
     args  <- as.list(match.call())[-1];
@@ -190,7 +186,6 @@ rxStrict <- function(expr, silent=.isTestthat(), respect=FALSE,
 ##' @author Matthew L. Fidler
 ##' @export
 rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
-                      rxclean=.isTestthat(),
                       cran=FALSE, on.validate=FALSE){
     rxSetSilentErr(1L);
     on.exit(rxSetSilentErr(0L));
@@ -240,9 +235,6 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
                 op.rx$RxODE.suppress.syntax.info=silent;
             }
             if (!missing(expr)){
-                if (rxclean){
-                    rxClean();
-                }
                 opOld <- options();
                 .oldProg <- getProgSupported();
                 if (silent){
@@ -251,7 +243,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
                 on.exit({options(opOld);
                     setProgSupported(.oldProg);
                     rxSyncOptions();
-                    if (rxclean){rxClean();}});
+                });
             }
             if (respect){
                 op <- options();
