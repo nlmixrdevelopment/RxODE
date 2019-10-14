@@ -111,12 +111,6 @@ rxControl <- function(scale = NULL,
     if (any(names(.xtra)=="covs")){
         stop("Covariates can no longer be specified by 'covs' include them in the event dataset.");
     }
-    if (any(names(.xtra) == "atolSS")){
-        warning("atolSS is ignored and controlled by atol now.");
-    }
-    if (any(names(.xtra) == "rtolSS")){
-        warning("rtolSS is ignored and controlled by rtol now.");
-    }
     if (missing(cores)){
         cores <- RxODE::rxCores();
     }
@@ -723,10 +717,11 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     }
     .ctl$keepI <- .keepI
     .ctl$keepF <- .keepF
-    rxDynProtect(rxDll(object));
-                                        # Protects dll from garbage collection
+    ##rxDynProtect(rxDll(object));
+    ## Protects dll from garbage collection
     .ret <- rxSolve_(object, .ctl, .nms, .xtra,
                      params, events, inits,setupOnly=.setupOnly);
+    return(.ret)
 }
 
 ##' @rdname rxSolve

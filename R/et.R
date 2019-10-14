@@ -32,7 +32,7 @@
 ##'
 ##' @param ... Times or event tables.  They can also be one of the named arguments below.
 ##'
-##' @param time Time is the time of the dose or the sampling tsimes.
+##' @param time Time is the time of the dose or the sampling times.
 ##'     This can also be unspecified and is determined by the object
 ##'     type (list or numeric/integer).
 ##'
