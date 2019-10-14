@@ -549,7 +549,10 @@ RxODE <- function(model, modName = basename(wd),
     .env$calcJac <- (length(.mv$dfdy) > 0);
     .env$calcSens <- (length(.mv$sens) > 0)
     class(.env) <- "RxODE"
-    reg.finalizer(.env, eval(bquote(function(...){try(RxODE::rxDynUnload(.(rxDll(.env))), silent=TRUE)})));
+    reg.finalizer(.env, eval(bquote(function(...){
+                            RxODE::rxUnlock(.(.env));
+                            RxODE::rxUnloadAll();
+                        })));
     RxODE::rxForget();
     if (!is.null(.env$package)){
         .o <- rxDll(.env);
@@ -570,6 +573,8 @@ RxODE <- function(model, modName = basename(wd),
                 assign(.env$modName, .env);
             }
         }
+    } else {
+        RxODE::rxIsLoaded(.env); # Show this is loaded.
     }
     return(.env);
 }
@@ -1499,14 +1504,13 @@ rxCompile.rxModelVars <-  function(model, # Model
                 warning("Unloaded all RxODE dlls before loading the current DLL.")
             }
         }
+        assign(.cDllFile, 1L, envir=.rxModels); ## Loaded model.
         .modVars <- sprintf("%smodel_vars", prefix);
         if (is.loaded(.modVars)){
             .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)
         } else {
             .badBuild("Error, model doesn't have correct model variables.");
         }
-
-
     }
     .call <- function(...){return(.Call(...))};
     .args <- list(model = model, dir = .dir, prefix = prefix,

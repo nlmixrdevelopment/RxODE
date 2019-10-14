@@ -432,6 +432,27 @@ rxDynLoad <- function(obj) {
     .Call(`_RxODE_rxDynLoad`, obj)
 }
 
+#' Lock/unlocking of RxODE dll file
+#'
+#' @param obj A RxODE family of objects
+#' @export
+rxLock <- function(obj) {
+    .Call(`_RxODE_rxLock`, obj)
+}
+
+#' @rdname rxLock
+#' @export
+rxUnlock <- function(obj) {
+    .Call(`_RxODE_rxUnlock`, obj)
+}
+
+#' Unload all RxODE Dlls that are not locked for solving.
+#' @return NULL
+#' @export
+rxUnloadAll <- function() {
+    .Call(`_RxODE_rxUnloadAll`)
+}
+
 #' Unload RxODE object
 #'
 #' @param obj A RxODE family of objects 

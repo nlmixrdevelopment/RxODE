@@ -541,8 +541,9 @@ rxControl <- function(scale = NULL,
 rxSolve <- function(object, ...){
     UseMethod("rxSolve")
 }
+##' @S3method rxSolve default
 ##' @rdname rxSolve
-##' @export
+##' @export rxSolve.default
 rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...){
     on.exit({
         .clearPipe();

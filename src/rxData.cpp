@@ -2070,8 +2070,8 @@ SEXP rxSolve_update(const RObject &object, const List &rxControl,
   return dat;
 }
 void rxAssignPtr(SEXP object);
-void rxLock(RObject obj);
-void rxUnlock(RObject obj);
+RObject rxLock(RObject obj);
+RObject rxUnlock(RObject obj);
 //[[Rcpp::export]]
 SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const Nullable<CharacterVector> &specParams,
@@ -3954,7 +3954,8 @@ bool rxIsLoaded(RObject obj){
   List mv = rxModelVars(obj);
   CharacterVector trans = mv["trans"];
   std::string dydt = as<std::string>(trans["model_vars"]);
-  return as<bool>(isLoaded(dydt));
+  bool ret = as<bool>(isLoaded(dydt));
+  return ret;
 }
 
 //' Load RxODE object
@@ -3989,10 +3990,12 @@ bool rxDynLoad(RObject obj){
   }
 }
 
-// Lock RxODE dll file
-//
-// @param obj A RxODE family of objects 
-void rxLock(RObject obj){
+//' Lock/unlocking of RxODE dll file
+//'
+//' @param obj A RxODE family of objects
+//' @export
+//[[Rcpp::export]]
+RObject rxLock(RObject obj){
   getRxModels();
   std::string file = rxDll(obj);
   int ret = 1;
@@ -4003,12 +4006,13 @@ void rxLock(RObject obj){
   } else {
     _rxModels[file] = ret;
   }
+  return R_NilValue;
 }
 
-// Unlock RxODE dll file
-//
-// @param obj A RxODE family of objects 
-void rxUnlock(RObject obj){
+//' @rdname rxLock
+//' @export
+//[[Rcpp::export]]
+RObject rxUnlock(RObject obj){
   getRxModels();
   std::string file = rxDll(obj);
   int ret;
@@ -4016,8 +4020,9 @@ void rxUnlock(RObject obj){
     ret = as<int>(_rxModels[file]);
     ret = ret - 1;
     if (ret > 0) _rxModels[file] = ret;
-    else _rxModels[file] = 0L;
+    else  _rxModels[file] = 0;
   }
+  return R_NilValue;
 }
 
 bool rxCanUnload(RObject obj){
@@ -4028,6 +4033,26 @@ bool rxCanUnload(RObject obj){
     return (ret == 0L);
   }
   return true;
+}
+
+//' Unload all RxODE Dlls that are not locked for solving.
+//' @return NULL
+//' @export
+//[[Rcpp::export]]
+RObject rxUnloadAll(){
+  getRxModels();
+  Function dynUnload("dyn.unload", R_BaseNamespace);
+  CharacterVector vars = _rxModels.ls(true);
+  for (int i = vars.size(); i--;){
+    if (rxIs(_rxModels[as<std::string>(vars[i])],"integer")){
+      int val = as<int>(_rxModels[as<std::string>(vars[i])]);
+      if (val == 0){
+	dynUnload(as<std::string>(vars[i]));
+	_rxModels.remove(as<std::string>(vars[i]));
+      }
+    }
+  }
+  return R_NilValue;
 }
 
 //' Unload RxODE object
@@ -4057,14 +4082,20 @@ bool rxDynUnload(RObject obj){
   if (rxIsLoaded(obj)){
     Function dynUnload("dyn.unload", R_BaseNamespace);
     std::string file = rxDll(obj);
+    rxUnlock(obj);
     if (rxCanUnload(obj)){
       dynUnload(file);
     } else {
+      rxLock(obj);
       return false;
     }
   }
   rxRmModelLib_(ptr); // Clears all pointers
-  rxUnlock(obj);
+  std::string file = rxDll(obj);
+  getRxModels();
+  if(_rxModels.exists(file)){
+    _rxModels.remove(file);
+  }
   return !(rxIsLoaded(obj));
 }
 
