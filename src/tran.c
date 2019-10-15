@@ -18,7 +18,7 @@
 #define MXLEN 12000
 #define MXBUF 48000
 /* #define MXBUF 5 */
-#define MXLINE 1000
+#define MXLINE 100
 /* #define MXLINE 5 */
 #define SBPTR sb.s+sb.o
 #define SBTPTR sbt.s+sbt.o
@@ -2562,7 +2562,7 @@ void trans_internal(char* parse_file, int isStr){
     err_msg((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2);
   }
   sFree(&sbNrm);
-  sIni(&sbNrm);
+  sIniTo(&sbNrm, MXBUF);
   lineIni(&sbPm);
   lineIni(&sbPmDt);
   
