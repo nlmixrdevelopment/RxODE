@@ -2475,21 +2475,24 @@ RObject et_(List input, List et__){
 	}
 	turnOnShowCmt=true;
       }
-      NumericVector amt;
+      NumericVector amt(1);
       bool isObs=false;
       if (amtIx == -1){
 	isObs=true;
       } else {
-	amt = as<NumericVector>(input[amtIx]);
+	NumericVector tmpNV = as<NumericVector>(input[amtIx]);
 	if (amt.size() != 1){
 	  stop("Dose amount cannot be a vector.");
 	}
-	if (rxIs(amt, "units")){
+	amt[0] = tmpNV[0];
+	if (rxIs(tmpNV, "units")){
 	  CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
 	  List e = clone(as<List>(cls.attr(".RxODE.lst")));
 	  CharacterVector units = e["units"];
 	  if (!CharacterVector::is_na(units["dosing"])){
-	    amt = setUnits(amt, as<std::string>(units["dosing"]));
+	    tmpNV = setUnits(tmpNV, as<std::string>(units["dosing"]));
+	    amt[0] = tmpNV[0];
+	    amt = setUnits(amt,as<std::string>(units["dosing"]));
 	  } else {
 	    amt = setUnits(amt, "");
 	  }
@@ -2500,12 +2503,13 @@ RObject et_(List input, List et__){
       if (cmtNeg && isObs){
 	isObs = false;
       }
-      IntegerVector evid;
+      IntegerVector evid(1);
       if (evidIx != -1){
-	evid = clone(as<IntegerVector>(input[evidIx]));
+	IntegerVector tmp = as<IntegerVector>(input[evidIx]);
 	if (evid.size()!= 1){
 	  stop("evid cannot be a vector");
 	}
+	evid[0] = tmp[0];
 	if (cmtNeg && evid[0] != 2){
 	  stop("Turning off compartments can only be done when EVID=2.");
 	}
@@ -2520,7 +2524,6 @@ RObject et_(List input, List et__){
 	      warning("Dose amount is ignored with EVID=2 or EVID=3");
 	    }
 	  }
-	  amt = clone(amt);
 	  amt[0] = NA_REAL;
 	  isObs = false;
 	}
@@ -2557,14 +2560,14 @@ RObject et_(List input, List et__){
 	  if (durIx != -1){
 	    stop("Cannot specify 'dur' AND 'rate' for a dose, please pick one.");
 	  }
-	  rate = clone(as<NumericVector>(input[rateIx]));
+	  rate = as<NumericVector>(input[rateIx]);
 	  if (rate.size() != 1) stop("rate cannot be a vector");
 	  if (rate[0] != 0.0){
 	    stop("rate needs a dose/amt.");
 	  }
 	} else {
 	  if (durIx != -1){
-	    NumericVector dur = clone(as<NumericVector>(input[durIx]));
+	    NumericVector dur = as<NumericVector>(input[durIx]);
 	    if (dur.size() != 1) stop("dur cannot be a vector");
 	    if (dur[0] != 0){
 	      stop("dur needs a dose/amt.");
@@ -2626,9 +2629,7 @@ RObject et_(List input, List et__){
 	bool doWindow=false;
 	if (evidIx == -1 && !cmtNeg) evid[0]=1;
 	else if (evidIx == -1 && cmtNeg){
-	  evid=clone(evid);
 	  evid[0]=2;
-	  amt=clone(amt);
 	  amt[0] = NA_REAL; // This is where the changed
 	}
 	////////////////////////////////////////////////////////////////////////////////
@@ -2659,7 +2660,7 @@ RObject et_(List input, List et__){
 	  if (durIx != -1){
 	    stop("Cannot specify 'dur' AND 'rate' for a dose, please pick one.");
 	  }
-	  rate = clone(as<NumericVector>(input[rateIx]));
+	  rate = as<NumericVector>(input[rateIx]);
 	  if (rate.size() != 1) stop("rate cannot be a vector.");
 	  if (rxIs(rate, "units")){
 	    CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
@@ -2684,7 +2685,7 @@ RObject et_(List input, List et__){
 	  dur[0] = 0;
 	} else {
 	  if (durIx != -1){
-	    dur = clone(as<NumericVector>(input[durIx]));
+	    dur = as<NumericVector>(input[durIx]);
 	    rate = NumericVector(1);
 	    rate[0] = 0;
 	    if (dur.size() != 1) stop("dur cannot be a vector");
@@ -2709,7 +2710,7 @@ RObject et_(List input, List et__){
 	}
 	NumericVector ii;// =0.0;
 	if (iiIx != -1){
-	  ii = clone(as<NumericVector>(input[iiIx]));
+	  ii = as<NumericVector>(input[iiIx]);
 	  if (ii.size() != 1) stop("ii cannot be a vector.");
 	  if (rxIs(ii, "units")){
 	    ii = setUnits(ii, as<std::string>(units[1]));
@@ -2740,12 +2741,12 @@ RObject et_(List input, List et__){
 	  time = NumericVector(1);
 	  time[0] = 0;
 	}
-	IntegerVector addl;//=0;
+	IntegerVector addl(1);//=0;
 	if (addlIx != -1){
-	  addl = clone(as<IntegerVector>(input[addlIx]));
+	  addl = as<IntegerVector>(input[addlIx]);
 	  if (addl.size() != 1) stop("addl cannot be a vector.");
 	} else if (nbrIx != -1){
-	  addl = clone(as<IntegerVector>(input[nbrIx]));
+	  addl = as<IntegerVector>(input[nbrIx]);
 	  if (addl.size() != 1) stop("Number of doses cannot be a vector.");
 	  if (addl[0] < 1){
 	    stop("Number of Doses must be at least one (addl: %d)", addl[0]);
