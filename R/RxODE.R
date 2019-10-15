@@ -551,7 +551,7 @@ RxODE <- function(model, modName = basename(wd),
     class(.env) <- "RxODE"
     reg.finalizer(.env, eval(bquote(function(...){
                             RxODE::rxUnlock(.(.env));
-                            RxODE::rxUnloadAll();
+                            rxUnloadAll();
                         })));
     RxODE::rxForget();
     if (!is.null(.env$package)){
@@ -1496,7 +1496,7 @@ rxCompile.rxModelVars <-  function(model, # Model
         .tmp  <- try(dynLoad(.cDllFile), silent=TRUE);
         if (inherits(.tmp, "try-error")){
             ## Try unloading RxODE dlls now...
-            .unloadRx()
+            rxUnloadAll();
             .tmp  <- try(dynLoad(.cDllFile), silent=TRUE);
             if (inherits(.tmp, "try-error")){
                 .badBuild("Error loading model (though dll exists)");

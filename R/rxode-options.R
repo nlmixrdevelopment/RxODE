@@ -1,16 +1,3 @@
-.unloadRx <- function(){
-    .dlls <- getLoadedDLLs()
-    .dllNames <- names(.dlls)
-    .rxDlls <- .dllNames[regexpr("^rx_", .dllNames) != -1]
-    .dlls <- .dlls[.rxDlls]
-    gc(verbose=FALSE)
-    for (.dll in .dlls) {
-        .name <- .dll[["name"]]
-        .path <- .dll[["path"]]
-        .libpath <- dirname(dirname(.path))
-        try({dyn.unload(.path)}, silent=TRUE)
-    }
-}
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
@@ -38,7 +25,7 @@
 
 .onUnload <- function (libpath) {
     ## nocov start
-    .unloadRx()
+    rxUnloadAll();
     library.dynam.unload("RxODE", libpath)
     ## nocov end
 }
