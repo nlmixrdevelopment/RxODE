@@ -6,7 +6,6 @@ df.test <- structure(c(0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4
 rxPermissive({
     ms <- c("liblsoda", "lsoda", "dop853")
     if (grepl('SunOS',Sys.info()['sysname'])) ms <- "lsoda"
-    if (.Platform$r_arch == "i386") ms <- "lsoda"
     ode <- RxODE(model = 'd/dt(y) = r * y * (1.0 - y/K);')
     for (meth in ms){
         context(sprintf("Example 3-1 (%s)", meth));

@@ -251,7 +251,7 @@ static inline void sClear(sbuf *sbb){
 }
 
 void sIni(sbuf *sbb){
-  sIniTo(sbb, 10);
+  sIniTo(sbb, MXBUF);
 }
 
 void sFree(sbuf *sbb){
@@ -721,7 +721,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   int nch = d_get_number_of_children(pn), i, k, ii, found, safe_zero = 0;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
   sbuf buf;
-  sIni(&buf);
+  sIniTo(&buf, 1024);
   double d;
   if ((nodeHas(identifier) || nodeHas(identifier_r) ||
        nodeHas(identifier_r_no_output)  ||
@@ -1731,7 +1731,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
     in_str=0;
   char *buf;
   sbuf bufw;
-  sIni(&bufw);
+  sIniTo(&bufw, 1024);
   sClear(&s_aux_info);
   /* char bufw[1024]; */
   for (i=0; i<NV; i++) {
@@ -2432,11 +2432,11 @@ void parseFree(int last){
 void reset (){
   // Reset sb/sbt string buffers
   parseFree(0);
-  sIni(&sb);
-  sIni(&sbDt);
-  sIni(&sbt);
-  sIni(&sbNrm);
-  sIni(&s_aux_info);
+  sIniTo(&sb, MXSYM);
+  sIniTo(&sbDt, MXDER);
+  sIniTo(&sbt, MXBUF);
+  sIniTo(&sbNrm, MXBUF);
+  sIniTo(&s_aux_info, 64*MXSYM);
 
   lineIni(&sbPm);
   lineIni(&sbPmDt);
@@ -2627,7 +2627,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   char *in = NULL;
   char *buf, *df, *dy;
   sbuf bufw, bufw2;
-  sIni(&bufw); sIni(&bufw2);
+  sIniTo(&bufw, 1024); sIniTo(&bufw2, 2100);
   int i, j, islhs, pi=0, li=0, ini_i = 0,k=0, l=0, m=0, p=0;
   // Make sure buffers are initialized.
   isEsc=INTEGER(isEscIn)[0];

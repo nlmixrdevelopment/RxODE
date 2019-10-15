@@ -351,8 +351,8 @@ List etSimulate(List curEt){
   }
 }
 
-void etUpdateCanResize(List &lst, LogicalVector& show, List& eOld, IntegerVector& IDs,
-		       List& e){
+static inline void etUpdateCanResize(List &lst, LogicalVector& show, List& eOld, IntegerVector& IDs,
+				     List& e){
   bool showId = show["id"];
   std::vector<int> uIds = as<std::vector<int>>(eOld["IDs"]);
   bool turnOnShowId = false;
