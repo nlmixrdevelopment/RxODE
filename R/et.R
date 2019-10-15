@@ -1174,6 +1174,18 @@ rxEvid <- function(x){
     return(structure(x, class="rxEvid"))
 }
 
+#' @rawNamespace if(getRversion() >= "3.6.0") {
+#'   S3method(pillar::type_sum, rxEvid)
+#'   S3method(pillar::type_sum, rxRateDur)
+#'   S3method(pillar::pillar_shaft, rxEvid)
+#'   S3method(pillar::pillar_shaft, rxRateDur)
+#' } else {
+#'   export(type_sum.rxEvid)
+#'   export(type_sum.rxRateDur)
+#'   export(pillar_shaft.rxEvid)
+#'   export(pillar_shaft.rxRateDur)
+#' }
+
 ##'@rdname rxEvid
 ##' @export
 as.rxEvid <- rxEvid;
@@ -1251,13 +1263,11 @@ print.rxEvid <- function(x, ...){
 }
 
 ##'@rdname rxEvid
-##'@export
 type_sum.rxEvid <- function(x){
     "evid"
 }
 
 ##'@rdname rxEvid
-##'@export
 pillar_shaft.rxEvid <- function(x, ...){
     .x <- .colorFmt.rxEvid(x)
     pillar::new_pillar_shaft_simple(.x, align = "left")
@@ -1355,7 +1365,6 @@ format.rxRateDur <- function(x, ...){
 }
 
 ##'@rdname rxRateDur
-##'@export
 type_sum.rxRateDur <- function(x){
     .unit <- attr(x, "units")
     if (!is.null(.unit)){
@@ -1368,7 +1377,6 @@ type_sum.rxRateDur <- function(x){
 }
 
 ##'@rdname rxRateDur
-##'@export
 pillar_shaft.rxRateDur <- function(x, ...){
     .x <- .colorFmt.rxRateDur(x)
     pillar::new_pillar_shaft_simple(.x, align = "left", width=10)
