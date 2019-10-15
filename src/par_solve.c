@@ -1616,8 +1616,6 @@ void rxFreeLast(){
   inds_global=NULL;
 }
 
-
-
 extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq, double *rwork, int lrw, int *iwork, int liw, int jt,
                        t_dydt_lsoda_dum dydt_lsoda,
                        t_update_inis u_inis,

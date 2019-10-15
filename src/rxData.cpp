@@ -1933,6 +1933,7 @@ extern "C" void rxOptionsIni();
 extern "C" void rxOptionsIniEnsure(int mx);
 extern "C" void parseFree(int last);
 extern "C" void rxClearFuns();
+extern "C" void rxFreeLast();
 int _gsetupOnly = 0;
 //' Free the C solving/parsing information.
 //'
@@ -1942,11 +1943,12 @@ int _gsetupOnly = 0;
 //' @export
 // [[Rcpp::export]]
 LogicalVector rxSolveFree(){
-  rxOptionsFree();
-  rxOptionsIni();
-  parseFree(1);
-  rxClearFuns();
-  gFree();
+  rxOptionsFree();// Frees solving cache for f77 LSODA
+  rxOptionsIni(); // Reallocates the f77 cache
+  parseFree(1); // Frees the parser
+  rxClearFuns(); // Assign all the global ODE solving functions to NULL pointers
+  gFree(); // Frees all the global pointers
+  rxFreeLast(); // Frees the individual information
   return LogicalVector::create(true);
 }
 
@@ -4035,6 +4037,19 @@ bool rxCanUnload(RObject obj){
   return true;
 }
 
+void rmRxModelsFromDll(std::string str){
+  Function getInfo = getRxFn(".rxGetModelInfoFromDll");
+  CharacterVector extra = getInfo(str);
+  for (int j = extra.size(); j--;){
+    if (_rxModels.exists(as<std::string>(extra[j]))){
+      _rxModels.remove(as<std::string>(extra[j]));
+    }
+  }
+  if (_rxModels.exists(str)){
+    _rxModels.remove(str);
+  }
+}
+
 //' Unload all RxODE Dlls that are not locked for solving.
 //' @return NULL
 //' @export
@@ -4043,14 +4058,22 @@ RObject rxUnloadAll(){
   getRxModels();
   Function dynUnload("dyn.unload", R_BaseNamespace);
   CharacterVector vars = _rxModels.ls(true);
+  bool anyRunning= false;
   for (int i = vars.size(); i--;){
     if (rxIs(_rxModels[as<std::string>(vars[i])],"integer")){
       int val = as<int>(_rxModels[as<std::string>(vars[i])]);
-      if (val == 0){
+      if (val > 1){
+	if (fileExists(as<std::string>(vars[i]))){
+	  anyRunning=true;
+	}
+      } else if (val == 0){
 	dynUnload(as<std::string>(vars[i]));
-	_rxModels.remove(as<std::string>(vars[i]));
+	rmRxModelsFromDll(as<std::string>(vars[i]));
       }
     }
+  }
+  if (anyRunning){
+    rxSolveFree();
   }
   return R_NilValue;
 }

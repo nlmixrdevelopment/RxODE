@@ -1862,3 +1862,17 @@ rxModelVars <- function(obj){
     }
     return(.ret);
 }
+
+
+.rxGetModelInfoFromDll <- function(dll){
+    .base <- basename(dll)
+    if (nchar(.base) >= 36){
+        if (substr(.base,36,36) == "_"){
+            .md5 <- substring(.base,4,35);
+            return(c(.md5, paste0("rx_", .md5,  "_", .Platform$r_arch, "_")))
+        }
+    }
+    .extra <- nchar(.Platform$r_arch) + 1 + nchar(.Platform$dynlib.ext)
+    .mod <- substring(.base, 0, nchar(.base) - .extra)
+    return(c(.mod, paste0(.mod,  "_", .Platform$r_arch, "_")))
+}
