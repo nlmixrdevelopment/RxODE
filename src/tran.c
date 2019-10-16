@@ -326,7 +326,6 @@ void lineIni(vLines *sbb){
   sbb->s = Calloc(MXBUF, char);
   sbb->sN = MXBUF;
   sbb->s[0]='\0';
-  sbb->o=0;
   Free(sbb->lProp);
   Free(sbb->line);
   Free(sbb->lType);
@@ -338,6 +337,7 @@ void lineIni(vLines *sbb){
   sbb->nL=MXLINE;
   sbb->lProp[0] = -1;
   sbb->lType[0] = 0;
+  sbb->o=0;
   sbb->n = 0;
   sbb->o=0;
 }
@@ -348,8 +348,10 @@ void lineFree(vLines *sbb){
   Free(sbb->lType);
   Free(sbb->line);
   Free(sbb->os);
-  sbb->sN=0;
-  sbb->nL=0;
+  sbb->sN = 0;
+  sbb->nL = 0;
+  sbb->n  = 0;
+  sbb->o  = 0;
 }
 
 void addLine(vLines *sbb, const char *format, ...){
@@ -2523,7 +2525,7 @@ void reset (){
   nmtime=0;
   syntaxErrorExtra=0;
   extraCmt=0;
-
+  gnini = 0;
 }
 
 void writeSb(sbuf *sbb, FILE *fp){
