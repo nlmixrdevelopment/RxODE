@@ -175,6 +175,11 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	
       }
       dose=NA_REAL;
+    case 5: // multiply
+      stop("Multiplication events not currently supported with RxODE solved systems.");
+      break;
+    case 4: // replace
+      stop("Replacement events are not currently supported with RxODE solved systems.");
     case 2:
     case 1:
       if (oral) error("Infusions to depot are not possible with the linear solved system");
