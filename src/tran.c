@@ -326,6 +326,7 @@ void lineIni(vLines *sbb){
   sbb->s = Calloc(MXBUF, char);
   sbb->sN = MXBUF;
   sbb->s[0]='\0';
+  sbb->o = 0;
   Free(sbb->lProp);
   Free(sbb->line);
   Free(sbb->lType);
@@ -337,9 +338,7 @@ void lineIni(vLines *sbb){
   sbb->nL=MXLINE;
   sbb->lProp[0] = -1;
   sbb->lType[0] = 0;
-  sbb->o=0;
   sbb->n = 0;
-  sbb->o=0;
 }
 
 void lineFree(vLines *sbb){
