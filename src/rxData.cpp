@@ -4158,9 +4158,6 @@ RObject rxUnloadAll(){
       }
     }
   }
-  if (anyRunning){
-    rxSolveFree();
-  }
   return R_NilValue;
 }
 
