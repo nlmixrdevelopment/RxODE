@@ -171,9 +171,11 @@ unsigned int found_jac = 0, nmtime=0;
 int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
   rx_syntax_require_semicolon = 0, rx_syntax_allow_dots = 0,
   rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1, rx_syntax_allow_assign_state = 0,
-  maxSumProdN = 0, SumProdLD = 0, good_jac=1, extraCmt=0;
+  maxSumProdN = 0, SumProdLD = 0, good_jac=1, extraCmt=0, gnini=0;
 
 sbuf s_aux_info;
+sbuf s_inits;
+
 /* char s_aux_info[64*MXSYM*4]; */
 
 typedef struct vLines {
@@ -1898,11 +1900,11 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   }
   sAppendN(&sbOut, "\"));\n", 5);
   sClear(&s_aux_info);
-  tb.ini_i = getInits(&s_aux_info); 
+  tb.ini_i = gnini;
   
   sAppend(&sbOut, "    SEXP ini    = PROTECT(allocVector(REALSXP,%d));pro++;\n",tb.ini_i);
   sAppend(&sbOut, "    SEXP inin   = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ini_i);
-  sAppend(&sbOut, "%s",s_aux_info.s);
+  sAppend(&sbOut, "%s", s_inits.s);
   // Vector Names
   sAppendN(&sbOut, "    SET_STRING_ELT(names,0,mkChar(\"params\"));\n", 46);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  0,params);\n", 36);
@@ -2402,6 +2404,7 @@ void parseFree(int last){
   sFree(&sbt);
   sFree(&sbNrm);
   sFree(&s_aux_info);
+  sFree(&s_inits);
   lineFree(&sbPm);
   lineFree(&sbPmDt);
   lineFree(&(tb.ss));
@@ -2437,6 +2440,8 @@ void reset (){
   sIniTo(&sbt, MXBUF);
   sIniTo(&sbNrm, MXBUF);
   sIniTo(&s_aux_info, 64*MXSYM);
+
+  sIniTo(&s_inits, MXSYM);
 
   lineIni(&sbPm);
   lineIni(&sbPmDt);
@@ -2505,18 +2510,20 @@ void reset (){
   maxSumProdN = 0;
   SumProdLD = 0;
 
+  Free(md5);
+  foundDur=0;
+  foundF0=0;
+  foundF=0;
   foundLag=0;
   foundRate=0;
-  foundDur=0;
-  foundF=0;
-  foundF0=0;
-  nmtime=0;
-  Free(md5);
-  syntaxErrorExtra=0;
-  lastSyntaxErrorLine=0;
   gBufLast=0;
   lastStrLoc=0;
+  lastSyntaxErrorLine=0;
   needSort=0;
+  nmtime=0;
+  syntaxErrorExtra=0;
+  extraCmt=0;
+
 }
 
 void writeSb(sbuf *sbb, FILE *fp){
@@ -2953,15 +2960,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
       SET_STRING_ELT(params,pi++,mkChar(bufw.s));
     }
   }
-  SEXP ini2s = PROTECT(allocVector(STRSXP,1));pro++;
-  SEXP ini2   = PROTECT(allocVector(VECSXP, 2));pro++;
-  SEXP ini2i = PROTECT(allocVector(INTSXP,1));pro++;
   tb.ini_i = length(ini);
-  INTEGER(ini2i)[0] = tb.ini_i;
-  SET_VECTOR_ELT(ini2, 0, ini2i);
-  SET_STRING_ELT(ini2s,0,mkChar(s_aux_info.s));
-  SET_VECTOR_ELT(ini2, 1, ini2s);
-  setInits(ini2);
+  sPrint(&s_inits,"%s", s_aux_info.s);
+  gnini = length(ini);
 
   SET_STRING_ELT(names,0,mkChar("params"));
   SET_VECTOR_ELT(lst,  0,params);
