@@ -444,16 +444,13 @@ rxPermissive({
     ev <- et(amt=3,ii=24,until=120) %>% et(amt=3, rate=dur);
 
     context("conversion to common data frame types")
-    test_that("data.table conversion", {
-        skip_on_os("mac")
-        skip_on_os("solaris")
-        skip_on_os("windows")
-        library(data.table)
-        tmp <- data.table(ev)
-        expect_equal(names(tmp), c("time", "amt", "rate", "ii", "addl", "evid"))
-        expect_false(inherits(tmp$rate, "rxRateDur"))
-        expect_false(inherits(tmp$evid, "rxEvid"))
-    })
+    ## test_that("data.table conversion", {
+    ##     library(data.table)
+    ##     tmp <- data.table(ev)
+    ##     expect_equal(names(tmp), c("time", "amt", "rate", "ii", "addl", "evid"))
+    ##     expect_false(inherits(tmp$rate, "rxRateDur"))
+    ##     expect_false(inherits(tmp$evid, "rxEvid"))
+    ## })
 
     test_that("data.frame conversion", {
         tmp <- data.frame(ev)
