@@ -4144,14 +4144,10 @@ RObject rxUnloadAll(){
   getRxModels();
   Function dynUnload("dyn.unload", R_BaseNamespace);
   CharacterVector vars = _rxModels.ls(true);
-  bool anyRunning= false;
   for (int i = vars.size(); i--;){
     if (rxIs(_rxModels[as<std::string>(vars[i])],"integer")){
       int val = as<int>(_rxModels[as<std::string>(vars[i])]);
       if (val > 1){
-	if (fileExists(as<std::string>(vars[i]))){
-	  anyRunning=true;
-	}
       } else if (val == 0){
 	dynUnload(as<std::string>(vars[i]));
 	rmRxModelsFromDll(as<std::string>(vars[i]));
