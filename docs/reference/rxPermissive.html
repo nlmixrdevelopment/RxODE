@@ -95,10 +95,10 @@
     <li class="divider"></li>
     <li class="dropdown-header">Getting started</li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-intro.html">Introduction</a>
+      <a href="../articles/RxODE-intro.html">Introduction</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-syntax.html">RxODE mini language syntax</a>
+      <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
     </li>
     <li>
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
@@ -222,10 +222,10 @@
     </div>
 
     <pre class="usage"><span class='fu'>rxPermissive</span>(<span class='no'>expr</span>, <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fu'>.isTestthat</span>(), <span class='kw'>respect</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>rxclean</span> <span class='kw'>=</span> <span class='fu'>.isTestthat</span>(), <span class='kw'>cran</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>on.validate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)
+  <span class='kw'>cran</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>on.validate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)
 
-<span class='fu'>rxStrict</span>(<span class='no'>expr</span>, <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fu'>.isTestthat</span>(), <span class='kw'>respect</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>rxclean</span> <span class='kw'>=</span> <span class='fu'>.isTestthat</span>(), <span class='kw'>cran</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>on.validate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+<span class='fu'>rxStrict</span>(<span class='no'>expr</span>, <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fu'>.isTestthat</span>(), <span class='kw'>respect</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>cran</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>on.validate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -246,11 +246,6 @@ interactive output (useful in testing).</p></td>
       <td><p>when TRUE, respect any options that are specified.
 This is called at startup, but really should not be called
 elsewhere, otherwise the options are not changed.</p></td>
-    </tr>
-    <tr>
-      <th>rxclean</th>
-      <td><p>when TRUE, call rxClean before and after the <code>expr</code>
-is called.</p></td>
     </tr>
     <tr>
       <th>cran</th>

@@ -95,10 +95,10 @@
     <li class="divider"></li>
     <li class="dropdown-header">Getting started</li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-intro.html">Introduction</a>
+      <a href="../articles/RxODE-intro.html">Introduction</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-syntax.html">RxODE mini language syntax</a>
+      <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
     </li>
     <li>
       <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
@@ -425,7 +425,8 @@ Pharmacometrics \&amp; Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
     <span class='no'>d</span>/<span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span>(<span class='no'>centr</span>) <span class='kw'>=</span> <span class='no'>KA</span>*<span class='no'>depot</span> - <span class='no'>CL</span>*<span class='no'>C2</span> - <span class='no'>Q</span>*<span class='no'>C2</span> + <span class='no'>Q</span>*<span class='no'>C3</span>;
     <span class='no'>d</span>/<span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span>(<span class='no'>peri</span>)  <span class='kw'>=</span>                    <span class='no'>Q</span>*<span class='no'>C2</span> - <span class='no'>Q</span>*<span class='no'>C3</span>;
     <span class='no'>d</span>/<span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span>(<span class='no'>eff</span>)  <span class='kw'>=</span> <span class='no'>Kin</span> - <span class='no'>Kout</span>*(<span class='fl'>1</span>-<span class='no'>C2</span>/(<span class='no'>EC50</span>+<span class='no'>C2</span>))*<span class='no'>eff</span>;
-});</div><div class='output co'>#&gt; <span class='error'>Error in rxModelVars_(obj): Evaluation error: function 'free_D_Parser ' not provided by package 'dparser'.</span></div><div class='input'>
+});
+
 <span class='co'>## These are making the more complex regimens of the RxODE tutorial</span>
 
 <span class='co'>## bid for 5 days</span>
@@ -440,8 +441,9 @@ Pharmacometrics \&amp; Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
 
 <span class='no'>et</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='no'>bid</span>,<span class='no'>qd</span>) <span class='kw'>%&gt;%</span> <span class='fu'>et</span>(<span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>,<span class='fl'>11</span>*<span class='fl'>24</span>,<span class='kw'>length.out</span><span class='kw'>=</span><span class='fl'>100</span>));
 
-<span class='no'>bidQd</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span>(<span class='no'>mod1</span>, <span class='no'>et</span>)</div><div class='output co'>#&gt; <span class='error'>Error in rxSolve(mod1, et): object 'mod1' not found</span></div><div class='input'>
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>bidQd</span>, <span class='no'>C2</span>)</div><div class='output co'>#&gt; <span class='error'>Error in plot(bidQd, C2): object 'bidQd' not found</span></div><div class='input'>
+<span class='no'>bidQd</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span>(<span class='no'>mod1</span>, <span class='no'>et</span>)
+
+<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>bidQd</span>, <span class='no'>C2</span>)</div><div class='img'><img src='et-1.png' alt='' width='700' height='433' /></div><div class='input'>
 
 <span class='co'>## Now Infusion for 5 days followed by oral for 5 days</span>
 
@@ -454,8 +456,9 @@ Pharmacometrics \&amp; Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
 
 <span class='no'>et</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='no'>infusion</span>,<span class='no'>qd</span>)
 
-<span class='no'>infusionQd</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span>(<span class='no'>mod1</span>, <span class='no'>et</span>)</div><div class='output co'>#&gt; <span class='error'>Error in rxSolve(mod1, et): object 'mod1' not found</span></div><div class='input'>
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>infusionQd</span>, <span class='no'>C2</span>)</div><div class='output co'>#&gt; <span class='error'>Error in plot(infusionQd, C2): object 'infusionQd' not found</span></div><div class='input'>
+<span class='no'>infusionQd</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span>(<span class='no'>mod1</span>, <span class='no'>et</span>)
+
+<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>infusionQd</span>, <span class='no'>C2</span>)</div><div class='img'><img src='et-2.png' alt='' width='700' height='433' /></div><div class='input'>
 <span class='co'>## 2wk-on, 1wk-off</span>
 
 <span class='no'>qd</span> <span class='kw'>&lt;-</span> <span class='fu'>et</span>(<span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hr"</span>) <span class='kw'>%&gt;%</span> <span class='fu'>et</span>(<span class='kw'>amt</span><span class='kw'>=</span><span class='fl'>10000</span>, <span class='kw'>ii</span><span class='kw'>=</span><span class='fl'>24</span>, <span class='kw'>until</span><span class='kw'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fl'>2</span>, <span class='st'>"weeks"</span>), <span class='kw'>cmt</span><span class='kw'>=</span><span class='st'>"depot"</span>)
@@ -463,8 +466,9 @@ Pharmacometrics \&amp; Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
 <span class='no'>et</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='no'>qd</span>, <span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fl'>1</span>,<span class='st'>"weeks"</span>), <span class='no'>qd</span>) <span class='kw'>%&gt;%</span>
      <span class='fu'><a href='add.sampling.html'>add.sampling</a></span>(<span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>5.5</span>,<span class='kw'>by</span><span class='kw'>=</span><span class='fl'>0.005</span>),<span class='no'>weeks</span>))
 
-<span class='no'>wkOnOff</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span>(<span class='no'>mod1</span>, <span class='no'>et</span>)</div><div class='output co'>#&gt; <span class='error'>Error in rxSolve(mod1, et): object 'mod1' not found</span></div><div class='input'>
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>wkOnOff</span>, <span class='no'>C2</span>)</div><div class='output co'>#&gt; <span class='error'>Error in plot(wkOnOff, C2): object 'wkOnOff' not found</span></div><div class='input'>
+<span class='no'>wkOnOff</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span>(<span class='no'>mod1</span>, <span class='no'>et</span>)
+
+<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>wkOnOff</span>, <span class='no'>C2</span>)</div><div class='img'><img src='et-3.png' alt='' width='700' height='433' /></div><div class='input'>
 <span class='co'>## You can also repeat the cycle easily with the rep function</span>
 
 <span class='no'>qd</span> <span class='kw'>&lt;-</span><span class='fu'>et</span>(<span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hr"</span>) <span class='kw'>%&gt;%</span> <span class='fu'>et</span>(<span class='kw'>amt</span><span class='kw'>=</span><span class='fl'>10000</span>, <span class='kw'>ii</span><span class='kw'>=</span><span class='fl'>24</span>, <span class='kw'>until</span><span class='kw'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fl'>2</span>, <span class='st'>"weeks"</span>), <span class='kw'>cmt</span><span class='kw'>=</span><span class='st'>"depot"</span>)
@@ -472,8 +476,9 @@ Pharmacometrics \&amp; Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
 <span class='no'>et</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='etRep.html'>etRep</a></span>(<span class='no'>qd</span>, <span class='kw'>times</span><span class='kw'>=</span><span class='fl'>4</span>, <span class='kw'>wait</span><span class='kw'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fl'>1</span>,<span class='st'>"weeks"</span>)) <span class='kw'>%&gt;%</span>
      <span class='fu'><a href='add.sampling.html'>add.sampling</a></span>(<span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>12.5</span>,<span class='kw'>by</span><span class='kw'>=</span><span class='fl'>0.005</span>),<span class='no'>weeks</span>))
 
-<span class='no'>repCycle4</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span>(<span class='no'>mod1</span>, <span class='no'>et</span>)</div><div class='output co'>#&gt; <span class='error'>Error in rxSolve(mod1, et): object 'mod1' not found</span></div><div class='input'>
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>repCycle4</span>, <span class='no'>C2</span>)</div><div class='output co'>#&gt; <span class='error'>Error in plot(repCycle4, C2): object 'repCycle4' not found</span></div><div class='input'>
+<span class='no'>repCycle4</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span>(<span class='no'>mod1</span>, <span class='no'>et</span>)
+
+<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>repCycle4</span>, <span class='no'>C2</span>)</div><div class='img'><img src='et-4.png' alt='' width='700' height='433' /></div><div class='input'>
 
 </div></pre>
   </div>

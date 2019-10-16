@@ -24,10 +24,6 @@ reference:
   contents:
   - rxShiny
   - genShinyApp.template
-- title: Cleaning caches
-  contents:
-  - rxClean
-  - rxTempDir
 - title: Using RxODE in Packages
   contents:
   - rxUse
@@ -46,12 +42,12 @@ reference:
   - rxValidate
 - title: Internal functions
   contents:
-  - coef.RxODE
   - .rxFindPow
   - .rxRmPrint
   - .rxRmSens
   - .rxSymPyJacobian
   - .rxWinRtoolsPath
+  - coef.RxODE
   - is.rxEt
   - is.rxSolve
   - print.RxODE
@@ -59,6 +55,7 @@ reference:
   - rxAddReturn
   - rxAssignPtr
   - rxChain
+  - rxClean
   - rxCompile
   - rxCores
   - rxDelete
@@ -82,11 +79,13 @@ reference:
   - rxSymPySensitivity
   - rxSymPyVersion
   - rxSyncOptions
+  - rxTempDir
   - rxTrans
   - rxWinPythonSetup
   - rxWinSetup
   - summary.RxODE
   - tibble
+
 navbar:
   left:
   - text: Articles
@@ -95,9 +94,9 @@ navbar:
         - text: "--------------------------"
         - text: "Getting started"
         - text: "Introduction"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-intro.html
+          href: articles/RxODE-intro.html
         - text: "RxODE mini language syntax"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-syntax.html
+          href: articles/RxODE-syntax.html
         - text: "RxODE with piping ie %>%"
           href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html
         - text: "Speeding up RxODE ODE solving"
