@@ -176,10 +176,10 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
       }
       dose=NA_REAL;
     case 5: // multiply
-      stop("Multiplication events not currently supported with RxODE solved systems.");
+      error("Multiplication events not currently supported with RxODE solved systems.");
       break;
     case 4: // replace
-      stop("Replacement events are not currently supported with RxODE solved systems.");
+      error("Replacement events are not currently supported with RxODE solved systems.");
     case 2:
     case 1:
       if (oral) error("Infusions to depot are not possible with the linear solved system");
@@ -187,7 +187,19 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	error("You cannot turn off a compartment with a solved system.");
       }
       // Steady state
-      if (ISNA(dose)){
+      if (wh0 == 40 && dose > 0){
+	tT = t - ind->all_times[ind->idose[l]];
+	thisT = tT;
+	rate = dose;
+	cur += rate*A*alpha1*exp(-alpha*thisT);
+	if (ncmt >= 2){
+	  cur += rate*B*beta1*exp(-beta*thisT);
+	  if (ncmt >= 3){
+	    cur += rate*C*gamma1*exp(-gamma*thisT);
+	  }
+	}
+	return (ret+cur);
+      } else if (ISNA(dose)){
       } else if (dose > 0){
 	// During infusion
 	tT = t - ind->all_times[ind->idose[l]] ;
