@@ -1,0 +1,350 @@
+---
+title: "RxODE Simulation"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    self_contained: no 
+---
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+  )
+options(knitr.table.format = "html")
+htmltools::img(src = knitr::image_uri("logo.png"), 
+               alt = 'RxODE', 
+               style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
+```
+
+# Population Simulations with RxODE
+
+## Simulation of Variability with RxODE
+
+In pharmacometrics the nonlinear-mixed effect modeling software (like
+nlmixr) characterizes the between-subject variability.  With this
+between subject variability you can simulate new subjects.
+
+Assuming that you have a 2-compartment, indirect response model, you
+can set create an RxODE model describing this system below:
+
+### Setting up the RxODE model
+
+```{r}
+library(RxODE)
+mod <- RxODE({
+    eff(0) = 1
+    C2 = centr/V2*(1+prop.err);
+    C3 = peri/V3;
+    CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
+    d/dt(depot) =-KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri)  =                    Q*C2 - Q*C3;
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+})
+```
+
+### Adding  the parameter estimates
+
+The next step is to get the parameters into R so that you can start the simulation:
+
+```{r}
+theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central 
+           Q=1.05E+01, V3=2.97E+02,                # peripheral
+           Kin=1, Kout=1, EC50=200, prop.err=0)      # effects
+```
+
+In this case, I use `lotri` to specify the omega since it uses similar
+lower-triangular matrix specification as nlmixr (also similar to
+NONMEM):
+
+```{r}
+## the column names of the omega matrix need to match the parameters specified by RxODE
+omega <- lotri(eta.Cl ~ 0.4^2)
+omega
+```
+
+### Simulating 
+
+The next step to simulate is to create the dosing regimen for overall simulation:
+
+```{r}
+ev <- et(amount.units="mg", time.units="hours") %>%
+    et(amt=10000, cmt="centr")
+```
+If you wish, you can also add sampling times (though now RxODE can fill these in for you):
+
+```{r}
+ev <- ev %>% et(0,48, length.out=100);
+```
+
+Note the `et` takes similar arguments as `seq` when adding sampling
+times.  There are more methods to adding sampling times and events to
+make complex dosing regimens (See [the event
+vignette](RxODE-events.html)). This includes ways to add variability
+to the [both the sampling and dosing
+times](RxODE-events.html#add-doses-and-samples-within-a-sampling-window)).
+
+Once this is complete you can simulate using the `rxSolve` routine:
+
+```{r}
+sim  <- rxSolve(mod,theta,ev,omega=omega,nSub=100)
+```
+
+To quickly look and customize your simulation you use the default
+`plot` routine.  Since this is an RxODE object, it will create a
+`ggplot2` object that you can modify as you wish.  The extra parameter
+to the `plot` tells `RxODE`/`R` what piece of information you are
+interested in plotting. In this case, we are interested in looking at
+the derived parameter `C2`:
+
+### Checking the simulation by a simple ggplot 
+
+```{r}
+library(ggplot2)
+
+plot(sim, C2) +
+    coord_trans(y = "log10") +
+    ylab("Central Compartment") +
+    xlab("Time") +
+    guides(color=FALSE)
+```
+
+Of course this additional parameter could also be a state value, like `eff`:
+
+```{r}
+plot(sim, "eff") +
+    coord_trans(y = "log10") +
+    ylab("Effect") +
+    xlab("Time") +
+    guides(color=FALSE)
+```
+
+Or you could even look at the two side-by-side:
+
+```{r}
+plot(sim, C2, eff) +
+    coord_trans(y = "log10") +
+    ylab("Effect") +
+    xlab("Time") +
+    guides(color=FALSE)
+```
+
+### Processing the data to create summary plots
+
+Usually in pharmacometric simulations it is not enough to simply
+simulate the system.  We have to do something easier to digest, like
+look at the central and extreme tendencies of the simulation.
+
+Since the `RxODE` solve object is a type of [data
+frame](RxODE-data-frame.html)
+
+It is now straightforward to perform calculations and generate plots
+with the simulated data. Below,  the 5th, 50th, and 95th percentiles
+of the simulated data are plotted. 
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% group_by(time) %>%
+    do(data.frame(p=p, eff=quantile(.$eff, probs=p), 
+                  eff.n = length(.$eff), eff.avg = mean(.$eff),
+                  centr=quantile(.$centr, probs=p),
+                  centr.n=length(.$centr),centr.avg = mean(.$centr))) %>%
+    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+
+ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time")
+```
+
+```{r}
+ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
+    xlab("Time") + guides(color=FALSE)
+
+```
+
+Note that you can see the parameters that were simulated for the example
+
+```{r}
+head(sim$param)
+```
+
+### Simulation of unexplained variability 
+
+In addition to conveniently simulating between subject variability,
+you can also easily simulate unexplained variability.
+
+```{r}
+mod <- RxODE({
+    eff(0) = 1
+    C2 = centr/V2;
+    C3 = peri/V3;
+    CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
+    d/dt(depot) =-KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri)  =                    Q*C2 - Q*C3;
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+    e = eff+eff.err
+    cp = centr*(1+cp.err)
+})
+
+theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central 
+           Q=1.05E+01, V3=2.97E+02,                # peripheral
+           Kin=1, Kout=1, EC50=200)                # effects  
+
+sigma <- lotri(eff.err ~ 0.1, cp.err ~ 0.1)
+
+
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma)
+s <- confint(sim, c("eff", "centr"));
+
+plot(s)
+```
+
+### Simulation of Individuals
+
+Sometimes you may want to match the dosing and observations of
+individuals in a clinical trial.  To do this you will have to create a
+data.frame using the `RxODE` event specification as well as an `ID`
+column to indicate an individual. The RxODE event vignette talks more about
+how these datasets should be created.
+
+```{r}
+
+ev1 <- eventTable(amount.units="mg", time.units="hours") %>%
+    add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
+    add.sampling(seq(0,48,length.out=10));
+
+ev2 <- eventTable(amount.units="mg", time.units="hours") %>%
+    add.dosing(dose=5000, nbr.doses=1, dosing.to=2) %>%
+    add.sampling(seq(0,48,length.out=8));
+
+dat <- rbind(data.frame(ID=1, ev1$get.EventTable()),
+             data.frame(ID=2, ev2$get.EventTable()))
+
+
+## Note the number of subject is not needed since it is determined by the data
+sim  <- rxSolve(mod, theta, dat, omega=omega, sigma=sigma)
+
+sim %>% select(id, time, e, cp)
+```
+
+#### Simulation of Clinical Trials
+
+By either using a simple single event table, or data from a clinical
+trial as described above, a complete clinical trial simulation can be
+performed.
+
+Typically in clinical trial simulations you want to account for the
+uncertainty in the fixed parameter estimates, and even the uncertainty
+in both your between subject variability as well as the unexplained
+variability.
+
+`RxODE` allows you to account for these uncertainties by simulating
+multiple virtual "studies," specified by the parameter `nStud`.  In a
+single virtual study:
+
+- A Population effect parameter is sampled from a multivariate normal
+  distribution with mean given by the parameter estimates and the
+  variance specified by the named matrix `thetaMat`.
+  
+- A between subject variability/covariance matrix is sampled from
+  either a scaled inverse chi-squared distribution (for the univariate
+  case) or a inverse Wishart that is parameterized to scale to the
+  conjugate prior covariance term, as described by
+  the
+  [wikipedia article](https://en.wikipedia.org/wiki/Scaled_inverse_chi-squared_distribution). (This
+  is not the same as
+  the
+  [scaled inverse Wishart distribution](http://andrewgelman.com/2012/08/22/the-scaled-inverse-wishart-prior-distribution-for-a-covariance-matrix-in-a-hierarchical-model/) ).
+  In the case of the between subject variability, the
+  variance/covariance matrix is given by the 'omega' matrix parameter
+  and the degrees of freedom is the number of subjects in the
+  simulation.
+  
+- Unexplained variability is also simulated from the scaled inverse
+  chi squared distribution or inverse Wishart distribution with the
+  variance/covariance matrix given by the 'sigma' matrix parameter and
+  the degrees of freedom given by the number of observations being
+  simulated.
+  
+The covariance/variance prior is simulated from `RxODE`s `cvPost()` function.
+
+An example of this simulation is below:
+
+```{r}
+
+## Creating covariance matrix
+tmp <- matrix(rnorm(8^2), 8, 8)
+tMat <- tcrossprod(tmp, tmp) / (8 ^ 2)
+dimnames(tMat) <- list(NULL, names(theta))
+
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+                dfSub=10, dfObs=100)
+
+s <-sim %>% confint(c("centr", "eff"))
+
+plot(s)
+```
+
+If you wish you can see what `omega` and `sigma` was used for each
+virtual study by accessing them in the solved data object with
+`$omega.list` and `$sigma.list`:
+
+```{r}
+head(sim$omega.list)
+```
+
+```{r}
+head(sim$sigma.list)
+```
+
+You can also see the parameter realizations from the `$params` data frame.
+
+If you do not wish to sample from the prior distributions of either
+the `omega` or `sigma` matrices, you can turn off this feature by
+specifying the `simVariability = FALSE` option when solving:
+
+```{r}
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+                simVariability=FALSE);
+
+s <-sim %>% confint(c("centr", "eff"))
+
+plot(s)
+```
+
+
+Note since realizations of `omega` and `sigma` were not simulated, `$omega.list` and
+`$sigma.list` both return `NULL`.
+
+#### RxODE multi-threaded solving and simulation
+
+RxODE now supports multi-threaded solving on OpenMP supported
+compilers, including linux and windows. Mac OSX can also be supported
+By default it uses all your available cores for solving as determined
+by `rxCores()`.  This may be overkill depending on your system, at a
+certain point the speed of solving is limited by things other than
+computing power.
+
+You can also speed up simulation by using the multi-cores to generate
+random deviates with `mvnfast` (either `mvnfast::rmvn()` or
+`mvnfast::rmvt()`).  This is controlled by the `nCoresRV` parameter.
+For example:
+
+```{r}
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+                nCoresRV=2);
+
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% confint(c("eff", "centr"))
+```
+
+The default for this is `1` core since the result depends on the
+number of cores and the random seed you use in your simulation.
+However, you can always speed up this process with more cores if you
+are sure your collaborators have the same number of cores available to
+them and have OpenMP thread-capable compile.
