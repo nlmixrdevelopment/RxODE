@@ -1488,8 +1488,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   IntegerVector tmp = lst1F[0];
   if (redoId){
     Function convId = rx[".convertId"];
+    tmp.attr("class") = "factor";
+    tmp.attr("levels") = idLvl;
     tmp = convId(tmp);//as<IntegerVector>();
-    idLvl = tmp.attr("levels");
+    // idLvl = tmp.attr("levels");
     tmp.attr("class")  = R_NilValue;
     tmp.attr("levels") = R_NilValue;
     lst1F[0] = tmp;
@@ -1541,6 +1543,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   tmp = lstF[0];
   if (redoId){
     Function convId = rx[".convertId"];
+    tmp.attr("class") = "factor";
+    tmp.attr("levels") = idLvl;
     tmp = convId(tmp);//as<IntegerVector>();
     idLvl = tmp.attr("levels");
     tmp.attr("class")  = R_NilValue;
