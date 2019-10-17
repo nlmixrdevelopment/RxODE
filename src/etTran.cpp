@@ -1486,12 +1486,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     stop("Corrupted event table");
   }
   IntegerVector tmp = lst1F[0];
+  CharacterVector idLvl2;
   if (redoId){
     Function convId = rx[".convertId"];
     tmp.attr("class") = "factor";
     tmp.attr("levels") = idLvl;
     tmp = convId(tmp);//as<IntegerVector>();
-    // idLvl = tmp.attr("levels");
+    idLvl2 = tmp.attr("levels");
     tmp.attr("class")  = R_NilValue;
     tmp.attr("levels") = R_NilValue;
     lst1F[0] = tmp;
@@ -1531,7 +1532,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   e["lib.name"] = trans["lib.name"];
   e["addCmt"] = addCmt;
   e["cmtInfo"] = cmtInfo;
-  e["idLvl"] = idLvl;
+  if (redoId){
+    e["idLvl"] = idLvl2;
+  } else {
+    e["idLvl"] = idLvl;
+  }
   e["allTimeVar"] = allTimeVar;
   e["keepDosingOnly"] = true;
   keepL.attr("names") = keepN;
@@ -1546,14 +1551,17 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     tmp.attr("class") = "factor";
     tmp.attr("levels") = idLvl;
     tmp = convId(tmp);//as<IntegerVector>();
-    idLvl = tmp.attr("levels");
     tmp.attr("class")  = R_NilValue;
     tmp.attr("levels") = R_NilValue;
     lstF[0]=tmp;
   }
   if (!dropUnits){
     tmp.attr("class") = "factor";
-    tmp.attr("levels") = idLvl;
+    if (redoId){
+      tmp.attr("levels") = idLvl2;
+    } else {
+      tmp.attr("levels") = idLvl;
+    }
   }
   lstF.attr("names") = nmeF;
   lstF.attr("class") = cls;
