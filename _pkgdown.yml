@@ -98,37 +98,37 @@ navbar:
         - text: "RxODE mini language syntax"
           href: articles/RxODE-syntax.html
         - text: "RxODE with piping ie %>%"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html
+          href: articles/RxODE-pipeline.html
         - text: "Speeding up RxODE ODE solving"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html
+          href: articles/speed.html
         - text: "--------------------------"
         - text: "Advanced Features, Model Types, Technical Details"
         - text: "RxODE model types"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-model-types.html
+          href: articles/RxODE-model-types.html
         - text: "Chainging RxODE compartment numbers"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-cmt.html
+          href: articles/RxODE-cmt.html
         - text: "RxODE transit compartment models"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-transit-compartments.html
+          href: articles/RxODE-transit-compartments.html
         - text: "Using Shiny with RxODE"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-shiny.html
+          href: articles/RxODE-shiny.html
         - text: "How RxODE handles time-varying covariates"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-covariates.html
+          href: articles/RxODE-covariates.html
         - text: "Stiff Systems and Jacobian specification"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-stiff.html
+          href: articles/RxODE-stiff.html
         - text: "Adding compiled RxODE models to your package"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-rxUse.html
+          href: articles/RxODE-rxUse.html
   - text: "Dosing"
     icon: fas fa-stethoscope
-    href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-events.html
+    href: articles/RxODE-events.html
   - text: "Simulations"
     icon: fas fa-desktop
     menu:
         - text: "Single Subject ODE solving"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html
+          href: articles/rxode-single-subject.html
         - text: "Multiple Subject RxODE Simulation"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html
+          href: articles/RxODE-sim-var.html
         - text: "Using Prior Data for ODE solving"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html
+          href: articles/RxODE-prior-data.html
   - text: "Tutorial"
     icon: fas fa-life-ring
     href: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf
