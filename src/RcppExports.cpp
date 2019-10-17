@@ -1134,6 +1134,40 @@ RcppExport SEXP _RxODE_rxUnlock(SEXP objSEXP) {
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// rxAllowUnload
+bool rxAllowUnload(bool allow);
+static SEXP _RxODE_rxAllowUnload_try(SEXP allowSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< bool >::type allow(allowSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxAllowUnload(allow));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _RxODE_rxAllowUnload(SEXP allowSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_RxODE_rxAllowUnload_try(allowSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 // rxUnloadAll
 RObject rxUnloadAll();
 static SEXP _RxODE_rxUnloadAll_try() {
@@ -1592,6 +1626,7 @@ static int _RxODE_RcppExport_validate(const char* sig) {
         signatures.insert("bool(*rxDynLoad)(RObject)");
         signatures.insert("RObject(*rxLock)(RObject)");
         signatures.insert("RObject(*rxUnlock)(RObject)");
+        signatures.insert("bool(*rxAllowUnload)(bool)");
         signatures.insert("RObject(*rxUnloadAll)()");
         signatures.insert("bool(*rxDynUnload)(RObject)");
         signatures.insert("bool(*rxDelete)(RObject)");
@@ -1638,6 +1673,7 @@ RcppExport SEXP _RxODE_RcppExport_registerCCallable() {
     R_RegisterCCallable("RxODE", "_RxODE_rxDynLoad", (DL_FUNC)_RxODE_rxDynLoad_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxLock", (DL_FUNC)_RxODE_rxLock_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxUnlock", (DL_FUNC)_RxODE_rxUnlock_try);
+    R_RegisterCCallable("RxODE", "_RxODE_rxAllowUnload", (DL_FUNC)_RxODE_rxAllowUnload_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxUnloadAll", (DL_FUNC)_RxODE_rxUnloadAll_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxDynUnload", (DL_FUNC)_RxODE_rxDynUnload_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxDelete", (DL_FUNC)_RxODE_rxDelete_try);

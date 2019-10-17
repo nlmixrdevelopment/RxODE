@@ -114,6 +114,7 @@ SEXP _RxODE_rxSetSilentErr(SEXP silentSEXP);
 SEXP _RxODE_rxUnloadAll();
 SEXP _RxODE_rxLock(SEXP);
 SEXP _RxODE_rxUnlock(SEXP);
+SEXP _RxODE_rxAllowUnload(SEXP);
 
 extern int rxIsCurrentC(SEXP obj);
 
@@ -215,6 +216,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxUnloadAll", (DL_FUNC) &_RxODE_rxUnloadAll, 0},
     {"_RxODE_rxLock", (DL_FUNC) &_RxODE_rxLock, 1},
     {"_RxODE_rxUnlock", (DL_FUNC) &_RxODE_rxUnlock, 1},
+    {"_RxODE_rxAllowUnload", (DL_FUNC) &_RxODE_rxAllowUnload, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

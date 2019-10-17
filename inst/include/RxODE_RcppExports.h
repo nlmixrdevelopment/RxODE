@@ -612,6 +612,27 @@ namespace RxODE {
         return Rcpp::as<RObject >(rcpp_result_gen);
     }
 
+    inline bool rxAllowUnload(bool allow) {
+        typedef SEXP(*Ptr_rxAllowUnload)(SEXP);
+        static Ptr_rxAllowUnload p_rxAllowUnload = NULL;
+        if (p_rxAllowUnload == NULL) {
+            validateSignature("bool(*rxAllowUnload)(bool)");
+            p_rxAllowUnload = (Ptr_rxAllowUnload)R_GetCCallable("RxODE", "_RxODE_rxAllowUnload");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxAllowUnload(Shield<SEXP>(Rcpp::wrap(allow)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<bool >(rcpp_result_gen);
+    }
+
     inline RObject rxUnloadAll() {
         typedef SEXP(*Ptr_rxUnloadAll)();
         static Ptr_rxUnloadAll p_rxUnloadAll = NULL;

@@ -4135,6 +4135,26 @@ void rmRxModelsFromDll(std::string str){
     _rxModels.remove(str);
   }
 }
+bool rxUnload_ = false;
+//' Allow unloading of dlls
+//'
+//' @param allow boolean indicating if garbage collection will unload of RxODE dlls.
+//'
+//' @examples
+//'
+//' # Garbage collection will not unload un-used RxODE dlls
+//' rxAllowUnload(FALSE);
+//'
+//' # Garbage collection will unload unused RxODE dlls
+//' rxAllowUnload(TRUE);
+//' @export
+//' @author Matthew Fidler
+//[[Rcpp::export]]
+bool rxAllowUnload(bool allow){
+  rxUnload_=allow;
+  return rxUnload_;
+}
+
 
 //' Unload all RxODE Dlls that are not locked for solving.
 //' @return NULL
@@ -4148,7 +4168,7 @@ RObject rxUnloadAll(){
     if (rxIs(_rxModels[as<std::string>(vars[i])],"integer")){
       int val = as<int>(_rxModels[as<std::string>(vars[i])]);
       if (val > 1){
-      } else if (val == 0){
+      } else if (val == 0 && rxUnload_){
 	dynUnload(as<std::string>(vars[i]));
 	rmRxModelsFromDll(as<std::string>(vars[i]));
       }
@@ -4168,6 +4188,7 @@ RObject rxUnloadAll(){
 //' @export
 //[[Rcpp::export]]
 bool rxDynUnload(RObject obj){
+  if (!rxUnload_) return false;
   if (rxIs(obj, "RxODE")){
     Environment e = as<Environment>(obj);
     Nullable<CharacterVector> pkg = e["package"];

@@ -446,6 +446,23 @@ rxUnlock <- function(obj) {
     .Call(`_RxODE_rxUnlock`, obj)
 }
 
+#' Allow unloading of dlls
+#'
+#' @param allow boolean indicating if garbage collection will unload of RxODE dlls.
+#'
+#' @examples
+#'
+#' # Garbage collection will not unload un-used RxODE dlls
+#' rxAllowUnload(FALSE);
+#'
+#' # Garbage collection will unload unused RxODE dlls
+#' rxAllowUnload(TRUE);
+#' @export
+#' @author Matthew Fidler
+rxAllowUnload <- function(allow) {
+    .Call(`_RxODE_rxAllowUnload`, allow)
+}
+
 #' Unload all RxODE Dlls that are not locked for solving.
 #' @return NULL
 #' @export
