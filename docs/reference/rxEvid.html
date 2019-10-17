@@ -103,38 +103,38 @@ be displayed in a tibble." />
       <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
+      <a href="../articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/speed.html">Speeding up RxODE ODE solving</a>
+      <a href="../articles/speed.html">Speeding up RxODE ODE solving</a>
     </li>
     <li class="divider"></li>
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-model-types.html">RxODE model types</a>
+      <a href="../articles/RxODE-model-types.html">RxODE model types</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-cmt.html">Chainging RxODE compartment numbers</a>
+      <a href="../articles/RxODE-cmt.html">Chainging RxODE compartment numbers</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-transit-compartments.html">RxODE transit compartment models</a>
+      <a href="../articles/RxODE-transit-compartments.html">RxODE transit compartment models</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-shiny.html">Using Shiny with RxODE</a>
+      <a href="../articles/RxODE-shiny.html">Using Shiny with RxODE</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
+      <a href="../articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
+      <a href="../articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
+      <a href="../articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
     </li>
   </ul>
 </li>
 <li>
-  <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-events.html">
+  <a href="../articles/RxODE-events.html">
     <span class="fas fa fas fa-stethoscope"></span>
      
     Dosing
@@ -150,13 +150,13 @@ be displayed in a tibble." />
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/rxode-single-subject.html">Single Subject ODE solving</a>
+      <a href="../articles/rxode-single-subject.html">Single Subject ODE solving</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
+      <a href="../articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
+      <a href="../articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
     </li>
   </ul>
 </li>
@@ -274,14 +274,14 @@ format(x, ...)</pre>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'>
-<span class='fu'>rxEvid</span>(<span class='fl'>1</span>:<span class='fl'>7</span>)</div><div class='output co'>#&gt; <span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>                
-#&gt; </span><span style='color: #0000BB;font-weight: bold;'>2</span><span>:</span><span style='color: #BBBB00;'>Other</span><span>                     
-#&gt; </span><span style='color: #0000BB;font-weight: bold;'>3</span><span>:</span><span style='color: #BB0000;'>Reset</span><span>                     
-#&gt; </span><span style='color: #0000BB;font-weight: bold;'>4</span><span>:</span><span style='color: #BB0000;'>Reset</span><span>&amp;</span><span style='color: #BBBB00;'>Dose</span><span>
-#&gt; </span><span style='color: #0000BB;font-weight: bold;'>5</span><span>:</span><span style='color: #BB0000;'>Replace</span><span>                   
-#&gt; </span><span style='color: #0000BB;font-weight: bold;'>6</span><span>:</span><span style='color: #BBBB00;'>Multiply</span><span>                  
-#&gt; </span><span style='color: #BB0000;'>7</span><span>:</span><span style='color: #BB0000;'>Invalid</span><span>                   </div><div class='input'>
-</div></span></pre>
+<span class='fu'>rxEvid</span>(<span class='fl'>1</span>:<span class='fl'>7</span>)</div><div class='output co'>#&gt; 1:Dose (Add)
+#&gt; 2:Other     
+#&gt; 3:Reset     
+#&gt; 4:Reset&amp;Dose
+#&gt; 5:Replace   
+#&gt; 6:Multiply  
+#&gt; 7:Invalid    </div><div class='input'>
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>

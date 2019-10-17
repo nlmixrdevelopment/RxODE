@@ -23,3 +23,5 @@ inst/doc
 *.gch
 *.gcno
 /src/Makevars.r-stripper.bak
+/vignettes/*_files/
+

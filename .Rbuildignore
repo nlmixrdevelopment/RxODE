@@ -50,3 +50,6 @@ vignettes/alpha-lincmt.csv
 vignettes/cl-lincmt.csv
 vignettes/kel-lincmt.csv
 vignettes/build.R
+vignettes/*_files/
+vignettes/*.html
+
