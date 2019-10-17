@@ -4135,7 +4135,7 @@ void rmRxModelsFromDll(std::string str){
     _rxModels.remove(str);
   }
 }
-bool rxUnload_ = false;
+bool rxUnload_ = true;
 //' Allow unloading of dlls
 //'
 //' @param allow boolean indicating if garbage collection will unload of RxODE dlls.
