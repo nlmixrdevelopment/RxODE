@@ -20,6 +20,7 @@ htmltools::img(src = knitr::image_uri("logo.png"),
 ```{r setup}
 library(RxODE)
 ```
+
 # Setting up the RxODE model for the pipeline
 
 In this example we will show how to use RxODE in a simple pipeline.

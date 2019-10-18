@@ -35,7 +35,9 @@ LICENSE
 vignettes/RxODE-cmt.Rmd
 vignettes/RxODE-covariates.Rmd
 vignettes/RxODE-data-frame.Rmd
-vignettes/RxODE-events.Rmd
+vignettes/RxODE-event-types.Rmd
+vignettes/RxODE-event-table.Rmd
+vignettes/RxODE-events-classic.Rmd
 vignettes/RxODE-model-types.Rmd
 vignettes/RxODE-pipeline.Rmd
 vignettes/RxODE-prior-data.Rmd

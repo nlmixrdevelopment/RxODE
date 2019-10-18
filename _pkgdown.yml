@@ -117,9 +117,15 @@ navbar:
           href: articles/RxODE-stiff.html
         - text: "Adding compiled RxODE models to your package"
           href: articles/RxODE-rxUse.html
-  - text: "Dosing"
+  - text: "Dosing/Events"
     icon: fas fa-stethoscope
-    href: articles/RxODE-events.html
+    menu:
+        - text: "Supported Event Types"
+          href: articles/RxODE-event-types.html 
+        - text: "Easy RxODE Event Tables"
+          href: articles/RxODE-event-table.html
+        - text: "Classic RxODE events explained"
+          href: articles/RxODE-events-classic.html
   - text: "Simulations"
     icon: fas fa-desktop
     menu:

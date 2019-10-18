@@ -5,7 +5,9 @@ articles:
   RxODE-cmt: RxODE-cmt.html
   RxODE-covariates: RxODE-covariates.html
   RxODE-data-frame: RxODE-data-frame.html
-  RxODE-events: RxODE-events.html
+  RxODE-event-table: RxODE-event-table.html
+  RxODE-event-types: RxODE-event-types.html
+  RxODE-events-classic: RxODE-events-classic.html
   RxODE-intro: RxODE-intro.html
   RxODE-model-types: RxODE-model-types.html
   RxODE-pipeline: RxODE-pipeline.html
