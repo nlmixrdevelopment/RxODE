@@ -307,12 +307,12 @@ s &lt;-sim <span class="op">%&gt;%</span><span class="st"> </span><span class="k
 <p>Note that you can see the parameters that were simulated for the example</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(sim<span class="op">$</span>param)
 <span class="co">#&gt;   sim.id   V2 prop.err  V3  TCl      eta.Cl    KA    Q Kin Kout EC50</span>
-<span class="co">#&gt; 1      1 40.2        0 297 18.6  0.43244898 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 2      2 40.2        0 297 18.6  0.14430843 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 3      3 40.2        0 297 18.6  0.36336112 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 4      4 40.2        0 297 18.6  0.14847603 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 5      5 40.2        0 297 18.6  0.06717387 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 6      6 40.2        0 297 18.6 -0.13051849 0.294 10.5   1    1  200</span></code></pre></div>
+<span class="co">#&gt; 1      1 40.2        0 297 18.6 -0.16834394 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 2      2 40.2        0 297 18.6  0.46071575 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 3      3 40.2        0 297 18.6  0.53657967 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 4      4 40.2        0 297 18.6 -0.03781935 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 5      5 40.2        0 297 18.6 -0.14433377 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 6      6 40.2        0 297 18.6 -0.42609031 0.294 10.5   1    1  200</span></code></pre></div>
 </div>
 <div id="simulation-of-unexplained-variability" class="section level3">
 <h3 class="hasAnchor">
@@ -371,25 +371,25 @@ sim  &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolv
 <span class="co">#&gt;  Parameters are assumed to have the same order as the IDs in the event dataset</span>
 
 sim <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span>(id, time, e, cp)
-<span class="co">#&gt;    id          time         e          cp</span>
-<span class="co">#&gt; 1   1  0.000000 [h] 1.1494859 10984.75212</span>
-<span class="co">#&gt; 2   1  5.333333 [h] 0.5957736   345.52498</span>
-<span class="co">#&gt; 3   1 10.666667 [h] 1.2774139   167.46299</span>
-<span class="co">#&gt; 4   1 16.000000 [h] 0.6395992   150.86101</span>
-<span class="co">#&gt; 5   1 21.333333 [h] 0.5450076    94.14953</span>
-<span class="co">#&gt; 6   1 26.666667 [h] 1.6489250    63.74051</span>
-<span class="co">#&gt; 7   1 32.000000 [h] 1.8854942   121.26475</span>
-<span class="co">#&gt; 8   1 37.333333 [h] 0.8375162    84.20083</span>
-<span class="co">#&gt; 9   1 42.666667 [h] 0.9018617    90.35481</span>
-<span class="co">#&gt; 10  1 48.000000 [h] 1.2047912    46.82468</span>
-<span class="co">#&gt; 11  2  0.000000 [h] 1.3974688  6205.28271</span>
-<span class="co">#&gt; 12  2  6.857143 [h] 1.1450532    60.87708</span>
-<span class="co">#&gt; 13  2 13.714286 [h] 1.5729012   116.15395</span>
-<span class="co">#&gt; 14  2 20.571429 [h] 0.4641568    73.45739</span>
-<span class="co">#&gt; 15  2 27.428571 [h] 0.7900453    60.36164</span>
-<span class="co">#&gt; 16  2 34.285714 [h] 0.4690851    28.92201</span>
-<span class="co">#&gt; 17  2 41.142857 [h] 0.8371044    33.86744</span>
-<span class="co">#&gt; 18  2 48.000000 [h] 0.7437189    33.87933</span></code></pre></div>
+<span class="co">#&gt;    id          time         e         cp</span>
+<span class="co">#&gt; 1   1  0.000000 [h] 1.1766097 4677.81554</span>
+<span class="co">#&gt; 2   1  5.333333 [h] 1.1085071  378.74494</span>
+<span class="co">#&gt; 3   1 10.666667 [h] 1.2566410  148.40536</span>
+<span class="co">#&gt; 4   1 16.000000 [h] 0.7416949   99.68373</span>
+<span class="co">#&gt; 5   1 21.333333 [h] 1.4159730  189.11225</span>
+<span class="co">#&gt; 6   1 26.666667 [h] 1.0867251   84.33689</span>
+<span class="co">#&gt; 7   1 32.000000 [h] 1.1898571   91.53686</span>
+<span class="co">#&gt; 8   1 37.333333 [h] 1.1106234  110.83035</span>
+<span class="co">#&gt; 9   1 42.666667 [h] 0.2723578   66.39245</span>
+<span class="co">#&gt; 10  1 48.000000 [h] 1.2127651    5.62791</span>
+<span class="co">#&gt; 11  2  0.000000 [h] 1.2472464 7076.63148</span>
+<span class="co">#&gt; 12  2  6.857143 [h] 1.0957736  249.08856</span>
+<span class="co">#&gt; 13  2 13.714286 [h] 1.1880099  178.43812</span>
+<span class="co">#&gt; 14  2 20.571429 [h] 1.3899743  124.88032</span>
+<span class="co">#&gt; 15  2 27.428571 [h] 0.4069464  105.03616</span>
+<span class="co">#&gt; 16  2 34.285714 [h] 1.2871780  127.32105</span>
+<span class="co">#&gt; 17  2 41.142857 [h] 1.1902977   91.82505</span>
+<span class="co">#&gt; 18  2 48.000000 [h] 1.0540778   81.94206</span></code></pre></div>
 <div id="simulation-of-clinical-trials" class="section level4">
 <h4 class="hasAnchor">
 <a href="#simulation-of-clinical-trials" class="anchor"></a>Simulation of Clinical Trials</h4>
@@ -422,57 +422,57 @@ s &lt;-sim <span class="op">%&gt;%</span><span class="st"> </span><span class="k
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(sim<span class="op">$</span>omega.list)
 <span class="co">#&gt; [[1]]</span>
 <span class="co">#&gt;          [,1]</span>
-<span class="co">#&gt; [1,] 0.124657</span>
+<span class="co">#&gt; [1,] 0.110537</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[2]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.1409532</span>
+<span class="co">#&gt; [1,] 0.2094175</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[3]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.3564909</span>
+<span class="co">#&gt; [1,] 0.2135492</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[4]]</span>
-<span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.3568172</span>
+<span class="co">#&gt;            [,1]</span>
+<span class="co">#&gt; [1,] 0.09069321</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[5]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.2257407</span>
+<span class="co">#&gt; [1,] 0.1513236</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[6]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.3406143</span></code></pre></div>
+<span class="co">#&gt; [1,] 0.2280595</span></code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(sim<span class="op">$</span>sigma.list)
 <span class="co">#&gt; [[1]]</span>
-<span class="co">#&gt;              [,1]         [,2]</span>
-<span class="co">#&gt; [1,]  0.104016476 -0.004330637</span>
-<span class="co">#&gt; [2,] -0.004330637  0.100034405</span>
+<span class="co">#&gt;             [,1]        [,2]</span>
+<span class="co">#&gt; [1,]  0.08440022 -0.00668417</span>
+<span class="co">#&gt; [2,] -0.00668417  0.08720625</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[2]]</span>
-<span class="co">#&gt;            [,1]       [,2]</span>
-<span class="co">#&gt; [1,] 0.09666491 0.00959482</span>
-<span class="co">#&gt; [2,] 0.00959482 0.09191361</span>
+<span class="co">#&gt;             [,1]        [,2]</span>
+<span class="co">#&gt; [1,]  0.09807356 -0.00211668</span>
+<span class="co">#&gt; [2,] -0.00211668  0.12274270</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[3]]</span>
 <span class="co">#&gt;            [,1]       [,2]</span>
-<span class="co">#&gt; [1,] 0.08960658 0.01014671</span>
-<span class="co">#&gt; [2,] 0.01014671 0.10144415</span>
+<span class="co">#&gt; [1,] 0.10174879 0.01190705</span>
+<span class="co">#&gt; [2,] 0.01190705 0.12668240</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[4]]</span>
-<span class="co">#&gt;             [,1]        [,2]</span>
-<span class="co">#&gt; [1,]  0.10917941 -0.01422869</span>
-<span class="co">#&gt; [2,] -0.01422869  0.08224808</span>
+<span class="co">#&gt;            [,1]       [,2]</span>
+<span class="co">#&gt; [1,] 0.11725719 0.01295107</span>
+<span class="co">#&gt; [2,] 0.01295107 0.11508527</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[5]]</span>
-<span class="co">#&gt;             [,1]        [,2]</span>
-<span class="co">#&gt; [1,]  0.10153988 -0.01092239</span>
-<span class="co">#&gt; [2,] -0.01092239  0.09758640</span>
+<span class="co">#&gt;           [,1]      [,2]</span>
+<span class="co">#&gt; [1,] 0.1033827 0.0124046</span>
+<span class="co">#&gt; [2,] 0.0124046 0.1054662</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[6]]</span>
-<span class="co">#&gt;              [,1]         [,2]</span>
-<span class="co">#&gt; [1,]  0.096372141 -0.005107412</span>
-<span class="co">#&gt; [2,] -0.005107412  0.118679693</span></code></pre></div>
+<span class="co">#&gt;            [,1]       [,2]</span>
+<span class="co">#&gt; [1,] 0.11312213 0.02072849</span>
+<span class="co">#&gt; [2,] 0.02072849 0.11728401</span></code></pre></div>
 <p>You can also see the parameter realizations from the <code>$params</code> data frame.</p>
 <p>If you do not wish to sample from the prior distributions of either the <code>omega</code> or <code>sigma</code> matrices, you can turn off this feature by specifying the <code>simVariability = FALSE</code> option when solving:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sim  &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(mod, theta, ev, <span class="dt">omega=</span>omega, <span class="dt">nSub=</span><span class="dv">100</span>, <span class="dt">sigma=</span>sigma, <span class="dt">thetaMat=</span>tMat, <span class="dt">nStud=</span><span class="dv">10</span>,

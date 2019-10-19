@@ -13,9 +13,8 @@ knitr::opts_chunk$set( comment = "#>")
 htmltools::img(src = knitr::image_uri("logo.png"), 
                alt = 'RxODE', 
                style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
-options(width=80)
-Sys.setenv(RSTUDIO_CONSOLE_WIDTH=80)
 ```
+
 # Creating RxODE's event tables
 
 An event table in RxODE is a specialized data frame that acts as a
@@ -37,7 +36,28 @@ or
 (ev <- et());
 ```
 
-For these models, we can illustrate by using the model shared in the RxODE tutorial:
+With this event table you can add sampling/observations or doses by
+piping or direct access.
+
+This is a short table of the two main functions to create dosing
+
+| add.dosing()    | et() | Description                         |
+|-----------------|------|-------------------------------------|
+| dose            | amt  | Dose/Rate/Duration amount           |
+| nbr.doses       | addl | Additional doses or number of doses |
+| dosing.interval | ii   | Dosing Interval                     |
+| dosing.to       | cmt  | Dosing Compartment                  |
+| rate            | rate | Infusion rate                       |
+| start.time      | time | Dosing start time                   |
+|                 | dur  | Infusion Duration                   |
+
+Sampling times can be added with `add.sampling(` sampling times `)` or
+`et(` sampling times `)`.  [Dosing intervals and sampling
+windows](#add-doses-and-samples-within-a-sampling-window) are also
+supported.
+
+For these models, we can illustrate by using the model shared in the
+RxODE tutorial:
 
 ```{r}
 ## Model from RxODE tutorial

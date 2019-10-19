@@ -224,15 +224,15 @@ et<span class="op">$</span><span class="kw"><a href="../reference/add.dosing.htm
 
 s1 &lt;-<span class="st"> </span>Vtpol2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw"><a href="https://rdrr.io/r/base/solve.html">solve</a></span>(et, <span class="dt">method=</span><span class="st">"lsoda"</span>)
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(s1)</code></pre></div>
-<pre><code>## ______________________________ Solved RxODE object _____________________________
-## -- Parameters ($params): -------------------------------------------------------
+<pre><code>## ___________________________ Solved RxODE object ___________________________
+## -- Parameters ($params): --------------------------------------------------
 ##  
 ## mu 
 ##  1 
-## -- Initial Conditions ($inits): ------------------------------------------------
+## -- Initial Conditions ($inits): -------------------------------------------
 ##  y dy 
 ##  2  0 
-## -- First part of data (object): ------------------------------------------------
+## -- First part of data (object): -------------------------------------------
 ## # A tibble: 200 x 3
 ##     time     y      dy
 ##    &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
@@ -243,19 +243,19 @@ s1 &lt;-<span class="st"> </span>Vtpol2 <span class="op">%&gt;%</span><span clas
 ## 5 0.201   22.0 -0.0456
 ## 6 0.251   22.0 -0.0456
 ## # ... with 194 more rows
-## ________________________________________________________________________________</code></pre>
+## ___________________________________________________________________________</code></pre>
 <p>While this is not stiff at mu=1, mu=1000 is a stiff system</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s2 &lt;-<span class="st"> </span>Vtpol2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw"><a href="https://rdrr.io/r/base/solve.html">solve</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dt">mu=</span><span class="dv">1000</span>), et)
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(s2)</code></pre></div>
-<pre><code>## ______________________________ Solved RxODE object _____________________________
-## -- Parameters ($params): -------------------------------------------------------
+<pre><code>## ___________________________ Solved RxODE object ___________________________
+## -- Parameters ($params): --------------------------------------------------
 ##  
 ##   mu 
 ## 1000 
-## -- Initial Conditions ($inits): ------------------------------------------------
+## -- Initial Conditions ($inits): -------------------------------------------
 ##  y dy 
 ##  2  0 
-## -- First part of data (object): ------------------------------------------------
+## -- First part of data (object): -------------------------------------------
 ## # A tibble: 200 x 3
 ##     time     y         dy
 ##    &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;
@@ -266,7 +266,7 @@ s1 &lt;-<span class="st"> </span>Vtpol2 <span class="op">%&gt;%</span><span clas
 ## 5 0.201   22.0 -0.0000455
 ## 6 0.251   22.0 -0.0000455
 ## # ... with 194 more rows
-## ________________________________________________________________________________</code></pre>
+## ___________________________________________________________________________</code></pre>
 <p>While this is easy enough to do, it is a bit tedious. If you have RxODE setup appropriately, that is you have:</p>
 <ul>
 <li>
