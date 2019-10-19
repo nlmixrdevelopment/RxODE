@@ -1,4 +1,4 @@
-year <- sub("-.*", "", meta$Date)
+year <- format(Sys.time(), "%Y")
 note <- sprintf("R package version %s", meta$Version)
 
 bibentry(bibtype = "Manual",
