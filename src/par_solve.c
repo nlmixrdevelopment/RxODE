@@ -200,7 +200,7 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
 	RSprintf0(" ");
       }
       RSprintf0("] ");
-      if (nticks < 50) Rprintf(" ");
+      if (nticks < 50) RSprintf0(" ");
       if (cores > 1){
 	RSprintf("%02.f%%; n=%d; ",100*progress,cores);
       } else {
@@ -209,16 +209,16 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
       clock_t t = clock() - t0;
       double ts = ((double)t)/CLOCKS_PER_SEC;
       if (ts < 60){
-	Rprintf("0:00:%02.f ", floor(ts));
+	RSprintf("0:00:%02.f ", floor(ts));
       } else {
 	double f = floor(ts/60);
 	double s = ts-f*60;
 	if (f >= 60){
 	  double h = floor(f/60);
 	  f = f-h*60;
-	  Rprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
+	  RSprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
 	} else {
-	  Rprintf("0:%02.f:%02.f", f, floor(s));
+	  RSprintf("0:%02.f:%02.f", f, floor(s));
 	}
       }
       if (stop){
