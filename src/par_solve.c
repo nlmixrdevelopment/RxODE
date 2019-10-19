@@ -268,7 +268,7 @@ SEXP _rxProgressStop(SEXP clear){
       /* Rprintf("\r                                                                                \r"); */
       Rprintf("\n");
     } else {
-      RSprintf0("\r                                                                                \r");
+      RSprintf0("\r                                                                                                    \r");
     }
   } else {
     par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
