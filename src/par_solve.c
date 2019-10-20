@@ -125,12 +125,19 @@ void par_flush_console() {
 
 int isRstudio();
 int isProgSupported();
-
+int par_progress_0=0;
 int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   float progress = (float)(c)/((float)(n));
+  if (progress < 0.) progress = 0.;
+  if (progress > 1.) progress = 1.;
+  if (progress == 0.) par_progress_0=0;
   if (c <= n){
     int nticks= (int)(progress * 50);
     int curTicks = d;
+    if (nticks < 0) nticks=0;
+    if (nticks > 50) nticks=50;
+    if (curTicks < 0) curTicks=0;
+    if (curTicks > 50) curTicks=50;
     int isSupported = isProgSupported();
     if (isSupported == -1){
     } else if (isSupported == 0){
@@ -144,85 +151,108 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
 	  Rprintf("=");
 	}
       }
+      if (nticks == 50){
+	if (!par_progress_0){
+	  par_progress_0 = 1;
+	  Rprintf("] ");
+	  clock_t t = clock() - t0;
+	  double ts = ((double)t)/CLOCKS_PER_SEC;
+	  if (ts < 60){
+	    Rprintf("0:00:%02.f ", floor(ts));
+	  } else {
+	    double f = floor(ts/60);
+	    double s = ts-f*60;
+	    if (f >= 60){
+	      double h = floor(f/60);
+	      f = f-h*60;
+	      Rprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
+	    } else {
+	      Rprintf("0:%02.f:%02.f ", f, floor(s));
+	    }
+	  }
+	}
+      }
     } else if (isRstudio()){
-      Rprintf("\r");
-      int i;
-      for (i = 0; i < nticks; i++){
-	if (i == 0) {
-	  Rprintf("[");
-	} else if (i % 5 == 0) {
-	  Rprintf("|");
-	} else {
-	  Rprintf("=");
+      if (!par_progress_0){
+	Rprintf("\r");
+	int i;
+	for (i = 0; i < nticks; i++){
+	  if (i == 0) {
+	    Rprintf("[");
+	  } else if (i % 5 == 0) {
+	    Rprintf("|");
+	  } else {
+	    Rprintf("=");
+	  }
 	}
-      }
-      for (i = nticks; i < 50; i++){
-	Rprintf(" ");
-      }
-      Rprintf("] ");
-      if (nticks < 50) Rprintf(" ");
-      if (cores > 1){
-	Rprintf("%02.f%%; n=%d; ",100*progress,cores);
-      } else {
+	if (nticks < 50) {Rprintf(">");}
+	else {par_progress_0 = 1;}
+	for (i = nticks+1; i < 50; i++){
+	  Rprintf("-");
+	}
+	Rprintf("] ");
+	if (nticks < 50) Rprintf(" ");
 	Rprintf("%02.f%%; ",100*progress,cores);
-      }
-      clock_t t = clock() - t0;
-      double ts = ((double)t)/CLOCKS_PER_SEC;
-      if (ts < 60){
-	Rprintf("0:00:%02.f ", floor(ts));
-      } else {
-	double f = floor(ts/60);
-	double s = ts-f*60;
-	if (f >= 60){
-	  double h = floor(f/60);
-	  f = f-h*60;
-	  Rprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
+	clock_t t = clock() - t0;
+	double ts = ((double)t)/CLOCKS_PER_SEC;
+	if (ts < 60){
+	  Rprintf("0:00:%02.f ", floor(ts));
 	} else {
-	  Rprintf("0:%02.f:%02.f ", f, floor(s));
+	  double f = floor(ts/60);
+	  double s = ts-f*60;
+	  if (f >= 60){
+	    double h = floor(f/60);
+	    f = f-h*60;
+	    Rprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
+	  } else {
+	    Rprintf("0:%02.f:%02.f ", f, floor(s));
+	  }
 	}
-      }
-      if (stop){
-	Rprintf("Stopped Calculation!\n");
+	if (stop){
+	  Rprintf("Stopped Calculation!\n");
+	}
       }
     } else {
-      RSprintf0("\r");
-      int i;
-      for (i = 0; i < nticks; i++){
-	if (i == 0) {
-	  RSprintf0("%%[");
-	} else if (i % 5 == 0) {
-	  RSprintf0("|");
-	} else {
-	  RSprintf0("=");
+      if (!par_progress_0){
+	RSprintf0("\r");
+	int i;
+	for (i = 0; i < nticks; i++){
+	  if (i == 0) {
+	    RSprintf0("%%[");
+	  } else if (i % 5 == 0) {
+	    RSprintf0("|");
+	  } else {
+	    RSprintf0("=");
+	  }
 	}
-      }
-      for (i = nticks; i < 50; i++){
-	RSprintf0(" ");
-      }
-      RSprintf0("] ");
-      if (nticks < 50) RSprintf0(" ");
-      if (cores > 1){
-	RSprintf("%02.f%%; n=%d; ",100*progress,cores);
-      } else {
+	if (nticks < 50) { RSprintf0(">");}
+	else {par_progress_0 = 1;}
+	if (nticks + 1 < 50){
+	  for (i = nticks+1; i < 50; i++){
+	    RSprintf0("-");
+	  }
+	}
+	RSprintf0("] ");
+	if (nticks < 50) RSprintf0(" ");
 	RSprintf("%02.f%%; ",100*progress,cores);
-      }
-      clock_t t = clock() - t0;
-      double ts = ((double)t)/CLOCKS_PER_SEC;
-      if (ts < 60){
-	RSprintf("0:00:%02.f ", floor(ts));
-      } else {
-	double f = floor(ts/60);
-	double s = ts-f*60;
-	if (f >= 60){
-	  double h = floor(f/60);
-	  f = f-h*60;
-	  RSprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
+	clock_t t = clock() - t0;
+	double ts = ((double)t)/CLOCKS_PER_SEC;
+	if (ts < 60){
+	  RSprintf("0:00:%02.f ", floor(ts));
 	} else {
-	  RSprintf("0:%02.f:%02.f", f, floor(s));
+	  double f = floor(ts/60);
+	  double s = ts-f*60;
+	  if (f >= 60){
+	    double h = floor(f/60);
+	    f = f-h*60;
+	    RSprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
+	  } else {
+	    RSprintf("0:%02.f:%02.f", f, floor(s));
+	  }
 	}
-      }
-      if (stop){
-	RSprintf0("Stopped Calculation!\n");
+	if (stop){
+	  RSprintf0("Stopped Calculation!\n");
+	}
       }
     }
     par_flush_console();
@@ -260,6 +290,7 @@ SEXP _rxProgress(SEXP num, SEXP core){
 }
 
 SEXP _rxProgressStop(SEXP clear){
+  par_progress_0=0;
   int clearB = INTEGER(clear)[0];
   if (clearB){
     int doIt=isProgSupported();
@@ -271,6 +302,9 @@ SEXP _rxProgressStop(SEXP clear){
     }
   } else {
     par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
+    if (isRstudio() || doIt==0){
+      Rprintf("\n");
+    }
   }
   rxt.d = rxt.n;
   rxt.cur = rxt.n;
@@ -278,6 +312,7 @@ SEXP _rxProgressStop(SEXP clear){
 }
 
 SEXP _rxProgressAbort(SEXP str){
+  par_progress_0=0;
   if (rxt.d != rxt.n || rxt.cur != rxt.n){
     par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 0);
     error(CHAR(STRING_ELT(str,0)));
