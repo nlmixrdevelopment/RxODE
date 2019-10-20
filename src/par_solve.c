@@ -302,7 +302,8 @@ SEXP _rxProgressStop(SEXP clear){
     }
   } else {
     par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
-    if (isRstudio() || doIt==0){
+    int doIt=isProgSupported();
+    if (isRstudio() || doIt == 0){
       Rprintf("\n");
     }
   }
