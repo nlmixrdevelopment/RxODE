@@ -131,18 +131,6 @@ tam@wri.com
 	return ctx->state; \
 }
 
-#define softfailure0(code, fmt,...)              \
-  {						 \
-    int i=0;				 \
-    int neq = ctx->neq;				 \
-						 \
-    ERROR0(fmt);				 \
-    for (i = 1; i <= neq; i++)			 \
-      y[i] = _C(yh)[1][i];			 \
-    *t = _C(tn);				 \
-    ctx->state = code;				 \
-    return ctx->state;				 \
-  }
 
 /*
    The following block handles all successful returns from lsoda.
@@ -760,13 +748,9 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 			if (tolsf > 0.01) {
 				tolsf = tolsf * 200.;
 				if (_C(nst) == 0) {
-					hardfailure("lsoda -- at start of problem, too much accuracy\n"
-							" requested for precision of machine,\n"
-							" suggested scaling factor = %g\n", tolsf);
+					hardfailure("lsoda -- at start of problem, too much accuracy\n requested for precision of machine,\n suggested scaling factor = %g\n", tolsf);
 				}
-				softfailure(-2, "lsoda -- at t = %g, too much accuracy requested\n"
-				            "         for precision of machine, suggested\n"
-				            "         scaling factor = %g\n", *t, tolsf);
+				softfailure(-2, "lsoda -- at t = %g, too much accuracy requested\n  for precision of machine, suggested\n scaling factor = %g\n", *t, tolsf);
 			}
 			if ((_C(tn) + _C(h)) == _C(tn)) {
 				_C(nhnil)++;
@@ -887,14 +871,10 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 					}
 				}
 				if (kflag == -1) {
-					softfailure(-4, "lsoda -- at t = %g and step size _C(h) = %g, the\n",
-					"         error test failed repeatedly or\n"
-					"         with fabs(_C(h)) = hmin\n", _C(tn), _C(h));
+					softfailure(-4, "lsoda -- at t = %g and step size _C(h) = %g, the\n error test failed repeatedly or\n with fabs(_C(h)) = hmin\n", _C(tn), _C(h));
 				}
 				if (kflag == -2) {
-					softfailure(-5, "lsoda -- at t = %g and step size _C(h) = %g, the\n"
-					"         corrector convergence failed repeatedly or\n"
-					"         with fabs(_C(h)) = hmin\n" , _C(tn), _C(h));
+					softfailure(-5, "lsoda -- at t = %g and step size _C(h) = %g, the\n corrector convergence failed repeatedly or\n with fabs(_C(h)) = hmin\n" , _C(tn), _C(h));
 				}
 			}		/* end if ( kflag == -1 || kflag == -2 )   */
 		}			/* end while   */

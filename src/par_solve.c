@@ -265,10 +265,9 @@ SEXP _rxProgressStop(SEXP clear){
     int doIt=isProgSupported();
     if (doIt == -1){
     } else if (isRstudio() || doIt==0){
-      /* Rprintf("\r                                                                                \r"); */
       Rprintf("\n");
     } else {
-      RSprintf0("\r                                                                                                    \r");
+      RSprintf0("\r                                                                                 \r");
     }
   } else {
     par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
@@ -1979,7 +1978,6 @@ void par_dop(rx_solve *rx){
     int doIt = isProgSupported();
     if (doIt == -1){
     } else if (isRstudio() || doIt == 0){
-      /* Rprintf("\r                                                                                \r"); */
       Rprintf("\n");
     } else {
       RSprintf0("\r                                                                                \r");
