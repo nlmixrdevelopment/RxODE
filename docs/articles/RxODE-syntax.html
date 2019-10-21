@@ -188,7 +188,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE ODE solving syntax</h1>
             
-            <h4 class="date">2019-10-18</h4>
+            <h4 class="date">2019-10-20</h4>
       
       
       <div class="hidden name"><code>RxODE-syntax.Rmd</code></div>
@@ -236,7 +236,7 @@
 <li>special <strong>time-derivative</strong> assignments, where the left hand specifies the change of the amount in the corresponding state variable (compartment) with respect to time e.g., <code>d/dt(depot)</code>:</li>
 <li>special <strong>initial-condition</strong> assignments where the left hand specifies the compartment of the initial condition being specified, e.g. <code>depot(0) = 0</code>
 </li>
-<li>special model event changes including <strong>bioavailability</strong> (<code>f(depot)=1</code>), <strong>lag time</strong> (<code>lag(depot)=0</code>), <strong>modeled rate</strong> (<code>rate(depot)=2</code>) and <strong>modeled duration</strong> (<code>dur(depot)=2</code>). An example of these model features and the event specification for the modeled infusions the RxODE data specification is found in <a href="RxODE-events.html">RxODE events vignette</a>.</li>
+<li>special model event changes including <strong>bioavailability</strong> (<code>f(depot)=1</code>), <strong>lag time</strong> (<code>lag(depot)=0</code>), <strong>modeled rate</strong> (<code>rate(depot)=2</code>) and <strong>modeled duration</strong> (<code>dur(depot)=2</code>). An example of these model features and the event specification for the modeled infusions the RxODE data specification is found in <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html">RxODE events vignette</a>.</li>
 <li>Compartment declaration statements, which can change the default dosing compartment and the assumed compartment number(s) as well as add extra compartment names at the end (useful for multiple-endpoint nlmixr models); These are specified by <code>cmt(compartmentName)</code>
 </li>
 <li>special change point syntax, or model times. These model times are specified by <code>mtime(var)=time</code>

@@ -188,7 +188,7 @@
     <div class="page-header toc-ignore">
       <h1>Changing RxODE compartment numbers</h1>
             
-            <h4 class="date">2019-10-18</h4>
+            <h4 class="date">2019-10-20</h4>
       
       
       <div class="hidden name"><code>RxODE-cmt.Rmd</code></div>
@@ -285,8 +285,8 @@ pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.
 })</code></pre></div>
 <p>If you look at the summary, you can see where RxODE assigned the compartment number(s)</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/summary.html">summary</a></span>(pbpk)</code></pre></div>
-<pre><code>#&gt; RxODE 0.9.1-7 model named rx_682cdbebda055fb45a963b7fa7affee8 model (ready). 
-#&gt; DLL: /tmp/RtmpwNKaHS/.rxCache/rx_682cdbebda055fb45a963b7fa7affee8__.rxd/rx_682cdbebda055fb45a963b7fa7affee8_.so
+<pre><code>#&gt; RxODE 0.9.1-7 model named rx_d4906031f551791dcbd5462b575a1cf8 model (ready). 
+#&gt; DLL: /tmp/RtmpUNLFAZ/.rxCache/rx_d4906031f551791dcbd5462b575a1cf8__.rxd/rx_d4906031f551791dcbd5462b575a1cf8_.so
 #&gt; -- User supplied parameters: ---------------------------------------------------
 #&gt;      lKbBR      lKbMU      lKbAD     lCLint eta.LClint      lKbBO      lKbRB 
 #&gt;         NA         NA         NA         NA         NA         NA         NA 
@@ -487,7 +487,7 @@ pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.
 })</code></pre></div>
 <p>You can see this change in the simple printout</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pbpk2</code></pre></div>
-<pre><code>#&gt; RxODE 0.9.1-7 model named rx_5e7ac499e87ba950f616057b886fc045 model (ready). 
+<pre><code>#&gt; RxODE 0.9.1-7 model named rx_2524cf723d25a68e07ec9cbe8ba3d730 model (ready). 
 #&gt; x$state: Venous_Blood, Skin, Lungs, Heart, Brain, Muscles, Adipose, Spleen, Pancreas, Liver, Stomach, Gut, Bones, Kidneys, Arterial_Blood, Rest_of_Body
 #&gt; x$params: lKbBR, lKbMU, lKbAD, lCLint, eta.LClint, lKbBO, lKbRB, WT, BP, fup
 #&gt; x$lhs: KbBR, KbMU, KbAD, CLint, KbBO, KbRB, CO, QHT, QBR, QMU, QAD, QSK, QSP, QPA, QLI, QST, QGU, QHA, QBO, QKI, QRB, QLU, VLU, VHT, VBR, VMU, VAD, VSK, VSP, VPA, VLI, VST, VGU, VBO, VKI, VAB, VVB, VRB, fub, KbLU, KbHT, KbSK, KbSP, KbPA, KbLI, KbST, KbGU, KbKI, S15, C15</code></pre>
@@ -505,7 +505,7 @@ pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.
     <span class="kw">cmt</span>(eff);
 })
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(ode.1c.ka)</code></pre></div>
-<pre><code>#&gt; RxODE 0.9.1-7 model named rx_39109696efcf3aa5ed991d877d75f7e0 model (ready). 
+<pre><code>#&gt; RxODE 0.9.1-7 model named rx_eee62b3279ff2e95afea5db79bd8cb7f model (ready). 
 #&gt; $state: depot, center
 #&gt; $stateExtra: eff
 #&gt; $params: V, KA, CL
