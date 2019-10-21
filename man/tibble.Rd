@@ -7,17 +7,20 @@
 \alias{pillar_shaft.units}
 \alias{type_sum.mixed_units}
 \alias{pillar_shaft.mixed_units}
+\alias{scale_type.units}
 \title{type_sum function for units}
 \usage{
-type_sum.units(x, ...)
+\method{type_sum}{units}(x, ...)
 
 format_type_sum.type_sum_units(x, width, ...)
 
 pillar_shaft.units(x, ...)
 
-type_sum.mixed_units(x, ...)
+\method{type_sum}{mixed_units}(x, ...)
 
 pillar_shaft.mixed_units(x, ...)
+
+\method{scale_type}{units}(x)
 }
 \arguments{
 \item{x}{see \link[pillar]{type_sum}}

@@ -15,21 +15,25 @@
 <link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png" />
 <link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png" />
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png" />
+
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
 
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
 
-<!-- sticky kit -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script>
+<!-- headroom.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -37,13 +41,13 @@
 
 
 
-<meta property="og:title" content="Create an ODE-based model specification — RxODE" />
 
+<meta property="og:title" content="Create an ODE-based model specification — RxODE" />
 <meta property="og:description" content="Create a dynamic ODE-based model object suitably for translation
 into fast C code" />
-
 <meta property="og:image" content="/logo.png" />
 <meta name="twitter:card" content="summary" />
+
 
 
 
@@ -55,6 +59,7 @@ into fast C code" />
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]-->
+
 
 
   </head>
@@ -73,7 +78,7 @@ into fast C code" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
       </span>
     </div>
 
@@ -91,48 +96,61 @@ into fast C code" />
     <li class="divider"></li>
     <li class="dropdown-header">Getting started</li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-intro.html">Introduction</a>
+      <a href="../articles/RxODE-intro.html">Introduction</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-syntax.html">RxODE mini language syntax</a>
+      <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
+      <a href="../articles/RxODE-pipeline.html">RxODE with piping ie %&gt;%</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
+      <a href="../articles/speed.html">Speeding up RxODE ODE solving</a>
     </li>
     <li class="divider"></li>
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-model-types.html">RxODE model types</a>
+      <a href="../articles/RxODE-model-types.html">RxODE model types</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-cmt.html">Chainging RxODE compartment numbers</a>
+      <a href="../articles/RxODE-cmt.html">Chainging RxODE compartment numbers</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-transit-compartments.html">RxODE transit compartment models</a>
+      <a href="../articles/RxODE-transit-compartments.html">RxODE transit compartment models</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-shiny.html">Using Shiny with RxODE</a>
+      <a href="../articles/RxODE-shiny.html">Using Shiny with RxODE</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
+      <a href="../articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
+      <a href="../articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
+      <a href="../articles/RxODE-rxUse.html">Adding compiled RxODE models to your package</a>
     </li>
   </ul>
 </li>
-<li>
-  <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-events.html">
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     <span class="fas fa fas fa-stethoscope"></span>
      
-    Dosing
+    Dosing/Events
+     
+    <span class="caret"></span>
   </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="../articles/RxODE-event-types.html">Supported Event Types</a>
+    </li>
+    <li>
+      <a href="../articles/RxODE-event-table.html">Easy RxODE Event Tables</a>
+    </li>
+    <li>
+      <a href="../articles/RxODE-events-classic.html">Classic RxODE events explained</a>
+    </li>
+  </ul>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -143,11 +161,15 @@ into fast C code" />
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li class="dropdown-header">Single Subject ODE solving</li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
+      <a href="../articles/rxode-single-subject.html">Single Subject ODE solving</a>
     </li>
-    <li class="dropdown-header">Using Prior Data for ODE solving</li>
+    <li>
+      <a href="../articles/RxODE-sim-var.html">Multiple Subject RxODE Simulation</a>
+    </li>
+    <li>
+      <a href="../articles/RxODE-prior-data.html">Using Prior Data for ODE solving</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -165,7 +187,6 @@ into fast C code" />
   </a>
 </li>
       </ul>
-      
       <ul class="nav navbar-nav navbar-right">
         <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -199,6 +220,7 @@ into fast C code" />
 </div><!--/.navbar -->
 
       
+
       </header>
 
 <div class="row">
@@ -210,16 +232,14 @@ into fast C code" />
     </div>
 
     <div class="ref-description">
-    
     <p>Create a dynamic ODE-based model object suitably for translation
 into fast C code</p>
-    
     </div>
 
-    <pre class="usage"><span class='fu'>RxODE</span>(<span class='no'>model</span>, <span class='kw'>modName</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/basename'>basename</a></span>(<span class='no'>wd</span>), <span class='kw'>wd</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/getwd'>getwd</a></span>(), <span class='kw'>filename</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+    <pre class="usage"><span class='fu'>RxODE</span>(<span class='no'>model</span>, <span class='kw'>modName</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/basename.html'>basename</a></span>(<span class='no'>wd</span>), <span class='kw'>wd</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/getwd.html'>getwd</a></span>(), <span class='kw'>filename</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>extraC</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>debug</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>calcJac</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>calcSens</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>collapseModel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>...</span>)</pre>
-    
+
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
@@ -250,7 +270,7 @@ simple ASCII alphanumeric characters starting with a letter.</p></td>
       <th>wd</th>
       <td><p>character string with a working directory where to
 create a subdirectory according to <code>modName</code>. When
-specified, a subdirectoy named after the
+specified, a subdirectory named after the
 &#8220;<code>modName.d</code>&#8221; will be created and populated with a
 C file, a dynamic loading library, plus various other working
 files. If missing, the files are created (and removed) in the
@@ -284,7 +304,7 @@ Jacobain according to the specified ODEs.</p></td>
     <tr>
       <th>calcSens</th>
       <td><p>boolean indicating if RxODE will calculate the
-sennsitivities according to the specified ODEs.</p></td>
+sensitivities according to the specified ODEs.</p></td>
     </tr>
     <tr>
       <th>collapseModel</th>
@@ -318,7 +338,7 @@ inputs are combined into a single <em>event table</em> object created
 with the function <code><a href='eventTable.html'>eventTable</a></code>.</p></td>
     </tr>
     </table>
-    
+
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>An object (closure) of class &#8220;<code>RxODE</code>&#8221; (see Chambers and Temple Lang (2001))
@@ -333,45 +353,24 @@ with the function <code><a href='eventTable.html'>eventTable</a></code>.</p></td
       <dt>solve</dt><dd><p>this function solves (integrates) the ODE. This
           is done by passing the code to <code><a href='rxSolve.html'>rxSolve</a></code>.
           This is as if you called <code><a href='rxSolve.html'>rxSolve(RxODEobject, ...)</a></code>,
-          but returns a matrix instead of a rxSolve object.
-
-          <code>params</code>: a numeric named vector with values for every parameter
+          but returns a matrix instead of a rxSolve object.          <code>params</code>: a numeric named vector with values for every parameter
           in the ODE system; the names must correspond to the parameter
-          identifiers used in the ODE specification;
-
-          <code>events</code>: an <code>eventTable</code> object describing the
+          identifiers used in the ODE specification;          <code>events</code>: an <code>eventTable</code> object describing the
           input (e.g., doses) to the dynamic system and observation
-          sampling time points (see  <code><a href='eventTable.html'>eventTable</a></code>);
-
-          <code>inits</code>: a vector of initial values of the state variables
+          sampling time points (see  <code><a href='eventTable.html'>eventTable</a></code>);          <code>inits</code>: a vector of initial values of the state variables
           (e.g., amounts in each compartment), and the order in this vector
-          must be the same as the state variables (e.g., PK/PD compartments);
-
-
-          <code>stiff</code>: a logical (<code>TRUE</code> by default) indicating whether
-          the ODE system is stifff or not.
-
-          For stiff ODE sytems (<code>stiff = TRUE</code>), <code>RxODE</code> uses
+          must be the same as the state variables (e.g., PK/PD compartments);          <code>stiff</code>: a logical (<code>TRUE</code> by default) indicating whether
+          the ODE system is stiff or not.          For stiff ODE systems (<code>stiff = TRUE</code>), <code>RxODE</code> uses
           the LSODA (Livermore Solver for Ordinary Differential Equations)
           Fortran package, which implements an automatic method switching
           for stiff and non-stiff problems along the integration interval,
-          authored by Hindmarsh and Petzold (2003).
-
-          For non-stiff systems (<code>stiff = FALSE</code>), <code>RxODE</code> uses DOP853,
+          authored by Hindmarsh and Petzold (2003).          For non-stiff systems (<code>stiff = FALSE</code>), <code>RxODE</code> uses <code>DOP853</code>,
           an explicit Runge-Kutta method of order 8(5, 3) of Dormand and Prince
-          as implemented in C by Hairer and Wanner (1993).
-
-          <code>trans_abs</code>: a logical (<code>FALSE</code> by default) indicating
+          as implemented in C by Hairer and Wanner (1993).          <code>trans_abs</code>: a logical (<code>FALSE</code> by default) indicating
           whether to fit a transit absorption term
-          (TODO: need further documentation and example);
-
-          <code>atol</code>: a numeric absolute tolerance (1e-08 by default);
-
-          <code>rtol</code>: a numeric relative tolerance (1e-06 by default).e
-
-          The output of &#8220;solve&#8221; is a matrix with as many rows as there
+          (TODO: need further documentation and example);          <code>atol</code>: a numeric absolute tolerance (1e-08 by default);          <code>rtol</code>: a numeric relative tolerance (1e-06 by default).e          The output of &#8220;solve&#8221; is a matrix with as many rows as there
           are sampled time points and as many columns as system variables
-          (as defined by the ODEs and additional assigments in the RxODE model
+          (as defined by the ODEs and additional assignments in the RxODE model
               code).</p></dd>
 
       <dt>isValid</dt><dd><p>a function that (naively) checks for model validity,
@@ -383,28 +382,29 @@ with the function <code><a href='eventTable.html'>eventTable</a></code>.</p></td
           that dynamically loads the object code if needed.</p></dd>
       <dt>dynUnload</dt><dd><p>a function with no argument that unloads
           the model object code.</p></dd>
-      <dt>delete</dt><dd><p>removes all created model files, including C and DDL files.
+      <dt>delete</dt><dd><p>removes all created model files, including C and DLL files.
           The model object is no longer valid and should be removed, e.g.,
-          <code><a href='https://www.rdocumentation.org/packages/base/topics/rm'>rm(m1)</a></code>.</p></dd>
+          <code><a href='https://rdrr.io/r/base/rm.html'>rm(m1)</a></code>.</p></dd>
       <dt>run</dt><dd><p>deprecated, use <code>solve</code>.</p></dd>
       <dt>parse</dt><dd><p>deprecated.</p></dd>
       <dt>compile</dt><dd><p>deprecated.</p></dd>
       <dt>get.index</dt><dd><p>deprecated.</p></dd>
       <dt>getObj</dt><dd><p>internal (not user callable) function.</p></dd>
 
-    
     <h2 class="hasAnchor" id="rxode-syntax"><a class="anchor" href="#rxode-syntax"></a>RxODE Syntax</h2>
 
     
-    <p>An <code>RxODE</code> model specification consists of one or more
+
+
+<p>An <code>RxODE</code> model specification consists of one or more
 statements terminated by semi-colons, &#8216;<code>;</code>&#8217;, and
 optional comments (comments are delimited by <code>#</code> and an
 end-of-line marker).  <strong>NB:</strong> Comments are not allowed inside
 statements.</p>
-<p>A block of statements is a set of statements delimeted by curly
+<p>A block of statements is a set of statements delimited by curly
 braces, &#8216;<code>{ ... }</code>&#8217;. Statements can be either
 assignments or conditional <code>if</code> statements. Assignment
-statements can be: (1) &#8220;simple&#8221; assignmets, where the left
+statements can be: (1) &#8220;simple&#8221; assignments, where the left
 hand is an identifier (i.e., variable), (2) special
 &#8220;time-derivative&#8221; assignments, where the left hand specifies
 the change of that variable with respect to time e.g.,
@@ -433,17 +433,17 @@ modulo operator &#8216;<code>%</code>&#8217; is currently not supported.)</p>
 <li><p>others, as created by assignments as part of the model
          specification.</p></li>
 </ul>
-    <p>Identifiers consists of case-sensitive alphanumeric characters,
+
+<p>Identifiers consists of case-sensitive alphanumeric characters,
 plus the underscore &#8216;_&#8217; character.  <strong>NB:</strong> the dot
 &#8216;.&#8217; character is <strong>not</strong> a valid character identifier.</p>
 <p>The values of these variables at pre-specified time points are
 saved as part of the fitted/integrated/solved model (see
 <code><a href='eventTable.html'>eventTable</a></code>, in particular its member function
 <code>add.sampling</code> that defines a set of time points at which to
-capture a snapshot of the syste via the values of these variables).</p>
+capture a snapshot of the system via the values of these variables).</p>
 <p>The ODE specification mini-language is parsed with the help of the
-open source tool <em>DParser</em>, Plevyak (2015).</p>
-    
+open source tool <code>dparser</code>, Plevyak (2015).</p>
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
     <p>Chamber, J. M. and Temple Lang, D. (2001)
@@ -462,13 +462,11 @@ Siam J. Sci. Stat. Comput. 4 (1983), pp. 136-148.</p>
 <em>Solving ordinary differential equations I, nonstiff problems</em>.
 2nd edition, Springer Series in Computational Mathematics,
 Springer-Verlag (1993).</p>
-<p>Plevyek, J.
-<em>Dparser</em>, <a href='http://dparser.sourceforge.net'>http://dparser.sourceforge.net</a>. Web. 12 Oct. 2015.</p>
-    
+<p>Plevyak, J.
+<em><code>dparser</code></em>, <a href='http://dparser.sourceforge.net'>http://dparser.sourceforge.net</a>. Web. 12 Oct. 2015.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p><code><a href='eventTable.html'>eventTable</a></code>, <code><a href='et.html'>et</a></code>, <code><a href='add.sampling.html'>add.sampling</a></code>, <code><a href='add.dosing.html'>add.dosing</a></code></p></div>
-    
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='co'># Step 1 - Create a model specification</span>
@@ -485,10 +483,10 @@ Springer-Verlag (1993).</p>
 "</span>
 
 <span class='no'>m1</span> <span class='kw'>&lt;-</span> <span class='fu'>RxODE</span>(<span class='kw'>model</span> <span class='kw'>=</span> <span class='no'>ode</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/print'>print</a></span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; RxODE 0.9.0-6 model named rx_bbca90b344d0e3fc151868605e74c352_x6 model (ready). 
-#&gt; $state: depot, centr, peri, eff
-#&gt; $params: V2, V3, KA, CL, Q, Kin, Kout, EC50
-#&gt; $lhs: C2, C3</div><div class='input'>
+<span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>0.9.1-7 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_b035b6cc0039e37feefedba57f72203a</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
+#&gt; </span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff
+#&gt; </span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50
+#&gt; </span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</div><div class='input'>
 <span class='co'># Step 2 - Create the model input as an EventTable,</span>
 <span class='co'># including dosing and observation (sampling) events</span>
 
@@ -501,23 +499,23 @@ Springer-Verlag (1993).</p>
 <span class='co'># then after</span>
 
 <span class='no'>qd</span>$<span class='fu'><a href='add.sampling.html'>add.sampling</a></span>(<span class='fl'>0</span>:<span class='fl'>24</span>)
-<span class='no'>qd</span>$<span class='fu'><a href='add.sampling.html'>add.sampling</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='kw'>from</span> <span class='kw'>=</span> <span class='fl'>24</span>+<span class='fl'>8</span>, <span class='kw'>to</span> <span class='kw'>=</span> <span class='fl'>5</span>*<span class='fl'>24</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='fl'>8</span>))
+<span class='no'>qd</span>$<span class='fu'><a href='add.sampling.html'>add.sampling</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='kw'>from</span> <span class='kw'>=</span> <span class='fl'>24</span>+<span class='fl'>8</span>, <span class='kw'>to</span> <span class='kw'>=</span> <span class='fl'>5</span>*<span class='fl'>24</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='fl'>8</span>))
 
 <span class='co'># Step 3 - set starting parameter estimates and initial</span>
 <span class='co'># values of the state</span>
 
 <span class='no'>theta</span> <span class='kw'>&lt;-</span>
-    <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='kw'>KA</span> <span class='kw'>=</span> <span class='fl'>.291</span>, <span class='kw'>CL</span> <span class='kw'>=</span> <span class='fl'>18.6</span>,
+    <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='kw'>KA</span> <span class='kw'>=</span> <span class='fl'>.291</span>, <span class='kw'>CL</span> <span class='kw'>=</span> <span class='fl'>18.6</span>,
       <span class='kw'>V2</span> <span class='kw'>=</span> <span class='fl'>40.2</span>, <span class='kw'>Q</span> <span class='kw'>=</span> <span class='fl'>10.5</span>, <span class='kw'>V3</span> <span class='kw'>=</span> <span class='fl'>297.0</span>,
       <span class='kw'>Kin</span> <span class='kw'>=</span> <span class='fl'>1.0</span>, <span class='kw'>Kout</span> <span class='kw'>=</span> <span class='fl'>1.0</span>, <span class='kw'>EC50</span> <span class='kw'>=</span> <span class='fl'>200.0</span>)
 
 <span class='co'># init state variable</span>
-<span class='no'>inits</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>1</span>);
+<span class='no'>inits</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>1</span>);
 
 <span class='co'># Step 4 - Fit the model to the data</span>
 
-<span class='no'>qd.cp</span> <span class='kw'>&lt;-</span> <span class='no'>m1</span>$<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/solve'>solve</a></span>(<span class='no'>theta</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='no'>qd</span>, <span class='no'>inits</span>)</div><div class='output co'>#&gt; <span class='warning'>Warning: Assumed order of inputs: depot, centr, peri, eff</span></div><div class='input'>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/utils/topics/head'>head</a></span>(<span class='no'>qd.cp</span>)</div><div class='output co'>#&gt;      time       C2        C3     depot    centr      peri      eff
+<span class='no'>qd.cp</span> <span class='kw'>&lt;-</span> <span class='no'>m1</span>$<span class='fu'><a href='https://rdrr.io/r/base/solve.html'>solve</a></span>(<span class='no'>theta</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='no'>qd</span>, <span class='no'>inits</span>)</div><div class='output co'>#&gt; <span class='warning'>Warning: Assumed order of inputs: depot, centr, peri, eff</span></div><div class='input'>
+<span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span>(<span class='no'>qd.cp</span>)</div><div class='output co'>#&gt;      time       C2        C3     depot    centr      peri      eff
 #&gt; [1,]    0  0.00000 0.0000000 10000.000    0.000    0.0000 1.000000
 #&gt; [2,]    1 43.99334 0.9113641  7475.157 1768.532  270.6751 1.083968
 #&gt; [3,]    2 54.50866 2.6510696  5587.797 2191.248  787.3677 1.179529
@@ -527,44 +525,41 @@ Springer-Verlag (1993).</p>
 <span class='co'># This returns a matrix.  Note that you can also</span>
 <span class='co'># solve using name initial values. For example:</span>
 
-<span class='no'>inits</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='kw'>eff</span> <span class='kw'>=</span> <span class='fl'>1</span>);
+<span class='no'>inits</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='kw'>eff</span> <span class='kw'>=</span> <span class='fl'>1</span>);
 
-<span class='no'>qd.cp</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/solve'>solve</a></span>(<span class='no'>m1</span>, <span class='no'>theta</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='no'>qd</span>, <span class='no'>inits</span>);
+<span class='no'>qd.cp</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/solve.html'>solve</a></span>(<span class='no'>m1</span>, <span class='no'>theta</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='no'>qd</span>, <span class='no'>inits</span>);
 
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/print'>print</a></span>(<span class='no'>qd.cp</span>)</div><div class='output co'>#&gt; ______________________________ Solved RxODE object _____________________________ 
-#&gt; -- Parameters ($params): ------------------------------------------------------- 
+<span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span>(<span class='no'>qd.cp</span>)</div><div class='output co'>#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ </span><span style='font-weight: bold;'>Solved RxODE object</span><span> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+#&gt; ── </span><span style='font-weight: bold;'>Parameters</span><span> (</span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>): ───────────────────────────────────────────────────────
+#&gt;  
 #&gt;      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 #&gt;  40.200 297.000   0.291  18.600  10.500   1.000   1.000 200.000 
-#&gt; -- Initial Conditions ($inits): ------------------------------------------------ 
+#&gt; ── </span><span style='font-weight: bold;'>Initial Conditions</span><span> (</span><span style='color: #0000BB;font-weight: bold;'>$inits</span><span>): ────────────────────────────────────────────────
 #&gt; depot centr  peri   eff 
 #&gt;     0     0     0     1 
-#&gt; -- First part of data (object): ------------------------------------------------ 
-#&gt; # A tibble: 37 x 7
+#&gt; ── </span><span style='font-weight: bold;'>First part of data (object):</span><span> ────────────────────────────────────────────────
+#&gt; </span><span style='color: #555555;'># A tibble: 37 x 7</span><span>
 #&gt;    time    C2    C3  depot centr  peri   eff
-#&gt;     [h] &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-#&gt; 1     0   0   0     10000     0     0   1   
-#&gt; 2     1  44.0 0.911  7475. 1769.  271.  1.08
-#&gt; 3     2  54.5 2.65   5588. 2191.  787.  1.18
-#&gt; 4     3  51.7 4.42   4177. 2076. 1314.  1.23
-#&gt; 5     4  44.4 5.94   3122. 1784. 1765.  1.23
-#&gt; 6     5  36.5 7.14   2334. 1466. 2120.  1.21
-#&gt; # ... with 31 more rows</div><div class='output co'>#&gt; <span class='message'>________________________________________________________________________________</span></div><div class='input'>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/graphics/topics/plot'>plot</a></span>(<span class='no'>qd.cp</span>)</div><div class='img'><img src='RxODE-1.png' alt='' width='700' height='433' /></div><div class='input'>
-</div></pre>
+#&gt;     </span><span style='color: #555555;'>[h]</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span>  </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span>
+#&gt; </span><span style='color: #555555;'>1</span><span>     0   0   0     </span><span style='text-decoration: underline;'>10</span><span>000     0     0   1   
+#&gt; </span><span style='color: #555555;'>2</span><span>     1  44.0 0.911  </span><span style='text-decoration: underline;'>7</span><span>475. </span><span style='text-decoration: underline;'>1</span><span>769.  271.  1.08
+#&gt; </span><span style='color: #555555;'>3</span><span>     2  54.5 2.65   </span><span style='text-decoration: underline;'>5</span><span>588. </span><span style='text-decoration: underline;'>2</span><span>191.  787.  1.18
+#&gt; </span><span style='color: #555555;'>4</span><span>     3  51.7 4.42   </span><span style='text-decoration: underline;'>4</span><span>177. </span><span style='text-decoration: underline;'>2</span><span>076. </span><span style='text-decoration: underline;'>1</span><span>314.  1.23
+#&gt; </span><span style='color: #555555;'>5</span><span>     4  44.4 5.94   </span><span style='text-decoration: underline;'>3</span><span>122. </span><span style='text-decoration: underline;'>1</span><span>784. </span><span style='text-decoration: underline;'>1</span><span>765.  1.23
+#&gt; </span><span style='color: #555555;'>6</span><span>     5  36.5 7.14   </span><span style='text-decoration: underline;'>2</span><span>334. </span><span style='text-decoration: underline;'>1</span><span>466. </span><span style='text-decoration: underline;'>2</span><span>120.  1.21
+#&gt; </span><span style='color: #555555;'># … with 31 more rows</span><span>
+#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</div><div class='input'>
+<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>qd.cp</span>)</div><div class='img'><img src='RxODE-1.png' alt='' width='700' height='433' /></div><div class='input'>
+</div></span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-      
       <li><a href="#value">Value</a></li>
-
       <li><a href="#rxode-syntax">RxODE Syntax</a></li>
-
       <li><a href="#references">References</a></li>
-
       <li><a href="#see-also">See also</a></li>
-      
       <li><a href="#examples">Examples</a></li>
     </ul>
 
@@ -573,19 +568,23 @@ Springer-Verlag (1993).</p>
   </div>
 </div>
 
+
       <footer>
       <div class="copyright">
   <p>Developed by Matthew L. Fidler, Melissa Hallow, Wenping Wang.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.3.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
 </div>
+
       </footer>
    </div>
 
   
 
+
   </body>
 </html>
+
 

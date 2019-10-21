@@ -5,8 +5,7 @@
 \title{Options for RxODE}
 \usage{
 rxOptions(expr, op.rx = NULL, silent = .isTestthat(),
-  respect = FALSE, rxclean = .isTestthat(), cran = FALSE,
-  on.validate = FALSE)
+  respect = FALSE, cran = FALSE, on.validate = FALSE)
 }
 \arguments{
 \item{expr}{Expression to evaluate in the permissive/strict
@@ -22,10 +21,7 @@ interactive output (useful in testing).}
 This is called at startup, but really should not be called
 elsewhere, otherwise the options are not changed.}
 
-\item{rxclean}{when TRUE, call rxClean before and after the expr
-is called.}
-
-\item{cran}{When specifyed and true, run on CRAN. Otherwise it is skipped on cran.}
+\item{cran}{When specified and true, run on CRAN. Otherwise it is skipped on CRAN.}
 
 \item{on.validate}{When TRUE run only when validating.}
 }
@@ -36,7 +32,7 @@ This is a backend for \code{rxPermissive} (with
 }
 \details{
 When \code{expr} is missing and \code{op.rx} is NULL, this
-desplays the current RxODE options.
+displays the current RxODE options.
 }
 \author{
 Matthew L. Fidler

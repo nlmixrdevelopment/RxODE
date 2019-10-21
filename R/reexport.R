@@ -17,8 +17,10 @@
 #'   export(format_type_sum.type_sum_units)
 #' }
 type_sum.units <- loadNamespace("units")$type_sum.units
+
 #'@name tibble
 format_type_sum.type_sum_units  <- loadNamespace("units")$format_type_sum.type_sum_units
+
 #'@name tibble
 pillar_shaft.units <- loadNamespace("units")$pillar_shaft.units
 
@@ -61,7 +63,9 @@ geom_line <- ggplot2::geom_line
 ##'@export
 facet_wrap <- ggplot2::facet_wrap
 
-##'@export
+##'@S3method scale_type units
+##'@export scale_type.units
+##'@name tibble
 scale_type.units <- loadNamespace("ggforce")$scale_type.units
 
 
@@ -129,3 +133,7 @@ ggplot2::xlab
 ##'@importFrom lotri lotri
 ##'@export
 lotri::lotri
+
+##'@importFrom pillar type_sum
+##'@export
+pillar::type_sum

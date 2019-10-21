@@ -11,7 +11,7 @@ rxParsePk(x, init = NULL)
 \arguments{
 \item{x}{PK function}
 
-\item{init}{Initilization vector}
+\item{init}{Initialization vector}
 
 \item{x}{PK function}
 }

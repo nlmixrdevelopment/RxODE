@@ -10,7 +10,7 @@ rxSymInvCholCreate(mat, diag.xform = c("sqrt", "log", "identity"),
 \arguments{
 \item{mat}{Initial Omega matrix}
 
-\item{diag.xform}{transformation to diagonal elements of OMEGA. or chol(Omega^-1)}
+\item{diag.xform}{transformation to diagonal elements of OMEGA. or \code{chol(Omega^-1)}}
 
 \item{create.env}{-- Create an environment to calculate the inverses. (By default TRUE)}
 

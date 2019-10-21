@@ -1,7 +1,5 @@
 context("Logical expressons test")
 rxPermissive({
-    rxClean()
-
     transTo <- function(model, syntax, match=TRUE){
         mod <- rxModelVars(model);
 
@@ -19,5 +17,4 @@ rxPermissive({
     transTo("x=1;if ((t == 0) & !(t == 1)){x=0}","&&")
     transTo("x=1;if ((t == 0) & !(t == 1)){x=0}","!(")
 
-    rxClean()
 }, silent=TRUE);

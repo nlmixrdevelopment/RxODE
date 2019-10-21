@@ -1,3 +1,33 @@
+.etAddCls <- function(x){
+    if (inherits(x, "rxEt")){
+        .x <- x;
+        .cls <- class(x);
+        class(.x) <- "data.frame"
+        if (!is.null(.x[["evid"]])){
+            class(.x[["evid"]]) <- "rxEvid";
+
+            .tmp <- .x[["rate"]];
+            .cls2 <- class(.tmp);
+            if (!inherits(.cls2, "rxRateDur")){
+                class(.tmp) <- c("rxRateDur", .cls2);
+            }
+            .x[["rate"]] <- .tmp
+
+            .tmp <- .x[["dur"]];
+            .cls2 <- class(.tmp);
+            if (!inherits(.cls2, "rxRateDur")){
+                class(.tmp) <- c("rxRateDur", .cls2);
+            }
+            .x[["dur"]] <- .tmp
+            class(.x) <- .cls
+            return(.x)
+        } else {
+            return(x)
+        }
+    } else {
+        return(x)
+    }
+}
 ##' Event Table Function
 ##'
 ##' @param ... Times or event tables.  They can also be one of the named arguments below.
@@ -115,7 +145,7 @@
 ##'     this is \code{FALSE}.
 ##'
 ##' @param x This is the first argument supplied to the event table.
-##'     This is named to allow \code{et} to be used in a piple-line
+##'     This is named to allow \code{et} to be used in a pipe-line
 ##'     with arbitrary objects.
 ##'
 ##' @inheritParams base::eval
@@ -554,9 +584,14 @@ print.rxEt <- function(x,...){
         cat(sprintf("   %s observation times (see %s$%s(); add with %s or %s)\n",
                     x$nobs, crayon::yellow(bound), crayon::blue("get.sampling"),
                     crayon::blue("add.sampling"), crayon::blue("et")))
+        if (x$show["addl"]){
+            cat(sprintf("   multiple doses in `addl` columns, expand with %s$%s(); or %s(%s)\n",
+                        crayon::yellow(bound), crayon::blue("expand"),
+                        crayon::blue("etExpand"), crayon::yellow(bound)))
+        }
         if (x$nobs!=0 | x$ndose!=0){
             .cliRule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":")));
-            print(dplyr::as.tbl(data.frame(x)));
+            print(tibble::as_tibble(data.frame(.etAddCls(x))));
         }
         .cliRule();
         invisible(x)
@@ -582,6 +617,7 @@ str.rxEt <- function(object, ...){
     cat(" $ get.units        :function ()  \n");
     cat(" $ import.EventTable:function ()  \n");
     cat(" $ copy             :function ()  \n");
+    cat(" $ expand           :function ()  \n");
     return(invisible(NextMethod("str", ...)))
     ## nocov end
 }
@@ -676,7 +712,6 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, d
     } else {
         .lst$dosing.interval <- 0.0;
     }
-
     .Call(`_RxODE_et_`, .lst, eventTable);
 }
 
@@ -697,7 +732,7 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, d
 add.sampling <- function(eventTable, time, time.units = NA){
     .lst <- list(time=time);
     if (!is.na(time.units)) .lst$time.units <- time.units;
-    .Call(`_RxODE_et_`, .lst, eventTable);
+    return(.Call(`_RxODE_et_`, .lst, eventTable));
 }
 
 
@@ -1026,17 +1061,29 @@ as.et.default <- function(x,...){
     .e <- et();
     .e$import.EventTable(as.data.frame(x));
     return(.e);
-}
 
+}
 ##'@export
 as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...){
     if (rxIs(x, "rxEt")){
-        .tmp <- x[,x$show,drop = FALSE];
+        .x <- x
+        .tmp <- .x[,.x$show,drop = FALSE];
         class(.tmp) <- c("rxEt2", "data.frame");
         return(as.data.frame(.tmp, row.names = NULL, optional = FALSE, ...))
     } else {
         return(as.data.frame(x, row.names = NULL, optional = FALSE, ...))
     }
+}
+
+.datatable.aware=TRUE
+##' Convert an event table to a data.table
+##'
+##' @inheritParams data.table::as.data.table
+##'
+##'@export as.data.table.rxEt
+as.data.table.rxEt <- function (x, keep.rownames = FALSE, ...){
+    rxReq("data.table")
+    return(data.table::as.data.table(as.data.frame.rxEt(x, ...), keep.rownames=keep.rownames, ...))
 }
 
 ##' Convert to tbl
@@ -1047,11 +1094,26 @@ as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...){
 ##'
 ##' @return tibble
 ##'
-##' @export as.tbl.rxEt
+##' @export as_tibble.rxEt
+as_tibble.rxEt <- function(x, ...){
+    rxReq("tibble");
+    if (rxIs(x, "rxEt")){
+        .x <- x
+        .tmp <- .x[,.x$show,drop = FALSE];
+        class(.tmp) <- c("rxEt2", "data.frame");
+        return(tibble::as_tibble(.tmp, ...))
+    } else {
+        return(tibble::as_tibble(x, ...))
+    }
+}
+
+##'@rdname as_tibble.rxEt
+##'@export as.tbl.rxEt
 as.tbl.rxEt <- function(x, ...){
     rxReq("dplyr");
     if (rxIs(x, "rxEt")){
-        .tmp <- x[,x$show,drop = FALSE];
+        .x <- x
+        .tmp <- .x[,.x$show,drop = FALSE];
         class(.tmp) <- c("rxEt2", "data.frame");
         return(dplyr::as.tbl(.tmp, ...))
     } else {
@@ -1071,8 +1133,281 @@ as.tbl.rxEt <- function(x, ...){
 is.rxEt <- function(x){
     .Call(`_RxODE_rxIs`, x, "rxEt");
 }
-
+##' Expand additional doses
+##'
+##' @param et Event table to expand additional doses for.
+##' @return New event table with `addl` doses expanded
+##' @author Matthew Fidler
+##' @examples
+##' ev <- et(amt=3,ii=24,until=240);
+##' print(ev)
+##' etExpand(ev) # expands event table, but doesn't modify it
+##'
+##' print(ev)
+##'
+##' ev$expand() ## Expands the current event table and saves it in ev
+##' @export
+etExpand <- function(et){
+    .Call(`_RxODE_et_`, list(expand=TRUE), et)
+}
 
 ##' @importFrom magrittr %>%
 ##' @export
 magrittr::`%>%`
+
+##' EVID formatting for tibble and other places.
+##'
+##' This is to make an EVID more readable by non
+##' pharmacometricians. It displays what each means and allows it to
+##' be displayed in a tibble.
+##'
+##' @param x Item to be converted to a RxODE EVID specification.
+##'
+##' @param ... Other parameters
+##'
+##' @examples
+##'
+##' rxEvid(1:7)
+##'
+##' @export
+rxEvid <- function(x){
+    return(structure(x, class="rxEvid"))
+}
+
+#' @rawNamespace if(getRversion() >= "3.6.0") {
+#'   S3method(pillar::type_sum, rxEvid)
+#'   S3method(pillar::type_sum, rxRateDur)
+#'   S3method(pillar::pillar_shaft, rxEvid)
+#'   S3method(pillar::pillar_shaft, rxRateDur)
+#' } else {
+#'   export(type_sum.rxEvid)
+#'   export(type_sum.rxRateDur)
+#'   export(pillar_shaft.rxEvid)
+#'   export(pillar_shaft.rxRateDur)
+#' }
+
+##'@rdname rxEvid
+##' @export
+as.rxEvid <- rxEvid;
+
+##'@rdname rxEvid
+##' @export
+c.rxEvid <- function(x, ...){
+    return(as.rxEvid(NextMethod()))
+}
+
+##'@rdname rxEvid
+##'@export
+`[.rxEvid` <- function(x, ...){
+    return(as.rxEvid(NextMethod()))
+}
+.colorFmt.rxEvid <- function(x, ...){
+    .x <- unclass(x);
+    .x <-
+        ifelse(.x == 0, paste0(crayon::blue$bold("0"), ":", crayon::white("Observation")),
+        ifelse(.x == 1, paste0(crayon::blue$bold("1"), ":", crayon::yellow("Dose (Add)")),
+        ifelse(.x == 2, paste0(crayon::blue$bold("2"), ":", crayon::yellow("Other")),
+        ifelse(.x == 3, paste0(crayon::blue$bold("3"), ":", crayon::red("Reset")),
+        ifelse(.x == 4, paste0(crayon::blue$bold("4"), ":", crayon::red("Reset"), "&", crayon::yellow("Dose")),
+        ifelse(.x == 5, paste0(crayon::blue$bold("5"), ":", crayon::red("Replace")),
+        ifelse(.x == 6, paste0(crayon::blue$bold("6"), ":", crayon::yellow("Multiply")),
+               paste0(crayon::blue$red(.x), ":", crayon::red("Invalid")))))))))
+    return(format(.x, align="left"))
+}
+
+##'@rdname rxEvid
+##'@export
+as.character.rxEvid <- function(x, ...){
+    .x <- unclass(x);
+    .x <-
+        ifelse(.x == 0, "0:Observation",
+        ifelse(.x == 1, "1:Dose (Add)",
+        ifelse(.x == 2, "2:Other",
+        ifelse(.x == 3, "3:Reset",
+        ifelse(.x == 4, "4:Reset&Dose",
+        ifelse(.x == 5, "5:Replace",
+        ifelse(.x == 6, "6:Multiply",
+               paste0(.x, ":Invalid"))))))))
+    return(.x)
+}
+
+##'@rdname rxEvid
+##'@export
+format.rxEvid <- function(x, ...){
+    .x <- unclass(x)
+    format(as.character.rxEvid(.x), align="left", width=12);
+}
+
+##'@rdname rxEvid
+##' @export
+print.rxEvid <- function(x, ...){
+    cat(paste(.colorFmt.rxEvid(x),collapse="\n"),"\n")
+    return(invisible(x))
+}
+
+##'@rdname rxEvid
+##' @export
+`[[.rxEvid` <- function(x, ...) {
+  as.rxEvid(NextMethod())
+}
+
+##' @export
+`units<-.rxEvid` <- function(x, value) {
+    stop("'evid' is unitless");
+}
+
+
+##' @export
+`[<-.rxEvid` <- function(x, i, value) {
+    as.rxEvid(NextMethod())
+}
+
+##'@rdname rxEvid
+type_sum.rxEvid <- function(x){
+    "evid"
+}
+
+##'@rdname rxEvid
+pillar_shaft.rxEvid <- function(x, ...){
+    .x <- .colorFmt.rxEvid(x)
+    pillar::new_pillar_shaft_simple(.x, align = "left")
+}
+
+##' Convert to data.frame
+##'
+##' @inheritParams base::as.data.frame
+##' @param nm Name of column in new data frame
+##' @export
+as.data.frame.rxEvid <- base::as.data.frame.difftime
+
+##' Creates a rxRateDur object
+##'
+##' This is primarily to display information about rate
+##'
+##' @param x rxRateDur data
+##'
+##'@export
+rxRateDur <- function(x){
+    return(structure(x, class="rxRateDur"))
+}
+
+##'@rdname rxRateDur
+##'@export
+`[.rxRateDur` <- function(x, ...){
+    return(as.rxRateDur(NextMethod()))
+}
+
+##'@rdname rxRateDur
+##' @export
+as.rxRateDur <- rxRateDur;
+
+##'@rdname rxEvid
+##' @export
+c.rxRateDur <- function(x, ...){
+    return(as.rxRateDur(NextMethod()))
+}
+
+##'@rdname rxRateDur
+##'@export
+as.character.rxRateDur <- function(x, ...){
+    .x <- unclass(x);
+    .x <-
+        ifelse(.x == -1, "-1:rate",
+        ifelse(.x == -2, "-2:dur",
+        ifelse(.x < 0, paste0(as.character(.x), ":Invalid"),
+               sprintf(" %-8g", .x))))
+    return(.x)
+}
+
+.fmt <- function(x, width=9){
+    .g <- sprintf(paste0(" %-", width - 1, "g"), unclass(x))
+    .f <- sprintf(paste0(" %-", width - 1, "f"), unclass(x))
+    .ncg <- nchar(.g)
+    .ncf <- nchar(.f)
+    .ret <- ifelse(.ncg == width, .g,
+            ifelse(.ncf == width, .f, .g))
+    return(.ret)
+}
+
+
+.colorFmt.rxRateDur <- function(x, ...){
+    .x <- unclass(x);
+    .x <-
+        ifelse(.x == -1, paste0(crayon::red("-1"), ":", crayon::yellow("rate")),
+        ifelse(.x == -2, paste0(crayon::red("-2"), ":", crayon::yellow("dur")),
+        ifelse(.x < 0, paste0(crayon::red(as.character(.x)), ":", crayon::red("Invalid")),
+               .fmt(.x))))
+    return(.x)
+}
+
+##'@export
+print.rxRateDur <- function(x, ...){
+    cat(paste(.colorFmt.rxRateDur(x),collapse="\n"),"\n")
+    return(invisible(x))
+}
+
+##'@rdname rxEvid
+##'@export
+format.rxRateDur <- function(x, ...){
+    .x <- unclass(x)
+    format(as.character.rxRateDur(.x), align="left");
+}
+
+##'@rdname rxRateDur
+##' @export
+`[[.rxRateDur` <- function(x, ...) {
+  as.rxRateDur(NextMethod())
+}
+
+##' @export
+`[<-.rxRateDur` <- function(x, i, value) {
+    as.rxRateDur(NextMethod())
+}
+
+##'@rdname rxRateDur
+type_sum.rxRateDur <- function(x){
+    .unit <- attr(x, "units")
+    if (!is.null(.unit)){
+        .tmp <- x;
+        class(.tmp) <- "units"
+        return(pillar::type_sum(.tmp))
+    } else {
+        return("rate/dur")
+    }
+}
+
+##'@rdname rxRateDur
+pillar_shaft.rxRateDur <- function(x, ...){
+    .x <- .colorFmt.rxRateDur(x)
+    pillar::new_pillar_shaft_simple(.x, align = "left", width=10)
+}
+
+##'@rdname rxRateDur
+#' @inheritParams base::as.data.frame
+#' @param nm Name of column in new data frame
+#' @export
+as.data.frame.rxRateDur <- base::as.data.frame.difftime
+
+#' @export
+set_units.rxRateDur <- function(x, value, ..., mode = units::units_options("set_units_mode")){
+    if (inherits(x, "units")){
+        .ret <- x;
+        .ret0 <- unclass(x)
+        .w1 <- which(.ret0 == -1)
+        .w2 <- which(.ret0 == -2);
+        .lst <- as.list(match.call())[-1]
+        class(.ret0) <- "units"
+        .lst[[1]] <- .ret0
+        .ret <- do.call(units::set_units, .lst)
+        if (length(.w1) > 0) .ret[.w1] <- -1
+        if (length(.w2) > 0) .ret[.w2] <- -2
+        class(.ret) <- c("rxRateDur", "units")
+        return(.ret)
+    } else {
+        .lst <- as.list(match.call())[-1]
+        .lst[[1]] <- unclass(x);
+        .ret <- do.call(units::set_units, .lst)
+        class(.ret) <- c("rxRateDur", "units")
+        return(.ret)
+    }
+}

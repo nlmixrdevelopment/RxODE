@@ -20,11 +20,19 @@
 #include <climits>
 #include "../inst/include/RxODE.h"
 #include "ode.h"
+#include "timsort.h"	
+#ifdef rxSortStd	
+#define SORT std::sort	
+#else	
+#define SORT gfx::timsort	
+#endif
 #define rxModelVars(a) rxModelVars_(a)
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 void resetSolveLinB();
 using namespace Rcpp;
 using namespace arma;
+
+LogicalVector rxSolveFree();
 
 List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	     bool dropUnits=false, bool allTimeVar=false,
@@ -279,11 +287,15 @@ RObject rxSimSigma(const RObject &sigma,
 		   const bool checkNames = true,
 		   NumericVector lowerIn =NumericVector::create(R_NegInf),
 		   NumericVector upperIn = NumericVector::create(R_PosInf)){
-  if (nObs < 1) stop("Refusing to simulate %d items",nObs); 
+  if (nObs < 1){
+    rxSolveFree();
+    stop("Refusing to simulate %d items",nObs);
+  }
   if (rxIs(sigma, "numeric.matrix")){
     // FIXME more distributions
     NumericMatrix sigmaM(sigma);
     if (sigmaM.nrow() != sigmaM.ncol()){
+      rxSolveFree();
       stop("The matrix must be a square matrix.");
     }
     List dimnames;
@@ -291,6 +303,7 @@ RObject rxSimSigma(const RObject &sigma,
     bool addNames = false;
     if (checkNames){
       if (!sigmaM.hasAttribute("dimnames")){
+	rxSolveFree();
         stop("The matrix must have named dimensions.");
       }
       dimnames = sigmaM.attr("dimnames");
@@ -322,6 +335,7 @@ RObject rxSimSigma(const RObject &sigma,
     } else if (lowerIn.size() == lower.size()){
       lower = lowerIn;
     } else {
+      rxSolveFree();
       stop("Lower bounds needs to be a named vector, a single value or exactly the same size.");
     }
     if (upperIn.hasAttribute("names")){
@@ -341,6 +355,7 @@ RObject rxSimSigma(const RObject &sigma,
     } else if (!upperIn.hasAttribute("names") && upperIn.size() == upper.size()){
       upper = upperIn;
     } else {
+      rxSolveFree();
       stop("Upper bounds needs to be a named vector, a single value or exactly the same size.");
     }
 
@@ -646,6 +661,7 @@ List rxModelVars_list(const RObject &obj){
         return lobj;
       }
     }
+    rxSolveFree();
     stop("Cannot figure out the model variables.");
 }
 
@@ -680,6 +696,7 @@ List rxModelVars_(const RObject &obj){
         Rprintf("%s\t", (as<std::string>(cls[i])).c_str());
       }
       Rprintf("\n");
+      rxSolveFree();
       stop("Need an RxODE-type object to extract model variables from.");
     }
   } else if (rxIs(obj, "character")){
@@ -687,7 +704,8 @@ List rxModelVars_(const RObject &obj){
   } else if (rxIs(obj,"list")){
     return rxModelVars_list(obj);
   } else if (rxIs(obj,"NULL")) {
-      stop("A NULL object does not have any RxODE model variables");
+    rxSolveFree();
+    stop("A NULL object does not have any RxODE model variables");
   } else {
     CharacterVector cls = obj.attr("class");
     int i = 0;
@@ -696,6 +714,7 @@ List rxModelVars_(const RObject &obj){
       Rprintf("%s\t", (as<std::string>(cls[i])).c_str());
     }
     Rprintf("\n");
+    rxSolveFree();
     stop("Need an RxODE-type object to extract model variables from.");
   }
 }
@@ -729,6 +748,7 @@ RObject rxState(const RObject &obj = R_NilValue, RObject state = R_NilValue){
     CharacterVector lookup = as<CharacterVector>(state);
     if (lookup.size() > 1){
       // Fixme?
+      rxSolveFree();
       stop("Can only lookup one state at a time.");
     }
     if (states.size() == 1){
@@ -741,6 +761,7 @@ RObject rxState(const RObject &obj = R_NilValue, RObject state = R_NilValue){
 	return ret;
       }
     }
+    rxSolveFree();
     stop("Cannot locate compartment \"%s\".",as<std::string>(lookup[0]).c_str());
   }
   return R_NilValue;
@@ -837,6 +858,7 @@ NumericVector rxInits0(const RObject &obj,
             sstr += (i == 0 ? "" : ", ") + std::to_string((double)(nvec[i]));
           }
 	  sstr += ")";
+	  rxSolveFree();
 	  stop(sstr);
 	}
       } else {
@@ -974,12 +996,14 @@ SEXP rxInits(const RObject &obj,
     Function unlist("unlist", R_BaseNamespace);
     NumericVector vec2 = as<NumericVector>(unlist(vec));
     if (vec2.size() != vecL.size()){
+      rxSolveFree();
       stop("Only one estimate per named list item; i.e. list(x=1) instead of list(x=1:2).");
     }
     return wrap(rxInits0(obj, vec2, req, defaultValue, noerror,noini));
   } else if (rxIs(vec, "integer") || rxIs(vec, "numeric")){
     return wrap(rxInits0(obj, as<NumericVector>(vec), req, defaultValue, noerror,noini));
   } else {
+    rxSolveFree();
     stop("Incompatible initial estimate type.");
   }
 }
@@ -1031,6 +1055,7 @@ NumericVector rxSetupScale(const RObject &obj,
 	  ret[i] = as<double>(xtra[cur]);
 	  usedS++;
 	} else {
+	  rxSolveFree();
 	  stop("Trying to scale the same compartment by scale=c(%s=%f,...) and S%d=%f;  Cannot do both.",
 	       (as<std::string>(state[i])).c_str(), ret[i], i+1,as<double>(xtra[i]));
 	}
@@ -1041,6 +1066,7 @@ NumericVector rxSetupScale(const RObject &obj,
             ret[i] = as<double>(xtra[cur]);
 	    usedS++;
           } else {
+	    rxSolveFree();
             stop("Trying to scale the same compartment by scale=c(%s=%f,...) and s%d=%f;  Cannot do both.",
                  (as<std::string>(state[i])).c_str(), ret[i], i+1,as<double>(xtra[i]));
           }
@@ -1087,9 +1113,11 @@ NumericVector rxSetupParamsThetaEtaThetaN(const RObject &theta = R_NilValue, std
         thetaN[i] = thetaM(i, i);
       }
     } else {
+      rxSolveFree();
       stop("'%s' is not compatible with params, check dimensions to make sure they are compatible.", thetaTxt.c_str());
     }
   } else if (!theta.isNULL()){
+    rxSolveFree();
     stop("'%s' is not compatible with params, check dimensions to make sure they are compatible.", thetaTxt.c_str());
   }
   return thetaN;
@@ -1161,9 +1189,11 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
           thetaN[i] = thetaM(i, i);
         }
       } else {
+	rxSolveFree();
         stop("'theta' is not compatible with params, check dimensions to make sure they are compatible.");
       }
     } else if (!theta.isNULL()){
+      rxSolveFree();
       stop("'theta' is not compatible with params, check dimensions to make sure they are compatible.");
     }
     // Now eta
@@ -1183,9 +1213,11 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
           etaN[i] = etaM(i, 0);
         }
       } else {
+	rxSolveFree();
         stop("'eta' is not compatible with params, check dimensions to make sure they are compatible.");
       }
     } else if (!eta.isNULL()){
+      rxSolveFree();
       stop("'eta' is not compatible with params, check dimensions to make sure they are compatible.");
     }
     NumericVector tmp0 = as<NumericVector>(params);
@@ -1198,6 +1230,7 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
       tmp0N = pars;
     } else if (tmp0.size() > 0){
       // In this case there are no names
+      rxSolveFree();
       stop("The parameter names must be specified.");
     }
     CharacterVector tmpN = CharacterVector(tmp1.size());
@@ -1222,333 +1255,51 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 
 typedef struct {
   int *gon;
-  int gonn;
   double *gsolve;
-  int gsolven;
   double *gInfusionRate;
-  int gInfusionRaten;
   double *gall_times;
   int *gix;
-  int gixn;
-  int gall_timesn;
   double *gdv;
   double *glimit;
-  int glimitn;
   int *gcens;
-  int gcensn;
-  int gdvn;
   double *gamt;
   double *gii;
-  int gamtn;
   double *glhs;
-  int glhsn;
   double *gcov;
-  int gcovn;
   double *ginits;
-  int ginitsn;
   double *gscale;
-  int gscalen;
   double *gatol2;
-  int gatol2n;
   double *grtol2;
-  int grtol2n;
+  double *gssAtol;
+  double *gssRtol;
   double *gpars;
-  int gparsn;
   //ints
   int *gevid;
-  int gevidn;
   int *gBadDose;
-  int gBadDosen;
   int *grc;
-  int grcn;
   int *gidose;
-  int gidosen;
   int *gpar_cov;
-  int gpar_covn;
   
   int *gParPos;
-  int gParPosn;
   int *gParPos2;
   
   int *gsvar;
-  int gsvarn;
-  int nsvar;
   int *gsiV;
-  int gsiVn;
   //
   int *slvr_counter;
-  int slvr_countern;
   int *dadt_counter;
-  int dadt_countern;
   int *jac_counter;
-  int jac_countern;
   double *gmtime;
-  int gmtimen;
 } rx_globals;
 
 rx_globals _globals;
 
-
-extern "C" void rxOptionsIniData(){
-  _globals.gsolve = NULL;//Calloc(NCMT*NALL,double);
-  _globals.gsolven=0;//NCMT*NALL;
-  _globals.gon = NULL;//Calloc(NCMT*NALL,double);
-  _globals.gonn=0;
-  _globals.gmtime = NULL;//Calloc(NCMT*NALL,double);
-  _globals.gmtimen=0;//NCMT*NALL;
-  _globals.gInfusionRate = NULL;//Calloc(NCMT,double);
-  _globals.gInfusionRaten=0;//NCMT;
-  _globals.gall_times = NULL;//Calloc(NALL,double);
-  _globals.gix = NULL;//Calloc(NALL,double);
-  _globals.gall_timesn=0;//NALL;
-  _globals.gdv = NULL;//Calloc(NALL,double);
-  _globals.gdvn=0;//NALL;
-  _globals.glimit = NULL;//Calloc(NALL,double);
-  _globals.glimitn=0;//NALL;
-  _globals.gcens = NULL;//Calloc(NALL,double);
-  _globals.gcensn=0;//NALL;
-  _globals.gamt = NULL;//Calloc(NDOSES,double);
-  _globals.gamtn=0;//NDOSES;
-  _globals.glhs = NULL;//Calloc(NPARS,double);
-  _globals.glhsn=0;//NPARS;
-  _globals.gcov = NULL;//Calloc(NALL*10,double);
-  _globals.gcovn=0;//NALL*10;
-  _globals.ginits = NULL;//Calloc(NCMT,double);
-  _globals.ginitsn=0;//NCMT;
-  _globals.gscale = NULL;//Calloc(NCMT,double);
-  _globals.gscalen=0;//NCMT;
-  _globals.gatol2 = NULL;//Calloc(NCMT,double);
-  _globals.gatol2n=0;//NCMT;
-  _globals.grtol2 = NULL;//Calloc(NCMT,double);
-  _globals.grtol2n=0;//NCMT;
-  _globals.gpars = NULL;//Calloc(NPARS,double);
-  _globals.gparsn=0;//NPARS;
-  //ints
-  _globals.gevid = NULL;//Calloc(NALL, int);
-  _globals.gevidn = 0;//NALL;
-  _globals.gBadDose = NULL;//Calloc(NCMT, int);
-  _globals.gBadDosen = 0;//NCMT;
-  _globals.grc = NULL;//Calloc(MAXIDS, int);
-  _globals.grcn = 0;//MAXIDS;
-  _globals.gidose = NULL;//Calloc(NALL, int);
-  _globals.gidosen = 0;//NALL;
-  _globals.gpar_cov = NULL;//Calloc(NCMT, int);
-  _globals.gpar_covn = 0;//NCMT;
-  _globals.gParPos = NULL;//Calloc(NCMT, int);
-  _globals.gParPos2 = NULL;//Calloc(NCMT, int);
-  _globals.gParPosn = 0;//NCMT;
-  _globals.gsvar = NULL;//Calloc(NPARS, int);
-  _globals.gsvarn = 0;//NPARS;
-  _globals.gsiV = NULL;//Calloc(NCMT, int);
-  _globals.gsiVn = 0;//NCMT;
-  _globals.slvr_counter = NULL;//Calloc(MAXIDS, int);
-  _globals.slvr_countern = 0;//MAXIDS;
-  _globals.dadt_counter = NULL;//Calloc(MAXIDS, int);
-  _globals.dadt_countern = 0;//MAXIDS;
-  _globals.jac_counter = NULL;//Calloc(MAXIDS, int);
-  _globals.jac_countern = 0;//MAXIDS;
-}
-
-void gOnSetup(int n){
-  if (_globals.gonn < 0){
-    _globals.gonn=0;
-    Free(_globals.gon);
-    _globals.gon=NULL;
-  }
-  if (_globals.gonn < n){
-    int cur = n;
-    if (_globals.gon == NULL) _globals.gon = Calloc(cur, int);
-    else _globals.gon = Realloc(_globals.gon, cur, int);
-    // Everything is on by default
-    std::fill_n(&_globals.gon[0], cur, 1);
-    _globals.gonn=cur;
-  }
-}
-
-void gsolveSetup(int n){
-  if (_globals.gsolven < 0){
-    _globals.gsolven=0;
-    Free(_globals.gsolve);
-    _globals.gsolve=NULL;
-  }
-  if (_globals.gsolven < n){
-    int cur = n;
-    if (_globals.gsolve == NULL) _globals.gsolve = Calloc(cur, double);
-    else _globals.gsolve = Realloc(_globals.gsolve, cur, double);
-    _globals.gsolven=cur;
-  }
-}
-
-void gmtimeSetup(int n){
-  if (_globals.gmtimen < 0){
-    _globals.gmtimen=0;
-    Free(_globals.gmtime);
-    _globals.gmtime=NULL;
-  }
-  if (_globals.gmtimen < n){
-    int cur = n;
-    if (_globals.gmtime == NULL) _globals.gmtime = Calloc(cur, double);
-    else _globals.gmtime = Realloc(_globals.gmtime, cur, double);
-    _globals.gmtimen=cur;
-  }
-}
-
-void gInfusionRateSetup(int n){
-  if (_globals.gInfusionRaten < n){
-    int cur = n;
-    if (_globals.gInfusionRate == NULL) _globals.gInfusionRate = Calloc(cur, double);
-    else _globals.gInfusionRate = Realloc(_globals.gInfusionRate, cur, double);
-    _globals.gInfusionRaten=cur;
-  }
-}
-
-void gix_Setup(int n){
-  if (_globals.gixn < 0){
-    _globals.gixn=0;
-    Free(_globals.gix);
-    _globals.gix=NULL;
-  }
-  if (_globals.gixn < n){
-    int cur = n;
-    if (_globals.gix == NULL) _globals.gix = Calloc(cur, int);
-    else _globals.gix = Realloc(_globals.gix, cur, int);
-    _globals.gixn=cur;
-  }
-}
-
-void gall_timesSetup(int n){
-  if (_globals.gall_timesn < 0){
-    _globals.gall_timesn=0;
-    Free(_globals.gall_times);
-    _globals.gall_times=NULL;
-  }
-  if (_globals.gall_timesn < n){
-    int cur = n;
-    if (_globals.gall_times == NULL) _globals.gall_times = Calloc(cur, double);
-    else _globals.gall_times = Realloc(_globals.gall_times, cur, double);
-    _globals.gall_timesn=cur;
-  }
-}
-
-void gdvSetup(int n){
-  if (_globals.gdvn < n){
-    int cur = n;
-    if (_globals.gdv == NULL) _globals.gdv = Calloc(cur, double);
-    else _globals.gdv = Realloc(_globals.gdv, cur, double);
-    _globals.gdvn=cur;
-  }
-}
-
-void glimitSetup(int n){
-  if (_globals.glimitn < n){
-    int cur = n;
-    if (_globals.glimit == NULL) _globals.glimit = Calloc(cur, double);
-    else _globals.glimit = Realloc(_globals.glimit, cur, double);
-    _globals.glimitn=cur;
-  }
-}
-
 extern "C" double getLimit(rx_solving_options_ind* ind, int i){
-  rx_solve* rx = getRxSolve_();
-  if (rx->limit == 0) return NA_REAL;
   return ind->limit[i];
 }
 
-void gcensSetup(int n){
-  if (_globals.gcensn < n){
-    int cur = n;
-    if (_globals.gcens == NULL) _globals.gcens = Calloc(cur, int);
-    else _globals.gcens = Realloc(_globals.gcens, cur, int);
-    _globals.gcensn=cur;
-  }
-}
-
 extern "C" int getCens(rx_solving_options_ind* ind, int i){
-  rx_solve* rx = getRxSolve_();
-  if (rx->cens == 0) return NA_REAL;
   return ind->cens[i];
-}
-
-void gamtSetup(int n){
-  if (_globals.gamtn < 0){
-    _globals.gamtn = 0;
-    Free(_globals.gamt);
-    _globals.gamt  = NULL;
-    Free(_globals.gii);
-    _globals.gii   = NULL;
-  }
-  if (_globals.gamtn < n){
-    int cur = n;
-    if (_globals.gamt == NULL) _globals.gamt = Calloc(cur, double);
-    else _globals.gamt = Realloc(_globals.gamt, cur, double);
-    if (_globals.gii == NULL) _globals.gii = Calloc(cur, double);
-    else _globals.gii = Realloc(_globals.gii, cur, double);
-    _globals.gamtn = cur;
-  }
-}
-
-void glhsSetup(int n){
-  if (_globals.glhsn < n){
-    _globals.glhsn=0;
-    Free(_globals.glhs);
-    _globals.glhs=NULL;
-  }
-  if (_globals.glhsn < n){
-    int cur = n;
-    if (_globals.glhs == NULL) _globals.glhs = Calloc(cur, double);
-    else _globals.glhs = Realloc(_globals.glhs, cur, double);
-    _globals.glhsn =cur;
-  }
-}
-
-void gcovSetup(int n){
-  if (_globals.gcovn < n){
-    int cur = n;
-    if (_globals.gcov == NULL) _globals.gcov = Calloc(cur, double);
-    else _globals.gcov = Realloc(_globals.gcov, cur, double);
-    _globals.gcovn = cur;
-  }
-}
-
-void ginitsSetup(int n){
-  if (_globals.ginitsn < 0){
-    Free(_globals.ginits);
-    _globals.ginits = NULL;
-    _globals.ginitsn = 0;
-  }
-  if (_globals.ginitsn < n){
-    int cur = n;
-    if (_globals.ginits == NULL) _globals.ginits = Calloc(cur, double);
-    else _globals.ginits = Realloc(_globals.ginits, cur, double);
-    _globals.ginitsn = cur;
-  }
-}
-
-void gscaleSetup(int n){
-  if (_globals.gscalen < n){
-    int cur = n;
-    if (_globals.gscale == NULL) _globals.gscale = Calloc(cur, double);
-    else _globals.gscale = Realloc(_globals.gscale, cur, double);
-    _globals.gscalen = cur;
-  }
-}
-
-void gatol2Setup(int n){
-  if (_globals.gatol2n < n){
-    int cur = n;
-    if (_globals.gatol2 == NULL) _globals.gatol2 = Calloc(cur, double);
-    else _globals.gatol2 = Realloc(_globals.gatol2, cur, double);
-    _globals.gatol2n = cur;
-  }
-}
-
-void grtol2Setup(int n){
-  if (_globals.grtol2n < n){
-    int cur = n;
-    if (_globals.grtol2 == NULL) _globals.grtol2 = Calloc(cur, double);
-    else _globals.grtol2 = Realloc(_globals.grtol2, cur, double);
-    _globals.grtol2n = cur;
-  }
 }
 
 double maxAtolRtolFactor = 0.1;
@@ -1557,7 +1308,7 @@ double maxAtolRtolFactor = 0.1;
 void atolRtolFactor_(double factor){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
-  for (int i = _globals.grtol2n;i--;){
+  for (int i = op->neq;i--;){
     _globals.grtol2[i] = min2(_globals.grtol2[i]*factor, maxAtolRtolFactor);
     _globals.gatol2[i] = min2(_globals.gatol2[i]*factor, maxAtolRtolFactor);
   }
@@ -1566,38 +1317,20 @@ void atolRtolFactor_(double factor){
 }
 
 extern "C" double * getAol(int n, double atol){
-  gatol2Setup(n+1);
-  if (_globals.gatol2[0] != atol){
-    std::fill_n(&_globals.gatol2[0], n+1, atol);
-  }
   return _globals.gatol2;
 }
 
 extern "C" double * getRol(int n, double rtol){
-  grtol2Setup(n+1);
-  if (_globals.grtol2[0] != rtol){
-    std::fill_n(&_globals.grtol2[0], n+1, rtol);
-  }
   return _globals.grtol2;
 }
 
-void gparsSetup(int n){
-  if (_globals.gparsn < 0){
-    _globals.gparsn=0;
-    Free(_globals.gpars);
-    _globals.gpars=NULL;
-  }
-  if (_globals.gparsn < n){
-    int cur = n;
-    if (_globals.gpars == NULL) _globals.gpars = Calloc(cur, double);
-    else _globals.gpars = Realloc(_globals.gpars, cur, double);
-    cur = _globals.gparsn;
-  }
-}
-
 void gparsCovSetup(int npars, int nPopPar, RObject ev1,rx_solve* rx){
+  _globals.gpars = (double*)calloc(npars*nPopPar, sizeof(double));
+  if (_globals.gpars == NULL){
+    rxSolveFree();
+    stop("Could not allocate parameters for solving.");
+  }
   // Fill the parameters with NA.
-  gparsSetup(npars*nPopPar);
   std::fill_n(&_globals.gpars[0], npars*nPopPar, NA_REAL);
   if (rxIs(ev1, "rxEtTran")){
     CharacterVector tmpCls = ev1.attr("class");
@@ -1614,221 +1347,50 @@ void gparsCovSetup(int npars, int nPopPar, RObject ev1,rx_solve* rx){
   }
 }
 
-void gevidSetup(int n){
-  if (_globals.gevidn < 0){
-    _globals.gevidn = 0;
-    Free(_globals.gevid);
-    _globals.gevid = NULL;
-  }
-  if (_globals.gevidn < n){
-    int cur = n;
-    if (_globals.gevid == NULL) _globals.gevid = Calloc(cur, int);
-    else _globals.gevid = Realloc(_globals.gevid, cur, int);
-    _globals.gevidn  = cur;
-  }
-}
-
-void gBadDoseSetup(int n){
-  if (_globals.gBadDosen < n){
-    int cur = n;
-    if (_globals.gBadDose == NULL) _globals.gBadDose = Calloc(cur, int);
-    else _globals.gBadDose = Realloc(_globals.gBadDose, cur, int);
-    _globals.gBadDosen  = cur;
-  }
-}
-
-void grcSetup(int n){
-  if (_globals.grcn < 0){
-    _globals.grcn=0;
-    Free(_globals.grc);
-    _globals.grc=NULL;
-  }
-  if (_globals.grcn < n){
-    int cur = n;
-    if (_globals.grc == NULL) _globals.grc = Calloc(cur, int);
-    else _globals.grc = Realloc(_globals.grc, cur, int);
-    _globals.grcn  = cur;
-  }
-}
-
-extern "C" int *gslvr_counterSetup(int n){
-  if (_globals.slvr_countern < n){
-    int cur = n;
-    if (_globals.slvr_counter == NULL) _globals.slvr_counter = Calloc(cur, int);
-    else _globals.slvr_counter = Realloc(_globals.slvr_counter, cur, int);
-    _globals.slvr_countern = cur;
-  }
-  return _globals.slvr_counter;
-}
-
-extern "C" int *gdadt_counterSetup(int n){
-  if (_globals.dadt_countern < n){
-    int cur = n;
-    if (_globals.dadt_counter == NULL) _globals.dadt_counter = Calloc(cur, int);
-    else _globals.dadt_counter = Realloc(_globals.dadt_counter, cur, int);
-    _globals.dadt_countern = cur;
-  }
-  return _globals.dadt_counter;
-}
-
-extern "C" int *gjac_counterSetup(int n){
-  if (_globals.jac_countern < n){
-    int cur = n;
-    if (_globals.jac_counter == NULL) _globals.jac_counter = Calloc(cur, int);
-    else _globals.jac_counter = Realloc(_globals.jac_counter, cur, int);
-    _globals.jac_countern = cur;
-  }
-  return _globals.jac_counter;
-}
-
-extern "C" int *gidoseSetup(int n){
-  if (_globals.gidosen < n){
-    int cur = n;
-    if (_globals.gidose == NULL) _globals.gidose = Calloc(cur, int);
-    else _globals.gidose = Realloc(_globals.gidose, cur, int);
-    _globals.gidosen = cur;
-  }
-  return _globals.gidose;
-}
-
-void gpar_covSetup(int n){
-  if (_globals.gpar_covn < n){
-    int cur = n;
-    if (_globals.gpar_cov == NULL) _globals.gpar_cov = Calloc(cur, int);
-    else _globals.gpar_cov = Realloc(_globals.gpar_cov, cur, int);
-    _globals.gpar_covn = cur;
-  }
-}
-
-void gParPosSetup(int n){
-  if (_globals.gParPosn < n){
-    int cur = n;
-    if (_globals.gParPos == NULL) _globals.gParPos = Calloc(cur, int);
-    else _globals.gParPos = Realloc(_globals.gParPos, cur, int);
-    if (_globals.gParPos2 == NULL) _globals.gParPos2 = Calloc(cur, int);
-    else _globals.gParPos2 = Realloc(_globals.gParPos2, cur, int);
-    _globals.gParPosn = cur;
-  }
-}
-
-void gsvarSetup(int n){
-  if (_globals.gsvarn < n){
-    int cur = n;
-    if (_globals.gsvar == NULL) _globals.gsvar = Calloc(cur, int);
-    else _globals.gsvar = Realloc(_globals.gsvar, cur, int);
-    _globals.gsvarn = cur;
-  }
-}
-
-extern "C" int *gsiVSetup(int n){
-  if (_globals.gsiVn < n){
-    int cur = n;
-    if (_globals.gsiV == NULL) _globals.gsiV = Calloc(cur, int);
-    else _globals.gsiV = Realloc(_globals.gsiV, cur, int);
-    _globals.gsiVn = cur;
-  }
-  return _globals.gsiV;
-}
-
 double *_rxGetErrs = NULL;
 void rxFreeErrs(){
-  Free(_rxGetErrs);
+  free(_rxGetErrs);
+  _rxGetErrs=NULL;
 }
 
 extern "C" void gFree(){
-  Free(_rxGetErrs);
-  if (_globals.gsiV != NULL) Free(_globals.gsiV);
-  _globals.gsiV=NULL;
-  _globals.gsiVn=0;
-  if (_globals.gsvar != NULL) Free(_globals.gsvar);
-  _globals.gsvar=NULL;
-  _globals.gsvarn=0;
-  if (_globals.gpar_cov != NULL) Free(_globals.gpar_cov);
-  _globals.gpar_cov=NULL;
-  _globals.gpar_covn=0;
-  if (_globals.gidose != NULL) Free(_globals.gidose);
-  _globals.gidose=NULL;
-  _globals.gidosen=0;
-  if (_globals.grc != NULL) Free(_globals.grc);
-  _globals.grc=NULL;
-  _globals.grcn=0;
-  if (_globals.gBadDose != NULL) Free(_globals.gBadDose);
-  _globals.gBadDose=NULL;
-  _globals.gBadDosen=0;
-  if (_globals.gevid != NULL) Free(_globals.gevid);
-  _globals.gevid=NULL;
-  _globals.gevidn=0;
-  if (_globals.gpars != NULL) Free(_globals.gpars);
-  _globals.gpars=NULL;
-  _globals.gparsn=0;
-  if (_globals.grtol2 != NULL) Free(_globals.grtol2);
-  _globals.grtol2=NULL;
-  _globals.grtol2n=0;
-  if (_globals.gatol2 != NULL) Free(_globals.gatol2);
-  _globals.gatol2=NULL;
-  _globals.gatol2n=0;
-  if (_globals.gscale != NULL) Free(_globals.gscale);
-  _globals.gscale=NULL;
-  _globals.gscalen=0;
-  if (_globals.ginits != NULL) Free(_globals.ginits);
-  _globals.ginits=NULL;
-  _globals.ginitsn=0;
-  if (_globals.gcov != NULL) Free(_globals.gcov);
-  _globals.gcov=NULL;
-  _globals.gcovn=0;
-  if (_globals.glhs != NULL) Free(_globals.glhs);
-  _globals.glhs=NULL;
-  _globals.glhsn=0;
-  if (_globals.gamt != NULL) Free(_globals.gamt);
-  _globals.gamt=NULL;
-  if (_globals.gii != NULL) Free(_globals.gii);
-  _globals.gamt=NULL;
-  _globals.gii=NULL;
-  _globals.gamtn=0;
-  if (_globals.gall_times != NULL) Free(_globals.gall_times);
-  _globals.gall_times=NULL;
-  _globals.gall_timesn=0;
-  if (_globals.gix != NULL) Free(_globals.gix);
-  _globals.gix=NULL;
-  _globals.gixn=0;
-  if (_globals.gdv != NULL) Free(_globals.gdv);
-  _globals.gdvn=0;
-  if (_globals.glimit != NULL) Free(_globals.glimit);
-  _globals.glimitn=0;
-  if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
-  _globals.gInfusionRate=NULL;
-  _globals.gInfusionRaten=0;
-  if (_globals.gsolve != NULL) Free(_globals.gsolve);
+  if (_globals.gsolve != NULL) free(_globals.gsolve);
   _globals.gsolve=NULL;
-  _globals.gsolven=0;
-  if (_globals.gon != NULL&& _globals.gonn>0) Free(_globals.gon);
+  if (_globals.gon != NULL) free(_globals.gon);
   _globals.gon=NULL;
-  _globals.gonn=0;
-  if (_globals.gmtime != NULL&& _globals.gmtimen>0) Free(_globals.gmtime);
-  _globals.gmtime=NULL;
-  _globals.gmtimen=0;
-  if (_globals.gParPos != NULL) Free(_globals.gParPos);
+  if (_globals.gpars != NULL) free(_globals.gpars);
+  _globals.gpars=NULL;
+  if (_globals.gParPos != NULL) free(_globals.gParPos);
   _globals.gParPos=NULL;
-  if (_globals.gParPos2 != NULL) Free(_globals.gParPos2);
-  _globals.gParPos2=NULL;
-  _globals.gParPosn = 0;
-  if (_globals.slvr_counter != NULL) Free(_globals.slvr_counter);
-  _globals.slvr_counter=NULL;
-  _globals.slvr_countern=0;
-  if (_globals.jac_counter != NULL) Free(_globals.jac_counter);
-  _globals.jac_counter=NULL;
-  _globals.jac_countern=0;
-  if (_globals.dadt_counter != NULL) Free(_globals.dadt_counter);
-  _globals.dadt_counter=NULL;
-  _globals.dadt_countern=0;
+  if (_globals.gevid != NULL) free(_globals.gevid);
+  _globals.gevid=NULL;
+  if (_globals.gall_times != NULL) free(_globals.gall_times);
+  _globals.gall_times=NULL;
+  if (_globals.gcov != NULL) free(_globals.gcov);
+  _globals.gcov=NULL;
+  if (_rxGetErrs != NULL) free(_rxGetErrs);
+  _rxGetErrs=NULL;
 }
 
 extern "C" double *rxGetErrs(){
   getRxModels();
   if (_rxModels.exists(".sigma")){
     NumericMatrix sigma = _rxModels[".sigma"];
-    if (_rxGetErrs == NULL) _rxGetErrs = Calloc(sigma.ncol()*sigma.nrow(), double);
-    else _rxGetErrs = Realloc(_rxGetErrs, sigma.ncol()*sigma.nrow(), double);
+    if (_rxGetErrs == NULL){
+      _rxGetErrs = (double*)calloc(sigma.ncol()*sigma.nrow(), sizeof(double));
+      if (_rxGetErrs == NULL) {
+	rxSolveFree();
+	stop("Memory for residual errors could not be allocated");
+      }
+    }
+    else {
+      double *tmpErr = (double*)realloc(_rxGetErrs, sigma.ncol()*sigma.nrow()*sizeof(double));
+      if (tmpErr == NULL){
+	rxSolveFree();
+	stop("Cannot expand the errors for residuals.");
+      }
+      _rxGetErrs  = tmpErr;
+    }
     std::copy(sigma.begin(),sigma.end(),&_rxGetErrs[0]);
     return _rxGetErrs;
   }
@@ -1845,25 +1407,6 @@ extern "C" int rxGetErrsNcol(){
   return 0;
 }
 
-extern "C" void setInits(SEXP init){
-  getRxModels();
-  _rxModels[".init"] = init;
-}
-
-extern "C" int getInits(char *s_aux_info, int *o){
-  getRxModels();
-  if (_rxModels.exists(".init")){
-    List init = _rxModels[".init"];
-    int ret = as<int>(init[0]);
-    std::string str = as<std::string>(init[1]);
-    sprintf( s_aux_info + *o,"%s",str.c_str());
-    *o = (int)strlen(s_aux_info);
-    return ret;
-  } else {
-    return 0;
-  }
-}
-  
 SEXP rxGetFromChar(char *ptr, std::string var){
   std::string str(ptr);
   // Rcout << str << "\n";
@@ -1920,7 +1463,7 @@ SEXP rxGetFromChar(char *ptr, std::string var){
 //' @param nObs Number of observations to simulate (with \code{sigma} matrix)
 //'
 //' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
-//'     indivdual parameters, residuals are updated after solve is completed.
+//'     individual parameters, residuals are updated after solve is completed.
 //'
 //' @param sigmaLower Lower bounds for simulated unexplained variability (by default -Inf)
 //'
@@ -1928,10 +1471,10 @@ SEXP rxGetFromChar(char *ptr, std::string var){
 //'
 //' @inheritParams rxSolve
 //'
-//' @param dfSub Degrees of freedom to sample the between subject variaiblity matrix from the 
+//' @param dfSub Degrees of freedom to sample the between subject variability matrix from the 
 //'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
 //'
-//' @param dfObs Degrees of freedom to sample the unexplained variaiblity matrix from the 
+//' @param dfObs Degrees of freedom to sample the unexplained variability matrix from the 
 //'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution. 
 //'
 //' @param simSubjects boolean indicated RxODE should simulate subjects in studies (\code{TRUE}, 
@@ -1966,11 +1509,13 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 		     bool simSubjects=true){
   NumericVector par;
   if (params.isNull()){
-    stop("This function requires overall parameters.");
+    rxSolveFree();
+    stop("requires 'params'");
   } else {
     par = NumericVector(params);
     if (!par.hasAttribute("names")){
-      stop("'params' must be a named vector.");
+      rxSolveFree();
+      stop("'params' must be a named vector");
     }
   }
   bool simSigma = false;
@@ -1981,6 +1526,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     simSigma = true;
     sigmaM = as<NumericMatrix>(sigma);
     if (!sigmaM.hasAttribute("dimnames")){
+      rxSolveFree();
       stop("'sigma' must be a named Matrix.");
     }
     if (sigmaIsChol){
@@ -1988,6 +1534,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     } else {
       arma::mat tmpM = as<arma::mat>(sigmaM);
       if (!tmpM.is_sympd()){
+	rxSolveFree();
 	stop("'sigma' must be symmetric");
       }
       sigmaMC = wrap(arma::chol(as<arma::mat>(sigmaM)));
@@ -2000,11 +1547,13 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     if (simSubjects){
       if (nObs*nStud*nSub*scol < 0){
         // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
+	rxSolveFree();
         stop("Simulation Overflow; Reduce the number of observations, number of subjects or number of studies.");
       }
     } else {
       if (nObs*nStud*scol < 0){
         // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
+	rxSolveFree();
         stop("Simulation Overflow; Reduce the number of observations or number of studies.");
       }
     }
@@ -2018,11 +1567,13 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   if (!thetaMat.isNull() && nStud > 1){
     thetaM = as<NumericMatrix>(thetaMat);
     if (!thetaM.hasAttribute("dimnames")){
+      rxSolveFree();
       stop("'thetaMat' must be a named Matrix.");
     }
     if (!thetaIsChol){
       arma::mat tmpM = as<arma::mat>(thetaMat);
       if (!tmpM.is_sympd()){
+	rxSolveFree();
 	stop("'thetaMat' must be symmetric");
       }
     }
@@ -2050,6 +1601,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     simOmega = true;
     omegaM = as<NumericMatrix>(omega);
     if (!omegaM.hasAttribute("dimnames")){
+      rxSolveFree();
       stop("'omega' must be a named Matrix.");
     }
     if (omegaIsChol){
@@ -2057,12 +1609,14 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     } else {
       arma::mat tmpM = as<arma::mat>(omegaM);
       if (!tmpM.is_sympd()){
+	rxSolveFree();
 	stop("'omega' must be symmetric.");
       }
       omegaMC = wrap(arma::chol(as<arma::mat>(omegaM)));
     }
     omegaN = as<CharacterVector>((as<List>(omegaM.attr("dimnames")))[1]);
   } else if (nSub > 1){
+    rxSolveFree();
     stop("'omega' is required for multi-subject simulations.");
   }
   // Now create data frame of parameter values
@@ -2291,9 +1845,14 @@ void updateSolveEnvPost(Environment e){
     RObject parso = e["args.params"];
     IntegerVector ppos = e[".par.pos"];
     bool IsIni = e[".par.pos.ini"];
+    CharacterVector idLevels = as<CharacterVector>(e[".idLevels"]);
     if (rxIs(parso, "numeric") || rxIs(parso, "integer") ||
 	rxIs(parso, "NULL")){
-      double *tmp=Calloc(ppos.size(),double);
+      double *tmp=(double*)calloc(ppos.size(),sizeof(double));
+      if (tmp == NULL){
+	rxSolveFree();
+	stop("Ran out of memory during updateSolveEnvPost.");
+      }
       // NumericVector   prs(ppos.size()-nrm);
       // CharacterVector prsn(ppos.size()-nrm+1);
       NumericVector parNumeric;
@@ -2319,7 +1878,7 @@ void updateSolveEnvPost(Environment e){
       NumericVector prs(j);
       CharacterVector prsn(j);
       std::copy(&tmp[0],&tmp[0]+j,prs.begin());
-      Free(tmp);
+      free(tmp);
       j=0;
       for (i = 0; i < ppos.size(); i++){
         if (ppos[i] != 0){ // User specified parameter
@@ -2368,6 +1927,10 @@ void updateSolveEnvPost(Environment e){
         IntegerVector tmp(parsdf.nrow());
 	for (unsigned int k = parsdf.nrow(); k--;){
 	  tmp[k] = (k % nsub)+1;
+	}
+	if (idLevels.size() > 0){	
+	  tmp.attr("class") = CharacterVector::create("factor");	
+	  tmp.attr("levels") = idLevels;	
 	}
 	prsl[j] = tmp;
 	prsn[j]="id";
@@ -2432,6 +1995,8 @@ extern "C" void rxOptionsIni();
 extern "C" void rxOptionsIniEnsure(int mx);
 extern "C" void parseFree(int last);
 extern "C" void rxClearFuns();
+extern "C" void rxFreeLast();	
+int _gsetupOnly = 0;
 //' Free the C solving/parsing information.
 //'
 //' Take the ODE C system and free it.
@@ -2440,12 +2005,11 @@ extern "C" void rxClearFuns();
 //' @export
 // [[Rcpp::export]]
 LogicalVector rxSolveFree(){
-  rxOptionsFree();
-  rxOptionsIni();
-  rxOptionsIniData();
-  parseFree(0);
-  rxClearFuns();
-  gFree();
+  rxOptionsFree(); // f77 losda free
+  rxOptionsIni();// realloc f77 lsoda cache
+  parseFree(0); //free parser
+  rxClearFuns(); // Assign all the global ODE solving functions to NULL pointers
+  gFree();// Frees all the global pointers
   return LogicalVector::create(true);
 }
 
@@ -2501,6 +2065,10 @@ typedef struct{
   int npars;
   NumericVector mvIni;
   int nsvar;
+  bool idFactor;
+  bool labelID;
+  bool warnIdSort;
+  CharacterVector idLevels;
 } rxSolve_t;
 
 SEXP rxSolve_(const RObject &obj, const List &rxControl, const Nullable<CharacterVector> &specParams,
@@ -2618,6 +2186,10 @@ void rxSolve_ev1Update(const RObject &obj, const List &rxControl,
       List ev1a = etTrans(as<List>(ev1), obj, rxSolveDat.hasCmt,
 			  false, false, true, R_NilValue,
 			  rxControl["keepF"]);
+      rxSolveDat.labelID=true;
+      CharacterVector tmpC = ev1a.attr("class");
+      List tmpL = tmpC.attr(".RxODE.lst");
+      rxSolveDat.idLevels = as<CharacterVector>(tmpL["idLvl"]);
       rx->nKeepF = keepFcov.size();
       int lenOut = 200;
       double by = NA_REAL;
@@ -2629,6 +2201,7 @@ void rxSolve_ev1Update(const RObject &obj, const List &rxControl,
 	  rxIs(rxControl["from"], "numeric")){
 	tmp = as<NumericVector>(rxControl["from"]);
 	if (tmp.size() != 1){
+	  rxSolveFree();
 	  stop("'from' must be of length 1");
 	}
 	from = tmp[0];
@@ -2636,6 +2209,7 @@ void rxSolve_ev1Update(const RObject &obj, const List &rxControl,
       if (rxIs(rxControl["to"], "integer") || rxIs(rxControl["to"], "numeric")){
 	tmp = as<NumericVector>(rxControl["to"]);
 	if (tmp.size() != 1){
+	  rxSolveFree();
 	  stop("'to' must be of length 1");
 	}
 	to = tmp[0];
@@ -2645,6 +2219,7 @@ void rxSolve_ev1Update(const RObject &obj, const List &rxControl,
       if (rxIs(rxControl["by"], "integer") || rxIs(rxControl["by"], "numeric")){
 	tmp = as<NumericVector>(rxControl["by"]);
 	if (tmp.size() != 1){
+	  rxSolveFree();
 	  stop("'by' must be of length 1");
 	}
 	by = tmp[0];
@@ -2652,12 +2227,14 @@ void rxSolve_ev1Update(const RObject &obj, const List &rxControl,
       if (rxIs(rxControl["length.out"], "integer") || rxIs(rxControl["length.out"], "numeric")){
 	tmpI = as<IntegerVector>(rxControl["length.out"]);
 	if (tmpI.size() != 1){
+	  rxSolveFree();
 	  stop("'length.out' must be of length 1");
 	}
 	lenOut = tmpI[0];
 	if (!ISNA(by)){
 	  // Matches seq(0,1,by=0.1,length.out=3)
 	  // stop("too many arguments");
+	  rxSolveFree();
 	  stop("Cannot use both 'by' and 'length.out' for RxODE simulations");
 	}
 	by = (to-from)/(lenOut-1);
@@ -2681,6 +2258,10 @@ void rxSolve_ev1Update(const RObject &obj, const List &rxControl,
     ev1 = as<List>(etTrans(as<List>(ev1), obj, rxSolveDat.hasCmt,
 			   false, false, true, R_NilValue,
 			   rxControl["keepF"]));
+    rxSolveDat.labelID=true;
+    CharacterVector tmpC = ev1.attr("class");
+    List tmpL = tmpC.attr(".RxODE.lst");
+    rxSolveDat.idLevels = as<CharacterVector>(tmpL["idLvl"]);
     rx->nKeepF = keepFcov.size();
     rxcEvid = 2;
     rxcTime = 1;
@@ -2736,6 +2317,7 @@ void rxSolve_simulate(const RObject &obj, const List &rxControl,
   if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
     // Simulated Variable3
     if (!rxIs(rxSolveDat.par1, "numeric")){
+      rxSolveFree();
       stop("When specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a data.frame/matrix.");
     }
     unsigned int nSub0 = 0;
@@ -2778,6 +2360,7 @@ void rxSolve_simulate(const RObject &obj, const List &rxControl,
       }
     }
     if (nSub > 1 && nSub0 > 1 && nSub != nSub0){
+      rxSolveFree();
       stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.");
     } else if (nSub > 1 && nSub0 == 1) {
       nSub0 = nSub;
@@ -2800,6 +2383,7 @@ void rxSolve_simulate(const RObject &obj, const List &rxControl,
       if (!thetaIsChol){
 	arma::mat tmpM = as<arma::mat>(thetaMat);
 	if (!tmpM.is_sympd()){
+	  rxSolveFree();
 	  stop("'thetaMat' must be symmetric");
 	}
       }
@@ -2849,11 +2433,14 @@ void rxSolve_parSetup(const RObject &obj, const List &rxControl,
     } else if (rxSolveDat.parNumeric.size() == pars.size()) {
       rxSolveDat.nmP = pars;
     } else {
+      rxSolveFree();
       stop("If parameters are not named, they must match the order and size of the parameters in the model.");
     }
     RObject iCov = rxControl["iCov"];
     if (!rxIs(iCov, "NULL")){
       // Create a data frame
+      Function sortId = getRxFn(".sortId");
+      iCov = clone(sortId(iCov, rxSolveDat.idLevels, "iCov", rxSolveDat.warnIdSort));
       CharacterVector keepC, keepCf;
       if (rxIs(rxControl["keepI"], "character")){
 	keepC = as<CharacterVector>(rxControl["keepI"]);
@@ -2909,8 +2496,15 @@ void rxSolve_parSetup(const RObject &obj, const List &rxControl,
       rxSolveDat.usePar1=true;
     }
   } else if (rxIs(rxSolveDat.par1, "data.frame")){
+    Function sortId = getRxFn(".sortId");
+    if (rxSolveDat.idLevels.size() > 0){
+      rxSolveDat.par1 = clone(sortId(rxSolveDat.par1, rxSolveDat.idLevels, "parameters", rxSolveDat.warnIdSort));
+      rxSolveDat.usePar1=true;
+    }
     RObject iCov = rxControl["iCov"];
     if (!rxIs(iCov, "NULL")){
+      Function sortId = getRxFn(".sortId");
+      iCov = clone(sortId(iCov, rxSolveDat.idLevels, "iCov", rxSolveDat.warnIdSort));
       List lstT=as<List>(iCov);
       List lst = as<List>(rxSolveDat.par1);
       List lstF(lst.size()+lstT.size());
@@ -2963,6 +2557,7 @@ void rxSolve_parSetup(const RObject &obj, const List &rxControl,
   } else if (rxIs(rxSolveDat.par1, "matrix")){
     RObject iCov = rxControl["iCov"];
     if (!rxIs(iCov, "NULL")){
+      rxSolveFree();
       stop("matrix parameters with iCov data frame is not supported.");
     }
     rxSolveDat.parMat = as<NumericMatrix>(rxSolveDat.par1);
@@ -2974,6 +2569,7 @@ void rxSolve_parSetup(const RObject &obj, const List &rxControl,
 	if (rxSolveDat.parMat.ncol() == pars.size()){
 	  rxSolveDat.nmP = pars;
 	} else {
+	  rxSolveFree();
 	  stop("If parameters are not named, they must match the order and size of the parameters in the model.");
 	}
       } else {
@@ -2982,6 +2578,7 @@ void rxSolve_parSetup(const RObject &obj, const List &rxControl,
     } else if (rxSolveDat.parMat.ncol() == pars.size()) {
       rxSolveDat.nmP = pars;
     } else {
+      rxSolveFree();
       stop("If parameters are not named, they must match the order and size of the parameters in the model.");
     }
   }
@@ -3025,15 +2622,44 @@ void rxSolve_datSetupHmax(const RObject &obj, const List &rxControl,
       }
     }
     DataFrame dataf = as<DataFrame>(ev1);
-    // Copy the information and make sure there is enough room.
-    // - evid
+    CharacterVector dfNames = dataf.names();
+    int dfN = dfNames.size();
     IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
-    gevidSetup(evid.size());
+    _globals.gevid = (int*)calloc(3*evid.size()+dfN, sizeof(int));
+    if (_globals.gevid == NULL){
+      rxSolveFree();
+      stop("Cannot allocate enough memory to load evid");
+    }
     std::copy(evid.begin(),evid.end(), &_globals.gevid[0]);
+    _globals.gidose = _globals.gevid + evid.size();
+    _globals.gcens = _globals.gidose + evid.size();
+    _globals.gpar_cov = _globals.gidose + evid.size();//[dfN];
+
+    int ntot = 1;
+
     IntegerVector id(evid.size(), 1);
     if (rxcId > -1){
       id    = as<IntegerVector>(dataf[rxcId]);
+      int lastid = NA_INTEGER;
+      int nid = 0;
+      for (int ii = 0; ii < id.size(); ii++){
+	if (id[ii] != lastid){
+	  lastid = id[ii];
+	  nid++;
+	}
+      }
+      // if (nid == 0){
+      //   stop("Empty data.");
+      // } else 
+      if (nid == rxSolveDat.nPopPar || rxSolveDat.nPopPar == 1){
+	ntot = nid;
+      } else {
+	ntot = nid*rxSolveDat.nPopPar;
+      }
+    } else {
+      if (rxSolveDat.nPopPar != 0) ntot = rxSolveDat.nPopPar;
     }
+    
     NumericVector time0 = dataf[rxcTime];
     if (rxIs(time0, "units")){
       rxSolveDat.addTimeUnits=true;
@@ -3042,19 +2668,22 @@ void rxSolve_datSetupHmax(const RObject &obj, const List &rxControl,
 
     tlast = time0[0];
     // - all_times
-    gall_timesSetup(time0.size());
+    rxOptionsIniEnsure(ntot);
+    _globals.gall_times = (double*)calloc(5*time0.size(), sizeof(double));
     std::copy(time0.begin(), time0.end(), &_globals.gall_times[0]);
+    _globals.gdv = _globals.gall_times + time0.size(); // Perhaps allocate zero size if missing?
+    _globals.gamt = _globals.gdv + time0.size(); 
+    _globals.gii = _globals.gamt + time0.size();
+    _globals.glimit=_globals.gii+time0.size();
     NumericVector dv;
     if (rxcDv > -1){
       dv = as<NumericVector>(dataf[rxcDv]);
-      gdvSetup(dv.size());
       std::copy(dv.begin(), dv.end(), &_globals.gdv[0]);
     }
     IntegerVector cens;
     rx->cens=0;
     if (rxcCens > -1){
       cens = as<IntegerVector>(dataf[rxcCens]);
-      gcensSetup(cens.size());
       std::copy(cens.begin(), cens.end(), &_globals.gcens[0]);
       rx->cens=1;
     }
@@ -3063,7 +2692,6 @@ void rxSolve_datSetupHmax(const RObject &obj, const List &rxControl,
     if (rxcLimit > -1){
       rx->limit=1;
       limit = as<NumericVector>(dataf[rxcLimit]);
-      glimitSetup(limit.size());
       std::copy(limit.begin(), limit.end(), &_globals.glimit[0]);
     }
     NumericVector amt   = dataf[rxcAmt];
@@ -3073,16 +2701,6 @@ void rxSolve_datSetupHmax(const RObject &obj, const List &rxControl,
     } else {
       std::fill_n(datIi.begin(), datIi.size(), 0.0);
     }
-    // Make sure that everything can take the correct sizes
-    // - amt
-    gamtSetup(amt.size());
-    // - idose
-    gidoseSetup(amt.size());
-    // Get covariates
-    CharacterVector dfNames = dataf.names();
-    int dfN = dfNames.size();
-    // - par cov needs to be at lest the size of the dataframe names.
-    gpar_covSetup(dfN);
     ncov = 0;
     std::vector<int> covPos(dfN);
     curcovi=0;
@@ -3095,11 +2713,16 @@ void rxSolve_datSetupHmax(const RObject &obj, const List &rxControl,
 	}
       }
     }
+     // Make sure the covariates are a #ncov * all times size
+    _globals.gcov = (double*)calloc(ncov * amt.size(), sizeof(double));
+    if (_globals.gcov == NULL){
+      rxSolveFree();
+      stop("Cannot allocate memory for the covariates");
+    }
     op->par_cov=&(_globals.gpar_cov[0]);
     op->ncov=ncov;
     op->do_par_cov = (ncov > 0);
     // Make sure the covariates are a #ncov * all times size
-    gcovSetup(ncov * amt.size());
     int ids = id.size();
     // Get the number of subjects
     // Get the number of observations
@@ -3192,6 +2815,7 @@ void rxSolve_datSetupHmax(const RObject &obj, const List &rxControl,
 	if (!ISNA(tlast)){
 	  tmp = time0[i]-tlast;
 	  if (tmp < 0){
+	    rxSolveFree();
 	    stop("Dataset must be ordered by ID and TIME variables");
 	  }
 	  hmax1n++;
@@ -3255,7 +2879,13 @@ void rxSolve_parOrder(const RObject &obj, const List &rxControl,
 		      const RObject &inits, rxSolve_t& rxSolveDat){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
-  gParPosSetup(rxSolveDat.npars);
+  _globals.gParPos = (int*)calloc(rxSolveDat.npars*2 + rxSolveDat.sigmaN.size(), sizeof(int));// [npars]
+  if (_globals.gParPos == NULL){
+    rxSolveFree();
+    stop("Cannot allocate enough memory to sort input parameters.");
+  }
+  _globals.gParPos2 =  _globals.gParPos + rxSolveDat.npars; // [npars]
+  _globals.gsvar =  _globals.gParPos2 + rxSolveDat.npars;//[sigmaN.size()]
   std::string errStr = "";
   bool allPars = true;
   bool curPar = false;
@@ -3268,7 +2898,6 @@ void rxSolve_parOrder(const RObject &obj, const List &rxControl,
     mvCov1N = tmpCov1.attr("names");
   }
   int i, j;
-  gsvarSetup(rxSolveDat.sigmaN.size());
   for (i = rxSolveDat.npars; i--;){
     curPar = false;
     // Check to see if this is a covariate.
@@ -3337,6 +2966,7 @@ void rxSolve_parOrder(const RObject &obj, const List &rxControl,
   if (!allPars){
     CharacterVector modSyntax = rxSolveDat.mv["model"];
     Rcout << "Model:\n\n" + modSyntax[0] + "\n";
+    rxSolveFree();
     stop(errStr);
   }
 }
@@ -3352,11 +2982,14 @@ void rxSolve_normalizeParms(const RObject &obj, const List &rxControl,
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   rx_solving_options_ind* ind;
-  int curEvent = 0, curIdx = 0;
+  int curEvent = 0, curIdx = 0, curSolve=0;
   switch(rxSolveDat.parType){
   case 1: // NumericVector
     {
-      if (rxSolveDat.nPopPar != 1) stop("Something is wrong... nPopPar != 1 but parameters are specified as a NumericVector.");
+      if (rxSolveDat.nPopPar != 1) {
+	rxSolveFree();
+	stop("Something is wrong... nPopPar != 1 but parameters are specified as a NumericVector.");
+      }
       // Convert to DataFrame to simplify code.
       List parDfL(rxSolveDat.parNumeric.size());
       for (i = rxSolveDat.parNumeric.size(); i--;){
@@ -3399,6 +3032,7 @@ void rxSolve_normalizeParms(const RObject &obj, const List &rxControl,
 	  }
 	}
       }
+      curSolve=0;
       curEvent=0;
       curIdx=0;
       int curOn=0;
@@ -3446,7 +3080,14 @@ void rxSolve_normalizeParms(const RObject &obj, const List &rxControl,
 	  }
 	  int eLen = op->neq*ind->n_all_times;
 
-	  ind->solve = &_globals.gsolve[curEvent];
+	  ind->solve = &_globals.gsolve[curSolve];
+	  curSolve += eLen;
+	  ind->solveLast = &_globals.gsolve[curSolve];
+	  curSolve += op->neq;
+	  ind->solveLast2 = &_globals.gsolve[curSolve];
+	  curSolve += op->neq;
+	  ind->solveSave = &_globals.gsolve[curSolve];
+	  curSolve += op->neq;
 	  ind->ix = &_globals.gix[curIdx];
 	  std::iota(ind->ix,ind->ix+ind->n_all_times,0);
 	  curEvent += eLen;
@@ -3458,7 +3099,8 @@ void rxSolve_normalizeParms(const RObject &obj, const List &rxControl,
       }
     }
     break;
-  default: 
+  default:
+    rxSolveFree();
     stop("Something is wrong here.");
   }
 }
@@ -3494,6 +3136,11 @@ List rxSolve_df(const RObject &obj, const List &rxControl, const Nullable<Charac
   int doTBS = (rx->matrix == 3);
   if (doTBS) rx->matrix=2;
   List dat = RxODE_df(doDose, doTBS);
+  if (rxSolveDat.idFactor && rxSolveDat.labelID && rx->nsub > 1){
+    IntegerVector did = as<IntegerVector>(dat["id"]);
+    did.attr("class") = "factor";
+    did.attr("levels") = rxSolveDat.idLevels;
+  }
   if (rxSolveDat.addTimeUnits){
     NumericVector tmpN = as<NumericVector>(dat["time"]);
     tmpN.attr("class") = "units";
@@ -3552,6 +3199,7 @@ Environment rxSolve_genenv(const RObject &object, const List &rxControl, const N
   e["check.nrow"] = rx->nr;
   e["check.ncol"] = dat.size();
   e["check.names"] = dat.names();
+  e[".idLevels"] = as<CharacterVector>(rxSolveDat.idLevels);
   e[".par.pos"] = rxSolveDat.eGparPos;
   e[".par.pos.ini"] = rxSolveDat.fromIni;
   e[".slvr.counter"] = slvr_counterIv;
@@ -3589,7 +3237,6 @@ Environment rxSolve_genenv(const RObject &object, const List &rxControl, const N
 }
 
 void rxAssignPtr(SEXP object);
-int _gsetupOnly;
 //[[Rcpp::export]]
 SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const Nullable<CharacterVector> &specParams,
@@ -3597,6 +3244,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const RObject &params, const RObject &events, const RObject &inits,
 	      const int setupOnly){
   if (rxIs(rxControl,"rxControl")){
+    rxSolveFree();
     stop("Control list not setup correctly.");
   }
   maxAtolRtolFactor = as<double>(rxControl["maxAtolRtolFactor"]);
@@ -3605,6 +3253,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   Nullable<LogicalVector> transit_abs = rxControl["transitAbs"];
   NumericVector atolNV = as<NumericVector>(rxControl["atol"]);
   NumericVector rtolNV = as<NumericVector>(rxControl["rtol"]);
+  NumericVector atolNVss = as<NumericVector>(rxControl["ssAtol"]);
+  NumericVector rtolNVss = as<NumericVector>(rxControl["ssRtol"]);
   int maxsteps = as<int>(rxControl["maxsteps"]);
   double hmin = as<double>(rxControl["hmin"]);
   double hini = as<double>(rxControl["hini"]);
@@ -3622,12 +3272,15 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   rxSolveDat.isRxSolve = rxIs(obj, "rxSolve");
   rxSolveDat.isEnvironment = rxIs(obj, "environment");
   rxSolveDat.addDosing = as<Nullable<LogicalVector>>(rxControl["addDosing"]);
+  rxSolveDat.idFactor= as<bool>(rxControl["idFactor"]);
+  rxSolveDat.warnIdSort = as<bool>(rxControl["warnIdSort"]);
 
   if (rxSolveDat.updateObject && !rxSolveDat.isRxSolve && !rxSolveDat.isEnvironment){
     if (rxIs(rxCurObj, "rxSolve")){
       object = rxCurObj;
       rxSolveDat.isRxSolve = true;
     } else {
+      rxSolveFree();
       stop("Cannot update this object.");
     }
   } else {
@@ -3640,6 +3293,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   } else {
     // Load model
     if (!rxDynLoad(object)){
+      rxSolveFree();
       stop("Cannot load RxODE dlls for this model.");
     }
     // Get model 
@@ -3684,6 +3338,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     RObject ev1;
     rxSolveDat.swappedEvents = false;
     rxSolveDat.nsvar = 0;
+    rxSolveDat.labelID=false;
     if (rxIs(par0, "rx.event")){
       // Swapped events and parameters
       rxSolveDat.swappedEvents=true;
@@ -3695,6 +3350,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     } else {
       Rcout << "Events:\n";
       Rcout << "Parameters:\n";
+      rxSolveFree();
       stop("Need some event information (observation/dosing times) to solve.\nYou can use either 'eventTable' or an RxODE compatible data.frame/matrix.");
     }
     if (rxIs(rxSolveDat.par1, "NULL")){
@@ -3721,8 +3377,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 
     op->minSS = as<int>(rxControl["minSS"]);
     op->maxSS = as<int>(rxControl["maxSS"]);
-    op->atolSS = as<double>(rxControl["atolSS"]);
-    op->rtolSS = as<double>(rxControl["rtolSS"]);
     op->indLinPhiTol=as<double>(rxControl["indLinPhiTol"]);
     op->indLinMatExpType=as<int>(rxControl["indLinMatExpType"]);
     op->indLinPhiM = as<int>(rxControl["indLinPhiM"]);
@@ -3754,14 +3408,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	}
       }
     }
-    gatol2Setup(op->neq);
-    grtol2Setup(op->neq);
-    std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);
-    std::fill_n(&_globals.grtol2[0],op->neq, rtolNV[0]);
-    std::copy(atolNV.begin(), atolNV.begin() + min2(op->neq, atolNV.size()), &_globals.gatol2[0]);
-    std::copy(rtolNV.begin(), rtolNV.begin() + min2(op->neq, rtolNV.size()), &_globals.grtol2[0]);
-    op->atol2 = &_globals.gatol2[0];
-    op->rtol2 = &_globals.grtol2[0];
+    
     op->H0 = hini;
     op->HMIN = hmin;
     op->mxstep = maxsteps;
@@ -3769,15 +3416,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->MXORDS = maxords;
     // The initial conditions cannot be changed for each individual; If
     // they do they need to be a parameter.
-    rxSolveDat.initsC = rxInits(object, inits, state, 0.0);
-    ginitsSetup(rxSolveDat.initsC.size());
-    std::copy(rxSolveDat.initsC.begin(), rxSolveDat.initsC.end(), &_globals.ginits[0]);
-    op->inits = &_globals.ginits[0];
-    NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
-    gscaleSetup(scaleC.size());
-    std::copy(scaleC.begin(),scaleC.end(),&_globals.gscale[0]);
-    op->scale = &_globals.gscale[0];
-    //
     int transit = 0;
     if (transit_abs.isNull()){
       transit = rxSolveDat.mv["podo"];
@@ -3817,6 +3455,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       op->f1 = op->f2 = 0.5;
       op->kind = 0;
     } else {
+      rxSolveFree();
       stop("Unknown covariate interpolation specified.");
     }
     op->extraCmt=op->neq+as<int>(rxSolveDat.mv["extraCmt"]);
@@ -3853,127 +3492,70 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->nsvar = rxSolveDat.nsvar;
     // Now setup the rest of the rx_solve object
     if (rxSolveDat.nPopPar != 1 && rxSolveDat.nPopPar % rx->nsub != 0){
+      rxSolveFree();
       stop("The number of parameters (%d) solved by RxODE for multi-subject data needs to be a multiple of the number of subjects (%d).",rxSolveDat.nPopPar, rx->nsub);
     }
     rxSolveDat.nSize = rxSolveDat.nPopPar*rx->nsub;
-    if (rxSolveDat.nPopPar == 1) rxSolveDat.nSize = rx->nsub;
+    if (rxSolveDat.nPopPar % rx->nsub == 0) rx->nsim = rxSolveDat.nPopPar / rx->nsub;
+    else rx->nsim=1;
 
-    gInfusionRateSetup(op->neq*rxSolveDat.nSize);
-    // std::fill_n(&_globals.gInfusionRate[0], op->neq*nSize, 0.0);
+    int n0 = (rx->nall+3*rx->nsub)*state.size()*rx->nsim;
+    int n2 = rx->nMtime*rx->nsub*rx->nsim;
+    int n3 = op->neq*rxSolveDat.nSize;
+    rxSolveDat.initsC = rxInits(object, inits, state, 0.0);
+    int n4 = rxSolveDat.initsC.size();
+    int n5 = lhs.size()*rxSolveDat.nSize;
+    // The initial conditions cannot be changed for each individual; If
+    // they do they need to be a parameter.
+    NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
+    int n6 = scaleC.size();
+    _globals.gsolve = (double*)calloc(n0+n2+n3+n4+n5+n6+ 4*op->neq, sizeof(double));// [n0]
+    if (_globals.gsolve == NULL){
+      rxSolveFree();
+      stop("Could not allocate enough memory for solving");
+    }
+    _globals.gmtime = _globals.gsolve +n0; // [n2]
+    _globals.gInfusionRate = _globals.gmtime + n2; //[n3]
+    _globals.ginits = _globals.gInfusionRate + n3; // [n4]
+    std::copy(rxSolveDat.initsC.begin(), rxSolveDat.initsC.end(), &_globals.ginits[0]);
+    op->inits = &_globals.ginits[0];
+    _globals.glhs = _globals.ginits + n4; // [n5]
+    _globals.gscale = _globals.glhs + n5; //[n6]
+    std::copy(scaleC.begin(),scaleC.end(),&_globals.gscale[0]);
+    op->scale = &_globals.gscale[0];
+    _globals.gatol2=_globals.gscale   + n6; //[op->neq]
+    _globals.grtol2=_globals.gatol2   + op->neq;  //[op->neq]
+    _globals.gssRtol=_globals.grtol2  + op->neq; //[op->neq]
+    _globals.gssAtol=_globals.gssRtol + op->neq; //[op->neq]
+    std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);
+    std::fill_n(&_globals.grtol2[0],op->neq, rtolNV[0]);
+    std::copy(atolNV.begin(), atolNV.begin() + min2(op->neq, atolNV.size()), &_globals.gatol2[0]);
+    std::copy(rtolNV.begin(), rtolNV.begin() + min2(op->neq, rtolNV.size()), &_globals.grtol2[0]);
 
-    gBadDoseSetup(op->neq*rxSolveDat.nSize);
-    // std::fill_n(&_globals.gBadDose[0], op->neq*nSize, 0);
-    
-    grcSetup(rxSolveDat.nSize);
-    // std::fill_n(&_globals.grc[0], nSize, 0);
-
-    gslvr_counterSetup(rxSolveDat.nSize);
-    // std::fill_n(&_globals.slvr_counter[0], nSize, 0);
-    
-    gdadt_counterSetup(rxSolveDat.nSize);
-    // std::fill_n(&_globals.dadt_counter[0], nSize, 0);
-
-    gjac_counterSetup(rxSolveDat.nSize);
-    // std::fill_n(&_globals.jac_counter[0], nSize, 0);
-
-    glhsSetup(lhs.size()*rxSolveDat.nSize);
-    // std::fill_n(&_globals.glhs[0],lhs.size()*nSize,0.0);
-
-    rx->nsim = rxSolveDat.nPopPar / rx->nsub;
-    if (rx->nsim < 1) rx->nsim=1;
-
-    gsolveSetup(rx->nall*rx->nsub*state.size()*rx->nsim);
+    std::fill_n(&_globals.gssAtol[0],op->neq, atolNVss[0]);
+    std::fill_n(&_globals.gssRtol[0],op->neq, rtolNVss[0]);
+    std::copy(atolNVss.begin(), atolNVss.begin() + min2(op->neq, atolNVss.size()), &_globals.gssAtol[0]);
+    std::copy(rtolNVss.begin(), rtolNVss.begin() + min2(op->neq, rtolNVss.size()), &_globals.gssRtol[0]);
+    op->atol2 = &_globals.gatol2[0];
+    op->rtol2 = &_globals.grtol2[0];
+    op->ssAtol = _globals.gssAtol;
+    op->ssRtol = _globals.gssRtol;
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
-    gOnSetup(rx->nsub*rx->nsim*state.size());
-
-    gix_Setup(rx->nall*rx->nsim);
-    
-    gmtimeSetup(rx->nMtime*rx->nsub*rx->nsim);
-
+    int n1 = rx->nsub*rx->nsim*state.size();
+    _globals.gon = (int*)calloc(n1+n3 + 4*rxSolveDat.nSize + rx->nall*rx->nsim, sizeof(int)); // [n1]
+    std::fill_n(&_globals.gon[0], n1, 1);
+    _globals.gBadDose = _globals.gon+n1; // [n3]
+    _globals.grc = _globals.gBadDose + n3; //[nSize]
+    _globals.slvr_counter = _globals.grc + rxSolveDat.nSize; //[nSize]
+    _globals.dadt_counter = _globals.slvr_counter + rxSolveDat.nSize; // [nSize]
+    _globals.jac_counter = _globals.dadt_counter + rxSolveDat.nSize; // [nSize]
+    _globals.gix=_globals.jac_counter+rxSolveDat.nSize; // rx->nall*rx->nsim
 
     rxSolve_normalizeParms(obj, rxControl, specParams, extraArgs,
 			   pars, ev1, inits, rxSolveDat);
     
     if (setupOnly){
-      if (setupOnly == 2){
-	// Partial free
-	// mtime needs to be setup and used.
-	if (_globals.gmtime != NULL) Free(_globals.gmtime);
-	_globals.gmtime=NULL;
-	_globals.gmtimen=0;
-	// par_cov needs to be specified.
-	if (_globals.gpar_cov != NULL) Free(_globals.gpar_cov);
-	_globals.gpar_covn=0;
-
-	if (_globals.gsiV != NULL) Free(_globals.gsiV);
-	_globals.gsiVn=0;
-	if (_globals.gsvar != NULL) Free(_globals.gsvar);
-	_globals.gsvarn=0;
-
-	// idose provided
-	if (_globals.gidose != NULL) Free(_globals.gidose);
-	_globals.gidosen=0;
-	// Rc provided
-	if (_globals.grc != NULL) Free(_globals.grc);
-	_globals.grc=NULL;
-	_globals.grcn=0;
-	// Baddose setup on single solve
-	if (_globals.gBadDose != NULL) Free(_globals.gBadDose);
-	_globals.gBadDosen=0;
-	// Evid provided
-	if (_globals.gevid != NULL) Free(_globals.gevid);
-	_globals.gevid=NULL;
-	_globals.gevidn=0;
-	// gpar setup
-	if (_globals.gpars != NULL && _globals.gparsn>0) Free(_globals.gpars);
-	_globals.gpars=NULL;
-	_globals.gparsn=0;
-	// Tolerances need to be saved.
-	// if (_globals.grtol2 != NULL) Free(_globals.grtol2);
-	// _globals.grtol2n=0;
-	// if (_globals.gatol2 != NULL) Free(_globals.gatol2);
-	// _globals.gatol2n=0;
-	if (_globals.gscale != NULL) Free(_globals.gscale);
-	_globals.gscalen=0;
-	// Set initial conditions
-	if (_globals.ginits != NULL) Free(_globals.ginits);
-	_globals.ginits=NULL;
-	_globals.ginitsn=0;
-	// Cov needs to be provided
-	if (_globals.gcov != NULL) Free(_globals.gcov);
-	_globals.gcovn=0;
-	// lhs needs to be provided
-	if (_globals.glhs != NULL) Free(_globals.glhs);
-	_globals.glhs=NULL;
-	_globals.glhsn=0;
-	// dose needs to be provided.  So does ii
-	if (_globals.gamt != NULL) Free(_globals.gamt);
-	if (_globals.gii != NULL) Free(_globals.gii);
-	_globals.gamt=NULL;
-	_globals.gii=NULL;
-	_globals.gamtn=0;
-	// Times need to be provided.
-	if (_globals.gall_times != NULL) Free(_globals.gall_times);
-	_globals.gall_times=NULL;
-	_globals.gall_timesn=0;
-	if (_globals.gix != NULL) Free(_globals.gix);
-	_globals.gix=NULL;
-	_globals.gixn=0;
-	if (_globals.gdv != NULL) Free(_globals.gdv);
-	_globals.gdvn=0;
-	if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
-	_globals.gInfusionRaten=0;
-	if (_globals.gsolve != NULL) Free(_globals.gsolve);
-	_globals.gsolve=NULL;
-	_globals.gsolven=0;
-	if (_globals.gon != NULL&& _globals.gonn>0) Free(_globals.gon);
-	_globals.gon=NULL;
-	_globals.gonn=0;
-	if (_globals.gParPos != NULL) Free(_globals.gParPos);
-	if (_globals.gParPos2 != NULL) Free(_globals.gParPos2);
-	_globals.gParPosn = 0;
-      }
       return as<SEXP>(LogicalVector::create(true));
     }
     _gsetupOnly=setupOnly;
@@ -4252,7 +3834,10 @@ RObject rxSolveUpdate(RObject obj,
 	  CharacterVector classattr = obj.attr("class");
 	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
           updateSolveEnvPost(e);
-          if (rxIs(e["params.dat"], "NULL")) stop("Cannot update nonexistent parameters.");
+          if (rxIs(e["params.dat"], "NULL")) {
+	    rxSolveFree();
+	    stop("Cannot update nonexistent parameters.");
+	  }
           List pars = List(e["params.dat"]);
 	  CharacterVector nmp = pars.names();
 	  int i, n, np, nc, j;
@@ -4481,6 +4066,7 @@ RObject rxGetRxODE(RObject obj){
   Nullable<Environment> rxode1 = rxRxODEenv(obj);
   if (rxode1.isNull()){
     // FIXME compile if needed.
+    rxSolveFree();
     stop("Can't figure out the RxODE object");
   } else {
     Environment e = as<Environment>(rxode1);
@@ -4594,6 +4180,7 @@ std::string rxDll(RObject obj){
     List mv = rxModelVars(obj);
     Nullable<Environment> en = rxRxODEenv(mv);
     if (en.isNull()){
+      rxSolveFree();
       stop("Can't figure out the DLL for this object.");
     } else {
       Environment e = as<Environment>(en);
@@ -4636,6 +4223,7 @@ CharacterVector rxC(RObject obj){
     List mv = rxModelVars(obj);
     Nullable<Environment> en = rxRxODEenv(mv);
     if (en.isNull()){
+      rxSolveFree();
       stop("Can't figure out the DLL for this object");
     } else {
       Environment e = as<Environment>(en);
@@ -4646,6 +4234,7 @@ CharacterVector rxC(RObject obj){
   ret.attr("class") = "rxC";
   return ret;
 }
+
 
 //' Determine if the DLL associated with the RxODE object is loaded
 //'
@@ -4663,7 +4252,8 @@ bool rxIsLoaded(RObject obj){
   List mv = rxModelVars(obj);
   CharacterVector trans = mv["trans"];
   std::string dydt = as<std::string>(trans["model_vars"]);
-  return as<bool>(isLoaded(dydt));
+  bool ret = as<bool>(isLoaded(dydt));
+  return ret;
 }
 
 //' Load RxODE object
@@ -4698,6 +4288,105 @@ bool rxDynLoad(RObject obj){
   }
 }
 
+//' Lock/unlocking of RxODE dll file
+//'
+//' @param obj A RxODE family of objects
+//' @export
+//[[Rcpp::export]]
+RObject rxLock(RObject obj){
+  getRxModels();
+  std::string file = rxDll(obj);
+  int ret = 1;
+  if (_rxModels.exists(file)){
+    ret = as<int>(_rxModels[file]);
+    ret = ret+1;
+    _rxModels[file] = ret;
+  } else {
+    _rxModels[file] = ret;
+  }
+  return R_NilValue;
+}
+
+//' @rdname rxLock
+//' @export
+//[[Rcpp::export]]
+RObject rxUnlock(RObject obj){
+  getRxModels();
+  std::string file = rxDll(obj);
+  int ret;
+  if (_rxModels.exists(file)){
+    ret = as<int>(_rxModels[file]);
+    ret = ret - 1;
+    if (ret > 0) _rxModels[file] = ret;
+    else  _rxModels[file] = 0;
+  }
+  return R_NilValue;
+}
+
+bool rxCanUnload(RObject obj){
+  getRxModels();
+  std::string file = rxDll(obj);
+  if(_rxModels.exists(file)){
+    int ret = as<int>(_rxModels[file]);
+    return (ret == 0L);
+  }
+  return true;
+}
+
+void rmRxModelsFromDll(std::string str){
+  Function getInfo = getRxFn(".rxGetModelInfoFromDll");
+  CharacterVector extra = getInfo(str);
+  for (int j = extra.size(); j--;){
+    if (_rxModels.exists(as<std::string>(extra[j]))){
+      _rxModels.remove(as<std::string>(extra[j]));
+    }
+  }
+  if (_rxModels.exists(str)){
+    _rxModels.remove(str);
+  }
+}
+bool rxUnload_ = true;
+//' Allow unloading of dlls
+//'
+//' @param allow boolean indicating if garbage collection will unload of RxODE dlls.
+//'
+//' @examples
+//'
+//' # Garbage collection will not unload un-used RxODE dlls
+//' rxAllowUnload(FALSE);
+//'
+//' # Garbage collection will unload unused RxODE dlls
+//' rxAllowUnload(TRUE);
+//' @export
+//' @author Matthew Fidler
+//[[Rcpp::export]]
+bool rxAllowUnload(bool allow){
+  rxUnload_=allow;
+  return rxUnload_;
+}
+
+
+//' Unload all RxODE Dlls that are not locked for solving.
+//' @return NULL
+//' @export
+//[[Rcpp::export]]
+RObject rxUnloadAll(){
+  getRxModels();
+  Function dynUnload("dyn.unload", R_BaseNamespace);
+  CharacterVector vars = _rxModels.ls(true);
+  for (int i = vars.size(); i--;){
+    if (rxIs(_rxModels[as<std::string>(vars[i])],"integer")){
+      int val = as<int>(_rxModels[as<std::string>(vars[i])]);
+      if (val > 1){
+      } else if (val == 0 && rxUnload_){
+	dynUnload(as<std::string>(vars[i]));
+	rmRxModelsFromDll(as<std::string>(vars[i]));
+      }
+    }
+  }
+  return R_NilValue;
+}
+
 //' Unload RxODE object
 //'
 //' @param obj A RxODE family of objects 
@@ -4709,13 +4398,14 @@ bool rxDynLoad(RObject obj){
 //' @export
 //[[Rcpp::export]]
 bool rxDynUnload(RObject obj){
-  Function canUnload = getRxFn(".rxDynUnload");
+  if (!rxUnload_) return false;
   if (rxIs(obj, "RxODE")){
     Environment e = as<Environment>(obj);
     Nullable<CharacterVector> pkg = e["package"];
     if (!pkg.isNull()){
       std::string sobj = as<std::string>(e["modName"]);
       if (sobj.find("_new")==std::string::npos){
+	rxSolveFree();
 	stop("Package-based models cannot be unloaded");
       }
     }
@@ -4726,13 +4416,20 @@ bool rxDynUnload(RObject obj){
   if (rxIsLoaded(obj)){
     Function dynUnload("dyn.unload", R_BaseNamespace);
     std::string file = rxDll(obj);
-    if (as<bool>(canUnload(file))){
+    rxUnlock(obj);
+    if (rxCanUnload(obj)){
       dynUnload(file);
     } else {
+      rxLock(obj);
       return false;
     }
-  } 
-  rxRmModelLib_(ptr);
+  }
+  rxRmModelLib_(ptr); // Clears all pointers
+  std::string file = rxDll(obj);
+  getRxModels();
+  if(_rxModels.exists(file)){
+    _rxModels.remove(file);
+  }
   return !(rxIsLoaded(obj));
 }
 
@@ -4755,6 +4452,7 @@ bool rxDelete(RObject obj){
     if (!pkg.isNull()){
       std::string sobj = as<std::string>(e["modName"]);
       if (sobj.find("_new")==std::string::npos){
+	rxSolveFree();
 	stop("Package-based models cannot be deleted");
       }
     }

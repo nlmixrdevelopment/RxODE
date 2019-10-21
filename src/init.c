@@ -114,6 +114,10 @@ SEXP _RxODE_setProgSupported(SEXP);
 SEXP _RxODE_getProgSupported();
 SEXP _RxODE_rxSetIni0(SEXP);
 SEXP _RxODE_rxSetSilentErr(SEXP silentSEXP);
+SEXP _RxODE_rxUnloadAll();
+SEXP _RxODE_rxLock(SEXP);
+SEXP _RxODE_rxUnlock(SEXP);
+SEXP _RxODE_rxAllowUnload(SEXP);
 
 SEXP _RxODE_rxExpandGrid_(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxExpandSens_(SEXP, SEXP);
@@ -128,7 +132,6 @@ rx_solve *getRxSolve_();
 // Remove these functions later...
 
 void rxOptionsIni();
-void rxOptionsIniData();
 /* void rxOptionsIniFocei(); */
 
 double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
@@ -169,7 +172,6 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  int *slvr_counter, int *dadt_counter, int *jac_counter,
 			  double *InfusionRate, int *BadDose, int *idose,
 			  double *scale, int *stateIgnore, double *mtime);
-void rxOptionsIniEnsure(int mx);
 
 double getLimit(rx_solving_options_ind* ind, int i);
 int getCens(rx_solving_options_ind* ind, int i);
@@ -243,6 +245,10 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSetIni0", (DL_FUNC) &_RxODE_rxSetIni0, 1},
     {"_RxODE_rxSetSilentErr", (DL_FUNC) &_RxODE_rxSetSilentErr, 1},
     {"_RxODE_rxIndLin_",(DL_FUNC) &_RxODE_rxIndLin_, 1},
+    {"_RxODE_rxUnloadAll", (DL_FUNC) &_RxODE_rxUnloadAll, 0},
+    {"_RxODE_rxLock", (DL_FUNC) &_RxODE_rxLock, 1},
+    {"_RxODE_rxUnlock", (DL_FUNC) &_RxODE_rxUnlock, 1},
+    {"_RxODE_rxAllowUnload", (DL_FUNC) &_RxODE_rxAllowUnload, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
@@ -277,7 +283,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_current_fn_pointer_id", (DL_FUNC) &RxODE_current_fn_pointer_id);
   R_RegisterCCallable("RxODE","getRxSolve_", (DL_FUNC) &getRxSolve_);
   R_RegisterCCallable("RxODE", "rxSingleSolve", (DL_FUNC) &rxSingleSolve);
-  R_RegisterCCallable("RxODE", "rxOptionsIniEnsure0", (DL_FUNC) &rxOptionsIniEnsure);
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},
@@ -288,7 +293,6 @@ void R_init_RxODE(DllInfo *info){
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info, FALSE);
   rxOptionsIni();
-  rxOptionsIniData();
   /* rxOptionsIniFocei(); */
 }
 
@@ -296,13 +300,10 @@ void parseFree(int last);
 void rxOptionsFree();
 void gFree();
 void rxFreeLast();
-/* void rxOptionsFreeFocei(); */
 void R_unload_RxODE(DllInfo *info){
   gFree();
   rxOptionsFree();
   rxOptionsIni();
-  rxOptionsIniData();
   parseFree(1);
   rxFreeLast();
-  /* rxOptionsFreeFocei(); */
 }

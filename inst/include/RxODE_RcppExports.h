@@ -675,6 +675,90 @@ namespace RxODE {
         return Rcpp::as<bool >(rcpp_result_gen);
     }
 
+    inline RObject rxLock(RObject obj) {
+        typedef SEXP(*Ptr_rxLock)(SEXP);
+        static Ptr_rxLock p_rxLock = NULL;
+        if (p_rxLock == NULL) {
+            validateSignature("RObject(*rxLock)(RObject)");
+            p_rxLock = (Ptr_rxLock)R_GetCCallable("RxODE", "_RxODE_rxLock");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxLock(Shield<SEXP>(Rcpp::wrap(obj)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<RObject >(rcpp_result_gen);
+    }
+
+    inline RObject rxUnlock(RObject obj) {
+        typedef SEXP(*Ptr_rxUnlock)(SEXP);
+        static Ptr_rxUnlock p_rxUnlock = NULL;
+        if (p_rxUnlock == NULL) {
+            validateSignature("RObject(*rxUnlock)(RObject)");
+            p_rxUnlock = (Ptr_rxUnlock)R_GetCCallable("RxODE", "_RxODE_rxUnlock");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxUnlock(Shield<SEXP>(Rcpp::wrap(obj)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<RObject >(rcpp_result_gen);
+    }
+
+    inline bool rxAllowUnload(bool allow) {
+        typedef SEXP(*Ptr_rxAllowUnload)(SEXP);
+        static Ptr_rxAllowUnload p_rxAllowUnload = NULL;
+        if (p_rxAllowUnload == NULL) {
+            validateSignature("bool(*rxAllowUnload)(bool)");
+            p_rxAllowUnload = (Ptr_rxAllowUnload)R_GetCCallable("RxODE", "_RxODE_rxAllowUnload");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxAllowUnload(Shield<SEXP>(Rcpp::wrap(allow)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<bool >(rcpp_result_gen);
+    }
+
+    inline RObject rxUnloadAll() {
+        typedef SEXP(*Ptr_rxUnloadAll)();
+        static Ptr_rxUnloadAll p_rxUnloadAll = NULL;
+        if (p_rxUnloadAll == NULL) {
+            validateSignature("RObject(*rxUnloadAll)()");
+            p_rxUnloadAll = (Ptr_rxUnloadAll)R_GetCCallable("RxODE", "_RxODE_rxUnloadAll");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxUnloadAll();
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<RObject >(rcpp_result_gen);
+    }
+
     inline bool rxDynUnload(RObject obj) {
         typedef SEXP(*Ptr_rxDynUnload)(SEXP);
         static Ptr_rxDynUnload p_rxDynUnload = NULL;

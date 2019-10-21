@@ -14,6 +14,55 @@
     factor(.pid, levels=.lvl, labels=.lab);
 }
 
+.warnIdSort0 <- TRUE
+##' Turn on/off warnings for ID sorting.
+##'
+##' @param warnIdSort Boolean for if the sorting warning is turned on or off.
+##' @return Nothing
+##' @author Matthew Fidler
+##' @export
+.setWarnIdSort <- function(warnIdSort=TRUE){
+    assignInMyNamespace(".warnIdSort0", warnIdSort);
+    invisible()
+}
+
+.sortId <- function(idData, goodLvl, type="parameter",
+                    warnIdSort){
+    .n <- tolower(names(idData));
+    .w <- which(.n == "id");
+    .nid <- length(goodLvl);
+    if (length(.w) == 1){
+        .idData <- as.data.frame(idData);
+        .oId <- .idData[[.w]];
+        .idData[[.w]] <- factor(.idData[[.w]], levels=goodLvl, labels=goodLvl);
+        .wrn <- ""
+        if (any(is.na(.idData[[.w]]))){
+            .w2 <- which(is.na(.idData[[.w]]));
+            .oId <- unique(.oId[.w2])
+            .wrn <- sprintf("Some IDs are in the %s dataset that are not in the event dataset.\nParameter information for these IDs were dropped (%s)", type, paste(.oId, collapse=", "))
+            .idData <- .idData[!is.na(.idData[[.w]]), ];
+        }
+        .idData <- .idData[order(.idData[[.w]]), ];
+        .idData <- .idData[, -.w, drop = FALSE];
+        if (length(.idData[, 1]) == 0)
+            stop(sprintf("There are no IDs left to solve in %s data", type))
+        if (.wrn != "") warning(.wrn)
+        return(.idData)
+    } else if (length(.w) == 0L) {
+        if (length(idData[, 1]) > 1){
+            if (warnIdSort && .warnIdSort0 && .nid > 1)
+                warning(sprintf("ID missing in %s dataset;\n Parameters are assumed to have the same order as the IDs in the event dataset", type));
+        }
+        return(as.data.frame(idData));
+    } else {
+        if (length(idData[, 1]) > 1){
+            warning(sprintf("Unable to detect ID correctly in %s dataset\nParameters are assumed to have the same order as the IDs", type));
+        }
+        .idData <- idData[, -.w, drop = FALSE];
+        return(as.data.frame(.idData));
+    }
+}
+
 .convertExtra <- function(dat){
     d <- as.data.frame(dat);
     .colNames0 <- colnames(d)

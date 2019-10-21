@@ -18,13 +18,14 @@
 \alias{solve.rxEt}
 \title{Solving \& Simulation of a ODE/solved system (and solving options) equation}
 \usage{
-rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
-  transitAbs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 70000L,
-  hmin = 0L, hmax = NA, hmaxSd = 0, hini = 0, maxordn = 12L,
-  maxords = 5L, ..., cores, covsInterpolation = c("locf", "linear",
-  "nocb", "midpoint"), addCov = FALSE, matrix = FALSE, sigma = NULL,
-  sigmaDf = NULL, sigmaLower = -Inf, sigmaUpper = Inf,
-  nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L,
+rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853",
+  "indLin"), transitAbs = NULL, atol = 1e-08, rtol = 1e-06,
+  maxsteps = 70000L, hmin = 0L, hmax = NA, hmaxSd = 0, hini = 0,
+  maxordn = 12L, maxords = 5L, ..., cores,
+  covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
+  addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
+  sigmaLower = -Inf, sigmaUpper = Inf, nCoresRV = 1L,
+  sigmaIsChol = FALSE, nDisplayProgress = 10000L,
   amountUnits = NA_character_, timeUnits = "hours", stiff,
   theta = NULL, thetaLower = -Inf, thetaUpper = Inf, eta = NULL,
   addDosing = FALSE, stateTrim = Inf, updateObject = FALSE,
@@ -32,12 +33,15 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   omegaLower = -Inf, omegaUpper = Inf, nSub = 1L, thetaMat = NULL,
   thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0,
   dfObs = 0, returnType = c("rxSolve", "matrix", "data.frame",
-  "data.frame.TBS"), seed = NULL, nsim = NULL, minSS = 5,
-  maxSS = 70000, atolSS = 1e-09, rtolSS = 1e-09, params = NULL,
+  "data.frame.TBS"), seed = NULL, nsim = NULL, minSS = 10L,
+  maxSS = 1000L, infSSstep = 12, strictSS = TRUE, params = NULL,
   events = NULL, istateReset = TRUE, subsetNonmem = TRUE,
   linLog = FALSE, advanLinCmt = FALSE, maxAtolRtolFactor = 0.1,
   from = NULL, to = NULL, by = NULL, length.out = NULL,
-  iCov = NULL, keep = NULL)
+  iCov = NULL, keep = NULL, indLinPhiTol = 1e-07, indLinPhiM = 0L,
+  indLinMatExpType = 2L, indLinMatExpOrder = 6L, indLinDelta = 2,
+  indLinPerterbMatrix = 100L, idFactor = TRUE, mxhnil = 0,
+  hmxi = 0, warnIdSort = TRUE, ssAtol = 1e-08, ssRtol = 1e-06)
 
 rxSolve(object, ...)
 
@@ -70,7 +74,7 @@ rxSolve(object, ...)
 }
 \arguments{
 \item{scale}{a numeric named vector with scaling for ode
-parameters of the system.  The names must correstond to the
+parameters of the system.  The names must correspond to the
 parameter identifiers in the ODE specification. Each of the
 ODE variables will be divided by the scaling factor.  For
 example \code{scale=c(center=2)} will divide the center ODE
@@ -85,6 +89,8 @@ variable by 2.}
       solving, but allows user Jacobian specification.
 \item \code{"dop853"} -- DOP853 solver.  Does not support parallel thread-based
         solving nor user Jacobain specification
+\item \code{"indLin"} -- Solving through inductive linearization.  The RxODE dll
+        must be setup specially to use this solving routine.
 }}
 
 \item{transitAbs}{boolean indicating if this is a transit
@@ -156,7 +162,7 @@ solving (ie thread-safe methods like "liblsoda").}
 to the output matrix or data frame. By default this is
 disabled.}
 
-\item{matrix}{A boolean inticating if a matrix should be returned
+\item{matrix}{A boolean indicating if a matrix should be returned
 instead of the RxODE's solved object.}
 
 \item{sigma}{Named sigma covariance or Cholesky decomposition of a
@@ -197,7 +203,7 @@ data as an RxODE event table.}
 \item{stiff}{a logical (\code{TRUE} by default) indicating whether
     the ODE system is stiff or not.
 
-    For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
+    For stiff ODE systems (\code{stiff = TRUE}), \code{RxODE} uses the
     LSODA (Livermore Solver for Ordinary Differential Equations)
     Fortran package, which implements an automatic method switching
     for stiff and non-stiff problems along the integration
@@ -251,7 +257,7 @@ first model time, 102 is the second etc.
 
 \item{stateTrim}{When amounts/concentrations in one of the states
 are above this value, trim them to be this value. By default
-Inf.  Also trims to -stateTrim for lage negative
+Inf.  Also trims to -stateTrim for large negative
 amounts/concentrations}
 
 \item{updateObject}{This is an internally used flag to update the
@@ -294,10 +300,10 @@ symmetric matrix.}
 \item{nStud}{Number virtual studies to characterize uncertainty in estimated 
 parameters.}
 
-\item{dfSub}{Degrees of freedom to sample the between subject variaiblity matrix from the 
+\item{dfSub}{Degrees of freedom to sample the between subject variability matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
-\item{dfObs}{Degrees of freedom to sample the unexplained variaiblity matrix from the 
+\item{dfObs}{Degrees of freedom to sample the unexplained variability matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
 \item{returnType}{This tells what type of object is returned.  The currently supported types are:
@@ -323,11 +329,23 @@ eventTable)}
 
 \item{maxSS}{Maximum number of iterations for a steady-state dose}
 
-\item{atolSS}{Absolute tolerance to check if a solution arrived at
-steady state.}
+\item{infSSstep}{Step size for determining if a constant infusion
+has reached steady state.  By default this is large value,
+420.}
 
-\item{rtolSS}{Relative tolerance to check if a solution arrived at
-steady state.}
+\item{strictSS}{Boolean indicating if a strict steady-state is
+required. If a strict steady-state is (\code{TRUE}) required
+then at least \code{minSS} doses are administered and the
+total number of steady states doses will continue until
+\code{maxSS} is reached, or \code{atol} and \code{rtol} for
+every compartment have been reached.  However, if ODE solving
+problems occur after the \code{minSS} has been reached the
+whole subject is considered an invalid solve. If
+\code{strictSS} is \code{FALSE} then as long as \code{minSS}
+has been reached the last good solve before ODE solving
+problems occur is considered the steady state, even though
+either \code{atol}, \code{rtol} or \code{maxSS} have not
+been achieved.}
 
 \item{params}{a numeric named vector with values for every
 parameter in the ODE system; the names must correspond to the
@@ -337,9 +355,9 @@ parameter identifiers used in the ODE specification;}
 (e.g., doses) to the dynamic system and observation sampling
 time points (see \code{\link{eventTable}});}
 
-\item{istateReset}{When TRUE, reset the ISTATE variable to 1 for
-lsoda and liblsoda with doses, like deSolve; When FALSE, do
-not reset the ISTATE variable with doses.}
+\item{istateReset}{When \code{TRUE}, reset the \code{ISTATE} variable to 1 for
+lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do
+not reset the \code{ISTATE} variable with doses.}
 
 \item{subsetNonmem}{subset to NONMEM compatible EVIDs only.  By default TRUE.}
 
@@ -353,17 +371,19 @@ principle}
 solutions are solved with ADVAN-style (Abuhelwa 2015)
 solutions instead of superpositioning}
 
-\item{maxAtolRtolFactor}{The maximum atol/rtol that FOCEi and
-other routines may adjust to.  By default 0.1}
+\item{maxAtolRtolFactor}{The maximum \code{atol}/\code{rtol} that
+FOCEi and other routines may adjust to.  By default 0.1}
 
 \item{from}{When there is no observations in the event table,
 start observations at this value. By default this is zero.}
 
 \item{to}{When there is no observations in the event table, end
-observations at this value. By default this is 24 + maximum dose time.}
+observations at this value. By default this is 24 + maximum
+dose time.}
 
 \item{by}{When there are no observations in the event table, this
-is the amount to increment for the observations between `from` and `to`.}
+is the amount to increment for the observations between \code{from}
+and \code{to}.}
 
 \item{length.out}{The number of observations to create if there
 isn't any observations in the event table. By default this is 200.}
@@ -377,6 +397,32 @@ data.frame.}
 is kept once per line.  For the input dataset, if any records
 are added to the data LOCF (Last Observation Carried forward)
 imputation is performed.}
+
+\item{idFactor}{This boolean indicates if original ID values
+should be maintained. This changes the default sequentially
+ordered ID to a factor with the original ID values in the
+original dataset.  By default this is enabled.}
+
+\item{mxhnil}{maximum number of messages printed (per problem)
+warning that T + H = T on a step (H = step size).  This must
+be positive to result in a non-default value.  The default
+value is 0 (or infinite).}
+
+\item{hmxi}{inverse of the maximum absolute value of H to be used.
+hmxi = 0.0 is allowed and corresponds to an infinite hmax
+(default).  hmin and hmxi may be changed at any time, but will
+not take effect until the next change of H is considered.
+This option is only considered with method=liblsoda.}
+
+\item{warnIdSort}{Warn if the ID is not present and RxODE assumes
+the order of the parameters/iCov are the same as the order of
+the parameters in the input dataset.}
+
+\item{ssAtol}{Steady state atol convergence factor.  Can be
+a vector based on each state.}
+
+\item{ssRtol}{Steady state rtol convergence factor.  Can be a
+vector based on each state.}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE
@@ -403,11 +449,11 @@ An \dQuote{rxSolve} solve object that stores the solved
     It also stores information about the call to allow dynamic
     updating of the solved object.
 
-    The operations for the object are simialar to a data-frame, but
+    The operations for the object are similar to a data-frame, but
     expand the \code{$} and \code{[[""]]} access operators and
     assignment operators to resolve based on different parameter
     values, initial conditions, solver parameters, or events (by
-    updaing the \code{time} variable).
+    updating the \code{time} variable).
 
     You can call the \code{\link{eventTable}} methods on the solved
     object to update the event table and resolve the system of

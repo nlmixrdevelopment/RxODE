@@ -3,13 +3,13 @@
 \name{rxPermissive}
 \alias{rxPermissive}
 \alias{rxStrict}
-\title{Permissive or Strict RxODE sytax options}
+\title{Permissive or Strict RxODE syntax options}
 \usage{
 rxPermissive(expr, silent = .isTestthat(), respect = FALSE,
-  rxclean = .isTestthat(), cran = FALSE, on.validate = FALSE)
+  cran = FALSE, on.validate = FALSE)
 
-rxStrict(expr, silent = .isTestthat(), respect = FALSE,
-  rxclean = .isTestthat(), cran = FALSE, on.validate = FALSE)
+rxStrict(expr, silent = .isTestthat(), respect = FALSE, cran = FALSE,
+  on.validate = FALSE)
 }
 \arguments{
 \item{expr}{Expression to evaluate in the permissive/strict
@@ -23,10 +23,7 @@ interactive output (useful in testing).}
 This is called at startup, but really should not be called
 elsewhere, otherwise the options are not changed.}
 
-\item{rxclean}{when TRUE, call rxClean before and after the expr
-is called.}
-
-\item{cran}{When specifyed and true, run on CRAN. Otherwise it is skipped on cran.}
+\item{cran}{When specified and true, run on CRAN. Otherwise it is skipped on CRAN.}
 
 \item{on.validate}{When TRUE run only when validating.}
 }

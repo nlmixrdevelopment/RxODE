@@ -95,6 +95,90 @@ rxPermissive({
         expect_warning(simulate(et3));
     })
 
+    eti <- et(amt=10) %>% et(id=2:3)
+    eti1 <- et(amt=10, id=3:4)
+    eti2 <- et(amt=10, id=3)
+
+    eti3 <- et(10, id=3:4)
+    eti4 <- et(10, id=3)
+
+    eti5 <- et(10) %>% et(id=2:3)
+
+    eti6 <- et(amt=10) %>% et(id=2)
+
+    eti7 <- et(10) %>% et(id=2)
+
+
+    eti8 <- et(10, id=1)
+    eti9 <- et(10) %>% et(id=1)
+    eti10 <- et(amt=10, id=1)
+    eti11 <- et(amt=10) %>% et(id=1)
+
+    ## Now look at windows
+
+    eti12 <- et(list(c(10, 11)), id=1)
+    eti13 <- et(list(c(10, 11))) %>% et(id=1)
+
+    eti14 <- et(list(c(10, 11)), amt=10, id=1)
+    eti15 <- et(list(c(10, 11)), amt=10) %>% et(id=1)
+
+
+    eti16 <- et(list(c(10, 11)), id=2)
+    eti17 <- et(list(c(10, 11))) %>% et(id=2)
+
+    eti18 <- et(list(c(10, 11)), amt=10, id=2)
+    eti19 <- et(list(c(10, 11)), amt=10) %>% et(id=2)
+
+    eti20 <- et(list(c(10, 11)), id=2:3)
+    eti21 <- et(list(c(10, 11))) %>% et(id=2:3)
+
+    eti22 <- et(list(c(10, 11)), amt=10, id=2:3)
+    eti23 <- et(list(c(10, 11)), amt=10) %>% et(id=2:3)
+
+    ## Now do it with dosing/sampling windows
+
+    test_that("Make sure that et only has IDs 2 and 3.", {
+        expect_equal(eti$id, 2:3)
+        expect_equal(eti1$id, 3:4)
+        expect_equal(eti2$id, 3)
+        expect_equal(eti3$id, 3:4)
+        expect_equal(eti4$id, 3)
+        expect_equal(eti5$id, 2:3)
+        expect_equal(eti6$id, 2)
+        expect_equal(eti7$id, 2)
+        expect_equal(eti8$id, 1)
+        expect_true(eti8$env$show["id"])
+        expect_equal(eti9$id, 1)
+        expect_true(eti9$env$show["id"])
+        expect_equal(eti10$id, 1)
+        expect_true(eti10$env$show["id"])
+        expect_equal(eti11$id, 1)
+        expect_true(eti11$env$show["id"])
+        expect_equal(eti12$id, 1)
+        expect_true(eti12$env$show["id"])
+        expect_equal(eti13$id, 1)
+        expect_true(eti13$env$show["id"])
+        expect_equal(eti14$id, 1)
+        expect_true(eti14$env$show["id"])
+        expect_equal(eti15$id, 1)
+        expect_true(eti15$env$show["id"])
+        expect_equal(eti16$id, 2)
+        expect_true(eti16$env$show["id"])
+        expect_equal(eti17$id, 2)
+        expect_true(eti17$env$show["id"])
+        expect_equal(eti18$id, 2)
+        expect_true(eti18$env$show["id"])
+        expect_equal(eti19$id, 2)
+        expect_true(eti19$env$show["id"])
+        expect_equal(eti20$id, 2:3)
+        expect_true(eti20$env$show["id"])
+        expect_equal(eti21$id, 2:3)
+        expect_true(eti21$env$show["id"])
+        expect_equal(eti22$id, 2:3)
+        expect_true(eti22$env$show["id"])
+        expect_equal(eti23$id, 2:3)
+        expect_true(eti23$env$show["id"])
+    })
 
 
     et3 <- et3 %>% set_units(mg);
@@ -145,9 +229,9 @@ rxPermissive({
         et <- et();
         et$import.EventTable(etDf);
 
+
         expect_equal(et$ii, e$ii)
         expect_equal(et$rate, e$rate)
-
     })
 
     test_that("seq works with wait", {
@@ -326,5 +410,67 @@ rxPermissive({
         expect_error(et(list(c(1,2),c(3), TRUE), amt=3))
     })
 
+    context("et steady state constant infusion")
+    test_that("et steady state constant infusion", {
+
+        expect_error(et(amt=0, rate=10, ii=0, ss=2))
+        expect_error(et(amt=0, rate=10, ii=2, ss=1))
+        expect_error(et(amt=0, rate=-2, ii=0, ss=1))
+        expect_error(et(rate=10, ii=0, ss=2))
+        expect_error(et(rate=10, ii=2, ss=1))
+        expect_error(et(rate=-2, ii=0, ss=1))
+
+        t1 <- et(amt=0, rate=10, ii=0, ss=1) %>% as.data.frame
+        t2 <- et(rate=10, ii=0, ss=1) %>% as.data.frame
+        expect_equal(t1, t2)
+
+        t1 <- et(amt=0, rate=-1, ii=0, ss=1) %>% as.data.frame
+        t2 <- et(rate=-1, ii=0, ss=1) %>% as.data.frame
+        expect_equal(t1, t2)
+
+    })
+
+    context("et addl")
+
+    test_that("et addl expand", {
+        ev <- et(amt=3,ii=24,until=120);
+        tmp <- etExpand(ev)
+        expect_equal(ev$amt, 3)
+        expect_equal(tmp$time, c(0, 24, 48, 72, 96, 120))
+        ev$expand()
+        expect_equal(ev$time, c(0, 24, 48, 72, 96, 120))
+    })
+
+    ev <- et(amt=3,ii=24,until=120) %>% et(amt=3, rate=dur);
+
+    context("conversion to common data frame types")
+    ## test_that("data.table conversion", {
+    ##     library(data.table)
+    ##     tmp <- data.table(ev)
+    ##     expect_equal(names(tmp), c("time", "amt", "rate", "ii", "addl", "evid"))
+    ##     expect_false(inherits(tmp$rate, "rxRateDur"))
+    ##     expect_false(inherits(tmp$evid, "rxEvid"))
+    ## })
+
+    test_that("data.frame conversion", {
+        tmp <- data.frame(ev)
+        expect_equal(names(tmp), c("time", "amt", "rate", "ii", "addl", "evid"))
+        expect_false(inherits(tmp$rate, "rxRateDur"))
+        expect_false(inherits(tmp$evid, "rxEvid"))
+    })
+
+    test_that("tibble conversion", {
+        tmp <- tibble::as_tibble(ev)
+        expect_equal(names(tmp), c("time", "amt", "rate", "ii", "addl", "evid"))
+        expect_false(inherits(tmp$rate, "rxRateDur"))
+        expect_false(inherits(tmp$evid, "rxEvid"))
+    })
+
+    test_that("tibble conversion #2", {
+        tmp <- dplyr::as.tbl(ev)
+        expect_equal(names(tmp), c("time", "amt", "rate", "ii", "addl", "evid"))
+        expect_false(inherits(tmp$rate, "rxRateDur"))
+        expect_false(inherits(tmp$evid, "rxEvid"))
+    })
 
 }, silent=TRUE, cran=TRUE)

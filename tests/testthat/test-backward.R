@@ -1,3 +1,4 @@
+library(RxODE)
 context("Test Backward Compatibility")
 rxPermissive({
 

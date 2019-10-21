@@ -1,18 +1,13 @@
 ---
 title: "RxODE additional model types"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{RxODE additional model types}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+    self_contained: no
 ---
 ```{r, echo=FALSE}
 options(cli.unicode=FALSE, crayon.enabled=FALSE);
 options(knitr.table.format = "html")
-htmltools::img(src = knitr::image_uri("logo.png"),
-               alt = 'RxODE',
-               style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
 ```
 
 As suggested in the name, RxODE is often concerned with solutions to

@@ -1,9 +1,9 @@
 Package: RxODE
-Version: 0.9.1-6
+Version: 0.9.1-7
 Title: Facilities for Simulating from ODE-Based Models
 Authors@R: c(
    person("Matthew L.","Fidler",
-      role = "aut", email = "matthew.fidler@gmail.com",
+      role = c("aut"), email = "matthew.fidler@gmail.com",
       comment=c(ORCID="0000-0001-8538-6691")),
    person("Melissa", "Hallow",
       role = "aut", email = "hallowkm@uga.edu"),
@@ -13,6 +13,8 @@ Authors@R: c(
    person("Justin", "Wilkins", 
       role = "ctb", email = "justin.wilkins@occams.com", comment=c(ORCID="0000-0002-7099-9396")),
    person("Simon", "Frost", role="ctb"),
+   person("Goro", "Fuji",  role="ctb", email="gfuji@cpan.org"),
+   person("Morwenn","", role="ctb"),
    person("Heng", "Li", role="ctb"),
    person("Yu", "Feng", role="ctb"),	
    person("Alan", "Hindmarsh",role="ctb"),
@@ -23,16 +25,18 @@ Authors@R: c(
    person("Hadley", "Wickham", role="ctb"),
    person("G", "Grothendieck", role="ctb"),
    person("Robert", "Gentleman",role="ctb"),
+   person("Daniel C.", "Dillon", role="ctb"),
    person("Ross", "Ihaka",role="ctb"),
    person("R core team", role="cph"),
    person("odepack authors", role="cph")
    )
 Maintainer: Wenping Wang <wwang8198@gmail.com>
 Depends:
-    R (>= 3.4.0)
+    R (>= 3.5.0)
 Suggests:
     knitr,
     DT,
+    data.table,
     nlme,
     shiny,
     tcltk,
@@ -95,10 +99,11 @@ Description: Facilities for running simulations from ordinary
 BugReports: https://github.com/nlmixrdevelopment/RxODE/issues
 NeedsCompilation: yes
 VignetteBuilder: knitr
-License: GPL (>= 2) 
+License: GPL (>= 3) 
 URL: https://nlmixrdevelopment.github.io/RxODE/
 RoxygenNote: 6.1.1
 Biarch: true
 LinkingTo: dparser(>= 0.1.8), PreciseSums (>= 0.3), RcppEigen (>= 0.3.3.3.0)
 Encoding: UTF-8
 LazyData: true
+Language: en-US

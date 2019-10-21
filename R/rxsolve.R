@@ -19,8 +19,9 @@ rxControl <- function(scale = NULL,
                       nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
                       nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
                       seed=NULL, nsim=NULL,
-                      minSS=5, maxSS=70000,
-                      atolSS=1e-9, rtolSS=1e-9,
+                      minSS=10L, maxSS=1000L,
+                      infSSstep=12,
+                      strictSS=TRUE,
                       params=NULL,events=NULL,
                       istateReset=TRUE,
                       subsetNonmem=TRUE,
@@ -38,7 +39,12 @@ rxControl <- function(scale = NULL,
                       indLinMatExpType=2L,## 1=arma::expomat; 2=matexprbs; 3=
                       indLinMatExpOrder=6L,
                       indLinDelta=2,
-                      indLinPerterbMatrix=100L){
+                      indLinPerterbMatrix=100L,
+                      idFactor=TRUE,
+                      mxhnil=0,
+                      hmxi=0.0,
+                      warnIdSort=TRUE,
+                      ssAtol = 1.0e-8, ssRtol = 1.0e-6){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -71,10 +77,10 @@ rxControl <- function(scale = NULL,
         if (rxIs(stiff, "logical")){
             if (stiff){
                 method <- "lsoda"
-                warning("stiff=TRUE has been replaced with method = \"lsoda\".")
+                .Deprecated("method = \"lsoda\"",old="stiff=TRUE")
             } else {
                 method <- "dop853"
-                warning("stiff=FALSE has been replaced with method = \"dop853\".")
+                .Deprecated("method = \"dop853\"",old="stiff=FALSE")
             }
         }
     } else {
@@ -155,7 +161,8 @@ rxControl <- function(scale = NULL,
                  seed=seed,
                  nsim=nsim,
                  minSS=minSS, maxSS=maxSS,
-                 atolSS=atolSS[1], rtolSS=rtolSS[1],
+                 strictSS=as.integer(strictSS),
+                 infSSstep=as.double(infSSstep),
                  istateReset=istateReset,
                  subsetNonmem=subsetNonmem,
                  linLog=linLog, advanLinCmt=advanLinCmt, hmaxSd=hmaxSd,
@@ -174,7 +181,10 @@ rxControl <- function(scale = NULL,
                  indLinMatExpType=as.integer(indLinMatExpType),
                  indLinMatExpOrder=as.integer(indLinMatExpOrder),
                  indLinDelta=indLinDelta,
-                 indLinPerterbMatrix=indLinPerterbMatrix);
+                 indLinPerterbMatrix=indLinPerterbMatrix,
+                 idFactor=idFactor,
+                 mxhnil=mxhnil, hmxi=hmxi, warnIdSort=warnIdSort,
+                 ssAtol=ssAtol, ssRtol = ssRtol);
     return(.ret)
 }
 
@@ -205,7 +215,7 @@ rxControl <- function(scale = NULL,
 ##'     data.frame.
 ##'
 ##' @param scale a numeric named vector with scaling for ode
-##'     parameters of the system.  The names must correstond to the
+##'     parameters of the system.  The names must correspond to the
 ##'     parameter identifiers in the ODE specification. Each of the
 ##'     ODE variables will be divided by the scaling factor.  For
 ##'     example \code{scale=c(center=2)} will divide the center ODE
@@ -262,6 +272,17 @@ rxControl <- function(scale = NULL,
 ##' @param maxords The maximum order to be allowed for the stiff (BDF)
 ##'     method.  The default value is 5.  This can be between 1 and 5.
 ##'
+##' @param mxhnil maximum number of messages printed (per problem)
+##'     warning that T + H = T on a step (H = step size).  This must
+##'     be positive to result in a non-default value.  The default
+##'     value is 0 (or infinite).
+##'
+##' @param hmxi inverse of the maximum absolute value of H to be used.
+##'     hmxi = 0.0 is allowed and corresponds to an infinite hmax
+##'     (default).  hmin and hmxi may be changed at any time, but will
+##'     not take effect until the next change of H is considered.
+##'     This option is only considered with method=liblsoda.
+##'
 ##' @param ... Other arguments including scaling factors for each
 ##'     compartment.  This includes S# = numeric will scale a compartment
 ##'     # by a dividing the compartment amount by the scale factor,
@@ -293,7 +314,7 @@ rxControl <- function(scale = NULL,
 ##'     to the output matrix or data frame. By default this is
 ##'     disabled.
 ##'
-##' @param matrix A boolean inticating if a matrix should be returned
+##' @param matrix A boolean indicating if a matrix should be returned
 ##'     instead of the RxODE's solved object.
 ##'
 ##' @param sigma Named sigma covariance or Cholesky decomposition of a
@@ -330,7 +351,7 @@ rxControl <- function(scale = NULL,
 ##' @param stiff a logical (\code{TRUE} by default) indicating whether
 ##'     the ODE system is stiff or not.
 ##'
-##'     For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
+##'     For stiff ODE systems (\code{stiff = TRUE}), \code{RxODE} uses the
 ##'     LSODA (Livermore Solver for Ordinary Differential Equations)
 ##'     Fortran package, which implements an automatic method switching
 ##'     for stiff and non-stiff problems along the integration
@@ -350,7 +371,7 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param stateTrim When amounts/concentrations in one of the states
 ##'     are above this value, trim them to be this value. By default
-##'     Inf.  Also trims to -stateTrim for lage negative
+##'     Inf.  Also trims to -stateTrim for large negative
 ##'     amounts/concentrations
 ##'
 ##' @param updateObject This is an internally used flag to update the
@@ -398,15 +419,33 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param maxSS Maximum number of iterations for a steady-state dose
 ##'
-##' @param atolSS Absolute tolerance to check if a solution arrived at
-##'     steady state.
+##' @param strictSS Boolean indicating if a strict steady-state is
+##'     required. If a strict steady-state is (\code{TRUE}) required
+##'     then at least \code{minSS} doses are administered and the
+##'     total number of steady states doses will continue until
+##'     \code{maxSS} is reached, or \code{atol} and \code{rtol} for
+##'     every compartment have been reached.  However, if ODE solving
+##'     problems occur after the \code{minSS} has been reached the
+##'     whole subject is considered an invalid solve. If
+##'     \code{strictSS} is \code{FALSE} then as long as \code{minSS}
+##'     has been reached the last good solve before ODE solving
+##'     problems occur is considered the steady state, even though
+##'     either \code{atol}, \code{rtol} or \code{maxSS} have not
+##'     been achieved.
 ##'
-##' @param rtolSS Relative tolerance to check if a solution arrived at
-##'     steady state.
+##' @param infSSstep Step size for determining if a constant infusion
+##'     has reached steady state.  By default this is large value,
+##'     420.
 ##'
-##' @param istateReset When TRUE, reset the ISTATE variable to 1 for
-##'     lsoda and liblsoda with doses, like deSolve; When FALSE, do
-##'     not reset the ISTATE variable with doses.
+##' @param ssAtol Steady state atol convergence factor.  Can be
+##'     a vector based on each state.
+##'
+##' @param ssRtol Steady state rtol convergence factor.  Can be a
+##'     vector based on each state.
+##'
+##' @param istateReset When \code{TRUE}, reset the \code{ISTATE} variable to 1 for
+##'     lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do
+##'     not reset the \code{ISTATE} variable with doses.
 ##'
 ##' @param addDosing Boolean indicating if the solve should add RxODE
 ##'     EVID and related columns.  This will also include dosing
@@ -451,20 +490,22 @@ rxControl <- function(scale = NULL,
 ##'     solutions are solved with ADVAN-style (Abuhelwa 2015)
 ##'     solutions instead of superpositioning
 ##'
-##' @param maxAtolRtolFactor The maximum atol/rtol that FOCEi and
-##'     other routines may adjust to.  By default 0.1
+##' @param maxAtolRtolFactor The maximum \code{atol}/\code{rtol} that
+##'     FOCEi and other routines may adjust to.  By default 0.1
 ##'
 ##' @param from When there is no observations in the event table,
 ##'     start observations at this value. By default this is zero.
 ##'
 ##' @param to When there is no observations in the event table, end
-##'     observations at this value. By default this is 24 + maximum dose time.
+##'     observations at this value. By default this is 24 + maximum
+##'     dose time.
 ##'
 ##' @param length.out The number of observations to create if there
 ##'     isn't any observations in the event table. By default this is 200.
 ##'
 ##' @param by When there are no observations in the event table, this
-##'     is the amount to increment for the observations between `from` and `to`.
+##'     is the amount to increment for the observations between \code{from}
+##'     and \code{to}.
 ##'
 ##' @param keep Columns to keep from either the input dataset or the
 ##'     \code{iCov} dataset.  With the \code{iCov} dataset, the column
@@ -472,6 +513,14 @@ rxControl <- function(scale = NULL,
 ##'     are added to the data LOCF (Last Observation Carried forward)
 ##'     imputation is performed.
 ##'
+##' @param idFactor This boolean indicates if original ID values
+##'     should be maintained. This changes the default sequentially
+##'     ordered ID to a factor with the original ID values in the
+##'     original dataset.  By default this is enabled.
+##'
+##' @param warnIdSort Warn if the ID is not present and RxODE assumes
+##'     the order of the parameters/iCov are the same as the order of
+##'     the parameters in the input dataset.
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time
@@ -480,11 +529,11 @@ rxControl <- function(scale = NULL,
 ##'     It also stores information about the call to allow dynamic
 ##'     updating of the solved object.
 ##'
-##'     The operations for the object are simialar to a data-frame, but
+##'     The operations for the object are similar to a data-frame, but
 ##'     expand the \code{$} and \code{[[""]]} access operators and
 ##'     assignment operators to resolve based on different parameter
 ##'     values, initial conditions, solver parameters, or events (by
-##'     updaing the \code{time} variable).
+##'     updating the \code{time} variable).
 ##'
 ##'     You can call the \code{\link{eventTable}} methods on the solved
 ##'     object to update the event table and resolve the system of
@@ -513,11 +562,11 @@ rxControl <- function(scale = NULL,
 rxSolve <- function(object, ...){
     UseMethod("rxSolve")
 }
+##' @S3method rxSolve default
 ##' @rdname rxSolve
-##' @export
+##' @export rxSolve.default
 rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...){
     on.exit({
-        rxSolveFree();
         .clearPipe();
     });
     .applyParams <- FALSE
@@ -582,7 +631,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         stop("Duplicate arguments do not make sense.");
     }
     if (any(names(.xtra)=="covs")){
-        stop("Covariates can no longer be specified by 'covs';\n  include them in the event dataset.\n\nIndividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\nTime varying covariates: modify input event data-frame or\n  eventTable to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the value in the model\n");
+        stop("Covariates can no longer be specified by 'covs';\n  include them in the event dataset.\n\nIndividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\nTime varying covariates: modify input event data-frame or\n  eventTable to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the variable in the model\n");
     }
     .nms <- names(as.list(match.call())[-1]);
     .lst <- list(...);
@@ -591,6 +640,12 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         .setupOnly <- .lst$.setupOnly;
     }
     .ctl <- rxControl(...,events=events,params=params);
+    .n1 <- setdiff(intersect(tolower(names(params)),tolower(names(.ctl$iCov))),"id")
+    .n2 <- c(.n1, setdiff(intersect(tolower(names(events)),tolower(names(.ctl$iCov))),"id"))
+    .n1 <- unique(c(.n1, .n2))
+    if (length(.n1) > 0){
+        stop(sprintf("iCov has information contained in parameters/event data;\nDuplicate columns: %s", paste(.n1, collapse=", ")));
+    }
     if (!is.null(.pipelineThetaMat) && is.null(.ctl$thetaMat)){
         .ctl$thetaMat <- .pipelineThetaMat;
     }
@@ -686,6 +741,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     .ctl$keepF <- .keepF
     .ret <- rxSolve_(object, .ctl, .nms, .xtra,
                      params, events, inits,setupOnly=.setupOnly);
+    return(.ret)
 }
 
 ##' @rdname rxSolve
@@ -757,23 +813,25 @@ solve.rxEt <- solve.rxSolve
 
 .sharedPrint <- function(x, n, width, bound=""){
     ## nocov start
-    .isDplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
+    .isDplyr <- requireNamespace("tibble", quietly = TRUE) && RxODE.display.tbl;
     ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
     df <- x$params.single
-    pars.msg <- .cliRule(left=paste0(crayon::bold("Parameters"), " (",
-                                      crayon::yellow(bound), crayon::bold$blue("$params"), "):"));
-    if (!is.null(df)){
-        cat(pars.msg, "\n");
-        print(df)
-    } else {
-        df <- x$pars
+    if (length(df) > 0){
+        pars.msg <- .cliRule(left=paste0(crayon::bold("Parameters"), " (",
+                                         crayon::yellow(bound), crayon::bold$blue("$params"), "):"));
         if (!is.null(df)){
             cat(pars.msg, "\n");
-            if (rxIs(df, "data.frame")){
-                if (!.isDplyr){
-                    print(head(as.matrix(df), n = n));
-                } else {
-                    print(dplyr::as.tbl(df), n = n, width = width);
+            print(df)
+        } else {
+            df <- x$pars
+            if (!is.null(df)){
+                cat(pars.msg, "\n");
+                if (rxIs(df, "data.frame")){
+                    if (!.isDplyr){
+                        print(head(as.matrix(df), n = n));
+                    } else {
+                        print(tibble::as_tibble(df), n = n, width = width);
+                    }
                 }
             }
         }
@@ -785,7 +843,7 @@ solve.rxEt <- solve.rxSolve
         if (!.isDplyr){
             print(head(as.matrix(df), n = n));
         } else {
-            print(dplyr::as.tbl(df), n = n, width = width);
+            print(tibble::as_tibble(df), n = n, width = width);
         }
     }
 
@@ -840,7 +898,7 @@ print.rxSolve <- function(x, ...){
         if (!.isDplyr){
             print(head(as.matrix(x), n = n));
         } else {
-            print(dplyr::as.tbl(x), n = n, width = width);
+            print(tibble::as_tibble(x), n = n, width = width);
         }
         .cliRule(line="bar2")
     } else {
@@ -991,7 +1049,7 @@ dimnames.rxSolve <- function(x){
 ##' Update Solved object with '+'
 ##'
 ##' @param solved Solved object
-##' @param new New information added tothe table.
+##' @param new New information added to the table.
 ##' @return new solved object
 ##' @author Matthew L. Fidler
 ##' @export

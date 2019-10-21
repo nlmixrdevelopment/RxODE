@@ -1,11 +1,9 @@
 ---
 title: "RxODE and Shiny"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{RxODE and Shiny}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+    self_contained: no 
 ---
 
 ```{r, echo=FALSE}

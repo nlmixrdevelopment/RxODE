@@ -1,12 +1,10 @@
 ---
 title: "Compiled RxODE models in Packages"
 author: "Matthew Fidler"
-date: "4/18/2019"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Compiled RxODE models in Packages}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    self_contained: no 
 ---
 
 # Using Pre-compiled models in your packages

@@ -3,42 +3,6 @@ rex::register_shortcuts("RxODE");
 R_NegInf <- -Inf # Hack for Rcpp->R initial values problem
 R_PosInf <- Inf
 
-.dynProtect <- "";
-.dynUnloadLater <- "";
-
-##' Protect dll(s) from unloading
-##'
-##' @param dlls is a list of dlls that shouldn't be unloaded
-##'
-##' @export
-##' @author Matthew Fidler
-rxDynProtect <- function(dlls){
-    assignInMyNamespace(".dynProtect", dlls);
-}
-.rxDynUnload <- function(dll, unload=FALSE){
-    .unloadExtra <- function(){
-        sapply(.dynUnloadLater, function(x){
-            if (!any(x == .dynProtect)){
-                .name <- basename(x)
-                .name <- substr(.name, 0, nchar(.name) - nchar(.Platform$dynlib.ext))
-                if (!is.null(getLoadedDLLs()[[.name]])){
-                    dyn.unload(x);
-                }
-            }
-        })
-    }
-    if (!unload){
-        return(!any(dll == .dynProtect));
-    } else if (!any(dll == .dynProtect)) {
-        dyn.unload(dll);
-        .unloadExtra();
-    } else {
-        .new <- unique(c(dll, .dynUnloadLater))
-        assignInMyNamespace(".dynUnloadLater", .new);
-        .unloadExtra();
-    }
-}
-
 ##' Create an ODE-based model specification
 ##'
 ##' Create a dynamic ODE-based model object suitably for translation
@@ -70,7 +34,7 @@ rxDynProtect <- function(dlls){
 ##'
 ##' @param wd character string with a working directory where to
 ##'     create a subdirectory according to \code{modName}. When
-##'     specified, a subdirectoy named after the
+##'     specified, a subdirectory named after the
 ##'     \dQuote{\code{modName.d}} will be created and populated with a
 ##'     C file, a dynamic loading library, plus various other working
 ##'     files. If missing, the files are created (and removed) in the
@@ -91,7 +55,7 @@ rxDynProtect <- function(dlls){
 ##'     compiled with verbose debugging information turned on.
 ##'
 ##' @param calcSens boolean indicating if RxODE will calculate the
-##'     sennsitivities according to the specified ODEs.
+##'     sensitivities according to the specified ODEs.
 ##'
 ##' @param calcJac boolean indicating if RxODE will calculate the
 ##'     Jacobain according to the specified ODEs.
@@ -137,10 +101,10 @@ rxDynProtect <- function(dlls){
 ##' end-of-line marker).  \strong{NB:} Comments are not allowed inside
 ##' statements.
 ##'
-##' A block of statements is a set of statements delimeted by curly
+##' A block of statements is a set of statements delimited by curly
 ##' braces, \sQuote{\code{\{ ... \}}}. Statements can be either
 ##' assignments or conditional \code{if} statements. Assignment
-##' statements can be: (1) \dQuote{simple} assignmets, where the left
+##' statements can be: (1) \dQuote{simple} assignments, where the left
 ##' hand is an identifier (i.e., variable), (2) special
 ##' \dQuote{time-derivative} assignments, where the left hand specifies
 ##' the change of that variable with respect to time e.g.,
@@ -181,10 +145,10 @@ rxDynProtect <- function(dlls){
 ##' saved as part of the fitted/integrated/solved model (see
 ##' \code{\link{eventTable}}, in particular its member function
 ##' \code{add.sampling} that defines a set of time points at which to
-##' capture a snapshot of the syste via the values of these variables).
+##' capture a snapshot of the system via the values of these variables).
 ##'
 ##' The ODE specification mini-language is parsed with the help of the
-##' open source tool \emph{DParser}, Plevyak (2015).
+##' open source tool \code{dparser}, Plevyak (2015).
 ##'
 ##'
 ##' @return An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang (2001))
@@ -215,15 +179,15 @@ rxDynProtect <- function(dlls){
 ##'
 ##'
 ##'           \code{stiff}: a logical (\code{TRUE} by default) indicating whether
-##'           the ODE system is stifff or not.
+##'           the ODE system is stiff or not.
 ##'
-##'           For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses
+##'           For stiff ODE systems (\code{stiff = TRUE}), \code{RxODE} uses
 ##'           the LSODA (Livermore Solver for Ordinary Differential Equations)
 ##'           Fortran package, which implements an automatic method switching
 ##'           for stiff and non-stiff problems along the integration interval,
 ##'           authored by Hindmarsh and Petzold (2003).
 ##'
-##'           For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses DOP853,
+##'           For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses \code{DOP853},
 ##'           an explicit Runge-Kutta method of order 8(5, 3) of Dormand and Prince
 ##'           as implemented in C by Hairer and Wanner (1993).
 ##'
@@ -237,7 +201,7 @@ rxDynProtect <- function(dlls){
 ##'
 ##'           The output of \dQuote{solve} is a matrix with as many rows as there
 ##'           are sampled time points and as many columns as system variables
-##'           (as defined by the ODEs and additional assigments in the RxODE model
+##'           (as defined by the ODEs and additional assignments in the RxODE model
 ##'               code).}
 ##'
 ##'       \item{isValid}{a function that (naively) checks for model validity,
@@ -249,7 +213,7 @@ rxDynProtect <- function(dlls){
 ##'           that dynamically loads the object code if needed.}
 ##'       \item{dynUnload}{a function with no argument that unloads
 ##'           the model object code.}
-##'       \item{delete}{removes all created model files, including C and DDL files.
+##'       \item{delete}{removes all created model files, including C and DLL files.
 ##'           The model object is no longer valid and should be removed, e.g.,
 ##'           \code{rm(m1)}.}
 ##'       \item{run}{deprecated, use \code{solve}.}
@@ -280,8 +244,8 @@ rxDynProtect <- function(dlls){
 ##' 2nd edition, Springer Series in Computational Mathematics,
 ##' Springer-Verlag (1993).
 ##'
-##' Plevyek, J.
-##' \emph{Dparser}, \url{http://dparser.sourceforge.net}. Web. 12 Oct. 2015.
+##' Plevyak, J.
+##' \emph{\code{dparser}}, \url{http://dparser.sourceforge.net}. Web. 12 Oct. 2015.
 ##'
 ##' @author Melissa Hallow, Wenping Wang and Matthew Fidler
 ##'
@@ -367,8 +331,7 @@ RxODE <- function(model, modName = basename(wd),
                   filename = NULL, extraC = NULL, debug = FALSE, calcJac=NULL, calcSens=NULL,
                   collapseModel=FALSE, package=NULL, ...,
                   linCmtSens=FALSE,
-                  indLin=FALSE) {
-    on.exit(rxSolveFree());
+                  indLin=FALSE){
     rxTempDir();
     if (!is.null(package)){
         if (missing(modName)){
@@ -600,7 +563,10 @@ RxODE <- function(model, modName = basename(wd),
     .env$calcJac <- (length(.mv$dfdy) > 0);
     .env$calcSens <- (length(.mv$sens) > 0)
     class(.env) <- "RxODE"
-    reg.finalizer(.env, eval(bquote(function(...){try(.rxDynUnload(.(rxDll(.env)),  unload=TRUE), silent=TRUE)})));
+    reg.finalizer(.env, eval(bquote(function(...){
+                            RxODE::rxUnlock(.(.env));
+                            rxUnloadAll();
+                        })));
     RxODE::rxForget();
     if (!is.null(.env$package)){
         .o <- rxDll(.env);
@@ -621,6 +587,8 @@ RxODE <- function(model, modName = basename(wd),
                 assign(.env$modName, .env);
             }
         }
+    } else {
+        RxODE::rxIsLoaded(.env); # Show this is loaded.
     }
     return(.env);
 }
@@ -1602,6 +1570,13 @@ rxCompile.rxModelVars <-  function(model, # Model
                 .cmd <- file.path(R.home("bin"), "R");
                 RxODE::rxReq("sys");
                 .args <- c("CMD", "SHLIB", basename(.cFile));
+                .rxBinpref <- Sys.getenv("rxBINPREF");
+                if (.rxBinpref != ""){
+                    .oldBinpref <- Sys.getenv("BINPREF");
+                    Sys.setenv("BINPREF"=.rxBinpref);
+                    on.exit(Sys.setenv("BINPREF"=.oldBinpref), add=TRUE);
+                }
+
                 .out <- sys::exec_internal(cmd = .cmd, args = .args, error=FALSE);
                 .badBuild <- function(msg){
                     message(msg);
@@ -1621,7 +1596,7 @@ rxCompile.rxModelVars <-  function(model, # Model
         .tmp  <- try(dynLoad(.cDllFile), silent=TRUE);
         if (inherits(.tmp, "try-error")){
             ## Try unloading RxODE dlls now...
-            .unloadRx()
+            rxUnloadAll();
             .tmp  <- try(dynLoad(.cDllFile), silent=TRUE);
             if (inherits(.tmp, "try-error")){
                 .badBuild("Error loading model (though dll exists)");
@@ -1629,14 +1604,13 @@ rxCompile.rxModelVars <-  function(model, # Model
                 warning("Unloaded all RxODE dlls before loading the current DLL.")
             }
         }
+        assign(.cDllFile, 1L, envir=.rxModels); ## Loaded model.
         .modVars <- sprintf("%smodel_vars", prefix);
         if (is.loaded(.modVars)){
             .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)
         } else {
             .badBuild("Error, model doesn't have correct model variables.");
         }
-
-
     }
     .call <- function(...){return(.Call(...))};
     .args <- list(model = model, dir = .dir, prefix = prefix,
@@ -1754,9 +1728,12 @@ rxCondition <- function(obj, condition=NULL){
 ##'     condition is not set via \code{rxCondition}, return the whole
 ##'     code with all the conditional settings intact.  When a
 ##'     condition is set with \code{rxCondition}, use that condition.
-##' @param removeInis A boolean indicating if paramter initilizations will be removed from the model
-##' @param removeJac A boolean indicating if the Jacobians will be removed.
-##' @param removeSens A boolean indicating if the sensitivities will be removed.
+##' @param removeInis A boolean indicating if parameter initialization
+##'     will be removed from the model
+##' @param removeJac A boolean indicating if the Jacobians will be
+##'     removed.
+##' @param removeSens A boolean indicating if the sensitivities will
+##'     be removed.
 ##' @return Normalized Normal syntax (no comments)
 ##' @author Matthew L. Fidler
 ##' @export
@@ -1985,4 +1962,18 @@ rxModelVars <- function(obj){
         .ret <- paste(.ret, collapse = "");
     }
     return(.ret);
+}
+
+
+.rxGetModelInfoFromDll <- function(dll){
+    .base <- basename(dll)
+    if (nchar(.base) >= 36){
+        if (substr(.base,36,36) == "_"){
+            .md5 <- substring(.base,4,35);
+            return(c(.md5, paste0("rx_", .md5,  "_", .Platform$r_arch, "_")))
+        }
+    }
+    .extra <- nchar(.Platform$r_arch) + 1 + nchar(.Platform$dynlib.ext)
+    .mod <- substring(.base, 0, nchar(.base) - .extra)
+    return(c(.mod, paste0(.mod,  "_", .Platform$r_arch, "_")))
 }

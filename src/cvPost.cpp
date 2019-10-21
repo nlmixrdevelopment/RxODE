@@ -56,21 +56,30 @@ NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
   }
 }
 
-//' Sample a covariance Matrix from the Posteior Inverse Wishart distribution.
+//' Sample a covariance Matrix from the Posterior Inverse Wishart
+//' distribution.
 //'
-//' Note this Inverse wishart rescaled to match the original scale of the covariance matrix.
+//' Note this Inverse wishart rescaled to match the original scale of
+//' the covariance matrix.
 //'
-//' If your covariance matrix is a 1x1 matrix, this uses an scaled inverse chi-squared which 
-//' is equivalent to the Inverse Wishart distribution in the uni-directional case.
+//' If your covariance matrix is a 1x1 matrix, this uses an scaled
+//' inverse chi-squared which is equivalent to the Inverse Wishart
+//' distribution in the uni-directional case.
 //'
 //' @param nu Degrees of Freedom (Number of Observations) for 
 //'        covariance matrix simulation.
+//' 
 //' @param omega Estimate of Covariance matrix.
+//' 
 //' @param n Number of Matrices to sample.  By default this is 1.
-//' @param omegaIsChol is an indicator of if the omega matrix is in the cholesky decomposition. 
-//' @param returnChol Return the cholesky decomposition of the covariance matrix sample.
+//' 
+//' @param omegaIsChol is an indicator of if the omega matrix is in
+//'   the Cholesky decomposition.
+//' 
+//' @param returnChol Return the Cholesky decomposition of the
+//'   covariance matrix sample.
 //'
-//' @return a matrix (n=1) or a list of matricies (n > 1)
+//' @return a matrix (n=1) or a list of matrices  (n > 1)
 //'
 //' @author Matthew L.Fidler & Wenping Wang
 //'

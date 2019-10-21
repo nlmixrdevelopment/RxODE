@@ -6,14 +6,10 @@ df.test <- structure(c(0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4
 rxPermissive({
     ms <- c("liblsoda", "lsoda", "dop853")
     if (grepl('SunOS',Sys.info()['sysname'])) ms <- "lsoda"
+    ode <- RxODE(model = 'd/dt(y) = r * y * (1.0 - y/K);')
     for (meth in ms){
         context(sprintf("Example 3-1 (%s)", meth));
         old <- options(digits = 6)
-
-
-        ode <-
-            RxODE(model = 'd/dt(y) = r * y * (1.0 - y/K);')
-
         ## create event table with times at which we observe the system
         et <- eventTable(time.units= NA)
         et$add.sampling(seq(from = 0, to = 20, by = 0.2))
@@ -41,8 +37,6 @@ rxPermissive({
 
         head(cbind(out1, out2, out1.ns, out2.ns), n = 15)
     }
-
     options(old)
 
-    rxClean()
 }, silent = TRUE);

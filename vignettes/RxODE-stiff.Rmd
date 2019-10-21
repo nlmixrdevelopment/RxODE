@@ -1,11 +1,9 @@
 ---
 title: "RxODE Jacobian specification and Stiff Systems"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{RxODE Jacobian specification and Stiff Systems}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+    self_contained: no 
 ---
 
 ```{r, echo=FALSE}
@@ -31,7 +29,7 @@ each variable). In RxODE you can specify the Jacobian with the
 `df(state)/dy(variable)=` statement.  A classic ODE that has stiff
 properties under various conditions is
 the
-[van dar Pol ](http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/math_anal/diffeq6.html) differential
+[Van der Pol](http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/math_anal/diffeq6.html) differential
 equations.
 
 In RxODE these can be specified by the following:

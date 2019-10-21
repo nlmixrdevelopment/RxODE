@@ -11,7 +11,7 @@ rxParsePred(x, init = NULL, err = NULL)
 \arguments{
 \item{x}{pred function}
 
-\item{init}{Initilization vector}
+\item{init}{Initialization vector}
 
 \item{x}{pred function}
 }

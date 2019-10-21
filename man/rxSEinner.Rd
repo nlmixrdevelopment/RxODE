@@ -12,8 +12,10 @@ rxSEinner(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
 
 rxSymPySetupPred(obj, predfn, pkpars = NULL, errfn = NULL,
   init = NULL, grad = FALSE, sum.prod = FALSE,
-  pred.minus.dv = TRUE, only.numeric = FALSE, optExpression = TRUE,
-  interaction = TRUE, ..., promoteLinSens = TRUE, theta = FALSE)
+  pred.minus.dv = TRUE, theta.derivs = FALSE, only.numeric = FALSE,
+  grad.internal = FALSE, theta.internal = FALSE,
+  optExpression = TRUE, run.internal = RxODE.sympy.run.internal,
+  interaction = TRUE)
 }
 \arguments{
 \item{obj}{RxODE object}

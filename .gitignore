@@ -23,3 +23,6 @@ inst/doc
 *.gch
 *.gcno
 /src/RxODE.so
+/src/Makevars.r-stripper.bak
+/vignettes/*_files/
+/vignettes/*.html

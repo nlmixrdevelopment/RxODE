@@ -28,11 +28,12 @@ These notes briefly describe steps to properly install `RxODE` and to
 ensure `Rtools` (https://cran.r-project.org/bin/windows/Rtools/) are properly 
 configured to avoid compilation issues during the use of `RxODE`. 
 
-In a nutshell, installing `RxODE` is very straight forwad, but installing
-and configuring `Rtools` is a bit more delicate and you need to 
-carefully follow the instructions in the "R Installation and Adminstration" 
-manual, in particular Section 6.3, and Appendix D "The Windows Toolset". 
-We point out a couple of details worth extra attention.  Please read on.
+In a nutshell, installing `RxODE` is very straight forward, but
+installing and configuring `Rtools` is a bit more delicate and you
+need to carefully follow the instructions in the "R Installation and
+Administration" manual, in particular Section 6.3, and Appendix D "The
+Windows Toolset".  We point out a couple of details worth extra
+attention.  Please read on.
 
 ### Steps:
 
@@ -75,7 +76,7 @@ We point out a couple of details worth extra attention.  Please read on.
     installation requires use of the gcc compiler, so you'll know if Step 1 
     was successfully executed.
 
-    * CRAN. Use the usual method for installing pacakges from CRAN.
+    * CRAN. Use the usual method for installing packages from CRAN.
 
     * GitHub. First install the `devtools` package (if needed) and 
       then `RxODE` from GitHub.  You may want to avoid using a library 

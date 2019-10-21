@@ -1,6 +1,6 @@
 ##' Validate RxODE
 ##'
-##' This allows easy vaildation/qualification of nlmixr by running the
+##' This allows easy validation/qualification of nlmixr by running the
 ##' testing suite on your system.
 ##' @param type Type of test or fitler of test type
 ##' @author Matthew L. Fidler

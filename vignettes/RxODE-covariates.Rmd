@@ -1,11 +1,9 @@
 ---
 title: "RxODE Covariates"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{RxODE Covariates}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+    self_contained: no
 ---
 
 ```{r, echo=FALSE}
@@ -62,7 +60,7 @@ ev$ctime <- (ev$time+set_units(8,hr)) %% 24
 
 ```
 
-Now there is a covariate present, the system can be solved using the cov option
+Now there is a covariate present, the system can be solved using the `cov` option
 
 ```{r}
 r1 <- solve(mod3, ev, covs_interpolation="linear")
@@ -70,10 +68,9 @@ print(r1)
 ```
 
 When solving ODE equations, the solver may sample times outside of the
-data.  When this happens, this ODE solver uses linear interpolation
-between the covariate values. This is the default value.  It is
-equivalent to R's `approxfun` with `method="linear"`, which is the
-default `approxfun`.
+data.  When this happens, this ODE solver can use linear interpolation
+between the covariate values. It is equivalent to R's `approxfun` with
+`method="linear"`.
 
 ```{r}
 library(ggplot2)
@@ -86,11 +83,13 @@ plot(r1,eff) + ylab("Effect") + xlab("Time");
 
 Note that the linear approximation in this case leads to some kinks in
 the solved system at 24-hours where the covariate has a linear
-interpolation between near 24 and near 0.
+interpolation between near 24 and near 0. While linear seems
+reasonable, cases like clock time make other interpolation methods
+more attractive.
 
-In RxODE, covariate interpolation can also be the last observation
-carried forward, or constant approximation.  This is equivalent to R's
-`approxfun` with `method="constant"`.
+In RxODE the default covariate interpolation is be the last
+observation carried forward (`locf`), or constant approximation.  This is
+equivalent to R's `approxfun` with `method="constant"`.
 
 
 ```{r}

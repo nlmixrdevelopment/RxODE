@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{rxInv}
 \alias{rxInv}
-\title{Invert matrix using Rcpp Armadilo.}
+\title{Invert matrix using RcppArmadillo.}
 \usage{
 rxInv(matrix)
 }
@@ -13,5 +13,5 @@ rxInv(matrix)
 inverse or pseudo inverse of matrix.
 }
 \description{
-Invert matrix using Rcpp Armadilo.
+Invert matrix using RcppArmadillo.
 }

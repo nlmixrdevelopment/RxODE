@@ -1,6 +1,12 @@
 #include <RcppArmadillo.h>
 #include <algorithm>
 #include "../inst/include/RxODE.h"
+#include "timsort.h"
+#ifdef rxSortStd
+#define SORT std::sort
+#else
+#define SORT gfx::timsort
+#endif
 
 #define rxModelVars(a) rxModelVars_(a)
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
@@ -10,10 +16,8 @@ List rxModelVars_(const RObject &obj);
 bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
 
-IntegerVector curDvid;
-
-IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false,
-		    int stateSize = 0, int sensSize=0){
+IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
+		    const int stateSize, const int sensSize, IntegerVector& curDvid){
   RObject cmtInfo = R_NilValue;
   List extraCmt;
   if (rxIs(inCmt, "numeric") || rxIs(inCmt, "integer")){
@@ -114,7 +118,7 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false,
 	}
 	if (warnDvid.size() > 1){
 	  std::string warn = "Undefined 'dvid' integer values in data: ";
-	  std::sort(warnDvid.begin(), warnDvid.end());
+	  SORT(warnDvid.begin(), warnDvid.end());
 	  for (int i = 0; i < (int)(warnDvid.size()-1); i++){
 	    warn = warn + std::to_string(warnDvid[i]) + ", ";
 	  }
@@ -235,6 +239,7 @@ bool rxSetIni0(bool ini0 = true){
 extern void setFkeep(List keep);
 IntegerVector convertMethod(RObject method);
 
+bool warnedNeg=false;
 //' Event translation for RxODE
 //'
 //' @param inData Data frame to translate
@@ -244,9 +249,9 @@ IntegerVector convertMethod(RObject method);
 //' @param allTimeVar Treat all covariates as if they were time-varying
 //' @param keepDosingOnly keep the individuals who only have dosing records and any
 //'   trailing dosing records after the last observation.
-//' @param combineDvid is a boolean indicating if RxODE will use DVID on observation
-//'     records to change the cmt value; Useful for multiple-endpoint nlmixr models.  By default
-//'     this is determined by code{option("RxODE.combine.dvid")} and if the option has not been set,
+//' @param combineDvid is a boolean indicating if RxODE will use \code{DVID} on observation
+//'     records to change the \code{cmt} value; Useful for multiple-endpoint nlmixr models.  By default
+//'     this is determined by \code{option("RxODE.combine.dvid")} and if the option has not been set,
 //'     this is \code{TRUE}. This typically does not affect RxODE simulations.
 //' @param keep This is a named vector of items you want to keep in the final RxODE dataset.
 //'     For added RxODE event records (if seen), last observation carried forward will be used.
@@ -268,7 +273,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     combineDvidB = as<bool>(getOption("RxODE.combine.dvid", true));
   }
   List mv = rxModelVars_(obj);
-  curDvid = clone(as<IntegerVector>(mv["dvid"]));
+  IntegerVector curDvid = clone(as<IntegerVector>(mv["dvid"]));
   CharacterVector trans = mv["trans"];
   if (rxIs(inData,"rxEtTran")){
     CharacterVector cls = inData.attr("class");
@@ -430,18 +435,19 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   //      0 = no Infusion
   //      1 = Infusion, AMT=rate (mg/hr for instance)
   //      2 = Infusion, duration is fixed
-  //      9 = Rate is modeled, AMT=dose; Duration = AMT/(Modeled Rate) NONMEM RATE=-1
-  //      8 = Duration is modeled, AMT=dose; Rate = AMT/(Modeled Duration) NONMEM RATE=-2
-  //      7 = Turn off modeled rate compartment
-  //      6 = Turn off modeled duration
   //      4 = Replacement event
   //      5 = Multiplication event
+  //      6 = Turn off modeled duration
+  //      7 = Turn off modeled rate compartment
+  //      8 = Duration is modeled, AMT=dose; Rate = AMT/(Modeled Duration) NONMEM RATE=-2
+  //      9 = Rate is modeled, AMT=dose; Duration = AMT/(Modeled Rate) NONMEM RATE=-1
   // c1 = Compartment numbers below 99
   // xx = 1, regular event
   // xx = 9, Hidden Zero event to make sure that X(0) happens at time 0
   // xx = 10, steady state event SS=1
   // xx = 20, steady state event + last observed info.
   // xx = 30, Turn off compartment
+  // xx = 40, Steady state constant infusion
   // Steady state events need a II data item > 0
   
   CharacterVector state0 = as<CharacterVector>(mv["state"]);
@@ -514,14 +520,15 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   RObject cmtInfo = R_NilValue;
   if (cmtCol != -1){
     inCmt = as<IntegerVector>(toCmt(inData[cmtCol], state, false,
-				    state0.size(), stateS.size()));//as<IntegerVector>();
+				    state0.size(), stateS.size(), curDvid));//as<IntegerVector>();
     cmtInfo = inCmt.attr("cmtNames");
     inCmt.attr("cmtNames") = R_NilValue;
   }
   IntegerVector inDvid;
   if (dvidCol != -1){
     inDvid = as<IntegerVector>(toCmt(inData[dvidCol], state, true,
-				     state0.size(), stateS.size()));//as<IntegerVector>();
+				     state0.size(), stateS.size(),
+				     curDvid));//as<IntegerVector>();
     inDvid.attr("cmtNames") = R_NilValue;
   }
   int tmpCmt = 1;
@@ -546,6 +553,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
   IntegerVector inEvid;
+  bool evidIsMDV = false;
   if (evidCol != -1){
     if (rxIs(inData[evidCol], "integer") || rxIs(inData[evidCol], "numeric") ||
 	rxIs(inData[evidCol], "logical")){
@@ -556,6 +564,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   } else if (mdvCol != -1){
     evidCol = mdvCol;
     mdvCol=-1;
+    evidIsMDV=true;
     if (rxIs(inData[evidCol], "integer") || rxIs(inData[evidCol], "numeric") ||
 	rxIs(inData[evidCol], "logical")){
       inEvid = as<IntegerVector>(inData[evidCol]);
@@ -727,6 +736,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
       nid++;
     }
+
+    // Amt
+    if (amtCol == -1) camt = 0.0;
+    else camt = inAmt[i];
     
     // SS flag
     flg=1;
@@ -735,6 +748,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     else if (IntegerVector::is_na(inSs[i])) flg=1;
     else if (inSs[i] == 1 && cii > 0) flg=10;
     else if (inSs[i] == 2 && cii > 0) flg=20;
+    else if (inSs[i] == 1 && cii == 0 && camt == 0.0){
+      flg=40;
+    }
+
     if (cmtCol != -1){
       tmpCmt = inCmt[i];
       if (inCmt[i] == 0){
@@ -767,10 +784,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       cmt99=cmt-cmt100*100; 
     }
     mxCmt = max2(cmt,mxCmt);
-
-    // Amt
-    if (amtCol == -1) camt = 0.0;
-    else camt = inAmt[i];
     
     rateI = 0;
     // Rate
@@ -782,6 +795,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	rateI = 9;
       } else if (rate == -2.0){
 	// duration is modeled
+	if (flg == 40){
+	  stop("When using steady state constant infusion modeling duration doesn't make sense.");
+	}
 	rateI = 8;
       } else if (rate > 0){
 	// Rate is fixed
@@ -798,12 +814,21 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       // if (inDur[i] > 0)
       if (inDur[i] == -1.0){
 	// rate is modeled
+	if (flg == 40){
+	  stop("Specifying duration with a steady state constant infusion makes no sense.");
+	}
 	rateI = 9;
       } else if (inDur[i] == -2.0){
 	// duration is modeled
+	if (flg == 40){
+	  stop("Specifying duration with a steady state constant infusion makes no sense.");
+	}
 	rateI = 8;
       } else if (inDur[i] > 0){
 	// Duration is fixed
+	if (flg == 40){
+	  stop("Specifying duration with a steady state constant infusion makes no sense.");
+	}
 	if (evidCol == -1 || inEvid[i] == 1 || inEvid[i] == 4){
 	  rateI = 2;
 	  rate = camt/inDur[i];
@@ -825,7 +850,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	if (mdvCol != -1 && inMdv[i] == 1){
 	  cevid=2;
 	}
-	if (std::find(obsId.begin(), obsId.end(), cid) == obsId.end()){
+	if (cevid != 2 && std::find(obsId.begin(), obsId.end(), cid) == obsId.end()){
 	  obsId.push_back(cid);
 	}
       } else {
@@ -838,6 +863,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
     } else {
       cevid = inEvid[i];
+    }
+    if (evidIsMDV && cevid == 1 && camt == 0){
+      cevid=2;
     }
     switch(cevid){
     case 0:
@@ -854,7 +882,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  cevid=2;
 	}
       }
-      if (std::find(obsId.begin(), obsId.end(), cid) == obsId.end()){
+      if (cevid != 2 && std::find(obsId.begin(), obsId.end(), cid) == obsId.end()){
 	obsId.push_back(cid);
       }
       if (caddl > 0){
@@ -1143,7 +1171,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       cens.push_back(0);
       idxO.push_back(curIdx);curIdx++;
       ndose++;
-      if (rateI > 2 && rateI != 4 && rateI != 5){
+      if (rateI > 2 && rateI != 4 && rateI != 5 && flg != 40){
 	amt.push_back(camt);
 	// turn off
 	id.push_back(cid);
@@ -1163,18 +1191,20 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	dur = camt/rate;
 	amt.push_back(rate); // turn on
 	// turn off
-	id.push_back(cid);
-	evid.push_back(cevid);
-	cmtF.push_back(cmt);
-	time.push_back(ctime+dur);
-	amt.push_back(-rate);
-	ii.push_back(0.0);
-	idx.push_back(-1);
-	dv.push_back(NA_REAL);
-	limit.push_back(NA_REAL);
-	cens.push_back(0);
-	idxO.push_back(curIdx);curIdx++;
-	ndose++;
+	if (flg != 40){
+	  id.push_back(cid);
+	  evid.push_back(cevid);
+	  cmtF.push_back(cmt);
+	  time.push_back(ctime+dur);
+	  amt.push_back(-rate);
+	  ii.push_back(0.0);
+	  idx.push_back(-1);
+	  dv.push_back(NA_REAL);
+	  limit.push_back(NA_REAL);
+	  cens.push_back(0);
+	  idxO.push_back(curIdx);curIdx++;
+	  ndose++;
+	}
       } else {
 	amt.push_back(camt);
       }
@@ -1277,42 +1307,41 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     if (!_ini0) warning(idWarn.c_str());
   }
   if (warnCensNA) warning("Censoring missing DV values do not make sense.");
-  std::sort(idxO.begin(),idxO.end(),
-	    [id,time,evid,amt,doseId,keepDosingOnly](int a, int b){
-	      // Bad IDs are pushed to the end to be popped off.
-	      if (!keepDosingOnly){
-		if (doseId.size() > 0 && !(std::find(doseId.begin(), doseId.end(), id[a]) == doseId.end())){
-		  return false;
-		}
-		if (doseId.size() > 0 && !(std::find(doseId.begin(), doseId.end(), id[b]) == doseId.end())){
-		  return true;
-		}
-	      }
-	      if (id[a] == id[b]){
-		if (time[a] == time[b]){
-		  if (evid[a] == evid[b]){
-		    return a < b;
-		  }
-		  // Reset should be before all other events.
-		  if (evid[a] == 3){
-		    return true;
-		  }
-		  if (evid[b] == 3){
-		    return false;
-		  }
-		  // Zero amts turn on and off compartments and should be first.
-		  if (amt[a] == 0){
-		    return true;
-		  }
-		  if (amt[b] == 0){
-		    return false;
-		  }
-		  return evid[a] > evid[b];
-		}
-		return time[a] < time[b];
-	      }
-	      return id[a] < id[b];
-	    });
+  SORT(idxO.begin(),idxO.end(),
+       [id,time,evid,amt,doseId,keepDosingOnly](int a, int b){
+	 if (id[a] == id[b]){
+	   if (time[a] == time[b]){
+	     if (evid[a] == evid[b]){
+	       return a < b;
+	     }
+	     if (evid[a] == 3){
+	       return true;
+	     }
+	     if (evid[b] == 3){
+	       return false;
+	     }
+	     // Zero amts turn on and off compartments and should be first.
+	     if (evid[a] != 0 && amt[a] == 0){
+	       return true;
+	     }
+	     if (evid[b] != 0 && amt[b] == 0){
+	       return false;
+	     }
+	     return evid[a] > evid[b];
+	   }
+	   return time[a] < time[b];
+	 }
+	 // Bad IDs are pushed to the end to be popped off.
+	 if (!keepDosingOnly){
+	   if (doseId.size() > 0 && !(std::find(doseId.begin(), doseId.end(), id[a]) == doseId.end())){
+	     return false;
+	   }
+	   if (doseId.size() > 0 && !(std::find(doseId.begin(), doseId.end(), id[b]) == doseId.end())){
+	     return true;
+	   }
+	 }
+	 return id[a] < id[b];
+       });
   if (!keepDosingOnly && doseId.size() > 0){
     while (idxO.size() > 0 && std::find(doseId.begin(), doseId.end(), id[idxO.back()]) != doseId.end()){
       idxO.pop_back();
@@ -1341,7 +1370,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
   if (idxO.size()-rmAmt <= 0) stop("Empty data.");
-  nid = obsId.size();
+  if (!keepDosingOnly){
+    nid = obsId.size();
+  } else {
+    nid = allId.size();
+  }
   NumericVector fPars = NumericVector(pars.size()*nid, NA_REAL);
   // sorted create the vectors/list
   if (addCmt && !hasCmt){
@@ -1434,8 +1467,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
 
   IntegerVector ivTmp;
-  // Since we removed the -1 in idx, you can get the last id here.
-  lastId = id[idxO.back()]+1;
+  lastId = NA_INTEGER;
   bool addId = false, added=false;
   int idx1=nid, nTv=0;
   std::vector<int> covParPosTV;
@@ -1450,6 +1482,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (lastId != id[idxO[i]]){
 	addId=true;
 	idx1--;
+	if (idx1 < 0) stop("Number of individuals not calculated correctly...");
 	// Add ID
 	ivTmp = as<IntegerVector>(lst1[0]);
 	ivTmp[idx1] = id[idxO[i]];
@@ -1498,7 +1531,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    nvTmp[jj] = nvTmp[jj-1];
 	  }
 	} else {
-	  // These keepers are added.
+	  // These keep variables are added.
 	  nvTmp2   = as<NumericVector>(inData[keepCol[j]]);
 	  nvTmp[jj] = nvTmp2[idx[idxO[i]]];
 	}
@@ -1587,14 +1620,18 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       j++;
     }
   }
-
   CharacterVector cls = CharacterVector::create("rxEtTran","data.frame");
-  
+  if (covCol.size() == 0 && !rxIs(lst1F[0], "integer") && !redoId){
+    stop("Corrupted event table");
+  }
   IntegerVector tmp = lst1F[0];
+  CharacterVector idLvl2;
   if (redoId){
     Function convId = rx[".convertId"];
+    tmp.attr("class") = "factor";
+    tmp.attr("levels") = idLvl;
     tmp = convId(tmp);//as<IntegerVector>();
-    idLvl = tmp.attr("levels");
+    idLvl2 = tmp.attr("levels");
     tmp.attr("class")  = R_NilValue;
     tmp.attr("levels") = R_NilValue;
     lst1F[0] = tmp;
@@ -1634,7 +1671,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   e["lib.name"] = trans["lib.name"];
   e["addCmt"] = addCmt;
   e["cmtInfo"] = cmtInfo;
-  e["idLvl"] = idLvl;
+  if (redoId){
+    e["idLvl"] = idLvl2;
+  } else {
+    e["idLvl"] = idLvl;
+  }
   e["allTimeVar"] = allTimeVar;
   e["keepDosingOnly"] = true;
   keepL.attr("names") = keepN;
@@ -1646,21 +1687,29 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   tmp = lstF[0];
   if (redoId){
     Function convId = rx[".convertId"];
+    tmp.attr("class") = "factor";
+    tmp.attr("levels") = idLvl;
     tmp = convId(tmp);//as<IntegerVector>();
-    idLvl = tmp.attr("levels");
     tmp.attr("class")  = R_NilValue;
     tmp.attr("levels") = R_NilValue;
     lstF[0]=tmp;
   }
   if (!dropUnits){
     tmp.attr("class") = "factor";
-    tmp.attr("levels") = idLvl;
+    if (redoId){
+      tmp.attr("levels") = idLvl2;
+    } else {
+      tmp.attr("levels") = idLvl;
+    }
   }
   lstF.attr("names") = nmeF;
   lstF.attr("class") = cls;
   lstF.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt);
   if (doWarnNeg){
-    warning("With negative times, compartments initialize at first negative observed time.\nWith positive times, compartments initialize at time zero\nUse `rxSetIni0(FALSE)` to initialize at first observed time");
+    if (!warnedNeg){
+      warning("\nWith negative times, compartments initialize at first negative observed time.\nWith positive times, compartments initialize at time zero\nUse `rxSetIni0(FALSE)` to initialize at first observed time\nThis warning is displayed once per session.");
+      warnedNeg=true;
+    } 
   }
   return lstF;
 }

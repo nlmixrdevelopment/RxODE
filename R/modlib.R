@@ -163,7 +163,6 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
             }
             writeLines(text=.f0, con=file.path(devtools::package_file("src"), basename(x)));
         })
-        rxClean(devtools::package_file("inst/rx"))
         .inits  <- paste0("R_init0_",.pkg,"_",.models);
         .tmp <- paste0("{\"",.pkg,"_",.models,"_model_vars\", (DL_FUNC) &",.pkg,"_",.models,"_model_vars, 0},\\");
         .tmp[length(.tmp)]  <- substr(.tmp[length(.tmp)], 0, nchar(.tmp[length(.tmp)])-1)

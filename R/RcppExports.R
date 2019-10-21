@@ -5,21 +5,30 @@ removableDrive <- function(driveRoot) {
     .Call(`_RxODE_removableDrive`, driveRoot)
 }
 
-#' Sample a covariance Matrix from the Posteior Inverse Wishart distribution.
+#' Sample a covariance Matrix from the Posterior Inverse Wishart
+#' distribution.
 #'
-#' Note this Inverse wishart rescaled to match the original scale of the covariance matrix.
+#' Note this Inverse wishart rescaled to match the original scale of
+#' the covariance matrix.
 #'
-#' If your covariance matrix is a 1x1 matrix, this uses an scaled inverse chi-squared which 
-#' is equivalent to the Inverse Wishart distribution in the uni-directional case.
+#' If your covariance matrix is a 1x1 matrix, this uses an scaled
+#' inverse chi-squared which is equivalent to the Inverse Wishart
+#' distribution in the uni-directional case.
 #'
 #' @param nu Degrees of Freedom (Number of Observations) for 
 #'        covariance matrix simulation.
+#' 
 #' @param omega Estimate of Covariance matrix.
+#' 
 #' @param n Number of Matrices to sample.  By default this is 1.
-#' @param omegaIsChol is an indicator of if the omega matrix is in the cholesky decomposition. 
-#' @param returnChol Return the cholesky decomposition of the covariance matrix sample.
+#' 
+#' @param omegaIsChol is an indicator of if the omega matrix is in
+#'   the Cholesky decomposition.
+#' 
+#' @param returnChol Return the Cholesky decomposition of the
+#'   covariance matrix sample.
 #'
-#' @return a matrix (n=1) or a list of matricies (n > 1)
+#' @return a matrix (n=1) or a list of matrices  (n > 1)
 #'
 #' @author Matthew L.Fidler & Wenping Wang
 #'
@@ -91,9 +100,9 @@ rxSetIni0 <- function(ini0 = TRUE) {
 #' @param allTimeVar Treat all covariates as if they were time-varying
 #' @param keepDosingOnly keep the individuals who only have dosing records and any
 #'   trailing dosing records after the last observation.
-#' @param combineDvid is a boolean indicating if RxODE will use DVID on observation
-#'     records to change the cmt value; Useful for multiple-endpoint nlmixr models.  By default
-#'     this is determined by code{option("RxODE.combine.dvid")} and if the option has not been set,
+#' @param combineDvid is a boolean indicating if RxODE will use \code{DVID} on observation
+#'     records to change the \code{cmt} value; Useful for multiple-endpoint nlmixr models.  By default
+#'     this is determined by \code{option("RxODE.combine.dvid")} and if the option has not been set,
 #'     this is \code{TRUE}. This typically does not affect RxODE simulations.
 #' @param keep This is a named vector of items you want to keep in the final RxODE dataset.
 #'     For added RxODE event records (if seen), last observation carried forward will be used.
@@ -127,18 +136,15 @@ rxRepR0_ <- function(neta) {
 #' Inductive linearization solver
 #'
 #' @param cSub = Current subject number
-#' @param neq - Number of equations
+#' @param op - RxODE solving options
 #' @param tp - Prior time point/time zeor
 #' @param yp - Prior state;  vector size = neq; Final state is updated here
 #' @param tf - Final Time
 #' @param InfusionRate = Rates of each comparment;  vector size = neq
 #' @param on Indicator for if the compartment is "on"
-#' @param rtol - rtol based on cmt#; vector size = neq
-#' @param atol - atol based on cmt#
-#' @param maxsteps Maximum number of steps
-#' @param doIndLin Integer to say if inductive linearization is needed.
-#' @param locf Do LOCF interpolation for covariates
-#' @param delta The delta added to the matrix to make it invertible
+#' @param cache
+#'    0 = no Cache
+#'    When doIndLin == 0, cache > 0 = nInf-1
 #' @param ME the RxODE matrix exponential function
 #' @param IndF The RxODE Inductive Linearization function F
 #' 
@@ -148,9 +154,6 @@ rxRepR0_ <- function(neta) {
 #' 
 #'   -1 = Maximum number of iterations reached when doing
 #'        inductive linearization
-#' 
-#'   -2 = Maximum number of iterations reached when trying to
-#'        make the matrix invertable.
 NULL
 
 rxIndLin_ <- function(states) {
@@ -339,7 +342,7 @@ atolRtolFactor_ <- function(factor) {
 #' @param nObs Number of observations to simulate (with \code{sigma} matrix)
 #'
 #' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
-#'     indivdual parameters, residuals are updated after solve is completed.
+#'     individual parameters, residuals are updated after solve is completed.
 #'
 #' @param sigmaLower Lower bounds for simulated unexplained variability (by default -Inf)
 #'
@@ -347,10 +350,10 @@ atolRtolFactor_ <- function(factor) {
 #'
 #' @inheritParams rxSolve
 #'
-#' @param dfSub Degrees of freedom to sample the between subject variaiblity matrix from the 
+#' @param dfSub Degrees of freedom to sample the between subject variability matrix from the 
 #'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
 #'
-#' @param dfObs Degrees of freedom to sample the unexplained variaiblity matrix from the 
+#' @param dfObs Degrees of freedom to sample the unexplained variability matrix from the 
 #'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution. 
 #'
 #' @param simSubjects boolean indicated RxODE should simulate subjects in studies (\code{TRUE}, 
@@ -481,6 +484,44 @@ rxDynLoad <- function(obj) {
     .Call(`_RxODE_rxDynLoad`, obj)
 }
 
+#' Lock/unlocking of RxODE dll file
+#'
+#' @param obj A RxODE family of objects
+#' @export
+rxLock <- function(obj) {
+    .Call(`_RxODE_rxLock`, obj)
+}
+
+#' @rdname rxLock
+#' @export
+rxUnlock <- function(obj) {
+    .Call(`_RxODE_rxUnlock`, obj)
+}
+
+#' Allow unloading of dlls
+#'
+#' @param allow boolean indicating if garbage collection will unload of RxODE dlls.
+#'
+#' @examples
+#'
+#' # Garbage collection will not unload un-used RxODE dlls
+#' rxAllowUnload(FALSE);
+#'
+#' # Garbage collection will unload unused RxODE dlls
+#' rxAllowUnload(TRUE);
+#' @export
+#' @author Matthew Fidler
+rxAllowUnload <- function(allow) {
+    .Call(`_RxODE_rxAllowUnload`, allow)
+}
+
+#' Unload all RxODE Dlls that are not locked for solving.
+#' @return NULL
+#' @export
+rxUnloadAll <- function() {
+    .Call(`_RxODE_rxUnloadAll`)
+}
+
 #' Unload RxODE object
 #'
 #' @param obj A RxODE family of objects 
@@ -533,7 +574,7 @@ rxSetSilentErr <- function(silent) {
     .Call(`_RxODE_rxSetSilentErr`, silent)
 }
 
-#' Invert matrix using Rcpp Armadilo.  
+#' Invert matrix using RcppArmadillo.  
 #'
 #' @param matrix matrix to be inverted.
 #' @return inverse or pseudo inverse of matrix.

@@ -5,13 +5,13 @@
 \title{Get model properties without compiling it.}
 \usage{
 rxGetModel(model, calcSens = NULL, calcJac = NULL,
-  collapseModel = NULL)
+  collapseModel = NULL, indLin = FALSE)
 }
 \arguments{
 \item{model}{RxODE specification}
 
 \item{calcSens}{boolean indicating if RxODE will calculate the
-sennsitivities according to the specified ODEs.}
+sensitivities according to the specified ODEs.}
 
 \item{calcJac}{boolean indicating if RxODE will calculate the
 Jacobain according to the specified ODEs.}

@@ -47,49 +47,18 @@ rxCat <- function(a, ...){
 ##'
 ##' This cleans up any DLLs created by text files
 ##'
-##' @param wd What directory should be cleand
+##' @param wd What directory should be cleaned
 ##'
-##' This cleans up all files named rx-*.dll and associated files as
-##' well as call_dvode.o and associated files
+##' This cleans up all files named \code{rx-*.dll} and associated files as
+##' well as \code{call_dvode.o} and associated files
 ##'
 ##' @return TRUE if successful
 ##'
 ##' @author Matthew L. Fidler
 ##' @export
 rxClean <- function(wd){
-    rxTempDir()
-    if (missing(wd)){
-        ret <- rxClean(getwd()) && rxClean(rxTempDir());
-        if (getFromNamespace("RxODE.cache.directory", "RxODE") != "."){
-            ret <- ret && rxClean(getFromNamespace("RxODE.cache.directory", "RxODE"))
-        }
-        return(ret);
-    } else if (dir.exists(wd)){
-        owd <- getwd();
-        setwd(wd);
-        on.exit(setwd(owd));
-        pat <- "^(Makevars|.*[.]lock|(rx|ui|saem)(.*)[.](o|dll|s[ol]|c|rx|prd|inv|dvdx|rxd|saemd|uid|bad))$"
-        files <- list.files(pattern = pat, full.names=TRUE);
-        for (f in files){
-            if (f == "Makevars"){
-                l1 <- readLines("Makevars", n=1L);
-                if (l1 == "#RxODE Makevars"){
-                    unlink(f);
-                }
-            } else {
-                try(dyn.unload(f), silent = TRUE);
-                unlink(f, recursive = TRUE, force=TRUE);
-            }
-        }
-        if (.normalizePath(wd) != .normalizePath(getFromNamespace("RxODE.cache.directory", "RxODE"))){
-            ## rxCat("Cleaning cache directory as well.\n");
-            rxClean(getFromNamespace("RxODE.cache.directory", "RxODE"));
-        }
-        .unloadRx()
-        return(length(list.files(pattern = pat)) == 0);
-    } else {
-        return(TRUE)
-    }
+    .Deprecated("gc")
+    gc();
 }
 
 refresh <- function(derivs=FALSE){

@@ -24,10 +24,6 @@ reference:
   contents:
   - rxShiny
   - genShinyApp.template
-- title: Cleaning caches
-  contents:
-  - rxClean
-  - rxTempDir
 - title: Using RxODE in Packages
   contents:
   - rxUse
@@ -46,12 +42,12 @@ reference:
   - rxValidate
 - title: Internal functions
   contents:
-  - coef.RxODE
   - .rxFindPow
   - .rxRmPrint
   - .rxRmSens
   - .rxSymPyJacobian
   - .rxWinRtoolsPath
+  - coef.RxODE
   - is.rxEt
   - is.rxSolve
   - print.RxODE
@@ -59,6 +55,7 @@ reference:
   - rxAddReturn
   - rxAssignPtr
   - rxChain
+  - rxClean
   - rxCompile
   - rxCores
   - rxDelete
@@ -82,11 +79,13 @@ reference:
   - rxSymPySensitivity
   - rxSymPyVersion
   - rxSyncOptions
+  - rxTempDir
   - rxTrans
   - rxWinPythonSetup
   - rxWinSetup
   - summary.RxODE
   - tibble
+
 navbar:
   left:
   - text: Articles
@@ -95,39 +94,47 @@ navbar:
         - text: "--------------------------"
         - text: "Getting started"
         - text: "Introduction"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-intro.html
+          href: articles/RxODE-intro.html
         - text: "RxODE mini language syntax"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-syntax.html
+          href: articles/RxODE-syntax.html
         - text: "RxODE with piping ie %>%"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-pipeline.html
+          href: articles/RxODE-pipeline.html
         - text: "Speeding up RxODE ODE solving"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-speed.html
+          href: articles/speed.html
         - text: "--------------------------"
         - text: "Advanced Features, Model Types, Technical Details"
         - text: "RxODE model types"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-model-types.html
+          href: articles/RxODE-model-types.html
         - text: "Chainging RxODE compartment numbers"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-cmt.html
+          href: articles/RxODE-cmt.html
         - text: "RxODE transit compartment models"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-transit-compartments.html
+          href: articles/RxODE-transit-compartments.html
         - text: "Using Shiny with RxODE"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-shiny.html
+          href: articles/RxODE-shiny.html
         - text: "How RxODE handles time-varying covariates"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-covariates.html
+          href: articles/RxODE-covariates.html
         - text: "Stiff Systems and Jacobian specification"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-stiff.html
+          href: articles/RxODE-stiff.html
         - text: "Adding compiled RxODE models to your package"
-          href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-rxUse.html
-  - text: "Dosing"
+          href: articles/RxODE-rxUse.html
+  - text: "Dosing/Events"
     icon: fas fa-stethoscope
-    href: https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-events.html
+    menu:
+        - text: "Supported Event Types"
+          href: articles/RxODE-event-types.html 
+        - text: "Easy RxODE Event Tables"
+          href: articles/RxODE-event-table.html
+        - text: "Classic RxODE events explained"
+          href: articles/RxODE-events-classic.html
   - text: "Simulations"
     icon: fas fa-desktop
     menu:
         - text: "Single Subject ODE solving"
+          href: articles/rxode-single-subject.html
         - text: "Multiple Subject RxODE Simulation"
-          href: https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-sim-var.html
+          href: articles/RxODE-sim-var.html
         - text: "Using Prior Data for ODE solving"
+          href: articles/RxODE-prior-data.html
   - text: "Tutorial"
     icon: fas fa-life-ring
     href: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf

@@ -8,7 +8,7 @@ using namespace R;
 using namespace arma;
 extern "C" SEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn);
 
-//' Invert matrix using Rcpp Armadilo.  
+//' Invert matrix using RcppArmadillo.  
 //'
 //' @param matrix matrix to be inverted.
 //' @return inverse or pseudo inverse of matrix.

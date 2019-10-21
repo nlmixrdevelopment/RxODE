@@ -708,7 +708,7 @@ d/dt(blood)     = a*intestine - b*blood
     d1 <- data.frame(DV=0, DATE=c("10-1-86", "10-1-86", "10-2-86"), TIME=c("9.15", "14:40", "8:30"), stringsAsFactors=F)
 
     test_that("Bad Date/Time combination", {
-        expect_error(etTrans(d1, mod), rex::rex("The date time format was not correctly specified."))
+        expect_error(etTrans(d1, mod))
     })
 
     ## Test mixed classic RxODE and NONMEM inputs
@@ -844,7 +844,6 @@ d/dt(blood)     = a*intestine - b*blood
     })
 
     rxSetIni0(TRUE)
-
     test_that("censoring checks", {
 
         mod <- RxODE("
@@ -853,15 +852,10 @@ b = 0.6
 d/dt(intestine) = -a*intestine
 d/dt(blood)     = a*intestine - b*blood
 ")
-
     et <- eventTable()
     et$add.dosing(dose=2/24,rate=2,start.time=0,
                   nbr.doses=10,dosing.interval=1)
     et <- et %>% et(0, 24, by=0.1)
-
-    tmp <- et;
-    tmp$limit <- 3
-    expect_error(RxODE:::etTrans(tmp, mod))
 
     tmp <- et;
     tmp$cens <- 0
@@ -876,8 +870,78 @@ d/dt(blood)     = a*intestine - b*blood
 
     ret <- expect_warning(RxODE::etTrans(tmp, mod))
     expect_false(any(names(ret) == "CENS"))
-
 })
+
+    context("Constant infusion taken to steady state")
+
+    test_that("RxODE constant infusion taken to steady state", {
+
+        trn1 <- etTrans(et(amt=0,rate=10,ss=1),mod,keepDosingOnly = TRUE) %>% as.data.frame
+        expect_equal(structure(list(ID = structure(1L, class = "factor", .Label = "1"),
+                                    TIME = 0, EVID = 10140L, AMT = 10, II = 0, DV = NA_real_),
+                               class = "data.frame", row.names = c(NA, -1L)), trn1)
+
+        trn1 <- etTrans(et(amt=0,rate=-1,ss=1),mod,keepDosingOnly = TRUE) %>% as.data.frame
+
+        expect_equal(structure(list(ID = structure(1L, class = "factor", .Label = "1"),
+                                    TIME = 0, EVID = 90140L, AMT = 0, II = 0, DV = NA_real_),
+                               class = "data.frame", row.names = c(NA, -1L)), trn1)
+    })
+
+    ## etTrans example from xgxr + nlmixr + ggpmx
+    test_that("etTrans", {
+
+        lst <- readRDS("test-etTrans-1.rds");
+        events2 <- lst$events
+        events2 <- events2[, names(events2) != "CENS"]
+
+        t0 <- expect_warning(etTrans(events2,RxODE(lst$object), FALSE, FALSE, FALSE, FALSE, NULL, character(0)))
+        expect_true(inherits(t0, "rxEtTran"))
+
+        t1 <- etTrans(events2,RxODE(lst$object), FALSE, FALSE, FALSE, TRUE, NULL, character(0))
+        expect_true(inherits(t1, "rxEtTran"))
+    })
+
+    test_that("etTrans drop levels are correct", {
+
+        dat <- readRDS("etTrans-drop.rds")
+
+        mod <- RxODE({
+            lka <- log(0.1) # log Ka
+            lv <- log(10) # Log Vc
+            lcl <- log(4) # Log Cl
+            lq <- log(10) # log Q
+            lvp <- log(20) # Log Vp
+            eta.ka <- 0
+            eta.v <- 0.1
+            eta.cl <- 0.1
+            ka <- exp(lka + eta.ka)
+            cl <- exp(lcl + eta.cl)
+            v <- exp(lv + eta.v)
+            q <- exp(lq)
+            vp <- exp(lvp)
+            cp = linCmt()
+        })
+
+    tmp <- expect_warning(etTrans(dat, mod))
+    lvls <- c("32", "33", "35", "36", "37", "40", "41", "42", "43", "47",
+"48", "49", "50", "51", "54", "55", "57", "59", "61", "62", "63",
+"64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74",
+"75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85",
+"86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96",
+"97", "98", "99", "100", "101", "102", "103", "104", "105", "106",
+"107", "108", "109", "110", "111", "112", "113", "114", "115",
+"116", "117", "118", "119", "120", "121", "122", "123", "124",
+"125", "126", "127", "128", "129", "130", "131", "132", "133",
+"134", "135", "136", "137", "138", "139", "140", "141", "142",
+"143", "144", "145", "146", "147", "148", "149", "150", "151",
+"152", "153", "154", "155", "156", "157", "158", "159", "160",
+"161", "162", "163", "164", "165", "166", "167", "168", "169",
+"170", "171", "172", "173", "174", "175", "176", "177", "178",
+"179", "180")
+        expect_equal(attr(class(tmp), ".RxODE.lst")$idLvl, lvls)
+        expect_equal(levels(tmp$ID), lvls)
+    })
 
 }, cran=TRUE, silent=TRUE)
 

@@ -10,14 +10,9 @@ vignette: >
 
 
 ```{r, echo=FALSE}
-options(cli.unicode=FALSE, crayon.enabled=FALSE);
-options(knitr.table.format = "html")
-knitr::opts_chunk$set( comment = "#>")
-htmltools::img(src = knitr::image_uri("logo.png"), 
-               alt = 'RxODE', 
-               style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
-options(width=80)
-Sys.setenv(RSTUDIO_CONSOLE_WIDTH=80)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>")
 ```
 
 ## Introduction
@@ -77,7 +72,7 @@ be:
   (`rate(depot)=2`) and **modeled duration** (`dur(depot)=2`). An
   example of these model features and the event specification for the
   modeled infusions the RxODE data specification is found in [RxODE
-  events vignette](RxODE-events.html).
+  events vignette](https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html).
 - Compartment declaration statements, which can change the default
   dosing compartment and the assumed compartment number(s) as well as
   add extra compartment names at the end (useful for multiple-endpoint

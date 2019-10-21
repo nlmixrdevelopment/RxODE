@@ -395,5 +395,4 @@ d/dt(blood) = - b*blood
         expect_equal(round(as.data.frame(pk2),4), dat4)
     })
 
-    rxClean()
 }, silent=TRUE);

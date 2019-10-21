@@ -1,11 +1,9 @@
 ---
 title: "Changing RxODE compartment numbers"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Changing RxODE compartment numbers}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+    self_contained: no
 ---
 
 ```{r, echo=FALSE}

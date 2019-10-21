@@ -2,7 +2,8 @@
 % Please edit documentation in R/RcppExports.R
 \name{cvPost}
 \alias{cvPost}
-\title{Sample a covariance Matrix from the Posteior Inverse Wishart distribution.}
+\title{Sample a covariance Matrix from the Posterior Inverse Wishart
+distribution.}
 \usage{
 cvPost(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE)
 }
@@ -14,19 +15,23 @@ covariance matrix simulation.}
 
 \item{n}{Number of Matrices to sample.  By default this is 1.}
 
-\item{omegaIsChol}{is an indicator of if the omega matrix is in the cholesky decomposition.}
+\item{omegaIsChol}{is an indicator of if the omega matrix is in
+the Cholesky decomposition.}
 
-\item{returnChol}{Return the cholesky decomposition of the covariance matrix sample.}
+\item{returnChol}{Return the Cholesky decomposition of the
+covariance matrix sample.}
 }
 \value{
-a matrix (n=1) or a list of matricies (n > 1)
+a matrix (n=1) or a list of matrices  (n > 1)
 }
 \description{
-Note this Inverse wishart rescaled to match the original scale of the covariance matrix.
+Note this Inverse wishart rescaled to match the original scale of
+the covariance matrix.
 }
 \details{
-If your covariance matrix is a 1x1 matrix, this uses an scaled inverse chi-squared which 
-is equivalent to the Inverse Wishart distribution in the uni-directional case.
+If your covariance matrix is a 1x1 matrix, this uses an scaled
+inverse chi-squared which is equivalent to the Inverse Wishart
+distribution in the uni-directional case.
 }
 \examples{
 

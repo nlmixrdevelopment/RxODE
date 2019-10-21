@@ -1,7 +1,6 @@
 library(RxODE)
 rxPermissive({
 
-    rxClean()
     for (meth in c("liblsoda", "lsoda")){ ## Dop is very close but doesn't match precisely.
 
         context(sprintf("Simple test for time-varying covariates (%s)", meth))
@@ -350,8 +349,5 @@ rxPermissive({
 
         expect_equal(x1$CL, x2$CL)
     })
-
-    rxClean()
-
 
 }, silent=TRUE)

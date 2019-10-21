@@ -10,11 +10,11 @@ vignette: >
 
 
 ```{r, echo=FALSE}
-options(cli.unicode=FALSE, crayon.enabled=FALSE);
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+  )
 options(knitr.table.format = "html")
-htmltools::img(src = knitr::image_uri("logo.png"), 
-               alt = 'RxODE', 
-               style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
 ```
 
 # Introduction
@@ -130,7 +130,7 @@ need for compartment renumbering.
 These events can also be combined and expanded (to multi-subject
 events and complex regimens) with `rbind`, `c`, `seq`, and `rep`. For
 more information about creating complex dosing regimens using RxODE
-see the [RxODE events vignette](RxODE-events.html).
+see the [RxODE events vignette](https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-events.html).
 
 
 # Solving ODEs

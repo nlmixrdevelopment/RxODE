@@ -1,16 +1,3 @@
-.unloadRx <- function(){
-    .dlls <- getLoadedDLLs()
-    .dllNames <- names(.dlls)
-    .rxDlls <- .dllNames[regexpr("^rx_", .dllNames) != -1]
-    .dlls <- .dlls[.rxDlls]
-    gc(verbose=FALSE)
-    for (.dll in .dlls) {
-        .name <- .dll[["name"]]
-        .path <- .dll[["path"]]
-        .libpath <- dirname(dirname(.path))
-        try({dyn.unload(.path)}, silent=TRUE)
-    }
-}
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
@@ -38,8 +25,7 @@
 
 .onUnload <- function (libpath) {
     ## nocov start
-    .unloadRx()
-    rxSolveFree();
+    rxUnloadAll();
     library.dynam.unload("RxODE", libpath)
     ## nocov end
 }
@@ -140,7 +126,7 @@ RxODE.syntax.require.ode.first <- NULL
     return(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != -1) # nolint
 }
 
-##' Permissive or Strict RxODE sytax options
+##' Permissive or Strict RxODE syntax options
 ##'
 ##' This sets the RxODE syntax to be permissive or strict
 ##'
@@ -150,17 +136,14 @@ RxODE.syntax.require.ode.first <- NULL
 ##' @param respect when TRUE, respect any options that are specified.
 ##'     This is called at startup, but really should not be called
 ##'     elsewhere, otherwise the options are not changed.
-##' @param cran When specifyed and true, run on CRAN. Otherwise it is skipped on cran.
+##' @param cran When specified and true, run on CRAN. Otherwise it is skipped on CRAN.
 ##' @param on.validate When TRUE run only when validating.
 ##' @param silent when true, also silence the syntax errors and
 ##'     interactive output (useful in testing).
-##' @param rxclean when TRUE, call rxClean before and after the expr
-##'     is called.
 ##' @author Matthew L. Fidler
 ##' @export
 rxPermissive <- function(expr, silent=.isTestthat(),
                          respect=FALSE,
-                         rxclean=.isTestthat(),
                          cran=FALSE, on.validate=FALSE){
     args  <- as.list(match.call())[-1];
     args$op.rx <- 2;
@@ -169,7 +152,6 @@ rxPermissive <- function(expr, silent=.isTestthat(),
 ##' @rdname rxPermissive
 ##' @export
 rxStrict <- function(expr, silent=.isTestthat(), respect=FALSE,
-                     rxclean=.isTestthat(),
                      cran=FALSE, on.validate=FALSE){
     ## nocov start
     args  <- as.list(match.call())[-1];
@@ -184,14 +166,13 @@ rxStrict <- function(expr, silent=.isTestthat(), respect=FALSE,
 ##' \code{op.rx} =\code{1})
 ##'
 ##' When \code{expr} is missing and \code{op.rx} is NULL, this
-##' desplays the current RxODE options.
+##' displays the current RxODE options.
 ##'
 ##' @inheritParams rxPermissive
 ##' @param op.rx A numeric for strict (1) or permissive (2) syntax.
 ##' @author Matthew L. Fidler
 ##' @export
 rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
-                      rxclean=.isTestthat(),
                       cran=FALSE, on.validate=FALSE){
     rxSetSilentErr(1L);
     on.exit(rxSetSilentErr(0L));
@@ -241,9 +222,6 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
                 op.rx$RxODE.suppress.syntax.info=silent;
             }
             if (!missing(expr)){
-                if (rxclean){
-                    rxClean();
-                }
                 opOld <- options();
                 .oldProg <- getProgSupported();
                 if (silent){
@@ -252,7 +230,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
                 on.exit({options(opOld);
                     setProgSupported(.oldProg);
                     rxSyncOptions();
-                    if (rxclean){rxClean();}});
+                });
             }
             if (respect){
                 op <- options();
@@ -274,7 +252,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
     }
 }
 
-##' Sync options with RxODE varaibles
+##' Sync options with RxODE variables
 ##'
 ##' Accessing RxODE options via getOption slows down solving.  This
 ##' allows the options to be synced with variables.

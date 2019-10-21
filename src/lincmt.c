@@ -334,6 +334,12 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
       F = d_F2;
     }
     switch(whI){
+    case 5: // multiply
+      error("Multiplication events not currently supported with RxODE solved systems.");
+      break;
+    case 4: // replace
+      error("Replacement events are not currently supported with RxODE solved systems.");
+      break;    
     case 7:
       continue;
     case 6:
@@ -369,7 +375,19 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
 	error("You cannot turn off a compartment with a solved system.");
       }
       // Steady state
-      if (ISNA(dose)){
+      if (wh0 == 40 && dose > 0){
+	tT = t - ind->all_times[ind->idose[l]];
+	thisT = tT;
+	rate = dose;
+	cur += rate*A*alpha1*exp(-alpha*thisT);
+	if (ncmt >= 2){
+	  cur += rate*B*beta1*exp(-beta*thisT);
+	  if (ncmt >= 3){
+	    cur += rate*C*gamma1*exp(-gamma*thisT);
+	  }
+	}
+	return (ret+cur);
+      } else if (ISNA(dose)){
       } else if (dose > 0){
 	// During infusion
 	tT = t - ind->all_times[ind->idose[l]] ;
@@ -1243,35 +1261,36 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    if (whI == 2)rate*=F[cmtOff];
 	    else tinf*=F[cmtOff];
 	  }
-	  for (int j = 0; j < op->maxSS; j++){
-	    xout = 0;
-	    tlast = 0;
-	    if (whI == 0){
-	      doDose;
-	      xout = tau;
-	      doObs;
-	    } else {
-	      doObs;
-	      Alast[ncmt+oral0] += rate;
-	      xout  = tinf;
-	      doObs;
-	      tlast = tinf;
-	      Alast[ncmt+oral0] -= rate;
-	      xout = tau;
-	      doObs;
-	    }
-	    if (j == op->minSS -1){
-	      lastSum =0.0;
-	      for (int k = ncmt + oral0 ; k--;) lastSum += Alast[k];
-	    } else if (j >= op->minSS){
-	      curSum = 0.0;
-	      for (int k = ncmt + oral0; k--;) curSum += Alast[k];
-	      if (fabs(curSum-lastSum) < op->rtolSS*fabs(curSum) + op->atolSS){
-		j = op->maxSS+1;
-	      }
-	      lastSum=curSum;
-	    }
-	  }
+	  error("maxSS needs to be reworked");
+	  /* for (int j = 0; j < op->maxSS; j++){ */
+	  /*   xout = 0; */
+	  /*   tlast = 0; */
+	  /*   if (whI == 0){ */
+	  /*     doDose; */
+	  /*     xout = tau; */
+	  /*     doObs; */
+	  /*   } else { */
+	  /*     doObs; */
+	  /*     Alast[ncmt+oral0] += rate; */
+	  /*     xout  = tinf; */
+	  /*     doObs; */
+	  /*     tlast = tinf; */
+	  /*     Alast[ncmt+oral0] -= rate; */
+	  /*     xout = tau; */
+	  /*     doObs; */
+	  /*   } */
+	  /*   if (j == op->minSS -1){ */
+	  /*     lastSum =0.0; */
+	  /*     for (int k = ncmt + oral0 ; k--;) lastSum += Alast[k]; */
+	  /*   } else if (j >= op->minSS){ */
+	  /*     curSum = 0.0; */
+	  /*     for (int k = ncmt + oral0; k--;) curSum += Alast[k]; */
+	  /*     if (fabs(curSum-lastSum) < op->rtolSS*fabs(curSum) + op->atolSS){ */
+	  /* 	j = op->maxSS+1; */
+	  /*     } */
+	  /*     lastSum=curSum; */
+	  /*   } */
+	  /* } */
 	  xout = 0;
 	  tlast =0;
 	  if (whI == 0){

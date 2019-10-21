@@ -65,7 +65,7 @@ rxPermissive({
         }
         test_that(sprintf("mod > et > rxParams > %s == mod > rxParams > et > %s",
                           type, type), {
-            expect_equal(p1, p2)
+            expect_equal(as.data.frame(p1), as.data.frame(p2))
         })
     }
 
@@ -137,7 +137,7 @@ rxPermissive({
                  iCov=data.frame(WT=rnorm(10,70,4))) %>%
         rxSolve()
 
-    expect_equal(p1, p2)
+    expect_equal(as.data.frame(p1), as.data.frame(p2))
 
 
     ## Test parameters as a vector only with iCov
@@ -201,7 +201,7 @@ rxPermissive({
                           iCov=data.frame(WT=rnorm(10,70,4))) %>%
                  rxSolve(keep="WT"))
 
-    expect_equal(p1, p2)
+    expect_equal(data.frame(p1), data.frame(p2))
 
     ## Test WT in both iCov and data used.
 
@@ -228,5 +228,4 @@ rxPermissive({
     tmp <- mod %>% solve(theoSd, c(tka=1, tcl=2, tv=3, eta.ka=0, eta.cl=0, eta.v=0),
                          addDosing=TRUE)
     expect_false(any(names(tmp)=="WT"))
-
 })

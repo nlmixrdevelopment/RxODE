@@ -1,6 +1,5 @@
 context("Test Factorial operator");
 rxPermissive({
-    rxClean()
 
     transTo <- function(model, syntax, match=TRUE){
         mv <- rxModelVars(model);
