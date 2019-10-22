@@ -26,6 +26,7 @@
 .onUnload <- function (libpath) {
     ## nocov start
     rxUnloadAll();
+    gc(); # Force garbage collection finalization
     library.dynam.unload("RxODE", libpath)
     ## nocov end
 }
