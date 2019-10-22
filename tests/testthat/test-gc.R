@@ -4,6 +4,7 @@ library(testthat)
 rxPermissive({
     context("Garbage collection")
     test_that("Check garbage collection unloads DLLs", {
+        options(RxODE.unload.unused=TRUE)
 
         ode <- RxODE({
             b       = -1
@@ -26,6 +27,7 @@ rxPermissive({
         Sys.sleep(0.5)
         expect_true(is.null(getLoadedDLLs()[[name]]))
 
+        options(RxODE.unload.unused=FALSE)
     })
 
 })
