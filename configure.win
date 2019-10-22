@@ -3,7 +3,7 @@ echo "if(!file.exists(\"src/Makevars.win\")) writeLines(gsub(\"@OPENMP_CXXFLAGS@
 ${R_HOME}/bin/R CMD BATCH build.R
 rm build.R
 rm build.Rout
-sh inst/tools/stripper
+#sh inst/tools/stripper
 echo --------[[begin src/Makevars.win]]--------
 cat src/Makevars.win
 echo --------[[end src/Makevars.win]]--------

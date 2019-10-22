@@ -98,7 +98,8 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.syntax.assign.state      =c(FALSE, FALSE),
               RxODE.tempfiles                =c(TRUE, TRUE),
               RxODE.sympy.run.internal       =c(FALSE, FALSE),
-              RxODE.syntax.require.ode.first =c(TRUE, TRUE)
+              RxODE.syntax.require.ode.first =c(TRUE, TRUE),
+              RxODE.compile.O                =c("2", "2")
               );
 
 RxODE.prefer.tbl <- NULL
@@ -121,6 +122,7 @@ RxODE.syntax.assign.state <- NULL
 RxODE.tempfiles <- NULL;
 RxODE.sympy.run.internal <- NULL
 RxODE.syntax.require.ode.first <- NULL
+RxODE.compile.O <- NULL
 
 .isTestthat <- function(){
     return(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != -1) # nolint
