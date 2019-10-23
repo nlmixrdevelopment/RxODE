@@ -127,7 +127,9 @@ int isRstudio();
 int isProgSupported();
 int par_progress_0=0;
 int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
-  float progress = (float)(c)/((float)(n));
+  float progress =0.0;
+  progress = (float)(c);
+  progress /=((float)(n));
   if (progress < 0.) progress = 0.;
   if (progress > 1.) progress = 1.;
   if (progress == 0.) par_progress_0=0;
@@ -270,6 +272,12 @@ typedef struct {
 } rx_tick;
 
 rx_tick rxt;
+
+rxt.t0 = clock();
+rxt.cores = 1;
+rxt.n = 100;
+rxt.d = 0;
+rxt.cur = 0;
 
 SEXP _rxTick(){
   rxt.cur++;
