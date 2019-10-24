@@ -3377,6 +3377,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 
     op->minSS = as<int>(rxControl["minSS"]);
     op->maxSS = as<int>(rxControl["maxSS"]);
+    op->infSSstep = as<double>(rxControl["infSSstep"]);
+    if (op->infSSstep <= 0) stop("'infSSstep' needs to be positive");
     op->indLinPhiTol=as<double>(rxControl["indLinPhiTol"]);
     op->indLinMatExpType=as<int>(rxControl["indLinMatExpType"]);
     op->indLinPhiM = as<int>(rxControl["indLinPhiM"]);
