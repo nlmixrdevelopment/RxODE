@@ -43,8 +43,7 @@ extern "C" void matexp_MH09(double *x, int n, const int p, double *ret);
 static inline arma::mat matrixExp(arma::mat& H, double t, int& type,
 				  int& order){
   switch(type){
-  case 3:
-    {
+  case 3: {
     int p = order;
     if (p > 13) p = 13;
     int n = H.n_rows;
@@ -56,15 +55,14 @@ static inline arma::mat matrixExp(arma::mat& H, double t, int& type,
     return Hout;
     break;
   }
-  case 2:
-    {
-      int iflag=0;
-      int m = H.n_rows;
-      // FIXME C++ implementation for threading.
-      F77_CALL(matexprbs)(&order, &m, &t, &H[0], &iflag);
-      return H;
-    }
+  case 2: {
+    int iflag=0;
+    int m = H.n_rows;
+    // FIXME C++ implementation for threading.
+    F77_CALL(matexprbs)(&order, &m, &t, &H[0], &iflag);
+    return H;
     break;
+  }
   default:
     arma::mat mat2 = t*H;
     return (arma::expmat(mat2));
@@ -87,7 +85,6 @@ static inline arma::mat matrixExp(arma::mat& H, double t, int& type,
 
 arma::vec phiv(double t, arma::mat& A, arma::vec& u,
 	       arma::vec& v, rx_solving_options *op){
-
   int n = A.n_rows;
   int order = op->indLinMatExpOrder;
   int type = op->indLinMatExpType;
@@ -244,7 +241,7 @@ int meOnly(int cSub, double *yc_, double *yp_, double tp, double tf, double tcov
   // arma::mat ypout;
   unsigned int i, nInf=0;
   arma::vec ypExtra(neq);
-  arma::mat m0extra(neq, neq);
+  arma::mat m0extra(neq, neq, arma::fill::zeros);
   for (i = 0; i < (unsigned int)neq; i++){
     if (InfusionRate[i] != 0.0){
       nInf++;
