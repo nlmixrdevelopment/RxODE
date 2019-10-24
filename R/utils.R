@@ -43,22 +43,22 @@ rxCat <- function(a, ...){
 
 
 
-##' Cleanup anonymous DLLs
+##' Cleanup anonymous DLLs by unloading them
 ##'
-##' This cleans up any DLLs created by text files
+##' This cleans up any RxODE loaded DLLs
 ##'
-##' @param wd What directory should be cleaned
+##' @param wd What directory should be cleaned; (DEPRECIATED), this no
+##'     longer does anything.
 ##'
-##' This cleans up all files named \code{rx-*.dll} and associated files as
-##' well as \code{call_dvode.o} and associated files
+##' This unloads all RxODE anonymous dlls.
 ##'
 ##' @return TRUE if successful
 ##'
 ##' @author Matthew L. Fidler
 ##' @export
 rxClean <- function(wd){
-    .Deprecated("gc")
-    gc();
+    if (!missing(wd)) warning("'wd' is depreciated")
+    rxUnloadAll();
 }
 
 refresh <- function(derivs=FALSE){

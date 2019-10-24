@@ -2,21 +2,21 @@
 % Please edit documentation in R/utils.R
 \name{rxClean}
 \alias{rxClean}
-\title{Cleanup anonymous DLLs}
+\title{Cleanup anonymous DLLs by unloading them}
 \usage{
 rxClean(wd)
 }
 \arguments{
-\item{wd}{What directory should be cleaned
+\item{wd}{What directory should be cleaned; (DEPRECIATED), this no
+    longer does anything.
 
-This cleans up all files named \code{rx-*.dll} and associated files as
-well as \code{call_dvode.o} and associated files}
+This unloads all RxODE anonymous dlls.}
 }
 \value{
 TRUE if successful
 }
 \description{
-This cleans up any DLLs created by text files
+This cleans up any RxODE loaded DLLs
 }
 \author{
 Matthew L. Fidler

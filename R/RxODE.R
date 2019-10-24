@@ -565,7 +565,9 @@ RxODE <- function(model, modName = basename(wd),
     class(.env) <- "RxODE"
     reg.finalizer(.env, eval(bquote(function(...){
                             RxODE::rxUnlock(.(.env));
-                            rxUnloadAll();
+                            if (getOption("RxODE.unload.unused", FALSE)){
+                                rxUnloadAll();
+                            }
                         })));
     RxODE::rxForget();
     if (!is.null(.env$package)){

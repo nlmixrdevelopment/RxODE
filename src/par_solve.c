@@ -127,7 +127,9 @@ int isRstudio();
 int isProgSupported();
 int par_progress_0=0;
 int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
-  float progress = (float)(c)/((float)(n));
+  float progress =0.0;
+  progress = (float)(c);
+  progress /=((float)(n));
   if (progress < 0.) progress = 0.;
   if (progress > 1.) progress = 1.;
   if (progress == 0.) par_progress_0=0;
@@ -2270,6 +2272,11 @@ void ind_solve(rx_solve *rx, unsigned int cid,
 	       t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
 	       t_dydt c_dydt, t_update_inis u_inis,
 	       int jt){
+  rxt.t0 = clock();
+  rxt.cores = 1;
+  rxt.n = 100;
+  rxt.d = 0;
+  rxt.cur = 0;
   assignFuns();
   rx_solving_options *op = &op_global;
   if (op->neq !=  0){
@@ -2291,6 +2298,11 @@ void ind_solve(rx_solve *rx, unsigned int cid,
 }
 
 inline void par_solve(rx_solve *rx){
+  rxt.t0 = clock();
+  rxt.cores = 1;
+  rxt.n = 100;
+  rxt.d = 0;
+  rxt.cur = 0;
   assignFuns();
   rx_solving_options *op = &op_global;
   if (op->neq != 0){
