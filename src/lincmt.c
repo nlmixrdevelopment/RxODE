@@ -52,26 +52,26 @@ extern int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind)
   return i;
 }
 
-static inline double _getDur(int l, rx_solving_options_ind *ind, int backward){
+static inline double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned int *p){
   double dose = ind->dose[l];
   if (backward){
-    int p = l-1;
-    while (p > 0 && ind->dose[p] != -dose){
-      p--;
+    p[0] = l-1;
+    while (p[0] > 0 && ind->dose[p[0]] != -dose){
+      p[0]--;
     }
-    if (ind->dose[p] != -dose){
-      error("Could not find a start to the infusion.  Check the event table.");	
+    if (ind->dose[p[0]] != -dose){
+      error("Could not find a start to the infusion.  Check the event table.");
     }
-    return ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]];
+    return ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p[0]]];
   } else {
-    int p = l+1;
-    while (p < ind->ndoses && ind->dose[p] != -dose){
-      p++;
+    p[0] = l+1;
+    while (p[0] < ind->ndoses && ind->dose[p[0]] != -dose){
+      p[0]++;
     }
-    if (ind->dose[p] != -dose){
+    if (ind->dose[p[0]] != -dose){
       error("Could not find an end to the infusion.  Check the event table.");
     }
-    return ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
+    return ind->all_times[ind->idose[p[0]]] - ind->all_times[ind->idose[l]];
   }
 }
 
@@ -392,7 +392,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
 	// During infusion
 	tT = t - ind->all_times[ind->idose[l]] ;
 	thisT = tT - tlag;
-	tinf = _getDur(ind->ixds, ind, 0);
+	tinf = _getDur(l, ind, 0, &p);
 	tau = ind->ii[l];
 	if (op->linLog){
 	  logRate = log(dose);
@@ -402,7 +402,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
 	if (tT >= tinf) continue;
       } else {
 	// After  infusion
-	tinf = _getDur(ind->ixds, ind, 1);
+	tinf = _getDur(l, ind, 1, &p);
 	tau = ind->ii[p];
 	tT = t - ind->all_times[ind->idose[p]];
 	thisT = tT -tlag;
@@ -1257,7 +1257,8 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  }
 	  if (whI == 1 || whI == 2){
 	    if (rate <= 0) continue;
-	    tinf = _getDur(ind->ixds, ind, 0);
+	    unsigned int p;
+	    tinf = _getDur(ind->ixds, ind, 0, &p);
 	    if (whI == 2)rate*=F[cmtOff];
 	    else tinf*=F[cmtOff];
 	  }
