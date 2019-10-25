@@ -141,6 +141,7 @@ void par_flush_console() {
 int isRstudio();
 int isProgSupported();
 int par_progress_0=0;
+int par_progress_1=0;
 clock_t _lastT0;
 int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   float progress =0.0;
@@ -148,8 +149,15 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   progress /=((float)(n));
   if (progress < 0.) progress = 0.;
   if (progress > 1.) progress = 1.;
-  if (progress == 0.) par_progress_0=0;
-  if (c <= n && ((double)(clock() - _lastT0))/CLOCKS_PER_SEC > 1){
+  if (progress == 0.) {
+    par_progress_0=0;
+    par_progress_1=0;
+  }
+  if (c <= n && ((!par_progress_1 && progress == 1.0) ||
+		 ((double)(clock() - _lastT0))/CLOCKS_PER_SEC > 1)){
+    if (progress == 1.0){
+      par_progress_1=1;
+    }
     int nticks= (int)(progress * 50);
     int curTicks = d;
     if (nticks < 0) nticks=0;
