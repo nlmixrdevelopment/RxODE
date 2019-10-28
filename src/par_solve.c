@@ -271,6 +271,7 @@ SEXP _rxTick(){
 }
 
 SEXP _rxProgress(SEXP num, SEXP core){
+  par_progress_1=0;
   rxt.t0 = clock();
   rxt.cores = INTEGER(core)[0];
   rxt.n = INTEGER(num)[0];
@@ -280,8 +281,9 @@ SEXP _rxProgress(SEXP num, SEXP core){
 }
 
 SEXP _rxProgressStop(SEXP clear){
-  par_progress_0=0;
   int clearB = INTEGER(clear)[0];
+  par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 0);
+  par_progress_0=0;
   if (clearB){
     int doIt=isProgSupported();
     if (doIt == -1){
@@ -291,21 +293,21 @@ SEXP _rxProgressStop(SEXP clear){
       RSprintf("\r                                                                                 \r");
     }
   } else {
-    par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
     int doIt=isProgSupported();
     if (isRstudio() || doIt == 0){
       Rprintf("\n");
     }
   }
+  RSprintf("\n");
   rxt.d = rxt.n;
   rxt.cur = rxt.n;
   return R_NilValue;
 }
 
 SEXP _rxProgressAbort(SEXP str){
+  par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 0);
   par_progress_0=0;
   if (rxt.d != rxt.n || rxt.cur != rxt.n){
-    par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 0);
     error(CHAR(STRING_ELT(str,0)));
   }
   return R_NilValue;
@@ -2016,6 +2018,7 @@ void ind_solve(rx_solve *rx, unsigned int cid,
 	       t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
 	       t_dydt c_dydt, t_update_inis u_inis,
 	       int jt){
+  par_progress_1=0;
   _isRstudio = isRstudio();
   rxt.t0 = clock();
   rxt.cores = 1;
@@ -2036,11 +2039,13 @@ void ind_solve(rx_solve *rx, unsigned int cid,
       ind_dop(rx, cid, c_dydt, u_inis);
       break;
     }
-  } 
+  }
+  par_progress_0=0;
 }
 
 inline void par_solve(rx_solve *rx){
   _isRstudio = isRstudio();
+  par_progress_1=0;
   rxt.t0 = clock();
   rxt.cores = 1;
   rxt.n = 100;
@@ -2062,7 +2067,8 @@ inline void par_solve(rx_solve *rx){
       par_dop(rx);
       break;
     }
-  } 
+  }
+  par_progress_0=0;
 }
 
 rx_solve *_globalRx = NULL;
