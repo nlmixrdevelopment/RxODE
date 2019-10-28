@@ -298,7 +298,6 @@ SEXP _rxProgressStop(SEXP clear){
       Rprintf("\n");
     }
   }
-  RSprintf("\n");
   rxt.d = rxt.n;
   rxt.cur = rxt.n;
   return R_NilValue;
