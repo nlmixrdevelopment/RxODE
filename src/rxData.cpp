@@ -1294,14 +1294,6 @@ typedef struct {
 
 rx_globals _globals;
 
-extern "C" double getLimit(rx_solving_options_ind* ind, int i){
-  return ind->limit[i];
-}
-
-extern "C" int getCens(rx_solving_options_ind* ind, int i){
-  return ind->cens[i];
-}
-
 double maxAtolRtolFactor = 0.1;
 
 //[[Rcpp::export]]
@@ -2674,7 +2666,7 @@ void rxSolve_datSetupHmax(const RObject &obj, const List &rxControl,
     _globals.gdv = _globals.gall_times + time0.size(); // Perhaps allocate zero size if missing?
     _globals.gamt = _globals.gdv + time0.size(); 
     _globals.gii = _globals.gamt + time0.size();
-    _globals.glimit=_globals.gii+time0.size();
+    _globals.glimit=_globals.gii + time0.size();
     NumericVector dv;
     if (rxcDv > -1){
       dv = as<NumericVector>(dataf[rxcDv]);
@@ -2773,15 +2765,9 @@ void rxSolve_datSetupHmax(const RObject &obj, const List &rxControl,
 	ind->yj             = 0;
 	ind->doSS = 0;
 	ind->all_times      = &_globals.gall_times[i];
-	if (rxcDv > -1){
-	  ind->dv = &_globals.gdv[i];
-	}
-	if (rxcLimit > -1){
-	  ind->limit = &_globals.glimit[i];
-	}
-	if (rxcCens > -1){
-	  ind->cens = &_globals.gcens[i];
-	}
+	ind->dv = &_globals.gdv[i];
+	ind->limit = &_globals.glimit[i];
+	ind->cens = &_globals.gcens[i];
 	ind->evid           = &_globals.gevid[i];
 	ind->idose          = &_globals.gidose[i];
 	ind->dose           = &_globals.gamt[i];
