@@ -190,3 +190,16 @@ rxC14 <- function(){
     return(invisible(""));
     ## nocov end
 }
+
+
+##' Set timing for progress bar
+##'
+##' @param seconds This sets the number of seconds that need to elapse
+##'     before drawing the next segment of the progress bar.  When
+##'     this is zero or below this turns off the progress bar.
+##'
+##' @export
+##' @author Matthew Fidler
+rxSetProgressBar <- function(seconds=1.0) {
+    invisible(.Call(`_rxParProgress`, as.double(seconds)))
+}

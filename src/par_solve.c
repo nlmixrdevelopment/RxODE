@@ -142,113 +142,120 @@ int isRstudio();
 int isProgSupported();
 int par_progress_0=0;
 int par_progress_1=0;
+double par_progress__=1.0;
+SEXP _rxParProgress(SEXP num){
+  par_progress__=REAL(num)[0];
+  return R_NilValue;
+}
 clock_t _lastT0;
 int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
-  float progress =0.0;
-  progress = (float)(c);
-  progress /=((float)(n));
-  if (progress < 0.) progress = 0.;
-  if (progress > 1.) progress = 1.;
-  if (progress == 0.) {
-    par_progress_0=0;
-    par_progress_1=0;
-  }
-  if (c <= n && ((!par_progress_1 && progress == 1.0) ||
-		 ((double)(clock() - _lastT0))/CLOCKS_PER_SEC > 1)){
-    if (progress == 1.0){
-      par_progress_1=1;
+  if (par_progress__ > 0.0){
+    float progress =0.0;
+    progress = (float)(c);
+    progress /=((float)(n));
+    if (progress < 0.) progress = 0.;
+    if (progress > 1.) progress = 1.;
+    if (progress == 0.) {
+      par_progress_0=0;
+      par_progress_1=0;
     }
-    int nticks= (int)(progress * 50);
-    int curTicks = d;
-    if (nticks < 0) nticks=0;
-    if (nticks > 50) nticks=50;
-    if (curTicks < 0) curTicks=0;
-    if (curTicks > 50) curTicks=50;
-    int isSupported = isProgSupported();
-    if (isSupported == -1){
-    } else if (isSupported == 0){
-      int i;
-      for (i = curTicks; i < nticks; i++){
-	if (i == 0) {
-	  Rprintf("[");
-	} else if (i % 5 == 0) {
-	  Rprintf("|");
-	} else {
-	  Rprintf("=");
-	}
+    if (c <= n && ((!par_progress_1 && progress == 1.0) ||
+		   ((double)(clock() - _lastT0))/CLOCKS_PER_SEC > par_progress__)){
+      if (progress == 1.0){
+	par_progress_1=1;
       }
-      if (nticks == 50){
+      int nticks= (int)(progress * 50);
+      int curTicks = d;
+      if (nticks < 0) nticks=0;
+      if (nticks > 50) nticks=50;
+      if (curTicks < 0) curTicks=0;
+      if (curTicks > 50) curTicks=50;
+      int isSupported = isProgSupported();
+      if (isSupported == -1){
+      } else if (isSupported == 0){
+	int i;
+	for (i = curTicks; i < nticks; i++){
+	  if (i == 0) {
+	    Rprintf("[");
+	  } else if (i % 5 == 0) {
+	    Rprintf("|");
+	  } else {
+	    Rprintf("=");
+	  }
+	}
+	if (nticks == 50){
+	  if (!par_progress_0){
+	    par_progress_0 = 1;
+	    Rprintf("] ");
+	    _lastT0 = clock();
+	    clock_t t = _lastT0 - t0;
+	    double ts = ((double)t)/CLOCKS_PER_SEC;
+	    if (ts < 60){
+	      Rprintf("0:00:%02.f ", floor(ts));
+	    } else {
+	      double f = floor(ts/60);
+	      double s = ts-f*60;
+	      if (f >= 60){
+		double h = floor(f/60);
+		f = f-h*60;
+		Rprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
+	      } else {
+		Rprintf("0:%02.f:%02.f ", f, floor(s));
+	      }
+	    }
+	  }
+	}
+      } else {
 	if (!par_progress_0){
-	  par_progress_0 = 1;
-	  Rprintf("] ");
+	  RSprintf("\r");
+	  int i;
+	  for (i = 0; i < nticks; i++){
+	    if (i == 0) {
+	      RSprintf("[");
+	    } else if (i % 5 == 0) {
+	      RSprintf("|");
+	    } else {
+	      RSprintf("=");
+	    }
+	  }
+	  if (nticks < 50) {
+	    RSprintf(">");
+	  }
+	  else {
+	    par_progress_0 = 1;
+	  }
+	  for (i = nticks+1; i < 50; i++){
+	    RSprintf("-");
+	  }
+	  RSprintf("] ");
+	  if (nticks < 50) RSprintf(" ");
+	  RSprintf("%02.f%%; ",100*progress,cores);
 	  _lastT0 = clock();
 	  clock_t t = _lastT0 - t0;
 	  double ts = ((double)t)/CLOCKS_PER_SEC;
 	  if (ts < 60){
-	    Rprintf("0:00:%02.f ", floor(ts));
+	    RSprintf("0:00:%02.f ", floor(ts));
 	  } else {
 	    double f = floor(ts/60);
 	    double s = ts-f*60;
 	    if (f >= 60){
 	      double h = floor(f/60);
 	      f = f-h*60;
-	      Rprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
+	      RSprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
 	    } else {
-	      Rprintf("0:%02.f:%02.f ", f, floor(s));
+	      RSprintf("0:%02.f:%02.f ", f, floor(s));
 	    }
 	  }
-	}
-      }
-    } else {
-      if (!par_progress_0){
-	RSprintf("\r");
-	int i;
-	for (i = 0; i < nticks; i++){
-	  if (i == 0) {
-	    RSprintf("[");
-	  } else if (i % 5 == 0) {
-	    RSprintf("|");
-	  } else {
-	    RSprintf("=");
+	  if (stop){
+	    RSprintf("Stopped Calculation!\n");
 	  }
 	}
-	if (nticks < 50) {
-	  RSprintf(">");
-	}
-	else {
-	  par_progress_0 = 1;
-	}
-	for (i = nticks+1; i < 50; i++){
-	  RSprintf("-");
-	}
-	RSprintf("] ");
-	if (nticks < 50) RSprintf(" ");
-	RSprintf("%02.f%%; ",100*progress,cores);
-	_lastT0 = clock();
-	clock_t t = _lastT0 - t0;
-	double ts = ((double)t)/CLOCKS_PER_SEC;
-	if (ts < 60){
-	  RSprintf("0:00:%02.f ", floor(ts));
-	} else {
-	  double f = floor(ts/60);
-	  double s = ts-f*60;
-	  if (f >= 60){
-	    double h = floor(f/60);
-	    f = f-h*60;
-	    RSprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
-	  } else {
-	    RSprintf("0:%02.f:%02.f ", f, floor(s));
-	  }
-	}
-	if (stop){
-	  RSprintf("Stopped Calculation!\n");
-	}
       }
+      par_flush_console();
+      return nticks;
     }
-    par_flush_console();
-    return nticks;
   }
-  return d;
+  return d;  
 }
 
 typedef struct {
