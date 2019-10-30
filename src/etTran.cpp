@@ -403,10 +403,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   CharacterVector covUnitsN(covCol.size());
   NumericVector nvTmp, nvTmp2;
   bool hasCmt = false;
+  int cmtI =0;
   for (i = covCol.size(); i--;){
     covUnitsN[i] = lName[covCol[i]];
     nvTmp2 = NumericVector::create(1.0);
-    if (as<std::string>(lName[covCol[i]]) != "cmt"){
+    if (hasCmt || as<std::string>(lName[covCol[i]]) != "cmt"){
       nvTmp = as<NumericVector>(inData[covCol[i]]);
       if (!dropUnits && rxIs(nvTmp, "units")){
 	nvTmp2.attr("class") = "units";
@@ -414,6 +415,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
     } else {
       hasCmt=true;
+      cmtI = i;
     }
     covUnits[i] = nvTmp2;
   }
@@ -489,7 +491,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   std::vector<double> amt;
   std::vector<double> ii;
   std::vector<int> idx;
-  std::vector<int> cmtF;
+  std::vector<int> cmtF; // Final compartment
   std::vector<int> dvidF;
   std::vector<double> dv;
   std::vector<int> idxO;
@@ -1322,7 +1324,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   nme1[0] = "ID";
   
   for (j = 0; j < (int)(covCol.size()); j++){
-    if (as<std::string>(lName[covCol[j]]) == "cmt"){
+    if (hasCmt && j == cmtI){
       lst[baseSize+j] = IntegerVector(idxO.size()-rmAmt);
       nme[baseSize+j] = pars[covParPos[j]];
       sub0[baseSize+j] = false;
@@ -1403,7 +1405,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	}
       }
       for (j = 0; j < (int)(covCol.size()); j++){
-	if (as<std::string>(lName[covCol[j]]) == "cmt"){
+	if (hasCmt && j == cmtI){
 	  ivTmp = as<IntegerVector>(lst[baseSize+j]);
 	  ivTmp[jj] = cmtF[idxO[i]];
 	  if (!cmtFadd){
