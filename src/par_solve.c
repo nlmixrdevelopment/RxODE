@@ -249,9 +249,9 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
 	  if (stop){
 	    RSprintf("Stopped Calculation!\n");
 	  }
+	  par_flush_console();
 	}
       }
-      par_flush_console();
       return nticks;
     }
   }
