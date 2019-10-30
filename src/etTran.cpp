@@ -550,10 +550,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
   IntegerVector inEvid;
   bool evidIsMDV = false;
+  bool hasEvid=false;
   if (evidCol != -1){
     if (rxIs(inData[evidCol], "integer") || rxIs(inData[evidCol], "numeric") ||
 	rxIs(inData[evidCol], "logical")){
       inEvid = as<IntegerVector>(inData[evidCol]);
+      hasEvid=true;
     } else {
       stop("Event id (evid) needs to be an integer");
     }
@@ -567,8 +569,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     } else {
       stop("Missing DV (mdv) needs to be an integer");
     }
+    hasEvid=true;
   } else if (methodCol != -1){
     inEvid = convertMethod(inData[methodCol]);
+    // hasEvid=true; The EVID is not present in the right form.
+    // This allows mixing of deSolve with rate info
   }
   IntegerVector inMdv;
   if (mdvCol != -1){
@@ -1051,11 +1056,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (cevid > 10 && cevid < 99){
 	continue;
       }
-      if (rateI != 0){
+      if (rateI != 0 && hasEvid){
 	warning("'rate' or 'dur' is ignored with classic RxODE EVIDs");
 	rateI = 0;
       }
-      if (flg!=1){ // ss=1 is the same as ss=0 for NONMEM
+      if (flg!=1 && hasEvid){ // ss=1 is the same as ss=0 for NONMEM
 	warning("'ss' is ignored with classic RxODE EVIDs.");
 	flg=1;
       }
