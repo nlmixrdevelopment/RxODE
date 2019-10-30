@@ -2,13 +2,18 @@
 % Please edit documentation in R/utils.R
 \name{rxSetProgressBar}
 \alias{rxSetProgressBar}
-\title{Turn on or off the progress bar}
+\title{Set timing for progress bar}
 \usage{
-rxSetProgressBar(on = TRUE)
+rxSetProgressBar(seconds = 1)
 }
 \arguments{
-\item{on}{When TRUE (default), the progress bar is turned on.}
+\item{seconds}{This sets the number of seconds that need to elapse
+before drawing the next segment of the progress bar.  When
+this is zero or below this turns off the progress bar.}
 }
 \description{
-Turn on or off the progress bar
+Set timing for progress bar
+}
+\author{
+Matthew Fidler
 }
