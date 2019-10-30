@@ -3269,7 +3269,21 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->stateIgnore = &si[0];
     int doTBS = (rx->matrix == 3);
     if (doTBS) rx->matrix=2;
+    if (rx->matrix == 4 || rx->matrix == 5) rx->matrix=2;
     List dat = RxODE_df(doDose, doTBS);
+    // According to https://stackoverflow.com/questions/20039335/what-is-the-purpose-of-setting-a-key-in-data-table
+    // Setting a key is not necessary unless doing something else, so for now exclude it.
+    // if (doDT){
+    //   if (rx->nsim > 1 && rx->nsub > 1){
+    // 	dat.attr("sorted") = CharacterVector::create("sim.id","id","time");
+    //   } else if (rx->nsim > 1){
+    // 	dat.attr("sorted") = CharacterVector::create("sim.id","time");
+    //   } else if (rx->nsub > 1){
+    // 	dat.attr("sorted") = CharacterVector::create("id","time");
+    //   } else {
+    // 	dat.attr("sorted") = CharacterVector::create("time");
+    //   }
+    // }
     if (idFactor && labelID && rx->nsub > 1){
       IntegerVector did = as<IntegerVector>(dat["id"]);
       did.attr("class") = "factor";
