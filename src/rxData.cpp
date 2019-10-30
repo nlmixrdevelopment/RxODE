@@ -3121,6 +3121,7 @@ List rxSolve_df(const RObject &obj, const List &rxControl, const Nullable<Charac
   rx->stateIgnore = &si[0];
   int doTBS = (rx->matrix == 3);
   if (doTBS) rx->matrix=2;
+  if (rx->matrix == 4 || rx->matrix == 5) rx->matrix=2;
   List dat = RxODE_df(doDose, doTBS);
   if (rxSolveDat.idFactor && rxSolveDat.labelID && rx->nsub > 1){
     IntegerVector did = as<IntegerVector>(dat["id"]);

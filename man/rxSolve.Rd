@@ -33,12 +33,13 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853",
   omegaLower = -Inf, omegaUpper = Inf, nSub = 1L, thetaMat = NULL,
   thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0,
   dfObs = 0, returnType = c("rxSolve", "matrix", "data.frame",
-  "data.frame.TBS"), seed = NULL, nsim = NULL, minSS = 10L,
-  maxSS = 1000L, infSSstep = 12, strictSS = TRUE, params = NULL,
-  events = NULL, istateReset = TRUE, subsetNonmem = TRUE,
-  linLog = FALSE, advanLinCmt = FALSE, maxAtolRtolFactor = 0.1,
-  from = NULL, to = NULL, by = NULL, length.out = NULL,
-  iCov = NULL, keep = NULL, indLinPhiTol = 1e-07, indLinPhiM = 0L,
+  "data.frame.TBS", "data.table", "tbl", "tibble"), seed = NULL,
+  nsim = NULL, minSS = 10L, maxSS = 1000L, infSSstep = 12,
+  strictSS = TRUE, params = NULL, events = NULL,
+  istateReset = TRUE, subsetNonmem = TRUE, linLog = FALSE,
+  advanLinCmt = FALSE, maxAtolRtolFactor = 0.1, from = NULL,
+  to = NULL, by = NULL, length.out = NULL, iCov = NULL,
+  keep = NULL, indLinPhiTol = 1e-07, indLinPhiM = 0L,
   indLinMatExpType = 2L, indLinMatExpOrder = 6L, indLinDelta = 2,
   indLinPerterbMatrix = 100L, idFactor = TRUE, mxhnil = 0,
   hmxi = 0, warnIdSort = TRUE, ssAtol = 1e-08, ssRtol = 1e-06)
@@ -313,9 +314,12 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
      update the data frame.  This is the currently standard solving
      method in RxODE,  is used for \code{rxSolve(object, ...)}, \code{solve(object,...)},
 \item \code{"data.frame"} -- returns a plain, non-reactive data
-     frame; Currently very slightly Faster than \code{returnType="matrix"}
+     frame; Currently very slightly faster than \code{returnType="matrix"}
 \item \code{"matrix"} -- returns a plain matrix with column names attached
     to the solved object.  This is what is used \code{object$run} as well as \code{object$solve}
+\item \code{"data.table"} -- returns a \code{data.table}; The \code{data.table} is
+    created by reference (ie \code{setDt()}), which should be fast.
+\item \code{"tbl"} or \code{"tibble"} returns a tibble format.
 }}
 
 \item{seed}{an object specifying if and how the random number
