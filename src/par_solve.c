@@ -177,33 +177,34 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
 	int i;
 	for (i = curTicks; i < nticks; i++){
 	  if (i == 0) {
-	    Rprintf("[");
+	    RSprintf("[");
 	  } else if (i % 5 == 0) {
-	    Rprintf("|");
+	    RSprintf("|");
 	  } else {
-	    Rprintf("=");
+	    RSprintf("=");
 	  }
 	}
 	if (nticks == 50){
 	  if (!par_progress_0){
 	    par_progress_0 = 1;
-	    Rprintf("] ");
+	    RSprintf("] ");
 	    _lastT0 = clock();
 	    clock_t t = _lastT0 - t0;
 	    double ts = ((double)t)/CLOCKS_PER_SEC;
 	    if (ts < 60){
-	      Rprintf("0:00:%02.f ", floor(ts));
+	      RSprintf("0:00:%02.f ", floor(ts));
 	    } else {
 	      double f = floor(ts/60);
 	      double s = ts-f*60;
 	      if (f >= 60){
 		double h = floor(f/60);
 		f = f-h*60;
-		Rprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
+		RSprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
 	      } else {
-		Rprintf("0:%02.f:%02.f ", f, floor(s));
+		RSprintf("0:%02.f:%02.f ", f, floor(s));
 	      }
 	    }
+	    RSprintf("\n");
 	  }
 	}
       } else {
