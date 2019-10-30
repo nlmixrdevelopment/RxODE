@@ -171,6 +171,7 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
       if (curTicks < 0) curTicks=0;
       if (curTicks > 50) curTicks=50;
       int isSupported = isProgSupported();
+      if (_isRstudio) isSupported = 0;
       if (isSupported == -1){
       } else if (isSupported == 0){
 	int i;
