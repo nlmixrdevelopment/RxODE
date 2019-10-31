@@ -1307,36 +1307,27 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     NumericVector nvTime = wrap(time);
     IntegerVector ivEvid = clone(wrap(evid));
     if (!keepDosingOnly && doseId.size() > 0){
+#define sortID if (ivEvid[j]==3){ \
+	  ivEvid[j] = NA_INTEGER+1; \
+	} else if (amt[j] == 0){ \
+	   ivEvid[j] = NA_INTEGER+2; \
+	} else { \
+	  ivEvid[j] = -ivEvid[j]; \
+	}
       for (int j = ivId.size(); j--; ){
 	if (!(std::find(doseId.begin(), doseId.end(), ivId[j]) == doseId.end())){
 	  ivId[j] = NA_INTEGER; // Drop
 	}
-	//Duplicated below for speed.
-	switch(ivEvid[j]){
-	case 3:
-	  ivEvid[j] = -3;
-	  break;
-	case 0:
-	  break;
-	default:
-	  if (amt[j] == 0) ivEvid[j] = -2;
-	}
+	// Duplicated below for speed.
+	sortID
       }
     } else {
       for (int j = ivEvid.size(); j--; ){
-	switch(ivEvid[j]){
-	case 3:
-	  ivEvid[j] = -3;
-	  break;
-	case 0:
-	  break;
-	default:
-	  if (amt[j] == 0) ivEvid[j] = -2;
-	}
+	sortID
       }
-    }  
+    }
+#undef sortID
     Function order = getForder();
-    
     IntegerVector ord;
     if (useForder()){
       ord = order(ivId, nvTime, ivEvid,

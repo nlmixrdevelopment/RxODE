@@ -1089,7 +1089,7 @@ List etImportEventTable(List inData){
   for (int i = 0; i < oldEvid.size(); i++){
     curevid = oldEvid[i];
     // Handle missing evid
-    if (evidCol == -1 && amtCol != -1){
+    if (evidCol == -1 && methodCol == -1 && amtCol != -1){
       if (oldAmt[i] != 0) curevid = 1;
     }
     if (curevid == 0){
