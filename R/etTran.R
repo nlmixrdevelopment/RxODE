@@ -32,7 +32,12 @@
     .w <- which(.n == "id");
     .nid <- length(goodLvl);
     if (length(.w) == 1){
-        .idData <- as.data.frame(idData);
+        if (.nid == 1 && length(idData[[.w]]) == 1){
+            .idData <- as.data.frame(idData);
+            goodLvl <- paste(.idData[[.w]]);
+        } else {
+            .idData <- as.data.frame(idData);
+        }
         .oId <- .idData[[.w]];
         .idData[[.w]] <- factor(.idData[[.w]], levels=goodLvl, labels=goodLvl);
         .wrn <- ""
@@ -44,8 +49,9 @@
         }
         .idData <- .idData[order(.idData[[.w]]), ];
         .idData <- .idData[, -.w, drop = FALSE];
-        if (length(.idData[, 1]) == 0)
+        if (length(.idData[, 1]) == 0){
             stop(sprintf("There are no IDs left to solve in %s data", type))
+        }
         if (.wrn != "") warning(.wrn)
         return(.idData)
     } else if (length(.w) == 0L) {
