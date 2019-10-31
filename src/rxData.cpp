@@ -2393,6 +2393,7 @@ void rxSolve_simulate(const RObject &obj, const List &rxControl,
 			       as<NumericVector>(rxControl["sigmaUpper"]),
 			       sigmaDf, sigmaIsChol, nCoresRV, curObs,
 			       dfSub, dfObs, simSubjects);
+    rxSolveDat.warnIdSort = false;
     rxSolveDat.par1 =  as<RObject>(lst);
     rxSolveDat.usePar1=true;
     // The parameters are in the same format as they would be if they were
@@ -3468,6 +3469,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rxSolve_parSetup(obj, rxControl, specParams, extraArgs,
 		     pars, ev1, inits, rxSolveDat);
     rxOptionsIniEnsure(rxSolveDat.nPopPar); // 1 simulation per parameter specification
+
 
     // Setup some data-based parameters like hmax
     rxSolve_datSetupHmax(obj, rxControl, specParams, extraArgs,
