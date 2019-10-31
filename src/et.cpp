@@ -1063,7 +1063,7 @@ List etImportEventTable(List inData){
   int wh, cmtI, wh100, whI, wh0, ndose=0, nobs=0;
 
   CharacterVector units = CharacterVector::create(_["dosing"]=NA_STRING,
-						 _["time"]=NA_STRING);
+						  _["time"]=NA_STRING);
   List lst = etEmpty(units);
   CharacterVector cls = lst.attr("class");
   List e = cls.attr(".RxODE.lst");
@@ -1071,8 +1071,14 @@ List etImportEventTable(List inData){
   show["id"] = true;
   show["amt"] = true;
   std::vector<int> uIds;
+  int curevid;
   for (int i = 0; i < oldEvid.size(); i++){
-    if (oldEvid[i] == 0){
+    curevid = oldEvid[i];
+    // Handle missing evid
+    if (evidCol == -1 && amtCol != -1){
+      if (oldAmt[i] != 0) curevid = 1;
+    }
+    if (curevid == 0){
       id.push_back(oldId[i]);
       if (std::find(uIds.begin(), uIds.end(), oldId[i]) == uIds.end()){
 	uIds.push_back(oldId[i]);
@@ -1109,7 +1115,7 @@ List etImportEventTable(List inData){
 	ss.push_back(NA_INTEGER);
 	nobs++;
       }
-    } else if (oldEvid[i] <= 6){
+    } else if (curevid <= 6){
       id.push_back(oldId[i]);
       if (std::find(uIds.begin(), uIds.end(), oldId[i]) == uIds.end()){
 	uIds.push_back(oldId[i]);
@@ -1122,9 +1128,9 @@ List etImportEventTable(List inData){
 	if (oldCmt[i] > 1) show["cmt"] = true;
       }
       amt.push_back(oldAmt[i]);
-      if (oldEvid[i] >= 5 && oldRate[i] != 0) stop("replacement/multiplication events cannot be combined with infusions");
+      if (curevid >= 5 && oldRate[i] != 0) stop("replacement/multiplication events cannot be combined with infusions");
       rate.push_back(oldRate[i]);
-      if (oldEvid[i] >= 5 && oldDur[i] != 0) stop("replacement/multiplication events cannot be combined with infusions");
+      if (curevid >= 5 && oldDur[i] != 0) stop("replacement/multiplication events cannot be combined with infusions");
       dur.push_back(oldDur[i]);
       if (oldRate[i] > 0) show["rate"] = true;
       if (oldDur[i] > 0) show["dur"] = true;
@@ -1132,14 +1138,14 @@ List etImportEventTable(List inData){
       if (oldIi[i] > 0) show["ii"] = true;
       addl.push_back(oldAddl[i]);
       if (oldAddl[i] > 0) show["addl"] = true;
-      evid.push_back(oldEvid[i]);
+      evid.push_back(curevid);
       ss.push_back(oldSs[i]);
       if (oldSs[i] > 0) show["ss"] = true;
       ndose++;
     } else {
       // Convert evid
       if (cmtC) stop("Old RxODE EVIDs are not supported with string compartments");
-      getWh(oldEvid[i], &wh, &cmtI, &wh100, &whI, &wh0);
+      getWh(curevid, &wh, &cmtI, &wh100, &whI, &wh0);
       cmtI++;
       if (cmtI != 1) show["cmt"] = true;
       if (oldIi[i] > 0) show["ii"] = true;
@@ -1208,7 +1214,7 @@ List etImportEventTable(List inData){
       case 1:
 	if (oldAmt[i] > 0){
 	  for (j = i; j < oldEvid.size(); j++){
-	    if (oldEvid[i] == oldEvid[j] && oldAmt[i] == -oldAmt[j]){
+	    if (curevid == oldEvid[j] && oldAmt[i] == -oldAmt[j]){
 	      double durC = oldTime[j] - oldTime[i];
 	      id.push_back(oldId[i]);
 	      if (std::find(uIds.begin(), uIds.end(), oldId[i]) == uIds.end()){
