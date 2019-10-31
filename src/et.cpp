@@ -10,6 +10,9 @@ using namespace Rcpp;
 bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
 
+Function getForder();
+bool useForder();
+
 RObject evCur;
 RObject curSolve;
 
@@ -292,10 +295,16 @@ List etSort(List& curEt){
     IntegerVector ivId=wrap(id);
     NumericVector nvTime=wrap(time);
     IntegerVector ivEvid=wrap(evid);
-    Function order = b["order"];
-    IntegerVector ord = order(ivId, nvTime, ivEvid,
-			      _["na.last"] = NA_LOGICAL,
-			      _["method"]="radix");
+    Function order = getForder();
+    IntegerVector ord;
+    if (useForder()){
+      ord = order(ivId, nvTime, ivEvid,
+		  _["na.last"] = LogicalVector::create(NA_LOGICAL));
+    } else {
+      ord = order(ivId, nvTime, ivEvid,
+		  _["na.last"] = LogicalVector::create(NA_LOGICAL),
+		  _["method"]="radix");
+    }
     ord = ord - 1;
     idx = as<std::vector<int>>(ord);
   } else {
@@ -450,11 +459,16 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
     IntegerVector ivId=wrap(id);
     NumericVector nvTime=wrap(time);
     IntegerVector ivEvid=wrap(evid);
-    Environment b=Rcpp::Environment::base_namespace();
-    Function order = b["order"];
-    IntegerVector ord = order(ivId, nvTime, ivEvid,
-			      _["na.last"] = NA_LOGICAL,
-			      _["method"]="radix");
+    Function order = getForder();
+    IntegerVector ord;
+    if (useForder()){
+      ord = order(ivId, nvTime, ivEvid,
+		  _["na.last"] = LogicalVector::create(NA_LOGICAL));
+    } else {
+      ord = order(ivId, nvTime, ivEvid,
+		  _["na.last"] = LogicalVector::create(NA_LOGICAL),
+		  _["method"]="radix");
+    }
     ord = ord - 1;
     idx = as<std::vector<int>>(ord);
   } else {
@@ -1442,11 +1456,16 @@ List etExpandAddl(List curEt){
     IntegerVector ivId=wrap(id);
     NumericVector nvTime=wrap(time);
     IntegerVector ivEvid=wrap(evid);
-    Environment b=Rcpp::Environment::base_namespace();
-    Function order = b["order"];
-    IntegerVector ord = order(ivId, nvTime, ivEvid,
-			      _["na.last"] = NA_LOGICAL,
-			      _["method"]="radix");
+    Function order = getForder();
+    IntegerVector ord;
+    if (useForder()){
+      ord = order(ivId, nvTime, ivEvid,
+		  _["na.last"] = LogicalVector::create(NA_LOGICAL));
+    } else {
+      ord = order(ivId, nvTime, ivEvid,
+		  _["na.last"] = LogicalVector::create(NA_LOGICAL),
+		  _["method"]="radix");
+    }
     ord = ord - 1;
     idx = as<std::vector<int>>(ord);
   } else {
@@ -1635,11 +1654,16 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
     IntegerVector ivId=wrap(id);
     NumericVector nvTime=wrap(time);
     IntegerVector ivEvid=wrap(evid);
-    Environment b=Rcpp::Environment::base_namespace();
-    Function order = b["order"];
-    IntegerVector ord = order(ivId, nvTime, ivEvid,
-			      _["na.last"] = NA_LOGICAL,
-			      _["method"]="radix");
+    Function order = getForder();
+    IntegerVector ord;
+    if (useForder()){
+      ord = order(ivId, nvTime, ivEvid,
+		  _["na.last"] = LogicalVector::create(NA_LOGICAL));
+    } else {
+      ord = order(ivId, nvTime, ivEvid,
+		  _["na.last"] = LogicalVector::create(NA_LOGICAL),
+		  _["method"]="radix");
+    }
     ord = ord - 1;
     idx = as<std::vector<int>>(ord);
   } else {
@@ -3201,11 +3225,16 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
       IntegerVector ivId=wrap(id);
       NumericVector nvTime=wrap(time);
       IntegerVector ivEvid=wrap(evid);
-      Environment b=Rcpp::Environment::base_namespace();
-      Function order = b["order"];
-      IntegerVector ord = order(ivId, nvTime, ivEvid,
-				_["na.last"] = NA_LOGICAL,
-				_["method"]="radix");
+      Function order = getForder();
+      IntegerVector ord;
+      if (useForder()){
+	ord = order(ivId, nvTime, ivEvid,
+		    _["na.last"] = LogicalVector::create(NA_LOGICAL));
+      } else {
+	ord = order(ivId, nvTime, ivEvid,
+		    _["na.last"] = LogicalVector::create(NA_LOGICAL),
+		    _["method"]="radix");
+      }
       ord = ord - 1;
       idx = as<std::vector<int>>(ord);
     } else {
