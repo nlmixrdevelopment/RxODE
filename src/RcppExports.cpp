@@ -114,6 +114,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// forderForceBase
+RObject forderForceBase(bool forceBase);
+RcppExport SEXP _RxODE_forderForceBase(SEXP forceBaseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< bool >::type forceBase(forceBaseSEXP);
+    rcpp_result_gen = Rcpp::wrap(forderForceBase(forceBase));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxSetIni0
 bool rxSetIni0(bool ini0);
 RcppExport SEXP _RxODE_rxSetIni0(SEXP ini0SEXP) {

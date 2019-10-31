@@ -26,6 +26,14 @@
     invisible()
 }
 
+.getDTEnv <- function(){
+    if (requireNamespace("data.table", quietly = TRUE)){
+        return(loadNamespace("data.table"))
+    } else {
+        return(new.env(parent=emptyenv()))
+    }
+}
+
 .sortId <- function(idData, goodLvl, type="parameter",
                     warnIdSort){
     .n <- tolower(names(idData));

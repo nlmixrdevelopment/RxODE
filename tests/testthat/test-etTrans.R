@@ -2,9 +2,11 @@ require(RxODE);
 
 rxPermissive({
 
-    for (radix in c(FALSE, TRUE)){
+    for (radi in 1:3){
 
-        rxUseRadixSort(radix);
+        rxUseRadixSort(switch(radi, FALSE, TRUE, TRUE));
+        RxODE:::forderForceBase(switch(radi, FALSE, TRUE, FALSE))
+        radix <- switch(radi, "timsort", "base::order", "data.table::forder")
         context(sprintf("etTrans checks (radix: %s)", radix));
         rxSetIni0(FALSE)
         mod <- RxODE("
@@ -561,7 +563,9 @@ d/dt(blood)     = a*intestine - b*blood
         test_that("strange rate doesn't affect model",{
             expect_false(any(etTrans(dat,mod)$AMT < 0,na.rm=TRUE))
         })
+
         source("theoSd.R")
+
         d <- theoSd[,names(theoSd) != "EVID"];
 
         mod  <- RxODE({

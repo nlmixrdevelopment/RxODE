@@ -16,6 +16,35 @@ List rxModelVars_(const RObject &obj);
 bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
 
+Environment dataTable;
+bool getForder_b=false;
+Function getRxFn(std::string name);
+bool dtForder = false;
+bool forderForceBase_ = false;
+//[[Rcpp::export]]
+RObject forderForceBase(bool forceBase = false){
+  forderForceBase_=forceBase;
+  return R_NilValue;
+}
+Function getForder(){
+  if (!getForder_b){
+    Function fn = getRxFn(".getDTEnv");
+    dataTable = fn();
+    getForder_b=true;
+  }
+  if (!forderForceBase_ && dataTable.exists("forder")){
+    dtForder=true;
+    return dataTable["forder"];
+  }
+  Environment b=Rcpp::Environment::base_namespace();
+  dtForder=false;
+  return b["order"];
+}
+
+extern bool useForder(){
+  return getForder_b;
+}
+
 IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
 		    const int stateSize, const int sensSize, IntegerVector& curDvid){
   RObject cmtInfo = R_NilValue;
@@ -1306,12 +1335,25 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	}
       }
     }  
-    Function order = b["order"];
-    IntegerVector ord = order(ivId, nvTime, ivEvid,
-			      _["na.last"] = NA_LOGICAL,
-			      _["method"]="radix");
-    ord = ord - 1;
-    idxO = as<std::vector<int>>(ord);
+    Function order = getForder();
+    
+    IntegerVector ord;
+    if (useForder()){
+      ord = order(ivId, nvTime, ivEvid,
+		  _["na.last"] = LogicalVector::create(true));
+      ord = ord - 1;
+      // na.last isn't =NA isn't quite working
+      idxO = as<std::vector<int>>(ord);
+      while (idxO.size() > 0 && IntegerVector::is_na(ivId[idxO.back()])){
+	idxO.pop_back();
+      }
+    } else {
+      ord = order(ivId, nvTime, ivEvid,
+		  _["na.last"] = LogicalVector::create(NA_LOGICAL),
+		  _["method"]="radix");
+      ord = ord - 1;
+      idxO = as<std::vector<int>>(ord);
+    }
   } else {
     SORT(idxO.begin(),idxO.end(),
 	 [id,time,evid,amt,doseId,keepDosingOnly](int a, int b){
