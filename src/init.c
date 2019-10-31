@@ -64,6 +64,7 @@ SEXP _RxODE_rxCores();
 SEXP _RxODE_rxAssignPtr(SEXP objectSEXP);
 SEXP _RxODE_dynLoad(SEXP dllSEXP);
 SEXP _rxParProgress(SEXP);
+SEXP _RxODE_rxUseRadixSort(SEXP);
 SEXP RxODE_get_mv();
 
 static R_NativePrimitiveArgType RxODE_Sum_t[] = {
@@ -219,6 +220,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxUnlock", (DL_FUNC) &_RxODE_rxUnlock, 1},
     {"_RxODE_rxAllowUnload", (DL_FUNC) &_RxODE_rxAllowUnload, 1},
     {"_rxParProgress", (DL_FUNC) &_rxParProgress, 1},
+    {"_RxODE_rxUseRadixSort", (DL_FUNC) &_RxODE_rxUseRadixSort, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
