@@ -2440,7 +2440,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     CharacterVector sigmaN;
     bool usePar1 = false;
     bool simSubjects = false;
-    bool didSim = false;
     bool addTimeUnits = false;
     RObject timeUnitsU;
     List covUnits;
@@ -2538,7 +2537,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 				 as<NumericVector>(rxControl["sigmaUpper"]),
 				 sigmaDf, sigmaIsChol, nCoresRV, curObs,
 				 dfSub, dfObs, simSubjects);
-      didSim = true;
+      warnIdSort=false;
       par1 =  as<RObject>(lst);
       usePar1=true;
       // The parameters are in the same format as they would be if they were
@@ -2569,9 +2568,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
         stop("If parameters are not named, they must match the order and size of the parameters in the model.");
       }
       RObject iCov = rxControl["iCov"];
-      if (warnIdSort && didSim){
-	warnIdSort = false;
-      }
       if (setupOnly){
 	warnIdSort = false;
       }
