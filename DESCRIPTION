@@ -27,6 +27,7 @@ Authors@R: c(
    person("Robert", "Gentleman",role="ctb"),
    person("Daniel C.", "Dillon", role="ctb"),
    person("Ross", "Ihaka",role="ctb"),
+   person("Emma", "Schwager", role="ctb"),
    person("R core team", role="cph"),
    person("odepack authors", role="cph")
    )

@@ -162,7 +162,14 @@ void rgbeta(int d, double shape, double* out){
     stop("'shape' must be non-negative");
   }
 }
-
+//' @param d The dimension of the correlation matrix
+//' @param eta The scaling parameter of the LKJ distribution.
+//'   Must be > 1.  Also related to the degrees of freedom nu.
+//'   eta = (nu-1)/2.
+//' @param cholesky boolean; If \code{TRUE} return the cholesky
+//'   decomposition.
+//' @author Matthew Fidler (translated to RcppArmadillo) and Emma Schwager
+//' @export
 //[[Rcpp::export]]
 arma::mat rLKJ1(int d, double eta = 1.0, bool cholesky = false){
   if (d < 2){
@@ -216,21 +223,6 @@ arma::mat rLKJcvLsd1(arma::vec logSd, arma::vec logSdSD, double eta = 1.0){
   if (d != logSdSD.size()){
     stop("log standard deviation size needs to be the same size as the log standard error of the estimate");
   }
-  arma::vec sd(d);
-  for (unsigned int j = d; j--;){
-    sd[j] = exp(Rf_rnorm(logSd[j], logSdSD[j]));
-  }
-  return rLKJcv1(sd, eta);
-}
-
-arma::mat rLKJcvLsd1(arma::vec logSd, arma::vec logSdSD, double eta = 1.0){
-  unsigned int d = logSd.size();
-  if (d != logSdSD.size()){
-    stop("log standard deviation size needs to be the same size as the log standard error of the estimate");
-  }
-  // Nlmixr models variances as chol(omega^1)
-  // With diagonals this becomes
-  // diagXform = c("sqrt", "log", "identity")
   arma::vec sd(d);
   for (unsigned int j = d; j--;){
     sd[j] = exp(Rf_rnorm(logSd[j], logSdSD[j]));
