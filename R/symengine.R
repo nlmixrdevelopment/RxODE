@@ -172,9 +172,9 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 rxFun <- function(name, args, cCode){
     if (!is.character(name) || length(name) != 1L)
         stop("name argument must be a length-one character vector")
-    if (missing(cCode)) stop("A new function requires a C function so it can be used in RxODE")
+    if (missing(cCode)) stop("a new function requires a C function so it can be used in RxODE")
     if (any(name == names(.rxSEeqUsr))){
-        stop(sprintf("Already defined user function '%s', remove it fist (rxRmFun).", name));
+        stop(sprintf("already defined user function '%s', remove it fist ('rxRmFun').", name));
     }
     assignInMyNamespace(".rxSEeqUsr", c(.rxSEeqUsr, setNames(length(args), name)))
     assignInMyNamespace(".rxCcode", c(.rxCcode, setNames(cCode, name)))
@@ -188,7 +188,7 @@ rxRmFun <- function(name){
     if (!is.character(name) || length(name) != 1L)
         stop("name argument must be a length-one character vector")
     if (!any(name == names(.rxSEeqUsr))){
-        stop(sprintf("No user function '%s' to remove", name))
+        stop(sprintf("no user function '%s' to remove", name))
     }
     .w <- which(name == names(.rxSEeqUsr))
     if (length(.w) == 1L) assignInMyNamespace(".rxSEeqUsr", .rxSEeqUsr[-.w])
@@ -392,19 +392,19 @@ function(a, b){
     .fun <- function(...){};
     body(.fun) <- bquote({
         .args <- unlist(list(...))
-        if (.args[6] != "0") stop("Cannot take a second derivative")
+        if (.args[6] != "0") stop("cannot take a second derivative")
         .args[6] <- .(i)
         return(paste0("linCmtB(", paste(.args, collapse=","), ")"))
     })
     return(.fun)
 }
 
-.rxD$linCmtB <- c(list(function(...){stop("Bad linCmtB derivative")},
-                       function(...){stop("Bad linCmtB derivative")},
-                       function(...){stop("Bad linCmtB derivative")},
-                       function(...){stop("Bad linCmtB derivative")},
-                       function(...){stop("Bad linCmtB derivative")},
-                       function(...){stop("Bad linCmtB derivative")}),
+.rxD$linCmtB <- c(list(function(...){stop("bad 'linCmtB' derivative")},
+                       function(...){stop("bad 'linCmtB' derivative")},
+                       function(...){stop("bad 'linCmtB' derivative")},
+                       function(...){stop("bad 'linCmtB' derivative")},
+                       function(...){stop("bad 'linCmtB' derivative")},
+                       function(...){stop("bad 'linCmtB' derivative")}),
                   lapply(1:13, .linCmtBgen));
 
 ##' Add to RxODE's derivative tables
@@ -428,13 +428,13 @@ function(a, b){
 ##'
 rxD <- function(name, derivatives){
     if (!inherits(derivatives, "list") || length(derivatives) == 0L){
-        stop("Derivatives must be a list of functions with at least 1 element");
+        stop("derivatives must be a list of functions with at least 1 element");
     }
     if (!all(sapply(derivatives, function(x) (inherits(x, "function") || is.null(x))))){
-        stop("Derivatives must be a list of functions with at least 1 element")
+        stop("derivatives must be a list of functions with at least 1 element")
     }
     if (exists(name, envir=.rxD)){
-        warning(sprintf("Replacing defined derivatives for `%s`", name))
+        warning(sprintf("replacing defined derivatives for '%s'", name))
     }
     assign(name, derivatives, envir=.rxD)
     return(invisible())
@@ -723,16 +723,16 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                             }
                             return(paste0(.type, "_", .num, "_"))
                         } else {
-                            stop("Only THETA[#] or ETA[#] are supported")
+                            stop("only 'THETA[#]' or 'ETA[#]' are supported")
                         }
                     } else {
-                        stop("Only THETA[#] or ETA[#] are supported")
+                        stop("only 'THETA[#]' or 'ETA[#]' are supported")
                     }
                 } else {
-                    stop("Only THETA[#] or ETA[#] are supported")
+                    stop("only 'THETA[#]' or 'ETA[#]' are supported")
                 }
             } else {
-                stop("Only THETA[#] or ETA[#] are supported")
+                stop("only 'THETA[#]' or 'ETA[#]' are supported")
             }
         } else if (identical(x[[1]], quote(`psigamma`))){
             if (length(x == 3)){
@@ -745,7 +745,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                 if (.isEnv) envir$..curCall <- .lastCall
                 return(paste0("polygamma(", .b, ",", .a, ")"))
             } else {
-                stop("psigamma() takes 2 arguments");
+                stop("'psigamma' takes 2 arguments");
             }
         } else if (identical(x[[1]], quote(`log1pmx`))){
             if (length(x == 2)){
@@ -757,7 +757,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                 if (.isEnv) envir$..curCall <- .lastCall
                 return(paste0("(log(1+", .a, ")-(", .a, "))"))
             } else {
-                stop("log1pmx() only takes 1 argument");
+                stop("'log1pmx' only takes 1 argument");
             }
         } else if (identical(x[[1]], quote(`choose`))){
             if (length(x) == 3){
@@ -771,7 +771,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                 return(paste0("gamma(", .n, "+1)/(gamma(",
                               .k, "+1)*gamma(", .n, "-(", .k, ")+1))"));
             } else {
-                stop("choose() takes 2 arguments")
+                stop("'choose' takes 2 arguments")
             }
         } else if (identical(x[[1]], quote(`lchoose`))){
             if (length(x) == 3){
@@ -784,7 +784,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                 if (.isEnv) envir$..curCall <- .lastCall
                 return(paste0("(lgamma(", .n, "+1)-lgamma(", .k, "+1)-lgamma(", .n, "-(", .k, ")+1))"))
             } else {
-                stop("lchoose() takes 2 arguments")
+                stop("'lchoose' takes 2 arguments")
             }
         } else if (identical(x[[1]], quote(`transit`))){
             if (length(x) == 4){
@@ -834,7 +834,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                         if (.isEnv) envir$..curCall <- .lastCall
                         return(.ret)
                     } else {
-                        stop(sprintf("%s() only acceps 1 argument", .x1));
+                        stop(sprintf("'%s' only acceps 1 argument", .x1));
                     }
                 }
                 .xc <- .rxSEdouble[[.x1]];
@@ -847,7 +847,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                                       .xc[3]);
                         return(.ret)
                     } else {
-                        stop(sprintf("%s() only acceps 2 arguments", .x1));
+                        stop(sprintf("'%s' only acceps 2 arguments", .x1));
                     }
                 }
             }
@@ -876,7 +876,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                     if (.ret == "exp(1)") return("E");
                     return(.ret)
                 } else {
-                    stop(sprintf("%s() takes %s arguments (has %s)",
+                    stop(sprintf("'%s' takes %s arguments (has %s)",
                                  paste(.ret0[[1]]),
                                  .nargs, length(.ret0) - 1))
                 }
@@ -898,12 +898,12 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                 } else if (any(.fun == c("cmt", "dvid"))){
                     return("")
                 } else {
-                    stop(sprintf("%s() not supported in RxODE", .fun));
+                    stop(sprintf("'%s' not supported in RxODE", .fun));
                 }
             }
         }
     } else {
-        stop("Unsupported expression.");
+        stop("unsupported expression");
     }
 }
 
@@ -1206,7 +1206,7 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
                                   .a, ")"))
                 }
             } else {
-                stop("polygamma() takes 2 arguments");
+                stop("'polygamma' takes 2 arguments");
             }
         }  else {
             if (length(x[[1]]) == 1){
@@ -1233,7 +1233,7 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
 
                         return(paste0(.xc[1], .rxFromSE(x[[2]]), .xc[2]))
                     } else {
-                        stop(sprintf("%s() only acceps 1 argument", .x1));
+                        stop(sprintf("'%s' only acceps 1 argument", .x1));
                     }
                 }
                 .xc <- .SEdouble[[.x1]];
@@ -1244,7 +1244,7 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
                                       .rxFromSE(x[[3]]),
                                       .xc[3]))
                     } else {
-                        stop(sprintf("%s() only acceps 2 arguments", .x1));
+                        stop(sprintf("'%s' only acceps 2 arguments", .x1));
                     }
                 }
             }
@@ -1339,7 +1339,7 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
                         return("M_SQRT_2dPI");
                     return(.ret)
                 } else {
-                    stop(sprintf("%s() takes %s arguments",
+                    stop(sprintf("'%s' takes %s arguments",
                                  paste(.ret0[[1]]),
                                  .nargs))
                 }
@@ -1373,10 +1373,10 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
                                 return(paste0("(", .fn, "(", paste0(.a1, collapse=",") ,")-",
                                        .fn, "(", paste0(.a2, collapse=","), "))/", .rxDelta))
                             } else {
-                                stop("Only forward and central differences are supported")
+                                stop("only forward and central differences are supported")
                             }
                         } else {
-                            stop(sprintf("Cannot figure out the `%s` derivative with respect to `%s`", .fun[1], .var[1]))
+                            stop(sprintf("cannot figure out the '%s' derivative with respect to '%s'", .fun[1], .var[1]))
                         }
                     }
                     if (length(.with) != 1){
@@ -1394,13 +1394,13 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
                         return(do.call(.derFun, as.list(.args)));
                     } else {
                         if (.rxFromNumDer == 0L){
-                            stop(sprintf("RxODE/symengine does not know how to take a derivative of `%s`", .fun[1]))
+                            stop(sprintf("RxODE/symengine does not know how to take a derivative of '%s'", .fun[1]))
                         } else {
                             return(.errD())
                         }
                     }
                 } else {
-                    stop("Derivative() conversion only takes one function and one argument")
+                    stop("'Derivative' conversion only takes one function and one argument")
                 }
             } else if (identical(x[[1]], quote(`Subs`))){
                 .fun <- eval(parse(text=paste0("quote(", .rxFromSE(x[[2]]), ")")))
@@ -1420,11 +1420,11 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
                 .ret <- .subs(.fun)
                 return(.rxFromSE(.ret))
             } else {
-                stop(sprintf("%s() not supported in symengine->RxODE", paste(.ret0[[1]])));
+                stop(sprintf("'%s' not supported in symengine->RxODE", paste(.ret0[[1]])));
             }
         }
     } else {
-        stop("Unsupported expression.");
+        stop("unsupported expression");
     }
 }
 
@@ -1534,7 +1534,7 @@ symengineC[["/"]] <- function(e1, e2){
 unknownCsymengine <- function(op){
     force(op)
     function(...){
-        stop(sprintf("RxODE doesn't support '%s' translation for Omega translation.", op));
+        stop(sprintf("RxODE doesn't support '%s' translation for 'Omega' translation", op));
     }
 }
 
@@ -1584,7 +1584,7 @@ allNames <- function(x) {
         children <- lapply(x[-1], allNames)
         unique(unlist(children))
     } else {
-        stop("Don't know how to handle type ", typeof(x),
+        stop("do not know how to handle type ", typeof(x),
              call. = FALSE)
     }
 }
@@ -1599,7 +1599,7 @@ allCalls <- function(x) {
     } else if (is.pairlist(x)) {
         unique(unlist(lapply(x[-1], allCalls), use.names = FALSE))
     } else {
-        stop("Don't know how to handle type ", typeof(x), call. = FALSE)
+        stop("do not know how to handle type ", typeof(x), call. = FALSE)
     }
 }
 
@@ -1629,7 +1629,7 @@ evalPrints <- function(x, envir=parent.frame()){
         ## Call recurse_call recursively
         as.pairlist(lapply(x, evalPrints, envir=envir));
     } else { # User supplied incorrect input
-        stop("Don't know how to handle type ", typeof(x),
+        stop("do not know how to handle type ", typeof(x),
              call. = FALSE)
     }
 }
@@ -1668,7 +1668,7 @@ unknownRx <- function(op){
                 }
             }
         }
-        stop(sprintf("RxODE doesn't know how to translate '%s' to a RxODE compatible function.", op));
+        stop(sprintf("RxODE doesn't know how to translate '%s' to a RxODE compatible function", op));
     }
 }
 
@@ -2003,11 +2003,11 @@ rxErrEnv.yj <- NULL;
 
 rxErrEnvF$lnorm <- function(est){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The lnorm(.) can only be in an error function.")
+        stop("'lnorm' can only be in an error function")
     }
     if (!is.null(rxErrEnv.lambda)){
         if (rxErrEnv.lambda != "0" && rxErrEnv.yj != "0"){
-            stop("The lnorm(.) cannot be used with other data transformations.")
+            stop("'lnorm' cannot be used with other data transformations")
         }
     }
     estN <- suppressWarnings(as.numeric(est));
@@ -2035,11 +2035,11 @@ rxErrEnvF$logn <- rxErrEnvF$lnorm
 
 rxErrEnvF$tbs <- function(lambda){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The tbs(.) can only be in an error function.")
+        stop("'tbs' can only be in an error function")
     }
     if (!is.null(rxErrEnv.lambda)){
         if (rxErrEnv.yj != "0" & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1"){
-            stop("The tbs(.) cannot be used with other data transformations.")
+            stop("'tbs' cannot be used with other data transformations")
         }
     }
     estN <- suppressWarnings(as.numeric(lambda));
@@ -2061,11 +2061,11 @@ rxErrEnvF$boxCox <- rxErrEnvF$tbs
 
 rxErrEnvF$tbsYj <- function(lambda){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The tbsYj(.) can only be in an error function.")
+        stop("'tbsYj' can only be in an error function")
     }
     if (!is.null(rxErrEnv.lambda)){
         if (rxErrEnv.yj != "1" & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1"){
-            stop("The tbsYj(.) cannot be used with other data transformations.")
+            stop("'tbsYj' cannot be used with other data transformations")
         }
     }
     estN <- suppressWarnings(as.numeric(lambda));
@@ -2087,7 +2087,7 @@ rxErrEnvF$yeoJohnson <- rxErrEnvF$tbsYj
 
 rxErrEnvF$add <- function(est){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The add(.) can only be in an error function.")
+        stop("'add' can only be in an error function")
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
@@ -2110,10 +2110,10 @@ rxErrEnvF$add <- function(est){
 rxErrEnvF$norm <- rxErrEnvF$add
 rxErrEnvF$dnorm <- rxErrEnvF$add
 
-rxErrEnvF$"for" <- function(...){stop("'for' is not supported (yet).")}
+rxErrEnvF$"for" <- function(...){stop("'for' is not supported")}
 rxErrEnvF$`return` <- function(est){
     if (rxErrEnv.ret == ""){
-        stop("The PK function should not return anything.")
+        stop("The PK function should not return anything")
     }
     .extra <- ""
     force(est)
@@ -2157,7 +2157,7 @@ rxErrEnvF$`==`  <- binaryOp(" == ")
 
 rxErrEnvF$prop <- function(est){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The prop(.) can only be in an error function.")
+        stop("'prop' can only be in an error function")
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
@@ -2178,7 +2178,7 @@ rxErrEnvF$prop <- function(est){
 
 rxErrEnvF$pow <- function(est, pow){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The pow(.) can only be in an error function.")
+        stop("pow can only be in an error function")
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
@@ -2212,9 +2212,9 @@ rxErrEnv <- function(expr){
     n1 <- names;
     n2 <- names;
     n2[n2 == "time"] <- "t";
-    if (any(n2 == "err")){stop("Use return() for errors.")}
-    if (any(n2 == "error")){stop("Use return() for errors.")}
-    if (any(n2 == "rx_r")){stop("Use return() for errors.")}
+    if (any(n2 == "err")){stop("use 'return' for errors")}
+    if (any(n2 == "error")){stop("use 'return' for errors")}
+    if (any(n2 == "rx_r")){stop("use 'return' for errors")}
     ## n2[n2 == "err"] <- "rx_r_";
     ## n2[n2 == "error"] <- "rx_r_";
     ## n2[n2 == "f"] <- "rx_pred_f_";
@@ -2254,10 +2254,10 @@ rxParsePred <- function(x, init=NULL, err=NULL){
             if (length(.prd) == length(.errs)){
                 .prd <- .prd[names(.errs)];
                 if (any(is.na(.prd))){
-                    stop("The errors and predictions need to have the same conditions (if/then statements).")
+                    stop("errors and predictions need to have the same conditions (if/then statements)")
                 }
             } else if (length(.errs) != 1){
-                stop("Do not know how to handle this error/pred combination")
+                stop("do not know how to handle this error/pred combination")
             }
         }
         .ret <- sapply(seq(1, max(length(.errs), length(.prd))), function(en){
@@ -2329,7 +2329,7 @@ rxParseErr <- function(x, base.theta, ret="rx_r_", init=NULL){
         ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(quote({%s}))", x)));
         ret <- substring(ret, 3, nchar(ret) - 2)
         if (regexpr("else if", ret) != -1){
-            stop("else if expressions not supported (yet).");
+            stop("'else if' expressions not supported");
         }
         assignInMyNamespace("rxErrEnv.diag.est", c());
         assignInMyNamespace("rxErrEnv.theta", 1)
@@ -2357,7 +2357,7 @@ rxParseErr <- function(x, base.theta, ret="rx_r_", init=NULL){
         assignInMyNamespace("rxErrEnv.ret", "rx_r_");
         assignInMyNamespace("rxErrEnv.init", NULL);
         if (regexpr("else if", ret) != -1){
-            stop("else if expressions not supported (yet).");
+            stop("'else if' expressions not supported");
         }
         return(ret);
     }

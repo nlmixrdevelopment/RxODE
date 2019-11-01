@@ -30,10 +30,10 @@ rxIsBlock <- function(mat, i){
 rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
                        allow.cache=TRUE){
     if (!all(as.vector(mat1) == 1 || as.vector(mat1) == 1)){
-        stop("This has to be a matrix of all 1s or 0s.");
+        stop("this has to be a matrix of all 1s or 0s.");
     }
     if (any(diag(mat1) == 0)){
-        stop("Diagonal elements must be non-zero.");
+        stop("diagonal elements must be non-zero.");
     }
     cache.file <- file.path(rxTempDir(),
                             sprintf("rx_%s2.inv",
@@ -47,7 +47,7 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
         return(ret)
     } else {
         diag.xform <- match.arg(diag.xform)
-        rxCat("Diagonal form: ", diag.xform, "\n");
+        rxCat("diagonal form: ", diag.xform, "\n");
         num <- as.vector(mat1[upper.tri(mat1,TRUE)]);
         i <- 0;
         num <- sapply(num, function(x){
@@ -224,7 +224,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
     mat2 <- rxInv(mat2);
     mat2 <- try({chol(mat2)});
     if (inherits(mat2, "try-error")){
-        stop("Initial Omega matrix inverse is non-positive definite.")
+        stop("initial 'omega' matrix inverse is non-positive definite.")
     }
     mat3 = mat2;
     if (diag.xform == "sqrt"){
@@ -291,7 +291,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
             }
             w <- which(fmat[upper.tri(fmat, TRUE)] != "0")
             if (length(w) == 0){
-                stop("zero matrix.")
+                stop("zero matrix")
             }
             ##signature(theta="numeric", tn="integer")
             ## FIXME move these functions to Cpp?

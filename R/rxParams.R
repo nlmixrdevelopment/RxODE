@@ -38,14 +38,14 @@ rxParams.RxODE <- function(obj, constants=TRUE, ...,
     if (all(sapply(seq_along(.ret), function(x){ is.null(.ret[[x]]) }))){
         if (length(list(...)) > 0){
             .clearPipe();
-            stop("Unknown arguments in rxParams");
+            stop("unknown arguments in 'rxParams'");
         }
         return(rxParams.default(obj, constants=constants));
     } else {
         .lst <- list(...);
         if (length(.lst) > 0){
             .clearPipe();
-            stop(sprintf("Unknown arguments in rxParams: %s\nTry piping to rxSolve",paste(names(.lst), collapse=", ")));
+            stop(sprintf("unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'",paste(names(.lst), collapse=", ")));
         }
         ## Most likely
         ## RxODE() %>% rxParams() %>%
@@ -86,14 +86,14 @@ rxParams.rxSolve <- function(obj, constants=TRUE, ...,
     if (all(sapply(seq_along(.ret), function(x){ is.null(.ret[[x]]) }))){
         if (length(list(...)) > 0){
             .clearPipe();
-            stop("Unknown arguments in rxParams");
+            stop("unknown arguments in 'rxParams'");
         }
         return(rxParams.default(obj, constants=constants));
     } else {
         .lst <- list(...);
         if (length(.lst) > 0){
             .clearPipe();
-            stop(sprintf("Unknown arguments in rxParams: %s\nTry piping to rxSolve",paste(names(.lst), collapse=", ")));
+            stop(sprintf("unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'",paste(names(.lst), collapse=", ")));
         }
         ## Most likely
         ## solveObject %>% rxParams() %>%
@@ -138,7 +138,7 @@ rxParams.rxEt <- function(obj, ...,
     .lst <- list(...);
     if (length(.lst) > 0){
         .clearPipe();
-        stop(sprintf("Unknown arguments in rxParams: %s\nTry piping to rxSolve",paste(names(.lst), collapse=", ")));
+        stop(sprintf("unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'",paste(names(.lst), collapse=", ")));
     }
     .ret <- list(params=params, inits=inits, iCov=iCov, keep=keep,
                  thetaMat = thetaMat, omega = omega, dfSub = dfSub,

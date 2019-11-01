@@ -114,10 +114,10 @@ rxControl <- function(scale = NULL,
                                                c("linear", "locf", "nocb", "midpoint")) - 1);
     }
     if (any(duplicated(names(.xtra)))){
-        stop("Duplicate arguments do not make sense.");
+        stop("duplicate arguments do not make sense");
     }
     if (any(names(.xtra)=="covs")){
-        stop("Covariates can no longer be specified by 'covs' include them in the event dataset.");
+        stop("covariates can no longer be specified by 'covs' include them in the event dataset");
     }
     if (missing(cores)){
         cores <- RxODE::rxCores();
@@ -577,10 +577,10 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     .rxParams <- NULL
     if (rxIs(object, "rxEt")){
         if (!is.null(events)){
-            stop("Events in pipeline AND in solving arguments, please provide just one.")
+            stop("events can be pipeline or solving arguments not both")
         }
         if (is.null(.pipelineRx)){
-            stop("Need an RxODE compiled model as the start of the pipeline");
+            stop("need an RxODE compiled model as the start of the pipeline");
         } else {
             events <- object
             object <- .pipelineRx
@@ -591,13 +591,13 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
             params <- object$params;
         }
         if (is.null(.pipelineRx)){
-            stop("Need an RxODE compiled model as the start of the pipeline");
+            stop("need an RxODE compiled model as the start of the pipeline");
         } else {
             .rxParams <- object
             object <- .pipelineRx
         }
         if (is.null(.pipelineEvents)){
-            stop("Need an RxODE events as a part of the pipeline")
+            stop("need an RxODE events as a part of the pipeline")
         } else {
             events <- .pipelineEvents;
             assignInMyNamespace(".pipelineEvents", NULL);
@@ -607,22 +607,22 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     if (!is.null(.pipelineEvents) && is.null(events) && is.null(params)){
         events <- .pipelineEvents;
     } else if (!is.null(.pipelineEvents) && !is.null(events)){
-        stop("'events' in pipeline AND in solving arguments, please provide just one.")
+        stop("'events' in pipeline AND in solving arguments, please provide just one")
     } else if (!is.null(.pipelineEvents) && !is.null(params) &&
                rxIs(params, "event.data.frame")){
-        stop("'events' in pipeline AND in solving arguments, please provide just one.")
+        stop("'events' in pipeline AND in solving arguments, please provide just one")
     }
 
     if (!is.null(.pipelineParams) && is.null(params)){
         params <- .pipelineParams;
     } else if (!is.null(.pipelineParams) && !is.null(params)){
-        stop("'params' in pipeline AND in solving arguments, please provide just one.")
+        stop("'params' in pipeline AND in solving arguments, please provide just one")
     }
 
     if (!is.null(.pipelineInits) && is.null(inits)){
         inits <- .pipelineInits;
     } else if (!is.null(.pipelineInits) && !is.null(inits)){
-        stop("'inits' in pipeline AND in solving arguments, please provide just one.")
+        stop("'inits' in pipeline AND in solving arguments, please provide just one")
     }
 
     if (.applyParams){
@@ -632,10 +632,10 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     }
     .xtra <- list(...);
     if (any(duplicated(names(.xtra)))){
-        stop("Duplicate arguments do not make sense.");
+        stop("duplicate arguments do not make sense");
     }
     if (any(names(.xtra)=="covs")){
-        stop("Covariates can no longer be specified by 'covs';\n  include them in the event dataset.\n\nIndividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\nTime varying covariates: modify input event data-frame or\n  eventTable to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the variable in the model\n");
+        stop("covariates can no longer be specified by 'covs'\n  include them in the event dataset\n\nindividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\ntime varying covariates: modify input event data-frame or\n  'eventTable' to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the variable in the model\n");
     }
     .nms <- names(as.list(match.call())[-1]);
     .lst <- list(...);
@@ -648,7 +648,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     .n2 <- c(.n1, setdiff(intersect(tolower(names(events)),tolower(names(.ctl$iCov))),"id"))
     .n1 <- unique(c(.n1, .n2))
     if (length(.n1) > 0){
-        stop(sprintf("iCov has information contained in parameters/event data;\nDuplicate columns: %s", paste(.n1, collapse=", ")));
+        stop(sprintf("'iCov' has information contained in parameters/event data\nduplicate columns: '%s'", paste(.n1, collapse="', '")));
     }
     if (!is.null(.pipelineThetaMat) && is.null(.ctl$thetaMat)){
         .ctl$thetaMat <- .pipelineThetaMat;
@@ -722,11 +722,11 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         .ctl$nSub <- length(.ctl$iCov[,1])
     } else if (.ctl$nSub !=1 && .ctl$nStud !=1 && inherits(.ctl$iCov, "data.frame")){
         if (.ctl$nSub !=length(.ctl$iCov[,1])){
-            stop("'nSub' does not match the number of subjects in iCov");
+            stop("'nSub' does not match the number of subjects in 'iCov'");
         }
     } else if (.ctl$nSub !=1 && !.ctl$nStud !=1 && inherits(.ctl$iCov, "data.frame")){
         if (.ctl$nSub*.ctl$nStud !=length(.ctl$iCov[,1])){
-            stop("'nSub'*'nStud' does not match the number of subjects in iCov");
+            stop("'nSub'*'nStud' does not match the number of subjects in 'iCov'");
         }
     }
     ## Prefers individual keep over keeping from the input data
@@ -1159,15 +1159,15 @@ confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...){
     class(.lst) <- "rxHidden";
     if (object$env$args$nStud <= 1){
         if (object$env$args$nSub < 2500){
-            warning("In order to put confidence bands around the intervals, you need at least 2500 simulations.")
-            message("Summarizing data")
+            warning("confidence bands need at least 2500 simulations")
+            message("summarizing data")
             .ret <- .stk %>% dplyr::group_by(time, trt) %>%
                 dplyr::do(data.frame(p1=.p, eff=stats::quantile(.$value, probs=.p))) %>%
                 dplyr::mutate(Percentile=factor(sprintf("%s%%",p1*100)))
             .cls <- c("rxSolveConfint1", class(.ret));
             attr(.cls, ".rx") <- .lst
             class(.ret) <- .cls
-            message("done.")
+            message("done")
             ## .ret <- ggplot2::ggplot(.ret,aes(time,eff,col=Percentile,fill=Percentile)) +
             ##     ggplot2::geom_line(size=1.2)
             return(.ret)
@@ -1177,14 +1177,14 @@ confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...){
     } else {
         .n <- object$env$args$nStud;
     }
-    message("Summarizing data")
+    message("summarizing data")
     .ret <- .stk %>% dplyr::mutate(id=sim.id%%.n) %>% dplyr::group_by(id,time,trt) %>%
         dplyr::do(data.frame(p1=.p, eff=stats::quantile(.$value, probs=.p))) %>%
         dplyr::group_by(p1, time, trt) %>%
         dplyr::do(data.frame(p2=.p, eff=stats::quantile(.$eff, probs=.p))) %>%
         dplyr::ungroup()  %>% dplyr::mutate(p2=sprintf("p%s",p2*100))%>%
         tidyr::spread(p2,eff) %>% dplyr::mutate(Percentile=factor(sprintf("%s%%",p1*100)));
-    message("done.")
+    message("done")
     .cls <- c("rxSolveConfint2", class(.ret));
     attr(.cls, ".rx") <- .lst
     class(.ret) <- .cls

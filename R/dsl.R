@@ -239,7 +239,7 @@ besselOp <- function(type){
                 return(paste0("exp(", z, ") * ", base));
             }
         } else {
-            stop(sprintf("The third argument for bessel_%s must be 1 (unscaled) or 2 (scaled).", type))
+            stop(sprintf("the third argument for bessel_%s must be 1 (unscaled) or 2 (scaled).", type))
         }
     }
 }
@@ -353,7 +353,7 @@ symengineC[["/"]] <- function(e1, e2){
 unknownCsymengine <- function(op){
     force(op)
     function(...){
-        stop(sprintf("RxODE doesn't support '%s' translation for Omega translation.", op));
+        stop(sprintf("RxODE doesn't support '%s' translation for 'omega' translation", op));
     }
 }
 
@@ -400,7 +400,7 @@ allNames <- function(x) {
         children <- lapply(x[-1], allNames)
         unique(unlist(children))
     } else {
-        stop("Don't know how to handle type ", typeof(x),
+        stop(sprintf("do not know how to handle type '%s'", typeof(x)),
              call. = FALSE)
     }
 }
@@ -415,7 +415,7 @@ allCalls <- function(x) {
     } else if (is.pairlist(x)) {
         unique(unlist(lapply(x[-1], allCalls), use.names = FALSE))
     } else {
-        stop("Don't know how to handle type ", typeof(x), call. = FALSE)
+        stop(sprintf("do not know how to handle type '%s'", typeof(x)), call. = FALSE)
     }
 }
 
@@ -445,7 +445,7 @@ evalPrints <- function(x, envir=parent.frame()){
         ## Call recurse_call recursively
         as.pairlist(lapply(x, evalPrints, envir=envir));
     } else { # User supplied incorrect input
-        stop("Don't know how to handle type ", typeof(x),
+        stop(sprintf("do not know how to handle type '%s'", typeof(x)),
              call. = FALSE)
     }
 }
@@ -456,7 +456,7 @@ unknownSymPy <- function(op){
         if (identical(c(...), c(0))){
             return(sprintf("rx_%s_ini_0__", op));
         } else {
-            stop(sprintf("RxODE doesn't know how to translate '%s' to SymPy.", op));
+            stop(sprintf("RxODE does not know how to translate '%s' to SymPy", op));
         }
     }
 }
@@ -484,7 +484,7 @@ unknownRx <- function(op){
                 }
             }
         }
-        stop(sprintf("RxODE doesn't know how to translate '%s' to a RxODE compatible function.", op));
+        stop(sprintf("RxODE does not know how to translate '%s' to a RxODE compatible function", op));
     }
 }
 
@@ -634,11 +634,11 @@ rxErrEnv.yj <- NULL;
 
 rxErrEnvF$lnorm <- function(est){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The lnorm(.) can only be in an error function.")
+        stop("'lnorm' can only be in an error function")
     }
     if (!is.null(rxErrEnv.lambda)){
         if (rxErrEnv.lambda != "0" && rxErrEnv.yj != "0"){
-            stop("The lnorm(.) cannot be used with other data transformations.")
+            stop("'lnorm' cannot be used with other data transformations")
         }
     }
     estN <- suppressWarnings(as.numeric(est));
@@ -666,11 +666,11 @@ rxErrEnvF$logn <- rxErrEnvF$lnorm
 
 rxErrEnvF$tbs <- function(lambda){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The tbs(.) can only be in an error function.")
+        stop("'tbs' can only be in an error function")
     }
     if (!is.null(rxErrEnv.lambda)){
         if (rxErrEnv.yj != "0" & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1"){
-            stop("The tbs(.) cannot be used with other data transformations.")
+            stop("'tbs' cannot be used with other data transformations")
         }
     }
     estN <- suppressWarnings(as.numeric(lambda));
@@ -692,11 +692,11 @@ rxErrEnvF$boxCox <- rxErrEnvF$tbs
 
 rxErrEnvF$tbsYj <- function(lambda){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The tbsYj(.) can only be in an error function.")
+        stop("'tbsYj' can only be in an error function")
     }
     if (!is.null(rxErrEnv.lambda)){
         if (rxErrEnv.yj != "1" & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1"){
-            stop("The tbsYj(.) cannot be used with other data transformations.")
+            stop("'tbsYj' cannot be used with other data transformations")
         }
     }
     estN <- suppressWarnings(as.numeric(lambda));
@@ -718,7 +718,7 @@ rxErrEnvF$yeoJohnson <- rxErrEnvF$tbsYj
 
 rxErrEnvF$add <- function(est){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The add(.) can only be in an error function.")
+        stop("'add' can only be in an error function")
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
@@ -741,10 +741,10 @@ rxErrEnvF$add <- function(est){
 rxErrEnvF$norm <- rxErrEnvF$add
 rxErrEnvF$dnorm <- rxErrEnvF$add
 
-rxErrEnvF$"for" <- function(...){stop("'for' is not supported (yet).")}
+rxErrEnvF$"for" <- function(...){stop("'for' is not supported")}
 rxErrEnvF$`return` <- function(est){
     if (rxErrEnv.ret == ""){
-        stop("The PK function should not return anything.")
+        stop("function 'PK' should not return anything")
     }
     .extra <- ""
     force(est)
@@ -788,7 +788,7 @@ rxErrEnvF$`==`  <- binaryOp(" == ")
 
 rxErrEnvF$prop <- function(est){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The prop(.) can only be in an error function.")
+        stop("'prop' can only be in an error function")
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
@@ -809,7 +809,7 @@ rxErrEnvF$prop <- function(est){
 
 rxErrEnvF$pow <- function(est, pow){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The pow(.) can only be in an error function.")
+        stop("'pow' can only be in an error function")
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
@@ -843,9 +843,9 @@ rxErrEnv <- function(expr){
     n1 <- names;
     n2 <- names;
     n2[n2 == "time"] <- "t";
-    if (any(n2 == "err")){stop("Use return() for errors.")}
-    if (any(n2 == "error")){stop("Use return() for errors.")}
-    if (any(n2 == "rx_r")){stop("Use return() for errors.")}
+    if (any(n2 == "err")){stop("use 'return' for errors")}
+    if (any(n2 == "error")){stop("use 'return' for errors")}
+    if (any(n2 == "rx_r")){stop("use 'return' for errors")}
     ## n2[n2 == "err"] <- "rx_r_";
     ## n2[n2 == "error"] <- "rx_r_";
     n2[n2 == "f"] <- "rx_pred_f_";
@@ -885,10 +885,10 @@ rxParsePred <- function(x, init=NULL, err=NULL){
             if (length(.prd) == length(.errs)){
                 .prd <- .prd[names(.errs)];
                 if (any(is.na(.prd))){
-                    stop("The errors and predictions need to have the same conditions (if/then statements).")
+                    stop("the errors and predictions need to have the same conditions (if/then statements)")
                 }
             } else if (length(.errs) != 1){
-                stop("Do not know how to handle this error/pred combination")
+                stop("do not know how to handle this error/pred combination")
             }
         }
         .ret <- sapply(seq(1, max(length(.errs), length(.prd))), function(en){
@@ -960,7 +960,7 @@ rxParseErr <- function(x, base.theta, ret="rx_r_", init=NULL){
         ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(quote({%s}))", x)));
         ret <- substring(ret, 3, nchar(ret) - 2)
         if (regexpr("else if", ret) != -1){
-            stop("else if expressions not supported (yet).");
+            stop("else if expressions not supported");
         }
         assignInMyNamespace("rxErrEnv.diag.est", c());
         assignInMyNamespace("rxErrEnv.theta", 1)
@@ -988,7 +988,7 @@ rxParseErr <- function(x, base.theta, ret="rx_r_", init=NULL){
         assignInMyNamespace("rxErrEnv.ret", "rx_r_");
         assignInMyNamespace("rxErrEnv.init", NULL);
         if (regexpr("else if", ret) != -1){
-            stop("else if expressions not supported (yet).");
+            stop("else if expressions not supported");
         }
         return(ret);
     }

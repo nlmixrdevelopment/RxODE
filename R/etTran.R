@@ -58,19 +58,19 @@
         .idData <- .idData[order(.idData[[.w]]), ];
         .idData <- .idData[, -.w, drop = FALSE];
         if (length(.idData[, 1]) == 0){
-            stop(sprintf("There are no IDs left to solve in %s data", type))
+            stop(sprintf("there are no individuals left to solve in %s data", type))
         }
         if (.wrn != "") warning(.wrn)
         return(.idData)
     } else if (length(.w) == 0L) {
         if (length(idData[, 1]) > 1){
             if (warnIdSort && .warnIdSort0 && .nid > 1)
-                warning(sprintf("ID missing in %s dataset;\n Parameters are assumed to have the same order as the IDs in the event dataset", type));
+                warning(sprintf("'ID' missing in '%s' dataset\nindividual parameters are assumed to have the same order as the event dataset", type));
         }
         return(as.data.frame(idData));
     } else {
         if (length(idData[, 1]) > 1){
-            warning(sprintf("Unable to detect ID correctly in %s dataset\nParameters are assumed to have the same order as the IDs", type));
+            warning(sprintf("unable to detect 'ID' correctly in '%s' dataset\nindividual parameters are assumed to have the same order as the dataset", type));
         }
         .idData <- idData[, -.w, drop = FALSE];
         return(as.data.frame(.idData));
@@ -165,7 +165,7 @@
     }
     if (do.date){
         if (any(is.na(d$DATE.TIME))){
-            stop("The date time format was not correctly specified")
+            stop("date/time format was not correctly specified")
         }
     }
     if (do.date){
@@ -184,7 +184,7 @@
         d <- d[, -which(names(d) == "DATE.TIME")];
     }
     if (is(d$TIME, "numeric") || is(d$TIME, "integer")) return(d)
-    stop("Cannot figure out a numeric time")
+    stop("cannot figure out numeric time")
 }
 
 ## nocov start

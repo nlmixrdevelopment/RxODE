@@ -278,7 +278,7 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
     }
     if (!missing(by)){
         if (!missing(length.out)){
-            stop("Cannot supply 'by' and 'length.out', only use one.");
+            stop("cannot supply both 'by' and 'length.out'");
         }
         .lst <- .lst[names(.lst) != "by"];
         .lst <- .lst[names(.lst) != "envir"];
@@ -351,7 +351,7 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
         .len <- sum(names(.lst)=="");
         if (.len==2 && is(.lst[[2]], "character")){
         } else if (.len > 1){
-            stop("Improper arguments to et(); Can be like seq or call out dosing elements.")
+            stop("improper arguments to 'et'")
         }
     } else {
         if (all(names(.lst)[-1]=="") && length(.lst)==3){
@@ -368,7 +368,7 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
         if (.len==2 && is(.lst[[3]], "character")){
         } else if (.len > 1){
             if (sum(names(.lst)[-1]=="") > 1){
-                stop("Improper arguments to et(); Can be like seq or call out dosing elements.")
+                stop("improper arguments to 'et'")
             }
         }
     }
@@ -387,7 +387,7 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
             } else {
                 .evid0  <- suppressWarnings(try(as.numeric(evid),silent=TRUE));
                 if (inherits(.evid, "try-error")){
-                    stop(sprintf("Only a single evid 'evid' can be specified ('%s').",
+                    stop(sprintf("only a single evid 'evid' can be specified ('%s')",
                                  paste(.evid, collapse="', '")));
                 } else {
                     .evid  <- .evid0
@@ -441,7 +441,7 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
             } else {
                 .cmt0  <- suppressWarnings(try(as.numeric(cmt),silent=TRUE));
                 if (inherits(.cmt, "try-error")){
-                    stop(sprintf("Only a single compartment 'cmt' can be specified ('%s').",
+                    stop(sprintf("only a single compartment 'cmt' can be specified ('%s')",
                                  paste(.cmt, collapse="', '")));
                 } else {
                     .cmt  <- .cmt0
@@ -467,7 +467,7 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
             } else {
                 .rate0  <- suppressWarnings(try(as.numeric(rate),silent=TRUE));
                 if (inherits(.rate, "try-error")){
-                    stop(sprintf("Only a single rate 'rate' can be specified ('%s').",
+                    stop(sprintf("only a single rate 'rate' can be specified ('%s')",
                                  paste(.rate, collapse="', '")));
                 } else {
                     .rate  <- .rate0
@@ -501,7 +501,7 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
             } else {
                 .dur0  <- suppressWarnings(try(as.numeric(dur),silent=TRUE));
                 if (inherits(.dur, "try-error")){
-                    stop(sprintf("Only a single duration 'dur' can be specified ('%s').",
+                    stop(sprintf("Only a single duration 'dur' can be specified ('%s')",
                                  paste(.dur, collapse="', '")));
                 } else {
                     .dur  <- .dur0
@@ -648,10 +648,10 @@ set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units
     else if (mode == "symbols") {
         value <- substitute(value)
         if (is.numeric(value) && !identical(value, 1) && !identical(value, 1L))
-            stop("The only valid number defining a unit is '1', signifying a unitless unit")
+            stop("the only valid number defining a unit is '1', signifying a unitless unit");
     }
     if (identical(value, units::unitless)){
-        warning("Clearing both amount and time units; For more precise control use et(amountUnits=\"\") or et(timeUnits=\"\")")
+        warning("clearing both amount and time units\nfor more precise control use 'et(amountUnits=\"\")' or 'et(timeUnits=\"\")'")
         return(suppressWarnings({.Call(`_RxODE_et_`, list(amountUnits="", timeUnits=""), x)}))
     } else {
         if (!rxIs(value, "character")) value <- deparse(value);
@@ -996,7 +996,7 @@ etRbind <- function(...,samples=c("use", "clear"),waitII=c("smart", "+ii"),
 ##'@rdname etRbind
 ##'@export
 rbind.rxEt <- function(..., deparse.level = 1){
-    if (!missing(deparse.level)) warning("deparse.level not used with RxODE event tables");
+    if (!missing(deparse.level)) warning("'deparse.level' not used with RxODE event tables");
     do.call(etRbind,list(...));
 }
 

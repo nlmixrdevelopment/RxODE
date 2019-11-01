@@ -30,11 +30,11 @@ rxValidate <- function(type=NULL){
         pt <- proc.time();
         testthat::test_dir(path);
         message("================================================================================")
-        message("Timing of CRAN tests (should be under 60 seconds)")
+        message("timing of CRAN tests (should be under 60 seconds)")
         message("================================================================================")
         print(proc.time() - pt);
         message("================================================================================")
-        message("Normal tests")
+        message("normal tests")
         message("================================================================================")
         Sys.setenv("NOT_CRAN"="true")
         testthat::test_dir(path);

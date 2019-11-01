@@ -157,7 +157,8 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
                     if (.exists){
                         return(.rtoolsBase)
                     } else if (file.exists(.rtools)) {
-                        message("gcc available, assuming it comes from rtools...\nRxODE may not work with other compilers.\n")
+                        message("'gcc' available, assuming it comes from 'rtools'");
+                        message("RxODE may not work with other compilers")
                         return(.rtools)
                     } else {
                         if (is.na(retry)) return(FALSE)
@@ -165,7 +166,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
                             return(NULL)
                         }
                         if (retry){
-                            stop("This package requires Rtools!\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding.")
+                            stop("RxODE requires 'Rtools'\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding")
                         }
                         try({installr::install.Rtools()});
                         return(.rxRtoolsBaseWin(retry=TRUE))
@@ -277,6 +278,6 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
 ##' @export
 rxWinSetup <- function(rm.rtools=TRUE){
     if (!.rxWinRtoolsPath(rm.rtools)){
-        message("This package requires Rtools!\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding.\n");
+        message("RxODE requires 'rtools'\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding\n");
     }
 }

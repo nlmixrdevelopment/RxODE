@@ -8,8 +8,6 @@
             if (.new == .rxOptEnv$.exclude){
                 return(.ret)
             } else {
-                ## message(sprintf("%s->%s", .ret, .new))
-                ## print(.rxOptEnv$.rep)
                 .rxOptEnv$.new <- c(.rxOptEnv$.new, .new);
                 return(.new)
             }
@@ -40,8 +38,6 @@
             if (.new == .rxOptEnv$.exclude){
                 return(.ret)
             } else {
-                ## message(sprintf("%s->%s", .ret, .new))
-                ## print(.rxOptEnv$.rep)
                 .rxOptEnv$.new <- c(.rxOptEnv$.new, .new);
                 return(.new)
             }
@@ -235,7 +231,7 @@ rxOptExpr <- function(x, msg="model"){
     .rxOptEnv$.rep <- list();
     .rxOptEnv$.added <- c();
     .rxOptEnv$.exclude <- "";
-    message(paste0("Finding duplicate expressions in ", msg, "..."))
+    message(sprintf("finding duplicate expressions in %s...", msg))
     .p <- eval(parse(text=paste0("quote({", x, "})")))
     .lines <- ..rxOpt(.p, progress=TRUE)
     .rxOptEnv$.list <- .rxOptEnv$.list[which(unlist(.rxOptEnv$.list) > 1L)];
@@ -251,7 +247,7 @@ rxOptExpr <- function(x, msg="model"){
         .rp <- rxOptRep_(.exprs)
         .rxOptEnv$.rep <- as.list(.rp[[1]]);
         .rxOptEnv$.exclude <- ""
-        message(paste0("Optimizing duplicate expressions in ", msg, "..."))
+        message("optimizing duplicate expressions in %s...", msg)
         .opt <- ..rxOpt(.p, progress=TRUE);
         ## .w <- which(regexpr(rex::rex("rx_expr_", numbers), .opt) != -1);
         ## .pre <- NULL;

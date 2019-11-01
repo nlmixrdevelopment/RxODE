@@ -31,7 +31,7 @@ type_sum.mixed_units <- loadNamespace("units")$type_sum.mixed_units
 pillar_shaft.mixed_units <- loadNamespace("units")$pillar_shaft.mixed_units
 function(x, ...) {
   if (! requireNamespace("pillar", quietly = TRUE))
-    stop("package pillar not available: install first?")
+    stop("package 'xpillar' not available")
   out <- format(x, ...)
   pillar::new_pillar_shaft_simple(out, align = "right", min_width = 6)
 }

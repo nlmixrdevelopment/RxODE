@@ -52,7 +52,7 @@ rxShiny <- function(object,params = c(), events = NULL, inits = c(), ..., data=d
 rxShiny.rxSolve <- function(object,params = NULL, events = NULL, inits = c(), ..., data=data.frame()){
     if (is.null(params)){
         if (dim(object$params)[1] > 1){
-            warning("Using the first solved parameters for rxShiny")
+            warning("using the first solved parameters for rxShiny")
         }
         params <- setNames(unlist(object$params[1, ]), names(object$params))
     }

@@ -22,7 +22,7 @@ findLhs <- function(x) {
     } else if (is.pairlist(x)) {
         unique(unlist(lapply(x, RxODE::findLhs)))
     } else {
-        stop("Don't know how to handle type ", typeof(x),
+        stop(sprintf("do not know how to handle type '%s'", typeof(x)),
              call. = FALSE)
     }
 }
@@ -105,7 +105,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .vars <- .vars[is.na(.linCmt)];
             .linCmt <- .linCmt[!is.na(.linCmt)];
             if (length(.linCmt) > 1){
-                stop("Can't figure out what compartment the solved system will be put into.")
+                stop("cannot figure out the solved system compartment")
             } else if (length(.linCmt) == 0){
                 .tmp <- rxState(modText);
                 .w <- which(.tmp=="depot");
@@ -164,7 +164,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
                 if (length(.w) == 1){
                     return(.vars[.w])
                 } else {
-                    stop(sprintf("Requires parameter '%s'.", var))
+                    stop(sprintf("requires parameter '%s'", var))
                 }
             } else {
                 i <- 1;
@@ -175,7 +175,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
                     }
                     i <- i + 1;
                 }
-                stop(sprintf("Requires one of the following parameters: '%s'.", paste(var, collapse="', '")));
+                stop(sprintf("requires one of the following parameters: '%s'", paste(var, collapse="', '")));
             }
         }
         .lines <- c();
@@ -187,7 +187,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
         }
         .rateDepot  <- which(regexpr(.regRateDepot,.txt)!=-1)
         if (length(.rateDepot)>=1L){
-            stop("rate(depot) does not work with a solved linear system");
+            stop("'rate(depot)' does not work with a solved linear system");
         }
         .rateCenter  <- which(regexpr(.regRateCenter, .txt) !=-1)
         if (length(.rateCenter)==1L){
@@ -195,13 +195,13 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .txt <- .txt[-.rateCenter];
             .lines[length(.lines)+1]  <- sub(.regRateCenter,"rx_rate ~ \\1", .tmp);
         } else if (length(.rateCenter)>1L) {
-            stop("Can only specify rate(central) once");
+            stop("can only specify 'rate(central)' once");
         } else {
             .lines[length(.lines) + 1]  <- sprintf("rx_rate ~ 0")
         }
         .durDepot  <- which(regexpr(.regDurDepot,.txt)!=-1)
         if (length(.durDepot)>=1L){
-            stop("dur(depot) does not work with a solved linear system");
+            stop("'dur(depot)' does not work with a solved linear system");
         }
         .durCenter  <- which(regexpr(.regDurCenter, .txt) !=-1)
         if (length(.durCenter)==1L){
@@ -209,14 +209,14 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .txt <- .txt[-.durCenter];
             .lines[length(.lines)+1]  <- sub(.regDurCenter,"rx_dur ~ \\1", .tmp);
         } else if (length(.durCenter)>1L) {
-            stop("Can only specify dur(central) once");
+            stop("can only specify 'dur(central)' once");
         } else {
             .lines[length(.lines) + 1]  <- sprintf("rx_dur ~ 0")
         }
         .iniDepot  <- which(regexpr(.regIniDepot, .txt)!=-1);
-        if (length(.iniDepot)!=0L) stop("depot(0) is not supported in the solved system, use an ODE.");
+        if (length(.iniDepot)!=0L) stop("'depot(0)' is not supported in the solved system, use an ODE");
         .iniCenter  <- which(regexpr(.regIniCenter, .txt)!=-1);
-        if (length(.iniCenter)!=0L) stop("central(0) is not supported in the solved system use an ODE.");
+        if (length(.iniCenter)!=0L) stop("'central(0)' is not supported in the solved system, use an ODE");
         .lagDepot  <- which(regexpr(.regLagDepot,.txt)!=-1)
         if (length(.lagDepot)==1L){
             .tmp <- .txt[.lagDepot];
@@ -224,10 +224,10 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             if (.oral){
                 .lines[length(.lines)+1]  <- sub(.regLagDepot,"rx_tlag ~ \\1", .tmp);
             } else {
-                stop("lag(depot) does not exist without a depot compartment, specify a 'ka' parameter");
+                stop("'lag(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter");
             }
         } else if (length(.lagDepot)>1L){
-            stop("lag(depot) cannot be duplicated in a model");
+            stop("'lag(depot)' cannot be duplicated in a model");
         } else {
             if (.oral){
                 .lines[length(.lines) + 1]  <- sprintf("rx_tlag ~ 0")
@@ -244,7 +244,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
                 .lines[length(.lines) + 1]  <- sprintf("rx_tlag2 ~ 0")
             }
         } else if (length(.lagCenter)>1L) {
-            stop("Can only specify lag(central) once.");
+            stop("can only specify 'lag(central)' once");
         } else {
             if (.oral){
                 .lines[length(.lines) + 1]  <- sprintf("rx_tlag2 ~ 0")
@@ -260,10 +260,10 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             if (.oral){
                 .lines[length(.lines)+1]  <- sub(.regFdepot,"rx_F ~ \\1", .tmp);
             } else {
-                stop("f(depot) does not exist without a depot compartment, specify a 'ka' parameter");
+                stop("'f(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter");
             }
         } else if (length(.fDepot)>1L){
-            stop("f(depot) cannot be duplicated in a model");
+            stop("'f(depot)' cannot be duplicated in a model");
         } else {
             if (.oral){
                 .lines[length(.lines) + 1]  <- sprintf("rx_F ~ 1")
@@ -280,7 +280,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
                 .lines[length(.lines) + 1]  <- sprintf("rx_F2 ~ 1")
             }
         } else if (length(.fCenter)>1L) {
-            stop("Can only specify f(central) once.");
+            stop("can only specify 'f(central)' once");
         } else {
             if (.oral){
                 .lines[length(.lines) + 1]  <- sprintf("rx_F2 ~ 1")
@@ -295,32 +295,32 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .hasVt  <- any(regexpr("^(VT[1-9]*)$", .varsUp)!=-1);
             .hasVn  <- any(regexpr("^V[1-9]+$", .varsUp)!=-1);
             if (.hasVp && .hasVn){
-                stop("Cannot mix Vp and V#");
+                stop("cannot mix 'Vp' and 'V#'");
             }
             if (.hasVt && .hasVn){
-                stop("Cannot mix Vt and V#");
+                stop("cannot mix 'Vt' and 'V#'");
             }
             if (.hasVp && .hasVt){
-                stop("Cannot mix Vp and Vt");
+                stop("cannot mix 'Vp' and 'Vt'");
             }
             if (any(.varsUp=="VP2") && !any(.varsUp=="VP")){
-                stop("Defined VP2 without VP");
+                stop("defined 'VP2' without 'VP'");
             }
             if (any(.varsUp=="VT2") && !any(.varsUp=="VT")){
-                stop("Defined VT2 without VT");
+                stop("defined 'VT2' without 'VT'");
             }
             if (any(.varsUp=="CLD2") && !any(.varsUp=="CLD")){
-                stop("Defined CLD2 without CLD");
+                stop("defined 'CLD2' without 'CLD'");
             }
             .hasQ  <- any(regexpr("^(Q[1-9]*)$", .varsUp)!=-1);
             .hasCld  <- any(regexpr("^(CLD[1-9]*)$", .varsUp)!=-1);
             if (.hasQ && .hasCld){
-                stop("Cannot mix Q and Cld")
+                stop("cannot mix 'Q' and 'Cld'")
             }
             .cl <- .getVar("CL");
             .v <- .getVar(c("V", "VC", .vs[1]));
             if (toupper(.v)=="V" && any(.varsUp=="VC")){
-                stop(sprintf("Ambiguous %s/%s specification", .v, .getVar("VC")))
+                stop(sprintf("ambiguous '%s'/'%s' specification", .v, .getVar("VC")))
             }
             if (toupper(.v) !=.vs[1]){
                 .vs <- c(.v, .vs);
@@ -336,14 +336,14 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
                 .vss <- .getVar("VSS");
                 .hasVss <- TRUE
                 if (.hasVp){
-                    stop("Cannot define Vp with a VSS defined");
+                    stop("cannot define 'Vp' with a 'VSS' defined");
                 }
                 if (.hasVt){
-                    stop("Cannot define Vt with a VSS defined");
+                    stop("cannot define 'Vt' with a 'VSS' defined");
                 }
                 .tmp <- .varsUp[.varsUp != toupper(.v)];
                 if (any(regexpr("^V[0-9]*$", .tmp)!=-1)){
-                    stop("Cannot have Volumes other than Vss and central volume defined.");
+                    stop("cannot have volumes other than 'Vss' and central volume defined");
                 }
                 .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s", .Q);
                 .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s", .vss);
@@ -378,13 +378,13 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
                 .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s", .Q);
                 .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s", .v2);
             } else if (any(.varsUp==.qs[1])){
-                stop(sprintf("Defined '%s' without corresponding volume", .qs[1]));
+                stop(sprintf("defined '%s' without corresponding volume", .qs[1]));
             } else if (any(.varsUp=="CLD")){
-                stop("Defined 'CLD' without corresponding volume");
+                stop("defined 'CLD' without corresponding volume");
             }
             if (any(.varsUp == toupper(.vs[3]))){
                 if (.hasVss){
-                    stop("Vss only supported with 2 compartment models.")
+                    stop("'Vss' only supported with 2 compartment models")
                 }
                 .ncmt <- 3;
                 .trans <- 1;
@@ -394,7 +394,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
                 .lines[length(.lines) + 1] <- sprintf("rx_p5 ~ %s", .v3);
             } else if (any(.varsUp=="VP2")){
                 if (.hasVss){
-                    stop("Vss only supported with 2 compartment models")
+                    stop("'Vss' only supported with 2 compartment models")
                 }
                 .ncmt <- 3;
                 .trans <- 1
@@ -404,7 +404,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
                 .lines[length(.lines) + 1] <- sprintf("rx_p5 ~ %s", .v3);
             } else if (any(.varsUp == "VT2")) {
                 if (.hasVss){
-                    stop("Vss only supported with 2 compartment models")
+                    stop("'Vss' only supported with 2 compartment models")
                 }
                 .ncmt <- 3;
                 .trans <- 1
@@ -414,20 +414,20 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
                 .lines[length(.lines) + 1] <- sprintf("rx_p5 ~ %s", .v3);
             } else if (any(.varsUp==.qs[2])){
                 if (.hasVss){
-                    stop("Vss only supported with 2 compartment models")
+                    stop("'Vss' only supported with 2 compartment models")
                 }
                 stop(sprintf("Defined '%s' without corresponding volume", .qs[2]));
             } else if (any(.varsUp=="CLD2")){
-                stop("Defined 'CLD2' without corresponding volume");
+                stop("defined 'CLD2' without corresponding volume");
             }
         } else if (any(.varsUp == "K") || any(.varsUp == "KE") || any(.varsUp == "KEL")) {
             .k <- .getVar(c("K", "KE", "KEL"))
             .v <- .getVar(c("V", "VC", .vs[1]));
             if (toupper(.v)=="V" && any(.varsUp=="VC")){
-                stop(sprintf("Ambiguous %s/%s specification", .v, .getVar("VC")))
+                stop(sprintf("ambiguous '%s'/'%s' specification", .v, .getVar("VC")))
             }
             if (toupper(.v)=="VC" && any(.varsUp==.vs[1])){
-                stop(sprintf("Ambiguous %s/%s specification", .v, .getVar(.vs[1])))
+                stop(sprintf("ambiguous '%s'/'%s' specification", .v, .getVar(.vs[1])))
             }
             if (toupper(.v) !=.vs[1]){
                 .vs <- c(.v, .vs);
@@ -445,7 +445,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             }
             if (any(.varsUp == "K13") || any(.varsUp=="K31")){
                 if (.ncmt !=2){
-                    stop("K12 and K21 need to be defined for a 3 compartment model.");
+                    stop("'K12' and 'K21' need to be defined for a 3 compartment model");
                 }
                 .ncmt <- 3;
                 .k13 <- .getVar("K13")
@@ -459,10 +459,10 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .trans <- 5
             .v <- .getVar(c("V", "VC", .vs[1]));
             if (toupper(.v)=="V" && any(.varsUp=="VC")){
-                stop(sprintf("Ambiguous %s/%s specification", .v, .getVar("VC")))
+                stop(sprintf("ambiguous '%s'/'%s' specification", .v, .getVar("VC")))
             }
             if (toupper(.v)=="VC" && any(.varsUp==.vs[1])){
-                stop(sprintf("Ambiguous %s/%s specification", .v, .getVar(.vs[1])))
+                stop(sprintf("ambiguous '%s'/'%s' specification", .v, .getVar(.vs[1])))
             }
             if (toupper(.v) !=.vs[1]){
                 .vs <- c(.v, .vs);
@@ -482,10 +482,10 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .beta <- .getVar("BETA");
             .v <- .getVar(c("V", "VC", .vs[1]));
             if (toupper(.v)=="V" && any(.varsUp=="VC")){
-                stop(sprintf("Ambiguous %s/%s specification", .v, .getVar("VC")))
+                stop(sprintf("ambiguous '%s'/'%s' specification", .v, .getVar("VC")))
             }
             if (toupper(.v)=="VC" && any(.varsUp==.vs[1])){
-                stop(sprintf("Ambiguous %s/%s specification", .v, .getVar(.vs[1])))
+                stop(sprintf("ambiguous '%s'/'%s' specification", .v, .getVar(.vs[1])))
             }
             if (toupper(.v) !=.vs[1]){
                 .vs <- c(.v, .vs);
@@ -503,27 +503,27 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .v <- .getVar(c("V", "VC", .vs[1]));
             .alpha <- .getVar("ALPHA");
             if (toupper(.v)=="V" && any(.varsUp=="VC")){
-                stop(sprintf("Ambiguous %s/%s specification", .v, .getVar("VC")))
+                stop(sprintf("ambiguous '%s'/'%s' specification", .v, .getVar("VC")))
             }
             if (toupper(.v)=="VC" && any(.varsUp==.vs[1])){
-                stop(sprintf("Ambiguous %s/%s specification", .v, .getVar(.vs[1])))
+                stop(sprintf("ambiguous '%s'/'%s' specification", .v, .getVar(.vs[1])))
             }
             if (any(.varsUp=="GAMMA")){
-                stop("A gamma parameter requires A/B/C and alpha/beta");
+                stop("A 'gamma' parameter requires 'A'/'B'/'C' and 'alpha'/'beta'");
             }
             if (any(.varsUp=="K21")){
-                stop("K21 requires a beta parameter.")
+                stop("'K21' requires a beta parameter")
             }
             if (any(.varsUp=="AOB")){
-                stop("AOB requires a beta parameter.")
+                stop("'AOB' requires a beta parameter")
             }
             if (any(.varsUp=="BETA")){
-                stop("Beta requires AOB or K21 parameter.");
+                stop("'Beta' requires 'AOB' or 'K21' parameter");
             }
             .lines[length(.lines) + 1] <- sprintf("rx_v1 ~ %s", .v);
             .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s", .alpha);
         } else {
-            stop("Could not figure out the linCmt() from the defined parameters.")
+            stop("could not figure out the 'linCmt' from the defined parameters")
         }
         if (.isDirect){
             .alpha <- .getVar("ALPHA");
@@ -552,7 +552,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
                 }
             } else {
                 if (any(.varsUp=="GAMMA") || any(.varsUp=="C")){
-                    stop("A three compartment model requires BETA/B");
+                    stop("a three compartment model requires 'BETA'/'B'");
                 }
                 ## 1 cmt
                 .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s", .alpha);
@@ -584,6 +584,6 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
         ## Put in extra compartment information
         return(rxGetModel(.txt))
     } else {
-        stop("Can only have one linCmt() function in the model.  Assign it to a variable if you need the concentrations more than once.");
+        stop("can only have one 'linCmt'() function in the model");
     }
 }

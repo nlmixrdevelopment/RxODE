@@ -70,7 +70,7 @@ rxExpandGrid <- function(x, y, type=0L){
 }
 
 ## Assumes .rxJacobian called on model c(state,vars)
-.rxSens <- function(model, vars, vars2, msg="Calculate Sensitivites"){
+.rxSens <- function(model, vars, vars2){
     .state <- rxState(model);
     if (length(.state) > 0L){
         if (missing(vars)) vars <- get("..vars", envir=model);
@@ -79,7 +79,7 @@ rxExpandGrid <- function(x, y, type=0L){
         } else {
             .grd <- rxExpandSens_(.state, vars);
         }
-        message(msg);
+        message("calculate sensitivities");
         rxProgress(dim(.grd)[1]);
         on.exit({rxProgressAbort()});
         lapply(c(.grd$ddtS, .grd$ddS2), function(x){
@@ -120,7 +120,7 @@ rxExpandGrid <- function(x, y, type=0L){
     .tmp <- suppressWarnings({find(deparse(substitute(x)))})
     if (!identical(.tmp, character())){
         if (!any(.tmp == .goodFns)){
-            stop(sprintf("%s is from %s and can't be used in this context.", deparse(substitute(x)), .tmp))
+            stop(sprintf("'%s' is from '%s' and cannot be used in this context", deparse(substitute(x)), .tmp))
         }
     }
 }
@@ -180,10 +180,10 @@ rxExpandGrid <- function(x, y, type=0L){
                 .inis <- paste(paste0(rxState(rx), "(0)=", inis, "+0.0;"), collapse="\n");
                 .txt[w] <- .inis;
             } else {
-                stop("Specified %s initial conditions when there are only %s states.", length(.inis), length(rxState(rx)));
+                stop("specified %s initial conditions when there are only %s states", length(.inis), length(rxState(rx)));
             }
         } else if (length(.w) > 1){
-            stop("Multiple initCondition= found.  Please choose one.");
+            stop("only one 'initCondition=' supported");
         }
         .newmod <- rxGetModel(paste0(paste(.txt, collapse="\n"), "\n", rxNorm(rx)));
         return(.newmod);
@@ -221,13 +221,22 @@ rxExpandGrid <- function(x, y, type=0L){
     return(list(.full, .extraPars));
 }
 
-.rxLoadPrune <- function(mod, doConst=TRUE, promoteLinSens=TRUE, extra=""){
-    message(sprintf("Pruning branches%s...", ifelse(extra == "", "", paste0(" of ", extra))),
-            appendLF=FALSE)
+.rxLoadPrune <- function(mod, doConst=TRUE, promoteLinSens=TRUE, fullModel=FALSE){
+    if (fullModel){
+        message(sprintf("pruning branches of full model...",
+            appendLF=FALSE));
+    } else {
+        message(sprintf("pruning branches...",
+            appendLF=FALSE))
+    }
     .newmod <-rxGetModel(rxPrune(mod));
-    message("done.")
+    message("done")
     ## message("Loading into symengine environment...", appendLF=FALSE)
-    message(sprintf("Loading %sinto symengine environment", ifelse(extra == "", "", paste0(extra, " "))));
+    if (fullModel){
+        message(sprintf("loading full model into symengine environment"));
+    } else {
+        message(sprintf("loading into symengine environment"))
+    }
     .newmod <- rxS(.newmod, doConst, promoteLinSens=promoteLinSens);
     ## message("done.")
     return(.newmod)
@@ -247,14 +256,14 @@ rxExpandGrid <- function(x, y, type=0L){
     .checkGood(pkpars);
     .checkGood(errfn);
     ## Probably need assignInMyNamespace...
-    message("Creating full model...", appendLF=FALSE)
+    message("creating full model...", appendLF=FALSE)
     .stateInfo <- .rxGenFunState(obj);
     .newmod <- .rxGenPkpars(obj, pkpars, init);
     .newmod <- .rxGenPred(.newmod, predfn, errfn, init);
     .extraPars <- .newmod[[2]]
     .newmod <- .newmod[[1]]
-    .newmod <- .rxLoadPrune(.newmod, promoteLinSens=promoteLinSens, extra="full model")
-    message("done.")
+    .newmod <- .rxLoadPrune(.newmod, promoteLinSens=promoteLinSens, )
+    message("done")
     .newmod$..stateInfo <- .stateInfo
     .newmod$..extraPars <- .extraPars
     return(.newmod)
@@ -276,7 +285,7 @@ rxExpandGrid <- function(x, y, type=0L){
         .etaVars <- paste0("ETA_", seq(1, .s$..maxEta), "_")
     }
     if (length(.etaVars) == 0L){
-        stop("Cannot identify pararmeters for senstivity analysis.");
+        stop("cannot identify parameters for sensitivity analysis");
     }
     .stateVars <- rxState(.s)
     .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
@@ -325,10 +334,10 @@ rxExpandGrid <- function(x, y, type=0L){
         return(.ret);
     })
     if (.all.zero){
-        stop("None of the predictions depend on the ETAs")
+        stop("none of the predictions depend on 'ETA'")
     }
     if (.any.zero){
-        warning("Some of the predictions do not depend on ETAs.")
+        warning("some of the predictions do not depend on 'ETA'")
     }
     .s$..HdEta <- .ret;
     .s$..pred.minus.dv <- pred.minus.dv;
@@ -379,7 +388,7 @@ rxExpandGrid <- function(x, y, type=0L){
                                .s$..stateInfo["dvid"],
                                ""), collapse="\n")
     if (sum.prod){
-        message("Stabilizing round off errors in Predictions/EBE model...", appendLF=FALSE);
+        message("stabilizing round off errors in predictions or EBE model...", appendLF=FALSE);
         .s$..pred <- rxSumProdModel(.s$..pred);
         message("done");
     }
@@ -419,7 +428,7 @@ rxExpandGrid <- function(x, y, type=0L){
                           .s$..stateInfo["dvid"],
                           ""), collapse="\n")
     if (sum.prod){
-        message("Stabilizing round off errors in inner problem...", appendLF=FALSE);
+        message("stabilizing round off errors in inner problem...", appendLF=FALSE);
         .s$..inner <- rxSumProdModel(.s$..inner);
         message("done");
     }
@@ -597,15 +606,15 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
         }
     }
     pred.opt <- NULL
-    inner <- .toRx(.s$..inner, "Compiling inner model...");
+    inner <- .toRx(.s$..inner, "compiling inner model...");
     if (any(.eventEta == 1L) && !is.null(inner)){
         if (sum.prod){
-            message("Stabilizing round off errors in Events FD model...", appendLF=FALSE);
+            message("stabilizing round off errors in events FD model...", appendLF=FALSE);
             .s$..pred.nolhs <- rxSumProdModel(.s$..pred.nolhs);
             message("done");
         }
         if (optExpression){
-            .s$..pred.nolhs <- rxOptExpr(.s$..pred.nolhs, "Events FD model")
+            .s$..pred.nolhs <- rxOptExpr(.s$..pred.nolhs, "events FD model")
         }
         .s$..pred.nolhs <- paste(c(paste0("rx_dum_", seq_along(inner$params), "~", inner$params),
                                    .s$..pred.nolhs), collapse="\n");
@@ -613,10 +622,10 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
     }
     .ret <- list(obj=obj,
                  inner=inner,
-                 pred.only=.toRx(.s$..pred, "Compiling EBE model..."),
+                 pred.only=.toRx(.s$..pred, "compiling EBE model..."),
                  extra.pars=.s$..extraPars,
                  outer=.toRx(.s$..outer),
-                 pred.nolhs=.toRx(pred.opt, "Compiling Events FD model..."),
+                 pred.nolhs=.toRx(pred.opt, "compiling events FD model..."),
                  theta=NULL,
                  ## warn=.zeroSens,
                  pred.minus.dv=pred.minus.dv,
