@@ -18,7 +18,7 @@ rxPermissive({
     })
 
     test_that("arguments model= and filename= are mutually exclusive.",{
-        expect_error(RxODE(model=ode, filename=fn, do.compile=FALSE),"Must specify exactly one of 'model' or 'filename'.");
+        expect_error(RxODE(model=ode, filename=fn, do.compile=FALSE),"must specify exactly one of 'model' or 'filename'");
     })
 
     unlink(test.dir, recursive = TRUE)

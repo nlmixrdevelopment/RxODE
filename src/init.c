@@ -127,6 +127,9 @@ SEXP _RxODE_rxExpandSens_(SEXP, SEXP);
 SEXP _RxODE_rxExpandSens2_(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxExpandFEta_(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxRepR0_(SEXP);
+SEXP _RxODE_rLKJ1(SEXP, SEXP, SEXP);
+SEXP _RxODE_rLKJcv1(SEXP, SEXP);
+SEXP _RxODE_rLKJcvLsd1(SEXP, SEXP, SEXP);
 
 extern int rxIsCurrentC(SEXP obj);
 
@@ -252,6 +255,9 @@ void R_init_RxODE(DllInfo *info){
     {"_rxParProgress", (DL_FUNC) &_rxParProgress, 1},
     {"_RxODE_rxUseRadixSort", (DL_FUNC) &_RxODE_rxUseRadixSort, 1},
     {"_RxODE_forderForceBase", (DL_FUNC) &_RxODE_forderForceBase, 1},
+    {"_RxODE_rLKJ1", (DL_FUNC) &_RxODE_rLKJ1, 3},
+    {"_RxODE_rLKJcv", (DL_FUNC) &_RxODE_rLKJcv1, 2},
+    {"_RxODE_rLKJcvLsd1", (DL_FUNC) &_RxODE_rLKJcvLsd1, 3},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

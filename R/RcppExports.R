@@ -64,6 +64,18 @@ rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
     .Call(`_RxODE_rinvchisq`, n, nu, scale)
 }
 
+rLKJ1 <- function(d, eta = 1.0, cholesky = FALSE) {
+    .Call(`_RxODE_rLKJ1`, d, eta, cholesky)
+}
+
+rLKJcv1 <- function(sd, eta = 1.0) {
+    .Call(`_RxODE_rLKJcv1`, sd, eta)
+}
+
+rLKJcvLsd1 <- function(logSd, logSdSD, eta = 1.0) {
+    .Call(`_RxODE_rLKJcvLsd1`, logSd, logSdSD, eta)
+}
+
 etUpdate <- function(obj, arg = NULL, value = NULL, exact = TRUE) {
     .Call(`_RxODE_etUpdate`, obj, arg, value, exact)
 }

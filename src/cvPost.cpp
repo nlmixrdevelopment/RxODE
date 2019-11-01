@@ -144,3 +144,141 @@ NumericVector rinvchisq(const int n = 1, const double &nu = 1.0, const double &s
   // PutRNGstate();
   return ret;
 }
+
+// Adapted from banocc and ported to armadillo for speed.
+// https://github.com/biobakery/banocc/blob/master/R/rlkj.R
+void rgbeta(int d, double shape, double* out){
+  if (std::isinf(shape)) {
+    std::fill_n(out, d, 0.0);
+  } else if (shape > 0){
+    for (int j = d; j--;){
+      out[j] = 2.0*Rf_rbeta(shape, shape) - 1.0;
+    }
+  } else if (shape == 0){
+    for (int j = d; j--;){
+      out[j] = 2.0*Rf_rbinom(1, 0.5) - 1.0;
+    }
+  } else {
+    stop("'shape' must be non-negative");
+  }
+}
+
+//[[Rcpp::export]]
+arma::mat rLKJ1(int d, double eta = 1.0, bool cholesky = false){
+  if (d < 2){
+    stop("dimension, 'd' of correlation matrix must be > 1");
+  }
+  if (eta < 1){
+    stop("'eta' must be >= 1");
+  }
+  double alpha = eta + ((double)(d) - 2.0)/2.0;
+  arma::mat L(d,d,arma::fill::zeros);
+  L(0,0) = 1.0;
+  arma::vec partials(d-1);
+  rgbeta(d-1, alpha, partials.memptr());
+  std::copy(partials.begin(), partials.end(), L.memptr()+1);
+  if (d == 2){
+    L(1,1) = sqrt(1-L(1,0)*L(1,0));
+    if (!cholesky){
+      L = L * L.t();
+    }
+    return L;
+  }
+  arma::vec W = log(1-partials%partials);
+  for (int i = 2; i <= d-1; i++){
+    alpha -= 0.5;
+    rgbeta(d-i, alpha, partials.memptr());
+    // construct a vector pointing to the partials vector without
+    // allocating new memory:
+    arma::vec partials2 = arma::vec(partials.memptr(), d-i, false, true);
+    L(i-1,i-1) = exp(0.5*W(i-2));
+    L(arma::span(i,d-1),i-1) = partials2 % exp(0.5*W(arma::span(i-1,d-2)));
+    W(arma::span(i-1,d-2)) = W(arma::span(i-1,d-2)) +log(1-partials2%partials2);
+  }
+  L(d-1,d-1) = exp(0.5*W(d-2));
+  if (!cholesky){
+    L = L * L.t();
+  }
+  return L;
+}
+
+//[[Rcpp::export]]
+arma::mat rLKJcv1(arma::vec sd, double eta = 1.0){
+  int d = sd.size();
+  arma::mat r = rLKJ1(d, eta, false);
+  arma::mat dSd = diagmat(sd);
+  return dSd*r*dSd;
+}
+
+//[[Rcpp::export]]
+arma::mat rLKJcvLsd1(arma::vec logSd, arma::vec logSdSD, double eta = 1.0){
+  unsigned int d = logSd.size();
+  if (d != logSdSD.size()){
+    stop("log standard deviation size needs to be the same size as the log standard error of the estimate");
+  }
+  arma::vec sd(d);
+  for (unsigned int j = d; j--;){
+    sd[j] = exp(Rf_rnorm(logSd[j], logSdSD[j]));
+  }
+  return rLKJcv1(sd, eta);
+}
+
+arma::mat rLKJcvLsd1(arma::vec logSd, arma::vec logSdSD, double eta = 1.0){
+  unsigned int d = logSd.size();
+  if (d != logSdSD.size()){
+    stop("log standard deviation size needs to be the same size as the log standard error of the estimate");
+  }
+  // Nlmixr models variances as chol(omega^1)
+  // With diagonals this becomes
+  // diagXform = c("sqrt", "log", "identity")
+  arma::vec sd(d);
+  for (unsigned int j = d; j--;){
+    sd[j] = exp(Rf_rnorm(logSd[j], logSdSD[j]));
+  }
+  return rLKJcv1(sd, eta);
+}
+
+arma::mat rLKJcvC1(arma::vec sdEst, double eta = 1.0,
+		     int diagXformType = 1){
+  // the sdEst should come from the multivariate normal distribution
+  // with the appropriate transformation.
+  unsigned int d = sdEst.size();
+  // Nlmixr models variances as chol(omega^1)
+  // var = diag(omega)
+  // Assuming off-diagonals are zero
+  // diag(omega^1) = (1/var)
+  // chol(diag(omega^1)) = sqrt(1/var) = 1/sd
+  // With diagonals this becomes
+  // diagXform = c("sqrt", "log", "identity")
+  //
+  arma::vec sd(d);
+  switch(diagXformType){
+  case 1:
+    // sqrt; In this case we estimate x^2
+    // x^2 = 1/sd
+    // sd = 1/x^2
+    for (int j = d; j--;){
+      sd[j] = 1/(sdEst[j]*sdEst[j]);
+    }
+    break;
+  case 2:
+    // log
+    // In this case we estimate exp(x)
+    // exp(x) = 1/sd
+    // sd = 1/exp(x)
+    for (int j = d; j--;){
+      sd[j] = 1/exp(sdEst[j]);
+    }
+    break;
+  case 3:
+    // identity
+    // In this case we estimate x
+    // sd = 1/x
+    for (int j = d; j--;){
+      sd[j] = 1/sdEst[j];
+    }
+    break;
+  }
+  return rLKJcv1(sd, eta);
+}
+

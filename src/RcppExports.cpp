@@ -50,6 +50,44 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rLKJ1
+arma::mat rLKJ1(int d, double eta, bool cholesky);
+RcppExport SEXP _RxODE_rLKJ1(SEXP dSEXP, SEXP etaSEXP, SEXP choleskySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type d(dSEXP);
+    Rcpp::traits::input_parameter< double >::type eta(etaSEXP);
+    Rcpp::traits::input_parameter< bool >::type cholesky(choleskySEXP);
+    rcpp_result_gen = Rcpp::wrap(rLKJ1(d, eta, cholesky));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rLKJcv1
+arma::mat rLKJcv1(arma::vec sd, double eta);
+RcppExport SEXP _RxODE_rLKJcv1(SEXP sdSEXP, SEXP etaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type sd(sdSEXP);
+    Rcpp::traits::input_parameter< double >::type eta(etaSEXP);
+    rcpp_result_gen = Rcpp::wrap(rLKJcv1(sd, eta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rLKJcvLsd1
+arma::mat rLKJcvLsd1(arma::vec logSd, arma::vec logSdSD, double eta);
+RcppExport SEXP _RxODE_rLKJcvLsd1(SEXP logSdSEXP, SEXP logSdSDSEXP, SEXP etaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type logSd(logSdSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type logSdSD(logSdSDSEXP);
+    Rcpp::traits::input_parameter< double >::type eta(etaSEXP);
+    rcpp_result_gen = Rcpp::wrap(rLKJcvLsd1(logSd, logSdSD, eta));
+    return rcpp_result_gen;
+END_RCPP
+}
 // etUpdate
 RObject etUpdate(RObject obj, RObject arg, RObject value, LogicalVector exact);
 RcppExport SEXP _RxODE_etUpdate(SEXP objSEXP, SEXP argSEXP, SEXP valueSEXP, SEXP exactSEXP) {
