@@ -108,8 +108,8 @@ extern SEXP _RxODE_rxSimThetaOmega(SEXP, SEXP, SEXP, SEXP, SEXP,
 				   SEXP, SEXP, SEXP, SEXP, SEXP,
 				   SEXP, SEXP, SEXP);
 
-SEXP _RxODE_cvPost(SEXP, SEXP, SEXP, SEXP, SEXP);
-
+SEXP _RxODE_cvPost_(SEXP, SEXP, SEXP, SEXP, SEXP,
+		    SEXP, SEXP);
 SEXP _RxODE_rinvchisq(SEXP, SEXP, SEXP);
 
 SEXP _RxODE_getRxFn(SEXP);
@@ -222,7 +222,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxGetRxODE", (DL_FUNC) &_RxODE_rxGetRxODE, 1},
     {"_RxODE_rxSimThetaOmega", (DL_FUNC) &_RxODE_rxSimThetaOmega, 23},
     {"_RxODE_rxIsCurrent", (DL_FUNC) &_RxODE_rxIsCurrent, 1},
-    {"_RxODE_cvPost", (DL_FUNC) &_RxODE_cvPost, 5},
+    {"_RxODE_cvPost_", (DL_FUNC) &_RxODE_cvPost_, 7},
     {"_RxODE_rinvchisq", (DL_FUNC) &_RxODE_rinvchisq, 3},
     {"_RxODE_dynLoad", (DL_FUNC) &_RxODE_dynLoad, 1},
     {"_RxODE_rxSolveFree", (DL_FUNC) &_RxODE_rxSolveFree, 0},

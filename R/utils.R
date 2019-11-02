@@ -162,3 +162,74 @@ rxSetProd <- function(type=c("long double", "double", "logify")){
 rxSetProgressBar <- function(seconds=1.0) {
     invisible(.Call(`_rxParProgress`, as.double(seconds)))
 }
+
+##' Sample a covariance Matrix from the Posterior Inverse Wishart
+##' distribution.
+##'
+##' Note this Inverse wishart rescaled to match the original scale of
+##' the covariance matrix.
+##'
+##' If your covariance matrix is a 1x1 matrix, this uses an scaled
+##' inverse chi-squared which is equivalent to the Inverse Wishart
+##' distribution in the uni-directional case.
+##'
+##' @param nu Degrees of Freedom (Number of Observations) for
+##'        covariance matrix simulation.
+##'
+##' @param omega Either the estimate of covariance matrix or the
+##'     estimated standard deviations in matrix form each row forming
+##'     the standard deviation simulated values
+##'
+##' @param n Number of Matrices to sample.  By default this is 1.
+##'     This is only useful when \code{omega} is a matrix.  Otherwise
+##'     it is determined by the number of rows in the input
+##'     \code{omega} matrix of standard deviations
+##'
+##' @param omegaIsChol is an indicator of if the omega matrix is in
+##'   the Cholesky decomposition. This is only used when code{type="invWishart"}
+##'
+##' @param returnChol Return the Cholesky decomposition of the
+##'   covariance matrix sample. This is only used when code{type="invWishart"}
+##'
+##' @return a matrix (n=1) or a list of matrices  (n > 1)
+##'
+##' @author Matthew L.Fidler & Wenping Wang
+##'
+##' @examples
+##'
+##' ## Sample a single covariance.
+##' draw1 <- cvPost(3, matrix(c(1,.3,.3,1),2,2))
+##'
+##' ## Sample 3 covariances
+##' set.seed(42)
+##' draw3 <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3)
+##'
+##' ## Sample 3 covariances, but return the cholesky decomposition
+##' set.seed(42)
+##' draw3c <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3, returnChol=TRUE)
+##'
+##' ## Sample 3 covariances with lognormal standard deviations via LKJ correlation sample
+##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="lkj")
+##'
+##' ## Sample 3 covariances with lognormal standard deviations via separation
+##' ## strategy using inverse Wishart correlation sample
+##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="separation")
+##'
+##' @export
+cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
+                   type = c("invWishart", "lkj", "separation"),
+                   diagXformType = c("log", "identity", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity")){
+    if (inherits(type, "numeric") || inherits(type, "integer")){
+        .type <- as.integer(type)
+    } else {
+        .type <- as.vector(c("invWishart"=1L, "lkj"=2L, "separation"=3L)[match.arg(type)]);
+    }
+    if (.type == 1L){
+        .xform <- 1L
+    }  else if (inherits(diagXformType, "numeric") || inherits(diagXformType, "integer")){
+        .xform <- as.integer(diagXformType)
+    } else {
+        .xform <- as.vector(c("log"=5, "identity"=4, "nlmixrSqrt"=1, "nlmixrLog"=2, "nlmixrIdentity"=3)[match.arg(diagXformType)])
+    }
+    return(.Call(`_RxODE_cvPost_`, nu, omega, n, omegaIsChol, returnChol, .type, .xform))
+}

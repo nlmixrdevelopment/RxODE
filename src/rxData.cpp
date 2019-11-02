@@ -42,7 +42,8 @@ List etImportEventTable(List inData);
 RObject et_(List input, List et__);
 void setEvCur(RObject cur);
 
-RObject cvPost(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false);
+RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false,
+	       int type=1, int diagXformType=1);
 
 int rxcEvid  = -1;
 int rxcTime  = -1;
@@ -1616,10 +1617,10 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   List sigmaList;  
   if (nStud > 1){
     if (dfSub > 0 && simOmega) {
-      omegaList = cvPost(dfSub, as<RObject>(omegaMC), nStud,  true, false);
+      omegaList = cvPost_(dfSub, as<RObject>(omegaMC), nStud,  true, false);
     }
     if (dfObs > 0 && simSigma){
-      sigmaList = cvPost(dfObs, as<RObject>(sigmaMC), nStud,  true, false);
+      sigmaList = cvPost_(dfObs, as<RObject>(sigmaMC), nStud,  true, false);
     }
   }
   int pcol = par.size();

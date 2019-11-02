@@ -56,73 +56,6 @@ NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
   }
 }
 
-//' Sample a covariance Matrix from the Posterior Inverse Wishart
-//' distribution.
-//'
-//' Note this Inverse wishart rescaled to match the original scale of
-//' the covariance matrix.
-//'
-//' If your covariance matrix is a 1x1 matrix, this uses an scaled
-//' inverse chi-squared which is equivalent to the Inverse Wishart
-//' distribution in the uni-directional case.
-//'
-//' @param nu Degrees of Freedom (Number of Observations) for 
-//'        covariance matrix simulation.
-//' 
-//' @param omega Estimate of Covariance matrix.
-//' 
-//' @param n Number of Matrices to sample.  By default this is 1.
-//' 
-//' @param omegaIsChol is an indicator of if the omega matrix is in
-//'   the Cholesky decomposition.
-//' 
-//' @param returnChol Return the Cholesky decomposition of the
-//'   covariance matrix sample.
-//'
-//' @return a matrix (n=1) or a list of matrices  (n > 1)
-//'
-//' @author Matthew L.Fidler & Wenping Wang
-//'
-//' @examples
-//' 
-//' ## Sample a single covariance.
-//' draw1 <- cvPost(3, matrix(c(1,.3,.3,1),2,2))
-//'
-//' ## Sample 3 covariances
-//' set.seed(42)
-//' draw3 <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3)
-//' 
-//' ## Sample 3 covariances, but return the cholesky decomposition
-//' set.seed(42)
-//' draw3c <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3, returnChol=TRUE)
-//' @export
-//[[Rcpp::export]]
-RObject cvPost(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false){
-  if (n == 1){
-    if (rxIs(omega,"numeric.matrix") || rxIs(omega,"integer.matrix")){
-      return as<RObject>(cvPost0(nu, as<NumericMatrix>(omega), omegaIsChol, returnChol));
-    } else if (rxIs(omega, "numeric") || rxIs(omega, "integer")){
-      NumericVector om1 = as<NumericVector>(omega);
-      if (om1.size() % 2 == 0){
-        int n1 = om1.size()/2;
-        NumericMatrix om2(n1,n1);
-        for (int i = 0; i < om1.size();i++){
-          om2[i] = om1[i];
-        }
-        return as<RObject>(cvPost0(nu, om2, omegaIsChol, returnChol));
-      }
-    }
-  } else {
-    List ret(n);
-    for (int i = 0; i < n; i++){
-      ret[i] = cvPost(nu, omega, 1, omegaIsChol, returnChol);
-    }
-    return(as<RObject>(ret));
-  }
-  stop("omega needs to be a matrix or a numberic vector that can be converted to a matrix.");
-  return R_NilValue;
-}
-
 //' Scaled Inverse Chi Squared distribution
 //'
 //' @param n Number of random samples
@@ -310,10 +243,56 @@ arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
       sd[j] = exp(sdEst[j]);
     }
     break;
+  default:
+    stop("unknown 'diagXformType' transformation")
   }
   if (rType == 1){
     return rLKJcv1(sd, (nu-1.0)/2.0);
   } else {
     return rinvWRcv1(sd, nu);
   }
+}
+
+//[[Rcpp::export]]
+RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false, int type=1, int diagXformType=1){
+  if (n == 1 && type == 1){
+    if (rxIs(omega,"numeric.matrix") || rxIs(omega,"integer.matrix")){
+      return as<RObject>(cvPost0(nu, as<NumericMatrix>(omega), omegaIsChol, returnChol));
+    } else if (rxIs(omega, "numeric") || rxIs(omega, "integer")){
+      NumericVector om1 = as<NumericVector>(omega);
+      if (om1.size() % 2 == 0){
+	int n1 = om1.size()/2;
+	NumericMatrix om2(n1,n1);
+	for (int i = 0; i < om1.size();i++){
+	  om2[i] = om1[i];
+	}
+	return as<RObject>(cvPost0(nu, om2, omegaIsChol, returnChol));
+      }
+    }
+  } else {
+    if (type == 1){
+      List ret(n);
+      for (int i = 0; i < n; i++){
+	ret[i] = cvPost_(nu, omega, 1, omegaIsChol, returnChol, 1, 1);
+      }
+      return(as<RObject>(ret));
+    } else {
+      if (rxIs(omega,"numeric.matrix") || rxIs(omega,"integer.matrix")){
+	arma::mat om0 = as<arma::mat>(omega);
+	om0 = om0.t();
+	List ret(om0.n_rows);
+	if (n != 1) warning("'n' is determined by the 'omega' argument which contains the simulated standard deviations");
+	for (unsigned int i = 0; i < om0.n_rows; i++){
+	  arma::vec sd = om0.col(i);
+	  arma::mat reti = rcvC1(sd, nu, diagXformType, type-1);
+	  ret[i] = wrap(reti);
+	}
+	return(as<RObject>(ret));
+      } else {
+	stop("when sampling from correlation priors to create covariance matrices, the input must be a matrix of standard deviations");
+      }
+    }
+  }
+  stop("omega needs to be a matrix or a numeric vector that can be converted to a matrix.");
+  return R_NilValue;
 }

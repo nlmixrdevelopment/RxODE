@@ -5,50 +5,6 @@ removableDrive <- function(driveRoot) {
     .Call(`_RxODE_removableDrive`, driveRoot)
 }
 
-#' Sample a covariance Matrix from the Posterior Inverse Wishart
-#' distribution.
-#'
-#' Note this Inverse wishart rescaled to match the original scale of
-#' the covariance matrix.
-#'
-#' If your covariance matrix is a 1x1 matrix, this uses an scaled
-#' inverse chi-squared which is equivalent to the Inverse Wishart
-#' distribution in the uni-directional case.
-#'
-#' @param nu Degrees of Freedom (Number of Observations) for 
-#'        covariance matrix simulation.
-#' 
-#' @param omega Estimate of Covariance matrix.
-#' 
-#' @param n Number of Matrices to sample.  By default this is 1.
-#' 
-#' @param omegaIsChol is an indicator of if the omega matrix is in
-#'   the Cholesky decomposition.
-#' 
-#' @param returnChol Return the Cholesky decomposition of the
-#'   covariance matrix sample.
-#'
-#' @return a matrix (n=1) or a list of matrices  (n > 1)
-#'
-#' @author Matthew L.Fidler & Wenping Wang
-#'
-#' @examples
-#' 
-#' ## Sample a single covariance.
-#' draw1 <- cvPost(3, matrix(c(1,.3,.3,1),2,2))
-#'
-#' ## Sample 3 covariances
-#' set.seed(42)
-#' draw3 <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3)
-#' 
-#' ## Sample 3 covariances, but return the cholesky decomposition
-#' set.seed(42)
-#' draw3c <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3, returnChol=TRUE)
-#' @export
-cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE) {
-    .Call(`_RxODE_cvPost`, nu, omega, n, omegaIsChol, returnChol)
-}
-
 #' Scaled Inverse Chi Squared distribution
 #'
 #' @param n Number of random samples
@@ -102,6 +58,10 @@ invWR1d <- function(d, nu, omegaIsChol = FALSE) {
 
 rcvC1 <- function(sdEst, nu = 3.0, diagXformType = 1L, rType = 1L) {
     .Call(`_RxODE_rcvC1`, sdEst, nu, diagXformType, rType)
+}
+
+cvPost_ <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE, type = 1L, diagXformType = 1L) {
+    .Call(`_RxODE_cvPost_`, nu, omega, n, omegaIsChol, returnChol, type, diagXformType)
 }
 
 etUpdate <- function(obj, arg = NULL, value = NULL, exact = TRUE) {
