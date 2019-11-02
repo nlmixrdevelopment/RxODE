@@ -88,6 +88,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// invWR1
+arma::mat invWR1(double nu, NumericMatrix omega, bool omegaIsChol, bool returnChol);
+RcppExport SEXP _RxODE_invWR1(SEXP nuSEXP, SEXP omegaSEXP, SEXP omegaIsCholSEXP, SEXP returnCholSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type omega(omegaSEXP);
+    Rcpp::traits::input_parameter< bool >::type omegaIsChol(omegaIsCholSEXP);
+    Rcpp::traits::input_parameter< bool >::type returnChol(returnCholSEXP);
+    rcpp_result_gen = Rcpp::wrap(invWR1(nu, omega, omegaIsChol, returnChol));
+    return rcpp_result_gen;
+END_RCPP
+}
 // etUpdate
 RObject etUpdate(RObject obj, RObject arg, RObject value, LogicalVector exact);
 RcppExport SEXP _RxODE_etUpdate(SEXP objSEXP, SEXP argSEXP, SEXP valueSEXP, SEXP exactSEXP) {

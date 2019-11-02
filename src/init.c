@@ -130,6 +130,7 @@ SEXP _RxODE_rxRepR0_(SEXP);
 SEXP _RxODE_rLKJ1(SEXP, SEXP, SEXP);
 SEXP _RxODE_rLKJcv1(SEXP, SEXP);
 SEXP _RxODE_rLKJcvLsd1(SEXP, SEXP, SEXP);
+SEXP _RxODE_invWR1(SEXP, SEXP, SEXP, SEXP);
 
 extern int rxIsCurrentC(SEXP obj);
 
@@ -258,6 +259,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rLKJ1", (DL_FUNC) &_RxODE_rLKJ1, 3},
     {"_RxODE_rLKJcv", (DL_FUNC) &_RxODE_rLKJcv1, 2},
     {"_RxODE_rLKJcvLsd1", (DL_FUNC) &_RxODE_rLKJcvLsd1, 3},
+    {"_RxODE_invWR1", (DL_FUNC) &_RxODE_invWR1, 4},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

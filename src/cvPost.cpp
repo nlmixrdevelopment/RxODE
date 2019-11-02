@@ -274,3 +274,11 @@ arma::mat rLKJcvC1(arma::vec sdEst, double eta = 1.0,
   return rLKJcv1(sd, eta);
 }
 
+
+//[[Rcpp::export]]
+arma::mat invWR1(double nu, NumericMatrix omega, bool omegaIsChol = false,
+		 bool returnChol = false){
+  arma::mat invW = as<arma::mat>(cvPost0(nu, omega, omegaIsChol, returnChol));
+  arma::mat Dinv = diagmat(1/sqrt(invW.diag()));
+  return Dinv * invW * Dinv;
+}

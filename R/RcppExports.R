@@ -64,6 +64,14 @@ rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
     .Call(`_RxODE_rinvchisq`, n, nu, scale)
 }
 
+#' @param d The dimension of the correlation matrix
+#' @param eta The scaling parameter of the LKJ distribution.
+#'   Must be > 1.  Also related to the degrees of freedom nu.
+#'   eta = (nu-1)/2.
+#' @param cholesky boolean; If \code{TRUE} return the cholesky
+#'   decomposition.
+#' @author Matthew Fidler (translated to RcppArmadillo) and Emma Schwager
+#' @export
 rLKJ1 <- function(d, eta = 1.0, cholesky = FALSE) {
     .Call(`_RxODE_rLKJ1`, d, eta, cholesky)
 }
@@ -74,6 +82,10 @@ rLKJcv1 <- function(sd, eta = 1.0) {
 
 rLKJcvLsd1 <- function(logSd, logSdSD, eta = 1.0) {
     .Call(`_RxODE_rLKJcvLsd1`, logSd, logSdSD, eta)
+}
+
+invWR1 <- function(nu, omega, omegaIsChol = FALSE, returnChol = FALSE) {
+    .Call(`_RxODE_invWR1`, nu, omega, omegaIsChol, returnChol)
 }
 
 etUpdate <- function(obj, arg = NULL, value = NULL, exact = TRUE) {
