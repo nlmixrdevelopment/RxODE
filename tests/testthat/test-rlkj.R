@@ -190,3 +190,140 @@ test_that("rLKJ1 gives error if d < 2", {
         }
     }
 })
+
+context("Utilities - invWR1d")
+nu_vals <- c(4.5, 50)
+d_vals <- c(2, 5)
+
+test_that("invWR1d returns a matrix", {
+    for (d in d_vals){
+        for (nu in nu_vals){
+            eval(bquote(expect_is(invWR1d(d=.(d), nu=.(nu)), "matrix")))
+            eval(bquote(
+                expect_is(invWR1d(d=.(d), nu=.(nu)), "matrix")
+                ))
+        }
+    }
+})
+
+test_that("invWR1d returns square matrix", {
+    test_square <- function(d, e){
+        r <- invWR1d(d=d, nu=e)
+        expect_equal(nrow(r), ncol(r))
+    }
+    for (d in d_vals){
+        for (nu in nu_vals){
+            test_square(d, nu)
+        }
+    }
+})
+
+test_that("invWR1d returns matrix with d rows", {
+    test_nrow <- function(d, e){
+        eval(bquote(
+            expect_equal(nrow(invWR1d(d=.(d), nu=.(e))), .(d))))
+    }
+    for (d in d_vals){
+        for (nu in nu_vals){
+            test_nrow(d, nu)
+        }
+    }
+})
+
+test_that("invWR1d returns positive definite matrix if cholesky=FALSE", {
+    test_pd <- function(d, e){
+        eval(bquote(expect_true(all(eigen(invWR1d(d=.(d), nu=.(e)))$values > 0))))
+    }
+    for (d in d_vals){
+        for (nu in nu_vals){
+            test_pd(d, nu)
+        }
+    }
+})
+
+test_that("invWR1d returns symmetric matrix", {
+    get_tri <- function(mat, type){
+        if (type=="lower"){
+            t(mat)[upper.tri(mat)]
+        } else {
+            mat[upper.tri(mat)]
+        }
+    }
+    test_symmetric <- function(d, e){
+        l <- invWR1d(d=d, nu=e)
+        expect_equal(get_tri(l, "lower"),
+                     get_tri(l, "upper"))
+    }
+    for (d in d_vals){
+        for (nu in nu_vals){
+            test_symmetric(d, nu)
+        }
+    }
+})
+
+test_that("invWR1d returns matrix with diagonal elts 1", {
+    test_diag <- function(d, e){
+        eval(bquote(
+            expect_equal(diag(invWR1d(d=.(d), nu=.(e))), rep(1, .(d)))
+            ))
+    }
+    for (d in d_vals){
+        for (nu in nu_vals){
+            test_diag(d, nu)
+        }
+    }
+})
+
+test_that("invWR1d returns matrix with elts between -1 and 1", {
+    test_elts <- function(d, e){
+        r <- invWR1d(d=d, nu=e)
+        r[upper.tri(r)]
+    }
+    for (d in d_vals){
+        for (nu in nu_vals){
+            expect_true(all(test_elts(d, nu) >= -1))
+            expect_true(all(test_elts(d, nu) <= 1))
+        }
+    }
+})
+
+test_that("invWR1d corr matrix is positive definite", {
+    test_pd <- function(d, e){
+        l <- invWR1d(d=d, nu=e)
+        eigen(l %*% t(l))$values
+    }
+    for (d in d_vals){
+        for (nu in nu_vals){
+            expect_true(all(test_pd(d, nu) > 0))
+        }
+    }
+})
+
+test_that("invWR1d corr matrix is symmetric", {
+    get_tri <- function(mat, type){
+        if (type=="lower"){
+            t(mat)[upper.tri(mat)]
+        } else {
+            mat[upper.tri(mat)]
+        }
+    }
+    test_symmetric <- function(d, e){
+        l <- invWR1d(d=d, nu=e)
+        r <- l %*% t(l)
+        expect_equal(get_tri(r, "lower"), get_tri(r, "upper"))
+    }
+    for (d in d_vals){
+        for (nu in nu_vals){
+            test_symmetric(d, nu)
+        }
+    }
+})
+
+test_that("invWR1d gives error if nu < d-1", {
+    err_string <- "'nu' must be greater than 'd'-1"
+    for (d in d_vals){
+        for (nu in c(-1, 1)){
+            expect_error(invWR1d(d=d, nu=nu),  err_string)
+        }
+    }
+})

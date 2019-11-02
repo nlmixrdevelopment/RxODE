@@ -162,6 +162,8 @@ void rgbeta(int d, double shape, double* out){
     stop("'shape' must be non-negative");
   }
 }
+//' One correlation sample from the LKJ distribution
+//'
 //' @param d The dimension of the correlation matrix
 //' @param eta The scaling parameter of the LKJ distribution.
 //'   Must be > 1.  Also related to the degrees of freedom nu.
@@ -230,8 +232,36 @@ arma::mat rLKJcvLsd1(arma::vec logSd, arma::vec logSdSD, double eta = 1.0){
   return rLKJcv1(sd, eta);
 }
 
-arma::mat rLKJcvC1(arma::vec sdEst, double eta = 1.0,
-		     int diagXformType = 1){
+//' One correlation sample from the Inverse Wishart distribution
+//'
+//' This correlation is constructed by transformation of the Inverse Wishart
+//' random covariate to a correlation.
+//'
+//' @inheritParams rLKJ1
+//' @param nu Degrees of freedom of the Wishart distribution
+//' @inheritParams cvPost
+//' @author Matthew Fidler
+//' @export
+//[[Rcpp::export]]
+arma::mat invWR1d(int d, double nu, bool omegaIsChol = false){
+  if (nu <= d - 1) stop("'nu' must be greater than 'd'-1");
+  arma::mat I(d,d,arma::fill::eye);
+  arma::mat invW = as<arma::mat>(cvPost0(nu, wrap(I),
+					 omegaIsChol, false));
+  arma::mat Dinv = diagmat(1/sqrt(invW.diag()));
+  return Dinv * invW * Dinv;
+}
+
+arma::mat rinvWRcv1(arma::vec sd, double nu = 1.0){
+  int d = sd.size();
+  arma::mat r = invWR1d(nu, d, false);
+  arma::mat dSd = diagmat(sd);
+  return dSd*r*dSd;
+}
+
+//[[Rcpp::export]]
+arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
+		int diagXformType = 1, int rType = 1){
   // the sdEst should come from the multivariate normal distribution
   // with the appropriate transformation.
   unsigned int d = sdEst.size();
@@ -270,15 +300,20 @@ arma::mat rLKJcvC1(arma::vec sdEst, double eta = 1.0,
       sd[j] = 1/sdEst[j];
     }
     break;
+  case 4: // direct identity
+    for (int j = d; j--;){
+      sd[j] = sdEst[j];
+    }
+    break;
+  case 5: // lognormal
+    for (int j = d; j--;){
+      sd[j] = exp(sdEst[j]);
+    }
+    break;
   }
-  return rLKJcv1(sd, eta);
-}
-
-
-//[[Rcpp::export]]
-arma::mat invWR1(double nu, NumericMatrix omega, bool omegaIsChol = false,
-		 bool returnChol = false){
-  arma::mat invW = as<arma::mat>(cvPost0(nu, omega, omegaIsChol, returnChol));
-  arma::mat Dinv = diagmat(1/sqrt(invW.diag()));
-  return Dinv * invW * Dinv;
+  if (rType == 1){
+    return rLKJcv1(sd, (nu-1.0)/2.0);
+  } else {
+    return rinvWRcv1(sd, nu);
+  }
 }

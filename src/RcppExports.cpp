@@ -88,17 +88,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// invWR1
-arma::mat invWR1(double nu, NumericMatrix omega, bool omegaIsChol, bool returnChol);
-RcppExport SEXP _RxODE_invWR1(SEXP nuSEXP, SEXP omegaSEXP, SEXP omegaIsCholSEXP, SEXP returnCholSEXP) {
+// invWR1d
+arma::mat invWR1d(int d, double nu, bool omegaIsChol);
+RcppExport SEXP _RxODE_invWR1d(SEXP dSEXP, SEXP nuSEXP, SEXP omegaIsCholSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type d(dSEXP);
     Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type omega(omegaSEXP);
     Rcpp::traits::input_parameter< bool >::type omegaIsChol(omegaIsCholSEXP);
-    Rcpp::traits::input_parameter< bool >::type returnChol(returnCholSEXP);
-    rcpp_result_gen = Rcpp::wrap(invWR1(nu, omega, omegaIsChol, returnChol));
+    rcpp_result_gen = Rcpp::wrap(invWR1d(d, nu, omegaIsChol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcvC1
+arma::mat rcvC1(arma::vec sdEst, double nu, int diagXformType, int rType);
+RcppExport SEXP _RxODE_rcvC1(SEXP sdEstSEXP, SEXP nuSEXP, SEXP diagXformTypeSEXP, SEXP rTypeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type sdEst(sdEstSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< int >::type diagXformType(diagXformTypeSEXP);
+    Rcpp::traits::input_parameter< int >::type rType(rTypeSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcvC1(sdEst, nu, diagXformType, rType));
     return rcpp_result_gen;
 END_RCPP
 }
