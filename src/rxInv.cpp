@@ -3,6 +3,13 @@
 #include <stdarg.h>
 #include <RcppArmadillo.h>
 #include <R.h>
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
 using namespace Rcpp;
 using namespace R;
 using namespace arma;
@@ -21,7 +28,7 @@ NumericVector rxInv(SEXP matrix){
   success = inv(imat, smatrix);
   if (!success){
     imat = pinv(smatrix);
-    Rprintf("Warning: matrix seems singular; Using pseudo-inverse\n");
+    Rprintf(_("matrix seems singular; Using pseudo-inverse\n"));
   }
   NumericVector ret;
   ret = wrap(imat);

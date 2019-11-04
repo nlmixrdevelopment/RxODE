@@ -32,6 +32,14 @@ void resetSolveLinB();
 using namespace Rcpp;
 using namespace arma;
 
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
+
 LogicalVector rxSolveFree();
 
 List etTrans(List inData, const RObject &obj, bool addCmt=false,
@@ -692,13 +700,13 @@ List rxModelVars_(const RObject &obj){
     } else {
       CharacterVector cls = obj.attr("class");
       int i = 0;
-      Rprintf("Class:\t");
+      Rprintf(_("class:\t"));
       for (i = 0; i < cls.size(); i++){
         Rprintf("%s\t", (as<std::string>(cls[i])).c_str());
       }
       Rprintf("\n");
       rxSolveFree();
-      stop("Need an RxODE-type object to extract model variables from.");
+      stop(_("need an RxODE-type object to extract model variables"));
     }
   } else if (rxIs(obj, "character")){
     return rxModelVars_character(obj);
@@ -710,7 +718,7 @@ List rxModelVars_(const RObject &obj){
   } else {
     CharacterVector cls = obj.attr("class");
     int i = 0;
-    Rprintf("Class:\t");
+    Rprintf(_("class:\t"));
     for (i = 0; i < cls.size(); i++){
       Rprintf("%s\t", (as<std::string>(cls[i])).c_str());
     }

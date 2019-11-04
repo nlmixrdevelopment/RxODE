@@ -244,7 +244,7 @@ arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
     }
     break;
   default:
-    stop("unknown 'diagXformType' transformation")
+    stop("unknown 'diagXformType' transformation");
   }
   if (rType == 1){
     return rLKJcv1(sd, (nu-1.0)/2.0);

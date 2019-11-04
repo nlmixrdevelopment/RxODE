@@ -9,6 +9,13 @@
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 #include <Rmath.h>
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
 #include "tran.g.d_parser.c"
 #include "../inst/include/RxODE.h"
 #define max(a,b) (a)>(b) ? (a):(b)
@@ -2481,9 +2488,9 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  }
 	  break;
 	default:
-	  REprintf("Line Number: %d\n", i);
-	  REprintf("Type: %d\n", sbPm.lType[i]);
-	  REprintf("Line: %s\n", sbPm.line[i]);
+	  REprintf("line Number: %d\n", i);
+	  REprintf("type: %d\n", sbPm.lType[i]);
+	  REprintf("line: %s\n", sbPm.line[i]);
 	  REprintf("PmDt Line: %s\n", sbPmDt.line[i]);
 	  REprintf("Prop: %d\n", sbPm.lProp[i]);
 	}
@@ -3449,10 +3456,10 @@ static void rxSyntaxError(struct D_Parser *ap) {
   if (!rx_suppress_syntax_info){
     if (lastSyntaxErrorLine == 0){
       if (isEsc){
-	RSprintf0("\033[1mRxODE Model Syntax Error:\n================================================================================\033[0m");
+	RSprintf0(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
       }
       else {
-	RSprintf0("RxODE Model Syntax Error:\n================================================================================");
+	RSprintf0(_("RxODE Model Syntax Error:\n================================================================================"));
       }
       lastSyntaxErrorLine=1;
     }
@@ -3471,18 +3478,18 @@ static void rxSyntaxError(struct D_Parser *ap) {
       after = rc_dup_str(z->pn->parse_node.start_loc.s, z->pn->parse_node.end);
     if (after){
       if (isEsc){
-	RSprintf("\n\n\033[1mRxODE syntax error after\033[0m '\033[35m\033[1m%s\033[0m':\n",  after);
+	RSprintf(_("\n\n\033[1mRxODE syntax error after\033[0m '\033[35m\033[1m%s\033[0m':\n"),  after);
       }
       else {
-	RSprintf("\n\nRxODE syntax error after '%s':\n",  after);
+	RSprintf(_("\n\nRxODE syntax error after '%s':\n"),  after);
       }
     }
     else{
       if (isEsc){
-	RSprintf0("\n\n\033[1mRxODE syntax error\033[0m:\n");
+	RSprintf0(_("\n\n\033[1mRxODE syntax error\033[0m:\n"));
       }
       else{
-	RSprintf0("\n\nRxODE syntax error:\n");
+	RSprintf0(_("\n\nRxODE syntax error:\n"));
       }
     }
 
@@ -3565,10 +3572,10 @@ static void trans_syntax_error_report_fn0(char *err){
   if (!rx_suppress_syntax_info){
     if (lastSyntaxErrorLine == 0){
       if (isEsc) {
-	RSprintf0("\033[1mRxODE Model Syntax Error:\n================================================================================\033[0m");
+	RSprintf0(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
       }
       else {
-	RSprintf0("RxODE Model Syntax Error:\n================================================================================");
+	RSprintf0(_("RxODE model syntax error:\n================================================================================"));
       }
       lastSyntaxErrorLine=1;
     }
@@ -3586,10 +3593,10 @@ static void trans_syntax_error_report_fn(char *err) {
   if (!rx_suppress_syntax_info){
     if (lastSyntaxErrorLine == 0){
       if (isEsc) {
-	RSprintf0("\033[1mRxODE Model Syntax Error:\n================================================================================\033[0m");
+	RSprintf0(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
       }
       else {
-	RSprintf0("RxODE Model Syntax Error:\n================================================================================");
+	RSprintf0(_("RxODE model syntax error:\n================================================================================"));
       }
       lastSyntaxErrorLine=1;
     }

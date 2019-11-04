@@ -8,6 +8,14 @@
 #define SORT gfx::timsort
 #endif
 
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
+
 #define rxModelVars(a) rxModelVars_(a)
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 using namespace Rcpp;
@@ -1049,13 +1057,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  List dvidTrans = List::create(_["dvid"]=dvidDF, _["modeled cmt"]=curDvid);
 	  dvidTrans.attr("class") = "data.frame";
 	  dvidTrans.attr("row.names") = IntegerVector::create(NA_INTEGER, -dvidDF.size());
-	  Rprintf("DVID/CMT translation:\n");
+	  Rprintf(_("'DVID'/'CMT' translation:\n"));
 	  print(dvidTrans);
 	  if (dvidCol != -1){
-	    Rprintf("DVID: %d\t", inDvid[i]);
+	    Rprintf(("'DVID': %d\t"), inDvid[i]);
 	  }
-	  Rprintf("CMT: %d\n", cmt);
-	  stop("'dvid'->'cmt' or 'cmt' on observation record on a undefined compartment (use `cmt()` `dvid()`).");
+	  Rprintf("'CMT': %d\n", cmt);
+	  stop(_("'dvid'->'cmt' or 'cmt' on observation record on a undefined compartment (use 'cmt()' 'dvid()')"));
 	}
 	id.push_back(cid);
 	evid.push_back(cevid);

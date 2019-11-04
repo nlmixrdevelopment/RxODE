@@ -1,5 +1,13 @@
+#include <R.h>
 #include <stan/math.hpp>
 #include "../inst/include/RxODE.h"
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
 extern "C" int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind);
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 namespace stan {
@@ -317,12 +325,12 @@ namespace stan {
 	case 2:
 	case 1:
 	  if (oral) {
-	    REprintf("Infusions to depot are not possible with the linear solved system.\n");
+	    REprintf(_("infusions to depot are not possible with the linear solved system\n"));
 	    ret = NA_REAL;
 	    return g;
 	  }
 	  if (wh0 == 30){
-	    REprintf("You cannot turn off a compartment with a solved system.\n");
+	    REprintf(_("you cannot turn off a compartment with a solved system\n"));
 	    ret = NA_REAL;
 	    return g;
 	  }
@@ -337,7 +345,7 @@ namespace stan {
 	      p++;
 	    }
 	    if (ind->dose[p] != -dose){
-	      REprintf("Could not find an end to the infusion.  Check the event table.\n");
+	      REprintf(_("could not find an end to the infusion\n"));
 	      ret = NA_REAL;
 	      return g;
 	    }
@@ -352,7 +360,7 @@ namespace stan {
 	      p--;
 	    }
 	    if (ind->dose[p] != -dose){
-	      REprintf("Could not find a start to the infusion.  Check the event table.\n");
+	      REprintf(_("Could not find a start to the infusion\n"));
 	      ret = NA_REAL;
 	      return g;
 	    }
@@ -364,7 +372,7 @@ namespace stan {
 	  }
 	  if (thisT < 0) continue;
 	  if (F <= 0) {
-	    REprintf("Bioavailability cannot be negative or zero.\n");
+	    REprintf(_("bioavailability cannot be negative or zero\n"));
 	    ret = NA_REAL;
 	    return g;
 	  }
@@ -375,7 +383,7 @@ namespace stan {
 	  }
 	  if (wh0 == 10 || wh0 == 20){
 	    if (tinf >= tau){
-	      REprintf("Infusion time greater then inter-dose interval, ss cannot be calculated.\n");
+	      REprintf("infusion time greater then inter-dose interval, 'ss' cannot be calculated\n");
 	      ret = NA_REAL;
 	      return g;
 	    }
@@ -424,7 +432,7 @@ namespace stan {
 	      return g;  // Was a reset event.
 	    }
 	  } else if (wh0 == 30) {
-	    REprintf("You cannot turn off a compartment with a solved system.\n");
+	    REprintf(_("you cannot turn off a compartment with a solved system\n"));
 	    ret = NA_REAL;
 	    return g;
 	  } else {
@@ -437,7 +445,7 @@ namespace stan {
 	  }
 	  break;
 	default:
-	  REprintf("Invalid evid in linear solved system.\n");
+	  REprintf(_("invalid evid in linear solved system\n"));
 	  ret = NA_REAL;
 	  return g;
 	}
