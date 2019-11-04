@@ -296,7 +296,7 @@ rxPermissive({
                           .Names = c("ID", "TIME", "AMT", "V2I", "V1I", "CLI", "EVID"))
 
         test_that("All covariates are NA give a warning",{
-                    expect_warning(rxSolve(mod1, d3na, par2, add.cov=TRUE, cores=2, method=meth),"One or more covariates were all NA for subject id=2")
+                    expect_warning(rxSolve(mod1, d3na, par2, add.cov=TRUE, cores=2, method=meth),"one or more covariates were all 'NA' for subject 'id=2'")
         })
 
     }

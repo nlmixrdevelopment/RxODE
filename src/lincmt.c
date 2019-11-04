@@ -30,19 +30,16 @@ extern int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind)
   i = 0;
   j = ind->ndoses - 1;
   idose = ind->idose[i];
-  /* if (idose < 0 || idose >= ind->n_all_times) error("idose corrupted #1."); */
   if (obs_time < ind->all_times[idose]){
     return i;
   }
   idose = ind->idose[j];
-  /* if (idose < 0 || idose >= ind->n_all_times) error("idose corrupted #2"); */
   if (obs_time > ind->all_times[idose]){
     return j;
   }
   while(i < j - 1) { /* x[i] <= obs_time <= x[j] */
     ij = (i + j)/2; /* i+1 <= ij <= j-1 */
     idose = ind->idose[ij];
-    /* if (idose < 0 || idose >= ind->n_all_times) error("idose corrupted #3"); */
     if(obs_time < ind->all_times[idose])
       j = ij;
     else
@@ -68,7 +65,7 @@ static inline double _getDur(int l, rx_solving_options_ind *ind, int backward, u
       p[0]--;
     }
     if (ind->dose[p[0]] != -dose){
-      error("Could not find a start to the infusion.  Check the event table.");
+      error(_("could not find a start to the infusion"));
     }
     return ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p[0]]];
   } else {
@@ -77,7 +74,7 @@ static inline double _getDur(int l, rx_solving_options_ind *ind, int backward, u
       p[0]++;
     }
     if (ind->dose[p[0]] != -dose){
-      error("Could not find an end to the infusion.  Check the event table.");
+      error(_("could not find an end to the infusion"));
     }
     return ind->all_times[ind->idose[p[0]]] - ind->all_times[ind->idose[l]];
   }
@@ -154,7 +151,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
 	rx_v = v1;
 	break;
       default:
-	error("invalid trans (1 cmt trans %d).", trans);
+	error(_("invalid trans (1 cmt trans %d)"), trans);
       }
       if (d_ka > 0){
 	d_alpha = rx_k;
@@ -197,7 +194,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
 	rx_k12 = p1+p2 - rx_k21 - rx_k;
 	break;
       default:
-	error("invalid trans (2 cmt trans %d).", trans);
+	error(_("invalid trans (2 cmt trans %d)"), trans);
       }
       double rx_tmp = rx_k12+rx_k21+rx_k;
       d_beta = 0.5 * (rx_tmp - sqrt(rx_tmp * rx_tmp - 4.0 * rx_k21 * rx_k));
@@ -232,7 +229,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
 	rx_k31 = p5;
  	break;
       default:
-	error("invalid trans (3 cmt trans %d).", trans);
+	error(_("invalid trans (3 cmt trans %d)"), trans);
       }
       double rx_a0 = rx_k * rx_k21 * rx_k31;
       double rx_a1 = rx_k * rx_k31 + rx_k21 * rx_k31 + rx_k21 * rx_k13 + rx_k * rx_k21 + rx_k31 * rx_k12;
@@ -257,7 +254,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
 	d_C = d_ka / (d_ka - d_gamma) * d_C;
       }
     } else {
-      error("Only 1-3 compartment linCmt() are supported");
+      error(_("only 1-3 compartment 'linCmt()' are supported"));
     }
   }
   unsigned int ncmt = 1;
@@ -302,7 +299,6 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
     }
   } else {
     return 0.0;
-    //error("You need to specify at least A(=%f) and alpha (=%f). (@t=%f, d1=%d, d2=%d)", d_A, d_alpha, t, diff1, diff2);
   }
   double ATOL = op->ATOL; //absolute error
   double RTOL = op->RTOL; //relative error
@@ -343,10 +339,10 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
     }
     switch(whI){
     case 5: // multiply
-      error("Multiplication events not currently supported with RxODE solved systems.");
+      error(_("multiplication events not currently supported with RxODE solved systems"));
       break;
     case 4: // replace
-      error("Replacement events are not currently supported with RxODE solved systems.");
+      error(_("replacement events are not currently supported with RxODE solved systems"));
       break;    
     case 7:
       continue;
@@ -378,9 +374,9 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
       dose=NA_REAL;
     case 2:
     case 1:
-      if (oral) error("Infusions to depot are not possible with the linear solved system");
+      if (oral) error(_("infusions to depot are not possible with the linear solved system"));
       if (wh0 == 30){
-	error("You cannot turn off a compartment with a solved system.");
+	error(_("can not turn off a compartment with a solved system"));
       }
       // Steady state
       if (wh0 == 40 && dose > 0){
@@ -421,7 +417,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
 	}
       }
       if (thisT < 0) continue;
-      if (F <= 0) error("Bioavailability cannot be negative or zero.");
+      if (F <= 0) error(_("bioavailability cannot be negative or zero"));
       if (whI == 1){ // Duration changes
 	tinf *=F;
       } else { // Rate Changes
@@ -433,7 +429,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
       }
       if (wh0 == 10 || wh0 == 20){
 	if (tinf >= tau){
-	  error("Infusion time greater then inter-dose interval, ss cannot be calculated.");
+	  error(_("infusion time greater then inter-dose interval, 'ss' cannot be calculated"));
 	} 
 	if (thisT < tinf){ // during infusion
 	  if (op->linLog){
@@ -542,7 +538,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
 	// ss=1 is equivalent to a reset + ss dose
 	if (wh0 == 10) return(ret+cur);
       } else if (wh0 == 30) {
-	error("You cannot turn off a compartment with a solved system.");
+	error(_("cannot turn off a compartment with a solved system"));
       } else {
 	tT = t - ind->all_times[ind->idose[l]];
 	thisT = tT -tlag;
@@ -571,7 +567,7 @@ static inline double linCmtAA(rx_solve *rx, unsigned int id, double t, int linCm
       }
       break;
     default:
-      error("Invalid evid in linear solved system.");
+      error(_("invalid 'evid' in linear solved system"));
     }
     // Since this starts with the most recent dose, and then goes
     // backward, you can use a tolerance calcuation to exit the loop
@@ -669,7 +665,7 @@ double rx_approxP(double v, double *y, int n,
 
 
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
-  if (rx == NULL) error("solve data is not loaded.");
+  if (rx == NULL) error(_("solve data is not loaded"));
   if (ISNA(t)){
     rx_solving_options_ind *ind;
     ind = &(rx->subjects[id]);
@@ -741,7 +737,7 @@ static inline void realizeBolus(double *Alast, // Last amounts
   if (Doserate > 0){
     if (oral0){
       // FIXME bolus with infusion in oral one-compartment model
-      error("Mixed oral and iv infusions are not supported with advan compartments");
+      error(_("mixed oral and iv infusions are not supported with advan compartments"));
     } else {
       // Bolus with infusion
       if (ncmt == 1){
@@ -1200,13 +1196,13 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	      break;
 	    }
 	  }
-	  if (foundIt==0) error("Corrupted event table.");
+	  if (foundIt==0) error(_("corrupted event table"));
 	}
 	xout = ind->all_times[ind->idose[ind->ixds]];
 	if (t < xout) break;
 	if (wh0 == 30){
 	  // Reset before dosing
-	  error("Cannot turn off a compartment with a linear solved system");
+	  error(_("can not turn off a compartment with a linear solved system"));
 	}
 	switch(whI){
 	case 9: // modeled rate.
@@ -1221,7 +1217,6 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  /*   } */
 	  /*   return 0; */
 	  /* } */
-	  /* error("SS=2 & Modeled F does not work"); */
 	  break;
 	case 7: // End modeled rate
 	case 6: // end modeled duration
@@ -1270,7 +1265,7 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    if (whI == 2)rate*=F[cmtOff];
 	    else tinf*=F[cmtOff];
 	  }
-	  error("maxSS needs to be reworked");
+	  error(_("'maxSS' needs to be reworked"));
 	  /* for (int j = 0; j < op->maxSS; j++){ */
 	  /*   xout = 0; */
 	  /*   tlast = 0; */

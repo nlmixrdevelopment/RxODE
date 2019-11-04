@@ -1,6 +1,14 @@
 // [[Rcpp::interfaces(r, cpp)]]
 #include <Rcpp.h>
 using namespace Rcpp;
+
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
 bool rxIs(const RObject &obj, std::string cls);
 
 std::string symengineRes(std::string val);
@@ -60,7 +68,7 @@ List rxExpandGrid_(RObject &c1, RObject &c2, RObject &type){
       return out;
     }
   } else {
-    stop("Unanticipated input for rxExpandGrid_");
+    stop(_("unanticipated input for rxExpandGrid_"));
   }
   List tmp = List(0);
   return tmp;

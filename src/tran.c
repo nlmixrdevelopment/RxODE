@@ -369,7 +369,7 @@ void addLine(vLines *sbb, const char *format, ...){
   // Try first.
   n = vsnprintf(NULL, 0, format, copy);
   if (n < 0){
-    error("Encoding error in addLine");
+    error(_("encoding error in 'addLine'"));
   }
   va_end(copy);
   if (sbb->sN <= sbb->o + n + 1){
@@ -2733,14 +2733,14 @@ void writeSb(sbuf *sbb, FILE *fp){
     register unsigned written = fwrite(sbb->s + totalWritten, 1, toWrite, fp);
     if( toWrite != written){
       fclose(fp);
-      error("IO error writing parsed C file.");
+      error(_("IO error writing parsed C file"));
     } else{
       totalWritten += written; // add the written bytes
     }
   }
   if (totalWritten != sbb->o) {
     fclose(fp);
-    error("IO error writing parsed C file.");
+    error(_("IO error writing parsed C file"));
   }
 }
 static void rxSyntaxError(struct D_Parser *ap);
@@ -2857,7 +2857,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     model_prefix = rc_dup_str(CHAR(STRING_ELT(prefix,0)),0);
   } else {
     sFree(&bufw); sFree(&bufw2);
-    error("model prefix must be specified");
+    error(_("model prefix must be specified"));
   }
 
   if (isString(inLinExtra) && length(inLinExtra) == 1){
@@ -2865,14 +2865,14 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     extra_indLin = (char*)rc_dup_str(CHAR(STRING_ELT(inLinExtra,0)),0);
   } else {
     freeP();
-    error("Extra inductive linearization model variables must be specified");
+    error(_("extra inductive linearization model variables must be specified"));
   }
 
   if (isString(inME) && length(inME) == 1){
     me_code = r_dup_str(CHAR(STRING_ELT(inME,0)),0);
   } else {
     freeP();
-    error("Extra ME code must be specified");
+    error(_("extra ME code must be specified"));
   }
 
   if (isString(model_md5) && length(model_md5) == 1){
@@ -3346,7 +3346,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       }
     }
     sFree(&bufw); sFree(&bufw2);
-    error("Syntax Errors (see above)");
+    error(_("syntax errors (see above)"));
   }
   sFree(&bufw); sFree(&bufw2);
   return lst;
@@ -3354,7 +3354,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 
 SEXP _RxODE_parseModel(SEXP type){
   if (!sbPm.o){
-    error("Model no longer loaded in memory.");
+    error(_("model no longer loaded in memory"));
   }
   int iT = INTEGER(type)[0];
   SEXP pm;
@@ -3402,13 +3402,13 @@ SEXP _RxODE_isLinCmt(){
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
 		    SEXP pMd5, SEXP timeId, SEXP fixInis){
   if (!sbPm.o || !sbNrm.o){
-    error("Nothing in output queue to write");
+    error(_("nothing in output queue to write"));
   }
   if (!isString(c_file) || length(c_file) != 1){
-    error("c_file should only be 1 file");
+    error(_("c_file should only be 1 file"));
   }
   if (length(libname) != 2){
-    error("libname needs 2 elements");
+    error(_("libname needs 2 elements"));
   }
   fpIO = fopen(CHAR(STRING_ELT(c_file,0)), "wb");
   err_msg((intptr_t) fpIO, "error opening output c file\n", -2);

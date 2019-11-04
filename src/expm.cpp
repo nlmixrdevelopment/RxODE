@@ -5,6 +5,15 @@
 #include "../inst/include/RxODE.h"
 #define ARMA_DONT_PRINT_ERRORS
 #define ARMA_DONT_USE_OPENMP // Known to cause speed problems
+
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
+
 using namespace Rcpp;
 
 std::string symengineRes(std::string val){
@@ -198,7 +207,7 @@ arma::vec phiv(double t, arma::mat& A, arma::vec& u,
 	  s = R_pow_di(10,floor(log10(t_step))-1);
 	  t_step = ceil(t_step/s) * s;
 	  if (ireject == mxrej){
-	    stop("The requested tolerance is too high.");
+	    stop(_("requested tolerance is too high"));
 	  }
 	  ireject = ireject + 1;
 	}
@@ -396,7 +405,7 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
     return 1;
   }
   default:
-    stop("Unsupported IndLin Code: %d", doIndLin);
+    stop(_("unsupported indLin code: %d"), doIndLin);
   }
   // if (doIndLin == 0){
   //   // Total possible enhanced matrix is (neq+neq)x(neq+neq)
@@ -426,7 +435,6 @@ extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, 
   //     std::copy(wLast.begin(), wLast.end(), &yp_[0]);
   //     return 1;
   //   }
-  //   stop("Inductive lin");
   //   IndF(cSub, tcov, tf, fptr, wLast.memptr(), InfusionRate_,extra.memptr());
   //   w=phiv((tf-tp), m0, u, yp, op);
   //   bool converge = false;

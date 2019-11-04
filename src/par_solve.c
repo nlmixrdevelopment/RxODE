@@ -21,6 +21,15 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
+
 int _setSilentErr=0;
 void setSilentErr(int silent){
   _setSilentErr = silent;
@@ -2501,7 +2510,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
     if (nidCols == 0){
       error("Could not solve the system.");
     } else {
-      warning("Some ID(s) could not solve the ODEs correctly; These values are replaced with NA.");
+      warning(_("some ID(s) could not solve the ODEs correctly; These values are replaced with 'NA'"));
     }
   }  
   SEXP df = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols+doTBS*2+5*nmevid)); pro++;
@@ -2554,12 +2563,12 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       if (nBadDose && csim == 0){
 	for (i = 0; i < nBadDose; i++){
 	  if (BadDose[i] > extraCmt){
-	    warning("Dose to Compartment %d ignored (not in ODE; id=%d)", BadDose[i],csub+1);
+	    warning(_("dose to compartment %d ignored (not in ODE; 'id=%d')"), BadDose[i],csub+1);
 	  }
 	}
       }
       if (ind->allCovWarn && csim == 0){
-	warning("One or more covariates were all NA for subject id=%d", csub+1);
+	warning(_("one or more covariates were all 'NA' for subject 'id=%d'"), csub+1);
       }	
       for (i = 0; i < ntimes; i++){
         evid = ind->evid[ind->ix[i]];

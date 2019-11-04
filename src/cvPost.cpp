@@ -1,4 +1,12 @@
 #include <RcppArmadillo.h>
+#include <R.h>
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
 using namespace Rcpp;
 using namespace arma;
 bool rxIs(const RObject &obj, std::string cls);
@@ -92,7 +100,7 @@ void rgbeta(int d, double shape, double* out){
       out[j] = 2.0*Rf_rbinom(1, 0.5) - 1.0;
     }
   } else {
-    stop("'shape' must be non-negative");
+    stop(_("'shape' must be non-negative"));
   }
 }
 //' One correlation sample from the LKJ distribution
@@ -108,10 +116,10 @@ void rgbeta(int d, double shape, double* out){
 //[[Rcpp::export]]
 arma::mat rLKJ1(int d, double eta = 1.0, bool cholesky = false){
   if (d < 2){
-    stop("dimension, 'd' of correlation matrix must be > 1");
+    stop(_("dimension, 'd' of correlation matrix must be > 1"));
   }
   if (eta < 1){
-    stop("'eta' must be >= 1");
+    stop(_("'eta' must be >= 1"));
   }
   double alpha = eta + ((double)(d) - 2.0)/2.0;
   arma::mat L(d,d,arma::fill::zeros);
@@ -156,7 +164,7 @@ arma::mat rLKJcv1(arma::vec sd, double eta = 1.0){
 arma::mat rLKJcvLsd1(arma::vec logSd, arma::vec logSdSD, double eta = 1.0){
   unsigned int d = logSd.size();
   if (d != logSdSD.size()){
-    stop("log standard deviation size needs to be the same size as the log standard error of the estimate");
+    stop(_("log standard deviation size needs to be the same size as the log standard error of the estimate"));
   }
   arma::vec sd(d);
   for (unsigned int j = d; j--;){
@@ -177,7 +185,7 @@ arma::mat rLKJcvLsd1(arma::vec logSd, arma::vec logSdSD, double eta = 1.0){
 //' @export
 //[[Rcpp::export]]
 arma::mat invWR1d(int d, double nu, bool omegaIsChol = false){
-  if (nu <= d - 1) stop("'nu' must be greater than 'd'-1");
+  if (nu <= d - 1) stop(_("'nu' must be greater than 'd'-1"));
   arma::mat I(d,d,arma::fill::eye);
   arma::mat invW = as<arma::mat>(cvPost0(nu, wrap(I),
 					 omegaIsChol, false));
@@ -245,7 +253,7 @@ arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
     }
     break;
   default:
-    stop("unknown 'diagXformType' transformation");
+    stop(_("unknown 'diagXformType' transformation"));
   }
   arma::mat ret;
   if (rType == 1){
@@ -288,7 +296,7 @@ RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false,
 	arma::mat om0 = as<arma::mat>(omega);
 	om0 = om0.t();
 	List ret(om0.n_rows);
-	if (n != 1) warning("'n' is determined by the 'omega' argument which contains the simulated standard deviations");
+	if (n != 1) warning(_("'n' is determined by the 'omega' argument which contains the simulated standard deviations"));
 	for (unsigned int i = 0; i < om0.n_rows; i++){
 	  arma::vec sd = om0.col(i);
 	  arma::mat reti = rcvC1(sd, nu, diagXformType, type-1, returnChol);
@@ -296,10 +304,10 @@ RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false,
 	}
 	return(as<RObject>(ret));
       } else {
-	stop("when sampling from correlation priors to create covariance matrices, the input must be a matrix of standard deviations");
+	stop(_("when sampling from correlation priors to create covariance matrices, the input must be a matrix of standard deviations"));
       }
     }
   }
-  stop("omega needs to be a matrix or a numeric vector that can be converted to a matrix.");
+  stop(_("'omega' needs to be a matrix or a numeric vector that can be converted to a matrix"));
   return R_NilValue;
 }

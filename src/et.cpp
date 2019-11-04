@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+#include <R.h>
 #include "timsort.h"
 #ifdef rxSortStd
 #define SORT std::sort
@@ -6,6 +7,15 @@
 #define SORT gfx::timsort
 #endif
 using namespace Rcpp;
+
+
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
 
 bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
@@ -91,7 +101,7 @@ RObject etUpdate(RObject obj,
 	      (strncmp((as<std::string>(nm[i])).c_str(), sarg.c_str(), slen)  == 0 ) &&
 	      (dexact != 1 || (dexact == 1 && slen == slen2))){
 	    if (dexact == -1){
-	      warning("partial match of '%s' to '%s'",sarg.c_str(), (as<std::string>(nm[i])).c_str());
+	      warning(_("partial match of '%s' to '%s'"),sarg.c_str(), (as<std::string>(nm[i])).c_str());
 	    }
 	    return lst[i];
 	  }
@@ -367,7 +377,7 @@ List etSimulate(List curEt){
     }
   }
   if (!recalcTime){
-    warning("The event table wasn't updated (no dose/sampling windows).");
+    warning(_("event table wasn't updated (no dose/sampling windows)"));
     return curEt;
   } else {
     lst.attr("class") = cls;
@@ -443,9 +453,9 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
 	}
       }
       if (cur.size() != 2)
-	stop("Windows need to be a list of observation windows, each of 2 elements e.g. list(c(0,2), c(2,7)).");
+	stop(_("windows need to be a list of observation windows, each of 2 elements e.g. list(c(0,2), c(2,7))"));
       if (cur[0]> cur[1])
-	stop("Windows need to be ordered list(c(2,0)) is invalid.");
+	stop(_("windows need to be ordered list(c(2,0)) is invalid"));
       id.push_back(IDs[j]);
       low.push_back(cur[0]);
       high.push_back(cur[1]);
@@ -855,7 +865,7 @@ IntegerVector convertMethod(RObject method){
       } else if (cur == "r" || cur == "R" || cur == "1"){
 	oldEvid[jj] = 5;
       } else {
-	stop("Unknown method: '%s'", (as<std::string>(tmp[jj])).c_str());
+	stop(_("unknown method: '%s'"), (as<std::string>(tmp[jj])).c_str());
       }
     }
   } else if (rxIs(method, "factor")){
@@ -872,7 +882,7 @@ IntegerVector convertMethod(RObject method){
       } else if (cur == "r" || cur == "R" || cur == "1"){
 	trans[jj] = 5;
       } else {
-	stop("Unknown method: '%s'", (as<std::string>(lvl[jj])).c_str());
+	stop(_("unknown method: '%s'"), (as<std::string>(lvl[jj])).c_str());
       }
     }
     for (int jj = tmp.size(); jj--;){
@@ -924,11 +934,11 @@ List etImportEventTable(List inData){
     else if (tmpS == "evid") evidCol=i;
     else if (tmpS == "time") timeCol=i;
     else if (tmpS == "amt" || tmpS == "value") {
-      if (amtCol != -1) stop("Can only specify either 'amt' or 'value'");
+      if (amtCol != -1) stop(_("can only specify either 'amt' or 'value'"));
       amtCol=i;
     }
     else if (tmpS == "cmt" || tmpS == "ytype" || tmpS == "state" || tmpS == "var"){
-      if (cmtCol != -1) stop("Can only specify either 'cmt', 'ytype', 'state' or 'var'");
+      if (cmtCol != -1) stop(_("can only specify either 'cmt', 'ytype', 'state' or 'var'"));
       cmtCol=i;
     }
     else if (tmpS == "ss")   ssCol=i;
@@ -936,7 +946,7 @@ List etImportEventTable(List inData){
     else if (tmpS == "addl") addlCol=i;
     else if (tmpS == "ii")   iiCol=i;
     else if (tmpS == "dur" || tmpS == "duration") {
-      if (durCol !=-1) stop("Can only specify either 'duration' or 'dur'");
+      if (durCol !=-1) stop(_("can only specify either 'duration' or 'dur'"));
       durCol=i;
     }
     else if (tmpS == "mdv") mdvCol=i;
@@ -944,7 +954,7 @@ List etImportEventTable(List inData){
   }
   NumericVector oldTime;
   if (timeCol == -1){
-    stop("Need a time column");
+    stop(_("need a 'time' column"));
   } else {
     oldTime=as<NumericVector>(inData[timeCol]);
   }
@@ -954,7 +964,7 @@ List etImportEventTable(List inData){
       evidCol = mdvCol;
       oldEvid=as<IntegerVector>(inData[evidCol]);
       if (methodCol != -1){
-	warning("Using 'mdv' instead of 'method'");
+	warning(_("using 'mdv' instead of 'method'"));
       }
     } else if (methodCol != -1){
       oldEvid = convertMethod(inData[methodCol]);
@@ -964,10 +974,9 @@ List etImportEventTable(List inData){
     }
   } else {
     if (mdvCol != -1){
-      warning("Using 'evid' instead of 'mdv'");
+      warning(_("using 'evid' instead of 'mdv'"));
     }
     if (methodCol != -1){
-      warning("Using 'evid' instead of 'method'");
     }
     oldEvid=as<IntegerVector>(inData[evidCol]);
   }
@@ -984,7 +993,7 @@ List etImportEventTable(List inData){
       Function convId = rx[".convertId"];
       oldId = convId(inData[idCol]);
     } else {
-      stop("ID type is unknown.");
+      stop(_("'ID' type is unknown"));
     }
   }
   std::vector<int> id;
@@ -1071,7 +1080,7 @@ List etImportEventTable(List inData){
       oldCmtC = as<CharacterVector>(inData[cmtCol]);
       cmtC=true;
     } else {
-      stop("Can't figure out how to import the compartment variable.");
+      stop(_("can not figure out how to import the compartment variable"));
     }
   }
   int wh, cmtI, wh100, whI, wh0, ndose=0, nobs=0;
@@ -1142,9 +1151,9 @@ List etImportEventTable(List inData){
 	if (oldCmt[i] > 1) show["cmt"] = true;
       }
       amt.push_back(oldAmt[i]);
-      if (curevid >= 5 && oldRate[i] != 0) stop("replacement/multiplication events cannot be combined with infusions");
+      if (curevid >= 5 && oldRate[i] != 0) stop(_("replacement/multiplication events cannot be combined with infusions"));
       rate.push_back(oldRate[i]);
-      if (curevid >= 5 && oldDur[i] != 0) stop("replacement/multiplication events cannot be combined with infusions");
+      if (curevid >= 5 && oldDur[i] != 0) stop(_("replacement/multiplication events cannot be combined with infusions"));
       dur.push_back(oldDur[i]);
       if (oldRate[i] > 0) show["rate"] = true;
       if (oldDur[i] > 0) show["dur"] = true;
@@ -1158,7 +1167,7 @@ List etImportEventTable(List inData){
       ndose++;
     } else {
       // Convert evid
-      if (cmtC) stop("Old RxODE EVIDs are not supported with string compartments");
+      if (cmtC) stop(_("old RxODE 'evid' values are not supported with string compartments"));
       getWh(curevid, &wh, &cmtI, &wh100, &whI, &wh0);
       cmtI++;
       if (cmtI != 1) show["cmt"] = true;
@@ -1371,7 +1380,7 @@ List etImportEventTable(List inData){
     }
     oldRate = setUnits(oldRate, rateUnit);
   } else if (haveRateUnits){
-    stop("Amt/time needs units to convert the rate to the right units to import the data.");
+    stop(_("'amt'/'time' needs units to convert the rate to the right units to import the data"));
   }
 
   // nme[6] = "rate";
@@ -1621,7 +1630,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
     } else if (curTime.size() == 2) {
       if (curTime[0] < curTime[1]){
 	if (doSampling){
-	  stop("do.sampling is not supported with dose windows");
+	  stop(_("'do.sampling' is not supported with dose windows"));
 	}
 	id.push_back(IDs[j]);
 	evid.push_back(curEvid);
@@ -1643,10 +1652,10 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
 	  unroll=true;
 	}
       } else {
-	stop("For dosing window you need to specify window in order, e.g. et(time=list(c(0,2)),amt=3).");
+	stop(_("dosing window you need to specify window in order, e.g. 'et(time=list(c(0,2)),amt=3)'"));
       }
     } else {
-      stop("Dosing time or time windows must only be 1-2 elements.");
+      stop(_("dosing time or time windows must only be 1-2 elements"));
     }
   }
   std::vector<int> idx(time.size());
@@ -1924,9 +1933,8 @@ RObject etCmtInt(RObject et){
     for (int j = newCmt.size();j--;){
       if (oldCmt[j] == "(default)") newCmt[j] = 1;
       else if (oldCmt[j] == "(obs)") newCmt[j] = NA_INTEGER;
-      else stop("Cannot mix named compartments and integer compartments.");
+      else stop(_("cannot mix named compartments and integer compartments."));
     }
-    // warning("Using numbered compartments is discouraged with RxODE simulations.");
     newEt[4] = newCmt;
   } else {
     newEt = cur;
@@ -2029,7 +2037,7 @@ List etResizeId(List curEt, IntegerVector IDs){
 	rmId = rmIds.back();
 	rmIds.pop_back();
       } else {
-	stop("Cannot add more IDs to this event table.");
+	stop(_("cannot add more 'ID's to this event table"));
       }
     }
     int nobs = 0;
@@ -2189,7 +2197,7 @@ List etResizeId(List curEt, IntegerVector IDs){
       }
       return newEt;
     } else {
-      stop("Cannot add more IDs to this event table.");
+      stop(_("cannot add more 'ID's to this event table"));
     }
   }
 }
@@ -2262,7 +2270,7 @@ RObject et_(List input, List et__){
     else if (inN[i] == "dur" || inN[i] == "duration") durIx = i;
     else if (inN[i] != "" && inN[i] != "simulate" && inN[i] != "envir" &&
 	     inN[i] != "expand" && !doUpdateObj){
-      stop("unused argument '%s'", (as<std::string>(inN[i])).c_str());
+      stop(_("unused argument '%s'"), (as<std::string>(inN[i])).c_str());
     }
   }
   // missing argument name handling.
@@ -2273,12 +2281,12 @@ RObject et_(List input, List et__){
       if (rxIs(input[i], "integer") && timeIx == -1) timeIx = i;
       if (rxIs(input[i], "list") && timeIx == -1) timeIx=i;
       if (rxIs(input[i], "rxEt")){
-	if (foundEt) stop("Multiple event tables supplied, not sure what to do; try 'c', 'rbind', 'seq' or 'rep'.");
+	if (foundEt) stop(_("multiple event tables supplied, not sure what to do; try 'c', 'rbind', 'seq' or 'rep'"));
 	foundEt=true;
 	curEt = input[i];
       }
       if (rxIs(input[i], "rxSolve")){
-	if (foundEt) stop("Multiple event tables supplied, not sure what to do; try 'c', 'rbind', 'seq' or 'rep'.");
+	if (foundEt) stop(_("multiple event tables supplied, not sure what to do; try 'c', 'rbind', 'seq' or 'rep'"));
 	foundEt=true;
 	inputSolve=true;
 	curEt = getEtSolve(input[i]);
@@ -2293,12 +2301,12 @@ RObject et_(List input, List et__){
       if (rxIs(input[i], "integer") && timeIx == -1) timeIx = i;
       if (rxIs(input[i], "list") && timeIx == -1) timeIx=i;
       if (rxIs(input[i], "rxEt")){
-	if (foundEt) stop("Multiple event tables supplied, not sure what to do; try 'c', 'rbind', 'seq' or 'rep'.");
+	if (foundEt) stop(_("multiple event tables supplied, not sure what to do; try 'c', 'rbind', 'seq' or 'rep'"));
 	foundEt=true;
 	curEt = input[i];
       }
       if (rxIs(input[i], "rxSolve")){
-	if (foundEt) stop("Multiple event tables supplied, not sure what to do; try 'c', 'rbind', 'seq' or 'rep'.");
+	if (foundEt) stop(_("multiple event tables supplied, not sure what to do; try 'c', 'rbind', 'seq' or 'rep'"));
 	foundEt=true;
 	inputSolve=true;
 	curEt = getEtSolve(input[i]);
@@ -2316,7 +2324,7 @@ RObject et_(List input, List et__){
       units[0] = oldUnits[0];
     } else  {
       CharacterVector tmpS = as<CharacterVector>(input[amtUnitIx]);
-      if (tmpS.size() != 1) stop("Amount unit cannot be a vector");
+      if (tmpS.size() != 1) stop(_("amount unit cannot be a vector"));
       units[0] = tmpS[0];
       foundUnits = true;
     }
@@ -2324,7 +2332,7 @@ RObject et_(List input, List et__){
       units[1] = oldUnits[1];
     } else  {
       CharacterVector tmpS = as<CharacterVector>(input[timeUnitIx]);
-      if (tmpS.size() != 1) stop("Time unit cannot be a vector");
+      if (tmpS.size() != 1) stop(_("time unit cannot be a vector"));
       units[1] = tmpS[0];
       foundUnits = true;
     }
@@ -2477,11 +2485,11 @@ RObject et_(List input, List et__){
 	    return as<RObject>(ret);
 	  }
 	} else {
-	  warning("Nothing done");
+	  warning(_("nothing done"));
 	  return  as<List>(curEt);
 	}
       } else {
-	warning("Nothing done");
+	warning(_("nothing done"));
 	return  as<List>(curEt);
       }
     } else {
@@ -2527,7 +2535,7 @@ RObject et_(List input, List et__){
 	  if (cmtS.size() == 1){
 	    List tmp = as<List>(curEt);
 	    if (rxIs(tmp[4], "integer")){
-	      stop("Cannot mix named and integer compartments");
+	      stop(_("cannot mix named and integer compartments"));
 	    }
 	    std::string curCmt = as<std::string>(cmtS[0]);
 	    if (curCmt.substr(0, 1) == "-"){
@@ -2535,7 +2543,7 @@ RObject et_(List input, List et__){
 	    }
 	    cmt = as<RObject>(cmtS);
 	  } else {
-	    stop("The compartment cannot be a vector.");
+	    stop(_("compartment cannot be a vector"));
 	  }
 	} else if (rxIs(input[cmtIx], "integer") || rxIs(input[cmtIx], "numeric")){
 	  cmtI = as<IntegerVector>(input[cmtIx]);
@@ -2547,14 +2555,14 @@ RObject et_(List input, List et__){
 	      cmtNeg = true;
 	    }
 	    if (cmtI[0] == 0){
-	      stop("Compartment cannot be zero.");
+	      stop(_("compartment cannot be zero"));
 	    }
 	    cmt = as<RObject>(cmtI);
 	  } else {
-	    stop("The compartment cannot be an vector.");
+	    stop(_("compartment cannot be an vector"));
 	  }
 	} else {
-	  stop("The compartment must be an integer or a character.");
+	  stop(_("compartment must be an integer or a character"));
 	}
 	turnOnShowCmt=true;
       }
@@ -2565,7 +2573,7 @@ RObject et_(List input, List et__){
       } else {
 	NumericVector tmpNV = as<NumericVector>(input[amtIx]);
 	if (amt.size() != 1){
-	  stop("Dose amount cannot be a vector.");
+	  stop(_("dose amount cannot be a vector"));
 	}
 	amt[0] = tmpNV[0];
 	if (rxIs(tmpNV, "units")){
@@ -2588,21 +2596,21 @@ RObject et_(List input, List et__){
       if (evidIx != -1){
 	IntegerVector tmp = as<IntegerVector>(input[evidIx]);
 	if (evid.size()!= 1){
-	  stop("evid cannot be a vector");
+	  stop(_("'evid' cannot be a vector"));
 	}
 	evid[0] = tmp[0];
 	if (cmtNeg && evid[0] != 2){
-	  stop("Turning off compartments can only be done when EVID=2.");
+	  stop(_("turning off compartments can only be done when 'EVID'=2"));
 	}
 	if (evid[0] == 0 && isObs){
-	  stop("zero evid cannot be used with dose/amt.");
+	  stop(_("zero 'evid' cannot be used with 'dose'/'amt'"));
 	}
 	if ((evid[0] == 1 || evid[0] == 4) && isObs){
-	  stop("This EVID requires an AMT");
+	  stop(_("'evid' requires an 'amt'"));
 	} else if (evid[0] == 2 || evid[0] == 3) {
 	  if (amtIx == -1){
 	    if (amt[0] != 0 && NumericVector::is_na(amt[0])){
-	      warning("Dose amount is ignored with EVID=2 or EVID=3");
+	      warning(_("dose amount is ignored with 'EVID'=2 or 'EVID'=3"));
 	    }
 	  }
 	  amt[0] = NA_REAL;
@@ -2622,36 +2630,36 @@ RObject et_(List input, List et__){
 	IntegerVector addl;// = 0;
 	if (addlIx != -1){
 	  addl = as<IntegerVector>(input[addlIx]);
-	  if (addl.size() != 1) stop("addl cannot be a vector.");
+	  if (addl.size() != 1) stop(_("'addl' cannot be a vector"));
 	  if (addl[0] != 0){
-	    stop("addl needs a dose/amt.");
+	    stop(_("'addl' needs a 'dose'/'amt'"));
 	  }
 	} else {
 	  addl = IntegerVector(1);
 	  addl[0] = 0;
 	}
 	if (untilIx != -1){
-	  stop("until needs a dose/amt.");
+	  stop(_("'until' needs a 'dose'/'amt'"));
 	}
 	if (nbrIx != -1){
-	  stop("nbr.doses needs a dose/amt.");
+	  stop(_("'nbr.doses' needs a 'dose'/'amt'"));
 	}
 	NumericVector rate;
 	if (rateIx != -1){
 	  if (durIx != -1){
-	    stop("Cannot specify 'dur' AND 'rate' for a dose, please pick one.");
+	    stop(_("can not specify 'dur' and 'rate' for a dose, please pick one"));
 	  }
 	  rate = as<NumericVector>(input[rateIx]);
-	  if (rate.size() != 1) stop("rate cannot be a vector");
+	  if (rate.size() != 1) stop(_("'rate' cannot be a vector"));
 	  if (rate[0] != 0.0){
-	    stop("rate needs a dose/amt.");
+	    stop(_("'rate' needs a 'dose'/'amt'"));
 	  }
 	} else {
 	  if (durIx != -1){
 	    NumericVector dur = as<NumericVector>(input[durIx]);
-	    if (dur.size() != 1) stop("dur cannot be a vector");
+	    if (dur.size() != 1) stop(_("'dur' cannot be a vector"));
 	    if (dur[0] != 0){
-	      stop("dur needs a dose/amt.");
+	      stop(_("'dur' needs a 'dose'/'amt'"));
 	    }
 	  }
 	  rate = NumericVector(1);
@@ -2660,9 +2668,9 @@ RObject et_(List input, List et__){
 	NumericVector ii(1);
 	if (iiIx != -1){
 	  NumericVector tmpNV = as<NumericVector>(input[iiIx]);
-	  if (tmpNV.size() != 1) stop("ii cannot be a vector.");
+	  if (tmpNV.size() != 1) stop(_("'ii' cannot be a vector"));
 	  if (tmpNV[0] != 0.0){
-	    stop("ii needs a dose/amt.");
+	    stop(_("'ii' needs a 'dose'/'amt'"));
 	  }
 	  if (rxIs(tmpNV, "units")){
 	    ii = setUnits(tmpNV, as<std::string>(units[1]));
@@ -2673,15 +2681,15 @@ RObject et_(List input, List et__){
 	  ii[0] = 0.0;
 	}
 	if (addl[0] > 0 && ii[0] <= 0){
-	  stop("A dosing interval of zero makes no sense with multiple dose events.");
+	  stop(_("dosing interval of zero makes no sense with multiple dose events"));
 	}
 	
 	IntegerVector ss;// = 0;
 	if (ssIx != -1){
 	  ss = as<IntegerVector>(input[ssIx]);
-	  if (ss.size() != 1) stop("ss cannot be a vector.");
+	  if (ss.size() != 1) stop(_("'ss' cannot be a vector"));
 	  if (ss[0] != 0){
-	    stop("non-zero ss needs a dose/amt.");
+	    stop(_("non-zero 'ss' needs a 'dose'/'amt'"));
 	  }
 	}
 	if (timeIx != -1) {
@@ -2718,51 +2726,51 @@ RObject et_(List input, List et__){
 	// Dose
 	////////////////////////////////////////////////////////////////////////////////
 	if (addlIx != -1 && untilIx != -1){
-	  stop("Can only specify until or addl, not both.");
+	  stop(_("can only specify 'until' or 'addl', not both"));
 	}
 	if (addlIx != -1 && nbrIx != -1){
-	  stop("Can only specify addl or nbr.doses, not both.");
+	  stop(_("can only specify 'addl' or 'nbr.doses', not both"));
 	}
 	if (nbrIx != -1 && untilIx != -1){
-	  stop("Can only specify nbr.doses or until, not both.");
+	  stop(_("can only specify 'nbr.doses' or 'until', not both"));
 	}
 	bool doSampling = false;
 	if (doSamplingIdx != -1){
 	  if (rxIs(input[doSamplingIdx], "logical")){
 	    LogicalVector tmpL = as<LogicalVector>(input[doSamplingIdx]);
-	    if (tmpL.size() != 1) stop("do.sampling can only be a length one.");
+	    if (tmpL.size() != 1) stop(_("'do.sampling' can only have one item"));
 	    doSampling = tmpL[0];
 	  } else {
-	    stop("do.sampling must be logical.");
+	    stop(_("'do.sampling' must be logical"));
 	  }
 	}
 	NumericVector rate(1);
 	NumericVector dur(1);
 	if (rateIx != -1){
 	  if (durIx != -1){
-	    stop("Cannot specify 'dur' AND 'rate' for a dose, please pick one.");
+	    stop(_("cannot specify 'dur' and 'rate' for a dose, please pick one"));
 	  }
 	  NumericVector tmpNV = as<NumericVector>(input[rateIx]);
-	  if (tmpNV.size() != 1) stop("rate cannot be a vector.");
+	  if (tmpNV.size() != 1) stop(_("'rate' cannot be a vector"));
 	  if (rxIs(tmpNV, "units")){
 	    CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
 	    List e = clone(as<List>(cls.attr(".RxODE.lst")));
 	    CharacterVector units = e["units"];
 	    if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
 	      if (rate[0] < 0){
-		stop("-1 and -2 rates do not make sense with units.");
+		stop(_("-1 and -2 rates do not make sense with units"));
 	      }
 	      std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
 	      rate = setUnits(tmpNV,rateUnit);
 	    } else {
-	      stop("Rate is cannot be converted and added to this table.");
+	      stop(_("'rate' is cannot be converted and added to this table")); // 
 	    }
 	  } else {
 	    rate[0] = tmpNV[0];
 	  }
 	  if (ssInf){
 	    if (rate[0] != -1 && rate[0] <= 0.0){
-	      stop("steady state constant infusion dosing records must have rate=-1 or positive rate");
+	      stop(_("steady state constant infusion dosing records must have 'rate=-1' or positive rate"));
 	    }
 	  }
 	  dur[0] = 0;
@@ -2771,7 +2779,7 @@ RObject et_(List input, List et__){
 	    NumericVector tmpNV = as<NumericVector>(input[durIx]);
 	    rate = NumericVector(1);
 	    rate[0] = 0;
-	    if (tmpNV.size() != 1) stop("dur cannot be a vector");
+	    if (tmpNV.size() != 1) stop(_("'dur' cannot be a vector"));
 	    if (rxIs(tmpNV, "units")){
 	      CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
 	      List e = clone(as<List>(cls.attr(".RxODE.lst")));
@@ -2781,7 +2789,7 @@ RObject et_(List input, List et__){
 		dur = setUnits(tmpNV,as<std::string>(units[1]));
 		// While units are converted, the units that matter are the rate units.
 	      } else {
-		stop("Dur is cannot be converted and added to this table.");
+		stop(_("'dur' cannot be converted and added to this table"));
 	      }
 	    } else {
 	      dur = tmpNV[0];
@@ -2794,7 +2802,7 @@ RObject et_(List input, List et__){
 	NumericVector ii(1);// =0.0;
 	if (iiIx != -1){
 	  NumericVector tmpNV = as<NumericVector>(input[iiIx]);
-	  if (tmpNV.size() != 1) stop("ii cannot be a vector.");
+	  if (tmpNV.size() != 1) stop(_("'ii' cannot be a vector"));
 	  if (rxIs(tmpNV, "units")){
 	    ii = setUnits(tmpNV, as<std::string>(units[1]));
 	  } else {
@@ -2806,7 +2814,7 @@ RObject et_(List input, List et__){
 	IntegerVector ss;// = 0;
 	if (ssIx != -1){
 	  ss = as<IntegerVector>(input[ssIx]);
-	  if (ss.size() != 1) stop("ss cannot be a vector.");
+	  if (ss.size() != 1) stop(_("'ss' cannot be a vector"));
 	} else {
 	  ss = IntegerVector(1);
 	  ss[0] = 0;
@@ -2828,22 +2836,22 @@ RObject et_(List input, List et__){
 	IntegerVector addl(1);//=0;
 	if (addlIx != -1){
 	  IntegerVector tmpIV = as<IntegerVector>(input[addlIx]);
-	  if (tmpIV.size() != 1) stop("addl cannot be a vector.");
+	  if (tmpIV.size() != 1) stop(_("'addl' cannot be a vector"));
 	  addl[0] = tmpIV[0];
 	} else if (nbrIx != -1){
 	  IntegerVector tmpIV = as<IntegerVector>(input[nbrIx]);
-	  if (tmpIV.size() != 1) stop("Number of doses cannot be a vector.");
+	  if (tmpIV.size() != 1) stop(_("number of doses cannot be a vector"));
 	  if (tmpIV[0] < 1){
-	    stop("Number of Doses must be at least one (addl: %d)", addl[0]);
+	    stop(_("number of doses must be at least one ('addl': %d)"), addl[0]);
 	  }
 	  addl[0] = tmpIV[0]-1;
 	} else if (untilIx != -1){
 	  // Need time for this
 	  NumericVector tmpNV = as<NumericVector>(input[untilIx]);
 	  NumericVector until(1);
-	  if (tmpNV.size() != 1) stop("Until cannot be a vector.");
+	  if (tmpNV.size() != 1) stop(_("until cannot be a vector"));
 	  if (ii[0] < 0){
-	    stop("'until' can only be used with positive inter-dose intervals (ii).");
+	    stop(_("'until' can only be used with positive inter-dose intervals ('ii')"));
 	  }
 	  if (rxIs(tmpNV, "units")){
 	    until = setUnits(tmpNV, as<std::string>(units[1]));
@@ -2852,7 +2860,7 @@ RObject et_(List input, List et__){
 	  }
 	  if (!doWindow || time.size() == 1){
 	    if (time.size() != 1){
-	      stop("'until' does not make sense with multiple dosing times.");
+	      stop(_("'until' does not make sense with multiple dosing times"));
 	    }
 	    double tmp = until[0] - time[0] - ii[0];
 	    if (tmp > 0){
@@ -2880,7 +2888,7 @@ RObject et_(List input, List et__){
 	      addl[0] = 0;
 	    }
 	  } else {
-	    stop("Dosing windows can only have 1-2 items in them");
+	    stop(_("dosing windows can only have 1-2 items in them"));
 	  }
 	} else {
 	  addl[0]=0;
@@ -2889,30 +2897,30 @@ RObject et_(List input, List et__){
 	  if (doUpdateObj && ii[0] == 24){
 	    ii[0]=0;
 	  } else {
-	    stop("ii requires non zero additional doses (addl/until/nbr.doses) or steady state dosing (ii: %f, ss: %d; addl: %d).", ii[0], ss[0], addl[0]);
+	    stop(_("'ii' requires non zero additional doses ('addl'/'until'/'nbr.doses') or steady state dosing ('ii': %f, 'ss': %d; 'addl': %d)."), ii[0], ss[0], addl[0]);
 	  }
 	}
 	if (ssInf && ss[0] != 1){
-	  stop("ss must be 1 when specifying a steady-state constant infusion.");
+	  stop(_("'ss' must be 1 when specifying a steady-state constant infusion"));
 	}
 	if (ss[0] < 0 || ss[0] > 2){
-	  stop("ss must be 0, 1 or 2.");
+	  stop(_("'ss' must be 0, 1 or 2"));
 	} if (ss[0] > 0 && ii[0] <= 0){
 	  if (!ssInf){
-	    stop("ii required with ss.");
+	    stop(_("'ii' required with 'ss'"));
 	  }
 	}
 	if (ssInf && ii[0] > 0){
-	  stop("ii cannot be used with steady state constant infusion.");
+	  stop(_("'ii' cannot be used with steady state constant infusion"));
 	}
 	if (ss[0] > 1 && time.size() > 1){
-	  stop("Steady state (ss) is not supported with dosing windows.");
+	  stop(_("steady state ('ss') is not supported with dosing windows"));
 	}
 	if (addl[0] < 0){
-	  stop("Additional doses must be positive (addl=%d).", addl[0]);
+	  stop(_("additional doses must be positive ('addl'=%d)"), addl[0]);
 	}
 	if (addl[0] > 0 && ii[0] <= 0){
-	  stop("Additional doses require an inter-dose interval (ii).");
+	  stop(_("additional doses require an inter-dose interval ('ii')"));
 	}
 	List ret;
 	if (doWindow){
@@ -2923,12 +2931,12 @@ RObject et_(List input, List et__){
 		rxIs(timeList[i],"units")){
 	      time = as<NumericVector>(timeList[i]);
 	      if (time.size() > 2){
-		stop("Dosing time window lists can have 1-2 numeric entries in them");
+		stop(_("dosing time window lists can have 1-2 numeric entries in them"));
 	      }
 	      ret = etAddDose(time, cmt, amt[0], rate[0], ii[0], addl[0], evid[0], ss[0], dur[0],
 			      id, turnOnShowCmt, doSampling, ret);
 	    } else {
-	      stop("The dosing window list needs to be numeric values only.");
+	      stop(_("dosing window list needs to be numeric values only"));
 	    }
 	  }
 	} else {
@@ -2954,7 +2962,7 @@ RObject et_(List input, List et__){
       units[0] = NA_STRING;
     } else  {
       CharacterVector tmpS = as<CharacterVector>(input[amtUnitIx]);
-      if (tmpS.size() != 1) stop("Amount unit cannot be a vector");
+      if (tmpS.size() != 1) stop(_("amount unit cannot be a vector"));
       units[0] = tmpS[0];
       foundArgs++;
     }
@@ -2962,7 +2970,7 @@ RObject et_(List input, List et__){
       units[1] = NA_STRING;
     } else  {
       CharacterVector tmpS = as<CharacterVector>(input[timeUnitIx]);
-      if (tmpS.size() != 1) stop("Time unit cannot be a vector");
+      if (tmpS.size() != 1) stop(_("time unit cannot be a vector"));
       units[1] = tmpS[0];
       foundArgs++;
     }
@@ -2981,7 +2989,7 @@ RObject et_(List input, List et__){
   if (input.size() == 1 && rxIs(input[0], "data.frame")){
     return etImportEventTable(as<List>(input[0]));
   }
-  stop("Cannot figure out what type of EventTable you are trying to create.");
+  stop(_("cannot figure out what type of 'EventTable' you are trying to create"));
   // Should never get here...
   List ret(0);
   return ret;
@@ -3065,10 +3073,10 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	gotUnits=true;
       } else {
 	if (isCmtInt && !rxIs(et["cmt"], "integer")){
-	  stop("Cannot event tables with integer and character 'cmt'.");
+	  stop(_("cannot have event tables with integer and character 'cmt'"));
 	}
 	if (!isCmtInt && rxIs(et["cmt"], "integer")){
-	  stop("Cannot event tables with integer and character 'cmt'.");
+	  stop(_("cannot haveevent tables with integer and character 'cmt'"));
 	}
 	LogicalVector newShow = e["show"];
 	for (j = show.size(); j--;){
@@ -3153,7 +3161,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	    firstDoseOfEt = false;
 	  } else if (curEvid[j] != 0 && curEvid[j] != 2 && curEvid[j] != 3) {
 	    if (!rbind && i != 0 && trueLastIi == 0 && firstDoseOfEt && curTime[j] < defaultIi){
-	      warning("Assumed a dose interval of %.1f between event tables; use 'ii' to adjust.", defaultIi);
+	      warning(_("assumed a dose interval of %.1f between event tables; use 'ii' to adjust"), defaultIi);
 	      maxTime += defaultIi;
 	      timeDelta += defaultIi;
 	    }
@@ -3182,7 +3190,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	    if (tmp > maxTime) maxTime = tmp;
 	  } else if (curEvid[j] != 0 && curEvid[j] != 2 && curEvid[j] != 3){
 	    if (!rbind && i != 0 && trueLastIi == 0 && firstDoseOfEt && curTime[j] < defaultIi){
-	      warning("Assumed a dose interval of %.1f between event tables; use 'ii' to adjust.", defaultIi);
+	      warning(("assumed a dose interval of %.1f between event tables; use 'ii' to adjust"), defaultIi);
 	      maxTime += defaultIi;
 	      timeDelta += defaultIi;
 	    }
@@ -3254,7 +3262,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
     }
   }
   if (!gotUnits){
-    stop("No events table found for seq/rep/rbind/c.");
+    stop(_("no events table found for 'seq'/'rep'/'rbind'/'c'"));
   }
   List lst = etEmpty(units);
   // nme[0] = "id";
@@ -3375,7 +3383,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 List etRep_(RObject curEt, int times, NumericVector wait, IntegerVector ids, int handleSamples, int waitType,
 	    double ii){
   if (wait.size() != 1){
-    stop("Wait cannot be a vector.");
+    stop(_("'wait' cannot be a vector"));
   }
   CharacterVector cls = as<CharacterVector>(curEt.attr("class"));
   List e = cls.attr(".RxODE.lst");
