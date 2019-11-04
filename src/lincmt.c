@@ -1059,7 +1059,7 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 		      p2, p3, p4, p5, d_ka, d_tlag, d_tlag2,  d_F,  d_F2, d_rate, d_dur);
       break;
     default:
-      REprintf(_("invalid trans (3 cmt trans %d).\n"), trans);
+      REprintf(_("invalid trans (3 cmt trans %d)\n"), trans);
       return NA_REAL;
     }
   } else if (p3 > 0.){
@@ -1108,7 +1108,7 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 		      p2, p3, p4, p5, d_ka, d_tlag, d_tlag2,  d_F,  d_F2, d_rate, d_dur);
       break;
     default:
-      REprintf(_("invalid trans (2 cmt trans %d).\n"), trans);
+      REprintf(_("invalid trans (2 cmt trans %d)\n"), trans);
       return NA_REAL;
     }
   } else if (p1 > 0.){
@@ -1131,7 +1131,7 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
       rx_v = 1/v1;
       break;
     default:
-      REprintf(_("invalid trans (1 cmt trans %d).\n"), trans);
+      REprintf(_("invalid trans (1 cmt trans %d)\n"), trans);
       return NA_REAL;
     }
   } else {

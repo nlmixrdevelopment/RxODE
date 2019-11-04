@@ -13,91 +13,90 @@ msgstr ""
 #: dop853.c:401 dop853.c:668
 #, c-format
 msgid "Exit of dop853 at x = %.16e\n"
-msgstr ""
+msgstr "Salida de dop853 en x =% .16e"
 
 #: dop853.c:412
 #, c-format
 msgid "Exit of dop853 at x = %.16e, more than nmax = %li are needed\n"
-msgstr ""
+msgstr "Salida de dop853 en x =% .16e, se necesita más de nmax =%li\n"
 
 #: dop853.c:421
 #, c-format
 msgid "Exit of dop853 at x = %.16e, step size too small h = %.16e\n"
-msgstr ""
+msgstr "Salida de dop853 en x =% .16e, tamaño de paso demasiado pequeño h =% .16e\n"
 
 #: dop853.c:553
 #, c-format
 msgid "The problem seems to become stiff at x = %.16e\n"
-msgstr ""
+msgstr "El problema parece volverse rígido en x =% .16e\n"
 
 #: dop853.c:724
 #, c-format
 msgid "System too big, max. n = %u\n"
-msgstr ""
+msgstr "Sistema demasiado grande, máx. n =%u\n"
 
 #: dop853.c:734
 #, c-format
 msgid "Wrong input, nmax = %li\n"
-msgstr ""
+msgstr "Entrada incorrecta, nmax = %li\n"
 
 #: dop853.c:744
 #, c-format
 msgid "Curious input, meth = %i\n"
-msgstr ""
+msgstr "Entrada curiosa, meth =%i\n"
 
 #: dop853.c:758
 #, c-format
 msgid "Wrong input, iout = %i\n"
-msgstr ""
+msgstr "Entrada incorrecta, iout =%i\n"
 
 #: dop853.c:766
 #, c-format
 msgid "Curious input, nrdens = %u\n"
-msgstr ""
+msgstr "Entrada curiosa, nrdens = %u\n"
 
 #: dop853.c:787
 msgid "Not enough free memory for rcont12345678&indir\n"
-msgstr ""
+msgstr "No hay suficiente memoria libre para rcont12345678&indir\n"
 
 #: dop853.c:795
-msgid ""
-"Warning : when nrdens = n there is no need allocating memory for icont\n"
-msgstr ""
+msgid "Warning : when nrdens = n there is no need allocating memory for icont\n"
+msgstr "Advertencia: cuando nrdens = n no es necesario asignar memoria para icont\n"
 
 #: dop853.c:801
 #, c-format
 msgid "Insufficient storage for icont, min. licont = %u\n"
-msgstr ""
+msgstr "Almacenamiento insuficiente para icont, min. licont =%u\n"
 
 #: dop853.c:974
 #, c-format
 msgid "No dense output available for %uth component"
-msgstr ""
+msgstr "No hay salida densa disponible para el componente %u"
 
 #: intdy.c:48
 #, c-format
 msgid "[intdy] k = %d illegal\n"
-msgstr ""
+msgstr "[intdy] k = %d ilegal\n"
 
 #: intdy.c:53
 #, c-format
 msgid "intdy -- t = %g illegal. t not in interval tcur - _C(hu) to tcur\n"
-msgstr ""
+msgstr "intdy - t = %g ilegal. t no en intervalo tcur - _C (hu) a tcur\n"
 
 #: lincmt.c:1062
 #, c-format
-msgid "invalid trans (3 cmt trans %d).\n"
-msgstr ""
+msgid "invalid trans (3 cmt trans %d)\n"
+msgstr "trans inválido (3 cmt trans% d)\n"
 
 #: lincmt.c:1111
 #, c-format
-msgid "invalid trans (2 cmt trans %d).\n"
-msgstr ""
+msgid "invalid trans (2 cmt trans %d)\n"
+msgstr "trans inválido (2 cmt trans %d)\n"
 
 #: lincmt.c:1134
 #, c-format
-msgid "invalid trans (1 cmt trans %d).\n"
-msgstr ""
+msgid "invalid trans (1 cmt trans %d)\n"
+msgstr "trans inválido (1 cmt trans %d)"
 
 #: lsoda.c:219
 #, c-format
