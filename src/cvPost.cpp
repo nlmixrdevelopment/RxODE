@@ -194,7 +194,8 @@ arma::mat rinvWRcv1(arma::vec sd, double nu = 1.0){
 
 //[[Rcpp::export]]
 arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
-		int diagXformType = 1, int rType = 1){
+		int diagXformType = 1, int rType = 1,
+		bool returnChol = false){
   // the sdEst should come from the multivariate normal distribution
   // with the appropriate transformation.
   unsigned int d = sdEst.size();
@@ -246,15 +247,21 @@ arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
   default:
     stop("unknown 'diagXformType' transformation");
   }
+  arma::mat ret;
   if (rType == 1){
-    return rLKJcv1(sd, (nu-1.0)/2.0);
+    ret = rLKJcv1(sd, (nu-1.0)/2.0);
   } else {
-    return rinvWRcv1(sd, nu);
+    ret = rinvWRcv1(sd, nu);
   }
+  if (returnChol){
+    ret = arma::chol(ret);
+  }
+  return ret;
 }
 
 //[[Rcpp::export]]
-RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false, int type=1, int diagXformType=1){
+RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false,
+		bool returnChol = false, int type=1, int diagXformType=1){
   if (n == 1 && type == 1){
     if (rxIs(omega,"numeric.matrix") || rxIs(omega,"integer.matrix")){
       return as<RObject>(cvPost0(nu, as<NumericMatrix>(omega), omegaIsChol, returnChol));
@@ -284,7 +291,7 @@ RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false, b
 	if (n != 1) warning("'n' is determined by the 'omega' argument which contains the simulated standard deviations");
 	for (unsigned int i = 0; i < om0.n_rows; i++){
 	  arma::vec sd = om0.col(i);
-	  arma::mat reti = rcvC1(sd, nu, diagXformType, type-1);
+	  arma::mat reti = rcvC1(sd, nu, diagXformType, type-1, returnChol);
 	  ret[i] = wrap(reti);
 	}
 	return(as<RObject>(ret));

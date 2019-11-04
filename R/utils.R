@@ -208,12 +208,19 @@ rxSetProgressBar <- function(seconds=1.0) {
 ##' set.seed(42)
 ##' draw3c <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3, returnChol=TRUE)
 ##'
-##' ## Sample 3 covariances with lognormal standard deviations via LKJ correlation sample
+##' ## Sample 3 covariances with lognormal standard deviations via LKJ
+##' ## correlation sample
 ##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="lkj")
+##' ## or return cholesky decomposition
+##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="lkj",
+##'   returnChol=TRUE)
 ##'
 ##' ## Sample 3 covariances with lognormal standard deviations via separation
 ##' ## strategy using inverse Wishart correlation sample
 ##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="separation")
+##' ## or returning the cholesky decomposition
+##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="separation",
+##'   returnChol=TRUE)
 ##'
 ##' @export
 cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,

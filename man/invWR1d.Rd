@@ -4,18 +4,15 @@
 \alias{invWR1d}
 \title{One correlation sample from the Inverse Wishart distribution}
 \usage{
-invWR1d(d, nu, cholesky = FALSE, omegaIsChol = FALSE)
+invWR1d(d, nu, omegaIsChol = FALSE)
 }
 \arguments{
 \item{d}{The dimension of the correlation matrix}
 
 \item{nu}{Degrees of freedom of the Wishart distribution}
 
-\item{cholesky}{boolean; If \code{TRUE} return the cholesky
-decomposition.}
-
 \item{omegaIsChol}{is an indicator of if the omega matrix is in
-the Cholesky decomposition.}
+the Cholesky decomposition. This is only used when code{type="invWishart"}}
 }
 \description{
 This correlation is constructed by transformation of the Inverse Wishart

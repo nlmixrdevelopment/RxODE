@@ -56,8 +56,8 @@ invWR1d <- function(d, nu, omegaIsChol = FALSE) {
     .Call(`_RxODE_invWR1d`, d, nu, omegaIsChol)
 }
 
-rcvC1 <- function(sdEst, nu = 3.0, diagXformType = 1L, rType = 1L) {
-    .Call(`_RxODE_rcvC1`, sdEst, nu, diagXformType, rType)
+rcvC1 <- function(sdEst, nu = 3.0, diagXformType = 1L, rType = 1L, returnChol = FALSE) {
+    .Call(`_RxODE_rcvC1`, sdEst, nu, diagXformType, rType, returnChol)
 }
 
 cvPost_ <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE, type = 1L, diagXformType = 1L) {
