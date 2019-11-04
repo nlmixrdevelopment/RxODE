@@ -1,0 +1,602 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: RxODE 0.9.1-8\n"
+"POT-Creation-Date: 2019-10-31 22:17\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgid "'gcc' available, assuming it comes from 'rtools'"
+msgstr ""
+
+msgid "RxODE may not work with other compilers"
+msgstr ""
+
+msgid "RxODE requires 'Rtools'\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding"
+msgstr ""
+
+msgid "RxODE requires 'rtools'\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding"
+msgstr ""
+
+msgid "with packages 'modName' is required"
+msgstr ""
+
+msgid "must specify exactly one of 'model' or 'filename'"
+msgstr ""
+
+msgid "cannot delete Dll in package"
+msgstr ""
+
+msgid "'$parse' is no longer supported"
+msgstr ""
+
+msgid "cannot update package model"
+msgstr ""
+
+msgid "cannot figure out how to handle the model argument"
+msgstr ""
+
+msgid "sensitivities do not make sense for models without ODEs"
+msgstr ""
+
+msgid "Jacobians do not make sense for models without ODEs"
+msgstr ""
+
+msgid "Do not know how to add %s to RxODE solved object %s"
+msgstr ""
+
+msgid "unknown model"
+msgstr ""
+
+msgid "model"
+msgstr ""
+
+msgid "cannot create RxODE model"
+msgstr ""
+
+msgid "RxODE already building model, waiting for lock file removal"
+msgstr ""
+
+msgid "lock file: \"%s\""
+msgstr ""
+
+msgid "."
+msgstr ""
+
+msgid "error building model on another thread"
+msgstr ""
+
+msgid "unloaded all RxODE dlls before loading the current DLL."
+msgstr ""
+
+msgid "something went wrong in compilation"
+msgstr ""
+
+msgid "C file: %s  ('summary' for code)"
+msgstr ""
+
+msgid "//C file: %s"
+msgstr ""
+
+msgid "//"
+msgstr ""
+
+msgid "bessel_%s requires 3 arguments."
+msgstr ""
+
+msgid "bessel_%s requires 2 arguments."
+msgstr ""
+
+msgid "the third argument for bessel_%s must be 1 (unscaled) or 2 (scaled)."
+msgstr ""
+
+msgid "RxODE doesn't support '%s' translation for 'omega' translation"
+msgstr ""
+
+msgid "do not know how to handle type '%s'"
+msgstr ""
+
+msgid "RxODE does not know how to translate '%s' to SymPy"
+msgstr ""
+
+msgid "RxODE does not know how to translate '%s' to a RxODE compatible function"
+msgstr ""
+
+msgid "'lnorm' can only be in an error function"
+msgstr ""
+
+msgid "'lnorm' cannot be used with other data transformations"
+msgstr ""
+
+msgid "'tbs' can only be in an error function"
+msgstr ""
+
+msgid "'tbs' cannot be used with other data transformations"
+msgstr ""
+
+msgid "'tbsYj' can only be in an error function"
+msgstr ""
+
+msgid "'tbsYj' cannot be used with other data transformations"
+msgstr ""
+
+msgid "'add' can only be in an error function"
+msgstr ""
+
+msgid "'for' is not supported"
+msgstr ""
+
+msgid "function 'PK' should not return anything"
+msgstr ""
+
+msgid "'prop' can only be in an error function"
+msgstr ""
+
+msgid "'pow' can only be in an error function"
+msgstr ""
+
+msgid "use 'return' for errors"
+msgstr ""
+
+msgid "the errors and predictions need to have the same conditions (if/then statements)"
+msgstr ""
+
+msgid "do not know how to handle this error/pred combination"
+msgstr ""
+
+msgid "else if expressions not supported"
+msgstr ""
+
+msgid "cannot supply both 'by' and 'length.out'"
+msgstr ""
+
+msgid "improper arguments to 'et'"
+msgstr ""
+
+msgid "only a single evid 'evid' can be specified ('%s')"
+msgstr ""
+
+msgid "', '"
+msgstr ""
+
+msgid "only a single compartment 'cmt' can be specified ('%s')"
+msgstr ""
+
+msgid "only a single rate 'rate' can be specified ('%s')"
+msgstr ""
+
+msgid "Only a single duration 'dur' can be specified ('%s')"
+msgstr ""
+
+msgid "'nsim' is ignored when simulating event tables"
+msgstr ""
+
+msgid "the only valid number defining a unit is '1', signifying a unitless unit"
+msgstr ""
+
+msgid "clearing both amount and time units\nfor more precise control use 'et(amountUnits=\"\")' or 'et(timeUnits=\"\")'"
+msgstr ""
+
+msgid "'deparse.level' not used with RxODE event tables"
+msgstr ""
+
+msgid "'length.out' makes no sense with event tables"
+msgstr ""
+
+msgid "'each' makes no sense with event tables"
+msgstr ""
+
+msgid "'evid' is unitless"
+msgstr ""
+
+msgid "there are no individuals left to solve in %s data"
+msgstr ""
+
+msgid "'ID' missing in '%s' dataset\nindividual parameters are assumed to have the same order as the event dataset"
+msgstr ""
+
+msgid "unable to detect 'ID' correctly in '%s' dataset\nindividual parameters are assumed to have the same order as the dataset"
+msgstr ""
+
+msgid "date/time format was not correctly specified"
+msgstr ""
+
+msgid "cannot figure out numeric time"
+msgstr ""
+
+msgid "recompile '%s'"
+msgstr ""
+
+msgid "creating documentation '%s'"
+msgstr ""
+
+msgid "copy '%s'"
+msgstr ""
+
+msgid "only compiled models in this package, creating '%s_init.c'"
+msgstr ""
+
+msgid "package 'pillar' not available"
+msgstr ""
+
+msgid "calculate sensitivities"
+msgstr ""
+
+msgid "'%s' is from '%s' and cannot be used in this context"
+msgstr ""
+
+msgid "specified %s initial conditions when there are only %s states"
+msgstr ""
+
+msgid "only one 'initCondition=' supported"
+msgstr ""
+
+msgid "pruning branches of full model..."
+msgstr ""
+
+msgid "pruning branches..."
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "loading full model into symengine environment"
+msgstr ""
+
+msgid "loading into symengine environment"
+msgstr ""
+
+msgid "creating full model..."
+msgstr ""
+
+msgid "cannot identify parameters for sensitivity analysis"
+msgstr ""
+
+msgid "none of the predictions depend on 'ETA'"
+msgstr ""
+
+msgid "some of the predictions do not depend on 'ETA'"
+msgstr ""
+
+msgid "stabilizing round off errors in predictions or EBE model..."
+msgstr ""
+
+msgid "stabilizing round off errors in inner problem..."
+msgstr ""
+
+msgid "stabilizing round off errors in events FD model..."
+msgstr ""
+
+msgid "cannot figure out the solved system compartment"
+msgstr ""
+
+msgid "requires parameter '%s'"
+msgstr ""
+
+msgid "requires one of the following parameters: '%s'"
+msgstr ""
+
+msgid "'rate(depot)' does not work with a solved linear system"
+msgstr ""
+
+msgid "can only specify 'rate(central)' once"
+msgstr ""
+
+msgid "'dur(depot)' does not work with a solved linear system"
+msgstr ""
+
+msgid "can only specify 'dur(central)' once"
+msgstr ""
+
+msgid "'depot(0)' is not supported in the solved system, use an ODE"
+msgstr ""
+
+msgid "'central(0)' is not supported in the solved system, use an ODE"
+msgstr ""
+
+msgid "'lag(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter"
+msgstr ""
+
+msgid "'lag(depot)' cannot be duplicated in a model"
+msgstr ""
+
+msgid "can only specify 'lag(central)' once"
+msgstr ""
+
+msgid "'f(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter"
+msgstr ""
+
+msgid "'f(depot)' cannot be duplicated in a model"
+msgstr ""
+
+msgid "can only specify 'f(central)' once"
+msgstr ""
+
+msgid "cannot mix 'Vp' and 'V#'"
+msgstr ""
+
+msgid "cannot mix 'Vt' and 'V#'"
+msgstr ""
+
+msgid "cannot mix 'Vp' and 'Vt'"
+msgstr ""
+
+msgid "defined 'VP2' without 'VP'"
+msgstr ""
+
+msgid "defined 'VT2' without 'VT'"
+msgstr ""
+
+msgid "defined 'CLD2' without 'CLD'"
+msgstr ""
+
+msgid "cannot mix 'Q' and 'Cld'"
+msgstr ""
+
+msgid "ambiguous '%s'/'%s' specification"
+msgstr ""
+
+msgid "VC"
+msgstr ""
+
+msgid "cannot define 'Vp' with a 'VSS' defined"
+msgstr ""
+
+msgid "cannot define 'Vt' with a 'VSS' defined"
+msgstr ""
+
+msgid "cannot have volumes other than 'Vss' and central volume defined"
+msgstr ""
+
+msgid "defined '%s' without corresponding volume"
+msgstr ""
+
+msgid "defined 'CLD' without corresponding volume"
+msgstr ""
+
+msgid "'Vss' only supported with 2 compartment models"
+msgstr ""
+
+msgid "Defined '%s' without corresponding volume"
+msgstr ""
+
+msgid "defined 'CLD2' without corresponding volume"
+msgstr ""
+
+msgid "'K12' and 'K21' need to be defined for a 3 compartment model"
+msgstr ""
+
+msgid "A 'gamma' parameter requires 'A'/'B'/'C' and 'alpha'/'beta'"
+msgstr ""
+
+msgid "'K21' requires a beta parameter"
+msgstr ""
+
+msgid "'AOB' requires a beta parameter"
+msgstr ""
+
+msgid "'Beta' requires 'AOB' or 'K21' parameter"
+msgstr ""
+
+msgid "could not figure out the 'linCmt' from the defined parameters"
+msgstr ""
+
+msgid "a three compartment model requires 'BETA'/'B'"
+msgstr ""
+
+msgid "can only have one 'linCmt'() function in the model"
+msgstr ""
+
+msgid "finding duplicate expressions in %s..."
+msgstr ""
+
+msgid "optimizing duplicate expressions in %s..."
+msgstr ""
+
+msgid "unknown arguments in 'rxParams'"
+msgstr ""
+
+msgid "unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'"
+msgstr ""
+
+msgid ","
+msgstr ""
+
+msgid "Unsupported expression."
+msgstr ""
+
+msgid "using the first solved parameters for rxShiny"
+msgstr ""
+
+msgid "this has to be a matrix of all 1s or 0s."
+msgstr ""
+
+msgid "diagonal elements must be non-zero."
+msgstr ""
+
+msgid "initial 'omega' matrix inverse is non-positive definite."
+msgstr ""
+
+msgid "zero matrix"
+msgstr ""
+
+msgid "CRAN only tests"
+msgstr ""
+
+msgid "================================================================================"
+msgstr ""
+
+msgid "timing of CRAN tests (should be under 60 seconds)"
+msgstr ""
+
+msgid "normal tests"
+msgstr ""
+
+msgid "Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to work.\nYou can set up Rtools using the command 'rxWinSetup()'."
+msgstr ""
+
+msgid "duplicate arguments do not make sense"
+msgstr ""
+
+msgid "covariates can no longer be specified by 'covs' include them in the event dataset"
+msgstr ""
+
+msgid "events can be pipeline or solving arguments not both"
+msgstr ""
+
+msgid "need an RxODE compiled model as the start of the pipeline"
+msgstr ""
+
+msgid "need an RxODE events as a part of the pipeline"
+msgstr ""
+
+msgid "'events' in pipeline AND in solving arguments, please provide just one"
+msgstr ""
+
+msgid "'params' in pipeline AND in solving arguments, please provide just one"
+msgstr ""
+
+msgid "'inits' in pipeline AND in solving arguments, please provide just one"
+msgstr ""
+
+msgid "covariates can no longer be specified by 'covs'\n  include them in the event dataset\n\nindividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\ntime varying covariates: modify input event data-frame or\n  'eventTable' to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the variable in the model"
+msgstr ""
+
+msgid "'iCov' has information contained in parameters/event data\nduplicate columns: '%s'"
+msgstr ""
+
+msgid "'nSub' does not match the number of subjects in 'iCov'"
+msgstr ""
+
+msgid "'nSub'*'nStud' does not match the number of subjects in 'iCov'"
+msgstr ""
+
+msgid "simulation summaries must be between 0 and 1"
+msgstr ""
+
+msgid "confidence bands need at least 2500 simulations"
+msgstr ""
+
+msgid "summarizing data"
+msgstr ""
+
+msgid "name argument must be a length-one character vector"
+msgstr ""
+
+msgid "a new function requires a C function so it can be used in RxODE"
+msgstr ""
+
+msgid "already defined user function '%s', remove it fist ('rxRmFun')."
+msgstr ""
+
+msgid "no user function '%s' to remove"
+msgstr ""
+
+msgid "cannot take a second derivative"
+msgstr ""
+
+msgid "bad 'linCmtB' derivative"
+msgstr ""
+
+msgid "derivatives must be a list of functions with at least 1 element"
+msgstr ""
+
+msgid "replacing defined derivatives for '%s'"
+msgstr ""
+
+msgid "only 'THETA[#]' or 'ETA[#]' are supported"
+msgstr ""
+
+msgid "'psigamma' takes 2 arguments"
+msgstr ""
+
+msgid "'log1pmx' only takes 1 argument"
+msgstr ""
+
+msgid "'choose' takes 2 arguments"
+msgstr ""
+
+msgid "'lchoose' takes 2 arguments"
+msgstr ""
+
+msgid "'transit' can only take 2-3 arguments"
+msgstr ""
+
+msgid "'%s' only acceps 1 argument"
+msgstr ""
+
+msgid "'%s' only acceps 2 arguments"
+msgstr ""
+
+msgid "'%s' takes %s arguments (has %s)"
+msgstr ""
+
+msgid "'%s' not supported in RxODE"
+msgstr ""
+
+msgid "unsupported expression"
+msgstr ""
+
+msgid "[...] expressions not supported"
+msgstr ""
+
+msgid "'polygamma' takes 2 arguments"
+msgstr ""
+
+msgid "'%s' takes %s arguments"
+msgstr ""
+
+msgid "only forward and central differences are supported"
+msgstr ""
+
+msgid "cannot figure out the '%s' derivative with respect to '%s'"
+msgstr ""
+
+msgid "RxODE/symengine does not know how to take a derivative of '%s'"
+msgstr ""
+
+msgid "'Derivative' conversion only takes one function and one argument"
+msgstr ""
+
+msgid "'%s' not supported in symengine->RxODE"
+msgstr ""
+
+msgid "RxODE doesn't support '%s' translation for 'Omega' translation"
+msgstr ""
+
+msgid "do not know how to handle type"
+msgstr ""
+
+msgid "RxODE doesn't know how to translate '%s' to SymPy."
+msgstr ""
+
+msgid "RxODE doesn't know how to translate '%s' to a RxODE compatible function"
+msgstr ""
+
+msgid "The PK function should not return anything"
+msgstr ""
+
+msgid "pow can only be in an error function"
+msgstr ""
+
+msgid "errors and predictions need to have the same conditions (if/then statements)"
+msgstr ""
+
+msgid "'else if' expressions not supported"
+msgstr ""
+
+msgid "Don't know how to handle type '"
+msgstr ""
+
+msgid "'."
+msgstr ""
+
+msgid "package \"%s\" needed for this function to work"
+msgstr ""
+
+msgid "'wd' is depreciated"
+msgstr ""
