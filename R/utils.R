@@ -191,9 +191,87 @@ rxSetProgressBar <- function(seconds=1.0) {
 ##' @param returnChol Return the Cholesky decomposition of the
 ##'   covariance matrix sample. This is only used when code{type="invWishart"}
 ##'
+##' @param diagXformType Diagonal transformation type.  These could be:
+##'
+##' \itemize{
+##'
+##' \item{log} The standard deviations are log transformed, so the
+##'   actual standard deviations are exp(omega)
+##'
+##' \item{identity} The standard deviations are not transformed. The
+##' standard deviations are not transformed;  They should be positive.
+##'
+##' \item{variance} The variances are specified in the \code{omega}
+##' matrix; They are transformed into standard deviations.
+##'
+##' \item{nlmixrSqrt} These standard deviations come from an nlmixr
+##' omega matrix where diag(chol(inv(omega))) = x^2
+##'
+##' \item{nlmixrLog} These standard deviations come from a nlmixr
+##' omega matrix omega matrix where diag(chol(solve(omega))) = exp(x)
+##'
+##' \item{nlmixrIdentity} These standard deviations come from a nlmixr
+##' omega matrix omega matrix where diag(chol(solve(omega))) = x
+##'
+##' }
+##'
+##'  The nlmixr transformations only make sense when there is no
+##'  off-diagonal correlations modeled.
+##'
+##' @param type The type of covariance posterior that is being
+##'     simulated.  This can be:
+##'
+##' \itemize{
+##'
+##' \item{invWishart} The posterior is an inverse wishart; This allows
+##' for correlations between parameters to be modeled.  All the
+##' uncertainty in the parameter is captured in the degrees of freedom
+##' parameter.
+##'
+##' \item{lkj} The posterior separates the standard deviation
+##' estimates (modeled outside and provided in the \code{omega}
+##' argument) and the correlation estimates. The correlation estimate
+##' is simulated with the \code{\link{rLKJ1}}.  This simulation uses
+##' the relationship \code{eta=(nu-1)/2}.  This is relationship based
+##' on the proof of the relationship between the restricted
+##' LKJ-distribution and inverse wishart distribution (XXXXXX).  Once
+##' the correlation posterior is calculated, the estimated standard
+##' deviations are then combined with the simulated correlation matrix
+##' to create the covariance matrix.
+##'
+##' \item{separation} Like the \code{lkj} option, this separates out
+##' the estimation of the correlation and standard deviation.  Instead
+##' of using the \code{LKJ} distribution to simulate the correlation,
+##' it simulates the inverse wishart of the identity matrix and
+##' converts the result to a correlation matrix.  This correlation
+##' matrix is then used with the standard deviation to calculate the
+##' simulated covariance matrix.
+##'
+##' }
+##'
 ##' @return a matrix (n=1) or a list of matrices  (n > 1)
 ##'
+##' @details
+##'
+##' In general, the separation strategy is preferred for diagonal
+##' matrices.  If the dimension of the matrix is below 10, \code{lkj}
+##' is numerically faster than \code{separation} method.  However, the
+##' \code{lkj} method has densities too close to zero (XXXX) when the
+##' dimension is above 10.  In that case, though computationally more
+##' expensive \code{separation} method performs better.
+##'
+##' For matrices with modeled covariances, the easiest method to use
+##' is the inverse Wishart which allows the simulation of correlation
+##' matrices (XXXX).  This method is more well suited for well behaved
+##' matrices, that is the variance components are not too low or too
+##' high.  When modeling nonlinear mixed effects modeling matrices
+##' with too high or low variances are considered sub-optimal in
+##' describing a system.  With these rules in mind, it is reasonable
+##' to use the inverse Wishart.
+##'
 ##' @author Matthew L.Fidler & Wenping Wang
+##'
+##' @references
 ##'
 ##' @examples
 ##'
@@ -211,6 +289,7 @@ rxSetProgressBar <- function(seconds=1.0) {
 ##' ## Sample 3 covariances with lognormal standard deviations via LKJ
 ##' ## correlation sample
 ##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="lkj")
+##'
 ##' ## or return cholesky decomposition
 ##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="lkj",
 ##'   returnChol=TRUE)
@@ -218,6 +297,7 @@ rxSetProgressBar <- function(seconds=1.0) {
 ##' ## Sample 3 covariances with lognormal standard deviations via separation
 ##' ## strategy using inverse Wishart correlation sample
 ##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="separation")
+##'
 ##' ## or returning the cholesky decomposition
 ##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="separation",
 ##'   returnChol=TRUE)
@@ -225,7 +305,7 @@ rxSetProgressBar <- function(seconds=1.0) {
 ##' @export
 cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
                    type = c("invWishart", "lkj", "separation"),
-                   diagXformType = c("log", "identity", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity")){
+                   diagXformType = c("log", "identity", "variance", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity")){
     if (inherits(type, "numeric") || inherits(type, "integer")){
         .type <- as.integer(type)
     } else {
@@ -236,7 +316,7 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
     }  else if (inherits(diagXformType, "numeric") || inherits(diagXformType, "integer")){
         .xform <- as.integer(diagXformType)
     } else {
-        .xform <- as.vector(c("log"=5, "identity"=4, "nlmixrSqrt"=1, "nlmixrLog"=2, "nlmixrIdentity"=3)[match.arg(diagXformType)])
+        .xform <- as.vector(c("variance"=6, "log"=5, "identity"=4, "nlmixrSqrt"=1, "nlmixrLog"=2, "nlmixrIdentity"=3)[match.arg(diagXformType)])
     }
     return(.Call(`_RxODE_cvPost_`, nu, omega, n, omegaIsChol, returnChol, .type, .xform))
 }

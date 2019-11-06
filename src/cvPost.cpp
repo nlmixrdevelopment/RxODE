@@ -252,17 +252,27 @@ arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
       sd[j] = exp(sdEst[j]);
     }
     break;
+  case 6: // direct variance
+    for (int j = d; j--;){
+      sd[j] = sqrt(sdEst[j]);
+    }
+    break;
   default:
     stop(_("unknown 'diagXformType' transformation"));
   }
   arma::mat ret;
-  if (rType == 1){
-    ret = rLKJcv1(sd, (nu-1.0)/2.0);
+  if (sd.size() == 1){
+    ret = ret(1,1);
+    ret(0,0) = sd[0]*sd[0];
   } else {
-    ret = rinvWRcv1(sd, nu);
-  }
-  if (returnChol){
-    ret = arma::chol(ret);
+    if (rType == 1){
+      ret = rLKJcv1(sd, (nu-1.0)/2.0);
+    } else {
+      ret = rinvWRcv1(sd, nu);
+    }
+    if (returnChol){
+      ret = arma::chol(ret);
+    }
   }
   return ret;
 }
@@ -295,9 +305,9 @@ RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false,
       if (rxIs(omega,"numeric.matrix") || rxIs(omega,"integer.matrix")){
 	arma::mat om0 = as<arma::mat>(omega);
 	om0 = om0.t();
-	List ret(om0.n_rows);
+	List ret(om0.n_cols);
 	if (n != 1) warning(_("'n' is determined by the 'omega' argument which contains the simulated standard deviations"));
-	for (unsigned int i = 0; i < om0.n_rows; i++){
+	for (unsigned int i = 0; i < om0.n_cols; i++){
 	  arma::vec sd = om0.col(i);
 	  arma::mat reti = rcvC1(sd, nu, diagXformType, type-1, returnChol);
 	  ret[i] = wrap(reti);

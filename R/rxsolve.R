@@ -8,13 +8,18 @@ rxControl <- function(scale = NULL,
                       covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
                       addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
                       sigmaLower=-Inf, sigmaUpper=Inf,
-                      nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
+                      nCoresRV = 1L, sigmaIsChol = FALSE,
+                      sigmaSeparation=c("auto", "lkj", "separation"),
+                      sigmaXform=c("identity", "variance", "log", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity"),
+                      nDisplayProgress=10000L,
                       amountUnits = NA_character_, timeUnits = "hours", stiff,
                       theta = NULL,
                       thetaLower=-Inf, thetaUpper=Inf,
                       eta = NULL, addDosing=FALSE,
                       stateTrim=Inf, updateObject=FALSE,
                       omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
+                      omegaSeparation=c("auto", "lkj", "separation"),
+                      omegaXform=c("variance", "identity", "log", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity"),
                       omegaLower=-Inf, omegaUpper=Inf,
                       nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
                       nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS", "data.table", "tbl", "tibble"),
@@ -44,8 +49,19 @@ rxControl <- function(scale = NULL,
                       mxhnil=0,
                       hmxi=0.0,
                       warnIdSort=TRUE,
-                      ssAtol = 1.0e-8, ssRtol = 1.0e-6){
+                      ssAtol = 1.0e-8, ssRtol = 1.0e-6
+                      ){
     .xtra <- list(...);
+    if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")){
+        .sigmaXform <- as.integer(sigmaXform)
+    } else {
+        .sigmaXform <- as.vector(c("variance"=6, "log"=5, "identity"=4, "nlmixrSqrt"=1, "nlmixrLog"=2, "nlmixrIdentity"=3)[match.arg(sigmaXform)]);
+    }
+    if (inherits(omegaXform, "numeric") || inherits(omegaXform, "integer")){
+        .omegaXform <- as.integer(omegaXform)
+    } else {
+        .omegaXform <- as.vector(c("variance"=6, "log"=5, "identity"=4, "nlmixrSqrt"=1, "nlmixrLog"=2, "nlmixrIdentity"=3)[match.arg(omegaXform)]);
+    }
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
     }
@@ -122,6 +138,16 @@ rxControl <- function(scale = NULL,
     if (missing(cores)){
         cores <- RxODE::rxCores();
     }
+    if (inherits(sigma, "character")){
+        .sigma <- sigma
+    } else {
+        .sigma <- lotri(sigma)
+    }
+    if (inherits(omega, "character")){
+        .omega <- omega
+    } else {
+        .omega <- lotri(omega)
+    }
     .ret <- list(scale=scale,
                  method=method,
                  transitAbs=transitAbs,
@@ -137,10 +163,12 @@ rxControl <- function(scale = NULL,
                  cores=cores,
                  addCov=addCov,
                  matrix=matrix,
-                 sigma=lotri(sigma),
+                 sigma=.sigma,
                  sigmaDf=sigmaDf,
                  nCoresRV=nCoresRV,
                  sigmaIsChol=sigmaIsChol,
+                 sigmaSeparation=match.arg(sigmaSeparation),
+                 sigmaXform=.sigmaXform,
                  nDisplayProgress=nDisplayProgress,
                  amountUnits=amountUnits,
                  timeUnits=timeUnits,
@@ -149,9 +177,11 @@ rxControl <- function(scale = NULL,
                  addDosing=addDosing,
                  stateTrim=stateTrim,
                  updateObject=updateObject,
-                 omega=lotri(omega),
+                 omega=.omega,
                  omegaDf=omegaDf,
                  omegaIsChol=omegaIsChol,
+                 omegaSeparation=match.arg(omegaSeparation),
+                 omegaXform=.omegaXform,
                  nSub=nSub,
                  thetaMat=thetaMat,
                  thetaDf=thetaDf,
@@ -336,6 +366,8 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param sigmaIsChol Boolean indicating if the sigma is in the
 ##'     Cholesky decomposition instead of a symmetric covariance
+##'
+##' @param sigmaSeparation @template separation
 ##'
 ##' @param nDisplayProgress An integer indicating the minimum number
 ##'     of c-based solves before a progress bar is shown.  By default
@@ -720,11 +752,11 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     }
     if (.ctl$nSub==1 && inherits(.ctl$iCov, "data.frame")){
         .ctl$nSub <- length(.ctl$iCov[,1])
-    } else if (.ctl$nSub !=1 && .ctl$nStud !=1 && inherits(.ctl$iCov, "data.frame")){
+    } else if (.ctl$nSub !=1 && .ctl$nStud == 1 && inherits(.ctl$iCov, "data.frame")){
         if (.ctl$nSub !=length(.ctl$iCov[,1])){
             stop("'nSub' does not match the number of subjects in 'iCov'");
         }
-    } else if (.ctl$nSub !=1 && !.ctl$nStud !=1 && inherits(.ctl$iCov, "data.frame")){
+    } else if (.ctl$nSub !=1 && .ctl$nStud !=1 && inherits(.ctl$iCov, "data.frame")){
         if (.ctl$nSub*.ctl$nStud !=length(.ctl$iCov[,1])){
             stop("'nSub'*'nStud' does not match the number of subjects in 'iCov'");
         }

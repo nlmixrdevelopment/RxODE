@@ -353,6 +353,8 @@ atolRtolFactor_ <- function(factor) {
 #'     Cholesky decomposed matrix instead of the traditional
 #'     symmetric matrix.
 #'
+#' @param omegaSeparation @template separation
+#'
 #' @param nStud Number virtual studies to characterize uncertainty in estimated 
 #'        parameters.
 #'
@@ -360,6 +362,8 @@ atolRtolFactor_ <- function(factor) {
 #'
 #' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
 #'     individual parameters, residuals are updated after solve is completed.
+#'
+#' @param sigmaSeparation @template separation
 #'
 #' @param sigmaLower Lower bounds for simulated unexplained variability (by default -Inf)
 #'
@@ -379,8 +383,8 @@ atolRtolFactor_ <- function(factor) {
 #' @author Matthew L.Fidler
 #'
 #' @export
-rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaLower = as.numeric( c(R_NegInf)), omegaUpper = as.numeric( c(R_PosInf)), omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaLower = as.numeric( c(R_NegInf)), thetaUpper = as.numeric( c(R_PosInf)), thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaLower = as.numeric( c(R_NegInf)), sigmaUpper = as.numeric( c(R_PosInf)), sigmaDf = NULL, sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, dfSub = 0, dfObs = 0, simSubjects = TRUE) {
-    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaLower, omegaUpper, omegaIsChol, nSub, thetaMat, thetaLower, thetaUpper, thetaDf, thetaIsChol, nStud, sigma, sigmaLower, sigmaUpper, sigmaDf, sigmaIsChol, nCoresRV, nObs, dfSub, dfObs, simSubjects)
+rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaLower = as.numeric( c(R_NegInf)), omegaUpper = as.numeric( c(R_PosInf)), omegaIsChol = FALSE, omegaSeparation = "auto", omegaXform = 1L, nSub = 1L, thetaMat = NULL, thetaLower = as.numeric( c(R_NegInf)), thetaUpper = as.numeric( c(R_PosInf)), thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaLower = as.numeric( c(R_NegInf)), sigmaUpper = as.numeric( c(R_PosInf)), sigmaDf = NULL, sigmaIsChol = FALSE, sigmaSeparation = "auto", sigmaXform = 1L, nCoresRV = 1L, nObs = 1L, dfSub = 0, dfObs = 0, simSubjects = TRUE) {
+    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaLower, omegaUpper, omegaIsChol, omegaSeparation, omegaXform, nSub, thetaMat, thetaLower, thetaUpper, thetaDf, thetaIsChol, nStud, sigma, sigmaLower, sigmaUpper, sigmaDf, sigmaIsChol, sigmaSeparation, sigmaXform, nCoresRV, nObs, dfSub, dfObs, simSubjects)
 }
 
 #' Free the C solving/parsing information.

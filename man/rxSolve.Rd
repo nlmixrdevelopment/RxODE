@@ -25,22 +25,24 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853",
   covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
   addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
   sigmaLower = -Inf, sigmaUpper = Inf, nCoresRV = 1L,
-  sigmaIsChol = FALSE, nDisplayProgress = 10000L,
+  sigmaIsChol = FALSE, sigmaSeparation = c("auto", "lkj",
+  "separation"), nDisplayProgress = 10000L,
   amountUnits = NA_character_, timeUnits = "hours", stiff,
   theta = NULL, thetaLower = -Inf, thetaUpper = Inf, eta = NULL,
   addDosing = FALSE, stateTrim = Inf, updateObject = FALSE,
   omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
-  omegaLower = -Inf, omegaUpper = Inf, nSub = 1L, thetaMat = NULL,
-  thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0,
-  dfObs = 0, returnType = c("rxSolve", "matrix", "data.frame",
-  "data.frame.TBS", "data.table", "tbl", "tibble"), seed = NULL,
-  nsim = NULL, minSS = 10L, maxSS = 1000L, infSSstep = 12,
-  strictSS = TRUE, params = NULL, events = NULL,
-  istateReset = TRUE, subsetNonmem = TRUE, linLog = FALSE,
-  advanLinCmt = FALSE, maxAtolRtolFactor = 0.1, from = NULL,
-  to = NULL, by = NULL, length.out = NULL, iCov = NULL,
-  keep = NULL, indLinPhiTol = 1e-07, indLinPhiM = 0L,
-  indLinMatExpType = 2L, indLinMatExpOrder = 6L, indLinDelta = 2,
+  omegaSeparation = c("auto", "lkj", "separation"), omegaLower = -Inf,
+  omegaUpper = Inf, nSub = 1L, thetaMat = NULL, thetaDf = NULL,
+  thetaIsChol = FALSE, nStud = 1L, dfSub = 0, dfObs = 0,
+  returnType = c("rxSolve", "matrix", "data.frame", "data.frame.TBS",
+  "data.table", "tbl", "tibble"), seed = NULL, nsim = NULL,
+  minSS = 10L, maxSS = 1000L, infSSstep = 12, strictSS = TRUE,
+  params = NULL, events = NULL, istateReset = TRUE,
+  subsetNonmem = TRUE, linLog = FALSE, advanLinCmt = FALSE,
+  maxAtolRtolFactor = 0.1, from = NULL, to = NULL, by = NULL,
+  length.out = NULL, iCov = NULL, keep = NULL,
+  indLinPhiTol = 1e-07, indLinPhiM = 0L, indLinMatExpType = 2L,
+  indLinMatExpOrder = 6L, indLinDelta = 2,
   indLinPerterbMatrix = 100L, idFactor = TRUE, mxhnil = 0,
   hmxi = 0, warnIdSort = TRUE, ssAtol = 1e-08, ssRtol = 1e-06)
 
@@ -189,6 +191,8 @@ threaded ODE solving.}
 \item{sigmaIsChol}{Boolean indicating if the sigma is in the
 Cholesky decomposition instead of a symmetric covariance}
 
+\item{sigmaSeparation}{@template separation}
+
 \item{nDisplayProgress}{An integer indicating the minimum number
 of c-based solves before a progress bar is shown.  By default
 this is 10,000.}
@@ -279,6 +283,8 @@ distribution instead of a t-distribution.}
 \item{omegaIsChol}{Indicates if the \code{omega} supplied is a
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
+
+\item{omegaSeparation}{@template separation}
 
 \item{omegaLower}{Lower bounds for simulated ETAs (by default -Inf)}
 

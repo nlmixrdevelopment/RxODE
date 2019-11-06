@@ -1421,6 +1421,7 @@ SEXP rxGetFromChar(char *ptr, std::string var){
   }
 }
 
+
 //' Simulate Parameters from a Theta/Omega specification
 //'
 //' @param params Named Vector of RxODE model parameters
@@ -1458,6 +1459,8 @@ SEXP rxGetFromChar(char *ptr, std::string var){
 //'     Cholesky decomposed matrix instead of the traditional
 //'     symmetric matrix.
 //'
+//' @param omegaSeparation @template separation
+//'
 //' @param nStud Number virtual studies to characterize uncertainty in estimated 
 //'        parameters.
 //'
@@ -1465,6 +1468,8 @@ SEXP rxGetFromChar(char *ptr, std::string var){
 //'
 //' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
 //'     individual parameters, residuals are updated after solve is completed.
+//'
+//' @param sigmaSeparation @template separation
 //'
 //' @param sigmaLower Lower bounds for simulated unexplained variability (by default -Inf)
 //'
@@ -1486,11 +1491,13 @@ SEXP rxGetFromChar(char *ptr, std::string var){
 //' @export
 //[[Rcpp::export]]
 List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
-                     const Nullable<NumericMatrix> &omega= R_NilValue,
+                     const RObject &omega= R_NilValue,
                      const Nullable<NumericVector> &omegaDf= R_NilValue,
 		     const NumericVector &omegaLower = NumericVector::create(R_NegInf),
 		     const NumericVector &omegaUpper = NumericVector::create(R_PosInf),
                      const bool &omegaIsChol = false,
+		     std::string omegaSeparation= "auto",//("lkj", "separation")
+		     const int omegaXform = 1,
                      int nSub = 1,
                      const Nullable<NumericMatrix> &thetaMat = R_NilValue,
 		     const NumericVector &thetaLower = NumericVector::create(R_NegInf),
@@ -1498,11 +1505,13 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
                      const Nullable<NumericVector> &thetaDf  = R_NilValue,
                      const bool &thetaIsChol = false,
                      int nStud = 1,
-                     const Nullable<NumericMatrix> sigma = R_NilValue,
+                     const RObject sigma = R_NilValue,
 		     const NumericVector &sigmaLower = NumericVector::create(R_NegInf),
 		     const NumericVector &sigmaUpper = NumericVector::create(R_PosInf),
                      const Nullable<NumericVector> &sigmaDf= R_NilValue,
                      const bool &sigmaIsChol = false,
+		     std::string sigmaSeparation= "auto",//("lkj", "separation")
+		     const int sigmaXform = 1,
                      int nCoresRV = 1,
                      int nObs = 1,
                      double dfSub = 0,
@@ -1517,46 +1526,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     if (!par.hasAttribute("names")){
       rxSolveFree();
       stop(_("'params' must be a named vector"));
-    }
-  }
-  bool simSigma = false;
-  NumericMatrix sigmaM;
-  CharacterVector sigmaN;
-  NumericMatrix sigmaMC;
-  if (!sigma.isNull() && nObs > 1){
-    simSigma = true;
-    sigmaM = as<NumericMatrix>(sigma);
-    if (!sigmaM.hasAttribute("dimnames")){
-      rxSolveFree();
-      stop(_("'sigma' must be a named Matrix."));
-    }
-    if (sigmaIsChol){
-      sigmaMC = sigmaM;
-    } else {
-      arma::mat tmpM = as<arma::mat>(sigmaM);
-      if (!tmpM.is_sympd()){
-	rxSolveFree();
-	stop(_("'sigma' must be symmetric"));
-      }
-      sigmaMC = wrap(arma::chol(as<arma::mat>(sigmaM)));
-    }
-    sigmaN = as<CharacterVector>((as<List>(sigmaM.attr("dimnames")))[1]);
-  }
-  int scol = 0;
-  if (simSigma){
-    scol = sigmaMC.ncol();
-    if (simSubjects){
-      if (nObs*nStud*nSub*scol < 0){
-        // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
-	rxSolveFree();
-        stop(_("\nsimulation overflow\nreduce the number of observations, number of subjects or number of studies"));
-      }
-    } else {
-      if (nObs*nStud*scol < 0){
-        // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
-	rxSolveFree();
-        stop(_("simulation overflow\nreduce the number of observations or number of studies"));
-      }
     }
   }
   NumericMatrix thetaM;
@@ -1599,7 +1568,30 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   NumericMatrix omegaM;
   CharacterVector omegaN;
   NumericMatrix omegaMC;
-  if (!omega.isNull() && nSub > 1){
+  bool omegaSep=false;
+  if (rxIs(omega, "NULL")){
+    if (nSub > 1){
+      rxSolveFree();
+      stop(_("'omega' is required for multi-subject simulations"));
+    }
+  } else if (rxIs(omega,"character")){
+    // Create a matrix in order of the names.
+    omegaN = as<CharacterVector>(omega);
+    omegaSep=true;
+    omegaMC = NumericMatrix(nStud, omegaN.size());
+    for (int i = 0; i < omegaN.size(); i++){
+      for (int j = 0; j < thetaN.size(); j++){
+	if (omegaN[i] == thetaN[j]){
+	  omegaMC(_,i) = thetaM(_,j);
+	  break;
+	}
+      }
+      if (j == thetaN.size()){
+	stop(_("parameter '%s' was not simulated in 'thetaMat'"), (as<std::string>(omegaN[i])).c_str());
+      }
+    }
+    simOmega = true;
+  } else if (rxIs(omega,"matrix") && nSub > 1){
     simOmega = true;
     omegaM = as<NumericMatrix>(omega);
     if (!omegaM.hasAttribute("dimnames")){
@@ -1617,19 +1609,104 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
       omegaMC = wrap(arma::chol(as<arma::mat>(omegaM)));
     }
     omegaN = as<CharacterVector>((as<List>(omegaM.attr("dimnames")))[1]);
-  } else if (nSub > 1){
-    rxSolveFree();
-    stop(_("'omega' is required for multi-subject simulations"));
+  }
+  bool simSigma = false;
+  bool sigmaSep=false;
+  NumericMatrix sigmaM;
+  CharacterVector sigmaN;
+  NumericMatrix sigmaMC;
+  if (rxIs(sigma, "matrix") && nObs > 1){
+    simSigma = true;
+    sigmaM = as<NumericMatrix>(sigma);
+    if (!sigmaM.hasAttribute("dimnames")){
+      rxSolveFree();
+      stop(_("'sigma' must be a named Matrix."));
+    }
+    if (sigmaIsChol){
+      sigmaMC = sigmaM;
+    } else {
+      arma::mat tmpM = as<arma::mat>(sigmaM);
+      if (!tmpM.is_sympd()){
+	rxSolveFree();
+	stop(_("'sigma' must be symmetric"));
+      }
+      sigmaMC = wrap(arma::chol(as<arma::mat>(sigmaM)));
+    }
+    sigmaN = as<CharacterVector>((as<List>(sigmaM.attr("dimnames")))[1]);
+  } else if (rxIs(sigma, "character")){
+    sigmaN = as<CharacterVector>(sigma);
+    sigmaSep=true;
+    sigmaMC = NumericMatrix(nStud, sigmaN.size());
+    for (int i = 0; i < sigmaN.size(); ++i){
+      for (int j = 0; j < thetaN.size(); ++j){
+	if (sigmaN[i] == thetaN[j]){
+	  sigmaMC(_,i) = thetaM(_,j);
+	  break;
+	}
+      }
+      if (j == thetaN.size()){
+	stop(_("parameter '%s' was not simulated in 'thetaMat'"), (as<std::string>(sigmaN[i])).c_str());
+      }
+    }
+    simSigma = true;
+  } else if (!rxIs(sigma, "NULL")){
+    stop(_("'sigma' must be 'NULL', a character vector or a named matrix"));
+  }
+  int scol = 0;
+  if (simSigma){
+    scol = sigmaMC.ncol();
+    if (simSubjects){
+      if (nObs*nStud*nSub*scol < 0){
+        // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
+	rxSolveFree();
+        stop(_("\nsimulation overflow\nreduce the number of observations, number of subjects or number of studies"));
+      }
+    } else {
+      if (nObs*nStud*scol < 0){
+        // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
+	rxSolveFree();
+        stop(_("simulation overflow\nreduce the number of observations or number of studies"));
+      }
+    }
   }
   // Now create data frame of parameter values
   List omegaList;
-  List sigmaList;  
+  List sigmaList;
   if (nStud > 1){
     if (dfSub > 0 && simOmega) {
-      omegaList = cvPost_(dfSub, as<RObject>(omegaMC), nStud,  true, false);
+      if (omegaSep){
+	int defaultType = 2;
+	if (omegaSeparation == "auto"){
+	  if (omegaN.size() >= 10){
+	    defaultType = 3;
+	  }
+	} else if (omegaSeparation == "separation") {
+	  defaultType = 3;
+	}
+	omegaList = cvPost_(dfSub, as<RObject>(omegaMC), 1,  false, false, defaultType,
+			    omegaXform);
+      } else {
+	omegaList = cvPost_(dfSub, as<RObject>(omegaMC), nStud,  true, false);
+      }
     }
     if (dfObs > 0 && simSigma){
-      sigmaList = cvPost_(dfObs, as<RObject>(sigmaMC), nStud,  true, false);
+      if (sigmaSep){
+	int defaultType = 2;
+	if (sigmaSeparation == "auto"){
+	  if (omegaN.size() >= 10){
+	    defaultType = 3;
+	  }
+	} else if (sigmaSeparation == "separation") {
+	  defaultType = 3;
+	}
+	if (omegaN.size() >= 10){
+	  defaultType = 3;
+	}
+	sigmaList = cvPost_(dfSub, as<RObject>(sigmaMC), 1,  false, false, defaultType,
+			    omegaXform);
+      } else {
+	sigmaList = cvPost_(dfObs, as<RObject>(sigmaMC), nStud,  true, false);
+      }
     }
   }
   int pcol = par.size();
@@ -1749,8 +1826,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   }
   return ret0;
 }
-
-
 extern "C" double *global_InfusionRate(unsigned int mx);
 
 #define defrx_params R_NilValue
@@ -2290,7 +2365,7 @@ void rxSolve_simulate(const RObject &obj, const List &rxControl,
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   
-  Nullable<NumericMatrix> omega = as<Nullable<NumericMatrix>>(rxControl["omega"]);
+  RObject omega = rxControl["omega"];
   Nullable<NumericVector> omegaDf = as<Nullable<NumericVector>>(rxControl["omegaDf"]);
   bool omegaIsChol = as<bool>(rxControl["omegaIsChol"]);
 
@@ -2298,7 +2373,7 @@ void rxSolve_simulate(const RObject &obj, const List &rxControl,
   Nullable<NumericVector> thetaDf = as<Nullable<NumericVector>>(rxControl["thetaDf"]);
   bool thetaIsChol = as<bool>(rxControl["thetaIsChol"]);
   
-  Nullable<NumericMatrix> sigma= (rxControl["sigma"]);
+  RObject sigma= rxControl["sigma"];
   Nullable<NumericVector> sigmaDf= (rxControl["sigmaDf"]);
   bool sigmaIsChol= as<bool>(rxControl["sigmaIsChol"]);
   op->isChol = (int)(sigmaIsChol);
@@ -2314,7 +2389,7 @@ void rxSolve_simulate(const RObject &obj, const List &rxControl,
   
   op->ncoresRV = nCoresRV;
 
-  if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
+  if (!thetaMat.isNull() || !rxIs(omega, "NULL") || !rxIs(sigma, "NULL")){
     // Simulated Variable3
     if (!rxIs(rxSolveDat.par1, "numeric")){
       rxSolveFree();
@@ -2359,9 +2434,10 @@ void rxSolve_simulate(const RObject &obj, const List &rxControl,
 	rx->nevid9= evid9;
       }
     }
-    if (nSub > 1 && nSub0 > 1 && nSub != nSub0){
+    if (nStud > 1 && nSub0 == nSub*nStud){
+    } else if (nSub > 1 && nSub0 > 1 && nSub != nSub0){
       rxSolveFree();
-      stop(_("provided multi-subject data trying to simulate a different number of subjects"));
+      stop(_("provided multi-subject data (n=%d) trying to simulate a different number of subjects (n=%d)"), nSub0, nSub);
     } else if (nSub > 1 && nSub0 == 1) {
       nSub0 = nSub;
       simSubjects = true;
@@ -2388,10 +2464,14 @@ void rxSolve_simulate(const RObject &obj, const List &rxControl,
 	}
       }
     }
-    List lst = rxSimThetaOmega(as<Nullable<NumericVector>>(rxSolveDat.par1), omega, omegaDf,
+    List lst = rxSimThetaOmega(as<Nullable<NumericVector>>(rxSolveDat.par1),
+			       omega,
+			       omegaDf,
 			       as<NumericVector>(rxControl["omegaLower"]),
 			       as<NumericVector>(rxControl["omegaUpper"]),
 			       omegaIsChol,
+			       as<std::string>(rxControl["omegaSeparation"]),
+			       as<int>(rxControl["omegaXform"]),
 			       nSub0, thetaMat,
 			       as<NumericVector>(rxControl["thetaLower"]),
 			       as<NumericVector>(rxControl["thetaUpper"]),
@@ -2399,7 +2479,10 @@ void rxSolve_simulate(const RObject &obj, const List &rxControl,
 			       sigma,
 			       as<NumericVector>(rxControl["sigmaLower"]),
 			       as<NumericVector>(rxControl["sigmaUpper"]),
-			       sigmaDf, sigmaIsChol, nCoresRV, curObs,
+			       sigmaDf, sigmaIsChol,
+			       as<std::string>(rxControl["sigmaSeparation"]),
+			       as<int>(rxControl["sigmaXform"]),
+			       nCoresRV, curObs,
 			       dfSub, dfObs, simSubjects);
     rxSolveDat.warnIdSort = false;
     rxSolveDat.par1 =  as<RObject>(lst);
