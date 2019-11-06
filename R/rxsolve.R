@@ -37,7 +37,8 @@ rxControl <- function(scale = NULL,
                       mxhnil=0,
                       hmxi=0.0,
                       warnIdSort=TRUE,
-                      ssAtol = 1.0e-8, ssRtol = 1.0e-6){
+                      ssAtol = 1.0e-8, ssRtol = 1.0e-6,
+                      safeZero=TRUE){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -172,7 +173,7 @@ rxControl <- function(scale = NULL,
                  thetaLower=thetaLower, thetaUpper=thetaUpper,
                  idFactor=idFactor,
                  mxhnil=mxhnil, hmxi=hmxi, warnIdSort=warnIdSort,
-                 ssAtol=ssAtol, ssRtol = ssRtol);
+                 ssAtol=ssAtol, ssRtol = ssRtol, safeZero=as.integer(safeZero));
     return(.ret)
 }
 
@@ -504,6 +505,9 @@ rxControl <- function(scale = NULL,
 ##' @param warnIdSort Warn if the ID is not present and RxODE assumes
 ##'     the order of the parameters/iCov are the same as the order of
 ##'     the parameters in the input dataset.
+##'
+##' @param safeZero Use safe zero divide and log routines.  By default
+##'     this is turned on but you may turn it off if you wish.
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time

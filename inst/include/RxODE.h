@@ -26,9 +26,7 @@ typedef double (*t_F)(int _cSub,  int _cmt, double _amt, double t);
 typedef double (*t_LAG)(int _cSub,  int _cmt, double t);
 typedef double (*t_RATE)(int _cSub,  int _cmt, double _amt, double t);
 typedef double (*t_DUR)(int _cSub,  int _cmt, double _amt, double t);
-
 typedef void (*t_calc_mtime)(int cSub, double *mtime);
-
 typedef struct sbuf {
   char *s;        /* curr print buffer */
   int sN;
@@ -158,6 +156,7 @@ typedef struct {
   int nKeep0;
   int nKeepF;
   int istateReset;
+  int safeZero;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);
