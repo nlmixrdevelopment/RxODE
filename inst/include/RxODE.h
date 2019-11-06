@@ -188,6 +188,7 @@ typedef struct {
   int istateReset;
   int cens;
   int limit;
+  int safeZero;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);

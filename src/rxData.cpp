@@ -3402,6 +3402,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->nMtime = as<int>(rxSolveDat.mv["nMtime"]);
     rx->add_cov = (int)(addCov);
     rx->istateReset = as<int>(rxControl["istateReset"]);
+    rx->safeZero = as<int>(rxControl["safeZero"]);
     op->stiff = method;
     op->linLog=as<int>(rxControl["linLog"]);
     op->advanLinCmt = as<int>(rxControl["advanLinCmt"]);

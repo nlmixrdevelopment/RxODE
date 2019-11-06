@@ -49,8 +49,7 @@ rxControl <- function(scale = NULL,
                       mxhnil=0,
                       hmxi=0.0,
                       warnIdSort=TRUE,
-                      ssAtol = 1.0e-8, ssRtol = 1.0e-6
-                      ){
+                      safeZero=TRUE){
     .xtra <- list(...);
     if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")){
         .sigmaXform <- as.integer(sigmaXform)
@@ -215,7 +214,7 @@ rxControl <- function(scale = NULL,
                  indLinPerterbMatrix=indLinPerterbMatrix,
                  idFactor=idFactor,
                  mxhnil=mxhnil, hmxi=hmxi, warnIdSort=warnIdSort,
-                 ssAtol=ssAtol, ssRtol = ssRtol);
+                 ssAtol=ssAtol, ssRtol = ssRtol, safeZero=as.integer(safeZero));
     return(.ret)
 }
 
@@ -557,6 +556,9 @@ rxControl <- function(scale = NULL,
 ##' @param warnIdSort Warn if the ID is not present and RxODE assumes
 ##'     the order of the parameters/iCov are the same as the order of
 ##'     the parameters in the input dataset.
+##'
+##' @param safeZero Use safe zero divide and log routines.  By default
+##'     this is turned on but you may turn it off if you wish.
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time
