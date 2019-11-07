@@ -27,8 +27,7 @@ Authors@R: c(
    person("Robert", "Gentleman",role="ctb"),
    person("Daniel C.", "Dillon", role="ctb"),
    person("Ross", "Ihaka",role="ctb"),
-   person("R core team", role="cph"),
-   person("odepack authors", role="cph")
+   person("R core team", role="cph")
    )
 Maintainer: Wenping Wang <wwang8198@gmail.com>
 Depends:
