@@ -27,6 +27,8 @@
 #define STRINGIFY(...) STRINGIFY_AUX(__VA_ARGS__)
 #define STRINGIFY_AUX(...) #__VA_ARGS__
 
+#define ENDLINE tb.ixL=-1; tb.didEq=0;tb.NEnd=NV;
+
 #define gCode(i) (&sbOut)->s[0]='\0';		\
   (&sbOut)->o=0;				\
   codegen(gBuf, i, CHAR(STRING_ELT(prefix,0)),	\
@@ -195,7 +197,17 @@ typedef struct symtab {
   vLines ss;
   /* char ss[64*MXSYM]; */                     /* symbol string: all vars*/
   vLines de;             /* symbol string: all Des*/
-  int *lh;        /* lhs symbols? =9 if a state var*/
+  int *lh;        /*
+lhs symbols?
+=0 not LHS
+=1 LHS
+=9 if a state var;
+=10 if suppressed lhs;
+=11 suppress parameter printout;
+=19 is LHS with stateExtra
+=29
+=70 LHS + param
+*/
   int *ini;        /* initial variable assignment =2 if there are two assignments */
   int *mtime;
   double *iniv;        /* Initial values */
@@ -210,6 +222,9 @@ typedef struct symtab {
   int ix;                       /* ith of curr symbol */
   int id;                       /* ith of curr symbol */
   int fn;                       /* curr symbol a fn?*/
+  int ixL;// New assignment index
+  int didEq;
+  int NEnd;
   int pos_de;
   int ini_i; // #ini
   int statei; // # states
@@ -422,85 +437,93 @@ void updateSyntaxCol();
 int new_or_ith(const char *s) {
   int i;
 
-  if (tb.fn) return 0;
-  if (!strcmp("t", s)) return 0;
+  if (tb.fn) {tb.ix=-2; return 0;}
+  if (!strcmp("t", s)) {tb.ix=-2; return 0;}
   if (!strcmp("rate", s)){
     updateSyntaxCol();
     trans_syntax_error_report_fn("'rate' cannot be a variable in an RxODE model");
+    tb.ix=-2; 
     return 0;
   }
   if (!strcmp("dur", s)){
     updateSyntaxCol();
     trans_syntax_error_report_fn("'dur' cannot be a variable in an RxODE model");
+    tb.ix=-2; 
     return 0;
   }
   if (!strcmp("amt", s)){
     updateSyntaxCol();
     trans_syntax_error_report_fn("'amt' cannot be a variable in an RxODE model");
+    tb.ix=-2; 
     return 0;
   }
   if (!strcmp("ss", s)){
     updateSyntaxCol();
     trans_syntax_error_report_fn("'ss' cannot be a variable in an RxODE model");
+    tb.ix=-2; 
     return 0;
   }
   if (!strcmp("addl", s)){
     updateSyntaxCol();
     trans_syntax_error_report_fn("'addl' cannot be a variable in an RxODE model");
+    tb.ix=-2; 
     return 0;
   }
   if (!strcmp("evid", s)){
     updateSyntaxCol();
     trans_syntax_error_report_fn("'evid' cannot be a variable in an RxODE model");
+    tb.ix=-2; 
     return 0;
   }
   if (!strcmp("ii", s)){
     updateSyntaxCol();
     trans_syntax_error_report_fn("'ii' cannot be a variable in an RxODE model");
+    tb.ix=-2; 
     return 0;
   }
   if (!strcmp("dvid", s)){
     updateSyntaxCol();
     trans_syntax_error_report_fn("'dvid' cannot be a variable in an RxODE model");
+    tb.ix=-2; 
     return 0;
   }
-  if (!strcmp("time", s)) return 0;
-  if (!strcmp("podo", s)) return 0;
-  if (!strcmp("rx__PTR__", s)) return 0;
-  if (!strcmp("tlast", s)) return 0;
+  if (!strcmp("time", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("podo", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("rx__PTR__", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("tlast", s)) {tb.ix=-2; return 0;}
   // Ignore M_ constants
-  if (!strcmp("M_E", s)) return 0;
-  if (!strcmp("M_LOG2E", s)) return 0;
-  if (!strcmp("M_LOG10E", s)) return 0;
-  if (!strcmp("M_LN2", s)) return 0;
-  if (!strcmp("M_LN10", s)) return 0;
-  if (!strcmp("M_PI", s)) return 0;
-  if (!strcmp("M_PI_2", s)) return 0;
-  if (!strcmp("M_PI_4", s)) return 0;
-  if (!strcmp("M_1_PI", s)) return 0;
-  if (!strcmp("M_2_PI", s)) return 0;
-  if (!strcmp("M_2_SQRTPI", s)) return 0;
-  if (!strcmp("M_SQRT2", s)) return 0;
-  if (!strcmp("M_SQRT1_2", s)) return 0;
-  if (!strcmp("M_SQRT_3", s)) return 0;
-  if (!strcmp("M_SQRT_32", s)) return 0;
-  if (!strcmp("M_LOG10_2", s)) return 0;
-  if (!strcmp("M_2PI", s)) return 0;
-  if (!strcmp("M_SQRT_PI", s)) return 0;
-  if (!strcmp("M_1_SQRT_2PI", s)) return 0;
-  if (!strcmp("M_SQRT_2dPI", s)) return 0;
-  if (!strcmp("M_LN_SQRT_PI", s)) return 0;
-  if (!strcmp("M_LN_SQRT_2PI", s)) return 0;
-  if (!strcmp("M_LN_SQRT_PId2", s)) return 0;
+  if (!strcmp("M_E", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_LOG2E", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_LOG10E", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_LN2", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_LN10", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_PI", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_PI_2", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_PI_4", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_1_PI", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_2_PI", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_2_SQRTPI", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_SQRT2", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_SQRT1_2", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_SQRT_3", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_SQRT_32", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_LOG10_2", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_2PI", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_SQRT_PI", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_1_SQRT_2PI", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_SQRT_2dPI", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_LN_SQRT_PI", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_LN_SQRT_2PI", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("M_LN_SQRT_PId2", s)) {tb.ix=-2; return 0;}
   if (!strcmp("pi", s)) tb.isPi=1;
   if (!tb.hasKa && !strcmp("ka", s)) tb.hasKa=1;
   if (!tb.hasKa && !strcmp("Ka", s)) tb.hasKa=1;
   if (!tb.hasKa && !strcmp("KA", s)) tb.hasKa=1;
   if (!tb.hasKa && !strcmp("kA", s)) tb.hasKa=1;
-  if (!strcmp("newind", s)) return 0;
-  if (!strcmp("NEWIND", s)) return 0;
+  if (!strcmp("newind", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("NEWIND", s)) {tb.ix=-2; return 0;}
   // Ignore THETA[] and ETA
-  if (strstr("[", s) != NULL) return 0;
+  if (strstr("[", s) != NULL) {tb.ix=-2;return 0;}
 
   for (i=0; i<NV; i++) {
     if (!strcmp(tb.ss.line[i], s)) {
@@ -621,9 +644,6 @@ void niReset(nodeInfo *ni){
   ni->dvid_statementI = -1;
 }
 
-
-
-
 int new_de(const char *s){
   int i;
   for (i=0; i<tb.de.n; i++) {
@@ -729,13 +749,24 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   if ((nodeHas(identifier) || nodeHas(identifier_r) ||
        nodeHas(identifier_r_no_output)  ||
        nodeHas(theta0_noout) || 
-       nodeHas(theta0)) &&
-      new_or_ith(value)) {
-    /* printf("[%d]->%s\n",NV,value); */
-    addLine(&(tb.ss),"%s",value);
-    // Ignored variables
-    if (!strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value)){
-      tb.lh[NV-1] = 11; // Suppress param printout.
+       nodeHas(theta0))) {
+    if (new_or_ith(value)){
+      /* Rprintf("%s [%d]->%s; %d:%d\n",name, NV,value, pn->start_loc.s, pn->end); */
+      addLine(&(tb.ss),"%s",value);
+      // Ignored variables
+      if (!strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value)){
+	tb.lh[NV-1] = 11; // Suppress param printout.
+      }
+    } else if (tb.ix == tb.ixL && tb.didEq==1){
+      /* Rprintf("Found Dual LHS/PARAM: %s; %d; %s; col:%d line:%d\n", tb.ss.line[tb.ix], tb.ix, name, */
+      /* 	      pn->start_loc.col, pn->start_loc.line); */
+      // This is x = x*exp(matt)
+      // lhs defined in terms of a parameter
+      if (tb.lh[tb.ix] == 10){
+	tb.lh[tb.ix] = 0;
+      } else {
+	tb.lh[tb.ix] = 70;
+      }
     }
   }
   if (!strcmp("(", name) ||
@@ -768,7 +799,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       !strcmp("<", name) ||
       !strcmp(">", name) ||
 
-      !strcmp("=", name)
+      (!strcmp("=", name) && (tb.didEq=1))
       )
     fn(depth, name, value, client_data);
   
@@ -776,11 +807,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   if (!strcmp("<-",name)){
     aAppendN(" =", 2);
     sAppendN(&sbt, "=", 1);
+    tb.didEq=1;
   } else if (!strcmp("~",name)){
     // Suppress LHS calculation with ~
     aAppendN(" =", 2);
     sAppendN(&sbt, "~", 1);
     tb.lh[tb.ix] = 10; // Suppress LHS printout.
+    tb.didEq=1;
+  } else if (!strcmp("=", name)){
+    tb.didEq=1;
   } else if (!strcmp("|",name)){
     aAppendN(" ||", 3);
     sAppendN(&sbt, "||", 2);
@@ -986,6 +1021,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  addLine(&sbPm, "%s;\n", sb.s);
 	  addLine(&sbPmDt, "%s;\n", sbDt.s);
 	  sAppend(&sbNrm, "%s;\n", sbt.s);
+	  ENDLINE
         }
         Free(v);
         continue;
@@ -1026,7 +1062,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    }
 	  }
 	  }
-	  
         } else {
           // New statement
 	  aType(TJAC);
@@ -1076,7 +1111,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    good_jac = 0;
 	  }
         }
-        if (strcmp("dfdy",name) == 0){
+        if (nodeHas(dfdy)){
           aAppendN(" = ", 3);
           sAppendN(&sbt ,"=", 1);
 	  if (ii == 1){
@@ -1118,6 +1153,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	addLine(&sbPm, "%s\n", sb.s);
 	addLine(&sbPmDt, "%s\n", sbDt.s);
 	sAppend(&sbNrm, "%s\n", sbt.s);
+	ENDLINE
         continue;
       }
       if (nodeHas(selection_statement__8) && i==0) {
@@ -1128,6 +1164,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	addLine(&sbPm, "%s\n", sb.s);
 	addLine(&sbPmDt, "%s\n", sbDt.s);
 	sAppend(&sbNrm, "%s\n", sbt.s);
+	ENDLINE
         continue;
       }
 
@@ -1310,7 +1347,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
           if (!rx_syntax_allow_assign_state &&
 	      ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
-	       tb.lh[tb.ix] == 1)){
+	       (tb.lh[tb.ix] == 1 || tb.lh[tb.ix] == 70))){
 	    updateSyntaxCol();
             sPrint(&buf,"Cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'",v,v);
             trans_syntax_error_report_fn0(buf.s);
@@ -1511,7 +1548,23 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  tb.lh[tb.ix] = 1;
 	  tb.mtime[tb.ix] = 1;
 	} else if (nodeHas(assignment)  || (!rx_syntax_allow_ini && nodeHas(ini))){
-          tb.lh[tb.ix] = 1;
+	  if (tb.ix+1 == NV && tb.NEnd != NV){
+	    // New assignment
+	    tb.ixL = tb.ix;
+	    tb.lh[tb.ix] = 1;
+	  } else {
+	    /* Rprintf("tb.ixL: %d; tb.ix: %d, NV: %d, %s\n", */
+	    /* 	    tb.ixL, tb.ix, NV, */
+	    /* 	    tb.ss.line[tb.ix]); */
+	    if (tb.lh[tb.ix] == 0){
+	      // This is not a new assignment, AND currently a parameter
+	      tb.lh[tb.ix] = 70;
+	      /* Rprintf("Found Dual LHS/PARAM #2: %s", tb.ss.line[tb.ix]); */
+	    } else {
+	      tb.lh[tb.ix] = 1;
+	    }
+	    tb.ixL=-1;
+	  }
         } else if (nodeHas(ini) || nodeHas(ini0)){
           if (tb.ini[tb.ix] == 0){
             // If there is only one initialzation call, then assume
@@ -1538,6 +1591,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		tb.ini_i++;
 	      }
             }
+	    continue;
           } else {
             // There is more than one call to this variable, it is a
             // conditional variable
@@ -1569,10 +1623,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       addLine(&sbPm,     "%s;\n", sb.s);
       addLine(&sbPmDt,   "%s;\n", sbDt.s);
       sAppend(&sbNrm, "%s;\n", sbt.s);
+      ENDLINE
     } else if (nodeHas(derivative)){
       addLine(&sbPm,     "%s);\n", sb.s);
       addLine(&sbPmDt,   "%s);\n", sbDt.s);
       sAppend(&sbNrm, "%s;\n", sbt.s);
+      ENDLINE
     }
 
     if (!rx_syntax_assign && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0) || nodeHas(ini0f) || nodeHas(mtime))){
@@ -1603,11 +1659,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       addLine(&sbPm,   "%s\n", sb.s);
       addLine(&sbPmDt, "%s\n", sbDt.s);
       sAppend(&sbNrm,  "%s\n", sbt.s);
+      ENDLINE
     }
-    
     if (nodeHas(power_expression)) {
       aAppendN(")", 1);
     }
+    
   }
   sFree(&buf); 
 }
@@ -1661,7 +1718,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     }
   }
   for (i=0, j=0; i<NV; i++) {
-    if (lhs && tb.lh[i]>0) continue;
+    if (lhs && tb.lh[i]>0 && tb.lh[i] != 70) continue;
     /* retieve_var(i, buf); */
     buf = tb.ss.line[i];
     switch(scenario) {
@@ -1739,10 +1796,13 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   /* char bufw[1024]; */
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
-    if (islhs>1 && islhs != 19) continue;      /* is a state var */
+    if (islhs>1 && islhs != 19 && islhs != 70) continue;      /* is a state var */
     buf = tb.ss.line[i];
-    if (islhs == 1 || islhs == 19){
+    if (islhs == 1 || islhs == 19 || islhs == 70){
       sAppend(&s_aux_info, "  SET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n", li++, buf);
+      if (islhs == 70){
+	sAppend(&s_aux_info, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, buf);
+      }
     } else {
       int foundIt=0;
       for (j = 1; j <= tb.maxtheta;j++){
@@ -1852,7 +1912,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SEXP modeln   = PROTECT(allocVector(STRSXP, 1));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP version    = PROTECT(allocVector(STRSXP, 3));pro++;\n", 61);
   sAppendN(&sbOut, "    SEXP versionn   = PROTECT(allocVector(STRSXP, 3));pro++;\n", 61);
-  
+
   sAppend(&sbOut,  __VER_0__);
   sAppend(&sbOut,  __VER_1__);
   sAppend(&sbOut,  __VER_2__);
@@ -2255,7 +2315,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  // See if this is an ini or a reclaimed expression.
 	  if (sbPm.lProp[i] >= 0 ){
 	    tb.ix = sbPm.lProp[i];
-	    if (tb.lh[tb.ix] == 1){
+	    if (tb.lh[tb.ix] == 1 || tb.lh[tb.ix] == 70){
 	      sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
 	    }
 	  }	  
@@ -2354,7 +2414,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     } else if (show_ode == 0 && tb.li){
       sAppendN(&sbOut,  "\n", 1);
       for (i=0, j=0; i<NV; i++) {
-	if (tb.lh[i] != 1 && tb.lh[i] != 19) continue;
+	if (tb.lh[i] != 1 && tb.lh[i] != 19 && tb.lh[i] != 70) continue;
 	buf = tb.ss.line[i];
 	sAppend(&sbOut,  "  _lhs[%d]=", j);
 	for (k = 0; k < (int)strlen(buf); k++){
@@ -2472,6 +2532,8 @@ void reset (){
   // Reset integers
   tb.dvidn      = 0;
   NV		= 0;
+  tb.ixL        = -1;
+  tb.NEnd       = -1;
   tb.ix		= 0;
   tb.id		= 0;
   tb.fn		= 0;
@@ -2718,9 +2780,10 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   }
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
-    if (islhs>1 && islhs != 19) continue;      /* is a state var */
-    if (islhs == 1 || islhs == 19){
+    if (islhs>1 && islhs != 19 && islhs != 70) continue;      /* is a state var */
+    if (islhs == 1 || islhs == 19 || islhs == 70){
       li++;
+      if (islhs == 70) pi++;
     } else {
       pi++;
     }
@@ -2931,10 +2994,11 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   li=0, pi=0;
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
-    if (islhs>1 && islhs != 19) continue;      /* is a state var */
+    if (islhs>1 && islhs != 19 && islhs != 70) continue;      /* is a state var */
     buf=tb.ss.line[i];
-    if (islhs == 1 || islhs == 19){
+    if (islhs == 1 || islhs == 19 || islhs == 70){
       SET_STRING_ELT(lhs,li++,mkChar(buf));
+      if (islhs == 70) SET_STRING_ELT(params,pi++,mkChar(buf));
     } else {
       int foundIt=0;
       for (j = 1; j <= tb.maxtheta;j++){
