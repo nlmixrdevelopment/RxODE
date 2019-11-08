@@ -3572,6 +3572,12 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     
     op->svar = &_globals.gsvar[0];
     op->nsvar = rxSolveDat.nsvar;
+    if (op->nsvar == 0){
+      getRxModels();
+      if(_rxModels.exists(".sigma")){
+	_rxModels.remove(".sigma");
+      }
+    }
     // Now setup the rest of the rx_solve object
     if (rxSolveDat.nPopPar != 1 && rxSolveDat.nPopPar % rx->nsub != 0){
       rxSolveFree();

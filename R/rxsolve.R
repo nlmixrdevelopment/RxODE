@@ -49,6 +49,7 @@ rxControl <- function(scale = NULL,
                       mxhnil=0,
                       hmxi=0.0,
                       warnIdSort=TRUE,
+                      ssAtol = 1.0e-8, ssRtol = 1.0e-6,
                       safeZero=TRUE){
     .xtra <- list(...);
     if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")){

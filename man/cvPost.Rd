@@ -7,7 +7,7 @@ distribution.}
 \usage{
 cvPost(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
   type = c("invWishart", "lkj", "separation"), diagXformType = c("log",
-  "identity", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity"))
+  "identity", "variance", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity"))
 }
 \arguments{
 \item{nu}{Degrees of Freedom (Number of Observations) for
@@ -68,6 +68,9 @@ simulated covariance matrix.
 
 \item{identity} The standard deviations are not transformed. The
 standard deviations are not transformed;  They should be positive.
+
+\item{variance} The variances are specified in the \code{omega}
+matrix; They are transformed into standard deviations.
 
 \item{nlmixrSqrt} These standard deviations come from an nlmixr
 omega matrix where diag(chol(inv(omega))) = x^2

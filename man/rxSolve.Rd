@@ -26,12 +26,15 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853",
   addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
   sigmaLower = -Inf, sigmaUpper = Inf, nCoresRV = 1L,
   sigmaIsChol = FALSE, sigmaSeparation = c("auto", "lkj",
-  "separation"), nDisplayProgress = 10000L,
-  amountUnits = NA_character_, timeUnits = "hours", stiff,
-  theta = NULL, thetaLower = -Inf, thetaUpper = Inf, eta = NULL,
-  addDosing = FALSE, stateTrim = Inf, updateObject = FALSE,
-  omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
-  omegaSeparation = c("auto", "lkj", "separation"), omegaLower = -Inf,
+  "separation"), sigmaXform = c("identity", "variance", "log",
+  "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity"),
+  nDisplayProgress = 10000L, amountUnits = NA_character_,
+  timeUnits = "hours", stiff, theta = NULL, thetaLower = -Inf,
+  thetaUpper = Inf, eta = NULL, addDosing = FALSE, stateTrim = Inf,
+  updateObject = FALSE, omega = NULL, omegaDf = NULL,
+  omegaIsChol = FALSE, omegaSeparation = c("auto", "lkj",
+  "separation"), omegaXform = c("variance", "identity", "log",
+  "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity"), omegaLower = -Inf,
   omegaUpper = Inf, nSub = 1L, thetaMat = NULL, thetaDf = NULL,
   thetaIsChol = FALSE, nStud = 1L, dfSub = 0, dfObs = 0,
   returnType = c("rxSolve", "matrix", "data.frame", "data.frame.TBS",
@@ -44,7 +47,7 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853",
   indLinPhiTol = 1e-07, indLinPhiM = 0L, indLinMatExpType = 2L,
   indLinMatExpOrder = 6L, indLinDelta = 2,
   indLinPerterbMatrix = 100L, idFactor = TRUE, mxhnil = 0,
-  hmxi = 0, warnIdSort = TRUE, ssAtol = 1e-08, ssRtol = 1e-06)
+  hmxi = 0, warnIdSort = TRUE, safeZero = TRUE)
 
 rxSolve(object, ...)
 
@@ -428,11 +431,8 @@ This option is only considered with method=liblsoda.}
 the order of the parameters/iCov are the same as the order of
 the parameters in the input dataset.}
 
-\item{ssAtol}{Steady state atol convergence factor.  Can be
-a vector based on each state.}
-
-\item{ssRtol}{Steady state rtol convergence factor.  Can be a
-vector based on each state.}
+\item{safeZero}{Use safe zero divide and log routines.  By default
+this is turned on but you may turn it off if you wish.}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE
@@ -450,6 +450,12 @@ the argument list it overwrites this parameter.}
 \item{b}{when using \code{solve}, this is equivalent to the
 \code{params} argument.  If you specify \code{params} as a
 named argument, this overwrites the output}
+
+\item{ssAtol}{Steady state atol convergence factor.  Can be
+a vector based on each state.}
+
+\item{ssRtol}{Steady state rtol convergence factor.  Can be a
+vector based on each state.}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved

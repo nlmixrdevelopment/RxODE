@@ -38,7 +38,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.8</span>
       </span>
     </div>
 
@@ -189,7 +189,7 @@
       <h1>Speeding up RxODE</h1>
                         <h4 class="author">Matthew Fidler</h4>
             
-            <h4 class="date">2019-10-20</h4>
+            <h4 class="date">2019-11-08</h4>
       
       
       <div class="hidden name"><code>RxODE-speed.Rmd</code></div>
@@ -281,15 +281,15 @@ params.all &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(bench)
 <span class="co">#&gt; Unit: milliseconds</span>
 <span class="co">#&gt;               expr       min        lq      mean    median        uq</span>
-<span class="co">#&gt;           runFor() 158.79585 168.72165 174.03456 171.26475 177.62264</span>
-<span class="co">#&gt;        runSapply() 159.67576 167.16173 172.55608 171.59915 175.48092</span>
-<span class="co">#&gt;  runSingleThread()  27.97125  29.66809  31.37312  31.97688  32.95265</span>
-<span class="co">#&gt;       run2Thread()  14.55447  16.08220  17.22573  16.31667  16.55274</span>
+<span class="co">#&gt;           runFor() 321.54118 340.07401 387.89473 350.62705 402.00035</span>
+<span class="co">#&gt;        runSapply() 318.03670 337.73962 387.93803 347.32729 396.90482</span>
+<span class="co">#&gt;  runSingleThread()  77.80870  84.54582  86.03524  87.05331  88.03776</span>
+<span class="co">#&gt;       run2Thread()  41.75473  45.03983  46.62552  46.13324  47.21390</span>
 <span class="co">#&gt;        max neval</span>
-<span class="co">#&gt;  220.37226   100</span>
-<span class="co">#&gt;  225.77979   100</span>
-<span class="co">#&gt;   34.63876   100</span>
-<span class="co">#&gt;   31.51565   100</span></code></pre></div>
+<span class="co">#&gt;  641.29951   100</span>
+<span class="co">#&gt;  708.85777   100</span>
+<span class="co">#&gt;   91.58763   100</span>
+<span class="co">#&gt;   70.05624   100</span></code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(bench)</code></pre></div>
 <p><img src="RxODE-speed_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <p>It is clear that the <strong>largest</strong> jump in performance when using the <code>solve</code> method and providing <em>all</em> the parameters to RxODE to solve without looping over each subject with either a <code>for</code> or a <code>sapply</code>. The number of cores/threads applied to the solve also plays a role in the solving.</p>
@@ -303,19 +303,19 @@ bench &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/
                                            <span class="dt">collapse=</span><span class="st">","</span>))))
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(bench)
 <span class="co">#&gt; Unit: milliseconds</span>
-<span class="co">#&gt;           expr       min        lq      mean    median        uq      max</span>
-<span class="co">#&gt;   runThread(1) 28.692938 29.752752 30.740861 30.198984 31.762991 35.47219</span>
-<span class="co">#&gt;   runThread(2) 15.237933 15.893539 16.828685 16.278461 16.703216 31.38558</span>
-<span class="co">#&gt;   runThread(3) 11.046779 11.647700 12.639852 12.076333 12.365137 24.93894</span>
-<span class="co">#&gt;   runThread(4)  8.780923  9.527373 10.059683  9.791442 10.146764 13.49512</span>
-<span class="co">#&gt;   runThread(5)  8.115667  8.601073  9.489193  8.838180 10.714306 14.88996</span>
-<span class="co">#&gt;   runThread(6)  7.450652  7.882333  8.909210  8.179890  9.634519 12.96587</span>
-<span class="co">#&gt;   runThread(7)  9.790504 10.426869 11.065834 10.772063 11.274258 16.61731</span>
-<span class="co">#&gt;   runThread(8)  9.152544  9.783297 10.454847 10.256793 10.775435 13.62128</span>
-<span class="co">#&gt;   runThread(9)  8.850738  9.629323 10.318589 10.044939 10.413304 18.60562</span>
-<span class="co">#&gt;  runThread(10)  8.447779  9.351285  9.822342  9.693423 10.083717 12.61648</span>
-<span class="co">#&gt;  runThread(11)  8.331937  9.172030 10.212134  9.496115  9.919503 55.76945</span>
-<span class="co">#&gt;  runThread(12)  8.559806  9.068616 10.809106  9.587833 11.075401 21.98381</span>
+<span class="co">#&gt;           expr      min       lq     mean   median       uq       max</span>
+<span class="co">#&gt;   runThread(1) 82.87616 85.54388 87.59066 86.70310 88.50503 100.49769</span>
+<span class="co">#&gt;   runThread(2) 43.73991 45.75392 47.33938 46.56777 47.70351  62.72641</span>
+<span class="co">#&gt;   runThread(3) 31.84951 32.90166 34.41198 33.49671 34.19487  57.41731</span>
+<span class="co">#&gt;   runThread(4) 24.81506 25.67899 28.43010 26.28081 27.56178  50.92832</span>
+<span class="co">#&gt;   runThread(5) 21.30640 22.08533 23.56997 22.42381 23.85456  39.03177</span>
+<span class="co">#&gt;   runThread(6) 19.40403 20.06855 21.94196 20.74940 22.38242  35.97893</span>
+<span class="co">#&gt;   runThread(7) 25.07073 26.17595 28.15812 27.63956 29.89994  32.64658</span>
+<span class="co">#&gt;   runThread(8) 22.48620 24.77076 26.35650 26.44761 27.43630  43.09958</span>
+<span class="co">#&gt;   runThread(9) 21.58300 23.92508 25.27977 25.34379 26.12431  34.54855</span>
+<span class="co">#&gt;  runThread(10) 21.14432 23.21456 24.22840 24.14988 25.22116  27.93371</span>
+<span class="co">#&gt;  runThread(11) 20.17319 22.58518 24.20067 23.25983 24.13155  45.45607</span>
+<span class="co">#&gt;  runThread(12) 21.11764 22.32929 24.96864 23.28052 25.07832  44.86109</span>
 <span class="co">#&gt;  neval</span>
 <span class="co">#&gt;    100</span>
 <span class="co">#&gt;    100</span>
@@ -333,6 +333,125 @@ bench &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/
 <p><img src="RxODE-speed_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
 <p>There is a suite spot in speed vs number or cores. The system type, complexity of the ODE solving and the number of subjects may affect this arbitrary number of threads. 4 threads is a good number to use without any prior knowledge because most systems these days have at least 4 threads (or 2 processors with 4 threads).</p>
 </div>
+</div>
+<div id="a-real-life-example" class="section level1">
+<h1 class="hasAnchor">
+<a href="#a-real-life-example" class="anchor"></a>A real life example</h1>
+<p>Before some of the parallel solving was implemented, the fastest way to run <code>RxODE</code> was with <code>lapply</code>. This is how Rik Schoemaker created the data-set for <code>nlmixr</code> comparisons:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(RxODE)
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(data.table)
+<span class="co">#Define the RxODE model</span>
+  ode1 &lt;-<span class="st"> "</span>
+<span class="st">  d/dt(abs)    = -KA*abs;</span>
+<span class="st">  d/dt(centr)  =  KA*abs-(CL/V)*centr;</span>
+<span class="st">  C2=centr/V;</span>
+<span class="st">  "</span>
+  
+<span class="co">#Create the RxODE simulation object</span>
+mod1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>(<span class="dt">model =</span> ode1)
+
+<span class="co">#Population parameter values on log-scale</span>
+  paramsl &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dt">CL =</span> <span class="kw"><a href="https://rdrr.io/r/base/Log.html">log</a></span>(<span class="dv">4</span>),
+               <span class="dt">V =</span> <span class="kw"><a href="https://rdrr.io/r/base/Log.html">log</a></span>(<span class="dv">70</span>),
+               <span class="dt">KA =</span> <span class="kw"><a href="https://rdrr.io/r/base/Log.html">log</a></span>(<span class="dv">1</span>))
+<span class="co">#make 10,000 subjects to sample from:</span>
+  nsubg &lt;-<span class="st"> </span><span class="dv">2500</span> <span class="co"># subjects per dose</span>
+  doses &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dv">10</span>, <span class="dv">30</span>, <span class="dv">60</span>, <span class="dv">120</span>)
+  nsub &lt;-<span class="st"> </span>nsubg <span class="op">*</span><span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/length.html">length</a></span>(doses)
+<span class="co">#IIV of 30% for each parameter</span>
+  omega &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/diag.html">diag</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">0.09</span>, <span class="fl">0.09</span>, <span class="fl">0.09</span>))<span class="co"># IIV covariance matrix</span>
+  sigma &lt;-<span class="st"> </span><span class="fl">0.2</span>
+<span class="co">#Sample from the multivariate normal</span>
+  <span class="kw"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span>(<span class="dv">98176247</span>)
+  <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(MASS)
+  mv &lt;-
+<span class="st">    </span><span class="kw"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">mvrnorm</a></span>(nsub, <span class="kw"><a href="https://rdrr.io/r/base/rep.html">rep</a></span>(<span class="dv">0</span>, <span class="kw"><a href="https://rdrr.io/r/base/dim.html">dim</a></span>(omega)[<span class="dv">1</span>]), omega) <span class="co"># Sample from covariance matrix</span>
+<span class="co">#Combine population parameters with IIV</span>
+  params.all &lt;-
+<span class="st">    </span><span class="kw"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html">data.table</a></span>(
+      <span class="st">"ID"</span> =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="dv">1</span><span class="op">:</span>nsub),
+      <span class="st">"CL"</span> =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">exp</a></span>(paramsl[<span class="st">'CL'</span>] <span class="op">+</span><span class="st"> </span>mv[, <span class="dv">1</span>]),
+      <span class="st">"V"</span> =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">exp</a></span>(paramsl[<span class="st">'V'</span>] <span class="op">+</span><span class="st"> </span>mv[, <span class="dv">2</span>]),
+      <span class="st">"KA"</span> =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">exp</a></span>(paramsl[<span class="st">'KA'</span>] <span class="op">+</span><span class="st"> </span>mv[, <span class="dv">3</span>])
+    )
+<span class="co">#set the doses (looping through the 4 doses)</span>
+params.all[, AMT <span class="op">:</span><span class="er">=</span><span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/rep.html">rep</a></span>(<span class="dv">1000</span> <span class="op">*</span><span class="st"> </span>doses,nsubg)]
+
+Startlapply &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span>()
+  
+<span class="co">#Run the simulations using lapply for speed</span>
+  s =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span>(<span class="dv">1</span><span class="op">:</span>nsub, <span class="cf">function</span>(i) {
+<span class="co">#selects the parameters associated with the subject to be simulated</span>
+    params &lt;-<span class="st"> </span>params.all[i]
+<span class="co">#creates an eventTable with 7 doses every 24 hours</span>
+    ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/eventTable.html">eventTable</a></span>()
+    ev<span class="op">$</span><span class="kw"><a href="../reference/add.dosing.html">add.dosing</a></span>(
+      <span class="dt">dose =</span> params<span class="op">$</span>AMT,
+      <span class="dt">nbr.doses =</span> <span class="dv">1</span>,
+      <span class="dt">dosing.to =</span> <span class="dv">1</span>,
+      <span class="dt">rate =</span> <span class="ot">NULL</span>,
+      <span class="dt">start.time =</span> <span class="dv">0</span>
+    )
+<span class="co">#generates 4 random samples in a 24 hour period</span>
+    ev<span class="op">$</span><span class="kw"><a href="../reference/add.sampling.html">add.sampling</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dv">0</span>, <span class="kw"><a href="https://rdrr.io/r/base/sort.html">sort</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/Round.html">round</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/sample.html">sample</a></span>(<span class="kw"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span>(<span class="dv">600</span>, <span class="dv">0</span>, <span class="dv">1440</span>), <span class="dv">4</span>) <span class="op">/</span><span class="st"> </span><span class="dv">60</span>, <span class="dv">2</span>))))
+<span class="co">#runs the RxODE simulation</span>
+    x &lt;-<span class="st"> </span><span class="kw"><a href="https://Rdatatable.gitlab.io/data.table/reference/as.data.table.html">as.data.table</a></span>(mod1<span class="op">$</span><span class="kw">run</span>(params, ev))
+<span class="co">#merges the parameters and ID number to the simulation output</span>
+    x[, <span class="kw"><a href="https://rdrr.io/r/base/names.html">names</a></span>(params) <span class="op">:</span><span class="er">=</span><span class="st"> </span>params]
+  })
+  
+<span class="co">#runs the entire sequence of 10000 subjects and binds the results to the object res</span>
+  res =<span class="st"> </span><span class="kw"><a href="https://Rdatatable.gitlab.io/data.table/reference/as.data.table.html">as.data.table</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span>(<span class="st">"rbind"</span>, s))
+  
+Stoplapply &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span>()
+  
+<span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(Stoplapply <span class="op">-</span><span class="st"> </span>Startlapply)
+<span class="co">#&gt; Time difference of 51.51352 secs</span></code></pre></div>
+<p>By applying some of the new parallel solving concepts you can simply run the same simulation both with less code and faster:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rx &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
+    CL =<span class="st">  </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">log</a></span>(<span class="dv">4</span>)
+    V =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">log</a></span>(<span class="dv">70</span>)
+    KA =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">log</a></span>(<span class="dv">1</span>)
+    CL =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">exp</a></span>(CL <span class="op">+</span><span class="st"> </span>eta.CL)
+    V =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">exp</a></span>(V <span class="op">+</span><span class="st"> </span>eta.V)
+    KA =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">exp</a></span>(KA <span class="op">+</span><span class="st"> </span>eta.KA)
+    d<span class="op">/</span><span class="kw"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span>(abs)    =<span class="st"> </span><span class="op">-</span>KA<span class="op">*</span>abs;
+    d<span class="op">/</span><span class="kw"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span>(centr)  =<span class="st">  </span>KA<span class="op">*</span>abs<span class="op">-</span>(CL<span class="op">/</span>V)<span class="op">*</span>centr;
+    C2=centr<span class="op">/</span>V;
+})
+
+omega &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/pkg/lotri/man/lotri.html">lotri</a></span>(eta.CL <span class="op">~</span><span class="st"> </span><span class="fl">0.09</span>,
+               eta.V <span class="op">~</span><span class="st"> </span><span class="fl">0.09</span>,
+               eta.KA <span class="op">~</span><span class="st"> </span><span class="fl">0.09</span>)
+
+doses &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dv">10</span>, <span class="dv">30</span>, <span class="dv">60</span>, <span class="dv">120</span>)
+
+
+startParallel &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span>()
+ev &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span>(<span class="st">"rbind"</span>,
+        <span class="kw"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span>(doses), <span class="cf">function</span>(i){
+            <span class="kw"><a href="../reference/et.html">et</a></span>() <span class="op">%&gt;%</span>
+<span class="st">                </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span>doses[i]) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Add single dose</span>
+<span class="st">                </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dv">0</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Add 0 observation</span>
+<span class="st">                </span>## Generate 4 samples in 24 hour period
+<span class="st">                </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span>(<span class="dv">1</span><span class="op">:</span><span class="dv">4</span>, <span class="cf">function</span>(...){<span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dv">0</span>, <span class="dv">24</span>)})) <span class="op">%&gt;%</span>
+<span class="st">                </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">id=</span><span class="kw"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="dv">1</span>, nsubg) <span class="op">+</span><span class="st"> </span>(i <span class="op">-</span><span class="st"> </span><span class="dv">1</span>) <span class="op">*</span><span class="st"> </span>nsubg) <span class="op">%&gt;%</span>
+<span class="st">                </span>## Convert to data frame to skip sorting the data
+<span class="st">                </span>## When binding the data together
+<span class="st">                </span>as.data.frame 
+        }))
+## To better compare, use the same output, that is data.table
+res &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(rx, ev, <span class="dt">omega=</span>omega, <span class="dt">returnType=</span><span class="st">"data.table"</span>)
+<span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:01</span>
+endParallel &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span>()
+<span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(endParallel <span class="op">-</span><span class="st"> </span>startParallel)
+<span class="co">#&gt; Time difference of 4.279974 secs</span></code></pre></div>
+<p>You can see a striking time difference between the two methods; A few things to keep in mind:</p>
+<ul>
+<li><p><code>RxODE</code> uses <code>mvnfast</code> for simulation of <code>eta</code> values. This uses the thread safe sumo random number generator. Therefore the results are expected to be different (also the random samples are taken in a different order which would be different)</p></li>
+<li><p>This prior simulation was run in R 3.5, which has a different random number generator so the results in this simulation will be different from the actual nlmixr comparison when using the slower simulation.</p></li>
+<li><p>This speed comparison used <code>data.table</code>. <code>RxODE</code> uses <code>data.table</code> internally (when available) try to speed up sorting, so this would be different than installations where <code>data.table</code> is not installed. You can force RxODE to use <code><a href="https://Rdatatable.gitlab.io/data.table/reference/setorder.html">order()</a></code> when sorting by using <code><a href="../reference/forderForceBase.html">forderForceBase(TRUE)</a></code>. In this case there is little difference between the two, though in other examples <code>data.table</code>’s presence leads to a speed increase (and less likely it could lead to a slowdown).</p></li>
+</ul>
 <div id="want-more-ways-to-run-multi-subject-simulations" class="section level2">
 <h2 class="hasAnchor">
 <a href="#want-more-ways-to-run-multi-subject-simulations" class="anchor"></a>Want more ways to run multi-subject simulations</h2>
@@ -363,21 +482,23 @@ bench &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/
 <span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; other attached packages:</span>
-<span class="co">#&gt; [1] mvnfast_0.2.5        microbenchmark_1.4-7 RxODE_0.9.1-7       </span>
+<span class="co">#&gt; [1] MASS_7.3-51.4        data.table_1.12.6    mvnfast_0.2.5       </span>
+<span class="co">#&gt; [4] microbenchmark_1.4-7 RxODE_0.9.1-8       </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; loaded via a namespace (and not attached):</span>
 <span class="co">#&gt;  [1] Rcpp_1.0.2       compiler_3.6.0   pillar_1.4.2     PreciseSums_0.3 </span>
-<span class="co">#&gt;  [5] tools_3.6.0      digest_0.6.21    evaluate_0.14    memoise_1.1.0   </span>
-<span class="co">#&gt;  [9] tibble_2.1.3     gtable_0.3.0     pkgconfig_2.0.3  rlang_0.4.0     </span>
-<span class="co">#&gt; [13] yaml_2.2.0       pkgdown_1.4.1    xfun_0.10        stringr_1.4.0   </span>
-<span class="co">#&gt; [17] dplyr_0.8.3      knitr_1.25       desc_1.2.0       fs_1.3.1        </span>
-<span class="co">#&gt; [21] rprojroot_1.3-2  grid_3.6.0       tidyselect_0.2.5 glue_1.3.1      </span>
-<span class="co">#&gt; [25] R6_2.4.0         rmarkdown_1.16   polyclip_1.10-0  dparser_1.3.1-0 </span>
-<span class="co">#&gt; [29] farver_1.1.0     tweenr_1.0.1     ggplot2_3.2.1    purrr_0.3.3     </span>
-<span class="co">#&gt; [33] magrittr_1.5     units_0.6-5      backports_1.1.5  scales_1.0.0    </span>
-<span class="co">#&gt; [37] htmltools_0.4.0  MASS_7.3-51.4    assertthat_0.2.1 mime_0.7        </span>
-<span class="co">#&gt; [41] ggforce_0.3.1    colorspace_1.4-1 lotri_0.1.1      stringi_1.4.3   </span>
-<span class="co">#&gt; [45] lazyeval_0.2.2   munsell_0.5.0    markdown_1.1     crayon_1.3.4</span></code></pre></div>
+<span class="co">#&gt;  [5] tools_3.6.0      digest_0.6.22    lattice_0.20-38  evaluate_0.14   </span>
+<span class="co">#&gt;  [9] memoise_1.1.0    tibble_2.1.3     gtable_0.3.0     pkgconfig_2.0.3 </span>
+<span class="co">#&gt; [13] rlang_0.4.1      Matrix_1.2-17    yaml_2.2.0       pkgdown_1.4.1   </span>
+<span class="co">#&gt; [17] xfun_0.10        stringr_1.4.0    dplyr_0.8.3      knitr_1.25      </span>
+<span class="co">#&gt; [21] desc_1.2.0       fs_1.3.1         rprojroot_1.3-2  grid_3.6.0      </span>
+<span class="co">#&gt; [25] tidyselect_0.2.5 glue_1.3.1       R6_2.4.0         rmarkdown_1.16  </span>
+<span class="co">#&gt; [29] polyclip_1.10-0  dparser_1.3.1-0  farver_1.1.0     tweenr_1.0.1    </span>
+<span class="co">#&gt; [33] ggplot2_3.2.1    purrr_0.3.3      magrittr_1.5     units_0.6-5     </span>
+<span class="co">#&gt; [37] backports_1.1.5  scales_1.0.0     htmltools_0.4.0  assertthat_0.2.1</span>
+<span class="co">#&gt; [41] mime_0.7         ggforce_0.3.1    colorspace_1.4-1 lotri_0.1.1     </span>
+<span class="co">#&gt; [45] stringi_1.4.3    lazyeval_0.2.2   munsell_0.5.0    markdown_1.1    </span>
+<span class="co">#&gt; [49] crayon_1.3.4</span></code></pre></div>
 </div>
 </div>
   </div>
@@ -395,7 +516,11 @@ bench &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/
       <li><a href="#run-using-a-single-threaded-solve">Run using a single-threaded solve</a></li>
       <li><a href="#run-a-2-threaded-solve">Run a 2 threaded solve</a></li>
       <li><a href="#compare-the-times-between-all-the-methods">Compare the times between all the methods</a></li>
-      <li><a href="#want-more-ways-to-run-multi-subject-simulations">Want more ways to run multi-subject simulations</a></li>
+      </ul>
+</li>
+      <li>
+<a href="#a-real-life-example">A real life example</a><ul class="nav nav-pills nav-stacked">
+<li><a href="#want-more-ways-to-run-multi-subject-simulations">Want more ways to run multi-subject simulations</a></li>
       <li><a href="#session-information">Session Information</a></li>
       </ul>
 </li>
