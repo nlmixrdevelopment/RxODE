@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Load RxODE object — rxDynLoad • RxODE</title>
+<title>Set timing for progress bar — rxSetProgressBar • RxODE</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -42,8 +42,8 @@
 
 
 
-<meta property="og:title" content="Load RxODE object — rxDynLoad" />
-<meta property="og:description" content="Load RxODE object" />
+<meta property="og:title" content="Set timing for progress bar — rxSetProgressBar" />
+<meta property="og:description" content="Set timing for progress bar" />
 <meta property="og:image" content="/logo.png" />
 <meta name="twitter:card" content="summary" />
 
@@ -225,42 +225,38 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Load RxODE object</h1>
+    <h1>Set timing for progress bar</h1>
     
-    <div class="hidden name"><code>rxDynLoad.Rd</code></div>
+    <div class="hidden name"><code>rxSetProgressBar.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Load RxODE object</p>
+    <p>Set timing for progress bar</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rxDynLoad</span>(<span class='no'>obj</span>)
-
-<span class='fu'>rxLoad</span>(<span class='no'>obj</span>)</pre>
+    <pre class="usage"><span class='fu'>rxSetProgressBar</span>(<span class='kw'>seconds</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>obj</th>
-      <td><p>A RxODE family of objects</p></td>
+      <th>seconds</th>
+      <td><p>This sets the number of seconds that need to elapse
+before drawing the next segment of the progress bar.  When
+this is zero or below this turns off the progress bar.</p></td>
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>Boolean returning if the RxODE library is loaded.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
     </ul>
 
     <h2>Author</h2>
-    <p>Matthew L.Fidler</p>
+    <p>Matthew Fidler</p>
   </div>
 </div>
 

@@ -78,7 +78,7 @@ solve a ODE system." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.8</span>
       </span>
     </div>
 
@@ -250,13 +250,14 @@ solve a ODE system.</p>
   <span class='kw'>omegaLower</span> <span class='kw'>=</span> -<span class='fl'>Inf</span>, <span class='kw'>omegaUpper</span> <span class='kw'>=</span> <span class='fl'>Inf</span>, <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>,
   <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"rxSolve"</span>, <span class='st'>"matrix"</span>, <span class='st'>"data.frame"</span>,
-  <span class='st'>"data.frame.TBS"</span>), <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>minSS</span> <span class='kw'>=</span> <span class='fl'>10L</span>,
-  <span class='kw'>maxSS</span> <span class='kw'>=</span> <span class='fl'>1000L</span>, <span class='kw'>infSSstep</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>strictSS</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>istateReset</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>subsetNonmem</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>linLog</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>maxAtolRtolFactor</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>from</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>to</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>by</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>length.out</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>idFactor</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>mxhnil</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>hmxi</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>warnIdSort</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>ssAtol</span> <span class='kw'>=</span> <span class='fl'>1e-08</span>, <span class='kw'>ssRtol</span> <span class='kw'>=</span> <span class='fl'>1e-06</span>)
+  <span class='st'>"data.frame.TBS"</span>, <span class='st'>"data.table"</span>, <span class='st'>"tbl"</span>, <span class='st'>"tibble"</span>), <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>minSS</span> <span class='kw'>=</span> <span class='fl'>10L</span>, <span class='kw'>maxSS</span> <span class='kw'>=</span> <span class='fl'>1000L</span>, <span class='kw'>infSSstep</span> <span class='kw'>=</span> <span class='fl'>12</span>,
+  <span class='kw'>strictSS</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>istateReset</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>subsetNonmem</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>linLog</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>maxAtolRtolFactor</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>from</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>to</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>length.out</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>idFactor</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>mxhnil</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>hmxi</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>warnIdSort</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>ssAtol</span> <span class='kw'>=</span> <span class='fl'>1e-08</span>,
+  <span class='kw'>ssRtol</span> <span class='kw'>=</span> <span class='fl'>1e-06</span>, <span class='kw'>safeZero</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
 
 <span class='fu'>rxSolve</span>(<span class='no'>object</span>, <span class='no'>...</span>)
 
@@ -623,9 +624,12 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
      update the data frame.  This is the currently standard solving
      method in RxODE,  is used for <code>rxSolve(object, ...)</code>, <code><a href='https://rdrr.io/r/base/solve.html'>solve(object,...)</a></code>,</p></li>
 <li><p><code>"data.frame"</code> -- returns a plain, non-reactive data
-     frame; Currently very slightly Faster than <code>returnType="matrix"</code></p></li>
+     frame; Currently very slightly faster than <code>returnType="matrix"</code></p></li>
 <li><p><code>"matrix"</code> -- returns a plain matrix with column names attached
     to the solved object.  This is what is used <code>object$run</code> as well as <code>object$solve</code></p></li>
+<li><p><code>"data.table"</code> -- returns a <code>data.table</code>; The <code>data.table</code> is
+    created by reference (ie <code>setDt()</code>), which should be fast.</p></li>
+<li><p><code>"tbl"</code> or <code>"tibble"</code> returns a tibble format.</p></li>
 </ul></td>
     </tr>
     <tr>
@@ -775,6 +779,11 @@ a vector based on each state.</p></td>
       <th>ssRtol</th>
       <td><p>Steady state rtol convergence factor.  Can be a
 vector based on each state.</p></td>
+    </tr>
+    <tr>
+      <th>safeZero</th>
+      <td><p>Use safe zero divide and log routines.  By default
+this is turned on but you may turn it off if you wish.</p></td>
     </tr>
     <tr>
       <th>object</th>

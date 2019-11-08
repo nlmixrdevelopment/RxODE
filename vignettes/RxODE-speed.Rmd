@@ -152,15 +152,158 @@ this arbitrary number of threads. 4 threads is a good number
 to use without any prior knowledge because most systems these days
 have at least 4 threads (or 2 processors with 4 threads).
 
+# A real life example
+
+Before some of the parallel solving was implemented, the fastest way
+to run `RxODE` was with `lapply`.  This is how Rik Schoemaker created
+the data-set for `nlmixr` comparisons:
+
+
+```{r}
+library(RxODE)
+library(data.table)
+#Define the RxODE model
+  ode1 <- "
+  d/dt(abs)    = -KA*abs;
+  d/dt(centr)  =  KA*abs-(CL/V)*centr;
+  C2=centr/V;
+  "
+  
+#Create the RxODE simulation object
+mod1 <- RxODE(model = ode1)
+
+#Population parameter values on log-scale
+  paramsl <- c(CL = log(4),
+               V = log(70),
+               KA = log(1))
+#make 10,000 subjects to sample from:
+  nsubg <- 2500 # subjects per dose
+  doses <- c(10, 30, 60, 120)
+  nsub <- nsubg * length(doses)
+#IIV of 30% for each parameter
+  omega <- diag(c(0.09, 0.09, 0.09))# IIV covariance matrix
+  sigma <- 0.2
+#Sample from the multivariate normal
+  set.seed(98176247)
+  library(MASS)
+  mv <-
+    mvrnorm(nsub, rep(0, dim(omega)[1]), omega) # Sample from covariance matrix
+#Combine population parameters with IIV
+  params.all <-
+    data.table(
+      "ID" = seq(1:nsub),
+      "CL" = exp(paramsl['CL'] + mv[, 1]),
+      "V" = exp(paramsl['V'] + mv[, 2]),
+      "KA" = exp(paramsl['KA'] + mv[, 3])
+    )
+#set the doses (looping through the 4 doses)
+params.all[, AMT := rep(1000 * doses,nsubg)]
+
+Startlapply <- Sys.time()
+  
+#Run the simulations using lapply for speed
+  s = lapply(1:nsub, function(i) {
+#selects the parameters associated with the subject to be simulated
+    params <- params.all[i]
+#creates an eventTable with 7 doses every 24 hours
+    ev <- eventTable()
+    ev$add.dosing(
+      dose = params$AMT,
+      nbr.doses = 1,
+      dosing.to = 1,
+      rate = NULL,
+      start.time = 0
+    )
+#generates 4 random samples in a 24 hour period
+    ev$add.sampling(c(0, sort(round(sample(runif(600, 0, 1440), 4) / 60, 2))))
+#runs the RxODE simulation
+    x <- as.data.table(mod1$run(params, ev))
+#merges the parameters and ID number to the simulation output
+    x[, names(params) := params]
+  })
+  
+#runs the entire sequence of 10000 subjects and binds the results to the object res
+  res = as.data.table(do.call("rbind", s))
+  
+Stoplapply <- Sys.time()
+  
+print(Stoplapply - Startlapply)
+```
+
+By applying some of the new parallel solving concepts you can simply
+run the same simulation both with less code and faster:
+
+```{r}
+rx <- RxODE({
+    CL =  log(4)
+    V = log(70)
+    KA = log(1)
+    CL = exp(CL + eta.CL)
+    V = exp(V + eta.V)
+    KA = exp(KA + eta.KA)
+    d/dt(abs)    = -KA*abs;
+    d/dt(centr)  =  KA*abs-(CL/V)*centr;
+    C2=centr/V;
+})
+
+omega <- lotri(eta.CL ~ 0.09,
+               eta.V ~ 0.09,
+               eta.KA ~ 0.09)
+
+doses <- c(10, 30, 60, 120)
+
+
+startParallel <- Sys.time()
+ev <- do.call("rbind",
+        lapply(seq_along(doses), function(i){
+            et() %>%
+                et(amt=doses[i]) %>% # Add single dose
+                et(0) %>% # Add 0 observation
+                ## Generate 4 samples in 24 hour period
+                et(lapply(1:4, function(...){c(0, 24)})) %>%
+                et(id=seq(1, nsubg) + (i - 1) * nsubg) %>%
+                ## Convert to data frame to skip sorting the data
+                ## When binding the data together
+                as.data.frame 
+        }))
+## To better compare, use the same output, that is data.table
+res <- rxSolve(rx, ev, omega=omega, returnType="data.table")
+endParallel <- Sys.time()
+print(endParallel - startParallel)
+```
+
+You can see a striking time difference between the two methods; A few
+things to keep in mind:
+
+ - `RxODE` uses `mvnfast` for simulation of `eta` values.  This uses
+   the thread safe sumo random number generator.  Therefore the
+   results are expected to be different (also the random samples are
+   taken in a different order which would be different)
+   
+ - This prior simulation was run in R 3.5, which has a different
+   random number generator so the results in this simulation will be
+   different from the actual nlmixr comparison when using the slower
+   simulation.
+   
+ - This speed comparison used `data.table`.  `RxODE` uses `data.table`
+   internally (when available) try to speed up sorting, so this would
+   be different than installations where `data.table` is not
+   installed.  You can force RxODE to use `order()` when sorting by
+   using `forderForceBase(TRUE)`.  In this case there is little
+   difference between the two, though in other examples `data.table`'s
+   presence leads to a speed increase (and less likely it could lead
+   to a slowdown).
+
 ## Want more ways to run multi-subject simulations
 The version since the tutorial has even more ways to run multi-subject
 simulations, including adding variability in sampling and dosing times
-with `et()` (see [RxODE events](https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-events.html#add-doses-and-samples-within-a-sampling-window) for more
-information), ability to supply both an `omega` and `sigma` matrix as
-well as adding as a `thetaMat` to R to simulate with uncertainty in the
-`omega`, `sigma` and `theta` matrices; see [RxODE simulation
+with `et()` (see [RxODE
+events](https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-events.html#add-doses-and-samples-within-a-sampling-window)
+for more information), ability to supply both an `omega` and `sigma`
+matrix as well as adding as a `thetaMat` to R to simulate with
+uncertainty in the `omega`, `sigma` and `theta` matrices; see [RxODE
+simulation
 vignette](https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-sim-var.html).
-
 
 ## Session Information
 

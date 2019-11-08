@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Cleanup anonymous DLLs — rxClean • RxODE</title>
+<title>Cleanup anonymous DLLs by unloading them — rxClean • RxODE</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -42,8 +42,8 @@
 
 
 
-<meta property="og:title" content="Cleanup anonymous DLLs — rxClean" />
-<meta property="og:description" content="This cleans up any DLLs created by text files" />
+<meta property="og:title" content="Cleanup anonymous DLLs by unloading them — rxClean" />
+<meta property="og:description" content="This cleans up any RxODE loaded DLLs" />
 <meta property="og:image" content="/logo.png" />
 <meta name="twitter:card" content="summary" />
 
@@ -77,7 +77,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.7</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.8</span>
       </span>
     </div>
 
@@ -225,13 +225,13 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Cleanup anonymous DLLs</h1>
+    <h1>Cleanup anonymous DLLs by unloading them</h1>
     
     <div class="hidden name"><code>rxClean.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>This cleans up any DLLs created by text files</p>
+    <p>This cleans up any RxODE loaded DLLs</p>
     </div>
 
     <pre class="usage"><span class='fu'>rxClean</span>(<span class='no'>wd</span>)</pre>
@@ -241,9 +241,9 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>wd</th>
-      <td><p>What directory should be cleaned</p>
-<p>This cleans up all files named <code>rx-*.dll</code> and associated files as
-well as <code>call_dvode.o</code> and associated files</p></td>
+      <td><p>What directory should be cleaned; (DEPRECIATED), this no
+    longer does anything.</p>
+<p>This unloads all RxODE anonymous dlls.</p></td>
     </tr>
     </table>
 

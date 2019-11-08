@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Load RxODE object — rxDynLoad • RxODE</title>
+<title>Force using base order for RxODE radix sorting — forderForceBase • RxODE</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -42,8 +42,8 @@
 
 
 
-<meta property="og:title" content="Load RxODE object — rxDynLoad" />
-<meta property="og:description" content="Load RxODE object" />
+<meta property="og:title" content="Force using base order for RxODE radix sorting — forderForceBase" />
+<meta property="og:description" content="Force using base order for RxODE radix sorting" />
 <meta property="og:image" content="/logo.png" />
 <meta name="twitter:card" content="summary" />
 
@@ -225,42 +225,42 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Load RxODE object</h1>
+    <h1>Force using base order for RxODE radix sorting</h1>
     
-    <div class="hidden name"><code>rxDynLoad.Rd</code></div>
+    <div class="hidden name"><code>forderForceBase.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Load RxODE object</p>
+    <p>Force using base order for RxODE radix sorting</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rxDynLoad</span>(<span class='no'>obj</span>)
-
-<span class='fu'>rxLoad</span>(<span class='no'>obj</span>)</pre>
+    <pre class="usage"><span class='fu'>forderForceBase</span>(<span class='kw'>forceBase</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>obj</th>
-      <td><p>A RxODE family of objects</p></td>
+      <th>forceBase</th>
+      <td><p>boolean indicating if RxODE should use R's
+<code><a href='https://rdrr.io/r/base/order.html'>order</a></code> for radix sorting instead of
+<code>data.table</code>'s parallel radix sorting.</p></td>
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Boolean returning if the RxODE library is loaded.</p>
-
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
+<span class='fu'>forderForceBase</span>(<span class='fl'>TRUE</span>) <span class='co'># Use base `order` for RxODE sorts</span>
+<span class='fu'>forderForceBase</span>(<span class='fl'>FALSE</span>) <span class='co'># Use base `data.table` for RxODE sorts</span>
+}</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
+      <li><a href="#examples">Examples</a></li>
     </ul>
 
-    <h2>Author</h2>
-    <p>Matthew L.Fidler</p>
   </div>
 </div>
 
