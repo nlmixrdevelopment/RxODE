@@ -26,7 +26,9 @@ Authors@R: c(
    person("G", "Grothendieck", role="ctb"),
    person("Robert", "Gentleman",role="ctb"),
    person("Daniel C.", "Dillon", role="ctb"),
-   person("Ross", "Ihaka",role="ctb"),
+   person("Ross", "Ihaka", role="ctb"),
+   person("Cleve", "Moler", role="ctb"),
+   person("Jack", "Dongarra", role="ctb"),
    person("R core team", role="cph")
    )
 Maintainer: Wenping Wang <wwang8198@gmail.com>
