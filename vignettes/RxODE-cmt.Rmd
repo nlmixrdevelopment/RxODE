@@ -116,13 +116,13 @@ If you look at the summary, you can see where RxODE assigned the compartment num
 summary(pbpk)
 ```
 
-In this case, it is assigned to compartment `15`.  Figuring this out
-can be inconvenient and also lead to re-numbering compartment in
-simulation or estimation datasets. While it is easy and probably
-clearer to specify the [compartment by name](RxODE-events.html), other
-tools only support compartment numbers.  Therefore, having a way to number
-compartment easily can lead to less data modification between multiple
-tools.
+In this case, `Venous_Blood` is assigned to compartment `15`.
+Figuring this out can be inconvenient and also lead to re-numbering
+compartment in simulation or estimation datasets. While it is easy and
+probably clearer to specify the [compartment by
+name](RxODE-events.html), other tools only support compartment
+numbers.  Therefore, having a way to number compartment easily can
+lead to less data modification between multiple tools.
 
 # Changing compartment numbers by pre-declaring the compartments
 

@@ -27,6 +27,7 @@ RxODE.*\.(zip|pdf)$
 ^/?src/dparser/.*$
 ^/?src/liblsoda/.*$
 LICENSE
+News.md
 /?config.status
 /?config.log
 ^/?docs/*$
