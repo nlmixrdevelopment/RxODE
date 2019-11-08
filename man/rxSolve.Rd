@@ -39,7 +39,7 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   maxAtolRtolFactor = 0.1, from = NULL, to = NULL, by = NULL,
   length.out = NULL, iCov = NULL, keep = NULL, idFactor = TRUE,
   mxhnil = 0, hmxi = 0, warnIdSort = TRUE, ssAtol = 1e-08,
-  ssRtol = 1e-06)
+  ssRtol = 1e-06, safeZero = TRUE)
 
 rxSolve(object, ...)
 
@@ -416,6 +416,9 @@ a vector based on each state.}
 
 \item{ssRtol}{Steady state rtol convergence factor.  Can be a
 vector based on each state.}
+
+\item{safeZero}{Use safe zero divide and log routines.  By default
+this is turned on but you may turn it off if you wish.}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE

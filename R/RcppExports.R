@@ -80,6 +80,18 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
     .Call(`_RxODE_etRep_`, curEt, times, wait, ids, handleSamples, waitType, ii)
 }
 
+#' Force using base order for RxODE radix sorting
+#'
+#' @param forceBase boolean indicating if RxODE should use R's
+#'   \code{\link{order}} for radix sorting instead of
+#'   \code{data.table}'s parallel radix sorting.
+#'
+#' @examples
+#' \dontrun{
+#' forderForceBase(TRUE) # Use base `order` for RxODE sorts
+#' forderForceBase(FALSE) # Use base `data.table` for RxODE sorts
+#' }
+#'@export
 forderForceBase <- function(forceBase = FALSE) {
     .Call(`_RxODE_forderForceBase`, forceBase)
 }
