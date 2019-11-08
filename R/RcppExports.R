@@ -605,8 +605,8 @@ rxSymInvCholEnvCalculate <- function(obj, what, theta = NULL) {
 #' @param vars Variables to include in stacked data; By default this
 #'   is all the variables when vars is NULL.
 #'
-#' @return Stacked data with value and trt, where value is the values
-#'   and trt is the state and lhs variables.
+#' @return Stacked data with \code{value} and \code{trt}, where value is the values
+#'   and \code{trt} is the state and \code{lhs} variables.
 #' 
 #' @author Matthew Fidler
 rxStack <- function(Data, vars = NULL) {
