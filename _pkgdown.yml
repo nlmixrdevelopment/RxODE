@@ -100,7 +100,7 @@ navbar:
         - text: "RxODE with piping ie %>%"
           href: articles/RxODE-pipeline.html
         - text: "Speeding up RxODE ODE solving"
-          href: articles/speed.html
+          href: articles/RxODE-speed.html
         - text: "--------------------------"
         - text: "Advanced Features, Model Types, Technical Details"
         - text: "RxODE model types"
