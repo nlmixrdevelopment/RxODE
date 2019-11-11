@@ -28,7 +28,14 @@
 
 .getDTEnv <- function(){
     if (requireNamespace("data.table", quietly = TRUE)){
-        return(loadNamespace("data.table"))
+        .env <- loadNamespace("data.table");
+        if (utils::compareVersion(as.character(
+                       utils::packageVersion("data.table")),
+                                  "1.12.4") >= 0){
+            return(.env)
+        } else {
+            return(new.env(parent=emptyenv()))
+        }
     } else {
         return(new.env(parent=emptyenv()))
     }
