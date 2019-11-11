@@ -247,7 +247,7 @@ rxOptExpr <- function(x, msg="model"){
         .rp <- rxOptRep_(.exprs)
         .rxOptEnv$.rep <- as.list(.rp[[1]]);
         .rxOptEnv$.exclude <- ""
-        message("optimizing duplicate expressions in %s...", msg)
+        message(sprintf("optimizing duplicate expressions in %s...", msg))
         .opt <- ..rxOpt(.p, progress=TRUE);
         ## .w <- which(regexpr(rex::rex("rx_expr_", numbers), .opt) != -1);
         ## .pre <- NULL;
