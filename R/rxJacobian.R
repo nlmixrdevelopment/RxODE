@@ -55,7 +55,7 @@ rxExpandGrid <- function(x, y, type=0L){
                              1L)
     }
     assign("..vars", .pars, envir=model);
-    message("calculate jacobian\n");
+    message("calculate jacobian");
     rxProgress(dim(.jac)[1]);
     on.exit({rxProgressAbort()});
     .ret <- apply(.jac, 1, function(x){
@@ -223,19 +223,19 @@ rxExpandGrid <- function(x, y, type=0L){
 
 .rxLoadPrune <- function(mod, doConst=TRUE, promoteLinSens=TRUE, fullModel=FALSE){
     if (fullModel){
-        message(sprintf("pruning branches of full model...",
-            appendLF=FALSE));
+        message("pruning branches of full model...",
+            appendLF=FALSE);
     } else {
-        message(sprintf("pruning branches...",
-            appendLF=FALSE))
+        message("pruning branches...",
+            appendLF=FALSE)
     }
     .newmod <-rxGetModel(rxPrune(mod));
     message("done")
     ## message("Loading into symengine environment...", appendLF=FALSE)
     if (fullModel){
-        message(sprintf("loading full model into symengine environment"));
+        message("loading full model into symengine environment...", appendLF=FALSE);
     } else {
-        message(sprintf("loading into symengine environment"))
+        message("loading into symengine environment...", appendLF=FALSE)
     }
     .newmod <- rxS(.newmod, doConst, promoteLinSens=promoteLinSens);
     ## message("done.")
@@ -262,7 +262,7 @@ rxExpandGrid <- function(x, y, type=0L){
     .newmod <- .rxGenPred(.newmod, predfn, errfn, init);
     .extraPars <- .newmod[[2]]
     .newmod <- .newmod[[1]]
-    .newmod <- .rxLoadPrune(.newmod, promoteLinSens=promoteLinSens, )
+    .newmod <- .rxLoadPrune(.newmod, promoteLinSens=promoteLinSens)
     message("done")
     .newmod$..stateInfo <- .stateInfo
     .newmod$..extraPars <- .extraPars
@@ -312,9 +312,9 @@ rxExpandGrid <- function(x, y, type=0L){
     .grd <- rxExpandFEta_(.stateVars, .s$..maxEta,
                           ifelse(pred.minus.dv, 1L, 2L))
     if (.useUtf()){
-        message("calculate \u2202(f)/\u2202(\u03B7)\n");
+        message("calculate \u2202(f)/\u2202(\u03B7)");
     } else {
-        message("calculate d(f)/d(eta)\n");
+        message("calculate d(f)/d(eta)");
     }
     rxProgress(dim(.grd)[1]);
     on.exit({rxProgressAbort()});
@@ -474,9 +474,9 @@ rxExpandGrid <- function(x, y, type=0L){
     .stateVars <- rxState(.s)
     .grd <- rxExpandFEta_(.stateVars, .s$..maxEta, FALSE)
     if (.useUtf()){
-        message("calculate \u2202(R\u00B2)/\u2202(\u03B7)\n");
+        message("calculate \u2202(R\u00B2)/\u2202(\u03B7)");
     } else {
-        message("calculate d(R^2)/d(eta)\n");
+        message("calculate d(R^2)/d(eta)");
     }
     rxProgress(dim(.grd)[1]);
     on.exit({rxProgressAbort()});

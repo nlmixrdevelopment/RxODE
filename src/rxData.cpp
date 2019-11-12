@@ -1579,8 +1579,9 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     omegaN = as<CharacterVector>(omega);
     omegaSep=true;
     omegaMC = NumericMatrix(nStud, omegaN.size());
+    j=0;
     for (int i = 0; i < omegaN.size(); i++){
-      for (int j = 0; j < thetaN.size(); j++){
+      for (j = 0; j < thetaN.size(); j++){
 	if (omegaN[i] == thetaN[j]){
 	  omegaMC(_,i) = thetaM(_,j);
 	  break;
@@ -1588,7 +1589,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
       }
       if (j == thetaN.size()){
 	stop(_("parameter '%s' was not simulated in 'thetaMat'"), (as<std::string>(omegaN[i])).c_str());
-      }
+      }      
     }
     simOmega = true;
   } else if (rxIs(omega,"matrix") && nSub > 1){
@@ -1637,15 +1638,16 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     sigmaN = as<CharacterVector>(sigma);
     sigmaSep=true;
     sigmaMC = NumericMatrix(nStud, sigmaN.size());
+    j=0;
     for (int i = 0; i < sigmaN.size(); ++i){
-      for (int j = 0; j < thetaN.size(); ++j){
+      for (j = 0; j < thetaN.size(); ++j){
 	if (sigmaN[i] == thetaN[j]){
 	  sigmaMC(_,i) = thetaM(_,j);
 	  break;
 	}
-      }
-      if (j == thetaN.size()){
-	stop(_("parameter '%s' was not simulated in 'thetaMat'"), (as<std::string>(sigmaN[i])).c_str());
+	if (j == thetaN.size()){
+	  stop(_("parameter '%s' was not simulated in 'thetaMat'"), (as<std::string>(sigmaN[i])).c_str());
+	}
       }
     }
     simSigma = true;

@@ -12,15 +12,18 @@ rxPermissive({
             lf=THETA[5]
             add.err=THETA[6]
             prop.err=THETA[7]
+            ltk2=THETA[8]
             eta.ka=ETA[1]
             eta.cl=ETA[2]
             eta.v=ETA[3]
             eta.k0=ETA[4]
             eta.f=ETA[5]
+            eta.k2=ETA[6]
             ka <- exp(tka + eta.ka)
             cl <- exp(tcl + eta.cl)
             v <- exp(tv + eta.v)
             D2 <- exp(ltk0 + eta.k0)
+            D3 <- exp(ltk2 + eta.k2)
             F2 = 1/(1 + exp(lf + eta.f))
         }
 
@@ -30,7 +33,7 @@ rxPermissive({
             f(depot) = 1 - F2
             f(center) = F2
             lag(depot) = D2
-            dur(center) = D2
+            dur(center) = D3
             cp = center/v;
             cmt(cp);
             nlmixr_pred <- cp
@@ -45,8 +48,8 @@ rxPermissive({
         pk2 <- rxSymPySetupPred(mod, predfn=pred, pkpars=pk, err=err)
 
         expect_false(is.null(pk2$pred.nolhs))
-        expect_equal(pk2$eventTheta, c(0L, 0L, 0L, 1L, 1L, 0L, 0L))
-        expect_equal(pk2$eventEta, c(0L, 0L, 0L, 1L, 1L))
+        expect_equal(pk2$eventTheta, c(0L, 0L, 0L, 1L, 1L, 0L, 0L, 1L))
+        expect_equal(pk2$eventEta, c(0L, 0L, 0L, 1L, 1L, 1L))
 
         expect_equal(pk2$inner$params, pk2$pred.nolhs$params)
 
