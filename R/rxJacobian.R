@@ -55,7 +55,7 @@ rxExpandGrid <- function(x, y, type=0L){
                              1L)
     }
     assign("..vars", .pars, envir=model);
-    rxCat("Calculate Jacobian\n");
+    message("calculate jacobian\n");
     rxProgress(dim(.jac)[1]);
     on.exit({rxProgressAbort()});
     .ret <- apply(.jac, 1, function(x){
@@ -312,9 +312,9 @@ rxExpandGrid <- function(x, y, type=0L){
     .grd <- rxExpandFEta_(.stateVars, .s$..maxEta,
                           ifelse(pred.minus.dv, 1L, 2L))
     if (.useUtf()){
-        rxCat("Calculate \u2202(f)/\u2202(\u03B7)\n");
+        message("calculate \u2202(f)/\u2202(\u03B7)\n");
     } else {
-        rxCat("Calculate d(f)/d(eta)\n");
+        message("calculate d(f)/d(eta)\n");
     }
     rxProgress(dim(.grd)[1]);
     on.exit({rxProgressAbort()});
@@ -474,9 +474,9 @@ rxExpandGrid <- function(x, y, type=0L){
     .stateVars <- rxState(.s)
     .grd <- rxExpandFEta_(.stateVars, .s$..maxEta, FALSE)
     if (.useUtf()){
-        rxCat("Calculate \u2202(R\u00B2)/\u2202(\u03B7)\n");
+        message("calculate \u2202(R\u00B2)/\u2202(\u03B7)\n");
     } else {
-        rxCat("Calculate d(R^2)/d(eta)\n");
+        message("calculate d(R^2)/d(eta)\n");
     }
     rxProgress(dim(.grd)[1]);
     on.exit({rxProgressAbort()});

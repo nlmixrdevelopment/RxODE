@@ -17,6 +17,6 @@ rxode.logo <- "  _____         ____  _____  ______
 ##' @export
 rxVersion <- function(extra="", echo=FALSE, version=sessionInfo()$otherPkgs$RxODE$Version){
     if (echo) {
-        rxCat(sprintf(rxode.logo, sprintf("%s%s", version, extra)))
+        message(sprintf(rxode.logo, sprintf("%s%s", version, extra)), appendLF=FALSE)
     };
     return(invisible(c(version=version,repo="https://github.com/nlmixrdevelopment/RxODE", md5=RxODE.md5)))}

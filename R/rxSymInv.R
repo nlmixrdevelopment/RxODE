@@ -47,7 +47,7 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
         return(ret)
     } else {
         diag.xform <- match.arg(diag.xform)
-        rxCat("diagonal form: ", diag.xform, "\n");
+        message("diagonal form: ", diag.xform);
         num <- as.vector(mat1[upper.tri(mat1,TRUE)]);
         i <- 0;
         num <- sapply(num, function(x){
@@ -92,9 +92,9 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
         vars <- paste0("t", seq(0, i - 1))
         sdiag <- sprintf("(%s)^2", diag(omat))
         se.mat <- symengine::Matrix(omat)
-        rxCat("Calculate symbolic inverse:  t(chol.mat) %*% chol.mat ...");
+        message("calculate symbolic inverse: t(chol.mat) %*% chol.mat ...", appendLF=FALSE);
         se.inv <- symengine::t(se.mat) %*% se.mat
-        rxCat("done\n")
+        message("done")
         ## Then take the derivatives
         ## These are used in equations #28 and #47
         ##
@@ -126,11 +126,11 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
         ## Therefore NO symbolic derivatives of anything but d(Omega^-1) are required; These are below:
         cnt.i <- 0;
         cnt <- function(){
-            rxCat(".");
+            message(".", appendLF=FALSE);
             if (cnt.i %% 5 == 0)
-                rxCat(cnt.i);
+                message(cnt.i, apendLF=FALSE);
             if (cnt.i %% 50 == 0)
-                rxCat("\n");
+                message("", appendLF=TRUE);
             cnt.i <<- cnt.i + 1;
         }
         i <- 0;
@@ -193,7 +193,7 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
         } else {
             src <- paste(src, collapse="\n");
         }
-        rxCat("done\n");
+        message("done");
         fmat <- matrix(sapply(as.vector(fmat), function(x){force(x);return(rxFromSE(x))}), d);
         ret <- paste0("#define Rx_pow_di R_pow_di\n#define Rx_pow R_pow\n", src);
         ret <- list(ret, fmat);

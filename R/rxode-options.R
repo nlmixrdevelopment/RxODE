@@ -203,7 +203,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
             op <- options()
             op <- op[regexpr(rex::rex("RxODE."), names(op)) != -1];
             op <- op[order(names(op))];
-            sapply(names(op), function(n){rxCat(sprintf("%s: %s\n", n, op[[n]]))});
+            sapply(names(op), function(n){message(sprintf("%s: %s", n, op[[n]]))});
             return(invisible(op));
         } else {
             if (is(op.rx,"character")){

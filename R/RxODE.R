@@ -1501,7 +1501,7 @@ rxCompile.rxModelVars <-  function(model, # Model
             if (file.exists(.cDllFile)){
                 if (inherits(.modVars, "list")){
                     if (.modVars["parsed_md5"] == .trans["parsed_md5"]){
-                        RxODE::rxCat("Don't need to recompile, minimal change to model detected.\n");
+                        message("do not need to recompile, minimal change to model detected");
                         .needCompile <- FALSE;
                     }
                 }
