@@ -26,7 +26,7 @@
             return(paste0("(", .rxPrune(x[[2]], envir=envir), ")"))
         } else if (identical(x[[1]], quote(`{`))){
             .x2 <- x[-1];
-            return(paste(lapply(.x2, .rxPrune, envir=envir), collapse="\n"));
+            return(paste0(lapply(.x2, .rxPrune, envir=envir), collapse="\n"));
         } else if (identical(x[[1]], quote(`==`)) ||
                    identical(x[[1]], quote(`>=`)) ||
                    identical(x[[1]], quote(`<=`)) ||
@@ -45,7 +45,7 @@
                    identical(x[[1]], quote(`~`))){
             if (length(envir$.if > 0)){
                 .f2 <- .rxPrune(x[[2]], envir=envir)
-                .if <- paste(paste0("(", envir$.if, ")"), collapse="*");
+                .if <- paste0(paste0("(", envir$.if, ")"), collapse="*");
                 if (any(envir$.def1 == .f2)){
                     .ret <- paste0(.f2, as.character(x[[1]]), .if, "*(",
                                    .rxPrune(x[[3]], envir=envir), ")+(1-(", .if, "))*(",
@@ -74,8 +74,8 @@
                               .rxPrune(x[[3]], envir=envir)));
             } else {
                 ## Unary Operators
-                return(paste(as.character(x[[1]]),
-                             .rxPrune(x[[2]], envir=envir)))
+                return(paste0(as.character(x[[1]]),
+                              .rxPrune(x[[2]], envir=envir)))
             }
         } else if (identical(x[[1]], quote(`ifelse`))){
             .f2 <- .rxPrune(x[[2]], envir=envir);
@@ -91,7 +91,7 @@
             .ret0 <- lapply(x, .rxPrune, envir=envir);
             .ret <- paste0(.ret0[[1]], "(")
             .ret0 <- .ret0[-1];
-            .ret <- paste0(.ret, paste(unlist(.ret0), collapse=", "), ")");
+            .ret <- paste0(.ret, paste0(unlist(.ret0), collapse=", "), ")");
             return(.ret)
         }
     } else { ## nocov start
