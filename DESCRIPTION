@@ -38,7 +38,7 @@ Depends:
 Suggests:
     knitr,
     DT,
-    data.table,
+    data.table (>= 1.12.4),
     nlme,
     shiny,
     tcltk,
