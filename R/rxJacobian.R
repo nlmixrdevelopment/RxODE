@@ -238,6 +238,7 @@ rxExpandGrid <- function(x, y, type=0L){
         message("loading into symengine environment...", appendLF=FALSE)
     }
     .newmod <- rxS(.newmod, doConst, promoteLinSens=promoteLinSens);
+    message("done")
     ## message("done.")
     return(.newmod)
 }
@@ -263,7 +264,6 @@ rxExpandGrid <- function(x, y, type=0L){
     .extraPars <- .newmod[[2]]
     .newmod <- .newmod[[1]]
     .newmod <- .rxLoadPrune(.newmod, promoteLinSens=promoteLinSens)
-    message("done")
     .newmod$..stateInfo <- .stateInfo
     .newmod$..extraPars <- .extraPars
     return(.newmod)
