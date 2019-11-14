@@ -161,6 +161,7 @@ rxExpandGrid <- function(x, y, type=0L){
 ##' @inheritParams rxSEinner
 ##' @return New model augmented by pred function
 ##' @author Matthew L. Fidler
+##' @noRd
 .rxGenPkpars <- function(rx, pkpars, init){
     if (!is.null(pkpars)){
         .txt <- as.vector(unlist(strsplit(rxParsePk(pkpars, init=init), "\n")));

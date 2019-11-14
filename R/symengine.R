@@ -452,6 +452,19 @@ rxD <- function(name, derivatives){
 ##' @param progress shows progress bar if true.
 ##' @param promoteLinSens Promote solved linear compartment systems to
 ##'     sensitivity-based solutions.
+##' @param unknownDerivatives When handling derivatives from unknown
+##'     functions, the translator will translate into different types
+##'     of numeric derivatives.  The currently supported methods are:
+##'
+##' \itemize{
+##'
+##' \item \code{forward} for forward differences
+##'
+##' \item \code{central} for central differences
+##'
+##' \item \code{error} for throwing an error for unknown derivatives
+##'
+##' }
 ##' @return
 ##' @author Matthew L. Fidler
 ##' @export

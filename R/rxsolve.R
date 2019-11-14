@@ -604,6 +604,11 @@ rxControl <- function(scale = NULL,
 ##'     The best value for this depends on machine precision (and
 ##'     slightly on the matrix). We use \code{6} as a default.
 ##'
+##' @param indLinPhiTol the requested accuracy tolerance on
+##'     exponential matrix.
+##'
+##' @param indLinPhiM  the maximum size for the Krylov basis
+##'
 ##' @references
 ##'
 ##'  "New Scaling and Squaring Algorithm for the Matrix Exponential", by

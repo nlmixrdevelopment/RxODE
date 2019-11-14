@@ -70,9 +70,12 @@ LHS variables when calculating sensitivities.}
 \item{...}{ignored arguments.}
 
 \item{linCmtSens}{A boolean indicating if the linCmt() soultions
-    should be calculated with derivatives (sensitivites) to each
-    parameter. This is useful for FOCEi and similar calculations.
-    By default this is \code{FALSE}.
+should be calculated with derivatives (sensitivites) to each
+parameter. This is useful for FOCEi and similar calculations.
+By default this is \code{FALSE}.}
+
+\item{indLin}{Calculate inductive linearization matrices and
+    compile with inductive linearization support.
 
 The \dQuote{Rx} in the name \code{RxODE} is meant to suggest the
 abbreviation \emph{Rx} for a medical prescription, and thus to

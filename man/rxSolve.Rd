@@ -416,6 +416,11 @@ is kept once per line.  For the input dataset, if any records
 are added to the data LOCF (Last Observation Carried forward)
 imputation is performed.}
 
+\item{indLinPhiTol}{the requested accuracy tolerance on
+exponential matrix.}
+
+\item{indLinPhiM}{the maximum size for the Krylov basis}
+
 \item{indLinMatExpType}{This is them matrix exponential type that
     is use for RxODE.  Currently the following are supported:
 
