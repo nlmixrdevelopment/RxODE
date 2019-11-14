@@ -152,6 +152,7 @@ rxControl <- function(scale = NULL,
         .indLinMatExpType <- as.integer(indLinMatExpType);
     } else {
         .indLinMatExpTypeIdx <- c("Al-Mohy"=3, "arma"=1, "expokit"=2);
+        .indLinMatExpType <- match.arg(indLinMatExpType)
         .indLinMatExpType <- as.integer(.indLinMatExpTypeIdx[match.arg(indLinMatExpType)]);
     }
     .ret <- list(scale=scale,
@@ -215,7 +216,7 @@ rxControl <- function(scale = NULL,
                  thetaLower=thetaLower, thetaUpper=thetaUpper,
                  indLinPhiM=indLinPhiM,
                  indLinPhiTol=indLinPhiTol,
-                 indLinMatExpType=as.integer(indLinMatExpType),
+                 indLinMatExpType=.indLinMatExpType,
                  indLinMatExpOrder=as.integer(indLinMatExpOrder),
                  idFactor=idFactor,
                  mxhnil=mxhnil, hmxi=hmxi, warnIdSort=warnIdSort,
