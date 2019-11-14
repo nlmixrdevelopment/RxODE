@@ -41,10 +41,9 @@ rxControl <- function(scale = NULL,
                       keep=NULL,
                       indLinPhiTol=1e-7,
                       indLinPhiM=0L,
-                      indLinMatExpType=2L,## 1=arma::expomat; 2=matexprbs; 3=
+                      indLinMatExpType=c("Al-Mohy", "arma", "expokit"),
+                      ## 1=arma::expomat; 2=matexprbs; 3=matexp_MH09
                       indLinMatExpOrder=6L,
-                      indLinDelta=2,
-                      indLinPerterbMatrix=100L,
                       idFactor=TRUE,
                       mxhnil=0,
                       hmxi=0.0,
@@ -148,6 +147,13 @@ rxControl <- function(scale = NULL,
     } else {
         .omega <- lotri(omega)
     }
+    if (inherits(indLinMatExpType, "numeric") ||
+        inherits(indLinMatExpType, "integer")){
+        .indLinMatExpType <- as.integer(indLinMatExpType);
+    } else {
+        .indLinMatExpTypeIdx <- c("Al-Mohy"=3, "arma"=1, "expokit"=2);
+        .indLinMatExpType <- as.integer(.indLinMatExpTypeIdx[match.arg(indLinMatExpType)]);
+    }
     .ret <- list(scale=scale,
                  method=method,
                  transitAbs=transitAbs,
@@ -211,8 +217,6 @@ rxControl <- function(scale = NULL,
                  indLinPhiTol=indLinPhiTol,
                  indLinMatExpType=as.integer(indLinMatExpType),
                  indLinMatExpOrder=as.integer(indLinMatExpOrder),
-                 indLinDelta=indLinDelta,
-                 indLinPerterbMatrix=indLinPerterbMatrix,
                  idFactor=idFactor,
                  mxhnil=mxhnil, hmxi=hmxi, warnIdSort=warnIdSort,
                  ssAtol=ssAtol, ssRtol = ssRtol, safeZero=as.integer(safeZero));
@@ -353,6 +357,8 @@ rxControl <- function(scale = NULL,
 ##'     parameters that are simulated.  These are simulated for every
 ##'     observation in the solved system.
 ##'
+##' @param sigmaXform When taking \code{sigma} values from the @template Xform
+##'
 ##' @param sigmaDf Degrees of freedom of the sigma t-distribution.  By
 ##'     default it is equivalent to \code{Inf}, or a normal distribution.
 ##'
@@ -434,6 +440,8 @@ rxControl <- function(scale = NULL,
 ##' @param omega Estimate of Covariance matrix. When omega is a list,
 ##'     assume it is a block matrix and convert it to a full matrix
 ##'     for simulations.
+##'
+##' @param omegaXform When taking \code{omega} values from the @template Xform
 ##'
 ##' @inheritParams rxSimThetaOmega
 ##'
@@ -578,7 +586,32 @@ rxControl <- function(scale = NULL,
 ##'     object to update the event table and resolve the system of
 ##'     equations.  % Should be able to use roxygen templates...
 ##'
+##' @param indLinMatExpType This is them matrix exponential type that
+##'     is use for RxODE.  Currently the following are supported:
+##'
+##' \itemize{
+##'
+##' \item{Al-Mohy} Uses the exponential matrix method of Al-Mohy Higham (2009)
+##'
+##' \item{arma} Use the exponential matrix from RcppArmadillo
+##'
+##' \item{expokit} Use the exponential matrix from Roger B. Sidje (1998)
+##'
+##' }
+##'
+##' @param indLinMatExpOrder an integer, the order of approximation to
+##'     be used, for the \code{Al-Mohy} and \code{expokit} values.
+##'     The best value for this depends on machine precision (and
+##'     slightly on the matrix). We use \code{6} as a default.
+##'
 ##' @references
+##'
+##'  "New Scaling and Squaring Algorithm for the Matrix Exponential", by
+##'  Awad H. Al-Mohy and Nicholas J. Higham, August 2009
+##'
+##' Roger B. Sidje (1998).  EXPOKIT: Software package for computing
+##' matrix exponentials.  ACM - Transactions on Mathematical Software
+##' \emph{24}(1), 130-156.
 ##'
 ##' Hindmarsh, A. C.
 ##' \emph{ODEPACK, A Systematized Collection of ODE Solvers}.

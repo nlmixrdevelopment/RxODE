@@ -2,9 +2,12 @@
 % Please edit documentation in R/symengine.R
 \name{rxFun}
 \alias{rxFun}
+\alias{rxRmFun}
 \title{Add user function to RxODE}
 \usage{
 rxFun(name, args, cCode)
+
+rxRmFun(name)
 }
 \arguments{
 \item{name}{This gives the name of the user function}
@@ -64,6 +67,9 @@ rxD("fun", list(function(a,b,c){
       return("0.0")
 } ))
 
+# You can also remove the functions by `rxRmFun`
+
+rxRmFun("fun")
 
 }
 \author{

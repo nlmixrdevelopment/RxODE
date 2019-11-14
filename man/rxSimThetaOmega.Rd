@@ -37,6 +37,8 @@ symmetric matrix.}
 
 \item{omegaSeparation}{@template separation}
 
+\item{omegaXform}{When taking \code{omega} values from the @template Xform}
+
 \item{nSub}{Number between subject variabilities (ETAs) simulated for every 
 realization of the parameters.}
 
@@ -72,6 +74,8 @@ default it is equivalent to \code{Inf}, or a normal distribution.}
 Cholesky decomposition instead of a symmetric covariance}
 
 \item{sigmaSeparation}{@template separation}
+
+\item{sigmaXform}{When taking \code{sigma} values from the @template Xform}
 
 \item{nCoresRV}{Number of cores used for the simulation of the
 sigma variables.  By default this is 1. This uses the package

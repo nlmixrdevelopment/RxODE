@@ -44,10 +44,11 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853",
   subsetNonmem = TRUE, linLog = FALSE, advanLinCmt = FALSE,
   maxAtolRtolFactor = 0.1, from = NULL, to = NULL, by = NULL,
   length.out = NULL, iCov = NULL, keep = NULL,
-  indLinPhiTol = 1e-07, indLinPhiM = 0L, indLinMatExpType = 2L,
-  indLinMatExpOrder = 6L, indLinDelta = 2,
-  indLinPerterbMatrix = 100L, idFactor = TRUE, mxhnil = 0,
-  hmxi = 0, warnIdSort = TRUE, safeZero = TRUE)
+  indLinPhiTol = 1e-07, indLinPhiM = 0L,
+  indLinMatExpType = c("Al-Mohy", "arma", "expokit"),
+  indLinMatExpOrder = 6L, idFactor = TRUE, mxhnil = 0, hmxi = 0,
+  warnIdSort = TRUE, ssAtol = 1e-08, ssRtol = 1e-06,
+  safeZero = TRUE)
 
 rxSolve(object, ...)
 
@@ -196,6 +197,8 @@ Cholesky decomposition instead of a symmetric covariance}
 
 \item{sigmaSeparation}{@template separation}
 
+\item{sigmaXform}{When taking \code{sigma} values from the @template Xform}
+
 \item{nDisplayProgress}{An integer indicating the minimum number
 of c-based solves before a progress bar is shown.  By default
 this is 10,000.}
@@ -288,6 +291,8 @@ Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
 
 \item{omegaSeparation}{@template separation}
+
+\item{omegaXform}{When taking \code{omega} values from the @template Xform}
 
 \item{omegaLower}{Lower bounds for simulated ETAs (by default -Inf)}
 
@@ -411,6 +416,24 @@ is kept once per line.  For the input dataset, if any records
 are added to the data LOCF (Last Observation Carried forward)
 imputation is performed.}
 
+\item{indLinMatExpType}{This is them matrix exponential type that
+    is use for RxODE.  Currently the following are supported:
+
+\itemize{
+
+\item{Al-Mohy} Uses the exponential matrix method of Al-Mohy Higham (2009)
+
+\item{arma} Use the exponential matrix from RcppArmadillo
+
+\item{expokit} Use the exponential matrix from Roger B. Sidje (1998)
+
+}}
+
+\item{indLinMatExpOrder}{an integer, the order of approximation to
+be used, for the \code{Al-Mohy} and \code{expokit} values.
+The best value for this depends on machine precision (and
+slightly on the matrix). We use \code{6} as a default.}
+
 \item{idFactor}{This boolean indicates if original ID values
 should be maintained. This changes the default sequentially
 ordered ID to a factor with the original ID values in the
@@ -431,6 +454,12 @@ This option is only considered with method=liblsoda.}
 the order of the parameters/iCov are the same as the order of
 the parameters in the input dataset.}
 
+\item{ssAtol}{Steady state atol convergence factor.  Can be
+a vector based on each state.}
+
+\item{ssRtol}{Steady state rtol convergence factor.  Can be a
+vector based on each state.}
+
 \item{safeZero}{Use safe zero divide and log routines.  By default
 this is turned on but you may turn it off if you wish.}
 
@@ -450,12 +479,6 @@ the argument list it overwrites this parameter.}
 \item{b}{when using \code{solve}, this is equivalent to the
 \code{params} argument.  If you specify \code{params} as a
 named argument, this overwrites the output}
-
-\item{ssAtol}{Steady state atol convergence factor.  Can be
-a vector based on each state.}
-
-\item{ssRtol}{Steady state rtol convergence factor.  Can be a
-vector based on each state.}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved
@@ -480,6 +503,13 @@ This uses RxODE family of objects, file, or model specification to
 solve a ODE system.
 }
 \references{
+"New Scaling and Squaring Algorithm for the Matrix Exponential", by
+ Awad H. Al-Mohy and Nicholas J. Higham, August 2009
+
+Roger B. Sidje (1998).  EXPOKIT: Software package for computing
+matrix exponentials.  ACM - Transactions on Mathematical Software
+\emph{24}(1), 130-156.
+
 Hindmarsh, A. C.
 \emph{ODEPACK, A Systematized Collection of ODE Solvers}.
 Scientific Computing, R. S. Stepleman et al. (Eds.),

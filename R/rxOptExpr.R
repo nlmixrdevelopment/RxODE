@@ -220,10 +220,19 @@
 ##' calculating redundant expressions once.
 ##'
 ##' @param x RxODE model that can be access by rxNorm
+##'
+##' @param msg This is the name of type of object that RxODE is
+##'     optimizing that will in the message when optimizing.  For
+##'     example "model" will produce the following message while
+##'     optimizing the model:
+##'
+##'  finding duplicate expressions in model...
+##'
 ##' @return Optimized RxODE model text.  The order and type lhs and
 ##'     state variables is maintained while the evaluation is sped up.
 ##'     While parameters names are maintained, their order may be
 ##'     modified.
+##'
 ##' @author Matthew L. Fidler
 ##' @export
 rxOptExpr <- function(x, msg="model"){

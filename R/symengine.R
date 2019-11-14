@@ -3,7 +3,6 @@ regElse <- rex::rex(start, any_spaces, "else", any_spaces, "{", any_spaces, end)
 regEnd <- rex::rex(start, any_spaces, "}", any_spaces, end);
 regIfOrElse <- rex::rex(or(regIf, regElse))
 
-
 ## first.arg second.arg and type of function
 .rxSEsingle <- list("gammafn"=c("gamma(", ")", "gamma"),
                     "lgammafn"=c("lgamma(", ")", "lgamma"),
@@ -167,6 +166,9 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 ##'       return("0.0")
 ##' } ))
 ##'
+##' # You can also remove the functions by `rxRmFun`
+##'
+##' rxRmFun("fun")
 ##'
 ##' @export
 rxFun <- function(name, args, cCode){
@@ -182,7 +184,7 @@ rxFun <- function(name, args, cCode){
     return(invisible())
 }
 
-##' @rdname
+##' @rdname rxFun
 ##' @export
 rxRmFun <- function(name){
     if (!is.character(name) || length(name) != 1L)

@@ -32,7 +32,6 @@ findLhs <- function(x) {
 ##' @param modText model text
 ##' @return Translated solve for RxODE linear compartments
 ##' @author Matthew L. Fidler
-##' @export
 ##' @keywords internal
 ##' @noRd
 rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
