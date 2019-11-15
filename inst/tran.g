@@ -91,7 +91,8 @@ equality_expression0 : equality_expression |
     '(' equality_expression ')' |
     '!' '(' equality_expression ')' |
     '(' '!' identifier_r ')' |
-     '!' identifier_r;
+    '!' identifier_r | 
+    '!' function ;
 
 equality_expression : relational_expression 
     (('!=' | '==' ) relational_expression)* ;
@@ -163,7 +164,7 @@ identifier_r_1: "[a-zA-Z][a-zA-Z0-9_.]*" $term -4;
 identifier_r_no_output_1: "[a-zA-Z][a-zA-Z0-9_.]*" $term -4;
 identifier_r_2: "[.]+[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
 identifier_r_no_output_2: "[.]+[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
-identifier: "[a-zA-Z][a-zA-Z0-9_]*" $term -4;
+identifier: "[a-zA-Z][a-zA-Z0-9_.]*" $term -4;
 whitespace: ( "[ \t\r\n]+" | singleLineComment )*;
 singleLineComment: '#' "[^\n]*";
 

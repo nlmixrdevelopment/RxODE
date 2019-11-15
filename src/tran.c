@@ -1042,6 +1042,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           i = 1;// Parse next arguments
 	  depth=1;
 	  continue;
+	} else if (!strcmp("is.na", v)) {
+	  sAppendN(&sb, "ISNA", 4);
+	  sAppendN(&sbDt, "ISNA", 4);
+	  sAppendN(&sbt, "is.na", 5);
+	  Free(v);
+	  continue;
         } else {
 	  // Check if this is a valid function
 	  int foundFun = 0;
