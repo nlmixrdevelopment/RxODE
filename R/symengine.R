@@ -683,9 +683,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
                             assign("..lhs0", c(envir$..lhs0, .rx),
                                envir=envir)
                         } else {
-                            message(sprintf("%s==%s", paste(names(envir$..lhs0), collapse=","), .name))
                             if (any(names(envir$..lhs0) == .name)){
-                                message("Found ", .name)
                                 .tmp <- envir$..lhs0
                                 .tmp <- .tmp[names(.tmp) != .name];
                                 assign("..lhs0", .tmp, envir=envir)

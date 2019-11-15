@@ -124,6 +124,7 @@ rxIndLinStrategy <- function(strategy=c("curState", "split")){
         if (any(names(.lst) == x)) return(gsub("[+][-]", "-", paste(.lst[[x]], collapse="+")))
         return("0");
     });
+    rxTick();
     return(c(.ret, paste0(.fullIndLin)))
 }
 
@@ -153,6 +154,9 @@ rxIndLinStrategy <- function(strategy=c("curState", "split")){
 .rxIndLin <- function(model, doConst=FALSE){
     .env <- .rxLoadPrune(model, doConst=doConst)
     .states <- rxState(.env);
+    rxProgress(length(.states));
+    message("create inductive linearization matrices")
+    on.exit({rxProgressAbort()});
     .ret <- eval(parse(text=rxIndLin_(.states)))
     .w <- setNames(which(.ret[, "indLin"] == "TRUE") - 1, NULL);
     .fullIndLin <- length(.w) > 0
@@ -216,5 +220,6 @@ rxIndLinStrategy <- function(strategy=c("curState", "split")){
     ## Generate C code for .ret0 and .ret1
     .ret <- list(.ret0, .ret1, .code,
                  paste(.codeSave, collapse="\n"));
+    rxProgressStop();
     return(.ret);
 }

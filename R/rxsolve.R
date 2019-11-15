@@ -41,7 +41,7 @@ rxControl <- function(scale = NULL,
                       keep=NULL,
                       indLinPhiTol=1e-7,
                       indLinPhiM=0L,
-                      indLinMatExpType=c("Al-Mohy", "arma", "expokit"),
+                      indLinMatExpType=c("expokit", "Al-Mohy", "arma"),
                       ## 1=arma::expomat; 2=matexprbs; 3=matexp_MH09
                       indLinMatExpOrder=6L,
                       idFactor=TRUE,
