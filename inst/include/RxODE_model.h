@@ -10,7 +10,6 @@
 #include <omp.h>
 #endif
 
-#define NA NA_REAL
 #define JAC_Rprintf Rprintf
 #define _idx (&_solveData->subjects[_cSub])->idx
 #define JAC0_Rprintf if ( (&_solveData->subjects[_cSub])->jac_counter == 0) Rprintf

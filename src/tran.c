@@ -532,6 +532,7 @@ int new_or_ith(const char *s) {
   if (!strcmp("M_LN_SQRT_PId2", s)) {tb.ix=-2; return 0;}
   if (!strcmp("pi", s)) tb.isPi=1;
   if (!strcmp("NA", s)) return 0;
+  if (!strcmp("Inf", s)) return 0;
   if (!tb.hasKa && !strcmp("ka", s)) tb.hasKa=1;
   if (!tb.hasKa && !strcmp("Ka", s)) tb.hasKa=1;
   if (!tb.hasKa && !strcmp("KA", s)) tb.hasKa=1;
@@ -731,6 +732,17 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     aAppendN("linCmtB", 7);
     sAppendN(&sbt,"linCmtB", 7);
     tb.linCmt=2;
+  } else if (!strcmp("NA",value)){
+    aAppendN("NA_REAL", 7);
+    sAppendN(&sbt,"NA", 2);
+  } else if (!strcmp("Inf",value)){
+    if (sbt.o > 0 && sbt.s[sbt.o-1] == '-'){
+      sb.o--; sbDt.o--;
+      aAppendN("R_NegInf", 8);
+    } else {
+      aAppendN("R_PosInf", 8);
+    }
+    sAppendN(&sbt,"Inf", 3);
   } else {
     // Apply fix for dot.syntax
     for (i = 0; i < (int)strlen(value); i++){
@@ -1047,6 +1059,24 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppendN(&sbDt, "ISNA", 4);
 	  sAppendN(&sbt, "is.na", 5);
 	  Free(v);
+	  continue;
+	} else if (!strcmp("is.finite", v)){
+	  sAppendN(&sb, "R_FINITE", 8);
+	  sAppendN(&sbDt, "R_FINITE", 8);
+	  sAppendN(&sbt, "is.finite", 9);
+	  Free(v);
+	  continue;
+	} else if (!strcmp("is.infinite", v)){
+	  if (sbt.o > 0 && sbt.s[sbt.o-1] == '!'){
+	    sb.o--;sbDt.o--;
+	    sAppendN(&sb, "R_FINITE", 8);
+	    sAppendN(&sbDt, "R_FINITE", 8);
+	  } else {
+	    sAppendN(&sb, "!R_FINITE", 9);
+	    sAppendN(&sbDt, "!R_FINITE", 9);
+	  }
+	  Free(v);
+	  sAppendN(&sbt, "is.infinite", 11);
 	  continue;
         } else {
 	  // Check if this is a valid function

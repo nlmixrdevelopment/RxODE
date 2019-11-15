@@ -18,6 +18,88 @@ rxPermissive({
         expect_equal(ret$c, 3 + 2 + exp(3))
 
         mod1 <- RxODE("a=NA;\nif(!is.na(a)){a=4} else { a=3 }; b=2;\nc=a+b+exp(3)");
+
+        ret <- rxSolve(mod1, et(0), returnType="data.frame")
+        expect_equal(ret$c, 3 + 2 + exp(3))
+
+    })
+
+
+    context("Inf tests")
+
+    test_that("can assign Inf", {
+
+        mod1 <- RxODE("a=Inf;\nb=2;\nc=a+b");
+        ret <- rxSolve(mod1, et(0), returnType="data.frame")
+        expect_true(all(is.infinite(ret$a)))
+        expect_true(all(ret$a > 0))
+        expect_true(all(ret$b > 0))
+
+    })
+
+    test_that("can assign -Inf", {
+
+        mod1 <- RxODE("a=-Inf;\nb=2;\nc=a+b");
+        ret <- rxSolve(mod1, et(0), returnType="data.frame")
+        expect_true(all(is.infinite(ret$a)))
+        expect_true(all(ret$a < 0))
+        expect_true(all(ret$b < 0))
+
+    })
+
+    test_that("logic Inf", {
+
+        mod1 <- RxODE("a=Inf;\nif(is.infinite(a)){a=3}b=2;\nc=a+b+exp(3)");
+
+        ret <- rxSolve(mod1, et(0), returnType="data.frame")
+
+        expect_equal(ret$a, as.double(3))
+        expect_equal(ret$c, 3 + 2 + exp(3))
+
+        mod1 <- RxODE("a=Inf;\nif(!is.finite(a)){a=3}b=2;\nc=a+b+exp(3)");
+
+        ret <- rxSolve(mod1, et(0), returnType="data.frame")
+
+        expect_equal(ret$a, as.double(3))
+        expect_equal(ret$c, 3 + 2 + exp(3))
+
+        mod1 <- RxODE("a=Inf;\nif(!is.infinite(a)){a=4} else { a=3 }; b=2;\nc=a+b+exp(3)");
+
+        ret <- rxSolve(mod1, et(0), returnType="data.frame")
+        expect_equal(ret$c, 3 + 2 + exp(3))
+
+        mod1 <- RxODE("a=Inf;\nif(is.finite(a)){a=4} else { a=3 }; b=2;\nc=a+b+exp(3)");
+
+        ret <- rxSolve(mod1, et(0), returnType="data.frame")
+        expect_equal(ret$c, 3 + 2 + exp(3))
+    })
+
+
+    test_that("logic -Inf", {
+
+        mod1 <- RxODE("a=-Inf;\nif(is.infinite(a)){a=3}b=2;\nc=a+b+exp(3)");
+
+        ret <- rxSolve(mod1, et(0), returnType="data.frame")
+
+        expect_equal(ret$a, as.double(3))
+        expect_equal(ret$c, 3 + 2 + exp(3))
+
+        mod1 <- RxODE("a=-Inf;\nif(!is.finite(a)){a=3}b=2;\nc=a+b+exp(3)");
+
+        ret <- rxSolve(mod1, et(0), returnType="data.frame")
+
+        expect_equal(ret$a, as.double(3))
+        expect_equal(ret$c, 3 + 2 + exp(3))
+
+        mod1 <- RxODE("a=-Inf;\nif(!is.infinite(a)){a=4} else { a=3 }; b=2;\nc=a+b+exp(3)");
+
+        ret <- rxSolve(mod1, et(0), returnType="data.frame")
+        expect_equal(ret$c, 3 + 2 + exp(3))
+
+        mod1 <- RxODE("a=-Inf;\nif(is.finite(a)){a=4} else { a=3 }; b=2;\nc=a+b+exp(3)");
+
+        ret <- rxSolve(mod1, et(0), returnType="data.frame")
+        expect_equal(ret$c, 3 + 2 + exp(3))
     })
 
 
