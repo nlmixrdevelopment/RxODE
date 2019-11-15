@@ -1571,8 +1571,8 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   bool omegaSep=false;
   if (rxIs(omega, "NULL")){
     if (nSub > 1){
-      rxSolveFree();
-      stop(_("'omega' is required for multi-subject simulations"));
+      // rxSolveFree();
+      warning(_("multi-subject simulation without without 'omega' specified"));
     }
   } else if (rxIs(omega,"character")){
     // Create a matrix in order of the names.
