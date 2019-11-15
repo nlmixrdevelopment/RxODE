@@ -72,16 +72,16 @@
 #define TMAT0 19
 #define TMATF 20
 
-#define NOASSIGN "'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'"
-#define NEEDSEMI "Lines need to end with ';'\n     To match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'"
-#define NEEDPOW "'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'"
-#define NODOT "'.' in variables and states not supported, use '_' instead or set 'options(RxODE.syntax.allow.dots = TRUE)'"
-#define NOINI0 "'%s(0)' for initialization not allowed.  To allow set 'options(RxODE.syntax.allow.ini0 = TRUE)'"
-#define NOSTATE "Defined 'df(%s)/dy(%s)', but '%s' is not a state"
-#define NOSTATEVAR "Defined 'df(%s)/dy(%s)', but '%s' is not a state or variable"
-#define ODEFIRST "ODEs compartment 'd/dt(%s)' must be defined before changing its properties (f/alag/rate/dur).\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this will RxODE numbers compartments based on first occurance of property or ODE"
-#define ZERODVID "dvid() cannot have zeros in it"
-#define ONEDVID "RxODE only supports one dvid() statement per model"
+#define NOASSIGN _("'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'")
+#define NEEDSEMI _("lines need to end with ';'\n     to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'")
+#define NEEDPOW _("'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'")
+#define NODOT _("'.' in variables and states not supported, use '_' instead or set 'options(RxODE.syntax.allow.dots = TRUE)'")
+#define NOINI0 _("'%s(0)' for initialization not allowed\n to allow set 'options(RxODE.syntax.allow.ini0 = TRUE)'")
+#define NOSTATE _("defined 'df(%s)/dy(%s)', but '%s' is not a state")
+#define NOSTATEVAR _("defined 'df(%s)/dy(%s)', but '%s' is not a state or variable")
+#define ODEFIRST _("ODEs compartment 'd/dt(%s)' must be defined before changing its properties (f/alag/rate/dur)\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this will RxODE numbers compartments based on first occurance of property or ODE")
+#define ZERODVID _("'dvid()' cannot have zeros in it")
+#define ONEDVID _("RxODE only supports one dvid() statement per model")
 
 #include <string.h>
 #include <stdlib.h>
@@ -151,6 +151,8 @@ int syntaxErrorExtra = 0;
 int isEsc=0;
 const char *lastStr;
 int lastStrLoc=0;
+
+SEXP _goodFuns;
 // Taken from dparser and changed to use Calloc
 char * rc_dup_str(const char *s, const char *e) {
   lastStr=s;
@@ -453,49 +455,49 @@ int new_or_ith(const char *s) {
   if (!strcmp("t", s)) {tb.ix=-2; return 0;}
   if (!strcmp("rate", s)){
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'rate' cannot be a variable in an RxODE model");
+    trans_syntax_error_report_fn(_("'rate' cannot be a variable in an RxODE model"));
     tb.ix=-2; 
     return 0;
   }
   if (!strcmp("dur", s)){
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'dur' cannot be a variable in an RxODE model");
+    trans_syntax_error_report_fn(_("'dur' cannot be a variable in an RxODE model"));
     tb.ix=-2; 
     return 0;
   }
   if (!strcmp("amt", s)){
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'amt' cannot be a variable in an RxODE model");
+    trans_syntax_error_report_fn(_("'amt' cannot be a variable in an RxODE model"));
     tb.ix=-2; 
     return 0;
   }
   if (!strcmp("ss", s)){
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'ss' cannot be a variable in an RxODE model");
+    trans_syntax_error_report_fn(_("'ss' cannot be a variable in an RxODE model"));
     tb.ix=-2; 
     return 0;
   }
   if (!strcmp("addl", s)){
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'addl' cannot be a variable in an RxODE model");
+    trans_syntax_error_report_fn(_("'addl' cannot be a variable in an RxODE model"));
     tb.ix=-2; 
     return 0;
   }
   if (!strcmp("evid", s)){
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'evid' cannot be a variable in an RxODE model");
+    trans_syntax_error_report_fn(_("'evid' cannot be a variable in an RxODE model"));
     tb.ix=-2; 
     return 0;
   }
   if (!strcmp("ii", s)){
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'ii' cannot be a variable in an RxODE model");
+    trans_syntax_error_report_fn(_("'ii' cannot be a variable in an RxODE model"));
     tb.ix=-2; 
     return 0;
   }
   if (!strcmp("dvid", s)){
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'dvid' cannot be a variable in an RxODE model");
+    trans_syntax_error_report_fn(_("'dvid' cannot be a variable in an RxODE model"));
     tb.ix=-2; 
     return 0;
   }
@@ -1034,7 +1036,22 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           i = 1;// Parse next arguments
 	  depth=1;
 	  continue;
-        }
+        } else {
+	  // Check if this is a valid function
+	  int foundFun = 0;
+	  for (int j = length(_goodFuns); j--;){
+	    if (!strcmp(CHAR(STRING_ELT(_goodFuns, j)),v)){
+	      foundFun = 1;
+	      j=0;
+	      break;
+	    }
+	  }
+	  if (foundFun == 0){
+	    sPrint(&buf, _("function '%s' is not supported in RxODE"), v);
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(buf.s);
+	  }
+	}
         Free(v);
       }
       
@@ -1130,7 +1147,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  switch(sbPm.lType[sbPm.n]){
 	  case FBIO:
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("Bioavailability cannot depend on Jacobian values");
+	    trans_syntax_error_report_fn(_("bioavailability cannot depend on Jacobian values"));
 	    break;
 	  case ALAG:
 	    updateSyntaxCol();
@@ -1138,15 +1155,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    break;
 	  case RATE:
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("Model-based rate cannot depend on Jacobian values");
+	    trans_syntax_error_report_fn(_("model-based rate cannot depend on Jacobian values"));
 	    break;
 	  case DUR:
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("Model-based duration cannot depend on Jacobian values");
+	    trans_syntax_error_report_fn(_("model-based duration cannot depend on Jacobian values"));
 	    break;
 	  case TMAT0:
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("Model-based matricies cannot depend on Jacobian values");
+	    trans_syntax_error_report_fn(_("model-based matricies cannot depend on Jacobian values"));
 	    break;
 	  default: {
 	    aType(TJAC);
@@ -1154,7 +1171,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbt,"df(%s)/dy(",v);
 	    if (new_de(v)){
 	      updateSyntaxCol();
-	      sPrint(&buf,"d/dt(%s) needs to be defined before using a Jacobians for this state",v);
+	      sPrint(&buf,_("d/dt(%s) needs to be defined before using a Jacobians for this state"),v);
 	      trans_syntax_error_report_fn(buf.s);
 	    } else {
 	      sAppend(&sb, "__PDStateVar__[%d*(__NROWPD__)+",tb.id);
@@ -1170,7 +1187,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppend(&sbt,"df(%s)/dy(",v);
 	  if (new_de(v)){
 	    updateSyntaxCol();
-	    sPrint(&buf,"d/dt(%s) needs to be defined before using a Jacobians for this state",v);
+	    sPrint(&buf,_("d/dt(%s) needs to be defined before using a Jacobians for this state"),v);
             trans_syntax_error_report_fn(buf.s);
 	  } else {
 	    sAppend(&sb,"__PDStateVar__[%d*(__NROWPD__)+",tb.id);
@@ -1448,7 +1465,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
 	       (tb.lh[tb.ix] == 1 || tb.lh[tb.ix] == 70))){
 	    updateSyntaxCol();
-            sPrint(&buf,"Cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'",v,v);
+            sPrint(&buf,_("cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'"),v,v);
             trans_syntax_error_report_fn0(buf.s);
           }
 	  tb.lh[tb.ix] = 9;
@@ -1500,27 +1517,27 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	switch(sbPm.lType[sbPm.n]){
 	case TMTIME:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Modeling times cannot depend on state values");
+	  trans_syntax_error_report_fn(_("modeling times cannot depend on state values"));
 	  break;
 	case FBIO:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Bioavailability cannot depend on state values");
+	  trans_syntax_error_report_fn(_("bioavailability cannot depend on state values"));
 	  break;
 	case ALAG:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Absorption Lag-time cannot depend on state values");
+	  trans_syntax_error_report_fn(_("absorption lag-time cannot depend on state values"));
 	  break;
 	case RATE:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Model-based rate cannot depend on state values");
+	  trans_syntax_error_report_fn(_("model-based rate cannot depend on state values"));
 	  break;
 	case DUR:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Model-based duration cannot depend on state values");
+	  trans_syntax_error_report_fn(_("model-based duration cannot depend on state values"));
 	  break;
 	case TMAT0:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Model-based matricies cannot depend on state values");
+	  trans_syntax_error_report_fn(_("model-based matricies cannot depend on state values"));
 	default:
 	  {
 	    updateSyntaxCol();
@@ -2890,7 +2907,9 @@ void trans_internal(char* parse_file, int isStr){
 }
 
 SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
-		  SEXP isEscIn, SEXP inLinExtra, SEXP inME){
+		  SEXP isEscIn, SEXP inLinExtra, SEXP inME,
+		  SEXP goodFuns){
+  _goodFuns = goodFuns;
   char *in = NULL;
   char *buf, *df, *dy;
   sbuf bufw, bufw2;
@@ -2958,10 +2977,10 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       extraCmt=1;
     }
     if (tb.hasDepotCmt){
-      trans_syntax_error_report_fn0("cmt(depot) does not work with linCmt()");
+      trans_syntax_error_report_fn0(_("'cmt(depot)' does not work with 'linCmt()'"));
     }
     if (tb.hasCentralCmt) {
-      trans_syntax_error_report_fn0("cmt(central) does not work with linCmt()");
+      trans_syntax_error_report_fn0("'cmt(central)' does not work with 'linCmt()'");
     }
   } else {
     if (tb.hasDepot && rx_syntax_require_ode_first){
@@ -3011,7 +3030,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       if (tb.linCmt == 0){
 	UNPROTECT(pro);
 	char *v = rc_dup_str(buf, 0);
-	sprintf(buf, "Compartment '%s' needs differential equations defined", v);
+	sprintf(buf, "compartment '%s' needs differential equations defined", v);
 	Free(v);
 	updateSyntaxCol();
 	trans_syntax_error_report_fn(buf);
@@ -3019,7 +3038,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       } else {
 	UNPROTECT(pro);
 	char *v = rc_dup_str(buf, 0);
-	sprintf(buf, "Compartment '%s' needs differential equations defined", v);
+	sprintf(buf, _("compartment '%s' needs differential equations defined"), v);
 	Free(v);
 	updateSyntaxCol();
 	trans_syntax_error_report_fn(buf);
@@ -3151,7 +3170,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 	UNPROTECT(pro);
 	updateSyntaxCol();
 	char *v = rc_dup_str(buf, 0);
-	sprintf(buf, "Initialization of non-ODE compartment '%s' makes no sense", v);
+	sprintf(buf, _("initialization of non-ODE compartment '%s' makes no sense"), v);
 	Free(v);
 	trans_syntax_error_report_fn(buf);
       }

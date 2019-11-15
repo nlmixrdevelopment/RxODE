@@ -1224,7 +1224,7 @@ rxMd5 <- function(model,         # Model File
         .tmp <- c(RxODE.syntax.assign, RxODE.syntax.star.pow, RxODE.syntax.require.semicolon, RxODE.syntax.allow.dots,
                   RxODE.syntax.allow.ini0, RxODE.syntax.allow.ini, RxODE.calculate.jacobian,
                   RxODE.calculate.sensitivity);
-        .ret <- c(.ret, .tmp, .rxCcode);
+        .ret <- c(.ret, .tmp, .rxSupportedFuns());
         if (is.null(.md5Rx)){
             .tmp <- getLoadedDLLs()$RxODE;
             class(.tmp) <- "list";
@@ -1341,7 +1341,7 @@ rxTrans.character <- memoise::memoise(function(model,
     RxODE::rxReq("dparser");
     .ret <- .Call(`_RxODE_trans`, model, modelPrefix, md5, .isStr,
                   as.integer(crayon::has_color()),
-                  .rxTransCode, .rxMECode);
+                  .rxTransCode, .rxMECode, .rxSupportedFuns());
     if (inherits(.ret, "try-error")){
         message("model")
         if (.isStr == 0L){

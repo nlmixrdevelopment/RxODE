@@ -197,6 +197,7 @@ rxRmFun <- function(name){
     .w <- which(name == names(.rxCcode))
     if (length(.w) == 1L) assignInMyNamespace(".rxCcode", .rxCcode[-.w])
     if (exists(name, envir=.rxD)) rm(list=name, envir=.rxD);
+    if (exists(name, envir=.symengineFs)) rm(list=name, envir=.symengineFs)
     return(invisible())
 }
 
@@ -2477,4 +2478,7 @@ rxSplitPlusQ <- function(x, level=0, mult=FALSE){
     }
 }
 
-
+.rxSupportedFuns <- function(){
+    c(names(.rxSEsingle), names(.rxSEdouble), names(.rxSEeq),
+      ls(.symengineFs))
+}
