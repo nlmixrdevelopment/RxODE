@@ -897,8 +897,8 @@ d/dt(blood)     = a*intestine - b*blood
 
         ## etTrans example from xgxr + nlmixr + ggpmx
         test_that("etTrans", {
-
-            lst <- readRDS("test-etTrans-1.rds");
+            lst <- readRDS(file.path(system.file("tests", package="RxODE"),
+                                     "testthat","test-etTrans-1.rds"));
             events2 <- lst$events
             events2 <- events2[, names(events2) != "CENS"]
 
@@ -911,7 +911,8 @@ d/dt(blood)     = a*intestine - b*blood
 
         test_that("etTrans drop levels are correct", {
 
-            dat <- readRDS("etTrans-drop.rds")
+            dat <- readRDS(file.path(system.file("tests", package="RxODE"),
+                                     "testthat", "etTrans-drop.rds"))
 
             mod <- RxODE({
                 lka <- log(0.1) # log Ka

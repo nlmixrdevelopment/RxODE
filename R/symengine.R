@@ -18,6 +18,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
                     "log1p"=c("log(1+", ")", "log"),
                     "expm1"=c("(exp(", ")-1)", "exp"),
                     "factorial"=c("gamma(", "+1)", "gamma"),
+                    "lfactorial"=c("lgamma(", "+1)", "lgamma"),
                     "lgamma1p"=c("lgamma(", "+1)", "lgamma"),
                     "expm1"=c("(exp(", ")-1)", "exp"),
                     "log10"=c("log(", ")/log(10)", "log"),
@@ -80,6 +81,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
     "log"=1,
     "polygamma"=2,
     "rxTBS"=3,
+    "rxTBSi"=3,
     "rxTBSd"=3,
     "rxTBSd2"=3,
     "sin"=1,
@@ -88,6 +90,30 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
     "tan"=1,
     "tanh"=1
 )
+
+.rxOnly <- c(
+    ## C's math.h library
+    "floor"=1,
+    "round"=1,
+    "ceil"=1,
+    "trunc"=1,
+    ## Special R functions
+    "bessel_i"=3,
+    "bessel_j"=2,
+    "bessel_k"=3,
+    "bessel_y"=2,
+    "logspace_add"=2,
+    "logspace_sub"=2,
+    "fmax2"=2,
+    "fmin2"=2,
+    "sign"=1,
+    "fsign"=2,
+    "fprec"=2,
+    "fround"=2,
+    "ftrunc"=2
+)
+
+
 
 .rxSEeqUsr <- c()
 
@@ -2480,5 +2506,5 @@ rxSplitPlusQ <- function(x, level=0, mult=FALSE){
 
 .rxSupportedFuns <- function(){
     c(names(.rxSEsingle), names(.rxSEdouble), names(.rxSEeq),
-      ls(.symengineFs))
+      "linCmt", names(.rxOnly), ls(.symengineFs))
 }
