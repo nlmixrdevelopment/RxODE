@@ -532,6 +532,7 @@ int new_or_ith(const char *s) {
   if (!strcmp("M_LN_SQRT_PId2", s)) {tb.ix=-2; return 0;}
   if (!strcmp("pi", s)) tb.isPi=1;
   if (!strcmp("NA", s)) return 0;
+  if (!strcmp("NaN", s)) return 0;
   if (!strcmp("Inf", s)) return 0;
   if (!tb.hasKa && !strcmp("ka", s)) tb.hasKa=1;
   if (!tb.hasKa && !strcmp("Ka", s)) tb.hasKa=1;
@@ -732,6 +733,9 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     aAppendN("linCmtB", 7);
     sAppendN(&sbt,"linCmtB", 7);
     tb.linCmt=2;
+  } else if (!strcmp("NaN",value)){
+    aAppendN("NAN", 3);
+    sAppendN(&sbt,"NaN", 3);
   } else if (!strcmp("NA",value)){
     aAppendN("NA_REAL", 7);
     sAppendN(&sbt,"NA", 2);
@@ -1053,6 +1057,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           Free(v);
           i = 1;// Parse next arguments
 	  depth=1;
+	  continue;
+	} else if (!strcmp("is.nan", v)) {
+	  sAppendN(&sb, "isnan", 5);
+	  sAppendN(&sbDt, "isnan", 5);
+	  sAppendN(&sbt, "is.nan", 6);
+	  Free(v);
 	  continue;
 	} else if (!strcmp("is.na", v)) {
 	  sAppendN(&sb, "ISNA", 4);
