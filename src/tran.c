@@ -34,7 +34,7 @@
 #define STRINGIFY(...) STRINGIFY_AUX(__VA_ARGS__)
 #define STRINGIFY_AUX(...) #__VA_ARGS__
 
-#define ENDLINE tb.ixL=-1; tb.didEq=0;tb.NEnd=NV;
+#define ENDLINE tb.ixL=-1; tb.didEq=0; tb.NEnd=NV;
 
 #define gCode(i) (&sbOut)->s[0]='\0';		\
   (&sbOut)->o=0;				\
@@ -242,6 +242,7 @@ lhs symbols?
   int li; // # lhs
   int pi; // # param
   int isPi; // # pi?
+  int isNA; // # pi?
   int linCmt; // Unparsed linear compartment
   // Save Jacobian information
   int *df;
@@ -530,6 +531,7 @@ int new_or_ith(const char *s) {
   if (!strcmp("M_LN_SQRT_2PI", s)) {tb.ix=-2; return 0;}
   if (!strcmp("M_LN_SQRT_PId2", s)) {tb.ix=-2; return 0;}
   if (!strcmp("pi", s)) tb.isPi=1;
+  if (!strcmp("NA", s)) return 0;
   if (!tb.hasKa && !strcmp("ka", s)) tb.hasKa=1;
   if (!tb.hasKa && !strcmp("Ka", s)) tb.hasKa=1;
   if (!tb.hasKa && !strcmp("KA", s)) tb.hasKa=1;
@@ -783,9 +785,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value)){
 	tb.lh[NV-1] = 11; // Suppress param printout.
       }
-    } else if (tb.ix == tb.ixL && tb.didEq==1){
-      /* Rprintf("Found Dual LHS/PARAM: %s; %d; %s; col:%d line:%d\n", tb.ss.line[tb.ix], tb.ix, name, */
+      /* Rprintf("New LHS/PARAM: %s; %d; %s; col:%d line:%d\n", tb.ss.line[tb.ss.n-1], tb.ss.n-1, name, */
       /* 	      pn->start_loc.col, pn->start_loc.line); */
+    } else if (tb.ix == tb.ixL && tb.didEq==1 &&
+	       !strcmp(value, tb.ss.line[tb.ix])){
+      /* Rprintf("Found Dual LHS/PARAM: %s; %d; %s; col:%d line:%d; %s\n", tb.ss.line[tb.ix], tb.ix, name, */
+      /* 	      pn->start_loc.col, pn->start_loc.line, value); */
       // This is x = x*exp(matt)
       // lhs defined in terms of a parameter
       if (tb.lh[tb.ix] == 10){
@@ -793,7 +798,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       } else {
 	tb.lh[tb.ix] = 70;
       }
-    }
+    } 
   }
   if (!strcmp("(", name) ||
       !strcmp(")", name) ||
@@ -823,11 +828,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       !strcmp(">=", name) ||
       !strcmp("!", name) ||
       !strcmp("<", name) ||
-      !strcmp(">", name) ||
-
-      (!strcmp("=", name) && (tb.didEq=1))
-      )
+      !strcmp(">", name))
     fn(depth, name, value, client_data);
+  if (!strcmp("=", name)){
+    tb.didEq=1;
+    fn(depth, name, value, client_data);
+  }
   
   // Operator synonyms  
   if (!strcmp("<-",name)){
@@ -2761,6 +2767,7 @@ void reset (){
   tb.fdn        = 0;
   tb.linCmt     = 0;
   tb.isPi       = 0;
+  tb.isNA       = 0;
   tb.ini_i      = 0;
   tb.hasDepot   = 0;
   tb.hasCentral = 0;

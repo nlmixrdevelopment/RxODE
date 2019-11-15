@@ -32,6 +32,10 @@
   - C's functions from `math.h` are supported
   - R's function returning and taking doubles are supported
   - Other functions can be added using `rxFun` and `rxD`
+  
+* Bug fixes:
+ - Occasionally RxODE misidentified dual `lhs`/`param` values.  An
+   additional check is performed so that this does not happen.
 
 # RxODE v0.9.1-8
 * Added the ability to have an input parameter to be assigned to a new

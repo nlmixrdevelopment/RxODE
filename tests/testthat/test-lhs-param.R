@@ -122,5 +122,25 @@ rxPermissive({
 
     })
 
+    test_that("a=NA gives correct variables", {
+
+        mod1 <- RxODE("a=NA;\nb=2;\nc=a+b");
+        expect_equal(mod1$params, "b");
+        expect_equal(mod1$lhs, c("a", "c"))
+
+        mod1 <- RxODE("a=2;\nb=NA;\nc=a+b");
+        expect_equal(mod1$params, "a");
+        expect_equal(mod1$lhs, c("b", "c"))
+
+        mod1 <- RxODE("a~NA;\nb~2;\nc=a+b");
+        expect_equal(mod1$params, character(0));
+        expect_equal(mod1$lhs, c("c"))
+
+        mod1 <- RxODE("a~2;\nb~NA;\nc=a+b");
+        expect_equal(mod1$params, character(0));
+        expect_equal(mod1$lhs, c("c"))
+
+    })
+
 
 })
