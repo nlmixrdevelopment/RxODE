@@ -1,5 +1,6 @@
 #include <RcppArmadillo.h>
 #include <R.h>
+#include <threefry.h>
 #ifdef ENABLE_NLS
 #include <libintl.h>
 #define _(String) dgettext ("RxODE", String)

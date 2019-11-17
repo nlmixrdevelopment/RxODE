@@ -45,7 +45,7 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853",
   maxAtolRtolFactor = 0.1, from = NULL, to = NULL, by = NULL,
   length.out = NULL, iCov = NULL, keep = NULL,
   indLinPhiTol = 1e-07, indLinPhiM = 0L,
-  indLinMatExpType = c("Al-Mohy", "arma", "expokit"),
+  indLinMatExpType = c("expokit", "Al-Mohy", "arma"),
   indLinMatExpOrder = 6L, idFactor = TRUE, mxhnil = 0, hmxi = 0,
   warnIdSort = TRUE, ssAtol = 1e-08, ssRtol = 1e-06,
   safeZero = TRUE)

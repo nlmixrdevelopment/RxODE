@@ -328,3 +328,117 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
     }
     return(.Call(`_RxODE_cvPost_`, nu, omega, n, omegaIsChol, returnChol, .type, .xform))
 }
+
+##' Simulate from a (truncated) multivariate normal
+##'
+##' This is simulated with the fast, thread-safe threefry simulator
+##' and can use multiple cores to generate the random deviates.
+##'
+##' @param n Number of random row vectors to be simulated OR the
+##'     matrix to use for simulation (faster).
+##'
+##' @param mu mean vector
+##'
+##' @param sigma Covariance matrix for multivariate normal
+##'
+##' @param lower is a vector of the lower bound for the truncated
+##'     multivariate norm
+##'
+##' @param upper is a vector of the upper bound for the truncated
+##'     multivariate norm
+##'
+##' @param ncores Number of cores used in the simulation
+##'
+##' @param isChol A boolean indicating if \code{sigma} is a cholesky
+##'     decomposition of the covariance matrix.
+##'
+##' @param keepNames Keep the names from either the mean or covariance
+##'     matrix.
+##'
+##' @return
+##'
+##' If \code{n==integer} (default) the output is an (n x d) matrix
+##' where the i-th row is the i-th simulated vector.
+##'
+##' If \code{is.matrix(n)} then the random vector are store in \code{n},
+##' which is provided by the user, and the function returns
+##' \code{NULL} invisibly.
+##'
+##' @references John K. Salmon, Mark A. Moraes, Ron O. Dror, and David
+##'     E. Shaw (2011). Parallel Random Numbers: As Easy as 1, 2, 3.
+##'     D. E. Shaw Research, New York, NY 10036, USA.
+##'
+##' @examples
+##'
+##' ## From mvnfast
+##' ## Unlike mvnfast, uses threefry simulation
+##'
+##'  d <- 5
+##' mu <- 1:d
+##'
+##' # Creating covariance matrix
+##' tmp <- matrix(rnorm(d^2), d, d)
+##' mcov <- tcrossprod(tmp, tmp)
+##'
+##'
+##' set.seed(414)
+##' rxRmvn(4, 1:d, mcov)
+##'
+##' set.seed(414)
+##' rxRmvn(4, 1:d, mcov)
+##'
+##' set.seed(414)
+##' rxRmvn(4, 1:d, mcov, ncores = 2) # r.v. generated on the second core are different
+##'
+##' ###### Here we create the matrix that will hold the simulated
+##' #  random variables upfront.
+##' A <- matrix(NA, 4, d)
+##' class(A) <- "numeric" # This is important. We need the elements of A to be of class "numeric".
+##'
+##' set.seed(414)
+##' rxRmvn(A, 1:d, mcov, ncores = 2) # This returns NULL ...
+##' A                              # ... but the result is here
+##'
+##' @author Matthew Fidler and some from Matteo Fasiolo
+##' @export
+rxRmvn <- function(n, mu, sigma, lower, upper, ncores=1, isChol=FALSE,
+                   keepNames=TRUE){
+    .d <- length(mu);
+    if (is.matrix(n)){
+        .A <- n;
+        n <- dim(.A)[1]
+        .retA <- FALSE
+    } else {
+        n <- as.integer(n);
+        .A <- numeric(n * .d)
+        dim(.A) <- c(n, .d);
+        .retA <- TRUE
+    }
+    if (missing(sigma)) sigma <- diag(.d)
+    if (!is.matrix(sigma)) sigma <- as.matrix(sigma)
+    if (missing(lower)) {lower <- rep(-Inf, length(mu));}
+    else if (length(lower) == 1) {lower <- rep(lower, .d);}
+    if (missing(upper)) { upper <- rep(Inf, .d);}
+    else if (length(upper) == 1) {upper <- rep(upper, .d);}
+    .trunc <- FALSE
+    if (!all(is.infinite(upper))) .trunc <- TRUE
+    if (!all(is.infinite(upper))) .trunc <- TRUE
+    if (.trunc){
+    } else {
+        .Call(`_RxODE_rxRmvn_`, .A, mu, sigma,
+              ncores, isChol);
+    }
+    if (.retA){
+        if (keepNames){
+            if(is.null(.nm <- names(mu))){
+                .nm <- dimnames(sigma)[[1L]]
+            }
+            if(!is.null(.nm)){
+                dimnames(.A) <- list(NULL, .nm)
+            }
+        }
+        return(.A)
+    } else {
+        return(invisible())
+    }
+}

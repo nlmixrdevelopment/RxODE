@@ -673,6 +673,22 @@ rxStack <- function(Data, vars = NULL) {
     .Call(`_RxODE_rxStack`, Data, vars)
 }
 
+rxRmvn_ <- function(A_, mu, sigma, ncores = 1L, isChol = FALSE) {
+    .Call(`_RxODE_rxRmvn_`, A_, mu, sigma, ncores, isChol)
+}
+
+rxCholperm <- function(Sig, l, u, eps = 1e-10) {
+    .Call(`_RxODE_rxCholperm`, Sig, l, u, eps)
+}
+
+rxGradpsi <- function(y, L, l, u) {
+    .Call(`_RxODE_rxGradpsi`, y, L, l, u)
+}
+
+rxNleq <- function(l, u, L) {
+    .Call(`_RxODE_rxNleq`, l, u, L)
+}
+
 # Register entry points for exported C++ functions
 methods::setLoadAction(function(ns) {
     .Call('_RxODE_RcppExport_registerCCallable', PACKAGE = 'RxODE')

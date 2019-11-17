@@ -28,6 +28,7 @@ Authors@R: c(
    person("Jack", "Dongarra", role="ctb"),
    person("Linda", "Petzold", role="ctb"),
    person("Martin", "Maechler", role="ctb"),
+   person("Matteo", "Fasiolo", email = "matteo.fasiolo@gmail.com", role = "ctb"),
    person("Morwenn","", role="ctb"),
    person("Nicholas J.", "Higham",role="ctb"),
    person("Robert", "Gentleman",role="ctb"),
@@ -110,7 +111,7 @@ License: GPL (>= 3)
 URL: https://nlmixrdevelopment.github.io/RxODE/
 RoxygenNote: 6.1.1
 Biarch: true
-LinkingTo: dparser(>= 0.1.8), PreciseSums (>= 0.3), RcppEigen (>= 0.3.3.3.0)
+LinkingTo: dparser(>= 0.1.8), PreciseSums (>= 0.3), RcppEigen (>= 0.3.3.3.0), sitmo
 Encoding: UTF-8
 LazyData: true
 Language: en-US

@@ -1886,6 +1886,62 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxRmvn_
+SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma, int ncores, bool isChol);
+RcppExport SEXP _RxODE_rxRmvn_(SEXP A_SEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP ncoresSEXP, SEXP isCholSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type A_(A_SEXP);
+    Rcpp::traits::input_parameter< arma::rowvec >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    Rcpp::traits::input_parameter< bool >::type isChol(isCholSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxRmvn_(A_, mu, sigma, ncores, isChol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxCholperm
+List rxCholperm(arma::mat Sig, arma::vec l, arma::vec u, double eps);
+RcppExport SEXP _RxODE_rxCholperm(SEXP SigSEXP, SEXP lSEXP, SEXP uSEXP, SEXP epsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type Sig(SigSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type l(lSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type u(uSEXP);
+    Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxCholperm(Sig, l, u, eps));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxGradpsi
+List rxGradpsi(arma::vec y, arma::mat L, arma::vec l, arma::vec u);
+RcppExport SEXP _RxODE_rxGradpsi(SEXP ySEXP, SEXP LSEXP, SEXP lSEXP, SEXP uSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type L(LSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type l(lSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxGradpsi(y, L, l, u));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxNleq
+NumericVector rxNleq(arma::vec l, arma::vec u, arma::mat L);
+RcppExport SEXP _RxODE_rxNleq(SEXP lSEXP, SEXP uSEXP, SEXP LSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type l(lSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type u(uSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type L(LSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxNleq(l, u, L));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 // validate (ensure exported C++ functions exist before calling them)
 static int _RxODE_RcppExport_validate(const char* sig) { 
