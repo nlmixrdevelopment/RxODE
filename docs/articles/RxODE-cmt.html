@@ -16,7 +16,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Changing RxODE compartment numbers">
+<script src="../pkgdown.js"></script><!-- docsearch --><script src="../docsearch.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous">
+<link href="../docsearch.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script><meta property="og:title" content="Changing RxODE compartment numbers">
 <meta property="og:description" content="">
 <meta property="og:image" content="/logo.png">
 <meta name="twitter:card" content="summary">
@@ -174,7 +176,13 @@
   </a>
 </li>
       </ul>
+<form class="navbar-form navbar-right hidden-xs hidden-sm" role="search">
+        <div class="form-group">
+          <input type="search" class="form-control" name="search-input" id="search-input" placeholder="Search..." aria-label="Search for..." autocomplete="off">
 </div>
+      </form>
+      
+    </div>
 <!--/.nav-collapse -->
   </div>
 <!--/.container -->
@@ -188,7 +196,7 @@
     <div class="page-header toc-ignore">
       <h1>Changing RxODE compartment numbers</h1>
             
-            <h4 class="date">2019-11-11</h4>
+            <h4 class="date">2019-11-18</h4>
       
       
       <div class="hidden name"><code>RxODE-cmt.Rmd</code></div>
@@ -285,8 +293,8 @@ pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.
 })</code></pre></div>
 <p>If you look at the summary, you can see where RxODE assigned the compartment number(s)</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/summary.html">summary</a></span>(pbpk)</code></pre></div>
-<pre><code>#&gt; RxODE 0.9.1-8 model named rx_45abaae3d987df4f5b6c59a8f8dedf6b model (ready). 
-#&gt; DLL: /tmp/RtmphV8Rvs/.rxCache/rx_45abaae3d987df4f5b6c59a8f8dedf6b__.rxd/rx_45abaae3d987df4f5b6c59a8f8dedf6b_.so
+<pre><code>#&gt; RxODE 0.9.1-8 model named rx_fb2c28832e6d5d3aa39a88889b37725c model (ready). 
+#&gt; DLL: /tmp/RtmpQV8tzT/.rxCache/rx_fb2c28832e6d5d3aa39a88889b37725c__.rxd/rx_fb2c28832e6d5d3aa39a88889b37725c_.so
 #&gt; -- User supplied parameters: ---------------------------------------------------
 #&gt;      lKbBR      lKbMU      lKbAD     lCLint eta.LClint      lKbBO      lKbRB 
 #&gt;         NA         NA         NA         NA         NA         NA         NA 
@@ -487,7 +495,7 @@ pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.
 })</code></pre></div>
 <p>You can see this change in the simple printout</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pbpk2</code></pre></div>
-<pre><code>#&gt; RxODE 0.9.1-8 model named rx_48224c5f69b7d2d2213f39ccafaa0f3d model (ready). 
+<pre><code>#&gt; RxODE 0.9.1-8 model named rx_a31f8d4886731bb06c105787e6e3e674 model (ready). 
 #&gt; x$state: Venous_Blood, Skin, Lungs, Heart, Brain, Muscles, Adipose, Spleen, Pancreas, Liver, Stomach, Gut, Bones, Kidneys, Arterial_Blood, Rest_of_Body
 #&gt; x$params: lKbBR, lKbMU, lKbAD, lCLint, eta.LClint, lKbBO, lKbRB, WT, BP, fup
 #&gt; x$lhs: KbBR, KbMU, KbAD, CLint, KbBO, KbRB, CO, QHT, QBR, QMU, QAD, QSK, QSP, QPA, QLI, QST, QGU, QHA, QBO, QKI, QRB, QLU, VLU, VHT, VBR, VMU, VAD, VSK, VSP, VPA, VLI, VST, VGU, VBO, VKI, VAB, VVB, VRB, fub, KbLU, KbHT, KbSK, KbSP, KbPA, KbLI, KbST, KbGU, KbKI, S15, C15</code></pre>
@@ -505,7 +513,7 @@ pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.
     <span class="kw">cmt</span>(eff);
 })
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(ode.1c.ka)</code></pre></div>
-<pre><code>#&gt; RxODE 0.9.1-8 model named rx_cb0e429f406c7d163bbe6ef8726be491 model (ready). 
+<pre><code>#&gt; RxODE 0.9.1-8 model named rx_1f18b66e94443868b6e3a012cca12bec model (ready). 
 #&gt; $state: depot, center
 #&gt; $stateExtra: eff
 #&gt; $params: V, KA, CL
@@ -552,7 +560,20 @@ pbpk &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.
 </div>
 
   
-
-
-  </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.js" integrity="sha256-GKvGqXDznoRYHCwKXGnuchvKSwmx9SRMrZOTh2g4Sb0=" crossorigin="anonymous"></script><script>
+  docsearch({
+    
+    
+    apiKey: '038b4d83946a52a95a9f8bdafe822dbe',
+    indexName: '',
+    inputSelector: 'input#search-input.form-control',
+    transformData: function(hits) {
+      return hits.map(function (hit) {
+        hit.url = updateHitURL(hit);
+        return hit;
+      });
+    }
+  });
+</script>
+</body>
 </html>

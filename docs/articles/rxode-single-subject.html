@@ -16,7 +16,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Single Subject ODE solving -- differences from multiple subject">
+<script src="../pkgdown.js"></script><!-- docsearch --><script src="../docsearch.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous">
+<link href="../docsearch.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script><meta property="og:title" content="Single Subject ODE solving -- differences from multiple subject">
 <meta property="og:description" content="">
 <meta property="og:image" content="/logo.png">
 <meta name="twitter:card" content="summary">
@@ -174,7 +176,13 @@
   </a>
 </li>
       </ul>
+<form class="navbar-form navbar-right hidden-xs hidden-sm" role="search">
+        <div class="form-group">
+          <input type="search" class="form-control" name="search-input" id="search-input" placeholder="Search..." aria-label="Search for..." autocomplete="off">
 </div>
+      </form>
+      
+    </div>
 <!--/.nav-collapse -->
   </div>
 <!--/.container -->
@@ -188,7 +196,7 @@
     <div class="page-header toc-ignore">
       <h1>Single Subject ODE solving – differences from multiple subject</h1>
             
-            <h4 class="date">2019-11-11</h4>
+            <h4 class="date">2019-11-18</h4>
       
       
       <div class="hidden name"><code>rxode-single-subject.Rmd</code></div>
@@ -382,9 +390,9 @@ x
 <span class="co">#&gt; [19] xfun_0.10         stringr_1.4.0     dplyr_0.8.3      </span>
 <span class="co">#&gt; [22] knitr_1.25        vctrs_0.2.0       desc_1.2.0       </span>
 <span class="co">#&gt; [25] fs_1.3.1          rprojroot_1.3-2   grid_3.6.0       </span>
-<span class="co">#&gt; [28] tidyselect_0.2.5  data.table_1.12.2 glue_1.3.1       </span>
-<span class="co">#&gt; [31] R6_2.4.0          fansi_0.4.0       rmarkdown_1.16   </span>
-<span class="co">#&gt; [34] polyclip_1.10-0   dparser_1.3.1-0   farver_1.1.0     </span>
+<span class="co">#&gt; [28] tidyselect_0.2.5  data.table_1.12.6 glue_1.3.1       </span>
+<span class="co">#&gt; [31] R6_2.4.1          fansi_0.4.0       rmarkdown_1.16   </span>
+<span class="co">#&gt; [34] polyclip_1.10-0   dparser_1.3.1-0   farver_2.0.1     </span>
 <span class="co">#&gt; [37] ggplot2_3.2.1     purrr_0.3.3       tweenr_1.0.1     </span>
 <span class="co">#&gt; [40] magrittr_1.5      units_0.6-5       backports_1.1.5  </span>
 <span class="co">#&gt; [43] scales_1.0.0      htmltools_0.4.0   MASS_7.3-51.4    </span>
@@ -428,7 +436,20 @@ x
 </div>
 
   
-
-
-  </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.js" integrity="sha256-GKvGqXDznoRYHCwKXGnuchvKSwmx9SRMrZOTh2g4Sb0=" crossorigin="anonymous"></script><script>
+  docsearch({
+    
+    
+    apiKey: '038b4d83946a52a95a9f8bdafe822dbe',
+    indexName: '',
+    inputSelector: 'input#search-input.form-control',
+    transformData: function(hits) {
+      return hits.map(function (hit) {
+        hit.url = updateHitURL(hit);
+        return hit;
+      });
+    }
+  });
+</script>
+</body>
 </html>

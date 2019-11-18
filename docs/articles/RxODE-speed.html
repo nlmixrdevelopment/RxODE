@@ -16,7 +16,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Speeding up RxODE">
+<script src="../pkgdown.js"></script><!-- docsearch --><script src="../docsearch.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous">
+<link href="../docsearch.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script><meta property="og:title" content="Speeding up RxODE">
 <meta property="og:description" content="">
 <meta property="og:image" content="/logo.png">
 <meta name="twitter:card" content="summary">
@@ -174,7 +176,13 @@
   </a>
 </li>
       </ul>
+<form class="navbar-form navbar-right hidden-xs hidden-sm" role="search">
+        <div class="form-group">
+          <input type="search" class="form-control" name="search-input" id="search-input" placeholder="Search..." aria-label="Search for..." autocomplete="off">
 </div>
+      </form>
+      
+    </div>
 <!--/.nav-collapse -->
   </div>
 <!--/.container -->
@@ -189,7 +197,7 @@
       <h1>Speeding up RxODE</h1>
                         <h4 class="author">Matthew Fidler</h4>
             
-            <h4 class="date">2019-11-11</h4>
+            <h4 class="date">2019-11-18</h4>
       
       
       <div class="hidden name"><code>RxODE-speed.Rmd</code></div>
@@ -280,16 +288,16 @@ params.all &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">bench &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html">microbenchmark</a></span>(<span class="kw">runFor</span>(), <span class="kw">runSapply</span>(), <span class="kw">runSingleThread</span>(),<span class="kw">run2Thread</span>())
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(bench)
 <span class="co">#&gt; Unit: milliseconds</span>
-<span class="co">#&gt;               expr       min        lq      mean    median       uq</span>
-<span class="co">#&gt;           runFor() 168.28415 200.36736 664.50639 218.68101 591.6931</span>
-<span class="co">#&gt;        runSapply() 168.88836 193.80102 680.91910 212.68288 777.4937</span>
-<span class="co">#&gt;  runSingleThread()  27.31971  29.47795  32.14097  31.28912  33.6801</span>
-<span class="co">#&gt;       run2Thread()  15.19952  16.29249  19.97418  17.39572  21.7043</span>
-<span class="co">#&gt;         max neval</span>
-<span class="co">#&gt;  2569.41838   100</span>
-<span class="co">#&gt;  2583.86649   100</span>
-<span class="co">#&gt;    50.14279   100</span>
-<span class="co">#&gt;    44.30734   100</span></code></pre></div>
+<span class="co">#&gt;               expr       min        lq      mean    median        uq</span>
+<span class="co">#&gt;           runFor() 174.69392 179.78733 204.98552 186.72394 194.57578</span>
+<span class="co">#&gt;        runSapply() 174.38161 180.14168 213.71570 187.91011 206.67834</span>
+<span class="co">#&gt;  runSingleThread()  25.73048  27.23714  28.06903  28.28786  28.79420</span>
+<span class="co">#&gt;       run2Thread()  14.32937  15.40919  15.82624  15.78264  15.99996</span>
+<span class="co">#&gt;        max neval</span>
+<span class="co">#&gt;  466.54535   100</span>
+<span class="co">#&gt;  530.52962   100</span>
+<span class="co">#&gt;   31.07786   100</span>
+<span class="co">#&gt;   28.05689   100</span></code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(bench)</code></pre></div>
 <p><img src="RxODE-speed_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <p>It is clear that the <strong>largest</strong> jump in performance when using the <code>solve</code> method and providing <em>all</em> the parameters to RxODE to solve without looping over each subject with either a <code>for</code> or a <code>sapply</code>. The number of cores/threads applied to the solve also plays a role in the solving.</p>
@@ -303,19 +311,19 @@ bench &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/
                                            <span class="dt">collapse=</span><span class="st">","</span>))))
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(bench)
 <span class="co">#&gt; Unit: milliseconds</span>
-<span class="co">#&gt;           expr       min       lq     mean   median       uq      max</span>
-<span class="co">#&gt;   runThread(1) 25.837244 28.17058 31.34119 29.67762 33.27138 52.95455</span>
-<span class="co">#&gt;   runThread(2) 14.397657 15.57408 19.07414 17.53057 20.06267 37.76479</span>
-<span class="co">#&gt;   runThread(3) 11.189243 13.26036 16.10250 14.55256 17.48690 35.85832</span>
-<span class="co">#&gt;   runThread(4)  9.997826 11.52259 14.21978 13.00674 16.03294 30.49082</span>
-<span class="co">#&gt;   runThread(5)  9.179109 10.96064 13.94526 13.13385 16.18219 28.70019</span>
-<span class="co">#&gt;   runThread(6)  8.999976 11.64804 15.22117 13.86228 17.18359 35.25999</span>
-<span class="co">#&gt;   runThread(7) 11.228064 12.71467 15.33872 13.88827 16.69419 34.35575</span>
-<span class="co">#&gt;   runThread(8) 10.644738 12.09229 15.31500 13.73586 16.71934 34.10811</span>
-<span class="co">#&gt;   runThread(9) 10.332814 12.49972 14.74208 13.95888 16.69353 24.84857</span>
-<span class="co">#&gt;  runThread(10) 10.200614 12.36756 15.11416 13.65393 16.89197 31.81643</span>
-<span class="co">#&gt;  runThread(11)  9.851786 11.60283 14.79912 13.03093 16.34757 35.60192</span>
-<span class="co">#&gt;  runThread(12)  9.908911 13.81933 23.69086 22.59103 31.77629 48.26824</span>
+<span class="co">#&gt;           expr       min        lq      mean    median        uq      max</span>
+<span class="co">#&gt;   runThread(1) 26.906958 27.739449 28.341210 28.188700 28.663694 30.96939</span>
+<span class="co">#&gt;   runThread(2) 14.894403 15.531254 16.349155 15.879514 16.305376 29.69865</span>
+<span class="co">#&gt;   runThread(3) 11.007687 11.553255 12.046449 11.783054 12.094443 19.95087</span>
+<span class="co">#&gt;   runThread(4)  9.047417  9.403499  9.965859  9.617649  9.838437 15.80473</span>
+<span class="co">#&gt;   runThread(5)  8.151339  8.418492  9.105525  8.658950  8.948007 14.22466</span>
+<span class="co">#&gt;   runThread(6)  7.654907  7.893771  8.666179  8.106237  9.501205 11.92169</span>
+<span class="co">#&gt;   runThread(7)  9.785270 10.107521 10.983681 10.717340 11.632891 16.78733</span>
+<span class="co">#&gt;   runThread(8)  9.008825  9.801562 10.287250 10.079967 10.472532 13.79825</span>
+<span class="co">#&gt;   runThread(9)  9.005277  9.425445 10.040712  9.843461 10.188356 14.01243</span>
+<span class="co">#&gt;  runThread(10)  8.352128  9.218671 10.122241  9.761994 10.357743 16.70999</span>
+<span class="co">#&gt;  runThread(11)  8.113674  9.196236 10.202856  9.530486 10.184647 19.03288</span>
+<span class="co">#&gt;  runThread(12)  8.775250  9.327831 10.991196  9.887640 12.137798 21.59770</span>
 <span class="co">#&gt;  neval</span>
 <span class="co">#&gt;    100</span>
 <span class="co">#&gt;    100</span>
@@ -368,7 +376,7 @@ mod1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.
 <span class="st">    </span><span class="kw"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">mvrnorm</a></span>(nsub, <span class="kw"><a href="https://rdrr.io/r/base/rep.html">rep</a></span>(<span class="dv">0</span>, <span class="kw"><a href="https://rdrr.io/r/base/dim.html">dim</a></span>(omega)[<span class="dv">1</span>]), omega) <span class="co"># Sample from covariance matrix</span>
 <span class="co">#Combine population parameters with IIV</span>
   params.all &lt;-
-<span class="st">    </span><span class="kw"><a href="https://rdrr.io/pkg/data.table/man/data.table.html">data.table</a></span>(
+<span class="st">    </span><span class="kw"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html">data.table</a></span>(
       <span class="st">"ID"</span> =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="dv">1</span><span class="op">:</span>nsub),
       <span class="st">"CL"</span> =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">exp</a></span>(paramsl[<span class="st">'CL'</span>] <span class="op">+</span><span class="st"> </span>mv[, <span class="dv">1</span>]),
       <span class="st">"V"</span> =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">exp</a></span>(paramsl[<span class="st">'V'</span>] <span class="op">+</span><span class="st"> </span>mv[, <span class="dv">2</span>]),
@@ -395,18 +403,18 @@ Startlapply &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr
 <span class="co">#generates 4 random samples in a 24 hour period</span>
     ev<span class="op">$</span><span class="kw"><a href="../reference/add.sampling.html">add.sampling</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dv">0</span>, <span class="kw"><a href="https://rdrr.io/r/base/sort.html">sort</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/Round.html">round</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/sample.html">sample</a></span>(<span class="kw"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span>(<span class="dv">600</span>, <span class="dv">0</span>, <span class="dv">1440</span>), <span class="dv">4</span>) <span class="op">/</span><span class="st"> </span><span class="dv">60</span>, <span class="dv">2</span>))))
 <span class="co">#runs the RxODE simulation</span>
-    x &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/pkg/data.table/man/as.data.table.html">as.data.table</a></span>(mod1<span class="op">$</span><span class="kw">run</span>(params, ev))
+    x &lt;-<span class="st"> </span><span class="kw"><a href="https://Rdatatable.gitlab.io/data.table/reference/as.data.table.html">as.data.table</a></span>(mod1<span class="op">$</span><span class="kw">run</span>(params, ev))
 <span class="co">#merges the parameters and ID number to the simulation output</span>
     x[, <span class="kw"><a href="https://rdrr.io/r/base/names.html">names</a></span>(params) <span class="op">:</span><span class="er">=</span><span class="st"> </span>params]
   })
   
 <span class="co">#runs the entire sequence of 10000 subjects and binds the results to the object res</span>
-  res =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/pkg/data.table/man/as.data.table.html">as.data.table</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span>(<span class="st">"rbind"</span>, s))
+  res =<span class="st"> </span><span class="kw"><a href="https://Rdatatable.gitlab.io/data.table/reference/as.data.table.html">as.data.table</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span>(<span class="st">"rbind"</span>, s))
   
 Stoplapply &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span>()
   
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(Stoplapply <span class="op">-</span><span class="st"> </span>Startlapply)
-<span class="co">#&gt; Time difference of 2.011172 mins</span></code></pre></div>
+<span class="co">#&gt; Time difference of 42.68497 secs</span></code></pre></div>
 <p>By applying some of the new parallel solving concepts you can simply run the same simulation both with less code and faster:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rx &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
     CL =<span class="st">  </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">log</a></span>(<span class="dv">4</span>)
@@ -445,12 +453,12 @@ res &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve
 <span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span>
 endParallel &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span>()
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(endParallel <span class="op">-</span><span class="st"> </span>startParallel)
-<span class="co">#&gt; Time difference of 0.4335437 secs</span></code></pre></div>
+<span class="co">#&gt; Time difference of 0.3896475 secs</span></code></pre></div>
 <p>You can see a striking time difference between the two methods; A few things to keep in mind:</p>
 <ul>
 <li><p><code>RxODE</code> uses <code>mvnfast</code> for simulation of <code>eta</code> values. This uses the thread safe sumo random number generator. Therefore the results are expected to be different (also the random samples are taken in a different order which would be different)</p></li>
 <li><p>This prior simulation was run in R 3.5, which has a different random number generator so the results in this simulation will be different from the actual nlmixr comparison when using the slower simulation.</p></li>
-<li><p>This speed comparison used <code>data.table</code>. <code>RxODE</code> uses <code>data.table</code> internally (when available) try to speed up sorting, so this would be different than installations where <code>data.table</code> is not installed. You can force RxODE to use <code><a href="https://rdrr.io/pkg/data.table/man/setorder.html">order()</a></code> when sorting by using <code><a href="../reference/forderForceBase.html">forderForceBase(TRUE)</a></code>. In this case there is little difference between the two, though in other examples <code>data.table</code>’s presence leads to a speed increase (and less likely it could lead to a slowdown).</p></li>
+<li><p>This speed comparison used <code>data.table</code>. <code>RxODE</code> uses <code>data.table</code> internally (when available) try to speed up sorting, so this would be different than installations where <code>data.table</code> is not installed. You can force RxODE to use <code><a href="https://Rdatatable.gitlab.io/data.table/reference/setorder.html">order()</a></code> when sorting by using <code><a href="../reference/forderForceBase.html">forderForceBase(TRUE)</a></code>. In this case there is little difference between the two, though in other examples <code>data.table</code>’s presence leads to a speed increase (and less likely it could lead to a slowdown).</p></li>
 </ul>
 <div id="want-more-ways-to-run-multi-subject-simulations" class="section level2">
 <h2 class="hasAnchor">
@@ -482,7 +490,7 @@ endParallel &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr
 <span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; other attached packages:</span>
-<span class="co">#&gt; [1] MASS_7.3-51.4        data.table_1.12.2    mvnfast_0.2.5       </span>
+<span class="co">#&gt; [1] MASS_7.3-51.4        data.table_1.12.6    mvnfast_0.2.5       </span>
 <span class="co">#&gt; [4] microbenchmark_1.4-7 RxODE_0.9.1-8       </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; loaded via a namespace (and not attached):</span>
@@ -492,8 +500,8 @@ endParallel &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr
 <span class="co">#&gt; [13] pkgconfig_2.0.3  rlang_0.4.1      Matrix_1.2-17    yaml_2.2.0      </span>
 <span class="co">#&gt; [17] pkgdown_1.4.1    xfun_0.10        stringr_1.4.0    dplyr_0.8.3     </span>
 <span class="co">#&gt; [21] knitr_1.25       desc_1.2.0       fs_1.3.1         rprojroot_1.3-2 </span>
-<span class="co">#&gt; [25] grid_3.6.0       tidyselect_0.2.5 glue_1.3.1       R6_2.4.0        </span>
-<span class="co">#&gt; [29] rmarkdown_1.16   polyclip_1.10-0  dparser_1.3.1-0  farver_1.1.0    </span>
+<span class="co">#&gt; [25] grid_3.6.0       tidyselect_0.2.5 glue_1.3.1       R6_2.4.1        </span>
+<span class="co">#&gt; [29] rmarkdown_1.16   polyclip_1.10-0  dparser_1.3.1-0  farver_2.0.1    </span>
 <span class="co">#&gt; [33] tweenr_1.0.1     ggplot2_3.2.1    purrr_0.3.3      magrittr_1.5    </span>
 <span class="co">#&gt; [37] units_0.6-5      backports_1.1.5  scales_1.0.0     htmltools_0.4.0 </span>
 <span class="co">#&gt; [41] assertthat_0.2.1 mime_0.7         ggforce_0.3.1    colorspace_1.4-1</span>
@@ -544,7 +552,20 @@ endParallel &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr
 </div>
 
   
-
-
-  </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.js" integrity="sha256-GKvGqXDznoRYHCwKXGnuchvKSwmx9SRMrZOTh2g4Sb0=" crossorigin="anonymous"></script><script>
+  docsearch({
+    
+    
+    apiKey: '038b4d83946a52a95a9f8bdafe822dbe',
+    indexName: '',
+    inputSelector: 'input#search-input.form-control',
+    transformData: function(hits) {
+      return hits.map(function (hit) {
+        hit.url = updateHitURL(hit);
+        return hit;
+      });
+    }
+  });
+</script>
+</body>
 </html>
