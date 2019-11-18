@@ -20,7 +20,7 @@
 <link href="../docsearch.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script><meta property="og:title" content="Speeding up RxODE">
 <meta property="og:description" content="">
-<meta property="og:image" content="/logo.png">
+<meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -289,15 +289,15 @@ params.all &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(bench)
 <span class="co">#&gt; Unit: milliseconds</span>
 <span class="co">#&gt;               expr       min        lq      mean    median        uq</span>
-<span class="co">#&gt;           runFor() 174.69392 179.78733 204.98552 186.72394 194.57578</span>
-<span class="co">#&gt;        runSapply() 174.38161 180.14168 213.71570 187.91011 206.67834</span>
-<span class="co">#&gt;  runSingleThread()  25.73048  27.23714  28.06903  28.28786  28.79420</span>
-<span class="co">#&gt;       run2Thread()  14.32937  15.40919  15.82624  15.78264  15.99996</span>
+<span class="co">#&gt;           runFor() 176.15436 189.03788 209.21781 195.94093 204.15168</span>
+<span class="co">#&gt;        runSapply() 175.61286 184.61080 211.94365 192.53415 204.41866</span>
+<span class="co">#&gt;  runSingleThread()  26.77060  29.62805  30.71533  30.96563  31.69924</span>
+<span class="co">#&gt;       run2Thread()  15.23095  16.06653  17.04275  16.79937  17.45242</span>
 <span class="co">#&gt;        max neval</span>
-<span class="co">#&gt;  466.54535   100</span>
-<span class="co">#&gt;  530.52962   100</span>
-<span class="co">#&gt;   31.07786   100</span>
-<span class="co">#&gt;   28.05689   100</span></code></pre></div>
+<span class="co">#&gt;  458.43021   100</span>
+<span class="co">#&gt;  580.10503   100</span>
+<span class="co">#&gt;   34.86437   100</span>
+<span class="co">#&gt;   31.77601   100</span></code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(bench)</code></pre></div>
 <p><img src="RxODE-speed_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <p>It is clear that the <strong>largest</strong> jump in performance when using the <code>solve</code> method and providing <em>all</em> the parameters to RxODE to solve without looping over each subject with either a <code>for</code> or a <code>sapply</code>. The number of cores/threads applied to the solve also plays a role in the solving.</p>
@@ -311,19 +311,19 @@ bench &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/
                                            <span class="dt">collapse=</span><span class="st">","</span>))))
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(bench)
 <span class="co">#&gt; Unit: milliseconds</span>
-<span class="co">#&gt;           expr       min        lq      mean    median        uq      max</span>
-<span class="co">#&gt;   runThread(1) 26.906958 27.739449 28.341210 28.188700 28.663694 30.96939</span>
-<span class="co">#&gt;   runThread(2) 14.894403 15.531254 16.349155 15.879514 16.305376 29.69865</span>
-<span class="co">#&gt;   runThread(3) 11.007687 11.553255 12.046449 11.783054 12.094443 19.95087</span>
-<span class="co">#&gt;   runThread(4)  9.047417  9.403499  9.965859  9.617649  9.838437 15.80473</span>
-<span class="co">#&gt;   runThread(5)  8.151339  8.418492  9.105525  8.658950  8.948007 14.22466</span>
-<span class="co">#&gt;   runThread(6)  7.654907  7.893771  8.666179  8.106237  9.501205 11.92169</span>
-<span class="co">#&gt;   runThread(7)  9.785270 10.107521 10.983681 10.717340 11.632891 16.78733</span>
-<span class="co">#&gt;   runThread(8)  9.008825  9.801562 10.287250 10.079967 10.472532 13.79825</span>
-<span class="co">#&gt;   runThread(9)  9.005277  9.425445 10.040712  9.843461 10.188356 14.01243</span>
-<span class="co">#&gt;  runThread(10)  8.352128  9.218671 10.122241  9.761994 10.357743 16.70999</span>
-<span class="co">#&gt;  runThread(11)  8.113674  9.196236 10.202856  9.530486 10.184647 19.03288</span>
-<span class="co">#&gt;  runThread(12)  8.775250  9.327831 10.991196  9.887640 12.137798 21.59770</span>
+<span class="co">#&gt;           expr       min        lq      mean    median       uq      max</span>
+<span class="co">#&gt;   runThread(1) 30.337367 31.479749 31.797336 31.680945 31.92447 36.26679</span>
+<span class="co">#&gt;   runThread(2) 16.545446 17.432294 17.960235 17.631812 17.88745 30.70502</span>
+<span class="co">#&gt;   runThread(3) 12.472184 12.882811 13.398323 13.110587 13.32315 20.14993</span>
+<span class="co">#&gt;   runThread(4)  9.857123 10.412212 10.996090 10.667554 10.90053 15.06461</span>
+<span class="co">#&gt;   runThread(5)  8.703121  9.220547  9.898149  9.541272 10.36049 14.38401</span>
+<span class="co">#&gt;   runThread(6)  7.977423  8.496768  9.251001  8.748897  9.85810 14.85313</span>
+<span class="co">#&gt;   runThread(7) 10.261699 10.756577 11.469839 11.167407 12.17673 16.07657</span>
+<span class="co">#&gt;   runThread(8)  9.648210 10.428962 10.922967 10.770775 11.38217 17.61676</span>
+<span class="co">#&gt;   runThread(9)  9.163854  9.740890 10.458430 10.500098 10.88749 14.04533</span>
+<span class="co">#&gt;  runThread(10)  8.875537  9.785622 10.393552 10.261601 10.57248 14.74411</span>
+<span class="co">#&gt;  runThread(11)  8.152071  9.431002 10.146344  9.874330 10.35875 15.82578</span>
+<span class="co">#&gt;  runThread(12)  8.914961  9.389643 10.726710  9.696213 11.03472 19.97746</span>
 <span class="co">#&gt;  neval</span>
 <span class="co">#&gt;    100</span>
 <span class="co">#&gt;    100</span>
@@ -414,7 +414,7 @@ Startlapply &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr
 Stoplapply &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span>()
   
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(Stoplapply <span class="op">-</span><span class="st"> </span>Startlapply)
-<span class="co">#&gt; Time difference of 42.68497 secs</span></code></pre></div>
+<span class="co">#&gt; Time difference of 44.9207 secs</span></code></pre></div>
 <p>By applying some of the new parallel solving concepts you can simply run the same simulation both with less code and faster:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rx &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
     CL =<span class="st">  </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">log</a></span>(<span class="dv">4</span>)
@@ -453,7 +453,7 @@ res &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve
 <span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span>
 endParallel &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span>()
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(endParallel <span class="op">-</span><span class="st"> </span>startParallel)
-<span class="co">#&gt; Time difference of 0.3896475 secs</span></code></pre></div>
+<span class="co">#&gt; Time difference of 0.4150913 secs</span></code></pre></div>
 <p>You can see a striking time difference between the two methods; A few things to keep in mind:</p>
 <ul>
 <li><p><code>RxODE</code> uses <code>mvnfast</code> for simulation of <code>eta</code> values. This uses the thread safe sumo random number generator. Therefore the results are expected to be different (also the random samples are taken in a different order which would be different)</p></li>
