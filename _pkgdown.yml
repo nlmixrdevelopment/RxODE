@@ -4,7 +4,7 @@ template:
     bootswatch: flatly
     docsearch:
       api_key: 038b4d83946a52a95a9f8bdafe822dbe
-      indexName: rxode
+      index_name: rxode
 reference:
 - title: Creating RxODE compiled objects
   contents:
