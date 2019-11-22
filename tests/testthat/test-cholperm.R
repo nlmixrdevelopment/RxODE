@@ -282,3 +282,44 @@ test_that("nleq", {
     expect_equal(rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
 
 })
+
+context("rxMvnrnd")
+
+test_that("rxMvnrnd", {
+
+    set.seed(12)
+    d <- 5
+
+    mu <- 1:d
+
+    ## Creating covariance matrix
+    tmp <- matrix(rnorm(d^2), d, d)
+    mcov <- tcrossprod(tmp, tmp)
+
+    out <- rxCholperm(mcov, -2 * (1:5), 1:5)
+
+    Lfull=out$L;l=out$l;u=out$u;D=diag(Lfull);perm=out$perm;
+    if (any(D<10^-10)){
+        warning('Method may fail as covariance matrix is singular!')
+    }
+    L=Lfull/D;u=u/D;l=l/D; # rescale
+    L=L-diag(d); # remove diagonal
+                                        # find optimal tilting parameter via non-linear equation solver
+    xmu<-nleq(l,u,L) # nonlinear equation solver
+    x=xmu[1:(d-1)];mu=xmu[d:(2*d-2)]; # assign saddlepoint x* and mu*
+
+    fun <- function(n){
+        r1 <- rxMvnrnd(5, L, l, u, mu)
+        expect_equal(length(r1$logpr), 5)
+        expect_true(all(!duplicated(r1$logpr)))
+        expect_equal(length(r1$Z[1, ]), 5)
+        expect_true(all(!duplicated(r1$Z[1, ])))
+    }
+    fun(2);
+    fun(5)
+    fun(10)
+
+})
+
+
+

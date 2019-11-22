@@ -677,6 +677,10 @@ rxRmvn_ <- function(A_, mu, sigma, ncores = 1L, isChol = FALSE) {
     .Call(`_RxODE_rxRmvn_`, A_, mu, sigma, ncores, isChol)
 }
 
+rxMvnrnd <- function(n, L, l, u, mu, a = 0.4, tol = 2.05) {
+    .Call(`_RxODE_rxMvnrnd`, n, L, l, u, mu, a, tol)
+}
+
 rxCholperm <- function(Sig, l, u, eps = 1e-10) {
     .Call(`_RxODE_rxCholperm`, Sig, l, u, eps)
 }

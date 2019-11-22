@@ -1901,6 +1901,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxMvnrnd
+List rxMvnrnd(int n, arma::mat& L, arma::vec& l, arma::vec& u, arma::vec mu, double a, double tol);
+RcppExport SEXP _RxODE_rxMvnrnd(SEXP nSEXP, SEXP LSEXP, SEXP lSEXP, SEXP uSEXP, SEXP muSEXP, SEXP aSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type l(lSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type u(uSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxMvnrnd(n, L, l, u, mu, a, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxCholperm
 List rxCholperm(arma::mat Sig, arma::vec l, arma::vec u, double eps);
 RcppExport SEXP _RxODE_rxCholperm(SEXP SigSEXP, SEXP lSEXP, SEXP uSEXP, SEXP epsSEXP) {

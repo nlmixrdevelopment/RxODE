@@ -197,15 +197,15 @@ rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
   int d=l.n_elem; // Initialization
   mu[d-1]=0;
   arma::mat Z(d,n); //# create array for variables
-  arma::vec p(d, arma::fill::zeros);
+  arma::vec p(n, arma::fill::zeros);
   for (int k = 0; k < d; ++k){
     //# compute matrix multiplication L*Z
-    arma::vec col=(L(k,arma::span(0,k))).t() * Z.rows(0, k);
+    arma::vec col=trans(L(k,arma::span(0,k)) * Z.rows(0, k));
     //# compute limits of truncation
     arma::vec tl=l[k]-mu[k]-col;
     arma::vec tu=u[k]-mu[k]-col;
     //#simulate N(mu,1) conditional on [tl,tu]
-    for (int j = d; j--;){
+    for (int j = n; j--;){
       Z(k,j) = mu[k] + trandn(tl[j], tu[j], eng, a, tol);
       // # update likelihood ratio
       p[j] += lnNpr(tl[j], tu[j]) + 0.5*mu[k]*mu[k] - mu[k]*Z(k,j);
@@ -216,6 +216,27 @@ rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
   ret.p = p;
   return ret;
 }
+
+//[[Rcpp::export]]
+List rxMvnrnd(int n, arma::mat& L, arma::vec& l,
+	      arma::vec& u, arma::vec mu,
+	      double a=0.4, double tol = 2.05){
+  double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
+  uint32_t seed = static_cast<uint32_t>(seedD);
+  sitmo::threefry eng;
+  eng.seed(seed);
+  rx_mvnrnd retI = mvnrnd(n, L, l, u, mu, eng,
+			  a, tol);
+  List ret(2);
+  NumericVector po(retI.p.size());
+  std::copy(retI.p.begin(), retI.p.end(), po.begin());
+  ret[0] = po;
+  ret[1] = wrap(retI.Z);
+  ret.attr("names") = CharacterVector::create("logpr", "Z");
+  return ret;
+}
+
+
 
 typedef struct {
   // return(list(L=L,l=l,u=u,perm=perm))
