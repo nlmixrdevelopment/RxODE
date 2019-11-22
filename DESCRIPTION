@@ -36,6 +36,7 @@ Authors@R: c(
    person("Ross", "Ihaka",role="ctb"),
    person("Simon", "Frost", role="ctb"),
    person("Yu", "Feng", role="ctb"),
+   person("Zdravko I.", "Botev", role="ctb"),
    person("R core team", role="ctb")
    )
 Maintainer: Wenping Wang <wwang8198@gmail.com>

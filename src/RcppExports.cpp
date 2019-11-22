@@ -1959,6 +1959,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxMvrandn_
+arma::mat rxMvrandn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma, arma::vec lower, arma::vec upper, int ncores, double a, double tol, double nlTol, int nlMaxiter);
+RcppExport SEXP _RxODE_rxMvrandn_(SEXP A_SEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP ncoresSEXP, SEXP aSEXP, SEXP tolSEXP, SEXP nlTolSEXP, SEXP nlMaxiterSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type A_(A_SEXP);
+    Rcpp::traits::input_parameter< arma::rowvec >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lower(lowerSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type upper(upperSEXP);
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< double >::type nlTol(nlTolSEXP);
+    Rcpp::traits::input_parameter< int >::type nlMaxiter(nlMaxiterSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxMvrandn_(A_, mu, sigma, lower, upper, ncores, a, tol, nlTol, nlMaxiter));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 // validate (ensure exported C++ functions exist before calling them)
 static int _RxODE_RcppExport_validate(const char* sig) { 

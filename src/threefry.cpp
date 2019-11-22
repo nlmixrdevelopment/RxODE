@@ -15,9 +15,6 @@
 using namespace Rcpp;
 using namespace arma;
 
-// Currently using the slow rejection method; Consider gibbs sampling
-// Consider:
-// https://github.com/slwu89/MCMC/blob/master/tmvrnormGibbs.cpp
 //[[Rcpp::export]]
 SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
 	     int ncores=1, bool isChol=false){
@@ -189,15 +186,25 @@ typedef struct {
 rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
 		 arma::vec& u, arma::vec mu,
 		 sitmo::threefry& eng,
-		 double a=0.4, double tol = 2.05){
+		 double a=0.4, double tol = 2.05,
+		 int ncores = 1){
   // generates the proposals from the exponentially tilted 
   // sequential importance sampling pdf;
   // output:    'logpr', log-likelihood of sample
-  //              Z, random sample 
+  //              Z, random sample
+  rx_mvnrnd ret;
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
+#endif
+  
   int d=l.n_elem; // Initialization
   mu[d-1]=0;
   arma::mat Z(d,n); //# create array for variables
   arma::vec p(n, arma::fill::zeros);
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
   for (int k = 0; k < d; ++k){
     //# compute matrix multiplication L*Z
     arma::vec col=trans(L(k,arma::span(0,k)) * Z.rows(0, k));
@@ -211,9 +218,11 @@ rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
       p[j] += lnNpr(tl[j], tu[j]) + 0.5*mu[k]*mu[k] - mu[k]*Z(k,j);
     }
   }
-  rx_mvnrnd ret;
   ret.Z = Z;
   ret.p = p;
+#ifdef _OPENMP
+  }
+#endif
   return ret;
 }
 
@@ -226,7 +235,7 @@ List rxMvnrnd(int n, arma::mat& L, arma::vec& l,
   sitmo::threefry eng;
   eng.seed(seed);
   rx_mvnrnd retI = mvnrnd(n, L, l, u, mu, eng,
-			  a, tol);
+			  a, tol, 1);
   List ret(2);
   NumericVector po(retI.p.size());
   std::copy(retI.p.begin(), retI.p.end(), po.begin());
@@ -243,7 +252,7 @@ typedef struct {
   arma::mat L;
   arma::vec l;
   arma::vec u;
-  arma::ivec perm;
+  arma::uvec perm;
   
 } rx_cholperms;
 
@@ -259,7 +268,7 @@ rx_cholperms cholperm(arma::mat Sig, arma::vec l, arma::vec u,
   // #  sensitivity to variate ordering", 
   // #  In: Advances in Numerical Methods and Applications, pages 120--126
   int d = l.n_elem;
-  arma::ivec perm(d);
+  arma::uvec perm(d);
   std::iota(perm.begin(),perm.end(),0);
   arma::mat L(d,d, arma::fill::zeros);
   arma::vec z(d, arma::fill::zeros);
@@ -384,7 +393,13 @@ typedef struct {
   arma::mat Jac;
 } rx_gradpsi;
 
-rx_gradpsi gradpsi(arma::vec y, arma::mat L, arma::vec l, arma::vec u){
+rx_gradpsi gradpsi(arma::vec y, arma::mat L, arma::vec l, arma::vec u, int ncores=1){
+  rx_gradpsi ret;
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
+#endif
+
   //# implements grad_psi(x) to find optimal exponential twisting;
   //  # assume scaled 'L' with zero diagonal;
   int d = u.n_elem;
@@ -407,7 +422,10 @@ rx_gradpsi gradpsi(arma::vec y, arma::mat L, arma::vec l, arma::vec u){
   arma::vec pl(d);
   arma::vec pu(d);
   arma::vec P(d);
-  for (int j = d; j--;){
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+  for (int j = d; j < d; ++j){
     w[j] = lnNpr(lt[j], ut[j]);
     pl[j] = exp(-0.5*lt[j]*lt[j] - w[j])*M_1_SQRT_2PI;
     pu[j] = exp(-0.5*ut[j]*ut[j] - w[j])*M_1_SQRT_2PI;
@@ -419,7 +437,10 @@ rx_gradpsi gradpsi(arma::vec y, arma::mat L, arma::vec l, arma::vec u){
   std::copy(dfdx.begin(),dfdx.end(), grad.begin());
   std::copy(dfdm.begin(),dfdm.end()-1, grad.begin()+dfdx.size());
   // here compute Jacobian matrix
-  for (int j = d; j--;){
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+  for (int j = 0; j < d; ++j){
     if (!R_FINITE(lt[j])){
       lt[j] = 0;
     }
@@ -450,9 +471,11 @@ rx_gradpsi gradpsi(arma::vec y, arma::mat L, arma::vec l, arma::vec u){
     Jac(0,1) = mx(0,0);
     Jac(1,1) = 1+dP(0);
   }
-  rx_gradpsi ret;
   ret.grad = grad;
   ret.Jac = Jac;
+#ifdef _OPENMP
+  }
+#endif
   return ret;
 }
 
@@ -471,12 +494,12 @@ List rxGradpsi(arma::vec y, arma::mat L, arma::vec l, arma::vec u){
 }
 
 
-arma::vec nleq(arma::vec l, arma::vec u, arma::mat L){
+arma::vec nleq(arma::vec l, arma::vec u, arma::mat L, double tol= 1e-10, int maxiter=100){
   int d=l.n_elem;
   arma::vec x(2*d-2, arma::fill::zeros); // initial point for Newton iteration
   double err=R_PosInf;
   int iter=0;
-  while (err > 1e-10){
+  while (err > tol){
     rx_gradpsi f=gradpsi(x,L,l,u);
     // Jac=f$Jac
     // grad=f$grad
@@ -484,7 +507,7 @@ arma::vec nleq(arma::vec l, arma::vec u, arma::mat L){
     x=x+del;
     err=accu(f.grad%f.grad);
     iter++;
-    if (iter>100){
+    if (iter> maxiter){
       stop(_("covariance matrix is ill-conditioned and method failed (truncated mvn)"));
     }
   }
@@ -494,29 +517,42 @@ arma::vec nleq(arma::vec l, arma::vec u, arma::mat L){
 // Exported for testing
 //[[Rcpp::export]]
 NumericVector rxNleq(arma::vec l, arma::vec u, arma::mat L){
-  arma::vec retA = nleq(l, u, L);
+  arma::vec retA = nleq(l, u, L, 1e-10, 100);
   NumericVector ret(retA.n_elem);
   std::copy(retA.begin(),retA.end(),ret.begin());
   return ret;
 }
 
-double psy(arma::vec x,arma::mat L,arma::vec l, arma::mat u, arma::vec mu){
+double psy(arma::vec x,arma::mat L,arma::vec l, arma::mat u, arma::vec mu,
+	   int ncores = 1){
+  double p=0;
   // implements psi(x,mu); assume scaled 'L' without diagonal;
   int d=u.n_elem;
+  x.resize(d);
   x(d-1)=0;
+  mu.resize(d);
   mu(d-1)=0;
   // compute now ~l and ~u
   arma::vec c = L*x;
   l=l-mu-c;
   u=u-mu-c;
-  double p=0;
-  for (int j = d; j--;){
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
+#pragma omp for schedule(static)
+#endif
+  for (int j = 0; j < d; ++j){
     p+= lnNpr(l[j], u[j]) + 0.5*mu[j]*mu[j]-x[j]*mu[j];
   }
+#ifdef _OPENMP
+  }
+#endif
   return p;
 }
-
-void mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n){
+arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
+		  sitmo::threefry& eng, double a=0.4, double tol = 2.05,
+		  double nlTol=1e-10, int nlMaxiter=100, int ncores=1){
+  if (ncores < 1) stop(_("'ncores' has to be greater than one"));
   int d = lin.n_elem;
   if (uin.n_elem != d) stop(_("'lower' and 'upper' must have the same number of elements."));
   if (Sig.n_rows != d || Sig.n_cols != d) stop(_("'sigma' must be a square matrix with the same dimension as 'upper' and 'lower'"));
@@ -526,26 +562,93 @@ void mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n){
   // Cholesky decomposition of matrix
   rx_cholperms out=cholperm(Sig,lin,uin);
   arma::mat Lfull=out.L;
-  arma::mat l=out.l;
-  arma::mat u=out.u;
+  arma::vec l=out.l;
+  arma::vec u=out.u;
   arma::vec D=Lfull.diag();
-  arma::ivec perm=out.perm;
+  arma::uvec perm=out.perm;
   if (any(D < 1e-10)){
     warning(_("truncated multivariate normal may fail as covariance matrix is singular"));
   }
   // rescale
-  arma::mat L=Lfull/D;
+  arma::mat L=Lfull.each_col()/D;
   u=u/D;
   l=l/D; 
   L=L-eye(d, d); // remove diagonal
   // find optimal tilting parameter via non-linear equation solver
-  arma::vec xmu = nleq(l,u,L); // nonlinear equation solver
+  arma::vec xmu = nleq(l,u,L,nlTol, nlMaxiter); // nonlinear equation solver
   // assign saddlepoint x* and mu*
   arma::vec x = xmu(span(0, d-2));
   arma::vec mu = xmu(span(d-1, 2*d-3));
   // compute psi star
-  double psistar=psy(x,L,l,u,mu);
+  double psistar=psy(x,L,l,u,mu, ncores);
   //  start acceptance rejection sampling
   int iter=0;
   // rv=c();
+  int accepted=0;
+  std::uniform_real_distribution<> unif(0.0, 1.0);
+
+  arma::mat ret(d, n);
+  while (accepted < n){
+    // rx_mvnrnd out=mvnrnd(n,L,l,u,mu);
+    rx_mvnrnd out=mvnrnd(n, L, l, u, mu, eng, a, tol, ncores);
+    arma::vec logpr = out.p;
+    arma::mat curZ  = out.Z;
+    // idx=-log(runif(n))>(psistar-logpr); # acceptance tests
+    for (int i = n; i--;){
+      if (-log(unif(eng)) > (psistar-logpr[i])){
+	ret.col(accepted) =curZ.col(i);
+	accepted++;
+	if (accepted == n) break;
+      }
+    }
+    iter++;
+    if (iter == 1e3){
+      warning(_("acceptance probability smaller than 0.001"));
+    } else if (iter> 1e4){
+      if (accepted == 0) {
+	stop(_("could not sample from truncated normal"));
+      } else if (accepted > 1) {
+	warning(_("sample of size %d which is smaller than requested 'n' returned"), accepted);
+	ret = ret.rows(0, accepted);
+	break;
+      }
+    }
+  }
+  ret = trans(ret);
+  ret = ret.cols(out.perm);
+  return ret;
+}
+
+//[[Rcpp::export]]
+arma::mat rxMvrandn_(NumericMatrix A_,
+		     arma::rowvec mu, arma::mat sigma, arma::vec lower,
+		     arma::vec upper, int ncores=1,
+		     double a=0.4, double tol = 2.05,
+		     double nlTol=1e-10, int nlMaxiter=100){
+
+  int n = A_.nrow();
+  int d = mu.n_elem;
+  arma::mat ch;
+  // FIXME d=1;
+  if (n < 1) stop(_("n should be a positive integer"));
+  if (ncores < 1) stop(_("'ncores' has to be greater than one"));
+  if (d != (int)sigma.n_cols) stop("length(mu) != ncol(sigma)");
+  if (d != (int)sigma.n_rows) stop("length(mu) != ncol(sigma)");
+  if (d != (int)A_.ncol()) stop("length(mu) != ncol(A)");
+
+  double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
+  uint32_t seed = static_cast<uint32_t>(seedD);
+  seed = min2(seed, std::numeric_limits<uint32_t>::max() - ncores - 1);
+  sitmo::threefry eng;
+  arma::mat A(A_.begin(), A_.nrow(), A_.ncol(), false, true);
+  eng.seed(seed);
+
+  arma::vec low = lower-trans(mu);
+  arma::vec up = upper-trans(mu);
+
+  arma::mat ret = mvrandn(low, up, sigma, n, eng, a, tol,
+			  nlTol, nlMaxiter, ncores);
+  ret.each_row() += mu;
+  std::copy(ret.begin(), ret.end(), A.begin());
+  return A;
 }

@@ -186,6 +186,7 @@ test_that("cholperm", {
     expect_equal(r1$perm, r2$perm + 1)
 
     ## microbenchmark::microbenchmark(cholperm(mcov, -2 * (1:5), -(1:5)), rxCholperm(mcov, -2 * (1:5), -(1:5)))
+    ## microbenchmark::microbenchmark(microbenchmark::cholperm(mcov, -2 * (1:5), -(1:5)), rxCholperm(mcov, -2 * (1:5), -(1:5)))
 
 })
 

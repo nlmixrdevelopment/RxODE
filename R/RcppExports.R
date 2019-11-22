@@ -693,6 +693,10 @@ rxNleq <- function(l, u, L) {
     .Call(`_RxODE_rxNleq`, l, u, L)
 }
 
+rxMvrandn_ <- function(A_, mu, sigma, lower, upper, ncores = 1L, a = 0.4, tol = 2.05, nlTol = 1e-10, nlMaxiter = 100L) {
+    .Call(`_RxODE_rxMvrandn_`, A_, mu, sigma, lower, upper, ncores, a, tol, nlTol, nlMaxiter)
+}
+
 # Register entry points for exported C++ functions
 methods::setLoadAction(function(ns) {
     .Call('_RxODE_RcppExport_registerCCallable', PACKAGE = 'RxODE')

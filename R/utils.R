@@ -424,6 +424,11 @@ rxRmvn <- function(n, mu, sigma, lower, upper, ncores=1, isChol=FALSE,
     if (!all(is.infinite(upper))) .trunc <- TRUE
     if (!all(is.infinite(upper))) .trunc <- TRUE
     if (.trunc){
+        if (isChol){
+            stop("n")
+        }
+        rxMvrandn_(.A, mu, sigma, lower, upper,
+                   ncores);
     } else {
         .Call(`_RxODE_rxRmvn_`, .A, mu, sigma,
               ncores, isChol);
