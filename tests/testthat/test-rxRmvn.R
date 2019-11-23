@@ -52,6 +52,34 @@ test_that("seeds behave as expected", {
     x2 <- rxRmvn(10, m, s, ncores=2)
     expect_false(isTRUE(all.equal(x1, x2)))
 
+    set.seed(10);
+    r1 <- rxRmvn(10, c(1,1,1), diag(3), c(-1,-1, -1), c(3,3, 3), ncores=1)
+
+    set.seed(10);
+    r2 <- rxRmvn(10, c(1,1,1), diag(3), c(-1,-1, -1), c(3, 3, 3), ncores=1)
+
+    expect_equal(r1, r2)
+
+
+    set.seed(10);
+    r1 <- rxRmvn(10, c(1,1,1), diag(3), c(-1,-1, -1), c(3,3, 3), ncores=1)
+
+    set.seed(10);
+    r2 <- rxRmvn(10, c(1,1,1), diag(3), c(-1,-1, -1), c(3, 3, 3), ncores=2)
+    expect_false(isTRUE(all.equal(x1, x2)))
+
+
+    set.seed(10);
+    r1 <- rxRmvn(10, c(1,1,1), diag(3), c(-1,-1, -1), c(3, 3, 3), ncores=2)
+
+    set.seed(10);
+    r2 <- rxRmvn(10, c(1,1,1), diag(3), c(-1,-1, -1), c(3, 3, 3), ncores=2)
+    expect_equal(r1, r2)
+
+    rxRmvn(10, c(1), diag(1)*0.01, c(-1), c(1.1))
+
+    rxRmvn(10, c(1), diag(1)*0.01)
+
 })
 
 

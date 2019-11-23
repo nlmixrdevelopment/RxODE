@@ -53,24 +53,33 @@ SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
     for (int i = 0; i < n*d; ++i){
       A[i] = snorm(eng);
     }
-    
+    if (d == 1){
+      double sd = ch(0, 0);
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-    for(int ir = 0; ir < n; ++ir){
-      for(int ic = d; ic--;){
-	acc = 0.0;
-	for (int ii = 0; ii <= ic; ++ii){
-	  acc += A.at(ir,ii) * ch.at(ii,ic);
-	}
-	work.at(ic) = acc; 
+      for (int i = 0; i < n; i++){
+	A[i] = A[i]*sd+mu(0);
       }
-      work += mu;
-      A(arma::span(ir), arma::span::all) = work;
-    }
+    } else {
 #ifdef _OPENMP
-  }
+#pragma omp for schedule(static)
 #endif
+      for(int ir = 0; ir < n; ++ir){
+	for(int ic = d; ic--;){
+	  acc = 0.0;
+	  for (int ii = 0; ii <= ic; ++ii){
+	    acc += A.at(ir,ii) * ch.at(ii,ic);
+	  }
+	  work.at(ic) = acc; 
+	}
+	work += mu;
+	A(arma::span(ir), arma::span::all) = work;
+      }
+#ifdef _OPENMP
+    }
+#endif
+  }
   return R_NilValue;
 }
 
@@ -181,6 +190,7 @@ double lnNpr(double a,double b) {
 typedef struct {
   arma::mat Z;
   arma::vec p;
+  arma::vec u;
 } rx_mvnrnd;
 
 rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
@@ -193,16 +203,15 @@ rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
   // output:    'logpr', log-likelihood of sample
   //              Z, random sample
   rx_mvnrnd ret;
+  int d=l.n_elem; // Initialization
+  mu[d-1]=0;
+  arma::mat Z(d,n); // create array for variables
+  arma::vec p(n);
+  arma::vec uu(n);
+  std::uniform_real_distribution<> unif(0.0, 1.0);
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
-#endif
-  
-  int d=l.n_elem; // Initialization
-  mu[d-1]=0;
-  arma::mat Z(d,n); //# create array for variables
-  arma::vec p(n, arma::fill::zeros);
-#ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
   for (int k = 0; k < d; ++k){
@@ -216,10 +225,12 @@ rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
       Z(k,j) = mu[k] + trandn(tl[j], tu[j], eng, a, tol);
       // # update likelihood ratio
       p[j] += lnNpr(tl[j], tu[j]) + 0.5*mu[k]*mu[k] - mu[k]*Z(k,j);
+      if (k == 0) uu[j] = -log(unif(eng));
     }
   }
   ret.Z = Z;
   ret.p = p;
+  ret.u = uu;
 #ifdef _OPENMP
   }
 #endif
@@ -291,7 +302,6 @@ rx_cholperms cholperm(arma::mat Sig, arma::vec l, arma::vec u,
       if (sv[kk] < 0) sv[kk] = sqrt(eps);
       else sv[kk] = sqrt(sv[kk]);
     }
-
     arma::vec colsV;
     if (j >1){
       colsV=L(I,span(0, j-1)) * z(span(0,j-1));
@@ -393,26 +403,21 @@ typedef struct {
   arma::mat Jac;
 } rx_gradpsi;
 
-rx_gradpsi gradpsi(arma::vec y, arma::mat L, arma::vec l, arma::vec u, int ncores=1){
+rx_gradpsi gradpsi(arma::vec y, arma::mat L, arma::vec l, arma::vec u,
+		   int ncores=1){
   rx_gradpsi ret;
-#ifdef _OPENMP
-#pragma omp parallel num_threads(ncores) if(ncores > 1)
-  {
-#endif
-
   //# implements grad_psi(x) to find optimal exponential twisting;
   //  # assume scaled 'L' with zero diagonal;
   int d = u.n_elem;
   arma::vec c(d,arma::fill::zeros);
   arma::vec x, mu;
   x = c; mu = x;
-  if (d > 2){
-    x(span(0, d-2)) = y(span(0, d-2));
-    mu(span(0, d-2)) = y(span(d-1, 2*d-3));
-  } else {
-    x(0) = y(0);
-    mu(0) = y(1);
+  if (d <= 1){
+    stop(_("dimension wrong in 'gradpsi' (d=%d)"), d);
   }
+  x(span(0, d-2)) = y(span(0, d-2));
+  mu(span(0, d-2)) = y(span(d-1, 2*d-3));
+  //
   // compute now ~l and ~u
   c(span(1, d-1)) = L(span(1,d-1), span(0, d-1)) * x;
   arma::vec lt = l - mu - c;
@@ -423,9 +428,11 @@ rx_gradpsi gradpsi(arma::vec y, arma::mat L, arma::vec l, arma::vec u, int ncore
   arma::vec pu(d);
   arma::vec P(d);
 #ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
 #pragma omp for schedule(static)
 #endif
-  for (int j = d; j < d; ++j){
+  for (int j = 0; j < d; ++j){
     w[j] = lnNpr(lt[j], ut[j]);
     pl[j] = exp(-0.5*lt[j]*lt[j] - w[j])*M_1_SQRT_2PI;
     pu[j] = exp(-0.5*ut[j]*ut[j] - w[j])*M_1_SQRT_2PI;
@@ -554,8 +561,8 @@ arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
 		  double nlTol=1e-10, int nlMaxiter=100, int ncores=1){
   if (ncores < 1) stop(_("'ncores' has to be greater than one"));
   int d = lin.n_elem;
-  if (uin.n_elem != d) stop(_("'lower' and 'upper' must have the same number of elements."));
-  if (Sig.n_rows != d || Sig.n_cols != d) stop(_("'sigma' must be a square matrix with the same dimension as 'upper' and 'lower'"));
+  if ((int)uin.n_elem != d) stop(_("'lower' and 'upper' must have the same number of elements."));
+  if ((int)Sig.n_rows != d || (int)Sig.n_cols != d) stop(_("'sigma' must be a square matrix with the same dimension as 'upper' and 'lower'"));
   if (any(lin>uin)){
     stop(_("'lower' is bigger than 'upper' for at least one item"));
   }
@@ -585,17 +592,16 @@ arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
   int iter=0;
   // rv=c();
   int accepted=0;
-  std::uniform_real_distribution<> unif(0.0, 1.0);
 
   arma::mat ret(d, n);
   while (accepted < n){
     // rx_mvnrnd out=mvnrnd(n,L,l,u,mu);
-    rx_mvnrnd out=mvnrnd(n, L, l, u, mu, eng, a, tol, ncores);
+    rx_mvnrnd out = mvnrnd(n, L, l, u, mu, eng, a, tol, ncores);
     arma::vec logpr = out.p;
     arma::mat curZ  = out.Z;
     // idx=-log(runif(n))>(psistar-logpr); # acceptance tests
     for (int i = n; i--;){
-      if (-log(unif(eng)) > (psistar-logpr[i])){
+      if (out.u[i] > (psistar-logpr[i])){
 	ret.col(accepted) =curZ.col(i);
 	accepted++;
 	if (accepted == n) break;
@@ -641,14 +647,29 @@ arma::mat rxMvrandn_(NumericMatrix A_,
   seed = min2(seed, std::numeric_limits<uint32_t>::max() - ncores - 1);
   sitmo::threefry eng;
   arma::mat A(A_.begin(), A_.nrow(), A_.ncol(), false, true);
-  eng.seed(seed);
 
   arma::vec low = lower-trans(mu);
   arma::vec up = upper-trans(mu);
-
-  arma::mat ret = mvrandn(low, up, sigma, n, eng, a, tol,
-			  nlTol, nlMaxiter, ncores);
-  ret.each_row() += mu;
-  std::copy(ret.begin(), ret.end(), A.begin());
+  if (d == 1){
+    double sd = sqrt(sigma(0,0));
+    double l=low(0)/sd;
+    double u=up(0)/sd;
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+    {
+#pragma omp for schedule(static)
+      for (int i = 0; i < n; ++i){
+	A[i] = sd*trandn(l, u, eng, a, tol)+mu(0);
+      }
+#endif
+#ifdef _OPENMP
+    }
+#endif
+  } else {
+    arma::mat ret = mvrandn(low, up, sigma, n, eng, a, tol,
+			    nlTol, nlMaxiter, ncores);
+    ret.each_row() += mu;
+    std::copy(ret.begin(), ret.end(), A.begin());
+  }
   return A;
 }
