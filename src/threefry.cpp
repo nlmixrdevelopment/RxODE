@@ -196,8 +196,7 @@ typedef struct {
 rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
 		 arma::vec& u, arma::vec mu,
 		 sitmo::threefry& eng,
-		 double a=0.4, double tol = 2.05,
-		 int ncores = 1){
+		 double a=0.4, double tol = 2.05){
   // generates the proposals from the exponentially tilted 
   // sequential importance sampling pdf;
   // output:    'logpr', log-likelihood of sample
@@ -209,11 +208,6 @@ rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
   arma::vec p(n);
   arma::vec uu(n);
   std::uniform_real_distribution<> unif(0.0, 1.0);
-#ifdef _OPENMP
-#pragma omp parallel num_threads(ncores) if(ncores > 1)
-  {
-#pragma omp for schedule(static)
-#endif
   for (int k = 0; k < d; ++k){
     //# compute matrix multiplication L*Z
     arma::vec col=trans(L(k,arma::span(0,k)) * Z.rows(0, k));
@@ -231,9 +225,6 @@ rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
   ret.Z = Z;
   ret.p = p;
   ret.u = uu;
-#ifdef _OPENMP
-  }
-#endif
   return ret;
 }
 
@@ -246,7 +237,7 @@ List rxMvnrnd(int n, arma::mat& L, arma::vec& l,
   sitmo::threefry eng;
   eng.seed(seed);
   rx_mvnrnd retI = mvnrnd(n, L, l, u, mu, eng,
-			  a, tol, 1);
+			  a, tol);
   List ret(2);
   NumericVector po(retI.p.size());
   std::copy(retI.p.begin(), retI.p.end(), po.begin());
@@ -596,7 +587,7 @@ arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
   arma::mat ret(d, n);
   while (accepted < n){
     // rx_mvnrnd out=mvnrnd(n,L,l,u,mu);
-    rx_mvnrnd out = mvnrnd(n, L, l, u, mu, eng, a, tol, ncores);
+    rx_mvnrnd out = mvnrnd(n, L, l, u, mu, eng, a, tol);
     arma::vec logpr = out.p;
     arma::mat curZ  = out.Z;
     // idx=-log(runif(n))>(psistar-logpr); # acceptance tests
@@ -652,17 +643,9 @@ arma::mat rxMvrandn_(NumericMatrix A_,
     double sd = sqrt(sigma(0,0));
     double l=low(0)/sd;
     double u=up(0)/sd;
-#ifdef _OPENMP
-#pragma omp parallel num_threads(ncores) if(ncores > 1)
-    {
-#pragma omp for schedule(static)
-      for (int i = 0; i < n; ++i){
-	A[i] = sd*trandn(l, u, eng, a, tol)+mu(0);
-      }
-#endif
-#ifdef _OPENMP
+    for (int i = 0; i < n; ++i){
+      A[i] = sd*trandn(l, u, eng, a, tol)+mu(0);
     }
-#endif
   } else {
     arma::mat ret = mvrandn(low, up, sigma, n, eng, a, tol,
 			    nlTol, nlMaxiter, ncores);
