@@ -654,3 +654,70 @@ arma::mat rxMvrandn_(NumericMatrix A_,
   }
   return A;
 }
+
+
+sitmo::threefry _eng;
+
+extern "C" int rxbinom(int n, double prob){
+  std::binomial_distribution<int> d(prob);
+  return d(_eng);
+}
+
+extern "C" double rxcauchy(double location, double scale){
+  std::cauchy_distribution<double> d(location, scale);
+  return d(_eng);
+}
+
+extern "C" double rxchisq(double df){
+  // Non central not supported in C++11
+  std::chi_squared_distribution<double> d(df);
+  return d(_eng);
+}
+
+extern "C" double rxexp(double rate){
+  std::exponential_distribution<double> d(rate);
+  return d(_eng);
+}
+
+extern "C" double rxf(double df1, double df2){
+  std::fisher_f_distribution<double> d(df1, df2);
+  return d(_eng);
+}
+// FIXME rxgamma
+
+extern "C" int rxgeom(double prob){
+  std::geometric_distribution<int> d(prob);
+  return d(_eng);
+}
+
+extern "C" double rxlnorm(double meanlog, double sdlog){
+  std::lognormal_distribution<double> d(meanlog, sdlog);
+  return d(_eng);
+}
+
+// FIXME rnbinom
+
+extern "C" double rxnorm(double mean, double sd){
+  std::normal_distribution<double> d(mean, sd);
+  return d(_eng);
+}
+
+extern "C" int rxpois(double lambda){
+  std::poisson_distribution<int> d(lambda);
+  return d(_eng);
+}
+
+extern "C" double rxt_(double df){
+  std::student_t_distribution<double> d(df);
+  return d(_eng);
+}
+
+extern "C" double rxunif(double low, double hi){
+  std::uniform_real_distribution<double> d(low, hi);
+  return d(_eng);
+}
+
+extern "C" double rxweibull(double shape, double scale){
+  std::weibull_distribution<double> d(shape, scale);
+  return d(_eng);
+}
