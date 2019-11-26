@@ -110,7 +110,8 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
     "fsign"=2,
     "fprec"=2,
     "fround"=2,
-    "ftrunc"=2
+    "ftrunc"=2,
+    "transit"=NA
 )
 
 

@@ -196,4 +196,21 @@ d/dt(cen) = ka*depot-k*cen
                      round(as.data.frame(transit2), 4));
     })
 
+    test_that("transit can be a variable or ODE", {
+
+        mod <- RxODE("
+d/dt(transit) = -3
+")
+
+        expect_true(inherits(mod, "RxODE"))
+
+        mod <- RxODE("
+transit = matt + fun
+")
+        expect_true(inherits(mod, "RxODE"))
+
+}
+
+)
+
 }, silent=TRUE)

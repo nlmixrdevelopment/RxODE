@@ -55,12 +55,6 @@ ini        : identifier_r ('=' | '<-' ) ini_const;
 derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-' | '~') ('+' | '-' | ) logical_or_expression;
 der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
 
-// transit(n,mtt) -> transit3(t,n,mtt)
-transit2   : 'transit' '(' trans_const ',' trans_const ')';
-
-// transit(n,mtt, bio) -> transit4(t,n,mtt,bio)
-transit3   : 'transit' '(' trans_const ',' trans_const ',' trans_const ')';
-
 dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) logical_or_expression;
 dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
@@ -124,8 +118,6 @@ primary_expression
   | eta
   | der_rhs
   | dfdy_rhs
-  | transit2
-  | transit3
   | function
   | ifelse
   | '(' logical_or_expression ')'
@@ -144,7 +136,7 @@ identifier_r: identifier_r_extra | identifier_r_1 | identifier_r_2 ;
 
 identifier_r_no_output: identifier_r_no_output_1 | identifier_r_no_output_2 | identifier_r_extra;
 
-identifier_r_extra: 'transit' | 'lag' | 'alag' | 'f'| 'F' | 'rate' | 'dur';
+identifier_r_extra: 'lag' | 'alag' | 'f'| 'F' | 'rate' | 'dur';
 
 theta: ('THETA' | 'theta') '[' decimalintNo0 ']';
 eta: ('ETA' | 'eta') '[' decimalintNo0 ']';

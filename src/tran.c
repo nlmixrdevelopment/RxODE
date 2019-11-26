@@ -604,8 +604,6 @@ typedef struct nodeInfo {
   int theta0;
   int theta0_noout;
   int theta;
-  int transit2;
-  int transit3;
   int cmt_statement;
   int dvid_statementI;
   int ifelse;
@@ -660,8 +658,6 @@ void niReset(nodeInfo *ni){
   ni->theta = -1;
   ni->theta0 = -1;
   ni->theta0_noout = -1;
-  ni->transit2 = -1;
-  ni->transit3 = -1;
   ni->cmt_statement = -1;
   ni->dvid_statementI = -1;
   ni->ifelse = -1;
@@ -909,8 +905,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (nodeHas(dfdy)     && i == 6) continue;
       if (nodeHas(ini0)     && i == 1) continue;
 
-      if (nodeHas(transit2) && i == 1) continue;
-      if (nodeHas(transit3) && i == 1) continue;
       if (nodeHas(dvid_statementI) && i != 0) continue;
 
 
@@ -1058,6 +1052,20 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           i = 1;// Parse next arguments
 	  depth=1;
 	  continue;
+	} else if (!strcmp("transit", v)){
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii == 2){
+	    aAppendN("_transit3P(t, _cSub, ", 21);
+	    sAppendN(&sbt,"transit(", 8);
+	    rx_podo=1;
+	  } else if (ii == 3){
+	    aAppendN("_transit4P(t, _cSub, ", 21);
+	    sAppendN(&sbt,"transit(", 8);
+	    rx_podo = 1;
+	  } else {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'transit' takes 2-3 arguments transit(n, mtt, bio)"));
+	  }
 	} else if (!strcmp("is.nan", v)) {
 	  sAppendN(&sb, "isnan", 5);
 	  sAppendN(&sbDt, "isnan", 5);
@@ -1348,16 +1356,16 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         }
         Free(v);
       }
-      if (nodeHas(transit2) && i == 0){
-        aAppendN("_transit3P(t, _cSub, ", 21);
-        sAppendN(&sbt,"transit(", 8);
-        rx_podo = 1;
-      }
-      if (nodeHas(transit3) && i == 0){
-        aAppendN("_transit4P(t, _cSub, ", 21);
-        sAppendN(&sbt,"transit(", 8);
-        rx_podo = 1;
-      }
+      /* if (nodeHas(transit2) && i == 0){ */
+      /*   aAppendN("_transit3P(t, _cSub, ", 21); */
+      /*   sAppendN(&sbt,"transit(", 8); */
+      /*   rx_podo = 1; */
+      /* } */
+      /* if (nodeHas(transit3) && i == 0){ */
+      /*   aAppendN("_transit4P(t, _cSub, ", 21); */
+      /*   sAppendN(&sbt,"transit(", 8); */
+      /*   rx_podo = 1; */
+      /* } */
       if ((nodeHas(fbio) || nodeHas(alag) || 
 	   nodeHas(dur) || nodeHas(rate) ||
 	   nodeHas(cmt_statement)) && i==2) {
