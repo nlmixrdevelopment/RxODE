@@ -42,6 +42,7 @@
 
 // Types for par pointers.r
 typedef double (*RxODE_fn) (double x);
+typedef int (*RxODE_ifn) (double x);
 typedef double (*RxODE_fn2) (double x, double y);
 typedef double (*RxODE_fn3i) (double x, double y, int i);
 typedef double (*RxODE_fn2i) (double x, int i);
@@ -114,6 +115,20 @@ extern _rxProdType _prodPS;
 extern RxODE_fn0i _prodType;
 extern RxODE_fn0i _sumType;
 extern rx_solve *_solveData;
+
+typedef int (*RxODE_rxbinom) (int n, double prob);
+extern RxODE_rxbinom rxbinom;
+extern RxODE_fn2 rxcauchy;
+extern RxODE_fn rxchisq;
+extern RxODE_fn rxexp;
+extern RxODE_fn2 rxf;
+extern RxODE_ifn rxgeom;
+extern RxODE_fn2 rxlnorm;
+extern RxODE_fn2 rxnorm;
+extern RxODE_ifn rxpois;
+extern RxODE_fn rxt_;
+extern RxODE_fn2 rxunif;
+extern RxODE_fn2 rxweibull;
 
 #ifdef _isRxODE_
 double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,

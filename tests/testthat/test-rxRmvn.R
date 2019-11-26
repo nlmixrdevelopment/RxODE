@@ -2,6 +2,7 @@ context("rxMvn")
 ## Tests adapted from
 ## https://github.com/cran/mvtnorm/blob/master/tests/rmvnorm.R
 test_that("mvtnormal simulations make sense", {
+
     set.seed(1)
     m <- 1:3
 
@@ -27,6 +28,7 @@ test_that("mvtnormal simulations make sense", {
 })
 
 test_that("seeds behave as expected", {
+
     m <- 1:3
 
     s <- diag(1:3)

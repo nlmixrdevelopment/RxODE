@@ -189,6 +189,19 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  double *InfusionRate, int *BadDose, int *idose,
 			  double *scale, int *stateIgnore, double *mtime);
 
+extern int rxbinom(int n, double prob);
+extern double rxcauchy(double location, double scale);
+extern double rxchisq(double df);
+extern double rxexp(double rate);
+extern double rxf(double df1, double df2);
+extern int rxgeom(double prob);
+extern double rxlnorm(double meanlog, double sdlog);
+extern double rxnorm(double mean, double sd);
+extern int rxpois(double lambda);
+extern double rxt_(double df);
+extern double rxunif(double low, double hi);
+extern double rxweibull(double shape, double scale);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
@@ -279,6 +292,18 @@ void R_init_RxODE(DllInfo *info){
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
+  R_RegisterCCallable("RxODE", "rxbinom", (DL_FUNC) rxbinom);
+  R_RegisterCCallable("RxODE", "rxcauchy", (DL_FUNC) rxcauchy);
+  R_RegisterCCallable("RxODE", "rxchisq", (DL_FUNC) rxchisq);
+  R_RegisterCCallable("RxODE", "rxexp", (DL_FUNC) rxexp);
+  R_RegisterCCallable("RxODE", "rxf", (DL_FUNC) rxf);
+  R_RegisterCCallable("RxODE", "rxgeom", (DL_FUNC) rxgeom);
+  R_RegisterCCallable("RxODE", "rxlnorm", (DL_FUNC) rxlnorm);
+  R_RegisterCCallable("RxODE", "rxnorm", (DL_FUNC) rxnorm);
+  R_RegisterCCallable("RxODE", "rxpois", (DL_FUNC) rxpois);
+  R_RegisterCCallable("RxODE", "rxt_", (DL_FUNC) rxt_);
+  R_RegisterCCallable("RxODE", "rxunif", (DL_FUNC) rxunif);
+  R_RegisterCCallable("RxODE", "rxweibull", (DL_FUNC) rxweibull);
   R_RegisterCCallable("RxODE", "powerDi", (DL_FUNC) powerDi);
   R_RegisterCCallable("RxODE", "powerD", (DL_FUNC) powerD);
   R_RegisterCCallable("RxODE", "powerDD", (DL_FUNC) powerDD);
