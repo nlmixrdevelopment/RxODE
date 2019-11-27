@@ -1,7 +1,7 @@
 <img src="https://raw.githubusercontent.com/nlmixrdevelopment/RxODE/master/vignettes/logo.png" width="120" alt="RxODE logo (by Justin Wilkins)" style="position:absolute; top:0; right:0; padding:10px; border: 0;">
 
 # RxODE
-
+[![CRAN status](https://cranchecks.info/badges/flavor/release/RxODE)](https://cran.r-project.org/web/checks/check_results_RxODE.html)
 [![Build Status](https://travis-ci.org/nlmixrdevelopment/RxODE.svg?branch=master)](https://travis-ci.org/nlmixrdevelopment/RxODE)
 [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/8vv1e3hncve9tnva?svg=true)](https://ci.appveyor.com/project/mattfidler/rxode)
 [![codecov.io](https://codecov.io/github/nlmixrdevelopment/RxODE/coverage.svg?branch=master)](https://codecov.io/github/nlmixrdevelopment/RxODE?branch=master)
