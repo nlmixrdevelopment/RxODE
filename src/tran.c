@@ -1066,6 +1066,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(_("'transit' takes 2-3 arguments transit(n, mtt, bio)"));
 	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  continue;	    
 	} else if (!strcmp("is.nan", v)) {
 	  sAppendN(&sb, "isnan", 5);
 	  sAppendN(&sbDt, "isnan", 5);
