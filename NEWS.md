@@ -9,6 +9,7 @@
   - `if (logic){ expr} else if (logic) {expr} else {}`.  The preferred
     syntax is still only `if`/`else` and the corresponding parsed code
     reflects this preference.
+    - Note `ifelse` is not allowed as an ODE compartment or a variable.
 	
 * Switched to `symengine` instead of using `sympy`
   - Remove dependence on python.
@@ -42,6 +43,8 @@
 * Bug fixes:
  - Occasionally RxODE misidentified dual `lhs`/`param` values.  An
    additional check is performed so that this does not happen.
+ - Transit compartment models using the `transit` ODE or variable are
+   now allowed
    
 
 # RxODE v0.9.1-8
