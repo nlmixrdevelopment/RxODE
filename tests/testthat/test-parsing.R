@@ -688,10 +688,6 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     goodParse("ss2", "a=ss+3")
     badParse("ss3", "d/dt(ss)=matt")
 
-    badParse("ss1", "ss=3")
-    goodParse("ss2", "a=ss+3")
-    badParse("ss3", "d/dt(ss)=matt")
-
     badParse("amt1", "amt=3")
     goodParse("amt2", "a=amt+3")
     badParse("amt3", "d/dt(amt)=matt")
@@ -699,7 +695,6 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     badParse("rate1", "rate=3")
     goodParse("rate2", "a=rate+3")
     badParse("rate3", "d/dt(rate)=matt")
-
 
     badParse("printf1", "printf=3")
     badParse("printf2", "a=printf+3")

@@ -39,12 +39,25 @@
   solutions. In addition, added R-like functions `is.nan`, `is.na`,
   `is.finite` and `is.infinite` which can be called within the RxODE
   block.
+
+* Allowed the following data variables to be accessed (but not
+  assigned or used as a state):
+  - `cmt`
+  - `dvid`
+  - `addl`
+  - `ss`
+  - `amt`
+  - `rate`
+
+* Kept `evid` and `ii` as restricted items since they are not part of
+  the covariate table and are restricted in use.
   
 * Bug fixes:
  - Occasionally RxODE misidentified dual `lhs`/`param` values.  An
    additional check is performed so that this does not happen.
  - Transit compartment models using the `transit` ODE or variable are
-   now allowed
+   now allowed.  Also check for more internally parsed items (see
+   Issue #145).
    
 
 # RxODE v0.9.1-8
