@@ -474,7 +474,7 @@ int new_or_ith(const char *s) {
   }
   if (!strcmp("ifelse", s)){
     updateSyntaxCol();
-    trans_syntax_error_report_fn(_("'ifelse' cannot be a variable/state in an RxODE model"));
+    error(_("'ifelse' cannot be a state in an RxODE model"));
     tb.ix=-2;
     return 0;
   }

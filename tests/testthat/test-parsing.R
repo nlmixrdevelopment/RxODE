@@ -662,4 +662,8 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     goodParse("eta1", "a = eta[1]")
     badParse("matt1", "a = matt[1]")
 
+    badParse("ifelse1", "ifelse=3")
+    badParse("ifelse2", "a=ifelse+3")
+    badParse("ifelse3", "d/dt(ifelse)=matt")
+
 }, silent=TRUE);
