@@ -467,12 +467,13 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     ## })
 
     ## Bad parse:
-    for (var in c('rate', 'dur', 'dvid')){
-        badParse(sprintf("Cannot use the reserved %s variable", var),
-                  sprintf("x = %s + 3"))
-    }
+    ## for (var in c('rate', 'dur', 'dvid')){
+    ##     badParse(sprintf("Cannot use the reserved %s variable", var),
+    ##               sprintf("x = %s + 3"))
+    ## }
 
-    ## 'rate' and 'dur' can be data items, so they cannot be variables in an RxODE model
+    ## 'rate' and 'dur' can be data items, so they cannot be variables
+    ## in an RxODE model
     for (var in c("lag", "alag", "f", "F")){
         goodParse(sprintf("Parsing of %s as a variable and function work.", var),
                   sprintf("d/dt(x) = -k*x;%s(x) = %s;", var, var))
@@ -674,5 +675,25 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     badParse("cmt1", "cmt=3")
     goodParse("cmt2", "a=cmt+3")
     badParse("cmt3", "d/dt(cmt)=matt")
+
+    badParse("dvid1", "dvid=3")
+    goodParse("dvid2", "a=dvid+3")
+    badParse("dvid3", "d/dt(dvid)=matt")
+
+    badParse("addl1", "addl=3")
+    goodParse("addl2", "a=addl+3")
+    badParse("addl3", "d/dt(addl)=matt")
+
+    badParse("ss1", "ss=3")
+    goodParse("ss2", "a=ss+3")
+    badParse("ss3", "d/dt(ss)=matt")
+
+    badParse("amt1", "amt=3")
+    goodParse("amt2", "a=amt+3")
+    badParse("amt3", "d/dt(amt)=matt")
+
+    badParse("rate1", "rate=3")
+    goodParse("rate2", "a=rate+3")
+    badParse("rate3", "d/dt(rate)=matt")
 
 }, silent=TRUE);

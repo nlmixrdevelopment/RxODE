@@ -454,24 +454,24 @@ int new_or_ith(const char *s) {
 
   if (tb.fn) {tb.ix=-2; return 0;}
   if (!strcmp("t", s)) {tb.ix=-2; return 0;}
-  if (!strcmp("rate", s)){
-    updateSyntaxCol();
-    trans_syntax_error_report_fn(_("'rate' cannot be a variable in an RxODE model"));
-    tb.ix=-2; 
-    return 0;
-  }
-  if (!strcmp("dur", s)){
-    updateSyntaxCol();
-    trans_syntax_error_report_fn(_("'dur' cannot be a variable in an RxODE model"));
-    tb.ix=-2; 
-    return 0;
-  }
-  if (!strcmp("amt", s)){
-    updateSyntaxCol();
-    trans_syntax_error_report_fn(_("'amt' cannot be a variable in an RxODE model"));
-    tb.ix=-2; 
-    return 0;
-  }
+  /* if (!strcmp("rate", s)){ */
+  /*   updateSyntaxCol(); */
+  /*   trans_syntax_error_report_fn(_("'rate' cannot be a variable in an RxODE model")); */
+  /*   tb.ix=-2;  */
+  /*   return 0; */
+  /* } */
+  /* if (!strcmp("dur", s)){ */
+  /*   updateSyntaxCol(); */
+  /*   trans_syntax_error_report_fn(_("'dur' cannot be a variable in an RxODE model")); */
+  /*   tb.ix=-2;  */
+  /*   return 0; */
+  /* } */
+  /* if (!strcmp("amt", s)){ */
+  /*   updateSyntaxCol(); */
+  /*   trans_syntax_error_report_fn(_("'amt' cannot be a variable in an RxODE model")); */
+  /*   tb.ix=-2;  */
+  /*   return 0; */
+  /* } */
   if (!strcmp("ifelse", s)){
     updateSyntaxCol();
     error(_("'ifelse' cannot be a state in an RxODE model"));
@@ -484,33 +484,28 @@ int new_or_ith(const char *s) {
     tb.ix=-2;
     return 0;
   }
-  if (!strcmp("ss", s)){
-    updateSyntaxCol();
-    trans_syntax_error_report_fn(_("'ss' cannot be a variable in an RxODE model"));
-    tb.ix=-2; 
-    return 0;
-  }
-  if (!strcmp("addl", s)){
-    updateSyntaxCol();
-    trans_syntax_error_report_fn(_("'addl' cannot be a variable in an RxODE model"));
-    tb.ix=-2; 
-    return 0;
-  }
-  if (!strcmp("evid", s)){
+  /* if (!strcmp("ss", s)){ */
+  /*   updateSyntaxCol(); */
+  /*   trans_syntax_error_report_fn(_("'ss' cannot be a variable in an RxODE model")); */
+  /*   tb.ix=-2;  */
+  /*   return 0; */
+  /* } */
+  /* if (!strcmp("addl", s)){ */
+  /*   updateSyntaxCol(); */
+  /*   trans_syntax_error_report_fn(_("'addl' cannot be a variable in an RxODE model")); */
+  /*   tb.ix=-2;  */
+  /*   return 0; */
+  /* } */
+  if (!strcmp("evid", s)){ // This is mangled by RxODE so don't use it.
     updateSyntaxCol();
     trans_syntax_error_report_fn(_("'evid' cannot be a variable in an RxODE model"));
     tb.ix=-2; 
     return 0;
   }
-  if (!strcmp("ii", s)){
+  if (!strcmp("ii", s)){ // This is internally driven and not in the
+			 // covariate table so don't use it.
     updateSyntaxCol();
     trans_syntax_error_report_fn(_("'ii' cannot be a variable in an RxODE model"));
-    tb.ix=-2; 
-    return 0;
-  }
-  if (!strcmp("dvid", s)){
-    updateSyntaxCol();
-    trans_syntax_error_report_fn(_("'dvid' cannot be a variable in an RxODE model"));
     tb.ix=-2; 
     return 0;
   }
@@ -680,7 +675,13 @@ void niReset(nodeInfo *ni){
 
 int new_de(const char *s){
   int i;
-  if (!strcmp("cmt", s)) error(_("'cmt' cannot be a state"));
+  if (!strcmp("cmt", s)) error(_("'cmt' cannot be a state or lhs expression"));
+  if (!strcmp("dvid", s)) error(_("'dvid' cannot be a state or lhs expression"));
+  if (!strcmp("addl", s)) error(_("'addl' cannot be a state or lhs expression"));
+  if (!strcmp("ss", s)) error(_("'ss' cannot be a state or lhs expression"));
+  if (!strcmp("amt", s)) error(_("'amt' cannot be a state or lhs expression"));
+  if (!strcmp("dur", s)) error(_("'dur' cannot be a state or lhs expression"));
+  if (!strcmp("rate", s)) error(_("'rate' cannot be a state or lhs expression"));
   for (i=0; i<tb.de.n; i++) {
     if (!strcmp(tb.de.line[i], s)) { 
       tb.id = i;
