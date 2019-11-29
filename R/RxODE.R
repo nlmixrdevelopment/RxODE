@@ -335,8 +335,48 @@ RxODE <- function(model, modName = basename(wd),
                   collapseModel=FALSE, package=NULL, ...,
                   linCmtSens=FALSE,
                   indLin=FALSE){
+    if (!missing(modName)){
+        if (!checkmate::testCharacter(package,max.len = 1)){
+            stop("'modName' has to be a single length character");
+        }
+    }
+    if (!missing(extraC)){
+        if (!checkmate::testAccess(extraC, "r")){
+            stop("'extraC' needs to point to a file that exists and is readable")
+        }
+    }
+    if (!missing(calcJac)){
+        if (!checkmate::checkLogical(calcJac, max.len=1, any.missing=FALSE)){
+            if (!checkmate::checkCharacter(calcJac)){
+                stop("'calcJac' needs to be logical or a list of states")
+            }
+        }
+    }
+    if (!missing(calcSens)){
+        if (!checkmate::checkLogical(calcSens, max.len=1, any.missing=FALSE)){
+            if (!checkmate::checkCharacter(calcSens, any.missing=FALSE)){
+                stop("'calcSens' needs to be logical or a list of states")
+            }
+        }
+    }
+    if (!checkmate::checkLogical(collapseModel, max.len=1, any.missing=FALSE)){
+        stop("'collapseModel' needs to be logical")
+    }
+    if (!checkmate::checkLogical(linCmtSens, max.len=1, any.missing=FALSE)){
+        stop("'linCmtSens' needs to be logical")
+    }
+    if (!checkmate::checkLogical(indLin, max.len=1, any.missing=FALSE)){
+        stop("'indLin' needs to be logical")
+    }
+    if (!checkout::checkLogical(debug, max.len=1, any.missing=FALSE)){
+        stop("'debug' needs to be logical")
+    }
     rxTempDir();
     if (!is.null(package)){
+        if (!checkmate::checkCharacter(package, max.len=1, any.missing=FALSE)){
+            stop("'package' needs to a single character for the package name");
+        }
+
         if (missing(modName)){
             stop("with packages 'modName' is required");
         }

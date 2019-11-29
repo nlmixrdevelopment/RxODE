@@ -84,15 +84,17 @@ Imports:
     pillar,
     rex,
     sys,
-    units(>= 0.6-0),
+    units (>= 0.6-0),
     utils,
     assertthat,
     lotri,
     remotes,
     symengine,
-    StanHeaders(>= 2.18.0),
-    BH, RcppArmadillo(>= 0.9.300.2.0),
-    expm
+    StanHeaders (>= 2.18.0),
+    BH,
+    RcppArmadillo (>= 0.9.300.2.0),
+    expm,
+    checkmate
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
