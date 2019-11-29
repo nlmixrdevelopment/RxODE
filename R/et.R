@@ -277,6 +277,7 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
         names(.lst)[1] <- "";
     }
     if (!missing(by)){
+        checkmate::assertNumeric(length.out, finite=TRUE, max.len=1, any.missing=FALSE, min=0);
         if (!missing(length.out)){
             stop("cannot supply both 'by' and 'length.out'");
         }
@@ -309,6 +310,7 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
         }
     }
     if (!missing(length.out)){
+        checkmate::assertCount(length.out);
         .lst <- .lst[names(.lst) != "length.out"];
         .lst <- .lst[names(.lst) != "envir"];
         if (.isPipe){
@@ -374,6 +376,11 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
     }
 
     if (!missing(time)){
+        checkmate::assertNumeric(time,
+                                 finite=TRUE,
+                                 any.missing=FALSE,
+                                 unique=TRUE,
+                                 names="unnamed");
         .lst$time <- time;
     }
     if (!missing(amt)){
