@@ -52,6 +52,8 @@
 * Kept `evid` and `ii` as restricted items since they are not part of
   the covariate table and are restricted in use.
   
+* Updated to [TimSort 1.2.0](https://github.com/timsort/cpp-TimSort/releases/tag/v1.2.0)
+  
 * Bug fixes:
  - Occasionally RxODE misidentified dual `lhs`/`param` values.  An
    additional check is performed so that this does not happen.
