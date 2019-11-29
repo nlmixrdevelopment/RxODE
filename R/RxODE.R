@@ -336,7 +336,7 @@ RxODE <- function(model, modName = basename(wd),
                   linCmtSens=FALSE,
                   indLin=FALSE){
     if (!missing(modName)){
-        if (!checkmate::testCharacter(package,max.len = 1)){
+        if (!checkmate::testCharacter(modName,max.len = 1)){
             stop("'modName' has to be a single length character");
         }
     }
@@ -368,7 +368,7 @@ RxODE <- function(model, modName = basename(wd),
     if (!checkmate::checkLogical(indLin, max.len=1, any.missing=FALSE)){
         stop("'indLin' needs to be logical")
     }
-    if (!checkout::checkLogical(debug, max.len=1, any.missing=FALSE)){
+    if (!checkmate::checkLogical(debug, max.len=1, any.missing=FALSE)){
         stop("'debug' needs to be logical")
     }
     rxTempDir();

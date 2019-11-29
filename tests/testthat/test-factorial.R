@@ -12,9 +12,9 @@ rxPermissive({
         }
     }
 
-    transTo("d/dt(cmt)= factorial(1+fac)-cmt*ka", "factorial(1+fac)")
-    transTo("d/dt(cmt)= lgamma(1+fac)-cmt*ka", "lgamma(1+fac)")
-    transTo("d/dt(cmt)= gamma(1+fac)-cmt*ka", "lgammafn(1+fac)")
-    transTo("d/dt(cmt)= lfactorial(1+fac)-cmt*ka", "lgamma1p(1+fac)")
+    transTo("d/dt(m)= factorial(1+fac)-cmt*ka", "factorial(1+fac)")
+    transTo("d/dt(m)= lgamma(1+fac)-cmt*ka", "lgamma(1+fac)")
+    transTo("d/dt(m)= gamma(1+fac)-cmt*ka", "lgammafn(1+fac)")
+    transTo("d/dt(m)= lfactorial(1+fac)-cmt*ka", "lgamma1p(1+fac)")
 
 }, silent=TRUE)

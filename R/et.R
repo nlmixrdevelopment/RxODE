@@ -277,7 +277,7 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
         names(.lst)[1] <- "";
     }
     if (!missing(by)){
-        checkmate::assertNumeric(length.out, finite=TRUE, max.len=1, any.missing=FALSE, min=0);
+        checkmate::assertNumeric(by, finite=TRUE, max.len=1, any.missing=FALSE, min=0);
         if (!missing(length.out)){
             stop("cannot supply both 'by' and 'length.out'");
         }
@@ -288,10 +288,13 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
                 .from <- .lst[[2]];
                 .to <- .lst[[3]];
                 .lst <- .lst[-3];
+                checkmate::assertNumeric(.from, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="from")
+                checkmate::assertNumeric(.to, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="to")
                 .lst[[2]] <- seq(from=.from, to=.to, by=by);
                 return(do.call(et.default, .lst, envir=envir))
             } else {
                 .from <- .lst[[2]];
+                checkmate::assertNumeric(.from, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="from")
                 .lst[[2]] <- seq(from=.from, by=by);
                 return(do.call(et.default, .lst, envir=envir))
             }
@@ -300,10 +303,13 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
                 .from <- .lst[[1]];
                 .to <- .lst[[2]];
                 .lst <- .lst[-2];
+                checkmate::assertNumeric(.from, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="from")
+                checkmate::assertNumeric(.to, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="to")
                 .lst[[1]] <- seq(from=.from, to=.to, by=by);
                 return(do.call(et.default, .lst, envir=envir))
             } else {
                 .from <- .lst[[1]];
+                checkmate::assertNumeric(.from, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="from")
                 .lst[[1]] <- seq(from=.from, by=by);
                 return(do.call(et.default, .lst, envir=envir))
             }
@@ -318,10 +324,13 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
                 .from <- .lst[[2]];
                 .to <- .lst[[3]];
                 .lst <- .lst[-3];
+                checkmate::assertNumeric(.from, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="from")
+                checkmate::assertNumeric(.to, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="to")
                 .lst[[2]] <- seq(from=.from, to=.to, length.out=length.out);
                 return(do.call(et.default, .lst, envir=envir))
             } else {
                 .from <- .lst[[2]];
+                checkmate::assertNumeric(.from, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="from")
                 .lst[[2]] <- seq(from=.from, length.out=length.out);
                 return(do.call(et.default, .lst, envir=envir))
             }
@@ -329,11 +338,14 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
             if (length(.lst)==2){
                 .from <- .lst[[1]];
                 .to <- .lst[[2]];
+                checkmate::assertNumeric(.from, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="from")
+                checkmate::assertNumeric(.to, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="to")
                 .lst <- .lst[-2];
                 .lst[[1]] <- seq(from=.from, to=.to, length.out=length.out);
                 return(do.call(et.default, .lst, envir=envir))
             } else {
                 .from <- .lst[[1]];
+                checkmate::assertNumeric(.from, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="from")
                 .lst[[1]] <- seq(from=.from, length.out=length.out);
                 return(do.call(et.default, .lst, envir=envir))
             }
@@ -346,6 +358,8 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
                 .from <- .lst[[1]];
                 .to <- .lst[[2]];
                 .lst <- .lst[-2];
+                checkmate::assertNumeric(.from, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="from")
+                checkmate::assertNumeric(.to, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="to")
                 .lst[[1]] <- seq(from=.from, to=.to);
                 return(do.call(et.default, .lst, envir=envir))
             }
@@ -361,6 +375,8 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
                 (is(.lst[[3]], "numeric") || is(.lst[[3]], "integer"))){
                 .from <- .lst[[2]];
                 .to <- .lst[[3]];
+                checkmate::assertNumeric(.from, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="from")
+                checkmate::assertNumeric(.to, finite=TRUE, max.len=1, any.missing=FALSE, .var.name="to")
                 .lst <- .lst[-3];
                 .lst[[2]] <- seq(from=.from, to=.to);
                 return(do.call(et.default, .lst, envir=envir))
@@ -384,6 +400,11 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
         .lst$time <- time;
     }
     if (!missing(amt)){
+        checkmate::assertNumeric(amt,
+                                 finite=TRUE,
+                                 any.missing=FALSE,
+                                 max.len=1,
+                                 names="unnamed")
         .lst$amt <- amt;
     }
     if (!missing(evid)){
@@ -898,8 +919,14 @@ add.sampling <- function(eventTable, time, time.units = NA){
 ##' @export
 eventTable <- function(amount.units = NA, time.units = NA){
     .lst <- list()
-    if (!missing(amount.units)) .lst$amount.units <- amount.units;
-    if (!missing(time.units)) .lst$time.units <- time.units
+    if (!missing(amount.units)){
+        checkmate::assertCharacter(amount.units, max.len=1)
+        .lst$amount.units <- amount.units;
+    }
+    if (!missing(time.units)){
+        checkmate::assertCharacter(time.units, max.len=1)
+        .lst$time.units <- time.units
+    }
     .Call(`_RxODE_et_`, .lst, list())
 }
 
