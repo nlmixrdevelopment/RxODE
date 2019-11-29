@@ -670,4 +670,9 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     badParse("if2", "a=if+3")
     badParse("if3", "d/dt(if)=matt")
 
+
+    badParse("cmt1", "cmt=3")
+    goodParse("cmt2", "a=cmt+3")
+    badParse("cmt3", "d/dt(cmt)=matt")
+
 }, silent=TRUE);

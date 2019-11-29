@@ -680,6 +680,7 @@ void niReset(nodeInfo *ni){
 
 int new_de(const char *s){
   int i;
+  if (!strcmp("cmt", s)) error(_("'cmt' cannot be a state"));
   for (i=0; i<tb.de.n; i++) {
     if (!strcmp(tb.de.line[i], s)) { 
       tb.id = i;
