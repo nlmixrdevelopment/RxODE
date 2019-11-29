@@ -454,12 +454,24 @@ int new_or_ith(const char *s) {
 
   if (tb.fn) {tb.ix=-2; return 0;}
   if (!strcmp("t", s)) {tb.ix=-2; return 0;}
-  /* if (!strcmp("rate", s)){ */
-  /*   updateSyntaxCol(); */
-  /*   trans_syntax_error_report_fn(_("'rate' cannot be a variable in an RxODE model")); */
-  /*   tb.ix=-2;  */
-  /*   return 0; */
-  /* } */
+  if (!strcmp("printf", s)){
+    updateSyntaxCol();
+    trans_syntax_error_report_fn(_("'printf' cannot be a variable in an RxODE model"));
+    tb.ix=-2;
+    return 0;
+  }
+  if (!strcmp("Rprintf", s)){
+    updateSyntaxCol();
+    trans_syntax_error_report_fn(_("'Rprintf' cannot be a variable in an RxODE model"));
+    tb.ix=-2;
+    return 0;
+  }
+  if (!strcmp("print", s)){
+    updateSyntaxCol();
+    trans_syntax_error_report_fn(_("'print' cannot be a variable in an RxODE model"));
+    tb.ix=-2;
+    return 0;
+  }
   /* if (!strcmp("dur", s)){ */
   /*   updateSyntaxCol(); */
   /*   trans_syntax_error_report_fn(_("'dur' cannot be a variable in an RxODE model")); */
@@ -503,10 +515,10 @@ int new_or_ith(const char *s) {
     return 0;
   }
   if (!strcmp("ii", s)){ // This is internally driven and not in the
-			 // covariate table so don't use it.
+  			 // covariate table so don't use it.
     updateSyntaxCol();
     trans_syntax_error_report_fn(_("'ii' cannot be a variable in an RxODE model"));
-    tb.ix=-2; 
+    tb.ix=-2;
     return 0;
   }
   if (!strcmp("time", s)) {tb.ix=-2; return 0;}
@@ -678,10 +690,14 @@ int new_de(const char *s){
   if (!strcmp("cmt", s)) error(_("'cmt' cannot be a state or lhs expression"));
   if (!strcmp("dvid", s)) error(_("'dvid' cannot be a state or lhs expression"));
   if (!strcmp("addl", s)) error(_("'addl' cannot be a state or lhs expression"));
+  if (!strcmp("ii", s)) error(_("'ii' cannot be a state or lhs expression"));
   if (!strcmp("ss", s)) error(_("'ss' cannot be a state or lhs expression"));
   if (!strcmp("amt", s)) error(_("'amt' cannot be a state or lhs expression"));
   if (!strcmp("dur", s)) error(_("'dur' cannot be a state or lhs expression"));
   if (!strcmp("rate", s)) error(_("'rate' cannot be a state or lhs expression"));
+  if (!strcmp("Rprintf", s)) error(_("'Rprintf' cannot be a state"));
+  if (!strcmp("printf", s)) error(_("'printf' cannot be a state"));
+  if (!strcmp("print", s)) error(_("'print' cannot be a state"));
   for (i=0; i<tb.de.n; i++) {
     if (!strcmp(tb.de.line[i], s)) { 
       tb.id = i;

@@ -404,7 +404,7 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
               d/dt(peri)  =                    Q*C2 - Q*C3;
               d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;")
 
-    for (v in c("rate", "amt", "ss", "addl", "evid", "ii")){
+    for (v in c("ii", "evid")){
         badParse(desc=sprintf("bad variables: %s",v),
                  sprintf("var=%s",v))
     }
@@ -688,6 +688,10 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     goodParse("ss2", "a=ss+3")
     badParse("ss3", "d/dt(ss)=matt")
 
+    badParse("ss1", "ss=3")
+    goodParse("ss2", "a=ss+3")
+    badParse("ss3", "d/dt(ss)=matt")
+
     badParse("amt1", "amt=3")
     goodParse("amt2", "a=amt+3")
     badParse("amt3", "d/dt(amt)=matt")
@@ -695,5 +699,18 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     badParse("rate1", "rate=3")
     goodParse("rate2", "a=rate+3")
     badParse("rate3", "d/dt(rate)=matt")
+
+
+    badParse("printf1", "printf=3")
+    badParse("printf2", "a=printf+3")
+    badParse("printf3", "d/dt(printf)=matt")
+
+    badParse("Rprintf1", "Rprintf=3")
+    badParse("Rprintf2", "a=Rprintf+3")
+    badParse("Rprintf3", "d/dt(Rprintf)=matt")
+
+    badParse("print1", "print=3")
+    badParse("print2", "a=print+3")
+    badParse("print3", "d/dt(print)=matt")
 
 }, silent=TRUE);
