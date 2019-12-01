@@ -345,20 +345,20 @@ RxODE <- function(model, modName = basename(wd),
             stop("'extraC' needs to point to a file that exists and is readable")
         }
     }
-    if (!missing(calcJac)){
-        if (!checkmate::checkLogical(calcJac, max.len=1, any.missing=FALSE)){
-            if (!checkmate::checkCharacter(calcJac)){
-                stop("'calcJac' needs to be logical or a list of states")
-            }
-        }
-    }
-    if (!missing(calcSens)){
-        if (!checkmate::checkLogical(calcSens, max.len=1, any.missing=FALSE)){
-            if (!checkmate::checkCharacter(calcSens, any.missing=FALSE)){
-                stop("'calcSens' needs to be logical or a list of states")
-            }
-        }
-    }
+    ## if (!missing(calcJac)){
+    ##     if (!checkmate::checkLogical(calcJac, max.len=1, any.missing=FALSE)){
+    ##         if (!checkmate::checkCharacter(calcJac)){
+    ##             stop("'calcJac' needs to be logical or a list of states")
+    ##         }
+    ##     }
+    ## }
+    ## if (!missing(calcSens)){
+    ##     if (!checkmate::checkLogical(calcSens, max.len=1, any.missing=FALSE)){
+    ##         if (!checkmate::checkCharacter(calcSens, any.missing=FALSE)){
+    ##             stop("'calcSens' needs to be logical or a list of states")
+    ##         }
+    ##     }
+    ## }
     if (!checkmate::checkLogical(collapseModel, max.len=1, any.missing=FALSE)){
         stop("'collapseModel' needs to be logical")
     }

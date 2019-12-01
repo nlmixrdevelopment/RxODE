@@ -73,7 +73,6 @@ test_that("seeds behave as expected", {
 
     ## set.seed(10);
     ## r1 <- rxRmvn(10, c(1,1,1), diag(3), c(-1,-1, -1), c(3, 3, 3), ncores=2)
-a
     ## set.seed(10);
     ## r2 <- rxRmvn(10, c(1,1,1), diag(3), c(-1,-1, -1), c(3, 3, 3), ncores=2)
     ## expect_equal(r1, r2)
