@@ -204,7 +204,7 @@ rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
   rx_mvnrnd ret;
   int d=l.n_elem; // Initialization
   mu[d-1]=0;
-  arma::mat Z(d,n); // create array for variables
+  arma::mat Z(d,n,arma::fill::zeros); // create array for variables
   arma::vec p(n);
   arma::vec uu(n);
   std::uniform_real_distribution<> unif(0.0, 1.0);
@@ -258,7 +258,7 @@ typedef struct {
   
 } rx_cholperms;
 
-rx_cholperms cholperm(arma::mat Sig, arma::vec l, arma::vec u,
+rx_cholperms cholperm(arma::mat Sig, arma::vec& cl, arma::vec& cu,
 		      double eps=1e-10){
   // #  Computes permuted lower Cholesky factor L for Sig
   // #  by permuting integration limit vectors l and u.
@@ -269,6 +269,8 @@ rx_cholperms cholperm(arma::mat Sig, arma::vec l, arma::vec u,
   // #  "Monte Carlo evaluation of multivariate normal integrals and
   // #  sensitivity to variate ordering", 
   // #  In: Advances in Numerical Methods and Applications, pages 120--126
+  arma::vec l=cl;
+  arma::vec u=cu;
   int d = l.n_elem;
   arma::uvec perm(d);
   std::iota(perm.begin(),perm.end(),0);
