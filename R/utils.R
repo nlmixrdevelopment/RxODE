@@ -427,6 +427,9 @@ rxRmvn <- function(n, mu, sigma, lower, upper, ncores=1, isChol=FALSE,
         if (isChol){
             stop("n")
         }
+        if (ncores > 1){
+            ncores <- 1
+        }
         rxMvrandn_(.A, mu, sigma, lower, upper,
                    ncores);
     } else {
