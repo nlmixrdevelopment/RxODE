@@ -205,8 +205,8 @@ rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
   int d=l.n_elem; // Initialization
   mu[d-1]=0;
   arma::mat Z(d,n,arma::fill::zeros); // create array for variables
-  arma::vec p(n);
-  arma::vec uu(n);
+  arma::vec p(n, arma::fill::zeros);
+  arma::vec uu(n, arma::fill::zeros);
   std::uniform_real_distribution<> unif(0.0, 1.0);
   for (int k = 0; k < d; ++k){
     //# compute matrix multiplication L*Z
