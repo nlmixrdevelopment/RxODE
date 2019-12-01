@@ -1,4 +1,5 @@
 # RxODE xxxx
+## New features
 * Added ability to prune branching with `rxPrune`. This converts
   `if`/`else` or `ifelse` to single line statements without any
   `if`/`then` branching within them.
@@ -54,7 +55,7 @@
   
 * Updated to [TimSort 1.2.0](https://github.com/timsort/cpp-TimSort/releases/tag/v1.2.0)
   
-* Bug fixes:
+## Bug fixes:
  - Occasionally RxODE misidentified dual `lhs`/`param` values.  An
    additional check is performed so that this does not happen.
  - Transit compartment models using the `transit` ODE or variable are
