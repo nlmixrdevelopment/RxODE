@@ -136,6 +136,8 @@ void _assignFuns(){
     rxlnorm = R_GetCCallable("RxODE", "rxlnorm");
     rxnorm = R_GetCCallable("RxODE", "rxnorm");
     rxpois = R_GetCCallable("RxODE", "rxpois");
+    rxgamma = R_GetCCallable("RxODE", "rxgamma");
+    rxbeta = R_GetCCallable("RxODE", "rxbeta");
     rxt_ = R_GetCCallable("RxODE", "rxt_");
     rxunif = R_GetCCallable("RxODE", "rxunif");
     rxweibull = R_GetCCallable("RxODE", "rxweibull");

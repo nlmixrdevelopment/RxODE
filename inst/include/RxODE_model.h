@@ -126,6 +126,8 @@ extern RxODE_fn2 rxf;
 extern RxODE_ifn rxgeom;
 extern RxODE_fn2 rxlnorm;
 extern RxODE_fn2 rxnorm;
+extern RxODE_fn2 rxgamma;
+extern RxODE_fn2 rxbeta;
 extern RxODE_ifn rxpois;
 extern RxODE_fn rxt_;
 extern RxODE_fn2 rxunif;

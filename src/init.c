@@ -201,6 +201,8 @@ extern int rxpois(double lambda);
 extern double rxt_(double df);
 extern double rxunif(double low, double hi);
 extern double rxweibull(double shape, double scale);
+extern double rxgamma(double shape, double rate);
+extern double rxbeta(double shape1, double shape2);
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
@@ -292,6 +294,8 @@ void R_init_RxODE(DllInfo *info){
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
+  R_RegisterCCallable("RxODE", "rxgamma", (DL_FUNC) rxgamma);
+  R_RegisterCCallable("RxODE", "rxbeta", (DL_FUNC) rxbeta);
   R_RegisterCCallable("RxODE", "rxbinom", (DL_FUNC) rxbinom);
   R_RegisterCCallable("RxODE", "rxcauchy", (DL_FUNC) rxcauchy);
   R_RegisterCCallable("RxODE", "rxchisq", (DL_FUNC) rxchisq);

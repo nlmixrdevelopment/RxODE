@@ -685,7 +685,18 @@ extern "C" double rxf(double df1, double df2){
   std::fisher_f_distribution<double> d(df1, df2);
   return d(_eng);
 }
-// FIXME rxgamma
+
+extern "C" double rxgamma(double shape, double rate){
+  std::gamma_distribution<double> d(shape, rate);
+  return d(_eng);
+}
+
+extern "C" double rxbeta(double shape1, double shape2){
+  // Efficient simulation when shape1 and shape2 are "large"
+  // (p 658) Intro Prob Stats 8th Ed by Sheldon Ross
+  double x = rxgamma(shape1,1.0);
+  return x/(x+rxgamma(shape2, 1.0));
+}
 
 extern "C" int rxgeom(double prob){
   std::geometric_distribution<int> d(prob);
