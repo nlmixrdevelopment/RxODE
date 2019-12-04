@@ -20,4 +20,7 @@ articles:
   RxODE-syntax: RxODE-syntax.html
   RxODE-transit-compartments: RxODE-transit-compartments.html
   rxode-single-subject: rxode-single-subject.html
+urls:
+  reference: https://nlmixrdevelopment.github.io/RxODE/reference
+  article: https://nlmixrdevelopment.github.io/RxODE/articles
 

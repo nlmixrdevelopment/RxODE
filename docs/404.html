@@ -9,12 +9,12 @@
 <title>Page not found (404) • RxODE</title>
 
 <!-- favicons -->
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="apple-touch-icon.png" />
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="apple-touch-icon-120x120.png" />
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="apple-touch-icon-76x76.png" />
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="apple-touch-icon-60x60.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="https://nlmixrdevelopment.github.io/RxODE/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://nlmixrdevelopment.github.io/RxODE/favicon-32x32.png">
+<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="https://nlmixrdevelopment.github.io/RxODE/apple-touch-icon.png" />
+<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="https://nlmixrdevelopment.github.io/RxODE/apple-touch-icon-120x120.png" />
+<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="https://nlmixrdevelopment.github.io/RxODE/apple-touch-icon-76x76.png" />
+<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="https://nlmixrdevelopment.github.io/RxODE/apple-touch-icon-60x60.png" />
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -36,14 +36,20 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
-<link href="pkgdown.css" rel="stylesheet">
-<script src="pkgdown.js"></script>
+<link href="https://nlmixrdevelopment.github.io/RxODE/pkgdown.css" rel="stylesheet">
+<script src="https://nlmixrdevelopment.github.io/RxODE/pkgdown.js"></script>
 
+
+<!-- docsearch -->
+<script src="https://nlmixrdevelopment.github.io/RxODE/docsearch.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous" />
+<link href="https://nlmixrdevelopment.github.io/RxODE/docsearch.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
 
 
 
 <meta property="og:title" content="Page not found (404)" />
-<meta property="og:image" content="/logo.png" />
+<meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -75,7 +81,7 @@
         <span class="icon-bar"></span>
       </button>
       <span class="navbar-brand">
-        <a class="navbar-link" href="index.html">RxODE</a>
+        <a class="navbar-link" href="https://nlmixrdevelopment.github.io/RxODE/index.html">RxODE</a>
         <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.8</span>
       </span>
     </div>
@@ -213,6 +219,12 @@
 </li>
       </ul>
       
+      <form class="navbar-form navbar-right hidden-xs hidden-sm" role="search">
+        <div class="form-group">
+          <input type="search" class="form-control" name="search-input" id="search-input" placeholder="Search..." aria-label="Search for..." autocomplete="off">
+        </div>
+      </form>
+      
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
@@ -248,6 +260,23 @@ Content not found. Please use links in the navbar.
    </div>
 
   
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.js" integrity="sha256-GKvGqXDznoRYHCwKXGnuchvKSwmx9SRMrZOTh2g4Sb0=" crossorigin="anonymous"></script>
+<script>
+  docsearch({
+    
+    
+    apiKey: '038b4d83946a52a95a9f8bdafe822dbe',
+    indexName: 'rxode',
+    inputSelector: 'input#search-input.form-control',
+    transformData: function(hits) {
+      return hits.map(function (hit) {
+        hit.url = updateHitURL(hit);
+        return hit;
+      });
+    }
+  });
+</script>
+
 
 
   </body>

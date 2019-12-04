@@ -40,12 +40,18 @@
 <script src="../pkgdown.js"></script>
 
 
+<!-- docsearch -->
+<script src="../docsearch.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous" />
+<link href="../docsearch.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
+
 
 
 <meta property="og:title" content="Create an ODE-based model specification — RxODE" />
 <meta property="og:description" content="Create a dynamic ODE-based model object suitably for translation
 into fast C code" />
-<meta property="og:image" content="/logo.png" />
+<meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -214,6 +220,12 @@ into fast C code" />
   </a>
 </li>
       </ul>
+      
+      <form class="navbar-form navbar-right hidden-xs hidden-sm" role="search">
+        <div class="form-group">
+          <input type="search" class="form-control" name="search-input" id="search-input" placeholder="Search..." aria-label="Search for..." autocomplete="off">
+        </div>
+      </form>
       
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -483,7 +495,7 @@ Springer-Verlag (1993).</p>
 "</span>
 
 <span class='no'>m1</span> <span class='kw'>&lt;-</span> <span class='fu'>RxODE</span>(<span class='kw'>model</span> <span class='kw'>=</span> <span class='no'>ode</span>)
-<span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>0.9.1-8 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_59daecb4e485a100c24f8350773c0328</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
+<span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>0.9.1-8 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_a568131540f4e6652fe7b1829d921038</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</div><div class='input'>
@@ -582,6 +594,23 @@ Springer-Verlag (1993).</p>
    </div>
 
   
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.js" integrity="sha256-GKvGqXDznoRYHCwKXGnuchvKSwmx9SRMrZOTh2g4Sb0=" crossorigin="anonymous"></script>
+<script>
+  docsearch({
+    
+    
+    apiKey: '038b4d83946a52a95a9f8bdafe822dbe',
+    indexName: 'rxode',
+    inputSelector: 'input#search-input.form-control',
+    transformData: function(hits) {
+      return hits.map(function (hit) {
+        hit.url = updateHitURL(hit);
+        return hit;
+      });
+    }
+  });
+</script>
+
 
 
   </body>

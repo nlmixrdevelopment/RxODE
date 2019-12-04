@@ -16,9 +16,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Single Subject ODE solving -- differences from multiple subject">
+<script src="../pkgdown.js"></script><!-- docsearch --><script src="../docsearch.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous">
+<link href="../docsearch.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script><meta property="og:title" content="Single Subject ODE solving -- differences from multiple subject">
 <meta property="og:description" content="">
-<meta property="og:image" content="/logo.png">
+<meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -174,7 +176,13 @@
   </a>
 </li>
       </ul>
+<form class="navbar-form navbar-right hidden-xs hidden-sm" role="search">
+        <div class="form-group">
+          <input type="search" class="form-control" name="search-input" id="search-input" placeholder="Search..." aria-label="Search for..." autocomplete="off">
 </div>
+      </form>
+      
+    </div>
 <!--/.nav-collapse -->
   </div>
 <!--/.container -->
@@ -188,7 +196,7 @@
     <div class="page-header toc-ignore">
       <h1>Single Subject ODE solving – differences from multiple subject</h1>
             
-            <h4 class="date">2019-11-11</h4>
+            <h4 class="date">2019-11-18</h4>
       
       
       <div class="hidden name"><code>rxode-single-subject.Rmd</code></div>
@@ -374,24 +382,23 @@ x
 <span class="co">#&gt; </span>
 <span class="co">#&gt; loaded via a namespace (and not attached):</span>
 <span class="co">#&gt;  [1] Rcpp_1.0.3        compiler_3.6.0    pillar_1.4.2     </span>
-<span class="co">#&gt;  [4] sys_3.3           PreciseSums_0.3   tools_3.6.0      </span>
-<span class="co">#&gt;  [7] zeallot_0.1.0     mvnfast_0.2.5     digest_0.6.22    </span>
-<span class="co">#&gt; [10] evaluate_0.14     memoise_1.1.0     tibble_2.1.3     </span>
-<span class="co">#&gt; [13] gtable_0.3.0      pkgconfig_2.0.3   rlang_0.4.1      </span>
-<span class="co">#&gt; [16] cli_1.1.0         yaml_2.2.0        pkgdown_1.4.1    </span>
-<span class="co">#&gt; [19] xfun_0.10         stringr_1.4.0     dplyr_0.8.3      </span>
-<span class="co">#&gt; [22] knitr_1.25        vctrs_0.2.0       desc_1.2.0       </span>
-<span class="co">#&gt; [25] fs_1.3.1          rprojroot_1.3-2   grid_3.6.0       </span>
-<span class="co">#&gt; [28] tidyselect_0.2.5  data.table_1.12.2 glue_1.3.1       </span>
-<span class="co">#&gt; [31] R6_2.4.0          fansi_0.4.0       rmarkdown_1.16   </span>
-<span class="co">#&gt; [34] polyclip_1.10-0   dparser_1.3.1-0   farver_1.1.0     </span>
-<span class="co">#&gt; [37] ggplot2_3.2.1     purrr_0.3.3       tweenr_1.0.1     </span>
-<span class="co">#&gt; [40] magrittr_1.5      units_0.6-5       backports_1.1.5  </span>
-<span class="co">#&gt; [43] scales_1.0.0      htmltools_0.4.0   MASS_7.3-51.4    </span>
-<span class="co">#&gt; [46] assertthat_0.2.1  ggforce_0.3.1     colorspace_1.4-1 </span>
-<span class="co">#&gt; [49] labeling_0.3      utf8_1.1.4        lotri_0.1.1      </span>
-<span class="co">#&gt; [52] stringi_1.4.3     lazyeval_0.2.2    munsell_0.5.0    </span>
-<span class="co">#&gt; [55] crayon_1.3.4</span></code></pre></div>
+<span class="co">#&gt;  [4] PreciseSums_0.3   tools_3.6.0       zeallot_0.1.0    </span>
+<span class="co">#&gt;  [7] mvnfast_0.2.5     digest_0.6.22     evaluate_0.14    </span>
+<span class="co">#&gt; [10] memoise_1.1.0     tibble_2.1.3      gtable_0.3.0     </span>
+<span class="co">#&gt; [13] pkgconfig_2.0.3   rlang_0.4.1       cli_1.1.0        </span>
+<span class="co">#&gt; [16] yaml_2.2.0        pkgdown_1.4.1     xfun_0.10        </span>
+<span class="co">#&gt; [19] stringr_1.4.0     dplyr_0.8.3       knitr_1.25       </span>
+<span class="co">#&gt; [22] vctrs_0.2.0       desc_1.2.0        fs_1.3.1         </span>
+<span class="co">#&gt; [25] rprojroot_1.3-2   grid_3.6.0        tidyselect_0.2.5 </span>
+<span class="co">#&gt; [28] data.table_1.12.6 glue_1.3.1        R6_2.4.1         </span>
+<span class="co">#&gt; [31] fansi_0.4.0       rmarkdown_1.16    polyclip_1.10-0  </span>
+<span class="co">#&gt; [34] dparser_1.3.1-0   farver_2.0.1      ggplot2_3.2.1    </span>
+<span class="co">#&gt; [37] purrr_0.3.3       tweenr_1.0.1      magrittr_1.5     </span>
+<span class="co">#&gt; [40] units_0.6-5       backports_1.1.5   scales_1.0.0     </span>
+<span class="co">#&gt; [43] htmltools_0.4.0   MASS_7.3-51.4     assertthat_0.2.1 </span>
+<span class="co">#&gt; [46] ggforce_0.3.1     colorspace_1.4-1  labeling_0.3     </span>
+<span class="co">#&gt; [49] utf8_1.1.4        lotri_0.1.1       stringi_1.4.3    </span>
+<span class="co">#&gt; [52] lazyeval_0.2.2    munsell_0.5.0     crayon_1.3.4</span></code></pre></div>
 </div>
 </div>
   </div>
@@ -428,7 +435,20 @@ x
 </div>
 
   
-
-
-  </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.js" integrity="sha256-GKvGqXDznoRYHCwKXGnuchvKSwmx9SRMrZOTh2g4Sb0=" crossorigin="anonymous"></script><script>
+  docsearch({
+    
+    
+    apiKey: '038b4d83946a52a95a9f8bdafe822dbe',
+    indexName: 'rxode',
+    inputSelector: 'input#search-input.form-control',
+    transformData: function(hits) {
+      return hits.map(function (hit) {
+        hit.url = updateHitURL(hit);
+        return hit;
+      });
+    }
+  });
+</script>
+</body>
 </html>

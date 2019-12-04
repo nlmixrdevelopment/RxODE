@@ -1,6 +1,8 @@
+<!--
 ---
 output: github_document
 ---
+-->
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- https://blog.r-hub.io/2019/12/03/readmes/ -->
 
