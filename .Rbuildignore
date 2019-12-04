@@ -85,3 +85,4 @@ vignettes/*.html
 vignettes/cl-lincmt.csv
 vignettes/kel-lincmt.csv
 vignettes/build.R
+^README\.Rmd$
