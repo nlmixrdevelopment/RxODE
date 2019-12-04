@@ -39,6 +39,7 @@
 #define rxTBSi(x, lm, yj) _powerDi(x,  lm, (int)(yj))
 #define rxTBSd(x, lm, yj) _powerDD(x, lm, (int)(yj))
 #define rxTBSd2(x, lm, yj) _powerDDD(x, lm, (int)(yj))
+#define rxnorm1(x) rxnorm(x, 1.0)
 
 // Types for par pointers.r
 typedef double (*RxODE_fn) (double x);

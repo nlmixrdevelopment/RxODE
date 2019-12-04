@@ -111,7 +111,9 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
     "fprec"=2,
     "fround"=2,
     "ftrunc"=2,
-    "transit"=NA
+    "transit"=NA,
+    ## Now random number generators
+    "rnorm"=NA
 )
 
 

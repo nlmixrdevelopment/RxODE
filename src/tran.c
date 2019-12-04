@@ -1098,7 +1098,39 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
-	  continue;	    
+	  continue;
+	} else if (!strcmp("rnorm", v) ||
+		   !strcmp("rxnorm", v)){
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii == 1){
+	    xpn = d_get_child(pn,2);
+	    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    int iii=0;
+	    int allSpace=1;
+	    while(v[iii] != '\0'){
+	      if (!isspace(v[iii])){
+		allSpace=0;
+		break;
+	      }
+	    }
+	    Free(v);
+	    if (allSpace){
+	      aAppendN("rxnorm(0.0, 1.0", 15);
+	      sAppendN(&sbt, "rxnorm(", 7);
+	    } else {
+	      aAppendN("rxnorm1(", 8);
+	      sAppendN(&sbt, "rxnorm(", 7);
+	    }
+	  } else if (ii == 2){
+	    aAppendN("rxnorm(", 7);
+	    sAppendN(&sbt, "rxnorm(", 7);
+	  } else {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'rxnorm'/'rnorm' takes 0-2 arguments rxnorm(mean, sd)"));
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  continue;
 	} else if (!strcmp("is.nan", v)) {
 	  sAppendN(&sb, "isnan", 5);
 	  sAppendN(&sbDt, "isnan", 5);
