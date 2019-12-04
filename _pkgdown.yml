@@ -103,6 +103,8 @@ navbar:
           href: articles/RxODE-pipeline.html
         - text: "Speeding up RxODE ODE solving"
           href: articles/RxODE-speed.html
+        - text: "Adaptive Data Frames with RxODE"
+          href: articles/RxODE-data-frame.html
         - text: "--------------------------"
         - text: "Advanced Features, Model Types, Technical Details"
         - text: "RxODE model types"
