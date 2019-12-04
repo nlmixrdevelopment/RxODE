@@ -142,8 +142,9 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
     ## appropriately, and figures out the c compiler from there.
     if (.Platform$OS.type == "unix" || getOption("RxODE.rtools.setup", FALSE)){
         return(TRUE)
+    } else if (Sys.which("make") != ""){
+        return(TRUE)
     } else {
-
         .path <- unique(sapply(sub(rex::rex('"', end), "", sub(rex::rex(start, '"'), "",
                                    gsub("/", "\\\\", strsplit(Sys.getenv("PATH"), ";")[[1]]))),
                               function(x){
