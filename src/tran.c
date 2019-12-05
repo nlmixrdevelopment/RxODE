@@ -1126,7 +1126,20 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppendN(&sbt, "rxnorm(", 7);
 	  } else {
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("'rxnorm'/'rnorm' takes 0-2 arguments rxnorm(mean, sd)"));
+	    trans_syntax_error_report_fn(_("'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"));
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  continue;
+	} else if (!strcmp("rbinom", v) ||
+		   !strcmp("rxbinom", v)){
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii != 2){
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'rbinom'/'rxbinom' takes 2 arguments 'rxbinom(size, prob)'"));
+	  } else {
+	    aAppendN("(double)rxbinom((int)", 21);
+	    sAppendN(&sbt, "rxbinom(", 8);
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;

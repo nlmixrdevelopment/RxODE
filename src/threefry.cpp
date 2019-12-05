@@ -668,7 +668,7 @@ extern "C" void seedEng(int ncores){
 }
 
 extern "C" int rxbinom(int n, double prob){
-  std::binomial_distribution<int> d(prob);
+  std::binomial_distribution<int> d(n, prob);
   return d(_eng);
 }
 
