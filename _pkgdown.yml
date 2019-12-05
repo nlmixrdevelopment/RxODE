@@ -115,7 +115,7 @@ navbar:
           href: articles/RxODE-transit-compartments.html
         - text: "Using Shiny with RxODE"
           href: articles/RxODE-shiny.html
-        - text: "How RxODE handles time-varying covariates"
+        - text: "RxODE covariates"
           href: articles/RxODE-covariates.html
         - text: "Stiff Systems and Jacobian specification"
           href: articles/RxODE-stiff.html

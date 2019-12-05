@@ -87,7 +87,7 @@
       <a href="../articles/RxODE-shiny.html">Using Shiny with RxODE</a>
     </li>
     <li>
-      <a href="../articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
+      <a href="../articles/RxODE-covariates.html">RxODE covariates</a>
     </li>
     <li>
       <a href="../articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
@@ -208,6 +208,69 @@
 
     
     
+<div id="individual-covariates" class="section level1">
+<h1 class="hasAnchor">
+<a href="#individual-covariates" class="anchor"></a>Individual Covariates</h1>
+<p>If there is an individual covariate you wish to solve for you may specify it by the <code>iCov</code> dataset:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(RxODE)
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(units)</code></pre></div>
+<pre><code>## udunits system database from /usr/share/udunits</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(xgxr)
+
+mod3 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
+    KA=<span class="fl">2.94E-01</span>;
+    ## Clearance with individuals
+    CL=<span class="fl">1.86E+01</span> <span class="op">*</span><span class="st"> </span>(WT <span class="op">/</span><span class="st"> </span><span class="dv">70</span>) <span class="op">^</span><span class="st"> </span><span class="fl">0.75</span>; 
+    V2=<span class="fl">4.02E+01</span>; 
+    Q=<span class="fl">1.05E+01</span>;
+    V3=<span class="fl">2.97E+02</span>; 
+    Kin=<span class="dv">1</span>;
+    Kout=<span class="dv">1</span>;
+    EC50=<span class="dv">200</span>;
+    ## The linCmt() picks up the variables from above
+    C2   =<span class="st"> </span><span class="kw">linCmt</span>();
+    Tz=<span class="st"> </span><span class="dv">8</span>
+    amp=<span class="fl">0.1</span>
+    <span class="kw">eff</span>(<span class="dv">0</span>) =<span class="st"> </span><span class="dv">1</span>  ## This specifies that the effect compartment starts at 1.
+    d<span class="op">/</span><span class="kw"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span>(eff) =<span class="st">  </span>Kin <span class="op">-</span><span class="st"> </span>Kout<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>C2<span class="op">/</span>(EC50<span class="op">+</span>C2))<span class="op">*</span>eff;
+})
+
+ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amount.units=</span><span class="st">"mg"</span>, <span class="dt">time.units=</span><span class="st">"hours"</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">cmt=</span><span class="dv">2</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dv">0</span>,<span class="dv">48</span>,<span class="dt">length.out=</span><span class="dv">100</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">id=</span><span class="dv">1</span><span class="op">:</span><span class="dv">4</span>);
+
+<span class="kw"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span>(<span class="dv">10</span>)
+## Now use iCov to simulate a 4-id sample
+r1 &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/solve.html">solve</a></span>(mod3, ev,
+            <span class="co"># Create individual covariate data-frame</span>
+            <span class="dt">iCov=</span><span class="kw"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span>(<span class="dt">id=</span><span class="dv">1</span><span class="op">:</span><span class="dv">4</span>, <span class="dt">WT=</span><span class="kw"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span>(<span class="dv">4</span>, <span class="dv">70</span>, <span class="dv">10</span>)),
+            <span class="co"># in this case it would be useful to keep the WT in the output dataset</span>
+            <span class="dt">keep=</span><span class="st">"WT"</span>)
+<span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(r1)</code></pre></div>
+<pre><code>## ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+## ── Initial Conditions ($inits): ────────────────────────────────────────────────
+## eff 
+##   1 
+## ── First part of data (object): ────────────────────────────────────────────────
+## # A tibble: 400 x 6
+##   id         time    CL    C2   eff    WT
+##   &lt;fct&gt;       [h] &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 1     0.0000000  18.6   0    1     70.2
+## 2 1     0.4848485  18.6  27.8  1.03  70.2
+## 3 1     0.9696970  18.6  43.7  1.08  70.2
+## 4 1     1.4545455  18.6  51.7  1.13  70.2
+## 5 1     1.9393939  18.6  54.7  1.18  70.2
+## 6 1     2.4242424  18.6  54.5  1.21  70.2
+## # … with 394 more rows
+## ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(r1, C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://rdrr.io/pkg/xgxr/man/xgx_scale_y_log10.html">xgx_scale_y_log10</a></span>()</code></pre></div>
+<pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
+<p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-1-1.png" width="700"></p>
+</div>
+<div id="time-varying-covariates" class="section level1">
+<h1 class="hasAnchor">
+<a href="#time-varying-covariates" class="anchor"></a>Time Varying Covariates</h1>
 <p>Covariates are easy to specify in RxODE, you can specify them as a variable. Time-varying covariates, like clock time in a circadian rhythm model, can also be used. Extending the indirect response model already discussed, we have:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(RxODE)
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(units)
@@ -268,9 +331,9 @@ ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="o
 <p>When solving ODE equations, the solver may sample times outside of the data. When this happens, this ODE solver can use linear interpolation between the covariate values. It is equivalent to R’s <code>approxfun</code> with <code>method="linear"</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(ggplot2)
 <span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(r1,C2) <span class="op">+</span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
-<p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-4-1.png" width="100%"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(r1,eff) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-5-1.png" width="100%"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(r1,eff) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
+<p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-6-1.png" width="100%"></p>
 <p>Note that the linear approximation in this case leads to some kinks in the solved system at 24-hours where the covariate has a linear interpolation between near 24 and near 0. While linear seems reasonable, cases like clock time make other interpolation methods more attractive.</p>
 <p>In RxODE the default covariate interpolation is be the last observation carried forward (<code>locf</code>), or constant approximation. This is equivalent to R’s <code>approxfun</code> with <code>method="constant"</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r1 &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/solve.html">solve</a></span>(mod3, ev,<span class="dt">covs_interpolation=</span><span class="st">"constant"</span>)
@@ -299,9 +362,9 @@ ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="o
 <span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span></code></pre></div>
 <p>which gives the following plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(r1,C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
-<p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-7-1.png" width="100%"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(r1,eff) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-8-1.png" width="100%"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(r1,eff) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
+<p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-9-1.png" width="100%"></p>
 <p>In this case, the plots seem to be smoother.</p>
 <p>You can also use NONMEM’s preferred interpolation style of next observation carried backward (NOCB):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r1 &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/solve.html">solve</a></span>(mod3, ev,<span class="dt">covs_interpolation=</span><span class="st">"nocb"</span>)
@@ -330,13 +393,22 @@ ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="o
 <span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span></code></pre></div>
 <p>which gives the following plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(r1,C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
-<p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-10-1.png" width="100%"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(r1,eff) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-11-1.png" width="100%"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(r1,eff) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
+<p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-12-1.png" width="100%"></p>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
 
+        <div id="tocnav">
+      <h2 class="hasAnchor">
+<a href="#tocnav" class="anchor"></a>Contents</h2>
+      <ul class="nav nav-pills nav-stacked">
+<li><a href="#individual-covariates">Individual Covariates</a></li>
+      <li><a href="#time-varying-covariates">Time Varying Covariates</a></li>
+      </ul>
+</div>
       </div>
 
 </div>

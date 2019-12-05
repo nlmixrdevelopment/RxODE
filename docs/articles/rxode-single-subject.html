@@ -69,6 +69,9 @@
     <li>
       <a href="../articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
     </li>
+    <li>
+      <a href="../articles/RxODE-data-frame.html">Adaptive Data Frames with RxODE</a>
+    </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
     <li>
@@ -84,7 +87,7 @@
       <a href="../articles/RxODE-shiny.html">Using Shiny with RxODE</a>
     </li>
     <li>
-      <a href="../articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
+      <a href="../articles/RxODE-covariates.html">RxODE covariates</a>
     </li>
     <li>
       <a href="../articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
@@ -196,7 +199,7 @@
     <div class="page-header toc-ignore">
       <h1>Single Subject ODE solving – differences from multiple subject</h1>
             
-            <h4 class="date">2019-11-18</h4>
+            <h4 class="date">2019-12-05</h4>
       
       
       <div class="hidden name"><code>rxode-single-subject.Rmd</code></div>
@@ -245,15 +248,15 @@ et &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html"
 <p>Now a simple solve</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(mod1, et)
 x
-<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
-<span class="co">#&gt; ── Parameters (x$params): ─────────────────────────────────────────────────</span>
+<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
+<span class="co">#&gt; ── Parameters (x$params): ──────────────────────────────────────────────────────</span>
 <span class="co">#&gt;  </span>
 <span class="co">#&gt;      KA      CL      V2       Q      V3     Kin    Kout    EC50 </span>
 <span class="co">#&gt;   0.294  18.600  40.200  10.500 297.000   1.000   1.000 200.000 </span>
-<span class="co">#&gt; ── Initial Conditions (x$inits): ──────────────────────────────────────────</span>
+<span class="co">#&gt; ── Initial Conditions (x$inits): ───────────────────────────────────────────────</span>
 <span class="co">#&gt; depot centr  peri   eff </span>
 <span class="co">#&gt;     0     0     0     1 </span>
-<span class="co">#&gt; ── First part of data (object): ───────────────────────────────────────────</span>
+<span class="co">#&gt; ── First part of data (object): ────────────────────────────────────────────────</span>
 <span class="co">#&gt; # A tibble: 241 x 7</span>
 <span class="co">#&gt;    time    C2    C3  depot centr  peri   eff</span>
 <span class="co">#&gt;     [h] &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span>
@@ -264,18 +267,18 @@ x
 <span class="co">#&gt; 5     4  44.5 5.98   3085. 1789. 1776.  1.23</span>
 <span class="co">#&gt; 6     5  36.5 7.18   2299. 1467. 2132.  1.21</span>
 <span class="co">#&gt; # … with 235 more rows</span>
-<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
+<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
 
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(x)
-<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
-<span class="co">#&gt; ── Parameters ($params): ──────────────────────────────────────────────────</span>
+<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
+<span class="co">#&gt; ── Parameters ($params): ───────────────────────────────────────────────────────</span>
 <span class="co">#&gt;  </span>
 <span class="co">#&gt;      KA      CL      V2       Q      V3     Kin    Kout    EC50 </span>
 <span class="co">#&gt;   0.294  18.600  40.200  10.500 297.000   1.000   1.000 200.000 </span>
-<span class="co">#&gt; ── Initial Conditions ($inits): ───────────────────────────────────────────</span>
+<span class="co">#&gt; ── Initial Conditions ($inits): ────────────────────────────────────────────────</span>
 <span class="co">#&gt; depot centr  peri   eff </span>
 <span class="co">#&gt;     0     0     0     1 </span>
-<span class="co">#&gt; ── First part of data (object): ───────────────────────────────────────────</span>
+<span class="co">#&gt; ── First part of data (object): ────────────────────────────────────────────────</span>
 <span class="co">#&gt; # A tibble: 241 x 7</span>
 <span class="co">#&gt;    time    C2    C3  depot centr  peri   eff</span>
 <span class="co">#&gt;     [h] &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span>
@@ -286,7 +289,7 @@ x
 <span class="co">#&gt; 5     4  44.5 5.98   3085. 1789. 1776.  1.23</span>
 <span class="co">#&gt; 6     5  36.5 7.18   2299. 1467. 2132.  1.21</span>
 <span class="co">#&gt; # … with 235 more rows</span>
-<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
+<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
 
 <span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(x, C2, eff)</code></pre></div>
 <p><img src="rxode-single-subject_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
@@ -295,11 +298,11 @@ x
 <span class="co">#&gt; Warning in (function (idData, goodLvl, type = "parameter", warnIdSort) : ID missing in parameters dataset;</span>
 <span class="co">#&gt;  Parameters are assumed to have the same order as the IDs in the event dataset</span>
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(x2)
-<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
-<span class="co">#&gt; ── Initial Conditions ($inits): ───────────────────────────────────────────</span>
+<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
+<span class="co">#&gt; ── Initial Conditions ($inits): ────────────────────────────────────────────────</span>
 <span class="co">#&gt; depot centr  peri   eff </span>
 <span class="co">#&gt;     0     0     0     1 </span>
-<span class="co">#&gt; ── First part of data (object): ───────────────────────────────────────────</span>
+<span class="co">#&gt; ── First part of data (object): ────────────────────────────────────────────────</span>
 <span class="co">#&gt; # A tibble: 482 x 8</span>
 <span class="co">#&gt;   id     time    C2    C3  depot centr  peri   eff</span>
 <span class="co">#&gt;   &lt;fct&gt;   [h] &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span>
@@ -310,7 +313,7 @@ x
 <span class="co">#&gt; 5 1         4  44.5 5.98   3085. 1789. 1776.  1.23</span>
 <span class="co">#&gt; 6 1         5  36.5 7.18   2299. 1467. 2132.  1.21</span>
 <span class="co">#&gt; # … with 476 more rows</span>
-<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
+<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
 
 <span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(x2, C2, eff)</code></pre></div>
 <p><img src="rxode-single-subject_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
@@ -381,24 +384,20 @@ x
 <span class="co">#&gt; [1] RxODE_0.9.1-8</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; loaded via a namespace (and not attached):</span>
-<span class="co">#&gt;  [1] Rcpp_1.0.3        compiler_3.6.0    pillar_1.4.2     </span>
-<span class="co">#&gt;  [4] PreciseSums_0.3   tools_3.6.0       zeallot_0.1.0    </span>
-<span class="co">#&gt;  [7] mvnfast_0.2.5     digest_0.6.22     evaluate_0.14    </span>
-<span class="co">#&gt; [10] memoise_1.1.0     tibble_2.1.3      gtable_0.3.0     </span>
-<span class="co">#&gt; [13] pkgconfig_2.0.3   rlang_0.4.1       cli_1.1.0        </span>
-<span class="co">#&gt; [16] yaml_2.2.0        pkgdown_1.4.1     xfun_0.10        </span>
-<span class="co">#&gt; [19] stringr_1.4.0     dplyr_0.8.3       knitr_1.25       </span>
-<span class="co">#&gt; [22] vctrs_0.2.0       desc_1.2.0        fs_1.3.1         </span>
-<span class="co">#&gt; [25] rprojroot_1.3-2   grid_3.6.0        tidyselect_0.2.5 </span>
-<span class="co">#&gt; [28] data.table_1.12.6 glue_1.3.1        R6_2.4.1         </span>
-<span class="co">#&gt; [31] fansi_0.4.0       rmarkdown_1.16    polyclip_1.10-0  </span>
-<span class="co">#&gt; [34] dparser_1.3.1-0   farver_2.0.1      ggplot2_3.2.1    </span>
-<span class="co">#&gt; [37] purrr_0.3.3       tweenr_1.0.1      magrittr_1.5     </span>
-<span class="co">#&gt; [40] units_0.6-5       backports_1.1.5   scales_1.0.0     </span>
-<span class="co">#&gt; [43] htmltools_0.4.0   MASS_7.3-51.4     assertthat_0.2.1 </span>
-<span class="co">#&gt; [46] ggforce_0.3.1     colorspace_1.4-1  labeling_0.3     </span>
-<span class="co">#&gt; [49] utf8_1.1.4        lotri_0.1.1       stringi_1.4.3    </span>
-<span class="co">#&gt; [52] lazyeval_0.2.2    munsell_0.5.0     crayon_1.3.4</span></code></pre></div>
+<span class="co">#&gt;  [1] Rcpp_1.0.3        compiler_3.6.0    pillar_1.4.2      PreciseSums_0.3  </span>
+<span class="co">#&gt;  [5] tools_3.6.0       zeallot_0.1.0     mvnfast_0.2.5     digest_0.6.23    </span>
+<span class="co">#&gt;  [9] evaluate_0.14     memoise_1.1.0     lifecycle_0.1.0   tibble_2.1.3     </span>
+<span class="co">#&gt; [13] gtable_0.3.0      pkgconfig_2.0.3   rlang_0.4.2       cli_1.1.0        </span>
+<span class="co">#&gt; [17] yaml_2.2.0        pkgdown_1.4.1     xfun_0.11         stringr_1.4.0    </span>
+<span class="co">#&gt; [21] dplyr_0.8.3       knitr_1.26        vctrs_0.2.0       desc_1.2.0       </span>
+<span class="co">#&gt; [25] fs_1.3.1          rprojroot_1.3-2   grid_3.6.0        tidyselect_0.2.5 </span>
+<span class="co">#&gt; [29] data.table_1.12.6 glue_1.3.1        R6_2.4.1          fansi_0.4.0      </span>
+<span class="co">#&gt; [33] rmarkdown_1.18    polyclip_1.10-0   dparser_1.3.1-0   farver_2.0.1     </span>
+<span class="co">#&gt; [37] tweenr_1.0.1      ggplot2_3.2.1     purrr_0.3.3       magrittr_1.5     </span>
+<span class="co">#&gt; [41] units_0.6-5       backports_1.1.5   scales_1.1.0      htmltools_0.4.0  </span>
+<span class="co">#&gt; [45] MASS_7.3-51.4     assertthat_0.2.1  ggforce_0.3.1     colorspace_1.4-1 </span>
+<span class="co">#&gt; [49] labeling_0.3      utf8_1.1.4        lotri_0.1.1       stringi_1.4.3    </span>
+<span class="co">#&gt; [53] lazyeval_0.2.2    munsell_0.5.0     crayon_1.3.4</span></code></pre></div>
 </div>
 </div>
   </div>

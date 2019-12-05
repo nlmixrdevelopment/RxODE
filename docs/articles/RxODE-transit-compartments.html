@@ -69,6 +69,9 @@
     <li>
       <a href="../articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
     </li>
+    <li>
+      <a href="../articles/RxODE-data-frame.html">Adaptive Data Frames with RxODE</a>
+    </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
     <li>
@@ -84,7 +87,7 @@
       <a href="../articles/RxODE-shiny.html">Using Shiny with RxODE</a>
     </li>
     <li>
-      <a href="../articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
+      <a href="../articles/RxODE-covariates.html">RxODE covariates</a>
     </li>
     <li>
       <a href="../articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
@@ -196,7 +199,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE Transit Compartment Models</h1>
             
-            <h4 class="date">2019-11-18</h4>
+            <h4 class="date">2019-12-05</h4>
       
       
       <div class="hidden name"><code>RxODE-transit-compartments.Rmd</code></div>
@@ -254,9 +257,8 @@ et<span class="op">$</span><span class="kw"><a href="../reference/add.sampling.h
 et<span class="op">$</span><span class="kw"><a href="../reference/add.dosing.html">add.dosing</a></span>(<span class="dv">20</span>, <span class="dt">start.time=</span><span class="dv">0</span>);
 
 transit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(mod, et)</code></pre></div>
-<pre><code>## Warning in rxSolve_(object, .ctl, .nms, .xtra, params, events, inits,
-## setupOnly = .setupOnly): Assumed transit compartment model since 'podo' is
-## in the model.</code></pre>
+<pre><code>## Warning in rxSolve_(object, .ctl, .nms, .xtra, params, events, inits, setupOnly
+## = .setupOnly): Assumed transit compartment model since 'podo' is in the model.</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">transit <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(time,cen))<span class="op">+</span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>()<span class="op">+</span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span>
 <span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">""</span>)</code></pre></div>
 <p><img src="RxODE-transit-compartments_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
