@@ -1624,14 +1624,18 @@ rxCompile.rxModelVars <-  function(model, # Model
                 }
 
                 .out <- sys::exec_internal(cmd = .cmd, args = .args, error=FALSE);
-                .badBuild <- function(msg){
+                .badBuild <- function(msg, cSrc=TRUE){
                     message(msg);
                     cli::rule(left="stdout output");
                     message(paste(rawToChar(.out$stdout),sep="\n"))
                     cli::rule(left="stderr output");
                     message(paste(rawToChar(.out$stderr),sep="\n"))
-                    cli::rule(left="c source");
-                    message(paste(readLines(.cFile),collapse="\n"))
+                    if (cSrc){
+                        cli::rule(left="c source");
+                        message(paste(readLines(.cFile),collapse="\n"))
+                    } else {
+                        dyn.load(.cDllFile);
+                    }
                     stop(msg, call.=FALSE);
                 }
                 if (!(.out$status==0 & file.exists(.cDllFile))){
@@ -1645,7 +1649,7 @@ rxCompile.rxModelVars <-  function(model, # Model
             rxUnloadAll();
             .tmp  <- try(dynLoad(.cDllFile), silent=TRUE);
             if (inherits(.tmp, "try-error")){
-                .badBuild("Error loading model (though dll exists)");
+                .badBuild("Error loading model (though dll exists)", cSrc=FALSE);
             } else {
                 warning("unloaded all RxODE dlls before loading the current DLL.")
             }

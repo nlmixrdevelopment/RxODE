@@ -3316,6 +3316,7 @@ Environment rxSolve_genenv(const RObject &object, const List &rxControl, const N
   return e;
 }
 
+extern "C" void seedEng(int ncores);
 void rxAssignPtr(SEXP object);
 //[[Rcpp::export]]
 SEXP rxSolve_(const RObject &obj, const List &rxControl,
@@ -3413,6 +3414,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     } else {
       op->cores=cores;
     }
+    seedEng(op->cores);
     // Now set up events and parameters
     RObject par0 = params;
     RObject ev0  = events;

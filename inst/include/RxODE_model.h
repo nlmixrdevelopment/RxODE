@@ -117,22 +117,6 @@ extern RxODE_fn0i _prodType;
 extern RxODE_fn0i _sumType;
 extern rx_solve *_solveData;
 
-typedef int (*RxODE_rxbinom) (int n, double prob);
-extern RxODE_rxbinom rxbinom;
-extern RxODE_fn2 rxcauchy;
-extern RxODE_fn rxchisq;
-extern RxODE_fn rxexp;
-extern RxODE_fn2 rxf;
-extern RxODE_ifn rxgeom;
-extern RxODE_fn2 rxlnorm;
-extern RxODE_fn2 rxnorm;
-extern RxODE_fn2 rxgamma;
-extern RxODE_fn2 rxbeta;
-extern RxODE_ifn rxpois;
-extern RxODE_fn rxt_;
-extern RxODE_fn2 rxunif;
-extern RxODE_fn2 rxweibull;
-
 #ifdef _isRxODE_
 double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       int ncmt, int trans, double d_ka,
@@ -160,6 +144,21 @@ extern linCmtA_p linCmtA;
 extern linCmtB_p linCmtB;
 extern _update_par_ptr_p _update_par_ptr;
 extern _rx_asgn _RxODE_rxAssignPtr;
+typedef int (*RxODE_rxbinom) (int n, double prob);
+extern RxODE_rxbinom rxbinom;
+extern RxODE_fn2 rxcauchy;
+extern RxODE_fn rxchisq;
+extern RxODE_fn rxexp;
+extern RxODE_fn2 rxf;
+extern RxODE_ifn rxgeom;
+extern RxODE_fn2 rxlnorm;
+extern RxODE_fn2 rxnorm;
+extern RxODE_fn2 rxgamma;
+extern RxODE_fn2 rxbeta;
+extern RxODE_ifn rxpois;
+extern RxODE_fn rxt_;
+extern RxODE_fn2 rxunif;
+extern RxODE_fn2 rxweibull;
 #endif
 
 #endif// __RxODE_model_H__

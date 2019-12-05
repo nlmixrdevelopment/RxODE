@@ -189,20 +189,20 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  double *InfusionRate, int *BadDose, int *idose,
 			  double *scale, int *stateIgnore, double *mtime);
 
-extern int rxbinom(int n, double prob);
-extern double rxcauchy(double location, double scale);
-extern double rxchisq(double df);
-extern double rxexp(double rate);
-extern double rxf(double df1, double df2);
-extern int rxgeom(double prob);
-extern double rxlnorm(double meanlog, double sdlog);
-extern double rxnorm(double mean, double sd);
-extern int rxpois(double lambda);
-extern double rxt_(double df);
-extern double rxunif(double low, double hi);
-extern double rxweibull(double shape, double scale);
-extern double rxgamma(double shape, double rate);
-extern double rxbeta(double shape1, double shape2);
+int rxbinom(int n, double prob);
+double rxcauchy(double location, double scale);
+double rxchisq(double df);
+double rxexp(double rate);
+double rxf(double df1, double df2);
+int rxgeom(double prob);
+double rxlnorm(double meanlog, double sdlog);
+double rxnorm(double mean, double sd);
+int rxpois(double lambda);
+double rxt_(double df);
+double rxunif(double low, double hi);
+double rxweibull(double shape, double scale);
+double rxgamma(double shape, double rate);
+double rxbeta(double shape1, double shape2);
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {

@@ -127,20 +127,6 @@ void _assignFuns(){
     _prodType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_prod_get");
     _sumType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_sum_get");
     _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
-    rxbinom = R_GetCCallable("RxODE", "rxbinom");
-    rxcauchy = R_GetCCallable("RxODE", "rxcauchy");
-    rxchisq = R_GetCCallable("RxODE", "rxchisq");
-    rxexp = R_GetCCallable("RxODE", "rxexp");
-    rxf = R_GetCCallable("RxODE", "rxf");
-    rxgeom = R_GetCCallable("RxODE", "rxgeom");
-    rxlnorm = R_GetCCallable("RxODE", "rxlnorm");
-    rxnorm = R_GetCCallable("RxODE", "rxnorm");
-    rxpois = R_GetCCallable("RxODE", "rxpois");
-    rxgamma = R_GetCCallable("RxODE", "rxgamma");
-    rxbeta = R_GetCCallable("RxODE", "rxbeta");
-    rxt_ = R_GetCCallable("RxODE", "rxt_");
-    rxunif = R_GetCCallable("RxODE", "rxunif");
-    rxweibull = R_GetCCallable("RxODE", "rxweibull");
     /* solveLinB=(solveLinB_p)R_GetCCallable("RxODE", "solveLinB"); */
     /* _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr"); */
     _solveData = _getRxSolve_();
@@ -152,6 +138,21 @@ _update_par_ptr_p _update_par_ptr=NULL;
 linCmtA_p linCmtA;
 linCmtB_p linCmtB;
 _rx_asgn _RxODE_rxAssignPtr =NULL;
+typedef int (*RxODE_rxbinom) (int n, double prob);
+RxODE_fn2 rxnorm;
+RxODE_rxbinom rxbinom;
+RxODE_fn2 rxcauchy;
+RxODE_fn rxchisq;
+RxODE_fn rxexp;
+RxODE_fn2 rxf;
+RxODE_ifn rxgeom;
+RxODE_fn2 rxlnorm;
+RxODE_fn2 rxgamma;
+RxODE_fn2 rxbeta;
+RxODE_ifn rxpois;
+RxODE_fn rxt_;
+RxODE_fn2 rxunif;
+RxODE_fn2 rxweibull;
 void _assignFuns(){
   if (_assign_ptr == NULL){
     _getRxSolve_ = (_getRxSolve_t) R_GetCCallable("RxODE","getRxSolve_");
@@ -167,6 +168,20 @@ void _assignFuns(){
     _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
     linCmtA=(linCmtA_p)R_GetCCallable("RxODE", "linCmtA");
     linCmtB=(linCmtB_p)R_GetCCallable("RxODE", "linCmtB");
+    rxnorm = (RxODE_fn2)R_GetCCallable("RxODE", "rxnorm");
+    rxbinom = (RxODE_rxbinom)R_GetCCallable("RxODE","rxbinom") ;
+    rxcauchy = (RxODE_fn2)R_GetCCallable("RxODE","rxcauchy") ;
+    rxchisq = (RxODE_fn)R_GetCCallable("RxODE","rxchisq") ;
+    rxexp = (RxODE_fn)R_GetCCallable("RxODE","rxexp") ;
+    rxf = (RxODE_fn2)R_GetCCallable("RxODE","rxf") ;
+    rxgeom = (RxODE_ifn)R_GetCCallable("RxODE","rxgeom") ;
+    rxlnorm = (RxODE_fn2)R_GetCCallable("RxODE","rxlnorm") ;
+    rxgamma = (RxODE_fn2)R_GetCCallable("RxODE","rxgamma") ;
+    rxbeta = (RxODE_fn2)R_GetCCallable("RxODE","rxbeta") ;
+    rxpois = (RxODE_ifn)R_GetCCallable("RxODE","rxpois") ;
+    rxt_ = (RxODE_fn)R_GetCCallable("RxODE","rxt_") ;
+    rxunif = (RxODE_fn2)R_GetCCallable("RxODE","rxunif") ;
+    rxweibull = (RxODE_fn2)R_GetCCallable("RxODE","rxweibull") ;
     _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
     _solveData = _getRxSolve_();
   }

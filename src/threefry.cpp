@@ -660,6 +660,13 @@ arma::mat rxMvrandn_(NumericMatrix A_,
 
 sitmo::threefry _eng;
 
+extern "C" void seedEng(int ncores){
+  double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
+  uint32_t seed = static_cast<uint32_t>(seedD);
+  seed = min2(seed, std::numeric_limits<uint32_t>::max() - ncores - 1);
+  _eng.seed(seed);
+}
+
 extern "C" int rxbinom(int n, double prob){
   std::binomial_distribution<int> d(prob);
   return d(_eng);
