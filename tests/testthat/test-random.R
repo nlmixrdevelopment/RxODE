@@ -210,6 +210,49 @@ rxPermissive({
 
     test_that("rexp tests", {
 
+        rx <- RxODE({
+            x1 <- rexp(0.5)
+            x2 <- rxexp(1)
+        })
+
+        ev <- et(1, id=1:30000)
+
+        set.seed(1024)
+        f <- rxSolve(rx, ev, cores=2)
+
+        expect_equal(mean(f$x1), 2, tol=0.1)
+        expect_equal(sd(f$x1), sqrt(1 / (0.5 * 0.5)), tol=0.1)
+
+        expect_equal(mean(f$x2), 1, tol=0.1)
+        expect_equal(sd(f$x2), 1, tol=0.1)
+
+        ## Seed tests
+
+        ## Make sure seeds are reproducible
+        ev <- et(1, id=1:10)
+
+        set.seed(1)
+        f <- rxSolve(rx, ev, cores=1)
+
+        set.seed(1)
+        f2 <- rxSolve(rx, ev, cores=1)
+        expect_equal(as.data.frame(f), as.data.frame(f2))
+
+        ## Make sure different seed value gives different result
+        set.seed(2)
+        f2 <- rxSolve(rx, ev, cores=1)
+
+        expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
+
+
+        expect_error(RxODE({
+            x1 <- rexp()
+        }))
+
+        expect_error(RxODE({
+            x1 <- rexp(a, b)
+        }))
+
     })
 
 })
