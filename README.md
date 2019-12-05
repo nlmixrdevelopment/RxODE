@@ -33,8 +33,8 @@ few key parts:
    - a `NONMEM` or `deSolve` [compatible data frame](https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html), or
    - created with `et()` or `EventTable()` for [easy simulation of events](https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-table.html)
    - The data frame can be augmented by adding
-     [time-varying](https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-covariates.html)
-     or adding individual covariates (`iCov=` as needed)
+     [time-varying](https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-covariates.html#time-varying-covariates)
+     or adding [individual covariates](file:///home/matt/src/RxODE/docs/articles/RxODE-covariates.html#individual-covariates) (`iCov=` as needed)
  - `rxSolve()` which solves the system of equations using initial
    conditions and parameters to make predictions
    - With multiple subject data, [this may be

@@ -80,6 +80,9 @@
     <li>
       <a href="articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
     </li>
+    <li>
+      <a href="articles/RxODE-data-frame.html">Adaptive Data Frames with RxODE</a>
+    </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
     <li>
@@ -95,7 +98,7 @@
       <a href="articles/RxODE-shiny.html">Using Shiny with RxODE</a>
     </li>
     <li>
-      <a href="articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
+      <a href="articles/RxODE-covariates.html">RxODE covariates</a>
     </li>
     <li>
       <a href="articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
@@ -204,81 +207,70 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-
-<p><img src="https://raw.githubusercontent.com/nlmixrdevelopment/RxODE/master/vignettes/logo.png" width="120" alt="RxODE logo (by Justin Wilkins)" style="position:absolute; top:0; right:0; padding:10px; border: 0;"></p>
 <div id="rxode" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#rxode" class="anchor"></a>RxODE</h1></div>
-<p><a href="https://travis-ci.org/nlmixrdevelopment/RxODE"><img src="https://travis-ci.org/nlmixrdevelopment/RxODE.svg?branch=master" alt="Build Status"></a> <a href="https://ci.appveyor.com/project/mattfidler/rxode"><img src="https://ci.appveyor.com/api/projects/status/8vv1e3hncve9tnva?svg=true" alt="AppVeyor Build status"></a> <a href="https://codecov.io/github/nlmixrdevelopment/RxODE?branch=master"><img src="https://codecov.io/github/nlmixrdevelopment/RxODE/coverage.svg?branch=master" alt="codecov.io"></a> <a href="https://cran.r-project.org/package=RxODE"><img src="http://www.r-pkg.org/badges/version/RxODE" alt="CRAN version"></a> <a href="https://cran.r-project.org/package=RxODE"><img src="https://cranlogs.r-pkg.org/badges/grand-total/RxODE" alt="CRAN total downloads"></a> <a href="https://cran.r-project.org/package=RxODE"><img src="https://cranlogs.r-pkg.org/badges/RxODE" alt="CRAN total downloads"></a></p>
-<p><strong>RxODE</strong> is an R package for solving and simulating from ode-based models. These models are convert the RxODE mini-language to C and create a compiled dll for fast solving.</p>
-<div id="basic-installation" class="section level2">
+<!-- badges: start -->
+
+<!-- badges: end -->
+<div id="overview" class="section level2">
 <h2 class="hasAnchor">
-<a href="#basic-installation" class="anchor"></a>Basic Installation</h2>
-<p>To install from source, you will have to have a working c and c++ compiler (either gcc, icc, clang) as well as a fortran compiler (gfortran).</p>
+<a href="#overview" class="anchor"></a>Overview</h2>
+<p><strong>RxODE</strong> is an R package for solving and simulating from ode-based models. These models are convert the RxODE mini-language to C and create a compiled dll for fast solving. ODE solving using RxODE has a few key parts:</p>
+<ul>
+<li>
+<code><a href="reference/RxODE.html">RxODE()</a></code> which creates the C code for fast ODE solving based on a <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-syntax.html">simple syntax</a> related to Leibnitz notation.</li>
+<li>The event data, which can be:</li>
+<li>a <code>NONMEM</code> or <code>deSolve</code> <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html">compatible data frame</a>, or</li>
+<li>created with <code><a href="reference/et.html">et()</a></code> or <code>EventTable()</code> for <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-table.html">easy simulation of events</a>
+</li>
+<li>The data frame can be augmented by adding <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-covariates.html#time-varying-covariates">time-varying</a> or adding <a href="file:///home/matt/src/RxODE/docs/articles/RxODE-covariates.html#individual-covariates">individual covariates</a> (<code>iCov=</code> as needed)</li>
+<li>
+<code><a href="reference/rxSolve.html">rxSolve()</a></code> which solves the system of equations using initial conditions and parameters to make predictions</li>
+<li>With multiple subject data, <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-speed.html">this may be parallelized</a>.</li>
+<li>With single subject the <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-data-frame.html">output data frame is adaptive</a>
+</li>
+<li>Covariances and other metrics of uncertanty can be used to <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-sim-var.html">simulate while solving</a>
+</li>
+</ul>
+</div>
+<div id="installation" class="section level2">
+<h2 class="hasAnchor">
+<a href="#installation" class="anchor"></a>Installation</h2>
+<p>You can install the released version of RxODE from <a href="https://CRAN.R-project.org">CRAN</a> with:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="st">"RxODE"</span>)</code></pre></div>
 <p>To run RxODE, you need a working c compiler. To use parallel threaded solving in RxODE, this c compiler needs to support open-mp.</p>
-</div>
-<div id="windows-setup-the-cfortran-compilers" class="section level2">
-<h2 class="hasAnchor">
-<a href="#windows-setup-the-cfortran-compilers" class="anchor"></a>Windows – Setup the c/fortran compilers</h2>
-<p>These notes briefly describe steps to properly install <code>RxODE</code> and to ensure <code>Rtools</code> (<a href="https://cran.r-project.org/bin/windows/Rtools/" class="uri">https://cran.r-project.org/bin/windows/Rtools/</a>) are properly configured to avoid compilation issues during the use of <code>RxODE</code>.</p>
-<p>In a nutshell, installing <code>RxODE</code> is very straight forward, but installing and configuring <code>Rtools</code> is a bit more delicate and you need to carefully follow the instructions in the “R Installation and Administration” manual, in particular Section 6.3, and Appendix D “The Windows Toolset”. We point out a couple of details worth extra attention. Please read on.</p>
-<div id="steps" class="section level3">
+<p>You can check to see if R has working c-compile you can check with:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pkgbuild<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/pkgbuild/man/has_build_tools.html">has_build_tools</a></span>(<span class="dt">debug =</span> <span class="ot">TRUE</span>)</code></pre></div>
+<p>If you do not have the toolchain, you can set it up as described by the platform information below:</p>
+<div id="windows" class="section level3">
 <h3 class="hasAnchor">
-<a href="#steps" class="anchor"></a>Steps:</h3>
-<ol>
-<li>Install the appropriate <code>Rtools</code> for your R for Windows version, (see <a href="http://cran.r-project.org/bin/windows/Rtools/" class="uri">http://cran.r-project.org/bin/windows/Rtools/</a>). A couple of important details:</li>
-</ol>
-<ul>
-<li><p>When installing <code>Rtools</code>, in the “Select Components” dialog box, you may select the default “Package authoring installation”.</p></li>
-<li><p>In the “Select Additional Tasks” dialog window, check the option “Edit the system PATH”. This is important to be able to locate the C, Fortran compilers and other tools needed during the use of <code>RxODE</code>.</p></li>
-<li><p>A simple way to test whether <code>Rtools</code> was properly installed is to compile the <code>hello.c</code> program. Simply open a new MSDOS command window, create a text file <code>hello.c</code> and compile it as follows:</p></li>
-</ul>
-<pre><code>     C:\hello&gt; type hello.c
-     #include&lt;stdio.h&gt;
-     
-     void main(int argc, char **argv)
-     {
-         printf("Hello World!\n");
-     }
-
-     C:\hello&gt; gcc -o hello hello.c
-
-     C:\hello&gt; .\hello
-     Hello World!</code></pre>
-<div class="sourceCode"><pre class="sourceCode R"><code class="sourceCode r"> If you get the error <span class="st">`</span><span class="dt">gcc: error: CreateProcess: No such file or</span>
-<span class="dt"> directory</span><span class="st">`</span> then you know <span class="st">`</span><span class="dt">Rtools</span><span class="st">`</span> was not properly installed, <span class="cf">in</span>
- particular, it did not update your system <span class="st">`</span><span class="dt">PATH</span><span class="st">`</span> variable.</code></pre></div>
-<ol>
-<li>
-<p>Obtain the <code>RxODE</code> package, either from github or CRAN. The installation requires use of the gcc compiler, so you’ll know if Step 1 was successfully executed.</p>
-<ul>
-<li><p>CRAN. Use the usual method for installing packages from CRAN.</p></li>
-<li><p>GitHub. First install the <code>devtools</code> package (if needed) and then <code>RxODE</code> from GitHub. You may want to avoid using a library folder that has spaces in its name (see question 4.1 in the “R for Windows FAQ” and the pointers therein). As of <code>RxODE</code> version 0.5-1, we’ve been able to test installations on folder with spaces in their name, but you may want to be on the safe side.</p></li>
-</ul>
-<p><code>install.packages("devtools")   library("devtools", lib = "C:/Rlib")   install_github("nlmixrdevelopment/RxODE")</code></p>
-</li>
-<li>
-<p>Test the <code>RxODE</code> installation:</p>
-<pre><code><a href="https://rdrr.io/r/base/library.html">library("RxODE", lib = "C:/Rlib")
-demo("demo1","RxODE")</a></code></pre>
-</li>
-</ol>
-<p>If the demo runs without error, click on the plot window and see if a new plot comes up each time. If so, <code>RxODE</code> has been installed correctly.</p>
-<p>See <code><a href="https://rdrr.io/r/utils/browseVignettes.html">browseVignettes("RxODE")</a></code> for an extended example on using <code>RxODE</code> for simulations.</p>
+<a href="#windows" class="anchor"></a>Windows</h3>
+<p>In windows you may simply use installr to install rtools:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="st">"installr"</span>)
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(installr)
+<span class="kw">install.rtools</span>()</code></pre></div>
 </div>
-</div>
-<div id="mac-osx" class="section level2">
-<h2 class="hasAnchor">
-<a href="#mac-osx" class="anchor"></a>Mac OSX</h2>
+<div id="mac-osx" class="section level3">
+<h3 class="hasAnchor">
+<a href="#mac-osx" class="anchor"></a>Mac OSX</h3>
 <p>Installation on a mac is much similar to RxODE installation under windows. To enable open mp on R and RxODE, you will need to install the gfortran and clang compilers located at <a href="https://cran.r-project.org/bin/macosx/tools/" class="uri">https://cran.r-project.org/bin/macosx/tools/</a></p>
 </div>
-<div id="linux" class="section level2">
-<h2 class="hasAnchor">
-<a href="#linux" class="anchor"></a>Linux</h2>
+<div id="linux" class="section level3">
+<h3 class="hasAnchor">
+<a href="#linux" class="anchor"></a>Linux</h3>
 <p>To install on linux make sure you install gcc (with openmp support) and gfortran using your distribution’s package manager.</p>
 </div>
 </div>
-
+<div id="development-version" class="section level2">
+<h2 class="hasAnchor">
+<a href="#development-version" class="anchor"></a>Development Version</h2>
+<p>Since the development version of RxODE uses StanHeaders, you will need to make sure your compiler is setup to support C++14, as described in the <a href="https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started#configuration-of-the-c-toolchain">rstan setup page</a></p>
+<p>Once the C++ toolchain is setup appropriately, you can install the development version from <a href="https://github.com/nlmixrdevelopment/RxODE">GitHub</a> with:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># install.packages("devtools")</span>
+devtools<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/devtools/man/remote-reexports.html">install_github</a></span>(<span class="st">"nlmixrdevelopment/RxODE"</span>)</code></pre></div>
+</div>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
@@ -313,7 +305,18 @@ demo("demo1","RxODE")</a></code></pre>
 </ul>
 </div>
 
-  </div>
+  <div class="dev-status">
+<h2>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://travis-ci.org/nlmixrdevelopment/RxODE"><img src="https://travis-ci.org/nlmixrdevelopment/RxODE.svg?branch=master" alt="Build Status"></a></li>
+<li><a href="https://ci.appveyor.com/project/mattfidler/rxode"><img src="https://ci.appveyor.com/api/projects/status/8vv1e3hncve9tnva?svg=true" alt="AppVeyor Build status"></a></li>
+<li><a href="https://codecov.io/github/nlmixrdevelopment/RxODE?branch=master"><img src="https://codecov.io/github/nlmixrdevelopment/RxODE/coverage.svg" alt="codecov.io"></a></li>
+<li><a href="https://cran.r-project.org/package=RxODE"><img src="http://www.r-pkg.org/badges/version/RxODE" alt="CRAN version"></a></li>
+<li><a href="https://cran.r-project.org/package=RxODE"><img src="https://cranlogs.r-pkg.org/badges/grand-total/RxODE" alt="CRAN total downloads"></a></li>
+<li><a href="https://cran.r-project.org/package=RxODE"><img src="https://cranlogs.r-pkg.org/badges/RxODE" alt="CRAN total downloads"></a></li>
+</ul>
+</div>
+</div>
 </div>
 
 

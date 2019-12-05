@@ -69,6 +69,9 @@
     <li>
       <a href="../articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
     </li>
+    <li>
+      <a href="../articles/RxODE-data-frame.html">Adaptive Data Frames with RxODE</a>
+    </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
     <li>
@@ -84,7 +87,7 @@
       <a href="../articles/RxODE-shiny.html">Using Shiny with RxODE</a>
     </li>
     <li>
-      <a href="../articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
+      <a href="../articles/RxODE-covariates.html">RxODE covariates</a>
     </li>
     <li>
       <a href="../articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
@@ -196,7 +199,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE in a pipeline</h1>
             
-            <h4 class="date">2019-11-18</h4>
+            <h4 class="date">2019-12-05</h4>
       
       
       <div class="hidden name"><code>RxODE-pipeline.Rmd</code></div>
@@ -308,22 +311,22 @@ omega &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/pk
                eta.kde <span class="op">~</span><span class="st"> </span><span class="kw">lognCv</span>(<span class="dv">70</span>))
 
 omega
-<span class="co">#&gt;               eta.pt0    eta.q0 eta.lambdap   eta.kqp   eta.qpp</span>
-<span class="co">#&gt; eta.pt0     0.6331848 0.0000000   0.0000000 0.0000000 0.0000000</span>
-<span class="co">#&gt; eta.q0      0.0000000 0.2558818   0.0000000 0.0000000 0.0000000</span>
-<span class="co">#&gt; eta.lambdap 0.0000000 0.0000000   0.4176571 0.0000000 0.0000000</span>
-<span class="co">#&gt; eta.kqp     0.0000000 0.0000000   0.0000000 0.4559047 0.0000000</span>
-<span class="co">#&gt; eta.qpp     0.0000000 0.0000000   0.0000000 0.0000000 0.6631518</span>
-<span class="co">#&gt; eta.deltaqp 0.0000000 0.0000000   0.0000000 0.0000000 0.0000000</span>
-<span class="co">#&gt; eta.kde     0.0000000 0.0000000   0.0000000 0.0000000 0.0000000</span>
-<span class="co">#&gt;             eta.deltaqp   eta.kde</span>
-<span class="co">#&gt; eta.pt0       0.0000000 0.0000000</span>
-<span class="co">#&gt; eta.q0        0.0000000 0.0000000</span>
-<span class="co">#&gt; eta.lambdap   0.0000000 0.0000000</span>
-<span class="co">#&gt; eta.kqp       0.0000000 0.0000000</span>
-<span class="co">#&gt; eta.qpp       0.0000000 0.0000000</span>
-<span class="co">#&gt; eta.deltaqp   0.8426442 0.0000000</span>
-<span class="co">#&gt; eta.kde       0.0000000 0.3987761</span></code></pre></div>
+<span class="co">#&gt;               eta.pt0    eta.q0 eta.lambdap   eta.kqp   eta.qpp eta.deltaqp</span>
+<span class="co">#&gt; eta.pt0     0.6331848 0.0000000   0.0000000 0.0000000 0.0000000   0.0000000</span>
+<span class="co">#&gt; eta.q0      0.0000000 0.2558818   0.0000000 0.0000000 0.0000000   0.0000000</span>
+<span class="co">#&gt; eta.lambdap 0.0000000 0.0000000   0.4176571 0.0000000 0.0000000   0.0000000</span>
+<span class="co">#&gt; eta.kqp     0.0000000 0.0000000   0.0000000 0.4559047 0.0000000   0.0000000</span>
+<span class="co">#&gt; eta.qpp     0.0000000 0.0000000   0.0000000 0.0000000 0.6631518   0.0000000</span>
+<span class="co">#&gt; eta.deltaqp 0.0000000 0.0000000   0.0000000 0.0000000 0.0000000   0.8426442</span>
+<span class="co">#&gt; eta.kde     0.0000000 0.0000000   0.0000000 0.0000000 0.0000000   0.0000000</span>
+<span class="co">#&gt;               eta.kde</span>
+<span class="co">#&gt; eta.pt0     0.0000000</span>
+<span class="co">#&gt; eta.q0      0.0000000</span>
+<span class="co">#&gt; eta.lambdap 0.0000000</span>
+<span class="co">#&gt; eta.kqp     0.0000000</span>
+<span class="co">#&gt; eta.qpp     0.0000000</span>
+<span class="co">#&gt; eta.deltaqp 0.0000000</span>
+<span class="co">#&gt; eta.kde     0.3987761</span></code></pre></div>
 <p>With this information, it is easy to simulate 3 subjects from the model-based parameters:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span>(<span class="dv">1089</span>)
 Ribba2012 <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Use RxODE</span>

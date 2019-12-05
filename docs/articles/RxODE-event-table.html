@@ -69,6 +69,9 @@
     <li>
       <a href="../articles/RxODE-speed.html">Speeding up RxODE ODE solving</a>
     </li>
+    <li>
+      <a href="../articles/RxODE-data-frame.html">Adaptive Data Frames with RxODE</a>
+    </li>
     <li class="divider">
     <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
     <li>
@@ -84,7 +87,7 @@
       <a href="../articles/RxODE-shiny.html">Using Shiny with RxODE</a>
     </li>
     <li>
-      <a href="../articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
+      <a href="../articles/RxODE-covariates.html">RxODE covariates</a>
     </li>
     <li>
       <a href="../articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
@@ -196,7 +199,7 @@
     <div class="page-header toc-ignore">
       <h1>Easy RxODE Event Tables</h1>
             
-            <h4 class="date">2019-11-18</h4>
+            <h4 class="date">2019-12-05</h4>
       
       
       <div class="hidden name"><code>RxODE-event-table.Rmd</code></div>
@@ -212,16 +215,16 @@
 <p>To create an RxODE event table you may use the code <code><a href="../reference/eventTable.html">eventTable()</a></code>, <code><a href="../reference/et.html">et()</a></code>, or even create your own data frame with the right event information contained in it. This is closely related to the <a href="RxODE-event-types.html">types of events that RxODE supports</a>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(RxODE)
 (ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/eventTable.html">eventTable</a></span>());</code></pre></div>
-<pre><code>#&gt; ------------------------ EventTable with 0 records ------------------------
+<pre><code>#&gt; --------------------------- EventTable with 0 records --------------------------
 #&gt;    0 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    0 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; ---------------------------------------------------------------------------</code></pre>
+#&gt; --------------------------------------------------------------------------------</code></pre>
 <p>or</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>());</code></pre></div>
-<pre><code>#&gt; ------------------------ EventTable with 0 records ------------------------
+<pre><code>#&gt; --------------------------- EventTable with 0 records --------------------------
 #&gt;    0 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    0 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; ---------------------------------------------------------------------------</code></pre>
+#&gt; --------------------------------------------------------------------------------</code></pre>
 <p>With this event table you can add sampling/observations or doses by piping or direct access.</p>
 <p>This is a short table of the two main functions to create dosing</p>
 <table class="table">
@@ -344,17 +347,17 @@ ev &lt;-<span class="st"> </span>ev <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/add.dosing.html">add.dosing</a></span>(<span class="dt">dose=</span><span class="dv">5000</span>, <span class="dt">nbr.doses=</span><span class="dv">14</span>, <span class="dt">dosing.interval=</span><span class="dv">12</span>)<span class="co"># maintenance</span>
 
 ev</code></pre></div>
-<pre><code>#&gt; ------------------------ EventTable with 2 records ------------------------
+<pre><code>#&gt; --------------------------- EventTable with 2 records --------------------------
 #&gt;    2 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    0 observation times (see x$get.sampling(); add with add.sampling or et)
 #&gt;    multiple doses in `addl` columns, expand with x$expand(); or etExpand(x)
-#&gt; -- First part of x: -------------------------------------------------------
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 2 x 5
 #&gt;    time   amt    ii  addl evid        
 #&gt;     [h]  [mg]   [h] &lt;int&gt; &lt;evid&gt;      
 #&gt; 1     0 10000    24     2 1:Dose (Add)
 #&gt; 2     0  5000    12    13 1:Dose (Add)
-#&gt; ---------------------------------------------------------------------------</code></pre>
+#&gt; --------------------------------------------------------------------------------</code></pre>
 <p>Notice that the units were specified in the table. When specified, the units use the <code>units</code> package to keep track of the units and convert them if needed. Additionally, <code>ggforce</code> uses them to label the <code>ggplot</code> axes. The <code>set_units</code> and <code>drop_units</code> are useful to set and drop the RxODE event table units.</p>
 <p>In this example, you can see the time axes is labeled:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(C2)</code></pre></div>
@@ -364,16 +367,16 @@ ev</code></pre></div>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">until =</span> <span class="kw"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span>(<span class="dv">3</span>, days), <span class="dt">ii=</span><span class="dv">12</span>) <span class="co"># loading doses</span>
 
 ev</code></pre></div>
-<pre><code>#&gt; ------------------------ EventTable with 1 records ------------------------
+<pre><code>#&gt; --------------------------- EventTable with 1 records --------------------------
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    0 observation times (see x$get.sampling(); add with add.sampling or et)
 #&gt;    multiple doses in `addl` columns, expand with x$expand(); or etExpand(x)
-#&gt; -- First part of x: -------------------------------------------------------
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 1 x 5
 #&gt;    time   amt    ii  addl evid        
 #&gt;     [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;evid&gt;      
 #&gt; 1     0 10000    12     6 1:Dose (Add)
-#&gt; ---------------------------------------------------------------------------</code></pre>
+#&gt; --------------------------------------------------------------------------------</code></pre>
 <p>Which gives:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(C2)</code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
@@ -392,11 +395,11 @@ ev<span class="op">$</span><span class="kw"><a href="../reference/add.dosing.htm
 ev<span class="op">$</span><span class="kw"><a href="../reference/add.sampling.html">add.sampling</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dt">by=</span><span class="dv">4</span>))
 
 ev</code></pre></div>
-<pre><code>#&gt; ------------------------ EventTable with 8 records ------------------------
+<pre><code>#&gt; --------------------------- EventTable with 8 records --------------------------
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    7 observation times (see x$get.sampling(); add with add.sampling or et)
 #&gt;    multiple doses in `addl` columns, expand with x$expand(); or etExpand(x)
-#&gt; -- First part of x: -------------------------------------------------------
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 8 x 5
 #&gt;    time   amt    ii  addl evid         
 #&gt;     [h]  [mg]   [h] &lt;int&gt; &lt;evid&gt;       
@@ -408,7 +411,7 @@ ev</code></pre></div>
 #&gt; 6    16    NA    NA    NA 0:Observation
 #&gt; 7    20    NA    NA    NA 0:Observation
 #&gt; 8    24    NA    NA    NA 0:Observation
-#&gt; ---------------------------------------------------------------------------</code></pre>
+#&gt; --------------------------------------------------------------------------------</code></pre>
 <p>Which gives:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/solve.html">solve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(C2)</code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
@@ -418,11 +421,11 @@ ev</code></pre></div>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dt">by=</span><span class="dv">4</span>))
 
 ev</code></pre></div>
-<pre><code>#&gt; ------------------------ EventTable with 8 records ------------------------
+<pre><code>#&gt; --------------------------- EventTable with 8 records --------------------------
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    7 observation times (see x$get.sampling(); add with add.sampling or et)
 #&gt;    multiple doses in `addl` columns, expand with x$expand(); or etExpand(x)
-#&gt; -- First part of x: -------------------------------------------------------
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 8 x 5
 #&gt;    time   amt    ii  addl evid         
 #&gt;     [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;evid&gt;       
@@ -434,7 +437,7 @@ ev</code></pre></div>
 #&gt; 6    16    NA    NA    NA 0:Observation
 #&gt; 7    20    NA    NA    NA 0:Observation
 #&gt; 8    24    NA    NA    NA 0:Observation
-#&gt; ---------------------------------------------------------------------------</code></pre>
+#&gt; --------------------------------------------------------------------------------</code></pre>
 <p>which gives the following RxODE solve:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/solve.html">solve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(C2)</code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
@@ -450,12 +453,12 @@ ev</code></pre></div>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">id=</span><span class="dv">1</span><span class="op">:</span><span class="dv">4</span>)
 
 ev</code></pre></div>
-<pre><code>#&gt; ----------------------- EventTable with 804 records -----------------------
+<pre><code>#&gt; -------------------------- EventTable with 804 records -------------------------
 #&gt;    4 individuals
 #&gt;    4 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    800 observation times (see x$get.sampling(); add with add.sampling or et)
 #&gt;    multiple doses in `addl` columns, expand with x$expand(); or etExpand(x)
-#&gt; -- First part of x: -------------------------------------------------------
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 804 x 6
 #&gt;       id      time   amt    ii  addl evid         
 #&gt;    &lt;int&gt;       [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;evid&gt;       
@@ -470,7 +473,7 @@ ev</code></pre></div>
 #&gt;  9     1 1.6884422    NA    NA    NA 0:Observation
 #&gt; 10     1 1.9296482    NA    NA    NA 0:Observation
 #&gt; # ... with 794 more rows
-#&gt; ---------------------------------------------------------------------------</code></pre>
+#&gt; --------------------------------------------------------------------------------</code></pre>
 <p>You can see in the following simulation there are 4 individuals that are solved for:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span>(<span class="dv">42</span>)
 <span class="kw"><a href="https://rdrr.io/r/base/solve.html">solve</a></span>(m1, ev,
@@ -491,11 +494,11 @@ ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html"
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">id=</span><span class="dv">1</span><span class="op">:</span><span class="dv">4</span>)
 
 ev</code></pre></div>
-<pre><code>#&gt; ------------------------ EventTable with 16 records -----------------------
+<pre><code>#&gt; -------------------------- EventTable with 16 records --------------------------
 #&gt;    4 individuals
 #&gt;    16 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    0 observation times (see x$get.sampling(); add with add.sampling or et)
-#&gt; -- First part of x: -------------------------------------------------------
+#&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 16 x 6
 #&gt;       id   low       time  high   amt evid        
 #&gt;    &lt;int&gt;   [h]        [h]   [h] &lt;dbl&gt; &lt;evid&gt;      
@@ -515,7 +518,7 @@ ev</code></pre></div>
 #&gt; 14     4    12 13.7168372    18 10000 1:Dose (Add)
 #&gt; 15     4    24 29.6224525    30 10000 1:Dose (Add)
 #&gt; 16     4    36 41.4888363    42 10000 1:Dose (Add)
-#&gt; ---------------------------------------------------------------------------</code></pre>
+#&gt; --------------------------------------------------------------------------------</code></pre>
 <p>You can clearly see different dosing times in the following simulation:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span>ev <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="dv">0</span>,<span class="dv">48</span>,<span class="dt">length.out=</span><span class="dv">200</span>))
 
