@@ -116,7 +116,13 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
     "rnorm"=NA,
     "rxnorm"=NA,
     "rxbinom"=2,
-    "rbinom"=2
+    "rbinom"=2,
+    "rxcauchy"=NA,
+    "rcauchy"=NA,
+    "rchisq"=1,
+    "rxchisq"=1,
+    "rexp"=1,
+    "rxexp"=1
 )
 
 

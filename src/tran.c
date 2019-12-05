@@ -1058,6 +1058,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       if (tb.fn){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	int isNorm=0;
         if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
 	    !strcmp("max",v) || !strcmp("min",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
@@ -1099,34 +1100,78 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  i = 1;// Parse next arguments
 	  depth=1;
 	  continue;
-	} else if (!strcmp("rnorm", v) ||
-		   !strcmp("rxnorm", v)){
+	} else if ((isNorm = !strcmp("rnorm", v) ||
+		    !strcmp("rxnorm", v)) ||
+		   !strcmp("rxcauchy", v) ||
+		   !strcmp("rcauchy", v)
+		   ){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 1){
 	    xpn = d_get_child(pn,2);
-	    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	    int iii=0;
 	    int allSpace=1;
-	    while(v[iii] != '\0'){
+	    while(v2[iii] != '\0'){
 	      if (!isspace(v[iii])){
 		allSpace=0;
 		break;
 	      }
 	    }
-	    Free(v);
+	    Free(v2);
 	    if (allSpace){
-	      aAppendN("rxnorm(0.0, 1.0", 15);
-	      sAppendN(&sbt, "rxnorm(", 7);
+	      sAppend(&sb,"%s(0.0, 1.0", v);
+	      sAppend(&sbDt,"%s(0.0, 1.0", v);
+	      sAppend(&sbt, "%s(", v);
 	    } else {
-	      aAppendN("rxnorm1(", 8);
-	      sAppendN(&sbt, "rxnorm(", 7);
+	      sAppend(&sb,"%s1(", v);
+	      sAppend(&sbDt,"%s1(", v);
+	      sAppend(&sbt, "%s(", v);
 	    }
 	  } else if (ii == 2){
-	    aAppendN("rxnorm(", 7);
-	    sAppendN(&sbt, "rxnorm(", 7);
+	    sAppend(&sb,"%s(", v);
+	    sAppend(&sbDt,"%s(", v);
+	    sAppend(&sbt, "%s(", v);
 	  } else {
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"));
+	    if (isNorm){
+	      trans_syntax_error_report_fn(_("'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"));
+	    } else {
+	      trans_syntax_error_report_fn(_("'rxcauchy'/'rcauchy' takes 0-2 arguments 'rxcauchy(location, scale)'"));
+	    }
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  continue;
+	} else if (!strcmp("rchisq", v) ||
+		   !strcmp("rxchisq", v) ||
+		   !strcmp("rxexp", v) ||
+		   !strcmp("rexp", v)){
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii != 1){
+	    sPrint(&buf, _("'%s' takes 1 arguments"), v);
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(buf.s);
+	  } else {
+	    xpn = d_get_child(pn,2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    int iii=0;
+	    int allSpace=1;
+	    while(v2[iii] != '\0'){
+	      if (!isspace(v[iii])){
+		allSpace=0;
+		break;
+	      }
+	    }
+	    Free(v2);
+	    if (allSpace){
+	      sPrint(&buf, _("'%s' takes 1 argument"), v);
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(buf.s);
+	    } else {
+	      sAppend(&sb,"%s(", v);
+	      sAppend(&sbDt,"%s(", v);
+	      sAppend(&sbt, "%s(", v);
+	    }
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
