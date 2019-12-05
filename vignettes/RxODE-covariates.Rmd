@@ -5,7 +5,51 @@ output:
   html_document:
     self_contained: no
 ---
+# Individual Covariates
 
+If there is an individual covariate you wish to solve for you may specify it by the `iCov` dataset:
+
+```{r}
+library(RxODE)
+library(units)
+library(xgxr)
+
+mod3 <- RxODE({
+    KA=2.94E-01;
+    ## Clearance with individuals
+    CL=1.86E+01 * (WT / 70) ^ 0.75; 
+    V2=4.02E+01; 
+    Q=1.05E+01;
+    V3=2.97E+02; 
+    Kin=1;
+    Kout=1;
+    EC50=200;
+    ## The linCmt() picks up the variables from above
+    C2   = linCmt();
+    Tz= 8
+    amp=0.1
+    eff(0) = 1  ## This specifies that the effect compartment starts at 1.
+    d/dt(eff) =  Kin - Kout*(1-C2/(EC50+C2))*eff;
+})
+
+ev <- et(amount.units="mg", time.units="hours") %>%
+    et(amt=10000, cmt=2) %>%
+    et(0,48,length.out=100) %>%
+    et(id=1:4);
+
+set.seed(10)
+## Now use iCov to simulate a 4-id sample
+r1 <- solve(mod3, ev,
+            # Create individual covariate data-frame
+            iCov=data.frame(id=1:4, WT=rnorm(4, 70, 10)),
+            # in this case it would be useful to keep the WT in the output dataset
+            keep="WT")
+print(r1)
+
+plot(r1, C2) + xgx_scale_y_log10()
+```
+
+# Time Varying Covariates
 ```{r, echo=FALSE}
 ## options(knitr.table.format = "html")
 knitr::opts_chunk$set(
