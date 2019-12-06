@@ -43,6 +43,9 @@
 #define rxcauchy1(x) rxcauchy(x, 1.0)
 #define rchisq(x) rxchisq(x)
 #define rexp(x) rxexp(x)
+#define rgamma(x,y) rxgamma(x,y)
+#define rgamma1(x) rxgamma(x,1.0)
+#define rxgamma1(x) rxgamma(x,1.0)
 
 // Types for par pointers.r
 typedef double (*RxODE_fn) (double x);

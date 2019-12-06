@@ -252,7 +252,7 @@ rxPermissive({
 
     context("rf tests")
 
-    test_that("rexp tests", {
+    test_that("rf tests", {
 
         rx <- RxODE({
             x1 <- rf(10, 20)
@@ -297,12 +297,67 @@ rxPermissive({
         expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
 
         expect_error(RxODE({
-            x1 <- rexp(a, b)
+            x1 <- rf(a, b, c)
+        }))
+
+        expect_error(RxODE({
+            x1 <- rf(a)
+        }))
+
+        expect_error(RxODE({
+            x1 <- rf()
         }))
 
     })
 
+    context("rgamma tests")
 
+    test_that("rgamma tests", {
 
+        rx <- RxODE({
+            x1 <- rgamma(9, 0.5)
+            x2 <- rxgamma(7.5)
+        })
+
+        ev <- et(1, id=1:30000)
+
+        set.seed(1024)
+        f <- rxSolve(rx, ev, cores=2)
+
+        sgamma <- function(k, theta=1){
+            sqrt(k / (theta ^ 2))
+        }
+
+        expect_equal(sd(f$x1), sgamma(9, 0.5), tol=0.01)
+
+        expect_equal(sd(f$x2), sgamma(7.5), tol=0.01)
+
+        ## Seed tests
+
+        ## Make sure seeds are reproducible
+        ev <- et(1, id=1:10)
+
+        set.seed(1)
+        f <- rxSolve(rx, ev, cores=1)
+
+        set.seed(1)
+        f2 <- rxSolve(rx, ev, cores=1)
+        expect_equal(as.data.frame(f), as.data.frame(f2))
+
+        ## Make sure different seed value gives different result
+        set.seed(2)
+        f2 <- rxSolve(rx, ev, cores=1)
+
+        expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
+
+        expect_error(RxODE({
+            x1 <- rgamma(a, b, c)
+        }))
+
+        expect_error(RxODE({
+            x1 <- rgamma()
+        }))
+
+    })
 
 })

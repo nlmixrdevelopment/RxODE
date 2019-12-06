@@ -694,7 +694,8 @@ extern "C" double rxf(double df1, double df2){
 }
 
 extern "C" double rxgamma(double shape, double rate){
-  std::gamma_distribution<double> d(shape, rate);
+  // R uses rate; C++ uses scale
+  std::gamma_distribution<double> d(shape, 1.0/rate);
   return d(_eng);
 }
 

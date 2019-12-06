@@ -1058,7 +1058,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       if (tb.fn){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	int isNorm=0, isExp=0, isF=0;
+	int isNorm=0, isExp=0, isF=0, isGamma=0;
         if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
 	    !strcmp("max",v) || !strcmp("min",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
@@ -1105,7 +1105,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		   !strcmp("rxcauchy", v) ||
 		   !strcmp("rcauchy", v) ||
 		   (isF = !strcmp("rxf", v) ||
-		    !strcmp("rf", v))
+		    !strcmp("rf", v)) ||
+		   (isGamma = !strcmp("rxgamma", v) ||
+		    !strcmp("rgamma", v))
 		   ){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 1){
@@ -1125,9 +1127,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      }
 	      Free(v2);
 	      if (allSpace){
-		sAppend(&sb,"%s(0.0, 1.0", v);
-		sAppend(&sbDt,"%s(0.0, 1.0", v);
-		sAppend(&sbt, "%s(", v);
+		if (isGamma){
+		  updateSyntaxCol();
+		  trans_syntax_error_report_fn(_("'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"));
+		} else {
+		  sAppend(&sb,"%s(0.0, 1.0", v);
+		  sAppend(&sbDt,"%s(0.0, 1.0", v);
+		  sAppend(&sbt, "%s(", v);
+		}
 	      } else {
 		sAppend(&sb,"%s1(", v);
 		sAppend(&sbDt,"%s1(", v);
@@ -1144,6 +1151,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      trans_syntax_error_report_fn(_("'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"));
 	    } else if (isF) {
 	      trans_syntax_error_report_fn(_("'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
+	    } else if (isGamma) {
+	      trans_syntax_error_report_fn(_("'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'")); 
 	    } else {
 	      trans_syntax_error_report_fn(_("'rxcauchy'/'rcauchy' takes 0-2 arguments 'rxcauchy(location, scale)'"));
 	    }
