@@ -420,4 +420,47 @@ rxPermissive({
 
     })
 
+    context("rgeom tests")
+
+    test_that("rgeom tests", {
+
+        rx <- RxODE({
+            x1 <- rgeom(0.5)
+            x2 <- rxgeom(0.1)
+        })
+
+        ev <- et(1, id=1:30000)
+
+        set.seed(1024)
+        f <- rxSolve(rx, ev, cores=2)
+
+        expect_equal(median(f$x1), -ceiling(1/log2(1-0.5)))
+        expect_equal(median(f$x2), -ceiling(1/log2(1-0.1)))
+
+        ev <- et(1, id=1:10)
+
+        set.seed(1)
+        f <- rxSolve(rx, ev, cores=1)
+
+        set.seed(1)
+        f2 <- rxSolve(rx, ev, cores=1)
+        expect_equal(as.data.frame(f), as.data.frame(f2))
+
+        ## Make sure different seed value gives different result
+        set.seed(2)
+        f2 <- rxSolve(rx, ev, cores=1)
+
+        expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
+
+        expect_error(RxODE({
+            x1 <- rgeom()
+        }))
+
+        expect_error(RxODE({
+            x1 <- rgeom(a, b)
+        }))
+
+    })
+
+
 })

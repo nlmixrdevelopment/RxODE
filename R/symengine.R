@@ -122,7 +122,11 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
     "rchisq"=1,
     "rxchisq"=1,
     "rexp"=1,
-    "rxexp"=1
+    "rxexp"=1,
+    "rbeta"=2,
+    "rxbeta"=2,
+    "rgeom"=1,
+    "rxgeom"=1
 )
 
 

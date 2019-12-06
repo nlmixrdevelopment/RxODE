@@ -204,7 +204,7 @@ rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
   rx_mvnrnd ret;
   int d=l.n_elem; // Initialization
   mu[d-1]=0;
-  arma::mat Z(d,n,arma::fill::zeros); // create array for variables
+  arma::mat Z(d, n, arma::fill::zeros); // create array for variables
   arma::vec p(n, arma::fill::zeros);
   arma::vec uu(n, arma::fill::zeros);
   std::uniform_real_distribution<> unif(0.0, 1.0);

@@ -1207,6 +1207,34 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  i = 1;// Parse next arguments
 	  depth=1;
 	  continue;
+	} else if (!strcmp("rxgeom", v) ||
+		   !strcmp("rgeom", v)){
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii != 1){
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
+	  } else {
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    int iii=0;
+	    int allSpace=1;
+	    while(v2[iii] != '\0'){
+	      if (!isspace(v[iii])){
+		allSpace=0;
+		break;
+	      }
+	    }
+	    Free(v2);
+	    if (allSpace){
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
+	    } else {
+	      aAppendN("(double)rxgeom(", 15);
+	      sAppendN(&sbt, "rxgeom(", 7);
+	    }
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  continue;
 	} else if (!strcmp("rbinom", v) ||
 		   !strcmp("rxbinom", v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;

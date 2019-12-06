@@ -46,6 +46,7 @@
 #define rgamma(x,y) rxgamma(x,y)
 #define rgamma1(x) rxgamma(x,1.0)
 #define rxgamma1(x) rxgamma(x,1.0)
+#define rgeom(x) rxgeom(x)
 
 // Types for par pointers.r
 typedef double (*RxODE_fn) (double x);
