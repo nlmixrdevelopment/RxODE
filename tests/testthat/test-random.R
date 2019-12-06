@@ -212,7 +212,7 @@ rxPermissive({
 
         rx <- RxODE({
             x1 <- rexp(0.5)
-            x2 <- rxexp(1)
+            x2 <- rxexp()
         })
 
         ev <- et(1, id=1:30000)
@@ -243,11 +243,6 @@ rxPermissive({
         f2 <- rxSolve(rx, ev, cores=1)
 
         expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
-
-
-        expect_error(RxODE({
-            x1 <- rexp()
-        }))
 
         expect_error(RxODE({
             x1 <- rexp(a, b)

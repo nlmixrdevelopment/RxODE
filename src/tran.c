@@ -1059,6 +1059,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (tb.fn){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	int isNorm=0;
+	int isExp=0;
         if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
 	    !strcmp("max",v) || !strcmp("min",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
@@ -1144,8 +1145,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  continue;
 	} else if (!strcmp("rchisq", v) ||
 		   !strcmp("rxchisq", v) ||
-		   !strcmp("rxexp", v) ||
-		   !strcmp("rexp", v)){
+		   (isExp = !strcmp("rxexp", v) ||
+		    !strcmp("rexp", v))){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 1){
 	    sPrint(&buf, _("'%s' takes 1 arguments"), v);
@@ -1164,9 +1165,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    }
 	    Free(v2);
 	    if (allSpace){
-	      sPrint(&buf, _("'%s' takes 1 argument"), v);
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(buf.s);
+	      if (isExp){
+		sAppend(&sb,"%s(1.0", v);
+		sAppend(&sbDt,"%s(1.0", v);
+		sAppend(&sbt, "%s(", v);
+	      } else {
+		sPrint(&buf, _("'%s' takes 1 argument"), v);
+		updateSyntaxCol();
+		trans_syntax_error_report_fn(buf.s);
+	      }
 	    } else {
 	      sAppend(&sb,"%s(", v);
 	      sAppend(&sbDt,"%s(", v);
