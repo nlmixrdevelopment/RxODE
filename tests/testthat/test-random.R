@@ -360,4 +360,64 @@ rxPermissive({
 
     })
 
+    context("rbeta tests")
+
+    test_that("rbeta tests", {
+
+        rx <- RxODE({
+            x1 <- rbeta(2, 5)
+            x2 <- rxbeta(2, 2)
+        })
+
+        ev <- et(1, id=1:30000)
+
+        set.seed(1024)
+        f <- rxSolve(rx, ev, cores=2)
+
+
+        mbeta <- function(a, b){
+            return(a / (a + b))
+        }
+        sbeta <- function(a, b){
+            sqrt(a * b / ((a + b) ^ 2 * (a + b + 1)))
+        }
+
+        expect_equal(mean(f$x1), mbeta(2, 5), tol=0.01)
+        expect_equal(sd(f$x1), sbeta(2, 5), tol=0.01)
+
+        expect_equal(mean(f$x2), mbeta(2, 2), tol=0.01)
+        expect_equal(sd(f$x2), sbeta(2, 2), tol=0.01)
+
+        ## Seed tests
+
+        ## Make sure seeds are reproducible
+        ev <- et(1, id=1:10)
+
+        set.seed(1)
+        f <- rxSolve(rx, ev, cores=1)
+
+        set.seed(1)
+        f2 <- rxSolve(rx, ev, cores=1)
+        expect_equal(as.data.frame(f), as.data.frame(f2))
+
+        ## Make sure different seed value gives different result
+        set.seed(2)
+        f2 <- rxSolve(rx, ev, cores=1)
+
+        expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
+
+        expect_error(RxODE({
+            x1 <- rbeta(a, b, c)
+        }))
+
+        expect_error(RxODE({
+            x1 <- rbeta(a)
+        }))
+
+        expect_error(RxODE({
+            x1 <- rbeta()
+        }))
+
+    })
+
 })
