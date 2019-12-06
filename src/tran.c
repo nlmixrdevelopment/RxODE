@@ -1058,8 +1058,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       if (tb.fn){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	int isNorm=0;
-	int isExp=0;
+	int isNorm=0, isExp=0, isF=0;
         if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
 	    !strcmp("max",v) || !strcmp("min",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
@@ -1104,29 +1103,36 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	} else if ((isNorm = !strcmp("rnorm", v) ||
 		    !strcmp("rxnorm", v)) ||
 		   !strcmp("rxcauchy", v) ||
-		   !strcmp("rcauchy", v)
+		   !strcmp("rcauchy", v) ||
+		   (isF = !strcmp("rxf", v) ||
+		    !strcmp("rf", v))
 		   ){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 1){
-	    xpn = d_get_child(pn,2);
-	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	    int iii=0;
-	    int allSpace=1;
-	    while(v2[iii] != '\0'){
-	      if (!isspace(v[iii])){
-		allSpace=0;
-		break;
-	      }
-	    }
-	    Free(v2);
-	    if (allSpace){
-	      sAppend(&sb,"%s(0.0, 1.0", v);
-	      sAppend(&sbDt,"%s(0.0, 1.0", v);
-	      sAppend(&sbt, "%s(", v);
+	    if (isF){
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
 	    } else {
-	      sAppend(&sb,"%s1(", v);
-	      sAppend(&sbDt,"%s1(", v);
-	      sAppend(&sbt, "%s(", v);
+	      xpn = d_get_child(pn,2);
+	      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	      int iii=0;
+	      int allSpace=1;
+	      while(v2[iii] != '\0'){
+		if (!isspace(v[iii])){
+		  allSpace=0;
+		  break;
+		}
+	      }
+	      Free(v2);
+	      if (allSpace){
+		sAppend(&sb,"%s(0.0, 1.0", v);
+		sAppend(&sbDt,"%s(0.0, 1.0", v);
+		sAppend(&sbt, "%s(", v);
+	      } else {
+		sAppend(&sb,"%s1(", v);
+		sAppend(&sbDt,"%s1(", v);
+		sAppend(&sbt, "%s(", v);
+	      }
 	    }
 	  } else if (ii == 2){
 	    sAppend(&sb,"%s(", v);
@@ -1136,6 +1142,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    updateSyntaxCol();
 	    if (isNorm){
 	      trans_syntax_error_report_fn(_("'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"));
+	    } else if (isF) {
+	      trans_syntax_error_report_fn(_("'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
 	    } else {
 	      trans_syntax_error_report_fn(_("'rxcauchy'/'rcauchy' takes 0-2 arguments 'rxcauchy(location, scale)'"));
 	    }
