@@ -1059,7 +1059,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (tb.fn){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	int isNorm=0, isExp=0, isF=0, isGamma=0, isBeta=0, isLNorm=0,
-	  isPois=0;
+	  isPois=0, isT=0;
         if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
 	    !strcmp("max",v) || !strcmp("min",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
@@ -1177,7 +1177,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	} else if (!strcmp("rchisq", v) ||
 		   !strcmp("rxchisq", v) ||
 		   (isExp = !strcmp("rxexp", v) ||
-		    !strcmp("rexp", v))){
+		    !strcmp("rexp", v)) ||
+		   (isT = !strcmp("rxt", v) ||
+		    !strcmp("rt", v))){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 1){
 	    sPrint(&buf, _("'%s' takes 1 arguments"), v);
@@ -1205,6 +1207,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		updateSyntaxCol();
 		trans_syntax_error_report_fn(buf.s);
 	      }
+	    } else if (isT){
+	      sAppendN(&sb,"rxt_(", 5);
+	      sAppendN(&sbDt,"rxt_(", 5);
+	      sAppendN(&sbt, "rxt(", 4);
 	    } else {
 	      sAppend(&sb,"%s(", v);
 	      sAppend(&sbDt,"%s(", v);

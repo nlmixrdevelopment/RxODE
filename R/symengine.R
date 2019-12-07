@@ -128,7 +128,9 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
     "rgeom"=1,
     "rxgeom"=1,
     "rxpois"=1,
-    "rpois"=1
+    "rpois"=1,
+    "rxt"=1,
+    "rt"=1
 )
 
 
