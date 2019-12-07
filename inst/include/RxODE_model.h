@@ -39,7 +39,10 @@
 #define rxTBSi(x, lm, yj) _powerDi(x,  lm, (int)(yj))
 #define rxTBSd(x, lm, yj) _powerDD(x, lm, (int)(yj))
 #define rxTBSd2(x, lm, yj) _powerDDD(x, lm, (int)(yj))
+#define rnorm(x,y) rxnorm(x,y)
+#define rlnorm(x,y) rxlnorm(x,y)
 #define rxnorm1(x) rxnorm(x, 1.0)
+#define rxlnorm1(x) rxlnorm(x, 1.0)
 #define rxcauchy1(x) rxcauchy(x, 1.0)
 #define rchisq(x) rxchisq(x)
 #define rexp(x) rxexp(x)
@@ -47,6 +50,7 @@
 #define rgamma1(x) rxgamma(x,1.0)
 #define rxgamma1(x) rxgamma(x,1.0)
 #define rgeom(x) rxgeom(x)
+#define rpois(x) rxpois(x)
 
 // Types for par pointers.r
 typedef double (*RxODE_fn) (double x);

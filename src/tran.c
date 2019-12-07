@@ -1058,7 +1058,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       if (tb.fn){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	int isNorm=0, isExp=0, isF=0, isGamma=0, isBeta=0;
+	int isNorm=0, isExp=0, isF=0, isGamma=0, isBeta=0, isLNorm=0,
+	  isPois=0;
         if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
 	    !strcmp("max",v) || !strcmp("min",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
@@ -1099,9 +1100,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
+	  Free(v);
 	  continue;
 	} else if ((isNorm = !strcmp("rnorm", v) ||
 		    !strcmp("rxnorm", v)) ||
+		   (isLNorm = !strcmp("rlnorm", v) ||
+		    !strcmp("rxlnorm", v)) ||
 		   !strcmp("rxcauchy", v) ||
 		   !strcmp("rcauchy", v) ||
 		   (isF = !strcmp("rxf", v) ||
@@ -1154,6 +1158,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    updateSyntaxCol();
 	    if (isNorm){
 	      trans_syntax_error_report_fn(_("'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"));
+	    } else if (isLNorm){
+	      trans_syntax_error_report_fn(_("'rxlnorm'/'rlnorm' takes 0-2 arguments 'rxlnorm(meanlog, sdlog)'"));
 	    } else if (isF) {
 	      trans_syntax_error_report_fn(_("'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
 	    } else if (isBeta) {
@@ -1166,6 +1172,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
+	  Free(v);
 	  continue;
 	} else if (!strcmp("rchisq", v) ||
 		   !strcmp("rxchisq", v) ||
@@ -1206,14 +1213,24 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
+	  Free(v);
 	  continue;
 	} else if (!strcmp("rxgeom", v) ||
-		   !strcmp("rgeom", v)){
+		   !strcmp("rgeom", v) ||
+		   (isPois= !strcmp("rxpois", v) ||
+		    !strcmp("rpois", v))){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 1){
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
+	    if (isPois){
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'rxpois'/'rpois' takes 1 argument 'rxpois(lambda)'"));
+	    } else {
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
+	    }
 	  } else {
+	    xpn = d_get_child(pn,2);
 	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	    int iii=0;
 	    int allSpace=1;
@@ -1225,15 +1242,22 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    }
 	    Free(v2);
 	    if (allSpace){
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(_("'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
+	      if (isPois){
+		updateSyntaxCol();
+		trans_syntax_error_report_fn(_("'rxpois'/'rpois' takes 1 argument 'rxpois(lambda)'"));
+	      } else {
+		updateSyntaxCol();
+		trans_syntax_error_report_fn(_("'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
+	      }
 	    } else {
-	      aAppendN("(double)rxgeom(", 15);
-	      sAppendN(&sbt, "rxgeom(", 7);
+	      sAppend(&sb, "(double)%s(", v);
+	      sAppend(&sbDt, "(double)%s(", v);
+	      sAppend(&sbt, "%s(", v);
 	    }
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
+	  Free(v);
 	  continue;
 	} else if (!strcmp("rbinom", v) ||
 		   !strcmp("rxbinom", v)){
@@ -1247,6 +1271,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
+	  Free(v);
 	  continue;
 	} else if (!strcmp("is.nan", v)) {
 	  sAppendN(&sb, "isnan", 5);

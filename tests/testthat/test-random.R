@@ -1,6 +1,7 @@
 rxPermissive({
 
     context("normal random variables")
+
     test_that("rnorm", {
 
         set.seed(1024)
@@ -458,6 +459,114 @@ rxPermissive({
 
         expect_error(RxODE({
             x1 <- rgeom(a, b)
+        }))
+
+    })
+
+    context("rlnorm test")
+
+    test_that("rlnorm", {
+
+        set.seed(1024)
+
+        rx <- RxODE({
+            x1 <- rlnorm()
+            x2 <- rxlnorm(a)
+            x3 <- rlnorm(b, c)
+            d/dt(x0) = 0
+        })
+
+        ev <- et(1, id=1:30000)
+
+        f <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=2)
+
+        expect_equal(mean(log(f$x1)), 0, tol=1e-2)
+        expect_equal(sd(log(f$x1)), 1, tol=1e-2)
+
+        expect_equal(mean(log(f$x2)), 3, tol=1e-2)
+        expect_equal(sd(log(f$x1)), 1, tol=1e-2)
+
+
+        expect_equal(mean(log(f$x3)), 5, tol=1e-2)
+        expect_equal(sd(log(f$x3)), 2, tol=1e-2)
+
+        f2 <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
+
+        expect_equal(mean(log(f2$x1)), 0, tol=1e-2)
+        expect_equal(sd(log(f2$x1)), 1, tol=1e-2)
+
+        expect_equal(mean(log(f2$x2)), 3, tol=1e-2)
+        expect_equal(sd(log(f2$x1)), 1, tol=1e-2)
+
+        expect_equal(mean(log(f2$x3)), 5, tol=1e-2)
+        expect_equal(sd(log(f2$x3)), 2, tol=1e-2)
+
+        expect_error(RxODE({
+            x4 <- rlnorm(a, b, c, d)
+        }))
+
+        ## Make sure seeds are reproducible
+        ev <- et(1, id=1:10)
+
+        set.seed(1)
+        f <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
+
+        set.seed(1)
+        f2 <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
+        expect_equal(as.data.frame(f), as.data.frame(f2))
+
+        ## Make sure different seed value gives different result
+        set.seed(2)
+        f2 <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
+
+        expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
+
+    })
+
+
+    context("rpois tests")
+
+    test_that("rpois", {
+
+        rx <- RxODE({
+            x1 <- rpois(1)
+            x2 <- rxpois(2)
+        })
+
+        ev <- et(1, id=1:30000)
+
+        set.seed(1024)
+        f <- rxSolve(rx, ev, cores=2)
+
+        expect_equal(mean(f$x1), 1, tol=0.01)
+        expect_equal(sd(f$x1), 1, tol=0.01)
+
+        expect_equal(mean(f$x2), 2, tol=0.01)
+        expect_equal(sd(f$x2), sqrt(2), tol=0.01)
+## Seed tests
+
+        ## Make sure seeds are reproducible
+        ev <- et(1, id=1:10)
+
+        set.seed(1)
+        f <- rxSolve(rx, ev, cores=1)
+
+        set.seed(1)
+        f2 <- rxSolve(rx, ev, cores=1)
+        expect_equal(as.data.frame(f), as.data.frame(f2))
+
+        ## Make sure different seed value gives different result
+        set.seed(2)
+        f2 <- rxSolve(rx, ev, cores=1)
+
+        expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
+
+        expect_error(RxODE({
+            x1 <- rpois()
+        }))
+
+        expect_error(RxODE({
+            x1 <- rxpois(a, b)
         }))
 
     })
