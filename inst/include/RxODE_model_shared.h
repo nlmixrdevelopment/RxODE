@@ -146,7 +146,6 @@ RxODE_fn rxchisq;
 RxODE_fn rxexp;
 RxODE_fn2 rxf;
 RxODE_ifn rxgeom;
-RxODE_fn2 rxlnorm;
 RxODE_fn2 rxgamma;
 RxODE_fn2 rxbeta;
 RxODE_ifn rxpois;
@@ -175,7 +174,6 @@ void _assignFuns(){
     rxexp = (RxODE_fn)R_GetCCallable("RxODE","rxexp") ;
     rxf = (RxODE_fn2)R_GetCCallable("RxODE","rxf") ;
     rxgeom = (RxODE_ifn)R_GetCCallable("RxODE","rxgeom") ;
-    rxlnorm = (RxODE_fn2)R_GetCCallable("RxODE","rxlnorm") ;
     rxgamma = (RxODE_fn2)R_GetCCallable("RxODE","rxgamma") ;
     rxbeta = (RxODE_fn2)R_GetCCallable("RxODE","rxbeta") ;
     rxpois = (RxODE_ifn)R_GetCCallable("RxODE","rxpois") ;

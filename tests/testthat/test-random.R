@@ -463,67 +463,6 @@ rxPermissive({
 
     })
 
-    context("rlnorm test")
-
-    test_that("rlnorm", {
-
-        set.seed(1024)
-
-        rx <- RxODE({
-            x1 <- rlnorm()
-            x2 <- rxlnorm(a)
-            x3 <- rlnorm(b, c)
-            d/dt(x0) = 0
-        })
-
-        ev <- et(1, id=1:30000)
-
-        f <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=2)
-
-        expect_equal(mean(log(f$x1)), 0, tol=1e-2)
-        expect_equal(sd(log(f$x1)), 1, tol=1e-2)
-
-        expect_equal(mean(log(f$x2)), 3, tol=1e-2)
-        expect_equal(sd(log(f$x1)), 1, tol=1e-2)
-
-
-        expect_equal(mean(log(f$x3)), 5, tol=1e-2)
-        expect_equal(sd(log(f$x3)), 2, tol=1e-2)
-
-        f2 <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
-
-        expect_equal(mean(log(f2$x1)), 0, tol=1e-2)
-        expect_equal(sd(log(f2$x1)), 1, tol=1e-2)
-
-        expect_equal(mean(log(f2$x2)), 3, tol=1e-2)
-        expect_equal(sd(log(f2$x1)), 1, tol=1e-2)
-
-        expect_equal(mean(log(f2$x3)), 5, tol=1e-2)
-        expect_equal(sd(log(f2$x3)), 2, tol=1e-2)
-
-        expect_error(RxODE({
-            x4 <- rlnorm(a, b, c, d)
-        }))
-
-        ## Make sure seeds are reproducible
-        ev <- et(1, id=1:10)
-
-        set.seed(1)
-        f <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
-
-        set.seed(1)
-        f2 <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
-        expect_equal(as.data.frame(f), as.data.frame(f2))
-
-        ## Make sure different seed value gives different result
-        set.seed(2)
-        f2 <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
-
-        expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
-
-    })
-
-
     context("rpois tests")
 
     test_that("rpois", {
@@ -620,5 +559,123 @@ rxPermissive({
 
     })
 
+    context("runif tests");
+
+    test_that("rnorm", {
+
+        set.seed(1024)
+
+        rx <- RxODE({
+            x1 <- runif()
+            x2 <- rxunif(a)
+            x3 <- runif(b, c)
+            d/dt(x0) = 0
+        })
+
+        ev <- et(1, id=1:30000)
+
+        f <- rxSolve(rx, ev, c(a=0.5, b=0.25, c=0.75), cores=2)
+
+        expect_equal(mean(f$x1), 0.5, tol=1e-2)
+        expect_equal(sd(f$x1), sqrt(1 / 12), tol=1e-2)
+
+        expect_equal(mean(f$x2), 0.5 * (0.5 + 1), tol=1e-2)
+        expect_equal(sd(f$x2), sqrt((1 - 0.5) ^ 2 / 12), tol=1e-2)
+
+        expect_equal(mean(f$x3), 0.5 * (0.25 + 0.75), tol=1e-2)
+        expect_equal(sd(f$x3), sqrt((0.75 - 0.25) ^ 2 / 12), tol=1e-2)
+
+        f2 <- rxSolve(rx, ev, c(a=0.5, b=0.25, c=0.75), cores=1)
+
+        expect_equal(mean(f2$x1), 0.5, tol=1e-2)
+        expect_equal(sd(f2$x1), sqrt(1 / 12), tol=1e-2)
+
+        expect_equal(mean(f2$x2), 0.5 * (0.5 + 1), tol=1e-2)
+        expect_equal(sd(f2$x2), sqrt((1 - 0.5) ^ 2 / 12), tol=1e-2)
+
+        expect_equal(mean(f2$x3), 0.5 * (0.25 + 0.75), tol=1e-2)
+        expect_equal(sd(f2$x3), sqrt((0.75 - 0.25) ^ 2 / 12), tol=1e-2)
+
+        expect_error(RxODE({
+            x4 <- runif(a, b, c, d)
+        }))
+
+        ## Make sure seeds are reproducible
+        ev <- et(1, id=1:10)
+
+        set.seed(1)
+        f <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
+
+        set.seed(1)
+        f2 <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
+        expect_equal(as.data.frame(f), as.data.frame(f2))
+
+        ## Make sure different seed value gives different result
+        set.seed(2)
+        f2 <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
+
+        expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
+
+    })
+
+
+    context("rweibull tests")
+
+    test_that("rweibull tests", {
+
+        rx <- RxODE({
+            x1 <- rweibull(9, 0.5)
+            x2 <- rxweibull(7.5)
+        })
+
+        ev <- et(1, id=1:30000)
+
+        set.seed(1024)
+        f <- rxSolve(rx, ev, cores=2)
+
+        mweibull <- function(shape, scale=1){
+            lambda <- scale;  k <- shape
+            lambda * gamma(1 + 1 / k)
+        }
+
+        sweibull <- function(shape, scale=1){
+            lambda <- scale;  k <- shape
+            sqrt(lambda ^ 2 * (gamma(1 + 2 / k)
+            -(gamma(1 + 1 / k)) ^ 2))
+        }
+
+        expect_equal(mean(f$x1), mweibull(9, 0.5), tol=0.01)
+        expect_equal(sd(f$x1), sweibull(9, 0.5), tol=0.01)
+
+        expect_equal(mean(f$x2), mweibull(7.5), tol=0.01)
+        expect_equal(sd(f$x2), sweibull(7.5), tol=0.01)
+
+        ## Seed tests
+
+        ## Make sure seeds are reproducible
+        ev <- et(1, id=1:10)
+
+        set.seed(1)
+        f <- rxSolve(rx, ev, cores=1)
+
+        set.seed(1)
+        f2 <- rxSolve(rx, ev, cores=1)
+        expect_equal(as.data.frame(f), as.data.frame(f2))
+
+        ## Make sure different seed value gives different result
+        set.seed(2)
+        f2 <- rxSolve(rx, ev, cores=1)
+
+        expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
+
+        expect_error(RxODE({
+            x1 <- rweibull(a, b, c)
+        }))
+
+        expect_error(RxODE({
+            x1 <- rweibull()
+        }))
+
+    })
 
 })

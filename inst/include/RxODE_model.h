@@ -41,10 +41,8 @@
 #define rxTBSd2(x, lm, yj) _powerDDD(x, lm, (int)(yj))
 #undef rnorm
 #define rnorm(x,y) rxnorm(x,y)
-#undef rlnorm
-#define rlnorm(x,y) rxlnorm(x,y)
 #define rxnorm1(x) rxnorm(x, 1.0)
-#define rxlnorm1(x) rxlnorm(x, 1.0)
+#define rnorm1(x) rxnorm(x, 1.0)
 #define rxcauchy1(x) rxcauchy(x, 1.0)
 #undef rchisq
 #define rchisq(x) rxchisq(x)
@@ -58,6 +56,14 @@
 #define rgeom(x) rxgeom(x)
 #undef rpois
 #define rpois(x) rxpois(x)
+#undef runif
+#define runif(x,y) rxunif(x,y)
+#define runif1(x) rxunif(x,1.0)
+#define rxunif1(x) rxunif(x,1.0)
+#undef rweibull
+#define rweibull(x,y) rxweibull(x,y)
+#define rxweibull1(x) rxweibull(x,1.0)
+#define rweibull1(x) rxweibull(x,1.0)
 
 // Types for par pointers.r
 typedef double (*RxODE_fn) (double x);
@@ -169,7 +175,6 @@ extern RxODE_fn rxchisq;
 extern RxODE_fn rxexp;
 extern RxODE_fn2 rxf;
 extern RxODE_ifn rxgeom;
-extern RxODE_fn2 rxlnorm;
 extern RxODE_fn2 rxnorm;
 extern RxODE_fn2 rxgamma;
 extern RxODE_fn2 rxbeta;

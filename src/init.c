@@ -195,7 +195,6 @@ double rxchisq(double df);
 double rxexp(double rate);
 double rxf(double df1, double df2);
 int rxgeom(double prob);
-double rxlnorm(double meanlog, double sdlog);
 double rxnorm(double mean, double sd);
 int rxpois(double lambda);
 double rxt_(double df);
@@ -302,7 +301,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "rxexp", (DL_FUNC) rxexp);
   R_RegisterCCallable("RxODE", "rxf", (DL_FUNC) rxf);
   R_RegisterCCallable("RxODE", "rxgeom", (DL_FUNC) rxgeom);
-  R_RegisterCCallable("RxODE", "rxlnorm", (DL_FUNC) rxlnorm);
   R_RegisterCCallable("RxODE", "rxnorm", (DL_FUNC) rxnorm);
   R_RegisterCCallable("RxODE", "rxpois", (DL_FUNC) rxpois);
   R_RegisterCCallable("RxODE", "rxt_", (DL_FUNC) rxt_);

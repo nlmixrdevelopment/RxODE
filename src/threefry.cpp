@@ -711,11 +711,6 @@ extern "C" int rxgeom(double prob){
   return d(_eng);
 }
 
-extern "C" double rxlnorm(double meanlog, double sdlog){
-  std::lognormal_distribution<double> d(meanlog, sdlog);
-  return d(_eng);
-}
-
 // FIXME rnbinom
 
 extern "C" double rxnorm(double mean, double sd){
