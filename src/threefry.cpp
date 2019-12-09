@@ -660,11 +660,19 @@ arma::mat rxMvrandn_(NumericMatrix A_,
 
 sitmo::threefry _eng;
 
+void seedEngV(uint32_t seed);
 extern "C" void seedEng(int ncores){
   double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
   uint32_t seed = static_cast<uint32_t>(seedD);
   seed = min2(seed, std::numeric_limits<uint32_t>::max() - ncores - 1);
   _eng.seed(seed);
+  seedEngV(seed);
+}
+
+//[[Rcpp::export]]
+RObject rxSeedEng(int ncores = 1){
+  seedEng(ncores);
+  return R_NilValue;
 }
 
 extern "C" int rxbinom(int n, double prob){
@@ -716,6 +724,30 @@ extern "C" int rxgeom(double prob){
 extern "C" double rxnorm(double mean, double sd){
   std::normal_distribution<double> d(mean, sd);
   return d(_eng);
+}
+
+//[[Rcpp::export]]
+NumericVector rxnorm_(double mean, double sd, int n, int ncores){
+  NumericVector ret(n);
+  int n2 = ret.size();
+  std::normal_distribution<double> d(mean, sd);
+  double *retD = ret.begin();
+  
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
+#endif
+
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+  for (int i = 0; i < n2; ++i){
+    retD[i] = d(_eng);
+  }
+#ifdef _OPENMP
+  }
+#endif
+  return ret;
 }
 
 extern "C" int rxpois(double lambda){

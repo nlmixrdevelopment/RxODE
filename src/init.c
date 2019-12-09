@@ -141,6 +141,10 @@ SEXP _RxODE_rLKJcvLsd1(SEXP, SEXP, SEXP);
 SEXP _RxODE_invWR1d(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rcvC1(SEXP, SEXP, SEXP, SEXP, SEXP);
 
+SEXP _RxODE_rxSeedEng(SEXP);
+SEXP _RxODE_rxnorm_(SEXP, SEXP, SEXP, SEXP);
+SEXP _RxODE_rxnormV_(SEXP, SEXP, SEXP, SEXP);
+
 extern int rxIsCurrentC(SEXP obj);
 
 rx_solve *getRxSolve_();
@@ -202,6 +206,8 @@ double rxunif(double low, double hi);
 double rxweibull(double shape, double scale);
 double rxgamma(double shape, double rate);
 double rxbeta(double shape1, double shape2);
+double rxnormV(double mean, double sd);
+
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
@@ -290,9 +296,13 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxNleq", (DL_FUNC) &_RxODE_rxNleq, 3},
     {"_RxODE_rxMvnrnd", (DL_FUNC) &_RxODE_rxMvnrnd, 7},
     {"_RxODE_rxMvrandn_", (DL_FUNC) &_RxODE_rxMvrandn_, 10},
+    {"_RxODE_rxSeedEng", (DL_FUNC) &_RxODE_rxSeedEng, 1},
+    {"_RxODE_rxnorm_", (DL_FUNC) &_RxODE_rxnorm_, 4},
+    {"_RxODE_rxnormV_", (DL_FUNC) &_RxODE_rxnormV_, 4},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
+  R_RegisterCCallable("RxODE", "rxnormV", (DL_FUNC) rxnormV);
   R_RegisterCCallable("RxODE", "rxgamma", (DL_FUNC) rxgamma);
   R_RegisterCCallable("RxODE", "rxbeta", (DL_FUNC) rxbeta);
   R_RegisterCCallable("RxODE", "rxbinom", (DL_FUNC) rxbinom);

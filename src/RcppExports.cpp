@@ -1979,6 +1979,45 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxSeedEng
+RObject rxSeedEng(int ncores);
+RcppExport SEXP _RxODE_rxSeedEng(SEXP ncoresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxSeedEng(ncores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxnorm_
+NumericVector rxnorm_(double mean, double sd, int n, int ncores);
+RcppExport SEXP _RxODE_rxnorm_(SEXP meanSEXP, SEXP sdSEXP, SEXP nSEXP, SEXP ncoresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type mean(meanSEXP);
+    Rcpp::traits::input_parameter< double >::type sd(sdSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxnorm_(mean, sd, n, ncores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxnormV_
+NumericVector rxnormV_(int n, double mean, double sd, int ncores);
+RcppExport SEXP _RxODE_rxnormV_(SEXP nSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP ncoresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type mean(meanSEXP);
+    Rcpp::traits::input_parameter< double >::type sd(sdSEXP);
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxnormV_(n, mean, sd, ncores));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 // validate (ensure exported C++ functions exist before calling them)
 static int _RxODE_RcppExport_validate(const char* sig) { 

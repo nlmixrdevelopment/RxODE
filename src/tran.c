@@ -2097,6 +2097,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     // show_ode == 9 functional mtimes
     // show_ode == 10 ME matrix
     // show_ode == 11 Inductive vector
+    // show_ode == 12 initialize lhs to last value
     if (show_ode == 2 || show_ode == 0){
       //__DDtStateVar_#__
       for (i = 0; i < tb.de.n; i++){
@@ -2124,10 +2125,27 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     }
   }
   for (i=0, j=0; i<NV; i++) {
-    if (lhs && tb.lh[i]>0 && tb.lh[i] != 70) continue;
+    if (scenario != 3 && lhs && tb.lh[i]>0 && tb.lh[i] != 70) continue;
+    else if (scenario == 3 && !(tb.lh[i] == 1 || tb.lh[i] == 19 || tb.lh[i] == 70)) continue;
     /* retieve_var(i, buf); */
     buf = tb.ss.line[i];
     switch(scenario) {
+    case 3: // Case 3 is for using the last lhs value
+      sAppendN(&sbOut, "  ", 2);
+      for (k = 0; k < (int)strlen(buf); k++){
+        if (buf[k] == '.'){
+          sAppend(&sbOut,"_DoT_");
+          if (rx_syntax_allow_dots == 0){
+	    updateSyntaxCol();
+            trans_syntax_error_report_fn(NODOT);
+          }
+        } else {
+          sPut(&sbOut,buf[k]);
+        }
+      }
+      sAppend(&sbOut, " = _PL[%d];\n", j++);
+      
+      break;
     case 0:   // Case 0 is for declaring the variables
       sAppendN(&sbOut,"  ", 2);
       for (k = 0; k < (int)strlen(buf); k++){
@@ -2732,6 +2750,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  sAppendN(&sbOut,  "  (void)_pld;\n", 14);
 	}
       }
+      prnt_vars(3, 0,"","\n", 12);
       if (show_ode == 3){
 	sAppendN(&sbOut, "  _update_par_ptr(0.0, _cSub, _solveData, _idx);\n", 49);
       } else if (show_ode == 6 || show_ode == 7 || show_ode == 8 || show_ode == 9){

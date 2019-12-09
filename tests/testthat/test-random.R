@@ -561,7 +561,7 @@ rxPermissive({
 
     context("runif tests");
 
-    test_that("rnorm", {
+    test_that("runif", {
 
         set.seed(1024)
 

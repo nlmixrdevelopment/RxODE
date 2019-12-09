@@ -30,6 +30,7 @@
 #define _IR (_solveData->subjects[_cSub].InfusionRate)
 #define _ON (_solveData->subjects[_cSub].on)
 #define _PP (_solveData->subjects[_cSub].par_ptr)
+#define _PL (_solveData->subjects[_cSub].lhs)
 #define _SR (INTEGER(stateRmS))
 #define NEWIND (_solveData->subjects[_cSub]._newind)
 #define newind (_solveData->subjects[_cSub]._newind)

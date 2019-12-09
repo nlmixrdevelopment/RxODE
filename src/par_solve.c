@@ -1559,11 +1559,14 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
 	if (rx->istateReset) idid = 1;
 	xp = xout;
       }
+      calc_lhs(neq[1], xout, ret+i*neq[0], ind->lhs);
       if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
       ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
     }
   }
+  // Reset LHS to NA
+  for (j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
 }
 
 extern void ind_indLin(rx_solve *rx,
@@ -1718,11 +1721,14 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
 	if (rx->istateReset) ctx.state = 1;
 	xp = xout;
       }
+      calc_lhs(neq[1], xout, ret+i*neq[0], ind->lhs);
       if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
       ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
     }
   }
+  // Reset LHS to NA
+  for (j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   lsoda_free(&ctx);
 }
 
@@ -2011,9 +2017,12 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 	xp = xout;
       }
       // Copy to next solve so when assigned to yp=ind->solve[neq[0]*i]; it will be the prior values
+      calc_lhs(neq[1], xout, ind->solve+i*neq[0], ind->lhs);
       if (i+1 != ind->n_all_times) memcpy(ind->solve+neq[0]*(i+1), yp, neq[0]*sizeof(double));
     }
   }
+  // Reset LHS to NA
+  for (j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
 }
 
 extern void ind_lsoda(rx_solve *rx, int solveid,
@@ -2220,9 +2229,12 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
 	xp = xout;
       }
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
+      calc_lhs(neq[1], xout, ret+i*neq[0], ind->lhs);
       if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
     }
   }
+  // Reset LHS to NA
+  for (j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
 }
 
 extern void ind_dop(rx_solve *rx, int solveid,

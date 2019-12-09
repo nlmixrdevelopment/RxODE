@@ -53,6 +53,27 @@
 * Kept `evid` and `ii` as restricted items since they are not part of
   the covariate table and are restricted in use.
   
+* Added the following random number generators; They are thread safe
+  (based on `threefry` `sitmo` and c++11) and your simulations with
+  them will depend on the number of cores used in your simulation (Be
+  careful about reproduciblility with large number of threads; Also
+  use parallel-solve type of RxODE simulations to avoid the [birthday
+  problem](https://www.johndcook.com/blog/2016/01/29/random-number-generator-seed-mistakes/))
+  
+  These are:
+  - `rxnorm()` and `rxnormV()` (low discrepancy normal)
+  - `rxcauchy()`
+  - `rxchisq()`
+  - `rxexp()`
+  - `rxf()`
+  - `rxgamma()`
+  - `rxbeta()`
+  - `rxgeom()`
+  - `rxpois()`
+  - `rxt()`
+  - `rxunif()`
+  - `rxweibull()`
+  
 * Updated to [TimSort 1.2.0](https://github.com/timsort/cpp-TimSort/releases/tag/v1.2.0)
   
 ## Bug fixes:

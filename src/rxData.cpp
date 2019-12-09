@@ -3612,6 +3612,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     std::copy(rxSolveDat.initsC.begin(), rxSolveDat.initsC.end(), &_globals.ginits[0]);
     op->inits = &_globals.ginits[0];
     _globals.glhs = _globals.ginits + n4; // [n5]
+    // initially NA_REAL
+    std::fill_n(_globals.glhs,n5, NA_REAL);
     _globals.gscale = _globals.glhs + n5; //[n6]
     std::copy(scaleC.begin(),scaleC.end(),&_globals.gscale[0]);
     op->scale = &_globals.gscale[0];
