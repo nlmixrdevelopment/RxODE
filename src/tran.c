@@ -1097,7 +1097,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	int isNorm=0, isExp=0, isF=0, isGamma=0, isBeta=0,
 	  isPois=0, isT=0, isUnif=0, isWeibull=0, isNormV=0,
-	  isLead=0, isFirst=0, isLast=0;
+	  isLead=0, isFirst=0, isLast=0, isDiff=0;
         if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
 	    !strcmp("max",v) || !strcmp("min",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
@@ -1124,6 +1124,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  continue;
 	} else if (!strcmp("lag", v) ||
 		   (isLead = !strcmp("lead", v)) ||
+		   (isDiff = !strcmp("diff", v)) ||
 		   (isFirst = !strcmp("first", v)) ||
 		   (isLast = !strcmp("last", v))){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
@@ -1206,6 +1207,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      if (lagNo == NA_INTEGER){
 		updateSyntaxCol();
 		sPrint(&buf, _("'%s(parameter, k)' requires k to be an integer"), v);
+		trans_syntax_error_report_fn(buf.s);
+	      } else if (isDiff && lagNo <= 0){
+		updateSyntaxCol();
+		sPrint(&buf, _("'%s(parameter, k)' requires k to be an integer >= 1"), v);
 		trans_syntax_error_report_fn(buf.s);
 	      } else {
 		xpn = d_get_child(pn, 2);
@@ -2304,6 +2309,13 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     buf = tb.ss.line[i];
     switch(scenario) {
     case 5: // Case 5 is for using #define lag_var(x)
+
+      sAppendN(&sbOut, "#define diff_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) (x - _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - 1))\n", j);
+      sAppendN(&sbOut, "#define diff_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "(x,y) (x - _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - (y)))\n", j);
       sAppendN(&sbOut, "#define first_", 14);
       doDot(&sbOut, buf);
       sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, NA_INTEGER)\n", j);

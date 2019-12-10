@@ -234,4 +234,58 @@ rxPermissive({
 
     })
 
+
+    et <- et(1:10)
+    et$b <- 2^(1:10)
+
+    context("diff()")
+
+    test_that("diff()", {
+
+        expect_error(RxODE({
+            a = diff()
+        }))
+
+        expect_error(RxODE({
+            a = diff(b, 1, 2)
+        }))
+
+        expect_error(RxODE({
+            a = diff(b, 1.2)
+        }))
+
+        expect_error(RxODE({
+            a = diff(b, c)
+        }))
+
+        expect_error(RxODE({
+            a = diff(b, -1)
+        }))
+
+        expect_error(RxODE({
+            a = diff(b, 0)
+        }))
+
+        m1 <- RxODE({
+            a = diff(b)
+        })
+
+        expect_true(inherits(m1, "RxODE"))
+
+        x1 <- m1 %>% rxSolve(et)
+
+        expect_equal(x1$a, c(NA, 2, 4, 8, 16, 32, 64, 128, 256, 512))
+
+        m1 <- RxODE({
+            a = diff(b, 2)
+        })
+
+        expect_true(inherits(m1, "RxODE"))
+
+        x1 <- m1 %>% rxSolve(et)
+
+        expect_equal(x1$a, c(NA, NA, 6, 12, 24, 48, 96, 192, 384, 768))
+
+    })
+
 })
