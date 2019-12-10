@@ -2299,7 +2299,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
   for (i=0, j=0; i<NV; i++) {
     if (scenario == 5){
       if (tb.lag[i] == 0) continue;
-      if ((tb.lh[i] == 1 || tb.lh[i] == 19 || tb.lh[i] == 70)) continue;
+      if (tb.lh[i] == 1) continue;
     } else if (scenario == 3 || scenario == 4){
       if (!(tb.lh[i] == 1 || tb.lh[i] == 19 || tb.lh[i] == 70)) continue;
     } else {
@@ -2309,7 +2309,19 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     buf = tb.ss.line[i];
     switch(scenario) {
     case 5: // Case 5 is for using #define lag_var(x)
-
+      /* if(tb.lh[i] == 70){ */
+      /* 	sbuf buf2; */
+      /* 	sPrint(&buf2, _("redefined '%s': 'lag', 'lead', 'first', 'last' or 'diff' not legal"), buf); */
+      /* 	trans_syntax_error_report_fn(buf2.s); */
+      /* } else if (tb.lh[i] == 9){ */
+      /* 	sbuf buf2; */
+      /* 	sPrint(&buf2, _("state '%s': 'lag', 'lead', 'first', 'last' or 'diff' not legal"), buf); */
+      /* 	trans_syntax_error_report_fn(buf2.s); */
+      /* } else if (tb.lh[i] == 10 || tb.lh[i] == 11){ */
+      /* 	sbuf buf2; */
+      /* 	sPrint(&buf2, _("suppressed '%s': 'lag', 'lead', 'first', 'last' or 'diff' not legal"), buf); */
+      /* 	trans_syntax_error_report_fn(buf2.s); */
+      /* } else { */
       sAppendN(&sbOut, "#define diff_", 13);
       doDot(&sbOut, buf);
       sAppend(&sbOut, "1(x) (x - _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - 1))\n", j);
@@ -3691,8 +3703,29 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   li=0, pi=0;
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
-    if (islhs>1 && islhs != 19 && islhs != 70) continue;      /* is a state var */
+    if (islhs>1 && islhs != 19 && islhs != 70) {
+      if (tb.lag[i] != 0){
+	buf=tb.ss.line[i];
+	if (islhs == 9){
+	  sPrint(&bufw, _("state '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"), buf);
+	  trans_syntax_error_report_fn0(bufw.s);	
+	} else if (islhs == 10 || islhs == 11){
+	  sPrint(&bufw, _("suppress '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"), buf);
+	  trans_syntax_error_report_fn0(bufw.s);	
+	}
+      }
+      continue;
+    }      /* is a state var */
     buf=tb.ss.line[i];
+    if (tb.lag[i] != 0){
+      if (islhs == 70){
+	sPrint(&bufw, _("redefined '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"), buf);
+	trans_syntax_error_report_fn0(bufw.s);
+      } else if (islhs == 1 && tb.lag[i] != 1){
+	sPrint(&bufw, _("lhs '%s': only 'lag(%s,1)' and 'diff(%s,1)' supported"), buf, buf, buf);
+	trans_syntax_error_report_fn0(bufw.s);
+      }
+    }
     if (islhs == 1 || islhs == 19 || islhs == 70){
       SET_STRING_ELT(lhs,li++,mkChar(buf));
       if (islhs == 70) SET_STRING_ELT(params,pi++,mkChar(buf));

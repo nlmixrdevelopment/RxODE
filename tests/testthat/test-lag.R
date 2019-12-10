@@ -288,4 +288,40 @@ rxPermissive({
 
     })
 
+    context("bad lag() types")
+
+    test_that("bad lag", {
+
+        expect_error(RxODE({
+            a ~ c + d
+            b = lag(a)
+        }))
+
+        expect_error(RxODE({
+            d/dt(a) = 3
+            b = lag(a)
+        }))
+
+        expect_error(RxODE({
+            a = a + 3
+            b = lag(a)
+        }))
+
+
+        expect_error(RxODE({
+            a = 13 + b
+            b = lag(a, 3)
+        }))
+
+        expect_error(RxODE({
+            a = 13 + b
+            b = lead(a)
+        }))
+
+
+
+
+
+    })
+
 })
