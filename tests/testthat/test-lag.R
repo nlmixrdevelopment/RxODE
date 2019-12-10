@@ -66,6 +66,40 @@ rxPermissive({
         expect_equal(x1$a, c(NA, 1, 2, 3, 4, 5, 6, 7, 8, 9))
 
         m1 <- RxODE({
+            a = b
+            c = lag(a)
+        })
+
+        expect_true(inherits(m1, "RxODE"))
+
+        x1 <- m1 %>% rxSolve(et)
+
+        expect_equal(x1$c, c(NA, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+
+        m1 <- RxODE({
+            a = b
+            c = lag(a, 1)
+        })
+
+        expect_true(inherits(m1, "RxODE"))
+
+        x1 <- m1 %>% rxSolve(et)
+
+        expect_equal(x1$c, c(NA, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+
+
+        m1 <- RxODE({
+            a = b
+            c = lead(a, -1)
+        })
+
+        expect_true(inherits(m1, "RxODE"))
+
+        x1 <- m1 %>% rxSolve(et)
+
+        expect_equal(x1$c, c(NA, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+
+        m1 <- RxODE({
             c = b + 3
             a = lag(b)
         })
@@ -276,6 +310,29 @@ rxPermissive({
 
         expect_equal(x1$a, c(NA, 2, 4, 8, 16, 32, 64, 128, 256, 512))
 
+
+        m1 <- RxODE({
+            c = b
+            a = diff(c)
+        })
+
+        expect_true(inherits(m1, "RxODE"))
+
+        x1 <- m1 %>% rxSolve(et)
+
+        expect_equal(x1$a, c(NA, 2, 4, 8, 16, 32, 64, 128, 256, 512))
+
+        m1 <- RxODE({
+            c = b
+            a = diff(c, 1)
+        })
+
+        expect_true(inherits(m1, "RxODE"))
+
+        x1 <- m1 %>% rxSolve(et)
+
+        expect_equal(x1$a, c(NA, 2, 4, 8, 16, 32, 64, 128, 256, 512))
+
         m1 <- RxODE({
             a = diff(b, 2)
         })
@@ -317,10 +374,6 @@ rxPermissive({
             a = 13 + b
             b = lead(a)
         }))
-
-
-
-
 
     })
 

@@ -2300,6 +2300,9 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     if (scenario == 5){
       if (tb.lag[i] == 0) continue;
       if (tb.lh[i] == 1) continue;
+    } else if(scenario == 4){
+      if (tb.lag[i] == 0) continue;
+      if (tb.lh[i] != 1) continue;
     } else if (scenario == 3 || scenario == 4){
       if (!(tb.lh[i] == 1 || tb.lh[i] == 19 || tb.lh[i] == 70)) continue;
     } else {
@@ -2309,19 +2312,6 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     buf = tb.ss.line[i];
     switch(scenario) {
     case 5: // Case 5 is for using #define lag_var(x)
-      /* if(tb.lh[i] == 70){ */
-      /* 	sbuf buf2; */
-      /* 	sPrint(&buf2, _("redefined '%s': 'lag', 'lead', 'first', 'last' or 'diff' not legal"), buf); */
-      /* 	trans_syntax_error_report_fn(buf2.s); */
-      /* } else if (tb.lh[i] == 9){ */
-      /* 	sbuf buf2; */
-      /* 	sPrint(&buf2, _("state '%s': 'lag', 'lead', 'first', 'last' or 'diff' not legal"), buf); */
-      /* 	trans_syntax_error_report_fn(buf2.s); */
-      /* } else if (tb.lh[i] == 10 || tb.lh[i] == 11){ */
-      /* 	sbuf buf2; */
-      /* 	sPrint(&buf2, _("suppressed '%s': 'lag', 'lead', 'first', 'last' or 'diff' not legal"), buf); */
-      /* 	trans_syntax_error_report_fn(buf2.s); */
-      /* } else { */
       sAppendN(&sbOut, "#define diff_", 13);
       doDot(&sbOut, buf);
       sAppend(&sbOut, "1(x) (x - _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - 1))\n", j);
@@ -2348,18 +2338,24 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       sAppend(&sbOut, "(x,y) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - (y))\n", j++);
       break;
     case 4: // Case 4 is for using #define lag_var(x)
-      /* REprintf("4: %s\n", buf); */
-      /* sAppendN(&sbOut, "#define lag_", 12); */
-      /* doDot(&sbOut, buf); */
-      /* sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", j); */
-      /* sAppendN(&sbOut, "#define lag_", 12); */
-      /* doDot(&sbOut, buf); */
-      /* sAppend(&sbOut, "(x, y) _solveData->subjects[_cSub].lhs[%d]\n", j++); */
-      /* if (tb.lag[i] != 1){ */
-      /* 	updateSyntaxCol(); */
-      /* 	trans_syntax_error_report_fn(_("one lag() of a calculated/lhs value allowed")); */
-      /* } */
-      /*  _solveData->subjects[_cSub].lhs[%d]", j++); */
+      sAppendN(&sbOut, "#define lead_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", j);
+      sAppendN(&sbOut, "#define lead_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "(x,y) _solveData->subjects[_cSub].lhs[%d]\n", j);
+      sAppendN(&sbOut, "#define diff_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", j);
+      sAppendN(&sbOut, "#define diff_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "(x,y) _solveData->subjects[_cSub].lhs[%d]\n", j);
+      sAppendN(&sbOut, "#define lag_", 12);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", j);
+      sAppendN(&sbOut, "#define lag_", 12);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "(x, y) _solveData->subjects[_cSub].lhs[%d]\n", j++);
       break;
     case 3: // Case 3 is for using the last lhs value
       sAppendN(&sbOut, "  ", 2);
