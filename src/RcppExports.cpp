@@ -2005,16 +2005,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxnormV_
-NumericVector rxnormV_(int n, double mean, double sd, int ncores);
-RcppExport SEXP _RxODE_rxnormV_(SEXP nSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP ncoresSEXP) {
+NumericVector rxnormV_(double mean, double sd, int n, int ncores);
+RcppExport SEXP _RxODE_rxnormV_(SEXP meanSEXP, SEXP sdSEXP, SEXP nSEXP, SEXP ncoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< double >::type mean(meanSEXP);
     Rcpp::traits::input_parameter< double >::type sd(sdSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxnormV_(n, mean, sd, ncores));
+    rcpp_result_gen = Rcpp::wrap(rxnormV_(mean, sd, n, ncores));
     return rcpp_result_gen;
 END_RCPP
 }

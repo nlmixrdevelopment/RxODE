@@ -175,6 +175,7 @@ double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       double dd_rate, double dd_dur);
 
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
+double _getParCov(unsigned int id, rx_solve *rx, int parNo, int idx);
 
 int par_progress(int c, int n, int d, int cores, clock_t t0, int stop);
 void ind_solve(rx_solve *rx, unsigned int cid, t_dydt_liblsoda dydt_lls, 
@@ -328,6 +329,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "linCmtA", (DL_FUNC) linCmtA);
   R_RegisterCCallable("RxODE", "linCmtB", (DL_FUNC) linCmtB);
   R_RegisterCCallable("RxODE", "_update_par_ptr", (DL_FUNC) _update_par_ptr);
+  R_RegisterCCallable("RxODE", "_getParCov", (DL_FUNC) _getParCov);
   R_RegisterCCallable("RxODE","rxRmModelLib", (DL_FUNC) rxRmModelLib);
   R_RegisterCCallable("RxODE","rxGetModelLib", (DL_FUNC) rxGetModelLib);
   

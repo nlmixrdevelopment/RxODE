@@ -61,6 +61,40 @@ rxPermissive({
 
     })
 
+    context("rnormV")
+    test_that("rnormV", {
+
+        set.seed(1024)
+
+        rx <- RxODE({
+            x1 <- rnormV()
+            x2 <- rxnormV(a)
+            x3 <- rnormV(b, c)
+            d/dt(x0) = 0
+        })
+
+        expect_error(RxODE({
+            x4 <- rnormV(a, b, c, d)
+        }))
+
+        ## Make sure seeds are reproducible
+        ev <- et(1, id=1:10)
+
+        set.seed(1)
+        f <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
+
+        set.seed(1)
+        f2 <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
+        expect_equal(as.data.frame(f), as.data.frame(f2))
+
+        ## Make sure different seed value gives different result
+        set.seed(2)
+        f2 <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
+
+        expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
+
+    })
+
     context("binomial tests")
     test_that("rbinom", {
 

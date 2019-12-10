@@ -162,7 +162,7 @@ test_that("cholperm", {
     mcov <- tcrossprod(tmp, tmp)
 
     r1 <- cholperm(mcov, -(1:5), 1:5)
-    r2 <- rxCholperm(mcov, -(1:5), 1:5)
+    r2 <- RxODE:::rxCholperm(mcov, -(1:5), 1:5)
 
     expect_equal(r1$L, r2$L)
     expect_equal(r1$l, r2$l)
@@ -170,7 +170,7 @@ test_that("cholperm", {
     expect_equal(r1$perm, r2$perm + 1)
 
     r1 <- cholperm(mcov, 1:5, 2 * (1:5))
-    r2 <- rxCholperm(mcov, 1:5, 2 * 1:5)
+    r2 <- RxODE:::rxCholperm(mcov, 1:5, 2 * 1:5)
 
     expect_equal(r1$L, r2$L)
     expect_equal(r1$l, r2$l)
@@ -178,7 +178,7 @@ test_that("cholperm", {
     expect_equal(r1$perm, r2$perm + 1)
 
     r1 <- cholperm(mcov, -2 * (1:5), -(1:5))
-    r2 <- rxCholperm(mcov, -2 * (1:5), -(1:5))
+    r2 <- RxODE:::rxCholperm(mcov, -2 * (1:5), -(1:5))
 
     expect_equal(r1$L, r2$L)
     expect_equal(r1$l, r2$l)
@@ -201,7 +201,7 @@ test_that("gradpsi", {
     ## Creating covariance matrix
     tmp <- matrix(rnorm(d^2), d, d)
     mcov <- tcrossprod(tmp, tmp)
-    r2 <- rxCholperm(mcov, -(1:5), 1:5)
+    r2 <- RxODE:::rxCholperm(mcov, -(1:5), 1:5)
 
     d=length(r2$l);
     y=seq(0,2*d-2)
@@ -236,7 +236,7 @@ test_that("gradpsi", {
     ## Creating covariance matrix
     tmp <- matrix(rnorm(d^2), d, d)
     mcov <- tcrossprod(tmp, tmp)
-    r2 <- rxCholperm(mcov, -(1:d), 1:d)
+    r2 <- RxODE:::rxCholperm(mcov, -(1:d), 1:d)
 
     d=length(r2$l);
     y=seq(0,2*d-2)
@@ -266,7 +266,7 @@ test_that("nleq", {
     ## Creating covariance matrix
     tmp <- matrix(rnorm(d^2), d, d)
     mcov <- tcrossprod(tmp, tmp)
-    r2 <- rxCholperm(mcov, -3 * (1:d), 2 * (1:d))
+    r2 <- RxODE:::rxCholperm(mcov, -3 * (1:d), 2 * (1:d))
 
     expect_equal(rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
     ## microbenchmark::microbenchmark(rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
@@ -278,7 +278,7 @@ test_that("nleq", {
     ## Creating covariance matrix
     tmp <- matrix(rnorm(d^2), d, d)
     mcov <- tcrossprod(tmp, tmp)
-    r2 <- rxCholperm(mcov, -2 * (1:d), 3 * 1:d)
+    r2 <- RxODE:::rxCholperm(mcov, -2 * (1:d), 3 * 1:d)
 
     expect_equal(rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
 
@@ -297,7 +297,7 @@ test_that("rxMvnrnd", {
     tmp <- matrix(rnorm(d^2), d, d)
     mcov <- tcrossprod(tmp, tmp)
 
-    out <- rxCholperm(mcov, -2 * (1:5), 1:5)
+    out <- RxODE:::rxCholperm(mcov, -2 * (1:5), 1:5)
 
     Lfull=out$L;l=out$l;u=out$u;D=diag(Lfull);perm=out$perm;
     if (any(D<10^-10)){

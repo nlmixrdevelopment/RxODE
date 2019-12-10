@@ -2798,7 +2798,7 @@ void rxSolve_datSetupHmax(const RObject &obj, const List &rxControl,
 	}
       }
     }
-     // Make sure the covariates are a #ncov * all times size
+    // Make sure the covariates are a #ncov * all times size
     _globals.gcov = (double*)calloc(ncov * amt.size(), sizeof(double));
     if (_globals.gcov == NULL){
       rxSolveFree();

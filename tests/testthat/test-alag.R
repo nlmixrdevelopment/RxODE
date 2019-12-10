@@ -11,7 +11,7 @@ rxPermissive({
             a = 6
             b = 0.6
             d/dt(intestine) = -a*intestine
-            alag(intestine)    = 2
+            lag(intestine)    = 2
             d/dt(blood)     = a*intestine - b*blood
     })
     ms <- c("liblsoda", "lsoda", "dop853");

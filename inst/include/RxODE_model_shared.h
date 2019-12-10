@@ -135,11 +135,13 @@ void _assignFuns(){
 SEXP _RxODE_rxAssignPtr(SEXP);
 #else
 _update_par_ptr_p _update_par_ptr=NULL;
+_getParCov_p _getParCov=NULL;
 linCmtA_p linCmtA;
 linCmtB_p linCmtB;
 _rx_asgn _RxODE_rxAssignPtr =NULL;
 typedef int (*RxODE_rxbinom) (int n, double prob);
 RxODE_fn2 rxnorm;
+RxODE_fn2 rxnormV;
 RxODE_rxbinom rxbinom;
 RxODE_fn2 rxcauchy;
 RxODE_fn rxchisq;
@@ -168,6 +170,7 @@ void _assignFuns(){
     linCmtA=(linCmtA_p)R_GetCCallable("RxODE", "linCmtA");
     linCmtB=(linCmtB_p)R_GetCCallable("RxODE", "linCmtB");
     rxnorm = (RxODE_fn2)R_GetCCallable("RxODE", "rxnorm");
+    rxnormV = (RxODE_fn2)R_GetCCallable("RxODE", "rxnormV");
     rxbinom = (RxODE_rxbinom)R_GetCCallable("RxODE","rxbinom") ;
     rxcauchy = (RxODE_fn2)R_GetCCallable("RxODE","rxcauchy") ;
     rxchisq = (RxODE_fn)R_GetCCallable("RxODE","rxchisq") ;
@@ -181,6 +184,7 @@ void _assignFuns(){
     rxunif = (RxODE_fn2)R_GetCCallable("RxODE","rxunif") ;
     rxweibull = (RxODE_fn2)R_GetCCallable("RxODE","rxweibull") ;
     _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
+    _getParCov = (_getParCov_p) R_GetCCallable("RxODE","_getParCov");
     _solveData = _getRxSolve_();
   }
 }

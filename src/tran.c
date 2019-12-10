@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdint.h>   /* dj: import intptr_t */
 #include "ode.h"
+#include <errno.h>
 #include <dparser.h>
 #include <R.h>
 #include <Rinternals.h>
@@ -224,6 +225,7 @@ lhs symbols?
   int *idi;       /* should ith state variable be ignored 0/1 */
   int *idu;       /* Has the ith state been used in a derivative expression? */
   int *fdi;        /* Functional initialization of state variable */
+  int *lag;  // Lag number (if present)
   int *dvid;
   int dvidn;
   int nv;                       /* nbr of symbols */
@@ -571,6 +573,7 @@ int new_or_ith(const char *s) {
   if (NV+1 > tb.allocS){
     tb.allocS += MXSYM;
     tb.lh = Realloc(tb.lh, tb.allocS, int);
+    tb.lag = Realloc(tb.lag, tb.allocS, int);
     tb.ini= Realloc(tb.ini, tb.allocS, int);
     tb.mtime=Realloc(tb.mtime, tb.allocS, int);
     tb.iniv=Realloc(tb.iniv, tb.allocS, double);
@@ -791,6 +794,21 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     }
   }
 }
+
+void doDot(sbuf *out, char *buf){
+  for (int k = 0; k < (int)strlen(buf); k++){
+    if (buf[k] == '.'){
+      sAppend(out,"_DoT_");
+      if (rx_syntax_allow_dots == 0){
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(NODOT);
+      }
+    } else {
+      sPut(out,buf[k]);
+    }
+  }
+}
+
 char *gBuf;
 int gBufLast;
 D_Parser *curP=NULL;
@@ -807,6 +825,24 @@ void freeP(){
   }
   curP = NULL;
 }
+
+int toInt(char *v2){
+  errno = 0;
+  char *v3 = v2;
+  char *endptr = NULL;
+  long lagNoL = strtol(v3, &endptr, 10);
+  int lagNo;
+  if (errno == 0 && v3 && !*endptr){
+    lagNo = (int)(lagNoL);
+  } else {
+    lagNo = NA_INTEGER;
+  }
+  errno=0;
+  return lagNo;
+}
+
+int skipDouble=0;
+
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
   nodeInfo ni;
@@ -848,8 +884,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       ) {
     sPut(&sb, name[0]);
     sPut(&sbDt, name[0]);
-    if (!(strcmp(",", name)) && depth == 1){
+    if (!skipDouble && !(strcmp(",", name)) && depth == 1){
       aAppendN("(double)", 8);
+      skipDouble=0;
     }
     sPut(&sbt, name[0]);
   }
@@ -1059,7 +1096,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (tb.fn){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	int isNorm=0, isExp=0, isF=0, isGamma=0, isBeta=0,
-	  isPois=0, isT=0, isUnif=0, isWeibull=0;
+	  isPois=0, isT=0, isUnif=0, isWeibull=0, isNormV=0,
+	  isLead=0, isFirst=0, isLast=0;
         if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
 	    !strcmp("max",v) || !strcmp("min",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
@@ -1084,6 +1122,129 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           i = 1;// Parse next arguments
 	  depth=1;
 	  continue;
+	} else if (!strcmp("lag", v) ||
+		   (isLead = !strcmp("lead", v)) ||
+		   (isFirst = !strcmp("first", v)) ||
+		   (isLast = !strcmp("last", v))){
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  // lag(par, 1) => lag_par(1)
+	  // lag(par) => lag_par(1)
+	  // Header what lag_par means.
+	  if (ii == 1){
+	    xpn = d_get_child(pn,2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    int iii=0;
+	    int allSpace=1;
+	    while(v2[iii] != '\0'){
+	      if (!isspace(v[iii])){
+		allSpace=0;
+		break;
+	      }
+	    }
+	    int lagNo=0;
+	    if (allSpace){
+	      if (isFirst || isLast){
+		updateSyntaxCol();
+		sPrint(&buf, _("'%s' takes 1 argument '%s(parameter)'"),
+		       v, v);
+		trans_syntax_error_report_fn(buf.s);
+	      } else {
+		updateSyntaxCol();
+		sPrint(&buf, _("'%s' takes 1-2 arguments '%s(parameter, k)'"),
+		       v, v);
+		trans_syntax_error_report_fn(buf.s);
+	      }
+	    } else {
+	      tb.fn=0;
+	      lagNo = 1;
+	      if (isLead) lagNo=-1;
+	      if (isFirst || isLast) lagNo=NA_INTEGER;
+	      if (new_or_ith(v2)){
+		addLine(&(tb.ss),"%s",v2);
+		tb.lag[NV-1] = lagNo;
+	      } else {
+		tb.lag[tb.ix] = lagNo;
+	      }
+	      tb.fn=1;
+	    }
+	    sAppend(&sb,"%s_", v);
+	    doDot(&sb, v2);
+	    sAppendN(&sb, "1(", 2);
+	    sAppend(&sbDt,"%s_", v);
+	    doDot(&sbDt, v2);
+	    sAppendN(&sbDt, "1(", 2);
+	    sAppend(&sbt, "%s(", v);
+	    Free(v2);
+	  } else if (ii != 2){
+	    if (isFirst || isLast){
+		updateSyntaxCol();
+		sPrint(&buf, _("'%s' takes 1 argument %s(parameter)"),
+		       v, v);
+		trans_syntax_error_report_fn(buf.s);
+	    } else {
+	      updateSyntaxCol();
+	      sPrint(&buf, _("'%s' takes 1-2 arguments %s(parameter, k)"),
+		     v, v);
+	      trans_syntax_error_report_fn(buf.s);
+	    }
+	  } else if (ii == 2){
+	    if (isFirst || isLast){
+	      updateSyntaxCol();
+	      sPrint(&buf, _("'%s' takes 1 argument %s(parameter)"),
+		     v, v);
+	      trans_syntax_error_report_fn(buf.s);
+	    } else {
+	      // Check lag(x, 1);  Its OK with lhs, but nothing else is...
+	      xpn = d_get_child(pn, 3);
+	      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	      int lagNo=0;
+	      if (strlen(v2) > 2){
+		lagNo = toInt(v2+1);
+		if (isLead) lagNo = -lagNo;
+	      }
+	      Free(v2);
+	      if (lagNo == NA_INTEGER){
+		updateSyntaxCol();
+		sPrint(&buf, _("'%s(parameter, k)' requires k to be an integer"), v);
+		trans_syntax_error_report_fn(buf.s);
+	      } else {
+		xpn = d_get_child(pn, 2);
+		char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+		tb.fn=0;
+		if (new_or_ith(v2)){
+		  addLine(&(tb.ss),"%s",v2);
+		  tb.lag[NV-1] = lagNo;
+		} else {
+		  tb.lag[tb.ix] = lagNo;
+		}
+		tb.fn=1;
+		if (lagNo == 0){
+		  doDot(&sb, v2);
+		  doDot(&sbDt, v2);
+		  sAppend(&sbt, "%s", v);
+		  Free(v2);
+		  Free(v);
+		  i = 4;// skip next arguments
+		  depth=1;
+		  continue;
+		} else {
+		  skipDouble=1;
+		  sAppend(&sb,   "%s_", v);
+		  doDot(&sb, v2);
+		  sAppendN(&sb,   "(", 1);
+		  sAppend(&sbDt,   "%s_", v);
+		  doDot(&sbDt, v2);
+		  sAppendN(&sbDt,   "(", 1);
+		  sAppend(&sbt,  "%s(", v);
+		}
+		Free(v2);
+	      }
+	    }
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  Free(v);
+	  continue;
 	} else if (!strcmp("transit", v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 2){
@@ -1104,6 +1265,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  continue;
 	} else if ((isNorm = !strcmp("rnorm", v) ||
 		    !strcmp("rxnorm", v)) ||
+		   (isNormV = !strcmp("rnormV", v) ||
+		    !strcmp("rxnormV", v)) ||
 		   !strcmp("rxcauchy", v) ||
 		   !strcmp("rcauchy", v) ||
 		   (isF = !strcmp("rxf", v) ||
@@ -1161,7 +1324,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbt, "%s(", v);
 	  } else {
 	    updateSyntaxCol();
-	    if (isNorm){
+	    if (isNormV){
+	      trans_syntax_error_report_fn(_("'rxnormV'/'rnormV' takes 0-2 arguments 'rxnormV(mean, sd)'"));
+	    } else if (isNorm){
 	      trans_syntax_error_report_fn(_("'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"));
 	    } else if (isF) {
 	      trans_syntax_error_report_fn(_("'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
@@ -2082,7 +2247,7 @@ void err_msg(int chk, const char *msg, int code)
 
 /* when prnt_vars() is called, user defines the behavior in "case" */
 void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str, int show_ode) {
-  int i, j, k;
+  int i, j;
   char *buf, *buf1, *buf2;
   sAppend(&sbOut, "%s", pre_str);
   if (scenario == 0 || scenario == 2){
@@ -2098,6 +2263,8 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     // show_ode == 10 ME matrix
     // show_ode == 11 Inductive vector
     // show_ode == 12 initialize lhs to last value
+    // show_ode == 13 #define lags for lhs values
+    // show_ode == 14 #define lags for params/covs
     if (show_ode == 2 || show_ode == 0){
       //__DDtStateVar_#__
       for (i = 0; i < tb.de.n; i++){
@@ -2125,40 +2292,59 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     }
   }
   for (i=0, j=0; i<NV; i++) {
-    if (scenario != 3 && lhs && tb.lh[i]>0 && tb.lh[i] != 70) continue;
-    else if (scenario == 3 && !(tb.lh[i] == 1 || tb.lh[i] == 19 || tb.lh[i] == 70)) continue;
+    if (scenario == 5){
+      if (tb.lag[i] == 0) continue;
+      if ((tb.lh[i] == 1 || tb.lh[i] == 19 || tb.lh[i] == 70)) continue;
+    } else if (scenario == 3 || scenario == 4){
+      if (!(tb.lh[i] == 1 || tb.lh[i] == 19 || tb.lh[i] == 70)) continue;
+    } else {
+      if (lhs && tb.lh[i]>0 && tb.lh[i] != 70) continue;
+    }
     /* retieve_var(i, buf); */
     buf = tb.ss.line[i];
     switch(scenario) {
+    case 5: // Case 5 is for using #define lag_var(x)
+      sAppendN(&sbOut, "#define first_", 14);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, NA_INTEGER)\n", j);
+      sAppendN(&sbOut, "#define last_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->n_all_times - 1)\n", j);
+      sAppendN(&sbOut, "#define lead_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx + 1)\n", j);
+      sAppendN(&sbOut, "#define lead_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "(x, y) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx + (y))\n", j);
+      sAppendN(&sbOut, "#define lag_", 12);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - 1)\n", j);
+      sAppendN(&sbOut, "#define lag_", 12);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "(x,y) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - (y))\n", j++);
+      break;
+    case 4: // Case 4 is for using #define lag_var(x)
+      /* REprintf("4: %s\n", buf); */
+      /* sAppendN(&sbOut, "#define lag_", 12); */
+      /* doDot(&sbOut, buf); */
+      /* sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", j); */
+      /* sAppendN(&sbOut, "#define lag_", 12); */
+      /* doDot(&sbOut, buf); */
+      /* sAppend(&sbOut, "(x, y) _solveData->subjects[_cSub].lhs[%d]\n", j++); */
+      /* if (tb.lag[i] != 1){ */
+      /* 	updateSyntaxCol(); */
+      /* 	trans_syntax_error_report_fn(_("one lag() of a calculated/lhs value allowed")); */
+      /* } */
+      /*  _solveData->subjects[_cSub].lhs[%d]", j++); */
+      break;
     case 3: // Case 3 is for using the last lhs value
       sAppendN(&sbOut, "  ", 2);
-      for (k = 0; k < (int)strlen(buf); k++){
-        if (buf[k] == '.'){
-          sAppend(&sbOut,"_DoT_");
-          if (rx_syntax_allow_dots == 0){
-	    updateSyntaxCol();
-            trans_syntax_error_report_fn(NODOT);
-          }
-        } else {
-          sPut(&sbOut,buf[k]);
-        }
-      }
+      doDot(&sbOut, buf);
       sAppend(&sbOut, " = _PL[%d];\n", j++);
-      
       break;
     case 0:   // Case 0 is for declaring the variables
       sAppendN(&sbOut,"  ", 2);
-      for (k = 0; k < (int)strlen(buf); k++){
-        if (buf[k] == '.'){
-          sAppend(&sbOut,"_DoT_");
-          if (rx_syntax_allow_dots == 0){
-	    updateSyntaxCol();
-            trans_syntax_error_report_fn(NODOT);
-          }
-        } else {
-          sPut(&sbOut,buf[k]);
-        }
-      }
+      doDot(&sbOut, buf);
       if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf)){
 	sAppendN(&sbOut, "__", 2);
       }
@@ -2171,17 +2357,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       // See https://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
       sAppend(&sbOut,"  ");
       sAppend(&sbOut,"(void)");
-      for (k = 0; k < (int)strlen(buf); k++){
-        if (buf[k] == '.'){
-          sAppendN(&sbOut,"_DoT_", 5);
-          if (rx_syntax_allow_dots == 0){
-	    updateSyntaxCol();
-            trans_syntax_error_report_fn(NODOT);
-          }
-        } else {
-          sPut(&sbOut,buf[k]);
-        }
-      }
+      doDot(&sbOut, buf);
       if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf)){
         sAppendN(&sbOut, "__", 2);
       }
@@ -2190,17 +2366,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     case 1:
       // Case 1 is for declaring the par_ptr.
       sAppendN(&sbOut,"  ", 2);
-      for (k = 0; k < (int)strlen(buf); k++){
-        if (buf[k] == '.'){
-          sAppendN(&sbOut,"_DoT_", 5);
-          if (rx_syntax_allow_dots == 0){
-	    updateSyntaxCol();
-            trans_syntax_error_report_fn(NODOT);
-          }
-        } else {
-          sPut(&sbOut, buf[k]);
-        }
-      }
+      doDot(&sbOut, buf);
       sAppend(&sbOut, " = _PP[%d];\n", j++);
       break;
     default: break;
@@ -2660,6 +2826,10 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       } else {
 	sAppendN(&sbOut,"#define _CMT CMT\n", 17);
       }
+      // Now define lhs lags
+      prnt_vars(4, 1, "", "", 13);
+      // And covariate/parameter lags
+      prnt_vars(5, 1, "", "", 14);
       sAppendN(&sbOut,"#include \"extraC.h\"\n", 20);
       sAppend(&sbOut, "extern void  %sode_solver_solvedata (rx_solve *solve){\n  _solveData = solve;\n}\n",prefix);
       sAppend(&sbOut, "extern rx_solve *%sode_solver_get_solvedata(){\n  return _solveData;\n}\n", prefix);
@@ -2980,6 +3150,7 @@ void parseFree(int last){
   lineFree(&(tb.de));
 
   Free(tb.lh);
+  Free(tb.lag);
   Free(tb.ini);
   Free(tb.mtime);
   Free(tb.iniv);
@@ -3020,6 +3191,7 @@ void reset (){
   lineIni(&(tb.de));
   
   tb.lh=Calloc(MXSYM, int);
+  tb.lag=Calloc(MXSYM, int);
   tb.ini=Calloc(MXSYM, int);
   tb.mtime=Calloc(MXSYM, int);
   tb.iniv=Calloc(MXSYM, double);

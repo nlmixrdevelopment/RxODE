@@ -705,19 +705,8 @@ rxnorm_ <- function(mean, sd, n, ncores) {
     .Call(`_RxODE_rxnorm_`, mean, sd, n, ncores)
 }
 
-#' Simulate normal variable using the sitmo vandercorput engine
-#' 
-#' @inheritParams rxnorm
-#'
-#' Note the vandercorput is not good random number generator, rather
-#'   it is a low discrepancy random number generator which covers the
-#'   random surface better than a good random number generator
-#'   should.  This can actually help estimation methods relying on
-#'   random number generation, but is not good for simulation.
-#' 
-#' @export
-rxnormV_ <- function(n, mean, sd, ncores) {
-    .Call(`_RxODE_rxnormV_`, n, mean, sd, ncores)
+rxnormV_ <- function(mean, sd, n, ncores) {
+    .Call(`_RxODE_rxnormV_`, mean, sd, n, ncores)
 }
 
 # Register entry points for exported C++ functions

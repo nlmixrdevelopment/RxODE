@@ -44,6 +44,9 @@
 #define rnorm(x,y) rxnorm(x,y)
 #define rxnorm1(x) rxnorm(x, 1.0)
 #define rnorm1(x) rxnorm(x, 1.0)
+#define rnormV(x,y) rxnormV(x,y)
+#define rxnormV1(x) rxnormV(x, 1.0)
+#define rnormV1(x) rxnormV(x, 1.0)
 #define rxcauchy1(x) rxcauchy(x, 1.0)
 #undef rchisq
 #define rchisq(x) rxchisq(x)
@@ -123,6 +126,8 @@ typedef double (*linCmtB_p) (rx_solve *rx, unsigned int id, double t, int linCmt
 
 typedef void (*_update_par_ptr_p)(double t, unsigned int id, rx_solve *rx, int idx);
 
+typedef double (*_getParCov_p)(unsigned int id, rx_solve *rx, int parNo, int idx);
+
 typedef rx_solve *(*_getRxSolve_t)();
 
 _getRxSolve_t _getRxSolve_;
@@ -168,6 +173,7 @@ SEXP _RxODE_rxAssignPtr(SEXP);
 extern linCmtA_p linCmtA;
 extern linCmtB_p linCmtB;
 extern _update_par_ptr_p _update_par_ptr;
+extern _getParCov_p _getParCov;
 extern _rx_asgn _RxODE_rxAssignPtr;
 typedef int (*RxODE_rxbinom) (int n, double prob);
 extern RxODE_rxbinom rxbinom;
@@ -177,6 +183,7 @@ extern RxODE_fn rxexp;
 extern RxODE_fn2 rxf;
 extern RxODE_ifn rxgeom;
 extern RxODE_fn2 rxnorm;
+extern RxODE_fn2 rxnormV;
 extern RxODE_fn2 rxgamma;
 extern RxODE_fn2 rxbeta;
 extern RxODE_ifn rxpois;

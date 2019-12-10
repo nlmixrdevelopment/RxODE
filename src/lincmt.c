@@ -663,6 +663,29 @@ double rx_approxP(double v, double *y, int n,
 
 /* End approx from R */
 
+// getParCov first(parNo, idx=0) last(parNo, idx=ind->n_all_times-1)
+double _getParCov(unsigned int id, rx_solve *rx, int parNo, int idx0){
+  rx_solving_options_ind *ind;
+  ind = &(rx->subjects[id]);
+  rx_solving_options *op = rx->op;
+  int idx=0;
+  if (idx0 == NA_INTEGER){
+    idx=0;
+    if (ind->evid[ind->ix[idx]] == 9) idx++;
+  } else {
+    idx=idx0;
+  }
+  if (idx < 0 || idx > ind->n_all_times) return NA_REAL;
+  if (op->do_par_cov){
+    for (int k = op->ncov; k--;){
+      if (op->par_cov[k] == parNo+1){
+	double *y = ind->cov_ptr + ind->n_all_times*k;
+	return y[ind->ix[idx]];
+      }
+    }
+  }
+  return ind->par_ptr[parNo];
+}
 
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
   if (rx == NULL) error(_("solve data is not loaded"));
