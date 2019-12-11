@@ -266,30 +266,6 @@ functionOp2 <- function(fn, end){
     }
 }
 
-functionBrewx <- function(brew){
-    force(brew);
-    function(x){
-        file <- tempfile()
-        on.exit(unlink(file));
-        sink(file)
-        brew::brew(text=brew);
-        sink();
-        return(readLines(file));
-    }
-}
-
-functionBrewxy <- function(brew){
-    force(brew);
-    function(x, y){
-        file <- tempfile()
-        on.exit(unlink(file));
-        sink(file)
-        brew::brew(text=brew);
-        sink();
-        return(readLines(file));
-    }
-}
-
 dsl.strip.paren <- function(x){
     strip.it <- function(x){
         if (is.call(x)){

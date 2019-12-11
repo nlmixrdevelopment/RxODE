@@ -69,7 +69,6 @@ Imports:
     Matrix,
     PreciseSums (>= 0.3),
     Rcpp (>= 0.12.3),
-    brew,
     cli,
     crayon,
     digest,

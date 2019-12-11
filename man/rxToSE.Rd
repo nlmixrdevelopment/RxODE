@@ -4,7 +4,7 @@
 \alias{rxToSE}
 \alias{rxFromSE}
 \alias{.rxFromSE}
-\title{RxODE to symengine.R}
+\title{RxODE to symengine environment}
 \usage{
 rxToSE(x, envir = NULL, progress = FALSE, promoteLinSens = TRUE)
 
@@ -27,21 +27,15 @@ sensitivity-based solutions.}
     functions, the translator will translate into different types
     of numeric derivatives.  The currently supported methods are:
 
-\itemize{
-
-\item \code{forward} for forward differences
-
-\item \code{central} for central differences
-
-\item \code{error} for throwing an error for unknown derivatives
-
-}}
+    - `forward` for forward differences
+    - `central` for central differences
+    - `error` for throwing an error for unknown derivatives}
 }
 \value{
 
 }
 \description{
-RxODE to symengine.R
+RxODE to symengine environment
 }
 \author{
 Matthew L. Fidler
