@@ -474,7 +474,7 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
 
     ## 'rate' and 'dur' can be data items, so they cannot be variables
     ## in an RxODE model
-    for (var in c("lag", "alag", "f", "F")){
+    for (var in c("alag", "f", "F")){
         goodParse(sprintf("Parsing of %s as a variable and function work.", var),
                   sprintf("d/dt(x) = -k*x;%s(x) = %s;", var, var))
     }
@@ -519,8 +519,8 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     bsvLagCentral <- 0
     bsvRateCentral <- 0
     bsvDurCentral <- 0
-    lag(depot) <- popLagDepot * exp(bsvLagDepot)
-    lag(central) <- popLagCentral * exp(bsvLagCentral)
+    alag(depot) <- popLagDepot * exp(bsvLagDepot)
+    alag(central) <- popLagCentral * exp(bsvLagCentral)
     rate(central) <- popRateCentral * exp(bsvRateCentral)
     dur(central) <- popDurCentral * exp(bsvDurCentral)
     cp <- linCmt()
@@ -562,8 +562,8 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     bsvLagCentral <- 0
     bsvRateCentral <- 0
     bsvDurCentral <- 0
-    lag(depot) <- popLagDepot * exp(bsvLagDepot)
-    lag(central) <- popLagCentral * exp(bsvLagCentral)
+    alag(depot) <- popLagDepot * exp(bsvLagDepot)
+    alag(central) <- popLagCentral * exp(bsvLagCentral)
     rate(central) <- popRateCentral * exp(bsvRateCentral)
     dur(central) <- popDurCentral * exp(bsvDurCentral)
     dur(matt) <- 3
@@ -606,8 +606,8 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     bsvLagCentral <- 0
     bsvRateCentral <- 0
     bsvDurCentral <- 0
-    lag(depot) <- popLagDepot * exp(bsvLagDepot)
-    lag(central) <- popLagCentral * exp(bsvLagCentral)
+    alag(depot) <- popLagDepot * exp(bsvLagDepot)
+    alag(central) <- popLagCentral * exp(bsvLagCentral)
     rate(central) <- popRateCentral * exp(bsvRateCentral)
     dur(central) <- popDurCentral * exp(bsvDurCentral)
     cp <- linCmt()
@@ -649,8 +649,8 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     bsvLagCentral <- 0
     bsvRateCentral <- 0
     bsvDurCentral <- 0
-    lag(depot) <- popLagDepot * exp(bsvLagDepot)
-    lag(central) <- popLagCentral * exp(bsvLagCentral)
+    alag(depot) <- popLagDepot * exp(bsvLagDepot)
+    alag(central) <- popLagCentral * exp(bsvLagCentral)
     rate(central) <- popRateCentral * exp(bsvRateCentral)
     dur(central) <- popDurCentral * exp(bsvDurCentral)
     cp <- linCmt()
