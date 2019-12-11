@@ -2581,13 +2581,15 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       }
       if (ind->allCovWarn && csim == 0){
 	warning(_("one or more covariates were all 'NA' for subject 'id=%d'"), csub+1);
-      }	
+      }
+      // Reset lhs to na
+      for (i = op->nlhs; i--;) ind->lhs[i] = NA_REAL;
       for (i = 0; i < ntimes; i++){
         evid = ind->evid[ind->ix[i]];
+	if (evid == 9) continue;
 	if (nlhs){
 	  rxCalcLhsP(i, rx, neq[1]);
-	}
-	if (evid == 9) continue;
+	}	
 	if (subsetEvid == 1){
 	  if (isObs(evid) && evid >= 10) continue;
 	  if (isDose(evid)){
@@ -2886,7 +2888,6 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
           dfp[ii] = getTime(ind->ix[i], ind);
           // LHS
           if (nlhs){
-	    rxCalcLhsP(i, rx, neq[1]);
 	    for (j = 0; j < nlhs; j++){
 	      dfp = REAL(VECTOR_ELT(df, jj));
                dfp[ii] =rxLhsP(j, rx, neq[1]);

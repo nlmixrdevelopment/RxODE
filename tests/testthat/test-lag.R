@@ -419,4 +419,47 @@ rxPermissive({
 
     })
 
+
+    test_that("newind", {
+
+        mod1 <-RxODE({
+            KA=2.94E-01;
+            CL=1.86E+01;
+            V2=4.02E+01;
+            Q=1.05E+01;
+            V3=2.97E+02;
+            Kin=1;
+            Kout=1;
+            EC50=200;
+            C2 = centr/V2;
+            C3 = peri/V3;
+            d/dt(depot) =-KA*depot;
+            d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+            d/dt(peri)  =                    Q*C2 - Q*C3;
+            d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+            if (!is.na(amt)){
+                tdose <- time
+            } else {
+                tad <- time - tdose
+            }
+            if (newind <= 1){
+                first = 0
+            } else if (tad > 24){
+                first = 24
+            }
+        })
+
+        ev  <- et(amountUnits="mg", timeUnits="hours") %>%
+            et(amt=10000, addl=9,ii=12,cmt="depot") %>%
+            et(time=120, amt=2000, addl=4, ii=14, cmt="depot") %>%
+            et(0, 240)
+
+        r1 <- rxSolve(mod1, ev, addDosing=TRUE)
+        expect_equal(unique(r1$first), c(0, 24))
+
+        r1 <- rxSolve(mod1, ev, addDosing=FALSE)
+        expect_equal(unique(r1$first), c(0, 24))
+
+    })
+
 })
