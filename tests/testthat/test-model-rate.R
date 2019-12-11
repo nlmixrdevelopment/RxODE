@@ -17,7 +17,7 @@ ms <- c("liblsoda", "lsoda", "dop853")
             d/dt(intestine) = -a*intestine
             f(intestine) = f
             rate(intestine) = ri
-            lag(intestine) = li
+            alag(intestine) = li
             d/dt(blood)     = a*intestine - b*blood
         })
 
@@ -124,7 +124,7 @@ ms <- c("liblsoda", "lsoda", "dop853")
             d/dt(intestine) = -a*intestine
             f(intestine) = f
             dur(intestine) = di
-            lag(intestine) = li
+            alag(intestine) = li
             d/dt(blood)     = a*intestine - b*blood
         })
 

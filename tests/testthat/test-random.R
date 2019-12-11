@@ -59,6 +59,12 @@ rxPermissive({
         expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
 
 
+        x <- rxnorm(n=1e5)
+        expect_equal(mean(x), 0, tol=0.01)
+
+        expect_equal(sd(x), 1, tol=0.01)
+
+
     })
 
     context("rnormV")
@@ -92,6 +98,13 @@ rxPermissive({
         f2 <- rxSolve(rx, ev, c(a=3, b=5, c=2), cores=1)
 
         expect_false(isTRUE(all.equal(as.data.frame(f), as.data.frame(f2))))
+
+
+        x <- rxnorm(n=1e4)
+
+        expect_equal(mean(x), 0, tol=0.1)
+
+
 
     })
 
