@@ -4,8 +4,16 @@
 \alias{rxRmvn}
 \title{Simulate from a (truncated) multivariate normal}
 \usage{
-rxRmvn(n, mu, sigma, lower, upper, ncores = 1, isChol = FALSE,
-  keepNames = TRUE)
+rxRmvn(
+  n,
+  mu,
+  sigma,
+  lower,
+  upper,
+  ncores = 1,
+  isChol = FALSE,
+  keepNames = TRUE
+)
 }
 \arguments{
 \item{n}{Number of random row vectors to be simulated OR the

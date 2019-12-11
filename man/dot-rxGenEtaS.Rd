@@ -4,8 +4,15 @@
 \alias{.rxGenEtaS}
 \title{Generate the ETA sensitivities for FO related methods}
 \usage{
-.rxGenEtaS(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  promoteLinSens = TRUE, theta = FALSE)
+.rxGenEtaS(
+  obj,
+  predfn,
+  pkpars = NULL,
+  errfn = NULL,
+  init = NULL,
+  promoteLinSens = TRUE,
+  theta = FALSE
+)
 }
 \arguments{
 \item{obj}{RxODE object}

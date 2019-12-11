@@ -4,9 +4,13 @@
 \alias{as.data.frame.rxEvid}
 \title{Convert to data.frame}
 \usage{
-\method{as.data.frame}{rxEvid}(x, row.names = NULL, optional = FALSE,
-  ..., nm = paste(deparse(substitute(x), width.cutoff = 500L), collapse =
-  " "))
+\method{as.data.frame}{rxEvid}(
+  x,
+  row.names = NULL,
+  optional = FALSE,
+  ...,
+  nm = paste(deparse(substitute(x), width.cutoff = 500L), collapse = " ")
+)
 }
 \arguments{
 \item{x}{any \R object.}
@@ -16,10 +20,10 @@
 
 \item{optional}{logical. If \code{TRUE}, setting row names and
     converting column names (to syntactic names: see
-    \code{\link{make.names}}) is optional.  Note that all of \R's
+    \code{\link[base]{make.names}}) is optional.  Note that all of \R's
     \pkg{base} package \code{as.data.frame()} methods use
     \code{optional} only for column names treatment, basically with the
-    meaning of \code{\link{data.frame}(*, check.names = !optional)}.
+    meaning of \code{\link[base]{data.frame}(*, check.names = !optional)}.
     See also the \code{make.names} argument of the \code{matrix} method.}
 
 \item{...}{additional arguments to be passed to or from methods.}

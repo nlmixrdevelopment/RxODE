@@ -5,9 +5,16 @@
 \title{Sample a covariance Matrix from the Posterior Inverse Wishart
 distribution.}
 \usage{
-cvPost(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
-  type = c("invWishart", "lkj", "separation"), diagXformType = c("log",
-  "identity", "variance", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity"))
+cvPost(
+  nu,
+  omega,
+  n = 1L,
+  omegaIsChol = FALSE,
+  returnChol = FALSE,
+  type = c("invWishart", "lkj", "separation"),
+  diagXformType = c("log", "identity", "variance", "nlmixrSqrt", "nlmixrLog",
+    "nlmixrIdentity")
+)
 }
 \arguments{
 \item{nu}{Degrees of Freedom (Number of Observations) for

@@ -4,8 +4,12 @@
 \alias{rxSymInvChol}
 \title{Get Omega^-1 and derivatives}
 \usage{
-rxSymInvChol(invObjOrMatrix, theta = NULL, type = "cholOmegaInv",
-  thetaNumber = 0L)
+rxSymInvChol(
+  invObjOrMatrix,
+  theta = NULL,
+  type = "cholOmegaInv",
+  thetaNumber = 0L
+)
 }
 \arguments{
 \item{invObjOrMatrix}{Object for inverse-type calculations.  If this is a matrix,

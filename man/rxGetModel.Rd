@@ -4,8 +4,13 @@
 \alias{rxGetModel}
 \title{Get model properties without compiling it.}
 \usage{
-rxGetModel(model, calcSens = NULL, calcJac = NULL,
-  collapseModel = NULL, indLin = FALSE)
+rxGetModel(
+  model,
+  calcSens = NULL,
+  calcJac = NULL,
+  collapseModel = NULL,
+  indLin = FALSE
+)
 }
 \arguments{
 \item{model}{RxODE specification}

@@ -4,9 +4,18 @@
 \alias{.rxGenFoce}
 \title{Generate FOCE without interaction}
 \usage{
-.rxGenFoce(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  pred.minus.dv = TRUE, sum.prod = FALSE, optExpression = TRUE,
-  promoteLinSens = TRUE, theta = FALSE)
+.rxGenFoce(
+  obj,
+  predfn,
+  pkpars = NULL,
+  errfn = NULL,
+  init = NULL,
+  pred.minus.dv = TRUE,
+  sum.prod = FALSE,
+  optExpression = TRUE,
+  promoteLinSens = TRUE,
+  theta = FALSE
+)
 }
 \arguments{
 \item{obj}{RxODE object}

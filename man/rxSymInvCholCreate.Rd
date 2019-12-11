@@ -4,8 +4,12 @@
 \alias{rxSymInvCholCreate}
 \title{Creates an object for calculating Omega/Omega^-1 and derivatives}
 \usage{
-rxSymInvCholCreate(mat, diag.xform = c("sqrt", "log", "identity"),
-  create.env = TRUE, envir = parent.frame())
+rxSymInvCholCreate(
+  mat,
+  diag.xform = c("sqrt", "log", "identity"),
+  create.env = TRUE,
+  envir = parent.frame()
+)
 }
 \arguments{
 \item{mat}{Initial Omega matrix}

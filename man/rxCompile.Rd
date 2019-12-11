@@ -7,11 +7,25 @@
 \alias{rxCompile.RxODE}
 \title{Compile a model if needed}
 \usage{
-rxCompile(model, dir, prefix, force = FALSE, modName = NULL,
-  package = NULL, ...)
+rxCompile(
+  model,
+  dir,
+  prefix,
+  force = FALSE,
+  modName = NULL,
+  package = NULL,
+  ...
+)
 
-\method{rxCompile}{character}(model, dir = NULL, prefix = NULL,
-  force = FALSE, modName = NULL, package = NULL, ...)
+\method{rxCompile}{character}(
+  model,
+  dir = NULL,
+  prefix = NULL,
+  force = FALSE,
+  modName = NULL,
+  package = NULL,
+  ...
+)
 
 \method{rxCompile}{rxDll}(model, ...)
 

@@ -37,6 +37,9 @@ sensitivity-based solutions.}
 
 }}
 }
+\value{
+
+}
 \description{
 RxODE to symengine.R
 }

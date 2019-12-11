@@ -27,9 +27,9 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{ggforce}{\code{\link[ggforce]{facet_wrap_paginate}}, \code{\link[ggforce]{facet_grid_paginate}}, \code{\link[ggforce]{ScaleContinuousPositionUnit}}, \code{\link[ggforce]{scale_x_unit}}, \code{\link[ggforce]{scale_y_unit}}}
+  \item{ggforce}{\code{\link[ggforce]{facet_grid_paginate}}, \code{\link[ggforce]{facet_wrap_paginate}}, \code{\link[ggforce]{scale_x_unit}}, \code{\link[ggforce]{scale_y_unit}}, \code{\link[ggforce]{ScaleContinuousPositionUnit}}}
 
-  \item{ggplot2}{\code{\link[ggplot2]{aes}}, \code{\link[ggplot2]{facet_wrap}}, \code{\link[ggplot2]{geom_line}}, \code{\link[ggplot2]{ggplot}}, \code{\link[ggplot2]{scale_type}}, \code{\link[ggplot2]{ylab}}, \code{\link[ggplot2]{xlab}}}
+  \item{ggplot2}{\code{\link[ggplot2]{aes}}, \code{\link[ggplot2]{facet_wrap}}, \code{\link[ggplot2]{geom_line}}, \code{\link[ggplot2]{ggplot}}, \code{\link[ggplot2]{scale_type}}, \code{\link[ggplot2]{xlab}}, \code{\link[ggplot2]{ylab}}}
 
   \item{lotri}{\code{\link[lotri]{lotri}}}
 
@@ -37,6 +37,6 @@ below to see their documentation.
 
   \item{pillar}{\code{\link[pillar]{type_sum}}}
 
-  \item{units}{\code{\link[units]{set_units}}, \code{\link[units]{drop_units}}}
+  \item{units}{\code{\link[units]{drop_units}}, \code{\link[units]{set_units}}}
 }}
 

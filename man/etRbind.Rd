@@ -5,8 +5,12 @@
 \alias{rbind.rxEt}
 \title{Combining event tables}
 \usage{
-etRbind(..., samples = c("use", "clear"), waitII = c("smart", "+ii"),
-  id = c("merge", "unique"))
+etRbind(
+  ...,
+  samples = c("use", "clear"),
+  waitII = c("smart", "+ii"),
+  id = c("merge", "unique")
+)
 
 \method{rbind}{rxEt}(..., deparse.level = 1)
 }

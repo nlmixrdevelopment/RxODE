@@ -5,8 +5,7 @@
 \alias{seq.rxEt}
 \title{Sequence of event tables}
 \usage{
-etSeq(..., samples = c("clear", "use"), waitII = c("smart", "+ii"),
-  ii = 24)
+etSeq(..., samples = c("clear", "use"), waitII = c("smart", "+ii"), ii = 24)
 
 \method{seq}{rxEt}(...)
 }

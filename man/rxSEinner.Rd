@@ -5,15 +5,39 @@
 \alias{rxSymPySetupPred}
 \title{Setup Pred function based on RxODE object.}
 \usage{
-rxSEinner(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  grad = FALSE, sum.prod = FALSE, pred.minus.dv = TRUE,
-  only.numeric = FALSE, optExpression = TRUE, interaction = TRUE,
-  ..., promoteLinSens = TRUE, theta = FALSE)
+rxSEinner(
+  obj,
+  predfn,
+  pkpars = NULL,
+  errfn = NULL,
+  init = NULL,
+  grad = FALSE,
+  sum.prod = FALSE,
+  pred.minus.dv = TRUE,
+  only.numeric = FALSE,
+  optExpression = TRUE,
+  interaction = TRUE,
+  ...,
+  promoteLinSens = TRUE,
+  theta = FALSE
+)
 
-rxSymPySetupPred(obj, predfn, pkpars = NULL, errfn = NULL,
-  init = NULL, grad = FALSE, sum.prod = FALSE,
-  pred.minus.dv = TRUE, only.numeric = FALSE, optExpression = TRUE,
-  interaction = TRUE, ..., promoteLinSens = TRUE, theta = FALSE)
+rxSymPySetupPred(
+  obj,
+  predfn,
+  pkpars = NULL,
+  errfn = NULL,
+  init = NULL,
+  grad = FALSE,
+  sum.prod = FALSE,
+  pred.minus.dv = TRUE,
+  only.numeric = FALSE,
+  optExpression = TRUE,
+  interaction = TRUE,
+  ...,
+  promoteLinSens = TRUE,
+  theta = FALSE
+)
 }
 \arguments{
 \item{obj}{RxODE object}

@@ -4,9 +4,18 @@
 \alias{.rxGenFocei}
 \title{Generate peices for FOCEi inner problem}
 \usage{
-.rxGenFocei(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  pred.minus.dv = TRUE, sum.prod = FALSE, optExpression = TRUE,
-  promoteLinSens = TRUE, theta = FALSE)
+.rxGenFocei(
+  obj,
+  predfn,
+  pkpars = NULL,
+  errfn = NULL,
+  init = NULL,
+  pred.minus.dv = TRUE,
+  sum.prod = FALSE,
+  optExpression = TRUE,
+  promoteLinSens = TRUE,
+  theta = FALSE
+)
 }
 \arguments{
 \item{obj}{RxODE object}

@@ -10,20 +10,55 @@
 \usage{
 rxParams(obj, ...)
 
-\method{rxParams}{RxODE}(obj, constants = TRUE, ..., params = NULL,
-  inits = NULL, iCov = NULL, keep = NULL, thetaMat = NULL,
-  omega = NULL, dfSub = NULL, sigma = NULL, dfObs = NULL,
-  nSub = NULL, nStud = NULL)
+\method{rxParams}{RxODE}(
+  obj,
+  constants = TRUE,
+  ...,
+  params = NULL,
+  inits = NULL,
+  iCov = NULL,
+  keep = NULL,
+  thetaMat = NULL,
+  omega = NULL,
+  dfSub = NULL,
+  sigma = NULL,
+  dfObs = NULL,
+  nSub = NULL,
+  nStud = NULL
+)
 
-\method{rxParams}{rxSolve}(obj, constants = TRUE, ..., params = NULL,
-  inits = NULL, iCov = NULL, keep = NULL, thetaMat = NULL,
-  omega = NULL, dfSub = NULL, sigma = NULL, dfObs = NULL,
-  nSub = NULL, nStud = NULL)
+\method{rxParams}{rxSolve}(
+  obj,
+  constants = TRUE,
+  ...,
+  params = NULL,
+  inits = NULL,
+  iCov = NULL,
+  keep = NULL,
+  thetaMat = NULL,
+  omega = NULL,
+  dfSub = NULL,
+  sigma = NULL,
+  dfObs = NULL,
+  nSub = NULL,
+  nStud = NULL
+)
 
-\method{rxParams}{rxEt}(obj, ..., params = NULL, inits = NULL,
-  iCov = NULL, keep = NULL, thetaMat = NULL, omega = NULL,
-  dfSub = NULL, sigma = NULL, dfObs = NULL, nSub = NULL,
-  nStud = NULL)
+\method{rxParams}{rxEt}(
+  obj,
+  ...,
+  params = NULL,
+  inits = NULL,
+  iCov = NULL,
+  keep = NULL,
+  thetaMat = NULL,
+  omega = NULL,
+  dfSub = NULL,
+  sigma = NULL,
+  dfObs = NULL,
+  nSub = NULL,
+  nStud = NULL
+)
 
 rxParam(obj, ...)
 }

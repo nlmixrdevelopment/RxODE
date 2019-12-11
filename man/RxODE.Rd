@@ -4,10 +4,21 @@
 \alias{RxODE}
 \title{Create an ODE-based model specification}
 \usage{
-RxODE(model, modName = basename(wd), wd = getwd(), filename = NULL,
-  extraC = NULL, debug = FALSE, calcJac = NULL, calcSens = NULL,
-  collapseModel = FALSE, package = NULL, ..., linCmtSens = FALSE,
-  indLin = FALSE)
+RxODE(
+  model,
+  modName = basename(wd),
+  wd = getwd(),
+  filename = NULL,
+  extraC = NULL,
+  debug = FALSE,
+  calcJac = NULL,
+  calcSens = NULL,
+  collapseModel = FALSE,
+  package = NULL,
+  ...,
+  linCmtSens = FALSE,
+  indLin = FALSE
+)
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:

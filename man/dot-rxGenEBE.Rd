@@ -4,9 +4,17 @@
 \alias{.rxGenEBE}
 \title{Generate peices for EBE only problem}
 \usage{
-.rxGenEBE(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  pred.minus.dv = TRUE, sum.prod = FALSE, optExpression = TRUE,
-  theta = FALSE)
+.rxGenEBE(
+  obj,
+  predfn,
+  pkpars = NULL,
+  errfn = NULL,
+  init = NULL,
+  pred.minus.dv = TRUE,
+  sum.prod = FALSE,
+  optExpression = TRUE,
+  theta = FALSE
+)
 }
 \arguments{
 \item{obj}{RxODE object}

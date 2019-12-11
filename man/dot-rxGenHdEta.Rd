@@ -4,8 +4,16 @@
 \alias{.rxGenHdEta}
 \title{Generate the d(err)/d(eta) values for FO related methods}
 \usage{
-.rxGenHdEta(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  pred.minus.dv = TRUE, promoteLinSens = TRUE, theta = FALSE)
+.rxGenHdEta(
+  obj,
+  predfn,
+  pkpars = NULL,
+  errfn = NULL,
+  init = NULL,
+  pred.minus.dv = TRUE,
+  promoteLinSens = TRUE,
+  theta = FALSE
+)
 }
 \arguments{
 \item{obj}{RxODE object}
