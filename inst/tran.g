@@ -125,7 +125,7 @@ primary_expression
 
 ifelse : 'ifelse' '(' logical_or_expression ',' logical_or_expression ',' logical_or_expression ')' ;
 
-function : (identifier | 'lag') '(' (logical_or_expression)* (',' logical_or_expression)* ')' ;
+function : identifier '(' (logical_or_expression)* (',' logical_or_expression)* ')' ;
 
 ini_const : '-'? constant;
 trans_const: identifier_r | '-'? constant;

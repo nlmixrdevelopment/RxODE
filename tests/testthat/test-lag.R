@@ -7,16 +7,16 @@ rxPermissive({
     test_that("lag()", {
 
         expect_error(RxODE({
-            a = alag()
+            a = lag()
         }))
 
         expect_error(RxODE({
-            a = alag(b, c)
+            a = lag(b, c)
         }))
 
         m1 <- RxODE({
             c = b + 2
-            a = alag(b, 3)
+            a = lag(b, 3)
         })
 
         expect_true(inherits(m1, "RxODE"))
