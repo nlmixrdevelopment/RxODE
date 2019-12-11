@@ -177,7 +177,7 @@ rxExpandGrid <- function(x, y, type=0L){
         if (length(.w) == 1L){
             .inis <- .txt[.w];
             .inis <- strsplit(gsub(.re, "\\1", .inis), " *, *")[[1]];
-            if (length(rxState(rx)) == length(inis)){
+            if (length(rxState(rx)) == length(.inis)){
                 .inis <- paste(paste0(rxState(rx), "(0)=", .inis, "+0.0;"), collapse="\n");
                 .txt[.w] <- .inis;
             } else {
@@ -200,6 +200,7 @@ rxExpandGrid <- function(x, y, type=0L){
 ##' @author Matthew L Fidler
 .rxGenPred <- function(obj, predfn, errfn, init){
     .extraPars <- c();
+    add <- function(...){} # maker rcheck happy
     if (is.null(errfn)){
         errfn <- function(){add(0.1)};
     }

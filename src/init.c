@@ -287,7 +287,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxUseRadixSort", (DL_FUNC) &_RxODE_rxUseRadixSort, 1},
     {"_RxODE_forderForceBase", (DL_FUNC) &_RxODE_forderForceBase, 1},
     {"_RxODE_rLKJ1", (DL_FUNC) &_RxODE_rLKJ1, 3},
-    {"_RxODE_rLKJcv", (DL_FUNC) &_RxODE_rLKJcv1, 2},
+    {"_RxODE_rLKJcv1", (DL_FUNC) &_RxODE_rLKJcv1, 2},
     {"_RxODE_rLKJcvLsd1", (DL_FUNC) &_RxODE_rLKJcvLsd1, 3},
     {"_RxODE_invWR1d", (DL_FUNC) &_RxODE_invWR1d, 3},
     {"_RxODE_rcvC1", (DL_FUNC) &_RxODE_rcvC1, 5},

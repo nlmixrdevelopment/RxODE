@@ -1,4 +1,15 @@
-##' Simulate random normal variable from threefry generator
+##' @export
+##' @rdname rxnormV
+rxnorm <- function(mean = 0, sd = 1, n=1L, ncores=1L){
+    checkmate::assertNumeric(mean, len=1);
+    checkmate::assertNumeric(sd, lower=0, len=1);
+    checkmate::assertCount(n)
+    checkmate::assertCount(ncores)
+    rxSeedEng(ncores)
+    .Call(`_RxODE_rxnorm_`, mean, sd, n, ncores)
+}
+
+##' Simulate random normal variable from threefry/vandercorput generator
 ##'
 ##' @inheritParams stats::rnorm
 ##'
@@ -6,9 +17,14 @@
 ##'
 ##' @param ncores Number of cores for the simulation
 ##'
+##' `rxnorm` simulates using the threefry sitmo generator; `rxnormV`
+##' uses the vandercorput generator
+##'
 ##' @template birthdayProblem
 ##'
 ##' @examples
+##'
+##' ## Use threefry engine
 ##'
 ##' rxnorm(n=10) # with rxnorm you have to explicitly state n
 ##' rxnorm(n=10,ncores=2) # You can parallelize the simulation using openMP
@@ -26,29 +42,7 @@
 ##'
 ##' s <- rxSolve(rx,et)
 ##'
-##' @export
-rxnorm <- function(mean = 0, sd = 1, n=1L, ncores=1L){
-    checkmate::assertNumeric(mean, len=1);
-    checkmate::assertNumeric(sd, lower=0, len=1);
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxnorm_`, mean, sd, n, ncores)
-}
-
-
-
-##' Simulate random normal variable from vandercorput generator
-##'
-##' @inheritParams stats::rnorm
-##'
-##' @param n number of observations
-##'
-##' @param ncores Number of cores for the simulation
-##'
-##' @template birthdayProblem
-##'
-##' @examples
+##' ## Use vandercorput generator
 ##'
 ##' rxnormV(n=10) # with rxnorm you have to explicitly state n
 ##' rxnormV(n=10,ncores=2) # You can parallelize the simulation using openMP
@@ -56,7 +50,7 @@ rxnorm <- function(mean = 0, sd = 1, n=1L, ncores=1L){
 ##' rxnormV(2,3) ## The first 2 arguments are the mean and standard deviation
 ##'
 ##'
-##' ## This example uses `rxnorm` directly in the model
+##' ## This example uses `rxnormV` directly in the model
 ##'
 ##' rx <- RxODE({
 ##'   a = rxnormV()
