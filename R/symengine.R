@@ -195,11 +195,11 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 ##'
 ##' ## Now RxODE knows how to translate this function to symengine
 ##'
-##' rxToSE("f(a,b,c)")
+##' rxToSE("fun(a,b,c)")
 ##'
 ##' ## And will take a central difference when calculating derivatives
 ##'
-##' rxFromSE("Derivative(f(a,b,c),a)")
+##' rxFromSE("Derivative(fun(a,b,c),a)")
 ##'
 ##' ## Of course, you could specify the derivative table manually
 ##' rxD("fun", list(function(a,b,c){
@@ -211,6 +211,8 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 ##'     function(a,b,c){
 ##'       return("0.0")
 ##' } ))
+##'
+##' rxFromSE("Derivative(fun(a,b,c),a)")
 ##'
 ##' # You can also remove the functions by `rxRmFun`
 ##'
