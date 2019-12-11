@@ -63,8 +63,7 @@ Suggests:
     scales,
     stringi,
     htmltools,
-    rlang,
-    installr
+    rlang
 Imports:
     Matrix,
     PreciseSums (>= 0.3),
