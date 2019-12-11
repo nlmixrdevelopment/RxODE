@@ -175,11 +175,11 @@ rxExpandGrid <- function(x, y, type=0L){
                         any_spaces, end);
         .w <- which(regexpr(.re, .txt) != -1);
         if (length(.w) == 1L){
-            .inis <- txt[.w];
+            .inis <- .txt[.w];
             .inis <- strsplit(gsub(.re, "\\1", .inis), " *, *")[[1]];
             if (length(rxState(rx)) == length(inis)){
-                .inis <- paste(paste0(rxState(rx), "(0)=", inis, "+0.0;"), collapse="\n");
-                .txt[w] <- .inis;
+                .inis <- paste(paste0(rxState(rx), "(0)=", .inis, "+0.0;"), collapse="\n");
+                .txt[.w] <- .inis;
             } else {
                 stop("specified %s initial conditions when there are only %s states", length(.inis), length(rxState(rx)));
             }
