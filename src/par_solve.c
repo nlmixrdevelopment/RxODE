@@ -2584,6 +2584,9 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       }	
       for (i = 0; i < ntimes; i++){
         evid = ind->evid[ind->ix[i]];
+	if (nlhs){
+	  rxCalcLhsP(i, rx, neq[1]);
+	}
 	if (evid == 9) continue;
 	if (subsetEvid == 1){
 	  if (isObs(evid) && evid >= 10) continue;

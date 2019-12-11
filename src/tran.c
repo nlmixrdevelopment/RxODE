@@ -480,12 +480,10 @@ int new_or_ith(const char *s) {
   /*   tb.ix=-2;  */
   /*   return 0; */
   /* } */
-  /* if (!strcmp("amt", s)){ */
-  /*   updateSyntaxCol(); */
-  /*   trans_syntax_error_report_fn(_("'amt' cannot be a variable in an RxODE model")); */
-  /*   tb.ix=-2;  */
-  /*   return 0; */
-  /* } */
+  if (!strcmp("amt", s)){
+    tb.ix=-2;
+    return 0;
+  }
   if (!strcmp("ifelse", s)){
     updateSyntaxCol();
     error(_("'ifelse' cannot be a state in an RxODE model"));
