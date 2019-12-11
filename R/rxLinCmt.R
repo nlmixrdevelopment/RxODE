@@ -223,10 +223,10 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             if (.oral){
                 .lines[length(.lines)+1]  <- sub(.regLagDepot,"rx_tlag ~ \\1", .tmp);
             } else {
-                stop("'lag(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter");
+                stop("'alag(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter");
             }
         } else if (length(.lagDepot)>1L){
-            stop("'lag(depot)' cannot be duplicated in a model");
+            stop("'alag(depot)' cannot be duplicated in a model");
         } else {
             if (.oral){
                 .lines[length(.lines) + 1]  <- sprintf("rx_tlag ~ 0")
@@ -243,7 +243,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
                 .lines[length(.lines) + 1]  <- sprintf("rx_tlag2 ~ 0")
             }
         } else if (length(.lagCenter)>1L) {
-            stop("can only specify 'lag(central)' once");
+            stop("can only specify 'alag(central)' once");
         } else {
             if (.oral){
                 .lines[length(.lines) + 1]  <- sprintf("rx_tlag2 ~ 0")

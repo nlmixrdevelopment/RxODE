@@ -68,7 +68,7 @@ be:
   specifies the compartment of the initial condition being specified,
   e.g. `depot(0) = 0`
 - special model event changes including **bioavailability**
-  (`f(depot)=1`), **lag time** (`lag(depot)=0`), **modeled rate**
+  (`f(depot)=1`), **lag time** (`alag(depot)=0`), **modeled rate**
   (`rate(depot)=2`) and **modeled duration** (`dur(depot)=2`). An
   example of these model features and the event specification for the
   modeled infusions the RxODE data specification is found in [RxODE

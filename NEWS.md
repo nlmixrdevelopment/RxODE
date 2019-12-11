@@ -1,5 +1,88 @@
 # RxODE xxxx
+## Breaking changes
+
+* `lag(cmt) = ` is no longer supported because `lag()` is now allowed
+  to use lagged covariates and observations.
+
+* RxODE can only use supported functions (could be breaking); You may
+  add your own functions with `rxFun` and their derivatives with `rxD`
+
 ## New features
+
+* Allow accessing different time-varying components of an input dataset for each indivdiual with:
+  - `lag(var, #)`
+  - `lead(var, #)`
+  - `first(var)`
+  - `last(var)`
+  - `diff(var)`
+Each of these are similar to the R `lag`, `lead`, `first`, `last` and
+`diff`.  However when undefined, it returns `NA`
+
+* Allow sticky left-handed side of the equation; This means for an
+  observation the left handed values are saved for the next
+  observations and then reassigned to the last calculated value.
+  
+  This allows nonmem-style of calculating parameters like tad:
+  
+```r
+mod1 <-RxODE({
+    KA=2.94E-01;
+    CL=1.86E+01;
+    V2=4.02E+01;
+    Q=1.05E+01;
+    V3=2.97E+02;
+    Kin=1;
+    Kout=1;
+    EC50=200;
+    C2 = centr/V2;
+    C3 = peri/V3;
+    d/dt(depot) =-KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri)  =                    Q*C2 - Q*C3;
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+    if (!is.na(amt)){
+        tdose <- time
+    } else {
+        tad <- time - tdose
+    }
+})
+```
+
+
+It is still simpler to use:
+
+```r
+mod1 <-RxODE({
+    KA=2.94E-01;
+    CL=1.86E+01;
+    V2=4.02E+01;
+    Q=1.05E+01;
+    V3=2.97E+02;
+    Kin=1;
+    Kout=1;
+    EC50=200;
+    C2 = centr/V2;
+    C3 = peri/V3;
+    d/dt(depot) =-KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri)  =                    Q*C2 - Q*C3;
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+    tad <- time - tlast
+})
+```
+If the `lhs` parameters haven't been defined yet, they are `NA`
+
+* Now the NONMEM-style `newind` flag can be used to initialize `lhs`
+  parameters.
+
+* Added "advan" style `linCmt()` solutions, to allow correct solutions
+  of time-varying covariate values with solved systems
+
+* Added sensitivity auto-differentiation of `linCmt()` solutions (via
+  stan's math headers).  This allows sensitivities of `linCmt()`
+  solutions and enables `nlmixr` focei to support solved systems.
+  - As such, `RxODE` now requires `C++14` support.
+  
 * Added ability to prune branching with `rxPrune`. This converts
   `if`/`else` or `ifelse` to single line statements without any
   `if`/`then` branching within them.
