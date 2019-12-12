@@ -100,6 +100,7 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   - Since symengine is C-based and doesn't require the python
     interface it is much faster than `sympy`, though some functions in
     `sympy` are no longer accessible.
+  - Also symengine requires R 3.6, so now RxODE requires R 3.6
 	
 * Added new ODE solving method "indLin", or inductive linearization.
   When the full model is a linear ODE system this becomes simply the
