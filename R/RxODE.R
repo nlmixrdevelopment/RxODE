@@ -1,7 +1,8 @@
 rex::register_shortcuts("RxODE");
 
-R_NegInf <- -Inf # Hack for Rcpp->R initial values problem
-R_PosInf <- Inf
+## Hack for Rcpp->R initial values problem
+R_NegInf <- -Inf # nolint
+R_PosInf <- Inf # nolint
 
 ##' Create an ODE-based model specification
 ##'
@@ -329,12 +330,13 @@ R_PosInf <- Inf
 ##' @importFrom methods signature is
 ##' @importFrom memoise memoise
 ##' @export
-RxODE <- function(model, modName = basename(wd),
-                  wd = getwd(),
-                  filename = NULL, extraC = NULL, debug = FALSE, calcJac=NULL, calcSens=NULL,
-                  collapseModel=FALSE, package=NULL, ...,
-                  linCmtSens=FALSE,
-                  indLin=FALSE){
+RxODE <- # nolint
+    function(model, modName = basename(wd),
+             wd = getwd(),
+             filename = NULL, extraC = NULL, debug = FALSE, calcJac=NULL, calcSens=NULL,
+             collapseModel=FALSE, package=NULL, ...,
+             linCmtSens=FALSE,
+             indLin=FALSE){
     if (!missing(modName)){
         if (!checkmate::testCharacter(modName,max.len = 1)){
             stop("'modName' has to be a single length character");
@@ -583,7 +585,7 @@ RxODE <- function(model, modName = basename(wd),
         return(rxState(get("rxDll", envir=.(.env)), s));
     }))
     .mv <- .env$.mv;
-    .env$lib.name <- .mv$trans["lib.name"]
+    .env$lib.name <- .mv$trans["lib.name"] # nolint
     tmp <- list(dllfile=RxODE::rxDll(.env$rxDll),
                 ode_solver=as.vector(.mv$trans["ode_solver"]),
                 ode_solver_ptr=as.vector(.mv$trans["ode_solver_ptr"]),
@@ -1961,7 +1963,8 @@ rxReload <- function(){
 ##'@param env boolean that returns the environment where models are stored (TRUE), or the currently assigned RxODE model variables (FALSE).
 ##'@keywords internal
 ##'@export
-rxModels_ <- function(env=TRUE){
+rxModels_ <- # nolint
+    function(env=TRUE){
     if (env){
         return(getFromNamespace(".rxModels", "RxODE"));
     } else {

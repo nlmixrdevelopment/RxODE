@@ -1579,8 +1579,8 @@ rxS <- function(x, doConst=TRUE, promoteLinSens=FALSE){
 
 
 symengineC <- new.env(parent = emptyenv())
-symengineC$"**" <- dsl.to.pow
-symengineC$"^" <- dsl.to.pow
+symengineC$"**" <- .dslToPow
+symengineC$"^" <- .dslToPow
 
 symengineC$S <- function(x){
     sprintf("%s", x);

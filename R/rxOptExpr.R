@@ -52,8 +52,8 @@
 }
 
 .rxOptEnv <- new.env(parent = emptyenv())
-.rxOptEnv$"^" <- .rxOptBin("^")
-.rxOptEnv$"**" <- .rxOptBin("^")
+.rxOptEnv[["^"]] <- .rxOptBin("^")
+.rxOptEnv[["**"]] <- .rxOptBin("^")
 
 .rxOptEnv[["*"]] <- .rxOptBin("*");
 

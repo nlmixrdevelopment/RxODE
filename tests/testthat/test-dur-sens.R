@@ -32,7 +32,7 @@ rxPermissive({
             d/dt(center) = ka * depot - cl/v * center
             f(depot) = 1 - F2
             f(center) = F2
-            lag(depot) = D2
+            alag(depot) = D2
             dur(center) = D3
             cp = center/v;
             cmt(cp);

@@ -24,7 +24,7 @@ regJac <- rex::rex( "df(", capture(.regIdentifier), ")/dy(",  capture(or(.regIde
 .regDur <- rex::rex(start, "rx_dur_",capture(anything),"_");
 .regLag <- rex::rex(start, "rx_lag_",capture(anything),"_");
 .regF <- rex::rex(start, "rx_f_",capture(anything),"_");
-known.print <- c('printf', 'Rprintf', 'print',
+.knownPrint <- c('printf', 'Rprintf', 'print',
                  'jac_printf', 'jac_Rprintf', 'jac_print',
                  'ode_printf', 'ode_Rprintf', 'ode_print',
                  'jac0_printf', 'jac0_Rprintf', 'jac0_print',
@@ -32,7 +32,7 @@ known.print <- c('printf', 'Rprintf', 'print',
                  'ode0_printf', 'ode0_Rprintf', 'ode0_print',
                  'lhs_printf', 'lhs_Rprintf', 'lhs_print')
 
-regPrint <- rex::rex(start, or(known.print), or(group("(", anything, ")", any_spaces, at_most(";", 1), any_spaces),
+regPrint <- rex::rex(start, or(.knownPrint), or(group("(", anything, ")", any_spaces, at_most(";", 1), any_spaces),
                                                 group(any_spaces, at_most(";", 1), any_spaces)),
                      end)
 
@@ -72,29 +72,29 @@ rxExpandIfElse <- function(model, removeInis=TRUE, removePrint=TRUE){
     w1 <- which(regexpr(regIfOrElse, model) != -1);
     w2 <- which(regexpr(regEnd, model) != -1);
     if (length(w1) > 0){
-        curr.expr <- c("");
+        currExpr <- c("");
         lst <- list();
         last <- "";
         known <- list();
         for (i in seq_along(model)){
             if (any(i == w1)){
                 if (regexpr(regElse, model[i]) != -1){
-                    curr.expr[length(curr.expr) + 1] <- sprintf("!(%s)", last);
+                    currExpr[length(currExpr) + 1] <- sprintf("!(%s)", last);
                 } else {
-                    curr.expr[length(curr.expr) + 1] <- gsub(regIf, "!(\\1)", model[i]);
-                    known[[length(known) + 1]] <- c(paste(paste0("(", curr.expr[-1], ")"),
-                                                          collapse=" && "), curr.expr[-1]);
-                    curr.expr[length(curr.expr)] <- gsub(regIf, "\\1", model[i]);
-                    known[[length(known) + 1]] <- c(paste(paste0("(", curr.expr[-1], ")"),
-                                                          collapse=" && "), curr.expr[-1]);
+                    currExpr[length(currExpr) + 1] <- gsub(regIf, "!(\\1)", model[i]);
+                    known[[length(known) + 1]] <- c(paste(paste0("(", currExpr[-1], ")"),
+                                                          collapse=" && "), currExpr[-1]);
+                    currExpr[length(currExpr)] <- gsub(regIf, "\\1", model[i]);
+                    known[[length(known) + 1]] <- c(paste(paste0("(", currExpr[-1], ")"),
+                                                          collapse=" && "), currExpr[-1]);
                 }
                 lst[[i]] <- "control";
             } else if (any(i == w2)){
-                last <- curr.expr[length(curr.expr)];
-                curr.expr <- curr.expr[seq(1, length(curr.expr) - 1)];
+                last <- currExpr[length(currExpr)];
+                currExpr <- currExpr[seq(1, length(currExpr) - 1)];
                 lst[[i]] <- "control";
             } else {
-                lst[[i]] <- curr.expr;
+                lst[[i]] <- currExpr;
             }
         }
         ret <- list();
@@ -266,13 +266,13 @@ functionOp2 <- function(fn, end){
     }
 }
 
-dsl.strip.paren <- function(x){
-    strip.it <- function(x){
+.dslStripParen <- function(x){
+    .stripIt <- function(x){
         if (is.call(x)){
             if (length(x) == 1){
                 return(x)
             } else if (identical(x[[1]], quote(`(`))){
-                return(strip.it(x[[2]]));
+                return(.stripIt(x[[2]]));
             } else {
                 return(x)
             }
@@ -285,9 +285,9 @@ dsl.strip.paren <- function(x){
     return(ret)
 }
 
-dsl.to.pow <- function(a, b){
-    a <- dsl.strip.paren(a);
-    b <- dsl.strip.paren(b);
+.dslToPow <- function(a, b){
+    a <- .dslStripParen(a);
+    b <- .dslStripParen(b);
     num <- suppressWarnings({as.numeric(b)});
     if (is.na(num)){
         return(sprintf("Rx_pow(%s, %s)", a, b));
@@ -303,8 +303,8 @@ dsl.to.pow <- function(a, b){
 ## Add sympy->C mini DSL for omega parsing
 
 symengineC <- new.env(parent = emptyenv())
-symengineC$"**" <- dsl.to.pow
-symengineC$"^" <- dsl.to.pow
+symengineC$"**" <- .dslToPow
+symengineC$"^" <- .dslToPow
 
 symengineC$S <- function(x){
     sprintf("%s", x);
@@ -433,7 +433,7 @@ rxErrEnvF$"[" <- function(name, val){
     err <- "RxODE only supports THETA[#] and ETA[#] numbers."
     if (any(n == c("THETA", "ETA")) && is.numeric(val)){
         if (round(val) == val && val > 0){
-            if (n == "THETA" && as.numeric(val) <= length(rxErrEnv.init)){
+            if (n == "THETA" && as.numeric(val) <= length(rxErrEnvInit)){
                 return(sprintf("THETA[%s]", val));
             } else {
                 return(sprintf("%s[%s]", n, val));
@@ -453,38 +453,38 @@ rxErrEnvF$"if" <- function(lg, tr, fl){
         return(sprintf("if (%s) %s else %s", lg, tr, fl))
     }
 }
-rxErrEnv.theta <- 1;
-rxErrEnv.diag.est <- c();
-rxErrEnv.ret <- "rx_r_";
-rxErrEnv.init <- NULL;
-rxErrEnv.lambda <- NULL;
-rxErrEnv.yj <- NULL;
+rxErrEnvTheta <- 1;
+rxErrEnvDiagEst <- c();
+rxErrEnvRet <- "rx_r_";
+rxErrEnvInit <- NULL;
+rxErrEnvLambda <- NULL;
+rxErrEnvYJ <- NULL;
 
 rxErrEnvF$lnorm <- function(est){
-    if (rxErrEnv.ret != "rx_r_"){
+    if (rxErrEnvRet != "rx_r_"){
         stop("'lnorm' can only be in an error function")
     }
-    if (!is.null(rxErrEnv.lambda)){
-        if (rxErrEnv.lambda != "0" && rxErrEnv.yj != "0"){
+    if (!is.null(rxErrEnvLambda)){
+        if (rxErrEnvLambda != "0" && rxErrEnvYJ != "0"){
             stop("'lnorm' cannot be used with other data transformations")
         }
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
         ret <- (sprintf("(%s)^2", est))
-        assignInMyNamespace("rxErrEnv.lambda", "0");
-        assignInMyNamespace("rxErrEnv.yj", "0");
+        assignInMyNamespace("rxErrEnvLambda", "0");
+        assignInMyNamespace("rxErrEnvYJ", "0");
     } else {
-        theta <- sprintf("THETA[%s]", rxErrEnv.theta);
+        theta <- sprintf("THETA[%s]", rxErrEnvTheta);
         est <- estN;
         theta.est <- theta;
         ret <- (sprintf("(%s)^2", theta.est))
-        tmp <- rxErrEnv.diag.est;
-        tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
-        assignInMyNamespace("rxErrEnv.diag.est", tmp);
-        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
-        assignInMyNamespace("rxErrEnv.lambda", "0");
-        assignInMyNamespace("rxErrEnv.yj", "0");
+        tmp <- rxErrEnvDiagEst;
+        tmp[sprintf("THETA[%s]", rxErrEnvTheta)] <- as.numeric(est);
+        assignInMyNamespace("rxErrEnvDiagEst", tmp);
+        assignInMyNamespace("rxErrEnvTheta", rxErrEnvTheta + 1);
+        assignInMyNamespace("rxErrEnvLambda", "0");
+        assignInMyNamespace("rxErrEnvYJ", "0");
     }
     return(ret);
 }
@@ -493,25 +493,25 @@ rxErrEnvF$dlnorm <- rxErrEnvF$lnorm
 rxErrEnvF$logn <- rxErrEnvF$lnorm
 
 rxErrEnvF$tbs <- function(lambda){
-    if (rxErrEnv.ret != "rx_r_"){
+    if (rxErrEnvRet != "rx_r_"){
         stop("'tbs' can only be in an error function")
     }
-    if (!is.null(rxErrEnv.lambda)){
-        if (rxErrEnv.yj != "0" & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1"){
+    if (!is.null(rxErrEnvLambda)){
+        if (rxErrEnvYJ != "0" & rxErrEnvLambda != "0" & rxErrEnvLambda != "1"){
             stop("'tbs' cannot be used with other data transformations")
         }
     }
     estN <- suppressWarnings(as.numeric(lambda));
     if (is.na(estN)){
-        assignInMyNamespace("rxErrEnv.lambda", lambda);
-        assignInMyNamespace("rxErrEnv.yj", "0");
+        assignInMyNamespace("rxErrEnvLambda", lambda);
+        assignInMyNamespace("rxErrEnvYJ", "0");
     } else {
-        tmp <- rxErrEnv.diag.est;
-        tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- estN;
-        assignInMyNamespace("rxErrEnv.lambda", sprintf("THETA[%s]", rxErrEnv.theta));
-        assignInMyNamespace("rxErrEnv.diag.est", tmp);
-        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
-        assignInMyNamespace("rxErrEnv.yj", "0");
+        tmp <- rxErrEnvDiagEst;
+        tmp[sprintf("THETA[%s]", rxErrEnvTheta)] <- estN;
+        assignInMyNamespace("rxErrEnvLambda", sprintf("THETA[%s]", rxErrEnvTheta));
+        assignInMyNamespace("rxErrEnvDiagEst", tmp);
+        assignInMyNamespace("rxErrEnvTheta", rxErrEnvTheta + 1);
+        assignInMyNamespace("rxErrEnvYJ", "0");
     }
     return("0");
 }
@@ -519,25 +519,25 @@ rxErrEnvF$tbs <- function(lambda){
 rxErrEnvF$boxCox <- rxErrEnvF$tbs
 
 rxErrEnvF$tbsYj <- function(lambda){
-    if (rxErrEnv.ret != "rx_r_"){
+    if (rxErrEnvRet != "rx_r_"){
         stop("'tbsYj' can only be in an error function")
     }
-    if (!is.null(rxErrEnv.lambda)){
-        if (rxErrEnv.yj != "1" & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1"){
+    if (!is.null(rxErrEnvLambda)){
+        if (rxErrEnvYJ != "1" & rxErrEnvLambda != "0" & rxErrEnvLambda != "1"){
             stop("'tbsYj' cannot be used with other data transformations")
         }
     }
     estN <- suppressWarnings(as.numeric(lambda));
     if (is.na(estN)){
-        assignInMyNamespace("rxErrEnv.lambda", lambda);
-        assignInMyNamespace("rxErrEnv.yj", "1");
+        assignInMyNamespace("rxErrEnvLambda", lambda);
+        assignInMyNamespace("rxErrEnvYJ", "1");
     } else {
-        tmp <- rxErrEnv.diag.est;
-        tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- estN;
-        assignInMyNamespace("rxErrEnv.lambda", sprintf("THETA[%s]", rxErrEnv.theta));
-        assignInMyNamespace("rxErrEnv.diag.est", tmp);
-        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
-        assignInMyNamespace("rxErrEnv.yj", "1");
+        tmp <- rxErrEnvDiagEst;
+        tmp[sprintf("THETA[%s]", rxErrEnvTheta)] <- estN;
+        assignInMyNamespace("rxErrEnvLambda", sprintf("THETA[%s]", rxErrEnvTheta));
+        assignInMyNamespace("rxErrEnvDiagEst", tmp);
+        assignInMyNamespace("rxErrEnvTheta", rxErrEnvTheta + 1);
+        assignInMyNamespace("rxErrEnvYJ", "1");
     }
     return("0");
 }
@@ -545,23 +545,23 @@ rxErrEnvF$tbsYj <- function(lambda){
 rxErrEnvF$yeoJohnson <- rxErrEnvF$tbsYj
 
 rxErrEnvF$add <- function(est){
-    if (rxErrEnv.ret != "rx_r_"){
+    if (rxErrEnvRet != "rx_r_"){
         stop("'add' can only be in an error function")
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
         ret <- (sprintf("(%s)^2", est))
     } else {
-        theta <- sprintf("THETA[%s]", rxErrEnv.theta);
+        theta <- sprintf("THETA[%s]", rxErrEnvTheta);
         est <- estN;
         theta.est <- theta;
         ret <- (sprintf("(%s)^2", theta.est))
-        tmp <- rxErrEnv.diag.est;
-        tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
-        assignInMyNamespace("rxErrEnv.diag.est", tmp);
-        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
-        assignInMyNamespace("rxErrEnv.lambda", "1");
-        assignInMyNamespace("rxErrEnv.yj", "0");
+        tmp <- rxErrEnvDiagEst;
+        tmp[sprintf("THETA[%s]", rxErrEnvTheta)] <- as.numeric(est);
+        assignInMyNamespace("rxErrEnvDiagEst", tmp);
+        assignInMyNamespace("rxErrEnvTheta", rxErrEnvTheta + 1);
+        assignInMyNamespace("rxErrEnvLambda", "1");
+        assignInMyNamespace("rxErrEnvYJ", "0");
     }
     return(ret);
 }
@@ -571,21 +571,21 @@ rxErrEnvF$dnorm <- rxErrEnvF$add
 
 rxErrEnvF$"for" <- function(...){stop("'for' is not supported")}
 rxErrEnvF$`return` <- function(est){
-    if (rxErrEnv.ret == ""){
+    if (rxErrEnvRet == ""){
         stop("function 'PK' should not return anything")
     }
     .extra <- ""
     force(est)
-    if (rxErrEnv.ret == "rx_r_"){
-        if (is.null(rxErrEnv.lambda)){
+    if (rxErrEnvRet == "rx_r_"){
+        if (is.null(rxErrEnvLambda)){
             .lambda <- "1"
         } else {
-            .lambda <- rxErrEnv.lambda
+            .lambda <- rxErrEnvLambda
         }
-        if (is.null(rxErrEnv.yj)){
+        if (is.null(rxErrEnvYJ)){
             .yj <- "0"
         } else {
-            .yj <- rxErrEnv.yj
+            .yj <- rxErrEnvYJ
         }
         if (.yj == "0" & .lambda == "1"){
             .yj <- "2";
@@ -596,10 +596,10 @@ rxErrEnvF$`return` <- function(est){
             .lambda <- "0";
         }
         .extra <- sprintf("rx_yj_~%s;\nrx_lambda_~%s;\n", .yj, .lambda);
-        assignInMyNamespace("rxErrEnv.yj", NULL);
-        assignInMyNamespace("rxErrEnv.lambda", NULL);
+        assignInMyNamespace("rxErrEnvYJ", NULL);
+        assignInMyNamespace("rxErrEnvLambda", NULL);
     }
-    return(sprintf("%s%s=%s;", .extra, rxErrEnv.ret, est));
+    return(sprintf("%s%s=%s;", .extra, rxErrEnvRet, est));
 }
 
 ## rxErrEnvF$c <- function(...){
@@ -615,7 +615,7 @@ rxErrEnvF$`>=`  <- binaryOp(" >= ")
 rxErrEnvF$`==`  <- binaryOp(" == ")
 
 rxErrEnvF$prop <- function(est){
-    if (rxErrEnv.ret != "rx_r_"){
+    if (rxErrEnvRet != "rx_r_"){
         stop("'prop' can only be in an error function")
     }
     estN <- suppressWarnings(as.numeric(est));
@@ -624,19 +624,19 @@ rxErrEnvF$prop <- function(est){
     } else {
         est <- estN
         ret <- ""
-        theta <- sprintf("THETA[%s]", rxErrEnv.theta);
+        theta <- sprintf("THETA[%s]", rxErrEnvTheta);
         theta.est <- theta;
         ret <- (sprintf("(rx_pred_f_)^2*(%s)^2", theta.est))
-        tmp <- rxErrEnv.diag.est;
-        tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
-        assignInMyNamespace("rxErrEnv.diag.est", tmp);
-        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
+        tmp <- rxErrEnvDiagEst;
+        tmp[sprintf("THETA[%s]", rxErrEnvTheta)] <- as.numeric(est);
+        assignInMyNamespace("rxErrEnvDiagEst", tmp);
+        assignInMyNamespace("rxErrEnvTheta", rxErrEnvTheta + 1);
     }
     return(ret);
 }
 
 rxErrEnvF$pow <- function(est, pow){
-    if (rxErrEnv.ret != "rx_r_"){
+    if (rxErrEnvRet != "rx_r_"){
         stop("'pow' can only be in an error function")
     }
     estN <- suppressWarnings(as.numeric(est));
@@ -645,15 +645,15 @@ rxErrEnvF$pow <- function(est, pow){
     } else {
         est <- estN
         ret <- ""
-        theta <- sprintf("THETA[%s]", rxErrEnv.theta);
-        theta2 <- sprintf("THETA[%s]", rxErrEnv.theta + 1);
+        theta <- sprintf("THETA[%s]", rxErrEnvTheta);
+        theta2 <- sprintf("THETA[%s]", rxErrEnvTheta + 1);
         theta.est <- theta;
         ret <- (sprintf("(rx_pred_f_)^(2*%s) * (%s)^2", theta2, theta.est))
-        tmp <- rxErrEnv.diag.est;
-        tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
-        tmp[sprintf("THETA[%s]", rxErrEnv.theta + 1)] <- as.numeric(pow);
-        assignInMyNamespace("rxErrEnv.diag.est", tmp);
-        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 2);
+        tmp <- rxErrEnvDiagEst;
+        tmp[sprintf("THETA[%s]", rxErrEnvTheta)] <- as.numeric(est);
+        tmp[sprintf("THETA[%s]", rxErrEnvTheta + 1)] <- as.numeric(pow);
+        assignInMyNamespace("rxErrEnvDiagEst", tmp);
+        assignInMyNamespace("rxErrEnvTheta", rxErrEnvTheta + 2);
     }
     return(ret);
 }
@@ -770,16 +770,16 @@ rxParsePred <- function(x, init=NULL, err=NULL){
 ##' @export
 rxParseErr <- function(x, base.theta, ret="rx_r_", init=NULL){
     if (!missing(base.theta)){
-        assignInMyNamespace("rxErrEnv.theta", base.theta);
+        assignInMyNamespace("rxErrEnvTheta", base.theta);
     }
     if (!missing(ret)){
-        assignInMyNamespace("rxErrEnv.ret", ret);
+        assignInMyNamespace("rxErrEnvRet", ret);
     }
     if (!missing(init)){
-        assignInMyNamespace("rxErrEnv.init", init);
+        assignInMyNamespace("rxErrEnvInit", init);
     }
     if (!missing(init)){
-        assignInMyNamespace("rxErrEnv.init", init);
+        assignInMyNamespace("rxErrEnvInit", init);
     }
     if (is(x,"function")){
         x <- rxAddReturn(x, ret != "");
@@ -790,17 +790,17 @@ rxParseErr <- function(x, base.theta, ret="rx_r_", init=NULL){
         if (regexpr("else if", ret) != -1){
             stop("else if expressions not supported");
         }
-        assignInMyNamespace("rxErrEnv.diag.est", c());
-        assignInMyNamespace("rxErrEnv.theta", 1)
-        assignInMyNamespace("rxErrEnv.ret", "rx_r_");
-        assignInMyNamespace("rxErrEnv.init", NULL);
+        assignInMyNamespace("rxErrEnvDiagEst", c());
+        assignInMyNamespace("rxErrEnvTheta", 1)
+        assignInMyNamespace("rxErrEnvRet", "rx_r_");
+        assignInMyNamespace("rxErrEnvInit", NULL);
         return(ret)
     } else if (is(substitute(x),"name")){
         ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(%s)", deparse(x))))
-        assignInMyNamespace("rxErrEnv.diag.est", c());
-        assignInMyNamespace("rxErrEnv.theta", 1)
-        assignInMyNamespace("rxErrEnv.ret", "rx_r_");
-        assignInMyNamespace("rxErrEnv.init", NULL);
+        assignInMyNamespace("rxErrEnvDiagEst", c());
+        assignInMyNamespace("rxErrEnvTheta", 1)
+        assignInMyNamespace("rxErrEnvRet", "rx_r_");
+        assignInMyNamespace("rxErrEnvInit", NULL);
         return(ret);
     } else {
         ret <- c();
@@ -810,11 +810,11 @@ rxParseErr <- function(x, base.theta, ret="rx_r_", init=NULL){
         } else {
             ret <- eval(x, rxErrEnv(x));
         }
-        attr(ret, "ini") = rxErrEnv.diag.est;
-        assignInMyNamespace("rxErrEnv.diag.est", c());
-        assignInMyNamespace("rxErrEnv.theta", 1)
-        assignInMyNamespace("rxErrEnv.ret", "rx_r_");
-        assignInMyNamespace("rxErrEnv.init", NULL);
+        attr(ret, "ini") = rxErrEnvDiagEst;
+        assignInMyNamespace("rxErrEnvDiagEst", c());
+        assignInMyNamespace("rxErrEnvTheta", 1)
+        assignInMyNamespace("rxErrEnvRet", "rx_r_");
+        assignInMyNamespace("rxErrEnvInit", NULL);
         if (regexpr("else if", ret) != -1){
             stop("else if expressions not supported");
         }
@@ -833,8 +833,8 @@ sumProdEnv$"**" <- binaryOp("^")
 
 sumProdEnv[["*"]] <- function(a, b){
     if (rxSumProdProd){
-        a <- dsl.strip.paren(a)
-        b <- dsl.strip.paren(b)
+        a <- .dslStripParen(a)
+        b <- .dslStripParen(b)
         ## log transformed
         sprintf("prod(%s, %s)", sub(rex::rex(start, "prod(", capture(anything), ")", end), "\\1", a), b)
     } else {
@@ -844,8 +844,8 @@ sumProdEnv[["*"]] <- function(a, b){
 
 sumProdEnv[["/"]] <- function(a, b){
     if (rxSumProdProd){
-        a <- dsl.strip.paren(a)
-        b <- dsl.strip.paren(b)
+        a <- .dslStripParen(a)
+        b <- .dslStripParen(b)
         sprintf("prod(%s, 1/%s)", sub(rex::rex(start, "prod(", capture(anything), ")", end), "\\1", a), b)
     } else {
         sprintf("%s / %s", a, b)
@@ -854,16 +854,16 @@ sumProdEnv[["/"]] <- function(a, b){
 
 sumProdEnv[["+"]] <- function(a, b){
     if (rxSumProdSum){
-        a <- dsl.strip.paren(a)
+        a <- .dslStripParen(a)
         if (!missing(b)){
-            b <- dsl.strip.paren(b)
+            b <- .dslStripParen(b)
             return(sprintf("sum(%s, %s)", sub(rex::rex(start, "sum(", capture(anything), ")", end), "\\1", a), b))
         } else {
             return(a)
         }
     } else {
         if (!missing(b)){
-            b <- dsl.strip.paren(b)
+            b <- .dslStripParen(b)
             return(sprintf("%s + %s", a, b))
         } else {
             return(a)
@@ -873,16 +873,16 @@ sumProdEnv[["+"]] <- function(a, b){
 
 sumProdEnv[["-"]] <- function(a, b){
     if (rxSumProdSum){
-        a <- dsl.strip.paren(a)
+        a <- .dslStripParen(a)
         if (!missing(b)){
-            b <- dsl.strip.paren(b)
+            b <- .dslStripParen(b)
             sprintf("sum(%s, -%s)", sub(rex::rex(start, "sum(", capture(anything), ")", end), "\\1", a), b)
         } else {
             paste0("-", a)
         }
     } else {
         if (!missing(b)){
-            b <- dsl.strip.paren(b)
+            b <- .dslStripParen(b)
             return(sprintf("%s - %s", a, b))
         } else {
             return(paste0("-", a));
