@@ -31,9 +31,6 @@ sensitivity-based solutions.}
     - `central` for central differences
     - `error` for throwing an error for unknown derivatives}
 }
-\value{
-
-}
 \description{
 RxODE to symengine environment
 }

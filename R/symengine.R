@@ -183,7 +183,6 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 ##' ## Note for this approach to work, it cannot interfere with C
 ##' ## function names or reserved RxODE specical terms.  Therefore
 ##' ## f(x) would not work since f is an alias for bioaviability.
-##' }
 ##'
 ##' fun <- "
 ##' double fun(double a, double b, double c) {
@@ -218,6 +217,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 ##'
 ##' rxRmFun("fun")
 ##'
+##' }
 ##' @export
 rxFun <- function(name, args, cCode){
     if (!is.character(name) || length(name) != 1L)
@@ -512,8 +512,6 @@ rxD <- function(name, derivatives){
 ##'     - `forward` for forward differences
 ##'     - `central` for central differences
 ##'     - `error` for throwing an error for unknown derivatives
-##'
-##' @return
 ##' @author Matthew L. Fidler
 ##' @export
 rxToSE <- function(x, envir=NULL, progress=FALSE,

@@ -38,7 +38,6 @@ RxODE("a=fun(a,b,c)")
 ## Note for this approach to work, it cannot interfere with C
 ## function names or reserved RxODE specical terms.  Therefore
 ## f(x) would not work since f is an alias for bioaviability.
-}
 
 fun <- "
 double fun(double a, double b, double c) {
@@ -73,6 +72,7 @@ rxFromSE("Derivative(fun(a,b,c),a)")
 
 rxRmFun("fun")
 
+}
 }
 \author{
 Matthew L. Fidler
