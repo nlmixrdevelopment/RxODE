@@ -697,16 +697,6 @@ rxErrEnv <- function(expr) {
   symbolEnv <- list2env(symbolList, parent = rxErrFEnv);
   return(symbolEnv)
 }
-
-##' Parse PK function for inclusion in RxODE
-##'
-##' @param x PK function
-##' @inheritParams rxParseErr
-##' @return RxODE transformed text.
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
-
 sumProdEnv <- new.env(parent = emptyenv())
 
 rxSumProdSum <- FALSE
