@@ -10,7 +10,6 @@ env:
    - CODECOV_TOKEN: c1a47ffb-e5b5-420a-a0ed-6df480bcb833
 
 r:
-  - 3.5
   - 3.6
   - devel
   
@@ -25,13 +24,7 @@ matrix:
     os: linux
   - r: devel
     os: osx
-  - r: 3.4
-    os: osx
-  - r: 3.5
-    os: osx
   - r: 3.6
-    os: osx
-  - r: 3.3
     os: osx
 
 addons:
@@ -43,6 +36,11 @@ addons:
       - libmpfr-dev
       - libmpc-dev
       - devscripts
+
+before_install:
+  - if [ $TRAVIS_OS_NAME = osx ]; then brew install cmake gmp mpfr libmpc || true; fi
+  
+warnings_are_errors: true
 
 r_github_packages:
   - nlmixrdevelopment/n1qn1
