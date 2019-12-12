@@ -2043,7 +2043,7 @@ rxParsePred <- function(x, init=NULL, err=NULL){
 ##' @keywords internal
 ##' @author Matthew L. Fidler
 ##' @export
-rxParseErr <- function(x, baseTheta, ret="rx_r_", init=NULL){
+rxParseErr <- function(x, baseTheta, ret="rx_r_", init=NULL) {
     if (!missing(baseTheta)){
         assignInMyNamespace("rxErrEnv.theta", baseTheta);
     }

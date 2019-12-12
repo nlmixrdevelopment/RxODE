@@ -706,75 +706,7 @@ rxErrEnv <- function(expr) {
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxParsePk <- function(x, init=NULL) {
-  return(rxParseErr(x, init = init, ret = ""));
-}
-##' Prepare Pred function for inclusion in RxODE
-##'
-##' @param x pred function
-##' @inheritParams rxParseErr
-##' @return RxODE transformed text.
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
-rxParsePred <- function(x, init=NULL, err=NULL) {
-  if (is.null(err)) {
-    return(rxParseErr(x, ret = "rx_pred_", init = init));
-  } else {
-    .ini <- attr(err, "ini");
-    .errs <- rxExpandIfElse(rxGetModel(err));
-    .prd <- rxParseErr(x, ret = "rx_pred_", init = init)
-    .prd <- rxExpandIfElse(rxGetModel(.prd));
-    if (length(.prd) > 1) {
-      if (length(.prd) == length(.errs)) {
-        .prd <- .prd[names(.errs)];
-        if (any(is.na(.prd))) {
-          stop("the errors & predictions need to have the same conditions (if/then statements)")
-        }
-      } else if (length(.errs) != 1) {
-        stop("do not know how to handle this error/pred combination")
-      }
-    }
-    .ret <- sapply(seq(1, max(length(.errs), length(.prd))), function(en) {
-      .e <- .errs[min(length(.errs), en)];
-      .p <- .prd[min(length(.prd), en)];
-      .reg <- rex::rex("rx_pred_", any_spaces, "=",
-                       any_spaces, capture(except_any_of(";\n")), any_of(";\n"))
-      if (regexpr(rex::rex("rx_yj_~2;\nrx_lambda_~1;\n"), .e) != -1) {
-        .p <- gsub(.reg, "rx_pred_f_~\\1;\nrx_pred_ = \\1", .p)
-      } else if (regexpr(rex::rex("rx_yj_~3;\nrx_lambda_~0;\n"), .e) != -1) {
-        .p <- gsub(.reg, "rx_pred_f_~\\1;\nrx_pred_ = log(\\1)", .p);
-      } else {
-        .p <- gsub(.reg, "rx_pred_f_~\\1;\nrx_pred_ = rxTBS(\\1, rx_lambda_, rx_yj_)", .p); #nolint
-      }
-      return(gsub("rx_r_", sprintf("%s\nrx_r_", .p), .e));
-    })
-    if (length(.ret) == 1L) {
-      .ret <- setNames(.ret, NULL)
-      attr(.ret, "ini") <- .ini
-      return(.ret);
-    } else {
-      if (length(.errs) >= length(.prd)) {
-        .n <- names(.errs);
-      } else {
-        .n <- names(.prd);
-      }
-      .ord <- order(sapply(.n, nchar));
-      .n <- .n[.ord];
-      .ret <- .ret[.ord];
-      .ret <- paste(sapply(seq_along(.n), function(x) {
-        if (x > 1) {
-          if (.n[x] == sprintf("(!%s)", .n[x - 1])) {
-            return(sprintf("else {\n%s\n}", .ret[x]));
-          }
-        }
-        return(sprintf("if %s {\n%s\n}", .n[x], .ret[x]));
-      }), collapse = "\n");
-      attr(.ret, "ini") <- .ini
-      return(.ret);
-    }
-  }
-}
+
 sumProdEnv <- new.env(parent = emptyenv())
 
 rxSumProdSum <- FALSE
