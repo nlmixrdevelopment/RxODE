@@ -2036,16 +2036,16 @@ rxParsePred <- function(x, init=NULL, err=NULL){
 ##' Prepare Error function for inclusion in RxODE
 ##'
 ##' @param x error function
-##' @param base.theta Base theta to start numbering add(.) and prop(.) from.
+##' @param baseTheta Base theta to start numbering add(.) and prop(.) from.
 ##' @param ret Intenral return type.  Should not be changed by the user...
 ##' @param init Initilization vector
 ##' @return RxODE transformed text
 ##' @keywords internal
 ##' @author Matthew L. Fidler
 ##' @export
-rxParseErr <- function(x, base.theta, ret="rx_r_", init=NULL){
-    if (!missing(base.theta)){
-        assignInMyNamespace("rxErrEnv.theta", base.theta);
+rxParseErr <- function(x, baseTheta, ret="rx_r_", init=NULL){
+    if (!missing(baseTheta)){
+        assignInMyNamespace("rxErrEnv.theta", baseTheta);
     }
     if (!missing(ret)){
         assignInMyNamespace("rxErrEnv.ret", ret);

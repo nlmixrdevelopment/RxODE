@@ -11,7 +11,7 @@ linters: with_defaults(
     open_curly_linter = NULL, # 116
     spaces_inside_linter = NULL, # 105
     pipe_continuation_linter = NULL, # 68
-    cyclocomp_linter = NULL, # 35
+    cyclocomp_linter(50), # 35
     object_usage_linter = NULL, # 30
     closed_curly_linter = NULL, # 28
     trailing_blank_lines_linter = NULL, # 28

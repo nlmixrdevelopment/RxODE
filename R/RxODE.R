@@ -1802,8 +1802,7 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
             removeSens <- FALSE
         }
         if (removeInis){
-            stop("'removeInis' is no longer supported")
-            ## .ret <- .rxRmIni(.ret)
+            .ret <- .rxRmIni(.ret)
         }
         if (removeJac){
             stop("'removeJac' is no longer supported")
