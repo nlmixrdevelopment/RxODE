@@ -3834,6 +3834,58 @@ RObject rxSolveGet_rxSolve(RObject &obj, std::string &sarg, LogicalVector &exact
 }
 
 //[[Rcpp::export]]
+CharacterVector rxSolveDollarNames(RObject obj){
+  CharacterVector names1 = obj.attr("names");
+  List lst = as<List>(obj);
+  CharacterVector cls = lst.attr("class");
+  Environment e = as<Environment>(cls.attr(".RxODE.env"));
+  updateSolveEnvPost(e);
+  int nExtra = 6;
+  if (e.exists(".theta")) nExtra++;
+  if (e.exists(".sigmaL")) nExtra++;
+  if (e.exists(".omegaL")) nExtra++;
+  
+  List pars = List(e["params.dat"]);
+  CharacterVector pn = pars.attr("names");
+  
+  NumericVector ini = NumericVector(e["inits.dat"]);
+  CharacterVector nmi = ini.names();
+
+  CharacterVector envl = e.ls(false);
+
+  CharacterVector ret(nExtra + names1.size() +
+		      pn.size() + nmi.size() + envl.size());
+  
+  int j = 0;
+  for (int i = names1.size(); i--;){
+    ret[j++] = names1[i];
+  }
+
+  for (int i = pn.size(); i--;){
+    ret[j++] = pn[i];
+  }
+
+  for (int i = nmi.size(); i--;){
+    ret[j++] = as<std::string>(nmi[i]) + "0";
+  }
+
+  for (int i = envl.size(); i--;){
+    ret[j++] = envl[i];
+  }
+  
+  ret[j++] = "env";
+  ret[j++] = "model";
+  ret[j++] = "params";
+  ret[j++] = "inits";
+  ret[j++] = "t";
+  ret[j++] = "rxode";
+  if (e.exists(".theta")) ret[j++] = "thetaMat";
+  if (e.exists(".sigmaL")) ret[j++] = "sigmaList";
+  if (e.exists(".omegaL")) ret[j++] = "omegaList";
+  return ret;
+}
+
+//[[Rcpp::export]]
 RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
   std::string sarg;
   int i, n;

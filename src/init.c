@@ -77,6 +77,9 @@ SEXP _RxODE_rxMvnrnd(SEXP, SEXP, SEXP, SEXP, SEXP,
 		     SEXP, SEXP);
 SEXP _RxODE_rxMvrandn_(SEXP, SEXP, SEXP, SEXP, SEXP,
 		       SEXP, SEXP, SEXP, SEXP, SEXP);
+
+SEXP _RxODE_rxSolveDollarNames(SEXP);
+
 SEXP RxODE_get_mv();
 
 static R_NativePrimitiveArgType RxODE_Sum_t[] = {
@@ -300,6 +303,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSeedEng", (DL_FUNC) &_RxODE_rxSeedEng, 1},
     {"_RxODE_rxnorm_", (DL_FUNC) &_RxODE_rxnorm_, 4},
     {"_RxODE_rxnormV_", (DL_FUNC) &_RxODE_rxnormV_, 4},
+    {"_RxODE_rxSolveDollarNames", (DL_FUNC) _RxODE_rxSolveDollarNames, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

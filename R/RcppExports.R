@@ -413,6 +413,10 @@ rxSolve_ <- function(obj, rxControl, specParams, extraArgs, params, events, init
     .Call(`_RxODE_rxSolve_`, obj, rxControl, specParams, extraArgs, params, events, inits, setupOnly)
 }
 
+rxSolveDollarNames <- function(obj) {
+    .Call(`_RxODE_rxSolveDollarNames`, obj)
+}
+
 rxSolveGet <- function(obj, arg, exact = TRUE) {
     .Call(`_RxODE_rxSolveGet`, obj, arg, exact)
 }

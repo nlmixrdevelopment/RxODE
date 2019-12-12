@@ -446,6 +446,27 @@ namespace RxODE {
         return Rcpp::as<SEXP >(rcpp_result_gen);
     }
 
+    inline CharacterVector rxSolveDollarNames(RObject obj) {
+        typedef SEXP(*Ptr_rxSolveDollarNames)(SEXP);
+        static Ptr_rxSolveDollarNames p_rxSolveDollarNames = NULL;
+        if (p_rxSolveDollarNames == NULL) {
+            validateSignature("CharacterVector(*rxSolveDollarNames)(RObject)");
+            p_rxSolveDollarNames = (Ptr_rxSolveDollarNames)R_GetCCallable("RxODE", "_RxODE_rxSolveDollarNames");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxSolveDollarNames(Shield<SEXP>(Rcpp::wrap(obj)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<CharacterVector >(rcpp_result_gen);
+    }
+
     inline RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true) {
         typedef SEXP(*Ptr_rxSolveGet)(SEXP,SEXP,SEXP);
         static Ptr_rxSolveGet p_rxSolveGet = NULL;
