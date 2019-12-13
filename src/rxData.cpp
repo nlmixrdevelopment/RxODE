@@ -3379,6 +3379,19 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     }
     // Get model 
     rxSolveDat.mv = rxModelVars(object);
+    RObject trueParams;
+    RObject trueEvents;
+    bool swappedEvents=false;
+    if (rxIs(params, "rx.event")){
+      trueEvents = params;
+      trueParams = events;
+      swappedEvents=true;
+    } else if (rxIs(events, "rx.event")){
+      trueEvents = events;
+      trueParams = params;
+    } else {
+      stop(_("cannot solve without event information"));
+    }  
     CharacterVector pars = rxSolveDat.mv["params"];
     rxSolveDat.npars = pars.size();
     rxSolveDat.hasCmt = false;
@@ -3422,20 +3435,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rxSolveDat.swappedEvents = false;
     rxSolveDat.nsvar = 0;
     rxSolveDat.labelID=false;
-    if (rxIs(par0, "rx.event")){
-      // Swapped events and parameters
-      rxSolveDat.swappedEvents=true;
-      ev1  = par0;
-      rxSolveDat.par1 = ev0;
-    } else if (rxIs(ev0, "rx.event")) {
-      ev1  = ev0;
-      rxSolveDat.par1 = par0;
-    } else {
-      Rcout << "Events:\n";
-      Rcout << "Parameters:\n";
-      rxSolveFree();
-      stop(_("need some event information (observation/dosing times) to solve\ncan use either 'eventTable' or an RxODE compatible 'data.frame'/'matrix'"));
-    }
+    rxSolveDat.swappedEvents=swappedEvents;
+    ev1 = trueEvents;
+    rxSolveDat.par1 = trueParams;
     if (rxIs(rxSolveDat.par1, "NULL")){
       rxSolveDat.par1=rxInits(obj);
       rxSolveDat.fromIni=true;

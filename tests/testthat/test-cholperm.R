@@ -210,24 +210,24 @@ test_that("gradpsi", {
     L = r2$L
 
     r1 <- gradpsi(y,L,l,u)
-    r2 <- rxGradpsi(y, L, l, u)
+    r2 <- RxODE:::rxGradpsi(y, L, l, u)
 
     expect_equal(r1$Jac, r2$Jac);
     expect_equal(r1$grad, r2$grad);
 
     r1 <- gradpsi(rep(1,2*d-2), L, l, u)
-    r2 <- rxGradpsi(rep(1,2*d-2), L, l, u)
+    r2 <- RxODE:::rxGradpsi(rep(1,2*d-2), L, l, u)
 
     expect_equal(r1$Jac, r2$Jac);
     expect_equal(r1$grad, r2$grad);
 
     r1 <- gradpsi(rep(-1,2*d-2), L, l, u)
-    r2 <- rxGradpsi(rep(-1,2*d-2), L, l, u)
+    r2 <- RxODE:::rxGradpsi(rep(-1,2*d-2), L, l, u)
 
     expect_equal(r1$Jac, r2$Jac);
     expect_equal(r1$grad, r2$grad);
 
-    ## microbenchmark::microbenchmark(gradpsi(rep(-1,2*d-2), L, l, u), rxGradpsi(rep(-1,2*d-2), L, l, u));
+    ## microbenchmark::microbenchmark(gradpsi(rep(-1,2*d-2), L, l, u), RxODE:::rxGradpsi(rep(-1,2*d-2), L, l, u));
 
     d <- 2
 
@@ -246,7 +246,7 @@ test_that("gradpsi", {
 
 
     r1 <- gradpsi(rep(-1,2*d-2), L, l, u)
-    r2 <- rxGradpsi(rep(-1,2*d-2), L, l, u)
+    r2 <- RxODE:::rxGradpsi(rep(-1,2*d-2), L, l, u)
 
     expect_equal(r1$Jac, r2$Jac);
     expect_equal(r1$grad, r2$grad);
@@ -268,7 +268,7 @@ test_that("nleq", {
     mcov <- tcrossprod(tmp, tmp)
     r2 <- RxODE:::rxCholperm(mcov, -3 * (1:d), 2 * (1:d))
 
-    expect_equal(rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
+    expect_equal(RxODE:::rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
     ## microbenchmark::microbenchmark(rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
 
     d <- 2
@@ -280,7 +280,7 @@ test_that("nleq", {
     mcov <- tcrossprod(tmp, tmp)
     r2 <- RxODE:::rxCholperm(mcov, -2 * (1:d), 3 * 1:d)
 
-    expect_equal(rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
+    expect_equal(RxODE:::rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
 
 })
 
@@ -310,7 +310,7 @@ test_that("rxMvnrnd", {
     x=xmu[1:(d-1)];mu=xmu[d:(2*d-2)]; # assign saddlepoint x* and mu*
 
     fun <- function(n){
-        r1 <- rxMvnrnd(5, L, l, u, mu)
+        r1 <- RxODE:::rxMvnrnd(5, L, l, u, mu)
         expect_equal(length(r1$logpr), 5)
         expect_true(all(!duplicated(r1$logpr)))
         expect_equal(length(r1$Z[1, ]), 5)

@@ -333,7 +333,7 @@ d/dt(blood)     = a*intestine - b*blood
     pk <- solve(mod,et);
 
     test_that("params are captured correctly",{
-        expect_equal(pk$params.single, c(a=6, b=0.6))
+        expect_equal(pk$.params.single, c(a=6, b=0.6))
     })
 
 
