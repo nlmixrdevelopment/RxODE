@@ -9,6 +9,9 @@
 
 ## New features
 
+* Completion for all api elements of `rxSolve()` objects, and `et()`
+  objects have been added
+
 * Allow accessing different time-varying components of an input dataset for each indivdiual with:
   - `lag(var, #)`
   - `lead(var, #)`
