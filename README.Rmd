@@ -113,3 +113,56 @@ development version from
 # install.packages("devtools")
 devtools::install_github("nlmixrdevelopment/RxODE")
 ```
+
+# Related R Packages
+
+There are several [R packages for differential
+equations](https://cran.r-project.org/web/views/DifferentialEquations.html).
+The most popular is
+[deSolve](https://cran.r-project.org/package=deSolve).  
+
+However for pharmacometrics other than
+[RxODE](https://CRAN.R-project.org/package=RxODE), there are only 2
+packages released on CRAN.  Each uses compiled code to have faster ODE
+solving.
+
+- [mrgsolve](https://CRAN.R-project.org/package=mrgsolve), which uses
+  a thread-safe C++ lsoda solver to solve ODE systems.  The user is
+  required to write hybrid R/C++ code to create a mrgsolve
+  model.
+  
+  In contrast, `RxODE` has a R-like mini-language that is parsed into
+  C code that solves the ODE system.  Like `mrgsolve` some of the
+  methods used are thread safe.  In RxODE threading for each
+  individual ODE solved is turned on by default.
+  
+  `mrgsolve` does not currently support symbolic manipulation of ODE
+  systems, like automatic Jacobian calculation or forward sensitivity
+  calculation (`RxODE` currently supports this and this is the basis of
+  [nlmixr](https://cran.r-project.org/package=nlmixr)'s FOCEi algorithm)
+
+- [dMod](https://cran.r-project.org/package=dMod), which uses a unique
+  syntax to create "reactions".  These reactions are not low-level ODE
+  equations, but create them and then created c code for a compiled
+  deSolve model.
+  
+  In contrast `RxODE` defines ODE systems at a lower level.  `RxODE`'s
+  parsing of the mini-language comes from C, whereas `dMod`'s parsing
+  comes from R.
+  
+  Like `RxODE`, `dMod` supports symbolic manipulation of ODE systems
+  and calculates forward sensitivities and adjoint sensitivities of
+  systems.
+
+And there is one package that is not released on CRAN:
+
+- [PKPDsim](https://github.com/InsightRX/PKPDsim) which defines models
+  in an R-like syntax and converts the system to compiled code. 
+  
+  Like `mrgsolve`, `PKPDsim` does not currently support symbolic
+  manipulation of ODE systems.
+
+The open pharmacometrics open source community is fairly friendly, and
+the RxODE maintainers has had positive interactions with all the
+maintainer of the ODE-solving pharmacometric projects.
+

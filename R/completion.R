@@ -1,3 +1,4 @@
+#' @importFrom utils .DollarNames
 #' @export
 .DollarNames.rxEt <- function(x, pattern) {
   grep(pattern, .Call(`_RxODE_etDollarNames`, x), value = TRUE)
