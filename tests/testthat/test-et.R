@@ -12,7 +12,7 @@ rxPermissive({
         et <- et()
 
         test_that("Empty event table check",{
-            expect_equal(class(et$env),"rxHidden")
+            ## expect_equal(class(et$env),"rxHidden")
             expect_equal(et$nobs, 0L)
             expect_equal(et$ndose, 0L)
             expect_equal(et$get.EventTable(), NULL);
