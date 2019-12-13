@@ -133,16 +133,16 @@ bool rxIs_list(const RObject &obj, std::string cls){
 	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
 	  List lobj = List(obj);
 	  CharacterVector cls2= CharacterVector::create("data.frame");
-	  if (as<int>(e["check.ncol"]) != lobj.size()){
+	  if (as<int>(e[".check.ncol"]) != lobj.size()){
 	    lobj.attr("class") = cls2;
 	    return false;
 	  }
 	  int nrow = (as<NumericVector>(lobj[0])).size();
-	  if (as<int>(e["check.nrow"]) != nrow){
+	  if (as<int>(e[".check.nrow"]) != nrow){
 	    lobj.attr("class") = cls2;
 	    return false;
 	  }
-	  CharacterVector cn = CharacterVector(e["check.names"]);
+	  CharacterVector cn = CharacterVector(e[".check.names"]);
 	  if (cn.size() != lobj.size()){
 	    lobj.attr("class") = cls2;
 	    return false;
@@ -689,14 +689,14 @@ List rxModelVars_(const RObject &obj){
   } else if (rxIs(obj,"rxSolve")){
     CharacterVector cls = obj.attr("class");
     Environment e = as<Environment>(cls.attr(".RxODE.env"));
-    return  rxModelVars_(as<RObject>(e["args.object"]));
+    return  rxModelVars_(as<RObject>(e[".args.object"]));
   } else if (rxIs(obj,"rxDll")){
     List lobj = (as<List>(obj))["modVars"];
     return lobj;
   } else if (rxIs(obj, "environment")){
     Environment e = as<Environment>(obj);
-    if (e.exists("args.object")){
-      return rxModelVars_(e["args.object"]);
+    if (e.exists(".args.object")){
+      return rxModelVars_(e[".args.object"]);
     } else {
       CharacterVector cls = obj.attr("class");
       int i = 0;
@@ -1869,7 +1869,7 @@ bool rxDynLoad(RObject obj);
 
 List getEtRxsolve(Environment e){
   if (!e.exists(".et")){
-    RObject eventso = e["args.events"];
+    RObject eventso = e[".args.events"];
     List emptyLst(0);
     RObject et = et_(emptyLst, emptyLst);
     setEvCur(et);
@@ -1884,20 +1884,20 @@ List getEtRxsolve(Environment e){
 			     _["envir"]  = e);
     e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() .et$get.nobs()"),
 			  _["envir"]  = e);
-    e["add.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$add.dosing(...); invisible(rxSolve(args.object,events=.newEt, updateObject=TRUE))}"),
+    e["add.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$add.dosing(...); invisible(rxSolve(.args.object,events=.newEt, updateObject=TRUE))}"),
 			    _["envir"]  = e);
-    e["clear.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$clear.dosing(...); invisible(rxSolve(args.object,events=.newEt, updateObject=TRUE))}"),
+    e["clear.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$clear.dosing(...); invisible(rxSolve(.args.object,events=.newEt, updateObject=TRUE))}"),
 			      _["envir"]  = e);
     e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() .et$get.dosing()"),
 			    _["envir"]  = e);
 
-    e["add.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$add.sampling(...); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
+    e["add.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$add.sampling(...); invisible(rxSolve(.args.object,events=.et,updateObject=TRUE))}"),
 			      _["envir"]  = e);
       
-    e["clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$clear.sampling(...); invisible(rxSolve(args.object,events=.newEt,updateObject=TRUE))}"),
+    e[".clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$.clear.sampling(...); invisible(rxSolve(.args.object,events=.newEt,updateObject=TRUE))}"),
 				_["envir"]  = e);
 
-    e["replace.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$clear.sampling(); .newEt$add.sampling(...); invisible(rxSolve(args.object,events=.newEt,updateObject=TRUE))}"),
+    e[".replace.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$.clear.sampling(); .newEt$add.sampling(...); invisible(rxSolve(.args.object,events=.newEt,updateObject=TRUE))}"),
 				  _["envir"]  = e);
 
     e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() .et$get.sampling()"),
@@ -1906,7 +1906,7 @@ List getEtRxsolve(Environment e){
     e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() .et$get.units()"),
 			   _["envir"]  = e);
 
-    e["import.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(imp) {.et <- as.et(imp); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
+    e["import.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(imp) {.et <- as.et(imp); invisible(rxSolve(.args.object,events=.et,updateObject=TRUE))}"),
 				   _["envir"]  = e);
       
     // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
@@ -1917,11 +1917,11 @@ List getEtRxsolve(Environment e){
 // This updates the evironment post solve after running.  Defers some
 // computational cost until the rxSolve is looked at by the user.
 void updateSolveEnvPost(Environment e){
-  if (!e.exists("params.dat")){
+  if (!e.exists(".params.dat")){
     List mv = rxModelVars(as<RObject>(e));
     NumericVector mvIni = mv["ini"];
     CharacterVector pars = mv["params"];
-    RObject parso = e["args.params"];
+    RObject parso = e[".args.params"];
     IntegerVector ppos = e[".par.pos"];
     bool IsIni = e[".par.pos.ini"];
     CharacterVector idLevels = as<CharacterVector>(e[".idLevels"]);
@@ -1966,7 +1966,7 @@ void updateSolveEnvPost(Environment e){
         }
       }
       prs.names() = prsn;
-      e["params.single"] = prs;
+      e[".params.single"] = prs;
       List pd(prs.size());
       for (unsigned int j = prs.size();j--;){
 	pd[j] = NumericVector::create(prs[j]);
@@ -1974,7 +1974,7 @@ void updateSolveEnvPost(Environment e){
       pd.names() = prsn;
       pd.attr("class") = "data.frame";
       pd.attr("row.names") = IntegerVector::create(NA_INTEGER,-1);
-      e["params.dat"] = pd;
+      e[".params.dat"] = pd;
       e["counts"] = DataFrame::create(_["slvr"]=e[".slvr.counter"],
 				      _["dadt"]=e[".dadt.counter"],
 				      _["jac"]=e[".jac.counter"]);
@@ -2030,16 +2030,16 @@ void updateSolveEnvPost(Environment e){
       prsl.names() = prsn;
       prsl.attr("class") = "data.frame";
       prsl.attr("row.names") = IntegerVector::create(NA_INTEGER,-parsdf.nrow());
-      e["params.dat"] = prsl;
+      e[".params.dat"] = prsl;
       if (parsdf.nrow() == 1){
 	NumericVector prsnv(prsl.size());
 	for (j = prsl.size(); j--;){
 	  prsnv[j] = (as<NumericVector>(prsl[j]))[0];
 	}
 	prsnv.names() = prsn;
-        e["params.single"] = prsnv;
+        e[".params.single"] = prsnv;
       } else {
-	e["params.single"] = R_NilValue;
+	e[".params.single"] = R_NilValue;
       }
       List cnt(extran+3);
       CharacterVector cntn(extran+3);
@@ -2189,8 +2189,8 @@ SEXP rxSolve_update(const RObject &object, const List &rxControl, const Nullable
     lobj = as<List>(e["obj"]);
   }
   getRxModels();
-  if (e.exists("params.dat")){
-    e.remove("params.dat");
+  if (e.exists(".params.dat")){
+    e.remove(".params.dat");
   }
   if (e.exists(".et")){
     e.remove(".et");
@@ -2213,13 +2213,13 @@ SEXP rxSolve_update(const RObject &object, const List &rxControl, const Nullable
     new_events = params;
     new_params = events;
   } else {
-    new_params = update_params ? params : e["args.params"];
-    new_events = update_events ? events : e["args.events"];
+    new_params = update_params ? params : e[".args.params"];
+    new_events = update_events ? events : e[".args.events"];
   }
     
-  RObject new_inits = update_inits ? inits : e["args.inits"];
+  RObject new_inits = update_inits ? inits : e[".args.inits"];
   List newRxControl = clone(rxControl);
-  RObject new_object = as<RObject>(e["args.object"]);
+  RObject new_object = as<RObject>(e[".args.object"]);
   newRxControl["updateObject"] = false;
   List dat = as<List>(rxSolve_(new_object, newRxControl, R_NilValue, extraArgs,
 			       new_params, new_events, new_inits, 0));
@@ -3276,9 +3276,9 @@ Environment rxSolve_genenv(const RObject &object, const List &rxControl, const N
     e[".sigmaL"] = as<List>(_rxModels[".sigmaL"]);
     _rxModels.remove(".sigmaL");
   }
-  e["check.nrow"] = rx->nr;
-  e["check.ncol"] = dat.size();
-  e["check.names"] = dat.names();
+  e[".check.nrow"] = rx->nr;
+  e[".check.ncol"] = dat.size();
+  e[".check.names"] = dat.names();
   e[".idLevels"] = as<CharacterVector>(rxSolveDat.idLevels);
   e[".par.pos"] = rxSolveDat.eGparPos;
   e[".par.pos.ini"] = rxSolveDat.fromIni;
@@ -3287,31 +3287,31 @@ Environment rxSolve_genenv(const RObject &object, const List &rxControl, const N
   e[".jac.counter"] = jac_counterIv;
   e[".nsub"] = rx->nsub;
   e[".nsim"] = rx->nsim;
-  e["inits.dat"] = rxSolveDat.initsC;
+  e[".init.dat"] = rxSolveDat.initsC;
   CharacterVector units = CharacterVector::create(amountUnits[0], timeUnits[0]);
   units.names() = CharacterVector::create("dosing","time");
   e["units"] = units;
   e["nobs"] = rx->nobs - rx->nevid9;
-  e["args.object"] = object;
+  e[".args.object"] = object;
   e["dll"] = rxDll(object);
-  e["args.par0"] = rxSolveDat.par1ini;
+  e[".args.par0"] = rxSolveDat.par1ini;
   if (!rxSolveDat.swappedEvents){
     if (rxSolveDat.usePar1){
-      e["args.params"] = rxSolveDat.par1;
+      e[".args.params"] = rxSolveDat.par1;
     } else {
-      e["args.params"] = params;
+      e[".args.params"] = params;
     }
-    e["args.events"] = events;
+    e[".args.events"] = events;
   } else {
     if (rxSolveDat.usePar1){
-      e["args.params"] = rxSolveDat.par1;
+      e[".args.params"] = rxSolveDat.par1;
     } else {
-      e["args.params"] = events;
+      e[".args.params"] = events;
     }
-    e["args.events"] = params;
+    e[".args.events"] = params;
   }
-  e["args.inits"] = inits;
-  e["args"] = rxControl;
+  e[".args.inits"] = inits;
+  e[".args"] = rxControl;
   e[".real.update"] = true;
   return e;
 }
@@ -3720,10 +3720,10 @@ RObject rxSolveGet_rxSolve(RObject &obj, std::string &sarg, LogicalVector &exact
     return e[sarg];
   }
   if (sarg == "params" || sarg == "par" || sarg == "pars" || sarg == "param"){
-    List ret = clone(as<List>(e["params.dat"]));
+    List ret = clone(as<List>(e[".params.dat"]));
     return ret;
   } else if (sarg == "inits" || sarg == "init"){
-    NumericVector ret = clone(as<NumericVector>(e["inits.dat"]));
+    NumericVector ret = clone(as<NumericVector>(e[".init.dat"]));
     return ret;
   } else if (sarg == "t"){
     return lst["time"];
@@ -3735,7 +3735,7 @@ RObject rxSolveGet_rxSolve(RObject &obj, std::string &sarg, LogicalVector &exact
     return e[".omegaL"];
   }
   // Now parameters
-  List pars = clone(List(e["params.dat"]));
+  List pars = clone(List(e[".params.dat"]));
   CharacterVector nmp = pars.names();
   n = pars.size();
   for (i = n; i--;){
@@ -3745,7 +3745,7 @@ RObject rxSolveGet_rxSolve(RObject &obj, std::string &sarg, LogicalVector &exact
   }
   // // Now inis.
   // Function sub("sub", R_BaseNamespace);
-  NumericVector ini = clone(NumericVector(e["inits.dat"]));
+  NumericVector ini = clone(NumericVector(e[".init.dat"]));
   CharacterVector nmi = ini.names();
   n = ini.size();
   std::string cur;
@@ -3845,10 +3845,10 @@ CharacterVector rxSolveDollarNames(RObject obj){
   if (e.exists(".sigmaL")) nExtra++;
   if (e.exists(".omegaL")) nExtra++;
   
-  List pars = List(e["params.dat"]);
+  List pars = List(e[".params.dat"]);
   CharacterVector pn = pars.attr("names");
   
-  NumericVector ini = NumericVector(e["inits.dat"]);
+  NumericVector ini = NumericVector(e[".init.dat"]);
   CharacterVector nmi = ini.names();
 
   CharacterVector envl = e.ls(false);
@@ -3942,7 +3942,7 @@ RObject rxSolveUpdate(RObject obj,
       CharacterVector what = CharacterVector(arg);
       CharacterVector classattr = obj.attr("class");
       Environment e = as<Environment>(classattr.attr(".RxODE.env"));
-      List rxControl = e["args"];
+      List rxControl = e[".args"];
       // updateSolveEnvPost(e);
       if (what.size() == 1){
 	std::string sarg = as<std::string>(what[0]);
@@ -3974,21 +3974,21 @@ RObject rxSolveUpdate(RObject obj,
 	  CharacterVector classattr = obj.attr("class");
           Environment e = as<Environment>(classattr.attr(".RxODE.env"));
           updateSolveEnvPost(e);
-	  Function f = as<Function>(e["replace.sampling"]);
+	  Function f = as<Function>(e[".replace.sampling"]);
 	  return f(value);
         } else {
 	  CharacterVector classattr = obj.attr("class");
 	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
           updateSolveEnvPost(e);
-          if (rxIs(e["params.dat"], "NULL")) {
+          if (rxIs(e[".params.dat"], "NULL")) {
 	    rxSolveFree();
 	    stop(_("cannot update nonexistent parameters"));
 	  }
-          List pars = List(e["params.dat"]);
+          List pars = List(e[".params.dat"]);
 	  CharacterVector nmp = pars.names();
 	  int i, n, np, nc, j;
 	  np = (as<NumericVector>(pars[0])).size();
-	  List events = List(e["args.events"]);
+	  List events = List(e[".args.events"]);
 	  CharacterVector nmc;
 	  nmc = events.names();
 	  nc = (as<NumericVector>(events[0])).size();
@@ -4099,7 +4099,7 @@ RObject rxSolveUpdate(RObject obj,
 	  }
 	  ////////////////////////////////////////////////////////////////////////////////
           // Update Initial Conditions
-	  NumericVector ini = NumericVector(e["inits.dat"]);
+	  NumericVector ini = NumericVector(e[".init.dat"]);
           CharacterVector nmi = ini.names();
           n = ini.size();
           std::string cur;
@@ -4131,7 +4131,7 @@ RObject rxSolveUpdate(RObject obj,
 	    }
 	    if (doIt){
 	      cur=as<std::string>(nmi[i]);
-              NumericVector ini = NumericVector(e["inits.dat"]);
+              NumericVector ini = NumericVector(e[".init.dat"]);
 	      double v = as<double>(value);
 	      for (j = 0; j < n; j++){
 		if (cur == as<std::string>(nmi[j])){
