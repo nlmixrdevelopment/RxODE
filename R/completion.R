@@ -1,17 +1,19 @@
-#'@importFrom utils .DollarNames
-#'
+#' @export
+.DollarNames.rxEt <- function(x, pattern) {
+  grep(pattern, .Call(`_RxODE_etDollarNames`, x), value = TRUE)
+}
 
 #' @export
 .DollarNames.rxSolve <- function(x, pattern) {
-  grep(pattern, rxSolveDollarNames(x), value = TRUE)
+  grep(pattern, .Call(`_RxODE_rxSolveDollarNames`, x), value = TRUE)
 }
 
 #' @export
 str.rxSolve <- function(object, ..., nchar.max=128) {
   if (rxIs(object, "rxSolve")) {
-    .dn <- rxSolveDollarNames(object)
+    .dn <- .Call(`_RxODE_rxSolveDollarNames`, object)
     .max <- max(sapply(.dn, nchar))
-    cat(sprintf("Classes ‘rxSolve’ and 'data.frame':\t%s rows of  %s variables:\n",
+    cat(sprintf("Classes 'rxSolve' and 'data.frame':\t%s rows of  %s variables:\n",
                 object$.check.nrow, object$.check.ncol))
     if (any(names(object) == "sim.id")) {
       cat(paste0(" $ sim.id",
@@ -68,7 +70,7 @@ str.rxSolve <- function(object, ..., nchar.max=128) {
       str(object$ii)
     }
     cat(paste0(" $ time", paste(rep(" ", .max - 4), collapse = ""), ":"));
-    str(object$time, nchar.max=nchar.max - .max - 8);
+    str(object$time, nchar.max = nchar.max - .max - 8);
     .mv <- rxModelVars(object);
     if (length(.mv$lhs) > 0) {
       cat("Left Handed values ($lhs):\n")
@@ -92,7 +94,8 @@ str.rxSolve <- function(object, ..., nchar.max=128) {
         cat(paste0(sprintf(" $ %s0", .l),
                    paste(rep(" ", .max - nchar(.l) - 1), collapse = ""),
                    ":"));
-        str(object[[paste0(.l, "0")]], nchar.max = nchar.max - .max - nchar(.l) - 5);
+        str(object[[paste0(.l, "0")]],
+            nchar.max = nchar.max - .max - nchar(.l) - 5);
       }
     }
     if (length(.mv$params) > 0) {
@@ -116,10 +119,13 @@ str.rxSolve <- function(object, ..., nchar.max=128) {
         str(object[[.l]], nchar.max = nchar.max - .max - nchar(.l) - 4);
       }
     }
-    .dn <- .dn[!(.dn %in% c(names(object), paste0(.mv$state, "0"), "t", "params", "inits",
-                            "model",#fixme
+    .dn <- .dn[!(.dn %in% c(names(object), paste0(.mv$state, "0"),
+                            "t", "params", "inits",
+                            "model", #fixme
                             .mv$params))]
-    .fns <- sapply(.dn, function(x){inherits(`$.rxSolve`(object, x), "function")})
+    .fns <- sapply(.dn, function(x) {
+      inherits(`$.rxSolve`(object, x), "function")
+    })
     .fns <- names(.fns[.fns])
     if (length(.fns) > 0) {
       cat("Functions:\n")
@@ -131,7 +137,7 @@ str.rxSolve <- function(object, ..., nchar.max=128) {
       }
     }
     .dn <- .dn[!(.dn %in% .fns)]
-    if (length(.dn) > 0){
+    if (length(.dn) > 0) {
       cat("Other:\n")
       for (.l in .dn) {
         cat(paste0(sprintf(" $ %s", .l),

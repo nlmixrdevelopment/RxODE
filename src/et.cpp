@@ -50,6 +50,28 @@ extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh
 extern bool useRadix();
 
 //[[Rcpp::export]]
+CharacterVector etDollarNames(RObject obj){
+  if (rxIs(obj,"rxEt")){
+    CharacterVector cls = as<CharacterVector>(obj.attr("class"));
+    List e = as<List>(cls.attr(".RxODE.lst"));
+    CharacterVector c1 = e.attr("names");
+    CharacterVector c2 = obj.attr("names");
+    int j = 0;
+    CharacterVector ret(c1.size()+c2.size()+1);
+    for (int i = c1.size();i--;){
+      ret[j++] = c1[i];
+    }
+    for (int i = c2.size();i--;){
+      ret[j++] = c2[i];
+    }
+    ret[j++] = "env";
+    return ret;
+  } else {
+    return CharacterVector::create();
+  }
+}
+
+//[[Rcpp::export]]
 RObject etUpdate(RObject obj,
 		 RObject arg = R_NilValue,
 		 RObject value = R_NilValue,
@@ -63,6 +85,7 @@ RObject etUpdate(RObject obj,
 	CharacterVector carg = as<CharacterVector>(arg);
 	std::string sarg = as<std::string>(carg[0]);
 	if (sarg == "env"){
+	  e.attr("class") = R_NilValue;
 	  return as<RObject>(e);
 	} else if (e.containsElementNamed(sarg.c_str())){
 	  return as<RObject>(e[sarg]);

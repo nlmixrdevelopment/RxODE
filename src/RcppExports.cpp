@@ -118,6 +118,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// etDollarNames
+CharacterVector etDollarNames(RObject obj);
+RcppExport SEXP _RxODE_etDollarNames(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(etDollarNames(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
 // etUpdate
 RObject etUpdate(RObject obj, RObject arg, RObject value, LogicalVector exact);
 RcppExport SEXP _RxODE_etUpdate(SEXP objSEXP, SEXP argSEXP, SEXP valueSEXP, SEXP exactSEXP) {

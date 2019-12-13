@@ -64,6 +64,10 @@ cvPost_ <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE, 
     .Call(`_RxODE_cvPost_`, nu, omega, n, omegaIsChol, returnChol, type, diagXformType)
 }
 
+etDollarNames <- function(obj) {
+    .Call(`_RxODE_etDollarNames`, obj)
+}
+
 etUpdate <- function(obj, arg = NULL, value = NULL, exact = TRUE) {
     .Call(`_RxODE_etUpdate`, obj, arg, value, exact)
 }
