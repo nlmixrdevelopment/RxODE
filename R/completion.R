@@ -9,6 +9,7 @@
   grep(pattern, .Call(`_RxODE_rxSolveDollarNames`, x), value = TRUE)
 }
 
+#' @importFrom utils str
 #' @export
 str.rxSolve <- function(object, ..., nchar.max=128) {
   if (rxIs(object, "rxSolve")) {
