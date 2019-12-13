@@ -62,9 +62,10 @@ install.packages("RxODE")
 To run RxODE, you need a working c compiler.  To use parallel threaded
 solving in RxODE, this c compiler needs to support open-mp.
 
-You can check to see if R has working c-compile you can check with:
+You can check to see if R has working c compiler you can check with:
 
 ```r
+## install.packages("pkgbuild")
 pkgbuild::has_build_tools(debug = TRUE)
 ```
 
@@ -80,6 +81,10 @@ install.packages("installr")
 library(installr)
 install.rtools()
 ```
+
+Alternatively you can
+[download](https://cran.r-project.org/bin/windows/Rtools/) and install
+rtools directly.
 
 ### Mac OSX
 
