@@ -27,15 +27,8 @@ matrix:
   - r: 3.6
     os: osx
 
-addons:
-  apt:
-    packages:
-      - libudunits2-dev
-      - cmake
-      - libgmp
-      - libmpfr
-      - libmpc
-      - devscripts
+apt_packages:
+  - libudunits2-dev
 
 before_install:
   - if [ $TRAVIS_OS_NAME = osx ]; then brew install cmake gmp mpfr libmpc || true; fi
