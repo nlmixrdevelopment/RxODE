@@ -903,7 +903,7 @@ solve.rxEt <- solve.rxSolve
     ## nocov start
     .isDplyr <- requireNamespace("tibble", quietly = TRUE) && RxODE.display.tbl;
     ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
-    df <- x$params.single
+    df <- x$.params.single
     if (length(df) > 0) {
         pars.msg <- .cliRule(left=paste0(crayon::bold("Parameters"), " (",
                                          crayon::yellow(bound), crayon::bold$blue("$params"), "):"));
@@ -1236,8 +1236,8 @@ confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...) {
     .lst <- list(lvl=paste0("p",.p*100),
                  parm=levels(.stk$trt));
     class(.lst) <- "rxHidden";
-    if (object$env$args$nStud <= 1) {
-        if (object$env$args$nSub < 2500) {
+    if (object$env$.args$nStud <= 1) {
+        if (object$env$.args$nSub < 2500) {
             warning("confidence bands need at least 2500 simulations")
             message("summarizing data")
             .ret <- .stk %>% dplyr::group_by(time, trt) %>%
@@ -1251,10 +1251,10 @@ confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...) {
             ##     ggplot2::geom_line(size=1.2)
             return(.ret)
         } else {
-            .n <- round(sqrt(object$env$args$nSub));
+            .n <- round(sqrt(object$env$.args$nSub));
         }
     } else {
-        .n <- object$env$args$nStud;
+        .n <- object$env$.args$nStud;
     }
     message("summarizing data")
     .ret <- .stk %>%

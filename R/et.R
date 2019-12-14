@@ -211,29 +211,29 @@ et.RxODE <- function(x,...,envir=parent.frame()) {
 et.rxSolve <- function(x, ..., envir=parent.frame()) {
     ## Need to extract:
     ## 1. RxODE model
-    assignInMyNamespace(".pipelineRx",x$args.object)
+    assignInMyNamespace(".pipelineRx",x$.args.object)
     ## 2. RxODE parameters
-    assignInMyNamespace(".pipelineParams", x$args.par0);
-    assignInMyNamespace(".pipelineICov", x$args$iCov);
-    assignInMyNamespace(".pipelineKeep", x$args$keep);
+    assignInMyNamespace(".pipelineParams", x$.args.par0);
+    assignInMyNamespace(".pipelineICov", x$.args$iCov);
+    assignInMyNamespace(".pipelineKeep", x$.args$keep);
     ## 3. RxODE inits
-    assignInMyNamespace(".pipelineInits", x$args.inits);
+    assignInMyNamespace(".pipelineInits", x$.args.inits);
     ## 4. RxODE thetaMat
-    assignInMyNamespace(".pipelineThetaMat", x$args$thetaMat);
+    assignInMyNamespace(".pipelineThetaMat", x$.args$thetaMat);
     ## 5. RxODE omega
-    assignInMyNamespace(".pipelineOmega", x$args$omega);
+    assignInMyNamespace(".pipelineOmega", x$.args$omega);
     ## 6. RxODE sigma
-    assignInMyNamespace(".pipelineSigma", x$args$sigma);
+    assignInMyNamespace(".pipelineSigma", x$.args$sigma);
     ## 7. RxODE dfObs
-    assignInMyNamespace(".pipelineDfObs", x$env$args$dfObs)
+    assignInMyNamespace(".pipelineDfObs", x$env$.args$dfObs)
     ## 8. RxODE dfSub
-    assignInMyNamespace(".pipelineDfSub", x$env$args$dfSub)
+    assignInMyNamespace(".pipelineDfSub", x$env$.args$dfSub)
     do.call(et, c(list(...), list(envir=envir)), envir=envir);
 }
 
 ##'@rdname et
 ##'@export
-et.rxParams <- function(x,..., envir=parent.frame()) {
+et.rxParams <- function(x, ..., envir=parent.frame()) {
     ## Need to extract:
     ## 1. RxODE model
     ## 2. RxODE parameters

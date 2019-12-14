@@ -101,24 +101,24 @@ rxParams.rxSolve <- function(obj, constants=TRUE, ...,
         ## Assign prior information
         ## Need to extract:
         ## 1. RxODE model
-        assignInMyNamespace(".pipelineRx", .x$args.object)
+        assignInMyNamespace(".pipelineRx", .x$.args.object)
         ## Events
-        assignInMyNamespace(".pipelineEvents", .x$args.events)
+        assignInMyNamespace(".pipelineEvents", .x$.args.events)
         ## 2. RxODE parameters
-        assignInMyNamespace(".pipelineParams", .x$args.par0);
-        assignInMyNamespace(".pipelineICov", .x$args$iCov);
+        assignInMyNamespace(".pipelineParams", .x$.args.par0);
+        assignInMyNamespace(".pipelineICov", .x$.args$iCov);
         ## 3. RxODE inits
-        assignInMyNamespace(".pipelineInits", .x$args.inits);
+        assignInMyNamespace(".pipelineInits", .x$.args.inits);
         ## 4. RxODE thetaMat
-        assignInMyNamespace(".pipelineThetaMat", .x$args$thetaMat);
+        assignInMyNamespace(".pipelineThetaMat", .x$.args$thetaMat);
         ## 5. RxODE omega
-        assignInMyNamespace(".pipelineOmega", .x$args$omega);
+        assignInMyNamespace(".pipelineOmega", .x$.args$omega);
         ## 6. RxODE sigma
-        assignInMyNamespace(".pipelineSigma", .x$args$sigma);
+        assignInMyNamespace(".pipelineSigma", .x$.args$sigma);
         ## 7. RxODE dfObs
-        assignInMyNamespace(".pipelineDfObs", .x$env$args$dfObs)
+        assignInMyNamespace(".pipelineDfObs", .x$env$.args$dfObs)
         ## 8. RxODE dfSub
-        assignInMyNamespace(".pipelineDfSub", .x$env$args$dfSub)
+        assignInMyNamespace(".pipelineDfSub", .x$env$.args$dfSub)
         class(.ret) <- "rxParams"
         return(.ret)
     }
