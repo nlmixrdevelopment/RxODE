@@ -123,7 +123,6 @@ str.rxSolve <- function(object, ..., nchar.max=128) {
     }
     .dn <- .dn[!(.dn %in% c(names(object), paste0(.mv$state, "0"),
                             "t", "params", "inits",
-                            "model", #fixme
                             .mv$params))]
     .fns <- sapply(.dn, function(x) {
       inherits(`$.rxSolve`(object, x), "function")

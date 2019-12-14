@@ -89,7 +89,6 @@ rxPermissive({
     ps1 <- p1%>% rxParams(inits=c(eff=2),dfSub=4) %>%
         rxSolve(nSub=6, nStud=3)
 
-
     test_that("can update parameters from solve", {
         expect_true(is(ps1, "rxSolve"))
         expect_false(is.null(ps1$omegaList))
@@ -98,6 +97,7 @@ rxPermissive({
     ps2 <- p1 %>% et(amt=10000, cmt=2, ii=24, until=48) %>%
         et(seq(0,48,length.out=100)) %>%
         rxSolve(nSub=4)
+
     test_that("Can update event table in pipline solve",{
         expect_true(is(ps1, "rxSolve"))
     })

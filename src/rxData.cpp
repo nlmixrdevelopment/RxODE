@@ -3713,7 +3713,7 @@ RObject rxSolveGet_rxSolve(RObject &obj, std::string &sarg, LogicalVector &exact
   if (sarg == "model"){
     List mv = rxModelVars(obj);
     CharacterVector mods = mv["model"];
-    CharacterVector retS = as<std::string>(mods["model"]);
+    CharacterVector retS = as<std::string>(mods["normModel"]);
     retS.attr("class") = "RxODE.modeltext";
     return(retS);
   }
