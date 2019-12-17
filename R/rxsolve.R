@@ -50,7 +50,8 @@ rxControl <- function(scale = NULL,
                       warnIdSort=TRUE,
                       ssAtol = 1.0e-8,
                       ssRtol = 1.0e-6,
-                      safeZero=TRUE) {
+                      safeZero=TRUE,
+                      cacheEvent=TRUE) {
     .xtra <- list(...);
     if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")) {
         .sigmaXform <- as.integer(sigmaXform)
@@ -226,7 +227,8 @@ rxControl <- function(scale = NULL,
                  indLinMatExpOrder=as.integer(indLinMatExpOrder),
                  idFactor=idFactor,
                  mxhnil=mxhnil, hmxi=hmxi, warnIdSort=warnIdSort,
-                 ssAtol=ssAtol, ssRtol = ssRtol, safeZero=as.integer(safeZero));
+                 ssAtol=ssAtol, ssRtol = ssRtol, safeZero=as.integer(safeZero),
+                 cacheEvent=as.logical(cacheEvent));
     return(.ret)
 }
 
@@ -615,6 +617,9 @@ rxControl <- function(scale = NULL,
 ##'     exponential matrix.
 ##'
 ##' @param indLinPhiM  the maximum size for the Krylov basis
+##'
+##' @param cacheEvent is a boolean.  If `TRUE` (default), events are cached in
+##'     memory to speed up solving.
 ##'
 ##' @references
 ##'

@@ -42,6 +42,19 @@
     }
 }
 
+##' This function sorts the parameter or iCov data based on the event
+##' table data
+##'
+##' @param idData This is the individual parameter data or iCov data
+##' @param goodLvl These are the "good" levels based on the event
+##'     table
+##' @param type Type can be "iCov" or "parameter"
+##' @param warnIdSort When `TRUE` warnings about merging the
+##'     parameter/id with RxODE event tables are issued.
+##' @return A sorted parameter table that can be used directly in the
+##'     C-based routines.
+##' @author Matthew Fidler
+##' @noRd
 .sortId <- function(idData, goodLvl, type="parameter",
                     warnIdSort) {
     .n <- tolower(names(idData));
