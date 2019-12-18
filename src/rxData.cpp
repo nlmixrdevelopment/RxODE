@@ -4969,7 +4969,7 @@ extern "C" void doSort(rx_solving_options_ind *ind){
     }
   }
   try {
-    std::sort(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
+    SORT(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
 	      [&ind](int a, int b){
 		double ta=getTime(a, ind);
 		if (ind->err){
