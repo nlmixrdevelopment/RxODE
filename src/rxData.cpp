@@ -3903,7 +3903,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _globals.gsolve = (double*)calloc(n0+n2+n3+n4+n5+n6+ 4*op->neq, sizeof(double));// [n0]
 
 #ifdef rxSolveT
-    REprintf("Time12c: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    REprintf("Time12c (double alloc %d): %f\n",n0+n2+n3+n4+n5+n6+ 4*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
     if (_globals.gsolve == NULL){
@@ -3917,7 +3917,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->inits = &_globals.ginits[0];
     _globals.glhs = _globals.ginits + n4; // [n5]
     // initially NA_REAL
-    std::fill_n(_globals.glhs,n5, NA_REAL);
+    //std::fill_n(_globals.glhs,n5, NA_REAL); // TOO slow
     _globals.gscale = _globals.glhs + n5; //[n6]
     std::copy(scaleC.begin(),scaleC.end(),&_globals.gscale[0]);
     op->scale = &_globals.gscale[0];
@@ -3942,12 +3942,12 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
     int n1 = rx->nsub*rx->nsim*state.size();
 #ifdef rxSolveT
-    REprintf("Time12d: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    REprintf("Time12d (fill in!): %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
     _globals.gon = (int*)calloc(n1+n3 + 4*rxSolveDat->nSize + rx->nall*rx->nsim, sizeof(int)); // [n1]
 #ifdef rxSolveT
-    REprintf("Time12e: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    REprintf("Time12e (int alloc %d): %f\n", n1+n3 + 4*rxSolveDat->nSize + rx->nall*rx->nsim, ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
     std::fill_n(&_globals.gon[0], n1, 1);
