@@ -2532,7 +2532,8 @@ static inline void rxSolve_simulate(const RObject &obj,
 
 // This will setup the parNumeric, parDf, or parMat for solving. It
 // will also set the parameter type.
-static inline void rxSolve_parSetup(const RObject &obj, const List &rxControl,
+static inline void rxSolve_parSetup(const RObject &obj,
+				    const List &rxControl,
 				    const Nullable<CharacterVector> &specParams,
 				    const Nullable<List> &extraArgs,
 				    const CharacterVector& pars,
@@ -3097,7 +3098,8 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 					  const Nullable<List> &extraArgs,
 					  const CharacterVector& pars,
 					  const RObject &ev1,
-					  const RObject &inits, rxSolve_t& rxSolveDat){
+					  const RObject &inits,
+					  rxSolve_t& rxSolveDat){
   int i;
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
@@ -3432,9 +3434,15 @@ static inline void rxSolve_assignGpars(rxSolve_t& rxSolveDat){
 }
 
 // This updates the parameters based on the already loaded event table.
-static inline void rxSolve_updateParams(const RObject &trueParams, const RObject &obj, const List &rxControl, const Nullable<CharacterVector> &specParams,
-			  const Nullable<List> &extraArgs, const RObject &params, const RObject &events,
-			  const RObject &inits, rxSolve_t& rxSolveDat){
+static inline void rxSolve_updateParams(const RObject &trueParams,
+					const RObject &obj,
+					const List &rxControl,
+					const Nullable<CharacterVector> &specParams,
+					const Nullable<List> &extraArgs,
+					const RObject &params,
+					const RObject &events,
+					const RObject &inits,
+					rxSolve_t& rxSolveDat){
   rxSolveDat.par1 = trueParams;
   rxSolveDat.usePar1=true;
   if (rxIs(rxSolveDat.par1, "data.frame")){
@@ -3469,9 +3477,13 @@ static inline void rxSolve_updateParams(const RObject &trueParams, const RObject
   rxSolve_assignGpars(rxSolveDat);
 }
 rxSolve_t rxSolveDatLast;
-static inline SEXP rxSolve_finalize(const RObject &obj, const List &rxControl, const Nullable<CharacterVector> &specParams,
-		      const Nullable<List> &extraArgs, const RObject &params, const RObject &events,
-		      const RObject &inits, rxSolve_t& rxSolveDat){
+static inline SEXP rxSolve_finalize(const RObject &obj,
+				    const List &rxControl,
+				    const Nullable<CharacterVector> &specParams,
+				    const Nullable<List> &extraArgs,
+				    const RObject &params, const RObject &events,
+				    const RObject &inits,
+				    rxSolve_t& rxSolveDat){
   rxSolveDatLast = rxSolveDat;
   rx_solve* rx = getRxSolve_();
   par_solve(rx);
