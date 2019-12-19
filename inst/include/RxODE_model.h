@@ -42,34 +42,40 @@
 #define rxTBSi(x, lm, yj) _powerDi(x,  lm, (int)(yj))
 #define rxTBSd(x, lm, yj) _powerDD(x, lm, (int)(yj))
 #define rxTBSd2(x, lm, yj) _powerDDD(x, lm, (int)(yj))
+#undef rbeta
+#define rbeta(ind, x, y) rxbeta(ind, x, y)
 #undef rnorm
-#define rnorm(x,y) rxnorm(x,y)
-#define rxnorm1(x) rxnorm(x, 1.0)
-#define rnorm1(x) rxnorm(x, 1.0)
-#define rnormV(x,y) rxnormV(x,y)
-#define rxnormV1(x) rxnormV(x, 1.0)
-#define rnormV1(x) rxnormV(x, 1.0)
-#define rxcauchy1(x) rxcauchy(x, 1.0)
+#define rnorm(ind,x,y) rxnorm(ind, x,y)
+#define rxnorm1(x) rxnorm(&_solveData->subjects[_cSub], x, 1.0)
+#define rnorm1(x) rxnorm(&_solveData->subjects[_cSub],x, 1.0)
+#define rnormV(ind, x,y) rxnormV(ind,x,y)
+#define rxnormV1(x) rxnormV(&_solveData->subjects[_cSub],x, 1.0)
+#define rnormV1(x) rxnormV(&_solveData->subjects[_cSub],x, 1.0)
+#undef rcauchy 
+#define rcauchy(ind, x, y) rxcauchy(ind,x,y)
+#define rxcauchy1(x) rxcauchy(&_solveData->subjects[_cSub],x, 1.0)
 #undef rchisq
-#define rchisq(x) rxchisq(x)
+#define rchisq(ind, x) rxchisq(ind, x)
 #undef rexp
-#define rexp(x) rxexp(x)
+#define rexp(ind, x) rxexp(ind, x)
 #undef rgamma
-#define rgamma(x,y) rxgamma(x,y)
-#define rgamma1(x) rxgamma(x,1.0)
-#define rxgamma1(x) rxgamma(x,1.0)
+#define rgamma(ind, x,y) rxgamma(ind, x,y)
+#define rgamma1(x) rxgamma(&_solveData->subjects[_cSub], x,1.0)
+#define rxgamma1(x) rxgamma(&_solveData->subjects[_cSub], x,1.0)
 #undef rgeom
-#define rgeom(x) rxgeom(x)
+#define rgeom(ind,x) rxgeom(ind,x)
 #undef rpois
-#define rpois(x) rxpois(x)
+#define rpois(ind,x) rxpois(ind,x)
 #undef runif
-#define runif(x,y) rxunif(x,y)
-#define runif1(x) rxunif(x,1.0)
-#define rxunif1(x) rxunif(x,1.0)
+#define runif(ind,x,y) rxunif(ind,x,y)
+#define runif1(x) rxunif(&_solveData->subjects[_cSub],x,1.0)
+#define rxunif1(x) rxunif(&_solveData->subjects[_cSub],x,1.0)
 #undef rweibull
-#define rweibull(x,y) rxweibull(x,y)
-#define rxweibull1(x) rxweibull(x,1.0)
-#define rweibull1(x) rxweibull(x,1.0)
+#define rweibull(ind,x,y) rxweibull(ind,x,y)
+#define rxweibull1(x) rxweibull(&_solveData->subjects[_cSub],x,1.0)
+#define rweibull1(x) rxweibull(&_solveData->subjects[_cSub],x,1.0)
+#undef rf
+#define rf(ind, x, y) rxf(ind, x, y)
 
 // Types for par pointers.r
 typedef double (*RxODE_fn) (double x);
@@ -78,6 +84,12 @@ typedef double (*RxODE_fn2) (double x, double y);
 typedef double (*RxODE_fn3i) (double x, double y, int i);
 typedef double (*RxODE_fn2i) (double x, int i);
 typedef int (*RxODE_fn0i) ();
+typedef double (*RxODEi_fn) (rx_solving_options_ind* ind, double x);
+typedef int (*RxODEi_ifn) (rx_solving_options_ind* ind, double x);
+typedef double (*RxODEi_fn2) (rx_solving_options_ind* ind, double x, double y);
+typedef double (*RxODEi_fn3i) (rx_solving_options_ind* ind, double x, double y, int i);
+typedef double (*RxODEi_fn2i) (rx_solving_options_ind* ind, double x, int i);
+typedef int (*RxODEi_fn0i) (rx_solving_options_ind* ind);
 typedef double (*RxODE_vec) (int val, rx_solve *rx, unsigned int id);
 typedef double (*RxODE_val) (rx_solve *rx, unsigned int id);
 typedef void (*RxODE_assign_ptr)(SEXP);
@@ -177,21 +189,21 @@ extern linCmtB_p linCmtB;
 extern _update_par_ptr_p _update_par_ptr;
 extern _getParCov_p _getParCov;
 extern _rx_asgn _RxODE_rxAssignPtr;
-typedef int (*RxODE_rxbinom) (int n, double prob);
-extern RxODE_rxbinom rxbinom;
-extern RxODE_fn2 rxcauchy;
-extern RxODE_fn rxchisq;
-extern RxODE_fn rxexp;
-extern RxODE_fn2 rxf;
-extern RxODE_ifn rxgeom;
-extern RxODE_fn2 rxnorm;
-extern RxODE_fn2 rxnormV;
-extern RxODE_fn2 rxgamma;
-extern RxODE_fn2 rxbeta;
-extern RxODE_ifn rxpois;
-extern RxODE_fn rxt_;
-extern RxODE_fn2 rxunif;
-extern RxODE_fn2 rxweibull;
+typedef int (*RxODEi_rxbinom) (rx_solving_options_ind* ind, int n, double prob);
+extern RxODEi_rxbinom rxbinom;
+extern RxODEi_fn2 rxcauchy;
+extern RxODEi_fn rxchisq;
+extern RxODEi_fn rxexp;
+extern RxODEi_fn2 rxf;
+extern RxODEi_ifn rxgeom;
+extern RxODEi_fn2 rxnorm;
+extern RxODEi_fn2 rxnormV;
+extern RxODEi_fn2 rxgamma;
+extern RxODEi_fn2 rxbeta;
+extern RxODEi_ifn rxpois;
+extern RxODEi_fn rxt_;
+extern RxODEi_fn2 rxunif;
+extern RxODEi_fn2 rxweibull;
 #endif
 
 #endif// __RxODE_model_H__

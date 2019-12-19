@@ -456,6 +456,7 @@ int new_or_ith(const char *s) {
 
   if (tb.fn) {tb.ix=-2; return 0;}
   if (!strcmp("t", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("lhs", s)){tb.ix=-1; return 0;}
   if (!strcmp("printf", s)){
     updateSyntaxCol();
     trans_syntax_error_report_fn(_("'printf' cannot be a variable in an RxODE model"));
@@ -1311,8 +1312,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		  updateSyntaxCol();
 		  trans_syntax_error_report_fn(_("'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, scale)'"));
 		} else {
-		  sAppend(&sb,"%s(0.0, 1.0", v);
-		  sAppend(&sbDt,"%s(0.0, 1.0", v);
+		  sAppend(&sb,"%s(&_solveData->subjects[_cSub], 0.0, 1.0", v);
+		  sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 0.0, 1.0", v);
 		  sAppend(&sbt, "%s(", v);
 		}
 	      } else {
@@ -1322,8 +1323,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      }
 	    }
 	  } else if (ii == 2){
-	    sAppend(&sb,"%s(", v);
-	    sAppend(&sbDt,"%s(", v);
+	    sAppend(&sb,"%s(&_solveData->subjects[_cSub], ", v);
+	    sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], ", v);
 	    sAppend(&sbt, "%s(", v);
 	  } else {
 	    updateSyntaxCol();
@@ -1374,8 +1375,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    Free(v2);
 	    if (allSpace){
 	      if (isExp){
-		sAppend(&sb,"%s(1.0", v);
-		sAppend(&sbDt,"%s(1.0", v);
+		sAppend(&sb,"%s(&_solveData->subjects[_cSub], 1.0", v);
+		sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 1.0", v);
 		sAppend(&sbt, "%s(", v);
 	      } else {
 		sPrint(&buf, _("'%s' takes 1 argument"), v);
@@ -1383,12 +1384,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		trans_syntax_error_report_fn(buf.s);
 	      }
 	    } else if (isT){
-	      sAppendN(&sb,"rxt_(", 5);
-	      sAppendN(&sbDt,"rxt_(", 5);
+	      sAppendN(&sb,"rxt_(&_solveData->subjects[_cSub], ", 35);
+	      sAppendN(&sbDt,"rxt_(&_solveData->subjects[_cSub], ", 35);
 	      sAppendN(&sbt, "rxt(", 4);
 	    } else {
-	      sAppend(&sb,"%s(", v);
-	      sAppend(&sbDt,"%s(", v);
+	      sAppend(&sb,"%s(&_solveData->subjects[_cSub], ", v);
+	      sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], ", v);
 	      sAppend(&sbt, "%s(", v);
 	    }
 	  }
@@ -1431,8 +1432,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		trans_syntax_error_report_fn(_("'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
 	      }
 	    } else {
-	      sAppend(&sb, "(double)%s(", v);
-	      sAppend(&sbDt, "(double)%s(", v);
+	      sAppend(&sb, "(double)%s(&_solveData->subjects[_cSub], ", v);
+	      sAppend(&sbDt, "(double)%s(&_solveData->subjects[_cSub], ", v);
 	      sAppend(&sbt, "%s(", v);
 	    }
 	  }
@@ -1447,7 +1448,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(_("'rbinom'/'rxbinom' takes 2 arguments 'rxbinom(size, prob)'"));
 	  } else {
-	    aAppendN("(double)rxbinom((int)", 21);
+	    aAppendN("(double)rxbinom(&_solveData->subjects[_cSub], (int)", 51);
 	    sAppendN(&sbt, "rxbinom(", 8);
 	  }
 	  i = 1;// Parse next arguments

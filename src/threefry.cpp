@@ -1,5 +1,6 @@
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 #include <RcppArmadillo.h>
+#include "../inst/include/RxODE.h"
 #include <threefry.h>
 #ifdef _OPENMP
 #include <omp.h>
@@ -675,53 +676,61 @@ RObject rxSeedEng(int ncores = 1){
   return R_NilValue;
 }
 
-extern "C" int rxbinom(int n, double prob){
+extern "C" int rxbinom(rx_solving_options_ind* ind, int n, double prob){
+  if (!ind->inLhs) return 0;
   std::binomial_distribution<int> d(n, prob);
   return d(_eng);
 }
 
-extern "C" double rxcauchy(double location, double scale){
+extern "C" double rxcauchy(rx_solving_options_ind* ind, double location, double scale){
+  if (!ind->inLhs) return 0;
   std::cauchy_distribution<double> d(location, scale);
   return d(_eng);
 }
 
-extern "C" double rxchisq(double df){
+extern "C" double rxchisq(rx_solving_options_ind* ind, double df){
+  if (!ind->inLhs) return 0;
   // Non central not supported in C++11
   std::chi_squared_distribution<double> d(df);
   return d(_eng);
 }
 
-extern "C" double rxexp(double rate){
+extern "C" double rxexp(rx_solving_options_ind* ind, double rate){
+  if (!ind->inLhs) return 0;
   std::exponential_distribution<double> d(rate);
   return d(_eng);
 }
 
-extern "C" double rxf(double df1, double df2){
+extern "C" double rxf(rx_solving_options_ind* ind, double df1, double df2){
+  if (!ind->inLhs) return 0;
   std::fisher_f_distribution<double> d(df1, df2);
   return d(_eng);
 }
 
-extern "C" double rxgamma(double shape, double rate){
+extern "C" double rxgamma(rx_solving_options_ind* ind, double shape, double rate){
   // R uses rate; C++ uses scale
+  if (!ind->inLhs) return 0;
   std::gamma_distribution<double> d(shape, 1.0/rate);
   return d(_eng);
 }
 
-extern "C" double rxbeta(double shape1, double shape2){
+extern "C" double rxbeta(rx_solving_options_ind* ind, double shape1, double shape2){
+  if (!ind->inLhs) return 0;
   // Efficient simulation when shape1 and shape2 are "large"
   // (p 658) Intro Prob Stats 8th Ed by Sheldon Ross
-  double x = rxgamma(shape1,1.0);
-  return x/(x+rxgamma(shape2, 1.0));
+  double x = rxgamma(ind, shape1,1.0);
+  return x/(x+rxgamma(ind, shape2, 1.0));
 }
 
-extern "C" int rxgeom(double prob){
+extern "C" int rxgeom(rx_solving_options_ind* ind, double prob){
+  if (!ind->inLhs) return 0;
   std::geometric_distribution<int> d(prob);
   return d(_eng);
 }
 
 // FIXME rnbinom
-
-extern "C" double rxnorm(double mean, double sd){
+extern "C" double rxnorm(rx_solving_options_ind* ind, double mean, double sd){
+  if (!ind->inLhs) return 0.0;
   std::normal_distribution<double> d(mean, sd);
   return d(_eng);
 }
@@ -750,22 +759,26 @@ NumericVector rxnorm_(double mean, double sd, int n, int ncores){
   return ret;
 }
 
-extern "C" int rxpois(double lambda){
+extern "C" int rxpois( rx_solving_options_ind* ind, double lambda){
+  if (!ind->inLhs) return 0.0;
   std::poisson_distribution<int> d(lambda);
   return d(_eng);
 }
 
-extern "C" double rxt_(double df){
+extern "C" double rxt_(rx_solving_options_ind* ind, double df){
+  if (!ind->inLhs) return 0.0;
   std::student_t_distribution<double> d(df);
   return d(_eng);
 }
 
-extern "C" double rxunif(double low, double hi){
+extern "C" double rxunif(rx_solving_options_ind* ind, double low, double hi){
+  if (!ind->inLhs) return 0.0;
   std::uniform_real_distribution<double> d(low, hi);
   return d(_eng);
 }
 
-extern "C" double rxweibull(double shape, double scale){
+extern "C" double rxweibull(rx_solving_options_ind* ind, double shape, double scale){
+  if (!ind->inLhs) return 0.0;
   std::weibull_distribution<double> d(shape, scale);
   return d(_eng);
 }

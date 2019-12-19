@@ -198,20 +198,20 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  double *InfusionRate, int *BadDose, int *idose,
 			  double *scale, int *stateIgnore, double *mtime);
 
-int rxbinom(int n, double prob);
-double rxcauchy(double location, double scale);
-double rxchisq(double df);
-double rxexp(double rate);
-double rxf(double df1, double df2);
-int rxgeom(double prob);
-double rxnorm(double mean, double sd);
-int rxpois(double lambda);
-double rxt_(double df);
-double rxunif(double low, double hi);
-double rxweibull(double shape, double scale);
-double rxgamma(double shape, double rate);
-double rxbeta(double shape1, double shape2);
-double rxnormV(double mean, double sd);
+int rxbinom(rx_solving_options_ind* ind, int n, double prob);
+double rxcauchy(rx_solving_options_ind* ind, double location, double scale);
+double rxchisq(rx_solving_options_ind* ind, double df);
+double rxexp(rx_solving_options_ind* ind, double rate);
+double rxf(rx_solving_options_ind* ind, double df1, double df2);
+int rxgeom(rx_solving_options_ind* ind, double prob);
+double rxnorm(rx_solving_options_ind* ind, double mean, double sd);
+int rxpois(rx_solving_options_ind* ind, double lambda);
+double rxt_(rx_solving_options_ind* ind, double df);
+double rxunif(rx_solving_options_ind* ind, double low, double hi);
+double rxweibull(rx_solving_options_ind* ind, double shape, double scale);
+double rxgamma(rx_solving_options_ind* ind, double shape, double rate);
+double rxbeta(rx_solving_options_ind* ind, double shape1, double shape2);
+double rxnormV(rx_solving_options_ind* ind, double mean, double sd);
 
 
 void R_init_RxODE(DllInfo *info){

@@ -1224,6 +1224,9 @@ void handleSS(int *neq,
       ind->on[j] = 1;
       ind->cacheME=0;
     }
+    // Reset LHS to NA
+    ind->inLhs = 0;
+    for (j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
     memcpy(yp,op->inits, neq[0]*sizeof(double));
     u_inis(neq[1], yp); // Update initial conditions @ current time
     if (rx->istateReset) *istate = 1;
@@ -1492,6 +1495,9 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   xoutp=xp;
   //--- inits the system
   memcpy(ret,inits, neq[0]*sizeof(double));
+  // Reset LHS to NA
+  ind->inLhs = 0;
+  for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   u_inis(neq[1], ret); // Update initial conditions
   unsigned int j;
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
@@ -1565,8 +1571,6 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
     }
   }
-  // Reset LHS to NA
-  for (j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
 }
 
 extern void ind_indLin(rx_solve *rx,
@@ -1655,6 +1659,9 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   rc= ind->rc;
   double xp = x[0];
   //--- inits the system
+  // Reset LHS to NA
+  ind->inLhs = 0;
+  for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
   unsigned int j;
@@ -1728,7 +1735,6 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
     }
   }
   // Reset LHS to NA
-  for (j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   lsoda_free(&ctx);
 }
 
@@ -1950,6 +1956,9 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
     ind->InfusionRate[j] = 0;
     ind->on[j] = 1;
   }
+  // Reset LHS to NA
+  ind->inLhs = 0;
+  for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
   u_inis(neq[1], ind->solve); // Update initial conditions
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
@@ -2021,8 +2030,6 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
       if (i+1 != ind->n_all_times) memcpy(ind->solve+neq[0]*(i+1), yp, neq[0]*sizeof(double));
     }
   }
-  // Reset LHS to NA
-  for (j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
 }
 
 extern void ind_lsoda(rx_solve *rx, int solveid,
@@ -2132,6 +2139,9 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
     ind->on[j] = 1;
     ind->cacheME=0;
   }
+  // Reset LHS to NA
+  ind->inLhs = 0;
+  for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
@@ -2233,8 +2243,6 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
       if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
     }
   }
-  // Reset LHS to NA
-  for (j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
 }
 
 extern void ind_dop(rx_solve *rx, int solveid,
@@ -2584,6 +2592,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       }
       // Reset lhs to na
       for (i = op->nlhs; i--;) ind->lhs[i] = NA_REAL;
+      ind->inLhs = 1;
       for (i = 0; i < ntimes; i++){
         evid = ind->evid[ind->ix[i]];
 	if (evid == 9) continue;
@@ -2890,8 +2899,8 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
           if (nlhs){
 	    for (j = 0; j < nlhs; j++){
 	      dfp = REAL(VECTOR_ELT(df, jj));
-               dfp[ii] =rxLhsP(j, rx, neq[1]);
-	       jj++;
+	      dfp[ii] =ind->lhs[j];
+	      jj++;
              }
           }
           // States
@@ -2949,6 +2958,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
           par_ptr[svar[j]] = NA_REAL;
         }
       }
+      ind->inLhs = 0;
     }
   }
   SEXP sexp_rownames = PROTECT(allocVector(INTSXP,2)); pro++;

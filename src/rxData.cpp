@@ -3446,6 +3446,8 @@ static inline void rxSolve_updateParams(const RObject &trueParams,
 					rxSolve_t* rxSolveDat){
   rxSolveDat->par1 = trueParams;
   rxSolveDat->usePar1=true;
+  rx_solve* rx = getRxSolve_();
+  rx_solving_options* op = rx->op;
   if (rxIs(rxSolveDat->par1, "data.frame")){
     if (rxSolveDat->idLevels.size() > 0){
       Function sortId = getRxFn(".sortId");
@@ -3462,20 +3464,27 @@ static inline void rxSolve_updateParams(const RObject &trueParams,
       rxSolveDat->parMat(_,parDfi)=NumericVector(rxSolveDat->parDf[parDfi]);
     }
     rxSolveDat->parMat.attr("dimnames") = List::create(R_NilValue, rxSolveDat->parDf.names());
-  } else  if (rxIs(rxSolveDat->par1, "matrix")){
+  } else if (rxIs(rxSolveDat->par1, "matrix")){
     rxSolveDat->parMat = as<NumericMatrix>(rxSolveDat->par1);
     rxSolveDat->nPopPar = rxSolveDat->parMat.nrow();
     rxSolveDat->parType = 3;
-  } else {
+  } else if (!rxIs(rxSolveDat->par1, "NULL")) {
     rxSolveDat->parNumeric = rxSolveDat->par1;
     // Convert NumericVector to a matrix
-    rxSolveDat->parMat = NumericMatrix(1, rxSolveDat->parNumeric.size());
-    std::copy(rxSolveDat->parNumeric.begin(), rxSolveDat->parNumeric.end(), rxSolveDat->parMat.begin());
+    
+    rxSolveDat->parMat = NumericMatrix(rx->nsub, rxSolveDat->parNumeric.size());
+    unsigned int parDfi = rxSolveDat->parNumeric.size();
+    while (parDfi--){
+      std::fill_n(rxSolveDat->parMat.begin()+parDfi*rx->nsub, rx->nsub, rxSolveDat->parNumeric[parDfi]);
+    }
     rxSolveDat->parMat.attr("dimnames") = List::create(R_NilValue, rxSolveDat->parNumeric.attr("names"));
   }
   RObject ev1=_rxModels[".lastEv1"];
+  std::fill_n(&_globals.gpars[0], rxSolveDat->npars*rxSolveDat->nPopPar, NA_REAL);
   gparsCovSetupConstant(ev1, rxSolveDat->npars);
   rxSolve_assignGpars(rxSolveDat);
+  // std::fill_n(&_globals.gsolve[0], rx->nall*op->neq*rx->nsim, 0.0);
+  seedEng(op->cores); // Reseed
 }
 rxSolve_t rxSolveDatLast;
 static inline SEXP rxSolve_finalize(const RObject &obj,
