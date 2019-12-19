@@ -3482,6 +3482,10 @@ static inline void rxSolve_updateParams(const RObject &trueParams,
   RObject ev1=_rxModels[".lastEv1"];
   std::fill_n(&_globals.gpars[0], rxSolveDat->npars*rxSolveDat->nPopPar, NA_REAL);
   gparsCovSetupConstant(ev1, rxSolveDat->npars);
+  // Setup a possibly new scale.
+  RObject scale = rxControl["scale"];
+  NumericVector scaleC = rxSetupScale(obj, scale, extraArgs);
+  std::copy(scaleC.begin(),scaleC.end(),&_globals.gscale[0]);
   rxSolve_assignGpars(rxSolveDat);
   // std::fill_n(&_globals.gsolve[0], rx->nall*op->neq*rx->nsim, 0.0);
   seedEng(op->cores); // Reseed
