@@ -3391,6 +3391,8 @@ int getNRows(RObject obj){
   }
 }
 
+rxSolve_t rxSolveDatLast;
+
 static inline bool rxSolve_loaded(const RObject &trueEvents,
 				  const RObject &trueParams,
 				  const List &rxControl,
@@ -3402,6 +3404,7 @@ static inline bool rxSolve_loaded(const RObject &trueEvents,
   return _globals.gsolve != NULL &&
     as<bool>(rxControl["cacheEvent"]) &&
     _rxModels.exists(".lastEvents") &&
+    rxSolveDatLast.idLevels.size() == 0 &&     
     // FIXME:
     // - Inductive linearization requires a different setup
     //  - Check to make sure the models are the same.
@@ -3494,7 +3497,7 @@ static inline void rxSolve_updateParams(const RObject &trueParams,
   // std::fill_n(&_globals.gsolve[0], rx->nall*op->neq*rx->nsim, 0.0);
   seedEng(op->cores); // Reseed
 }
-rxSolve_t rxSolveDatLast;
+
 static inline SEXP rxSolve_finalize(const RObject &obj,
 				    const List &rxControl,
 				    const Nullable<CharacterVector> &specParams,
