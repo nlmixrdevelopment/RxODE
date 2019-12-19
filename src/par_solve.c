@@ -1036,6 +1036,7 @@ void solveSS_1(int *neq,
 	       t_update_inis u_inis,
 	       void *ctx){
   int idid;
+  int itol=0;
   switch(op->stiff){
   case 3:
     idid = indLin(ind->id, op, xp, yp, xout, ind->InfusionRate, ind->on, 
@@ -1110,7 +1111,7 @@ void solveSS_1(int *neq,
 		  xout,         /* final x-value (xend-x may be positive or negative) */
 		  &(op->RTOL),          /* relative error tolerance */
 		  &(op->ATOL),          /* absolute error tolerance */
-		  gitol,         /* switch for rtoler and atoler */
+		  itol,         /* switch for rtoler and atoler */
 		  solout,         /* function providing the numerical solution during integration */
 		  0,         /* switch for calling solout */
 		  NULL,           /* messages stream */
@@ -1222,8 +1223,8 @@ void handleSS(int *neq,
     for (j = neq[0]; j--;) {
       ind->InfusionRate[j] = 0;
       ind->on[j] = 1;
-      ind->cacheME=0;
     }
+    ind->cacheME=0;
     // Reset LHS to NA
     ind->inLhs = 0;
     for (j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;

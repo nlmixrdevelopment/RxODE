@@ -3396,6 +3396,9 @@ static inline bool rxSolve_loaded(const RObject &trueEvents,
 				  const List &rxControl,
 				  const SEXP &mv){
   RObject iCov = rxControl["iCov"];
+  RObject thetaMat = rxControl["thetaMat"];
+  RObject omega = rxControl["omega"];
+  RObject sigma = rxControl["sigma"];
   return _globals.gsolve != NULL &&
     as<bool>(rxControl["cacheEvent"]) &&
     _rxModels.exists(".lastEvents") &&
@@ -3405,7 +3408,8 @@ static inline bool rxSolve_loaded(const RObject &trueEvents,
     //  - Check oldModel = newModel
     //  - Options are the same
     getNRows(trueParams) == as<int>(_rxModels[".lastNrow"]) &&
-    rxIs(iCov,"NULL") &&
+    rxIs(iCov,"NULL") && rxIs(omega, "NULL") &&
+    rxIs(sigma, "NULL") && rxIs(thetaMat, "NULL") &&
     R_compute_identical(as<SEXP>(_rxModels[".lastEvents"]),
 			as<SEXP>(trueEvents), 16) &&
     R_compute_identical(as<SEXP>(_rxModels[".lastParNames"]),
