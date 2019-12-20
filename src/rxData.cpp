@@ -3376,9 +3376,17 @@ int getNRows(RObject obj){
     {
       bool rn = obj.hasAttribute("row.names");
       if (rn){
-	IntegerVector ret0 = obj.attr("row.names");
-	if (IntegerVector::is_na(ret0[0]) && ret0.size() == 2){
-	  return (ret0[1]);
+	RObject ret0 = obj.attr("row.names");
+	if (rxIs(ret0, "integer")){
+	  IntegerVector ret1 = IntegerVector(ret0);
+	  if (ret1.size() == 2 && IntegerVector::is_na(ret1[0])){
+	    return(ret1[1]);
+	  } else {
+	    return ret1.size();
+	  }
+	} else if (rxIs(ret0, "character")){
+	  CharacterVector ret1 = CharacterVector(ret0);
+	  return ret1.size();
 	} else {
 	  return NA_INTEGER;
 	}
@@ -3401,24 +3409,25 @@ static inline bool rxSolve_loaded(const RObject &trueEvents,
   RObject thetaMat = rxControl["thetaMat"];
   RObject omega = rxControl["omega"];
   RObject sigma = rxControl["sigma"];
-  return _globals.gsolve != NULL &&
+  bool ret = _globals.gsolve != NULL &&
     as<bool>(rxControl["cacheEvent"]) &&
     _rxModels.exists(".lastEvents") &&
-    rxSolveDatLast.idLevels.size() == 0 &&     
     // FIXME:
     // - Inductive linearization requires a different setup
     //  - Check to make sure the models are the same.
     //  - Check oldModel = newModel
     //  - Options are the same
-    getNRows(trueParams) == as<int>(_rxModels[".lastNrow"]) &&
     rxIs(iCov,"NULL") && rxIs(omega, "NULL") &&
     rxIs(sigma, "NULL") && rxIs(thetaMat, "NULL") &&
+    getNRows(trueParams) == as<int>(_rxModels[".lastNrow"]) &&
     R_compute_identical(as<SEXP>(_rxModels[".lastEvents"]),
 			as<SEXP>(trueEvents), 16) &&
     R_compute_identical(as<SEXP>(_rxModels[".lastParNames"]),
 			as<SEXP>(trueParams.attr("names")), 16) &&
     R_compute_identical(as<SEXP>(_rxModels[".lastMv"]), mv, 16) &&
     R_compute_identical(as<SEXP>(_rxModels[".lastControl"]), as<SEXP>(rxControl), 16);
+  if (ret) Rprintf("cached\n");
+  return ret;
 }
 
 static inline void rxSolve_assignGpars(rxSolve_t* rxSolveDat){
@@ -3457,9 +3466,11 @@ static inline void rxSolve_updateParams(const RObject &trueParams,
   rx_solving_options* op = rx->op;
   if (rxIs(rxSolveDat->par1, "data.frame")){
     if (rxSolveDat->idLevels.size() > 0){
+      // FIXME: check to see if IDs are dropped.
       Function sortId = getRxFn(".sortId");
       rxSolveDat->parDf = clone(sortId(rxSolveDat->par1, rxSolveDat->idLevels, "parameters",
 				      rxSolveDat->warnIdSort));
+      rxSolveDat->par1 = rxSolveDat->parDf;
     } else {
       rxSolveDat->parDf = as<DataFrame>(rxSolveDat->par1);
     }  
