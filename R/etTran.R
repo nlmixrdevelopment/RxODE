@@ -56,7 +56,7 @@
 ##' @author Matthew Fidler
 ##' @noRd
 .sortId <- function(idData, goodLvl, type="parameter",
-                    warnIdSort) {
+                    warnIdSort, skipStop=TRUE) {
     .n <- tolower(names(idData));
     .w <- which(.n == "id");
     .nid <- length(goodLvl);
@@ -79,7 +79,11 @@
         .idData <- .idData[order(.idData[[.w]]), ];
         .idData <- .idData[, -.w, drop = FALSE];
         if (length(.idData[, 1]) == 0) {
-            stop(sprintf("there are no individuals left to solve in %s data", type))
+            if (skipStop) {
+                return(.idData)
+            } else {
+                stop(sprintf("there are no individuals left to solve in %s data", type))
+            }
         }
         if (.wrn != "") warning(.wrn)
         return(.idData)

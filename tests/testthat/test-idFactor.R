@@ -259,6 +259,4 @@ rxPermissive({
         expect_equal(tmp2$cwt, tmp2$wt)
 
     })
-
-
 })
