@@ -115,6 +115,7 @@ devtools::install_github("nlmixrdevelopment/RxODE")
 ```
 
 # Related R Packages
+## ODE solving
 
 This is a brief comparison of pharmacometric ODE solving R packages to
 `RxODE`.
@@ -179,3 +180,5 @@ And there is one package that is not released on CRAN:
 The open pharmacometrics open source community is fairly friendly, and
 the RxODE maintainers has had positive interactions with all the
 maintainer all of the ODE-solving pharmacometric projects listed.
+
+## PK Solved systems
