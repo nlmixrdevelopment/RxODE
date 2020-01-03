@@ -138,7 +138,10 @@ released on CRAN.  Each uses compiled code to have faster ODE solving.
   
   Both `mrgsolve` and `RxODE` implement thread-safe ODE solving. In
   `RxODE` threading for each individual ODE solved is turned on by
-  default and the supported RxODE functions are all thread-safe.
+  default and the supported RxODE functions are all thread-safe. Not
+  all functions in `mrgsolve` are thread safe currently, so caution
+  should be used when using some functions (like random number
+  generation) or using custom functions.
   
   Unlike `RxODE`, `mrgsolve` does not currently support symbolic
   manipulation of ODE systems, like automatic Jacobian calculation or
