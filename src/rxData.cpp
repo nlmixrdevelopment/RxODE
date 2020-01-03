@@ -3448,7 +3448,8 @@ RObject _curPar;
 static inline bool rxSolve_loaded(const RObject &trueEvents,
 				  RObject &trueParams,
 				  const List &rxControl,
-				  const SEXP &mv){
+				  const SEXP &mv,
+				  const RObject &inits){
   RObject iCov = rxControl["iCov"];
   RObject thetaMat = rxControl["thetaMat"];
   RObject omega = rxControl["omega"];
@@ -3471,6 +3472,7 @@ static inline bool rxSolve_loaded(const RObject &trueEvents,
     R_compute_identical(as<SEXP>(_rxModels[".lastParNames"]),
 			as<SEXP>(trueParams.attr("names")), 16) &&
     R_compute_identical(as<SEXP>(_rxModels[".lastMv"]), mv, 16) &&
+    R_compute_identical(as<SEXP>(_rxModels[".lastInits"]),as<SEXP>(inits), 16) &&
     R_compute_identical(as<SEXP>(_rxModels[".lastControl"]), as<SEXP>(rxControl), 16);
   if (ret && rxIs(trueParams, "data.frame")) {
     rxSolve_t* rxSolveDat = &rxSolveDatLast;
@@ -3722,7 +3724,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
-    if (rxSolve_loaded(trueEvents, trueParams, rxControl, as<SEXP>(rxSolveDat->mv))){
+    if (rxSolve_loaded(trueEvents, trueParams, rxControl, as<SEXP>(rxSolveDat->mv), inits)){
       rxSolveDat = &rxSolveDatLast;
       rxSolve_updateParams(trueParams,
 			   obj, rxControl, specParams, extraArgs, params, events,
@@ -3738,6 +3740,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       _rxModels[".lastNrow"] = getNRows(trueParams);
       _rxModels[".lastMv"] = rxSolveDat->mv;
       _rxModels[".lastControl"] = rxControl;
+      _rxModels[".lastInits"] = inits;
       Free(op->indLin);
     }
     rxSolveDat->addDosing = as<Nullable<LogicalVector>>(rxControl["addDosing"]);
