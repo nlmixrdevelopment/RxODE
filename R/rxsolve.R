@@ -827,8 +827,12 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     }
     .ctl$keepI <- .keepI
     .ctl$keepF <- .keepF
-    .ret <- rxSolve_(object, .ctl, .nms, .xtra,
-                     params, events, inits,setupOnly=.setupOnly);
+    .ret <- .collectWarnings(rxSolve_(object, .ctl, .nms, .xtra,
+                                      params, events, inits,setupOnly=.setupOnly), lst=TRUE);
+    .ws <- .ret[[2]]
+    .rxModels$.ws <- .ws;
+    lapply(.ws, function(x) warning(x))
+    .ret <- .ret[[1]]
     if (.ctl$matrix == 4L) {
         data.table::setDT(.ret);
     } else if (.ctl$matrix == 5L) {

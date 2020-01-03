@@ -450,3 +450,28 @@ rxRmvn <- function(n, mu, sigma, lower, upper, ncores=1, isChol=FALSE,
         return(invisible())
     }
 }
+
+##' Collect warnings and just warn once.
+##'
+##' @param expr R expression
+##' @param lst When \code{TRUE} return a list with
+##'     list(object,warnings) instead of issuing the warnings.
+##'     Otherwise, when \code{FALSE} issue the warnings and return the
+##'     object.
+##' @return The value of the expression or a list with the value of
+##'     the expression and a list of warning messages
+##' @author Matthew L. Fidler
+##' @noRd
+.collectWarnings <- function(expr,lst=FALSE){
+    ws <- c();
+    this.env <- environment()
+    ret <- suppressWarnings(withCallingHandlers(expr,warning=function(w){assign("ws", unique(c(w$message, ws)), this.env)}))
+    if (lst){
+        return(list(ret, ws));
+    } else {
+        for (w in ws){
+            warning(w)
+        }
+        return(ret);
+    }
+}

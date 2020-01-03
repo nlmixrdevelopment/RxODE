@@ -579,6 +579,7 @@ List rxModelVars_blank(){
   ret.attr("class") = "rxModelVars";
   return ret;
 }
+
 List rxModelVars_character(const RObject &obj){
   CharacterVector modList = as<CharacterVector>(obj);
   if (modList.size() == 1){
@@ -3729,6 +3730,12 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       rxSolve_updateParams(trueParams,
 			   obj, rxControl, specParams, extraArgs, params, events,
 			   inits, rxSolveDat);
+      if (_rxModels.exists(".ws") && !rxIs(_rxModels[".ws"], "NULL")){
+	List ws = _rxModels[".ws"];
+	for (int iii = 0; iii < ws.size(); ++iii){
+	  warning(as<std::string>(ws[iii]));
+	}
+      } 
       return rxSolve_finalize(obj, rxControl, specParams, extraArgs, params, events,
 			      inits, rxSolveDat);
       // par_solve(rx);
