@@ -248,3 +248,42 @@ rxgeom <- function(prob, n=1L, ncores=1L){
     rxSeedEng(ncores)
     .Call(`_RxODE_rxgeom_`, prob, n, ncores)
 }
+
+
+##' Simulate beta variable from threefry generator
+##'
+##' @inheritParams stats::rbeta
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxbeta(0.5, 0.5, n=10) # with rxbeta you have to explicitly state n
+##' rxbeta(5, 1, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxbeta(1, 3)
+##'
+##'
+##' ## This example uses `rxbeta` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxbeta(2, 2)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxbeta <- function(shape1, shape2, n=1L, ncores=1L){
+    checkmate::assertNumeric(shape1, len=1, lower=0);
+    if (shape1 == 0) stop("'shape1' cannot be 0");
+    checkmate::assertNumeric(shape2, len=1, lower=0);
+    if (shape2 == 0) stop("'shape2' cannot be 0");
+    checkmate::assertCount(n)
+    checkmate::assertCount(ncores)
+    rxSeedEng(ncores)
+    .Call(`_RxODE_rxbeta_`, shape1, shape2, n, ncores)
+}

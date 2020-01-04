@@ -722,6 +722,32 @@ extern "C" double rxbeta(rx_solving_options_ind* ind, double shape1, double shap
   return x/(x+rxgamma(ind, shape2, 1.0));
 }
 
+//[[Rcpp::export]]
+NumericVector rxbeta_(double shape1, double shape2, int n, int ncores){
+  NumericVector ret(n);
+  int n2 = ret.size();
+  std::gamma_distribution<double> d1(shape1, 1.0);
+  std::gamma_distribution<double> d2(shape2, 1.0);
+  double *retD = ret.begin();
+  
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
+#endif
+
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+  for (int i = 0; i < n2; ++i){
+    double x = d1(_eng);
+    retD[i] =  x/(x+d2(_eng));
+  }
+#ifdef _OPENMP
+  }
+#endif
+  return ret;
+}
+
 extern "C" int rxgeom(rx_solving_options_ind* ind, double prob){
   if (!ind->inLhs) return 0;
   std::geometric_distribution<int> d(prob);
