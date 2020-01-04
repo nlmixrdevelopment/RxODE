@@ -305,6 +305,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSeedEng", (DL_FUNC) &_RxODE_rxSeedEng, 1},
     {"_RxODE_rxnorm_", (DL_FUNC) &_RxODE_rxnorm_, 4},
     {"_RxODE_rxnormV_", (DL_FUNC) &_RxODE_rxnormV_, 4},
+    {"_RxODE_rxpois_", (DL_FUNC) &_RxODE_rxpois_, 3},
     {"_RxODE_rxSolveDollarNames", (DL_FUNC) _RxODE_rxSolveDollarNames, 1},
     {"_RxODE_etDollarNames", (DL_FUNC) _RxODE_etDollarNames, 1},
     {NULL, NULL, 0}
