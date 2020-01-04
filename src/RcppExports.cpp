@@ -2035,6 +2035,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxgeom_
+IntegerVector rxgeom_(double prob, int n, int ncores);
+RcppExport SEXP _RxODE_rxgeom_(SEXP probSEXP, SEXP nSEXP, SEXP ncoresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type prob(probSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxgeom_(prob, n, ncores));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxnorm_
 NumericVector rxnorm_(double mean, double sd, int n, int ncores);
 RcppExport SEXP _RxODE_rxnorm_(SEXP meanSEXP, SEXP sdSEXP, SEXP nSEXP, SEXP ncoresSEXP) {

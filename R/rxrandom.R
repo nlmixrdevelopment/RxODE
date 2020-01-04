@@ -212,3 +212,39 @@ rxweibull <- function(shape, scale = 1, n=1L, ncores=1L){
     rxSeedEng(ncores)
     .Call(`_RxODE_rxweibull_`, shape, scale, n, ncores)
 }
+
+
+##' Simulate geometric variable from threefry generator
+##'
+##' @inheritParams stats::rgeom
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxgeom(0.5, n=10) # with rxgeom you have to explicitly state n
+##' rxgeom(0.25, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxgeom(0.75)
+##'
+##'
+##' ## This example uses `rxgeom` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxgeom(0.24)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxgeom <- function(prob, n=1L, ncores=1L){
+    checkmate::assertNumeric(prob, len=1, lower=0, upper=1);
+    checkmate::assertCount(n)
+    checkmate::assertCount(ncores)
+    rxSeedEng(ncores)
+    .Call(`_RxODE_rxgeom_`, prob, n, ncores)
+}

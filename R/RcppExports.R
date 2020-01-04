@@ -709,6 +709,10 @@ rxSeedEng <- function(ncores = 1L) {
     .Call(`_RxODE_rxSeedEng`, ncores)
 }
 
+rxgeom_ <- function(prob, n, ncores) {
+    .Call(`_RxODE_rxgeom_`, prob, n, ncores)
+}
+
 rxnorm_ <- function(mean, sd, n, ncores) {
     .Call(`_RxODE_rxnorm_`, mean, sd, n, ncores)
 }
