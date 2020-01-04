@@ -102,7 +102,8 @@ rxControl(
   warnIdSort = TRUE,
   ssAtol = 1e-08,
   ssRtol = 1e-06,
-  safeZero = TRUE
+  safeZero = TRUE,
+  cacheEvent = TRUE
 )
 
 rxSolve(object, ...)
@@ -521,6 +522,9 @@ vector based on each state.}
 
 \item{safeZero}{Use safe zero divide and log routines.  By default
 this is turned on but you may turn it off if you wish.}
+
+\item{cacheEvent}{is a boolean.  If `TRUE` (default), events are cached in
+memory to speed up solving.}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE

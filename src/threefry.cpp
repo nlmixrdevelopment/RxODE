@@ -765,6 +765,30 @@ extern "C" int rxpois( rx_solving_options_ind* ind, double lambda){
   return d(_eng);
 }
 
+//[[Rcpp::export]]
+IntegerVector rxpois_(double lambda, int n, int ncores){
+  IntegerVector ret(n);
+  int n2 = ret.size();
+  std::poisson_distribution<int> d(lambda);
+  int *retD = ret.begin();
+  
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
+#endif
+
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+  for (int i = 0; i < n2; ++i){
+    retD[i] = d(_eng);
+  }
+#ifdef _OPENMP
+  }
+#endif
+  return ret;
+}
+
 extern "C" double rxt_(rx_solving_options_ind* ind, double df){
   if (!ind->inLhs) return 0.0;
   std::student_t_distribution<double> d(df);

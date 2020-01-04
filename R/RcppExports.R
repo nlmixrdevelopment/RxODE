@@ -713,6 +713,10 @@ rxnorm_ <- function(mean, sd, n, ncores) {
     .Call(`_RxODE_rxnorm_`, mean, sd, n, ncores)
 }
 
+rxpois_ <- function(lambda, n, ncores) {
+    .Call(`_RxODE_rxpois_`, lambda, n, ncores)
+}
+
 rxnormV_ <- function(mean, sd, n, ncores) {
     .Call(`_RxODE_rxnormV_`, mean, sd, n, ncores)
 }

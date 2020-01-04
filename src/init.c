@@ -148,6 +148,7 @@ SEXP _RxODE_rcvC1(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxSeedEng(SEXP);
 SEXP _RxODE_rxnorm_(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxnormV_(SEXP, SEXP, SEXP, SEXP);
+SEXP _RxODE_rxpois_(SEXP, SEXP, SEXP);
 
 extern int rxIsCurrentC(SEXP obj);
 

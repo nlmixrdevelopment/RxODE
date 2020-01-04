@@ -20,8 +20,6 @@ rxnorm <- function(mean = 0, sd = 1, n=1L, ncores=1L){
 ##' `rxnorm` simulates using the threefry sitmo generator; `rxnormV`
 ##' uses the vandercorput generator
 ##'
-##' @template birthdayProblem
-##'
 ##' @examples
 ##'
 ##' ## Use threefry engine
@@ -68,4 +66,39 @@ rxnormV <- function(mean = 0, sd = 1, n=1L, ncores=1L){
     checkmate::assertCount(ncores)
     rxSeedEng(ncores)
     .Call(`_RxODE_rxnormV_`, mean, sd, n, ncores)
+}
+
+##' Simulate random poisson variable from threefry generator
+##'
+##' @inheritParams stats::rpois
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxpois(lambda=3, n=10) # with rxnorm you have to explicitly state n
+##' rxpois(lambda=3, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxpois(4) ## The first arguments are the lambda parameter
+##'
+##'
+##' ## This example uses `rxpois` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxpois(3)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxpois <- function(lambda, n=1L, ncores=1L){
+    checkmate::assertNumeric(lambda, len=1);
+    checkmate::assertCount(n)
+    checkmate::assertCount(ncores)
+    rxSeedEng(ncores)
+    .Call(`_RxODE_rxpois_`, lambda, n, ncores)
 }
