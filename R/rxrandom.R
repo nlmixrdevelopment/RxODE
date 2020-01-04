@@ -369,3 +369,40 @@ rxf <- function(df1, df2, n=1L, ncores=1L){
     rxSeedEng(ncores)
     .Call(`_RxODE_rxf_`, df1, df2, n, ncores)
 }
+
+
+##' Simulate exponenital variable from threefry generator
+##'
+##' @inheritParams stats::rexp
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxexp(0.5, n=10) # with rxexp you have to explicitly state n
+##' rxexp(5, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxexp(1)
+##'
+##'
+##' ## This example uses `rxexp` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxexp(2)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxexp <- function(rate, n=1L, ncores=1L){
+    checkmate::assertNumeric(rate, len=1, lower=0);
+    if (rate == 0) stop("'rate' cannot be 0");
+    checkmate::assertCount(n)
+    checkmate::assertCount(ncores)
+    rxSeedEng(ncores)
+    .Call(`_RxODE_rxexp_`, rate, n, ncores)
+}
