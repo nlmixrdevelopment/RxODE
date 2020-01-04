@@ -2035,6 +2035,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxf_
+NumericVector rxf_(double df1, double df2, int n, int ncores);
+RcppExport SEXP _RxODE_rxf_(SEXP df1SEXP, SEXP df2SEXP, SEXP nSEXP, SEXP ncoresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type df1(df1SEXP);
+    Rcpp::traits::input_parameter< double >::type df2(df2SEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxf_(df1, df2, n, ncores));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxgamma_
 NumericVector rxgamma_(double shape, double rate, int n, int ncores);
 RcppExport SEXP _RxODE_rxgamma_(SEXP shapeSEXP, SEXP rateSEXP, SEXP nSEXP, SEXP ncoresSEXP) {

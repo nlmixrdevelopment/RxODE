@@ -298,16 +298,16 @@ rxbeta <- function(shape1, shape2, n=1L, ncores=1L){
 ##'
 ##' ## Use threefry engine
 ##'
-##' rxbeta(0.5, 0.5, n=10) # with rxbeta you have to explicitly state n
-##' rxbeta(5, 1, n=10, ncores=2) # You can parallelize the simulation using openMP
+##' rxgamma(0.5, n=10) # with rxgamma you have to explicitly state n
+##' rxgamma(5, n=10, ncores=2) # You can parallelize the simulation using openMP
 ##'
-##' rxbeta(1, 3)
+##' rxgamma(1)
 ##'
 ##'
 ##' ## This example uses `rxbeta` directly in the model
 ##'
 ##' rx <- RxODE({
-##'   a = rxbeta(2, 2)
+##'   a = rxgamma(2)
 ##' })
 ##'
 ##' et <- et(1,id=1:2)
@@ -329,4 +329,43 @@ rxgamma <- function(shape, rate = 1/scale, scale = 1, n=1L, ncores=1L){
     checkmate::assertCount(ncores)
     rxSeedEng(ncores)
     .Call(`_RxODE_rxgamma_`, shape, rate, n, ncores)
+}
+
+
+##' Simulate F variable from threefry generator
+##'
+##' @inheritParams stats::rf
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxf(0.5, 0.5, n=10) # with rxf you have to explicitly state n
+##' rxf(5, 1, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxf(1, 3)
+##'
+##'
+##' ## This example uses `rxf` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxf(2, 2)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxf <- function(df1, df2, n=1L, ncores=1L){
+    checkmate::assertNumeric(df1, len=1, lower=0);
+    if (df1 == 0) stop("'df1' cannot be 0");
+    checkmate::assertNumeric(df2, len=1, lower=0);
+    if (df2 == 0) stop("'df2' cannot be 0");
+    checkmate::assertCount(n)
+    checkmate::assertCount(ncores)
+    rxSeedEng(ncores)
+    .Call(`_RxODE_rxf_`, df1, df2, n, ncores)
 }
