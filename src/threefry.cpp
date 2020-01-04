@@ -682,6 +682,30 @@ extern "C" int rxbinom(rx_solving_options_ind* ind, int n, double prob){
   return d(_eng);
 }
 
+//[[Rcpp::export]]
+IntegerVector rxbinom_(int n0, double prob, int n, int ncores){
+  IntegerVector ret(n);
+  int n2 = ret.size();
+  std::binomial_distribution<int> d(n0, prob);
+  int *retD = ret.begin();
+  
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
+#endif
+
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+  for (int i = 0; i < n2; ++i){
+    retD[i] = d(_eng);
+  }
+#ifdef _OPENMP
+  }
+#endif
+  return ret;
+}
+
 extern "C" double rxcauchy(rx_solving_options_ind* ind, double location, double scale){
   if (!ind->inLhs) return 0;
   std::cauchy_distribution<double> d(location, scale);

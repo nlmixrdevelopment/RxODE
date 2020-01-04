@@ -2035,6 +2035,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxbinom_
+IntegerVector rxbinom_(int n0, double prob, int n, int ncores);
+RcppExport SEXP _RxODE_rxbinom_(SEXP n0SEXP, SEXP probSEXP, SEXP nSEXP, SEXP ncoresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n0(n0SEXP);
+    Rcpp::traits::input_parameter< double >::type prob(probSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxbinom_(n0, prob, n, ncores));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxcauchy_
 NumericVector rxcauchy_(double location, double scale, int n, int ncores);
 RcppExport SEXP _RxODE_rxcauchy_(SEXP locationSEXP, SEXP scaleSEXP, SEXP nSEXP, SEXP ncoresSEXP) {

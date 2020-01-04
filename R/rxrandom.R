@@ -480,3 +480,39 @@ rxcauchy <- function(location = 0, scale = 1, n=1L, ncores=1L){
     rxSeedEng(ncores)
     .Call(`_RxODE_rxcauchy_`, location, scale, n, ncores)
 }
+
+##' Simulate Binomial variable from threefry generator
+##'
+##' @inheritParams stats::rbinom
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxbinom(10, 0.9, n=10) # with rxbinom you have to explicitly state n
+##' rxbinom(3, 0.5, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxbinom(4,0.7)
+##'
+##'
+##' ## This example uses `rxbinom` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxbinom(1,0.5)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxbinom <- function(size, prob, n=1L, ncores=1L) {
+    checkmate::assertNumeric(prob, len=1, lower=0, upper=1);
+    checkmate::assertCount(size);
+    checkmate::assertCount(n)
+    checkmate::assertCount(ncores)
+    rxSeedEng(ncores)
+    .Call(`_RxODE_rxbinom_`, size, prob, n, ncores)
+}

@@ -709,6 +709,10 @@ rxSeedEng <- function(ncores = 1L) {
     .Call(`_RxODE_rxSeedEng`, ncores)
 }
 
+rxbinom_ <- function(n0, prob, n, ncores) {
+    .Call(`_RxODE_rxbinom_`, n0, prob, n, ncores)
+}
+
 rxcauchy_ <- function(location, scale, n, ncores) {
     .Call(`_RxODE_rxcauchy_`, location, scale, n, ncores)
 }
