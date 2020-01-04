@@ -175,3 +175,29 @@ the RxODE maintainers has had positive interactions with all the
 maintainer all of the ODE-solving pharmacometric projects listed.
 
 ## PK Solved systems
+
+### The following packages for solved PK systems are on CRAN
+
+ - [mrgsolve](https://CRAN.R-project.org/package=mrgsolve) currently
+   has 1-2 compartment (super-positioning) models built-in.  The
+   solved systems and ODEs cannot currently be mixed. Since this uses
+   super-positioning, time-varying covariates are not supported.
+ - [pmxTools](https://github.com/kestrel99/pmxTools) currently have
+   1-3 compartment (super-positioning) models built-in. This is a
+   R-only implementation. mixed. Since this uses
+   super-positioning, time-varying covariates are not supported.
+ - [PKPDmodels](https://cran.r-project.org/web/packages/PKPDmodels/index.html)
+   has a one-compartment model with gradients. Since this uses
+   super-positioning, time varying covariates are not supported.
+
+### Non-CRAN libraries:
+
+ - [PKADVAN](https://github.com/abuhelwa/PKADVAN_Rpackage) Provides
+   1-3 compartment models using non-superpositioning.  This allows
+   time-varying covariates.
+   
+### RxODE:
+
+RxODE supports 1-3 compartment models with gradients (using stan
+math's auto-differentiation) for superpositioning as well as with same
+equations as PKADVAN to allow time-varying covariates.

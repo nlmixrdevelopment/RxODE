@@ -11,6 +11,14 @@
 
 * Completion for all api elements of `rxSolve()` objects, and `et()`
   objects have been added
+  
+* Caching of internal C data setup is now supported increasing speed
+  of `optim` code when:
+  - Event Table doesn't change
+  - The size of the parameters doesn't change
+  - `inits` do not change (though you can specify them as `cmt(0)=...`
+    in the model and change them by parameters)
+  - See Issue #109
 
 * Allow accessing different time-varying components of an input dataset for each indivdiual with:
   - `lag(var, #)`
