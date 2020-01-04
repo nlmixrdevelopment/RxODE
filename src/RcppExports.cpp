@@ -2089,6 +2089,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxweibull_
+NumericVector rxweibull_(double shape, double scale, int n, int ncores);
+RcppExport SEXP _RxODE_rxweibull_(SEXP shapeSEXP, SEXP scaleSEXP, SEXP nSEXP, SEXP ncoresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type shape(shapeSEXP);
+    Rcpp::traits::input_parameter< double >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxweibull_(shape, scale, n, ncores));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxnormV_
 NumericVector rxnormV_(double mean, double sd, int n, int ncores);
 RcppExport SEXP _RxODE_rxnormV_(SEXP meanSEXP, SEXP sdSEXP, SEXP nSEXP, SEXP ncoresSEXP) {

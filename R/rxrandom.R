@@ -175,3 +175,40 @@ rxunif <- function(min = 0, max = 1, n=1L, ncores=1L){
     rxSeedEng(ncores)
     .Call(`_RxODE_rxunif_`, min, max, n, ncores)
 }
+
+
+##' Simulate weibull variable from threefry generator
+##'
+##' @inheritParams stats::rweibull
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxweibull(shape=1, scale=4, n=10) # with rxweibull you have to explicitly state n
+##' rxweibull(shape=1, scale=4, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxweibull(3)
+##'
+##'
+##' ## This example uses `rxweibull` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxweibull(1,3)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxweibull <- function(shape, scale = 1, n=1L, ncores=1L){
+    checkmate::assertNumeric(shape, len=1);
+    checkmate::assertNumeric(scale, len=1);
+    checkmate::assertCount(n)
+    checkmate::assertCount(ncores)
+    rxSeedEng(ncores)
+    .Call(`_RxODE_rxweibull_`, shape, scale, n, ncores)
+}

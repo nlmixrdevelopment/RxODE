@@ -854,3 +854,27 @@ extern "C" double rxweibull(rx_solving_options_ind* ind, double shape, double sc
   std::weibull_distribution<double> d(shape, scale);
   return d(_eng);
 }
+
+//[[Rcpp::export]]
+NumericVector rxweibull_(double shape, double scale, int n, int ncores){
+  NumericVector ret(n);
+  int n2 = ret.size();
+  std::weibull_distribution<double> d(shape, scale);
+  double *retD = ret.begin();
+  
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
+#endif
+
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+  for (int i = 0; i < n2; ++i){
+    retD[i] = d(_eng);
+  }
+#ifdef _OPENMP
+  }
+#endif
+  return ret;
+}
