@@ -102,3 +102,40 @@ rxpois <- function(lambda, n=1L, ncores=1L){
     rxSeedEng(ncores)
     .Call(`_RxODE_rxpois_`, lambda, n, ncores)
 }
+
+
+##' Simulate student t variable from threefry generator
+##'
+##' @inheritParams stats::rt
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxt(df=3, n=10) # with rxnorm you have to explicitly state n
+##' rxt(df=3, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxt(4) ## The first argument is the df parameter
+##'
+##'
+##' ## This example uses `rxt` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxt(3)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxt <- function(df, n=1L, ncores=1L){
+    checkmate::assertNumeric(df, len=1, lower=0);
+    if (df == 0) stop("'df' must be greater than 0")
+    checkmate::assertCount(n)
+    checkmate::assertCount(ncores)
+    rxSeedEng(ncores)
+    .Call(`_RxODE_rxt__`, df, n, ncores)
+}

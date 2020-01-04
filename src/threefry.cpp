@@ -795,6 +795,30 @@ extern "C" double rxt_(rx_solving_options_ind* ind, double df){
   return d(_eng);
 }
 
+//[[Rcpp::export]]
+NumericVector rxt__(double df, int n, int ncores){
+  NumericVector ret(n);
+  int n2 = ret.size();
+  std::student_t_distribution<double> d(df);
+  double *retD = ret.begin();
+  
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
+#endif
+
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+  for (int i = 0; i < n2; ++i){
+    retD[i] = d(_eng);
+  }
+#ifdef _OPENMP
+  }
+#endif
+  return ret;
+}
+
 extern "C" double rxunif(rx_solving_options_ind* ind, double low, double hi){
   if (!ind->inLhs) return 0.0;
   std::uniform_real_distribution<double> d(low, hi);

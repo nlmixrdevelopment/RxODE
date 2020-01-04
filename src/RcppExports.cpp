@@ -2062,6 +2062,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxt__
+NumericVector rxt__(double df, int n, int ncores);
+RcppExport SEXP _RxODE_rxt__(SEXP dfSEXP, SEXP nSEXP, SEXP ncoresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type df(dfSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxt__(df, n, ncores));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxnormV_
 NumericVector rxnormV_(double mean, double sd, int n, int ncores);
 RcppExport SEXP _RxODE_rxnormV_(SEXP meanSEXP, SEXP sdSEXP, SEXP nSEXP, SEXP ncoresSEXP) {

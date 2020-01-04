@@ -717,6 +717,10 @@ rxpois_ <- function(lambda, n, ncores) {
     .Call(`_RxODE_rxpois_`, lambda, n, ncores)
 }
 
+rxt__ <- function(df, n, ncores) {
+    .Call(`_RxODE_rxt__`, df, n, ncores)
+}
+
 rxnormV_ <- function(mean, sd, n, ncores) {
     .Call(`_RxODE_rxnormV_`, mean, sd, n, ncores)
 }
