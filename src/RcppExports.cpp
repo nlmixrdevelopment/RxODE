@@ -2035,6 +2035,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxgamma_
+NumericVector rxgamma_(double shape, double rate, int n, int ncores);
+RcppExport SEXP _RxODE_rxgamma_(SEXP shapeSEXP, SEXP rateSEXP, SEXP nSEXP, SEXP ncoresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type shape(shapeSEXP);
+    Rcpp::traits::input_parameter< double >::type rate(rateSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxgamma_(shape, rate, n, ncores));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxbeta_
 NumericVector rxbeta_(double shape1, double shape2, int n, int ncores);
 RcppExport SEXP _RxODE_rxbeta_(SEXP shape1SEXP, SEXP shape2SEXP, SEXP nSEXP, SEXP ncoresSEXP) {

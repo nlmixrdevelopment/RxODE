@@ -714,6 +714,30 @@ extern "C" double rxgamma(rx_solving_options_ind* ind, double shape, double rate
   return d(_eng);
 }
 
+//[[Rcpp::export]]
+NumericVector rxgamma_(double shape, double rate, int n, int ncores){
+  NumericVector ret(n);
+  int n2 = ret.size();
+  std::gamma_distribution<double> d(shape, 1.0/rate);
+  double *retD = ret.begin();
+  
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
+#endif
+
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+  for (int i = 0; i < n2; ++i){
+    retD[i] = d(_eng);
+  }
+#ifdef _OPENMP
+  }
+#endif
+  return ret;
+}
+
 extern "C" double rxbeta(rx_solving_options_ind* ind, double shape1, double shape2){
   if (!ind->inLhs) return 0;
   // Efficient simulation when shape1 and shape2 are "large"

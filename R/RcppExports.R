@@ -709,6 +709,10 @@ rxSeedEng <- function(ncores = 1L) {
     .Call(`_RxODE_rxSeedEng`, ncores)
 }
 
+rxgamma_ <- function(shape, rate, n, ncores) {
+    .Call(`_RxODE_rxgamma_`, shape, rate, n, ncores)
+}
+
 rxbeta_ <- function(shape1, shape2, n, ncores) {
     .Call(`_RxODE_rxbeta_`, shape1, shape2, n, ncores)
 }

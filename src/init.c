@@ -154,6 +154,7 @@ SEXP _RxODE_rxunif_(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxweibull_(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxgeom_(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxbeta_(SEXP, SEXP, SEXP, SEXP);
+SEXP _RxODE_rxgamma_(SEXP, SEXP, SEXP, SEXP);
 
 extern int rxIsCurrentC(SEXP obj);
 
@@ -316,6 +317,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxweibull_", (DL_FUNC) &_RxODE_rxweibull_, 4},
     {"_RxODE_rxgeom_", (DL_FUNC) &_RxODE_rxgeom_, 3},
     {"_RxODE_rxbeta_", (DL_FUNC) &_RxODE_rxbeta_, 4},
+    {"_RxODE_rxgamma_", (DL_FUNC) &_RxODE_rxgamma_, 4},
     {"_RxODE_rxSolveDollarNames", (DL_FUNC) _RxODE_rxSolveDollarNames, 1},
     {"_RxODE_etDollarNames", (DL_FUNC) _RxODE_etDollarNames, 1},
     {NULL, NULL, 0}

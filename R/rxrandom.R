@@ -287,3 +287,46 @@ rxbeta <- function(shape1, shape2, n=1L, ncores=1L){
     rxSeedEng(ncores)
     .Call(`_RxODE_rxbeta_`, shape1, shape2, n, ncores)
 }
+
+##' Simulate gamma variable from threefry generator
+##'
+##' @inheritParams stats::rgamma
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxbeta(0.5, 0.5, n=10) # with rxbeta you have to explicitly state n
+##' rxbeta(5, 1, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxbeta(1, 3)
+##'
+##'
+##' ## This example uses `rxbeta` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxbeta(2, 2)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxgamma <- function(shape, rate = 1/scale, scale = 1, n=1L, ncores=1L){
+    checkmate::assertNumeric(shape, len=1, lower=0);
+    if (shape == 0) stop("'shape' cannot be 0");
+    checkmate::assertNumeric(rate, len=1, lower=0);
+    if (rate == 0 || scale == 0) stop("'rate'/'scale' cannot be 0");
+    if (!missing(rate) && !missing(scale)) {
+        if (abs(rate * scale - 1) < 1e-15)
+            warning("specify 'rate' or 'scale' but not both")
+        else stop("specify 'rate' or 'scale' but not both")
+    }
+    checkmate::assertCount(n)
+    checkmate::assertCount(ncores)
+    rxSeedEng(ncores)
+    .Call(`_RxODE_rxgamma_`, shape, rate, n, ncores)
+}
