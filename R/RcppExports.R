@@ -709,6 +709,10 @@ rxSeedEng <- function(ncores = 1L) {
     .Call(`_RxODE_rxSeedEng`, ncores)
 }
 
+rxchisq_ <- function(df, n, ncores) {
+    .Call(`_RxODE_rxchisq_`, df, n, ncores)
+}
+
 rxexp_ <- function(rate, n, ncores) {
     .Call(`_RxODE_rxexp_`, rate, n, ncores)
 }

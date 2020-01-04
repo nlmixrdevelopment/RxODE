@@ -371,7 +371,7 @@ rxf <- function(df1, df2, n=1L, ncores=1L){
 }
 
 
-##' Simulate exponenital variable from threefry generator
+##' Simulate exponential variable from threefry generator
 ##'
 ##' @inheritParams stats::rexp
 ##' @inheritParams rxnormV
@@ -405,4 +405,41 @@ rxexp <- function(rate, n=1L, ncores=1L){
     checkmate::assertCount(ncores)
     rxSeedEng(ncores)
     .Call(`_RxODE_rxexp_`, rate, n, ncores)
+}
+
+
+##' Simulate chi-squared variable from threefry generator
+##'
+##' @inheritParams stats::rchisq
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' exchisq(0.5, n=10) # with exchisq you have to explicitly state n
+##' exchisq(5, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' exchisq(1)
+##'
+##'
+##' ## This example uses `exchisq` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = exchisq(2)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxchisq <- function(df, n=1L, ncores=1L){
+    checkmate::assertNumeric(df, len=1, lower=0);
+    if (rate == 0) stop("'df' cannot be 0");
+    checkmate::assertCount(n)
+    checkmate::assertCount(ncores)
+    rxSeedEng(ncores)
+    .Call(`_RxODE_rxchisq_`, rate, n, ncores)
 }

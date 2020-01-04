@@ -695,6 +695,30 @@ extern "C" double rxchisq(rx_solving_options_ind* ind, double df){
   return d(_eng);
 }
 
+//[[Rcpp::export]]
+NumericVector rxchisq_(double df, int n, int ncores){
+  NumericVector ret(n);
+  int n2 = ret.size();
+  std::chi_squared_distribution<double> d(df);
+  double *retD = ret.begin();
+  
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
+#endif
+
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+  for (int i = 0; i < n2; ++i){
+    retD[i] = d(_eng);
+  }
+#ifdef _OPENMP
+  }
+#endif
+  return ret;
+}
+
 extern "C" double rxexp(rx_solving_options_ind* ind, double rate){
   if (!ind->inLhs) return 0;
   std::exponential_distribution<double> d(rate);
