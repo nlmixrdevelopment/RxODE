@@ -153,9 +153,12 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   them will depend on the number of cores used in your simulation (Be
   careful about reproduciblility with large number of threads; Also
   use parallel-solve type of RxODE simulations to avoid the [birthday
-  problem](https://www.johndcook.com/blog/2016/01/29/random-number-generator-seed-mistakes/))
+  problem](https://www.johndcook.com/blog/2016/01/29/random-number-generator-seed-mistakes/)).
   
-  These are:
+  
+  During ODE solving, the values of these are `0`, but while
+  calculating the final output the variable is randomized at least for
+  every output. These are:
   - `rxnorm()` and `rxnormV()` (low discrepancy normal)
   - `rxcauchy()`
   - `rxchisq()`
