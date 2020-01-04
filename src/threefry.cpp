@@ -688,6 +688,30 @@ extern "C" double rxcauchy(rx_solving_options_ind* ind, double location, double 
   return d(_eng);
 }
 
+//[[Rcpp::export]]
+NumericVector rxcauchy_(double location, double scale, int n, int ncores){
+  NumericVector ret(n);
+  int n2 = ret.size();
+  std::cauchy_distribution<double> d(location, scale);
+  double *retD = ret.begin();
+  
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
+#endif
+
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+  for (int i = 0; i < n2; ++i){
+    retD[i] = d(_eng);
+  }
+#ifdef _OPENMP
+  }
+#endif
+  return ret;
+}
+
 extern "C" double rxchisq(rx_solving_options_ind* ind, double df){
   if (!ind->inLhs) return 0;
   // Non central not supported in C++11

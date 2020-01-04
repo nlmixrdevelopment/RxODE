@@ -418,16 +418,16 @@ rxexp <- function(rate, n=1L, ncores=1L){
 ##'
 ##' ## Use threefry engine
 ##'
-##' exchisq(0.5, n=10) # with exchisq you have to explicitly state n
-##' exchisq(5, n=10, ncores=2) # You can parallelize the simulation using openMP
+##' rxchisq(0.5, n=10) # with rxchisq you have to explicitly state n
+##' rxchisq(5, n=10, ncores=2) # You can parallelize the simulation using openMP
 ##'
-##' exchisq(1)
+##' rxchisq(1)
 ##'
 ##'
-##' ## This example uses `exchisq` directly in the model
+##' ## This example uses `rxchisq` directly in the model
 ##'
 ##' rx <- RxODE({
-##'   a = exchisq(2)
+##'   a = rxchisq(2)
 ##' })
 ##'
 ##' et <- et(1,id=1:2)
@@ -442,4 +442,41 @@ rxchisq <- function(df, n=1L, ncores=1L){
     checkmate::assertCount(ncores)
     rxSeedEng(ncores)
     .Call(`_RxODE_rxchisq_`, rate, n, ncores)
+}
+
+##' Simulate Cauchy variable from threefry generator
+##'
+##' @inheritParams stats::rcauchy
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxcauchy(0, 1, n=10) # with rxcauchy you have to explicitly state n
+##' rxcauchy(0.5, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxcauchy(3)
+##'
+##'
+##' ## This example uses `rxcauchy` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxcauchy(2)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxcauchy <- function(location = 0, scale = 1, n=1L, ncores=1L){
+    checkmate::assertNumeric(location, len=1);
+    checkmate::assertNumeric(scale, len=1, lower=0);
+    if (scale == 0) stop("'scale' cannot be 0");
+    checkmate::assertCount(n)
+    checkmate::assertCount(ncores)
+    rxSeedEng(ncores)
+    .Call(`_RxODE_rxcauchy_`, location, scale, n, ncores)
 }

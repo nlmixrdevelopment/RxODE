@@ -2035,6 +2035,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxcauchy_
+NumericVector rxcauchy_(double location, double scale, int n, int ncores);
+RcppExport SEXP _RxODE_rxcauchy_(SEXP locationSEXP, SEXP scaleSEXP, SEXP nSEXP, SEXP ncoresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type location(locationSEXP);
+    Rcpp::traits::input_parameter< double >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxcauchy_(location, scale, n, ncores));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxchisq_
 NumericVector rxchisq_(double df, int n, int ncores);
 RcppExport SEXP _RxODE_rxchisq_(SEXP dfSEXP, SEXP nSEXP, SEXP ncoresSEXP) {
