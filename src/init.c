@@ -150,6 +150,7 @@ SEXP _RxODE_rxnorm_(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxnormV_(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxpois_(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxt__(SEXP, SEXP, SEXP);
+SEXP _RxODE_rxunif_(SEXP, SEXP, SEXP, SEXP);
 
 extern int rxIsCurrentC(SEXP obj);
 
@@ -308,6 +309,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxnormV_", (DL_FUNC) &_RxODE_rxnormV_, 4},
     {"_RxODE_rxpois_", (DL_FUNC) &_RxODE_rxpois_, 3},
     {"_RxODE_rxt__", (DL_FUNC) &_RxODE_rxt__, 3},
+    {"_RxODE_rxunif_", (DL_FUNC) &_RxODE_rxunif_, 4},
     {"_RxODE_rxSolveDollarNames", (DL_FUNC) _RxODE_rxSolveDollarNames, 1},
     {"_RxODE_etDollarNames", (DL_FUNC) _RxODE_etDollarNames, 1},
     {NULL, NULL, 0}

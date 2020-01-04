@@ -721,6 +721,10 @@ rxt__ <- function(df, n, ncores) {
     .Call(`_RxODE_rxt__`, df, n, ncores)
 }
 
+rxunif_ <- function(low, hi, n, ncores) {
+    .Call(`_RxODE_rxunif_`, low, hi, n, ncores)
+}
+
 rxnormV_ <- function(mean, sd, n, ncores) {
     .Call(`_RxODE_rxnormV_`, mean, sd, n, ncores)
 }

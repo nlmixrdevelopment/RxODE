@@ -78,7 +78,7 @@ rxnormV <- function(mean = 0, sd = 1, n=1L, ncores=1L){
 ##'
 ##' ## Use threefry engine
 ##'
-##' rxpois(lambda=3, n=10) # with rxnorm you have to explicitly state n
+##' rxpois(lambda=3, n=10) # with rxpois you have to explicitly state n
 ##' rxpois(lambda=3, n=10, ncores=2) # You can parallelize the simulation using openMP
 ##'
 ##' rxpois(4) ## The first arguments are the lambda parameter
@@ -114,7 +114,7 @@ rxpois <- function(lambda, n=1L, ncores=1L){
 ##'
 ##' ## Use threefry engine
 ##'
-##' rxt(df=3, n=10) # with rxnorm you have to explicitly state n
+##' rxt(df=3, n=10) # with rxt you have to explicitly state n
 ##' rxt(df=3, n=10, ncores=2) # You can parallelize the simulation using openMP
 ##'
 ##' rxt(4) ## The first argument is the df parameter
@@ -138,4 +138,40 @@ rxt <- function(df, n=1L, ncores=1L){
     checkmate::assertCount(ncores)
     rxSeedEng(ncores)
     .Call(`_RxODE_rxt__`, df, n, ncores)
+}
+
+##' Simulate uniform variable from threefry generator
+##'
+##' @inheritParams stats::runif
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxunif(min=0, max=4, n=10) # with rxunif you have to explicitly state n
+##' rxunif(min=0, man=4, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxunif()
+##'
+##'
+##' ## This example uses `rxunif` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxunif(0,3)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxunif <- function(min = 0, max = 1, n=1L, ncores=1L){
+    checkmate::assertNumeric(min, len=1);
+    checkmate::assertNumeric(max, len=1);
+    checkmate::assertCount(n)
+    checkmate::assertCount(ncores)
+    rxSeedEng(ncores)
+    .Call(`_RxODE_rxunif_`, min, max, n, ncores)
 }
