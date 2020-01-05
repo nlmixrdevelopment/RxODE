@@ -1283,6 +1283,7 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 typedef struct {
   int *gon;
   double *gsolve;
+  double *gadvan;
   double *gInfusionRate;
   double *gall_times;
   int *gix;
@@ -2893,7 +2894,6 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
 	ind->wrongSSDur=0;
 	ind->err = 0;
 	ind->linCmtT = NA_REAL;
-	ind->linCmtAdvan=NULL;
 	ind->linCmtAdvanSetup=0;
 	ind->cacheME=0;
 	ind->timeReset=1;
@@ -3110,7 +3110,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   rx_solving_options_ind* ind;
-  int curEvent = 0, curIdx = 0, curSolve=0;
+  int curEvent = 0, curIdx = 0, curSolve=0, curLin=0;
   switch(rxSolveDat->parType){
   case 1: // NumericVector
     {
@@ -3146,6 +3146,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
       gparsCovSetup(rxSolveDat->npars, rxSolveDat->nPopPar, ev1, rx);
       rxSolve_assignGpars(rxSolveDat);
       curSolve=0;
+      curLin=0;
       curEvent=0;
       curIdx=0;
       int curOn=0;
@@ -3192,7 +3193,10 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	    ind->doSS = 0;
 	  }
 	  int eLen = op->neq*ind->n_all_times;
-
+	  int aLen = op->nlin;
+	  if (aLen != 0) aLen = (aLen+2)*ind->n_all_times;
+	  ind->linCmtAdvan = &_globals.gadvan[curLin];
+	  curLin += aLen;
 	  ind->solve = &_globals.gsolve[curSolve];
 	  curSolve += eLen;
 	  ind->solveLast = &_globals.gsolve[curSolve];
@@ -3989,7 +3993,14 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rxSolveDat->nSize = rxSolveDat->nPopPar*rx->nsub;
     if (rxSolveDat->nPopPar % rx->nsub == 0) rx->nsim = rxSolveDat->nPopPar / rx->nsub;
     else rx->nsim=1;
-    int n0 = (rx->nall+3*rx->nsub)*state.size()*rx->nsim;
+    IntegerVector linCmtI = rxSolveDat->mv["linCmt"];
+    int linNcmt = linCmtI[0];
+    int linKa = linCmtI[1];
+    op->nlin = linNcmt+linKa;
+    int n0 = (rx->nall+3*rx->nsub)*(state.size())*rx->nsim;
+    int nLin = linNcmt+linKa;
+    if (nLin != 0) nLin = rx->nall*(nLin+2)*rx->nsim;
+    if (op->advanLinCmt == 0) nLin = 0;
     int n2 = rx->nMtime*rx->nsub*rx->nsim;
     int n3 = op->neq*rxSolveDat->nSize;
 #ifdef rxSolveT
@@ -4011,17 +4022,17 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // they do they need to be a parameter.
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
-    _globals.gsolve = (double*)calloc(n0+n2+n3+n4+n5+n6+ 4*op->neq, sizeof(double));// [n0]
-
+    _globals.gsolve = (double*)calloc(n0+nLin+n2+n3+n4+n5+n6+ 4*op->neq, sizeof(double));// [n0]
+    _globals.gadvan = _globals.gsolve+n0; // [nLin]
 #ifdef rxSolveT
-    REprintf("Time12c (double alloc %d): %f\n",n0+n2+n3+n4+n5+n6+ 4*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+n3+n4+n5+n6+ 4*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
     if (_globals.gsolve == NULL){
       rxSolveFree();
       stop(_("could not allocate enough memory for solving"));
     }
-    _globals.gmtime = _globals.gsolve +n0; // [n2]
+    _globals.gmtime = _globals.gadvan +nLin; // [n2]
     _globals.gInfusionRate = _globals.gmtime + n2; //[n3]
     _globals.ginits = _globals.gInfusionRate + n3; // [n4]
     std::copy(rxSolveDat->initsC.begin(), rxSolveDat->initsC.end(), &_globals.ginits[0]);

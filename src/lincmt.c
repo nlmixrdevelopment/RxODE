@@ -1026,7 +1026,8 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 		double p1, double v1,
 		double p2, double p3,
 		double p4, double p5,
-		double d_ka, double d_tlag, double d_tlag2, double d_F, double d_F2,
+		double d_ka, double d_tlag, double d_tlag2,
+		double d_F, double d_F2,
 		// Rate and dur can only apply to central compartment even w/ oral dosing
 		// Therefore, only 1 model rate is possible with RxODE
 		double d_rate, double d_dur){
@@ -1157,7 +1158,6 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
     return 0.0;
   }
   if (ind->linCmtAdvanSetup == 0){
-    ind->linCmtAdvan = Calloc((ncmt+oral0+2)*ind->n_all_times, double);
     for (int ii = ind->n_all_times; ii--; ) ind->linCmtAdvan[ii] = NA_REAL;
     ind->linCmtAdvanSetup=1;
   } else if (t < ind->all_times[0] && ind->linCmtAdvanSetup!=2){

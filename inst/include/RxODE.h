@@ -100,6 +100,7 @@ typedef struct {
   double infSSstep;
   int mxhnil;
   double hmxi;
+  int nlin;
 } rx_solving_options;
 
 
