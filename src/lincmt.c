@@ -1248,7 +1248,8 @@ double linCmtAB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  Alast[ncmt+oral0] += ind->dose[ind->ixds];
 	  break;
 	case 2:
-	  // In this case bio-availability changes the rate, but the duration remains constant.
+	  // In this case bio-availability changes the rate, but the
+	  // duration remains constant.
 	  // rate = amt/dur
 	  doObs;
 	  tlast=xout;

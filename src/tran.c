@@ -263,6 +263,9 @@ lhs symbols?
   int allocD;
   int matn;
   int matnf;
+  int ncmt;
+  int ka;
+  int linB;
 } symtab;
 symtab tb;
 
@@ -1096,7 +1099,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	int isNorm=0, isExp=0, isF=0, isGamma=0, isBeta=0,
 	  isPois=0, isT=0, isUnif=0, isWeibull=0, isNormV=0,
-	  isLead=0, isFirst=0, isLast=0, isDiff=0;
+	  isLead=0, isFirst=0, isLast=0, isDiff=0, isLinB=0;
         if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
 	    !strcmp("max",v) || !strcmp("min",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
@@ -1485,6 +1488,25 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  Free(v);
 	  sAppendN(&sbt, "is.infinite", 11);
 	  continue;
+	} else if (!strcmp("linCmtA", v) ||
+		   (isLinB=!strcmp("linCmtB", v))){
+	  D_ParseNode *xpn1;
+	  xpn1 = d_get_child(pn, 3);
+	  D_ParseNode *xpn2;
+	  xpn2 = d_get_child(xpn1, 2);
+	  char *v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
+	  tb.ncmt = toInt(v2+1);
+	  Free(v2);
+	  if (isLinB) isLinB=1;
+	  tb.linB = isLinB;
+	  xpn2 = d_get_child(xpn1, 10+isLinB);
+	  v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	  if (!strcmp("0.0", v2)){
+	    tb.ka=0;
+	  } else {
+	    tb.ka=1;
+	  }
+	  Free(v2);
         } else {
 	  // Check if this is a valid function
 	  int foundFun = 0;
@@ -2491,9 +2513,13 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
-  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 21));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 21));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 22));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
+  sAppendN(&sbOut, "    SEXP sLinCmt = PROTECT(allocVector(INTSXP,3));pro++;\n", 57);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[0]= %d;\n", tb.ncmt);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[1]= %d;\n", tb.ka);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[2]= %d;\n", tb.linB);
   sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
   sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
   sAppendN(&sbOut, "    SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;\n", 56);
@@ -2672,8 +2698,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst, 17, sDvid);\n", 36);
 
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,19,mkChar(\"timeId\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  19,timeInt);\n", 38);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,20,mkChar(\"timeId\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  20,timeInt);\n", 38);
 
 
   sAppendN(&sbOut, "    SET_STRING_ELT(names,18,mkChar(\"indLin\"));\n", 47);
@@ -2682,8 +2708,11 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut,"%s", extra_indLin);
   /* sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  19,indLin);\n", 38); */
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,20,mkChar(\"md5\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  20,mmd5);\n", 34);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,21,mkChar(\"md5\"));\n", 43);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  21,mmd5);\n", 34);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,19,mkChar(\"linCmt\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  19,sLinCmt);\n", 38);
 
   // const char *rxVersion(const char *what)
   
@@ -3260,6 +3289,8 @@ void reset (){
   tb.hasCentralCmt = 0;
   tb.matn=0;
   tb.matnf=0;
+  tb.ncmt=0;
+  tb.ka=0;
   // reset globals
   good_jac = 1;
   found_jac = 0;
@@ -3496,12 +3527,17 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   tb.li=li;
   
   int pro = 0;
-  SEXP lst   = PROTECT(allocVector(VECSXP, 19));pro++;
-  SEXP names = PROTECT(allocVector(STRSXP, 19));pro++;
+  SEXP lst   = PROTECT(allocVector(VECSXP, 20));pro++;
+  SEXP names = PROTECT(allocVector(STRSXP, 20));pro++;
 
   SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;
   int *iNeedSort  = INTEGER(sNeedSort);
   iNeedSort[0] = needSort;
+
+  SEXP sLinCmt = PROTECT(allocVector(INTSXP,3));pro++;
+  INTEGER(sLinCmt)[0] = tb.ncmt;
+  INTEGER(sLinCmt)[1] = tb.ka;
+  INTEGER(sLinCmt)[2] = tb.linB;
   
   SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;
   int *iMtime  = INTEGER(sMtime);
@@ -3815,6 +3851,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   SET_STRING_ELT(names, 18, mkChar("indLin"));
   SEXP matLst = PROTECT(allocVector(VECSXP, 0));pro++;
   SET_VECTOR_ELT(lst,  18, matLst);
+
+  SET_STRING_ELT(names, 19, mkChar("linCmt"));
+  SET_VECTOR_ELT(lst,   19, sLinCmt);
 
   sPrint(&bufw,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
   
