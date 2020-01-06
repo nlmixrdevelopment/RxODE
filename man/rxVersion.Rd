@@ -4,8 +4,11 @@
 \alias{rxVersion}
 \title{Version and repository for this dparser package.}
 \usage{
-rxVersion(extra = "", echo = FALSE,
-  version = sessionInfo()$otherPkgs$RxODE$Version)
+rxVersion(
+  extra = "",
+  echo = FALSE,
+  version = sessionInfo()$otherPkgs$RxODE$Version
+)
 }
 \arguments{
 \item{extra}{extra text to display in the logo}

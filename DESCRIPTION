@@ -1,5 +1,5 @@
 Package: RxODE
-Version: 0.9.1-8
+Version: 0.9.1-9
 Title: Facilities for Simulating from ODE-Based Models
 Authors@R: c(
    person("Matthew L.","Fidler",
@@ -100,7 +100,7 @@ NeedsCompilation: yes
 VignetteBuilder: knitr
 License: GPL (>= 3) 
 URL: https://nlmixrdevelopment.github.io/RxODE/
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 Biarch: true
 LinkingTo: dparser(>= 0.1.8), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.9.300.2.0), PreciseSums (>= 0.3)
 Encoding: UTF-8

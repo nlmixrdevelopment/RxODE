@@ -5,11 +5,21 @@
 \alias{rxStrict}
 \title{Permissive or Strict RxODE syntax options}
 \usage{
-rxPermissive(expr, silent = .isTestthat(), respect = FALSE,
-  cran = FALSE, on.validate = FALSE)
+rxPermissive(
+  expr,
+  silent = .isTestthat(),
+  respect = FALSE,
+  cran = FALSE,
+  on.validate = FALSE
+)
 
-rxStrict(expr, silent = .isTestthat(), respect = FALSE, cran = FALSE,
-  on.validate = FALSE)
+rxStrict(
+  expr,
+  silent = .isTestthat(),
+  respect = FALSE,
+  cran = FALSE,
+  on.validate = FALSE
+)
 }
 \arguments{
 \item{expr}{Expression to evaluate in the permissive/strict

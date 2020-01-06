@@ -11,8 +11,6 @@
 \alias{[[.rxEvid}
 \alias{type_sum.rxEvid}
 \alias{pillar_shaft.rxEvid}
-\alias{c.rxRateDur}
-\alias{format.rxRateDur}
 \title{EVID formatting for tibble and other places.}
 \usage{
 rxEvid(x)
@@ -33,11 +31,7 @@ as.rxEvid(x)
 
 \method{type_sum}{rxEvid}(x)
 
-pillar_shaft.rxEvid(x, ...)
-
-\method{c}{rxRateDur}(x, ...)
-
-\method{format}{rxRateDur}(x, ...)
+\method{pillar_shaft}{rxEvid}(x, ...)
 }
 \arguments{
 \item{x}{Item to be converted to a RxODE EVID specification.}

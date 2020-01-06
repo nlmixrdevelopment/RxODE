@@ -12,13 +12,13 @@
 \usage{
 \method{type_sum}{units}(x, ...)
 
-format_type_sum.type_sum_units(x, width, ...)
+\method{format_type_sum}{type_sum_units}(x, width, ...)
 
-pillar_shaft.units(x, ...)
+\method{pillar_shaft}{units}(x, ...)
 
 \method{type_sum}{mixed_units}(x, ...)
 
-pillar_shaft.mixed_units(x, ...)
+\method{pillar_shaft}{mixed_units}(x, ...)
 
 \method{scale_type}{units}(x)
 }

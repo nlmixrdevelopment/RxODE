@@ -4,16 +4,31 @@
 \alias{rxSimThetaOmega}
 \title{Simulate Parameters from a Theta/Omega specification}
 \usage{
-rxSimThetaOmega(params = NULL, omega = NULL, omegaDf = NULL,
+rxSimThetaOmega(
+  params = NULL,
+  omega = NULL,
+  omegaDf = NULL,
   omegaLower = as.numeric(c(R_NegInf)),
-  omegaUpper = as.numeric(c(R_PosInf)), omegaIsChol = FALSE,
-  nSub = 1L, thetaMat = NULL, thetaLower = as.numeric(c(R_NegInf)),
-  thetaUpper = as.numeric(c(R_PosInf)), thetaDf = NULL,
-  thetaIsChol = FALSE, nStud = 1L, sigma = NULL,
+  omegaUpper = as.numeric(c(R_PosInf)),
+  omegaIsChol = FALSE,
+  nSub = 1L,
+  thetaMat = NULL,
+  thetaLower = as.numeric(c(R_NegInf)),
+  thetaUpper = as.numeric(c(R_PosInf)),
+  thetaDf = NULL,
+  thetaIsChol = FALSE,
+  nStud = 1L,
+  sigma = NULL,
   sigmaLower = as.numeric(c(R_NegInf)),
-  sigmaUpper = as.numeric(c(R_PosInf)), sigmaDf = NULL,
-  sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, dfSub = 0,
-  dfObs = 0, simSubjects = TRUE)
+  sigmaUpper = as.numeric(c(R_PosInf)),
+  sigmaDf = NULL,
+  sigmaIsChol = FALSE,
+  nCoresRV = 1L,
+  nObs = 1L,
+  dfSub = 0,
+  dfObs = 0,
+  simSubjects = TRUE
+)
 }
 \arguments{
 \item{params}{Named Vector of RxODE model parameters}

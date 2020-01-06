@@ -6,14 +6,32 @@
 \alias{rxShiny.default}
 \title{Use Shiny to help develop an RxODE model}
 \usage{
-rxShiny(object, params = c(), events = NULL, inits = c(), ...,
-  data = data.frame())
+rxShiny(
+  object,
+  params = c(),
+  events = NULL,
+  inits = c(),
+  ...,
+  data = data.frame()
+)
 
-\method{rxShiny}{rxSolve}(object, params = NULL, events = NULL,
-  inits = c(), ..., data = data.frame())
+\method{rxShiny}{rxSolve}(
+  object,
+  params = NULL,
+  events = NULL,
+  inits = c(),
+  ...,
+  data = data.frame()
+)
 
-\method{rxShiny}{default}(object = NULL, params = c(), events = NULL,
-  inits = c(), ..., data = data.frame())
+\method{rxShiny}{default}(
+  object = NULL,
+  params = c(),
+  events = NULL,
+  inits = c(),
+  ...,
+  data = data.frame()
+)
 }
 \arguments{
 \item{object}{A RxODE family of objects. If not supplied a

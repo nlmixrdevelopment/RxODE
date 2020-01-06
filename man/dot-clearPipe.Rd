@@ -4,10 +4,21 @@
 \alias{.clearPipe}
 \title{Clear/Set pipeline}
 \usage{
-.clearPipe(rx = NULL, inits = NULL, events = NULL, params = NULL,
-  iCov = NULL, keep = NULL, thetaMat = NULL, omega = NULL,
-  sigma = NULL, dfObs = NULL, dfSub = NULL, nSub = NULL,
-  nStud = NULL)
+.clearPipe(
+  rx = NULL,
+  inits = NULL,
+  events = NULL,
+  params = NULL,
+  iCov = NULL,
+  keep = NULL,
+  thetaMat = NULL,
+  omega = NULL,
+  sigma = NULL,
+  dfObs = NULL,
+  dfSub = NULL,
+  nSub = NULL,
+  nStud = NULL
+)
 }
 \arguments{
 \item{rx}{RxODE object}

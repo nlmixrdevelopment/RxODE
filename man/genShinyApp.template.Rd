@@ -6,9 +6,12 @@
 \alias{write.template.ui}
 \title{Generate an example (template) of a dosing regimen shiny app}
 \usage{
-genShinyApp.template(appDir = "shinyExample", verbose = TRUE,
-  ODE.config = list(ode = "model", params = c(KA = 0.294), inits = c(eff
-  = 1), method = "lsoda", atol = 1e-08, rtol = 1e-06))
+genShinyApp.template(
+  appDir = "shinyExample",
+  verbose = TRUE,
+  ODE.config = list(ode = "model", params = c(KA = 0.294), inits = c(eff = 1), method =
+    "lsoda", atol = 1e-08, rtol = 1e-06)
+)
 
 write.template.server(appDir)
 

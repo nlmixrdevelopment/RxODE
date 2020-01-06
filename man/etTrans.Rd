@@ -4,9 +4,16 @@
 \alias{etTrans}
 \title{Event translation for RxODE}
 \usage{
-etTrans(inData, obj, addCmt = FALSE, dropUnits = FALSE,
-  allTimeVar = FALSE, keepDosingOnly = FALSE, combineDvid = NULL,
-  keep = character(0))
+etTrans(
+  inData,
+  obj,
+  addCmt = FALSE,
+  dropUnits = FALSE,
+  allTimeVar = FALSE,
+  keepDosingOnly = FALSE,
+  combineDvid = NULL,
+  keep = character(0)
+)
 }
 \arguments{
 \item{inData}{Data frame to translate}

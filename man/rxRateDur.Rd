@@ -2,50 +2,15 @@
 % Please edit documentation in R/et.R
 \name{rxRateDur}
 \alias{rxRateDur}
-\alias{[.rxRateDur}
 \alias{as.rxRateDur}
-\alias{as.character.rxRateDur}
-\alias{[[.rxRateDur}
-\alias{type_sum.rxRateDur}
-\alias{pillar_shaft.rxRateDur}
-\alias{as.data.frame.rxRateDur}
 \title{Creates a rxRateDur object}
 \usage{
 rxRateDur(x)
 
-\method{[}{rxRateDur}(x, ...)
-
 as.rxRateDur(x)
-
-\method{as.character}{rxRateDur}(x, ...)
-
-\method{[[}{rxRateDur}(x, ...)
-
-\method{type_sum}{rxRateDur}(x)
-
-pillar_shaft.rxRateDur(x, ...)
-
-\method{as.data.frame}{rxRateDur}(x, row.names = NULL,
-  optional = FALSE, ..., nm = paste(deparse(substitute(x), width.cutoff
-  = 500L), collapse = " "))
 }
 \arguments{
 \item{x}{rxRateDur data}
-
-\item{...}{additional arguments to be passed to or from methods.}
-
-\item{row.names}{\code{NULL} or a character vector giving the row
-    names for the data frame.  Missing values are not allowed.}
-
-\item{optional}{logical. If \code{TRUE}, setting row names and
-    converting column names (to syntactic names: see
-    \code{\link{make.names}}) is optional.  Note that all of \R's
-    \pkg{base} package \code{as.data.frame()} methods use
-    \code{optional} only for column names treatment, basically with the
-    meaning of \code{\link{data.frame}(*, check.names = !optional)}.
-    See also the \code{make.names} argument of the \code{matrix} method.}
-
-\item{nm}{Name of column in new data frame}
 }
 \description{
 This is primarily to display information about rate

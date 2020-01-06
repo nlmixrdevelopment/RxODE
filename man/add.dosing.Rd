@@ -4,10 +4,19 @@
 \alias{add.dosing}
 \title{Add dosing to eventTable}
 \usage{
-add.dosing(eventTable, dose, nbr.doses = 1L, dosing.interval = 24,
-  dosing.to = 1L, rate = NULL, amount.units = NA_character_,
-  start.time = 0, do.sampling = FALSE, time.units = NA_character_,
-  ...)
+add.dosing(
+  eventTable,
+  dose,
+  nbr.doses = 1L,
+  dosing.interval = 24,
+  dosing.to = 1L,
+  rate = NULL,
+  amount.units = NA_character_,
+  start.time = 0,
+  do.sampling = FALSE,
+  time.units = NA_character_,
+  ...
+)
 }
 \arguments{
 \item{eventTable}{eventTable object}

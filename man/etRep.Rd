@@ -5,9 +5,18 @@
 \alias{rep.rxEt}
 \title{Repeat an RxODE event table}
 \usage{
-etRep(x, times = 1, length.out = NA, each = NA, n = NULL,
-  wait = 0, id = integer(0), samples = c("clear", "use"),
-  waitII = c("smart", "+ii"), ii = 24)
+etRep(
+  x,
+  times = 1,
+  length.out = NA,
+  each = NA,
+  n = NULL,
+  wait = 0,
+  id = integer(0),
+  samples = c("clear", "use"),
+  waitII = c("smart", "+ii"),
+  ii = 24
+)
 
 \method{rep}{rxEt}(x, ...)
 }

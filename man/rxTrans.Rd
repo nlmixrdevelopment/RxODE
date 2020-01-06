@@ -6,14 +6,35 @@
 \alias{rxTrans.character}
 \title{Translate the model to C code if needed}
 \usage{
-rxTrans(model, extraC = NULL, modelPrefix = "", md5 = "",
-  modName = NULL, modVars = FALSE, ...)
+rxTrans(
+  model,
+  extraC = NULL,
+  modelPrefix = "",
+  md5 = "",
+  modName = NULL,
+  modVars = FALSE,
+  ...
+)
 
-\method{rxTrans}{default}(model, extraC = NULL, modelPrefix = "",
-  md5 = "", modName = NULL, modVars = FALSE, ...)
+\method{rxTrans}{default}(
+  model,
+  extraC = NULL,
+  modelPrefix = "",
+  md5 = "",
+  modName = NULL,
+  modVars = FALSE,
+  ...
+)
 
-\method{rxTrans}{character}(model, extraC = NULL, modelPrefix = "",
-  md5 = "", modName = NULL, modVars = FALSE, ...)
+\method{rxTrans}{character}(
+  model,
+  extraC = NULL,
+  modelPrefix = "",
+  md5 = "",
+  modName = NULL,
+  modVars = FALSE,
+  ...
+)
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:

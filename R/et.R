@@ -1063,6 +1063,7 @@ as.et.default <- function(x,...){
     return(.e);
 
 }
+##'@noRd
 ##'@export
 as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...){
     if (rxIs(x, "rxEt")){
@@ -1277,6 +1278,7 @@ pillar_shaft.rxEvid <- function(x, ...){
 ##'
 ##' @inheritParams base::as.data.frame
 ##' @param nm Name of column in new data frame
+##' @noRd
 ##' @export
 as.data.frame.rxEvid <- base::as.data.frame.difftime
 
@@ -1291,7 +1293,7 @@ rxRateDur <- function(x){
     return(structure(x, class="rxRateDur"))
 }
 
-##'@rdname rxRateDur
+##'@noRd
 ##'@export
 `[.rxRateDur` <- function(x, ...){
     return(as.rxRateDur(NextMethod()))
@@ -1301,13 +1303,13 @@ rxRateDur <- function(x){
 ##' @export
 as.rxRateDur <- rxRateDur;
 
-##'@rdname rxEvid
+##' @noRd
 ##' @export
 c.rxRateDur <- function(x, ...){
     return(as.rxRateDur(NextMethod()))
 }
 
-##'@rdname rxRateDur
+##'@noRd
 ##'@export
 as.character.rxRateDur <- function(x, ...){
     .x <- unclass(x);
@@ -1340,31 +1342,33 @@ as.character.rxRateDur <- function(x, ...){
     return(.x)
 }
 
-##'@export
+##'@noRd
 print.rxRateDur <- function(x, ...){
     cat(paste(.colorFmt.rxRateDur(x),collapse="\n"),"\n")
     return(invisible(x))
 }
 
-##'@rdname rxEvid
+##'@noRd
 ##'@export
 format.rxRateDur <- function(x, ...){
     .x <- unclass(x)
     format(as.character.rxRateDur(.x), align="left");
 }
 
-##'@rdname rxRateDur
+##'@noRd
 ##' @export
 `[[.rxRateDur` <- function(x, ...) {
   as.rxRateDur(NextMethod())
 }
 
+##' @noRd
 ##' @export
 `[<-.rxRateDur` <- function(x, i, value) {
     as.rxRateDur(NextMethod())
 }
 
-##'@rdname rxRateDur
+##'@noRd
+##' @export
 type_sum.rxRateDur <- function(x){
     .unit <- attr(x, "units")
     if (!is.null(.unit)){
@@ -1376,15 +1380,23 @@ type_sum.rxRateDur <- function(x){
     }
 }
 
-##'@rdname rxRateDur
+##' Pillar shaft for rxRateDur
+##'
+##'@inheritParams pillar::pillar_shaft
+##'@export
 pillar_shaft.rxRateDur <- function(x, ...){
     .x <- .colorFmt.rxRateDur(x)
     pillar::new_pillar_shaft_simple(.x, align = "left", width=10)
 }
 
-##'@rdname rxRateDur
-#' @inheritParams base::as.data.frame
-#' @param nm Name of column in new data frame
+##' Re export of pillar_shaft
+##'
+##' @inheritParams pillar::pillar_shaft
+##'
+##'@export
+pillar_shaft <- pillar::pillar_shaft
+
+#' @noRd
 #' @export
 as.data.frame.rxRateDur <- base::as.data.frame.difftime
 
