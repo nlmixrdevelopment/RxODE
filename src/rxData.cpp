@@ -68,16 +68,16 @@ bool rxHasEventNames(CharacterVector &nm){
   int len = nm.size();
   bool reset  = resetCache;
   if (reset || len != rxcLen){
-    reset   = resetCache;
-    rxcEvid = -1;
-    rxcTime = -1;
-    rxcAmt  = -1;
-    rxcId   = -1;
-    rxcDv   = -1;
-    rxcIi   = -1;
+    reset    = resetCache;
+    rxcEvid  = -1;
+    rxcTime  = -1;
+    rxcAmt   = -1;
+    rxcId    = -1;
+    rxcDv    = -1;
+    rxcIi    = -1;
     rxcLimit = -1;
-    rxcCens = -1;
-    rxcLen  = len;
+    rxcCens  = -1;
+    rxcLen   = len;
     for (unsigned int i = len; i--;){
       if (as<std::string>(nm[i]) == "evid" ||
 	  as<std::string>(nm[i]) == "EVID" ||
@@ -3690,7 +3690,20 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       stop(_("cannot update this object"));
     }
   } else {
-    object =obj;
+    if (method == 3){
+      rxSolveDat->mv = rxModelVars(obj);
+      List indLin = rxSolveDat->mv["indLin"];
+      if (indLin.size() == 0){
+	Function RxODE = getRxFn("RxODE");
+	object = RxODE(obj, _["indLin"]=true);
+	rxSolveDat->mv = rxModelVars(object);
+      } else {
+	object =obj;
+      }
+    } else {
+      object =obj;
+      rxSolveDat->mv = rxModelVars(object);
+    }
   }
   if (rxSolveDat->isRxSolve || rxSolveDat->isEnvironment){
     return rxSolve_update(object, rxControl, specParams,
@@ -3707,7 +3720,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       stop(_("cannot load RxODE dlls for this model"));
     }
     // Get model 
-    rxSolveDat->mv = rxModelVars(object);
     RObject trueParams;
     RObject trueEvents;
     bool swappedEvents=false;

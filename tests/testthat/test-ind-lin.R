@@ -12,11 +12,29 @@ test_that("Matrix exponential alone works", {
         z(0) = 0.1
     }, indLin=TRUE)
 
-    ## Case 2 ME alone with inhomogenous systems
     m <- rxSolve(mod, et(seq(0, 24, length.out=50)), method="indLin")
     m2 <- rxSolve(mod, et(seq(0, 24, length.out=50)), method="lsoda")
 
     expect_equal(as.data.frame(m), as.data.frame(m2), tol=1e-5)
+
+    ## Now do without indLin in the RxODE
+
+    mod <- RxODE({
+        d/dt(x) = 2 * x - y + z
+        d/dt(y) = 3 * y - 1 * z
+        d/dt(z) = 2 * x + y + 3 * z
+        x(0) = 0.1
+        y(0) = 0.1
+        z(0) = 0.1
+    })
+
+    m <- rxSolve(mod, et(seq(0, 24, length.out=50)), method="indLin")
+    m2 <- rxSolve(mod, et(seq(0, 24, length.out=50)), method="lsoda")
+
+    expect_equal(as.data.frame(m), as.data.frame(m2), tol=1e-5)
+
+
+    ## Case 2 ME alone with inhomogenous systems
 
     mod <- RxODE({
         d/dt(x) = 2 * x - y + z + exp(-2 * t)
