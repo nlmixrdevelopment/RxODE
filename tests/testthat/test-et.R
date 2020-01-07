@@ -478,4 +478,15 @@ rxPermissive({
         })
     }
 
+    context("seq() arguments work; See #97")
+
+    test_that("seq() args", {
+        et1 <- et() %>% add.sampling(seq(0,24,by=3))
+
+        et2 <- et(from=0, to=24, by=3)
+
+        expect_equal(et1$time, et2$time)
+    })
+
+
 }, silent=TRUE, cran=TRUE)
