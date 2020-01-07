@@ -967,7 +967,7 @@ List etImportEventTable(List inData){
     else if (tmpS == "ss")   ssCol=i;
     else if (tmpS == "rate") rateCol=i;
     else if (tmpS == "addl") addlCol=i;
-    else if (tmpS == "ii")   iiCol=i;
+    else if (tmpS == "ii" || tmpS == "by")   iiCol=i;
     else if (tmpS == "dur" || tmpS == "duration") {
       if (durCol !=-1) stop(_("can only specify either 'duration' or 'dur'"));
       durCol=i;
@@ -2274,7 +2274,7 @@ RObject et_(List input, List et__){
     else if (inN[i] == "ii" || inN[i] == "dosing.interval" || inN[i] == "dosingInterval" || inN[i] == "dosing_interval")
       iiIx=i;
     else if (inN[i] == "addl") addlIx = i;
-    else if (inN[i] == "until") untilIx = i;
+    else if (inN[i] == "until" || inN[i] == "to") untilIx = i;
     else if (inN[i] == "evid") evidIx = i;
     else if (inN[i] == "ID" || inN[i] == "id") idIx=i;
     else if (inN[i] == "cmt" || inN[i] == "dosing.to" || inN[i] == "dosingTo" || inN[i] =="dosing_to" ||
@@ -2286,7 +2286,8 @@ RObject et_(List input, List et__){
     else if (inN[i] == "do.sampling" || inN[i] == "doSampling" || inN[i] == "do_sampling" ||
 	     inN[i] == "add.sampling" || inN[i] == "addSampling" || inN[i] == "add_sampling") doSamplingIdx=i;
     else if (inN[i] == "time" || inN[i] == "start.time" || inN[i] == "startTime" || inN[i] == "start_time" ||
-	     inN[i] == "start") timeIx = i;
+	     inN[i] == "start" ||
+	     inN[i] == "from") timeIx = i;
     else if (inN[i] == "nbr.doses" || inN[i] == "nbrDoses" || inN[i] == "nbr") nbrIx=i;
     else if (inN[i] == "ss") ssIx = i;
     else if (inN[i] == "rate") rateIx = i;
