@@ -63,9 +63,7 @@ geom_line <- ggplot2::geom_line
 ##'@export
 facet_wrap <- ggplot2::facet_wrap
 
-##'@importFrom ggplot2 scale_type
-##'@S3method scale_type units
-##'@export scale_type.units
+##'@export
 ##'@name tibble
 scale_type.units <- loadNamespace("ggforce")$scale_type.units
 
