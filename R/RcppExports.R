@@ -166,6 +166,10 @@ rxRepR0_ <- function(neta) {
     .Call(`_RxODE_rxRepR0_`, neta)
 }
 
+rxExpandOcc <- function(obj, nocc, par) {
+    .Call(`_RxODE_rxExpandOcc`, obj, nocc, par)
+}
+
 #' Inductive linearization solver
 #'
 #' @param cSub = Current subject number

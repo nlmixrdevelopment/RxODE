@@ -80,6 +80,7 @@ SEXP _RxODE_rxMvrandn_(SEXP, SEXP, SEXP, SEXP, SEXP,
 
 SEXP _RxODE_rxSolveDollarNames(SEXP);
 SEXP _RxODE_etDollarNames(SEXP);
+SEXP _RxODE_rxExpandOcc(SEXP, SEXP, SEXP);
 
 SEXP RxODE_get_mv();
 
@@ -330,6 +331,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxbinom_", (DL_FUNC) &_RxODE_rxbinom_, 4},
     {"_RxODE_rxSolveDollarNames", (DL_FUNC) _RxODE_rxSolveDollarNames, 1},
     {"_RxODE_etDollarNames", (DL_FUNC) _RxODE_etDollarNames, 1},
+    {"_RxODE_rxExpandOcc", (DL_FUNC) _RxODE_rxExpandOcc, 3},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

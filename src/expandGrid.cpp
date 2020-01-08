@@ -284,3 +284,23 @@ std::string rxRepR0_(int neta){
   cur = "assign(\"rx_r\",with(.s,"+cur+"),envir=.s)";
   return cur;
 }
+
+List rxModelVars_(const RObject &obj);
+
+//[[Rcpp::export]]
+std::string rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par){
+  std::string ret="";
+  for (int j = par.size(); j--;){
+    std::string curPar = as<std::string>(par[j]);
+    ret += curPar  + "=";
+    for (int i = nocc; i--;){
+      ret += "(rxOCC==" + std::to_string(i+1)+")*" + curPar + "_" + std::to_string(i+1);
+      if (i) ret += "+";
+      else ret += ";\n";
+    }
+  }
+  List mv = rxModelVars_(obj);
+  CharacterVector mod = mv["model"];
+  ret += as<std::string>(mod[0]);
+  return ret;
+}
