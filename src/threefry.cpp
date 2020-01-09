@@ -623,8 +623,7 @@ arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
 arma::mat rxMvrandn_(NumericMatrix A_,
 		     arma::rowvec mu, arma::mat sigma, arma::vec lower,
 		     arma::vec upper, int ncores=1,
-		     double a=0.4, double tol = 2.05,
-		     double nlTol=1e-10, int nlMaxiter=100){
+		     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
   int n = A_.nrow();
   int d = mu.n_elem;
   arma::mat ch;
@@ -1071,4 +1070,52 @@ NumericVector rxweibull_(double shape, double scale, int n, int ncores){
   }
 #endif
   return ret;
+}
+
+
+bool anyFinite(arma::vec v){
+  for (int i = v.size(); i--;){
+    if (R_FINITE(v[i])) return true;
+  }
+  return false;
+}
+
+arma::vec fillVec(arma::vec& in, int len){
+  if (in.size() == len){
+    return in;
+  } else if ((int)(in.size()) == 1){
+    arma::vec out(len);
+    std::fill_n(out.begin(), len, in[0]);
+    return out;
+  } else {
+    arma::vec z;
+    return z;
+  }
+}
+
+//[[Rcpp::export]]
+SEXP rxRmvn0(NumericMatrix& A_, arma::rowvec mu, arma::mat sigma,
+	     arma::vec lower, arma::vec upper, int ncores=1, bool isChol=false,
+	     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
+  bool trunc = false;
+  if (anyFinite(lower)){
+    trunc = true;
+  } else if (anyFinite(upper)){
+    trunc = true;
+  }
+  if (trunc){
+    arma::mat sigma0 = sigma;
+    if (isChol){
+      sigma0 = sigma * sigma.t();
+    }
+    IntegerVector dm = as<IntegerVector>(A_.attr("dim"));
+    // int n = dm[0];
+    arma::vec lower0 = fillVec(lower, dm[1]);
+    arma::vec upper0 = fillVec(upper, dm[1]);
+    arma::mat ret = rxMvrandn_(A_, mu, sigma0, lower0,
+		      upper0, ncores, a, tol, nlTol,nlMaxiter);
+    return R_NilValue;
+  } else {
+    return rxRmvn_(A_, mu, sigma, ncores, isChol);
+  }
 }

@@ -397,14 +397,18 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##'
 ##' set.seed(414)
 ##' rxRmvn(A, 1:d, mcov, ncores = 2) # This returns NULL ...
-##' A                              # ... but the result is here
+##' A                                # ... but the result is here
+##'
+##' ## You can also simulate from a truncated normal:
+##'
+##' rxRmvn(10, 1:d, mcov, lower=1:d-1, upper=1:d+1)
 ##'
 ##' @author Matthew Fidler and some from Matteo Fasiolo
 ##' @export
-rxRmvn <- function(n, mu, sigma, lower, upper, ncores=1, isChol=FALSE,
-                   keepNames=TRUE){
+rxRmvn <- function(n, mu, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=FALSE,
+                   keepNames=TRUE) {
     .d <- length(mu);
-    if (is.matrix(n)){
+    if (is.matrix(n)) {
         .A <- n;
         n <- dim(.A)[1]
         .retA <- FALSE
@@ -414,34 +418,14 @@ rxRmvn <- function(n, mu, sigma, lower, upper, ncores=1, isChol=FALSE,
         dim(.A) <- c(n, .d);
         .retA <- TRUE
     }
-    if (missing(sigma)) sigma <- diag(.d)
-    if (!is.matrix(sigma)) sigma <- as.matrix(sigma)
-    if (missing(lower)) {lower <- rep(-Inf, length(mu));}
-    else if (length(lower) == 1) {lower <- rep(lower, .d);}
-    if (missing(upper)) { upper <- rep(Inf, .d);}
-    else if (length(upper) == 1) {upper <- rep(upper, .d);}
-    .trunc <- FALSE
-    if (!all(is.infinite(upper))) .trunc <- TRUE
-    if (!all(is.infinite(upper))) .trunc <- TRUE
-    if (.trunc){
-        if (isChol){
-            stop("n")
-        }
-        ## if (ncores > 1){
-        ##     ncores <- 1
-        ## }
-        rxMvrandn_(.A, mu, sigma, lower, upper,
-                   ncores);
-    } else {
-        .Call(`_RxODE_rxRmvn_`, .A, mu, sigma,
-              ncores, isChol);
-    }
-    if (.retA){
-        if (keepNames){
-            if(is.null(.nm <- names(mu))){
+    .Call(`_RxODE_rxRmvn0`, .A, mu, sigma, lower, upper, ncores, isChol,
+          0.4, 2.05, 1e-10, 100);
+    if (.retA) {
+        if (keepNames) {
+            if (is.null(.nm <- names(mu))) {
                 .nm <- dimnames(sigma)[[1L]]
             }
-            if(!is.null(.nm)){
+            if (!is.null(.nm)) {
                 dimnames(.A) <- list(NULL, .nm)
             }
         }

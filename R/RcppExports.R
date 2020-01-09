@@ -765,6 +765,10 @@ rxweibull_ <- function(shape, scale, n, ncores) {
     .Call(`_RxODE_rxweibull_`, shape, scale, n, ncores)
 }
 
+rxRmvn0 <- function(A_, mu, sigma, lower, upper, ncores = 1L, isChol = FALSE, a = 0.4, tol = 2.05, nlTol = 1e-10, nlMaxiter = 100L) {
+    .Call(`_RxODE_rxRmvn0`, A_, mu, sigma, lower, upper, ncores, isChol, a, tol, nlTol, nlMaxiter)
+}
+
 rxnormV_ <- function(mean, sd, n, ncores) {
     .Call(`_RxODE_rxnormV_`, mean, sd, n, ncores)
 }

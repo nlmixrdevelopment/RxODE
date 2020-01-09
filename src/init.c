@@ -162,6 +162,10 @@ SEXP _RxODE_rxchisq_(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxcauchy_(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxbinom_(SEXP, SEXP, SEXP, SEXP);
 
+SEXP _RxODE_rxRmvn0(SEXP, SEXP, SEXP, SEXP, SEXP,
+		    SEXP, SEXP, SEXP, SEXP, SEXP,
+		    SEXP);
+
 extern int rxIsCurrentC(SEXP obj);
 
 rx_solve *getRxSolve_();
@@ -332,6 +336,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSolveDollarNames", (DL_FUNC) _RxODE_rxSolveDollarNames, 1},
     {"_RxODE_etDollarNames", (DL_FUNC) _RxODE_etDollarNames, 1},
     {"_RxODE_rxExpandOcc", (DL_FUNC) _RxODE_rxExpandOcc, 3},
+    {"_RxODE_rxRmvn0", (DL_FUNC) _RxODE_rxRmvn0, 11},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
