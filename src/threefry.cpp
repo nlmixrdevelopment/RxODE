@@ -1081,7 +1081,7 @@ bool anyFinite(arma::vec v){
 }
 
 arma::vec fillVec(arma::vec& in, int len){
-  if (in.size() == len){
+  if ((int)in.size() == len){
     return in;
   } else if ((int)(in.size()) == 1){
     arma::vec out(len);

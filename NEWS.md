@@ -10,7 +10,11 @@
 ## New features
 
 * Completion for all api elements of `rxSolve()` objects, and `et()`
-  objects have been added
+  objects have been added (accessed through `$`)
+
+* Rstudio notebook output makes more sense
+
+* Printing upgraded to cli 2.0
   
 * Caching of internal C data setup is now supported increasing speed
   of `optim` code when:

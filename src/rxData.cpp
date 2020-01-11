@@ -3631,7 +3631,6 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
   } else {
     CharacterVector cls= CharacterVector::create("rxSolve", "rxSolveParams","rxSolveCovs",
 						 "rxSolveInits", "rxSolveSimType",
-						 "tbl_df", "tbl",
 						 "data.frame");
     cls.attr(".RxODE.env") = rxSolve_genenv(obj, rxControl, specParams,
 					    dat, params, events,

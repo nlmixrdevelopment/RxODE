@@ -29,6 +29,7 @@ Authors@R: c(
    person("Linda", "Petzold", role="ctb"),
    person("Martin", "Maechler", role="ctb"),
    person("Matteo", "Fasiolo", email = "matteo.fasiolo@gmail.com", role = "ctb"),
+   person("Max", "Gordon", role="ctb"),
    person("Morwenn","", role="ctb"),
    person("Nicholas J.", "Higham",role="ctb"),
    person("Robert", "Gentleman",role="ctb"),
@@ -43,7 +44,6 @@ Maintainer: Wenping Wang <wwang8198@gmail.com>
 Depends:
     R (>= 3.6.0)
 Suggests:
-    knitr,
     DT,
     data.table (>= 1.12.4),
     nlme,
@@ -53,7 +53,6 @@ Suggests:
     usethis,
     devtools,
     covr,
-    rmarkdown,
     dplyr (>= 0.8.0),
     tidyr,
     tibble,
@@ -65,6 +64,9 @@ Suggests:
     htmltools,
     rlang
 Imports:
+    rstudioapi,
+    rmarkdown,
+    knitr,
     Matrix,
     PreciseSums (>= 0.3),
     Rcpp (>= 0.12.3),
