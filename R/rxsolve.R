@@ -908,131 +908,295 @@ solve.rxParams <- solve.rxSolve
 ##' @export
 solve.rxEt <- solve.rxSolve
 
-.sharedPrint <- function(x, n, width, bound="") {
-    ## nocov start
-    .isDplyr <- requireNamespace("tibble", quietly = TRUE) && RxODE.display.tbl;
-    ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
-    df <- x$.params.single
-    if (length(df) > 0) {
-        pars.msg <- .cliRule(left=paste0(crayon::bold("Parameters"), " (",
-                                         crayon::yellow(bound), crayon::bold$blue("$params"), "):"));
-        if (!is.null(df)) {
-            cat(pars.msg, "\n");
-            print(df)
-        } else {
-            df <- x$pars
-            if (!is.null(df)) {
-                cat(pars.msg, "\n");
-                if (rxIs(df, "data.frame")) {
-                    if (!.isDplyr) {
-                        print(head(as.matrix(df), n = n));
-                    } else {
-                        print(tibble::as_tibble(df), n = n, width = width);
-                    }
-                }
-            }
-        }
-    }
-    df <- x$covs;
-    if (!is.null(df)) {
-        .cliRule(left=paste0(crayon::bold("Covariates"), " (",
-                                  crayon::yellow(bound), crayon::bold$blue("$covs"), "):"))
-        if (!.isDplyr) {
-            print(head(as.matrix(df), n = n));
-        } else {
-            print(tibble::as_tibble(df), n = n, width = width);
-        }
-    }
-
-    .cliRule(left=paste0(crayon::bold("Initial Conditions"),
-                              " (", crayon::yellow(bound), crayon::bold$blue("$inits"), "):"))
-    print(x$inits);
-    if (any(names(x) == "sim.id")) {
-        .uncert <- character(0)
-        if (!is.null(x$thetaMat)) {
-            .uncert <- c(.uncert, paste0("parameters (", crayon::yellow(bound), crayon::bold$blue("$thetaMat"), " for changes)"))
-        }
-        if (!is.null(x$omegaList)) {
-            .uncert <- c(.uncert, paste0("omega matrix (", crayon::yellow(bound), crayon::bold$blue("$omegaList"), ")"))
-        }
-        if (!is.null(x$sigmaList)) {
-            .uncert <- c(.uncert, paste0("sigma matrix (", crayon::yellow(bound), crayon::bold$blue("$sigmaList"), ")"))
-        }
-        if (length(.uncert) == 0L) {
-            cat(paste0("\nSiulation ", crayon::bold("without uncertainty"), " in parameters, omega or sigma matricies\n\n"));
-        } else if (length(.uncert) == 1L) {
-            cat(paste0("\nSimulation ", crayon::bold("with uncertainty"), " in ", paste(.uncert, collapse=", "), "\n\n"));
-        } else {
-            cat(paste0("\nSimulation ", crayon::bold("with uncertainty"), " in:\n  - ", paste(.uncert, collapse="\n  - "), "\n\n"));
-        }
-    }
-    return(invisible(.isDplyr));
-    ## nocov end
+.fmt3 <- function(name, bound, access){
+  paste0(crayon::bold(name), " (", crayon::yellow(bound),
+                 crayon::bold$blue(paste0("$", access)), "):")
 }
-
-##' @author Matthew L.Fidler
 ##' @export
-print.rxSolve <- function(x, ...) {
-    ##nocov start
-    if (rxIs(x, "rxSolve")) {
-        bound <- .getBound(x, parent.frame(2));
-        .cliRule(center=crayon::bold("Solved RxODE object"), line="bar2")
-        args <- as.list(match.call(expand.dots = TRUE));
-        if (any(names(args) == "n")) {
-            n <- args$n;
-        } else {
-            n <- 6L;
-        }
-        if (any(names(args) == "width")) {
-            width <- args$width;
-        } else {
-            width <- NULL;
-        }
-        .isDplyr <- .sharedPrint(x, n, width, bound)
-        ## inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
-        ## print(inits);
-        .cliRule(left=crayon::bold("First part of data (object):"))
-        if (!.isDplyr) {
-            print(head(as.matrix(x), n = n));
-        } else {
-            print(tibble::as_tibble(x), n = n, width = width);
-        }
-        .cliRule(line="bar2")
-    } else {
-        print.data.frame(x)
-    }
-    ##nocov end
+format.boundParams <- function(x, ...){
+  cli::cli_format_method({
+    cli::cli_rule(left=.fmt3("Parameters", x, "params"));
+  })
 }
+
+##' @export
+print.boundParams <- function(x, ...){
+  cat(format(x, ...), sep="\n");
+}
+
+##' @export
+`$.rxSolveParams` <-  function(obj, arg, exact = FALSE) {
+    return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
+}
+
+##' @export
+print.rxSolveParams <- function(x, ...){
+  .args <- as.list(match.call(expand.dots = TRUE));
+  if (any(names(.args) == "bound")) {
+    .bound <- .args$bound;
+  } else {
+    .bound <- .getBound(x, parent.frame(2));
+  }
+  class(.bound) <- "boundParams"
+  .df <- x$.params.single
+  if (length(.df) > 0) {
+      print(.bound, ...)
+      print(.df, ...)
+  } else {
+    .df <- x$pars
+    if (rxIs(.df, "data.frame")) {
+      print(.bound, ...)
+      print(tibble::as_tibble(.df), ...);
+    }
+  }
+  NextMethod();
+}
+
+##'@export
+format.boundCovs <- function(x, ...){
+  cli::cli_format_method({
+    cli::cli_rule(left=.fmt3("Covariates", x, "covs"));
+  })
+}
+
+##' @export
+print.boundCovs <- function(x, ...){
+  cat(format(x, ...), sep="\n");
+}
+
+##' @export
+print.rxSolveCovs <- function(x, ...){
+  .args <- as.list(match.call(expand.dots = TRUE));
+  if (any(names(.args) == "bound")) {
+    .bound <- .args$bound;
+  } else {
+    .bound <- .getBound(x, parent.frame(2));
+  }
+  .df <- x$covs;
+  if (!is.null(.df)) {
+    if (rxIs(.df, "data.frame")){
+      print(structure(.bound, class="boundCovs"), ...)
+      print(tibble::as_tibble(.df), ...);
+    }
+  }
+  NextMethod();
+}
+
+##' @export
+`$.rxSolveCovs` <-  function(obj, arg, exact = FALSE) {
+    return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
+}
+
+##'@export
+format.boundInits <- function(x, ...){
+  cli::cli_format_method({
+    cli::cli_rule(left=.fmt3("Initial Conditions", x, "inits"));
+  })
+}
+
+##'@export
+print.boundInits <- function(x, ...){
+  cat(format(x, ...), sep="\n");
+}
+
+##' @export
+print.rxSolveInits <- function(x, ...){
+  .args <- as.list(match.call(expand.dots = TRUE));
+  if (any(names(.args) == "bound")) {
+    .bound <- .args$bound;
+  } else {
+    .bound <- .getBound(x, parent.frame(2));
+  }
+  print(structure(.bound, class="boundInits"), ...)
+  .df <- x$inits;
+  print(.df)
+  NextMethod();
+}
+
+##'@export
+format.rxSolveSimType <- function(x, ...){
+  if (any(names(x) == "sim.id")){
+    .args <- as.list(match.call(expand.dots = TRUE));
+    if (any(names(.args) == "bound")) {
+      .bound <- .args$bound;
+    } else {
+      .bound <- .getBound(x, parent.frame(2));
+    }
+    .uncert <- character(0)
+    if (!is.null(x$thetaMat)) {
+      .uncert <- c(.uncert, paste0("parameters (", crayon::yellow(.bound), crayon::bold$blue("$thetaMat"), " for changes)"))
+    }
+    if (!is.null(x$omegaList)) {
+      .uncert <- c(.uncert, paste0("omega matrix (", crayon::yellow(.bound), crayon::bold$blue("$omegaList"), ")"))
+    }
+    if (!is.null(x$sigmaList)) {
+      .uncert <- c(.uncert, paste0("sigma matrix (", crayon::yellow(.bound), crayon::bold$blue("$sigmaList"), ")"))
+    }
+    if (length(.uncert) == 0L) {
+      .first <- paste0("\nSimulation ", crayon::bold("without uncertainty"), " in parameters, omega or sigma matricies\n\n");
+    } else if (length(.uncert) == 1L) {
+      .first <- paste0("\nSimulation ", crayon::bold("with uncertainty"), " in ", paste(.uncert, collapse=", "), "\n");
+    } else {
+      .first <- paste0("\nSimulation ", crayon::bold("with uncertainty"), " in:");
+      return(cli::cli_format_method({
+        cli::cli_text("")
+        cli::cli_text(.first)
+        cli::cli_ul(.uncert)
+        cli::cli_text("")
+      }))
+    }
+    return(cli::cli_format_method({
+      cli::cli_text("")
+      cli::cli_text(.first)
+      cli::cli_text("")
+    }))
+  } else {
+    return("")
+  }
+}
+
+##'@export
+print.rxSolveSimType <- function(x, ...){
+  if (any(names(x) == "sim.id")){
+    cat(format(x, ...), sep="\n")
+  }
+}
+
+##'@export
+print.rxSolve <- function(x, ...){
+  if (rxIs(x, "rxSolve")) {
+    .args <- as.list(match.call(expand.dots = TRUE));
+    if (any(names(.args) == "n")) {
+      .n <- .args$n;
+    } else {
+      .n <- 6L;
+    }
+    if (any(names(.args) == "width")) {
+      .width <- .args$width;
+    } else {
+      .width <- NULL;
+    }
+    .summary <- any(names(.args) == ".summary")
+    if (!.summary){
+      cat(cli::cli_format_method({
+        d <- cli::cli_div(theme = list(rule = list(
+          "line-type" = "bar2")))
+        cli::cli_rule(center=crayon::bold("Solved RxODE object"))
+        cli::cli_end(d);
+      }), sep="\n")
+    }
+    NextMethod()
+    if (.summary) {
+      cat(cli::cli_format_method({
+        cli::cli_rule(left=crayon::bold("Summary of data (object):"))
+      }), sep="\n")
+      print(summary.data.frame(x))
+      cat(cli::cli_format_method({
+        d <- cli::cli_div(theme = list(rule = list(
+          "line-type" = "bar2")))
+        cli::cli_rule()
+        cli::cli_end(d)
+      }), sep="\n")
+    } else {
+      cat(cli::cli_format_method({
+        cli::cli_rule(left=crayon::bold("First part of data (object):"))
+      }), sep="\n")
+      .isDplyr <- requireNamespace("tibble", quietly = TRUE) && RxODE.display.tbl;
+      if (!.isDplyr) {
+        print(head(as.matrix(x), n = .n));
+      } else {
+        print(tibble::as_tibble(x), n = .n, width = .width);
+      }
+      cat(cli::cli_format_method({
+        d <- cli::cli_div(theme = list(rule = list(
+          "line-type" = "bar2")))
+        cli::cli_rule()
+        cli::cli_end(d)
+      }), sep="\n")
+    }
+  } else {
+    print.data.frame(x)
+  }
+}
+
+##'@export
+`$.rxSolveSimType` <- function(obj, arg, exact = FALSE) {
+    return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
+}
+
+##' @export
+`$.rxSolve` <- function(obj, arg, exact = FALSE) {
+    return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
+}
+
+
+##'@export
+print.rxModelText <- function(x, ...) {
+  ## nocov start
+  .args <- as.list(match.call(expand.dots = TRUE));
+  .summary <- any(names(.args) == ".summary")
+  if (any(names(.args) == "bound")) {
+    .bound <- .args$bound;
+  } else {
+    .bound <- .getBound(x, parent.frame(2));
+  }
+  if (.summary) {
+    cat(cli::cli_format_method({
+      cli::cli_rule(left=.fmt3("Model", .bound, "model"));
+    }), sep="\n")
+  } else {
+    cat(cli::cli_format_method({
+      d <- cli::cli_div(theme = list(rule = list(
+        "line-type" = "bar2")))
+      cli::cli_rule(center=crayon::bold("RxODE Model Syntax"))
+      cli::cli_end(d);
+    }), sep="\n")
+  }
+  .code <- deparse(body(eval(parse(text=paste("function() {",as.vector(x),"}")))))
+  .code[1]  <- "RxODE({"
+  .code[length(.code)]  <- "})";
+  cat(paste(.code,collapse="\n"), "\n");
+  if (!.summary) {
+    cat(cli::cli_format_method({
+      d <- cli::cli_div(theme = list(rule = list(
+        "line-type" = "bar2")))
+      cli::cli_rule()
+      cli::cli_end(d);
+    }), sep="\n")
+  }
+  ## nocov end
+}
+
 
 ##' @author Matthew L.Fidler
 ##' @export
 summary.rxSolve <- function(object, ...) {
-    ## nocov start
-    if (rxIs(object, "rxSolve")) {
-        bound <- .getBound(object, parent.frame(2));
-        .cliRule(center=crayon::bold("Summary of Solved RxODE object"), line="bar2")
-        .cliRule(left=paste0(crayon::bold("Model"),
-                                  " (", crayon::yellow(bound), crayon::bold$blue("$model"), "):"));
-        cat(rxNorm(object), "\n");
-        args <- as.list(match.call(expand.dots = TRUE));
-        if (any(names(args) == "n")) {
-            n <- args$n;
-        } else {
-            n <- 6L;
-        }
-        if (any(names(args) == "width")) {
-            width <- args$width;
-        } else {
-            width <- NULL;
-        }
-        .sharedPrint(object, n, width, bound)
-        .cliRule(left=crayon::bold("Summary of solved data:"))
-        print(summary.data.frame(object))
-        .cliRule(line="bar2")
+  ## nocov start
+  if (rxIs(object, "rxSolve")) {
+    .args <- as.list(match.call(expand.dots = TRUE));
+    if (any(names(.args) == "n")) {
+      .n <- .args$n;
     } else {
-        class(object) <- "data.frame"
-        NextMethod("summary", object);
+      .n <- 6L;
     }
+    if (any(names(.args) == "width")) {
+      .width <- .args$width;
+    } else {
+      .width <- NULL;
+    }
+    cat(cli::cli_format_method({
+      d <- cli::cli_div(theme = list(rule = list(
+        "line-type" = "bar2")))
+      cli::cli_rule(center=crayon::bold("Summary of Solved RxODE object"))
+      cli::cli_end(d);
+    }), sep="\n")
+    .model <- object$model;
+    print(.model, .summary=TRUE)
+    print(object, .summary=TRUE, ...)
+  } else {
+    class(object) <- "data.frame"
+    NextMethod("summary", object);
+  }
     ## nocov end
 }
 
@@ -1047,12 +1211,6 @@ summary.rxSolve <- function(object, ...) {
 ##' @export
 is.rxSolve <- function(x) {
     .Call(`_RxODE_rxIs`, x, "rxSolve");
-}
-
-##' @author Matthew L.Fidler
-##' @export
-`$.rxSolve` <-  function(obj, arg, exact = FALSE) {
-    return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
 }
 
 ##' @author Matthew L.Fidler
@@ -1157,18 +1315,6 @@ dimnames.rxSolve <- function(x) {
     } else {
         return(as.data.frame(solved) + new);
     }
-}
-
-##'@export
-print.rxModelText <- function(x, ...) {
-    ## nocov start
-    .cliRule(center=crayon::bold("RxODE Model Syntax"), line="bar2");
-    .code <- deparse(body(eval(parse(text=paste("function() {",as.vector(x),"}")))))
-    .code[1]  <- "RxODE({"
-    .code[length(.code)]  <- "})";
-    cat(paste(.code,collapse="\n"), "\n");
-    .cliRule(line="bar2")
-    ## nocov end
 }
 
 ##'@export

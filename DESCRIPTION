@@ -68,7 +68,7 @@ Imports:
     Matrix,
     PreciseSums (>= 0.3),
     Rcpp (>= 0.12.3),
-    cli,
+    cli(>= 2.0.0),
     crayon,
     digest,
     dparser (>= 0.1.8),

@@ -3629,7 +3629,10 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
       return tmpM;
     }
   } else {
-    CharacterVector cls= CharacterVector::create("rxSolve", "data.frame");
+    CharacterVector cls= CharacterVector::create("rxSolve", "rxSolveParams","rxSolveCovs",
+						 "rxSolveInits", "rxSolveSimType",
+						 "tbl_df", "tbl",
+						 "data.frame");
     cls.attr(".RxODE.env") = rxSolve_genenv(obj, rxControl, specParams,
 					    dat, params, events,
 					    inits, rxSolveDat);
@@ -4132,7 +4135,7 @@ RObject rxSolveGet_rxSolve(RObject &obj, std::string &sarg, LogicalVector &exact
     List mv = rxModelVars(obj);
     CharacterVector mods = mv["model"];
     CharacterVector retS = as<std::string>(mods["normModel"]);
-    retS.attr("class") = "RxODE.modeltext";
+    retS.attr("class") = "rxModelText";
     return(retS);
   }
   updateSolveEnvPost(e);

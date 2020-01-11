@@ -594,38 +594,41 @@ simulate.rxEt <- #nolint
 
 ##'@export
 print.rxEt <- function(x,...) {
-    ## nocov start
-    if (rxIs(x, "rxEt")) {
-        bound <- .getBound(x, parent.frame(2));
-        .cliRule(center=crayon::bold(paste0("EventTable with ",x$nobs+x$ndose, " records")));
-        ## sprintf(" with %s records%s:\n", x$nobs+x$ndose,
-        ##                                           ifelse(x$maxId==1, "", sprintf(" (%d IDs)", abs(x$maxId))))
-        .units <- x$.units;
-        .maxId <- length(x$IDs)
-        if (.maxId !=1) {
-            cat(sprintf("   %s individuals\n", .maxId))
-        }
-        cat(sprintf("   %s dosing records (see %s$%s(); add with %s or %s)\n",
-                    x$ndose, crayon::yellow(bound), crayon::blue("get.dosing"),
-                    crayon::blue("add.dosing"), crayon::blue("et")))
-        cat(sprintf("   %s observation times (see %s$%s(); add with %s or %s)\n",
-                    x$nobs, crayon::yellow(bound), crayon::blue("get.sampling"),
-                    crayon::blue("add.sampling"), crayon::blue("et")))
-        if (x$show["addl"]) {
-            cat(sprintf("   multiple doses in `addl` columns, expand with %s$%s(); or %s(%s)\n",
-                        crayon::yellow(bound), crayon::blue("expand"),
-                        crayon::blue("etExpand"), crayon::yellow(bound)))
-        }
-        if (x$nobs!=0 | x$ndose!=0) {
-            .cliRule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":")));
-            print(tibble::as_tibble(data.frame(.etAddCls(x))));
-        }
-        .cliRule();
-        invisible(x)
-    } else {
-        print.data.frame(x)
+  ## nocov start
+  if (rxIs(x, "rxEt")) {
+    bound <- .getBound(x, parent.frame(2));
+    cat(cli::cli_format_method({
+      cli::cli_rule(center=crayon::bold(paste0("EventTable with ",x$nobs+x$ndose, " records")))
+    }), sep="\n")
+    ## sprintf(" with %s records%s:\n", x$nobs+x$ndose,
+    ##                                           ifelse(x$maxId==1, "", sprintf(" (%d IDs)", abs(x$maxId))))
+    .units <- x$.units;
+    .maxId <- length(x$IDs)
+    if (.maxId !=1) {
+      cat(sprintf("   %s individuals\n", .maxId))
     }
-    ## nocov end
+    cat(sprintf("   %s dosing records (see %s$%s(); add with %s or %s)\n",
+                x$ndose, crayon::yellow(bound), crayon::blue("get.dosing"),
+                crayon::blue("add.dosing"), crayon::blue("et")))
+    cat(sprintf("   %s observation times (see %s$%s(); add with %s or %s)\n",
+                x$nobs, crayon::yellow(bound), crayon::blue("get.sampling"),
+                crayon::blue("add.sampling"), crayon::blue("et")))
+    if (x$show["addl"]) {
+      cat(sprintf("   multiple doses in `addl` columns, expand with %s$%s(); or %s(%s)\n",
+                  crayon::yellow(bound), crayon::blue("expand"),
+                  crayon::blue("etExpand"), crayon::yellow(bound)))
+    }
+    if (x$nobs!=0 | x$ndose!=0) {
+      cat(cli::cli_format_method({
+        cli::cli_rule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":")))
+      }), sep="\n")
+      print(tibble::as_tibble(data.frame(.etAddCls(x))));
+    }
+    invisible(x)
+  } else {
+    print.data.frame(x)
+  }
+  ## nocov end
 }
 
 ##'@export

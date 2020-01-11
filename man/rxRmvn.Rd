@@ -8,8 +8,8 @@ rxRmvn(
   n,
   mu,
   sigma,
-  lower,
-  upper,
+  lower = -Inf,
+  upper = Inf,
   ncores = 1,
   isChol = FALSE,
   keepNames = TRUE
@@ -78,7 +78,11 @@ class(A) <- "numeric" # This is important. We need the elements of A to be of cl
 
 set.seed(414)
 rxRmvn(A, 1:d, mcov, ncores = 2) # This returns NULL ...
-A                              # ... but the result is here
+A                                # ... but the result is here
+
+## You can also simulate from a truncated normal:
+
+rxRmvn(10, 1:d, mcov, lower=1:d-1, upper=1:d+1)
 
 }
 \references{

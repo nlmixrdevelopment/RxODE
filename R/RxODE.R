@@ -1122,42 +1122,52 @@ coef.rxDll <- function(...){
 ##' @author Matthew L.Fidler
 ##' @export
 print.rxCoef <- function(x, ...){
-    ## nocov start
-    .rxDllObj <- x$RxODE;
-    if (length(rxParams(.rxDllObj)) > 0){
-        .cliRule(left="User supplied parameters:");
-        print(RxODE::rxInits(.rxDllObj, c(), RxODE::rxParams(.rxDllObj), NA, TRUE))
-        .cliRule(left="User initial conditions:");
-        .tmp <- RxODE::rxInits(.rxDllObj, c(), RxODE::rxState(.rxDllObj), 0, TRUE);
-        if (length(x$sens) > 0){
-            .tmp <- .tmp[regexpr(getFromNamespace("regSens", "RxODE"), names(.tmp)) == -1];
-        }
-        .tmp <- .tmp[!(names(.tmp) %in% x$fn.ini)];
-        print(.tmp);
+  ## nocov start
+  .rxDllObj <- x$RxODE;
+  if (length(rxParams(.rxDllObj)) > 0){
+    cat(cli::cli_format_method({
+      cli::cli_rule(left="User supplied parameters:")
+    }), "\n");
+    print(RxODE::rxInits(.rxDllObj, c(), RxODE::rxParams(.rxDllObj), NA, TRUE))
+    cat(cli::cli_format_method({
+      cli::cli_rule(left="User initial conditions:")
+    }), "\n")
+    .tmp <- RxODE::rxInits(.rxDllObj, c(), RxODE::rxState(.rxDllObj), 0, TRUE);
+    if (length(x$sens) > 0){
+      .tmp <- .tmp[regexpr(getFromNamespace("regSens", "RxODE"), names(.tmp)) == -1];
     }
-    if (length(x$fn.ini) > 0){
-        .cliRule(left="Parameter-based initial conditions:");
-        print(x$fn.ini);
-    }
-    .cliRule(left="Compartments:");
-    .tmp <- RxODE::rxState(.rxDllObj);
-    if (length(.tmp) > 0){
-        names(.tmp) <- paste0("cmt=", seq_along(.tmp));
-        if (length(x$sens) > 0){
-            .tmp1 <- .tmp[regexpr(getFromNamespace("regSens", "RxODE"), .tmp) == -1];
-            print(.tmp1);
-            .cliRule(left="Sensitivities:")
-            .tmp2 <- gsub(getFromNamespace("regSens", "RxODE"), "d/dt(d(\\1)/d(\\2))",
-                          .tmp[regexpr(regSens, .tmp) != -1]);
-            print(.tmp2);
-        } else {
-            print(.tmp);
-        }
+    .tmp <- .tmp[!(names(.tmp) %in% x$fn.ini)];
+    print(.tmp);
+  }
+  if (length(x$fn.ini) > 0){
+    cat(cli::cli_format_method({
+      cli::cli_rule(left="Parameter-based initial conditions:")
+    }), "\n")
+    print(x$fn.ini);
+  }
+  cat(cli::cli_format_method({
+    cli::cli_rule(left="Compartments:")
+  }), "\n")
+  .tmp <- RxODE::rxState(.rxDllObj);
+  if (length(.tmp) > 0){
+    names(.tmp) <- paste0("cmt=", seq_along(.tmp));
+    if (length(x$sens) > 0){
+      .tmp1 <- .tmp[regexpr(getFromNamespace("regSens", "RxODE"), .tmp) == -1];
+      print(.tmp1);
+      cat(cli::cli_format_method({
+        cli::cli_rule(left="Sensitivities:")
+      }), "\n")
+      .tmp2 <- gsub(getFromNamespace("regSens", "RxODE"), "d/dt(d(\\1)/d(\\2))",
+                    .tmp[regexpr(regSens, .tmp) != -1]);
+      print(.tmp2);
     } else {
-        cat("No ODEs in this DLL.\n");
+      print(.tmp);
     }
-    return(invisible());
-    ## nocov end
+  } else {
+    cat("No ODEs in this DLL.\n");
+  }
+  return(invisible());
+  ## nocov end
 }
 
 ##' Print the rxCoefSolve object
@@ -1905,34 +1915,36 @@ print.rxDll <- function(x, ...){
 ##' @author Matthew L.Fidler
 ##' @export
 summary.rxDll <- function(object, ...){
-    ## nocov start
-    .args <- as.list(match.call(expand.dots = TRUE));
-    if (any(names(.args) == "noprint")){
-        .noprint <- .args$noprint;
-    } else {
-        .noprint <- FALSE;
-    }
-    if (!.noprint)
-        print(object);
-    cat(sprintf("DLL: %s\n", RxODE::rxDll(object)));
-    cat(sprintf("Jacobian: %s\n",
-                ifelse(RxODE::rxModelVars(object)$jac == "fulluser", "Full User Specified",
-                       "Full Internally Calculated")));
-    print(coef(object));
-    if (length(RxODE::rxLhs(object)) > 0){
-        cat("\nCalculated Variables:\n");
-        print(RxODE::rxLhs(object));
-    }
-    .mv <- rxModelVars(object);
-    if (length(.mv$indLin) > 0){
-        .cliRule(left="Inductive Linearization Matrix/Matrices:")
-        print(.mv$indLin);
-    }
-    .tmp <- as.vector(RxODE::rxModelVars(object)$model["normModel"])
-    class(.tmp) <- "rxModelText"
-    print(.tmp)
-    return(invisible(object))
-    ## nocov end
+  ## nocov start
+  .args <- as.list(match.call(expand.dots = TRUE));
+  if (any(names(.args) == "noprint")){
+    .noprint <- .args$noprint;
+  } else {
+    .noprint <- FALSE;
+  }
+  if (!.noprint)
+    print(object);
+  cat(sprintf("DLL: %s\n", RxODE::rxDll(object)));
+  cat(sprintf("Jacobian: %s\n",
+              ifelse(RxODE::rxModelVars(object)$jac == "fulluser", "Full User Specified",
+                     "Full Internally Calculated")));
+  print(coef(object));
+  if (length(RxODE::rxLhs(object)) > 0){
+    cat("\nCalculated Variables:\n");
+    print(RxODE::rxLhs(object));
+  }
+  .mv <- rxModelVars(object);
+  if (length(.mv$indLin) > 0){
+    cat(cli::cli_format_method({
+      cli::cli_rule(left="Inductive Linearization Matrix/Matrices:")
+    }), "\n")
+    print(.mv$indLin);
+  }
+  .tmp <- as.vector(RxODE::rxModelVars(object)$model["normModel"])
+  class(.tmp) <- "rxModelText"
+  print(.tmp)
+  return(invisible(object))
+  ## nocov end
 }
 
 ##' @rdname rxInits
