@@ -67,7 +67,7 @@ rxPermissive({
 
     test_that("Character data frame assignment operators [] make sense",{
         o1.assign <- o1.first;
-        expect_equal(as.vector(class(o1.assign)), c("rxSolve", "data.frame"))
+        expect_true(inherits(o1.assign, "data.frame"))
         o1.assign[,"depot"] <- 0;
         expect_equal(rep(0,times = length(as.data.frame(o1.assign)[,1])),as.data.frame(o1.assign)[,"depot"]);
         expect_equal(rep(0,times = length(o1.assign$depot)),o1.assign$depot);
@@ -91,7 +91,7 @@ rxPermissive({
 
     test_that("Character data frame assignment operators [[]] make sense",{
         o1.assign <- o1.first;
-        expect_equal(as.vector(class(o1.assign)), c("rxSolve", "data.frame"))
+        expect_true(inherits(o1.assign, "data.frame"))
         o1.assign[["depot"]] <- 0;
         expect_equal(rep(0,times = length(as.data.frame(o1.assign)[,1])),as.data.frame(o1.assign)[["depot"]]);
         expect_equal(rep(0,times = length(o1.assign$depot)),o1.assign$depot);
@@ -105,7 +105,7 @@ rxPermissive({
 
     test_that("Character data frame assignment operators $ make sense",{
         o1.assign <- o1.first;
-        expect_equal(as.vector(class(o1.assign)), c("rxSolve", "data.frame"))
+        expect_true(inherits(o1.assign, "rxSolve"))
         o1.assign$depot <- 0;
         expect_equal(rep(0,times = length(as.data.frame(o1.assign)[,1])),as.data.frame(o1.assign)$depot);
         expect_equal(rep(0,times = length(o1.assign$depot)),o1.assign$depot);
