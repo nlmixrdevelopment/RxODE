@@ -33,7 +33,7 @@ findLhs <- function(x) {
 ##' @return Translated solve for RxODE linear compartments
 ##' @author Matthew L. Fidler
 ##' @keywords internal
-##' @noRd
+##' @export
 rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
     .vars <- c();
     .old  <- getOption("RxODE.syntax.require.ode.first", TRUE)
