@@ -10,13 +10,11 @@ rxPermissive({
 
 
 
-    mypar1 = function ()
-    {
+    mypar1 = function () {
         ke = theta[1] * exp(eta[1]);
     }
 
-    mypar2 = function ()
-    {
+    mypar2 = function () {
         k = theta[1] * exp(eta[1]);
         v = 1
     }
@@ -27,7 +25,7 @@ rxPermissive({
 
     pred = function() ipre
 
-    err2 <- function(f){
+    err2 <- function(f) {
         return(theta[2]); ## SD
     }
 

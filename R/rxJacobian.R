@@ -622,6 +622,13 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
                                    .s$..pred.nolhs), collapse="\n");
         pred.opt <- .s$..pred.nolhs
     }
+    .nullInt <- function(x) {
+        if (RxODE::rxIs(x, "integer") || RxODE::rxIs(x, "numeric")) {
+            return(as.integer(x))
+        } else {
+            return(integer(0))
+        }
+    }
     .ret <- list(obj=obj,
                  inner=inner,
                  pred.only=.toRx(.s$..pred, "compiling EBE model..."),
@@ -631,8 +638,8 @@ rxSEinner <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL,
                  theta=NULL,
                  ## warn=.zeroSens,
                  pred.minus.dv=pred.minus.dv,
-                 log.thetas=.s$..extraTheta[["exp"]],
-                 log.etas=.s$..extraEta[["exp"]],
+                 log.thetas=.nullInt(.s$..extraTheta[["exp"]]),
+                 log.etas=.nullInt(.s$..extraEta[["exp"]]),
                  extraProps=.s$..extraTheta,
                  eventTheta=.eventTheta,
                  eventEta=.eventEta
