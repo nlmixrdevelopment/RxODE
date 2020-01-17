@@ -281,7 +281,7 @@ std::string rxRepR0_(int neta){
   for (int j = neta; j--;){
     cur = "symengine::subs(" + cur+ ",ETA_" + std::to_string(j+1) + "_,..s0)";
   }
-  cur = "assign(\"rx_r\",with(.s,"+cur+"),envir=.s)";
+  cur = "assign(\"rx_r_\",with(.s,"+cur+"),envir=.s)";
   return cur;
 }
 
