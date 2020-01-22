@@ -187,6 +187,22 @@ bool rxIs_list(const RObject &obj, std::string cls){
 	rxcId   = 0;
 	rxcDv   = 5;
 	rxcIi   = 4;
+	List e = as<List>(classattr.attr(".RxODE.lst"));
+	int censAdd = as<int>(e["censAdd"]);
+	int limitAdd = as<int>(e["limitAdd"]);
+	if (censAdd == 1 && limitAdd == 1) {
+	  rxcCens = 6;
+	  rxcLimit = 7;
+	} else if (censAdd == 1){
+	  rxcCens = 6;
+	  rxcLimit = -1;
+	} else if (limitAdd == 1){
+	  rxcCens  = -1;
+	  rxcLimit = 6;
+	} else {
+	  rxcCens  = -1;
+	  rxcLimit = -1;
+	}
 	return true;
       } else {
 	// Check for event.data.frame
@@ -2377,6 +2393,21 @@ static inline void rxSolve_ev1Update(const RObject &obj,
     rxcId   = 0;
     rxcDv   = 5;
     rxcIi   = 4;
+    int censAdd = as<int>(tmpL["censAdd"]);
+    int limitAdd = as<int>(tmpL["limitAdd"]);
+    if (censAdd == 1 && limitAdd == 1) {
+      rxcCens = 6;
+      rxcLimit = 7;
+    } else if (censAdd == 1){
+      rxcCens = 6;
+      rxcLimit = -1;
+    } else if (limitAdd == 1){
+      rxcCens  = -1;
+      rxcLimit = 6;
+    } else {
+      rxcCens  = -1;
+      rxcLimit = -1;
+    }
   }
   if (rxIs(ev1, "rxEtTrans")){
     CharacterVector cls = ev1.attr("class");

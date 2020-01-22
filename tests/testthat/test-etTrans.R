@@ -507,6 +507,28 @@ d/dt(blood)     = a*intestine - b*blood
 
     ret <- expect_warning(RxODE::etTrans(tmp, mod))
     expect_false(any(names(ret) == "CENS"))
+    expect_equal(attr(class(ret), ".RxODE.lst")$censAdd, 0L)
+    expect_equal(attr(class(ret), ".RxODE.lst")$limitAdd, 0L)
+
+    tmp <- et;
+    tmp$cens <- 0
+    tmp$dv[1] <- 2
+    tmp$cens <- 0
+    tmp$cens[1] <- 1
+
+    ret <- RxODE::etTrans(tmp, mod)
+    expect_true(any(names(ret) == "CENS"))
+    expect_equal(attr(class(ret), ".RxODE.lst")$censAdd, 1L)
+    expect_equal(attr(class(ret), ".RxODE.lst")$limitAdd, 0L)
+
+    tmp$limit <- 0
+
+    ret <- RxODE::etTrans(tmp, mod)
+    expect_true(any(names(ret) == "CENS"))
+    expect_true(any(names(ret) == "LIMIT"))
+    expect_equal(attr(class(ret), ".RxODE.lst")$censAdd, 1L)
+    expect_equal(attr(class(ret), ".RxODE.lst")$limitAdd, 1L)
+
 })
 
         context("Constant infusion taken to steady state")

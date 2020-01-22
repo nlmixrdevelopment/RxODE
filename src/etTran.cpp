@@ -1940,6 +1940,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
   e["allTimeVar"] = allTimeVar;
   e["keepDosingOnly"] = true;
+  e["censAdd"] = censAdd;
+  e["limitAdd"] = limitAdd;
   keepL.attr("names") = keepN;
   keepL.attr("class") = CharacterVector::create("data.frame");
   keepL.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt);
