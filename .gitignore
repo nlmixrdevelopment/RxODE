@@ -26,3 +26,4 @@ inst/doc
 /src/Makevars.r-stripper.bak
 /vignettes/*_files/
 /vignettes/*.html
+.Rproj.user

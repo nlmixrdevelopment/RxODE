@@ -86,3 +86,5 @@ vignettes/cl-lincmt.csv
 vignettes/kel-lincmt.csv
 vignettes/build.R
 ^README\.Rmd$
+^.*\.Rproj$
+^\.Rproj\.user$

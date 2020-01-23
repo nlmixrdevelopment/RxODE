@@ -1435,7 +1435,13 @@ confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...) {
                  parm=levels(.stk$trt));
     class(.lst) <- "rxHidden";
     if (object$env$.args$nStud <= 1) {
-        if (object$env$.args$nSub < 2500) {
+        .nSub <- object$env$.args$nSub;
+        if (.nSub == 1L){
+            if (any(names(object) == "id")){
+                .nSub <- length(levels(object$id));
+            }
+        }
+        if (.nSub < 2500) {
             warning("confidence bands need at least 2500 simulations")
             message("summarizing data")
             .ret <- .stk %>% dplyr::group_by(time, trt) %>%
