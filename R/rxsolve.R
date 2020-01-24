@@ -1455,7 +1455,12 @@ confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...) {
             ##     ggplot2::geom_line(size=1.2)
             return(.ret)
         } else {
-            .n <- round(sqrt(object$env$.args$nSub));
+            .n <- round(sqrt(.nSub));
+            if (!any(names(.stk) == "sim.id")){
+                .stk %>%
+                    dplyr::rename("sim.id"="id") ->
+                    .stk
+            }
         }
     } else {
         .n <- object$env$.args$nStud;
