@@ -388,7 +388,65 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
             }
         }
     }
-
+    if ( !missing(amt)){
+        if (length(amt) > 1){
+            if (missing(time)){
+                time <- 0
+            } else if (length(time) != length(amt)){
+                if (length(time) != 1){
+                    stop("when supplying vectors of 'time', 'amt' they need to be the same size")
+                }
+            }
+            .df <- data.frame(time=time, amt=amt)
+            ##
+            if (!missing(id)){
+                .df$id <- id
+            }
+            if (missing(cmt)){
+                .df$cmt <- "(default)";
+            } else {
+                .df$cmt <- cmt
+            }
+            .df$amt <- amt
+            if (missing(rate)) {
+                .df$rate <- 0.0
+            } else {
+                .df$rate <- rate
+            }
+            if (missing(ii)) {
+                .df$ii <- 0.0
+            } else {
+                .df$ii <- ii
+            }
+            if (missing(addl)) {
+                .df$addl <- 0L
+            } else {
+                .df$addl <- addl
+            }
+            if (missing(evid)) {
+                .df$evid <- 1L
+            } else {
+                .df$evid <- evid
+            }
+            if (missing(ss)) {
+                .df$ss <- 0L
+            } else {
+                .df$ss <- ss
+            }
+            if (missing(dur)) {
+                .df$dur <- 0.0
+            } else {
+                .df$dur <- dur
+            }
+            .et <- et()
+            .et$import.EventTable(.df);
+            if (.isPipe){
+                return(etRbind(eval(.lst[[1]], envir=envir), .et))
+            } else {
+                return(.et)
+            }
+        }
+    }
     if (!missing(time)) {
         checkmate::assertNumeric(time,
                                  finite=TRUE,

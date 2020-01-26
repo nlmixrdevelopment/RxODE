@@ -12,6 +12,9 @@
 * Completion for all api elements of `rxSolve()` objects, and `et()`
   objects have been added (accessed through `$`)
 
+* `et()` can dose with `length(amt) > 1` as long as the other
+  arguments can create a event table.
+
 * Rstudio notebook output makes more sense
 
 * Printing upgraded to cli 2.0
@@ -62,7 +65,6 @@ mod1 <-RxODE({
     }
 })
 ```
-
 
 It is still simpler to use:
 
