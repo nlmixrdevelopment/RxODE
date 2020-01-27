@@ -1,9 +1,9 @@
 ---
 title: "Weight Based Dosing in RxODE"
-date: "`r Sys.Date()`"
 output:
   html_document:
     self_contained: no
+date: "`r Sys.Date()`"
 ---
 
 ```{r, echo=FALSE}
@@ -17,6 +17,11 @@ Sys.setenv(RSTUDIO_CONSOLE_WIDTH=80)
 This is an example model for weight based dosing of
 daptomycin. Daptomycin is a cyclic lipopeptide antibiotic from
 fermented *Streptomyces roseosporus*.
+
+There are 3 stages for weight-based dosing simulations:
+- Create RxODE model
+- Simulate Covariates
+- Create event table with weight-based dosing (merged back to covariates)
 
 # Creating a 2-compartment model in RxODE
 
