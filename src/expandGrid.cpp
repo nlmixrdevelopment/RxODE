@@ -290,16 +290,21 @@ List rxModelVars_(const RObject &obj);
 //[[Rcpp::export]]
 std::string rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par){
   std::string ret="";
+  if (nocc <= 1){
+    stop(_("inter-occasion variability only makes sense with at least 2 occasions"));
+  }
+  List mv = rxModelVars_(obj);
+  IntegerVector flags = as<IntegerVector>(mv["flags"]);
+  int cureta = as<int>(flags["maxeta"])+1;
   for (int j = par.size(); j--;){
     std::string curPar = as<std::string>(par[j]);
     ret += curPar  + "=";
     for (int i = nocc; i--;){
-      ret += "(rxOCC==" + std::to_string(i+1)+")*" + curPar + "_" + std::to_string(i+1);
+      ret += "(rxOCC==" + std::to_string(i+1)+")*ETA[" + std::to_string(j+cureta+par.size()*i) + "]";
       if (i) ret += "+";
       else ret += ";\n";
     }
   }
-  List mv = rxModelVars_(obj);
   CharacterVector mod = mv["model"];
   ret += as<std::string>(mod[0]);
   return ret;

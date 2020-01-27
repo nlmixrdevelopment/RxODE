@@ -4038,7 +4038,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rxSolveDat->nSize = rxSolveDat->nPopPar*rx->nsub;
     if (rxSolveDat->nPopPar % rx->nsub == 0) rx->nsim = rxSolveDat->nPopPar / rx->nsub;
     else rx->nsim=1;
-    IntegerVector linCmtI = rxSolveDat->mv["linCmt"];
+    IntegerVector linCmtI = rxSolveDat->mv["flags"];
     int linNcmt = linCmtI[0];
     int linKa = linCmtI[1];
     op->nlin = linNcmt+linKa;
