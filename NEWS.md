@@ -7,6 +7,14 @@
 * RxODE can only use supported functions (could be breaking); You may
   add your own functions with `rxFun` and their derivatives with `rxD`
 
+* RxODE now uses its own internal truncated multivariate normal
+  simulations based on the threefry sitmo library.  Therefore random
+  numbers generated within `RxODE` like providing
+  `rxSolve(...,omega=)` will have different results with this new
+  random number generator.  This was done to allow internal resampling
+  of sigmas/etas with thread-safe random number generators (calling R
+  through `mvnfast` or R's simulation engines are not thread safe).
+
 ## New features
 
 * Completion for all api elements of `rxSolve()` objects, and `et()`

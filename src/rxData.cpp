@@ -319,7 +319,11 @@ bool rxIs(const RObject &obj, std::string cls){
 }
 
 Function loadNamespace("loadNamespace", R_BaseNamespace);
-Environment mvnfast = loadNamespace("mvnfast");
+// Environment mvnfast = loadNamespace("mvnfast");
+
+SEXP rxRmvn0(NumericMatrix& A_, arma::rowvec mu, arma::mat sigma,
+	     arma::vec lower, arma::vec upper, int ncores=1, bool isChol=false,
+	     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100);
 
 RObject rxSimSigma(const RObject &sigma,
 		   const RObject &df,
@@ -328,7 +332,8 @@ RObject rxSimSigma(const RObject &sigma,
 		   int nObs,
 		   const bool checkNames = true,
 		   NumericVector lowerIn =NumericVector::create(R_NegInf),
-		   NumericVector upperIn = NumericVector::create(R_PosInf)){
+		   NumericVector upperIn = NumericVector::create(R_PosInf),
+		   double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
   if (nObs < 1){
     rxSolveFree();
     stop(_("refusing to simulate %d items"),nObs);
@@ -357,7 +362,7 @@ RObject rxSimSigma(const RObject &sigma,
       addNames = true;
     }
     NumericMatrix simMat(nObs,sigmaM.ncol());
-    NumericVector m(sigmaM.ncol());
+    arma::rowvec m(sigmaM.ncol(),arma::fill::zeros);
     NumericVector lower(sigmaM.ncol());
     NumericVector upper(sigmaM.ncol());
     if (lowerIn.hasAttribute("names")){
@@ -403,43 +408,28 @@ RObject rxSimSigma(const RObject &sigma,
 
     // Ncores = 1?  Should it be parallelized when it can be...?
     // Note that if so, the number of cores also affects the output.
-    int totSim = 0;
-    while (totSim < nObs){
-      int curSimN = nObs - totSim;
-      NumericMatrix simMat0(curSimN,sigmaM.ncol());
-      if (df.isNULL()){
-	Function rmvn = as<Function>(mvnfast["rmvn"]);
-	rmvn(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
-	     _["isChol"]=isChol, _["A"] = simMat0); // simMat is updated with the random deviates
+    // while (totSim < nObs){
+    if (df.isNULL()){
+      rxRmvn0(simMat, m, as<arma::mat>(sigmaM), as<arma::vec>(lower),
+	      as<arma::vec>(upper), ncores, isChol, a, tol, nlTol, nlMaxiter);
+	// Function rmvn = as<Function>(mvnfast["rmvn"]);
+	// rmvn(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
+	//      _["isChol"]=isChol, _["A"] = simMat0); // simMat is updated with the random deviates
+    } else {
+      double df2 = as<double>(df);
+      if (R_FINITE(df2)){
+	stop(_("t distribution not yet supported"));
+	  // Function rmvt = as<Function>(mvnfast["rmvt"]);
+	// rmvt(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["df"] = df,
+	//      _["ncores"]=ncores, _["isChol"]=isChol, _["A"] = simMat0);
       } else {
-	double df2 = as<double>(df);
-	if (R_FINITE(df2)){
-	  Function rmvt = as<Function>(mvnfast["rmvt"]);
-	  rmvt(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["df"] = df,
-	       _["ncores"]=ncores, _["isChol"]=isChol, _["A"] = simMat0);
-	} else {
-	  Function rmvn = as<Function>(mvnfast["rmvn"]);
-	  rmvn(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
-	       _["isChol"]=isChol, _["A"] = simMat0);
-	}
-      }
-      // Reject any bad simulations if needed
-      for (int i = 0; i < curSimN; i++){
-	bool goodSim = true;
-	for (int j = sigmaM.ncol(); j--;){
-	  double cur = simMat0(i, j);
-	  if (cur <= lower[j] || cur >= upper[j]){
-	    goodSim=false;
-	    break;
-	  }
-	}
-	if (goodSim){
-	  simMat(totSim, _) = simMat0(i, _);
-	  totSim++;
-	}
+	// Function rmvn = as<Function>(mvnfast["rmvn"]);
+	// rmvn(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
+	//      _["isChol"]=isChol, _["A"] = simMat0);
+	rxRmvn0(simMat, m, as<arma::mat>(sigmaM), as<arma::vec>(lower),
+	      as<arma::vec>(upper), ncores, isChol, a, tol, nlTol, nlMaxiter);
       }
     }
-    
     if (addNames){
       simMat.attr("dimnames") = List::create(R_NilValue, simNames);
     }
