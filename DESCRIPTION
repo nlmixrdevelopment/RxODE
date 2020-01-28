@@ -80,7 +80,6 @@ Imports:
     magrittr,
     memoise,
     methods,
-    mvnfast,
     pillar,
     rex,
     sys,
