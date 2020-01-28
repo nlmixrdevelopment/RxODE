@@ -400,7 +400,7 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##'
 ##' rxRmvn(10, 1:d, mcov, lower=1:d-1, upper=1:d+1)
 ##'
-##' @author Matthew Fidler and some from Matteo Fasiolo
+##' @author Matthew Fidler, Zdravko Botev and some from Matteo Fasiolo
 ##' @export
 rxRmvn <- function(n, mu, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=FALSE,
                    keepNames=TRUE) {
