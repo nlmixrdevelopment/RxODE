@@ -288,24 +288,37 @@ std::string rxRepR0_(int neta){
 List rxModelVars_(const RObject &obj);
 
 //[[Rcpp::export]]
-std::string rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par){
-  std::string ret="";
+List rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par){
+  std::string retS="";
   if (nocc <= 1){
     stop(_("inter-occasion variability only makes sense with at least 2 occasions"));
   }
   List mv = rxModelVars_(obj);
   IntegerVector flags = as<IntegerVector>(mv["flags"]);
   int cureta = as<int>(flags["maxeta"])+1;
+  CharacterVector nm(par.size()*nocc);
+  CharacterVector nm2(par.size()*nocc);
   for (int j = par.size(); j--;){
     std::string curPar = as<std::string>(par[j]);
-    ret += curPar  + "=";
+    std::string eta;
+    retS += curPar  + "=";
     for (int i = nocc; i--;){
-      ret += "(rxOCC==" + std::to_string(i+1)+")*ETA[" + std::to_string(j+cureta+par.size()*i) + "]";
-      if (i) ret += "+";
-      else ret += ";\n";
+      eta = "ETA[" + std::to_string(j+cureta+par.size()*i) + "]";
+      nm[j+par.size()*i] = eta;
+      retS += "(rxOCC==" + std::to_string(i+1)+")*" + eta;
+      eta = as<std::string>(par[j]) + "("+std::to_string(i+1)+")";
+      nm2[j+par.size()*i] = eta;
+      if (i) retS += "+";
+      else retS += ";\n";
     }
   }
   CharacterVector mod = mv["model"];
-  ret += as<std::string>(mod[0]);
+  List ret(4);
+  retS += as<std::string>(mod[0]);
+  ret[0] = retS;
+  ret[1] = nm;
+  ret[2] = par;
+  ret[3] = nm2;
+  ret.attr("names")= CharacterVector::create("mod", "iov1","iov2","iov3");
   return ret;
 }

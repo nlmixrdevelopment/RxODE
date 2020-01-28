@@ -422,7 +422,7 @@ RcppExport SEXP _RxODE_rxRepR0_(SEXP netaSEXP) {
     return rcpp_result_gen;
 }
 // rxExpandOcc
-std::string rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par);
+List rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par);
 static SEXP _RxODE_rxExpandOcc_try(SEXP objSEXP, SEXP noccSEXP, SEXP parSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -2293,7 +2293,7 @@ static int _RxODE_RcppExport_validate(const char* sig) {
         signatures.insert("List(*rxExpandSens2_)(CharacterVector,CharacterVector,CharacterVector)");
         signatures.insert("List(*rxExpandFEta_)(CharacterVector,int,int)");
         signatures.insert("std::string(*rxRepR0_)(int)");
-        signatures.insert("std::string(*rxExpandOcc)(const RObject&,const int&,const CharacterVector&)");
+        signatures.insert("List(*rxExpandOcc)(const RObject&,const int&,const CharacterVector&)");
         signatures.insert("bool(*rxIs)(const RObject&,std::string)");
         signatures.insert("Function(*getRxFn)(std::string)");
         signatures.insert("SEXP(*dynLoad)(std::string)");

@@ -132,11 +132,11 @@ namespace RxODE {
         return Rcpp::as<std::string >(rcpp_result_gen);
     }
 
-    inline std::string rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par) {
+    inline List rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par) {
         typedef SEXP(*Ptr_rxExpandOcc)(SEXP,SEXP,SEXP);
         static Ptr_rxExpandOcc p_rxExpandOcc = NULL;
         if (p_rxExpandOcc == NULL) {
-            validateSignature("std::string(*rxExpandOcc)(const RObject&,const int&,const CharacterVector&)");
+            validateSignature("List(*rxExpandOcc)(const RObject&,const int&,const CharacterVector&)");
             p_rxExpandOcc = (Ptr_rxExpandOcc)R_GetCCallable("RxODE", "_RxODE_rxExpandOcc");
         }
         RObject rcpp_result_gen;
@@ -150,7 +150,7 @@ namespace RxODE {
             throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
             throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
-        return Rcpp::as<std::string >(rcpp_result_gen);
+        return Rcpp::as<List >(rcpp_result_gen);
     }
 
     inline bool rxIs(const RObject& obj, std::string cls) {
