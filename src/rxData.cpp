@@ -1450,6 +1450,137 @@ SEXP rxGetFromChar(char *ptr, std::string var){
   }
 }
 
+void rxSimTheta(CharacterVector &thetaN,
+		CharacterVector& parN,
+		IntegerVector &thetaPar,
+		NumericMatrix &thetaM,
+		bool &simTheta,
+		const Nullable<NumericMatrix> &thetaMat = R_NilValue,
+		const NumericVector &thetaLower = NumericVector::create(R_NegInf),
+		const NumericVector &thetaUpper = NumericVector::create(R_PosInf),
+		const Nullable<NumericVector> &thetaDf  = R_NilValue,
+		const bool &thetaIsChol = false,
+		int nStud = 1,
+		int nCoresRV = 1){
+  int i, j;
+  if (!thetaMat.isNull() && nStud > 1){
+    thetaM = as<NumericMatrix>(thetaMat);
+    if (!thetaM.hasAttribute("dimnames")){
+      rxSolveFree();
+      stop(_("'thetaMat' must be a named matrix"));
+    }
+    if (!thetaIsChol){
+      arma::mat tmpM = as<arma::mat>(thetaMat);
+      if (!tmpM.is_sympd()){
+	rxSolveFree();
+	stop(_("'thetaMat' must be symmetric"));
+      }
+    }
+    thetaM = as<NumericMatrix>(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf),
+					  nCoresRV, thetaIsChol, nStud, true,
+					  thetaLower, thetaUpper));
+    thetaN = as<CharacterVector>((as<List>(thetaM.attr("dimnames")))[1]);
+    // Now put in theta parameter position; This will be used for
+    // alternate types of simulation strategies A position of -1 means
+    // that the parameter is not defined in the theta matrix.
+    for (i = 0; i < parN.size(); i++){
+      thetaPar[i] = -1;
+      for (j = 0; j < thetaN.size(); j++){
+        if (parN[i] == thetaN[j]){
+          thetaPar[i] = j;
+          break;
+        }
+      }
+    }
+    simTheta = true;
+  } else if (!thetaMat.isNull() && nStud <= 1){
+    warning(_("'thetaMat' is ignored since nStud <= 1"));
+  }
+}
+
+
+void rxSimOmega(bool &simOmega,
+		bool &omegaSep,
+		NumericMatrix &omegaM,
+		CharacterVector &omegaN,
+		NumericMatrix &omegaMC,
+		List &omegaList,
+		CharacterVector &thetaN,
+		NumericMatrix &thetaM,
+		std::string omegatxt="omega",
+		const RObject &omega= R_NilValue,
+		const Nullable<NumericVector> &omegaDf= R_NilValue,
+		const NumericVector &omegaLower = NumericVector::create(R_NegInf),
+		const NumericVector &omegaUpper = NumericVector::create(R_PosInf),
+		const bool &omegaIsChol = false,
+		std::string omegaSeparation= "auto",//("lkj", "separation")
+		const int omegaXform = 1,
+		double dfSub = 0,
+		int nStud = 1,
+		int nSub = 1){
+  int j;
+  if (rxIs(omega, "NULL")){
+    if (nSub > 1){
+      // rxSolveFree();
+      warning(_("multi-subject simulation without without 'omega' specified"));
+    }
+  } else if (rxIs(omega,"character")){
+    // Create a matrix in order of the names.
+    omegaN = as<CharacterVector>(omega);
+    omegaSep=true;
+    omegaMC = NumericMatrix(nStud, omegaN.size());
+    j=0;
+    for (int i = 0; i < omegaN.size(); i++){
+      for (j = 0; j < thetaN.size(); j++){
+	if (omegaN[i] == thetaN[j]){
+	  omegaMC(_,i) = thetaM(_,j);
+	  break;
+	}
+      }
+      if (j == thetaN.size()){
+	stop(_("parameter '%s' was not simulated in 'thetaMat'"), (as<std::string>(omegaN[i])).c_str());
+      }      
+    }
+    simOmega = true;
+  } else if (rxIs(omega,"matrix") && nSub > 1){
+    simOmega = true;
+    omegaM = as<NumericMatrix>(omega);
+    if (!omegaM.hasAttribute("dimnames")){
+      rxSolveFree();
+      stop(_("'%s' must be a named matrix"),omegatxt.c_str());
+    }
+    if (omegaIsChol){
+      omegaMC = omegaM;
+    } else {
+      arma::mat tmpM = as<arma::mat>(omegaM);
+      if (!tmpM.is_sympd()){
+	rxSolveFree();
+	stop(_("'%s' must be symmetric"),omegatxt.c_str());
+      }
+      omegaMC = wrap(arma::chol(as<arma::mat>(omegaM)));
+    }
+    omegaN = as<CharacterVector>((as<List>(omegaM.attr("dimnames")))[1]);
+  }
+  if (nStud > 1){
+    if (dfSub > 0 && simOmega) {
+      if (omegaSep){
+	int defaultType = 2;
+	if (omegaSeparation == "auto"){
+	  if (omegaN.size() >= 10){
+	    defaultType = 3;
+	  }
+	} else if (omegaSeparation == "separation") {
+	  defaultType = 3;
+	}
+	omegaList = cvPost_(dfSub, as<RObject>(omegaMC), 1,  false, false, defaultType,
+			    omegaXform);
+      } else {
+	omegaList = cvPost_(dfSub, as<RObject>(omegaMC), nStud,  true, false);
+      }
+    }
+  }
+}
+
 
 //' Simulate Parameters from a Theta/Omega specification
 //'
@@ -1545,6 +1676,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
                      int nObs = 1,
                      double dfSub = 0,
                      double dfObs = 0,
+		     double dfOcc = 0,
 		     bool simSubjects=true){
   NumericVector par;
   if (params.isNull()){
@@ -1563,189 +1695,46 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   CharacterVector parN = CharacterVector(par.attr("names"));
   IntegerVector thetaPar(parN.size());
   int i, j, k;
-  if (!thetaMat.isNull() && nStud > 1){
-    thetaM = as<NumericMatrix>(thetaMat);
-    if (!thetaM.hasAttribute("dimnames")){
-      rxSolveFree();
-      stop(_("'thetaMat' must be a named matrix"));
-    }
-    if (!thetaIsChol){
-      arma::mat tmpM = as<arma::mat>(thetaMat);
-      if (!tmpM.is_sympd()){
-	rxSolveFree();
-	stop(_("'thetaMat' must be symmetric"));
-      }
-    }
-    thetaM = as<NumericMatrix>(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf),
-					  nCoresRV, thetaIsChol, nStud, true,
-					  thetaLower, thetaUpper));
-    thetaN = as<CharacterVector>((as<List>(thetaM.attr("dimnames")))[1]);
-    for (i = 0; i < parN.size(); i++){
-      thetaPar[i] = -1;
-      for (j = 0; j < thetaN.size(); j++){
-        if (parN[i] == thetaN[j]){
-          thetaPar[i] = j;
-          break;
-        }
-      }
-    }
-    simTheta = true;
-  } else if (!thetaMat.isNull() && nStud <= 1){
-    warning(_("'thetaMat' is ignored since nStud <= 1"));
-  }
+  rxSimTheta(thetaN, parN, thetaPar, thetaM, simTheta,
+	     thetaMat, thetaLower, thetaUpper, thetaDf,
+	     thetaIsChol, nStud, nCoresRV);
   bool simOmega = false;
+  bool omegaSep=false;
   NumericMatrix omegaM;
   CharacterVector omegaN;
   NumericMatrix omegaMC;
-  bool omegaSep=false;
-  if (rxIs(omega, "NULL")){
-    if (nSub > 1){
-      // rxSolveFree();
-      warning(_("multi-subject simulation without without 'omega' specified"));
-    }
-  } else if (rxIs(omega,"character")){
-    // Create a matrix in order of the names.
-    omegaN = as<CharacterVector>(omega);
-    omegaSep=true;
-    omegaMC = NumericMatrix(nStud, omegaN.size());
-    j=0;
-    for (int i = 0; i < omegaN.size(); i++){
-      for (j = 0; j < thetaN.size(); j++){
-	if (omegaN[i] == thetaN[j]){
-	  omegaMC(_,i) = thetaM(_,j);
-	  break;
-	}
-      }
-      if (j == thetaN.size()){
-	stop(_("parameter '%s' was not simulated in 'thetaMat'"), (as<std::string>(omegaN[i])).c_str());
-      }      
-    }
-    simOmega = true;
-  } else if (rxIs(omega,"matrix") && nSub > 1){
-    simOmega = true;
-    omegaM = as<NumericMatrix>(omega);
-    if (!omegaM.hasAttribute("dimnames")){
-      rxSolveFree();
-      stop(_("'omega' must be a named matrix"));
-    }
-    if (omegaIsChol){
-      omegaMC = omegaM;
-    } else {
-      arma::mat tmpM = as<arma::mat>(omegaM);
-      if (!tmpM.is_sympd()){
-	rxSolveFree();
-	stop(_("'omega' must be symmetric"));
-      }
-      omegaMC = wrap(arma::chol(as<arma::mat>(omegaM)));
-    }
-    omegaN = as<CharacterVector>((as<List>(omegaM.attr("dimnames")))[1]);
-  }
+  List omegaList;
+
+  rxSimOmega(simOmega, omegaSep, omegaM, omegaN, omegaMC,
+	     omegaList, thetaN, thetaM, "omega", omega, omegaDf,
+	     omegaLower, omegaUpper, omegaIsChol,
+	     omegaSeparation, omegaXform, dfSub, nStud, nSub);
+  
   bool simSigma = false;
   bool sigmaSep=false;
   NumericMatrix sigmaM;
   CharacterVector sigmaN;
   NumericMatrix sigmaMC;
-  if (rxIs(sigma, "matrix") && nObs > 1){
-    simSigma = true;
-    sigmaM = as<NumericMatrix>(sigma);
-    if (!sigmaM.hasAttribute("dimnames")){
-      rxSolveFree();
-      stop(_("'sigma' must be a named Matrix."));
-    }
-    if (sigmaIsChol){
-      sigmaMC = sigmaM;
-    } else {
-      arma::mat tmpM = as<arma::mat>(sigmaM);
-      if (!tmpM.is_sympd()){
-	rxSolveFree();
-	stop(_("'sigma' must be symmetric"));
-      }
-      sigmaMC = wrap(arma::chol(as<arma::mat>(sigmaM)));
-    }
-    sigmaN = as<CharacterVector>((as<List>(sigmaM.attr("dimnames")))[1]);
-  } else if (rxIs(sigma, "character")){
-    sigmaN = as<CharacterVector>(sigma);
-    sigmaSep=true;
-    sigmaMC = NumericMatrix(nStud, sigmaN.size());
-    j=0;
-    for (int i = 0; i < sigmaN.size(); ++i){
-      for (j = 0; j < thetaN.size(); ++j){
-	if (sigmaN[i] == thetaN[j]){
-	  sigmaMC(_,i) = thetaM(_,j);
-	  break;
-	}
-	if (j == thetaN.size()){
-	  stop(_("parameter '%s' was not simulated in 'thetaMat'"), (as<std::string>(sigmaN[i])).c_str());
-	}
-      }
-    }
-    simSigma = true;
-  } else if (!rxIs(sigma, "NULL")){
-    stop(_("'sigma' must be 'NULL', a character vector or a named matrix"));
-  }
-  int scol = 0;
-  if (simSigma){
-    scol = sigmaMC.ncol();
-    if (simSubjects){
-      if (nObs*nStud*nSub*scol < 0){
-        // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
-	rxSolveFree();
-        stop(_("\nsimulation overflow\nreduce the number of observations, number of subjects or number of studies"));
-      }
-    } else {
-      if (nObs*nStud*scol < 0){
-        // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
-	rxSolveFree();
-        stop(_("simulation overflow\nreduce the number of observations or number of studies"));
-      }
-    }
-  }
-  // Now create data frame of parameter values
-  List omegaList;
   List sigmaList;
-  if (nStud > 1){
-    if (dfSub > 0 && simOmega) {
-      if (omegaSep){
-	int defaultType = 2;
-	if (omegaSeparation == "auto"){
-	  if (omegaN.size() >= 10){
-	    defaultType = 3;
-	  }
-	} else if (omegaSeparation == "separation") {
-	  defaultType = 3;
-	}
-	omegaList = cvPost_(dfSub, as<RObject>(omegaMC), 1,  false, false, defaultType,
-			    omegaXform);
-      } else {
-	omegaList = cvPost_(dfSub, as<RObject>(omegaMC), nStud,  true, false);
-      }
-    }
-    if (dfObs > 0 && simSigma){
-      if (sigmaSep){
-	int defaultType = 2;
-	if (sigmaSeparation == "auto"){
-	  if (omegaN.size() >= 10){
-	    defaultType = 3;
-	  }
-	} else if (sigmaSeparation == "separation") {
-	  defaultType = 3;
-	}
-	if (omegaN.size() >= 10){
-	  defaultType = 3;
-	}
-	sigmaList = cvPost_(dfSub, as<RObject>(sigmaMC), 1,  false, false, defaultType,
-			    omegaXform);
-      } else {
-	sigmaList = cvPost_(dfObs, as<RObject>(sigmaMC), nStud,  true, false);
-      }
-    }
-  }
+  
+  rxSimOmega(simSigma, sigmaSep, sigmaM, sigmaN, sigmaMC,
+	     sigmaList, thetaN, thetaM, "sigma", sigma, sigmaDf,
+	     sigmaLower, sigmaUpper, sigmaIsChol,
+	     sigmaSeparation, sigmaXform, dfObs, nStud, nObs);
+  
+  // Now create data frame of parameter values
+  List iovList;
+  
   int pcol = par.size();
   int ocol = 0;
   int ncol = pcol;
   if (simOmega){
     ocol = omegaMC.ncol();
     ncol += ocol;
+  }
+  int scol = 0;
+  if (simSigma){
+    scol = sigmaMC.ncol();
   }
   NumericMatrix ret1;
   if (simSigma){
