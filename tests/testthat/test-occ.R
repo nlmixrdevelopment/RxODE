@@ -51,6 +51,9 @@ rxPermissive({
                                  "iov.Cl(2)", "iov.Ka(2)",
                                  "iov.Cl(3)", "iov.Ka(3)")))
 
+        .i <- RxODE:::rxExpandOcc(mod.eta,3,c("iov.Cl", "iov.Ka"), TRUE)
+        expect_true(inherits(.i[[1]], "RxODE"))
+
         omega <- lotri(eta.cl+eta.v ~c(1, 0.5, 1))
         iov <- lotri(iov.cl+iov.v ~c(1, 0.5, 1))
 

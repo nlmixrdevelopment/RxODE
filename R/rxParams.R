@@ -27,13 +27,13 @@ rxParams.RxODE <- function(obj, constants=TRUE, ...,
                            params=NULL, inits=NULL, iCov=NULL,
                            keep=NULL,
                            thetaMat = NULL,
-                           omega = NULL, dfSub = NULL,
-                           sigma=NULL, dfObs = NULL,
+                           omega = NULL, iov = NULL, dfSub = NULL,
+                           sigma=NULL, dfObs = NULL, dfOcc=NULL,
                            nSub=NULL, nStud=NULL){
     .ret <- list(params=params, inits=inits, iCov=iCov, keep=keep,
                  thetaMat = thetaMat,
-                 omega = omega, dfSub = dfSub,
-                 sigma=sigma, dfObs = dfObs,
+                 omega = omega, iov=iov, dfSub = dfSub,
+                 sigma=sigma, dfObs = dfObs, dfOcc = dfOcc,
                  nSub=nSub, nStud=nStud);
     if (all(sapply(seq_along(.ret), function(x){ is.null(.ret[[x]]) }))){
         if (length(list(...)) > 0){
@@ -57,8 +57,10 @@ rxParams.RxODE <- function(obj, constants=TRUE, ...,
         assignInMyNamespace(".pipelineKeep", NULL)
         assignInMyNamespace(".pipelineThetaMat", NULL)
         assignInMyNamespace(".pipelineOmega", NULL)
+        assignInMyNamespace(".pipelineIov", NULL)
         assignInMyNamespace(".pipelineSigma", NULL)
         assignInMyNamespace(".pipelineDfObs", NULL)
+        assignInMyNamespace(".pipelineDfOcc", NULL)
         assignInMyNamespace(".pipelineDfSub", NULL)
         assignInMyNamespace(".pipelineNSub", NULL)
         assignInMyNamespace(".pipelineNStud", NULL)
@@ -75,13 +77,13 @@ rxParams.rxSolve <- function(obj, constants=TRUE, ...,
                              params=NULL, inits=NULL, iCov=NULL,
                              keep=NULL,
                              thetaMat = NULL,
-                             omega = NULL, dfSub = NULL,
-                             sigma=NULL, dfObs = NULL,
+                             omega = NULL, iov=NULL, dfSub = NULL,
+                             sigma=NULL, dfObs = NULL, dfOcc = NULL,
                              nSub=NULL, nStud=NULL){
     .ret <- list(params=params, inits=inits, iCov=iCov, keep=keep,
                  thetaMat = thetaMat,
-                 omega = omega, dfSub = dfSub,
-                 sigma=sigma, dfObs = dfObs,
+                 omega = omega, iov=iov, dfSub = dfSub,
+                 sigma=sigma, dfObs = dfObs, dfOcc = dfOcc,
                  nSub=nSub, nStud=nStud);
     if (all(sapply(seq_along(.ret), function(x){ is.null(.ret[[x]]) }))){
         if (length(list(...)) > 0){
@@ -113,10 +115,12 @@ rxParams.rxSolve <- function(obj, constants=TRUE, ...,
         assignInMyNamespace(".pipelineThetaMat", .x$.args$thetaMat);
         ## 5. RxODE omega
         assignInMyNamespace(".pipelineOmega", .x$.args$omega);
+        assignInMyNamespace(".pipelineIov", .x$.args$iov);
         ## 6. RxODE sigma
         assignInMyNamespace(".pipelineSigma", .x$.args$sigma);
         ## 7. RxODE dfObs
         assignInMyNamespace(".pipelineDfObs", .x$env$.args$dfObs)
+        assignInMyNamespace(".pipelineDfOcc", .x$env$.args$dfOcc)
         ## 8. RxODE dfSub
         assignInMyNamespace(".pipelineDfSub", .x$env$.args$dfSub)
         class(.ret) <- "rxParams"
@@ -130,8 +134,8 @@ rxParams.rxEt <- function(obj, ...,
                           params=NULL, inits=NULL, iCov=NULL,
                           keep=NULL,
                           thetaMat = NULL,
-                          omega = NULL, dfSub = NULL,
-                          sigma=NULL, dfObs = NULL,
+                          omega = NULL, iov=NULL, dfSub = NULL,
+                          sigma=NULL, dfObs = NULL, dfOcc = NULL,
                           nSub=NULL, nStud=NULL){
     # et() %>% rxParams() %>%
     assignInMyNamespace(".pipelineEvents", obj);
@@ -141,8 +145,8 @@ rxParams.rxEt <- function(obj, ...,
         stop(sprintf("unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'",paste(names(.lst), collapse=", ")));
     }
     .ret <- list(params=params, inits=inits, iCov=iCov, keep=keep,
-                 thetaMat = thetaMat, omega = omega, dfSub = dfSub,
-                 sigma=sigma, dfObs = dfObs,
+                 thetaMat = thetaMat, omega = omega, iov=iov, dfSub = dfSub,
+                 sigma=sigma, dfObs = dfObs, dfOcc=dfOcc,
                  nSub=nSub, nStud=nStud);
     class(.ret) <- "rxParams"
     return(.ret)
@@ -165,8 +169,8 @@ rxParams.default <- function(obj,..., constants=TRUE){
         .lst <- list(...);
         .nm <- c("cov", "params", "inits", "iCov", "keep",
                  "thetaMat",
-                 "omega", "dfSub",
-                 "sigma", "dfObs", "nSub", "nStud");
+                 "omega", "iov", "dfSub",
+                 "sigma", "dfObs", "dfOcc", "nSub", "nStud");
         .ret <- lapply(.nm, function(x){ return(.lst[[x]]) })
         names(.ret) <- .nm
         class(.ret) <- "rxParams"

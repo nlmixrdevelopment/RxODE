@@ -33,6 +33,7 @@
                     upper=omegaUpper))
     } else {
         if (is.null(dimnames(iov))) stop("'iov' needs to be named")
+        if (is.null(iovNames)) stop("'iovNames' needs to have model-based terms")
         .dim2 <- dimnames(iov)[[1]]
         .len1 <- length(.dim2)
         if (length(iovLower) == 1) iovLower <- rep(iovLower, .len1)

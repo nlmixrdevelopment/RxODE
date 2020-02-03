@@ -166,8 +166,8 @@ rxRepR0_ <- function(neta) {
     .Call(`_RxODE_rxRepR0_`, neta)
 }
 
-rxExpandOcc <- function(obj, nocc, par) {
-    .Call(`_RxODE_rxExpandOcc`, obj, nocc, par)
+rxExpandOcc <- function(obj, nocc, par, compile = FALSE) {
+    .Call(`_RxODE_rxExpandOcc`, obj, nocc, par, compile)
 }
 
 #' Inductive linearization solver
@@ -374,6 +374,23 @@ atolRtolFactor_ <- function(factor) {
 #'     symmetric matrix.
 #'
 #' @param omegaSeparation @template separation
+#' 
+#' @param iov Named iov matrix.
+#'
+#' @param iovLower Lower bounds for simulated ETAs (by default -Inf)
+#'
+#' @param iovUpper Upper bounds for simulated ETAs (by default Inf)
+#'
+#' @param iovDf The degrees of freedom of a t-distribution for
+#'     simulation.  By default this is \code{NULL} which is
+#'     equivalent to \code{Inf} degrees, or to simulate from a normal
+#'     distribution instead of a t-distribution.
+#'
+#' @param iovIsChol Indicates if the \code{iov} supplied is a
+#'     Cholesky decomposed matrix instead of the traditional
+#'     symmetric matrix.
+#'
+#' @param iovSeparation @template separation
 #'
 #' @param nStud Number virtual studies to characterize uncertainty in estimated 
 #'        parameters.
@@ -396,15 +413,16 @@ atolRtolFactor_ <- function(factor) {
 #'
 #' @param dfObs Degrees of freedom to sample the unexplained variability matrix from the 
 #'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution. 
-#'
+#' @param dfOcc Degrees of freedom to sample the iov matrix from the 
+#'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
 #' @param simSubjects boolean indicated RxODE should simulate subjects in studies (\code{TRUE}, 
 #'         default) or studies (\code{FALSE})
 #'
 #' @author Matthew L.Fidler
 #'
 #' @export
-rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaLower = as.numeric( c(R_NegInf)), omegaUpper = as.numeric( c(R_PosInf)), omegaIsChol = FALSE, omegaSeparation = "auto", omegaXform = 1L, nSub = 1L, thetaMat = NULL, thetaLower = as.numeric( c(R_NegInf)), thetaUpper = as.numeric( c(R_PosInf)), thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaLower = as.numeric( c(R_NegInf)), sigmaUpper = as.numeric( c(R_PosInf)), sigmaDf = NULL, sigmaIsChol = FALSE, sigmaSeparation = "auto", sigmaXform = 1L, nCoresRV = 1L, nObs = 1L, dfSub = 0, dfObs = 0, dfOcc = 0, simSubjects = TRUE) {
-    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaLower, omegaUpper, omegaIsChol, omegaSeparation, omegaXform, nSub, thetaMat, thetaLower, thetaUpper, thetaDf, thetaIsChol, nStud, sigma, sigmaLower, sigmaUpper, sigmaDf, sigmaIsChol, sigmaSeparation, sigmaXform, nCoresRV, nObs, dfSub, dfObs, dfOcc, simSubjects)
+rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaLower = as.numeric( c(R_NegInf)), omegaUpper = as.numeric( c(R_PosInf)), omegaIsChol = FALSE, omegaSeparation = "auto", omegaXform = 1L, nSub = 1L, thetaMat = NULL, thetaLower = as.numeric( c(R_NegInf)), thetaUpper = as.numeric( c(R_PosInf)), thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaLower = as.numeric( c(R_NegInf)), sigmaUpper = as.numeric( c(R_PosInf)), sigmaDf = NULL, sigmaIsChol = FALSE, sigmaSeparation = "auto", sigmaXform = 1L, iov = NULL, iovLower = as.numeric( c(R_NegInf)), iovUpper = as.numeric( c(R_PosInf)), iovDf = NULL, iovIsChol = FALSE, iovSeparation = "auto", iovXform = 1L, nCoresRV = 1L, nObs = 1L, dfSub = 0, dfObs = 0, dfOcc = 0, simSubjects = TRUE) {
+    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaLower, omegaUpper, omegaIsChol, omegaSeparation, omegaXform, nSub, thetaMat, thetaLower, thetaUpper, thetaDf, thetaIsChol, nStud, sigma, sigmaLower, sigmaUpper, sigmaDf, sigmaIsChol, sigmaSeparation, sigmaXform, iov, iovLower, iovUpper, iovDf, iovIsChol, iovSeparation, iovXform, nCoresRV, nObs, dfSub, dfObs, dfOcc, simSubjects)
 }
 
 #' Free the C solving/parsing information.

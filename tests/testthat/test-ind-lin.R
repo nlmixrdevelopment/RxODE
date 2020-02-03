@@ -191,28 +191,53 @@ d/dt(blood)     = a*intestine - b*blood
     ## Van der Pol Equation
     ## mu = 1000 stiff
     ## me = 1 non-stiff
-    ## van <- RxODE({
-    ##     y(0) = 2
-    ##     d/dt(y)  = dy
-    ##     d/dt(dy) = mu*(1-y^2)*dy - y
-    ## }, indLin=TRUE)
+    van <- RxODE({
+        y(0) = 2
+        d/dt(y)  = dy
+        d/dt(dy) = mu*(1-y^2)*dy - y
+    }, indLin=TRUE)
 
-    ## et <- eventTable();
-    ## et$add.sampling(seq(0, 3000, length.out=200));
+    et <- eventTable();
+    ## 3000 causes weird behavior of indLin / lsoda
+    et$add.sampling(seq(0, 20, length.out=200));
 
-    ## s1 <- rxSolve(van, et, c(mu=1000), method="lsoda")
-    ## s2 <- rxSolve(van, et, c(mu=1000), method="indLin")
+    s1 <- rxSolve(van, et, c(mu=1000), method="lsoda")
+    s2 <- rxSolve(van, et, c(mu=1000), method="indLin")
     ## s3 <- rxSolve(van, et, c(mu=1000), method="dop853")
 
 
 
     ## gridExtra::grid.arrange(plot(s1), plot(s2), plot(s3))
 
-    ## expect_equal(as.data.frame(s1), as.data.frame(s2))
+    expect_equal(as.data.frame(s1), as.data.frame(s2), tol=1e-5)
 
-    ## s1 <- rxSolve(van, et, c(mu=1), method="lsoda")
-    ## s2 <- rxSolve(van, et, c(mu=1), method="indLin")
+    s1 <- rxSolve(van, et, c(mu=1), method="lsoda")
+    s2 <- rxSolve(van, et, c(mu=1), method="indLin")
+    ## expect_equal(as.data.frame(s1), as.data.frame(s2), tol=1e-4)
     ## s3 <- rxSolve(van, et, c(mu=1), method="dop853")
+
+    ## library(dplyr)
+    ## library(ggplot2)
+
+    ## s1 %>% rename(y.lsoda=y, dy.lsoda=dy) %>%
+    ##     merge(s2) %>% mutate(y.diff=y.lsoda - y) %>%
+    ##     ggplot(aes(time, y.diff)) + geom_line()
+
+    ## gridExtra::grid.arrange(plot(s1), plot(s2))
+
+
+    ## f <- function(mu=5){
+    ##     s1 <- rxSolve(van, et, c(mu=mu), method="lsoda")
+    ##     s2 <- rxSolve(van, et, c(mu=mu), method="indLin")
+    ##     s1 %>% rename(y.lsoda=y, dy.lsoda=dy) %>%
+    ##         merge(s2) %>% mutate(y.diff=y.lsoda - y) %>%
+    ##         ggplot(aes(time, y.diff)) + geom_line() + ylim(-5, 5) +
+    ##         ggtitle(paste0("mu=", mu)) ->
+    ##         ret
+    ##     return(ret)
+    ## }
+
+    ## expect_equal(as.data.frame(s1), as.data.frame(s2), tol=1e-4)
 
     ## gridExtra::grid.arrange(plot(s1), plot(s2), plot(s3))
 

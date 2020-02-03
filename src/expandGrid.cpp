@@ -10,6 +10,7 @@ using namespace Rcpp;
 #define _(String) (String)
 #endif
 bool rxIs(const RObject &obj, std::string cls);
+Function getRxFn(std::string name);
 
 std::string symengineRes(std::string val);
 
@@ -288,7 +289,8 @@ std::string rxRepR0_(int neta){
 List rxModelVars_(const RObject &obj);
 
 //[[Rcpp::export]]
-List rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par){
+List rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par,
+		 bool compile=false){
   std::string retS="";
   if (nocc <= 1){
     stop(_("inter-occasion variability only makes sense with at least 2 occasions"));
@@ -315,7 +317,13 @@ List rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par
   CharacterVector mod = mv["model"];
   List ret(4);
   retS += as<std::string>(mod[0]);
-  ret[0] = retS;
+  if (compile){
+    Function rxode = getRxFn("RxODE");
+    RObject retO = rxode(retS);
+    ret[0] = retO;
+  } else {
+    ret[0] = retS;
+  }
   ret[1] = nm;
   ret[2] = par;
   ret[3] = nm2;
