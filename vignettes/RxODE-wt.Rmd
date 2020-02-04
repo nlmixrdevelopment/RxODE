@@ -100,7 +100,6 @@ f2 <- f %>%
 plot(f2)
 ```
 
-#
 
 # Daptomycin Reference
 
