@@ -4,6 +4,8 @@
 ##' @param omega Original (named) omega matrix
 ##' @param iov Original (named) iov matrix
 ##' @param iovNames IOV names that are used in the model
+##' @param omegaMatNames Omega matrix names (if not in omega matrix)
+##' @param iovMatNames IOV matrix names (if not in iov matrix)
 ##' @return List with three elements; `m` is Named matrix for internal
 ##'     R simulation. `lower`/`upper` are the upper and lower
 ##'     boundaries of the truncated multi-variate normal.
@@ -18,9 +20,14 @@
 ##' @noRd
 .rxExpandOmegaIov <- function(omega, iov=NULL, iovNames=NULL,
                               omegaLower=-Inf, omegaUpper=Inf,
-                              iovLower=-Inf, iovUpper=Inf){
-    if (is.null(dimnames(omega))) stop("'omega' needs to be named")
-    .dim1 <- dimnames(omega)[[1]]
+                              iovLower=-Inf, iovUpper=Inf,
+                              omegaMatNames=NULL, iovMatNames=NULL){
+    if (!is.null(omegaMatNames)) {
+        .dim1 <- omegaMatNames
+    } else {
+        if (is.null(dimnames(omega))) stop("'omega' needs to be named")
+        .dim1 <- dimnames(omega)[[1]]
+    }
     .len0 <- length(.dim1)
     if (length(omegaLower) == 1) omegaLower <- rep(omegaLower, .len0)
     else if (length(omegaLower) != .len0)
@@ -32,9 +39,13 @@
         return(list(m=omega, lower=omegaLower,
                     upper=omegaUpper))
     } else {
-        if (is.null(dimnames(iov))) stop("'iov' needs to be named")
+        if (!is.null(iovMatNames)) {
+            .dim2 <- iovMatNames
+        } else {
+            if (is.null(dimnames(iov))) stop("'iov' needs to be named")
+            .dim2 <- dimnames(iov)[[1]]
+        }
         if (is.null(iovNames)) stop("'iovNames' needs to have model-based terms")
-        .dim2 <- dimnames(iov)[[1]]
         .len1 <- length(.dim2)
         if (length(iovLower) == 1) iovLower <- rep(iovLower, .len1)
         else if (length(iovLower) != .len0)
@@ -50,7 +61,7 @@
         iovUpper <- rep(iovUpper, .len3)
         .m <- lapply(seq(1, .len3), function(...) iov)
         .m <- as.matrix(Matrix::bdiag(c(list(omega), .m)));
-        .dn <- c(dimnames(omega)[[1]], iovNames)
+        .dn <- c(.dim1, iovNames)
         dimnames(.m) <- list(.dn, .dn)
         return(list(m=.m,
                     lower=c(omegaLower, iovLower),

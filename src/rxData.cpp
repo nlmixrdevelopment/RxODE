@@ -1542,7 +1542,7 @@ void rxSimOmega(bool &simOmega,
       }      
     }
     simOmega = true;
-  } else if (rxIs(omega,"matrix") && nSub > 1){
+  } else if (rxIs(omega,"matrix")){
     simOmega = true;
     omegaM = as<NumericMatrix>(omega);
     if (!omegaM.hasAttribute("dimnames")){
@@ -1606,12 +1606,14 @@ void omegaListInit(int nStud,
 		   bool &simOmega,
 		   List &omegaList,
 		   NumericMatrix &omegaMC,
+		   CharacterVector &omegaN,
 		   const NumericVector &omegaLower,
 		   const NumericVector &omegaUpper,
 		   const Nullable<NumericVector> &omegaDf,
 		   bool &simIov,
 		   List &iovList,
 		   NumericMatrix &iovMC,
+		   CharacterVector &iovN,
 		   const NumericVector &iovLower,
 		   const NumericVector &iovUpper,
 		   const Nullable<NumericVector> &iovDf,
@@ -1643,24 +1645,30 @@ void omegaListInit(int nStud,
       } else {
 	curOmega = as<RObject>(omegaMC);
       }
+      CharacterVector iovN2;
       if (lstOcc){
 	curIov = as<RObject>(iovList[i]);
+	iovN2= iovN;
       } else if(!simIov) {
 	curIov = as<RObject>(iovMC);
+	iovN2= iovN;
       } else {
 	curIov = R_NilValue;
+	iovN2= R_NilValue;
       }
       cur = omegaIov(curOmega, curIov, iovNames,
 		     omegaLower, omegaUpper,
-		     iovLower, iovUpper);
+		     iovLower, iovUpper,
+		     omegaN, iovN2);
       lst.fullOmega[i] = as<arma::mat>(cur["m"]);
     }
     lst.lower = cur["lower"];
     lst.upper = cur["upper"];
   } else if (simIov) {
     List cur = omegaIov(as<RObject>(omegaMC), as<RObject>(iovMC), iovNames,
-		   omegaLower, omegaUpper,
-		   iovLower, iovUpper);
+			omegaLower, omegaUpper,
+			iovLower, iovUpper,
+			omegaN, iovN);
     lst.omega = as<arma::mat>(cur["m"]);
     lst.lower = cur["lower"];
     lst.upper = cur["upper"];
@@ -1674,9 +1682,10 @@ void omegaListInit(int nStud,
 
 NumericMatrix rxSimOmegaNM(int i){
   RObject ome = _rxo.studOmega ? wrap(_rxo.fullOmega[i]) : wrap(_rxo.omega);
-  return as<NumericMatrix>(rxSimSigma(ome, _rxo.df, _rxo.nCoresRV,
-				      false, _rxo.nSub, false,
-				      _rxo.lower, _rxo.upper));
+  NumericMatrix ret = as<NumericMatrix>(rxSimSigma(ome, _rxo.df, _rxo.nCoresRV,
+						   false, _rxo.nSub, false,
+						   _rxo.lower, _rxo.upper));
+  return ret;
 }
 
 //' Simulate Parameters from a Theta/Omega specification
@@ -1830,14 +1839,12 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 	     omegaList, thetaN, thetaM, "omega", omega, omegaDf,
 	     omegaLower, omegaUpper, omegaIsChol,
 	     omegaSeparation, omegaXform, dfSub, nStud, nSub);
-
   bool simSigma = false;
   bool sigmaSep=false;
   NumericMatrix sigmaM;
   CharacterVector sigmaN;
   NumericMatrix sigmaMC;
   List sigmaList;
-  
   rxSimOmega(simSigma, sigmaSep, sigmaM, sigmaN, sigmaMC,
 	     sigmaList, thetaN, thetaM, "sigma", sigma, sigmaDf,
 	     sigmaLower, sigmaUpper, sigmaIsChol,
@@ -1855,8 +1862,8 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 	     iovSeparation, iovXform, dfOcc, nStud, nSub);
 
   omegaListInit(nStud, nSub, nCoresRV, simOmega, omegaList,
-		omegaMC, omegaLower, omegaUpper,
-		omegaDf, simIov, iovList, iovMC,
+		omegaMC, omegaN, omegaLower, omegaUpper,
+		omegaDf, simIov, iovList, iovMC, iovN,
 		iovLower, iovUpper, iovDf, _iovNames,
 		dfObs, dfOcc);
   
@@ -1969,6 +1976,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   ret0.attr("names") = dfName;
   ret0.attr("class") = "data.frame";
   ret0.attr("row.names") = IntegerVector::create(NA_INTEGER,-nSub*nStud);
+  print(wrap(ret0));
   getRxModels();
   if (ret1.nrow() > 1){
     ret1.attr("dimnames") = List::create(R_NilValue, sigmaN);
