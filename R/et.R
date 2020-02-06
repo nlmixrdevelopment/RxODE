@@ -1470,7 +1470,8 @@ format.rxRateDur <- function(x, ...) {
 }
 
 ##'@rdname rxRateDur
-type_sum.rxRateDur <- function(x) {
+##'@export
+type_sum.rxRateDur <- function(x){
     .unit <- attr(x, "units")
     if (!is.null(.unit)) {
         .tmp <- x;
