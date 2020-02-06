@@ -12,7 +12,7 @@
 \usage{
 \method{type_sum}{units}(x, ...)
 
-\method{format_type_sum}{type_sum_units}(x, width, ...)
+format_type_sum.type_sum_units(x, width, ...)
 
 \method{pillar_shaft}{units}(x, ...)
 

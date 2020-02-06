@@ -3,11 +3,14 @@
 \name{rxRateDur}
 \alias{rxRateDur}
 \alias{as.rxRateDur}
+\alias{type_sum.rxRateDur}
 \title{Creates a rxRateDur object}
 \usage{
 rxRateDur(x)
 
 as.rxRateDur(x)
+
+\method{type_sum}{rxRateDur}(x)
 }
 \arguments{
 \item{x}{rxRateDur data}

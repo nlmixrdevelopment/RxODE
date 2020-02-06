@@ -5,7 +5,7 @@
 \alias{as.tbl.rxEt}
 \title{Convert to tbl}
 \usage{
-\method{as_tibble}{rxEt}(x, ...)
+as_tibble.rxEt(x, ...)
 
 as.tbl.rxEt(x, ...)
 }

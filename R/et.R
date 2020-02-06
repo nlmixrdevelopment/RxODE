@@ -1367,8 +1367,8 @@ format.rxRateDur <- function(x, ...){
     as.rxRateDur(NextMethod())
 }
 
-##'@noRd
-##' @export
+##'@rdname rxRateDur
+##'@export
 type_sum.rxRateDur <- function(x){
     .unit <- attr(x, "units")
     if (!is.null(.unit)){
