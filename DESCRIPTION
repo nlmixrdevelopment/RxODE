@@ -86,7 +86,7 @@ Imports:
     units (>= 0.6-0),
     utils,
     assertthat,
-    lotri,
+    lotri (>= 0.2.1),
     remotes,
     symengine,
     StanHeaders (>= 2.18.0),
