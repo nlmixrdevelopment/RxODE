@@ -306,7 +306,10 @@ first model time, 102 is the second etc.
 \item{stateTrim}{When amounts/concentrations in one of the states
 are above this value, trim them to be this value. By default
 Inf.  Also trims to -stateTrim for large negative
-amounts/concentrations}
+amounts/concentrations.  If you want to trim between a range
+say `c(0, 2000000)` you may specify 2 values with a lower and
+upper range to make sure all state values are in the
+reasonable range.}
 
 \item{updateObject}{This is an internally used flag to update the
 RxODE solved object (when supplying an RxODE solved object) as
