@@ -2149,7 +2149,25 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   CharacterVector amountUnits = as<CharacterVector>(rxControl["amountUnits"]);
   CharacterVector timeUnits = as<CharacterVector>(rxControl["timeUnits"]);
   Nullable<LogicalVector> addDosing = as<Nullable<LogicalVector>>(rxControl["addDosing"]);
-  double stateTrim = as<double>(rxControl["stateTrim"]);
+  NumericVector stateTrim = rxControl["stateTrim"];
+  double stateTrimU= R_PosInf;
+  double stateTrimL= R_NegInf;
+  if (stateTrim.size() == 2){
+    if (stateTrim[0] > stateTrim[1]){
+      stateTrimU = stateTrim[0];
+      stateTrimL = stateTrim[1];
+    } else {
+      stateTrimU = stateTrim[1];
+      stateTrimL = stateTrim[0];
+    }
+  } else if (stateTrim.size() == 1){
+    if (!ISNA(stateTrimU)){
+      stateTrimU = fabs(stateTrim[0]);
+      stateTrimL = -stateTrimU;
+    }
+  } else {
+    stop("'stateTrim' must be a vector of 1-2 elements");
+  }
   RObject theta = rxControl["theta"];
   RObject eta = rxControl["eta"];
   bool updateObject = as<bool>(rxControl["updateObject"]);
@@ -2212,11 +2230,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx_solving_options_ind* ind;
     rx->nKeep0 = 0;
     rx->nKeepF = 0;
-    if (ISNA(stateTrim)){
-      rx->stateTrim = R_PosInf;
-    } else {
-      rx->stateTrim = stateTrim;
-    }
+    rx->stateTrimU = stateTrimU;
+    rx->stateTrimL = stateTrimL;
     rx->matrix = matrix;
     rx->needSort = as<int>(mv["needSort"]);
     rx->nMtime = as<int>(mv["nMtime"]);

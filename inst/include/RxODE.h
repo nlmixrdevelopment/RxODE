@@ -149,7 +149,8 @@ typedef struct {
   int matrix;
   int needSort;
   int nMtime;
-  double stateTrim;
+  double stateTrimU;
+  double stateTrimL;
   int *stateIgnore;
   int nCov0;
   int *cov0;
