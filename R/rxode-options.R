@@ -7,6 +7,7 @@
     if (!interactive()){
         setProgSupported(0);
     }
+    .getDTEnv()
 } ## nocov end
 
 .onAttach <- function(libname, pkgname){
@@ -20,7 +21,8 @@
     if (!interactive()){
         setProgSupported(0);
     }
-    rxTempDir();
+    rxTempDir()
+    .getDTEnv()
 }
 
 .onUnload <- function (libpath) {
