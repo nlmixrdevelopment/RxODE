@@ -37,8 +37,8 @@
   .f1 <- factor(paste(id, col))
   .l1 <- length(levels(.f1))
   .f2 <- .convertId(col)
-  .l2 <- length(levels(.f2))
-  if (.l1 == .l2) {
+  .lid <- length(levels(id))
+  if (.l1 == .lid) {
     ## Case:
     ##  study id
     ##  1     1
@@ -50,7 +50,7 @@
     ## The factor(paste(study,id)) will have the same number of levels
     ## as factor(paste(id))
     return(.f2)
-  } else if (.l1 > .l2) {
+  } else if (.l1 > .lid) {
     ## Case:
     ##  id  occ
     ##  1     1
@@ -97,8 +97,8 @@
   env$below <- c()
   lapply(.lvls, function(lvl) {
       .s <- .nestingInfoSingle(data[[lvl]], id)
-      if (attr(.s, "nu")) {
-          env$above <- c(env$above, setNames(attr(.s, "nu"), lvl))
+      if (!is.null(attr(.s, "nu"))) {
+          env$above <- c(env$above, setNames(length(levels(.s)), lvl))
       } else {
           env$below <- c(env$below, setNames(length(levels(.s)), lvl))
       }

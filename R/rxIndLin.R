@@ -21,8 +21,8 @@
 ##' @return Nothing
 ##' @author Matthew L. Fidler
 ##' @export
-rxIndLinStrategy <- function(strategy=c("curState", "split")){
-    assignInMyNamespace(".rxIndLinStrategy",match.arg(strategy));
+rxIndLinStrategy <- function(strategy=c("curState", "split")) {
+    assignInMyNamespace(".rxIndLinStrategy", match.arg(strategy));
 }
 .rxIndLinLine <- function(line, states, state0){
     .tmp <- symengine::expand(line) ## Expand line
@@ -96,7 +96,7 @@ rxIndLinStrategy <- function(strategy=c("curState", "split")){
         if (length(.curStates) == 1){
             .addState(.curStates, .mult)
         } else if (length(.curStates) > 1) {
-            if (.rxIndLinStrategy == "split"){
+            if (.rxIndLinStrategy == "split") {
                 ## Use strategy #3, split between all the compartments
                 .extra <- paste0("1/", length(.curStates))
                 for (.s in .curStates){

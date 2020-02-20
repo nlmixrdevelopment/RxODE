@@ -25,6 +25,43 @@ rxPermissive({
         d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
     })
 
+    library(dplyr)
+
+    et(amountUnits="mg", timeUnits="hours") %>%
+        et(amt=10000, addl=9,ii=12,cmt="depot") %>%
+        et(time=120, amt=2000, addl=4, ii=14, cmt="depot") %>%
+        et(seq(0, 240, by=4)) %>% # Assumes sampling when there is no dosing information
+        et(seq(0, 240, by=4) + 0.1) %>% ## adds 0.1 for separate eye
+        et(id=1:20) %>%
+        ## Add an occasion per dose
+        mutate(occ=cumsum(!is.na(amt))) %>%
+        mutate(occ=ifelse(occ == 0, 1, occ)) %>%
+        mutate(occ=2- occ %% 2) %>%
+        mutate(eye=ifelse(round(time) == time, 1, 2)) %>%
+        mutate(inv=ifelse(id < 10, 1, 2)) ->
+        ev
+
+    omega <- lotri(lotri(eta.Cl ~ 0.1,
+                         eta.Ka ~ 0.1) | id,
+                   lotri(eye.Cl ~ 0.05,
+                         eye.Ka ~ 0.05) | eye,
+                   lotri(iov.Cl ~ 0.01,
+                         iov.Ka ~ 0.01) | occ,
+                   lotri(inv.Cl ~ 0.02,
+                         inv.Ka ~ 0.02) | inv)
+
+    .ni <- .nestingInfo(ev$id, omega, ev)
+    expect_equal(.ni$above, c(eye = 2L, occ = 2L))
+    expect_equal(.ni$below, c(inv = 2L))
+    expect_true(inherits(.ni$data$eye, "factor"))
+    expect_equal(attr(.ni$data$eye, "nu"), 40L)
+    expect_true(inherits(.ni$data$inv, "factor"))
+    expect_equal(attr(.ni$data$inv, "nu"), NULL)
+
+    expect_true(inherits(.ni$data$occ, "factor"))
+    expect_equal(attr(.ni$data$occ, "nu"), 40L)
+
+
     ## test_that("Expanding IOV", {
 
 ##         expect_error(RxODE:::rxExpandOcc(mod,1,"iov.Cl"))
