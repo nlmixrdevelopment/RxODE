@@ -392,8 +392,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
     dvCol=-1, ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol=-1, j,
-    mdvCol=-1, dvidCol=-1, censCol=-1, limitCol=-1, methodCol = -1,
-    occCol=-1;
+    mdvCol=-1, dvidCol=-1, censCol=-1, limitCol=-1, methodCol = -1;
   std::string tmpS;
   
   CharacterVector pars = as<CharacterVector>(mv["params"]);
@@ -432,7 +431,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     else if (tmpS == "dvid") dvidCol=i;
     else if (tmpS == "cens") censCol=i;
     else if (tmpS == "limit") limitCol=i;
-    else if (tmpS == "occ") occCol=i;
     else if (tmpS == "method") methodCol=i;
     for (j = keep.size(); j--;){
       if (as<std::string>(dName[i]) == as<std::string>(keep[j])){
@@ -605,9 +603,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   std::vector<int> cens;
   cens.reserve(resSize);
 
-  std::vector<int> vocc;
-  vocc.reserve(resSize);
-
   // REprintf("Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   // _lastT0 = clock();
   
@@ -769,16 +764,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       stop(_("limit variable ('limit') needs to be a number"));
     }
   }
-
-  IntegerVector inOcc;
-  if (occCol != -1){
-    if (rxIs(inData[occCol], "integer") || rxIs(inData[occCol], "numeric") ||
-	rxIs(inData[occCol], "logical")){
-      inOcc = as<IntegerVector>(inData[occCol]);
-    } else {
-      stop(_("occasion variable ('occ') needs to be a number"));
-    }
-  }
   
   int flg = 0;
   int cid = 0;
@@ -800,7 +785,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   double cdv, climit;
   int nobs=0, ndose=0;
   int ccens=0;
-  int cocc = 0;
   bool warnCensNA=false;
   bool censNone=true;
   bool swapDvLimit=false;
@@ -853,7 +837,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	cens.push_back(0);
 	limit.push_back(NA_REAL);
 	idx.push_back(-1);
-	vocc.push_back(NA_INTEGER);
 	idxO.push_back(curIdx);curIdx++;
       }
       nid++;
@@ -964,8 +947,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
     if (addlCol == -1) caddl=0;
     else caddl = inAddl[i];
-    if (occCol == -1) cocc = NA_INTEGER;
-    else cocc = inOcc[i];
     // EVID flag
     if (evidCol == -1){
       // Missing EVID
@@ -1041,7 +1022,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  dv.push_back(cdv);
 	  limit.push_back(climit);
 	}
-	vocc.push_back(cocc);
 	idxO.push_back(curIdx);curIdx++;
 	cevid = -1;
       } else {
@@ -1124,7 +1104,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  dv.push_back(cdv);
 	  limit.push_back(climit);
 	}
-	vocc.push_back(cocc);
 	idxO.push_back(curIdx);curIdx++;
 	cevid = -1;
       }
@@ -1168,7 +1147,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	dv.push_back(NA_REAL);
 	limit.push_back(NA_REAL);
 	cens.push_back(0);
-	vocc.push_back(cocc);
 	idxO.push_back(curIdx);curIdx++;
 	ndose++;
 	// + cmt needs to turn on cmts.
@@ -1185,7 +1163,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  dv.push_back(NA_REAL);
 	  limit.push_back(NA_REAL);
 	  cens.push_back(0);
-	  vocc.push_back(cocc);
 	  idxO.push_back(curIdx);curIdx++;
 	  ndose++;
 	}
@@ -1216,7 +1193,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       dv.push_back(NA_REAL);
       limit.push_back(NA_REAL);
       cens.push_back(0);
-      vocc.push_back(cocc);
       idxO.push_back(curIdx);curIdx++;
       ndose++;
       cevid = -1;
@@ -1240,7 +1216,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       dv.push_back(NA_REAL);
       limit.push_back(NA_REAL);
       cens.push_back(0);
-      vocc.push_back(cocc);
       idxO.push_back(curIdx);curIdx++;
       ndose++;
       // Now use the transformed compartment
@@ -1298,7 +1273,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       dv.push_back(NA_REAL);
       limit.push_back(NA_REAL);
       cens.push_back(0);
-      vocc.push_back(cocc);
       idxO.push_back(curIdx);curIdx++;
       ndose++;
       if (rateI > 2 && rateI != 4 && rateI != 5 && flg != 40){
@@ -1314,7 +1288,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	dv.push_back(NA_REAL);
 	limit.push_back(NA_REAL);
 	cens.push_back(0);
-	vocc.push_back(cocc);
 	idxO.push_back(curIdx);curIdx++;
 	ndose++;
       } else if (rateI == 1 || rateI == 2){
@@ -1333,7 +1306,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  dv.push_back(NA_REAL);
 	  limit.push_back(NA_REAL);
 	  cens.push_back(0);
-	  vocc.push_back(cocc);
 	  idxO.push_back(curIdx);curIdx++;
 	  ndose++;
 	}
@@ -1352,7 +1324,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  dv.push_back(NA_REAL);
 	  limit.push_back(NA_REAL);
 	  cens.push_back(0);
-	  vocc.push_back(cocc);
 	  idxO.push_back(curIdx);curIdx++;
 	  ndose++;
 	  if (rateI > 2 && rateI != 4 && rateI != 5){
@@ -1368,7 +1339,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    dv.push_back(NA_REAL);
 	    limit.push_back(NA_REAL);
 	    cens.push_back(0);
-	    vocc.push_back(cocc);
 	    idxO.push_back(curIdx);curIdx++;
 	    ndose++;
 	  } else if (rateI == 1 || rateI == 2){
@@ -1384,7 +1354,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    dv.push_back(NA_REAL);
 	    limit.push_back(NA_REAL);
 	    cens.push_back(0);
-	    vocc.push_back(cocc);
 	    idxO.push_back(curIdx);curIdx++;
 	    ndose++;
 	  } else {
@@ -1441,7 +1410,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    limit.push_back(NA_REAL);
 	    cens.push_back(0);
 	    idx.push_back(-1);
-	    vocc.push_back(cocc);
 	    idxO.push_back(curIdx);curIdx++;	  
 	  }
 	}
@@ -1588,11 +1556,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   int limitAdd = 0;
   if (limitCol != -1) limitAdd=1;
 
-  int occAdd = 0;
-  if (occCol != -1) occAdd=1;
-  List lst = List(baseSize+censAdd+limitAdd+2*occAdd+covCol.size());
-  std::vector<bool> sub0(baseSize+censAdd+limitAdd+2*occAdd+covCol.size(), true);
-  CharacterVector nme(baseSize+censAdd+limitAdd+2*occAdd+covCol.size());
+  List lst = List(baseSize+censAdd+limitAdd+covCol.size());
+  std::vector<bool> sub0(baseSize+censAdd+limitAdd+covCol.size(), true);
+  CharacterVector nme(baseSize+censAdd+limitAdd+covCol.size());
   // REprintf("Time9: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   // _lastT0 = clock();
   
@@ -1632,17 +1598,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     nme[baseSize] = "LIMIT";
     baseSize++;
   }
-
-  if (occAdd) {
-    lst[baseSize] = IntegerVector(idxO.size()-rmAmt);
-    nme[baseSize] = "rxOCC";
-    baseSize++;
-    lst[baseSize] = IntegerVector(idxO.size()-rmAmt);
-    nme[baseSize] = "OCC";
-    baseSize++;
-  }
   
-
   List lst1(1+covCol.size());
   CharacterVector nme1(1+covCol.size());
   std::vector<bool> sub1(1+covCol.size(), true);
@@ -1685,11 +1641,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   bool cmtFadd = false;
   int jj = idxO.size()-rmAmt;
   int kk;
-  int locc = NA_INTEGER;
-  int maxOcc = 0;
-  int totOcc=0;
-  cocc=0;
-  std::vector<int> occId;
   for (i =idxO.size(); i--;){
     if (idxO[i] != -1){
       jj--;
@@ -1702,12 +1653,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	// Add ID
 	ivTmp = as<IntegerVector>(lst1[0]);
 	ivTmp[idx1] = id[idxO[i]];
-	if (!IntegerVector::is_na(lastId)){
-	  totOcc+=cocc;
-	  occId.push_back(cocc);
-	  cocc=0;
-	  locc = NA_INTEGER;
-	}
 	lastId=id[idxO[i]];
       }
       // retId[i]=id[idxO[i]];
@@ -1738,31 +1683,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (limitAdd){
 	nvTmp = as<NumericVector>(lst[kk]);
 	nvTmp[jj] = limit[idxO[i]];
-	kk++;
-      }
-      if (occAdd){
-	ivTmp = as<IntegerVector>(lst[kk]);
-	if (IntegerVector::is_na(vocc[idxO[i]])){
-	  // Only pushed through with mtimes
-	  ivTmp[jj] = NA_INTEGER;
-	} else {
-	  // occ values are numbered 1, 2, 3 regardless of their
-	  // original grouping...
-	  //
-	  // This needs to be documented somewhere or OCC should not
-	  // be able to be accessed from RxODE.
-	  if (locc == vocc[idxO[i]]){
-	    ivTmp[jj] = cocc;
-	  } else {
-	    cocc++;
-	    ivTmp[jj] = cocc;
-	    locc = vocc[idxO[i]];
-	    maxOcc = max2(cocc, maxOcc);
-	  }
-	}
-	kk++;
-	ivTmp = as<IntegerVector>(lst[kk]);
-	ivTmp[jj] = vocc[idxO[i]];
 	kk++;
       }
       // Now add the other items.
@@ -1829,9 +1749,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
     }
   }
-  occId.push_back(cocc);
-  std::reverse(occId.begin(), occId.end());
-  totOcc+=cocc;
 
   // REprintf("Time11: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   // _lastT0 = clock();
@@ -1906,9 +1823,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   e["cov1"] = lst1F;
   e["covParPos"]  = wrap(covParPos);
   e["covParPosTV"] = wrap(covParPosTV); // Time-varying pos
-  e["occId"] = wrap(occId);
-  e["maxOcc"] = wrap(maxOcc);
-  e["totOcc"] = wrap(totOcc);
   if (allTimeVar){
     e["sub0"] = wrap(sub0);
     e["baseSize"] = baseSize;

@@ -7,11 +7,109 @@
         return(id)
     }
 }
+
+##' Converts an ID column into a factor
+##'
+##' @param id Id column
+##' @return A factor of IDs
+##' @author Matthew Fidler
+##' @noRd
 .convertId <- function(id) {
-    .pid <- paste(id);
-    .lvl <- unique(.pid);
-    .lab <- paste(.lvl)
-    factor(.pid, levels = .lvl, labels = .lab);
+  .pid <- paste(id);
+  .lvl <- unique(.pid);
+  .lab <- paste(.lvl)
+  factor(.pid, levels = .lvl, labels = .lab);
+}
+
+##' Get the nesting info for a single column
+##'
+##' @param id Id information
+##' @param col Nesting
+##' @return A factor made with `.convertId()`; When the nesting is
+##'   above the `id` level supplied (like site variability) nothing
+##'   else is added; However, if the nesting is above the `id` level
+##'   (like occasion) it has an extra attribute `nu` that shows the
+##'   total information/degrees of freedom for the combination of id
+##'   and the lower nesting level.
+##' @author Matthew Fidler
+##' @noRd
+.nestingInfoSingle <- function(col, id) {
+  .f1 <- factor(paste(id, col))
+  .l1 <- length(levels(.f1))
+  .f2 <- .convertId(col)
+  .l2 <- length(levels(.f2))
+  if (.l1 == .l2) {
+    ## Case:
+    ##  study id
+    ##  1     1
+    ##  1     2
+    ##  1     3
+    ##  2     4
+    ##  2     5
+    ##
+    ## The factor(paste(study,id)) will have the same number of levels
+    ## as factor(paste(id))
+    return(.f2)
+  } else if (.l1 > .l2) {
+    ## Case:
+    ##  id  occ
+    ##  1     1
+    ##  1     2
+    ##  1     3
+    ##  2     1
+    ##  2     2
+    ##
+    ## The factor(paste(occ,id)) will have more levels than
+    ## factor(paste(id))
+    attr(.f2, "nu") <- .l1
+    return(.f2)
+  } else {
+    stop("un-handled nesting information")
+  }
+}
+
+##' This gets the nesting information
+##'
+##' @param id Id information
+##' @param omega Omega information
+##' @param data
+##' @return Nesting Information
+##' @author Matthew Fidler
+##' @noRd
+.nestingInfo <- function(id, omega, data) {
+  .env <- new.env(parent=emptyenv())
+  if (!inherits(id, "factor")) {
+    id <- .convertId(id)
+  }
+  .lowNames <- tolower(names(data))
+  .w <- which(.lowNames == "id")
+  if (length(.w) == 1) {
+      .id <- names(data)[.w]
+  } else {
+      stop("unsupported data when calculating nesting information")
+  }
+  omega <- lotri::as.lotri(omega, default=.id)
+  .lvls <- names(omega)
+  .lvls <- .lvls[.lvls != .id]
+  env <- new.env(parent=emptyenv())
+  env$data <- data
+  env$above <- c()
+  env$below <- c()
+  lapply(.lvls, function(lvl) {
+      .s <- .nestingInfoSingle(data[[lvl]], id)
+      if (attr(.s, "nu")) {
+          env$above <- c(env$above, setNames(attr(.s, "nu"), lvl))
+      } else {
+          env$below <- c(env$below, setNames(length(levels(.s)), lvl))
+      }
+      env$data[[lvl]] <- .s;
+  })
+  return(list(data=env$data,
+              omega=omega,
+              idName=.id,
+              id=id,
+              above=env$above,
+              below=env$below))
 }
 
 .warnIdSort0 <- TRUE

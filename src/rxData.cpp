@@ -1542,7 +1542,7 @@ void rxSimOmega(bool &simOmega,
       }      
     }
     simOmega = true;
-  } else if (rxIs(omega,"matrix")){
+  } else if (rxIs(omega,"matrix") && nSub > 1){
     simOmega = true;
     omegaM = as<NumericMatrix>(omega);
     if (!omegaM.hasAttribute("dimnames")){
@@ -1581,112 +1581,6 @@ void rxSimOmega(bool &simOmega,
   }
 }
 
-RObject _iovNames;
-
-typedef struct {
-  std::vector<arma::mat> fullOmega;
-  arma::mat omega;
-  bool simOmega = false;
-  arma::mat iov;
-  bool simIov = false;
-  bool studOmega = false;
-  RObject df = R_NilValue;
-  NumericVector lower;
-  NumericVector upper;
-  int nSub;
-  int nCoresRV;
-} rx_omegaList;
-
-rx_omegaList _rxo;
-
-// Expand omega matrix list to include iov matrix
-void omegaListInit(int nStud,
-		   int nSub,
-		   int nCoresRV,
-		   bool &simOmega,
-		   List &omegaList,
-		   NumericMatrix &omegaMC,
-		   CharacterVector &omegaN,
-		   const NumericVector &omegaLower,
-		   const NumericVector &omegaUpper,
-		   const Nullable<NumericVector> &omegaDf,
-		   bool &simIov,
-		   List &iovList,
-		   NumericMatrix &iovMC,
-		   CharacterVector &iovN,
-		   const NumericVector &iovLower,
-		   const NumericVector &iovUpper,
-		   const Nullable<NumericVector> &iovDf,
-		   RObject &iovNames,
-		   double dfObs,
-		   double dfOcc){
-  rx_omegaList lst;
-  bool lstOmega = dfObs > 0;
-  bool lstOcc = dfOcc > 0;
-  lst.nSub = nSub;
-  lst.nCoresRV = nCoresRV;
-  lst.simIov = simIov;
-  lst.simOmega = simOmega;
-  // if (iovDf != sigmaDf){
-  //   stop(_("'iovDf' must equal 'sigmaDf'"));
-  // }
-  lst.df = omegaDf;
-  if (lstOcc && !lstOmega) stop(_("Simulating with 'iov' does not make sense"));
-  lst.studOmega = (dfObs > 0 || dfOcc > 0) && nStud > 1;
-  Function omegaIov = getRxFn(".rxExpandOmegaIov");
-  if (lst.studOmega){
-    lst.fullOmega.reserve(nStud);
-    List cur;
-    RObject curOmega;
-    RObject curIov;
-    for (int i = 0; i < nStud; i++){
-      if (lstOmega){
-	curOmega = as<RObject>(omegaList[i]);
-      } else {
-	curOmega = as<RObject>(omegaMC);
-      }
-      CharacterVector iovN2;
-      if (lstOcc){
-	curIov = as<RObject>(iovList[i]);
-	iovN2= iovN;
-      } else if(!simIov) {
-	curIov = as<RObject>(iovMC);
-	iovN2= iovN;
-      } else {
-	curIov = R_NilValue;
-	iovN2= R_NilValue;
-      }
-      cur = omegaIov(curOmega, curIov, iovNames,
-		     omegaLower, omegaUpper,
-		     iovLower, iovUpper,
-		     omegaN, iovN2);
-      lst.fullOmega[i] = as<arma::mat>(cur["m"]);
-    }
-    lst.lower = cur["lower"];
-    lst.upper = cur["upper"];
-  } else if (simIov) {
-    List cur = omegaIov(as<RObject>(omegaMC), as<RObject>(iovMC), iovNames,
-			omegaLower, omegaUpper,
-			iovLower, iovUpper,
-			omegaN, iovN);
-    lst.omega = as<arma::mat>(cur["m"]);
-    lst.lower = cur["lower"];
-    lst.upper = cur["upper"];
-  } else {
-    lst.omega = as<arma::mat>(omegaMC);
-    lst.lower = omegaLower;
-    lst.upper = omegaUpper;
-  }
-  _rxo = lst;
-}
-
-NumericMatrix rxSimOmegaNM(int i){
-  RObject ome = _rxo.studOmega ? wrap(_rxo.fullOmega[i]) : wrap(_rxo.omega);
-  NumericMatrix ret = as<NumericMatrix>(rxSimSigma(ome, _rxo.df, _rxo.nCoresRV,
-						   false, _rxo.nSub, false,
-						   _rxo.lower, _rxo.upper));
-  return ret;
-}
 
 //' Simulate Parameters from a Theta/Omega specification
 //'
@@ -1726,23 +1620,6 @@ NumericMatrix rxSimOmegaNM(int i){
 //'     symmetric matrix.
 //'
 //' @param omegaSeparation @template separation
-//' 
-//' @param iov Named iov matrix.
-//'
-//' @param iovLower Lower bounds for simulated ETAs (by default -Inf)
-//'
-//' @param iovUpper Upper bounds for simulated ETAs (by default Inf)
-//'
-//' @param iovDf The degrees of freedom of a t-distribution for
-//'     simulation.  By default this is \code{NULL} which is
-//'     equivalent to \code{Inf} degrees, or to simulate from a normal
-//'     distribution instead of a t-distribution.
-//'
-//' @param iovIsChol Indicates if the \code{iov} supplied is a
-//'     Cholesky decomposed matrix instead of the traditional
-//'     symmetric matrix.
-//'
-//' @param iovSeparation @template separation
 //'
 //' @param nStud Number virtual studies to characterize uncertainty in estimated 
 //'        parameters.
@@ -1765,8 +1642,7 @@ NumericMatrix rxSimOmegaNM(int i){
 //'
 //' @param dfObs Degrees of freedom to sample the unexplained variability matrix from the 
 //'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution. 
-//' @param dfOcc Degrees of freedom to sample the iov matrix from the 
-//'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
+//'
 //' @param simSubjects boolean indicated RxODE should simulate subjects in studies (\code{TRUE}, 
 //'         default) or studies (\code{FALSE})
 //'
@@ -1796,13 +1672,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
                      const bool &sigmaIsChol = false,
 		     std::string sigmaSeparation= "auto",//("lkj", "separation")
 		     const int sigmaXform = 1,
-		     const RObject &iov= R_NilValue,
-		     const NumericVector &iovLower = NumericVector::create(R_NegInf),
-		     const NumericVector &iovUpper = NumericVector::create(R_PosInf),
-		     const Nullable<NumericVector> &iovDf= R_NilValue,
-                     const bool &iovIsChol = false,
-		     std::string iovSeparation= "auto",//("lkj", "separation")
-		     const int iovXform = 1,
                      int nCoresRV = 1,
                      int nObs = 1,
                      double dfSub = 0,
@@ -1835,37 +1704,26 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   CharacterVector omegaN;
   NumericMatrix omegaMC;
   List omegaList;
+
   rxSimOmega(simOmega, omegaSep, omegaM, omegaN, omegaMC,
 	     omegaList, thetaN, thetaM, "omega", omega, omegaDf,
 	     omegaLower, omegaUpper, omegaIsChol,
 	     omegaSeparation, omegaXform, dfSub, nStud, nSub);
+  
   bool simSigma = false;
   bool sigmaSep=false;
   NumericMatrix sigmaM;
   CharacterVector sigmaN;
   NumericMatrix sigmaMC;
   List sigmaList;
+  
   rxSimOmega(simSigma, sigmaSep, sigmaM, sigmaN, sigmaMC,
 	     sigmaList, thetaN, thetaM, "sigma", sigma, sigmaDf,
 	     sigmaLower, sigmaUpper, sigmaIsChol,
-	     sigmaSeparation, sigmaXform, dfObs, nStud, nSub);
-
-  bool simIov = false;
-  bool iovSep = false;
-  NumericMatrix iovM;
-  CharacterVector iovN;
-  NumericMatrix iovMC;
+	     sigmaSeparation, sigmaXform, dfObs, nStud, nObs);
+  
+  // Now create data frame of parameter values
   List iovList;
-  rxSimOmega(simIov, iovSep, iovM, iovN, iovMC,
-	     iovList, thetaN, thetaM, "iov", iov, iovDf,
-	     iovLower, iovUpper, iovIsChol,
-	     iovSeparation, iovXform, dfOcc, nStud, nSub);
-
-  omegaListInit(nStud, nSub, nCoresRV, simOmega, omegaList,
-		omegaMC, omegaN, omegaLower, omegaUpper,
-		omegaDf, simIov, iovList, iovMC, iovN,
-		iovLower, iovUpper, iovDf, _iovNames,
-		dfObs, dfOcc);
   
   int pcol = par.size();
   int ocol = 0;
@@ -1873,11 +1731,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   if (simOmega){
     ocol = omegaMC.ncol();
     ncol += ocol;
-    if (!_iovNames.isNULL()) {
-      CharacterVector tmpC = as<CharacterVector>(_iovNames);
-      ocol += tmpC.size();
-      ncol += tmpC.size();
-    }
   }
   int scol = 0;
   if (simSigma){
@@ -1916,7 +1769,14 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     }
     // Now Omega Covariates
     if (ocol > 0){
-      nm1 = rxSimOmegaNM(i);
+      if (dfSub > 0 && nStud > 1){
+        // nm = ret0[j]; // parameter columnem
+        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaList[i]), as<RObject>(omegaDf), nCoresRV, false, nSub,
+					   false, omegaLower, omegaUpper));
+      } else {
+        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaMC), as<RObject>(omegaDf), nCoresRV, true, nSub,
+					   false, omegaLower, omegaUpper));
+      }
       for (j=pcol; j < pcol+ocol; j++){
         nm = ret0[j];
         for (k = 0; k < nSub; k++){
@@ -1961,14 +1821,8 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   for (i = 0; i < pcol; i++){
     dfName[i] = parN[i];
   }
-  for (i = pcol; i < pcol+omegaN.size(); i++){
+  for (i = pcol; i < pcol+ocol; i++){
     dfName[i] = omegaN[i-pcol];
-  }
-  if (!_iovNames.isNULL()){
-    CharacterVector iovNames = as<CharacterVector>(_iovNames);
-    for (i = pcol+omegaN.size(); i < pcol+ocol; i++){
-      dfName[i] = iovNames[i-pcol-omegaN.size()];
-    }
   }
   for (i = pcol+ocol; i < ncol; i++){
     dfName[i] = sigmaN[i-pcol-ocol];
@@ -2562,10 +2416,6 @@ static inline void rxSolve_simulate(const RObject &obj,
   Nullable<NumericVector> omegaDf = as<Nullable<NumericVector>>(rxControl["omegaDf"]);
   bool omegaIsChol = as<bool>(rxControl["omegaIsChol"]);
 
-  RObject iov = rxControl["iov"];
-  Nullable<NumericVector> iovDf = as<Nullable<NumericVector>>(rxControl["iovDf"]);
-  bool iovIsChol = as<bool>(rxControl["iovIsChol"]);
-
   Nullable<NumericMatrix> thetaMat = as<Nullable<NumericMatrix>>(rxControl["thetaMat"]);
   Nullable<NumericVector> thetaDf = as<Nullable<NumericVector>>(rxControl["thetaDf"]);
   bool thetaIsChol = as<bool>(rxControl["thetaIsChol"]);
@@ -2579,7 +2429,6 @@ static inline void rxSolve_simulate(const RObject &obj,
   unsigned int nStud = as<unsigned int>(rxControl["nStud"]);
   double dfSub=as<double>(rxControl["dfSub"]);
   double dfObs=as<double>(rxControl["dfObs"]);
-  double dfOcc=as<double>(rxControl["dfOcc"]);
   
   int nCoresRV = as<int>(rxControl["nCoresRV"]);
   
@@ -2587,12 +2436,11 @@ static inline void rxSolve_simulate(const RObject &obj,
   
   op->ncoresRV = nCoresRV;
 
-  if (!thetaMat.isNull() || !rxIs(omega, "NULL") || !rxIs(sigma, "NULL") ||
-      !rxIs(iov, "NULL")){
+  if (!thetaMat.isNull() || !rxIs(omega, "NULL") || !rxIs(sigma, "NULL")){
     // Simulated Variable3
     if (!rxIs(rxSolveDat->par1, "numeric")){
       rxSolveFree();
-      stop(_("when specifying 'thetaMat', 'omega', 'iov', or 'sigma' the parameters cannot be a 'data.frame'/'matrix'."));
+      stop(_("when specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a 'data.frame'/'matrix'."));
     }
     unsigned int nSub0 = 0;
     int curObs = 0;
@@ -2681,14 +2529,8 @@ static inline void rxSolve_simulate(const RObject &obj,
 			       sigmaDf, sigmaIsChol,
 			       as<std::string>(rxControl["sigmaSeparation"]),
 			       as<int>(rxControl["sigmaXform"]),
-			       iov,
-			       as<NumericVector>(rxControl["iovLower"]),
-			       as<NumericVector>(rxControl["iovUpper"]),
-			       iovDf, iovIsChol,
-			       as<std::string>(rxControl["iovSeparation"]),
-			       as<int>(rxControl["iovXform"]),
 			       nCoresRV, curObs,
-			       dfSub, dfObs, dfOcc, simSubjects);
+			       dfSub, dfObs, simSubjects);
     rxSolveDat->warnIdSort = false;
     rxSolveDat->par1 =  as<RObject>(lst);
     rxSolveDat->usePar1=true;
@@ -3869,15 +3711,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   rxSolveDat->isEnvironment = rxIs(obj, "environment");
   rxSolveDat->idFactor= as<bool>(rxControl["idFactor"]);
   rxSolveDat->warnIdSort = as<bool>(rxControl["warnIdSort"]);
-  _iovNames = R_NilValue;
-  RObject curIov = rxControl["iov"];
-  if (!rxIs(curIov, "NULL")){
-    if (!curIov.hasAttribute("dimnames")){
-      stop(_("'iov' must be a named matrix"));
-    }
-    List dmIov = curIov.attr("dimnames");
-    _iovNames = dmIov[0];
-  }
   if (rxSolveDat->updateObject && !rxSolveDat->isRxSolve && !rxSolveDat->isEnvironment){
     if (rxIs(rxCurObj, "rxSolve")){
       object = rxCurObj;
@@ -3891,9 +3724,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       rxSolveDat->mv = rxModelVars(obj);
       List indLin = rxSolveDat->mv["indLin"];
       if (indLin.size() == 0){
-	if (!_iovNames.isNULL()){
-	  stop(_("to use 'iov' with 'indLin', compile the model with inductive linearization support first"));
-	}
 	Function RxODE = getRxFn("RxODE");
 	object = RxODE(obj, _["indLin"]=true);
 	rxSolveDat->mv = rxModelVars(object);
@@ -4023,22 +3853,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // Update event table with observations if they are missing
     rxSolve_ev1Update(obj, rxControl, specParams, extraArgs, params,
 		      ev1, inits, rxSolveDat);
-
-    if (!_iovNames.isNULL()){
-      Function rxExpandOcc = getRxFn("rxExpandOcc");
-      if (!rxIs(ev1, "rxEtTran")){
-	stop(_("'iov' setup mismatch"));
-      }
-      // Expand IOV spec
-      CharacterVector tmpCls = ev1.attr("class");
-      List tmpE0 = tmpCls.attr(".RxODE.lst");
-      List tmpLst = rxExpandOcc(object,tmpE0["maxOcc"],_iovNames, true);
-      object = tmpLst[0];
-      _iovNames = tmpLst["iov1"];
-      rxSolveDat->mv = rxModelVars(object);
-      pars = rxSolveDat->mv["params"];
-      rxSolveDat->npars = pars.size();
-    }
 
 #ifdef rxSolveT
     REprintf("Time6: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
