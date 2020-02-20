@@ -942,7 +942,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   //depth++;
   if (nch != 0) {
     if (nodeHas(power_expression)) {
-      aAppendN(" R_pow(", 7);
+      aAppendN("R_pow(_as_dbleps(", 17);
     }
     for (i = 0; i < nch; i++) {
       if (!rx_syntax_assign  &&
@@ -1756,7 +1756,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
 
       if (nodeHas(power_expression) && i==0) {
-        aAppendN(",", 1);
+        aAppendN("),", 2);
         sAppendN(&sbt, "^", 1);
       }
       if (!rx_syntax_star_pow && i == 1 &&nodeHas(power_expression)){
@@ -2915,24 +2915,33 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 6){
       if (foundLag){
-	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t){\n  double _alag[%d]={0};\n  (void)_alag;\n",
+	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t){\n  double _alag[%d];\n  (void)_alag;\n",
 		prefix, tb.de.n);
+	for (int jjj = tb.de.n; jjj--;){
+	  sAppend(&sbOut, "  _alag[%d]=0.0;\n",jjj);
+	}
       } else {
 	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t){\n return t;\n",
 		prefix);
       }
     } else if (show_ode == 7){
       if (foundRate){
-	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n  double _rate[%d]={0};\n  (void)_rate;\n",
+	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n  double _rate[%d];\n  (void)_rate;\n",
 		prefix, tb.de.n);
+	for (int jjj = tb.de.n; jjj--;){
+	  sAppend(&sbOut, "  _rate[%d]=0.0;\n",jjj);
+	}
       } else {
 	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
 		prefix);
       }
     } else if (show_ode == 8){
       if (foundDur){
-	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n  double _dur[%d]={0};\n  (void)_dur;\n",
+	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n  double _dur[%d];\n  (void)_dur;\n",
 		prefix, tb.de.n);
+	for (int jjj = tb.de.n; jjj--;){
+	  sAppend(&sbOut, "  _dur[%d]=0.0;\n",jjj);
+	}
       } else {
 	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
 		prefix);

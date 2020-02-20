@@ -1535,9 +1535,13 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
 	  op->badSolve = 1;
 	  i = nx-1; // Get out of here!
 	} else {
-	  if (R_FINITE(rx->stateTrim)){
-	    double top=fabs(rx->stateTrim);
-	    for (unsigned int j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
+	  if (R_FINITE(rx->stateTrimU)){
+	    double top=fabs(rx->stateTrimU);
+	    for (unsigned int j = neq[0]; j--;) yp[j]= min(top,yp[j]);
+	  }
+	  if (R_FINITE(rx->stateTrimL)){
+	    double bottom=rx->stateTrimL;
+	    for (unsigned int j = neq[0]; j--;) yp[j]= max(bottom,yp[j]);
 	  }
 	}
       }
@@ -1698,9 +1702,13 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
 	  op->badSolve = 1;
 	  i = nx-1; // Get out of here!
 	} else {
-	  if (R_FINITE(rx->stateTrim)){
-	    double top=fabs(rx->stateTrim);
-	    for (unsigned int j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
+	  if (R_FINITE(rx->stateTrimU)){
+	    double top=rx->stateTrimU;
+	    for (unsigned int j = neq[0]; j--;) yp[j]= min(top,yp[j]);
+	  }
+	  if (R_FINITE(rx->stateTrimL)){
+	    double bottom=rx->stateTrimL;
+	    for (unsigned int j = neq[0]; j--;) yp[j]= max(bottom,yp[j]);
 	  }
 	}
       }
@@ -1994,9 +2002,13 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 	  op->badSolve = 1;
 	  i = ind->n_all_times-1; // Get out of here!
 	} else {
-	  if (R_FINITE(rx->stateTrim)){
-	    double top=fabs(rx->stateTrim);
-	    for (j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
+	  if (R_FINITE(rx->stateTrimU)){
+	    double top=rx->stateTrimU;
+	    for (unsigned int j = neq[0]; j--;) yp[j]= min(top,yp[j]);
+	  }
+	  if (R_FINITE(rx->stateTrimL)){
+	    double bottom=rx->stateTrimL;
+	    for (unsigned int j = neq[0]; j--;) yp[j]= max(bottom,yp[j]);
 	  }
 	}
 	ind->slvr_counter[0]++;
@@ -2208,9 +2220,13 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
 	  op->badSolve = 1;
 	  i = nx-1; // Get out of here!
 	} else {
-	  if (R_FINITE(rx->stateTrim)){
-	    double top=fabs(rx->stateTrim);
-	    for (j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
+	  if (R_FINITE(rx->stateTrimU)){
+	    double top=rx->stateTrimU;
+	    for (unsigned int j = neq[0]; j--;) yp[j]= min(top,yp[j]);
+	  }
+	  if (R_FINITE(rx->stateTrimL)){
+	    double bottom=rx->stateTrimL;
+	    for (unsigned int j = neq[0]; j--;) yp[j]= max(bottom,yp[j]);
 	  }
 	}
         xp = xRead();

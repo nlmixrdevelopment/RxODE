@@ -1976,7 +1976,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   ret0.attr("names") = dfName;
   ret0.attr("class") = "data.frame";
   ret0.attr("row.names") = IntegerVector::create(NA_INTEGER,-nSub*nStud);
-  print(wrap(ret0));
   getRxModels();
   if (ret1.nrow() > 1){
     ret1.attr("dimnames") = List::create(R_NilValue, sigmaN);
@@ -3843,7 +3842,25 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   bool addCov = as<bool>(rxControl["addCov"]);
   int matrix = as<int>(rxControl["matrix"]);
   int nDisplayProgress = as<int>(rxControl["nDisplayProgress"]);
-  double stateTrim = as<double>(rxControl["stateTrim"]);
+  NumericVector stateTrim = rxControl["stateTrim"];
+  double stateTrimU= R_PosInf;
+  double stateTrimL= R_NegInf;
+  if (stateTrim.size() == 2){
+    if (stateTrim[0] > stateTrim[1]){
+      stateTrimU = stateTrim[0];
+      stateTrimL = stateTrim[1];
+    } else {
+      stateTrimU = stateTrim[1];
+      stateTrimL = stateTrim[0];
+    }
+  } else if (stateTrim.size() == 1){
+    if (!ISNA(stateTrimU)){
+      stateTrimU = fabs(stateTrim[0]);
+      stateTrimL = -stateTrimU;
+    }
+  } else {
+    stop("'stateTrim' must be a vector of 1-2 elements");
+  }
   rxSolve_t rxSolveDat0;
   rxSolve_t* rxSolveDat = &rxSolveDat0;
   RObject object;
@@ -3967,11 +3984,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rxAssignPtr(rxSolveDat->mv);
     rx->nKeep0 = 0;
     rx->nKeepF = 0;
-    if (ISNA(stateTrim)){
-      rx->stateTrim = R_PosInf;
-    } else {
-      rx->stateTrim = stateTrim;
-    }
+    rx->stateTrimU = stateTrimU;
+    rx->stateTrimL = stateTrimL;
     rx->matrix = matrix;
     rx->needSort = as<int>(rxSolveDat->mv["needSort"]);
     rx->nMtime = as<int>(rxSolveDat->mv["nMtime"]);
