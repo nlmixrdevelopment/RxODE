@@ -61,6 +61,17 @@ rxPermissive({
     expect_true(inherits(.ni$data$occ, "factor"))
     expect_equal(attr(.ni$data$occ, "nu"), 40L)
 
+    ## Test edge case -- no between or above occasion variability
+
+    .ni <- .nestingInfo(ev$id, lotri(eta.Cl ~ 0.1, eta.Ka ~ 0.1),
+                        ev)
+
+    expect_equal(.ni$above, NULL)
+    expect_equal(.ni$below, NULL)
+    expect_equal(.ni$idName, "id")
+    expect_true(inherits(.ni$omega, "lotri"))
+    expect_equal(names(.ni$omega), "id")
+
 
     ## test_that("Expanding IOV", {
 
