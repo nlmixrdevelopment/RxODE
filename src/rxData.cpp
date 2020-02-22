@@ -2591,6 +2591,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	// Create a data frame
 	Function sortId = getRxFn(".sortId");
 	iCov = clone(sortId(iCov, idLevels, "iCov", warnIdSort));
+	// Assign iCov to keep from corruption; See Issue #163
+	getRxModels();
+	_rxModels[".curIcov"] = iCov;
 	CharacterVector keepC, keepCf;
 	if (rxIs(rxControl["keepI"], "character")){
 	  keepC = as<CharacterVector>(rxControl["keepI"]);
