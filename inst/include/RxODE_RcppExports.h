@@ -132,17 +132,17 @@ namespace RxODE {
         return Rcpp::as<std::string >(rcpp_result_gen);
     }
 
-    inline List rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par, bool compile = false) {
-        typedef SEXP(*Ptr_rxExpandOcc)(SEXP,SEXP,SEXP,SEXP);
-        static Ptr_rxExpandOcc p_rxExpandOcc = NULL;
-        if (p_rxExpandOcc == NULL) {
-            validateSignature("List(*rxExpandOcc)(const RObject&,const int&,const CharacterVector&,bool)");
-            p_rxExpandOcc = (Ptr_rxExpandOcc)R_GetCCallable("RxODE", "_RxODE_rxExpandOcc");
+    inline List rxExpandNesting(const RObject& obj, List& nestingInfo, bool compile = false) {
+        typedef SEXP(*Ptr_rxExpandNesting)(SEXP,SEXP,SEXP);
+        static Ptr_rxExpandNesting p_rxExpandNesting = NULL;
+        if (p_rxExpandNesting == NULL) {
+            validateSignature("List(*rxExpandNesting)(const RObject&,List&,bool)");
+            p_rxExpandNesting = (Ptr_rxExpandNesting)R_GetCCallable("RxODE", "_RxODE_rxExpandNesting");
         }
         RObject rcpp_result_gen;
         {
             RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_rxExpandOcc(Shield<SEXP>(Rcpp::wrap(obj)), Shield<SEXP>(Rcpp::wrap(nocc)), Shield<SEXP>(Rcpp::wrap(par)), Shield<SEXP>(Rcpp::wrap(compile)));
+            rcpp_result_gen = p_rxExpandNesting(Shield<SEXP>(Rcpp::wrap(obj)), Shield<SEXP>(Rcpp::wrap(nestingInfo)), Shield<SEXP>(Rcpp::wrap(compile)));
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();

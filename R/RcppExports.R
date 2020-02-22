@@ -166,8 +166,8 @@ rxRepR0_ <- function(neta) {
     .Call(`_RxODE_rxRepR0_`, neta)
 }
 
-rxExpandOcc <- function(obj, nocc, par, compile = FALSE) {
-    .Call(`_RxODE_rxExpandOcc`, obj, nocc, par, compile)
+rxExpandNesting <- function(obj, nestingInfo, compile = FALSE) {
+    .Call(`_RxODE_rxExpandNesting`, obj, nestingInfo, compile)
 }
 
 #' Inductive linearization solver

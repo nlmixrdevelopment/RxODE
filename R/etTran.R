@@ -94,13 +94,25 @@
   env <- new.env(parent=emptyenv())
   env$data <- data
   env$above <- c()
+  env$aboveVars <- list()
   env$below <- c()
+  env$belowVars <- list()
+  env$extraTheta <- 0
+  env$extraEta <- 0
   lapply(.lvls, function(lvl) {
       .s <- .nestingInfoSingle(data[[lvl]], id)
-      if (!is.null(attr(.s, "nu"))) {
-          env$above <- c(env$above, setNames(length(levels(.s)), lvl))
+      .l1 <- length(levels(.s))
+      .dn <- dimnames(omega[[lvl]])[[1]]
+      if (is.null(attr(.s, "nu"))) {
+          env$above <- c(env$above, setNames(.l1, lvl))
+          env$aboveVars <- c(env$aboveVars,
+                             setNames(list(.dn), lvl))
+          env$extraTheta <- env$extraTheta + length(.dn) * .l1
       } else {
-          env$below <- c(env$below, setNames(length(levels(.s)), lvl))
+          env$below <- c(env$below, setNames(.l1, lvl))
+          env$belowVars <- c(env$belowVars,
+                             setNames(list(.dn), lvl))
+          env$extraEta <- env$extraEta + length(.dn) * .l1
       }
       env$data[[lvl]] <- .s;
   })
@@ -109,7 +121,11 @@
               idName=.id,
               id=id,
               above=env$above,
-              below=env$below))
+              below=env$below,
+              aboveVars=env$aboveVars,
+              belowVars=env$belowVars,
+              extraTheta=env$extraTheta,
+              extraEta=env$extraEta))
 }
 
 .warnIdSort0 <- TRUE

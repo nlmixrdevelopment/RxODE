@@ -1,5 +1,5 @@
 rxPermissive({
-    context("Occasion tests")
+    context("Nesting tests")
 
     mod <- RxODE({
         eff(0) = 1
@@ -51,8 +51,8 @@ rxPermissive({
                          inv.Ka ~ 0.02) | inv)
 
     .ni <- .nestingInfo(ev$id, omega, ev)
-    expect_equal(.ni$above, c(eye = 2L, occ = 2L))
-    expect_equal(.ni$below, c(inv = 2L))
+    expect_equal(.ni$below, c(eye = 2L, occ = 2L))
+    expect_equal(.ni$above, c(inv = 2L))
     expect_true(inherits(.ni$data$eye, "factor"))
     expect_equal(attr(.ni$data$eye, "nu"), 40L)
     expect_true(inherits(.ni$data$inv, "factor"))
@@ -60,6 +60,9 @@ rxPermissive({
 
     expect_true(inherits(.ni$data$occ, "factor"))
     expect_equal(attr(.ni$data$occ, "nu"), 40L)
+
+    expect_equal(.ni$extraTheta, 4)
+    expect_equal(.ni$extraEta, 8)
 
     ## Test edge case -- no between or above occasion variability
 

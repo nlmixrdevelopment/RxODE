@@ -421,24 +421,23 @@ RcppExport SEXP _RxODE_rxRepR0_(SEXP netaSEXP) {
     UNPROTECT(1);
     return rcpp_result_gen;
 }
-// rxExpandOcc
-List rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par, bool compile);
-static SEXP _RxODE_rxExpandOcc_try(SEXP objSEXP, SEXP noccSEXP, SEXP parSEXP, SEXP compileSEXP) {
+// rxExpandNesting
+List rxExpandNesting(const RObject& obj, List& nestingInfo, bool compile);
+static SEXP _RxODE_rxExpandNesting_try(SEXP objSEXP, SEXP nestingInfoSEXP, SEXP compileSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
-    Rcpp::traits::input_parameter< const int& >::type nocc(noccSEXP);
-    Rcpp::traits::input_parameter< const CharacterVector& >::type par(parSEXP);
+    Rcpp::traits::input_parameter< List& >::type nestingInfo(nestingInfoSEXP);
     Rcpp::traits::input_parameter< bool >::type compile(compileSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxExpandOcc(obj, nocc, par, compile));
+    rcpp_result_gen = Rcpp::wrap(rxExpandNesting(obj, nestingInfo, compile));
     return rcpp_result_gen;
 END_RCPP_RETURN_ERROR
 }
-RcppExport SEXP _RxODE_rxExpandOcc(SEXP objSEXP, SEXP noccSEXP, SEXP parSEXP, SEXP compileSEXP) {
+RcppExport SEXP _RxODE_rxExpandNesting(SEXP objSEXP, SEXP nestingInfoSEXP, SEXP compileSEXP) {
     SEXP rcpp_result_gen;
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_RxODE_rxExpandOcc_try(objSEXP, noccSEXP, parSEXP, compileSEXP));
+        rcpp_result_gen = PROTECT(_RxODE_rxExpandNesting_try(objSEXP, nestingInfoSEXP, compileSEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
@@ -2295,7 +2294,7 @@ static int _RxODE_RcppExport_validate(const char* sig) {
         signatures.insert("List(*rxExpandSens2_)(CharacterVector,CharacterVector,CharacterVector)");
         signatures.insert("List(*rxExpandFEta_)(CharacterVector,int,int)");
         signatures.insert("std::string(*rxRepR0_)(int)");
-        signatures.insert("List(*rxExpandOcc)(const RObject&,const int&,const CharacterVector&,bool)");
+        signatures.insert("List(*rxExpandNesting)(const RObject&,List&,bool)");
         signatures.insert("bool(*rxIs)(const RObject&,std::string)");
         signatures.insert("Function(*getRxFn)(std::string)");
         signatures.insert("SEXP(*dynLoad)(std::string)");
@@ -2349,7 +2348,7 @@ RcppExport SEXP _RxODE_RcppExport_registerCCallable() {
     R_RegisterCCallable("RxODE", "_RxODE_rxExpandSens2_", (DL_FUNC)_RxODE_rxExpandSens2__try);
     R_RegisterCCallable("RxODE", "_RxODE_rxExpandFEta_", (DL_FUNC)_RxODE_rxExpandFEta__try);
     R_RegisterCCallable("RxODE", "_RxODE_rxRepR0_", (DL_FUNC)_RxODE_rxRepR0__try);
-    R_RegisterCCallable("RxODE", "_RxODE_rxExpandOcc", (DL_FUNC)_RxODE_rxExpandOcc_try);
+    R_RegisterCCallable("RxODE", "_RxODE_rxExpandNesting", (DL_FUNC)_RxODE_rxExpandNesting_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxIs", (DL_FUNC)_RxODE_rxIs_try);
     R_RegisterCCallable("RxODE", "_RxODE_getRxFn", (DL_FUNC)_RxODE_getRxFn_try);
     R_RegisterCCallable("RxODE", "_RxODE_dynLoad", (DL_FUNC)_RxODE_dynLoad_try);

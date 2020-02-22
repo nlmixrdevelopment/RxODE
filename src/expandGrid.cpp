@@ -289,33 +289,43 @@ std::string rxRepR0_(int neta){
 List rxModelVars_(const RObject &obj);
 
 //[[Rcpp::export]]
-List rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par,
-		 bool compile=false){
+List rxExpandNesting(const RObject& obj, List& nestingInfo,
+		     bool compile=false){
   std::string retS="";
-  if (nocc <= 1){
-    stop(_("inter-occasion variability only makes sense with at least 2 occasions"));
-  }
   List mv = rxModelVars_(obj);
   IntegerVector flags = as<IntegerVector>(mv["flags"]);
-  int cureta = as<int>(flags["maxeta"])+1;
-  CharacterVector nm(par.size()*nocc);
-  CharacterVector nm2(par.size()*nocc);
-  for (int j = par.size(); j--;){
-    std::string curPar = as<std::string>(par[j]);
-    std::string eta;
-    retS += curPar  + "=";
-    for (int i = nocc; i--;){
-      eta = "ETA[" + std::to_string(j+cureta+par.size()*i) + "]";
-      nm[j+par.size()*i] = eta;
-      retS += "(rxOCC==" + std::to_string(i+1)+")*" + eta;
-      eta = as<std::string>(par[j]) + "("+std::to_string(i+1)+")";
-      nm2[j+par.size()*i] = eta;
-      if (i) retS += "+";
-      else retS += ";\n";
+  int curEta = as<int>(flags["maxeta"])+1;
+  int curtheta = as<int>(flags["maxtheta"])+1;
+  int extraTheta = as<int>(nestingInfo["extraTheta"]);
+  int extraEta = as<int>(nestingInfo["extraEta"]);
+  CharacterVector thetaNames(extraTheta);
+  CharacterVector etaNames(extraEta);
+  List aboveVars = as<List>(nestingInfo["aboveVars"]);
+  NumericVector above = as<NumericVector>(nestingInfo["above"]);
+  CharacterVector thetaNest = aboveVars.attr("names");
+  CharacterVector thetaNestTran = aboveVars.attr("names");
+  std::string theta;
+  int thCnt=0;
+  for (int j = 0; j < thetaNest.size(); ++j) {
+    std::string curNest = as<std::string>(thetaNest[j]);
+    CharacterVector nestVars = as<CharacterVector>(aboveVars[curNest]);
+    int nnest = as<int>(above[curNest]);
+    for (int i = 0; i < nestVars.size(); ++i){
+      std::string curPar = as<std::string>(nestVars[i]);
+      retS += curPar + "=";
+      for (int k = 0; k < nnest; ++k) {
+	theta = "THETA[" + std::to_string(curtheta) + "]";
+	retS += "(" + curNest + "==" + std::to_string(k+1)+")*" + theta;
+	thetaNestTran[thCnt] = curNest + "("+std::to_string(k+1)+")";
+	thetaNest[thCnt] = theta;
+	curtheta++; thCnt++;
+	if (k != nnest-1) retS += "+";
+	else retS += ";\n";
+      }
     }
   }
   CharacterVector mod = mv["model"];
-  List ret(4);
+  List ret(1);
   retS += as<std::string>(mod[0]);
   if (compile){
     Function rxode = getRxFn("RxODE");
@@ -324,9 +334,28 @@ List rxExpandOcc(const RObject& obj, const int& nocc, const CharacterVector& par
   } else {
     ret[0] = retS;
   }
-  ret[1] = nm;
-  ret[2] = par;
-  ret[3] = nm2;
-  ret.attr("names")= CharacterVector::create("mod", "iov1","iov2","iov3");
-  return ret;
+  return(ret);
+  // CharacterVector nm(par.size()*nocc);
+  // CharacterVector nm2(par.size()*nocc);
+  // for (int j = par.size(); j--;){
+  //   std::string curPar = as<std::string>(par[j]);
+  //   std::string eta;
+  //   retS += curPar  + "=";
+  //   for (int i = nocc; i--;){
+  //     eta = "ETA[" + std::to_string(j+cureta+par.size()*i) + "]";
+  //     nm[j+par.size()*i] = eta;
+  //     retS += "(rxOCC==" + std::to_string(i+1)+")*" + eta;
+  //     eta = as<std::string>(par[j]) + "("+std::to_string(i+1)+")";
+  //     nm2[j+par.size()*i] = eta;
+  //     if (i) retS += "+";
+  //     else retS += ";\n";
+  //   }
+  // }
+  
+  // ret[1] = nm;
+  // ret[2] = par;
+  // ret[3] = nm2;
+  // ret.attr("names")= CharacterVector::create("mod", "iov1","iov2","iov3");
+  // return ret;
+  return List::create();
 }
