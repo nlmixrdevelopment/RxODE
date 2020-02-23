@@ -2661,6 +2661,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 	  for (j = 0; j < nkeep0; j++){
 	    dfp = REAL(VECTOR_ELT(df, jj));
 	    dfp[ii] = get_ikeep(j, neq[1]);
+	    jj++;
 	  }
 	  for (j = 0; j < nkeep; j++){
 	    dfp = REAL(VECTOR_ELT(df, jj));

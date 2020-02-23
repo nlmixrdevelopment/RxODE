@@ -2,6 +2,8 @@ rxPermissive({
 
     context("Test Issue #163 -- Keep doesn't work with iCov")
 
+    set.seed(100)
+
     mod <-RxODE({
         C2 = centr/V2;
         C3 = peri/V3;
@@ -36,7 +38,7 @@ rxPermissive({
 
     sim1  <- rxSolve(mod,theta,ev=ev3_hum,omega=lotri(eta.ka ~ 0.01),
                      iCov=data.frame(id=1:10, scale_rad=3.5, SEX=rdunif(10,0,1)),
-                     keep=c("SEX", "scale_rad"))
+                     keep=c("scale_rad", "SEX"))
 
     expect_true(all(sim1$rad == 3.5))
 
