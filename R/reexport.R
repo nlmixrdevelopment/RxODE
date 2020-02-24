@@ -81,6 +81,9 @@ ggforce::facet_grid_paginate
 #' @export
 ggforce::ScaleContinuousPositionUnit
 
+#' @importFrom ggplot2 %+replace%
+`%+replace%`
+
 #' @importFrom ggplot2 aes
 #' @export
 ggplot2::aes

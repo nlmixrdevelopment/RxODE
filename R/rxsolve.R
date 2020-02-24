@@ -1412,46 +1412,79 @@ dimnames.rxSolve <- function(x) {
 
 ##'@export
 plot.rxSolve <- function(x,y,...) {
-    ## nocov start
     .cmts <- c(as.character(substitute(y)),
                names(sapply(as.character(as.list(match.call()[-(1:3)])),`c`)))
     if (length(.cmts)==1 &&.cmts[1]=="") {
         .cmts <- NULL
     }
     .dat <- rxStack(x,.cmts);
-    time <- value <- id <- sim.id  <- NULL
-    if (any(names(.dat)=="id")) {
-        .dat$id <- factor(.dat$id);
-        if (length(.cmts)==1) {
-            .ret <- ggplot(.dat,ggplot2::aes(time,value,color=id))+
-                geom_line(size=1.2) + ylab(.cmts)
-        } else {
-            .ret <- ggplot(.dat,ggplot2::aes(time,value,color=id))+
-                geom_line(size=1.2) +facet_wrap( ~ trt, scales="free_y")
-        }
-    } else if (any(names(.dat)=="sim.id")) {
-        .dat$sim.id <- factor(.dat$sim.id);
-        if (length(.cmts)==1) {
-            .ret <- ggplot(.dat,ggplot2::aes(time,value,color=sim.id))+
-                geom_line(size=1.2) + ylab(.cmts)
-        } else {
-            .ret <- ggplot(.dat,ggplot2::aes(time,value,color=sim.id))+
-                geom_line(size=1.2) +facet_wrap( ~ trt, scales="free_y")
-        }
+    .nlvl <- 1L
+    if (any(names(.dat) == "id")) {
+        .dat$id <- factor(.dat$id)
+        .nlvl <- length(levels(.dat$id))
+        .dat2 <- .dat[rev(seq_along(.dat$id)), ];
+        .dat2$label <- .dat$id
+        row.names(.dat2) <- NULL
+        .dat2 <- .dat2[!duplicated(paste0(.dat2$id, .dat2$trt)), ];
+        .aes <- aes(.data$time, .data$value, color=.data$id)
+        .aesLab <- aes(label=label);
+    } else if (any(names(.dat) == "sim.id")){
+        .dat$sim.id <- factor(.dat$sim.id)
+        .nlvl <- length(levels(.dat$sim.id))
+        .dat2 <- .dat[rev(seq_along(.dat$sim.id)), ];
+        .dat2$label <- .dat$id
+        row.names(.dat2) <- NULL
+        .dat2 <- .dat2[!duplicated(paste0(.dat2$sim.id, .dat2$trt)), ];
+        .aes <- aes(.data$time, .data$value, color=.data$sim.id)
+        .aesLab <- aes(label=label);
     } else {
-        if (length(.cmts)==1) {
-            .ret <- ggplot(.dat,ggplot2::aes(time,value))+
-                geom_line(size=1.2) + ylab(.cmts)
-        } else {
-            .ret <- ggplot(.dat,ggplot2::aes(time,value))+
-                geom_line(size=1.2) +facet_wrap(~ trt, scales="free_y")
-        }
+        .aes <- aes(.data$time, .data$value)
     }
-    if (getOption("RxODE.theme_bw", TRUE)) {
-        .ret <- .ret + ggplot2::theme_bw()
+    .facet <- facet_wrap( ~ trt, scales="free_y")
+    if (length(.cmts) == 1) .facet <- NULL
+    .ylab <- ylab("")
+    .xlab <- xlab("Time")
+    .greyText <- ggplot2::element_text(color="#808078", size=13)
+    .greyLabText <- ggplot2::element_text(color="#808078", size=14, face="bold")
+    .greyTick <- ggplot2::element_line(color="#808078")
+    .theme <- ggplot2::theme_bw() ## %+replace%
+        ## ggplot2::theme(panel.border = ggplot2::element_blank(),
+        ##                panel.background = ggplot2::element_rect(fill = "ivory", colour = NA),
+        ##                panel.grid.minor=ggplot2::element_blank(),
+        ##                panel.grid.major=ggplot2::element_blank(),
+        ##                axis.text.x=.greyText,
+        ##                axis.text.y=.greyText,
+        ##                axis.title.x=.greyLabText,
+        ##                axis.title.y=.greyLabText,
+        ##                axis.ticks.x=.greyTick,
+        ##                axis.ticks.y=.greyTick,
+        ##                strip.text=ggplot2::element_text(color="ivory", size=14, face="bold"),
+        ##                strip.background =ggplot2::element_rect(fill="#808078", color=NA)
+        ##          )
+    if (!getOption("RxODE.theme_bw", TRUE)) .theme <- NULL
+
+    .repel <- NULL
+    .legend <- NULL
+    if (.nlvl > 1 && requireNamespace("ggrepel", quietly = TRUE) &&
+        is.null(.facet)) {
+        .repel <- ggrepel::geom_label_repel(.aesLab, data=.dat2, nudge_x=1,
+                                            fontface="bold", size=5)
+        .legend <- ggplot2::guides(color = FALSE)
+    } else {
+        .legend <- ggplot2::theme(legend.title=ggplot2::element_blank())
     }
-    return(.ret)
-    ## nocov end
+
+    ggplot(.dat, .aes) +
+        geom_line(size=1.2) +
+        .facet +
+        .ylab +
+        .xlab +
+        .theme +
+        .repel +
+        .legend ->
+        .gg
+
+    .gg
 }
 
 ##'@export
@@ -1538,7 +1571,7 @@ plot.rxSolveConfint1 <- function(x,y,...) {
     p1 <-eff <- time <- Percentile <-sim.id <-id <-p2 <-p50 <-p05 <- p95 <- . <- NULL
     .lvl <- attr(class(x), ".rx")$lvl
     .parm <- attr(class(x), ".rx")$parm
-    .ret <- ggplot2::ggplot(x,ggplot2::aes(time,eff,col=Percentile,fill=Percentile)) +
+    .ret <- ggplot2::ggplot(x, aes(time,eff,col=Percentile,fill=Percentile)) +
         ggplot2::geom_line(size=1.2);
     if (length(.parm) > 1) {
         .ret <- .ret + facet_wrap( ~ trt, scales="free_y")
@@ -1554,8 +1587,8 @@ plot.rxSolveConfint2 <- function(x,y,...) {
     p1 <- time <- eff <-Percentile <-sim.id <-id <-p2 <-p50 <-p05 <- p95 <- . <- NULL
     .lvl <- attr(class(x), ".rx")$lvl
     .parm <- attr(class(x), ".rx")$parm
-    .ret <- ggplot2::ggplot(x,ggplot2::aes(time,p50,col=Percentile,fill=Percentile)) +
-        ggplot2::geom_ribbon(ggplot2::aes_string(ymin=.lvl[1],ymax=.lvl[3]),alpha=0.5)+
+    .ret <- ggplot2::ggplot(x, aes(time,p50,col=Percentile,fill=Percentile)) +
+        ggplot2::geom_ribbon(aes_string(ymin=.lvl[1],ymax=.lvl[3]),alpha=0.5)+
         ggplot2::geom_line(size=1.2);
     if (length(.parm) > 1) {
         .ret <- .ret + facet_wrap( ~ trt, scales="free_y")

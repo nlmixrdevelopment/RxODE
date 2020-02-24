@@ -62,7 +62,8 @@ Suggests:
     scales,
     stringi,
     htmltools,
-    rlang
+    rlang,
+    ggrepel
 Imports:
     rstudioapi,
     rmarkdown,
