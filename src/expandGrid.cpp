@@ -288,13 +288,53 @@ std::string rxRepR0_(int neta){
 
 List rxModelVars_(const RObject &obj);
 
+// Expands nesting for theta/eta;
+//
+// @param thetaNest
+// 
+// @noRd
+void rxExpandNestingRep(CharacterVector &thetaNest,
+			CharacterVector &thetaNestTran,
+			CharacterVector &thetaNestFull,
+			int &thCnt, int &curtheta,
+			List &aboveVars, NumericVector& above,
+			std::string &retS, List &data,
+			std::string thetaVar = "THETA[") {
+  std::string theta;
+  int lastTheta;
+  int firstTheta = curtheta;
+  for (int j = 0; j < thetaNest.size(); ++j) {
+    std::string curNest = as<std::string>(thetaNest[j]);
+    CharacterVector nestVars = as<CharacterVector>(aboveVars[curNest]);
+    RObject curNestV = as<RObject>(data[curNest]);
+    CharacterVector curNestLvl = curNestV.attr("levels");
+    int nnest = as<int>(above[curNest]);
+    // This is the base theta count
+    lastTheta = thCnt;
+    for (int i = 0; i < nestVars.size(); ++i) {
+      std::string curPar = as<std::string>(nestVars[i]);
+      retS += curPar + "=";
+      for (int k = 0; k < nnest; ++k) {
+	theta = thetaVar + std::to_string(lastTheta+i+k*nnest+firstTheta) + "]";
+	retS += "(" + curNest + "==" + std::to_string(k+1)+")*" + theta;
+	thetaNestTran[thCnt] = curNest + "("+as<std::string>(curNestLvl[k])+")";
+	thetaNestFull[thCnt] = theta;
+	curtheta++; thCnt++;
+	if (k != nnest-1) retS += "+";
+	else retS += ";\n";
+      }
+    }
+  }
+  thetaNestTran.attr("names") = thetaNestFull;
+}
+
 //[[Rcpp::export]]
 List rxExpandNesting(const RObject& obj, List& nestingInfo,
 		     bool compile=false){
   std::string retS="";
   List mv = rxModelVars_(obj);
   IntegerVector flags = as<IntegerVector>(mv["flags"]);
-  int curEta = as<int>(flags["maxeta"])+1;
+  int cureta = as<int>(flags["maxeta"])+1;
   int curtheta = as<int>(flags["maxtheta"])+1;
   int extraTheta = as<int>(nestingInfo["extraTheta"]);
   int extraEta = as<int>(nestingInfo["extraEta"]);
@@ -302,30 +342,30 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   CharacterVector etaNames(extraEta);
   List aboveVars = as<List>(nestingInfo["aboveVars"]);
   NumericVector above = as<NumericVector>(nestingInfo["above"]);
+  List data = as<List>(nestingInfo["data"]);
   CharacterVector thetaNest = aboveVars.attr("names");
-  CharacterVector thetaNestTran = aboveVars.attr("names");
-  std::string theta;
+  CharacterVector thetaNestTran(extraTheta);
+  CharacterVector thetaNestFull(extraTheta);
+
+  List belowVars = as<List>(nestingInfo["belowVars"]);
+  NumericVector below = as<NumericVector>(nestingInfo["below"]);
+  CharacterVector etaNest = belowVars.attr("names");
+  CharacterVector etaNestTran(extraEta);
+  CharacterVector etaNestFull(extraEta);
   int thCnt=0;
-  for (int j = 0; j < thetaNest.size(); ++j) {
-    std::string curNest = as<std::string>(thetaNest[j]);
-    CharacterVector nestVars = as<CharacterVector>(aboveVars[curNest]);
-    int nnest = as<int>(above[curNest]);
-    for (int i = 0; i < nestVars.size(); ++i){
-      std::string curPar = as<std::string>(nestVars[i]);
-      retS += curPar + "=";
-      for (int k = 0; k < nnest; ++k) {
-	theta = "THETA[" + std::to_string(curtheta) + "]";
-	retS += "(" + curNest + "==" + std::to_string(k+1)+")*" + theta;
-	thetaNestTran[thCnt] = curNest + "("+std::to_string(k+1)+")";
-	thetaNest[thCnt] = theta;
-	curtheta++; thCnt++;
-	if (k != nnest-1) retS += "+";
-	else retS += ";\n";
-      }
-    }
-  }
+  rxExpandNestingRep(thetaNest, thetaNestTran, thetaNestFull,
+		     thCnt, curtheta,
+		     aboveVars, above, retS, data,
+		     "THETA[");
+
+  int etCnt = 0;
+  rxExpandNestingRep(etaNest, etaNestTran, etaNestFull,
+		     etCnt, cureta,
+		     belowVars, below, retS, data,
+		     "ETA[");
+  
   CharacterVector mod = mv["model"];
-  List ret(1);
+  List ret(3);
   retS += as<std::string>(mod[0]);
   if (compile){
     Function rxode = getRxFn("RxODE");
@@ -334,6 +374,9 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   } else {
     ret[0] = retS;
   }
+  ret[1] = thetaNestTran;
+  ret[2] = etaNestTran;
+  ret.attr("names") = CharacterVector::create("mod","theta","eta");
   return(ret);
   // CharacterVector nm(par.size()*nocc);
   // CharacterVector nm2(par.size()*nocc);

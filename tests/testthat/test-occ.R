@@ -64,6 +64,11 @@ rxPermissive({
     expect_equal(.ni$extraTheta, 4)
     expect_equal(.ni$extraEta, 8)
 
+    rxExpandNesting(mod, .ni)
+
+    ## Tests -- Test different occ size
+    ## Tests -- Eye becomes OD/OS
+
     ## Test edge case -- no between or above occasion variability
 
     .ni <- .nestingInfo(ev$id, lotri(eta.Cl ~ 0.1, eta.Ka ~ 0.1),
