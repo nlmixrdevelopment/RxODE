@@ -1410,8 +1410,15 @@ dimnames.rxSolve <- function(x) {
     }
 }
 
+##' Plot an RxODE solved object
+##'
+##' @inheritParams graphics::plot
+##' @param log Log scale
+##' - `y` is log-y scale
+##' - `x` is log-x scale
+##' - `xy` is log scale on x and y
 ##'@export
-plot.rxSolve <- function(x,y,...) {
+plot.rxSolve <- function(x,y,..., log="") {
     .cmts <- c(as.character(substitute(y)),
                names(sapply(as.character(as.list(match.call()[-(1:3)])),`c`)))
     if (length(.cmts)==1 &&.cmts[1]=="") {
@@ -1447,20 +1454,22 @@ plot.rxSolve <- function(x,y,...) {
     .greyText <- ggplot2::element_text(color="#808078", size=13)
     .greyLabText <- ggplot2::element_text(color="#808078", size=14, face="bold")
     .greyTick <- ggplot2::element_line(color="#808078")
-    .theme <- ggplot2::theme_bw() ## %+replace%
-        ## ggplot2::theme(panel.border = ggplot2::element_blank(),
-        ##                panel.background = ggplot2::element_rect(fill = "ivory", colour = NA),
-        ##                panel.grid.minor=ggplot2::element_blank(),
-        ##                panel.grid.major=ggplot2::element_blank(),
-        ##                axis.text.x=.greyText,
-        ##                axis.text.y=.greyText,
-        ##                axis.title.x=.greyLabText,
-        ##                axis.title.y=.greyLabText,
-        ##                axis.ticks.x=.greyTick,
-        ##                axis.ticks.y=.greyTick,
-        ##                strip.text=ggplot2::element_text(color="ivory", size=14, face="bold"),
-        ##                strip.background =ggplot2::element_rect(fill="#808078", color=NA)
-        ##          )
+    .greyMajor <- ggplot2::element_line(color="#BFBFB4")
+    .greyMinor <- ggplot2::element_line(color="#E6E6D8")
+    .theme <- ggplot2::theme_bw() %+replace%
+        ggplot2::theme(panel.border = ggplot2::element_blank(),
+                       panel.background = ggplot2::element_rect(fill = "ivory", colour = NA),
+                       panel.grid.minor=.greyMinor,
+                       panel.grid.major=.greyMajor,
+                       axis.text.x=.greyText,
+                       axis.text.y=.greyText,
+                       axis.title.x=.greyLabText,
+                       axis.title.y=.greyLabText,
+                       axis.ticks.x=.greyTick,
+                       axis.ticks.y=.greyTick,
+                       strip.text=ggplot2::element_text(color="ivory", size=14, face="bold"),
+                       strip.background =ggplot2::element_rect(fill="#808078", color=NA)
+                 )
     if (!getOption("RxODE.theme_bw", TRUE)) .theme <- NULL
 
     .repel <- NULL
@@ -1474,6 +1483,21 @@ plot.rxSolve <- function(x,y,...) {
         .legend <- ggplot2::theme(legend.title=ggplot2::element_blank())
     }
 
+    .logx <- NULL
+    .logy <- NULL
+    if (is.character(log) && length(log) == 1){
+        if (requireNamespace("xgxr", quietly = TRUE)){
+
+        }
+        if (log == "x") {
+            .logx <- xgxr::xgx_scale_x_log10()
+        } else if (log == "y" ) {
+            .logy <- xgxr::xgx_scale_y_log10()
+        } else if (log == "xy" || log == "yx") {
+            .logx <- xgxr::xgx_scale_x_log10()
+            .logy <- xgxr::xgx_scale_y_log10()
+        }
+    }
     ggplot(.dat, .aes) +
         geom_line(size=1.2) +
         .facet +
@@ -1481,6 +1505,8 @@ plot.rxSolve <- function(x,y,...) {
         .xlab +
         .theme +
         .repel +
+        .logx +
+        .logy +
         .legend ->
         .gg
 

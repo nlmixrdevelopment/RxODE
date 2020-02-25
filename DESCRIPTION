@@ -63,7 +63,8 @@ Suggests:
     stringi,
     htmltools,
     rlang,
-    ggrepel
+    ggrepel,
+    xgxr
 Imports:
     rstudioapi,
     rmarkdown,
