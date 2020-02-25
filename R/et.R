@@ -459,7 +459,6 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
         if (inherits(time, "list")){
             checkmate::assertList(time,
                                   any.missing=FALSE,
-                                  any.missing=FALSE,
                                   unique=FALSE,
                                   names="unnamed")
         } else  {
