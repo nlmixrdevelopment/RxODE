@@ -1434,6 +1434,7 @@ plot.rxSolve <- function(x,y,..., log="") {
         row.names(.dat2) <- NULL
         .dat2 <- .dat2[!duplicated(paste0(.dat2$id, .dat2$trt)), ];
         .aes <- aes(.data$time, .data$value, color=.data$id)
+        .aesG <- aes(.data$time, .data$value, group=.data$id)
         .aesLab <- aes(label=label);
     } else if (any(names(.dat) == "sim.id")){
         .dat$sim.id <- factor(.dat$sim.id)
@@ -1443,6 +1444,7 @@ plot.rxSolve <- function(x,y,..., log="") {
         row.names(.dat2) <- NULL
         .dat2 <- .dat2[!duplicated(paste0(.dat2$sim.id, .dat2$trt)), ];
         .aes <- aes(.data$time, .data$value, color=.data$sim.id)
+        .aesG <- aes(.data$time, .data$value, group=.data$sim.id)
         .aesLab <- aes(label=label);
     } else {
         .aes <- aes(.data$time, .data$value)
@@ -1474,32 +1476,40 @@ plot.rxSolve <- function(x,y,..., log="") {
 
     .repel <- NULL
     .legend <- NULL
-    if (.nlvl > 1 && requireNamespace("ggrepel", quietly = TRUE) &&
+    .line <- geom_line(size=1.2)
+    if (.nlvl > 1 && .nlvl < 7 && requireNamespace("ggrepel", quietly = TRUE) &&
         is.null(.facet)) {
         .repel <- ggrepel::geom_label_repel(.aesLab, data=.dat2, nudge_x=1,
                                             fontface="bold", size=5)
         .legend <- ggplot2::guides(color = FALSE)
     } else {
-        .legend <- ggplot2::theme(legend.title=ggplot2::element_blank())
+        if (.nlvl < 7) {
+            .legend <- ggplot2::theme(legend.title=ggplot2::element_blank())
+        } else {
+            .legend <-ggplot2::guides(color = FALSE)
+            .line <- geom_line(size=1.2, alpha=0.2)
+            .aes <- .aesG
+        }
     }
 
     .logx <- NULL
     .logy <- NULL
     if (is.character(log) && length(log) == 1){
         if (requireNamespace("xgxr", quietly = TRUE)){
-
-        }
-        if (log == "x") {
-            .logx <- xgxr::xgx_scale_x_log10()
-        } else if (log == "y" ) {
-            .logy <- xgxr::xgx_scale_y_log10()
-        } else if (log == "xy" || log == "yx") {
-            .logx <- xgxr::xgx_scale_x_log10()
-            .logy <- xgxr::xgx_scale_y_log10()
+            if (log == "x") {
+                .logx <- xgxr::xgx_scale_x_log10()
+            } else if (log == "y" ) {
+                .logy <- xgxr::xgx_scale_y_log10()
+            } else if (log == "xy" || log == "yx") {
+                .logx <- xgxr::xgx_scale_x_log10()
+                .logy <- xgxr::xgx_scale_y_log10()
+            } else if (log != ""){
+                stop(sprintf("'log=\"%s\"' not supported", log))
+            }
         }
     }
     ggplot(.dat, .aes) +
-        geom_line(size=1.2) +
+        .line +
         .facet +
         .ylab +
         .xlab +
