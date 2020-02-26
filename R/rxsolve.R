@@ -1494,16 +1494,59 @@ plot.rxSolve <- function(x,y,..., log="") {
 
     .logx <- NULL
     .logy <- NULL
+    .xgxr <- requireNamespace("xgxr", quietly = TRUE);
+    .timex <- NULL
+    if (.xgxr && inherits(.dat$time, "units")){
+        .timex <- xgxr::xgx_scale_x_time_units()
+    }
     if (is.character(log) && length(log) == 1){
-        if (requireNamespace("xgxr", quietly = TRUE)){
+        if (.xgxr){
             if (log == "x") {
-                .logx <- xgxr::xgx_scale_x_log10()
-            } else if (log == "y" ) {
+                .logx <- xgxr::xgx_scale_x_log10(units=inherits(.dat$time, "units"))
+                .timex <- NULL
+                .cls <- class(.dat$time)
+                if (inherits(.dat$time, "units")) {
+                    .dat <- .dat[units::drop_units(.dat$time) > 0, ]
+                } else {
+                    .dat <- .dat[.dat$time > 0, ]
+                }
+            } else if (log == "y") {
                 .logy <- xgxr::xgx_scale_y_log10()
             } else if (log == "xy" || log == "yx") {
-                .logx <- xgxr::xgx_scale_x_log10()
+                .logx <- xgxr::xgx_scale_x_log10(units=inherits(.dat$time, "units"))
+                if (inherits(.dat$time, "units")) {
+                    .dat <- .dat[units::drop_units(.dat$time) > 0, ]
+                } else {
+                    .dat <- .dat[.dat$time > 0, ]
+                }
+                .timex <- NULL
                 .logy <- xgxr::xgx_scale_y_log10()
             } else if (log != ""){
+                stop(sprintf("'log=\"%s\"' not supported", log))
+            }
+        } else {
+            if (log == "x") {
+                .logx <- ggplot2::scale_x_log10()
+                if (inherits(.dat$time, "units")) {
+                    .dat <- .dat[units::drop_units(.dat$time) > 0, ]
+                } else {
+                    .dat <- .dat[.dat$time > 0, ]
+                }
+                .timex <- NULL
+                .dat <- .dat[.dat$time > 0, ]
+            } else if (log == "y") {
+                .logy <- ggplot2::scale_y_log10();
+            } else if (log == "xy" || log == "yx") {
+                .logy <- ggplot2::scale_y_log10();
+                .logx <- ggplot2::scale_x_log10();
+                if (inherits(.dat$time, "units")) {
+                    .dat <- .dat[units::drop_units(.dat$time) > 0, ]
+                } else {
+                    .dat <- .dat[.dat$time > 0, ]
+                }
+                .timex <- NULL
+                .dat <- .dat[.dat$time > 0, ]
+            } else {
                 stop(sprintf("'log=\"%s\"' not supported", log))
             }
         }
@@ -1515,6 +1558,7 @@ plot.rxSolve <- function(x,y,..., log="") {
         .xlab +
         .theme +
         .repel +
+        .timex +
         .logx +
         .logy +
         .legend ->
