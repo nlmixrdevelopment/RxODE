@@ -191,6 +191,8 @@ d/dt(blood)     = a*intestine - b*blood
     ## Van der Pol Equation
     ## mu = 1000 stiff
     ## me = 1 non-stiff
+    rxIndLinState(list(y="dy", dy="y"))
+    ## rxIndLinState(NULL)
     van <- RxODE({
         y(0) = 2
         d/dt(y)  = dy
@@ -205,9 +207,23 @@ d/dt(blood)     = a*intestine - b*blood
     s2 <- rxSolve(van, et, c(mu=1000), method="indLin")
     ## s3 <- rxSolve(van, et, c(mu=1000), method="dop853")
 
+    f <- function(mu=1000, ...) {
+        s1 <- rxSolve(van, et, c(mu=mu), method="lsoda")
+        s2 <- rxSolve(van, et, c(mu=mu), method="indLin", ...)
+        gridExtra::grid.arrange(plot(s1), plot(s2))
+    }
+
+    rxIndLinStrategy("split")
+    van <- RxODE({
+        y(0) = 2
+        d/dt(y)  = dy
+        d/dt(dy) = mu*(1-y^2)*dy - y
+    }, indLin=TRUE)
 
 
-    ## gridExtra::grid.arrange(plot(s1), plot(s2), plot(s3))
+
+
+    ##
 
     expect_equal(as.data.frame(s1), as.data.frame(s2), tol=1e-5)
 

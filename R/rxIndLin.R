@@ -1,5 +1,5 @@
 .rxIndLinStrategy <- "curState";
-##' This sets the inductive linearization stratedy for matrix building
+##' This sets the inductive linearization strategy for matrix building
 ##'
 ##' When there is more than one state in a ODE that cannot be
 ##' separated this specifies how it is incorporated into the matrix
@@ -15,7 +15,6 @@
 ##' \item[split] Split the paramterization between all states in the
 ##' term by dividing each by the number of states in the term and then
 ##' adding a matrix term for each state.
-##'
 ##' }
 ##'
 ##' @return Nothing
@@ -24,9 +23,32 @@
 rxIndLinStrategy <- function(strategy=c("curState", "split")) {
     assignInMyNamespace(".rxIndLinStrategy", match.arg(strategy));
 }
+
+.rxIndLinState <- NULL
+##' Set the preferred factoring by state
+##'
+##' @param prefered A list of each state's prefered factorization
+##' @return Nothing
+##' @author
+##' @export
+rxIndLinState <- function(prefered=NULL) {
+    if (is.null(prefered)) {
+        assignInMyNamespace(".rxIndLinState", prefered)
+    }
+    checkmate::assertList(prefered, names="unique")
+    lapply(seq_along(prefered), function(x) {
+        if (!checkmate::checkCharacter(prefered[[x]],
+                                       names="unnamed")) {
+            stop(sprintf("'rxIndLinState' list element '%s' must be a unnamed character vector", names(prefered)[x]))
+        }
+    })
+    assignInMyNamespace(".rxIndLinState", prefered)
+}
+
 .rxIndLinLine <- function(line, states, state0){
     .tmp <- symengine::expand(line) ## Expand line
     .tmp <- rxFromSE(.tmp); ## Convert SE->RxODE; Changes things like X^1 -> X
+
     .ret <- eval(parse(text=paste0("rxSplitPlusQ(quote(", .tmp, "))")));
     .lst <- list()
     .fullIndLin <- FALSE
@@ -103,14 +125,25 @@ rxIndLinStrategy <- function(strategy=c("curState", "split")) {
                     .addState(.s, c(.mult, .extra));
                 }
             } else {
-                if (any(.curStates == state0)){
-                    ## If there is d/dt(state1) = ... (state1*state2*state3) ...
-                    ## or some other complex expression prefer expressing
-                    .addState(state0, .mult);
-                } else {
-                    ## Otherwise just use the first state identified.
-                    ## Strategy #1 just add the first
-                    .addState(.curStates[1], .mult);
+                .pref <- .rxIndLinState[[state0]]
+                .addPref <- FALSE
+                if (!is.null(.pref)) {
+                    .pref <- intersect(.pref, .curStates)
+                    if (length(.pref) > 0){
+                        .addState(.pref[1], .mult)
+                        .addPref <- TRUE
+                    }
+                }
+                if (!.addPref) {
+                    if (any(.curStates == state0)) {
+                        ## If there is d/dt(state1) = ... (state1*state2*state3) ...
+                        ## or some other complex expression prefer expressing
+                        .addState(state0, .mult);
+                    } else {
+                        ## Otherwise just use the first state identified.
+                        ## Strategy #1 just add the first
+                        .addState(.curStates[1], .mult);
+                    }
                 }
             }
         } else {

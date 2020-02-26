@@ -1275,7 +1275,7 @@ rxMd5 <- function(model,         # Model File
         .tmp <- c(RxODE.syntax.assign, RxODE.syntax.star.pow, RxODE.syntax.require.semicolon, RxODE.syntax.allow.dots,
                   RxODE.syntax.allow.ini0, RxODE.syntax.allow.ini, RxODE.calculate.jacobian,
                   RxODE.calculate.sensitivity);
-        .ret <- c(.ret, .tmp, ls(.symengineFs));
+        .ret <- c(.ret, .tmp, .rxIndLinStrategy, .rxIndLinState, ls(.symengineFs));
         if (is.null(.md5Rx)){
             .tmp <- getLoadedDLLs()$RxODE;
             class(.tmp) <- "list";

@@ -33,6 +33,7 @@ can set create an RxODE model describing this system below:
 
 ```{r}
 library(RxODE)
+
 mod <- RxODE({
     eff(0) = 1
     C2 = centr/V2*(1+prop.err);
@@ -104,8 +105,7 @@ the derived parameter `C2`:
 ```{r}
 library(ggplot2)
 
-plot(sim, C2) +
-    coord_trans(y = "log10") +
+plot(sim, C2, log="y") +
     ylab("Central Compartment") +
     xlab("Time") +
     guides(color=FALSE)

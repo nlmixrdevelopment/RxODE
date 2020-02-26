@@ -1460,7 +1460,7 @@ plot.rxSolve <- function(x,y,..., log="") {
     .greyMinor <- ggplot2::element_line(color="#E6E6D8")
     .theme <- ggplot2::theme_bw() %+replace%
         ggplot2::theme(panel.border = ggplot2::element_blank(),
-                       panel.background = ggplot2::element_rect(fill = "ivory", colour = NA),
+                       panel.background = ggplot2::element_rect(fill = "#FFFFF7", colour = NA),
                        panel.grid.minor=.greyMinor,
                        panel.grid.major=.greyMajor,
                        axis.text.x=.greyText,
@@ -1469,7 +1469,7 @@ plot.rxSolve <- function(x,y,..., log="") {
                        axis.title.y=.greyLabText,
                        axis.ticks.x=.greyTick,
                        axis.ticks.y=.greyTick,
-                       strip.text=ggplot2::element_text(color="ivory", size=14, face="bold"),
+                       strip.text=ggplot2::element_text(color="#FFFFF7", size=14, face="bold"),
                        strip.background =ggplot2::element_rect(fill="#808078", color=NA)
                  )
     if (!getOption("RxODE.theme_bw", TRUE)) .theme <- NULL
@@ -1668,7 +1668,7 @@ plot.rxSolveConfint2 <- function(x,y,...) {
     .lvl <- attr(class(x), ".rx")$lvl
     .parm <- attr(class(x), ".rx")$parm
     .ret <- ggplot2::ggplot(x, aes(time,p50,col=Percentile,fill=Percentile)) +
-        ggplot2::geom_ribbon(aes_string(ymin=.lvl[1],ymax=.lvl[3]),alpha=0.5)+
+        ggplot2::geom_ribbon(ggplot2::aes_string(ymin=.lvl[1],ymax=.lvl[3]),alpha=0.5)+
         ggplot2::geom_line(size=1.2);
     if (length(.parm) > 1) {
         .ret <- .ret + facet_wrap( ~ trt, scales="free_y")
