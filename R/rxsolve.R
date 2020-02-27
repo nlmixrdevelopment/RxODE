@@ -1456,11 +1456,13 @@ plot.rxSolve <- function(x,y,..., log="") {
     .greyText <- ggplot2::element_text(color="#808078", size=13)
     .greyLabTextX <- ggplot2::element_text(color="#808078", size=14, face="bold")
     .greyLabTextY <- ggplot2::element_text(color="#808078", size=14, face="bold", angle=90)
+    .title <- ggplot2::element_text(colour = "#808078", size=18, face="bold", hjust=0)
     .greyTick <- ggplot2::element_line(color="#808078")
     .greyMajor <- ggplot2::element_line(color="#BFBFB4")
     .greyMinor <- ggplot2::element_line(color="#E6E6D8")
     .theme <- ggplot2::theme_bw() %+replace%
-        ggplot2::theme(panel.border = ggplot2::element_blank(),
+        ggplot2::theme(plot.title = .title,
+                       panel.border = ggplot2::element_blank(),
                        panel.background = ggplot2::element_rect(fill = "#FFFFF7", colour = NA),
                        panel.grid.minor=.greyMinor,
                        panel.grid.major=.greyMajor,
@@ -1472,7 +1474,11 @@ plot.rxSolve <- function(x,y,..., log="") {
                        axis.ticks.y=.greyTick,
                        strip.text=ggplot2::element_text(color="#FFFFF7", size=14, face="bold"),
                        strip.background =ggplot2::element_rect(fill="#808078", color=NA)
-                 )
+                       )
+    ## If above ggplot2 3.2.1 then add plot.title.position="plot"
+    if (packageVersion("ggplot2") > "3.2.1"){
+        .theme <- .theme %+replace% ggplot2::theme(plot.title.position="plot")
+    }
     if (!getOption("RxODE.theme_bw", TRUE)) .theme <- NULL
 
     .repel <- NULL
