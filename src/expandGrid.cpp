@@ -298,8 +298,8 @@ void rxExpandNestingRep(CharacterVector &thetaNest,
 			CharacterVector &thetaNestFull,
 			int &thCnt, int &curtheta,
 			List &aboveVars, NumericVector& above,
-			std::string &retS, List &data,
-			std::string thetaVar = "THETA[") {
+			std::string &retS, std::string &retF,
+			List &data, std::string thetaVar = "THETA[") {
   std::string theta;
   int lastTheta;
   int firstTheta = curtheta;
@@ -309,6 +309,13 @@ void rxExpandNestingRep(CharacterVector &thetaNest,
     RObject curNestV = as<RObject>(data[curNest]);
     CharacterVector curNestLvl = curNestV.attr("levels");
     int nnest = as<int>(above[curNest]);
+    if (nnest > 1){
+      retF += "rep(cvPost(omega$" +curNest + "$nu,omega$" +curNest +
+	",type)," + std::to_string(nnest) + ")";
+    } else {
+      retF += "cvPost(omega$" +curNest + "$nu,omega$" +curNest +",type)";
+    }
+    if (j != thetaNest.size()-1) retF += ",";
     // This is the base theta count
     lastTheta = thCnt;
     for (int i = 0; i < nestVars.size(); ++i) {
@@ -332,6 +339,8 @@ void rxExpandNestingRep(CharacterVector &thetaNest,
 List rxExpandNesting(const RObject& obj, List& nestingInfo,
 		     bool compile=false){
   std::string retS="";
+  std::string aboveF="";
+  std::string belowF="";
   List mv = rxModelVars_(obj);
   IntegerVector flags = as<IntegerVector>(mv["flags"]);
   int cureta = as<int>(flags["maxeta"])+1;
@@ -353,19 +362,26 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   CharacterVector etaNestTran(extraEta);
   CharacterVector etaNestFull(extraEta);
   int thCnt=0;
+  std::string idName=nestingInfo["idName"];
+  aboveF += ".theta <- as.matrix(Matrix::bdiag(list(";
   rxExpandNestingRep(thetaNest, thetaNestTran, thetaNestFull,
 		     thCnt, curtheta,
-		     aboveVars, above, retS, data,
+		     aboveVars, above, retS, aboveF, data,
 		     "THETA[");
+  aboveF +=")));\n";
 
+  belowF += ".omega <- as.matrix(Matrix::bdiag(list(cvPost(omega$nu$" + idName + ",omega$" +
+    idName + ",type)";
+  if (etaNest.size() > 0) belowF += ",";
   int etCnt = 0;
   rxExpandNestingRep(etaNest, etaNestTran, etaNestFull,
 		     etCnt, cureta,
-		     belowVars, below, retS, data,
+		     belowVars, below, retS, belowF, data,
 		     "ETA[");
+  belowF +=")));";
   
   CharacterVector mod = mv["model"];
-  List ret(3);
+  List ret(5);
   retS += as<std::string>(mod[0]);
   if (compile){
     Function rxode = getRxFn("RxODE");
@@ -376,29 +392,9 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   }
   ret[1] = thetaNestTran;
   ret[2] = etaNestTran;
-  ret.attr("names") = CharacterVector::create("mod","theta","eta");
+  ret[3] = aboveF;
+  ret[4] = belowF;
+  ret.attr("names") = CharacterVector::create("mod","theta","eta",
+					      "aboveF", "belowF");
   return(ret);
-  // CharacterVector nm(par.size()*nocc);
-  // CharacterVector nm2(par.size()*nocc);
-  // for (int j = par.size(); j--;){
-  //   std::string curPar = as<std::string>(par[j]);
-  //   std::string eta;
-  //   retS += curPar  + "=";
-  //   for (int i = nocc; i--;){
-  //     eta = "ETA[" + std::to_string(j+cureta+par.size()*i) + "]";
-  //     nm[j+par.size()*i] = eta;
-  //     retS += "(rxOCC==" + std::to_string(i+1)+")*" + eta;
-  //     eta = as<std::string>(par[j]) + "("+std::to_string(i+1)+")";
-  //     nm2[j+par.size()*i] = eta;
-  //     if (i) retS += "+";
-  //     else retS += ";\n";
-  //   }
-  // }
-  
-  // ret[1] = nm;
-  // ret[2] = par;
-  // ret[3] = nm2;
-  // ret.attr("names")= CharacterVector::create("mod", "iov1","iov2","iov3");
-  // return ret;
-  return List::create();
 }
