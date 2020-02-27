@@ -1454,7 +1454,8 @@ plot.rxSolve <- function(x,y,..., log="") {
     .ylab <- ylab("")
     .xlab <- xlab("Time")
     .greyText <- ggplot2::element_text(color="#808078", size=13)
-    .greyLabText <- ggplot2::element_text(color="#808078", size=14, face="bold")
+    .greyLabTextX <- ggplot2::element_text(color="#808078", size=14, face="bold")
+    .greyLabTextY <- ggplot2::element_text(color="#808078", size=14, face="bold", angle=90)
     .greyTick <- ggplot2::element_line(color="#808078")
     .greyMajor <- ggplot2::element_line(color="#BFBFB4")
     .greyMinor <- ggplot2::element_line(color="#E6E6D8")
@@ -1465,8 +1466,8 @@ plot.rxSolve <- function(x,y,..., log="") {
                        panel.grid.major=.greyMajor,
                        axis.text.x=.greyText,
                        axis.text.y=.greyText,
-                       axis.title.x=.greyLabText,
-                       axis.title.y=.greyLabText,
+                       axis.title.x=.greyLabTextX,
+                       axis.title.y=.greyLabTextY,
                        axis.ticks.x=.greyTick,
                        axis.ticks.y=.greyTick,
                        strip.text=ggplot2::element_text(color="#FFFFF7", size=14, face="bold"),
