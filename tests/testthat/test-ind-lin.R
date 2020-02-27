@@ -236,20 +236,21 @@ d/dt(blood)     = a*intestine - b*blood
             ggtitle(sprintf("Lsoda mu=%s", mu))
         s2 <- rxSolve(van1, et, c(mu=mu), method="indLin", ...) %>% plot() +
             ggtitle(sprintf("indLin1 mu=%s", mu))
-        s3 <- rxSolve(van2, et, c(mu=mu), method="indLin", ...) %>% plot() +
-            ggtitle(sprintf("indLin2 mu=%s", mu))
-        s4 <- rxSolve(van3, et, c(mu=mu), method="indLin", ...) %>% plot() +
+        s3 <- rxSolve(van3, et, c(mu=mu), method="indLin", ...) %>% plot() +
             ggtitle(sprintf("indLin3 mu=%s", mu))
+        ## s4 <- rxSolve(van3, et, c(mu=mu), method="indLin", ...) %>% plot() +
+        ##     ggtitle(sprintf("indLin3 mu=%s", mu))
+        s4 <- rxSolve(van3, et, c(mu=mu), method="dop853", ...) %>% plot() +
+            ggtitle(sprintf("dop853 mu=%s", mu))
         gridExtra::grid.arrange(s1, s2, s3, s4)
     }
 
-
-    ## library(animation)
-    ## saveGIF({
-    ##     for (i in seq(0.1, 15, by=0.1)){
-    ##         print(f(mu=i))
-    ##     }
-    ## }, movie.name="indLin.gif", interval=0.1, nmax=30, ani.width=600, ani.hegith=300)
+    library(animation)
+    saveGIF({
+        for (i in seq(0.1, 15, by=0.1)){
+            print(f(mu=i))
+        }
+    }, movie.name="indLin-dop.gif", interval=0.1, nmax=30, ani.width=600, ani.hegith=300)
 
 
 
