@@ -191,35 +191,65 @@ d/dt(blood)     = a*intestine - b*blood
     ## Van der Pol Equation
     ## mu = 1000 stiff
     ## me = 1 non-stiff
-    rxIndLinState(list(y="dy", dy="y"))
-    ## rxIndLinState(NULL)
-    van <- RxODE({
+    ## rxIndLinState(list(y="dy", dy="y"))
+    rxIndLinState(NULL)
+    rxIndLinStrategy()
+    van1 <- RxODE({
         y(0) = 2
         d/dt(y)  = dy
         d/dt(dy) = mu*(1-y^2)*dy - y
     }, indLin=TRUE)
+
+    rxIndLinState(list(y="dy", dy="y"))
+    ## rxIndLinState(NULL)
+    rxIndLinStrategy()
+    van2 <- RxODE({
+        y(0) = 2
+        d/dt(y)  = dy
+        d/dt(dy) = mu*(1-y^2)*dy - y
+    }, indLin=TRUE)
+
+
+    ## rxIndLinState(list(y="dy", dy="y"))
+    rxIndLinState(NULL)
+    rxIndLinStrategy("split")
+    van3 <- RxODE({
+        y(0) = 2
+        d/dt(y)  = dy
+        d/dt(dy) = mu*(1-y^2)*dy - y
+    }, indLin=TRUE)
+
+
 
     et <- eventTable();
     ## 3000 causes weird behavior of indLin / lsoda
     et$add.sampling(seq(0, 20, length.out=200));
 
-    s1 <- rxSolve(van, et, c(mu=1000), method="lsoda")
-    s2 <- rxSolve(van, et, c(mu=1000), method="indLin")
+    s1 <- rxSolve(van1, et, c(mu=1000), method="lsoda")
+    s2 <- rxSolve(van1, et, c(mu=1000), method="indLin")
     ## s3 <- rxSolve(van, et, c(mu=1000), method="dop853")
 
-    f <- function(mu=1000, ...) {
-        s1 <- rxSolve(van, et, c(mu=mu), method="lsoda")
-        s2 <- rxSolve(van, et, c(mu=mu), method="indLin", ...)
-        gridExtra::grid.arrange(plot(s1), plot(s2))
+    library(ggplot2)
+
+    f <- function(mu=1, ...) {
+        s1 <- rxSolve(van1, et, c(mu=mu), method="lsoda") %>% plot() +
+            ggtitle(sprintf("Lsoda mu=%s", mu))
+        s2 <- rxSolve(van1, et, c(mu=mu), method="indLin", ...) %>% plot() +
+            ggtitle(sprintf("indLin1 mu=%s", mu))
+        s3 <- rxSolve(van2, et, c(mu=mu), method="indLin", ...) %>% plot() +
+            ggtitle(sprintf("indLin2 mu=%s", mu))
+        s4 <- rxSolve(van3, et, c(mu=mu), method="indLin", ...) %>% plot() +
+            ggtitle(sprintf("indLin3 mu=%s", mu))
+        gridExtra::grid.arrange(s1, s2, s3, s4)
     }
 
-    rxIndLinStrategy("split")
-    van <- RxODE({
-        y(0) = 2
-        d/dt(y)  = dy
-        d/dt(dy) = mu*(1-y^2)*dy - y
-    }, indLin=TRUE)
 
+    ## library(animation)
+    ## saveGIF({
+    ##     for (i in seq(0.1, 15, by=0.1)){
+    ##         print(f(mu=i))
+    ##     }
+    ## }, movie.name="indLin.gif", interval=0.1, nmax=30, ani.width=600, ani.hegith=300)
 
 
 
