@@ -299,10 +299,12 @@ void rxExpandNestingRep(CharacterVector &thetaNest,
 			int &thCnt, int &curtheta,
 			List &aboveVars, NumericVector& above,
 			std::string &retS, std::string &retF,
+			std::string &namesAbove,
 			List &data, std::string thetaVar = "THETA[") {
   std::string theta;
   int lastTheta;
   int firstTheta = curtheta;
+  int nameTheta = curtheta;
   for (int j = 0; j < thetaNest.size(); ++j) {
     std::string curNest = as<std::string>(thetaNest[j]);
     CharacterVector nestVars = as<CharacterVector>(aboveVars[curNest]);
@@ -310,11 +312,10 @@ void rxExpandNestingRep(CharacterVector &thetaNest,
     CharacterVector curNestLvl = curNestV.attr("levels");
     int nnest = as<int>(above[curNest]);
     if (nnest > 1){
-      retF += "lapply(1:" + std::to_string(nnest) +
-	",function(...) { cvPost(omega$nu$" +curNest + ",omega$" +curNest +
-	",type=\"invWishart\")})";
+      retF += "rep(list(cvPost(omega$nu$" +curNest + ",omega$" +curNest +
+	",type=\"invWishart\")),"+std::to_string(nnest)+")";
     } else {
-      retF += "list(cvPost(omega$nu$" +curNest + ",omega$" +curNest +",type==\"invWishart\"))";
+      retF += "list(cvPost(omega$nu$" +curNest + ",omega$" +curNest +",type=\"invWishart\"))";
     }
     if (j != thetaNest.size()-1) retF += ",";
     // This is the base theta count
@@ -324,6 +325,8 @@ void rxExpandNestingRep(CharacterVector &thetaNest,
       retS += curPar + "=";
       for (int k = 0; k < nnest; ++k) {
 	theta = thetaVar + std::to_string(lastTheta+i+k*nnest+firstTheta) + "]";
+	namesAbove += "\"" +thetaVar + std::to_string(nameTheta++) + "]\"";
+	namesAbove += ",";
 	retS += "(" + curNest + "==" + std::to_string(k+1)+")*" + theta;
 	thetaNestTran[thCnt] = curNest + "("+as<std::string>(curNestLvl[k])+")";
 	thetaNestFull[thCnt] = theta;
@@ -336,11 +339,29 @@ void rxExpandNestingRep(CharacterVector &thetaNest,
   thetaNestTran.attr("names") = thetaNestFull;
 }
 
+RObject evalFun(std::string str, bool pretty = true){
+  Function deparse2("deparse", R_BaseNamespace);
+  Function parse2("parse", R_BaseNamespace);
+  Function eval2("eval", R_BaseNamespace);
+  RObject ret = eval2(parse2(_["text"]=str));
+  if (pretty){
+    CharacterVector retC = deparse2(ret);
+    std::string str2 = "";
+    for (int i = 0; i < retC.size(); ++i){
+      str2+=as<std::string>(retC[i]) + "\n";
+    }
+    ret = eval2(parse2(_["text"]=str2));
+  }
+  return ret;
+}
+
 //[[Rcpp::export]]
 List rxExpandNesting(const RObject& obj, List& nestingInfo,
 		     bool compile=false){
   std::string retS="";
   std::string aboveF="";
+  std::string namesBelow="";
+  std::string namesAbove="";
   std::string belowF="";
   List mv = rxModelVars_(obj);
   IntegerVector flags = as<IntegerVector>(mv["flags"]);
@@ -375,10 +396,11 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   aboveF += ".theta <- as.matrix(Matrix::bdiag(list(";
   rxExpandNestingRep(thetaNest, thetaNestTran, thetaNestFull,
 		     thCnt, curtheta,
-		     aboveVars, above, retS, aboveF, data,
+		     aboveVars, above, retS, aboveF, namesAbove, data,
 		     "THETA[");
   aboveF +=")));\n";
-
+  
+  namesBelow = ".dim <- c(dimnames(omega$" + idName + ")[[1]],";
   belowF += "function(omega=" + dp0 + "){";
   belowF += ".omega <- as.matrix(Matrix::bdiag(c(list(cvPost(omega$nu$" + idName + ",omega$" +
     idName + ",type=\"invWishart\"))";
@@ -386,9 +408,10 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   int etCnt = 0;
   rxExpandNestingRep(etaNest, etaNestTran, etaNestFull,
 		     etCnt, cureta,
-		     belowVars, below, retS, belowF, data,
+		     belowVars, below, retS, belowF, namesBelow, data,
 		     "ETA[");
-  belowF +=")));return(.omega);}";
+  belowF +=")));" + namesBelow + 
+    "NULL);dimnames(.omega) <- list(.dim,.dim);return(.omega);}";
   
   CharacterVector mod = mv["model"];
   List ret(5);
@@ -403,7 +426,7 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   ret[1] = thetaNestTran;
   ret[2] = etaNestTran;
   ret[3] = aboveF;
-  ret[4] = belowF;
+  ret[4] = evalFun(belowF, true);
   ret.attr("names") = CharacterVector::create("mod","theta","eta",
 					      "aboveF", "belowF");
   return(ret);
