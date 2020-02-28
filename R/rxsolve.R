@@ -1453,15 +1453,17 @@ plot.rxSolve <- function(x,y,..., log="") {
     if (length(.cmts) == 1) .facet <- NULL
     .ylab <- ylab("")
     .xlab <- xlab("Time")
-    .greyText <- ggplot2::element_text(color="#808078", size=13)
-    .greyLabTextX <- ggplot2::element_text(color="#808078", size=14, face="bold")
-    .greyLabTextY <- ggplot2::element_text(color="#808078", size=14, face="bold", angle=90)
-    .title <- ggplot2::element_text(colour = "#808078", size=18, face="bold", hjust=0)
+    .greyText <- ggplot2::element_text(color="#808078")
+    .greyLabTextX <- ggplot2::element_text(color="#808078", face="bold")
+    .greyLabTextY <- ggplot2::element_text(color="#808078", face="bold", angle=90)
+    .title <- ggplot2::element_text(colour = "#808078", face="bold", hjust=0)
+    .subTitle <- ggplot2::element_text(colour = "#808078", face="bold", hjust=0)
     .greyTick <- ggplot2::element_line(color="#808078")
     .greyMajor <- ggplot2::element_line(color="#BFBFB4")
     .greyMinor <- ggplot2::element_line(color="#E6E6D8")
     .theme <- ggplot2::theme_bw() %+replace%
         ggplot2::theme(plot.title = .title,
+                       plot.subtitle = .title,
                        panel.border = ggplot2::element_blank(),
                        panel.background = ggplot2::element_rect(fill = "#FFFFF7", colour = NA),
                        panel.grid.minor=.greyMinor,
