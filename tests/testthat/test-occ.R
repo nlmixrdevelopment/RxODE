@@ -42,13 +42,13 @@ rxPermissive({
         ev
 
     omega <- lotri(lotri(eta.Cl ~ 0.1,
-                         eta.Ka ~ 0.1) | id,
+                         eta.Ka ~ 0.1) | id(nu=100),
                    lotri(eye.Cl ~ 0.05,
-                         eye.Ka ~ 0.05) | eye,
+                         eye.Ka ~ 0.05) | eye(nu=50),
                    lotri(iov.Cl ~ 0.01,
-                         iov.Ka ~ 0.01) | occ,
+                         iov.Ka ~ 0.01) | occ(nu=200),
                    lotri(inv.Cl ~ 0.02,
-                         inv.Ka ~ 0.02) | inv)
+                         inv.Ka ~ 0.02) | inv(nu=10))
 
     .ni <- .nestingInfo(ev$id, omega, ev)
     expect_equal(.ni$below, c(eye = 2L, occ = 2L))
@@ -71,7 +71,8 @@ rxPermissive({
 
     ## Test edge case -- no between or above occasion variability
 
-    .ni <- .nestingInfo(ev$id, lotri(eta.Cl ~ 0.1, eta.Ka ~ 0.1),
+    .ni <- .nestingInfo(ev$id,
+                        lotri(eta.Cl ~ 0.1, eta.Ka ~ 0.1),
                         ev)
 
     expect_equal(.ni$above, NULL)

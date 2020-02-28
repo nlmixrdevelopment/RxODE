@@ -392,13 +392,16 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   for (int i = 0; i < dpO.size(); ++i) {
     dp0 += as<std::string>(dpO[i]);
   }
-  
-  aboveF += ".theta <- as.matrix(Matrix::bdiag(list(";
+
+  namesAbove = ".dim <- c(";
+  aboveF += "function(omega=" + dp0 + "){";
+  aboveF += ".theta <- as.matrix(Matrix::bdiag(c(";
   rxExpandNestingRep(thetaNest, thetaNestTran, thetaNestFull,
 		     thCnt, curtheta,
 		     aboveVars, above, retS, aboveF, namesAbove, data,
 		     "THETA[");
-  aboveF +=")));\n";
+  aboveF +=")));\n" + namesAbove + 
+    "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);}";
   
   namesBelow = ".dim <- c(dimnames(omega$" + idName + ")[[1]],";
   belowF += "function(omega=" + dp0 + "){";
@@ -425,8 +428,8 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   }
   ret[1] = thetaNestTran;
   ret[2] = etaNestTran;
-  ret[3] = aboveF;
-  ret[4] = evalFun(belowF, true);
+  ret[3] = evalFun(aboveF, true);
+  ret[4] = evalFun(belowF, false);
   ret.attr("names") = CharacterVector::create("mod","theta","eta",
 					      "aboveF", "belowF");
   return(ret);
