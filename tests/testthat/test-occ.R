@@ -64,7 +64,7 @@ rxPermissive({
     expect_equal(.ni$extraTheta, 4)
     expect_equal(.ni$extraEta, 8)
 
-    rxExpandNesting(mod, .ni)
+    .en <- rxExpandNesting(mod, .ni)
 
     ## Tests -- Test different occ size
     ## Tests -- Eye becomes OD/OS

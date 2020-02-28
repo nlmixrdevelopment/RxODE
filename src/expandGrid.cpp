@@ -310,10 +310,11 @@ void rxExpandNestingRep(CharacterVector &thetaNest,
     CharacterVector curNestLvl = curNestV.attr("levels");
     int nnest = as<int>(above[curNest]);
     if (nnest > 1){
-      retF += "rep(cvPost(omega$" +curNest + "$nu,omega$" +curNest +
-	",type)," + std::to_string(nnest) + ")";
+      retF += "lapply(1:" + std::to_string(nnest) +
+	",function(...) { cvPost(omega$nu$" +curNest + ",omega$" +curNest +
+	",type=\"invWishart\")})";
     } else {
-      retF += "cvPost(omega$" +curNest + "$nu,omega$" +curNest +",type)";
+      retF += "list(cvPost(omega$nu$" +curNest + ",omega$" +curNest +",type==\"invWishart\"))";
     }
     if (j != thetaNest.size()-1) retF += ",";
     // This is the base theta count
@@ -363,6 +364,14 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   CharacterVector etaNestFull(extraEta);
   int thCnt=0;
   std::string idName=nestingInfo["idName"];
+
+  Function deparse2("deparse", R_BaseNamespace);
+  CharacterVector dpO = deparse2(nestingInfo["omega"]);
+  std::string dp0="";
+  for (int i = 0; i < dpO.size(); ++i) {
+    dp0 += as<std::string>(dpO[i]);
+  }
+  
   aboveF += ".theta <- as.matrix(Matrix::bdiag(list(";
   rxExpandNestingRep(thetaNest, thetaNestTran, thetaNestFull,
 		     thCnt, curtheta,
@@ -370,15 +379,16 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
 		     "THETA[");
   aboveF +=")));\n";
 
-  belowF += ".omega <- as.matrix(Matrix::bdiag(list(cvPost(omega$nu$" + idName + ",omega$" +
-    idName + ",type)";
+  belowF += "function(omega=" + dp0 + "){";
+  belowF += ".omega <- as.matrix(Matrix::bdiag(c(list(cvPost(omega$nu$" + idName + ",omega$" +
+    idName + ",type=\"invWishart\"))";
   if (etaNest.size() > 0) belowF += ",";
   int etCnt = 0;
   rxExpandNestingRep(etaNest, etaNestTran, etaNestFull,
 		     etCnt, cureta,
 		     belowVars, below, retS, belowF, data,
 		     "ETA[");
-  belowF +=")));";
+  belowF +=")));return(.omega);}";
   
   CharacterVector mod = mv["model"];
   List ret(5);

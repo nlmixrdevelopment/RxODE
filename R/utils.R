@@ -311,6 +311,7 @@ rxSetProgressBar <- function(seconds=1.0) {
 cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
                    type = c("invWishart", "lkj", "separation"),
                    diagXformType = c("log", "identity", "variance", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity")){
+    if (is.null(nu) && n == 1L) return(omega)
     if (inherits(type, "numeric") || inherits(type, "integer")){
         .type <- as.integer(type)
     } else {
