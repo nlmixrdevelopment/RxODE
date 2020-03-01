@@ -404,7 +404,8 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
 
   namesAbove = ".dim <- c(";
   aboveF2 += "function(omega=" + dp0 + "){";
-  aboveF  += "function(omega=" + dp0 + "){";
+  aboveF  += "function(n=1,omega=" + dp0 + "){";
+  aboveF  += "lapply(1:n,function(...){";
   aboveF2 += ".theta <- as.matrix(Matrix::bdiag(c(";
   aboveF  += ".theta <- as.matrix(Matrix::bdiag(c(";
   rxExpandNestingRep(thetaNest, thetaNestTran, thetaNestFull,
@@ -413,14 +414,13 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
 		     namesAbove, data,
 		     "THETA[");
   aboveF  += ")));\n" + namesAbove + 
-    "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);}";
+    "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);})}";
   aboveF2 += ")));\n" + namesAbove + 
     "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);}";;
-  
   namesBelow = ".dim <- c(dimnames(omega$" + idName + ")[[1]],";
-  belowF += "function(omega=" + dp0 + "){";
+  belowF += "function(n=1,omega=" + dp0 + "){";
   belowF2 += "function(omega=" + dp0 + "){";
-  belowF += ".omega <- as.matrix(Matrix::bdiag(c(list(cvPost(omega$nu$" + idName + ",omega$" +
+  belowF += "lapply(1:n,function(...){.omega <- as.matrix(Matrix::bdiag(c(list(cvPost(omega$nu$" + idName + ",omega$" +
     idName + ",type=\"invWishart\"))";
   belowF2 += ".omega <- as.matrix(Matrix::bdiag(c(list(omega$" +
     idName + ")";
@@ -435,7 +435,7 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
 		     namesBelow, data,
 		     "ETA[");
   belowF +=")));" + namesBelow + 
-    "NULL);dimnames(.omega) <- list(.dim,.dim);return(.omega);}";
+    "NULL);dimnames(.omega) <- list(.dim,.dim);return(.omega);})}";
 
   belowF2 += ")));" + namesBelow + 
     "NULL);dimnames(.omega) <- list(.dim,.dim);return(.omega);}";
@@ -452,9 +452,9 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   }
   ret[1] = thetaNestTran;
   ret[2] = etaNestTran;
-  ret[3] = evalFun(aboveF, false);
+  ret[3] = evalFun(aboveF,  false);
   ret[4] = evalFun(aboveF2, false);
-  ret[5] = evalFun(belowF, false);
+  ret[5] = evalFun(belowF,  false);
   ret[6] = evalFun(belowF2, false);
   ret.attr("names") = CharacterVector::create("mod","theta","eta",
 					      "aboveF", "aboveF2",
