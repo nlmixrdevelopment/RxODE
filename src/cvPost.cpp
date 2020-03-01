@@ -262,11 +262,11 @@ arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
     stop(_("unknown 'diagXformType' transformation"));
   }
   arma::mat ret;
-  if (sd.size() == 1){
+  if (sd.size() == 1) {
     ret = ret(1,1);
     ret(0,0) = sd[0]*sd[0];
   } else {
-    if (rType == 1){
+    if (rType == 1) {
       ret = rLKJcv1(sd, (nu-1.0)/2.0);
     } else {
       ret = rinvWRcv1(sd, nu);
@@ -310,6 +310,9 @@ RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false,
 	if (n != 1) warning(_("'n' is determined by the 'omega' argument which contains the simulated standard deviations"));
 	for (unsigned int i = 0; i < om0.n_cols; i++){
 	  arma::vec sd = om0.col(i);
+	  if (nu < 3){
+	    stop("'nu' must be >= 3");
+	  }
 	  arma::mat reti = rcvC1(sd, nu, diagXformType, type-1, returnChol);
 	  ret[i] = wrap(reti);
 	}
