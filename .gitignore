@@ -27,3 +27,4 @@ inst/doc
 /vignettes/*.html
 
 
+/inst/tutorials/modelSyntax/RxODE model syntax/RxODE-model-syntax.html
