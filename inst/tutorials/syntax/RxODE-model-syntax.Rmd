@@ -17,13 +17,17 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Creating Compiled models
 
-`RxODE` currently supports differential equations using Leibniz notation, that is `d/dt(x)`. These differential equations can be in one of the following locations:
+`RxODE` currently supports differential equations using Leibniz
+notation, that is `d/dt(x)`. These differential equations can be in
+one of the following locations:
 
 1. In a separate model definition file
 2. Inline in a string
 3. In an R expression passed to `RxODE` in brackets `{}`
 
-Each of these can be directly passed into the `RxODE` function.  This translates the input into compiled C code that can be used to quickly run ODE solutions.
+Each of these can be directly passed into the `RxODE` function.  This
+translates the input into compiled C code that can be used to quickly
+run ODE solutions.
 
 ### Creating an RxODE model in 3 ways
 
@@ -32,7 +36,8 @@ Each of these can be directly passed into the `RxODE` function.  This translates
 Change the below R code to:
 
 - Move the model definition to an inline string `ode`
-- Once the inline string method is complete, use the `RxODE({})` method to specify the ODE inline.
+- Once the inline string method is complete, use the `RxODE({})`
+  method to specify the ODE inline.
 
 ```{r RxODE_model, exercise=TRUE}
 ## This example creates an ODE with a file tmp.rxode
@@ -72,7 +77,8 @@ print(model)
 
 ## Pre-Quiz - ODE syntax
 
-We briefly touched on the ODE syntax in `RxODE`.  Based on what you know so far, What is the way you specify ODE equations in `RxODE`?
+We briefly touched on the ODE syntax in `RxODE`.  Based on what you
+know so far, What is the way you specify ODE equations in `RxODE`?
 
 ```{r odeQuiz}
 quiz(
@@ -92,7 +98,8 @@ quiz(
 
 ## Simple and time derivative statements
 
-The most fundamental part of an `RxODE` model are simple assignments and time-derivative assignments:
+The most fundamental part of an `RxODE` model are simple assignments
+and time-derivative assignments:
 
 - **simple** assignments, where the left hand is an identifier (i.e.,
   variable)
@@ -100,22 +107,31 @@ The most fundamental part of an `RxODE` model are simple assignments and time-de
   specifies the change of the amount in the corresponding state
   variable (compartment) with respect to time e.g., `d/dt(depot)`. 
   
-Once these variables are assigned in the RxODE model, RxODE parses the model and separates the following types of variables:
+Once these variables are assigned in the RxODE model, RxODE parses the
+model and separates the following types of variables:
 
-- `state` - This gives a list of names the ODE state variables. These are in order of how they appear in the model; The first compartment is the first compartment listed.
-- `params` - This gives a list of names of parameters that need to be specified (as a defined parameter, supplied parameter, or covariate).  If you use `summary(rxodeModel)` it will show you what parameters still need to be defined.
-- `lhs` - This gives a parameter that is calculated instead of supplied or used as a ODE `state`.
+- `state` - This gives a list of names the ODE state variables. These
+  are in order of how they appear in the model; The first compartment
+  is the first compartment listed.
+- `params` - This gives a list of names of parameters that need to be
+  specified (as a defined parameter, supplied parameter, or
+  covariate).  If you use `summary(rxodeModel)` it will show you what
+  parameters still need to be defined.
+- `lhs` - This gives a parameter that is calculated instead of
+  supplied or used as a ODE `state`.
 
-Each of these properties can be accessed with the `$` R operator. For example if you have an `RxODE` compiled model `mod`, you can access the state names by `mod$state`
-
-
-
+Each of these properties can be accessed with the `$` R operator. For
+example if you have an `RxODE` compiled model `mod`, you can access
+the state names by `mod$state`
 
 ### Exercise - Fix RxODE model and solve
 
-With the knowledge of how simple statements are defined, you can figure out what is going wrong with a simple `RxODE` model.
+With the knowledge of how simple statements are defined, you can
+figure out what is going wrong with a simple `RxODE` model.
 
-In this exercise, fix the model by adding a parameter value to the following code assign the missing parameter value to 1
+In this exercise, fix the model by adding a parameter value to the
+following code assign the missing parameter value to 1
+
 ```{r rxParams, exercise=TRUE}
 ## 
 mod1 <-RxODE({
@@ -174,22 +190,33 @@ rxSolve(mod1,et(amt=10000, ii=12, until=24) %>% et(0,24,length.out=24)) %>%
 
 ## Special state properties
 
-In addition to the simple statements, and the time-deriviate statements defining states, there are a few special state properties that can be added to each state:
+In addition to the simple statements, and the time-deriviate
+statements defining states, there are a few special state properties
+that can be added to each state:
 
 - **initial-condition** assignments where the left hand
   specifies the compartment of the initial condition being specified,
   e.g. `depot(0) = 0`
   
-- **bioavailability** is a modeled parameter or constant that changes the magnitude of an event/dose by multiplying the dose/event by this amount. `f(depot)=`
+- **bioavailability** is a modeled parameter or constant that changes
+  the magnitude of an event/dose by multiplying the dose/event by this
+  amount. `f(depot)=`
 
-- **absorption lag time** is a modeled parameter that shifts the time of the dose/event by lag time specified; It is specified by `alag` on the compartment, like `alag(depot)=`
+- **absorption lag time** is a modeled parameter that shifts the time
+  of the dose/event by lag time specified; It is specified by `alag`
+  on the compartment, like `alag(depot)=`
 
-- **modeled rate** when the event data specify the rate should be modeled (`rate=-1`) `rate` for a compartment can specify/model the rate;  This is specified by `rate(depot) = `
+- **modeled rate** when the event data specify the rate should be
+  modeled (`rate=-1`) `rate` for a compartment can specify/model the
+  rate; This is specified by `rate(depot) = `
 
-- **modeled duration** when the event data specify the duration should be modeled (`rate=-2`), `dur` for a compartment can specify the duration of the infusion: `dur(depot) = `
+- **modeled duration** when the event data specify the duration should
+  be modeled (`rate=-2`), `dur` for a compartment can specify the
+  duration of the infusion: `dur(depot) = `
 
-More information about the event specification for the duration/rate items can be found in the [RxODE
-  events vignette](https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html).
+More information about the event specification for the duration/rate
+  items can be found in the [RxODE events
+  vignette](https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html).
   
 **Important:** By default, these special properties can only be defined after a state has been defined by `d/dt(state)=`.  
 
@@ -260,18 +287,34 @@ rxSolve(mod1,et(amt=10000, ii=12, until=24) %>% et(0,24,length.out=24)) %>%
 
 ## Model Times and Compartment order
 
-We discussed simple assigments, time-derivative statements `d/dt(state)=...` and special properties you can add to the state `alag(state)=...`.  There are a few additional convience statements you can add to your model to change the compartment behavior
+We discussed simple assigments, time-derivative statements
+`d/dt(state)=...` and special properties you can add to the state
+`alag(state)=...`.  There are a few additional convience statements
+you can add to your model to change the compartment behavior
 
-- **Compartment declaration statements** `cmt(compartmentName)`. This can change the compartment order.  The order of states in the `RxODE` model is determined by the order you see `cmt()` statements and `d/dt()=` statements. Therefore, to adjust the default dose (ie `cmt=1`) you simply need to specify right `cmt()`at the top of the `RxODE` model. This is useful for matching event table compartments to what you want them to be.
+- **Compartment declaration statements** `cmt(compartmentName)`. This
+  can change the compartment order.  The order of states in the
+  `RxODE` model is determined by the order you see `cmt()` statements
+  and `d/dt()=` statements. Therefore, to adjust the default dose (ie
+  `cmt=1`) you simply need to specify right `cmt()`at the top of the
+  `RxODE` model. This is useful for matching event table compartments
+  to what you want them to be.
 
-- **modeled times**.  These model times are
-  specified by `mtime(var)=time`.  This adds a modeled time to the output dataset.  This can be set to a numeric value or a model variable.  It is useful to add an observation point at the end of an infusion or the end of a entero-hepatic recycling model.
+- **modeled times**.  These model times are specified by
+  `mtime(var)=time`.  This adds a modeled time to the output dataset.
+  This can be set to a numeric value or a model variable.  It is
+  useful to add an observation point at the end of an infusion or the
+  end of a entero-hepatic recycling model.
   
 ### Compartment declaration exercise
 
-The following code explicitly states that `depot` is the first compartment.
+The following code explicitly states that `depot` is the first
+compartment.
 
-Consider a situation where you want to change the `cmt=1` event to the `central` compartment to deliver a bolus dose.  Adjust the code below to change to bolus dose to an iv infusion by switching the default or first compartment to `centr`
+Consider a situation where you want to change the `cmt=1` event to the
+`central` compartment to deliver a bolus dose.  Adjust the code below
+to change to bolus dose to an iv infusion by switching the default or
+first compartment to `centr`
 
 
 ```{r cmt,exercise=TRUE}
@@ -330,9 +373,12 @@ rxSolve(mod1,et(amt=10000, ii=12, until=24) %>% et(0,24,length.out=24)) %>%
 
 ### Add modeled time
 
-If you notice the output plot above, it seems that the central compartment received 2 different bolus doses.  This is a consequence of the sampling time used.  
+If you notice the output plot above, it seems that the central compartment received 2 different bolus doses.  This is a consequence of the sampling time used.
 
-In this exercise add a modeling time to observe the `12.001` time-point to see if the plot changes.  Recall to assign a variable to an observation you wrap it in the `mtime()` function, ie `mtime(var)=X`
+In this exercise add a modeling time to observe the `12.001`
+time-point to see if the plot changes.  Recall to assign a variable to
+an observation you wrap it in the `mtime()` function, ie
+`mtime(var)=X`
 
 ```{r mtime, exercise=TRUE}
 mod1 <-RxODE({
@@ -394,15 +440,22 @@ rxSolve(mod1,et(amt=10000, ii=12, until=24) %>%
 
 ### Mtime fixes the plots 
 
-You can now see that the doses seem the same at time zero and the 12 hour time-points.
+You can now see that the doses seem the same at time zero and the 12
+hour time-points.
 
 ## If/else clauses
 
-`RxODE` also supports the standard `if`/`else` clauses; A more common use of `mtime()=` variables is to make sure that a time-point is captured when a key variable changes. The `RxODE` `if` and `else` allow time-changes to occur in a model like you would use in a standard `RxODE` block.  Using the internal variable `t` for time you can adjust parameters and make sure they show up in the model.
+`RxODE` also supports the standard `if`/`else` clauses; A more common
+use of `mtime()=` variables is to make sure that a time-point is
+captured when a key variable changes. The `RxODE` `if` and `else`
+allow time-changes to occur in a model like you would use in a
+standard `RxODE` block.  Using the internal variable `t` for time you
+can adjust parameters and make sure they show up in the model.
 
 ### Exercise 2 -- Make sure that the change point is observed
 
-Change the model below to make sure the 2.5 hour point is observed as a modeling time-point.
+Change the model below to make sure the 2.5 hour point is observed as
+a modeling time-point.
 
 ```{r if-else, exercise=TRUE}
 library(ggplot2)
@@ -474,11 +527,16 @@ rxSolve(mod1,et(amt=10000, ii=12, until=24) %>%
 
 ## Suppressing output
 
-One last note about `RxODE`, you can suppress columns in the solved output (by default `RxODE` outputs all `$state` values and `$lhs` values).  This is done by modifing either the simple assigment or time-derivative assignment `d/dt(state)=...` to use `~` instead of the standard assignment operators `<-` or `=`
+One last note about `RxODE`, you can suppress columns in the solved
+output (by default `RxODE` outputs all `$state` values and `$lhs`
+values).  This is done by modifing either the simple assigment or
+time-derivative assignment `d/dt(state)=...` to use `~` instead of the
+standard assignment operators `<-` or `=`
 
 ### Exercise: Suppressing all output exept C2
 
-Instead of creating a large matrix of output, change the output to include only `C2`
+Instead of creating a large matrix of output, change the output to
+include only `C2`
 
 ```{r suppress, exercise=TRUE}
 mod1 <-RxODE({
@@ -550,6 +608,152 @@ rxSolve(mod1,et(amt=10000, ii=12, until=24) %>%
   plot()
 ```
 
+## PK solved systems
+
+PK Solved models are also simple to create. You simply place the
+`linCmt()` psuedo-function into your code.  The `linCmt()` function
+figures out the type of model to use based on the parameter names
+specified.
+
+Most often, pharmacometric models are parameterized in terms of volume
+and clearances. Clearances are specified by NONMEM-style names of
+`CL`, `Q`, `Q1`, `Q2`, etc. or distributional clearances `CLD`,
+`CLD2`. Volumes are specified by Central (`VC` or `V`),
+Peripheral/Tissue (`VP`, `VT`). 
+
+Another popular parameterization is in terms of micro-constants. RxODE
+assumes compartment `1` is the central compartment.  The elimination
+constant would be specified by `K`, `Ke` or `Kel`. 
+
+The last parameterization possible is using `alpha` and `V` and/or
+`A`/`B`/`C`
+
+To see some tables of tested parameters for `linCmt()` you can go to
+the [`linCmt()`
+vignette](https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-model-types.html#solved-compartment-models)
+
+Once the `linCmt()` sleuthing is complete, the `1`, `2` or `3`
+compartment model solution is used as the value of `linCmt()`.
+
+The compartments where you can dose in a linear solved system are
+`depot` (for oral absorption models) and `central`.  Without any
+additional ODEs, these compartments are numbered `depot=1` and
+`central=2`.  You can add some properties to these compartments like
+bioavailibilty changes `f(depot)=0.5` changes the bioavailability to
+0.5.
+
+When the absorption constant `ka` is missing, you may only dose to the
+`central` compartment.  Without any additional ODEs the compartment
+number is `central=1`.
+
+
+### Exercise 1: Change a one-compartment bolus model
+
+The model below is a 2 compartment IV model; Change the model to be a 2-compartment
+oral absorption model by adding a `Ka` parameter.
+
+```{r lincmt, exercise=TRUE}
+mod1 <-RxODE({
+  V2~40.2 # central 
+  Q ~10.5
+  V3~297.0 # peripheral
+  CL ~ 18.6
+  C2 = linCmt()
+})
+
+# This is a simple code that plots the ODE system.
+# Don't worry about `et` if you don't understand it now
+# It will be covered in another tutorial
+rxSolve(mod1,et(amt=10000, ii=12, until=24) %>% 
+          et(0,24,length.out=24)) %>%
+  plot()
+```
+
+
+<div id="lincmt-hint">
+Put in the `KA = .294` parameter to change the model
+</div>
+
+
+### Exercise 2: Mixing ODE and PK solved systems
+
+One of the nice features of `RxODE` is it can also mix `linCmt()`
+solutions and ODE solutions.
+
+As an exercise change the below model to drop the `depot` and
+`central` ODE definitions:
+
+```{r linCmt-mix, exercise=TRUE}
+mod1 <-RxODE({
+  KA ~ .294
+  V2~40.2 # central 
+  Q ~10.5
+  V3~297.0 # peripheral
+  CL ~ 18.6
+  Kin~1
+  Kout ~ 1
+  EC50~200
+  C2 <- central/V2;
+  C3 ~ peri/V3;
+  mtime(mt1)~12.001
+  d/dt(depot) ~ -KA*depot;
+  d/dt(central) ~ KA*depot - CL*C2 - Q*C2 + Q*C3;
+  d/dt(peri)  ~                    Q*C2 - Q*C3;
+  d/dt(eff) = Kin - Kout*(1-C2/(EC50+C2))*eff;
+  eff(0) = 1
+})
+
+# This is a simple code that plots the ODE system.
+# Don't worry about `et` if you don't understand it now
+# It will be covered in another tutorial
+rxSolve(mod1,et(amt=10000, ii=12, until=24, cmt='depot') %>% 
+          et(0,24,length.out=24)) %>%
+  plot()
+```
+
+<div id="linCmt-mix-hint">
+Simply drop the `d/dt(central)`, `d/dt(depot)` and `C3` lines; Change `C2=linCmt()`
+</div>
+
+### Exercise 3: Compartment number with mixed `linCmt`/`ODE` models
+
+You may have noticed that the `et` dosed to `cmt='depot'`.  This is so
+that the solutions are the same between the ODE model and the solved system.
+
+The compartment numbers have changed when mixing `ODE`s and `linCmt()` models.
+
+In this exercise use `print(mod1)` to get an idea of what the
+compartment numbers are for the model.
+
+```{r linCmt-cmt, exercise=TRUE}
+mod1 <-RxODE({
+  KA ~ .294
+  V2~40.2 # central 
+  Q ~10.5
+  V3~297.0 # peripheral
+  CL ~ 18.6
+  Kin~1
+  Kout ~ 1
+  EC50~200
+  C2 <- linCmt()
+  d/dt(eff) = Kin - Kout*(1-C2/(EC50+C2))*eff;
+  eff(0) = 1
+})
+```
+
+### Mixing ODE models and `linCmt()` models add solved systems at the end of the model
+
+You can see the `linCmt()` model has a variable `$stateExtra` which
+lists the extra states.  In this case the `depot` compartment is the
+`2`nd compartment since it is after the state `eff` compartment.  The
+extra states always are numbered after the ODE states have been
+specified.
+
+**Note:** `RxODE` cannot currently use `cmt()` on the `depot` and
+`central` compartments for solved systems to change their compartment
+number.
+
+
 ## Jacobian-derivatives
 
 There is one more type of syntax that you may see in `RxODE` models, the **Jacobain** syntax; ie:
@@ -584,7 +788,8 @@ van <- RxODE({
 ## uses the Jacobian specification currently
 ```
 
-Note if `RxODE` is setup completely, you can automatically calculate the Jacoabian by `RxODE({}, calcJac=TRUE)`
+Note if `RxODE` is setup completely, you can automatically calculate
+the Jacoabian by `RxODE({}, calcJac=TRUE)`
 
 ## Summary
 
@@ -623,3 +828,5 @@ Note that assignment can be done by `=` or `<-`.
 Additionally, assignment can be done with the `~` operator, which
 causes RxODE to use the variable/expression while solving but suppress
 output to either the matrix or data-frame returned in R.
+
+Also note `linCmt()` can be used to specify linear compartmental models.
