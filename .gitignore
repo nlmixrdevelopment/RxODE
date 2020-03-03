@@ -22,8 +22,9 @@ inst/doc
 /vignettes/.Rhistory
 *.gch
 *.gcno
-/src/RxODE.so
 /src/Makevars.r-stripper.bak
 /vignettes/*_files/
 /vignettes/*.html
-.Rproj.user
+
+
+/inst/tutorials/modelSyntax/RxODE model syntax/RxODE-model-syntax.html
