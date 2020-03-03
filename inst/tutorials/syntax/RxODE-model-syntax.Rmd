@@ -1,9 +1,11 @@
 ---
-title: "RxODE models / syntax"
+title: "RxODE syntax"
 output: 
   learnr::tutorial:
     progressive: true
 runtime: shiny_prerendered
+description: >
+  This covers the basic syntax supported for `RxODE` models and how to compile the models using `RxODE`
 ---
 
 ```{r setup, include=FALSE}
