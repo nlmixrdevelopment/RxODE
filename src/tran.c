@@ -70,7 +70,7 @@
 #define NOINI0 "'%s(0)' for initialization not allowed.  To allow set 'options(RxODE.syntax.allow.ini0 = TRUE)'"
 #define NOSTATE "Defined 'df(%s)/dy(%s)', but '%s' is not a state"
 #define NOSTATEVAR "Defined 'df(%s)/dy(%s)', but '%s' is not a state or variable"
-#define ODEFIRST "ODEs compartment 'd/dt(%s)' must be defined before changing its properties (f/alag/rate/dur).\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this will RxODE numbers compartments based on first occurance of property or ODE"
+#define ODEFIRST "ODEs compartment 'd/dt(%s)' must be defined before changing its properties (f/alag/rate/dur).\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this will number compartments based on first occurrence of property or ODE"
 #define ZERODVID "dvid() cannot have zeros in it"
 #define ONEDVID "RxODE only supports one dvid() statement per model"
 
