@@ -64,7 +64,8 @@ Suggests:
     htmltools,
     rlang,
     ggrepel,
-    xgxr
+    xgxr,
+    learnr
 Imports:
     rstudioapi,
     rmarkdown,
