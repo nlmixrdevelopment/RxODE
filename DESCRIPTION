@@ -58,7 +58,8 @@ Suggests:
     htmltools,
     reticulate,
     rlang,
-    installr
+    installr,
+    learnr
 Imports:
     Matrix,
     PreciseSums (>= 0.3),
