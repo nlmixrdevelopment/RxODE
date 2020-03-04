@@ -313,6 +313,7 @@ et <- seq(bid,set_units(1, "week"), qd) %>%
     et(seq(0,18*24,length.out=100));
 
 rxSolve(m1, et) %>% plot(C2)
+
 ```
 
 Note that in this example the time between the bid and the qd event
@@ -334,6 +335,7 @@ you combine the event tables.  If that is not true, you can also use
 the option `samples="use"`
 
 ## Repeating event tables
+
 You can have an event table that you can repeat with `etRep` or `rep`.
 For example 4 rounds of 2 weeks on QD therapy and 1 week off of
 therapy can be simply specified:
