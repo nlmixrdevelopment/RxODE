@@ -66,25 +66,26 @@ the exceptions:
 
 Other notes:
 
- - The `evid` can be the classic RxODE (described at the end of this
-   document) or the NONMEM-style evid described above.
- - NONMEM's `DV` is not required; RxODE is a ODE solving framework.
- - NONMEM's `MDV` is not required, since it is captured in `EVID`
- - Instead of NONMEM-compatible data, it can accept `deSolve`
-   compatible data-frames
+ - The `evid` can be the classic RxODE (described
+   [here](https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-events-classic.html))
+   or the `NONMEM`-style `evid` described above.
+ - `NONMEM`'s `DV` is not required; `RxODE` is a ODE solving framework.
+ - `NONMEM`'s `MDV` is not required, since it is captured in `EVID`.
+ - Instead of `NONMEM`-compatible data, it can accept `deSolve`
+   compatible data-frames.
 
  
 When returning the RxODE solved data-set there are a few additional
-event ids (EVID):
+event ids (`EVID`) that you may see depending on the solving options:
 
-- EVID = -1 is when a modeled rate ends (corresponds to rate = -1)
-- EVID = -2 is when a modeled duration ends (corresponds to rate=-2)
-- EVID = -10 when a rate specified zero-order infusion ends
-  (corresponds to rate > 0)
-- EVID = -20 when a duration specified zero-order infusion ends
-  (corresponds to dur > 0)
-- EVID = 101, 102, 103,... These correspond to the 1, 2, 3,
-  ... modeled time (mtime).
+- `EVID = -1` is when a modeled rate ends (corresponds to `rate = -1`)
+- `EVID = -2` is when a modeled duration ends (corresponds to `rate=-2`)
+- `EVID = -10` when a rate specified zero-order infusion ends
+  (corresponds to `rate > 0`)
+- `EVID = -20` when a duration specified zero-order infusion ends
+  (corresponds to `dur > 0`)
+- `EVID = 101, 102, 103,...` These correspond to the `1`, `2`, `3`,
+  ... modeled time (`mtime`).
 
 These can only be accessed when solving with the option combination
 `addDosing=TRUE` and `subsetNonmem=FALSE`. If you want to see the
@@ -275,7 +276,7 @@ rxSolve(m1, ev, c(rateDepot=10000/3)) %>% plot(depot, C2) +
 
 # Steady State
 
-Steady state doses; These doses are solved until a steady state is
+These doses are solved until a steady state is
 reached with a constant inter-dose interval.
 
 ```{r}
@@ -387,7 +388,8 @@ The solving show what happens in this system when the system is reset at 6 hours
 rxSolve(m1, ev) %>% plot(depot,C2, eff)
 ```
 
-You can see all the compartments are reset to their initial values.  The next dose start the dosing cycle over.
+You can see all the compartments are reset to their initial values.
+The next dose start the dosing cycle over.
 
 ```{r}
 ev <- et(timeUnits="hr") %>%
@@ -407,6 +409,7 @@ rxSolve(m1, ev) %>% plot(depot,C2, eff)
 ## Turning off compartments
 
 You may also turn off a compartment, which is similar to a reset event.
+
 ```{r}
 ev <- et(timeUnits="hr") %>%
     et(amt=10000, ii=12, addl=3) %>%
@@ -422,7 +425,7 @@ Solving shows what this does in the system:
 rxSolve(m1, ev) %>% plot(depot,C2, eff)
 ```
 
-In this case, the depot is turned off, and the compartment
+In this case, the depot is turned off, and the depot compartment
 concentrations are set to the initial values but the other compartment
 concentrations/levels are not reset. When another dose to the depot is
 administered the depot compartment is turned back on.
