@@ -200,6 +200,8 @@ d/dt(blood)     = a*intestine - b*blood
         d/dt(dy) = mu*(1-y^2)*dy - y
     }, indLin=TRUE)
 
+    van <- van1
+
     rxIndLinState(list(y="dy", dy="y"))
     ## rxIndLinState(NULL)
     rxIndLinStrategy()
@@ -245,12 +247,12 @@ d/dt(blood)     = a*intestine - b*blood
         gridExtra::grid.arrange(s1, s2, s3, s4)
     }
 
-    library(animation)
-    saveGIF({
-        for (i in seq(0.1, 15, by=0.1)){
-            print(f(mu=i))
-        }
-    }, movie.name="indLin-dop.gif", interval=0.1, nmax=30, ani.width=600, ani.hegith=300)
+    ## library(animation)
+    ## saveGIF({
+    ##     for (i in seq(0.1, 15, by=0.1)){
+    ##         print(f(mu=i))
+    ##     }
+    ## }, movie.name="indLin-dop.gif", interval=0.1, nmax=30, ani.width=600, ani.hegith=300)
 
 
 

@@ -33,7 +33,7 @@ rxIndLinStrategy <- function(strategy=c("curState", "split")) {
 ##' @export
 rxIndLinState <- function(prefered=NULL) {
     if (is.null(prefered)) {
-        assignInMyNamespace(".rxIndLinState", prefered)
+        return(assignInMyNamespace(".rxIndLinState", prefered))
     }
     checkmate::assertList(prefered, names="unique")
     lapply(seq_along(prefered), function(x) {

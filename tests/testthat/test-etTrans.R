@@ -178,22 +178,6 @@ d/dt(blood)     = a*intestine - b*blood
             expect_false(any(etTrans(dat,mod)$AMT < 0,na.rm=TRUE))
         })
 
-        test_that("occasion for 1 occasion is processed properly", {
-            expect_equal(attr(class(etTrans(dat,mod)),".RxODE.lst")$maxOcc, 1L)
-            expect_equal(attr(class(etTrans(dat,mod)),".RxODE.lst")$occId, rep(1L, 19))
-            expect_equal(attr(class(etTrans(dat,mod)),".RxODE.lst")$totOcc, sum(rep(1L, 19)))
-        })
-
-        dat <- dat[names(dat) != "occ"]
-
-        ## Add a second occasion for the first ID
-        dat$OCC[10:16] = 2;
-
-        test_that("occasion for 2 occasions is processed properly", {
-            expect_equal(attr(class(etTrans(dat,mod)),".RxODE.lst")$maxOcc, 2L)
-            expect_equal(attr(class(etTrans(dat,mod)),".RxODE.lst")$occId, c(2L, rep(1L, 18)))
-            expect_equal(attr(class(etTrans(dat,mod)),".RxODE.lst")$totOcc, sum(rep(1L, 18)) + 2)
-        })
 
         source("theoSd.R")
 
