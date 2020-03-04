@@ -151,7 +151,7 @@ rxt <- function(df, n=1L, ncores=1L){
 ##' ## Use threefry engine
 ##'
 ##' rxunif(min=0, max=4, n=10) # with rxunif you have to explicitly state n
-##' rxunif(min=0, man=4, n=10, ncores=2) # You can parallelize the simulation using openMP
+##' rxunif(min=0, max=4, n=10, ncores=2) # You can parallelize the simulation using openMP
 ##'
 ##' rxunif()
 ##'
