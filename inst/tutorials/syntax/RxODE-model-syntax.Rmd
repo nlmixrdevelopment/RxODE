@@ -1,5 +1,5 @@
 ---
-title: "RxODE syntax"
+title: "RxODE tutorial 1: syntax"
 output: 
   learnr::tutorial:
     progressive: true

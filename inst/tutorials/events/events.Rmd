@@ -1,5 +1,5 @@
 ---
-title: "RxODE events"
+title: "RxODE tutorial 2: events"
 output: 
   learnr::tutorial:
     progressive: true
