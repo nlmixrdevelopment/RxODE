@@ -478,4 +478,18 @@ rxPermissive({
         })
     }
 
+    test_that("errors", {
+        expect_error(et(ii=12, dosing.interval=14))
+        expect_error(et(dose=4, amt=3))
+        expect_error(et(cmt=1, dosing.to=3))
+        expect_error(et(cmt=1, dose.to=3))
+        expect_error(et(cmt=1, state=3))
+        expect_error(et(amt.units="mg", dose.units="mg"))
+        expect_error(et(time.units="mg", timeUnits="mg"))
+        expect_error(et(time=4, start.time=5))
+        expect_error(et(nbr.doses=4, nbrDoses=5))
+        expect_error(et(dur=4, duration=5))
+
+    })
+
 }, silent=TRUE, cran=TRUE)
