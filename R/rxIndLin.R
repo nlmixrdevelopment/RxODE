@@ -29,7 +29,7 @@ rxIndLinStrategy <- function(strategy=c("curState", "split")) {
 ##'
 ##' @param prefered A list of each state's prefered factorization
 ##' @return Nothing
-##' @author
+##' @author Matthew Fidler
 ##' @export
 rxIndLinState <- function(prefered=NULL) {
     if (is.null(prefered)) {

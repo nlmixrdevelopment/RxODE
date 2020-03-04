@@ -1369,6 +1369,7 @@ dimnames.rxSolve <- function(x) {
 
 ##'@export
 plot.rxSolve <- function(x,y,..., log="") {
+    .data <- NULL
     .cmts <- c(as.character(substitute(y)),
                names(sapply(as.character(as.list(match.call()[-(1:3)])),`c`)))
     if (length(.cmts)==1 &&.cmts[1]=="") {
@@ -1385,7 +1386,7 @@ plot.rxSolve <- function(x,y,..., log="") {
         .dat2 <- .dat2[!duplicated(paste0(.dat2$id, .dat2$trt)), ];
         .aes <- aes(.data$time, .data$value, color=.data$id)
         .aesG <- aes(.data$time, .data$value, group=.data$id)
-        .aesLab <- aes(label=label);
+        .aesLab <- aes(label=.data$label);
     } else if (any(names(.dat) == "sim.id")){
         .dat$sim.id <- factor(.dat$sim.id)
         .nlvl <- length(levels(.dat$sim.id))
@@ -1395,7 +1396,7 @@ plot.rxSolve <- function(x,y,..., log="") {
         .dat2 <- .dat2[!duplicated(paste0(.dat2$sim.id, .dat2$trt)), ];
         .aes <- aes(.data$time, .data$value, color=.data$sim.id)
         .aesG <- aes(.data$time, .data$value, group=.data$sim.id)
-        .aesLab <- aes(label=label);
+        .aesLab <- aes(label=.data$label);
     } else {
         .aes <- aes(.data$time, .data$value)
     }
@@ -1428,7 +1429,7 @@ plot.rxSolve <- function(x,y,..., log="") {
                        strip.background =ggplot2::element_rect(fill="#808078", color=NA)
                        )
     ## If above ggplot2 3.2.1 then add plot.title.position="plot"
-    if (packageVersion("ggplot2") > "3.2.1"){
+    if (utils::packageVersion("ggplot2") > "3.2.1"){
         .theme <- .theme %+replace% ggplot2::theme(plot.title.position="plot")
     }
     if (!getOption("RxODE.theme_bw", TRUE)) .theme <- NULL

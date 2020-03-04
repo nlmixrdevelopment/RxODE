@@ -526,7 +526,7 @@ RxODE <- # nolint
             .env$isValid <- eval(bquote(function(){
                 if (!all(is.null(getLoadedDLLs()[[.(.env$package)]]))){
                     if (loadNamespace("RxODE")$.pkgModelCurrent &&
-                                              packageVersion("RxODE")==.(packageVersion("RxODE"))){
+                                              utils::packageVersion("RxODE")==.(utils::packageVersion("RxODE"))){
                         return(TRUE);
                     } else {
                         return(FALSE);
@@ -538,7 +538,7 @@ RxODE <- # nolint
             .env$isLoaded <- eval(bquote(function(){
                 if ((!all(is.null(getLoadedDLLs()[[.(.env$package)]]))) &&
                     loadNamespace("RxODE")$.pkgModelCurrent &&
-                                          packageVersion("RxODE")==.(packageVersion("RxODE"))){
+                                          utils::packageVersion("RxODE")==.(utils::packageVersion("RxODE"))){
                     return(TRUE);
                 } else {
                     rx <- .(.env);
@@ -549,7 +549,7 @@ RxODE <- # nolint
             .env$delete <- eval(bquote(function(){
                 if ((!all(is.null(getLoadedDLLs()[[.(.env$package)]]))) &&
                     loadNamespace("RxODE")$.pkgModelCurrent &&
-                                          packageVersion("RxODE")==.(packageVersion("RxODE"))){
+                                          utils::packageVersion("RxODE")==.(utils::packageVersion("RxODE"))){
                     stop("cannot delete Dll in package");
                 } else {
                     rx <- .(.env);

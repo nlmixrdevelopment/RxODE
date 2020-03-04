@@ -441,7 +441,7 @@ rxchisq <- function(df, n=1L, ncores=1L){
     checkmate::assertCount(n)
     checkmate::assertCount(ncores)
     rxSeedEng(ncores)
-    .Call(`_RxODE_rxchisq_`, rate, n, ncores)
+    .Call(`_RxODE_rxchisq_`, df, n, ncores)
 }
 
 ##' Simulate Cauchy variable from threefry generator

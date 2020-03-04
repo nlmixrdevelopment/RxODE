@@ -72,7 +72,6 @@ Suggests:
     knitr
 Imports:
     rstudioapi,
-    knitr,
     Matrix,
     PreciseSums (>= 0.3),
     Rcpp (>= 0.12.3),
