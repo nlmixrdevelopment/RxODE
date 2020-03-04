@@ -1,5 +1,5 @@
 ---
-title: "RxODE tutorial 2: events"
+title: "RxODE events"
 output: 
   learnr::tutorial:
     progressive: true
@@ -41,6 +41,8 @@ m1 <-RxODE({
 });
 
 ```
+From Rstudio 1.3+ tutorial pane you can use the expand button
+(![](images/expandTutorial.png)) to navigate tutorial sections.
 
 ## Creating events
 
