@@ -1,5 +1,5 @@
 ---
-title: "RxODE events"
+title: "RxODE tutorial 2: events"
 output: 
   learnr::tutorial:
     progressive: true
@@ -42,7 +42,9 @@ m1 <-RxODE({
 
 ```
 
-## Model for Event discussion
+## Creating events
+
+### Model for Event discussion
 
 For these models, we can illustrate by using the model shared in the
 RxODE tutorial; Compile it so we can continue:
@@ -76,8 +78,7 @@ m1 <-RxODE({
 
 print(summary(m1))
 ```
-
-## Summary of Event functions
+### What is an event table
 
 An event table in RxODE is a specialized data frame that acts as a
 container for all of RxODE's events and observation times.  While not
@@ -111,7 +112,7 @@ Sampling times can be added with `add.sampling(` sampling times `)` or
 windows](#add-doses-and-samples-within-a-sampling-window) are also
 supported.
 
-### Exercise: Create an empty table using `eventTable()` and add a 100 mg dose
+### Exercise: Create an empty table  and add a 100 mg dose
 
 ```{r eventTable, exercise=TRUE}
 e <- et()## you can add the units by `amount.units` and `time.units`
@@ -123,81 +124,7 @@ print(e)
 You may add a dose by `$add.dosing(dose=...)` or `e %>% et(amt=...)`
 </div>
 
-## Units in event tables
-
-As commented in the last exercise, you may specify units in the table
-event table. When specified, the units use the `units` package to keep
-track of the units and convert them if needed.  Additionally,
-`ggforce` uses them to label the `ggplot` axes.  The `set_units` and
-`drop_units` are useful to set and drop the RxODE event table units.
-
-This example creates a data-set with doses in `mg` and time in `hr`.
-
-### Adding units in data-set and converting to different overall units
-
-```{r units1, exercise=TRUE}
-ev <- et(amount.units="mg", time.units="hr") %>% 
-    et(dose=5000, ii=15, dosing.interval=12, until=48) %>%
-    etExpand() ## Expand dosing so there is no ii/addl record
-
-## Use set_units to change the  dose to g and time to days
-print(ev)
-```
-
-<div id="units1-hint">
-Use `ev %>% set_units(g) %>% set_units(day)`
-</div>
-
-### Dropping units
-
-You may have used the `units` package in the past; In the case of
-`RxODE` event tables, you do not have to apply to the column(s) in the
-dataset, but `RxODE` applies the unit changes where it needs to apply them.
-
-This is also true when dropping units in an event table.  In this
-exercise, drop the units using `drop_units` from the event table dataset:
-
-```{r units2, exercise=TRUE}
-ev <- et(amount.units="mg", time.units="hr") %>% 
-    et(dose=5000, ii=15, dosing.interval=12, until=48) %>%
-    etExpand() %>% ## Expand dosing so there is no ii/addl record
-    set_units(day) %>% # change the units to day/grams
-    set_units(g)
-
-## Use drop_units to remove unit information
-print(ev)
-```
-
-<div id="units2-hint">
-Use `drop_units()` on the `ev` dataset
-</div>
-
-
-### Dropping units keeps the original transformation
-
-If you simply dropped the units at the end of the prior example, you
-may have noticed that the event table `ev` did not revert to the units
-originally specified in the event table.  It will keep the conversions
-completed before unit information is dropped.
-
-You could also add units to the event table by simply using `set_units`.
-
-In this example, try setting the units to `mg` and `hr` by the `set_units` function:
-
-```{r units3, exercise=TRUE}
-ev <- et() %>% 
-    et(dose=5000, ii=15, dosing.interval=12, until=48) %>%
-    etExpand() ## Expand dosing so there is no ii/addl record
-
-print(ev)
-```
-
-<div id="units3-hint">
-Use the `set_units(mg) %>% set_units(hr)` to change the units
-</div>
-
-
-### Pulling it all together - solving the system
+### Solving the system
 
 With the model built from `RxODE`, and the event table built above, we
 can solve and plot the scenario; Run the code and see if you notice
@@ -205,12 +132,12 @@ anything:
 
 ```{r, preSample, exercise=TRUE}
 ev <- et() %>% 
-    et(dose=5000, ii=15, dosing.interval=12, until=48)
+    et(dose=5000, dosing.interval=12, until=48)
 
 rxSolve(m1, ev) %>% plot(C2)
 ```
 
-## Quiz 1
+### Quiz 1
 
 Lets see if you can recall everything so far:
 
@@ -254,7 +181,7 @@ rxSolve(m1, ev) %>% plot(C2)
 
 ```{r addObs-solution}
 ev <- et() %>% 
-    et(dose=5000, ii=15, until=48) %>%
+    et(dose=5000, ii=12, until=48) %>%
     et(seq(0, 24, by=0.5))
 
 rxSolve(m1, ev) %>% plot(C2)
@@ -273,7 +200,7 @@ As an exercise change the event table below to reflect this convenience:
 
 ```{r addObsEt, exercise=TRUE}
 ev <- et() %>% 
-    et(dose=5000, ii=15, until=48) %>%
+    et(dose=5000, ii=12, until=48) %>%
     et(seq(0, 24, by=0.5))
 
 rxSolve(m1, ev) %>% plot(C2)
@@ -281,7 +208,7 @@ rxSolve(m1, ev) %>% plot(C2)
 
 ```{r addObsEt-solution}
 ev <- et() %>% 
-    et(dose=5000, ii=15, until=48) %>%
+    et(dose=5000, ii=12, until=48) %>%
     et(seq(0, 24, by=0.5))
 
 rxSolve(m1, ev) %>% plot(C2)
@@ -974,6 +901,368 @@ Once the effect compartment was turned back on, you can see a sharp
 increase in effect since the amount in the `C2` starts to equilabrate
 with the effect compartment
 
+## Combining/Expanding event tables
+
+In this section of the events tutorial we will cover:
+
+- Multi-subject event table creation/expansion
+
+- Combining event tables
+
+- Sequencing event tables
+
+- Repeating event tables
+
+### Expanding the event table into a multi-subject event table
+
+You may want to expand the event table into a multiple subject event
+table; `et()` will expand the event table by duplicating an event
+table for each individual specified in `id=...`
+
+As an exercise, expand the solve to be 4 IDs
+
+```{r idExpand, exercise = TRUE}
+ev <- et(timeUnits="hr") %>%
+    et(amt=10000, until = set_units(3, days), ii=12) %>% # loading doses
+    et(seq(0,48,length.out=200)) %>%
+    et(id=1:4)
+
+print(ev)
+
+set.seed(42)
+rxSolve(m1, ev,
+      params=data.frame(KA=0.294*exp(rnorm(4)), 18.6*exp(rnorm(4)))) %>%
+    plot(C2)
+```
+
+<div id="idExpand-hint">
+You can add `et(id=1:4)` to the end of the event table pipline  to solve for 4 individuals
+</div>
+
+### Combining event tables
+
+You may have noticed that the `rxSolve` will work if you add
+`et(id=1:4)` or if you do not; Where the expanding of individual IDs
+really shines is by combining arms in a study with different sampling
+times or sampling intervals.  There the IDs will not have the exact
+same structure.
+
+To combine event tables, you can use `c`, `seq`, `rep`, and `rbind`.
+
+### Sequencing event tables for complex dosing
+
+One way to combine event table is to sequence them by `c()`, `seq()` or
+`etSeq()`. This takes the two dosing groups and adds at least one
+inter-dose interval between them:
+
+
+`etSeq()` can combine two event tables or time intervals; As an
+exercise, change the event table to have qd dosing followed by bid
+dosing:
+
+```{r bidQd, exercise=TRUE}
+## bid for 5 days
+bid <- et(timeUnits="hr") %>%
+       et(amt=10000,ii=12,until=set_units(5, "days"))
+
+## qd for 5 days
+qd <- et(timeUnits="hr") %>%
+      et(amt=20000,ii=24,until=set_units(5, "days"))
+
+## bid for 5 days followed by qd for 5 days
+## Change to qd for 5 days and bid for 5 days
+et <- seq(bid,qd) %>% et(seq(0,11*24,length.out=100));
+
+rxSolve(m1, et) %>% plot(C2)
+```
+
+### Using `seq` to add a drug holiday
+
+You can also add drug holidays using the `etSeq` or `seq` function.
+The way to do this is to simply add a time-period between the two dosing tables;  For example
+
+```{r, echo=TRUE, eval=FALSE}
+seq(eventTable1,separationTime,eventTable2)
+```
+
+Would combine `eventTable1` add a `separationTime` and finally add `eventTable2`
+
+Below is an example of a 3 day drug holiday; Change it to a week of drug holiday
+
+```{r etSeq2, exercise=TRUE}
+## bid for 5 days
+bid <- et(timeUnits="hr") %>%
+       et(amt=10000,ii=12,until=set_units(5, "days"))
+
+## qd for 5 days
+qd <- et(timeUnits="hr") %>%
+      et(amt=20000,ii=24,until=set_units(5, "days"))
+
+## bid for 5 days followed by qd for 5 days
+et <- seq(bid,set_units(3, day), qd) %>%
+    et(seq(0,18*24,length.out=100));
+
+rxSolve(m1, et) %>% plot(C2)
+```
+
+<div id="etSeq2-hint">
+You can change `set_units(3, day)` to `set_units(1, week)`
+</div>
+
+### Notes on adding the one-week drug holiday
+
+Note that in this worked-out example, the time between the `bid` and
+the `qd` event tables is exactly one week, not 1 week plus 24 hours
+because of the inter-dose interval.  If you want that behavior, you
+can sequence it using the `wait="+ii"`.
+
+Also note, that `RxODE` assumes that the dosing is what you want to
+space the event tables by, and clears out any sampling records when
+you combine the event tables.  If that is not true, you can also use
+the option `samples="use"`
+
+### Repeating event tables
+
+You can have an event table that you can repeat with `etRep` or `rep`.
+
+For example 4 rounds of 2 weeks on QD therapy and 1 week off of
+therapy can be simply specified by the default exercise below.
+
+As an exercise, change the drug holiday to 2 weeks
+
+
+```{r etRep,exercise=TRUE}
+qd <-et(timeUnits = "hr") %>% et(amt=10000, ii=24, until=set_units(2, "weeks"), cmt="depot")
+
+et <- rep(qd, times=4, wait=set_units(1,"weeks")) %>%
+      add.sampling(set_units(seq(0, 12.5,by=0.005),weeks))
+
+rxSolve(m1, et)  %>% plot(C2)
+```
+
+### Combining event tables with rbind
+
+You may combine event tables with `rbind`.  This does not consider the
+event times when combining the event tables, but keeps them the same
+times. If you space the event tables by a waiting period, it also does
+not consider the inter-dose interval.
+
+Using the previous `seq` you can clearly see the difference.
+
+Please run the bid/qd example to have it fresh in you memory.  After
+you have run it, change `seq` to `rbind` to see what changesr
+
+```{r rbind, exercise=TRUE}
+## bid for 5 days
+bid <- et(timeUnits="hr") %>%
+       et(amt=10000,ii=12,until=set_units(5, "days"))
+
+## qd for 5 days
+qd <- et(timeUnits="hr") %>%
+      et(amt=20000,ii=24,until=set_units(5, "days"))
+
+et <- seq(bid,qd) %>%
+    et(seq(0,18*24,length.out=500));
+
+rxSolve(m1, et) %>% plot(C2)
+```
+
+### rbind vs seq
+
+As you noticed in the example `rbind` combined the event tables as
+they are, creating a double dose at the `qd` time and a single dose at
+the `bid` time.  What about if you use a waiting period?
+
+### Using rbind with a waiting period
+
+Still the waiting period applies (but does not consider the inter-dose interval).
+
+As an exercise, change the waiting period to 3 days.
+
+```{r rbindWait, exercise=TRUE}
+## bid for 5 days
+bid <- et(timeUnits="hr") %>%
+       et(amt=10000,ii=12,until=set_units(5, "days"))
+
+## qd for 5 days
+qd <- et(timeUnits="hr") %>%
+      et(amt=20000,ii=24,until=set_units(5, "days"))
+
+
+et <- rbind(bid,wait=set_units(10,days),qd) %>%
+    et(seq(0,18*24,length.out=500));
+
+rxSolve(m1, et) %>% plot(C2)
+```
+
+### rbind with a waiting interval of 3 days
+
+Notice that when waiting for 3 days, the days 3-5 duplicate the QD
+doses
+
+### Combining multi-subject event tables with `rbind`
+
+You can also bind the tables together and make each ID in the event
+table unique; This can be good to combine cohorts with different
+expected dosing and sampling times.  This requires the `id="unique"`
+option;  Using the first example shows how this is different in this case:
+
+```{r rbindId, exercise=TRUE}
+## bid for 5 days
+bid <- et(timeUnits="hr") %>%
+       et(amt=10000,ii=12,until=set_units(5, "days"))
+
+## qd for 5 days
+qd <- et(timeUnits="hr") %>%
+      et(amt=20000,ii=24,until=set_units(5, "days"))
+
+
+## bid for 5 days
+et <- etRbind(bid,qd, id="unique") %>%
+    et(seq(0,150,length.out=500));
+
+library(ggplot2)
+rxSolve(m1, et) %>% plot(C2) + facet_wrap( ~ id)
+```
+
+## Add samples/doses in a window
+### Dosing windows
+
+In addition to adding fixed doses and fixed sampling times, you can
+have windows where you sample and draw doses from.  For dosing windows
+you specify the time as an ordered numerical vector with the lowest
+dosing time and the highest dosing time inside a list.
+
+In the initial example, the dosing is within a 6 hour dosing window;
+This can be specified by `list(c(0,6))`; 
+
+For an exercise change the dosing windows to `c(0,2)`:
+
+```{r doseWindow, exercise=TRUE}
+set.seed(42)
+ev <- et(timeUnits="hr") %>%
+    et(time=list(c(0,6)), amt=10000, until = set_units(2, days), ii=12) %>% # loading doses
+    et(id=1:4)
+
+print(ev)
+ev <- ev %>% et(seq(0,48,length.out=200))
+
+solve(m1, ev, params=data.frame(KA=0.294*exp(rnorm(4)), 18.6*exp(rnorm(4)))) %>%
+    plot(C2)
+```
+
+```{r doseWindow-solution}
+set.seed(42)
+ev <- et(timeUnits="hr") %>%
+    et(time=list(c(0,2)), amt=10000, until = set_units(2, days), ii=12) %>% # loading doses
+    et(id=1:4) %>%
+    et(seq(0,48,length.out=200))
+
+solve(m1, ev, params=data.frame(KA=0.294*exp(rnorm(4)), 18.6*exp(rnorm(4)))) %>% plot(C2)
+```
+
+### Sampling windows
+
+The same sort of thing can be specified with sampling times.  To
+specify the sampling times in terms of a sampling window, you can
+create a list of the sampling times.  Each sampling time will be a two
+element ordered numeric vector.
+
+```{r sampleTime, exercise=TRUE}
+set.seed(42)
+ev <- et(timeUnits="hr") %>%
+    et(time=list(c(0,2)), amt=10000, until = set_units(2, days), ii=12) %>% # loading doses
+    et(id=1:4)
+
+## Create 20 samples in the first 24 hours and 20 samples in the second 24 hours
+samples <- c(lapply(1:20, function(...){c(0,24)}),
+             lapply(1:20, function(...){c(20,48)}))
+
+## Add the random collection to the event table
+ev <- ev %>% et(samples)
+
+library(ggplot2)
+solve(m1, ev, params=data.frame(KA=0.294*exp(rnorm(4)), 18.6*exp(rnorm(4)))) %>% plot(C2) + geom_point()
+```
+
+This shows the flexibility in dosing and sampling that the RxODE event tables allow.
+
+## Units in event tables
+
+As commented in the last exercise, you may specify units in the table
+event table. When specified, the units use the `units` package to keep
+track of the units and convert them if needed.  Additionally,
+`ggforce` uses them to label the `ggplot` axes.  The `set_units` and
+`drop_units` are useful to set and drop the RxODE event table units.
+
+This example creates a data-set with doses in `mg` and time in `hr`.
+
+### Adding units in data-set and converting to different overall units
+
+In this exercise use `set_units` to change the dose to `g` and the
+time to `days`:
+
+```{r units1, exercise=TRUE}
+ev <- et(amount.units="mg", time.units="hr") %>% 
+    et(dose=5000, dosing.interval=12, until=48) %>%
+    etExpand() ## Expand dosing so there is no ii/addl record
+
+## Use set_units to change the  dose to g and time to days
+print(ev)
+```
+
+<div id="units1-hint">
+Use `ev %>% set_units(g) %>% set_units(day)`
+</div>
+
+### Dropping units
+
+You may have used the `units` package in the past; In the case of
+`RxODE` event tables, you do not have to apply to the column(s) in the
+dataset, but `RxODE` applies the unit changes where it needs to apply them.
+
+This is also true when dropping units in an event table.  In this
+exercise, drop the units using `drop_units` from the event table dataset:
+
+```{r units2, exercise=TRUE}
+ev <- et(amount.units="mg", time.units="hr") %>% 
+    et(dose=5000, dosing.interval=12, until=48) %>%
+    etExpand() %>% ## Expand dosing so there is no ii/addl record
+    set_units(day) %>% # change the units to day/grams
+    set_units(g)
+
+## Use drop_units to remove unit information
+print(ev)
+```
+
+<div id="units2-hint">
+Use `drop_units()` on the `ev` dataset
+</div>
+
+
+### Dropping units keeps the original transformation
+
+If you simply dropped the units at the end of the prior example, you
+may have noticed that the event table `ev` did not revert to the units
+originally specified in the event table.  It will keep the conversions
+completed before unit information is dropped.
+
+You could also add units to the event table by simply using `set_units`.
+
+In this example, try setting the units to `mg` and `hr` by the `set_units` function:
+
+```{r units3, exercise=TRUE}
+ev <- et() %>% 
+    et(dose=5000, dosing.interval=12, until=48) %>%
+    etExpand() ## Expand dosing so there is no ii/addl record
+
+print(ev)
+```
+
+<div id="units3-hint">
+Use the `set_units(mg) %>% set_units(hr)` to change the units
+</div>
+
 ## Using deSolve data frames
 
 Sometimes you may have a `deSolve` model you may wish to convert to
@@ -1009,5 +1298,7 @@ print(et)
 ## In this case we have to add the dosing records
 rxSolve(rx, et, times=seq(0, 10, by=0.1)) %>% plot()
 ```
+
+
 
 
