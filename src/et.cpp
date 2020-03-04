@@ -2239,27 +2239,71 @@ RObject et_(List input, List et__){
     rateIx = -1,  durIx = -1, nbrIx=-1, ssIx=-1;
   // Wait should be in sequences and rep
   for (i = (int)inN.size(); i--;){
-    if (inN[i] == "amt" || inN[i] == "dose") amtIx=i;
-    else if (inN[i] == "ii" || inN[i] == "dosing.interval" || inN[i] == "dosingInterval" || inN[i] == "dosing_interval")
+    if (inN[i] == "amt" || inN[i] == "dose") {
+      if (amtIx != -1){
+	stop("can only have one of the following: 'amt', 'dose'");
+      }
+      amtIx=i;
+    }
+    else if (inN[i] == "ii" || inN[i] == "dosing.interval" || inN[i] == "dosingInterval" || inN[i] == "dosing_interval"){
+      if (iiIx != -1){
+	stop("can only have one of the following: 'ii', 'dosing.interval', 'dosingInterval' or 'dosing_interval'");
+      }
       iiIx=i;
+    }
     else if (inN[i] == "addl") addlIx = i;
     else if (inN[i] == "until") untilIx = i;
     else if (inN[i] == "evid") evidIx = i;
     else if (inN[i] == "ID" || inN[i] == "id") idIx=i;
     else if (inN[i] == "cmt" || inN[i] == "dosing.to" || inN[i] == "dosingTo" || inN[i] =="dosing_to" ||
-	     inN[i] == "dose.to" || inN[i] == "doseTo" || inN[i] == "dose_to" || inN[i] == "state") cmtIx=i;
+	     inN[i] == "dose.to" || inN[i] == "doseTo" || inN[i] == "dose_to" || inN[i] == "state"){
+      if (cmtIx != -1){
+	stop("can only have one of the following: 'cmt', 'dosing.to', 'dose.to', 'state'");
+      }
+      cmtIx=i;
+    }
     else if (inN[i] == "amount.units" || inN[i] == "amountUnits" || inN[i] == "amount_units" ||
 	     inN[i] == "amt.units" || inN[i] == "amtUnits" || inN[i] == "amt_units" ||
-	     inN[i] == "dose.units" || inN[i] == "doseUnits" || inN[i] == "dose_units") amtUnitIx=i;
-    else if (inN[i] == "time.units" || inN[i] == "timeUnits" || inN[i] == "time_units") timeUnitIx=i;
+	     inN[i] == "dose.units" || inN[i] == "doseUnits" || inN[i] == "dose_units") {
+      if (amtUnitIx != -1){
+	stop("can only have one of the following: 'amount.units', 'amt.units', 'dose.units'");
+      }
+      amtUnitIx=i;
+    }
+    else if (inN[i] == "time.units" || inN[i] == "timeUnits" || inN[i] == "time_units") {
+      if (timeUnitIx != -1) {
+	stop("can only have one of the following: 'time.units', 'timeUnits', 'time_units'");
+      }
+      timeUnitIx=i;
+    }
     else if (inN[i] == "do.sampling" || inN[i] == "doSampling" || inN[i] == "do_sampling" ||
-	     inN[i] == "add.sampling" || inN[i] == "addSampling" || inN[i] == "add_sampling") doSamplingIdx=i;
+	     inN[i] == "add.sampling" || inN[i] == "addSampling" || inN[i] == "add_sampling") {
+      if (doSamplingIdx != -1) {
+	stop("can only have one of the following: 'add.sampling', 'do.sampling'");
+      }
+      doSamplingIdx=i;
+    }
     else if (inN[i] == "time" || inN[i] == "start.time" || inN[i] == "startTime" || inN[i] == "start_time" ||
-	     inN[i] == "start") timeIx = i;
-    else if (inN[i] == "nbr.doses" || inN[i] == "nbrDoses" || inN[i] == "nbr") nbrIx=i;
+	     inN[i] == "start") {
+      if (timeIx != -1){
+	stop("can only have one of the following: 'time', 'start.time'");
+      }
+      timeIx = i;
+    }
+    else if (inN[i] == "nbr.doses" || inN[i] == "nbrDoses" || inN[i] == "nbr") {
+      if (nbrIx != -1){
+	stop("can only have one of the following: 'nbrDoses', 'nbr.doses'");
+      }
+      nbrIx=i;
+    }
     else if (inN[i] == "ss") ssIx = i;
     else if (inN[i] == "rate") rateIx = i;
-    else if (inN[i] == "dur" || inN[i] == "duration") durIx = i;
+    else if (inN[i] == "dur" || inN[i] == "duration") {
+      if (durIx != -1){
+	stop("can only have one of the following: 'dur', 'duration'");
+      }
+      durIx = i;
+    }
     else if (inN[i] != "" && inN[i] != "simulate" && inN[i] != "envir" &&
 	     inN[i] != "expand" && !doUpdateObj){
       stop("unused argument '%s'", (as<std::string>(inN[i])).c_str());

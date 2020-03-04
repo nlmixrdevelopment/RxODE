@@ -660,7 +660,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     hasEvid=true;
   } else if (methodCol != -1){
     inEvid = convertMethod(inData[methodCol]);
-    // hasEvid=true; The EVID is not present in the right form.
+    evidCol= methodCol;
+    //hasEvid=true; The EVID is not present in the right form.
     // This allows mixing of deSolve with rate info
   }
   IntegerVector inMdv;
