@@ -79,6 +79,8 @@ vignettes/RxODE-sim-var.html
 vignettes/RxODE-speed.html
 vignettes/RxODE-stiff.html
 vignettes/RxODE-transit-compartments.html
+vignettes/RxODE-wt.Rmd
+vignettes/RxODE-wt.html
 vignettes/rxode-single-subject.html
 vignettes/alpha-lincmt.csv
 vignettes/*.html

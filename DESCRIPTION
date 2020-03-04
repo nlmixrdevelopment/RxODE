@@ -68,7 +68,8 @@ Suggests:
     learnr,
     crayon,
     digest,
-    rmarkdown
+    rmarkdown,
+    knitr
 Imports:
     rstudioapi,
     knitr,
