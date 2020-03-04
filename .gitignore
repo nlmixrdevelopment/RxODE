@@ -29,3 +29,6 @@ inst/doc
 
 /inst/tutorials/modelSyntax/RxODE model syntax/RxODE-model-syntax.html
 /inst/tutorials/syntax/RxODE-model-syntax.html
+/inst/tutorials/events/.Rhistory
+/tests/testthat/.Rhistory
+/inst/.Rhistory
