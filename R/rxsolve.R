@@ -1505,7 +1505,7 @@ plot.rxSolve <- function(x,y,..., log="") {
                 }
                 .timex <- NULL
                 .dat <- .dat[.dat$time > 0, ]
-            } else {
+            } else if (log != "") {
                 stop(sprintf("'log=\"%s\"' not supported", log))
             }
         }
