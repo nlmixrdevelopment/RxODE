@@ -168,7 +168,6 @@ et <- function(x, ..., envir=parent.frame()) {
 .pipelineIov    <- NULL
 .pipelineSigma    <- NULL
 .pipelineDfObs    <- NULL
-.pipelineDfOcc    <- NULL
 .pipelineDfSub    <- NULL
 .pipelineNSub    <- NULL
 .pipelineNStud    <- NULL
@@ -183,8 +182,8 @@ et <- function(x, ..., envir=parent.frame()) {
                        events=NULL, params=NULL,
                        iCov=NULL, keep=NULL,
                        thetaMat=NULL, omega=NULL,
-                       iov=NULL, sigma=NULL, dfObs=NULL,
-                       dfSub=NULL, dfOcc=NULL, nSub=NULL,
+                       sigma=NULL, dfObs=NULL,
+                       dfSub=NULL, nSub=NULL,
                        nStud=NULL) {
     assignInMyNamespace(".pipelineRx", rx)
     assignInMyNamespace(".pipelineInits", inits)
@@ -194,10 +193,8 @@ et <- function(x, ..., envir=parent.frame()) {
     assignInMyNamespace(".pipelineKeep", keep)
     assignInMyNamespace(".pipelineThetaMat", thetaMat)
     assignInMyNamespace(".pipelineOmega", omega)
-    assignInMyNamespace(".pipelineIov", iov)
     assignInMyNamespace(".pipelineSigma", sigma)
     assignInMyNamespace(".pipelineDfObs", dfObs)
-    assignInMyNamespace(".pipelineDfOcc", dfOcc)
     assignInMyNamespace(".pipelineDfSub", dfSub)
     assignInMyNamespace(".pipelineNSub", nSub)
     assignInMyNamespace(".pipelineNStud", nStud)
@@ -226,12 +223,10 @@ et.rxSolve <- function(x, ..., envir=parent.frame()) {
     assignInMyNamespace(".pipelineThetaMat", x$.args$thetaMat);
     ## 5. RxODE omega
     assignInMyNamespace(".pipelineOmega", x$.args$omega);
-    assignInMyNamespace(".pipelineIov", x$.args$iov);
     ## 6. RxODE sigma
     assignInMyNamespace(".pipelineSigma", x$.args$sigma);
     ## 7. RxODE dfObs
     assignInMyNamespace(".pipelineDfObs", x$env$.args$dfObs)
-    assignInMyNamespace(".pipelineDfOcc", x$env$.args$dfOcc)
     ## 8. RxODE dfSub
     assignInMyNamespace(".pipelineDfSub", x$env$.args$dfSub)
     do.call(et, c(list(...), list(envir=envir)), envir=envir);
@@ -252,12 +247,10 @@ et.rxParams <- function(x, ..., envir=parent.frame()) {
     if (!is.null(x$thetaMat)) assignInMyNamespace(".pipelineThetaMat", x$thetaMat);
     ## 5. RxODE omega
     if (!is.null(x$omega)) assignInMyNamespace(".pipelineOmega", x$omega);
-    if (!is.null(x$iov)) assignInMyNamespace(".pipelineIov", x$iov);
     ## 6. RxODE sigma
     if (!is.null(x$sigma)) assignInMyNamespace(".pipelineSigma", x$sigma);
     ## 7. RxODE dfObs
     if (!is.null(x$dfObs)) assignInMyNamespace(".pipelineDfObs", x$dfObs);
-    if (!is.null(x$dfOcc)) assignInMyNamespace(".pipelineDfOcc", x$dfOcc);
     ## 8. RxODE dfSub
     if (!is.null(x$dfSub)) assignInMyNamespace(".pipelineDfSub", x$dfSub);
     if (!is.null(x$nSub)) assignInMyNamespace(".pipelineNSub", x$nSub);

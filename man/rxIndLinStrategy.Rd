@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxIndLin.R
 \name{rxIndLinStrategy}
 \alias{rxIndLinStrategy}
-\title{This sets the inductive linearization stratedy for matrix building}
+\title{This sets the inductive linearization strategy for matrix building}
 \usage{
 rxIndLinStrategy(strategy = c("curState", "split"))
 }
@@ -17,7 +17,6 @@ rxIndLinStrategy(strategy = c("curState", "split"))
 \item[split] Split the paramterization between all states in the
 term by dividing each by the number of states in the term and then
 adding a matrix term for each state.
-
 }}
 }
 \value{

@@ -91,5 +91,5 @@ John K. Salmon, Mark A. Moraes, Ron O. Dror, and David
     D. E. Shaw Research, New York, NY 10036, USA.
 }
 \author{
-Matthew Fidler and some from Matteo Fasiolo
+Matthew Fidler, Zdravko Botev and some from Matteo Fasiolo
 }

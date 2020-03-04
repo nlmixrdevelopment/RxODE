@@ -2,11 +2,14 @@
 % Please edit documentation in R/symengine.R
 \name{rxToSE}
 \alias{rxToSE}
+\alias{.rxToSE}
 \alias{rxFromSE}
 \alias{.rxFromSE}
 \title{RxODE to symengine environment}
 \usage{
 rxToSE(x, envir = NULL, progress = FALSE, promoteLinSens = TRUE)
+
+.rxToSE(x, envir = NULL, progress = FALSE)
 
 rxFromSE(x, unknownDerivatives = c("forward", "central", "error"))
 

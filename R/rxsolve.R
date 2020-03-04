@@ -21,12 +21,8 @@ rxControl <- function(scale = NULL,
                       omegaSeparation=c("auto", "lkj", "separation"),
                       omegaXform=c("variance", "identity", "log", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity"),
                       omegaLower=-Inf, omegaUpper=Inf,
-                      iov = NULL, iovDf = NULL, iovIsChol = FALSE,
-                      iovSeparation=c("auto", "lkj", "separation"),
-                      iovXform=c("variance", "identity", "log", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity"),
-                      iovLower=-Inf, iovUpper=Inf,
                       nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
-                      nStud = 1L, dfSub=0.0, dfObs=0.0, dfOcc=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS", "data.table", "tbl", "tibble"),
+                      nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS", "data.table", "tbl", "tibble"),
                       seed=NULL, nsim=NULL,
                       minSS=10L, maxSS=1000L,
                       infSSstep=12,
@@ -72,14 +68,7 @@ rxControl <- function(scale = NULL,
                                    "nlmixrLog" = 2,
                                    "nlmixrIdentity" = 3)[match.arg(omegaXform)]);
     }
-    if (inherits(iovXform, "numeric") || inherits(iovXform, "integer")) {
-        .iovXform <- as.integer(iovXform)
-    } else {
-        .iovXform <- as.vector(c("variance" = 6, "log" = 5,
-                                   "identity" = 4, "nlmixrSqrt" = 1,
-                                   "nlmixrLog" = 2,
-                                   "nlmixrIdentity" = 3)[match.arg(iovXform)]);
-    }
+
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)) {
         transitAbs <- .xtra$transit_abs;
     }
@@ -166,11 +155,6 @@ rxControl <- function(scale = NULL,
     } else {
         .omega <- lotri(omega)
     }
-    if (inherits(iov, "character")) {
-        .iov <- iov
-    } else {
-        .iov <- lotri(iov)
-    }
     if (inherits(indLinMatExpType, "numeric") ||
         inherits(indLinMatExpType, "integer")) {
         .indLinMatExpType <- as.integer(indLinMatExpType);
@@ -213,11 +197,6 @@ rxControl <- function(scale = NULL,
                  omegaIsChol=omegaIsChol,
                  omegaSeparation=match.arg(omegaSeparation),
                  omegaXform=.omegaXform,
-                 iov=.iov,
-                 iovDf=iovDf,
-                 iovIsChol=iovIsChol,
-                 iovSeparation=match.arg(iovSeparation),
-                 iovXform=.iovXform,
                  nSub=nSub,
                  thetaMat=thetaMat,
                  thetaDf=thetaDf,
@@ -225,7 +204,6 @@ rxControl <- function(scale = NULL,
                  nStud=nStud,
                  dfSub=dfSub,
                  dfObs=dfObs,
-                 dfOcc=dfOcc,
                  seed=seed,
                  nsim=nsim,
                  minSS=minSS, maxSS=maxSS,
@@ -244,7 +222,6 @@ rxControl <- function(scale = NULL,
                  omegaLower=omegaLower, omegaUpper=omegaUpper,
                  sigmaLower=sigmaLower, sigmaUpper=sigmaUpper,
                  thetaLower=thetaLower, thetaUpper=thetaUpper,
-                 iovLower=iovLower, iovUpper=iovUpper,
                  indLinPhiM=indLinPhiM,
                  indLinPhiTol=indLinPhiTol,
                  indLinMatExpType=.indLinMatExpType,
@@ -478,12 +455,6 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param omegaXform When taking \code{omega} values from the @template Xform
 ##'
-##' @param iov Estimate of IOV matrix. When iov is a list,
-##'     assume it is a block matrix and convert it to a full matrix
-##'     for simulations.
-##'
-##' @param iovXform When taking \code{iov} values from the @template Xform
-
 ##'
 ##' @inheritParams rxSimThetaOmega
 ##'
@@ -782,9 +753,6 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     if (!is.null(.pipelineDfObs) && .ctl$dfObs==0) {
         .ctl$dfObs <- .pipelineDfObs;
     }
-    if (!is.null(.pipelineDfOcc) && .ctl$dfOcc==0) {
-        .ctl$dfOcc <- .pipelineDfOcc;
-    }
     if (!is.null(.pipelineDfSub) && .ctl$dfSub==0) {
         .ctl$dfSub <- .pipelineDfSub;
     }
@@ -807,9 +775,6 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         if (!is.null(.rxParams$omega) && is.null(.ctl$omega)) {
             .ctl$omega <- .rxParams$omega;
         }
-        if (!is.null(.rxParams$iov) && is.null(.ctl$iov)) {
-            .ctl$iov <- .rxParams$iov;
-        }
         if (!is.null(.rxParams$sigma) && is.null(.ctl$sigma)) {
             .ctl$sigma <- .rxParams$sigma;
         }
@@ -831,11 +796,6 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         if (!is.null(.rxParams$dfObs)) {
             if (.ctl$dfObs == 0) {
                 .ctl$dfObs <- .rxParams$dfObs;
-            }
-        }
-        if (!is.null(.rxParams$dfOcc)) {
-            if (.ctl$dfOcc == 0) {
-                .ctl$dfOcc <- .rxParams$dfOcc;
             }
         }
         if (!is.null(.rxParams$iCov)) {
@@ -1076,14 +1036,11 @@ format.rxSolveSimType <- function(x, ...){
     if (!is.null(x$omegaList)) {
       .uncert <- c(.uncert, paste0("omega matrix (", crayon::yellow(.bound), crayon::bold$blue("$omegaList"), ")"))
     }
-    if (!is.null(x$iovList)) {
-      .uncert <- c(.uncert, paste0("iov matrix (", crayon::yellow(.bound), crayon::bold$blue("$iovList"), ")"))
-    }
     if (!is.null(x$sigmaList)) {
       .uncert <- c(.uncert, paste0("sigma matrix (", crayon::yellow(.bound), crayon::bold$blue("$sigmaList"), ")"))
     }
     if (length(.uncert) == 0L) {
-      .first <- paste0("\nSimulation ", crayon::bold("without uncertainty"), " in parameters, omega, iov or sigma matricies\n\n");
+      .first <- paste0("\nSimulation ", crayon::bold("without uncertainty"), " in parameters, omega, or sigma matricies\n\n");
     } else if (length(.uncert) == 1L) {
       .first <- paste0("\nSimulation ", crayon::bold("with uncertainty"), " in ", paste(.uncert, collapse=", "), "\n");
     } else {
@@ -1410,13 +1367,6 @@ dimnames.rxSolve <- function(x) {
     }
 }
 
-##' Plot an RxODE solved object
-##'
-##' @inheritParams graphics::plot
-##' @param log Log scale
-##' - `y` is log-y scale
-##' - `x` is log-x scale
-##' - `xy` is log scale on x and y
 ##'@export
 plot.rxSolve <- function(x,y,..., log="") {
     .cmts <- c(as.character(substitute(y)),
@@ -1465,7 +1415,7 @@ plot.rxSolve <- function(x,y,..., log="") {
         ggplot2::theme(plot.title = .title,
                        plot.subtitle = .title,
                        panel.border = ggplot2::element_blank(),
-                       panel.background = ggplot2::element_rect(fill = "#FFFFF7", colour = NA),
+                       ## panel.background = ggplot2::element_rect(fill = "#FFFFF7", colour = NA),
                        panel.grid.minor=.greyMinor,
                        panel.grid.major=.greyMajor,
                        axis.text.x=.greyText,
@@ -1503,7 +1453,7 @@ plot.rxSolve <- function(x,y,..., log="") {
 
     .logx <- NULL
     .logy <- NULL
-    .xgxr <- requireNamespace("xgxr", quietly = TRUE);
+    .xgxr <- FALSE; #requireNamespace("xgxr", quietly = TRUE);
     .timex <- NULL
     if (.xgxr && inherits(.dat$time, "units")){
         .timex <- xgxr::xgx_scale_x_time_units()

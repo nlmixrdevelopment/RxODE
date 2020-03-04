@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxPrune.R
 \name{rxPrune}
 \alias{rxPrune}
-\title{Prune branches from RxODE}
+\title{Prune branches (ie if/else) from RxODE}
 \usage{
 rxPrune(x)
 }
@@ -13,7 +13,7 @@ rxPrune(x)
 Pruned RxODE model text.
 }
 \description{
-This prunes branches from RxODE.
+This prunes branches (ie if/else) from RxODE.
 }
 \author{
 Matthew L. Fidler

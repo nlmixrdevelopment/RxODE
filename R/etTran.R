@@ -72,7 +72,7 @@
 ##'
 ##' @param id Id information
 ##' @param omega Omega information
-##' @param data
+##' @param data Data frame to check for omega information
 ##' @return Nesting Information
 ##' @author Matthew Fidler
 ##' @noRd

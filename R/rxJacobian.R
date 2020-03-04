@@ -225,10 +225,10 @@ rxExpandGrid <- function(x, y, type=0L){
 
 .rxLoadPrune <- function(mod, doConst=TRUE, promoteLinSens=TRUE, fullModel=FALSE){
     if (fullModel){
-        message("pruning branches of full model...",
+        message("pruning branches (if/else) of full model...",
             appendLF=FALSE);
     } else {
-        message("pruning branches...",
+        message("pruning branches (if/else)...",
             appendLF=FALSE)
     }
     .newmod <-rxGetModel(rxPrune(mod));

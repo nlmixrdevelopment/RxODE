@@ -550,7 +550,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
     }
     return(.rxToSE(eval(parse(text=paste0("quote({", x, "})"))), envir, progress))
 }
-##'@rdname
+##'@rdname rxToSE
 ##'@export
 .rxToSE <- function(x, envir=NULL, progress=FALSE){
     .cnst <- names(.rxSEreserved)

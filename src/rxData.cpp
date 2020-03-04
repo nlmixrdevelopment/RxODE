@@ -1676,7 +1676,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
                      int nObs = 1,
                      double dfSub = 0,
                      double dfObs = 0,
-		     double dfOcc = 0,
 		     bool simSubjects=true){
   NumericVector par;
   if (params.isNull()){

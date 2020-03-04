@@ -887,8 +887,8 @@ RcppExport SEXP _RxODE_atolRtolFactor_(SEXP factorSEXP) {
     return rcpp_result_gen;
 }
 // rxSimThetaOmega
-List rxSimThetaOmega(const Nullable<NumericVector>& params, const RObject& omega, const Nullable<NumericVector>& omegaDf, const NumericVector& omegaLower, const NumericVector& omegaUpper, const bool& omegaIsChol, std::string omegaSeparation, const int omegaXform, int nSub, const Nullable<NumericMatrix>& thetaMat, const NumericVector& thetaLower, const NumericVector& thetaUpper, const Nullable<NumericVector>& thetaDf, const bool& thetaIsChol, int nStud, const RObject sigma, const NumericVector& sigmaLower, const NumericVector& sigmaUpper, const Nullable<NumericVector>& sigmaDf, const bool& sigmaIsChol, std::string sigmaSeparation, const int sigmaXform, int nCoresRV, int nObs, double dfSub, double dfObs, double dfOcc, bool simSubjects);
-static SEXP _RxODE_rxSimThetaOmega_try(SEXP paramsSEXP, SEXP omegaSEXP, SEXP omegaDfSEXP, SEXP omegaLowerSEXP, SEXP omegaUpperSEXP, SEXP omegaIsCholSEXP, SEXP omegaSeparationSEXP, SEXP omegaXformSEXP, SEXP nSubSEXP, SEXP thetaMatSEXP, SEXP thetaLowerSEXP, SEXP thetaUpperSEXP, SEXP thetaDfSEXP, SEXP thetaIsCholSEXP, SEXP nStudSEXP, SEXP sigmaSEXP, SEXP sigmaLowerSEXP, SEXP sigmaUpperSEXP, SEXP sigmaDfSEXP, SEXP sigmaIsCholSEXP, SEXP sigmaSeparationSEXP, SEXP sigmaXformSEXP, SEXP nCoresRVSEXP, SEXP nObsSEXP, SEXP dfSubSEXP, SEXP dfObsSEXP, SEXP dfOccSEXP, SEXP simSubjectsSEXP) {
+List rxSimThetaOmega(const Nullable<NumericVector>& params, const RObject& omega, const Nullable<NumericVector>& omegaDf, const NumericVector& omegaLower, const NumericVector& omegaUpper, const bool& omegaIsChol, std::string omegaSeparation, const int omegaXform, int nSub, const Nullable<NumericMatrix>& thetaMat, const NumericVector& thetaLower, const NumericVector& thetaUpper, const Nullable<NumericVector>& thetaDf, const bool& thetaIsChol, int nStud, const RObject sigma, const NumericVector& sigmaLower, const NumericVector& sigmaUpper, const Nullable<NumericVector>& sigmaDf, const bool& sigmaIsChol, std::string sigmaSeparation, const int sigmaXform, int nCoresRV, int nObs, double dfSub, double dfObs, bool simSubjects);
+static SEXP _RxODE_rxSimThetaOmega_try(SEXP paramsSEXP, SEXP omegaSEXP, SEXP omegaDfSEXP, SEXP omegaLowerSEXP, SEXP omegaUpperSEXP, SEXP omegaIsCholSEXP, SEXP omegaSeparationSEXP, SEXP omegaXformSEXP, SEXP nSubSEXP, SEXP thetaMatSEXP, SEXP thetaLowerSEXP, SEXP thetaUpperSEXP, SEXP thetaDfSEXP, SEXP thetaIsCholSEXP, SEXP nStudSEXP, SEXP sigmaSEXP, SEXP sigmaLowerSEXP, SEXP sigmaUpperSEXP, SEXP sigmaDfSEXP, SEXP sigmaIsCholSEXP, SEXP sigmaSeparationSEXP, SEXP sigmaXformSEXP, SEXP nCoresRVSEXP, SEXP nObsSEXP, SEXP dfSubSEXP, SEXP dfObsSEXP, SEXP simSubjectsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type params(paramsSEXP);
@@ -917,17 +917,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type nObs(nObsSEXP);
     Rcpp::traits::input_parameter< double >::type dfSub(dfSubSEXP);
     Rcpp::traits::input_parameter< double >::type dfObs(dfObsSEXP);
-    Rcpp::traits::input_parameter< double >::type dfOcc(dfOccSEXP);
     Rcpp::traits::input_parameter< bool >::type simSubjects(simSubjectsSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxSimThetaOmega(params, omega, omegaDf, omegaLower, omegaUpper, omegaIsChol, omegaSeparation, omegaXform, nSub, thetaMat, thetaLower, thetaUpper, thetaDf, thetaIsChol, nStud, sigma, sigmaLower, sigmaUpper, sigmaDf, sigmaIsChol, sigmaSeparation, sigmaXform, nCoresRV, nObs, dfSub, dfObs, dfOcc, simSubjects));
+    rcpp_result_gen = Rcpp::wrap(rxSimThetaOmega(params, omega, omegaDf, omegaLower, omegaUpper, omegaIsChol, omegaSeparation, omegaXform, nSub, thetaMat, thetaLower, thetaUpper, thetaDf, thetaIsChol, nStud, sigma, sigmaLower, sigmaUpper, sigmaDf, sigmaIsChol, sigmaSeparation, sigmaXform, nCoresRV, nObs, dfSub, dfObs, simSubjects));
     return rcpp_result_gen;
 END_RCPP_RETURN_ERROR
 }
-RcppExport SEXP _RxODE_rxSimThetaOmega(SEXP paramsSEXP, SEXP omegaSEXP, SEXP omegaDfSEXP, SEXP omegaLowerSEXP, SEXP omegaUpperSEXP, SEXP omegaIsCholSEXP, SEXP omegaSeparationSEXP, SEXP omegaXformSEXP, SEXP nSubSEXP, SEXP thetaMatSEXP, SEXP thetaLowerSEXP, SEXP thetaUpperSEXP, SEXP thetaDfSEXP, SEXP thetaIsCholSEXP, SEXP nStudSEXP, SEXP sigmaSEXP, SEXP sigmaLowerSEXP, SEXP sigmaUpperSEXP, SEXP sigmaDfSEXP, SEXP sigmaIsCholSEXP, SEXP sigmaSeparationSEXP, SEXP sigmaXformSEXP, SEXP nCoresRVSEXP, SEXP nObsSEXP, SEXP dfSubSEXP, SEXP dfObsSEXP, SEXP dfOccSEXP, SEXP simSubjectsSEXP) {
+RcppExport SEXP _RxODE_rxSimThetaOmega(SEXP paramsSEXP, SEXP omegaSEXP, SEXP omegaDfSEXP, SEXP omegaLowerSEXP, SEXP omegaUpperSEXP, SEXP omegaIsCholSEXP, SEXP omegaSeparationSEXP, SEXP omegaXformSEXP, SEXP nSubSEXP, SEXP thetaMatSEXP, SEXP thetaLowerSEXP, SEXP thetaUpperSEXP, SEXP thetaDfSEXP, SEXP thetaIsCholSEXP, SEXP nStudSEXP, SEXP sigmaSEXP, SEXP sigmaLowerSEXP, SEXP sigmaUpperSEXP, SEXP sigmaDfSEXP, SEXP sigmaIsCholSEXP, SEXP sigmaSeparationSEXP, SEXP sigmaXformSEXP, SEXP nCoresRVSEXP, SEXP nObsSEXP, SEXP dfSubSEXP, SEXP dfObsSEXP, SEXP simSubjectsSEXP) {
     SEXP rcpp_result_gen;
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_RxODE_rxSimThetaOmega_try(paramsSEXP, omegaSEXP, omegaDfSEXP, omegaLowerSEXP, omegaUpperSEXP, omegaIsCholSEXP, omegaSeparationSEXP, omegaXformSEXP, nSubSEXP, thetaMatSEXP, thetaLowerSEXP, thetaUpperSEXP, thetaDfSEXP, thetaIsCholSEXP, nStudSEXP, sigmaSEXP, sigmaLowerSEXP, sigmaUpperSEXP, sigmaDfSEXP, sigmaIsCholSEXP, sigmaSeparationSEXP, sigmaXformSEXP, nCoresRVSEXP, nObsSEXP, dfSubSEXP, dfObsSEXP, dfOccSEXP, simSubjectsSEXP));
+        rcpp_result_gen = PROTECT(_RxODE_rxSimThetaOmega_try(paramsSEXP, omegaSEXP, omegaDfSEXP, omegaLowerSEXP, omegaUpperSEXP, omegaIsCholSEXP, omegaSeparationSEXP, omegaXformSEXP, nSubSEXP, thetaMatSEXP, thetaLowerSEXP, thetaUpperSEXP, thetaDfSEXP, thetaIsCholSEXP, nStudSEXP, sigmaSEXP, sigmaLowerSEXP, sigmaUpperSEXP, sigmaDfSEXP, sigmaIsCholSEXP, sigmaSeparationSEXP, sigmaXformSEXP, nCoresRVSEXP, nObsSEXP, dfSubSEXP, dfObsSEXP, simSubjectsSEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
@@ -2307,7 +2306,7 @@ static int _RxODE_RcppExport_validate(const char* sig) {
         signatures.insert("NumericVector(*rxSetupIni)(const RObject&,RObject)");
         signatures.insert("NumericVector(*rxSetupScale)(const RObject&,RObject,Nullable<List>)");
         signatures.insert("void(*atolRtolFactor_)(double)");
-        signatures.insert("List(*rxSimThetaOmega)(const Nullable<NumericVector>&,const RObject&,const Nullable<NumericVector>&,const NumericVector&,const NumericVector&,const bool&,std::string,const int,int,const Nullable<NumericMatrix>&,const NumericVector&,const NumericVector&,const Nullable<NumericVector>&,const bool&,int,const RObject,const NumericVector&,const NumericVector&,const Nullable<NumericVector>&,const bool&,std::string,const int,int,int,double,double,double,bool)");
+        signatures.insert("List(*rxSimThetaOmega)(const Nullable<NumericVector>&,const RObject&,const Nullable<NumericVector>&,const NumericVector&,const NumericVector&,const bool&,std::string,const int,int,const Nullable<NumericMatrix>&,const NumericVector&,const NumericVector&,const Nullable<NumericVector>&,const bool&,int,const RObject,const NumericVector&,const NumericVector&,const Nullable<NumericVector>&,const bool&,std::string,const int,int,int,double,double,bool)");
         signatures.insert("LogicalVector(*rxSolveFree)()");
         signatures.insert("SEXP(*rxSolve_)(const RObject&,const List&,const Nullable<CharacterVector>&,const Nullable<List>&,const RObject&,const RObject&,const RObject&,const int)");
         signatures.insert("CharacterVector(*rxSolveDollarNames)(RObject)");

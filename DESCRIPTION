@@ -68,7 +68,7 @@ Suggests:
     learnr,
     crayon,
     digest,
-    ggplot2
+    rmarkdown
 Imports:
     rstudioapi,
     knitr,
@@ -94,7 +94,8 @@ Imports:
     StanHeaders (>= 2.18.0),
     BH,
     RcppArmadillo (>= 0.9.300.2.0),
-    checkmate
+    checkmate,
+    ggplot2
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
