@@ -437,7 +437,7 @@ rxexp <- function(rate, n=1L, ncores=1L){
 ##' @export
 rxchisq <- function(df, n=1L, ncores=1L){
     checkmate::assertNumeric(df, len=1, lower=0);
-    if (rate == 0) stop("'df' cannot be 0");
+    if (df == 0) stop("'df' cannot be 0");
     checkmate::assertCount(n)
     checkmate::assertCount(ncores)
     rxSeedEng(ncores)
