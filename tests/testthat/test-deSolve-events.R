@@ -15,8 +15,18 @@ rxPermissive({
                                value = c(1, 2, 3, 4),
                                method = c("add", "mult", "rep", "add"))
 
+        ett <- etTrans(eventdat, derivs, keepDosingOnly = TRUE)
+
+        ett2 <- etTrans(et(eventdat), derivs, keepDosingOnly=TRUE)
+
+        expect_equal(ett$EVID, ett2$EVID)
+        expect_equal(ett$AMT, ett2$AMT)
+        expect_equal(ett$TIME, ett2$TIME)
+
         e <- et(eventdat) %>%
             et(seq(0, 10, by = 0.1))
+
+
 
         tmp1 <- rxSolve(derivs, e)
 
@@ -29,8 +39,6 @@ rxPermissive({
             et(seq(0, 10, by = 0.1))
 
         tmp3 <- rxSolve(derivs, e)
-
-
 
         expect_equal(as.data.frame(tmp1), as.data.frame(tmp3))
 
