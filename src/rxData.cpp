@@ -1520,10 +1520,6 @@ void rxSimOmega(bool &simOmega,
 		int nSub = 1){
   int j;
   if (rxIs(omega, "NULL")){
-    if (nSub > 1){
-      // rxSolveFree();
-      warning(_("multi-subject simulation without without 'omega' specified"));
-    }
   } else if (rxIs(omega,"character")){
     // Create a matrix in order of the names.
     omegaN = as<CharacterVector>(omega);
@@ -1704,6 +1700,10 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   NumericMatrix omegaMC;
   List omegaList;
 
+  if (nSub > 1 && rxIs(omega, "NULL")){
+    // rxSolveFree();
+    warning(_("multi-subject simulation without without 'omega'"));
+  }    
   rxSimOmega(simOmega, omegaSep, omegaM, omegaN, omegaMC,
 	     omegaList, thetaN, thetaM, "omega", omega, omegaDf,
 	     omegaLower, omegaUpper, omegaIsChol,
