@@ -732,7 +732,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   IntegerVector inAddl;
   if (addlCol != -1){
     if (rxIs(inData[addlCol], "integer") || rxIs(inData[addlCol], "numeric")||
-	rxIs(inData[addlCol], "level")){
+	rxIs(inData[iiCol], "logical") || rxIs(inData[addlCol], "level")){
       inAddl = as<IntegerVector>(inData[addlCol]);
     } else {
       stop(_("number of additional doses ('addl') needs to be an integer"));
