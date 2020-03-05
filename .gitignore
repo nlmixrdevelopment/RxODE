@@ -25,9 +25,7 @@ inst/doc
 /src/Makevars.r-stripper.bak
 /vignettes/*_files/
 /vignettes/*.html
-
-
-/inst/tutorials/modelSyntax/RxODE model syntax/RxODE-model-syntax.html
+.Rproj.user
 /inst/tutorials/syntax/RxODE-model-syntax.html
 /inst/tutorials/events/.Rhistory
 /tests/testthat/.Rhistory
