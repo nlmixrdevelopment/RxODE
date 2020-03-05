@@ -1367,6 +1367,7 @@ static inline void gparsCovSetupConstant(RObject &ev1, int npars){
   }
 }
 void gparsCovSetup(int npars, int nPopPar, RObject ev1,rx_solve* rx){
+  if (_globals.gpars != NULL) free(_globals.gpars);
   _globals.gpars = (double*)calloc(npars*nPopPar, sizeof(double));
   if (_globals.gpars == NULL){
     rxSolveFree();
@@ -1407,6 +1408,7 @@ extern "C" double *rxGetErrs(){
   if (_rxModels.exists(".sigma")){
     NumericMatrix sigma = _rxModels[".sigma"];
     if (_rxGetErrs == NULL){
+      if (_rxGetErrs != NULL) free(_rxGetErrs);
       _rxGetErrs = (double*)calloc(sigma.ncol()*sigma.nrow(), sizeof(double));
       if (_rxGetErrs == NULL) {
 	rxSolveFree();
@@ -2760,6 +2762,7 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     CharacterVector dfNames = dataf.names();
     int dfN = dfNames.size();
     IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
+    if (_globals.gevid != NULL) free(_globals.gevid);
     _globals.gevid = (int*)calloc(3*evid.size()+dfN, sizeof(int));
     if (_globals.gevid == NULL){
       rxSolveFree();
@@ -2807,6 +2810,7 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
       stop(_("nothing to solve"));
     }
     rxOptionsIniEnsure(ntot);
+    if (_globals.gall_times != NULL) free(_globals.gall_times);
     _globals.gall_times = (double*)calloc(5*time0.size(), sizeof(double));
     std::copy(time0.begin(), time0.end(), &_globals.gall_times[0]);
     _globals.gdv = _globals.gall_times + time0.size(); // Perhaps allocate zero size if missing?
@@ -2852,6 +2856,7 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
       }
     }
     // Make sure the covariates are a #ncov * all times size
+    if (_globals.gcov != NULL) free(_globals.gcov);
     _globals.gcov = (double*)calloc(ncov * amt.size(), sizeof(double));
     if (_globals.gcov == NULL){
       rxSolveFree();
@@ -3012,6 +3017,7 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
 				    rxSolve_t* rxSolveDat){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
+  if (_globals.gParPos != NULL) free(_globals.gParPos);
   _globals.gParPos = (int*)calloc(rxSolveDat->npars*2 + rxSolveDat->sigmaN.size(), sizeof(int));// [npars]
   if (_globals.gParPos == NULL){
     rxSolveFree();
@@ -4060,6 +4066,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // they do they need to be a parameter.
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
+    if (_globals.gsolve != NULL) free(_globals.gsolve);
     _globals.gsolve = (double*)calloc(n0+nLin+n2+n3+n4+n5+n6+ 4*op->neq, sizeof(double));// [n0]
     _globals.gadvan = _globals.gsolve+n0; // [nLin]
 #ifdef rxSolveT
@@ -4105,6 +4112,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time12d (fill in!): %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
+    if (_globals.gon != NULL) free(_globals.gon);
     _globals.gon = (int*)calloc(n1+n3 + 4*rxSolveDat->nSize + rx->nall*rx->nsim, sizeof(int)); // [n1]
 #ifdef rxSolveT
     REprintf("Time12e (int alloc %d): %f\n", n1+n3 + 4*rxSolveDat->nSize + rx->nall*rx->nsim, ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
