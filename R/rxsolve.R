@@ -1454,7 +1454,8 @@ plot.rxSolve <- function(x,y,..., log="") {
 
     .logx <- NULL
     .logy <- NULL
-    .xgxr <- FALSE; #requireNamespace("xgxr", quietly = TRUE);
+    .xgxr <- getOption("RxODE.xgxr", FALSE) &&
+        requireNamespace("xgxr", quietly = TRUE);
     .timex <- NULL
     if (.xgxr && inherits(.dat$time, "units")){
         .timex <- xgxr::xgx_scale_x_time_units()
@@ -1488,9 +1489,7 @@ plot.rxSolve <- function(x,y,..., log="") {
             if (log == "x") {
                 .logx <- ggplot2::scale_x_log10()
                 if (inherits(.dat$time, "units")) {
-                    .dat <- .dat[units::drop_units(.dat$time) > 0, ]
-                } else {
-                    .dat <- .dat[.dat$time > 0, ]
+                    .dat$time <- units::drop_units(.dat$time)
                 }
                 .timex <- NULL
                 .dat <- .dat[.dat$time > 0, ]
@@ -1500,12 +1499,10 @@ plot.rxSolve <- function(x,y,..., log="") {
                 .logy <- ggplot2::scale_y_log10();
                 .logx <- ggplot2::scale_x_log10();
                 if (inherits(.dat$time, "units")) {
-                    .dat <- .dat[units::drop_units(.dat$time) > 0, ]
-                } else {
-                    .dat <- .dat[.dat$time > 0, ]
+                    .dat$time <- units::drop_units(.dat$time)
                 }
-                .timex <- NULL
                 .dat <- .dat[.dat$time > 0, ]
+                .timex <- NULL
             } else if (log != "") {
                 stop(sprintf("'log=\"%s\"' not supported", log))
             }

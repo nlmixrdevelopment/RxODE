@@ -69,7 +69,8 @@ Suggests:
     crayon,
     digest,
     rmarkdown,
-    knitr
+    knitr,
+    vdiffr
 Imports:
     rstudioapi,
     Matrix,

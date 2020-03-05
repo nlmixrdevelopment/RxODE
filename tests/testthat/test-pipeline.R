@@ -227,5 +227,6 @@ rxPermissive({
 
     tmp <- mod %>% solve(theoSd, c(tka=1, tcl=2, tv=3, eta.ka=0, eta.cl=0, eta.v=0),
                          addDosing=TRUE)
+
     expect_false(any(names(tmp)=="WT"))
 })
