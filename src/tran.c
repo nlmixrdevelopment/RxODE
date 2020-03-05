@@ -272,6 +272,9 @@ symtab tb;
 sbuf sb, sbDt; /* buffer w/ current parsed & translated line */
 sbuf sbt;
 
+sbuf firstErr;
+int firstErrD=0;
+
 void sIniTo(sbuf *sbb, int to){
   sbb->s = Calloc(to, char);
   sbb->sN = to;
@@ -3213,6 +3216,7 @@ void parseFree(int last){
   sFree(&sbNrm);
   sFree(&s_aux_info);
   sFree(&s_inits);
+  sFree(&firstErr);
   lineFree(&sbPm);
   lineFree(&sbPmDt);
   lineFree(&(tb.ss));
@@ -3250,6 +3254,8 @@ void reset (){
   sIniTo(&sbt, MXBUF);
   sIniTo(&sbNrm, MXBUF);
   sIniTo(&s_aux_info, 64*MXSYM);
+  sIniTo(&firstErr, MXBUF);
+  firstErrD=0;
 
   sIniTo(&s_inits, MXSYM);
 
@@ -4011,7 +4017,13 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       }
     }
     sFree(&bufw); sFree(&bufw2);
-    error(_("syntax errors (see above)"));
+    if (firstErrD == 1) {
+      firstErrD=0;
+      error(firstErr.s);
+    } else {
+      error(_("syntax errors (see above)"));
+    }
+    
   }
   sFree(&bufw); sFree(&bufw2);
   return lst;
@@ -4134,6 +4146,7 @@ static void rxSyntaxError(struct D_Parser *ap) {
       buf = getLine(gBuf, lastSyntaxErrorLine, &gBufLast);
       RSprintf("\n:%03d: %s", lastSyntaxErrorLine, buf);
       Free(buf);
+      
     }
     char *after = 0;
     ZNode *z = p->snode_hash.last_all ? p->snode_hash.last_all->zns.v[0] : 0;
@@ -4146,7 +4159,10 @@ static void rxSyntaxError(struct D_Parser *ap) {
 	RSprintf(_("\n\n\033[1mRxODE syntax error after\033[0m '\033[35m\033[1m%s\033[0m':\n"),  after);
       }
       else {
-	RSprintf(_("\n\nRxODE syntax error after '%s':\n"),  after);
+	RSprintf(_("\n\nRxODE syntax error after '%s'\n"),  after);
+      }
+      if (firstErrD == 0) {
+	sAppend(&firstErr, _("RxODE syntax error after '%s':\n"), after);
       }
     }
     else{
@@ -4156,8 +4172,10 @@ static void rxSyntaxError(struct D_Parser *ap) {
       else{
 	RSprintf0(_("\n\nRxODE syntax error:\n"));
       }
+      if (firstErrD == 0) {
+	sAppendN(&firstErr, "RxODE syntax error:\n", 20);
+      }
     }
-
     buf = getLine(gBuf, p->user.loc.line, &gBufLast);
     if (lastSyntaxErrorLine < p->user.loc.line) lastSyntaxErrorLine++;
     if (isEsc) {
@@ -4166,9 +4184,15 @@ static void rxSyntaxError(struct D_Parser *ap) {
     else {
       RSprintf(":%03d: ", p->user.loc.line);
     }
+    if (firstErrD == 0) {
+      sAppend(&firstErr, ":%03d: ", p->user.loc.line);
+    }
     int col = 0, len= strlen(buf), lenv, i;
     for (i = 0; i < p->user.loc.col; i++){
       RSprintf("%c", buf[i]);
+      if (firstErrD == 0) {
+	sAppend(&firstErr, "%c", buf[i]);
+      }
       if (i == len-2) { i++; break;}
     }
     if (isEsc) {
@@ -4177,11 +4201,19 @@ static void rxSyntaxError(struct D_Parser *ap) {
     else {
       RSprintf("%c", buf[i++]);
     }
+    if (firstErrD == 0) {
+      sAppend(&firstErr, "%c", buf[i-1]);
+    }
     for (; i < len; i++){
       RSprintf("%c", buf[i]);
+      if (firstErrD == 0) {
+	sAppend(&firstErr, "%c", buf[i]);
+      }
     }
     RSprintf0("\n      ");
-    
+    if (firstErrD == 0) {
+      sAppendN(&firstErr, "\n      ", 7);
+    }
     if (after){
       lenv = strlen(after);
       while (col != len && strncmp(buf + col, after, lenv) != 0) col++;
@@ -4189,12 +4221,18 @@ static void rxSyntaxError(struct D_Parser *ap) {
       if (col){
 	for (int i = 0; i < col; i++){
 	  RSprintf0(" ");
+	  if (firstErrD == 0) {
+	    sAppendN(&firstErr, " ", 1);
+	  }
 	  if (i == len-2) { i++; break;}
 	}
 	len = p->user.loc.col - col;
 	if (len > 0 && len < 40){
 	  for (int i = len; i--;) {
 	    RSprintf0("~");
+	    if (firstErrD == 0) {
+	      sAppendN(&firstErr, "~", 1);
+	    }
 	  }
 	}
 	if (isEsc) {
@@ -4203,9 +4241,15 @@ static void rxSyntaxError(struct D_Parser *ap) {
 	else {
 	  RSprintf0("^");
 	}
+	if (firstErrD == 0) {
+	  sAppendN(&firstErr, "^", 1);
+	}
       } else {
 	for (int i = 0; i < p->user.loc.col; i++){
 	  RSprintf0(" ");
+	  if (firstErrD == 0) {
+	    sAppendN(&firstErr, " ", 1);
+	  }
 	  if (i == len-2) { i++; break;}
 	}
 	if (isEsc) {
@@ -4214,10 +4258,17 @@ static void rxSyntaxError(struct D_Parser *ap) {
 	else {
 	  RSprintf0("^");
 	}
+	if (firstErrD == 0) {
+	  sAppendN(&firstErr, "^", 1);
+	}
+
       }
     } else {
       for (int i = 0; i < p->user.loc.col; i++){
 	RSprintf0(" ");
+	if (firstErrD == 0) {
+	  sAppendN(&firstErr, " ", 1);
+	}
 	if (i == len-2) { i++; break;}
       }
       if (isEsc) {
@@ -4226,9 +4277,16 @@ static void rxSyntaxError(struct D_Parser *ap) {
       else {
 	RSprintf0("^");
       }
+      if (firstErrD == 0) {
+	sAppendN(&firstErr, "^", 1);
+      }
     }
     Free(buf);
     if (after) Free(after);
+    if (firstErrD == 0) {
+      firstErrD = 1;
+      sAppendN(&firstErr, "\nmore errors could be listed above", 34);
+    }
   }
   rx_syntax_error = 1;
 }
