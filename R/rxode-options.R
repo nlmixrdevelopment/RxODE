@@ -180,25 +180,35 @@ rxStrict <- function(expr, silent=.isTestthat(), respect=FALSE,
 ##' @author Matthew L. Fidler
 ##' @export
 rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
-                      cran=FALSE, on.validate=FALSE){
+                      cran=FALSE, on.validate=FALSE,
+                      test=NULL){
     rxSetSilentErr(1L);
     on.exit(rxSetSilentErr(0L));
     do.it <- TRUE
-    if (!identical(Sys.getenv("NOT_CRAN"), "true") && !cran){
-        ## on Cran, but only tested when not on cran, skip.
+    .test <- Sys.getenv("rxTest");
+    if (identical(test, .test)){
+        do.it <- TRUE
+    } else if (.test != ""){
         do.it <- FALSE
-    }
-    if (is(on.validate, "character")){
-        val.txt <- on.validate;
-        on.validate <- TRUE
     } else {
-        val.txt <- "RxODE_VALIDATION_FULL"
-    }
-    if (on.validate && !identical(Sys.getenv(val.txt), "true")){
-        do.it <- FALSE
-    }
-    if (!on.validate && identical(Sys.getenv(val.txt), "true")){
-        do.it <- FALSE
+        if (is.null(test)) {
+            if (!identical(Sys.getenv("NOT_CRAN"), "true") && !cran){
+                ## on Cran, but only tested when not on cran, skip.
+                do.it <- FALSE
+            }
+            if (is(on.validate, "character")){
+                val.txt <- on.validate;
+                on.validate <- TRUE
+            } else {
+                val.txt <- "RxODE_VALIDATION_FULL"
+            }
+            if (on.validate && !identical(Sys.getenv(val.txt), "true")) {
+                do.it <- FALSE
+            }
+            if (!on.validate && identical(Sys.getenv(val.txt), "true")) {
+                do.it <- FALSE
+            }
+        }
     }
     if (do.it){
         if (missing(expr) && is.null(op.rx)){

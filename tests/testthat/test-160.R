@@ -20,4 +20,4 @@ rxPermissive({
 
         expect_false(all(s$centr == 0))
     })
-})
+}, test="160")

@@ -30,6 +30,6 @@ rxPermissive({
         }
     })
 
-}, silent=TRUE)
+}, silent=TRUE, test="100-cmt")
 
 
