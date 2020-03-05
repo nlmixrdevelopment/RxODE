@@ -773,6 +773,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
     if (iiCol == -1) cii = 0;
     else cii = inIi[i];
+    if (ISNA(cii)) cii=0.0;
     
     if (std::find(allId.begin(), allId.end(), cid) == allId.end()){
       allId.push_back(cid);
@@ -809,7 +810,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 
     if (cmtCol != -1){
       tmpCmt = inCmt[i];
-      if (inCmt[i] == 0){
+      if (inCmt[i] == 0 || IntegerVector::is_na(inCmt[i])){
 	if (evidCol == -1){
 	  tmpCmt=1;
 	} else if (inEvid[i] == 0){
@@ -897,6 +898,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
     if (addlCol == -1) caddl=0;
     else caddl = inAddl[i];
+    if (IntegerVector::is_na(caddl)) caddl = 0;
     // EVID flag
     if (evidCol == -1){
       // Missing EVID
@@ -909,8 +911,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  obsId.push_back(cid);
 	}
       } else {
-	if (mdvCol != -1 && inMdv[i] == 0){
-	  stop("amt or dur/rate are non-zero therefore MDV cannot = 0.");
+	if (mdvCol != -1 && (inMdv[i] == 0 || IntegerVector::is_na(inMdv[i]))){
+	  stop("'amt' or 'dur'/'rate' are non-zero therefore MDV cannot = 0");
 	}
 	// For Rates and non-zero amts, assume dosing event
 	cevid = cmt100*100000+rateI*10000+cmt99*100+flg;
@@ -921,6 +923,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
     if (evidIsMDV && cevid == 1 && camt == 0){
       cevid=2;
+    }
+    if (IntegerVector::is_na(cevid)){
+      if (evidIsMDV){
+	cevid=1;
+      } else {
+	cevid=0;
+      }
     }
     switch(cevid){
     case 0:
@@ -1025,8 +1034,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
       break;
     case 1:
-      if (mdvCol != -1 && inMdv[i] == 0){
-	stop("MDV cannot be 0 when EVID=1");
+      if (mdvCol != -1 && (inMdv[i] == 0 || IntegerVector::is_na(inMdv[i]))){
+	stop("'mdv' cannot be 0 when 'evid'=1");
       }
       cevid = cmt100*100000+rateI*10000+cmt99*100+flg;
       if (rateI == 0) allInf=false;
@@ -1108,8 +1117,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       cevid = -1;
       break;
     case 4:
-      if (mdvCol != -1 && inMdv[i] == 0){
-	stop("MDV cannot be 0 when EVID=4");
+      if (mdvCol != -1 && (inMdv[i] == 0 || IntegerVector::is_na(inMdv[i]))){
+	stop("'mdv' cannot be 0 when 'evid'=4");
       }
       id.push_back(cid);
       evid.push_back(3);
