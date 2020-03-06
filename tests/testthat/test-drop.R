@@ -36,6 +36,10 @@ rxPermissive({
 
     expect_warning(rxSolve(ode, params = c(a=-8/3, b=-10, c=28),
                            events = et, inits = c(X=1, Y=1, Z=1),
+                           drop=c("X", "Y", "ww"), warnDrop=FALSE), NA)
+
+    expect_warning(rxSolve(ode, params = c(a=-8/3, b=-10, c=28),
+                           events = et, inits = c(X=1, Y=1, Z=1),
                            drop=c("time")))
 
 

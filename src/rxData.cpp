@@ -171,7 +171,7 @@ bool rxIs_list(const RObject &obj, std::string cls){
 
 bool rxDropB = false;
 
-List rxDrop(CharacterVector drop, List input) {
+List rxDrop(CharacterVector drop, List input, bool &warnDrop) {
   rxDropB=false;
   CharacterVector inNames = input.attr("names");
   std::vector<int> keepI;
@@ -195,7 +195,7 @@ List rxDrop(CharacterVector drop, List input) {
       }
     }
   }
-  if (ndrop != drop.size()) {
+  if (warnDrop && ndrop != drop.size()) {
     warning("column(s) in 'drop' were not in solved data");
   }
   List ret(keepI.size());
@@ -3329,8 +3329,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (doTBS) rx->matrix=2;
     if (rx->matrix == 4 || rx->matrix == 5) rx->matrix=2;
     List dat = RxODE_df(doDose, doTBS);
+    bool warnDrop = as<bool>(rxControl["warnDrop"]);
     if (!rxIs(rxControl["drop"], "NULL")) {
-      dat = rxDrop(as<CharacterVector>(rxControl["drop"]), dat);
+      dat = rxDrop(as<CharacterVector>(rxControl["drop"]), dat, warnDrop);
     }
     // According to https://stackoverflow.com/questions/20039335/what-is-the-purpose-of-setting-a-key-in-data-table
     // Setting a key is not necessary unless doing something else, so for now exclude it.
