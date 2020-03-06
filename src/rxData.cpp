@@ -169,6 +169,46 @@ bool rxIs_list(const RObject &obj, std::string cls){
   }
 }
 
+bool rxDropB = false;
+
+List rxDrop(CharacterVector drop, List input) {
+  rxDropB=false;
+  CharacterVector inNames = input.attr("names");
+  std::vector<int> keepI;
+  int ndrop=0;
+  for (int i = 0; i < inNames.size(); ++i) {
+    std::string curName = as<std::string>(inNames[i]);
+    bool dropCur = false;
+    for (int j = drop.size();j--;){
+      if (as<std::string>(drop[j]) == curName){
+	dropCur = true;
+	break;
+      }
+    }
+    if (dropCur) ndrop++;
+    else keepI.push_back(i);
+    if (dropCur && !rxDropB && i < 10){
+      if (curName == "time" ||
+	  curName == "sim.id" ||
+	  curName == "id") {
+	rxDropB=true;
+      }
+    }
+  }
+  if (ndrop != drop.size()) {
+    warning("column(s) in 'drop' were not in solved data");
+  }
+  List ret(keepI.size());
+  CharacterVector retN(keepI.size());
+  for (int i = keepI.size(); i--;){
+    ret[i] = input[keepI[i]];
+    retN[i] = inNames[keepI[i]];
+  }
+  ret.attr("names") = retN;
+  ret.attr("row.names")=input.attr("row.names");
+  return ret;
+}
+
 //' Check the type of an object using Rcpp
 //'
 //' @param obj Object to check
@@ -3289,6 +3329,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (doTBS) rx->matrix=2;
     if (rx->matrix == 4 || rx->matrix == 5) rx->matrix=2;
     List dat = RxODE_df(doDose, doTBS);
+    if (!rxIs(rxControl["drop"], "NULL")) {
+      dat = rxDrop(as<CharacterVector>(rxControl["drop"]), dat);
+    }
     // According to https://stackoverflow.com/questions/20039335/what-is-the-purpose-of-setting-a-key-in-data-table
     // Setting a key is not necessary unless doing something else, so for now exclude it.
     // if (doDT){
@@ -3327,6 +3370,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	  tmpN2.attr("units") = tmpN.attr("units");
 	}
       }
+    }
+    if (rx->matrix == 0 && rxDropB){
+      rx->matrix=2;
+      warning("dropped key column, returning data.frame instead of special solved data.frame");
     }
     if (rx->matrix){
       if(_rxModels.exists(".sigma")){

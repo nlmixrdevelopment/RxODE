@@ -85,6 +85,7 @@ rxControl(
   length.out = NULL,
   iCov = NULL,
   keep = NULL,
+  drop = NULL,
   idFactor = TRUE,
   mxhnil = 0,
   hmxi = 0,
@@ -445,6 +446,8 @@ data.frame.}
 is kept once per line.  For the input dataset, if any records
 are added to the data LOCF (Last Observation Carried forward)
 imputation is performed.}
+
+\item{drop}{Columns to drop from the output}
 
 \item{idFactor}{This boolean indicates if original ID values
 should be maintained. This changes the default sequentially
