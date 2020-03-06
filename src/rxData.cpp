@@ -232,6 +232,7 @@ bool rxIs(const RObject &obj, std::string cls){
       return as<std::string>(cls[0]) == "units";
     }
   }
+  if (obj == NULL) return false;
   int type = obj.sexp_type();
   bool hasDim = false;
   bool hasCls = false;
@@ -654,6 +655,9 @@ List rxModelVars_character(const RObject &obj){
 	}
       }
     }
+  }
+  if (obj == NULL) {
+    return rxModelVars_blank();
   }
   // fileExists(const std::string& name)
   Function f = getRxFn(".rxModelVarsCharacter");

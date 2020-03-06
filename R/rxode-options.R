@@ -159,7 +159,8 @@ RxODE.unload.unused <- NULL
 ##' @export
 rxPermissive <- function(expr, silent=.isTestthat(),
                          respect=FALSE,
-                         cran=FALSE, on.validate=FALSE){
+                         cran=FALSE, on.validate=FALSE,
+                         test=NULL){
     args  <- as.list(match.call())[-1];
     args$op.rx <- 2;
     do.call(getFromNamespace("rxOptions", "RxODE"), args, envir=parent.frame(1));
