@@ -240,6 +240,7 @@ bool rxIs(const RObject &obj, std::string cls){
       return as<std::string>(cls[0]) == "units";
     }
   }
+  if (obj == NULL) return false;
   int type = obj.sexp_type();
   bool hasDim = false;
   bool hasCls = false;
@@ -445,14 +446,14 @@ bool _RxODE_found = false;
 Environment _RxODE;
 
 Environment RxODEenv(){
-  if (_RxODE_found){
-    return _RxODE;
-  } else {
-    Function loadNamespace("loadNamespace", R_BaseNamespace);
-    _RxODE = loadNamespace("RxODE");
-    _RxODE_found = true;
-    return _RxODE;
-  }
+  // if (_RxODE_found){
+  //   return _RxODE;
+  // } else {
+  Function loadNamespace("loadNamespace", R_BaseNamespace);
+  _RxODE = loadNamespace("RxODE");
+  _RxODE_found = true;
+  return _RxODE;
+  // }
 }
 // Export for C.
 //[[Rcpp::export]]
@@ -659,6 +660,9 @@ List rxModelVars_character(const RObject &obj){
 	}
       }
     }
+  }
+  if (obj == NULL) {
+    return rxModelVars_blank();
   }
   // fileExists(const std::string& name)
   Function f = getRxFn(".rxModelVarsCharacter");
