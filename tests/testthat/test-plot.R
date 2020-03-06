@@ -1,4 +1,5 @@
 rxPermissive({
+
     context("plot tests")
 
     ## Model from RxODE tutorial
@@ -33,15 +34,17 @@ rxPermissive({
 
     s <- rxSolve(m1, ev);
 
+    options(RxODE.xgxr=FALSE)
+
     vdiffr::expect_doppelganger("plot-C2", s %>% plot(C2))
 
     vdiffr::expect_doppelganger("plot-C2-log-x", s %>% plot(C2, log="x"))
 
     vdiffr::expect_doppelganger("plot-C2-log-y", s %>% plot(C2, log="y"))
 
-    vdiffr::expect_doppelganger("plot-C2-all-xy", s %>% plot(C2, log="xy"))
+    vdiffr::expect_doppelganger("plot-C2-log-xy", s %>% plot(C2, log="xy"))
 
-    vdiffr::expect_doppelganger("plot-C2-all-yx", s %>% plot(C2, log="yx"))
+    vdiffr::expect_doppelganger("plot-C2-log-yx", s %>% plot(C2, log="yx"))
 
     vdiffr::expect_doppelganger("plot-all", s %>% plot())
 
@@ -49,9 +52,11 @@ rxPermissive({
 
     vdiffr::expect_doppelganger("plot-all-log-y", s %>% plot(log="y"))
 
-    vdiffr::expect_doppelganger("plot-all-all-xy", s %>% plot(log="xy"))
+    vdiffr::expect_doppelganger("plot-all-log-xy", s %>% plot(log="xy"))
 
-    vdiffr::expect_doppelganger("plot-all-all-yx", s %>% plot(log="yx"))
+    vdiffr::expect_doppelganger("plot-all-log-yx", s %>% plot(log="yx"))
+
+    options(RxODE.xgxr=TRUE)
 
 
 

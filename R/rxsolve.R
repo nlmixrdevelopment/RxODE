@@ -1461,6 +1461,7 @@ plot.rxSolve <- function(x,y,..., log="") {
         .timex <- xgxr::xgx_scale_x_time_units()
     }
     if (is.character(log) && length(log) == 1){
+        if (length(.cmts) == 2) .facet <- NULL
         if (.xgxr){
             if (log == "x") {
                 .logx <- xgxr::xgx_scale_x_log10(units=inherits(.dat$time, "units"))
