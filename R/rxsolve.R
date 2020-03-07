@@ -514,6 +514,9 @@ rxControl <- function(scale = NULL,
 ##'     the order of the parameters/iCov are the same as the order of
 ##'     the parameters in the input dataset.
 ##'
+##' @param warnDrop Warn if column(s) were supposed to be dropped, but
+##'     were not present.
+##'
 ##' @param safeZero Use safe zero divide and log routines.  By default
 ##'     this is turned on but you may turn it off if you wish.
 ##'

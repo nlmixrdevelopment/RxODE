@@ -470,6 +470,9 @@ This option is only considered with method=liblsoda.}
 the order of the parameters/iCov are the same as the order of
 the parameters in the input dataset.}
 
+\item{warnDrop}{Warn if column(s) were supposed to be dropped, but
+were not present.}
+
 \item{ssAtol}{Steady state atol convergence factor.  Can be
 a vector based on each state.}
 
