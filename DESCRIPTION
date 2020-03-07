@@ -61,14 +61,14 @@ Suggests:
     installr,
     learnr,
     remotes,
-    crayon
+    crayon,
+    digest
 Imports:
     Matrix,
     PreciseSums (>= 0.3),
     Rcpp (>= 0.12.3),
     brew,
     cli,
-    digest,
     dparser (>= 0.1.8),
     ggplot2 (>= 3.3.0),
     ggforce,
