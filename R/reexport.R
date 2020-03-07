@@ -140,3 +140,52 @@ lotri::lotri
 ##'@importFrom pillar type_sum
 ##'@export
 pillar::type_sum
+
+##' @importFrom ggplot2  label_value
+##' @export
+ggplot2::label_value
+
+##' @importFrom ggplot2 label_both
+##' @export
+ggplot2::label_both
+
+##' @importFrom ggplot2 label_context
+##' @export
+ggplot2::label_context
+
+##' @importFrom ggplot2 label_wrap_gen
+##' @export
+ggplot2::label_wrap_gen
+
+##' @importFrom ggplot2 label_context
+##' @export
+ggplot2::label_context
+
+
+##' @importFrom ggplot2 scale_x_discrete
+##' @export
+ggplot2::scale_x_discrete
+
+##' @importFrom ggplot2 scale_y_discrete
+##' @export
+ggplot2::scale_y_discrete
+
+##' @importFrom ggplot2 scale_x_continuous
+##' @export
+ggplot2::scale_x_continuous
+
+##' @importFrom ggplot2 scale_y_continuous
+##' @export
+ggplot2::scale_y_continuous
+
+##' @importFrom ggplot2 scale_x_date
+##' @export
+ggplot2::scale_x_date
+
+##' @importFrom ggplot2 scale_y_date
+##' @export
+ggplot2::scale_y_date
+
+##' @importFrom ggplot2 expand_limits
+##' @export
+ggplot2::expand_limits
