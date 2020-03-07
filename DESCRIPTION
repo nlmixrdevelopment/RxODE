@@ -61,7 +61,6 @@ Suggests:
     installr,
     learnr,
     remotes,
-    ggplot2 (>= 3.3.0)
 Imports:
     Matrix,
     PreciseSums (>= 0.3),
@@ -71,7 +70,8 @@ Imports:
     crayon,
     digest,
     dparser (>= 0.1.8),
-    ggforce,
+    ggplot2 (>= 3.3.0),
+    ggforce
     inline,
     magrittr,
     memoise,
