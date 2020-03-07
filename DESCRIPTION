@@ -61,7 +61,7 @@ Suggests:
     installr,
     learnr,
     remotes,
-    ggplot2 (>=3.3.0)
+    ggplot2 (>= 3.3.0)
 Imports:
     Matrix,
     PreciseSums (>= 0.3),
