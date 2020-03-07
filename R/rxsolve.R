@@ -44,10 +44,12 @@ rxControl <- function(scale = NULL,
                       indLinPhiM=0L,
                       indLinMatExpType=c("expokit", "Al-Mohy", "arma"),
                       indLinMatExpOrder=6L,
+                      drop=NULL,
                       idFactor=TRUE,
                       mxhnil=0,
                       hmxi=0.0,
                       warnIdSort=TRUE,
+                      warnDrop=TRUE,
                       ssAtol = 1.0e-8,
                       ssRtol = 1.0e-6,
                       safeZero=TRUE,
@@ -219,6 +221,8 @@ rxControl <- function(scale = NULL,
                  length.out=length.out,
                  iCov=iCov,
                  keep=keep, keepF=character(0), keepI=character(0),
+                 drop=drop,
+                 warnDrop=warnDrop,
                  omegaLower=omegaLower, omegaUpper=omegaUpper,
                  sigmaLower=sigmaLower, sigmaUpper=sigmaUpper,
                  thetaLower=thetaLower, thetaUpper=thetaUpper,
@@ -569,6 +573,8 @@ rxControl <- function(scale = NULL,
 ##'     is kept once per line.  For the input dataset, if any records
 ##'     are added to the data LOCF (Last Observation Carried forward)
 ##'     imputation is performed.
+##'
+##' @param drop Columns to drop from the output
 ##'
 ##' @param idFactor This boolean indicates if original ID values
 ##'     should be maintained. This changes the default sequentially

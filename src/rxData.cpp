@@ -219,6 +219,46 @@ bool rxIs_list(const RObject &obj, std::string cls){
   }
 }
 
+bool rxDropB = false;
+
+List rxDrop(CharacterVector drop, List input, bool warnDrop) {
+  rxDropB=false;
+  CharacterVector inNames = input.attr("names");
+  std::vector<int> keepI;
+  int ndrop=0;
+  for (int i = 0; i < inNames.size(); ++i) {
+    std::string curName = as<std::string>(inNames[i]);
+    bool dropCur = false;
+    for (int j = drop.size();j--;){
+      if (as<std::string>(drop[j]) == curName){
+	dropCur = true;
+	break;
+      }
+    }
+    if (dropCur) ndrop++;
+    else keepI.push_back(i);
+    if (dropCur && !rxDropB && i < 10){
+      if (curName == "time" ||
+	  curName == "sim.id" ||
+	  curName == "id") {
+	rxDropB=true;
+      }
+    }
+  }
+  if (warnDrop && ndrop != drop.size()) {
+    warning(_("column(s) in 'drop' were not in solved data"));
+  }
+  List ret(keepI.size());
+  CharacterVector retN(keepI.size());
+  for (int i = keepI.size(); i--;){
+    ret[i] = input[keepI[i]];
+    retN[i] = inNames[keepI[i]];
+  }
+  ret.attr("names") = retN;
+  ret.attr("row.names")=input.attr("row.names");
+  return ret;
+}
+
 //' Check the type of an object using Rcpp
 //'
 //' @param obj Object to check
@@ -3278,6 +3318,9 @@ static inline List rxSolve_df(const RObject &obj,
   if (doTBS) rx->matrix=2;
   if (rx->matrix == 4 || rx->matrix == 5) rx->matrix=2;
   List dat = RxODE_df(doDose, doTBS);
+  if (!rxIs(rxControl["drop"], "NULL")) {
+    dat = rxDrop(as<CharacterVector>(rxControl["drop"]), dat, as<bool>(rxControl["warnDrop"]));
+  }
   if (rxSolveDat->idFactor && rxSolveDat->labelID && rx->nsub > 1){
     IntegerVector did = as<IntegerVector>(dat["id"]);
     did.attr("class") = "factor";
@@ -3620,6 +3663,10 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
   par_solve(rx);
   List dat = rxSolve_df(obj, rxControl, specParams, extraArgs,
 			params, events, inits, rxSolveDat);
+  if (rx->matrix == 0 && rxDropB){
+    rx->matrix=2;
+    warning(_("dropped key column, returning data.frame instead of special solved data.frame"));
+  }
   if (rx->matrix){
     // rxSolveFree();
     if(_rxModels.exists(".sigma")){
@@ -3668,6 +3715,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const Nullable<List> &extraArgs,
 	      const RObject &params, const RObject &events, const RObject &inits,
 	      const int setupOnly){
+  rxDropB = false;
 #ifdef rxSolveT
   clock_t _lastT0 = clock();
 #endif
