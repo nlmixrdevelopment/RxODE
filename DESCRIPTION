@@ -60,7 +60,8 @@ Suggests:
     rlang,
     installr,
     learnr,
-    remotes
+    remotes,
+    ggplot2 (>=3.3.0)
 Imports:
     Matrix,
     PreciseSums (>= 0.3),
@@ -71,7 +72,6 @@ Imports:
     digest,
     dparser (>= 0.1.8),
     ggforce,
-    ggplot2,
     inline,
     magrittr,
     memoise,

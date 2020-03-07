@@ -294,6 +294,7 @@ rxWinPythonSetup <- function(){
     utils::install.packages("reticulate");
     .tmp <- try({rxSymPyVersion()});
     if (inherits(.tmp, "try-error")){
+        rxReq("remotes")
         remotes::install_github("nlmixrdevelopment/SnakeCharmR")
         .tmp <- try({rxSymPyVersion()});
         if (inherits(.tmp, "try-errror")){
