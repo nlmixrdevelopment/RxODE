@@ -90,6 +90,7 @@ rxControl(
   mxhnil = 0,
   hmxi = 0,
   warnIdSort = TRUE,
+  warnDrop = TRUE,
   ssAtol = 1e-08,
   ssRtol = 1e-06,
   safeZero = TRUE

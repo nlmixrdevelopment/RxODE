@@ -129,6 +129,10 @@ ggplot2::ylab
 ##'@export
 ggplot2::xlab
 
+##'@importFrom ggplot2 guide_none
+##'@export
+ggplot2::guide_none
+
 ##'@importFrom lotri lotri
 ##'@export
 lotri::lotri
