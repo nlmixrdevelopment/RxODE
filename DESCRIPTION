@@ -62,7 +62,6 @@ Suggests:
     learnr,
     remotes,
     Matrix,
-    methods,
     crayon
 Imports:
     PreciseSums (>= 0.3),
@@ -83,6 +82,7 @@ Imports:
     units(>= 0.6-0),
     utils,
     assertthat,
+    methods,
     lotri
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
