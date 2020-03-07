@@ -2155,6 +2155,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const Nullable<List> &extraArgs,
 	      const RObject &params, const RObject &events, const RObject &inits,
 	      const int setupOnly){
+  rxDropB = false;
   if (rxIs(rxControl,"rxControl")){
     rxSolveFree();
     stop("Control list not setup correctly.");
