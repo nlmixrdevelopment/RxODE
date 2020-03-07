@@ -10,7 +10,8 @@ rxPermissive(
   silent = .isTestthat(),
   respect = FALSE,
   cran = FALSE,
-  on.validate = FALSE
+  on.validate = FALSE,
+  test = NULL
 )
 
 rxStrict(

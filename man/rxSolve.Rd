@@ -96,10 +96,12 @@ rxControl(
   indLinPhiM = 0L,
   indLinMatExpType = c("expokit", "Al-Mohy", "arma"),
   indLinMatExpOrder = 6L,
+  drop = NULL,
   idFactor = TRUE,
   mxhnil = 0,
   hmxi = 0,
   warnIdSort = TRUE,
+  warnDrop = TRUE,
   ssAtol = 1e-08,
   ssRtol = 1e-06,
   safeZero = TRUE,
@@ -496,6 +498,8 @@ exponential matrix.}
 be used, for the \code{Al-Mohy} and \code{expokit} values.
 The best value for this depends on machine precision (and
 slightly on the matrix). We use \code{6} as a default.}
+
+\item{drop}{Columns to drop from the output}
 
 \item{idFactor}{This boolean indicates if original ID values
 should be maintained. This changes the default sequentially
