@@ -84,7 +84,7 @@ solve a ODE system." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.2.0</span>
       </span>
     </div>
 
@@ -251,34 +251,88 @@ solve a ODE system." />
 solve a ODE system.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rxControl</span>(<span class='kw'>scale</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"liblsoda"</span>, <span class='st'>"lsoda"</span>, <span class='st'>"dop853"</span>),
-  <span class='kw'>transitAbs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>atol</span> <span class='kw'>=</span> <span class='fl'>1e-08</span>, <span class='kw'>rtol</span> <span class='kw'>=</span> <span class='fl'>1e-06</span>, <span class='kw'>maxsteps</span> <span class='kw'>=</span> <span class='fl'>70000L</span>,
-  <span class='kw'>hmin</span> <span class='kw'>=</span> <span class='fl'>0L</span>, <span class='kw'>hmax</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>hmaxSd</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>hini</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>maxordn</span> <span class='kw'>=</span> <span class='fl'>12L</span>,
-  <span class='kw'>maxords</span> <span class='kw'>=</span> <span class='fl'>5L</span>, <span class='no'>...</span>, <span class='no'>cores</span>, <span class='kw'>covsInterpolation</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"locf"</span>, <span class='st'>"linear"</span>,
-  <span class='st'>"nocb"</span>, <span class='st'>"midpoint"</span>), <span class='kw'>addCov</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>matrix</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>sigmaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigmaLower</span> <span class='kw'>=</span> -<span class='fl'>Inf</span>, <span class='kw'>sigmaUpper</span> <span class='kw'>=</span> <span class='fl'>Inf</span>,
-  <span class='kw'>nCoresRV</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>sigmaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nDisplayProgress</span> <span class='kw'>=</span> <span class='fl'>10000L</span>,
-  <span class='kw'>amountUnits</span> <span class='kw'>=</span> <span class='fl'>NA_character_</span>, <span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hours"</span>, <span class='no'>stiff</span>,
-  <span class='kw'>theta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaLower</span> <span class='kw'>=</span> -<span class='fl'>Inf</span>, <span class='kw'>thetaUpper</span> <span class='kw'>=</span> <span class='fl'>Inf</span>, <span class='kw'>eta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>addDosing</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>stateTrim</span> <span class='kw'>=</span> <span class='fl'>Inf</span>, <span class='kw'>updateObject</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>omegaLower</span> <span class='kw'>=</span> -<span class='fl'>Inf</span>, <span class='kw'>omegaUpper</span> <span class='kw'>=</span> <span class='fl'>Inf</span>, <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"rxSolve"</span>, <span class='st'>"matrix"</span>, <span class='st'>"data.frame"</span>,
-  <span class='st'>"data.frame.TBS"</span>, <span class='st'>"data.table"</span>, <span class='st'>"tbl"</span>, <span class='st'>"tibble"</span>), <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>minSS</span> <span class='kw'>=</span> <span class='fl'>10L</span>, <span class='kw'>maxSS</span> <span class='kw'>=</span> <span class='fl'>1000L</span>, <span class='kw'>infSSstep</span> <span class='kw'>=</span> <span class='fl'>12</span>,
-  <span class='kw'>strictSS</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>istateReset</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>subsetNonmem</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>linLog</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>maxAtolRtolFactor</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>from</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>to</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>length.out</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>idFactor</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>mxhnil</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>hmxi</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>warnIdSort</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>ssAtol</span> <span class='kw'>=</span> <span class='fl'>1e-08</span>,
-  <span class='kw'>ssRtol</span> <span class='kw'>=</span> <span class='fl'>1e-06</span>, <span class='kw'>safeZero</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
+    <pre class="usage"><span class='fu'>rxControl</span>(
+  <span class='kw'>scale</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>method</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"liblsoda"</span>, <span class='st'>"lsoda"</span>, <span class='st'>"dop853"</span>),
+  <span class='kw'>transitAbs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>atol</span> <span class='kw'>=</span> <span class='fl'>1e-08</span>,
+  <span class='kw'>rtol</span> <span class='kw'>=</span> <span class='fl'>1e-06</span>,
+  <span class='kw'>maxsteps</span> <span class='kw'>=</span> <span class='fl'>70000L</span>,
+  <span class='kw'>hmin</span> <span class='kw'>=</span> <span class='fl'>0L</span>,
+  <span class='kw'>hmax</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>hmaxSd</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>hini</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>maxordn</span> <span class='kw'>=</span> <span class='fl'>12L</span>,
+  <span class='kw'>maxords</span> <span class='kw'>=</span> <span class='fl'>5L</span>,
+  <span class='no'>...</span>,
+  <span class='no'>cores</span>,
+  <span class='kw'>covsInterpolation</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"locf"</span>, <span class='st'>"linear"</span>, <span class='st'>"nocb"</span>, <span class='st'>"midpoint"</span>),
+  <span class='kw'>addCov</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>matrix</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>sigmaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>sigmaLower</span> <span class='kw'>=</span> -<span class='fl'>Inf</span>,
+  <span class='kw'>sigmaUpper</span> <span class='kw'>=</span> <span class='fl'>Inf</span>,
+  <span class='kw'>nCoresRV</span> <span class='kw'>=</span> <span class='fl'>1L</span>,
+  <span class='kw'>sigmaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>nDisplayProgress</span> <span class='kw'>=</span> <span class='fl'>10000L</span>,
+  <span class='kw'>amountUnits</span> <span class='kw'>=</span> <span class='fl'>NA_character_</span>,
+  <span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hours"</span>,
+  <span class='no'>stiff</span>,
+  <span class='kw'>theta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>thetaLower</span> <span class='kw'>=</span> -<span class='fl'>Inf</span>,
+  <span class='kw'>thetaUpper</span> <span class='kw'>=</span> <span class='fl'>Inf</span>,
+  <span class='kw'>eta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>addDosing</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>stateTrim</span> <span class='kw'>=</span> <span class='fl'>Inf</span>,
+  <span class='kw'>updateObject</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>omegaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>omegaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>omegaLower</span> <span class='kw'>=</span> -<span class='fl'>Inf</span>,
+  <span class='kw'>omegaUpper</span> <span class='kw'>=</span> <span class='fl'>Inf</span>,
+  <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='fl'>1L</span>,
+  <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>,
+  <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"rxSolve"</span>, <span class='st'>"matrix"</span>, <span class='st'>"data.frame"</span>, <span class='st'>"data.frame.TBS"</span>, <span class='st'>"data.table"</span>,
+    <span class='st'>"tbl"</span>, <span class='st'>"tibble"</span>),
+  <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>minSS</span> <span class='kw'>=</span> <span class='fl'>10L</span>,
+  <span class='kw'>maxSS</span> <span class='kw'>=</span> <span class='fl'>1000L</span>,
+  <span class='kw'>infSSstep</span> <span class='kw'>=</span> <span class='fl'>12</span>,
+  <span class='kw'>strictSS</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>istateReset</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>subsetNonmem</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>linLog</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>maxAtolRtolFactor</span> <span class='kw'>=</span> <span class='fl'>0.1</span>,
+  <span class='kw'>from</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>to</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>by</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>length.out</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>drop</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>idFactor</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>mxhnil</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>hmxi</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>warnIdSort</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>warnDrop</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>ssAtol</span> <span class='kw'>=</span> <span class='fl'>1e-08</span>,
+  <span class='kw'>ssRtol</span> <span class='kw'>=</span> <span class='fl'>1e-06</span>,
+  <span class='kw'>safeZero</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
+)
 
 <span class='fu'>rxSolve</span>(<span class='no'>object</span>, <span class='no'>...</span>)
 
 <span class='co'># S3 method for default</span>
-<span class='fu'>rxSolve</span>(<span class='no'>object</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>...</span>)
+<span class='fu'>rxSolve</span>(<span class='no'>object</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>...</span>)
 
 <span class='co'># S3 method for rxSolve</span>
 <span class='fu'><a href='https://rdrr.io/r/stats/update.html'>update</a></span>(<span class='no'>object</span>, <span class='no'>...</span>)
@@ -557,7 +611,10 @@ first model time, 102 is the second etc.</p></li>
       <td><p>When amounts/concentrations in one of the states
 are above this value, trim them to be this value. By default
 Inf.  Also trims to -stateTrim for large negative
-amounts/concentrations</p></td>
+amounts/concentrations.  If you want to trim between a range
+say `c(0, 2000000)` you may specify 2 values with a lower and
+upper range to make sure all state values are in the
+reasonable range.</p></td>
     </tr>
     <tr>
       <th>updateObject</th>
@@ -758,6 +815,10 @@ are added to the data LOCF (Last Observation Carried forward)
 imputation is performed.</p></td>
     </tr>
     <tr>
+      <th>drop</th>
+      <td><p>Columns to drop from the output</p></td>
+    </tr>
+    <tr>
       <th>idFactor</th>
       <td><p>This boolean indicates if original ID values
 should be maintained. This changes the default sequentially
@@ -784,6 +845,11 @@ This option is only considered with method=liblsoda.</p></td>
       <td><p>Warn if the ID is not present and RxODE assumes
 the order of the parameters/iCov are the same as the order of
 the parameters in the input dataset.</p></td>
+    </tr>
+    <tr>
+      <th>warnDrop</th>
+      <td><p>Warn if column(s) were supposed to be dropped, but
+were not present.</p></td>
     </tr>
     <tr>
       <th>ssAtol</th>

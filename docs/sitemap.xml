@@ -13,9 +13,6 @@
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/add.sampling.html</loc>
   </url>
   <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/reference/as.data.frame.rxEvid.html</loc>
-  </url>
-  <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/as.data.table.rxEt.html</loc>
   </url>
   <url>
@@ -92,6 +89,12 @@
   </url>
   <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/is.rxSolve.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/reference/pillar_shaft.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/reference/pillar_shaft.rxRateDur.html</loc>
   </url>
   <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/plus-.rxSolve.html</loc>

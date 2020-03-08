@@ -83,7 +83,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.2.0</span>
       </span>
     </div>
 
@@ -249,12 +249,23 @@
     <p>This is for the so-called inner problem.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rxSymPySetupPred</span>(<span class='no'>obj</span>, <span class='no'>predfn</span>, <span class='kw'>pkpars</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>errfn</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>init</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>grad</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>sum.prod</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>pred.minus.dv</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>theta.derivs</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>only.numeric</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>grad.internal</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>theta.internal</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>optExpression</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>run.internal</span> <span class='kw'>=</span> <span class='no'>RxODE.sympy.run.internal</span>,
-  <span class='kw'>interaction</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+    <pre class="usage"><span class='fu'>rxSymPySetupPred</span>(
+  <span class='no'>obj</span>,
+  <span class='no'>predfn</span>,
+  <span class='kw'>pkpars</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>errfn</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>init</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>grad</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>sum.prod</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>pred.minus.dv</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>theta.derivs</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>only.numeric</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>grad.internal</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>theta.internal</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>optExpression</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>run.internal</span> <span class='kw'>=</span> <span class='no'>RxODE.sympy.run.internal</span>,
+  <span class='kw'>interaction</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
