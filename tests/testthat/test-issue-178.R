@@ -1,9 +1,11 @@
 rxPermissive({
 
     context("Issue #178: deactivate active compiled model")
-
-    ## Define model
-    ode <- "
+    test_that("178", {
+        ## Define model
+        skip_on_os("solaris")
+        skip_on_os("mac")
+        ode <- "
    C2 = centr/V2;
    C3 = peri/V3;
    d/dt(depot) = -KA*depot;
@@ -25,6 +27,8 @@ rxPermissive({
     mod1 <- RxODE(model = ode, modName = "mod1")
 
     expect_equal(rxModelVars(ode)$params, rxModelVars(mod1)$params)
-
-
 })
+
+
+
+}, cran=FALSE)
