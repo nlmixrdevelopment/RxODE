@@ -1361,9 +1361,16 @@ rxCompile.rxModelVars <-  function(model, # Model
     .allModVars <- NULL;
     .needCompile <- TRUE
     if (file.exists(.cDllFile)){
-        try(dynLoad(.cDllFile), silent = TRUE);
         .modVars <- sprintf("%smodel_vars", prefix);
+        if (!missing(prefix) && is.loaded(.modVars)){
+            dyn.unload(.cDllFile)
+            unlink(.cDllFile)
+            unlink(.cFile)
+        }
+        try(dynLoad(.cDllFile), silent = TRUE);
         if (is.loaded(.modVars)){
+            print(.modVars)
+            stop()
             .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)
             .modVars <- .allModVars$md5;
             if (any(names(.modVars) == "parsed_md5")){
