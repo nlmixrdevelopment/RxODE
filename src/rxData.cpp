@@ -8,6 +8,7 @@
 // NONMEM nTHETA=20
 // NONMEM nETA=30
 // NONMEM nSIGMA=10
+
 #define NPARS 60
 #include <RcppArmadillo.h>
 #include <Rmath.h>
@@ -446,14 +447,10 @@ bool _RxODE_found = false;
 Environment _RxODE;
 
 Environment RxODEenv(){
-  if (_RxODE_found){
-    return _RxODE;
-  } else {
-    Function loadNamespace("loadNamespace", R_BaseNamespace);
-    _RxODE = loadNamespace("RxODE");
-    _RxODE_found = true;
-    return _RxODE;
-  }
+  Function loadNamespace("loadNamespace", R_BaseNamespace);
+  _RxODE = loadNamespace("RxODE");
+  _RxODE_found = true;
+  return _RxODE;
 }
 // Export for C.
 //[[Rcpp::export]]
@@ -698,6 +695,7 @@ List rxModelVars_list(const RObject &obj){
 
 // [[Rcpp::export]]
 List rxModelVars_(const RObject &obj){
+  if (obj == NULL) return rxModelVars_blank();
   getRxModels();
   if (rxIs(obj, "rxModelVars")){
     List ret(obj);
