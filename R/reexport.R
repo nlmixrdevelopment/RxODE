@@ -129,14 +129,18 @@ ggplot2::ylab
 ##'@export
 ggplot2::xlab
 
+##'@importFrom ggplot2 waiver
+##' @export
+ggplot2::waiver
+
 ##' Empty Guide
 ##'
 ##' This empty guide draws nothing; It is included in RxODE for
 ##' compatibility with ggplot 3.2
 ##'
-##' @inheritParams guide_none
+##' @inheritParams ggplot2::guide_none
 ##'@export
-guide_none <- function(title, position) {
+guide_none <- function(title=waiver(), position=waiver()) {
     stop("needs \"ggplot2\" 3.3.0")
 }
 

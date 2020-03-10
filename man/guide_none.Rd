@@ -6,6 +6,15 @@
 \usage{
 guide_none(title = waiver(), position = waiver())
 }
+\arguments{
+\item{title}{A character string or expression indicating a title of guide.
+If \code{NULL}, the title is not shown. By default
+(\code{\link[ggplot2:waiver]{waiver()}}), the name of the scale object or the name
+specified in \code{\link[ggplot2:labs]{labs()}} is used for the title.}
+
+\item{position}{Where this guide should be drawn: one of top, bottom,
+left, or right.}
+}
 \description{
 This empty guide draws nothing; It is included in RxODE for
 compatibility with ggplot 3.2
