@@ -129,6 +129,12 @@ ggplot2::ylab
 ##'@export
 ggplot2::xlab
 
+##' Empty Guide
+##'
+##' This empty guide draws nothing; It is included in RxODE for
+##' compatibility with ggplot 3.2
+##'
+##' @inheritParams guide_none
 ##'@export
 guide_none <- function(title, position) {
     stop("needs \"ggplot2\" 3.3.0")
