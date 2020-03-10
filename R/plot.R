@@ -1,3 +1,36 @@
+#' @importFrom ggplot2 %+replace%
+`%+replace%`
+rx_theme <- function(){
+    .greyText <- ggplot2::element_text(color="#808078")
+    .greyLabTextX <- ggplot2::element_text(color="#808078", face="bold")
+    .greyLabTextY <- ggplot2::element_text(color="#808078", face="bold", angle=90)
+    .title <- ggplot2::element_text(colour = "#808078", face="bold", hjust=0)
+    .subTitle <- ggplot2::element_text(colour = "#808078", face="bold", hjust=0)
+    .greyTick <- ggplot2::element_line(color="#808078")
+    .greyMajor <- ggplot2::element_line(color="#BFBFB4")
+    .greyMinor <- ggplot2::element_line(color="#E6E6D8")
+    .theme <- ggplot2::theme_bw() %+replace%
+        ggplot2::theme(plot.title = .title,
+                       plot.subtitle = .title,
+                       panel.border = ggplot2::element_blank(),
+                       ## panel.background = ggplot2::element_rect(fill = "#FFFFF7", colour = NA),
+                       panel.grid.minor=.greyMinor,
+                       panel.grid.major=.greyMajor,
+                       axis.text.x=.greyText,
+                       axis.text.y=.greyText,
+                       axis.title.x=.greyLabTextX,
+                       axis.title.y=.greyLabTextY,
+                       axis.ticks.x=.greyTick,
+                       axis.ticks.y=.greyTick,
+                       strip.text=ggplot2::element_text(color="#FFFFF7", size=14, face="bold"),
+                       strip.background =ggplot2::element_rect(fill="#808078", color=NA)
+                       )
+    ## If above ggplot2 3.2.1 then add plot.title.position="plot"
+    if (utils::packageVersion("ggplot2") > "3.2.1"){
+        .theme <- .theme %+replace% ggplot2::theme(plot.title.position="plot")
+    }
+}
+
 ##'@export
 plot.rxSolve <- function(x,y,..., log="") {
     .data <- NULL
@@ -34,36 +67,8 @@ plot.rxSolve <- function(x,y,..., log="") {
     .facet <- facet_wrap( ~ trt, scales="free_y")
     if (length(.cmts) == 1) .facet <- NULL
     .ylab <- ylab("")
-    .greyText <- ggplot2::element_text(color="#808078")
-    .greyLabTextX <- ggplot2::element_text(color="#808078", face="bold")
-    .greyLabTextY <- ggplot2::element_text(color="#808078", face="bold", angle=90)
-    .title <- ggplot2::element_text(colour = "#808078", face="bold", hjust=0)
-    .subTitle <- ggplot2::element_text(colour = "#808078", face="bold", hjust=0)
-    .greyTick <- ggplot2::element_line(color="#808078")
-    .greyMajor <- ggplot2::element_line(color="#BFBFB4")
-    .greyMinor <- ggplot2::element_line(color="#E6E6D8")
-    .theme <- ggplot2::theme_bw() %+replace%
-        ggplot2::theme(plot.title = .title,
-                       plot.subtitle = .title,
-                       panel.border = ggplot2::element_blank(),
-                       ## panel.background = ggplot2::element_rect(fill = "#FFFFF7", colour = NA),
-                       panel.grid.minor=.greyMinor,
-                       panel.grid.major=.greyMajor,
-                       axis.text.x=.greyText,
-                       axis.text.y=.greyText,
-                       axis.title.x=.greyLabTextX,
-                       axis.title.y=.greyLabTextY,
-                       axis.ticks.x=.greyTick,
-                       axis.ticks.y=.greyTick,
-                       strip.text=ggplot2::element_text(color="#FFFFF7", size=14, face="bold"),
-                       strip.background =ggplot2::element_rect(fill="#808078", color=NA)
-                       )
-    ## If above ggplot2 3.2.1 then add plot.title.position="plot"
-    if (utils::packageVersion("ggplot2") > "3.2.1"){
-        .theme <- .theme %+replace% ggplot2::theme(plot.title.position="plot")
-    }
+    .theme <- rx_theme()
     if (!getOption("RxODE.theme_bw", TRUE)) .theme <- NULL
-
     .repel <- NULL
     .legend <- NULL
     .line <- geom_line(size=1.2)
@@ -87,15 +92,28 @@ plot.rxSolve <- function(x,y,..., log="") {
     .xgxr <- getOption("RxODE.xgxr", TRUE) &&
         requireNamespace("xgxr", quietly = TRUE);
     .timex <- NULL
-    .xlab <- xlab("Time")
     .unit <- NULL
+    .xgxrT <- function(.unit){
+        if (!.xgxr) return(NULL);
+        .timex <- xgxr::xgx_scale_x_time_units(.unit)
+        if (inherits(.timex, "list")){
+            .w <- which(sapply(seq_along(.timex), function(x){
+                       inherits(.timex[[x]], "labels")
+                   }))
+            if (length(.w) > 0){
+                .timex <- .timex[-.w]
+            }
+        }
+        return(.timex)
+    }
     if (inherits(.dat$time, "units")) {
-        .unit <- as.character(units(s$time))
+        .unit <- as.character(units(.dat$time))
         .dat$time <- units::drop_units(.dat$time)
+        .timex <- .xgxrT(.unit)
         .xlab <- xlab(sprintf("Time [%s]", .unit))
-        if (.xgxr) .timex <- xgxr::xgx_scale_x_time_units(.unit)
-    } else if (.xgxr) {
-        .timex <- xgxr::xgx_scale_x_time_units("hr")
+    } else {
+        .timex <- .xgxrT("h")
+        .xlab <- xlab("Time")
     }
     if (is.character(log) && length(log) == 1){
         if (length(.cmts) == 2) .facet <- NULL
@@ -129,13 +147,13 @@ plot.rxSolve <- function(x,y,..., log="") {
     ggplot(.dat, .aes) +
         .line +
         .facet +
-        .ylab +
-        .xlab +
         .theme +
         .repel +
         .timex +
         .logx +
         .logy +
+        .ylab +
+        .xlab +
         .legend ->
         .gg
 
