@@ -129,9 +129,10 @@ ggplot2::ylab
 ##'@export
 ggplot2::xlab
 
-##'@importFrom ggplot2 guide_none
 ##'@export
-ggplot2::guide_none
+guide_none <- function(title, position) {
+    stop("needs \"ggplot2\" 3.3.0")
+}
 
 ##'@importFrom lotri lotri
 ##'@export

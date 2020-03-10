@@ -70,7 +70,7 @@ Imports:
     brew,
     cli,
     dparser (>= 0.1.8),
-    ggplot2 (>= 3.3.0),
+    ggplot2,
     ggforce,
     inline,
     magrittr,

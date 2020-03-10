@@ -1,3 +1,9 @@
+.ggplot2Fix <- function(){
+    .ggplot2 <- loadNamespace("ggplot2")
+    if (any(ls(.ggplot2) == "guide_none")){
+        assignInMyNamespace("guide_none", .ggplot2$guide_none)
+    }
+}
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
@@ -8,6 +14,7 @@
         setProgSupported(0);
     }
     .getDTEnv()
+    .ggplot2Fix()
 } ## nocov end
 
 .onAttach <- function(libname, pkgname){
@@ -23,6 +30,7 @@
     }
     rxTempDir()
     .getDTEnv()
+    .ggplot2Fix()
 }
 
 .onUnload <- function (libpath) {
