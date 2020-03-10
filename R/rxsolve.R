@@ -1077,50 +1077,6 @@ print.rxModelText <- function(x, ...){
 }
 
 ##'@export
-plot.rxSolve <- function(x,y,...){
-    ## nocov start
-    .cmts <- c(as.character(substitute(y)),
-               names(sapply(as.character(as.list(match.call()[-(1:3)])),`c`)))
-    if (length(.cmts)==1 &&.cmts[1]==""){
-        .cmts <- NULL
-    }
-    .dat <- rxStack(x,.cmts);
-    time <- value <- id <- sim.id  <- NULL
-    if (any(names(.dat)=="id")){
-        .dat$id <- factor(.dat$id);
-        if (length(.cmts)==1){
-            .ret <- ggplot(.dat,ggplot2::aes(time,value,color=id))+
-                geom_line(size=1.2) + ylab(.cmts)
-        } else {
-            .ret <- ggplot(.dat,ggplot2::aes(time,value,color=id))+
-                geom_line(size=1.2) +facet_wrap( ~ trt, scales="free_y")
-        }
-    } else if (any(names(.dat)=="sim.id")){
-        .dat$sim.id <- factor(.dat$sim.id);
-        if (length(.cmts)==1){
-            .ret <- ggplot(.dat,ggplot2::aes(time,value,color=sim.id))+
-                geom_line(size=1.2) + ylab(.cmts)
-        } else {
-            .ret <- ggplot(.dat,ggplot2::aes(time,value,color=sim.id))+
-                geom_line(size=1.2) +facet_wrap( ~ trt, scales="free_y")
-        }
-    } else {
-        if (length(.cmts)==1){
-            .ret <- ggplot(.dat,ggplot2::aes(time,value))+
-                geom_line(size=1.2) + ylab(.cmts)
-        } else {
-            .ret <- ggplot(.dat,ggplot2::aes(time,value))+
-                geom_line(size=1.2) +facet_wrap(~ trt, scales="free_y")
-        }
-    }
-    if (getOption("RxODE.theme_bw", TRUE)){
-        .ret <- .ret + ggplot2::theme_bw()
-    }
-    return(.ret)
-    ## nocov end
-}
-
-##'@export
 drop_units.rxSolve <- function(x){
     dropUnitsRxSolve(x);
 }

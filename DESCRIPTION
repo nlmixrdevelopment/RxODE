@@ -62,7 +62,9 @@ Suggests:
     learnr,
     remotes,
     crayon,
-    digest
+    xgxr,
+    digest,
+    vdiffr
 Imports:
     Matrix,
     PreciseSums (>= 0.3),
@@ -71,7 +73,6 @@ Imports:
     cli,
     dparser (>= 0.1.8),
     ggplot2,
-    ggforce,
     inline,
     magrittr,
     memoise,
