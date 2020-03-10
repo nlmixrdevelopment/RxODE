@@ -64,7 +64,8 @@ Suggests:
     crayon,
     xgxr,
     digest,
-    vdiffr
+    vdiffr,
+    ggrepel
 Imports:
     Matrix,
     PreciseSums (>= 0.3),
