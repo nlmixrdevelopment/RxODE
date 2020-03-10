@@ -1364,9 +1364,10 @@ rxCompile.rxModelVars <-  function(model, # Model
         .modVars <- sprintf("%smodel_vars", prefix);
         if (!missing(prefix) && !missing(dir) &&
             regexpr(rex::rex(start,"rx_", n_times(any,32),or("_x64","_i386","_", "")),
-                    prefix) != -1 &&
+                    prefix) == -1 &&
             is.loaded(.modVars)){
             dyn.unload(.cDllFile)
+            unlink(.cFile)
             unlink(.cDllFile)
         } else {
             try(dynLoad(.cDllFile), silent = TRUE);
