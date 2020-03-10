@@ -36,18 +36,6 @@ function(x, ...) {
   pillar::new_pillar_shaft_simple(out, align = "right", min_width = 6)
 }
 
-
-## Now ggforce
-
-##'@export
-scale_x_unit <- ggforce::scale_x_unit
-
-##'@export
-scale_y_unit <- ggforce::scale_y_unit
-
-##'@export
-ScaleContinuousPositionUnit <- ggforce::ScaleContinuousPositionUnit
-
 ##'@export
 scale_type <- ggplot2::scale_type
 
@@ -62,24 +50,6 @@ geom_line <- ggplot2::geom_line
 
 ##'@export
 facet_wrap <- ggplot2::facet_wrap
-
-##'@export
-##'@name tibble
-scale_type.units <- loadNamespace("ggforce")$scale_type.units
-
-
-#' @importFrom ggforce facet_wrap_paginate
-#' @export
-ggforce::facet_wrap_paginate
-
-
-#' @importFrom ggforce facet_grid_paginate
-#' @export
-ggforce::facet_grid_paginate
-
-#' @importFrom ggforce ScaleContinuousPositionUnit
-#' @export
-ggforce::ScaleContinuousPositionUnit
 
 #' @importFrom ggplot2 aes
 #' @export
@@ -102,16 +72,6 @@ ggplot2::ggplot
 #' @importFrom ggplot2 scale_type
 #' @export
 ggplot2::scale_type
-
-#' @importFrom ggforce scale_x_unit
-#' @export
-ggforce::scale_x_unit
-
-
-#' @importFrom ggforce scale_y_unit
-#' @export
-ggforce::scale_y_unit
-
 
 #' @importFrom units set_units
 #' @export

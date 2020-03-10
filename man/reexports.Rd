@@ -4,16 +4,11 @@
 \name{reexports}
 \alias{reexports}
 \alias{\%>\%}
-\alias{facet_wrap_paginate}
-\alias{facet_grid_paginate}
-\alias{ScaleContinuousPositionUnit}
 \alias{aes}
 \alias{facet_wrap}
 \alias{geom_line}
 \alias{ggplot}
 \alias{scale_type}
-\alias{scale_x_unit}
-\alias{scale_y_unit}
 \alias{set_units}
 \alias{drop_units}
 \alias{ylab}
@@ -39,8 +34,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{ggforce}{\code{\link[ggforce]{facet_grid_paginate}}, \code{\link[ggforce]{facet_wrap_paginate}}, \code{\link[ggforce]{scale_x_unit}}, \code{\link[ggforce]{scale_y_unit}}, \code{\link[ggforce]{ScaleContinuousPositionUnit}}}
-
   \item{ggplot2}{\code{\link[ggplot2]{aes}}, \code{\link[ggplot2]{expand_limits}}, \code{\link[ggplot2]{facet_wrap}}, \code{\link[ggplot2]{geom_line}}, \code{\link[ggplot2]{ggplot}}, \code{\link[ggplot2]{label_both}}, \code{\link[ggplot2]{label_context}}, \code{\link[ggplot2]{label_context}}, \code{\link[ggplot2]{label_value}}, \code{\link[ggplot2]{label_wrap_gen}}, \code{\link[ggplot2]{scale_type}}, \code{\link[ggplot2]{scale_x_continuous}}, \code{\link[ggplot2]{scale_x_date}}, \code{\link[ggplot2]{scale_x_discrete}}, \code{\link[ggplot2]{scale_y_continuous}}, \code{\link[ggplot2]{scale_y_date}}, \code{\link[ggplot2]{scale_y_discrete}}, \code{\link[ggplot2]{waiver}}, \code{\link[ggplot2]{xlab}}, \code{\link[ggplot2]{ylab}}}
 
   \item{lotri}{\code{\link[lotri]{lotri}}}
