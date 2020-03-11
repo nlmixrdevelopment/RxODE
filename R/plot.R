@@ -1,11 +1,17 @@
 #' @importFrom ggplot2 %+replace%
 `%+replace%`
-rx_theme <- function(){
+rx_theme <- function(base_size = 11, base_family = "",
+                     base_line_size = base_size / 22,
+                     base_rect_size = base_size / 22){
+    half_line <- base_size / 2
     .greyText <- ggplot2::element_text(color="#808078")
     .greyLabTextX <- ggplot2::element_text(color="#808078", face="bold")
     .greyLabTextY <- ggplot2::element_text(color="#808078", face="bold", angle=90)
-    .title <- ggplot2::element_text(colour = "#808078", face="bold", hjust=0)
-    .subTitle <- ggplot2::element_text(colour = "#808078", face="bold", hjust=0)
+    .title <- ggplot2::element_text(colour = "#808078", face="bold", hjust=0,
+                                    size = ggplot2::rel(1.2),
+                                    margin = ggplot2::margin(b = half_line))
+    .subTitle <- ggplot2::element_text(colour = "#808078", face="bold", hjust=0,
+                                       margin=ggplot2::margin(b = half_line))
     .greyTick <- ggplot2::element_line(color="#808078")
     .greyMajor <- ggplot2::element_line(color="#BFBFB4")
     .greyMinor <- ggplot2::element_line(color="#E6E6D8")
@@ -31,74 +37,7 @@ rx_theme <- function(){
     }
 }
 
-##'@export
-plot.rxSolve <- function(x,y,..., log="") {
-    .data <- NULL
-    .call <- as.list(match.call()[-(1:3)])
-    .call <- .call[!names(.call) %in% c("x", "y", "log")]
-    .cmts <- c(as.character(substitute(y)),
-               names(sapply(as.character(.call),`c`)))
-    if (length(.cmts)==1 &&.cmts[1]=="") {
-        .cmts <- NULL
-    }
-    .dat <- rxStack(x,.cmts);
-    .nlvl <- 1L
-    if (any(names(.dat) == "id")) {
-        if (any(names(.dat) == "sim.id")){
-            .dat$id <- factor(paste0("id=", .dat$id, ", sim.id=", .dat$sim.id))
-        } else {
-            .dat$id <- factor(.dat$id)
-        }
-        .nlvl <- length(levels(.dat$id))
-        .dat2 <- .dat[rev(seq_along(.dat$id)), ];
-        .dat2$label <- .dat$id
-        .dat2$time <- units::drop_units(.dat2$time)
-        row.names(.dat2) <- NULL
-        .dat2 <- .dat2[!duplicated(paste0(.dat2$id, .dat2$trt)), ];
-        .aes <- aes(.data$time, .data$value, color=.data$id)
-        .aesG <- aes(.data$time, .data$value, group=.data$id)
-        .aesLab <- aes(label=.data$label);
-    } else if (any(names(.dat) == "sim.id")){
-        .dat$sim.id <- factor(.dat$sim.id)
-        .nlvl <- length(levels(.dat$sim.id))
-        .dat2 <- .dat[rev(seq_along(.dat$sim.id)), ];
-        .dat2$label <- .dat$id
-        .dat2$time <- units::drop_units(.dat2$time)
-        row.names(.dat2) <- NULL
-        .dat2 <- .dat2[!duplicated(paste0(.dat2$sim.id, .dat2$trt)), ];
-        .aes <- aes(.data$time, .data$value, color=.data$sim.id)
-        .aesG <- aes(.data$time, .data$value, group=.data$sim.id)
-        .aesLab <- aes(label=.data$label);
-    } else {
-        .aes <- aes(.data$time, .data$value)
-    }
-    .facet <- facet_wrap( ~ trt, scales="free_y")
-    if (length(.cmts) == 1) .facet <- NULL
-    .ylab <- ylab("")
-    .theme <- rx_theme()
-    if (!getOption("RxODE.theme_bw", TRUE)) .theme <- NULL
-    .repel <- NULL
-    .legend <- NULL
-    .line <- geom_line(size=1.2)
-    .rxSpaghetti <- getOption("RxODE.spaghetti", 7L)
-    .ggrepel <- getOption("RxODE.ggrepel", TRUE) &&
-        requireNamespace("ggrepel", quietly = TRUE)
-    if (.nlvl > 1 && .nlvl < .rxSpaghetti && .ggrepel && is.null(.facet)) {
-        .repel <- ggrepel::geom_label_repel(.aesLab, data=.dat2, nudge_x=1,
-                                            fontface="bold", size=5)
-        .legend <- ggplot2::guides(color = FALSE)
-    } else {
-        if (.nlvl < .rxSpaghetti) {
-            .legend <- ggplot2::theme(legend.title=ggplot2::element_blank())
-        } else {
-            .legend <-ggplot2::guides(color = FALSE)
-            .line <- geom_line(size=1.2, alpha=0.2)
-            .aes <- .aesG
-        }
-    }
-
-    .logx <- NULL
-    .logy <- NULL
+.plotTime <- function(.dat, xlab){
     .xgxr <- getOption("RxODE.xgxr", TRUE) &&
         requireNamespace("xgxr", quietly = TRUE)
     .timex <- NULL
@@ -108,8 +47,8 @@ plot.rxSolve <- function(x,y,..., log="") {
         .timex <- xgxr::xgx_scale_x_time_units(.unit)
         if (inherits(.timex, "list")){
             .w <- which(sapply(seq_along(.timex), function(x){
-                       inherits(.timex[[x]], "labels")
-                   }))
+                inherits(.timex[[x]], "labels")
+            }))
             if (length(.w) > 0){
                 .timex <- .timex[-.w]
             }
@@ -120,13 +59,20 @@ plot.rxSolve <- function(x,y,..., log="") {
         .unit <- as.character(units(.dat$time))
         .dat$time <- units::drop_units(.dat$time)
         .timex <- .xgxrT(.unit)
-        .xlab <- xlab(sprintf("Time [%s]", .unit))
+        .xlab <- xlab(sprintf("%s [%s]", xlab, .unit))
     } else {
         .timex <- .xgxrT("h")
-        .xlab <- xlab("Time")
+        .xlab <- xlab(xlab)
     }
+    list(.timex, .xlab, .dat)
+}
+
+.plotLog <- function(.dat, .timex, log=""){
+    .logx <- NULL
+    .logy <- NULL
+    .xgxr <- getOption("RxODE.xgxr", TRUE) &&
+        requireNamespace("xgxr", quietly = TRUE)
     if (is.character(log) && length(log) == 1){
-        if (length(.cmts) == 2) .facet <- NULL
         if (log == "x") {
             .dat <- .dat[.dat$time > 0, ]
             if (.xgxr) {
@@ -156,6 +102,87 @@ plot.rxSolve <- function(x,y,..., log="") {
             stop(sprintf("'log=\"%s\"' not supported", log))
         }
     }
+    return(list(.timex, .logx, .logy, .dat))
+}
+
+##'@export
+plot.rxSolve <- function(x,y,..., log="",
+                         xlab="Time", ylab="") {
+    .data <- NULL
+    .call <- as.list(match.call()[-(1:3)])
+    .w <- names(.call) %in% c("x", "y", "log")
+    if (length(.w) > 0){
+        .call <- .call[-.w]
+    }
+    .cmts <- c(as.character(substitute(y)),
+               names(sapply(as.character(.call),`c`)))
+    if (length(.cmts)==1 &&.cmts[1]=="") {
+        .cmts <- NULL
+    }
+    .dat <- rxStack(x,.cmts);
+    .nlvl <- 1L
+    if (any(names(.dat) == "id")) {
+        if (any(names(.dat) == "sim.id")){
+            .dat$id <- factor(paste0("id=", .dat$id, ", sim.id=", .dat$sim.id))
+        } else {
+            .dat$id <- factor(.dat$id)
+        }
+        .nlvl <- length(levels(.dat$id))
+        .dat2 <- .dat[rev(seq_along(.dat$id)), ];
+        .dat2$label <- .dat$id
+        .dat2$time <- units::drop_units(.dat2$time)
+        row.names(.dat2) <- NULL
+        .dat2 <- .dat2[!duplicated(paste0(.dat2$id, .dat2$trt)), ];
+        .aes <- aes(.data$time, .data$value, color=.data$id)
+        .aesG <- aes(.data$time, .data$value, group=.data$id)
+        .aesLab <- aes(label=.data$label);
+    } else if (any(names(.dat) == "sim.id")){
+        .dat$sim.id <- factor(.dat$sim.id)
+        .nlvl <- length(levels(.dat$sim.id))
+        .dat2 <- .dat[rev(seq_along(.dat$sim.id)), ];
+        .dat2$label <- .dat$sim.id
+        .dat2$time <- units::drop_units(.dat2$time)
+        row.names(.dat2) <- NULL
+        .dat2 <- .dat2[!duplicated(paste0(.dat2$sim.id, .dat2$trt)), ];
+        .aes <- aes(.data$time, .data$value, color=.data$sim.id)
+        .aesG <- aes(.data$time, .data$value, group=.data$sim.id)
+        .aesLab <- aes(label=.data$label);
+    } else {
+        .aes <- aes(.data$time, .data$value)
+    }
+    .facet <- facet_wrap( ~ trt, scales="free_y")
+    if (length(.cmts) == 1) .facet <- NULL
+    .ylab <- ylab(ylab)
+    .theme <- rx_theme()
+    if (!getOption("RxODE.theme_bw", TRUE)) .theme <- NULL
+    .repel <- NULL
+    .legend <- NULL
+    .line <- geom_line(size=1.2)
+    .rxSpaghetti <- getOption("RxODE.spaghetti", 7L)
+    .ggrepel <- getOption("RxODE.ggrepel", TRUE) &&
+        requireNamespace("ggrepel", quietly = TRUE)
+    if (.nlvl > 1 && .nlvl < .rxSpaghetti && .ggrepel && is.null(.facet)) {
+        .repel <- ggrepel::geom_label_repel(.aesLab, data=.dat2, nudge_x=1,
+                                            fontface="bold", size=5)
+        .legend <- ggplot2::guides(color = FALSE)
+    } else {
+        if (.nlvl < .rxSpaghetti) {
+            .legend <- ggplot2::theme(legend.title=ggplot2::element_blank())
+        } else {
+            .legend <-ggplot2::guides(color = FALSE)
+            .line <- geom_line(size=1.2, alpha=0.2)
+            .aes <- .aesG
+        }
+    }
+    .lst <- .plotTime(.dat, xlab);
+    .timex <- .lst[[1]]
+    .xlab <- .lst[[2]]
+    .dat <- .lst[[3]]
+    .lst <- .plotLog(.dat, .timex, log)
+    .timex <- .lst[[1]]
+    .logx <- .lst[[2]]
+    .logy <- .lst[[3]]
+    .dat <- .lst[[4]]
     ggplot(.dat, .aes) +
         .line +
         .facet +
@@ -168,6 +195,56 @@ plot.rxSolve <- function(x,y,..., log="") {
         .xlab +
         .legend ->
         .gg
-
     .gg
+}
+
+
+##'@export
+plot.rxSolveConfint1 <- function(x,y,..., xlab="Time", ylab="", log=""){
+    .data <- NULL
+    .lvl <- attr(class(x), ".rx")$lvl
+    .parm <- attr(class(x), ".rx")$parm
+    .aes <- aes(.data$time, .data$eff)
+    .facet <- NULL
+    .dat <- x
+    .lst <- .plotTime(.dat, xlab);
+    .timex <- .lst[[1]]
+    .xlab <- .lst[[2]]
+    .dat <- .lst[[3]]
+    .lst <- .plotLog(.dat, .timex, log)
+    .timex <- .lst[[1]]
+    .logx <- .lst[[2]]
+    .logy <- .lst[[3]]
+    .dat <- .lst[[4]]
+    if (length(.parm) > 1){
+        .facet <- facet_wrap( ~ trt, scales="free_y")
+    }
+    .line <- geom_line(size=1.2, show.legend = !is.null(.facet))
+    .theme <- NULL
+    if (getOption("RxODE.theme_bw", TRUE)){
+        .theme <- rx_theme()
+    }
+    .ylab <- ylab(ylab)
+    .dat$p <- .dat$Percentile
+    .d2 <- .dat[!duplicated(.dat$Percentile), ];
+    .d2 <- .d2[.d2$Percentile != "50%", ]
+    .dat0 <- .dat[.dat$Percentile == "50%", ];
+    .dat0$low <- .dat$eff[.dat$Percentile == .d2$Percentile[1]]
+    .dat0$up <- .dat$eff[.dat$Percentile == .d2$Percentile[2]]
+    .aesR <- ggplot2::aes(ymin=.data$low,ymax=.data$up)
+    .ribbon <- ggplot2::geom_ribbon(.aesR,alpha=0.5, fill="gray50")
+    ## .title <- ggplot2::ggtitle(paste0("50% [", .d2$Percentile[1], ", ",
+    ##                                 .d2$Percentile[2], "]"))
+    ggplot2::ggplot(.dat0, .aes) +
+        .ribbon +
+        .line +
+        .facet +
+        .timex +
+        .logx +
+        .logy +
+        .xlab +
+        .ylab +
+        .theme ->
+        .ret
+    return(.ret)
 }
