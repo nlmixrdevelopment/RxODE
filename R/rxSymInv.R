@@ -451,13 +451,6 @@ rxSymInvCholCreate <- function(mat,
     }
 }
 
-##'@export
-print.rxSymInvChol <- function(x, ...){ #nocov start
-    d <- dim(x$fmat)[1]
-    cat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
-    print(x$fmat);
-    cat("Use `rxSymInvChol' for the matrix.\n");
-} #nocov end
 
 ##'@export
 `$.rxSymInvCholEnv` <- function(obj, arg, exact = TRUE){
@@ -477,32 +470,5 @@ print.rxSymInvChol <- function(x, ...){ #nocov start
 ## sum(log(diag)); Therefore for inner problem only calculate these
 ## two quantities.  For outer problem, or gradient evaluation more is needed.
 
-##'@export
-print.rxSymInvCholEnv <- function(x, ...){ # nocov start
-    if (is.null(x$theta)){
-        cat(sprintf("Uninitialized $theta, please assign (requires %s arguments)!\n", x$ntheta))
-    } else {
-        cat(sprintf("$theta=c(%s) for:\n\n", paste(x$theta, collapse=", ")))
-        print(x$invobj$fmat)
-        cat("\nThis allows accessing $omegaInv, $omega, etc. For a full list see str(.)\n");
-    }
-} #nocov end
 
-
-##'@export
-str.rxSymInvCholEnv <- function(object, ...){ # nocov start
-    cat("Derivatives and Inverse of a matrix; Assigning theta will change these values.\n")
-    cat(" $ theta             : Current parameters (on inverse Cholesky)\n")
-    cat(" $ ntheta            : Number of parameters\n")
-    cat(" $ chol.omegaInv     : chol(Omega^-1)\n")
-    cat(" $ omegaInv          : Omega^-1\n")
-    cat(" $ d.omegaInv        : d(Omega^-1)\n")
-    cat(" $ d.D.omegaInv      : gives the d(diagonal(Omega^-1))\n")
-    cat(" $ chol.omega        : chol(Omega)\n")
-    cat(" $ omega             : Omega\n")
-    cat(" $ log.det.OMGAinv.5 : log(det(Omega^-1))\n")
-    cat(" $ tr.28             : -0.5*tr(Omega^-1 %*% d(Omega)) = 0.5*tr(d(Omega^-1) %*% Omega); (Almquist 2015 #28)\n")
-    cat(" $ omega.47          : d(Omega^-1)*d(eta) (Almquist 2015 #47)\n")
-    cat(" $ theta.diag        : indicator of diagonal theta values\n")
-} #nocov end
 

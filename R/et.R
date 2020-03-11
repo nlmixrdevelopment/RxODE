@@ -657,81 +657,6 @@ simulate.rxEt <- #nolint
     }
 }
 
-
-##'@export
-print.rxEt <- function(x,...) {
-  ## nocov start
-  if (rxIs(x, "rxEt")) {
-    bound <- .getBound(x, parent.frame(2));
-    cat(cli::cli_format_method({
-      cli::cli_rule(center=crayon::bold(paste0("EventTable with ",x$nobs+x$ndose, " records")))
-    }), sep="\n")
-    ## sprintf(" with %s records%s:\n", x$nobs+x$ndose,
-    ##                                           ifelse(x$maxId==1, "", sprintf(" (%d IDs)", abs(x$maxId))))
-    .units <- x$.units;
-    .maxId <- length(x$IDs)
-    if (.maxId !=1) {
-      cat(sprintf("   %s individuals\n", .maxId))
-    }
-    cat(sprintf("   %s dosing records (see %s$%s(); add with %s or %s)\n",
-                x$ndose, crayon::yellow(bound), crayon::blue("get.dosing"),
-                crayon::blue("add.dosing"), crayon::blue("et")))
-    cat(sprintf("   %s observation times (see %s$%s(); add with %s or %s)\n",
-                x$nobs, crayon::yellow(bound), crayon::blue("get.sampling"),
-                crayon::blue("add.sampling"), crayon::blue("et")))
-    if (x$show["addl"]) {
-      cat(sprintf("   multiple doses in `addl` columns, expand with %s$%s(); or %s(%s)\n",
-                  crayon::yellow(bound), crayon::blue("expand"),
-                  crayon::blue("etExpand"), crayon::yellow(bound)))
-    }
-    if (x$nobs!=0 | x$ndose!=0) {
-      cat(cli::cli_format_method({
-        cli::cli_rule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":")))
-      }), sep="\n")
-      print(tibble::as_tibble(data.frame(.etAddCls(x))));
-    }
-    invisible(x)
-  } else {
-    print.data.frame(x)
-  }
-  ## nocov end
-}
-
-##'@export
-str.rxEt <- function(object, ...) {
-    ## nocov start
-    cat("rxEt methods and properties:\n");
-    cat(" $ get.EventTable   :function ()\n");
-    cat(" $ get.obs.rec      :function ()  \n");
-    cat(" $ get.nobs         :function ()  \n");
-    cat(" $ add.dosing       :function ()  \n");
-    cat(" $ clear.dosing     :function ()  \n");
-    cat(" $ get.dosing       :function ()  \n");
-    cat(" $ add.sampling     :function ()  \n");
-    cat(" $ clear.sampling   :function ()  \n");
-    cat(" $ get.sampling     :function ()  \n");
-    cat(" $ get.units        :function ()  \n");
-    cat(" $ import.EventTable:function ()  \n");
-    cat(" $ copy             :function ()  \n");
-    cat(" $ expand           :function ()  \n");
-    return(invisible(NextMethod("str", ...)))
-    ## nocov end
-}
-
-##'@export
-print.rxHidden <- function(x,...) {
-    ## nocov start
-    cat("\r");
-    ##nocov end
-}
-
-##'@export
-str.rxHidden <- function(object,...) {
-    ##nocov start
-    cat("\r");
-    ##nocov end
-}
-
 ##'@export
 drop_units.rxEt <- #nolint
     function(x) {
@@ -1336,19 +1261,7 @@ as.character.rxEvid <- function(x, ...) {
     return(.x)
 }
 
-##'@rdname rxEvid
-##'@export
-format.rxEvid <- function(x, ...) {
-    .x <- unclass(x)
-    format(as.character.rxEvid(.x), align="left", width=12);
-}
 
-##'@rdname rxEvid
-##' @export
-print.rxEvid <- function(x, ...) {
-    cat(paste(.colorFmt.rxEvid(x),collapse="\n"),"\n")
-    return(invisible(x))
-}
 
 ##'@rdname rxEvid
 ##' @export
@@ -1443,19 +1356,6 @@ as.character.rxRateDur <- function(x, ...) {
         ifelse(.x < 0, paste0(crayon::red(as.character(.x)), ":", crayon::red("Invalid")),
                .fmt(.x))))
     return(.x)
-}
-
-##'@export
-print.rxRateDur <- function(x, ...) {
-    cat(paste(.colorFmt.rxRateDur(x),collapse="\n"),"\n")
-    return(invisible(x))
-}
-
-##'@rdname rxEvid
-##'@export
-format.rxRateDur <- function(x, ...) {
-    .x <- unclass(x)
-    format(as.character.rxRateDur(.x), align="left");
 }
 
 ##'@rdname rxRateDur

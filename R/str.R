@@ -1,13 +1,8 @@
-#' @importFrom utils .DollarNames
-#' @export
-.DollarNames.rxEt <- function(x, pattern) {
-  grep(pattern, .Call(`_RxODE_etDollarNames`, x), value = TRUE)
+##'@export
+str.rxHidden <- function(object,...) {
+    cat("\r");
 }
 
-#' @export
-.DollarNames.rxSolve <- function(x, pattern) {
-  grep(pattern, .Call(`_RxODE_rxSolveDollarNames`, x), value = TRUE)
-}
 
 #' @importFrom utils str
 #' @export
@@ -150,4 +145,40 @@ str.rxSolve <- function(object, ..., nchar.max=128) {
   } else {
     NextMethod()
   }
+}
+
+##'@export
+str.rxEt <- function(object, ...) {
+    cat("rxEt methods and properties:\n");
+    cat(" $ get.EventTable   :function ()\n");
+    cat(" $ get.obs.rec      :function ()  \n");
+    cat(" $ get.nobs         :function ()  \n");
+    cat(" $ add.dosing       :function ()  \n");
+    cat(" $ clear.dosing     :function ()  \n");
+    cat(" $ get.dosing       :function ()  \n");
+    cat(" $ add.sampling     :function ()  \n");
+    cat(" $ clear.sampling   :function ()  \n");
+    cat(" $ get.sampling     :function ()  \n");
+    cat(" $ get.units        :function ()  \n");
+    cat(" $ import.EventTable:function ()  \n");
+    cat(" $ copy             :function ()  \n");
+    cat(" $ expand           :function ()  \n");
+    return(invisible(NextMethod("str", ...)))
+}
+
+##'@export
+str.rxSymInvCholEnv <- function(object, ...){
+    cat("Derivatives and Inverse of a matrix; Assigning theta will change these values.\n")
+    cat(" $ theta             : Current parameters (on inverse Cholesky)\n")
+    cat(" $ ntheta            : Number of parameters\n")
+    cat(" $ chol.omegaInv     : chol(Omega^-1)\n")
+    cat(" $ omegaInv          : Omega^-1\n")
+    cat(" $ d.omegaInv        : d(Omega^-1)\n")
+    cat(" $ d.D.omegaInv      : gives the d(diagonal(Omega^-1))\n")
+    cat(" $ chol.omega        : chol(Omega)\n")
+    cat(" $ omega             : Omega\n")
+    cat(" $ log.det.OMGAinv.5 : log(det(Omega^-1))\n")
+    cat(" $ tr.28             : -0.5*tr(Omega^-1 %*% d(Omega)) = 0.5*tr(d(Omega^-1) %*% Omega); (Almquist 2015 #28)\n")
+    cat(" $ omega.47          : d(Omega^-1)*d(eta) (Almquist 2015 #47)\n")
+    cat(" $ theta.diag        : indicator of diagonal theta values\n")
 }
