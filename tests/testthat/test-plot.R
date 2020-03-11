@@ -1,5 +1,5 @@
 rxPermissive({
-
+    library(units)
     context("plot tests")
     test_that("plot tests", {
         skip_if(utils::packageVersion("ggplot2") <= "3.2.1")
@@ -82,14 +82,17 @@ rxPermissive({
 
         expect_error(plot(sim, log="f"))
 
-        ev2 <- ev %>% units::drop_units()
+        ev2 <- et() %>%
+            et(amt=10000, cmt="centr", until=48, ii=8) %>%
+            et(0,48, length.out=100)
 
         sim  <- rxSolve(m2,ev2,omega=omega,nSub=3)
 
-        vdiffr::expect_doppelganger("sim.id-unitless", plot(sim))
-        option(RxODE.theme=FALSE)
-        vdiffr::expect_doppelganger("sim.id-unitless-notheme", plot(sim))
-        option(RxODE.theme=TRUE)
+        vdiffr::expect_doppelganger("sim.id-unitless", plot(sim, C2))
+
+        options(RxODE.theme=FALSE)
+        vdiffr::expect_doppelganger("sim.id-unitless-notheme", plot(sim, C2))
+        options(RxODE.theme=TRUE)
 
         ci1.C2 <- confint(sim, c("C2"))
 
@@ -187,4 +190,5 @@ rxPermissive({
     })
     options(RxODE.xgxr=TRUE)
     options(RxODE.ggrepel=TRUE)
+    options(RxODE.theme=TRUE)
 }, silent=TRUE, test="plot")
