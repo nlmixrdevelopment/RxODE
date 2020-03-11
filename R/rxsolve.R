@@ -1092,6 +1092,12 @@ drop_units.rxSolve <- function(x){
 ## [31] subset        tail          transform     unique        within
 
 
+.SD <- NULL
+`:=` <- function (...) {
+    stop("This is only used in data.table")
+}
+
+
 ##'@export
 confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...){
     RxODE::rxReq("data.table")
@@ -1131,7 +1137,7 @@ confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...){
     message("Summarizing data")
     .ret <- .stk[, id := sim.id %% .n
          ][, list(p1=.p, eff=stats::quantile(.SD$value, probs=.p, na.rm=TRUE)), by = c("id", "time", "trt")
-           ][,setNames(as.list(quantile(.SD$eff, probs=.p, na.rm=TRUE)),
+           ][,setNames(as.list(stats::quantile(.SD$eff, probs=.p, na.rm=TRUE)),
                        sprintf("p%s",.p*100)),
              by = c("p1", "time", "trt")
              ]

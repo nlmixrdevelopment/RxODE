@@ -1,4 +1,4 @@
-utils::globalVariables(c(".Jython", "add"));
+utils::globalVariables(c(".Jython", "add", "id", "sim.id"));
 ## Based on normalized grammar output by parser which has
 ## if (expr) {
 ## }

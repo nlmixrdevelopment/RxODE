@@ -35,7 +35,9 @@ rx_theme <- function(base_size = 11, base_family = "",
                        axis.title.y=.greyLabTextY,
                        axis.ticks.x=.greyTick,
                        axis.ticks.y=.greyTick,
-                       strip.text=ggplot2::element_text(color="#FFFFF7", size=14, face="bold"),
+                       strip.text=ggplot2::element_text(color="#FFFFF7", face="bold",
+                                                        size = ggplot2::rel(0.9),
+                                                        margin = ggplot2::margin(0.9 * half_line, 0.9 * half_line, 0.9 * half_line, 0.9 * half_line)),
                        strip.background =ggplot2::element_rect(fill="#808078", color=NA)
                        )
     ## If above ggplot2 3.2.1 then add plot.title.position="plot"

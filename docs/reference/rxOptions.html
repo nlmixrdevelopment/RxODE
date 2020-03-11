@@ -259,7 +259,8 @@ op.rx =1)" />
   <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fu'>.isTestthat</span>(),
   <span class='kw'>respect</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>cran</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>on.validate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
+  <span class='kw'>on.validate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>test</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
 )</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -288,11 +289,18 @@ elsewhere, otherwise the options are not changed.</p></td>
     </tr>
     <tr>
       <th>cran</th>
-      <td><p>When specified and true, run on CRAN. Otherwise it is skipped on CRAN.</p></td>
+      <td><p>When specified and true, run on CRAN. Otherwise it is
+skipped on CRAN.</p></td>
     </tr>
     <tr>
       <th>on.validate</th>
       <td><p>When TRUE run only when validating.</p></td>
+    </tr>
+    <tr>
+      <th>test</th>
+      <td><p>When specified as a string, the enclosed test is
+skipped unless the environmental variable "rxTest" equals this
+value.</p></td>
     </tr>
     </table>
 

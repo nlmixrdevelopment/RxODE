@@ -1877,7 +1877,6 @@ rxModelVars <- function(obj){
     return(.ret);
 }
 
-
 .rxGetModelInfoFromDll <- function(dll){
     .base <- basename(dll)
     if (nchar(.base) >= 36){

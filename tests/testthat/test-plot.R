@@ -86,12 +86,12 @@ rxPermissive({
             et(amt=10000, cmt="centr", until=48, ii=8) %>%
             et(0,48, length.out=100)
 
-        sim  <- rxSolve(m2,ev2,omega=omega,nSub=3)
+        sim3  <- rxSolve(m2,ev2,omega=omega,nSub=3)
 
-        vdiffr::expect_doppelganger("sim.id-unitless", plot(sim, C2))
+        vdiffr::expect_doppelganger("sim.id-unitless", plot(sim3, C2))
 
         options(RxODE.theme=FALSE)
-        vdiffr::expect_doppelganger("sim.id-unitless-notheme", plot(sim, C2))
+        vdiffr::expect_doppelganger("sim.id-unitless-notheme", plot(sim3, C2))
         options(RxODE.theme=TRUE)
 
         ci1.C2 <- confint(sim, c("C2"))

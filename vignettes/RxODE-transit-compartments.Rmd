@@ -21,7 +21,6 @@ You can specify this in a similar manner as the original paper:
 
 ```{r out.width="100%"}
 library(RxODE)
-library(ggplot2)
 mod <- RxODE({
     ## Table 3 from Savic 2007
     cl = 17.2 # (L/hr)
@@ -43,8 +42,7 @@ et$add.dosing(20, start.time=0);
 
 transit <- rxSolve(mod, et, transit_abs=TRUE)
 
-transit %>% ggplot(aes(time,cen))+geom_line()+ylab("Central Concentration")+
-xlab("")
+plot(transit, cen, ylab="Central Concentration")
 ```
 
 
@@ -79,7 +77,6 @@ et$add.dosing(20, start.time=0);
 
 transit <- rxSolve(mod, et)
 
-transit %>% ggplot(aes(time,cen))+geom_line()+ylab("Central Concentration") +
-xlab("")
+plot(transit, cen, ylab="Central Concentration")
 ```
 

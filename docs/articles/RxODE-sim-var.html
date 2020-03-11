@@ -199,7 +199,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE Simulation</h1>
             
-            <h4 class="date">2020-03-07</h4>
+            <h4 class="date">2020-03-11</h4>
       
       
       <div class="hidden name"><code>RxODE-sim-var.Rmd</code></div>
@@ -220,6 +220,7 @@
 <h3 class="hasAnchor">
 <a href="#setting-up-the-rxode-model" class="anchor"></a>Setting up the RxODE model</h3>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(RxODE)
+
 mod &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
     <span class="kw">eff</span>(<span class="dv">0</span>) =<span class="st"> </span><span class="dv">1</span>
     C2 =<span class="st"> </span>centr<span class="op">/</span>V2<span class="op">*</span>(<span class="dv">1</span><span class="op">+</span>prop.err);
@@ -252,36 +253,28 @@ omega
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amount.units=</span><span class="st">"mg"</span>, <span class="dt">time.units=</span><span class="st">"hours"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">cmt=</span><span class="st">"centr"</span>)</code></pre></div>
 <p>If you wish, you can also add sampling times (though now RxODE can fill these in for you):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span>ev <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dv">0</span>,<span class="dv">48</span>, <span class="dt">length.out=</span><span class="dv">100</span>);</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span>ev <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dv">0</span>,<span class="dv">48</span>, <span class="dt">length.out=</span><span class="dv">100</span>)</code></pre></div>
 <p>Note the <code>et</code> takes similar arguments as <code>seq</code> when adding sampling times. There are more methods to adding sampling times and events to make complex dosing regimens (See <a href="RxODE-events.html">the event vignette</a>). This includes ways to add variability to the <a href="RxODE-events.html#add-doses-and-samples-within-a-sampling-window">both the sampling and dosing times</a>).</p>
 <p>Once this is complete you can simulate using the <code>rxSolve</code> routine:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sim  &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(mod,theta,ev,<span class="dt">omega=</span>omega,<span class="dt">nSub=</span><span class="dv">100</span>)</code></pre></div>
 <p>To quickly look and customize your simulation you use the default <code>plot</code> routine. Since this is an RxODE object, it will create a <code>ggplot2</code> object that you can modify as you wish. The extra parameter to the <code>plot</code> tells <code>RxODE</code>/<code>R</code> what piece of information you are interested in plotting. In this case, we are interested in looking at the derived parameter <code>C2</code>:</p>
 </div>
-<div id="checking-the-simulation-by-a-simple-ggplot" class="section level3">
+<div id="checking-the-simulation-with-plot" class="section level3">
 <h3 class="hasAnchor">
-<a href="#checking-the-simulation-by-a-simple-ggplot" class="anchor"></a>Checking the simulation by a simple ggplot</h3>
+<a href="#checking-the-simulation-with-plot" class="anchor"></a>Checking the simulation with <code>plot</code>
+</h3>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(ggplot2)
-
-<span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(sim, C2) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/coord_trans.html">coord_trans</a></span>(<span class="dt">y =</span> <span class="st">"log10"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Central Compartment"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/guides.html">guides</a></span>(<span class="dt">color=</span><span class="ot">FALSE</span>)</code></pre></div>
+## The plots from RxODE are ggplots so they can be modified with
+## standard ggplot commands.
+<span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(sim, C2, <span class="dt">log=</span><span class="st">"y"</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Central Compartment"</span>) </code></pre></div>
 <p><img src="RxODE-sim-var_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <p>Of course this additional parameter could also be a state value, like <code>eff</code>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(sim, <span class="st">"eff"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/coord_trans.html">coord_trans</a></span>(<span class="dt">y =</span> <span class="st">"log10"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/guides.html">guides</a></span>(<span class="dt">color=</span><span class="ot">FALSE</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## They also takes many of the standard plot arguments; See ?plot
+<span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(sim, eff, <span class="dt">log=</span><span class="st">"y"</span>, <span class="dt">ylab=</span><span class="st">"Effect"</span>)</code></pre></div>
 <p><img src="RxODE-sim-var_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
 <p>Or you could even look at the two side-by-side:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(sim, C2, eff) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/coord_trans.html">coord_trans</a></span>(<span class="dt">y =</span> <span class="st">"log10"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/guides.html">guides</a></span>(<span class="dt">color=</span><span class="ot">FALSE</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(sim, C2, eff)</code></pre></div>
 <p><img src="RxODE-sim-var_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 </div>
 <div id="processing-the-data-to-create-summary-plots" class="section level3">
@@ -289,41 +282,29 @@ omega
 <a href="#processing-the-data-to-create-summary-plots" class="anchor"></a>Processing the data to create summary plots</h3>
 <p>Usually in pharmacometric simulations it is not enough to simply simulate the system. We have to do something easier to digest, like look at the central and extreme tendencies of the simulation.</p>
 <p>Since the <code>RxODE</code> solve object is a type of <a href="RxODE-data-frame.html">data frame</a></p>
-<p>It is now straightforward to perform calculations and generate plots with the simulated data. Below, the 5th, 50th, and 95th percentiles of the simulated data are plotted.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(dplyr)
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Attaching package: 'dplyr'</span>
-<span class="co">#&gt; The following objects are masked from 'package:stats':</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt;     filter, lag</span>
-<span class="co">#&gt; The following objects are masked from 'package:base':</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt;     intersect, setdiff, setequal, union</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(ggplot2)
-
-p &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">0.05</span>, <span class="fl">0.5</span>, <span class="fl">0.95</span>);
-s &lt;-sim <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span>(time) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/do.html">do</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span>(<span class="dt">p=</span>p, <span class="dt">eff=</span><span class="kw"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span>(.<span class="op">$</span>eff, <span class="dt">probs=</span>p), 
-                  <span class="dt">eff.n =</span> <span class="kw"><a href="https://rdrr.io/r/base/length.html">length</a></span>(.<span class="op">$</span>eff), <span class="dt">eff.avg =</span> <span class="kw"><a href="https://rdrr.io/r/base/mean.html">mean</a></span>(.<span class="op">$</span>eff),
-                  <span class="dt">centr=</span><span class="kw"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span>(.<span class="op">$</span>centr, <span class="dt">probs=</span>p),
-                  <span class="dt">centr.n=</span><span class="kw"><a href="https://rdrr.io/r/base/length.html">length</a></span>(.<span class="op">$</span>centr),<span class="dt">centr.avg =</span> <span class="kw"><a href="https://rdrr.io/r/base/mean.html">mean</a></span>(.<span class="op">$</span>centr))) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(<span class="dt">Percentile=</span><span class="kw"><a href="https://rdrr.io/r/base/factor.html">factor</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/sprintf.html">sprintf</a></span>(<span class="st">"%d%%"</span>,p<span class="op">*</span><span class="dv">100</span>),<span class="dt">levels=</span><span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"5%"</span>,<span class="st">"50%"</span>,<span class="st">"95%"</span>)))
-
-<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(s,<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(time,centr,<span class="dt">color=</span>Percentile)) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="dt">size=</span><span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/coord_trans.html">coord_trans</a></span>(<span class="dt">y =</span> <span class="st">"log10"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
+<p>It is now straightforward to perform calculations and generate plots with the simulated data. You can</p>
+<p>Below, the 5th, 50th, and 95th percentiles of the simulated data are plotted.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/stats/confint.html">confint</a></span>(sim, <span class="st">"C2"</span>, <span class="dt">level=</span><span class="fl">0.95</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(<span class="dt">ylab=</span><span class="st">"Central Concentration"</span>, <span class="dt">log=</span><span class="st">"y"</span>)
+<span class="co">#&gt; Warning in confint.rxSolve(sim, "C2", level = 0.95): In order to put confidence</span>
+<span class="co">#&gt; bands around the intervals, you need at least 2500 simulations.</span>
+<span class="co">#&gt; summarizing data...done.</span></code></pre></div>
 <p><img src="RxODE-sim-var_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(s,<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(time,eff,<span class="dt">color=</span>Percentile)) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="dt">size=</span><span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Effect"</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/guides.html">guides</a></span>(<span class="dt">color=</span><span class="ot">FALSE</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/stats/confint.html">confint</a></span>(sim, <span class="st">"eff"</span>, <span class="dt">level=</span><span class="fl">0.95</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(<span class="dt">ylab=</span><span class="st">"Effect"</span>)
+<span class="co">#&gt; Warning in confint.rxSolve(sim, "eff", level = 0.95): In order to put confidence</span>
+<span class="co">#&gt; bands around the intervals, you need at least 2500 simulations.</span>
+<span class="co">#&gt; summarizing data...done.</span></code></pre></div>
 <p><img src="RxODE-sim-var_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 <p>Note that you can see the parameters that were simulated for the example</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(sim<span class="op">$</span>param)
 <span class="co">#&gt;   sim.id   V2 prop.err  V3  TCl     eta.Cl    KA    Q Kin Kout EC50</span>
-<span class="co">#&gt; 1      1 40.2        0 297 18.6 -0.1820438 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 2      2 40.2        0 297 18.6  0.3454923 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 3      3 40.2        0 297 18.6  0.4285188 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 4      4 40.2        0 297 18.6  0.2187959 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 5      5 40.2        0 297 18.6 -0.7779168 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 6      6 40.2        0 297 18.6 -0.7142255 0.294 10.5   1    1  200</span></code></pre></div>
+<span class="co">#&gt; 1      1 40.2        0 297 18.6  0.5111020 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 2      2 40.2        0 297 18.6 -0.1811678 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 3      3 40.2        0 297 18.6 -0.8562788 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 4      4 40.2        0 297 18.6 -0.1161483 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 5      5 40.2        0 297 18.6 -0.5927541 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 6      6 40.2        0 297 18.6  0.7424633 0.294 10.5   1    1  200</span></code></pre></div>
 </div>
 <div id="simulation-of-unexplained-variability" class="section level3">
 <h3 class="hasAnchor">
@@ -353,8 +334,7 @@ sim  &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolv
 s &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/confint.html">confint</a></span>(sim, <span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"eff"</span>, <span class="st">"centr"</span>));
 <span class="co">#&gt; Warning in confint.rxSolve(sim, c("eff", "centr")): In order to put confidence</span>
 <span class="co">#&gt; bands around the intervals, you need at least 2500 simulations.</span>
-<span class="co">#&gt; Summarizing data</span>
-<span class="co">#&gt; done.</span>
+<span class="co">#&gt; summarizing data...done.</span>
 
 <span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(s)</code></pre></div>
 <p><img src="RxODE-sim-var_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
@@ -363,7 +343,15 @@ s &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stat
 <h3 class="hasAnchor">
 <a href="#simulation-of-individuals" class="anchor"></a>Simulation of Individuals</h3>
 <p>Sometimes you may want to match the dosing and observations of individuals in a clinical trial. To do this you will have to create a data.frame using the <code>RxODE</code> event specification as well as an <code>ID</code> column to indicate an individual. The RxODE event vignette talks more about how these datasets should be created.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(dplyr)
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'dplyr'</span>
+<span class="co">#&gt; The following objects are masked from 'package:stats':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     filter, lag</span>
+<span class="co">#&gt; The following objects are masked from 'package:base':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     intersect, setdiff, setequal, union</span>
 ev1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/eventTable.html">eventTable</a></span>(<span class="dt">amount.units=</span><span class="st">"mg"</span>, <span class="dt">time.units=</span><span class="st">"hours"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/add.dosing.html">add.dosing</a></span>(<span class="dt">dose=</span><span class="dv">10000</span>, <span class="dt">nbr.doses=</span><span class="dv">1</span>, <span class="dt">dosing.to=</span><span class="dv">2</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/add.sampling.html">add.sampling</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="dv">0</span>,<span class="dv">48</span>,<span class="dt">length.out=</span><span class="dv">10</span>));
@@ -380,25 +368,25 @@ dat &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/ba
 sim  &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(mod, theta, dat, <span class="dt">omega=</span>omega, <span class="dt">sigma=</span>sigma)
 
 sim <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span>(id, time, e, cp)
-<span class="co">#&gt;    id          time         e          cp</span>
-<span class="co">#&gt; 1   1  0.000000 [h] 0.8833833 4263.313163</span>
-<span class="co">#&gt; 2   1  5.333333 [h] 0.7854553 1131.431847</span>
-<span class="co">#&gt; 3   1 10.666667 [h] 0.7469582  148.877966</span>
-<span class="co">#&gt; 4   1 16.000000 [h] 1.3297943  482.650244</span>
-<span class="co">#&gt; 5   1 21.333333 [h] 1.6808494  217.854733</span>
-<span class="co">#&gt; 6   1 26.666667 [h] 1.1882251  171.360546</span>
-<span class="co">#&gt; 7   1 32.000000 [h] 0.9196426  281.422224</span>
-<span class="co">#&gt; 8   1 37.333333 [h] 0.8977559  218.681855</span>
-<span class="co">#&gt; 9   1 42.666667 [h] 0.5795041  235.088209</span>
-<span class="co">#&gt; 10  1 48.000000 [h] 1.3261746  134.301084</span>
-<span class="co">#&gt; 11  2  0.000000 [h] 2.0291576 5970.740895</span>
-<span class="co">#&gt; 12  2  6.857143 [h] 0.3204479   40.218433</span>
-<span class="co">#&gt; 13  2 13.714286 [h] 0.7836592   19.281304</span>
-<span class="co">#&gt; 14  2 20.571429 [h] 1.1878344   25.387811</span>
-<span class="co">#&gt; 15  2 27.428571 [h] 1.2482592   18.477146</span>
-<span class="co">#&gt; 16  2 34.285714 [h] 0.6619061   27.655251</span>
-<span class="co">#&gt; 17  2 41.142857 [h] 0.7398859   10.316609</span>
-<span class="co">#&gt; 18  2 48.000000 [h] 0.9230927    8.043192</span></code></pre></div>
+<span class="co">#&gt;    id          time         e         cp</span>
+<span class="co">#&gt; 1   1  0.000000 [h] 1.3770059 9939.62131</span>
+<span class="co">#&gt; 2   1  5.333333 [h] 1.4165415  160.76363</span>
+<span class="co">#&gt; 3   1 10.666667 [h] 0.9393825  127.80221</span>
+<span class="co">#&gt; 4   1 16.000000 [h] 0.9724777   43.01017</span>
+<span class="co">#&gt; 5   1 21.333333 [h] 0.4753605   45.11554</span>
+<span class="co">#&gt; 6   1 26.666667 [h] 1.3242889   61.68323</span>
+<span class="co">#&gt; 7   1 32.000000 [h] 1.0941888   33.09540</span>
+<span class="co">#&gt; 8   1 37.333333 [h] 0.9283070   45.83699</span>
+<span class="co">#&gt; 9   1 42.666667 [h] 0.8628853   25.54093</span>
+<span class="co">#&gt; 10  1 48.000000 [h] 1.0917058   50.90384</span>
+<span class="co">#&gt; 11  2  0.000000 [h] 0.8715459 5393.61706</span>
+<span class="co">#&gt; 12  2  6.857143 [h] 1.4714335  762.28415</span>
+<span class="co">#&gt; 13  2 13.714286 [h] 0.6727927  292.43058</span>
+<span class="co">#&gt; 14  2 20.571429 [h] 1.1639300  349.90129</span>
+<span class="co">#&gt; 15  2 27.428571 [h] 1.0795094  219.58569</span>
+<span class="co">#&gt; 16  2 34.285714 [h] 0.4184201  194.95132</span>
+<span class="co">#&gt; 17  2 41.142857 [h] 0.6253556  112.97750</span>
+<span class="co">#&gt; 18  2 48.000000 [h] 1.2831178  114.48999</span></code></pre></div>
 <div id="simulation-of-clinical-trials" class="section level4">
 <h4 class="hasAnchor">
 <a href="#simulation-of-clinical-trials" class="anchor"></a>Simulation of Clinical Trials</h4>
@@ -431,57 +419,57 @@ s &lt;-sim <span class="op">%&gt;%</span><span class="st"> </span><span class="k
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(sim<span class="op">$</span>omega.list)
 <span class="co">#&gt; [[1]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.1241901</span>
+<span class="co">#&gt; [1,] 0.1356241</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[2]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.1877669</span>
+<span class="co">#&gt; [1,] 0.1363406</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[3]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.2970149</span>
+<span class="co">#&gt; [1,] 0.2086196</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[4]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.2236232</span>
+<span class="co">#&gt; [1,] 0.2207265</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[5]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.1377556</span>
+<span class="co">#&gt; [1,] 0.1248375</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[6]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.1669655</span></code></pre></div>
+<span class="co">#&gt; [1,] 0.2786405</span></code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(sim<span class="op">$</span>sigma.list)
 <span class="co">#&gt; [[1]]</span>
 <span class="co">#&gt;             [,1]        [,2]</span>
-<span class="co">#&gt; [1,] 0.098894437 0.003126831</span>
-<span class="co">#&gt; [2,] 0.003126831 0.120944919</span>
+<span class="co">#&gt; [1,]  0.11770836 -0.01411164</span>
+<span class="co">#&gt; [2,] -0.01411164  0.10111359</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[2]]</span>
-<span class="co">#&gt;              [,1]         [,2]</span>
-<span class="co">#&gt; [1,]  0.128180608 -0.008714981</span>
-<span class="co">#&gt; [2,] -0.008714981  0.114153045</span>
+<span class="co">#&gt;             [,1]        [,2]</span>
+<span class="co">#&gt; [1,] 0.092818843 0.006524339</span>
+<span class="co">#&gt; [2,] 0.006524339 0.124283944</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[3]]</span>
-<span class="co">#&gt;             [,1]        [,2]</span>
-<span class="co">#&gt; [1,]  0.11996638 -0.01143288</span>
-<span class="co">#&gt; [2,] -0.01143288  0.10840378</span>
+<span class="co">#&gt;              [,1]         [,2]</span>
+<span class="co">#&gt; [1,]  0.101646585 -0.006852853</span>
+<span class="co">#&gt; [2,] -0.006852853  0.096020997</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[4]]</span>
 <span class="co">#&gt;              [,1]         [,2]</span>
-<span class="co">#&gt; [1,]  0.129498540 -0.004538317</span>
-<span class="co">#&gt; [2,] -0.004538317  0.102287554</span>
+<span class="co">#&gt; [1,]  0.103380157 -0.002251819</span>
+<span class="co">#&gt; [2,] -0.002251819  0.112411159</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[5]]</span>
-<span class="co">#&gt;              [,1]         [,2]</span>
-<span class="co">#&gt; [1,]  0.120448091 -0.002908278</span>
-<span class="co">#&gt; [2,] -0.002908278  0.089391092</span>
+<span class="co">#&gt;               [,1]          [,2]</span>
+<span class="co">#&gt; [1,]  9.655592e-02 -4.194214e-05</span>
+<span class="co">#&gt; [2,] -4.194214e-05  1.009834e-01</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[6]]</span>
-<span class="co">#&gt;             [,1]        [,2]</span>
-<span class="co">#&gt; [1,] 0.099889659 0.003094143</span>
-<span class="co">#&gt; [2,] 0.003094143 0.105354460</span></code></pre></div>
+<span class="co">#&gt;            [,1]       [,2]</span>
+<span class="co">#&gt; [1,] 0.09894498 0.01331581</span>
+<span class="co">#&gt; [2,] 0.01331581 0.10055425</span></code></pre></div>
 <p>You can also see the parameter realizations from the <code>$params</code> data frame.</p>
 <p>If you do not wish to sample from the prior distributions of either the <code>omega</code> or <code>sigma</code> matrices, you can turn off this feature by specifying the <code>simVariability = FALSE</code> option when solving:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sim  &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(mod, theta, ev, <span class="dt">omega=</span>omega, <span class="dt">nSub=</span><span class="dv">100</span>, <span class="dt">sigma=</span>sigma, <span class="dt">thetaMat=</span>tMat, <span class="dt">nStud=</span><span class="dv">10</span>,
@@ -503,7 +491,6 @@ s &lt;-sim <span class="op">%&gt;%</span><span class="st"> </span><span class="k
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sim  &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(mod, theta, ev, <span class="dt">omega=</span>omega, <span class="dt">nSub=</span><span class="dv">100</span>, <span class="dt">sigma=</span>sigma, <span class="dt">thetaMat=</span>tMat, <span class="dt">nStud=</span><span class="dv">10</span>,
                 <span class="dt">nCoresRV=</span><span class="dv">2</span>);
 
-p &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">0.05</span>, <span class="fl">0.5</span>, <span class="fl">0.95</span>);
 s &lt;-sim <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/confint.html">confint</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"eff"</span>, <span class="st">"centr"</span>))
 <span class="co">#&gt; Summarizing data</span>
 <span class="co">#&gt; done.</span></code></pre></div>
