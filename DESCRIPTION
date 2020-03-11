@@ -35,7 +35,6 @@ Maintainer: Wenping Wang <wwang8198@gmail.com>
 Depends:
     R (>= 3.5.0)
 Suggests:
-    knitr,
     DT,
     data.table (>= 1.12.4),
     nlme,
@@ -67,6 +66,7 @@ Suggests:
     vdiffr,
     ggrepel
 Imports:
+    knitr,
     Matrix,
     PreciseSums (>= 0.3),
     Rcpp (>= 0.12.3),
