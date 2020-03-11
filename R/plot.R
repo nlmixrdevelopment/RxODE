@@ -4,9 +4,14 @@ rx_theme <- function(base_size = 11, base_family = "",
                      base_line_size = base_size / 22,
                      base_rect_size = base_size / 22){
     half_line <- base_size / 2
-    .greyText <- ggplot2::element_text(color="#808078")
-    .greyLabTextX <- ggplot2::element_text(color="#808078", face="bold")
-    .greyLabTextY <- ggplot2::element_text(color="#808078", face="bold", angle=90)
+    .greyTextAxisX <- ggplot2::element_text(color="#808078",
+                                            margin = ggplot2::margin(t = 0.8 * half_line / 2), vjust=1)
+    .greyTextAxisY <- ggplot2::element_text(color="#808078",
+                                            margin = ggplot2::margin(r = 0.8 * half_line / 2), hjust=1)
+    .greyLabTextX <- ggplot2::element_text(color="#808078", face="bold",
+                                           margin=ggplot2::margin(t = half_line / 2))
+    .greyLabTextY <- ggplot2::element_text(color="#808078", face="bold", angle=90,
+                                           margin = ggplot2::margin(r = half_line / 2),)
     .title <- ggplot2::element_text(colour = "#808078", face="bold", hjust=0,
                                     size = ggplot2::rel(1.2),
                                     margin = ggplot2::margin(b = half_line))
@@ -15,15 +20,17 @@ rx_theme <- function(base_size = 11, base_family = "",
     .greyTick <- ggplot2::element_line(color="#808078")
     .greyMajor <- ggplot2::element_line(color="#BFBFB4")
     .greyMinor <- ggplot2::element_line(color="#E6E6D8")
-    .theme <- ggplot2::theme_bw() %+replace%
+    .theme <- ggplot2::theme_bw(base_size = base_size, base_family = base_family,
+                     base_line_size = base_line_size,
+                     base_rect_size = base_rect_size) %+replace%
         ggplot2::theme(plot.title = .title,
                        plot.subtitle = .title,
                        panel.border = ggplot2::element_blank(),
                        ## panel.background = ggplot2::element_rect(fill = "#FFFFF7", colour = NA),
                        panel.grid.minor=.greyMinor,
                        panel.grid.major=.greyMajor,
-                       axis.text.x=.greyText,
-                       axis.text.y=.greyText,
+                       axis.text.x=.greyTextAxisX,
+                       axis.text.y=.greyTextAxisY,
                        axis.title.x=.greyLabTextX,
                        axis.title.y=.greyLabTextY,
                        axis.ticks.x=.greyTick,
