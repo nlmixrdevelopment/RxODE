@@ -136,7 +136,6 @@ ggplot2::label_wrap_gen
 ##' @export
 ggplot2::label_context
 
-
 ##' @importFrom ggplot2 scale_x_discrete
 ##' @export
 ggplot2::scale_x_discrete
@@ -164,3 +163,9 @@ ggplot2::scale_y_date
 ##' @importFrom ggplot2 expand_limits
 ##' @export
 ggplot2::expand_limits
+
+
+.SD <- NULL
+`:=` <- function (...) {
+    stop("This is only used in data.table")
+}
