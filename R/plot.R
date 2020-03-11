@@ -255,3 +255,72 @@ plot.rxSolveConfint1 <- function(x,y,..., xlab="Time", ylab="", log=""){
         .ret
     return(.ret)
 }
+
+
+##'@export
+plot.rxSolveConfint2 <- function(x,y,..., xlab="Time", ylab="", log=""){
+    .data <- NULL
+    .lvl <- attr(class(x), ".rx")$lvl
+    .parm <- attr(class(x), ".rx")$parm
+    .aes <- aes(.data$time, .data$p50,
+                color=.data$Percentile,
+                fill=.data$Percentile,
+                group=.data$p)
+    .aesR <- ggplot2::aes_string(ymin=.lvl[1],ymax=.lvl[3])
+    .facet <- NULL
+    .dat <- x
+    .lst <- .plotTime(.dat, xlab);
+    .timex <- .lst[[1]]
+    .xlab <- .lst[[2]]
+    .dat <- .lst[[3]]
+    .lst <- .plotLog(.dat, .timex, log)
+    .timex <- .lst[[1]]
+    .logx <- .lst[[2]]
+    .logy <- .lst[[3]]
+    .dat <- .lst[[4]]
+    if (length(.parm) > 1){
+        .facet <- facet_wrap( ~ trt, scales="free_y")
+    }
+    .line <- geom_line(size=1.1, show.legend = FALSE)
+    .theme <- NULL
+    if (getOption("RxODE.theme_bw", TRUE)){
+        .theme <- rx_theme()
+    }
+    .ylab <- ylab(ylab)
+    .dat$p <- .dat$Percentile
+    .d2 <- .dat[!duplicated(.dat$Percentile), ];
+    .d2 <- .d2[.d2$Percentile != "50%", ]
+    .d2 <- sub("[%]", "", paste0(.d2$Percentile, collapse=" / "))
+    .dat$Percentile <- paste(.dat$Percentile)
+    .dat$Percentile[.dat$Percentile != "50%"] <- .d2
+    .dat$Percentile <- factor(.dat$Percentile, c("50%", .d2))
+    .ribbon <- ggplot2::geom_ribbon(.aesR, alpha=0.5, col=NA, show.legend=FALSE)
+    .leg1 <- ggplot2::scale_color_manual(values=c("black", "gray"))
+    .leg2 <- ggplot2::scale_fill_manual(values=c("black", "gray"))
+    ggplot2::ggplot(.dat, .aes) +
+        .ribbon +
+        .line +
+        .facet +
+        .timex +
+        .logx +
+        .logy +
+        .xlab +
+        .ylab +
+        .leg1 +
+        .leg2 +
+        .theme ->
+        .ret
+    ## p1 <- time <- eff <-Percentile <-sim.id <-id <-p2 <-p50 <-p05 <- p95 <- . <- NULL
+    ## .lvl <- attr(class(x), ".rx")$lvl
+    ## .parm <- attr(class(x), ".rx")$parm
+    ## .ret <- ggplot2::ggplot(x,ggplot2::aes(time,p50,col=Percentile,fill=Percentile)) +
+    ##     ggplot2::geom_ribbon(ggplot2::aes_string(ymin=.lvl[1],ymax=.lvl[3]),alpha=0.5)+
+    ##     ggplot2::geom_line(size=1.2);
+    ## if (length(.parm) > 1){
+    ##     .ret <- .ret + facet_wrap( ~ trt, scales="free_y")
+    ## }
+    ## if (getOption("RxODE.theme_bw", TRUE)){
+    ##     .ret <- .ret + ggplot2::theme_bw()
+    ## }
+    return(.ret)
+}

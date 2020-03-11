@@ -1121,8 +1121,6 @@ confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...){
             attr(.cls, ".rx") <- .lst
             class(.stk) <- .cls
             message("done.")
-            ## .ret <- ggplot2::ggplot(.ret,aes(time,eff,col=Percentile,fill=Percentile)) +
-            ##     ggplot2::geom_line(size=1.2)
             return(.stk)
         } else {
             .n <- round(sqrt(object$env$args$nSub));
@@ -1147,21 +1145,3 @@ confint.rxSolve <- function(object, parm=NULL, level = 0.95, ...){
     class(.ret) <- .cls
     return(.ret);
 }
-
-##'@export
-plot.rxSolveConfint2 <- function(x,y,...){
-    p1 <- time <- eff <-Percentile <-sim.id <-id <-p2 <-p50 <-p05 <- p95 <- . <- NULL
-    .lvl <- attr(class(x), ".rx")$lvl
-    .parm <- attr(class(x), ".rx")$parm
-    .ret <- ggplot2::ggplot(x,ggplot2::aes(time,p50,col=Percentile,fill=Percentile)) +
-        ggplot2::geom_ribbon(ggplot2::aes_string(ymin=.lvl[1],ymax=.lvl[3]),alpha=0.5)+
-        ggplot2::geom_line(size=1.2);
-    if (length(.parm) > 1){
-        .ret <- .ret + facet_wrap( ~ trt, scales="free_y")
-    }
-    if (getOption("RxODE.theme_bw", TRUE)){
-        .ret <- .ret + ggplot2::theme_bw()
-    }
-    return(.ret)
-}
-

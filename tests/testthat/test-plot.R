@@ -83,6 +83,11 @@ rxPermissive({
 
         ci1.C2.eff <- confint(sim, c("C2", "eff"))
 
+        sim2  <- rxSolve(m2,ev,omega=omega,nSub=2500)
+
+        ci2.C2 <- confint(sim2, c("C2"))
+
+        ci2.C2.eff <- confint(sim2, c("C2", "eff"))
 
         f <- function(xgxr=FALSE, repel=FALSE) {
             if (xgxr){
@@ -115,6 +120,18 @@ rxPermissive({
             vdiffr::expect_doppelganger(paste0("plot-ci1c2-eff",.xgxtxt,"log-y"), ci1.C2.eff %>% plot(log="y"))
             vdiffr::expect_doppelganger(paste0("plot-ci1c2-eff",.xgxtxt,"log-xy"),ci1.C2.eff %>% plot(log="xy"))
             vdiffr::expect_doppelganger(paste0("plot-ci1c2-eff",.xgxtxt,"log-yx"), ci1.C2.eff %>% plot(log="yx"))
+
+            vdiffr::expect_doppelganger(paste0("plot-ci2c2",.xgxtxt), ci2.C2 %>% plot())
+            vdiffr::expect_doppelganger(paste0("plot-ci2c2",.xgxtxt,"log-x"), ci2.C2 %>% plot(log="x"))
+            vdiffr::expect_doppelganger(paste0("plot-ci2c2",.xgxtxt,"log-y"), ci2.C2 %>% plot(log="y"))
+            vdiffr::expect_doppelganger(paste0("plot-ci2c2",.xgxtxt,"log-xy"),ci2.C2 %>% plot(log="xy"))
+            vdiffr::expect_doppelganger(paste0("plot-ci2c2",.xgxtxt,"log-yx"), ci2.C2 %>% plot(log="yx"))
+
+            vdiffr::expect_doppelganger(paste0("plot-ci2c2-eff",.xgxtxt), ci2.C2.eff %>% plot())
+            vdiffr::expect_doppelganger(paste0("plot-ci2c2-eff",.xgxtxt,"log-x"), ci2.C2.eff %>% plot(log="x"))
+            vdiffr::expect_doppelganger(paste0("plot-ci2c2-eff",.xgxtxt,"log-y"), ci2.C2.eff %>% plot(log="y"))
+            vdiffr::expect_doppelganger(paste0("plot-ci2c2-eff",.xgxtxt,"log-xy"),ci2.C2.eff %>% plot(log="xy"))
+            vdiffr::expect_doppelganger(paste0("plot-ci2c2-eff",.xgxtxt,"log-yx"), ci2.C2.eff %>% plot(log="yx"))
 
             ##
 
