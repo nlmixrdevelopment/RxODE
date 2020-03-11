@@ -32,6 +32,7 @@ News.md
 /?config.log
 ^/?docs/*$
 ^/?man-roxygen/.*$
+vignettes/RxODE-wt.Rmd
 vignettes/RxODE-cmt.Rmd
 vignettes/RxODE-covariates.Rmd
 vignettes/RxODE-data-frame.Rmd
@@ -48,6 +49,7 @@ vignettes/RxODE-speed.Rmd
 vignettes/RxODE-stiff.Rmd
 vignettes/RxODE-transit-compartments.Rmd
 vignettes/rxode-single-subject.Rmd
+vignettes/RxODE-wt_files
 vignettes/RxODE-cmt_files
 vignettes/RxODE-covariates_files
 vignettes/RxODE-data-frame_files
@@ -65,6 +67,7 @@ vignettes/RxODE-stiff_files
 vignettes/RxODE-transit-compartments_files
 vignettes/rxode-single-subject_files
 vignettes/RxODE-cmt.html
+vignettes/RxODE-wt.html
 vignettes/RxODE-covariates.html
 vignettes/RxODE-data-frame.html
 vignettes/RxODE-event-types.html
