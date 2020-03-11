@@ -28,6 +28,7 @@ RxODE.*\.(zip|pdf)$
 ^/?src/liblsoda/.*$
 LICENSE
 News.md
+/?configure.ac
 /?config.status
 /?config.log
 ^/?docs/*$
@@ -88,3 +89,4 @@ vignettes/build.R
 ^README\.Rmd$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+tests/testthat/*.d.*
