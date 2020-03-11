@@ -83,7 +83,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.2.0</span>
       </span>
     </div>
 
@@ -249,11 +249,22 @@
     <p>This sets the RxODE syntax to be permissive or strict</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rxPermissive</span>(<span class='no'>expr</span>, <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fu'>.isTestthat</span>(), <span class='kw'>respect</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>cran</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>on.validate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)
+    <pre class="usage"><span class='fu'>rxPermissive</span>(
+  <span class='no'>expr</span>,
+  <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fu'>.isTestthat</span>(),
+  <span class='kw'>respect</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>cran</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>on.validate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>test</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
+)
 
-<span class='fu'>rxStrict</span>(<span class='no'>expr</span>, <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fu'>.isTestthat</span>(), <span class='kw'>respect</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>cran</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>on.validate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+<span class='fu'>rxStrict</span>(
+  <span class='no'>expr</span>,
+  <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fu'>.isTestthat</span>(),
+  <span class='kw'>respect</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>cran</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>on.validate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -277,11 +288,18 @@ elsewhere, otherwise the options are not changed.</p></td>
     </tr>
     <tr>
       <th>cran</th>
-      <td><p>When specified and true, run on CRAN. Otherwise it is skipped on CRAN.</p></td>
+      <td><p>When specified and true, run on CRAN. Otherwise it is
+skipped on CRAN.</p></td>
     </tr>
     <tr>
       <th>on.validate</th>
       <td><p>When TRUE run only when validating.</p></td>
+    </tr>
+    <tr>
+      <th>test</th>
+      <td><p>When specified as a string, the enclosed test is
+skipped unless the environmental variable "rxTest" equals this
+value.</p></td>
     </tr>
     </table>
 

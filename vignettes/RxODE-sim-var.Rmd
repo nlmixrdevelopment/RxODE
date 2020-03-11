@@ -77,7 +77,7 @@ ev <- et(amount.units="mg", time.units="hours") %>%
 If you wish, you can also add sampling times (though now RxODE can fill these in for you):
 
 ```{r}
-ev <- ev %>% et(0,48, length.out=100);
+ev <- ev %>% et(0,48, length.out=100)
 ```
 
 Note the `et` takes similar arguments as `seq` when adding sampling
@@ -100,35 +100,27 @@ to the `plot` tells `RxODE`/`R` what piece of information you are
 interested in plotting. In this case, we are interested in looking at
 the derived parameter `C2`:
 
-### Checking the simulation by a simple ggplot 
+### Checking the simulation with `plot`
 
 ```{r}
 library(ggplot2)
-
+## The plots from RxODE are ggplots so they can be modified with
+## standard ggplot commands.
 plot(sim, C2, log="y") +
-    ylab("Central Compartment") +
-    xlab("Time") +
-    guides(color=FALSE)
+    ylab("Central Compartment") 
 ```
 
 Of course this additional parameter could also be a state value, like `eff`:
 
 ```{r}
-plot(sim, "eff") +
-    coord_trans(y = "log10") +
-    ylab("Effect") +
-    xlab("Time") +
-    guides(color=FALSE)
+## They also takes many of the standard plot arguments; See ?plot
+plot(sim, eff, log="y", ylab="Effect")
 ```
 
 Or you could even look at the two side-by-side:
 
 ```{r}
-plot(sim, C2, eff) +
-    coord_trans(y = "log10") +
-    ylab("Effect") +
-    xlab("Time") +
-    guides(color=FALSE)
+plot(sim, C2, eff)
 ```
 
 ### Processing the data to create summary plots
@@ -141,31 +133,19 @@ Since the `RxODE` solve object is a type of [data
 frame](RxODE-data-frame.html)
 
 It is now straightforward to perform calculations and generate plots
-with the simulated data. Below,  the 5th, 50th, and 95th percentiles
+with the simulated data. You can 
+
+Below, the 5th, 50th, and 95th percentiles
 of the simulated data are plotted. 
 
 ```{r}
-library(dplyr)
-library(ggplot2)
-
-## This is a way to do this using dplyr
-p <- c(0.05, 0.5, 0.95);
-s <-sim %>% group_by(time) %>%
-    do(data.frame(p=p, eff=quantile(.$eff, probs=p), 
-                  eff.n = length(.$eff), eff.avg = mean(.$eff),
-                  centr=quantile(.$centr, probs=p),
-                  centr.n=length(.$centr),centr.avg = mean(.$centr))) %>%
-    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
-
-ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
-    xlab("Time")
-
+confint(sim, "C2", level=0.95) %>%
+    plot(ylab="Central Concentration", log="y")
 ```
 
 ```{r}
-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
-    xlab("Time") + guides(color=FALSE)
-
+confint(sim, "eff", level=0.95) %>%
+    plot(ylab="Effect")
 ```
 
 
@@ -218,7 +198,7 @@ column to indicate an individual. The RxODE event vignette talks more about
 how these datasets should be created.
 
 ```{r}
-
+library(dplyr)
 ev1 <- eventTable(amount.units="mg", time.units="hours") %>%
     add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
     add.sampling(seq(0,48,length.out=10));
@@ -442,7 +422,6 @@ For example:
 sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
                 nCoresRV=2);
 
-p <- c(0.05, 0.5, 0.95);
 s <-sim %>% confint(c("eff", "centr"))
 ```
 

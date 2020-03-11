@@ -2054,7 +2054,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if ((i==0 && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0))) ||
 	  (i == 2 && nodeHas(mtime))){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if ((rx_syntax_allow_ini && nodeHas(ini)) || nodeHas(ini0)){
+        if ((rx_syntax_allow_ini && nodeHas(ini)) || nodeHas(ini0)) {
 	  sb.o =0; sbDt.o =0;
           /* aAppendN("(__0__)", 7); */
 	  aType(TINI);

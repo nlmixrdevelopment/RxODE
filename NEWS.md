@@ -194,8 +194,6 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
  - Transit compartment models using the `transit` ODE or variable are
    now allowed.  Also check for more internally parsed items (see
    Issue #145).
- - Changed `confint` to create confidence bands for solve items with
-   more than 2,500 subjects (that were not simulated with `thetaMat`)
    
 # RxODE v0.9.1-8
 * Added the ability to have an input parameter to be assigned to a new

@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.2.0</span>
       </span>
     </div>
 
@@ -199,7 +199,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE ODE solving syntax</h1>
             
-            <h4 class="date">2019-12-05</h4>
+            <h4 class="date">2020-03-11</h4>
       
       
       <div class="hidden name"><code>RxODE-syntax.Rmd</code></div>
@@ -248,9 +248,10 @@
 <li>special <strong>initial-condition</strong> assignments where the left hand specifies the compartment of the initial condition being specified, e.g. <code>depot(0) = 0</code>
 </li>
 <li>special model event changes including <strong>bioavailability</strong> (<code>f(depot)=1</code>), <strong>lag time</strong> (<code>lag(depot)=0</code>), <strong>modeled rate</strong> (<code>rate(depot)=2</code>) and <strong>modeled duration</strong> (<code>dur(depot)=2</code>). An example of these model features and the event specification for the modeled infusions the RxODE data specification is found in <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html">RxODE events vignette</a>.</li>
-<li>Compartment declaration statements, which can change the default dosing compartment and the assumed compartment number(s) as well as add extra compartment names at the end (useful for multiple-endpoint nlmixr models); These are specified by <code>cmt(compartmentName)</code>
+<li>
+<strong>Compartment declaration statements</strong>, which can change the default dosing compartment and the assumed compartment number(s) as well as add extra compartment names at the end (useful for multiple-endpoint nlmixr models); These are specified by <code>cmt(compartmentName)</code>
 </li>
-<li>special change point syntax, or model times. These model times are specified by <code>mtime(var)=time</code>
+<li>special <strong>change point syntax, or model times</strong>. These model times are specified by <code>mtime(var)=time</code>
 </li>
 <li>special <strong>Jacobian-derivative</strong> assignments, where the left hand specifies the change in the compartment ode with respect to a variable. For example, if <code>d/dt(y) = dy</code>, then a Jacobian for this compartment can be specified as <code>df(y)/dy(dy) = 1</code>. There may be some advantage to obtaining the solution or specifying the Jacobian for very stiff ODE systems. However, for the few stiff systems we tried with LSODA, this actually slightly slowed down the solving.</li>
 </ul>

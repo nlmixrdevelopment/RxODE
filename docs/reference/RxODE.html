@@ -84,7 +84,7 @@ into fast C code" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.2.0</span>
       </span>
     </div>
 
@@ -251,9 +251,19 @@ into fast C code" />
 into fast C code</p>
     </div>
 
-    <pre class="usage"><span class='fu'>RxODE</span>(<span class='no'>model</span>, <span class='kw'>modName</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/basename.html'>basename</a></span>(<span class='no'>wd</span>), <span class='kw'>wd</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/getwd.html'>getwd</a></span>(), <span class='kw'>filename</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>extraC</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>debug</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>calcJac</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>calcSens</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>collapseModel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>RxODE</span>(
+  <span class='no'>model</span>,
+  <span class='kw'>modName</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/basename.html'>basename</a></span>(<span class='no'>wd</span>),
+  <span class='kw'>wd</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/getwd.html'>getwd</a></span>(),
+  <span class='kw'>filename</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>extraC</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>debug</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>calcJac</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>calcSens</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>collapseModel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>package</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='no'>...</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -498,7 +508,7 @@ Springer-Verlag (1993).</p>
 "</span>
 
 <span class='no'>m1</span> <span class='kw'>&lt;-</span> <span class='fu'>RxODE</span>(<span class='kw'>model</span> <span class='kw'>=</span> <span class='no'>ode</span>)
-<span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>0.9.1-8 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_a568131540f4e6652fe7b1829d921038</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
+<span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>0.9.2-0 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_091740c690719bde7c86ca90802aa41e</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</div><div class='input'>

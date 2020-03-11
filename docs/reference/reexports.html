@@ -52,9 +52,7 @@
 <meta property="og:description" content="These objects are imported from other packages. Follow the links
 below to see their documentation.
 
-  ggforcefacet_wrap_paginate, facet_grid_paginate, ScaleContinuousPositionUnit, scale_x_unit, scale_y_unit
-
-  ggplot2aes, facet_wrap, geom_line, ggplot, scale_type, ylab, xlab
+  ggplot2aes, expand_limits, facet_wrap, geom_line, ggplot, label_both, label_context, label_context, label_value, label_wrap_gen, scale_type, scale_x_continuous, scale_x_date, scale_x_discrete, scale_y_continuous, scale_y_date, scale_y_discrete, waiver, xlab, ylab
 
   lotrilotri
 
@@ -62,7 +60,7 @@ below to see their documentation.
 
   pillartype_sum
 
-  unitsset_units, drop_units
+  unitsdrop_units, set_units
 
 " />
 <meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png" />
@@ -98,7 +96,7 @@ below to see their documentation.
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.2.0</span>
       </span>
     </div>
 
@@ -264,9 +262,7 @@ below to see their documentation.
     <p>These objects are imported from other packages. Follow the links
 below to see their documentation.</p>
 <dl class='dl-horizontal'>
-  <dt>ggforce</dt><dd><p><code><a href='https://ggforce.data-imaginist.com/reference/facet_wrap_paginate.html'>facet_wrap_paginate</a></code>, <code><a href='https://ggforce.data-imaginist.com/reference/facet_grid_paginate.html'>facet_grid_paginate</a></code>, <code><a href='https://ggforce.data-imaginist.com/reference/ggforce-extensions.html'>ScaleContinuousPositionUnit</a></code>, <code><a href='https://ggforce.data-imaginist.com/reference/scale_unit.html'>scale_x_unit</a></code>, <code><a href='https://ggforce.data-imaginist.com/reference/scale_unit.html'>scale_y_unit</a></code></p></dd>
-
-  <dt>ggplot2</dt><dd><p><code><a href='https://ggplot2.tidyverse.org/reference/aes.html'>aes</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/facet_wrap.html'>facet_wrap</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/geom_path.html'>geom_line</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/ggplot.html'>ggplot</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/scale_type.html'>scale_type</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/labs.html'>ylab</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/labs.html'>xlab</a></code></p></dd>
+  <dt>ggplot2</dt><dd><p><code><a href='https://ggplot2.tidyverse.org/reference/aes.html'>aes</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/expand_limits.html'>expand_limits</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/facet_wrap.html'>facet_wrap</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/geom_path.html'>geom_line</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/ggplot.html'>ggplot</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/labellers.html'>label_both</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/labellers.html'>label_context</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/labellers.html'>label_context</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/labellers.html'>label_value</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/labellers.html'>label_wrap_gen</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/scale_type.html'>scale_type</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/scale_continuous.html'>scale_x_continuous</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/scale_date.html'>scale_x_date</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/scale_discrete.html'>scale_x_discrete</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/scale_continuous.html'>scale_y_continuous</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/scale_date.html'>scale_y_date</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/scale_discrete.html'>scale_y_discrete</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/waiver.html'>waiver</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/labs.html'>xlab</a></code>, <code><a href='https://ggplot2.tidyverse.org/reference/labs.html'>ylab</a></code></p></dd>
 
   <dt>lotri</dt><dd><p><code><a href='https://rdrr.io/pkg/lotri/man/lotri.html'>lotri</a></code></p></dd>
 
@@ -274,7 +270,7 @@ below to see their documentation.</p>
 
   <dt>pillar</dt><dd><p><code><a href='https://rdrr.io/pkg/pillar/man/type_sum.html'>type_sum</a></code></p></dd>
 
-  <dt>units</dt><dd><p><code><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></code>, <code><a href='https://rdrr.io/pkg/units/man/drop_units.html'>drop_units</a></code></p></dd>
+  <dt>units</dt><dd><p><code><a href='https://rdrr.io/pkg/units/man/drop_units.html'>drop_units</a></code>, <code><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></code></p></dd>
 
 </dl>
     </div>

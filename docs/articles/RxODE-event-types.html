@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.2.0</span>
       </span>
     </div>
 
@@ -199,7 +199,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE Event Types</h1>
             
-            <h4 class="date">2019-12-05</h4>
+            <h4 class="date">2020-03-11</h4>
       
       
       <div class="hidden name"><code>RxODE-event-types.Rmd</code></div>
@@ -301,19 +301,25 @@
 </table>
 <p>Other notes:</p>
 <ul>
-<li>The <code>evid</code> can be the classic RxODE (described at the end of this document) or the NONMEM-style evid described above.</li>
-<li>NONMEM’s <code>DV</code> is not required; RxODE is a ODE solving framework.</li>
-<li>NONMEM’s <code>MDV</code> is not required, since it is captured in <code>EVID</code>
-</li>
-<li>Instead of NONMEM-compatible data, it can accept <code>deSolve</code> compatible data-frames</li>
+<li>The <code>evid</code> can be the classic RxODE (described <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-events-classic.html">here</a>) or the <code>NONMEM</code>-style <code>evid</code> described above.</li>
+<li>
+<code>NONMEM</code>’s <code>DV</code> is not required; <code>RxODE</code> is a ODE solving framework.</li>
+<li>
+<code>NONMEM</code>’s <code>MDV</code> is not required, since it is captured in <code>EVID</code>.</li>
+<li>Instead of <code>NONMEM</code>-compatible data, it can accept <code>deSolve</code> compatible data-frames.</li>
 </ul>
-<p>When returning the RxODE solved data-set there are a few additional event ids (EVID):</p>
+<p>When returning the RxODE solved data-set there are a few additional event ids (<code>EVID</code>) that you may see depending on the solving options:</p>
 <ul>
-<li>EVID = -1 is when a modeled rate ends (corresponds to rate = -1)</li>
-<li>EVID = -2 is when a modeled duration ends (corresponds to rate=-2)</li>
-<li>EVID = -10 when a rate specified zero-order infusion ends (corresponds to rate &gt; 0)</li>
-<li>EVID = -20 when a duration specified zero-order infusion ends (corresponds to dur &gt; 0)</li>
-<li>EVID = 101, 102, 103,… These correspond to the 1, 2, 3, … modeled time (mtime).</li>
+<li>
+<code>EVID = -1</code> is when a modeled rate ends (corresponds to <code>rate = -1</code>)</li>
+<li>
+<code>EVID = -2</code> is when a modeled duration ends (corresponds to <code>rate=-2</code>)</li>
+<li>
+<code>EVID = -10</code> when a rate specified zero-order infusion ends (corresponds to <code>rate &gt; 0</code>)</li>
+<li>
+<code>EVID = -20</code> when a duration specified zero-order infusion ends (corresponds to <code>dur &gt; 0</code>)</li>
+<li>
+<code>EVID = 101, 102, 103,...</code> These correspond to the <code>1</code>, <code>2</code>, <code>3</code>, … modeled time (<code>mtime</code>).</li>
 </ul>
 <p>These can only be accessed when solving with the option combination <code>addDosing=TRUE</code> and <code>subsetNonmem=FALSE</code>. If you want to see the classic <code>EVID</code> equivalents you can use <code>addDosing=NA</code>.</p>
 <p>To illustrate the event types we will use the model from the original RxODE tutorial.</p>
@@ -542,7 +548,7 @@ ev</code></pre></div>
 <div id="steady-state" class="section level1">
 <h1 class="hasAnchor">
 <a href="#steady-state" class="anchor"></a>Steady State</h1>
-<p>Steady state doses; These doses are solved until a steady state is reached with a constant inter-dose interval.</p>
+<p>These doses are solved until a steady state is reached with a constant inter-dose interval.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">ii=</span><span class="dv">12</span>, <span class="dt">ss=</span><span class="dv">1</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
@@ -729,7 +735,7 @@ ev</code></pre></div>
 <p>Solving shows what this does in the system:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(depot,C2, eff)</code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-26-1.png" width="700"></p>
-<p>In this case, the depot is turned off, and the compartment concentrations are set to the initial values but the other compartment concentrations/levels are not reset. When another dose to the depot is administered the depot compartment is turned back on.</p>
+<p>In this case, the depot is turned off, and the depot compartment concentrations are set to the initial values but the other compartment concentrations/levels are not reset. When another dose to the depot is administered the depot compartment is turned back on.</p>
 <p>Note that a dose to a compartment only turns back on the compartment that was dosed. Hence if you turn off the effect compartment, it continues to be off after another dose to the depot.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">ii=</span><span class="dv">12</span>, <span class="dt">addl=</span><span class="dv">3</span>) <span class="op">%&gt;%</span>

@@ -1,3 +1,9 @@
+.ggplot2Fix <- function(){
+    .ggplot2 <- loadNamespace("ggplot2")
+    if (any(ls(.ggplot2) == "guide_none")){
+        assignInMyNamespace("guide_none", .ggplot2$guide_none)
+    }
+}
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
@@ -8,6 +14,7 @@
         setProgSupported(0);
     }
     .getDTEnv()
+    .ggplot2Fix()
 } ## nocov end
 
 .onAttach <- function(libname, pkgname){
@@ -23,6 +30,7 @@
     }
     rxTempDir()
     .getDTEnv()
+    .ggplot2Fix()
 }
 
 .onUnload <- function (libpath) {
@@ -143,10 +151,14 @@ RxODE.unload.unused <- NULL
 ##' @param respect when TRUE, respect any options that are specified.
 ##'     This is called at startup, but really should not be called
 ##'     elsewhere, otherwise the options are not changed.
-##' @param cran When specified and true, run on CRAN. Otherwise it is skipped on CRAN.
+##' @param cran When specified and true, run on CRAN. Otherwise it is
+##'     skipped on CRAN.
 ##' @param on.validate When TRUE run only when validating.
 ##' @param silent when true, also silence the syntax errors and
 ##'     interactive output (useful in testing).
+##' @param test When specified as a string, the enclosed test is
+##'     skipped unless the environmental variable "rxTest" equals this
+##'     value.
 ##' @author Matthew L. Fidler
 ##' @export
 rxPermissive <- function(expr, silent=.isTestthat(),

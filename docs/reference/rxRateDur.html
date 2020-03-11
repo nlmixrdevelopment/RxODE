@@ -83,7 +83,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.1.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.2.0</span>
       </span>
     </div>
 
@@ -249,28 +249,12 @@
     <p>This is primarily to display information about rate</p>
     </div>
 
-    <pre class="usage">rxRateDur(x)
+    <pre class="usage"><span class='fu'>rxRateDur</span>(<span class='no'>x</span>)
 
-# S3 method for rxRateDur
-[(x, ...)
+<span class='fu'>as.rxRateDur</span>(<span class='no'>x</span>)
 
-as.rxRateDur(x)
-
-# S3 method for rxRateDur
-as.character(x, ...)
-
-# S3 method for rxRateDur
-[[(x, ...)
-
-# S3 method for rxRateDur
-type_sum(x)
-
-pillar_shaft.rxRateDur(x, ...)
-
-# S3 method for rxRateDur
-as.data.frame(x, row.names = NULL,
-  optional = FALSE, ..., nm = paste(deparse(substitute(x), width.cutoff
-  = 500L), collapse = " "))</pre>
+<span class='co'># S3 method for rxRateDur</span>
+<span class='fu'><a href='https://rdrr.io/pkg/pillar/man/type_sum.html'>type_sum</a></span>(<span class='no'>x</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -278,29 +262,6 @@ as.data.frame(x, row.names = NULL,
     <tr>
       <th>x</th>
       <td><p>rxRateDur data</p></td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td><p>additional arguments to be passed to or from methods.</p></td>
-    </tr>
-    <tr>
-      <th>row.names</th>
-      <td><p><code>NULL</code> or a character vector giving the row
-    names for the data frame.  Missing values are not allowed.</p></td>
-    </tr>
-    <tr>
-      <th>optional</th>
-      <td><p>logical. If <code>TRUE</code>, setting row names and
-    converting column names (to syntactic names: see
-    <code><a href='https://rdrr.io/r/base/make.names.html'>make.names</a></code>) is optional.  Note that all of <span style="R">R</span>'s
-    <span class="pkg">base</span> package <code><a href='https://rdrr.io/r/base/as.data.frame.html'>as.data.frame()</a></code> methods use
-    <code>optional</code> only for column names treatment, basically with the
-    meaning of <code><a href='https://rdrr.io/r/base/data.frame.html'>data.frame</a>(*, check.names = !optional)</code>.
-    See also the <code>make.names</code> argument of the <code>matrix</code> method.</p></td>
-    </tr>
-    <tr>
-      <th>nm</th>
-      <td><p>Name of column in new data frame</p></td>
     </tr>
     </table>
 

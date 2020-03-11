@@ -1,5 +1,5 @@
 Package: RxODE
-Version: 0.9.1-9
+Version: 0.9.2-0
 Title: Facilities for Simulating from ODE-Based Models
 Authors@R: c(
    person("Matthew L.","Fidler",
@@ -66,11 +66,14 @@ Suggests:
     ggrepel,
     xgxr,
     learnr,
+    remotes,
     crayon,
     digest,
     rmarkdown,
     knitr,
-    vdiffr
+    xgxr,
+    vdiffr,
+    ggrepel
 Imports:
     rstudioapi,
     Matrix,
@@ -78,7 +81,9 @@ Imports:
     Rcpp (>= 0.12.3),
     cli (>= 2.0.0),
     dparser (>= 0.1.8),
-    ggforce,
+    brew,
+    dparser (>= 0.1.8),
+    ggplot2,
     inline,
     magrittr,
     memoise,

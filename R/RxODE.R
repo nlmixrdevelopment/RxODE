@@ -1511,13 +1511,24 @@ rxCompile.rxModelVars <-  function(model, # Model
     .allModVars <- NULL;
     .needCompile <- TRUE
     if (file.exists(.cDllFile)){
-        try(dynLoad(.cDllFile), silent = TRUE);
         .modVars <- sprintf("%smodel_vars", prefix);
-        if (is.loaded(.modVars)){
-            .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)
-            .modVars <- .allModVars$md5;
-            if (!any(names(.modVars) == "file_md5")){
-                .needCompile <- FALSE;
+        if (!missing(prefix) && !missing(dir) &&
+            regexpr(rex::rex(start,"rx_", n_times(any,32),or("_x64","_i386","_", "")),
+                    prefix) == -1 &&
+            is.loaded(.modVars)){
+            dyn.unload(.cDllFile)
+            unlink(.cFile)
+            unlink(.cDllFile)
+        } else {
+            try(dynLoad(.cDllFile), silent = TRUE);
+            if (is.loaded(.modVars)) {
+                .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)
+                .modVars <- .allModVars$md5;
+                if (!any(names(.modVars) == "file_md5")){
+                    .needCompile <- FALSE
+                } else {
+                    .needCompile <- FALSE;
+                }
             } else {
                 .needCompile <- FALSE;
             }
@@ -2028,7 +2039,6 @@ rxModelVars <- function(obj){
     }
     return(.ret);
 }
-
 
 .rxGetModelInfoFromDll <- function(dll){
     .base <- basename(dll)

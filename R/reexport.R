@@ -36,18 +36,6 @@ function(x, ...) {
   pillar::new_pillar_shaft_simple(out, align = "right", min_width = 6)
 }
 
-
-## Now ggforce
-
-##'@export
-scale_x_unit <- ggforce::scale_x_unit
-
-##'@export
-scale_y_unit <- ggforce::scale_y_unit
-
-##'@export
-ScaleContinuousPositionUnit <- ggforce::ScaleContinuousPositionUnit
-
 ##'@export
 scale_type <- ggplot2::scale_type
 
@@ -63,23 +51,6 @@ geom_line <- ggplot2::geom_line
 ##'@export
 facet_wrap <- ggplot2::facet_wrap
 
-##'@export
-##'@name tibble
-scale_type.units <- loadNamespace("ggforce")$scale_type.units
-
-
-#' @importFrom ggforce facet_wrap_paginate
-#' @export
-ggforce::facet_wrap_paginate
-
-
-#' @importFrom ggforce facet_grid_paginate
-#' @export
-ggforce::facet_grid_paginate
-
-#' @importFrom ggforce ScaleContinuousPositionUnit
-#' @export
-ggforce::ScaleContinuousPositionUnit
 
 #' @importFrom ggplot2 %+replace%
 `%+replace%`
@@ -106,16 +77,6 @@ ggplot2::ggplot
 #' @export
 ggplot2::scale_type
 
-#' @importFrom ggforce scale_x_unit
-#' @export
-ggforce::scale_x_unit
-
-
-#' @importFrom ggforce scale_y_unit
-#' @export
-ggforce::scale_y_unit
-
-
 #' @importFrom units set_units
 #' @export
 units::set_units
@@ -132,9 +93,20 @@ ggplot2::ylab
 ##'@export
 ggplot2::xlab
 
-##'@importFrom ggplot2 guide_none
+##'@importFrom ggplot2 waiver
+##' @export
+ggplot2::waiver
+
+##' Empty Guide
+##'
+##' This empty guide draws nothing; It is included in RxODE for
+##' compatibility with ggplot 3.2
+##'
+##' @inheritParams ggplot2::guide_none
 ##'@export
-ggplot2::guide_none
+guide_none <- function(title=waiver(), position=waiver()) {
+    stop("needs \"ggplot2\" 3.3.0")
+}
 
 ##'@importFrom lotri lotri
 ##'@export
@@ -143,3 +115,52 @@ lotri::lotri
 ##'@importFrom pillar type_sum
 ##'@export
 pillar::type_sum
+
+##' @importFrom ggplot2  label_value
+##' @export
+ggplot2::label_value
+
+##' @importFrom ggplot2 label_both
+##' @export
+ggplot2::label_both
+
+##' @importFrom ggplot2 label_context
+##' @export
+ggplot2::label_context
+
+##' @importFrom ggplot2 label_wrap_gen
+##' @export
+ggplot2::label_wrap_gen
+
+##' @importFrom ggplot2 label_context
+##' @export
+ggplot2::label_context
+
+
+##' @importFrom ggplot2 scale_x_discrete
+##' @export
+ggplot2::scale_x_discrete
+
+##' @importFrom ggplot2 scale_y_discrete
+##' @export
+ggplot2::scale_y_discrete
+
+##' @importFrom ggplot2 scale_x_continuous
+##' @export
+ggplot2::scale_x_continuous
+
+##' @importFrom ggplot2 scale_y_continuous
+##' @export
+ggplot2::scale_y_continuous
+
+##' @importFrom ggplot2 scale_x_date
+##' @export
+ggplot2::scale_x_date
+
+##' @importFrom ggplot2 scale_y_date
+##' @export
+ggplot2::scale_y_date
+
+##' @importFrom ggplot2 expand_limits
+##' @export
+ggplot2::expand_limits
