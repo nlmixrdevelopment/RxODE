@@ -110,6 +110,12 @@ rxPermissive({
             vdiffr::expect_doppelganger(paste0("plot-ci1c2",.xgxtxt,"log-xy"),ci1.C2 %>% plot(log="xy"))
             vdiffr::expect_doppelganger(paste0("plot-ci1c2",.xgxtxt,"log-yx"), ci1.C2 %>% plot(log="yx"))
 
+            vdiffr::expect_doppelganger(paste0("plot-ci1c2-eff",.xgxtxt), ci1.C2.eff %>% plot())
+            vdiffr::expect_doppelganger(paste0("plot-ci1c2-eff",.xgxtxt,"log-x"), ci1.C2.eff %>% plot(log="x"))
+            vdiffr::expect_doppelganger(paste0("plot-ci1c2-eff",.xgxtxt,"log-y"), ci1.C2.eff %>% plot(log="y"))
+            vdiffr::expect_doppelganger(paste0("plot-ci1c2-eff",.xgxtxt,"log-xy"),ci1.C2.eff %>% plot(log="xy"))
+            vdiffr::expect_doppelganger(paste0("plot-ci1c2-eff",.xgxtxt,"log-yx"), ci1.C2.eff %>% plot(log="yx"))
+
             ##
 
             ## large
