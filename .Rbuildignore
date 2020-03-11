@@ -28,7 +28,6 @@ RxODE.*\.(zip|pdf)$
 ^/?src/liblsoda/.*$
 LICENSE
 News.md
-/?configure.ac
 /?config.status
 /?config.log
 ^/?docs/*$
