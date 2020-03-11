@@ -44,6 +44,13 @@ rx_theme <- function(base_size = 11, base_family = "",
     }
 }
 
+.dropUnits <- function(x){
+    if (inherits(x, "units")){
+        return(units::drop_units(x))
+    }
+    return(x)
+}
+
 .plotTime <- function(.dat, xlab){
     .xgxr <- getOption("RxODE.xgxr", TRUE) &&
         requireNamespace("xgxr", quietly = TRUE)
@@ -64,7 +71,7 @@ rx_theme <- function(base_size = 11, base_family = "",
     }
     if (inherits(.dat$time, "units")) {
         .unit <- as.character(units(.dat$time))
-        .dat$time <- units::drop_units(.dat$time)
+        .dat$time <- .dropUnits(.dat$time)
         .timex <- .xgxrT(.unit)
         .xlab <- xlab(sprintf("%s [%s]", xlab, .unit))
     } else {
@@ -137,7 +144,7 @@ plot.rxSolve <- function(x,y,..., log="",
         .nlvl <- length(levels(.dat$id))
         .dat2 <- .dat[rev(seq_along(.dat$id)), ];
         .dat2$label <- .dat$id
-        .dat2$time <- units::drop_units(.dat2$time)
+        .dat2$time <- .dropUnits(.dat2$time)
         row.names(.dat2) <- NULL
         .dat2 <- .dat2[!duplicated(paste0(.dat2$id, .dat2$trt)), ];
         .aes <- aes(.data$time, .data$value, color=.data$id)
@@ -148,7 +155,7 @@ plot.rxSolve <- function(x,y,..., log="",
         .nlvl <- length(levels(.dat$sim.id))
         .dat2 <- .dat[rev(seq_along(.dat$sim.id)), ];
         .dat2$label <- .dat$sim.id
-        .dat2$time <- units::drop_units(.dat2$time)
+        .dat2$time <- .dropUnits(.dat2$time)
         row.names(.dat2) <- NULL
         .dat2 <- .dat2[!duplicated(paste0(.dat2$sim.id, .dat2$trt)), ];
         .aes <- aes(.data$time, .data$value, color=.data$sim.id)
@@ -161,7 +168,7 @@ plot.rxSolve <- function(x,y,..., log="",
     if (length(.cmts) == 1) .facet <- NULL
     .ylab <- ylab(ylab)
     .theme <- rx_theme()
-    if (!getOption("RxODE.theme_bw", TRUE)) .theme <- NULL
+    if (!getOption("RxODE.theme", TRUE)) .theme <- NULL
     .repel <- NULL
     .legend <- NULL
     .line <- geom_line(size=1.2)

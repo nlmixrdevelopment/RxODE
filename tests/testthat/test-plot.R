@@ -79,6 +79,18 @@ rxPermissive({
             et(0,48, length.out=100)
 
         sim  <- rxSolve(m2,ev,omega=omega,nSub=100)
+
+        expect_error(plot(sim, log="f"))
+
+        ev2 <- ev %>% units::drop_units()
+
+        sim  <- rxSolve(m2,ev2,omega=omega,nSub=3)
+
+        vdiffr::expect_doppelganger("sim.id-unitless", plot(sim))
+        option(RxODE.theme=FALSE)
+        vdiffr::expect_doppelganger("sim.id-unitless-notheme", plot(sim))
+        option(RxODE.theme=TRUE)
+
         ci1.C2 <- confint(sim, c("C2"))
 
         ci1.C2.eff <- confint(sim, c("C2", "eff"))
