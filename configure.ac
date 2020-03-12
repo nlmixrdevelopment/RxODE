@@ -57,3 +57,4 @@ sh inst/tools/r-stripper/stripper
 echo --------[[begin src/Makevars]]--------
 cat src/Makevars
 echo --------[[end src/Makevars]]--------
+

@@ -1204,17 +1204,11 @@ rxEvid <- function(x) {
     return(structure(x, class="rxEvid"))
 }
 
-#' @rawNamespace if(getRversion() >= "3.6.0") {
+#' @rawNamespace
 #'   S3method(pillar::type_sum, rxEvid)
 #'   S3method(pillar::type_sum, rxRateDur)
 #'   S3method(pillar::pillar_shaft, rxEvid)
 #'   S3method(pillar::pillar_shaft, rxRateDur)
-#' } else {
-#'   export(type_sum.rxEvid)
-#'   export(type_sum.rxRateDur)
-#'   export(pillar_shaft.rxEvid)
-#'   export(pillar_shaft.rxRateDur)
-#' }
 
 ##'@rdname rxEvid
 ##' @export
