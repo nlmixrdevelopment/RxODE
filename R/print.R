@@ -33,31 +33,54 @@ print.rxRateDur <- function(x, ...) {
 print.rxEt <- function(x,...) {
   if (rxIs(x, "rxEt")) {
     bound <- .getBound(x, parent.frame(2));
-    cat(cli::cli_format_method({
-      cli::cli_rule(center=crayon::bold(paste0("EventTable with ",x$nobs+x$ndose, " records")))
-    }), sep="\n")
-    ## sprintf(" with %s records%s:\n", x$nobs+x$ndose,
-    ##                                           ifelse(x$maxId==1, "", sprintf(" (%d IDs)", abs(x$maxId))))
+    .et1 <- paste0("EventTable with ",x$nobs+x$ndose, " records")
+    .et2 <- NULL
     .units <- x$.units;
     .maxId <- length(x$IDs)
     if (.maxId !=1) {
-      cat(sprintf("   %s individuals\n", .maxId))
+      .et2 <- sprintf("   %s individuals", .maxId)
     }
-    cat(sprintf("   %s dosing records (see %s$%s(); add with %s or %s)\n",
-                x$ndose, crayon::yellow(bound), crayon::blue("get.dosing"),
-                crayon::blue("add.dosing"), crayon::blue("et")))
-    cat(sprintf("   %s observation times (see %s$%s(); add with %s or %s)\n",
-                x$nobs, crayon::yellow(bound), crayon::blue("get.sampling"),
-                crayon::blue("add.sampling"), crayon::blue("et")))
+    .et3 <-sprintf("   %s dosing records (see %s$%s(); add with %s or %s)",
+                   x$ndose, bound, "get.dosing", "add.dosing", "et")
+    .et4 <- sprintf("   %s observation times (see %s$%s(); add with %s or %s)",
+                    x$nobs, bound, "get.sampling", "add.sampling", 
+                    "et")
+    .et5 <- NULL
     if (x$show["addl"]) {
-      cat(sprintf("   multiple doses in `addl` columns, expand with %s$%s(); or %s(%s)\n",
-                  crayon::yellow(bound), crayon::blue("expand"),
-                  crayon::blue("etExpand"), crayon::yellow(bound)))
+      .et5 <- sprintf("   multiple doses in `addl` columns, expand with %s$%s(); or %s(%s)",
+                  bound, "expand", "etExpand", bound)
+    }
+    .et <- c(.et2, .et3, .et4, .et5)
+    .df <- data.frame(et=.et,stringsAsFactors=FALSE)
+    names(.df) <- .et1
+    class(.df) <- c(sprintf("EventTable Info: %s", bound),
+                    "paged_df","data.frame")
+    .out <- utils::capture.output({print(.df)})
+    .nb <- TRUE
+    if (length(.out) > 0){
+      .nb <- FALSE
+      cat(cli::cli_format_method({
+        cli::cli_rule(center=crayon::bold(.et1))
+      }), sep="\n")
+      cat(paste0(.et2,"\n"))
+      cat(sprintf("   %s dosing records (see %s$%s(); add with %s or %s)\n",
+                  x$ndose, crayon::yellow(bound), crayon::blue("get.dosing"),
+                  crayon::blue("add.dosing"), crayon::blue("et")))
+      cat(sprintf("   %s observation times (see %s$%s(); add with %s or %s)\n",
+                  x$nobs, crayon::yellow(bound), crayon::blue("get.sampling"),
+                  crayon::blue("add.sampling"), crayon::blue("et")))
+      if (x$show["addl"]) {
+        cat(sprintf("   multiple doses in `addl` columns, expand with %s$%s(); or %s(%s)\n",
+                    crayon::yellow(bound), crayon::blue("expand"),
+                    crayon::blue("etExpand"), crayon::yellow(bound)))
+      }
     }
     if (x$nobs!=0 | x$ndose!=0) {
-      cat(cli::cli_format_method({
-        cli::cli_rule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":")))
-      }), sep="\n")
+      if (!.nb) {
+        cat(cli::cli_format_method({
+          cli::cli_rule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":")))
+        }), sep="\n")
+      }
       print(tibble::as_tibble(data.frame(.etAddCls(x))));
     }
     invisible(x)
@@ -351,7 +374,7 @@ print.rxSolveSimType <- function(x, ...){
 ##'@export
 print.rxSolve <- function(x, ...){
   if (rxIs(x, "rxSolve")) {
-    .nb <- rxIsNotebook();
+    .nb <- TRUE
     .args <- as.list(match.call(expand.dots = TRUE));
     if (any(names(.args) == "n")) {
       .n <- .args$n;
@@ -374,23 +397,32 @@ print.rxSolve <- function(x, ...){
         .cls <- c(paste0("Parameters ", .bound, "$params"),
                 "paged_df", "data.frame");
         class(.df) <- .cls
-        print(.df);
+        .out <- utils::capture.output({print(.df)})
+        if (length(.out) > 0) .nb <- FALSE
       }
+    }
+    if (.nb){
       .df <- x$covs;
       if (!is.null(.df)) {
         if (rxIs(.df, "data.frame")){
           .cls <- c(paste0("Covariates ", .bound, "$covs"),
                     "paged_df", "data.frame");
           class(.df) <- .cls;
-          print(.df)
+          .out <- utils::capture.output({print(.df)})
+          if (length(.out) > 0) .nb <- FALSE
         }
       }
+    }
+    if (.nb) {
       .df <- x$inits;
       .df <- as.data.frame(t(x$inits))
       .cls <- c(paste0("Initial\u00A0State ", .bound, "$inits"),
                 "paged_df", "data.frame");
       class(.df) <- .cls
-      print(.df);
+      .out <- utils::capture.output({print(.df)})
+      if (length(.out) > 0) .nb <- FALSE
+    }
+    if (.nb){
       print.rxSolveSimType(x);
       .df <- x;
       .cls <- c(paste0("Solved\u00A0Data: ", .bound),
@@ -458,7 +490,6 @@ print.rxModelText <- function(x, ...) {
   } else {
     .bound <- .getBound(x, parent.frame(2));
   }
-  .nb <- rxIsNotebook();
   .code <- deparse(body(eval(parse(text=paste("function() {",as.vector(x),"}")))))
   .code[1]  <- "RxODE({"
   .code[length(.code)]  <- "})";
