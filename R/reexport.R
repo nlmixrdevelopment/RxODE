@@ -3,19 +3,12 @@
 #' @param x see \link[pillar]{type_sum}
 #' @param ... see \link[pillar]{type_sum}
 #' @param width see \link[pillar]{type_sum}
-#' @rawNamespace if(getRversion() >= "3.6.0") {
+#' @rawNamespace
 #'   S3method(pillar::type_sum, units)
 #'   S3method(pillar::type_sum, mixed_units)
 #'   S3method(pillar::pillar_shaft, units)
 #'   S3method(pillar::pillar_shaft, mixed_units)
 #'   S3method(pillar::format_type_sum, type_sum_units)
-#' } else {
-#'   export(type_sum.units)
-#'   export(type_sum.mixed_units)
-#'   export(pillar_shaft.units)
-#'   export(pillar_shaft.mixed_units)
-#'   export(format_type_sum.type_sum_units)
-#' }
 type_sum.units <- loadNamespace("units")$type_sum.units
 
 #'@name tibble
