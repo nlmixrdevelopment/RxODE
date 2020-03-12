@@ -29,17 +29,16 @@ matrix:
 
 apt_packages:
   - libudunits2-dev
+  - cmake
+  - libgmp-dev
+  - libmpfr-dev
+  - libmpc-dev
+  - devscripts
 
 before_install:
   - if [ $TRAVIS_OS_NAME = osx ]; then brew install cmake gmp mpfr libmpc || true; fi
   
 warnings_are_errors: true
 
-r_github_packages:
-  - nlmixrdevelopment/n1qn1
-  - nlmixrdevelopment/dparser-R
-  - nlmixrdevelopment/PreciseSums
-  - nlmixrdevelopment/SnakeCharmR
-  - symengine/symengine.R
 after_success:
   - Rscript -e 'covr::codecov(token="c1a47ffb-e5b5-420a-a0ed-6df480bcb833")'
