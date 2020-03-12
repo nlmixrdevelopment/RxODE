@@ -64,7 +64,6 @@ Suggests:
     htmltools,
     rlang,
     ggrepel,
-    xgxr,
     learnr,
     remotes,
     crayon,
@@ -72,8 +71,7 @@ Suggests:
     rmarkdown,
     knitr,
     xgxr,
-    vdiffr,
-    ggrepel
+    vdiffr
 Imports:
     Matrix,
     PreciseSums (>= 0.3),
@@ -81,7 +79,6 @@ Imports:
     cli (>= 2.0.0),
     dparser (>= 0.1.8),
     brew,
-    dparser (>= 0.1.8),
     ggplot2,
     inline,
     magrittr,
