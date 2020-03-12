@@ -92,3 +92,4 @@ vignettes/build.R
 ^.*\.Rproj$
 ^\.Rproj\.user$
 tests/testthat/*.d.*
+..Rcheck
