@@ -514,8 +514,8 @@ print.rxSolveParams <- function(x, ...){
 }
 
 ##'@export
-print.rxSymInvCholEnv <- function(x, ...){ # nocov start
-    if (is.null(x$theta)){
+print.rxSymInvCholEnv <- function(x, ...) {
+    if (is.null(x$theta)) {
         cat(sprintf("Uninitialized $theta, please assign (requires %s arguments)!\n", x$ntheta))
     } else {
         cat(sprintf("$theta=c(%s) for:\n\n", paste(x$theta, collapse=", ")))
