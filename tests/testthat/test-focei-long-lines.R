@@ -1,7 +1,5 @@
-context("Michelis Menton test (long lines)")
-## Michelis Menton test
 rxPermissive({
-
+    context("Michelis Menton test (long lines)")
     mm <- RxODE({
         C2 = centr / V;
         d/dt(centr)  = -(VM*C2)/(KM+C2);
@@ -27,4 +25,4 @@ rxPermissive({
         expect_equal(class(focei.mm.mod2), "rxFocei");
     })
 
-}, silent=TRUE)
+}, silent=TRUE, test="focei")

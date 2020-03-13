@@ -12,4 +12,4 @@ d/dt(SLD)=-0.5*SLD;
     test_that("baseline works",{
         expect_equal(c(19.3029809483368, 19.3029809483368), e$BASE,tolerance=1e-6)
     })
-})
+}, test="cran")

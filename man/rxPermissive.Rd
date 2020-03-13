@@ -5,22 +5,9 @@
 \alias{rxStrict}
 \title{Permissive or Strict RxODE syntax options}
 \usage{
-rxPermissive(
-  expr,
-  silent = .isTestthat(),
-  respect = FALSE,
-  cran = FALSE,
-  on.validate = FALSE,
-  test = NULL
-)
+rxPermissive(expr, silent = .isTestthat(), respect = FALSE, test = "cran")
 
-rxStrict(
-  expr,
-  silent = .isTestthat(),
-  respect = FALSE,
-  cran = FALSE,
-  on.validate = FALSE
-)
+rxStrict(expr, silent = .isTestthat(), respect = FALSE)
 }
 \arguments{
 \item{expr}{Expression to evaluate in the permissive/strict
@@ -34,14 +21,9 @@ interactive output (useful in testing).}
 This is called at startup, but really should not be called
 elsewhere, otherwise the options are not changed.}
 
-\item{cran}{When specified and true, run on CRAN. Otherwise it is
-skipped on CRAN.}
-
-\item{on.validate}{When TRUE run only when validating.}
-
 \item{test}{When specified as a string, the enclosed test is
-skipped unless the environmental variable "rxTest" equals this
-value.}
+skipped unless the environmental variable "NOT_CRAN" equals this
+value. Special values are "cran" which means test on CRAN}
 }
 \description{
 This sets the RxODE syntax to be permissive or strict

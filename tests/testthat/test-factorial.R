@@ -1,6 +1,5 @@
-context("Test Factorial operator");
 rxPermissive({
-
+    context("Test Factorial operator");
     transTo <- function(model, syntax, match=TRUE){
         mv <- rxModelVars(model);
         if (match){
@@ -17,4 +16,4 @@ rxPermissive({
     transTo("d/dt(m)= gamma(1+fac)-cmt*ka", "lgammafn(1+fac)")
     transTo("d/dt(m)= lfactorial(1+fac)-cmt*ka", "lgamma1p(1+fac)")
 
-}, silent=TRUE)
+}, silent=TRUE, test="cran")

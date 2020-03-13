@@ -1,4 +1,6 @@
-require(RxODE);
+
+rxPermissive({
+    require(RxODE);
 context("Example 6")
 require(digest)
 
@@ -314,7 +316,6 @@ dat4 <- structure(list(time = structure(c(0, 0.0417, 0.0833, 0.125, 0.1667,
     132.5055, 129.2339, 126.0431, 122.9311, 119.8959, 116.9357,
     114.0486)), row.names = c(NA, -241L), class = "data.frame")
 
-rxPermissive({
     ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf p11
 
     ## 6.1
@@ -395,4 +396,4 @@ d/dt(blood) = - b*blood
         expect_equal(round(as.data.frame(pk2),4), dat4)
     })
 
-}, silent=TRUE);
+}, silent=TRUE, test="cran")

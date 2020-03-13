@@ -1,7 +1,7 @@
-require(RxODE);
-context("Test Jacobian specification")
-require(digest)
 rxPermissive({
+    require(RxODE);
+    context("Test Jacobian specification")
+    require(digest)
 
     ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf p15
     Vtpol <- RxODE("
@@ -82,5 +82,4 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     test_that("Same solutions",{
         expect_true(all(counts0$digest == counts$digest))
     })
-
-}, silent=TRUE)
+}, silent=TRUE, test="cran")

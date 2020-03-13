@@ -95,4 +95,4 @@ rxPermissive({
             expect_equal(solve3$blood,     solve5b$blood)
         })
     }
-})
+}, test="cran")

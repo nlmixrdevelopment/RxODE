@@ -1,7 +1,6 @@
-library(RxODE)
-library(testthat)
-
 rxPermissive({
+    library(RxODE)
+    library(testthat)
     context("Garbage collection")
     test_that("Check garbage collection unloads DLLs", {
         options(RxODE.unload.unused=TRUE)
@@ -30,4 +29,4 @@ rxPermissive({
         options(RxODE.unload.unused=FALSE)
     })
 
-})
+}, test="lvl2")

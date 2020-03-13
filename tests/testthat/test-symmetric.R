@@ -1,6 +1,6 @@
 ## test ODE parsing for syntax errors
-library(RxODE)
 rxPermissive({
+    library(RxODE)
 
     context("Test errors with non-symmetric matrices")
     set.seed(42)
@@ -110,4 +110,4 @@ rxPermissive({
 
 
 
-})
+}, test="parsing")

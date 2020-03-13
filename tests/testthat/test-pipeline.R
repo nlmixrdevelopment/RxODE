@@ -1,4 +1,3 @@
-
 rxPermissive({
 
     library(RxODE)
@@ -229,4 +228,4 @@ rxPermissive({
                          addDosing=TRUE)
 
     expect_false(any(names(tmp)=="WT"))
-})
+}, test="cran")

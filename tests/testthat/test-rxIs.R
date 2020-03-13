@@ -2,16 +2,7 @@ rxPermissive({
     context("rxIs")
     test_that("rxIs tests", {
         library(dplyr)
-        if (file.exists("test-data-setup.Rdata")){
-            load("test-data-setup.Rdata")
-        } else {
-            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
-            if (!inherits(tmp, "try-error") && file.exists(tmp)){
-                load(tmp)
-            } else {
-                skip("Can't load test dataset.")
-            }
-        }
+        load(test_path("test-data-setup.Rdata"))
         dat <- as.tbl(dat);
         expect_true(rxIs(dat, "data.frame"))
         expect_true(rxIs(dat, "tbl"))
@@ -105,4 +96,4 @@ d/dt(blood)     = a*intestine - b*blood
 ")
         expect_true(rxIs(mod, "RxODE"))
     })
-}, cran=FALSE)
+}, test="cran")

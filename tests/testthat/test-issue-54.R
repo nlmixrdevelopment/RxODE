@@ -1,6 +1,6 @@
-context("Conditional statements")
 rxPermissive({
 
+    context("Conditional statements")
     ## else if is actually already supported...
     test_that("else if", {
 
@@ -463,6 +463,4 @@ rxPermissive({
         expect_equal(s1$cp, s3$cp)
 
     })
-
-
-}, cran=TRUE)
+}, test="parsing")

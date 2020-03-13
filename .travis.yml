@@ -16,7 +16,18 @@ r:
 os:
   - linux
   - osx
-  
+env:
+  - NOT_CRAN=cran
+  - NOT_CRAN=norm
+  - NOT_CRAN=demo
+  - NOT_CRAN=lvl2
+  - NOT_CRAN=parsing
+  - NOT_CRAN=focei
+  - NOT_CRAN=indLin
+  - NOT_CRAN=parseLincmt
+  - NOT_CRAN=lincmt
+  - NOT_CRAN=plot
+  - NOT_CRAN=print
 matrix:
   exclude:
   allow_failures:

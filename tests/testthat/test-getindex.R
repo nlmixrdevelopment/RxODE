@@ -1,7 +1,6 @@
-require(RxODE)
-context("Get Index");
 rxPermissive({
-
+    require(RxODE)
+    context("Get Index")
     rigid.txt <- "
 y1(0)    = 1
 y2(0)    = 0
@@ -15,7 +14,7 @@ d/dt(y3) = a3*y1*y2
 ";
     rigid <- RxODE(rigid.txt)
 
-    test_that("Index access the right compartment",{
+    test_that("Index access the right compartment", {
         expect_equal(rxState(rigid,"y1"), 1);
         expect_equal(rxState(rigid,"y2"), 2);
         expect_equal(rxState(rigid,"y3"), 3);
@@ -26,4 +25,4 @@ d/dt(y3) = a3*y1*y2
         expect_error(rigid$get.index("matt"), "cannot locate compartment");
     })
 
-}, silent=TRUE)
+}, silent=TRUE, test="cran")

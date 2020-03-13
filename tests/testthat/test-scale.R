@@ -1,6 +1,5 @@
-context("Test Scaling Factors")
 rxPermissive({
-
+    context("Test Scaling Factors")
     ode <-
         RxODE({
             b       = -1
@@ -168,4 +167,4 @@ rxPermissive({
         expect_equal(out$Z, z1 / 2);
 
     })
-}, silent=TRUE)
+}, silent=TRUE, test="cran")

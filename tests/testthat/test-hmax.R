@@ -962,6 +962,5 @@ row.names = c(NA, -2545L))
         x <- rxSolve(m1,param=theta, events=evi, method = "lsoda", hmax = 0)
         expect_false(all(x$centr == 0))
     })
-
-})
+}, test="cran")
 

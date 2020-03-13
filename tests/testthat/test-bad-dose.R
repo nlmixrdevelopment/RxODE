@@ -27,4 +27,4 @@ d/dt(blood)     = a*intestine - b*blood
         expect_warning(solve(mod, et), NA);
     })
 
-}, silent=TRUE);
+}, silent=TRUE, test="cran");

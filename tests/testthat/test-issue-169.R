@@ -2,7 +2,7 @@ rxPermissive({
     context("Test Issue #169 -- NAs everywhere")
     test_that("Test Issue #169", {
 
-        Book4 <- readRDS("test-issue-169.rds")
+        Book4 <- readRDS(test_path("test-issue-169.rds"))
         mod1 <-RxODE({
             KA=2.94E-01;
             CL=1.86E+01;
@@ -27,4 +27,4 @@ rxPermissive({
         expect_true(all(trans$II == 0.0))
 
     })
-}, cran=TRUE)
+}, test="cran")

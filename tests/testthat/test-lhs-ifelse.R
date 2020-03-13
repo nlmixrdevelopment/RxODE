@@ -49,4 +49,4 @@ rxPermissive({
         expect_equal(s[s$C4 == 3, "prd"], s[s$C4 == 3, "peri"])
     })
 
-})
+}, test="parsing")

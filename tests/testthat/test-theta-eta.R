@@ -1,6 +1,6 @@
-context("Test RxODE THETA/ETA support")
-library(digest)
 rxPermissive({
+    context("Test RxODE THETA/ETA support")
+    library(digest)
 
     rigid <- RxODE({
         y1(0)    = 1
@@ -69,4 +69,4 @@ rxPermissive({
     })
 
 
-}, silent=TRUE)
+}, silent=TRUE, test="cran")

@@ -1,7 +1,6 @@
-context("Test progress bar")
-
+rxPermissive({
 test_that("progress_bar", {
-
+    context("Test progress bar")
     f <- function(abort=FALSE){
         on.exit({rxProgressAbort()});
         rxProgress(100)
@@ -16,3 +15,4 @@ test_that("progress_bar", {
     expect_true(f())
     expect_error(f(TRUE))
 })
+}, test="cran")

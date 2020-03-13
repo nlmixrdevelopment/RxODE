@@ -1,7 +1,7 @@
-context("Test inductive linearization")
+rxPermissive({
+    test_that("Matrix exponential alone works", {
 
-test_that("Matrix exponential alone works", {
-
+    context("Test inductive linearization")
     ## Case 1 ME alone from wikipedia
     mod <- RxODE({
         d/dt(x) = 2 * x - y + z
@@ -295,25 +295,18 @@ d/dt(blood)     = a*intestine - b*blood
     ## microbenchmark::microbenchmark(rxSolve(mmModel,et, method="indLin"),
     ##                                rxSolve(mmModel,et, method="liblsoda"))
 
-})
+    iSec <- RxODE({
+        d/dt(Ga) = -ka * Ga
+        d/dt(Gt) = ka * Ga - ka * Gt
+        Gprod = Gss * (Clg + Clgi * Iss)
+        d/dt(Gc) = ka * Gt - Gprod + Q / Vp * Gp - (Clg + Clgi * Ie + Q) / Vg * Gc
+        Gc(0) = Gss * Vg
+        d/dt(Gp) = -Q / Vp * Gp + Q / Vg * Gc
+        d/dt(Ge) = Gc * Kge - Ge * Kge
+        d/dt(I) = (Iss * Cli) * (1 + Sincr * Gt) * (Ge / Gss) ^ IPRG - Cli / Vi * I
+        I(0) = Iss * Vi
+        d/dt(Ie) = kie * I - kie * Ie
+    }, indLin=TRUE)
 
-iSec <- RxODE({
-    d/dt(Ga) = -ka * Ga
-    d/dt(Gt) = ka * Ga - ka * Gt
-    Gprod = Gss * (Clg + Clgi * Iss)
-    d/dt(Gc) = ka * Gt - Gprod + Q / Vp * Gp - (Clg + Clgi * Ie + Q) / Vg * Gc
-    Gc(0) = Gss * Vg
-    d/dt(Gp) = -Q / Vp * Gp + Q / Vg * Gc
-    d/dt(Ge) = Gc * Kge - Ge * Kge
-    d/dt(I) = (Iss * Cli) * (1 + Sincr * Gt) * (Ge / Gss) ^ IPRG - Cli / Vi * I
-    I(0) = Iss * Vi
-    d/dt(Ie) = kie * I - kie * Ie
-}, indLin=TRUE)
+})}, test="indLin")
 
-## iVL <- RxODE({
-##     d/dt(Tni) = lambda - (1 - INHrti) * gamma * Tni * Vin - dni * Tni
-##     Tni0 = da * dv * (alphaL + dL) / (gamma * p * (alphaL + fr * dL))
-##     Tni(0) = Tni0
-##     d/dt(Ta) = fr * (1 - INHrti) * gamma * Tni * Vin + alphaL * Tl - da * Ta
-##     Ta(0) = dv * Vin0/
-## })

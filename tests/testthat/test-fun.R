@@ -1,5 +1,6 @@
-context("User function tests")
 rxPermissive({
+    context("User function tests")
+
     test_that("user function tests", {
 
         expect_error(RxODE("a=fun(d,b,c)"))
@@ -83,4 +84,4 @@ rxPermissive({
     expect_error(rxFromSE("Derivative(fun(a,b,c),a)"))
 
 })
-})
+}, test="parsing")

@@ -1,5 +1,5 @@
-context("Focei Setup checks");
 rxPermissive({
+    context("Focei Setup checks");
 
     m1 <- RxODE({
         d/dt(centr) = - CL / V*centr;
@@ -372,4 +372,4 @@ rxPermissive({
     ##     expect_false(any(rxLhs(cond$inner) == "T0"))
     ## })
 
-}, silent=TRUE)
+}, silent=TRUE, test="focei")

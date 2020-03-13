@@ -1,7 +1,6 @@
-require(RxODE);
-context("Test Jacobian (df/dy) parsing")
-
 rxPermissive({
+    require(RxODE);
+    context("Test Jacobian (df/dy) parsing")
 
     Vtpol2 <- RxODE("
 d/dt(y)  = dy
@@ -248,5 +247,5 @@ d/dt(cen) = ka*depot-k*cen
     ## tmp <- RxODE(mod, calcSens=list(eta=c("eta_ka", "eta_mtt"), theta=c("cl", "vc")));
 });
 
-}, silent=TRUE)
+}, silent=TRUE, test="parsing")
 

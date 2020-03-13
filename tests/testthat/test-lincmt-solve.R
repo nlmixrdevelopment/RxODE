@@ -1,4 +1,7 @@
-et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=6, dosing.interval=8) %>%
+
+rxPermissive({
+
+    et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=6, dosing.interval=8) %>%
     add.dosing(dose=1.5, nbr.doses=6, dosing.interval=8) %>%
     add.sampling(seq(0, 48, length.out=200))
 
@@ -85,7 +88,6 @@ NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
 NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
 -106L))
 
-rxPermissive({
 
     tol  <- 5e-6 ## Current difference for all equations
     type <- 2
@@ -1945,6 +1947,6 @@ rxPermissive({
         expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
     })
 
-}, silent=TRUE)
+}, silent=TRUE, test="lincmt")
 
 

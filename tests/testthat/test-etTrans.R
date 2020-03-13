@@ -1,7 +1,6 @@
-require(RxODE);
 
 rxPermissive({
-
+    require(RxODE);
     for (radi in 1:3){
 
         rxUseRadixSort(switch(radi, FALSE, TRUE, TRUE));
@@ -533,9 +532,7 @@ d/dt(blood)     = a*intestine - b*blood
 
         ## etTrans example from xgxr + nlmixr + ggpmx
         test_that("etTrans", {
-            skip_if(!file.exists("test-etTrans-1.rds"),
-                    "Cant find test-etTrans-1.rds")
-            lst <- readRDS("test-etTrans-1.rds");
+            lst <- readRDS(test_path("test-etTrans-1.rds"));
             events2 <- lst$events
             events2 <- events2[, names(events2) != "CENS"]
 
@@ -547,8 +544,7 @@ d/dt(blood)     = a*intestine - b*blood
         })
 
         test_that("etTrans drop levels are correct", {
-            skip_if(!file.exists("etTrans-drop.rds"), "Cant find etTrans-drop.rds")
-            dat <- readRDS("etTrans-drop.rds")
+            dat <- readRDS(test_path("etTrans-drop.rds"))
 
             mod <- RxODE({
                 lka <- log(0.1) # log Ka
@@ -589,5 +585,5 @@ d/dt(blood)     = a*intestine - b*blood
 
     }
 
-}, cran=TRUE, silent=TRUE)
+}, test="cran", silent=TRUE)
 

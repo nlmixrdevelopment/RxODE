@@ -1,8 +1,9 @@
 ## (Regression) test 3 multiple instances of RxODE objects to ensure
 ## C symbols and operations don't conflict.
-library(RxODE)
-context("Make sure C operations and symbols don't conflict")
 rxPermissive({
+
+    library(RxODE)
+    context("Make sure C operations and symbols don't conflict")
 
     test.dir <- tempfile("Rxmult-")
 
@@ -164,5 +165,5 @@ rxPermissive({
         skip_on_os("windows")
         expect_equal(.ret,0) # 0==success, 1==failed
     })
-}, silent=TRUE, cran=TRUE);
+}, silent=TRUE, test="cran");
 

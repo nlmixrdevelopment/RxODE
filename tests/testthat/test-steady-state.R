@@ -307,4 +307,4 @@ rxPermissive({
         })
 
     }
-}, cran=FALSE, silent=TRUE)
+}, test="lvl2", silent=TRUE)

@@ -43,4 +43,4 @@ rxPermissive({
         expect_equal(as.data.frame(tmp1), as.data.frame(tmp3))
 
     })
-}, cran=FALSE)
+}, test="lvl2")

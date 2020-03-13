@@ -1,7 +1,7 @@
-library(RxODE);
-context("Test Inis");
 rxPermissive({
 
+    library(RxODE);
+    context("Test Inis");
     m1 <- RxODE({
         C2 = centr/V2;
         C3 = peri/V3;
@@ -144,4 +144,4 @@ rxPermissive({
         expect_equal(rxModelVars(tmp)$ini, structure(numeric(0), .Names = character(0)))
     })
 
-}, silent=TRUE)
+}, silent=TRUE, test="cran")

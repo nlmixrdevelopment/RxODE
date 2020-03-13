@@ -350,4 +350,4 @@ rxPermissive({
         expect_equal(x1$CL, x2$CL)
     })
 
-}, silent=TRUE)
+}, silent=TRUE, test="cran")

@@ -1,6 +1,6 @@
-require(RxODE)
-context("Test loading, and unloading of models")
 rxPermissive({
+    require(RxODE)
+    context("Test loading, and unloading of models")
 
     rigid.txt <- "
 y1(0)    = 1
@@ -51,4 +51,4 @@ d/dt(y3) = a3*y1*y2
         expect_true(file.exists(dll));
     })
 
-}, silent=TRUE);
+}, silent=TRUE, test="cran")

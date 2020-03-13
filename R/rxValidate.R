@@ -7,37 +7,54 @@
 ##' @export
 rxValidate <- function(type=NULL){
     ## rxVersion(" Validation", TRUE);
+    .tests <- c("cran", "norm", "demo", "lvl2", "parsing",
+                    "focei", "indLin", "parseLincmt", "lincmt",
+                    "plot", "print")
     if (is.character(type)){
         if (type=="covr"){
             Sys.setenv("NOT_CRAN"="true", "covr"="true");
             covr::report()
         } else {
-            old.wd <- getwd();
-            on.exit({setwd(old.wd); Sys.setenv(NOT_CRAN="")});
-            Sys.setenv("NOT_CRAN"="true")
-            path <- file.path(system.file("tests", package = "RxODE"),"testthat")
-            setwd(path)
-            testthat::test_dir(path, filter=type);
+            if (any(type == .tests)) {
+                old.wd <- getwd();
+                on.exit({setwd(old.wd); Sys.setenv(NOT_CRAN="")});
+                Sys.setenv("NOT_CRAN"=type)
+                path <- file.path(system.file("tests", package = "RxODE"),"testthat")
+                setwd(path)
+                pt <- proc.time();
+                testthat::test_dir(path);
+                message("================================================================================")
+                print(proc.time() - pt);
+                message("================================================================================")
+            } else {
+                old.wd <- getwd();
+                on.exit({setwd(old.wd); Sys.setenv(NOT_CRAN="")});
+                Sys.setenv("NOT_CRAN"="true")
+                path <- file.path(system.file("tests", package = "RxODE"),"testthat")
+                setwd(path)
+                pt <- proc.time();
+                testthat::test_dir(path, filter=type);
+                message("================================================================================")
+                print(proc.time() - pt);
+                message("================================================================================")
+            }
+
         }
     } else {
         old.wd <- getwd();
         on.exit({setwd(old.wd)});
         path <- file.path(system.file("tests", package = "RxODE"),"testthat")
         setwd(path)
-        Sys.setenv("NOT_CRAN"="funny")
-        message("CRAN only tests")
-        message("================================================================================")
-        pt <- proc.time();
-        testthat::test_dir(path);
-        message("================================================================================")
-        message("timing of CRAN tests (should be under 60 seconds)")
-        message("================================================================================")
-        print(proc.time() - pt);
-        message("================================================================================")
-        message("normal tests")
-        message("================================================================================")
-        Sys.setenv("NOT_CRAN"="true")
-        testthat::test_dir(path);
+        for (t in .tests) {
+            Sys.setenv("NOT_CRAN"=t)
+            message(sprintf("%s only tests", t))
+            message("================================================================================")
+            pt <- proc.time();
+            testthat::test_dir(path);
+            message("================================================================================")
+            print(proc.time() - pt);
+            message("================================================================================")
+        }
     }
 }
 

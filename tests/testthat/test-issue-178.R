@@ -1,5 +1,4 @@
 rxPermissive({
-
     context("Issue #178: deactivate active compiled model")
     test_that("178", {
         ## Define model
@@ -29,6 +28,4 @@ rxPermissive({
     expect_equal(rxModelVars(ode)$params, rxModelVars(mod1)$params)
 })
 
-
-
-}, cran=FALSE)
+}, test="lvl2")

@@ -151,28 +151,23 @@ RxODE.unload.unused <- NULL
 ##' @param respect when TRUE, respect any options that are specified.
 ##'     This is called at startup, but really should not be called
 ##'     elsewhere, otherwise the options are not changed.
-##' @param cran When specified and true, run on CRAN. Otherwise it is
-##'     skipped on CRAN.
-##' @param on.validate When TRUE run only when validating.
 ##' @param silent when true, also silence the syntax errors and
 ##'     interactive output (useful in testing).
 ##' @param test When specified as a string, the enclosed test is
-##'     skipped unless the environmental variable "rxTest" equals this
-##'     value.
+##'     skipped unless the environmental variable "NOT_CRAN" equals this
+##'     value. Special values are "cran" which means test on CRAN
 ##' @author Matthew L. Fidler
 ##' @export
 rxPermissive <- function(expr, silent=.isTestthat(),
                          respect=FALSE,
-                         cran=FALSE, on.validate=FALSE,
-                         test=NULL){
+                         test="cran"){
     args  <- as.list(match.call())[-1];
     args$op.rx <- 2;
     do.call(getFromNamespace("rxOptions", "RxODE"), args, envir=parent.frame(1));
 }
 ##' @rdname rxPermissive
 ##' @export
-rxStrict <- function(expr, silent=.isTestthat(), respect=FALSE,
-                     cran=FALSE, on.validate=FALSE){
+rxStrict <- function(expr, silent=.isTestthat(), respect=FALSE){
     ## nocov start
     args  <- as.list(match.call())[-1];
     args$op.rx <- 1;
@@ -193,34 +188,31 @@ rxStrict <- function(expr, silent=.isTestthat(), respect=FALSE,
 ##' @author Matthew L. Fidler
 ##' @export
 rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
-                      cran=FALSE, on.validate=FALSE,
-                      test=NULL){
+                      test="cran"){
     rxSetSilentErr(1L);
-    on.exit(rxSetSilentErr(0L));
     do.it <- TRUE
-    .test <- Sys.getenv("rxTest");
-    if (identical(test, .test)){
-        do.it <- TRUE
-    } else if (.test != ""){
-        do.it <- FALSE
+    .test <- .test0 <- Sys.getenv("NOT_CRAN")
+    ## (identical to cran testing)
+    on.exit({
+        rxSetSilentErr(0L)
+        ## Sys.setenv("NOT_CRAN"=.test0)
+    });
+    if (any(.test == c("false", "", "cran"))) {
+        ## devtools sets NOT_CRAN=false for revdep testing
+        ## I don't believe CRAN sets this at all.
+        ## Sys.unsetenv("NOT_CRAN")
+        if (any(test == c("false", "", "cran"))) {
+            do.it <- TRUE
+        } else {
+            do.it <- FALSE
+        }
     } else {
-        if (is.null(test)) {
-            if (!identical(Sys.getenv("NOT_CRAN"), "true") && !cran){
-                ## on Cran, but only tested when not on cran, skip.
-                do.it <- FALSE
-            }
-            if (is(on.validate, "character")){
-                val.txt <- on.validate;
-                on.validate <- TRUE
-            } else {
-                val.txt <- "RxODE_VALIDATION_FULL"
-            }
-            if (on.validate && !identical(Sys.getenv(val.txt), "true")) {
-                do.it <- FALSE
-            }
-            if (!on.validate && identical(Sys.getenv(val.txt), "true")) {
-                do.it <- FALSE
-            }
+        ## devtools sets NOT_CRAN=true for testing everything
+        ## Sys.setenv("NOT_CRAN"="true")
+        if (test == .test || .test == "true"){
+            do.it <- TRUE
+        } else {
+            do.it <- FALSE
         }
     }
     if (do.it){
@@ -260,7 +252,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
                 on.exit({options(opOld);
                     setProgSupported(.oldProg);
                     rxSyncOptions();
-                });
+                }, add=TRUE);
             }
             if (respect){
                 op <- options();

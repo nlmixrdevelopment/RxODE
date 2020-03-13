@@ -32,4 +32,4 @@ rxPermissive({
         expect_identical(s$s8, 2.0)
         rxSetSum("pairwise")
     })
-})
+}, test="lvl2")

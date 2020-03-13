@@ -66,5 +66,5 @@ rxPermissive({
     })
 
     ## library(ggplot2);x2 %>% ggplot(aes(time,blood)) + geom_line()
-})
+}, test="cran")
 

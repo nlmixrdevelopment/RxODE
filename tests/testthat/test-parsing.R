@@ -1,7 +1,7 @@
 ## test ODE parsing for syntax errors
-library("RxODE")
-context("Test Parsing of models")
 rxPermissive({
+    library("RxODE")
+    context("Test Parsing of models")
 
     badParse <- function(desc,code){
         test_that(desc,{
@@ -708,4 +708,4 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     badParse("print2", "a=print+3")
     badParse("print3", "d/dt(print)=matt")
 
-}, silent=TRUE);
+}, silent=TRUE, test="parsing")

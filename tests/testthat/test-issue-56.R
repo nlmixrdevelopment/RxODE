@@ -12,4 +12,4 @@ rxPermissive({
         rxDelete(m1);
         unlink("/tmp/m1.d", recursive=TRUE)
     })
-}, silent=TRUE, cran=TRUE)
+}, silent=TRUE, test="cran")

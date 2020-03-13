@@ -132,7 +132,5 @@ rxPermissive({
 
         solve2.fo <- rxSolve(m2d$inner, .dat, .pars.fo, returnType="data.frame")
         expect_equal(solve1.fo, solve2.fo)
-
     })
-
-})
+}, test="focei")

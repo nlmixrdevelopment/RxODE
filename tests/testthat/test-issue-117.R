@@ -1528,4 +1528,4 @@ d/dt(RISF) = tubular_reabsorption - capillary_filtration;
         expect_true(inherits(mod, "RxODE"))
     })
 
-}, cran=FALSE)
+}, test="lvl2")

@@ -725,4 +725,4 @@ rxPermissive({
 
     })
 
-})
+}, test="norm")

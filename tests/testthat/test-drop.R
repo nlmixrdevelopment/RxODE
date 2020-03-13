@@ -43,4 +43,4 @@ rxPermissive({
                            drop=c("time")))
 
 
-})
+}, test="cran")

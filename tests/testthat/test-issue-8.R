@@ -34,4 +34,4 @@ rxPermissive({
             d/dt(y) = b*x - 2*y;
         })))
     })
-})
+}, test="cran")

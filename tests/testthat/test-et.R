@@ -502,4 +502,4 @@ rxPermissive({
 
     })
 
-}, silent=TRUE, cran=TRUE)
+}, silent=TRUE, test="cran")

@@ -1,8 +1,10 @@
 rxPermissive({
+
     op <- options()
     ## To keep basename the same
     options("RxODE.basename.print"="basename",
             "RxODE.dll.print"="dll")
+
     ## test_path("test-print.txt")
     verify_output(tempfile(), {
 
@@ -57,5 +59,7 @@ rxPermissive({
         summary(mod)
         str(mod)
     })
+
     options(op)
+
 }, test="print")

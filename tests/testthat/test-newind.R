@@ -1,8 +1,5 @@
-
 rxPermissive({
-
     context("test newind flag");
-
     ode.1c <- RxODE({
             V <- 20
             Cl <- 1
@@ -42,5 +39,5 @@ rxPermissive({
             expect_true(all(s2$ni2[-1]==2))
         })
     }
-},cran=TRUE, silent=TRUE)
+},test="cran", silent=TRUE)
 

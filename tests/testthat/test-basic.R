@@ -1,6 +1,6 @@
-library(RxODE)
-context("Basic Tests")
 rxPermissive({
+    library(RxODE)
+    context("Basic Tests")
     test.dir <- tempfile("Rx_base-")
     dir.create(test.dir)
     ode <- 'd/dt(y) = r * y * (1.0 - y/K);'
@@ -22,4 +22,5 @@ rxPermissive({
     })
 
     unlink(test.dir, recursive = TRUE)
-}, silent=TRUE, cran=TRUE)
+
+}, silent=TRUE, test="cran")

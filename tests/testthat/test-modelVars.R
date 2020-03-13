@@ -1,6 +1,5 @@
-context("Test modelvars");
 rxPermissive({
-
+    context("Test modelvars");
     rigid.txt <- "
 y1(0)    = 1
 y2(0)    = 0
@@ -39,4 +38,4 @@ d/dt(y3) = a3*y1*y2
         expect_equal(rigid0$md5,rxModelVars(rigid)$md5)
         expect_equal(rigid0,rxModelVars(rigid))
     })
-}, silent=TRUE);
+}, silent=TRUE, test="cran");

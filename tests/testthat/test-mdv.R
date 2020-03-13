@@ -1,5 +1,5 @@
-context("mdv tests")
 rxPermissive({
+    context("mdv tests")
     test_that("mdv means EVID=2 when amt=0", {
         source("theoSd.R")
         d <- theoSd[,names(theoSd) != "EVID"];
@@ -25,4 +25,4 @@ rxPermissive({
         expect_true(any(tmp$time == 0.125))
         expect_true(any(tmp$time == 25))
     })
-})
+}, test="cran")

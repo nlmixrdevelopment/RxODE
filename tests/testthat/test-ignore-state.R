@@ -225,4 +225,4 @@ rxPermissive({
     })
 
 
-});
+}, test="cran")

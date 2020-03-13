@@ -1,6 +1,8 @@
 rxPermissive({
+
     library(units)
     context("plot tests")
+
     test_that("plot tests", {
         skip_if(utils::packageVersion("ggplot2") <= "3.2.1")
 
@@ -188,7 +190,9 @@ rxPermissive({
         f(TRUE)
         f(FALSE)
     })
+
     options(RxODE.xgxr=TRUE)
     options(RxODE.ggrepel=TRUE)
     options(RxODE.theme=TRUE)
+
 }, silent=TRUE, test="plot")

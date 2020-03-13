@@ -1,7 +1,8 @@
-library(RxODE)
-library(dplyr)
-library(digest)
 rxPermissive({
+    library(RxODE)
+    library(dplyr)
+    library(digest)
+
     context("rxSolve right handed differental equations")
 
     rxSetIni0(FALSE)
@@ -50,4 +51,4 @@ tolerance=1e-4)
 
     rxSetIni0(TRUE)
 
-}, silent=TRUE)
+}, silent=TRUE, test="cran")

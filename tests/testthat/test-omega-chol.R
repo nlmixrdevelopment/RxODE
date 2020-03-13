@@ -36,4 +36,4 @@ rxPermissive({
             expect_equal(tmp$theta.diag,c(TRUE, FALSE, TRUE))
         })
     }
-}, cran=FALSE)
+}, test="lvl2")

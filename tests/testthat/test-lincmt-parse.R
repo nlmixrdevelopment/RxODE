@@ -324,4 +324,4 @@ rxPermissive({
     ##               row.names=FALSE))
 
 
-});
+}, test="parseLincmt")

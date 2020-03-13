@@ -36,4 +36,4 @@ rxPermissive({
         sink()
         unlink(tf)
     });
-}, silent=TRUE)
+}, silent=TRUE, test="cran")

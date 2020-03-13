@@ -1,6 +1,5 @@
-context("Test that model specification can take string, file name or rxode expressions")
 rxPermissive({
-
+    context("Test that model specification can take string, file name or rxode expressions")
     ode <- RxODE(model = 'd/dt(y) = r * y * (1 - y/K);');
 
     ode2 <- RxODE({
@@ -67,4 +66,4 @@ rxPermissive({
     test_that("file and string returns the same result", {
         expect_equal(rxModelVars(ode)$md5["parsed_md5"], rxModelVars(ode3)$md5["parsed_md5"])
     });
-}, silent=TRUE);
+}, silent=TRUE, test="cran");

@@ -35,4 +35,4 @@ rxPermissive({
             expect_false((x %>% filter(time==4.5))$centr==0)
         })
     }
-}, silent=TRUE,cran=TRUE)
+}, silent=TRUE, test="cran")

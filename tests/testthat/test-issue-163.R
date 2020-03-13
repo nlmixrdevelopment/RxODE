@@ -44,4 +44,4 @@ rxPermissive({
 
 
 
-}, cran=FALSE)
+}, test="lvl2")

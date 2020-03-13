@@ -1,6 +1,5 @@
-context("If/Else expansion tests")
 rxPermissive({
-
+    context("If/Else expansion tests")
     rx1 <- RxODE({
         b       = -1
         d/dt(X) = a*X + Y*Z;
@@ -227,7 +226,6 @@ rxPermissive({
 
     ## tmp <- rxSymPySetupPred(ode3, pred, pk, err)
 
-
-}, silent=TRUE)
+}, silent=TRUE, test="parsing")
 
 

@@ -1,6 +1,5 @@
-context("Removing dlls")
 rxPermissive({
-
+    context("Removing dlls")
     ode <- RxODE({
         b       = -1
         d/dt(X) = a*X + Y*Z;
@@ -28,6 +27,4 @@ rxPermissive({
         expect_true(file.exists(dll));
         expect_true(file.exists(gsub("[.][^.]*$", ".c", dll)));
     })
-
-
-}, silent=TRUE)
+}, silent=TRUE, test="cran")

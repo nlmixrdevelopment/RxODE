@@ -1,6 +1,5 @@
-context("Test Initial conditions -> sensitivity initial conditions")
 rxPermissive({
-
+    context("Test Initial conditions -> sensitivity initial conditions")
     fini <- RxODE({
         C2 = centr/V2;
         C3 = peri/V3;
@@ -170,4 +169,4 @@ rxPermissive({
         ## expect_equal(class(focei.mod2), "rxFocei");
     })
 
-}, silent=TRUE)
+}, silent=TRUE, test="focei")

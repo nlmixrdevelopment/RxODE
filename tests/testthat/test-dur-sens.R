@@ -52,7 +52,5 @@ rxPermissive({
         expect_equal(pk2$eventEta, c(0L, 0L, 0L, 1L, 1L, 1L))
 
         expect_equal(pk2$inner$params, pk2$pred.nolhs$params)
-
     })
-
-})
+}, test="focei")

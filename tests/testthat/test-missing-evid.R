@@ -70,4 +70,4 @@ rxPermissive({
         }
     })
 
-})
+}, test="cran")

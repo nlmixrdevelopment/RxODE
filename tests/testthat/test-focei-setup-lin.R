@@ -1,6 +1,5 @@
-context("Linear model FOCEi setup checks");
 rxPermissive({
-
+    context("Linear model FOCEi setup checks");
     pred <- function () {return(Central)}
 
     pk <- function ()
@@ -195,4 +194,4 @@ rxPermissive({
         ## expect_equal(class(pk2), "rxFocei")
     })
 
-},  silent=TRUE)
+},  silent=TRUE, test="focei")

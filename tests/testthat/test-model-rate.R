@@ -2,7 +2,7 @@ rxPermissive({
 
     library(dplyr);
     library(testthat);
-ms <- c("liblsoda", "lsoda", "dop853")
+    ms <- c("liblsoda", "lsoda", "dop853")
     if (grepl('SunOS',Sys.info()['sysname'])) ms <- "lsoda"
 
     for (m in ms){
@@ -177,7 +177,7 @@ ms <- c("liblsoda", "lsoda", "dop853")
             expect_equal(as.data.frame(f.a),as.data.frame(f.b))
         })
     }
-}, cran=TRUE)
+}, test="cran")
 
 
 ## et <- eventTable(time.units="days")

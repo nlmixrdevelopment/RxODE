@@ -44,4 +44,4 @@ rxPermissive({
         expect_true(x$x[1] < x$x[2]);
     })
 
-}, cran=FALSE)
+}, test="lvl2")

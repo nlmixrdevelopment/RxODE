@@ -1,23 +1,23 @@
-context("Data Table & tibble output")
-test_that("data.table", {
-    for (rt in c("data.table", "tbl")){
-        mod <- RxODE({
-            d/dt(intestine) = -a*intestine
-            d/dt(blood)     = a*intestine - b*blood
-        });
+rxPermissive({
+    context("Data Table & tibble output")
+    test_that("data.table", {
+        for (rt in c("data.table", "tbl")){
+            mod <- RxODE({
+                d/dt(intestine) = -a*intestine
+                d/dt(blood)     = a*intestine - b*blood
+            });
 
-        et <- eventTable(time.units="days")
-        et$add.sampling(seq(0, 10, length.out=50))
-        et$add.dosing(dose=2/24,rate=2,strt.time=0,
-                      nbr.doses=10,dosing.interval=1)
+            et <- eventTable(time.units="days")
+            et$add.sampling(seq(0, 10, length.out=50))
+            et$add.dosing(dose=2/24,rate=2,strt.time=0,
+                          nbr.doses=10,dosing.interval=1)
 
-        p <- data.frame(a=6,b=seq(0.4,0.9,length.out=4));
+            p <- data.frame(a=6,b=seq(0.4,0.9,length.out=4));
 
-        p2 <- rxSolve(mod,p,et,cores=1, returnType=rt)
+            p2 <- rxSolve(mod,p,et,cores=1, returnType=rt)
 
-        expect_true(inherits(p2, rt))
-        if (file.exists("test-data-setup.Rdata")){
-            load("test-data-setup.Rdata")
+            expect_true(inherits(p2, rt))
+            load(test_path("test-data-setup.Rdata"))
             mod2 <- RxODE({
                 C2 = centr/V2;
                 C3 ~ peri/V3;
@@ -64,6 +64,6 @@ test_that("data.table", {
 
             expect_true(inherits(pk8, rt))
         }
-    }
-})
+    })
+}, test="cran")
 

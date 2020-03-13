@@ -1,7 +1,8 @@
-library(RxODE)
-library(dplyr)
-library(digest)
 rxPermissive({
+
+    library(RxODE)
+    library(dplyr)
+    library(digest)
 
     context("rxSolve objects behave as data-frames")
 
@@ -120,4 +121,4 @@ rxPermissive({
         expect_equal(rownames(o1.first),paste(seq(1, length(o1.first[, 1]))));
     })
 
-}, silent=TRUE)
+}, silent=TRUE, test="cran")

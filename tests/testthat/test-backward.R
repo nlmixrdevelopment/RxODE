@@ -1,7 +1,7 @@
-library(RxODE)
-context("Test Backward Compatibility")
 rxPermissive({
 
+    library(RxODE)
+    context("Test Backward Compatibility")
     ## Dynmodel routines
     ode <- "
    dose=200;
@@ -205,4 +205,4 @@ rxPermissive({
         expect_equal(class(x), "rxModelVars")
     })
 
-}, silent=TRUE)
+}, silent=TRUE, test="cran")
