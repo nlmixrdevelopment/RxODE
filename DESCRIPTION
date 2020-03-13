@@ -109,10 +109,7 @@ Description: Facilities for running simulations from ordinary
     Section 6.3, Appendix A, and Appendix D in the "R Administration and
     Installation" manual. Also the code is mostly released under GPL.  The
     VODE and LSODA are in the public domain.  The information is available
-    in the inst/COPYRIGHTS. You can also obtain the archived SnakeCharmR for
-    python integration from CRAN archives
-    <https://cran.r-project.org/src/contrib/Archive/SnakeCharmR/> or
-    <https://github.com/nlmixrdevelopment/SnakeCharmR>.
+    in the inst/COPYRIGHTS. 
 BugReports: https://github.com/nlmixrdevelopment/RxODE/issues
 NeedsCompilation: yes
 VignetteBuilder: knitr
