@@ -194,7 +194,19 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
  - Transit compartment models using the `transit` ODE or variable are
    now allowed.  Also check for more internally parsed items (see
    Issue #145).
-   
+
+# RxODE v0.9.2-0
+* New plotting engine
+* Various bug fixes for upcoming R 4.0 release:
+  - Dropped some imports for 21 imports restriction
+  - Fixed incompatibility with new `ggplot2` 3.3.0
+  - Fixed allowing `NA`s in RxODE dataset
+  - Fixed setting all compartment default values for bioavailability, rate, etc.
+  - Added additional protection against floating point -> NaN for power functions
+  
+# RxODE v0.9.1-9
+* Minor namespace/documentation changes for R 4.0 compatibility
+
 # RxODE v0.9.1-8
 * Added the ability to have an input parameter to be assigned to a new
   value (Issue #135)
