@@ -5,12 +5,14 @@
 \alias{rxTest}
 \title{Validate RxODE}
 \usage{
-rxValidate(type = NULL)
+rxValidate(type = NULL, check = FALSE)
 
-rxTest(type = NULL)
+rxTest(type = NULL, check = FALSE)
 }
 \arguments{
 \item{type}{Type of test or fitler of test type}
+
+\item{check}{Use devtools::check instead}
 }
 \description{
 This allows easy validation/qualification of nlmixr by running the

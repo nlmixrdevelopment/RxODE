@@ -17,7 +17,7 @@ rxPermissive({
             p2 <- rxSolve(mod,p,et,cores=1, returnType=rt)
 
             expect_true(inherits(p2, rt))
-            load(test_path("test-data-setup.Rdata"))
+            dat <- readRDS(file=test_path("test-data-setup.rds"))
             mod2 <- RxODE({
                 C2 = centr/V2;
                 C3 ~ peri/V3;

@@ -2,7 +2,7 @@ rxPermissive({
     context("rxIs")
     test_that("rxIs tests", {
         library(dplyr)
-        load(test_path("test-data-setup.Rdata"))
+        dat <- readRDS(test_path("test-data-setup.rds"))
         dat <- as.tbl(dat);
         expect_true(rxIs(dat, "data.frame"))
         expect_true(rxIs(dat, "tbl"))

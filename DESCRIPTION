@@ -91,13 +91,11 @@ Imports:
     utils,
     assertthat,
     lotri (>= 0.2.1),
-    remotes,
     symengine,
     StanHeaders (>= 2.18.0),
     BH,
     RcppArmadillo (>= 0.9.300.2.0),
-    checkmate,
-    ggplot2
+    checkmate
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
