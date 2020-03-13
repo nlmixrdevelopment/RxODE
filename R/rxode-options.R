@@ -193,7 +193,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
     do.it <- TRUE
     .test <- .test0 <- Sys.getenv("NOT_CRAN")
     if (Sys.getenv("rxCran") != ""){
-        .test <- .test0 <- Sys.getenv("NOT_CRAN")
+        .test <- .test0 <- Sys.getenv("rxCran")
     }
     ## (identical to cran testing)
     on.exit({
