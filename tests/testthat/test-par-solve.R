@@ -183,17 +183,7 @@ rxPermissive({
         })
 
         ## Now Try multi-subject data.
-
-        if (file.exists("test-data-setup.Rdata")){
-            load("test-data-setup.Rdata")
-        } else {
-            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
-            if (!inherits(tmp, "try-error") && file.exists(tmp)){
-                load(tmp)
-            } else {
-                skip("Can't load test dataset.")
-            }
-        }
+        dat <- readRDS(test_path("test-data-setup.rds"))
 
         pk7a <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
                                 Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
