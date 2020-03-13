@@ -192,10 +192,12 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
     rxSetSilentErr(1L);
     do.it <- TRUE
     .test <- .test0 <- Sys.getenv("NOT_CRAN")
+    if (Sys.getenv("rxCran") != ""){
+        .test <- .test0 <- Sys.getenv("NOT_CRAN")
+    }
     ## (identical to cran testing)
     on.exit({
         rxSetSilentErr(0L)
-        ## Sys.setenv("NOT_CRAN"=.test0)
     });
     if (any(.test == c("false", "", "cran"))) {
         ## devtools sets NOT_CRAN=false for revdep testing
@@ -208,7 +210,6 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
         }
     } else {
         ## devtools sets NOT_CRAN=true for testing everything
-        ## Sys.setenv("NOT_CRAN"="true")
         if (test == .test || .test == "true"){
             do.it <- TRUE
         } else {
