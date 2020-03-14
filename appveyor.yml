@@ -22,6 +22,9 @@ environment:
    _R_CHECK_FORCE_SUGGESTS_: false
    NOT_CRAN: true
    WARNINGS_ARE_ERRORS: 1
+   CXX14: $(BINPREF)g++ $(M_ARCH)
+   CXX14STD: -std=c++1y
+   CXX14FLAGS: -O2 -Wall
   matrix:
   - R_VERSION: devel
     rxCran: cran
