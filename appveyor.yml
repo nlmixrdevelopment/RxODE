@@ -22,6 +22,11 @@ environment:
    _R_CHECK_FORCE_SUGGESTS_: false
    NOT_CRAN: true
    WARNINGS_ARE_ERRORS: 1
+  matrix:
+  - R_VERSION: devel
+    rxCran: cran
+  - R_VERSION: release
+    rxCran: cran
    
 build_script:
   - travis-tool.sh install_github nlmixrdevelopment/PreciseSums
@@ -31,12 +36,6 @@ build_script:
 
 test_script:
   - travis-tool.sh run_tests
-
-matrix:
-  - R_VERSION: devel
-    rxCran: cran
-  - R_VERSION: release
-    rxCran: cran
 
 matrix:
   fast_finish: true
