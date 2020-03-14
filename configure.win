@@ -3,7 +3,10 @@ if [ -z ${APPVEYOR_CACHE_SKIP_SAVE+x} ]; then
     echo ""
 else
     mkdir ~/.R
-    echo "# Makvars.win\nCXX14=$(BINPREF)g++ $(M_ARCH)\nCXX14STD=-std=c++1y\nCXX14FLAGS=-O2 -Wall\n" > ~/.R/Makevars.win
+    echo "# Makvars.win" > ~/.R/Makevars.win
+    echo "CXX14=\$\(BINPREF\)g++ \$\(M_ARCH\)" >> ~/.R/Makevars.win
+    echo "CXX14STD=-std=c++1y" >> ~/.R/Makevars.win
+    echo "CXX14FLAGS=-O2 -Wall" >> ~/.R/Makevars.win
     echo --------[[begin ~/.R/Makevars.win]]--------
     cat ~/.R/Makevars.win
     echo --------[[end ~/.R/Makevars.win]]--------
