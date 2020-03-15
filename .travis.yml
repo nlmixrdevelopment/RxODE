@@ -17,7 +17,8 @@ os:
   - linux
   - osx
 env:
-  - NOT_CRAN=cran rxCran=cran
+  - rxCran=cran
+  - rxCran=lvl2
 matrix:
   exclude:
   allow_failures:
