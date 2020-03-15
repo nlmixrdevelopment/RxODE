@@ -10,9 +10,12 @@ rxPermissive({
 
         mod <- RxODE({
             a = 6
-            b = 0.6
+            b = 0.6 + a / 100
+            kel = b * 0.01
+            V = 10
             d/dt(intestine) = -a*intestine
             d/dt(blood)     = a*intestine - b*blood
+            l2 <- linCmt()
         })
 
         print(mod)
