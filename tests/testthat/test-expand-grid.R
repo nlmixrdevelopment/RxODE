@@ -14,11 +14,10 @@ rxPermissive({
         summarize(x=median(time)) %>%
         arrange(expr)
 
-    context("Faster Expand Grid")
-    test_that("rxExpandGrid is faster that expand.grid.jc", {
-        skip_if(Sys.getenv("covr") == "true")
-        expect_true(x$x[1] < x$x[2]);
-    })
+    ## context("Faster Expand Grid")
+    ## test_that("rxExpandGrid is faster that expand.grid.jc", {
+    ##     expect_true(x$x[1] < x$x[2]);
+    ## })
 
     f <- function(){
         tmp <- setNames(data.frame(expand.grid.jc(letters, letters),
@@ -39,8 +38,7 @@ rxPermissive({
         summarize(x=median(time)) %>%
         arrange(expr)
 
-    test_that("rxExpandGrid is faster that expand.grid.jc", {
-        skip_if(Sys.getenv("covr") == "true")
+    test_that("rxExpandGrid is faster than printing out letters", {
         expect_true(x$x[1] < x$x[2]);
     })
 

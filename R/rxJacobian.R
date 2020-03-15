@@ -28,7 +28,7 @@
 ##' }
 ##' @export
 rxExpandGrid <- function(x, y, type=0L){
-    rxExpandGrid_(x, y, type)
+     .Call(`_RxODE_rxExpandGrid_`, x, y, type)
 }
 
 ## Assumes model is loaded.
