@@ -36,6 +36,9 @@ apt_packages:
   - libmpfr-dev
   - libmpc-dev
   - devscripts
+  
+r_github_packages:
+  - nlmixrdevelopment/lotri
 
 before_install:
   - if [ $TRAVIS_OS_NAME = osx ]; then brew install cmake gmp mpfr libmpc || true; fi
