@@ -9,9 +9,11 @@ rx_theme <- function(base_size = 11, base_family = "",
     .greyTextAxisY <- ggplot2::element_text(color="#808078",
                                             margin = ggplot2::margin(r = 0.8 * half_line / 2), hjust=1)
     .greyLabTextX <- ggplot2::element_text(color="#808078", face="bold",
-                                           margin=ggplot2::margin(t = half_line / 2))
+                                           margin=ggplot2::margin(t = half_line / 2),
+                                           size=ggplot2::rel(1.1))
     .greyLabTextY <- ggplot2::element_text(color="#808078", face="bold", angle=90,
-                                           margin = ggplot2::margin(r = half_line / 2),)
+                                           margin = ggplot2::margin(r = half_line / 2),
+                                           size=ggplot2::rel(1.1))
     .title <- ggplot2::element_text(colour = "#808078", face="bold", hjust=0,
                                     size = ggplot2::rel(1.2),
                                     margin = ggplot2::margin(b = half_line))
@@ -36,8 +38,8 @@ rx_theme <- function(base_size = 11, base_family = "",
                        axis.ticks.x=.greyTick,
                        axis.ticks.y=.greyTick,
                        strip.text=ggplot2::element_text(color="#FFFFF7", face="bold",
-                                                        size = ggplot2::rel(0.9),
-                                                        margin = ggplot2::margin(0.9 * half_line, 0.9 * half_line, 0.9 * half_line, 0.9 * half_line)),
+                                                        size = ggplot2::rel(1.2),
+                                                        margin = ggplot2::margin(0.5 * half_line, 0.5 * half_line, 0.5 * half_line, 0.5 * half_line)),
                        strip.background =ggplot2::element_rect(fill="#808078", color=NA)
                        )
     ## If above ggplot2 3.2.1 then add plot.title.position="plot"

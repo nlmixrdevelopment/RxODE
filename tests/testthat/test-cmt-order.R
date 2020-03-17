@@ -500,7 +500,7 @@ rxPermissive({
         expect_equal(tmp$stateExtra, "cp")
 
     })
-}, test="focei")
+}, test="lvl2")
 
 
 

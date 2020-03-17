@@ -4,7 +4,8 @@ rxPermissive({
     context("plot tests")
 
     test_that("plot tests", {
-        skip_if(utils::packageVersion("ggplot2") <= "3.2.1")
+
+        skip_if(utils::packageVersion("ggplot2") < "3.3.0")
 
         ## Model from RxODE tutorial
         m1 <-RxODE({
