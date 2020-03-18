@@ -18,13 +18,6 @@ os:
   - osx
 env:
   - rxCran=cran
-  - rxCran=lvl2
-  - rxCran=norm
-  - rxCran=parsing
-  - rxCran=lincmt
-  - rxCran=plot
-  - rxCran=print
-  - rxCran=focei
 matrix:
   exclude:
   allow_failures:
