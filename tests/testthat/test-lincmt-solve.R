@@ -1373,6 +1373,64 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
                   C2 = linCmt(CL, V);
               })))
 
+    test_that("Steady state IV infusion", {
+
+        ev <- et(amt=0, ss=1,rate=10000/8)
+
+        ode.1c <- RxODE({
+            C2 = center/V;
+            d/dt(center) = - CL*C2
+        })
+
+        ode.1cs2 <- RxODE({
+            C2 = linCmt(CL, V);
+        })
+
+        o.1c <- ode.1c %>% solve(params=c(V=20, CL=25), events=ev)
+
+        s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=25), events=ev)
+
+        expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
+
+        ode.2c <- RxODE({
+            C2 = centr/V;
+            C3 = peri/V2;
+            d/dt(centr) = - CL*C2 - Q*C2 + Q*C3;
+            d/dt(peri)  = Q*C2 - Q*C3;
+        })
+
+        sol.2c <- RxODE({
+            C2=linCmt(V, CL, V2, Q1);
+        })
+
+        o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=ev)
+
+        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q1=10), events=ev)
+
+        expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
+
+        ode.3c <- RxODE({
+            C2 = centr/V;
+            C3 = peri/V2;
+            C4 = peri2 / V3
+            d/dt(centr) = - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
+            d/dt(peri)  = Q*C2 - Q*C3;
+            d / dt(peri2) = Q2 * C2 - Q2 * C4
+        })
+
+        sol.3c <- RxODE({
+            ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+            C2=linCmt(V, CL, V2, Q, Q2, V3);
+        })
+
+        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=ev)
+
+        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=ev)
+
+        expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
+
+    })
+
     tol <<- 1e-5 ## Current difference for all equations
 
     context("1 cmt sensitivites")
@@ -1888,63 +1946,7 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         expect_equal(s1$rx__sens_rx_r__BY_ETA_3___, o1$rx__sens_rx_r__BY_ETA_3___, tolerance=tol)
         expect_equal(s1$rx__sens_rx_r__BY_ETA_4___, o1$rx__sens_rx_r__BY_ETA_4___, tolerance=tol)
         expect_equal(s1$rx__sens_rx_r__BY_ETA_5___, o1$rx__sens_rx_r__BY_ETA_5___, tolerance=tol)
-    })
 
-    test_that("Steady state IV infusion", {
-
-        ev <- et(amt=0, ss=1,rate=10000/8)
-
-        ode.1c <- RxODE({
-            C2 = center/V;
-            d/dt(center) = - CL*C2
-        })
-
-        ode.1cs2 <- RxODE({
-            C2 = linCmt(CL, V);
-        })
-
-        o.1c <- ode.1c %>% solve(params=c(V=20, CL=25), events=ev)
-
-        s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=25), events=ev)
-
-        expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
-
-        ode.2c <- RxODE({
-            C2 = centr/V;
-            C3 = peri/V2;
-            d/dt(centr) = - CL*C2 - Q*C2 + Q*C3;
-            d/dt(peri)  = Q*C2 - Q*C3;
-        })
-
-        sol.2c <- RxODE({
-            C2=linCmt(V, CL, V2, Q1);
-        })
-
-        o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=ev)
-
-        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q1=10), events=ev)
-
-        expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
-
-        ode.3c <- RxODE({
-            C2 = centr/V;
-            C3 = peri/V2;
-            C4 = peri2 / V3
-            d/dt(centr) = - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
-            d/dt(peri)  = Q*C2 - Q*C3;
-            d / dt(peri2) = Q2 * C2 - Q2 * C4
-        })
-
-        sol.3c <- RxODE({
-            ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
-            C2=linCmt(V, CL, V2, Q, Q2, V3);
-        })
-
-        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=ev)
-
-        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=ev)
-
-        expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
     })
 
 }, silent=TRUE, test="lincmt")
