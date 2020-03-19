@@ -19,7 +19,7 @@ rxValidate <- function(type=NULL, check=FALSE){
         } else {
             if (any(type == .tests)) {
                 if (check) {
-                    devtools::check(env_vars = c(NOT_CRAN=true,
+                    devtools::check(env_vars = c(NOT_CRAN="true",
                                                  rxCran=type))
                 } else {
                     old.wd <- getwd();
