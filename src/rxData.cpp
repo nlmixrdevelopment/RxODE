@@ -2137,7 +2137,6 @@ extern "C" void rxOptionsIniEnsure(int mx);
 extern "C" void parseFree(int last);
 extern "C" void rxClearFuns();
 extern "C" void rxFreeLast();	
-int _gsetupOnly = 0;
 //' Free the C solving/parsing information.
 //'
 //' Take the ODE C system and free it.
@@ -3827,7 +3826,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
-    if (rxSolve_loaded(trueEvents, trueParams, rxControl, as<SEXP>(rxSolveDat->mv), inits)){
+    if (setupOnly == 0 &&
+	rxSolve_loaded(trueEvents, trueParams, rxControl, as<SEXP>(rxSolveDat->mv), inits)){
       rxSolveDat = &rxSolveDatLast;
       rxSolve_updateParams(trueParams,
 			   obj, rxControl, specParams, extraArgs, params, events,
@@ -4191,7 +4191,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
-    _gsetupOnly=setupOnly;
     SEXP ret = rxSolve_finalize(obj, rxControl, specParams, extraArgs, params, events,
 				inits, rxSolveDat);
 #ifdef rxSolveT
