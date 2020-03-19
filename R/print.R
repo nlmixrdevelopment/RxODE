@@ -277,10 +277,6 @@ print.rxDll <- function(x, ...){
     invisible(x);
 }
 
-##' @export
-print.boundCovs <- function(x, ...){
-  cat(format(x, ...), sep="\n");
-}
 
 
 ##' @export
@@ -290,13 +286,6 @@ print.rxSolveCovs <- function(x, ...){
     .bound <- .args$bound;
   } else {
     .bound <- .getBound(x, parent.frame(2));
-  }
-  .df <- x$covs;
-  if (!is.null(.df)) {
-    if (rxIs(.df, "data.frame")){
-      print(structure(.bound, class="boundCovs"), ...)
-      print(tibble::as_tibble(.df), ...);
-    }
   }
   NextMethod();
 }
@@ -356,18 +345,6 @@ print.rxSolve <- function(x, ...){
         class(.df) <- .cls
         .out <- utils::capture.output({print(.df)})
         if (length(.out) > 0) .nb <- FALSE
-      }
-    }
-    if (.nb){
-      .df <- x$covs;
-      if (!is.null(.df)) {
-        if (rxIs(.df, "data.frame")){
-          .cls <- c(paste0("Covariates ", .bound, "$covs"),
-                    "paged_df", "data.frame");
-          class(.df) <- .cls;
-          .out <- utils::capture.output({print(.df)})
-          if (length(.out) > 0) .nb <- FALSE
-        }
       }
     }
     if (.nb) {

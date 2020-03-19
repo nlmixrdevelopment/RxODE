@@ -7,120 +7,138 @@ rxPermissive({
             "RxODE.c.print"="cfile")
 
     ## test_path("test-print.txt")
-    verify_output(tempfile(), {
+    .df <- expand.grid(color=c(TRUE, FALSE), unicode=c(TRUE, FALSE))
+    sapply(seq_along(.df$color), function(.i) {
+        .path <- test_path(sprintf("test-print%s%s.txt", ifelse(.df$color[.i], "-color", ""),
+                              ifelse(.df$unicode[.i], "-unicode", "")))
+        test_that(paste0(.i, ":", .path),{
+            verify_output(.path, {
 
-        mod <- RxODE({
-            a = 6
-            b = 0.6 + a / 100
-            kel = b * 0.01
-            V = 10
-            d/dt(intestine) = -a*intestine
-            d/dt(blood)     = a*intestine - b*blood
-            l2 <- linCmt()
-        })
+                mod <- RxODE({
+                    a = 6
+                    b = 0.6 + a / 100
+                    kel = b * 0.01
+                    V = 10
+                    d/dt(intestine) = -a*intestine
+                    d/dt(blood)     = a*intestine - b*blood
+                    l2 <- linCmt()
+                })
 
-        print(mod)
+                print(mod)
 
-        summary(mod)
-        str(mod) ## fragile
+                summary(mod)
+                str(mod) ## fragile
 
-        print(mod$cmpMgr$rxDll())
+                print(mod$cmpMgr$rxDll())
+                summary(mod$cmpMgr$rxDll())
 
-        coef(mod)
+                coef(mod)
 
-        print(rxModelVars(mod))
+                print(rxModelVars(mod))
 
-        print(rxC(mod))
-        summary(rxC(mod)) # too fragile
+                print(rxC(mod))
+                                        #summary(rxC(mod)) # too fragile
 
-        print(mod$.rxDll)
+                print(mod$.rxDll)
 
-        et <- eventTable(time.units="days")
-        et$add.sampling(seq(0,10,by=1/24))
-        et$add.dosing(dose=2/24,rate=2,start.time=0,
-                      nbr.doses=10,dosing.interval=1)
+                et <- eventTable(time.units="days")
+                et$add.sampling(seq(0,10,by=1/24))
+                et$add.dosing(dose=2/24,rate=2,start.time=0,
+                              nbr.doses=10,dosing.interval=1)
 
-        print(et)
-        summary(et)
-        str(et)
-        print(attr(class(et), ".RxODE.lst"))
-        str(attr(class(et), ".RxODE.lst"))
+                print(et)
+                summary(et)
+                str(et)
 
-        print(format(structure(0:7,class="rxEvid")))
-        print(structure(0:7,class="rxEvid"))
+                et2 <- et %>% et(id=1:10)
+                print(et2)
 
-        print(format(structure(c(-2, -1, 0, 1, 2),class="rxRateDur")))
-        print(structure(c(-2, -1, 0, 1, 2),class="rxRateDur"))
+                tmp <- class(et2)
+                et2$matt <- 4
+                class(et2) <- tmp
+                print(et2)
 
-        pk <- solve(mod,et);
-        print(pk)
+                print(attr(class(et), ".RxODE.lst"))
+                str(attr(class(et), ".RxODE.lst"))
 
-        print(pk, width=40)
+                print(format(structure(0:7,class="rxEvid")))
+                print(structure(0:7,class="rxEvid"))
 
-        print(pk, bound="k")
-
-        print(pk, n=10)
-
-        options(RxODE.display.tbl=FALSE)
-        print(pk)
-
-        options(RxODE.display.tbl=TRUE)
-
-        summary(pk)
-        str(pk)
-
-        print(summary(pk, bound="k"))
+                print(format(structure(c(-2, -1, 0, 1, 2),class="rxRateDur")))
+                print(structure(c(-2, -1, 0, 1, 2),class="rxRateDur"))
 
 
+                pk <- solve(mod,et);
+                print(pk)
+
+                print(pk, width=40)
+
+                print(pk, bound="k")
+
+                print(pk, n=10)
+
+                options(RxODE.display.tbl=FALSE)
+                print(pk)
+
+                options(RxODE.display.tbl=TRUE)
+
+                summary(pk)
+                str(pk)
+
+                print(summary(pk, bound="k"))
 
 
-        ## Now "destroy" the RxODE solved object and change the printout
-        tmp <- class(pk)
-        pk$matt <- 4
-        class(tmp) <- tmp
-        print(pk)
 
 
-        rxUnload(mod)
-        print(mod)
-        summary(mod)
-        str(mod)
+                ## Now "destroy" the RxODE solved object and change the printout
+                tmp <- class(pk)
+                pk$matt <- 4
+                class(tmp) <- tmp
+                print(pk)
 
-        rxDelete(mod)
-        print(mod)
-        summary(mod)
-        str(mod)
 
-        mod <- RxODE(mod, indLin=TRUE)
+                rxUnload(mod)
+                print(mod)
+                print(mod$cmpMgr$rxDll())
+                summary(mod)
+                str(mod)
 
-        print(mod)
-        summary(mod)
-        ## str(mod)
+                rxDelete(mod)
+                print(mod)
+                print(mod$cmpMgr$rxDll())
+                summary(mod)
+                str(mod)
 
-        rxUnload(mod)
-        print(mod)
-        summary(mod)
-        str(mod)
+                mod <- RxODE(mod, indLin=TRUE)
 
-        rxDelete(mod)
-        print(mod)
-        summary(mod)
-        str(mod)
+                print(mod)
+                summary(mod)
+                ## str(mod)
 
-        set.seed(42)
-        tmp <- matrix(rnorm(5^2), 5, 5)
-        mcov <- tcrossprod(tmp, tmp)
-        v <- rxSymInvCholCreate(mcov, "sqrt")
+                rxUnload(mod)
+                print(mod)
+                summary(mod)
+                str(mod)
 
-        print(v)
-        str(v)
+                rxDelete(mod)
+                print(mod)
+                summary(mod)
+                str(mod)
 
-        class(v) <- NULL
-        v$env$theta <- NULL
-        class(v) <- "rxSymInvCholEnv"
-        print(v)
+                set.seed(42)
+                tmp <- matrix(rnorm(5^2), 5, 5)
+                mcov <- tcrossprod(tmp, tmp)
+                v <- rxSymInvCholCreate(mcov, "sqrt")
 
-        mod <- RxODE("
+                print(v)
+                str(v)
+
+                class(v) <- NULL
+                v$env$theta <- NULL
+                class(v) <- "rxSymInvCholEnv"
+                print(v)
+
+                mod <- RxODE("
 a = 6
 b = 0.6
 d/dt(intestine) = -a*intestine
@@ -142,8 +160,69 @@ d/dt(blood)     = a*intestine - b*blood
 
     print(ett1)
 
+    mod2 <- RxODE({
+        ## the order of variables do not matter, the type of compartmental
+        ## model is determined by the parameters specified.
+        CL ~ TCL * exp(eta.Cl);
+        C2 ~ linCmt(KA, CL, V2, Q, V3);
+        eff(0) = 1  ## This specifies that the effect compartment starts at 1.
+        d/dt(eff) ~ Kin - Kout*(1-C2/(EC50+C2))*eff;
+        ##
+        resp = eff + err1
+        pk = C2 * exp(err2)
+    })
 
+
+    ev <- eventTable(amount.units='mg', time.units='hours') %>%
+        add.dosing(dose=10000, nbr.doses=10, dosing.interval=12,dosing.to=2) %>%
+        add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24,dosing.to=2) %>%
+        add.sampling(0:240);
+
+    ## Add Residual differences
+    sigma <- diag(2) * 0.05
+    dimnames(sigma) <- list(c("err1", "err2"), c("err1", "err2"));
+
+    pk3 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                           Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                   nSub=4, ev, sigma=sigma, cores=2);
+    print(pk3)
+    str(pk3)
+
+    pk3a <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                            Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                    nSub=4, ev, sigma=sigma, cores=2, addDosing=TRUE);
+    print(pk3a)
+    str(pk3a)
+
+    ode <- RxODE({
+        b       = -1
+        d/dt(X) = a*X + Y*Z;
+        d/dt(Y) = b*(Y - Z);
+        d/dt(Z) = -X*Y + c*Y - Z
+    })
+
+    et <- eventTable(time.units="hr")   # default time units
+    et$add.sampling(seq(from=0, to=100, by=0.01))
+
+    cov <- data.frame(c=et$get.EventTable()$time+units::set_units(1,h));
+
+    et0 <- et;
+
+    et <- cbind(et,cov)
+
+    out <- rxSolve(ode,
+                   params = c(a=-8/3, b=-10),
+                   events = et,
+                   inits = c(X=1, Y=1, Z=1),
+                   covsInterpolation="linear")
+    print(out)
+    str(out)
+
+}, crayon = .df$color[.i], unicode = .df$unicode[.i])
 })
+
+        unlink(.path)
+    })
 
     options(op)
 
