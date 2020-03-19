@@ -92,7 +92,6 @@ rxForget <- function(){
 
 ## strict/permissive
 rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
-              RxODE.display.tbl              =c(TRUE, TRUE),
               RxODE.warn.on.assign           =c(TRUE, TRUE),
               RxODE.syntax.assign            =c(FALSE, TRUE),
               RxODE.syntax.star.pow          =c(FALSE, TRUE),
@@ -115,7 +114,6 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               );
 
 RxODE.prefer.tbl <- NULL
-RxODE.display.tbl <- NULL
 RxODE.warn.on.assign <- NULL
 RxODE.syntax.assign <- NULL
 RxODE.syntax.star.pow <- NULL

@@ -69,17 +69,6 @@ summary.rxDll <- function(object, ...){
 ##' @export
 summary.rxSolve <- function(object, ...) {
   if (rxIs(object, "rxSolve")) {
-    .args <- as.list(match.call(expand.dots = TRUE));
-    if (any(names(.args) == "n")) {
-      .n <- .args$n;
-    } else {
-      .n <- 6L;
-    }
-    if (any(names(.args) == "width")) {
-      .width <- .args$width;
-    } else {
-      .width <- NULL;
-    }
     cat(cli::cli_format_method({
       d <- cli::cli_div(theme = list(rule = list(
         "line-type" = "bar2")))

@@ -182,3 +182,44 @@ str.rxSymInvCholEnv <- function(object, ...){
     cat(" $ omega.47          : d(Omega^-1)*d(eta) (Almquist 2015 #47)\n")
     cat(" $ theta.diag        : indicator of diagonal theta values\n")
 }
+
+##'@export
+str.RxODE <- function(object, ...) {
+    cat("RxODE object methods and properties:\n");
+    cat(" $ assignPtr()    : Assign C pointers\n")
+    cat(" $ compile()      : compile RxODE model\n")
+    cat(" $ delete()       : delete RxODE dll\n")
+    cat(" $ dynLoad()      : load dll for RxODE model\n")
+    cat(" $ dynUnload()    : unload dll for RxODE model\n")
+    cat(" $ get.index(...) : Get compartment number\n")
+    cat(" $ get.modelVars(): Get model variables\n")
+    cat(" $ isLoaded()     : Is RxODE model dll loaded\n")
+    cat(" $ isValid()      : Is RxODE model dll valid\n")
+    cat(" $ load()         : Load RxODE model\n")
+    cat(" $ parse()        : Parse model (doesn't do anything anymore)\n")
+    cat(" $ run(...)       : Run ODE model\n")
+    cat(" $ solve(...)     : Solve ODE model\n")
+    cat(" $ unload()       : Unload DLL for RxODE model\n")
+    .out <- utils::capture.output(utils::str(list(calcJac=object$calcJac,
+                    calcSens=object$calcSens,
+                    collapseModel=object$collapseModel,
+                    debug=object$debug,
+                    extraC=object$extraC,
+                    lhs=object$lhs,
+                    lib.name=object$lib.name,
+                    mdir=object$mdir,
+                    missing.modName=object$missing.modName,
+                    model=object$model,
+                    modName=object$modName,
+                    package=object$package,
+                    params=object$params,
+                    rxDll=object$rxDll,
+                    state=object$state,
+                    stateExtra=object$stateExtra,
+                    version=object$version,
+                    wd=object$wd
+                    )))
+    .out <- .out[-1]
+    sapply(.out, function(x){cat(paste0(x, "\n"))})
+    invisible()
+}

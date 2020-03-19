@@ -956,34 +956,6 @@ coef.RxODE <- function(object,
     return(.ret);
 }
 
-##' @rdname coef.RxODE
-##' @export
-coef.RxCompilationManager <- function(...){
-    coef.RxODE(...);
-}
-
-##' @rdname coef.RxODE
-##' @export
-coef.solveRxODE <- function(object, ...){
-    .env <- attr(object, ".env");
-    .rxode <- .env$env$out;
-    .lst <- c(list(params=.env$params, inits=.env$inits), .env$extra.args)
-    ret <- list();
-    ret$params <- .lst$params;
-    ret$state <- .lst$inits;
-    ret$sens <- RxODE::rxModelVars(.rxode)["sens"];
-    ret$state <- ret$state[regexpr(getFromNamespace("regSens", "RxODE"), names(ret$state)) == -1]
-    ret$RxODE <- .rxode;
-    class(ret) <- "rxCoefSolve";
-    return(ret);
-}
-
-##' @rdname coef.RxODE
-##' @export
-coef.rxDll <- function(...){
-    coef.RxODE(...);
-};
-
 .rxPre <- function(model,
                    modName=NULL){
     if (!is.null(modName)){

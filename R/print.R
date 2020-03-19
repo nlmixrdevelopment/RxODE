@@ -43,7 +43,7 @@ print.rxEt <- function(x,...) {
     .et3 <-sprintf("   %s dosing records (see %s$%s(); add with %s or %s)",
                    x$ndose, bound, "get.dosing", "add.dosing", "et")
     .et4 <- sprintf("   %s observation times (see %s$%s(); add with %s or %s)",
-                    x$nobs, bound, "get.sampling", "add.sampling", 
+                    x$nobs, bound, "get.sampling", "add.sampling",
                     "et")
     .et5 <- NULL
     if (x$show["addl"]) {
@@ -138,7 +138,7 @@ print.RxODE <- function(x, ...){
         .dll <- substr(.dll, 1, nchar(.dll) - nchar(.Platform$dynlib.ext) - 1)
     }
     cat(paste0(crayon::bold("RxODE "), as.vector(RxODE::rxVersion()["version"]), " model named ",.pkg,
-               crayon::yellow$bold(.dll), .new, " model (", .ico, .msg,
+               crayon::yellow$bold(getOption("RxODE.dll.print", .dll)), .new, " model (", .ico, .msg,
                .msg2, ")."), "\n")
     .indLin <- rxModelVars(x)$indLin;
     if (length(.indLin) > 0){
@@ -178,7 +178,7 @@ print.RxODE <- function(x, ...){
 ##'@export
 print.rxModelVars <- function(x, ...) {
     .bound <- .getBound(x, parent.frame(2));
-    cat("RxODE model variables (see str to see all variables)");
+    cat("RxODE model variables (see str to see all variables)\n");
     .cur <- x$state;
     if (length(.cur) > 0)
         cat(paste0(crayon::yellow(.bound), crayon::blue$bold("$state"), ": ", paste(.cur, collapse=", "), "\n"))
@@ -250,44 +250,9 @@ print.rxCoef <- function(x, ...){
   return(invisible());
 }
 
-##' Print the rxCoefSolve object
-##'
-##' This prints out the user supplied arguments for the rxCoef object
-##'
-##' @param x rxCoefSolve object
-##' @param ... Other (ignored) parameters.
-##' @keywords Internal
-##' @author Matthew L.Fidler
-##' @export
-print.rxCoefSolve <- function(x, ...){
-    cat("\nUser supplied parameters ($params):\n");
-    print(x$params);
-    cat("\nUser initial conditions ($state):\n");
-    print(x$state);
-    rxDllObj <- x$RxODE;
-    if (length(RxODE::rxInits(rxDllObj)) > 0){
-        cat("\nDefault parameter values:\n")
-        print(RxODE::rxInits(rxDllObj));
-    }
-    cat("\nCompartments:\n");
-    tmp <- RxODE::rxState(rxDllObj);
-    names(tmp) <- paste0("cmt=", seq_along(tmp));
-    sens <- tmp[regexpr(getFromNamespace("regSens", "RxODE"), tmp) != -1];
-    if (length(sens) > 0){
-        tmp <- tmp[regexpr(getFromNamespace("regSens", "RxODE"), tmp) == -1]
-    }
-    print(tmp);
-    if (length(sens) > 0){
-        sens <- gsub(getFromNamespace("regSens", "RxODE"), "d/dt(d(\\1)/d(\\2))", sens);
-        cat("\nSensitivities:\n");
-        print(sens)
-    }
-    return(invisible());
-}
-
 ##' @export
 print.rxC <- function(x, ...){
-    cat(sprintf("C file: %s  ('summary' for code)\n", x));
+    cat(sprintf("C file: %s  ('summary' for code)\n", getOption("RxODE.c.print", x)))
 }
 
 
@@ -310,14 +275,6 @@ print.rxDll <- function(x, ...){
         cat(sprintf("RxODE DLL named \"%s\" has been deleted.\n", getOption("RxODE.basename.print", basename(x$dll))));
     }
     invisible(x);
-}
-
-##'@export
-print.rxSymInvChol <- function(x, ...){
-    d <- dim(x$fmat)[1]
-    cat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
-    print(x$fmat);
-    cat("Use `rxSymInvChol' for the matrix.\n");
 }
 
 ##' @export
@@ -447,8 +404,8 @@ print.rxSolve <- function(x, ...){
         }), sep="\n")
         print(summary.data.frame(x))
         cat(cli::cli_format_method({
-          d <- cli::cli_div(theme = list(rule = list(
-            "line-type" = "bar2")))
+          d <- cli::cli_div(theme =
+            list(rule = list("line-type" = "bar2")))
           cli::cli_rule()
           cli::cli_end(d)
         }), sep="\n")
@@ -456,9 +413,10 @@ print.rxSolve <- function(x, ...){
         cat(cli::cli_format_method({
           cli::cli_rule(left=crayon::bold("First part of data (object):"))
         }), sep="\n")
-        .isDplyr <- requireNamespace("tibble", quietly = TRUE) && RxODE.display.tbl;
+        .isDplyr <- requireNamespace("tibble", quietly = TRUE) &&
+            getOption("RxODE.display.tbl", TRUE);
         if (!.isDplyr) {
-          print(head(as.matrix(x), n = .n));
+          print(head(as.data.frame(x), n = .n));
         } else {
           print(tibble::as_tibble(x), n = .n, width = .width);
         }
@@ -474,12 +432,6 @@ print.rxSolve <- function(x, ...){
     print.data.frame(x)
   }
 }
-
-##'@export
-print.rxModelCode <- function(x, ...){
-  htmltools::code(x)
-}
-
 
 ##'@export
 print.rxModelText <- function(x, ...) {
@@ -522,7 +474,7 @@ print.boundParams <- function(x, ...){
 }
 
 ##' @export
-print.rxSolveParams <- function(x, ...){
+print.rxSolveParams <- function(x, ..., n=0L){
   .args <- as.list(match.call(expand.dots = TRUE));
   if (any(names(.args) == "bound")) {
     .bound <- .args$bound;
