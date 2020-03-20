@@ -1,6 +1,9 @@
-#' @importFrom ggplot2 %+replace%
-`%+replace%`
-rx_theme <- function(base_size = 11, base_family = "",
+#' rxTheme is the RxODE theme for plots
+#'
+#' @inheritParams ggplot2::theme_grey
+#'
+#' @export
+rxTheme <- function(base_size = 11, base_family = "",
                      base_line_size = base_size / 22,
                      base_rect_size = base_size / 22){
     half_line <- base_size / 2
