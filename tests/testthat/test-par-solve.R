@@ -47,140 +47,143 @@ rxPermissive({
         sigma <- diag(2) * 0.05
         dimnames(sigma) <- list(c("err1", "err2"), c("err1", "err2"));
 
-        pk3 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                                   Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                           nSub=4, ev, sigma=sigma, cores=2, method=meth);
+        for (mvnfast in c(TRUE, FALSE)) {
+            pk3 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                            nSub=4, ev, sigma=sigma, cores=2, method=meth, mvnfast=mvnfast);
 
-        pk3a <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                               Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                        nSub=4, ev, sigma=sigma, cores=2, method=meth, addDosing=TRUE);
+            pk3a <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                     Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                             nSub=4, ev, sigma=sigma, cores=2, method=meth, mvnfast=mvnfast, addDosing=TRUE);
 
-        pk4 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                               Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, ev, sigma=sigma, cores=1, method=meth);
+            pk4 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                            nSub=4, ev, sigma=sigma, cores=1, method=meth, mvnfast=mvnfast);
 
-        test_that("Can solve the system.", {
-            expect_true(rxIs(pk3, "data.frame"))
-            expect_false(all(pk3$pk==0))
-            expect_true(rxIs(pk3a, "data.frame"))
-            expect_false(all(pk3a$pk==0))
-            expect_true(rxIs(pk4, "data.frame"))
-            expect_false(all(pk4$pk==0))
-        })
+            test_that("Can solve the system.", {
+                expect_true(rxIs(pk3, "data.frame"))
+                expect_false(all(pk3$pk==0))
+                expect_true(rxIs(pk3a, "data.frame"))
+                expect_false(all(pk3a$pk==0))
+                expect_true(rxIs(pk4, "data.frame"))
+                expect_false(all(pk4$pk==0))
+            })
 
-        mod3 <- RxODE({
-            C2=prod(centr, 1/V2)
-            C3~prod(peri, 1/V3)
-            CL~prod(TCL, exp(eta.Cl))
-            d/dt(depot)~prod(-KA, depot)
-            d/dt(centr)~sum(prod(KA, depot), -prod(CL, C2), -prod(Q, C2), prod(Q, C3))
-            d/dt(peri)~sum(prod(Q, C2), -prod(Q, C3))
-            d/dt(eff)=sum(Kin, -prod(Kout, sum(1, -prod(C2, 1/sum(EC50, C2))), eff))
-            e1=err1
-            e2=err2
-            resp=sum(eff, e1)
-            pk=prod(C2, exp(e2))
-        })
+            mod3 <- RxODE({
+                C2=prod(centr, 1/V2)
+                C3~prod(peri, 1/V3)
+                CL~prod(TCL, exp(eta.Cl))
+                d/dt(depot)~prod(-KA, depot)
+                d/dt(centr)~sum(prod(KA, depot), -prod(CL, C2), -prod(Q, C2), prod(Q, C3))
+                d/dt(peri)~sum(prod(Q, C2), -prod(Q, C3))
+                d/dt(eff)=sum(Kin, -prod(Kout, sum(1, -prod(C2, 1/sum(EC50, C2))), eff))
+                e1=err1
+                e2=err2
+                resp=sum(eff, e1)
+                pk=prod(C2, exp(e2))
+            })
 
-        pk3 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                               Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, ev, sigma=sigma, cores=2, method=meth);
+            pk3 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                            nSub=4, ev, sigma=sigma, cores=2, method=meth, mvnfast=mvnfast);
 
-        pk4 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                               Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, ev, sigma=sigma, cores=1, method=meth);
+            pk4 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                            nSub=4, ev, sigma=sigma, cores=1, method=meth, mvnfast=mvnfast);
 
-        test_that("Can solve the system.", {
-            expect_false(all(pk3$pk==0))
-            expect_true(rxIs(pk3, "data.frame"))
-            expect_false(all(pk3$pk==0))
-            expect_true(rxIs(pk4, "data.frame"))
-        })
+            test_that("Can solve the system.", {
+                expect_false(all(pk3$pk==0))
+                expect_true(rxIs(pk3, "data.frame"))
+                expect_false(all(pk3$pk==0))
+                expect_true(rxIs(pk4, "data.frame"))
+            })
 
-        mod2 <- RxODE({
-            C2 = centr/V2;
-            C3 ~ peri/V3;
-            CL ~ TCL * exp(eta.Cl);
-            d/dt(depot) ~ -KA*depot;
-            d/dt(centr) ~  KA*depot - CL*C2 - Q*C2 + Q*C3;
-            d/dt(peri) ~                     Q*C2 - Q*C3;
-            d/dt(eff) = Kin - Kout*(1-C2/(EC50+C2))*eff;
-            eff(0) = 1000
-            e1 = err1
-            e2 = err2
-            resp = eff + e1
-            pk = C2 * exp(e2)
-        })
+            mod2 <- RxODE({
+                C2 = centr/V2;
+                C3 ~ peri/V3;
+                CL ~ TCL * exp(eta.Cl);
+                d/dt(depot) ~ -KA*depot;
+                d/dt(centr) ~  KA*depot - CL*C2 - Q*C2 + Q*C3;
+                d/dt(peri) ~                     Q*C2 - Q*C3;
+                d/dt(eff) = Kin - Kout*(1-C2/(EC50+C2))*eff;
+                eff(0) = 1000
+                e1 = err1
+                e2 = err2
+                resp = eff + e1
+                pk = C2 * exp(e2)
+            })
 
-        pk3 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                               Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, ev, sigma=sigma, cores=2, method=meth);
+            pk3 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                            nSub=4, ev, sigma=sigma, cores=2, method=meth, mvnfast=mvnfast);
 
-        pk4 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                               Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, ev, sigma=sigma, cores=1, method=meth);
+            pk4 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                            nSub=4, ev, sigma=sigma, cores=1, method=meth, mvnfast=mvnfast);
 
-        test_that("Can solve the system.", {
-            expect_false(all(pk3$pk==0))
-            expect_true(rxIs(pk3, "data.frame"))
-            expect_false(all(pk4$pk==0))
-            expect_true(rxIs(pk4, "data.frame"))
-        })
+            test_that("Can solve the system.", {
+                expect_false(all(pk3$pk==0))
+                expect_true(rxIs(pk3, "data.frame"))
+                expect_false(all(pk4$pk==0))
+                expect_true(rxIs(pk4, "data.frame"))
+            })
 
-        pk2 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                               Kin=1, Kout=1, EC50=200, err1=0, err2=0), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, ev, cores=1, method=meth);
+            pk2 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200, err1=0, err2=0), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                            nSub=4, ev, cores=1, method=meth, mvnfast=mvnfast);
 
-        pk3 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                               Kin=1, Kout=1, EC50=200, err1=0, err2=0), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, ev, cores=2, method=meth);
+            pk3 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200, err1=0, err2=0), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                            nSub=4, ev, cores=2, method=meth, mvnfast=mvnfast);
 
-        ## "Study" Differences
-        thetaMat <- diag(3) * 0.01
-        dimnames(thetaMat) <- list(NULL, c("KA", "TCL", "V2"));
+            ## "Study" Differences
+            thetaMat <- diag(3) * 0.01
+            dimnames(thetaMat) <- list(NULL, c("KA", "TCL", "V2"));
 
-        pk4 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                               Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=1, method=meth);
+            pk4 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                            nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=1, method=meth, mvnfast=mvnfast);
 
-        pk5 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                               Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=2, method=meth);
+            pk5 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                            nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=2, method=meth, mvnfast=mvnfast);
 
-        pk6 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                               Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=1, dfSub=4, dfObs=4, method=meth);
+            pk6 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                            nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=1, dfSub=4, dfObs=4, method=meth, mvnfast=mvnfast);
 
-        pk7 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                               Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=2, dfSub=4, dfObs=4, method=meth);
+            pk7 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                            nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=2, dfSub=4, dfObs=4, method=meth, mvnfast=mvnfast);
 
-        test_that("Can solve the system.", {
-            expect_true(rxIs(pk2, "data.frame"))
-            expect_equal(class(pk2$thetaMat),"NULL")
-            expect_equal(class(pk2$omegaList),"NULL")
-            expect_equal(class(pk2$sigmaList),"NULL")
-            expect_true(rxIs(pk3, "data.frame"))
-            expect_equal(class(pk3$thetaMat),"NULL")
-            expect_equal(class(pk3$omegaList),"NULL")
-            expect_equal(class(pk3$sigmaList),"NULL")
-            expect_true(rxIs(pk4, "data.frame"))
-            expect_true(is(pk4$thetaMat,"matrix"))
-            expect_equal(class(pk4$omegaList),"NULL")
-            expect_equal(class(pk4$sigmaList),"NULL")
-            expect_true(rxIs(pk5, "data.frame"))
-            expect_true(is(pk5$thetaMat,"matrix"))
-            expect_equal(class(pk5$omegaList),"NULL")
-            expect_equal(class(pk5$sigmaList),"NULL")
-            expect_true(rxIs(pk6, "data.frame"))
-            expect_true(is(pk6$thetaMat,"matrix"))
-            expect_equal(class(pk6$omegaList),"list")
-            expect_equal(class(pk6$sigmaList),"list")
-            expect_true(rxIs(pk7, "data.frame"))
-            expect_true(is(pk7$thetaMat,"matrix"))
-            expect_equal(class(pk7$omegaList),"list")
-            expect_equal(class(pk7$sigmaList),"list")
-        })
+            test_that("Can solve the system.", {
+                expect_true(rxIs(pk2, "data.frame"))
+                expect_equal(class(pk2$thetaMat),"NULL")
+                expect_equal(class(pk2$omegaList),"NULL")
+                expect_equal(class(pk2$sigmaList),"NULL")
+                expect_true(rxIs(pk3, "data.frame"))
+                expect_equal(class(pk3$thetaMat),"NULL")
+                expect_equal(class(pk3$omegaList),"NULL")
+                expect_equal(class(pk3$sigmaList),"NULL")
+                expect_true(rxIs(pk4, "data.frame"))
+                expect_true(is(pk4$thetaMat,"matrix"))
+                expect_equal(class(pk4$omegaList),"NULL")
+                expect_equal(class(pk4$sigmaList),"NULL")
+                expect_true(rxIs(pk5, "data.frame"))
+                expect_true(is(pk5$thetaMat,"matrix"))
+                expect_equal(class(pk5$omegaList),"NULL")
+                expect_equal(class(pk5$sigmaList),"NULL")
+                expect_true(rxIs(pk6, "data.frame"))
+                expect_true(is(pk6$thetaMat,"matrix"))
+                expect_equal(class(pk6$omegaList),"list")
+                expect_equal(class(pk6$sigmaList),"list")
+                expect_true(rxIs(pk7, "data.frame"))
+                expect_true(is(pk7$thetaMat,"matrix"))
+                expect_equal(class(pk7$omegaList),"list")
+                expect_equal(class(pk7$sigmaList),"list")
+            })
+        }
+
 
         ## Now Try multi-subject data.
         dat <- readRDS(test_path("test-data-setup.rds"))

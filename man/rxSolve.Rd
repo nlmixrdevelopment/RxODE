@@ -105,7 +105,8 @@ rxControl(
   ssAtol = 1e-08,
   ssRtol = 1e-06,
   safeZero = TRUE,
-  cacheEvent = TRUE
+  cacheEvent = TRUE,
+  mvnfast = FALSE
 )
 
 rxSolve(object, ...)
@@ -535,6 +536,10 @@ this is turned on but you may turn it off if you wish.}
 
 \item{cacheEvent}{is a boolean.  If `TRUE` (default), events are cached in
 memory to speed up solving.}
+
+\item{mvnfast}{Use the `mvnfast` package for multivariate normal
+simulation instead of the thread-safe threefry based
+multivariate normal package provided in `RxODE`.}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE

@@ -4,7 +4,11 @@
         assignInMyNamespace("guide_none", .ggplot2$guide_none)
     }
 }
-.onLoad <- function(libname, pkgname){ ## nocov start
+.onLoad <- function(libname, pkgname) { ## nocov start
+    ## For some strange reason, mvnfast needs to be loaded before RxODE to work correctly
+    if (requireNamespace("mvnfast", quietly = TRUE)) {
+        assignInMyNamespace(".mvnfast", loadNamespace("mvnfast"))
+    }
     ## Setup RxODE.prefer.tbl
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
     rxPermissive(respect=TRUE); ## need to call respect on the first time
@@ -18,6 +22,10 @@
 } ## nocov end
 
 .onAttach <- function(libname, pkgname){
+    ## For some strange reason, mvnfast needs to be loaded before RxODE to work correctly
+    if (requireNamespace("mvnfast", quietly = TRUE)) {
+        assignInMyNamespace(".mvnfast", loadNamespace("mvnfast"))
+    }
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
     rxPermissive(respect=TRUE); ## need to call respect on the first time
     if (!.rxWinRtoolsPath(retry=NA)){

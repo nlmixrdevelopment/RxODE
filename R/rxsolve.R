@@ -53,7 +53,8 @@ rxControl <- function(scale = NULL,
                       ssAtol = 1.0e-8,
                       ssRtol = 1.0e-6,
                       safeZero=TRUE,
-                      cacheEvent=TRUE) {
+                      cacheEvent=TRUE,
+                      mvnfast=FALSE) {
     .xtra <- list(...);
     if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")) {
         .sigmaXform <- as.integer(sigmaXform)
@@ -233,7 +234,8 @@ rxControl <- function(scale = NULL,
                  idFactor=idFactor,
                  mxhnil=mxhnil, hmxi=hmxi, warnIdSort=warnIdSort,
                  ssAtol=ssAtol, ssRtol = ssRtol, safeZero=as.integer(safeZero),
-                 cacheEvent=as.logical(cacheEvent));
+                 cacheEvent=as.logical(cacheEvent),
+                 mvnfast=mvnfast);
     return(.ret)
 }
 
@@ -633,6 +635,10 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param cacheEvent is a boolean.  If `TRUE` (default), events are cached in
 ##'     memory to speed up solving.
+##'
+##' @param mvnfast Use the `mvnfast` package for multivariate normal
+##'     simulation instead of the thread-safe threefry based
+##'     multivariate normal package provided in `RxODE`.
 ##'
 ##' @references
 ##'

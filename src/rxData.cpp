@@ -362,12 +362,13 @@ bool rxIs(const RObject &obj, std::string cls){
 }
 
 Function loadNamespace("loadNamespace", R_BaseNamespace);
-// Environment mvnfast = loadNamespace("mvnfast");
+bool _mvnfast=false;
 
 SEXP rxRmvn0(NumericMatrix& A_, arma::rowvec mu, arma::mat sigma,
 	     arma::vec lower, arma::vec upper, int ncores=1, bool isChol=false,
 	     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100);
 
+Function getRxFn(std::string name);
 RObject rxSimSigma(const RObject &sigma,
 		   const RObject &df,
 		   int ncores,
@@ -452,7 +453,44 @@ RObject rxSimSigma(const RObject &sigma,
     // Ncores = 1?  Should it be parallelized when it can be...?
     // Note that if so, the number of cores also affects the output.
     // while (totSim < nObs){
-    if (df.isNULL()){
+    if (_mvnfast){
+      int totSim = 0;
+      while (totSim < nObs){
+	int curSimN = nObs - totSim;
+	NumericMatrix simMat0(curSimN,sigmaM.ncol());
+	if (df.isNULL()){
+	  Function rmvn = getRxFn(".rmvn");
+	  rmvn(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
+	       _["isChol"]=isChol, _["A"] = simMat0); // simMat is updated with the random deviates
+	} else {
+	  double df2 = as<double>(df);
+	  if (R_FINITE(df2)){
+	    Function rmvt = getRxFn(".rmvt");
+	    rmvt(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["df"] = df,
+		 _["ncores"]=ncores, _["isChol"]=isChol, _["A"] = simMat0);
+	  } else {
+	    Function rmvn = getRxFn(".rmvn");
+	    rmvn(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
+		 _["isChol"]=isChol, _["A"] = simMat0);
+	  }
+	}
+	// Reject any bad simulations if needed
+	for (int i = 0; i < curSimN; i++){
+	  bool goodSim = true;
+	  for (int j = sigmaM.ncol(); j--;){
+	    double cur = simMat0(i, j);
+	    if (cur <= lower[j] || cur >= upper[j]){
+	      goodSim=false;
+	      break;
+	    }
+	  }
+	  if (goodSim){
+	    simMat(totSim, _) = simMat0(i, _);
+	    totSim++;
+	  }
+	}
+      }
+    } else if (df.isNULL()){
       rxRmvn0(simMat, m, as<arma::mat>(sigmaM), as<arma::vec>(lower),
 	      as<arma::vec>(upper), ncores, isChol, a, tol, nlTol, nlMaxiter);
 	// Function rmvn = as<Function>(mvnfast["rmvn"]);
@@ -3722,6 +3760,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     stop(_("control list not setup correctly"));
   }
   maxAtolRtolFactor = as<double>(rxControl["maxAtolRtolFactor"]);
+  _mvnfast = as<bool>(rxControl["mvnfast"]);
   RObject scale = rxControl["scale"];
   int method = as<int>(rxControl["method"]);
   Nullable<LogicalVector> transit_abs = rxControl["transitAbs"];

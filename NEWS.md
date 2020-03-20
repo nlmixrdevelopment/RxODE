@@ -14,6 +14,10 @@
   random number generator.  This was done to allow internal resampling
   of sigmas/etas with thread-safe random number generators (calling R
   through `mvnfast` or R's simulation engines are not thread safe).
+  
+  * A backward-compatible simulation can be used by `rxSolve(...,
+    mvnfast=TRUE)` (but of course requires the `mvnfast` package
+    installed)
 
 ## New features
 
