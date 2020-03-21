@@ -38,6 +38,7 @@ apt_packages:
   
 r_github_packages:
   - nlmixrdevelopment/lotri
+  - symengine/symengine.R
 
 before_install:
   - if [ $TRAVIS_OS_NAME = osx ]; then brew install cmake gmp mpfr libmpc || true; fi
