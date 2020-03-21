@@ -12,59 +12,14 @@ str.rxSolve <- function(object, ..., nchar.max=128) {
     .max <- max(sapply(.dn, nchar))
     cat(sprintf("Classes 'rxSolve' and 'data.frame':\t%s rows of  %s variables:\n",
                 object$.check.nrow, object$.check.ncol))
-    if (any(names(object) == "sim.id")) {
-      cat(paste0(" $ sim.id",
-                 paste(rep(" ", .max - 6), collapse = ""),
-                 ":"));
-      str(object$sim.id)
-    }
-    if (any(names(object) == "id")) {
-      cat(paste0(" $ id",
-                 paste(rep(" ", .max - 2), collapse = ""),
-                 ":"));
-      str(object$id)
-    }
-    if (any(names(object) == "evid")) {
-      cat(paste0(" $ evid",
-                 paste(rep(" ", .max - 4), collapse = ""),
-                 ":"));
-      str(object$evid)
-    }
-    if (any(names(object) == "cmt")) {
-      cat(paste0(" $ cmt",
-                 paste(rep(" ", .max - 3), collapse = ""),
-                 ":"));
-      str(object$cmt)
-    }
-    if (any(names(object) == "ss")) {
-      cat(paste0(" $ ss",
-                 paste(rep(" ", .max - 2), collapse = ""),
-                 ":"));
-      str(object$ss)
-    }
-    if (any(names(object) == "amt")) {
-      cat(paste0(" $ amt",
-                 paste(rep(" ", .max - 3), collapse = ""),
-                 ":"));
-      str(object$amt)
-    }
-    if (any(names(object) == "rate")) {
-      cat(paste0(" $ rate",
-                 paste(rep(" ", .max - 4), collapse = ""),
-                 ":"));
-      str(object$rate)
-    }
-    if (any(names(object) == "dur")) {
-      cat(paste0(" $ dur",
-                 paste(rep(" ", .max - 3), collapse = ""),
-                 ":"));
-      str(object$dur)
-    }
-    if (any(names(object) == "ii")) {
-      cat(paste0(" $ ii",
-                 paste(rep(" ", .max - 2), collapse = ""),
-                 ":"));
-      str(object$ii)
+    for (.n in c("sim.id", "id", "evid", "cmt", "ss", "amt", "rate", "dur",
+                 "ii")){
+        if (any(names(object) == .n)) {
+            cat(paste0(" $ ", .n,
+                       paste(rep(" ", .max - nchar(.n)), collapse = ""),
+                       ":"));
+            str(object[[.n]])
+        }
     }
     cat(paste0(" $ time", paste(rep(" ", .max - 4), collapse = ""), ":"));
     str(object$time, nchar.max = nchar.max - .max - 8);

@@ -37,7 +37,7 @@ rxPermissive({
                 print(rxModelVars(mod))
 
                 print(rxC(mod))
-                                        #summary(rxC(mod)) # too fragile
+                summary(rxC(mod)) # too fragile
 
                 print(mod$.rxDll)
 
@@ -113,7 +113,7 @@ rxPermissive({
 
                 print(mod)
                 summary(mod)
-                ## str(mod)
+                str(mod)
 
                 rxUnload(mod)
                 print(mod)
@@ -210,11 +210,14 @@ d/dt(blood)     = a*intestine - b*blood
 
     et <- cbind(et,cov)
 
+    et$extra <- 1
+
     out <- rxSolve(ode,
                    params = c(a=-8/3, b=-10),
                    events = et,
                    inits = c(X=1, Y=1, Z=1),
-                   covsInterpolation="linear")
+                   covsInterpolation="linear",
+                   keep="extra")
     print(out)
     str(out)
 
