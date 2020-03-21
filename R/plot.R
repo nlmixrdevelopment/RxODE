@@ -174,7 +174,7 @@ plot.rxSolve <- function(x,y,..., log="",
     .facet <- facet_wrap( ~ trt, scales="free_y")
     if (length(.cmts) == 1) .facet <- NULL
     .ylab <- ylab(ylab)
-    .theme <- rx_theme()
+    .theme <- rxTheme()
     if (!getOption("RxODE.theme", TRUE)) .theme <- NULL
     .repel <- NULL
     .legend <- NULL

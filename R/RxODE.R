@@ -409,7 +409,7 @@ RxODE <- # nolint
         }
     }
     .env <- new.env(parent=baseenv())
-    .env$.rxTransCode <- "SEXP matLst = PROTECT(allocVector(VECSXP, 0));pro++;\n SET_VECTOR_ELT(lst,  18, matLst);\n";
+    .env$.rxTransCode <- "SEXP matLst = PROTECT(allocVector(VECSXP, 0));pro++;\n SET_VECTOR_ELT(lst,  17, matLst);\n";
     .setTransCode(.env$.rxTransCode, "");
     on.exit(.setTransCode("bad", ""), add=TRUE);
     .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel, indLin=indLin);

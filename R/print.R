@@ -217,14 +217,7 @@ print.rxCoef <- function(x, ...){
     if (length(x$sens) > 0){
       .tmp <- .tmp[regexpr(getFromNamespace("regSens", "RxODE"), names(.tmp)) == -1];
     }
-    .tmp <- .tmp[!(names(.tmp) %in% x$fn.ini)];
     print(.tmp);
-  }
-  if (length(x$fn.ini) > 0){
-    cat(cli::cli_format_method({
-      cli::cli_rule(left="Parameter-based initial conditions:")
-    }), "\n")
-    print(x$fn.ini);
   }
   cat(cli::cli_format_method({
     cli::cli_rule(left="Compartments:")

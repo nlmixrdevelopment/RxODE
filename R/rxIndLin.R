@@ -246,7 +246,7 @@ rxIndLinState <- function(prefered=NULL) {
                    sprintf("SEXP intLin = PROTECT(allocVector(INTSXP, %s));pro++;", length(.w)),
                    paste(sprintf("INTEGER(intLin)[%s]=%s;", seq_along(.w) - 1, .w), collapse="\n"),
                    "SET_VECTOR_ELT(matLst, 3, intLin);",
-                   "SET_VECTOR_ELT(lst,  18, matLst);"
+                   "SET_VECTOR_ELT(lst,  17, matLst);"
                    );
     ## Generate extra RxODE code for generating right functions.
     .code <- paste(.code, collapse="\n");

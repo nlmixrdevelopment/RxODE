@@ -88,13 +88,23 @@ rxPermissive({
                 print(summary(pk, bound="k"))
 
 
+                modS <- RxODE(mod, calcSens = TRUE)
 
+                print(coef(modS))
 
                 ## Now "destroy" the RxODE solved object and change the printout
                 tmp <- class(pk)
                 pk$matt <- 4
                 class(tmp) <- tmp
                 print(pk)
+                class(pk) <- tmp
+                summary(pk)
+
+                noOde <- RxODE({
+                    matt = a ^ 2 + b ^ 2
+                })
+
+                print(coef(noOde))
 
 
                 rxUnload(mod)
@@ -165,7 +175,7 @@ d/dt(blood)     = a*intestine - b*blood
         ## model is determined by the parameters specified.
         CL ~ TCL * exp(eta.Cl);
         C2 ~ linCmt(KA, CL, V2, Q, V3);
-        eff(0) = 1  ## This specifies that the effect compartment starts at 1.
+        eff(0) = 1 + eff0 ^ 2## This specifies that the effect compartment starts at 1.
         d/dt(eff) ~ Kin - Kout*(1-C2/(EC50+C2))*eff;
         ##
         resp = eff + err1
