@@ -20,16 +20,8 @@ format.rxRateDur <- function(x, ...) {
 format.boundParams <- function(x, ...){
   cli::cli_format_method({
     cli::cli_rule(left=.fmt3("Parameters", x, "params"));
-  })
+    })
 }
-
-##'@export
-format.boundCovs <- function(x, ...){
-  cli::cli_format_method({
-    cli::cli_rule(left=.fmt3("Covariates", x, "covs"));
-  })
-}
-
 
 ##'@export
 format.boundInits <- function(x, ...){
@@ -41,7 +33,6 @@ format.boundInits <- function(x, ...){
 
 ##'@export
 format.rxSolveSimType <- function(x, ...){
-  if (any(names(x) == "sim.id")){
     .args <- as.list(match.call(expand.dots = TRUE));
     if (any(names(.args) == "bound")) {
       .bound <- .args$bound;
@@ -76,7 +67,4 @@ format.rxSolveSimType <- function(x, ...){
       cli::cli_text(.first)
       cli::cli_text("")
     }))
-  } else {
-    return("")
-  }
 }

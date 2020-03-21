@@ -18,6 +18,8 @@ os:
   - osx
 env:
   - rxCran=cran
+  - rxCran=lvl2
+  - rxCran=print
 matrix:
   exclude:
   allow_failures:

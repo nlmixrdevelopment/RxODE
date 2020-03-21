@@ -2420,8 +2420,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
 
 void print_aux_info(char *model, const char *prefix, const char *libname, const char *pMd5, const char *timeId,
 		    const char *libname2){
-  int i, j, islhs,pi = 0,li = 0, statei = 0, sensi=0, normi=0,fdi=0,
-    in_str=0;
+  int i, j, islhs,pi = 0,li = 0, statei = 0, sensi=0, normi=0, in_str=0;
   char *buf;
   sbuf bufw;
   sIniTo(&bufw, 1024);
@@ -3449,7 +3448,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   char *buf, *df, *dy;
   sbuf bufw, bufw2;
   sIniTo(&bufw, 1024); sIniTo(&bufw2, 2100);
-  int i, j, islhs, pi=0, li=0, ini_i = 0,k=0, l=0, m=0, p=0;
+  int i, j, islhs, pi=0, li=0, ini_i = 0,k=0, m=0, p=0;
   // Make sure buffers are initialized.
   isEsc=INTEGER(isEscIn)[0];
 
@@ -3696,7 +3695,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   
   SEXP model  = PROTECT(allocVector(STRSXP,2));pro++;
   SEXP modeln = PROTECT(allocVector(STRSXP,2));pro++;
-  k=0;j=0;l=0;m=0,p=0;
+  k=0;j=0;m=0,p=0;
   for (i=0; i<tb.de.n; i++) {                     /* name state vars */
     buf=tb.ss.line[tb.di[i]];
     if (tb.idu[i] == 1){

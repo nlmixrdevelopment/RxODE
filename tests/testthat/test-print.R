@@ -231,6 +231,79 @@ d/dt(blood)     = a*intestine - b*blood
     print(out)
     str(out)
 
+    mmModel <- RxODE({
+        ka = 1
+        Vc = 1
+        Vmax <- 0.00734
+        Km = 0.3672
+        Cp = center / Vc
+        d/dt(center) =  - Vmax/(Km + Cp) * Cp + exp(-10 * t)
+    }, indLin=TRUE)
+
+    print(mmModel)
+    summary(mmModel)
+
+    mmModel <- RxODE({
+        ka = 1
+        Vc = 1
+        Vmax <- 0.00734
+        Km = 0.3672
+        Cp = center / Vc
+        d/dt(center) =  - Vmax/(Km + Cp) * Cp
+    }, indLin=TRUE)
+
+    print(mmModel)
+    summary(mmModel)
+
+    mod2 <- RxODE({
+        C2 = centr/V2;
+        C3 ~ peri/V3;
+        CL ~ TCL * exp(eta.Cl);
+        d/dt(depot) ~ -KA*depot;
+        d/dt(centr) ~  KA*depot - CL*C2 - Q*C2 + Q*C3;
+        d/dt(peri) ~                     Q*C2 - Q*C3;
+        d/dt(eff) = Kin - Kout*(1-C2/(EC50+C2))*eff;
+        eff(0) = 1000
+        e1 = err1
+        e2 = err2
+        resp = eff + e1
+        pk = C2 * exp(e2)
+    })
+
+
+    thetaMat <- diag(3) * 0.01
+    dimnames(thetaMat) <- list(NULL, c("KA", "TCL", "V2"));
+    sigma <- diag(2) * 0.05
+    dimnames(sigma) <- list(c("err1", "err2"), c("err1", "err2"));
+
+     ev <- eventTable(amount.units='mg', time.units='hours') %>%
+            add.dosing(dose=10000, nbr.doses=10, dosing.interval=12,dosing.to=2) %>%
+            add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24,dosing.to=2) %>%
+            add.sampling(0:240);
+
+
+    pk4 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                   nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=1, method="lsoda");
+
+    print(pk4)
+
+    pk4 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                   nSub=4, nStud=4, dfObs=4, dfSub=4,
+                   thetaMat=thetaMat, sigma=sigma, ev,
+                   cores=1, method="lsoda")
+
+    print(pk4)
+
+    pk4 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                   nSub=4, nStud=4,
+                   sigma=sigma, ev,
+                   cores=1, method="lsoda")
+
+    print(pk4)
+
 }, crayon = .df$color[.i], unicode = .df$unicode[.i])
 })
 
