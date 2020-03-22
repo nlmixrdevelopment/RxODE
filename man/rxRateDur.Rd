@@ -26,6 +26,8 @@ pillar_shaft.rxRateDur(x, ...)
 }
 \arguments{
 \item{x}{rxRateDur data}
+
+\item{...}{Other parameters}
 }
 \description{
 This is primarily to display information about rate

@@ -1293,6 +1293,7 @@ as.data.frame.rxEvid <- base::as.data.frame.difftime
 ##' This is primarily to display information about rate
 ##'
 ##' @param x rxRateDur data
+##' @param ... Other parameters
 ##'
 ##'@export
 rxRateDur <- function(x) {

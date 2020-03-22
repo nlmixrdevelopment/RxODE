@@ -872,7 +872,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   char *name = (char*)pt.symbols[pn->symbol].name;
   nodeInfo ni;
   niReset(&ni);
-  int nch = d_get_number_of_children(pn), i, k, ii, found, safe_zero = 0;
+  int nch = d_get_number_of_children(pn), i, ii, found, safe_zero = 0;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
   sbuf buf;
   sIniTo(&buf, 1024);
@@ -2848,7 +2848,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
   if (show_ode == 4) {
     print_aux_info(model, prefix, libname, pMd5, timeId, libname2);
   } else {
-    int i, j, k;
+    int i, j;
     char *buf;
     if (show_ode == 1){
       sAppendN(&sbOut,"#include <RxODE_model_shared.h>\n",32);
