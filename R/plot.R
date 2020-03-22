@@ -243,7 +243,7 @@ plot.rxSolveConfint1 <- function(x,y,..., xlab="Time", ylab="", log=""){
     .line <- geom_line(size=1.2, show.legend = !is.null(.facet))
     .theme <- NULL
     if (getOption("RxODE.theme_bw", TRUE)){
-        .theme <- rx_theme()
+        .theme <- rxTheme()
     }
     .ylab <- ylab(ylab)
     .dat$p <- .dat$Percentile
@@ -298,7 +298,7 @@ plot.rxSolveConfint2 <- function(x,y,..., xlab="Time", ylab="", log=""){
     .line <- geom_line(size=1.1, show.legend = FALSE)
     .theme <- NULL
     if (getOption("RxODE.theme_bw", TRUE)){
-        .theme <- rx_theme()
+        .theme <- rxTheme()
     }
     .ylab <- ylab(ylab)
     .dat$p <- .dat$Percentile

@@ -18,7 +18,13 @@ os:
   - osx
 env:
   - rxCran=cran
+  - rxCran=focei
+  - rxCran=lincmt
   - rxCran=lvl2
+  - rxCran=norm
+  - rxCran=parsing
+  - rxCran=parseLincmt
+  - rxCran=plot
   - rxCran=print
 matrix:
   exclude:
