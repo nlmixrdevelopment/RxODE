@@ -1458,7 +1458,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  char *v2;
 	  int allSpace=allSpaces(pn, v2, 2);
 	  Free(v2);
-	  if (ii != 1 || allSpace) {
+	  if (ii != 1 || (ii == 1 && allSpace)) {
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(_("'is.na' takes 1 argument"));
 	  }
@@ -1472,7 +1472,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  char *v2;
 	  int allSpace=allSpaces(pn, v2, 2);
 	  Free(v2);
-	  if (ii != 1 || allSpace) {
+	  if (ii != 1 || (ii == 1 && allSpace)) {
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(_("'is.finite' takes 1 argument"));
 	  }
@@ -1486,7 +1486,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  char *v2;
 	  int allSpace=allSpaces(pn, v2, 2);
 	  Free(v2);
-	  if (ii != 1 || allSpace) {
+	  if (ii != 1 || (ii == 1 && allSpace)) {
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(_("'is.infinite' takes 1 argument"));
 	  }
