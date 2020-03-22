@@ -713,6 +713,36 @@ int new_de(const char *s){
   return 1;
 }
 
+void doDot(sbuf *out, char *buf){
+  for (int k = 0; k < (int)strlen(buf); k++){
+    if (buf[k] == '.'){
+      sAppend(out,"_DoT_");
+      if (rx_syntax_allow_dots == 0){
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(NODOT);
+      }
+    } else {
+      sPut(out,buf[k]);
+    }
+  }
+}
+
+void doDot2(sbuf *sb, sbuf *sbDt, char *buf){
+  for (int k = 0; k < (int)strlen(buf); k++){
+    if (buf[k] == '.'){
+      sAppend(sb,"_DoT_");
+      sAppend(sbDt,"_DoT_");
+      if (rx_syntax_allow_dots == 0){
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(NODOT);
+      }
+    } else {
+      sPut(sb,buf[k]);
+      sPut(sbDt,buf[k]);
+    }
+  }
+}
+
 void wprint_node(int depth, char *name, char *value, void *client_data) {
   int i;
   nodeInfo ni;
@@ -786,20 +816,6 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
 	sPut(&sbDt, value[i]);
 	sPut(&sbt, value[i]);
       }
-    }
-  }
-}
-
-void doDot(sbuf *out, char *buf){
-  for (int k = 0; k < (int)strlen(buf); k++){
-    if (buf[k] == '.'){
-      sAppend(out,"_DoT_");
-      if (rx_syntax_allow_dots == 0){
-	updateSyntaxCol();
-	trans_syntax_error_report_fn(NODOT);
-      }
-    } else {
-      sPut(out,buf[k]);
     }
   }
 }
@@ -1168,10 +1184,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      tb.fn=1;
 	    }
 	    sAppend(&sb,"%s_", v);
-	    doDot(&sb, v2);
-	    sAppendN(&sb, "1(", 2);
 	    sAppend(&sbDt,"%s_", v);
-	    doDot(&sbDt, v2);
+	    doDot2(&sb, &sbDt, v2);
+	    sAppendN(&sb, "1(", 2);
 	    sAppendN(&sbDt, "1(", 2);
 	    sAppend(&sbt, "%s(", v);
 	    Free(v2);
@@ -1223,9 +1238,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		}
 		tb.fn=1;
 		if (lagNo == 0){
-		  doDot(&sb, v2);
-		  doDot(&sbDt, v2);
-		  sAppend(&sbt, "%s", v);
+		  doDot2(&sb, &sbDt, v2);
 		  Free(v2);
 		  Free(v);
 		  i = 4;// skip next arguments
@@ -1234,10 +1247,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		} else {
 		  skipDouble=1;
 		  sAppend(&sb,   "%s_", v);
-		  doDot(&sb, v2);
-		  sAppendN(&sb,   "(", 1);
 		  sAppend(&sbDt,   "%s_", v);
-		  doDot(&sbDt, v2);
+		  doDot2(&sb, &sbDt, v2);
+		  sAppendN(&sb,   "(", 1);
 		  sAppendN(&sbDt,   "(", 1);
 		  sAppend(&sbt,  "%s(", v);
 		}
@@ -2059,18 +2071,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sb.o =0; sbDt.o =0;
           /* aAppendN("(__0__)", 7); */
 	  aType(TINI);
-          for (k = 0; k < (int)strlen(v); k++){
-            if (v[k] == '.'){
-                aAppendN("_DoT_", 5);
-		if (rx_syntax_allow_dots == 0){
-	          updateSyntaxCol();
-		  trans_syntax_error_report_fn(NODOT);
-		}
-            } else {
-              sPut(&sb, v[k]);
-	      sPut(&sbDt, v[k]);
-            }
-          }
+	  doDot2(&sb, &sbDt, v);
           if (nodeHas(ini) && !new_de(v)){
 	    if (tb.idu[tb.id] == 0){
 	      new_or_ith(v);
@@ -2092,18 +2093,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           }
         } else {
           sb.o = 0; sbDt.o = 0;
-          for (k = 0; k < (int)strlen(v); k++){
-            if (v[k] == '.'){
-	      aAppendN("_DoT_", 5);
-	      if (rx_syntax_allow_dots == 0){
-		updateSyntaxCol();
-		trans_syntax_error_report_fn(NODOT);
-	      }
-            } else {
-              sPut(&sb, v[k]);
-	      sPut(&sbDt, v[k]);
-            }
-          }
+	  doDot2(&sb, &sbDt, v);
           if (!new_de(v)){
 	    if (tb.idu[tb.id] == 0){
 	      // Change to 19 for LHS w/stateExtra
@@ -3000,17 +2990,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  buf = tb.ss.line[tb.di[i]];
 	  if(tb.idu[i] != 0){
 	    sAppendN(&sbOut, "  ", 2);
-	    for (k = 0; k < (int)strlen(buf); k++){
-	      if (buf[k] == '.'){
-		sAppendN(&sbOut, "_DoT_", 5);
-		if (rx_syntax_allow_dots == 0){
-		  updateSyntaxCol();
-		  trans_syntax_error_report_fn(NODOT);
-		}
-	      } else {
-		sPut(&sbOut, buf[k]);
-	      }
-	    }
+	    doDot(&sbOut, buf);
 	    sAppend(&sbOut, " = __zzStateVar__[%d]*((double)(_ON[%d]));\n", i, i);	  
 	  } else {
 	    break;
@@ -3134,17 +3114,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	for (i = 0; i < tb.de.n; i++){
 	  buf=tb.ss.line[tb.di[i]];
 	  sAppend(&sbOut, "  __zzStateVar__[%d]=((double)(_ON[%d]))*(",i,i);
-	  for (k = 0; k < (int)strlen(buf); k++){
-	    if (buf[k] == '.'){
-	      sAppendN(&sbOut, "_DoT_", 5);
-	      if (rx_syntax_allow_dots == 0){
-		updateSyntaxCol();
-		trans_syntax_error_report_fn(NODOT);
-	      }
-	    } else {
-	      sPut(&sbOut, buf[k]);
-	    }
-	  }
+	  doDot(&sbOut, buf);
 	  sAppendN(&sbOut,  ");\n", 3);
 	}
       }
@@ -3157,17 +3127,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	if (tb.lh[i] != 1 && tb.lh[i] != 19 && tb.lh[i] != 70) continue;
 	buf = tb.ss.line[i];
 	sAppend(&sbOut,  "  _lhs[%d]=", j);
-	for (k = 0; k < (int)strlen(buf); k++){
-	  if (buf[k] == '.'){
-	    sAppendN(&sbOut, "_DoT_", 5);
-	    if (rx_syntax_allow_dots == 0){
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(NODOT);
-	    }
-	  } else {
-	    sPut(&sbOut, buf[k]);
-	  }
-	}
+	doDot(&sbOut, buf);
 	sAppendN(&sbOut,  ";\n", 2);
 	j++;
       }
@@ -3178,17 +3138,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	if (tb.mtime[i] != 1) continue;
 	buf = tb.ss.line[i];
 	sAppend(&sbOut,  "  _mtime[%d]=", j);
-	for (k = 0; k < (int)strlen(buf); k++){
-	  if (buf[k] == '.'){
-	    sAppendN(&sbOut, "_DoT_", 5);
-	    if (rx_syntax_allow_dots == 0){
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(NODOT);
-	    }
-	  } else {
-	    sPut(&sbOut, buf[k]);
-	  }
-	}
+	doDot(&sbOut, buf);
 	sAppendN(&sbOut,  ";\n", 2);
 	j++;
       }
