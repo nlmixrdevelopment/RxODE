@@ -847,6 +847,20 @@ int toInt(char *v2){
 
 int skipDouble=0;
 
+int allSpaces(D_ParseNode *pn, char *v2, int cur) {
+  D_ParseNode *xpn = d_get_child(pn, cur);
+  v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+  int iii=0;
+  int allSpace=1;
+  while(v2[iii] != '\0'){
+    if (!isspace(v2[iii])){
+      allSpace=0;
+      break;
+    }
+  }
+  return allSpace;
+}
+
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
   nodeInfo ni;
@@ -1126,28 +1140,18 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           i = 1;// Parse next arguments
 	  depth=1;
 	  continue;
-	} else if (!strcmp("lag", v) ||
-		   (isLead = !strcmp("lead", v)) ||
+	} else if (!strcmp("lag", v) || (isLead = !strcmp("lead", v)) ||
 		   (isDiff = !strcmp("diff", v)) ||
 		   (isFirst = !strcmp("first", v)) ||
-		   (isLast = !strcmp("last", v))){
+		   (isLast = !strcmp("last", v))) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  // lag(par, 1) => lag_par(1)
 	  // lag(par) => lag_par(1)
 	  // Header what lag_par means.
 	  if (ii == 1){
-	    xpn = d_get_child(pn,2);
-	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	    int iii=0;
-	    int allSpace=1;
-	    while(v2[iii] != '\0'){
-	      if (!isspace(v[iii])){
-		allSpace=0;
-		break;
-	      }
-	    }
+	    char *v2;
 	    int lagNo=0;
-	    if (allSpace){
+	    if (allSpaces(pn, v2, 2)){
 	      if (isFirst || isLast){
 		updateSyntaxCol();
 		sPrint(&buf, _("'%s' takes 1 argument '%s(parameter)'"),
@@ -1254,7 +1258,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  depth=1;
 	  Free(v);
 	  continue;
-	} else if (!strcmp("transit", v)){
+	} else if (!strcmp("transit", v)) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 2){
 	    aAppendN("_transit3P(t, _cSub, ", 21);
@@ -1287,8 +1291,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		   (isUnif = !strcmp("rxunif", v) ||
 		    !strcmp("runif", v)) ||
 		   (isWeibull = !strcmp("rxweibull", v) ||
-		    !strcmp("rweibull", v))
-		   ){
+		    !strcmp("rweibull", v))) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 1){
 	    if (isF){
@@ -1298,16 +1301,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      updateSyntaxCol();
 	      trans_syntax_error_report_fn(_("'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"));
 	    } else {
-	      xpn = d_get_child(pn,2);
-	      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	      int iii=0;
-	      int allSpace=1;
-	      while(v2[iii] != '\0'){
-		if (!isspace(v[iii])){
-		  allSpace=0;
-		  break;
-		}
-	      }
+	      char *v2;
+	      int allSpace=allSpaces(pn, v2, 2);
 	      Free(v2);
 	      if (allSpace){
 		if (isGamma){
@@ -1360,23 +1355,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		   (isExp = !strcmp("rxexp", v) ||
 		    !strcmp("rexp", v)) ||
 		   (isT = !strcmp("rxt", v) ||
-		    !strcmp("rt", v))){
+		    !strcmp("rt", v))) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 1){
 	    sPrint(&buf, _("'%s' takes 1 arguments"), v);
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(buf.s);
 	  } else {
-	    xpn = d_get_child(pn,2);
-	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	    int iii=0;
-	    int allSpace=1;
-	    while(v2[iii] != '\0'){
-	      if (!isspace(v[iii])){
-		allSpace=0;
-		break;
-	      }
-	    }
+	    char *v2;
+	    int allSpace=allSpaces(pn, v2, 2);
 	    Free(v2);
 	    if (allSpace){
 	      if (isExp){
@@ -1405,7 +1392,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	} else if (!strcmp("rxgeom", v) ||
 		   !strcmp("rgeom", v) ||
 		   (isPois= !strcmp("rxpois", v) ||
-		    !strcmp("rpois", v))){
+		    !strcmp("rpois", v))) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 1){
 	    updateSyntaxCol();
@@ -1417,16 +1404,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      trans_syntax_error_report_fn(_("'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
 	    }
 	  } else {
-	    xpn = d_get_child(pn,2);
-	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	    int iii=0;
-	    int allSpace=1;
-	    while(v2[iii] != '\0'){
-	      if (!isspace(v[iii])){
-		allSpace=0;
-		break;
-	      }
-	    }
+	    char *v2;
+	    int allSpace=allSpaces(pn, v2, 2);
 	    Free(v2);
 	    if (allSpace){
 	      if (isPois){
@@ -1447,7 +1426,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  Free(v);
 	  continue;
 	} else if (!strcmp("rbinom", v) ||
-		   !strcmp("rxbinom", v)){
+		   !strcmp("rxbinom", v)) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 2){
 	    updateSyntaxCol();
@@ -1461,24 +1440,56 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  Free(v);
 	  continue;
 	} else if (!strcmp("is.nan", v)) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  char *v2;
+	  int allSpace=allSpaces(pn, v2, 2);
+	  Free(v2);
+	  if (ii != 1 || (ii == 1 && allSpace)) {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'is.nan' takes 1 argument"));
+	  }
 	  sAppendN(&sb, "isnan", 5);
 	  sAppendN(&sbDt, "isnan", 5);
 	  sAppendN(&sbt, "is.nan", 6);
 	  Free(v);
 	  continue;
 	} else if (!strcmp("is.na", v)) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  char *v2;
+	  int allSpace=allSpaces(pn, v2, 2);
+	  Free(v2);
+	  if (ii != 1 || allSpace) {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'is.na' takes 1 argument"));
+	  }
 	  sAppendN(&sb, "ISNA", 4);
 	  sAppendN(&sbDt, "ISNA", 4);
 	  sAppendN(&sbt, "is.na", 5);
 	  Free(v);
 	  continue;
-	} else if (!strcmp("is.finite", v)){
+	} else if (!strcmp("is.finite", v)) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  char *v2;
+	  int allSpace=allSpaces(pn, v2, 2);
+	  Free(v2);
+	  if (ii != 1 || allSpace) {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'is.finite' takes 1 argument"));
+	  }
 	  sAppendN(&sb, "R_FINITE", 8);
 	  sAppendN(&sbDt, "R_FINITE", 8);
 	  sAppendN(&sbt, "is.finite", 9);
 	  Free(v);
 	  continue;
-	} else if (!strcmp("is.infinite", v)){
+	} else if (!strcmp("is.infinite", v)) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  char *v2;
+	  int allSpace=allSpaces(pn, v2, 2);
+	  Free(v2);
+	  if (ii != 1 || allSpace) {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'is.infinite' takes 1 argument"));
+	  }
 	  if (sbt.o > 0 && sbt.s[sbt.o-1] == '!'){
 	    sb.o--;sbDt.o--;
 	    sAppendN(&sb, "R_FINITE", 8);

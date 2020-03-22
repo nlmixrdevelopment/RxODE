@@ -708,4 +708,23 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     badParse("print2", "a=print+3")
     badParse("print3", "d/dt(print)=matt")
 
+    goodParse("sum1", "a=sum(1,2,3,a,b,c)")
+    goodParse("sum2", "a=lag(b, 1)")
+
+    goodParse("transit1", "a=transit(n, mtt, bio)")
+    goodParse("transit2", "a=transit(n, mtt)")
+    badParse("transit3", "a=transit(n, mtt, bio,ack)")
+
+    goodParse("fun1", "a=is.nan(x)")
+    badParse("fun2", "a=is.nan(x,b)")
+    badParse("fun3", "a=is.nan()")
+
+    goodParse("fun4", "a=is.finite(x)")
+    badParse("fun5", "a=is.finite(x,a)")
+    badParse("fun6", "a=is.finite()")
+
+    goodParse("fun7", "a=is.infinite(x)")
+    badParse("fun8", "a=is.infinite(x,a)")
+    badParse("fun9", "a=is.infinite()")
+
 }, silent=TRUE, test="parsing")
