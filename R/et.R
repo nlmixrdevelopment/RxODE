@@ -1285,10 +1285,6 @@ pillar_shaft.rxEvid <- function(x, ...) {
     pillar::new_pillar_shaft_simple(.x, align = "left")
 }
 
-##' Convert to data.frame
-##'
-##' @inheritParams base::as.data.frame
-##' @param nm Name of column in new data frame
 ##' @export
 as.data.frame.rxEvid <- base::as.data.frame.difftime
 
@@ -1382,9 +1378,6 @@ pillar_shaft.rxRateDur <- function(x, ...) {
     pillar::new_pillar_shaft_simple(.x, align = "left", width=10)
 }
 
-##'@rdname rxRateDur
-#' @inheritParams base::as.data.frame
-#' @param nm Name of column in new data frame
 #' @export
 as.data.frame.rxRateDur <- base::as.data.frame.difftime
 

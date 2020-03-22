@@ -165,15 +165,6 @@ char * rc_dup_str(const char *s, const char *e) {
   return ss;
 }
 
-// Taken from dparser and changed to use R_alloc
-char * r_dup_str(const char *s, const char *e) {
-  int l = e ? e-s : (int)strlen(s);
-  char *ss = (char*)R_alloc(l+1,sizeof(char));
-  memcpy(ss, s, l);
-  ss[l] = 0;
-  return ss;
-}
-
 int rx_syntax_error = 0, rx_suppress_syntax_info=0, rx_podo = 0, rx_syntax_require_ode_first = 1;
 
 extern D_ParserTables parser_tables_RxODE;
@@ -3240,6 +3231,7 @@ void parseFree(int last){
     Free(extra_indLin);
     Free(md5);
     Free(gBuf);
+    Free(me_code);
     sFree(&sbOut);
     freeP();
   }
@@ -3494,9 +3486,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     freeP();
     error(_("extra inductive linearization model variables must be specified"));
   }
-
   if (isString(inME) && length(inME) == 1){
-    me_code = r_dup_str(CHAR(STRING_ELT(inME,0)),0);
+    Free(me_code);
+    me_code = rc_dup_str(CHAR(STRING_ELT(inME,0)),0);
   } else {
     freeP();
     error(_("extra ME code must be specified"));
