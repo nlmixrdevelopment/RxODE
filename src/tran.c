@@ -302,8 +302,8 @@ void sAppendN(sbuf *sbb, const char *what, int n){
   sbb->o +=n;
 }
 
-static void sPut(sbuf *sbb, char what){
-  if (sbb->sN <= 2 + sbb->o){
+static void sPut(sbuf *sbb, char what) {
+  if (sbb->sN <= 2 + sbb->o) {
     int mx = sbb->o + 2 + MXBUF;
     sbb->s = Realloc(sbb->s, mx, char);
     sbb->sN = mx;
@@ -311,14 +311,15 @@ static void sPut(sbuf *sbb, char what){
   sprintf(sbb->s+sbb->o, "%c", what);
   sbb->o++;
 }
-void sAppend(sbuf *sbb, const char *format, ...){
+
+void sAppend(sbuf *sbb, const char *format, ...) {
   int n = 0;
   va_list argptr, copy;
   va_start(argptr, format);
   va_copy(copy, argptr);
   n = vsnprintf(NULL, 0, format, copy) + 1;
   va_end(copy);
-  if (sbb->sN <= sbb->o + n + 1){
+  if (sbb->sN <= sbb->o + n + 1) {
     int mx = sbb->o + n + 1 + MXBUF;
     sbb->s = Realloc(sbb->s, mx, char);
     sbb->sN = mx;
@@ -328,7 +329,7 @@ void sAppend(sbuf *sbb, const char *format, ...){
   sbb->o += n-1;
 }
 
-void sPrint(sbuf *sbb, const char *format, ...){
+void sPrint(sbuf *sbb, const char *format, ...) {
   sClear(sbb);
   int n = 0;
   va_list argptr, copy;
@@ -728,8 +729,8 @@ void doDot(sbuf *out, char *buf){
 }
 
 void doDot2(sbuf *sb, sbuf *sbDt, char *buf){
-  for (int k = 0; k < (int)strlen(buf); k++){
-    if (buf[k] == '.'){
+  for (int k = 0; k < (int)strlen(buf); k++) {
+    if (buf[k] == '.') {
       sAppend(sb,"_DoT_");
       sAppend(sbDt,"_DoT_");
       if (rx_syntax_allow_dots == 0){
@@ -854,9 +855,7 @@ int toInt(char *v2){
 
 int skipDouble=0;
 
-int allSpaces(D_ParseNode *pn, char *v2, int cur) {
-  D_ParseNode *xpn = d_get_child(pn, cur);
-  v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+int allSpaces(char *v2) {
   int iii=0;
   int allSpace=1;
   while(v2[iii] != '\0'){
@@ -1156,9 +1155,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  // lag(par) => lag_par(1)
 	  // Header what lag_par means.
 	  if (ii == 1){
-	    char *v2;
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	    int lagNo=0;
-	    if (allSpaces(pn, v2, 2)){
+	    if (allSpaces(v2)){
 	      if (isFirst || isLast){
 		updateSyntaxCol();
 		sPrint(&buf, _("'%s' takes 1 argument '%s(parameter)'"),
@@ -1227,7 +1227,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		sPrint(&buf, _("'%s(parameter, k)' requires k to be an integer >= 1"), v);
 		trans_syntax_error_report_fn(buf.s);
 	      } else {
-		xpn = d_get_child(pn, 2);
+		D_ParseNode *xpn = d_get_child(pn, 2);
 		char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 		tb.fn=0;
 		if (new_or_ith(v2)){
@@ -1304,8 +1304,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      updateSyntaxCol();
 	      trans_syntax_error_report_fn(_("'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"));
 	    } else {
-	      char *v2;
-	      int allSpace=allSpaces(pn, v2, 2);
+	      D_ParseNode *xpn = d_get_child(pn, 2);
+	      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	      int allSpace=allSpaces(v2);
 	      Free(v2);
 	      if (allSpace){
 		if (isGamma){
@@ -1365,8 +1366,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(buf.s);
 	  } else {
-	    char *v2;
-	    int allSpace=allSpaces(pn, v2, 2);
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    int allSpace=allSpaces(v2);
 	    Free(v2);
 	    if (allSpace){
 	      if (isExp){
@@ -1407,8 +1409,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      trans_syntax_error_report_fn(_("'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
 	    }
 	  } else {
-	    char *v2;
-	    int allSpace=allSpaces(pn, v2, 2);
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    int allSpace=allSpaces(v2);
 	    Free(v2);
 	    if (allSpace){
 	      if (isPois){
@@ -1444,8 +1447,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  continue;
 	} else if (!strcmp("is.nan", v)) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  char *v2;
-	  int allSpace=allSpaces(pn, v2, 2);
+	  D_ParseNode *xpn = d_get_child(pn, 2);
+	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  int allSpace=allSpaces(v2);
 	  Free(v2);
 	  if (ii != 1 || (ii == 1 && allSpace)) {
 	    updateSyntaxCol();
@@ -1458,8 +1462,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  continue;
 	} else if (!strcmp("is.na", v)) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  char *v2;
-	  int allSpace=allSpaces(pn, v2, 2);
+	  D_ParseNode *xpn = d_get_child(pn, 2);
+	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  int allSpace=allSpaces(v2);
 	  Free(v2);
 	  if (ii != 1 || (ii == 1 && allSpace)) {
 	    updateSyntaxCol();
@@ -1472,8 +1477,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  continue;
 	} else if (!strcmp("is.finite", v)) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  char *v2;
-	  int allSpace=allSpaces(pn, v2, 2);
+	  D_ParseNode *xpn = d_get_child(pn, 2);
+	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  int allSpace=allSpaces(v2);
 	  Free(v2);
 	  if (ii != 1 || (ii == 1 && allSpace)) {
 	    updateSyntaxCol();
@@ -1486,8 +1492,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  continue;
 	} else if (!strcmp("is.infinite", v)) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  char *v2;
-	  int allSpace=allSpaces(pn, v2, 2);
+	  D_ParseNode *xpn = d_get_child(pn, 2);
+	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  int allSpace=allSpaces(v2);
 	  Free(v2);
 	  if (ii != 1 || (ii == 1 && allSpace)) {
 	    updateSyntaxCol();
