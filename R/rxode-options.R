@@ -195,7 +195,7 @@ rxStrict <- function(expr, silent=.isTestthat(), respect=FALSE){
 ##' @export
 rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
                       test="cran"){
-    rxUnloadAll()
+    if (!respect) rxUnloadAll()
     rxSetSilentErr(1L);
     do.it <- TRUE
     .test <- .test0 <- Sys.getenv("NOT_CRAN")
@@ -205,7 +205,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
     ## (identical to cran testing)
     on.exit({
         rxSetSilentErr(0L)
-        rxUnloadAll()
+        if (!respect) rxUnloadAll()
     });
     if (any(.test == c("false", "", "cran"))) {
         ## devtools sets NOT_CRAN=false for revdep testing
@@ -225,6 +225,10 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
         }
     }
     if (do.it){
+        .lastCran <- Sys.getenv("NOT_CRAN")
+        Sys.setenv("NOT_CRAN"="true")
+        on.exit({Sys.setenv("NOT_CRAN"=.lastCran)},
+                add=TRUE)
         if (missing(expr) && is.null(op.rx)){
             op <- options()
             op <- op[regexpr(rex::rex("RxODE."), names(op)) != -1];

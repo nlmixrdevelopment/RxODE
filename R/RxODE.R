@@ -1425,7 +1425,7 @@ rxCompile.rxModelVars <-  function(model, # Model
                 warning("unloaded all RxODE dlls before loading the current DLL.")
             }
         }
-        assign(.cDllFile, 1L, envir=.rxModels); ## Loaded model.
+        assign(.cDllFile, 0L, envir=.rxModels); ## Loaded model.
         .modVars <- sprintf("%smodel_vars", prefix);
         if (is.loaded(.modVars)){
             .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)

@@ -42,6 +42,7 @@ using namespace arma;
 #define _(String) (String)
 #endif
 
+RObject rxSolveFreeObj=R_NilValue;
 LogicalVector rxSolveFree();
 
 List etTrans(List inData, const RObject &obj, bool addCmt=false,
@@ -54,6 +55,11 @@ void setEvCur(RObject cur);
 
 RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false,
 	       int type=1, int diagXformType=1);
+
+RObject rxUnlock(RObject obj);
+RObject rxLock(RObject obj);
+
+RObject setupOnlyObj = R_NilValue;
 
 int rxcEvid  = -1;
 int rxcTime  = -1;
@@ -2181,6 +2187,10 @@ extern "C" void rxFreeLast();
 //' @export
 // [[Rcpp::export]]
 LogicalVector rxSolveFree(){
+  if (!rxIs(rxSolveFreeObj, "NULL")) {
+    rxUnlock(rxSolveFreeObj);
+    rxSolveFreeObj=R_NilValue;
+  }
   rxOptionsFree(); // f77 losda free
   rxOptionsIni();// realloc f77 lsoda cache
   parseFree(0); //free parser
@@ -2219,7 +2229,7 @@ typedef struct{
   bool isEnvironment;
   bool hasCmt;
   List mv;
-  Nullable<LogicalVector> addDosing;
+  Nullable<LogicalVector> addDosing = R_NilValue;
   RObject timeUnitsU;
   bool addTimeUnits;
   List covUnits;
@@ -3697,6 +3707,7 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
   par_solve(rx);
   List dat = rxSolve_df(obj, rxControl, specParams, extraArgs,
 			params, events, inits, rxSolveDat);
+  rxUnlock(obj);
   if (rx->matrix == 0 && rxDropB){
     rx->matrix=2;
     warning(_("dropped key column, returning data.frame instead of special solved data.frame"));
@@ -3737,7 +3748,6 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
 					    inits, rxSolveDat);
     // eGparPos
     dat.attr("class") = cls;
-    // rxSolveFree();
     // Free(op->indLin);
     return(dat);
   }    
@@ -3814,17 +3824,24 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   } else {
     if (method == 3){
       rxSolveDat->mv = rxModelVars(obj);
+      rxSolveFreeObj = obj;
+      rxLock(obj);
       List indLin = rxSolveDat->mv["indLin"];
       if (indLin.size() == 0){
 	Function RxODE = getRxFn("RxODE");
 	object = RxODE(obj, _["indLin"]=true);
+	rxUnlock(obj);
 	rxSolveDat->mv = rxModelVars(object);
+	rxSolveFreeObj = obj;
+	rxLock(object);
       } else {
 	object =obj;
       }
     } else {
       object =obj;
       rxSolveDat->mv = rxModelVars(object);
+      rxSolveFreeObj = obj;
+      rxLock(obj);
     }
   }
   if (rxSolveDat->isRxSolve || rxSolveDat->isEnvironment){
@@ -3864,6 +3881,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _lastT0 = clock();
 #endif// rxSolveT
     if (setupOnly == 0 &&
+	rxIs(setupOnlyObj, "NULL") &&
 	rxSolve_loaded(trueEvents, trueParams, rxControl, as<SEXP>(rxSolveDat->mv), inits)){
       rxSolveDat = &rxSolveDatLast;
       rxSolve_updateParams(trueParams,
@@ -3874,7 +3892,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	for (int iii = 0; iii < ws.size(); ++iii){
 	  warning(as<std::string>(ws[iii]));
 	}
-      } 
+      }
       return rxSolve_finalize(obj, rxControl, specParams, extraArgs, params, events,
 			      inits, rxSolveDat);
       // par_solve(rx);
@@ -4220,9 +4238,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 #endif // rxSolveT
     rxSolve_normalizeParms(obj, rxControl, specParams, extraArgs,
 			   pars, ev1, inits, rxSolveDat);
-    
     if (setupOnly){
+      setupOnlyObj = obj;
       return as<SEXP>(LogicalVector::create(true));
+    }
+    if (!rxIs(setupOnlyObj, "NULL")) {
+      rxUnlock(setupOnlyObj);
+      setupOnlyObj = R_NilValue;
     }
 #ifdef rxSolveT
     REprintf("Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
@@ -4868,7 +4890,7 @@ std::string rxDll(RObject obj){
     Nullable<Environment> en = rxRxODEenv(mv);
     if (en.isNull()){
       rxSolveFree();
-      stop(_("Can not figure out the DLL for this object"));
+      stop(_("can not figure out the DLL for this object"));
     } else {
       Environment e = as<Environment>(en);
       return as<std::string>((as<List>(e["rxDll"]))["dll"]);
