@@ -36,6 +36,8 @@ void setSilentErr(int silent){
 }
 extern int getSilentErr(){return _setSilentErr;}
 
+void rxSolveFreeC();
+
 int _isRstudio = 0;
 
 static inline void RSprintf(const char *format, ...){
@@ -325,6 +327,7 @@ SEXP _rxProgressAbort(SEXP str){
   par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 0);
   par_progress_0=0;
   if (rxt.d != rxt.n || rxt.cur != rxt.n){
+    rxSolveFreeC();
     error(CHAR(STRING_ELT(str,0)));
   }
   return R_NilValue;
@@ -2389,6 +2392,7 @@ extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
   if (i < op->nlhs){
     return(ind->lhs[i]);
   } else {
+    rxSolveFreeC();
     error("Trying to access an equation that isn't calculated. lhs(%d/%d)\n",i, op->nlhs);
   }
   return 0;
@@ -2405,6 +2409,7 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
     if (ind->evid[ind->ix[i]]) ind->tlast = getTime(ind->ix[i], ind);
     calc_lhs((int)id, getTime(ind->ix[i], ind), solve+i*op->neq, lhs);
   } else {
+    rxSolveFreeC();
     error("LHS cannot be calculated (%dth entry).",i);
   }
 }
@@ -2446,6 +2451,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int nall = rx->nall - rx->nevid9;
   int errNcol = rxGetErrsNcol();
   if (op->nsvar != errNcol){
+    rxSolveFreeC();
     error("The simulated residual errors do not match the model specification (%d=%d)",op->nsvar, errNcol);
   }
   int doDose;
@@ -2545,6 +2551,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int pro = 0;
   if (op->badSolve){
     if (nidCols == 0){
+      rxSolveFreeC();
       error("Could not solve the system.");
     } else {
       warning(_("some ID(s) could not solve the ODEs correctly; These values are replaced with 'NA'"));

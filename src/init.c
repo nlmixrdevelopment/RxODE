@@ -130,7 +130,7 @@ SEXP _RxODE_setProgSupported(SEXP);
 SEXP _RxODE_getProgSupported();
 SEXP _RxODE_rxSetIni0(SEXP);
 SEXP _RxODE_rxSetSilentErr(SEXP silentSEXP);
-SEXP _RxODE_rxUnloadAll();
+SEXP _RxODE_rxUnloadAll_();
 SEXP _RxODE_rxLock(SEXP);
 SEXP _RxODE_rxUnlock(SEXP);
 SEXP _RxODE_rxAllowUnload(SEXP);
@@ -300,7 +300,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSetIni0", (DL_FUNC) &_RxODE_rxSetIni0, 1},
     {"_RxODE_rxSetSilentErr", (DL_FUNC) &_RxODE_rxSetSilentErr, 1},
     {"_RxODE_rxIndLin_",(DL_FUNC) &_RxODE_rxIndLin_, 1},
-    {"_RxODE_rxUnloadAll", (DL_FUNC) &_RxODE_rxUnloadAll, 0},
+    {"_RxODE_rxUnloadAll_", (DL_FUNC) &_RxODE_rxUnloadAll_, 0},
     {"_RxODE_rxLock", (DL_FUNC) &_RxODE_rxLock, 1},
     {"_RxODE_rxUnlock", (DL_FUNC) &_RxODE_rxUnlock, 1},
     {"_RxODE_rxAllowUnload", (DL_FUNC) &_RxODE_rxAllowUnload, 1},

@@ -1425,7 +1425,6 @@ rxCompile.rxModelVars <-  function(model, # Model
                 warning("unloaded all RxODE dlls before loading the current DLL.")
             }
         }
-        assign(.cDllFile, 0L, envir=.rxModels); ## Loaded model.
         .modVars <- sprintf("%smodel_vars", prefix);
         if (is.loaded(.modVars)){
             .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)
@@ -1440,6 +1439,7 @@ rxCompile.rxModelVars <-  function(model, # Model
     if (is.null(.allModVars)){
         stop("something went wrong in compilation");
     }
+    assign(.cDllFile, 0L, envir=.rxModels); ## Loaded model.
     ret <- suppressWarnings({list(dll     = .cDllFile,
                                   c       = .cFile,
                                   model   = .allModVars$model["normModel"],

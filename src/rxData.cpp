@@ -2199,6 +2199,10 @@ LogicalVector rxSolveFree(){
   return LogicalVector::create(true);
 }
 
+extern "C" void rxSolveFreeC() {
+  rxSolveFree();
+}
+
 extern "C" void RxODE_assign_fn_pointers(SEXP);
 
 List keepIcov;
@@ -3825,15 +3829,12 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (method == 3){
       rxSolveDat->mv = rxModelVars(obj);
       rxSolveFreeObj = obj;
-      rxLock(obj);
       List indLin = rxSolveDat->mv["indLin"];
       if (indLin.size() == 0){
 	Function RxODE = getRxFn("RxODE");
 	object = RxODE(obj, _["indLin"]=true);
-	rxUnlock(obj);
 	rxSolveDat->mv = rxModelVars(object);
 	rxSolveFreeObj = obj;
-	rxLock(object);
       } else {
 	object =obj;
       }
@@ -3841,7 +3842,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       object =obj;
       rxSolveDat->mv = rxModelVars(object);
       rxSolveFreeObj = obj;
-      rxLock(obj);
     }
   }
   if (rxSolveDat->isRxSolve || rxSolveDat->isEnvironment){
@@ -3849,6 +3849,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 			  extraArgs, params, events, inits,
 			  rxSolveDat);
   } else {
+    rxLock(object);
 #ifdef rxSolveT
     REprintf("Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -5074,12 +5075,9 @@ bool rxAllowUnload(bool allow){
   return rxUnload_;
 }
 
-
-//' Unload all RxODE Dlls that are not locked for solving.
-//' @return NULL
 //' @export
 //[[Rcpp::export]]
-RObject rxUnloadAll(){
+RObject rxUnloadAll_(){
   getRxModels();
   Function dynUnload("dyn.unload", R_BaseNamespace);
   CharacterVector vars = _rxModels.ls(true);
@@ -5097,6 +5095,7 @@ RObject rxUnloadAll(){
       }
     }
   }
+  // Now get 
   return R_NilValue;
 }
 

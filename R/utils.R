@@ -1,3 +1,35 @@
+##' Unloads all RxODE compiled DLLs
+##'
+##' @return List of RxODE dlls still loaded
+##'
+##' @examples
+##'
+##' print(rxUnloadAll())
+##'
+##' @export
+rxUnloadAll <- function() {
+    .Call(`_RxODE_rxUnloadAll_`);
+    .dll <- getLoadedDLLs()
+    .n <- names(.dll)
+    .n <- .n[regexpr("^rx_[a-f0-9]{32}", .n) != -1]
+    .ret <- lapply(.n, function(rx) {
+        .cur <- .dll[[rx]]
+        class(.cur) <- NULL
+        .num <- .rxModels[[.cur$path]]
+        if (is.null(.num)){
+            dyn.unload(.cur$path)
+            return(NULL)
+        } else if (identical(.num, 0L)) {
+            dyn.unload(.cur$path)
+            return(NULL)
+        } else {
+            return(.cur$path)
+        }
+    })
+    if (length(.ret) == 0) return(invisible(.ret))
+    .ret <- .ret[[!is.null(.ret)]]
+    return(invisible(.ret))
+}
 
 .normalizePath <- function(path, ...){
     ifelse(.Platform$OS.type=="windows",
