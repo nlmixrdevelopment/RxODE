@@ -192,6 +192,8 @@ typedef struct {
   int cens;
   int limit;
   int safeZero;
+  int sumType;
+  int prodType;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);

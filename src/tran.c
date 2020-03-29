@@ -1126,14 +1126,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    !strcmp("max",v) || !strcmp("min",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (!strcmp("prod", v)){
-            sAppend(&sb, "_prod(_p, _input, _prodType(), %d, (double) ", ii);
-	    sAppend(&sbDt, "_prod(_p, _input, _prodType(), %d, (double) ", ii);
+            sAppend(&sb, "_prod(_p, _input, _solveData->prodType, %d, (double) ", ii);
+	    sAppend(&sbDt, "_prod(_p, _input, _solveData->prodType, %d, (double) ", ii);
             if (maxSumProdN < ii){
               maxSumProdN = ii;
             }
           } else if (!strcmp("sum", v)){
-	    sAppend(&sb, "_sum(_p, _pld, -__MAX_PROD__, _sumType(), %d, (double) ", ii);
-	    sAppend(&sbDt, "_sum(_p, _pld, -__MAX_PROD__, _sumType(), %d, (double) ", ii);
+	    sAppend(&sb, "_sum(_p, _pld, -__MAX_PROD__, _solveData->sumType, %d, (double) ", ii);
+	    sAppend(&sbDt, "_sum(_p, _pld, -__MAX_PROD__, _solveData->sumType, %d, (double) ", ii);
             if (SumProdLD < ii){
               SumProdLD = ii;
             }
@@ -2971,6 +2971,8 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	if (SumProdLD > mx) mx = SumProdLD;
 	sAppend(&sbOut,  "  double _p[%d], _input[%d];\n", mx, mx);
 	sAppend(&sbOut,  "  double _pld[%d];\n", mx);
+	sAppend(&sbOut,  "  for (int ddd=%d; ddd--;){_p[ddd]=_input[ddd]=_pld[ddd]=0.0;}", mx);
+	
       }
       else prnt_vars(2, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
       if (maxSumProdN){

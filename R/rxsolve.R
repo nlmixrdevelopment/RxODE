@@ -54,7 +54,9 @@ rxControl <- function(scale = NULL,
                       ssRtol = 1.0e-6,
                       safeZero=TRUE,
                       cacheEvent=TRUE,
-                      mvnfast=FALSE) {
+                      mvnfast=FALSE,
+                      sum=c("pairwise", "fsum", "kahan", "neumaier", "c"),
+                      prod=c("long double", "double", "logify")){
     .xtra <- list(...);
     if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")) {
         .sigmaXform <- as.integer(sigmaXform)
@@ -166,6 +168,8 @@ rxControl <- function(scale = NULL,
         .indLinMatExpType <- match.arg(indLinMatExpType)
         .indLinMatExpType <- as.integer(.indLinMatExpTypeIdx[match.arg(indLinMatExpType)]);
     }
+    .sum <- which(match.arg(sum) == c("pairwise", "fsum", "kahan", "neumaier", "c"))
+    .prod <- which(match.arg(prod) == c("long double", "double", "logify"))
     .ret <- list(scale=scale,
                  method=method,
                  transitAbs=transitAbs,
@@ -235,7 +239,9 @@ rxControl <- function(scale = NULL,
                  mxhnil=mxhnil, hmxi=hmxi, warnIdSort=warnIdSort,
                  ssAtol=ssAtol, ssRtol = ssRtol, safeZero=as.integer(safeZero),
                  cacheEvent=as.logical(cacheEvent),
-                 mvnfast=mvnfast);
+                 mvnfast=mvnfast,
+                 sum=as.integer(.sum),
+                 prod=as.integer(.prod));
     return(.ret)
 }
 
@@ -639,6 +645,26 @@ rxControl <- function(scale = NULL,
 ##' @param mvnfast Use the `mvnfast` package for multivariate normal
 ##'     simulation instead of the thread-safe threefry based
 ##'     multivariate normal package provided in `RxODE`.
+##'
+##' @param sum Sum type to use for \code{sum()} in
+##'     RxODE code blocks.
+##'
+##' \code{pairwise} uses the pairwise sum (fast, default)
+##'
+##' \code{fsum} uses Python's fsum function (most accurate)
+##'
+##' \code{kahan} uses Kahan correction
+##'
+##' \code{neumaier} uses Neumaier correction
+##'
+##' \code{c} uses no correction: default/native summing
+##'
+##' @param prod Product to use for \code{prod()} in RxODE blocks
+##'
+##' \code{long double} converts to long double, performs the
+##' multiplication and then converts back.
+##'
+##' \code{double} uses the standard double scale for multiplication.
 ##'
 ##' @references
 ##'

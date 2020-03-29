@@ -15,7 +15,7 @@
     suppressMessages(.rxWinRtoolsPath(retry=NA))
     rxTempDir();
     if (!interactive()){
-        setProgSupported(0);
+        setProgSupported(0)
     }
     .getDTEnv()
     .ggplot2Fix()

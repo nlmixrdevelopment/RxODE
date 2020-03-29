@@ -139,46 +139,23 @@ ode.h <- function(){
 
 
 
-##' Choose the type of sums to use for RxODE.
+
+##' Defunct setting of sum
 ##'
-##' Choose the types of sums to use in RxODE.  These are used in the
-##' RxODE \code{sum} blocks and the \code{rxSum} function
+##' @param type used to be type of product
 ##'
-##' @param type Sum type to use for \code{rxSum} and \code{sum()} in
-##'     RxODE code blocks.
-##'
-##' \code{pairwise} uses the pairwise sum (fast, default)
-##'
-##' \code{fsum} uses Python's fsum function (most accurate)
-##'
-##' \code{kahan} uses kahan correction
-##'
-##' \code{neumaier} uses Neumaier correction
-##'
-##' \code{c} uses no correction, bud default/native summing
-##'
-##' @return nothing
-##' @author Matthew L. Fidler
 ##' @export
 rxSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "c")){
-    PreciseSums::psSetSum(type);
+    error("'rxSetSum' has been moved to rxSolve(...,sum=)");
 }
 
-##' Choose the type of product to use in RxODE.  These are used in the
-##' RxODE \code{prod} blocks
+##' Defunct setting of product
 ##'
-##' @param type  Product to use for \code{prod()} in RxODE blocks
+##' @param type used to be type of product
 ##'
-##' \code{long double} converts to long double, performs the
-##' multiplication and then converts back.
-##'
-##' \code{double} uses the standard double scale for multiplication.
-##'
-##' @return nothing
-##' @author Matthew L. Fidler
 ##' @export
 rxSetProd <- function(type=c("long double", "double", "logify")){
-    PreciseSums::psSetProd(type);
+    error("'rxSetProd' has been moved to rxSolve(...,sum=)");
 }
 
 ##' Set timing for progress bar

@@ -19,6 +19,9 @@
     mvnfast=TRUE)` (but of course requires the `mvnfast` package
     installed)
 
+* `RxODE` now moved the precise sum/product type optionsfor `sum()`
+  and `prod()` to `rxSolve` o `rxControl`
+
 ## New features
 
 * Completion for all api elements of `rxSolve()` objects, and `et()`

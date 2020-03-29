@@ -2,8 +2,8 @@ rxPermissive({
     context("Test PythonFsum")
     test_that("Fsum", {
 
-        et <- eventTable() %>% add.sampling(0);
-        rxSetSum("fsum");
+        et <- eventTable() %>%
+            add.sampling(0)
 
         rx <- RxODE({
             s1 = sum(1e100, 1.0, -1e100, 1e-100, 1e50, -1.0, -1e50);
@@ -20,7 +20,8 @@ rxPermissive({
         s <- solve(rx, params=c(a=1e16-2.,
                                 b=1.-2. ^ -53,
                                 c=-(1e16-2.),
-                                d=-(1.-2. ^ -53)), et)
+                                d=-(1.-2. ^ -53)), et,
+                   sum="fsum")
 
         expect_identical(s$s1, 1e-100)
         expect_identical(s$s2, 2.0 ^ 53 - 1.0)
@@ -30,6 +31,5 @@ rxPermissive({
         expect_identical(s$s6, 10000000000000002.0)
         expect_identical(s$s7, 0.0)
         expect_identical(s$s8, 2.0)
-        rxSetSum("pairwise")
     })
 }, test="lvl2")

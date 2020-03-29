@@ -3845,6 +3845,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     }
   }
   if (rxSolveDat->isRxSolve || rxSolveDat->isEnvironment){
+    rx_solve* rx = getRxSolve_();
+    rx->sumType = as<int>(rxControl["sum"]);
+    rx->prodType = as<int>(rxControl["prod"]);
     return rxSolve_update(object, rxControl, specParams,
 			  extraArgs, params, events, inits,
 			  rxSolveDat);
@@ -3866,6 +3869,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     getRxModels();
     // Get the C solve object
     rx_solve* rx = getRxSolve_();
+    rx->sumType = as<int>(rxControl["sum"]);
+    rx->prodType = as<int>(rxControl["prod"]);
     rx_solving_options* op = rx->op;    
     if (rxIs(params, "rx.event")){
       trueEvents = params;
