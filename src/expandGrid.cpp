@@ -300,6 +300,7 @@ void rxExpandNestingRep(CharacterVector &thetaNest,
 			List &aboveVars, NumericVector& above,
 			std::string &retS, std::string &retF,
 			std::string &retF2,
+			std::string &retFa,
 			std::string &namesAbove,
 			List &data, std::string thetaVar = "THETA[") {
   std::string theta;
@@ -315,15 +316,22 @@ void rxExpandNestingRep(CharacterVector &thetaNest,
     if (nnest > 1){
       retF  += "rep(list(cvPost(omega$nu$" +curNest + ",omega$" +curNest +
 	",type=\"invWishart\")),"+std::to_string(nnest)+")";
+      retFa += "lapply(cvPost(omega$nu$" + curNest +
+	", n[,dimnames(omega$" + curNest +
+	")[[1]], drop=FALSE],type=type,diagXformType=diagXformType), function(x){as.matrix(Matrix::bdiag(rep(list(x), "+
+	std::to_string(nnest)+")))})";
       retF2 += "rep(list(omega$" +curNest + ")," +
 	std::to_string(nnest)+")";
     } else {
       retF  += "list(cvPost(omega$nu$" +curNest + ",omega$" +curNest +",type=\"invWishart\"))";
+      retFa += "cvPost(omega$nu$" + curNest +
+	", n[,dimnames(omega$" + curNest +")[[1]], drop=FALSE],type=type,diagXformType=diagXformType)";
       retF2 += "list(omega$" +curNest +")";
     }
     if (j != thetaNest.size()-1) {
       retF  += ",";
       retF2 += ",";
+      retFa += ",";
     }
     // This is the base theta count
     lastTheta = thCnt;
@@ -367,10 +375,12 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
 		     bool compile=false){
   std::string retS="";
   std::string aboveF="";
+  std::string aboveFa="";
   std::string aboveF2="";
   std::string namesBelow="";
   std::string namesAbove="";
   std::string belowF="";
+  std::string belowFa="";
   std::string belowF2="";
   List mv = rxModelVars_(obj);
   IntegerVector flags = as<IntegerVector>(mv["flags"]);
@@ -404,21 +414,30 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
 
   namesAbove = ".dim <- c(";
   aboveF2 += "function(omega=" + dp0 + "){";
-  aboveF  += "function(n=1,omega=" + dp0 + "){";
+  aboveF  += "function(n=1,omega=" + dp0 + ",type = \"invWishart\", diagXformType = \"log\"){";
+  aboveF  += "if (type == \"invWishart\") {";
   aboveF  += "lapply(1:n,function(...){";
   aboveF2 += ".theta <- as.matrix(Matrix::bdiag(c(";
   aboveF  += ".theta <- as.matrix(Matrix::bdiag(c(";
   rxExpandNestingRep(thetaNest, thetaNestTran, thetaNestFull,
 		     thCnt, curtheta,
-		     aboveVars, above, retS, aboveF, aboveF2,
+		     aboveVars, above, retS, aboveF, aboveF2, aboveFa,
 		     namesAbove, data,
 		     "THETA[");
   aboveF  += ")));\n" + namesAbove + 
-    "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);})}";
+    "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);})";
+  aboveF += "} else {";
+  aboveF += ".ret <- list(" + aboveFa + ");";
+  aboveF += ".ret <- lapply(seq(1,dim(n)[1]),function(y){.theta <- as.matrix(Matrix::bdiag(lapply(seq(1,length(.ret)), function(x){.ret[[x]][[y]]})));";
+  aboveF += namesAbove + "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);";
+  aboveF += "});";
+  aboveF += "return(.ret);";
+  aboveF += "}}";
   aboveF2 += ")));\n" + namesAbove + 
     "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);}";;
   namesBelow = ".dim <- c(dimnames(omega$" + idName + ")[[1]],";
-  belowF += "function(n=1,omega=" + dp0 + "){";
+  belowF += "function(n=1,omega=" + dp0 + ",type = \"invWishart\", diagXformType = \"log\"){";
+  belowF  += "if (type == \"invWishart\") {";
   belowF2 += "function(omega=" + dp0 + "){";
   belowF += "lapply(1:n,function(...){.omega <- as.matrix(Matrix::bdiag(c(list(cvPost(omega$nu$" + idName + ",omega$" +
     idName + ",type=\"invWishart\"))";
@@ -431,11 +450,18 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   int etCnt = 0;
   rxExpandNestingRep(etaNest, etaNestTran, etaNestFull,
 		     etCnt, cureta,
-		     belowVars, below, retS, belowF, belowF2,
+		     belowVars, below, retS, belowF, belowF2, belowFa,
 		     namesBelow, data,
 		     "ETA[");
   belowF +=")));" + namesBelow + 
-    "NULL);dimnames(.omega) <- list(.dim,.dim);return(.omega);})}";
+    "NULL);dimnames(.omega) <- list(.dim,.dim);return(.omega);});";
+  belowF += "} else {";
+  belowF += ".ret <- list(" + belowFa + ");";
+  belowF += ".ret <- lapply(seq(1,dim(n)[1]),function(y){.omega <- as.matrix(Matrix::bdiag(lapply(seq(1,length(.ret)), function(x){.ret[[x]][[y]]})));";
+  belowF += namesBelow + "NULL);dimnames(.omega) <- list(.dim,.dim);return(.omega);";
+  belowF += "});";
+  belowF += "return(.ret);";
+  belowF +="}}";
 
   belowF2 += ")));" + namesBelow + 
     "NULL);dimnames(.omega) <- list(.dim,.dim);return(.omega);}";
