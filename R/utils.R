@@ -467,3 +467,14 @@ rxRmvn <- function(n, mu, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=FALSE,
         return(ret);
     }
 }
+
+##' Convert numeric vector to repeated data.frame
+##'
+##' @param vec Named input vector
+##' @param n Number of columns
+##' @return Data frame with repeated vec
+##' @author Matthew Fidler
+##' @noRd
+.vecDf <- function(vec, n){
+    .Call(`_vecDF`, vec, as.integer(n), PACKAGE='RxODE')
+}
