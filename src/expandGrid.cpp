@@ -391,14 +391,20 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   CharacterVector thetaNames(extraTheta);
   CharacterVector etaNames(extraEta);
   List aboveVars = as<List>(nestingInfo["aboveVars"]);
-  NumericVector above = as<NumericVector>(nestingInfo["above"]);
+  NumericVector above;
+  if (!rxIs(nestingInfo["above"], "NULL")) {
+    above = as<NumericVector>(nestingInfo["above"]);
+  }
   List data = as<List>(nestingInfo["data"]);
   CharacterVector thetaNest = aboveVars.attr("names");
   CharacterVector thetaNestTran(extraTheta);
   CharacterVector thetaNestFull(extraTheta);
 
   List belowVars = as<List>(nestingInfo["belowVars"]);
-  NumericVector below = as<NumericVector>(nestingInfo["below"]);
+  NumericVector below;
+  if (!rxIs(nestingInfo["below"], "NULL")) {
+    below = as<NumericVector>(nestingInfo["below"]);
+  }
   CharacterVector etaNest = belowVars.attr("names");
   CharacterVector etaNestTran(extraEta);
   CharacterVector etaNestFull(extraEta);

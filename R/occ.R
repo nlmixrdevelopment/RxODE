@@ -105,3 +105,68 @@
     return(rxRmvn(nStud, .theta, thetaMat, lower=thetaLower, upper=thetaUpper, ncores=nCoresNV))
   }
 }
+
+
+.expandPars <- function(object, params, events, control) {
+  ## The event table is needed to get nesting information from the table
+  if (inherits(control$omega, "lotri") && names(control$omega) > 1) {
+    ## This is for hierarchical models.
+    .n <- names(events)
+    .nl <- tolower(.n)
+    .w <- which(.nl == "id")
+    if (length(.w) != 1) {
+      stop("malformed 'id' column in event data when expanding nested levels and parameters")
+    }
+    .id <- events[, .w];
+    .ni <- .nestingInfo(id=.id, omega=control$omega, data=events)
+    .en <- rxExpandNesting(obj=object, .ni, compile=TRUE)
+    .et <- .expandTheta(theta=params,
+                        thetaMat=control$thetaMat,
+                        thetaLower=control$thetaLower,
+                        thetaUpper=control$thetaUpper,
+                        nStud=control$nStud,
+                        nCoresRV=control$nCoresRV)
+    ## now we can expand omega matrices based on the "theta" values above.
+
+    ## We need to determine if the ALL the omega matrix value names
+    ## are in the expanded theta matrix.  If so we can use the ijk or
+    ## separation strategy
+    .allNames <- unlist(lapply(names(control$omega),
+                               function(n){
+                                 dimnames(control$omega[[n]])[[2]]
+                               }))
+    .hasDT <- requireNamespace("data.table", quietly = TRUE)
+    .method <- control$omegaSeparation
+    ## First get the method when .method == "auto"
+    if (.method == "auto") {
+      if (.hasDT) {
+        .all <- all(data.table::`%chin%`(.allNames, names(.expandTheta)))
+      } else {
+        .all <- all(.allNames %in% names(.expandTheta))
+      }
+      if (.all && length(.allNames) > 9L) {
+        .method <- "separation"
+      } else if (.all) {
+        .method <- "ijk"
+      } else {
+        .method <- "invWishart"
+      }
+    }
+    ## Here we choose the type of n needed to generate the above and
+    ## below omega matrices.
+    if (any(.method == c("separation", "ijk"))) {
+      ## In this case, the n is a matrix of the expanded theta
+      .n <- as.matrix(.et)
+    } else {
+      .n <- control$nStud
+    }
+    .above <- .en$above(.n, type=.method,
+                        diagXformType=control$omegaXform)
+    .below <- .en$below(.n, type=.method,
+                        diagXformType=control$omegaXform)
+    ## control$omegaSeparation
+  } else {
+    ## This is non-hierarchical models
+  }
+
+}

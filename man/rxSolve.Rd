@@ -106,7 +106,9 @@ rxControl(
   ssRtol = 1e-06,
   safeZero = TRUE,
   cacheEvent = TRUE,
-  mvnfast = FALSE
+  mvnfast = FALSE,
+  sum = c("pairwise", "fsum", "kahan", "neumaier", "c"),
+  prod = c("long double", "double", "logify")
 )
 
 rxSolve(object, ...)
@@ -540,6 +542,26 @@ memory to speed up solving.}
 \item{mvnfast}{Use the `mvnfast` package for multivariate normal
 simulation instead of the thread-safe threefry based
 multivariate normal package provided in `RxODE`.}
+
+\item{sum}{Sum type to use for \code{sum()} in
+    RxODE code blocks.
+
+\code{pairwise} uses the pairwise sum (fast, default)
+
+\code{fsum} uses Python's fsum function (most accurate)
+
+\code{kahan} uses Kahan correction
+
+\code{neumaier} uses Neumaier correction
+
+\code{c} uses no correction: default/native summing}
+
+\item{prod}{Product to use for \code{prod()} in RxODE blocks
+
+\code{long double} converts to long double, performs the
+multiplication and then converts back.
+
+\code{double} uses the standard double scale for multiplication.}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE
