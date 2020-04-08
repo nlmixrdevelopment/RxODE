@@ -2635,6 +2635,7 @@ RObject et_(List input, List et__){
       }
       NumericVector amt(1);
       bool isObs=false;
+      bool zeroAmt=false;
       if (amtIx == -1){
 	isObs=true;
       } else {
@@ -2653,8 +2654,8 @@ RObject et_(List input, List et__){
 	    amt = setUnits(amt, "");
 	  }
 	}
-	if (amt[0] == 0) isObs = true;
-	else isObs = false;
+	if (amt[0]==0) zeroAmt=true;
+	isObs = false;
       }
       if (cmtNeg && isObs){
 	isObs = false;
@@ -2878,10 +2879,18 @@ RObject et_(List input, List et__){
 	} else {
 	  ii[0] = 0.0;
 	}
+	bool ssRateInf = false;
 	IntegerVector ss;// = 0;
 	if (ssIx != -1){
 	  ss = as<IntegerVector>(input[ssIx]);
 	  if (ss.size() != 1) stop(_("'ss' cannot be a vector"));
+	  if (zeroAmt && ss[0] != 0){
+	    if (ss[0] == 1 && (rate[0] > 0 || rate[0] == -1)) {
+	      ssRateInf=true;
+	    } else {
+	      stop(_("non-zero 'ss' needs a 'dose'/'amt'"));
+	    }
+	  }
 	} else {
 	  ss = IntegerVector(1);
 	  ss[0] = 0;
@@ -2973,7 +2982,7 @@ RObject et_(List input, List et__){
 	if (ss[0] < 0 || ss[0] > 2){
 	  stop(_("'ss' must be 0, 1 or 2"));
 	} if (ss[0] > 0 && ii[0] <= 0){
-	  if (!ssInf){
+	  if (!ssInf && !ssRateInf){
 	    stop(_("'ii' required with 'ss'"));
 	  }
 	}
@@ -2988,6 +2997,12 @@ RObject et_(List input, List et__){
 	}
 	if (addl[0] > 0 && ii[0] <= 0){
 	  stop(_("additional doses require an inter-dose interval ('ii')"));
+	}
+	// Defer ss errors to end to check for rate infusion steady state
+	if (ssRateInf) {
+	  if (ii[0] != 0.0) {
+	    stop("for steady state infusions, you need ii=0, rate>0, ss=1, amt=0");
+	  }
 	}
 	List ret;
 	if (doWindow){
