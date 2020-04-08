@@ -1,3 +1,4 @@
+require(dplyr)
 rxPermissive({
 
     for (radi in c(1, 2, 3)){
@@ -490,6 +491,15 @@ rxPermissive({
         expect_error(et(nbr.doses=4, nbrDoses=5))
         expect_error(et(dur=4, duration=5))
 
+    })
+
+    context("Issue #192 zero dose")
+    test_that("dose=0 is OK", {
+        ev1 <- et(amt=0, time=10)
+        ev2 <- eventTable();
+        ev2$add.dosing(dose=0, start.time=10)
+
+        expect_equal(ev1, ev2)
     })
 
 }, silent=TRUE, cran=TRUE)
