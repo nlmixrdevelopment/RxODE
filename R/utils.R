@@ -415,19 +415,29 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##' @export
 rxRmvn <- function(n, mu, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=FALSE,
                    keepNames=TRUE) {
-    .d <- length(mu);
-    if (is.matrix(n)) {
-        .A <- n;
-        n <- dim(.A)[1]
-        .retA <- FALSE
+  .d <- dim(sigma)[1];
+  if (is.matrix(n)) {
+    .A <- n;
+    n <- dim(.A)[1]
+    .retA <- FALSE
+  } else {
+    n <- as.integer(n);
+    .A <- numeric(n * .d)
+    dim(.A) <- c(n, .d);
+    .retA <- TRUE
+  }
+  if (missing(mu)){
+    .dimnames <- dimnames(sigma)
+    if (is.null(.dimnames)){
+      .dim <- dim(sigma)[2]
+      mu <- rep(0.0,.dim)
     } else {
-        n <- as.integer(n);
-        .A <- numeric(n * .d)
-        dim(.A) <- c(n, .d);
-        .retA <- TRUE
+      .dimnames <-.dimnames[[2]]
+      mu <- setNames(rep(0.0,length(.dimnames)),.dimnames)
     }
-    .Call(`_RxODE_rxRmvn0`, .A, mu, sigma, lower, upper, ncores, isChol,
-          0.4, 2.05, 1e-10, 100);
+  }
+  .Call(`_RxODE_rxRmvn0`, .A, mu, sigma, lower, upper, ncores, isChol,
+        0.4, 2.05, 1e-10, 100);
     if (.retA) {
         if (keepNames) {
             if (is.null(.nm <- names(mu))) {
