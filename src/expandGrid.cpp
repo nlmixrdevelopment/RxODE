@@ -396,7 +396,11 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
     above = as<NumericVector>(nestingInfo["above"]);
   }
   List data = as<List>(nestingInfo["data"]);
-  CharacterVector thetaNest = aboveVars.attr("names");
+  CharacterVector thetaNest;
+  Nullable<CharacterVector> thetaNest0 = aboveVars.attr("names");
+  if (!thetaNest0.isNull()) {
+    thetaNest=CharacterVector(thetaNest0);
+  }
   CharacterVector thetaNestTran(extraTheta);
   CharacterVector thetaNestFull(extraTheta);
 
@@ -405,7 +409,11 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   if (!rxIs(nestingInfo["below"], "NULL")) {
     below = as<NumericVector>(nestingInfo["below"]);
   }
-  CharacterVector etaNest = belowVars.attr("names");
+  CharacterVector etaNest;
+  Nullable<CharacterVector> etaNest0 = belowVars.attr("names");
+  if (!etaNest0.isNull()) {
+    etaNest=CharacterVector(etaNest0);
+  }
   CharacterVector etaNestTran(extraEta);
   CharacterVector etaNestFull(extraEta);
   int thCnt=0;
