@@ -425,30 +425,34 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   for (int i = 0; i < dpO.size(); ++i) {
     dp0 += as<std::string>(dpO[i]);
   }
-
-  namesAbove = ".dim <- c(";
-  aboveF2 += "function(omega=" + dp0 + "){";
-  aboveF  += "function(n=1,omega=" + dp0 + ",type = \"invWishart\", diagXformType = \"log\"){";
-  aboveF  += "if (type == \"invWishart\") {";
-  aboveF  += "lapply(1:n,function(...){";
-  aboveF2 += ".theta <- as.matrix(Matrix::bdiag(c(";
-  aboveF  += ".theta <- as.matrix(Matrix::bdiag(c(";
-  rxExpandNestingRep(thetaNest, thetaNestTran, thetaNestFull,
-		     thCnt, curtheta,
-		     aboveVars, above, retS, aboveF, aboveF2, aboveFa,
-		     namesAbove, data,
-		     "THETA[");
-  aboveF  += ")));\n" + namesAbove + 
-    "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);})";
-  aboveF += "} else {";
-  aboveF += ".ret <- list(" + aboveFa + ");";
-  aboveF += ".ret <- lapply(seq(1,dim(n)[1]),function(y){.theta <- as.matrix(Matrix::bdiag(lapply(seq(1,length(.ret)), function(x){.ret[[x]][[y]]})));";
-  aboveF += namesAbove + "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);";
-  aboveF += "});";
-  aboveF += "return(.ret);";
-  aboveF += "}}";
-  aboveF2 += ")));\n" + namesAbove + 
-    "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);}";;
+  if (thetaNest.size() > 0) {
+    namesAbove = ".dim <- c(";
+    aboveF2 += "function(omega=" + dp0 + "){";
+    aboveF  += "function(n=1,omega=" + dp0 + ",type = \"invWishart\", diagXformType = \"log\"){";
+    aboveF  += "if (type == \"invWishart\") {";
+    aboveF  += "lapply(1:n,function(...){";
+    aboveF2 += ".theta <- as.matrix(Matrix::bdiag(c(";
+    aboveF  += ".theta <- as.matrix(Matrix::bdiag(c(";
+    rxExpandNestingRep(thetaNest, thetaNestTran, thetaNestFull,
+		       thCnt, curtheta,
+		       aboveVars, above, retS, aboveF, aboveF2, aboveFa,
+		       namesAbove, data,
+		       "THETA[");
+    aboveF  += ")));\n" + namesAbove + 
+      "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);})";
+    aboveF += "} else {";
+    aboveF += ".ret <- list(" + aboveFa + ");";
+    aboveF += ".ret <- lapply(seq(1,dim(n)[1]),function(y){.theta <- as.matrix(Matrix::bdiag(lapply(seq(1,length(.ret)), function(x){.ret[[x]][[y]]})));";
+    aboveF += namesAbove + "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);";
+    aboveF += "});";
+    aboveF += "return(.ret);";
+    aboveF += "}}";
+    aboveF2 += ")));\n" + namesAbove + 
+      "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);}";
+  } else {
+    aboveF2 += "function(omega=" + dp0 + "){return(NULL);}";
+    aboveF  += "function(n=1,omega=" + dp0 + ",type = \"invWishart\", diagXformType = \"log\"){return(NULL);}";
+  }
   namesBelow = ".dim <- c(dimnames(omega$" + idName + ")[[1]],";
   belowF += "function(n=1,omega=" + dp0 + ",type = \"invWishart\", diagXformType = \"log\"){";
   belowF  += "if (type == \"invWishart\") {";
