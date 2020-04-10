@@ -456,11 +456,23 @@ rxRmvn <- function(n, mu, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=FALSE,
     .retA <- TRUE
   }
   if (missing(mu)) {
-    if (.sigmaList)
-    .dimnames <- dimnames(sigma)
+    if (.sigmaList) {
+      .dimnames <- dimnames(sigma[[1]])
+    } else {
+      .dimnames <- dimnames(sigma)
+    }
     if (is.null(.dimnames)) {
-      .dim <- dim(sigma)[2]
-      mu <- rep(0.0, .dim)
+      if (.sigmaList) {
+        .dim <- dim(sigma[[1]])
+      } else {
+        .dim <- dim(sigma)
+      }
+      if (is.null(.dim)) {
+        stop("'sigma' matrix malformed")
+      } else {
+        .dim <-dim[2];
+        .mu <- rep(0.0, .dim)
+      }
     } else {
       .dimnames <- .dimnames[[2]]
       mu <- setNames(rep(0.0, length(.dimnames)), .dimnames)

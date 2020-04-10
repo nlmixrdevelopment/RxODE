@@ -156,7 +156,9 @@ rxControl <- function(scale = NULL,
         .sigma <- lotri(sigma)
     }
     if (inherits(omega, "character")) {
-        .omega <- omega
+      .omega <- omega
+    } else if (inherits(omega, "lotri")){
+      .omega <- omega
     } else {
         .omega <- lotri(omega)
     }

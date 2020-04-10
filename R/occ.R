@@ -1,6 +1,5 @@
 ##' Expand the omega matrix to include the IOV matrix
 ##'
-##' .. content for \details{} ..
 ##' @param omega Original (named) omega matrix
 ##' @param iov Original (named) iov matrix
 ##' @param iovNames IOV names that are used in the model
@@ -21,7 +20,7 @@
 .rxExpandOmegaIov <- function(omega, iov=NULL, iovNames=NULL,
                               omegaLower=-Inf, omegaUpper=Inf,
                               iovLower=-Inf, iovUpper=Inf,
-                              omegaMatNames=NULL, iovMatNames=NULL){
+                              omegaMatNames=NULL, iovMatNames=NULL) {
   if (!is.null(omegaMatNames)) {
     .dim1 <- omegaMatNames
   } else {
@@ -76,23 +75,35 @@
 ##' @inheritParams rxSolve
 ##'
 ##' @noRd
-.expandTheta <- function(theta, thetaMat=NULL, thetaLower= -Inf, thetaUpper=Inf, nStud=1L,
+.expandTheta <- function(theta, thetaMat=NULL,
+                         thetaLower= -Inf, thetaUpper=Inf, nStud=1L,
                          nCoresRV=1L) {
-  checkmate::assertNumeric(theta, finite=TRUE, any.missing=FALSE, min.len=1, named="strict")
-  checkmate::assertInteger(nStud, len=1, any.mising=FALSE, lower=1)
-  checkmate::assertInteger(nCoresRV, len=1, any.mising=FALSE, lower=1)
+  checkmate::assertNumeric(theta, finite=TRUE, any.missing=FALSE,
+                           min.len=1, names="strict")
+  if (inherits(nStud, "numeric")) nStud <- as.integer(nStud)
+  checkmate::assertInteger(nStud, len=1, lower=1)
+  if (inherits(nCoresRV, "numeric")) nCoresRV <- as.integer(nCoresRV)
+  checkmate::assertInteger(nCoresRV, len=1, lower=1)
+  
   if (is.null(thetaMat)) {
-    return(.vecDf(theta, nStud));
+    if (inherits(theta, "numeric")){
+      return(.Call(`_vecDF`, theta, as.integer(nStud), PACKAGE='RxODE'))#nolint
+    } else if (inherits(theta, "matrix")) {
+      return(as.data.frame(theta));
+    } else if (inherits(theta, "data.frame")) {
+      return(theta)
+    }
   } else {
-    checkmate::assertMatrix(thetaMat, mode="numeric", any.missing=FALSE, col.names="strict",
+    checkmate::assertMatrix(thetaMat, mode="numeric",
+                            any.missing=FALSE, col.names="strict",
                             min.cols = 1)
     .dim <- dim(thetaMat)
     if (.dim[1] != .dim[2]) {
       stop("'thetaMat' must be a symmetric, square numeric matrix")
     }
-    if (all(thetaMat == t(thetaMat))) {
-      stop("'thetaMat' must be a symmetric, square numeric matrix")
-    }
+    ## if (all(thetaMat == t(thetaMat))) {
+    ##   stop("'thetaMat' must be a symmetric, square numeric matrix (t)")
+    ## }
     .matn <- dimnames(thetaMat)[[2]]
     .n <- names(theta)
     if (length(.matn) != length(.n)) {
@@ -102,14 +113,49 @@
     if (any(is.na(.theta))) {
       stop("names in 'theta' do not match names in 'thetaMat' column names")
     }
-    return(rxRmvn(nStud, .theta, thetaMat, lower=thetaLower, upper=thetaUpper, ncores=nCoresNV))
+    return(as.data.frame(rxRmvn(nStud, .theta, thetaMat,
+                                lower=thetaLower, upper=thetaUpper,
+                                ncores=nCoresRV)))
   }
 }
 
 
 .expandPars <- function(object, params, events, control) {
   ## The event table is needed to get nesting information from the table
-  if (inherits(control$omega, "lotri") && names(control$omega) > 1) {
+  
+  ## In common between nested and non-nested models is the expanded
+  ## population matrix.
+  .et <- .expandTheta(theta=params,
+                      thetaMat=control$thetaMat,
+                      thetaLower=control$thetaLower,
+                      thetaUpper=control$thetaUpper,
+                      nStud=control$nStud,
+                      nCoresRV=control$nCoresRV)
+  .omega <- control$omega;
+  if (inherits(.omega, "matrix")) {
+    ## Promote to lotri matrix with correct properties
+    .names <- dimnames(.omega)[[2]]
+    if (is.null(.names)) {
+      stop("'omega' must be named for simulations")
+    }
+    if (control$omegaIsChol) {
+      .dimnames <- dimnames(.omega)
+      .omega <- .omega %*% t(.omega)
+      dimnames(omega) <- .omega
+      control$omegaIsChol <- FALSE
+    }
+    .omega <- lotri::as.lotri(.omega, lower=control$omegaLower,
+                              upper=control$omegaUpper, nu=control$omegaDf,
+                              default="id")
+    control$omegaUpper <-NULL
+    control$omegaLower <- NULL
+    control$omegaDf <-NULL
+  }
+  if (inherits(.omega, "lotri")) {
+    control$omega <- .omega
+    if (control$omegaIsChol) {
+      stop("'omegaIsChol' makes no sense with lotri matrices")
+    }
     ## This is for hierarchical models.
     .n <- names(events)
     .nl <- tolower(.n)
@@ -119,15 +165,12 @@
     }
     .id <- events[, .w];
     .ni <- .nestingInfo(id=.id, omega=control$omega, data=events)
+    .nid <- length(levels(.ni$id))
+    if (control$nSub == 1) {
+      control$nSub <- .nid
+    }
     .en <- rxExpandNesting(obj=object, .ni, compile=TRUE)
-    .et <- .expandTheta(theta=params,
-                        thetaMat=control$thetaMat,
-                        thetaLower=control$thetaLower,
-                        thetaUpper=control$thetaUpper,
-                        nStud=control$nStud,
-                        nCoresRV=control$nCoresRV)
     ## now we can expand omega matrices based on the "theta" values above.
-
     ## We need to determine if the ALL the omega matrix value names
     ## are in the expanded theta matrix.  If so we can use the ijk or
     ## separation strategy
@@ -160,13 +203,40 @@
     } else {
       .n <- control$nStud
     }
-    .above <- .en$above(.n, type=.method,
+    .above <- .en$aboveF(.n, type=.method,
                         diagXformType=control$omegaXform)
-    .below <- .en$below(.n, type=.method,
-                        diagXformType=control$omegaXform)
-    ## control$omegaSeparation
+    .below <- .en$belowF(.n, type=.method,
+                         diagXformType=control$omegaXform)
+    ## This gives the above ID variability and integrates it into the
+    ## study level variability
+    if (!is.null(.above)) {
+      .et2 <- as.data.frame(rxRmvn(1L, sigma=.above,
+                                   lower=.en$aboveUpper(),
+                                   upper=.en$aboveLower(),
+                                   ncores=control$nCoresRV))
+      .et2 <- .et2[, !(names(.et2) %in% names(.et)), drop=FALSE]
+      .et <- cbind(.et, .et2)
+    }
+    ## Now simulate the number of subjects for each study
+    .ind <- rxRmvn(control$nSub, sigma=.below,
+                   lower=.en$belowLower(),
+                   upper=.en$belowUpper(),
+                   ncores=control$nCoresRV)
+    ## object, params, events, control
+    .ni2 <- .ni[names(.ni) != "data"]
+    .ni2 <- .ni2[names(.ni2) != "id"]
+    return(list(object=.en$mod,
+                params=.Call(`_cbindOme`, .et, .ind,
+                             as.integer(control$nSub),
+                             PACKAGE='RxODE'),
+                events=.ni$data,
+                control=control,
+                ni=.ni2))
   } else {
-    ## This is non-hierarchical models
+    return(list(object=object,
+                params=.et,
+                events=events,
+                control=control,
+                ni=NULL))
   }
-
 }

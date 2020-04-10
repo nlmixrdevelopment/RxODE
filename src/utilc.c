@@ -61,7 +61,7 @@ SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_) {
   
   int len2 = INTEGER(matD)[1];
   int lenOut = INTEGER(matD)[0];
-  int lenItem = lenOut/n;
+  int lenItem = lenOut/len1a;
   int pro = 0;
   SEXP ret = PROTECT(allocVector(VECSXP, len1+len2)); pro++;
   SEXP retN = PROTECT(allocVector(STRSXP, len1+len2)); pro++;
