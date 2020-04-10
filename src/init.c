@@ -83,6 +83,8 @@ SEXP _RxODE_rxSolveDollarNames(SEXP);
 SEXP _RxODE_etDollarNames(SEXP);
 SEXP _RxODE_rxExpandNesting(SEXP, SEXP, SEXP);
 
+SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_);
+
 SEXP RxODE_get_mv();
 
 static R_NativePrimitiveArgType RxODE_Sum_t[] = {
@@ -339,6 +341,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxExpandNesting", (DL_FUNC) _RxODE_rxExpandNesting, 3},
     {"_RxODE_rxRmvn0", (DL_FUNC) _RxODE_rxRmvn0, 11},
     {"_vecDF", (DL_FUNC) _vecDF, 2},
+    {"_cbindOme", (DL_FUNC) _cbindOme, 3},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
