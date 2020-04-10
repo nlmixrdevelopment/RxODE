@@ -8,7 +8,7 @@
 ##'
 ##' @export
 rxUnloadAll <- function() {
-  .Call(`_RxODE_rxUnloadAll_`);
+  .Call(`_RxODE_rxUnloadAll_`) # nolint
   .dll <- getLoadedDLLs()
   .n <- names(.dll)
   .n <- .n[regexpr("^rx_[a-f0-9]{32}", .n) != -1]
@@ -16,7 +16,7 @@ rxUnloadAll <- function() {
     .cur <- .dll[[rx]]
     class(.cur) <- NULL
     .num <- .rxModels[[.cur$path]]
-    if (is.null(.num)){
+    if (is.null(.num)) {
       dyn.unload(.cur$path)
       return(NULL)
     } else if (identical(.num, 0L)) {
@@ -32,7 +32,7 @@ rxUnloadAll <- function() {
 }
 
 .normalizePath <- function(path, ...) {
-  ifelse(.Platform$OS.type=="windows",
+  ifelse(.Platform$OS.type == "windows",
          suppressWarnings(utils::shortPathName(normalizePath(path, ...))),
   ifelse(regexpr("^[/~]", path) != -1,
          suppressWarnings(normalizePath(path, ...)),
@@ -49,7 +49,8 @@ rxUnloadAll <- function() {
 rxReq <- function(pkg) {
   ## nocov start
   if (!requireNamespace(pkg, quietly = TRUE)) {
-    stop(sprintf("package \"%s\" needed for this function to work", pkg), call. = FALSE);
+    stop(sprintf("package \"%s\" needed for this function to work", pkg),
+         call. = FALSE);
   }
   ## nocov end
 }
@@ -61,11 +62,11 @@ rxReq <- function(pkg) {
 ##' @export
 rxCat <- function(a, ...) {
   ## nocov start
-  if (RxODE.verbose){
-    if (is(a, "RxODE")){
-      message(RxODE::rxNorm(a), appendLF=FALSE);
+  if (RxODE.verbose) {
+    if (is(a, "RxODE")) {
+      message(RxODE::rxNorm(a), appendLF = FALSE);
     } else {
-      message(a, ..., appendLF=FALSE);
+      message(a, ..., appendLF = FALSE);
     }
   }
   ## nocov end
@@ -322,17 +323,20 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
                    type = c("invWishart", "lkj", "separation"),
                    diagXformType = c("log", "identity", "variance", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity")) {
   if (is.null(nu) && n == 1L) return(omega)
-  if (inherits(type, "numeric") || inherits(type, "integer")){
+  if (inherits(type, "numeric") || inherits(type, "integer")) {
     .type <- as.integer(type)
   } else {
-    .type <- as.vector(c("invWishart"=1L, "lkj"=2L, "separation"=3L)[match.arg(type)]);
+    .type <- as.vector(c("invWishart"=1L, "lkj"=2L,
+                         "separation"=3L)[match.arg(type)])
   }
-  if (.type == 1L){
+  if (.type == 1L) {
     .xform <- 1L
-  }  else if (inherits(diagXformType, "numeric") || inherits(diagXformType, "integer")){
+  }  else if (inherits(diagXformType, "numeric") || inherits(diagXformType, "integer")) {
     .xform <- as.integer(diagXformType)
   } else {
-    .xform <- as.vector(c("variance"=6, "log"=5, "identity"=4, "nlmixrSqrt"=1, "nlmixrLog"=2, "nlmixrIdentity"=3)[match.arg(diagXformType)])
+    .xform <- as.vector(c("variance"=6, "log"=5, "identity"=4,
+                          "nlmixrSqrt"=1, "nlmixrLog"=2,
+                          "nlmixrIdentity"=3)[match.arg(diagXformType)])
   }
   return(.Call(`_RxODE_cvPost_`, nu, omega, n, omegaIsChol, returnChol, .type, .xform))
 }
@@ -347,7 +351,10 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##'
 ##' @param mu mean vector
 ##'
-##' @param sigma Covariance matrix for multivariate normal
+##' @param sigma Covariance matrix for multivariate normal or a list
+##'   of covariance matrices. If a list of covariance matrix, each
+##'   matrix will simulate `n` matrices and combine them to a full
+##'   matrix
 ##'
 ##' @param lower is a vector of the lower bound for the truncated
 ##'     multivariate norm
@@ -411,46 +418,84 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##'
 ##' rxRmvn(10, 1:d, mcov, lower=1:d-1, upper=1:d+1)
 ##'
+##'
+##' # You can also simulate from different matrices (if they match
+##' # dimensions) by using a list of matrices.
+##'
+##' matL <- lapply(1:4,function(...){
+##'    matrix(rnorm(d^2), d, d)
+##'    tcrossprod(tmp, tmp)
+##' })
+##' 
+##'
+##' rxRmvn(4, setNames(1:d,paste0("a",1:d)), matL)
+##'
 ##' @author Matthew Fidler, Zdravko Botev and some from Matteo Fasiolo
 ##' @export
 rxRmvn <- function(n, mu, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=FALSE,
                    keepNames=TRUE) {
-  .d <- dim(sigma)[1];
-  if (is.matrix(n)) {
-    .A <- n;
-    n <- dim(.A)[1]
-    .retA <- FALSE
+  .sigmaList <- inherits(sigma, "list")
+  .len <- 1L
+  if (.sigmaList) {
+    .d <- dim(sigma[[1]])[1]
+    .len <- length(sigma)
   } else {
+    .d <- dim(sigma)[1]
+  }
+  if (is.matrix(n)) {
+    .a <- n
+    n <- dim(.a)[1]
+    .retA <- FALSE
+    if (.sigmaList) {
+      stop("cannot use a list for 'sigma' and a matrix for 'n'")
+    }
+  } else if (.len == 1L) {
     n <- as.integer(n);
-    .A <- numeric(n * .d)
-    dim(.A) <- c(n, .d);
+    .a <- numeric(n * .d)
+    dim(.a) <- c(n, .d);
     .retA <- TRUE
   }
-  if (missing(mu)){
+  if (missing(mu)) {
+    if (.sigmaList)
     .dimnames <- dimnames(sigma)
-    if (is.null(.dimnames)){
+    if (is.null(.dimnames)) {
       .dim <- dim(sigma)[2]
-      mu <- rep(0.0,.dim)
+      mu <- rep(0.0, .dim)
     } else {
-      .dimnames <-.dimnames[[2]]
-      mu <- setNames(rep(0.0,length(.dimnames)),.dimnames)
+      .dimnames <- .dimnames[[2]]
+      mu <- setNames(rep(0.0, length(.dimnames)), .dimnames)
     }
   }
-  .Call(`_RxODE_rxRmvn0`, .A, mu, sigma, lower, upper, ncores, isChol,
-        0.4, 2.05, 1e-10, 100);
-    if (.retA) {
-        if (keepNames) {
-            if (is.null(.nm <- names(mu))) {
-                .nm <- dimnames(sigma)[[1L]]
-            }
-            if (!is.null(.nm)) {
-                dimnames(.A) <- list(NULL, .nm)
-            }
-        }
-        return(.A)
-    } else {
-        return(invisible())
+  if (.len == 1L) {
+      .Call(`_RxODE_rxRmvn0`, .a, mu, sigma, lower, upper, ncores, isChol,
+            0.4, 2.05, 1e-10, 100)
+  } else {
+    .retA <- TRUE
+    .a <- do.call("rbind",
+                  lapply(sigma, function(.curSigma) {
+                    .curA <- numeric(n * .d)
+                    dim(.curA) <- c(n, .d)
+                    .Call(`_RxODE_rxRmvn0`, .curA, mu,
+                          .curSigma,
+                          lower, upper,
+                          ncores, isChol,
+                          0.4, 2.05, 1e-10, 100)
+                    return(.curA);
+                  }))
+  }
+  if (.retA) {
+    if (keepNames) {
+      if (is.null(.nm <- names(mu))) {
+        .nm <- dimnames(sigma)[[1L]]
+      }
+      if (!is.null(.nm)) {
+        dimnames(.a) <- list(NULL, .nm)
+      }
     }
+    return(.a)
+  } else {
+    return(invisible())
+  }
 }
 
 ##' Collect warnings and just warn once.
@@ -464,17 +509,21 @@ rxRmvn <- function(n, mu, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=FALSE,
 ##'     the expression and a list of warning messages
 ##' @author Matthew L. Fidler
 ##' @noRd
-.collectWarnings <- function(expr,lst=FALSE){
-  ws <- c();
-  this.env <- environment()
-  ret <- suppressWarnings(withCallingHandlers(expr,warning=function(w){assign("ws", unique(c(w$message, ws)), this.env)}))
-  if (lst){
-    return(list(ret, ws));
+.collectWarnings <- function(expr, lst=FALSE) {
+  .ws <- c();
+  .thisEnv <- environment()
+  .ret <- suppressWarnings(
+    withCallingHandlers(expr,
+                        warning = function(w) {
+                          assign(".ws", unique(c(w$message, .ws)), .thisEnv)
+                        }))
+  if (lst) {
+    return(list(.ret, .ws))
   } else {
-    for (w in ws){
-      warning(w)
+    for (.w in .ws) {
+      warning(.w)
     }
-    return(ret);
+    return(.ret)
   }
 }
 
@@ -486,5 +535,16 @@ rxRmvn <- function(n, mu, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=FALSE,
 ##' @author Matthew Fidler
 ##' @noRd
 .vecDf <- function(vec, n) {
-  .Call(`_vecDF`, vec, as.integer(n), PACKAGE='RxODE')
+  .Call(`_vecDF`, vec, as.integer(n), PACKAGE='RxODE') #nolint
+}
+##' cbind Ome
+##'
+##' @param et The theta data frame
+##' @param mat The full matrix simulation from omegas
+##' @param n number of subject simulated
+##' @return data frame with et combined with simulated omega matrix values
+##' @author Matthew Fidler
+##' @noRd
+.cbindOme <- function(et, mat, n) {
+  .Call(`_cbindOme`, et, mat, as.integer(n), PACKAGE='RxODE') # nolint
 }

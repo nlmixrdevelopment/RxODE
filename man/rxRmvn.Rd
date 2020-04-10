@@ -21,7 +21,10 @@ matrix to use for simulation (faster).}
 
 \item{mu}{mean vector}
 
-\item{sigma}{Covariance matrix for multivariate normal}
+\item{sigma}{Covariance matrix for multivariate normal or a list
+of covariance matrices. If a list of covariance matrix, each
+matrix will simulate `n` matrices and combine them to a full
+matrix}
 
 \item{lower}{is a vector of the lower bound for the truncated
 multivariate norm}
@@ -83,6 +86,18 @@ A                                # ... but the result is here
 ## You can also simulate from a truncated normal:
 
 rxRmvn(10, 1:d, mcov, lower=1:d-1, upper=1:d+1)
+
+
+# You can also simulate from different matrices (if they match
+# dimensions) by using a list of matrices.
+
+matL <- lapply(1:4,function(...){
+   matrix(rnorm(d^2), d, d)
+   tcrossprod(tmp, tmp)
+})
+
+
+rxRmvn(4, setNames(1:d,paste0("a",1:d)), matL)
 
 }
 \references{

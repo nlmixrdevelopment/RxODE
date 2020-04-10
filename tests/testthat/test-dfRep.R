@@ -22,17 +22,17 @@ rxPermissive({
   theta <- data.frame(a=as.double(1:4),b=as.double(5:8),
                       c=as.double(9:12))
   
-  omega <- rxRmvn(4, setNames(1:d,paste0("a",1:d)), matL)
+  omega <- rxRmvn(4, setNames(1:d, paste0("a",1:d)), matL)
 
   expand <- RxODE:::.cbindOme(theta, omega, 4)
 
-  expect_equal(expand$a, rep(theta$a,each=4))
-  expect_equal(expand$b, rep(theta$b,each=4))
-  expect_equal(expand$c, rep(theta$c,each=4))
+  expect_equal(expand$a, rep(theta$a, each=4))
+  expect_equal(expand$b, rep(theta$b, each=4))
+  expect_equal(expand$c, rep(theta$c, each=4))
   
-  expect_equal(expand$a1, omega[,"a1"])
-  expect_equal(expand$a2, omega[,"a2"])
-  expect_equal(expand$a3, omega[,"a3"])
-  expect_equal(expand$a4, omega[,"a4"])
+  expect_equal(expand$a1, omega[, "a1"])
+  expect_equal(expand$a2, omega[, "a2"])
+  expect_equal(expand$a3, omega[, "a3"])
+  expect_equal(expand$a4, omega[, "a4"])
   
 }, test="cran")

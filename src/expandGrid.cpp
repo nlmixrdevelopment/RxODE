@@ -301,6 +301,8 @@ void rxExpandNestingRep(CharacterVector &thetaNest,
 			std::string &retS, std::string &retF,
 			std::string &retF2,
 			std::string &retFa,
+			std::string &retLower,
+			std::string &retUpper,
 			std::string &namesAbove,
 			List &data, std::string thetaVar = "THETA[") {
   std::string theta;
@@ -322,16 +324,22 @@ void rxExpandNestingRep(CharacterVector &thetaNest,
 	std::to_string(nnest)+")))})";
       retF2 += "rep(list(omega$" +curNest + ")," +
 	std::to_string(nnest)+")";
+      retLower += "rep(setNames(omega$lower$" +curNest + ",NULL),"+std::to_string(nnest)+")";
+      retUpper += "rep(setNames(omega$upper$" +curNest + ",NULL),"+std::to_string(nnest)+")";
     } else {
       retF  += "list(cvPost(omega$nu$" +curNest + ",omega$" +curNest +",type=\"invWishart\"))";
       retFa += "cvPost(omega$nu$" + curNest +
 	", n[,dimnames(omega$" + curNest +")[[1]], drop=FALSE],type=type,diagXformType=diagXformType)";
       retF2 += "list(omega$" +curNest +")";
+      retLower += "setNames(omega$lower$" +curNest + ",NULL)";
+      retUpper += "setNames(omega$upper$" +curNest + ",NULL)";
     }
     if (j != thetaNest.size()-1) {
       retF  += ",";
       retF2 += ",";
       retFa += ",";
+      retLower += ",";
+      retUpper += ",";
     }
     // This is the base theta count
     lastTheta = thCnt;
@@ -377,11 +385,15 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   std::string aboveF="";
   std::string aboveFa="";
   std::string aboveF2="";
+  std::string aboveLower="";
+  std::string aboveUpper="";
   std::string namesBelow="";
   std::string namesAbove="";
   std::string belowF="";
   std::string belowFa="";
   std::string belowF2="";
+  std::string belowLower="";
+  std::string belowUpper="";
   List mv = rxModelVars_(obj);
   IntegerVector flags = as<IntegerVector>(mv["flags"]);
   int cureta = as<int>(flags["maxeta"])+1;
@@ -428,6 +440,8 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   if (thetaNest.size() > 0) {
     namesAbove = ".dim <- c(";
     aboveF2 += "function(omega=" + dp0 + "){";
+    aboveUpper += "function(omega=" + dp0 + "){.ret <- c(";
+    aboveLower += "function(omega=" + dp0 + "){.ret <- c(";
     aboveF  += "function(n=1,omega=" + dp0 + ",type = \"invWishart\", diagXformType = \"log\"){";
     aboveF  += "if (type == \"invWishart\") {";
     aboveF  += "lapply(1:n,function(...){";
@@ -436,6 +450,7 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
     rxExpandNestingRep(thetaNest, thetaNestTran, thetaNestFull,
 		       thCnt, curtheta,
 		       aboveVars, above, retS, aboveF, aboveF2, aboveFa,
+		       aboveLower, aboveUpper,
 		       namesAbove, data,
 		       "THETA[");
     aboveF  += ")));\n" + namesAbove + 
@@ -449,14 +464,21 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
     aboveF += "}}";
     aboveF2 += ")));\n" + namesAbove + 
       "NULL);dimnames(.theta) <- list(.dim,.dim);return(.theta);}";
+    aboveUpper += ");"+namesAbove + "NULL); return(setNames(.ret,.dim));}";
+    aboveLower += ");"+namesAbove + "NULL); return(setNames(.ret,.dim));}";
   } else {
     aboveF2 += "function(omega=" + dp0 + "){return(NULL);}";
     aboveF  += "function(n=1,omega=" + dp0 + ",type = \"invWishart\", diagXformType = \"log\"){return(NULL);}";
+
+    aboveLower="function(omega="+dp0+"){return(numeric(0))}";
+    aboveUpper="function(omega="+dp0+"){return(numeric(0))}";
   }
   namesBelow = ".dim <- c(dimnames(omega$" + idName + ")[[1]],";
   belowF += "function(n=1,omega=" + dp0 + ",type = \"invWishart\", diagXformType = \"log\"){";
   belowF  += "if (type == \"invWishart\") {";
   belowF2 += "function(omega=" + dp0 + "){";
+  belowUpper += "function(omega=" + dp0 + "){.ret <- c(setNames(omega$upper$" + idName + ",NULL)";
+  belowLower += "function(omega=" + dp0 + "){.ret <- c(setNames(omega$lower$" + idName + ",NULL)";
   belowF += "lapply(1:n,function(...){.omega <- as.matrix(Matrix::bdiag(c(list(cvPost(omega$nu$" + idName + ",omega$" +
     idName + ",type=\"invWishart\"))";
   belowF2 += ".omega <- as.matrix(Matrix::bdiag(c(list(omega$" +
@@ -464,11 +486,14 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   if (etaNest.size() > 0) {
     belowF  += ",";
     belowF2 += ",";
+    belowLower += ",";
+    belowUpper += ",";
   }
   int etCnt = 0;
   rxExpandNestingRep(etaNest, etaNestTran, etaNestFull,
 		     etCnt, cureta,
 		     belowVars, below, retS, belowF, belowF2, belowFa,
+		     belowLower, belowUpper,
 		     namesBelow, data,
 		     "ETA[");
   belowF +=")));" + namesBelow + 
@@ -483,9 +508,12 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
 
   belowF2 += ")));" + namesBelow + 
     "NULL);dimnames(.omega) <- list(.dim,.dim);return(.omega);}";
+
+  belowUpper += ");"+namesBelow + "NULL); return(setNames(.ret,.dim));}";
+  belowLower += ");"+namesBelow + "NULL); return(setNames(.ret,.dim));}";
   
   CharacterVector mod = mv["model"];
-  List ret(7);
+  List ret(11);
   retS += as<std::string>(mod[0]);
   if (compile){
     Function rxode = getRxFn("RxODE");
@@ -498,10 +526,16 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
   ret[2] = etaNestTran;
   ret[3] = evalFun(aboveF,  false);
   ret[4] = evalFun(aboveF2, false);
-  ret[5] = evalFun(belowF,  false);
-  ret[6] = evalFun(belowF2, false);
+  ret[5] = evalFun(aboveLower, false);
+  ret[6] = evalFun(aboveUpper, false);
+  ret[7] = evalFun(belowF,  false);
+  ret[8] = evalFun(belowF2, false);
+  ret[9] = evalFun(belowLower, false);
+  ret[10] = evalFun(belowUpper, false);
   ret.attr("names") = CharacterVector::create("mod","theta","eta",
 					      "aboveF", "aboveF2",
-					      "belowF","belowF2");
+					      "aboveLower", "aboveUpper",
+					      "belowF","belowF2",
+					      "belowLower", "belowUpper");
   return(ret);
 }
