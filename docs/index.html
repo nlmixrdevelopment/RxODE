@@ -30,7 +30,10 @@
     Section 6.3, Appendix A, and Appendix D in the "R Administration and
     Installation" manual. Also the code is mostly released under GPL.  The
     VODE and LSODA are in the public domain.  The information is available
-    in the inst/COPYRIGHTS.'>
+    in the inst/COPYRIGHTS. You can also obtain the archived SnakeCharmR for
+    python integration from CRAN archives
+    &lt;https://cran.r-project.org/src/contrib/Archive/SnakeCharmR/&gt; or
+    &lt;https://github.com/nlmixrdevelopment/SnakeCharmR&gt;.'>
 <meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
@@ -148,12 +151,26 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf">
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     <span class="fas fa fas fa-life-ring"></span>
      
-    Tutorial
+    Help
+     
+    <span class="caret"></span>
   </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="articles/RxODE-tutorials.html">Running the interactive tutorials</a>
+    </li>
+    <li>
+      <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf">2015 CPT tutorial</a>
+    </li>
+    <li class="divider">
+    <li>
+      <a href="articles/RxODE-covariates.html">Adding Circadian Rythmn (time-varying covariates)</a>
+    </li>
+  </ul>
 </li>
 <li>
   <a href="https://nlmixrdevelopment.github.io/RxODE/reference/index.html">
@@ -259,7 +276,7 @@
 <div id="linux" class="section level3">
 <h3 class="hasAnchor">
 <a href="#linux" class="anchor"></a>Linux</h3>
-<p>To install on linux make sure you install gcc (with openmp support) and gfortran using your distribution’s package manager.</p>
+<p>To install on linux make sure you install gcc (with openmp support) and gfortran using your distributionâs package manager.</p>
 </div>
 </div>
 <div id="development-version" class="section level2">

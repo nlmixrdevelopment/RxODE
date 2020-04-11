@@ -139,9 +139,16 @@ navbar:
           href: articles/RxODE-sim-var.html
         - text: "Using Prior Data for ODE solving"
           href: articles/RxODE-prior-data.html
-  - text: "Tutorial"
+  - text: "Help"
     icon: fas fa-life-ring
-    href: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf
+    menu:
+       - text: Running the interactive tutorials
+         href: articles/RxODE-tutorials.html
+       - text: 2015 CPT tutorial
+         href: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf
+       - text: "--------------------------"
+       - text: Adding Circadian Rythmn (time-varying covariates)
+         href: articles/RxODE-covariates.html
   - text: "Functions"
     icon: fa-file-code-o
     href: https://nlmixrdevelopment.github.io/RxODE/reference/index.html

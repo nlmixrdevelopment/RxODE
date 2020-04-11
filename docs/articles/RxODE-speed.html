@@ -137,12 +137,26 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf">
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     <span class="fas fa fas fa-life-ring"></span>
      
-    Tutorial
+    Help
+     
+    <span class="caret"></span>
   </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="../articles/RxODE-tutorials.html">Running the interactive tutorials</a>
+    </li>
+    <li>
+      <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf">2015 CPT tutorial</a>
+    </li>
+    <li class="divider">
+    <li>
+      <a href="../articles/RxODE-covariates.html">Adding Circadian Rythmn (time-varying covariates)</a>
+    </li>
+  </ul>
 </li>
 <li>
   <a href="https://nlmixrdevelopment.github.io/RxODE/reference/index.html">
@@ -200,7 +214,7 @@
       <h1>Speeding up RxODE</h1>
                         <h4 class="author">Matthew Fidler</h4>
             
-            <h4 class="date">2020-03-11</h4>
+            <h4 class="date">2020-04-10</h4>
       
       
       <div class="hidden name"><code>RxODE-speed.Rmd</code></div>
@@ -292,10 +306,10 @@ params.all &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(bench)
 <span class="co">#&gt; Unit: milliseconds</span>
 <span class="co">#&gt;               expr       min        lq      mean    median        uq       max</span>
-<span class="co">#&gt;           runFor() 378.69919 421.19537 488.68936 469.74870 539.54518 776.17576</span>
-<span class="co">#&gt;        runSapply() 385.60171 428.18507 496.95198 475.42561 551.86382 764.74782</span>
-<span class="co">#&gt;  runSingleThread()  84.76927  88.83219  91.27524  90.59540  92.84831 111.75093</span>
-<span class="co">#&gt;       run2Thread()  45.82354  47.94636  50.28038  48.84153  50.01240  85.21577</span>
+<span class="co">#&gt;           runFor() 393.56040 415.46669 456.35749 435.61480 484.87974 644.28239</span>
+<span class="co">#&gt;        runSapply() 385.91672 413.22457 444.73684 426.61598 457.66543 584.12210</span>
+<span class="co">#&gt;  runSingleThread()  78.60839  87.12926  88.38308  88.12848  89.37643  96.85980</span>
+<span class="co">#&gt;       run2Thread()  46.18088  47.15559  49.12363  48.02319  50.34936  73.49148</span>
 <span class="co">#&gt;  neval</span>
 <span class="co">#&gt;    100</span>
 <span class="co">#&gt;    100</span>
@@ -315,18 +329,18 @@ bench &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(bench)
 <span class="co">#&gt; Unit: milliseconds</span>
 <span class="co">#&gt;           expr      min       lq     mean   median       uq      max neval</span>
-<span class="co">#&gt;   runThread(1) 86.71483 88.90789 90.90139 90.07052 91.77893 99.36879   100</span>
-<span class="co">#&gt;   runThread(2) 46.06605 47.41298 48.63189 48.34977 49.16244 65.85228   100</span>
-<span class="co">#&gt;   runThread(3) 33.22615 34.08368 35.18782 34.98914 35.68434 42.78696   100</span>
-<span class="co">#&gt;   runThread(4) 25.16860 26.77719 28.12555 27.32454 28.20939 71.34907   100</span>
-<span class="co">#&gt;   runThread(5) 21.77951 22.96874 24.94550 23.80573 25.79504 39.74041   100</span>
-<span class="co">#&gt;   runThread(6) 19.58286 20.67719 22.64244 21.54895 23.72943 34.32715   100</span>
-<span class="co">#&gt;   runThread(7) 25.16275 26.53954 28.86746 28.52998 31.05980 34.45888   100</span>
-<span class="co">#&gt;   runThread(8) 23.42218 25.41148 26.76173 26.64181 28.30055 30.74611   100</span>
-<span class="co">#&gt;   runThread(9) 21.62823 23.12898 24.91313 25.33113 26.38699 28.98369   100</span>
-<span class="co">#&gt;  runThread(10) 20.67313 22.45824 23.81591 23.81095 24.95798 31.01109   100</span>
-<span class="co">#&gt;  runThread(11) 20.18049 21.72975 23.31940 23.41599 24.43565 35.70334   100</span>
-<span class="co">#&gt;  runThread(12) 21.17005 22.37070 25.38606 23.55635 26.93701 47.56791   100</span></code></pre></div>
+<span class="co">#&gt;   runThread(1) 85.93964 89.42870 90.41736 90.25587 91.11118 97.16488   100</span>
+<span class="co">#&gt;   runThread(2) 46.74005 47.74302 49.00056 48.32068 48.88359 97.39354   100</span>
+<span class="co">#&gt;   runThread(3) 33.17851 33.99224 35.20155 34.70399 35.45566 43.65722   100</span>
+<span class="co">#&gt;   runThread(4) 26.47490 27.36947 28.29384 27.90727 28.43507 34.32530   100</span>
+<span class="co">#&gt;   runThread(5) 22.59812 23.40820 25.47006 24.13421 26.91797 38.77258   100</span>
+<span class="co">#&gt;   runThread(6) 20.05099 21.06165 22.86566 21.94901 23.84196 34.94874   100</span>
+<span class="co">#&gt;   runThread(7) 26.18783 27.62378 29.31943 28.91787 31.17966 34.97496   100</span>
+<span class="co">#&gt;   runThread(8) 24.21677 26.14518 27.30895 27.38362 28.24314 31.91728   100</span>
+<span class="co">#&gt;   runThread(9) 22.87060 25.06679 26.06804 26.27812 26.96363 31.02734   100</span>
+<span class="co">#&gt;  runThread(10) 20.89669 23.90599 24.83284 25.03631 25.92178 30.16645   100</span>
+<span class="co">#&gt;  runThread(11) 20.85084 22.89568 23.84426 23.71278 24.72666 28.18737   100</span>
+<span class="co">#&gt;  runThread(12) 21.15476 22.73106 24.88891 23.64608 25.59363 43.43209   100</span></code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(bench)</code></pre></div>
 <p><img src="RxODE-speed_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
 <p>There is a suite spot in speed vs number or cores. The system type, complexity of the ODE solving and the number of subjects may affect this arbitrary number of threads. 4 threads is a good number to use without any prior knowledge because most systems these days have at least 4 threads (or 2 processors with 4 threads).</p>
@@ -404,7 +418,7 @@ Startlapply &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr
 Stoplapply &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span>()
   
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(Stoplapply <span class="op">-</span><span class="st"> </span>Startlapply)
-<span class="co">#&gt; Time difference of 1.050959 mins</span></code></pre></div>
+<span class="co">#&gt; Time difference of 1.282049 mins</span></code></pre></div>
 <p>By applying some of the new parallel solving concepts you can simply run the same simulation both with less code and faster:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rx &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
     CL =<span class="st">  </span><span class="kw"><a href="https://rdrr.io/r/base/Log.html">log</a></span>(<span class="dv">4</span>)
@@ -443,7 +457,7 @@ res &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve
 <span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:01</span>
 endParallel &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span>()
 <span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(endParallel <span class="op">-</span><span class="st"> </span>startParallel)
-<span class="co">#&gt; Time difference of 4.734872 secs</span></code></pre></div>
+<span class="co">#&gt; Time difference of 5.054943 secs</span></code></pre></div>
 <p>You can see a striking time difference between the two methods; A few things to keep in mind:</p>
 <ul>
 <li><p><code>RxODE</code> uses <code>mvnfast</code> for simulation of <code>eta</code> values. This uses the thread safe sumo random number generator. Therefore the results are expected to be different (also the random samples are taken in a different order which would be different)</p></li>
@@ -484,18 +498,19 @@ endParallel &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr
 <span class="co">#&gt; [4] microbenchmark_1.4-7 RxODE_0.9.2-0       </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; loaded via a namespace (and not attached):</span>
-<span class="co">#&gt;  [1] Rcpp_1.0.3       compiler_3.6.0   pillar_1.4.3     sys_3.3         </span>
-<span class="co">#&gt;  [5] PreciseSums_0.3  tools_3.6.0      digest_0.6.25    lattice_0.20-38 </span>
-<span class="co">#&gt;  [9] evaluate_0.14    memoise_1.1.0    lifecycle_0.2.0  tibble_2.1.3    </span>
-<span class="co">#&gt; [13] gtable_0.3.0     pkgconfig_2.0.3  rlang_0.4.5      Matrix_1.2-17   </span>
-<span class="co">#&gt; [17] yaml_2.2.1       pkgdown_1.4.1    xfun_0.12        stringr_1.4.0   </span>
-<span class="co">#&gt; [21] dplyr_0.8.5      knitr_1.28       desc_1.2.0       fs_1.3.2        </span>
-<span class="co">#&gt; [25] rprojroot_1.3-2  grid_3.6.0       tidyselect_1.0.0 glue_1.3.1      </span>
-<span class="co">#&gt; [29] R6_2.4.1         rmarkdown_2.1    dparser_0.1.8    ggplot2_3.3.0   </span>
-<span class="co">#&gt; [33] purrr_0.3.3      magrittr_1.5     units_0.6-5      backports_1.1.5 </span>
-<span class="co">#&gt; [37] scales_1.1.0     htmltools_0.4.0  assertthat_0.2.1 mime_0.9        </span>
-<span class="co">#&gt; [41] colorspace_1.4-1 stringi_1.4.6    lotri_0.2.1      munsell_0.5.0   </span>
-<span class="co">#&gt; [45] markdown_1.1     crayon_1.3.4</span></code></pre></div>
+<span class="co">#&gt;  [1] Rcpp_1.0.4.6     compiler_3.6.0   pillar_1.4.3     PreciseSums_0.3 </span>
+<span class="co">#&gt;  [5] tools_3.6.0      digest_0.6.25    lattice_0.20-38  evaluate_0.14   </span>
+<span class="co">#&gt;  [9] memoise_1.1.0    lifecycle_0.2.0  tibble_3.0.0     gtable_0.3.0    </span>
+<span class="co">#&gt; [13] pkgconfig_2.0.3  rlang_0.4.5      Matrix_1.2-17    cli_2.0.2       </span>
+<span class="co">#&gt; [17] yaml_2.2.1       pkgdown_1.4.1    xfun_0.12        dplyr_0.8.5     </span>
+<span class="co">#&gt; [21] stringr_1.4.0    knitr_1.28       desc_1.2.0       fs_1.3.2        </span>
+<span class="co">#&gt; [25] vctrs_0.2.4      tidyselect_1.0.0 rprojroot_1.3-2  grid_3.6.0      </span>
+<span class="co">#&gt; [29] glue_1.4.0       R6_2.4.1         fansi_0.4.1      rmarkdown_2.1   </span>
+<span class="co">#&gt; [33] dparser_0.1.8    purrr_0.3.3      ggplot2_3.3.0    magrittr_1.5    </span>
+<span class="co">#&gt; [37] units_0.6-6      backports_1.1.6  scales_1.1.0     htmltools_0.4.0 </span>
+<span class="co">#&gt; [41] ellipsis_0.3.0   assertthat_0.2.1 mime_0.9         colorspace_1.4-1</span>
+<span class="co">#&gt; [45] lotri_0.2.2      stringi_1.4.6    munsell_0.5.0    markdown_1.1    </span>
+<span class="co">#&gt; [49] crayon_1.3.4</span></code></pre></div>
 </div>
 </div>
   </div>
