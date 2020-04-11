@@ -217,26 +217,29 @@
       .et2 <- .et2[, !(names(.et2) %in% names(.et)), drop=FALSE]
       .et <- cbind(.et, .et2)
     }
+    .rxModels[".theta"] <- .et
     ## Now simulate the number of subjects for each study
     .ind <- rxRmvn(control$nSub, sigma=.below,
                    lower=.en$belowLower(),
                    upper=.en$belowUpper(),
                    ncores=control$nCoresRV)
+    if (rxIs(.below, "list")) {
+      .rxModels[".omegaL"] <- .below
+    }
     ## object, params, events, control
     .ni2 <- .ni[names(.ni) != "data"]
     .ni2 <- .ni2[names(.ni2) != "id"]
-    return(list(object=.en$mod,
-                params=.Call(`_cbindOme`, .et, .ind,
+    .rxModels[".nestObj"] <- .en$mod
+    .rxModels[".nestEvents"] <- .ni$data
+    .rxModels[".nestInfo"] <- .ni2
+    return(.Call(`_cbindOme`, .et, .ind,
                              as.integer(control$nSub),
-                             PACKAGE='RxODE'),
-                events=.ni$data,
-                control=control,
-                ni=.ni2))
+                             PACKAGE='RxODE'))
   } else {
-    return(list(object=object,
-                params=.et,
-                events=events,
-                control=control,
-                ni=NULL))
+    .rxModels[".nestObj"] <- object
+    .rxModels[".nestEvents"] <- events
+    .rxModels[".theta"] <- .et
+    .rxModels[".nestInfo"] <- NULL
+    return(.et)
   }
 }

@@ -1,12 +1,13 @@
 rxPermissive({
     for (meth in c("dop853", "liblsoda", "lsoda")){
-        context(sprintf("Test Parallel/Multi-subject Solve (%s)", meth))
+      context(sprintf("Test Parallel/Multi-subject Solve (%s)", meth))
+      
         .rxSolve <- function(...){suppressWarnings({rxSolve(...)})}
 
         mod <- RxODE({
             d/dt(intestine) = -a*intestine
             d/dt(blood)     = a*intestine - b*blood
-        });
+        })
 
         et <- eventTable(time.units="days")
         et$add.sampling(seq(0, 10, length.out=50))
@@ -47,10 +48,12 @@ rxPermissive({
         sigma <- diag(2) * 0.05
         dimnames(sigma) <- list(c("err1", "err2"), c("err1", "err2"));
 
-        for (mvnfast in c(TRUE, FALSE)) {
-            pk3 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+      for (mvnfast in c(TRUE, FALSE)) {
+        
+        pk3 <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
                                     Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
                             nSub=4, ev, sigma=sigma, cores=2, method=meth, mvnfast=mvnfast);
+        
 
             pk3a <- .rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
                                      Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),

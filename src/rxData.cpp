@@ -3817,6 +3817,20 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   rxSolveDat->isEnvironment = rxIs(obj, "environment");
   rxSolveDat->idFactor= as<bool>(rxControl["idFactor"]);
   rxSolveDat->warnIdSort = as<bool>(rxControl["warnIdSort"]);
+  RObject trueParams;
+  RObject trueEvents;
+  bool swappedEvents=false;
+  if (rxIs(params, "rx.event")){
+    trueEvents = params;
+    trueParams = events;
+    swappedEvents=true;
+  } else if (rxIs(events, "rx.event")){
+    trueEvents = events;
+    trueParams = params;
+  } else {
+    stop(_("cannot solve without event information"));
+  }
+  getRxModels();
   if (rxSolveDat->updateObject && !rxSolveDat->isRxSolve && !rxSolveDat->isEnvironment){
     if (rxIs(rxCurObj, "rxSolve")){
       object = rxCurObj;
@@ -3826,6 +3840,23 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       stop(_("cannot update this object"));
     }
   } else {
+    object = obj;
+    // Update RxODE model (if needed) and simulate nesting
+    if (!(as<bool>(rxControl["mvnfast"])) &&
+	(!rxIs(rxControl["thetaMat"], "NULL") ||
+	 !rxIs(rxControl["omega"], "NULL"))) {
+      // Update model, events and parameters based on nesting
+      // trueEvents = params;
+      // trueParams = events;
+      Function expandPars = getRxFn(".expandPars");
+      trueParams = expandPars(_["object"]=object,
+			      _["params"]=trueParams,
+			      _["events"]=trueEvents,
+			      _["control"]=rxControl);
+      object = _rxModels[".nestObj"];
+      trueEvents = _rxModels[".nestEvents"];
+      stop("need to fix");
+    }
     if (method == 3){
       rxSolveDat->mv = rxModelVars(obj);
       rxSolveFreeObj = obj;
@@ -3863,25 +3894,11 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       stop(_("cannot load RxODE dlls for this model"));
     }
     // Get model 
-    RObject trueParams;
-    RObject trueEvents;
-    bool swappedEvents=false;
-    getRxModels();
     // Get the C solve object
     rx_solve* rx = getRxSolve_();
     rx->sumType = as<int>(rxControl["sum"]);
     rx->prodType = as<int>(rxControl["prod"]);
     rx_solving_options* op = rx->op;    
-    if (rxIs(params, "rx.event")){
-      trueEvents = params;
-      trueParams = events;
-      swappedEvents=true;
-    } else if (rxIs(events, "rx.event")){
-      trueEvents = events;
-      trueParams = params;
-    } else {
-      stop(_("cannot solve without event information"));
-    }
 #ifdef rxSolveT
     REprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
