@@ -21,6 +21,8 @@
 
 * `RxODE` now moved the precise sum/product type optionsfor `sum()`
   and `prod()` to `rxSolve` o `rxControl`
+  
+* `cvPost` now will returned a named list of matrices if the input matrix was named
 
 ## New features
 
