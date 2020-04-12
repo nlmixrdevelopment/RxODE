@@ -19,6 +19,7 @@ articles:
   RxODE-stiff: RxODE-stiff.html
   RxODE-syntax: RxODE-syntax.html
   RxODE-transit-compartments: RxODE-transit-compartments.html
+  RxODE-tutorials: RxODE-tutorials.html
   rxode-single-subject: rxode-single-subject.html
 urls:
   reference: https://nlmixrdevelopment.github.io/RxODE/reference

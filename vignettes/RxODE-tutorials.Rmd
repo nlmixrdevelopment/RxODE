@@ -1,0 +1,31 @@
+---
+title: "Interactive Tutorials"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Interactive Tutorials}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+# Interactive tutorials
+```{r setup}
+library(RxODE)
+```
+
+RxODE comes with a few interactive tutorials that you can run with
+your own R session; They are built into Rstudio 1.3 and can be run
+from any R session by:
+
+```
+learnr::run_tutorial("tutorial", "RxODE")
+```
+
+Here are the current tutorials:
+- RxODE syntax `learnr::run_tutorial("RxODE00syntax", "RxODE")`
+- RxODE event tables `learnr::run_tutorial("RxODevents", "RxODE")`

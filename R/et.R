@@ -60,11 +60,11 @@
 ##' }
 ##'
 ##' @param cmt Compartment name or number.  If a number, this is an
-##'     integer starting at 1.  Negative compartments are not
-##'     supported (there is no way to turn off a compartment
-##'     currently). If the compartment is a name, the compartment name
-##'     is changed to the correct state/compartment number before
-##'     running the simulation.
+##'   integer starting at 1.  Negative compartments turn off a
+##'   compartment. If the compartment is a name, the compartment name
+##'   is changed to the correct state/compartment number before
+##'   running the simulation.  For a compartment named "-cmt" the
+##'   compartment is turned off.
 ##'
 ##'     Can also specify \code{cmt} as \code{dosing.to},
 ##'     \code{dose.to}, \code{doseTo}, \code{dosingTo}, and

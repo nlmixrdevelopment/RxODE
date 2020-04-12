@@ -137,12 +137,26 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf">
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     <span class="fas fa fas fa-life-ring"></span>
      
-    Tutorial
+    Help
+     
+    <span class="caret"></span>
   </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="../articles/RxODE-tutorials.html">Running the interactive tutorials</a>
+    </li>
+    <li>
+      <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf">2015 CPT tutorial</a>
+    </li>
+    <li class="divider">
+    <li>
+      <a href="../articles/RxODE-covariates.html">Adding Circadian Rythmn (time-varying covariates)</a>
+    </li>
+  </ul>
 </li>
 <li>
   <a href="https://nlmixrdevelopment.github.io/RxODE/reference/index.html">
@@ -199,7 +213,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE Simulation</h1>
             
-            <h4 class="date">2020-03-11</h4>
+            <h4 class="date">2020-04-10</h4>
       
       
       <div class="hidden name"><code>RxODE-sim-var.Rmd</code></div>
@@ -298,13 +312,13 @@ omega
 <p><img src="RxODE-sim-var_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 <p>Note that you can see the parameters that were simulated for the example</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(sim<span class="op">$</span>param)
-<span class="co">#&gt;   sim.id   V2 prop.err  V3  TCl     eta.Cl    KA    Q Kin Kout EC50</span>
-<span class="co">#&gt; 1      1 40.2        0 297 18.6  0.5111020 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 2      2 40.2        0 297 18.6 -0.1811678 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 3      3 40.2        0 297 18.6 -0.8562788 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 4      4 40.2        0 297 18.6 -0.1161483 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 5      5 40.2        0 297 18.6 -0.5927541 0.294 10.5   1    1  200</span>
-<span class="co">#&gt; 6      6 40.2        0 297 18.6  0.7424633 0.294 10.5   1    1  200</span></code></pre></div>
+<span class="co">#&gt;   sim.id   V2 prop.err  V3  TCl      eta.Cl    KA    Q Kin Kout EC50</span>
+<span class="co">#&gt; 1      1 40.2        0 297 18.6  0.34990337 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 2      2 40.2        0 297 18.6  0.17710829 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 3      3 40.2        0 297 18.6  0.12633042 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 4      4 40.2        0 297 18.6  0.05145749 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 5      5 40.2        0 297 18.6 -0.04857253 0.294 10.5   1    1  200</span>
+<span class="co">#&gt; 6      6 40.2        0 297 18.6 -0.91570711 0.294 10.5   1    1  200</span></code></pre></div>
 </div>
 <div id="simulation-of-unexplained-variability" class="section level3">
 <h3 class="hasAnchor">
@@ -369,24 +383,24 @@ sim  &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolv
 
 sim <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span>(id, time, e, cp)
 <span class="co">#&gt;    id          time         e         cp</span>
-<span class="co">#&gt; 1   1  0.000000 [h] 1.3770059 9939.62131</span>
-<span class="co">#&gt; 2   1  5.333333 [h] 1.4165415  160.76363</span>
-<span class="co">#&gt; 3   1 10.666667 [h] 0.9393825  127.80221</span>
-<span class="co">#&gt; 4   1 16.000000 [h] 0.9724777   43.01017</span>
-<span class="co">#&gt; 5   1 21.333333 [h] 0.4753605   45.11554</span>
-<span class="co">#&gt; 6   1 26.666667 [h] 1.3242889   61.68323</span>
-<span class="co">#&gt; 7   1 32.000000 [h] 1.0941888   33.09540</span>
-<span class="co">#&gt; 8   1 37.333333 [h] 0.9283070   45.83699</span>
-<span class="co">#&gt; 9   1 42.666667 [h] 0.8628853   25.54093</span>
-<span class="co">#&gt; 10  1 48.000000 [h] 1.0917058   50.90384</span>
-<span class="co">#&gt; 11  2  0.000000 [h] 0.8715459 5393.61706</span>
-<span class="co">#&gt; 12  2  6.857143 [h] 1.4714335  762.28415</span>
-<span class="co">#&gt; 13  2 13.714286 [h] 0.6727927  292.43058</span>
-<span class="co">#&gt; 14  2 20.571429 [h] 1.1639300  349.90129</span>
-<span class="co">#&gt; 15  2 27.428571 [h] 1.0795094  219.58569</span>
-<span class="co">#&gt; 16  2 34.285714 [h] 0.4184201  194.95132</span>
-<span class="co">#&gt; 17  2 41.142857 [h] 0.6253556  112.97750</span>
-<span class="co">#&gt; 18  2 48.000000 [h] 1.2831178  114.48999</span></code></pre></div>
+<span class="co">#&gt; 1   1  0.000000 [h] 0.8144742 7427.16624</span>
+<span class="co">#&gt; 2   1  5.333333 [h] 0.9088491  733.04817</span>
+<span class="co">#&gt; 3   1 10.666667 [h] 1.0700593  259.92205</span>
+<span class="co">#&gt; 4   1 16.000000 [h] 0.6200344  223.39023</span>
+<span class="co">#&gt; 5   1 21.333333 [h] 0.5376364  116.94388</span>
+<span class="co">#&gt; 6   1 26.666667 [h] 1.5582777  178.91611</span>
+<span class="co">#&gt; 7   1 32.000000 [h] 1.2177398  160.43714</span>
+<span class="co">#&gt; 8   1 37.333333 [h] 1.0438762   92.62890</span>
+<span class="co">#&gt; 9   1 42.666667 [h] 0.7487209  116.32714</span>
+<span class="co">#&gt; 10  1 48.000000 [h] 0.4937465  107.91025</span>
+<span class="co">#&gt; 11  2  0.000000 [h] 0.6631636 7416.25090</span>
+<span class="co">#&gt; 12  2  6.857143 [h] 1.7473397  106.27233</span>
+<span class="co">#&gt; 13  2 13.714286 [h] 1.6844069   69.48003</span>
+<span class="co">#&gt; 14  2 20.571429 [h] 1.6304021   50.19524</span>
+<span class="co">#&gt; 15  2 27.428571 [h] 0.8856005   69.30219</span>
+<span class="co">#&gt; 16  2 34.285714 [h] 0.5952504   50.20523</span>
+<span class="co">#&gt; 17  2 41.142857 [h] 0.8388760   55.47943</span>
+<span class="co">#&gt; 18  2 48.000000 [h] 0.8981448   45.01631</span></code></pre></div>
 <div id="simulation-of-clinical-trials" class="section level4">
 <h4 class="hasAnchor">
 <a href="#simulation-of-clinical-trials" class="anchor"></a>Simulation of Clinical Trials</h4>
@@ -419,57 +433,57 @@ s &lt;-sim <span class="op">%&gt;%</span><span class="st"> </span><span class="k
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(sim<span class="op">$</span>omega.list)
 <span class="co">#&gt; [[1]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.1356241</span>
+<span class="co">#&gt; [1,] 0.1375783</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[2]]</span>
-<span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.1363406</span>
+<span class="co">#&gt;          [,1]</span>
+<span class="co">#&gt; [1,] 0.219712</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[3]]</span>
-<span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.2086196</span>
+<span class="co">#&gt;            [,1]</span>
+<span class="co">#&gt; [1,] 0.07645734</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[4]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.2207265</span>
+<span class="co">#&gt; [1,] 0.1357399</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[5]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.1248375</span>
+<span class="co">#&gt; [1,] 0.2711316</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[6]]</span>
 <span class="co">#&gt;           [,1]</span>
-<span class="co">#&gt; [1,] 0.2786405</span></code></pre></div>
+<span class="co">#&gt; [1,] 0.1323411</span></code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(sim<span class="op">$</span>sigma.list)
 <span class="co">#&gt; [[1]]</span>
 <span class="co">#&gt;             [,1]        [,2]</span>
-<span class="co">#&gt; [1,]  0.11770836 -0.01411164</span>
-<span class="co">#&gt; [2,] -0.01411164  0.10111359</span>
+<span class="co">#&gt; [1,] 0.115063832 0.003474916</span>
+<span class="co">#&gt; [2,] 0.003474916 0.112844178</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[2]]</span>
-<span class="co">#&gt;             [,1]        [,2]</span>
-<span class="co">#&gt; [1,] 0.092818843 0.006524339</span>
-<span class="co">#&gt; [2,] 0.006524339 0.124283944</span>
+<span class="co">#&gt;            [,1]       [,2]</span>
+<span class="co">#&gt; [1,] 0.09346365 0.01247610</span>
+<span class="co">#&gt; [2,] 0.01247610 0.08278152</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[3]]</span>
-<span class="co">#&gt;              [,1]         [,2]</span>
-<span class="co">#&gt; [1,]  0.101646585 -0.006852853</span>
-<span class="co">#&gt; [2,] -0.006852853  0.096020997</span>
+<span class="co">#&gt;             [,1]        [,2]</span>
+<span class="co">#&gt; [1,] 0.097531442 0.000516414</span>
+<span class="co">#&gt; [2,] 0.000516414 0.123232919</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[4]]</span>
-<span class="co">#&gt;              [,1]         [,2]</span>
-<span class="co">#&gt; [1,]  0.103380157 -0.002251819</span>
-<span class="co">#&gt; [2,] -0.002251819  0.112411159</span>
+<span class="co">#&gt;             [,1]        [,2]</span>
+<span class="co">#&gt; [1,] 0.088659267 0.009842486</span>
+<span class="co">#&gt; [2,] 0.009842486 0.089518635</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[5]]</span>
-<span class="co">#&gt;               [,1]          [,2]</span>
-<span class="co">#&gt; [1,]  9.655592e-02 -4.194214e-05</span>
-<span class="co">#&gt; [2,] -4.194214e-05  1.009834e-01</span>
+<span class="co">#&gt;             [,1]        [,2]</span>
+<span class="co">#&gt; [1,]  0.09830986 -0.02394862</span>
+<span class="co">#&gt; [2,] -0.02394862  0.11792143</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[6]]</span>
-<span class="co">#&gt;            [,1]       [,2]</span>
-<span class="co">#&gt; [1,] 0.09894498 0.01331581</span>
-<span class="co">#&gt; [2,] 0.01331581 0.10055425</span></code></pre></div>
+<span class="co">#&gt;              [,1]         [,2]</span>
+<span class="co">#&gt; [1,]  0.093216731 -0.001967668</span>
+<span class="co">#&gt; [2,] -0.001967668  0.106582003</span></code></pre></div>
 <p>You can also see the parameter realizations from the <code>$params</code> data frame.</p>
 <p>If you do not wish to sample from the prior distributions of either the <code>omega</code> or <code>sigma</code> matrices, you can turn off this feature by specifying the <code>simVariability = FALSE</code> option when solving:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sim  &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(mod, theta, ev, <span class="dt">omega=</span>omega, <span class="dt">nSub=</span><span class="dv">100</span>, <span class="dt">sigma=</span>sigma, <span class="dt">thetaMat=</span>tMat, <span class="dt">nStud=</span><span class="dv">10</span>,
