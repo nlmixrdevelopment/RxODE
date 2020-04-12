@@ -181,7 +181,9 @@
     .hasDT <- requireNamespace("data.table", quietly = TRUE)
     .method <- control$omegaSeparation
     ## First get the method when .method == "auto"
+    .methodA <- FALSE
     if (.method == "auto") {
+      .methodA <- TRUE
       if (.hasDT) {
         .all <- all(data.table::`%chin%`(.allNames, names(.expandTheta)))
       } else {
@@ -194,6 +196,10 @@
       } else {
         .method <- "invWishart"
       }
+    }
+    .methodS <- control$sigmaSeparation
+    if (.methodA && .methodS == "auto") {
+      .methodS <- .method # Use calculated .method for sigma separation
     }
     ## Here we choose the type of n needed to generate the above and
     ## below omega matrices.
@@ -232,6 +238,48 @@
     .rxModels[".nestObj"] <- .en$mod
     .rxModels[".nestEvents"] <- .ni$data
     .rxModels[".nestInfo"] <- .ni2
+
+    ## Now get sigma information
+    if (inherits(control$sigma,"matrix")) {
+      .names <- dimnames(.sigma)[[2]]
+      if (is.null(.names)) {
+        stop("'sigma' must be named for simulations")
+      }
+      if (control$sigmaIsChol) {
+        .dimnames <- dimnames(.sigma)
+        .sigma <- .sigma %*% t(.sigma)
+        dimnames(sigma) <- .sigma
+        control$sigmaIsChol <- FALSE
+      }
+      .sigma <- lotri::as.lotri(.sigma, lower=control$sigmaLower,
+                                upper=control$sigmaUpper, nu=control$sigmaDf,
+                                default="id")
+      control$sigmaUpper <-NULL
+      control$sigmaLower <- NULL
+      control$sigmaDf <-NULL
+    }
+    if (inherits(.sigma, "lotri")) {
+      if (any(.methodS == c("separation", "ijk"))) {
+        ## In this case, the n is a matrix of the expanded theta
+        .n <- as.matrix(.et)
+      } else {
+        .n <- control$nStud
+      }
+      .sigmaList <- cvPost(.sigma$nu, omega=as.matrix(.sigma), n=.n,
+                           type=.methodS,
+                           diagXformType=control$sigmaXform)
+      .rxModels[".sigmaL"] <- .sigmaList
+      .nobs <- length(.ni$id)
+      if (.nid == 1L) {
+        .n2 <- .nobs*control$nSub
+      } else {
+        .n2 <- .nobs
+      }
+      .nid <- length(levels(.ni$id))
+      .rxModels[".sigma"] <- rxRmvn(.n2, sigma=.sigmaList,
+                                    lower=.sigma$lower, upper=.sigma$upper,
+                                    ncores=control$nCoresRV)
+    }
     return(.Call(`_cbindOme`, .et, .ind,
                              as.integer(control$nSub),
                              PACKAGE='RxODE'))

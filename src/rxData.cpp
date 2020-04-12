@@ -3855,7 +3855,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 			      _["control"]=rxControl);
       object = _rxModels[".nestObj"];
       trueEvents = _rxModels[".nestEvents"];
-      stop("need to fix");
+    } else {
+      _rxModels[".nestObj"] = R_NilValue;
     }
     if (method == 3){
       rxSolveDat->mv = rxModelVars(obj);
@@ -4112,8 +4113,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time7: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
-    rxSolve_simulate(obj, rxControl, specParams, extraArgs,
-		     params, ev1, inits, rxSolveDat);
+    if (rxIs(_rxModels[".nestObj"], "NULL")) {
+      rxSolve_simulate(obj, rxControl, specParams, extraArgs,
+		       params, ev1, inits, rxSolveDat);
+    }
 #ifdef rxSolveT
     REprintf("Time8: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();

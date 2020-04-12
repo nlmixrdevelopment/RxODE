@@ -151,7 +151,7 @@ rxControl <- function(scale = NULL,
         cores <- RxODE::rxCores();
     }
     if (inherits(sigma, "character")) {
-        .sigma <- sigma
+      .sigma <- sigma
     } else {
         .sigma <- lotri(sigma)
     }
