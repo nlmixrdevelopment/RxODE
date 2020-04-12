@@ -253,19 +253,22 @@
       }
       .sigma <- lotri::as.lotri(.sigma, lower=control$sigmaLower,
                                 upper=control$sigmaUpper, nu=control$sigmaDf,
-                                default="id")
+                                default="obs")
       control$sigmaUpper <-NULL
       control$sigmaLower <- NULL
       control$sigmaDf <-NULL
     }
     if (inherits(.sigma, "lotri")) {
+      .ns <- names(.sigma)
+      if (length(.ns) != 1) stop("'sigma' only allows one level of nesting, use 'omega' instead")
+      names(.sigma) <- "obs"
       if (any(.methodS == c("separation", "ijk"))) {
         ## In this case, the n is a matrix of the expanded theta
         .n <- as.matrix(.et)
       } else {
         .n <- control$nStud
       }
-      .sigmaList <- cvPost(.sigma$nu, omega=as.matrix(.sigma), n=.n,
+      .sigmaList <- cvPost(.sigma$nu$obs, omega=as.matrix(.sigma), n=.n,
                            type=.methodS,
                            diagXformType=control$sigmaXform)
       .rxModels[".sigmaL"] <- .sigmaList
@@ -277,7 +280,7 @@
       }
       .nid <- length(levels(.ni$id))
       .rxModels[".sigma"] <- rxRmvn(.n2, sigma=.sigmaList,
-                                    lower=.sigma$lower, upper=.sigma$upper,
+                                    lower=.sigma$lower$obs, upper=.sigma$upper$obs,
                                     ncores=control$nCoresRV)
     }
     return(.Call(`_cbindOme`, .et, .ind,
