@@ -64,7 +64,11 @@ rxPermissive({
     expect_equal(.ni$extraTheta, 4)
     expect_equal(.ni$extraEta, 8)
 
-    ## .en <- rxExpandNesting(mod, .ni)
+
+    .en <- rxExpandNesting(mod, .ni,compile=TRUE)
+
+    .ett <- etTrans(.ni$data, .en$mod)
+
 
     theta <- c(KA=2.94E-01, CL=1.86E+01, V2=4.02E+01, # central 
      Q=1.05E+01,  V3=2.97E+02,              # peripheral

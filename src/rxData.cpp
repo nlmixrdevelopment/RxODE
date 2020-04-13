@@ -3853,6 +3853,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       trueEvents = _rxModels[".nestEvents"];
     } else {
       _rxModels[".nestObj"] = R_NilValue;
+      object = obj;
     }
     if (method == 3){
       rxSolveDat->mv = rxModelVars(object);
@@ -3904,15 +3905,15 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	rxSolve_loaded(trueEvents, trueParams, rxControl, as<SEXP>(rxSolveDat->mv), inits)){
       rxSolveDat = &rxSolveDatLast;
       rxSolve_updateParams(trueParams,
-			   obj, rxControl, specParams, extraArgs, params, events,
-			   inits, rxSolveDat);
+			   object, rxControl, specParams, extraArgs, params,
+			   trueEvents, inits, rxSolveDat);
       if (_rxModels.exists(".ws") && !rxIs(_rxModels[".ws"], "NULL")){
 	List ws = _rxModels[".ws"];
 	for (int iii = 0; iii < ws.size(); ++iii){
 	  warning(as<std::string>(ws[iii]));
 	}
       }
-      return rxSolve_finalize(obj, rxControl, specParams, extraArgs, params, events,
+      return rxSolve_finalize(object, rxControl, specParams, extraArgs, params, events,
 			      inits, rxSolveDat);
       // par_solve(rx);
       // Free(op->indLin);
@@ -3979,9 +3980,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time5: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
-
     // Update event table with observations if they are missing
-    rxSolve_ev1Update(obj, rxControl, specParams, extraArgs, params,
+    rxSolve_ev1Update(object, rxControl, specParams, extraArgs, params,
 		      ev1, inits, rxSolveDat);
 
 #ifdef rxSolveT
@@ -4108,7 +4108,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _lastT0 = clock();
 #endif// rxSolveT
     if (rxIs(_rxModels[".nestObj"], "NULL")) {
-      rxSolve_simulate(obj, rxControl, specParams, extraArgs,
+      rxSolve_simulate(object, rxControl, specParams, extraArgs,
 		       params, ev1, inits, rxSolveDat);
     }
     // .sigma could be reassigned in an update, so check outside simulation function.
@@ -4120,7 +4120,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _lastT0 = clock();
 #endif// rxSolveT
     // This will setup the parameters
-    rxSolve_parSetup(obj, rxControl, specParams, extraArgs,
+    rxSolve_parSetup(object, rxControl, specParams, extraArgs,
 		     pars, ev1, inits, rxSolveDat);
 #ifdef rxSolveT
     REprintf("Time9: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
@@ -4130,7 +4130,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 
 
     // Setup some data-based parameters like hmax
-    rxSolve_datSetupHmax(obj, rxControl, specParams, extraArgs,
+    rxSolve_datSetupHmax(object, rxControl, specParams, extraArgs,
 			 pars, ev1, inits, rxSolveDat);
 
 #ifdef rxSolveT
@@ -4139,7 +4139,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 #endif // rxSolveT
     
     // Make sure the user input all the parameters.
-    rxSolve_parOrder(obj, rxControl, specParams, extraArgs,
+    rxSolve_parOrder(object, rxControl, specParams, extraArgs,
 		     pars, ev1, inits, rxSolveDat);
 
 #ifdef rxSolveT
@@ -4260,7 +4260,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time13: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
-    rxSolve_normalizeParms(obj, rxControl, specParams, extraArgs,
+    rxSolve_normalizeParms(object, rxControl, specParams, extraArgs,
 			   pars, ev1, inits, rxSolveDat);
     if (setupOnly){
       setupOnlyObj = obj;
@@ -4274,7 +4274,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
-    SEXP ret = rxSolve_finalize(obj, rxControl, specParams, extraArgs, params, events,
+    SEXP ret = rxSolve_finalize(object, rxControl, specParams, extraArgs, params, events,
 				inits, rxSolveDat);
 #ifdef rxSolveT
     REprintf("Time15: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);

@@ -39,6 +39,7 @@ This event table contains nesting variables:
  
 ```{r}
 library(dplyr)
+
 et(amountUnits="mg", timeUnits="hours") %>%
   et(amt=10000, addl=9,ii=12,cmt="depot") %>%
   et(time=120, amt=2000, addl=4, ii=14, cmt="depot") %>%

@@ -113,6 +113,7 @@
     if (any(is.na(.theta))) {
       stop("names in 'theta' do not match names in 'thetaMat' column names")
     }
+    .rxModels[[".theta"]] <- thetaMat
     return(as.data.frame(rxRmvn(nStud, .theta, thetaMat,
                                 lower=thetaLower, upper=thetaUpper,
                                 ncores=nCoresRV)))
@@ -224,7 +225,6 @@
       .et2 <- .et2[, !(names(.et2) %in% names(.et)), drop=FALSE]
       .et <- cbind(.et, .et2)
     }
-    .rxModels[[".theta"]] <- .et
     ## Now simulate the number of subjects for each study
     .ind <- rxRmvn(control$nSub, sigma=.below,
                    lower=.en$belowLower(),
