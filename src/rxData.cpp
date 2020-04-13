@@ -2630,10 +2630,6 @@ static inline void rxSolve_simulate(const RObject &obj,
     // The parameters are in the same format as they would be if they were
     // specified as part of the original dataset.
   }
-  // .sigma could be reassigned in an update, so check outside simulation function.
-  if (_rxModels.exists(".sigma")){
-    rxSolveDat->sigmaN= as<CharacterVector>((as<List>((as<NumericMatrix>(_rxModels[".sigma"])).attr("dimnames")))[1]);
-  }
 }
 
 // This will setup the parNumeric, parDf, or parMat for solving. It
@@ -3859,21 +3855,20 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       _rxModels[".nestObj"] = R_NilValue;
     }
     if (method == 3){
-      rxSolveDat->mv = rxModelVars(obj);
-      rxSolveFreeObj = obj;
+      rxSolveDat->mv = rxModelVars(object);
+      rxSolveFreeObj = object;
       List indLin = rxSolveDat->mv["indLin"];
       if (indLin.size() == 0){
 	Function RxODE = getRxFn("RxODE");
-	object = RxODE(obj, _["indLin"]=true);
+	object = RxODE(object, _["indLin"]=true);
 	rxSolveDat->mv = rxModelVars(object);
-	rxSolveFreeObj = obj;
-      } else {
-	object =obj;
-      }
+	rxSolveFreeObj = object;
+      } // else {
+      // 	object =obj;
+      // }
     } else {
-      object =obj;
       rxSolveDat->mv = rxModelVars(object);
-      rxSolveFreeObj = obj;
+      rxSolveFreeObj = object;
     }
   }
   if (rxSolveDat->isRxSolve || rxSolveDat->isEnvironment){
@@ -4044,7 +4039,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	}
       }
     }
-    
     op->H0 = hini;
     op->HMIN = hmin;
     op->mxstep = maxsteps;
@@ -4117,6 +4111,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       rxSolve_simulate(obj, rxControl, specParams, extraArgs,
 		       params, ev1, inits, rxSolveDat);
     }
+    // .sigma could be reassigned in an update, so check outside simulation function.
+    if (_rxModels.exists(".sigma")){
+      rxSolveDat->sigmaN= as<CharacterVector>((as<List>((as<NumericMatrix>(_rxModels[".sigma"])).attr("dimnames")))[1]);
+    }  
 #ifdef rxSolveT
     REprintf("Time8: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();

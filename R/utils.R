@@ -342,10 +342,14 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
   .ret <- .Call(`_RxODE_cvPost_`, nu, omega, n, omegaIsChol, returnChol, .type, .xform)
   ## Add dimnames
   if (!is.null(.dimnames)) {
-    .ret <- lapply(.ret, function(.o) {
-      dimnames(.o) <- .dimnames
-      return(.o)
-    })
+    if (inherits(.ret, "matrix")) {
+      dimnames(.ret) <- .dimnames
+    } else if (inherits(.ret, "list")) {
+      .ret <- lapply(.ret, function(.o) {
+        dimnames(.o) <- .dimnames
+        return(.o)
+      })
+    }
   }
   return(.ret)
 }

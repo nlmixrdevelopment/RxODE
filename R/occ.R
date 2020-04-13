@@ -125,6 +125,7 @@
   
   ## In common between nested and non-nested models is the expanded
   ## population matrix.
+  events <- as.data.frame(events)
   .et <- .expandTheta(theta=params,
                       thetaMat=control$thetaMat,
                       thetaLower=control$thetaLower,
@@ -163,8 +164,8 @@
     if (length(.w) != 1) {
       stop("malformed 'id' column in event data when expanding nested levels and parameters")
     }
-    .id <- events[, .w];
-    .ni <- .nestingInfo(id=.id, omega=control$omega, data=events)
+    .id <- events[, .w, drop=TRUE]
+    .ni <- .nestingInfo(id=.id, omega=.omega, data=events)
     .nid <- length(levels(.ni$id))
     if (control$nSub == 1) {
       control$nSub <- .nid
@@ -223,24 +224,25 @@
       .et2 <- .et2[, !(names(.et2) %in% names(.et)), drop=FALSE]
       .et <- cbind(.et, .et2)
     }
-    .rxModels[".theta"] <- .et
+    .rxModels[[".theta"]] <- .et
     ## Now simulate the number of subjects for each study
     .ind <- rxRmvn(control$nSub, sigma=.below,
                    lower=.en$belowLower(),
                    upper=.en$belowUpper(),
                    ncores=control$nCoresRV)
     if (rxIs(.below, "list")) {
-      .rxModels[".omegaL"] <- .below
+      .rxModels[[".omegaL"]] <- .below
     }
     ## object, params, events, control
     .ni2 <- .ni[names(.ni) != "data"]
     .ni2 <- .ni2[names(.ni2) != "id"]
-    .rxModels[".nestObj"] <- .en$mod
-    .rxModels[".nestEvents"] <- .ni$data
-    .rxModels[".nestInfo"] <- .ni2
+    .rxModels[[".nestObj"]] <- .en$mod
+    .rxModels[[".nestEvents"]] <- .ni$data
+    .rxModels[[".nestInfo"]] <- .ni2
 
     ## Now get sigma information
-    if (inherits(control$sigma,"matrix")) {
+    .sigma <- control$sigma
+    if (inherits(.sigma,"matrix")) {
       .names <- dimnames(.sigma)[[2]]
       if (is.null(.names)) {
         stop("'sigma' must be named for simulations")
@@ -271,7 +273,7 @@
       .sigmaList <- cvPost(.sigma$nu$obs, omega=as.matrix(.sigma), n=.n,
                            type=.methodS,
                            diagXformType=control$sigmaXform)
-      .rxModels[".sigmaL"] <- .sigmaList
+      .rxModels[[".sigmaL"]] <- .sigmaList
       .nobs <- length(.ni$id)
       if (.nid == 1L) {
         .n2 <- .nobs*control$nSub
@@ -279,18 +281,19 @@
         .n2 <- .nobs
       }
       .nid <- length(levels(.ni$id))
-      .rxModels[".sigma"] <- rxRmvn(.n2, sigma=.sigmaList,
+      .rxModels[[".sigma"]] <- rxRmvn(.n2, sigma=.sigmaList,
                                     lower=.sigma$lower$obs, upper=.sigma$upper$obs,
                                     ncores=control$nCoresRV)
     }
-    return(.Call(`_cbindOme`, .et, .ind,
-                             as.integer(control$nSub),
-                             PACKAGE='RxODE'))
+    .ret <- .Call(`_cbindOme`, .et, .ind,
+                  as.integer(control$nSub),
+                  PACKAGE='RxODE')
+    return(.ret)
   } else {
-    .rxModels[".nestObj"] <- object
-    .rxModels[".nestEvents"] <- events
-    .rxModels[".theta"] <- .et
-    .rxModels[".nestInfo"] <- NULL
+    .rxModels[[".nestObj"]] <- object
+    .rxModels[[".nestEvents"]] <- events
+    .rxModels[[".theta"]] <- .et
+    .rxModels[[".nestInfo"]] <- NULL
     return(.et)
   }
 }
