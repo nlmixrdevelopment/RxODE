@@ -62,6 +62,27 @@ RObject rxLock(RObject obj);
 inline bool rxIsNull(RObject obj) {
   return obj.sexp_type() == 0;
 }
+inline bool rxIsNum(RObject obj) {
+  if (obj.sexp_type() == REALSXP) {
+    return (!obj.hasAttribute("dim"));
+  }
+  return false;
+}
+inline bool rxIsInt(RObject obj) {
+  if (obj.sexp_type() == 13) {
+    return (!obj.hasAttribute("dim"));
+  }
+  return false;
+}
+
+inline bool rxIsNumInt(RObject obj) {
+  int type = obj.sexp_type();
+  if (type == REALSXP || type == 13) {
+    return (!obj.hasAttribute("dim"));
+  }
+  return false;
+}
+
 
 RObject setupOnlyObj = R_NilValue;
 
@@ -1122,7 +1143,7 @@ SEXP rxInits(const RObject &obj,
       stop(_("only one estimate per named list item; use 'list(x=1)' instead of 'list(x=1:2)'"));
     }
     return wrap(rxInits0(obj, vec2, req, defaultValue, noerror,noini));
-  } else if (rxIs(vec, "integer") || rxIs(vec, "numeric")){
+  } else if (rxIsNumInt(vec)){
     return wrap(rxInits0(obj, as<NumericVector>(vec), req, defaultValue, noerror,noini));
   } else {
     rxSolveFree();
@@ -1220,7 +1241,7 @@ NumericVector rxSetupScale(const RObject &obj,
 
 NumericVector rxSetupParamsThetaEtaThetaN(const RObject &theta = R_NilValue, std::string thetaTxt = "theta"){
   NumericVector thetaN;
-  if (rxIs(theta,"numeric") || rxIs(theta,"integer")){
+  if (rxIsNumInt(theta)){
     thetaN = as<NumericVector>(theta);
   } else if (rxIs(theta, "matrix")){
     NumericMatrix thetaM = as<NumericMatrix>(theta);
@@ -1293,10 +1314,10 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
     } else {
       parMat = as<NumericMatrix>(params);
     }
-  } else if (rxIs(params, "numeric") || rxIs(params, "integer")){
+  } else if (rxIsNumInt(params)){
     // Create the matrix
     NumericVector thetaN;
-    if (rxIs(theta,"numeric") || rxIs(theta,"integer")){
+    if (rxIsNumInt(theta)){
       thetaN = as<NumericVector>(theta);
     } else if (rxIs(theta, "matrix")){
       NumericMatrix thetaM = as<NumericMatrix>(theta);
@@ -1320,7 +1341,7 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
     }
     // Now eta
     NumericVector etaN;
-    if (rxIs(eta,"numeric") || rxIs(eta,"integer")){
+    if (rxIsNumInt(eta)){
       etaN = as<NumericVector>(eta);
     } else if (rxIs(eta, "matrix")){
       NumericMatrix etaM = as<NumericMatrix>(eta);
@@ -2033,8 +2054,7 @@ void updateSolveEnvPost(Environment e){
     IntegerVector ppos = e[".par.pos"];
     bool IsIni = e[".par.pos.ini"];
     CharacterVector idLevels = as<CharacterVector>(e[".idLevels"]);
-    if (rxIs(parso, "numeric") || rxIs(parso, "integer") ||
-	rxIsNull(parso)){
+    if (rxIsNumInt(parso) || rxIsNull(parso)){
       double *tmp=(double*)calloc(ppos.size(),sizeof(double));
       if (tmp == NULL){
 	rxSolveFree();
@@ -2398,8 +2418,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
       double from = 0.0;
       NumericVector tmp;
       IntegerVector tmpI;
-      if (rxIs(rxControl["from"], "integer") ||
-	  rxIs(rxControl["from"], "numeric")){
+      if (rxIsNumInt(rxControl["from"])){
 	tmp = as<NumericVector>(rxControl["from"]);
 	if (tmp.size() != 1){
 	  rxSolveFree();
@@ -2407,7 +2426,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
 	}
 	from = tmp[0];
       }
-      if (rxIs(rxControl["to"], "integer") || rxIs(rxControl["to"], "numeric")){
+      if (rxIsNumInt(rxControl["to"])){
 	tmp = as<NumericVector>(rxControl["to"]);
 	if (tmp.size() != 1){
 	  rxSolveFree();
@@ -2417,7 +2436,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
       } else {
 	to = (max(as<NumericVector>(ev1a["TIME"]))+24);
       }
-      if (rxIs(rxControl["by"], "integer") || rxIs(rxControl["by"], "numeric")){
+      if (rxIsNumInt(rxControl["by"])){
 	tmp = as<NumericVector>(rxControl["by"]);
 	if (tmp.size() != 1){
 	  rxSolveFree();
@@ -2425,7 +2444,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
 	}
 	by = tmp[0];
       }
-      if (rxIs(rxControl["length.out"], "integer") || rxIs(rxControl["length.out"], "numeric")){
+      if (rxIsNumInt(rxControl["length.out"])){
 	tmpI = as<IntegerVector>(rxControl["length.out"]);
 	if (tmpI.size() != 1){
 	  rxSolveFree();
@@ -2535,7 +2554,7 @@ static inline void rxSolve_simulate(const RObject &obj,
 
   if (!thetaMat.isNull() || !rxIsNull(omega) || !rxIsNull(sigma)){
     // Simulated Variable3
-    if (!rxIs(rxSolveDat->par1, "numeric")){
+    if (!rxIsNum(rxSolveDat->par1)){
       rxSolveFree();
       stop(_("when specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a 'data.frame'/'matrix'."));
     }
@@ -2653,7 +2672,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
     rxSolveDat->usePar1=true;
     rxSolveDat->par1 = rxSetupParamsThetaEta(rxSolveDat->par1, theta, eta);
   }
-  if (rxIs(rxSolveDat->par1, "numeric") || rxIs(rxSolveDat->par1, "integer")){
+  if (rxIsNumInt(rxSolveDat->par1)){
     rxSolveDat->parNumeric = as<NumericVector>(rxSolveDat->par1);
     if (rxSolveDat->parNumeric.hasAttribute("names")){
       rxSolveDat->nmP = rxSolveDat->parNumeric.names();
@@ -3496,7 +3515,7 @@ int getNRows(RObject obj){
       bool rn = obj.hasAttribute("row.names");
       if (rn){
 	RObject ret0 = obj.attr("row.names");
-	if (rxIs(ret0, "integer")){
+	if (rxIsInt(ret0)){
 	  IntegerVector ret1 = IntegerVector(ret0);
 	  if (ret1.size() == 2 && IntegerVector::is_na(ret1[0])){
 	    return(ret1[1]);
@@ -4514,7 +4533,7 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	}
       }
     } else {
-      if (rxIs(arg, "integer") || rxIs(arg, "numeric")){
+      if (rxIsNumInt(arg)){
 	int iarg = as<int>(arg);
 	if (iarg <= lst.size()){
 	  return lst[iarg-1];
@@ -5114,7 +5133,7 @@ RObject rxUnloadAll_(){
   for (int i = vars.size(); i--;){
     std::string varC = as<std::string>(vars[i]);
     if (varC.find(exclude) == std::string::npos){
-      if (rxIs(_rxModels[varC],"integer")){
+      if (rxIsInt(_rxModels[varC])){
 	int val = as<int>(_rxModels[varC]);
 	if (val > 1){
 	} else if (val == 0 && rxUnload_){
