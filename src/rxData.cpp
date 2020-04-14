@@ -3725,16 +3725,34 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
 				    const RObject &params, const RObject &events,
 				    const RObject &inits,
 				    rxSolve_t* rxSolveDat){
+#ifdef rxSolveT
+  clock_t _lastT0 = clock();
+#endif
+
   rxSolveSaveRxSolve(rxSolveDat);
   rx_solve* rx = getRxSolve_();
   par_solve(rx);
+#ifdef rxSolveT
+    REprintf("  Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    _lastT0 = clock();
+#endif// rxSolveT
+
   List dat = rxSolve_df(obj, rxControl, specParams, extraArgs,
 			params, events, inits, rxSolveDat);
+
+#ifdef rxSolveT
+    REprintf("  Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    _lastT0 = clock();
+#endif// rxSolveT
   rxUnlock(obj);
   if (rx->matrix == 0 && rxDropB){
     rx->matrix=2;
     warning(_("dropped key column, returning data.frame instead of special solved data.frame"));
   }
+#ifdef rxSolveT
+    REprintf("  Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    _lastT0 = clock();
+#endif// rxSolveT
   if (rx->matrix){
     // rxSolveFree();
     if(_rxModels.exists(".sigma")){
@@ -3752,6 +3770,10 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
     if (rx->matrix == 2){
       dat.attr("class") = "data.frame";
       // Free(op->indLin);
+#ifdef rxSolveT
+    REprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    _lastT0 = clock();
+#endif
       return dat;
     } else {
       NumericMatrix tmpM(rx->nr, dat.size());
@@ -3760,6 +3782,10 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
       }
       tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
       // Free(op->indLin);
+#ifdef rxSolveT
+    REprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    _lastT0 = clock();
+#endif
       return tmpM;
     }
   } else {
@@ -3772,6 +3798,10 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
     // eGparPos
     dat.attr("class") = cls;
     // Free(op->indLin);
+#ifdef rxSolveT
+    REprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    _lastT0 = clock();
+#endif
     return(dat);
   }    
 }

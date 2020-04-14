@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "../inst/include/RxODE.h"
 #include "timsort.h"
+//#define rxSolveT 1
 #ifdef rxSortStd
 #define SORT std::sort
 #else
@@ -333,7 +334,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	     bool dropUnits=false, bool allTimeVar=false,
 	     bool keepDosingOnly=false, Nullable<LogicalVector> combineDvid=R_NilValue,
 	     CharacterVector keep = CharacterVector(0)){
-  // clock_t _lastT0 = clock();
+#ifdef rxSolveT
+   clock_t _lastT0 = clock();
+#endif
   Environment rx = RxODEenv();
   bool combineDvidB = false;
   Environment b=Rcpp::Environment::base_namespace();
@@ -384,8 +387,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
     }
   }
-  // REprintf("Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
+#ifdef rxSolveT
+   REprintf("  Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+   _lastT0 = clock();
+#endif
   // Translates events + model into translated events
   CharacterVector dName = as<CharacterVector>(inData.attr("names"));
   CharacterVector lName = clone(dName);
@@ -464,8 +469,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
     }
   }
-  // REprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
+#ifdef rxSolveT
+  REprintf("  Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif
   if ((int)(keepCol.size())!=(int)keep.size()){
     std::string wKeep = "Cannot keep missing columns:";
     for (j = 0; j < keep.size(); j++){
@@ -603,8 +610,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   std::vector<int> cens;
   cens.reserve(resSize);
 
-  // REprintf("Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
+#ifdef rxSolveT
+  REprintf("  Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif
   
   // save units information
   bool addTimeUnits = false;
@@ -791,9 +800,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   bool swapDvLimit=false;
   // cens = NA_INTEGER with LIMIT is M2
   bool doWarnNeg=false;
-  
-  // REprintf("Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
+#ifdef rxSolveT
+  REprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif
   for (int i = 0; i < inTime.size(); i++){
     if (idCol == -1) cid = 1;
     else cid = inId[i];
@@ -804,8 +814,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     if (ccens != 0 && ccens != 1 &&
 	ccens != -1 && !IntegerVector::is_na(ccens))
       stop(_("censoring column can only be -1, 0 or 1"));
-    if (ISNA(cdv) && ccens != 0){
-      if (!IntegerVector::is_na(ccens)){
+    if (ISNA(cdv) && ccens != 0) {
+      if (!IntegerVector::is_na(ccens)) {
 	warnCensNA=true;
 	ccens=0;
       }
@@ -1373,10 +1383,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
     }
   }
-  
-  // REprintf("Time5: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
-  
+#ifdef rxSolveT
+  REprintf("  Time5: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif  
   bool redoId=false;
   if (!keepDosingOnly){
     if (obsId.size() != allId.size()){
@@ -1391,10 +1401,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       redoId=true;
     }
   }
-
-  // REprintf("Time6: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
-  
+#ifdef rxSolveT
+  REprintf("  Time6: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif
   if (zeroId.size() != allId.size()){
     std::string idWarn = "IDs without zero-time start at the first observed time:";
     for (j = allId.size(); j--;){
@@ -1428,8 +1438,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     if (!_ini0) warning(idWarn.c_str());
   }
   if (warnCensNA) warning(_("censoring missing 'DV' values do not make sense"));
-  // REprintf("Time7: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
+#ifdef rxSolveT  
+  REprintf("  Time7: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif
   if (useRadix_){
     IntegerVector ivId = wrap(id);
     NumericVector nvTime = wrap(time);
@@ -1515,8 +1527,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
     }
   }
-  // REprintf("Time8: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
+#ifdef rxSolveT
+  REprintf("  Time8: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif
   
   
   if (idxO.size()==0) stop(_("empty data"));
@@ -1569,8 +1583,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   List lst = List(baseSize+censAdd+limitAdd+covCol.size());
   std::vector<bool> sub0(baseSize+censAdd+limitAdd+covCol.size(), true);
   CharacterVector nme(baseSize+censAdd+limitAdd+covCol.size());
-  // REprintf("Time9: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
+#ifdef rxSolveT
+  REprintf("  Time9: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif
   
   lst[0] = IntegerVector(idxO.size()-rmAmt);
   nme[0] = "ID";
@@ -1639,9 +1655,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     keepL[j] = NumericVector(idxO.size()-rmAmt);
     keepN[j] = dName[keepCol[j]];
   }
-
-  // REprintf("Time10: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
+#ifdef rxSolveT
+  REprintf("  Time10: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif
 
   IntegerVector ivTmp;
   lastId = NA_INTEGER;
@@ -1759,9 +1776,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
     }
   }
-
-  // REprintf("Time11: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
+#ifdef rxSolveT
+  REprintf("  Time11: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif
   
   if (!dropUnits && addTimeUnits){
     NumericVector tmpN = as<NumericVector>(lst[1]);
@@ -1805,8 +1823,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   if (covCol.size() == 0 && !rxIs(lst1F[0], "integer") && !redoId){
     stop(_("corrupted event table"));
   }
-  // REprintf("Time12: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
+#ifdef rxSolveT
+  REprintf("  Time12: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif
   IntegerVector tmp = lst1F[0];
   CharacterVector idLvl2;
   if (redoId){
@@ -1820,8 +1840,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     lst1F[0] = tmp;
   }
 
-  // REprintf("Time13: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
+#ifdef rxSolveT
+  REprintf("  Time13: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif
   
   lst1F.attr("names") = nme1F;
   lst1F.attr("class") = CharacterVector::create("data.frame");
@@ -1891,8 +1913,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
 
-  // REprintf("Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
+#ifdef rxSolveT
+  REprintf("  Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif
   
   lstF.attr("names") = nmeF;
   lstF.attr("class") = cls;
@@ -1903,7 +1927,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       warnedNeg=true;
     } 
   }
-  // REprintf("Time15: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-  // _lastT0 = clock();
+#ifdef rxSolveT
+  REprintf("  Time15: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
+#endif
   return lstF;
 }
