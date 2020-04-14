@@ -59,6 +59,10 @@ RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false, b
 RObject rxUnlock(RObject obj);
 RObject rxLock(RObject obj);
 
+inline bool rxIsNull(RObject obj) {
+  return obj.sexp_type() == 0;
+}
+
 RObject setupOnlyObj = R_NilValue;
 
 int rxcEvid  = -1;
@@ -573,7 +577,7 @@ List rxModelVars_RxODE(const RObject &obj){
   List rxDll = as<List>(e["rxDll"]);
   List ret = as<List>(rxDll["modVars"]);
   RObject pkgR = e["package"];
-  if (rxIs(pkgR,"NULL")){
+  if (rxIsNull(pkgR)){
     return ret;
   } else {
     bool isV;
@@ -821,7 +825,7 @@ List rxModelVars_(const RObject &obj){
     return rxModelVars_character(obj);
   } else if (rxIs(obj,"list")){
     return rxModelVars_list(obj);
-  } else if (rxIs(obj,"NULL")) {
+  } else if (rxIsNull(obj)) {
     rxSolveFree();
     stop(_("a NULL object does not have any RxODE model variables"));
   } else {
@@ -1082,7 +1086,7 @@ SEXP rxInits(const RObject &obj,
 	     bool noini=false,
 	     bool rxLines=false){
   if (rxLines){
-    if (rxIs(obj, "NULL")){
+    if (rxIsNull(obj)){
       CharacterVector ret = "";
       return ret;
     }
@@ -1606,7 +1610,7 @@ void rxSimOmega(bool &simOmega,
 		int nStud = 1,
 		int nSub = 1){
   int j;
-  if (rxIs(omega, "NULL")){
+  if (rxIsNull(omega)){
   } else if (rxIs(omega,"character")){
     // Create a matrix in order of the names.
     omegaN = as<CharacterVector>(omega);
@@ -1787,7 +1791,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   NumericMatrix omegaMC;
   List omegaList;
 
-  if (nSub > 1 && rxIs(omega, "NULL")){
+  if (nSub > 1 && rxIsNull(omega)){
     // rxSolveFree();
     warning(_("multi-subject simulation without without 'omega'"));
   }    
@@ -2030,7 +2034,7 @@ void updateSolveEnvPost(Environment e){
     bool IsIni = e[".par.pos.ini"];
     CharacterVector idLevels = as<CharacterVector>(e[".idLevels"]);
     if (rxIs(parso, "numeric") || rxIs(parso, "integer") ||
-	rxIs(parso, "NULL")){
+	rxIsNull(parso)){
       double *tmp=(double*)calloc(ppos.size(),sizeof(double));
       if (tmp == NULL){
 	rxSolveFree();
@@ -2039,7 +2043,7 @@ void updateSolveEnvPost(Environment e){
       // NumericVector   prs(ppos.size()-nrm);
       // CharacterVector prsn(ppos.size()-nrm+1);
       NumericVector parNumeric;
-      if (!rxIs(parso, "NULL")){
+      if (!rxIsNull(parso)){
         parNumeric= as<NumericVector>(parso);
       }
       unsigned int i, j=0;
@@ -2187,7 +2191,7 @@ extern "C" void rxFreeLast();
 //' @export
 // [[Rcpp::export]]
 LogicalVector rxSolveFree(){
-  if (!rxIs(rxSolveFreeObj, "NULL")) {
+  if (!rxIsNull(rxSolveFreeObj)) {
     rxUnlock(rxSolveFreeObj);
     rxSolveFreeObj=R_NilValue;
   }
@@ -2529,7 +2533,7 @@ static inline void rxSolve_simulate(const RObject &obj,
   
   op->ncoresRV = nCoresRV;
 
-  if (!thetaMat.isNull() || !rxIs(omega, "NULL") || !rxIs(sigma, "NULL")){
+  if (!thetaMat.isNull() || !rxIsNull(omega) || !rxIsNull(sigma)){
     // Simulated Variable3
     if (!rxIs(rxSolveDat->par1, "numeric")){
       rxSolveFree();
@@ -2660,7 +2664,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
       stop(_("if parameters are not named, they must match the order and size of the parameters in the model"));
     }
     RObject iCov = rxControl["iCov"];
-    if (!rxIs(iCov, "NULL")){
+    if (!rxIsNull(iCov)){
       // Create a data frame
       Function sortId = getRxFn(".sortId");
       iCov = clone(sortId(iCov, rxSolveDat->idLevels, "iCov", rxSolveDat->warnIdSort));
@@ -2725,7 +2729,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
       rxSolveDat->usePar1=true;
     }
     RObject iCov = rxControl["iCov"];
-    if (!rxIs(iCov, "NULL")){
+    if (!rxIsNull(iCov)){
       Function sortId = getRxFn(".sortId");
       iCov = clone(sortId(iCov, rxSolveDat->idLevels, "iCov", rxSolveDat->warnIdSort));
       List lstT=as<List>(iCov);
@@ -2779,7 +2783,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
     rxSolveDat->nPopPar = rxSolveDat->parDf.nrows();
   } else if (rxIs(rxSolveDat->par1, "matrix")){
     RObject iCov = rxControl["iCov"];
-    if (!rxIs(iCov, "NULL")){
+    if (!rxIsNull(iCov)){
       rxSolveFree();
       stop(_("matrix parameters with 'iCov' 'data.frame' is not supported"));
     }
@@ -3362,7 +3366,7 @@ static inline List rxSolve_df(const RObject &obj,
   if (doTBS) rx->matrix=2;
   if (rx->matrix == 4 || rx->matrix == 5) rx->matrix=2;
   List dat = RxODE_df(doDose, doTBS);
-  if (!rxIs(rxControl["drop"], "NULL")) {
+  if (!rxIsNull(rxControl["drop"])) {
     dat = rxDrop(as<CharacterVector>(rxControl["drop"]), dat, as<bool>(rxControl["warnDrop"]));
   }
   if (rxSolveDat->idFactor && rxSolveDat->labelID && rx->nsub > 1){
@@ -3574,8 +3578,8 @@ static inline bool rxSolve_loaded(const RObject &trueEvents,
     //  - Check to make sure the models are the same.
     //  - Check oldModel = newModel
     //  - Options are the same
-    rxIs(iCov,"NULL") && rxIs(omega, "NULL") &&
-    rxIs(sigma, "NULL") && rxIs(thetaMat, "NULL") &&
+    rxIs(iCov,"NULL") && rxIsNull(omega) &&
+    rxIsNull(sigma) && rxIsNull(thetaMat) &&
     // the #rows of input should be equal.
     getNRows(trueParams) == as<int>(_rxModels[".lastNrow"]) &&
     R_compute_identical(as<SEXP>(_rxModels[".lastEvents"]),
@@ -3672,7 +3676,7 @@ static inline void rxSolve_updateParams(RObject &trueParams,
     rxSolveDat->parMat = as<NumericMatrix>(rxSolveDat->par1);
     rxSolveDat->nPopPar = rxSolveDat->parMat.nrow();
     rxSolveDat->parType = 3;
-  } else if (!rxIs(rxSolveDat->par1, "NULL")) {
+  } else if (!rxIsNull(rxSolveDat->par1)) {
     rxSolveDat->parNumeric = rxSolveDat->par1;
     // Convert NumericVector to a matrix
     
@@ -3827,6 +3831,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     stop(_("cannot solve without event information"));
   }
   getRxModels();
+  bool didNesting=false;
   if (rxSolveDat->updateObject && !rxSolveDat->isRxSolve && !rxSolveDat->isEnvironment){
     if (rxIs(rxCurObj, "rxSolve")){
       object = rxCurObj;
@@ -3837,10 +3842,11 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     }
   } else {
     object = obj;
+    
     // Update RxODE model (if needed) and simulate nesting
     // if (!(as<bool>(rxControl["mvnfast"])) &&
-    // 	(!rxIs(rxControl["thetaMat"], "NULL") ||
-    // 	 !rxIs(rxControl["omega"], "NULL"))) {
+    // 	(!rxIsNull(rxControl["thetaMat"]) ||
+    // 	 !rxIsNull(rxControl["omega"]))) {
     //   // Update model, events and parameters based on nesting
     //   // trueEvents = params;
     //   // trueParams = events;
@@ -3852,7 +3858,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     //   object = _rxModels[".nestObj"];
     //   trueEvents = _rxModels[".nestEvents"];
     // } else {
-      _rxModels[".nestObj"] = R_NilValue;
+    
       object = obj;
     // }
     if (method == 3){
@@ -3901,13 +3907,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _lastT0 = clock();
 #endif// rxSolveT
     if (setupOnly == 0 &&
-	rxIs(setupOnlyObj, "NULL") &&
+	rxIsNull(setupOnlyObj) &&
 	rxSolve_loaded(trueEvents, trueParams, rxControl, as<SEXP>(rxSolveDat->mv), inits)){
       rxSolveDat = &rxSolveDatLast;
       rxSolve_updateParams(trueParams,
 			   object, rxControl, specParams, extraArgs, params,
 			   trueEvents, inits, rxSolveDat);
-      if (_rxModels.exists(".ws") && !rxIs(_rxModels[".ws"], "NULL")){
+      if (_rxModels.exists(".ws") && !rxIsNull(_rxModels[".ws"])){
 	List ws = _rxModels[".ws"];
 	for (int iii = 0; iii < ws.size(); ++iii){
 	  warning(as<std::string>(ws[iii]));
@@ -3972,7 +3978,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rxSolveDat->swappedEvents=swappedEvents;
     ev1 = trueEvents;
     rxSolveDat->par1 = trueParams;
-    if (rxIs(rxSolveDat->par1, "NULL")){
+    if (rxIsNull(rxSolveDat->par1)){
       rxSolveDat->par1=rxInits(obj);
       rxSolveDat->fromIni=true;
     }
@@ -4015,7 +4021,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     List indLin = rxSolveDat->mv["indLin"];
     op->doIndLin=0;
     if (indLin.size() == 4){
-      int me = rxIs(indLin[1], "NULL");
+      int me = rxIsNull(indLin[1]);
       if (as<bool>(indLin[2])){
 	// Inductive linearization
 	IntegerVector indLinItems = as<IntegerVector>(indLin[3]);
@@ -4107,7 +4113,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time7: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
-    if (rxIs(_rxModels[".nestObj"], "NULL")) {
+    if (!didNesting) {
       rxSolve_simulate(object, rxControl, specParams, extraArgs,
 		       params, ev1, inits, rxSolveDat);
     }
@@ -4266,7 +4272,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       setupOnlyObj = obj;
       return as<SEXP>(LogicalVector::create(true));
     }
-    if (!rxIs(setupOnlyObj, "NULL")) {
+    if (!rxIsNull(setupOnlyObj)) {
       rxUnlock(setupOnlyObj);
       setupOnlyObj = R_NilValue;
     }
@@ -4503,7 +4509,7 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
       }
       if (rxIs(obj, "rxSolve")){
 	RObject ret0 = rxSolveGet_rxSolve(obj, sarg, exact, lst);
-	if (!rxIs(ret0, "NULL")){
+	if (!rxIsNull(ret0)){
 	  return ret0;
 	}
       }
@@ -4567,7 +4573,7 @@ RObject rxSolveUpdate(RObject obj,
 	  CharacterVector classattr = obj.attr("class");
 	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
           updateSolveEnvPost(e);
-          if (rxIs(e[".params.dat"], "NULL")) {
+          if (rxIsNull(e[".params.dat"])) {
 	    rxSolveFree();
 	    stop(_("cannot update nonexistent parameters"));
 	  }
