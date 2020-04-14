@@ -75,9 +75,10 @@
 ##' @inheritParams rxSolve
 ##'
 ##' @noRd
-.expandTheta <- function(theta, thetaMat=NULL,
+.expandTheta <- function(theta=NULL, thetaMat=NULL,
                          thetaLower= -Inf, thetaUpper=Inf, nStud=1L,
                          nCoresRV=1L) {
+  if (is.null(theta)) return(NULL)
   checkmate::assertNumeric(theta, finite=TRUE, any.missing=FALSE,
                            min.len=1, names="strict")
   if (inherits(nStud, "numeric")) nStud <- as.integer(nStud)

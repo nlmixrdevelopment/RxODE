@@ -3838,23 +3838,23 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   } else {
     object = obj;
     // Update RxODE model (if needed) and simulate nesting
-    if (!(as<bool>(rxControl["mvnfast"])) &&
-	(!rxIs(rxControl["thetaMat"], "NULL") ||
-	 !rxIs(rxControl["omega"], "NULL"))) {
-      // Update model, events and parameters based on nesting
-      // trueEvents = params;
-      // trueParams = events;
-      Function expandPars = getRxFn(".expandPars");
-      trueParams = expandPars(_["object"]=object,
-			      _["params"]=trueParams,
-			      _["events"]=trueEvents,
-			      _["control"]=rxControl);
-      object = _rxModels[".nestObj"];
-      trueEvents = _rxModels[".nestEvents"];
-    } else {
+    // if (!(as<bool>(rxControl["mvnfast"])) &&
+    // 	(!rxIs(rxControl["thetaMat"], "NULL") ||
+    // 	 !rxIs(rxControl["omega"], "NULL"))) {
+    //   // Update model, events and parameters based on nesting
+    //   // trueEvents = params;
+    //   // trueParams = events;
+    //   Function expandPars = getRxFn(".expandPars");
+    //   trueParams = expandPars(_["object"]=object,
+    // 			      _["params"]=trueParams,
+    // 			      _["events"]=trueEvents,
+    // 			      _["control"]=rxControl);
+    //   object = _rxModels[".nestObj"];
+    //   trueEvents = _rxModels[".nestEvents"];
+    // } else {
       _rxModels[".nestObj"] = R_NilValue;
       object = obj;
-    }
+    // }
     if (method == 3){
       rxSolveDat->mv = rxModelVars(object);
       rxSolveFreeObj = object;
