@@ -102,19 +102,19 @@ BEGIN_RCPP
 END_RCPP
 }
 // cvPost_
-RObject cvPost_(double nu, RObject omega, int n, bool omegaIsChol, bool returnChol, int type, int diagXformType);
-RcppExport SEXP _RxODE_cvPost_(SEXP nuSEXP, SEXP omegaSEXP, SEXP nSEXP, SEXP omegaIsCholSEXP, SEXP returnCholSEXP, SEXP typeSEXP, SEXP diagXformTypeSEXP) {
+RObject cvPost_(SEXP nuS, RObject omega, int n, bool omegaIsChol, bool returnChol, int type, int diagXformType);
+RcppExport SEXP _RxODE_cvPost_(SEXP nuSSEXP, SEXP omegaSEXP, SEXP nSEXP, SEXP omegaIsCholSEXP, SEXP returnCholSEXP, SEXP typeSEXP, SEXP diagXformTypeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type nuS(nuSSEXP);
     Rcpp::traits::input_parameter< RObject >::type omega(omegaSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< bool >::type omegaIsChol(omegaIsCholSEXP);
     Rcpp::traits::input_parameter< bool >::type returnChol(returnCholSEXP);
     Rcpp::traits::input_parameter< int >::type type(typeSEXP);
     Rcpp::traits::input_parameter< int >::type diagXformType(diagXformTypeSEXP);
-    rcpp_result_gen = Rcpp::wrap(cvPost_(nu, omega, n, omegaIsChol, returnChol, type, diagXformType));
+    rcpp_result_gen = Rcpp::wrap(cvPost_(nuS, omega, n, omegaIsChol, returnChol, type, diagXformType));
     return rcpp_result_gen;
 END_RCPP
 }

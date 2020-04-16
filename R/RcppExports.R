@@ -60,8 +60,8 @@ rcvC1 <- function(sdEst, nu = 3.0, diagXformType = 1L, rType = 1L, returnChol = 
     .Call(`_RxODE_rcvC1`, sdEst, nu, diagXformType, rType, returnChol)
 }
 
-cvPost_ <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE, type = 1L, diagXformType = 1L) {
-    .Call(`_RxODE_cvPost_`, nu, omega, n, omegaIsChol, returnChol, type, diagXformType)
+cvPost_ <- function(nuS, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE, type = 1L, diagXformType = 1L) {
+    .Call(`_RxODE_cvPost_`, nuS, omega, n, omegaIsChol, returnChol, type, diagXformType)
 }
 
 etDollarNames <- function(obj) {
@@ -560,6 +560,7 @@ rxAllowUnload <- function(allow) {
     .Call(`_RxODE_rxAllowUnload`, allow)
 }
 
+#' @export
 rxUnloadAll_ <- function() {
     .Call(`_RxODE_rxUnloadAll_`)
 }

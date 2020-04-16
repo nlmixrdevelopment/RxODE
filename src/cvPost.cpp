@@ -285,15 +285,37 @@ arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
 
 bool gotLotriMat=false;
 
+double getReal1(SEXP nuS) {
+  double nu=NA_REAL;
+  if (Rf_isReal(nuS)) {
+    if (Rf_length(nuS) == 1){
+      nu = REAL(nuS)[0];
+    } 
+  } else if (Rf_isInteger(nuS)) {
+    if (Rf_length(nuS) == 1){
+      nu = (double)(INTEGER(nuS)[0]);
+    }
+  }
+  return nu;
+}
+
 //[[Rcpp::export]]
-RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false,
-		bool returnChol = false, int type=1, int diagXformType=1){
+RObject cvPost_(SEXP nuS, RObject omega, int n = 1, bool omegaIsChol = false,
+		bool returnChol = false, int type=1, int diagXformType=1) {
   if (n == 1 && type == 1){
     if (rxIs(omega,"numeric.matrix") || rxIs(omega,"integer.matrix")){
+      double nu = getReal1(nuS);
+      if (nu == NA_REAL) {
+	stop("'nu' must be a single real, non NA value");
+      }
       RObject ret = as<RObject>(cvPost0(nu, as<NumericMatrix>(omega), omegaIsChol, returnChol));
       ret.attr("dimnames") = omega.attr("dimnames");
       return ret;
     } else if (rxIs(omega, "numeric") || rxIs(omega, "integer")){
+      double nu = getReal1(nuS);
+      if (nu == NA_REAL) {
+	stop("'nu' must be a single real, non NA value");
+      }
       NumericVector om1 = as<NumericVector>(omega);
       if (om1.size() % 2 == 0){
 	int n1 = om1.size()/2;
@@ -360,11 +382,15 @@ RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false,
     if (type == 1){
       List ret(n);
       for (int i = 0; i < n; i++){
-	ret[i] = cvPost_(nu, omega, 1, omegaIsChol, returnChol, 1, 1);
-      }
+	ret[i] = cvPost_(nuS, omega, 1, omegaIsChol, returnChol, 1, 1);
+       }
       return(as<RObject>(ret));
     } else {
       if (rxIs(omega,"numeric.matrix") || rxIs(omega,"integer.matrix")){
+	double nu = getReal1(nuS);
+	if (nu == NA_REAL) {
+	  stop("'nu' must be a single real, non NA value");
+	}
 	arma::mat om0 = as<arma::mat>(omega);
 	om0 = om0.t();
 	List ret(om0.n_cols);

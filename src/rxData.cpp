@@ -53,7 +53,7 @@ List etImportEventTable(List inData);
 RObject et_(List input, List et__);
 void setEvCur(RObject cur);
 
-RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false,
+RObject cvPost_(SEXP nuS, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false,
 	       int type=1, int diagXformType=1);
 
 RObject rxUnlock(RObject obj);
@@ -65,6 +65,15 @@ inline bool rxIsNull(RObject obj) {
 inline bool rxIsNum(RObject obj) {
   if (obj.sexp_type() == REALSXP) {
     return (!obj.hasAttribute("dim"));
+  }
+  return false;
+}
+bool rxIsNum1(RObject obj) {
+  if (obj.sexp_type() == REALSXP) {
+    if (!obj.hasAttribute("dim")){
+      NumericVector v = as<NumericVector>(obj);
+      return (v.size() == 1);
+    }
   }
   return false;
 }
@@ -1680,10 +1689,14 @@ void rxSimOmega(bool &simOmega,
 	} else if (omegaSeparation == "separation") {
 	  defaultType = 3;
 	}
-	omegaList = cvPost_(dfSub, as<RObject>(omegaMC), 1,  false, false, defaultType,
+	NumericVector dfSubN(1);
+	dfSubN[0] = dfSub;
+	omegaList = cvPost_(dfSubN, as<RObject>(omegaMC), 1,  false, false, defaultType,
 			    omegaXform);
       } else {
-	omegaList = cvPost_(dfSub, as<RObject>(omegaMC), nStud,  true, false);
+	NumericVector dfSubN(1);
+	dfSubN[0] = dfSub;
+	omegaList = cvPost_(dfSubN, as<RObject>(omegaMC), nStud,  true, false);
       }
     }
   }
