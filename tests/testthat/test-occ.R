@@ -39,7 +39,21 @@ rxPermissive({
         mutate(occ=2- occ %% 2) %>%
         mutate(eye=ifelse(round(time) == time, 1, 2)) %>%
         mutate(inv=ifelse(id < 10, 1, 2)) ->
-        ev
+      ev
+
+    omega <- lotri(lotri(eta.Cl ~ 0.1,
+                         eta.Ka ~ 0.1) | id(nu=100),
+                   lotri(eye.Cl ~ 0.05,
+                         eye.Ka ~ 0.05) | eye(nu=50, same=2),
+                   lotri(iov.Cl ~ 0.01,
+                         iov.Ka ~ 0.01) | occ(nu=200, same=3),
+                   lotri(inv.Cl ~ 0.02,
+                         inv.Ka ~ 0.02) | inv(nu=10, same=4))
+    attr(omega, "format") <- "ETA[%d]"
+    attr(omega, "start") <- 2L
+
+    cvPost(nu=1000, omega, 4)
+
 
     omega <- lotri(lotri(eta.Cl ~ 0.1,
                          eta.Ka ~ 0.1) | id(nu=100),
@@ -50,6 +64,8 @@ rxPermissive({
                    lotri(inv.Cl ~ 0.02,
                          inv.Ka ~ 0.02) | inv(nu=10))
 
+    cvPost()
+    
     .ni <- .nestingInfo(ev$id, omega, ev)
     expect_equal(.ni$below, c(eye = 2L, occ = 2L))
     expect_equal(.ni$above, c(inv = 2L))

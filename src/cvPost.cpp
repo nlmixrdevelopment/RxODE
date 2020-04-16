@@ -8,6 +8,11 @@
 #else
 #define _(String) (String)
 #endif
+extern "C"{
+  typedef SEXP (*lotriMat_type) (SEXP, SEXP, SEXP);
+  lotriMat_type lotriMat;
+}
+
 using namespace Rcpp;
 using namespace arma;
 bool rxIs(const RObject &obj, std::string cls);
@@ -278,12 +283,16 @@ arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
   return ret;
 }
 
+bool gotLotriMat=false;
+
 //[[Rcpp::export]]
 RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false,
 		bool returnChol = false, int type=1, int diagXformType=1){
   if (n == 1 && type == 1){
     if (rxIs(omega,"numeric.matrix") || rxIs(omega,"integer.matrix")){
-      return as<RObject>(cvPost0(nu, as<NumericMatrix>(omega), omegaIsChol, returnChol));
+      RObject ret = as<RObject>(cvPost0(nu, as<NumericMatrix>(omega), omegaIsChol, returnChol));
+      ret.attr("dimnames") = omega.attr("dimnames");
+      return ret;
     } else if (rxIs(omega, "numeric") || rxIs(omega, "integer")){
       NumericVector om1 = as<NumericVector>(omega);
       if (om1.size() % 2 == 0){
@@ -294,6 +303,58 @@ RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false,
 	}
 	return as<RObject>(cvPost0(nu, om2, omegaIsChol, returnChol));
       }
+    } else if (rxIs(omega, "lotri")) {
+      if (!gotLotriMat) {
+	lotriMat = (lotriMat_type) R_GetCCallable("lotri","_lotriLstToMat");
+	gotLotriMat=true;
+      }
+      List omegaIn = as<List>(omega);
+      CharacterVector omegaInNames = omega.attr("names");
+      int nOmega = omegaIn.size();
+      List omegaLst(nOmega);
+      List lotriLst = as<List>(omega.attr("lotri"));
+      // type = 1
+      for (int ii = 0; ii < nOmega; ++ii) {
+      	List curOmegaLst;
+      	int nsame = 1;
+      	double nu = 1.0;
+      	if (lotriLst.containsElementNamed((as<std::string>(omegaInNames[ii])).c_str())){
+      	  curOmegaLst = lotriLst[as<std::string>(omegaInNames[ii])];
+      	  if (curOmegaLst.containsElementNamed("nu")){
+	    nu = as<double>(curOmegaLst["nu"]);
+      	  }
+	  if (curOmegaLst.containsElementNamed("same")){
+	    nsame = as<int>(curOmegaLst["same"]);
+	  }
+      	}
+	RObject cur;
+	if (nu > 1) {
+	  NumericMatrix tmp = as<NumericMatrix>(omegaIn[ii]);
+	  cur = as<RObject>(cvPost0(nu, tmp, false, false));
+	  cur.attr("dimnames") = tmp.attr("dimnames"); // Preserve dimnames
+	} else {
+	  cur = omegaIn[ii];
+	}
+	if (nsame > 1) {
+	  List curl(2);
+	  curl[0] = cur;
+	  curl[1] = nsame;
+	  omegaLst[ii] = curl;
+	} else {
+	  omegaLst[ii] = cur;
+	}
+      }
+      IntegerVector startAt(1);
+      if (omega.hasAttribute("start")) {
+	startAt[0] = as<int>(omega.attr("start"));
+      } else {
+	startAt[0] = 1;
+      }
+      SEXP format = R_NilValue;
+      if (omega.hasAttribute("format")) {
+	format = omega.attr("format");
+      }
+      return as<RObject>(lotriMat(as<SEXP>(omegaLst), format, as<SEXP>(startAt)));
     }
   } else {
     if (type == 1){
@@ -314,7 +375,9 @@ RObject cvPost_(double nu, RObject omega, int n = 1, bool omegaIsChol = false,
 	    stop("'nu' must be >= 3");
 	  }
 	  arma::mat reti = rcvC1(sd, nu, diagXformType, type-1, returnChol);
-	  ret[i] = wrap(reti);
+	  RObject retc = wrap(reti);
+	  retc.attr("dimnames") = omega.attr("dimnames");
+	  ret[i] = retc;
 	}
 	return(as<RObject>(ret));
       } else {

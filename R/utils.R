@@ -329,7 +329,6 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
     .type <- as.vector(c("invWishart"=1L, "lkj"=2L,
                          "separation"=3L)[match.arg(type)])
   }
-  .dimnames <- dimnames(omega)
   if (.type == 1L) {
     .xform <- 1L
   }  else if (inherits(diagXformType, "numeric") || inherits(diagXformType, "integer")) {
@@ -339,18 +338,8 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
                           "nlmixrSqrt"=1, "nlmixrLog"=2,
                           "nlmixrIdentity"=3)[match.arg(diagXformType)])
   }
-  .ret <- .Call(`_RxODE_cvPost_`, nu, omega, n, omegaIsChol, returnChol, .type, .xform)
-  ## Add dimnames
-  if (!is.null(.dimnames)) {
-    if (inherits(.ret, "matrix")) {
-      dimnames(.ret) <- .dimnames
-    } else if (inherits(.ret, "list")) {
-      .ret <- lapply(.ret, function(.o) {
-        dimnames(.o) <- .dimnames
-        return(.o)
-      })
-    }
-  }
+  .ret <- .Call(`_RxODE_cvPost_`, nu, omega, n,
+                omegaIsChol, returnChol, .type, .xform)
   return(.ret)
 }
 
