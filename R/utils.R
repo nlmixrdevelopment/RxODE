@@ -334,12 +334,11 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
   }  else if (inherits(diagXformType, "numeric") || inherits(diagXformType, "integer")) {
     .xform <- as.integer(diagXformType)
   } else {
-    .xform <- as.vector(c("variance"=6, "log"=5, "identity"=4,
-                          "nlmixrSqrt"=1, "nlmixrLog"=2,
-                          "nlmixrIdentity"=3)[match.arg(diagXformType)])
+    .xform <- match.arg(diagXformType)
   }
-  .ret <- .Call(`_RxODE_cvPost_`, nu, omega, n,
-                omegaIsChol, returnChol, .type, .xform)
+  .ret <- .Call(`_cvPost_`, nu, omega, n,
+                omegaIsChol, returnChol, .type, .xform,
+                PACKAGE = "RxODE")
   return(.ret)
 }
 

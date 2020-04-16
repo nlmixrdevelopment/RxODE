@@ -53,8 +53,8 @@ List etImportEventTable(List inData);
 RObject et_(List input, List et__);
 void setEvCur(RObject cur);
 
-RObject cvPost_(SEXP nuS, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false,
-	       int type=1, int diagXformType=1);
+extern "C" SEXP _cvPost_(SEXP nuS, SEXP omega, SEXP n, SEXP omegaIsChol, SEXP returnChol,
+			 SEXP type, SEXP diagXformType);
 
 RObject rxUnlock(RObject obj);
 RObject rxLock(RObject obj);
@@ -1689,14 +1689,21 @@ void rxSimOmega(bool &simOmega,
 	} else if (omegaSeparation == "separation") {
 	  defaultType = 3;
 	}
-	NumericVector dfSubN(1);
-	dfSubN[0] = dfSub;
-	omegaList = cvPost_(dfSubN, as<RObject>(omegaMC), 1,  false, false, defaultType,
-			    omegaXform);
+	omegaList = _cvPost_(as<SEXP>(NumericVector::create(dfSub)),
+			     as<SEXP>(omegaMC),
+			     as<SEXP>(IntegerVector::create(1)),
+			     as<SEXP>(LogicalVector::create(false)),
+			     as<SEXP>(LogicalVector::create(false)),
+			     as<SEXP>(IntegerVector::create(defaultType)),
+			     as<SEXP>(IntegerVector::create(omegaXform)));
       } else {
-	NumericVector dfSubN(1);
-	dfSubN[0] = dfSub;
-	omegaList = cvPost_(dfSubN, as<RObject>(omegaMC), nStud,  true, false);
+	omegaList = _cvPost_(as<SEXP>(NumericVector::create(dfSub)),
+			     as<SEXP>(omegaMC),
+			     as<SEXP>(IntegerVector::create(nStud)),
+			     as<SEXP>(LogicalVector::create(true)),
+			     as<SEXP>(LogicalVector::create(false)),
+			     as<SEXP>(IntegerVector::create(1)),
+			     as<SEXP>(IntegerVector::create(1)));
       }
     }
   }

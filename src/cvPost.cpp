@@ -3,6 +3,7 @@
 #include <threefry.h>
 #ifdef ENABLE_NLS
 #include <libintl.h>
+#include <checkmate.h>
 #define _(String) dgettext ("RxODE", String)
 /* replace pkg as appropriate */
 #else
@@ -285,51 +286,67 @@ arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
 
 bool gotLotriMat=false;
 
-double getReal1(SEXP nuS) {
-  double nu=NA_REAL;
-  if (Rf_isReal(nuS)) {
-    if (Rf_length(nuS) == 1){
-      nu = REAL(nuS)[0];
-    } 
-  } else if (Rf_isInteger(nuS)) {
-    if (Rf_length(nuS) == 1){
-      nu = (double)(INTEGER(nuS)[0]);
-    }
+double getDbl(SEXP in, const char *var){
+  double ret = 0;
+  if (qtest(in, "I1")) {
+    ret = INTEGER(in)[0];
+  } else {
+    qassert(in, "R1", var);
+    ret = REAL(in)[0];
   }
-  return nu;
+  return ret;
 }
 
-//[[Rcpp::export]]
-RObject cvPost_(SEXP nuS, RObject omega, int n = 1, bool omegaIsChol = false,
-		bool returnChol = false, int type=1, int diagXformType=1) {
+extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
+			 SEXP returnCholS, SEXP typeS, SEXP diagXformTypeS) {
+  int diagXformType = 1;
+  qassert(nS, "X1[0,)", "n");
+  qassert(omegaIsCholS, "B1", "omegaIsChol");
+  bool omegaIsChol = as<bool>(omegaIsCholS);
+  qassert(returnCholS, "B1", "returnChol");
+  bool returnChol = as<bool>(returnCholS);
+  int n = as<int>(nS);
+  int type=1;
+  if (qtest(typeS, "X1[1,3]")){
+    type = as<int>(typeS);
+  } else if (qtest(typeS, "S1")){
+    std::string typeStr = as<std::string>(typeS);
+    if (typeStr == "invWishart") {
+      type = 1;
+    } else if (typeStr == "lkj") {
+      type = 2;
+    } else if (typeStr == "separation") {
+      type = 3;
+    } else {
+      stop(_("Variable 'type': Unrecognized cvPost type='%s'"), typeStr.c_str());
+    }
+  } else {
+    stop(_("Variable 'type': Can only use type string or integer[1,3]"));
+  }
   if (n == 1 && type == 1){
-    if (rxIs(omega,"numeric.matrix") || rxIs(omega,"integer.matrix")){
-      double nu = getReal1(nuS);
-      if (nu == NA_REAL) {
-	stop("'nu' must be a single real, non NA value");
-      }
-      RObject ret = as<RObject>(cvPost0(nu, as<NumericMatrix>(omega), omegaIsChol, returnChol));
+    if (qtest(omegaS, "M")) {
+      double nu = getDbl(nuS, "nu");
+      RObject omega = omegaS;
+      RObject ret = as<RObject>(cvPost0(nu, as<NumericMatrix>(omegaS), omegaIsChol, returnChol));
       ret.attr("dimnames") = omega.attr("dimnames");
-      return ret;
-    } else if (rxIs(omega, "numeric") || rxIs(omega, "integer")){
-      double nu = getReal1(nuS);
-      if (nu == NA_REAL) {
-	stop("'nu' must be a single real, non NA value");
-      }
-      NumericVector om1 = as<NumericVector>(omega);
+      return as<SEXP>(ret);
+    } else if (Rf_isReal(omegaS) || Rf_isInteger(omegaS)){
+      double nu = getDbl(nuS, "nu");
+      NumericVector om1 = as<NumericVector>(omegaS);
       if (om1.size() % 2 == 0){
 	int n1 = om1.size()/2;
 	NumericMatrix om2(n1,n1);
 	for (int i = 0; i < om1.size();i++){
 	  om2[i] = om1[i];
 	}
-	return as<RObject>(cvPost0(nu, om2, omegaIsChol, returnChol));
+	return as<SEXP>(cvPost0(nu, om2, omegaIsChol, returnChol));
       }
-    } else if (rxIs(omega, "lotri")) {
+    } else if (rxIs(omegaS, "lotri")) {
       if (!gotLotriMat) {
 	lotriMat = (lotriMat_type) R_GetCCallable("lotri","_lotriLstToMat");
 	gotLotriMat=true;
       }
+      RObject omega = omegaS;
       List omegaIn = as<List>(omega);
       CharacterVector omegaInNames = omega.attr("names");
       int nOmega = omegaIn.size();
@@ -376,21 +393,44 @@ RObject cvPost_(SEXP nuS, RObject omega, int n = 1, bool omegaIsChol = false,
       if (omega.hasAttribute("format")) {
 	format = omega.attr("format");
       }
-      return as<RObject>(lotriMat(as<SEXP>(omegaLst), format, as<SEXP>(startAt)));
+      return as<SEXP>(lotriMat(as<SEXP>(omegaLst), format, as<SEXP>(startAt)));
     }
   } else {
     if (type == 1){
       List ret(n);
+      SEXP nIS = as<SEXP>(IntegerVector::create(1));
       for (int i = 0; i < n; i++){
-	ret[i] = cvPost_(nuS, omega, 1, omegaIsChol, returnChol, 1, 1);
+	ret[i] = _cvPost_(nuS, omegaS, nIS, omegaIsCholS,
+			  returnCholS, nIS, nIS);
        }
-      return(as<RObject>(ret));
+      return(as<SEXP>(ret));
     } else {
-      if (rxIs(omega,"numeric.matrix") || rxIs(omega,"integer.matrix")){
-	double nu = getReal1(nuS);
-	if (nu == NA_REAL) {
-	  stop("'nu' must be a single real, non NA value");
+      if (qtest(omegaS, "M")){
+	double nu = getDbl(nuS, "nu");
+	if (qtest(diagXformTypeS, "S1")) {
+	  //("log", "identity", "variance", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity")
+	  std::string diagXformTypeStr = as<std::string>(diagXformTypeS);
+	  if (diagXformTypeStr == "nlmixrSqrt"){
+	    diagXformType=1;
+	  } else if (diagXformTypeStr == "nlmixrLog"){
+	    diagXformType=2;
+	  } else if (diagXformTypeStr == "nlmixrIdentity"){
+	    diagXformType=3;
+	  } else if (diagXformTypeStr == "identity") {
+	    diagXformType=4;
+	  } else if (diagXformTypeStr == "log") {
+	    diagXformType=5;
+	  } else if (diagXformTypeStr == "variance") {
+	    diagXformType=6;
+	  } else {
+	    stop(_("Variable 'diagXformType': Unrecognized transformation '%s'"), diagXformTypeStr.c_str());
+	  }
+	} else if (qtest(diagXformTypeS, "X1[1,6]")) {
+	  diagXformType = as<int>(diagXformTypeS);
+	} else {
+	  stop(_("Variable 'diagXformType': Can only use transformation string or integer[1,6]"));
 	}
+	RObject omega = omegaS;
 	arma::mat om0 = as<arma::mat>(omega);
 	om0 = om0.t();
 	List ret(om0.n_cols);
@@ -405,7 +445,7 @@ RObject cvPost_(SEXP nuS, RObject omega, int n = 1, bool omegaIsChol = false,
 	  retc.attr("dimnames") = omega.attr("dimnames");
 	  ret[i] = retc;
 	}
-	return(as<RObject>(ret));
+	return(as<SEXP>(ret));
       } else {
 	stop(_("when sampling from correlation priors to create covariance matrices, the input must be a matrix of standard deviations"));
       }
