@@ -586,6 +586,11 @@ void getRxModels(){
   }
 }
 
+void rxModelsAssign(std::string str, SEXP assign){
+  getRxModels();
+  _rxModels[str] = assign;
+}
+
 // 
 inline bool fileExists(const std::string& name) {
   struct stat buffer;   

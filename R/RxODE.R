@@ -323,6 +323,7 @@ R_PosInf <- Inf # nolint
 ##' @useDynLib RxODE, .registration=TRUE
 ##' @importFrom PreciseSums fsum
 ##' @importFrom Rcpp evalCpp
+##' @importFrom checkmate qassert
 ##' @importFrom utils getFromNamespace assignInMyNamespace download.file head sessionInfo
 ##' @importFrom stats setNames update
 ##' @importFrom methods signature is

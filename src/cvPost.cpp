@@ -454,3 +454,62 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
   stop(_("'omega' needs to be a matrix or a numeric vector that can be converted to a matrix"));
   return R_NilValue;
 }
+
+extern "C" void qstrict(SEXP x, const char *what);
+extern "C" void qstrict0(SEXP nn, const char *what);
+extern "C" SEXP _vecDF(SEXP cv, SEXP n_);
+void rxModelsAssign(std::string str, SEXP assign);
+extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
+			      SEXP thetaLowerS, SEXP thetaUpperS,
+			      SEXP nStudS, SEXP nCoresRVS) {
+  if (Rf_isNull(thetaS)) {
+    return R_NilValue;
+  }
+  qassert(nStudS, "X1[1,)", "nStud");
+  if (Rf_isNull(thetaMatS)) {
+    if (Rf_isMatrix(thetaS)) {
+      return as<SEXP>(as<DataFrame>(thetaS));
+    } else if (rxIs(thetaS, "data.frame")) {
+      return thetaS;
+    } else {
+      return _vecDF(thetaS, nStudS);
+    }
+  }
+  // int nStud = as<int>(nStudS);
+  // thetaMat
+  qassert(thetaMatS, "M", "thetaMat");
+  NumericMatrix thetaMat = as<NumericMatrix>(thetaMatS);
+  if (thetaMat.nrow() != thetaMat.ncol()){
+    stop(_("'thetaMat' must be a symmetric matrix"));
+  }
+  CharacterVector thetaMatDimNames = as<CharacterVector>(as<List>(thetaMat.attr("dimnames"))[1]);
+  qstrict0(as<SEXP>(thetaMatDimNames), "thetaMat dimnames");
+  // theta
+  qassert(thetaS, "R+", "theta");
+  qstrict(thetaS, "theta names");
+  NumericVector theta0 = as<NumericVector>(thetaS);
+  if (theta0.size() != thetaMat.nrow()) {
+    stop(_("'theta' must be the same size as 'thetaMat'"));
+  }
+  // Order 'theta' to have same order as 'thetaMat'
+  NumericVector theta(theta0.size());
+  for (R_xlen_t i = 0; i < theta0.size(); ++i) {
+    // Will throw an error if not found.
+    int cur = theta0.findName(as<std::string>(thetaMatDimNames[i]));
+    theta[i]= theta0[cur];
+  }
+  theta.attr("names") = thetaMatDimNames;
+
+  // Theta and thetaMat are correct, assign ".theta"
+  rxModelsAssign(".theta", thetaMatS);
+  
+  qassert(nCoresRVS, "X1[1,)", "nCoresRV");
+  // int nCoresRV = as<int>(nCoresRVS);
+  // return(as.data.frame(rxRmvn(nStud, .theta, thetaMat,
+  //                               lower=thetaLower, upper=thetaUpper,
+  //                               ncores=nCoresRV)))
+  return R_NilValue;
+}
+// .expandTheta <- function(theta=NULL, thetaMat=NULL,
+//                          thetaLower= -Inf, thetaUpper=Inf, nStud=1L,
+//                          nCoresRV=1L)
