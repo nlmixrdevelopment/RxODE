@@ -6,6 +6,7 @@
 #include <omp.h>
 #endif
 #include <R.h>
+#include <checkmate.h>
 #ifdef ENABLE_NLS
 #include <libintl.h>
 #define _(String) dgettext ("RxODE", String)
@@ -1118,4 +1119,165 @@ SEXP rxRmvn0(NumericMatrix& A_, arma::rowvec mu, arma::mat sigma,
   } else {
     return rxRmvn_(A_, mu, sigma, ncores, isChol);
   }
+}
+
+
+extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
+			 SEXP lowerS, SEXP upperS, SEXP ncoresS, SEXP isCholS,
+			 SEXP keepNamesS,
+			 SEXP aS, SEXP tolS, SEXP nlTolS, SEXP nlMaxiterS){
+  int type = TYPEOF(sigmaS);
+  bool isSigmaList = (type == VECSXP);
+  int d=0;
+  NumericMatrix sigma0;
+  NumericVector muNV;
+  List sigmaList;
+  CharacterVector dimnames;
+  arma::mat sigma;
+  NumericMatrix A;
+  int n=0;
+  qassert(aS, "R1[0,)", "a");
+  double a = as<double>(aS);
+  qassert(tolS, "R1[0,)", "tol");
+  double tol = as<double>(tolS);
+  qassert(nlTolS, "R1[0,)", "nlTol");
+  double nlTol=as<double>(nlTolS);
+  qassert(nlMaxiterS, "X1[0,)", "nlMaxiter");
+  int nlMaxiter=as<int>(nlMaxiterS);
+  qassert(lowerS, "R+", "lower");
+  NumericVector lowerIn = as<NumericVector>(lowerS);
+  NumericVector lowerNV;
+  qassert(ncoresS, "X1[1,)", "ncores");
+  int ncores = as<int>(ncoresS);
+  // arma::vec lower, arma::vec upper, int ncores=1, bool isChol=false,
+  qassert(isCholS, "B1", "isChol");
+  bool isChol = as<bool>(isCholS);
+  qassert(keepNamesS, "B1", "keepNames");
+  bool keepNames = as<bool>(keepNamesS);  
+
+  // get sigma0
+  if (isSigmaList){
+    sigmaList = as<List>(sigmaS);
+    if (sigmaList.size() == 0) {
+      stop(_("when 'sigma' is a list, it has to have at least 1 element"));
+    }
+    if (!Rf_isMatrix(sigmaList[0])){
+      stop(_("'sigma' must be a list of square symmetric matrices"));
+    }
+    qassert(sigmaList[0], "M", "sigma[[0]]");
+    sigma0 = as<NumericMatrix>(sigmaList[0]);
+    if (d != sigma0.ncol()) {
+      stop("'sigma[[0]]' must a square matrix");
+    }
+    for (int i = sigmaList.size()-1; i--;){
+      NumericMatrix sigmaTmp = as<NumericMatrix>(sigmaList[i]);
+      if (d != sigmaTmp.nrow() || d != sigmaTmp.ncol()) {
+	stop(_("'sigma' list element %d does not match dimension of first matrix"), i+1);
+      }
+    }
+  } else if (Rf_isMatrix(sigmaS)) {
+    qassert(sigma0, "M", "sigma");
+    sigma0 = as<NumericMatrix>(sigmaS);
+  } else {
+    qassert(sigma0, "M", "sigma");
+  }
+  d = sigma0.nrow();
+  if (Rf_isMatrix(nS)) {
+    A = as<NumericMatrix>(nS);
+    n = A.nrow();
+  } else {
+    qassert(nS, "X1[1,)", "n");
+    n = as<int>(nS);
+    A = NumericMatrix(n, d);
+  }  
+  if (sigma0.hasAttribute("dimnames")){
+    List curL = as<List>(sigma0.attr("dimnames"));
+    if (Rf_isNull(curL[0])){
+      dimnames = as<CharacterVector>(curL[0]);
+    } else {
+      dimnames = as<CharacterVector>(curL[1]);
+    }
+  }
+  // get mu
+  if (Rf_isNull(muS)) {
+    muNV = NumericVector(d);
+    std::fill(muNV.begin(),muNV.end(), 0);
+  } else if (qtest(muS, "I+")) {
+    muNV = as<NumericVector>(muS);
+  } else {
+    qassert(muS, "R+", "mu");
+    muNV = as<NumericVector>(muS);
+  }
+  arma::rowvec mu = as<arma::rowvec>(muNV);  
+  if (muNV.size() != d) {
+    // REprintf("mu.size: %d, d: %d\n", muNV.size(), d);
+    stop(_("'mu' length must match 'sigma' dimensions"));
+  }
+  if (muNV.hasAttribute("names")) {
+    if (dimnames.size() == 0) {
+      dimnames = as<CharacterVector>(muNV.attr("names"));
+    } else {
+      CharacterVector dimnames2 = as<CharacterVector>(muNV.attr("names"));
+      if (dimnames2.size() != dimnames.size()) stop("malformed 'muNV' 'sigma'");
+      for (int i = dimnames2.size(); i--;) {
+	if (as<std::string>(dimnames[i]) != as<std::string>(dimnames2[i])) {
+	  stop("'mu' and 'sigma' names have to have the same order");
+	}
+      }
+    }
+  }
+  if (lowerIn.size() == 1) {
+    lowerNV = NumericVector(d);
+    std::fill(lowerNV.begin(), lowerNV.end(), lowerIn[0]);
+  } else {
+    if (lowerIn.size() != d)
+      stop("'lower' needs to match the dimension of 'mu' and 'sigma' or be 1");
+    lowerNV = lowerIn;
+  }
+  NumericVector upperIn = as<NumericVector>(upperS);
+  NumericVector upperNV;
+  if (upperIn.size() == 1) {
+    upperNV = NumericVector(d);
+    std::fill(upperNV.begin(), upperNV.end(), upperIn[0]);
+  } else {
+    if (upperIn.size() != d)
+      stop("'upper' needs to match the dimension of 'mu' and 'sigma' or be 1");
+    upperNV = upperIn;
+  }
+  for (int i = 0; i < d; ++i) {
+    if (upperNV[i] <= lowerNV[i]) {
+      stop("'upper[%d]' <= 'lower[%d]'", i+1, i+1);
+    }
+  }
+  arma::vec lower = as<arma::vec>(lowerNV);
+  arma::vec upper = as<arma::vec>(upperNV);
+  SEXP retS;
+  if (isSigmaList) {
+    int sListN = sigmaList.size();
+    NumericMatrix retNM(n*sListN, d);
+    for (int i = 0; i < sListN; ++i) {
+      NumericMatrix Acur(n, d);
+      sigma=as<arma::mat>(sigmaList[i]);
+      rxRmvn0(Acur, mu, sigma, lower, upper, ncores, isChol,
+	      a, tol, nlTol, nlMaxiter);
+      for (int j = 0; j < d; ++j) {
+	std::copy(Acur.begin()  + n*j,
+		  Acur.begin()  + (n+1)*j,
+		  retNM.begin() + n*sListN*j + i*sListN);
+      }
+    }
+    if (keepNames && dimnames.size() > 0) {
+      retNM.attr("dimnames") = List::create(R_NilValue, dimnames);
+    }
+    retS = as<SEXP>(retNM);
+  } else {
+    sigma=as<arma::mat>(sigma0);
+    rxRmvn0(A, mu, sigma, lower, upper, ncores, isChol,
+	    a, tol, nlTol, nlMaxiter);
+    if (keepNames && dimnames.size() > 0) {
+      A.attr("dimnames") = List::create(R_NilValue, dimnames);
+    }
+    retS = as<SEXP>(A);
+  }
+  return retS;
 }

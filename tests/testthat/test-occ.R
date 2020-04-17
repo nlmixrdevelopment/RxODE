@@ -28,17 +28,17 @@ rxPermissive({
     library(dplyr)
 
     et(amountUnits="mg", timeUnits="hours") %>%
-        et(amt=10000, addl=9,ii=12,cmt="depot") %>%
-        et(time=120, amt=2000, addl=4, ii=14, cmt="depot") %>%
-        et(seq(0, 240, by=4)) %>% # Assumes sampling when there is no dosing information
-        et(seq(0, 240, by=4) + 0.1) %>% ## adds 0.1 for separate eye
-        et(id=1:20) %>%
-        ## Add an occasion per dose
-        mutate(occ=cumsum(!is.na(amt))) %>%
-        mutate(occ=ifelse(occ == 0, 1, occ)) %>%
-        mutate(occ=2- occ %% 2) %>%
-        mutate(eye=ifelse(round(time) == time, 1, 2)) %>%
-        mutate(inv=ifelse(id < 10, 1, 2)) ->
+      et(amt=10000, addl=9,ii=12,cmt="depot") %>%
+      et(time=120, amt=2000, addl=4, ii=14, cmt="depot") %>%
+      et(seq(0, 240, by=4)) %>% # Assumes sampling when there is no dosing information
+      et(seq(0, 240, by=4) + 0.1) %>% ## adds 0.1 for separate eye
+      et(id=1:20) %>%
+      ## Add an occasion per dose
+      mutate(occ=cumsum(!is.na(amt))) %>%
+      mutate(occ=ifelse(occ == 0, 1, occ)) %>%
+      mutate(occ=2- occ %% 2) %>%
+      mutate(eye=ifelse(round(time) == time, 1, 2)) %>%
+      mutate(inv=ifelse(id < 10, 1, 2)) ->
       ev
 
     omega <- lotri(lotri(eta.Cl ~ 0.1,
@@ -46,13 +46,13 @@ rxPermissive({
                    lotri(eye.Cl ~ 0.05,
                          eye.Ka ~ 0.05) | eye(nu=50, same=2),
                    lotri(iov.Cl ~ 0.01,
-                         iov.Ka ~ 0.01) | occ(nu=200, same=3),
+                         iov.Ka ~ 0.01) | occ(nu=200, same=2),
                    lotri(inv.Cl ~ 0.02,
-                         inv.Ka ~ 0.02) | inv(nu=10, same=4))
-    attr(omega, "format") <- "ETA[%d]"
+                         inv.Ka ~ 0.02) | inv(nu=10, same=2))
+    attr(omega, "format") <- "THETA[%d]"
     attr(omega, "start") <- 2L
 
-    cvPost(nu=1000, omega, 4)
+    ##cvPost(nu=1000, omega, 2)
 
 
     omega <- lotri(lotri(eta.Cl ~ 0.1,

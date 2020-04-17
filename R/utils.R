@@ -434,81 +434,13 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##' @author Matthew Fidler, Zdravko Botev and some from Matteo Fasiolo
 ##' @export
 rxRmvn <- function(n, mu, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=FALSE,
-                   keepNames=TRUE) {
-  .sigmaList <- inherits(sigma, "list")
-  .len <- 1L
-  if (.sigmaList) {
-    .d <- dim(sigma[[1]])[1]
-    .len <- length(sigma)
-  } else {
-    .d <- dim(sigma)[1]
-  }
+                   keepNames=TRUE, a=0.4, tol=2.05, nlTol=1e-10, nlMaxiter=100L) {
+  .ret <- .Call(`_rxRmvn_`, n, mu, sigma, lower, upper, ncores, isChol,
+                keepNames, a, tol, nlTol, nlMaxiter);
   if (is.matrix(n)) {
-    .a <- n
-    n <- dim(.a)[1]
-    .retA <- FALSE
-    if (.sigmaList) {
-      stop("cannot use a list for 'sigma' and a matrix for 'n'")
-    }
-  } else if (.len == 1L) {
-    n <- as.integer(n);
-    .a <- numeric(n * .d)
-    dim(.a) <- c(n, .d);
-    .retA <- TRUE
-  }
-  if (missing(mu)) {
-    if (.sigmaList) {
-      .dimnames <- dimnames(sigma[[1]])
-    } else {
-      .dimnames <- dimnames(sigma)
-    }
-    if (is.null(.dimnames)) {
-      if (.sigmaList) {
-        .dim <- dim(sigma[[1]])
-      } else {
-        .dim <- dim(sigma)
-      }
-      if (is.null(.dim)) {
-        stop("'sigma' matrix malformed")
-      } else {
-        .dim <-dim[2];
-        .mu <- rep(0.0, .dim)
-      }
-    } else {
-      .dimnames <- .dimnames[[2]]
-      mu <- setNames(rep(0.0, length(.dimnames)), .dimnames)
-    }
-  }
-  if (.len == 1L) {
-      .Call(`_RxODE_rxRmvn0`, .a, mu, sigma, lower, upper, ncores, isChol,
-            0.4, 2.05, 1e-10, 100)
-  } else {
-    .retA <- TRUE
-    .a <- do.call("rbind",
-                  lapply(sigma, function(.curSigma) {
-                    .curA <- numeric(n * .d)
-                    dim(.curA) <- c(n, .d)
-                    .Call(`_RxODE_rxRmvn0`, .curA, mu,
-                          .curSigma,
-                          lower, upper,
-                          ncores, isChol,
-                          0.4, 2.05, 1e-10, 100)
-                    return(.curA);
-                  }))
-  }
-  if (.retA) {
-    if (keepNames) {
-      if (is.null(.nm <- names(mu))) {
-        .nm <- dimnames(sigma)[[1L]]
-      }
-      if (!is.null(.nm)) {
-        dimnames(.a) <- list(NULL, .nm)
-      }
-    }
-    return(.a)
-  } else {
     return(invisible())
   }
+  return(.ret)
 }
 
 ##' Collect warnings and just warn once.
