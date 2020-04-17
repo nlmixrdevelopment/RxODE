@@ -12,7 +12,11 @@ rxRmvn(
   upper = Inf,
   ncores = 1,
   isChol = FALSE,
-  keepNames = TRUE
+  keepNames = TRUE,
+  a = 0.4,
+  tol = 2.05,
+  nlTol = 1e-10,
+  nlMaxiter = 100L
 )
 }
 \arguments{
@@ -92,7 +96,7 @@ rxRmvn(10, 1:d, mcov, lower=1:d-1, upper=1:d+1)
 # dimensions) by using a list of matrices.
 
 matL <- lapply(1:4,function(...){
-   matrix(rnorm(d^2), d, d)
+   tmp <- matrix(rnorm(d^2), d, d)
    tcrossprod(tmp, tmp)
 })
 

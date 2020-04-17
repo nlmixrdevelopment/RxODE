@@ -1121,11 +1121,13 @@ SEXP rxRmvn0(NumericMatrix& A_, arma::rowvec mu, arma::mat sigma,
   }
 }
 
+SEXP qassertS(SEXP in, const char *test, const char *what);
 
 extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
 			 SEXP lowerS, SEXP upperS, SEXP ncoresS, SEXP isCholS,
 			 SEXP keepNamesS,
 			 SEXP aS, SEXP tolS, SEXP nlTolS, SEXP nlMaxiterS){
+  BEGIN_RCPP
   int type = TYPEOF(sigmaS);
   bool isSigmaList = (type == VECSXP);
   int d=0;
@@ -1136,23 +1138,23 @@ extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
   arma::mat sigma;
   NumericMatrix A;
   int n=0;
-  qassert(aS, "R1[0,)", "a");
+  qassertS(aS, "R1[0,)", "a");
   double a = as<double>(aS);
-  qassert(tolS, "R1[0,)", "tol");
+  qassertS(tolS, "R1[0,)", "tol");
   double tol = as<double>(tolS);
-  qassert(nlTolS, "R1[0,)", "nlTol");
+  qassertS(nlTolS, "R1[0,)", "nlTol");
   double nlTol=as<double>(nlTolS);
-  qassert(nlMaxiterS, "X1[0,)", "nlMaxiter");
+  qassertS(nlMaxiterS, "X1[0,)", "nlMaxiter");
   int nlMaxiter=as<int>(nlMaxiterS);
-  qassert(lowerS, "R+", "lower");
+  qassertS(lowerS, "R+", "lower");
   NumericVector lowerIn = as<NumericVector>(lowerS);
   NumericVector lowerNV;
-  qassert(ncoresS, "X1[1,)", "ncores");
+  qassertS(ncoresS, "X1[1,)", "ncores");
   int ncores = as<int>(ncoresS);
   // arma::vec lower, arma::vec upper, int ncores=1, bool isChol=false,
-  qassert(isCholS, "B1", "isChol");
+  qassertS(isCholS, "B1", "isChol");
   bool isChol = as<bool>(isCholS);
-  qassert(keepNamesS, "B1", "keepNames");
+  qassertS(keepNamesS, "B1", "keepNames");
   bool keepNames = as<bool>(keepNamesS);  
 
   // get sigma0
@@ -1164,8 +1166,9 @@ extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
     if (!Rf_isMatrix(sigmaList[0])){
       stop(_("'sigma' must be a list of square symmetric matrices"));
     }
-    qassert(sigmaList[0], "M", "sigma[[0]]");
+    qassertS(sigmaList[0], "M", "sigma[[0]]");
     sigma0 = as<NumericMatrix>(sigmaList[0]);
+    d  = sigma0.nrow();
     if (d != sigma0.ncol()) {
       stop("'sigma[[0]]' must a square matrix");
     }
@@ -1176,17 +1179,17 @@ extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
       }
     }
   } else if (Rf_isMatrix(sigmaS)) {
-    qassert(sigma0, "M", "sigma");
+    qassertS(sigma0, "M", "sigma");
     sigma0 = as<NumericMatrix>(sigmaS);
+    d = sigma0.nrow();
   } else {
-    qassert(sigma0, "M", "sigma");
+    qassertS(sigma0, "M", "sigma");
   }
-  d = sigma0.nrow();
   if (Rf_isMatrix(nS)) {
     A = as<NumericMatrix>(nS);
     n = A.nrow();
   } else {
-    qassert(nS, "X1[1,)", "n");
+    qassertS(nS, "X1[1,)", "n");
     n = as<int>(nS);
     A = NumericMatrix(n, d);
   }  
@@ -1205,7 +1208,7 @@ extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
   } else if (qtest(muS, "I+")) {
     muNV = as<NumericVector>(muS);
   } else {
-    qassert(muS, "R+", "mu");
+    qassertS(muS, "R+", "mu");
     muNV = as<NumericVector>(muS);
   }
   arma::rowvec mu = as<arma::rowvec>(muNV);  
@@ -1262,7 +1265,7 @@ extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
 	      a, tol, nlTol, nlMaxiter);
       for (int j = 0; j < d; ++j) {
 	std::copy(Acur.begin()  + n*j,
-		  Acur.begin()  + (n+1)*j,
+		  Acur.begin()  + n*(j+1),
 		  retNM.begin() + n*sListN*j + i*sListN);
       }
     }
@@ -1280,4 +1283,5 @@ extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
     retS = as<SEXP>(A);
   }
   return retS;
+  END_RCPP
 }

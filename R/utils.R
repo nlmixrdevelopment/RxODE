@@ -424,7 +424,7 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##' # dimensions) by using a list of matrices.
 ##'
 ##' matL <- lapply(1:4,function(...){
-##'    matrix(rnorm(d^2), d, d)
+##'    tmp <- matrix(rnorm(d^2), d, d)
 ##'    tcrossprod(tmp, tmp)
 ##' })
 ##' 

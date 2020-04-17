@@ -286,12 +286,14 @@ arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
 
 bool gotLotriMat=false;
 
+SEXP qassertS(SEXP in, const char *test, const char *what);
+
 double getDbl(SEXP in, const char *var){
   double ret = 0;
   if (qtest(in, "I1")) {
     ret = INTEGER(in)[0];
   } else {
-    qassert(in, "R1", var);
+    qassertS(as<RObject>(in), "R1", var);
     ret = REAL(in)[0];
   }
   return ret;
@@ -299,11 +301,12 @@ double getDbl(SEXP in, const char *var){
 
 extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
 			 SEXP returnCholS, SEXP typeS, SEXP diagXformTypeS) {
+  BEGIN_RCPP
   int diagXformType = 1;
-  qassert(nS, "X1[0,)", "n");
-  qassert(omegaIsCholS, "B1", "omegaIsChol");
+  qassertS(nS, "X1[1,)", "n");
+  qassertS(omegaIsCholS, "B1", "omegaIsChol");
   bool omegaIsChol = as<bool>(omegaIsCholS);
-  qassert(returnCholS, "B1", "returnChol");
+  qassertS(returnCholS, "B1", "returnChol");
   bool returnChol = as<bool>(returnCholS);
   int n = as<int>(nS);
   int type=1;
@@ -453,19 +456,21 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
   }
   stop(_("'omega' needs to be a matrix or a numeric vector that can be converted to a matrix"));
   return R_NilValue;
+  END_RCPP
 }
 
-extern "C" void qstrict(SEXP x, const char *what);
-extern "C" void qstrict0(SEXP nn, const char *what);
+SEXP qstrictS(SEXP nn, const char *what);
+SEXP qstrictSn(SEXP x, const char *what);
 extern "C" SEXP _vecDF(SEXP cv, SEXP n_);
 void rxModelsAssign(std::string str, SEXP assign);
 extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
 			      SEXP thetaLowerS, SEXP thetaUpperS,
 			      SEXP nStudS, SEXP nCoresRVS) {
+  BEGIN_RCPP
   if (Rf_isNull(thetaS)) {
     return R_NilValue;
   }
-  qassert(nStudS, "X1[1,)", "nStud");
+  qassertS(nStudS, "X1[1,)", "nStud");
   if (Rf_isNull(thetaMatS)) {
     if (Rf_isMatrix(thetaS)) {
       return as<SEXP>(as<DataFrame>(thetaS));
@@ -477,16 +482,16 @@ extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
   }
   // int nStud = as<int>(nStudS);
   // thetaMat
-  qassert(thetaMatS, "M", "thetaMat");
+  qassertS(thetaMatS, "M", "thetaMat");
   NumericMatrix thetaMat = as<NumericMatrix>(thetaMatS);
   if (thetaMat.nrow() != thetaMat.ncol()){
     stop(_("'thetaMat' must be a symmetric matrix"));
   }
   CharacterVector thetaMatDimNames = as<CharacterVector>(as<List>(thetaMat.attr("dimnames"))[1]);
-  qstrict0(as<SEXP>(thetaMatDimNames), "thetaMat dimnames");
+  qstrictS(as<SEXP>(thetaMatDimNames), "thetaMat dimnames");
   // theta
-  qassert(thetaS, "R+", "theta");
-  qstrict(thetaS, "theta names");
+  qassertS(thetaS, "R+", "theta");
+  qstrictSn(thetaS, "theta names");
   NumericVector theta0 = as<NumericVector>(thetaS);
   if (theta0.size() != thetaMat.nrow()) {
     stop(_("'theta' must be the same size as 'thetaMat'"));
@@ -503,12 +508,13 @@ extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
   // Theta and thetaMat are correct, assign ".theta"
   rxModelsAssign(".theta", thetaMatS);
   
-  qassert(nCoresRVS, "X1[1,)", "nCoresRV");
+  qassertS(nCoresRVS, "X1[1,)", "nCoresRV");
   // int nCoresRV = as<int>(nCoresRVS);
   // return(as.data.frame(rxRmvn(nStud, .theta, thetaMat,
   //                               lower=thetaLower, upper=thetaUpper,
   //                               ncores=nCoresRV)))
   return R_NilValue;
+  END_RCPP
 }
 // .expandTheta <- function(theta=NULL, thetaMat=NULL,
 //                          thetaLower= -Inf, thetaUpper=Inf, nStud=1L,
