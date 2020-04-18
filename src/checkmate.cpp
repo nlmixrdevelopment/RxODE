@@ -50,6 +50,23 @@ SEXP qstrictSn(SEXP x_, const char *what) {
   END_RCPP
 }
 
+SEXP qstrictSdn(SEXP x_, const char *what) {
+  BEGIN_RCPP
+  RObject x  = as<RObject>(x_);
+  List dimnames = x.attr("dimnames");
+  if (Rf_isNull(dimnames)) {
+    stop("'%s' matrix must be named", what);
+  }
+  SEXP names;
+  if (Rf_isNull(x[1])) {
+    names = dimnames[0];
+  } else {
+    names = dimnames[1];
+  }
+  return qstrictS(as<SEXP>(names), what);
+  END_RCPP
+}
+
 SEXP qassertS(SEXP in, const char *test, const char *what){
   BEGIN_RCPP
   if (!qtest(as<SEXP>(in), test)) {

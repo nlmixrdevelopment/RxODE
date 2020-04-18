@@ -12,6 +12,18 @@
 extern "C"{
   typedef SEXP (*lotriMat_type) (SEXP, SEXP, SEXP);
   lotriMat_type lotriMat;
+  typedef SEXP (*asLotriMat_type) (SEXP, SEXP, SEXP);
+  asLotriMat_type asLotriMat;
+}
+
+bool gotLotriMat=false;
+
+static inline void setupLotri() {
+  if (!gotLotriMat) {
+    lotriMat = (lotriMat_type) R_GetCCallable("lotri","_lotriLstToMat");
+    asLotriMat = (asLotriMat_type) R_GetCCallable("lotri","_asLotriMat");
+    gotLotriMat=true;
+  }
 }
 
 using namespace Rcpp;
@@ -284,8 +296,6 @@ arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
   return ret;
 }
 
-bool gotLotriMat=false;
-
 SEXP qassertS(SEXP in, const char *test, const char *what);
 
 double getDbl(SEXP in, const char *var){
@@ -347,6 +357,7 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
     } else if (rxIs(omegaS, "lotri")) {
       if (!gotLotriMat) {
 	lotriMat = (lotriMat_type) R_GetCCallable("lotri","_lotriLstToMat");
+	asLotriMat = (asLotriMat_type) R_GetCCallable("lotri","_asLotriMat");
 	gotLotriMat=true;
       }
       RObject omega = omegaS;
@@ -396,6 +407,7 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
       if (omega.hasAttribute("format")) {
 	format = omega.attr("format");
       }
+      setupLotri();
       return as<SEXP>(lotriMat(as<SEXP>(omegaLst), format, as<SEXP>(startAt)));
     }
   } else {
@@ -461,8 +473,15 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
 
 SEXP qstrictS(SEXP nn, const char *what);
 SEXP qstrictSn(SEXP x, const char *what);
+SEXP qstrictSdn(SEXP x_, const char *what);
 extern "C" SEXP _vecDF(SEXP cv, SEXP n_);
 void rxModelsAssign(std::string str, SEXP assign);
+
+extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
+			 SEXP lowerS, SEXP upperS, SEXP ncoresS, SEXP isCholS,
+			 SEXP keepNamesS,
+			 SEXP aS, SEXP tolS, SEXP nlTolS, SEXP nlMaxiterS);
+
 extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
 			      SEXP thetaLowerS, SEXP thetaUpperS,
 			      SEXP nStudS, SEXP nCoresRVS) {
@@ -509,13 +528,44 @@ extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
   rxModelsAssign(".theta", thetaMatS);
   
   qassertS(nCoresRVS, "X1[1,)", "nCoresRV");
-  // int nCoresRV = as<int>(nCoresRVS);
-  // return(as.data.frame(rxRmvn(nStud, .theta, thetaMat,
-  //                               lower=thetaLower, upper=thetaUpper,
-  //                               ncores=nCoresRV)))
+  NumericMatrix retNM = _rxRmvn_(nStudS, as<SEXP>(theta), as<SEXP>(thetaMat),
+				 thetaLowerS, thetaUpperS, nCoresRVS,
+				 as<SEXP>(LogicalVector::create(false)), // isChol
+				 as<SEXP>(LogicalVector::create(true)), // keepNames
+				 as<SEXP>(NumericVector::create(0.4)), // a
+				 as<SEXP>(NumericVector::create(2.05)), // tol
+				 as<SEXP>(NumericVector::create(1e-10)), // nlTol
+				 as<SEXP>(IntegerVector::create(100))
+				 );
+  return as<SEXP>(as<DataFrame>(retNM));
+  END_RCPP
+}
+
+
+extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
+  BEGIN_RCPP
+  // SEXP events = as<DataFrame>(events);
+  qassertS(controlS, "l+", "control");
+  List control = as<List>(controlS);
+  SEXP et = _expandTheta_(paramsS, control["thetaMat"],
+			  control["thetaLower"],
+			  control["thetaUpper"],
+			  control["nStud"],
+			  control["nCoresRV"]);
+  SEXP omegaS = control["omega"];
+  if (qtest(omegaS, "M")) {
+    NumericMatrix omega = as<NumericMatrix>(omega);
+    RObject dimnames = omega.attr("dimnames");
+    qstrictSdn(omegaS, "omega");
+    SEXP omegaIsCholS;
+    qassert(omegaIsCholS, "b1", "omega");
+    bool omegaIsChol = as<bool>(omegaIsCholS);
+    if (omegaIsChol) {
+      omega = omega * transpose(omega);
+      omega.attr("dimnames") = dimnames;
+    }
+    // Convert to a lotri matrix
+  }
   return R_NilValue;
   END_RCPP
 }
-// .expandTheta <- function(theta=NULL, thetaMat=NULL,
-//                          thetaLower= -Inf, thetaUpper=Inf, nStud=1L,
-//                          nCoresRV=1L)

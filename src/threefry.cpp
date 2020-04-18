@@ -1266,7 +1266,7 @@ extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
       for (int j = 0; j < d; ++j) {
 	std::copy(Acur.begin()  + n*j,
 		  Acur.begin()  + n*(j+1),
-		  retNM.begin() + n*sListN*j + i*sListN);
+		  retNM.begin() + n*sListN*j + i*n);
       }
     }
     if (keepNames && dimnames.size() > 0) {
