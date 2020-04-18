@@ -560,10 +560,10 @@ extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP contro
     SEXP omegaIsCholS;
     qassert(omegaIsCholS, "b1", "omega");
     bool omegaIsChol = as<bool>(omegaIsCholS);
-    if (omegaIsChol) {
-      omega = omega * transpose(omega);
-      omega.attr("dimnames") = dimnames;
-    }
+    // if (omegaIsChol) {
+    //   omega = omega * transpose(omega);
+    //   omega.attr("dimnames") = dimnames;
+    // }
     // Convert to a lotri matrix
   }
   return R_NilValue;

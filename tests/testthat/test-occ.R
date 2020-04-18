@@ -63,8 +63,6 @@ rxPermissive({
                          iov.Ka ~ 0.01) | occ(nu=200),
                    lotri(inv.Cl ~ 0.02,
                          inv.Ka ~ 0.02) | inv(nu=10))
-
-    cvPost()
     
     .ni <- .nestingInfo(ev$id, omega, ev)
     expect_equal(.ni$below, c(eye = 2L, occ = 2L))

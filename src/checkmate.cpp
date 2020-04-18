@@ -58,7 +58,7 @@ SEXP qstrictSdn(SEXP x_, const char *what) {
     stop("'%s' matrix must be named", what);
   }
   SEXP names;
-  if (Rf_isNull(x[1])) {
+  if (Rf_isNull(as<SEXP>(dimnames[1]))) {
     names = dimnames[0];
   } else {
     names = dimnames[1];
