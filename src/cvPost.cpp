@@ -14,6 +14,8 @@ extern "C"{
   lotriMat_type lotriMat;
   typedef SEXP (*asLotriMat_type) (SEXP, SEXP, SEXP);
   asLotriMat_type asLotriMat;
+  typedef SEXP (*lotriSep_type) (SEXP, SEXP, SEXP, SEXP, SEXP);
+  lotriSep_type lotriSep;
 }
 
 bool gotLotriMat=false;
@@ -22,6 +24,7 @@ static inline void setupLotri() {
   if (!gotLotriMat) {
     lotriMat = (lotriMat_type) R_GetCCallable("lotri","_lotriLstToMat");
     asLotriMat = (asLotriMat_type) R_GetCCallable("lotri","_asLotriMat");
+    lotriSep = (lotriSep_type) R_GetCCallable("lotri","_lotriSep");
     gotLotriMat=true;
   }
 }
@@ -355,11 +358,6 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
 	return as<SEXP>(cvPost0(nu, om2, omegaIsChol, returnChol));
       }
     } else if (rxIs(omegaS, "lotri")) {
-      if (!gotLotriMat) {
-	lotriMat = (lotriMat_type) R_GetCCallable("lotri","_lotriLstToMat");
-	asLotriMat = (asLotriMat_type) R_GetCCallable("lotri","_asLotriMat");
-	gotLotriMat=true;
-      }
       RObject omega = omegaS;
       List omegaIn = as<List>(omega);
       CharacterVector omegaInNames = omega.attr("names");
@@ -553,19 +551,31 @@ extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP contro
 			  control["nStud"],
 			  control["nCoresRV"]);
   SEXP omegaS = control["omega"];
+  SEXP omegaLotri;
   if (qtest(omegaS, "M")) {
-    NumericMatrix omega = as<NumericMatrix>(omega);
-    RObject dimnames = omega.attr("dimnames");
+    RObject omegaR = as<RObject>(omegaS);
+    RObject dimnames = omegaR.attr("dimnames");
     qstrictSdn(omegaS, "omega");
-    SEXP omegaIsCholS;
+    SEXP omegaIsCholS = control["omegaIsChol"];
     qassert(omegaIsCholS, "b1", "omega");
     bool omegaIsChol = as<bool>(omegaIsCholS);
-    // if (omegaIsChol) {
-    //   omega = omega * transpose(omega);
-    //   omega.attr("dimnames") = dimnames;
-    // }
+    arma::mat omega = as<arma::mat>(omegaS);
+    if (omegaIsChol) {
+      omega = omega * omega.t();
+    }
     // Convert to a lotri matrix
+    setupLotri();
+    omegaLotri = asLotriMat(wrap(omega),
+			    as<SEXP>(List::create(_["lower"] = control["omegaLower"],
+						  _["upper"] = control["omegaUpper"],
+						  _["nu"]    = control["omegaDf"])),
+			    as<SEXP>(CharacterVector::create("id")));
+  } else if (rxIs(omegaS, "lotri")) {
+    omegaLotri = omegaS;
+  } else {
+    stop("'omega' needs to be a matrix or lotri matrix");
   }
+  
   return R_NilValue;
   END_RCPP
 }
