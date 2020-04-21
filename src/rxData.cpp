@@ -3954,8 +3954,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   }
   if (rxSolveDat->isRxSolve || rxSolveDat->isEnvironment){
     rx_solve* rx = getRxSolve_();
-    rx->sumType = as<int>(rxControl["sum"]);
-    rx->prodType = as<int>(rxControl["prod"]);
+    rx->sumType = as<int>(rxControl["sumType"]);
+    rx->prodType = as<int>(rxControl["prodType"]);
     return rxSolve_update(object, rxControl, specParams,
 			  extraArgs, params, events, inits,
 			  rxSolveDat);
@@ -3973,8 +3973,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // Get model 
     // Get the C solve object
     rx_solve* rx = getRxSolve_();
-    rx->sumType = as<int>(rxControl["sum"]);
-    rx->prodType = as<int>(rxControl["prod"]);
+    rx->sumType = as<int>(rxControl["sumType"]);
+    rx->prodType = as<int>(rxControl["prodType"]);
     rx_solving_options* op = rx->op;    
 #ifdef rxSolveT
     REprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);

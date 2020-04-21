@@ -55,8 +55,8 @@ rxControl <- function(scale = NULL,
                       safeZero=TRUE,
                       cacheEvent=TRUE,
                       mvnfast=FALSE,
-                      sum=c("pairwise", "fsum", "kahan", "neumaier", "c"),
-                      prod=c("long double", "double", "logify")){
+                      sumType=c("pairwise", "fsum", "kahan", "neumaier", "c"),
+                      prodType=c("long double", "double", "logify")){
     .xtra <- list(...);
     if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")) {
         .sigmaXform <- as.integer(sigmaXform)
@@ -170,8 +170,18 @@ rxControl <- function(scale = NULL,
         .indLinMatExpType <- match.arg(indLinMatExpType)
         .indLinMatExpType <- as.integer(.indLinMatExpTypeIdx[match.arg(indLinMatExpType)]);
     }
-    .sum <- which(match.arg(sum) == c("pairwise", "fsum", "kahan", "neumaier", "c"))
-    .prod <- which(match.arg(prod) == c("long double", "double", "logify"))
+    if (inherits(sumType, "numeric") ||
+        inherits(sumType, "integer")) {
+      .sum <- as.integer(sumType)
+    } else {
+      .sum <- which(match.arg(sumType) == c("pairwise", "fsum", "kahan", "neumaier", "c"))
+    }
+    if (inherits(prodType, "numeric") ||
+        inherits(prodType, "integer")) {
+      .prod <- as.integer(prodType)
+    } else {
+      .prod <- which(match.arg(prodType) == c("long double", "double", "logify"))
+    }
     .ret <- list(scale=scale,
                  method=method,
                  transitAbs=transitAbs,
@@ -242,8 +252,8 @@ rxControl <- function(scale = NULL,
                  ssAtol=ssAtol, ssRtol = ssRtol, safeZero=as.integer(safeZero),
                  cacheEvent=as.logical(cacheEvent),
                  mvnfast=mvnfast,
-                 sum=as.integer(.sum),
-                 prod=as.integer(.prod));
+                 sumType=as.integer(.sum),
+                 prodType=as.integer(.prod));
     return(.ret)
 }
 
@@ -648,7 +658,7 @@ rxControl <- function(scale = NULL,
 ##'     simulation instead of the thread-safe threefry based
 ##'     multivariate normal package provided in `RxODE`.
 ##'
-##' @param sum Sum type to use for \code{sum()} in
+##' @param sumType Sum type to use for \code{sum()} in
 ##'     RxODE code blocks.
 ##'
 ##' \code{pairwise} uses the pairwise sum (fast, default)
@@ -661,7 +671,7 @@ rxControl <- function(scale = NULL,
 ##'
 ##' \code{c} uses no correction: default/native summing
 ##'
-##' @param prod Product to use for \code{prod()} in RxODE blocks
+##' @param prodType Product to use for \code{prod()} in RxODE blocks
 ##'
 ##' \code{long double} converts to long double, performs the
 ##' multiplication and then converts back.
