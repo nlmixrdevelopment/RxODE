@@ -602,6 +602,7 @@ extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP contro
   if (nSub <= 1) {
     control["nSub"] = nid;
   }
+  
   return R_NilValue;
   END_RCPP
 }
