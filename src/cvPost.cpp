@@ -4,6 +4,7 @@
 #ifdef ENABLE_NLS
 #include <libintl.h>
 #include <checkmate.h>
+#include <boost/algorithm/string/predicate.hpp>
 #define _(String) dgettext ("RxODE", String)
 /* replace pkg as appropriate */
 #else
@@ -540,6 +541,8 @@ extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
 }
 
 
+Function getRxFn(std::string name);
+
 extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
   BEGIN_RCPP
   // SEXP events = as<DataFrame>(events);
@@ -572,10 +575,33 @@ extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP contro
 			    as<SEXP>(CharacterVector::create("id")));
   } else if (rxIs(omegaS, "lotri")) {
     omegaLotri = omegaS;
+  } else if (Rf_isNull(omegaS)){
+    rxModelsAssign(".nestObj", objectS);
+    rxModelsAssign(".nestEvents", eventsS);
+    rxModelsAssign(".theta", R_NilValue);
+    rxModelsAssign(".nest Info", R_NilValue);
+    return(as<SEXP>(et));
   } else {
     stop("'omega' needs to be a matrix or lotri matrix");
   }
-  
+  List eventsL = as<List>(eventsS);
+  CharacterVector eventNames = eventsL.attr("names");
+  int idI = -1;
+  for (int i = eventNames.size(); i--;) {
+    if (boost::iequals("id", as<std::string>(eventNames[i]))) {
+      idI = i;
+      break;
+    }
+  }
+  Function nestingInfo = getRxFn(".nestingInfo");
+  List ni = nestingInfo(_["id"]=eventsL[idI], _["omega"]=omegaLotri,
+			_["data"]=eventsS);
+  IntegerVector idIV =  as<IntegerVector>(ni["id"]);//length(levels(.ni$id))
+  int nid = (as<CharacterVector>(idIV.attr("levels"))).size();
+  int nSub = as<int>(control["nSub"]);
+  if (nSub <= 1) {
+    control["nSub"] = nid;
+  }
   return R_NilValue;
   END_RCPP
 }
