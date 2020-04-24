@@ -62,6 +62,24 @@ Function getForder(){
   return b["order"];
 }
 
+Function getChin() {
+  if (!getForder_b){
+    Function fn = getRxFn(".getDTEnv");
+    dataTable = fn();
+    getForder_b=true;
+  }
+  if (!forderForceBase_ && dataTable.exists("%chin%")){
+    return dataTable["%chin%"];
+  }
+  Environment b=Rcpp::Environment::base_namespace();
+  return b["%in%"];
+}
+
+SEXP chin(SEXP x, SEXP table){
+  Function chin_ = getChin();
+  return chin_(x, table);
+}
+
 extern bool useForder(){
   return getForder_b;
 }

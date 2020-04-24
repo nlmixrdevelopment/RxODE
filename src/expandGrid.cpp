@@ -375,6 +375,14 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
     rxExpandNestingRep(thetaNest, thetaNestTran, thetaNestFull,
 		       thCnt, curtheta, aboveVars, above, retS,  data,
 		       "THETA[");
+  } else if (etaNest.size() == 0) {
+    // const RObject& obj, List& nestingInfo,
+    // 		     bool compile=false
+    CharacterVector blank;
+    blank.attr("names") = CharacterVector::create();
+    return List::create(_["mod"] = obj,
+			_["theta"] = blank,
+			_["eta"] = blank);
   }
   
   int etCnt = 0;

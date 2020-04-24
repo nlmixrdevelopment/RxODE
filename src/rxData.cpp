@@ -3932,8 +3932,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     //   object = _rxModels[".nestObj"];
     //   trueEvents = _rxModels[".nestEvents"];
     // } else {
-    
-      object = obj;
+    // object = obj;
     // }
     if (method == 3){
       rxSolveDat->mv = rxModelVars(object);

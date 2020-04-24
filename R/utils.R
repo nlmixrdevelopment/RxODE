@@ -334,7 +334,11 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
   }  else if (inherits(diagXformType, "numeric") || inherits(diagXformType, "integer")) {
     .xform <- as.integer(diagXformType)
   } else {
-    .xform <- match.arg(diagXformType)
+    .xform <- setNames(c("variance" = 6L, "log" = 5L,
+                         "identity" = 4L, "nlmixrSqrt" = 1L,
+                         "nlmixrLog" = 2L,
+                         "nlmixrIdentity" = 3L)[match.arg(omegaXform)],
+                       NULL)
   }
   .ret <- .Call(`_cvPost_`, nu, omega, n,
                 omegaIsChol, returnChol, .type, .xform,
@@ -433,7 +437,7 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##'
 ##' @author Matthew Fidler, Zdravko Botev and some from Matteo Fasiolo
 ##' @export
-rxRmvn <- function(n, mu, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=FALSE,
+rxRmvn <- function(n, mu=NULL, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=FALSE,
                    keepNames=TRUE, a=0.4, tol=2.05, nlTol=1e-10, nlMaxiter=100L) {
   .ret <- .Call(`_rxRmvn_`, n, mu, sigma, lower, upper, ncores, isChol,
                 keepNames, a, tol, nlTol, nlMaxiter);
