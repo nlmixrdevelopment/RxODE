@@ -4,6 +4,8 @@
 #define isDose(evid) ((evid) == 3 || (evid) >= 100)
 #define isObs(evid) ((evid) == 0 || (evid) == 2 || ((evid) >= 9 && (evid) <= 99))
 
+#include "RxODE_control.h"
+
 #ifdef _isRxODE_
 #else
 #if defined(__cplusplus)

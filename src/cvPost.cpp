@@ -5,6 +5,7 @@
 #include <libintl.h>
 #include <checkmate.h>
 #include <boost/algorithm/string/predicate.hpp>
+#include "../inst/include/RxODE.h"
 #define _(String) dgettext ("RxODE", String)
 /* replace pkg as appropriate */
 #else
@@ -561,97 +562,10 @@ extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
 			 SEXP keepNamesS,
 			 SEXP aS, SEXP tolS, SEXP nlTolS, SEXP nlMaxiterS);
 
-extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
-  BEGIN_RCPP
-  // SEXP events = as<DataFrame>(events);
-  qassertS(controlS, "l+", "control");
-  List control = as<List>(controlS);
-  setupLotri();
-  SEXP et = _expandTheta_(paramsS, control["thetaMat"],
-			  control["thetaLower"], control["thetaUpper"],
-			  control["nStud"], control["nCoresRV"]);
-  SEXP omegaS = control["omega"];
-  SEXP omegaLotri;
-  if (qtest(omegaS, "M")) {
-    RObject omegaR = as<RObject>(omegaS);
-    RObject dimnames = omegaR.attr("dimnames");
-    qstrictSdn(omegaS, "omega");
-    SEXP omegaIsCholS = control["omegaIsChol"];
-    qassert(omegaIsCholS, "b1", "omega");
-    bool omegaIsChol = as<bool>(omegaIsCholS);
-    arma::mat omega = as<arma::mat>(omegaS);
-    if (omegaIsChol) {
-      omega = omega * omega.t();
-    }
-    // Convert to a lotri matrix
-    omegaLotri = asLotriMat(wrap(omega),
-			    as<SEXP>(List::create(_["lower"] = control["omegaLower"],
-						  _["upper"] = control["omegaUpper"],
-						  _["nu"]    = control["omegaDf"])),
-			    as<SEXP>(CharacterVector::create("id")));
-  } else if (rxIs(omegaS, "lotri")) {
-    omegaLotri = omegaS;
-  } else if (Rf_isNull(omegaS)){
-    rxModelsAssign(".nestObj", objectS);
-    rxModelsAssign(".nestEvents", eventsS);
-    rxModelsAssign(".theta", R_NilValue);
-    rxModelsAssign(".nest Info", R_NilValue);
-    return(as<SEXP>(et));
-  } else {
-    stop("'omega' needs to be a matrix or lotri matrix");
-  }
-  // At this point omegaLotri is a lotri matrix, so you can see if you
-  // can skip getting the nesting information when there isn't any
-  // nesting levels to be worked out.
-  //
-  // When there is only one level in omega, there is no nesting and
-  // the nesting information can be inferred
-  RObject omegaLotriRO = as<RObject>(omegaLotri);
-  CharacterVector omegaLotriNames = omegaLotriRO.attr("names");
-  SEXP aboveSEXP, belowSEXP;
-  SEXP lotriAbove = R_NilValue,
-    lotriBelow = R_NilValue;
-  if (omegaLotriNames.size() > 1) {
-    List eventsL = as<List>(eventsS);
-    CharacterVector eventNames = eventsL.attr("names");
-    int idI = -1;
-    for (int i = eventNames.size(); i--;) {
-      if (boost::iequals("id", as<std::string>(eventNames[i]))) {
-	idI = i;
-	break;
-      }
-    }
-    Function nestingInfo = getRxFn(".nestingInfo");
-    List ni = nestingInfo(_["id"]=eventsL[idI], _["omega"]=omegaLotri,
-			  _["data"]=eventsS);
-    IntegerVector idIV =  as<IntegerVector>(ni["id"]);//length(levels(.ni$id))
-    int nid = (as<CharacterVector>(idIV.attr("levels"))).size();
-    int nSub = as<int>(control["nSub"]);
-    if (nSub <= 1) {
-      control["nSub"] = nid;
-    }
-    RObject objectRO = as<RObject>(objectS);
-    List mv = rxModelVars_(objectS);
-    IntegerVector flags = as<IntegerVector>(mv["flags"]);
-    int cureta = as<int>(flags["maxeta"])+1;
-    int curtheta = as<int>(flags["maxtheta"])+1;
-    List en = rxExpandNesting(objectRO, ni, true);
-    aboveSEXP = as<SEXP>(ni["above"]);
-    belowSEXP = as<SEXP>(ni["above"]);
-    List lotriSepMat = as<List>(lotriSep(omegaLotri,aboveSEXP,
-					 belowSEXP,
-					 as<SEXP>(IntegerVector::create(cureta)),
-					 as<SEXP>(IntegerVector::create(curtheta))));
-    lotriAbove = lotriSepMat["above"];
-    lotriBelow = lotriSepMat["below"];
-  } else {
-    aboveSEXP = R_NilValue;
-    belowSEXP = R_NilValue;
-  }
-  // Get all the names for
-  CharacterVector allNames = as<CharacterVector>(lotriAllNames(omegaLotri));
-  std::string methodStr = as<std::string>(control["omegaSeparation"]);
-  int methodInt=-1;
+extern "C" SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_);
+
+static inline int getMethodInt(std::string& methodStr, CharacterVector& allNames, SEXP et) {
+  int methodInt=1;
   if (methodStr == "auto") {
     // FIXME don't use %in%/%chin% from R
     LogicalVector inL = as<LogicalVector>(chin(allNames, et));
@@ -680,22 +594,120 @@ extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP contro
       methodInt = 4;
     }
   }
+  return methodInt;
+}
+
+extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
+  BEGIN_RCPP
+  // SEXP events = as<DataFrame>(events);
+  qassertS(controlS, "l+", "control");
+  List control = as<List>(controlS);
+  setupLotri();
+  SEXP nStudS = control[Rxc_nStud];
+  int nStud = as<int>(nStudS);
+  int nSub = as<int>(control[Rxc_nSub]);
+  SEXP et = _expandTheta_(paramsS, control[Rxc_thetaMat],
+			  control[Rxc_thetaLower], control[Rxc_thetaUpper],
+			  nStudS, control[Rxc_nCoresRV]);
+  SEXP omegaS = control[Rxc_omega];
+  SEXP omegaLotri;
+  if (qtest(omegaS, "M")) {
+    RObject omegaR = as<RObject>(omegaS);
+    RObject dimnames = omegaR.attr("dimnames");
+    qstrictSdn(omegaS, "omega");
+    SEXP omegaIsCholS = control[Rxc_omegaIsChol];
+    qassert(omegaIsCholS, "b1", "omega");
+    bool omegaIsChol = as<bool>(omegaIsCholS);
+    arma::mat omega = as<arma::mat>(omegaS);
+    if (omegaIsChol) {
+      omega = omega * omega.t();
+    }
+    // Convert to a lotri matrix
+    omegaLotri = asLotriMat(wrap(omega),
+			    as<SEXP>(List::create(_["lower"] = control[Rxc_omegaLower],
+						  _["upper"] = control[Rxc_omegaUpper],
+						  _["nu"]    = control[Rxc_omegaDf])),
+			    as<SEXP>(CharacterVector::create("id")));
+  } else if (rxIs(omegaS, "lotri")) {
+    omegaLotri = omegaS;
+  } else if (Rf_isNull(omegaS)){
+    rxModelsAssign(".nestObj", objectS);
+    rxModelsAssign(".nestEvents", eventsS);
+    rxModelsAssign(".theta", R_NilValue);
+    rxModelsAssign(".nestInfo", R_NilValue);
+  } else {
+    stop(_("'omega' needs to be a matrix or lotri matrix"));
+  }
+  // At this point omegaLotri is a lotri matrix, so you can see if you
+  // can skip getting the nesting information when there isn't any
+  // nesting levels to be worked out.
+  //
+  // When there is only one level in omega, there is no nesting and
+  // the nesting information can be inferred
+  RObject omegaLotriRO = as<RObject>(omegaLotri);
+  CharacterVector omegaLotriNames = omegaLotriRO.attr("names");
+  SEXP aboveSEXP, belowSEXP;
+  SEXP lotriAbove = R_NilValue,
+    lotriBelow = R_NilValue;
+  if (omegaLotriNames.size() > 1) {
+    List eventsL = as<List>(eventsS);
+    CharacterVector eventNames = eventsL.attr("names");
+    int idI = -1;
+    for (int i = eventNames.size(); i--;) {
+      if (boost::iequals("id", as<std::string>(eventNames[i]))) {
+	idI = i;
+	break;
+      }
+    }
+    Function nestingInfo = getRxFn(".nestingInfo");
+    List ni = nestingInfo(_["id"]=eventsL[idI], _["omega"]=omegaLotri,
+			  _["data"]=eventsS);
+    IntegerVector idIV =  as<IntegerVector>(ni["id"]);//length(levels(.ni$id))
+    int nid = (as<CharacterVector>(idIV.attr("levels"))).size();
+    if (nSub <= 1) {
+      control[Rxc_nSub] = nid;
+    }
+    RObject objectRO = as<RObject>(objectS);
+    List mv = rxModelVars_(objectS);
+    IntegerVector flags = as<IntegerVector>(mv["flags"]);
+    int cureta = as<int>(flags["maxeta"])+1;
+    int curtheta = as<int>(flags["maxtheta"])+1;
+    List en = rxExpandNesting(objectRO, ni, true);
+    aboveSEXP = as<SEXP>(ni["above"]);
+    belowSEXP = as<SEXP>(ni["above"]);
+    List lotriSepMat = as<List>(lotriSep(omegaLotri,aboveSEXP,
+					 belowSEXP,
+					 as<SEXP>(IntegerVector::create(cureta)),
+					 as<SEXP>(IntegerVector::create(curtheta))));
+    lotriAbove = lotriSepMat["above"];
+    lotriBelow = lotriSepMat["below"];
+  } else {
+    aboveSEXP = R_NilValue;
+    belowSEXP = R_NilValue;
+  }
+  // Get all the names for
+  CharacterVector allNames = as<CharacterVector>(lotriAllNames(omegaLotri));
+  std::string methodStr = as<std::string>(control[Rxc_omegaSeparation]);
+  int methodInt = getMethodInt(methodStr, allNames, et);
+  
   SEXP typeSEXP = as<SEXP>(IntegerVector::create(methodInt));
   if (!Rf_isNull(aboveSEXP)) {
     // Create an extra theta matrix list
     SEXP thetaList = _cvPost_(et, lotriAbove,
-			      control["nStud"],
+			      nStudS,
 			      LogicalVector::create(false),
 			      LogicalVector::create(false),
 			      IntegerVector::create(methodInt),
-			      control["omegaXform"]);
+			      control[Rxc_omegaXform]);
+    rxModelsAssign(".thetaL", thetaList);
     List bounds = lotriGetBounds(aboveSEXP, R_NilValue, R_NilValue);
     NumericVector upper = bounds[0];
     NumericVector lower = bounds[1];
+    // With 
     NumericMatrix aboveMat = _rxRmvn_(IntegerVector::create(1),
 				      R_NilValue, thetaList,
 				      upper, lower, // lower upper 
-				      control["nCoresRV"],
+				      control[Rxc_nCoresRV],
 				      LogicalVector::create(false), // isChol
 				      LogicalVector::create(true), // keepNames
 				      NumericVector::create(0.4), // a
@@ -719,17 +731,60 @@ extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP contro
 	etFinal[baseSize+j] = newLst[j];
       }
       etFinal.attr("names") = etFinalNames;
-      etFinal.attr("rownames") = IntegerVector::create(NA_INTEGER, -as<int>(control["nStud"]));
+      etFinal.attr("rownames") = IntegerVector::create(NA_INTEGER, -nStud);
       etFinal.attr("class") = CharacterVector::create("data.frame");
       et = as<SEXP>(etFinal);
     }
   }
   if (!Rf_isNull(belowSEXP)) {
     // below to sample matrix
-    // _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
-    //        SEXP returnCholS, SEXP typeS, SEXP diagXformTypeS))
-  } else {
+    SEXP omegaList = _cvPost_(et, // In case needed
+			      lotriBelow,
+			      nStudS,
+			      LogicalVector::create(false),
+			      LogicalVector::create(false),
+			      IntegerVector::create(methodInt),
+			      control[Rxc_omegaXform]);
+    rxModelsAssign(".omegaL", omegaList);
+    List bounds = lotriGetBounds(belowSEXP, R_NilValue, R_NilValue);
+    NumericVector upper = bounds[0];
+    NumericVector lower = bounds[1];
+    NumericMatrix belowMat = _rxRmvn_(IntegerVector::create(nSub),
+				      R_NilValue, omegaList,
+				      upper, lower, // lower upper 
+				      control[Rxc_nCoresRV],
+				      LogicalVector::create(false), // isChol
+				      LogicalVector::create(true), // keepNames
+				      NumericVector::create(0.4), // a
+				      NumericVector::create(2.05), // tol
+				      NumericVector::create(1e-10), // nlTol
+				      IntegerVector::create(100)); // nlMaxiter
+    et = _cbindOme(et, belowMat, IntegerVector::create(nSub));
   }
-  return R_NilValue;
+  SEXP sigmaS = control[Rxc_sigma];
+  SEXP sigmaLotri;
+  if (qtest(sigmaS, "M")) {
+    RObject sigmaR = as<RObject>(sigmaS);
+    RObject dimnames = sigmaR.attr("dimnames");
+    qstrictSdn(sigmaS, "sigma");
+    SEXP sigmaIsCholS = control[Rxc_sigmaIsChol];
+    qassert(sigmaIsCholS, "b1", "sigma");
+    bool sigmaIsChol = as<bool>(sigmaIsCholS);
+    arma::mat sigma = as<arma::mat>(sigmaS);
+    if (sigmaIsChol) {
+      sigma = sigma * sigma.t();
+    }
+    // Convert to a lotri matrix
+    sigmaLotri = asLotriMat(wrap(sigma),
+			    as<SEXP>(List::create(_["lower"] = control[Rxc_sigmaLower],
+						  _["upper"] = control[Rxc_sigmaUpper],
+						  _["nu"]    = control[Rxc_sigmaDf])),
+			    as<SEXP>(CharacterVector::create("id")));
+  } else if (rxIs(sigmaS, "lotri")) {
+    sigmaLotri = sigmaS;
+  } else if (!Rf_isNull(sigmaS)){
+    stop(_("'sigma' needs to be a matrix or lotri matrix"));
+  }
+  return et;
   END_RCPP
 }

@@ -108,3 +108,16 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
 
 document();
 
+
+
+genDefine <- function(){
+  .n <- gsub("[.]","_",names(rxControl()))
+  sink(devtools::package_file("inst/include/RxODE_control.h"))
+  cat("#pragma once\n")
+  cat("#ifndef __RxODE_control_H__\n#define __RxODE_control_H__\n")
+  cat(paste(paste0("#define ", "Rxc_", .n, " ", seq_along(.n)-1),collapse="\n"))
+  cat("\n#endif // __RxODE_control_H__\n")
+  sink();
+}
+
+genDefine()
