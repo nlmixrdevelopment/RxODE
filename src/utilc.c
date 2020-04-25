@@ -67,15 +67,21 @@ SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_) {
   int len2;
   int lenOut;
   int lenItem;
-  if (!Rf_isNull(mat_)) {
+  if (!Rf_isNull(mat_) && !Rf_isNull(et_)) {
     matD = getAttrib(mat_, install("dim"));;
     matDN = VECTOR_ELT(getAttrib(mat_, install("dimnames")), 1);
     len2 = INTEGER(matD)[1];
     lenOut = INTEGER(matD)[0];
     lenItem = lenOut/len1a;
-  } else {
+  } else if (!Rf_isNull(et_)) {
     len2 = 0;
     lenOut = n*len1a;
+    lenItem = n;
+  } else {
+    matD = getAttrib(mat_, install("dim"));;
+    matDN = VECTOR_ELT(getAttrib(mat_, install("dimnames")), 1);
+    len2 = INTEGER(matD)[1];
+    lenOut = INTEGER(matD)[0];
     lenItem = n;
   }
   int pro = 0;

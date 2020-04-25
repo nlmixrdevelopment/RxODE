@@ -40,5 +40,11 @@ rxPermissive({
   expect_equal(expand2$a, expand$a)
   expect_equal(expand2$b, expand$b)
   expect_equal(expand2$c, expand$c)
+
+  expand3 <- RxODE:::.cbindOme(NULL, omega, 4)
+
+  expect_equal(expand3$a1, expand$a1)
+  expect_equal(expand3$b1, expand$b1)
+  expect_equal(expand3$c1, expand$c1)
   
 }, test="cran")
