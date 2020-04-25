@@ -18,7 +18,13 @@
 
 
 SEXP _vecDF(SEXP cv, SEXP n_) {
-  int n = INTEGER(n_)[0];
+  int n;
+  int typ = TYPEOF(n_);
+  if (typ == REALSXP) {
+    n = (int)(REAL(n_)[0]);
+  } else if (typ == INTSXP) {
+    n = INTEGER(n_)[0];
+  }
   if (n <= 0) error(_("'n' must be greater than 0"));
   int pro = 0;
   int len = length(cv);
@@ -56,12 +62,22 @@ SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_) {
   }
   SEXP etN = getAttrib(et_, install("names"));
 
-  SEXP matD = getAttrib(mat_, install("dim"));
-  SEXP matDN = VECTOR_ELT(getAttrib(mat_, install("dimnames")), 1);
-  
-  int len2 = INTEGER(matD)[1];
-  int lenOut = INTEGER(matD)[0];
-  int lenItem = lenOut/len1a;
+  SEXP matD;
+  SEXP matDN;
+  int len2;
+  int lenOut;
+  int lenItem;
+  if (!Rf_isNull(mat_)) {
+    matD = getAttrib(mat_, install("dim"));;
+    matDN = VECTOR_ELT(getAttrib(mat_, install("dimnames")), 1);
+    len2 = INTEGER(matD)[1];
+    lenOut = INTEGER(matD)[0];
+    lenItem = lenOut/len1a;
+  } else {
+    len2 = 0;
+    lenOut = n*len1a;
+    lenItem = n;
+  }
   int pro = 0;
   SEXP ret = PROTECT(allocVector(VECSXP, len1+len2)); pro++;
   SEXP retN = PROTECT(allocVector(STRSXP, len1+len2)); pro++;

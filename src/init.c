@@ -130,6 +130,7 @@ extern SEXP _RxODE_rxSimThetaOmega(SEXP, SEXP, SEXP, SEXP, SEXP,
 
 SEXP _cvPost_(SEXP, SEXP, SEXP, SEXP, SEXP,
 		    SEXP, SEXP);
+SEXP _expandPars_(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rinvchisq(SEXP, SEXP, SEXP);
 
 SEXP _RxODE_getRxFn(SEXP);
@@ -347,6 +348,7 @@ void R_init_RxODE(DllInfo *info){
     {"_vecDF", (DL_FUNC) _vecDF, 2},
     {"_cbindOme", (DL_FUNC) _cbindOme, 3},
     {"_rxRmvn_", (DL_FUNC) _rxRmvn_, 12},
+    {"_expandPars_", (DL_FUNC) _expandPars_, 4},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

@@ -22,6 +22,10 @@ extern "C"{
   lotriAllNames_type lotriAllNames;
   typedef SEXP (*lotriGetBounds_type) (SEXP, SEXP, SEXP);
   lotriGetBounds_type lotriGetBounds;
+  typedef SEXP (*isLotri_type) (SEXP);
+  isLotri_type isLotri;
+  typedef SEXP (*lotriMaxNu_type) (SEXP);
+  lotriMaxNu_type lotriMaxNu;
 }
 
 bool gotLotriMat=false;
@@ -33,6 +37,8 @@ static inline void setupLotri() {
     lotriSep = (lotriSep_type) R_GetCCallable("lotri","_lotriSep");
     lotriAllNames = (lotriAllNames_type) R_GetCCallable("lotri","_lotriAllNames");
     lotriGetBounds = (lotriGetBounds_type) R_GetCCallable("lotri", "_lotriGetBounds");
+    isLotri = (isLotri_type) R_GetCCallable("lotri", "_isLotri");
+    lotriMaxNu = (lotriMaxNu_type) R_GetCCallable("lotri", "_lotriMaxNu");
     gotLotriMat=true;
   }
 }
@@ -365,7 +371,7 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
 	}
 	return as<SEXP>(cvPost0(nu, om2, omegaIsChol, returnChol));
       }
-    } else if (rxIs(omegaS, "lotri")) {
+    } else if (isLotri(omegaS)) {
       RObject omega = omegaS;
       List omegaIn = as<List>(omega);
       CharacterVector omegaInNames = omega.attr("names");
@@ -373,34 +379,36 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
       List omegaLst(nOmega);
       List lotriLst = as<List>(omega.attr("lotri"));
       // type = 1
-      for (int ii = 0; ii < nOmega; ++ii) {
-      	List curOmegaLst;
-      	int nsame = 1;
-      	double nu = 1.0;
-      	if (lotriLst.containsElementNamed((as<std::string>(omegaInNames[ii])).c_str())){
-      	  curOmegaLst = lotriLst[as<std::string>(omegaInNames[ii])];
-      	  if (curOmegaLst.containsElementNamed("nu")){
-	    nu = as<double>(curOmegaLst["nu"]);
-      	  }
-	  if (curOmegaLst.containsElementNamed("same")){
-	    nsame = as<int>(curOmegaLst["same"]);
+      if (lotriLst.size() > 0) {
+	for (int ii = 0; ii < nOmega; ++ii) {
+	  List curOmegaLst;
+	  int nsame = 1;
+	  double nu = 1.0;
+	  if (lotriLst.containsElementNamed((as<std::string>(omegaInNames[ii])).c_str())){
+	    curOmegaLst = lotriLst[as<std::string>(omegaInNames[ii])];
+	    if (curOmegaLst.containsElementNamed("nu")){
+	      nu = as<double>(curOmegaLst["nu"]);
+	    }
+	    if (curOmegaLst.containsElementNamed("same")){
+	      nsame = as<int>(curOmegaLst["same"]);
+	    }
 	  }
-      	}
-	RObject cur;
-	if (nu > 1) {
-	  NumericMatrix tmp = as<NumericMatrix>(omegaIn[ii]);
-	  cur = as<RObject>(cvPost0(nu, tmp, false, false));
-	  cur.attr("dimnames") = tmp.attr("dimnames"); // Preserve dimnames
-	} else {
-	  cur = omegaIn[ii];
-	}
-	if (nsame > 1) {
-	  List curl(2);
-	  curl[0] = cur;
-	  curl[1] = nsame;
-	  omegaLst[ii] = curl;
-	} else {
-	  omegaLst[ii] = cur;
+	  RObject cur;
+	  if (nu > 1) {
+	    NumericMatrix tmp = as<NumericMatrix>(omegaIn[ii]);
+	    cur = as<RObject>(cvPost0(nu, tmp, false, false));
+	    cur.attr("dimnames") = tmp.attr("dimnames"); // Preserve dimnames
+	  } else {
+	    cur = omegaIn[ii];
+	  }
+	  if (nsame > 1) {
+	    List curl(2);
+	    curl[0] = cur;
+	    curl[1] = nsame;
+	    omegaLst[ii] = curl;
+	  } else {
+	    omegaLst[ii] = cur;
+	  }
 	}
       }
       IntegerVector startAt(1);
@@ -568,7 +576,7 @@ static inline int getMethodInt(std::string& methodStr, CharacterVector& allNames
   int methodInt=1;
   if (methodStr == "auto") {
     // FIXME don't use %in%/%chin% from R
-    LogicalVector inL = as<LogicalVector>(chin(allNames, et));
+    LogicalVector inL = as<LogicalVector>(chin(allNames, Rf_getAttrib(et, R_NamesSymbol)));
     bool allIn = true;
     for (int j = inL.size(); j--;){
       if (!inL[j]) {
@@ -597,7 +605,7 @@ static inline int getMethodInt(std::string& methodStr, CharacterVector& allNames
   return methodInt;
 }
 
-extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
+extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
   BEGIN_RCPP
   // SEXP events = as<DataFrame>(events);
   qassertS(controlS, "l+", "control");
@@ -610,7 +618,7 @@ extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP contro
 			  control[Rxc_thetaLower], control[Rxc_thetaUpper],
 			  nStudS, control[Rxc_nCoresRV]);
   SEXP omegaS = control[Rxc_omega];
-  SEXP omegaLotri;
+  SEXP omegaLotri = R_NilValue;
   if (qtest(omegaS, "M")) {
     RObject omegaR = as<RObject>(omegaS);
     RObject dimnames = omegaR.attr("dimnames");
@@ -622,13 +630,16 @@ extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP contro
     if (omegaIsChol) {
       omega = omega * omega.t();
     }
+    SEXP omegaPre = wrap(omega);
+    Rf_setAttrib(omegaPre, R_DimNamesSymbol, as<SEXP>(dimnames));
+    
     // Convert to a lotri matrix
-    omegaLotri = asLotriMat(wrap(omega),
+    omegaLotri = asLotriMat(omegaPre,
 			    as<SEXP>(List::create(_["lower"] = control[Rxc_omegaLower],
 						  _["upper"] = control[Rxc_omegaUpper],
-						  _["nu"]    = control[Rxc_omegaDf])),
+						  _["nu"]    = control[Rxc_dfSub])),
 			    as<SEXP>(CharacterVector::create("id")));
-  } else if (rxIs(omegaS, "lotri")) {
+  } else if (isLotri(omegaS)) {
     omegaLotri = omegaS;
   } else if (Rf_isNull(omegaS)){
     rxModelsAssign(".nestObj", objectS);
@@ -638,131 +649,160 @@ extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP contro
   } else {
     stop(_("'omega' needs to be a matrix or lotri matrix"));
   }
-  // At this point omegaLotri is a lotri matrix, so you can see if you
-  // can skip getting the nesting information when there isn't any
-  // nesting levels to be worked out.
-  //
-  // When there is only one level in omega, there is no nesting and
-  // the nesting information can be inferred
-  RObject omegaLotriRO = as<RObject>(omegaLotri);
-  CharacterVector omegaLotriNames = omegaLotriRO.attr("names");
   SEXP aboveSEXP, belowSEXP;
   SEXP lotriAbove = R_NilValue,
     lotriBelow = R_NilValue;
-  if (omegaLotriNames.size() > 1) {
-    List eventsL = as<List>(eventsS);
-    CharacterVector eventNames = eventsL.attr("names");
-    int idI = -1;
-    for (int i = eventNames.size(); i--;) {
-      if (boost::iequals("id", as<std::string>(eventNames[i]))) {
-	idI = i;
-	break;
+  int nid = 1;
+  List ni;    
+  CharacterVector allNames;
+  std::string methodStr;
+  int methodInt = 1;
+  if (!Rf_isNull(omegaS)) {
+    // At this point omegaLotri is a lotri matrix, so you can see if you
+    // can skip getting the nesting information when there isn't any
+    // nesting levels to be worked out.
+    //
+    // When there is only one level in omega, there is no nesting and
+    // the nesting information can be inferred
+    RObject omegaLotriRO = as<RObject>(omegaLotri);
+    CharacterVector omegaLotriNames = omegaLotriRO.attr("names");
+    if (omegaLotriNames.size() > 1) {
+      List eventsL = as<List>(eventsS);
+      CharacterVector eventNames = eventsL.attr("names");
+      int idI = -1;
+      for (int i = eventNames.size(); i--;) {
+	if (boost::iequals("id", as<std::string>(eventNames[i]))) {
+	  idI = i;
+	  break;
+	}
       }
+      Function nestingInfo = getRxFn(".nestingInfo");
+      ni = nestingInfo(_["id"]=eventsL[idI], _["omega"]=omegaLotri,
+		       _["data"]=eventsS);
+      IntegerVector idIV =  as<IntegerVector>(ni["id"]);//length(levels(.ni$id))
+      nid = (as<CharacterVector>(idIV.attr("levels"))).size();
+      if (nSub <= 1) {
+	control[Rxc_nSub] = nid;
+      }
+      RObject objectRO = as<RObject>(objectS);
+      List mv = rxModelVars_(objectS);
+      IntegerVector flags = as<IntegerVector>(mv["flags"]);
+      int cureta = as<int>(flags["maxeta"])+1;
+      int curtheta = as<int>(flags["maxtheta"])+1;
+      List en = rxExpandNesting(objectRO, ni, true);
+      aboveSEXP = as<SEXP>(ni["above"]);
+      belowSEXP = as<SEXP>(ni["below"]);
+      List lotriSepMat = as<List>(lotriSep(omegaLotri,aboveSEXP,
+					   belowSEXP,
+					   as<SEXP>(IntegerVector::create(cureta)),
+					   as<SEXP>(IntegerVector::create(curtheta))));
+      lotriAbove = lotriSepMat["above"];
+      lotriBelow = lotriSepMat["below"];
+    } else {
+      aboveSEXP = R_NilValue;
+      belowSEXP = omegaS;
+      lotriBelow = omegaLotri;
     }
-    Function nestingInfo = getRxFn(".nestingInfo");
-    List ni = nestingInfo(_["id"]=eventsL[idI], _["omega"]=omegaLotri,
-			  _["data"]=eventsS);
-    IntegerVector idIV =  as<IntegerVector>(ni["id"]);//length(levels(.ni$id))
-    int nid = (as<CharacterVector>(idIV.attr("levels"))).size();
-    if (nSub <= 1) {
-      control[Rxc_nSub] = nid;
-    }
-    RObject objectRO = as<RObject>(objectS);
-    List mv = rxModelVars_(objectS);
-    IntegerVector flags = as<IntegerVector>(mv["flags"]);
-    int cureta = as<int>(flags["maxeta"])+1;
-    int curtheta = as<int>(flags["maxtheta"])+1;
-    List en = rxExpandNesting(objectRO, ni, true);
-    aboveSEXP = as<SEXP>(ni["above"]);
-    belowSEXP = as<SEXP>(ni["above"]);
-    List lotriSepMat = as<List>(lotriSep(omegaLotri,aboveSEXP,
-					 belowSEXP,
-					 as<SEXP>(IntegerVector::create(cureta)),
-					 as<SEXP>(IntegerVector::create(curtheta))));
-    lotriAbove = lotriSepMat["above"];
-    lotriBelow = lotriSepMat["below"];
-  } else {
-    aboveSEXP = R_NilValue;
-    belowSEXP = R_NilValue;
-  }
-  // Get all the names for
-  CharacterVector allNames = as<CharacterVector>(lotriAllNames(omegaLotri));
-  std::string methodStr = as<std::string>(control[Rxc_omegaSeparation]);
-  int methodInt = getMethodInt(methodStr, allNames, et);
+    // Get all the names for
+    allNames = as<CharacterVector>(lotriAllNames(omegaLotri));
+    methodStr = as<std::string>(control[Rxc_omegaSeparation]);
+    methodInt = getMethodInt(methodStr, allNames, et);
   
-  SEXP typeSEXP = as<SEXP>(IntegerVector::create(methodInt));
-  if (!Rf_isNull(aboveSEXP)) {
-    // Create an extra theta matrix list
-    SEXP thetaList = _cvPost_(et, lotriAbove,
-			      nStudS,
-			      LogicalVector::create(false),
-			      LogicalVector::create(false),
-			      IntegerVector::create(methodInt),
-			      control[Rxc_omegaXform]);
-    rxModelsAssign(".thetaL", thetaList);
-    List bounds = lotriGetBounds(aboveSEXP, R_NilValue, R_NilValue);
-    NumericVector upper = bounds[0];
-    NumericVector lower = bounds[1];
-    // With 
-    NumericMatrix aboveMat = _rxRmvn_(IntegerVector::create(1),
-				      R_NilValue, thetaList,
-				      upper, lower, // lower upper 
-				      control[Rxc_nCoresRV],
-				      LogicalVector::create(false), // isChol
-				      LogicalVector::create(true), // keepNames
-				      NumericVector::create(0.4), // a
-				      NumericVector::create(2.05), // tol
-				      NumericVector::create(1e-10), // nlTol
-				      IntegerVector::create(100)); // nlMaxiter
-    DataFrame newLst = as<DataFrame>(aboveMat);
-    if (!Rf_isNull(et)){
-      List etList = as<List>(et);
-      CharacterVector etListNames = etList.attr("names");
-      int baseSize = etList.size();
-      List etFinal(baseSize + newLst.size());
-      CharacterVector etFinalNames(baseSize + newLst.size());
-      CharacterVector newLstNames = newLst.attr("names");
-      for (int j = baseSize; j--;){
-	etFinalNames[j] = etListNames[j];
-	etFinal[j] = etList[j];
+    if (!Rf_isNull(aboveSEXP)) {
+      // Create an extra theta matrix list
+      //
+      // Note this is for between study variability and the
+      // method/specification comes from omega, so methodInt comes from omegaSeparation
+      SEXP thetaList = _cvPost_(et, lotriAbove,
+				nStudS,
+				LogicalVector::create(false),
+				LogicalVector::create(false),
+				IntegerVector::create(methodInt),
+				control[Rxc_omegaXform]);
+      if (Rf_length(thetaList) >= 1 &&
+	  as<double>(lotriMaxNu(lotriAbove)) > 1.0) {
+	rxModelsAssign(".thetaL", thetaList);
+      } else {
+	rxModelsAssign(".thetaL", R_NilValue);
       }
-      for (int j = newLst.size(); j--;) {
-	etFinalNames[baseSize+j] = newLstNames[j];
-	etFinal[baseSize+j] = newLst[j];
+      List bounds = lotriGetBounds(lotriAbove, R_NilValue, R_NilValue);
+      NumericVector upper = bounds[0];
+      NumericVector lower = bounds[1];
+      // With 
+      NumericMatrix aboveMat = _rxRmvn_(IntegerVector::create(1),
+					R_NilValue, thetaList,
+					upper, lower, // lower upper 
+					control[Rxc_nCoresRV],
+					LogicalVector::create(false), // isChol
+					LogicalVector::create(true), // keepNames
+					NumericVector::create(0.4), // a
+					NumericVector::create(2.05), // tol
+					NumericVector::create(1e-10), // nlTol
+					IntegerVector::create(100)); // nlMaxiter
+      DataFrame newLst = as<DataFrame>(aboveMat);
+      if (!Rf_isNull(et)){
+	List etList = as<List>(et);
+	CharacterVector etListNames = etList.attr("names");
+	int baseSize = etList.size();
+	List etFinal(baseSize + newLst.size());
+	CharacterVector etFinalNames(baseSize + newLst.size());
+	CharacterVector newLstNames = newLst.attr("names");
+	for (int j = baseSize; j--;){
+	  etFinalNames[j] = etListNames[j];
+	  etFinal[j] = etList[j];
+	}
+	for (int j = newLst.size(); j--;) {
+	  etFinalNames[baseSize+j] = newLstNames[j];
+	  etFinal[baseSize+j] = newLst[j];
+	}
+	etFinal.attr("names") = etFinalNames;
+	etFinal.attr("rownames") = IntegerVector::create(NA_INTEGER, -nStud);
+	etFinal.attr("class") = CharacterVector::create("data.frame");
+	et = as<SEXP>(etFinal);
       }
-      etFinal.attr("names") = etFinalNames;
-      etFinal.attr("rownames") = IntegerVector::create(NA_INTEGER, -nStud);
-      etFinal.attr("class") = CharacterVector::create("data.frame");
-      et = as<SEXP>(etFinal);
+    } else {
+      rxModelsAssign(".thetaL", R_NilValue);
     }
-  }
-  if (!Rf_isNull(belowSEXP)) {
-    // below to sample matrix
-    SEXP omegaList = _cvPost_(et, // In case needed
-			      lotriBelow,
-			      nStudS,
-			      LogicalVector::create(false),
-			      LogicalVector::create(false),
-			      IntegerVector::create(methodInt),
-			      control[Rxc_omegaXform]);
-    rxModelsAssign(".omegaL", omegaList);
-    List bounds = lotriGetBounds(belowSEXP, R_NilValue, R_NilValue);
-    NumericVector upper = bounds[0];
-    NumericVector lower = bounds[1];
-    NumericMatrix belowMat = _rxRmvn_(IntegerVector::create(nSub),
-				      R_NilValue, omegaList,
-				      upper, lower, // lower upper 
-				      control[Rxc_nCoresRV],
-				      LogicalVector::create(false), // isChol
-				      LogicalVector::create(true), // keepNames
-				      NumericVector::create(0.4), // a
-				      NumericVector::create(2.05), // tol
-				      NumericVector::create(1e-10), // nlTol
-				      IntegerVector::create(100)); // nlMaxiter
-    et = _cbindOme(et, belowMat, IntegerVector::create(nSub));
+    if (!Rf_isNull(belowSEXP)) {
+      // below to sample matrix
+      SEXP omegaList = _cvPost_(et, // In case needed
+				lotriBelow,
+				nStudS,
+				LogicalVector::create(false),
+				LogicalVector::create(false),
+				IntegerVector::create(methodInt),
+				control[Rxc_omegaXform]);
+      if (Rf_length(omegaList) >= 1 &&
+	  as<double>(lotriMaxNu(lotriBelow)) > 1.0) {
+	rxModelsAssign(".omegaL", omegaList);
+      } else {
+	rxModelsAssign(".omegaL", R_NilValue);
+      }
+      List bounds = lotriGetBounds(lotriBelow, R_NilValue, R_NilValue);
+      NumericVector upper = bounds[0];
+      NumericVector lower = bounds[1];
+      NumericMatrix belowMat = _rxRmvn_(IntegerVector::create(nSub),
+					R_NilValue, omegaList,
+					upper, lower, // lower upper 
+					control[Rxc_nCoresRV],
+					LogicalVector::create(false), // isChol
+					LogicalVector::create(true), // keepNames
+					NumericVector::create(0.4), // a
+					NumericVector::create(2.05), // tol
+					NumericVector::create(1e-10), // nlTol
+					IntegerVector::create(100)); // nlMaxiter
+      et = _cbindOme(et, belowMat, IntegerVector::create(nSub));
+    } else {
+      rxModelsAssign(".omegaL", R_NilValue);
+      et = _cbindOme(et, R_NilValue, IntegerVector::create(nSub));
+    }
+  } else {
+    rxModelsAssign(".omegaL", R_NilValue);
+    rxModelsAssign(".thetaL", R_NilValue);
+    et = _cbindOme(et, R_NilValue, IntegerVector::create(nSub));
   }
   SEXP sigmaS = control[Rxc_sigma];
-  SEXP sigmaLotri;
+  SEXP sigmaLotri = R_NilValue;
   if (qtest(sigmaS, "M")) {
     RObject sigmaR = as<RObject>(sigmaS);
     RObject dimnames = sigmaR.attr("dimnames");
@@ -775,15 +815,59 @@ extern "C" SEXP expandPars(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP contro
       sigma = sigma * sigma.t();
     }
     // Convert to a lotri matrix
-    sigmaLotri = asLotriMat(wrap(sigma),
+    SEXP sigmaPre = wrap(sigma);
+    Rf_setAttrib(sigmaPre, R_DimNamesSymbol, as<SEXP>(dimnames));
+    sigmaLotri = asLotriMat(sigmaPre,
 			    as<SEXP>(List::create(_["lower"] = control[Rxc_sigmaLower],
 						  _["upper"] = control[Rxc_sigmaUpper],
-						  _["nu"]    = control[Rxc_sigmaDf])),
+						  _["nu"]    = control[Rxc_dfObs])),
 			    as<SEXP>(CharacterVector::create("id")));
-  } else if (rxIs(sigmaS, "lotri")) {
+  } else if (isLotri(sigmaS)) {
     sigmaLotri = sigmaS;
   } else if (!Rf_isNull(sigmaS)){
     stop(_("'sigma' needs to be a matrix or lotri matrix"));
+  }
+  if (!Rf_isNull(sigmaS)) {
+    allNames = as<CharacterVector>(lotriAllNames(sigmaLotri));
+    methodStr = as<std::string>(control[Rxc_sigmaSeparation]);
+    methodInt = getMethodInt(methodStr, allNames, et);
+    SEXP sigmaList = _cvPost_(et, // In case needed
+			      sigmaLotri,
+			      nStudS,
+			      LogicalVector::create(false),
+			      LogicalVector::create(false),
+			      IntegerVector::create(methodInt),
+			      control[Rxc_omegaXform]);
+    int nobs =  Rf_length(VECTOR_ELT(eventsS, 0));
+    IntegerVector n2(1);
+    if (nid == 1) {
+      n2[0] = nobs*nSub;
+    } else {
+      n2[0] = nobs;
+    }
+    List bounds = lotriGetBounds(sigmaLotri, R_NilValue, R_NilValue);
+    NumericVector upper = bounds[0];
+    NumericVector lower = bounds[1];
+    SEXP sigmaMat = _rxRmvn_(n2,
+			     R_NilValue, sigmaList,
+			     upper, lower, // lower upper 
+			     control[Rxc_nCoresRV],
+			     LogicalVector::create(false), // isChol
+			     LogicalVector::create(true), // keepNames
+			     NumericVector::create(0.4), // a
+			     NumericVector::create(2.05), // tol
+			     NumericVector::create(1e-10), // nlTol
+			     IntegerVector::create(100)); // nlMaxiter
+    if (Rf_length(sigmaList) >= 1 &&
+	as<double>(lotriMaxNu(sigmaLotri)) > 1.0) {
+      rxModelsAssign(".sigmaL", sigmaList);
+    } else {
+      rxModelsAssign(".sigmaL", R_NilValue);
+    }
+    rxModelsAssign(".sigma", sigmaMat);
+  } else {
+    rxModelsAssign(".sigmaL", R_NilValue);
+    rxModelsAssign(".sigma", R_NilValue);
   }
   return et;
   END_RCPP

@@ -128,6 +128,11 @@
               extraEta=env$extraEta))
 }
 
+.expandPars <- function(object, params, events, control) {
+  .Call(`_expandPars_`, object, params, events, control,
+        PACKAGE="RxODE")
+}
+
 .warnIdSort0 <- TRUE
 ##' Turn on/off warnings for ID sorting.
 ##'
