@@ -530,6 +530,8 @@ extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
   qstrictSn(thetaS, "theta names");
   NumericVector theta0 = as<NumericVector>(thetaS);
   if (theta0.size() != thetaMat.nrow()) {
+    print(theta0);
+    print(thetaMat);
     stop(_("'theta' must be the same size as 'thetaMat'"));
   }
   // Order 'theta' to have same order as 'thetaMat'
@@ -617,6 +619,8 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
   SEXP nStudS = control[Rxc_nStud];
   int nStud = as<int>(nStudS);
   int nSub = as<int>(control[Rxc_nSub]);
+  rxModelsAssign(".nestObj", objectS);
+  rxModelsAssign(".nestEvents", eventsS);
   SEXP et = _expandTheta_(paramsS, control[Rxc_thetaMat],
 			  control[Rxc_thetaLower], control[Rxc_thetaUpper],
 			  nStudS, control[Rxc_nCoresRV]);
@@ -645,8 +649,6 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
   } else if (isLotri(omegaS)) {
     omegaLotri = omegaS;
   } else if (Rf_isNull(omegaS)){
-    rxModelsAssign(".nestObj", objectS);
-    rxModelsAssign(".nestEvents", eventsS);
     rxModelsAssign(".theta", R_NilValue);
     rxModelsAssign(".nestInfo", R_NilValue);
   } else {
@@ -682,8 +684,6 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
       Function nestingInfo = getRxFn(".nestingInfo");
       ni = nestingInfo(_["id"]=eventsL[idI], _["omega"]=omegaLotri,
 		       _["data"]=eventsS);
-      rxModelsAssign(".nestObj", objectS);
-      rxModelsAssign(".nestEvents", eventsS);
       rxModelsAssign(".nestInfo", R_NilValue);
       IntegerVector idIV =  as<IntegerVector>(ni["id"]);//length(levels(.ni$id))
       nid = (as<CharacterVector>(idIV.attr("levels"))).size();
@@ -712,10 +712,8 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
       aboveSEXP = R_NilValue;
       belowSEXP = omegaS;
       lotriBelow = omegaLotri;
-      rxModelsAssign(".nestObj",    R_NilValue);
-      rxModelsAssign(".nestEvents", R_NilValue);
-      rxModelsAssign(".nestTheta",  R_NilValue);
       rxModelsAssign(".nestEta",    R_NilValue);
+      rxModelsAssign(".nestTheta",  R_NilValue);
     }
     // Get all the names for
     allNames = as<CharacterVector>(lotriAllNames(omegaLotri));
