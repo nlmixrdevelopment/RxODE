@@ -165,11 +165,44 @@ rxPermissive({
 
     expect_equal(.rxModels[[".thetaL"]], NULL)
     expect_equal(.rxModels[[".omegaL"]], NULL)
-    expect_equal(length(.rxModels[[".sigmaL"]]), 3L)
+    expect_equal(.rxModels[[".sigmaL"]], NULL)
     expect_equal(length(.ep$KA), 12L)
     expect_true(any(names(.ep) == "eta.Cl"))
 
+    .ep <- .expandPars(mod, theta, ev,
+                       control=rxControl(dfObs=10, nStud=3, nSub=4))
 
+    expect_equal(.rxModels[[".thetaL"]], NULL)
+    expect_equal(.rxModels[[".omegaL"]], NULL)
+    expect_equal(.rxModels[[".sigmaL"]], NULL)
+    expect_equal(length(.ep$KA), 12L)
+    expect_false(any(names(.ep) == "eta.Cl"))
+
+
+    expect_error(.expandPars(mod, NULL, ev,
+                             control=rxControl(thetaMat=thetaMat,omega=omega, nStud=3)));
+    
+    .ep <- .expandPars(mod, NULL, ev,
+                       control=rxControl(omega=omega, nStud=3))
+    
+    expect_equal(length(.rxModels[[".thetaL"]]), 3L)
+    expect_equal(length(.rxModels[[".omegaL"]]), 3L)
+    expect_equal(.rxModels[[".sigmaL"]], NULL)
+    expect_equal(length(.ep$eta.Ka), 3L)
+    expect_true(any(names(.ep) == "eta.Cl"))
+
+    .ep <- .expandPars(mod, NULL, ev,
+                       control=rxControl(omega=omega,
+                                         nStud=3, dfObs=100, nSub=4,dfSub=10));
+
+    expect_equal(length(.rxModels[[".thetaL"]]), 3L)
+    expect_equal(length(.rxModels[[".omegaL"]]), 3L)
+    expect_equal(.rxModels[[".sigmaL"]], NULL)
+    expect_equal(length(.ep$eta.Ka), 12L)
+    expect_true(any(names(.ep) == "eta.Cl"))
+
+    
+    
     ## Test edge case -- no between or above occasion variability
 
     .ni <- .nestingInfo(ev$id,

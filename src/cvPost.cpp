@@ -501,6 +501,9 @@ extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
 			      SEXP nStudS, SEXP nCoresRVS) {
   BEGIN_RCPP
   if (Rf_isNull(thetaS)) {
+    if (!Rf_isNull(thetaMatS)){
+      stop(_("'thetaMat' needs 'params' to be non-NULL"));
+    }
     return R_NilValue;
   }
   qassertS(nStudS, "X1[1,)", "nStud");
@@ -679,6 +682,9 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
       Function nestingInfo = getRxFn(".nestingInfo");
       ni = nestingInfo(_["id"]=eventsL[idI], _["omega"]=omegaLotri,
 		       _["data"]=eventsS);
+      rxModelsAssign(".nestObj", objectS);
+      rxModelsAssign(".nestEvents", eventsS);
+      rxModelsAssign(".nestInfo", R_NilValue);
       IntegerVector idIV =  as<IntegerVector>(ni["id"]);//length(levels(.ni$id))
       nid = (as<CharacterVector>(idIV.attr("levels"))).size();
       if (nSub <= 1) {
@@ -698,10 +704,18 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
 					   as<SEXP>(IntegerVector::create(curtheta))));
       lotriAbove = lotriSepMat["above"];
       lotriBelow = lotriSepMat["below"];
+      rxModelsAssign(".nestObj",    en["mod"]);
+      rxModelsAssign(".nestEvents", ni["data"]);
+      rxModelsAssign(".nestTheta",  en["theta"]);
+      rxModelsAssign(".nestEta",    en["eta"]);
     } else {
       aboveSEXP = R_NilValue;
       belowSEXP = omegaS;
       lotriBelow = omegaLotri;
+      rxModelsAssign(".nestObj",    R_NilValue);
+      rxModelsAssign(".nestEvents", R_NilValue);
+      rxModelsAssign(".nestTheta",  R_NilValue);
+      rxModelsAssign(".nestEta",    R_NilValue);
     }
     // Get all the names for
     allNames = as<CharacterVector>(lotriAllNames(omegaLotri));

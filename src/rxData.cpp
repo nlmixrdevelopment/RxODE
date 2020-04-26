@@ -3831,6 +3831,8 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
   }    
 }
 
+extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS);
+
 //[[Rcpp::export]]
 SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const Nullable<CharacterVector> &specParams,
@@ -3923,15 +3925,11 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     	 !rxIsNull(rxControl[Rxc_omega]) ||
 	 !rxIsNull(rxControl[Rxc_sigma]))) {
       // Update model, events and parameters based on nesting
-      // trueEvents = params;
-      // trueParams = events;
-      Function expandPars = getRxFn(".expandPars");
-      trueParams = expandPars(_["object"]=object,
-    			      _["params"]=trueParams,
-    			      _["events"]=trueEvents,
-    			      _["control"]=rxControl);
+      trueParams = _expandPars_(wrap(object), wrap(trueParams),
+				wrap(trueEvents), wrap(rxControl));
       object = _rxModels[".nestObj"];
       trueEvents = _rxModels[".nestEvents"];
+      didNesting=true;
     } else {
     object = obj;
     }
