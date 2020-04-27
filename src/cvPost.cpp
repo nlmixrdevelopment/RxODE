@@ -374,7 +374,7 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
     } else if (isLotri(omegaS)) {
       RObject omega = omegaS;
       List omegaIn = as<List>(omega);
-      CharacterVector omegaInNames = omega.attr("names");
+      CharacterVector omegaInNames = Rf_getAttrib(omega, R_NamesSymbol);
       int nOmega = omegaIn.size();
       List omegaLst(nOmega);
       List lotriLst = as<List>(omega.attr("lotri"));
@@ -528,21 +528,48 @@ extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
   // theta
   qassertS(thetaS, "R+", "theta");
   qstrictSn(thetaS, "theta names");
-  NumericVector theta0 = as<NumericVector>(thetaS);
-  if (theta0.size() != thetaMat.nrow()) {
-    print(theta0);
-    print(thetaMat);
+  NumericVector theta00 = as<NumericVector>(thetaS);
+  NumericVector theta0;
+  NumericVector theta1;
+  CharacterVector theta1n;
+  NumericVector theta;
+  if (theta00.size() == thetaMat.nrow()) {
+    theta0 = theta00;
+    theta = NumericVector(theta0.size());
+    // Order 'theta' to have same order as 'thetaMat'
+    for (R_xlen_t i = 0; i < theta0.size(); ++i) {
+      // Will throw an error if not found.
+      int cur = theta0.findName(as<std::string>(thetaMatDimNames[i]));
+      theta[i]= theta0[cur];
+    }
+    Rf_setAttrib(theta, R_NamesSymbol, thetaMatDimNames);
+  } else if (theta00.size() > thetaMat.nrow()) {
+    theta0 = NumericVector(thetaMat.nrow());
+    theta1n = CharacterVector(theta00.size() - thetaMat.nrow());
+    theta1 = NumericVector(theta00.size() - thetaMat.nrow());
+    CharacterVector theta00n = Rf_getAttrib(theta00, R_NamesSymbol);
+    R_xlen_t k = 0;
+    for (R_xlen_t j = theta00.size(); j--;){
+      bool found = false;
+      std::string curS = as<std::string>(theta00n[j]);
+      for (R_xlen_t i = thetaMat.nrow(); i--;){
+	if (curS == as<std::string>(thetaMatDimNames[i])) {
+	  theta0[i] = theta00[j];
+	  found = true;
+	  break;
+	}
+      }
+      if (!found) {
+	theta1[k] = theta00[j];
+	theta1n[k++] = theta00n[j];
+      }
+    }
+    theta1.names() = theta1n;
+    theta = theta0;
+    theta.names() = thetaMatDimNames;
+  } else {
     stop(_("'theta' must be the same size as 'thetaMat'"));
   }
-  // Order 'theta' to have same order as 'thetaMat'
-  NumericVector theta(theta0.size());
-  for (R_xlen_t i = 0; i < theta0.size(); ++i) {
-    // Will throw an error if not found.
-    int cur = theta0.findName(as<std::string>(thetaMatDimNames[i]));
-    theta[i]= theta0[cur];
-  }
-  theta.attr("names") = thetaMatDimNames;
-
   // Theta and thetaMat are correct, assign ".theta"
   rxModelsAssign(".theta", thetaMatS);
   
@@ -556,7 +583,26 @@ extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
 				 as<SEXP>(NumericVector::create(1e-10)), // nlTol
 				 as<SEXP>(IntegerVector::create(100))
 				 );
-  return as<SEXP>(as<DataFrame>(retNM));
+  int nrow = retNM.nrow();
+  List ret(retNM.ncol()+theta1.size());
+  CharacterVector retN(retNM.ncol()+theta1.size());
+  for (R_xlen_t i = theta1.size(); i--;) {
+    NumericVector cur(nrow);
+    std::fill(cur.begin(), cur.end(), theta1[i]);
+    ret[i] = cur;
+    retN[i] = theta1n[i];
+  }
+  for (R_xlen_t i = retNM.ncol(); i--;){
+    NumericVector cur(nrow);
+    std::copy(retNM.begin()+nrow*i, retNM.begin()+nrow*(i+1),
+	      cur.begin());
+    ret[theta1.size()+i] = cur;
+    retN[theta1.size()+i] = thetaMatDimNames[i];
+  }
+  ret.names() = retN;
+  ret.attr("rownames") = IntegerVector::create(NA_INTEGER, -nrow);
+  ret.attr("class") = "data.frame";
+  return as<SEXP>(ret);
   END_RCPP
 }
 
@@ -670,10 +716,10 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
     // When there is only one level in omega, there is no nesting and
     // the nesting information can be inferred
     RObject omegaLotriRO = as<RObject>(omegaLotri);
-    CharacterVector omegaLotriNames = omegaLotriRO.attr("names");
+    CharacterVector omegaLotriNames = Rf_getAttrib(omegaLotriRO, R_NamesSymbol);
     if (omegaLotriNames.size() > 1) {
       List eventsL = as<List>(eventsS);
-      CharacterVector eventNames = eventsL.attr("names");
+      CharacterVector eventNames = eventsL.names();
       int idI = -1;
       for (int i = eventNames.size(); i--;) {
 	if (boost::iequals("id", as<std::string>(eventNames[i]))) {
@@ -754,11 +800,11 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
       DataFrame newLst = as<DataFrame>(aboveMat);
       if (!Rf_isNull(et)){
 	List etList = as<List>(et);
-	CharacterVector etListNames = etList.attr("names");
+	CharacterVector etListNames = etList.names();
 	int baseSize = etList.size();
 	List etFinal(baseSize + newLst.size());
 	CharacterVector etFinalNames(baseSize + newLst.size());
-	CharacterVector newLstNames = newLst.attr("names");
+	CharacterVector newLstNames = newLst.names();
 	for (int j = baseSize; j--;){
 	  etFinalNames[j] = etListNames[j];
 	  etFinal[j] = etList[j];
@@ -767,7 +813,7 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
 	  etFinalNames[baseSize+j] = newLstNames[j];
 	  etFinal[baseSize+j] = newLst[j];
 	}
-	etFinal.attr("names") = etFinalNames;
+	etFinal.names() = etFinalNames;
 	etFinal.attr("rownames") = IntegerVector::create(NA_INTEGER, -nStud);
 	etFinal.attr("class") = CharacterVector::create("data.frame");
 	et = as<SEXP>(etFinal);

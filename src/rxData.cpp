@@ -3925,13 +3925,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     	 !rxIsNull(rxControl[Rxc_omega]) ||
 	 !rxIsNull(rxControl[Rxc_sigma]))) {
       // Update model, events and parameters based on nesting
-      trueParams = _expandPars_(wrap(object), wrap(trueParams),
+      _rxModels[".nestPars"] = _expandPars_(wrap(object), wrap(trueParams),
 				wrap(trueEvents), wrap(rxControl));
       object = _rxModels[".nestObj"];
       trueEvents = _rxModels[".nestEvents"];
       didNesting=true;
     } else {
-    object = obj;
+      object = obj;
     }
     if (method == 3){
       rxSolveDat->mv = rxModelVars(object);
@@ -4188,6 +4188,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (!didNesting) {
       rxSolve_simulate(object, rxControl, specParams, extraArgs,
 		       params, ev1, inits, rxSolveDat);
+    } else {
+      rxSolveDat->warnIdSort = false;
+      rxSolveDat->par1 =  as<RObject>(_rxModels[".nestPars"]);
+      rxSolveDat->usePar1=true;
     }
     // .sigma could be reassigned in an update, so check outside simulation function.
     if (_rxModels.exists(".sigma")){

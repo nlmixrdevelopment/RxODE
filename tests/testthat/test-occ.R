@@ -201,6 +201,14 @@ rxPermissive({
     expect_equal(length(.ep$eta.Ka), 12L)
     expect_true(any(names(.ep) == "eta.Cl"))
 
+
+    .ep <- .expandPars(mod, theta, ev,
+                       control=rxControl(thetaMat=lotri(KA~1, CL~1),
+                                         omega=omega,
+                                         sigma=lotri(prop.err~0.1), dfObs=10,
+                                         nStud=3, nSub=4))
+    
+
     
     
     ## Test edge case -- no between or above occasion variability

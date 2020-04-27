@@ -1195,7 +1195,7 @@ extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
   }  
   if (sigma0.hasAttribute("dimnames")){
     List curL = as<List>(sigma0.attr("dimnames"));
-    if (Rf_isNull(curL[0])){
+    if (!Rf_isNull(curL[0])){
       dimnames = as<CharacterVector>(curL[0]);
     } else {
       dimnames = as<CharacterVector>(curL[1]);
