@@ -516,6 +516,9 @@ extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
       return _vecDF(thetaS, nStudS);
     }
   }
+  if (qtest(thetaS, "M")){
+    stop(_("when specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a 'data.frame'/'matrix'."))
+  }
   // int nStud = as<int>(nStudS);
   // thetaMat
   qassertS(thetaMatS, "M", "thetaMat");

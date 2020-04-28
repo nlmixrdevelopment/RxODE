@@ -2537,7 +2537,6 @@ static inline void rxSolve_ev1Update(const RObject &obj,
   _rxModels[".lastEv1"] = ev1;
 }
 
-
 // This functin simulates individual parameter values and residual
 // parameter values and then converts them to a data.frame.  This
 // allows rxSolve_ to solve as if the user specified these parameters
@@ -3920,19 +3919,19 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     object = obj;
     
     // Update RxODE model (if needed) and simulate nesting
-    if (!(as<bool>(rxControl[Rxc_mvnfast])) &&
-    	(!rxIsNull(rxControl[Rxc_thetaMat]) ||
-    	 !rxIsNull(rxControl[Rxc_omega]) ||
-	 !rxIsNull(rxControl[Rxc_sigma]))) {
-      // Update model, events and parameters based on nesting
-      _rxModels[".nestPars"] = _expandPars_(wrap(object), wrap(trueParams),
-				wrap(trueEvents), wrap(rxControl));
-      object = _rxModels[".nestObj"];
-      trueEvents = _rxModels[".nestEvents"];
-      didNesting=true;
-    } else {
-      object = obj;
-    }
+    // if (!(as<bool>(rxControl[Rxc_mvnfast])) &&
+    // 	(!rxIsNull(rxControl[Rxc_thetaMat]) ||
+    // 	 !rxIsNull(rxControl[Rxc_omega]) ||
+    // 	 !rxIsNull(rxControl[Rxc_sigma]))) {
+    //   // Update model, events and parameters based on nesting
+    //   _rxModels[".nestPars"] = _expandPars_(wrap(object), wrap(trueParams),
+    // 				wrap(trueEvents), wrap(rxControl));
+    //   object = _rxModels[".nestObj"];
+    //   trueEvents = _rxModels[".nestEvents"];
+    //   didNesting=true;
+    // } else {
+    //   object = obj;
+    // }
     if (method == 3){
       rxSolveDat->mv = rxModelVars(object);
       rxSolveFreeObj = object;
