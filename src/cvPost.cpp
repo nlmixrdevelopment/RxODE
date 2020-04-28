@@ -517,7 +517,7 @@ extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
     }
   }
   if (qtest(thetaS, "M")){
-    stop(_("when specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a 'data.frame'/'matrix'."))
+    stop(_("when specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a 'data.frame'/'matrix'."));
   }
   // int nStud = as<int>(nStudS);
   // thetaMat
@@ -926,6 +926,36 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
       rxModelsAssign(".sigmaL", R_NilValue);
     }
     rxModelsAssign(".sigma", sigmaMat);
+    // Now add 0 value sigma columns to et
+    // This is required as a placeholder for the random EPS values
+    // Add blank columns for sigma values
+    RObject sigmaR = as<RObject>(sigmaS);
+    SEXP dimnames0 = Rf_getAttrib(sigmaS, R_DimNamesSymbol);
+    CharacterVector dimnames;
+    if (Rf_isNull(VECTOR_ELT(dimnames0, 0))) {
+      dimnames = VECTOR_ELT(dimnames0, 1);
+    } else {
+      dimnames = VECTOR_ELT(dimnames0, 0);
+    }
+    int base = Rf_length(et);
+    List et2(base + dimnames.size());
+    CharacterVector et2n(base + dimnames.size());
+    CharacterVector etn = Rf_getAttrib(et, R_NamesSymbol);
+    for (int i = base; i--; ) {
+      et2[i] = VECTOR_ELT(et, i);
+      et2n[i] = etn[i];
+    }
+    int nrow = Rf_length(VECTOR_ELT(et, 0));
+    for (int i = dimnames.size(); i--;) {
+      NumericVector cur(nrow);
+      std::fill(cur.begin(), cur.end(), 0.0);
+      et2[base+i] = cur;
+      et2n[base+i] = dimnames[i];
+    }
+    et2.names() = et2n;
+    et2.attr("class") = CharacterVector::create("data.frame");
+    et2.attr("row.names") = IntegerVector::create(NA_INTEGER, -nrow);
+    et = wrap(et2);
   } else {
     rxModelsAssign(".sigmaL", R_NilValue);
     rxModelsAssign(".sigma", R_NilValue);
