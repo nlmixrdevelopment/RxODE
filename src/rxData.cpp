@@ -91,7 +91,13 @@ inline bool rxIsNumInt(RObject obj) {
   }
   return false;
 }
-
+inline bool rxIsChar(RObject obj) {
+  int type = obj.sexp_type();
+  if (type == STRSXP) {
+    return (!obj.hasAttribute("dim"));
+  }
+  return false;
+}
 
 RObject setupOnlyObj = R_NilValue;
 
@@ -856,7 +862,7 @@ List rxModelVars_(const RObject &obj){
       rxSolveFree();
       stop(_("need an RxODE-type object to extract model variables"));
     }
-  } else if (rxIs(obj, "character")){
+  } else if (rxIsChar(obj)){
     return rxModelVars_character(obj);
   } else if (rxIs(obj,"list")){
     return rxModelVars_list(obj);
@@ -901,7 +907,7 @@ RObject rxState(const RObject &obj = R_NilValue, RObject state = R_NilValue){
   if (state.isNULL()){
     return states;
   }
-  else if (rxIs(state,"character")){
+  else if (rxIsChar(state)){
     CharacterVector lookup = as<CharacterVector>(state);
     if (lookup.size() > 1){
       // Fixme?
@@ -1128,7 +1134,7 @@ SEXP rxInits(const RObject &obj,
     NumericVector inits = rxInits(obj, vec, req, defaultValue, noerror,noini,false);
     CharacterVector nms = inits.names();
     List mv = rxModelVars(obj);
-    CharacterVector state = mv["state"];
+    CharacterVector state = mv[RxMv_state];
     std::string ret="";
     bool isState;
     for (int j=inits.size(); j--;){
@@ -1646,7 +1652,7 @@ void rxSimOmega(bool &simOmega,
 		int nSub = 1){
   int j;
   if (rxIsNull(omega)){
-  } else if (rxIs(omega,"character")){
+  } else if (rxIsChar(omega)){
     // Create a matrix in order of the names.
     omegaN = as<CharacterVector>(omega);
     omegaSep=true;
@@ -2073,8 +2079,8 @@ List getEtRxsolve(Environment e){
 void updateSolveEnvPost(Environment e){
   if (!e.exists(".params.dat")){
     List mv = rxModelVars(as<RObject>(e));
-    NumericVector mvIni = mv["ini"];
-    CharacterVector pars = mv["params"];
+    NumericVector mvIni = mv[RxMv_ini];
+    CharacterVector pars = mv[RxMv_params];
     RObject parso = e[".args.params"];
     IntegerVector ppos = e[".par.pos"];
     bool IsIni = e[".par.pos.ini"];
@@ -2712,7 +2718,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
       Function sortId = getRxFn(".sortId");
       iCov = clone(sortId(iCov, rxSolveDat->idLevels, "iCov", rxSolveDat->warnIdSort));
       CharacterVector keepC, keepCf;
-      if (rxIs(rxControl[Rxc_keepI], "character")){
+      if (rxIsChar(rxControl[Rxc_keepI])){
 	keepC = as<CharacterVector>(rxControl[Rxc_keepI]);
       }
       IntegerVector keepIv(keepC.size());
@@ -2787,7 +2793,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
       }
       int nKeepi=0;
       CharacterVector keepC, keepCf;
-      if (rxIs(rxControl[Rxc_keepI], "character")){
+      if (rxIsChar(rxControl[Rxc_keepI])){
 	keepC = as<CharacterVector>(rxControl[Rxc_keepI]);
       }
       IntegerVector keepIv(keepC.size());
@@ -3238,7 +3244,7 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
     }
   }
   if (!allPars){
-    CharacterVector modSyntax = rxSolveDat->mv["model"];
+    CharacterVector modSyntax = rxSolveDat->mv[RxMv_model];
     Rcout << "Model:\n\n" + modSyntax[0] + "\n";
     rxSolveFree();
     stop(errStr);
@@ -3403,7 +3409,7 @@ static inline List rxSolve_df(const RObject &obj,
       doDose = 0;
     }
   }
-  IntegerVector si = rxSolveDat->mv["state.ignore"];
+  IntegerVector si = rxSolveDat->mv[RxMv_state_ignore];
   rx->stateIgnore = &si[0];
   int doTBS = (rx->matrix == 3);
   if (doTBS) rx->matrix=2;
@@ -3546,7 +3552,7 @@ int getNRows(RObject obj){
 	  } else {
 	    return ret1.size();
 	  }
-	} else if (rxIs(ret0, "character")){
+	} else if (rxIsChar(ret0)){
 	  CharacterVector ret1 = CharacterVector(ret0);
 	  return ret1.size();
 	} else {
@@ -3621,7 +3627,7 @@ static inline bool rxSolve_loaded(const RObject &trueEvents,
     //  - Check to make sure the models are the same.
     //  - Check oldModel = newModel
     //  - Options are the same
-    rxIs(iCov,"NULL") && rxIsNull(omega) &&
+    rxIsNull(iCov) && rxIsNull(omega) &&
     rxIsNull(sigma) && rxIsNull(thetaMat) &&
     // the #rows of input should be equal.
     getNRows(trueParams) == as<int>(_rxModels[".lastNrow"]) &&
@@ -3917,7 +3923,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     }
   } else {
     object = obj;
-    
     // Update RxODE model (if needed) and simulate nesting
     // if (!(as<bool>(rxControl[Rxc_mvnfast])) &&
     // 	(!rxIsNull(rxControl[Rxc_thetaMat]) ||
@@ -3935,7 +3940,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (method == 3){
       rxSolveDat->mv = rxModelVars(object);
       rxSolveFreeObj = object;
-      List indLin = rxSolveDat->mv["indLin"];
+      List indLin = rxSolveDat->mv[RxMv_indLin];
       if (indLin.size() == 0){
 	Function RxODE = getRxFn("RxODE");
 	object = RxODE(object, _["indLin"]=true);
@@ -4009,15 +4014,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
-    CharacterVector pars = rxSolveDat->mv["params"];
+    CharacterVector pars = rxSolveDat->mv[RxMv_params];
     rxSolveDat->npars = pars.size();
-    rxSolveDat->hasCmt = false;
-    for (int i = rxSolveDat->npars; i--;){
-      if (as<std::string>(pars[i]) == "CMT"){
-	rxSolveDat->hasCmt=true;
-	break;
-      }
-    }
+    rxSolveDat->hasCmt = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_CMT] == 1;
     // Assign Pointers
     rxAssignPtr(rxSolveDat->mv);
     rx->nKeep0 = 0;
@@ -4025,8 +4024,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->stateTrimU = stateTrimU;
     rx->stateTrimL = stateTrimL;
     rx->matrix = matrix;
-    rx->needSort = as<int>(rxSolveDat->mv["needSort"]);
-    rx->nMtime = as<int>(rxSolveDat->mv["nMtime"]);
+    rx->needSort = as<int>(rxSolveDat->mv[RxMv_needSort]);
+    rx->nMtime = as<int>(rxSolveDat->mv[RxMv_nMtime]);
     rx->add_cov = (int)(addCov);
     rx->istateReset = as<int>(rxControl[Rxc_istateReset]);
     rx->safeZero = as<int>(rxControl[Rxc_safeZero]);
@@ -4068,13 +4067,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // Now get the parameters (and covariates)
     //
     // Unspecified parameters can be found in the modVars["ini"]
-    rxSolveDat->mvIni = rxSolveDat->mv["ini"];
+    rxSolveDat->mvIni = rxSolveDat->mv[RxMv_ini];
     // The event table can contain covariate information, if it is acutally a data frame or matrix.
     Nullable<CharacterVector> covnames0, simnames0;
     CharacterVector covnames, simnames;
     rxSolveDat->eGparPos = IntegerVector(rxSolveDat->npars);
-    CharacterVector state = rxSolveDat->mv["state"];
-    CharacterVector lhs = rxSolveDat->mv["lhs"];
+    CharacterVector state = rxSolveDat->mv[RxMv_state];
+    CharacterVector lhs = rxSolveDat->mv[RxMv_lhs];
     op->neq = state.size();
     op->badSolve = 0;
     op->abort = 0;
@@ -4089,7 +4088,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->indLinMatExpType=as<int>(rxControl[Rxc_indLinMatExpType]);
     op->indLinPhiM = as<int>(rxControl[Rxc_indLinPhiM]);
     op->indLinMatExpOrder=as<int>(rxControl[Rxc_indLinMatExpOrder]);
-    List indLin = rxSolveDat->mv["indLin"];
+    List indLin = rxSolveDat->mv[RxMv_indLin];
     op->doIndLin=0;
     if (indLin.size() == 4){
       int me = rxIsNull(indLin[1]);
@@ -4125,7 +4124,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // they do they need to be a parameter.
     int transit = 0;
     if (transit_abs.isNull()){
-      transit = rxSolveDat->mv["podo"];
+      transit = rxSolveDat->mv[RxMv_podo];
       if (transit){
         warning(_("assumed transit compartment model since 'podo' is in the model"));
       }
@@ -4137,7 +4136,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     }
     op->do_transit_abs = transit;
     op->nlhs = lhs.size();
-    CharacterVector trans = rxSolveDat->mv["trans"];
+    CharacterVector trans = rxSolveDat->mv[RxMv_trans];
     // Make sure the model variables are assigned...
     // This fixes random issues on windows where the solves are done and the data set cannot be solved.
     getRxModels();
@@ -4165,7 +4164,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       rxSolveFree();
       stop(_("unknown covariate interpolation specified"));
     }
-    op->extraCmt=op->neq+as<int>(rxSolveDat->mv["extraCmt"]);
+    op->extraCmt=op->neq+as<int>(rxSolveDat->mv[RxMv_extraCmt]);
     op->nDisplayProgress = nDisplayProgress;
     // Covariate options
     // Simulation variabiles
@@ -4187,11 +4186,20 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (!didNesting) {
       rxSolve_simulate(object, rxControl, specParams, extraArgs,
 		       params, ev1, inits, rxSolveDat);
+      // REprintf("\nold method:\n");
     } else {
       rxSolveDat->warnIdSort = false;
       rxSolveDat->par1 =  as<RObject>(_rxModels[".nestPars"]);
       rxSolveDat->usePar1=true;
+      // REprintf("\nnesting:\n");
     }
+    // REprintf("nrows: %d\n",
+    // 	     Rf_length(VECTOR_ELT(rxSolveDat->par1, 0)));
+    // REprintf("ncols: %d\n",
+    // 	     Rf_length(rxSolveDat->par1));
+    // REprintf("nSub: %d, nStud: %d\n", as<int>(rxControl[Rxc_nSub]),
+    // 	     as<int>(rxControl[Rxc_nStud]));
+    // print(wrap(rxSolveDat->par1));
     // .sigma could be reassigned in an update, so check outside simulation function.
     if (_rxModels.exists(".sigma")){
       rxSolveDat->sigmaN= as<CharacterVector>((as<List>((as<NumericMatrix>(_rxModels[".sigma"])).attr("dimnames")))[1]);
@@ -4248,7 +4256,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rxSolveDat->nSize = rxSolveDat->nPopPar*rx->nsub;
     if (rxSolveDat->nPopPar % rx->nsub == 0) rx->nsim = rxSolveDat->nPopPar / rx->nsub;
     else rx->nsim=1;
-    IntegerVector linCmtI = rxSolveDat->mv["flags"];
+    IntegerVector linCmtI = rxSolveDat->mv[RxMv_flags];
     int linNcmt = linCmtI[0];
     int linKa = linCmtI[1];
     op->nlin = linNcmt+linKa;
@@ -4378,7 +4386,7 @@ RObject rxSolveGet_rxSolve(RObject &obj, std::string &sarg, LogicalVector &exact
   }
   if (sarg == "model"){
     List mv = rxModelVars(obj);
-    CharacterVector mods = mv["model"];
+    CharacterVector mods = mv[RxMv_model];
     CharacterVector retS = as<std::string>(mods["normModel"]);
     retS.attr("class") = "rxModelText";
     return(retS);
@@ -4452,16 +4460,16 @@ RObject rxSolveGet_rxSolve(RObject &obj, std::string &sarg, LogicalVector &exact
   }
   List mv = rxModelVars(obj);
   if (sarg == "rx" || sarg == "rxode" || sarg == "RxODE"){
-    CharacterVector trans = mv["trans"];
+    CharacterVector trans = mv[RxMv_trans];
     getRxModels();
     std::string pre = as<std::string>(trans["prefix"]);
     if (_rxModels.exists(pre)){
       return as<RObject>(_rxModels[pre]);
     }
   }
-  CharacterVector normState = mv["normal.state"];;
-  CharacterVector parsC = mv["params"];
-  CharacterVector lhsC = mv["lhs"];
+  CharacterVector normState = mv[RxMv_normal_state];
+  CharacterVector parsC = mv[RxMv_params];
+  CharacterVector lhsC = mv[RxMv_lhs];
   for (i = normState.size(); i--;){
     for (j = parsC.size(); j--; ){
       std::string test = "_sens_" + as<std::string>(normState[i]) + "_" + as<std::string>(parsC[j]);
@@ -4559,7 +4567,7 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
   int i, n;
   if (rxIs(obj, "data.frame")){
     List lst = as<List>(obj);
-    if (rxIs(arg, "character")){
+    if (rxIsChar(arg)){
       sarg = as<std::string>(arg);
       CharacterVector nm = lst.names();
       n = nm.size();
@@ -4606,7 +4614,7 @@ RObject rxSolveUpdate(RObject obj,
 		      RObject value = R_NilValue){
   if (rxIs(obj,"rxSolve")){
     rxCurObj = obj;
-    if (rxIs(arg,"character")){
+    if (rxIsChar(arg)){
       CharacterVector what = CharacterVector(arg);
       CharacterVector classattr = obj.attr("class");
       Environment e = as<Environment>(classattr.attr(".RxODE.env"));
@@ -4859,7 +4867,7 @@ Nullable<Environment> rxRxODEenv(RObject obj){
     return rxRxODEenv(as<RObject>(e["args.object"]));
   } else if (rxIs(obj, "rxModelVars")){
     List mv = as<List>(obj);
-    CharacterVector trans = mv["trans"];
+    CharacterVector trans = mv[RxMv_trans];
     getRxModels();
     std::string prefix = as<std::string>(trans["prefix"]);
     if (_rxModels.exists(prefix)){
@@ -4900,7 +4908,7 @@ RObject rxGetRxODE(RObject obj){
 bool rxIsCurrent(RObject obj){
   List mv = rxModelVars(obj);
   if (mv.containsElementNamed("version")){
-    CharacterVector version = mv["version"];
+    CharacterVector version = mv[RxMv_version];
     std::string str = __VER_md5__;
     std::string str2 = as<std::string>(version["md5"]);
     if (str2 == str){
@@ -4921,7 +4929,7 @@ extern "C" void RxODE_assign_fn_pointers_(const char *mv);
 //[[Rcpp::export]]
 void rxAssignPtr(SEXP object = R_NilValue){
   List mv=rxModelVars(as<RObject>(object));
-  CharacterVector trans = mv["trans"];
+  CharacterVector trans = mv[RxMv_trans];
   RxODE_assign_fn_pointers_((as<std::string>(trans["model_vars"])).c_str());
   rxUpdateFuns(as<SEXP>(trans));
   getRxSolve_();
@@ -5064,7 +5072,7 @@ bool rxIsLoaded(RObject obj){
   if (obj.isNULL()) return false;
   Function isLoaded("is.loaded", R_BaseNamespace);
   List mv = rxModelVars(obj);
-  CharacterVector trans = mv["trans"];
+  CharacterVector trans = mv[RxMv_trans];
   std::string dydt = as<std::string>(trans["model_vars"]);
   bool ret = as<bool>(isLoaded(dydt));
   return ret;
@@ -5227,7 +5235,7 @@ bool rxDynUnload(RObject obj){
     }
   }
   List mv = rxModelVars(obj);
-  CharacterVector trans = mv["trans"];
+  CharacterVector trans = mv[RxMv_trans];
   std::string ptr = as<std::string>(trans["model_vars"]);
   if (rxIsLoaded(obj)){
     Function dynUnload("dyn.unload", R_BaseNamespace);

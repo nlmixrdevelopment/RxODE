@@ -738,12 +738,15 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
       nid = (as<CharacterVector>(idIV.attr("levels"))).size();
       if (nSub <= 1) {
 	control[Rxc_nSub] = nid;
+      } else if (nSub != nid) {
+	stop(_("provided multi-subject data (n=%d) trying to simulate a different number of subjects (n=%d)"),
+	     nid, nSub);
       }
       RObject objectRO = as<RObject>(objectS);
       List mv = rxModelVars_(objectS);
-      IntegerVector flags = as<IntegerVector>(mv["flags"]);
-      int cureta = as<int>(flags["maxeta"])+1;
-      int curtheta = as<int>(flags["maxtheta"])+1;
+      IntegerVector flags = as<IntegerVector>(mv[RxMv_flags]);
+      int cureta = flags[RxMvFlag_maxeta]+1;
+      int curtheta = flags[RxMvFlag_maxtheta]+1;
       List en = rxExpandNesting(objectRO, ni, true);
       aboveSEXP = as<SEXP>(ni["above"]);
       belowSEXP = as<SEXP>(ni["below"]);
@@ -761,6 +764,12 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
       aboveSEXP = R_NilValue;
       belowSEXP = omegaS;
       lotriBelow = omegaLotri;
+      // rxModelsAssign(".nestEvents",
+      // 		     etTrans(as<List>(eventsS), obj, rxSolveDat->hasCmt,
+      // 			     false, false, true, R_NilValue,
+      // 			     control[Rxc_keepF]);
+      // if (nSub <= 1) {
+      // }
       rxModelsAssign(".nestEta",    R_NilValue);
       rxModelsAssign(".nestTheta",  R_NilValue);
     }

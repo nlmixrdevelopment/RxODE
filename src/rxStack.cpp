@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+#include "../inst/include/RxODE.h"
 
 using namespace Rcpp;
 
@@ -29,9 +30,9 @@ bool hasElement(CharacterVector one, std::string what){
 List rxStack(List Data, Nullable<CharacterVector> vars=R_NilValue){
   
   List mv = rxModelVars(Data);
-  CharacterVector lhs = mv["lhs"];
-  CharacterVector state = mv["state"];
-  IntegerVector stateIgnore = mv["state.ignore"];
+  CharacterVector lhs = mv[RxMv_lhs];
+  CharacterVector state = mv[RxMv_state];
+  IntegerVector stateIgnore = mv[RxMv_state_ignore];
   int nfactor = lhs.size();
   int j, k;
   bool allVars = vars.isNull();

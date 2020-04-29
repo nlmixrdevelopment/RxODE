@@ -111,13 +111,31 @@ document();
 
 
 genDefine <- function(){
+  mod1 <-RxODE({
+    C2 = centr/V2;
+    C3 = peri/V3;
+    d/dt(depot) =-KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri)  =                    Q*C2 - Q*C3;
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+  })
+  mv <- rxModelVars(mod1)
   .n <- gsub("[.]","_",names(rxControl()))
   sink(devtools::package_file("inst/include/RxODE_control.h"))
   cat("#pragma once\n")
   cat("#ifndef __RxODE_control_H__\n#define __RxODE_control_H__\n")
   cat(paste(paste0("#define ", "Rxc_", .n, " ", seq_along(.n)-1),collapse="\n"))
+  .mv <- rxModelVars(mod1);
+  .nmv <- gsub("[.]", "_", names(.mv));
+  cat("\n");
+  cat(paste(paste0("#define RxMv_", .nmv, " ", seq_along(.nmv)-1),collapse="\n"))
+
+  .nmvf <- names(.mv$flag)
+  cat(paste(paste0("#define RxMvFlag_", .nmvf, " ", seq_along(.nmvf)-1),collapse="\n"))
   cat("\n#endif // __RxODE_control_H__\n")
   sink();
 }
+
+
 
 genDefine()

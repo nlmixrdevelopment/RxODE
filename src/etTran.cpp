@@ -21,6 +21,34 @@
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 using namespace Rcpp;
 
+inline bool rxIsNumIntLgl(RObject obj) {
+  int type = obj.sexp_type();
+  if (type == REALSXP || type == INTSXP || type == LGLSXP) {
+    return (!obj.hasAttribute("dim"));
+  }
+  return false;
+}
+
+inline bool rxIsInt(RObject obj) {
+  int type = obj.sexp_type();
+  if (type == INTSXP) {
+    return (!obj.hasAttribute("dim"));
+  }
+  return false;
+}
+
+inline bool rxIsFactor(RObject obj) {
+  return !Rf_isNull(Rf_getAttrib(as<SEXP>(obj), R_LevelsSymbol));
+}
+
+inline bool rxIsChar(RObject obj) {
+  int type = obj.sexp_type();
+  if (type == STRSXP) {
+    return (!obj.hasAttribute("dim"));
+  }
+  return false;
+}
+
 List rxModelVars_(const RObject &obj);
 bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
@@ -88,9 +116,10 @@ IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
 		    const int stateSize, const int sensSize, IntegerVector& curDvid){
   RObject cmtInfo = R_NilValue;
   List extraCmt;
-  if (rxIs(inCmt, "numeric") || rxIs(inCmt, "integer")){
-    if (rxIs(inCmt, "factor")){
-      CharacterVector lvl = inCmt.attr("levels");
+  if (rxIsNumIntLgl(inCmt)){
+    if (rxIsFactor(inCmt)){
+      //inCmt.attr("levels");
+      CharacterVector lvl = Rf_getAttrib(as<SEXP>(inCmt), R_LevelsSymbol);
       IntegerVector lvlI(lvl.size());
       int i, j, k=0;
       std::string curLvl, curState,negSub;
@@ -218,7 +247,7 @@ IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
 	return out;
       }
     }
-  } else if (rxIs(inCmt, "character")) {
+  } else if (rxIsChar(inCmt)) {
     CharacterVector iCmt = as<CharacterVector>(inCmt);
     std::vector<int> newCmt;
     newCmt.reserve(iCmt.size());
@@ -365,8 +394,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     combineDvidB = as<bool>(getOption("RxODE.combine.dvid", true));
   }
   List mv = rxModelVars_(obj);
-  IntegerVector curDvid = clone(as<IntegerVector>(mv["dvid"]));
-  CharacterVector trans = mv["trans"];
+  IntegerVector curDvid = clone(as<IntegerVector>(mv[RxMv_dvid]));
+  CharacterVector trans = mv[RxMv_trans];
   if (rxIs(inData,"rxEtTran")){
     CharacterVector cls = inData.attr("class");
     List e0 = cls.attr(".RxODE.lst");
@@ -418,7 +447,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     mdvCol=-1, dvidCol=-1, censCol=-1, limitCol=-1, methodCol = -1;
   std::string tmpS;
   
-  CharacterVector pars = as<CharacterVector>(mv["params"]);
+  CharacterVector pars = as<CharacterVector>(mv[RxMv_params]);
   std::vector<int> covCol;
   std::vector<int> covParPos;
   std::vector<int> keepCol;
@@ -551,10 +580,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   // xx = 40, Steady state constant infusion
   // Steady state events need a II data item > 0
   
-  CharacterVector state0 = as<CharacterVector>(mv["state"]);
-  CharacterVector stateE = as<CharacterVector>(mv["stateExtra"]);
-  CharacterVector stateS = as<CharacterVector>(mv["sens"]);
-  int extraCmt  = as<int>(mv["extraCmt"]);
+  CharacterVector state0 = as<CharacterVector>(mv[RxMv_state]);
+  CharacterVector stateE = as<CharacterVector>(mv[RxMv_stateExtra]);
+  CharacterVector stateS = as<CharacterVector>(mv[RxMv_sens]);
+  int extraCmt  = as<int>(mv[RxMv_extraCmt]);
   // Enlarge compartments
   if (extraCmt == 2){
     CharacterVector newState(state0.size()+2);
@@ -586,7 +615,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     stop(_("'time' is required in dataset"));
   }
   NumericVector inTime;
-  if (rxIs(inData[timeCol], "numeric") || rxIs(inData[timeCol], "integer")){
+  if (rxIsNumIntLgl(inData[timeCol])){
     inTime = as<NumericVector>(inData[timeCol]);
   } else {
     List newInData = clone(inData);
@@ -667,8 +696,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
   IntegerVector inSs;
   if (ssCol != -1){
-    if (rxIs(inData[ssCol], "integer") || rxIs(inData[ssCol], "numeric") ||
-	rxIs(inData[ssCol], "logical")){
+    if (rxIsNumIntLgl(inData[ssCol])){
       // NA by default is NA_logical
       inSs = as<IntegerVector>(inData[ssCol]);
     } else {
@@ -679,8 +707,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   bool evidIsMDV = false;
   bool hasEvid=false;
   if (evidCol != -1){
-    if (rxIs(inData[evidCol], "integer") || rxIs(inData[evidCol], "numeric") ||
-	rxIs(inData[evidCol], "logical")){
+    if (rxIsNumIntLgl(inData[evidCol])){
       inEvid = as<IntegerVector>(inData[evidCol]);
       hasEvid=true;
     } else {
@@ -690,8 +717,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     evidCol = mdvCol;
     mdvCol=-1;
     evidIsMDV=true;
-    if (rxIs(inData[evidCol], "integer") || rxIs(inData[evidCol], "numeric") ||
-	rxIs(inData[evidCol], "logical")){
+    if (rxIsNumIntLgl(inData[evidCol])){
       inEvid = as<IntegerVector>(inData[evidCol]);
     } else {
       stop(_("missing DV ('mdv') needs to be an integer"));
@@ -705,8 +731,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
   IntegerVector inMdv;
   if (mdvCol != -1){
-    if (rxIs(inData[mdvCol], "integer") || rxIs(inData[mdvCol], "numeric") ||
-	rxIs(inData[mdvCol], "logical")){
+    if (rxIsNumIntLgl(inData[mdvCol])){
       inMdv = as<IntegerVector>(inData[mdvCol]);
     } else {
       stop(_("missing dependent variable ('mdv') needs to be an integer"));
@@ -714,8 +739,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
   NumericVector inRate;
   if (rateCol != -1){
-    if (rxIs(inData[rateCol], "integer") || rxIs(inData[rateCol], "numeric") ||
-	rxIs(inData[rateCol], "logical")){
+    if (rxIsNumIntLgl(inData[rateCol])) {
       inRate = as<NumericVector>(inData[rateCol]);
     } else {
       stop(_("'rate' needs to be a number"));
@@ -724,8 +748,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 
   NumericVector inDur;
   if (durCol != -1){
-    if (rxIs(inData[durCol], "integer") || rxIs(inData[durCol], "numeric") ||
-	rxIs(inData[durCol], "logical")){
+    if (rxIsNumIntLgl(inData[durCol])) {
       inDur = as<NumericVector>(inData[durCol]);
     } else {
       stop(_("'dur' needs to be a number"));
@@ -736,8 +759,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   RObject amtUnits;
   NumericVector inAmt;
   if (amtCol != -1){
-    if (rxIs(inData[amtCol], "integer") || rxIs(inData[amtCol], "numeric") ||
-	rxIs(inData[amtCol], "logical")){
+    if (rxIsNumIntLgl(inData[amtCol])){
       inAmt = as<NumericVector>(inData[amtCol]);
       if (rxIs(inAmt, "units")){
 	addAmtUnits=true;
@@ -749,8 +771,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
   NumericVector inIi;
   if (iiCol != -1){
-    if (rxIs(inData[iiCol], "integer") || rxIs(inData[iiCol], "numeric") ||
-	rxIs(inData[iiCol], "logical")){
+    if (rxIsNumIntLgl(inData[iiCol])){
       inIi = as<NumericVector>(inData[iiCol]);
     } else {
       stop(_("inter-dose interval ('ii') needs to be a number"));
@@ -758,8 +779,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
   IntegerVector inAddl;
   if (addlCol != -1){
-    if (rxIs(inData[addlCol], "integer") || rxIs(inData[addlCol], "numeric")||
-	rxIs(inData[iiCol], "logical") || rxIs(inData[addlCol], "level")){
+    if (rxIsNumIntLgl(inData[addlCol])){
       inAddl = as<IntegerVector>(inData[addlCol]);
     } else {
       stop(_("number of additional doses ('addl') needs to be an integer"));
@@ -767,8 +787,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
   NumericVector inDv;
   if (dvCol != -1){
-    if (rxIs(inData[dvCol], "integer") || rxIs(inData[dvCol], "numeric") ||
-	rxIs(inData[dvCol], "logical")){
+    if (rxIsNumIntLgl(inData[dvCol])) {
       inDv = as<NumericVector>(inData[dvCol]);
     } else {
       stop(_("dependent variable ('dv') needs to be a number"));
@@ -776,8 +795,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
   IntegerVector inCens;
   if (censCol != -1){
-    if (rxIs(inData[censCol], "integer") || rxIs(inData[censCol], "numeric") ||
-	rxIs(inData[censCol], "logical")){
+    if (rxIsNumIntLgl(inData[censCol])){
       inCens = as<IntegerVector>(inData[censCol]);
     } else {
       stop(_("censoring variable ('cens') needs to be a number"));
@@ -785,8 +803,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
   NumericVector inLimit;
   if (limitCol != -1){
-    if (rxIs(inData[limitCol], "integer") || rxIs(inData[limitCol], "numeric") ||
-	rxIs(inData[limitCol], "logical")){
+    if (rxIsNumIntLgl(inData[limitCol])) {
       inLimit = as<NumericVector>(inData[limitCol]);
     } else {
       stop(_("limit variable ('limit') needs to be a number"));
@@ -795,7 +812,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   
   int flg = 0;
   int cid = 0;
-  int nMtime = as<int>(mv["nMtime"]);
+  int nMtime = as<int>(mv[RxMv_nMtime]);
   double rate = 0.0;
   int nid=0;
   int cmt = 0;
@@ -1838,7 +1855,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
   CharacterVector cls = CharacterVector::create("rxEtTran","data.frame");
-  if (covCol.size() == 0 && !rxIs(lst1F[0], "integer") && !redoId){
+  if (covCol.size() == 0 && !rxIsInt(lst1F[0]) && !redoId){
     stop(_("corrupted event table"));
   }
 #ifdef rxSolveT
