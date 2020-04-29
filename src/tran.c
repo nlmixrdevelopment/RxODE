@@ -2527,7 +2527,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 2, mkChar(\"linB\"));\n", 49);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 3, mkChar(\"maxeta\"));\n", 51);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 4, mkChar(\"maxtheta\"));\n", 53);
-  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 5, mkChar(\"CMT\"));\n", 48);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 5, mkChar(\"hasCmt\"));\n", 51);
   sAppendN(&sbOut, "   setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);\n", 50);
   sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
   sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);

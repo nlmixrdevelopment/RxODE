@@ -4016,7 +4016,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 #endif// rxSolveT
     CharacterVector pars = rxSolveDat->mv[RxMv_params];
     rxSolveDat->npars = pars.size();
-    rxSolveDat->hasCmt = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_CMT] == 1;
+    rxSolveDat->hasCmt = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_hasCmt] == 1;
     // Assign Pointers
     rxAssignPtr(rxSolveDat->mv);
     rx->nKeep0 = 0;

@@ -111,5 +111,5 @@
 #define RxMvFlag_linB 2
 #define RxMvFlag_maxeta 3
 #define RxMvFlag_maxtheta 4
-#define RxMvFlag_CMT 5
+#define RxMvFlag_hasCmt 5
 #endif // __RxODE_control_H__
