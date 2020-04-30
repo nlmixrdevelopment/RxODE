@@ -3794,6 +3794,9 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
     if(_rxModels.exists(".omegaL")){
       _rxModels.remove(".omegaL");
     }
+    if(_rxModels.exists(".thetaL")){
+      _rxModels.remove(".thetaL");
+    }
     if(_rxModels.exists(".theta")){
       _rxModels.remove(".theta");
     }
@@ -4625,25 +4628,28 @@ RObject rxSolveUpdate(RObject obj,
 	// Now check to see if this is something that can be updated...
 	if (sarg == "params"){
 	  // rxControl[Rxc_params] = value;
+	  REprintf("1\n");
 	  return rxSolve_(obj,rxControl,
                           CharacterVector::create("params"),
 			  R_NilValue,
                           value, //defrx_params,
-                          defrx_events,
+			  List(e[".args.events"]),
                           defrx_inits, 0);
 	} else if (sarg == "events"){
+	  REprintf("2\n");
 	  return rxSolve_(obj,rxControl,
 			  CharacterVector::create("events"),
 			  R_NilValue,
-			  defrx_params,
+			  List(e[".params.dat"]),
 			  value, // defrx_events,
 			  defrx_inits, 0);
 	} else if (sarg == "inits"){
+	  REprintf("3\n");
 	  return rxSolve_(obj, rxControl,
                           CharacterVector::create("inits"),
 			  R_NilValue,
-                          defrx_params,
-                          defrx_events,
+			  List(e[".params.dat"]),
+			  List(e[".args.events"]),
                           as<RObject>(value), //defrx_inits,
 			  0);
 	} else if (sarg == "t" || sarg == "time"){
@@ -4668,11 +4674,11 @@ RObject rxSolveUpdate(RObject obj,
 	  CharacterVector nmc;
 	  nmc = events.names();
 	  nc = (as<NumericVector>(events[0])).size();
-	  //////////////////////////////////////////////////////////////////////////////
+	  ////////////////////////////////////////////////////////
 	  // Update Parameters by name
 	  n = pars.size();
-	  for (i = n; i--; ){
-	    if (nmp[i] == sarg){
+	  for (i = n; i--; ) {
+	    if (nmp[i] == sarg) {
 	      // Update solve.
 	      NumericVector val = NumericVector(value);
 	      if (val.size() == np){
@@ -4682,7 +4688,7 @@ RObject rxSolveUpdate(RObject obj,
 				CharacterVector::create("params"),
 				R_NilValue,
 				pars, //defrx_params,
-				defrx_events,
+				List(e[".args.events"]),
 				defrx_inits, 0);
 	      } else if (val.size() == nc){
 		// Change parameter -> Covariate
@@ -4721,7 +4727,7 @@ RObject rxSolveUpdate(RObject obj,
 	      return R_NilValue;
 	    }
 	  }
-	  ///////////////////////////////////////////////////////////////////////////////
+	  ////////////////////////////////////////////////////////////////
 	  // Update Covariates by covariate name
 	  n = events.size();
 	  for (i = n; i--;){
@@ -4773,7 +4779,7 @@ RObject rxSolveUpdate(RObject obj,
 	      }
 	    }
 	  }
-	  ////////////////////////////////////////////////////////////////////////////////
+	  ////////////////////////////////////////////////////
           // Update Initial Conditions
 	  NumericVector ini = NumericVector(e[".init.dat"]);
           CharacterVector nmi = ini.names();
@@ -4817,8 +4823,8 @@ RObject rxSolveUpdate(RObject obj,
               return rxSolve_(obj, rxControl,
 			      CharacterVector::create("inits"),
 			      R_NilValue,
-			      defrx_params,
-			      defrx_events,
+			      List(e[".params.dat"]),
+			      List(e[".args.events"]),
 			      ini, 0);
 	    }
 	  }

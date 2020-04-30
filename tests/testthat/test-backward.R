@@ -148,12 +148,12 @@ rxPermissive({
     })
 
     test_that("Can Update initial conditions", {
-        x$eff0 <- 2;
-        expect_equal(x$eff[1], 2);
-        x$eff.0 <- 1;
-        expect_equal(x$eff[1], 1);
-        x$eff_0 <- 0.5;
-        expect_equal(x$eff[1], 0.5);
+        x$eff0 <- 2
+        expect_equal(x$eff[1], 2)
+        x$eff.0 <- 1
+        expect_equal(x$eff[1], 1)
+        x$eff_0 <- 0.5
+        expect_equal(x$eff[1], 0.5)
     })
 
     x <- solve(mod1,theta, ev, inits)
