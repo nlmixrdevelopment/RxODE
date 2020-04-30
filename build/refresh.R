@@ -129,8 +129,8 @@ genDefine <- function(){
   .nmv <- gsub("[.]", "_", names(.mv));
   cat("\n");
   cat(paste(paste0("#define RxMv_", .nmv, " ", seq_along(.nmv)-1),collapse="\n"))
-
   .nmvf <- names(.mv$flag)
+  cat("\n");  
   cat(paste(paste0("#define RxMvFlag_", .nmvf, " ", seq_along(.nmvf)-1),collapse="\n"))
   cat("\n#endif // __RxODE_control_H__\n")
   sink();

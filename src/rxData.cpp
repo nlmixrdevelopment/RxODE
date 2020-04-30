@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <climits>
+#include <checkmate.h>
 #include "../inst/include/RxODE.h"
 #include "ode.h"
 #include "timsort.h"	
@@ -34,13 +35,8 @@ void resetSolveLinB();
 using namespace Rcpp;
 using namespace arma;
 
-#ifdef ENABLE_NLS
-#include <libintl.h>
-#define _(String) dgettext ("RxODE", String)
-/* replace pkg as appropriate */
-#else
-#define _(String) (String)
-#endif
+#include "../inst/include/RxODE_as.h"
+
 
 RObject rxSolveFreeObj=R_NilValue;
 LogicalVector rxSolveFree();
@@ -59,45 +55,6 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omega, SEXP n, SEXP omegaIsChol, SEXP re
 RObject rxUnlock(RObject obj);
 RObject rxLock(RObject obj);
 
-inline bool rxIsNull(RObject obj) {
-  return obj.sexp_type() == 0;
-}
-inline bool rxIsNum(RObject obj) {
-  if (obj.sexp_type() == REALSXP) {
-    return (!obj.hasAttribute("dim"));
-  }
-  return false;
-}
-bool rxIsNum1(RObject obj) {
-  if (obj.sexp_type() == REALSXP) {
-    if (!obj.hasAttribute("dim")){
-      NumericVector v = as<NumericVector>(obj);
-      return (v.size() == 1);
-    }
-  }
-  return false;
-}
-inline bool rxIsInt(RObject obj) {
-  if (obj.sexp_type() == 13) {
-    return (!obj.hasAttribute("dim"));
-  }
-  return false;
-}
-
-inline bool rxIsNumInt(RObject obj) {
-  int type = obj.sexp_type();
-  if (type == REALSXP || type == 13) {
-    return (!obj.hasAttribute("dim"));
-  }
-  return false;
-}
-inline bool rxIsChar(RObject obj) {
-  int type = obj.sexp_type();
-  if (type == STRSXP) {
-    return (!obj.hasAttribute("dim"));
-  }
-  return false;
-}
 
 RObject setupOnlyObj = R_NilValue;
 
@@ -2450,7 +2407,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
       NumericVector tmp;
       IntegerVector tmpI;
       if (rxIsNumInt(rxControl[Rxc_from])){
-	tmp = as<NumericVector>(rxControl[Rxc_from]);
+	tmp = asNv(rxControl[Rxc_from], "from");
 	if (tmp.size() != 1){
 	  rxSolveFree();
 	  stop(_("'from' must be of length 1"));
@@ -2458,7 +2415,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
 	from = tmp[0];
       }
       if (rxIsNumInt(rxControl[Rxc_to])){
-	tmp = as<NumericVector>(rxControl[Rxc_to]);
+	tmp = asNv(rxControl[Rxc_to], "to");
 	if (tmp.size() != 1){
 	  rxSolveFree();
 	  stop(_("'to' must be of length 1"));
@@ -2468,7 +2425,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
 	to = (max(as<NumericVector>(ev1a["TIME"]))+24);
       }
       if (rxIsNumInt(rxControl[Rxc_by])){
-	tmp = as<NumericVector>(rxControl[Rxc_by]);
+	tmp = asNv(rxControl[Rxc_by], "by");
 	if (tmp.size() != 1){
 	  rxSolveFree();
 	  stop(_("'by' must be of length 1"));
@@ -2476,7 +2433,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
 	by = tmp[0];
       }
       if (rxIsNumInt(rxControl[Rxc_length_out])){
-	tmpI = as<IntegerVector>(rxControl[Rxc_length_out]);
+	tmpI = asIv(rxControl[Rxc_length_out], "length.out");
 	if (tmpI.size() != 1){
 	  rxSolveFree();
 	  stop(_("'length.out' must be of length 1"));
@@ -2559,24 +2516,24 @@ static inline void rxSolve_simulate(const RObject &obj,
   rx_solving_options* op = rx->op;
   
   RObject omega = rxControl[Rxc_omega];
-  Nullable<NumericVector> omegaDf = as<Nullable<NumericVector>>(rxControl[Rxc_omegaDf]);
-  bool omegaIsChol = as<bool>(rxControl[Rxc_omegaIsChol]);
+  Nullable<NumericVector> omegaDf = asNNv(rxControl[Rxc_omegaDf], "omegaDf");
+  bool omegaIsChol = asBool(rxControl[Rxc_omegaIsChol], "Rxc_omegaIsChol");
 
   Nullable<NumericMatrix> thetaMat = as<Nullable<NumericMatrix>>(rxControl[Rxc_thetaMat]);
-  Nullable<NumericVector> thetaDf = as<Nullable<NumericVector>>(rxControl[Rxc_thetaDf]);
-  bool thetaIsChol = as<bool>(rxControl[Rxc_thetaIsChol]);
+  Nullable<NumericVector> thetaDf = asNNv(rxControl[Rxc_thetaDf], "thetaDf");
+  bool thetaIsChol = asBool(rxControl[Rxc_thetaIsChol], "thetaIsChol");
   
   RObject sigma= rxControl[Rxc_sigma];
-  Nullable<NumericVector> sigmaDf= (rxControl[Rxc_sigmaDf]);
-  bool sigmaIsChol= as<bool>(rxControl[Rxc_sigmaIsChol]);
+  Nullable<NumericVector> sigmaDf= asNNv(rxControl[Rxc_sigmaDf], "sigmaDf");
+  bool sigmaIsChol= asBool(rxControl[Rxc_sigmaIsChol], "sigmaIsChol");
   op->isChol = (int)(sigmaIsChol);
 
-  unsigned int nSub = as<unsigned int>(rxControl[Rxc_nSub]);
-  unsigned int nStud = as<unsigned int>(rxControl[Rxc_nStud]);
-  double dfSub=as<double>(rxControl[Rxc_dfSub]);
-  double dfObs=as<double>(rxControl[Rxc_dfObs]);
+  unsigned int nSub = asUnsignedInt(rxControl[Rxc_nSub], "nSub");
+  unsigned int nStud = asUnsignedInt(rxControl[Rxc_nStud], "nStud");
+  double dfSub=asDouble(rxControl[Rxc_dfSub], "dfSub");
+  double dfObs=asDouble(rxControl[Rxc_dfObs], "dfObs");
   
-  int nCoresRV = as<int>(rxControl[Rxc_nCoresRV]);
+  unsigned int nCoresRV = asUnsignedInt(rxControl[Rxc_nCoresRV], "nCoresRV");
   
   bool simSubjects = false;
   
@@ -2660,21 +2617,21 @@ static inline void rxSolve_simulate(const RObject &obj,
     List lst = rxSimThetaOmega(as<Nullable<NumericVector>>(rxSolveDat->par1),
 			       omega,
 			       omegaDf,
-			       as<NumericVector>(rxControl[Rxc_omegaLower]),
-			       as<NumericVector>(rxControl[Rxc_omegaUpper]),
+			       asNv(rxControl[Rxc_omegaLower], "omegaLower"),
+			       asNv(rxControl[Rxc_omegaUpper], "omegaUpper"),
 			       omegaIsChol,
-			       as<std::string>(rxControl[Rxc_omegaSeparation]),
-			       as<int>(rxControl[Rxc_omegaXform]),
+			       asStr(rxControl[Rxc_omegaSeparation], "omegaSeparation"),
+			       asInt(rxControl[Rxc_omegaXform], "omegaXform"),
 			       nSub0, thetaMat,
-			       as<NumericVector>(rxControl[Rxc_thetaLower]),
-			       as<NumericVector>(rxControl[Rxc_thetaUpper]),
+			       asNv(rxControl[Rxc_thetaLower], "thetaLower"),
+			       asNv(rxControl[Rxc_thetaUpper], "thetaUpper"),
 			       thetaDf, thetaIsChol, nStud,
 			       sigma,
-			       as<NumericVector>(rxControl[Rxc_sigmaLower]),
-			       as<NumericVector>(rxControl[Rxc_sigmaUpper]),
+			       asNv(rxControl[Rxc_sigmaLower], "sigmaLower"),
+			       asNv(rxControl[Rxc_sigmaUpper], "sigmaUpper"),
 			       sigmaDf, sigmaIsChol,
-			       as<std::string>(rxControl[Rxc_sigmaSeparation]),
-			       as<int>(rxControl[Rxc_sigmaXform]),
+			       asStr(rxControl[Rxc_sigmaSeparation], "sigmaSeparation"),
+			       asInt(rxControl[Rxc_sigmaXform], "sigmaXform"),
 			       nCoresRV, curObs,
 			       dfSub, dfObs, simSubjects);
     rxSolveDat->warnIdSort = false;
@@ -2794,7 +2751,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
       int nKeepi=0;
       CharacterVector keepC, keepCf;
       if (rxIsChar(rxControl[Rxc_keepI])){
-	keepC = as<CharacterVector>(rxControl[Rxc_keepI]);
+	keepC = asCv(rxControl[Rxc_keepI], "keepI");
       }
       IntegerVector keepIv(keepC.size());
       for (int ii=lstT.size(); ii--;){
@@ -2871,7 +2828,7 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
 					const RObject &ev1,
 					const RObject &inits,
 					rxSolve_t* rxSolveDat){
-  Nullable<NumericVector> hmax = rxControl[Rxc_hmax];
+  Nullable<NumericVector> hmax = asNNv(rxControl[Rxc_hmax], "hmax");
   bool doMean=true;
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
@@ -3139,7 +3096,7 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     if (doMean){
       hmax1s = hmax1s/(hmax1n-1);
       hmax1  = hmax1m;
-      ind->HMAX = hmax1 + as<double>(rxControl[Rxc_hmaxSd])*sqrt(hmax1s);
+      ind->HMAX = hmax1 + asDouble(rxControl[Rxc_hmaxSd], "hmaxSd")*sqrt(hmax1s);
     } else if (hmax0 == 0.0){
       ind->HMAX = hmax1;
     } else {
@@ -3404,7 +3361,7 @@ static inline List rxSolve_df(const RObject &obj,
       doDose = 1;
     } else if (addDosing1[0]){
       doDose = 2;
-      if (as<bool>(rxControl[Rxc_subsetNonmem])) doDose = 3;
+      if (asBool(rxControl[Rxc_subsetNonmem], "subsetNonmem")) doDose = 3;
     } else {
       doDose = 0;
     }
@@ -3416,7 +3373,7 @@ static inline List rxSolve_df(const RObject &obj,
   if (rx->matrix == 4 || rx->matrix == 5) rx->matrix=2;
   List dat = RxODE_df(doDose, doTBS);
   if (!rxIsNull(rxControl[Rxc_drop])) {
-    dat = rxDrop(as<CharacterVector>(rxControl[Rxc_drop]), dat, as<bool>(rxControl[Rxc_warnDrop]));
+    dat = rxDrop(asCv(rxControl[Rxc_drop], "drop"), dat, asBool(rxControl[Rxc_warnDrop], "warnDrop"));
   }
   if (rxSolveDat->idFactor && rxSolveDat->labelID && rx->nsub > 1){
     IntegerVector did = as<IntegerVector>(dat["id"]);
@@ -3458,8 +3415,8 @@ static inline Environment rxSolve_genenv(const RObject &object,
   IntegerVector slvr_counterIv(rxSolveDat->nSize);
   IntegerVector dadt_counterIv(rxSolveDat->nSize);
   IntegerVector  jac_counterIv(rxSolveDat->nSize);
-  CharacterVector timeUnits = as<CharacterVector>(rxControl[Rxc_timeUnits]);
-  CharacterVector amountUnits = as<CharacterVector>(rxControl[Rxc_amountUnits]);
+  CharacterVector timeUnits = asCv(rxControl[Rxc_timeUnits], "timeUnits");
+  CharacterVector amountUnits = asCv(rxControl[Rxc_amountUnits], "amountUnits");
 
   std::copy(&_globals.slvr_counter[0], &_globals.slvr_counter[0] + rxSolveDat->nSize, slvr_counterIv.begin());
   std::copy(&_globals.dadt_counter[0], &_globals.dadt_counter[0] + rxSolveDat->nSize, dadt_counterIv.begin());
@@ -3620,7 +3577,7 @@ static inline bool rxSolve_loaded(const RObject &trueEvents,
   RObject sigma = rxControl[Rxc_sigma];
   // print(trueParams);
   bool ret = _globals.gsolve != NULL &&
-    as<bool>(rxControl[Rxc_cacheEvent]) &&
+    asBool(rxControl[Rxc_cacheEvent], "cacheEvent") &&
     _rxModels.exists(".lastEvents") &&
     // FIXME:
     // - Inductive linearization requires a different setup
@@ -3855,26 +3812,26 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rxSolveFree();
     stop(_("control list not setup correctly"));
   }
-  maxAtolRtolFactor = as<double>(rxControl[Rxc_maxAtolRtolFactor]);
-  _mvnfast = as<bool>(rxControl[Rxc_mvnfast]);
+  maxAtolRtolFactor = asDouble(rxControl[Rxc_maxAtolRtolFactor], "maxAtolRtolFactor");
+  _mvnfast = asBool(rxControl[Rxc_mvnfast], "mvnfast");
   RObject scale = rxControl[Rxc_scale];
-  int method = as<int>(rxControl[Rxc_method]);
-  Nullable<LogicalVector> transit_abs = rxControl[Rxc_transitAbs];
-  NumericVector atolNV = as<NumericVector>(rxControl[Rxc_atol]);
-  NumericVector rtolNV = as<NumericVector>(rxControl[Rxc_rtol]);
-  NumericVector atolNVss = as<NumericVector>(rxControl[Rxc_ssAtol]);
-  NumericVector rtolNVss = as<NumericVector>(rxControl[Rxc_ssRtol]);
-  int maxsteps = as<int>(rxControl[Rxc_maxsteps]);
-  double hmin = as<double>(rxControl[Rxc_hmin]);
-  double hini = as<double>(rxControl[Rxc_hini]);
-  int maxordn = as<int>(rxControl[Rxc_maxordn]);
-  int maxords = as<int>(rxControl[Rxc_maxords]);
-  unsigned int cores = as<unsigned int>(rxControl[Rxc_cores]);
-  int covs_interpolation = as<int>(rxControl[Rxc_covsInterpolation]);
-  bool addCov = as<bool>(rxControl[Rxc_addCov]);
-  int matrix = as<int>(rxControl[Rxc_matrix]);
-  int nDisplayProgress = as<int>(rxControl[Rxc_nDisplayProgress]);
-  NumericVector stateTrim = rxControl[Rxc_stateTrim];
+  int method = asInt(rxControl[Rxc_method], "method");
+  Nullable<LogicalVector> transit_abs = asNLv(rxControl[Rxc_transitAbs], "transitAbs");
+  NumericVector atolNV = asNv(rxControl[Rxc_atol], "atol");
+  NumericVector rtolNV = asNv(rxControl[Rxc_rtol], "rtol");
+  NumericVector atolNVss = asNv(rxControl[Rxc_ssAtol], "ssAtol");
+  NumericVector rtolNVss = asNv(rxControl[Rxc_ssRtol], "ssRtol");
+  int maxsteps = asInt(rxControl[Rxc_maxsteps], "maxsteps");
+  double hmin = asDouble(rxControl[Rxc_hmin], "hmin");
+  double hini = asDouble(rxControl[Rxc_hini], "hini");
+  int maxordn = asInt(rxControl[Rxc_maxordn], "maxordn");
+  int maxords = asInt(rxControl[Rxc_maxords], "maxords");
+  unsigned int cores = asUnsignedInt(rxControl[Rxc_cores], "cores");
+  int covs_interpolation = asInt(rxControl[Rxc_covsInterpolation], "covsInterpolation");
+  bool addCov = asBool(rxControl[Rxc_addCov], "addCov");
+  int matrix = asInt(rxControl[Rxc_matrix], "matrix");
+  int nDisplayProgress = asInt(rxControl[Rxc_nDisplayProgress], "nDisplayProgress");
+  NumericVector stateTrim = asNv(rxControl[Rxc_stateTrim], "stateTrim");
   double stateTrimU= R_PosInf;
   double stateTrimL= R_NegInf;
   if (stateTrim.size() == 2){
@@ -3891,16 +3848,20 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       stateTrimL = -stateTrimU;
     }
   } else {
+    REprintf("rxControl\n");
+    print(rxControl[Rxc_stateTrim]);
+    REprintf("stateTrim\n");
+    print(stateTrim);
     stop("'stateTrim' must be a vector of 1-2 elements");
   }
   rxSolve_t rxSolveDat0;
   rxSolve_t* rxSolveDat = &rxSolveDat0;
   RObject object;
-  rxSolveDat->updateObject = as<bool>(rxControl[Rxc_updateObject]);  
+  rxSolveDat->updateObject = asBool(rxControl[Rxc_updateObject], "updateObject");
   rxSolveDat->isRxSolve = rxIs(obj, "rxSolve");
   rxSolveDat->isEnvironment = rxIs(obj, "environment");
-  rxSolveDat->idFactor= as<bool>(rxControl[Rxc_idFactor]);
-  rxSolveDat->warnIdSort = as<bool>(rxControl[Rxc_warnIdSort]);
+  rxSolveDat->idFactor= asBool(rxControl[Rxc_idFactor], "idFactor");
+  rxSolveDat->warnIdSort = asBool(rxControl[Rxc_warnIdSort], "warnIdSort");
   RObject trueParams;
   RObject trueEvents;
   bool swappedEvents=false;
@@ -3959,8 +3920,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   }
   if (rxSolveDat->isRxSolve || rxSolveDat->isEnvironment){
     rx_solve* rx = getRxSolve_();
-    rx->sumType = as<int>(rxControl[Rxc_sumType]);
-    rx->prodType = as<int>(rxControl[Rxc_prodType]);
+    rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
+    rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
     return rxSolve_update(object, rxControl, specParams,
 			  extraArgs, params, events, inits,
 			  rxSolveDat);
@@ -3978,8 +3939,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // Get model 
     // Get the C solve object
     rx_solve* rx = getRxSolve_();
-    rx->sumType = as<int>(rxControl[Rxc_sumType]);
-    rx->prodType = as<int>(rxControl[Rxc_prodType]);
+    rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
+    rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
     rx_solving_options* op = rx->op;    
 #ifdef rxSolveT
     REprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
@@ -4012,7 +3973,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       _rxModels[".lastInits"] = inits;
       Free(op->indLin);
     }
-    rxSolveDat->addDosing = as<Nullable<LogicalVector>>(rxControl[Rxc_addDosing]);
+    rxSolveDat->addDosing = asNLv(rxControl[Rxc_addDosing], "addDosing");
 #ifdef rxSolveT
     REprintf("Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4030,11 +3991,11 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->needSort = as<int>(rxSolveDat->mv[RxMv_needSort]);
     rx->nMtime = as<int>(rxSolveDat->mv[RxMv_nMtime]);
     rx->add_cov = (int)(addCov);
-    rx->istateReset = as<int>(rxControl[Rxc_istateReset]);
-    rx->safeZero = as<int>(rxControl[Rxc_safeZero]);
+    rx->istateReset = asInt(rxControl[Rxc_istateReset], "istateReset");
+    rx->safeZero = asInt(rxControl[Rxc_safeZero], "safeZero");
     op->stiff = method;
-    op->linLog=as<int>(rxControl[Rxc_linLog]);
-    op->advanLinCmt = as<int>(rxControl[Rxc_advanLinCmt]);
+    op->linLog=asInt(rxControl[Rxc_linLog], "linLog");
+    op->advanLinCmt = asInt(rxControl[Rxc_advanLinCmt], "advanLinCmt");
     if (method != 2){
       op->cores =1;
     } else {
@@ -4083,14 +4044,14 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->ATOL = atolNV[0];          //absolute error
     op->RTOL = rtolNV[0];          //relative error
 
-    op->minSS = as<int>(rxControl[Rxc_minSS]);
-    op->maxSS = as<int>(rxControl[Rxc_maxSS]);
-    op->infSSstep = as<double>(rxControl[Rxc_infSSstep]);
+    op->minSS = asInt(rxControl[Rxc_minSS], "minSS");
+    op->maxSS = asInt(rxControl[Rxc_maxSS], "maxSS");
+    op->infSSstep = asDouble(rxControl[Rxc_infSSstep], "infSSstep");
     if (op->infSSstep <= 0) stop(_("'infSSstep' needs to be positive"));
-    op->indLinPhiTol=as<double>(rxControl[Rxc_indLinPhiTol]);
-    op->indLinMatExpType=as<int>(rxControl[Rxc_indLinMatExpType]);
-    op->indLinPhiM = as<int>(rxControl[Rxc_indLinPhiM]);
-    op->indLinMatExpOrder=as<int>(rxControl[Rxc_indLinMatExpOrder]);
+    op->indLinPhiTol=asDouble(rxControl[Rxc_indLinPhiTol], "indLinPhiTol");
+    op->indLinMatExpType=asInt(rxControl[Rxc_indLinMatExpType], "indLinMatExpType");
+    op->indLinPhiM = asInt(rxControl[Rxc_indLinPhiM],"indLinPhiM");
+    op->indLinMatExpOrder=asInt(rxControl[Rxc_indLinMatExpOrder], "indLinMatExpOrder");
     List indLin = rxSolveDat->mv[RxMv_indLin];
     op->doIndLin=0;
     if (indLin.size() == 4){
@@ -4628,7 +4589,6 @@ RObject rxSolveUpdate(RObject obj,
 	// Now check to see if this is something that can be updated...
 	if (sarg == "params"){
 	  // rxControl[Rxc_params] = value;
-	  REprintf("1\n");
 	  return rxSolve_(obj,rxControl,
                           CharacterVector::create("params"),
 			  R_NilValue,
@@ -4636,7 +4596,6 @@ RObject rxSolveUpdate(RObject obj,
 			  List(e[".args.events"]),
                           defrx_inits, 0);
 	} else if (sarg == "events"){
-	  REprintf("2\n");
 	  return rxSolve_(obj,rxControl,
 			  CharacterVector::create("events"),
 			  R_NilValue,
@@ -4644,7 +4603,6 @@ RObject rxSolveUpdate(RObject obj,
 			  value, // defrx_events,
 			  defrx_inits, 0);
 	} else if (sarg == "inits"){
-	  REprintf("3\n");
 	  return rxSolve_(obj, rxControl,
                           CharacterVector::create("inits"),
 			  R_NilValue,

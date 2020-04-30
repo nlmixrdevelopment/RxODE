@@ -196,6 +196,8 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   - `rxweibull()`
   
 * Updated to [TimSort 1.2.0](https://github.com/timsort/cpp-TimSort/releases/tag/v1.2.0)
+
+* More descriptive errors when types of input are different than expected
   
 ## Bug fixes:
  - Occasionally RxODE misidentified dual `lhs`/`param` values.  An
