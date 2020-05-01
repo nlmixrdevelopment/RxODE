@@ -1,3 +1,4 @@
+//#undef NDEBUG
 #include <Rcpp.h>
 #include <checkmate.h>
 
@@ -81,6 +82,8 @@ SEXP qassertS(SEXP in, const char *test, const char *what){
       err += "integer";
     } else if (ch1 == 'm') {
       err += "matrix";
+    } else if (ch1 == 'n') {
+      err += "numeric";
     }
     err += "' ";
     int i = 1;

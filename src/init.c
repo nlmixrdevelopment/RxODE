@@ -14,8 +14,8 @@ SEXP _RxODE_etRep_(SEXP, SEXP, SEXP, SEXP, SEXP,
 SEXP _RxODE_etSeq_(SEXP, SEXP, SEXP, SEXP, SEXP,
 		   SEXP, SEXP, SEXP, SEXP, SEXP,
 		   SEXP);
-SEXP _RxODE_rxSolve_(SEXP, SEXP, SEXP, SEXP, SEXP,
-		     SEXP, SEXP, SEXP);
+SEXP _RxODE_rxSolveSEXP(SEXP, SEXP, SEXP, SEXP, SEXP,
+			SEXP, SEXP, SEXP);
 SEXP _RxODE_rxStack(SEXP, SEXP);
 SEXP _RxODE_etUpdate(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_et_(SEXP, SEXP);
@@ -83,9 +83,9 @@ SEXP _RxODE_rxSolveDollarNames(SEXP);
 SEXP _RxODE_etDollarNames(SEXP);
 SEXP _RxODE_rxExpandNesting(SEXP, SEXP, SEXP);
 
-SEXP _rxRmvn_(SEXP, SEXP, SEXP, SEXP, SEXP,
-	      SEXP, SEXP, SEXP, SEXP, SEXP,
-	      SEXP, SEXP);
+SEXP _RxODE_rxRmvnSEXP(SEXP, SEXP, SEXP, SEXP, SEXP,
+		       SEXP, SEXP, SEXP, SEXP, SEXP,
+		       SEXP, SEXP);
 
 SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_);
 
@@ -128,9 +128,9 @@ extern SEXP _RxODE_rxSimThetaOmega(SEXP, SEXP, SEXP, SEXP, SEXP,
 				   SEXP, SEXP, SEXP, SEXP, SEXP,
 				   SEXP, SEXP, SEXP);
 
-SEXP _cvPost_(SEXP, SEXP, SEXP, SEXP, SEXP,
+SEXP _RxODE_cvPost_(SEXP, SEXP, SEXP, SEXP, SEXP,
 		    SEXP, SEXP);
-SEXP _expandPars_(SEXP, SEXP, SEXP, SEXP);
+SEXP _RxODE_expandPars_(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rinvchisq(SEXP, SEXP, SEXP);
 
 SEXP _RxODE_getRxFn(SEXP);
@@ -280,7 +280,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxGetRxODE", (DL_FUNC) &_RxODE_rxGetRxODE, 1},
     {"_RxODE_rxSimThetaOmega", (DL_FUNC) &_RxODE_rxSimThetaOmega, 27},
     {"_RxODE_rxIsCurrent", (DL_FUNC) &_RxODE_rxIsCurrent, 1},
-    {"_cvPost_", (DL_FUNC) &_cvPost_, 7},
+    {"_RxODE_cvPost_", (DL_FUNC) &_RxODE_cvPost_, 7},
     {"_RxODE_rinvchisq", (DL_FUNC) &_RxODE_rinvchisq, 3},
     {"_RxODE_dynLoad", (DL_FUNC) &_RxODE_dynLoad, 1},
     {"_RxODE_rxSolveFree", (DL_FUNC) &_RxODE_rxSolveFree, 0},
@@ -296,7 +296,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxStack", (DL_FUNC) &_RxODE_rxStack, 2},
     {"_RxODE_etSeq_", (DL_FUNC) &_RxODE_etSeq_, 11},
     {"_RxODE_etRep_", (DL_FUNC) &_RxODE_etRep_, 7},
-    {"_RxODE_rxSolve_", (DL_FUNC) &_RxODE_rxSolve_, 8},
+    {"_RxODE_rxSolveSEXP", (DL_FUNC) &_RxODE_rxSolveSEXP, 8},
     {"_RxODE_dropUnitsRxSolve", (DL_FUNC) &_RxODE_dropUnitsRxSolve, 1},
     {"_RxODE_atolRtolFactor_", (DL_FUNC) &_RxODE_atolRtolFactor_, 1},
     {"_RxODE_rxExpandGrid_", (DL_FUNC) &_RxODE_rxExpandGrid_, 3},
@@ -347,8 +347,8 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxRmvn0", (DL_FUNC) _RxODE_rxRmvn0, 11},
     {"_vecDF", (DL_FUNC) _vecDF, 2},
     {"_cbindOme", (DL_FUNC) _cbindOme, 3},
-    {"_rxRmvn_", (DL_FUNC) _rxRmvn_, 12},
-    {"_expandPars_", (DL_FUNC) _expandPars_, 4},
+    {"_RxODE_rxRmvnSEXP", (DL_FUNC) _RxODE_rxRmvnSEXP, 12},
+    {"_RxODE_expandPars_", (DL_FUNC) _RxODE_expandPars_, 4},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

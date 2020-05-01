@@ -18,7 +18,7 @@
 
 
 SEXP _vecDF(SEXP cv, SEXP n_) {
-  int n;
+  int n=0;
   int typ = TYPEOF(n_);
   if (typ == REALSXP) {
     n = (int)(REAL(n_)[0]);

@@ -888,8 +888,9 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     }
     .ctl$keepI <- .keepI
     .ctl$keepF <- .keepF
-    .ret <- .collectWarnings(rxSolve_(object, .ctl, .nms, .xtra,
-                                      params, events, inits,setupOnly=.setupOnly), lst=TRUE);
+    .ret <- .collectWarnings(rxSolveSEXP(object, .ctl, .nms, .xtra,
+                                         params, events, inits,
+                                         setupOnly=.setupOnly), lst=TRUE);
     .ws <- .ret[[2]]
     .rxModels$.ws <- .ws;
     lapply(.ws, function(x) warning(x))

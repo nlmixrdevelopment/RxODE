@@ -1,16 +1,11 @@
+//#undef NDEBUG
 #include <RcppArmadillo.h>
 #include <R.h>
 #include <threefry.h>
-#ifdef ENABLE_NLS
 #include <libintl.h>
 #include <checkmate.h>
 #include <boost/algorithm/string/predicate.hpp>
 #include "../inst/include/RxODE.h"
-#define _(String) dgettext ("RxODE", String)
-/* replace pkg as appropriate */
-#else
-#define _(String) (String)
-#endif
 extern "C"{
   typedef SEXP (*lotriMat_type) (SEXP, SEXP, SEXP);
   lotriMat_type lotriMat;
@@ -45,6 +40,7 @@ static inline void setupLotri() {
 
 using namespace Rcpp;
 using namespace arma;
+#include "../inst/include/RxODE_as.h"
 bool rxIs(const RObject &obj, std::string cls);
 
 arma::mat rwish5(double nu, int p){
@@ -326,9 +322,9 @@ double getDbl(SEXP in, const char *var){
   return ret;
 }
 
-extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
-			 SEXP returnCholS, SEXP typeS, SEXP diagXformTypeS) {
-  BEGIN_RCPP
+//[[Rcpp::export]]
+SEXP cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
+	     SEXP returnCholS, SEXP typeS, SEXP diagXformTypeS) {
   int diagXformType = 1;
   qassertS(nS, "X1[1,)", "n");
   qassertS(omegaIsCholS, "B1", "omegaIsChol");
@@ -387,10 +383,10 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
 	  if (lotriLst.containsElementNamed((as<std::string>(omegaInNames[ii])).c_str())){
 	    curOmegaLst = lotriLst[as<std::string>(omegaInNames[ii])];
 	    if (curOmegaLst.containsElementNamed("nu")){
-	      nu = as<double>(curOmegaLst["nu"]);
+	      nu = asDouble(curOmegaLst["nu"], "nu");
 	    }
 	    if (curOmegaLst.containsElementNamed("same")){
-	      nsame = as<int>(curOmegaLst["same"]);
+	      nsame = asInt(curOmegaLst["same"], "same");
 	    }
 	  }
 	  RObject cur;
@@ -413,7 +409,7 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
       }
       IntegerVector startAt(1);
       if (omega.hasAttribute("start")) {
-	startAt[0] = as<int>(omega.attr("start"));
+	startAt[0] = asInt(omega.attr("start"), "start");
       } else {
 	startAt[0] = 1;
       }
@@ -429,8 +425,8 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
       List ret(n);
       SEXP nIS = as<SEXP>(IntegerVector::create(1));
       for (int i = 0; i < n; i++){
-	ret[i] = _cvPost_(nuS, omegaS, nIS, omegaIsCholS,
-			  returnCholS, nIS, nIS);
+	ret[i] = cvPost_(nuS, omegaS, nIS, omegaIsCholS,
+			 returnCholS, nIS, nIS);
        }
       return(as<SEXP>(ret));
     } else {
@@ -482,7 +478,6 @@ extern "C" SEXP _cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
   }
   stop(_("'omega' needs to be a matrix or a numeric vector that can be converted to a matrix"));
   return R_NilValue;
-  END_RCPP
 }
 
 SEXP qstrictS(SEXP nn, const char *what);
@@ -491,15 +486,15 @@ SEXP qstrictSdn(SEXP x_, const char *what);
 extern "C" SEXP _vecDF(SEXP cv, SEXP n_);
 void rxModelsAssign(std::string str, SEXP assign);
 
-extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
-			 SEXP lowerS, SEXP upperS, SEXP ncoresS, SEXP isCholS,
-			 SEXP keepNamesS,
-			 SEXP aS, SEXP tolS, SEXP nlTolS, SEXP nlMaxiterS);
+SEXP rxRmvnSEXP(SEXP nS, SEXP muS, SEXP sigmaS,
+		SEXP lowerS, SEXP upperS, SEXP ncoresS, SEXP isCholS,
+		SEXP keepNamesS,
+		SEXP aS, SEXP tolS, SEXP nlTolS, SEXP nlMaxiterS);
 
-extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
+//[[Rcpp::export]]
+SEXP expandTheta_(SEXP thetaS, SEXP thetaMatS,
 			      SEXP thetaLowerS, SEXP thetaUpperS,
 			      SEXP nStudS, SEXP nCoresRVS) {
-  BEGIN_RCPP
   if (Rf_isNull(thetaS)) {
     if (!Rf_isNull(thetaMatS)){
       stop(_("'thetaMat' needs 'params' to be non-NULL"));
@@ -577,7 +572,7 @@ extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
   rxModelsAssign(".theta", thetaMatS);
   
   qassertS(nCoresRVS, "X1[1,)", "nCoresRV");
-  NumericMatrix retNM = _rxRmvn_(nStudS, as<SEXP>(theta), as<SEXP>(thetaMat),
+  NumericMatrix retNM = rxRmvnSEXP(nStudS, as<SEXP>(theta), as<SEXP>(thetaMat),
 				 thetaLowerS, thetaUpperS, nCoresRVS,
 				 as<SEXP>(LogicalVector::create(false)), // isChol
 				 as<SEXP>(LogicalVector::create(true)), // keepNames
@@ -606,7 +601,6 @@ extern "C" SEXP _expandTheta_(SEXP thetaS, SEXP thetaMatS,
   ret.attr("rownames") = IntegerVector::create(NA_INTEGER, -nrow);
   ret.attr("class") = "data.frame";
   return as<SEXP>(ret);
-  END_RCPP
 }
 
 
@@ -618,11 +612,6 @@ List rxExpandNesting(const RObject& obj, List& nestingInfo,
 		     bool compile=false);
 
 List rxModelVars_(const RObject &obj);
-
-extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
-			 SEXP lowerS, SEXP upperS, SEXP ncoresS, SEXP isCholS,
-			 SEXP keepNamesS,
-			 SEXP aS, SEXP tolS, SEXP nlTolS, SEXP nlMaxiterS);
 
 extern "C" SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_);
 
@@ -659,8 +648,8 @@ static inline int getMethodInt(std::string& methodStr, CharacterVector& allNames
   return methodInt;
 }
 
-extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
-  BEGIN_RCPP
+//[[Rcpp::export]]
+SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
   // SEXP events = as<DataFrame>(events);
   qassertS(controlS, "l+", "control");
   List control = as<List>(controlS);
@@ -670,7 +659,7 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
   int nSub = as<int>(control[Rxc_nSub]);
   rxModelsAssign(".nestObj", objectS);
   rxModelsAssign(".nestEvents", eventsS);
-  SEXP et = _expandTheta_(paramsS, control[Rxc_thetaMat],
+  SEXP et = expandTheta_(paramsS, control[Rxc_thetaMat],
 			  control[Rxc_thetaLower], control[Rxc_thetaUpper],
 			  nStudS, control[Rxc_nCoresRV]);
   SEXP omegaS = control[Rxc_omega];
@@ -783,14 +772,14 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
       //
       // Note this is for between study variability and the
       // method/specification comes from omega, so methodInt comes from omegaSeparation
-      SEXP thetaList = _cvPost_(et, lotriAbove,
-				nStudS,
-				LogicalVector::create(false),
-				LogicalVector::create(false),
-				IntegerVector::create(methodInt),
-				control[Rxc_omegaXform]);
+      SEXP thetaList = cvPost_(et, lotriAbove,
+			       nStudS,
+			       LogicalVector::create(false),
+			       LogicalVector::create(false),
+			       IntegerVector::create(methodInt),
+			       control[Rxc_omegaXform]);
       if (Rf_length(thetaList) >= 1 &&
-	  as<double>(lotriMaxNu(lotriAbove)) > 1.0) {
+	  asDouble(lotriMaxNu(lotriAbove), "lotriMaxNu(lotriAbove)") > 1.0) {
 	rxModelsAssign(".thetaL", thetaList);
       } else {
 	rxModelsAssign(".thetaL", R_NilValue);
@@ -799,7 +788,7 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
       NumericVector upper = bounds[0];
       NumericVector lower = bounds[1];
       // With 
-      NumericMatrix aboveMat = _rxRmvn_(IntegerVector::create(1),
+      NumericMatrix aboveMat = rxRmvnSEXP(IntegerVector::create(1),
 					R_NilValue, thetaList,
 					upper, lower, // lower upper 
 					control[Rxc_nCoresRV],
@@ -835,15 +824,15 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
     }
     if (!Rf_isNull(belowSEXP)) {
       // below to sample matrix
-      SEXP omegaList = _cvPost_(et, // In case needed
-				lotriBelow,
-				nStudS,
-				LogicalVector::create(false),
-				LogicalVector::create(false),
-				IntegerVector::create(methodInt),
-				control[Rxc_omegaXform]);
+      SEXP omegaList = cvPost_(et, // In case needed
+			       lotriBelow,
+			       nStudS,
+			       LogicalVector::create(false),
+			       LogicalVector::create(false),
+			       IntegerVector::create(methodInt),
+			       control[Rxc_omegaXform]);
       if (Rf_length(omegaList) >= 1 &&
-	  as<double>(lotriMaxNu(lotriBelow)) > 1.0) {
+	  asDouble(lotriMaxNu(lotriBelow), "lotriMaxNu(lotriBelow)") > 1.0) {
 	rxModelsAssign(".omegaL", omegaList);
       } else {
 	rxModelsAssign(".omegaL", R_NilValue);
@@ -851,7 +840,7 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
       List bounds = lotriGetBounds(lotriBelow, R_NilValue, R_NilValue);
       NumericVector upper = bounds[0];
       NumericVector lower = bounds[1];
-      NumericMatrix belowMat = _rxRmvn_(IntegerVector::create(nSub),
+      NumericMatrix belowMat = rxRmvnSEXP(IntegerVector::create(nSub),
 					R_NilValue, omegaList,
 					upper, lower, // lower upper 
 					control[Rxc_nCoresRV],
@@ -901,13 +890,13 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
     allNames = as<CharacterVector>(lotriAllNames(sigmaLotri));
     methodStr = as<std::string>(control[Rxc_sigmaSeparation]);
     methodInt = getMethodInt(methodStr, allNames, et);
-    SEXP sigmaList = _cvPost_(et, // In case needed
-			      sigmaLotri,
-			      nStudS,
-			      LogicalVector::create(false),
-			      LogicalVector::create(false),
-			      IntegerVector::create(methodInt),
-			      control[Rxc_omegaXform]);
+    SEXP sigmaList = cvPost_(et, // In case needed
+			     sigmaLotri,
+			     nStudS,
+			     LogicalVector::create(false),
+			     LogicalVector::create(false),
+			     IntegerVector::create(methodInt),
+			     control[Rxc_omegaXform]);
     int nobs =  Rf_length(VECTOR_ELT(eventsS, 0));
     IntegerVector n2(1);
     if (nid == 1) {
@@ -918,7 +907,7 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
     List bounds = lotriGetBounds(sigmaLotri, R_NilValue, R_NilValue);
     NumericVector upper = bounds[0];
     NumericVector lower = bounds[1];
-    SEXP sigmaMat = _rxRmvn_(n2,
+    SEXP sigmaMat = rxRmvnSEXP(n2,
 			     R_NilValue, sigmaList,
 			     upper, lower, // lower upper 
 			     control[Rxc_nCoresRV],
@@ -929,7 +918,7 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
 			     NumericVector::create(1e-10), // nlTol
 			     IntegerVector::create(100)); // nlMaxiter
     if (Rf_length(sigmaList) >= 1 &&
-	as<double>(lotriMaxNu(sigmaLotri)) > 1.0) {
+	asDouble(lotriMaxNu(sigmaLotri), "lotriMaxNu(sigmaLotri)") > 1.0) {
       rxModelsAssign(".sigmaL", sigmaList);
     } else {
       rxModelsAssign(".sigmaL", R_NilValue);
@@ -970,5 +959,4 @@ extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP cont
     rxModelsAssign(".sigma", R_NilValue);
   }
   return et;
-  END_RCPP
 }

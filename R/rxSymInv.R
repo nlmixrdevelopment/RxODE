@@ -412,7 +412,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
             if (is.na(tn)){
                 return(unlist(lst));
             } else if (tn >= -1){
-                return(as.matrix(Matrix::.bdiag(lst)))
+                return(lotri::lotriMat(lst))
             } else {
                 return(unlist(lst));
             }

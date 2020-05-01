@@ -1,3 +1,4 @@
+//#undef NDEBUG
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 #include <RcppArmadillo.h>
 #include "../inst/include/RxODE.h"
@@ -1123,7 +1124,8 @@ SEXP rxRmvn0(NumericMatrix& A_, arma::rowvec mu, arma::mat sigma,
 
 SEXP qassertS(SEXP in, const char *test, const char *what);
 
-extern "C" SEXP _rxRmvn_(SEXP nS, SEXP muS, SEXP sigmaS,
+//[[Rcpp::export]]
+SEXP rxRmvnSEXP(SEXP nS, SEXP muS, SEXP sigmaS,
 			 SEXP lowerS, SEXP upperS, SEXP ncoresS, SEXP isCholS,
 			 SEXP keepNamesS,
 			 SEXP aS, SEXP tolS, SEXP nlTolS, SEXP nlMaxiterS){

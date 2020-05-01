@@ -1,3 +1,4 @@
+//#undef NDEBUG
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 #include <RcppArmadillo.h>
 #include <vandercorput.h>

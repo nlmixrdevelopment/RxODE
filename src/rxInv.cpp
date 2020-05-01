@@ -1,5 +1,6 @@
 // [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::depends(RcppArmadillo)]]
+//#undef NDEBUG
 #include <stdarg.h>
 #include <RcppArmadillo.h>
 #include <R.h>

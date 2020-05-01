@@ -446,27 +446,6 @@ namespace RxODE {
         return Rcpp::as<LogicalVector >(rcpp_result_gen);
     }
 
-    inline SEXP rxSolve_(const RObject& obj, const List& rxControl, const Nullable<CharacterVector>& specParams, const Nullable<List>& extraArgs, const RObject& params, const RObject& events, const RObject& inits, const int setupOnly) {
-        typedef SEXP(*Ptr_rxSolve_)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
-        static Ptr_rxSolve_ p_rxSolve_ = NULL;
-        if (p_rxSolve_ == NULL) {
-            validateSignature("SEXP(*rxSolve_)(const RObject&,const List&,const Nullable<CharacterVector>&,const Nullable<List>&,const RObject&,const RObject&,const RObject&,const int)");
-            p_rxSolve_ = (Ptr_rxSolve_)R_GetCCallable("RxODE", "_RxODE_rxSolve_");
-        }
-        RObject rcpp_result_gen;
-        {
-            RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_rxSolve_(Shield<SEXP>(Rcpp::wrap(obj)), Shield<SEXP>(Rcpp::wrap(rxControl)), Shield<SEXP>(Rcpp::wrap(specParams)), Shield<SEXP>(Rcpp::wrap(extraArgs)), Shield<SEXP>(Rcpp::wrap(params)), Shield<SEXP>(Rcpp::wrap(events)), Shield<SEXP>(Rcpp::wrap(inits)), Shield<SEXP>(Rcpp::wrap(setupOnly)));
-        }
-        if (rcpp_result_gen.inherits("interrupted-error"))
-            throw Rcpp::internal::InterruptedException();
-        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
-            throw Rcpp::LongjumpException(rcpp_result_gen);
-        if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
-        return Rcpp::as<SEXP >(rcpp_result_gen);
-    }
-
     inline CharacterVector rxSolveDollarNames(RObject obj) {
         typedef SEXP(*Ptr_rxSolveDollarNames)(SEXP);
         static Ptr_rxSolveDollarNames p_rxSolveDollarNames = NULL;
@@ -528,6 +507,27 @@ namespace RxODE {
         if (rcpp_result_gen.inherits("try-error"))
             throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<RObject >(rcpp_result_gen);
+    }
+
+    inline SEXP rxSolveSEXP(SEXP objS, SEXP rxControlS, SEXP specParamsS, SEXP extraArgsS, SEXP paramsS, SEXP eventsS, SEXP initsS, SEXP setupOnlyS) {
+        typedef SEXP(*Ptr_rxSolveSEXP)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
+        static Ptr_rxSolveSEXP p_rxSolveSEXP = NULL;
+        if (p_rxSolveSEXP == NULL) {
+            validateSignature("SEXP(*rxSolveSEXP)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP)");
+            p_rxSolveSEXP = (Ptr_rxSolveSEXP)R_GetCCallable("RxODE", "_RxODE_rxSolveSEXP");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxSolveSEXP(Shield<SEXP>(Rcpp::wrap(objS)), Shield<SEXP>(Rcpp::wrap(rxControlS)), Shield<SEXP>(Rcpp::wrap(specParamsS)), Shield<SEXP>(Rcpp::wrap(extraArgsS)), Shield<SEXP>(Rcpp::wrap(paramsS)), Shield<SEXP>(Rcpp::wrap(eventsS)), Shield<SEXP>(Rcpp::wrap(initsS)), Shield<SEXP>(Rcpp::wrap(setupOnlyS)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<SEXP >(rcpp_result_gen);
     }
 
     inline void rxRmModelLib_(std::string str) {

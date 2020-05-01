@@ -129,7 +129,7 @@
 }
 
 .expandPars <- function(object, params, events, control) {
-  .Call(`_expandPars_`, object, params, events, control,
+  .Call(`_RxODE_expandPars_`, object, params, events, control,
         PACKAGE="RxODE")
 }
 

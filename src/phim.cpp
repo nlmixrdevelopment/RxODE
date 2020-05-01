@@ -1,3 +1,4 @@
+//#undef NDEBUG
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include "../inst/include/RxODE.h"

@@ -1,3 +1,4 @@
+//#undef NDEBUG
 #include <R.h>
 #include <stan/math.hpp>
 #include "../inst/include/RxODE.h"

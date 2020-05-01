@@ -1,4 +1,5 @@
 // [[Rcpp::interfaces(r, cpp)]]
+//#undef NDEBUG
 #include <Rcpp.h>
 using namespace Rcpp;
 

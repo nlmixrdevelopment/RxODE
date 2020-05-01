@@ -340,7 +340,7 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
                          "nlmixrIdentity" = 3L)[match.arg(omegaXform)],
                        NULL)
   }
-  .ret <- .Call(`_cvPost_`, nu, omega, n,
+  .ret <- .Call(`_RxODE_cvPost_`, nu, omega, n,
                 omegaIsChol, returnChol, .type, .xform,
                 PACKAGE = "RxODE")
   return(.ret)
@@ -439,8 +439,8 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##' @export
 rxRmvn <- function(n, mu=NULL, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=FALSE,
                    keepNames=TRUE, a=0.4, tol=2.05, nlTol=1e-10, nlMaxiter=100L) {
-  .ret <- .Call(`_rxRmvn_`, n, mu, sigma, lower, upper, ncores, isChol,
-                keepNames, a, tol, nlTol, nlMaxiter);
+  .ret <- .Call(`_RxODE_rxRmvnSEXP`, n, mu, sigma, lower, upper, ncores,
+                isChol, keepNames, a, tol, nlTol, nlMaxiter)
   if (is.matrix(n)) {
     return(invisible())
   }

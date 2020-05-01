@@ -1,3 +1,4 @@
+//#undef NDEBUG
 #include <Rcpp.h>
 using namespace Rcpp;
 // bool rxIs(const RObject &obj, std::string cls);

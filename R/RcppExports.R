@@ -60,6 +60,18 @@ rcvC1 <- function(sdEst, nu = 3.0, diagXformType = 1L, rType = 1L, returnChol = 
     .Call(`_RxODE_rcvC1`, sdEst, nu, diagXformType, rType, returnChol)
 }
 
+cvPost_ <- function(nuS, omegaS, nS, omegaIsCholS, returnCholS, typeS, diagXformTypeS) {
+    .Call(`_RxODE_cvPost_`, nuS, omegaS, nS, omegaIsCholS, returnCholS, typeS, diagXformTypeS)
+}
+
+expandTheta_ <- function(thetaS, thetaMatS, thetaLowerS, thetaUpperS, nStudS, nCoresRVS) {
+    .Call(`_RxODE_expandTheta_`, thetaS, thetaMatS, thetaLowerS, thetaUpperS, nStudS, nCoresRVS)
+}
+
+expandPars_ <- function(objectS, paramsS, eventsS, controlS) {
+    .Call(`_RxODE_expandPars_`, objectS, paramsS, eventsS, controlS)
+}
+
 etDollarNames <- function(obj) {
     .Call(`_RxODE_etDollarNames`, obj)
 }
@@ -413,10 +425,6 @@ rxSolveFree <- function() {
     .Call(`_RxODE_rxSolveFree`)
 }
 
-rxSolve_ <- function(obj, rxControl, specParams, extraArgs, params, events, inits, setupOnly) {
-    .Call(`_RxODE_rxSolve_`, obj, rxControl, specParams, extraArgs, params, events, inits, setupOnly)
-}
-
 rxSolveDollarNames <- function(obj) {
     .Call(`_RxODE_rxSolveDollarNames`, obj)
 }
@@ -427,6 +435,10 @@ rxSolveGet <- function(obj, arg, exact = TRUE) {
 
 rxSolveUpdate <- function(obj, arg = NULL, value = NULL) {
     .Call(`_RxODE_rxSolveUpdate`, obj, arg, value)
+}
+
+rxSolveSEXP <- function(objS, rxControlS, specParamsS, extraArgsS, paramsS, eventsS, initsS, setupOnlyS) {
+    .Call(`_RxODE_rxSolveSEXP`, objS, rxControlS, specParamsS, extraArgsS, paramsS, eventsS, initsS, setupOnlyS)
 }
 
 rxRmModelLib_ <- function(str) {
@@ -761,6 +773,10 @@ rxweibull_ <- function(shape, scale, n, ncores) {
 
 rxRmvn0 <- function(A_, mu, sigma, lower, upper, ncores = 1L, isChol = FALSE, a = 0.4, tol = 2.05, nlTol = 1e-10, nlMaxiter = 100L) {
     .Call(`_RxODE_rxRmvn0`, A_, mu, sigma, lower, upper, ncores, isChol, a, tol, nlTol, nlMaxiter)
+}
+
+rxRmvnSEXP <- function(nS, muS, sigmaS, lowerS, upperS, ncoresS, isCholS, keepNamesS, aS, tolS, nlTolS, nlMaxiterS) {
+    .Call(`_RxODE_rxRmvnSEXP`, nS, muS, sigmaS, lowerS, upperS, ncoresS, isCholS, keepNamesS, aS, tolS, nlTolS, nlMaxiterS)
 }
 
 rxnormV_ <- function(mean, sd, n, ncores) {

@@ -1545,10 +1545,11 @@ rxS <- function(x, doConst=TRUE, promoteLinSens=FALSE){
     ## default lambda/yj values
     .env$rx_lambda_ <- symengine::S("1")
     .env$rx_yj_ <- symengine::S("2")
-
-    sapply(names(.rxSEeqUsr), function(x){
+    if (!is.null(.rxSEeqUsr)) {
+      sapply(names(.rxSEeqUsr), function(x){
         assign(.rxFunction(x), x, envir=.env);
-    })
+      })
+    }
     ## EulerGamma=0.57721566490153286060651209008240243104215933593992
     ## S("I")
     ## S("pi")

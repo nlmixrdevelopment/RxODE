@@ -1,3 +1,4 @@
+//#undef NDEBUG
 #include <RcppArmadillo.h>
 #include <algorithm>
 #include "../inst/include/RxODE.h"
