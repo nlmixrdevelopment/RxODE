@@ -38,7 +38,6 @@ using namespace arma;
 
 #include "../inst/include/RxODE_as.h"
 
-
 SEXP qassertS(SEXP in, const char *test, const char *what);
 
 RObject rxSolveFreeObj=R_NilValue;
@@ -142,8 +141,8 @@ bool rxIs_list(const RObject &obj, std::string cls){
 	if (cls == "rxEt"){
 	  List ce = as<List>(classattr.attr(".RxODE.lst"));
 	  List lobj = List(obj);
-	  int nobs = ce["nobs"];
-	  int ndose = ce["ndose"];
+	  int nobs = asInt(ce["nobs"], "nobs");
+	  int ndose = asInt(ce["ndose"], "ndose");
 	  if (lobj.size() != 12){
 	    lobj.attr("class") = CharacterVector::create("data.frame");
 	    return false;
@@ -195,8 +194,8 @@ bool rxIs_list(const RObject &obj, std::string cls){
 	rxcDv   = 5;
 	rxcIi   = 4;
 	List e = as<List>(classattr.attr(".RxODE.lst"));
-	int censAdd = as<int>(e["censAdd"]);
-	int limitAdd = as<int>(e["limitAdd"]);
+	int censAdd = asInt(e[RxTrans_censAdd], "censAdd");
+	int limitAdd = asInt(e[RxTrans_limitAdd], "limitAdd");
 	if (censAdd == 1 && limitAdd == 1) {
 	  rxcCens = 6;
 	  rxcLimit = 7;
@@ -1447,7 +1446,7 @@ static inline void gparsCovSetupConstant(RObject &ev1, int npars){
     rx_solve* rx = getRxSolve_();
     CharacterVector tmpCls = ev1.attr("class");
     List envCls = tmpCls.attr(".RxODE.lst");
-    NumericMatrix iniPars = envCls["pars"];
+    NumericMatrix iniPars = envCls[RxTrans_pars];
     // Copy the pre-filled covariates into the parameter values.
     for (int j = rx->nsim;j--;){
       std::copy(iniPars.begin(), iniPars.end(), &_globals.gpars[0]+rx->nsub*npars*j);
@@ -2396,7 +2395,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
   if (rxIs(ev1, "rxEt")){
     CharacterVector cls = ev1.attr("class");
     List etE = cls.attr(".RxODE.lst");
-    int nobs = etE["nobs"];
+    int nobs = asInt(etE["nobs"], "nobs");
     if (nobs == 0){
       // KEEP/DROP?
       List ev1a = etTrans(as<List>(ev1), obj, rxSolveDat->hasCmt,
@@ -2405,7 +2404,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
       rxSolveDat->labelID=true;
       CharacterVector tmpC = ev1a.attr("class");
       List tmpL = tmpC.attr(".RxODE.lst");
-      rxSolveDat->idLevels = as<CharacterVector>(tmpL["idLvl"]);
+      rxSolveDat->idLevels = asCv(tmpL[RxTrans_idLvl], "idLvl");
       rx->nKeepF = keepFcov.size();
       int lenOut = 200;
       double by = NA_REAL;
@@ -2475,7 +2474,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
     rxSolveDat->labelID=true;
     CharacterVector tmpC = ev1.attr("class");
     List tmpL = tmpC.attr(".RxODE.lst");
-    rxSolveDat->idLevels = as<CharacterVector>(tmpL["idLvl"]);
+    rxSolveDat->idLevels = asCv(tmpL[RxTrans_idLvl], "idLvl");
     rx->nKeepF = keepFcov.size();
     rxcEvid = 2;
     rxcTime = 1;
@@ -2502,7 +2501,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
   if (rxIs(ev1, "rxEtTrans")){
     CharacterVector cls = ev1.attr("class");
     List tmpL = cls.attr(".RxODE.lst");
-    rx->nobs2 = as<int>(tmpL["nobs"]);
+    rx->nobs2 = asInt(tmpL[RxTrans_nobs], "nobs");
   }
   _rxModels[".lastEv1"] = ev1;
 }
@@ -3138,7 +3137,7 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
   if (rxIs(ev1, "rxEtTran")){
     CharacterVector tmpCls = ev1.attr("class");
     List e = tmpCls.attr(".RxODE.lst");
-    List tmpCov1 = e["cov1"];
+    List tmpCov1 = e[RxTrans_cov1];
     mvCov1N = tmpCov1.attr("names");
   }
   int i, j;
@@ -4149,7 +4148,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       CharacterVector cls = ev1.attr("class");
       List evT = cls.attr(".RxODE.lst");
       evT.attr("class") = R_NilValue;
-      rxSolveDat->covUnits = evT["covUnits"];
+      rxSolveDat->covUnits = evT[RxTrans_covUnits];
     }
     rxSolveDat->par1ini = rxSolveDat->par1;
     // This will update par1 with simulated values

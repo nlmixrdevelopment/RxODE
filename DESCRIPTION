@@ -15,6 +15,7 @@ Authors@R: c(
    person("Alan", "Hindmarsh",role="ctb"),
    person("Awad H.", "Al-Mohy",role="ctb"),
    person("Cleve", "Moler", role="ctb"),
+   person("David", "Cooley", role="ctb"), 
    person("Daniel C.", "Dillon", role="ctb"),
    person("Drew", "Schmidt", role="ctb"),
    person("Emma", "Schwager", role="ctb"),
@@ -36,6 +37,7 @@ Authors@R: c(
    person("Roger B.", "Sidje", role="ctb"),
    person("Ross", "Ihaka",role="ctb"),
    person("Simon", "Frost", role="ctb"),
+   person("Kevin", "Ushey", role="ctb"),
    person("Yu", "Feng", role="ctb"),
    person("Zdravko I.", "Botev", role="ctb"),
    person("R core team", role="ctb")

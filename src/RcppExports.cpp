@@ -498,6 +498,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// convertId_
+SEXP convertId_(SEXP x);
+RcppExport SEXP _RxODE_convertId_(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(convertId_(x));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxIs
 bool rxIs(const RObject& obj, std::string cls);
 static SEXP _RxODE_rxIs_try(SEXP objSEXP, SEXP clsSEXP) {

@@ -112,4 +112,31 @@
 #define RxMvFlag_maxeta 3
 #define RxMvFlag_maxtheta 4
 #define RxMvFlag_hasCmt 5
+#define RxTrans_ndose 0
+#define RxTrans_nobs 1
+#define RxTrans_nid 2
+#define RxTrans_cov1 3
+#define RxTrans_covParPos 4
+#define RxTrans_covParPosTV 5
+#define RxTrans_sub0 6
+#define RxTrans_baseSize 7
+#define RxTrans_nTv 8
+#define RxTrans_lst 9
+#define RxTrans_nme 10
+#define RxTrans_covParPos0 11
+#define RxTrans_covUnits 12
+#define RxTrans_pars 13
+#define RxTrans_allBolus 14
+#define RxTrans_allInf 15
+#define RxTrans_mxCmt 16
+#define RxTrans_lib_name 17
+#define RxTrans_addCmt 18
+#define RxTrans_cmtInfo 19
+#define RxTrans_idLvl 20
+#define RxTrans_allTimeVar 21
+#define RxTrans_keepDosingOnly 22
+#define RxTrans_censAdd 23
+#define RxTrans_limitAdd 24
+#define RxTransNames CharacterVector _en(25);_en[0]="ndose";_en[1]="nobs";_en[2]="nid";_en[3]="cov1";_en[4]="covParPos";_en[5]="covParPosTV";_en[6]="sub0";_en[7]="baseSize";_en[8]="nTv";_en[9]="lst";_en[10]="nme";_en[11]="covParPos0";_en[12]="covUnits";_en[13]="pars";_en[14]="allBolus";_en[15]="allInf";_en[16]="mxCmt";_en[17]="lib_name";_en[18]="addCmt";_en[19]="cmtInfo";_en[20]="idLvl";_en[21]="allTimeVar";_en[22]="keepDosingOnly";_en[23]="censAdd";_en[24]="limitAdd";e.names() = _en;
+
 #endif // __RxODE_control_H__

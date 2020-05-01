@@ -1,5 +1,6 @@
 #ifndef RxODE_as
 #define RxODE_as
+//#define asError
 #include <Rcpp.h>
 
 #ifdef ENABLE_NLS
@@ -58,7 +59,12 @@ static inline List asList(SEXP in, const char* what) {
   if (TYPEOF(in) != VECSXP) {
     REprintf("'%s'\n", what);
     Rcpp::print(in);
+#ifdef asError
+    REprintf(_("'%s' needs to be a list"), what);
+    abort();
+#else 
     Rcpp::stop(_("'%s' needs to be a list"), what);
+#endif
   }
   return as<List>(in);
 }
@@ -67,7 +73,12 @@ static inline int asInt(SEXP in, const char* what) {
   if (Rf_length(in) != 1 || !qtest(in,"x")) {
     REprintf("'%s'\n", what);
     Rcpp::print(in);
+#ifdef asError
+    REprintf(_("'%s' needs to be an integer"), what);
+    abort();
+#else 
     Rcpp::stop(_("'%s' needs to be an integer"), what);
+#endif
   }
   return as<int>(in);
 }
@@ -76,7 +87,12 @@ static inline unsigned int asUnsignedInt(SEXP in, const char* what) {
   if (Rf_length(in) != 1 || !qtest(in, "x[0,)")) {
     REprintf("'%s'\n", what);
     Rcpp::print(in);
+#ifdef asError
+    REprintf(_("'%s' needs to be an integer greater than 0"), what);
+    abort();
+#else 
     Rcpp::stop(_("'%s' needs to be an integer greater than 0"), what);
+#endif
   }
   return as<unsigned int>(in);
 }
@@ -86,15 +102,14 @@ static inline double asDouble(SEXP in, const char* what) {
   if (Rf_length(in) != 1 || type != REALSXP) {
     REprintf("'%s'\n", what);
     Rcpp::print(in);
+#ifdef asError
+    REprintf(_("'%s' needs to be an double"), what);
+    abort();
+#else 
     Rcpp::stop(_("'%s' needs to be an double"), what);
+#endif
   }
-  try {
-    return as<double>(in);
-  } catch(...) {
-    REprintf("'%s'\n", what);
-    Rcpp::print(in);
-    Rcpp::stop(_("'%s' needs to be an double"), what);
-  }
+  return as<double>(in);
 }
 
 static inline bool asBool(SEXP in, const char *what) {
@@ -102,7 +117,12 @@ static inline bool asBool(SEXP in, const char *what) {
   if (Rf_length(in) != 1 && type != LGLSXP){
     REprintf("'%s'\n", what);
     Rcpp::print(in);
+#ifdef asError
+    REprintf(_("'%s' needs to be a boolean"), what);
+    abort();
+#else
     Rcpp::stop(_("'%s' needs to be a boolean"), what);
+#endif
   }
   return as<bool>(in);
 }
@@ -115,7 +135,12 @@ static inline std::string asStr(SEXP in, const char *what) {
   if (Rf_length(in) != 1 || type != STRSXP){
     REprintf("'%s'\n", what);
     Rcpp::print(in);
+#ifdef asError
+    REprintf(_("'%s' needs to be a boolean"), what);
+    abort();
+#else
     Rcpp::stop(_("'%s' needs to be a string"), what);
+#endif
   }
   return as<std::string>(in);
 }
@@ -125,7 +150,12 @@ static inline CharacterVector asCv(SEXP in, const char *what) {
   if (type != STRSXP){
     REprintf("'%s'\n", what);
     Rcpp::print(in);
+#ifdef asError
+    REprintf(_("'%s' needs to be a vector of strings"), what);
+    abort();
+#else 
     Rcpp::stop(_("'%s' needs to be a vector of strings"), what);
+#endif
   } 
   return as<CharacterVector>(in);
 }
@@ -135,7 +165,12 @@ static inline Nullable<LogicalVector> asNLv(SEXP in, const char* what) {
   if (!(type == 0 || type == LGLSXP)){
     REprintf("'%s'\n", what);
     Rcpp::print(in);
+#ifdef asError
+    REprintf(_("'%s' needs to be an logical vector or NULL"), what);
+    abort();
+#else
     Rcpp::stop(_("'%s' needs to be an logical vector or NULL"), what);
+#endif
   }
   return as<Nullable<LogicalVector>>(in);
 }
@@ -145,7 +180,12 @@ static inline LogicalVector asLv(SEXP in, const char* what) {
   if (type != LGLSXP){
     REprintf("'%s'\n", what);
     Rcpp::print(in);
+#ifdef asError
+    REprintf(_("'%s' needs to be an logical vector or NULL"), what);
+    abort();
+#else 
     Rcpp::stop(_("'%s' needs to be an logical vector or NULL"), what);
+#endif
   }
   return as<LogicalVector>(in);
 }
@@ -154,7 +194,12 @@ static inline NumericVector asNv(SEXP in, const char* what) {
   if (TYPEOF(in) != REALSXP && TYPEOF(in) != INTSXP) {
     REprintf("'%s'\n", what);
     Rcpp::print(in);
+#ifdef asError
+    REprintf(_("'%s' needs to be a numeric vector"), what);
+    abort();
+#else 
     Rcpp::stop(_("'%s' needs to be a numeric vector"), what);
+#endif
   }
   return as<NumericVector>(in);
 }
@@ -164,7 +209,12 @@ static inline Nullable<NumericVector> asNNv(SEXP in, const char* what) {
   if (!(type == 0 || type == REALSXP)){
     REprintf("'%s'\n", what);
     Rcpp::print(in);
+#ifdef asError
+    REprintf(_("'%s' needs to be a numeric vector"), what);
+    abort();
+#else 
     Rcpp::stop(_("'%s' needs to be an numeric vector or NULL"), what);
+#endif
   }
   return as<Nullable<NumericVector>>(in);
 }
@@ -173,7 +223,12 @@ static inline Environment asEnv(SEXP in, const char* what) {
   if (!Rf_isEnvironment(in)) {
     REprintf("'%s'\n", what);
     Rcpp::print(in);
+#ifdef asError
+    REprintf(_("'%s' needs to be an environment"), what);
+    abort();
+#else 
     Rcpp::stop(_("'%s' needs to be an environment"), what);
+#endif
   }
   return as<Environment>(in);
 }
@@ -183,7 +238,12 @@ static inline IntegerVector asIv(SEXP in, const char* what) {
   if (type != INTSXP && type != REALSXP) {
     REprintf("'%s':\n", what);
     Rcpp::print(in);
+#ifdef asError
+    REprintf(_("'%s' needs to be a integer vector"), what);
+    abort();
+#else
     Rcpp::stop(_("'%s' needs to be a integer vector"), what);
+#endif
   }
   return as<IntegerVector>(in);
 }

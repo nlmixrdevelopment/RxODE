@@ -358,6 +358,7 @@ bool rxUseRadixSort(bool useRadix = true){
   return useRadix_;
 }
 
+SEXP convertId_(SEXP x);
 bool warnedNeg=false;
 //' Event translation for RxODE
 //'
@@ -689,8 +690,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   IntegerVector inId;
   CharacterVector idLvl;
   if (idCol != -1){
-    Function convId = rx[".convertId"];
-    inId = convId(inData[idCol]);//as<IntegerVector>();
+    inId = convertId_(inData[idCol]);//as<IntegerVector>();
     idLvl = inId.attr("levels");
   } else {
     idLvl = CharacterVector::create("1");
@@ -1866,10 +1866,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   IntegerVector tmp = lst1F[0];
   CharacterVector idLvl2;
   if (redoId){
-    Function convId = rx[".convertId"];
     tmp.attr("class") = "factor";
     tmp.attr("levels") = idLvl;
-    tmp = convId(tmp);//as<IntegerVector>();
+    tmp = convertId_(tmp);//as<IntegerVector>();
     idLvl2 = tmp.attr("levels");
     tmp.attr("class")  = R_NilValue;
     tmp.attr("levels") = R_NilValue;
@@ -1884,19 +1883,26 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   lst1F.attr("names") = nme1F;
   lst1F.attr("class") = CharacterVector::create("data.frame");
   lst1F.attr("row.names") = IntegerVector::create(NA_INTEGER, -nid);
-  List e;
-  e["ndose"] = ndose;
-  e["nobs"]  = nobs;
-  e["nid"]   = nid;
-  e["cov1"] = lst1F;
-  e["covParPos"]  = wrap(covParPos);
-  e["covParPosTV"] = wrap(covParPosTV); // Time-varying pos
+  List e(25);
+  RxTransNames;
+  e[RxTrans_ndose] = IntegerVector(ndose);
+  e[RxTrans_nobs]  = IntegerVector(nobs);
+  e[RxTrans_nid]   = IntegerVector(nid);
+  e[RxTrans_cov1] = lst1F;
+  e[RxTrans_covParPos]  = wrap(covParPos);
+  e[RxTrans_covParPosTV] = wrap(covParPosTV); // Time-varying pos
   if (allTimeVar){
-    e["sub0"] = wrap(sub0);
-    e["baseSize"] = baseSize;
-    e["nTv"] = nTv;
-    e["lst"] = lst;
-    e["nme"] = nme;
+    e[RxTrans_sub0] = wrap(sub0);
+    e[RxTrans_baseSize] = baseSize;
+    e[RxTrans_nTv] = IntegerVector(nTv);
+    e[RxTrans_lst] = lst;
+    e[RxTrans_nme] = nme;
+  } else {
+    e[RxTrans_sub0] = R_NilValue;
+    e[RxTrans_baseSize] = R_NilValue;
+    e[RxTrans_nTv] = R_NilValue;
+    e[RxTrans_lst] = R_NilValue;
+    e[RxTrans_nme] = R_NilValue;
   }
   std::vector<int> covParPos0;
   for (j = covParPos.size();j--;){
@@ -1904,26 +1910,26 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       covParPos0.push_back(covParPos[j]);
     }
   }
-  e["covParPos0"] = wrap(covParPos0);
-  e["covUnits"] = covUnits;
+  e[RxTrans_covParPos0] = wrap(covParPos0);
+  e[RxTrans_covUnits] = covUnits;
   fPars.attr("dim")= IntegerVector::create(pars.size(), nid);
   fPars.attr("dimnames") = List::create(pars, R_NilValue);
-  e["pars"] = fPars;
-  e["allBolus"] = allBolus;
-  e["allInf"] = allInf;
-  e["mxCmt"] = mxCmt;
-  e["lib.name"] = trans["lib.name"];
-  e["addCmt"] = addCmt;
-  e["cmtInfo"] = cmtInfo;
+  e[RxTrans_pars] = fPars;
+  e[RxTrans_allBolus] = allBolus;
+  e[RxTrans_allInf] = allInf;
+  e[RxTrans_mxCmt] = mxCmt;
+  e[RxTrans_lib_name] = trans["lib.name"];
+  e[RxTrans_addCmt] = addCmt;
+  e[RxTrans_cmtInfo] = cmtInfo;
   if (redoId){
-    e["idLvl"] = idLvl2;
+    e[RxTrans_idLvl] = idLvl2;
   } else {
-    e["idLvl"] = idLvl;
+    e[RxTrans_idLvl] = idLvl;
   }
-  e["allTimeVar"] = allTimeVar;
-  e["keepDosingOnly"] = true;
-  e["censAdd"] = censAdd;
-  e["limitAdd"] = limitAdd;
+  e[RxTrans_allTimeVar] = allTimeVar;
+  e[RxTrans_keepDosingOnly] = true;
+  e[RxTrans_censAdd] = censAdd;
+  e[RxTrans_limitAdd] = limitAdd;
   keepL.attr("names") = keepN;
   keepL.attr("class") = CharacterVector::create("data.frame");
   keepL.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt);
@@ -1932,10 +1938,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   cls.attr(".RxODE.lst") = e;
   tmp = lstF[0];
   if (redoId){
-    Function convId = rx[".convertId"];
     tmp.attr("class") = "factor";
     tmp.attr("levels") = idLvl;
-    tmp = convId(tmp);//as<IntegerVector>();
+    tmp = convertId_(tmp);//as<IntegerVector>();
     tmp.attr("class")  = R_NilValue;
     tmp.attr("levels") = R_NilValue;
     lstF[0]=tmp;

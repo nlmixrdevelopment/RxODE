@@ -9,8 +9,9 @@
 rxValidate <- function(type=NULL, check=FALSE){
     ## rxVersion(" Validation", TRUE);
     .tests <- c("cran", "norm", "demo", "lvl2", "parsing",
-                "focei", "indLin", "parseLincmt", "lincmt",
-                "plot", "print")
+                "focei", "indLin", "lincmt",
+                "plot", "print",
+                "parseLincmt");
     if (is.character(type)){
         if (type=="covr"){
             Sys.setenv("NOT_CRAN"="true", "covr"="true")

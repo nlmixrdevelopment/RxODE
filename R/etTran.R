@@ -15,6 +15,7 @@
 ##' @author Matthew Fidler
 ##' @noRd
 .convertId <- function(id) {
+  ## .Call(`_RxODE_convertId_`, id, PACKAGE=)
   .pid <- paste(id);
   .lvl <- unique(.pid);
   .lab <- paste(.lvl)

@@ -132,6 +132,32 @@ genDefine <- function(){
   .nmvf <- names(.mv$flag)
   cat("\n");  
   cat(paste(paste0("#define RxMvFlag_", .nmvf, " ", seq_along(.nmvf)-1),collapse="\n"))
+  cat("\n");
+
+  mod <- RxODE("
+a = 6
+b = 0.6
+d/dt(intestine) = -a*intestine
+d/dt(blood)     = a*intestine - b*blood
+")
+
+  et <- eventTable()
+  et$add.dosing(dose=2/24,rate=2,start.time=0,
+                nbr.doses=10,dosing.interval=1)
+  et <- et %>% et(0.05,evid=2) %>%
+    et(amt=3,time=0.5,cmt=out) %>%
+    et(amt=3,time=0.1,cmt=intestine,ss=1,ii=3) %>%
+    et(amt=3,time=0.3,cmt=intestine,ss=2,ii=3) %>%
+    et(time=0.2,cmt="-intestine") %>%
+    as.data.frame
+
+  ett1 <- RxODE:::etTrans(et, mod, keepDosingOnly=TRUE)
+  .n <- gsub("[.]", "_", names(attr(class(ett1), ".RxODE")))
+
+  cat(paste(paste0("#define RxTrans_", .n, " ", seq_along(.n)-1),collapse="\n"))
+  cat(paste0("\n#define RxTransNames CharacterVector _en(25);",
+             paste(paste0("_en[",seq_along(.n)-1,']="', .n, '";'), collapse=""),"e.names() = _en;"))
+  cat("\n");
   cat("\n#endif // __RxODE_control_H__\n")
   sink();
 }

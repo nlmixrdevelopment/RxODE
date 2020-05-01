@@ -648,6 +648,11 @@ static inline int getMethodInt(std::string& methodStr, CharacterVector& allNames
   return methodInt;
 }
 
+List etTrans(List inData, const RObject &obj, bool addCmt=false,
+	     bool dropUnits=false, bool allTimeVar=false,
+	     bool keepDosingOnly=false, Nullable<LogicalVector> combineDvid=R_NilValue,
+	     CharacterVector keep = CharacterVector(0));
+
 //[[Rcpp::export]]
 SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
   // SEXP events = as<DataFrame>(events);
@@ -753,10 +758,10 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       aboveSEXP = R_NilValue;
       belowSEXP = omegaS;
       lotriBelow = omegaLotri;
-      // rxModelsAssign(".nestEvents",
-      // 		     etTrans(as<List>(eventsS), obj, rxSolveDat->hasCmt,
-      // 			     false, false, true, R_NilValue,
-      // 			     control[Rxc_keepF]);
+      // List events = etTrans(as<List>(eventsS), obj, rxSolveDat->hasCmt,
+      // 			    false, false, true, R_NilValue,
+      // 			    control[Rxc_keepF]);
+      
       // if (nSub <= 1) {
       // }
       rxModelsAssign(".nestEta",    R_NilValue);
