@@ -970,9 +970,9 @@ SEXP convertId_(SEXP x);
 
 int get_sexp_uniqueL( SEXP s );
 int factor2( IntegerVector col, IntegerVector id) {
-  CharacterVector x1(id.size());
+  IntegerVector x1(id.size());
   for (int i = id.size(); i--;) {
-    x1[i] = std::to_string(id[i]) + ":" + std::to_string(col[i]);
+    x1[i] = (col[i]+id[i])*(col[i]+id[i]+1)/2+id[i];
   }
   return get_sexp_uniqueL(x1);
 }
@@ -1114,8 +1114,8 @@ SEXP nestingInfo_(SEXP omega, List data) {
   UNPROTECT(pro);
   return wrap(List::create(_["data"]=data,
 			   _["omega"]=lotriOmega,
-			   _["idName"]=id,
-			   _["id"]=idS,
+			   _["idName"]=CharacterVector::create(idName),
+			   _["id"]=id,
 			   _["above"]=aboveF,
 			   _["below"]=belowF,
 			   _["aboveVars"]=aboveVars,
