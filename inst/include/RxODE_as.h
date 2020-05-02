@@ -55,6 +55,18 @@ static inline bool rxIsList(RObject obj) {
   return (type == VECSXP);
 }
 
+inline bool rxIsFactor(RObject obj) {
+  return !Rf_isNull(Rf_getAttrib(as<SEXP>(obj), R_LevelsSymbol));
+}
+
+inline bool rxIsNumIntLgl(RObject obj) {
+  int type = obj.sexp_type();
+  if (type == REALSXP || type == INTSXP || type == LGLSXP) {
+    return (!obj.hasAttribute("dim"));
+  }
+  return false;
+}
+
 static inline List asList(SEXP in, const char* what) {
   if (TYPEOF(in) != VECSXP) {
     REprintf("'%s'\n", what);

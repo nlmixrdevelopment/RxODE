@@ -1,13 +1,3 @@
-.convertDvid  <- function(id, maxDvid=0L) {
-    .udvid  <- sort(unique(id))
-    if (max(.udvid) > maxDvid) {
-        .ndvid  <- seq_along(.udvid);
-        as.integer(factor(id, levels = .udvid, .ndvid))
-    } else {
-        return(id)
-    }
-}
-
 ##' Converts an ID column into a factor
 ##'
 ##' @param id Id column

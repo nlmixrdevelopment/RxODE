@@ -21,34 +21,8 @@
 #define rxModelVars(a) rxModelVars_(a)
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 using namespace Rcpp;
-
-inline bool rxIsNumIntLgl(RObject obj) {
-  int type = obj.sexp_type();
-  if (type == REALSXP || type == INTSXP || type == LGLSXP) {
-    return (!obj.hasAttribute("dim"));
-  }
-  return false;
-}
-
-inline bool rxIsInt(RObject obj) {
-  int type = obj.sexp_type();
-  if (type == INTSXP) {
-    return (!obj.hasAttribute("dim"));
-  }
-  return false;
-}
-
-inline bool rxIsFactor(RObject obj) {
-  return !Rf_isNull(Rf_getAttrib(as<SEXP>(obj), R_LevelsSymbol));
-}
-
-inline bool rxIsChar(RObject obj) {
-  int type = obj.sexp_type();
-  if (type == STRSXP) {
-    return (!obj.hasAttribute("dim"));
-  }
-  return false;
-}
+#include <checkmate.h>
+#include "../inst/include/RxODE_as.h"
 
 List rxModelVars_(const RObject &obj);
 bool rxIs(const RObject &obj, std::string cls);
@@ -76,6 +50,17 @@ RObject forderForceBase(bool forceBase = false){
   forderForceBase_=forceBase;
   return R_NilValue;
 }
+
+IntegerVector convertDvid_(SEXP inCmt, int maxDvid=0){
+  IntegerVector id = asIv(inCmt, "inCmt");
+  IntegerVector udvid = sort_unique(id);
+  int mDvid = udvid[udvid.size()-1];
+  if (mDvid > maxDvid) {
+    return match(id, udvid);
+  }
+  return id;
+}
+
 Function getForder(){
   if (!getForder_b){
     Function fn = getRxFn(".getDTEnv");
@@ -184,8 +169,7 @@ IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
       if (isDvid){
 	// This converts DVID to cmt; Things that don't match become -9999
 	Environment rx = RxODEenv();
-	Function convertDvid = rx[".convertDvid"];
-	IntegerVector in = convertDvid(inCmt, curDvid.length());
+	IntegerVector in = convertDvid_(inCmt, curDvid.length());
 	IntegerVector out(in.size());
 	IntegerVector conv = curDvid;
 	std::vector<int> warnDvid;
