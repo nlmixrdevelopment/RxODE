@@ -44,6 +44,42 @@ inline SEXP get_sexp_unique( SEXP s ) {
   return 0;
 }
 
+template < typename T, int RTYPE >
+inline int sexp_uniqueL( Rcpp::Vector< RTYPE > x ) {
+  std::set< T > seen;
+  auto newEnd = std::remove_if( x.begin(), x.end(), [&seen]( const T value ) {
+						      if ( seen.find( value ) != std::end( seen ) ) {
+							return true;
+						      }
+						      seen.insert( value );
+						      return false;
+						    });
+  x.erase( newEnd, x.end() );
+  return x.size();
+}
+
+int get_sexp_uniqueL( SEXP s ) {
+
+  SEXP s2 = Rcpp::clone( s );
+
+  switch( TYPEOF( s2 ) ) {
+  case LGLSXP: {
+    return sexp_uniqueL< bool, LGLSXP >( s2 );
+  }
+  case REALSXP: {
+    return sexp_uniqueL< double, REALSXP >( s2 );
+  }
+  case INTSXP: {
+    return sexp_uniqueL< int, INTSXP >( s2 );
+  }
+  case STRSXP: {
+    return sexp_uniqueL< char* , STRSXP >( s2 );
+  }
+  default: Rcpp::stop("unknown vector type");
+  }
+  return 0;
+}
+
 // adapted from https://gallery.rcpp.org/articles/fast-factor-generation/
 // This was modified to use symbols for levels and class.
 template <int RTYPE>

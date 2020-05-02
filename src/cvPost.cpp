@@ -968,19 +968,19 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
 
 SEXP convertId_(SEXP x);
 
-SEXP factor2( IntegerVector col, IntegerVector id) {
+int get_sexp_uniqueL( SEXP s );
+int factor2( IntegerVector col, IntegerVector id) {
   CharacterVector x1(id.size());
   for (int i = id.size(); i--;) {
     x1[i] = std::to_string(id[i]) + ":" + std::to_string(col[i]);
   }
-  return convertId_(x1);
+  return get_sexp_uniqueL(x1);
 }
 
 
 SEXP nestingInfoSingle_(SEXP col, IntegerVector id) {
   SEXP f2 = convertId_(col);
-  SEXP f1 = factor2(f2, id);
-  int l1 = Rf_length(Rf_getAttrib(f1, R_LevelsSymbol));
+  int l1 = factor2(f2, id);
   int lid = Rf_length(Rf_getAttrib(id, R_LevelsSymbol));
   if (l1 == lid) {
     // Case:

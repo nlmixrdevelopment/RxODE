@@ -69,7 +69,9 @@ rxPermissive({
     .ni <- nestingInfo_(omega, ev)
 
     mb <- microbenchmark::microbenchmark(.nestingInfo(ev$id, omega, ev),
-                                         nestingInfo_(omega, ev))
+                                         nestingInfo_(omega, ev),times=1000)
+
+    ggplot2::autoplot(mb)
     
     expect_equal(.ni$below, c(eye = 2L, occ = 2L))
     expect_equal(.ni$above, c(inv = 2L))
