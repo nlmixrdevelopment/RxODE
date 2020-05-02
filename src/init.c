@@ -89,6 +89,8 @@ SEXP _RxODE_rxRmvnSEXP(SEXP, SEXP, SEXP, SEXP, SEXP,
 
 SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_);
 
+SEXP _RxODE_nestingInfo_(SEXP omega, SEXP data);
+
 SEXP RxODE_get_mv();
 
 static R_NativePrimitiveArgType RxODE_Sum_t[] = {
@@ -352,6 +354,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxRmvnSEXP", (DL_FUNC) _RxODE_rxRmvnSEXP, 12},
     {"_RxODE_expandPars_", (DL_FUNC) _RxODE_expandPars_, 4},
     {"_RxODE_convertId_", (DL_FUNC) _RxODE_convertId_, 1},
+    {"_RxODE_nestingInfo_", (DL_FUNC) _RxODE_nestingInfo_, 2},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

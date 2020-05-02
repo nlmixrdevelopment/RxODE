@@ -5,11 +5,11 @@
 ##' @author Matthew Fidler
 ##' @noRd
 .convertId <- function(id) {
-  ## .Call(`_RxODE_convertId_`, id, PACKAGE=)
-  .pid <- paste(id);
-  .lvl <- unique(.pid);
-  .lab <- paste(.lvl)
-  factor(.pid, levels = .lvl, labels = .lab);
+  .Call(`_RxODE_convertId_`, id, PACKAGE="RxODE")
+  ## .pid <- paste(id);
+  ## .lvl <- unique(.pid);
+  ## .lab <- paste(.lvl)
+  ## factor(.pid, levels = .lvl, labels = .lab);
 }
 
 ##' Get the nesting info for a single column

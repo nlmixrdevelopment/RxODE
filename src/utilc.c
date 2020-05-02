@@ -30,7 +30,7 @@ SEXP _vecDF(SEXP cv, SEXP n_) {
   int len = length(cv);
   SEXP ret = PROTECT(allocVector(VECSXP, len)); pro++;
   SEXP retN = PROTECT(allocVector(STRSXP, len)); pro++;
-  SEXP cvN = getAttrib(cv, install("names"));
+  SEXP cvN = getAttrib(cv, R_NamesSymbol);
   for (int i = len; i--;) {
     SEXP tmp = PROTECT(allocVector(REALSXP, n)); pro++;
     for (int j = n; j--;) {
@@ -45,8 +45,8 @@ SEXP _vecDF(SEXP cv, SEXP n_) {
   setAttrib(ret, R_RowNamesSymbol, sexp_rownames);
   SEXP sexp_class = PROTECT(allocVector(STRSXP, 1)); pro++;
   SET_STRING_ELT(sexp_class,0,mkChar("data.frame"));
-  setAttrib(ret, install("class"), sexp_class);
-  setAttrib(ret, install("names"), retN);
+  setAttrib(ret, R_ClassSymbol, sexp_class);
+  setAttrib(ret, R_NamesSymbol, retN);
   UNPROTECT(pro);
   return ret;
 }
@@ -60,7 +60,7 @@ SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_) {
   if (len1 > 0) {
     len1a = length(VECTOR_ELT(et_,0));
   }
-  SEXP etN = getAttrib(et_, install("names"));
+  SEXP etN = getAttrib(et_, R_NamesSymbol);
 
   SEXP matD;
   SEXP matDN;
@@ -68,8 +68,8 @@ SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_) {
   int lenOut;
   int lenItem;
   if (!Rf_isNull(mat_) && !Rf_isNull(et_)) {
-    matD = getAttrib(mat_, install("dim"));;
-    matDN = VECTOR_ELT(getAttrib(mat_, install("dimnames")), 1);
+    matD = getAttrib(mat_, install("dim"));
+    matDN = VECTOR_ELT(getAttrib(mat_, R_DimNamesSymbol), 1);
     len2 = INTEGER(matD)[1];
     lenOut = INTEGER(matD)[0];
     lenItem = lenOut/len1a;
@@ -79,7 +79,7 @@ SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_) {
     lenItem = n;
   } else {
     matD = getAttrib(mat_, install("dim"));;
-    matDN = VECTOR_ELT(getAttrib(mat_, install("dimnames")), 1);
+    matDN = VECTOR_ELT(getAttrib(mat_, R_DimNamesSymbol), 1);
     len2 = INTEGER(matD)[1];
     lenOut = INTEGER(matD)[0];
     lenItem = n;
@@ -111,8 +111,8 @@ SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_) {
   setAttrib(ret, R_RowNamesSymbol, sexp_rownames);
   SEXP sexp_class = PROTECT(allocVector(STRSXP, 1)); pro++;
   SET_STRING_ELT(sexp_class,0,mkChar("data.frame"));
-  setAttrib(ret, install("class"), sexp_class);
-  setAttrib(ret, install("names"), retN);
+  setAttrib(ret, R_ClassSymbol, sexp_class);
+  setAttrib(ret, R_NamesSymbol, retN);
   UNPROTECT(pro);
   return ret;
 }

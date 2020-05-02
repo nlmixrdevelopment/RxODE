@@ -72,6 +72,10 @@ expandPars_ <- function(objectS, paramsS, eventsS, controlS) {
     .Call(`_RxODE_expandPars_`, objectS, paramsS, eventsS, controlS)
 }
 
+nestingInfo_ <- function(omega, data) {
+    .Call(`_RxODE_nestingInfo_`, omega, data)
+}
+
 etDollarNames <- function(obj) {
     .Call(`_RxODE_etDollarNames`, obj)
 }

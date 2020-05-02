@@ -965,3 +965,161 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
   }
   return et;
 }
+
+SEXP convertId_(SEXP x);
+
+SEXP factor2( IntegerVector col, IntegerVector id) {
+  CharacterVector x1(id.size());
+  for (int i = id.size(); i--;) {
+    x1[i] = std::to_string(id[i]) + ":" + std::to_string(col[i]);
+  }
+  return convertId_(x1);
+}
+
+
+SEXP nestingInfoSingle_(SEXP col, IntegerVector id) {
+  SEXP f2 = convertId_(col);
+  SEXP f1 = factor2(f2, id);
+  int l1 = Rf_length(Rf_getAttrib(f1, R_LevelsSymbol));
+  int lid = Rf_length(Rf_getAttrib(id, R_LevelsSymbol));
+  if (l1 == lid) {
+    // Case:
+    //  study id
+    //  1     1
+    //  1     2
+    //  1     3
+    //  2     4
+    //  2     5
+    //
+    // The factor(paste(study,id)) will have the same number of levels
+    //  as factor(paste(id))
+    return f2;
+  } else if (l1 > lid) {
+    // Case:
+    //  id  occ
+    //  1     1
+    //  1     2
+    //  1     3
+    //  2     1
+    //  2     2
+    //
+    // The factor(paste(occ,id)) will have more levels than
+    // factor(paste(id))
+    Rf_setAttrib(f2, Rf_install("nu"), wrap(IntegerVector::create(l1)));
+    return f2;
+  } else {
+    stop(_("un-handled nesting information"));
+  }
+}
+
+//[[Rcpp::export]]
+SEXP nestingInfo_(SEXP omega, List data) {
+  // Might need to clone...
+  CharacterVector lName = data.names();
+  int wid = -1;
+  std::string tmpS;
+  std::string idName;
+  for (int i = 0; i < lName.size(); ++i){
+    tmpS = as<std::string>(lName[i]);
+    std::transform(tmpS.begin(), tmpS.end(), tmpS.begin(), ::tolower);
+    if (tmpS == "id"){
+      idName=as<std::string>(lName[i]);
+      wid = i;
+      break;
+    }
+  }
+  if (wid == -1){
+    stop(_("cannot find 'id' column in dataset"));
+  }
+  SEXP idS = data[wid];
+  SEXP id = convertId_(idS);
+  SEXP lotriOmega = R_NilValue;
+  if (Rf_isNewList(omega)){
+    lotriOmega = omega;
+  } else if (Rf_isMatrix(omega)) {
+    setupLotri();
+    lotriOmega = asLotriMat(omega, R_NilValue,
+			    wrap(CharacterVector::create(idName)));
+  } else {
+    stop(_("'omega' must be a list/lotri/matrix"));
+  }
+  SEXP lvls = Rf_getAttrib(lotriOmega, R_NamesSymbol);
+  int nlvl = Rf_length(lvls);
+  List aboveVars0(nlvl-1);
+  List belowVars0(nlvl-1);
+  IntegerVector below(nlvl-1);
+  CharacterVector belowN(nlvl-1);
+  IntegerVector above(nlvl-1);
+  CharacterVector aboveN(nlvl-1);
+  SEXP lvl;
+  int extraTheta = 0;
+  int extraEta = 0;
+  SEXP s = R_NilValue, dn = R_NilValue;
+  int pro=0;
+  SEXP NuSymbol = PROTECT(Rf_install("nu"));pro++;
+  int aboveI=0;
+  int belowI=0;
+  int l1=0;
+  SEXP idChar = PROTECT(Rf_mkChar("id")); pro++;
+  SEXP lNameSEXP=wrap(lName);
+  for (int i = 0; i < nlvl; ++i) {
+    lvl = STRING_ELT(lvls, i);
+    if (lvl != idChar) {
+      int found=-1;
+      for (int j = lName.size(); j--;){
+	if (STRING_ELT(lNameSEXP,j) == lvl){
+	  found = j;
+	  break;
+	}
+      }
+      s = nestingInfoSingle_(data[found], id);
+      l1 = Rf_length(Rf_getAttrib(s, R_LevelsSymbol));
+      dn = VECTOR_ELT(Rf_getAttrib(VECTOR_ELT(lotriOmega, i),
+				   R_DimNamesSymbol), 0);
+      SEXP nuSEXP = Rf_getAttrib(s, NuSymbol);
+      if (Rf_isNull(nuSEXP)) {
+	aboveVars0[aboveI] = dn;
+	above[aboveI] = l1;
+	aboveN[aboveI++] = lvl;
+	extraTheta += Rf_length(dn) * l1;
+      } else {
+	belowVars0[belowI] = dn;
+	below[belowI] = l1;
+	belowN[belowI++] = lvl;
+	extraEta += Rf_length(dn) * l1;
+      }
+      data[found] = s;
+    }
+  }
+  IntegerVector belowF(belowI);
+  CharacterVector belowFN(belowI);
+  List belowVars(belowI);
+  for (int i = belowI; i--;) {
+    belowF[i] = below[i];
+    belowFN[i] = belowN[i];
+    belowVars[i] = belowVars0[i];
+  }
+  belowF.names() = belowFN;
+  belowVars.names() = belowFN;
+  IntegerVector aboveF(aboveI);
+  CharacterVector aboveFN(aboveI);
+  List aboveVars(aboveI);
+  for (int i = aboveI; i--;) {
+    aboveF[i] = above[i];
+    aboveFN[i] = aboveN[i];
+    aboveVars[i] = aboveVars0[i];
+  }
+  aboveF.names() = aboveFN;
+  aboveVars.names() = aboveFN;
+  UNPROTECT(pro);
+  return wrap(List::create(_["data"]=data,
+			   _["omega"]=lotriOmega,
+			   _["idName"]=id,
+			   _["id"]=idS,
+			   _["above"]=aboveF,
+			   _["below"]=belowF,
+			   _["aboveVars"]=aboveVars,
+			   _["belowVars"]=belowVars,
+			   _["extraTheta"]=extraTheta,
+			   _["extraEta"]=extraEta));
+}

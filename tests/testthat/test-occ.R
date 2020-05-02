@@ -64,7 +64,13 @@ rxPermissive({
                    lotri(inv.Cl ~ 0.02,
                          inv.Ka ~ 0.02) | inv(nu=10))
     
-    .ni <- .nestingInfo(ev$id, omega, ev)
+    .ni2 <- .nestingInfo(ev$id, omega, ev)
+    
+    .ni <- nestingInfo_(omega, ev)
+
+    mb <- microbenchmark::microbenchmark(.nestingInfo(ev$id, omega, ev),
+                                         nestingInfo_(omega, ev))
+    
     expect_equal(.ni$below, c(eye = 2L, occ = 2L))
     expect_equal(.ni$above, c(inv = 2L))
     expect_true(inherits(.ni$data$eye, "factor"))

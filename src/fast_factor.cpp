@@ -2,8 +2,10 @@
 
 #include <Rcpp.h>
 using namespace Rcpp;
-// This comes from David Cooley;
-
+#include <checkmate.h>
+#include "../inst/include/RxODE_as.h"
+//
+// The unique ordered by occurrence comes from David Cooley:
 // It is found https://stackoverflow.com/questions/44697544/rcpp-unique-order-output
 template < typename T, int RTYPE >
 inline SEXP sexp_unique( Rcpp::Vector< RTYPE > x ) {

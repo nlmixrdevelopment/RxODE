@@ -148,6 +148,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// nestingInfo_
+SEXP nestingInfo_(SEXP omega, List data);
+RcppExport SEXP _RxODE_nestingInfo_(SEXP omegaSEXP, SEXP dataSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type omega(omegaSEXP);
+    Rcpp::traits::input_parameter< List >::type data(dataSEXP);
+    rcpp_result_gen = Rcpp::wrap(nestingInfo_(omega, data));
+    return rcpp_result_gen;
+END_RCPP
+}
 // etDollarNames
 CharacterVector etDollarNames(RObject obj);
 RcppExport SEXP _RxODE_etDollarNames(SEXP objSEXP) {
