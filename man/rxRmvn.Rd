@@ -6,7 +6,7 @@
 \usage{
 rxRmvn(
   n,
-  mu,
+  mu = NULL,
   sigma,
   lower = -Inf,
   upper = Inf,

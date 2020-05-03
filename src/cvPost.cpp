@@ -603,10 +603,11 @@ SEXP expandTheta_(SEXP thetaS, SEXP thetaMatS,
   return as<SEXP>(ret);
 }
 
-
 Function getRxFn(std::string name);
 
 SEXP chin(SEXP x, SEXP table);
+
+SEXP nestingInfo_(SEXP omega, List data);
 
 List rxExpandNesting(const RObject& obj, List& nestingInfo,
 		     bool compile=false);
@@ -724,9 +725,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
 	  break;
 	}
       }
-      Function nestingInfo = getRxFn(".nestingInfo");
-      ni = nestingInfo(_["id"]=eventsL[idI], _["omega"]=omegaLotri,
-		       _["data"]=eventsS);
+      ni = nestingInfo_(omegaLotri, eventsL);
       rxModelsAssign(".nestInfo", R_NilValue);
       IntegerVector idIV =  as<IntegerVector>(ni["id"]);//length(levels(.ni$id))
       nid = (as<CharacterVector>(idIV.attr("levels"))).size();
@@ -771,7 +770,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     allNames = as<CharacterVector>(lotriAllNames(omegaLotri));
     methodStr = as<std::string>(control[Rxc_omegaSeparation]);
     methodInt = getMethodInt(methodStr, allNames, et);
-  
+
     if (!Rf_isNull(aboveSEXP)) {
       // Create an extra theta matrix list
       //

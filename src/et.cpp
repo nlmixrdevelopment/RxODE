@@ -929,6 +929,8 @@ IntegerVector convertMethod(RObject method){
   return oldEvid;
 }
 
+SEXP convertId_(SEXP x);
+
 List etImportEventTable(List inData){
   CharacterVector lName0 = asCv(inData.attr("names"), "names");
   CharacterVector lName = clone(lName0);
@@ -1000,9 +1002,7 @@ List etImportEventTable(List inData){
     if (rxIs(inData[idCol], "integer") || rxIs(inData[idCol], "numeric")){
       oldId=asIv(inData[idCol], "inData[idCol]");
     } else if (rxIsChar(inData[idCol])){
-      Environment rx = RxODEenv();
-      Function convId = rx[".convertId"];
-      oldId = convId(inData[idCol]);
+      oldId = convertId_(inData[idCol]);
     } else {
       stop(_("'ID' type is unknown"));
     }

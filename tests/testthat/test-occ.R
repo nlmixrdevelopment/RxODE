@@ -64,14 +64,7 @@ rxPermissive({
                    lotri(inv.Cl ~ 0.02,
                          inv.Ka ~ 0.02) | inv(nu=10))
     
-    .ni2 <- .nestingInfo(ev$id, omega, ev)
-    
-    .ni <- nestingInfo_(omega, ev)
-
-    mb <- microbenchmark::microbenchmark(.nestingInfo(ev$id, omega, ev),
-                                         nestingInfo_(omega, ev),times=1000)
-
-    ggplot2::autoplot(mb)
+    .ni <- RxODE:::nestingInfo_(omega, ev)
     
     expect_equal(.ni$below, c(eye = 2L, occ = 2L))
     expect_equal(.ni$above, c(inv = 2L))
@@ -86,7 +79,7 @@ rxPermissive({
     expect_equal(.ni$extraTheta, 4)
     expect_equal(.ni$extraEta, 8)
 
-    .en <- rxExpandNesting(mod, .ni,compile=TRUE)
+    .en <- RxODE:::rxExpandNesting(mod, .ni,compile=TRUE)
 
     .ett <- etTrans(.ni$data, .en$mod)
 
@@ -104,113 +97,113 @@ rxPermissive({
                       Kout~0.01,
                       EC50~0.01)
     
-    .ep <- .expandPars(mod, theta, ev,
+    .ep <- RxODE:::.expandPars(mod, theta, ev,
                        control=rxControl(thetaMat=thetaMat,omega=omega,
                                          nStud=3))
 
-    expect_equal(length(.rxModels[[".thetaL"]]), 3L)
-    expect_equal(length(.rxModels[[".omegaL"]]), 3L)
-    expect_equal(.rxModels[[".sigmaL"]], NULL)
+    expect_equal(length(RxODE:::.rxModels[[".thetaL"]]), 3L)
+    expect_equal(length(RxODE:::.rxModels[[".omegaL"]]), 3L)
+    expect_equal(RxODE:::.rxModels[[".sigmaL"]], NULL)
     expect_equal(length(.ep$KA), 3L)
     expect_true(any(names(.ep) == "eta.Cl"))
 
-    .ep <- .expandPars(mod, theta, ev,
+    .ep <- RxODE:::.expandPars(mod, theta, ev,
                        control=rxControl(thetaMat=thetaMat,omega=omega,
                                          nStud=3, nSub=20))
     
-    expect_equal(length(.rxModels[[".thetaL"]]), 3L)
-    expect_equal(length(.rxModels[[".omegaL"]]), 3L)
-    expect_equal(.rxModels[[".sigmaL"]], NULL)
+    expect_equal(length(RxODE:::.rxModels[[".thetaL"]]), 3L)
+    expect_equal(length(RxODE:::.rxModels[[".omegaL"]]), 3L)
+    expect_equal(RxODE:::.rxModels[[".sigmaL"]], NULL)
     expect_equal(length(.ep$KA), 60L)
     expect_true(any(names(.ep) == "eta.Cl"))
 
-    .ep <- .expandPars(mod, theta, ev,
+    .ep <- RxODE:::.expandPars(mod, theta, ev,
                        control=rxControl(thetaMat=thetaMat,omega=omega,
                                          sigma=lotri(prop.err~0.1), dfObs=10,
                                          nStud=3, nSub=20))
 
-    expect_equal(length(.rxModels[[".thetaL"]]), 3L)
-    expect_equal(length(.rxModels[[".omegaL"]]), 3L)
-    expect_equal(length(.rxModels[[".sigmaL"]]), 3L)
+    expect_equal(length(RxODE:::.rxModels[[".thetaL"]]), 3L)
+    expect_equal(length(RxODE:::.rxModels[[".omegaL"]]), 3L)
+    expect_equal(length(RxODE:::.rxModels[[".sigmaL"]]), 3L)
     expect_equal(length(.ep$KA), 60L)
     expect_true(any(names(.ep) == "eta.Cl"))
 
-    .ep <- .expandPars(mod, theta, ev,
+    .ep <- RxODE:::.expandPars(mod, theta, ev,
                        control=rxControl(thetaMat=thetaMat,
                                          sigma=lotri(prop.err~0.1), dfObs=10,
                                          nStud=3, nSub=20))
 
-    expect_equal(.rxModels[[".thetaL"]], NULL)
-    expect_equal(.rxModels[[".omegaL"]], NULL)
-    expect_equal(length(.rxModels[[".sigmaL"]]), 3L)
+    expect_equal(RxODE:::.rxModels[[".thetaL"]], NULL)
+    expect_equal(RxODE:::.rxModels[[".omegaL"]], NULL)
+    expect_equal(length(RxODE:::.rxModels[[".sigmaL"]]), 3L)
     expect_equal(length(.ep$KA), 60L)
     expect_false(any(names(.ep) == "eta.Cl"))
 
 
-    .ep <- .expandPars(mod, theta, ev,
+    .ep <- RxODE:::.expandPars(mod, theta, ev,
                        control=rxControl(sigma=lotri(prop.err~0.1), dfObs=10,
                                          nStud=3, nSub=20))
 
-    expect_equal(.rxModels[[".thetaL"]], NULL)
-    expect_equal(.rxModels[[".omegaL"]], NULL)
-    expect_equal(length(.rxModels[[".sigmaL"]]), 3L)
+    expect_equal(RxODE:::.rxModels[[".thetaL"]], NULL)
+    expect_equal(RxODE:::.rxModels[[".omegaL"]], NULL)
+    expect_equal(length(RxODE:::.rxModels[[".sigmaL"]]), 3L)
     expect_equal(length(.ep$KA), 60L)
     expect_false(any(names(.ep) == "eta.Cl"))
 
-    .ep <- .expandPars(mod, theta, ev,
+    .ep <- RxODE:::.expandPars(mod, theta, ev,
                        control=rxControl(sigma=lotri(prop.err~0.1), dfObs=10,
                                          nStud=3, nSub=20))
 
-    expect_equal(.rxModels[[".thetaL"]], NULL)
-    expect_equal(.rxModels[[".omegaL"]], NULL)
-    expect_equal(length(.rxModels[[".sigmaL"]]), 3L)
+    expect_equal(RxODE:::.rxModels[[".thetaL"]], NULL)
+    expect_equal(RxODE:::.rxModels[[".omegaL"]], NULL)
+    expect_equal(length(RxODE:::.rxModels[[".sigmaL"]]), 3L)
     expect_equal(length(.ep$KA), 60L)
     expect_false(any(names(.ep) == "eta.Cl"))
 
-    .ep <- .expandPars(mod, theta, ev,
+    .ep <- RxODE:::.expandPars(mod, theta, ev,
                        control=rxControl(omega=lotri(eta.Cl~0.1), dfObs=10,
                                          nStud=3, nSub=4))
 
-    expect_equal(.rxModels[[".thetaL"]], NULL)
-    expect_equal(.rxModels[[".omegaL"]], NULL)
-    expect_equal(.rxModels[[".sigmaL"]], NULL)
+    expect_equal(RxODE:::.rxModels[[".thetaL"]], NULL)
+    expect_equal(RxODE:::.rxModels[[".omegaL"]], NULL)
+    expect_equal(RxODE:::.rxModels[[".sigmaL"]], NULL)
     expect_equal(length(.ep$KA), 12L)
     expect_true(any(names(.ep) == "eta.Cl"))
 
-    .ep <- .expandPars(mod, theta, ev,
+    .ep <- RxODE:::.expandPars(mod, theta, ev,
                        control=rxControl(dfObs=10, nStud=3, nSub=4))
 
-    expect_equal(.rxModels[[".thetaL"]], NULL)
-    expect_equal(.rxModels[[".omegaL"]], NULL)
-    expect_equal(.rxModels[[".sigmaL"]], NULL)
+    expect_equal(RxODE:::.rxModels[[".thetaL"]], NULL)
+    expect_equal(RxODE:::.rxModels[[".omegaL"]], NULL)
+    expect_equal(RxODE:::.rxModels[[".sigmaL"]], NULL)
     expect_equal(length(.ep$KA), 12L)
     expect_false(any(names(.ep) == "eta.Cl"))
 
 
-    expect_error(.expandPars(mod, NULL, ev,
+    expect_error(RxODE:::.expandPars(mod, NULL, ev,
                              control=rxControl(thetaMat=thetaMat,omega=omega, nStud=3)));
     
-    .ep <- .expandPars(mod, NULL, ev,
+    .ep <- RxODE:::.expandPars(mod, NULL, ev,
                        control=rxControl(omega=omega, nStud=3))
     
-    expect_equal(length(.rxModels[[".thetaL"]]), 3L)
-    expect_equal(length(.rxModels[[".omegaL"]]), 3L)
-    expect_equal(.rxModels[[".sigmaL"]], NULL)
+    expect_equal(length(RxODE:::.rxModels[[".thetaL"]]), 3L)
+    expect_equal(length(RxODE:::.rxModels[[".omegaL"]]), 3L)
+    expect_equal(RxODE:::.rxModels[[".sigmaL"]], NULL)
     expect_equal(length(.ep$eta.Ka), 3L)
     expect_true(any(names(.ep) == "eta.Cl"))
 
-    .ep <- .expandPars(mod, NULL, ev,
+    .ep <- RxODE:::.expandPars(mod, NULL, ev,
                        control=rxControl(omega=omega,
                                          nStud=3, dfObs=100, nSub=20,dfSub=10));
 
-    expect_equal(length(.rxModels[[".thetaL"]]), 3L)
-    expect_equal(length(.rxModels[[".omegaL"]]), 3L)
-    expect_equal(.rxModels[[".sigmaL"]], NULL)
+    expect_equal(length(RxODE:::.rxModels[[".thetaL"]]), 3L)
+    expect_equal(length(RxODE:::.rxModels[[".omegaL"]]), 3L)
+    expect_equal(RxODE:::.rxModels[[".sigmaL"]], NULL)
     expect_equal(length(.ep$eta.Ka), 60L)
     expect_true(any(names(.ep) == "eta.Cl"))
 
 
-    .ep <- .expandPars(mod, theta, ev,
+    .ep <- RxODE:::.expandPars(mod, theta, ev,
                        control=rxControl(thetaMat=lotri(KA~1, CL~1),
                                          omega=omega,
                                          sigma=lotri(prop.err~0.1), dfObs=10,
@@ -221,17 +214,16 @@ rxPermissive({
     
     ## Test edge case -- no between or above occasion variability
 
-    .ni <- .nestingInfo(ev$id,
-                        lotri(lotri(eta.Cl ~ 0.1, eta.Ka ~ 0.1) | id(nu=100)),
+    .ni <- RxODE:::nestingInfo_(lotri(lotri(eta.Cl ~ 0.1, eta.Ka ~ 0.1) | id(nu=100)),
                         ev)
 
 
-    expect_equal(.ni$above, NULL)
-    expect_equal(.ni$below, NULL)
+    expect_equal(.ni$above, structure(integer(0), .Names = character(0)))
+    expect_equal(.ni$below, structure(integer(0), .Names = character(0)))
     expect_equal(.ni$idName, "id")
     expect_true(inherits(.ni$omega, "lotri"))
     expect_equal(names(.ni$omega), "id")
 
-    .en <- rxExpandNesting(mod, .ni)
+    .en <- RxODE:::rxExpandNesting(mod, .ni)
 
 }, test="lvl2")

@@ -25,8 +25,8 @@ rxControl(
   atol = 1e-08,
   rtol = 1e-06,
   maxsteps = 70000L,
-  hmin = 0L,
-  hmax = NA,
+  hmin = 0,
+  hmax = NA_real_,
   hmaxSd = 0,
   hini = 0,
   maxordn = 12L,
@@ -107,8 +107,8 @@ rxControl(
   safeZero = TRUE,
   cacheEvent = TRUE,
   mvnfast = FALSE,
-  sum = c("pairwise", "fsum", "kahan", "neumaier", "c"),
-  prod = c("long double", "double", "logify")
+  sumType = c("pairwise", "fsum", "kahan", "neumaier", "c"),
+  prodType = c("long double", "double", "logify")
 )
 
 rxSolve(object, ...)
@@ -543,7 +543,7 @@ memory to speed up solving.}
 simulation instead of the thread-safe threefry based
 multivariate normal package provided in `RxODE`.}
 
-\item{sum}{Sum type to use for \code{sum()} in
+\item{sumType}{Sum type to use for \code{sum()} in
     RxODE code blocks.
 
 \code{pairwise} uses the pairwise sum (fast, default)
@@ -556,7 +556,7 @@ multivariate normal package provided in `RxODE`.}
 
 \code{c} uses no correction: default/native summing}
 
-\item{prod}{Product to use for \code{prod()} in RxODE blocks
+\item{prodType}{Product to use for \code{prod()} in RxODE blocks
 
 \code{long double} converts to long double, performs the
 multiplication and then converts back.
