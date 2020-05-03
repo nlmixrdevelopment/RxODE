@@ -385,19 +385,19 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     CharacterVector cls = Rf_getAttrib(inData, R_ClassSymbol);
     List e0 = cls.attr(".RxODE.lst");
     if (as<std::string>(trans["lib.name"]) == as<std::string>(e0["lib.name"])){
-      if (as<bool>(e0["allTimeVar"]) && !allTimeVar){
-	LogicalVector sub0 = as<LogicalVector>(e0["sub0"]);
-	int baseSize = as<int>(e0["baseSize"]);
-	int nTv = as<int>(e0["nTv"]);
-	List lst = as<List>(e0["lst"]);
-	CharacterVector nme = as<CharacterVector>(e0["nme"]);
+      if (asBool(e0[RxTrans_allTimeVar], "allTimeVar") && !allTimeVar){
+	LogicalVector sub0 = as<LogicalVector>(e0[RxTrans_sub0]);
+	int baseSize = as<int>(e0[RxTrans_baseSize]);
+	int nTv = as<int>(e0[RxTrans_nTv]);
+	List lst = as<List>(e0[RxTrans_lst]);
+	CharacterVector nme = as<CharacterVector>(e0[RxTrans_nme]);
 	List e = clone(e0);
-	e["baseSize"] = R_NilValue;
-	e["nTv"] = R_NilValue;
-	e["lst"] = R_NilValue;
-	e["nme"] = R_NilValue;	
-	e["sub0"] = R_NilValue;
-	e["allTimeVar"] = false;
+	e[RxTrans_baseSize] = R_NilValue;
+	e[RxTrans_nTv] = R_NilValue;
+	e[RxTrans_lst] = R_NilValue;
+	e[RxTrans_nme] = R_NilValue;	
+	e[RxTrans_sub0] = R_NilValue;
+	e[RxTrans_allTimeVar] = false;
 	cls.attr(".RxODE.lst") = e;
 	List lstF = List(baseSize+nTv);
 	CharacterVector nmeF = CharacterVector(baseSize+nTv);
