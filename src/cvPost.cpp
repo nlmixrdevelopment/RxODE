@@ -718,17 +718,17 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     if (omegaLotriNames.size() > 1) {
       List eventsL = as<List>(eventsS);
       CharacterVector eventNames = eventsL.names();
-      int idI = -1;
-      for (int i = eventNames.size(); i--;) {
-	if (boost::iequals("id", as<std::string>(eventNames[i]))) {
-	  idI = i;
-	  break;
-	}
-      }
+      // int idI = -1;
+      // for (int i = eventNames.size(); i--;) {
+      // 	if (boost::iequals("id", as<std::string>(eventNames[i]))) {
+      // 	  idI = i;
+      // 	  break;
+      // 	}
+      // }
       ni = nestingInfo_(omegaLotri, eventsL);
       rxModelsAssign(".nestInfo", R_NilValue);
       IntegerVector idIV =  as<IntegerVector>(ni["id"]);//length(levels(.ni$id))
-      nid = (as<CharacterVector>(idIV.attr("levels"))).size();
+      nid = Rf_length(Rf_getAttrib(idIV, R_LevelsSymbol));
       if (nSub <= 1) {
 	control[Rxc_nSub] = nid;
       } else if (nSub != nid) {
@@ -818,9 +818,11 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
 	  etFinalNames[baseSize+j] = newLstNames[j];
 	  etFinal[baseSize+j] = newLst[j];
 	}
-	etFinal.names() = etFinalNames;
-	etFinal.attr("rownames") = IntegerVector::create(NA_INTEGER, -nStud);
-	etFinal.attr("class") = CharacterVector::create("data.frame");
+	Rf_setAttrib(etFinal, R_NamesSymbol, etFinalNames);
+	Rf_setAttrib(etFinal, R_RowNamesSymbol,
+		     IntegerVector::create(NA_INTEGER, -nStud));
+	Rf_setAttrib(etFinal, R_ClassSymbol,
+		     CharacterVector::create("data.frame"));
 	et = as<SEXP>(etFinal);
       }
     } else {
@@ -868,7 +870,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
   SEXP sigmaLotri = R_NilValue;
   if (qtest(sigmaS, "M")) {
     RObject sigmaR = as<RObject>(sigmaS);
-    RObject dimnames = sigmaR.attr("dimnames");
+    RObject dimnames = Rf_getAttrib(sigmaR, R_DimNamesSymbol);
     qstrictSdn(sigmaS, "sigma");
     SEXP sigmaIsCholS = control[Rxc_sigmaIsChol];
     qassert(sigmaIsCholS, "b1", "sigma");

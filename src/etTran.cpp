@@ -104,7 +104,6 @@ IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
   List extraCmt;
   if (rxIsNumIntLgl(inCmt)){
     if (rxIsFactor(inCmt)){
-      //inCmt.attr("levels");
       CharacterVector lvl = Rf_getAttrib(as<SEXP>(inCmt), R_LevelsSymbol);
       IntegerVector lvlI(lvl.size());
       int i, j, k=0;
@@ -383,7 +382,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   IntegerVector curDvid = clone(as<IntegerVector>(mv[RxMv_dvid]));
   CharacterVector trans = mv[RxMv_trans];
   if (rxIs(inData,"rxEtTran")){
-    CharacterVector cls = inData.attr("class");
+    CharacterVector cls = Rf_getAttrib(inData, R_ClassSymbol);
     List e0 = cls.attr(".RxODE.lst");
     if (as<std::string>(trans["lib.name"]) == as<std::string>(e0["lib.name"])){
       if (as<bool>(e0["allTimeVar"]) && !allTimeVar){
@@ -410,10 +409,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    j++;
 	  }
 	}
-	lstF.attr("names") = nmeF;
-	lstF.attr("class") = cls;
+	Rf_setAttrib(lstF, R_NamesSymbol, nmeF);
+	Rf_setAttrib(lstF, R_ClassSymbol, cls);
 	IntegerVector tmp = lstF[0];
-	lstF.attr("row.names") = IntegerVector::create(NA_INTEGER,-tmp.size());
+	Rf_setAttrib(lstF, R_RowNamesSymbol,
+		     IntegerVector::create(NA_INTEGER,-tmp.size()));
 	return(lstF);
       } else {
 	return inData;
@@ -425,7 +425,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
    _lastT0 = clock();
 #endif
   // Translates events + model into translated events
-  CharacterVector dName = as<CharacterVector>(inData.attr("names"));
+   CharacterVector dName = as<CharacterVector>(Rf_getAttrib(inData, R_NamesSymbol));
   CharacterVector lName = clone(dName);
 
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
@@ -526,7 +526,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     if (hasCmt || as<std::string>(lName[covCol[i]]) != "cmt"){
       nvTmp = as<NumericVector>(inData[covCol[i]]);
       if (!dropUnits && rxIs(nvTmp, "units")){
-	nvTmp2.attr("class") = "units";
+	Rf_setAttrib(nvTmp2, R_ClassSymbol, wrap("units"));
 	nvTmp2.attr("units") = nvTmp.attr("units");
       }
     } else {
@@ -535,7 +535,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
     covUnits[i] = nvTmp2;
   }
-  covUnits.attr("names") = covUnitsN;
+  Rf_setAttrib(covUnits, R_NamesSymbol, covUnitsN);
   // EVID = 0; Observations
   // EVID = 1; is illegal, but converted from NONMEM
   // EVID = 2; Non-observation, possibly covariate
@@ -675,7 +675,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   CharacterVector idLvl;
   if (idCol != -1){
     inId = convertId_(inData[idCol]);//as<IntegerVector>();
-    idLvl = inId.attr("levels");
+    idLvl = Rf_getAttrib(inId, R_LevelsSymbol);
   } else {
     idLvl = CharacterVector::create("1");
   }
@@ -1104,8 +1104,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    dvidDF[i] = i+1;
 	  }
 	  List dvidTrans = List::create(_["dvid"]=dvidDF, _["modeled cmt"]=curDvid);
-	  dvidTrans.attr("class") = "data.frame";
-	  dvidTrans.attr("row.names") = IntegerVector::create(NA_INTEGER, -dvidDF.size());
+	  Rf_setAttrib(dvidTrans, R_ClassSymbol, wrap("data.frame"));
+	  Rf_setAttrib(dvidTrans, R_RowNamesSymbol,
+		       IntegerVector::create(NA_INTEGER, -dvidDF.size()));
 	  Rprintf(_("'DVID'/'CMT' translation:\n"));
 	  print(dvidTrans);
 	  if (dvidCol != -1){
@@ -1803,12 +1804,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   
   if (!dropUnits && addTimeUnits){
     NumericVector tmpN = as<NumericVector>(lst[1]);
-    tmpN.attr("class") = "units";
+    Rf_setAttrib(tmpN, R_ClassSymbol, wrap("units"));
     tmpN.attr("units") = timeUnits;
   }
   if (!dropUnits && addAmtUnits){
     NumericVector tmpN = as<NumericVector>(lst[3]);
-    tmpN.attr("class") = "units";
+    Rf_setAttrib(tmpN, R_ClassSymbol, wrap("units"));
     tmpN.attr("units") = amtUnits;
   }
   // Now subset based on time-varying covariates
@@ -1850,12 +1851,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   IntegerVector tmp = lst1F[0];
   CharacterVector idLvl2;
   if (redoId){
-    tmp.attr("class") = "factor";
-    tmp.attr("levels") = idLvl;
+    Rf_setAttrib(tmp, R_ClassSymbol, wrap("factor"));
+    Rf_setAttrib(tmp, R_LevelsSymbol, idLvl);
     tmp = convertId_(tmp);//as<IntegerVector>();
     idLvl2 = tmp.attr("levels");
-    tmp.attr("class")  = R_NilValue;
-    tmp.attr("levels") = R_NilValue;
+    Rf_setAttrib(tmp, R_ClassSymbol, R_NilValue);
+    Rf_setAttrib(tmp, R_LevelsSymbol, R_NilValue);
     lst1F[0] = tmp;
   }
 
@@ -1864,9 +1865,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   _lastT0 = clock();
 #endif
   
-  lst1F.attr("names") = nme1F;
-  lst1F.attr("class") = CharacterVector::create("data.frame");
-  lst1F.attr("row.names") = IntegerVector::create(NA_INTEGER, -nid);
+  Rf_setAttrib(lst1F, R_NamesSymbol, nme1F);
+  Rf_setAttrib(lst1F, R_ClassSymbol, wrap("data.frame"));
+  Rf_setAttrib(lst1F, R_RowNamesSymbol,
+	       IntegerVector::create(NA_INTEGER, -nid));
   List e(25);
   RxTransNames;
   e[RxTrans_ndose] = IntegerVector(ndose);
@@ -1896,8 +1898,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
   e[RxTrans_covParPos0] = wrap(covParPos0);
   e[RxTrans_covUnits] = covUnits;
-  fPars.attr("dim")= IntegerVector::create(pars.size(), nid);
-  fPars.attr("dimnames") = List::create(pars, R_NilValue);
+  Rf_setAttrib(fPars, R_DimSymbol,
+	       IntegerVector::create(pars.size(), nid));
+  Rf_setAttrib(fPars, R_DimNamesSymbol,
+	       List::create(pars, R_NilValue));
   e[RxTrans_pars] = fPars;
   e[RxTrans_allBolus] = allBolus;
   e[RxTrans_allInf] = allInf;
@@ -1914,27 +1918,29 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   e[RxTrans_keepDosingOnly] = true;
   e[RxTrans_censAdd] = censAdd;
   e[RxTrans_limitAdd] = limitAdd;
-  keepL.attr("names") = keepN;
-  keepL.attr("class") = CharacterVector::create("data.frame");
-  keepL.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt);
+  Rf_setAttrib(keepL, R_NamesSymbol, keepN);
+  Rf_setAttrib(keepL, R_ClassSymbol, wrap("data.frame"));
+  Rf_setAttrib(keepL, R_RowNamesSymbol,
+	       IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt));
   setFkeep(keepL);
-  e.attr("class") = "rxHidden";
+  Rf_setAttrib(e, R_ClassSymbol, wrap("rxHidden"));
   cls.attr(".RxODE.lst") = e;
   tmp = lstF[0];
   if (redoId){
-    tmp.attr("class") = "factor";
-    tmp.attr("levels") = idLvl;
-    tmp = convertId_(tmp);//as<IntegerVector>();
-    tmp.attr("class")  = R_NilValue;
-    tmp.attr("levels") = R_NilValue;
+    Rf_setAttrib(tmp, R_ClassSymbol, wrap("factor"));
+    Rf_setAttrib(tmp, R_LevelsSymbol, idLvl);
+    tmp = convertId_(tmp);
+    //as<IntegerVector>();
+    Rf_setAttrib(tmp, R_ClassSymbol, R_NilValue);
+    Rf_setAttrib(tmp, R_LevelsSymbol, R_NilValue);
     lstF[0]=tmp;
   }
   if (!dropUnits){
-    tmp.attr("class") = "factor";
+    Rf_setAttrib(tmp, R_ClassSymbol, wrap("factor"));
     if (redoId){
-      tmp.attr("levels") = idLvl2;
+      Rf_setAttrib(tmp, R_LevelsSymbol, idLvl2);
     } else {
-      tmp.attr("levels") = idLvl;
+      Rf_setAttrib(tmp, R_LevelsSymbol, idLvl);
     }
   }
 
@@ -1942,10 +1948,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   REprintf("  Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
-  
-  lstF.attr("names") = nmeF;
-  lstF.attr("class") = cls;
-  lstF.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt);
+  Rf_setAttrib(lstF, R_NamesSymbol, nmeF);
+  Rf_setAttrib(lstF, R_ClassSymbol, cls);
+  Rf_setAttrib(lstF, R_RowNamesSymbol, IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt));
   if (doWarnNeg){
     if (!warnedNeg){
       warning(_("\nwith negative times, compartments initialize at first negative observed tim.\nwith positive times, compartments initialize at time zero\nuse 'rxSetIni0(FALSE)' to initialize at first observed time\nthis warning is displayed once per session"));
