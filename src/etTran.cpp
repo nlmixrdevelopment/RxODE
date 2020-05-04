@@ -1872,9 +1872,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	       IntegerVector::create(NA_INTEGER, -nid));
   List e(25);
   RxTransNames;
-  e[RxTrans_ndose] = IntegerVector(ndose);
-  e[RxTrans_nobs]  = IntegerVector(nobs);
-  e[RxTrans_nid]   = IntegerVector(nid);
+  e[RxTrans_ndose] = IntegerVector::create(ndose);
+  e[RxTrans_nobs]  = IntegerVector::create(nobs);
+  e[RxTrans_nid]   = IntegerVector::create(nid);
   e[RxTrans_cov1] = lst1F;
   e[RxTrans_covParPos]  = wrap(covParPos);
   e[RxTrans_covParPosTV] = wrap(covParPosTV); // Time-varying pos
