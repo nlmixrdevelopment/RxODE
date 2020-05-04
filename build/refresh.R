@@ -111,6 +111,7 @@ document();
 
 
 genDefine <- function(){
+  
   mod1 <-RxODE({
     C2 = centr/V2;
     C3 = peri/V3;
@@ -119,20 +120,6 @@ genDefine <- function(){
     d/dt(peri)  =                    Q*C2 - Q*C3;
     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
   })
-  mv <- rxModelVars(mod1)
-  .n <- gsub("[.]","_",names(rxControl()))
-  sink(devtools::package_file("inst/include/RxODE_control.h"))
-  cat("#pragma once\n")
-  cat("#ifndef __RxODE_control_H__\n#define __RxODE_control_H__\n")
-  cat(paste(paste0("#define ", "Rxc_", .n, " ", seq_along(.n)-1),collapse="\n"))
-  .mv <- rxModelVars(mod1);
-  .nmv <- gsub("[.]", "_", names(.mv));
-  cat("\n");
-  cat(paste(paste0("#define RxMv_", .nmv, " ", seq_along(.nmv)-1),collapse="\n"))
-  .nmvf <- names(.mv$flag)
-  cat("\n");  
-  cat(paste(paste0("#define RxMvFlag_", .nmvf, " ", seq_along(.nmvf)-1),collapse="\n"))
-  cat("\n");
 
   mod <- RxODE("
 a = 6
@@ -140,7 +127,32 @@ b = 0.6
 d/dt(intestine) = -a*intestine
 d/dt(blood)     = a*intestine - b*blood
 ")
+  
+  mv <- rxModelVars(mod1)
+  
+  .n <- gsub("[.]","_",names(rxControl()))
+  sink(devtools::package_file("inst/include/RxODE_control.h"))
+  cat("#pragma once\n")
+  cat("#ifndef __RxODE_control_H__\n#define __RxODE_control_H__\n")
+  cat(paste(paste0("#define ", "Rxc_", .n, " ", seq_along(.n)-1),collapse="\n"))
+  
+  .mv <- rxModelVars(mod1);
+  
+  .nmv <- gsub("[.]", "_", names(.mv));
+  cat("\n");
+  cat(paste(paste0("#define RxMv_", .nmv, " ", seq_along(.nmv)-1),collapse="\n"))
+  .nmvf <- names(.mv$flag)
+  cat("\n")
+  cat(paste(paste0("#define RxMvFlag_", .nmvf, " ", seq_along(.nmvf)-1),collapse="\n"))
+  cat("\n")
 
+  .nmvt <- gsub("[.]", "_", names(.mv$trans))
+  
+  cat("\n")
+  cat(paste(paste0("#define RxMvTrans_", .nmvt, " ",
+                   seq_along(.nmvt)-1),collapse="\n"))
+  cat("\n")
+  
   et <- eventTable()
   et$add.dosing(dose=2/24,rate=2,start.time=0,
                 nbr.doses=10,dosing.interval=1)
@@ -161,7 +173,5 @@ d/dt(blood)     = a*intestine - b*blood
   cat("\n#endif // __RxODE_control_H__\n")
   sink();
 }
-
-
 
 genDefine()

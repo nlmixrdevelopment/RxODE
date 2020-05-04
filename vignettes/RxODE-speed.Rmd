@@ -30,6 +30,7 @@ The original code from the `RxODE` tutorial is below:
 library(RxODE)
 library(microbenchmark)
 library(mvnfast)
+library(ggplot2)
 
 mod1 <- RxODE({
     C2 = centr/V2;
@@ -120,7 +121,7 @@ print(bench)
 ```
 
 ```{r}
-plot(bench)
+autoplot(bench)
 ```
 
 It is clear that the **largest** jump in performance when using the
@@ -143,7 +144,7 @@ print(bench)
 ```
 
 ```{r}
-plot(bench)
+autoplot(bench)
 ```
 
 There is a suite spot in speed vs number or cores. The system type, 

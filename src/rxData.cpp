@@ -4113,8 +4113,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // Make sure the model variables are assigned...
     // This fixes random issues on windows where the solves are done and the data set cannot be solved.
     getRxModels();
-    _rxModels[as<std::string>(trans["model_vars"])] = rxSolveDat->mv;
-    sprintf(op->modNamePtr, "%s", (as<std::string>(trans["model_vars"])).c_str());
+    _rxModels[as<std::string>(trans[RxMvTrans_model_vars])] = rxSolveDat->mv;
+    sprintf(op->modNamePtr, "%s", (as<std::string>(trans[RxMvTrans_model_vars])).c_str());
     // approx fun options
     op->is_locf = covs_interpolation;
     if (op->is_locf == 0){//linear
@@ -4439,7 +4439,7 @@ RObject rxSolveGet_rxSolve(RObject &obj, std::string &sarg, LogicalVector &exact
   if (sarg == "rx" || sarg == "rxode" || sarg == "RxODE"){
     CharacterVector trans = mv[RxMv_trans];
     getRxModels();
-    std::string pre = as<std::string>(trans["prefix"]);
+    std::string pre = as<std::string>(trans[RxMvTrans_prefix]);
     if (_rxModels.exists(pre)){
       return as<RObject>(_rxModels[pre]);
     }
@@ -4845,7 +4845,7 @@ void rxRmModelLib_(std::string str){
   getRxModels();
   if (_rxModels.exists(str)){
     List trans =(as<List>(as<List>(_rxModels[str]))["trans"]);
-    std::string rxlib = as<std::string>(trans["prefix"]);
+    std::string rxlib = as<std::string>(trans[RxMvTrans_prefix]);
     _rxModels.remove(str);
     if (_rxModels.exists(rxlib)){
       _rxModels.remove(rxlib);
@@ -4869,7 +4869,7 @@ Nullable<Environment> rxRxODEenv(RObject obj){
     List mv = as<List>(obj);
     CharacterVector trans = mv[RxMv_trans];
     getRxModels();
-    std::string prefix = as<std::string>(trans["prefix"]);
+    std::string prefix = as<std::string>(trans[RxMvTrans_prefix]);
     if (_rxModels.exists(prefix)){
       return as<Environment>(_rxModels[prefix]);
     } else {
@@ -4930,13 +4930,13 @@ extern "C" void RxODE_assign_fn_pointers_(const char *mv);
 void rxAssignPtr(SEXP object = R_NilValue){
   List mv=rxModelVars(as<RObject>(object));
   CharacterVector trans = mv[RxMv_trans];
-  RxODE_assign_fn_pointers_((as<std::string>(trans["model_vars"])).c_str());
+  RxODE_assign_fn_pointers_((as<std::string>(trans[RxMvTrans_model_vars])).c_str());
   rxUpdateFuns(as<SEXP>(trans));
   getRxSolve_();
   // Update rxModels environment.
   getRxModels();
   
-  std::string ptr = as<std::string>(trans["model_vars"]); 
+  std::string ptr = as<std::string>(trans[RxMvTrans_model_vars]); 
   if (!_rxModels.exists(ptr)){
     _rxModels[ptr] = mv;
   } else if (!rxIsCurrent(as<RObject>(_rxModels[ptr]))) {
@@ -4944,7 +4944,7 @@ void rxAssignPtr(SEXP object = R_NilValue){
   }
   Nullable<Environment> e1 = rxRxODEenv(object);
   if (!e1.isNull()){
-    std::string prefix = as<std::string>(trans["prefix"]);
+    std::string prefix = as<std::string>(trans[RxMvTrans_prefix]);
     if (!_rxModels.exists(prefix)){
       Environment e = as<Environment>(e1);
       _rxModels[prefix] = e;
@@ -5073,7 +5073,7 @@ bool rxIsLoaded(RObject obj){
   Function isLoaded("is.loaded", R_BaseNamespace);
   List mv = rxModelVars(obj);
   CharacterVector trans = mv[RxMv_trans];
-  std::string dydt = as<std::string>(trans["model_vars"]);
+  std::string dydt = as<std::string>(trans[RxMvTrans_model_vars]);
   bool ret = asBool(isLoaded(dydt), "isLoaded(dydt)");
   return ret;
 }
@@ -5236,7 +5236,7 @@ bool rxDynUnload(RObject obj){
   }
   List mv = rxModelVars(obj);
   CharacterVector trans = mv[RxMv_trans];
-  std::string ptr = asStr(trans["model_vars"], "trans[\"model_vars\"]");
+  std::string ptr = asStr(trans[RxMvTrans_model_vars], "trans[\"model_vars\"]");
   if (rxIsLoaded(obj)){
     Function dynUnload("dyn.unload", R_BaseNamespace);
     std::string file = rxDll(obj);

@@ -384,7 +384,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   if (rxIs(inData,"rxEtTran")){
     CharacterVector cls = Rf_getAttrib(inData, R_ClassSymbol);
     List e0 = cls.attr(".RxODE.lst");
-    if (as<std::string>(trans["lib.name"]) == as<std::string>(e0["lib.name"])){
+    if (as<std::string>(trans[RxMvTrans_lib_name]) ==
+	as<std::string>(e0[RxTrans_lib_name])){
       if (asBool(e0[RxTrans_allTimeVar], "allTimeVar") && !allTimeVar){
 	LogicalVector sub0 = as<LogicalVector>(e0[RxTrans_sub0]);
 	int baseSize = as<int>(e0[RxTrans_baseSize]);
@@ -1906,7 +1907,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   e[RxTrans_allBolus] = allBolus;
   e[RxTrans_allInf] = allInf;
   e[RxTrans_mxCmt] = mxCmt;
-  e[RxTrans_lib_name] = trans["lib.name"];
+  e[RxTrans_lib_name] = trans[RxMvTrans_lib_name];
   e[RxTrans_addCmt] = addCmt;
   e[RxTrans_cmtInfo] = cmtInfo;
   if (redoId){
