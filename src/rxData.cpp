@@ -47,7 +47,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	     bool dropUnits=false, bool allTimeVar=false,
 	     bool keepDosingOnly=false, Nullable<LogicalVector> combineDvid=R_NilValue,
 	     CharacterVector keep = CharacterVector(0));
-List etImportEventTable(List inData);
 RObject et_(List input, List et__);
 void setEvCur(RObject cur);
 
@@ -1994,7 +1993,7 @@ List getEtRxsolve(Environment e){
     List emptyLst(0);
     RObject et = et_(emptyLst, emptyLst);
     setEvCur(et);
-    et_(List::create(_["data"] = eventso), List::create("import"));
+    et_(List::create(_["data"] = eventso), List::create("importQuiet"));
     e[".et"] = et;
     Function parse2("parse", R_BaseNamespace);
     Function eval2("eval", R_BaseNamespace);
@@ -3443,11 +3442,21 @@ static inline Environment rxSolve_genenv(const RObject &object,
     _rxModels.remove(".sigma");
   }
   if(_rxModels.exists(".omegaL")){
-    e[".omegaL"] = as<List>(_rxModels[".omegaL"]);
+    SEXP tmp = _rxModels[".omegaL"];
+    if (TYPEOF(tmp) == VECSXP && Rf_length(tmp) > 1) {
+      e[".omegaL"] = as<List>(tmp);
+    } else {
+      e[".omegaL"] = R_NilValue;
+    }
     _rxModels.remove(".omegaL");
   }
   if(_rxModels.exists(".sigmaL")){
-    e[".sigmaL"] = as<List>(_rxModels[".sigmaL"]);
+    SEXP tmp = _rxModels[".sigmaL"];
+    if (TYPEOF(tmp) == VECSXP && Rf_length(tmp) > 1) {
+      e[".sigmaL"] = as<List>(_rxModels[".sigmaL"]);
+    } else {
+      e[".sigmaL"] = R_NilValue;
+    }
     _rxModels.remove(".sigmaL");
   }
   e[".check.nrow"] = rx->nr;
@@ -3806,7 +3815,7 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
   }    
 }
 
-extern "C" SEXP _expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS);
+SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS);
 
 SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const Nullable<CharacterVector> &specParams,
@@ -3897,19 +3906,20 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   } else {
     object = obj;
     // Update RxODE model (if needed) and simulate nesting
-    // if (!(as<bool>(rxControl[Rxc_mvnfast])) &&
-    // 	(!rxIsNull(rxControl[Rxc_thetaMat]) ||
-    // 	 !rxIsNull(rxControl[Rxc_omega]) ||
-    // 	 !rxIsNull(rxControl[Rxc_sigma]))) {
-    //   // Update model, events and parameters based on nesting
-    //   _rxModels[".nestPars"] = _expandPars_(wrap(object), wrap(trueParams),
-    // 				wrap(trueEvents), wrap(rxControl));
-    //   object = _rxModels[".nestObj"];
-    //   trueEvents = _rxModels[".nestEvents"];
-    //   didNesting=true;
-    // } else {
-    //   object = obj;
-    // }
+    if (!(as<bool>(rxControl[Rxc_mvnfast])) &&
+    	(!rxIsNull(rxControl[Rxc_thetaMat]) ||
+    	 !rxIsNull(rxControl[Rxc_omega]) ||
+    	 !rxIsNull(rxControl[Rxc_sigma]))) {
+      
+      // Update model, events and parameters based on nesting
+      _rxModels[".nestPars"] = expandPars_(wrap(object), wrap(trueParams),
+					   wrap(trueEvents), wrap(rxControl));
+      object = _rxModels[".nestObj"];
+      trueEvents = _rxModels[".nestEvents"];
+      didNesting=true;
+    } else {
+      object = obj;
+    }
     if (method == 3){
       rxSolveDat->mv = rxModelVars(object);
       rxSolveFreeObj = object;

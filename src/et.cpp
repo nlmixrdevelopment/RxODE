@@ -225,10 +225,12 @@ List etEmpty(CharacterVector units){
 		      _["envir"]  = e);
   e["nobs"] = 0;
   e["ndose"] = 0;
-  e["show"] = LogicalVector::create(_["id"] = false, _["low"] = false,_["time"] = true, _["high"] = false,
-				    _["cmt"] =false, _["amt"]=false, _["rate"] = false,
-				    _["ii"] = false, _["addl"] = false,
-				    _["evid"] = true, _["ss"] = false, _["dur"] = false);
+  e["show"] = LogicalVector::create(_["id"] = false, _["low"] = false,
+				    _["time"] = true, _["high"] = false,
+				    _["cmt"] =false, _["amt"]=false,
+				    _["rate"] = false, _["ii"] = false,
+				    _["addl"] = false, _["evid"] = true,
+				    _["ss"] = false, _["dur"] = false);
   e["IDs"] = IntegerVector::create(1);
 
   e["canResize"] = true;
@@ -931,7 +933,7 @@ IntegerVector convertMethod(RObject method){
 
 SEXP convertId_(SEXP x);
 
-List etImportEventTable(List inData){
+List etImportEventTable(List inData, bool warnings = true){
   CharacterVector lName0 = asCv(inData.attr("names"), "names");
   CharacterVector lName = clone(lName0);
   //var=cmt time value=amt method->evid from deSolve
@@ -976,7 +978,7 @@ List etImportEventTable(List inData){
     if (mdvCol != -1){
       evidCol = mdvCol;
       oldEvid=asIv(inData[evidCol], "inData[evidCol]");
-      if (methodCol != -1){
+      if (methodCol != -1 && warnings){
 	warning(_("using 'mdv' instead of 'method'"));
       }
     } else if (methodCol != -1){
@@ -986,7 +988,7 @@ List etImportEventTable(List inData){
       std::fill(oldEvid.begin(), oldEvid.end(), 0);
     }
   } else {
-    if (mdvCol != -1){
+    if (mdvCol != -1 && warnings){
       warning(_("using 'evid' instead of 'mdv'"));
     }
     if (methodCol != -1){
@@ -2260,9 +2262,12 @@ RObject et_(List input, List et__){
 	doUpdateObj=true;
 	curEt = evCur;
 	foundEt=true;
-      } else if (as<std::string>(et__[0]) == "import"){
+      } else if (as<std::string>(et__[0]) == "import") {
 	bool bt = true, bf = false;
-	return etUpdateObj(etImportEventTable(as<List>(input["data"])), bt, bf, bt);
+	return etUpdateObj(etImportEventTable(as<List>(input["data"]), true), bt, bf, bt);
+      } else if (as<std::string>(et__[0]) == "importQuiet") {
+	bool bt = true, bf = false;
+	return etUpdateObj(etImportEventTable(as<List>(input["data"]), false), bt, bf, bt);
       }
     } else if (rxIs(et__, "rxEt")) {
       foundEt=true;
@@ -3086,7 +3091,7 @@ RObject et_(List input, List et__){
 			      turnOnId);
   }
   if (input.size() == 1 && rxIs(input[0], "data.frame")){
-    return etImportEventTable(as<List>(input[0]));
+    return etImportEventTable(as<List>(input[0]), true);
   }
   stop(_("cannot figure out what type of 'EventTable' you are trying to create"));
   // Should never get here...

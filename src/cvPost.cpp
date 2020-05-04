@@ -43,6 +43,8 @@ using namespace arma;
 #include "../inst/include/RxODE_as.h"
 bool rxIs(const RObject &obj, std::string cls);
 
+LogicalVector rxSolveFree();
+
 arma::mat rwish5(double nu, int p){
   // GetRNGstate();
   arma::mat Z(p,p, fill::zeros);
@@ -696,6 +698,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     rxModelsAssign(".theta", R_NilValue);
     rxModelsAssign(".nestInfo", R_NilValue);
   } else {
+    rxSolveFree();
     stop(_("'omega' needs to be a matrix or lotri matrix"));
   }
   SEXP aboveSEXP, belowSEXP;
@@ -706,6 +709,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
   CharacterVector allNames;
   std::string methodStr;
   int methodInt = 1;
+  List mv = rxModelVars_(objectS);
   if (!Rf_isNull(omegaS)) {
     // At this point omegaLotri is a lotri matrix, so you can see if you
     // can skip getting the nesting information when there isn't any
@@ -729,14 +733,15 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       rxModelsAssign(".nestInfo", R_NilValue);
       IntegerVector idIV =  as<IntegerVector>(ni["id"]);//length(levels(.ni$id))
       nid = Rf_length(Rf_getAttrib(idIV, R_LevelsSymbol));
-      if (nSub <= 1) {
+      if (nid <= 1){
+      } else if (nSub <= 1) {
 	control[Rxc_nSub] = nid;
       } else if (nSub != nid) {
+	rxSolveFree();
 	stop(_("provided multi-subject data (n=%d) trying to simulate a different number of subjects (n=%d)"),
 	     nid, nSub);
       }
       RObject objectRO = as<RObject>(objectS);
-      List mv = rxModelVars_(objectS);
       IntegerVector flags = as<IntegerVector>(mv[RxMv_flags]);
       int cureta = flags[RxMvFlag_maxeta]+1;
       int curtheta = flags[RxMvFlag_maxtheta]+1;
@@ -757,12 +762,23 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       aboveSEXP = R_NilValue;
       belowSEXP = omegaS;
       lotriBelow = omegaLotri;
-      // List events = etTrans(as<List>(eventsS), obj, rxSolveDat->hasCmt,
-      // 			    false, false, true, R_NilValue,
-      // 			    control[Rxc_keepF]);
-      
-      // if (nSub <= 1) {
-      // }
+      SEXP events = etTrans(as<List>(eventsS), objectS,
+			    (INTEGER(mv[RxMv_flags])[RxMvFlag_hasCmt] == 1),
+      			    false, false, true, R_NilValue,
+      			    control[Rxc_keepF]);
+      rxModelsAssign(".nestEvents", events);
+      RObject cls = Rf_getAttrib(events, R_ClassSymbol);
+      List rxLst = cls.attr(".RxODE.lst");
+      rxLst.attr("class") = R_NilValue;
+      nid = rxLst[RxTrans_nid];
+      if (nid <= 1) {
+      } else if (nSub <= 1) {
+	nSub = nid;
+      } else if (nSub != nid) {
+	rxSolveFree();
+	stop(_("provided multi-subject data (n=%d) trying to simulate a different number of subjects (n=%d)"),
+	     nid, nSub);
+      }
       rxModelsAssign(".nestEta",    R_NilValue);
       rxModelsAssign(".nestTheta",  R_NilValue);
     }
@@ -890,6 +906,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
   } else if (isLotri(sigmaS)) {
     sigmaLotri = sigmaS;
   } else if (!Rf_isNull(sigmaS)){
+    rxSolveFree();
     stop(_("'sigma' needs to be a matrix or lotri matrix"));
   }
   if (!Rf_isNull(sigmaS)) {
@@ -1009,6 +1026,7 @@ SEXP nestingInfoSingle_(SEXP col, IntegerVector id) {
     Rf_setAttrib(f2, Rf_install("nu"), wrap(IntegerVector::create(l1)));
     return f2;
   } else {
+    rxSolveFree();
     stop(_("un-handled nesting information"));
   }
 }
@@ -1030,6 +1048,7 @@ SEXP nestingInfo_(SEXP omega, List data) {
     }
   }
   if (wid == -1){
+    rxSolveFree();
     stop(_("cannot find 'id' column in dataset"));
   }
   SEXP idS = data[wid];
@@ -1042,6 +1061,7 @@ SEXP nestingInfo_(SEXP omega, List data) {
     lotriOmega = asLotriMat(omega, R_NilValue,
 			    wrap(CharacterVector::create(idName)));
   } else {
+    rxSolveFree();
     stop(_("'omega' must be a list/lotri/matrix"));
   }
   SEXP lvls = Rf_getAttrib(lotriOmega, R_NamesSymbol);
