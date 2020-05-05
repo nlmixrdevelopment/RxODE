@@ -2337,6 +2337,9 @@ static inline SEXP rxSolve_update(const RObject &object,
   if(e.exists(".omegaL")){
     _rxModels[".omegaL"] = as<List>(e[".omegaL"]);
   }
+  if(e.exists(".thetaL")){
+    _rxModels[".thetaL"] = as<List>(e[".thetaL"]);
+  }
   if(e.exists(".theta")){
     _rxModels[".theta"] = as<NumericMatrix>(e[".theta"]);
   }
@@ -3441,6 +3444,15 @@ static inline Environment rxSolve_genenv(const RObject &object,
     }
     _rxModels.remove(".sigma");
   }
+  if(_rxModels.exists(".thetaL")){
+    SEXP tmp = _rxModels[".thetaL"];
+    if (TYPEOF(tmp) == VECSXP && Rf_length(tmp) > 1) {
+      e[".thetaL"] = as<List>(tmp);
+    } else {
+      e[".thetaL"] = R_NilValue;
+    }
+    _rxModels.remove(".thetaL");
+  }
   if(_rxModels.exists(".omegaL")){
     SEXP tmp = _rxModels[".omegaL"];
     if (TYPEOF(tmp) == VECSXP && Rf_length(tmp) > 1) {
@@ -3458,6 +3470,20 @@ static inline Environment rxSolve_genenv(const RObject &object,
       e[".sigmaL"] = R_NilValue;
     }
     _rxModels.remove(".sigmaL");
+  }
+  if(_rxModels.exists(".nestEta")){
+    SEXP tmp = _rxModels[".nestEta"];
+    if (TYPEOF(tmp) == STRSXP) {
+      e[".nestEta"] = tmp;
+    }
+    _rxModels.remove(".nestEta");
+  }
+  if(_rxModels.exists(".nestTheta")){
+    SEXP tmp = _rxModels[".nestTheta"];
+    if (TYPEOF(tmp) == STRSXP) {
+      e[".nestTheta"] = tmp;
+    }
+    _rxModels.remove(".nestTheta");
   }
   e[".check.nrow"] = rx->nr;
   e[".check.ncol"] = dat.size();
@@ -4396,6 +4422,8 @@ RObject rxSolveGet_rxSolve(RObject &obj, std::string &sarg, LogicalVector &exact
     return e[".sigmaL"];
   } else if ((sarg == "omega.list" || sarg == "omegaList") && e.exists(".omegaL")){
     return e[".omegaL"];
+  } else if ((sarg == "theta.list" || sarg == "thetaList")) {
+    return e[".thetaL"];
   }
   // Now parameters
   List pars = clone(List(e[".params.dat"]));
@@ -4506,6 +4534,7 @@ CharacterVector rxSolveDollarNames(RObject obj){
   int nExtra = 6;
   if (e.exists(".theta")) nExtra++;
   if (e.exists(".sigmaL")) nExtra++;
+  if (e.exists(".thetaL")) nExtra++;
   if (e.exists(".omegaL")) nExtra++;
   
   List pars = List(e[".params.dat"]);
@@ -4544,6 +4573,7 @@ CharacterVector rxSolveDollarNames(RObject obj){
   ret[j++] = "rxode";
   if (e.exists(".theta")) ret[j++] = "thetaMat";
   if (e.exists(".sigmaL")) ret[j++] = "sigmaList";
+  if (e.exists(".thetaL")) ret[j++] = "thetaList";
   if (e.exists(".omegaL")) ret[j++] = "omegaList";
   return ret;
 }
