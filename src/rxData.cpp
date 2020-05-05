@@ -2034,6 +2034,29 @@ List getEtRxsolve(Environment e){
   return e[".et"];
 }
 
+inline void updateParNames0(CharacterVector &ret, Environment &e,
+			    const std::string& what){
+  if (e.exists(what)){
+    CharacterVector out = e[what];
+    CharacterVector in = out.names();
+    for (int i = ret.size(); i--;){
+      for (int j = in.size(); j--;){
+	if (as<std::string>(ret[i]) == as<std::string>(in[j])){
+	  ret[i] = out[j];
+	  break;
+	}
+      }
+    }
+  }
+}
+
+CharacterVector updateParNames(CharacterVector parNames, Environment e){
+  CharacterVector ret = parNames;
+  updateParNames0(ret, e, ".nestTheta");
+  updateParNames0(ret, e, ".nestEta");
+  return parNames;
+}
+
 // This updates the evironment post solve after running.  Defers some
 // computational cost until the rxSolve is looked at by the user.
 void updateSolveEnvPost(Environment e){
@@ -2084,12 +2107,14 @@ void updateSolveEnvPost(Environment e){
           j++;
         }
       }
+      prsn = updateParNames(prsn, e);
       prs.names() = prsn;
       e[".params.single"] = prs;
       List pd(prs.size());
       for (unsigned int j = prs.size();j--;){
 	pd[j] = NumericVector::create(prs[j]);
       }
+      print(prsn);
       pd.names() = prsn;
       pd.attr("class") = "data.frame";
       pd.attr("row.names") = IntegerVector::create(NA_INTEGER,-1);
@@ -2146,6 +2171,7 @@ void updateSolveEnvPost(Environment e){
           j++;
         }
       }
+      prsn = updateParNames(prsn, e);
       prsl.names() = prsn;
       prsl.attr("class") = "data.frame";
       prsl.attr("row.names") = IntegerVector::create(NA_INTEGER,-parsdf.nrow());
