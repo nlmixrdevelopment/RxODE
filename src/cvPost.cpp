@@ -520,8 +520,10 @@ SEXP expandTheta_(SEXP thetaS, SEXP thetaMatS,
   // thetaMat
   qassertS(thetaMatS, "M", "thetaMat");
   NumericMatrix thetaMat = as<NumericMatrix>(thetaMatS);
-  if (thetaMat.nrow() != thetaMat.ncol()){
-    stop(_("'thetaMat' must be a symmetric matrix"));
+  arma::mat tmpM = as<arma::mat>(thetaMat);
+  if (!tmpM.is_sympd()){
+    rxSolveFree();
+    stop(_("'thetaMat' must be a symmetric, positive definite matrix"));
   }
   CharacterVector thetaMatDimNames = as<CharacterVector>(as<List>(thetaMat.attr("dimnames"))[1]);
   qstrictS(as<SEXP>(thetaMatDimNames), "thetaMat dimnames");
@@ -685,6 +687,10 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     arma::mat omega = as<arma::mat>(omegaS);
     if (omegaIsChol) {
       omega = omega * omega.t();
+    }
+    if (!omega.is_sympd()){
+      rxSolveFree();
+      stop(_("'omega' must be symmetric, positive definite"));
     }
     SEXP omegaPre = PROTECT(wrap(omega)); pro++;
     Rf_setAttrib(omegaPre, R_DimNamesSymbol, as<SEXP>(dimnames));
@@ -894,6 +900,10 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     arma::mat sigma = as<arma::mat>(sigmaS);
     if (sigmaIsChol) {
       sigma = sigma * sigma.t();
+    }
+    if (!sigma.is_sympd()){
+      rxSolveFree();
+      stop(_("'sigma' must be symmetric, positive definite"));
     }
     // Convert to a lotri matrix
     SEXP sigmaPre = PROTECT(wrap(sigma)); pro++;
