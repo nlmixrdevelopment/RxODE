@@ -725,20 +725,14 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     if (omegaLotriNames.size() > 1) {
       List eventsL = as<List>(eventsS);
       CharacterVector eventNames = eventsL.names();
-      // int idI = -1;
-      // for (int i = eventNames.size(); i--;) {
-      // 	if (boost::iequals("id", as<std::string>(eventNames[i]))) {
-      // 	  idI = i;
-      // 	  break;
-      // 	}
-      // }
       ni = nestingInfo_(omegaLotri, eventsL);
       IntegerVector idIV =  as<IntegerVector>(ni["id"]);//length(levels(.ni$id))
       nid = Rf_length(Rf_getAttrib(idIV, R_LevelsSymbol));
       if (nid <= 1){
       } else if (nSub <= 1) {
-	control[Rxc_nSub] = nid;
-      } else if (nSub != nid) {
+	// control[Rxc_nSub] = nid;
+	nSub = nid;
+      } else if (nSub % nid != 0) {
 	rxSolveFree();
 	stop(_("provided multi-subject data (n=%d) trying to simulate a different number of subjects (n=%d)"),
 	     nid, nSub);
@@ -776,7 +770,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       if (nid <= 1) {
       } else if (nSub <= 1) {
 	nSub = nid;
-      } else if (nSub != nid) {
+      } else if (nSub % nid != 0) {
 	rxSolveFree();
 	stop(_("provided multi-subject data (n=%d) trying to simulate a different number of subjects (n=%d)"),
 	     nid, nSub);

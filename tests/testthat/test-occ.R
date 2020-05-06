@@ -96,6 +96,13 @@ rxPermissive({
                       Kin~0.01,
                       Kout~0.01,
                       EC50~0.01)
+
+    .ep <- RxODE:::.expandPars(mod, theta, ev,
+                       control=rxControl(thetaMat=thetaMat,omega=omega,
+                                         nSub=40, nStud=3))
+
+    expect_equal(length(.ep$KA), 120L)
+    expect_equal(length(unique(.ep$KA)), 3L)
     
     .ep <- RxODE:::.expandPars(mod, theta, ev,
                        control=rxControl(thetaMat=thetaMat,omega=omega,
@@ -104,7 +111,8 @@ rxPermissive({
     expect_equal(length(RxODE:::.rxModels[[".thetaL"]]), 3L)
     expect_equal(length(RxODE:::.rxModels[[".omegaL"]]), 3L)
     expect_equal(RxODE:::.rxModels[[".sigmaL"]], NULL)
-    expect_equal(length(.ep$KA), 3L)
+    expect_equal(length(.ep$KA), 60L)
+    expect_equal(length(unique(.ep$KA)), 3L)
     expect_true(any(names(.ep) == "eta.Cl"))
 
     .ep <- RxODE:::.expandPars(mod, theta, ev,

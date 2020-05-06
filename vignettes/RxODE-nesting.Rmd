@@ -132,4 +132,47 @@ s <- rxSolve(mod, theta, ev,
              thetaMat=tMat, omega=omega,
              sigma=sigma, sigmaDf=400,
              nStud=400)
+
+print(s)
 ```
+
+There are multiple investigators in a study; Each investigator has a
+number of individuals enrolled at their site. `RxODE` automatically
+determines the number of investigators and then will simulate an
+effect for each investigator. With the output, `inv.Cl(inv==1)` will
+be the `inv.Cl` for investigator 1, `inv.Cl(inv==2)` will be the
+`inv.Cl` for investigator 2, etc. 
+
+`inv.Cl(inv==1)`, `inv.Cl(inv==2)`, etc will be simulated for each
+study and then combined to form the between investigator
+variability. In equation form these represent the following:
+
+```{c}
+inv.Cl = (inv == 1) * `inv.Cl(inv==1)` + (inv == 2) * `inv.Cl(inv==2)`
+```
+
+If you look at the simulated parameters you can see `inv.Cl(inv==1)`
+and `inv.Cl(inv==2)` are in the `s$params`; They are the same for each
+study:
+
+```{r}
+print(head(s$params))
+```
+
+```{r}
+print(head(s$params %>% filter(sim.id == 2)))
+```
+
+For between eye variability and between occasion variability each
+individual simulates a number of variables that become the between eye
+and between occasion variability;  In the case of the eye:
+
+```{r}
+eye.Cl = (eye == 1) * `eye.Cl(eye==1)` + (eye == 2) * `eye.Cl(eye==2)`
+```
+
+So when you look the simulation each of these variables (ie
+`eye.Cl(eye==1)`, `eye.Cl(eye==2)`, etc) they change for each
+individual and when combined make the between eye variability or the
+between occasion variability that can be seen in some pharamcometric
+models.
