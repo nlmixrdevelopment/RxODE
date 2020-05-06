@@ -498,6 +498,12 @@ rxRmvn <- function(n, mu=NULL, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=F
   .Call(`_cbindOme`, et, mat, as.integer(n), PACKAGE='RxODE') # nolint
 }
 
-
+##' Cumulative distribution of standard normal
+##'
+##' @inheritParams stats::pnorm
+##' @return cumulative distribution of standard normal distribution
+##' @author Matthew Fidler
+##' @export
 phi <- function(q){
+  .Call(`_phi`, q, PACKAGE='RxODE');
 }

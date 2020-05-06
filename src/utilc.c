@@ -122,7 +122,7 @@ double phi(double q) {
   return 0.5*(1+erf(q)*M_SQRT1_2);
 }
 
-SEXP _phiS(SEXP q) {
+SEXP _phi(SEXP q) {
   int type = TYPEOF(q);
   SEXP ret;
   int pro = 0;

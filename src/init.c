@@ -242,6 +242,7 @@ double rxgamma(rx_solving_options_ind* ind, double shape, double rate);
 double rxbeta(rx_solving_options_ind* ind, double shape1, double shape2);
 double rxnormV(rx_solving_options_ind* ind, double mean, double sd);
 double phi(double q);
+SEXP _phi(SEXP q);
 
 
 void R_init_RxODE(DllInfo *info){
@@ -356,6 +357,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_expandPars_", (DL_FUNC) _RxODE_expandPars_, 4},
     {"_RxODE_convertId_", (DL_FUNC) _RxODE_convertId_, 1},
     {"_RxODE_nestingInfo_", (DL_FUNC) _RxODE_nestingInfo_, 2},
+    {"_phi", (DL_FUNC) _phi, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
