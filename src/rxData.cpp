@@ -2114,7 +2114,6 @@ void updateSolveEnvPost(Environment e){
       for (unsigned int j = prs.size();j--;){
 	pd[j] = NumericVector::create(prs[j]);
       }
-      print(prsn);
       pd.names() = prsn;
       pd.attr("class") = "data.frame";
       pd.attr("row.names") = IntegerVector::create(NA_INTEGER,-1);
