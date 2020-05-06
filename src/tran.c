@@ -2672,8 +2672,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(names,8,mkChar(\"sens\"));\n", 44);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  8,sens);\n", 34);
   
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,9,mkChar(\"state.ignore\"));\n", 53);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  9,stateRmS);\n", 39);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,9,mkChar(\"state.ignore\"));\n", 52);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  9,stateRmS);\n", 38);
   
   sAppendN(&sbOut, "    SET_STRING_ELT(names,10,mkChar(\"version\"));\n", 48);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  10,version);\n", 38);
@@ -2713,7 +2713,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(names,20,mkChar(\"md5\"));\n", 43);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  20,mmd5);\n", 34);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,18,mkChar(\"flags\"));\n", 47);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,18,mkChar(\"flags\"));\n", 46);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  18,sLinCmt);\n", 38);
 
   // const char *rxVersion(const char *what)
