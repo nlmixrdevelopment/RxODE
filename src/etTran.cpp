@@ -1907,7 +1907,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   e[RxTrans_allBolus] = allBolus;
   e[RxTrans_allInf] = allInf;
   e[RxTrans_mxCmt] = mxCmt;
-  e[RxTrans_lib_name] = trans[RxMvTrans_lib_name];
+  e[RxTrans_lib_name] = trans["lib.name"]; // FIXME
   e[RxTrans_addCmt] = addCmt;
   e[RxTrans_cmtInfo] = cmtInfo;
   if (redoId){
