@@ -702,6 +702,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     rxModelsAssign(".nestInfo", R_NilValue);
   } else {
     rxSolveFree();
+    UNPROTECT(pro);
     stop(_("'omega' needs to be a matrix or lotri matrix"));
   }
   SEXP aboveSEXP, belowSEXP;
@@ -734,6 +735,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
 	nSub = nid;
       } else if (nSub % nid != 0) {
 	rxSolveFree();
+	UNPROTECT(pro);
 	stop(_("provided multi-subject data (n=%d) trying to simulate a different number of subjects (n=%d)"),
 	     nid, nSub);
       }
@@ -772,6 +774,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
 	nSub = nid;
       } else if (nSub % nid != 0) {
 	rxSolveFree();
+	UNPROTECT(pro);
 	stop(_("provided multi-subject data (n=%d) trying to simulate a different number of subjects (n=%d)"),
 	     nid, nSub);
       }
@@ -902,6 +905,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     sigmaLotri = sigmaS;
   } else if (!Rf_isNull(sigmaS)){
     rxSolveFree();
+    UNPROTECT(pro);
     stop(_("'sigma' needs to be a matrix or lotri matrix"));
   }
   if (!Rf_isNull(sigmaS)) {
@@ -1048,6 +1052,7 @@ SEXP nestingInfo_(SEXP omega, List data) {
   }
   if (wid == -1){
     rxSolveFree();
+    UNPROTECT(pro);
     stop(_("cannot find 'id' column in dataset"));
   }
   SEXP idS = PROTECT(data[wid]); pro++;
