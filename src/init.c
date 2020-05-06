@@ -241,6 +241,7 @@ double rxweibull(rx_solving_options_ind* ind, double shape, double scale);
 double rxgamma(rx_solving_options_ind* ind, double shape, double rate);
 double rxbeta(rx_solving_options_ind* ind, double shape1, double shape2);
 double rxnormV(rx_solving_options_ind* ind, double mean, double sd);
+double phi(double q);
 
 
 void R_init_RxODE(DllInfo *info){
@@ -358,6 +359,7 @@ void R_init_RxODE(DllInfo *info){
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
+  R_RegisterCCallable("RxODE", "phi", (DL_FUNC) phi);
   R_RegisterCCallable("RxODE", "rxnormV", (DL_FUNC) rxnormV);
   R_RegisterCCallable("RxODE", "rxgamma", (DL_FUNC) rxgamma);
   R_RegisterCCallable("RxODE", "rxbeta", (DL_FUNC) rxbeta);

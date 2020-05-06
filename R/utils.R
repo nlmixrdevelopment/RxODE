@@ -497,3 +497,7 @@ rxRmvn <- function(n, mu=NULL, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=F
 .cbindOme <- function(et, mat, n) {
   .Call(`_cbindOme`, et, mat, as.integer(n), PACKAGE='RxODE') # nolint
 }
+
+
+phi <- function(q){
+}

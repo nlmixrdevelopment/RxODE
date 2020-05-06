@@ -117,3 +117,34 @@ SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_) {
   UNPROTECT(pro);
   return ret;
 }
+
+double phi(double q) {
+  return 0.5*(1+erf(q)*M_SQRT1_2);
+}
+
+SEXP _phiS(SEXP q) {
+  int type = TYPEOF(q);
+  SEXP ret;
+  int pro = 0;
+  if (type == REALSXP) {
+    int len = Rf_length(q);
+    ret= PROTECT(Rf_allocVector(REALSXP, len));pro++;
+    double *retD = REAL(ret);
+    double *inD = REAL(q);
+    for (int j = len; j--;){
+      retD[j] = phi(inD[j]);
+    }
+  } else if (type == INTSXP){
+    int len = Rf_length(q);
+    ret= PROTECT(Rf_allocVector(REALSXP, len));pro++;
+    double *retD = REAL(ret);
+    int *inD = INTEGER(q);
+    for (int j = len; j--;){
+      retD[j] = phi((double)(inD[j]));
+    }
+  } else {
+    error(_("'phi' requires numeric values"));
+  }
+  UNPROTECT(pro);
+  return ret;
+}

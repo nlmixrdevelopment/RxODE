@@ -1237,218 +1237,219 @@ rxCompile.rxModelVars <-  function(model, # Model
                                    modName = NULL,  # Model Name
                                    package=NULL,
                                    ...){
-    assignInMyNamespace(".pkg",package);
-    ## rxCompile returns the DLL name that was created.
-    model <- rxGetModel(model);
+  assignInMyNamespace(".pkg",package);
+  ## rxCompile returns the DLL name that was created.
+  model <- rxGetModel(model);
 
-    if (is.null(prefix)){
-        prefix <- .rxPre(model, modName);
-    }
-    if (is.null(dir)){
-        if (RxODE.tempfiles){
-            .dir <- file.path(rxTempDir(), paste0(prefix, ".rxd"))
-        } else {
-            .dir <- getwd();
-        }
+  if (is.null(prefix)){
+    prefix <- .rxPre(model, modName);
+  }
+  if (is.null(dir)){
+    if (RxODE.tempfiles){
+      .dir <- file.path(rxTempDir(), paste0(prefix, ".rxd"))
     } else {
-        .dir <- dir;
+      .dir <- getwd();
     }
-    .dir <- suppressMessages(.normalizePath(.dir, mustWork=FALSE));
-    if (!file.exists(.dir))
-        dir.create(.dir, recursive = TRUE)
+  } else {
+    .dir <- dir;
+  }
+  .dir <- suppressMessages(.normalizePath(.dir, mustWork=FALSE));
+  if (!file.exists(.dir))
+    dir.create(.dir, recursive = TRUE)
 
-    .cFile <- file.path(.dir, sprintf("%s.c", substr(prefix, 0, nchar(prefix)-1)));
-    .cDllFile <- file.path(.dir, sprintf("%s%s", substr(prefix, 0, nchar(prefix)-1), .Platform$dynlib.ext));
-    .allModVars <- NULL;
-    .needCompile <- TRUE
-    if (file.exists(.cDllFile)){
-        .modVars <- sprintf("%smodel_vars", prefix);
-        if (!missing(prefix) && !missing(dir) &&
-            regexpr(rex::rex(start,"rx_", n_times(any,32),or("_x64","_i386","_", "")),
-                    prefix) == -1 &&
-            is.loaded(.modVars)){
-            dyn.unload(.cDllFile)
-            unlink(.cFile)
-            unlink(.cDllFile)
+  .cFile <- file.path(.dir, sprintf("%s.c", substr(prefix, 0, nchar(prefix)-1)));
+  .cDllFile <- file.path(.dir, sprintf("%s%s", substr(prefix, 0, nchar(prefix)-1), .Platform$dynlib.ext));
+  .allModVars <- NULL;
+  .needCompile <- TRUE
+  if (file.exists(.cDllFile)){
+    .modVars <- sprintf("%smodel_vars", prefix);
+    if (!missing(prefix) && !missing(dir) &&
+        regexpr(rex::rex(start,"rx_", n_times(any,32),or("_x64","_i386","_", "")),
+                prefix) == -1 &&
+        is.loaded(.modVars)){
+      dyn.unload(.cDllFile)
+      unlink(.cFile)
+      unlink(.cDllFile)
+    } else {
+      try(dynLoad(.cDllFile), silent = TRUE);
+      if (is.loaded(.modVars)) {
+        .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)
+        .modVars <- .allModVars$md5;
+        if (!any(names(.modVars) == "file_md5")){
+          .needCompile <- FALSE
         } else {
-            try(dynLoad(.cDllFile), silent = TRUE);
-            if (is.loaded(.modVars)) {
-                .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)
-                .modVars <- .allModVars$md5;
-                if (!any(names(.modVars) == "file_md5")){
-                    .needCompile <- FALSE
-                } else {
-                    .needCompile <- FALSE;
-                }
-            } else {
-                .needCompile <- FALSE;
-            }
+          .needCompile <- FALSE;
         }
+      } else {
+        .needCompile <- FALSE;
+      }
     }
-    if (force || .needCompile){
-        .lock  <- paste0(.cFile,".lock");
-        if (file.exists(.lock)){
-            message("RxODE already building model, waiting for lock file removal");
-            message(sprintf("lock file: \"%s\"",.lock));
-            while (file.exists(.lock)){
-                Sys.sleep(0.5);
-                message(".",appendLF=FALSE)
-            }
-            message("");
-            if (!(file.exists(.cDllFile))){
-                stop("error building model on another thread");
-            }
+  }
+  if (force || .needCompile){
+    .lock  <- paste0(.cFile,".lock");
+    if (file.exists(.lock)){
+      message("RxODE already building model, waiting for lock file removal");
+      message(sprintf("lock file: \"%s\"",.lock));
+      while (file.exists(.lock)){
+        Sys.sleep(0.5);
+        message(".",appendLF=FALSE)
+      }
+      message("");
+      if (!(file.exists(.cDllFile))){
+        stop("error building model on another thread");
+      }
+    } else {
+      sink(.lock);cat("\n");sink();
+      on.exit({unlink(.lock)},add=TRUE);
+      .Makevars <- .normalizePath(file.path(.dir, "Makevars"));
+      if (file.exists(.Makevars)){
+        .firstMake <- readLines(.Makevars, 1);
+        if (length(.firstMake) == 0){
+          unlink(.Makevars)
+        } else if ("#RxODE Makevars" == .firstMake){
+          unlink(.Makevars)
         } else {
-            sink(.lock);cat("\n");sink();
-            on.exit({unlink(.lock)},add=TRUE);
-            .Makevars <- .normalizePath(file.path(.dir, "Makevars"));
-            if (file.exists(.Makevars)){
-                .firstMake <- readLines(.Makevars, 1);
-                if (length(.firstMake) == 0){
-                    unlink(.Makevars)
-                } else if ("#RxODE Makevars" == .firstMake){
-                    unlink(.Makevars)
-                } else {
-                    file.rename(.Makevars, paste0(.Makevars, ".bakrx"));
-                }
-            }
-            .trans <- model
-            if (file.exists(.cDllFile)){
-                if (inherits(.modVars, "list")){
-                    if (.modVars["parsed_md5"] == .trans["parsed_md5"]){
-                        message("do not need to recompile, minimal change to model detected");
-                        .needCompile <- FALSE;
-                    }
-                }
-            }
-            if (force || .needCompile){
-                ## Setup Makevars
-                .owd <- getwd();
-                on.exit(setwd(.owd), add=TRUE);
-                ## Now create C file
-                .mv <- model;
-                .j <- 0;
-                .i <- 0;
-                if (length(.mv$ini) > 0){
-                    .fixInis <- c(sprintf("double _theta[%d];", length(.mv$params)),
-                                  paste(sapply(.mv$params, function(x){
-                                      if (!is.na(.mv$ini[x])){
-                                          ret <- sprintf("_theta[%d] = %.16f;", .i, as.vector(.mv$ini[x]));
-                                          .i <<- .i + 1;
-                                          return(ret)
-                                      } else {
-                                          ret <- sprintf("_theta[%d] = theta[%d];", .i, .j);
-                                          .i <<- .i + 1;
-                                          .j <<- .j + 1;
-                                          return(ret);
-                                      }
-                                  }), collapse=" "))
-                } else {
-                    .fixInis <- c(sprintf("double _theta[%d];",length(.mv$params)),
-                                  ifelse(length(.mv$params)==0,
-                                         "",
-                                         paste(paste0("_theta[",seq_along(.mv$params)-1,"] = theta[",
-                                                      seq_along(.mv$params)-1,"];"),collapse="\n")));
-                }
-                .trans <- c(.mv$trans, .mv$md5);
-                .trans["fix_inis"] <- .fixInis[2];
-                ## Load model into memory if needed
-                if (.Call(`_RxODE_codeLoaded`) == 0L) .rxModelVarsCharacter(setNames(.mv$model,NULL));
-                .prefix2 <- .rxModelVarsCCache[[3]];
-                ## SEXP pMd5, SEXP timeId, SEXP fixInis
-                .newMod  <- FALSE;
-                if (!is.null(modName)){
-                    .newMod <- regexpr("_new",modName) != -1
-                }
-                if (!is.null(package) & !.newMod){
-                    .libname  <- c(package, gsub(.Platform$dynlib.ext, "", basename(.cDllFile)));
-                    .Call(`_RxODE_codegen`, .cFile, prefix, .libname,
-                      .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"])), .fixInis)
-                } else {
-                    .libname  <- gsub(.Platform$dynlib.ext, "", basename(.cDllFile));
-                    .libname  <- c(.libname, .libname)
-                    .Call(`_RxODE_codegen`, .cFile, prefix, .libname,
-                      .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"])), .fixInis)
-                }
-                .defs <- ""
-                .ret <- sprintf("#RxODE Makevars\nPKG_CFLAGS=-O%s %s -I\"%s\"\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)\n",
-                                getOption("RxODE.compile.O", "2"),
-                                .defs, .normalizePath(system.file("include", package="RxODE")));
-                ## .ret <- paste(.ret, "-g");
-                sink(.Makevars);
-                cat(.ret);
-                sink();
-                sink(.normalizePath(file.path(.dir, "extraC.h")));
-                cat(.extraCnow);
-                sink()
-                ## Change working directory
-                setwd(.dir);
-                try(dyn.unload(.cDllFile), silent = TRUE);
-                try(unlink(.cDllFile));
-                .cmd <- file.path(R.home("bin"), "R");
-                RxODE::rxReq("sys");
-                .args <- c("CMD", "SHLIB", basename(.cFile));
-                .rxBinpref <- Sys.getenv("rxBINPREF");
-                if (.rxBinpref != ""){
-                    .oldBinpref <- Sys.getenv("BINPREF");
-                    Sys.setenv("BINPREF"=.rxBinpref);
-                    on.exit(Sys.setenv("BINPREF"=.oldBinpref), add=TRUE);
-                }
+          file.rename(.Makevars, paste0(.Makevars, ".bakrx"));
+        }
+      }
+      .trans <- model
+      if (file.exists(.cDllFile)){
+        if (inherits(.modVars, "list")){
+          if (.modVars["parsed_md5"] == .trans["parsed_md5"]){
+            message("do not need to recompile, minimal change to model detected");
+            .needCompile <- FALSE;
+          }
+        }
+      }
+      if (force || .needCompile){
+        ## Setup Makevars
+        .owd <- getwd();
+        on.exit(setwd(.owd), add=TRUE);
+        ## Now create C file
+        .mv <- model;
+        .j <- 0;
+        .i <- 0;
+        if (length(.mv$ini) > 0){
+          .fixInis <- c(sprintf("double _theta[%d];", length(.mv$params)),
+                        paste(sapply(.mv$params, function(x){
+                          if (!is.na(.mv$ini[x])){
+                            ret <- sprintf("_theta[%d] = %.16f;", .i, as.vector(.mv$ini[x]));
+                            .i <<- .i + 1;
+                            return(ret)
+                          } else {
+                            ret <- sprintf("_theta[%d] = theta[%d];", .i, .j);
+                            .i <<- .i + 1;
+                            .j <<- .j + 1;
+                            return(ret);
+                          }
+                        }), collapse=" "))
+        } else {
+          .fixInis <- c(sprintf("double _theta[%d];",length(.mv$params)),
+                        ifelse(length(.mv$params)==0,
+                               "",
+                               paste(paste0("_theta[",seq_along(.mv$params)-1,"] = theta[",
+                                            seq_along(.mv$params)-1,"];"),collapse="\n")));
+        }
+        .trans <- c(.mv$trans, .mv$md5);
+        .trans["fix_inis"] <- .fixInis[2];
+        ## Load model into memory if needed
+        if (.Call(`_RxODE_codeLoaded`) == 0L) .rxModelVarsCharacter(setNames(.mv$model,NULL));
+        .prefix2 <- .rxModelVarsCCache[[3]];
+        ## SEXP pMd5, SEXP timeId, SEXP fixInis
+        .newMod  <- FALSE;
+        if (!is.null(modName)){
+          .newMod <- regexpr("_new",modName) != -1
+        }
+        if (!is.null(package) & !.newMod){
+          .libname  <- c(package, gsub(.Platform$dynlib.ext, "", basename(.cDllFile)));
+          .Call(`_RxODE_codegen`, .cFile, prefix, .libname,
+                .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"])), .fixInis)
+        } else {
+          .libname  <- gsub(.Platform$dynlib.ext, "", basename(.cDllFile));
+          .libname  <- c(.libname, .libname)
+          .Call(`_RxODE_codegen`, .cFile, prefix, .libname,
+                .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"])), .fixInis)
+        }
+        .defs <- ""
+        .ret <- sprintf("#RxODE Makevars\nPKG_CFLAGS=-O%s %s -I\"%s\"\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)\n",
+                        getOption("RxODE.compile.O", "2"),
+                        .defs, .normalizePath(system.file("include", package="RxODE")));
+        ## .ret <- paste(.ret, "-g");
+        sink(.Makevars);
+        cat(.ret);
+        sink();
+        sink(.normalizePath(file.path(.dir, "extraC.h")));
+        cat(.extraCnow);
+        sink()
+        ## Change working directory
+        setwd(.dir);
+        try(dyn.unload(.cDllFile), silent = TRUE);
+        try(unlink(.cDllFile));
+        .cmd <- file.path(R.home("bin"), "R");
+        RxODE::rxReq("sys");
+        .args <- c("CMD", "SHLIB", basename(.cFile));
+        .rxBinpref <- Sys.getenv("rxBINPREF");
+        if (.rxBinpref != ""){
+          .oldBinpref <- Sys.getenv("BINPREF");
+          Sys.setenv("BINPREF"=.rxBinpref);
+          on.exit(Sys.setenv("BINPREF"=.oldBinpref), add=TRUE);
+        }
 
-                .out <- sys::exec_internal(cmd = .cmd, args = .args, error=FALSE);
-                .badBuild <- function(msg, cSrc=TRUE){
-                    message(msg);
-                    cli::rule(left="stdout output");
-                    message(paste(rawToChar(.out$stdout),sep="\n"))
-                    cli::rule(left="stderr output");
-                    message(paste(rawToChar(.out$stderr),sep="\n"))
-                    if (cSrc){
-                        cli::rule(left="c source");
-                        message(paste(readLines(.cFile),collapse="\n"))
-                    } else {
-                        dyn.load(.cDllFile);
-                    }
-                    stop(msg, call.=FALSE);
-                }
-                if (!(.out$status==0 & file.exists(.cDllFile))){
-                    .badBuild("Error building model");
-                }
-            }
+        .out <- sys::exec_internal(cmd = .cmd, args = .args, error=FALSE);
+        ## message(paste(rawToChar(.out$stderr),sep="\n"))
+        .badBuild <- function(msg, cSrc=TRUE){
+          message(msg);
+          cli::rule(left="stdout output");
+          message(paste(rawToChar(.out$stdout),sep="\n"))
+          cli::rule(left="stderr output");
+          message(paste(rawToChar(.out$stderr),sep="\n"))
+          if (cSrc){
+            cli::rule(left="c source");
+            message(paste(readLines(.cFile),collapse="\n"))
+          } else {
+            dyn.load(.cDllFile);
+          }
+          stop(msg, call.=FALSE);
         }
-        .tmp  <- try(dynLoad(.cDllFile), silent=TRUE);
-        if (inherits(.tmp, "try-error")){
-            ## Try unloading RxODE dlls now...
-            rxUnloadAll();
-            .tmp  <- try(dynLoad(.cDllFile), silent=TRUE);
-            if (inherits(.tmp, "try-error")){
-                .badBuild("Error loading model (though dll exists)", cSrc=FALSE);
-            } else {
-                warning("unloaded all RxODE dlls before loading the current DLL.")
-            }
+        if (!(.out$status==0 & file.exists(.cDllFile))){
+          .badBuild("Error building model");
         }
-        .modVars <- sprintf("%smodel_vars", prefix);
-        if (is.loaded(.modVars)){
-            .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)
-        } else {
-            .badBuild("Error, model doesn't have correct model variables.");
-        }
+      }
     }
-    .call <- function(...){return(.Call(...))};
-    .args <- list(model = model, dir = .dir, prefix = prefix,
-                  force = force, modName = modName,
-                 ...);
-    if (is.null(.allModVars)){
-        stop("something went wrong in compilation");
+    .tmp  <- try(dynLoad(.cDllFile), silent=TRUE);
+    if (inherits(.tmp, "try-error")){
+      ## Try unloading RxODE dlls now...
+      rxUnloadAll();
+      .tmp  <- try(dynLoad(.cDllFile), silent=TRUE);
+      if (inherits(.tmp, "try-error")){
+        .badBuild("Error loading model (though dll exists)", cSrc=FALSE);
+      } else {
+        warning("unloaded all RxODE dlls before loading the current DLL.")
+      }
     }
-    assign(.cDllFile, 0L, envir=.rxModels); ## Loaded model.
-    ret <- suppressWarnings({list(dll     = .cDllFile,
-                                  c       = .cFile,
-                                  model   = .allModVars$model["normModel"],
-                                  modVars = .allModVars,
-                                  .call   = .call,
-                                  args    = .args)});
-    class(ret) <- "rxDll";
-    return(ret);
+    .modVars <- sprintf("%smodel_vars", prefix);
+    if (is.loaded(.modVars)){
+      .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)
+    } else {
+      .badBuild("Error, model doesn't have correct model variables.");
+    }
+  }
+  .call <- function(...){return(.Call(...))};
+  .args <- list(model = model, dir = .dir, prefix = prefix,
+                force = force, modName = modName,
+                ...);
+  if (is.null(.allModVars)){
+    stop("something went wrong in compilation");
+  }
+  assign(.cDllFile, 0L, envir=.rxModels); ## Loaded model.
+  ret <- suppressWarnings({list(dll     = .cDllFile,
+                                c       = .cFile,
+                                model   = .allModVars$model["normModel"],
+                                modVars = .allModVars,
+                                .call   = .call,
+                                args    = .args)});
+  class(ret) <- "rxDll";
+  return(ret);
 }
 
 ##' @rdname rxCompile

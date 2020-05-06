@@ -146,6 +146,7 @@ RxODEi_rxbinom rxbinom;
 RxODEi_fn2 rxcauchy;
 RxODEi_fn rxchisq;
 RxODEi_fn rxexp;
+RxODE_fn phi;
 RxODEi_fn2 rxf;
 RxODEi_ifn rxgeom;
 RxODEi_fn2 rxgamma;
@@ -174,7 +175,8 @@ void _assignFuns(){
     rxbinom = (RxODEi_rxbinom)R_GetCCallable("RxODE","rxbinom") ;
     rxcauchy = (RxODEi_fn2)R_GetCCallable("RxODE","rxcauchy") ;
     rxchisq = (RxODEi_fn)R_GetCCallable("RxODE","rxchisq") ;
-    rxexp = (RxODEi_fn)R_GetCCallable("RxODE","rxexp") ;
+    rxexp = (RxODEi_fn)R_GetCCallable("RxODE","rxexp");
+    phi = (RxODE_fn)R_GetCCallable("RxODE","phi");
     rxf = (RxODEi_fn2)R_GetCCallable("RxODE","rxf") ;
     rxgeom = (RxODEi_ifn)R_GetCCallable("RxODE","rxgeom") ;
     rxgamma = (RxODEi_fn2)R_GetCCallable("RxODE","rxgamma") ;

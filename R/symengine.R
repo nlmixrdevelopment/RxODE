@@ -4,6 +4,7 @@ regEnd <- rex::rex(start, any_spaces, "}", any_spaces, end);
 regIfOrElse <- rex::rex(or(regIf, regElse))
 
 ## first.arg second.arg and type of function
+## RxODE->symengine
 .rxSEsingle <- list("gammafn"=c("gamma(", ")", "gamma"),
                     "lgammafn"=c("lgamma(", ")", "lgamma"),
                     "lgamma"=c("lgamma(", ")", "lgamma"),
@@ -24,7 +25,8 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
                     "log10"=c("log(", ")/log(10)", "log"),
                     "log2"=c("log(", ")/log(2)", "log"),
                     "log1pexp"=c("log(1+exp(", "))", "log1pexp"),
-                    "!"=c("rxNot(", ")", "")
+                    "!"=c("rxNot(", ")", ""),
+                    "phi"=c("0.5*(1+erf((",")/sqrt(2)))")
                     )
 
 .SEsingle <- list("rxNot"=c("(!(", "))"),
