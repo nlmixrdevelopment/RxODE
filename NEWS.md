@@ -17,7 +17,7 @@
   
   * A backward-compatible simulation can be used by `rxSolve(...,
     mvnfast=TRUE)` (but of course requires the `mvnfast` package
-    installed)
+    installed);  NEED TO CHECK;  Is this worthwhile?
 
 * `RxODE` now moved the precise sum/product type optionsfor `sum()`
   and `prod()` to `rxSolve` o `rxControl`
@@ -194,6 +194,9 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   - `rxt()`
   - `rxunif()`
   - `rxweibull()`
+  
+* Now have a method to use `lotri` to simulate between occasion
+  variability and other levels of nesting.
   
 * Updated to [TimSort 1.2.0](https://github.com/timsort/cpp-TimSort/releases/tag/v1.2.0)
 
