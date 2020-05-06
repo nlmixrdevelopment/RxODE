@@ -2430,6 +2430,7 @@ SEXP rxParamNames(char *ptr);
 
 extern double *rxGetErrs();
 extern int rxGetErrsNcol();
+extern int rxGetErrsNrow();
 
 extern double get_ikeep(int col, int id);
 extern const SEXP get_ikeepn();
@@ -2450,6 +2451,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int nsim = rx->nsim;
   int nall = rx->nall - rx->nevid9;
   int errNcol = rxGetErrsNcol();
+  int errNrow = rxGetErrsNrow();
   if (op->nsvar != errNcol){
     rxSolveFreeC();
     error("The simulated residual errors do not match the model specification (%d=%d)",op->nsvar, errNcol);
@@ -2641,7 +2643,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 	if (isDose(evid)) ind->tlast = getTime(ind->ix[i], ind);
         if (updateErr){
           for (j=0; j < errNcol; j++){
-	    par_ptr[svar[j]] = errs[rx->nr*j+kk];
+	    par_ptr[svar[j]] = errs[errNrow*j+kk];
           }
 	  if ( (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0) || doDose){
 	    // Only incerement if this is an observation or of this a

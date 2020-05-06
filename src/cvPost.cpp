@@ -714,6 +714,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
   std::string methodStr;
   int methodInt = 1;
   List mv = rxModelVars_(objectS);
+  SEXP events = R_NilValue;
   if (!Rf_isNull(omegaS)) {
     // At this point omegaLotri is a lotri matrix, so you can see if you
     // can skip getting the nesting information when there isn't any
@@ -752,6 +753,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
 					   as<SEXP>(IntegerVector::create(curtheta))));
       lotriAbove = lotriSepMat["above"];
       lotriBelow = lotriSepMat["below"];
+      events = ni["data"];
       rxModelsAssign(".nestObj",    en["mod"]);
       rxModelsAssign(".nestEvents", ni["data"]);
       rxModelsAssign(".nestTheta",  en["theta"]);
@@ -760,10 +762,10 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       aboveSEXP = R_NilValue;
       belowSEXP = omegaS;
       lotriBelow = omegaLotri;
-      SEXP events = PROTECT(etTrans(as<List>(eventsS), objectS,
-			    (INTEGER(mv[RxMv_flags])[RxMvFlag_hasCmt] == 1),
-      			    false, false, true, R_NilValue,
-				    control[Rxc_keepF])); pro++;
+      events = PROTECT(etTrans(as<List>(eventsS), objectS,
+			       (INTEGER(mv[RxMv_flags])[RxMvFlag_hasCmt] == 1),
+			       false, false, true, R_NilValue,
+			       control[Rxc_keepF])); pro++;
       rxModelsAssign(".nestEvents", events);
       RObject cls = Rf_getAttrib(events, R_ClassSymbol);
       List rxLst = cls.attr(".RxODE.lst");
@@ -919,7 +921,22 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
 				     LogicalVector::create(false),
 				     IntegerVector::create(methodInt),
 				     control[Rxc_omegaXform])); pro++;
-    int nobs =  Rf_length(VECTOR_ELT(eventsS, 0));
+    // To get the right number of sigma observations to match the potential request
+    // expand the events to the translated events
+    if (Rf_isNull(events)) {
+      events = PROTECT(etTrans(as<List>(eventsS), objectS,
+			       (INTEGER(mv[RxMv_flags])[RxMvFlag_hasCmt] == 1),
+			       false, false, true, R_NilValue,
+			       control[Rxc_keepF])); pro++;
+      rxModelsAssign(".nestEvents", events);
+    } else if (!rxIs(events, "rxEtTrans")){
+      events = PROTECT(etTrans(as<List>(events), objectS,
+			       (INTEGER(mv[RxMv_flags])[RxMvFlag_hasCmt] == 1),
+			       false, false, true, R_NilValue,
+			       control[Rxc_keepF])); pro++;
+      rxModelsAssign(".nestEvents", events);
+    }
+    int nobs =  Rf_length(VECTOR_ELT(events, 0));
     IntegerVector n2(1);
     if (nid == 1) {
       n2[0] = nobs*nSub;

@@ -1529,6 +1529,16 @@ extern "C" int rxGetErrsNcol(){
   return 0;
 }
 
+extern "C" int rxGetErrsNrow(){
+  getRxModels();
+  if (_rxModels.exists(".sigma")){
+    NumericMatrix sigma = _rxModels[".sigma"];
+    int ret = sigma.nrow();
+    return ret;
+  } 
+  return 0;
+}
+
 SEXP rxGetFromChar(char *ptr, std::string var){
   std::string str(ptr);
   // Rcout << str << "\n";
