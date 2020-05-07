@@ -20,13 +20,13 @@ lowergamma results
 This is the gamma_p_derivative from the boost library
 }
 \details{
-The lowergamma function is given by:
+
 }
 \examples{
 
-gammaDer(1:3,3)
+gammapDer(1:3,3)
 
-gammaDer(1,1:3)
+gammapDer(1,1:3)
 
 }
 \author{

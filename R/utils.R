@@ -672,8 +672,6 @@ lowergamma <- function(a, z){
 ##'   incomplete gamma
 ##'
 ##' @details
-##'
-##' The lowergamma function is given by:
 ##' 
 ##' @return lowergamma results
 ##' 
@@ -681,11 +679,109 @@ lowergamma <- function(a, z){
 ##' 
 ##' @examples
 ##' 
-##' gammaDer(1:3,3)
+##' gammapDer(1:3,3)
 ##' 
-##' gammaDer(1,1:3)
+##' gammapDer(1,1:3)
 ##' 
 ##' @export
 gammapDer <- function(a, z){
   .Call(`_gammapDer`, a, z, PACKAGE='RxODE')
+}
+
+##' gammaqInv and gammaqInva:  Inverses of normalized gammaq function
+##'
+##' @param a The numeric 'a' parameter in the upper
+##'   incomplete gamma
+##'
+##' @param x The numeric 'x' parameter in the upper incomplete gamma
+##' 
+##' @param q The numeric 'q' parameter in the upper
+##'   incomplete gamma
+##'
+##' @details
+##'
+##' With the equation:
+##'
+##' q = gammaq(a, x)
+##'
+##' The 'gammaqInv' function returns a value 'x' that satisfies the
+##' equation above
+##'
+##' The 'gammaqInva' function returns a value 'a' that satisfies the
+##' equation above
+##'
+##' NOTE: gammaqInva is slow
+##' 
+##' @return inverse gammaq results
+##' 
+##' @author Matthew L. Fidler
+##' 
+##' @examples
+##' 
+##' gammaqInv(1:3,0.5)
+##' 
+##' gammaqInv(1,1:3/3)
+##'
+##' gammaqInv(1:3,1:3/3.1)
+##'
+##' gammaqInva(1:3,1:3/3.1)
+##' 
+##' @export
+gammaqInv <- function(a, q){
+  .Call(`_gammaqInv`, a, q, PACKAGE='RxODE')
+}
+
+##'@rdname gammaqInv
+##'@export
+gammaqInva <- function(x, q){
+  .Call(`_gammaqInva`, x, q, PACKAGE='RxODE')
+}
+
+
+##' gammapInv and gammapInva:  Inverses of normalized gammap function
+##'
+##' @param a The numeric 'a' parameter in the upper
+##'   incomplete gamma
+##'
+##' @param x The numeric 'x' parameter in the upper incomplete gamma
+##' 
+##' @param p The numeric 'p' parameter in the upper incomplete gamma
+##'
+##' @details
+##'
+##' With the equation:
+##'
+##' p = gammap(a, x)
+##'
+##' The 'gammapInv' function returns a value 'x' that satisfies the
+##' equation above
+##'
+##' The 'gammapInva' function returns a value 'q' that satisfies the
+##' equation above
+##'
+##' NOTE: gammapInva is slow
+##' 
+##' @return inverse gammap results
+##' 
+##' @author Matthew L. Fidler
+##' 
+##' @examples
+##' 
+##' gammapInv(1:3,0.5)
+##' 
+##' gammapInv(1,1:3/3.1)
+##'
+##' gammapInv(1:3,1:3/3.1)
+##'
+##' gammapInva(1:3,1:3/3.1)
+##' 
+##' @export
+gammapInv <- function(a, p){
+  .Call(`_gammapInv`, a, p, PACKAGE='RxODE')
+}
+
+##'@rdname gammapInv
+##'@export
+gammapInva <- function(x, p){
+  .Call(`_gammapInva`, x, p, PACKAGE='RxODE')
 }
