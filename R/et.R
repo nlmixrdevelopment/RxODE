@@ -1122,35 +1122,21 @@ as.data.table.rxEt <- function (x, keep.rownames = FALSE, ...) {
 ##'
 ##' @param x RxODE event table
 ##'
-##' @param ... Other arguments to \code{as.tbl}
+##' @param ... Other arguments to \code{as_tibble}
 ##'
-##' @return tibble
-##'
-##' @export as_tibble.rxEt
-as_tibble.rxEt <- function(x, ...) {
-  rxReq("tibble");
-  if (rxIs(x, "rxEt")) {
-    .x <- x
-    .tmp <- .x[,.x$show,drop = FALSE]
-    class(.tmp) <- c("rxEt2", "data.frame")
-    return(tibble::as_tibble(.tmp, ...))
-  } else {
-    return(tibble::as_tibble(x, ...))
-  }
-}
-
-##'@rdname as_tibble.rxEt
-##'@export as.tbl.rxEt
-as.tbl.rxEt <- function(x, ...) {
-  rxReq("dplyr")
-  if (rxIs(x, "rxEt")) {
-    .x <- x
-    .tmp <- .x[,.x$show,drop = FALSE]
-    class(.tmp) <- c("rxEt2", "data.frame")
-    return(dplyr::as.tbl(.tmp, ...))
-  } else {
-    return(dplyr::as.tbl(x, ...))
-  }
+##' @return tibble of event table
+##' 
+##'@export as_tibble.rxEt
+as_tibble.rxEt <- function(x, ...){
+    rxReq("tibble");
+    if (rxIs(x, "rxEt")){
+        .x <- x
+        .tmp <- .x[,.x$show,drop = FALSE];
+        class(.tmp) <- c("rxEt2", "data.frame");
+        return(tibble::as_tibble(.tmp, ...))
+    } else {
+        return(tibble::as_tibble(x, ...))
+    }
 }
 
 ##' Check to see if this is an rxEt object.
