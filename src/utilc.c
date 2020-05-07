@@ -119,7 +119,7 @@ SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_) {
 }
 
 double phi(double q) {
-  return 0.5*(1+erf(q*M_SQRT1_2));
+  return pnorm(q, 0.0, 1.0, 1, 0);
 }
 
 SEXP _phi(SEXP q) {

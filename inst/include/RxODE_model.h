@@ -73,8 +73,13 @@
 #define rweibull(ind,x,y) rxweibull(ind,x,y)
 #define rxweibull1(x) rxweibull(&_solveData->subjects[_cSub],x,1.0)
 #define rweibull1(x) rxweibull(&_solveData->subjects[_cSub],x,1.0)
-#define _pnorm2(x, mu) phi((x)-(mu))
-#define _pnorm3(x, mu, sd) phi(((x)-(mu))/(sd))
+#define _pnorm1(x) pnorm(x, 0.0, 1.0, 1, 0)
+#define _pnorm2(x, mu) pnorm(x, mu, 1.0, 1, 0)
+#define _pnorm3(x, mu, sd) pnorm(x, mu, sd, 1, 0)
+#define _qnorm1(x) qnorm(x, 0.0, 1.0, 1, 0)
+#define _qnorm2(x, mu) qnorm(x, mu, 1.0, 1, 0)
+#define _qnorm3(x, mu, sd) qnorm(x, mu, sd, 1, 0)
+#define probit(x) qnorm(x, 0.0, 1.0, 1, 0)
 #undef rf
 #define rf(ind, x, y) rxf(ind, x, y)
 
