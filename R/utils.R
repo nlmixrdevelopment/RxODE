@@ -557,10 +557,107 @@ phi <- function(q){
 ##' @return gammap results
 ##' @author Matthew L. Fidler
 ##' @examples
+##' 
 ##' gammap(1,3)
 ##' gammap(1:3,3)
 ##' gammap(1,1:3)
+##' 
 ##' @export
 gammap <- function(a, z){
   .Call(`_gammap`, a, z, PACKAGE='RxODE')
+}
+
+##' Gammaq: normalized upper incomplete gamma function
+##'
+##' This is the gamma_q from the boost library
+##'
+##' @param a The numeric 'a' parameter in the normalized upper
+##'   incomplete gamma
+##' 
+##' @param z The numeric 'z' parameter in the normalized upper
+##'   incomplete gamma
+##'
+##' @details
+##'
+##' The gamma q function is given by:
+##'
+##' gammaq = uppergamma(a, z)/gamma(a)
+##' 
+##' @return gammaq results
+##' @author Matthew L. Fidler
+##' @examples
+##' 
+##' gammaq(1,3)
+##' gammaq(1:3,3)
+##' gammaq(1,1:3)
+##' 
+##' @export
+gammaq <- function(a, z){
+  .Call(`_gammaq`, a, z, PACKAGE='RxODE')
+}
+
+##' uppergamma:  upper incomplete gamma function
+##'
+##' This is the tgamma from the boost library
+##'
+##' @param a The numeric 'a' parameter in the upper
+##'   incomplete gamma
+##' 
+##' @param z The numeric 'z' parameter in the upper
+##'   incomplete gamma
+##'
+##' @details
+##'
+##' The uppergamma function is given by:
+##'
+##' uppergamma(a, z) = \int_{z}^{\infty}t^{a-1}\cdot e^{-t} dt
+##' 
+##' @return uppergamma results
+##' 
+##' @author Matthew L. Fidler
+##' 
+##' @examples
+##' 
+##' uppergamma(1,3)
+##' 
+##' uppergamma(1:3,3)
+##' 
+##' uppergamma(1,1:3)
+##' 
+##' @export
+uppergamma <- function(a, z){
+  .Call(`_uppergamma`, a, z, PACKAGE='RxODE')
+}
+
+##' lowergamma:  upper incomplete gamma function
+##'
+##' This is the tgamma_lower from the boost library
+##'
+##' @param a The numeric 'a' parameter in the upper
+##'   incomplete gamma
+##' 
+##' @param z The numeric 'z' parameter in the upper
+##'   incomplete gamma
+##'
+##' @details
+##'
+##' The lowergamma function is given by:
+##'
+##' lowergamma(a, z) = \int_{z}^{\infty}t^{a-1}\cdot e^{-t} dt
+##' 
+##' @return lowergamma results
+##' 
+##' @author Matthew L. Fidler
+##' 
+##' @examples
+##' 
+##' lowergamma(1,3)
+##' 
+##' lowergamma(1:3,3)
+##' 
+##' lowergamma(1,1:3)
+##' 
+##' @export
+lowergamma <- function(a, z){
+  .Call(`_lowergamma`, a, z, PACKAGE='RxODE')
 }

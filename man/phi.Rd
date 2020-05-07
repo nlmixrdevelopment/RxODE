@@ -15,6 +15,17 @@ cumulative distribution of standard normal distribution
 \description{
 Cumulative distribution of standard normal
 }
+\examples{
+
+# phi is equivalent to pnorm(x)
+phi(3)
+
+# See
+pnorm(3)
+
+# This is provided for NONMEM-like compatibility in RxODE models
+
+}
 \author{
 Matthew Fidler
 }

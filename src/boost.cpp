@@ -13,6 +13,10 @@ extern "C" double tgamma_lower(double a, double z) {
   return boost::math::tgamma_lower<double, double>(a, z);
 }
 
+extern "C" double tgamma_upper(double a, double z) {
+  return boost::math::tgamma<double, double>(a, z);
+}
+
 extern "C" double gamma_p_derivative(double a, double x) {
   return boost::math::gamma_p_derivative<double, double>(a, x);
 }
