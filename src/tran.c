@@ -1262,6 +1262,37 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  depth=1;
 	  Free(v);
 	  continue;
+	} else if (!strcmp("pnorm", v)){
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii == 1) {
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    int allSpace=allSpaces(v2);
+	    Free(v2);
+	    if (allSpace){
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"));
+	    } else {
+	      sAppendN(&sb,"phi(", 4);
+	      sAppendN(&sbDt,"phi(", 4);
+	      sAppendN(&sbt, "pnorm(", 6);
+	    }
+	  } else if (ii == 2) {
+	    sAppendN(&sb,"_pnorm2(", 8);
+	    sAppendN(&sbDt,"_pnorm2(", 8);
+	    sAppendN(&sbt, "pnorm(", 6);
+	  } else if (ii == 3) {
+	    sAppendN(&sb,"_pnorm3(", 8);
+	    sAppendN(&sbDt,"_pnorm3(", 8);
+	    sAppendN(&sbt, "pnorm(", 6);
+	  } else {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"));
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  Free(v);
+	  continue;
 	} else if (!strcmp("transit", v)) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 2){
