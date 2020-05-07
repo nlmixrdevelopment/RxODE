@@ -576,7 +576,6 @@ rxAllowUnload <- function(allow) {
     .Call(`_RxODE_rxAllowUnload`, allow)
 }
 
-#' @export
 rxUnloadAll_ <- function() {
     .Call(`_RxODE_rxUnloadAll_`)
 }

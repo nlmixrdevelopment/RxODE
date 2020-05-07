@@ -495,8 +495,8 @@ SEXP rxRmvnSEXP(SEXP nS, SEXP muS, SEXP sigmaS,
 
 //[[Rcpp::export]]
 SEXP expandTheta_(SEXP thetaS, SEXP thetaMatS,
-			      SEXP thetaLowerS, SEXP thetaUpperS,
-			      SEXP nStudS, SEXP nCoresRVS) {
+		  SEXP thetaLowerS, SEXP thetaUpperS,
+		  SEXP nStudS, SEXP nCoresRVS) {
   if (Rf_isNull(thetaS)) {
     if (!Rf_isNull(thetaMatS)){
       stop(_("'thetaMat' needs 'params' to be non-NULL"));

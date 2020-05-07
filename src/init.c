@@ -82,6 +82,8 @@ SEXP _RxODE_rxMvrandn_(SEXP, SEXP, SEXP, SEXP, SEXP,
 SEXP _RxODE_rxSolveDollarNames(SEXP);
 SEXP _RxODE_etDollarNames(SEXP);
 SEXP _RxODE_rxExpandNesting(SEXP, SEXP, SEXP);
+SEXP _RxODE_expandTheta_(SEXP, SEXP, SEXP, SEXP, SEXP,
+			 SEXP);
 
 SEXP _RxODE_rxRmvnSEXP(SEXP, SEXP, SEXP, SEXP, SEXP,
 		       SEXP, SEXP, SEXP, SEXP, SEXP,
@@ -358,6 +360,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_convertId_", (DL_FUNC) _RxODE_convertId_, 1},
     {"_RxODE_nestingInfo_", (DL_FUNC) _RxODE_nestingInfo_, 2},
     {"_phi", (DL_FUNC) _phi, 1},
+    {"_RxODE_expandTheta_", (DL_FUNC) _RxODE_expandTheta_, 6},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

@@ -147,7 +147,7 @@ ode.h <- function() {
 ##'
 ##' @export
 rxSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "c")) {
-  error("'rxSetSum' has been moved to rxSolve(...,sum=)");
+  stop("'rxSetSum' has been moved to rxSolve(...,sum=)");
 }
 
 ##' Defunct setting of product
@@ -156,7 +156,7 @@ rxSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "c")) {
 ##'
 ##' @export
 rxSetProd <- function(type=c("long double", "double", "logify")) {
-  error("'rxSetProd' has been moved to rxSolve(...,sum=)");
+  stop("'rxSetProd' has been moved to rxSolve(...,sum=)");
 }
 
 ##' Set timing for progress bar
@@ -337,7 +337,7 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
     .xform <- setNames(c("variance" = 6L, "log" = 5L,
                          "identity" = 4L, "nlmixrSqrt" = 1L,
                          "nlmixrLog" = 2L,
-                         "nlmixrIdentity" = 3L)[match.arg(omegaXform)],
+                         "nlmixrIdentity" = 3L)[match.arg(diagXformType)],
                        NULL)
   }
   .ret <- .Call(`_RxODE_cvPost_`, nu, omega, n,
@@ -374,6 +374,27 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##'
 ##' @param keepNames Keep the names from either the mean or covariance
 ##'     matrix.
+##'
+##' @param a threshold for switching between methods; They can be
+##'   tuned for maximum speed;  There are three cases that are considered:
+##'
+##'  case 1: a < l < u  
+##'
+##'  case 2: l < u < -a
+##'
+##'  case 3: otherwise
+##'
+##' where l=lower and u = upper
+##'
+##' @param tol When case 3 is used from the above possibilitys, the
+##'   tol value controls the acceptance rejection and
+##'   inverse-transformation;
+##'
+##' When abs(u-l)>tol, uses accept-reject from randn
+##'
+##' @param nlTol Tolerance for newton line-search 
+##'
+##' @param nlMaxiter Maximum iterations for newton line-search
 ##'
 ##' @return
 ##'

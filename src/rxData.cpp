@@ -5262,7 +5262,6 @@ bool rxAllowUnload(bool allow){
   return rxUnload_;
 }
 
-//' @export
 //[[Rcpp::export]]
 RObject rxUnloadAll_(){
   getRxModels();

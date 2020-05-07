@@ -712,195 +712,195 @@ rxSolve <- function(object, ...) {
 ##' @rdname rxSolve
 ##' @export
 rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...) {
-    on.exit({
-        .clearPipe();
-    });
-    .applyParams <- FALSE
-    .rxParams <- NULL
-    if (rxIs(object, "rxEt")) {
-        if (!is.null(events)) {
-            stop("events can be pipeline or solving arguments not both")
-        }
-        if (is.null(.pipelineRx)) {
-            stop("need an RxODE compiled model as the start of the pipeline");
-        } else {
-            events <- object
-            object <- .pipelineRx
-        }
-    } else if (rxIs(object, "rxParams")) {
-        .applyParams <- TRUE
-        if (is.null(params) && !is.null(object$params)) {
-            params <- object$params;
-        }
-        if (is.null(.pipelineRx)) {
-            stop("need an RxODE compiled model as the start of the pipeline");
-        } else {
-            .rxParams <- object
-            object <- .pipelineRx
-        }
-        if (is.null(.pipelineEvents)) {
-            stop("need an RxODE events as a part of the pipeline")
-        } else {
-            events <- .pipelineEvents;
-            assignInMyNamespace(".pipelineEvents", NULL);
-        }
-
+  on.exit({
+    .clearPipe();
+  });
+  .applyParams <- FALSE
+  .rxParams <- NULL
+  if (rxIs(object, "rxEt")) {
+    if (!is.null(events)) {
+      stop("events can be pipeline or solving arguments not both")
     }
-    if (!is.null(.pipelineEvents) && is.null(events) && is.null(params)) {
-        events <- .pipelineEvents;
-    } else if (!is.null(.pipelineEvents) && !is.null(events)) {
-        stop("'events' in pipeline AND in solving arguments, please provide just one")
-    } else if (!is.null(.pipelineEvents) && !is.null(params) &&
-               rxIs(params, "event.data.frame")) {
-        stop("'events' in pipeline AND in solving arguments, please provide just one")
+    if (is.null(.pipelineRx)) {
+      stop("need an RxODE compiled model as the start of the pipeline");
+    } else {
+      events <- object
+      object <- .pipelineRx
+    }
+  } else if (rxIs(object, "rxParams")) {
+    .applyParams <- TRUE
+    if (is.null(params) && !is.null(object$params)) {
+      params <- object$params;
+    }
+    if (is.null(.pipelineRx)) {
+      stop("need an RxODE compiled model as the start of the pipeline");
+    } else {
+      .rxParams <- object
+      object <- .pipelineRx
+    }
+    if (is.null(.pipelineEvents)) {
+      stop("need an RxODE events as a part of the pipeline")
+    } else {
+      events <- .pipelineEvents;
+      assignInMyNamespace(".pipelineEvents", NULL);
     }
 
-    if (!is.null(.pipelineParams) && is.null(params)) {
-        params <- .pipelineParams;
-    } else if (!is.null(.pipelineParams) && !is.null(params)) {
-        stop("'params' in pipeline AND in solving arguments, please provide just one")
-    }
+  }
+  if (!is.null(.pipelineEvents) && is.null(events) && is.null(params)) {
+    events <- .pipelineEvents;
+  } else if (!is.null(.pipelineEvents) && !is.null(events)) {
+    stop("'events' in pipeline AND in solving arguments, please provide just one")
+  } else if (!is.null(.pipelineEvents) && !is.null(params) &&
+             rxIs(params, "event.data.frame")) {
+    stop("'events' in pipeline AND in solving arguments, please provide just one")
+  }
 
-    if (!is.null(.pipelineInits) && is.null(inits)) {
-        inits <- .pipelineInits;
-    } else if (!is.null(.pipelineInits) && !is.null(inits)) {
-        stop("'inits' in pipeline AND in solving arguments, please provide just one")
-    }
+  if (!is.null(.pipelineParams) && is.null(params)) {
+    params <- .pipelineParams;
+  } else if (!is.null(.pipelineParams) && !is.null(params)) {
+    stop("'params' in pipeline AND in solving arguments, please provide just one")
+  }
 
-    if (.applyParams) {
-        if (!is.null(.rxParams$inits)) {
-            inits <- .rxParams$inits
-        }
+  if (!is.null(.pipelineInits) && is.null(inits)) {
+    inits <- .pipelineInits;
+  } else if (!is.null(.pipelineInits) && !is.null(inits)) {
+    stop("'inits' in pipeline AND in solving arguments, please provide just one")
+  }
+
+  if (.applyParams) {
+    if (!is.null(.rxParams$inits)) {
+      inits <- .rxParams$inits
     }
-    .xtra <- list(...);
-    if (any(duplicated(names(.xtra)))) {
-        stop("duplicate arguments do not make sense");
+  }
+  .xtra <- list(...);
+  if (any(duplicated(names(.xtra)))) {
+    stop("duplicate arguments do not make sense");
+  }
+  if (any(names(.xtra)=="covs")) {
+    stop("covariates can no longer be specified by 'covs'\n  include them in the event dataset\n\nindividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\ntime varying covariates: modify input event data-frame or\n  'eventTable' to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the variable in the model\n");
+  }
+  .nms <- names(as.list(match.call())[-1]);
+  .lst <- list(...);
+  .setupOnly <- 0L
+  if (any(names(.lst)==".setupOnly")) {
+    .setupOnly <- .lst$.setupOnly;
+  }
+  .ctl <- rxControl(...,events=events,params=params);
+  .n1 <- setdiff(intersect(tolower(names(params)),tolower(names(.ctl$iCov))),"id")
+  .n2 <- c(.n1, setdiff(intersect(tolower(names(events)),tolower(names(.ctl$iCov))),"id"))
+  .n1 <- unique(c(.n1, .n2))
+  if (length(.n1) > 0) {
+    stop(sprintf("'iCov' has information contained in parameters/event data\nduplicate columns: '%s'", paste(.n1, collapse="', '")));
+  }
+  if (!is.null(.pipelineThetaMat) && is.null(.ctl$thetaMat)) {
+    .ctl$thetaMat <- .pipelineThetaMat;
+  }
+  if (!is.null(.pipelineOmega) && is.null(.ctl$omega)) {
+    .ctl$omega <- .pipelineOmega;
+  }
+  if (!is.null(.pipelineSigma) && is.null(.ctl$sigma)) {
+    .ctl$sigma <- .pipelineSigma;
+  }
+  if (!is.null(.pipelineSigma) && is.null(.ctl$sigma)) {
+    .ctl$sigma <- .pipelineSigma;
+  }
+  if (!is.null(.pipelineDfObs) && .ctl$dfObs==0) {
+    .ctl$dfObs <- .pipelineDfObs;
+  }
+  if (!is.null(.pipelineDfSub) && .ctl$dfSub==0) {
+    .ctl$dfSub <- .pipelineDfSub;
+  }
+  if (!is.null(.pipelineNSub) && .ctl$nSub==1) {
+    .ctl$nSub <- .pipelineNSub;
+  }
+  if (!is.null(.pipelineNStud) && .ctl$nStud==1) {
+    .ctl$nStud <- .pipelineNStud;
+  }
+  if (!is.null(.pipelineICov) && is.null(.ctl$iCov)) {
+    .ctl$iCov <- .pipelineICov;
+  }
+  if (!is.null(.pipelineKeep) && is.null(.ctl$keep)) {
+    .ctl$keep <- .pipelineKeep;
+  }
+  if (.applyParams) {
+    if (!is.null(.rxParams$thetaMat) && is.null(.ctl$thetaMat)) {
+      .ctl$thetaMat <- .rxParams$thetaMat;
     }
-    if (any(names(.xtra)=="covs")) {
-        stop("covariates can no longer be specified by 'covs'\n  include them in the event dataset\n\nindividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\ntime varying covariates: modify input event data-frame or\n  'eventTable' to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the variable in the model\n");
+    if (!is.null(.rxParams$omega) && is.null(.ctl$omega)) {
+      .ctl$omega <- .rxParams$omega;
     }
-    .nms <- names(as.list(match.call())[-1]);
-    .lst <- list(...);
-    .setupOnly <- 0L
-    if (any(names(.lst)==".setupOnly")) {
-        .setupOnly <- .lst$.setupOnly;
+    if (!is.null(.rxParams$sigma) && is.null(.ctl$sigma)) {
+      .ctl$sigma <- .rxParams$sigma;
     }
-    .ctl <- rxControl(...,events=events,params=params);
-    .n1 <- setdiff(intersect(tolower(names(params)),tolower(names(.ctl$iCov))),"id")
-    .n2 <- c(.n1, setdiff(intersect(tolower(names(events)),tolower(names(.ctl$iCov))),"id"))
-    .n1 <- unique(c(.n1, .n2))
-    if (length(.n1) > 0) {
-        stop(sprintf("'iCov' has information contained in parameters/event data\nduplicate columns: '%s'", paste(.n1, collapse="', '")));
+    if (!is.null(.rxParams$dfSub)) {
+      if (.ctl$dfSub== 0) {
+        .ctl$dfSub <- .rxParams$dfSub;
+      }
     }
-    if (!is.null(.pipelineThetaMat) && is.null(.ctl$thetaMat)) {
-        .ctl$thetaMat <- .pipelineThetaMat;
+    if (!is.null(.rxParams$nSub)) {
+      if (.ctl$nSub== 1) {
+        .ctl$nSub <- .rxParams$nSub;
+      }
     }
-    if (!is.null(.pipelineOmega) && is.null(.ctl$omega)) {
-        .ctl$omega <- .pipelineOmega;
+    if (!is.null(.rxParams$nStud)) {
+      if (.ctl$nStud== 1) {
+        .ctl$nStud <- .rxParams$nStud;
+      }
     }
-    if (!is.null(.pipelineSigma) && is.null(.ctl$sigma)) {
-        .ctl$sigma <- .pipelineSigma;
+    if (!is.null(.rxParams$dfObs)) {
+      if (.ctl$dfObs == 0) {
+        .ctl$dfObs <- .rxParams$dfObs;
+      }
     }
-    if (!is.null(.pipelineSigma) && is.null(.ctl$sigma)) {
-        .ctl$sigma <- .pipelineSigma;
+    if (!is.null(.rxParams$iCov)) {
+      if (is.null(.ctl$iCov)) {
+        .ctl$iCov <- .rxParams$iCov;
+      }
     }
-    if (!is.null(.pipelineDfObs) && .ctl$dfObs==0) {
-        .ctl$dfObs <- .pipelineDfObs;
+    if (!is.null(.rxParams$keep)) {
+      if (is.null(.ctl$keep)) {
+        .ctl$keep <- .rxParams$keep;
+      }
     }
-    if (!is.null(.pipelineDfSub) && .ctl$dfSub==0) {
-        .ctl$dfSub <- .pipelineDfSub;
+  }
+  if (.ctl$nSub==1 && inherits(.ctl$iCov, "data.frame")) {
+    .ctl$nSub <- length(.ctl$iCov[,1])
+  } else if (.ctl$nSub !=1 && .ctl$nStud == 1 && inherits(.ctl$iCov, "data.frame")) {
+    if (.ctl$nSub !=length(.ctl$iCov[,1])) {
+      stop("'nSub' does not match the number of subjects in 'iCov'");
     }
-    if (!is.null(.pipelineNSub) && .ctl$nSub==1) {
-        .ctl$nSub <- .pipelineNSub;
+  } else if (.ctl$nSub !=1 && .ctl$nStud !=1 && inherits(.ctl$iCov, "data.frame")) {
+    if (.ctl$nSub*.ctl$nStud !=length(.ctl$iCov[,1])) {
+      stop("'nSub'*'nStud' does not match the number of subjects in 'iCov'");
     }
-    if (!is.null(.pipelineNStud) && .ctl$nStud==1) {
-        .ctl$nStud <- .pipelineNStud;
+  }
+  ## Prefers individual keep over keeping from the input data
+  .keepI <- character(0)
+  .keepF <- character(0)
+  if (!is.null(.ctl$keep)) {
+    .mv <- rxModelVars(object);
+    .vars <- c(.mv$lhs, .mv$state);
+    .keepF <- setdiff(.ctl$keep, .vars)
+    if (!is.null(.ctl$iCov)) {
+      .keepI <- intersect(.keepF, names(.ctl$iCov));
+      .keepF <- setdiff(.keepF, .keepI);
     }
-    if (!is.null(.pipelineICov) && is.null(.ctl$iCov)) {
-        .ctl$iCov <- .pipelineICov;
-    }
-    if (!is.null(.pipelineKeep) && is.null(.ctl$keep)) {
-        .ctl$keep <- .pipelineKeep;
-    }
-    if (.applyParams) {
-        if (!is.null(.rxParams$thetaMat) && is.null(.ctl$thetaMat)) {
-            .ctl$thetaMat <- .rxParams$thetaMat;
-        }
-        if (!is.null(.rxParams$omega) && is.null(.ctl$omega)) {
-            .ctl$omega <- .rxParams$omega;
-        }
-        if (!is.null(.rxParams$sigma) && is.null(.ctl$sigma)) {
-            .ctl$sigma <- .rxParams$sigma;
-        }
-        if (!is.null(.rxParams$dfSub)) {
-            if (.ctl$dfSub== 0) {
-                .ctl$dfSub <- .rxParams$dfSub;
-            }
-        }
-        if (!is.null(.rxParams$nSub)) {
-            if (.ctl$nSub== 1) {
-                .ctl$nSub <- .rxParams$nSub;
-            }
-        }
-        if (!is.null(.rxParams$nStud)) {
-            if (.ctl$nStud== 1) {
-                .ctl$nStud <- .rxParams$nStud;
-            }
-        }
-        if (!is.null(.rxParams$dfObs)) {
-            if (.ctl$dfObs == 0) {
-                .ctl$dfObs <- .rxParams$dfObs;
-            }
-        }
-        if (!is.null(.rxParams$iCov)) {
-            if (is.null(.ctl$iCov)) {
-                .ctl$iCov <- .rxParams$iCov;
-            }
-        }
-        if (!is.null(.rxParams$keep)) {
-            if (is.null(.ctl$keep)) {
-                .ctl$keep <- .rxParams$keep;
-            }
-        }
-    }
-    if (.ctl$nSub==1 && inherits(.ctl$iCov, "data.frame")) {
-        .ctl$nSub <- length(.ctl$iCov[,1])
-    } else if (.ctl$nSub !=1 && .ctl$nStud == 1 && inherits(.ctl$iCov, "data.frame")) {
-        if (.ctl$nSub !=length(.ctl$iCov[,1])) {
-            stop("'nSub' does not match the number of subjects in 'iCov'");
-        }
-    } else if (.ctl$nSub !=1 && .ctl$nStud !=1 && inherits(.ctl$iCov, "data.frame")) {
-        if (.ctl$nSub*.ctl$nStud !=length(.ctl$iCov[,1])) {
-            stop("'nSub'*'nStud' does not match the number of subjects in 'iCov'");
-        }
-    }
-    ## Prefers individual keep over keeping from the input data
-    .keepI <- character(0)
-    .keepF <- character(0)
-    if (!is.null(.ctl$keep)) {
-        .mv <- rxModelVars(object);
-        .vars <- c(.mv$lhs, .mv$state);
-        .keepF <- setdiff(.ctl$keep, .vars)
-        if (!is.null(.ctl$iCov)) {
-            .keepI <- intersect(.keepF, names(.ctl$iCov));
-            .keepF <- setdiff(.keepF, .keepI);
-        }
-    }
-    .ctl$keepI <- .keepI
-    .ctl$keepF <- .keepF
-    .ret <- .collectWarnings(rxSolveSEXP(object, .ctl, .nms, .xtra,
-                                         params, events, inits,
-                                         setupOnly=.setupOnly), lst=TRUE);
-    .ws <- .ret[[2]]
-    .rxModels$.ws <- .ws;
-    lapply(.ws, function(x) warning(x))
-    .ret <- .ret[[1]]
-    if (.ctl$matrix == 4L) {
-        data.table::setDT(.ret);
-    } else if (.ctl$matrix == 5L) {
-        .ret <- tibble::as_tibble(.ret);
-    }
-    return(.ret)
+  }
+  .ctl$keepI <- .keepI
+  .ctl$keepF <- .keepF
+  .ret <- .collectWarnings(rxSolveSEXP(object, .ctl, .nms, .xtra,
+                                       params, events, inits,
+                                       setupOnlyS=.setupOnly), lst=TRUE);
+  .ws <- .ret[[2]]
+  .rxModels$.ws <- .ws;
+  lapply(.ws, function(x) warning(x))
+  .ret <- .ret[[1]]
+  if (.ctl$matrix == 4L) {
+    data.table::setDT(.ret);
+  } else if (.ctl$matrix == 5L) {
+    .ret <- tibble::as_tibble(.ret);
+  }
+  return(.ret)
 }
 
 ##' @rdname rxSolve

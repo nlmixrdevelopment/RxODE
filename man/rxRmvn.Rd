@@ -43,6 +43,27 @@ decomposition of the covariance matrix.}
 
 \item{keepNames}{Keep the names from either the mean or covariance
 matrix.}
+
+\item{a}{threshold for switching between methods; They can be
+  tuned for maximum speed;  There are three cases that are considered:
+
+ case 1: a < l < u  
+
+ case 2: l < u < -a
+
+ case 3: otherwise
+
+where l=lower and u = upper}
+
+\item{tol}{When case 3 is used from the above possibilitys, the
+  tol value controls the acceptance rejection and
+  inverse-transformation;
+
+When abs(u-l)>tol, uses accept-reject from randn}
+
+\item{nlTol}{Tolerance for newton line-search}
+
+\item{nlMaxiter}{Maximum iterations for newton line-search}
 }
 \value{
 If \code{n==integer} (default) the output is an (n x d) matrix
