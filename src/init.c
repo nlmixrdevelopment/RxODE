@@ -258,6 +258,16 @@ double rxnormV(rx_solving_options_ind* ind, double mean, double sd);
 double phi(double q);
 SEXP _phi(SEXP q);
 
+double gamma_p(double, double z);
+double gamma_q(double, double z);
+double tgamma_lower(double a, double z);
+double tgamma_upper(double a, double z);
+double gamma_p_derivative(double a, double x);
+double gamma_q_inv(double a, double q);
+double gamma_p_inv(double a, double p);
+double gamma_q_inva(double a, double q);
+double gamma_p_inva(double a, double p);
+
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
@@ -430,6 +440,16 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_current_fn_pointer_id", (DL_FUNC) &RxODE_current_fn_pointer_id);
   R_RegisterCCallable("RxODE","getRxSolve_", (DL_FUNC) &getRxSolve_);
   R_RegisterCCallable("RxODE", "rxSingleSolve", (DL_FUNC) &rxSingleSolve);
+
+  R_RegisterCCallable("RxODE", "gammap", (DL_FUNC) &gamma_p);
+  R_RegisterCCallable("RxODE", "gammaq", (DL_FUNC) &gamma_q);
+  R_RegisterCCallable("RxODE", "lowergamma", (DL_FUNC) &tgamma_lower);
+  R_RegisterCCallable("RxODE", "uppergamma", (DL_FUNC) &tgamma_upper);
+  R_RegisterCCallable("RxODE", "gammapDer", (DL_FUNC) &gamma_p_derivative);
+  R_RegisterCCallable("RxODE", "gammapInv", (DL_FUNC) &gamma_p_inv);
+  R_RegisterCCallable("RxODE", "gammapInva", (DL_FUNC) &gamma_p_inva);
+  R_RegisterCCallable("RxODE", "gammaqInv", (DL_FUNC) &gamma_q_inv);
+  R_RegisterCCallable("RxODE", "gammaqInva", (DL_FUNC) &gamma_q_inva);
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},

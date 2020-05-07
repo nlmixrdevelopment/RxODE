@@ -39,13 +39,13 @@ NOTE: gammaqInva is slow
 }
 \examples{
 
-gammaqInv(1:3,3)
+gammaqInv(1:3,0.5)
 
-gammaqInv(1,1:3)
+gammaqInv(1,1:3/3)
 
-gammaqInv(1:3,1:3)
+gammaqInv(1:3,1:3/3.1)
 
-gammaqInva(1:3,1:3)
+gammaqInva(1:3,1:3/3.1)
 
 }
 \author{

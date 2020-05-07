@@ -22,7 +22,7 @@ This is the tgamma from the boost library
 \details{
 The uppergamma function is given by:
 
-uppergamma(a, z) = \int_{z}^{\infty}t^{a-1}\cdot e^{-t} dt
+\eqn{uppergamma(a, z) = \int_{z}^{\infty}t^{a-1}\cdot e^{-t} dt}
 }
 \examples{
 

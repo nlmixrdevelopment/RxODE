@@ -22,7 +22,7 @@ This is the tgamma_lower from the boost library
 \details{
 The lowergamma function is given by:
 
-lowergamma(a, z) = \int_{z}^{\infty}t^{a-1}\cdot e^{-t} dt
+\deqn{lowergamma(a, z) = \int_{0}^{z}t^{a-1}\cdot e^{-t} dt}
 }
 \examples{
 

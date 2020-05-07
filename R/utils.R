@@ -609,7 +609,7 @@ gammaq <- function(a, z){
 ##'
 ##' The uppergamma function is given by:
 ##'
-##' uppergamma(a, z) = \int_{z}^{\infty}t^{a-1}\cdot e^{-t} dt
+##' \eqn{uppergamma(a, z) = \int_{z}^{\infty}t^{a-1}\cdot e^{-t} dt}
 ##' 
 ##' @return uppergamma results
 ##' 
@@ -642,7 +642,7 @@ uppergamma <- function(a, z){
 ##'
 ##' The lowergamma function is given by:
 ##'
-##' lowergamma(a, z) = \int_{z}^{\infty}t^{a-1}\cdot e^{-t} dt
+##' \deqn{lowergamma(a, z) = \int_{0}^{z}t^{a-1}\cdot e^{-t} dt}
 ##' 
 ##' @return lowergamma results
 ##' 
