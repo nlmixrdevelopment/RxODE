@@ -524,7 +524,43 @@ rxRmvn <- function(n, mu=NULL, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=F
 ##' @inheritParams stats::pnorm
 ##' @return cumulative distribution of standard normal distribution
 ##' @author Matthew Fidler
+##' @examples
+##'
+##' # phi is equivalent to pnorm(x)
+##' phi(3)
+##'
+##' # See
+##' pnorm(3)
+##'
+##' # This is provided for NONMEM-like compatibility in RxODE models
+##' 
 ##' @export
 phi <- function(q){
   .Call(`_phi`, q, PACKAGE='RxODE');
+}
+##' Gammap: normalized lower incomplete gamma function
+##'
+##' This is the gamma_p from the boost library
+##'
+##' @param a The numeric 'a' parameter in the normalized lower
+##'   incomplete gamma
+##' 
+##' @param z The numeric 'z' parameter in the normalized lower
+##'   incomplete gamma
+##'
+##' @details
+##'
+##' The gamma p function is given by:
+##'
+##' gammap = lowergamma(a, z)/gamma(a)
+##' 
+##' @return gammap results
+##' @author Matthew L. Fidler
+##' @examples
+##' gammap(1,3)
+##' gammap(1:3,3)
+##' gammap(1,1:3)
+##' @export
+gammap <- function(a, z){
+  .Call(`_gammap`, a, z, PACKAGE='RxODE')
 }

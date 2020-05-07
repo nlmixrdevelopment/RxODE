@@ -95,6 +95,8 @@ SEXP _RxODE_nestingInfo_(SEXP omega, SEXP data);
 
 SEXP RxODE_get_mv();
 
+SEXP _gammap(SEXP, SEXP);
+
 static R_NativePrimitiveArgType RxODE_Sum_t[] = {
   REALSXP, INTSXP
 };
@@ -361,6 +363,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_nestingInfo_", (DL_FUNC) _RxODE_nestingInfo_, 2},
     {"_phi", (DL_FUNC) _phi, 1},
     {"_RxODE_expandTheta_", (DL_FUNC) _RxODE_expandTheta_, 6},
+    {"_gammap", (DL_FUNC) _gammap, 2},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
