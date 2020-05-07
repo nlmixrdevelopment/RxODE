@@ -369,3 +369,60 @@ SEXP _uppergamma(SEXP a, SEXP z) {
   UNPROTECT(pro);
   return ret;
 }
+
+double gamma_p_derivative(double a, double x);
+
+SEXP _gammapDer(SEXP a, SEXP z) {
+  int typea = TYPEOF(a);
+  int typez = TYPEOF(z);
+  int pro=0;
+  SEXP ret;
+  double *aD, *zD;
+  int *aI, *zI;
+  int lena = Rf_length(a);
+  int lenz = Rf_length(z);
+  int reala=0, realz=0;
+  if (typea == REALSXP){
+    reala=1;
+    aD = REAL(a);
+  } else if (typea == INTSXP){
+    aI = INTEGER(a);
+  } else {
+    error(_("'a' needs to be a number"));
+  }
+  if (typez == REALSXP){
+    realz=1;
+    zD = REAL(z);
+  } else if (typez == INTSXP){
+    zI = INTEGER(z);
+  } else {
+    error(_("'z' needs to be a number"));
+  }
+  
+  if (lena == lenz) {
+    ret = PROTECT(Rf_allocVector(REALSXP, lena));pro++;
+    double *retD = REAL(ret);
+    for (int j = lena; j--;){
+      retD[j] = gamma_p_derivative(reala ? aD[j] : (double)aI[j],
+			realz ? zD[j] : (double)zI[j]);
+    }
+  } else if (lena == 1){
+    ret = PROTECT(Rf_allocVector(REALSXP, lenz));pro++;
+    double *retD = REAL(ret);
+    double a0 = reala ? aD[0] : (int)aI[0];
+    for (int j = lenz; j--;){
+      retD[j] = gamma_p_derivative(a0, realz ? zD[j] : (double)zI[j]);
+    }
+  } else if (lenz == 1){
+    ret = PROTECT(Rf_allocVector(REALSXP, lena));pro++;
+    double *retD = REAL(ret);
+    double z0 = realz ? zD[0] : (double)zI[0];
+    for (int j = lena; j--;){
+      retD[j] = gamma_p_derivative(reala ? aD[j] : (double)aI[j], z0);
+    }
+  } else {
+    Rf_error(_("inconsistent sizes"));
+  }
+  UNPROTECT(pro);
+  return ret;
+}

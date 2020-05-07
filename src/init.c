@@ -99,6 +99,7 @@ SEXP _gammap(SEXP, SEXP);
 SEXP _gammaq(SEXP, SEXP);
 SEXP _lowergamma(SEXP, SEXP);
 SEXP _uppergamma(SEXP, SEXP);
+SEXP _gammapDer(SEXP, SEXP);
 
 static R_NativePrimitiveArgType RxODE_Sum_t[] = {
   REALSXP, INTSXP
@@ -370,6 +371,7 @@ void R_init_RxODE(DllInfo *info){
     {"_gammaq", (DL_FUNC) _gammaq, 2},
     {"_uppergamma", (DL_FUNC) _uppergamma, 2},
     {"_lowergamma", (DL_FUNC) _lowergamma, 2},
+    {"_gammapDer", (DL_FUNC) _gammapDer, 2},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
