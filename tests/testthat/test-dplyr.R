@@ -80,10 +80,6 @@ rxPermissive({
         expect_equal((o1.first %>% summarize(avg=mean(depot)))$avg, mean(o1.first$depot));
     });
 
-    ## test_that("summarize each works",{
-    ##     expect_equal(sum(as.data.frame(o1.first %>% group_by(time) %>% summarize_each(list( ~ first)))$time == 24),1);
-    ## })
-
     test_that("summarize count works",{
         expect_equal((o1.first %>% filter(time==24) %>% count())$n,2)
     })
@@ -91,10 +87,6 @@ rxPermissive({
     test_that("mutate works",{
         expect_equal((o1.first %>% mutate(time=time+1))$time,et1$get.sampling()$time+1);
     });
-
-    ## test_that("mutate each",{
-    ##     expect_equal((o1.first %>% filter(time==24 | time == 23) %>% mutate_each(list( ~ max)))$time,rep(24,3))
-    ## });
 
     test_that("transmute works",{
         expect_equal(names(o1.first %>% transmute(C1=C2+C3,time=time)),c("C1","time"));

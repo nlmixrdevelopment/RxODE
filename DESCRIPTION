@@ -106,7 +106,7 @@ NeedsCompilation: yes
 VignetteBuilder: knitr
 License: GPL (>= 3) 
 URL: https://nlmixrdevelopment.github.io/RxODE/
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Biarch: true
 LinkingTo: dparser(>= 0.1.8), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.9.300.2.0), PreciseSums (>= 0.3)
 Encoding: UTF-8

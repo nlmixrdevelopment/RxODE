@@ -2,20 +2,17 @@
 % Please edit documentation in R/et.R
 \name{as_tibble.rxEt}
 \alias{as_tibble.rxEt}
-\alias{as.tbl.rxEt}
 \title{Convert to tbl}
 \usage{
 as_tibble.rxEt(x, ...)
-
-as.tbl.rxEt(x, ...)
 }
 \arguments{
 \item{x}{RxODE event table}
 
-\item{...}{Other arguments to \code{as.tbl}}
+\item{...}{Other arguments to \code{as_tibble}}
 }
 \value{
-tibble
+tibble of event table
 }
 \description{
 Convert to tbl
