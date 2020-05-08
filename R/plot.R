@@ -4,8 +4,9 @@
 #'
 #' @export
 rxTheme <- function(base_size = 11, base_family = "",
-                     base_line_size = base_size / 22,
-                     base_rect_size = base_size / 22){
+                    base_line_size = base_size / 22,
+                    base_rect_size = base_size / 22,
+                    grid=TRUE){
     half_line <- base_size / 2
     .greyTextAxisX <- ggplot2::element_text(color="#808078",
                                             margin = ggplot2::margin(t = 0.8 * half_line / 2), vjust=1)
@@ -22,9 +23,35 @@ rxTheme <- function(base_size = 11, base_family = "",
                                     margin = ggplot2::margin(b = half_line))
     .subTitle <- ggplot2::element_text(colour = "#808078", face="bold", hjust=0,
                                        margin=ggplot2::margin(b = half_line))
+    
     .greyTick <- ggplot2::element_line(color="#808078")
-    .greyMajor <- ggplot2::element_line(color="#BFBFB4")
-    .greyMinor <- ggplot2::element_line(color="#E6E6D8")
+    .panelGrid <- 
+    .greyX <- NULL
+    .greyY <- NULL
+    .blankGrid <- NULL
+    if (inherits(grid, "character") | grid == TRUE) {
+        .greyMajor <- ggplot2::element_line(color="#BFBFB4")
+        .panelGrid <- .greyMajor
+        .greyMinor <- ggplot2::element_line(color="#E6E6D8")
+        .greyMajorX <- .greyMajor
+        .greyMinorX <- .greyMinor
+        .greyMajorY <- .greyMajor
+        .greyMinorY <- .greyMinor
+        if (inherits(grid, "character")) {
+            if (regexpr("X", grid)[1] < 0) .greyMajorX <- ggplot2::element_blank()
+            if (regexpr("Y", grid)[1] < 0) .greyMajorY <- ggplot2::element_blank()
+            if (regexpr("x", grid)[1] < 0) .greyMinorX <- ggplot2::element_blank()
+            if (regexpr("y", grid)[1] < 0) .greyMinorY <- ggplot2::element_blank()
+        }
+    } else {
+        .panelGrid <- element_blank()
+        .greyMajor <- .panelGrid
+        .greyMinor <- .panelGrid
+        .greyMajorX <- .greyMajor
+        .greyMinorX <- .greyMinor
+        .greyMajorY <- .greyMajor
+        .greyMinorY <- .greyMinor
+    }
     .theme <- ggplot2::theme_bw(base_size = base_size, base_family = base_family,
                      base_line_size = base_line_size,
                      base_rect_size = base_rect_size) %+replace%
@@ -32,7 +59,12 @@ rxTheme <- function(base_size = 11, base_family = "",
                        plot.subtitle = .title,
                        panel.border = ggplot2::element_blank(),
                        ## panel.background = ggplot2::element_rect(fill = "#FFFFF7", colour = NA),
+                       panel.grid = .panelGrid,
                        panel.grid.minor=.greyMinor,
+                       panel.grid.minor.x=.greyMinorX,
+                       panel.grid.minor.y=.greyMinorY,
+                       panel.grid.major.x=.greyMajorX,
+                       panel.grid.major.y=.greyMajorY,
                        panel.grid.major=.greyMajor,
                        axis.text.x=.greyTextAxisX,
                        axis.text.y=.greyTextAxisY,
