@@ -106,6 +106,16 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
         return(TRUE)
     } else if (Sys.which("make") != ""){
         return(TRUE)
+    } else if (as.integer(R.version$major) >= 4) {
+        if (file.exists(Sys.getenv("RTOOLS40_HOME"))) {
+        } else if (file.exists(file.path(Sys.getenv("R_HOME"),"rtools40"))){
+            Sys.setenv("RTOOLS40_HOME"=.normalizePath(file.path(Sys.getenv("R_HOME"),"rtools40")))
+        } else {
+            return(FALSE)
+        }
+        Sys.setenv(PATH=paste0(.normalizePath(file.path(Sys.getenv("RTOOLS40_HOME"),"usr","bin")),
+                               ";",Sys.getenv("PATH")))
+        return(TRUE)
     } else {
         .path <- unique(sapply(sub(rex::rex('"', end), "", sub(rex::rex(start, '"'), "",
                                    gsub("/", "\\\\", strsplit(Sys.getenv("PATH"), ";")[[1]]))),
@@ -193,7 +203,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
 ##' @author Matthew L. Fidler
 ##' @export
 rxWinSetup <- function(rm.rtools=TRUE){
-    if (!.rxWinRtoolsPath(rm.rtools)){
+    if (!.rxWinRtoolsPath(rm.rtools=rm.rtools)){
         message("RxODE requires 'rtools'\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding\n");
     }
 }
