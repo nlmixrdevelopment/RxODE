@@ -1012,6 +1012,10 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
           return("")
         } else if (any(.fun == c("max", "min"))) {
           .ret <- paste0(.fun, "(", paste(unlist(.ret0), collapse=","), ")")
+        } else if (.fun == "sum"){
+          .ret <- paste0("(",paste(paste0("(", unlist(.ret0),")"),collapse="+"),")")
+        } else if (.fun == "prod"){
+          .ret <- paste0("(",paste(paste0("(", unlist(.ret0),")"),collapse="*"),")")
         } else {
           stop(sprintf("function '%s' or its derivatives are not supported in RxODE", .fun))
         }
