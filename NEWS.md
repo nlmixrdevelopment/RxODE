@@ -20,7 +20,7 @@
     installed);  NEED TO CHECK IF THIS IS STILL TRUE;  Is this worthwhile?
 
 * `RxODE` now moved the precise sum/product type options for `sum()`
-  and `prod()` to `rxSolve` o `rxControl`
+  and `prod()` to `rxSolve` or `rxControl`
   
 * `cvPost` now will returned a named list of matrices if the input matrix was named
 
@@ -50,6 +50,7 @@
   - `first(var)`
   - `last(var)`
   - `diff(var)`
+  
 Each of these are similar to the R `lag`, `lead`, `first`, `last` and
 `diff`.  However when undefined, it returns `NA`
 
@@ -197,6 +198,8 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   
 * Now have a method to use `lotri` to simulate between occasion
   variability and other levels of nesting.
+
+* Added lower gamma functions See Issue #185
   
 * Updated to [TimSort 1.2.0](https://github.com/timsort/cpp-TimSort/releases/tag/v1.2.0)
 
