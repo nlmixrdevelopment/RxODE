@@ -17,9 +17,9 @@
   
   * A backward-compatible simulation can be used by `rxSolve(...,
     mvnfast=TRUE)` (but of course requires the `mvnfast` package
-    installed);  NEED TO CHECK;  Is this worthwhile?
+    installed);  NEED TO CHECK IF THIS IS STILL TRUE;  Is this worthwhile?
 
-* `RxODE` now moved the precise sum/product type optionsfor `sum()`
+* `RxODE` now moved the precise sum/product type options for `sum()`
   and `prod()` to `rxSolve` o `rxControl`
   
 * `cvPost` now will returned a named list of matrices if the input matrix was named
