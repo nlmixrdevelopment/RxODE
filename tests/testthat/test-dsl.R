@@ -374,7 +374,7 @@ rxPermissive({
     expect_equal(rxToSE("min(a,b,c)"), "min(a,b,c)")
     expect_equal(rxToSE("max(a,b,c)"), "max(a,b,c)")
     ## sum/prod testing
-    expect_equal(rxToSE("sum(a,b,c)","((a)+(b)+(c))"))
-    expect_equal(rxToSE("prod(a,b,c)","((a)*(b)*(c))"))
+    expect_equal(rxToSE("sum(a,b,c)"),"((a)+(b)+(c))")
+    expect_equal(rxToSE("prod(a,b,c)"),"((a)*(b)*(c))")
 }, test="parsing")
 
