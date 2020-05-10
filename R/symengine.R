@@ -121,7 +121,9 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "lowergamma"=2,
   "uppergamma"=2,
   "max"=NA,
-  "min"=NA
+  "min"=NA,
+  "logit"=NA,
+  "expit"=NA
 )
 
 .rxOnly <- c(
@@ -1013,9 +1015,43 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
         } else if (any(.fun == c("max", "min"))) {
           .ret <- paste0(.fun, "(", paste(unlist(.ret0), collapse=","), ")")
         } else if (.fun == "sum"){
-          .ret <- paste0("(",paste(paste0("(", unlist(.ret0),")"),collapse="+"),")")
+          .ret <- paste0(.fun, "(",paste(paste0("(", unlist(.ret0),")"),collapse="+"),")")
         } else if (.fun == "prod"){
-          .ret <- paste0("(",paste(paste0("(", unlist(.ret0),")"),collapse="*"),")")
+          .ret <- paste0(.fun, "(",paste(paste0("(", unlist(.ret0),")"),collapse="*"),")")
+        } else if (.fun == "logit") {
+          if (length(.ret0) == 1){
+            .ret <- paste0("-log(1/(",unlist(.ret0),")-1)")
+          } else if (length(.ret0) == 2){
+            .ret0 <- unlist(.ret0)
+            .p  <-paste0("((",.ret0[1],")-(", .ret0[2],"))/(1.0-",
+                         "(",.ret0[2], "))")
+            .ret <- paste0("-log(1/(",.p,")-1)")
+          } else if (length(.ret0) == 3){
+            .ret0 <- unlist(.ret0)
+            ##(x-low)/(high-low)
+            .p  <-paste0("((",.ret0[1],")-(", .ret0[2],
+                         "))/((",.ret0[3],")-(",.ret0[2], "))")
+            .ret <- paste0("-log(1/(",.p,")-1)")
+          } else {
+            stop("'logit' requires 1-3 arguments")
+          }
+        } else if (.fun == "expit") {
+          if (length(.ret0) == 1){
+            .ret <- paste0("1/(1+exp(-(",unlist(.ret0)[1],"))")
+          } else if (length(.ret0) == 2){
+            .ret0 <- unlist(.ret0)
+            .p <- paste0("1/(1+exp(-(",.ret0[1],")))")
+            ## return (high-low)*p+low;
+            .ret <- paste0("(1.0-(",.ret0[2],"))*(", .p,
+                           ")+(",.ret0[2], ")")
+          } else if (length(.ret0) == 3){
+            .ret0 <- unlist(.ret0)
+            .p <- paste0("1/(1+exp(-(",.ret0[1],")))")
+            .ret <- paste0("((", .ret0[3], ")-(",.ret0[2],"))*(", .p,
+                           ")+(",.ret0[2], ")")
+          } else {
+            stop("'expit' requires 1-3 arguments")
+          }
         } else {
           stop(sprintf("function '%s' or its derivatives are not supported in RxODE", .fun))
         }

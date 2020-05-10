@@ -16,4 +16,4 @@ rxPermissive({
   expect_equal(rxFromSE("Derivative(gammap(x,y),y)"),
                "gammapDer(x,y)")
   
-})
+}, test="cran")
