@@ -147,6 +147,8 @@ RxODEi_fn2 rxcauchy;
 RxODEi_fn rxchisq;
 RxODEi_fn rxexp;
 RxODE_fn phi;
+RxODE_fn3 logit;
+RxODE_fn3 expit;
 RxODE_fn2 gammap;
 RxODE_fn2 gammaq;
 RxODE_fn2 lowergamma;
@@ -203,6 +205,8 @@ void _assignFuns(){
     uppergamma = (RxODE_fn2) R_GetCCallable("RxODE","uppergamma");
     lowergamma = (RxODE_fn2) R_GetCCallable("RxODE","lowergamma");
     gammapDer  = (RxODE_fn2) R_GetCCallable("RxODE","gammapDer");
+    logit = (RxODE_fn3) R_GetCCallable("RxODE","logit");
+    expit = (RxODE_fn3) R_GetCCallable("RxODE","expit");
     _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
     _getParCov = (_getParCov_p) R_GetCCallable("RxODE","_getParCov");
     _solveData = _getRxSolve_();
