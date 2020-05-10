@@ -91,10 +91,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "sqrt"=1,
   "tan"=1,
   "tanh"=1,
-  "gammap"=2
-)
-
-.rxOnly <- c(
+  "gammap"=2,
   ## C's math.h library
   "floor"=1,
   "round"=1,
@@ -123,6 +120,11 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "gammaqInva"=2,
   "lowergamma"=2,
   "uppergamma"=2,
+  "max"=NA,
+  "min"=NA
+)
+
+.rxOnly <- c(
   ## Now random number generators
   "rnorm"=NA,
   "rxnorm"=NA,
@@ -1003,13 +1005,15 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
             return(paste0("rx_", .fun, "_", .ret0[[1]], "_"))
           }
         }
-        .ret <- paste0("(", paste(unlist(.ret0), collapse=","), ")");
+        .ret <- paste0("(", paste(unlist(.ret0), collapse=","), ")")
         if (.ret == "(0)"){
           return(paste0("rx_", .fun, "_ini_0__"))
         } else if (any(.fun == c("cmt", "dvid"))){
           return("")
+        } else if (any(.fun == c("max", "min"))) {
+          .ret <- paste0(.fun, "(", paste(unlist(.ret0), collapse=","), ")")
         } else {
-          stop(sprintf("'%s' not supported in RxODE", .fun));
+          stop(sprintf("function '%s' or its derivatives are not supported in RxODE", .fun))
         }
       }
     }
@@ -1381,7 +1385,7 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
       .ret0 <- lapply(lapply(x, .stripP), .rxFromSE)
       .SEeq <- c(.rxSEeq, .rxSEeqUsr)
       .nargs <- .SEeq[paste(.ret0[[1]])];
-      if (!is.na(.nargs)){
+      if (!is.na(.nargs)) {
         if (.nargs == length(.ret0) - 1){
           .x1 <- as.character(.ret0[[1]]);
           .tmp0 <- .x1
@@ -1521,7 +1525,7 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
         } else {
           stop("'Derivative' conversion only takes one function and one argument")
         }
-      } else if (identical(x[[1]], quote(`Subs`))){
+      } else if (identical(x[[1]], quote(`Subs`))) {
         .fun <- eval(parse(text=paste0("quote(", .rxFromSE(x[[2]]), ")")))
         .what <- .stripP(x[[3]])
         .with <- .stripP(x[[4]])
@@ -1538,6 +1542,13 @@ rxFromSE <- function(x, unknownDerivatives=c("forward", "central", "error")){
         }
         .ret <- .subs(.fun)
         return(.rxFromSE(.ret))
+      } else if (any(paste(.ret0[[1]]) == c("max", "min"))) {
+        .x1 <- as.character(.ret0[[1]]);
+        .ret <- paste0(.x1, "(")
+        .ret0 <- .ret0[-1];
+        .ret <- paste0(.ret, paste(unlist(.ret0), collapse=","),
+                       ")")
+        return(.ret);
       } else {
         stop(sprintf("'%s' not supported in symengine->RxODE", paste(.ret0[[1]])));
       }

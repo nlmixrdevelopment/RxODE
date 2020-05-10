@@ -369,5 +369,9 @@ rxPermissive({
         }
         rxFromSE("linCmtB(rx__PTR__,t,0,1,1,0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13)")
     })
+    ## min/max testing
+    expect_error(rxFromSE("Derivative(max(a,b,c), a)"), NA)
+    expect_equal(rxToSE("min(a,b,c)"), "min(a,b,c)")
+    expect_equal(rxToSE("max(a,b,c)"), "max(a,b,c)")
 }, test="parsing")
 
