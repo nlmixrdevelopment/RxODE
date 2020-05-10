@@ -90,7 +90,9 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "sinh"=1,
   "sqrt"=1,
   "tan"=1,
-  "tanh"=1)
+  "tanh"=1,
+  "gammap"=2
+)
 
 .rxOnly <- c(
   ## C's math.h library
@@ -113,7 +115,6 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "fround"=2,
   "ftrunc"=2,
   "transit"=NA,
-  "gammap"=2,
   "gammaq"=2,
   "gammapDer"=2,
   "gammapInv"=2,
@@ -323,6 +324,7 @@ rxRmFun <- function(name){
 ## If the list is shorter than the length of the arguments then the
 ## argument then the derivative of arguments that are not specified
 ## cannot be taken.
+
 .rxD$rxTBS <- list(function(a, lambda, yj){
   paste0("rxTBSd(", a, ",", lambda, ",", yj, ")")
 })
@@ -724,7 +726,7 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
           .lst[[.var]] <- .expr
           assign("..jac0..", .lst, envir=envir);
         } else if (!identical(x[[1]], quote(`~`))) {
-          .expr <- eval(parse(text=.expr));
+          .expr <- try(eval(parse(text=.expr)),silent=TRUE);
           .isNum <- (inherits(.expr, "numeric") || inherits(.expr, "integer"));
           if ((.isNum && envir$..doConst) ||
               (!.isNum)){
@@ -1026,6 +1028,14 @@ rxToSE <- function(x, envir=NULL, progress=FALSE,
 ## 2L = central
 .rxFromNumDer <- 0L
 .rxDelta <- (.Machine$double.eps)^(1/3)
+
+
+.rxD$gammap <- list(
+  NULL,
+  function(a, z){
+    paste0("gammapDer(",a, ",", z, ")")
+  }
+)
 
 
 ##'@rdname rxToSE

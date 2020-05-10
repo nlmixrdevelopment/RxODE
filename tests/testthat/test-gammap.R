@@ -12,5 +12,8 @@ rxPermissive({
   expect_equal(uppergamma(3, 1.5), 1.6176937, tol=1e-6)
   ## note -1.5 doesn't work with boost, but works with pracma...
   expect_equal(gammaq(2, 1.5), 0.5578254, tol=1e-6)
+
+  expect_equal(rxFromSE("Derivative(gammap(x,y),y)"),
+               "gammapDer(x,y)")
   
 })
