@@ -80,6 +80,10 @@
 #define _qnorm2(x, mu) qnorm(x, mu, 1.0, 1, 0)
 #define _qnorm3(x, mu, sd) qnorm(x, mu, sd, 1, 0)
 #define probit(x) qnorm(x, 0.0, 1.0, 1, 0)
+#define _logit1(x) logit(x, 0.0, 1.0)
+#define _logit2(x, y) logit(x, y, 1.0)
+#define _expit1(x) expit(x, 0.0, 1.0)
+#define _expit2(x, y) expit(x, y, 1.0)
 #undef rf
 #define rf(ind, x, y) rxf(ind, x, y)
 
@@ -87,6 +91,7 @@
 typedef double (*RxODE_fn) (double x);
 typedef int (*RxODE_ifn) (double x);
 typedef double (*RxODE_fn2) (double x, double y);
+typedef double (*RxODE_fn3) (double x, double y, double z);
 typedef double (*RxODE_fn3i) (double x, double y, int i);
 typedef double (*RxODE_fn2i) (double x, int i);
 typedef int (*RxODE_fn0i) ();

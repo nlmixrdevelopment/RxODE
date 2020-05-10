@@ -1148,6 +1148,40 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           i = 1;// Parse next arguments
 	  depth=1;
 	  continue;
+	} else if (!strcmp("logit", v) || !strcmp("expit", v)){
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii == 1){
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    if (allSpaces(v2)){
+	      updateSyntaxCol();
+	      sPrint(&buf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
+		     v, v);
+	      Free(v2);
+	      trans_syntax_error_report_fn(buf.s);
+	    }
+	    Free(v2);
+	    sAppend(&sb, "_%s1(", v);
+	    sAppend(&sbDt,"_%s1(", v);
+	    sAppend(&sbt, "%s(", v);
+	  } else if (ii == 2) {
+	    sAppend(&sb, "_%s2(", v);
+	    sAppend(&sbDt,"_%s2(", v);
+	    sAppend(&sbt, "%s(", v);
+	  } else if (ii == 3) {
+	    sAppend(&sb, "%s(", v);
+	    sAppend(&sbDt,"%s(", v);
+	    sAppend(&sbt, "%s(", v);
+	  } else {
+	    updateSyntaxCol();
+	    sPrint(&buf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
+		   v, v);
+	    trans_syntax_error_report_fn(buf.s);
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  Free(v);
+	  continue;
 	} else if (!strcmp("lag", v) || (isLead = !strcmp("lead", v)) ||
 		   (isDiff = !strcmp("diff", v)) ||
 		   (isFirst = !strcmp("first", v)) ||
