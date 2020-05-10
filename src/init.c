@@ -107,6 +107,11 @@ SEXP _gammaqInv(SEXP, SEXP);
 SEXP _gammapInva(SEXP, SEXP);
 SEXP _gammaqInva(SEXP, SEXP);
 
+double expit(double, double, double);
+double logit(double, double, double);
+SEXP _expit(SEXP, SEXP, SEXP);
+SEXP _logit(SEXP, SEXP, SEXP);
+
 static R_NativePrimitiveArgType RxODE_Sum_t[] = {
   REALSXP, INTSXP
 };
@@ -392,9 +397,13 @@ void R_init_RxODE(DllInfo *info){
     {"_gammaqInv", (DL_FUNC) _gammaqInv, 2},
     {"_gammapInva", (DL_FUNC) _gammapInv, 2},
     {"_gammaqInva", (DL_FUNC) _gammaqInv, 2},
+    {"_expit", (DL_FUNC) _expit, 3},
+    {"_logit", (DL_FUNC) _logit, 3},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
+  R_RegisterCCallable("RxODE", "logit", (DL_FUNC) logit);
+  R_RegisterCCallable("RxODE", "expit", (DL_FUNC) expit);
   R_RegisterCCallable("RxODE", "phi", (DL_FUNC) phi);
   R_RegisterCCallable("RxODE", "rxnormV", (DL_FUNC) rxnormV);
   R_RegisterCCallable("RxODE", "rxgamma", (DL_FUNC) rxgamma);

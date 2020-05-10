@@ -785,3 +785,43 @@ gammapInv <- function(a, p){
 gammapInva <- function(x, p){
   .Call(`_gammapInva`, x, p, PACKAGE='RxODE')
 }
+
+##' logit and inverse logit (expit) functions
+##' 
+##' @param x Input value(s) in range [low,high] to translate -Inf to
+##'   Inf
+##' 
+##' @param alpha Infinite value(s) to translate to range of [low,
+##'   high]
+##' @param low Lowest value in the range
+##' @param high Highest value in the range
+##'
+##' @details
+##'
+##' logit is given by:
+##' 
+##' \deqn{logit(p) = -log(1/p-1)}
+##' 
+##' where:
+##'
+##' \deqn{p = \frac{x-low}{high-low}}
+##'
+##'  expit is given by:
+##'
+##' \deqn{expit(p, low, high) = \frac{high-low}{1+exp(-alpha)}+low}
+##'
+##' @examples
+##'
+##' logit(0.25)
+##'
+##' expit()
+##' 
+##' @export
+logit <- function(x, low=0, high=1){
+  .Call(`_logit`, x, low, high, PACKAGE='RxODE')
+}
+##'@rdname logit
+##'@export
+expit <- function(alpha, low=0, high=1){
+  .Call(`_expit`, alpha, low, high, PACKAGE='RxODE')
+}
