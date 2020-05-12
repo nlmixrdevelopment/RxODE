@@ -2287,72 +2287,107 @@ RObject et_(List input, List et__){
     untilIx = -1, evidIx=-1, idIx=-1, cmtIx=-1, 
     amtUnitIx=-1, timeUnitIx=-1, doSamplingIdx=-1, timeIx=-1,
     rateIx = -1,  durIx = -1, nbrIx=-1, ssIx=-1;
+  const char *amtChar = "amt";
+  const char *amtUnitChar = "amtUnit";
+  const char *timeUnitChar = "timeUnit";
+  const char *cmtChar = "cmt";
+  const char *evidChar = "evid";
+  const char *ssChar = "ss";
+  const char *iiChar = "ii";
+  const char *untilChar = "until";
+  const char *addlChar = "addl";
+  const char *nbrChar = "nbrDoses";
+  const char *doSamplingChar = "doSampling";
+  const char *durChar = "dur";
+  const char *rateChar = "rate";
   // Wait should be in sequences and rep
   for (i = (int)inN.size(); i--;){
     if (inN[i] == "amt" || inN[i] == "dose") {
       if (amtIx != -1){
-	stop("can only have one of the following: 'amt', 'dose'");
+	stop(_("can only have one of the following: 'amt', 'dose'"));
       }
       amtIx=i;
+      amtChar = CHAR(STRING_ELT(inN, amtIx));
     }
     else if (inN[i] == "ii" || inN[i] == "dosing.interval" || inN[i] == "dosingInterval" || inN[i] == "dosing_interval"){
       if (iiIx != -1){
-	stop("can only have one of the following: 'ii', 'dosing.interval', 'dosingInterval' or 'dosing_interval'");
+	stop(_("can only have one of the following: 'ii', 'dosing.interval', 'dosingInterval' or 'dosing_interval'"));
       }
       iiIx=i;
     }
-    else if (inN[i] == "addl") addlIx = i;
-    else if (inN[i] == "until" || inN[i] == "to") untilIx = i;
-    else if (inN[i] == "evid") evidIx = i;
+    else if (inN[i] == "addl") {
+      addlIx = i;
+      addlChar=CHAR(STRING_ELT(inN, i));
+    }
+    else if (inN[i] == "until" || inN[i] == "to") {
+      untilIx = i;
+      untilChar=CHAR(STRING_ELT(inN, i));
+    }
+    else if (inN[i] == "evid") {
+      evidIx = i;
+      evidChar=CHAR(STRING_ELT(inN, i));
+    }
     else if (inN[i] == "ID" || inN[i] == "id") idIx=i;
     else if (inN[i] == "cmt" || inN[i] == "dosing.to" || inN[i] == "dosingTo" || inN[i] =="dosing_to" ||
 	     inN[i] == "dose.to" || inN[i] == "doseTo" || inN[i] == "dose_to" || inN[i] == "state"){
       if (cmtIx != -1){
-	stop("can only have one of the following: 'cmt', 'dosing.to', 'dose.to', 'state'");
+	stop(_("can only have one of the following: 'cmt', 'dosing.to', 'dose.to', 'state'"));
       }
       cmtIx=i;
+      cmtChar=CHAR(STRING_ELT(inN, cmtIx));
     }
     else if (inN[i] == "amount.units" || inN[i] == "amountUnits" || inN[i] == "amount_units" ||
 	     inN[i] == "amt.units" || inN[i] == "amtUnits" || inN[i] == "amt_units" ||
 	     inN[i] == "dose.units" || inN[i] == "doseUnits" || inN[i] == "dose_units") {
       if (amtUnitIx != -1){
-	stop("can only have one of the following: 'amount.units', 'amt.units', 'dose.units'");
+	stop(_("can only have one of the following: 'amount.units', 'amt.units', 'dose.units'"));
       }
       amtUnitIx=i;
+      amtUnitChar = CHAR(STRING_ELT(inN, amtUnitIx));
     }
     else if (inN[i] == "time.units" || inN[i] == "timeUnits" || inN[i] == "time_units") {
       if (timeUnitIx != -1) {
-	stop("can only have one of the following: 'time.units', 'timeUnits', 'time_units'");
+	stop(_("can only have one of the following: 'time.units', 'timeUnits', 'time_units'"));
       }
       timeUnitIx=i;
+      timeUnitChar=CHAR(STRING_ELT(inN, i));
     }
     else if (inN[i] == "do.sampling" || inN[i] == "doSampling" || inN[i] == "do_sampling" ||
 	     inN[i] == "add.sampling" || inN[i] == "addSampling" || inN[i] == "add_sampling") {
       if (doSamplingIdx != -1) {
-	stop("can only have one of the following: 'add.sampling', 'do.sampling'");
+	stop(_("can only have one of the following: 'add.sampling', 'do.sampling'"));
       }
       doSamplingIdx=i;
+      doSamplingChar=CHAR(STRING_ELT(inN, i));
     }
     else if (inN[i] == "time" || inN[i] == "start.time" || inN[i] == "startTime" || inN[i] == "start_time" ||
 	     inN[i] == "start" || inN[i] == "from"){
       if (timeIx != -1){
-	stop("can only have one of the following: 'time', 'start.time', 'from'");
+	stop(_("can only have one of the following: 'time', 'start.time', 'from'"));
       }
       timeIx = i;
     }
     else if (inN[i] == "nbr.doses" || inN[i] == "nbrDoses" || inN[i] == "nbr") {
       if (nbrIx != -1){
-	stop("can only have one of the following: 'nbrDoses', 'nbr.doses'");
+	stop(_("can only have one of the following: 'nbrDoses', 'nbr.doses'"));
       }
       nbrIx=i;
+      nbrChar = CHAR(STRING_ELT(inN, i));
     }
-    else if (inN[i] == "ss") ssIx = i;
-    else if (inN[i] == "rate") rateIx = i;
+    else if (inN[i] == "ss") {
+      ssIx = i;
+      ssChar = CHAR(STRING_ELT(inN, ssIx));
+    }
+    else if (inN[i] == "rate") {
+      rateIx = i;
+      rateChar = CHAR(STRING_ELT(inN, i));
+    }
     else if (inN[i] == "dur" || inN[i] == "duration") {
       if (durIx != -1){
-	stop("can only have one of the following: 'dur', 'duration'");
+	stop(_("can only have one of the following: 'dur', 'duration'"));
       }
       durIx = i;
+      durChar = CHAR(STRING_ELT(inN, i));
     }
     else if (inN[i] != "" && inN[i] != "simulate" && inN[i] != "envir" &&
 	     inN[i] != "expand" && !doUpdateObj){
@@ -2410,7 +2445,7 @@ RObject et_(List input, List et__){
       units[0] = oldUnits[0];
     } else  {
       CharacterVector tmpS = asCv(input[amtUnitIx], "input[amtUnitIx]");
-      if (tmpS.size() != 1) stop(_("amount unit cannot be a vector"));
+      if (tmpS.size() != 1) stop(_("'%s' cannot be a vector"), amtUnitChar);
       units[0] = tmpS[0];
       foundUnits = true;
     }
@@ -2418,7 +2453,7 @@ RObject et_(List input, List et__){
       units[1] = oldUnits[1];
     } else  {
       CharacterVector tmpS = asCv(input[timeUnitIx], "input[timeUnitIx]");
-      if (tmpS.size() != 1) stop(_("time unit cannot be a vector"));
+      if (tmpS.size() != 1) stop(_("'%s' cannot be a vector"), timeUnitChar);
       units[1] = tmpS[0];
       foundUnits = true;
     }
@@ -2624,7 +2659,7 @@ RObject et_(List input, List et__){
 	  if (cmtS.size() == 1){
 	    List tmp = as<List>(curEt);
 	    if (rxIsInt(tmp[4])){
-	      stop(_("cannot mix named and integer compartments"));
+	      stop(_("cannot mix named and integer compartments in '%s'"), cmtChar);
 	    }
 	    std::string curCmt = as<std::string>(cmtS[0]);
 	    if (curCmt.substr(0, 1) == "-"){
@@ -2632,7 +2667,7 @@ RObject et_(List input, List et__){
 	    }
 	    cmt = as<RObject>(cmtS);
 	  } else {
-	    stop(_("compartment cannot be a vector"));
+	    stop(_("'%s' compartment cannot be a vector"), cmtChar);
 	  }
 	} else if (rxIsNumInt(input[cmtIx])){
 	  cmtI = asIv(input[cmtIx], "input[cmtIx]");
@@ -2644,14 +2679,14 @@ RObject et_(List input, List et__){
 	      cmtNeg = true;
 	    }
 	    if (cmtI[0] == 0){
-	      stop(_("compartment cannot be zero"));
+	      stop(_("'%s' cannot be zero"), cmtChar);
 	    }
 	    cmt = as<RObject>(cmtI);
 	  } else {
-	    stop(_("compartment cannot be an vector"));
+	    stop(_("'%s' cannot be an vector"), cmtChar);
 	  }
 	} else {
-	  stop(_("compartment must be an integer or a character"));
+	  stop(_("'%s' must be an integer or a character"), cmtChar);
 	}
 	turnOnShowCmt=true;
       }
@@ -2663,7 +2698,7 @@ RObject et_(List input, List et__){
       } else {
 	NumericVector tmpNV = asNv(input[amtIx], "input[amtIx]");
 	if (amt.size() != 1){
-	  stop(_("dose amount cannot be a vector"));
+	  stop(_("'%s' cannot be a vector"), amtChar);
 	}
 	amt[0] = tmpNV[0];
 	if (rxIs(tmpNV, "units")){
@@ -2686,21 +2721,22 @@ RObject et_(List input, List et__){
       if (evidIx != -1){
 	IntegerVector tmp = as<IntegerVector>(input[evidIx]);
 	if (evid.size()!= 1){
-	  stop(_("'evid' cannot be a vector"));
+	  stop(_("'%s' cannot be a vector"), evidChar);
 	}
 	evid[0] = tmp[0];
 	if (cmtNeg && evid[0] != 2){
-	  stop(_("turning off compartments can only be done when 'EVID'=2"));
+	  stop(_("turning off compartments can only be done when '%s'=2"), evidChar);
 	}
 	if (evid[0] == 0 && isObs){
-	  stop(_("zero 'evid' cannot be used with 'dose'/'amt'"));
+	  stop(_("zero '%s' cannot be used with '%s'"), evidChar, amtChar);
 	}
 	if ((evid[0] == 1 || evid[0] == 4) && isObs){
-	  stop(_("'evid' requires an 'amt'"));
+	  stop(_("'%s' requires an '%s'"), evidChar, amtChar);
 	} else if (evid[0] == 2 || evid[0] == 3) {
 	  if (amtIx == -1){
 	    if (amt[0] != 0 && NumericVector::is_na(amt[0])){
-	      warning(_("dose amount is ignored with 'EVID'=2 or 'EVID'=3"));
+	      warning(_("'%s' is ignored when '%s'=2 or '%s'=3"), amtChar,
+		      evidChar, evidChar);
 	    }
 	  }
 	  amt[0] = NA_REAL;
@@ -2720,36 +2756,37 @@ RObject et_(List input, List et__){
 	IntegerVector addl;// = 0;
 	if (addlIx != -1){
 	  addl = as<IntegerVector>(input[addlIx]);
-	  if (addl.size() != 1) stop(_("'addl' cannot be a vector"));
+	  if (addl.size() != 1) stop(_("'%s' cannot be a vector"), addlChar);
 	  if (addl[0] != 0){
-	    stop(_("'addl' needs a 'dose'/'amt'"));
+	    stop(_("'%s' needs a '%s'"), addlChar, amtChar);
 	  }
 	} else {
 	  addl = IntegerVector(1);
 	  addl[0] = 0;
 	}
 	if (untilIx != -1){
-	  stop(_("'until' needs a 'dose'/'amt'"));
+	  stop(_("'%s' needs a '%s'"), untilChar, amtChar);
 	}
 	if (nbrIx != -1){
-	  stop(_("'nbr.doses' needs a 'dose'/'amt'"));
+	  stop(_("'%s' needs a '%s'"), nbrChar, amtChar);
 	}
 	NumericVector rate;
 	if (rateIx != -1){
 	  if (durIx != -1){
-	    stop(_("can not specify 'dur' and 'rate' for a dose, please pick one"));
+	    stop(_("can not specify '%s' and '%s' for a dose, please pick one"),
+		 durChar, rateChar);
 	  }
 	  rate = as<NumericVector>(input[rateIx]);
-	  if (rate.size() != 1) stop(_("'rate' cannot be a vector"));
+	  if (rate.size() != 1) stop(_("'%s' cannot be a vector"), rateChar);
 	  if (rate[0] != 0.0){
-	    stop(_("'rate' needs a 'dose'/'amt'"));
+	    stop(_("'%s' needs a '%s'"), rateChar, amtChar);
 	  }
 	} else {
 	  if (durIx != -1){
 	    NumericVector dur = as<NumericVector>(input[durIx]);
-	    if (dur.size() != 1) stop(_("'dur' cannot be a vector"));
+	    if (dur.size() != 1) stop(_("'%s' cannot be a vector"), durChar);
 	    if (dur[0] != 0){
-	      stop(_("'dur' needs a 'dose'/'amt'"));
+	      stop(_("'%s' needs a '%s'"), durChar, amtChar);
 	    }
 	  }
 	  rate = NumericVector(1);
@@ -2758,7 +2795,7 @@ RObject et_(List input, List et__){
 	NumericVector ii(1);
 	if (iiIx != -1){
 	  NumericVector tmpNV = as<NumericVector>(input[iiIx]);
-	  if (tmpNV.size() != 1) stop(_("'ii' cannot be a vector"));
+	  if (tmpNV.size() != 1) stop(_("'%s' cannot be a vector"), iiChar);
 	  if (tmpNV[0] != 0.0){
 	    stop(_("'ii' needs a 'dose'/'amt'"));
 	  }
@@ -2777,9 +2814,9 @@ RObject et_(List input, List et__){
 	IntegerVector ss;// = 0;
 	if (ssIx != -1){
 	  ss = as<IntegerVector>(input[ssIx]);
-	  if (ss.size() != 1) stop(_("'ss' cannot be a vector"));
+	  if (ss.size() != 1) stop(_("'%s' cannot be a vector"), ssChar);
 	  if (ss[0] != 0){
-	    stop(_("non-zero 'ss' needs a 'dose'/'amt'"));
+	    stop(_("non-zero '%s' needs a '%s'"), ssChar, amtChar);
 	  }
 	}
 	if (timeIx != -1) {
@@ -2816,32 +2853,33 @@ RObject et_(List input, List et__){
 	// Dose
 	////////////////////////////////////////////////////////////////////////////////
 	if (addlIx != -1 && untilIx != -1){
-	  stop(_("can only specify 'until' or 'addl', not both"));
+	  stop(_("can only specify '%s' or '%s', not both"), untilChar, addlChar);
 	}
 	if (addlIx != -1 && nbrIx != -1){
-	  stop(_("can only specify 'addl' or 'nbr.doses', not both"));
+	  stop(_("can only specify '%s' or '%s', not both"), addlChar, nbrChar);
 	}
 	if (nbrIx != -1 && untilIx != -1){
-	  stop(_("can only specify 'nbr.doses' or 'until', not both"));
+	  stop(_("can only specify '%s' or '%s', not both"), nbrChar, untilChar);
 	}
 	bool doSampling = false;
 	if (doSamplingIdx != -1){
 	  if (rxIs(input[doSamplingIdx], "logical")){
 	    LogicalVector tmpL = as<LogicalVector>(input[doSamplingIdx]);
-	    if (tmpL.size() != 1) stop(_("'do.sampling' can only have one item"));
+	    if (tmpL.size() != 1) stop(_("'%s' can only have one item"), doSamplingChar);
 	    doSampling = tmpL[0];
 	  } else {
-	    stop(_("'do.sampling' must be logical"));
+	    stop(_("'%s' must be logical"), doSamplingChar);
 	  }
 	}
 	NumericVector rate(1);
 	NumericVector dur(1);
 	if (rateIx != -1){
 	  if (durIx != -1){
-	    stop(_("cannot specify 'dur' and 'rate' for a dose, please pick one"));
+	    stop(_("cannot specify '%s' and '%s' for a dose, please pick one"),
+		 durChar, rateChar);
 	  }
 	  NumericVector tmpNV = as<NumericVector>(input[rateIx]);
-	  if (tmpNV.size() != 1) stop(_("'rate' cannot be a vector"));
+	  if (tmpNV.size() != 1) stop(_("'%s' cannot be a vector"), rateChar);
 	  if (rxIs(tmpNV, "units")){
 	    CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
 	    List e = clone(as<List>(cls.attr(".RxODE.lst")));
@@ -2853,14 +2891,14 @@ RObject et_(List input, List et__){
 	      std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
 	      rate = setUnits(tmpNV,rateUnit);
 	    } else {
-	      stop(_("'rate' is cannot be converted and added to this table")); // 
+	      stop(_("'%s' is cannot be converted and added to this table"), rateChar); // 
 	    }
 	  } else {
 	    rate[0] = tmpNV[0];
 	  }
 	  if (ssInf){
 	    if (rate[0] != -1 && rate[0] <= 0.0){
-	      stop(_("steady state constant infusion dosing records must have 'rate=-1' or positive rate"));
+	      stop(_("steady state constant infusion dosing records must have '%s=-1' or positive rate"), rateChar);
 	    }
 	  }
 	  dur[0] = 0;
@@ -2869,7 +2907,7 @@ RObject et_(List input, List et__){
 	    NumericVector tmpNV = as<NumericVector>(input[durIx]);
 	    rate = NumericVector(1);
 	    rate[0] = 0;
-	    if (tmpNV.size() != 1) stop(_("'dur' cannot be a vector"));
+	    if (tmpNV.size() != 1) stop(_("'%s' cannot be a vector"), durChar);
 	    if (rxIs(tmpNV, "units")){
 	      CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
 	      List e = clone(as<List>(cls.attr(".RxODE.lst")));
@@ -2879,7 +2917,7 @@ RObject et_(List input, List et__){
 		dur = setUnits(tmpNV,as<std::string>(units[1]));
 		// While units are converted, the units that matter are the rate units.
 	      } else {
-		stop(_("'dur' cannot be converted and added to this table"));
+		stop(_("'%s' cannot be converted and added to this table"), durChar);
 	      }
 	    } else {
 	      dur = tmpNV[0];
@@ -2892,7 +2930,7 @@ RObject et_(List input, List et__){
 	NumericVector ii(1);// =0.0;
 	if (iiIx != -1){
 	  NumericVector tmpNV = as<NumericVector>(input[iiIx]);
-	  if (tmpNV.size() != 1) stop(_("'ii' cannot be a vector"));
+	  if (tmpNV.size() != 1) stop(_("'%s' cannot be a vector"), iiChar);
 	  if (rxIs(tmpNV, "units")){
 	    ii = setUnits(tmpNV, as<std::string>(units[1]));
 	  } else {
@@ -2905,12 +2943,12 @@ RObject et_(List input, List et__){
 	IntegerVector ss;// = 0;
 	if (ssIx != -1){
 	  ss = as<IntegerVector>(input[ssIx]);
-	  if (ss.size() != 1) stop(_("'ss' cannot be a vector"));
+	  if (ss.size() != 1) stop(_("'%s' cannot be a vector"), ssChar);
 	  if (zeroAmt && ss[0] != 0){
 	    if (ss[0] == 1 && (rate[0] > 0 || rate[0] == -1)) {
 	      ssRateInf=true;
 	    } else {
-	      stop(_("non-zero 'ss' needs a 'dose'/'amt'"));
+	      stop(_("non-zero '%s' needs a '%s'"), ssChar, amtChar);
 	    }
 	  }
 	} else {
@@ -2934,22 +2972,23 @@ RObject et_(List input, List et__){
 	IntegerVector addl(1);//=0;
 	if (addlIx != -1){
 	  IntegerVector tmpIV = as<IntegerVector>(input[addlIx]);
-	  if (tmpIV.size() != 1) stop(_("'addl' cannot be a vector"));
+	  if (tmpIV.size() != 1) stop(_("'%s' cannot be a vector"), addlChar);
 	  addl[0] = tmpIV[0];
 	} else if (nbrIx != -1){
 	  IntegerVector tmpIV = as<IntegerVector>(input[nbrIx]);
-	  if (tmpIV.size() != 1) stop(_("number of doses cannot be a vector"));
+	  if (tmpIV.size() != 1) stop(_("'%s' cannot be a vector"), nbrChar);
 	  if (tmpIV[0] < 1){
-	    stop(_("number of doses must be at least one ('addl': %d)"), addl[0]);
+	    stop(_("number of doses must be at least one ('%s': %d)"), nbrChar, addl[0]);
 	  }
 	  addl[0] = tmpIV[0]-1;
 	} else if (untilIx != -1){
 	  // Need time for this
 	  NumericVector tmpNV = as<NumericVector>(input[untilIx]);
 	  NumericVector until(1);
-	  if (tmpNV.size() != 1) stop(_("until cannot be a vector"));
+	  if (tmpNV.size() != 1) stop(_("'%s' cannot be a vector"), untilChar);
 	  if (ii[0] < 0){
-	    stop(_("'until' can only be used with positive inter-dose intervals ('ii')"));
+	    stop(_("'%s' can only be used with positive inter-dose intervals ('%s')"),
+		 untilChar, iiChar);
 	  }
 	  if (rxIs(tmpNV, "units")){
 	    until = setUnits(tmpNV, as<std::string>(units[1]));
@@ -2958,7 +2997,8 @@ RObject et_(List input, List et__){
 	  }
 	  if (!doWindow || time.size() == 1){
 	    if (time.size() != 1){
-	      stop(_("'until' does not make sense with multiple dosing times"));
+	      stop(_("'%s' does not make sense with multiple dosing times"),
+		   untilChar);
 	    }
 	    double tmp = until[0] - time[0] - ii[0];
 	    if (tmp > 0){
@@ -2995,35 +3035,38 @@ RObject et_(List input, List et__){
 	  if (doUpdateObj && ii[0] == 24){
 	    ii[0]=0;
 	  } else {
-	    stop(_("'ii' requires non zero additional doses ('addl'/'until'/'nbr.doses') or steady state dosing ('ii': %f, 'ss': %d; 'addl': %d)."), ii[0], ss[0], addl[0]);
+	    warning(_("'%s' requires non zero additional doses ('%s') or steady state dosing ('%s': %f, '%s': %d; '%s': %d), reset '%s' to zero."), iiChar, addlChar, iiChar, ii[0], ssChar, ss[0], addlChar, addl[0],
+		    iiChar);
+	    ii[0]=0;
 	  }
 	}
 	if (ssInf && ss[0] != 1){
-	  stop(_("'ss' must be 1 when specifying a steady-state constant infusion"));
+	  stop(_("'%s' must be 1 when specifying a steady-state constant infusion"), ssChar);
 	}
 	if (ss[0] < 0 || ss[0] > 2){
-	  stop(_("'ss' must be 0, 1 or 2"));
+	  stop(_("'%s' must be 0, 1 or 2"), ssChar);
 	} if (ss[0] > 0 && ii[0] <= 0){
 	  if (!ssInf && !ssRateInf){
-	    stop(_("'ii' required with 'ss'"));
+	    stop(_("'%s' required with '%s'"), iiChar, ssChar);
 	  }
 	}
 	if (ssInf && ii[0] > 0){
-	  stop(_("'ii' cannot be used with steady state constant infusion"));
+	  stop(_("'%s' cannot be used with steady state constant infusion"), iiChar);
 	}
 	if (ss[0] > 1 && time.size() > 1){
-	  stop(_("steady state ('ss') is not supported with dosing windows"));
+	  stop(_("steady state ('%s') is not supported with dosing windows"), ssChar);
 	}
 	if (addl[0] < 0){
-	  stop(_("additional doses must be positive ('addl'=%d)"), addl[0]);
+	  stop(_("additional doses must be positive ('%s'=%d)"), addlChar, addl[0]);
 	}
 	if (addl[0] > 0 && ii[0] <= 0){
-	  stop(_("additional doses require an inter-dose interval ('ii')"));
+	  stop(_("additional doses require an inter-dose interval ('%s')"), iiChar);
 	}
 	// Defer ss errors to end to check for rate infusion steady state
 	if (ssRateInf) {
 	  if (ii[0] != 0.0) {
-	    stop("for steady state infusions, you need ii=0, rate>0, ss=1, amt=0");
+	    stop(_("for steady state infusions, you need %s=0, %s>0, %s=1, %s=0"),
+		 iiChar, rateChar, ssChar, amtChar);
 	  }
 	}
 	List ret;
@@ -3066,7 +3109,7 @@ RObject et_(List input, List et__){
       units[0] = NA_STRING;
     } else  {
       CharacterVector tmpS = as<CharacterVector>(input[amtUnitIx]);
-      if (tmpS.size() != 1) stop(_("amount unit cannot be a vector"));
+      if (tmpS.size() != 1) stop(_("'%s' cannot be a vector"), amtUnitChar);
       units[0] = tmpS[0];
       foundArgs++;
     }
@@ -3074,7 +3117,7 @@ RObject et_(List input, List et__){
       units[1] = NA_STRING;
     } else  {
       CharacterVector tmpS = as<CharacterVector>(input[timeUnitIx]);
-      if (tmpS.size() != 1) stop(_("time unit cannot be a vector"));
+      if (tmpS.size() != 1) stop(_("'%s' cannot be a vector"), timeUnitChar);
       units[1] = tmpS[0];
       foundArgs++;
     }
