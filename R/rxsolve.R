@@ -33,7 +33,6 @@ rxControl <- function(scale = NULL,
                       istateReset=TRUE,
                       subsetNonmem=TRUE,
                       linLog=FALSE,
-                      advanLinCmt=FALSE,
                       maxAtolRtolFactor=0.1,
                       from=NULL,
                       to=NULL,
@@ -231,7 +230,7 @@ rxControl <- function(scale = NULL,
                  infSSstep=as.double(infSSstep),
                  istateReset=istateReset,
                  subsetNonmem=subsetNonmem,
-                 linLog=linLog, advanLinCmt=advanLinCmt, hmaxSd=hmaxSd,
+                 linLog=linLog, hmaxSd=hmaxSd,
                  maxAtolRtolFactor=maxAtolRtolFactor,
                  from=from,
                  to=to,
@@ -561,16 +560,6 @@ rxControl <- function(scale = NULL,
 ##' }
 ##'
 ##' @param subsetNonmem subset to NONMEM compatible EVIDs only.  By default TRUE.
-##'
-##' @param linLog Boolean indicating if linear compartment models be
-##'     calculated more accurately in the log-space (slower) By
-##'     default this is off (\code{FALSE}).  This only applies to
-##'     solving linear compartmental models using the superposition
-##'     principle
-##'
-##' @param advanLinCmt Boolean indicating if linear comparmental
-##'     solutions are solved with ADVAN-style (Abuhelwa 2015)
-##'     solutions instead of superpositioning
 ##'
 ##' @param maxAtolRtolFactor The maximum \code{atol}/\code{rtol} that
 ##'     FOCEi and other routines may adjust to.  By default 0.1

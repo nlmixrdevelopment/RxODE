@@ -212,9 +212,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       double p2, double p3,
 	       double p4, double p5,
 	       double d_tlag, double d_tlag2, double d_F, double d_F2,
-	       // Rate and dur can only apply to central compartment even w/ oral dosing
-	       // Therefore, only 1 model rate is possible with RxODE
-	       double d_rate, double d_dur);
+	       double d_rate, double d_dur, double d_rate2, double d_dur2);
 
 double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       int i_cmt, int trans, int val,
@@ -224,7 +222,8 @@ double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       double dd_ka,
 	       double dd_tlag, double dd_tlag2,
 	       double dd_F, double dd_F2,
-	       double dd_rate, double dd_dur);
+	       double dd_rate, double dd_dur,
+	       double dd_rate2, double dd_dur2);
 
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
 double _getParCov(unsigned int id, rx_solve *rx, int parNo, int idx);

@@ -573,9 +573,9 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             }
         }
         if (linCmtSens){
-            .solve <- sprintf("linCmtB(rx__PTR__, t, %s, %s, %s, 0, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, %s, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur)", .linCmt, .ncmt, .trans, ifelse(.oral, "rx_ka", "0.0"));
+            .solve <- sprintf("linCmtB(rx__PTR__, t, %s, %s, %s, 0, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, %s, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur, 0, 0)", .linCmt, .ncmt, .trans, ifelse(.oral, "rx_ka", "0.0"));
         } else {
-            .solve <- sprintf("linCmtA(rx__PTR__, t, %s, %s, %s, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, %s, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur)", .linCmt, .ncmt, .trans, ifelse(.oral, "rx_ka", "0.0"));
+            .solve <- sprintf("linCmtA(rx__PTR__, t, %s, %s, %s, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, %s, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur, 0, 0)", .linCmt, .ncmt, .trans, ifelse(.oral, "rx_ka", "0.0"));
         }
 
         .lines <- paste(.lines, collapse="\n");

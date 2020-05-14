@@ -95,14 +95,13 @@ typedef struct {
   int abort;
   int minSS;
   int maxSS;
-  int linLog;
-  int advanLinCmt;
   int doIndLin;
   int strictSS;
   double infSSstep;
   int mxhnil;
   double hmxi;
   int nlin;
+  int nlinR;
 } rx_solving_options;
 
 
@@ -163,7 +162,18 @@ typedef struct {
   int err;
   double linCmtT;
   double linCmtB[14];
+  int *solved;
   double *linCmtAdvan;
+  double *linCmtRate;
+  int linCmt;
+  double lag;
+  double lag2;
+  double f;
+  double f2;
+  double rate;
+  double rate2;
+  double dur;
+  double dur2;
   int linCmtAdvanSetup;
   int cacheME;
   int inLhs;

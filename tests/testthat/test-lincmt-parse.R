@@ -1,3 +1,4 @@
+if (FALSE){
 rxPermissive({
 
     tran1  <- expand.grid(Ka=c("ka",NA),
@@ -325,3 +326,4 @@ rxPermissive({
 
 
 }, test="parseLincmt")
+}

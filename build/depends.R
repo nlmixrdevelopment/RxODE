@@ -27,8 +27,8 @@ if (FALSE){
 
   ## Now 1 compartment oral
   m <-RxODE({
-    A1=(b1+A1last)*exp(-ka*t)
-    A2=(((b2+b1+A2last+A1last)*ka+(-b2-A2last)*k20)*exp(-k20*t))/(ka-k20)-((b1+A1last)*ka*exp(-ka*t))/(ka-k20)
+    A1 <- A1last*exp(-t*ka)+b1
+    A2 <- A1last*ka/(ka-k20)*(exp(-t*k20)-exp(-t*ka))+A2last*exp(-t*k20)+b2
   })
 
   message(rxOptExpr(rxNorm(m)))
@@ -85,5 +85,90 @@ if (FALSE){
   })
 
   message(rxOptExpr(rxNorm(m)))
+
+
+  ## Now paramterizations
+
+  m <- RxODE({
+    E2 <- kel + k12
+    ##Calculate roots
+    beta <- 0.5*(k12+k21+kel - sqrt((k12+k21+kel)^2 - 4*k21*kel))
+    alpha <- k21*kel/beta
+  })
+
+  message(rxOptExpr(rxNorm(m)))
+
+  m <- RxODE({
+    E2 <- kel + k12 + k13
+                                        #Calculate roots - see Upton, 2004
+    j <- k12+kel+k21+k31+k13
+    k <- k12*k31+kel*k21+kel*k31+k21*k31+k13*k21
+    l <- kel*k21*k31
+
+    m <- (3*k - j^2)/3
+    n <- (2*j^3 - 9*j*k + 27*l)/27
+    Q <- (n^2)/4 + (m^3)/27
+
+    alpha <- sqrt(-1*Q)
+    beta <- -1*n/2
+    rho <- sqrt(beta^2+alpha^2)
+    theta <- atan2(alpha,beta)
+
+    lambda1 <- j/3 + rho^(1/3)*(cos(theta/3) + sqrt(3)*sin(theta/3))
+    lambda2 <- j/3 + rho^(1/3)*(cos(theta/3) - sqrt(3)*sin(theta/3))
+    lambda3 <- j/3 -(2*rho^(1/3)*cos(theta/3)) 
+  })
+
+  message(rxOptExpr(rxNorm(m)))
+
+  m <- RxODE({
+    E1 <- kel+k12
+    E2 <- k21
+    #calculate hybrid rate constants
+    lambda1 = 0.5*((E1+E2)+sqrt((E1+E2)^2-4*(E1*E2-k12*k21)))
+    lambda2 = 0.5*((E1+E2)-sqrt((E1+E2)^2-4*(E1*E2-k12*k21)))
+  })
+
+  message(rxOptExpr(rxNorm(m)))
+
+  m <- RxODE({
+    E1 <- kel+k12+k13
+    E2 <- k21
+    E3 <- k31
+
+    #calculate hybrid rate constants
+    a <- E1+E2+E3
+    b <- E1*E2+E3*(E1+E2)-k12*k21-k13*k31
+    c <- E1*E2*E3-E3*k12*k21-E2*k13*k31
+
+    m <- (3*b - a^2)/3
+    n <- (2*a^3 - 9*a*b + 27*c)/27
+    Q <- (n^2)/4 + (m^3)/27
+
+    alpha <- sqrt(-1*Q)
+    beta <- -1*n/2
+    gamma <- sqrt(beta^2+alpha^2)
+    theta <- atan2(alpha,beta)
+
+    lambda1 <- a/3 + gamma^(1/3)*(cos(theta/3) + sqrt(3)*sin(theta/3))
+    lambda2 <- a/3 + gamma^(1/3)*(cos(theta/3) - sqrt(3)*sin(theta/3))
+    lambda3 <- a/3 -(2*gamma^(1/3)*cos(theta/3))
+
+    B = A2last*k21+A3last*k31
+    C = E3*A2last*k21+E2*A3last*k31
+    I = A1last*k12*E3-A2last*k13*k31+A3last*k12*k31
+    J = A1last*k13*E2+A2last*k13*k21-A3last*k12*k21
+  })
+
+  message(rxOptExpr(rxNorm(m)))
+
+  m <- RxODE({
+    E2 <- kel+k23
+    E3 <- k21
+    #calculate hybrid rate constants
+    lambda1 = 0.5*((E2+E3)+sqrt((E2+E3)^2-4*(E2*E3-k12*k21)))
+    lambda2 = 0.5*((E2+E3)-sqrt((E2+E3)^2-4*(E2*E3-k12*k21)))
+  })
   
+  message(rxOptExpr(rxNorm(m)))
 }

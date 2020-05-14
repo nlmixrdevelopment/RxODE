@@ -375,45 +375,27 @@ void calcMtime(int solveid, double *mtime){
   calc_mtime(solveid,mtime);
 }
 
-int _linCmt=-100;
-double _lag=0.0;
-double _lag2=0.0;
-double _f=1.0;
-double _f2=1.0;
-double _rate = 0.0;
-double _dur = 0.0;
-void setLinCmt(int linCmt, double lag, double lag2, double f, double f2,
-	       double rate, double dur){
-  _linCmt = linCmt;
-  _lag = lag;
-  _lag2 = lag;
-  _f = f;
-  _f2 = f2;
-  _rate = rate;
-  _dur = dur;
-}
-
-double getLag(int id, int cmt, double time){
-  if (cmt == _linCmt) return _lag;
-  if (cmt == _linCmt+1) return _lag2;
+double getLag(rx_solving_options_ind *ind, int id, int cmt, double time){
+  if (cmt == ind->linCmt) return ind->lag + time;
+  if (cmt == ind->linCmt+1) return ind->lag2 +time;
   return LAG(id, cmt, time);
 }
 
-double getAmt(int id, int cmt, double dose, double t){
-  if (cmt == _linCmt) return _f*dose;
-  if (cmt == _linCmt+1) return _f2*dose;
+double getAmt(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
+  if (cmt == ind->linCmt) return ind->f*dose;
+  if (cmt == ind->linCmt+1) return ind->f2*dose;
   return AMT(id, cmt, dose, t);
 }
 
-double getRate(int id, int cmt, double dose, double t){
-  if (cmt == _linCmt) return _rate;
-  if (cmt == _linCmt+1) return _rate;
+double getRate(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
+  if (cmt == ind->linCmt) return ind->rate;
+  if (cmt == ind->linCmt+1) return ind->rate;
   return RATE(id, cmt, dose, t);
 }
 
-double getDur(int id, int cmt, double dose, double t){
-  if (cmt == _linCmt) return _dur;
-  if (cmt == _linCmt+1) return _dur;
+double getDur(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
+  if (cmt == ind->linCmt) return ind->dur;
+  if (cmt == ind->linCmt+1) return ind->dur;
   return DUR(id, cmt, dose, t);
 }
 
@@ -520,10 +502,6 @@ extern rx_solve *getRxSolve_(){
   return &rx_global;
 }
 
-rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
-  return &(rx->subjects[id]);
-}
-
 void doSort(rx_solving_options_ind *ind);
 
 void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0){
@@ -563,8 +541,8 @@ void updateRate(int idx, rx_solving_options_ind *ind){
       /* error("Corrupted event table during sort (1)."); */
     }
     double dur, rate, amt;
-    amt  = getAmt(ind->id, ind->cmt, ind->dose[j], t);
-    rate  = getRate(ind->id, ind->cmt, amt, t);
+    amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[j], t);
+    rate  = getRate(ind, ind->id, ind->cmt, amt, t);
     if (rate > 0){
       dur = amt/rate; // mg/hr
       ind->dose[j+1] = -rate;
@@ -622,8 +600,8 @@ void updateDur(int idx, rx_solving_options_ind *ind){
       /* error("Corrupted event table during sort (2)."); */
     }
     double dur, rate, amt;
-    amt  = getAmt(ind->id, ind->cmt, ind->dose[j], t);
-    dur  = getDur(ind->id, ind->cmt, amt, t);
+    amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[j], t);
+    dur  = getDur(ind, ind->id, ind->cmt, amt, t);
     if (dur > 0){
       rate = amt/dur;// mg/hr
       ind->dose[j+1] = -rate;
@@ -768,7 +746,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	  /* error("Corrupted event table during sort (1)."); */
 	}
 	if (ind->dose[j] > 0){
-	  return getLag(ind->id, ind->cmt, ind->all_times[idx]);
+	  return getLag(ind, ind->id, ind->cmt, ind->all_times[idx]);
 	} else if (ind->dose[j] < 0){
 	  // f*amt/rate=dur
 	  // amt/rate=durOld
@@ -789,7 +767,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	  double durOld = (ind->all_times[ind->idose[j]] - ind->all_times[ind->idose[k]]); 
 	  double dur = f*durOld;
 	  double t = ind->all_times[ind->idose[k]]+dur;
-	  return getLag(ind->id, ind->cmt, t);
+	  return getLag(ind, ind->id, ind->cmt, t);
 	} else {
 	  /* error("Corrupted events."); */
 	  if (!(ind->err & 131072)){
@@ -801,7 +779,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
       break;
     }
   }
-  return getLag(ind->id, ind->cmt, ind->all_times[idx]);
+  return getLag(ind, ind->id, ind->cmt, ind->all_times[idx]);
 }
 
 inline static int syncIdx(rx_solving_options_ind *ind){
@@ -853,14 +831,14 @@ inline static int syncIdx(rx_solving_options_ind *ind){
   return 1;
 }
 
-int handle_evid(int evid, int neq, 
-		int *BadDose,
-		double *InfusionRate,
-		double *dose,
-		double *yp,
-		int do_transit_abs,
-		double xout, int id,
-		rx_solving_options_ind *ind){
+static inline int handle_evid(int evid, int neq, 
+			      int *BadDose,
+			      double *InfusionRate,
+			      double *dose,
+			      double *yp,
+			      int do_transit_abs,
+			      double xout, int id,
+			      rx_solving_options_ind *ind){
   if (isObs(evid)) return 0;
   int wh = evid, cmt, foundBad, j;
   double tmp;
@@ -913,7 +891,7 @@ int handle_evid(int evid, int neq,
 	ind->on[cmt] = 1;
 	ind->cacheME=0;
 	InfusionRate[cmt] -= dose[ind->ixds+1];
-	if (ind->wh0 == 20 && getAmt(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
+	if (ind->wh0 == 20 && getAmt(ind, id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
 	  if (!(ind->err & 1048576)){
 	    ind->err += 1048576;
 	  }
@@ -927,7 +905,7 @@ int handle_evid(int evid, int neq,
 	// Probably should throw an error if the infusion rate is on still.
 	InfusionRate[cmt] += dose[ind->ixds]*((double)(ind->on[cmt]));
 	ind->cacheME=0;
-	if (ind->wh0 == 20 && getAmt(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
+	if (ind->wh0 == 20 && getAmt(ind, id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
 	  /* error("SS=2 & Modeled F does not work"); */
 	  if (!(ind->err & 2097152)){
 	    ind->err += 2097152;
@@ -939,7 +917,7 @@ int handle_evid(int evid, int neq,
 	// In this case bio-availability changes the rate, but the duration remains constant.
 	// rate = amt/dur
 	ind->on[cmt] = 1;
-	tmp = getAmt(id, cmt, dose[ind->ixds], xout);
+	tmp = getAmt(ind, id, cmt, dose[ind->ixds], xout);
 	InfusionRate[cmt] += tmp;
 	ind->cacheME=0;
 	if (ind->wh0 == 20 && tmp != dose[ind->ixds]){
@@ -954,7 +932,7 @@ int handle_evid(int evid, int neq,
 	ind->on[cmt] = 1;
 	InfusionRate[cmt] += dose[ind->ixds];
 	ind->cacheME=0;
-	if (ind->wh0 == 20 && dose[ind->ixds] > 0 && getAmt(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
+	if (ind->wh0 == 20 && dose[ind->ixds] > 0 && getAmt(ind, id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
 	  /* error("SS=2 & Modeled F does not work"); */
 	  if (!(ind->err & 4194304)){
 	    ind->err += 4194304;
@@ -977,17 +955,17 @@ int handle_evid(int evid, int neq,
 	if (do_transit_abs) {
 	  ind->on[cmt] = 1;
 	  if (ind->wh0 == 20){
-	    tmp = getAmt(id, cmt, dose[ind->ixds], xout);
+	    tmp = getAmt(ind, id, cmt, dose[ind->ixds], xout);
 	    ind->podo = tmp;
 	  } else {
-	    ind->podo = getAmt(id, cmt, dose[ind->ixds], xout);
+	    ind->podo = getAmt(ind, id, cmt, dose[ind->ixds], xout);
 	  }
 	  ind->tlast = xout;
 	} else {
 	  ind->on[cmt] = 1;
 	  ind->podo = 0;
 	  ind->tlast = xout;
-	  yp[cmt] += getAmt(id, cmt, dose[ind->ixds], xout);     //dosing before obs
+	  yp[cmt] += getAmt(ind, id, cmt, dose[ind->ixds], xout);     //dosing before obs
 	}
       }
       /* istate = 1; */
@@ -2386,8 +2364,7 @@ extern void rxode_assign_rx(rx_solve *rx){
 
 
 extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
+  rx_solving_options_ind *ind = &(rx->subjects[id]);
   rx_solving_options *op = &op_global;
   if (i < op->nlhs){
     return(ind->lhs[i]);
@@ -2398,16 +2375,24 @@ extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
   return 0;
 }
 extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
+  rx_solving_options_ind *ind = &(rx->subjects[id]);
   rx_solving_options *op = &op_global;
   double *solve, *lhs;
+  double time;
+  int evid;
   solve = ind->solve;
   lhs = ind->lhs;
   if (i < ind->n_all_times){
     ind->idx=i;
-    if (ind->evid[ind->ix[i]]) ind->tlast = getTime(ind->ix[i], ind);
-    calc_lhs((int)id, getTime(ind->ix[i], ind), solve+i*op->neq, lhs);
+    time = getTime(ind->ix[i], ind);
+    evid = ind->evid[ind->ix[i]];
+    if (evid) {
+      ind->tlast = time;
+    }
+    calc_lhs((int)id, time, solve+i*op->neq, lhs);
+    if (evid){
+      ind->ixds++;
+    }
   } else {
     rxSolveFreeC();
     error("LHS cannot be calculated (%dth entry).",i);
@@ -2619,6 +2604,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       // Reset lhs to na
       for (i = op->nlhs; i--;) ind->lhs[i] = NA_REAL;
       ind->inLhs = 1;
+      ind->ixds=0;
       for (i = 0; i < ntimes; i++){
         evid = ind->evid[ind->ix[i]];
 	if (evid == 9) continue;

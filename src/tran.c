@@ -237,6 +237,7 @@ lhs symbols?
   int isPi; // # pi?
   int isNA; // # pi?
   int linCmt; // Unparsed linear compartment
+  int linCmtN; // Unparsed linear compartment
   // Save Jacobian information
   int *df;
   int *dy;
@@ -1592,8 +1593,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  D_ParseNode *xpn1;
 	  xpn1 = d_get_child(pn, 3);
 	  D_ParseNode *xpn2;
-	  xpn2 = d_get_child(xpn1, 2);
+	  xpn2 = d_get_child(xpn1, 1);
 	  char *v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
+	  tb.linCmtN = toInt(v2+1);
+	  Free(v2);
+	  xpn2 = d_get_child(xpn1, 2);
+	  v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
 	  tb.ncmt = toInt(v2+1);
 	  Free(v2);
 	  if (isLinB) isLinB=1;
@@ -2589,20 +2594,22 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 21));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 21));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP sLinCmt = PROTECT(allocVector(INTSXP,6));pro++;\n", 57);
+  sAppendN(&sbOut, "    SEXP sLinCmt = PROTECT(allocVector(INTSXP,7));pro++;\n", 57);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[0]= %d;\n", tb.ncmt);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[1]= %d;\n", tb.ka);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[2]= %d;\n", tb.linB);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[3]= %d;\n", tb.maxeta);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[4]= %d;\n", tb.maxtheta);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[5]= %d;\n", tb.hasCmt);
-  sAppendN(&sbOut,"    SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 6));pro++;\n", 59);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[6]= %d;\n", tb.linCmtN);
+  sAppendN(&sbOut,"    SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 7));pro++;\n", 59);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 0, mkChar(\"ncmt\"));\n", 49);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 1, mkChar(\"ka\"));\n", 47);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 2, mkChar(\"linB\"));\n", 49);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 3, mkChar(\"maxeta\"));\n", 51);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 4, mkChar(\"maxtheta\"));\n", 53);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 5, mkChar(\"hasCmt\"));\n", 51);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 6, mkChar(\"linCmt\"));\n", 51);
   sAppendN(&sbOut, "   setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);\n", 50);
   sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
   sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
@@ -3332,6 +3339,7 @@ void reset (){
   tb.hasCmt     = 0;
   tb.maxeta     = 0;
   tb.linCmt     = 0;
+  tb.linCmtN    = -100;
   tb.isPi       = 0;
   tb.isNA       = 0;
   tb.ini_i      = 0;
@@ -3587,19 +3595,21 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   int *iNeedSort  = INTEGER(sNeedSort);
   iNeedSort[0] = needSort;
 
-  SEXP sLinCmt = PROTECT(allocVector(INTSXP,6));pro++;
+  SEXP sLinCmt = PROTECT(allocVector(INTSXP,7));pro++;
   INTEGER(sLinCmt)[0] = tb.ncmt;
   INTEGER(sLinCmt)[1] = tb.ka;
   INTEGER(sLinCmt)[2] = tb.linB;
   INTEGER(sLinCmt)[3] = tb.maxeta;
   INTEGER(sLinCmt)[4] = tb.maxtheta;
-  SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 6));pro++;
+  INTEGER(sLinCmt)[6] = tb.linCmtN;
+  SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 7));pro++;
   SET_STRING_ELT(sLinCmtN, 0, mkChar("ncmt"));
   SET_STRING_ELT(sLinCmtN, 1, mkChar("ka"));
   SET_STRING_ELT(sLinCmtN, 2, mkChar("linB"));
   SET_STRING_ELT(sLinCmtN, 3, mkChar("maxeta"));
   SET_STRING_ELT(sLinCmtN, 4, mkChar("maxtheta"));
   SET_STRING_ELT(sLinCmtN, 5, mkChar("hasCmt"));
+  SET_STRING_ELT(sLinCmtN, 6, mkChar("linCmt"));
   setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);
   
   SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;

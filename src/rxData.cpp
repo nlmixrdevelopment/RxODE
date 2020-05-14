@@ -1380,6 +1380,7 @@ typedef struct {
   int *gon;
   double *gsolve;
   double *gadvan;
+  int *gSolved;
   double *gInfusionRate;
   double *gall_times;
   int *gix;
@@ -3049,7 +3050,6 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
 	ind->wrongSSDur=0;
 	ind->err = 0;
 	ind->linCmtT = NA_REAL;
-	ind->linCmtAdvanSetup=0;
 	ind->cacheME=0;
 	ind->timeReset=1;
 	ind->lambda         =1.0;
@@ -3307,10 +3307,20 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
       curIdx=0;
       int curOn=0;
       rx_solving_options_ind indS;
+      int linCmt = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linCmt];
       for (unsigned int simNum = rx->nsim; simNum--;){
 	for (unsigned int id = rx->nsub; id--;){
 	  unsigned int cid = id+simNum*rx->nsub;
 	  ind = &(rx->subjects[cid]);
+	  ind->linCmt = linCmt;
+	  ind->lag = 0;
+	  ind->lag2 = 0;
+	  ind->f = 1.0;
+	  ind->f2 = 1.0;
+	  ind->rate = 0.0;
+	  ind->dur = 0.0;
+	  ind->rate2 = 0.0;
+	  ind->dur2 = 0.0;
 	  ind->idx=0;
 	  ind->par_ptr = &_globals.gpars[cid*rxSolveDat->npars];
 	  ind->mtime   = &_globals.gmtime[rx->nMtime*cid];
@@ -3349,10 +3359,10 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	    ind->doSS = 0;
 	  }
 	  int eLen = op->neq*ind->n_all_times;
-	  int aLen = op->nlin;
-	  if (aLen != 0) aLen = (aLen+2)*ind->n_all_times;
 	  ind->linCmtAdvan = &_globals.gadvan[curLin];
-	  curLin += aLen;
+	  curLin += (op->nlin)*(ind->n_all_times);
+	  ind->linCmtRate = &_globals.gadvan[curLin];
+	  curLin += op->nlinR;
 	  ind->solve = &_globals.gsolve[curSolve];
 	  curSolve += eLen;
 	  ind->solveLast = &_globals.gsolve[curSolve];
@@ -3362,6 +3372,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  ind->solveSave = &_globals.gsolve[curSolve];
 	  curSolve += op->neq;
 	  ind->ix = &_globals.gix[curIdx];
+	  ind->solved = &_globals.gSolved[curIdx];
 	  std::iota(ind->ix,ind->ix+ind->n_all_times,0);
 	  curEvent += eLen;
 	  ind->on=&_globals.gon[curOn];
@@ -4074,8 +4085,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->istateReset = asInt(rxControl[Rxc_istateReset], "istateReset");
     rx->safeZero = asInt(rxControl[Rxc_safeZero], "safeZero");
     op->stiff = method;
-    op->linLog=asInt(rxControl[Rxc_linLog], "linLog");
-    op->advanLinCmt = asInt(rxControl[Rxc_advanLinCmt], "advanLinCmt");
     if (method != 2){
       op->cores =1;
     } else {
@@ -4305,13 +4314,17 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (rxSolveDat->nPopPar % rx->nsub == 0) rx->nsim = rxSolveDat->nPopPar / rx->nsub;
     else rx->nsim=1;
     IntegerVector linCmtI = rxSolveDat->mv[RxMv_flags];
-    int linNcmt = linCmtI[0];
-    int linKa = linCmtI[1];
+    int linNcmt = linCmtI[RxMvFlag_ncmt];
+    int linKa = linCmtI[RxMvFlag_ka];
     op->nlin = linNcmt+linKa;
+    op->nlinR = 0;
     int n0 = (rx->nall+3*rx->nsub)*(state.size())*rx->nsim;
     int nLin = linNcmt+linKa;
-    if (nLin != 0) nLin = rx->nall*(nLin+2)*rx->nsim;
-    if (op->advanLinCmt == 0) nLin = 0;
+    if (nLin != 0) {
+      op->nlinR = 1+linKa;
+      nLin = rx->nall*nLin*rx->nsim +// Number of linear compartments * number of solved points
+	rx->nsim*rx->nsub*(op->nlinR);// Infusion
+    }
     int n2 = rx->nMtime*rx->nsub*rx->nsim;
     int n3 = op->neq*rxSolveDat->nSize;
 #ifdef rxSolveT
@@ -4335,7 +4348,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     int n6 = scaleC.size();
     if (_globals.gsolve != NULL) free(_globals.gsolve);
     _globals.gsolve = (double*)calloc(n0+nLin+n2+n3+n4+n5+n6+ 4*op->neq, sizeof(double));// [n0]
-    _globals.gadvan = _globals.gsolve+n0; // [nLin]
 #ifdef rxSolveT
     REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+n3+n4+n5+n6+ 4*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4344,7 +4356,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       rxSolveFree();
       stop(_("could not allocate enough memory for solving"));
     }
-    _globals.gmtime = _globals.gadvan +nLin; // [n2]
+    _globals.gadvan = _globals.gsolve+n0; // [nLin]
+    _globals.gmtime = _globals.gadvan + nLin; // [n2]
     _globals.gInfusionRate = _globals.gmtime + n2; //[n3]
     _globals.ginits = _globals.gInfusionRate + n3; // [n4]
     std::copy(rxSolveDat->initsC.begin(), rxSolveDat->initsC.end(), &_globals.ginits[0]);
@@ -4380,7 +4393,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _lastT0 = clock();
 #endif // rxSolveT
     if (_globals.gon != NULL) free(_globals.gon);
-    _globals.gon = (int*)calloc(n1+n3 + 4*rxSolveDat->nSize + rx->nall*rx->nsim, sizeof(int)); // [n1]
+    _globals.gon = (int*)calloc(n1+n3 + 4*rxSolveDat->nSize + 2*rx->nall*rx->nsim, sizeof(int)); // [n1]
 #ifdef rxSolveT
     REprintf("Time12e (int alloc %d): %f\n", n1+n3 + 4*rxSolveDat->nSize + rx->nall*rx->nsim, ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4392,6 +4405,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _globals.dadt_counter = _globals.slvr_counter + rxSolveDat->nSize; // [nSize]
     _globals.jac_counter = _globals.dadt_counter + rxSolveDat->nSize; // [nSize]
     _globals.gix=_globals.jac_counter+rxSolveDat->nSize; // rx->nall*rx->nsim
+    _globals.gSolved = _globals.gix + rx->nall*rx->nsim; // rx->nall*rx->nsim
 
 #ifdef rxSolveT
     REprintf("Time13: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
