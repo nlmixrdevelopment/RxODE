@@ -597,48 +597,22 @@ static inline void twoCmtKa(double *A1, double *A2, double *A3,
 			    double *A1last, double *A2last, double *A3last,
 			    double *t,
 			    double *b1, double *b2,
-			    double *ka,  double *beta, double *alpha,
-			    double *k32, double *k23, double *E2) {
-  double rx_expr_5  = (*b1)+(*A1last);
-  double rx_expr_7  = exp(-(*ka)*(*t));
-  *A1=rx_expr_5*rx_expr_7;
-  double rx_expr_0   =  (*ka)*(*ka);
-  double rx_expr_1   =  (*b2)+(*b1);
-  double rx_expr_2   =  (*beta)*(*beta);
-  double rx_expr_3   =  (*alpha)*(*alpha);
-  double rx_expr_4   =  (*alpha)*(*b2);
-  double rx_expr_8   =  (*alpha)*(*beta);
-  double rx_expr_9   =  (*beta)-(*alpha);
-  double rx_expr_10  =  rx_expr_1+(*A3last);
-  double rx_expr_11  =  exp(-(*beta)*(*t));
-  double rx_expr_13  =  exp(-(*alpha)*(*t));
-  double rx_expr_14  =  (rx_expr_9)*(*ka);
-  double rx_expr_16  =  rx_expr_10+(*A2last);
-  double rx_expr_19  =  rx_expr_14-rx_expr_2;
-  double rx_expr_21  =  rx_expr_16+(*A1last);
-  double rx_expr_22  =  rx_expr_14-rx_expr_8;
-  double rx_expr_24  =  (rx_expr_21)*(*k32);
-  double rx_expr_25  =  rx_expr_19+rx_expr_8;
-  double rx_expr_26  =  rx_expr_22+rx_expr_3;
-  *A2=-(((rx_expr_5)*rx_expr_0+(-(*b1)-(*A1last))*(*k32)*(*ka))*rx_expr_7)/
-    (rx_expr_0+(-(*beta)-(*alpha))*(*ka)+rx_expr_8)-
-    (((rx_expr_24+(-(*b2)-(*b1)-(*A2last)-(*A1last))*(*beta))*(*ka)+
-      (-(*b2)-(*A3last)-(*A2last))*(*beta)*(*k32)+((*b2)+(*A2last))*rx_expr_2)*rx_expr_11)/(rx_expr_25)+
-    (((rx_expr_24-rx_expr_4-(*alpha)*(*b1)+(-(*A2last)-(*A1last))*(*alpha))*(*ka)+
-      ((-(*A3last)-(*A2last))*(*alpha)-rx_expr_4)*(*k32)+
-      rx_expr_3*(*b2)+(*A2last)*rx_expr_3)*rx_expr_13)/(rx_expr_26);
-  double rx_expr_6  = (*A3last)*(*E2);
-  double rx_expr_12 = rx_expr_1+(*A2last);
-  double rx_expr_17 = rx_expr_12+(*A1last);
-  double rx_expr_20 = rx_expr_17*(*k23);
-  *A3=((rx_expr_5)*(*k23)*(*ka)*rx_expr_7)/
-    (rx_expr_0+(-(*beta)-(*alpha))*(*ka)+rx_expr_8)-
-    (((rx_expr_20-(*A3last)*(*beta)+rx_expr_6)*(*ka)+
-      (-(*b2)-(*A2last))*(*beta)*(*k23)+
-      (*A3last)*rx_expr_2-rx_expr_6*(*beta))*rx_expr_11)/
-    (rx_expr_25)+(((rx_expr_20-(*A3last)*(*alpha)+rx_expr_6)*(*ka)+
-		   (-(*alpha)*(*b2)-(*A2last)*(*alpha))*(*k23)+
-		   (*A3last)*rx_expr_3-rx_expr_6*(*alpha))*rx_expr_13)/(rx_expr_26);
+			    double *ka, double *kel,
+			    double *k12, double *k21)  {
+  double rxe2=exp(-(*t)*(*ka));
+  *A1=(*b1)+rxe2*(*A1last);
+  double rxe0=(*k12)+(*k21);
+  double rxe1=(*k12)+(*kel);
+  double rxe3=(*k21)*(*A2last);
+  double rxe4=(*k21)*(*A3last);
+  double rxe6=rxe0+(*kel);
+  double rxe7=(rxe1)*(*k21);
+  double rxe8=rxe6*rxe6;
+  double rxe10=sqrt(-4*(-(*k12)*(*k21)+rxe7)+rxe8);
+  *A2=(*b2)+(-exp(-0.5*(*t)*(rxe6-rxe10))*(-0.5*(*A2last)*(rxe6-rxe10)+rxe3+rxe4)+exp(-0.5*(*t)*(rxe6+rxe10))*(-0.5*(*A2last)*(rxe6+rxe10)+rxe3+rxe4))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+(*ka)*(rxe2*((*k21)-(*ka))/((-(*ka)+0.5*(rxe6-rxe10))*(-(*ka)+0.5*(rxe6+rxe10)))+exp(-0.5*(*t)*(rxe6-rxe10))*((*k21)-0.5*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6-rxe10)))+exp(-0.5*(*t)*(rxe6+rxe10))*((*k21)-0.5*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6+rxe10))))*(*A1last);
+  double rxe5=(*k12)*(*A2last);
+  double rxe9=(rxe1)*(*A3last);
+  *A3=(-exp(-0.5*(*t)*(rxe6-rxe10))*(-0.5*(*A3last)*(rxe6-rxe10)+rxe5+rxe9)+exp(-0.5*(*t)*(rxe6+rxe10))*(-0.5*(*A3last)*(rxe6+rxe10)+rxe5+rxe9))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+(*ka)*(*k12)*(*A1last)*(rxe2/((-(*ka)+0.5*(rxe6-rxe10))*(-(*ka)+0.5*(rxe6+rxe10)))+exp(-0.5*(*t)*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6-rxe10)))+exp(-0.5*(*t)*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6+rxe10))));
 }
 
 
@@ -1055,23 +1029,9 @@ static inline void doAdvan(double *A,// Amounts
 		 &t, b1, b2, ka, kel);
       } break;
       case 2: {
-	double E2=(*kel)+(*k12);
-	double E3=(*k21);
-	double rx_expr_0=E2+E3;
-	double rx_expr_1=E2*E3;
-	double rx_expr_2=(*k12)*(*k21);
-	double rx_expr_3=rx_expr_0*rx_expr_0;
-	double rx_expr_4=rx_expr_1-rx_expr_2;
-	double rx_expr_5=4.0*(rx_expr_4);
-	double rx_expr_6=rx_expr_3-rx_expr_5;
-	double rx_expr_7=sqrt(rx_expr_6);
-	double lambda1=0.5*((rx_expr_0)+rx_expr_7);
-	double lambda2=0.5*((rx_expr_0)-rx_expr_7);
 	twoCmtKa(&A[0], &A[1], &A[2],
 		 &Alast[0], &Alast[1], &Alast[2],
-		 &t, b1, b2,
-		 ka,  &lambda2, &lambda1,
-		 k21, k12, &E2);
+		 &t, b1, b2, ka,  kel, k12, k21);
       } break;
       case 3: {
 	double E2=(*kel)+(*k12)+(*k13);

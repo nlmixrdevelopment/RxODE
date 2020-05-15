@@ -177,10 +177,10 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
       })
 
       goodP <- function(model, cmt=1L, ka=0L){
-        test_that(sprintf("model '%s' parses to cmt=%d, ka=%d", substitute(model), cmt, ka),{
-          .flags <- rxModelvars(model)$flags
-          expect_equal(.flags["ncmt"], cmt)
-          expect_equal(.flags["ka"], ka)
+        test_that(sprintf("model '%s' parses to cmt=%d, ka=%d", as.character(substitute(model)), cmt, ka),{
+          .flags <- rxModelVars(model)$flags
+          expect_equal(setNames(.flags["ncmt"], NULL), cmt)
+          expect_equal(setNames(.flags["ka"], NULL), ka)
         })
       }
 
@@ -227,7 +227,7 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2 = linCmt(CL, V);
       }, linCmtSens=sens)
 
-      goodP(ode.2cs2)
+      goodP(ode.1cs2)
 
       test_that("linear compartment model gives extraCmt=1",{
         expect_equal(rxModelVars(ode.1cs2)$extraCmt,1L);
@@ -298,7 +298,7 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2 = linCmt();
       }, linCmtSens=sens)
 
-      goodP(sol.1c.2cK, ka=1L)
+      goodP(ode.2cK, ka=1L)
 
       ode.2cA1 <- RxODE({
         V <- theta[1];
@@ -308,7 +308,7 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2 = linCmt();
       }, linCmtSens=sens)
 
-      goodP(sol.1c.2cA1, ka=1L)
+      goodP(ode.2cA1, ka=1L)
 
       ode.2cA2 <- RxODE({
         A <- 1/theta[1];
@@ -318,7 +318,7 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2 = linCmt();
       }, linCmtSens=sens)
 
-      goodP(sol.1c.2cA2, ka=1L)
+      goodP(ode.2cA2, ka=1L)
 
       test_that("linear oral model gives extraCmt=2",{
         expect_equal(rxModelVars(sol.1c.ka)$extraCmt,2L);
@@ -436,14 +436,7 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
       }, linCmtSens=sens)
 
       goodP(sol.2cA3, cmt=2L)
-
-      test_that("ncmt makes sense", {
-        expect_equal(rxModelvars(sol.2c)$flags["ncmt"], 2L)
-        expect_equal(rxModelvars(sol.2c)$flags["ka"], 0L)
-        expect_equal(rxModelvars(sol.2cK)$flags["ncmt"], 2L)
-
-      })
-
+      
       o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
       
       s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q1=10), events=et)
@@ -455,160 +448,174 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
       s.2cA2 <- sol.2cA2 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et)
       s.2cA3 <- sol.2cA3 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et)
       
-        test_that("2 compartment solved models and ODEs same.", {
-            expect_equal(s.2cK$C2, s.2c$C2, tolerance=tol)
-            expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
-            expect_equal(o.2c$C2, s.2cK$C2, tolerance=tol)
-            expect_equal(o.2c$C2, s.2cA1$C2, tolerance=tol)
-            expect_equal(o.2c$C2, s.2cA2$C2, tolerance=tol)
-            expect_equal(o.2c$C2, s.2cA3$C2, tolerance=tol)
-        })
+      test_that("2 compartment solved models and ODEs same.", {
+        expect_equal(s.2cK$C2, s.2c$C2, tolerance=tol)
+        expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
+        expect_equal(o.2c$C2, s.2cK$C2, tolerance=tol)
+        expect_equal(o.2c$C2, s.2cA1$C2, tolerance=tol)
+        expect_equal(o.2c$C2, s.2cA2$C2, tolerance=tol)
+        expect_equal(o.2c$C2, s.2cA3$C2, tolerance=tol)
+      })
 
-        ode.2c.ka <- RxODE({
-            C2 = centr/V;
-            C3 = peri/V2;
-            d/dt(depot) =-KA*depot;
-            d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
-            d/dt(peri)  =                    Q*C2 - Q*C3;
-        })
+      ode.2c.ka <- RxODE({
+        C2 = centr/V;
+        C3 = peri/V2;
+        d/dt(depot) =-KA*depot;
+        d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+        d/dt(peri)  =                    Q*C2 - Q*C3;
+      })
 
-        sol.2c.ka <- RxODE({
-            C2=linCmt(V, CL, V2, Q, KA);
-        }, linCmtSens=sens)
+      sol.2c.ka <- RxODE({
+        C2=linCmt(V, CL, V2, Q, KA);
+      }, linCmtSens=sens)
 
-        sol.2cK <- RxODE({
-            V <- theta[1]
-            CLx <- theta[2]
-            V2x <- theta[3]
-            Q <- theta[4]
-            ka <- theta[5]
-            K <- CLx/V
-            K12 <- Q/V
-            K21 <- Q/V2x
-            C2=linCmt();
-        }, linCmtSens=sens)
+      goodP(sol.2c.ka, cmt=2, ka=1)
 
-        ## A1 in terms of A, alpha, B, beta
+      sol.2cK <- RxODE({
+        V <- theta[1]
+        CLx <- theta[2]
+        V2x <- theta[3]
+        Q <- theta[4]
+        ka <- theta[5]
+        K <- CLx/V
+        K12 <- Q/V
+        K21 <- Q/V2x
+        C2=linCmt();
+      }, linCmtSens=sens)
 
-        sol.2cA1 <- RxODE({
-            Vx <- theta[1]
-            CLx <- theta[2]
-            V2x <- theta[3]
-            Q <- theta[4]
-            ka <- theta[5]
-            Kx <- CLx/Vx
-            K12x <- Q/Vx
-            K21x <- Q/V2x
-            beta <- 0.5 * (K12x + K21x + Kx -
-                           sqrt((K12x +
-                                   K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
-                                  Kx))
-            alpha <- K21x * Kx/beta
-            A <- (alpha - K21x)/(alpha - beta)/Vx
-            B <- (beta - K21x)/(beta - alpha)/Vx
-            C2=linCmt();
-        }, linCmtSens=sens)
+      goodP(sol.2cK, cmt=2, ka=1)
 
-        ## A2 V, alpha, beta, k21
-        sol.2cA2 <- RxODE({
-            V <- theta[1]
-            CLx <- theta[2]
-            V2x <- theta[3]
-            Q <- theta[4]
-            ka <- theta[5]
-            Kx <- CLx/V
-            K12x <- Q/V
-            K21 <- Q/V2x
-            beta <- 0.5 * (K12x + K21 + Kx -
-                           sqrt((K12x +
-                                   K21 + Kx) * (K12x + K21 + Kx) - 4 * K21 *
-                                  Kx))
-            alpha <- K21 * Kx/beta
-            C2=linCmt();
-        }, linCmtSens=sens)
+      ## A1 in terms of A, alpha, B, beta
 
-        ## A3 alpha, beta, aob
-        sol.2cA3 <- RxODE({
-            V <- theta[1]
-            CLx <- theta[2]
-            V2x <- theta[3]
-            Q <- theta[4]
-            ka <- theta[5]
-            Kx <- CLx/V
-            K12x <- Q/V
-            K21x <- Q/V2x
-            beta <- 0.5 * (K12x + K21x + Kx -
-                           sqrt((K12x +
-                                   K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
-                                  Kx))
-            alpha <- K21x * Kx/beta
-            Ax <- (alpha - K21x)/(alpha - beta)/V
-            Bx <- (beta - K21x)/(beta - alpha)/V
-            aob <- Ax/Bx
-            C2=linCmt();
-        }, linCmtSens=sens)
+      sol.2cA1 <- RxODE({
+        Vx <- theta[1]
+        CLx <- theta[2]
+        V2x <- theta[3]
+        Q <- theta[4]
+        ka <- theta[5]
+        Kx <- CLx/Vx
+        K12x <- Q/Vx
+        K21x <- Q/V2x
+        beta <- 0.5 * (K12x + K21x + Kx -
+                       sqrt((K12x +
+                             K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
+                            Kx))
+        alpha <- K21x * Kx/beta
+        A <- (alpha - K21x)/(alpha - beta)/Vx
+        B <- (beta - K21x)/(beta - alpha)/Vx
+        C2=linCmt();
+      }, linCmtSens=sens)
 
-        sol.2cSS <- RxODE({
-            V <- theta[1]
-            CL <- theta[2]
-            V2x <- theta[3]
-            Q <- theta[4]
-            Ka <- theta[5]
-            Vss <- V+V2x
-            C2=linCmt();
-        }, linCmtSens=sens)
+      goodP(sol.2cA1, cmt=2, ka=1)
 
-        sol.2cT <- RxODE({
-            V <- theta[1]
-            CL <- theta[2]
-            VT <- theta[3]
-            Q <- theta[4]
-            Ka <- theta[5]
-            C2=linCmt();
-        }, linCmtSens=sens)
+      ## A2 V, alpha, beta, k21
+      sol.2cA2 <- RxODE({
+        V <- theta[1]
+        CLx <- theta[2]
+        V2x <- theta[3]
+        Q <- theta[4]
+        ka <- theta[5]
+        Kx <- CLx/V
+        K12x <- Q/V
+        K21 <- Q/V2x
+        beta <- 0.5 * (K12x + K21 + Kx -
+                       sqrt((K12x +
+                             K21 + Kx) * (K12x + K21 + Kx) - 4 * K21 *
+                            Kx))
+        alpha <- K21 * Kx/beta
+        C2=linCmt();
+      }, linCmtSens=sens)
+
+      goodP(sol.2cA2, cmt=2, ka=1)
+
+      ## A3 alpha, beta, aob
+      sol.2cA3 <- RxODE({
+        V <- theta[1]
+        CLx <- theta[2]
+        V2x <- theta[3]
+        Q <- theta[4]
+        ka <- theta[5]
+        Kx <- CLx/V
+        K12x <- Q/V
+        K21x <- Q/V2x
+        beta <- 0.5 * (K12x + K21x + Kx -
+                       sqrt((K12x +
+                             K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
+                            Kx))
+        alpha <- K21x * Kx/beta
+        Ax <- (alpha - K21x)/(alpha - beta)/V
+        Bx <- (beta - K21x)/(beta - alpha)/V
+        aob <- Ax/Bx
+        C2=linCmt();
+      }, linCmtSens=sens)
+
+      goodP(sol.2cA3, cmt=2, ka=1)
+
+      sol.2cSS <- RxODE({
+        V <- theta[1]
+        CL <- theta[2]
+        V2x <- theta[3]
+        Q <- theta[4]
+        Ka <- theta[5]
+        Vss <- V+V2x
+        C2=linCmt();
+      }, linCmtSens=sens)
+
+      goodP(sol.2cSS, cmt=2, ka=1)
+
+      sol.2cT <- RxODE({
+        V <- theta[1]
+        CL <- theta[2]
+        VT <- theta[3]
+        Q <- theta[4]
+        Ka <- theta[5]
+        C2=linCmt();
+      }, linCmtSens=sens)
+
+      goodP(sol.2cT, cmt=2, ka=1)
 
 
 
-        o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3), events=et)
-        s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3), events=et)
-        s.2cK <- sol.2cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et)
-        s.2cA1 <- sol.2cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et)
-        s.2cA2 <- sol.2cA2 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et)
-        s.2cA3 <- sol.2cA3 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et)
-        s.2cSS <- sol.2cSS %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et)
-        s.2cT <- sol.2cT %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et)
+      o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3), events=et)
+      s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3), events=et)
+      s.2cK <- sol.2cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et)
+      s.2cA1 <- sol.2cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et)
+      s.2cA2 <- sol.2cA2 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et)
+      s.2cA3 <- sol.2cA3 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et)
+      s.2cSS <- sol.2cSS %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et)
+      s.2cT <- sol.2cT %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et)
 
-        test_that("2 compartment oral solved models and ODEs same.", {
-            expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
-            expect_equal(o.2c$C2, s.2cK$C2, tolerance=tol)
-            expect_equal(o.2c$C2, s.2cA1$C2, tolerance=tol)
-            expect_equal(o.2c$C2, s.2cA2$C2, tolerance=tol)
-            expect_equal(o.2c$C2, s.2cA3$C2, tolerance=tol)
-            expect_equal(o.2c$C2, s.2cSS$C2, tolerance=tol)
-            expect_equal(o.2c$C2, s.2cT$C2, tolerance=tol)
-        })
+      test_that("2 compartment oral solved models and ODEs same.", {
+        expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
+        expect_equal(o.2c$C2, s.2cK$C2, tolerance=tol)
+        expect_equal(o.2c$C2, s.2cA1$C2, tolerance=tol)
+        expect_equal(o.2c$C2, s.2cA2$C2, tolerance=tol)
+        expect_equal(o.2c$C2, s.2cA3$C2, tolerance=tol)
+        expect_equal(o.2c$C2, s.2cSS$C2, tolerance=tol)
+        expect_equal(o.2c$C2, s.2cT$C2, tolerance=tol)
+      })
 
-        o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=1, V2=297, Q=10, KA= 0.3), events=etSs)
+      o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=1, V2=297, Q=10, KA= 0.3), events=etSs)
 
-        s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=1, V2=297, Q=10, KA=0.3), events=etSs)
+      s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=1, V2=297, Q=10, KA=0.3), events=etSs)
 
-        test_that("2 compartment oral steady-state solved models and ODEs same.", {
-            expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
-        })
+      test_that("2 compartment oral steady-state solved models and ODEs same.", {
+        expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
+      })
 
-        ode.3c <- RxODE({
-            C2 = centr/V;
-            C3 = peri/V2;
-            C4 = peri2 / V3
-            d/dt(centr) = - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
-            d/dt(peri)  = Q*C2 - Q*C3;
-            d / dt(peri2) = Q2 * C2 - Q2 * C4
-        })
+      ode.3c <- RxODE({
+        C2 = centr/V;
+        C3 = peri/V2;
+        C4 = peri2 / V3
+        d/dt(centr) = - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
+        d/dt(peri)  = Q*C2 - Q*C3;
+        d / dt(peri2) = Q2 * C2 - Q2 * C4
+      })
 
-        sol.3c <- RxODE({
-            ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
-            C2=linCmt(V, CL, V2, Q, Q2, V3);
-        }, linCmtSens=sens)
+      sol.3c <- RxODE({
+        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+        C2=linCmt(V, CL, V2, Q, Q2, V3);
+      }, linCmtSens=sens)
 
         sol.3cK <- RxODE({
             V <- theta[1]

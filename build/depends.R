@@ -36,10 +36,30 @@ if (FALSE){
   ## 2 compartment oral
 
   m <- RxODE({
-    A1=(b1+A1last)*exp(-ka*t)
-    A2=-(((b1+A1last)*ka^2+(-b1-A1last)*k32*ka)*exp(-ka*t))/(ka^2+(-beta-alpha)*ka+alpha*beta)-((((b2+b1+A3last+A2last+A1last)*k32+(-b2-b1-A2last-A1last)*beta)*ka+(-b2-A3last-A2last)*beta*k32+(b2+A2last)*beta^2)*exp(-beta*t))/((beta-alpha)*ka-beta^2+alpha*beta)+((((b2+b1+A3last+A2last+A1last)*k32-alpha*b2-alpha*b1+(-A2last-A1last)*alpha)*ka+((-A3last-A2last)*alpha-alpha*b2)*k32+alpha^2*b2+A2last*alpha^2)*exp(-alpha*t))/((beta-alpha)*ka-alpha*beta+alpha^2);
-    A3=((b1+A1last)*k23*ka*exp(-ka*t))/(ka^2+(-beta-alpha)*ka+alpha*beta)-((((b2+b1+A2last+A1last)*k23-A3last*beta+A3last*E2)*ka+(-b2-A2last)*beta*k23+A3last*beta^2-A3last*E2*beta)*exp(-beta*t))/((beta-alpha)*ka-beta^2+alpha*beta)+((((b2+b1+A2last+A1last)*k23-A3last*alpha+A3last*E2)*ka+(-alpha*b2-A2last*alpha)*k23+A3last*alpha^2-A3last*E2*alpha)*exp(-alpha*t))/((beta-alpha)*ka-alpha*beta+alpha^2)
+    E2 <- kel+k12
+    E3 <- k21
+    #calculate hybrid rate constants
+    lambda1 = 0.5*((E2+E3)+sqrt((E2+E3)^2-4*(E2*E3-k12*k21)))
+    lambda2 = 0.5*((E2+E3)-sqrt((E2+E3)^2-4*(E2*E3-k12*k21)))
+    A2term1 = (((A2last*E3+A3last*k32)-A2last*lambda1)*exp(-t*lambda1)-((A2last*E3+A3last*k32)-A2last*lambda2)*exp(-t*lambda2))/(lambda2-lambda1)
+    A2term2 = A1last*ka*(exp(-t*ka)*(E3-ka)/((lambda1-ka)*(lambda2-ka))+exp(-t*lambda1)*(E3-lambda1)/((lambda2-lambda1)*(ka-lambda1))+exp(-t*lambda2)*(E3-lambda2)/((lambda1-lambda2)*(ka-lambda2)))
+    A2 = A2term1+A2term2  #Amount in the central compartment
+
+    A3term1 = (((A3last*E2+A2last*k23)-A3last*lambda1)*exp(-t*lambda1)-((A3last*E2+A2last*k23)-A3last*lambda2)*exp(-t*lambda2))/(lambda2-lambda1)
+    A3term2 = A1last*ka*k23*(exp(-t*ka)/((lambda1-ka)*(lambda2-ka))+exp(-t*lambda1)/((lambda2-lambda1)*(ka-lambda1))+exp(-t*lambda2)/((lambda1-lambda2)*(ka-lambda2)))
+    A3 = A3term1+A3term2  #Amount in the peripheral compartment
+
+    A1last = A1last*exp(-t*ka)
+    A1 = A1last + b1
+    A2 = A2+b2
   })
+
+  env <- rxS(m)
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n",
+                "A3=", paste0(env$A3),"\n")
+
+  message(rxOptExpr(mod))
 
   message(rxOptExpr(rxNorm(m)))
 

@@ -257,7 +257,6 @@ lhs symbols?
   int matn;
   int matnf;
   int ncmt;
-  int ka;
   int linB;
 } symtab;
 symtab tb;
@@ -1605,11 +1604,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  tb.linB = isLinB;
 	  xpn2 = d_get_child(xpn1, 10+isLinB);
 	  v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	  if (!strcmp("0.0", v2)){
-	    tb.ka=0;
-	  } else {
-	    tb.ka=1;
-	  }
 	  Free(v2);
         } else {
 	  // Check if this is a valid function
@@ -2596,7 +2590,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP sLinCmt = PROTECT(allocVector(INTSXP,7));pro++;\n", 57);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[0]= %d;\n", tb.ncmt);
-  sAppend(&sbOut, "    INTEGER(sLinCmt)[1]= %d;\n", tb.ka);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[1]= %d;\n", tb.hasKa);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[2]= %d;\n", tb.linB);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[3]= %d;\n", tb.maxeta);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[4]= %d;\n", tb.maxtheta);
@@ -3351,7 +3345,6 @@ void reset (){
   tb.matn=0;
   tb.matnf=0;
   tb.ncmt=0;
-  tb.ka=0;
   // reset globals
   good_jac = 1;
   found_jac = 0;
@@ -3597,7 +3590,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 
   SEXP sLinCmt = PROTECT(allocVector(INTSXP,7));pro++;
   INTEGER(sLinCmt)[0] = tb.ncmt;
-  INTEGER(sLinCmt)[1] = tb.ka;
+  INTEGER(sLinCmt)[1] = tb.hasKa;
   INTEGER(sLinCmt)[2] = tb.linB;
   INTEGER(sLinCmt)[3] = tb.maxeta;
   INTEGER(sLinCmt)[4] = tb.maxtheta;
