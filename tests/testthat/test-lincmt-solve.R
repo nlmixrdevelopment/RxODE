@@ -329,84 +329,94 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         d/dt(peri)  = Q*C2 - Q*C3;
       })
 
-        sol.2c <- RxODE({
-            C2=linCmt(V, CL, V2, Q1);
-        }, linCmtSens=sens)
+      sol.2c <- RxODE({
+        C2=linCmt(V, CL, V2, Q1);
+      }, linCmtSens=sens)
 
-        sol.2cK <- RxODE({
-            V <- theta[1]
-            CLx <- theta[2]
-            V2x <- theta[3]
-            Q <- theta[4]
-            K <- CLx/V
-            K12 <- Q/V
-            K21 <- Q/V2x
-            C2=linCmt();
-        }, linCmtSens=sens)
+      sol.2cK <- RxODE({
+        V <- theta[1]
+        CLx <- theta[2]
+        V2x <- theta[3]
+        Q <- theta[4]
+        K <- CLx/V
+        K12 <- Q/V
+        K21 <- Q/V2x
+        C2=linCmt();
+      }, linCmtSens=sens)
 
-        ## A1 in terms of A, alpha, B, beta
+      ## A1 in terms of A, alpha, B, beta
 
-        sol.2cA1 <- RxODE({
-            Vx <- theta[1]
-            CLx <- theta[2]
-            V2x <- theta[3]
-            Q <- theta[4]
-            Kx <- CLx/Vx
-            K12x <- Q/Vx
-            K21x <- Q/V2x
-            beta <- 0.5 * (K12x + K21x + Kx -
-                           sqrt((K12x +
-                                   K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
-                                  Kx))
-            alpha <- K21x * Kx/beta
-            A <- (alpha - K21x)/(alpha - beta)/Vx
-            B <- (beta - K21x)/(beta - alpha)/Vx
-            C2=linCmt();
-        }, linCmtSens=sens)
+      sol.2cA1 <- RxODE({
+        Vx <- theta[1]
+        CLx <- theta[2]
+        V2x <- theta[3]
+        Q <- theta[4]
+        Kx <- CLx/Vx
+        K12x <- Q/Vx
+        K21x <- Q/V2x
+        beta <- 0.5 * (K12x + K21x + Kx -
+                       sqrt((K12x +
+                             K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
+                            Kx))
+        alpha <- K21x * Kx/beta
+        A <- (alpha - K21x)/(alpha - beta)/Vx
+        B <- (beta - K21x)/(beta - alpha)/Vx
+        C2=linCmt();
+      }, linCmtSens=sens)
 
         ## A2 V, alpha, beta, k21
-        sol.2cA2 <- RxODE({
-            V <- theta[1]
-            CLx <- theta[2]
-            V2x <- theta[3]
-            Q <- theta[4]
-            Kx <- CLx/V
-            K12x <- Q/V
-            K21 <- Q/V2x
-            beta <- 0.5 * (K12x + K21 + Kx -
-                           sqrt((K12x +
-                                   K21 + Kx) * (K12x + K21 + Kx) - 4 * K21 *
-                                  Kx))
-            alpha <- K21 * Kx/beta
-            C2=linCmt();
-        }, linCmtSens=sens)
+      sol.2cA2 <- RxODE({
+        V <- theta[1]
+        CLx <- theta[2]
+        V2x <- theta[3]
+        Q <- theta[4]
+        Kx <- CLx/V
+        K12x <- Q/V
+        K21 <- Q/V2x
+        beta <- 0.5 * (K12x + K21 + Kx -
+                       sqrt((K12x +
+                             K21 + Kx) * (K12x + K21 + Kx) - 4 * K21 *
+                            Kx))
+        alpha <- K21 * Kx/beta
+        C2=linCmt();
+      }, linCmtSens=sens)
 
         ## A3 alpha, beta, aob
-        sol.2cA3 <- RxODE({
-            V <- theta[1]
-            CLx <- theta[2]
-            V2x <- theta[3]
-            Q <- theta[4]
-            Kx <- CLx/V
-            K12x <- Q/V
-            K21x <- Q/V2x
-            beta <- 0.5 * (K12x + K21x + Kx -
-                           sqrt((K12x +
-                                   K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
-                                  Kx))
-            alpha <- K21x * Kx/beta
-            Ax <- (alpha - K21x)/(alpha - beta)/V
-            Bx <- (beta - K21x)/(beta - alpha)/V
-            aob <- Ax/Bx
-            C2=linCmt();
-        }, linCmtSens=sens)
+      sol.2cA3 <- RxODE({
+        V <- theta[1]
+        CLx <- theta[2]
+        V2x <- theta[3]
+        Q <- theta[4]
+        Kx <- CLx/V
+        K12x <- Q/V
+        K21x <- Q/V2x
+        beta <- 0.5 * (K12x + K21x + Kx -
+                       sqrt((K12x +
+                             K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
+                            Kx))
+        alpha <- K21x * Kx/beta
+        Ax <- (alpha - K21x)/(alpha - beta)/V
+        Bx <- (beta - K21x)/(beta - alpha)/V
+        aob <- Ax/Bx
+        C2=linCmt();
+      }, linCmtSens=sens)
 
-        o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
-        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q1=10), events=et)
-        s.2cK <- sol.2cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et)
-        s.2cA1 <- sol.2cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et)
-        s.2cA2 <- sol.2cA2 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et)
-        s.2cA3 <- sol.2cA3 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et)
+      o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
+      
+      s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q1=10), events=et)
+      
+      s.2cK <- sol.2cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et)
+      
+      s.2cA1 <- sol.2cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et)
+      
+      s.2cA2 <- sol.2cA2 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et)
+      s.2cA3 <- sol.2cA3 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et)
+
+      library(ggplot2)
+      ggplot(o.2c,aes(time,C2)) + geom_point(col="blue") + geom_point(col="red", data=s.2cA1)
+
+      ggplot(o.2c,aes(time,C2)) + geom_point(col="blue") + geom_point(col="red", data=s.2cA1) +
+        scale_y_log10() 
 
 
         test_that("2 compartment solved models and ODEs same.", {

@@ -1353,19 +1353,34 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
       rx_k = (p1*p2)/rx_k21;
       rx_k12 = p1+p2 - rx_k21 - rx_k;
       break;
-    case 11: // A2 V, alpha, beta, k21
-      error(_("matt"));
-      // FIXME -- add warning
-      /* return linCmtAA(rx, id, t, linCmt, i_cmt, trans, p1, v1, */
-      /* 		      p2, p3, p4, p5, d_ka, d_tlag, d_tlag2,  d_F,  d_F2, d_rate, d_dur); */
-      /* REprintf("V, alpha, beta, k21 are not supported with ADVAN routines"); */
-      /* return NA_REAL; */
+    case 11: // A2 V, alpha=p1, beta=p2, k21
+#undef beta
+#define A (1/v1)
+#define B p3
+#define alpha p1
+#define beta p2
+      ncmt=2;
+      rx_v   = 1/(A+B);
+      rx_k21 = (A*beta + B*alpha)*rx_v;
+      rx_k   = alpha*beta/rx_k21;
+      rx_k12 = alpha+beta-rx_k21-rx_k;
       break;
-    case 10: // A, alpha, B, beta
-      // FIXME -- add warning
-      error(_("matt"));
-      /* return linCmtAA(rx, id, t, linCmt, i_cmt, trans, p1, v1, */
-      /* 		      p2, p3, p4, p5, d_ka, d_tlag, d_tlag2,  d_F,  d_F2, d_rate, d_dur); */
+    case 10: // A=v1, alpha=p1, beta=p2, B=p3
+      // Convert to A (right now A=v1 or A=1/v1)
+#undef A
+#define A v1
+      ncmt=2;
+      rx_v   = 1/(A + B);
+      rx_k21 = (A*beta + B*alpha)*rx_v;
+      rx_k   = alpha*beta/rx_k21;
+      rx_k12 = alpha + beta - rx_k21 - rx_k;
+      /* REprintf("A: %f, B: %f, alpha: %f, beta: %f\n", A, B, alpha, beta); */
+      /* REprintf("V: %f, k10: %f, k12: %f, k21: %f\n", rx_v, rx_k, rx_k12, rx_k21); */
+#undef A
+#undef B
+#undef alpha
+#undef beta
+#define beta Rf_beta
       break;
     default:
       REprintf(_("invalid trans (2 cmt trans %d)\n"), trans);
