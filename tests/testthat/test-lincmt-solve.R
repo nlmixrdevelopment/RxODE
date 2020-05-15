@@ -176,6 +176,14 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         expect_equal(rxModelVars(ode.1c)$extraCmt,0L);
       })
 
+      goodP <- function(model, cmt=1L, ka=0L){
+        test_that(sprintf("model '%s' parses to cmt=%d, ka=%d", substitute(model), cmt, ka),{
+          .flags <- rxModelvars(model)$flags
+          expect_equal(.flags["ncmt"], cmt)
+          expect_equal(.flags["ka"], ka)
+        })
+      }
+
       ## Solved systems can check the variables in the RxODE statement
       ## to figure out what type of solved system is being requested
       ode.1cs <- RxODE({
@@ -184,12 +192,16 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2 = linCmt();
       }, linCmtSens=sens)
 
+      goodP(ode.1cs)
+
       ode.2cK <- RxODE({
         V <- theta[1];
         CLx <- theta[2];
         K <- CLx/V
         C2 = linCmt();
       }, linCmtSens=sens)
+
+      goodP(ode.2cK)
 
       ode.2cA1 <- RxODE({
         V <- theta[1];
@@ -198,6 +210,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2 = linCmt();
       }, linCmtSens=sens)
 
+      goodP(ode.2cA1)
+
       ode.2cA2 <- RxODE({
         A <- 1/theta[1];
         CLx <- theta[2];
@@ -205,11 +219,15 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2 = linCmt();
       }, linCmtSens=sens)
 
+      goodP(ode.2cA2)
+
       ## Instead of specifying parameters in the solved system, you can
       ## specify them in the linCmt variable.
       ode.1cs2 <- RxODE({
         C2 = linCmt(CL, V);
       }, linCmtSens=sens)
+
+      goodP(ode.2cs2)
 
       test_that("linear compartment model gives extraCmt=1",{
         expect_equal(rxModelVars(ode.1cs2)$extraCmt,1L);
@@ -265,9 +283,12 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
       })
 
 
+
       sol.1c.ka <- RxODE({
         C2 = linCmt(V, CL, KA);
       }, linCmtSens=sens)
+
+      goodP(sol.1c.ka, ka=1L)
 
       ode.2cK <- RxODE({
         V <- theta[1];
@@ -277,6 +298,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2 = linCmt();
       }, linCmtSens=sens)
 
+      goodP(sol.1c.2cK, ka=1L)
+
       ode.2cA1 <- RxODE({
         V <- theta[1];
         CLx <- theta[2];
@@ -284,6 +307,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         alpha <- CLx/V
         C2 = linCmt();
       }, linCmtSens=sens)
+
+      goodP(sol.1c.2cA1, ka=1L)
 
       ode.2cA2 <- RxODE({
         A <- 1/theta[1];
@@ -293,6 +318,7 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2 = linCmt();
       }, linCmtSens=sens)
 
+      goodP(sol.1c.2cA2, ka=1L)
 
       test_that("linear oral model gives extraCmt=2",{
         expect_equal(rxModelVars(sol.1c.ka)$extraCmt,2L);
@@ -333,6 +359,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2=linCmt(V, CL, V2, Q1);
       }, linCmtSens=sens)
 
+      goodP(sol.2c, cmt=2L)
+
       sol.2cK <- RxODE({
         V <- theta[1]
         CLx <- theta[2]
@@ -343,6 +371,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         K21 <- Q/V2x
         C2=linCmt();
       }, linCmtSens=sens)
+
+      goodP(sol.2cK, cmt=2L)
 
       ## A1 in terms of A, alpha, B, beta
 
@@ -364,6 +394,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2=linCmt();
       }, linCmtSens=sens)
 
+      goodP(sol.2cA1, cmt=2L)
+
         ## A2 V, alpha, beta, k21
       sol.2cA2 <- RxODE({
         V <- theta[1]
@@ -380,6 +412,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         alpha <- K21 * Kx/beta
         C2=linCmt();
       }, linCmtSens=sens)
+
+      goodP(sol.2cA2, cmt=2L)
 
         ## A3 alpha, beta, aob
       sol.2cA3 <- RxODE({
@@ -401,6 +435,15 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2=linCmt();
       }, linCmtSens=sens)
 
+      goodP(sol.2cA3, cmt=2L)
+
+      test_that("ncmt makes sense", {
+        expect_equal(rxModelvars(sol.2c)$flags["ncmt"], 2L)
+        expect_equal(rxModelvars(sol.2c)$flags["ka"], 0L)
+        expect_equal(rxModelvars(sol.2cK)$flags["ncmt"], 2L)
+
+      })
+
       o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
       
       s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q1=10), events=et)
@@ -411,14 +454,7 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
       
       s.2cA2 <- sol.2cA2 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et)
       s.2cA3 <- sol.2cA3 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et)
-
-      library(ggplot2)
-      ggplot(o.2c,aes(time,C2)) + geom_point(col="blue") + geom_point(col="red", data=s.2cA1)
-
-      ggplot(o.2c,aes(time,C2)) + geom_point(col="blue") + geom_point(col="red", data=s.2cA1) +
-        scale_y_log10() 
-
-
+      
         test_that("2 compartment solved models and ODEs same.", {
             expect_equal(s.2cK$C2, s.2c$C2, tolerance=tol)
             expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
@@ -639,14 +675,14 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
             C2=linCmt();
         }, linCmtSens=sens)
 
-        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,advanLinCmt=advan)
+        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
-        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,advanLinCmt=advan)
+        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
-        s.3cK <- sol.3cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,advanLinCmt=advan)
-        s.3cA1 <- sol.3cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,advanLinCmt=advan)
-        s.3cVp <- sol.3cVp %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,advanLinCmt=advan)
-        s.3cVt <- sol.3cVt %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,advanLinCmt=advan)
+        s.3cK <- sol.3cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
+        s.3cA1 <- sol.3cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
+        s.3cVp <- sol.3cVp %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
+        s.3cVt <- sol.3cVt %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
         test_that("3 compartment solved models and ODEs same.", {
             expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
@@ -656,9 +692,9 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
             expect_equal(o.3c$C2, s.3cVt$C2, tolerance=tol)
         })
 
-        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs,advanLinCmt=advan)
+        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs)
 
-        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs,advanLinCmt=advan)
+        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs)
 
         test_that("3 compartment solved models and ODEs same with steady state.", {
             expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
@@ -727,10 +763,10 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
             C2=linCmt();
         }, linCmtSens=sens)
 
-        o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,advanLinCmt=advan)
-        s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,advanLinCmt=advan)
-        s.3cK <- sol.3cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,advanLinCmt=advan)
-        s.3cA1 <- sol.3cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,advanLinCmt=advan)
+        o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
+        s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
+        s.3cK <- sol.3cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
+        s.3cA1 <- sol.3cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
 
         test_that("3 compartment oral solved models and ODEs same.", {
             expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
@@ -738,9 +774,9 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
             expect_equal(o.3c$C2, s.3cA1$C2,tolerance=tol)
         })
 
-        o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=etSs,advanLinCmt=advan)
+        o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=etSs)
 
-        s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=etSs,advanLinCmt=advan)
+        s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=etSs)
 
         ## Again the 4 hour strange discontinuity because ss=1
         test_that("3 compartment oral solved models and ODEs same for steady state.", {
@@ -779,22 +815,22 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         ## The solved systems can be mixed with ODE solving routines (to
         ## speed them up a bit...?)
 
-        o.1c <- ode.1c %>% solve(params=c(V=20, CL=25), events=et,advanLinCmt=advan)
+        o.1c <- ode.1c %>% solve(params=c(V=20, CL=25), events=et)
 
-        s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=25), events=et,advanLinCmt=advan)
+        s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=25), events=et)
 
-        s.2c <- ode.1cs %>% solve(theta=c(20, 25), events=et,advanLinCmt=advan)
+        s.2c <- ode.1cs %>% solve(theta=c(20, 25), events=et)
 
         test_that("1 compartment solved models and ODEs same.", {
             expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
             expect_equal(o.1c$C2, s.2c$C2, tolerance=tol)
         })
 
-        o.1c <- ode.1c %>% solve(params=c(V=20, CL=10), events=etSs,advanLinCmt=advan)
+        o.1c <- ode.1c %>% solve(params=c(V=20, CL=10), events=etSs)
 
-        s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=10), events=etSs,advanLinCmt=advan)
+        s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=10), events=etSs)
 
-        s.2c <- ode.1cs %>% solve(theta=c(20, 10), events=etSs,advanLinCmt=advan)
+        s.2c <- ode.1cs %>% solve(theta=c(20, 10), events=etSs)
 
         test_that("1 compartment solved models and ODEs same; Steady State", {
             expect_equal(o.1c$C2, s.1c$C2,tolerance=tol)
@@ -812,17 +848,17 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
             C2=linCmt(V, CL, V2, Q);
         }, linCmtSens=sens)
 
-        o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et,advanLinCmt=advan)
+        o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
 
-        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et,advanLinCmt=advan)
+        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
 
         test_that("2 compartment solved models and ODEs same.", {
             expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
         })
 
-        o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=etSs,advanLinCmt=advan)
+        o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=etSs)
 
-        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=etSs,advanLinCmt=advan)
+        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=etSs)
 
         test_that("2 compartment steady state solved models and ODEs same.", {
             expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
@@ -842,17 +878,17 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
             C2=linCmt(V, CL, V2, Q, Q2, V3);
         }, linCmtSens=sens)
 
-        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,advanLinCmt=advan)
+        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
-        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,advanLinCmt=advan)
+        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
         test_that("3 compartment solved models and ODEs same.", {
             expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
         })
 
-        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs,advanLinCmt=advan)
+        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs)
 
-        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs,advanLinCmt=advan)
+        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs)
 
         test_that("3 compartment steady state solved models and ODEs same.", {
             expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
@@ -886,11 +922,11 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         ## The solved systems can be mixed with ODE solving routines (to
         ## speed them up a bit...?)
 
-        o.1c <- ode.1c %>% solve(params=c(V=20, CL=25), events=et,advanLinCmt=advan)
+        o.1c <- ode.1c %>% solve(params=c(V=20, CL=25), events=et)
 
-        s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=25), events=et,advanLinCmt=advan)
+        s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=25), events=et)
 
-        s.2c <- ode.1cs %>% solve(theta=c(20, 25), events=et,advanLinCmt=advan)
+        s.2c <- ode.1cs %>% solve(theta=c(20, 25), events=et)
 
         test_that("1 compartment solved models and ODEs same.", {
             expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
@@ -908,9 +944,9 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
             C2=linCmt(V, CL, V2, Q);
         }, linCmtSens=sens)
 
-        o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et,advanLinCmt=advan)
+        o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
 
-        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et,advanLinCmt=advan)
+        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
 
         test_that("2 compartment solved models and ODEs same.", {
             expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
@@ -930,9 +966,9 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
             C2=linCmt(V, CL, V2, Q, Q2, V3);
         }, linCmtSens=sens)
 
-        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,advanLinCmt=advan)
+        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
-        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,advanLinCmt=advan)
+        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
         test_that("3 compartment solved models and ODEs same.", {
             expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
@@ -957,8 +993,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
                 C2 = linCmt(V, CL, KA);
             }, linCmtSens=sens)
 
-            o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et,advanLinCmt=advan)
-            s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et,advanLinCmt=advan)
+            o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et)
+            s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et)
 
             test_that("1 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
                 expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
@@ -976,9 +1012,9 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
                 C2=linCmt(V, CL, V2, Q, KA);
             }, linCmtSens=sens)
 
-            o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3), events=et,advanLinCmt=advan)
+            o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3), events=et)
 
-            s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3), events=et,advanLinCmt=advan)
+            s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3), events=et)
 
             test_that("2 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
                 expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
@@ -999,9 +1035,9 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
                 C2=linCmt(V, CL, V2, Q, Q2, V3, KA);
             }, linCmtSens=sens)
 
-            o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,advanLinCmt=advan)
+            o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
 
-            s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et,advanLinCmt=advan)
+            s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
 
             test_that("3 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
                 expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
@@ -1031,8 +1067,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
 
         for (fd in c(0.5,1,2)){
             for (fc in c(0.5,1,2)){
-                o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2,fDepot=fd,fCenter=fc), events=et,advanLinCmt=advan)
-                s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2, fDepot=fd, fCenter=fc), events=et,advanLinCmt=advan)
+                o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2,fDepot=fd,fCenter=fc), events=et)
+                s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2, fDepot=fd, fCenter=fc), events=et)
                 test_that(sprintf("1 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd,fc), {
                     expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
                 })
@@ -1059,8 +1095,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
 
         for (fd in c(0.5,1,2)){
             for (fc in c(0.5,1,2)){
-                o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3, fDepot=fd, fCenter=fc), events=et,advanLinCmt=advan)
-                s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3, fDepot=fd, fCenter=fc), events=et,advanLinCmt=advan)
+                o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3, fDepot=fd, fCenter=fc), events=et)
+                s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3, fDepot=fd, fCenter=fc), events=et)
                 test_that(sprintf("2 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd,fc), {
                     expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
                 })
@@ -1089,9 +1125,9 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         for (fd in c(0.5,1,2)){
             for (fc in c(0.5,1,2)){
                 o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7,
-                                                     V3=400, KA=0.3, fDepot=fd, fCenter=fc), events=et,advanLinCmt=advan)
+                                                     V3=400, KA=0.3, fDepot=fd, fCenter=fc), events=et)
                 s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3,
-                                                     fDepot=fd, fCenter=fc), events=et,advanLinCmt=advan)
+                                                     fDepot=fd, fCenter=fc), events=et)
                 test_that(sprintf("3 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd,fc), {
                     expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
                 })
@@ -1122,8 +1158,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
 
         for (fd in c(1,2,10)){
             for (fc in c(1,2,10)){
-                o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2,lagDepot=fd,lagCenter=fc), events=et,advanLinCmt=advan)
-                s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2, lagDepot=fd, lagCenter=fc), events=et,advanLinCmt=advan)
+                o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2,lagDepot=fd,lagCenter=fc), events=et)
+                s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2, lagDepot=fd, lagCenter=fc), events=et)
                 test_that(sprintf("1 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd,fc), {
                     expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
                 })
@@ -1148,8 +1184,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
 
         for (fd in c(1,2,10)){
             for (fc in c(1,2,10)){
-                o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3, lagDepot=fd, lagCenter=fc), events=et,advanLinCmt=advan)
-                s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3, lagDepot=fd, lagCenter=fc), events=et,advanLinCmt=advan)
+                o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3, lagDepot=fd, lagCenter=fc), events=et)
+                s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3, lagDepot=fd, lagCenter=fc), events=et)
                 test_that(sprintf("2 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd,fc), {
                     expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
                 })
@@ -1178,9 +1214,9 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         for (fd in c(1,2,10)){
             for (fc in c(1,2,10)){
                 o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7,
-                                                     V3=400, KA=0.3, lagDepot=fd, lagCenter=fc), events=et,advanLinCmt=advan)
+                                                     V3=400, KA=0.3, lagDepot=fd, lagCenter=fc), events=et)
                 s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3,
-                                                     lagDepot=fd, lagCenter=fc), events=et,advanLinCmt=advan)
+                                                     lagDepot=fd, lagCenter=fc), events=et)
                 test_that(sprintf("3 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd,fc), {
                     expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
                 })
@@ -1205,8 +1241,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
             add.sampling(seq(0, 36, length.out=200))
 
         for (rt in seq(0.5, 1, 1.5)){
-            o.1c <- ode.1c %>% solve(params=c(V=20, CL=25,rt=rt), events=et,advanLinCmt=advan)
-            s.1c <- sol.1c %>% solve(params=c(V=20, CL=25,rt=rt), events=et,advanLinCmt=advan)
+            o.1c <- ode.1c %>% solve(params=c(V=20, CL=25,rt=rt), events=et)
+            s.1c <- sol.1c %>% solve(params=c(V=20, CL=25,rt=rt), events=et)
             test_that(sprintf("1 compartment solved models and ODEs same for rate-modeled infusion: %s", rt), {
                 expect_equal(o.1c$C2, s.1c$C2,tolerance=tol)
             })
@@ -1226,8 +1262,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         }, linCmtSens=sens)
 
         for (rt in seq(0.5, 1, 1.5)){
-            o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, rt=rt), events=et,advanLinCmt=advan)
-            s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, rt=rt), events=et,advanLinCmt=advan)
+            o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, rt=rt), events=et)
+            s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, rt=rt), events=et)
             test_that(sprintf("2 compartment solved models and ODEs same for rate-modeled infusion: %s", rt), {
                 expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
             })
@@ -1250,8 +1286,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         }, linCmtSens=sens)
 
         for (rt in seq(0.5, 1, 1.5)){
-            s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, rt=rt), events=et,advanLinCmt=advan)
-            o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, rt=rt), events=et,advanLinCmt=advan)
+            s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, rt=rt), events=et)
+            o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, rt=rt), events=et)
             test_that(sprintf("3 compartment solved models and ODEs same for rate-modeled infusion: %s", rt), {
                 expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
             })
@@ -1274,8 +1310,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
             add.sampling(seq(0, 36, length.out=200))
 
         for (dur in seq(0.5, 1, 1.5)){
-            o.1c <- ode.1c %>% solve(params=c(V=20, CL=25,dr=dur), events=et,advanLinCmt=advan)
-            s.1c <- sol.1c %>% solve(params=c(V=20, CL=25,dr=dur), events=et,advanLinCmt=advan)
+            o.1c <- ode.1c %>% solve(params=c(V=20, CL=25,dr=dur), events=et)
+            s.1c <- sol.1c %>% solve(params=c(V=20, CL=25,dr=dur), events=et)
             test_that(sprintf("1 compartment solved models and ODEs same for dur-modeled infusion: %s", dur), {
                 expect_equal(o.1c$C2, s.1c$C2,tolerance=tol)
             })
@@ -1295,8 +1331,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         }, linCmtSens=sens)
 
         for (dur in seq(0.5, 1, 1.5)){
-            o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, dr=dur), events=et,advanLinCmt=advan)
-            s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, dr=dur), events=et,advanLinCmt=advan)
+            o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, dr=dur), events=et)
+            s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, dr=dur), events=et)
             test_that(sprintf("2 compartment solved models and ODEs same for dur-modeled infusion: %s", dur), {
                 expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
             })
@@ -1319,8 +1355,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         }, linCmtSens=sens)
 
         for (dur in seq(0.5, 1, 1.5)){
-            o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, dr=dur), events=et,advanLinCmt=advan)
-            s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, dr=dur), events=et,advanLinCmt=advan)
+            o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, dr=dur), events=et)
+            s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, dr=dur), events=et)
             test_that(sprintf("3 compartment solved models and ODEs same for dur-modeled infusion: %s", dur), {
                 expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
             })
@@ -1363,7 +1399,7 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
             add.sampling(0:48)
 
         s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=25,mt1=0.5, mt2=1.75),
-                                   events=et,advanLinCmt=advan)
+                                   events=et)
 
         test_that("mtime with solved systems work",{
             expect_equal(s.1c$time[1:4], c(0, 0.5, 1, 1.75))

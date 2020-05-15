@@ -2379,18 +2379,18 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options *op = &op_global;
   double *solve, *lhs;
   double time;
-  int evid;
+  int isDose;
   solve = ind->solve;
   lhs = ind->lhs;
   if (i < ind->n_all_times){
     ind->idx=i;
     time = getTime(ind->ix[i], ind);
-    evid = ind->evid[ind->ix[i]];
-    if (evid) {
+    isDose = !isObs(ind->evid[ind->ix[i]]);
+    if (isDose) {
       ind->tlast = time;
     }
     calc_lhs((int)id, time, solve+i*op->neq, lhs);
-    if (evid){
+    if (isDose){
       ind->ixds++;
     }
   } else {

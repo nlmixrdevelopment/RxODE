@@ -528,27 +528,29 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .alpha <- .getVar("ALPHA");
             .a  <- .getVar("A");
             if (any(.varsUp=="BETA") || any(.varsUp=="B")){
-                .beta <- .getVar("BETA");
-                .b <- .getVar("B");
-                if (any(.varsUp=="GAMMA") || any(.varsUp=="C")){
-                    ## 3 cmt
-                    .gamma <- .getVar("GAMMA");
-                    .c <- .getVar("C");
-                    .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s;", .alpha);
-                    .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s;", .beta);
-                    .lines[length(.lines) + 1] <- sprintf("rx_p4 ~ %s;", .gamma);
-                    .lines[length(.lines) + 1] <- sprintf("rx_v1 ~ %s;",.a);
-                    .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s;",.b);
-                    .lines[length(.lines) + 1] <- sprintf("rx_p5 ~ %s;",.c);
-                } else {
-                    ## 2 cmt
-                    .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s", .alpha);
-                    .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s", .beta);
-                    .lines[length(.lines) + 1] <-  sprintf("rx_v1 ~ %s;", .a)
-                    .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s;", .b);
-                    .lines[length(.lines) + 1] <- "rx_p4 ~ 0";
-                    .lines[length(.lines) + 1] <- "rx_p5 ~ 0";
-                }
+              .ncmt <- 2
+              .beta <- .getVar("BETA");
+              .b <- .getVar("B");
+              if (any(.varsUp=="GAMMA") || any(.varsUp=="C")){
+                .ncmt <- 3
+                ## 3 cmt
+                .gamma <- .getVar("GAMMA");
+                .c <- .getVar("C");
+                .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s;", .alpha);
+                .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s;", .beta);
+                .lines[length(.lines) + 1] <- sprintf("rx_p4 ~ %s;", .gamma);
+                .lines[length(.lines) + 1] <- sprintf("rx_v1 ~ %s;",.a);
+                .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s;",.b);
+                .lines[length(.lines) + 1] <- sprintf("rx_p5 ~ %s;",.c);
+              } else {
+                ## 2 cmt
+                .lines[length(.lines) + 1] <- sprintf("rx_p1 ~ %s", .alpha);
+                .lines[length(.lines) + 1] <- sprintf("rx_p2 ~ %s", .beta);
+                .lines[length(.lines) + 1] <-  sprintf("rx_v1 ~ %s;", .a)
+                .lines[length(.lines) + 1] <- sprintf("rx_p3 ~ %s;", .b);
+                .lines[length(.lines) + 1] <- "rx_p4 ~ 0";
+                .lines[length(.lines) + 1] <- "rx_p5 ~ 0";
+              }
             } else {
                 if (any(.varsUp=="GAMMA") || any(.varsUp=="C")){
                     stop("a three compartment model requires 'BETA'/'B'");

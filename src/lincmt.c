@@ -850,7 +850,7 @@ static inline void threeCmtRate(double *A1, double *A2, double *A3,
 static inline void oneCmtBolus(double *A1, double *A1last, 
 			       double *t,
 			       double *b1, double *k10) {
-  *A1 = (*A1last)*exp(-(*k10)*(*t)) + (*b1);
+  *A1 = fabs((*A1last)*exp(-(*k10)*(*t)) + (*b1));
 }
 
 static inline void twoCmtBolus(double *A1, double *A2,
@@ -865,11 +865,11 @@ static inline void twoCmtBolus(double *A1, double *A2,
   double rx_expr_5=exp(-(*t)*(*lambda2));
   double rx_expr_6=(*lambda2)-(*lambda1);
   double rx_expr_7=rx_expr_0+rx_expr_2;
-  *A1=(((rx_expr_7)-(*A1last)*(*lambda1))*rx_expr_4-((rx_expr_7)-(*A1last)*(*lambda2))*rx_expr_5)/(rx_expr_6)+(*b1);
+  *A1=fabs((((rx_expr_7)-(*A1last)*(*lambda1))*rx_expr_4-((rx_expr_7)-(*A1last)*(*lambda2))*rx_expr_5)/(rx_expr_6)+(*b1));
   double rx_expr_1=(*A2last)*(*E1);
   double rx_expr_3=(*A1last)*(*k12);
   double rx_expr_8=rx_expr_1+rx_expr_3;
-  *A2=(((rx_expr_8)-(*A2last)*(*lambda1))*rx_expr_4-((rx_expr_8)-(*A2last)*(*lambda2))*rx_expr_5)/(rx_expr_6);
+  *A2=fabs((((rx_expr_8)-(*A2last)*(*lambda1))*rx_expr_4-((rx_expr_8)-(*A2last)*(*lambda2))*rx_expr_5)/(rx_expr_6));
 }
 
 static inline void threeCmtBolus(double *A1, double *A2, double *A3,
@@ -900,7 +900,7 @@ static inline void threeCmtBolus(double *A1, double *A2, double *A3,
   double rx_expr_26=(rx_expr_15)*(rx_expr_18);
   double rx_expr_27=(rx_expr_15)*(rx_expr_19);
   double rx_expr_28=(rx_expr_18)*(rx_expr_16);
-  *A1=(*A1last)*(rx_expr_11*(rx_expr_0)*(rx_expr_1)/(rx_expr_23)+rx_expr_14*(rx_expr_2)*(rx_expr_3)/(rx_expr_24)+rx_expr_17*(rx_expr_4)*(rx_expr_5)/(rx_expr_25))+rx_expr_11*((*C)-(*B)*(*lambda1))/(rx_expr_26)+rx_expr_14*((*B)*(*lambda2)-(*C))/(rx_expr_27)+rx_expr_17*((*B)*(*lambda3)-(*C))/(rx_expr_28);
+  *A1=(*A1last)*(rx_expr_11*(rx_expr_0)*(rx_expr_1)/(rx_expr_23)+rx_expr_14*(rx_expr_2)*(rx_expr_3)/(rx_expr_24)+rx_expr_17*(rx_expr_4)*(rx_expr_5)/(rx_expr_25))+rx_expr_11*((*C)-(*B)*(*lambda1))/(rx_expr_26)+rx_expr_14*((*B)*(*lambda2)-(*C))/(rx_expr_27)+rx_expr_17*((*B)*(*lambda3)-(*C))/(rx_expr_28) + (*b1);
   double rx_expr_6=(*E1)-(*lambda1);
   double rx_expr_7=(*E1)-(*lambda2);
   double rx_expr_8=(*E1)-(*lambda3);
@@ -1111,6 +1111,7 @@ static inline void doAdvan(double *A,// Amounts
       case 1: {
 	oneCmtBolus(&A[0], &Alast[0],
 		    &t, b1, kel);
+	return;
       } break;
       case 2: {
 	double E1=(*kel)+(*k12);
@@ -1130,6 +1131,7 @@ static inline void doAdvan(double *A,// Amounts
 		    &t, b1, &E1, &E2,
 		    &lambda1, &lambda2,
 		    k21, k12);
+	return;
       } break;
       case 3: {
 	double E1=(*kel)+(*k12)+(*k13);
@@ -1588,5 +1590,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     rate[doRate-1] += rateAdjust; 
   } 
   if (setSolved) ind->solved[idx] = 1;
+  /* REprintf("%f\n", A[oral0]/rx_v); */
   return A[oral0]/rx_v;
 }
