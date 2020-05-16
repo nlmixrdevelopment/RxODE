@@ -914,8 +914,8 @@ static inline int handle_evid(int evid, int neq,
 	}
 	break;
       case 2:
-	// In this case bio-availability changes the rate, but the duration remains constant.
-	// rate = amt/dur
+	// In this case bio-availability changes the rate, but the
+	// duration remains constant.  rate = amt/dur
 	ind->on[cmt] = 1;
 	tmp = getAmt(ind, id, cmt, dose[ind->ixds], xout);
 	InfusionRate[cmt] += tmp;

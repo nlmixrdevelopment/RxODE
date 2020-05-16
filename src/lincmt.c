@@ -709,11 +709,18 @@ static inline void threeCmtKa(double *A1, double *A2, double *A3, double *A4,
 ////////////////////////////////////////////////////////////////////////////////
 // 1-3 compartment bolus during infusion
 ////////////////////////////////////////////////////////////////////////////////
+static inline void oneCmtRateSS4(double *A1, double *A1last, 
+				 double *t,
+				 double *b1, double *r1,
+				 double *k10) {
+  *A1 = (*r1)/(*k10);
+}
 static inline void oneCmtRate(double *A1, double *A1last, 
 			      double *t,
 			      double *b1, double *r1,
 			      double *k10) {
-  *A1 = (*r1)/(*k10)-(((*r1)+(-(*b1)-(*A1last))*(*k10))*exp(-(*k10)*(*t)))/(*k10);
+  double eT = exp(-(*k10)*(*t));
+  *A1 = (*r1)/(*k10)*(1-eT)+(*A1last)*eT + (*b1);
 }
 
 static inline void twoCmtRate(double *A1, double *A2, 
@@ -804,29 +811,42 @@ static inline void threeCmtRate(double *A1, double *A2, double *A3,
 ////////////////////////////////////////////////////////////////////////////////
 // 1-3 compartment bolus only
 //
+static inline void oneCmtBolusSS(double *A1, double *A1last, 
+				 double *tau,
+				 double *b1, double *k10) {
+  double eT = exp(-(*k10)*(*tau));
+  *A1 = (*b1)*(eT/(1-eT));
+}
 static inline void oneCmtBolus(double *A1, double *A1last, 
 			       double *t,
 			       double *b1, double *k10) {
   *A1 = fabs((*A1last)*exp(-(*k10)*(*t)) + (*b1));
 }
 
+
+
 static inline void twoCmtBolus(double *A1, double *A2,
 			       double *A1last, double *A2last,
-			       double *t, double *b1,
-			       double *E1, double *E2,
-			       double *lambda1, double *lambda2,
-			       double *k21, double *k12){
-  double rx_expr_0=(*A1last)*(*E2);
-  double rx_expr_2=(*A2last)*(*k21);
-  double rx_expr_4=exp(-(*t)*(*lambda1));
-  double rx_expr_5=exp(-(*t)*(*lambda2));
-  double rx_expr_6=(*lambda2)-(*lambda1);
-  double rx_expr_7=rx_expr_0+rx_expr_2;
-  *A1=fabs((((rx_expr_7)-(*A1last)*(*lambda1))*rx_expr_4-((rx_expr_7)-(*A1last)*(*lambda2))*rx_expr_5)/(rx_expr_6)+(*b1));
-  double rx_expr_1=(*A2last)*(*E1);
-  double rx_expr_3=(*A1last)*(*k12);
-  double rx_expr_8=rx_expr_1+rx_expr_3;
-  *A2=fabs((((rx_expr_8)-(*A2last)*(*lambda1))*rx_expr_4-((rx_expr_8)-(*A2last)*(*lambda2))*rx_expr_5)/(rx_expr_6));
+			       double *t, double *b1, double *k10,
+			       double *k12, double *k21){
+  double E1 = (*k10)+(*k12);
+  double E2 = (*k21);
+
+  double s = (*k12)+(*k21)+(*k10);
+  double sqr = sqrt(s*s-4*(*k21)*(*k10));
+  //calculate hybrid rate constants
+  double lambda1 = 0.5*(s+sqr);
+  double lambda2 = 0.5*(s-sqr);
+
+  double eT1= exp(-(*t)*lambda1);
+  double eT2= exp(-(*t)*lambda2);
+
+  double A1term = ((((*A1last)*E2+(*A2last)*(*k21))-(*A1last)*lambda1)*eT1-(((*A1last)*E2+(*A2last)*(*k21))-(*A1last)*lambda2)*eT2)/(lambda2-lambda1);
+  
+  *A1 = fabs(A1term + (*b1)); //Amount in the central compartment
+
+  double A2term = ((((*A2last)*E1+(*A1last)*(*k12))-(*A2last)*lambda1)*eT1-(((*A2last)*E1+(*A1last)*(*k12))-(*A2last)*lambda2)*eT2)/(lambda2-lambda1);
+    *A2 = fabs(A2term);//            #Amount in the peripheral compartment
 }
 
 static inline void threeCmtBolus(double *A1, double *A2, double *A3,
@@ -1064,23 +1084,9 @@ static inline void doAdvan(double *A,// Amounts
 	return;
       } break;
       case 2: {
-	double E1=(*kel)+(*k12);
-	double E2=(*k21);
-	double rx_expr_0=E1+E2;
-	double rx_expr_1=E1*E2;
-	double rx_expr_2=(*k12)*(*k21);
-	double rx_expr_3=rx_expr_0*rx_expr_0;
-	double rx_expr_4=rx_expr_1-rx_expr_2;
-	double rx_expr_5=4.0*(rx_expr_4);
-	double rx_expr_6=rx_expr_3-rx_expr_5;
-	double rx_expr_7=sqrt(rx_expr_6);
-	double lambda1=0.5*((rx_expr_0)+rx_expr_7);
-	double lambda2=0.5*((rx_expr_0)-rx_expr_7);
 	twoCmtBolus(&A[0], &A[1],
-		    &Alast[0], &Alast[1],
-		    &t, b1, &E1, &E2,
-		    &lambda1, &lambda2,
-		    k21, k12);
+		    &Alast[0], &Alast[1], &t, b1,
+		    kel, k12, k21);
 	return;
       } break;
       case 3: {
@@ -1404,6 +1410,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	aCur  = aLast1;
 	tlast = 0;
 	curTime = tau;
+	double tinf, rate;
 	switch (whI){
 	case 0: {
 	  // Get bolus dose
@@ -1446,6 +1453,35 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    A[i] = aCur[i];
 	  }
 	} break;
+	/* case 8: // Duration is modeled */
+	/* case 9: { // Rate is modeled */
+	/*   //  */
+	/*   if (whI == 9) { */
+	/*     if (cmtOff)  { */
+	/*       // Infusion to central compartment with oral dosing */
+	/*       rate = d_rate2; */
+	/*     } else { */
+	/*       // Infusion to central compartment or depot */
+	/*       rate = d_rate; */
+	/*     } */
+	/*     tinf = amt/rate; */
+	/*   } else { */
+	/*     if (cmtOff) { */
+	/*       // With oral dosing infusion to central compartment */
+	/*       tinf = d_dur2; */
+	/*     } else { */
+	/*       // Infusion to compartment #1 or depot */
+	/*       tinf = d_dur; */
+	/*     } */
+	/*     rate = amt/tinf; */
+	/*   } */
+	/*   // We have rate, tinf and tau, enough to calculate steady state */
+	/* } break; */
+	/* case 1: */
+	/* case 2: { */
+	/*   unsigned int p; */
+	/*   tinf = _getDur(ind->ixds, ind, 0, &p); */
+	/* } */
 	}
 	// Now calculate steady state
 	if (wh0 == 20) {

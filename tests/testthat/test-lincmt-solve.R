@@ -1,7 +1,8 @@
 if (FALSE){
 rxPermissive({
 
-    et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=6, dosing.interval=8) %>%
+  et <- eventTable() %>%
+    add.dosing(dose=3, rate=1.5, nbr.doses=6, dosing.interval=8) %>%
     add.dosing(dose=1.5, nbr.doses=6, dosing.interval=8) %>%
     add.sampling(seq(0, 48, length.out=200))
 
@@ -413,7 +414,7 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
 
       goodP(sol.2cA2, cmt=2L)
 
-        ## A3 alpha, beta, aob
+      ## A3 alpha, beta, aob
       sol.2cA3 <- RxODE({
         V <- theta[1]
         CLx <- theta[2]
@@ -795,59 +796,64 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
       })
 
-        context(sprintf("Infusion Models (%s)", .txt))
+      context(sprintf("Infusion Models (%s)", .txt))
 
-        et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=6, dosing.interval=8) %>%
-            add.sampling(seq(0, 48, length.out=200))
+      et <- eventTable() %>%
+        add.dosing(dose=3, rate=1.5, nbr.doses=6, dosing.interval=8) %>%
+        add.sampling(seq(0, 48, length.out=200))
 
-        etSs <- et() %>% et(amt=3, rate=1.5) %>%
-            et(time=4,amt=3, rate=1.5, ss=1, ii=24) %>%
-            et(time=8, amt=3, rate=1.5, ss=2, ii=24) %>%
-            et(seq(0,24,length.out=200))
+      etSs <- et() %>% et(amt=3, rate=1.5) %>%
+        et(time=4,amt=3, rate=1.5, ss=1, ii=24) %>%
+        et(time=8, amt=3, rate=1.5, ss=2, ii=24) %>%
+        et(seq(0,24,length.out=200))
 
-        ode.1c <- RxODE({
-            C2 = center/V;
-            d/dt(center) = - CL*C2
-        })
+      ode.1c <- RxODE({
+        C2 = center/V;
+        d/dt(center) = - CL*C2
+      })
 
-        ## Solved systems can check the variables in the RxODE statement
-        ## to figure out what type of solved system is being requested
-        ode.1cs <- RxODE({
-            V <- theta[1];
-            CL <- theta[2];
-            C2 = linCmt();
-        }, linCmtSens=sens)
+      ## Solved systems can check the variables in the RxODE statement
+      ## to figure out what type of solved system is being requested
+      ode.1cs <- RxODE({
+        V <- theta[1];
+        CL <- theta[2];
+        C2 = linCmt();
+      }, linCmtSens=sens)
 
-        ## Instead of specifying parameters in the solved system, you can
-        ## specify them in the linCmt variable.
-        ode.1cs2 <- RxODE({
-            C2 = linCmt(CL, V);
-        }, linCmtSens=sens)
+      goodP(ode.1cs, 1)
 
-        ## The solved systems can be mixed with ODE solving routines (to
-        ## speed them up a bit...?)
+      ## Instead of specifying parameters in the solved system, you can
+      ## specify them in the linCmt variable.
+      ode.1cs2 <- RxODE({
+        C2 = linCmt(CL, V);
+      }, linCmtSens=sens)
 
-        o.1c <- ode.1c %>% solve(params=c(V=20, CL=25), events=et)
+      goodP(ode.1cs2, 1)
 
-        s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=25), events=et)
+      ## The solved systems can be mixed with ODE solving routines (to
+      ## speed them up a bit...?)
 
-        s.2c <- ode.1cs %>% solve(theta=c(20, 25), events=et)
+      o.1c <- ode.1c %>% solve(params=c(V=20, CL=25), events=et)
 
-        test_that("1 compartment solved models and ODEs same.", {
-            expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
-            expect_equal(o.1c$C2, s.2c$C2, tolerance=tol)
-        })
+      s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=25), events=et)
 
-        o.1c <- ode.1c %>% solve(params=c(V=20, CL=10), events=etSs)
+      s.2c <- ode.1cs %>% solve(theta=c(20, 25), events=et)
 
-        s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=10), events=etSs)
+      test_that("1 compartment solved models and ODEs same.", {
+        expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
+        expect_equal(o.1c$C2, s.2c$C2, tolerance=tol)
+      })
 
-        s.2c <- ode.1cs %>% solve(theta=c(20, 10), events=etSs)
+      o.1c <- ode.1c %>% solve(params=c(V=20, CL=10), events=etSs)
 
-        test_that("1 compartment solved models and ODEs same; Steady State", {
-            expect_equal(o.1c$C2, s.1c$C2,tolerance=tol)
-            expect_equal(o.1c$C2, s.2c$C2,tolerance=tol)
-        })
+      s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=10), events=etSs)
+
+      s.2c <- ode.1cs %>% solve(theta=c(20, 10), events=etSs)
+
+      test_that("1 compartment solved models and ODEs same; Steady State", {
+        expect_equal(o.1c$C2, s.1c$C2,tolerance=tol)
+        expect_equal(o.1c$C2, s.2c$C2,tolerance=tol)
+      })
 
         ode.2c <- RxODE({
             C2 = centr/V;
