@@ -624,107 +624,86 @@ static inline void threeCmtKa(double *A1, double *A2, double *A3, double *A4,
 			      double *A1last, double *A2last, double *A3last, double *A4last,
 			      double *t,
 			      double *b1, double *b2,
-			      double *ka,
-			      double *lam1, double *lam2, double *lam3,
-			      double *k23,  double *k32, double *k24,  double *k42,
-			      double *E2) {
-  double rx_expr_12=(*b1)+(*A1last);
-  double rx_expr_20=exp(-(*ka)*(*t));
-  *A1=rx_expr_12*rx_expr_20;
-  double rx_expr_1=(*ka)*(*ka);
-  double rx_expr_0=(*ka)*rx_expr_1;
-  double rx_expr_2=(*b2)+(*b1);
-  double rx_expr_4=(*lam3)*(*lam3);
-  double rx_expr_3=rx_expr_4*(*lam3);
-  double rx_expr_6=(*lam2)*(*lam2);
-  double rx_expr_5=rx_expr_6*(*lam2);
-  double rx_expr_8=(*lam1)*(*lam1);
-  double rx_expr_7=rx_expr_8*(*lam1);
-  double rx_expr_9=(*lam1)+(*ka);
-  double rx_expr_10=(*ka)*(*lam1);
-  double rx_expr_11=(*lam1)-(*ka);
-  double rx_expr_13=(*b2)+(*A2last);
-  double rx_expr_14=(*b2)+(*A4last);
-  double rx_expr_15=(*ka)*rx_expr_8;
-  double rx_expr_16=rx_expr_1*(*lam1);
-  double rx_expr_25=rx_expr_2+(*A4last);
-  double rx_expr_26=rx_expr_2+(*A3last);
-  double rx_expr_27=exp(-(*lam3)*(*t));
-  double rx_expr_28=rx_expr_10*(*lam2);
-  double rx_expr_29=exp(-(*lam2)*(*t));
-  double rx_expr_30=exp(-(*lam1)*(*t));
-  double rx_expr_31=rx_expr_1-rx_expr_10;
-  double rx_expr_33=(rx_expr_9)*(*lam2);
-  double rx_expr_34=(rx_expr_11)*(*lam2);
-  double rx_expr_35=rx_expr_10-rx_expr_8;
-  double rx_expr_37=rx_expr_14+(*A3last);
-  double rx_expr_38=(rx_expr_9)*rx_expr_6;
-  double rx_expr_43=rx_expr_25+(*A2last);
-  double rx_expr_44=rx_expr_26+(*A2last);
-  double rx_expr_45=(rx_expr_31)*(*lam2);
-  double rx_expr_47=rx_expr_34-rx_expr_8;
-  double rx_expr_48=(rx_expr_35)*(*lam2);
-  double rx_expr_50=rx_expr_33+rx_expr_10;
-  double rx_expr_52=rx_expr_34-rx_expr_10;
-  double rx_expr_55=(-(*b2)-(*A4last)-(*A2last))*(*k42);
-  double rx_expr_56=(-(*b2)-(*A3last)-(*A2last))*(*k32);
-  double rx_expr_57=rx_expr_37+(*A2last);
-  double rx_expr_58=(-(*b2)-(*b1)-(*A2last)-(*A1last))*(*ka);
-  double rx_expr_61=rx_expr_43+(*A1last);
-  double rx_expr_62=rx_expr_44+(*A1last);
-  double rx_expr_63=rx_expr_52+rx_expr_1;
-  double rx_expr_64=(rx_expr_57)*(*k32);
-  double rx_expr_66=(rx_expr_50)*(*lam3);
-  double rx_expr_67=rx_expr_47+rx_expr_10;
-  double rx_expr_69=(rx_expr_61)*(*k42);
-  double rx_expr_70=(rx_expr_62)*(*k32);
-  double rx_expr_71=rx_expr_64*(*k42);
-  double rx_expr_75=(rx_expr_63)*(*lam3);
-  double rx_expr_76=(rx_expr_67)*(*lam3);
-  double rx_expr_80=(-(*b2)-(*b1)-(*A4last)-(*A3last)-(*A2last)-(*A1last))*(*k32);
-  double rx_expr_82=rx_expr_80*(*k42);
-  double rx_expr_88=rx_expr_82*(*ka);
-  double rx_expr_89=rx_expr_58+rx_expr_55;
-  double rx_expr_110=rx_expr_89+rx_expr_56;
-  *A2=(((rx_expr_13)*rx_expr_3+(rx_expr_110)*rx_expr_4+((rx_expr_69+rx_expr_70)*(*ka)+rx_expr_71)*(*lam3)+rx_expr_88)*rx_expr_27)/(rx_expr_3+(-(*lam2)-(*lam1)-(*ka))*rx_expr_4+rx_expr_66-rx_expr_28)-(((rx_expr_13)*rx_expr_5+(rx_expr_110)*rx_expr_6+((rx_expr_69+rx_expr_70)*(*ka)+rx_expr_71)*(*lam2)+rx_expr_88)*rx_expr_29)/((rx_expr_6+(-(*lam1)-(*ka))*(*lam2)+rx_expr_10)*(*lam3)-rx_expr_5+rx_expr_38-rx_expr_28)+(((rx_expr_13)*rx_expr_7+(rx_expr_110)*rx_expr_8+((rx_expr_69+rx_expr_70)*(*ka)+rx_expr_71)*(*lam1)+rx_expr_88)*rx_expr_30)/(rx_expr_76+rx_expr_48+rx_expr_7-rx_expr_15)+(((rx_expr_12)*rx_expr_0+((-(*b1)-(*A1last))*(*k42)+(-(*b1)-(*A1last))*(*k32))*rx_expr_1+(rx_expr_12)*(*k32)*(*k42)*(*ka))*rx_expr_20)/(rx_expr_75+rx_expr_45+rx_expr_16-rx_expr_0);
-  double rx_expr_17=(*A3last)*(*E2);
-  double rx_expr_21=(*A3last)*(*k42);
-  double rx_expr_22=(*A3last)*(*k24);
-  double rx_expr_32=rx_expr_2+(*A2last);
-  double rx_expr_39=(-(*b2)-(*A2last))*(*k23);
-  double rx_expr_40=rx_expr_14+(*A2last);
-  double rx_expr_46=rx_expr_32+(*A1last);
-  double rx_expr_53=(rx_expr_40)*(*k23);
-  double rx_expr_59=(rx_expr_46)*(*k23);
-  double rx_expr_72=(-(*b2)-(*b1)-(*A4last)-(*A2last)-(*A1last))*(*k23);
-  double rx_expr_77=rx_expr_21+rx_expr_59;
-  double rx_expr_84=rx_expr_22+rx_expr_72;
-  double rx_expr_86=rx_expr_77+rx_expr_17;
-  double rx_expr_92=(rx_expr_86)*(*ka);
-  double rx_expr_95=rx_expr_84-rx_expr_17;
-  double rx_expr_99=(rx_expr_95)*(*k42);
-  double rx_expr_102=rx_expr_99*(*ka);
-  *A3=(((*A3last)*rx_expr_3+(-(*A3last)*(*ka)-rx_expr_21+rx_expr_39-rx_expr_17)*rx_expr_4+(rx_expr_92+(-(*A3last)*(*k24)+rx_expr_53+rx_expr_17)*(*k42))*(*lam3)+rx_expr_102)*rx_expr_27)/(rx_expr_3+(-(*lam2)-(*lam1)-(*ka))*rx_expr_4+rx_expr_66-rx_expr_28)-(((*A3last)*rx_expr_5+(-(*A3last)*(*ka)-rx_expr_21+rx_expr_39-rx_expr_17)*rx_expr_6+(rx_expr_92+(-(*A3last)*(*k24)+rx_expr_53+rx_expr_17)*(*k42))*(*lam2)+rx_expr_102)*rx_expr_29)/((rx_expr_6+(-(*lam1)-(*ka))*(*lam2)+rx_expr_10)*(*lam3)-rx_expr_5+rx_expr_38-rx_expr_28)+(((*A3last)*rx_expr_7+(-(*A3last)*(*ka)-rx_expr_21+rx_expr_39-rx_expr_17)*rx_expr_8+(rx_expr_92+(-(*A3last)*(*k24)+rx_expr_53+rx_expr_17)*(*k42))*(*lam1)+rx_expr_102)*rx_expr_30)/(rx_expr_76+rx_expr_48+rx_expr_7-rx_expr_15)-(((rx_expr_12)*(*k23)*rx_expr_1+(-(*b1)-(*A1last))*(*k23)*(*k42)*(*ka))*rx_expr_20)/(rx_expr_75+rx_expr_45+rx_expr_16-rx_expr_0);
-  double rx_expr_18=(*A4last)*(*E2);
-  double rx_expr_19=(*b2)+(*A3last);
-  double rx_expr_23=(*A4last)*(*k32);
-  double rx_expr_24=(*A4last)*(*k23);
-  double rx_expr_41=(-(*b2)-(*A2last))*(*k24);
-  double rx_expr_42=rx_expr_19+(*A2last);
-  double rx_expr_54=(rx_expr_42)*(*k24);
-  double rx_expr_60=(rx_expr_46)*(*k24);
-  double rx_expr_73=rx_expr_54-rx_expr_24;
-  double rx_expr_74=(-(*b2)-(*b1)-(*A3last)-(*A2last)-(*A1last))*(*k24);
-  double rx_expr_78=rx_expr_23+rx_expr_60;
-  double rx_expr_81=rx_expr_73+rx_expr_18;
-  double rx_expr_85=rx_expr_74+rx_expr_24;
-  double rx_expr_87=rx_expr_78+rx_expr_18;
-  double rx_expr_90=(rx_expr_81)*(*k32);
-  double rx_expr_93=(rx_expr_87)*(*ka);
-  double rx_expr_96=rx_expr_85-rx_expr_18;
-  double rx_expr_100=(rx_expr_96)*(*k32);
-  double rx_expr_103=rx_expr_100*(*ka);
-  *A4=(((*A4last)*rx_expr_3+(-(*A4last)*(*ka)-rx_expr_23+rx_expr_41-rx_expr_18)*rx_expr_4+(rx_expr_93+rx_expr_90)*(*lam3)+rx_expr_103)*rx_expr_27)/(rx_expr_3+(-(*lam2)-(*lam1)-(*ka))*rx_expr_4+rx_expr_66-rx_expr_28)-(((*A4last)*rx_expr_5+(-(*A4last)*(*ka)-rx_expr_23+rx_expr_41-rx_expr_18)*rx_expr_6+(rx_expr_93+rx_expr_90)*(*lam2)+rx_expr_103)*rx_expr_29)/((rx_expr_6+(-(*lam1)-(*ka))*(*lam2)+rx_expr_10)*(*lam3)-rx_expr_5+rx_expr_38-rx_expr_28)+(((*A4last)*rx_expr_7+(-(*A4last)*(*ka)-rx_expr_23+rx_expr_41-rx_expr_18)*rx_expr_8+(rx_expr_93+rx_expr_90)*(*lam1)+rx_expr_103)*rx_expr_30)/(rx_expr_76+rx_expr_48+rx_expr_7-rx_expr_15)-(((rx_expr_12)*(*k24)*rx_expr_1+(-(*b1)-(*A1last))*(*k24)*(*k32)*(*ka))*rx_expr_20)/(rx_expr_75+rx_expr_45+rx_expr_16-rx_expr_0);
+			      double *KA, double *k20,
+			      double *k23, double *k32,
+			      double *k24, double *k42) {
+  double E2 = (*k20)+(*k23)+(*k24);
+  double E3 = (*k32);
+  double E4 = (*k42);
+
+  //calculate hybrid rate constants
+  double a = E2+E3+E4;
+  double b = E2*E3+E4*(E2+E3)-(*k23)*(*k32)-(*k24)*(*k42);
+  double c = E2*E3*E4-E4*(*k23)*(*k32)-E3*(*k24)*(*k42);
+
+  double a2 = a*a;
+  double m = 0.333333333333333*(3.0*b - a2);
+  double n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
+  double Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
+
+  double alpha = sqrt(-Q);
+  double beta = -0.5*n;
+  double gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+  double theta = atan2(alpha,beta);
+  double theta3 = 0.333333333333333*theta;
+  double ctheta3 = cos(theta3);
+  double stheta3 = 1.7320508075688771932*sin(theta3);
+  double gamma3 = R_pow(gamma,0.333333333333333);
+  
+  double lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
+  double lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
+  double lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
+
+  double B = (*A3last)*(*k32)+(*A4last)*(*k42);
+  double C = E4*(*A3last)*(*k32)+E3*(*A4last)*(*k42);
+  double I = (*A2last)*(*k23)*E4-(*A3last)*(*k24)*(*k42)+(*A4last)*(*k23)*(*k42);
+  double J = (*A2last)*(*k24)*E3+(*A3last)*(*k24)*(*k32)-(*A4last)*(*k23)*(*k32);
+
+  double eL1 = exp(-(*t)*lambda1);
+  double eL2 = exp(-(*t)*lambda2);
+  double eL3 = exp(-(*t)*lambda3);
+  double eKA = exp(-(*t)*(*KA));
+
+  double l12 = (lambda1-lambda2);
+  double l13 = (lambda1-lambda3);
+  double l21 = (lambda2-lambda1);
+  double l23 = (lambda2-lambda3);
+  double l31 = (lambda3-lambda1);
+  double l32 = (lambda3-lambda2);
+
+  double e2l1 = (E2-lambda1);
+  double e2l2 = (E2-lambda2);
+  double e3l1 = (E3-lambda1);
+  double e3l2 = (E3-lambda2);
+  double e3l3 = (E3-lambda3);
+  double e4l1 = (E4-lambda1);
+  double e4l2 = (E4-lambda2);
+  double e4l3 = (E4-lambda3);
+  
+  double A2term1 = (*A2last)*(eL1*e3l1*e4l1/(l21*l31)+eL2*e3l2*e4l2/(l12*l32)+eL3*e3l3*e4l3/(l13*l23));
+  
+  double A2term2 = eL1*(C-B*lambda1)/(l12*l13)+eL2*(B*lambda2-C)/(l12*l23)+eL3*(B*lambda3-C)/(l13*l32);
+  
+  double A2term3 = (*A1last)*(*KA)*(eL1*e3l1*e4l1/(l21*l31*((*KA)-lambda1))+eL2*e3l2*e4l2/(l12*l32*((*KA)-lambda2))+eL3*e3l3*e4l3/(l13*l23*((*KA)-lambda3))+eKA*(E3-(*KA))*(E4-(*KA))/((lambda1-(*KA))*(lambda2-(*KA))*(lambda3-(*KA))));
+  
+  *A2 = A2term1+A2term2+A2term3 + (*b2);
+
+  double A3term1 = (*A3last)*(eL1*e2l1*e4l1/(l21*l31)+eL2*e2l2*e4l2/(l12*l32)+eL3*(E2-lambda3)*e4l3/(l13*l23));
+  
+  double A3term2 = eL1*(I-(*A2last)*(*k23)*lambda1)/(l12*l13)+eL2*((*A2last)*(*k23)*lambda2-I)/(l12*l23)+eL3*((*A2last)*(*k23)*lambda3-I)/(l13*l32);
+  
+  double A3term3 = (*A1last)*(*KA)*(*k23)*(eL1*e4l1/(l21*l31*((*KA)-lambda1))+eL2*e4l2/(l12*l32*((*KA)-lambda2))+eL3*e4l3/(l13*l23*((*KA)-lambda3))+eKA*(E4-(*KA))/((lambda1-(*KA))*(lambda2-(*KA))*(lambda3-(*KA))));
+  
+  *A3 = A3term1+A3term2+A3term3;// Amount in the first-peripheral compartment
+
+  double A4term1 = (*A4last)*(eL1*e2l1*e3l1/(l21*l31)+eL2*e2l2*e3l2/(l12*l32)+eL3*(E2-lambda3)*e3l3/(l13*l23));
+  
+  double A4term2 = eL1*(J-(*A2last)*(*k24)*lambda1)/(l12*l13)+eL2*((*A2last)*(*k24)*lambda2-J)/(l12*l23)+eL3*((*A2last)*(*k24)*lambda3-J)/(l13*l32);
+  
+  double A4term3 = (*A1last)*(*KA)*(*k24)*(eL1*e3l1/(l21*l31*((*KA)-lambda1))+eL2*e3l2/(l12*l32*((*KA)-lambda2))+eL3*e3l3/(l13*l23*((*KA)-lambda3))+eKA*(E3-(*KA))/((lambda1-(*KA))*(lambda2-(*KA))*(lambda3-(*KA))));
+  *A4 = A4term1+A4term2+A4term3;
+
+  *A1 = (*A1last)*eKA + (*b1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1070,35 +1049,10 @@ static inline void doAdvan(double *A,// Amounts
 		 &t, b1, b2, ka,  kel, k12, k21);
       } break;
       case 3: {
-	double E2=(*kel)+(*k12)+(*k13);
-	double j=(*k12)+(*kel)+(*k21)+(*k31)+(*k13);
-	double rx_expr_2=(*kel)*(*k21);
-	double k=(*k12)*(*k31)+rx_expr_2+(*kel)*(*k31)+(*k21)*(*k31)+(*k13)*(*k21);
-	double l=rx_expr_2*(*k31);
-	double m=(3.0*k-j*j)/3.0;
-	double n=(2.0*j*j*j-9*j*k+27.0*l)/27.0;
-	double Q=(n*n)/4.0+(m*m*m)/27.0;
-	double alpha=sqrt(-Q);
-	double beta=-1*n/2.0;
-	double rho=sqrt(beta*beta+alpha*alpha);
-	double theta=atan2(alpha, beta);
-	double rx_expr_0=j/3.0;
-	double rx_expr_1=1.0/3.0;
-	double rx_expr_3=theta/3.0;
-	//double rx_expr_4=sqrt(3.0); M_SQRT_3
-	double rx_expr_5=pow(rho,rx_expr_1);
-	double rx_expr_6=cos(rx_expr_3);
-	double rx_expr_7=sin(rx_expr_3);
-	double rx_expr_8=M_SQRT_3*rx_expr_7;
-	double lambda1=rx_expr_0+rx_expr_5*(rx_expr_6+rx_expr_8);
-	double lambda2=rx_expr_0+rx_expr_5*(rx_expr_6-rx_expr_8);
-	double lambda3=rx_expr_0-(2*rx_expr_5*rx_expr_6);
 	threeCmtKa(&A[0], &A[1], &A[2], &A[3],
 		   &Alast[0], &Alast[1], &Alast[2], &Alast[3],
-		   &t, b1, b2, ka,
-		   &lambda1, &lambda2, &lambda3,
-		   k12,  k21, k13,  k31,
-		   &E2);
+		   &t, b1, b2, ka, kel,
+		   k12,  k21, k13,  k31);
       } break;
       }
     } else {

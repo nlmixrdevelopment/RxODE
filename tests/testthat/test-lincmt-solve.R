@@ -713,7 +713,6 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
       })
 
-
       ode.3c.ka <- RxODE({
         C2 = centr/V;
         C3 = peri/V2;
@@ -724,77 +723,77 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         d / dt(peri2) = Q2 * C2 - Q2 * C4
       })
 
-        sol.3c.ka <- RxODE({
-            ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
-            C2=linCmt(V, CL, V2, Q, Q2, V3, KA);
-        }, linCmtSens=sens)
+      sol.3c.ka <- RxODE({
+        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+        C2=linCmt(V, CL, V2, Q, Q2, V3, KA);
+      }, linCmtSens=sens)
 
-        sol.3cK <- RxODE({
-            V <- theta[1]
-            CLx <- theta[2]
-            V2x <- theta[3]
-            Q <- theta[4]
-            Q2x <- theta[5]
-            V3x <- theta[6]
-            ka <- theta[7]
-            K <- CLx/V
-            K12 <- Q/V
-            K21 <- Q/V2x
-            k13 <- Q2x/V
-            k31 <- Q2x/V3x
-            C2=linCmt();
-        }, linCmtSens=sens)
+      sol.3cK <- RxODE({
+        V <- theta[1]
+        CLx <- theta[2]
+        V2x <- theta[3]
+        Q <- theta[4]
+        Q2x <- theta[5]
+        V3x <- theta[6]
+        ka <- theta[7]
+        K <- CLx/V
+        K12 <- Q/V
+        K21 <- Q/V2x
+        k13 <- Q2x/V
+        k31 <- Q2x/V3x
+        C2=linCmt();
+      }, linCmtSens=sens)
 
-        sol.3cA1 <- RxODE({
-            Vx <- theta[1]
-            CLx <- theta[2]
-            V2x <- theta[3]
-            Q <- theta[4]
-            Q2x <- theta[5]
-            V3x <- theta[6]
-            ka <- theta[7]
-            Kx <- CLx/Vx
-            K12x <- Q/Vx
-            K21x <- Q/V2x
-            K13x <- Q2x/Vx
-            K31x <- Q2x/V3x
-            a0 <- Kx * K21x * K31x
-            a1 <- Kx * K31x + K21x * K31x + K21x * K13x +
-                Kx * K21x + K31x * K12x
-            a2 <- Kx + K12x + K13x + K21x + K31x
-            p <- a1 - a2 * a2/3
-            q <- 2 * a2 * a2 * a2/27 - a1 * a2/3 + a0
-            r1 <- sqrt(-p * p * p/27)
-            r2 <- 2 * r1^(1/3)
-            theta <- acos(-q/(2 * r1))/3
-            alpha <- -(cos(theta) * r2 - a2/3)
-            beta <- -(cos(theta + 2/3 * pi) * r2 - a2/3)
-            gamma <- -(cos(theta + 4/3 * pi) * r2 - a2/3)
-            A <- (K21x - alpha) * (K31x - alpha)/(alpha - beta)/(alpha - gamma)/Vx
-            B <- (K21x - beta) * (K31x - beta)/(beta - alpha)/(beta - gamma)/Vx
-            C <- (K21x - gamma) * (K31x - gamma)/(gamma - alpha)/(gamma - beta)/Vx
-            C2=linCmt();
-        }, linCmtSens=sens)
+      sol.3cA1 <- RxODE({
+        Vx <- theta[1]
+        CLx <- theta[2]
+        V2x <- theta[3]
+        Q <- theta[4]
+        Q2x <- theta[5]
+        V3x <- theta[6]
+        ka <- theta[7]
+        Kx <- CLx/Vx
+        K12x <- Q/Vx
+        K21x <- Q/V2x
+        K13x <- Q2x/Vx
+        K31x <- Q2x/V3x
+        a0 <- Kx * K21x * K31x
+        a1 <- Kx * K31x + K21x * K31x + K21x * K13x +
+          Kx * K21x + K31x * K12x
+        a2 <- Kx + K12x + K13x + K21x + K31x
+        p <- a1 - a2 * a2/3
+        q <- 2 * a2 * a2 * a2/27 - a1 * a2/3 + a0
+        r1 <- sqrt(-p * p * p/27)
+        r2 <- 2 * r1^(1/3)
+        theta <- acos(-q/(2 * r1))/3
+        alpha <- -(cos(theta) * r2 - a2/3)
+        beta <- -(cos(theta + 2/3 * pi) * r2 - a2/3)
+        gamma <- -(cos(theta + 4/3 * pi) * r2 - a2/3)
+        A <- (K21x - alpha) * (K31x - alpha)/(alpha - beta)/(alpha - gamma)/Vx
+        B <- (K21x - beta) * (K31x - beta)/(beta - alpha)/(beta - gamma)/Vx
+        C <- (K21x - gamma) * (K31x - gamma)/(gamma - alpha)/(gamma - beta)/Vx
+        C2=linCmt();
+      }, linCmtSens=sens)
 
-        o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
-        s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
-        s.3cK <- sol.3cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
-        s.3cA1 <- sol.3cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
+      o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
+      s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
+      s.3cK <- sol.3cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
+      s.3cA1 <- sol.3cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
 
-        test_that("3 compartment oral solved models and ODEs same.", {
-            expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
-            expect_equal(o.3c$C2, s.3cK$C2,tolerance=tol)
-            expect_equal(o.3c$C2, s.3cA1$C2,tolerance=tol)
-        })
+      test_that("3 compartment oral solved models and ODEs same.", {
+        expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
+        expect_equal(o.3c$C2, s.3cK$C2,tolerance=tol)
+        expect_equal(o.3c$C2, s.3cA1$C2,tolerance=tol)
+      })
 
-        o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=etSs)
+      o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=etSs)
 
-        s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=etSs)
+      s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=etSs)
 
-        ## Again the 4 hour strange discontinuity because ss=1
-        test_that("3 compartment oral solved models and ODEs same for steady state.", {
-            expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
-        })
+      ## Again the 4 hour strange discontinuity because ss=1
+      test_that("3 compartment oral solved models and ODEs same for steady state.", {
+        expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
+      })
 
         context(sprintf("Infusion Models (%s)", .txt))
 
