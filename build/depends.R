@@ -75,11 +75,62 @@ if (FALSE){
 
   ## Now 1-3 compartment bolus
 
+  ## 3 compartment IV bolus
+  m <- RxODE({
+    k20 <- 0
+    k30 <- 0
+    E1 <- k10+k12+k13
+    E2 <- k21+k20
+    E3 <- k31+k30
+
+    ##calculate hybrid rate constants
+    a <- E1+E2+E3
+    b <- E1*E2+E3*(E1+E2)-k12*k21-k13*k31
+    c <- E1*E2*E3-E3*k12*k21-E2*k13*k31
+
+    m <- (3*b - a^2)/3
+    n <- (2*a^3 - 9*a*b + 27*c)/27
+    Q <- (n^2)/4 + (m^3)/27
+
+    alpha <- sqrt(-1*Q)
+    beta <- -1*n/2
+    gamma <- sqrt(beta^2+alpha^2)
+    theta <- atan2(alpha,beta)
+
+
+    lambda1 <- a/3 + gamma^(1/3)*(cos(theta/3) + sqrt(3)*sin(theta/3))
+    lambda2 <- a/3 + gamma^(1/3)*(cos(theta/3) - sqrt(3)*sin(theta/3))
+    lambda3 <- a/3 -(2*gamma^(1/3)*cos(theta/3))
+
+    B = A2last*k21+A3last*k31
+    C = E3*A2last*k21+E2*A3last*k31
+    I = A1last*k12*E3-A2last*k13*k31+A3last*k12*k31
+    J = A1last*k13*E2+A2last*k13*k21-A3last*k12*k21
+
+    A1term1 = A1last*(exp(-t*lambda1)*(E2-lambda1)*(E3-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+exp(-t*lambda2)*(E2-lambda2)*(E3-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+exp(-t*lambda3)*(E2-lambda3)*(E3-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))
+    A1term2 = exp(-t*lambda1)*(C-B*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+exp(-t*lambda2)*(B*lambda2-C)/((lambda1-lambda2)*(lambda2-lambda3))+exp(-t*lambda3)*(B*lambda3-C)/((lambda1-lambda3)*(lambda3-lambda2))
+
+    A1 <- b1+(A1term1+A1term2)  #Amount in the central compartment
+
+    A2term1 = A2last*(exp(-t*lambda1)*(E1-lambda1)*(E3-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+exp(-t*lambda2)*(E1-lambda2)*(E3-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+exp(-t*lambda3)*(E1-lambda3)*(E3-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))
+    A2term2 = exp(-t*lambda1)*(I-A1last*k12*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+exp(-t*lambda2)*(A1last*k12*lambda2-I)/((lambda1-lambda2)*(lambda2-lambda3))+exp(-t*lambda3)*(A1last*k12*lambda3-I)/((lambda1-lambda3)*(lambda3-lambda2))
+
+    A2 <- A2term1+A2term2             #Amount in the first-peripheral compartment
+
+    A3term1 = A3last*(exp(-t*lambda1)*(E1-lambda1)*(E2-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+exp(-t*lambda2)*(E1-lambda2)*(E2-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+exp(-t*lambda3)*(E1-lambda3)*(E2-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))
+    A3term2 = exp(-t*lambda1)*(J-A1last*k13*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+exp(-t*lambda2)*(A1last*k13*lambda2-J)/((lambda1-lambda2)*(lambda2-lambda3))+exp(-t*lambda3)*(A1last*k13*lambda3-J)/((lambda1-lambda3)*(lambda3-lambda2))
+
+    A3 <- A3term1+A3term2            #Amount in the second-peripheral compartment
+
+  })
+
   ## 2 compartment infusion
   m <- RxODE({
     A1=(((A1last*E2+r1+A2last*k21)-A1last*lambda1)*exp(-t*lambda1)-((A1last*E2+r1+A2last*k21)-A1last*lambda2)*exp(-t*lambda2))/(lambda2-lambda1) + r1*E2*(1/(lambda1*lambda2)+exp(-t*lambda1)/(lambda1*(lambda1-lambda2))-exp(-t*lambda2)/(lambda2*(lambda1-lambda2)))
     A2=(((A2last*E1+A1last*k12)-A2last*lambda1)*exp(-t*lambda1)-((A2last*E1+A1last*k12)-A2last*lambda2)*exp(-t*lambda2))/(lambda2-lambda1)+r1*k12*(1/(lambda1*lambda2)+exp(-t*lambda1)/(lambda1*(lambda1-lambda2))-exp(-t*lambda2)/(lambda2*(lambda1-lambda2)))
   })
+
+  env <- rxS(m)
 
   message(rxOptExpr(rxNorm(m)))
 

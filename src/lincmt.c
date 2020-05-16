@@ -5,6 +5,10 @@
 #include <Rmath.h>
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
+#define safe_zero(a) ((a) == 0 ? DOUBLE_EPS : (a))
+#define _as_zero(a) (fabs(a) < sqrt(DOUBLE_EPS) ? 0.0 : a)
+#define _as_dbleps(a) (fabs(a) < sqrt(DOUBLE_EPS) ? ((a) < 0 ? -sqrt(DOUBLE_EPS)  : sqrt(DOUBLE_EPS)) : a)
+
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -848,43 +852,75 @@ static inline void twoCmtBolus(double *A1, double *A2,
 
 static inline void threeCmtBolus(double *A1, double *A2, double *A3,
 				 double *A1last, double *A2last, double *A3last,
-				 double *t, double *b1,
-				 double *E1, double *E2, double *E3,
-				 double *lambda1, double *lambda2, double *lambda3,
-				 double *C, double *B, double *I, double *J,
-				 double *k12, double *k13){
-  double rx_expr_0=(*E2)-(*lambda1);
-  double rx_expr_1=(*E3)-(*lambda1);
-  double rx_expr_2=(*E2)-(*lambda2);
-  double rx_expr_3=(*E3)-(*lambda2);
-  double rx_expr_4=(*E2)-(*lambda3);
-  double rx_expr_5=(*E3)-(*lambda3);
-  double rx_expr_11=exp(-(*t)*(*lambda1));
-  double rx_expr_12=(*lambda2)-(*lambda1);
-  double rx_expr_13=(*lambda3)-(*lambda1);
-  double rx_expr_14=exp(-(*t)*(*lambda2));
-  double rx_expr_15=(*lambda1)-(*lambda2);
-  double rx_expr_16=(*lambda3)-(*lambda2);
-  double rx_expr_17=exp(-(*t)*(*lambda3));
-  double rx_expr_18=(*lambda1)-(*lambda3);
-  double rx_expr_19=(*lambda2)-(*lambda3);
-  double rx_expr_23=(rx_expr_12)*(rx_expr_13);
-  double rx_expr_24=(rx_expr_15)*(rx_expr_16);
-  double rx_expr_25=(rx_expr_18)*(rx_expr_19);
-  double rx_expr_26=(rx_expr_15)*(rx_expr_18);
-  double rx_expr_27=(rx_expr_15)*(rx_expr_19);
-  double rx_expr_28=(rx_expr_18)*(rx_expr_16);
-  *A1=(*A1last)*(rx_expr_11*(rx_expr_0)*(rx_expr_1)/(rx_expr_23)+rx_expr_14*(rx_expr_2)*(rx_expr_3)/(rx_expr_24)+rx_expr_17*(rx_expr_4)*(rx_expr_5)/(rx_expr_25))+rx_expr_11*((*C)-(*B)*(*lambda1))/(rx_expr_26)+rx_expr_14*((*B)*(*lambda2)-(*C))/(rx_expr_27)+rx_expr_17*((*B)*(*lambda3)-(*C))/(rx_expr_28) + (*b1);
-  double rx_expr_6=(*E1)-(*lambda1);
-  double rx_expr_7=(*E1)-(*lambda2);
-  double rx_expr_8=(*E1)-(*lambda3);
-  double rx_expr_9=(*A1last)*(*k12);
-  double rx_expr_20=rx_expr_11*(rx_expr_6);
-  double rx_expr_21=rx_expr_14*(rx_expr_7);
-  double rx_expr_22=rx_expr_17*(rx_expr_8);
-  *A2=(*A2last)*(rx_expr_20*(rx_expr_1)/(rx_expr_23)+rx_expr_21*(rx_expr_3)/(rx_expr_24)+rx_expr_22*(rx_expr_5)/(rx_expr_25))+rx_expr_11*((*I)-rx_expr_9*(*lambda1))/(rx_expr_26)+rx_expr_14*(rx_expr_9*(*lambda2)-(*I))/(rx_expr_27)+rx_expr_17*(rx_expr_9*(*lambda3)-(*I))/(rx_expr_28);
-  double rx_expr_10=(*A1last)*(*k13);
-  *A3=(*A3last)*(rx_expr_20*(rx_expr_0)/(rx_expr_23)+rx_expr_21*(rx_expr_2)/(rx_expr_24)+rx_expr_22*(rx_expr_4)/(rx_expr_25))+rx_expr_11*((*J)-rx_expr_10*(*lambda1))/(rx_expr_26)+rx_expr_14*(rx_expr_10*(*lambda2)-(*J))/(rx_expr_27)+rx_expr_17*(rx_expr_10*(*lambda3)-(*J))/(rx_expr_28);
+				 double *t, double *b1, double *k10,
+				 double *k12, double *k21,
+				 double *k13, double *k31){
+  double E1 = (*k10)+(*k12)+(*k13);
+  double E2 = (*k21);
+  double E3 = (*k31);
+
+  //calculate hybrid rate constants
+  double a = E1+E2+E3;
+  double b = E1*E2+E3*(E1+E2)-(*k12)*(*k21)-(*k13)*(*k31);
+  double c = E1*E2*E3-E3*(*k12)*(*k21)-E2*(*k13)*(*k31);
+
+  double a2 = a*a;
+  double m = 0.333333333333333*(3.0*b - a2);
+  double n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
+  double Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
+
+  double alpha = sqrt(-Q);
+  double beta = -0.5*n;
+  double gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+  double theta = atan2(alpha,beta);
+
+  double theta3 = 0.333333333333333*theta;
+  double ctheta3 = cos(theta3);
+  double stheta3 = 1.7320508075688771932*sin(theta3);
+  double gamma3 = R_pow(gamma,0.333333333333333);
+  double lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
+  double lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
+  double lambda3 = 0.333333333333333*a -(2*gamma3*ctheta3);
+
+  double B = (*A2last)*(*k21)+(*A3last)*(*k31);
+  double C = E3*(*A2last)*(*k21)+E2*(*A3last)*(*k31);
+  double I = (*A1last)*(*k12)*E3-(*A2last)*(*k13)*(*k31)+(*A3last)*(*k12)*(*k31);
+  double J = (*A1last)*(*k13)*E2+(*A2last)*(*k13)*(*k21)-(*A3last)*(*k12)*(*k21);
+
+  double eL1 = exp(-(*t)*lambda1);
+  double eL2 = exp(-(*t)*lambda2);
+  double eL3 = exp(-(*t)*lambda3);
+
+  double l12 = (lambda1-lambda2);
+  double l13 = (lambda1-lambda3);
+  double l21 = (lambda2-lambda1);
+  double l23 = (lambda2-lambda3);
+  double l31 = (lambda3-lambda1);
+  double l32 = (lambda3-lambda2);
+  
+  double e1l1 = (E1-lambda1);
+  double e1l2 = (E1-lambda2);
+  double e1l3 = (E1-lambda3);
+  double e2l1 = (E2-lambda1);
+  double e2l2 = (E2-lambda2);
+  double e2l3 = (E2-lambda3);
+  double e3l1 = (E3-lambda1);
+  double e3l2 = (E3-lambda2);
+  double e3l3 = (E3-lambda3);
+
+  double A1term1 = (*A1last)*(eL1*e2l1*e3l1/(l21*l31)+eL2*e2l2*e3l2/(l12*l32)+eL3*e2l3*e3l3/(l13*l23));
+  double A1term2 = eL1*(C-B*lambda1)/(l12*l13)+eL2*(B*lambda2-C)/(l12*l23)+eL3*(B*lambda3-C)/(l13*l32);
+
+  *A1 = fabs((*b1)+(A1term1+A1term2));
+
+  double A2term1 = (*A2last)*(eL1*e1l1*e3l1/(l21*l31)+eL2*e1l2*e3l2/(l12*l32)+eL3*e1l3*e3l3/(l13*l23));
+  double A2term2 = eL1*(I-(*A1last)*(*k12)*lambda1)/(l12*l13)+eL2*((*A1last)*(*k12)*lambda2-I)/(l12*l23)+eL3*((*A1last)*(*k12)*lambda3-I)/(l13*l32);
+
+  *A2 = fabs(A2term1+A2term2);
+
+  double A3term1 = (*A3last)*(eL1*e1l1*e2l1/(l21*l31)+eL2*e1l2*e2l2/(l12*l32)+eL3*e1l3*e2l3/(l13*l23));
+  double A3term2 = eL1*(J-(*A1last)*(*k13)*lambda1)/(l12*l13)+eL2*((*A1last)*(*k13)*lambda2-J)/(l12*l23)+eL3*((*A1last)*(*k13)*lambda3-J)/(l13*l32);
+  *A3 = fabs(A3term1+A3term2);
 }
 
 static inline void doAdvan(double *A,// Amounts
@@ -1094,46 +1130,9 @@ static inline void doAdvan(double *A,// Amounts
 	return;
       } break;
       case 3: {
-	double E1=(*kel)+(*k12)+(*k13);
-	double E2=(*k21);
-	double E3=(*k31);
-	double rx_expr_2=E1+E2;
-	double a=rx_expr_2+E3;
-	double rx_expr_3=E1*E2;
-	double b=rx_expr_3+E3*(rx_expr_2)-(*k12)*(*k21)-(*k13)*(*k31);
-	double c=rx_expr_3*E3-E3*(*k12)*(*k21)-E2*(*k13)*(*k31);
-	double m=(3.0*b-a*a)/3.9;
-	double n=(2*a*a*a-9*a*b+27.0*c)/27.0;
-	double Q=(n*n)/4.0+(m*m*m)/27.0;
-	double alpha=sqrt(-Q);
-	double beta=-n/2;
-	double gamma=sqrt(beta*beta+alpha*alpha);
-	double theta=atan2(alpha, beta);
-	double rx_expr_0=a/3.0;
-	double rx_expr_1=1.0/3.0;
-	double rx_expr_4=theta/3.0;
-	/* double rx_expr_5=sqrt(3.0); */
-	double rx_expr_8=pow(gamma,rx_expr_1);
-	double rx_expr_9=cos(rx_expr_4);
-	double rx_expr_10=sin(rx_expr_4);
-	double rx_expr_11=M_SQRT_3*rx_expr_10;
-	double lambda1=rx_expr_0+rx_expr_8*(rx_expr_9+rx_expr_11);
-	double lambda2=rx_expr_0+rx_expr_8*(rx_expr_9-rx_expr_11);
-	double lambda3=rx_expr_0-(2*rx_expr_8*rx_expr_9);
-  
-	double B=Alast[1]*(*k21)+Alast[2]*(*k31);
-	double C=E3*Alast[1]*(*k21)+E2*Alast[2]*(*k31);
-	double rx_expr_6=Alast[1]*(*k13);
-	double rx_expr_7=Alast[2]*(*k12);
-	double I=Alast[0]*(*k12)*E3-rx_expr_6*(*k31)+rx_expr_7*(*k31);
-	double J=Alast[0]*(*k13)*E2+rx_expr_6*(*k21)-rx_expr_7*(*k21);
 	threeCmtBolus(&A[0], &A[1], &A[2],
 		      &Alast[0], &Alast[1], &Alast[2],
-		      &t, b1,
-		      &E1, &E2, &E3,
-		      &lambda1, &lambda2, &lambda3,
-		      &C, &B, &I, &J,
-		      k12, k13);
+		      &t, b1, kel, k12, k21, k13, k31);
       } break;
       }
     }
@@ -1245,6 +1244,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   double rx_k21=0;
   double rx_k13=0;
   double rx_k31=0;
+  double btemp, ctemp, dtemp;
   if (p5 > 0.){
     ncmt = 3;
     switch (trans){
@@ -1265,18 +1265,44 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
       rx_k31 = p5;
       break;
     case 11:
-      // FIXME -- add warning
-      error(_("matt"));
-      /* return linCmtAA(rx, id, t, linCmt, i_cmt, trans, p1, v1, */
-      /* 		      p2, p3, p4, p5, d_ka, d_tlag, d_tlag2,  d_F,  d_F2, d_rate, d_dur); */
-      /* REprintf("V, alpha, beta, k21 are not supported with ADVAN routines"); */
-      /* return NA_REAL; */
+#undef beta
+#define A (1/v1)
+#define B p3
+#define C p5
+#define alpha p1
+#define beta p2
+#define gamma p4
+      ncmt=3;
+      rx_v=1/(A+B+C);
+      btemp = -(alpha*C + alpha*B + gamma*A + gamma*B + beta*A + beta*C)*rx_v;
+      ctemp = (alpha*beta*C + alpha*gamma*B + beta*gamma*A)*rx_v;
+      dtemp = sqrt(btemp*btemp-4*ctemp);
+      rx_k21 = 0.5*(-btemp+dtemp);
+      rx_k31 = 0.5*(-btemp-dtemp);
+      rx_k   = alpha*beta*gamma/rx_k21/rx_k31;
+      rx_k12 = ((beta*gamma + alpha*beta + alpha*gamma) -
+		rx_k21*(alpha+beta+gamma) - rx_k * rx_k31 + rx_k21*rx_k21)/(rx_k31 - rx_k21);
+      rx_k13 = alpha + beta + gamma - (rx_k + rx_k12 + rx_k21 + rx_k31);
       break;
     case 10:
-      // FIXME -- add warning
-      error(_("matt"));
-      /* return linCmtAA(rx, id, t, linCmt, i_cmt, trans, p1, v1, */
-      /* 		      p2, p3, p4, p5, d_ka, d_tlag, d_tlag2,  d_F,  d_F2, d_rate, d_dur); */
+#undef A
+#define A v1
+      ncmt=3;
+      rx_v=1/(A+B+C);
+      btemp = -(alpha*C + alpha*B + gamma*A + gamma*B + beta*A + beta*C)*rx_v;
+      ctemp = (alpha*beta*C + alpha*gamma*B + beta*gamma*A)*rx_v;
+      dtemp = sqrt(_as_zero(btemp*btemp-4*ctemp));
+      rx_k21 = 0.5*(-btemp+dtemp);
+      rx_k31 = 0.5*(-btemp-dtemp);
+      rx_k   = alpha*beta*gamma/rx_k21/rx_k31;
+      rx_k12 = ((beta*gamma + alpha*beta + alpha*gamma) -
+		rx_k21*(alpha+beta+gamma) - rx_k * rx_k31 + rx_k21*rx_k21)/(rx_k31 - rx_k21);
+      rx_k13 = alpha + beta + gamma - (rx_k + rx_k12 + rx_k21 + rx_k31);
+#undef A
+#undef B
+#undef alpha
+#undef beta
+#define beta Rf_beta
       break;
     default:
       REprintf(_("invalid trans (3 cmt trans %d)\n"), trans);
@@ -1550,6 +1576,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     rate[doRate-1] += rateAdjust; 
   } 
   if (setSolved) ind->solved[idx] = 1;
-  /* REprintf("%f\n", A[oral0]/rx_v); */
+  /* REprintf("%f,%f,%f\n", A[oral0], rx_v, A[oral0]/rx_v); */
   return A[oral0]/rx_v;
 }
