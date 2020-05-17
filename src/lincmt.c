@@ -726,86 +726,103 @@ static inline void oneCmtRate(double *A1, double *A1last,
 static inline void twoCmtRate(double *A1, double *A2, 
 			      double *A1last, double *A2last,
 			      double *t,
-			      double *b1, double *r1,
-			      double *E1, double *E2,
-			      double *lambda1, double *lambda2,
-			      double *k12, double *k21) {
-  double rx_expr_0=(*A1last)*(*E2);
-  double rx_expr_2=(*A2last)*(*k21);
-  double rx_expr_4=rx_expr_0+(*r1);
-  double rx_expr_5=exp(-(*t)*(*lambda1));
-  double rx_expr_6=exp(-(*t)*(*lambda2));
-  double rx_expr_7=(*lambda2)-(*lambda1);
-  double rx_expr_8=(*lambda1)*(*lambda2);
-  double rx_expr_9=(*lambda1)-(*lambda2);
-  double rx_expr_10=1/(rx_expr_8);
-  double rx_expr_12=rx_expr_4+rx_expr_2;
-  double rx_expr_13=(*lambda1)*(rx_expr_9);
-  double rx_expr_14=(*lambda2)*(rx_expr_9);
-  double rx_expr_15=rx_expr_5/(rx_expr_13);
-  double rx_expr_16=rx_expr_6/(rx_expr_14);
-  double rx_expr_17=rx_expr_10+rx_expr_15;
-  *A1=(((rx_expr_12)-(*A1last)*(*lambda1))*rx_expr_5-((rx_expr_12)-(*A1last)*(*lambda2))*rx_expr_6)/(rx_expr_7)+(*r1)*(*E2)*(rx_expr_17-rx_expr_16) + (*b1);
-  double rx_expr_1=(*A2last)*(*E1);
-  double rx_expr_3=(*A1last)*(*k12);
-  double rx_expr_11=rx_expr_1+rx_expr_3;
-  *A2=(((rx_expr_11)-(*A2last)*(*lambda1))*rx_expr_5-((rx_expr_11)-(*A2last)*(*lambda2))*rx_expr_6)/(rx_expr_7)+(*r1)*(*k12)*(rx_expr_17-rx_expr_16);
+			      double *b1, double *Doserate,
+			      double *k10, double *k12, double *k21) {
+  double E1 = (*k10)+(*k12);
+  double E2 = (*k21);
+
+  //#calculate hybrid rate constants
+  double s = E1+E2;
+  double sqr = sqrt(s*s-4*(E1*E2-(*k12)*(*k21)));
+  double lambda1 = 0.5*(s+sqr);
+  double lambda2 = 0.5*(s-sqr);
+
+  double eT1 = exp(-(*t)*lambda1);
+  double eT2 = exp(-(*t)*lambda2);
+
+  double A1term1 = ((((*A1last)*E2+(*Doserate)+(*A2last)*(*k21))-(*A1last)*lambda1)*eT1-(((*A1last)*E2+(*Doserate)+(*A2last)*(*k21))-(*A1last)*lambda2)*eT2)/(lambda2-lambda1);
+  double A1term2 = (*Doserate)*E2*(1/(lambda1*lambda2)+eT1/(lambda1*(lambda1-lambda2))-eT2/(lambda2*(lambda1-lambda2)));
+  *A1 = fabs(A1term1+A1term2 + (*b1));//Amount in the central compartment
+  double A2term1 = ((((*A2last)*E1+(*A1last)*(*k12))-(*A2last)*lambda1)*eT1-(((*A2last)*E1+(*A1last)*(*k12))-(*A2last)*lambda2)*eT2)/(lambda2-lambda1);
+  double A2term2 = (*Doserate)*(*k12)*(1/(lambda1*lambda2)+eT1/(lambda1*(lambda1-lambda2))-eT2/(lambda2*(lambda1-lambda2)));
+  *A2 = fabs(A2term1+A2term2);//Amount in the peripheral compartment
 }
 
 static inline void threeCmtRate(double *A1, double *A2, double *A3,
 				double *A1last, double *A2last, double *A3last,
-				double *t,
-				double *b1, double *r1,
-				double *E1, double *E2, double *E3,
-				double *lambda1, double *lambda2, double *lambda3,
-				double *C, double *B, double *I, double *J,
-				double *k12, double *k13) {
-  double rx_expr_0=(*E2)-(*lambda1);
-  double rx_expr_1=(*E3)-(*lambda1);
-  double rx_expr_2=(*E2)-(*lambda2);
-  double rx_expr_3=(*E3)-(*lambda2);
-  double rx_expr_4=(*E2)-(*lambda3);
-  double rx_expr_5=(*E3)-(*lambda3);
-  double rx_expr_11=exp(-(*t)*(*lambda1));
-  double rx_expr_12=(*lambda2)-(*lambda1);
-  double rx_expr_13=(*lambda3)-(*lambda1);
-  double rx_expr_14=exp(-(*t)*(*lambda2));
-  double rx_expr_15=(*lambda1)-(*lambda2);
-  double rx_expr_16=(*lambda3)-(*lambda2);
-  double rx_expr_17=exp(-(*t)*(*lambda3));
-  double rx_expr_18=(*lambda1)-(*lambda3);
-  double rx_expr_19=(*lambda2)-(*lambda3);
-  double rx_expr_20=(*lambda1)*(*lambda2);
-  double rx_expr_21=rx_expr_20*(*lambda3);
-  double rx_expr_22=(*lambda1)*(rx_expr_12);
-  double rx_expr_23=(*lambda2)*(rx_expr_15);
-  double rx_expr_24=(*lambda3)*(rx_expr_18);
-  double rx_expr_25=rx_expr_11*(rx_expr_0);
-  double rx_expr_26=rx_expr_14*(rx_expr_2);
-  double rx_expr_27=rx_expr_17*(rx_expr_4);
-  double rx_expr_31=(rx_expr_12)*(rx_expr_13);
-  double rx_expr_32=(rx_expr_15)*(rx_expr_16);
-  double rx_expr_33=(rx_expr_18)*(rx_expr_19);
-  double rx_expr_34=(rx_expr_15)*(rx_expr_18);
-  double rx_expr_35=(rx_expr_15)*(rx_expr_19);
-  double rx_expr_36=(rx_expr_18)*(rx_expr_16);
-  double rx_expr_37=rx_expr_25*(rx_expr_1);
-  double rx_expr_38=rx_expr_26*(rx_expr_3);
-  double rx_expr_39=rx_expr_27*(rx_expr_5);
-  double rx_expr_40=rx_expr_22*(rx_expr_13);
-  double rx_expr_41=rx_expr_23*(rx_expr_16);
-  double rx_expr_42=rx_expr_24*(rx_expr_19);
-  *A1=(*A1last)*(rx_expr_37/(rx_expr_31)+rx_expr_38/(rx_expr_32)+rx_expr_39/(rx_expr_33))+rx_expr_11*((*C)-(*B)*(*lambda1))/(rx_expr_34)+rx_expr_14*((*B)*(*lambda2)-(*C))/(rx_expr_35)+rx_expr_17*((*B)*(*lambda3)-(*C))/(rx_expr_36)+(*r1)*(((*E2)*(*E3))/(rx_expr_21)-rx_expr_37/(rx_expr_40)-rx_expr_38/(rx_expr_41)-rx_expr_39/(rx_expr_42)) + (*b1);
-  double rx_expr_6=(*E1)-(*lambda1);
-  double rx_expr_7=(*E1)-(*lambda2);
-  double rx_expr_8=(*E1)-(*lambda3);
-  double rx_expr_9=(*A1last)*(*k12);
-  double rx_expr_28=rx_expr_11*(rx_expr_6);
-  double rx_expr_29=rx_expr_14*(rx_expr_7);
-  double rx_expr_30=rx_expr_17*(rx_expr_8);
-  *A2=(*A2last)*(rx_expr_28*(rx_expr_1)/(rx_expr_31)+rx_expr_29*(rx_expr_3)/(rx_expr_32)+rx_expr_30*(rx_expr_5)/(rx_expr_33))+rx_expr_11*((*I)-rx_expr_9*(*lambda1))/(rx_expr_34)+rx_expr_14*(rx_expr_9*(*lambda2)-(*I))/(rx_expr_35)+rx_expr_17*(rx_expr_9*(*lambda3)-(*I))/(rx_expr_36)+(*r1)*(*k12)*((*E3)/(rx_expr_21)-rx_expr_11*(rx_expr_1)/(rx_expr_40)-rx_expr_14*(rx_expr_3)/(rx_expr_41)-rx_expr_17*(rx_expr_5)/(rx_expr_42));
-  double rx_expr_10=(*A1last)*(*k13);
-  *A3=(*A3last)*(rx_expr_28*(rx_expr_0)/(rx_expr_31)+rx_expr_29*(rx_expr_2)/(rx_expr_32)+rx_expr_30*(rx_expr_4)/(rx_expr_33))+rx_expr_11*((*J)-rx_expr_10*(*lambda1))/(rx_expr_34)+rx_expr_14*(rx_expr_10*(*lambda2)-(*J))/(rx_expr_35)+rx_expr_17*(rx_expr_10*(*lambda3)-(*J))/(rx_expr_36)+(*r1)*(*k13)*((*E2)/(rx_expr_21)-rx_expr_25/(rx_expr_40)-rx_expr_26/(rx_expr_41)-rx_expr_27/(rx_expr_42));
+				double *t, double *b1, double *Doserate,
+				double *k10, double *k12, double *k21,
+				double *k13, double *k31) {
+  double E1 = (*k10)+(*k12)+(*k13);
+  double E2 = (*k21);
+  double E3 = (*k31);
+
+  //#calculate hybrid rate constants
+  double a = E1+E2+E3;
+  double b = E1*E2+E3*(E1+E2)-(*k12)*(*k21)-(*k13)*(*k31);
+  double c = E1*E2*E3-E3*(*k12)*(*k21)-E2*(*k13)*(*k31);
+
+  double a2 = a*a;
+  double m = 0.333333333333333*(3.0*b - a2);
+  double n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
+  double Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
+
+  double alpha = sqrt(-Q);
+  double beta = -0.5*n;
+  double gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+  double theta = atan2(alpha,beta);
+  double theta3 = 0.333333333333333*theta;
+  double ctheta3 = cos(theta3);
+  double stheta3 = 1.7320508075688771932*sin(theta3);
+  double gamma3 = R_pow(gamma,0.333333333333333);
+  
+  double lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
+  double lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
+  double lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
+
+  double B = (*A2last)*(*k21)+(*A3last)*(*k31);
+  double C = E3*(*A2last)*(*k21)+E2*(*A3last)*(*k31);
+  double I = (*A1last)*(*k12)*E3-(*A2last)*(*k13)*(*k31)+(*A3last)*(*k12)*(*k31);
+  double J = (*A1last)*(*k13)*E2+(*A2last)*(*k13)*(*k21)-(*A3last)*(*k12)*(*k21);
+
+  double eL1 = exp(-(*t)*lambda1);
+  double eL2 = exp(-(*t)*lambda2);
+  double eL3 = exp(-(*t)*lambda3);
+
+  double l12 = (lambda1-lambda2);
+  double l13 = (lambda1-lambda3);
+  double l21 = (lambda2-lambda1);
+  double l23 = (lambda2-lambda3);
+  double l31 = (lambda3-lambda1);
+  double l32 = (lambda3-lambda2);
+  
+  double e1l1 = (E1-lambda1);
+  double e1l2 = (E1-lambda2);
+  double e1l3 = (E1-lambda3);
+  double e2l1 = (E2-lambda1);
+  double e2l2 = (E2-lambda2);
+  double e2l3 = (E2-lambda3);
+  double e3l1 = (E3-lambda1);
+  double e3l2 = (E3-lambda2);
+  double e3l3 = (E3-lambda3);
+
+  double A1term1 = (*A1last)*(eL1*e2l1*e3l1/(l21*l31)+eL2*e2l2*e3l2/(l12*l32)+eL3*e2l3*e3l3/(l13*l23));
+  double A1term2 = eL1*(C-B*lambda1)/(l12*l13)+eL2*(B*lambda2-C)/(l12*l23)+eL3*(B*lambda3-C)/(l13*l32);
+  double A1term3 = (*Doserate)*((E2*E3)/(lambda1*lambda2*lambda3)-eL1*e2l1*e3l1/(lambda1*l21*l31)-eL2*e2l2*e3l2/(lambda2*l12*l32)-eL3*e2l3*e3l3/(lambda3*l13*l23));
+
+  *A1 = A1term1+A1term2+A1term3 + (*b1);//Amount in the central compartment
+
+  double A2term1 = (*A2last)*(eL1*e1l1*e3l1/(l21*l31)+eL2*e1l2*e3l2/(l12*l32)+eL3*e1l3*e3l3/(l13*l23));
+  double A2term2 = eL1*(I-(*A1last)*(*k12)*lambda1)/(l12*l13)+eL2*((*A1last)*(*k12)*lambda2-I)/(l12*l23)+eL3*((*A1last)*(*k12)*lambda3-I)/(l13*l32);
+  double A2term3 = (*Doserate)*(*k12)*(E3/(lambda1*lambda2*lambda3)-eL1*e3l1/(lambda1*l21*l31)-eL2*e3l2/(lambda2*l12*l32)-eL3*e3l3/(lambda3*l13*l23));
+
+  *A2 = A2term1+A2term2+A2term3;// Amount in the first-peripheral compartment
+
+  double A3term1 = (*A3last)*(eL1*e1l1*e2l1/(l21*l31)+eL2*e1l2*e2l2/(l12*l32)+eL3*e1l3*e2l3/(l13*l23));
+  double A3term2 = eL1*(J-(*A1last)*(*k13)*lambda1)/(l12*l13)+eL2*((*A1last)*(*k13)*lambda2-J)/(l12*l23)+eL3*((*A1last)*(*k13)*lambda3-J)/(l13*l32);
+  double A3term3 = (*Doserate)*(*k13)*(E2/(lambda1*lambda2*lambda3)-eL1*e2l1/(lambda1*l21*l31)-eL2*e2l2/(lambda2*l12*l32)-eL3*e2l3/(lambda3*l13*l23));
+
+  *A3 = A3term1+A3term2+A3term3;//Amount in the second-peripheral compartment
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -992,65 +1009,21 @@ static inline void doAdvan(double *A,// Amounts
       case 1: {
 	oneCmtRate(&A[0], &Alast[0], 
 		   &t, b1, r1, kel);
+	return;
       } break;
       case 2: {
-	double E1=(*kel)+(*k12);
-	double E2=(*k21);
-	double rx_expr_0=E1+E2;
-	double rx_expr_1=E1*E2;
-	double rx_expr_2=(*k12)*(*k21);
-	double rx_expr_3=(rx_expr_0*rx_expr_0);
-	double rx_expr_4=rx_expr_1-rx_expr_2;
-	double rx_expr_5=4*(rx_expr_4);
-	double rx_expr_6=rx_expr_3-rx_expr_5;
-	double rx_expr_7=sqrt(rx_expr_6);
-	double lambda1=0.5*((rx_expr_0)+rx_expr_7);
-	double lambda2=0.5*((rx_expr_0)-rx_expr_7);
 	twoCmtRate(&A[0], &A[1], 
 		   &Alast[0], &Alast[1],
 		   &t, b1, r1,
-		   &E1, &E2, &lambda1, &lambda2, k12, k21);
+		   kel, k12, k21);
+	return;
       } break;
       case 3: {
-	double E1=(*kel)+(*k12)+(*k13);
-	double E2=(*k21);
-	double E3=(*k31);
-	double rx_expr_2=E1+E2;
-	double a=rx_expr_2+E3;
-	double rx_expr_3=E1*E2;
-	double b=rx_expr_3+E3*(rx_expr_2)-(*k12)*(*k21)-(*k13)*(*k31);
-	double c=rx_expr_3*E3-E3*(*k12)*(*k21)-E2*(*k13)*(*k31);
-	double m=(3.0*b-a*a)/3.9;
-	double n=(2*a*a*a-9*a*b+27.0*c)/27.0;
-	double Q=(n*n)/4.0+(m*m*m)/27.0;
-	double alpha=sqrt(-Q);
-	double beta=-n/2;
-	double gamma=sqrt(beta*beta+alpha*alpha);
-	double theta=atan2(alpha, beta);
-	double rx_expr_0=a/3.0;
-	double rx_expr_1=1.0/3.0;
-	double rx_expr_4=theta/3.0;
-	/* double rx_expr_5=sqrt(3.0); */
-	double rx_expr_8=pow(gamma,rx_expr_1);
-	double rx_expr_9=cos(rx_expr_4);
-	double rx_expr_10=sin(rx_expr_4);
-	double rx_expr_11=M_SQRT_3*rx_expr_10;
-	double lambda1=rx_expr_0+rx_expr_8*(rx_expr_9+rx_expr_11);
-	double lambda2=rx_expr_0+rx_expr_8*(rx_expr_9-rx_expr_11);
-	double lambda3=rx_expr_0-(2*rx_expr_8*rx_expr_9);
-  
-	double B=Alast[1]*(*k21)+Alast[2]*(*k31);
-	double C=E3*Alast[1]*(*k21)+E2*Alast[2]*(*k31);
-	double rx_expr_6=Alast[1]*(*k13);
-	double rx_expr_7=Alast[2]*(*k12);
-	double I=Alast[0]*(*k12)*E3-rx_expr_6*(*k31)+rx_expr_7*(*k31);
-	double J=Alast[0]*(*k13)*E2+rx_expr_6*(*k21)-rx_expr_7*(*k21);
 	threeCmtRate(&A[0], &A[1], &A[2],
 		     &Alast[0], &Alast[1], &Alast[2],
-		     &t, b1, r1,
-		     &E1, &E2, &E3,
-		     &lambda1, &lambda2, &lambda3,
-		     &C, &B, &I, &J, k12, k13);
+		     &t, b1, r1, kel,
+		     k12, k21, k13, k31);
+	return;
       } break;
 
       }
@@ -1405,12 +1378,19 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	double aLast0[4] = {0, 0, 0, 0};
 	double aLast1[4] = {0, 0, 0, 0};
 	double solveLast[4] = {0, 0, 0, 0};
+	if (op->nlinR == 2){
+	  rate[0]=0.0;
+	  rate[1]=0.0;
+	} else {
+	  rate[0] = 0.0;
+	}
 	double *aCur;
 	Alast = aLast0;
 	aCur  = aLast1;
 	tlast = 0;
 	curTime = tau;
-	double tinf, rate;
+	double tinf, r0;
+	int doInf=0;
 	switch (whI){
 	case 0: {
 	  // Get bolus dose
@@ -1453,35 +1433,63 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    A[i] = aCur[i];
 	  }
 	} break;
-	/* case 8: // Duration is modeled */
-	/* case 9: { // Rate is modeled */
-	/*   //  */
-	/*   if (whI == 9) { */
-	/*     if (cmtOff)  { */
-	/*       // Infusion to central compartment with oral dosing */
-	/*       rate = d_rate2; */
-	/*     } else { */
-	/*       // Infusion to central compartment or depot */
-	/*       rate = d_rate; */
-	/*     } */
-	/*     tinf = amt/rate; */
-	/*   } else { */
-	/*     if (cmtOff) { */
-	/*       // With oral dosing infusion to central compartment */
-	/*       tinf = d_dur2; */
-	/*     } else { */
-	/*       // Infusion to compartment #1 or depot */
-	/*       tinf = d_dur; */
-	/*     } */
-	/*     rate = amt/tinf; */
-	/*   } */
-	/*   // We have rate, tinf and tau, enough to calculate steady state */
-	/* } break; */
-	/* case 1: */
-	/* case 2: { */
-	/*   unsigned int p; */
-	/*   tinf = _getDur(ind->ixds, ind, 0, &p); */
-	/* } */
+	case 8: // Duration is modeled
+	case 9: { // Rate is modeled
+	  if (whI == 9) {
+	    if (cmtOff == 0)  {
+	      // Infusion to central compartment with oral dosing
+	      r0 = d_rate1;
+	      tinf = amt/r0*d_F;
+	    } else {
+	      // Infusion to central compartment or depot
+	      r0 = d_rate2;
+	      tinf = amt/r0*d_F2;
+	    }
+	  } else {
+	    // duration is modeled
+	    if (cmtOff == 0) {
+	      // With oral dosing infusion to central compartment
+	      tinf = d_dur1;
+	      r0 = amt/tinf*d_F;
+	    } else {
+	      // Infusion to compartment #1 or depot
+	      tinf = d_dur2;
+	      r0 = amt/tinf*d_F2;
+	    }
+	  }
+	  doInf=1;
+	} break;
+	case 1:
+	case 2: {
+	  if (ISNA(amt)){
+	  } else if (amt > 0) {
+	    unsigned int p;
+	    r0 = amt;
+	    tinf = _getDur(ind->ixds, ind, 0, &p);
+	    if (whI == 1){
+	      // Duration changes
+	      if (cmtOff == 0){
+		tinf *= d_F;
+	      } else {
+		tinf *= d_F2;
+	      }
+	    } else {
+	      // Rate changes
+	      if (cmtOff == 0){
+		r0 *= d_F;
+	      } else {
+		r0 *= d_F2;
+	      }
+	    }
+	  }
+	  doInf=1;
+	}
+	}
+	if (doInf){
+	  // Infusion steady state
+	  if (tinf >= tau){
+	    error(_("ab"));
+	  }
 	}
 	// Now calculate steady state
 	if (wh0 == 20) {
