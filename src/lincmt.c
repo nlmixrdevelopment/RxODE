@@ -1378,11 +1378,14 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	double aLast0[4] = {0, 0, 0, 0};
 	double aLast1[4] = {0, 0, 0, 0};
 	double solveLast[4] = {0, 0, 0, 0};
+	// Reset all the rates
 	if (op->nlinR == 2){
 	  rate[0]=0.0;
 	  rate[1]=0.0;
+	  r1=0; r2=0;
 	} else {
 	  rate[0] = 0.0;
+	  r1=0; r2=0;
 	}
 	double *aCur;
 	Alast = aLast0;

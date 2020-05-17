@@ -184,33 +184,81 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
         } else {
             .lines[length(.lines) + 1] <- sprintf("rx_ka ~ 0");
         }
+
         .rateDepot  <- which(regexpr(.regRateDepot,.txt)!=-1)
-        if (length(.rateDepot)>=1L){
-            stop("'rate(depot)' does not work with a solved linear system");
-        }
-        .rateCenter  <- which(regexpr(.regRateCenter, .txt) !=-1)
-        if (length(.rateCenter)==1L){
-            .tmp <- .txt[.rateCenter];
-            .txt <- .txt[-.rateCenter];
-            .lines[length(.lines)+1]  <- sub(.regRateCenter,"rx_rate ~ \\1", .tmp);
-        } else if (length(.rateCenter)>1L) {
-            stop("can only specify 'rate(central)' once");
+        if (length(.rateDepot)==1L){
+          .tmp <- .txt[.rateDepot];
+          .txt <- .txt[-.rateDepot];
+          if (.oral){
+            .lines[length(.lines)+1]  <- sub(.regRateDepot,"rx_rate ~ \\1", .tmp);
+          } else {
+            stop("'f(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter");
+          }
+        } else if (length(.rateDepot)>1L){
+          stop("'rate(depot)' cannot be duplicated in a model");
         } else {
+          if (.oral){
             .lines[length(.lines) + 1]  <- sprintf("rx_rate ~ 0")
+          }
         }
-        .durDepot  <- which(regexpr(.regDurDepot,.txt)!=-1)
-        if (length(.durDepot)>=1L){
-            stop("'dur(depot)' does not work with a solved linear system");
-        }
-        .durCenter  <- which(regexpr(.regDurCenter, .txt) !=-1)
-        if (length(.durCenter)==1L){
-            .tmp <- .txt[.durCenter];
-            .txt <- .txt[-.durCenter];
-            .lines[length(.lines)+1]  <- sub(.regDurCenter,"rx_dur ~ \\1", .tmp);
-        } else if (length(.durCenter)>1L) {
-            stop("can only specify 'dur(central)' once");
+        .rateCenter  <- which(regexpr(.regFcenter, .txt) !=-1)
+        if (length(.rateCenter)==1L){
+          .tmp <- .txt[.rateCenter];
+          .txt <- .txt[-.rateCenter];
+          if (.oral){
+            .lines[length(.lines)+1]  <- sub(.regFcenter,"rx_rate2 ~ \\1", .tmp);
+          } else {
+            .lines[length(.lines)+1]  <- sub(.regFcenter,"rx_rate ~ \\1", .tmp);
+            .lines[length(.lines) + 1]  <- sprintf("rx_rate2 ~ 0")
+          }
+        } else if (length(.rateCenter)>1L) {
+          stop("can only specify 'rate(central)' once");
         } else {
+          if (.oral){
+            .lines[length(.lines) + 1]  <- sprintf("rx_rate2 ~ 0")
+          } else {
+            .lines[length(.lines) + 1]  <- sprintf("rx_rate ~ 0")
+            .lines[length(.lines) + 1]  <- sprintf("rx_rate2 ~ 0")
+          }
+        }
+
+        ## dur Center
+
+        .durDepot  <- which(regexpr(.regDurDepot,.txt)!=-1)
+        if (length(.durDepot)==1L){
+          .tmp <- .txt[.durDepot];
+          .txt <- .txt[-.durDepot];
+          if (.oral){
+            .lines[length(.lines)+1]  <- sub(.regDurDepot,"rx_dur ~ \\1", .tmp);
+          } else {
+            stop("'f(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter");
+          }
+        } else if (length(.durDepot)>1L){
+          stop("'dur(depot)' cannot be duplicated in a model");
+        } else {
+          if (.oral){
             .lines[length(.lines) + 1]  <- sprintf("rx_dur ~ 0")
+          }
+        }
+        .durCenter  <- which(regexpr(.regFcenter, .txt) !=-1)
+        if (length(.durCenter)==1L){
+          .tmp <- .txt[.durCenter];
+          .txt <- .txt[-.durCenter];
+          if (.oral){
+            .lines[length(.lines)+1]  <- sub(.regFcenter,"rx_dur2 ~ \\1", .tmp);
+          } else {
+            .lines[length(.lines)+1]  <- sub(.regFcenter,"rx_dur ~ \\1", .tmp);
+            .lines[length(.lines) + 1]  <- sprintf("rx_dur2 ~ 0")
+          }
+        } else if (length(.durCenter)>1L) {
+          stop("can only specify 'dur(central)' once");
+        } else {
+          if (.oral){
+            .lines[length(.lines) + 1]  <- sprintf("rx_dur2 ~ 0")
+          } else {
+            .lines[length(.lines) + 1]  <- sprintf("rx_dur ~ 0")
+            .lines[length(.lines) + 1]  <- sprintf("rx_dur2 ~ 0")
+          }
         }
         .iniDepot  <- which(regexpr(.regIniDepot, .txt)!=-1);
         if (length(.iniDepot)!=0L) stop("'depot(0)' is not supported in the solved system, use an ODE");
@@ -575,9 +623,9 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             }
         }
         if (linCmtSens){
-            .solve <- sprintf("linCmtB(rx__PTR__, t, %s, %s, %s, 0, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, %s, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur, 0, 0)", .linCmt, .ncmt, .trans, ifelse(.oral, "rx_ka", "0.0"));
+            .solve <- sprintf("linCmtB(rx__PTR__, t, %s, %s, %s, 0, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, %s, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur, rx_rate2, rx_dur2)", .linCmt, .ncmt, .trans, ifelse(.oral, "rx_ka", "0.0"));
         } else {
-            .solve <- sprintf("linCmtA(rx__PTR__, t, %s, %s, %s, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, %s, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur, 0, 0)", .linCmt, .ncmt, .trans, ifelse(.oral, "rx_ka", "0.0"));
+            .solve <- sprintf("linCmtA(rx__PTR__, t, %s, %s, %s, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, %s, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur, rx_rate2, rx_dur2)", .linCmt, .ncmt, .trans, ifelse(.oral, "rx_ka", "0.0"));
         }
 
         .lines <- paste(.lines, collapse="\n");
