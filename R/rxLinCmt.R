@@ -627,7 +627,6 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
         } else {
             .solve <- sprintf("linCmtA(rx__PTR__, t, %s, %s, %s, rx_p1, rx_v1, rx_p2, rx_p3, rx_p4, rx_p5, %s, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur, rx_rate2, rx_dur2)", .linCmt, .ncmt, .trans, ifelse(.oral, "rx_ka", "0.0"));
         }
-
         .lines <- paste(.lines, collapse="\n");
         .txt <- paste(sub(.re, sprintf("%s\n\\1%s\\3", .lines, .solve), .txt), collapse="\n");
         ## Put in extra compartment information

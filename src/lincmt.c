@@ -1359,9 +1359,9 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     if ((oral0 && cmtOff > 1) ||
 	(!oral0 && cmtOff != 0)) {
     } else {
-      if (wh0 == 10 || wh0 == 20) {
+      amt = ind->dose[ind->ixds];
+      if (!ISNA(amt) && (amt > 0) && (wh0 == 10 || wh0 == 20)) {
 	// dosing to cmt
-	amt = ind->dose[ind->ixds];
 	// Steady state doses; wh0 == 20 is equivalent to SS=2 in NONMEM
 	double tau = ind->ii[ind->ixds];
 	// For now advance based solving to steady state (just like ODE)
@@ -1466,9 +1466,10 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	case 2: {
 	  if (ISNA(amt)){
 	  } else if (amt > 0) {
+	    doInf=1;
 	    unsigned int p;
 	    r0 = amt;
-	    tinf = _getDur(ind->ixds, ind, 0, &p);
+	    tinf = _getDur(ind->ixds, ind, 1, &p);
 	    if (whI == 1){
 	      // Duration changes
 	      if (cmtOff == 0){
@@ -1485,13 +1486,86 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	      }
 	    }
 	  }
-	  doInf=1;
 	}
 	}
 	if (doInf){
 	  // Infusion steady state
 	  if (tinf >= tau){
-	    error(_("ab"));
+	    ind->wrongSSDur=1;
+	    for (int i = ncmt + oral0; i--;){
+	      A[i] += NA_REAL;
+	    }
+	    return NA_REAL;
+	    /* error(_("tau: %f; tinf: %f; rate: %f, amt: %f, t: %f"), */
+	    /* 	  tau, tinf, r0, amt, t); */
+	  }
+	  double r1o = 0.0;
+	  if (cmtOff == 0) {
+	    r1 = r0;
+	  } else {
+	    r2 = r0;
+	  }
+	  double extraT = tau-tinf;
+	  //
+	  Alast = aCur;
+	  curTime = tinf;
+	  doAdvan(aCur, Alast, tlast, // Time of last amounts
+		  curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
+		  &d_ka, &rx_k, &rx_k12, &rx_k21,
+		  &rx_k13, &rx_k31);
+	  Alast = aCur;
+	  curTime = extraT;
+	  doAdvan(aCur, Alast, tlast, // Time of last amounts
+		  curTime, ncmt, oral0, &b1, &b2, &r1o, &r1o,
+		  &d_ka, &rx_k, &rx_k12, &rx_k21,
+		  &rx_k13, &rx_k31);
+	  int canBreak=1;
+	  for (int j = 0; j < op->maxSS; j++) {
+	    /* aTmp = Alast; */
+	    canBreak=1;
+	    Alast = aCur;
+	    curTime = tinf;
+	    doAdvan(aCur, Alast, tlast, // Time of last amounts
+		    curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
+		    &d_ka, &rx_k, &rx_k12, &rx_k21,
+		    &rx_k13, &rx_k31);
+	    Alast = aCur;
+	    curTime = extraT;
+	    doAdvan(aCur, Alast, tlast, // Time of last amounts
+		    curTime, ncmt, oral0, &b1, &b2, &r1o, &r1o,
+		    &d_ka, &rx_k, &rx_k12, &rx_k21,
+		    &rx_k13, &rx_k31);
+	    if (j <= op->minSS -1) {
+	      canBreak = 0;
+	    } else {
+	      for (int k = ncmt + oral0; k--;){
+		if (op->RTOL*fabs(aCur[k]) + op->ATOL <= fabs(aCur[k]-solveLast[k])){
+		  canBreak=0;
+		}
+		solveLast[k] = aCur[k];
+	      }
+	    }
+	    /* for (int i = ncmt + oral0; i--;){ */
+	    /*   solveLast[i] = aCur[i]; */
+	    /* } */
+	    if (canBreak){
+	      break;
+	    }
+	  }
+	  for (int i = ncmt + oral0; i--;){
+	    A[i] = aCur[i];
+	  }
+	  // Turn back on the rate.
+	  if (op->nlinR == 2){
+	    if (cmtOff == 0){
+	      rate[0]=r0;
+	      rate[1]=0.0;
+	    } else {
+	      rate[0]=0.0;
+	      rate[1]=r0;
+	    }
+	  } else {
+	    rate[0] = r0;
 	  }
 	}
 	// Now calculate steady state
@@ -1526,7 +1600,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	} else {
 	  b2 = amt*d_F2;
 	}
-	/* REprintf("%d Bolus t: %f b1: %f, b2: %f\n", ind->ixds, t, b1, b2); */
       } break;
       case 4: {
 	doReplace = cmtOff+1;

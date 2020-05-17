@@ -689,7 +689,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
 
       goodP(sol.3cVt, 3)
 
-      o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
+      o.3c <- ode.3c %>%
+        solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
       s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
@@ -847,7 +848,6 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
       o.1c <- ode.1c %>% solve(params=c(V=20, CL=10), events=etSs)
 
       s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=10), events=etSs)
-
       s.2c <- ode.1cs %>% solve(theta=c(20, 10), events=etSs)
 
       test_that("1 compartment solved models and ODEs same; Steady State", {
@@ -855,64 +855,64 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         expect_equal(o.1c$C2, s.2c$C2,tolerance=tol)
       })
 
-        ode.2c <- RxODE({
-            C2 = centr/V;
-            C3 = peri/V2;
-            d/dt(centr) = - CL*C2 - Q*C2 + Q*C3;
-            d/dt(peri)  = Q*C2 - Q*C3;
-        })
+      ode.2c <- RxODE({
+        C2 = centr/V;
+        C3 = peri/V2;
+        d/dt(centr) = - CL*C2 - Q*C2 + Q*C3;
+        d/dt(peri)  = Q*C2 - Q*C3;
+      })
 
-        sol.2c <- RxODE({
-            C2=linCmt(V, CL, V2, Q);
-        }, linCmtSens=sens)
+      sol.2c <- RxODE({
+        C2=linCmt(V, CL, V2, Q);
+      }, linCmtSens=sens)
 
-        o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
+      o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
 
-        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
+      s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
 
-        test_that("2 compartment solved models and ODEs same.", {
-            expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
-        })
+      test_that("2 compartment solved models and ODEs same.", {
+        expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
+      })
 
-        o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=etSs)
+      o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=etSs)
 
-        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=etSs)
+      s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=etSs)
 
-        test_that("2 compartment steady state solved models and ODEs same.", {
-            expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
-        })
+      test_that("2 compartment steady state solved models and ODEs same.", {
+        expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
+      })
 
-        ode.3c <- RxODE({
-            C2 = centr/V;
-            C3 = peri/V2;
-            C4 = peri2 / V3
-            d/dt(centr) = - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
-            d/dt(peri)  = Q*C2 - Q*C3;
-            d / dt(peri2) = Q2 * C2 - Q2 * C4
-        })
+      ode.3c <- RxODE({
+        C2 = centr/V;
+        C3 = peri/V2;
+        C4 = peri2 / V3
+        d/dt(centr) = - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
+        d/dt(peri)  = Q*C2 - Q*C3;
+        d / dt(peri2) = Q2 * C2 - Q2 * C4
+      })
 
-        sol.3c <- RxODE({
-            ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
-            C2=linCmt(V, CL, V2, Q, Q2, V3);
-        }, linCmtSens=sens)
+      sol.3c <- RxODE({
+        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+        C2=linCmt(V, CL, V2, Q, Q2, V3);
+      }, linCmtSens=sens)
 
-        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
+      o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
-        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
+      s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
-        test_that("3 compartment solved models and ODEs same.", {
-            expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
-        })
+      test_that("3 compartment solved models and ODEs same.", {
+        expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
+      })
 
-        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs)
+      o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs)
 
-        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs)
+      s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs)
 
-        test_that("3 compartment steady state solved models and ODEs same.", {
-            expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
-        })
+      test_that("3 compartment steady state solved models and ODEs same.", {
+        expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
+      })
 
-        context(sprintf("Infusion + Bolus (%s)", .txt))
+      context(sprintf("Infusion + Bolus (%s)", .txt))
 
         et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=6, dosing.interval=8) %>%
             add.dosing(dose=1.5, nbr.doses=6, dosing.interval=8) %>%
