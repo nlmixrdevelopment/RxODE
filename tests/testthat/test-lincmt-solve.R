@@ -165,7 +165,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
       sens <- switch(type, FALSE, TRUE);
       context(sprintf("Test the solved equations (%s)", .txt))
 
-      et <- eventTable() %>% add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
+      et <- eventTable() %>%
+        add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
         add.sampling(seq(0, 48, length.out=200))
 
       ode.1c <- RxODE({
@@ -730,6 +731,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2=linCmt(V, CL, V2, Q, Q2, V3, KA);
       }, linCmtSens=sens)
 
+      goodP(sol.3c.ka, 3, 1)
+
       sol.3cK <- RxODE({
         V <- theta[1]
         CLx <- theta[2]
@@ -745,6 +748,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         k31 <- Q2x/V3x
         C2=linCmt();
       }, linCmtSens=sens)
+
+      goodP(sol.3cK, 3, 1)
 
       sol.3cA1 <- RxODE({
         Vx <- theta[1]
@@ -776,6 +781,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C <- (K21x - gamma) * (K31x - gamma)/(gamma - alpha)/(gamma - beta)/Vx
         C2=linCmt();
       }, linCmtSens=sens)
+
+      goodP(sol.3cA1, 3, 1)
 
       o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
       s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
@@ -866,6 +873,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2=linCmt(V, CL, V2, Q);
       }, linCmtSens=sens)
 
+      goodP(sol.2c, 2)
+
       o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
 
       s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
@@ -896,6 +905,8 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         C2=linCmt(V, CL, V2, Q, Q2, V3);
       }, linCmtSens=sens)
 
+      goodP(sol.3c, 3)
+
       o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
       s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
@@ -914,109 +925,118 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
 
       context(sprintf("Infusion + Bolus (%s)", .txt))
 
-        et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=6, dosing.interval=8) %>%
-            add.dosing(dose=1.5, nbr.doses=6, dosing.interval=8) %>%
-            add.sampling(seq(0, 48, length.out=200))
+      et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=6, dosing.interval=8) %>%
+        add.dosing(dose=1.5, nbr.doses=6, dosing.interval=8) %>%
+        add.sampling(seq(0, 48, length.out=200))
 
-        ode.1c <- RxODE({
-            C2 = center/V;
-            d/dt(center) = - CL*C2
-        })
+      ode.1c <- RxODE({
+        C2 = center/V;
+        d/dt(center) = - CL*C2
+      })
 
-        ## Solved systems can check the variables in the RxODE statement
-        ## to figure out what type of solved system is being requested
-        ode.1cs <- RxODE({
-            V <- theta[1];
-            CL <- theta[2];
-            C2 = linCmt();
-        }, linCmtSens=sens)
+      ## Solved systems can check the variables in the RxODE statement
+      ## to figure out what type of solved system is being requested
+      ode.1cs <- RxODE({
+        V <- theta[1];
+        CL <- theta[2];
+        C2 = linCmt();
+      }, linCmtSens=sens)
 
-        ## Instead of specifying parameters in the solved system, you can
-        ## specify them in the linCmt variable.
-        ode.1cs2 <- RxODE({
-            C2 = linCmt(CL, V);
-        }, linCmtSens=sens)
+      goodP(ode.1cs, 1)
 
-        ## The solved systems can be mixed with ODE solving routines (to
-        ## speed them up a bit...?)
+      ## Instead of specifying parameters in the solved system, you can
+      ## specify them in the linCmt variable.
+      ode.1cs2 <- RxODE({
+        C2 = linCmt(CL, V);
+      }, linCmtSens=sens)
 
-        o.1c <- ode.1c %>% solve(params=c(V=20, CL=25), events=et)
+      goodP(ode.1cs2, 1)
 
-        s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=25), events=et)
+      ## The solved systems can be mixed with ODE solving routines (to
+      ## speed them up a bit...?)
 
-        s.2c <- ode.1cs %>% solve(theta=c(20, 25), events=et)
+      o.1c <- ode.1c %>% solve(params=c(V=20, CL=25), events=et)
 
-        test_that("1 compartment solved models and ODEs same.", {
-            expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
-            expect_equal(o.1c$C2, s.2c$C2, tolerance=tol)
-        })
+      s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=25), events=et)
 
-        ode.2c <- RxODE({
-            C2 = centr/V;
-            C3 = peri/V2;
-            d/dt(centr) = - CL*C2 - Q*C2 + Q*C3;
-            d/dt(peri)  = Q*C2 - Q*C3;
-        })
+      s.2c <- ode.1cs %>% solve(theta=c(20, 25), events=et)
 
-        sol.2c <- RxODE({
-            C2=linCmt(V, CL, V2, Q);
-        }, linCmtSens=sens)
+      test_that("1 compartment solved models and ODEs same.", {
+        expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
+        expect_equal(o.1c$C2, s.2c$C2, tolerance=tol)
+      })
 
-        o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
+      ode.2c <- RxODE({
+        C2 = centr/V;
+        C3 = peri/V2;
+        d/dt(centr) = - CL*C2 - Q*C2 + Q*C3;
+        d/dt(peri)  = Q*C2 - Q*C3;
+      })
 
-        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
+      sol.2c <- RxODE({
+        C2=linCmt(V, CL, V2, Q);
+      }, linCmtSens=sens)
 
-        test_that("2 compartment solved models and ODEs same.", {
-            expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
-        })
+      goodP(sol.2c, 2)
 
-        ode.3c <- RxODE({
-            C2 = centr/V;
-            C3 = peri/V2;
-            C4 = peri2 / V3
-            d/dt(centr) = - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
-            d/dt(peri)  = Q*C2 - Q*C3;
-            d / dt(peri2) = Q2 * C2 - Q2 * C4
-        })
+      o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
 
-        sol.3c <- RxODE({
-            ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
-            C2=linCmt(V, CL, V2, Q, Q2, V3);
-        }, linCmtSens=sens)
+      s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
 
-        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
+      test_that("2 compartment solved models and ODEs same.", {
+        expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
+      })
 
-        s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
+      ode.3c <- RxODE({
+        C2 = centr/V;
+        C3 = peri/V2;
+        C4 = peri2 / V3
+        d/dt(centr) = - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
+        d/dt(peri)  = Q*C2 - Q*C3;
+        d / dt(peri2) = Q2 * C2 - Q2 * C4
+      })
 
-        test_that("3 compartment solved models and ODEs same.", {
-            expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
-        })
+      sol.3c <- RxODE({
+        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+        C2=linCmt(V, CL, V2, Q, Q2, V3);
+      }, linCmtSens=sens)
 
-        if(!advan){
+      goodP(sol.3c, 3)
 
-            context(sprintf("Oral + Infusion + Bolus Models (%s)", .txt))
+      o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
-            et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
-                add.dosing(dose=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
-                add.dosing(dose=1.5, nbr.doses=3, dosing.interval=16,cmt=1,start.time=8) %>%
-                add.sampling(seq(0, 48, length.out=200))
+      s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
-            ode.1c.ka <- RxODE({
-                C2 = center/V;
-                d / dt(depot) = -KA * depot
-                d/dt(center) = KA * depot - CL*C2
-            })
+      test_that("3 compartment solved models and ODEs same.", {
+        expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
+      })
 
-            sol.1c.ka <- RxODE({
-                C2 = linCmt(V, CL, KA);
-            }, linCmtSens=sens)
+      context(sprintf("Oral + Infusion + Bolus Models (%s)", .txt))
 
-            o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et)
-            s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et)
+      et <- eventTable() %>%
+        add.dosing(dose=3, rate=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
+        add.dosing(dose=1.5, nbr.doses=3, dosing.interval=16,cmt=2) %>%
+        add.dosing(dose=1.5, nbr.doses=3, dosing.interval=16,cmt=1,start.time=8) %>%
+        add.sampling(seq(0, 48, length.out=200))
 
-            test_that("1 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
-                expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
-            })
+      ode.1c.ka <- RxODE({
+        C2 = center/V;
+        d / dt(depot) = -KA * depot
+        d/dt(center) = KA * depot - CL*C2
+      })
+
+      sol.1c.ka <- RxODE({
+        C2 = linCmt(V, CL, KA);
+      }, linCmtSens=sens)
+
+      goodP(sol.1c.ka, 1, 1)
+
+      o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et)
+      s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et)
+
+      test_that("1 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
+        expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
+      })
 
             ode.2c.ka <- RxODE({
                 C2 = centr/V;

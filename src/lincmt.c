@@ -740,12 +740,22 @@ static inline void twoCmtRate(double *A1, double *A2,
   double eT1 = exp(-(*t)*lambda1);
   double eT2 = exp(-(*t)*lambda2);
 
-  double A1term1 = ((((*A1last)*E2+(*Doserate)+(*A2last)*(*k21))-(*A1last)*lambda1)*eT1-(((*A1last)*E2+(*Doserate)+(*A2last)*(*k21))-(*A1last)*lambda2)*eT2)/(lambda2-lambda1);
-  double A1term2 = (*Doserate)*E2*(1/(lambda1*lambda2)+eT1/(lambda1*(lambda1-lambda2))-eT2/(lambda2*(lambda1-lambda2)));
-  *A1 = fabs(A1term1+A1term2 + (*b1));//Amount in the central compartment
-  double A2term1 = ((((*A2last)*E1+(*A1last)*(*k12))-(*A2last)*lambda1)*eT1-(((*A2last)*E1+(*A1last)*(*k12))-(*A2last)*lambda2)*eT2)/(lambda2-lambda1);
-  double A2term2 = (*Doserate)*(*k12)*(1/(lambda1*lambda2)+eT1/(lambda1*(lambda1-lambda2))-eT2/(lambda2*(lambda1-lambda2)));
-  *A2 = fabs(A2term1+A2term2);//Amount in the peripheral compartment
+  double l12 = (lambda1-lambda2);
+  double l21 = (lambda2-lambda1);
+
+  double c10 = ((*A1last)*E2+(*Doserate)+(*A2last)*(*k21));
+  double c11 = (c10-(*A1last)*lambda1)/l21;
+  double c12 = (c10-(*A1last)*lambda2)/l21;
+  double A1term1 = c11*eT1 - c12*eT2;
+  double A1term2 = (*Doserate)*E2*(1/(lambda1*lambda2)+eT1/(lambda1*l12)-eT2/(lambda2*l12));
+  *A1 = A1term1+A1term2 + (*b1);//Amount in the central compartment
+
+  double c20 = ((*A2last)*E1+(*A1last)*(*k12));
+  double c21 = (c20-(*A2last)*lambda1)/l21;
+  double c22 = (c20-(*A2last)*lambda2)/l21;
+  double A2term1 = c21*eT1-c22*eT2;
+  double A2term2 = (*Doserate)*(*k12)*(1/(lambda1*lambda2)+eT1/(lambda1*l12)-eT2/(lambda2*(lambda1-lambda2)));
+  *A2 = A2term1+A2term2;//Amount in the peripheral compartment
 }
 
 static inline void threeCmtRate(double *A1, double *A2, double *A3,
@@ -1377,7 +1387,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	}
 	double aLast0[4] = {0, 0, 0, 0};
 	double aLast1[4] = {0, 0, 0, 0};
-	double solveLast[4] = {0, 0, 0, 0};
+	double solveLast[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 	// Reset all the rates
 	if (op->nlinR == 2){
 	  rate[0]=0.0;
@@ -1529,12 +1539,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 		    curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
 		    &d_ka, &rx_k, &rx_k12, &rx_k21,
 		    &rx_k13, &rx_k31);
-	    Alast = aCur;
-	    curTime = extraT;
-	    doAdvan(aCur, Alast, tlast, // Time of last amounts
-		    curTime, ncmt, oral0, &b1, &b2, &r1o, &r1o,
-		    &d_ka, &rx_k, &rx_k12, &rx_k21,
-		    &rx_k13, &rx_k31);
 	    if (j <= op->minSS -1) {
 	      canBreak = 0;
 	    } else {
@@ -1545,9 +1549,22 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 		solveLast[k] = aCur[k];
 	      }
 	    }
-	    /* for (int i = ncmt + oral0; i--;){ */
-	    /*   solveLast[i] = aCur[i]; */
-	    /* } */
+	    Alast = aCur;
+	    curTime = extraT;
+	    doAdvan(aCur, Alast, tlast, // Time of last amounts
+		    curTime, ncmt, oral0, &b1, &b2, &r1o, &r1o,
+		    &d_ka, &rx_k, &rx_k12, &rx_k21,
+		    &rx_k13, &rx_k31);
+	    if (j <= op->minSS -1) {
+	      canBreak = 0;
+	    } else {
+	      for (int k = ncmt + oral0; k--;){
+		if (op->RTOL*fabs(aCur[k]) + op->ATOL <= fabs(aCur[k]-solveLast[4+k])){
+		  canBreak=0;
+		}
+		solveLast[4+k] = aCur[k];
+	      }
+	    }
 	    if (canBreak){
 	      break;
 	    }
