@@ -305,17 +305,13 @@ static inline void oneCmtKaRate(double *A1, double *A2,
 				double *b1, double *b2,
 				double *r1, double *r2,
 				double *ka, double *k20) {
-  double rx_expr_2=exp(-(*ka)*(*t));
-  double rx_expr_3=(-(*b1)-(*A1last))*(*ka);
-  double rx_expr_4=(*r1)+rx_expr_3;
-  double rx_expr_5=rx_expr_4*rx_expr_2;
-  *A1=(*r1)/(*ka)-rx_expr_5/(*ka);
-  double rx_expr_0=(*k20)*(*k20);
-  double rx_expr_1=(*ka)-(*k20);
-  *A2=(rx_expr_5)/(rx_expr_1)-
-    (((rx_expr_1)*(*r2)+(*ka)*(*r1)+
-      (-(*b2)-(*b1)-(*A2last)-(*A1last))*(*k20)*(*ka)+
-      ((*b2)+(*A2last))*rx_expr_0)*exp(-(*k20)*(*t)))/((*k20)*(*ka)-rx_expr_0)+((*r2)+(*r1))/(*k20);
+  double eKa = exp(-(*ka)*(*t));
+  double e20 = exp(-(*k20)*(*t));
+  *A1 = (*r1)/(*ka)-(((*r1)-(*A1last)*(*ka))*eKa)/(*ka) + (*b1);
+  double A21 = (((*r1)-(*A1last)*(*ka))*eKa)/((*ka)-(*k20));
+  double A22=((((*ka)-(*k20))*(*r2)+(*ka)*(*r1)+(-(*A2last)-(*A1last))*(*k20)*(*ka)+(*A2last)*(*k20)*(*k20))*e20)/((*k20)*(*ka)-(*k20)*(*k20));
+  double A23 =((*r2)+(*r1))/(*k20);
+  *A2 = A21 - A22 + A23 + (*b2);
 }
 
 
@@ -1365,7 +1361,8 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     Alast=Alast0;
   } else {
     getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
-    int cmtOff = linCmt-cmt;
+    /* REprintf("evid: %d; cmt: %d; %d\n", evid, cmt, linCmt); */
+    int cmtOff = cmt-linCmt;
     if ((oral0 && cmtOff > 1) ||
 	(!oral0 && cmtOff != 0)) {
     } else {
