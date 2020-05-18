@@ -763,7 +763,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	      /* error("corrupted event table"); */
 	    }
 	  }
-	  double f = AMT(ind->id, ind->cmt, 1.0, ind->all_times[ind->idose[j-1]]);
+	  double f = getAmt(ind, ind->id, ind->cmt, 1.0, ind->all_times[ind->idose[j-1]]);
 	  double durOld = (ind->all_times[ind->idose[j]] - ind->all_times[ind->idose[k]]); 
 	  double dur = f*durOld;
 	  double t = ind->all_times[ind->idose[k]]+dur;
@@ -2610,7 +2610,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 	if (evid == 9) continue;
 	if (nlhs){
 	  rxCalcLhsP(i, rx, neq[1]);
-	}	
+	}
 	if (subsetEvid == 1){
 	  if (isObs(evid) && evid >= 10) continue;
 	  if (isDose(evid)){
