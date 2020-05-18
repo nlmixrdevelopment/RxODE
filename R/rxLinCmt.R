@@ -201,7 +201,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .lines[length(.lines) + 1]  <- sprintf("rx_rate ~ 0")
           }
         }
-        .rateCenter  <- which(regexpr(.regFcenter, .txt) !=-1)
+        .rateCenter  <- which(regexpr(.regRateCenter, .txt) !=-1)
         if (length(.rateCenter)==1L){
           .tmp <- .txt[.rateCenter];
           .txt <- .txt[-.rateCenter];
@@ -240,7 +240,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .lines[length(.lines) + 1]  <- sprintf("rx_dur ~ 0")
           }
         }
-        .durCenter  <- which(regexpr(.regFcenter, .txt) !=-1)
+        .durCenter  <- which(regexpr(.regDurCenter, .txt) !=-1)
         if (length(.durCenter)==1L){
           .tmp <- .txt[.durCenter];
           .txt <- .txt[-.durCenter];
