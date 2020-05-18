@@ -1038,25 +1038,27 @@ NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
       })
 
-            ode.2c.ka <- RxODE({
-                C2 = centr/V;
-                C3 = peri/V2;
-                d/dt(depot) =-KA*depot;
-                d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
-                d/dt(peri)  =                    Q*C2 - Q*C3;
-            })
+      ode.2c.ka <- RxODE({
+        C2 = centr/V;
+        C3 = peri/V2;
+        d/dt(depot) =-KA*depot;
+        d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+        d/dt(peri)  =                    Q*C2 - Q*C3;
+      })
 
-            sol.2c.ka <- RxODE({
-                C2=linCmt(V, CL, V2, Q, KA);
-            }, linCmtSens=sens)
+      sol.2c.ka <- RxODE({
+        C2=linCmt(V, CL, V2, Q, KA);
+      }, linCmtSens=sens)
 
-            o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3), events=et)
+      goodP(sol.2c.ka, 2, 1)
 
-            s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3), events=et)
+      o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3), events=et)
 
-            test_that("2 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
-                expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
-            })
+      s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3), events=et)
+
+      test_that("2 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
+        expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
+      })
 
             ode.3c.ka <- RxODE({
                 C2 = centr/V;

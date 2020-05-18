@@ -323,64 +323,31 @@ static inline void twoCmtKaRate(double *A1, double *A2, double *A3,
 				double *t,
 				double *b1, double *b2,
 				double *r1, double *r2,
-				double *ka,  double *beta, double *alpha,
-				double *k32, double *k23, double *E2) {
-  double rx_expr_12=exp(-(*ka)*(*t));
-  *A1=(*r1)/(*ka)-(((*r1)+(-(*b1)-(*A1last))*(*ka))*rx_expr_12)/(*ka);
-  double rx_expr_0=(*ka)*(*ka);
-  double rx_expr_1=(*beta)*(*beta);
-  double rx_expr_2=rx_expr_1*(*beta);
-  double rx_expr_5=(*alpha)*(*alpha);
-  double rx_expr_6=rx_expr_5*(*alpha);
-  double rx_expr_7=(*k32)-(*beta);
-  double rx_expr_8=(*alpha)*(*b1);
-  double rx_expr_9=(*k32)-(*alpha);
-  double rx_expr_13=(*alpha)*(*beta);
-  double rx_expr_14=rx_expr_5*(*b2);
-  double rx_expr_15=exp(-(*beta)*(*t));
-  double rx_expr_16=(*alpha)*rx_expr_1;
-  double rx_expr_17=rx_expr_5*(*beta);
-  double rx_expr_18=(rx_expr_7)*(*ka);
-  double rx_expr_19=exp(-(*alpha)*(*t));
-  double rx_expr_20=(rx_expr_9)*(*ka);
-  double rx_expr_21=(-(*beta)-(*alpha))*(*ka);
-  double rx_expr_22=rx_expr_1-rx_expr_13;
-  double rx_expr_23=rx_expr_13-rx_expr_5;
-  double rx_expr_24=rx_expr_0+rx_expr_21;
-  double rx_expr_25=(rx_expr_22)*(*ka);
-  double rx_expr_26=(rx_expr_23)*(*ka);
-  double rx_expr_27=rx_expr_25-rx_expr_2;
-  double rx_expr_28=rx_expr_24+rx_expr_13;
-  *A2=((((*ka)-(*k32))*(*r1)+(-(*b1)-(*A1last))*rx_expr_0+((*b1)+(*A1last))*(*k32)*(*ka))*rx_expr_12)/(rx_expr_28)+
-    (((rx_expr_18-(*beta)*(*k32)+rx_expr_1)*(*r2)+
-      rx_expr_18*(*r1)+((-(*b2)-(*b1)-(*A3last)-(*A2last)-(*A1last))*
-			(*beta)*(*k32)+((*b2)+(*b1)+(*A2last)+(*A1last))*rx_expr_1)*(*ka)+
-      ((*b2)+(*A3last)+(*A2last))*rx_expr_1*(*k32)+
-      (-(*b2)-(*A2last))*rx_expr_2)*rx_expr_15)/(rx_expr_27+rx_expr_16)-
-    (((rx_expr_20-(*alpha)*(*k32)+rx_expr_5)*(*r2)+
-      rx_expr_20*(*r1)+((-(*alpha)*(*b2)-rx_expr_8+
-			 (-(*A3last)-(*A2last)-(*A1last))*(*alpha))*(*k32)+
-			rx_expr_14+rx_expr_5*(*b1)+
-			((*A2last)+(*A1last))*rx_expr_5)*(*ka)+
-      (rx_expr_14+((*A3last)+(*A2last))*rx_expr_5)*(*k32)-
-      rx_expr_6*(*b2)-(*A2last)*rx_expr_6)*rx_expr_19)/(rx_expr_26-rx_expr_17+rx_expr_6)+
-    ((*k32)*(*r2)+(*k32)*(*r1))/(rx_expr_13);
-  double rx_expr_3=(*k23)*(*r1);
-  double rx_expr_4=(*k23)*(*ka);
-  double rx_expr_10=rx_expr_4*(*r1);
-  double rx_expr_11=(*A3last)*(*E2);
-  *A3=-((rx_expr_3+(-(*b1)-(*A1last))*(*k23)*(*ka))*rx_expr_12)/(rx_expr_28)+
-    (((rx_expr_4-(*beta)*(*k23))*(*r2)+rx_expr_10+
-      ((-(*b2)-(*b1)-(*A2last)-(*A1last))*(*beta)*(*k23)+(*A3last)*rx_expr_1-rx_expr_11*(*beta))*(*ka)+
-      ((*b2)+(*A2last))*rx_expr_1*(*k23)-
-      (*A3last)*rx_expr_2+rx_expr_11*rx_expr_1)*rx_expr_15)/(rx_expr_27+rx_expr_16)-
-    (((rx_expr_4-(*alpha)*(*k23))*(*r2)+
-      rx_expr_10+((-(*alpha)*(*b2)-rx_expr_8+
-		   (-(*A2last)-(*A1last))*(*alpha))*(*k23)+
-		  (*A3last)*rx_expr_5-rx_expr_11*(*alpha))*(*ka)+
-      (rx_expr_14+(*A2last)*rx_expr_5)*(*k23)-
-      (*A3last)*rx_expr_6+rx_expr_11*rx_expr_5)*rx_expr_19)/(rx_expr_26-rx_expr_17+rx_expr_6)+
-    ((*k23)*(*r2)+rx_expr_3)/(rx_expr_13);
+				double *ka,  double *k20, 
+				double *k23, double *k32) {
+  double rx_expr_14 =exp(-(*t)*(*ka));
+  *A1=(*b1)+(*r1)/safe_zero((*ka))-rx_expr_14*((*r1)-(*ka)*(*A1last))/safe_zero((*ka));
+  double rx_expr_0 =R_pow(_as_dbleps((*ka)),2);
+  double rx_expr_1 =(*k32);
+  double rx_expr_2 =(*r1)*(*ka);
+  double rx_expr_3 =R_pow(_as_dbleps((*k32)),2);
+  double rx_expr_4 =2*(*k32);
+  double rx_expr_7 =(*k32)*(*k20);
+  double rx_expr_8 =(*k20)+(*k23);
+  double rx_expr_9 =0.5*(*k32);
+  double rx_expr_10 =2*rx_expr_3;
+  double rx_expr_11 =rx_expr_1*(*k20);
+  double rx_expr_12 =rx_expr_4*(*k20);
+  double rx_expr_15 =rx_expr_8+(*k32);
+  double rx_expr_17 =rx_expr_10*(*k20);
+  double rx_expr_18 =(*A1last)+(*A2last);
+  double rx_expr_19 =(*A2last)+(*A3last);
+  double rx_expr_20 =R_pow(_as_dbleps((rx_expr_15)),2);
+  *A2=(*b2)+((*r1)*(*k32)+(*r2)*(*k32))/safe_zero((rx_expr_7))+rx_expr_14*(-rx_expr_0*(*A1last)+(*r1)*(-(*k32)+(*ka))+(*ka)*(*k32)*(*A1last))/safe_zero((rx_expr_11+(*ka)*(-2*(*k32)*(*k20)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))-0.5*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))+rx_expr_0))+exp(-0.5*(*t)*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))*((*ka)*(0.25*(rx_expr_18)*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2)+rx_expr_9*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))*(-(*A1last)-(*A2last)-(*A3last)))+(*r2)*(-0.5*(*k32)*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))+(*ka)*((*k32)-0.5*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))+0.25*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2))-0.125*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),3)*(*A2last)+rx_expr_2*((*k32)-0.5*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))+0.25*(rx_expr_19)*(*k32)*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2))/safe_zero(((*ka)*(-(*k32)*(*k20)+0.25*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2))+rx_expr_9*(*k20)*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),1)-0.125*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),3)))-exp(-2*(*t)*(*k32)*(*k20)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))*(-8*(*A2last)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),3)+(*ka)*(4*(rx_expr_18)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2)+rx_expr_17*(-(*A1last)-(*A2last)-(*A3last))/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))+(*r2)*((*ka)*((*k32)-rx_expr_12/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))-rx_expr_17/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))+4*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2))+rx_expr_2*((*k32)-rx_expr_12/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))+4*(rx_expr_19)*(*k32)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2))/safe_zero(((*ka)*(rx_expr_11-4*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2))-2*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2)+8*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),3)));
+  double rx_expr_5 =(*r1)*(*k23);
+  double rx_expr_6 =(*ka)*(*k23);
+  double rx_expr_13 =rx_expr_2*(*k23);
+  *A3=(rx_expr_5+(*r2)*(*k23))/safe_zero((rx_expr_7))-rx_expr_14*(rx_expr_5-rx_expr_6*(*A1last))/safe_zero((rx_expr_11+(*ka)*(-2*(*k32)*(*k20)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))-0.5*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))+rx_expr_0))+exp(-0.5*(*t)*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))*((*ka)*(0.25*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2)*(*A3last)+0.5*(-(*A1last)-(*A2last))*(*k23)*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))-0.5*(rx_expr_8)*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))*(*A3last))+(*r2)*(-0.5*(*k23)*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))+rx_expr_6)-0.125*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),3)*(*A3last)+0.25*(*k23)*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2)*(*A2last)+rx_expr_13+0.25*(rx_expr_8)*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2)*(*A3last))/safe_zero(((*ka)*(-(*k32)*(*k20)+0.25*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2))+rx_expr_9*(*k20)*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),1)-0.125*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),3)))-exp(-2*(*t)*(*k32)*(*k20)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))*(-8*(*A3last)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),3)+(*ka)*(4*(*A3last)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2)+2*(-(*A1last)-(*A2last))*(*k23)*(*k32)*(*k20)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))-2*(rx_expr_8)*(*k32)*(*k20)*(*A3last)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))+(*r2)*(rx_expr_6-2*(*k23)*(*k32)*(*k20)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))+4*(*k23)*(*A2last)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2)+rx_expr_13+4*(rx_expr_8)*(*A3last)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2))/safe_zero(((*ka)*(rx_expr_11-4*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2))-2*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2)+8*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),3)));
 }
 
 
@@ -968,16 +935,10 @@ static inline void doAdvan(double *A,// Amounts
 		     &t, b1, b2, r1, r2, ka, kel);
       } break;
       case 2: {
-	double E2=(*kel)+(*k12);
-	double rx_expr_0=(*k12)+(*k21);
-	double rx_expr_1=rx_expr_0+(*kel);
-	double beta=0.5*(rx_expr_1-sqrt(rx_expr_1*rx_expr_1-4*(*k21)*(*kel)));
-	double alpha=(*k21)*(*kel)/beta;
 	twoCmtKaRate(&A[0], &A[1], &A[2],
 		     &Alast[0], &Alast[1], &Alast[2],
 		     &t, b1, b2, r1, r2,
-		     ka,  &beta, &alpha,
-		     k21, k12, &E2);
+		     ka,  kel, k12, k21);
       } break;
       case 3: {
 	double E2=(*kel)+(*k12)+(*k13);
