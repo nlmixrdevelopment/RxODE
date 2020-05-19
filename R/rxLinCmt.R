@@ -192,7 +192,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
           if (.oral){
             .lines[length(.lines)+1]  <- sub(.regRateDepot,"rx_rate ~ \\1", .tmp);
           } else {
-            stop("'f(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter");
+            stop("'rate(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter");
           }
         } else if (length(.rateDepot)>1L){
           stop("'rate(depot)' cannot be duplicated in a model");
@@ -206,9 +206,9 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
           .tmp <- .txt[.rateCenter];
           .txt <- .txt[-.rateCenter];
           if (.oral){
-            .lines[length(.lines)+1]  <- sub(.regFcenter,"rx_rate2 ~ \\1", .tmp);
+            .lines[length(.lines)+1]  <- sub(.regRateCenter,"rx_rate2 ~ \\1", .tmp);
           } else {
-            .lines[length(.lines)+1]  <- sub(.regFcenter,"rx_rate ~ \\1", .tmp);
+            .lines[length(.lines)+1]  <- sub(.regRateCenter,"rx_rate ~ \\1", .tmp);
             .lines[length(.lines) + 1]  <- sprintf("rx_rate2 ~ 0")
           }
         } else if (length(.rateCenter)>1L) {
