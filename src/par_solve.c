@@ -2390,6 +2390,7 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
       ind->tlast = time;
     }
     calc_lhs((int)id, time, solve+i*op->neq, lhs);
+    isDose = !isObs(ind->evid[ind->ix[i]]);// Recalculate in case shifted
     if (isDose){
       ind->ixds++;
     }
@@ -2610,6 +2611,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 	if (evid == 9) continue;
 	if (nlhs){
 	  rxCalcLhsP(i, rx, neq[1]);
+	  evid = ind->evid[ind->ix[i]];
 	}
 	if (subsetEvid == 1){
 	  if (isObs(evid) && evid >= 10) continue;
