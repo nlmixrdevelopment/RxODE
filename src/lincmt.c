@@ -888,6 +888,8 @@ static inline void doAdvan(double *A,// Amounts
   }
 }
 
+extern int syncIdx(rx_solving_options_ind *ind);
+
 double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       int i_cmt, int trans, 
 	       double p1, double v1,
@@ -1223,6 +1225,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     if ((oral0 && cmtOff > 1) ||
 	(!oral0 && cmtOff != 0)) {
     } else {
+      syncIdx(ind);
       amt = ind->dose[ind->ixds];
       if (!ISNA(amt) && (amt > 0) && (wh0 == 10 || wh0 == 20)) {
 	// dosing to cmt

@@ -782,7 +782,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
   return getLag(ind, ind->id, ind->cmt, ind->all_times[idx]);
 }
 
-inline static int syncIdx(rx_solving_options_ind *ind){
+extern int syncIdx(rx_solving_options_ind *ind){
   if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
     // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
     int l = 0, r = ind->ndoses-1, m=0;
