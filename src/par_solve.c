@@ -2608,11 +2608,12 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       ind->ixds=0;
       for (i = 0; i < ntimes; i++){
         evid = ind->evid[ind->ix[i]];
-	if (evid == 9) continue;
 	if (nlhs){
 	  rxCalcLhsP(i, rx, neq[1]);
-	  evid = ind->evid[ind->ix[i]];
+	  // In case the evid/time has been re-ordered
+	  evid = ind->evid[ind->ix[i]]; 
 	}
+	if (evid == 9) continue;
 	if (subsetEvid == 1){
 	  if (isObs(evid) && evid >= 10) continue;
 	  if (isDose(evid)){
