@@ -325,29 +325,27 @@ static inline void twoCmtKaRate(double *A1, double *A2, double *A3,
 				double *r1, double *r2,
 				double *ka,  double *k20, 
 				double *k23, double *k32) {
-  double rx_expr_14 =exp(-(*t)*(*ka));
-  *A1=(*b1)+(*r1)/safe_zero((*ka))-rx_expr_14*((*r1)-(*ka)*(*A1last))/safe_zero((*ka));
-  double rx_expr_0 =R_pow(_as_dbleps((*ka)),2);
-  double rx_expr_1 =(*k32);
-  double rx_expr_2 =(*r1)*(*ka);
-  double rx_expr_3 =R_pow(_as_dbleps((*k32)),2);
-  double rx_expr_4 =2*(*k32);
-  double rx_expr_7 =(*k32)*(*k20);
-  double rx_expr_8 =(*k20)+(*k23);
-  double rx_expr_9 =0.5*(*k32);
-  double rx_expr_10 =2*rx_expr_3;
-  double rx_expr_11 =rx_expr_1*(*k20);
-  double rx_expr_12 =rx_expr_4*(*k20);
-  double rx_expr_15 =rx_expr_8+(*k32);
-  double rx_expr_17 =rx_expr_10*(*k20);
-  double rx_expr_18 =(*A1last)+(*A2last);
-  double rx_expr_19 =(*A2last)+(*A3last);
-  double rx_expr_20 =R_pow(_as_dbleps((rx_expr_15)),2);
-  *A2=(*b2)+((*r1)*(*k32)+(*r2)*(*k32))/safe_zero((rx_expr_7))+rx_expr_14*(-rx_expr_0*(*A1last)+(*r1)*(-(*k32)+(*ka))+(*ka)*(*k32)*(*A1last))/safe_zero((rx_expr_11+(*ka)*(-2*(*k32)*(*k20)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))-0.5*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))+rx_expr_0))+exp(-0.5*(*t)*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))*((*ka)*(0.25*(rx_expr_18)*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2)+rx_expr_9*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))*(-(*A1last)-(*A2last)-(*A3last)))+(*r2)*(-0.5*(*k32)*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))+(*ka)*((*k32)-0.5*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))+0.25*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2))-0.125*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),3)*(*A2last)+rx_expr_2*((*k32)-0.5*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))+0.25*(rx_expr_19)*(*k32)*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2))/safe_zero(((*ka)*(-(*k32)*(*k20)+0.25*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2))+rx_expr_9*(*k20)*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),1)-0.125*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),3)))-exp(-2*(*t)*(*k32)*(*k20)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))*(-8*(*A2last)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),3)+(*ka)*(4*(rx_expr_18)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2)+rx_expr_17*(-(*A1last)-(*A2last)-(*A3last))/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))+(*r2)*((*ka)*((*k32)-rx_expr_12/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))-rx_expr_17/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))+4*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2))+rx_expr_2*((*k32)-rx_expr_12/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))+4*(rx_expr_19)*(*k32)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2))/safe_zero(((*ka)*(rx_expr_11-4*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2))-2*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2)+8*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),3)));
-  double rx_expr_5 =(*r1)*(*k23);
-  double rx_expr_6 =(*ka)*(*k23);
-  double rx_expr_13 =rx_expr_2*(*k23);
-  *A3=(rx_expr_5+(*r2)*(*k23))/safe_zero((rx_expr_7))-rx_expr_14*(rx_expr_5-rx_expr_6*(*A1last))/safe_zero((rx_expr_11+(*ka)*(-2*(*k32)*(*k20)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))-0.5*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))+rx_expr_0))+exp(-0.5*(*t)*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))*((*ka)*(0.25*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2)*(*A3last)+0.5*(-(*A1last)-(*A2last))*(*k23)*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))-0.5*(rx_expr_8)*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))*(*A3last))+(*r2)*(-0.5*(*k23)*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))+rx_expr_6)-0.125*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),3)*(*A3last)+0.25*(*k23)*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2)*(*A2last)+rx_expr_13+0.25*(rx_expr_8)*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2)*(*A3last))/safe_zero(((*ka)*(-(*k32)*(*k20)+0.25*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),2))+rx_expr_9*(*k20)*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),1)-0.125*R_pow(_as_dbleps((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))),3)))-exp(-2*(*t)*(*k32)*(*k20)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))*(-8*(*A3last)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),3)+(*ka)*(4*(*A3last)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2)+2*(-(*A1last)-(*A2last))*(*k23)*(*k32)*(*k20)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20)))-2*(rx_expr_8)*(*k32)*(*k20)*(*A3last)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))+(*r2)*(rx_expr_6-2*(*k23)*(*k32)*(*k20)/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))+4*(*k23)*(*A2last)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2)+rx_expr_13+4*(rx_expr_8)*(*A3last)*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2))/safe_zero(((*ka)*(rx_expr_11-4*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2))-2*(rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),2)+8*R_pow(_as_dbleps((rx_expr_7/safe_zero((rx_expr_15-sqrt(-4*(*k32)*(*k20)+rx_expr_20))))),3)));
+  double E2 =  (*k20)+ (*k23);
+  double s = (*k23)+(*k32)+(*k20);
+  //#Calculate roots
+  double beta  = 0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)));
+  double alpha = (*k32)*(*k20)/beta;
+
+  double eKa = exp(-(*ka)*(*t));
+  double eA = exp(-alpha*(*t));
+  double eB = exp(-beta*(*t));
+
+  double ka2 = (*ka)*(*ka);
+  
+  double alpha2 = alpha*alpha;
+  double alpha3 = alpha2*alpha;
+  
+  double beta2 = beta*beta;
+  double beta3 = beta2*beta;
+  
+  *A1 = (*b1)+(*r1)/(*ka)-(((*r1)-(*A1last)*(*ka))*eKa)/(*ka);
+  *A2 = (*b2)+((((*ka)-(*k32))*(*r1)-(*A1last)*ka2+(*A1last)*(*k32)*(*ka))*eKa)/(ka2+(-beta-alpha)*(*ka)+alpha*beta)+(((((*k32)-beta)*(*ka)-beta*(*k32)+beta2)*(*r2)+((*k32)-beta)*(*ka)*(*r1)+((-(*A3last)-(*A2last)-(*A1last))*beta*(*k32)+((*A2last)+(*A1last))*beta2)*(*ka)+((*A3last)+(*A2last))*beta2*(*k32)-(*A2last)*beta3)*eB)/((beta2-alpha*beta)*(*ka)-beta3+alpha*beta2)-(((((*k32)-alpha)*(*ka)-alpha*(*k32)+alpha2)*(*r2)+((*k32)-alpha)*(*ka)*(*r1)+((-(*A3last)-(*A2last)-(*A1last))*alpha*(*k32)+((*A2last)+(*A1last))*alpha2)*(*ka)+((*A3last)+(*A2last))*alpha2*(*k32)-(*A2last)*alpha3)*eA)/((alpha*beta-alpha2)*(*ka)-alpha2*beta+alpha3)+((*k32)*(*r2)+(*k32)*(*r1))/(alpha*beta);
+  *A3 = -(((*k23)*(*r1)-(*A1last)*(*k23)*(*ka))*eKa)/(ka2+(-beta-alpha)*(*ka)+alpha*beta)+((((*k23)*(*ka)-beta*(*k23))*(*r2)+(*k23)*(*ka)*(*r1)+((-(*A2last)-(*A1last))*beta*(*k23)+(*A3last)*beta2-(*A3last)*E2*beta)*(*ka)+(*A2last)*beta2*(*k23)-(*A3last)*beta3+(*A3last)*E2*beta2)*eB)/((beta2-alpha*beta)*(*ka)-beta3+alpha*beta2)-((((*k23)*(*ka)-alpha*(*k23))*(*r2)+(*k23)*(*ka)*(*r1)+((-(*A2last)-(*A1last))*alpha*(*k23)+(*A3last)*alpha2-(*A3last)*E2*alpha)*(*ka)+(*A2last)*alpha2*(*k23)-(*A3last)*alpha3+(*A3last)*E2*alpha2)*eA)/((alpha*beta-alpha2)*(*ka)-alpha2*beta+alpha3)+((*k23)*(*r2)+(*k23)*(*r1))/(alpha*beta);
 }
 
 
@@ -960,45 +958,38 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     if (ind->lag != d_tlag){
       ind->lag = d_tlag;
       sort =1;
-      REprintf("lag: %f ", d_tlag);
     }
     if (ind->lag2 != d_tlag2){
       ind->lag2 = d_tlag2;
       sort = 1;
-      REprintf("lag2: %f ", d_tlag2);
     }
     if (ind->f != d_F){
       ind->f = d_F;
       sort = 1;
-      REprintf("d_F: %f ", d_F);
     }
     if (ind->f2 != d_F2){
       ind->f2 = d_F2;
       sort = 1;
-      REprintf("d_F2: %f ", d_F2);
     }
     if (ind->rate != d_rate1) {
       ind->rate = d_rate1;
       sort = 1;
-      REprintf("d_rate1: %f ", d_rate1);
     }
     if (ind->rate2 != d_rate2){
       ind->rate2 = d_rate2;
       sort = 1;
-      REprintf("d_rate2: %f ", d_rate2);
     }
     if (ind->dur != d_dur1){
       ind->dur = d_dur1;
       sort = 1;
-      REprintf("d_dur: %f ", d_dur1);
     }
     if (ind->dur2 != d_dur2){
       ind->dur2 = d_dur2;
       sort = 1;
-      REprintf("d_dur2: %f ", d_dur2);
     }
     ind->linCmt = linCmt;
     if (sort){
+      rx->needSort = 1;
       if (rx->nMtime) calcMtime(id, ind->mtime);
       if (rx->needSort) doSort(ind);
       return linCmtA(rx, id, t, linCmt, i_cmt, trans, 
@@ -1527,9 +1518,10 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   } else if (doMultiply){
     A[doMultiply-1] *= amt;
   } else if (doRate){
-    rate[doRate-1] += rateAdjust; 
+    rate[doRate-1] += rateAdjust;
   } 
   if (setSolved) ind->solved[idx] = 1;
+  /* REprintf("t: %f %f %d %d\n", t, A[oral0], idx, ind->ix[idx]); */
   /* REprintf("%f,%f,%f\n", A[oral0], rx_v, A[oral0]/rx_v); */
   return A[oral0]/rx_v;
 }
