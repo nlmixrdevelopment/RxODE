@@ -539,7 +539,7 @@ if (FALSE){
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n",
                 "A3=", paste0(env$A3),"\n")
-
+  ## Now use A1last to A3 last from above with t=tinf
   m <- RxODE({
     A1last=r1*(E2*E3/(lambda1*lambda2*lambda3) - exp(-tinf*lambda1)*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - exp(-tinf*lambda2)*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - exp(-tinf*lambda3)*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))
     A2last=r1*k12*(E3/(lambda1*lambda2*lambda3) - exp(-tinf*lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - exp(-tinf*lambda2)*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - exp(-tinf*lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))
@@ -571,6 +571,145 @@ if (FALSE){
                 "A2=", paste0(env$A2),"\n",
                 "A3=", paste0(env$A3),"\n")
 
-  ## Now use A1last to A3 last from above with t=tinf
+  ## Oral steady state tau
+  ## 1 compartment
+  m <-RxODE({
+    A1last = b1
+    A2last = 0
+    A1 <- A1last*exp(-t*ka)
+    A2 <- A1last*ka/(ka-k20)*(exp(-t*k20)-exp(-t*ka))+A2last*exp(-t*k20)
+  })
+
+  env <- rxS(m)
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n")
+
+  m <-RxODE({
+    A1last = 0
+    A2last = b2
+    A1 <- A1last*exp(-t*ka)
+    A2 <- A1last*ka/(ka-k20)*(exp(-t*k20)-exp(-t*ka))+A2last*exp(-t*k20)
+  })
+
+  env <- rxS(m)
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n")
+
+  ## 2 compartment oral SS deriv
+  m <- RxODE({
+    A1last = b1
+    A2last = 0
+    A3last = 0
+    A2term1 = (((A2last*E3+A3last*k32)-A2last*lambda1)*exp(-t*lambda1)-((A2last*E3+A3last*k32)-A2last*lambda2)*exp(-t*lambda2))/(lambda2-lambda1)
+    A2term2 = A1last*ka*(exp(-t*ka)*(E3-ka)/((lambda1-ka)*(lambda2-ka))+exp(-t*lambda1)*(E3-lambda1)/((lambda2-lambda1)*(ka-lambda1))+exp(-t*lambda2)*(E3-lambda2)/((lambda1-lambda2)*(ka-lambda2)))
+    A2 = A2term1+A2term2  #Amount in the central compartment
+
+    A3term1 = (((A3last*E2+A2last*k23)-A3last*lambda1)*exp(-t*lambda1)-((A3last*E2+A2last*k23)-A3last*lambda2)*exp(-t*lambda2))/(lambda2-lambda1)
+    A3term2 = A1last*ka*k23*(exp(-t*ka)/((lambda1-ka)*(lambda2-ka))+exp(-t*lambda1)/((lambda2-lambda1)*(ka-lambda1))+exp(-t*lambda2)/((lambda1-lambda2)*(ka-lambda2)))
+    A3 = A3term1+A3term2  #Amount in the peripheral compartment
+
+    A1last = A1last*exp(-t*ka)
+    A1 = A1last 
+    A2 = A2
+  })
+
+  env <- rxS(m)
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n",
+                "A3=", paste0(env$A3),"\n")
+
+  m <- RxODE({
+    A1last = 0
+    A2last = b2
+    A3last = 0
+    A2term1 = (((A2last*E3+A3last*k32)-A2last*lambda1)*exp(-t*lambda1)-((A2last*E3+A3last*k32)-A2last*lambda2)*exp(-t*lambda2))/(lambda2-lambda1)
+    A2term2 = A1last*ka*(exp(-t*ka)*(E3-ka)/((lambda1-ka)*(lambda2-ka))+exp(-t*lambda1)*(E3-lambda1)/((lambda2-lambda1)*(ka-lambda1))+exp(-t*lambda2)*(E3-lambda2)/((lambda1-lambda2)*(ka-lambda2)))
+    A2 = A2term1+A2term2  #Amount in the central compartment
+
+    A3term1 = (((A3last*E2+A2last*k23)-A3last*lambda1)*exp(-t*lambda1)-((A3last*E2+A2last*k23)-A3last*lambda2)*exp(-t*lambda2))/(lambda2-lambda1)
+    A3term2 = A1last*ka*k23*(exp(-t*ka)/((lambda1-ka)*(lambda2-ka))+exp(-t*lambda1)/((lambda2-lambda1)*(ka-lambda1))+exp(-t*lambda2)/((lambda1-lambda2)*(ka-lambda2)))
+    A3 = A3term1+A3term2  #Amount in the peripheral compartment
+
+    A1last = A1last*exp(-t*ka)
+    A1 = A1last 
+    A2 = A2
+  })
+
+  env <- rxS(m)
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n",
+                "A3=", paste0(env$A3),"\n")
+  
+  ## 3 compartment oral SS deriv
+  m <- RxODE({
+    A1last = b1
+    A2last = 0
+    A3last = 0
+    A4last = 0
+    
+    B = A3last*k32+A4last*k42
+    C = E4*A3last*k32+E3*A4last*k42
+    I = A2last*k23*E4-A3last*k24*k42+A4last*k23*k42
+    J = A2last*k24*E3+A3last*k24*k32-A4last*k23*k32
+
+    A2term1 = A2last*(exp(-t*lambda1)*(E3-lambda1)*(E4-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+exp(-t*lambda2)*(E3-lambda2)*(E4-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+exp(-t*lambda3)*(E3-lambda3)*(E4-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))
+    A2term2 = exp(-t*lambda1)*(C-B*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+exp(-t*lambda2)*(B*lambda2-C)/((lambda1-lambda2)*(lambda2-lambda3))+exp(-t*lambda3)*(B*lambda3-C)/((lambda1-lambda3)*(lambda3-lambda2))
+    A2term3 = A1last*KA*(exp(-t*lambda1)*(E3-lambda1)*(E4-lambda1)/((lambda2-lambda1)*(lambda3-lambda1)*(KA-lambda1))+exp(-t*lambda2)*(E3-lambda2)*(E4-lambda2)/((lambda1-lambda2)*(lambda3-lambda2)*(KA-lambda2))+exp(-t*lambda3)*(E3-lambda3)*(E4-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)*(KA-lambda3))+exp(-t*KA)*(E3-KA)*(E4-KA)/((lambda1-KA)*(lambda2-KA)*(lambda3-KA)))
+    A2 = A2term1+A2term2+A2term3   #Amount in the central compartment
+
+    A3term1 = A3last*(exp(-t*lambda1)*(E2-lambda1)*(E4-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+exp(-t*lambda2)*(E2-lambda2)*(E4-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+exp(-t*lambda3)*(E2-lambda3)*(E4-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))
+    A3term2 = exp(-t*lambda1)*(I-A2last*k23*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+exp(-t*lambda2)*(A2last*k23*lambda2-I)/((lambda1-lambda2)*(lambda2-lambda3))+exp(-t*lambda3)*(A2last*k23*lambda3-I)/((lambda1-lambda3)*(lambda3-lambda2))
+    A3term3 = A1last*KA*k23*(exp(-t*lambda1)*(E4-lambda1)/((lambda2-lambda1)*(lambda3-lambda1)*(KA-lambda1))+exp(-t*lambda2)*(E4-lambda2)/((lambda1-lambda2)*(lambda3-lambda2)*(KA-lambda2))+exp(-t*lambda3)*(E4-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)*(KA-lambda3))+exp(-t*KA)*(E4-KA)/((lambda1-KA)*(lambda2-KA)*(lambda3-KA)))
+    A3 = A3term1+A3term2+A3term3  #Amount in the first-peripheral compartment
+
+    A4term1 = A4last*(exp(-t*lambda1)*(E2-lambda1)*(E3-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+exp(-t*lambda2)*(E2-lambda2)*(E3-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+exp(-t*lambda3)*(E2-lambda3)*(E3-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))
+    A4term2 = exp(-t*lambda1)*(J-A2last*k24*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+exp(-t*lambda2)*(A2last*k24*lambda2-J)/((lambda1-lambda2)*(lambda2-lambda3))+exp(-t*lambda3)*(A2last*k24*lambda3-J)/((lambda1-lambda3)*(lambda3-lambda2))
+    A4term3 = A1last*KA*k24*(exp(-t*lambda1)*(E3-lambda1)/((lambda2-lambda1)*(lambda3-lambda1)*(KA-lambda1))+exp(-t*lambda2)*(E3-lambda2)/((lambda1-lambda2)*(lambda3-lambda2)*(KA-lambda2))+exp(-t*lambda3)*(E3-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)*(KA-lambda3))+exp(-t*KA)*(E3-KA)/((lambda1-KA)*(lambda2-KA)*(lambda3-KA)))
+    A4 = A4term1+A4term2+A4term3  #Amount in the second-peripheral compartment
+
+    A1 = A1last*exp(-t*KA)
+  })
+
+  env <- rxS(m)
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n",
+                "A3=", paste0(env$A3),"\n",
+                "A4=", paste0(env$A4),"\n")
+
+
+  m <- RxODE({
+    A1last = 0
+    A2last = b2
+    A3last = 0
+    A4last = 0
+    
+    B = A3last*k32+A4last*k42
+    C = E4*A3last*k32+E3*A4last*k42
+    I = A2last*k23*E4-A3last*k24*k42+A4last*k23*k42
+    J = A2last*k24*E3+A3last*k24*k32-A4last*k23*k32
+
+    A2term1 = A2last*(exp(-t*lambda1)*(E3-lambda1)*(E4-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+exp(-t*lambda2)*(E3-lambda2)*(E4-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+exp(-t*lambda3)*(E3-lambda3)*(E4-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))
+    A2term2 = exp(-t*lambda1)*(C-B*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+exp(-t*lambda2)*(B*lambda2-C)/((lambda1-lambda2)*(lambda2-lambda3))+exp(-t*lambda3)*(B*lambda3-C)/((lambda1-lambda3)*(lambda3-lambda2))
+    A2term3 = A1last*KA*(exp(-t*lambda1)*(E3-lambda1)*(E4-lambda1)/((lambda2-lambda1)*(lambda3-lambda1)*(KA-lambda1))+exp(-t*lambda2)*(E3-lambda2)*(E4-lambda2)/((lambda1-lambda2)*(lambda3-lambda2)*(KA-lambda2))+exp(-t*lambda3)*(E3-lambda3)*(E4-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)*(KA-lambda3))+exp(-t*KA)*(E3-KA)*(E4-KA)/((lambda1-KA)*(lambda2-KA)*(lambda3-KA)))
+    A2 = A2term1+A2term2+A2term3   #Amount in the central compartment
+
+    A3term1 = A3last*(exp(-t*lambda1)*(E2-lambda1)*(E4-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+exp(-t*lambda2)*(E2-lambda2)*(E4-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+exp(-t*lambda3)*(E2-lambda3)*(E4-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))
+    A3term2 = exp(-t*lambda1)*(I-A2last*k23*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+exp(-t*lambda2)*(A2last*k23*lambda2-I)/((lambda1-lambda2)*(lambda2-lambda3))+exp(-t*lambda3)*(A2last*k23*lambda3-I)/((lambda1-lambda3)*(lambda3-lambda2))
+    A3term3 = A1last*KA*k23*(exp(-t*lambda1)*(E4-lambda1)/((lambda2-lambda1)*(lambda3-lambda1)*(KA-lambda1))+exp(-t*lambda2)*(E4-lambda2)/((lambda1-lambda2)*(lambda3-lambda2)*(KA-lambda2))+exp(-t*lambda3)*(E4-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)*(KA-lambda3))+exp(-t*KA)*(E4-KA)/((lambda1-KA)*(lambda2-KA)*(lambda3-KA)))
+    A3 = A3term1+A3term2+A3term3  #Amount in the first-peripheral compartment
+
+    A4term1 = A4last*(exp(-t*lambda1)*(E2-lambda1)*(E3-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+exp(-t*lambda2)*(E2-lambda2)*(E3-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+exp(-t*lambda3)*(E2-lambda3)*(E3-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))
+    A4term2 = exp(-t*lambda1)*(J-A2last*k24*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+exp(-t*lambda2)*(A2last*k24*lambda2-J)/((lambda1-lambda2)*(lambda2-lambda3))+exp(-t*lambda3)*(A2last*k24*lambda3-J)/((lambda1-lambda3)*(lambda3-lambda2))
+    A4term3 = A1last*KA*k24*(exp(-t*lambda1)*(E3-lambda1)/((lambda2-lambda1)*(lambda3-lambda1)*(KA-lambda1))+exp(-t*lambda2)*(E3-lambda2)/((lambda1-lambda2)*(lambda3-lambda2)*(KA-lambda2))+exp(-t*lambda3)*(E3-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)*(KA-lambda3))+exp(-t*KA)*(E3-KA)/((lambda1-KA)*(lambda2-KA)*(lambda3-KA)))
+    A4 = A4term1+A4term2+A4term3  #Amount in the second-peripheral compartment
+
+    A1 = A1last*exp(-t*KA)
+  })
+
+  env <- rxS(m)
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n",
+                "A3=", paste0(env$A3),"\n",
+                "A4=", paste0(env$A4),"\n")
   
 }

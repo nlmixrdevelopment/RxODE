@@ -512,6 +512,24 @@ static inline void threeCmtKaRate(double *A1, double *A2, double *A3, double *A4
 // Adapted from Richard Upton's maxima notebooks and supplementary material from
 // Abuhelwa2015
 ////////////////////////////////////////////////////////////////////////////////
+
+static inline void oneCmtKaSSb1(double *A1, double *A2,
+				double *tau,
+				double *b1, double *ka, double *k20) {
+  double eKa = 1.0/(exp(-(*tau)*(*ka))+1.0);
+  double eK =  1.0/(exp(-(*tau)*(*k20))+1.0);
+  *A1=eKa*(*b1);
+  *A2=(*ka)*(*b1)*(eK - eKa)/(-(*k20) + (*ka));
+}
+
+static inline void oneCmtKaSSb2(double *A1, double *A2,
+				double *tau,
+				double *b2, double *ka, double *k20) {
+  /* double eKa = 1.0/(exp(-(*tau)*(*ka))+1.0); */
+  double eK =  1.0/(exp(-(*tau)*(*k20))+1.0);
+  *A1=0.0;
+  *A2=eK*(*b2);
+}
 static inline void oneCmtKa(double *A1, double *A2,
 			    double *A1last, double *A2last,
 			    double *t,
@@ -521,6 +539,49 @@ static inline void oneCmtKa(double *A1, double *A2,
   *A1=(*A1last)*rx_expr_0+(*b1);
   double rx_expr_1=exp(-(*t)*(*k20));
   *A2=(*A1last)*(*ka)/((*ka)-(*k20))*(rx_expr_1-rx_expr_0)+(*A2last)*rx_expr_1+(*b2);
+}
+
+static inline void twoCmtKaSSb1(double *A1, double *A2, double *A3,
+				double *tau,
+				double *b1,
+				double *ka, double *k20,
+				double *k23, double *k32) {
+  double E2 = (*k20)+(*k23);
+  double E3 = (*k32);
+  double e2e3 = E2+E3;
+  double s = sqrt(e2e3*e2e3-4*(E2*E3-(*k23)*(*k32)));
+
+  //calculate hybrid rate constants
+  double lambda1 = 0.5*(e2e3+s);
+  double lambda2 = 0.5*(e2e3-s);
+  double eKa=1.0/(1.0+exp(-(*tau)*(*ka)));
+  double eL1=1.0/(1.0+exp(-(*tau)*lambda1));
+  double eL2=1.0/(1.0+exp(-(*tau)*lambda2));
+  *A1=eKa*(*b1);
+  *A2=(*ka)*(*b1)*(eL1*(E3 - lambda1)/((-lambda1 + lambda2)*((*ka) - lambda1)) + eL2*(E3 - lambda2)/((lambda1 - lambda2)*((*ka) - lambda2)) + eKa*(E3 - (*ka))/((-(*ka) + lambda2)*(-(*ka) + lambda1)));
+  *A3=(*ka)*(*b1)*(*k23)*(eL1/((-lambda1 + lambda2)*((*ka) - lambda1)) + eL2/((lambda1 - lambda2)*((*ka) - lambda2)) + eKa/((-(*ka) + lambda2)*(-(*ka) + lambda1)));
+}
+
+static inline void twoCmtKaSSb2(double *A1, double *A2, double *A3,
+				double *tau,
+				double *b2,
+				double *ka, double *k20,
+				double *k23, double *k32) {
+  double E2 = (*k20)+(*k23);
+  double E3 = (*k32);
+  double e2e3 = E2+E3;
+  double s = sqrt(e2e3*e2e3-4*(E2*E3-(*k23)*(*k32)));
+
+  //calculate hybrid rate constants
+  double lambda1 = 0.5*(e2e3+s);
+  double lambda2 = 0.5*(e2e3-s);
+  /* double eKa=1.0/(1.0+exp(-(*tau)*(*ka))); */
+  double eL1=1.0/(1.0+exp(-(*tau)*lambda1));
+  double eL2=1.0/(1.0+exp(-(*tau)*lambda2));
+
+  *A1=0.0;
+  *A2=(eL1*((*b2)*E3 - (*b2)*lambda1) - eL2*((*b2)*E3 - (*b2)*lambda2))/(-lambda1 + lambda2);
+  *A3=(eL1*(*b2)*(*k23) - eL2*(*b2)*(*k23))/(-lambda1 + lambda2);
 }
 
 static inline void twoCmtKa(double *A1, double *A2, double *A3,
@@ -545,6 +606,91 @@ static inline void twoCmtKa(double *A1, double *A2, double *A3,
   *A3=(-exp(-0.5*(*t)*(rxe6-rxe10))*(-0.5*(*A3last)*(rxe6-rxe10)+rxe5+rxe9)+exp(-0.5*(*t)*(rxe6+rxe10))*(-0.5*(*A3last)*(rxe6+rxe10)+rxe5+rxe9))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+(*ka)*(*k12)*(*A1last)*(rxe2/((-(*ka)+0.5*(rxe6-rxe10))*(-(*ka)+0.5*(rxe6+rxe10)))+exp(-0.5*(*t)*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6-rxe10)))+exp(-0.5*(*t)*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6+rxe10))));
 }
 
+
+static inline void threeCmtKaSSb1(double *A1, double *A2, double *A3, double *A4,
+				  double *tau, double *b1, 
+				  double *KA, double *k20,
+				  double *k23, double *k32,
+				  double *k24, double *k42){
+  double E2 = (*k20)+(*k23)+(*k24);
+  double E3 = (*k32);
+  double E4 = (*k42);
+
+  //calculate hybrid rate constants
+  double a = E2+E3+E4;
+  double b = E2*E3+E4*(E2+E3)-(*k23)*(*k32)-(*k24)*(*k42);
+  double c = E2*E3*E4-E4*(*k23)*(*k32)-E3*(*k24)*(*k42);
+
+  double a2 = a*a;
+  double m = 0.333333333333333*(3.0*b - a2);
+  double n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
+  double Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
+
+  double alpha = sqrt(-Q);
+  double beta = -0.5*n;
+  double gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+  double theta = atan2(alpha,beta);
+  double theta3 = 0.333333333333333*theta;
+  double ctheta3 = cos(theta3);
+  double stheta3 = 1.7320508075688771932*sin(theta3);
+  double gamma3 = R_pow(gamma,0.333333333333333);
+  
+  double lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
+  double lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
+  double lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
+
+  double eKa = 1.0/(1.0+exp(-(*tau)*(*KA)));
+  double eL1 = 1.0/(1.0+exp(-(*tau)*lambda1));
+  double eL2 = 1.0/(1.0+exp(-(*tau)*lambda2));
+  double eL3 = 1.0/(1.0+exp(-(*tau)*lambda3));
+  
+  *A1=eKa*(*b1);
+  *A2=(*KA)*(*b1)*(eL1*(E3 - lambda1)*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*KA) - lambda1)) + eL2*(E3 - lambda2)*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*KA) - lambda2)) + eL3*(E3 - lambda3)*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*KA) - lambda3)) + eKa*(E3 - (*KA))*(E4 - (*KA))/((-(*KA) + lambda1)*(-(*KA) + lambda3)*(-(*KA) + lambda2)));
+  *A3=(*KA)*(*b1)*(*k23)*(eL1*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*KA) - lambda1)) + eL2*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*KA) - lambda2)) + eL3*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*KA) - lambda3)) + eKa*(E4 - (*KA))/((-(*KA) + lambda1)*(-(*KA) + lambda3)*(-(*KA) + lambda2)));
+  *A4=(*KA)*(*b1)*(*k24)*(eL1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*KA) - lambda1)) + eL2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*KA) - lambda2)) + eL3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*KA) - lambda3)) + eKa*(E3 - (*KA))/((-(*KA) + lambda1)*(-(*KA) + lambda3)*(-(*KA) + lambda2)));
+}
+
+static inline void threeCmtKaSSb2(double *A1, double *A2, double *A3, double *A4,
+				  double *tau, double *b2, 
+				  double *KA, double *k20,
+				  double *k23, double *k32,
+				  double *k24, double *k42) {
+  double E2 = (*k20)+(*k23)+(*k24);
+  double E3 = (*k32);
+  double E4 = (*k42);
+
+  //calculate hybrid rate constants
+  double a = E2+E3+E4;
+  double b = E2*E3+E4*(E2+E3)-(*k23)*(*k32)-(*k24)*(*k42);
+  double c = E2*E3*E4-E4*(*k23)*(*k32)-E3*(*k24)*(*k42);
+
+  double a2 = a*a;
+  double m = 0.333333333333333*(3.0*b - a2);
+  double n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
+  double Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
+
+  double alpha = sqrt(-Q);
+  double beta = -0.5*n;
+  double gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+  double theta = atan2(alpha,beta);
+  double theta3 = 0.333333333333333*theta;
+  double ctheta3 = cos(theta3);
+  double stheta3 = 1.7320508075688771932*sin(theta3);
+  double gamma3 = R_pow(gamma,0.333333333333333);
+  
+  double lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
+  double lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
+  double lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
+
+  /* double eKa = 1.0/(1.0+exp(-(*tau)*(*KA))); */
+  double eL1 = 1.0/(1.0+exp(-(*tau)*lambda1));
+  double eL2 = 1.0/(1.0+exp(-(*tau)*lambda2));
+  double eL3 = 1.0/(1.0+exp(-(*tau)*lambda3));
+  *A1=0.0;
+  *A2=(*b2)*(eL1*(E3 - lambda1)*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eL2*(E3 - lambda2)*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eL3*(E3 - lambda3)*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)));
+  *A3=eL2*(-(*b2)*E4*(*k23) + (*b2)*(*k23)*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*((*b2)*E4*(*k23) - (*b2)*(*k23)*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-(*b2)*E4*(*k23) + (*b2)*(*k23)*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
+  *A4=eL2*(-(*b2)*E3*(*k24) + (*b2)*(*k24)*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*((*b2)*E3*(*k24) - (*b2)*(*k24)*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-(*b2)*E3*(*k24) + (*b2)*(*k24)*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
+}
 
 static inline void threeCmtKa(double *A1, double *A2, double *A3, double *A4,
 			      double *A1last, double *A2last, double *A3last, double *A4last,
