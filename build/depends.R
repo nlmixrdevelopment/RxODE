@@ -312,5 +312,135 @@ if (FALSE){
   tmp2 <- RxODE(rxOptExpr(mod))
 
   summary(rxC(tmp2))
+
+  ###########
+  ## steady state infusion solutions
+
+  m <- RxODE({
+    r2=0
+    eAt = 0;##exp(-ka*t)
+    eK20 = 0;##exp(-k20*t);
+    A1=r1/ka-((r1-A1last*ka)*eAt)/ka
+    A2=((r1-A1last*ka)*eAt)/(ka-k20)-(((ka-k20)*r2+ka*r1+(-A2last-A1last)*k20*ka+A2last*k20^2)*eK20)/(k20*ka-k20^2)+(r2+r1)/k20
+  })
+
+  env <- rxS(m)
+  
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n")
+
+  m <- RxODE({
+    r1=0
+    eAt = 0;##exp(-ka*t)
+    eK20 = 0;##exp(-k20*t);
+    A1=r1/ka-((r1-A1last*ka)*eAt)/ka
+    A2=((r1-A1last*ka)*eAt)/(ka-k20)-(((ka-k20)*r2+ka*r1+(-A2last-A1last)*k20*ka+A2last*k20^2)*eK20)/(k20*ka-k20^2)+(r2+r1)/k20
+  })
+
+  env <- rxS(m)
+  
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n")
+
+
+  m <- RxODE({
+    r2=0
+    eKa = 0;##exp(-ka*t)
+    eA = 0;##exp(-alpha*t)
+    eB = 0;##exp(-beta*t)
+    A1=r1/ka-((r1-A1last*ka)*eKa)/ka
+    A2= (((ka-k32)*r1-A1last*ka^2+A1last*k32*ka)*eKa)/(ka^2+(-beta-alpha)*ka+alpha*beta)+((((k32-beta)*ka-beta*k32+beta^2)*r2+(k32-beta)*ka*r1+((-A3last-A2last-A1last)*beta*k32+(A2last+A1last)*beta^2)*ka+(A3last+A2last)*beta^2*k32-A2last*beta^3)*eB)/((beta^2-alpha*beta)*ka-beta^3+alpha*beta^2)-((((k32-alpha)*ka-alpha*k32+alpha^2)*r2+(k32-alpha)*ka*r1+((-A3last-A2last-A1last)*alpha*k32+(A2last+A1last)*alpha^2)*ka+(A3last+A2last)*alpha^2*k32-A2last*alpha^3)*eA)/((alpha*beta-alpha^2)*ka-alpha^2*beta+alpha^3)+(k32*r2+k32*r1)/(alpha*beta)
+    A3=-((k23*r1-A1last*k23*ka)*eKa)/(ka^2+(-beta-alpha)*ka+alpha*beta)+(((k23*ka-beta*k23)*r2+k23*ka*r1+((-A2last-A1last)*beta*k23+A3last*beta^2-A3last*E2*beta)*ka+A2last*beta^2*k23-A3last*beta^3+A3last*E2*beta^2)*eB)/((beta^2-alpha*beta)*ka-beta^3+alpha*beta^2)-(((k23*ka-alpha*k23)*r2+k23*ka*r1+((-A2last-A1last)*alpha*k23+A3last*alpha^2-A3last*E2*alpha)*ka+A2last*alpha^2*k23-A3last*alpha^3+A3last*E2*alpha^2)*eA)/((alpha*beta-alpha^2)*ka-alpha^2*beta+alpha^3)+(k23*r2+k23*r1)/(alpha*beta)
+  })
+
+  env <- rxS(m)
+  
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n",
+                "A3=", paste0(env$A3))
+
+  m <- RxODE({
+    r1=0
+    eKa = 0;##exp(-ka*t)
+    eA = 0;##exp(-alpha*t)
+    eB = 0;##exp(-beta*t)
+    A1=r1/ka-((r1-A1last*ka)*eKa)/ka
+    A2= (((ka-k32)*r1-A1last*ka^2+A1last*k32*ka)*eKa)/(ka^2+(-beta-alpha)*ka+alpha*beta)+((((k32-beta)*ka-beta*k32+beta^2)*r2+(k32-beta)*ka*r1+((-A3last-A2last-A1last)*beta*k32+(A2last+A1last)*beta^2)*ka+(A3last+A2last)*beta^2*k32-A2last*beta^3)*eB)/((beta^2-alpha*beta)*ka-beta^3+alpha*beta^2)-((((k32-alpha)*ka-alpha*k32+alpha^2)*r2+(k32-alpha)*ka*r1+((-A3last-A2last-A1last)*alpha*k32+(A2last+A1last)*alpha^2)*ka+(A3last+A2last)*alpha^2*k32-A2last*alpha^3)*eA)/((alpha*beta-alpha^2)*ka-alpha^2*beta+alpha^3)+(k32*r2+k32*r1)/(alpha*beta)
+    A3=-((k23*r1-A1last*k23*ka)*eKa)/(ka^2+(-beta-alpha)*ka+alpha*beta)+(((k23*ka-beta*k23)*r2+k23*ka*r1+((-A2last-A1last)*beta*k23+A3last*beta^2-A3last*E2*beta)*ka+A2last*beta^2*k23-A3last*beta^3+A3last*E2*beta^2)*eB)/((beta^2-alpha*beta)*ka-beta^3+alpha*beta^2)-(((k23*ka-alpha*k23)*r2+k23*ka*r1+((-A2last-A1last)*alpha*k23+A3last*alpha^2-A3last*E2*alpha)*ka+A2last*alpha^2*k23-A3last*alpha^3+A3last*E2*alpha^2)*eA)/((alpha*beta-alpha^2)*ka-alpha^2*beta+alpha^3)+(k23*r2+k23*r1)/(alpha*beta)
+  })
+
+  env <- rxS(m)
+  
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n",
+                "A3=", paste0(env$A3))
+
+  m <- RxODE({
+    r2=0
+    eKa = 0#exp(-ka*t)
+    el3 = 0#exp(-lam3*t)
+    el2 = 0#exp(-lam2*t)
+    el1 = 0#exp(-lam1*t)
+    A1 = r1/ka-((r1-A1last*ka)*eKa)/ka
+    A2 = -(((lam3^3+(-ka-k42-k32)*lam3^2+((k42+k32)*ka+k32*k42)*lam3-k32*k42*ka)*r2+(-ka*lam3^2+(k42+k32)*ka*lam3-k32*k42*ka)*r1-A2last*lam3^4+((A2last+A1last)*ka+(A4last+A2last)*k42+(A3last+A2last)*k32)*lam3^3+(((-A4last-A2last-A1last)*k42+(-A3last-A2last-A1last)*k32)*ka+(-A4last-A3last-A2last)*k32*k42)*lam3^2+(A4last+A3last+A2last+A1last)*k32*k42*ka*lam3)*el3)/(lam3^4+(-lam2-lam1-ka)*lam3^3+((lam1+ka)*lam2+ka*lam1)*lam3^2-ka*lam1*lam2*lam3)+(((lam2^3+(-ka-k42-k32)*lam2^2+((k42+k32)*ka+k32*k42)*lam2-k32*k42*ka)*r2+(-ka*lam2^2+(k42+k32)*ka*lam2-k32*k42*ka)*r1-A2last*lam2^4+((A2last+A1last)*ka+(A4last+A2last)*k42+(A3last+A2last)*k32)*lam2^3+(((-A4last-A2last-A1last)*k42+(-A3last-A2last-A1last)*k32)*ka+(-A4last-A3last-A2last)*k32*k42)*lam2^2+(A4last+A3last+A2last+A1last)*k32*k42*ka*lam2)*el2)/((lam2^3+(-lam1-ka)*lam2^2+ka*lam1*lam2)*lam3-lam2^4+(lam1+ka)*lam2^3-ka*lam1*lam2^2)-(((lam1^3+(-ka-k42-k32)*lam1^2+((k42+k32)*ka+k32*k42)*lam1-k32*k42*ka)*r2+(-ka*lam1^2+(k42+k32)*ka*lam1-k32*k42*ka)*r1-A2last*lam1^4+((A2last+A1last)*ka+(A4last+A2last)*k42+(A3last+A2last)*k32)*lam1^3+(((-A4last-A2last-A1last)*k42+(-A3last-A2last-A1last)*k32)*ka+(-A4last-A3last-A2last)*k32*k42)*lam1^2+(A4last+A3last+A2last+A1last)*k32*k42*ka*lam1)*el1)/(((lam1^2-ka*lam1)*lam2-lam1^3+ka*lam1^2)*lam3+(ka*lam1^2-lam1^3)*lam2+lam1^4-ka*lam1^3)-(((ka^2+(-k42-k32)*ka+k32*k42)*r1-A1last*ka^3+(A1last*k42+A1last*k32)*ka^2-A1last*k32*k42*ka)*eKa)/(((lam1-ka)*lam2-ka*lam1+ka^2)*lam3+(ka^2-ka*lam1)*lam2+ka^2*lam1-ka^3)+(k32*k42*r2+k32*k42*r1)/(lam1*lam2*lam3)
+    A3=(((k23*lam3^2+(-k23*ka-k23*k42)*lam3+k23*k42*ka)*r2+(k23*k42*ka-k23*ka*lam3)*r1+A3last*lam3^4+(-A3last*ka-A3last*k42-A2last*k23-A3last*E2)*lam3^3+((A3last*k42+(A2last+A1last)*k23+A3last*E2)*ka+(-A3last*k24+(A4last+A2last)*k23+A3last*E2)*k42)*lam3^2+(A3last*k24+(-A4last-A2last-A1last)*k23-A3last*E2)*k42*ka*lam3)*el3)/(lam3^4+(-lam2-lam1-ka)*lam3^3+((lam1+ka)*lam2+ka*lam1)*lam3^2-ka*lam1*lam2*lam3)-(((k23*lam2^2+(-k23*ka-k23*k42)*lam2+k23*k42*ka)*r2+(k23*k42*ka-k23*ka*lam2)*r1+A3last*lam2^4+(-A3last*ka-A3last*k42-A2last*k23-A3last*E2)*lam2^3+((A3last*k42+(A2last+A1last)*k23+A3last*E2)*ka+(-A3last*k24+(A4last+A2last)*k23+A3last*E2)*k42)*lam2^2+(A3last*k24+(-A4last-A2last-A1last)*k23-A3last*E2)*k42*ka*lam2)*el2)/((lam2^3+(-lam1-ka)*lam2^2+ka*lam1*lam2)*lam3-lam2^4+(lam1+ka)*lam2^3-ka*lam1*lam2^2)+(((k23*lam1^2+(-k23*ka-k23*k42)*lam1+k23*k42*ka)*r2+(k23*k42*ka-k23*ka*lam1)*r1+A3last*lam1^4+(-A3last*ka-A3last*k42-A2last*k23-A3last*E2)*lam1^3+((A3last*k42+(A2last+A1last)*k23+A3last*E2)*ka+(-A3last*k24+(A4last+A2last)*k23+A3last*E2)*k42)*lam1^2+(A3last*k24+(-A4last-A2last-A1last)*k23-A3last*E2)*k42*ka*lam1)*el1)/(((lam1^2-ka*lam1)*lam2-lam1^3+ka*lam1^2)*lam3+(ka*lam1^2-lam1^3)*lam2+lam1^4-ka*lam1^3)+(((k23*ka-k23*k42)*r1-A1last*k23*ka^2+A1last*k23*k42*ka)*eKa)/(((lam1-ka)*lam2-ka*lam1+ka^2)*lam3+(ka^2-ka*lam1)*lam2+ka^2*lam1-ka^3)+(k23*k42*r2+k23*k42*r1)/(lam1*lam2*lam3)
+    A4=(((k24*lam3^2+(-k24*ka-k24*k32)*lam3+k24*k32*ka)*r2+(k24*k32*ka-k24*ka*lam3)*r1+A4last*lam3^4+(-A4last*ka-A4last*k32-A2last*k24-A4last*E2)*lam3^3+((A4last*k32+(A2last+A1last)*k24+A4last*E2)*ka+((A3last+A2last)*k24-A4last*k23+A4last*E2)*k32)*lam3^2+((-A3last-A2last-A1last)*k24+A4last*k23-A4last*E2)*k32*ka*lam3)*el3)/(lam3^4+(-lam2-lam1-ka)*lam3^3+((lam1+ka)*lam2+ka*lam1)*lam3^2-ka*lam1*lam2*lam3)-(((k24*lam2^2+(-k24*ka-k24*k32)*lam2+k24*k32*ka)*r2+(k24*k32*ka-k24*ka*lam2)*r1+A4last*lam2^4+(-A4last*ka-A4last*k32-A2last*k24-A4last*E2)*lam2^3+((A4last*k32+(A2last+A1last)*k24+A4last*E2)*ka+((A3last+A2last)*k24-A4last*k23+A4last*E2)*k32)*lam2^2+((-A3last-A2last-A1last)*k24+A4last*k23-A4last*E2)*k32*ka*lam2)*el2)/((lam2^3+(-lam1-ka)*lam2^2+ka*lam1*lam2)*lam3-lam2^4+(lam1+ka)*lam2^3-ka*lam1*lam2^2)+(((k24*lam1^2+(-k24*ka-k24*k32)*lam1+k24*k32*ka)*r2+(k24*k32*ka-k24*ka*lam1)*r1+A4last*lam1^4+(-A4last*ka-A4last*k32-A2last*k24-A4last*E2)*lam1^3+((A4last*k32+(A2last+A1last)*k24+A4last*E2)*ka+((A3last+A2last)*k24-A4last*k23+A4last*E2)*k32)*lam1^2+((-A3last-A2last-A1last)*k24+A4last*k23-A4last*E2)*k32*ka*lam1)*el1)/(((lam1^2-ka*lam1)*lam2-lam1^3+ka*lam1^2)*lam3+(ka*lam1^2-lam1^3)*lam2+lam1^4-ka*lam1^3)+(((k24*ka-k24*k32)*r1-A1last*k24*ka^2+A1last*k24*k32*ka)*eKa)/(((lam1-ka)*lam2-ka*lam1+ka^2)*lam3+(ka^2-ka*lam1)*lam2+ka^2*lam1-ka^3)+(k24*k32*r2+k24*k32*r1)/(lam1*lam2*lam3)
+  })
+
+  env <- rxS(m)
+  
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n",
+                "A3=", paste0(env$A3),"\n",
+                "A4=", paste0(env$A4),"\n")
+
+  m <- RxODE({
+    r1=0
+    eKa = 0#exp(-ka*t)
+    el3 = 0#exp(-lam3*t)
+    el2 = 0#exp(-lam2*t)
+    el1 = 0#exp(-lam1*t)
+    A1 = r1/ka-((r1-A1last*ka)*eKa)/ka
+    A2 = -(((lam3^3+(-ka-k42-k32)*lam3^2+((k42+k32)*ka+k32*k42)*lam3-k32*k42*ka)*r2+(-ka*lam3^2+(k42+k32)*ka*lam3-k32*k42*ka)*r1-A2last*lam3^4+((A2last+A1last)*ka+(A4last+A2last)*k42+(A3last+A2last)*k32)*lam3^3+(((-A4last-A2last-A1last)*k42+(-A3last-A2last-A1last)*k32)*ka+(-A4last-A3last-A2last)*k32*k42)*lam3^2+(A4last+A3last+A2last+A1last)*k32*k42*ka*lam3)*el3)/(lam3^4+(-lam2-lam1-ka)*lam3^3+((lam1+ka)*lam2+ka*lam1)*lam3^2-ka*lam1*lam2*lam3)+(((lam2^3+(-ka-k42-k32)*lam2^2+((k42+k32)*ka+k32*k42)*lam2-k32*k42*ka)*r2+(-ka*lam2^2+(k42+k32)*ka*lam2-k32*k42*ka)*r1-A2last*lam2^4+((A2last+A1last)*ka+(A4last+A2last)*k42+(A3last+A2last)*k32)*lam2^3+(((-A4last-A2last-A1last)*k42+(-A3last-A2last-A1last)*k32)*ka+(-A4last-A3last-A2last)*k32*k42)*lam2^2+(A4last+A3last+A2last+A1last)*k32*k42*ka*lam2)*el2)/((lam2^3+(-lam1-ka)*lam2^2+ka*lam1*lam2)*lam3-lam2^4+(lam1+ka)*lam2^3-ka*lam1*lam2^2)-(((lam1^3+(-ka-k42-k32)*lam1^2+((k42+k32)*ka+k32*k42)*lam1-k32*k42*ka)*r2+(-ka*lam1^2+(k42+k32)*ka*lam1-k32*k42*ka)*r1-A2last*lam1^4+((A2last+A1last)*ka+(A4last+A2last)*k42+(A3last+A2last)*k32)*lam1^3+(((-A4last-A2last-A1last)*k42+(-A3last-A2last-A1last)*k32)*ka+(-A4last-A3last-A2last)*k32*k42)*lam1^2+(A4last+A3last+A2last+A1last)*k32*k42*ka*lam1)*el1)/(((lam1^2-ka*lam1)*lam2-lam1^3+ka*lam1^2)*lam3+(ka*lam1^2-lam1^3)*lam2+lam1^4-ka*lam1^3)-(((ka^2+(-k42-k32)*ka+k32*k42)*r1-A1last*ka^3+(A1last*k42+A1last*k32)*ka^2-A1last*k32*k42*ka)*eKa)/(((lam1-ka)*lam2-ka*lam1+ka^2)*lam3+(ka^2-ka*lam1)*lam2+ka^2*lam1-ka^3)+(k32*k42*r2+k32*k42*r1)/(lam1*lam2*lam3)
+    A3=(((k23*lam3^2+(-k23*ka-k23*k42)*lam3+k23*k42*ka)*r2+(k23*k42*ka-k23*ka*lam3)*r1+A3last*lam3^4+(-A3last*ka-A3last*k42-A2last*k23-A3last*E2)*lam3^3+((A3last*k42+(A2last+A1last)*k23+A3last*E2)*ka+(-A3last*k24+(A4last+A2last)*k23+A3last*E2)*k42)*lam3^2+(A3last*k24+(-A4last-A2last-A1last)*k23-A3last*E2)*k42*ka*lam3)*el3)/(lam3^4+(-lam2-lam1-ka)*lam3^3+((lam1+ka)*lam2+ka*lam1)*lam3^2-ka*lam1*lam2*lam3)-(((k23*lam2^2+(-k23*ka-k23*k42)*lam2+k23*k42*ka)*r2+(k23*k42*ka-k23*ka*lam2)*r1+A3last*lam2^4+(-A3last*ka-A3last*k42-A2last*k23-A3last*E2)*lam2^3+((A3last*k42+(A2last+A1last)*k23+A3last*E2)*ka+(-A3last*k24+(A4last+A2last)*k23+A3last*E2)*k42)*lam2^2+(A3last*k24+(-A4last-A2last-A1last)*k23-A3last*E2)*k42*ka*lam2)*el2)/((lam2^3+(-lam1-ka)*lam2^2+ka*lam1*lam2)*lam3-lam2^4+(lam1+ka)*lam2^3-ka*lam1*lam2^2)+(((k23*lam1^2+(-k23*ka-k23*k42)*lam1+k23*k42*ka)*r2+(k23*k42*ka-k23*ka*lam1)*r1+A3last*lam1^4+(-A3last*ka-A3last*k42-A2last*k23-A3last*E2)*lam1^3+((A3last*k42+(A2last+A1last)*k23+A3last*E2)*ka+(-A3last*k24+(A4last+A2last)*k23+A3last*E2)*k42)*lam1^2+(A3last*k24+(-A4last-A2last-A1last)*k23-A3last*E2)*k42*ka*lam1)*el1)/(((lam1^2-ka*lam1)*lam2-lam1^3+ka*lam1^2)*lam3+(ka*lam1^2-lam1^3)*lam2+lam1^4-ka*lam1^3)+(((k23*ka-k23*k42)*r1-A1last*k23*ka^2+A1last*k23*k42*ka)*eKa)/(((lam1-ka)*lam2-ka*lam1+ka^2)*lam3+(ka^2-ka*lam1)*lam2+ka^2*lam1-ka^3)+(k23*k42*r2+k23*k42*r1)/(lam1*lam2*lam3)
+    A4=(((k24*lam3^2+(-k24*ka-k24*k32)*lam3+k24*k32*ka)*r2+(k24*k32*ka-k24*ka*lam3)*r1+A4last*lam3^4+(-A4last*ka-A4last*k32-A2last*k24-A4last*E2)*lam3^3+((A4last*k32+(A2last+A1last)*k24+A4last*E2)*ka+((A3last+A2last)*k24-A4last*k23+A4last*E2)*k32)*lam3^2+((-A3last-A2last-A1last)*k24+A4last*k23-A4last*E2)*k32*ka*lam3)*el3)/(lam3^4+(-lam2-lam1-ka)*lam3^3+((lam1+ka)*lam2+ka*lam1)*lam3^2-ka*lam1*lam2*lam3)-(((k24*lam2^2+(-k24*ka-k24*k32)*lam2+k24*k32*ka)*r2+(k24*k32*ka-k24*ka*lam2)*r1+A4last*lam2^4+(-A4last*ka-A4last*k32-A2last*k24-A4last*E2)*lam2^3+((A4last*k32+(A2last+A1last)*k24+A4last*E2)*ka+((A3last+A2last)*k24-A4last*k23+A4last*E2)*k32)*lam2^2+((-A3last-A2last-A1last)*k24+A4last*k23-A4last*E2)*k32*ka*lam2)*el2)/((lam2^3+(-lam1-ka)*lam2^2+ka*lam1*lam2)*lam3-lam2^4+(lam1+ka)*lam2^3-ka*lam1*lam2^2)+(((k24*lam1^2+(-k24*ka-k24*k32)*lam1+k24*k32*ka)*r2+(k24*k32*ka-k24*ka*lam1)*r1+A4last*lam1^4+(-A4last*ka-A4last*k32-A2last*k24-A4last*E2)*lam1^3+((A4last*k32+(A2last+A1last)*k24+A4last*E2)*ka+((A3last+A2last)*k24-A4last*k23+A4last*E2)*k32)*lam1^2+((-A3last-A2last-A1last)*k24+A4last*k23-A4last*E2)*k32*ka*lam1)*el1)/(((lam1^2-ka*lam1)*lam2-lam1^3+ka*lam1^2)*lam3+(ka*lam1^2-lam1^3)*lam2+lam1^4-ka*lam1^3)+(((k24*ka-k24*k32)*r1-A1last*k24*ka^2+A1last*k24*k32*ka)*eKa)/(((lam1-ka)*lam2-ka*lam1+ka^2)*lam3+(ka^2-ka*lam1)*lam2+ka^2*lam1-ka^3)+(k24*k32*r2+k24*k32*r1)/(lam1*lam2*lam3)
+  })
+
+  env <- rxS(m)
+  
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n",
+                "A3=", paste0(env$A3),"\n",
+                "A4=", paste0(env$A4),"\n")
+
+  ## 2 compartment infusion
+  m <- RxODE({
+    eL1 = 0#exp(-t*lambda1)
+    eL2= 0#exp(-t*lambda2)
+    A1=(((A1last*E2+r1+A2last*k21)-A1last*lambda1)*eL1-((A1last*E2+r1+A2last*k21)-A1last*lambda2)*eL2)/(lambda2-lambda1) + r1*E2*(1/(lambda1*lambda2)+eL1/(lambda1*(lambda1-lambda2))-eL2/(lambda2*(lambda1-lambda2)))
+    A2=(((A2last*E1+A1last*k12)-A2last*lambda1)*eL1-((A2last*E1+A1last*k12)-A2last*lambda2)*eL2)/(lambda2-lambda1)+r1*k12*(1/(lambda1*lambda2)+eL1/(lambda1*(lambda1-lambda2))-eL2/(lambda2*(lambda1-lambda2)))
+  })
+
+  env <- rxS(m)
+  
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n")
+
+  ## 3 compartment infusion
+  m <- RxODE({
+    eL1 = 0#exp(-t*lambda1)
+    eL2 = 0#exp(-t*lambda2)
+    eL3 = 0#exp(-t*lambda3)
+    A1=A1last*(eL1*(E2-lambda1)*(E3-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+eL2*(E2-lambda2)*(E3-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+eL3*(E2-lambda3)*(E3-lambda3)/((lambda1-lambda3)*(lambda2-lambda3))) + eL1*(C-B*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+eL2*(B*lambda2-C)/((lambda1-lambda2)*(lambda2-lambda3))+eL3*(B*lambda3-C)/((lambda1-lambda3)*(lambda3-lambda2)) + r1*((E2*E3)/(lambda1*lambda2*lambda3)-eL1*(E2-lambda1)*(E3-lambda1)/(lambda1*(lambda2-lambda1)*(lambda3-lambda1))-eL2*(E2-lambda2)*(E3-lambda2)/(lambda2*(lambda1-lambda2)*(lambda3-lambda2))-eL3*(E2-lambda3)*(E3-lambda3)/(lambda3*(lambda1-lambda3)*(lambda2-lambda3)))
+    A2 = A2last*(eL1*(E1-lambda1)*(E3-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+eL2*(E1-lambda2)*(E3-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+eL3*(E1-lambda3)*(E3-lambda3)/((lambda1-lambda3)*(lambda2-lambda3))) + eL1*(I-A1last*k12*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+eL2*(A1last*k12*lambda2-I)/((lambda1-lambda2)*(lambda2-lambda3))+eL3*(A1last*k12*lambda3-I)/((lambda1-lambda3)*(lambda3-lambda2)) + r1*k12*(E3/(lambda1*lambda2*lambda3)-eL1*(E3-lambda1)/(lambda1*(lambda2-lambda1)*(lambda3-lambda1))-eL2*(E3-lambda2)/(lambda2*(lambda1-lambda2)*(lambda3-lambda2))-eL3*(E3-lambda3)/(lambda3*(lambda1-lambda3)*(lambda2-lambda3)))
+    A3=A3last*(eL1*(E1-lambda1)*(E2-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+eL2*(E1-lambda2)*(E2-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+eL3*(E1-lambda3)*(E2-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))+eL1*(J-A1last*k13*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+eL2*(A1last*k13*lambda2-J)/((lambda1-lambda2)*(lambda2-lambda3))+eL3*(A1last*k13*lambda3-J)/((lambda1-lambda3)*(lambda3-lambda2))+r1*k13*(E2/(lambda1*lambda2*lambda3)-eL1*(E2-lambda1)/(lambda1*(lambda2-lambda1)*(lambda3-lambda1))-eL2*(E2-lambda2)/(lambda2*(lambda1-lambda2)*(lambda3-lambda2))-eL3*(E2-lambda3)/(lambda3*(lambda1-lambda3)*(lambda2-lambda3)))
+  })
+
+  
+  env <- rxS(m)
+  
+  mod <- paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n",
+                "A3=", paste0(env$A3),"\n")
   
 }

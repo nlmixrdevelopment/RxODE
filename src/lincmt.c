@@ -286,6 +286,21 @@ rxOptExpr(rxNorm(RxODE({
 // 1-3 oral absorption with rates
 // From Richard Upton with RxODE Expression optimization (and some manual edits)
 ////////////////////////////////////////////////////////////////////////////////
+
+static inline void oneCmtKaRateSSr1(double *A1, double *A2,
+				    double *r1,
+				    double *ka, double *k20) {
+  *A1 = (*r1)/(*ka);
+  *A2 = (*r1)/(*k20);
+}
+
+static inline void oneCmtKaRateSSr2(double *A1, double *A2,
+				    double *r2,
+				    double *ka, double *k20) {
+  *A1 = 0;
+  *A2 = (*r2)/(*k20);
+}
+
 static inline void oneCmtKaRate(double *A1, double *A2,
 				double *A1last, double *A2last,
 				double *t,
@@ -301,10 +316,36 @@ static inline void oneCmtKaRate(double *A1, double *A2,
   *A2 = A21 - A22 + A23 + (*b2);
 }
 
-
 /*
 Two compartment with rates in each
  */
+
+static inline void twoCmtKaRateSSr1(double *A1, double *A2, double *A3,
+				    double *r1,
+				    double *ka,  double *k20, 
+				    double *k23, double *k32) {
+  double s = (*k23)+(*k32)+(*k20);
+  //#Calculate roots
+  double beta  = 0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)));
+  double alpha = (*k32)*(*k20)/beta;
+  *A1=(*r1)/(*ka);
+  *A2=(*r1)*(*k32)/(beta*alpha);
+  *A3=(*r1)*(*k23)/(beta*alpha);
+}
+
+static inline void twoCmtKaRateSSr2(double *A1, double *A2, double *A3,
+				    double *r2,
+				    double *ka,  double *k20, 
+				    double *k23, double *k32) {
+  double s = (*k23)+(*k32)+(*k20);
+  //#Calculate roots
+  double beta  = 0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)));
+  double alpha = (*k32)*(*k20)/beta;
+  *A1=0;
+  *A2=(*r2)*(*k32)/(beta*alpha);
+  *A3=(*r2)*(*k23)/(beta*alpha);
+}
+
 static inline void twoCmtKaRate(double *A1, double *A2, double *A3,
 				double *A1last, double *A2last, double *A3last,
 				double *t,
@@ -335,6 +376,68 @@ static inline void twoCmtKaRate(double *A1, double *A2, double *A3,
   *A3 = -(((*k23)*(*r1)-(*A1last)*(*k23)*(*ka))*eKa)/(ka2+(-beta-alpha)*(*ka)+alpha*beta)+((((*k23)*(*ka)-beta*(*k23))*(*r2)+(*k23)*(*ka)*(*r1)+((-(*A2last)-(*A1last))*beta*(*k23)+(*A3last)*beta2-(*A3last)*E2*beta)*(*ka)+(*A2last)*beta2*(*k23)-(*A3last)*beta3+(*A3last)*E2*beta2)*eB)/((beta2-alpha*beta)*(*ka)-beta3+alpha*beta2)-((((*k23)*(*ka)-alpha*(*k23))*(*r2)+(*k23)*(*ka)*(*r1)+((-(*A2last)-(*A1last))*alpha*(*k23)+(*A3last)*alpha2-(*A3last)*E2*alpha)*(*ka)+(*A2last)*alpha2*(*k23)-(*A3last)*alpha3+(*A3last)*E2*alpha2)*eA)/((alpha*beta-alpha2)*(*ka)-alpha2*beta+alpha3)+((*k23)*(*r2)+(*k23)*(*r1))/(alpha*beta);
 }
 
+static inline void threeCmtKaRateSSr1(double *A1, double *A2, double *A3, double *A4,
+				      double *r1, 
+				      double *ka, double *k20,
+				      double *k23, double *k32,
+				      double *k24, double *k42){
+  //##Calculate roots - see Upton, 2004
+  double j = (*k23)+(*k20)+(*k32)+(*k42)+(*k24);
+  double k = (*k23)*(*k42)+(*k20)*(*k32)+(*k20)*(*k42)+(*k32)*(*k42)+(*k24)*(*k32);
+  double l = (*k20)*(*k32)*(*k42);
+
+  double m = 0.3333333333333333*(3.0*k - j*j);
+  double n = 0.03703703703703703*(2.0*j*j*j - 9.0*j*k + 27.0*l);
+  double Q = 0.25*n*n + 0.03703703703703703*m*m*m;
+
+  double alpha = sqrt(-Q);
+  double beta = -0.5*n;
+  double rho=sqrt(beta*beta+alpha*alpha);
+  double theta = atan2(alpha,beta);
+  double ct3 = cos(0.3333333333333333*theta);
+  double rho3 = R_pow(rho,0.3333333333333333);
+  double st3 = 1.732050807568877193177*sin(0.3333333333333333*theta);
+  double j3 = 0.3333333333333333*j;
+  double lam1 = j3  + rho3*(ct3 + st3);
+  double lam2 = j3 + rho3*(ct3 - st3);
+  double lam3 = j3 -(2.0*rho3*ct3);
+  double l123 = 1.0/lam1*lam2*lam3;
+  *A1=(*r1)/(*ka);
+  *A2=(*r1)*(*k42)*(*k32)*l123;
+  *A3=(*r1)*(*k42)*(*k23)*l123;
+  *A4=(*r1)*(*k24)*(*k32)*l123;
+}
+
+static inline void threeCmtKaRateSSr2(double *A1, double *A2, double *A3, double *A4,
+				      double *r2, 
+				      double *ka, double *k20,
+				      double *k23, double *k32,
+				      double *k24, double *k42){
+  double j = (*k23)+(*k20)+(*k32)+(*k42)+(*k24);
+  double k = (*k23)*(*k42)+(*k20)*(*k32)+(*k20)*(*k42)+(*k32)*(*k42)+(*k24)*(*k32);
+  double l = (*k20)*(*k32)*(*k42);
+
+  double m = 0.3333333333333333*(3.0*k - j*j);
+  double n = 0.03703703703703703*(2.0*j*j*j - 9.0*j*k + 27.0*l);
+  double Q = 0.25*n*n + 0.03703703703703703*m*m*m;
+
+  double alpha = sqrt(-Q);
+  double beta = -0.5*n;
+  double rho=sqrt(beta*beta+alpha*alpha);
+  double theta = atan2(alpha,beta);
+  double ct3 = cos(0.3333333333333333*theta);
+  double rho3 = R_pow(rho,0.3333333333333333);
+  double st3 = 1.732050807568877193177*sin(0.3333333333333333*theta);
+  double j3 = 0.3333333333333333*j;
+  double lam1 = j3  + rho3*(ct3 + st3);
+  double lam2 = j3 + rho3*(ct3 - st3);
+  double lam3 = j3 -(2.0*rho3*ct3);
+  double l123 = 1.0/lam1*lam2*lam3;
+  *A1=0;
+  *A2=(*r2)*(*k42)*(*k32)*l123;
+  *A3=(*r2)*(*k42)*(*k23)*l123;
+  *A4=(*r2)*(*k24)*(*k32)*l123;
+}
 
 static inline void threeCmtKaRate(double *A1, double *A2, double *A3, double *A4,
 				  double *A1last, double *A2last, double *A3last, double *A4last,
@@ -532,10 +635,7 @@ static inline void threeCmtKa(double *A1, double *A2, double *A3, double *A4,
 ////////////////////////////////////////////////////////////////////////////////
 // 1-3 compartment bolus during infusion
 ////////////////////////////////////////////////////////////////////////////////
-static inline void oneCmtRateSS4(double *A1, double *A1last, 
-				 double *t,
-				 double *b1, double *r1,
-				 double *k10) {
+static inline void oneCmtRateSSr1(double *A1, double *r1, double *k10) {
   *A1 = (*r1)/(*k10);
 }
 static inline void oneCmtRate(double *A1, double *A1last, 
@@ -544,6 +644,21 @@ static inline void oneCmtRate(double *A1, double *A1last,
 			      double *k10) {
   double eT = exp(-(*k10)*(*t));
   *A1 = (*r1)/(*k10)*(1-eT)+(*A1last)*eT + (*b1);
+}
+
+static inline void twoCmtRateSSr1(double *A1, double *A2, 
+				  double *r1,
+				  double *k10, double *k12, double *k21) {
+  double E1 = (*k10)+(*k12);
+  double E2 = (*k21);
+  //#calculate hybrid rate constants
+  double s = E1+E2;
+  double sqr = sqrt(s*s-4*(E1*E2-(*k12)*(*k21)));
+  double lambda1 = 0.5*(s+sqr);
+  double lambda2 = 0.5*(s-sqr);
+  double l12 = 1.0/(lambda1*lambda2);
+  *A1=(*r1)*E2*l12;
+  *A2=(*r1)*(*k12)*l12;
 }
 
 static inline void twoCmtRate(double *A1, double *A2, 
@@ -580,6 +695,43 @@ static inline void twoCmtRate(double *A1, double *A2,
   double A2term2 = (*Doserate)*(*k12)*(1/(lambda1*lambda2)+eT1/(lambda1*l12)-eT2/(lambda2*(lambda1-lambda2)));
   *A2 = A2term1+A2term2;//Amount in the peripheral compartment
 }
+
+static inline void threeCmtRateSSr1(double *A1, double *A2, double *A3,
+				    double *r1,
+				    double *k10, double *k12, double *k21,
+				    double *k13, double *k31) {
+  double E1 = (*k10)+(*k12)+(*k13);
+  double E2 = (*k21);
+  double E3 = (*k31);
+
+  //#calculate hybrid rate constants
+  double a = E1+E2+E3;
+  double b = E1*E2+E3*(E1+E2)-(*k12)*(*k21)-(*k13)*(*k31);
+  double c = E1*E2*E3-E3*(*k12)*(*k21)-E2*(*k13)*(*k31);
+
+  double a2 = a*a;
+  double m = 0.333333333333333*(3.0*b - a2);
+  double n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
+  double Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
+
+  double alpha = sqrt(-Q);
+  double beta = -0.5*n;
+  double gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+  double theta = atan2(alpha,beta);
+  double theta3 = 0.333333333333333*theta;
+  double ctheta3 = cos(theta3);
+  double stheta3 = 1.7320508075688771932*sin(theta3);
+  double gamma3 = R_pow(gamma,0.333333333333333);
+  
+  double lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
+  double lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
+  double lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
+  double l123 = 1.0/(lambda1*lambda2*lambda3);
+  *A1=(*r1)*E2*E3*l123;
+  *A2=(*r1)*E3*(*k12)*l123;
+  *A3=(*r1)*E2*(*k13)*l123;
+}
+
 
 static inline void threeCmtRate(double *A1, double *A2, double *A3,
 				double *A1last, double *A2last, double *A3last,
@@ -772,6 +924,68 @@ static inline void threeCmtBolus(double *A1, double *A2, double *A3,
   *A3 = fabs(A3term1+A3term2);
 }
 
+static inline void ssRate(double *A,
+			  int ncmt, // Number of compartments
+			  int oral0, // Indicator of if this is an oral system)
+			  double *r1, // Rate in Compartment #1
+			  double *r2, // Rate in Compartment #2
+			  double *ka, // ka (for oral doses)
+			  double *kel,  //double rx_v,
+			  double *k12, double *k21,
+			  double *k13, double *k31) {
+  if (oral0){
+    if ((*r1) > 0){
+      switch (ncmt){
+      case 1: {
+	oneCmtKaRateSSr1(&A[0], &A[1], r1, ka, kel);
+	return;
+      } break;
+      case 2: {
+	twoCmtKaRateSSr1(&A[0], &A[1], &A[2], r1, ka, kel, k12, k21);
+	return;
+      } break;
+      case 3: {
+	threeCmtKaRateSSr1(&A[0], &A[1], &A[2], &A[3],
+			   r1, ka, kel, k12,  k21, k13,  k31);
+	return;
+      } break;
+      }
+    } else {
+      switch (ncmt){
+      case 1: {
+	oneCmtKaRateSSr2(&A[0], &A[1], r2, ka, kel);
+	return;
+      } break;
+      case 2: {
+	twoCmtKaRateSSr2(&A[0], &A[1], &A[2], r2, ka, kel, k12, k21);
+	return;
+      } break;
+      case 3: {
+	threeCmtKaRateSSr2(&A[0], &A[1], &A[2], &A[3],
+			   r2, ka, kel, k12,  k21, k13,  k31);
+	return;
+      } break;
+      }
+    }
+  } else {
+    switch (ncmt){
+    case 1: {
+      oneCmtRateSSr1(&A[0], r1, kel);
+      return;
+    } break;
+    case 2: {
+      twoCmtRateSSr1(&A[0], &A[1], r1, kel, k12, k21);
+      return;
+    } break;
+    case 3: {
+      threeCmtRateSSr1(&A[0], &A[1], &A[2], 
+		       r1, kel, k12,  k21, k13,  k31);
+      return;
+    } break;
+    }
+  }
+}
+
 static inline void doAdvan(double *A,// Amounts
 			   double *Alast, // Last amounts
 			   double tlast, // Time of last amounts
@@ -793,18 +1007,21 @@ static inline void doAdvan(double *A,// Amounts
       case 1: {
 	oneCmtKaRate(&A[0], &A[1], &Alast[0], &Alast[1],
 		     &t, b1, b2, r1, r2, ka, kel);
+	return;
       } break;
       case 2: {
 	twoCmtKaRate(&A[0], &A[1], &A[2],
 		     &Alast[0], &Alast[1], &Alast[2],
 		     &t, b1, b2, r1, r2,
 		     ka,  kel, k12, k21);
+	return;
       } break;
       case 3: {
 	threeCmtKaRate(&A[0], &A[1], &A[2], &A[3],
 		       &Alast[0], &Alast[1], &Alast[2], &Alast[3],
 		       &t, b1, b2, r1, r2,
 		       ka, kel, k12,  k21, k13,  k31);
+	return;
       } break;
       }
     } else {
@@ -1430,6 +1647,10 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  // Steady state infusion
 	  // Now advance to steady state dosing
 	  // These are easy to solve
+	  ssRate(A, ncmt, oral0, &r1, &r2,
+		 &d_ka, &rx_k, &rx_k12, &rx_k21,
+		 &rx_k13, &rx_k31);
+	  extraAdvan=0;
 	}
 	// dosing to cmt
 	amt = ind->dose[ind->ixds];
@@ -1462,6 +1683,14 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	} break;
 	case 8: { // modeled duration. 
 	  //InfusionRate[cmt] -= dose[ind->ixds+1];
+	  if (cmtOff == 0) {
+	    // With oral dosing infusion to central compartment
+	    rateAdjust = amt/d_dur1*d_F;
+	  } else {
+	    // Infusion to compartment #1 or depot
+	    rateAdjust = amt/d_dur2*d_F2;
+	  }
+	  doRate = cmtOff+1;
 	} break;
 	case 7:{ // End modeled rate
 	  if (cmtOff == 0)  {
@@ -1473,11 +1702,18 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  }
 	  doRate = cmtOff+1;
 	} break;
-	case 1: // Begin infusion
-	case 6: { // end modeled duration
-	  // If cmt is off, don't remove rate....
-	  // Probably should throw an error if the infusion rate is on still.
+	case 1: { // Begin infusion
 	  rateAdjust = amt; // Amt is negative when turning off
+	  doRate = cmtOff+1;
+	} break;
+	case 6: { // end modeled duration
+	  if (cmtOff == 0) {
+	    // With oral dosing infusion to central compartment
+	    rateAdjust = -amt/d_dur1*d_F;
+	  } else {
+	    // Infusion to compartment #1 or depot
+	    rateAdjust = -amt/d_dur2*d_F2;
+	  }
 	  doRate = cmtOff+1;
 	} break;
 	case 2: {
