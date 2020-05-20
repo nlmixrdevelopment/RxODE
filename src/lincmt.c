@@ -302,7 +302,7 @@ static inline void oneCmtKaRateSSr2(double *A1, double *A2,
 }
 
 static inline void oneCmtKaRateSStr1(double *A1, double *A2,
-				     double *r1, double *tinf, double *tau,
+				     double *tinf, double *tau, double *r1,
 				     double *ka, double *k20) {
   double eKa = 1.0/(1.0+exp(-(*tau)*(*ka)));
   double eiKa = exp(-(*ka)*(*tinf));
@@ -313,7 +313,7 @@ static inline void oneCmtKaRateSStr1(double *A1, double *A2,
 }
 
 static inline void oneCmtKaRateSStr2(double *A1, double *A2,
-				     double *r2, double *tinf, double *tau,
+				     double *tinf, double *tau, double *r2, 
 				     double *ka, double *k20){
   double eiK = exp(-(*k20)*(*tinf));
   double eK = 1.0/(1.0+exp(-(*k20)*(*tau)));
@@ -367,7 +367,7 @@ static inline void twoCmtKaRateSSr2(double *A1, double *A2, double *A3,
 }
 
 static inline void twoCmtKaRateSStr1(double *A1, double *A2, double *A3,
-				     double *r1, double *tinf, double *tau,
+				     double *tinf, double *tau, double *r1, 
 				     double *ka,  double *k20, 
 				     double *k23, double *k32){
   /* double E2 =  (*k20)+ (*k23); */
@@ -378,8 +378,8 @@ static inline void twoCmtKaRateSStr1(double *A1, double *A2, double *A3,
   double alpha = (*k32)*(*k20)/beta;
 
   double eKa = 1.0/(1.0+exp(-(*ka)*(*tau)));
-  double eA = 1.0/(1.0+exp(-alpha*(*tau)));
-  double eB = 1.0/(1.0+exp(-beta*(*tau)));
+  double eA  = 1.0/(1.0+exp(-alpha*(*tau)));
+  double eB  = 1.0/(1.0+exp(-beta*(*tau)));
 
   double eiKa = exp(-(*ka)*(*tinf));
   double eiA = exp(-alpha*(*tinf));
@@ -398,7 +398,7 @@ static inline void twoCmtKaRateSStr1(double *A1, double *A2, double *A3,
 }
 
 static inline void twoCmtKaRateSStr2(double *A1, double *A2, double *A3,
-				     double *r2, double *tinf, double *tau,
+				      double *tinf, double *tau, double *r2,
 				     double *ka,  double *k20, 
 				     double *k23, double *k32) {
   double E3 = (*k32);
@@ -517,7 +517,7 @@ static inline void threeCmtKaRateSSr2(double *A1, double *A2, double *A3, double
 }
 
 static inline void threeCmtKaRateSStr1(double *A1, double *A2, double *A3, double *A4,
-				       double *r1, double *tau, double *tinf, 
+				       double *tinf, double *tau, double *r1, 
 				       double *ka, double *k20,
 				       double *k23, double *k32,
 				       double *k24, double *k42){
@@ -578,7 +578,7 @@ static inline void threeCmtKaRateSStr1(double *A1, double *A2, double *A3, doubl
 }
 
 static inline void threeCmtKaRateSStr2(double *A1, double *A2, double *A3, double *A4,
-				       double *r2, double *tau, double *tinf, 
+				       double *tinf, double *tau, double *r2, 
 				       double *ka, double *k20,
 				       double *k23, double *k32,
 				       double *k24, double *k42) {
@@ -983,6 +983,11 @@ static inline void threeCmtKa(double *A1, double *A2, double *A3, double *A4,
 static inline void oneCmtRateSSr1(double *A1, double *r1, double *k10) {
   *A1 = (*r1)/(*k10);
 }
+static inline void oneCmtRateSS(double *A1, double *tinf, double *tau, double *r1, double *k10) {
+  double eiK = exp(-(*k10)*(*tinf));
+  double eK = 1.0/(1.0+exp(-(*k10)*(*tau)));
+  *A1=eK*((*r1)/(*k10) - eiK*(*r1)*(-(*k10) + (*ka))/((*ka)*(*k10) - (*k10)*(*k10)));
+}
 static inline void oneCmtRate(double *A1, double *A1last, 
 			      double *t,
 			      double *b1, double *r1,
@@ -1007,7 +1012,7 @@ static inline void twoCmtRateSSr1(double *A1, double *A2,
 }
 
 static inline void twoCmtRateSS(double *A1, double *A2,
-				double *r1, double *tinf, double *tau,
+				double *tinf, double *tau, double *r1, 
 				double *k10, double *k12, double *k21) {
   double E1 = (*k10)+(*k12);
   double E2 = (*k21);
@@ -1098,7 +1103,7 @@ static inline void threeCmtRateSSr1(double *A1, double *A2, double *A3,
 }
 
 static inline void threeCmtRateSS(double *A1, double *A2, double *A3,
-				  double *r1, double *tinf, double *tau,
+				  double *tinf, double *tau, double *r1, 
 				  double *k10, double *k12, double *k21,
 				  double *k13, double *k31){
   double E1 = (*k10)+(*k12)+(*k13);
@@ -1383,6 +1388,132 @@ static inline void threeCmtBolus(double *A1, double *A2, double *A3,
   double A3term1 = (*A3last)*(eL1*e1l1*e2l1/(l21*l31)+eL2*e1l2*e2l2/(l12*l32)+eL3*e1l3*e2l3/(l13*l23));
   double A3term2 = eL1*(J-(*A1last)*(*k13)*lambda1)/(l12*l13)+eL2*((*A1last)*(*k13)*lambda2-J)/(l12*l23)+eL3*((*A1last)*(*k13)*lambda3-J)/(l13*l32);
   *A3 = A3term1+A3term2;
+}
+
+static inline void ssRateTau(double *A,
+			     int ncmt,
+			     int oral0,
+			     double *tinf,
+			     double *tau,
+			     double *r1,
+			     double *r2,
+			     double *ka, // ka (for oral doses)
+			     double *kel,  //double rx_v,
+			     double *k12, double *k21,
+			     double *k13, double *k31){
+  if (oral0){
+    if ((*r1) > 0 ){
+      switch (ncmt){
+      case 1: {
+	oneCmtKaRateSStr1(&A[0], &A[1], tinf, tau, r1, ka, kel);
+	return;
+      } break;
+      case 2: {
+	twoCmtKaRateSStr1(&A[0], &A[1], &A[2], tinf, tau, r1, ka, kel, k12, k21);
+	return;
+      } break;
+      case 3: {
+	threeCmtKaRateSStr1(&A[0], &A[1], &A[2], &A[3],
+			   tinf, tau, r1, ka, kel, k12,  k21, k13, k31);
+	return;
+      } break;
+      }
+    } else {
+      switch (ncmt){
+      case 1: {
+	oneCmtKaRateSStr2(&A[0], &A[1], tinf, tau, r2, ka, kel);
+	return;
+      } break;
+      case 2: {
+	twoCmtKaRateSStr1(&A[0], &A[1], &A[2], tinf, tau, r2, ka, kel, k12, k21);
+	return;
+      } break;
+      case 3: {
+	threeCmtKaRateSStr1(&A[0], &A[1], &A[2], &A[3], tinf, tau,
+			    r2, ka, kel, k12,  k21, k13, k31);
+	return;
+      } break;
+      }
+    }
+  } else {
+    switch (ncmt){
+    case 1: {
+      oneCmtRateSS(&A[0], tinf, tau, r1, kel);
+      return;
+    } break;
+    case 2: {
+      twoCmtRateSS(&A[0], &A[1], tinf, tau, r1, kel, k12, k21);
+      return;
+    } break;
+    case 3: {
+      threeCmtRateSS(&A[0], &A[1], &A[2], tinf, tau, r1, kel, k12,  k21, k13,  k31);
+      return;
+    } break;
+    }
+  }
+}
+
+static inline void ssTau(double *A,
+			 int ncmt,
+			 int oral0,
+			 double *tau,
+			 double *b1,
+			 double *b2,
+			 double *ka, // ka (for oral doses)
+			 double *kel,  //double rx_v,
+			 double *k12, double *k21,
+			 double *k13, double *k31){
+  if (oral0){
+    if ((*b1) > 0 ){
+      switch (ncmt){
+      case 1: {
+	oneCmtKaSSb1(&A[0], &A[1], tau, b1, ka, kel);
+	return;
+      } break;
+      case 2: {
+	twoCmtKaSSb1(&A[0], &A[1], &A[2], tau, b1, ka, kel, k12, k21);
+	return;
+      } break;
+      case 3: {
+	threeCmtKaSSb1(&A[0], &A[1], &A[2], &A[3],
+		       tau, b1, ka, kel, k12,  k21, k13, k31);
+	return;
+      } break;
+      }
+    } else {
+      switch (ncmt){
+      case 1: {
+	oneCmtKaSSb2(&A[0], &A[1], tau, b2, ka, kel);
+	return;
+      } break;
+      case 2: {
+	twoCmtKaSSb2(&A[0], &A[1], &A[2], tau, b2, ka, kel, k12, k21);
+	return;
+      } break;
+      case 3: {
+	threeCmtKaSSb2(&A[0], &A[1], &A[2], &A[3],
+		       tau, b2, ka, kel, k12,  k21, k13, k31);
+	return;
+      } break;
+      }
+    }
+  } else {
+    switch (ncmt){
+    case 1: {
+      oneCmtBolusSS(&A[0], tau, b1, kel);
+      return;
+    } break;
+    case 2: {
+      twoCmtBolusSS(&A[0], &A[1], tau, b1, kel, k12, k21);
+      return;
+    } break;
+    case 3: {
+      threeCmtBolusSS(&A[0], &A[1], &A[2],
+		      tau, b1, kel, k12,  k21, k13,  k31);
+      return;
+    } break;
+    }
+  }
 }
 
 static inline void ssRate(double *A,
