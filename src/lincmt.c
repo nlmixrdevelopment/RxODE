@@ -1402,6 +1402,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     double rateAdjust= 0;
     int doRate=0;
     int extraAdvan = 1;
+    wh0 = 0;
     if (isObs(evid)){
       // Only apply doses when you need to set the solved system.
       // When it is an observation of course you do not need to apply the doses
@@ -1643,14 +1644,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    A[i] = R_NaN;
 	  }
 	  extraAdvan=0;
-	} else if (wh0 == 40){
-	  // Steady state infusion
-	  // Now advance to steady state dosing
-	  // These are easy to solve
-	  ssRate(A, ncmt, oral0, &r1, &r2,
-		 &d_ka, &rx_k, &rx_k12, &rx_k21,
-		 &rx_k13, &rx_k31);
-	  extraAdvan=0;
 	}
 	// dosing to cmt
 	amt = ind->dose[ind->ixds];
@@ -1728,6 +1721,29 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	} break;
 	}
       }
+    }
+    if (wh0 == 40){
+      // Steady state infusion
+      // Now advance to steady state dosing
+      // These are easy to solve
+      if (op->nlinR == 2){
+	rate[0]=0.0;
+	rate[1]=0.0;
+      } else {
+	rate[0] = 0.0;
+      }
+      if (doRate == 1){
+	r1 = rateAdjust;
+	r2 = 0;
+      } else {
+	r1 = 0;
+	r2 = rateAdjust;
+      }
+      doRate=0;
+      ssRate(A, ncmt, oral0, &r1, &r2,
+	     &d_ka, &rx_k, &rx_k12, &rx_k21,
+	     &rx_k13, &rx_k31);
+      extraAdvan=0;
     }
     /* REprintf("evid: %d; wh: %d; cmt: %d; wh100: %d; whI: %d; wh0: %d; %f\n", */
     /* 	   evid, wh, cmt, wh100, whI, wh0, A[oral0]); */
