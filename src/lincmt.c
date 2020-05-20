@@ -1105,23 +1105,28 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       double d_rate2, double d_dur2) {
   /* REprintf("F: %f; F2: %f\n", d_F, d_F2); */
   rx_solving_options_ind *ind = &(rx->subjects[id]);
+  int evid, wh, cmt, wh100, whI, wh0;
+  /* evid = ind->evid[ind->ix[ind->idx]]; */
+  /* if (evid) REprintf("evid0[%d:%d]: %d; curTime: %f\n", id, ind->idx, evid, t); */
+  int idx = ind->idx;
   sortIfNeeded(rx, ind, id, &linCmt, &d_tlag, &d_tlag2, &d_F, &d_F2,
 	       &d_rate1, &d_dur1, &d_rate2, &d_dur2);
   rx_solving_options *op = rx->op;
   int oral0;
   oral0 = (d_ka > 0) ? 1 : 0;
-  int idx = ind->idx;
   double *A;
-  double A0[4];
   double *Alast;
   double Alast0[4] = {0, 0, 0, 0};
   double tlast;
   double it = getTime(ind->ix[idx], ind);
   double curTime;
+  
   if (t != it) {
     // Try to get another idx by bisection
     /* REprintf("it pre: %f", it); */
+    REprintf("t: %f, it: %f, idx: %d->", t, it, idx);
     idx = _locateTimeIndex(t, ind);
+    REprintf("%d!\n", idx);
     it = getTime(ind->ix[idx], ind);
     /* REprintf("it post: %f", it); */
   }
@@ -1167,8 +1172,8 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
       REprintf(_("invalid translation\n"));
       return NA_REAL;
     }
-    int evid, wh, cmt, wh100, whI, wh0;
     evid = ind->evid[ind->ix[idx]];
+    /* if (evid) REprintf("evid: %d; curTime: %f\n",evid, curTime); */
     if (op->nlinR == 2){
       r1 = rate[0];
       r2 = rate[1];
@@ -1443,21 +1448,38 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	case 5: {
 	  doMultiply= cmtOff+1;
 	} break;
-	case 9: // modeled rate.
-	case 8: { // modeled duration. 
-	  // Rate already calculated and saved in the next dose record
-	  rateAdjust = -ind->dose[ind->ixds+1];
+	case 9: { // modeled rate.
+	  // These are specified in the linCmt
+	  if (cmtOff == 0)  {
+	    // Infusion to central compartment with oral dosing
+	    rateAdjust = d_rate1;
+	  } else {
+	    // Infusion to central compartment or depot
+	    rateAdjust = d_rate2;
+	  }
+	  // Save rate turn off in next dose
 	  doRate = cmtOff+1;
+	} break;
+	case 8: { // modeled duration. 
 	  //InfusionRate[cmt] -= dose[ind->ixds+1];
 	} break;
+	case 7:{ // End modeled rate
+	  if (cmtOff == 0)  {
+	    // Infusion to central compartment with oral dosing
+	    rateAdjust = -d_rate1;
+	  } else {
+	    // Infusion to central compartment or depot
+	    rateAdjust = -d_rate2;
+	  }
+	  doRate = cmtOff+1;
+	} break;
 	case 1: // Begin infusion
-	case 7: // End modeled rate
 	case 6: { // end modeled duration
 	  // If cmt is off, don't remove rate....
 	  // Probably should throw an error if the infusion rate is on still.
 	  rateAdjust = amt; // Amt is negative when turning off
 	  doRate = cmtOff+1;
-	}	break;
+	} break;
 	case 2: {
 	  // In this case bio-availability changes the rate, but the duration remains constant.
 	  // rate = amt/dur

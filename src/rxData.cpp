@@ -5530,6 +5530,7 @@ extern "C" {
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 extern "C" void doSort(rx_solving_options_ind *ind){
   // Reset indexes
+  int idx0 = ind->idx; // Sorting sometimes resets idx, so set to previous value
   std::iota(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times, 0);
   // Reset times for infusion
   int wh, cmt, wh100, whI, wh0;
@@ -5541,20 +5542,21 @@ extern "C" void doSort(rx_solving_options_ind *ind){
   }
   try {
     SORT(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
-	      [&ind](int a, int b){
-		double ta=getTime(a, ind);
-		if (ind->err){
-		  throw std::runtime_error("error");
-		}
-		double tb = getTime(b, ind);
-		if (ind->err){
-		  throw std::runtime_error("error");
-		}
-		if (ta == tb) return a < b;
-		return ta < tb;
-	      });
+	 [&ind](int a, int b){
+	   double ta=getTime(a, ind);
+	   if (ind->err){
+	     throw std::runtime_error("error");
+	   }
+	   double tb = getTime(b, ind);
+	   if (ind->err){
+	     throw std::runtime_error("error");
+	   }
+	   if (ta == tb) return a < b;
+	   return ta < tb;
+	 });
   } catch(...){
   }
+  ind->idx = idx0; // Sorting sometimes resets idx, so set to previous value
 }
 
 //[[Rcpp::export]]

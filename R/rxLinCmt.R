@@ -245,9 +245,9 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
           .tmp <- .txt[.durCenter];
           .txt <- .txt[-.durCenter];
           if (.oral){
-            .lines[length(.lines)+1]  <- sub(.regFcenter,"rx_dur2 ~ \\1", .tmp);
+            .lines[length(.lines)+1]  <- sub(.regDurCenter,"rx_dur2 ~ \\1", .tmp);
           } else {
-            .lines[length(.lines)+1]  <- sub(.regFcenter,"rx_dur ~ \\1", .tmp);
+            .lines[length(.lines)+1]  <- sub(.regDurCenter,"rx_dur ~ \\1", .tmp);
             .lines[length(.lines) + 1]  <- sprintf("rx_dur2 ~ 0")
           }
         } else if (length(.durCenter)>1L) {

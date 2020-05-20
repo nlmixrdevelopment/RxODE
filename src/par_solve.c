@@ -2385,10 +2385,12 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
   if (i < ind->n_all_times){
     ind->idx=i;
     time = getTime(ind->ix[i], ind);
+    ind->idx=i;
     isDose = !isObs(ind->evid[ind->ix[i]]);
     if (isDose) {
       ind->tlast = time;
     }
+    /* if (ind->evid[ind->ix[i]]) REprintf("e[%d;%d]: %d %f\n", id, i, ind->evid[ind->ix[i]], time); */
     calc_lhs((int)id, time, solve+i*op->neq, lhs);
     isDose = !isObs(ind->evid[ind->ix[i]]);// Recalculate in case shifted
     if (isDose){
