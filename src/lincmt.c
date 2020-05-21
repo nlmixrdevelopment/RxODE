@@ -304,10 +304,10 @@ static inline void oneCmtKaRateSSr2(double *A1, double *A2,
 static inline void oneCmtKaRateSStr1(double *A1, double *A2,
 				     double *tinf, double *tau, double *r1,
 				     double *ka, double *k20) {
-  double eKa = 1.0/(1.0-exp(-(*tau)*(*ka)));
+  double eKa = exp(-(*ka)*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*(*ka)));
   double eiKa = exp(-(*ka)*(*tinf));
   double eiK = exp(-(*k20)*(*tinf));
-  double eK = 1.0/(1.0-exp(-(*tau)*(*k20)));
+  double eK = exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*(*k20)));
   *A1=eKa*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
   *A2=eK*((*r1)/(*k20) + eiKa*(*r1)/(-(*k20) + (*ka)) - eiK*(*r1)*(*ka)/((*ka)*(*k20) - (*k20)*(*k20))) + (*ka)*(eK - eKa)*((*r1)/(*ka) - eiKa*(*r1)/(*ka))/(-(*k20) + (*ka));
 }
@@ -316,7 +316,7 @@ static inline void oneCmtKaRateSStr2(double *A1, double *A2,
 				     double *tinf, double *tau, double *r2, 
 				     double *ka, double *k20){
   double eiK = exp(-(*k20)*(*tinf));
-  double eK = 1.0/(1.0-exp(-(*k20)*(*tau)));
+  double eK = exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*k20)*(*tau)));
   *A1=0.0;
   *A2=eK*((*r2)/(*k20) - eiK*(*r2)*(-(*k20) + (*ka))/((*ka)*(*k20) - (*k20)*(*k20)));
 }
@@ -377,9 +377,9 @@ static inline void twoCmtKaRateSStr1(double *A1, double *A2, double *A3,
   double beta  = 0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)));
   double alpha = (*k32)*(*k20)/beta;
 
-  double eKa = 1.0/(1.0-exp(-(*ka)*(*tau)));
-  double eA  = 1.0/(1.0-exp(-alpha*(*tau)));
-  double eB  = 1.0/(1.0-exp(-beta*(*tau)));
+  double eKa = exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*ka)*(*tau)));
+  double eA  = exp(-alpha*((*tau)-(*tinf)))/(1.0-exp(-alpha*(*tau)));
+  double eB  = exp(-beta*((*tau)-(*tinf)))/(1.0-exp(-beta*(*tau)));
 
   double eiKa = exp(-(*ka)*(*tinf));
   double eiA = exp(-alpha*(*tinf));
@@ -407,8 +407,8 @@ static inline void twoCmtKaRateSStr2(double *A1, double *A2, double *A3,
   double beta  = 0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)));
   double alpha = (*k32)*(*k20)/beta;
 
-  double eA = 1.0/(1.0-exp(-alpha*(*tau)));
-  double eB = 1.0/(1.0-exp(-beta*(*tau)));
+  double eA = exp(-alpha*((*tau)-(*tinf)))/(1.0-exp(-alpha*(*tau)));
+  double eB = exp(-beta*((*tau)-(*tinf)))/(1.0-exp(-beta*(*tau)));
 
   double eiA = exp(-alpha*(*tinf));
   double eiB = exp(-beta*(*tinf));
@@ -545,16 +545,16 @@ static inline void threeCmtKaRateSStr1(double *A1, double *A2, double *A3, doubl
   double lam2 = j3 + rho3*(ct3 - st3);
   double lam3 = j3 -(2.0*rho3*ct3);
   
-  double eKa = 1.0/(1.0-exp(-(*ka)*(*tau)));
+  double eKa = exp(-(*ka)*((*tau)-(*tinf)))/(1.0-exp(-(*ka)*(*tau)));
   double eiKa = exp(-(*ka)*(*tinf));
 
-  double eL1 = 1.0/(1.0-exp(-lam1*(*tau)));
+  double eL1 = exp(-lam1*((*tau)-(*tinf)))/(1.0-exp(-lam1*(*tau)));
   double eiL1 = exp(-lam1*(*tinf));
 
-  double eL2 = 1.0/(1.0-exp(-lam2*(*tau)));
+  double eL2 = exp(-lam2*((*tau)-(*tinf)))/(1.0-exp(-lam2*(*tau)));
   double eiL2 = exp(-lam2*(*tinf));
 
-  double eL3 = 1.0/(1.0-exp(-lam3*(*tau)));
+  double eL3 = exp(-lam2*((*tau)-(*tinf)))/(1.0-exp(-lam3*(*tau)));
   double eiL3 = exp(-lam3*(*tinf));
 
   double ka2 = (*ka)*(*ka);
@@ -609,13 +609,13 @@ static inline void threeCmtKaRateSStr2(double *A1, double *A2, double *A3, doubl
   /* double eKa = 1.0/(1.0-exp(-(*ka)*(*tau))); */
   /* double eiKa = exp(-(*ka)*(*tinf)); */
 
-  double eL1 = 1.0/(1.0-exp(-lam1*(*tau)));
+  double eL1 = exp(-lam1*((*tau)-(*tinf)))/(1.0-exp(-lam1*(*tau)));
   double eiL1 = exp(-lam1*(*tinf));
 
-  double eL2 = 1.0/(1.0-exp(-lam2*(*tau)));
+  double eL2 = exp(-lam2*((*tau)-(*tinf)))/(1.0-exp(-lam2*(*tau)));
   double eiL2 = exp(-lam2*(*tinf));
 
-  double eL3 = 1.0/(1.0-exp(-lam3*(*tau)));
+  double eL3 = exp(-lam3*((*tau)-(*tinf)))/(1.0-exp(-lam3*(*tau)));
   double eiL3 = exp(-lam3*(*tinf));
 
   /* double ka2 = (*ka)*(*ka); */
@@ -985,7 +985,7 @@ static inline void oneCmtRateSSr1(double *A1, double *r1, double *k10) {
 }
 static inline void oneCmtRateSS(double *A1, double *tinf, double *tau, double *r1, double *k10) {
   double eiK = exp(-(*k10)*(*tinf));
-  double eK = exp((*tinf))/(1.0-exp(-(*k10)*(*tau)));
+  double eK = exp(-(*k10)*((*tau)-(*tinf)))/(1.0-exp(-(*k10)*(*tau)));
   *A1=(*r1)*(1-eiK)*eK/((*k10));
 }
 static inline void oneCmtRate(double *A1, double *A1last, 
@@ -1025,8 +1025,8 @@ static inline void twoCmtRateSS(double *A1, double *A2,
 
   double eTi1 = exp(-(*tinf)*lambda1);
   double eTi2 = exp(-(*tinf)*lambda2);
-  double eT1 =1.0/(1.0-exp(-(*tau)*lambda1));
-  double eT2 =1.0/(1.0-exp(-(*tau)*lambda2));
+  double eT1 =exp(-lambda1*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*lambda1));
+  double eT2 =exp(-lambda2*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*lambda2));
   *A1=(eT1*(E2*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) - lambda1*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) + (*r1)*(*k12)*(*k21)*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) - eT2*(E2*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) - lambda2*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) + (*r1)*(*k12)*(*k21)*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))))/(-lambda1 + lambda2);
     *A2=(eT1*((*k12)*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) + (*r1)*E1*(*k12)*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2)) - (*r1)*(*k12)*lambda1*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) - eT2*((*k12)*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) + (*r1)*E1*(*k12)*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2)) - (*r1)*(*k12)*lambda2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))))/(-lambda1 + lambda2);
 }
@@ -1135,9 +1135,9 @@ static inline void threeCmtRateSS(double *A1, double *A2, double *A3,
   double eTi1 = exp(-(*tinf)*lambda1);
   double eTi2 = exp(-(*tinf)*lambda2);
   double eTi3 = exp(-(*tinf)*lambda3);
-  double eT1 = 1.0/(1.0-exp(-(*tau)*lambda1));
-  double eT2 = 1.0/(1.0-exp(-(*tau)*lambda2));
-  double eT3 = 1.0/(1.0-exp(-(*tau)*lambda3));
+  double eT1 = exp(-lambda1*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*lambda1));
+  double eT2 = exp(-lambda2*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*lambda2));
+  double eT3 = exp(-lambda3*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*lambda3));
   *A1=(*r1)*(eT1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eT2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eT3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)))*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + eT2*(lambda2*((*r1)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))) - ((*r1)*E2*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*E3*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda2)*(lambda2 - lambda3)) + eT1*(-lambda1*((*r1)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))) + (*r1)*E2*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*E3*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)))/((lambda1 - lambda3)*(lambda1 - lambda2)) + eT3*(lambda3*((*r1)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))) - ((*r1)*E2*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*E3*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda3)*(-lambda2 + lambda3));
   *A2=(*r1)*(*k12)*(eT1*(E3 - lambda1)*(E1 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eT2*(E1 - lambda2)*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eT3*(E1 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)))*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + eT2*((*r1)*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda2 - ((*r1)*E3*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k31)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda2)*(lambda2 - lambda3)) + eT1*((*r1)*E3*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda1 + (*r1)*(*k13)*(*k12)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k31)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)))/((lambda1 - lambda3)*(lambda1 - lambda2)) + eT3*((*r1)*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda3 - ((*r1)*E3*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k31)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda3)*(-lambda2 + lambda3));
   *A3=(*r1)*(*k13)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*(eT1*(E2 - lambda1)*(E1 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eT2*(E1 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eT3*(E1 - lambda3)*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3))) + eT2*((*r1)*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda2 - ((*r1)*E2*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k21)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda2)*(lambda2 - lambda3)) + eT1*((*r1)*E2*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda1 - (*r1)*(*k13)*(*k12)*(*k21)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)))/((lambda1 - lambda3)*(lambda1 - lambda2)) + eT3*((*r1)*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda3 - ((*r1)*E2*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k21)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda3)*(-lambda2 + lambda3));
@@ -2118,18 +2118,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	      ssRateTau(A, ncmt, oral0, &tinf, &tau,
 			&r1, &r2, &d_ka,
 			&rx_k, &rx_k12, &rx_k21, &rx_k13, &rx_k31);
-	    }
-	    // Turn back on the rate.
-	    if (op->nlinR == 2){
-	      if (cmtOff == 0){
-		rate[0]=r0;
-		rate[1]=0.0;
-	      } else {
-		rate[0]=0.0;
-		rate[1]=r0;
-	      }
-	    } else {
-	      rate[0] = r0;
 	    }
 	  }
 	  // Now calculate steady state
