@@ -1313,10 +1313,10 @@ static inline void threeCmtBolusSS(double *A1, double *A2, double *A3,
   double eL1 = 1.0/(1.0-exp(-(*tau)*lambda1));
   double eL2 = 1.0/(1.0-exp(-(*tau)*lambda2));
   double eL3 = 1.0/(1.0-exp(-(*tau)*lambda3));
-  
+
   *A1=(*b1)*(eL1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eL2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eL3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)));
   *A2=eL2*(-(*b1)*E3*(*k12) + (*b1)*(*k12)*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*((*b1)*E3*(*k12) - (*b1)*(*k12)*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-(*b1)*E3*(*k12) + (*b1)*(*k12)*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
-  *A3=eL2*(-(*b1)*E3*(*k12) + (*b1)*(*k12)*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*((*b1)*E3*(*k12) - (*b1)*(*k12)*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-(*b1)*E3*(*k12) + (*b1)*(*k12)*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
+  *A3=eL2*(-(*b1)*E2*(*k13) + (*b1)*(*k13)*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*((*b1)*E2*(*k13) - (*b1)*(*k13)*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-(*b1)*E2*(*k13) + (*b1)*(*k13)*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
 }
 
 static inline void threeCmtBolus(double *A1, double *A2, double *A3,

@@ -967,4 +967,43 @@ A3last=r2*k23/(beta*alpha) - exp(-tinf*alpha)*r2*(-k23*alpha + ka*k23)/(-beta*al
                 "A3=", paste0(env$A3),"\n",
                 "A4=", paste0(env$A4),"\n")
 
+
+  ## 3 compartment bolus steady state redo
+
+  m <- RxODE({
+    A1last <- b1
+    A2last <- 0
+    A3last <- 0
+    k20 <- 0
+    k30 <- 0
+
+    B = A2last*k21+A3last*k31
+    C = E3*A2last*k21+E2*A3last*k31
+    I = A1last*k12*E3-A2last*k13*k31+A3last*k12*k31
+    J = A1last*k13*E2+A2last*k13*k21-A3last*k12*k21
+
+    A1term1 = A1last*(exp(-t*lambda1)*(E2-lambda1)*(E3-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+exp(-t*lambda2)*(E2-lambda2)*(E3-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+exp(-t*lambda3)*(E2-lambda3)*(E3-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))
+    A1term2 = exp(-t*lambda1)*(C-B*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+exp(-t*lambda2)*(B*lambda2-C)/((lambda1-lambda2)*(lambda2-lambda3))+exp(-t*lambda3)*(B*lambda3-C)/((lambda1-lambda3)*(lambda3-lambda2))
+
+    A1 <- (A1term1+A1term2)  #Amount in the central compartment
+
+    A2term1 = A2last*(exp(-t*lambda1)*(E1-lambda1)*(E3-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+exp(-t*lambda2)*(E1-lambda2)*(E3-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+exp(-t*lambda3)*(E1-lambda3)*(E3-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))
+    A2term2 = exp(-t*lambda1)*(I-A1last*k12*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+exp(-t*lambda2)*(A1last*k12*lambda2-I)/((lambda1-lambda2)*(lambda2-lambda3))+exp(-t*lambda3)*(A1last*k12*lambda3-I)/((lambda1-lambda3)*(lambda3-lambda2))
+
+    A2 <- A2term1+A2term2             #Amount in the first-peripheral compartment
+
+    A3term1 = A3last*(exp(-t*lambda1)*(E1-lambda1)*(E2-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+exp(-t*lambda2)*(E1-lambda2)*(E2-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+exp(-t*lambda3)*(E1-lambda3)*(E2-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))
+    A3term2 = exp(-t*lambda1)*(J-A1last*k13*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+exp(-t*lambda2)*(A1last*k13*lambda2-J)/((lambda1-lambda2)*(lambda2-lambda3))+exp(-t*lambda3)*(A1last*k13*lambda3-J)/((lambda1-lambda3)*(lambda3-lambda2))
+
+    A3 <- A3term1+A3term2            #Amount in the second-peripheral compartment
+  })
+
+  env <- rxS(m)
+
+  mod <- gsub("\\b(ka|k[1-4][1-4]|[rb][1-2])\\b", "(*\\1)",
+              gsub("exp[(]-t[*]lambda([1-3])[)]", "eL\\1", paste0("A1=", paste0(env$A1),"\n",
+                "A2=", paste0(env$A2),"\n",
+                "A3=", paste0(env$A3),"\n")))
+
+
 }
