@@ -841,9 +841,18 @@ A3last=r2*k23/(beta*alpha) - exp(-tinf*alpha)*r2*(-k23*alpha + ka*k23)/(-beta*al
   })
 
   env <- rxS(m)
-  mod <- paste0("A1=", paste0(env$A1),"\n",
-                "A2=", paste0(env$A2),"\n",
-                "A3=", paste0(env$A2),"\n")
+
+  mod <- gsub("\\b(ka|k[1-4][1-4]|r[1-2])\\b", "(*\\1)",
+              gsub("exp[(]-tinf[*]beta[)]", "eiB",
+             gsub("exp[(]-tinf[*]alpha[)]", "eiA",
+                  gsub("exp[(]-t[*]alpha[)]", "eA",
+                       gsub("exp[(]-t[*]beta[)]", "eB",
+                       gsub("exp(-t*ka)", "eKa",
+             gsub("exp(-ka*tinf)", "eiKa",
+                  gsub("(alpha|beta)\\^([1-4])[.][0]", "\\1\\2",
+                       paste0("A1=", paste0(env$A1),"\n",
+                              "A2=", paste0(env$A2),"\n",
+                              "A3=", paste0(env$A3),"\n")), fixed=TRUE), fixed=TRUE))))), perl=TRUE)
 
   ## 3 compartment oral steady state infusion with tau
   m <- RxODE({
