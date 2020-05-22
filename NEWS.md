@@ -110,8 +110,11 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 * Now the NONMEM-style `newind` flag can be used to initialize `lhs`
   parameters.
 
-* Added "advan" style `linCmt()` solutions, to allow correct solutions
-  of time-varying covariate values with solved systems
+* Changed linear solved systems to use "advan" style `linCmt()`
+  solutions, to allow correct solutions of time-varying covariate
+  values with solved systems; As such, the solutions may be slightly
+  different.  Infusions to the depot compartment are now supported. 
+  
 
 * Added sensitivity auto-differentiation of `linCmt()` solutions (via
   stan's math headers).  This allows sensitivities of `linCmt()`
