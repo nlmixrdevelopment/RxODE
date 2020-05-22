@@ -480,7 +480,7 @@ static inline void threeCmtKaRateSSr1(double *A1, double *A2, double *A3, double
   double lam1 = j3  + rho3*(ct3 + st3);
   double lam2 = j3 + rho3*(ct3 - st3);
   double lam3 = j3 -(2.0*rho3*ct3);
-  double l123 = 1.0/lam1*lam2*lam3;
+  double l123 = 1.0/(lam1*lam2*lam3);
   *A1=(*r1)/(*ka);
   *A2=(*r1)*(*k42)*(*k32)*l123;
   *A3=(*r1)*(*k42)*(*k23)*l123;
@@ -511,7 +511,7 @@ static inline void threeCmtKaRateSSr2(double *A1, double *A2, double *A3, double
   double lam1 = j3  + rho3*(ct3 + st3);
   double lam2 = j3 + rho3*(ct3 - st3);
   double lam3 = j3 -(2.0*rho3*ct3);
-  double l123 = 1.0/lam1*lam2*lam3;
+  double l123 = 1.0/(lam1*lam2*lam3);
   *A1=0;
   *A2=(*r2)*(*k42)*(*k32)*l123;
   *A3=(*r2)*(*k42)*(*k23)*l123;
