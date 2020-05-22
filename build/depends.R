@@ -70,7 +70,7 @@ if (FALSE){
     A3=((A3last*lam3^3+(-A3last*ka-A3last*k42+(-b2-A2last)*k23-A3last*E2)*lam3^2+((A3last*k42+(b2+b1+A2last+A1last)*k23+A3last*E2)*ka+(-A3last*k24+(b2+A4last+A2last)*k23+A3last*E2)*k42)*lam3+(A3last*k24+(-b2-b1-A4last-A2last-A1last)*k23-A3last*E2)*k42*ka)*exp(-lam3*t))/(lam3^3+(-lam2-lam1-ka)*lam3^2+((lam1+ka)*lam2+ka*lam1)*lam3-ka*lam1*lam2)-((A3last*lam2^3+(-A3last*ka-A3last*k42+(-b2-A2last)*k23-A3last*E2)*lam2^2+((A3last*k42+(b2+b1+A2last+A1last)*k23+A3last*E2)*ka+(-A3last*k24+(b2+A4last+A2last)*k23+A3last*E2)*k42)*lam2+(A3last*k24+(-b2-b1-A4last-A2last-A1last)*k23-A3last*E2)*k42*ka)*exp(-lam2*t))/((lam2^2+(-lam1-ka)*lam2+ka*lam1)*lam3-lam2^3+(lam1+ka)*lam2^2-ka*lam1*lam2)+((A3last*lam1^3+(-A3last*ka-A3last*k42+(-b2-A2last)*k23-A3last*E2)*lam1^2+((A3last*k42+(b2+b1+A2last+A1last)*k23+A3last*E2)*ka+(-A3last*k24+(b2+A4last+A2last)*k23+A3last*E2)*k42)*lam1+(A3last*k24+(-b2-b1-A4last-A2last-A1last)*k23-A3last*E2)*k42*ka)*exp(-lam1*t))/(((lam1-ka)*lam2-lam1^2+ka*lam1)*lam3+(ka*lam1-lam1^2)*lam2+lam1^3-ka*lam1^2)-(((b1+A1last)*k23*ka^2+(-b1-A1last)*k23*k42*ka)*exp(-ka*t))/(((lam1-ka)*lam2-ka*lam1+ka^2)*lam3+(ka^2-ka*lam1)*lam2+ka^2*lam1-ka^3)
     A4=((A4last*lam3^3+(-A4last*ka-A4last*k32+(-b2-A2last)*k24-A4last*E2)*lam3^2+((A4last*k32+(b2+b1+A2last+A1last)*k24+A4last*E2)*ka+((b2+A3last+A2last)*k24-A4last*k23+A4last*E2)*k32)*lam3+((-b2-b1-A3last-A2last-A1last)*k24+A4last*k23-A4last*E2)*k32*ka)*exp(-lam3*t))/(lam3^3+(-lam2-lam1-ka)*lam3^2+((lam1+ka)*lam2+ka*lam1)*lam3-ka*lam1*lam2)-((A4last*lam2^3+(-A4last*ka-A4last*k32+(-b2-A2last)*k24-A4last*E2)*lam2^2+((A4last*k32+(b2+b1+A2last+A1last)*k24+A4last*E2)*ka+((b2+A3last+A2last)*k24-A4last*k23+A4last*E2)*k32)*lam2+((-b2-b1-A3last-A2last-A1last)*k24+A4last*k23-A4last*E2)*k32*ka)*exp(-lam2*t))/((lam2^2+(-lam1-ka)*lam2+ka*lam1)*lam3-lam2^3+(lam1+ka)*lam2^2-ka*lam1*lam2)+((A4last*lam1^3+(-A4last*ka-A4last*k32+(-b2-A2last)*k24-A4last*E2)*lam1^2+((A4last*k32+(b2+b1+A2last+A1last)*k24+A4last*E2)*ka+((b2+A3last+A2last)*k24-A4last*k23+A4last*E2)*k32)*lam1+((-b2-b1-A3last-A2last-A1last)*k24+A4last*k23-A4last*E2)*k32*ka)*exp(-lam1*t))/(((lam1-ka)*lam2-lam1^2+ka*lam1)*lam3+(ka*lam1-lam1^2)*lam2+lam1^3-ka*lam1^2)-(((b1+A1last)*k24*ka^2+(-b1-A1last)*k24*k32*ka)*exp(-ka*t))/(((lam1-ka)*lam2-ka*lam1+ka^2)*lam3+(ka^2-ka*lam1)*lam2+ka^2*lam1-ka^3)
   })
-  
+
   message(rxOptExpr(rxNorm(m)))
 
   ## Now 1-3 compartment bolus
@@ -187,7 +187,7 @@ if (FALSE){
 
     lambda1 <- j/3 + rho^(1/3)*(cos(theta/3) + sqrt(3)*sin(theta/3))
     lambda2 <- j/3 + rho^(1/3)*(cos(theta/3) - sqrt(3)*sin(theta/3))
-    lambda3 <- j/3 -(2*rho^(1/3)*cos(theta/3)) 
+    lambda3 <- j/3 -(2*rho^(1/3)*cos(theta/3))
   })
 
   message(rxOptExpr(rxNorm(m)))
@@ -240,7 +240,7 @@ if (FALSE){
     lambda1 = 0.5*((E2+E3)+sqrt((E2+E3)^2-4*(E2*E3-k12*k21)))
     lambda2 = 0.5*((E2+E3)-sqrt((E2+E3)^2-4*(E2*E3-k12*k21)))
   })
-  
+
   message(rxOptExpr(rxNorm(m)))
 
   m <- RxODE({
@@ -260,7 +260,7 @@ if (FALSE){
                 "A2=", paste0(env$A2),"\n",
                 "A3=", paste0(env$A3),"\n")
 
-  
+
   tmp2 <- RxODE(rxOptExpr(mod))
 
   summary(rxC(tmp2))
@@ -283,18 +283,18 @@ if (FALSE){
     theta <- atan2(alpha,beta)
     lam1 <- j/3 + rho^(1/3)*(cos(theta/3) + sqrt(3)*sin(theta/3))
     lam2 <- j/3 + rho^(1/3)*(cos(theta/3) - sqrt(3)*sin(theta/3))
-    lam3 <- j/3 -(2*rho^(1/3)*cos(theta/3)) 
+    lam3 <- j/3 -(2*rho^(1/3)*cos(theta/3))
   })
 
   tmp <- RxODE(rxOptExpr(rxNorm(m0)))
-  
+
   summary(rxC(tmp))
 
   m <- RxODE({
     ##Check half-lives
-    ## thalfa <- log(2)/d[,"l1"] 
-    ## thalfb <- log(2)/d[,"l2"] 
-    ## thalfg <- log(2)/d[,"l3"] 
+    ## thalfa <- log(2)/d[,"l1"]
+    ## thalfb <- log(2)/d[,"l2"]
+    ## thalfg <- log(2)/d[,"l3"]
     A1 = b1+ r1/ka-((r1-A1last*ka)*exp(-ka*t))/ka
     A2 = b2-(((lam3^3+(-ka-k42-k32)*lam3^2+((k42+k32)*ka+k32*k42)*lam3-k32*k42*ka)*r2+(-ka*lam3^2+(k42+k32)*ka*lam3-k32*k42*ka)*r1-A2last*lam3^4+((A2last+A1last)*ka+(A4last+A2last)*k42+(A3last+A2last)*k32)*lam3^3+(((-A4last-A2last-A1last)*k42+(-A3last-A2last-A1last)*k32)*ka+(-A4last-A3last-A2last)*k32*k42)*lam3^2+(A4last+A3last+A2last+A1last)*k32*k42*ka*lam3)*exp(-lam3*t))/(lam3^4+(-lam2-lam1-ka)*lam3^3+((lam1+ka)*lam2+ka*lam1)*lam3^2-ka*lam1*lam2*lam3)+(((lam2^3+(-ka-k42-k32)*lam2^2+((k42+k32)*ka+k32*k42)*lam2-k32*k42*ka)*r2+(-ka*lam2^2+(k42+k32)*ka*lam2-k32*k42*ka)*r1-A2last*lam2^4+((A2last+A1last)*ka+(A4last+A2last)*k42+(A3last+A2last)*k32)*lam2^3+(((-A4last-A2last-A1last)*k42+(-A3last-A2last-A1last)*k32)*ka+(-A4last-A3last-A2last)*k32*k42)*lam2^2+(A4last+A3last+A2last+A1last)*k32*k42*ka*lam2)*exp(-lam2*t))/((lam2^3+(-lam1-ka)*lam2^2+ka*lam1*lam2)*lam3-lam2^4+(lam1+ka)*lam2^3-ka*lam1*lam2^2)-(((lam1^3+(-ka-k42-k32)*lam1^2+((k42+k32)*ka+k32*k42)*lam1-k32*k42*ka)*r2+(-ka*lam1^2+(k42+k32)*ka*lam1-k32*k42*ka)*r1-A2last*lam1^4+((A2last+A1last)*ka+(A4last+A2last)*k42+(A3last+A2last)*k32)*lam1^3+(((-A4last-A2last-A1last)*k42+(-A3last-A2last-A1last)*k32)*ka+(-A4last-A3last-A2last)*k32*k42)*lam1^2+(A4last+A3last+A2last+A1last)*k32*k42*ka*lam1)*exp(-lam1*t))/(((lam1^2-ka*lam1)*lam2-lam1^3+ka*lam1^2)*lam3+(ka*lam1^2-lam1^3)*lam2+lam1^4-ka*lam1^3)-(((ka^2+(-k42-k32)*ka+k32*k42)*r1-A1last*ka^3+(A1last*k42+A1last*k32)*ka^2-A1last*k32*k42*ka)*exp(-ka*t))/(((lam1-ka)*lam2-ka*lam1+ka^2)*lam3+(ka^2-ka*lam1)*lam2+ka^2*lam1-ka^3)+(k32*k42*r2+k32*k42*r1)/(lam1*lam2*lam3);
     A3=(((k23*lam3^2+(-k23*ka-k23*k42)*lam3+k23*k42*ka)*r2+(k23*k42*ka-k23*ka*lam3)*r1+A3last*lam3^4+(-A3last*ka-A3last*k42-A2last*k23-A3last*E2)*lam3^3+((A3last*k42+(A2last+A1last)*k23+A3last*E2)*ka+(-A3last*k24+(A4last+A2last)*k23+A3last*E2)*k42)*lam3^2+(A3last*k24+(-A4last-A2last-A1last)*k23-A3last*E2)*k42*ka*lam3)*exp(-lam3*t))/(lam3^4+(-lam2-lam1-ka)*lam3^3+((lam1+ka)*lam2+ka*lam1)*lam3^2-ka*lam1*lam2*lam3)-(((k23*lam2^2+(-k23*ka-k23*k42)*lam2+k23*k42*ka)*r2+(k23*k42*ka-k23*ka*lam2)*r1+A3last*lam2^4+(-A3last*ka-A3last*k42-A2last*k23-A3last*E2)*lam2^3+((A3last*k42+(A2last+A1last)*k23+A3last*E2)*ka+(-A3last*k24+(A4last+A2last)*k23+A3last*E2)*k42)*lam2^2+(A3last*k24+(-A4last-A2last-A1last)*k23-A3last*E2)*k42*ka*lam2)*exp(-lam2*t))/((lam2^3+(-lam1-ka)*lam2^2+ka*lam1*lam2)*lam3-lam2^4+(lam1+ka)*lam2^3-ka*lam1*lam2^2)+(((k23*lam1^2+(-k23*ka-k23*k42)*lam1+k23*k42*ka)*r2+(k23*k42*ka-k23*ka*lam1)*r1+A3last*lam1^4+(-A3last*ka-A3last*k42-A2last*k23-A3last*E2)*lam1^3+((A3last*k42+(A2last+A1last)*k23+A3last*E2)*ka+(-A3last*k24+(A4last+A2last)*k23+A3last*E2)*k42)*lam1^2+(A3last*k24+(-A4last-A2last-A1last)*k23-A3last*E2)*k42*ka*lam1)*exp(-lam1*t))/(((lam1^2-ka*lam1)*lam2-lam1^3+ka*lam1^2)*lam3+(ka*lam1^2-lam1^3)*lam2+lam1^4-ka*lam1^3)+(((k23*ka-k23*k42)*r1-A1last*k23*ka^2+A1last*k23*k42*ka)*exp(-ka*t))/(((lam1-ka)*lam2-ka*lam1+ka^2)*lam3+(ka^2-ka*lam1)*lam2+ka^2*lam1-ka^3)+(k23*k42*r2+k23*k42*r1)/(lam1*lam2*lam3);
@@ -302,13 +302,13 @@ if (FALSE){
   })
 
   env <- rxS(m)
-  
+
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n",
                 "A3=", paste0(env$A3),"\n",
                 "A4=", paste0(env$A4),"\n")
 
-  
+
   tmp2 <- RxODE(rxOptExpr(mod))
 
   summary(rxC(tmp2))
@@ -325,7 +325,7 @@ if (FALSE){
   })
 
   env <- rxS(m)
-  
+
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n")
 
@@ -338,7 +338,7 @@ if (FALSE){
   })
 
   env <- rxS(m)
-  
+
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n")
 
@@ -354,7 +354,7 @@ if (FALSE){
   })
 
   env <- rxS(m)
-  
+
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n",
                 "A3=", paste0(env$A3))
@@ -370,7 +370,7 @@ if (FALSE){
   })
 
   env <- rxS(m)
-  
+
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n",
                 "A3=", paste0(env$A3))
@@ -388,7 +388,7 @@ if (FALSE){
   })
 
   env <- rxS(m)
-  
+
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n",
                 "A3=", paste0(env$A3),"\n",
@@ -407,7 +407,7 @@ if (FALSE){
   })
 
   env <- rxS(m)
-  
+
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n",
                 "A3=", paste0(env$A3),"\n",
@@ -422,7 +422,7 @@ if (FALSE){
   })
 
   env <- rxS(m)
-  
+
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n")
 
@@ -436,9 +436,9 @@ if (FALSE){
     A3=A3last*(eL1*(E1-lambda1)*(E2-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+eL2*(E1-lambda2)*(E2-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+eL3*(E1-lambda3)*(E2-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))+eL1*(J-A1last*k13*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+eL2*(A1last*k13*lambda2-J)/((lambda1-lambda2)*(lambda2-lambda3))+eL3*(A1last*k13*lambda3-J)/((lambda1-lambda3)*(lambda3-lambda2))+r1*k13*(E2/(lambda1*lambda2*lambda3)-eL1*(E2-lambda1)/(lambda1*(lambda2-lambda1)*(lambda3-lambda1))-eL2*(E2-lambda2)/(lambda2*(lambda1-lambda2)*(lambda3-lambda2))-eL3*(E2-lambda3)/(lambda3*(lambda1-lambda3)*(lambda2-lambda3)))
   })
 
-  
+
   env <- rxS(m)
-  
+
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n",
                 "A3=", paste0(env$A3),"\n")
@@ -457,7 +457,7 @@ if (FALSE){
   })
 
   env <- rxS(m)
-  
+
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n")
 
@@ -470,7 +470,7 @@ if (FALSE){
     B = A2last*k21+A3last*k31;
     C = E3*A2last*k21+E2*A3last*k31;
     I = A1last*k12*E3-A2last*k13*k31+A3last*k12*k31;
-    
+
     A1term1 = A1last*(exp(-t*lambda1)*(E2-lambda1)*(E3-lambda1)/((lambda2-lambda1)*(lambda3-lambda1))+exp(-t*lambda2)*(E2-lambda2)*(E3-lambda2)/((lambda1-lambda2)*(lambda3-lambda2))+exp(-t*lambda3)*(E2-lambda3)*(E3-lambda3)/((lambda1-lambda3)*(lambda2-lambda3)))
     A1term2 = exp(-t*lambda1)*(C-B*lambda1)/((lambda1-lambda2)*(lambda1-lambda3))+exp(-t*lambda2)*(B*lambda2-C)/((lambda1-lambda2)*(lambda2-lambda3))+exp(-t*lambda3)*(B*lambda3-C)/((lambda1-lambda3)*(lambda3-lambda2))
 
@@ -489,7 +489,7 @@ if (FALSE){
 
 
   env <- rxS(m)
-  
+
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n",
                 "A3=", paste0(env$A2),"\n")
@@ -609,7 +609,7 @@ if (FALSE){
     A3 = A3term1+A3term2  #Amount in the peripheral compartment
 
     A1last = A1last*exp(-t*ka)
-    A1 = A1last 
+    A1 = A1last
     A2 = A2
   })
 
@@ -631,7 +631,7 @@ if (FALSE){
     A3 = A3term1+A3term2  #Amount in the peripheral compartment
 
     A1last = A1last*exp(-t*ka)
-    A1 = A1last 
+    A1 = A1last
     A2 = A2
   })
 
@@ -639,14 +639,14 @@ if (FALSE){
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n",
                 "A3=", paste0(env$A3),"\n")
-  
+
   ## 3 compartment oral SS deriv
   m <- RxODE({
     A1last = b1
     A2last = 0
     A3last = 0
     A4last = 0
-    
+
     B = A3last*k32+A4last*k42
     C = E4*A3last*k32+E3*A4last*k42
     I = A2last*k23*E4-A3last*k24*k42+A4last*k23*k42
@@ -682,7 +682,7 @@ if (FALSE){
     A2last = b2
     A3last = 0
     A4last = 0
-    
+
     B = A3last*k32+A4last*k42
     C = E4*A3last*k32+E3*A4last*k42
     I = A2last*k23*E4-A3last*k24*k42+A4last*k23*k42
@@ -772,39 +772,39 @@ if (FALSE){
     A1last=0
     A2last=0
     A3last=0
-    r2=0
-    A1=r1/ka-((r1-A1last*ka)*exp(-ka*t))/ka
-    A2=(((ka-k32)*r1-A1last*ka^2+A1last*k32*ka)*exp(-ka*t))/(ka^2+(-beta-alpha)*ka+alpha*beta)+((((k32-beta)*ka-beta*k32+beta^2)*r2+(k32-beta)*ka*r1+((-A3last-A2last-A1last)*beta*k32+(A2last+A1last)*beta^2)*ka+(A3last+A2last)*beta^2*k32-A2last*beta^3)*exp(-beta*t))/((beta^2-alpha*beta)*ka-beta^3+alpha*beta^2)-((((k32-alpha)*ka-alpha*k32+alpha^2)*r2+(k32-alpha)*ka*r1+((-A3last-A2last-A1last)*alpha*k32+(A2last+A1last)*alpha^2)*ka+(A3last+A2last)*alpha^2*k32-A2last*alpha^3)*exp(-alpha*t))/((alpha*beta-alpha^2)*ka-alpha^2*beta+alpha^3)+(k32*r2+k32*r1)/(alpha*beta)
-    A3=-((k23*r1-A1last*k23*ka)*exp(-ka*t))/(ka^2+(-beta-alpha)*ka+alpha*beta)+(((k23*ka-beta*k23)*r2+k23*ka*r1+((-A2last-A1last)*beta*k23+A3last*beta^2-A3last*E2*beta)*ka+A2last*beta^2*k23-A3last*beta^3+A3last*E2*beta^2)*exp(-beta*t))/((beta^2-alpha*beta)*ka-beta^3+alpha*beta^2)-(((k23*ka-alpha*k23)*r2+k23*ka*r1+((-A2last-A1last)*alpha*k23+A3last*alpha^2-A3last*E2*alpha)*ka+A2last*alpha^2*k23-A3last*alpha^3+A3last*E2*alpha^2)*exp(-alpha*t))/((alpha*beta-alpha^2)*ka-alpha^2*beta+alpha^3)+(k23*r2+k23*r1)/(alpha*beta)
+    r2 = 0
+    A1 = r1/ka-((r1-A1last*ka)*exp(-ka*t))/ka
+    A2 = (((ka-k32)*r1-A1last*ka^2+A1last*k32*ka)*exp(-ka*t))/(ka^2+(-beta-alpha)*ka+alpha*beta)+((((k32-beta)*ka-beta*k32+beta^2)*r2+(k32-beta)*ka*r1+((-A3last-A2last-A1last)*beta*k32+(A2last+A1last)*beta^2)*ka+(A3last+A2last)*beta^2*k32-A2last*beta^3)*exp(-beta*t))/((beta^2-alpha*beta)*ka-beta^3+alpha*beta^2)-((((k32-alpha)*ka-alpha*k32+alpha^2)*r2+(k32-alpha)*ka*r1+((-A3last-A2last-A1last)*alpha*k32+(A2last+A1last)*alpha^2)*ka+(A3last+A2last)*alpha^2*k32-A2last*alpha^3)*exp(-alpha*t))/((alpha*beta-alpha^2)*ka-alpha^2*beta+alpha^3)+(k32*r2+k32*r1)/(alpha*beta)
+    A3 = -((k23*r1-A1last*k23*ka)*exp(-ka*t))/(ka^2+(-beta-alpha)*ka+alpha*beta)+(((k23*ka-beta*k23)*r2+k23*ka*r1+((-A2last-A1last)*beta*k23+A3last*beta^2-A3last*E2*beta)*ka+A2last*beta^2*k23-A3last*beta^3+A3last*E2*beta^2)*exp(-beta*t))/((beta^2-alpha*beta)*ka-beta^3+alpha*beta^2)-(((k23*ka-alpha*k23)*r2+k23*ka*r1+((-A2last-A1last)*alpha*k23+A3last*alpha^2-A3last*E2*alpha)*ka+A2last*alpha^2*k23-A3last*alpha^3+A3last*E2*alpha^2)*exp(-alpha*t))/((alpha*beta-alpha^2)*ka-alpha^2*beta+alpha^3)+(k23*r2+k23*r1)/(alpha*beta)
   })
-  
+
   env <- rxS(m)
   mod <- gsub("[-]t[*]", "-tinf*", paste0("A1last=", paste0(env$A1),"\n",
                                           "A2last=", paste0(env$A2),"\n",
                                           "A3last=", paste0(env$A3),"\n"))
 
-  m <-RxODE({
-    A1last=r1/ka - exp(-tinf*ka)*r1/ka
-    A2last=r1*k32/(beta*alpha) + exp(-tinf*ka)*r1*(-k32 + ka)/(beta*alpha + ka*(-alpha - beta) + ka^2.0) - exp(-tinf*alpha)*r1*ka*(-alpha + k32)/(-beta*alpha^2.0 + ka*(beta*alpha - alpha^2.0) + alpha^3.0) + exp(-tinf*beta)*r1*ka*(-beta + k32)/(beta^2.0*alpha + ka*(-beta*alpha + beta^2.0) - beta^3.0)
-    A3last=r1*k23/(beta*alpha) - exp(-tinf*ka)*r1*k23/(beta*alpha + ka*(-alpha - beta) + ka^2.0) - exp(-tinf*alpha)*r1*ka*k23/(-beta*alpha^2.0 + ka*(beta*alpha - alpha^2.0) + alpha^3.0) + exp(-tinf*beta)*r1*ka*k23/(beta^2.0*alpha + ka*(-beta*alpha + beta^2.0) - beta^3.0)
-    
-    A2term1 = (((A2last*E3+A3last*k32)-A2last*alpha)*exp(-t*alpha)-((A2last*E3+A3last*k32)-A2last*beta)*exp(-t*beta))/(beta-alpha)
-    A2term2 = A1last*ka*(exp(-t*ka)*(E3-ka)/((alpha-ka)*(beta-ka))+exp(-t*alpha)*(E3-alpha)/((beta-alpha)*(ka-alpha))+exp(-t*beta)*(E3-beta)/((alpha-beta)*(ka-beta)))
-    A2 = A2term1+A2term2  #Amount in the central compartment
+    m <-RxODE({
+        A1last=r1/ka - exp(-tinf*ka)*r1/ka
+A2last=r1*k32/(beta*alpha) + exp(-tinf*ka)*r1*(-k32 + ka)/(beta*alpha + ka*(-alpha - beta) + ka^2.0) - exp(-tinf*alpha)*r1*ka*(-alpha + k32)/(-beta*alpha^2.0 + ka*(beta*alpha - alpha^2.0) + alpha^3.0) + exp(-tinf*beta)*r1*ka*(-beta + k32)/(beta^2.0*alpha + ka*(-beta*alpha + beta^2.0) - beta^3.0)
+        A3last=r1*k23/(beta*alpha) - exp(-tinf*ka)*r1*k23/(beta*alpha + ka*(-alpha - beta) + ka^2.0) - exp(-tinf*alpha)*r1*ka*k23/(-beta*alpha^2.0 + ka*(beta*alpha - alpha^2.0) + alpha^3.0) + exp(-tinf*beta)*r1*ka*k23/(beta^2.0*alpha + ka*(-beta*alpha + beta^2.0) - beta^3.0)
 
-    A3term1 = (((A3last*E2+A2last*k23)-A3last*alpha)*exp(-t*alpha)-((A3last*E2+A2last*k23)-A3last*beta)*exp(-t*beta))/(beta-alpha)
-    A3term2 = A1last*ka*k23*(exp(-t*ka)/((alpha-ka)*(beta-ka))+exp(-t*alpha)/((beta-alpha)*(ka-alpha))+exp(-t*beta)/((alpha-beta)*(ka-beta)))
-    A3 = A3term1+A3term2  #Amount in the peripheral compartment
+        A2term1 = (((A2last*E3+A3last*k32)-A2last*alpha)*exp(-t*alpha)-((A2last*E3+A3last*k32)-A2last*beta)*exp(-t*beta))/(beta-alpha)
+        A2term2 = A1last*ka*(exp(-t*ka)*(E3-ka)/((alpha-ka)*(beta-ka))+exp(-t*alpha)*(E3-alpha)/((beta-alpha)*(ka-alpha))+exp(-t*beta)*(E3-beta)/((alpha-beta)*(ka-beta)))
+        A2 = A2term1+A2term2  #Amount in the central compartment
 
-    A1last = A1last*exp(-t*ka)
-    A1 = A1last 
-    A2 = A2
+        A3term1 = (((A3last*E2+A2last*k23)-A3last*alpha)*exp(-t*alpha)-((A3last*E2+A2last*k23)-A3last*beta)*exp(-t*beta))/(beta-alpha)
+        A3term2 = A1last*ka*k23*(exp(-t*ka)/((alpha-ka)*(beta-ka))+exp(-t*alpha)/((beta-alpha)*(ka-alpha))+exp(-t*beta)/((alpha-beta)*(ka-beta)))
+        A3 = A3term1+A3term2  #Amount in the peripheral compartment
+
+        A1 = A1last*exp(-t*ka)
   })
 
   env <- rxS(m)
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n",
-                "A3=", paste0(env$A2),"\n")
+                "A3=", paste0(env$A3),"\n")
+
+    message(rxOptExpr(mod))
 
 #####
   ## r2 w/ steady state
@@ -836,7 +836,7 @@ A3last=r2*k23/(beta*alpha) - exp(-tinf*alpha)*r2*(-k23*alpha + ka*k23)/(-beta*al
     A3 = A3term1+A3term2  #Amount in the peripheral compartment
 
     A1last = A1last*exp(-t*ka)
-    A1 = A1last 
+    A1 = A1last
     A2 = A2
   })
 
@@ -892,7 +892,7 @@ A3last=exp(-tinf*ka)*r1*(-k42*k23 + ka*k23)/(ka^2.0*lam1 + lam2*(-ka*lam1 + ka^2
     A1last = A1last*exp(-t*ka)
     A1 = A1last
   })
-  
+
   env <- rxS(m)
   mod <- paste0("A1=", paste0(env$A1),"\n",
                 "A2=", paste0(env$A2),"\n",
@@ -952,5 +952,5 @@ A3last=exp(-tinf*ka)*r1*(-k42*k23 + ka*k23)/(ka^2.0*lam1 + lam2*(-ka*lam1 + ka^2
                 "A2=", paste0(env$A2),"\n",
                 "A3=", paste0(env$A3),"\n",
                 "A4=", paste0(env$A4),"\n")
-  
+
 }

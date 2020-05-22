@@ -370,31 +370,32 @@ static inline void twoCmtKaRateSStr1(double *A1, double *A2, double *A3,
 				     double *tinf, double *tau, double *r1, 
 				     double *ka,  double *k20, 
 				     double *k23, double *k32){
-  /* double E2 =  (*k20)+ (*k23); */
+  double E2  = (*k20)+(*k23);
   double E3 = (*k32);
   double s = (*k23)+(*k32)+(*k20);
   //#Calculate roots
   double beta  = 0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)));
   double alpha = (*k32)*(*k20)/beta;
 
-  double eKa = exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*ka)*(*tau)));
-  double eA  = exp(-alpha*((*tau)-(*tinf)))/(1.0-exp(-alpha*(*tau)));
-  double eB  = exp(-beta*((*tau)-(*tinf)))/(1.0-exp(-beta*(*tau)));
+  double eA = exp(-alpha*((*tau)-(*tinf)))/(1.0-exp(-alpha*(*tau)));
+  double eB = exp(-beta*((*tau)-(*tinf)))/(1.0-exp(-beta*(*tau)));
 
-  double eiKa = exp(-(*ka)*(*tinf));
   double eiA = exp(-alpha*(*tinf));
   double eiB = exp(-beta*(*tinf));
 
-  double ka2 = (*ka)*(*ka);
   double alpha2 = alpha*alpha;
   double beta2 = beta*beta;
 
   double alpha3 = alpha2*alpha;
   double beta3 = beta2*beta;
-  
+
+  double eKa = exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*ka)*(*tau)));
+  double eiKa = exp(-(*ka)*(*tinf));
+  double ka2 = (*ka)*(*ka);
+
   *A1=eKa*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
   *A2=(eA*(E3*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - alpha*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))) - eB*(E3*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - beta*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))))/(-alpha + beta) + (*ka)*(eA*(E3 - alpha)/((-alpha + beta)*(-alpha + (*ka))) + eB*(E3 - beta)/((-beta + (*ka))*(alpha - beta)) + eKa*(E3 - (*ka))/((beta - (*ka))*(alpha - (*ka))))*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
-  *A3=(eA*(E3*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - alpha*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))) - eB*(E3*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - beta*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))))/(-alpha + beta) + (*ka)*(eA*(E3 - alpha)/((-alpha + beta)*(-alpha + (*ka))) + eB*(E3 - beta)/((-beta + (*ka))*(alpha - beta)) + eKa*(E3 - (*ka))/((beta - (*ka))*(alpha - (*ka))))*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
+    *A3=(eA*(E2*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - alpha*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k23)*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))) - eB*(E2*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - beta*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k23)*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))))/(-alpha + beta) + (*ka)*(*k23)*(eA/((-alpha + beta)*(-alpha + (*ka))) + eB/((-beta + (*ka))*(alpha - beta)) + eKa/((beta - (*ka))*(alpha - (*ka))))*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
 }
 
 static inline void twoCmtKaRateSStr2(double *A1, double *A2, double *A3,
