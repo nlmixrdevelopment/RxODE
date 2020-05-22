@@ -1005,5 +1005,44 @@ A3last=r2*k23/(beta*alpha) - exp(-tinf*alpha)*r2*(-k23*alpha + ka*k23)/(-beta*al
                 "A2=", paste0(env$A2),"\n",
                 "A3=", paste0(env$A3),"\n")))
 
+  env <- rxS("A1last=0
+A2last=0
+A3last=0
+r2=0
+A1=r1/ka-((r1-A1last*ka)*exp(-ka*t))/ka
+A2=(((ka-k32)*r1-A1last*ka^2+A1last*k32*ka)*exp(-ka*t))/(ka^2+(-beta-alpha)*ka+alpha*beta)+((((k32-beta)*ka-beta*k32+beta^2)*r2+(k32-beta)*ka*r1+((-A3last-A2last-A1last)*beta*k32+(A2last+A1last)*beta^2)*ka+(A3last+A2last)*beta^2*k32-A2last*beta^3)*exp(-beta*t))/((beta^2-alpha*beta)*ka-beta^3+alpha*beta^2)-((((k32-alpha)*ka-alpha*k32+alpha^2)*r2+(k32-alpha)*ka*r1+((-A3last-A2last-A1last)*alpha*k32+(A2last+A1last)*alpha^2)*ka+(A3last+A2last)*alpha^2*k32-A2last*alpha^3)*exp(-alpha*t))/((alpha*beta-alpha^2)*ka-alpha^2*beta+alpha^3)+(k32*r2+k32*r1)/(alpha*beta)
+A3=-((k23*r1-A1last*k23*ka)*exp(-ka*t))/(ka^2+(-beta-alpha)*ka+alpha*beta)+(((k23*ka-beta*k23)*r2+k23*ka*r1+((-A2last-A1last)*beta*k23+A3last*beta^2-A3last*E2*beta)*ka+A2last*beta^2*k23-A3last*beta^3+A3last*E2*beta^2)*exp(-beta*t))/((beta^2-alpha*beta)*ka-beta^3+alpha*beta^2)-(((k23*ka-alpha*k23)*r2+k23*ka*r1+((-A2last-A1last)*alpha*k23+A3last*alpha^2-A3last*E2*alpha)*ka+A2last*alpha^2*k23-A3last*alpha^3+A3last*E2*alpha^2)*exp(-alpha*t))/((alpha*beta-alpha^2)*ka-alpha^2*beta+alpha^3)+(k23*r2+k23*r1)/(alpha*beta)")
+
+  env2 <- rxS(paste0(gsub("-t[*]", "-tinf*", paste0("A1last=", paste0(env$A1),"\n",
+         "A2last=", paste0(env$A2),"\n",
+         "A3last=", paste0(env$A3),"\n")),
+         gsub("lambda2", "beta", (gsub("lambda1", "alpha", gsub("KA", "ka", "
+E2=k20+k23
+E3=k32
+A2term1 = (((A2last*E3+A3last*k32)-A2last*lambda1)*exp(-t*lambda1)-((A2last*E3+A3last*k32)-A2last*lambda2)*exp(-t*lambda2))/(lambda2-lambda1)
+    A2term2 = A1last*KA*(exp(-t*KA)*(E3-KA)/((lambda1-KA)*(lambda2-KA))+exp(-t*lambda1)*(E3-lambda1)/((lambda2-lambda1)*(KA-lambda1))+exp(-t*lambda2)*(E3-lambda2)/((lambda1-lambda2)*(KA-lambda2)))
+    A2 = A2term1+A2term2  #Amount in the central compartment
+
+    A3term1 = (((A3last*E2+A2last*k23)-A3last*lambda1)*exp(-t*lambda1)-((A3last*E2+A2last*k23)-A3last*lambda2)*exp(-t*lambda2))/(lambda2-lambda1)
+    A3term2 = A1last*KA*k23*(exp(-t*KA)/((lambda1-KA)*(lambda2-KA))+exp(-t*lambda1)/((lambda2-lambda1)*(KA-lambda1))+exp(-t*lambda2)/((lambda1-lambda2)*(KA-lambda2)))
+    A3 = A3term1+A3term2  #Amount in the peripheral compartment
+
+    A1 = A1last*exp(-t*KA)"))))))
+
+
+  m <- gsub("\\b(ka|k[1-4][0-4]|r[1-2])\\b", "(*\\1)",
+              gsub("exp[(]-tinf[*]beta[)]", "eiB",
+             gsub("exp[(]-tinf[*]alpha[)]", "eiA",
+                  gsub("exp[(]-t[*]alpha[)]", "eA",
+                       gsub("exp[(]-t[*]beta[)]", "eB",
+                            gsub("exp(-t*ka)", "eKa",
+                                 gsub("exp(-ka*tinf)", "eiKa",
+                                      gsub("(alpha|beta|ka)\\^([1-4])[.][0]", "\\1\\2",
+                                           paste0("A1=", env2$A1,"\n",
+                                                  "A2=", env2$A2,"\n",
+                                                  "A3=", env2$A3,"\n")), fixed=TRUE), fixed=TRUE))))),
+       perl=TRUE)
+
+
 
 }
