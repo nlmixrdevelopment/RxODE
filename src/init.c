@@ -261,7 +261,7 @@ double rxbeta(rx_solving_options_ind* ind, double shape1, double shape2);
 double rxnormV(rx_solving_options_ind* ind, double mean, double sd);
 double phi(double q);
 SEXP _phi(SEXP q);
-SEXP _calcDerived(SEXP transSXP, SEXP ncmt, SEXP inp);
+SEXP _calcDerived(SEXP transSXP, SEXP ncmt, SEXP inp, SEXP dig);
 
 double gamma_p(double, double z);
 double gamma_q(double, double z);
@@ -399,7 +399,7 @@ void R_init_RxODE(DllInfo *info){
     {"_gammaqInva", (DL_FUNC) _gammaqInv, 2},
     {"_expit", (DL_FUNC) _expit, 3},
     {"_logit", (DL_FUNC) _logit, 3},
-    {"_calcDerived", (DL_FUNC) _calcDerived, 3},
+    {"_calcDerived", (DL_FUNC) _calcDerived, 4},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

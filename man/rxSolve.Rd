@@ -84,7 +84,6 @@ rxControl(
   istateReset = TRUE,
   subsetNonmem = TRUE,
   linLog = FALSE,
-  advanLinCmt = FALSE,
   maxAtolRtolFactor = 0.1,
   from = NULL,
   to = NULL,
@@ -441,16 +440,6 @@ lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do
 not reset the \code{ISTATE} variable with doses.}
 
 \item{subsetNonmem}{subset to NONMEM compatible EVIDs only.  By default TRUE.}
-
-\item{linLog}{Boolean indicating if linear compartment models be
-calculated more accurately in the log-space (slower) By
-default this is off (\code{FALSE}).  This only applies to
-solving linear compartmental models using the superposition
-principle}
-
-\item{advanLinCmt}{Boolean indicating if linear comparmental
-solutions are solved with ADVAN-style (Abuhelwa 2015)
-solutions instead of superpositioning}
 
 \item{maxAtolRtolFactor}{The maximum \code{atol}/\code{rtol} that
 FOCEi and other routines may adjust to.  By default 0.1}

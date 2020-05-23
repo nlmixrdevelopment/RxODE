@@ -40,6 +40,6 @@ where:
 
 logit(0.25)
 
-
+expit()
 
 }

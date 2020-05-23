@@ -1994,7 +1994,7 @@ void linCmtPar3(double *v, double *k,
   *t12gamma = M_LN2/(*gamma);
 }
 
-SEXP derived1(int trans, SEXP inp) {
+SEXP derived1(int trans, SEXP inp, double dig) {
   double zer = 0;
   int lenP = Rf_length(VECTOR_ELT(inp, 0));
   double *p1 = REAL(VECTOR_ELT(inp, 0));
@@ -2033,7 +2033,7 @@ SEXP derived1(int trans, SEXP inp) {
   double *cl = REAL(clS);
   SET_VECTOR_ELT(ret, 3, clS);
   
-  SET_STRING_ELT(retN,4,mkChar("thalf"));
+  SET_STRING_ELT(retN,4,mkChar("t12alpha"));
   SEXP thalfS = PROTECT(allocVector(REALSXP, lenOut)); pro++;
   double *thalf = REAL(thalfS);
   SET_VECTOR_ELT(ret, 4, thalfS);
@@ -2070,13 +2070,24 @@ SEXP derived1(int trans, SEXP inp) {
     parTrans(&trans, ((lenP == 1) ? p1 : p1++),
 	     ((lenV == 1) ? v1 : v1++), &zer, &zer, &zer, &zer,
 	     &ncmta, kel, vc, &zer, &zer, &zer, &zer);
-    linCmtPar1(vc++, kel++, vss++, cl++, A++, fracA++, alpha++, thalf++);
+    linCmtPar1(vc, kel, vss, cl, A, fracA, alpha, thalf);
+    if (dig > 0){
+      (*vc) = fprec((*vc), dig);
+      (*kel) = fprec((*kel), dig);
+      (*vss) = fprec((*vss), dig);
+      (*cl) = fprec((*cl), dig);
+      (*A) = fprec((*A), dig);
+      (*alpha) = fprec((*alpha), dig);
+      (*thalf) = fprec((*thalf), dig);
+    }
+    vc++; kel++; vss++; cl++; A++; fracA++; alpha++; thalf++;
+
   }
   UNPROTECT(pro);
   return ret;
 }
 
-SEXP derived2(int trans, SEXP inp) {
+SEXP derived2(int trans, SEXP inp, double dig) {
   double zer = 0;
   int lenP1 = Rf_length(VECTOR_ELT(inp, 0));
   double *p1 = REAL(VECTOR_ELT(inp, 0));
@@ -2204,15 +2215,35 @@ SEXP derived2(int trans, SEXP inp) {
     parTrans(&trans, ((lenP1 == 1) ? p1 : p1++), ((lenV == 1) ? v1 : v1++),
 	     ((lenP2 == 1) ? p2 : p2++), ((lenP3 == 1) ? p3 : p3++), &zer, &zer,
 	     &ncmta, kel, vc, k12, k21, &zer, &zer);
-    linCmtPar2(vc++, kel++, k12++, k21++, vp++, vss++, cl++, q++,
-	       A++, B++, fracA++, fracB++, alpha++, beta++,
-	       thalfAlpha++, thalfBeta++);
+    linCmtPar2(vc, kel, k12, k21, vp, vss, cl, q, A, B, fracA, fracB,
+	       alpha, beta, thalfAlpha, thalfBeta);
+    if (dig > 0){
+      (*vc) = fprec((*vc), dig);
+      (*kel) = fprec((*kel), dig);
+      (*k12) = fprec((*k12), dig);
+      (*k21) = fprec((*k21), dig);
+      (*vp) = fprec((*vp), dig);
+      (*vss) = fprec((*vss), dig);
+      (*cl) = fprec((*cl), dig);
+      (*q) = fprec((*q), dig);
+      (*A) = fprec((*A), dig);
+      (*B) = fprec((*B), dig);
+      (*fracA) = fprec((*fracA), dig);
+      (*fracB) = fprec((*fracB), dig);
+      (*alpha) = fprec((*alpha), dig);
+      (*beta) = fprec((*beta), dig);
+      (*thalfAlpha) = fprec((*thalfAlpha), dig);
+      (*thalfBeta) = fprec((*thalfBeta), dig);
+    }
+    vc++; kel++; k12++; k21++; vp++; vss++; cl++; q++;
+    A++; B++; fracA++; fracB++; alpha++; beta++;
+    thalfAlpha++; thalfBeta++;
   }
   UNPROTECT(pro);
   return ret;
 }
 
-SEXP derived3(int trans, SEXP inp) {
+SEXP derived3(int trans, SEXP inp, double dig) {
   int lenP1 = Rf_length(VECTOR_ELT(inp, 0));
   double *p1 = REAL(VECTOR_ELT(inp, 0));
   int lenV = Rf_length(VECTOR_ELT(inp, 1));
@@ -2391,29 +2422,65 @@ SEXP derived3(int trans, SEXP inp) {
 	     ((lenP2 == 1) ? p2 : p2++), ((lenP3 == 1) ? p3 : p3++),
 	     ((lenP4 == 1) ? p4 : p4++), ((lenP5 == 1) ? p5 : p5++),
 	     &ncmta, kel, vc, k12, k21, k13, k31);
-    linCmtPar3(vc++, kel++, k12++, k21++, k13++, k31++,
-	       vp++, vp2++, vss++, cl++, q++, q2++,
-	       A++, B++, C++, fracA++, fracB++, fracC++, alpha++, beta++, gamma++,
-	       thalfAlpha++, thalfBeta++, thalfGamma++);
+    linCmtPar3(vc, kel, k12, k21, k13, k31,
+	       vp, vp2, vss, cl, q, q2,
+	       A, B, C, fracA, fracB, fracC, alpha, beta, gamma,
+	       thalfAlpha, thalfBeta, thalfGamma);
+    if (dig > 0) {
+      (*vc)  = fprec((*vc), dig);
+      (*kel) = fprec((*kel), dig);
+      (*k12) = fprec((*k12), dig);
+      (*k21) = fprec((*k21), dig);
+      (*k13) = fprec((*k13), dig);
+      (*k31) = fprec((*k31), dig);
+      (*vp)  = fprec((*vp), dig);
+      (*vp2) = fprec((*vss), dig);
+      (*cl)  = fprec((*cl), dig);
+      (*q)   = fprec((*q), dig);
+      (*q2)  = fprec((*q2), dig);
+      (*A)   = fprec((*A), dig);
+      (*B)   = fprec((*B), dig);
+      (*C)   = fprec((*C), dig);
+      (*fracA)=fprec((*fracA), dig);
+      (*fracB)=fprec((*fracB), dig);
+      (*fracC)=fprec((*fracC), dig);
+      (*alpha)=fprec((*alpha), dig);
+      (*beta) =fprec((*beta), dig);
+      (*gamma)=fprec((*gamma), dig);
+      (*thalfAlpha)=fprec((*thalfAlpha), dig);
+      (*thalfBeta)=fprec((*thalfBeta), dig);
+      (*thalfGamma)=fprec((*thalfGamma), dig);
+    }
+    vc++; kel++; k12++; k21++; k13++; k31++;
+    vp++; vp2++; vss++; cl++; q++; q2++;
+    A++; B++; C++; fracA++; fracB++; fracC++; alpha++; beta++; gamma++;
+    thalfAlpha++; thalfBeta++; thalfGamma++;
   }
   UNPROTECT(pro);
   return ret;
 }
 
-SEXP _calcDerived(SEXP transSXP, SEXP ncmtSXP, SEXP inp) {
+SEXP _calcDerived(SEXP transSXP, SEXP ncmtSXP, SEXP inp, SEXP sigdigSXP) {
   int tInp = TYPEOF(inp);
   int trans = INTEGER(transSXP)[0];
   int ncmt = INTEGER(ncmtSXP)[0];
+  double dig=0.0;
+  int tDig = TYPEOF(sigdigSXP);
+  if (tDig == INTSXP) {
+    dig = (double)(INTEGER(sigdigSXP)[0]);
+  } else if (tDig == REALSXP) {
+    dig = REAL(sigdigSXP)[0];
+  }
   if (tInp == VECSXP){
     switch (ncmt){
     case 1:
-      return derived1(trans, inp);
+      return derived1(trans, inp, dig);
       break;
     case 2:
-      return derived2(trans, inp);
+      return derived2(trans, inp, dig);
       break;
     case 3:
-      return derived3(trans, inp);
+      return derived3(trans, inp, dig);
       break;
     default:
       error(_("'ncmt' needs to be 1-3"));
