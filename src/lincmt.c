@@ -1942,7 +1942,7 @@ void linCmtPar2(double *v, double *k,
     *t12beta = M_LN2/(*beta);
 }
 
-void linCmtPar3(double *v, double *k,
+void linCmtPar3(double *v, double *k10,
 		double *k12, double *k21, double *k13, double *k31,
 		double *vp, double *vp2, double *vss,
 		double *cl, double *q, double *q2,
@@ -1950,17 +1950,17 @@ void linCmtPar3(double *v, double *k,
 		double *Af, double *Bf, double *Cf,
 		double *alpha, double *beta, double *gamma,
 		double *t12alpha, double *t12beta, double *t12gamma) {
-  double a0 = (*k)*(*k21)*(*k31);
-  double a1 = (*k)* (*k31) + (*k21) * (*k31) + (*k21) * (*k13) + (*k) * (*k21) + (*k31)*(*k12);
-  double a2 = (*k)+(*k12)+(*k13)+(*k21)+(*k31);
-  double p  = a1 - (a2* 0.3333333333333333*a2);
-  double qq = (0.07407407407407407 * a2 * a2 * a2) - (a1 * a2 * 0.3333333333333333)+ a0;
-  double r1 = sqrt(-(0.037037037037037035* p * p * p) );
-  double phi = acos(-0.5*qq/r1)*0.3333333333333333;
-  double r2 = 2.791224850172179*r1;
-  *alpha = -(cos(phi)*r2 - a2*0.3333333333333333);
-  *beta  = -(cos(phi + 2.0943951023931953)*r2 - a2*0.3333333333333333);
-  *gamma = -(cos(phi + 4.1887902047863905)*r2 - a2*0.3333333333333333);
+  double a0 = (*k10) * (*k21) * (*k31);
+  double a1 = ((*k10) * (*k31)) + ((*k21) * (*k31)) + ((*k21) * (*k13)) + ((*k10) * (*k21)) + ((*k31) * (*k12));
+  double a2 = (*k10) + (*k12) + (*k13) + (*k21) + (*k31);
+  double p   = a1 - (a2 * a2 / 3.0);
+  double qq   = (2.0 * a2 * a2 * a2 / 27.0) - (a1 * a2 / 3.0) + a0;
+  double r1y  = sqrt(-(p * p * p)/27.0);
+  double phi = acos((-qq/2)/r1)/3.0;
+  double r2  = 2.0 * exp(log(r1)/3.0);
+  *alpha = -(cos(phi) * r2 - a2/3.0);
+  *beta = -(cos(phi + 2.0 * M_PI/3.0) * r2 - a2/3.0);
+  *gamma = -(cos(phi + 4.0 * M_PI/3.0) * r2 - a2/3.0);
   double a;
   if ((*alpha) < (*beta)) {
     a      = *beta;
@@ -1983,7 +1983,7 @@ void linCmtPar3(double *v, double *k,
   *vp  = (*v) * (*k12)/(*k21);
   *vp2 = (*v) * (*k13)/(*k31);
   *vss = (*v) + (*vp) + (*vp2);
-  *cl  = (*v) * (*k);
+  *cl  = (*v) * (*k10);
   *q   = (*v) * (*k12);
   *q2  = (*v) * (*k13);
   *Af  = (*A) * (*v);
@@ -2434,7 +2434,8 @@ SEXP derived3(int trans, SEXP inp, double dig) {
       (*k13) = fprec((*k13), dig);
       (*k31) = fprec((*k31), dig);
       (*vp)  = fprec((*vp), dig);
-      (*vp2) = fprec((*vss), dig);
+      (*vss) = fprec((*vss), dig);
+      (*vp2) = fprec((*vp2), dig);
       (*cl)  = fprec((*cl), dig);
       (*q)   = fprec((*q), dig);
       (*q2)  = fprec((*q2), dig);
