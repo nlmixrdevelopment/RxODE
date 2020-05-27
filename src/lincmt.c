@@ -1955,7 +1955,7 @@ void linCmtPar3(double *v, double *k10,
   double a2 = (*k10) + (*k12) + (*k13) + (*k21) + (*k31);
   double p   = a1 - (a2 * a2 / 3.0);
   double qq   = (2.0 * a2 * a2 * a2 / 27.0) - (a1 * a2 / 3.0) + a0;
-  double r1y  = sqrt(-(p * p * p)/27.0);
+  double r1  = sqrt(-(p * p * p)/27.0);
   double phi = acos((-qq/2)/r1)/3.0;
   double r2  = 2.0 * exp(log(r1)/3.0);
   *alpha = -(cos(phi) * r2 - a2/3.0);
