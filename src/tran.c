@@ -4430,19 +4430,33 @@ typedef struct linCmtStruct {
   int k13;
   int k31;
 
+  int kel;
+
   int c;
 
   int cl;
-  int cld;
   
   int cl1;
   int cl2;
   int cl3;
   int cl4;
+
+  int v;
+
+  int v1;
+  int v2;
+  int v3;
+  int v4;
+
+  int vp;
+  int vp1;
+  int vp2;
+  int vp3;
   
   int cmtc;
   
   int clStyle;
+  int vStyle;
 } linCmtStruct;
 
 static inline void linCmtIni(linCmtStruct *lin){
@@ -4455,19 +4469,31 @@ static inline void linCmtIni(linCmtStruct *lin){
   lin->k31  = -1;
   
   lin->cmtc = -1;
+  lin->kel  = -1;
 
   lin->cl = -1;
 
-  lin->cld = -1;
-  
   lin->cl1 = -1;
   lin->cl2 = -1;
   lin->cl3 = -1;
   lin->cl4 = -1;
 
+  lin->v = -1;
+  
+  lin->v1 = -1;
+  lin->v2 = -1;
+  lin->v3 = -1;
+  lin->v4 = -1;
+
+  lin->vp = -1;
+  lin->vp1 = -1;
+  lin->vp2 = -1;
+  lin->vp3 = -1;
+
   lin->c = -1;
   
   lin->clStyle=-1;
+  lin->vStyle = -1;
 }
 
 static inline void linCmtCmt(linCmtStruct *lin, const int cmt){
@@ -4480,14 +4506,34 @@ static inline void linCmtCmt(linCmtStruct *lin, const int cmt){
 }
 
 static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
+  // ke, kel, k10 or k20
+  // 
   if ((in[1] == 'a' || in[1] == 'a') &&
-      in[1] == '\0') {
+      in[2] == '\0') {
     lin->ka = *index;
     return;
+  }
+  if ((in[1] == 'e' || in[1] == 'E')) {
+    if (in[2] == '\0') {
+      if (lin->kel != -1) error(_("Ambiguous 'kel'"));
+      lin->kel = *index;
+      return;
+    }
+    if ((in[2] == 'l' || in[2] == 'L') && in[3] == '\0') {
+      if (lin->kel != -1) error(_("Ambiguous 'kel'"));
+      lin->kel = *index;
+      return;
+    }
   }
   // Support: k12, k21, k13, k31 when central compartment is 1
   // Also support:  k23, k32, k24, k42 when central compartment is 2
   if (in[1] == '1') {
+    if (in[2] == '0' && in[3] == '\0') {
+      linCmtCmt(lin, 1);
+      if (lin->kel != -1) error(_("Ambiguous 'kel'"));
+      lin->kel = *index;
+      return;
+    }
     if (in[2] == '2' && in[3] == '\0') {
       linCmtCmt(lin, 1);
       lin->k12 = *index;
@@ -4500,6 +4546,12 @@ static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
     }
   }
   if (in[1] == '2') {
+    if (in[2] == '0' && in[3] == '\0') {
+      linCmtCmt(lin, 2);
+      if (lin->kel != -1) error(_("Ambiguous 'kel'"));
+      lin->kel = *index;
+      return;
+    }
     if (in[2] == '1' && in[3] == '\0') {
       linCmtCmt(lin, 1);
       lin->k21 = *index;
@@ -4557,12 +4609,13 @@ static inline void linCmtClStyle(linCmtStruct *lin, const int style) {
     lin->clStyle = style;
   }
   if (lin->clStyle != style) {
-    sbuf buf;
-    sIni(&buf);
-    sAppendN(&buf, "cannot mix '", 12);
-    sAppendN(&buf, "' and '", 7);
-    sAppendN(&buf, "' clearance styles", 18);
-    error(buf.s);
+    sClear(&firstErr);
+    sAppendN(&firstErr, "cannot mix '", 12);
+    linCmtClStr(&firstErr, lin->clStyle);
+    sAppendN(&firstErr, "' and '", 7);
+    linCmtClStr(&firstErr, style);
+    sAppendN(&firstErr, "' clearance styles", 18);
+    error(firstErr.s);
   }
 }
 
@@ -4602,7 +4655,7 @@ static inline void linCmtC(linCmtStruct *lin, const char *in, int *index) {
     if (in[2] == 'd' || in[2] == 'D') {
       if (in[3] == '\0') {
 	linCmtClStyle(lin, linCmtCld1style);
-	lin->cld = *index;
+	lin->cl = *index;
 	return;
       }
       if (in[3] == '1' && in[4] == '\0') {
@@ -4629,7 +4682,103 @@ static inline void linCmtC(linCmtStruct *lin, const char *in, int *index) {
   }
 }
 
+static inline void linCmtVStr(sbuf *buf, const int style){
+  switch(style){
+  case 1:
+    sAppendN(buf, "Vd", 2);
+    break;
+  case 2:
+    sAppendN(buf, "Vt", 2);
+    break;
+  case 3:
+    sAppendN(buf, "Vp", 2);
+    break;
+  case 4:
+    sAppendN(buf, "V#", 2);
+    break;
+  }
+}
+
+static inline void linCmtVStyle(linCmtStruct *lin, int style) {
+  if (lin->vStyle == -1) {
+    lin->vStyle = style;
+  }
+  if (lin->vStyle != style) {
+    sClear(&firstErr);
+    sAppendN(&firstErr, "cannot mix '", 12);
+    linCmtVStr(&firstErr, lin->vStyle);
+    sAppendN(&firstErr, "' and '", 7);
+    linCmtVStr(&firstErr, style);
+    sAppendN(&firstErr, "' volume styles", 15);
+    error(firstErr.s);
+  }
+}
+
+static inline void linCmtV(linCmtStruct *lin, const char *in, int *index) {
+  // v1, v2, v3, v4
+  // vt1, vt2, vt3, vt4
+  // vp1, vp2, vp3, vp4
+  if (in[1] == '\0') {
+    lin->v = *index;
+    return;
+  }
+  if (in[1] == '1' && in[2] == '\0') {
+    lin->v1 = *index;
+    return;
+  }
+  if (in[1] == '2' && in[2] == '\0') {
+    lin->v2 = *index;
+    return;
+  }
+  if (in[1] == '3' && in[2] == '\0') {
+    linCmtVStyle(lin, 4);
+    lin->v3 = *index;
+    return;
+  }
+  if (in[1] == '4' && in[2] == '\0') {
+    linCmtVStyle(lin, 4);
+    lin->v4 = *index;
+    return;
+  }
+  if ((in[1] == 'c' || in[1] == 'C') &&
+      in[2] == '\0') {
+    lin->v = *index;
+    return;
+  }
+  int vType = (in[1] == 'd' || in[1] == 'D')*1 +
+    (in[1] == 't' || in[1] == 'T')*2 +
+    (in[1] == 'p' || in[1] == 'P')*3;
+  if (vType) {
+    linCmtVStyle(lin, vType);
+    // vp, vp1
+    // vp, vp2
+    // vp, vp3
+    // vp1, vp2
+    // vp2, vp3
+    if (in[2] == '\0') {
+      lin->vp = *index;
+      return;
+    }
+    if (in[2] == '1' && in[3] == '\0') {
+      lin->vp1 = *index;
+      return;
+    }
+    if (in[2] == '2' && in[3] == '\0') {
+      lin->vp2 = *index;
+      return;
+    }
+    if (in[2] == '3' && in[3] == '\0') {
+      lin->vp3 = *index;
+      return;
+    }
+  }
+}
+
 static inline void linCmtStr(linCmtStruct *lin, const char *in, int *index) {
+  if (in[0] == 'v' || in[0] == 'V') {
+    linCmtV(lin, in, index);
+    return;
+  }
   if (in[0] == 'c' || in[0] == 'C') {
     linCmtC(lin, in, index);
     return;
@@ -4682,6 +4831,81 @@ SEXP _linCmtParse(SEXP vars){
       lin.cl2 = lin.cl3;
       lin.cl3 = lin.cl4;
       lin.cl4 = -1;
+    }
+  }
+  if (lin.v != -1){
+    if (lin.v1 != -1){
+      error(_("Cannot specify 'v1' and 'vc'"));
+    }
+    if (lin.v4 != -1){
+      error(_("Cannot specify 'v4' and 'vc'"));
+    }
+    if (lin.v2 != -1) {
+      // v, v2, v3; Central Compartment is 1
+      linCmtCmt(&lin, 1);
+      linCmtVStyle(&lin, 4); // V#
+    } else if (lin.v3 != -1) {
+      // v, v3, v4; Central compartment is 2
+      linCmtCmt(&lin, 2); 
+      linCmtVStyle(&lin, 4); // V#
+      lin.v2 = lin.v3;
+      lin.v3 = lin.v4;
+    } else if (lin.vp != -1){
+      lin.v2 = lin.vp;
+      if (lin.vp1 != -1){
+	// v, vp, vp, vp1
+	lin.v3 = lin.vp1;
+      } else if (lin.vp2 != -1) {
+	// v, vp, vp, vp2
+	lin.v3 = lin.vp2;
+      } else if (lin.vp3 != -1) {
+	// v, vp, vp, vp3
+	linCmtCmt(&lin, 1);
+	linCmtCmt(&lin, 2);
+      }
+    }
+  } else if (lin.v1 != -1){
+    linCmtCmt(&lin, 1);
+    lin.v = lin.v1;
+    if (lin.v2 != -1) {
+      // v1, v2, v3; Central Compartment is 1
+      linCmtCmt(&lin, 1);
+      linCmtVStyle(&lin, 4); // V#
+    } else if (lin.v3 != -1) {
+      // v1, v3, v4; Central compartment is 2
+      linCmtCmt(&lin, 2); 
+    } else if (lin.vp != -1){
+      // v1, vp,
+      lin.v2 = lin.vp;
+      if (lin.vp1 != -1){
+	// v1, vp, vp1
+	lin.v3 = lin.vp1;
+      } else if (lin.vp2 != -1) {
+	// v, vp, vp2
+	lin.v3 = lin.vp2;
+      } else if (lin.vp3 != -1) {
+	linCmtCmt(&lin, 2); 
+      }
+    }
+  } else if (lin.v2 != -1){
+    linCmtCmt(&lin, 2);
+    lin.v = lin.v2;
+    if (lin.v3 != -1) {
+      // v2, v3, v4; Central compartment is 2
+      lin.v2 = lin.v3;
+      lin.v3 = lin.v4;
+    } else if (lin.vp != -1){
+      // v2, vp,
+      lin.v2 = lin.vp;
+      if (lin.vp1 != -1){
+	// v2, vp, vp1
+	lin.v3 = lin.vp1;
+      } else if (lin.vp2 != -1) {
+	// v2, vp, vp2
+	lin.v3 = lin.vp2;
+      } else if (lin.vp3 != -1) {
+	linCmtCmt(&lin, 2); 
+      }
     }
   }
   int trans =-1;
