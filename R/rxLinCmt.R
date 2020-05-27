@@ -192,7 +192,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
           .tmp <- .txt[.rateDepot];
           .txt <- .txt[-.rateDepot];
           if (.oral){
-            .lines[length(.lines)+1]  <- sub(.regRateDepot,"rx_rate %s \\1", ifelse(.derived, "=", "~"), .tmp);
+            .lines[length(.lines)+1]  <- sub(.regRateDepot,sprintf("rx_rate %s \\1", ifelse(.derived, "=", "~")), .tmp);
           } else {
             stop("'rate(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter");
           }
@@ -208,11 +208,11 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
           .tmp <- .txt[.rateCenter];
           .txt <- .txt[-.rateCenter];
           if (.oral){
-            .lines[length(.lines)+1]  <- sub(.regRateCenter,"rx_rate2 %s \\1",
-                                             ifelse(.derived, "=", "~"), .tmp);
+            .lines[length(.lines)+1]  <- sub(.regRateCenter,sprintf("rx_rate2 %s \\1",
+                                                                      ifelse(.derived, "=", "~")), .tmp);
           } else {
-            .lines[length(.lines)+1]  <- sub(.regRateCenter,"rx_rate %s \\1",
-                                             ifelse(.derived, "=", "~"), .tmp);
+            .lines[length(.lines)+1]  <- sub(.regRateCenter,sprintf("rx_rate %s \\1",
+                                                                      ifelse(.derived, "=", "~")), .tmp);
             .lines[length(.lines) + 1]  <- sprintf("rx_rate2 %s 0", ifelse(.derived, "=", "~"))
           }
         } else if (length(.rateCenter)>1L) {
@@ -231,7 +231,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
           .tmp <- .txt[.durDepot];
           .txt <- .txt[-.durDepot];
           if (.oral){
-            .lines[length(.lines)+1]  <- sub(.regDurDepot,"rx_dur %s \\1", ifelse(.derived, "=", "~"), .tmp);
+            .lines[length(.lines)+1]  <- sub(.regDurDepot,sprintf("rx_dur %s \\1", ifelse(.derived, "=", "~")), .tmp);
           } else {
             stop("'f(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter");
           }
@@ -247,9 +247,9 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
           .tmp <- .txt[.durCenter];
           .txt <- .txt[-.durCenter];
           if (.oral){
-            .lines[length(.lines)+1]  <- sub(.regDurCenter,"rx_dur2 %s \\1", ifelse(.derived, "=", "~"), .tmp);
+            .lines[length(.lines)+1]  <- sub(.regDurCenter,sprintf("rx_dur2 %s \\1", ifelse(.derived, "=", "~")), .tmp);
           } else {
-            .lines[length(.lines)+1]  <- sub(.regDurCenter,"rx_dur %s \\1", ifelse(.derived, "=", "~"), .tmp);
+            .lines[length(.lines)+1]  <- sub(.regDurCenter,sprintf("rx_dur %s \\1", ifelse(.derived, "=", "~")), .tmp);
             .lines[length(.lines) + 1]  <- sprintf("rx_dur2 %s 0", ifelse(.derived, "=", "~"))
           }
         } else if (length(.durCenter)>1L) {
@@ -271,7 +271,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .tmp <- .txt[.lagDepot];
             .txt <- .txt[-.lagDepot];
             if (.oral){
-                .lines[length(.lines)+1]  <- sub(.regLagDepot,"rx_tlag %s \\1", ifelse(.derived, "=", "~"), .tmp);
+                .lines[length(.lines)+1]  <- sub(.regLagDepot,sprintf("rx_tlag %s \\1", ifelse(.derived, "=", "~")), .tmp);
             } else {
                 stop("'alag(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter");
             }
@@ -287,10 +287,11 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .tmp <- .txt[.lagCenter];
             .txt <- .txt[-.lagCenter];
             if (.oral){
-                .lines[length(.lines)+1]  <- sub(.regLagCenter,"rx_tlag2 %s \\1", ifelse(.derived, "=", "~"), .tmp);
+              .lines[length(.lines)+1]  <- sub(.regLagCenter,sprintf("rx_tlag2 %s \\1", ifelse(.derived, "=", "~")), .tmp);
             } else {
-                .lines[length(.lines)+1]  <- sub(.regLagCenter,"rx_tlag %s \\1", ifelse(.derived, "=", "~"), .tmp);
-                .lines[length(.lines) + 1]  <- sprintf("rx_tlag2 %s 0", ifelse(.derived, "=", "~"))
+              .lines[length(.lines)+1]  <- sub(.regLagCenter,
+                                               sprintf("rx_tlag %s \\1", ifelse(.derived, "=", "~")), .tmp);
+              .lines[length(.lines) + 1]  <- sprintf("rx_tlag2 %s 0", ifelse(.derived, "=", "~"))
             }
         } else if (length(.lagCenter)>1L) {
             stop("can only specify 'alag(central)' once");
@@ -307,7 +308,7 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .tmp <- .txt[.fDepot];
             .txt <- .txt[-.fDepot];
             if (.oral){
-                .lines[length(.lines)+1]  <- sub(.regFdepot,"rx_F %s \\1", ifelse(.derived, "=", "~"), .tmp);
+                .lines[length(.lines)+1]  <- sub(.regFdepot,sprintf("rx_F %s \\1", ifelse(.derived, "=", "~")), .tmp);
             } else {
                 stop("'f(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter");
             }
@@ -323,9 +324,9 @@ rxLinCmtTrans <- function(modText, linCmtSens=FALSE){
             .tmp <- .txt[.fCenter];
             .txt <- .txt[-.fCenter];
             if (.oral){
-                .lines[length(.lines)+1]  <- sub(.regFcenter,"rx_F2 %s \\1", ifelse(.derived, "=", "~"), .tmp);
+                .lines[length(.lines)+1]  <- sub(.regFcenter,sprintf("rx_F2 %s \\1", ifelse(.derived, "=", "~")), .tmp);
             } else {
-                .lines[length(.lines)+1]  <- sub(.regFcenter,"rx_F %s \\1", ifelse(.derived, "=", "~"), .tmp);
+                .lines[length(.lines)+1]  <- sub(.regFcenter,sprintf("rx_F %s \\1", ifelse(.derived, "=", "~")), .tmp);
                 .lines[length(.lines) + 1]  <- sprintf("rx_F2 %s 1", ifelse(.derived, "=", "~"))
             }
         } else if (length(.fCenter)>1L) {
