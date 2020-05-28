@@ -4432,7 +4432,15 @@ typedef struct linCmtStruct {
 
   int kel;
 
+  int a;
+  int b;
   int c;
+
+  int aob;
+
+  int alpha;
+  int beta;
+  int gamma;
 
   int cl;
   
@@ -4494,7 +4502,15 @@ static inline void linCmtIni(linCmtStruct *lin){
 
   lin->vss = -1;
 
+  lin->a = -1;
+  lin->b = -1;
   lin->c = -1;
+
+  lin->aob = -1;
+
+  lin->alpha = -1;
+  lin->beta  = -1;
+  lin->gamma = -1;
   
   lin->clStyle=-1;
   lin->vStyle = -1;
@@ -4721,19 +4737,23 @@ static inline void linCmtC(linCmtStruct *lin, const char *in, int *index) {
     }
   }
 }
+#define linCmtVdStyle 1
+#define linCmtVtStyle 2
+#define linCmtVpStyle 3
+#define linCmtVnStyle 4
 
 static inline void linCmtVStr(sbuf *buf, const int style){
   switch(style){
-  case 1:
+  case linCmtVdStyle:
     sAppendN(buf, "Vd", 2);
     break;
-  case 2:
+  case linCmtVtStyle:
     sAppendN(buf, "Vt", 2);
     break;
-  case 3:
+  case linCmtVpStyle:
     sAppendN(buf, "Vp", 2);
     break;
-  case 4:
+  case linCmtVnStyle:
     sAppendN(buf, "V#", 2);
     break;
   }
@@ -4820,6 +4840,41 @@ static inline void linCmtV(linCmtStruct *lin, const char *in, int *index) {
   }
 }
 
+static inline void linCmtB(linCmtStruct *lin, const char *in, int *index) {
+  if (in[1] == '\0') {
+    lin->b = *index;
+    return;
+  }
+  if ((in[1] == 'E' || in[1] == 'e') &&
+      (in[2] == 'T' || in[2] == 't') &&
+      (in[3] == 'A' || in[3] == 'a') &&
+      in[5] == '\0') {
+    lin->beta = *index;
+    return;
+  }
+}
+
+static inline void linCmtA(linCmtStruct *lin, const char *in, int *index) {
+  if (in[1] == '\0') {
+    lin->a = *index;
+    return;
+  }
+  if ((in[1] == 'O' || in[1] == 'o') &&
+      (in[2] == 'B' || in[2] == 'b') &&
+      in[3] == '\0') {
+    lin->aob = *index;
+    return;
+  }
+  if ((in[1] == 'L' || in[1] == 'l') &&
+      (in[2] == 'P' || in[2] == 'p') &&
+      (in[3] == 'H' || in[3] == 'h') &&
+      (in[4] == 'A' || in[4] == 'a') &&
+      in[5] == '\0') {
+    lin->alpha = *index;
+    return;
+  }
+}
+
 static inline void linCmtStr(linCmtStruct *lin, const char *in, int *index) {
   if (in[0] == 'v' || in[0] == 'V') {
     linCmtV(lin, in, index);
@@ -4837,10 +4892,32 @@ static inline void linCmtStr(linCmtStruct *lin, const char *in, int *index) {
     linCmtQ(lin, in, index);
     return;
   }
+  if (in[0] == 'A' || in[0] == 'a') {
+    linCmtA(lin, in, index);
+  }
+  if (in[0] == 'B' || in[0] == 'b') {
+    linCmtB(lin, in, index);
+  }
+  if ((in[0] == 'G' || in[0] == 'g') &&
+      (in[1] == 'A' || in[1] == 'a') &&
+      (in[2] == 'M' || in[2] == 'm') &&
+      (in[3] == 'M' || in[3] == 'm') &&
+      (in[4] == 'A' || in[4] == 'a') &&
+      in[5] == '\0') {
+    lin->gamma = *index;
+    return;
+  }
 }
 
+static inline void appendElt(sbuf *sbb, SEXP vars, int elt) {
+  if (elt == -1) {
+    sAppendN(sbb, "0.0, ", 5);
+  } else {
+    sAppend(sbb, "%s, ", CHAR(STRING_ELT(vars, elt)));
+  }
+}
 
-SEXP _linCmtParse(SEXP vars){
+SEXP _linCmtParse(SEXP vars) {
   int type = TYPEOF(vars);
   if (type != STRSXP) {
     error("can only parse variable names");
@@ -4991,8 +5068,204 @@ SEXP _linCmtParse(SEXP vars){
     }
   }
   int trans =-1;
-  if (lin.cl){
+  int ncmt = -1;
+  sbuf ret0, ret;
+  sIni(&ret0);
+  sIni(&ret);
+  if (lin.cl) {
     trans = 1;
+    if (lin.vss != -1) {
+      ncmt = 2;
+      trans = 3;
+      if (lin.vStyle != -1) {
+	sClear(&firstErr);
+	sAppendN(&firstErr, "cannot mix 'Vss' and '", 22);
+	linCmtVStr(&firstErr, lin.vStyle);
+	sAppendN(&firstErr, "' volumes", 9);
+	error(firstErr.s);
+      }
+      if (lin.v == -1) {
+	error(_("cannot figure out a central volume"));
+      }
+      if (lin.cl2 == -1) {
+	error(_("cannot figure out distributional clearance"));
+      }
+      sAppend(&ret0, "%d, ", trans);
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl)));
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl2)));
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.vss)));
+    } else {
+      if (lin.v == -1) {
+	error(_("cannot figure out a central volume"));
+      }
+      ncmt = 1;
+      trans = 1;
+      sAppend(&ret0, "%d, ", trans);
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl)));
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+      if (lin.v2 != -1 || lin.cl2 != -1) {
+	ncmt = 2;
+	if (lin.cl2 == -1) {
+	  error(_("cannot figure out distributional clearance"));
+	}
+	if (lin.v2 == -1) {
+	  error(_("cannot figure out distributional volume"));
+	}
+	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl2)));
+	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v2)));
+	if (lin.v3 != -1 || lin.cl3 != -1) {
+	  ncmt = 3;
+	  if (lin.cl3 == -1) {
+	    error(_("cannot figure out 2nd distributional clearance"));
+	  }
+	  if (lin.v3 == -1) {
+	    error(_("cannot figure out 2nd distributional volume"));
+	  }
+	  sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl3)));
+	  sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v3)));
+	} else {
+	  sAppendN(&ret0, "0.0, 0.0, ", 10);
+	}
+      } else {
+	sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
+      }
+    }
+  } else if (lin.kel != -1) {
+    if (lin.v == -1) {
+      error(_("cannot figure out a central volume"));
+    }
+    trans = 2;
+    sAppend(&ret0, "%d, ", trans);
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.kel)));
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+    if (lin.k12 != -1 || lin.k21 != -1) {
+      if (lin.k12 != -1) {
+	error(_("'k12' not found when 'k21' present"));
+      }
+      if (lin.k21 != -1) {
+	error(_("'k21' not found when 'k12' present"));
+      }
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k12)));
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k21)));
+      if (lin.k13 != -1 || lin.k31 != -1) {
+	if (lin.k13 != -1) {
+	  error(_("'k13' not found when 'k31' present"));
+	}
+	if (lin.k31 != -1) {
+	  error(_("'k31' not found when 'k13' present"));
+	}
+	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k13)));
+	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k31)));
+      } else {
+	sAppendN(&ret0, "0.0, 0.0, ", 10);
+      }
+    } else {
+      sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
+    }
+  } else if (lin.aob != -1) {
+    ncmt = 2;
+    trans = 5;
+    if (lin.v == -1) {
+      error(_("cannot figure out a central volume"));
+    }
+    if (lin.alpha == -1) {
+      error(_("need an 'alpha' with 'aob'"));
+    }
+    if (lin.beta == -1) {
+      error(_("need a 'beta' with 'aob'"));
+    }
+    sAppend(&ret0, "%d, ", trans);
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
+    sAppend(&ret0, "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.aob)));
+  } else if (lin.k21 != -1) {
+    ncmt = 2;
+    trans = 4;
+    if (lin.v == -1) {
+      error(_("cannot figure out a central volume"));
+    }
+    if (lin.alpha == -1) {
+      error(_("need an 'alpha'"));
+    }
+    if (lin.beta == -1) {
+      error(_("need a 'beta'"));
+    }
+    sAppend(&ret0, "%d, ", trans);
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
+    sAppend(&ret0, "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.k21)));
+  } else if (lin.alpha != -1) {
+    ncmt = 1;
+    if (lin.a != -1){
+      trans = 10;
+    } else {
+      trans = 11;
+    }
+    sAppend(&ret0, "%d, ", trans);
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
+    if (lin.a != -1) {
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.a)));
+    } else {
+      if (lin.v == -1) {
+	error(_("cannot figure out a central volume"));
+      }
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+    }
+    if (lin.beta != -1 || lin.b != -1) {
+      ncmt =2;
+      if (lin.beta == -1) {
+	error(_("need a 'beta'"));
+      }
+      if (lin.b == -1) {
+	error(_("need a 'b'"));
+      }
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.b)));
+      if (lin.gamma != -1 || lin.c != -1) {
+	ncmt = 3;
+	if (lin.gamma == -1) {
+	  error(_("need a 'gamma'"));
+	}
+	if (lin.c == -1) {
+	  error(_("need a 'c'"));
+	}
+	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.gamma)));
+	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.c)));
+      } else {
+	sAppendN(&ret0, "0.0, 0.0, ", 10);
+      }
+    } else {
+      sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
+    }
   }
-  return R_NilValue;
+  appendElt(&ret0, vars, lin.ka);
+  sAppend(&ret, "%d, %s", ncmt, ret0.s);
+  int pro = 0;
+  SEXP strV = PROTECT(allocVector(STRSXP, 1)); pro++;
+  SEXP lst = PROTECT(allocVector(VECSXP, 3)); pro++;
+  SEXP lstN = PROTECT(allocVector(STRSXP, 3)); pro++;
+  
+  SEXP transSXP = PROTECT(allocVector(INTSXP, 1)); pro++;
+  INTEGER(transSXP)[0] = trans;
+
+  SEXP ncmtSXP = PROTECT(allocVector(INTSXP, 1)); pro++;
+  INTEGER(ncmtSXP)[0] = ncmt;
+  
+  SET_STRING_ELT(strV, 0, mkChar(ret.s));
+  SET_VECTOR_ELT(lst, 0, strV);
+  SET_STRING_ELT(lstN, 0, mkChar("str"));
+
+  SET_STRING_ELT(lstN, 1, mkChar("ncmt"));  
+  SET_VECTOR_ELT(lst, 1, ncmtSXP);
+  
+  SET_STRING_ELT(lstN, 2, mkChar("trans"));
+  SET_VECTOR_ELT(lst, 2, transSXP);
+
+  setAttrib(lst, R_NamesSymbol, lstN);
+
+  UNPROTECT(pro);
+  return lst;
 }

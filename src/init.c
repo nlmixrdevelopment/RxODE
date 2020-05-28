@@ -111,6 +111,7 @@ double expit(double, double, double);
 double logit(double, double, double);
 SEXP _expit(SEXP, SEXP, SEXP);
 SEXP _logit(SEXP, SEXP, SEXP);
+SEXP _linCmtParse(SEXP vars);
 
 static R_NativePrimitiveArgType RxODE_Sum_t[] = {
   REALSXP, INTSXP
@@ -400,6 +401,7 @@ void R_init_RxODE(DllInfo *info){
     {"_expit", (DL_FUNC) _expit, 3},
     {"_logit", (DL_FUNC) _logit, 3},
     {"_calcDerived", (DL_FUNC) _calcDerived, 4},
+    {"_linCmtParse", (DL_FUNC) _linCmtParse, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
