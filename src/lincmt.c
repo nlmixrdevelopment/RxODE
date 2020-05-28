@@ -1994,12 +1994,32 @@ void linCmtPar3(double *v, double *k10,
   *t12gamma = M_LN2/(*gamma);
 }
 
+SEXP toReal(SEXP in){
+  int type = TYPEOF(in);
+  if (type == REALSXP) return in;
+  if (type == INTSXP) {
+    SEXP ret = PROTECT(Rf_allocVector(REALSXP, Rf_length(in)));
+    int *inI = INTEGER(in);
+    double *retR = REAL(ret);
+    for (int i = Rf_length(in); i--;){
+      retR[i] = (double)(inI[i]);
+    }
+    UNPROTECT(1);
+    return ret;
+  }
+  error(_("not an integer/real"));
+  return R_NilValue;
+}
+
 SEXP derived1(int trans, SEXP inp, double dig) {
   double zer = 0;
   int lenP = Rf_length(VECTOR_ELT(inp, 0));
-  double *p1 = REAL(VECTOR_ELT(inp, 0));
+  int pro=0;
+  SEXP tmp = PROTECT(toReal(VECTOR_ELT(inp, 0))); pro++;
+  double *p1 = REAL(tmp);
   int lenV = Rf_length(VECTOR_ELT(inp, 1));
-  double *v1 = REAL(VECTOR_ELT(inp, 1));
+  tmp = PROTECT(toReal(VECTOR_ELT(inp, 1))); pro++;
+  double *v1 = REAL(tmp);
   int lenOut = lenP;
   if (lenV != lenP){
     if (lenP == 1){
@@ -2008,7 +2028,6 @@ SEXP derived1(int trans, SEXP inp, double dig) {
       error(_("The dimensions of the parameters must match"));
     }
   }
-  int pro=0;
   // vc, kel, vss, cl, thalf, alpha, A, fracA
   SEXP ret  = PROTECT(allocVector(VECSXP, 8)); pro++;
   SEXP retN = PROTECT(allocVector(STRSXP, 8)); pro++;
@@ -2089,16 +2108,23 @@ SEXP derived1(int trans, SEXP inp, double dig) {
 
 SEXP derived2(int trans, SEXP inp, double dig) {
   double zer = 0;
-  int lenP1 = Rf_length(VECTOR_ELT(inp, 0));
-  double *p1 = REAL(VECTOR_ELT(inp, 0));
-  int lenV = Rf_length(VECTOR_ELT(inp, 1));
-  double *v1 = REAL(VECTOR_ELT(inp, 1));
+  int pro=0;
 
-  int lenP2 = Rf_length(VECTOR_ELT(inp, 2));
-  double *p2 = REAL(VECTOR_ELT(inp, 2));
-  
-  int lenP3 = Rf_length(VECTOR_ELT(inp, 3));
-  double *p3 = REAL(VECTOR_ELT(inp, 3));
+  SEXP tmp = PROTECT(toReal(VECTOR_ELT(inp, 0))); pro++;
+  int lenP1 = Rf_length(tmp);
+  double *p1 = REAL(tmp);
+
+  tmp = PROTECT(toReal(VECTOR_ELT(inp, 1))); pro++;
+  int lenV = Rf_length(tmp);
+  double *v1 = REAL(tmp);
+
+  tmp = PROTECT(toReal(VECTOR_ELT(inp, 2))); pro++;
+  int lenP2 = Rf_length(tmp);
+  double *p2 = REAL(tmp);
+
+  tmp = PROTECT(toReal(VECTOR_ELT(inp, 3))); pro++;
+  int lenP3 = Rf_length(tmp);
+  double *p3 = REAL(tmp);
   
   int lenOut = max2(lenV, lenP1);
   lenOut = max2(lenOut, lenP2);
@@ -2112,7 +2138,6 @@ SEXP derived2(int trans, SEXP inp, double dig) {
       error(_("The dimensions of the parameters must match"));
     }
   }
-  int pro=0;
   // vc, kel, k12, k21, vp, vss, cl, q, thalfAlpha, thalfBeta,
   // alpha, beta, A, B, fracA, fracB
   SEXP ret  = PROTECT(allocVector(VECSXP, 16)); pro++;
@@ -2244,22 +2269,30 @@ SEXP derived2(int trans, SEXP inp, double dig) {
 }
 
 SEXP derived3(int trans, SEXP inp, double dig) {
-  int lenP1 = Rf_length(VECTOR_ELT(inp, 0));
-  double *p1 = REAL(VECTOR_ELT(inp, 0));
-  int lenV = Rf_length(VECTOR_ELT(inp, 1));
-  double *v1 = REAL(VECTOR_ELT(inp, 1));
+  int pro = 0;
+  SEXP tmp = PROTECT(toReal(VECTOR_ELT(inp, 0))); pro++;
+  int lenP1 = Rf_length(tmp);
+  double *p1 = REAL(tmp);
 
-  int lenP2 = Rf_length(VECTOR_ELT(inp, 2));
-  double *p2 = REAL(VECTOR_ELT(inp, 2));
-  
-  int lenP3 = Rf_length(VECTOR_ELT(inp, 3));
-  double *p3 = REAL(VECTOR_ELT(inp, 3));
+  tmp = PROTECT(toReal(VECTOR_ELT(inp, 1))); pro++;
+  int lenV = Rf_length(tmp);
+  double *v1 = REAL(tmp);
 
-  int lenP4 = Rf_length(VECTOR_ELT(inp, 4));
-  double *p4 = REAL(VECTOR_ELT(inp, 4));
+  tmp = PROTECT(toReal(VECTOR_ELT(inp, 2))); pro++;
+  int lenP2 = Rf_length(tmp);
+  double *p2 = REAL(tmp);
 
-  int lenP5 = Rf_length(VECTOR_ELT(inp, 5));
-  double *p5 = REAL(VECTOR_ELT(inp, 5));
+  tmp = PROTECT(toReal(VECTOR_ELT(inp, 3))); pro++;
+  int lenP3 = Rf_length(tmp);
+  double *p3 = REAL(tmp);
+
+  tmp = PROTECT(toReal(VECTOR_ELT(inp, 4))); pro++;
+  int lenP4 = Rf_length(tmp);
+  double *p4 = REAL(tmp);
+
+  tmp = PROTECT(toReal(VECTOR_ELT(inp, 5))); pro++;
+  int lenP5 = Rf_length(tmp);
+  double *p5 = REAL(tmp);
   
   int lenOut = max2(lenV, lenP1);
   lenOut = max2(lenOut, lenP2);
@@ -2277,7 +2310,6 @@ SEXP derived3(int trans, SEXP inp, double dig) {
       error(_("The dimensions of the parameters must match"));
     }
   }
-  int pro=0;
   // vc, kel, k12, k21, vp, vss, cl, q, thalfAlpha, thalfBeta,
   // alpha, beta, A, B, fracA, fracB
   SEXP ret  = PROTECT(allocVector(VECSXP, 24)); pro++;
@@ -2461,10 +2493,16 @@ SEXP derived3(int trans, SEXP inp, double dig) {
   return ret;
 }
 
-SEXP _calcDerived(SEXP transSXP, SEXP ncmtSXP, SEXP inp, SEXP sigdigSXP) {
+SEXP _calcDerived(SEXP ncmtSXP, SEXP transSXP, SEXP inp, SEXP sigdigSXP) {
   int tInp = TYPEOF(inp);
-  int trans = INTEGER(transSXP)[0];
-  int ncmt = INTEGER(ncmtSXP)[0];
+  int trans=-1;
+  if (TYPEOF(transSXP) == REALSXP){
+    trans = (int)(REAL(transSXP)[0]);
+  }
+  int ncmt=-1;
+  if (TYPEOF(ncmtSXP) == REALSXP) {
+    ncmt = (int)(REAL(ncmtSXP)[0]);
+  }
   double dig=0.0;
   int tDig = TYPEOF(sigdigSXP);
   if (tDig == INTSXP) {

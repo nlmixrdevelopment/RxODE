@@ -771,7 +771,10 @@ rxDerived <- function(..., verbose=FALSE, digits=0) {
     if (verbose){
       message("Parameters: ", paste(names(.lst)[.w], collapse=","))
     }
-    .linCmt <- rxLinCmtTrans(paste0("C2=linCmt(", paste(names(.lst)[.w], collapse=","), ")"), NA)
+    assign(".lst", .lst, globalenv());
+    .linCmt <- .Call(`_linCmtParse`, names(.lst)[.w],
+                     c("with(.lst,.Call(`_calcDerived`, ","list(",", 0, 0, 0, 0, 0, 0, 0, 0),digits))"),
+                     verbose)$str
     .env <- environment()
     return(eval(parse(text=.linCmt), envir=.env))
   } else {

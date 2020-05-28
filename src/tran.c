@@ -5055,10 +5055,14 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
   }
 }
 
-SEXP _linCmtParse(SEXP vars, SEXP inStr) {
+SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
   const char *first = "linCmtB(rx__PTR__, t, ";
   const char *mid = "0, ";
-  const char *end = "rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur, rx_rate2, rx_dur2)";
+  const char *end = ", rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur, rx_rate2, rx_dur2)";
+  int verbose = 0;
+  if (TYPEOF(verboseSXP) == LGLSXP) {
+    verbose = INTEGER(verboseSXP)[0];
+  }
   int type = TYPEOF(inStr);
   if (type == STRSXP) {
     int len = Rf_length(inStr);
@@ -5072,7 +5076,6 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr) {
       end = CHAR(STRING_ELT(inStr, 2));
     }
   }
-  
   linCmtStruct lin;
   linCmtIni(&lin);
   for (int i = Rf_length(vars); i--;){
@@ -5143,6 +5146,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr) {
 	sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
       }
     }
+    if (verbose) REprintf(_("Detected %d-compartment model in terms of clearance"), ncmt);
   } else if (lin.kel != -1) {
     if (lin.v == -1) {
       error(_("cannot figure out a central volume"));
@@ -5194,6 +5198,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr) {
     } else {
       sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
     }
+    if (verbose) REprintf(_("detected %d-compartment model in terms of micro-constants"), ncmt);
   } else if (lin.aob != -1) {
     ncmt = 2;
     trans = 5;
@@ -5211,6 +5216,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr) {
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
     sAppend(&ret0, "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.aob)));
+    if (verbose) REprintf(_("detected %d-compartment model in terms of 'alpha' and 'aob'"), ncmt);
   } else if (lin.k21 != -1) {
     ncmt = 2;
     trans = 4;
@@ -5228,6 +5234,13 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr) {
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
     sAppend(&ret0, "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.k21)));
+    if (verbose) {
+      if (lin.cmtc == 1) {
+	REprintf(_("detected %d-compartment model in terms of 'alpha' or 'k21'"), ncmt);
+      } else {
+	REprintf(_("detected %d-compartment model in terms of 'alpha' or 'k32'"), ncmt);
+      }
+    }
   } else if (lin.alpha != -1) {
     ncmt = 1;
     if (lin.a != -1){
@@ -5271,11 +5284,20 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr) {
     } else {
       sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
     }
+    if (verbose) {
+      if (lin.a != -1){
+	REprintf(_("detected %d-compartment model in terms of 'alpha' and central volume"), ncmt);
+      } else {
+	REprintf(_("detected %d-compartment model in terms of 'alpha' and 'a'"), ncmt);
+      }
+    }
   }
   if (lin.ka == -1) {
     sAppendN(&ret0, "0.0", 3);
+    if (verbose) REprintf("\n");
   } else {
     sAppend(&ret0, "%s", CHAR(STRING_ELT(vars, lin.ka)));
+    if (verbose) REprintf(_(" with first order absorption\n"));
   }
   sAppend(&ret, "%s", first);
   sAppend(&ret, "%d, %s", ncmt, ret0.s);
@@ -5292,14 +5314,14 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr) {
   INTEGER(ncmtSXP)[0] = ncmt;
   
   SET_STRING_ELT(strV, 0, mkChar(ret.s));
-  SET_VECTOR_ELT(lst, 0, strV);
+  SET_VECTOR_ELT(lst,  0, strV);
   SET_STRING_ELT(lstN, 0, mkChar("str"));
 
   SET_STRING_ELT(lstN, 1, mkChar("ncmt"));  
-  SET_VECTOR_ELT(lst, 1, ncmtSXP);
+  SET_VECTOR_ELT(lst,  1, ncmtSXP);
   
   SET_STRING_ELT(lstN, 2, mkChar("trans"));
-  SET_VECTOR_ELT(lst, 2, transSXP);
+  SET_VECTOR_ELT(lst,  2, transSXP);
 
   setAttrib(lst, R_NamesSymbol, lstN);
 
