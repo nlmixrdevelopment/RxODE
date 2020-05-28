@@ -4517,11 +4517,11 @@ static inline void linCmtIni(linCmtStruct *lin){
 }
 
 static inline void linCmtCmt(linCmtStruct *lin, const int cmt){
-  if (lin->cmtc) {
+  if (lin->cmtc == -1) {
     lin->cmtc = cmt;
   }
   if (lin->cmtc != cmt){
-    error(_("inconsistent central compartment, have both '%d' and '%d'"), lin->cmtc, cmt);
+    error(_("inconsistent central compartment numbers, can not have both '1' and '2'"));
   }
 }
 
@@ -4910,169 +4910,181 @@ static inline void linCmtStr(linCmtStruct *lin, const char *in, int *index) {
 }
 
 static inline void appendElt(sbuf *sbb, SEXP vars, int elt) {
-  if (elt == -1) {
-    sAppendN(sbb, "0.0, ", 5);
+}
+
+static inline void linCmtAdjustPars(linCmtStruct *lin) {
+  if (lin->clStyle == linCmtQstyle){
+    // cl,
+    if (lin->cl == -1){
+      error(_("'Q' parameterization needs 'Cl'"));
+    }
+    if (lin->cl1 != -1) {
+      if (lin->cl2  != -1) {
+	// Cl, Q, Q1
+	error(_("cannot mix 'Q' and 'Q1'"));
+      } else if (lin->cl3 != -1) {
+	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
+	lin->cl2 = lin->cl1;
+	lin->cl1 = -1;
+      } else if (lin->cl4 != -1){
+	// Cl, Q, Q3
+	error(_("cannot mix 'Q' and 'Q3'"));
+      } else {
+	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
+	lin->cl2 = lin->cl1;
+	lin->cl1 = -1;
+      }
+    } else if (lin->cl2  != -1) {
+      // Cl, Q1
+      if (lin->cl4 != -1) {
+	error(_("cannot mix 'Q1' and 'Q3'"));
+      }
+    } else if (lin->cl3 != -1){
+      lin->cl2 = lin->cl3;
+      lin->cl3 = lin->cl4;
+    }
   } else {
-    sAppend(sbb, "%s, ", CHAR(STRING_ELT(vars, elt)));
+    if (lin->cl1 != -1){
+      // Cl1, Cl2, Cl3
+      // -> cl, cl2, cl3
+      if (lin->cl != -1) {
+	error(_("cannot mix 'Cl' and 'Cl1'"));
+      }
+      linCmtCmt(lin, 1);
+      lin->cl = lin->cl1;
+      lin->cl1 = -1;
+      if (lin->cl4 != -1){
+	error(_("specified clearance for 4th compartment, which does not make sense in this context"));
+      }
+    } else if (lin->cl2 != -1){
+      if (lin->cl != -1){
+	//  Cl2, Cl3, Cl4
+	// -> Cl, cl2, cl3
+	linCmtCmt(lin, 2);
+	lin->cl = lin->cl2;
+	lin->cl2 = lin->cl3;
+	lin->cl3 = lin->cl4;
+      } else if (lin->cl4 != -1) {
+	// Cl, Cl2, Cl3 keeps the same;  Cl4 doesn't make sense
+	error(_("specified clearance for 4th compartment, which does not make sense in this context"));
+      }
+    } else if (lin->cl != -1){
+      if (lin->cl3 != -1){
+	// Cl, Cl3, Cl4
+	//-> Cl, Cl2, cl3
+	lin->cl2 = lin->cl3;
+	lin->cl3 = lin->cl4;
+	lin->cl4 = -1;
+      }
+    }
+  }
+  if (lin->v != -1){
+    if (lin->v1 != -1){
+      error(_("Cannot specify 'v1' and 'vc'"));
+    }
+    if (lin->v4 != -1){
+      error(_("Cannot specify 'v4' and 'vc'"));
+    }
+    if (lin->v2 != -1) {
+      // v, v2, v3; Central Compartment is 1
+      linCmtCmt(lin, 1);
+      linCmtVStyle(lin, 4); // V#
+    } else if (lin->v3 != -1) {
+      // v, v3, v4; Central compartment is 2
+      linCmtCmt(lin, 2); 
+      linCmtVStyle(lin, 4); // V#
+      lin->v2 = lin->v3;
+      lin->v3 = lin->v4;
+    } else if (lin->vp != -1){
+      lin->v2 = lin->vp;
+      if (lin->vp1 != -1){
+	// v, vp, vp, vp1
+	lin->v3 = lin->vp1;
+      } else if (lin->vp2 != -1) {
+	// v, vp, vp, vp2
+	lin->v3 = lin->vp2;
+      } else if (lin->vp3 != -1) {
+	// v, vp, vp, vp3
+	linCmtCmt(lin, 1);
+	linCmtCmt(lin, 2);
+      }
+    }
+  } else if (lin->v1 != -1){
+    linCmtCmt(lin, 1);
+    lin->v = lin->v1;
+    if (lin->v2 != -1) {
+      // v1, v2, v3; Central Compartment is 1
+      linCmtCmt(lin, 1);
+      linCmtVStyle(lin, 4); // V#
+    } else if (lin->v3 != -1) {
+      // v1, v3, v4; Central compartment is 2
+      linCmtCmt(lin, 2); 
+    } else if (lin->vp != -1){
+      // v1, vp,
+      lin->v2 = lin->vp;
+      if (lin->vp1 != -1){
+	// v1, vp, vp1
+	lin->v3 = lin->vp1;
+      } else if (lin->vp2 != -1) {
+	// v, vp, vp2
+	lin->v3 = lin->vp2;
+      } else if (lin->vp3 != -1) {
+	linCmtCmt(lin, 2); 
+      }
+    }
+  } else if (lin->v2 != -1){
+    linCmtCmt(lin, 2);
+    lin->v = lin->v2;
+    if (lin->v3 != -1) {
+      // v2, v3, v4; Central compartment is 2
+      lin->v2 = lin->v3;
+      lin->v3 = lin->v4;
+    } else if (lin->vp != -1){
+      // v2, vp,
+      lin->v2 = lin->vp;
+      if (lin->vp1 != -1){
+	// v2, vp, vp1
+	lin->v3 = lin->vp1;
+      } else if (lin->vp2 != -1) {
+	// v2, vp, vp2
+	lin->v3 = lin->vp2;
+      } else if (lin->vp3 != -1) {
+	linCmtCmt(lin, 2); 
+      }
+    }
   }
 }
 
-SEXP _linCmtParse(SEXP vars) {
-  int type = TYPEOF(vars);
-  if (type != STRSXP) {
-    error("can only parse variable names");
+SEXP _linCmtParse(SEXP vars, SEXP inStr) {
+  const char *first = "linCmtB(rx__PTR__, t, ";
+  const char *mid = "0, ";
+  const char *end = "rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur, rx_rate2, rx_dur2)";
+  int type = TYPEOF(inStr);
+  if (type == STRSXP) {
+    int len = Rf_length(inStr);
+    if (len > 0) {
+      first = CHAR(STRING_ELT(inStr, 0));
+    }
+    if (len > 1) {
+      mid = CHAR(STRING_ELT(inStr, 1));
+    }
+    if (len > 2) {
+      end = CHAR(STRING_ELT(inStr, 2));
+    }
   }
+  
   linCmtStruct lin;
   linCmtIni(&lin);
   for (int i = Rf_length(vars); i--;){
     linCmtStr(&lin, CHAR(STRING_ELT(vars, i)), &i);
   }
-  if (lin.clStyle == linCmtQstyle){
-    // cl,
-    if (lin.cl == -1){
-      error(_("'Q' parameterization needs 'Cl'"));
-    }
-    if (lin.cl1 != -1) {
-      if (lin.cl2  != -1) {
-	// Cl, Q, Q1
-	error(_("cannot mix 'Q' and 'Q1'"));
-      } else if (lin.cl3 != -1) {
-	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
-	lin.cl2 = lin.cl1;
-	lin.cl1 = -1;
-      } else if (lin.cl4 != -1){
-	// Cl, Q, Q3
-	error(_("cannot mix 'Q' and 'Q3'"));
-      } else {
-	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
-	lin.cl2 = lin.cl1;
-	lin.cl1 = -1;
-      }
-    } else if (lin.cl2  != -1) {
-      // Cl, Q1
-      if (lin.cl4 != -1) {
-	error(_("cannot mix 'Q1' and 'Q3'"));
-      }
-    } else if (lin.cl3 != -1){
-      lin.cl2 = lin.cl3;
-      lin.cl3 = lin.cl4;
-    }
-  } else {
-    if (lin.cl1 != -1){
-      // Cl1, Cl2, Cl3
-      // -> cl, cl2, cl3
-      if (lin.cl != -1) {
-	error(_("cannot mix 'Cl' and 'Cl1'"));
-      }
-      linCmtCmt(&lin, 1);
-      lin.cl = lin.cl1;
-      lin.cl1 = -1;
-      if (lin.cl4 != -1){
-	error(_("specified clearance for 4th compartment, which does not make sense in this context"));
-      }
-    } else if (lin.cl2 != -1){
-      if (lin.cl != -1){
-	//  Cl2, Cl3, Cl4
-	// -> Cl, cl2, cl3
-	linCmtCmt(&lin, 2);
-	lin.cl = lin.cl2;
-	lin.cl2 = lin.cl3;
-	lin.cl3 = lin.cl4;
-      } else if (lin.cl4 != -1) {
-	// Cl, Cl2, Cl3 keeps the same;  Cl4 doesn't make sense
-	error(_("specified clearance for 4th compartment, which does not make sense in this context"));
-      }
-    } else if (lin.cl != -1){
-      if (lin.cl3 != -1){
-	// Cl, Cl3, Cl4
-	//-> Cl, Cl2, cl3
-	lin.cl2 = lin.cl3;
-	lin.cl3 = lin.cl4;
-	lin.cl4 = -1;
-      }
-    }
-  }
-  if (lin.v != -1){
-    if (lin.v1 != -1){
-      error(_("Cannot specify 'v1' and 'vc'"));
-    }
-    if (lin.v4 != -1){
-      error(_("Cannot specify 'v4' and 'vc'"));
-    }
-    if (lin.v2 != -1) {
-      // v, v2, v3; Central Compartment is 1
-      linCmtCmt(&lin, 1);
-      linCmtVStyle(&lin, 4); // V#
-    } else if (lin.v3 != -1) {
-      // v, v3, v4; Central compartment is 2
-      linCmtCmt(&lin, 2); 
-      linCmtVStyle(&lin, 4); // V#
-      lin.v2 = lin.v3;
-      lin.v3 = lin.v4;
-    } else if (lin.vp != -1){
-      lin.v2 = lin.vp;
-      if (lin.vp1 != -1){
-	// v, vp, vp, vp1
-	lin.v3 = lin.vp1;
-      } else if (lin.vp2 != -1) {
-	// v, vp, vp, vp2
-	lin.v3 = lin.vp2;
-      } else if (lin.vp3 != -1) {
-	// v, vp, vp, vp3
-	linCmtCmt(&lin, 1);
-	linCmtCmt(&lin, 2);
-      }
-    }
-  } else if (lin.v1 != -1){
-    linCmtCmt(&lin, 1);
-    lin.v = lin.v1;
-    if (lin.v2 != -1) {
-      // v1, v2, v3; Central Compartment is 1
-      linCmtCmt(&lin, 1);
-      linCmtVStyle(&lin, 4); // V#
-    } else if (lin.v3 != -1) {
-      // v1, v3, v4; Central compartment is 2
-      linCmtCmt(&lin, 2); 
-    } else if (lin.vp != -1){
-      // v1, vp,
-      lin.v2 = lin.vp;
-      if (lin.vp1 != -1){
-	// v1, vp, vp1
-	lin.v3 = lin.vp1;
-      } else if (lin.vp2 != -1) {
-	// v, vp, vp2
-	lin.v3 = lin.vp2;
-      } else if (lin.vp3 != -1) {
-	linCmtCmt(&lin, 2); 
-      }
-    }
-  } else if (lin.v2 != -1){
-    linCmtCmt(&lin, 2);
-    lin.v = lin.v2;
-    if (lin.v3 != -1) {
-      // v2, v3, v4; Central compartment is 2
-      lin.v2 = lin.v3;
-      lin.v3 = lin.v4;
-    } else if (lin.vp != -1){
-      // v2, vp,
-      lin.v2 = lin.vp;
-      if (lin.vp1 != -1){
-	// v2, vp, vp1
-	lin.v3 = lin.vp1;
-      } else if (lin.vp2 != -1) {
-	// v2, vp, vp2
-	lin.v3 = lin.vp2;
-      } else if (lin.vp3 != -1) {
-	linCmtCmt(&lin, 2); 
-      }
-    }
-  }
+  linCmtAdjustPars(&lin);
   int trans =-1;
   int ncmt = -1;
   sbuf ret0, ret;
   sIni(&ret0);
   sIni(&ret);
-  if (lin.cl) {
+  if (lin.cl != -1) {
     trans = 1;
     if (lin.vss != -1) {
       ncmt = 2;
@@ -5090,7 +5102,7 @@ SEXP _linCmtParse(SEXP vars) {
       if (lin.cl2 == -1) {
 	error(_("cannot figure out distributional clearance"));
       }
-      sAppend(&ret0, "%d, ", trans);
+      sAppend(&ret0, "%d, %s", trans, mid);
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl)));
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl2)));
@@ -5101,7 +5113,7 @@ SEXP _linCmtParse(SEXP vars) {
       }
       ncmt = 1;
       trans = 1;
-      sAppend(&ret0, "%d, ", trans);
+      sAppend(&ret0, "%d, %s", trans, mid);
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl)));
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
       if (lin.v2 != -1 || lin.cl2 != -1) {
@@ -5135,26 +5147,45 @@ SEXP _linCmtParse(SEXP vars) {
     if (lin.v == -1) {
       error(_("cannot figure out a central volume"));
     }
+    ncmt = 1;
     trans = 2;
-    sAppend(&ret0, "%d, ", trans);
+    sAppend(&ret0, "%d, %s", trans, mid);
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.kel)));
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
     if (lin.k12 != -1 || lin.k21 != -1) {
-      if (lin.k12 != -1) {
-	error(_("'k12' not found when 'k21' present"));
+      if (lin.k12 == -1) {
+	if (lin.cmtc == 1){
+	  error(_("'k12' not found when 'k21' present"));
+	} else {
+	  error(_("'k23' not found when 'k32' present"));
+	}
       }
-      if (lin.k21 != -1) {
-	error(_("'k21' not found when 'k12' present"));
+      if (lin.k21 == -1) {
+	if (lin.cmtc == 1){
+	  error(_("'k21' not found when 'k12' present"));
+	} else {
+	  error(_("'k32' not found when 'k23' present"));
+	}
       }
+      ncmt = 2;
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k12)));
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k21)));
       if (lin.k13 != -1 || lin.k31 != -1) {
-	if (lin.k13 != -1) {
-	  error(_("'k13' not found when 'k31' present"));
+	if (lin.k13 == -1) {
+	  if (lin.cmtc == 1){
+	    error(_("'k13' not found when 'k31' present"));
+	  } else {
+	    error(_("'k24' not found when 'k42' present"));
+	  }
 	}
-	if (lin.k31 != -1) {
-	  error(_("'k31' not found when 'k13' present"));
+	if (lin.k31 == -1) {
+	  if (lin.cmtc == 1){
+	    error(_("'k31' not found when 'k13' present"));
+	  } else {
+	    error(_("'k42' not found when 'k24' present"));
+	  }
 	}
+	ncmt = 3;
 	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k13)));
 	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k31)));
       } else {
@@ -5175,7 +5206,7 @@ SEXP _linCmtParse(SEXP vars) {
     if (lin.beta == -1) {
       error(_("need a 'beta' with 'aob'"));
     }
-    sAppend(&ret0, "%d, ", trans);
+    sAppend(&ret0, "%d, %s", trans, mid);
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
@@ -5192,7 +5223,7 @@ SEXP _linCmtParse(SEXP vars) {
     if (lin.beta == -1) {
       error(_("need a 'beta'"));
     }
-    sAppend(&ret0, "%d, ", trans);
+    sAppend(&ret0, "%d, %s", trans, mid);
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
@@ -5204,7 +5235,7 @@ SEXP _linCmtParse(SEXP vars) {
     } else {
       trans = 11;
     }
-    sAppend(&ret0, "%d, ", trans);
+    sAppend(&ret0, "%d, %s", trans, mid);
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
     if (lin.a != -1) {
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.a)));
@@ -5241,8 +5272,14 @@ SEXP _linCmtParse(SEXP vars) {
       sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
     }
   }
-  appendElt(&ret0, vars, lin.ka);
+  if (lin.ka == -1) {
+    sAppendN(&ret0, "0.0", 3);
+  } else {
+    sAppend(&ret0, "%s", CHAR(STRING_ELT(vars, lin.ka)));
+  }
+  sAppend(&ret, "%s", first);
   sAppend(&ret, "%d, %s", ncmt, ret0.s);
+  sAppend(&ret, "%s", end);
   int pro = 0;
   SEXP strV = PROTECT(allocVector(STRSXP, 1)); pro++;
   SEXP lst = PROTECT(allocVector(VECSXP, 3)); pro++;
