@@ -4452,6 +4452,8 @@ typedef struct linCmtStruct {
   int vp1;
   int vp2;
   int vp3;
+
+  int vss;
   
   int cmtc;
   
@@ -4490,6 +4492,8 @@ static inline void linCmtIni(linCmtStruct *lin){
   lin->vp2 = -1;
   lin->vp3 = -1;
 
+  lin->vss = -1;
+
   lin->c = -1;
   
   lin->clStyle=-1;
@@ -4507,10 +4511,9 @@ static inline void linCmtCmt(linCmtStruct *lin, const int cmt){
 
 static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
   // ke, kel, k10 or k20
-  // 
-  if ((in[1] == 'a' || in[1] == 'a') &&
-      in[2] == '\0') {
-    lin->ka = *index;
+  //
+  if (in[1] == '\0') {
+    lin->kel = *index;
     return;
   }
   if ((in[1] == 'e' || in[1] == 'E')) {
@@ -4524,6 +4527,11 @@ static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
       lin->kel = *index;
       return;
     }
+  }
+  if ((in[1] == 'a' || in[1] == 'a') &&
+      in[2] == '\0') {
+    lin->ka = *index;
+    return;
   }
   // Support: k12, k21, k13, k31 when central compartment is 1
   // Also support:  k23, k32, k24, k42 when central compartment is 2
@@ -4592,6 +4600,7 @@ static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
 
 #define linCmtCl1style 1
 #define linCmtCld1style 2
+#define linCmtQstyle 3
 
 static inline void linCmtClStr(sbuf *buf, const int style){
   switch(style){
@@ -4600,6 +4609,9 @@ static inline void linCmtClStr(sbuf *buf, const int style){
     break;
   case linCmtCld1style:
     sAppendN(buf, "Cld#", 4);
+    break;
+  case linCmtQstyle:
+    sAppendN(buf, "Q", 1);
     break;
   }
 }
@@ -4618,6 +4630,34 @@ static inline void linCmtClStyle(linCmtStruct *lin, const int style) {
     error(firstErr.s);
   }
 }
+
+static inline void linCmtQ(linCmtStruct *lin, const char *in, int *index) {
+  if (in[1] == '\0') {
+    // Q
+    linCmtClStyle(lin, linCmtQstyle);
+    lin->cl1 = *index;
+    return;
+  }
+  if (in[1] == '1' && in[2] == '\0') {
+    // Q1
+    linCmtClStyle(lin, linCmtQstyle);
+    lin->cl2 = *index;
+    return;
+  }
+  if (in[1] == '2' && in[2] == '\0') {
+    // Q2
+    linCmtClStyle(lin, linCmtQstyle);
+    lin->cl3 = *index;
+    return;
+  }
+  if (in[1] == '3' && in[2] == '\0') {
+    // Q3
+    linCmtClStyle(lin, linCmtQstyle);
+    lin->cl4 = *index;
+    return;
+  }
+}
+
 
 static inline void linCmtC(linCmtStruct *lin, const char *in, int *index) {
   // CL, CL1, CL2, CL3, CL4
@@ -4715,6 +4755,12 @@ static inline void linCmtVStyle(linCmtStruct *lin, int style) {
 }
 
 static inline void linCmtV(linCmtStruct *lin, const char *in, int *index) {
+  if ((in[1] == 's' || in[1] == 'S') &&
+      (in[2] == 's' || in[2] == 'S') &&
+      in[3] == '\0') {
+    lin->vss = *index;
+    return;
+  }
   // v1, v2, v3, v4
   // vt1, vt2, vt3, vt4
   // vp1, vp2, vp3, vp4
@@ -4787,6 +4833,10 @@ static inline void linCmtStr(linCmtStruct *lin, const char *in, int *index) {
     linCmtK(lin, in, index);
     return;
   }
+  if (in[0] == 'Q' || in[0] == 'q') {
+    linCmtQ(lin, in, index);
+    return;
+  }
 }
 
 
@@ -4800,37 +4850,69 @@ SEXP _linCmtParse(SEXP vars){
   for (int i = Rf_length(vars); i--;){
     linCmtStr(&lin, CHAR(STRING_ELT(vars, i)), &i);
   }
-  if (lin.cl1 != -1){
-    // Cl1, Cl2, Cl3
-    // -> cl, cl2, cl3
-    if (lin.cl != -1) {
-      error(_("cannot mix 'Cl' and 'Cl1'"));
+  if (lin.clStyle == linCmtQstyle){
+    // cl,
+    if (lin.cl == -1){
+      error(_("'Q' parameterization needs 'Cl'"));
     }
-    linCmtCmt(&lin, 1);
-    lin.cl = lin.cl1;
-    lin.cl1 = -1;
-    if (lin.cl4 != -1){
-      error(_("specified clearance for 4th compartment, which does not make sense in this context"));
-    }
-  } else if (lin.cl2 != -1){
-    if (lin.cl != -1){
-      //  Cl2, Cl3, Cl4
-      // -> Cl, cl2, cl3
-      linCmtCmt(&lin, 2);
-      lin.cl = lin.cl2;
+    if (lin.cl1 != -1) {
+      if (lin.cl2  != -1) {
+	// Cl, Q, Q1
+	error(_("cannot mix 'Q' and 'Q1'"));
+      } else if (lin.cl3 != -1) {
+	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
+	lin.cl2 = lin.cl1;
+	lin.cl1 = -1;
+      } else if (lin.cl4 != -1){
+	// Cl, Q, Q3
+	error(_("cannot mix 'Q' and 'Q3'"));
+      } else {
+	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
+	lin.cl2 = lin.cl1;
+	lin.cl1 = -1;
+      }
+    } else if (lin.cl2  != -1) {
+      // Cl, Q1
+      if (lin.cl4 != -1) {
+	error(_("cannot mix 'Q1' and 'Q3'"));
+      }
+    } else if (lin.cl3 != -1){
       lin.cl2 = lin.cl3;
       lin.cl3 = lin.cl4;
-    } else if (lin.cl4 != -1) {
-      // Cl, Cl2, Cl3 keeps the same;  Cl4 doesn't make sense
-      error(_("specified clearance for 4th compartment, which does not make sense in this context"));
     }
-  } else if (lin.cl != -1){
-    if (lin.cl3 != -1){
-      // Cl, Cl3, Cl4
-      //-> Cl, Cl2, cl3
-      lin.cl2 = lin.cl3;
-      lin.cl3 = lin.cl4;
-      lin.cl4 = -1;
+  } else {
+    if (lin.cl1 != -1){
+      // Cl1, Cl2, Cl3
+      // -> cl, cl2, cl3
+      if (lin.cl != -1) {
+	error(_("cannot mix 'Cl' and 'Cl1'"));
+      }
+      linCmtCmt(&lin, 1);
+      lin.cl = lin.cl1;
+      lin.cl1 = -1;
+      if (lin.cl4 != -1){
+	error(_("specified clearance for 4th compartment, which does not make sense in this context"));
+      }
+    } else if (lin.cl2 != -1){
+      if (lin.cl != -1){
+	//  Cl2, Cl3, Cl4
+	// -> Cl, cl2, cl3
+	linCmtCmt(&lin, 2);
+	lin.cl = lin.cl2;
+	lin.cl2 = lin.cl3;
+	lin.cl3 = lin.cl4;
+      } else if (lin.cl4 != -1) {
+	// Cl, Cl2, Cl3 keeps the same;  Cl4 doesn't make sense
+	error(_("specified clearance for 4th compartment, which does not make sense in this context"));
+      }
+    } else if (lin.cl != -1){
+      if (lin.cl3 != -1){
+	// Cl, Cl3, Cl4
+	//-> Cl, Cl2, cl3
+	lin.cl2 = lin.cl3;
+	lin.cl3 = lin.cl4;
+	lin.cl4 = -1;
+      }
     }
   }
   if (lin.v != -1){
