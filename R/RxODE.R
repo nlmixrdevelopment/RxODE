@@ -416,6 +416,7 @@ RxODE <- # nolint
     .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel, indLin=indLin);
     .env$.rxTransCode <- .rxTransCode
     if (.Call(`_RxODE_isLinCmt`) == 1L){
+        .Call(`_RxODE_linCmtGen`, linCmtSens);
         .env$.mv <- rxLinCmtTrans(.env$.mv, linCmtSens=linCmtSens);
     }
     model <- rxNorm(.env$.mv);

@@ -258,6 +258,10 @@ lhs symbols?
   int matnf;
   int ncmt;
   int linB;
+  // curPropN
+  int curPropN;
+  int depotN;
+  int centralN;
 } symtab;
 symtab tb;
 
@@ -428,9 +432,19 @@ void curLineType(vLines *sbb, int propId){
   sbb->lType[sbb->n] = propId;
 }
 
+static inline void addSymbolStr(char *value){
+  addLine(&(tb.ss),"%s",value);
+  if (tb.depotN == -1 && !strcmp("depot", value)) {
+    tb.depotN = NV-1;
+  } else if (tb.centralN && !strcmp("central", value)){
+    tb.centralN = NV-1;
+  }
+}
+
 
 vLines sbPm, sbPmDt;
 sbuf sbNrm;
+vLines depotLines, centralLines;
 
 char *model_prefix = NULL;
 char *extra_indLin =NULL;
@@ -868,6 +882,8 @@ int allSpaces(char *v2) {
   return allSpace;
 }
 
+int depotAttr=0, centralAttr=0;
+
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
   nodeInfo ni;
@@ -883,7 +899,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
        nodeHas(theta0))) {
     if (new_or_ith(value)){
       /* Rprintf("%s [%d]->%s; %d:%d\n",name, NV,value, pn->start_loc.s, pn->end); */
-      addLine(&(tb.ss),"%s",value);
+      addSymbolStr(value);
       // Ignored variables
       if (!strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value)){
 	tb.lh[NV-1] = 11; // Suppress param printout.
@@ -1212,7 +1228,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      if (isLead) lagNo=-1;
 	      if (isFirst || isLast) lagNo=NA_INTEGER;
 	      if (new_or_ith(v2)){
-		addLine(&(tb.ss),"%s",v2);
+		addSymbolStr(v2);
 		tb.lag[NV-1] = lagNo;
 	      } else {
 		tb.lag[tb.ix] = lagNo;
@@ -1267,7 +1283,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 		tb.fn=0;
 		if (new_or_ith(v2)){
-		  addLine(&(tb.ss),"%s",v2);
+		  addSymbolStr(v2);
 		  tb.lag[NV-1] = lagNo;
 		} else {
 		  tb.lag[tb.ix] = lagNo;
@@ -1632,7 +1648,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  tb.maxtheta =ii;
 	}
 	if (new_or_ith(buf.s)){
-	  addLine(&(tb.ss),"%s",buf.s);
+	  addSymbolStr(buf.s);
         }
         sAppend(&sb,"_THETA_%s_",v);
 	sAppend(&sbDt,"_THETA_%s_",v);
@@ -1649,7 +1665,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         }
         sPrint(&buf,"_ETA_%s_",v);
         if (new_or_ith(buf.s)){
-	  addLine(&(tb.ss),"%s",buf.s);
+	  addSymbolStr(buf.s);
         }
         sAppend(&sb, "_ETA_%s_",v);
 	sAppend(&sbDt, "_ETA_%s_",v);
@@ -1911,6 +1927,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_f[%d] = ", tb.de.n);
 	    sAppend(&sbDt, "_f[%d] = ", tb.de.n);
 	    sAppend(&sbt, "f(%s)=", v);
+	    tb.curPropN=tb.de.n;
 	    if (foundF == 0) needSort+=1;// & 1 when F
 	    foundF=1;
 	    aType(FBIO);
@@ -1919,6 +1936,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_alag[%d] = ", tb.de.n);
 	    sAppend(&sbDt, "_alag[%d] = ", tb.de.n);
 	    sAppend(&sbt, "alag(%s)=", v);
+	    tb.curPropN=tb.de.n;
 	    if (foundLag == 0) needSort+=2; // & 2 when alag
 	    foundLag=1;
 	    aType(ALAG); 
@@ -1927,6 +1945,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_dur[%d] = ", tb.de.n);
 	    sAppend(&sbDt, "_dur[%d] = ", tb.de.n);
 	    sAppend(&sbt, "dur(%s)=", v);
+	    tb.curPropN=tb.de.n;
 	    if (foundDur == 0) needSort+=4;// & 4 when dur
 	    foundDur=1;
 	    aType(DUR);
@@ -1935,6 +1954,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_rate[%d] = ", tb.de.n);
 	    sAppend(&sbDt, "_rate[%d] = ", tb.de.n);
 	    sAppend(&sbt, "rate(%s)=", v);
+	    tb.curPropN=tb.de.n;
 	    if (foundRate == 0) needSort+=8;// & 8 when rate
 	    foundRate=1;
 	    aType(RATE);
@@ -1966,6 +1986,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_f[%d] = ", tb.id);
 	    sAppend(&sbDt, "_f[%d] = ", tb.id);
 	    sAppend(&sbt, "f(%s)=", v);
+	    tb.curPropN=tb.id;
 	    if (foundF == 0) needSort+=1;// & 1 when F
 	    foundF=1;
 	    aType(FBIO);
@@ -1974,6 +1995,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_alag[%d] = ", tb.id);
 	    sAppend(&sbDt, "_alag[%d] = ", tb.id);
 	    sAppend(&sbt, "alag(%s)=", v);
+	    tb.curPropN=tb.id;
 	    if (foundLag == 0) needSort+=2; // & 2 when alag
 	    foundLag=1;
 	    aType(ALAG);
@@ -1982,6 +2004,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_dur[%d] = ", tb.id);
 	    sAppend(&sbDt, "_dur[%d] = ", tb.id);
 	    sAppend(&sbt, "dur(%s)=", v);
+	    tb.curPropN=tb.id;
 	    if (foundDur == 0) needSort+=4;// & 4 when dur
 	    foundDur=1;
 	    aType(DUR);
@@ -1990,6 +2013,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_rate[%d] = ", tb.id);
 	    sAppend(&sbDt, "_rate[%d] = ", tb.id);
 	    sAppend(&sbt, "rate(%s)=", v);
+	    tb.curPropN=tb.id;
 	    if (foundRate == 0) needSort+=8;// & 8 when rate
 	    foundRate=1;
 	    aType(RATE);
@@ -2286,6 +2310,26 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     if (nodeHas(assignment) || nodeHas(ini) || nodeHas(dfdy) ||
         nodeHas(ini0) || nodeHas(ini0f) || nodeHas(fbio) || nodeHas(alag) || nodeHas(rate) || 
 	nodeHas(dur) || nodeHas(mtime)){
+      int isDepot;
+      if ((nodeHas(rate) || nodeHas(alag) || nodeHas(fbio) || nodeHas(dur)) &&
+	  ((isDepot = (tb.depotN == tb.di[tb.curPropN])) ||
+	   (tb.centralN == tb.di[tb.curPropN]))) {
+	char *c = sb.s;
+	while ((*c != '=') && (*c != '~')) {
+	  c++;
+	}
+	while ((*c == '=') || (*c == '~') || (*c == ' ')){
+	  c++;
+	}
+	if (isDepot){
+	  curLineType(&depotLines, sbPm.lType[sbPm.n]);
+	  addLine(&depotLines, "%s\n", c);
+	} else {
+	  curLineType(&centralLines, sbPm.lType[sbPm.n]);
+	  addLine(&centralLines, "%s\n", c);
+	}
+	/* REprintf("c: %s, lType: %d\n", c, sbPm.lType[sbPm.n], isDepot); */
+      }
       addLine(&sbPm,     "%s;\n", sb.s);
       addLine(&sbPmDt,   "%s;\n", sbDt.s);
       sAppend(&sbNrm, "%s;\n", sbt.s);
@@ -3249,7 +3293,8 @@ void parseFree(int last){
   lineFree(&sbPmDt);
   lineFree(&(tb.ss));
   lineFree(&(tb.de));
-
+  lineFree(&depotLines);
+  lineFree(&centralLines);      
   Free(tb.lh);
   Free(tb.lag);
   Free(tb.ini);
@@ -3289,6 +3334,8 @@ void reset (){
 
   lineIni(&sbPm);
   lineIni(&sbPmDt);
+  lineIni(&depotLines);
+  lineIni(&centralLines);
 
   lineIni(&(tb.ss));
   lineIni(&(tb.de));
@@ -3342,9 +3389,12 @@ void reset (){
   tb.hasKa      = 0;
   tb.hasDepotCmt = 0;
   tb.hasCentralCmt = 0;
+  tb.isPi       = 0;
   tb.matn=0;
   tb.matnf=0;
   tb.ncmt=0;
+  tb.depotN = -1;
+  tb.centralN = -1;
   // reset globals
   good_jac = 1;
   found_jac = 0;
@@ -3425,6 +3475,9 @@ void trans_internal(char* parse_file, int isStr){
   sIniTo(&sbNrm, MXBUF);
   lineIni(&sbPm);
   lineIni(&sbPmDt);
+  // do not free these, they remain until next parse for quick parsing of linCmt() models
+  lineIni(&depotLines);
+  lineIni(&centralLines);
   
   _pn= dparse(curP, gBuf, (int)strlen(gBuf));
   if (!_pn || curP->syntax_errors) {
@@ -4097,6 +4150,152 @@ SEXP _RxODE_isLinCmt(){
   INTEGER(ret)[0]=tb.linCmt;
   UNPROTECT(1);
   return ret;
+}
+
+SEXP _RxODE_linCmtGen(SEXP linCmtSens) {
+  /* SEXP ret = PROTECT(allocVector(STRSXP, 1)); */
+  sbuf buf, last;
+  int d_tlag=0, d_tlag2=0, d_F=0,  d_F2=0, d_rate1=0, d_dur1=0,
+    d_rate2=0, d_dur2=0, i = 0;
+  sIni(&buf);
+  sIni(&last);
+  if (tb.hasKa){
+    // depot, central
+    for (i = 0; i < depotLines.n; i++){
+      switch(depotLines.lType[i]){
+      case FBIO:
+	sAppend(&buf, "rx_F~%s", depotLines.line[i]);
+	d_F=1;
+	break;
+      case ALAG:
+	sAppend(&buf, "rx_tlag~%s", depotLines.line[i]);
+	d_tlag=1;
+	break;
+      case RATE:
+	sAppend(&buf, "rx_rate~%s", depotLines.line[i]);
+	d_rate1=1;
+	break;
+      case DUR:
+	sAppend(&buf, "rx_dur~%s", depotLines.line[i]);
+	d_dur1=1;
+	break;
+      default:
+	REprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
+      }
+    }
+    for (i = 0; i < centralLines.n; i++){
+      switch(centralLines.lType[i]){
+      case FBIO:
+	sAppend(&buf, "rx_F2~%s", centralLines.line[i]);
+	d_F2=1;
+	break;
+      case ALAG:
+	sAppend(&buf, "rx_tlag2~%s", centralLines.line[i]);
+	d_tlag2=1;
+	break;
+      case RATE:
+	sAppend(&buf, "rx_rate2~%s", centralLines.line[i]);
+	d_rate2=1;
+	break;
+      case DUR:
+	sAppend(&buf, "rx_dur2~%s", centralLines.line[i]);
+	d_dur2=1;
+	break;
+      }
+    }
+  } else {
+    for (i = 0; i < depotLines.n; i++){
+      switch(depotLines.lType[i]){
+      case FBIO:
+	sAppendN(&buf, "'f(depot)' ", 11);
+	break;
+      case ALAG:
+	sAppendN(&buf, "'alag(depot)' ", 14);
+	d_tlag=1;
+	break;
+      case RATE:
+	sAppend(&buf, "'rate(depot)' ", 14);
+	break;
+      case DUR:
+	sAppend(&buf, "'dur(depot)' ", 13);
+	break;
+      default:
+	REprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
+      }
+    }
+    if (buf.o) {
+      sClear(&firstErr);
+      sAppend(&firstErr, "%s does not exist without a 'depot' compartment, specify a 'ka' parameter", buf.s);
+      sFree(&buf);
+      sFree(&last);
+      error(firstErr.s);
+    }
+    // central only
+    for (i = 0; i < centralLines.n; i++){
+      switch(centralLines.lType[i]){
+      case FBIO:
+	sAppend(&buf, "rx_F~%s", centralLines.line[i]);
+	d_F=1;
+	break;
+      case ALAG:
+	sAppend(&buf, "rx_tlag~%s", centralLines.line[i]);
+	d_tlag=1;
+	break;
+      case RATE:
+	sAppend(&buf, "rx_rate~%s", centralLines.line[i]);
+	d_rate1=1;
+	break;
+      case DUR:
+	sAppend(&buf, "rx_dur~%s", centralLines.line[i]);
+	d_dur1=1;
+	break;
+      }
+    }
+  }
+  if (d_tlag){
+    sAppendN(&last, "rx_tlag, ", 9);
+  } else {
+    sAppendN(&last, "0.0, ", 5);
+  }
+  if (d_tlag2){
+    sAppendN(&last, "rx_tlag2, ", 9);
+  } else {
+    sAppendN(&last, "0.0, ", 5);
+  }
+  if (d_F){
+    sAppendN(&last, "rx_F, ", 6);
+  } else {
+    sAppendN(&last, "1.0, ", 5);
+  }
+  if (d_F2){
+    sAppendN(&last, "rx_F2, ", 7);
+  } else {
+    sAppendN(&last, "1.0, ", 5);
+  }
+  if (d_rate1){
+    sAppendN(&last, "rx_rate, ", 9);
+  } else {
+    sAppendN(&last, "0.0, ", 5);
+  }
+  if (d_dur1){
+    sAppendN(&last, "rx_dur, ", 8);
+  } else {
+    sAppendN(&last, "0.0, ", 5);
+  }
+  if (d_rate2){
+    sAppendN(&last, "rx_rate2, ", 10);
+  } else {
+    sAppendN(&last, "0.0, ", 5);
+  }
+  if (d_dur2){
+    sAppendN(&last, "rx_dur2)", 8);
+  } else {
+    sAppendN(&last, "0.0)", 5);
+  }
+  REprintf("buf: %s; last: %s\n", buf.s, last.s);
+  sFree(&buf);
+  sFree(&last);
+  return R_NilValue;
 }
 
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
@@ -4907,9 +5106,6 @@ static inline void linCmtStr(linCmtStruct *lin, const char *in, int *index) {
     lin->gamma = *index;
     return;
   }
-}
-
-static inline void appendElt(sbuf *sbb, SEXP vars, int elt) {
 }
 
 static inline void linCmtAdjustPars(linCmtStruct *lin) {
