@@ -335,7 +335,8 @@ RxODE <- # nolint
              filename = NULL, extraC = NULL, debug = FALSE, calcJac=NULL, calcSens=NULL,
              collapseModel=FALSE, package=NULL, ...,
              linCmtSens=FALSE,
-             indLin=FALSE){
+             indLin=FALSE,
+             verbose=FALSE){
     if (!missing(modName)){
         if (!checkmate::testCharacter(modName,max.len = 1)){
             stop("'modName' has to be a single length character");
@@ -416,8 +417,8 @@ RxODE <- # nolint
     .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel, indLin=indLin);
     .env$.rxTransCode <- .rxTransCode
     if (.Call(`_RxODE_isLinCmt`) == 1L){
-        .Call(`_RxODE_linCmtGen`, linCmtSens);
-        .env$.mv <- rxLinCmtTrans(.env$.mv, linCmtSens=linCmtSens);
+      .env$.mv <- rxGetModel(.Call(`_RxODE_linCmtGen`, length(.env$.mv$state),
+                                   c(.env$.mv$params, .env$.mv$lhs), linCmtSens, verbose))
     }
     model <- rxNorm(.env$.mv);
     class(model) <- "rxModelText"

@@ -470,10 +470,10 @@ rxPermissive({
         V <- theta[1]
         CLx <- theta[2]
         V2x <- theta[3]
-        Q <- theta[4]
+        Qx <- theta[4]
         K <- CLx/V
-        K12 <- Q/V
-        K21 <- Q/V2x
+        K12 <- Qx/V
+        K21 <- Qx/V2x
         C2=linCmt();
       }, linCmtSens=sens)
 
@@ -485,10 +485,10 @@ rxPermissive({
         Vx <- theta[1]
         CLx <- theta[2]
         V2x <- theta[3]
-        Q <- theta[4]
+        Qx <- theta[4]
         Kx <- CLx/Vx
-        K12x <- Q/Vx
-        K21x <- Q/V2x
+        K12x <- Qx/Vx
+        K21x <- Qx/V2x
         beta <- 0.5 * (K12x + K21x + Kx -
                        sqrt((K12x +
                              K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
@@ -506,10 +506,10 @@ rxPermissive({
         V <- theta[1]
         CLx <- theta[2]
         V2x <- theta[3]
-        Q <- theta[4]
+        Qx <- theta[4]
         Kx <- CLx/V
-        K12x <- Q/V
-        K21 <- Q/V2x
+        K12x <- Qx/V
+        K21 <- Qx/V2x
         beta <- 0.5 * (K12x + K21 + Kx -
                        sqrt((K12x +
                              K21 + Kx) * (K12x + K21 + Kx) - 4 * K21 *
@@ -525,10 +525,10 @@ rxPermissive({
         V <- theta[1]
         CLx <- theta[2]
         V2x <- theta[3]
-        Q <- theta[4]
+        Qx <- theta[4]
         Kx <- CLx/V
-        K12x <- Q/V
-        K21x <- Q/V2x
+        K12x <- Qx/V
+        K21x <- Qx/V2x
         beta <- 0.5 * (K12x + K21x + Kx -
                        sqrt((K12x +
                              K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
@@ -580,11 +580,11 @@ rxPermissive({
         V <- theta[1]
         CLx <- theta[2]
         V2x <- theta[3]
-        Q <- theta[4]
+        Qx <- theta[4]
         ka <- theta[5]
         K <- CLx/V
-        K12 <- Q/V
-        K21 <- Q/V2x
+        K12 <- Qx/V
+        K21 <- Qx/V2x
         C2=linCmt();
       }, linCmtSens=sens)
 
@@ -596,11 +596,11 @@ rxPermissive({
         Vx <- theta[1]
         CLx <- theta[2]
         V2x <- theta[3]
-        Q <- theta[4]
+        Qx <- theta[4]
         ka <- theta[5]
         Kx <- CLx/Vx
-        K12x <- Q/Vx
-        K21x <- Q/V2x
+        K12x <- Qx/Vx
+        K21x <- Qx/V2x
         beta <- 0.5 * (K12x + K21x + Kx -
                        sqrt((K12x +
                              K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
@@ -618,11 +618,11 @@ rxPermissive({
         V <- theta[1]
         CLx <- theta[2]
         V2x <- theta[3]
-        Q <- theta[4]
+        Qx <- theta[4]
         ka <- theta[5]
         Kx <- CLx/V
-        K12x <- Q/V
-        K21 <- Q/V2x
+        K12x <- Qx/V
+        K21 <- Qx/V2x
         beta <- 0.5 * (K12x + K21 + Kx -
                        sqrt((K12x +
                              K21 + Kx) * (K12x + K21 + Kx) - 4 * K21 *
@@ -638,11 +638,11 @@ rxPermissive({
         V <- theta[1]
         CLx <- theta[2]
         V2x <- theta[3]
-        Q <- theta[4]
+        Qx <- theta[4]
         ka <- theta[5]
         Kx <- CLx/V
-        K12x <- Q/V
-        K21x <- Q/V2x
+        K12x <- Qx/V
+        K21x <- Qx/V2x
         beta <- 0.5 * (K12x + K21x + Kx -
                        sqrt((K12x +
                              K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
@@ -725,12 +725,12 @@ rxPermissive({
         V <- theta[1]
         CLx <- theta[2]
         V2x <- theta[3]
-        Q <- theta[4]
+        Qx <- theta[4]
         Q2x <- theta[5]
         V3x <- theta[6]
         K <- CLx/V
-        K12 <- Q/V
-        K21 <- Q/V2x
+        K12 <- Qx/V
+        K21 <- Qx/V2x
         k13 <- Q2x/V
         k31 <- Q2x/V3x
         C2=linCmt();
@@ -742,12 +742,12 @@ rxPermissive({
         Vx <- theta[1]
         CLx <- theta[2]
         V2x <- theta[3]
-        Q <- theta[4]
+        Qx <- theta[4]
         Q2x <- theta[5]
         V3x <- theta[6]
         Kx <- CLx/Vx
-        K12x <- Q/Vx
-        K21x <- Q/V2x
+        K12x <- Qx/Vx
+        K21x <- Qx/V2x
         K13x <- Q2x/Vx
         K31x <- Q2x/V3x
         a0 <- Kx * K21x * K31x
@@ -755,10 +755,10 @@ rxPermissive({
           Kx * K21x + K31x * K12x
         a2 <- Kx + K12x + K13x + K21x + K31x
         p <- a1 - a2 * a2/3
-        q <- 2 * a2 * a2 * a2/27 - a1 * a2/3 + a0
+        qq <- 2 * a2 * a2 * a2/27 - a1 * a2/3 + a0
         r1 <- sqrt(-p * p * p/27)
         r2 <- 2 * r1^(1/3)
-        theta <- acos(-q/(2 * r1))/3
+        theta <- acos(-qq/(2 * r1))/3
         alpha <- -(cos(theta) * r2 - a2/3)
         beta <- -(cos(theta + 2/3 * pi) * r2 - a2/3)
         gamma <- -(cos(theta + 4/3 * pi) * r2 - a2/3)
@@ -840,13 +840,13 @@ rxPermissive({
         V <- theta[1]
         CLx <- theta[2]
         V2x <- theta[3]
-        Q <- theta[4]
+        Qx <- theta[4]
         Q2x <- theta[5]
         V3x <- theta[6]
         ka <- theta[7]
         K <- CLx/V
-        K12 <- Q/V
-        K21 <- Q/V2x
+        K12 <- Qx/V
+        K21 <- Qx/V2x
         k13 <- Q2x/V
         k31 <- Q2x/V3x
         C2=linCmt();
@@ -858,13 +858,13 @@ rxPermissive({
         Vx <- theta[1]
         CLx <- theta[2]
         V2x <- theta[3]
-        Q <- theta[4]
+        Qx <- theta[4]
         Q2x <- theta[5]
         V3x <- theta[6]
         ka <- theta[7]
         Kx <- CLx/Vx
-        K12x <- Q/Vx
-        K21x <- Q/V2x
+        K12x <- Qx/Vx
+        K21x <- Qx/V2x
         K13x <- Q2x/Vx
         K31x <- Q2x/V3x
         a0 <- Kx * K21x * K31x
@@ -872,10 +872,10 @@ rxPermissive({
           Kx * K21x + K31x * K12x
         a2 <- Kx + K12x + K13x + K21x + K31x
         p <- a1 - a2 * a2/3
-        q <- 2 * a2 * a2 * a2/27 - a1 * a2/3 + a0
+        qq <- 2 * a2 * a2 * a2/27 - a1 * a2/3 + a0
         r1 <- sqrt(-p * p * p/27)
         r2 <- 2 * r1^(1/3)
-        theta <- acos(-q/(2 * r1))/3
+        theta <- acos(-qq/(2 * r1))/3
         alpha <- -(cos(theta) * r2 - a2/3)
         beta <- -(cos(theta + 2/3 * pi) * r2 - a2/3)
         gamma <- -(cos(theta + 4/3 * pi) * r2 - a2/3)
@@ -1004,7 +1004,6 @@ rxPermissive({
       })
 
       sol.3c <- RxODE({
-        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
         C2=linCmt(V, CL, V2, Q, Q2, V3);
       }, linCmtSens=sens)
 
@@ -1100,7 +1099,6 @@ rxPermissive({
       })
 
       sol.3c <- RxODE({
-        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
         C2=linCmt(V, CL, V2, Q, Q2, V3);
       }, linCmtSens=sens)
 

@@ -49,8 +49,8 @@
   writeSb(&sbOut, fpIO);
 
 #define aAppendN(str, len) sAppendN(&sb, str, len); sAppendN(&sbDt, str, len);
-#define aProp(prop) curLineProp(&sbPm, prop); curLineProp(&sbPmDt, prop);
-#define aType(type) curLineType(&sbPm, type); curLineType(&sbPmDt, type); 
+#define aProp(prop) curLineProp(&sbPm, prop); curLineProp(&sbPmDt, prop); curLineProp(&sbNrmL, prop);
+#define aType(type) curLineType(&sbPm, type); curLineType(&sbPmDt, type); curLineType(&sbNrmL, type);
 
 #define FBIO 1
 #define ALAG 2
@@ -442,7 +442,7 @@ static inline void addSymbolStr(char *value){
 }
 
 
-vLines sbPm, sbPmDt;
+vLines sbPm, sbPmDt, sbNrmL;
 sbuf sbNrm;
 vLines depotLines, centralLines;
 
@@ -792,9 +792,15 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     aAppendN("fabs", 4);
     sAppendN(&sbt,"abs", 3);
   } else if (nodeHas(identifier) && !strcmp("linCmt",value)) {
-    aAppendN("linCmt", 6);
-    sAppendN(&sbt,"linCmt", 6);
-    tb.linCmt=1;
+    if (tb.linCmt == 0){
+      aAppendN("linCmt", 6);
+      aProp(-100);
+      sAppendN(&sbt,"linCmt", 6);
+      tb.linCmt=1;
+    } else {
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("only one 'linCmt()' per model"));
+    }
   } else if (nodeHas(identifier) && !strcmp("linCmtA",value)){
     aAppendN("linCmtA", 7);
     sAppendN(&sbt,"linCmtA", 7);
@@ -1068,6 +1074,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  addLine(&sbPm, "%s\n", sb.s);
 	  addLine(&sbPmDt, "%s\n", sbDt.s);
 	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  addLine(&sbNrmL, "%s\n", sbt.s);
 	  sb.o=0;sbDt.o=0; sbt.o=0;
 	  continue;
 	} else if (i == 5){
@@ -1078,6 +1085,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  addLine(&sbPm, "%s\n", sb.s);
 	  addLine(&sbPmDt, "%s\n", sbDt.s);
 	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  addLine(&sbNrmL, "%s\n", sbt.s);
 	  continue;
 	} else if (i == 7){
 	  sb.o=0;sbDt.o=0; sbt.o=0;
@@ -1087,6 +1095,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  addLine(&sbPm, "%s\n", sb.s);
 	  addLine(&sbPmDt, "%s\n", sbDt.s);
 	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  addLine(&sbNrmL, "%s\n", sbt.s);
 	  continue;
 	} else if (i == 8){
 	  continue;
@@ -1126,6 +1135,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    Free(v);
 	  }
 	  sAppend(&sbNrm, "%s);\n", sbt.s);
+	  addLine(&sbNrmL, "%s);\n", sbt.s);
 	  Free(v);
 	  continue;
 	} else {
@@ -1718,6 +1728,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  addLine(&sbPm, "%s;\n", sb.s);
 	  addLine(&sbPmDt, "%s;\n", sbDt.s);
 	  sAppend(&sbNrm, "%s;\n", sbt.s);
+	  addLine(&sbNrmL, "%s;\n", sbt.s);
 	  ENDLINE
         }
         Free(v);
@@ -1854,6 +1865,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	addLine(&sbPm, "%s\n", sb.s);
 	addLine(&sbPmDt, "%s\n", sbDt.s);
 	sAppend(&sbNrm, "%s\n", sbt.s);
+	addLine(&sbNrmL, "%s\n", sbt.s);
 	ENDLINE
         continue;
       }
@@ -1865,6 +1877,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	addLine(&sbPm, "%s\n", sb.s);
 	addLine(&sbPmDt, "%s\n", sbDt.s);
 	sAppend(&sbNrm, "%s\n", sbt.s);
+	addLine(&sbNrmL, "%s\n", sbt.s);
 	ENDLINE
         continue;
       }
@@ -1962,6 +1975,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sbt, "cmt(%s)", v);
 	    sAppend(&sbNrm, "%s;\n", sbt.s);
+	    addLine(&sbNrmL, "%s;\n", sbt.s);
 	  }
           new_or_ith(v);
 	  aProp(tb.de.n);
@@ -2323,12 +2337,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	}
 	if (isDepot){
 	  curLineType(&depotLines, sbPm.lType[sbPm.n]);
-	  addLine(&depotLines, "%s\n", c);
+	  addLine(&depotLines, "%s", c);
 	} else {
 	  curLineType(&centralLines, sbPm.lType[sbPm.n]);
-	  addLine(&centralLines, "%s\n", c);
+	  addLine(&centralLines, "%s", c);
 	}
 	/* REprintf("c: %s, lType: %d\n", c, sbPm.lType[sbPm.n], isDepot); */
+      } else {
+	addLine(&sbNrmL, "%s;\n", sbt.s);
       }
       addLine(&sbPm,     "%s;\n", sb.s);
       addLine(&sbPmDt,   "%s;\n", sbDt.s);
@@ -2343,6 +2359,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       addLine(&sbPm,     "%s);\n", sb.s);
       addLine(&sbPmDt,   "%s);\n", sbDt.s);
       sAppend(&sbNrm, "%s;\n", sbt.s);
+      addLine(&sbNrmL, "%s;\n", sbt.s);
       ENDLINE
     }
 
@@ -2374,6 +2391,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       addLine(&sbPm,   "%s\n", sb.s);
       addLine(&sbPmDt, "%s\n", sbDt.s);
       sAppend(&sbNrm,  "%s\n", sbt.s);
+      addLine(&sbNrmL, "%s\n", sbt.s);
       ENDLINE
     }
     if (nodeHas(power_expression)) {
@@ -3291,6 +3309,7 @@ void parseFree(int last){
   sFree(&firstErr);
   lineFree(&sbPm);
   lineFree(&sbPmDt);
+  lineFree(&sbNrmL);
   lineFree(&(tb.ss));
   lineFree(&(tb.de));
   lineFree(&depotLines);
@@ -3334,6 +3353,7 @@ void reset (){
 
   lineIni(&sbPm);
   lineIni(&sbPmDt);
+  lineIni(&sbNrmL);
   lineIni(&depotLines);
   lineIni(&centralLines);
 
@@ -3475,6 +3495,7 @@ void trans_internal(char* parse_file, int isStr){
   sIniTo(&sbNrm, MXBUF);
   lineIni(&sbPm);
   lineIni(&sbPmDt);
+  lineIni(&sbNrmL);
   // do not free these, they remain until next parse for quick parsing of linCmt() models
   lineIni(&depotLines);
   lineIni(&centralLines);
@@ -4152,152 +4173,6 @@ SEXP _RxODE_isLinCmt(){
   return ret;
 }
 
-SEXP _RxODE_linCmtGen(SEXP linCmtSens) {
-  /* SEXP ret = PROTECT(allocVector(STRSXP, 1)); */
-  sbuf buf, last;
-  int d_tlag=0, d_tlag2=0, d_F=0,  d_F2=0, d_rate1=0, d_dur1=0,
-    d_rate2=0, d_dur2=0, i = 0;
-  sIni(&buf);
-  sIni(&last);
-  if (tb.hasKa){
-    // depot, central
-    for (i = 0; i < depotLines.n; i++){
-      switch(depotLines.lType[i]){
-      case FBIO:
-	sAppend(&buf, "rx_F~%s", depotLines.line[i]);
-	d_F=1;
-	break;
-      case ALAG:
-	sAppend(&buf, "rx_tlag~%s", depotLines.line[i]);
-	d_tlag=1;
-	break;
-      case RATE:
-	sAppend(&buf, "rx_rate~%s", depotLines.line[i]);
-	d_rate1=1;
-	break;
-      case DUR:
-	sAppend(&buf, "rx_dur~%s", depotLines.line[i]);
-	d_dur1=1;
-	break;
-      default:
-	REprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
-      }
-    }
-    for (i = 0; i < centralLines.n; i++){
-      switch(centralLines.lType[i]){
-      case FBIO:
-	sAppend(&buf, "rx_F2~%s", centralLines.line[i]);
-	d_F2=1;
-	break;
-      case ALAG:
-	sAppend(&buf, "rx_tlag2~%s", centralLines.line[i]);
-	d_tlag2=1;
-	break;
-      case RATE:
-	sAppend(&buf, "rx_rate2~%s", centralLines.line[i]);
-	d_rate2=1;
-	break;
-      case DUR:
-	sAppend(&buf, "rx_dur2~%s", centralLines.line[i]);
-	d_dur2=1;
-	break;
-      }
-    }
-  } else {
-    for (i = 0; i < depotLines.n; i++){
-      switch(depotLines.lType[i]){
-      case FBIO:
-	sAppendN(&buf, "'f(depot)' ", 11);
-	break;
-      case ALAG:
-	sAppendN(&buf, "'alag(depot)' ", 14);
-	d_tlag=1;
-	break;
-      case RATE:
-	sAppend(&buf, "'rate(depot)' ", 14);
-	break;
-      case DUR:
-	sAppend(&buf, "'dur(depot)' ", 13);
-	break;
-      default:
-	REprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
-      }
-    }
-    if (buf.o) {
-      sClear(&firstErr);
-      sAppend(&firstErr, "%s does not exist without a 'depot' compartment, specify a 'ka' parameter", buf.s);
-      sFree(&buf);
-      sFree(&last);
-      error(firstErr.s);
-    }
-    // central only
-    for (i = 0; i < centralLines.n; i++){
-      switch(centralLines.lType[i]){
-      case FBIO:
-	sAppend(&buf, "rx_F~%s", centralLines.line[i]);
-	d_F=1;
-	break;
-      case ALAG:
-	sAppend(&buf, "rx_tlag~%s", centralLines.line[i]);
-	d_tlag=1;
-	break;
-      case RATE:
-	sAppend(&buf, "rx_rate~%s", centralLines.line[i]);
-	d_rate1=1;
-	break;
-      case DUR:
-	sAppend(&buf, "rx_dur~%s", centralLines.line[i]);
-	d_dur1=1;
-	break;
-      }
-    }
-  }
-  if (d_tlag){
-    sAppendN(&last, "rx_tlag, ", 9);
-  } else {
-    sAppendN(&last, "0.0, ", 5);
-  }
-  if (d_tlag2){
-    sAppendN(&last, "rx_tlag2, ", 9);
-  } else {
-    sAppendN(&last, "0.0, ", 5);
-  }
-  if (d_F){
-    sAppendN(&last, "rx_F, ", 6);
-  } else {
-    sAppendN(&last, "1.0, ", 5);
-  }
-  if (d_F2){
-    sAppendN(&last, "rx_F2, ", 7);
-  } else {
-    sAppendN(&last, "1.0, ", 5);
-  }
-  if (d_rate1){
-    sAppendN(&last, "rx_rate, ", 9);
-  } else {
-    sAppendN(&last, "0.0, ", 5);
-  }
-  if (d_dur1){
-    sAppendN(&last, "rx_dur, ", 8);
-  } else {
-    sAppendN(&last, "0.0, ", 5);
-  }
-  if (d_rate2){
-    sAppendN(&last, "rx_rate2, ", 10);
-  } else {
-    sAppendN(&last, "0.0, ", 5);
-  }
-  if (d_dur2){
-    sAppendN(&last, "rx_dur2)", 8);
-  } else {
-    sAppendN(&last, "0.0)", 5);
-  }
-  REprintf("buf: %s; last: %s\n", buf.s, last.s);
-  sFree(&buf);
-  sFree(&last);
-  return R_NilValue;
-}
-
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
 		    SEXP pMd5, SEXP timeId, SEXP fixInis){
   if (!sbPm.o || !sbNrm.o){
@@ -4743,7 +4618,7 @@ static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
       return;
     }
   }
-  if ((in[1] == 'a' || in[1] == 'a') &&
+  if ((in[1] == 'a' || in[1] == 'A') &&
       in[2] == '\0') {
     lin->ka = *index;
     return;
@@ -5251,6 +5126,7 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
   }
 }
 
+int _linCmtParsePro=0;
 SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
   const char *first = "linCmtB(rx__PTR__, t, ";
   const char *mid = "0, ";
@@ -5305,7 +5181,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl)));
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl2)));
-      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.vss)));
+      sAppend(&ret0, "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.vss)));
     } else {
       if (lin.v == -1) {
 	error(_("cannot figure out a central volume"));
@@ -5520,7 +5396,198 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
   SET_VECTOR_ELT(lst,  2, transSXP);
 
   setAttrib(lst, R_NamesSymbol, lstN);
-
+  sFree(&ret0);
+  sFree(&ret);
   UNPROTECT(pro);
+  if (trans == -1) {
+    UNPROTECT(_linCmtParsePro);
+    _linCmtParsePro=0;
+    error(_("could not figure out linCmt() model"));
+  }
+  _linCmtParsePro=0;
   return lst;
+}
+
+SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
+  /* SEXP ret = PROTECT(allocVector(STRSXP, 1)); */
+  sbuf last;
+  sbuf d_tlag, d_tlag2, d_F,  d_F2, d_rate1, d_dur1,
+    d_rate2, d_dur2;
+  int i = 0;
+  sIni(&last);
+
+  sIni(&d_tlag);
+  sIni(&d_tlag2);
+  sIni(&d_F);
+  sIni(&d_F2);
+  sIni(&d_rate1);
+  sIni(&d_dur1);
+  sIni(&d_rate2);
+  sIni(&d_dur2);
+
+  sAppendN(&d_tlag,", 0.0, ", 7);
+  sAppendN(&d_tlag2, "0.0, ", 5);
+  sAppendN(&d_F, "1.0, ", 5);
+  sAppendN(&d_F2, "1.0, ", 5);
+  sAppendN(&d_rate1, "0.0, ", 5);
+  sAppendN(&d_dur1, "0.0, ", 5);
+  sAppendN(&d_rate2, "0.0, ", 5);
+  sAppendN(&d_dur2, "0.0)", 4);
+  if (tb.hasKa){
+    // depot, central
+    for (i = 0; i < depotLines.n; i++){
+      switch(depotLines.lType[i]){
+      case FBIO:
+	sClear(&d_F);
+	sAppend(&d_F, "%s, ", depotLines.line[i]);
+	break;
+      case ALAG:
+	sClear(&d_tlag);
+	sAppend(&d_tlag, ", %s, ", depotLines.line[i]);
+	break;
+      case RATE:
+	sClear(&d_rate1);
+	sAppend(&d_rate1, "%s, ", depotLines.line[i]);
+	break;
+      case DUR:
+	sClear(&d_dur1);
+	sAppend(&d_dur1, "%s, ", depotLines.line[i]);
+	break;
+      default:
+	REprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
+      }
+    }
+    for (i = 0; i < centralLines.n; i++){
+      switch(centralLines.lType[i]){
+      case FBIO:
+	sClear(&d_F2);
+	sAppend(&d_F2, "%s, ", centralLines.line[i]);
+	break;
+      case ALAG:
+	sClear(&d_tlag2);
+	sAppend(&d_tlag2, "%s, ", centralLines.line[i]);
+	break;
+      case RATE:
+	sClear(&d_rate2);
+	sAppend(&d_rate2, "%s, ", centralLines.line[i]);
+	break;
+      case DUR:
+	sClear(&d_dur2);
+	sAppend(&d_dur2, "%s)", centralLines.line[i]);
+	break;
+      }
+    }
+  } else {
+    for (i = 0; i < depotLines.n; i++){
+      switch(depotLines.lType[i]){
+      case FBIO:
+	sAppendN(&last, "'f(depot)' ", 11);
+	break;
+      case ALAG:
+	sAppendN(&last, "'alag(depot)' ", 14);
+	break;
+      case RATE:
+	sAppend(&last, "'rate(depot)' ", 14);
+	break;
+      case DUR:
+	sAppend(&last, "'dur(depot)' ", 13);
+	break;
+      default:
+	REprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
+      }
+    }
+    if (last.o) {
+      sClear(&firstErr);
+      sAppend(&firstErr, "%s does not exist without a 'depot' compartment, specify a 'ka' parameter", last.s);
+      sFree(&d_tlag);
+      sFree(&d_tlag2);
+      sFree(&d_F);
+      sFree(&d_F2);
+      sFree(&d_rate1);
+      sFree(&d_dur1);
+      sFree(&d_rate2);
+      sFree(&d_dur2);
+      sFree(&last);
+      error(firstErr.s);
+    }
+    // central only
+    for (i = 0; i < centralLines.n; i++){
+      switch(centralLines.lType[i]){
+      case FBIO:
+	sClear(&d_F);
+	sAppend(&d_F, "%s, ", centralLines.line[i]);
+	break;
+      case ALAG:
+	sClear(&d_tlag);
+	sAppend(&d_tlag, ", %s, ", centralLines.line[i]);
+	break;
+      case RATE:
+	sClear(&d_rate1);
+	sAppend(&d_rate1, "%s, ", centralLines.line[i]);
+	break;
+      case DUR:
+	sClear(&d_dur1);
+	sAppend(&d_dur1, "%s, ", centralLines.line[i]);
+	break;
+      }
+    }
+  }
+  sAppend(&last, "%s%s%s%s%s%s%s%s", d_tlag.s, d_tlag2.s,
+	  d_F.s, d_F2.s, d_rate1.s, d_dur1.s, d_rate2.s, d_dur2.s);
+  int pro=0;
+  SEXP inStr = PROTECT(Rf_allocVector(STRSXP, 3)); pro++;
+  int doSens = 0;
+  if (TYPEOF(linCmtSens) == LGLSXP) {
+    doSens = INTEGER(linCmtSens)[0];
+  }
+  SET_STRING_ELT(inStr, 2, mkChar(last.s));
+  sClear(&last);
+  if (doSens){
+    sAppend(&last, "linCmtB(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+    SET_STRING_ELT(inStr, 0, mkChar(last.s));
+    SET_STRING_ELT(inStr, 1, mkChar("0, "));
+  } else {
+    sAppend(&last, "linCmtA(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+    SET_STRING_ELT(inStr, 0, mkChar(last.s));
+    SET_STRING_ELT(inStr, 1, mkChar(""));
+  }
+  sFree(&d_tlag);
+  sFree(&d_tlag2);
+  sFree(&d_F);
+  sFree(&d_F2);
+  sFree(&d_rate1);
+  sFree(&d_dur1);
+  sFree(&d_rate2);
+  sFree(&d_dur2);
+  sFree(&last);
+  _linCmtParsePro=pro;
+  SEXP linCmtP = PROTECT(_linCmtParse(vars, inStr, verbose)); pro++;
+  sIni(&last);
+  for (i = 0; i < sbNrmL.n; i++){
+    if (sbNrmL.lProp[i]== -100){
+      char *line = sbNrmL.line[i];
+      while (strncmp(line, "linCmt(", 7)){
+	sPut(&last, line[0]);
+	line++;
+      }
+      line +=7;
+      sAppend(&last, "%s", CHAR(STRING_ELT(VECTOR_ELT(linCmtP, 0), 0)));
+      while (line[0] != ')'){
+	if (line[0] == '('){
+	  sFree(&last);
+	  UNPROTECT(pro);
+	  error(_("linCmt() cannot have any extra parentheses in it"));
+	}
+	line++;
+      }
+      sAppend(&last, "%s", ++line);
+    } else {
+      sAppend(&last, "%s", sbNrmL.line[i]);
+    }
+  }
+  SEXP ret = PROTECT(Rf_allocVector(STRSXP,1)); pro++;
+  SET_STRING_ELT(ret, 0, mkChar(last.s));
+  sFree(&last);
+  UNPROTECT(pro);
+  return ret;
 }
