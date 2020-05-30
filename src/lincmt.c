@@ -27,40 +27,6 @@ double log1mex(double a){
 void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 
 // Linear compartment models/functions
-
-extern int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind){
-  // Uses bisection for slightly faster lookup of dose index.
-  int i, j, ij, idose;
-  i = 0;
-  j = ind->ndoses - 1;
-  idose = ind->idose[i];
-  if (obs_time < ind->all_times[idose]){
-    return i;
-  }
-  idose = ind->idose[j];
-  if (obs_time > ind->all_times[idose]){
-    return j;
-  }
-  while(i < j - 1) { /* x[i] <= obs_time <= x[j] */
-    ij = (i + j)/2; /* i+1 <= ij <= j-1 */
-    idose = ind->idose[ij];
-    if(obs_time < ind->all_times[idose])
-      j = ij;
-    else
-      i = ij;
-  }
-  /* if (i == 0) return 0; */
-  while(i != 0 && obs_time == ind->all_times[ind->idose[i]]){
-    i--;
-  }
-  if (i == 0){
-    while(i < ind->ndoses-2 && fabs(obs_time  - ind->all_times[ind->idose[i+1]])<= sqrt(DOUBLE_EPS)){
-      i++;
-    }
-  }
-  return i;
-}
-
 static inline double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned int *p){
   double dose = ind->dose[l];
   if (backward){
@@ -87,7 +53,7 @@ static inline double _getDur(int l, rx_solving_options_ind *ind, int backward, u
 
 extern double getTime(int idx, rx_solving_options_ind *ind);
 
-static inline int _locateTimeIndex(double obs_time,  rx_solving_options_ind *ind){
+extern int _locateTimeIndex(double obs_time,  rx_solving_options_ind *ind){
   // Uses bisection for slightly faster lookup of dose index.
   int i, j, ij;
   i = 0;
@@ -1687,12 +1653,12 @@ static inline void doAdvan(double *A,// Amounts
 
 extern int syncIdx(rx_solving_options_ind *ind);
 
-static inline void sortIfNeeded(rx_solve *rx, rx_solving_options_ind *ind, unsigned int id,
-				int *linCmt,
-				double *d_tlag, double *d_tlag2,
-				double *d_F, double *d_F2,
-				double *d_rate1, double *d_dur1,
-				double *d_rate2, double *d_dur2){
+extern void sortIfNeeded(rx_solve *rx, rx_solving_options_ind *ind, unsigned int id,
+			 int *linCmt,
+			 double *d_tlag, double *d_tlag2,
+			 double *d_F, double *d_F2,
+			 double *d_rate1, double *d_dur1,
+			 double *d_rate2, double *d_dur2){
   int sort = 0;
   //d_tlag, double d_tlag2,
   /* double d_F, double d_F2, */
@@ -2529,24 +2495,21 @@ SEXP _calcDerived(SEXP ncmtSXP, SEXP transSXP, SEXP inp, SEXP sigdigSXP) {
   }
   return R_NilValue;
 }
-
 double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       int i_cmt, int trans,
 	       double p1, double v1,
 	       double p2, double p3,
 	       double p4, double p5,
-	       double d_ka, double d_tlag, double d_tlag2,
-	       double d_F, double d_F2,
-	       // Rate and dur can apply to depot and
-	       // Therefore, only 1 model rate is possible with RxODE
-	       double d_rate1, double d_dur1,
-	       double d_rate2, double d_dur2) {
+	       double d_tlag, double d_F, double d_rate1, double d_dur1,
+	       // Oral parameters
+	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2) {
   /* REprintf("F: %f; F2: %f\n", d_F, d_F2); */
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   int evid, wh, cmt, wh100, whI, wh0;
   /* evid = ind->evid[ind->ix[ind->idx]]; */
   /* if (evid) REprintf("evid0[%d:%d]: %d; curTime: %f\n", id, ind->idx, evid, t); */
   int idx = ind->idx;
+  double Alast0[4] = {0, 0, 0, 0};
   sortIfNeeded(rx, ind, id, &linCmt, &d_tlag, &d_tlag2, &d_F, &d_F2,
 	       &d_rate1, &d_dur1, &d_rate2, &d_dur2);
   rx_solving_options *op = rx->op;
@@ -2554,7 +2517,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   oral0 = (d_ka > 0) ? 1 : 0;
   double *A;
   double *Alast;
-  double Alast0[4] = {0, 0, 0, 0};
   /* A = Alast0; Alast=Alast0; */
   double tlast;
   double it = getTime(ind->ix[idx], ind);
@@ -2586,7 +2548,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   double rx_k31=0;
   double *rate = ind->linCmtRate;
   double b1=0, b2=0, r1 = 0, r2 = 0;
-  double aLast0[4] = {0, 0, 0, 0};
   A = Alast0;
   if (ind->solved[idx]){
     if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
@@ -2664,7 +2625,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    rate[0] = 0.0;
 	    r1=0; r2=0;
 	  }
-	  Alast = aLast0;
+	  Alast = Alast0;
 	  tlast = 0;
 	  curTime = tau;
 	  double tinf, r0;

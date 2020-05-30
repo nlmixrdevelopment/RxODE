@@ -17,7 +17,8 @@ RxODE(
   package = NULL,
   ...,
   linCmtSens = FALSE,
-  indLin = FALSE
+  indLin = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{

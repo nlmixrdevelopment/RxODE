@@ -5130,7 +5130,8 @@ int _linCmtParsePro=0;
 SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
   const char *first = "linCmtB(rx__PTR__, t, ";
   const char *mid = "0, ";
-  const char *end = ", rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur, rx_rate2, rx_dur2)";
+  const char *end1 = "rx_tlag, rx_F, rx_rate, rx_dur,";
+  const char *end2 = ", yrx_tlag2, rx_F2, rx_rate2, rx_dur2)";
   int verbose = 0;
   if (TYPEOF(verboseSXP) == LGLSXP) {
     verbose = INTEGER(verboseSXP)[0];
@@ -5145,7 +5146,10 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       mid = CHAR(STRING_ELT(inStr, 1));
     }
     if (len > 2) {
-      end = CHAR(STRING_ELT(inStr, 2));
+      end1 = CHAR(STRING_ELT(inStr, 2));
+    }
+    if (len > 3) {
+      end2 = CHAR(STRING_ELT(inStr, 3));
     }
   }
   linCmtStruct lin;
@@ -5364,16 +5368,17 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       }
     }
   }
-  if (lin.ka == -1) {
-    sAppendN(&ret0, "0.0", 3);
-    if (verbose) REprintf("\n");
-  } else {
-    sAppend(&ret0, "%s", CHAR(STRING_ELT(vars, lin.ka)));
-    if (verbose) REprintf(_(" with first order absorption\n"));
-  }
   sAppend(&ret, "%s", first);
   sAppend(&ret, "%d, %s", ncmt, ret0.s);
-  sAppend(&ret, "%s", end);
+  sAppend(&ret, "%s", end1);
+  if (lin.ka == -1) {
+    sAppendN(&ret, "0.0", 3);
+    if (verbose) REprintf("\n");
+  } else {
+    sAppend(&ret, "%s", CHAR(STRING_ELT(vars, lin.ka)));
+    if (verbose) REprintf(_(" with first order absorption\n"));
+  }
+  sAppend(&ret, "%s", end2);
   int pro = 0;
   SEXP strV = PROTECT(allocVector(STRSXP, 1)); pro++;
   SEXP lst = PROTECT(allocVector(VECSXP, 3)); pro++;
@@ -5425,8 +5430,8 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   sIni(&d_rate2);
   sIni(&d_dur2);
 
-  sAppendN(&d_tlag,", 0.0, ", 7);
-  sAppendN(&d_tlag2, "0.0, ", 5);
+  sAppendN(&d_tlag,"0.0, ", 5);
+  sAppendN(&d_tlag2, ", 0.0, ", 7);
   sAppendN(&d_F, "1.0, ", 5);
   sAppendN(&d_F2, "1.0, ", 5);
   sAppendN(&d_rate1, "0.0, ", 5);
@@ -5443,7 +5448,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
 	break;
       case ALAG:
 	sClear(&d_tlag);
-	sAppend(&d_tlag, ", %s, ", depotLines.line[i]);
+	sAppend(&d_tlag, "%s, ", depotLines.line[i]);
 	break;
       case RATE:
 	sClear(&d_rate1);
@@ -5465,7 +5470,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
 	break;
       case ALAG:
 	sClear(&d_tlag2);
-	sAppend(&d_tlag2, "%s, ", centralLines.line[i]);
+	sAppend(&d_tlag2, ", %s, ", centralLines.line[i]);
 	break;
       case RATE:
 	sClear(&d_rate2);
@@ -5532,15 +5537,17 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
       }
     }
   }
-  sAppend(&last, "%s%s%s%s%s%s%s%s", d_tlag.s, d_tlag2.s,
-	  d_F.s, d_F2.s, d_rate1.s, d_dur1.s, d_rate2.s, d_dur2.s);
   int pro=0;
-  SEXP inStr = PROTECT(Rf_allocVector(STRSXP, 3)); pro++;
+  SEXP inStr = PROTECT(Rf_allocVector(STRSXP, 4)); pro++;
   int doSens = 0;
   if (TYPEOF(linCmtSens) == LGLSXP) {
     doSens = INTEGER(linCmtSens)[0];
   }
+  sAppend(&last, "%s%s%s%s", d_tlag.s, d_F.s, d_rate1.s, d_dur1.s);
   SET_STRING_ELT(inStr, 2, mkChar(last.s));
+  sClear(&last);
+  sAppend(&last, "%s%s%s%s",d_tlag2.s, d_F2.s,  d_rate2.s, d_dur2.s);
+  SET_STRING_ELT(inStr, 3, mkChar(last.s));
   sClear(&last);
   if (doSens){
     sAppend(&last, "linCmtB(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
