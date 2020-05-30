@@ -204,6 +204,277 @@ namespace stan {
 #undef k31
       return g;
     }
+
+#define v     g(0, 0)
+#define k20   g(0, 1)
+#define k23   g(1, 0)
+#define k32   g(1, 1)
+#define k24   g(2, 0)
+#define k42   g(2, 1)
+#define A1    A(0, 0)
+#define A2    A(1, 0)
+#define A3    A(2, 0)
+#define A4    A(3, 0)
+#define r1    rate(0, 0)
+#define r2    rate(1, 0)
+#define b1    bolus(0, 0)
+#define b2    bolus(1, 0)
+#define A1last Alast(0, 0)
+#define A2last Alast(1, 0)
+#define A3last Alast(2, 0)
+#define A4last Alast(3, 0)
+    // one compartment ka translations ncmt=1
+#define tlag  params(2, 0)
+#define F     params(3, 0)
+#define rate1 params(4, 0)
+#define dur1  params(5, 0)
+#define ka    params(6, 0)
+#define tlag2 params(7, 0)
+#define f2    params(8, 0)
+#define dur2  params(9, 0)    
+
+    template <class T>
+    Eigen::Matrix<double, Eigen::Dynamic, 1>
+    oneCmtKaRateSSr1(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		     Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		     Eigen::Matrix<T, Eigen::Dynamic, 2>& rate) {
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(2, 1);
+      A1 = r1/ka;
+      A2 = r1/k20;
+      return A;
+    }
+
+    template <class T>
+    Eigen::Matrix<double, Eigen::Dynamic, 1>
+    oneCmtKaRateSSr2(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		     Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		     Eigen::Matrix<T, Eigen::Dynamic, 2>& rate){
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(2, 1);
+      A1 = 0;
+      A2 = r2/k20;
+      return A;
+    }
+
+    template <class T>
+    Eigen::Matrix<double, Eigen::Dynamic, 1>
+    oneCmtKaRateSStr1(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		      Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		      Eigen::Matrix<T, Eigen::Dynamic, 2>& rate,
+		      T tinf, T tau){
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(2, 1);
+      T eKa = exp(-ka*(tau-tinf))/(1.0-exp(-tau*ka));
+      T eiKa = exp(-ka*tinf);
+      T eiK = exp(-k20*tinf);
+      T eK = exp(-k20*(tau-tinf))/(1.0-exp(-tau*k20));
+      A1=eKa*(r1/ka - eiKa*r1/ka);
+      A2=eK*(r1/k20 + eiKa*r1/(-k20 + ka) - eiK*r1*ka/(ka*k20 - k20*k20)) +
+	ka*(eK - eKa)*(r1/ka - eiKa*r1/ka)/(-k20 + ka);
+      return A;
+    }
+
+    template <class T>
+    Eigen::Matrix<double, Eigen::Dynamic, 1>
+    oneCmtKaRateSStr2(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		      Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		      Eigen::Matrix<T, Eigen::Dynamic, 2>& rate,
+		      T tinf, T tau){
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(2, 1);
+      T eiK = exp(-k20*tinf);
+      T eK = exp(-k20*(tau-tinf))/(1.0-exp(-k20*tau));
+      A1=0.0;
+      A2=eK*(r2/k20 - eiK*r2*(-k20 + ka)/(ka*k20 - k20*k20));
+      return A;
+    }
+    
+    template <class T>
+    Eigen::Matrix<double, Eigen::Dynamic, 1>
+    oneCmtKaRate(T t, Eigen::Matrix<T, Eigen::Dynamic, 2>& Alast,
+		 Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		 Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		 Eigen::Matrix<T, Eigen::Dynamic, 2>& bolus,
+		 Eigen::Matrix<T, Eigen::Dynamic, 2>& rate) {
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(2, 1);
+      T eKa = exp(-ka*t);
+      T e20 = exp(-k20*t);
+      A1 = r1/ka-((r1-A1last*ka)*eKa)/ka + b1;
+      T A21 = ((r1-A1last*ka)*eKa)/(ka-k20);
+      T A22=(((ka-k20)*r2+ka*r1+(-A2last-A1last)*k20*ka+A2last*k20*k20)*e20)/(k20*ka-k20*k20);
+      T A23 =(r2+r1)/k20;
+      A2 = A21 - A22 + A23 + b2;
+      return A;
+    }
+    // Undefine extras
+#undef tlag
+#undef F
+#undef rate1
+#undef dur1
+#undef ka
+#undef tlag2
+#undef f2
+#undef dur2
+    // two compartment ka translations ncmt=1
+#define tlag  params(4,  0)
+#define F     params(5,  0)
+#define rate1 params(6,  0)
+#define dur1  params(7,  0)
+#define ka    params(8,  0)
+#define tlag2 params(9,  0)
+#define f2    params(10, 0)
+#define dur2  params(11, 0)    
+
+    template <class T>
+    Eigen::Matrix<double, Eigen::Dynamic, 1>
+    twoCmtKaRateSSr1(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		     Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		     Eigen::Matrix<T, Eigen::Dynamic, 2>& rate) {
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
+      T s = k23+k32+k20;
+      //#Calculate roots
+      T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
+      T alpha = k32*k20/beta;
+      A1=r1/ka;
+      A2=r1*k32/(beta*alpha);
+      A3=r1*k23/(beta*alpha);
+      return A;
+    }
+
+    template <class T>
+    Eigen::Matrix<double, Eigen::Dynamic, 1>
+    twoCmtKaRateSSr2(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		     Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		     Eigen::Matrix<T, Eigen::Dynamic, 2>& rate) {
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
+      T s = k23+k32+k20;
+      //#Calculate roots
+      T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
+      T alpha = k32*k20/beta;
+      A1=0;
+      A2=r2*k32/(beta*alpha);
+      A3=r2*k23/(beta*alpha);
+      return A;
+    }
+
+    template <class T>
+    Eigen::Matrix<double, Eigen::Dynamic, 1>
+    twoCmtKaRateSStr1(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		      Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		      Eigen::Matrix<T, Eigen::Dynamic, 2>& rate,
+		      T tinf, T tau){
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
+      T s = k23+k32+k20;
+      //#Calculate roots
+      T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
+      T alpha = k32*k20/beta;
+
+      T eA = exp(-alpha*(tau-tinf))/(1.0-exp(-alpha*tau));
+      T eB = exp(-beta*(tau-tinf))/(1.0-exp(-beta*tau));
+
+      T eiA = exp(-alpha*tinf);
+      T eiB = exp(-beta*tinf);
+
+      T alpha2 = alpha*alpha;
+      T alpha3 = alpha2*alpha;
+
+      T beta2 = beta*beta;
+      T beta3 = beta2*beta;
+
+      T ka2 = ka*ka;
+
+      T eKa = exp(-ka*(tau-tinf))/(1.0-exp(-ka*tau));
+      T eiKa = exp(-ka*tinf);
+
+      A1=eKa*(r1/ka - eiKa*r1/ka);
+      A2=(eA*(-alpha*(r1*k32/(beta*alpha) + eiKa*r1*(-k32 + ka)/(beta*alpha + ka*(-alpha - beta) + ka2) - eiA*r1*ka*(-alpha + k32)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r1*ka*(-beta + k32)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) + k32*(r1*k23/(beta*alpha) - eiKa*r1*k23/(beta*alpha + ka*(-alpha - beta) + ka2) - eiA*r1*ka*k23/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r1*ka*k23/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) + k32*(r1*k32/(beta*alpha) + eiKa*r1*(-k32 + ka)/(beta*alpha + ka*(-alpha - beta) + ka2) - eiA*r1*ka*(-alpha + k32)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r1*ka*(-beta + k32)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3))) - eB*(-beta*(r1*k32/(beta*alpha) + eiKa*r1*(-k32 + ka)/(beta*alpha + ka*(-alpha - beta) + ka2) - eiA*r1*ka*(-alpha + k32)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r1*ka*(-beta + k32)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) + k32*(r1*k23/(beta*alpha) - eiKa*r1*k23/(beta*alpha + ka*(-alpha - beta) + ka2) - eiA*r1*ka*k23/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r1*ka*k23/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) + k32*(r1*k32/(beta*alpha) + eiKa*r1*(-k32 + ka)/(beta*alpha + ka*(-alpha - beta) + ka2) - eiA*r1*ka*(-alpha + k32)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r1*ka*(-beta + k32)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3))))/(-alpha + beta) + ka*(eA*(-alpha + k32)/((-alpha + beta)*(-alpha + ka)) + eB*(-beta + k32)/((-beta + ka)*(alpha - beta)) + eKa*(k32 - ka)/((beta - ka)*(alpha - ka)))*(r1/ka - eiKa*r1/ka);
+      A3=(eA*(-alpha*(r1*k23/(beta*alpha) - eiKa*r1*k23/(beta*alpha + ka*(-alpha - beta) + ka2) - eiA*r1*ka*k23/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r1*ka*k23/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) + k23*(r1*k32/(beta*alpha) + eiKa*r1*(-k32 + ka)/(beta*alpha + ka*(-alpha - beta) + ka2) - eiA*r1*ka*(-alpha + k32)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r1*ka*(-beta + k32)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) + (k20 + k23)*(r1*k23/(beta*alpha) - eiKa*r1*k23/(beta*alpha + ka*(-alpha - beta) + ka2) - eiA*r1*ka*k23/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r1*ka*k23/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3))) - eB*(-beta*(r1*k23/(beta*alpha) - eiKa*r1*k23/(beta*alpha + ka*(-alpha - beta) + ka2) - eiA*r1*ka*k23/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r1*ka*k23/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) + k23*(r1*k32/(beta*alpha) + eiKa*r1*(-k32 + ka)/(beta*alpha + ka*(-alpha - beta) + ka2) - eiA*r1*ka*(-alpha + k32)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r1*ka*(-beta + k32)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) + (k20 + k23)*(r1*k23/(beta*alpha) - eiKa*r1*k23/(beta*alpha + ka*(-alpha - beta) + ka2) - eiA*r1*ka*k23/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r1*ka*k23/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3))))/(-alpha + beta) + ka*k23*(eA/((-alpha + beta)*(-alpha + ka)) + eB/((-beta + ka)*(alpha - beta)) + eKa/((beta - ka)*(alpha - ka)))*(r1/ka - eiKa*r1/ka);
+      return A;
+    }
+
+    template <class T>
+    Eigen::Matrix<double, Eigen::Dynamic, 1>
+    twoCmtKaRateSStr2(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		      Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		      Eigen::Matrix<T, Eigen::Dynamic, 2>& rate,
+		      T tinf, T tau) {
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
+      T E2 = k20+k23;
+      T E3 = k32;
+      T s = k23+k32+k20;
+      //#Calculate roots
+      T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
+      T alpha = k32*k20/beta;
+
+      T eA = exp(-alpha*(tau-tinf))/(1.0-exp(-alpha*tau));
+      T eB = exp(-beta*(tau-tinf))/(1.0-exp(-beta*tau));
+
+      T eiA = exp(-alpha*tinf);
+      T eiB = exp(-beta*tinf);
+
+      T alpha2 = alpha*alpha;
+      T alpha3 = alpha2*alpha;
+
+      T beta2 = beta*beta;
+      T beta3 = beta2*beta;
+      *A1=0.0;
+      *A2=(eA*(E3*(r2*k32/(beta*alpha) - eiA*r2*(-k32*alpha + ka*(-alpha + k32) + alpha2)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r2*(-k32*beta + ka*(-beta + k32) + beta2)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) - alpha*(r2*k32/(beta*alpha) - eiA*r2*(-k32*alpha + ka*(-alpha + k32) + alpha2)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r2*(-k32*beta + ka*(-beta + k32) + beta2)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) + k32*(r2*k23/(beta*alpha) - eiA*r2*(-k23*alpha + ka*k23)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r2*(-k23*beta + ka*k23)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3))) - eB*(E3*(r2*k32/(beta*alpha) - eiA*r2*(-k32*alpha + ka*(-alpha + k32) + alpha2)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r2*(-k32*beta + ka*(-beta + k32) + beta2)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) - beta*(r2*k32/(beta*alpha) - eiA*r2*(-k32*alpha + ka*(-alpha + k32) + alpha2)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r2*(-k32*beta + ka*(-beta + k32) + beta2)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) + k32*(r2*k23/(beta*alpha) - eiA*r2*(-k23*alpha + ka*k23)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r2*(-k23*beta + ka*k23)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3))))/(-alpha + beta);
+      *A3=(eA*(E2*(r2*k23/(beta*alpha) - eiA*r2*(-k23*alpha + ka*k23)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r2*(-k23*beta + ka*k23)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) - alpha*(r2*k23/(beta*alpha) - eiA*r2*(-k23*alpha + ka*k23)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r2*(-k23*beta + ka*k23)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) + k23*(r2*k32/(beta*alpha) - eiA*r2*(-k32*alpha + ka*(-alpha + k32) + alpha2)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r2*(-k32*beta + ka*(-beta + k32) + beta2)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3))) - eB*(E2*(r2*k23/(beta*alpha) - eiA*r2*(-k23*alpha + ka*k23)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r2*(-k23*beta + ka*k23)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) - beta*(r2*k23/(beta*alpha) - eiA*r2*(-k23*alpha + ka*k23)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r2*(-k23*beta + ka*k23)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3)) + k23*(r2*k32/(beta*alpha) - eiA*r2*(-k32*alpha + ka*(-alpha + k32) + alpha2)/(-beta*alpha2 + ka*(beta*alpha - alpha2) + alpha3) + eiB*r2*(-k32*beta + ka*(-beta + k32) + beta2)/(beta2*alpha + ka*(-beta*alpha + beta2) - beta3))))/(-alpha + beta);
+      return A;
+    }
+
+    template <class T>
+    Eigen::Matrix<double, Eigen::Dynamic, 1>
+    twoCmtKaRate(T t, Eigen::Matrix<T, Eigen::Dynamic, 2>& Alast,
+		 Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		 Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		 Eigen::Matrix<T, Eigen::Dynamic, 2>& bolus,
+		 Eigen::Matrix<T, Eigen::Dynamic, 2>& rate) {
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
+      T E2 =  k20+ k23;
+      T s = k23+k32+k20;
+      //#Calculate roots
+      T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
+      T alpha = k32*k20/beta;
+
+      T eKa = exp(-ka*t);
+      T eA = exp(-alpha*t);
+      T eB = exp(-beta*t);
+
+      T ka2 = ka*ka;
+  
+      T alpha2 = alpha*alpha;
+      T alpha3 = alpha2*alpha;
+  
+      T beta2 = beta*beta;
+      T beta3 = beta2*beta;
+  
+      A1 = b1+r1/ka-((r1-A1last*ka)*eKa)/ka;
+      A2 = b2+(((ka-k32)*r1-A1last*ka2+A1last*k32*ka)*eKa)/(ka2+(-beta-alpha)*ka+alpha*beta)+((((k32-beta)*ka-beta*k32+beta2)*r2+(k32-beta)*ka*r1+((-A3last-A2last-A1last)*beta*k32+(A2last+A1last)*beta2)*ka+(A3last+A2last)*beta2*k32-A2last*beta3)*eB)/((beta2-alpha*beta)*ka-beta3+alpha*beta2)-((((k32-alpha)*ka-alpha*k32+alpha2)*r2+(k32-alpha)*ka*r1+((-A3last-A2last-A1last)*alpha*k32+(A2last+A1last)*alpha2)*ka+(A3last+A2last)*alpha2*k32-A2last*alpha3)*eA)/((alpha*beta-alpha2)*ka-alpha2*beta+alpha3)+(k32*r2+k32*r1)/(alpha*beta);
+      A3 = -((k23*r1-A1last*k23*ka)*eKa)/(ka2+(-beta-alpha)*ka+alpha*beta)+(((k23*ka-beta*k23)*r2+k23*ka*r1+((-A2last-A1last)*beta*k23+A3last*beta2-A3last*E2*beta)*ka+A2last*beta2*k23-A3last*beta3+A3last*E2*beta2)*eB)/((beta2-alpha*beta)*ka-beta3+alpha*beta2)-(((k23*ka-alpha*k23)*r2+k23*ka*r1+((-A2last-A1last)*alpha*k23+A3last*alpha2-A3last*E2*alpha)*ka+A2last*alpha2*k23-A3last*alpha3+A3last*E2*alpha2)*eA)/((alpha*beta-alpha2)*ka-alpha2*beta+alpha3)+(k23*r2+k23*r1)/(alpha*beta);
+      return A;
+    }
+    
+#undef v
+#undef k20
+#undef k23
+#undef k32
+#undef k24
+#undef k42
+#undef A1
+#undef A2
+#undef A3
+#undef A3
+#undef r1
+#undef r2
+#undef b1
+#undef b2
+    // undefine extras
+#undef tlag
+#undef F
+#undef rate1
+#undef dur1
+#undef ka
+#undef tlag2
+#undef f2
+#undef dur2
     
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
@@ -291,8 +562,8 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
     }
   }
   MatrixPd params(2*ncmt + 4 + oral0*5, 1);
-  params(0,0) = dd_p1;
-  params(1,0) = dd_v1;
+  params(0, 0) = dd_p1;
+  params(1, 0) = dd_v1;
   if (ncmt >=2 ){
     params(2,0) = dd_p2;
     params(3,0) = dd_p3;
@@ -301,23 +572,17 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
       params(5,0) = dd_p5;
     }
   }
+  params(2*ncmt,     0) = dd_tlag;
+  params(2*ncmt + 1, 0) = dd_F;
+  params(2*ncmt + 2, 0) = dd_rate;
+  params(2*ncmt + 3, 0) = dd_dur;
   if (oral0) {
-    params(2*ncmt,     0) = dd_ka;
-    params(2*ncmt + 1, 0) = dd_tlag;
-    params(2*ncmt + 2, 0) = dd_tlag2;
-    params(2*ncmt + 3, 0) = dd_F;
-    params(2*ncmt + 4, 0) = dd_F2;
-    params(2*ncmt + 5, 0) = dd_rate;
-    params(2*ncmt + 6, 0) = dd_dur;
+    params(2*ncmt + 4, 0) = dd_ka;
+    params(2*ncmt + 5, 0) = dd_tlag2;
+    params(2*ncmt + 6, 0) = dd_F2;
     params(2*ncmt + 7, 0) = dd_rate2;
     params(2*ncmt + 8, 0) = dd_dur2;
-  } else {
-    params(2*ncmt,     0) = dd_tlag;
-    params(2*ncmt + 1, 0) = dd_F;
-    params(2*ncmt + 2, 0) = dd_rate;
-    params(2*ncmt + 3, 0) = dd_dur;
   }
-  
   
   return 0.0;
 }
