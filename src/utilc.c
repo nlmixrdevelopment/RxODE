@@ -703,8 +703,8 @@ SEXP _logit(SEXP xS, SEXP lowS, SEXP highS) {
     error(_("'high' must be greater than 'low'"));
   }
   int lenx = Rf_length(xS);
-  double *xD;
-  int *xI;
+  double *xD = NULL;
+  int *xI = NULL;
   int isD=0;
   if (typex == REALSXP){
     isD=1;
