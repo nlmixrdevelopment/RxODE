@@ -328,6 +328,7 @@ R_PosInf <- Inf # nolint
 ##' @importFrom stats setNames update
 ##' @importFrom methods signature is
 ##' @importFrom memoise memoise
+##' @import tools
 ##' @export
 RxODE <- # nolint
     function(model, modName = basename(wd),
@@ -1229,6 +1230,37 @@ rxCompile <- function(model, dir, prefix, force = FALSE, modName = NULL,
     UseMethod("rxCompile")
 }
 
+.getIncludeDir <- function(){
+  return(.normalizePath(system.file("include", package="RxODE")))
+  .include <- .normalizePath(R_user_dir("RxODE", "config"))
+  if (!dir.exists(.include)) {
+    message("creating RxODE include directory")
+    dir.create(.include, recursive=TRUE)
+    .sysInclude <- system.file("include", package="RxODE")
+    .files <- list.files(.sysInclude)
+    sapply(.files, function(file){
+      file.copy(file.path(.sysInclude, file), file.path(.include, file))
+    })
+    message("getting R compile options")
+    .cc <- rawToChar(sys::exec_internal(file.path(R.home("bin"), "R"), c("CMD", "config", "CC"))$stdout)
+    .cc <- gsub("\n", "", .cc)
+    .cflags <- rawToChar(sys::exec_internal(file.path(R.home("bin"), "R"), c("CMD", "config", "CFLAGS"))$stdout)
+    .cflags <- gsub("\n", "", .cflags)
+    .shlibCflags <- rawToChar(sys::exec_internal(file.path(R.home("bin"), "R"), c("CMD", "config", "SHLIB_CFLAGS"))$stdout)
+    .shlibCflags <- gsub("\n", "", .shlibCflags)
+    .cpicflags <- rawToChar(sys::exec_internal(file.path(R.home("bin"), "R"), c("CMD", "config", "CPICFLAGS"))$stdout)
+    .cpicflags <- gsub("\n", "", .cpicflags)
+
+    message("precompiling headers")
+    .args <- paste0(.cc,' -I', gsub("[\\]", "/", .normalizePath(R.home("include"))), ' ',
+                   .cflags, .shlibCflags, .cpicflags, ' -I', gsub("[\\]", "/", .normalizePath(.include)), ' ',
+                   paste(gsub("[\\]", "/", .normalizePath(.include)), "RxODE_model.h", sep="/"),
+                   '')
+    system(.args)
+  }
+  .include
+}
+
 .pkg <- NULL;
 
 ##' @export
@@ -1375,29 +1407,29 @@ rxCompile.rxModelVars <-  function(model, # Model
         .defs <- ""
         .ret <- sprintf("#RxODE Makevars\nPKG_CFLAGS=-O%s %s -I\"%s\"\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)\n",
                         getOption("RxODE.compile.O", "2"),
-                        .defs, .normalizePath(system.file("include", package="RxODE")));
-        ## .ret <- paste(.ret, "-g");
-        sink(.Makevars);
-        cat(.ret);
-        sink();
-        sink(.normalizePath(file.path(.dir, "extraC.h")));
-        cat(.extraCnow);
+                        .defs, .getIncludeDir())
+        ## .ret <- paste(.ret, "-g")
+        sink(.Makevars)
+        cat(.ret)
+        sink()
+        sink(.normalizePath(file.path(.dir, "extraC.h")))
+        cat(.extraCnow)
         sink()
         ## Change working directory
-        setwd(.dir);
-        try(dyn.unload(.cDllFile), silent = TRUE);
-        try(unlink(.cDllFile));
-        .cmd <- file.path(R.home("bin"), "R");
-        RxODE::rxReq("sys");
-        .args <- c("CMD", "SHLIB", basename(.cFile));
-        .rxBinpref <- Sys.getenv("rxBINPREF");
+        setwd(.dir)
+        try(dyn.unload(.cDllFile), silent = TRUE)
+        try(unlink(.cDllFile))
+        .cmd <- file.path(R.home("bin"), "R")
+        RxODE::rxReq("sys")
+        .args <- c("CMD", "SHLIB", basename(.cFile))
+        .rxBinpref <- Sys.getenv("rxBINPREF")
         if (.rxBinpref != ""){
-          .oldBinpref <- Sys.getenv("BINPREF");
-          Sys.setenv("BINPREF"=.rxBinpref);
-          on.exit(Sys.setenv("BINPREF"=.oldBinpref), add=TRUE);
+          .oldBinpref <- Sys.getenv("BINPREF")
+          Sys.setenv("BINPREF"=.rxBinpref)
+          on.exit(Sys.setenv("BINPREF"=.oldBinpref), add=TRUE)
         }
 
-        .out <- sys::exec_internal(cmd = .cmd, args = .args, error=FALSE);
+        .out <- sys::exec_internal(cmd = .cmd, args = .args, error=FALSE)
         ## message(paste(rawToChar(.out$stderr),sep="\n"))
         .badBuild <- function(msg, cSrc=TRUE){
           message(msg);

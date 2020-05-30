@@ -9,6 +9,7 @@
     if (requireNamespace("mvnfast", quietly = TRUE)) {
         assignInMyNamespace(".mvnfast", loadNamespace("mvnfast"))
     }
+    backports::import(pkgname)
     ## Setup RxODE.prefer.tbl
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
     rxPermissive(respect=TRUE); ## need to call respect on the first time
@@ -26,6 +27,7 @@
     if (requireNamespace("mvnfast", quietly = TRUE)) {
         assignInMyNamespace(".mvnfast", loadNamespace("mvnfast"))
     }
+    backports::import(pkgname)
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
     rxPermissive(respect=TRUE); ## need to call respect on the first time
     if (!.rxWinRtoolsPath(retry=NA)){
@@ -60,12 +62,12 @@ rxTempDir <- function(){
         .tmp <- Sys.getenv("rxTempDir")
         if (.tmp == ""){
             if (is.null(.cacheDefault)){
-                assignInMyNamespace(".cacheDefault", file.path(tempdir(),".rxCache"));
+                assignInMyNamespace(".cacheDefault", R_user_dir("RxODE", "cache"))
             }
             if (getOption("RxODE.cache.directory", .cacheDefault) != "."){
                 .tmp <- getOption("RxODE.cache.directory", .cacheDefault);
             } else {
-                .tmp <- tempdir()
+                .tmp <- R_user_dir("RxODE", "cache")
             }
         }
         if (!file.exists(.tmp))

@@ -46,6 +46,7 @@ Maintainer: Wenping Wang <wwang8198@gmail.com>
 Depends:
     R (>= 3.6.0)
 Suggests:
+    Matrix,
     DT,
     covr,
     crayon,
@@ -76,11 +77,11 @@ Suggests:
     vdiffr,
     xgxr
 Imports:
-    Matrix,
     PreciseSums (>= 0.3),
     Rcpp (>= 0.12.3),
     RcppArmadillo (>= 0.9.300.2.0),
     assertthat,
+    backports,
     checkmate,
     cli (>= 2.0.0),
     dparser (>= 0.1.8),
@@ -95,6 +96,7 @@ Imports:
     symengine,
     sys,
     units (>= 0.6-0),
+    tools,
     utils
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
