@@ -1,6 +1,7 @@
 //#undef NDEBUG
 #include <R.h>
 #include <stan/math.hpp>
+#include <Rcpp.h>
 #include "../inst/include/RxODE.h"
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -22,6 +23,7 @@ extern "C" void sortIfNeeded(rx_solve *rx, rx_solving_options_ind *ind, unsigned
 extern "C" double getTime(int idx, rx_solving_options_ind *ind);
 
 extern "C" int _locateTimeIndex(double obs_time,  rx_solving_options_ind *ind);
+extern "C" double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned int *p);
 
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 
@@ -110,7 +112,7 @@ namespace stan {
 	  v=1/(A+B+C);
 	  btemp = -(alpha*C + alpha*B + gamma*A + gamma*B + beta*A + beta*C)*v;
 	  ctemp = (alpha*beta*C + alpha*gamma*B + beta*gamma*A)*v;
-	  dtemp = sqrt(_as_zero(btemp*btemp-4*ctemp));
+	  dtemp = sqrt(btemp*btemp-4*ctemp);
 	  k21 = 0.5*(-btemp+dtemp);
 	  k31 = 0.5*(-btemp-dtemp);
 	  k   = alpha*beta*gamma/k21/k31;
@@ -186,7 +188,7 @@ namespace stan {
 	  break;
 	default:
 	  REprintf(_("invalid trans (2 cmt trans %d)\n"), trans);
-	  return NA_REAL;
+	  return g;
 	}
       } break;
       case 1:{ // One compartment model
@@ -208,7 +210,7 @@ namespace stan {
 	  v = 1/v1;
 	  break;
 	default:
-	  return 0;
+	  return g;
 	}
       } break;
       }
@@ -263,7 +265,7 @@ namespace stan {
 #define ka    params(6, 0)
 #define tlag2 params(7, 0)
 #define f2    params(8, 0)
-#define dur2  params(9, 0)    
+#define dur2  params(9, 0)
 
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
@@ -963,12 +965,12 @@ namespace stan {
 
       T alpha = sqrt(-Q);
       T beta = -0.5*n;
-      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T gamma = sqrt(beta*beta+alpha*alpha);
       T theta = atan2(alpha,beta);
       T theta3 = 0.333333333333333*theta;
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = R_pow(gamma,0.333333333333333);
+      T gamma3 = pow(gamma,0.333333333333333);
   
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
@@ -1009,12 +1011,12 @@ namespace stan {
 
       T alpha = sqrt(-Q);
       T beta = -0.5*n;
-      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T gamma = sqrt(beta*beta+alpha*alpha);
       T theta = atan2(alpha,beta);
       T theta3 = 0.333333333333333*theta;
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = R_pow(gamma,0.333333333333333);
+      T gamma3 = pow(gamma,0.333333333333333);
   
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
@@ -1024,10 +1026,10 @@ namespace stan {
       T eL1 = 1.0/(1.0-exp(-tau*lambda1));
       T eL2 = 1.0/(1.0-exp(-tau*lambda2));
       T eL3 = 1.0/(1.0-exp(-tau*lambda3));
-      *A1=0.0;
-      *A2=b2*(eL1*(E3 - lambda1)*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eL2*(E3 - lambda2)*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eL3*(E3 - lambda3)*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)));
-      *A3=eL2*(-b2*E4*k23 + b2*k23*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*(b2*E4*k23 - b2*k23*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-b2*E4*k23 + b2*k23*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
-      *A4=eL2*(-b2*E3*k24 + b2*k24*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*(b2*E3*k24 - b2*k24*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-b2*E3*k24 + b2*k24*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
+      A1=0.0;
+      A2=b2*(eL1*(E3 - lambda1)*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eL2*(E3 - lambda2)*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eL3*(E3 - lambda3)*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)));
+      A3=eL2*(-b2*E4*k23 + b2*k23*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*(b2*E4*k23 - b2*k23*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-b2*E4*k23 + b2*k23*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
+      A4=eL2*(-b2*E3*k24 + b2*k24*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*(b2*E3*k24 - b2*k24*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-b2*E3*k24 + b2*k24*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
       return A;
     }
 
@@ -1054,12 +1056,12 @@ namespace stan {
 
       T alpha = sqrt(-Q);
       T beta = -0.5*n;
-      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T gamma = sqrt(beta*beta+alpha*alpha);
       T theta = atan2(alpha,beta);
       T theta3 = 0.333333333333333*theta;
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = R_pow(gamma,0.333333333333333);
+      T gamma3 = pow(gamma,0.333333333333333);
   
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
@@ -1317,12 +1319,12 @@ namespace stan {
 
       T alpha = sqrt(-Q);
       T beta = -0.5*n;
-      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T gamma = sqrt(beta*beta+alpha*alpha);
       T theta = atan2(alpha,beta);
       T theta3 = 0.333333333333333*theta;
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = R_pow(gamma,0.333333333333333);
+      T gamma3 = pow(gamma,0.333333333333333);
   
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
@@ -1357,12 +1359,12 @@ namespace stan {
 
       T alpha = sqrt(-Q);
       T beta = -0.5*n;
-      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T gamma = sqrt(beta*beta+alpha*alpha);
       T theta = atan2(alpha,beta);
       T theta3 = 0.333333333333333*theta;
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = R_pow(gamma,0.333333333333333);
+      T gamma3 = pow(gamma,0.333333333333333);
   
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
@@ -1403,12 +1405,12 @@ namespace stan {
 
       T alpha = sqrt(-Q);
       T beta = -0.5*n;
-      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T gamma = sqrt(beta*beta+alpha*alpha);
       T theta = atan2(alpha,beta);
       T theta3 = 0.333333333333333*theta;
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = R_pow(gamma,0.333333333333333);
+      T gamma3 = pow(gamma,0.333333333333333);
   
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
@@ -1616,13 +1618,13 @@ namespace stan {
 
       T alpha = sqrt(-Q);
       T beta = -0.5*n;
-      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T gamma = sqrt(beta*beta+alpha*alpha);
       T theta = atan2(alpha,beta);
 
       T theta3 = 0.333333333333333*theta;
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = R_pow(gamma,0.333333333333333);
+      T gamma3 = pow(gamma,0.333333333333333);
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
       T lambda3 = 0.333333333333333*a -(2*gamma3*ctheta3);
@@ -1660,13 +1662,13 @@ namespace stan {
 
       T alpha = sqrt(-Q);
       T beta = -0.5*n;
-      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T gamma = sqrt(beta*beta+alpha*alpha);
       T theta = atan2(alpha,beta);
 
       T theta3 = 0.333333333333333*theta;
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = R_pow(gamma,0.333333333333333);
+      T gamma3 = pow(gamma,0.333333333333333);
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
       T lambda3 = 0.333333333333333*a -(2*gamma3*ctheta3);
@@ -1748,6 +1750,8 @@ namespace stan {
 	  }
 	}
       }
+      Rcpp::stop("should not get here");
+      return params;
     }
 
     template <class T>
@@ -1796,6 +1800,8 @@ namespace stan {
 	} break;
 	}
       }
+      Rcpp::stop("shouldn't get here");
+      return params;
     }
 
     template <class T>
@@ -1843,6 +1849,8 @@ namespace stan {
 	} break;
 	}
       }
+      Rcpp::stop("problem");
+      return params;
     }
 
     template <class T>
@@ -1854,7 +1862,7 @@ namespace stan {
 	    Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
 	    Eigen::Matrix<T, Eigen::Dynamic, 1>& bolus,
 	    Eigen::Matrix<T, Eigen::Dynamic, 1>& rate) {
-      double t = ct - tlast;
+      T t = ct - tlast;
       if (r1 > DOUBLE_EPS  || r2 > DOUBLE_EPS){
 	if (oral0){
 	  switch (ncmt){
@@ -1910,6 +1918,8 @@ namespace stan {
 	  }
 	}
       }
+      Rcpp::stop("should not get here");
+      return params;
     }
             
 #undef v
@@ -1942,98 +1952,381 @@ namespace stan {
 #undef tlag2
 #undef f2
 #undef dur2
-    
-      template <class T>
-	Eigen::Matrix<T, Eigen::Dynamic, 1>
-	genericCmtInterface(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
-			    const double t,
-			    const int oral0,
-			    const int trans,
-			    const int ncmt,
-			    const int linCmt,
-			    const int idx,
-			    rx_solving_options_ind *ind,
-			    rx_solve *rx){
-	rx_solving_options *op = rx->op;
-	int evid, wh, cmt, wh100, whI, wh0;
-	Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncmt, 3);
-	g = micros2macros(params, ncmt, trans);
-	double *rate0 = ind->linCmtRate;
-	Eigen::Matrix<T, Eigen::Dynamic, 1>& rate(oral0+1, 1);
-	Eigen::Matrix<T, Eigen::Dynamic, 1>& bolus(oral0+1, 1);
-	double Alast0[4] = {0, 0, 0, 0};
-	rate(0, 0) = rate0[0];
-	bolus(0, 0) = 0.0;
-	if (oral0) {
-	  rate(1, 0) = rate0[1];
-	  bolus(1, 0) = 0.0;
-	}
-	double *A;
-	double *Alast;
-	T tlast;
-	T curTime=0.0;
-	if (ind->solved[idx]){
+#define d_tlag  params(ncmt*2, 0)
+#define d_F     params(ncmt*2+1, 0)
+#define d_rate1 params(ncmt*2+2, 0)
+#define d_dur1  params(ncmt*2+3, 0)
+#define d_ka    params(ncmt*2+4, 0)
+#define d_tlag2 params(ncmt*2+5, 0)
+#define d_F2    params(ncmt*2+6, 0)
+#define d_rate2 params(ncmt*2+7, 0)
+#define d_dur2  params(ncmt*2+8, 0)
+#define v       g(0, 0)
+    template <class T>
+    Eigen::Matrix<T, Eigen::Dynamic, 1>
+    genericCmtInterface(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+			const double t,
+			const int oral0,
+			const int trans,
+			const int ncmt,
+			const int linCmt,
+			const int idx,
+			const int sameTime,
+			rx_solving_options_ind *ind,
+			rx_solve *rx){
+      rx_solving_options *op = rx->op;
+      int evid, wh, cmt, wh100, whI, wh0;
+      Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncmt, 3);
+      g = micros2macros(params, ncmt, trans);
+      double *rate0 = ind->linCmtRate;
+      Eigen::Matrix<T, Eigen::Dynamic, 1> rate(oral0+1, 1);
+      Eigen::Matrix<T, Eigen::Dynamic, 1> bolus(oral0+1, 1);
+      for (int i = oral0+1; i--; ){
+	rate(i, 0) = bolus(i, 0) = 0.0;
+      }
+	
+      Eigen::Matrix<T, Eigen::Dynamic, 1> Alast(oral0+ncmt, 1);
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(oral0+ncmt, 1);
+      Eigen::Matrix<T, Eigen::Dynamic, 1> Alast0(oral0+ncmt, 1);
+      for (int i = oral0+ncmt; i--;){
+	Alast(i, 0) = 0.0;
+	A(i, 0) = 0.0;
+	Alast0(i, 0) = 0.0;
+      }
+      rate(0, 0) = rate0[0];
+      bolus(0, 0) = 0.0;
+      if (oral0) {
+	rate(1, 0) = rate0[1];
+	bolus(1, 0) = 0.0;
+      }
+      T tlast;
+      T curTime=0.0;
+      T r0;
+      if (ind->solved[idx]){
+      } else {
+	//A = ind->linCmtAdvan+(op->nlin)*idx;
+	if (idx == 0) {
+	  Alast = Alast0;
+	  tlast = getTime(ind->ix[0], ind);
 	} else {
-	  A = ind->linCmtAdvan+(op->nlin)*idx;
-	  if (idx == 0) {
-	    Alast = Alast0;
-	    tlast = getTime(ind->ix[0], ind);
-	  } else {
-	    tlast = getTime(ind->ix[idx-1], ind);
-	    Alast = ind->linCmtAdvan+(op->nlin)*(idx-1);
+	  tlast = getTime(ind->ix[idx-1], ind);
+	  double *tmp = ind->linCmtAdvan+(op->nlin)*(idx-1);
+	  for (int i = oral0+ncmt; i--;){
+	    Alast(i, 0) = tmp[i];
 	  }
-	  curTime = getTime(ind->ix[idx], ind);
-	  evid = ind->evid[ind->ix[idx]];
-	  int doMultiply = 0, doReplace=0;
-	  T amt=0;
-	  T rateAdjust= 0;
-	  int doRate=0;
-	  int extraAdvan = 1;
-	  wh0 = 0;
-	  if (isObs(evid)){
-	  } else if (evid == 3){
-	    // Reset event
-	    Alast=Alast0;
+	}
+	curTime = getTime(ind->ix[idx], ind);
+	evid = ind->evid[ind->ix[idx]];
+	int doMultiply = 0, doReplace=0;
+	T amt=0;
+	T rateAdjust= 0;
+	int doRate=0;
+	int extraAdvan = 1;
+	wh0 = 0;
+	if (isObs(evid)){
+	} else if (evid == 3){
+	  // Reset event
+	  Alast=Alast0;
+	} else {
+	  getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
+	  int cmtOff = cmt-linCmt;
+	  if ((oral0 && cmtOff > 1) ||
+	      (!oral0 && cmtOff != 0)) {
 	  } else {
-	    getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
-	    int cmtOff = cmt-linCmt;
-	    if ((oral0 && cmtOff > 1) ||
-		(!oral0 && cmtOff != 0)) {
-	    } else {
-	      syncIdx(ind);
-	      amt = ind->dose[ind->ixds];
-	      if (!ISNA(amt) && (amt > 0) && (wh0 == 10 || wh0 == 20)) {
-		// dosing to cmt
-		// Steady state doses; wh0 == 20 is equivalent to SS=2 in NONMEM
-		T tau = ind->ii[ind->ixds];
-		Eigen::Matrix<T, Eigen::Dynamic, 1>& aSave(oral0+ncmt, 1);
-		Eigen::Matrix<T, Eigen::Dynamic, 1>& Alst(oral0+ncmt, 1);
-		for (int i = ncmt + oral0; i--;){
-		  Alst(i, 0) = Alast[i];
+	    syncIdx(ind);
+	    amt = ind->dose[ind->ixds];
+	    if (!ISNA(ind->dose[ind->ixds]) && (amt > 0) && (wh0 == 10 || wh0 == 20)) {
+	      // dosing to cmt
+	      // Steady state doses; wh0 == 20 is equivalent to SS=2 in NONMEM
+	      T tau = ind->ii[ind->ixds];
+	      Eigen::Matrix<T, Eigen::Dynamic, 1> aSave(oral0+ncmt, 1);
+	      if (wh0 == 20) {
+		aSave = doAdvan(ncmt, oral0, tlast, curTime,
+				Alast, params, g, bolus, rate);
+	      } else {
+		for (int i = oral0+ncmt; i--;){
+		  aSave(i, 0) = 0;
 		}
-		if (wh0 == 20) {
-		  aSave = doAdvan(ncmt, oral0, tlast, curTime,
-			  Alst, params, g, bolus, rate);
+	      }
+	      // Reset rate
+	      rate(0, 0) = 0;
+	      rate0[0] = 0;
+	      if (oral0) {
+		rate(1, 0) = 0;
+		rate0[1] = 0;
+	      }
+	      // FIXME next
+	      Alast = Alast0;
+	      tlast = 0;
+	      curTime = tau;
+	      T tinf;
+	      int doInf=0;
+	      switch (whI){
+	      case 0: {
+		// Get bolus dose
+		if (cmtOff == 0){
+		  bolus(0,0) = amt*d_F;
 		} else {
-		  for (int i = ncmt + oral0; i--;){
-		    aSave(i, 0) = 0;
+		  bolus(1, 0) = amt*d_F2;
+		}
+		A = ssTau(ncmt, oral0, params, g,bolus, tau);
+	      } break;
+	      case 8: // Duration is modeled
+	      case 9: { // Rate is modeled
+		if (whI == 9) {
+		  // cmtOff = 0
+		  if (cmtOff == 0)  {
+		    // Infusion to depot compartment with oral dosing or
+		    // infusion to central compartmenr
+		    r0 = d_rate1;
+		    tinf = amt/r0*d_F;
+		  } else {
+		    // cmtOff = 1
+		    // Infusion to central compartment
+		    r0 = d_rate2;
+		    tinf = amt/r0*d_F2;
+		  }
+		} else {
+		  // duration is modeled
+		  if (cmtOff == 0) {
+		    // With oral dosing infusion to central compartment
+		    tinf = d_dur1;
+		    r0 = amt/tinf*d_F;
+		  } else {
+		    // Infusion to compartment #1 or depot
+		    tinf = d_dur2;
+		    r0 = amt/tinf*d_F2;
 		  }
 		}
-		// Reset rate
-		rate(0, 0) = 0;
-		rate0[0] = 0;
-		if (oral0) {
-		  rate(1, 0) = 0;
-		  rate0[1] = 0;
+		doInf=1;
+	      } break;
+	      case 1:
+	      case 2: {
+		if (ISNA(ind->dose[ind->ixds])){
+		} else if (amt > 0) {
+		  doInf=1;
+		  unsigned int p;
+		  r0 = amt;
+		  tinf = _getDur(ind->ixds, ind, 1, &p);
+		  if (whI == 1){
+		    // Duration changes
+		    if (cmtOff == 0){
+		      tinf *= d_F;
+		    } else {
+		      tinf *= d_F2;
+		    }
+		  } else {
+		    // Rate changes
+		    if (cmtOff == 0){
+		      r0 *= d_F;
+		    } else {
+		      r0 *= d_F2;
+		    }
+		  }
 		}
-		// FIXME next
 	      }
+	      }
+	      if (doInf){
+		// Infusion steady state
+		if (tinf >= tau){
+		  ind->wrongSSDur=1;
+		  for (int i = oral0+ncmt; i--;){
+		    A(i, 0) = 0;
+		  }
+		  extraAdvan=0;
+		} else {
+		  if (cmtOff == 0){
+		    rate(0, 0) = r0; rate(1, 0) = 0;
+		  } else {
+		    rate(0, 0) = 0; rate(1, 0) = r0;
+		  }
+		  A = ssRateTau(ncmt, oral0,params, g, rate, tinf, tau);
+		}
+	      }
+	      if (wh0 == 20) {
+		A = A + aSave;
+	      } 
+	      extraAdvan=0;
+	    } else if (wh0 == 30){
+	      // Turning off a compartment; Not supported put everything to NaN
+	      for (int i = oral0+ncmt; i--;){
+		A(i, 0) = 0;
+	      }
+	      extraAdvan=0;
+	    }
+	    // dosing to cmt
+	    amt = ind->dose[ind->ixds];
+	    switch (whI){
+	    case 0: { // Bolus dose
+	      // base dose
+	      if (cmtOff == 0){
+		bolus(0, 0) = amt*d_F;
+	      } else {
+		bolus(1, 0) = amt*d_F2;
+	      }
+	    } break;
+	    case 4: {
+	      doReplace = cmtOff+1;
+	    } break;
+	    case 5: {
+	      doMultiply= cmtOff+1;
+	    } break;
+	    case 9: { // modeled rate.
+	      // These are specified in the linCmt
+	      if (cmtOff == 0)  {
+		// Infusion to central compartment with oral dosing
+		rateAdjust = d_rate1;
+	      } else {
+		// Infusion to central compartment or depot
+		rateAdjust = d_rate2;
+	      }
+	      // Save rate turn off in next dose
+	      doRate = cmtOff+1;
+	    } break;
+	    case 8: { // modeled duration. 
+	      //InfusionRate[cmt] -= dose[ind->ixds+1];
+	      if (cmtOff == 0) {
+		// With oral dosing infusion to central compartment
+		rateAdjust = amt/d_dur1*d_F;
+	      } else {
+		// Infusion to compartment #1 or depot
+		rateAdjust = amt/d_dur2*d_F2;
+	      }
+	      doRate = cmtOff+1;
+	    } break;
+	    case 7:{ // End modeled rate
+	      if (cmtOff == 0)  {
+		// Infusion to central compartment with oral dosing
+		rateAdjust = -d_rate1;
+	      } else {
+		// Infusion to central compartment or depot
+		rateAdjust = -d_rate2;
+	      }
+	      doRate = cmtOff+1;
+	    } break;
+	    case 1: { // Begin infusion
+	      rateAdjust = amt; // Amt is negative when turning off
+	      doRate = cmtOff+1;
+	    } break;
+	    case 6: { // end modeled duration
+	      if (cmtOff == 0) {
+		// With oral dosing infusion to central compartment
+		rateAdjust = -amt/d_dur1*d_F;
+	      } else {
+		// Infusion to compartment #1 or depot
+		rateAdjust = -amt/d_dur2*d_F2;
+	      }
+	      doRate = cmtOff+1;
+	    } break;
+	    case 2: {
+	      // In this case bio-availability changes the rate, but the duration remains constant.
+	      // rate = amt/dur
+	      if (cmtOff == 0){
+		rateAdjust = amt*d_F;
+	      } else {
+		rateAdjust = amt*d_F2;
+	      }
+	      doRate = cmtOff+1;
+	    } break;
 	    }
 	  }
 	}
+	//
+	if (wh0 == 40){
+	  // Steady state infusion
+	  // Now advance to steady state dosing
+	  // These are easy to solve
+	  for (int i = oral0+1; i--;){
+	    rate(i, 0) = 0.0;
+	  }
+	  if (doRate == 1){
+	    rate(0,0) = rateAdjust;
+	  } else {
+	    rate(1, 0) = rateAdjust;
+	  }
+	  doRate=0;
+	  A = ssRate(ncmt, oral0, params, g, rate);
+	  extraAdvan=0;
+	}
+	if (extraAdvan){
+	  A = doAdvan(ncmt, oral0, tlast, curTime, Alast,
+		      params, g, bolus, rate);
+	}
+	if (doReplace){
+	  A(doReplace-1, 0) = amt;
+	} else if (doMultiply){
+	  A(doMultiply-1, 0) *= amt;
+	} else if (doRate){
+	  rate(doRate-1,0) += rateAdjust;
+	  rate0[doRate-1] += rateAdjust.val();
+	}
+	// Save A and rate
+	double *Ad = ind->linCmtAdvan+(op->nlin)*(idx);
+	T tmpD;
+	for (int i = ncmt+oral0; i--;){
+	  tmpD = A(i, 0);
+	  Ad[i] = tmpD.val();
+	}
+	ind->solved[idx] = 1;
       }
+      if (!sameTime){
+	// Compute the advan solution of a t outside of the mesh.
+	Alast = A;
+	A = Alast0;
+	tlast = curTime;
+	curTime = t;
+	for (int i = oral0+1; i--;){
+	  bolus(i, 0) = 0.0;
+	}
+	A = doAdvan(ncmt, oral0, tlast, curTime, Alast,
+		    params, g, bolus, rate);
+      }
+      Eigen::Matrix<T, Eigen::Dynamic, 1> ret(1,1);
+      ret(0, 0) = A(oral0, 0)/v;
+      return ret;
+    }
+    struct linCmtFun {
+      const double t_;
+      const int ncmt_, linCmt_, oral0_, trans_, idx_, sameTime_;
+      rx_solving_options_ind *ind_;
+      rx_solve *rx_;
+      linCmtFun(const double t,
+		const int ncmt,
+		const int oral0,
+		const int trans,
+		const int linCmt,
+		const int idx,
+		const int sameTime,
+		rx_solving_options_ind *ind,
+		rx_solve *rx) :
+	t_(t),
+	ncmt_(ncmt),
+	linCmt_(linCmt),
+	oral0_(oral0),
+	trans_(trans),
+	idx_(idx),
+	sameTime_(sameTime),
+	ind_(ind),
+	rx_(rx)
+      { }
+      template <typename T>
+      Eigen::Matrix<T, Eigen::Dynamic, 1> operator()(Eigen::Matrix<T, Eigen::Dynamic, 1>& params) const {
+	return genericCmtInterface(params, t_, oral0_, trans_, ncmt_, linCmt_, idx_, sameTime_, ind_, rx_);
+      }
+    };
     }
 }
+
+#undef d_tlag
+#undef d_F
+#undef d_rate1
+#undef d_dur1
+#undef d_ka
+#undef d_tlag2
+#undef d_F2
+#undef d_rate2
+#undef d_dur2
+#undef v
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> MatrixPd;
 
@@ -2101,6 +2394,30 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
     params(2*ncmt + 6, 0) = dd_F2;
     params(2*ncmt + 7, 0) = dd_rate2;
     params(2*ncmt + 8, 0) = dd_dur2;
+  }
+  stan::math::linCmtFun f(t, ncmt, oral0, trans, linCmt, idx, sameTime, ind, rx);
+  Eigen::VectorXd fx;
+  Eigen::Matrix<double, -1, -1> J;
+  stan::math::jacobian(f, params, fx, J);
+  double *A = ind->linCmtAdvan+(op->nlin)*idx;
+  if (sameTime){
+    // Save Jacobian values
+    A[2*ncmt + oral0 + 0] = J(0, 0);
+    A[2*ncmt + oral0 + 1] = J(0, 1);
+    A[2*ncmt + oral0 + 2] = J(0, 2);
+    A[2*ncmt + oral0 + 3] = J(0, 3);
+    if (oral0) {
+      A[2*ncmt + oral0 + 4] = J(0, 4);
+      A[2*ncmt + oral0 + 5] = J(0, 5);
+      A[2*ncmt + oral0 + 6] = J(0, 6);
+      A[2*ncmt + oral0 + 7] = J(0, 7);
+      A[2*ncmt + oral0 + 8] = J(0, 8);
+    }
+  }
+  if (val == 0) {
+    return fx[0];
+  } else {
+    return J(0, val-1);
   }
   return 0.0;
 }

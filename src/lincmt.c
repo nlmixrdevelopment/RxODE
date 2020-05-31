@@ -27,7 +27,7 @@ double log1mex(double a){
 void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 
 // Linear compartment models/functions
-static inline double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned int *p){
+extern double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned int *p){
   double dose = ind->dose[l];
   if (backward){
     p[0] = l-1;
@@ -2722,7 +2722,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    }
 	  }
 	  extraAdvan=0;
-	} else if (wh0 == 30){
+	} else if (wh0 == 30) {
 	  // Turning off a compartment; Not supported put everything to NaN
 	  for (int i = ncmt + oral0; i--;){
 	    A[i] = R_NaN;
