@@ -485,7 +485,7 @@ namespace stan {
 #define ka    params(10, 0)
 #define tlag2 params(11, 0)
 #define f2    params(12, 0)
-#define dur2  params(13, 0)    
+#define dur2  params(13, 0)
 
     template <class T>
     Eigen::Matrix<double, Eigen::Dynamic, 1>
@@ -902,6 +902,203 @@ namespace stan {
       T rxe5=k12*A2last;
       T rxe9=(rxe1)*A3last;
       A3=(-exp(-0.5*t*(rxe6-rxe10))*(-0.5*A3last*(rxe6-rxe10)+rxe5+rxe9)+exp(-0.5*t*(rxe6+rxe10))*(-0.5*A3last*(rxe6+rxe10)+rxe5+rxe9))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+ka*k12*A1last*(rxe2/((-ka+0.5*(rxe6-rxe10))*(-ka+0.5*(rxe6+rxe10)))+exp(-0.5*t*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*(ka-0.5*(rxe6-rxe10)))+exp(-0.5*t*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*(ka-0.5*(rxe6+rxe10))));
+      return A;
+    }
+    
+    // undefine extras
+#undef tlag
+#undef F
+#undef rate1
+#undef dur1
+#undef ka
+#undef tlag2
+#undef f2
+#undef dur2
+    // three compartment ka translations ncmt=1
+#define tlag  params(6,  0)
+#define F     params(7,  0)
+#define rate1 params(8,  0)
+#define dur1  params(9,  0)
+#define ka    params(10, 0)
+#define tlag2 params(11, 0)
+#define f2    params(12, 0)
+#define dur2  params(13, 0)
+    
+    template <class T>
+    Eigen::Matrix<double, Eigen::Dynamic, 1>
+    threeCmtKaSSb1(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		   Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		   Eigen::Matrix<T, Eigen::Dynamic, 2>& bolus,
+		   T tau){
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(4, 1);
+      T E2 = k20+k23+k24;
+      T E3 = k32;
+      T E4 = k42;
+
+      //calculate hybrid rate constants
+      T a = E2+E3+E4;
+      T b = E2*E3+E4*(E2+E3)-k23*k32-k24*k42;
+      T c = E2*E3*E4-E4*k23*k32-E3*k24*k42;
+
+      T a2 = a*a;
+      T m = 0.333333333333333*(3.0*b - a2);
+      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
+      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
+
+      T alpha = sqrt(-Q);
+      T beta = -0.5*n;
+      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T theta = atan2(alpha,beta);
+      T theta3 = 0.333333333333333*theta;
+      T ctheta3 = cos(theta3);
+      T stheta3 = 1.7320508075688771932*sin(theta3);
+      T gamma3 = R_pow(gamma,0.333333333333333);
+  
+      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
+      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
+      T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
+
+      T eKa = 1.0/(1.0-exp(-tau*ka));
+      T eL1 = 1.0/(1.0-exp(-tau*lambda1));
+      T eL2 = 1.0/(1.0-exp(-tau*lambda2));
+      T eL3 = 1.0/(1.0-exp(-tau*lambda3));
+  
+      A1=eKa*b1;
+      A2=ka*b1*(eL1*(E3 - lambda1)*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*(ka - lambda1)) + eL2*(E3 - lambda2)*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*(ka - lambda2)) + eL3*(E3 - lambda3)*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*(ka - lambda3)) + eKa*(E3 - ka)*(E4 - ka)/((-ka + lambda1)*(-ka + lambda3)*(-ka + lambda2)));
+      A3=ka*b1*k23*(eL1*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*(ka - lambda1)) + eL2*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*(ka - lambda2)) + eL3*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*(ka - lambda3)) + eKa*(E4 - ka)/((-ka + lambda1)*(-ka + lambda3)*(-ka + lambda2)));
+      A4=ka*b1*k24*(eL1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*(ka - lambda1)) + eL2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*(ka - lambda2)) + eL3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*(ka - lambda3)) + eKa*(E3 - ka)/((-ka + lambda1)*(-ka + lambda3)*(-ka + lambda2)));
+      return A;
+    }
+
+    template <class T>
+    Eigen::Matrix<double, Eigen::Dynamic, 1>
+    threeCmtKaSSb2(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		   Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		   Eigen::Matrix<T, Eigen::Dynamic, 2>& bolus,
+		   T tau) {
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(4, 1);
+      T E2 = k20+k23+k24;
+      T E3 = k32;
+      T E4 = k42;
+
+      //calculate hybrid rate constants
+      T a = E2+E3+E4;
+      T b = E2*E3+E4*(E2+E3)-k23*k32-k24*k42;
+      T c = E2*E3*E4-E4*k23*k32-E3*k24*k42;
+
+      T a2 = a*a;
+      T m = 0.333333333333333*(3.0*b - a2);
+      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
+      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
+
+      T alpha = sqrt(-Q);
+      T beta = -0.5*n;
+      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T theta = atan2(alpha,beta);
+      T theta3 = 0.333333333333333*theta;
+      T ctheta3 = cos(theta3);
+      T stheta3 = 1.7320508075688771932*sin(theta3);
+      T gamma3 = R_pow(gamma,0.333333333333333);
+  
+      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
+      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
+      T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
+
+      /* T eKa = 1.0/(1.0-exp(-tau*KA)); */
+      T eL1 = 1.0/(1.0-exp(-tau*lambda1));
+      T eL2 = 1.0/(1.0-exp(-tau*lambda2));
+      T eL3 = 1.0/(1.0-exp(-tau*lambda3));
+      *A1=0.0;
+      *A2=b2*(eL1*(E3 - lambda1)*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eL2*(E3 - lambda2)*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eL3*(E3 - lambda3)*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)));
+      *A3=eL2*(-b2*E4*k23 + b2*k23*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*(b2*E4*k23 - b2*k23*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-b2*E4*k23 + b2*k23*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
+      *A4=eL2*(-b2*E3*k24 + b2*k24*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*(b2*E3*k24 - b2*k24*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-b2*E3*k24 + b2*k24*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
+      return A;
+    }
+
+    template <class T>
+    Eigen::Matrix<double, Eigen::Dynamic, 1>
+    threeCmtKa(T t, Eigen::Matrix<T, Eigen::Dynamic, 2>& Alast,
+	       Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+	       Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+	       Eigen::Matrix<T, Eigen::Dynamic, 2>& bolus) {
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(4, 1);
+      T E2 = k20+k23+k24;
+      T E3 = k32;
+      T E4 = k42;
+
+      //calculate hybrid rate constants
+      T a = E2+E3+E4;
+      T b = E2*E3+E4*(E2+E3)-k23*k32-k24*k42;
+      T c = E2*E3*E4-E4*k23*k32-E3*k24*k42;
+
+      T a2 = a*a;
+      T m = 0.333333333333333*(3.0*b - a2);
+      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
+      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
+
+      T alpha = sqrt(-Q);
+      T beta = -0.5*n;
+      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T theta = atan2(alpha,beta);
+      T theta3 = 0.333333333333333*theta;
+      T ctheta3 = cos(theta3);
+      T stheta3 = 1.7320508075688771932*sin(theta3);
+      T gamma3 = R_pow(gamma,0.333333333333333);
+  
+      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
+      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
+      T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
+
+      T B = A3last*k32+A4last*k42;
+      T C = E4*A3last*k32+E3*A4last*k42;
+      T I = A2last*k23*E4-A3last*k24*k42+A4last*k23*k42;
+      T J = A2last*k24*E3+A3last*k24*k32-A4last*k23*k32;
+
+      T eL1 = exp(-t*lambda1);
+      T eL2 = exp(-t*lambda2);
+      T eL3 = exp(-t*lambda3);
+      T eKA = exp(-t*ka);
+
+      T l12 = (lambda1-lambda2);
+      T l13 = (lambda1-lambda3);
+      T l21 = (lambda2-lambda1);
+      T l23 = (lambda2-lambda3);
+      T l31 = (lambda3-lambda1);
+      T l32 = (lambda3-lambda2);
+
+      T e2l1 = (E2-lambda1);
+      T e2l2 = (E2-lambda2);
+      T e3l1 = (E3-lambda1);
+      T e3l2 = (E3-lambda2);
+      T e3l3 = (E3-lambda3);
+      T e4l1 = (E4-lambda1);
+      T e4l2 = (E4-lambda2);
+      T e4l3 = (E4-lambda3);
+  
+      T A2term1 = A2last*(eL1*e3l1*e4l1/(l21*l31)+eL2*e3l2*e4l2/(l12*l32)+eL3*e3l3*e4l3/(l13*l23));
+  
+      T A2term2 = eL1*(C-B*lambda1)/(l12*l13)+eL2*(B*lambda2-C)/(l12*l23)+eL3*(B*lambda3-C)/(l13*l32);
+  
+      T A2term3 = A1last*ka*(eL1*e3l1*e4l1/(l21*l31*(ka-lambda1))+eL2*e3l2*e4l2/(l12*l32*(ka-lambda2))+eL3*e3l3*e4l3/(l13*l23*(ka-lambda3))+eKA*(E3-ka)*(E4-ka)/((lambda1-ka)*(lambda2-ka)*(lambda3-ka)));
+  
+      A2 = A2term1+A2term2+A2term3 + b2;
+
+      T A3term1 = A3last*(eL1*e2l1*e4l1/(l21*l31)+eL2*e2l2*e4l2/(l12*l32)+eL3*(E2-lambda3)*e4l3/(l13*l23));
+  
+      T A3term2 = eL1*(I-A2last*k23*lambda1)/(l12*l13)+eL2*(A2last*k23*lambda2-I)/(l12*l23)+eL3*(A2last*k23*lambda3-I)/(l13*l32);
+  
+      T A3term3 = A1last*ka*k23*(eL1*e4l1/(l21*l31*(ka-lambda1))+eL2*e4l2/(l12*l32*(ka-lambda2))+eL3*e4l3/(l13*l23*(ka-lambda3))+eKA*(E4-ka)/((lambda1-ka)*(lambda2-ka)*(lambda3-ka)));
+  
+      A3 = A3term1+A3term2+A3term3;// Amount in the first-peripheral compartment
+
+      T A4term1 = A4last*(eL1*e2l1*e3l1/(l21*l31)+eL2*e2l2*e3l2/(l12*l32)+eL3*(E2-lambda3)*e3l3/(l13*l23));
+  
+      T A4term2 = eL1*(J-A2last*k24*lambda1)/(l12*l13)+eL2*(A2last*k24*lambda2-J)/(l12*l23)+eL3*(A2last*k24*lambda3-J)/(l13*l32);
+  
+      T A4term3 = A1last*ka*k24*(eL1*e3l1/(l21*l31*(ka-lambda1))+eL2*e3l2/(l12*l32*(ka-lambda2))+eL3*e3l3/(l13*l23*(ka-lambda3))+eKA*(E3-ka)/((lambda1-ka)*(lambda2-ka)*(lambda3-ka)));
+      A4 = A4term1+A4term2+A4term3;
+
+      A1 = A1last*eKA + b1;
       return A;
     }
 
