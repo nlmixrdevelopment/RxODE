@@ -1863,7 +1863,7 @@ namespace stan {
 	    Eigen::Matrix<T, Eigen::Dynamic, 1>& bolus,
 	    Eigen::Matrix<T, Eigen::Dynamic, 1>& rate) {
       T t = ct - tlast;
-      if (r1 > DOUBLE_EPS  || r2 > DOUBLE_EPS){
+      if (r1 > DOUBLE_EPS  || (oral0 && r2 > DOUBLE_EPS)){
 	if (oral0){
 	  switch (ncmt){
 	  case 1: {

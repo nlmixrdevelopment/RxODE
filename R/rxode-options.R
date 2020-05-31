@@ -27,7 +27,6 @@
     if (requireNamespace("mvnfast", quietly = TRUE)) {
         assignInMyNamespace(".mvnfast", loadNamespace("mvnfast"))
     }
-    backports::import(pkgname)
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
     rxPermissive(respect=TRUE); ## need to call respect on the first time
     if (!.rxWinRtoolsPath(retry=NA)){

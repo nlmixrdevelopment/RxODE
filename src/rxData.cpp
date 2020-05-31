@@ -4316,10 +4316,19 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     IntegerVector linCmtI = rxSolveDat->mv[RxMv_flags];
     int linNcmt = linCmtI[RxMvFlag_ncmt];
     int linKa = linCmtI[RxMvFlag_ka];
-    op->nlin = linNcmt+linKa;
+    int linB = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linB];
+    if (linB) {
+      if (linKa){
+	op->nlin = linNcmt+linKa+ 2*linNcmt + 9;
+      } else {
+	op->nlin = linNcmt+linKa+ 2*linNcmt + 5;
+      }
+    } else {
+      op->nlin = linNcmt+linKa;
+    }
     op->nlinR = 0;
     int n0 = (rx->nall+3*rx->nsub)*(state.size())*rx->nsim;
-    int nLin = linNcmt+linKa;
+    int nLin = op->nlin;
     if (nLin != 0) {
       op->nlinR = 1+linKa;
       nLin = rx->nall*nLin*rx->nsim +// Number of linear compartments * number of solved points

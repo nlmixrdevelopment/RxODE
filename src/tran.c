@@ -904,18 +904,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
        nodeHas(theta0_noout) || 
        nodeHas(theta0))) {
     if (new_or_ith(value)){
-      /* Rprintf("%s [%d]->%s; %d:%d\n",name, NV,value, pn->start_loc.s, pn->end); */
       addSymbolStr(value);
       // Ignored variables
       if (!strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value)){
 	tb.lh[NV-1] = 11; // Suppress param printout.
       }
-      /* Rprintf("New LHS/PARAM: %s; %d; %s; col:%d line:%d\n", tb.ss.line[tb.ss.n-1], tb.ss.n-1, name, */
       /* 	      pn->start_loc.col, pn->start_loc.line); */
     } else if (tb.ix == tb.ixL && tb.didEq==1 &&
 	       !strcmp(value, tb.ss.line[tb.ix])){
-      /* Rprintf("Found Dual LHS/PARAM: %s; %d; %s; col:%d line:%d; %s\n", tb.ss.line[tb.ix], tb.ix, name, */
-      /* 	      pn->start_loc.col, pn->start_loc.line, value); */
       // This is x = x*exp(matt)
       // lhs defined in terms of a parameter
       if (tb.lh[tb.ix] == 10){
@@ -4922,7 +4918,7 @@ static inline void linCmtB(linCmtStruct *lin, const char *in, int *index) {
   if ((in[1] == 'E' || in[1] == 'e') &&
       (in[2] == 'T' || in[2] == 't') &&
       (in[3] == 'A' || in[3] == 'a') &&
-      in[5] == '\0') {
+      in[4] == '\0') {
     lin->beta = *index;
     return;
   }
