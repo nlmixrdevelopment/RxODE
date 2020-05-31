@@ -1614,17 +1614,20 @@ static inline void doAdvan(double *A,// Amounts
       case 1: {
 	oneCmtKa(&A[0], &A[1], &Alast[0], &Alast[1],
 		 &t, b1, b2, ka, kel);
+	return;
       } break;
       case 2: {
 	twoCmtKa(&A[0], &A[1], &A[2],
 		 &Alast[0], &Alast[1], &Alast[2],
 		 &t, b1, b2, ka,  kel, k12, k21);
+	return;
       } break;
       case 3: {
 	threeCmtKa(&A[0], &A[1], &A[2], &A[3],
 		   &Alast[0], &Alast[1], &Alast[2], &Alast[3],
 		   &t, b1, b2, ka, kel,
 		   k12,  k21, k13,  k31);
+	return;
       } break;
       }
     } else {
