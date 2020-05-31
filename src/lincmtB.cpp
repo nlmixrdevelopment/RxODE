@@ -1261,6 +1261,190 @@ namespace stan {
       return A;
     }
 
+    // undefine extras
+#undef tlag
+#undef F
+#undef rate1
+#undef dur1
+#undef ka
+#undef tlag2
+#undef f2
+#undef dur2
+    // three compartment ka translations ncmt=1
+#define tlag  params(6,  0)
+#define F     params(7,  0)
+#define rate1 params(8,  0)
+#define dur1  params(9,  0)
+#define ka    params(10, 0)
+#define tlag2 params(11, 0)
+#define f2    params(12, 0)
+#define dur2  params(13, 0)
+
+    template <class T>
+    Eigen::Matrix<T, Eigen::Dynamic, 1>
+    threeCmtRateSSr1(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		     Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		     Eigen::Matrix<T, Eigen::Dynamic, 2>& rate) {
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
+      T E1 = k10+k12+k13;
+      T E2 = k21;
+      T E3 = k31;
+
+      //#calculate hybrid rate constants
+      T a = E1+E2+E3;
+      T b = E1*E2+E3*(E1+E2)-k12*k21-k13*k31;
+      T c = E1*E2*E3-E3*k12*k21-E2*k13*k31;
+
+      T a2 = a*a;
+      T m = 0.333333333333333*(3.0*b - a2);
+      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
+      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
+
+      T alpha = sqrt(-Q);
+      T beta = -0.5*n;
+      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T theta = atan2(alpha,beta);
+      T theta3 = 0.333333333333333*theta;
+      T ctheta3 = cos(theta3);
+      T stheta3 = 1.7320508075688771932*sin(theta3);
+      T gamma3 = R_pow(gamma,0.333333333333333);
+  
+      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
+      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
+      T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
+      T l123 = 1.0/(lambda1*lambda2*lambda3);
+      A1=r1*E2*E3*l123;
+      A2=r1*E3*k12*l123;
+      A3=r1*E2*k13*l123;
+      return A;
+    }
+
+    template <class T>
+    Eigen::Matrix<T, Eigen::Dynamic, 1>
+    threeCmtRateSS(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		   Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		   Eigen::Matrix<T, Eigen::Dynamic, 2>& rate,
+		   T tinf, T tau){
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
+      T E1 = k10+k12+k13;
+      T E2 = k21;
+      T E3 = k31;
+
+      //#calculate hybrid rate constants
+      T a = E1+E2+E3;
+      T b = E1*E2+E3*(E1+E2)-k12*k21-k13*k31;
+      T c = E1*E2*E3-E3*k12*k21-E2*k13*k31;
+
+      T a2 = a*a;
+      T m = 0.333333333333333*(3.0*b - a2);
+      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
+      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
+
+      T alpha = sqrt(-Q);
+      T beta = -0.5*n;
+      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T theta = atan2(alpha,beta);
+      T theta3 = 0.333333333333333*theta;
+      T ctheta3 = cos(theta3);
+      T stheta3 = 1.7320508075688771932*sin(theta3);
+      T gamma3 = R_pow(gamma,0.333333333333333);
+  
+      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
+      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
+      T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
+      T eTi1 = exp(-tinf*lambda1);
+      T eTi2 = exp(-tinf*lambda2);
+      T eTi3 = exp(-tinf*lambda3);
+      T eT1 = exp(-lambda1*(tau-tinf))/(1.0-exp(-tau*lambda1));
+      T eT2 = exp(-lambda2*(tau-tinf))/(1.0-exp(-tau*lambda2));
+      T eT3 = exp(-lambda3*(tau-tinf))/(1.0-exp(-tau*lambda3));
+      A1=r1*(eT1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eT2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eT3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)))*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + eT2*(lambda2*(r1*k12*k21*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + r1*k13*k31*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))) - (r1*E2*k13*k31*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + r1*E3*k12*k21*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda2)*(lambda2 - lambda3)) + eT1*(-lambda1*(r1*k12*k21*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + r1*k13*k31*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))) + r1*E2*k13*k31*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + r1*E3*k12*k21*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)))/((lambda1 - lambda3)*(lambda1 - lambda2)) + eT3*(lambda3*(r1*k12*k21*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + r1*k13*k31*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))) - (r1*E2*k13*k31*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + r1*E3*k12*k21*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda3)*(-lambda2 + lambda3));
+      A2=r1*k12*(eT1*(E3 - lambda1)*(E1 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eT2*(E1 - lambda2)*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eT3*(E1 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)))*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + eT2*(r1*k12*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda2 - (r1*E3*k12*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + r1*k13*k12*k31*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - r1*k13*k12*k31*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda2)*(lambda2 - lambda3)) + eT1*(r1*E3*k12*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - r1*k12*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda1 + r1*k13*k12*k31*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - r1*k13*k12*k31*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)))/((lambda1 - lambda3)*(lambda1 - lambda2)) + eT3*(r1*k12*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda3 - (r1*E3*k12*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + r1*k13*k12*k31*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - r1*k13*k12*k31*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda3)*(-lambda2 + lambda3));
+      A3=r1*k13*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*(eT1*(E2 - lambda1)*(E1 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eT2*(E1 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eT3*(E1 - lambda3)*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3))) + eT2*(r1*k13*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda2 - (r1*E2*k13*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - r1*k13*k12*k21*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + r1*k13*k12*k21*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda2)*(lambda2 - lambda3)) + eT1*(r1*E2*k13*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - r1*k13*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda1 - r1*k13*k12*k21*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + r1*k13*k12*k21*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)))/((lambda1 - lambda3)*(lambda1 - lambda2)) + eT3*(r1*k13*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda3 - (r1*E2*k13*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - r1*k13*k12*k21*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + r1*k13*k12*k21*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda3)*(-lambda2 + lambda3));
+      return A;
+    }
+
+    template <class T>
+    Eigen::Matrix<T, Eigen::Dynamic, 1>
+    threeCmtRate(T t, Eigen::Matrix<T, Eigen::Dynamic, 2>& Alast,
+		 Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
+		 Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
+		 Eigen::Matrix<T, Eigen::Dynamic, 2>& bolus,
+		 Eigen::Matrix<T, Eigen::Dynamic, 2>& rate) {
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
+      T E1 = k10+k12+k13;
+      T E2 = k21;
+      T E3 = k31;
+
+      //#calculate hybrid rate constants
+      T a = E1+E2+E3;
+      T b = E1*E2+E3*(E1+E2)-k12*k21-k13*k31;
+      T c = E1*E2*E3-E3*k12*k21-E2*k13*k31;
+
+      T a2 = a*a;
+      T m = 0.333333333333333*(3.0*b - a2);
+      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
+      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
+
+      T alpha = sqrt(-Q);
+      T beta = -0.5*n;
+      T gamma = sqrt(_as_zero(beta*beta+alpha*alpha));
+      T theta = atan2(alpha,beta);
+      T theta3 = 0.333333333333333*theta;
+      T ctheta3 = cos(theta3);
+      T stheta3 = 1.7320508075688771932*sin(theta3);
+      T gamma3 = R_pow(gamma,0.333333333333333);
+  
+      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
+      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
+      T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
+
+      T B = A2last*k21+A3last*k31;
+      T C = E3*A2last*k21+E2*A3last*k31;
+      T I = A1last*k12*E3-A2last*k13*k31+A3last*k12*k31;
+      T J = A1last*k13*E2+A2last*k13*k21-A3last*k12*k21;
+
+      T eL1 = exp(-t*lambda1);
+      T eL2 = exp(-t*lambda2);
+      T eL3 = exp(-t*lambda3);
+
+      T l12 = (lambda1-lambda2);
+      T l13 = (lambda1-lambda3);
+      T l21 = (lambda2-lambda1);
+      T l23 = (lambda2-lambda3);
+      T l31 = (lambda3-lambda1);
+      T l32 = (lambda3-lambda2);
+  
+      T e1l1 = (E1-lambda1);
+      T e1l2 = (E1-lambda2);
+      T e1l3 = (E1-lambda3);
+      T e2l1 = (E2-lambda1);
+      T e2l2 = (E2-lambda2);
+      T e2l3 = (E2-lambda3);
+      T e3l1 = (E3-lambda1);
+      T e3l2 = (E3-lambda2);
+      T e3l3 = (E3-lambda3);
+
+      T A1term1 = A1last*(eL1*e2l1*e3l1/(l21*l31)+eL2*e2l2*e3l2/(l12*l32)+eL3*e2l3*e3l3/(l13*l23));
+      T A1term2 = eL1*(C-B*lambda1)/(l12*l13)+eL2*(B*lambda2-C)/(l12*l23)+eL3*(B*lambda3-C)/(l13*l32);
+      T A1term3 = Doserate*((E2*E3)/(lambda1*lambda2*lambda3)-eL1*e2l1*e3l1/(lambda1*l21*l31)-eL2*e2l2*e3l2/(lambda2*l12*l32)-eL3*e2l3*e3l3/(lambda3*l13*l23));
+
+      A1 = A1term1+A1term2+A1term3 + b1;//Amount in the central compartment
+
+      T A2term1 = A2last*(eL1*e1l1*e3l1/(l21*l31)+eL2*e1l2*e3l2/(l12*l32)+eL3*e1l3*e3l3/(l13*l23));
+      T A2term2 = eL1*(I-A1last*k12*lambda1)/(l12*l13)+eL2*(A1last*k12*lambda2-I)/(l12*l23)+eL3*(A1last*k12*lambda3-I)/(l13*l32);
+      T A2term3 = Doserate*k12*(E3/(lambda1*lambda2*lambda3)-eL1*e3l1/(lambda1*l21*l31)-eL2*e3l2/(lambda2*l12*l32)-eL3*e3l3/(lambda3*l13*l23));
+
+      A2 = A2term1+A2term2+A2term3;// Amount in the first-peripheral compartment
+
+      T A3term1 = A3last*(eL1*e1l1*e2l1/(l21*l31)+eL2*e1l2*e2l2/(l12*l32)+eL3*e1l3*e2l3/(l13*l23));
+      T A3term2 = eL1*(J-A1last*k13*lambda1)/(l12*l13)+eL2*(A1last*k13*lambda2-J)/(l12*l23)+eL3*(A1last*k13*lambda3-J)/(l13*l32);
+      T A3term3 = Doserate*k13*(E2/(lambda1*lambda2*lambda3)-eL1*e2l1/(lambda1*l21*l31)-eL2*e2l2/(lambda2*l12*l32)-eL3*e2l3/(lambda3*l13*l23));
+
+      A3 = A3term1+A3term2+A3term3;//Amount in the second-peripheral compartment
+      return A;
+    }
+
 #undef v
 #undef k20
 #undef kel
