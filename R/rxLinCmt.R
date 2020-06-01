@@ -168,3 +168,22 @@ rxDerived <- function(..., verbose=FALSE, digits=0) {
     stop("cannot figure out PK parameters to convert")
   }
 }
+
+##' Get the linear compartment model true function
+##'
+##' @inheritParams RxODE
+##' @return model with linCmt() replaced with linCmtA()
+##' @author Matthew Fidler
+##' @export
+rxGetLin <- function(model, linCmtSens=FALSE, verbose=FALSE){
+  .mv <- rxGetModel(model)
+  if (.Call(`_RxODE_isLinCmt`) == 1L){
+      .vars <- c(.mv$params, .mv$lhs, .mv$slhs)
+      return(.Call(`_RxODE_linCmtGen`,
+                                   length(.mv$state),
+                                   .vars,
+                                   linCmtSens, verbose))
+  } else {
+    return(model)
+  }
+}
