@@ -103,8 +103,9 @@
 #define RxMv_dvid 16
 #define RxMv_indLin 17
 #define RxMv_flags 18
-#define RxMv_timeId 19
-#define RxMv_md5 20
+#define RxMv_slhs 19
+#define RxMv_timeId 20
+#define RxMv_md5 21
 #define RxMvFlag_ncmt 0
 #define RxMvFlag_ka 1
 #define RxMvFlag_linB 2
