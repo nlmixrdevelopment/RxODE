@@ -358,16 +358,14 @@ rxPermissive({
     }
 
     test_that("linCmt promotion and derivatives",{
-
-        expect_equal(rxToSE("linCmtA(rx__PTR__,t,0,1,1,THETA[2],THETA[1],0,0,0,0,0,0,0,1,1,0,0)",promoteLinSens=TRUE),
-                  "linCmtB(rx__PTR__,t,0,1,1,0,THETA_2_,THETA_1_,0,0,0,0,0,0,0,1,1,0,0)")
-        expect_equal(rxToSE("linCmtA(rx__PTR__,t,0,1,1,THETA[2],THETA[1],0,0,0,0,0,0,0,1,1,0,0)",promoteLinSens=FALSE),
-                  "linCmtA(rx__PTR__,t,0,1,1,THETA_2_,THETA_1_,0,0,0,0,0,0,0,1,1,0,0)")
-        for (i in 1:13){
-            .tmp <- paste0("Derivative(linCmtB(rx__PTR__,t,0,1,1,0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13), p", i, ")");
-            expect_equal(rxFromSE(.tmp), paste0("linCmtB(rx__PTR__,t,0,1,1,",i, ",p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13)"))
+      expect_equal(rxToSE("linCmtA(rx__PTR__, t, 0, 3, 1, CL, V, Q, V2, Q2, V3, 0, 1, 0, 0, KA, 0, 1, 0, 0)",promoteLinSens=TRUE),
+                   "linCmtB(rx__PTR__,t,0,3,1,0,CL,V,Q,V2,Q2,V3,0,1,0,0,KA,0,1,0,0)")
+      expect_equal(rxToSE("linCmtA(rx__PTR__, t, 0, 3, 1, CL, V, Q, V2, Q2, V3, 0, 1, 0, 0, KA, 0, 1, 0, 0)",promoteLinSens=FALSE),
+                   "linCmtA(rx__PTR__,t,0,3,1,CL,V,Q,V2,Q2,V3,0,1,0,0,KA,0,1,0,0)")
+        for (i in 1:15){
+            .tmp <- paste0("Derivative(linCmtB(rx__PTR__,t,0,3,1,0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15), p", i, ")");
+            expect_equal(rxFromSE(.tmp), paste0("linCmtB(rx__PTR__,t,0,3,1,",i, ",p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15)"))
         }
-        rxFromSE("linCmtB(rx__PTR__,t,0,1,1,0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13)")
     })
     ## min/max testing
     expect_error(rxFromSE("Derivative(max(a,b,c), a)"), NA)

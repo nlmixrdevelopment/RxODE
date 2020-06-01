@@ -78,8 +78,8 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "erfc"=1,
   "exp"=1,
   "gamma"=1,
-  "linCmtA"=18,
-  "linCmtB"=19,
+  "linCmtA"=20,
+  "linCmtB"=21,
   "log"=1,
   "polygamma"=2,
   "rxTBS"=3,
@@ -472,7 +472,7 @@ rxRmFun <- function(name){
                        function(...){stop("bad 'linCmtB' derivative")},
                        function(...){stop("bad 'linCmtB' derivative")},
                        function(...){stop("bad 'linCmtB' derivative")}),
-                  lapply(1:13, .linCmtBgen));
+                  lapply(1:15, .linCmtBgen));
 
 ##' Add to RxODE's derivative tables
 ##'

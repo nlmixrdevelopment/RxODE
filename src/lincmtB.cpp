@@ -2143,8 +2143,9 @@ namespace stan {
 		// Infusion steady state
 		if (tinf >= tau){
 		  ind->wrongSSDur=1;
+		  double tmp = R_NaN;
 		  for (int i = oral0+ncmt; i--;){
-		    A(i, 0) = 0;
+		    A(i, 0) = tmp;
 		  }
 		  extraAdvan=0;
 		} else {
@@ -2163,8 +2164,9 @@ namespace stan {
 	      extraAdvan=0;
 	    } else if (wh0 == 30){
 	      // Turning off a compartment; Not supported put everything to NaN
+	      double tmp = R_NaN;
 	      for (int i = oral0+ncmt; i--;){
-		A(i, 0) = 0;
+		A(i, 0) = tmp;
 	      }
 	      extraAdvan=0;
 	    }
@@ -2384,7 +2386,15 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	return(A[oral0]/dd_v1);
       }    
     } else {
-      return A[ncmt+oral0+val-1];
+      if (val > 6) {
+	if (val > 2*ncmt) {
+	  Rcpp::stop(_("invalid derivative"));
+	} else {
+	  return A[2*ncmt+val-1];
+	}
+      } else {
+	return A[2*ncmt+val-6];
+      }
     }
   }
   MatrixPd params(2*ncmt + 4 + oral0*5, 1);
@@ -2431,7 +2441,16 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
   if (val == 0) {
     return fx[0];
   } else {
-    return J(0, val-1);
+    // 1-6 is the Jacobian for the compartment values
+    if (val > 6) {
+      return J(0, val-6);
+    } else {
+      if (val > 2*ncmt) {
+	Rcpp::stop(_("invalid derivative"));
+      } else {
+	return J(0, val-1);
+      }
+    }
   }
   return 0.0;
 }
