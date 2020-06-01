@@ -624,7 +624,7 @@ List rxModelVars_RxODE(const RObject &obj){
 }
 List rxModelVars_blank(){
   List ret(21);
-  CharacterVector retN(21);
+  CharacterVector retN(22);
   ret[0]  = CharacterVector::create(); // params
   retN[0] = "params";
   ret[1]  = CharacterVector::create(); // lhs

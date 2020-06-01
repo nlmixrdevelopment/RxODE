@@ -419,8 +419,11 @@ RxODE <- # nolint
     .env$.rxTransCode <- .rxTransCode
     if (.Call(`_RxODE_isLinCmt`) == 1L){
       .env$.linCmtM <- rxNorm(.env$.mv)
-      .env$.mv <- rxGetModel(.Call(`_RxODE_linCmtGen`, length(.env$.mv$state),
-                                   c(.env$.mv$params, .env$.mv$lhs), linCmtSens, verbose))
+      .vars <- c(.env$.mv$params, .env$.mv$lhs, .env$.mv$slhs)
+      .env$.mv <- rxGetModel(.Call(`_RxODE_linCmtGen`,
+                                   length(.env$.mv$state),
+                                   .vars,
+                                   linCmtSens, verbose))
     }
     model <- rxNorm(.env$.mv);
     class(model) <- "rxModelText"

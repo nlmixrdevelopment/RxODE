@@ -233,6 +233,7 @@ lhs symbols?
   int fdn; // # conditional states
   int sensi;
   int li; // # lhs
+  int sli; // # suppressed lhs
   int pi; // # param
   int isPi; // # pi?
   int isNA; // # pi?
@@ -2552,7 +2553,8 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
 
 void print_aux_info(char *model, const char *prefix, const char *libname, const char *pMd5, const char *timeId,
 		    const char *libname2){
-  int i, j, islhs,pi = 0,li = 0, statei = 0, sensi=0, normi=0, in_str=0;
+  int i, j, islhs,pi = 0,li = 0, sli = 0,
+    statei = 0, sensi=0, normi=0, in_str=0;
   char *buf;
   sbuf bufw;
   sIniTo(&bufw, 1024);
@@ -2560,12 +2562,17 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   /* char bufw[1024]; */
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
-    if (islhs>1 && islhs != 19 && islhs != 70) continue;      /* is a state var */
+    if (islhs>1 && islhs != 19 && islhs != 70 && islhs != 10) continue;      /* is a state var */
     buf = tb.ss.line[i];
-    if (islhs == 1 || islhs == 19 || islhs == 70){
-      sAppend(&s_aux_info, "  SET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n", li++, buf);
+    if (islhs == 10){
+      sAppend(&s_aux_info, "  SET_STRING_ELT(slhs,%d,mkChar(\"%s\"));\n",
+	      sli++, buf);
+    } else if (islhs == 1 || islhs == 19 || islhs == 70){
+      sAppend(&s_aux_info, "  SET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n",
+	      li++, buf);
       if (islhs == 70){
-	sAppend(&s_aux_info, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, buf);
+	sAppend(&s_aux_info, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n",
+		pi++, buf);
       }
     } else {
       int foundIt=0;
@@ -2643,8 +2650,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
-  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 21));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 21));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 22));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP sLinCmt = PROTECT(allocVector(INTSXP,7));pro++;\n", 57);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[0]= %d;\n", tb.ncmt);
@@ -2673,6 +2680,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut,  "    iExtraCmt[0] = %d;\n", extraCmt);
   sAppend(&sbOut, "    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
   sAppend(&sbOut, "    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
+  sAppend(&sbOut, "    SEXP slhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",sli);
   sAppend(&sbOut, "    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
   sAppend(&sbOut, "  SEXP extraState = PROTECT(allocVector(STRSXP, %d));pro++;\n",nExtra);
   sAppend(&sbOut, "    SEXP stateRmS = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
@@ -2700,8 +2708,9 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
 
   sAppend(&sbOut, "%s",s_aux_info.s);
   // Save for outputting in trans
-  tb.pi = pi;
-  tb.li = li;
+  tb.pi  = pi;
+  tb.li  = li;
+  tb.sli = sli;
   tb.sensi  = sensi;
   sAppendN(&sbOut, "    SET_STRING_ELT(modeln,0,mkChar(\"normModel\"));\n", 50);
   sAppendN(&sbOut, "    SET_STRING_ELT(model,0,mkChar(\"", 35);
@@ -2836,19 +2845,22 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst, 16, sDvid);\n", 36);
 
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,19,mkChar(\"timeId\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  19,timeInt);\n", 38);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,20,mkChar(\"timeId\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  20,timeInt);\n", 38);
 
 
   sAppendN(&sbOut, "    SET_STRING_ELT(names,17,mkChar(\"indLin\"));\n", 47);
   // FIX with extra
   sAppend(&sbOut,"%s", extra_indLin);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,20,mkChar(\"md5\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  20,mmd5);\n", 34);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,21,mkChar(\"md5\"));\n", 43);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  21,mmd5);\n", 34);
 
   sAppendN(&sbOut, "    SET_STRING_ELT(names,18,mkChar(\"flags\"));\n", 46);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  18,sLinCmt);\n", 38);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,19,mkChar(\"slhs\"));\n", 45);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  19,slhs);\n", 35);
 
   // const char *rxVersion(const char *what)
   
@@ -3560,7 +3572,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   char *buf, *df, *dy;
   sbuf bufw, bufw2;
   sIniTo(&bufw, 1024); sIniTo(&bufw2, 2100);
-  int i, j, islhs, pi=0, li=0, ini_i = 0,k=0, m=0, p=0;
+  int i, j, islhs, pi=0, li=0, sli = 0, ini_i = 0,k=0, m=0, p=0;
   // Make sure buffers are initialized.
   isEsc=INTEGER(isEscIn)[0];
 
@@ -3639,8 +3651,10 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   }
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
-    if (islhs>1 && islhs != 19 && islhs != 70) continue;      /* is a state var */
-    if (islhs == 1 || islhs == 19 || islhs == 70){
+    if (islhs>1 && islhs != 19 && islhs != 70 && islhs != 10) continue;      /* is a state var */
+    if (islhs == 10){
+      sli++;
+    } else if (islhs == 1 || islhs == 19 || islhs == 70){
       li++;
       if (islhs == 70) pi++;
     } else {
@@ -3649,10 +3663,11 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   }
   tb.pi=pi;
   tb.li=li;
+  tb.sli=sli;
   
   int pro = 0;
-  SEXP lst   = PROTECT(allocVector(VECSXP, 19));pro++;
-  SEXP names = PROTECT(allocVector(STRSXP, 19));pro++;
+  SEXP lst   = PROTECT(allocVector(VECSXP, 20));pro++;
+  SEXP names = PROTECT(allocVector(STRSXP, 20));pro++;
 
   SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;
   int *iNeedSort  = INTEGER(sNeedSort);
@@ -3724,6 +3739,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   
   SEXP params = PROTECT(allocVector(STRSXP, tb.pi));pro++;
   SEXP lhs    = PROTECT(allocVector(STRSXP, tb.li));pro++;
+  SEXP slhs   = PROTECT(allocVector(STRSXP, tb.sli));pro++;
 
   SEXP inin  = PROTECT(allocVector(STRSXP, tb.isPi + tb.ini_i));pro++;
   SEXP ini   = PROTECT(allocVector(REALSXP, tb.isPi + tb.ini_i));pro++;
@@ -3854,9 +3870,12 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     sPrint(&bufw2,"df(%s)/dy(%s)",df,bufw.s);
     SET_STRING_ELT(dfdy,i,mkChar(bufw2.s));
   }
-  li=0, pi=0;
+  li=0, pi=0, sli = 0;
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
+    if (islhs == 10){
+      SET_STRING_ELT(slhs, sli++, mkChar(tb.ss.line[i]));
+    }
     if (islhs>1 && islhs != 19 && islhs != 70) {
       if (tb.lag[i] != 0){
 	buf=tb.ss.line[i];
@@ -3881,12 +3900,12 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       }
     }
     if (islhs == 1 || islhs == 19 || islhs == 70){
-      SET_STRING_ELT(lhs,li++,mkChar(buf));
+      SET_STRING_ELT(lhs, li++, mkChar(buf));
       if (islhs == 70) {
 	if (!strcmp("CMT", buf)) {
 	  tb.hasCmt = 1;
 	}
-	SET_STRING_ELT(params,pi++,mkChar(buf));
+	SET_STRING_ELT(params, pi++, mkChar(buf));
       }
     } else {
       int foundIt=0;
@@ -3914,7 +3933,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       if (!strcmp("CMT", bufw.s)) {
 	tb.hasCmt = 1;
       }
-      SET_STRING_ELT(params,pi++,mkChar(bufw.s));
+      SET_STRING_ELT(params, pi++, mkChar(bufw.s));
     }
   }
   INTEGER(sLinCmt)[5] = tb.hasCmt;
@@ -3970,7 +3989,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   SET_VECTOR_ELT(lst, 14, sExtraCmt);
 
   SET_STRING_ELT(names, 15, mkChar("stateExtra"));
-  SET_VECTOR_ELT(lst,  15, extraState);
+  SET_VECTOR_ELT(lst,   15, extraState);
 
   SET_STRING_ELT(names, 16, mkChar("dvid"));
   SEXP sDvid = PROTECT(allocVector(INTSXP,tb.dvidn));pro++;
@@ -3983,6 +4002,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 
   SET_STRING_ELT(names, 18, mkChar("flags"));
   SET_VECTOR_ELT(lst,   18, sLinCmt);
+
+  SET_STRING_ELT(names, 19, mkChar("slhs"));
+  SET_VECTOR_ELT(lst,   19, slhs);
 
   sPrint(&bufw,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
   

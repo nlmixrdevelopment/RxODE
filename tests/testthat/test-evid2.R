@@ -35,10 +35,10 @@ d/dt(blood)     = a*intestine - b*blood
     mod2 <- RxODE({
         ## the order of variables do not matter, the type of compartmental
         ## model is determined by the parameters specified.
-        CL ~ TCL * exp(eta.Cl);
-        C2 ~ linCmt(KA, CL, V2, Q, V3);
+        CL ~ TCL * exp(eta.Cl)
+        C2 ~ linCmt(KA, CL, V2, Q, V3)
         eff(0) = 1  ## This specifies that the effect compartment starts at 1.
-        d/dt(eff) ~ Kin - Kout*(1-C2/(EC50+C2))*eff;
+        d/dt(eff) ~ Kin - Kout*(1-C2/(EC50+C2))*eff
         ##
         resp = eff + err1
         pk = C2 * exp(err2)
