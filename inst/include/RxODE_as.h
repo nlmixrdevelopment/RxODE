@@ -111,7 +111,8 @@ static inline unsigned int asUnsignedInt(SEXP in, const char* what) {
 
 static inline double asDouble(SEXP in, const char* what) {
   int type = TYPEOF(in);
-  if (Rf_length(in) != 1 || type != REALSXP) {
+  int goodType =  type == REALSXP || type == INTSXP;
+  if (Rf_length(in) != 1 || !goodType) {
     REprintf("'%s'\n", what);
     Rcpp::print(in);
 #ifdef asError
