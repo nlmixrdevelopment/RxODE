@@ -1881,7 +1881,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   if (allTimeVar){
     e[RxTrans_sub0] = wrap(sub0);
     e[RxTrans_baseSize] = baseSize;
-    e[RxTrans_nTv] = IntegerVector(nTv);
+    e[RxTrans_nTv] = IntegerVector::create(nTv);
     e[RxTrans_lst] = lst;
     e[RxTrans_nme] = nme;
   } else {
