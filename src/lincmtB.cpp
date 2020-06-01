@@ -1749,8 +1749,21 @@ namespace stan {
 	  } break;
 	  }
 	}
+      } else {
+	switch (ncmt){
+	case 1: {
+	  return oneCmtRateSS(params, g, rate, tinf, tau);
+	} break;
+	case 2: {
+	  return twoCmtRateSS(params, g, rate, tinf, tau);
+	} break;
+	case 3: {
+	  return threeCmtRateSS(params, g, rate, tinf, tau);
+	} break;
+	}
       }
-      Rcpp::stop("should not get here");
+      Rcpp::stop("bad ssRateTau; ncmt: %d  oral0: %d\n",
+		 ncmt, oral0);
       return params;
     }
 
@@ -1918,7 +1931,7 @@ namespace stan {
 	  }
 	}
       }
-      Rcpp::stop("should not get here");
+      Rcpp::stop("doAdvan error; ncmt: %d, oral0: %d", ncmt, oral0);
       return params;
     }
             
@@ -2136,7 +2149,8 @@ namespace stan {
 		  extraAdvan=0;
 		} else {
 		  if (cmtOff == 0){
-		    rate(0, 0) = r0; rate(1, 0) = 0;
+		    rate(0, 0) = r0;
+		    if (oral0) rate(1, 0) = 0;
 		  } else {
 		    rate(0, 0) = 0; rate(1, 0) = r0;
 		  }

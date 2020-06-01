@@ -3,7 +3,7 @@ rxPermissive({
     tol  <- 5e-6 ## Current difference for all equations
     type <- 1
 
-    for (type in 1:1){
+    for (type in 1:2){
 
       .txt <- switch(type, "linear", "sensitivity");
       sens <- switch(type, FALSE, TRUE);
