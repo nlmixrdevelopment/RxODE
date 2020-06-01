@@ -3889,6 +3889,7 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
 
 SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS);
 
+// [[Rcpp::export]]
 SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const Nullable<CharacterVector> &specParams,
 	      const Nullable<List> &extraArgs,

@@ -433,6 +433,10 @@ rxSolveFree <- function() {
     .Call(`_RxODE_rxSolveFree`)
 }
 
+rxSolve_ <- function(obj, rxControl, specParams, extraArgs, params, events, inits, setupOnly) {
+    .Call(`_RxODE_rxSolve_`, obj, rxControl, specParams, extraArgs, params, events, inits, setupOnly)
+}
+
 rxSolveDollarNames <- function(obj) {
     .Call(`_RxODE_rxSolveDollarNames`, obj)
 }
