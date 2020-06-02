@@ -2534,7 +2534,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   }
   /* REprintf("idx: %d; solved: %d; t: %f fabs: %f\n", idx, ind->solved[idx], t, fabs(t-it)); */
   int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
-  if (ind->solved[idx] && sameTime){
+  if (idx <= ind->solved && sameTime){
     // Pull from last solved value (cached)
     A = ind->linCmtAdvan+(op->nlin)*idx;
     if (trans == 10) {
@@ -2552,7 +2552,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   double *rate = ind->linCmtRate;
   double b1=0, b2=0, r1 = 0, r2 = 0;
   A = Alast0;
-  if (ind->solved[idx]){
+  if (idx <= ind->solved){
     if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
 		  &ncmt, &rx_k, &rx_v, &rx_k12,
 		  &rx_k21, &rx_k13, &rx_k31)){
@@ -2845,7 +2845,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     } else if (doRate){
       rate[doRate-1] += rateAdjust;
     } 
-    ind->solved[idx] = 1;
+    ind->solved = idx;
   }
   if (!sameTime){
     // Compute the advan solution of a t outside of the mesh.

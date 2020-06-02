@@ -1380,7 +1380,6 @@ typedef struct {
   int *gon;
   double *gsolve;
   double *gadvan;
-  int *gSolved;
   double *gInfusionRate;
   double *gall_times;
   int *gix;
@@ -3045,11 +3044,11 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
 	}
 	// Setup the pointers.
 	ind->id             = nsub+1;
+	ind->solved = -1;
 	ind->bT = NA_REAL;
 	ind->allCovWarn = 0;
 	ind->wrongSSDur=0;
 	ind->err = 0;
-	ind->linCmtT = NA_REAL;
 	ind->cacheME=0;
 	ind->timeReset=1;
 	ind->lambda         =1.0;
@@ -3372,7 +3371,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  ind->solveSave = &_globals.gsolve[curSolve];
 	  curSolve += op->neq;
 	  ind->ix = &_globals.gix[curIdx];
-	  ind->solved = &_globals.gSolved[curIdx];
 	  std::iota(ind->ix,ind->ix+ind->n_all_times,0);
 	  curEvent += eLen;
 	  ind->on=&_globals.gon[curOn];
@@ -4405,7 +4403,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (_globals.gon != NULL) free(_globals.gon);
     _globals.gon = (int*)calloc(n1+n3 + 4*rxSolveDat->nSize + 2*rx->nall*rx->nsim, sizeof(int)); // [n1]
 #ifdef rxSolveT
-    REprintf("Time12e (int alloc %d): %f\n", n1+n3 + 4*rxSolveDat->nSize + rx->nall*rx->nsim, ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    REprintf("Time12e (int alloc %d): %f\n", n1+n3 + 4*rxSolveDat->nSize, ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
     std::fill_n(&_globals.gon[0], n1, 1);
@@ -4415,7 +4413,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _globals.dadt_counter = _globals.slvr_counter + rxSolveDat->nSize; // [nSize]
     _globals.jac_counter = _globals.dadt_counter + rxSolveDat->nSize; // [nSize]
     _globals.gix=_globals.jac_counter+rxSolveDat->nSize; // rx->nall*rx->nsim
-    _globals.gSolved = _globals.gix + rx->nall*rx->nsim; // rx->nall*rx->nsim
 
 #ifdef rxSolveT
     REprintf("Time13: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);

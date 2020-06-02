@@ -1481,14 +1481,12 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   ind->inLhs = 0;
   for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   u_inis(neq[1], ret); // Update initial conditions
-  if (op->nlin && ind->solved[0]){
-    memset(ind->solved,0,ind->n_all_times);
-  }
   unsigned int j;
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
   if (rx->needSort) doSort(ind);
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
   ind->_newind = 1;
+  ind->solved = -1;
   for(i=0; i<nx; i++) {
     ind->idx=i;
     xout = getTime(ind->ix[i], ind);
@@ -1653,14 +1651,12 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
-  if (op->nlin && ind->solved[0]){
-    memset(ind->solved,0,ind->n_all_times);
-  }
   unsigned int j;
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
   if (rx->needSort) doSort(ind);
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
   ind->_newind = 1;
+  ind->solved = -1;
   for(i=0; i<nx; i++) {
     ind->idx=i;
     xout = getTime(ind->ix[i], ind);
@@ -1957,16 +1953,11 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
   u_inis(neq[1], ind->solve); // Update initial conditions
-  if (op->nlin && ind->solved[0]){
-    memset(ind->solved,0,ind->n_all_times);
-  }	
-  if (op->nlin && ind->solved[0]){
-    memset(ind->solved,0,ind->n_all_times);
-  }
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
   if (rx->needSort) doSort(ind);
   unsigned int j;
   ind->_newind = 1;
+  ind->solved = -1;
   for(i=0; i < ind->n_all_times; i++) {
     ind->idx=i;
     xout = getTime(ind->ix[i], ind);
@@ -2018,9 +2009,6 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 	}
 	memcpy(yp, op->inits, neq[0]*sizeof(double));
 	u_inis(neq[1], yp); // Update initial conditions @ current time
-	if (op->nlin && ind->solved[0]){
-	  memset(ind->solved,0,ind->n_all_times);
-	}
 	if (rx->istateReset) istate = 1;
 	ind->ixds++;
 	xp = xout;
@@ -2153,14 +2141,12 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
-  if (op->nlin && ind->solved[0]){
-    memset(ind->solved,0,ind->n_all_times);
-  }
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
   if (rx->needSort) doSort(ind);
   //--- inits the system
   unsigned int j;
   ind->_newind = 1;
+  ind->solved = -1;
   for(i=0; i<nx; i++) {
     ind->idx=i;
     xout = getTime(ind->ix[i], ind);
@@ -2233,6 +2219,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
         //dadt_counter = 0;
       }
     ind->_newind = 1;
+    ind->solved = -1;
     if (!op->badSolve){
       ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
@@ -2602,6 +2589,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       ind = &(rx->subjects[neq[1]]);
       ind->id = neq[1];
       ind->_newind = 1;
+      ind->solved = -1;
       if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
       if (rx->needSort) doSort(ind);
       nBadDose = ind->nBadDose;
@@ -2625,9 +2613,6 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       // Reset lhs to na
       for (i = op->nlhs; i--;) ind->lhs[i] = NA_REAL;
       // FIXME if solved don't need to reset
-      if (op->nlin && ind->solved[0]){
-	memset(ind->solved,0,ind->n_all_times);
-      }
       ind->inLhs = 1;
       ind->ixds=0;
       for (i = 0; i < ntimes; i++){
@@ -3266,22 +3251,19 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
   op->extraCmt = 0;
   rx->nsub =1;
   rx->nsim =1;
+  ind->_newind=1;
+  ind->solved = -1;
   rx->stateIgnore = stateIgnore;//gsiVSetup(op->neq);
   rx->nobs =-1;
   rx->add_cov =0;
   rx->matrix =0;
   ind->mtime = mtime;
   // Solve without the option of updating residuals.
-  if (op->nlin && ind->solved[0]){
-    memset(ind->solved,0,ind->n_all_times);
-  }
   ind_solve(rx, subid, dydt_liblsoda, dydt_lsoda_dum, jdum_lsoda,
 	      dydt, update_inis, global_jt);
   if (op->nlhs) {
     ind->_newind=1;
-    if (op->nlin && ind->solved[0]){
-      memset(ind->solved,0,ind->n_all_times);
-    }
+    ind->solved = -1;
     for (i=0; i<*ntime; i++){
       ind->idx = i;
       newEvid[i] = ind->evid[ind->ix[i]];

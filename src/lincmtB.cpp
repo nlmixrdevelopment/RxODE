@@ -2015,7 +2015,7 @@ namespace stan {
       T tlast;
       T curTime=0.0;
       T r0;
-      if (ind->solved[idx]){
+      if (idx <= ind->solved){
       } else {
 	//A = ind->linCmtAdvan+(op->nlin)*idx;
 	if (idx == 0) {
@@ -2283,7 +2283,7 @@ namespace stan {
 	  tmpD = A(i, 0);
 	  Ad[i] = tmpD.val();
 	}
-	ind->solved[idx] = 1;
+	ind->solved = idx;
       }
       if (!sameTime){
 	// Compute the advan solution of a t outside of the mesh.
@@ -2370,13 +2370,13 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
     it = getTime(ind->ix[idx], ind);
   }
   int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
-  unsigned int ncmt = 1;
+  int ncmt = 1;
   if (dd_p4 > 0.){
     ncmt = 3;
   } else if (dd_p2 > 0.){
     ncmt = 2;
   }
-  if (ind->solved[idx] && sameTime){
+  if (idx <= ind->solved && sameTime){
     // Pull from last solved value (cached)
     double *A = ind->linCmtAdvan+(op->nlin)*idx;
     if (val == 0){
@@ -2387,13 +2387,14 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
       }    
     } else {
       if (val > 6) {
-	if (val > 2*ncmt) {
-	  Rcpp::stop(_("invalid derivative"));
+	if ( 2*ncmt+val-6 < 0) {
+	  Rcpp::stop(_("invalid derivative i: %d; 2*ncmt: %d"),
+		     val, 2*ncmt);
 	} else {
-	  return A[2*ncmt+val-1];
+	  return A[2*ncmt+val-6];
 	}
       } else {
-	return A[2*ncmt+val-6];
+	return A[2*ncmt+val-1];
       }
     }
   }

@@ -160,9 +160,7 @@ typedef struct {
   int timeReset;
   int _newind;
   int err;
-  double linCmtT;
-  double linCmtB[14];
-  int *solved;
+  int solved;
   double *linCmtAdvan;
   double *linCmtRate;
   int linCmt;
