@@ -1,7 +1,7 @@
 //#undef NDEBUG
 #include <R.h>
 #include <stan/math.hpp>
-#include <Rcpp.h>
+#include <RcppEigen.h>
 #include "../inst/include/RxODE.h"
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -1997,7 +1997,6 @@ namespace stan {
       for (int i = oral0+1; i--; ){
 	rate(i, 0) = bolus(i, 0) = 0.0;
       }
-	
       Eigen::Matrix<T, Eigen::Dynamic, 1> Alast(oral0+ncmt, 1);
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(oral0+ncmt, 1);
       Eigen::Matrix<T, Eigen::Dynamic, 1> Alast0(oral0+ncmt, 1);
@@ -2346,14 +2345,43 @@ namespace stan {
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> MatrixPd;
 
-extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
+
+
+static inline double linCmtBg(double *A, int& val, int& trans, int& ncmt,
+			      int& oral0, double& dd_v1, double& dd_p3,
+			      double& dd_p5){
+  if (val == 0){
+    if (trans == 10) {
+      return(A[oral0]*(dd_v1 + dd_p3 + dd_p5));
+    } else {
+      return(A[oral0]/dd_v1);
+    }    
+  } else {
+    // 2*ncmt + oral0
+    if (val > 6) {
+      return A[3*ncmt + oral0 + val - 7];
+    } else {
+      // Saved derivatives [0, 2*ncmt]
+      if (val <= 2*ncmt){
+	return A[ncmt+oral0+val-1];
+      } else {
+	Rcpp::stop(_("invalid derivative i: %d"), val);
+      }
+    }
+  }
+}
+
+extern "C" double linCmtB(rx_solve *rx, unsigned int id,
+			  double t, int linCmt,
 			  int i_cmt, int trans, int val,
 			  double dd_p1, double dd_v1,
 			  double dd_p2, double dd_p3,
 			  double dd_p4, double dd_p5,
-			  double dd_tlag, double dd_F, double dd_rate, double dd_dur,
+			  double dd_tlag, double dd_F,
+			  double dd_rate, double dd_dur,
 			  // oral extra parameters
-			  double dd_ka, double dd_tlag2, double dd_F2, double dd_rate2, double dd_dur2){
+			  double dd_ka, double dd_tlag2,
+			  double dd_F2, double dd_rate2, double dd_dur2){
   // Get  Alast
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   int idx = ind->idx;
@@ -2361,7 +2389,7 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       &dd_rate, &dd_dur, &dd_rate2, &dd_dur2);
   rx_solving_options *op = rx->op;
   int oral0;
-  oral0 = (dd_ka > 0) ? 1 : 0;
+  oral0 = (dd_ka != 0) ? 1 : 0;
   double it = getTime(ind->ix[idx], ind);
   
   if (t != it) {
@@ -2379,24 +2407,7 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
   if (idx <= ind->solved && sameTime){
     // Pull from last solved value (cached)
     double *A = ind->linCmtAdvan+(op->nlin)*idx;
-    if (val == 0){
-      if (trans == 10) {
-	return(A[oral0]*dd_v1);
-      } else {
-	return(A[oral0]/dd_v1);
-      }    
-    } else {
-      if (val > 6) {
-	if ( 2*ncmt+val-6 < 0) {
-	  Rcpp::stop(_("invalid derivative i: %d; 2*ncmt: %d"),
-		     val, 2*ncmt);
-	} else {
-	  return A[2*ncmt+val-6];
-	}
-      } else {
-	return A[2*ncmt+val-1];
-      }
-    }
+    return linCmtBg(A, val, trans, ncmt, oral0, dd_v1, dd_p3, dd_p5);
   }
   MatrixPd params(2*ncmt + 4 + oral0*5, 1);
   params(0, 0) = dd_p1;
@@ -2425,33 +2436,46 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
   Eigen::Matrix<double, -1, -1> J;
   stan::math::jacobian(f, params, fx, J);
   double *A = ind->linCmtAdvan+(op->nlin)*idx;
+  
   if (sameTime){
-    // Save Jacobian values
-    A[2*ncmt + oral0 + 0] = J(0, 0);
-    A[2*ncmt + oral0 + 1] = J(0, 1);
-    A[2*ncmt + oral0 + 2] = J(0, 2);
-    A[2*ncmt + oral0 + 3] = J(0, 3);
-    if (oral0) {
-      A[2*ncmt + oral0 + 4] = J(0, 4);
-      A[2*ncmt + oral0 + 5] = J(0, 5);
-      A[2*ncmt + oral0 + 6] = J(0, 6);
-      A[2*ncmt + oral0 + 7] = J(0, 7);
-      A[2*ncmt + oral0 + 8] = J(0, 8);
-    }
-  }
-  if (val == 0) {
-    return fx[0];
-  } else {
-    // 1-6 is the Jacobian for the compartment values
-    if (val > 6) {
-      return J(0, val-6);
-    } else {
-      if (val > 2*ncmt) {
-	Rcpp::stop(_("invalid derivative"));
-      } else {
-	return J(0, val-1);
+    Rcpp::print(Rcpp::wrap(J));
+    A[ncmt + oral0 + 0] = J(0, 0);
+    A[ncmt + oral0 + 1] = J(0, 1);
+    if (ncmt >=2){
+      A[ncmt + oral0 + 2] = J(0, 2);
+      A[ncmt + oral0 + 3] = J(0, 3);
+      if (ncmt >= 3){
+	A[ncmt + oral0 + 4] = J(0, 4);
+	A[ncmt + oral0 + 5] = J(0, 5);
       }
     }
+    // Save Jacobian values
+    A[3*ncmt + oral0 + 0] = J(0, 2*ncmt + 0);
+    A[3*ncmt + oral0 + 1] = J(0, 2*ncmt + 1);
+    A[3*ncmt + oral0 + 2] = J(0, 2*ncmt + 2);
+    A[3*ncmt + oral0 + 3] = J(0, 2*ncmt + 3);
+    if (oral0) {
+      A[3*ncmt + oral0 + 4] = J(0, 2*ncmt + 4);
+      A[3*ncmt + oral0 + 5] = J(0, 2*ncmt + 5);
+      A[3*ncmt + oral0 + 6] = J(0, 2*ncmt + 6);
+      A[3*ncmt + oral0 + 7] = J(0, 2*ncmt + 7);
+      A[3*ncmt + oral0 + 8] = J(0, 2*ncmt + 8);
+    }
   }
+  return linCmtBg(A, val, trans, ncmt, oral0, dd_v1, dd_p3, dd_p5);
+  // if (val == 0) {
+  //   return fx[0];
+  // } else {
+  //   // 1-6 is the Jacobian for the compartment values
+  //   if (val > 6) {
+  //     return J(0, val-6);
+  //   } else {
+  //     if (val > 2*ncmt) {
+  // 	Rcpp::stop(_("invalid derivative"));
+  //     } else {
+  // 	return J(0, val-1);
+  //     }
+  //   }
+  // }
   return 0.0;
 }

@@ -1625,8 +1625,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  Free(v2);
 	  if (isLinB) isLinB=1;
 	  tb.linB = isLinB;
-	  xpn2 = d_get_child(xpn1, 10+isLinB);
+	  xpn2 = d_get_child(xpn1, 14+isLinB);
 	  v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	  if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		 !strcmp(v2, "0.")))) {
+	    tb.hasKa=1;
+	  }
 	  Free(v2);
         } else {
 	  // Check if this is a valid function

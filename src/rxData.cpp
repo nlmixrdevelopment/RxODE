@@ -4318,9 +4318,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     int linB = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linB];
     if (linB) {
       if (linKa){
-	op->nlin = linNcmt+linKa+ 2*linNcmt + 9;
+	op->nlin = linNcmt + linKa + 2*linNcmt + 9;
       } else {
-	op->nlin = linNcmt+linKa+ 2*linNcmt + 5;
+	op->nlin = linNcmt + 2*linNcmt + 4;
       }
     } else {
       op->nlin = linNcmt+linKa;
