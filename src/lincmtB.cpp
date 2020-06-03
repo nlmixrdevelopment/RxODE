@@ -1983,14 +1983,13 @@ namespace stan {
 			const int trans,
 			const int ncmt,
 			const int linCmt,
-			const int idx,
+			const int idxF,
 			const int sameTime,
 			rx_solving_options_ind *ind,
 			rx_solve *rx){
       rx_solving_options *op = rx->op;
       int evid, wh, cmt, wh100, whI, wh0;
       Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncmt, 3);
-      g = micros2macros(params, ncmt, trans);
       double *rate0 = ind->linCmtRate;
       Eigen::Matrix<T, Eigen::Dynamic, 1> rate(oral0+1, 1);
       Eigen::Matrix<T, Eigen::Dynamic, 1> bolus(oral0+1, 1);
@@ -2014,18 +2013,20 @@ namespace stan {
       T tlast;
       T curTime=0.0;
       T r0;
-      if (idx <= ind->solved){
-      } else {
+      Alast = Alast0;
+      // Because the whole cure may be affected by parameter
+      // differences, the whole curve needs to be calculated to get
+      // accurate auto-differentiation sensitivities.
+      for (int idx = 0; idx  <= idxF; ++idx){
+	// FIXME get params difference for each time-point
+	// This is because each parameter can change for each time point.
+	// One way is to add/change the parameters from the initial params.
+	g = micros2macros(params, ncmt, trans);
 	//A = ind->linCmtAdvan+(op->nlin)*idx;
 	if (idx == 0) {
-	  Alast = Alast0;
 	  tlast = getTime(ind->ix[0], ind);
 	} else {
 	  tlast = getTime(ind->ix[idx-1], ind);
-	  double *tmp = ind->linCmtAdvan+(op->nlin)*(idx-1);
-	  for (int i = oral0+ncmt; i--;){
-	    Alast(i, 0) = tmp[i];
-	  }
 	}
 	curTime = getTime(ind->ix[idx], ind);
 	evid = ind->evid[ind->ix[idx]];
@@ -2275,14 +2276,17 @@ namespace stan {
 	  rate(doRate-1,0) += rateAdjust;
 	  rate0[doRate-1] += rateAdjust.val();
 	}
+	Alast = A;
+      }
+      if (idxF >= ind->solved){
 	// Save A and rate
-	double *Ad = ind->linCmtAdvan+(op->nlin)*(idx);
+	double *Ad = ind->linCmtAdvan+(op->nlin)*(idxF);
 	T tmpD;
 	for (int i = ncmt+oral0; i--;){
 	  tmpD = A(i, 0);
 	  Ad[i] = tmpD.val();
 	}
-	ind->solved = idx;
+	ind->solved = idxF;
       }
       if (!sameTime){
 	// Compute the advan solution of a t outside of the mesh.
@@ -2438,7 +2442,7 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
   double *A = ind->linCmtAdvan+(op->nlin)*idx;
   
   if (sameTime){
-    Rcpp::print(Rcpp::wrap(J));
+    // Rcpp::print(Rcpp::wrap(J));
     A[ncmt + oral0 + 0] = J(0, 0);
     A[ncmt + oral0 + 1] = J(0, 1);
     if (ncmt >=2){
