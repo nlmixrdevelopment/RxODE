@@ -2538,7 +2538,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     // Pull from last solved value (cached)
     A = ind->linCmtAdvan+(op->nlin)*idx;
     if (trans == 10) {
-      return(A[oral0]*v1);
+      return(A[oral0]*(v1+p3+p5));
     } else {
       return(A[oral0]/v1);
     }
