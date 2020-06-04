@@ -1878,9 +1878,7 @@ rxPermissive({
         
       })
 
-      ## stop("here")
-      ##
-      context("2 cmt sensitivites")
+      context("2 cmt sensitivities")
       test_that("2 compartment sensitivities; IV bolus Cl, Vc, Q, Vp", {
 
         pred <- function () {
@@ -2165,6 +2163,156 @@ rxPermissive({
         expect_equal(s1$rx__sens_rx_r__BY_ETA_4___, o1$rx__sens_rx_r__BY_ETA_4___, tolerance=tol)
         expect_equal(s1$rx__sens_rx_r__BY_ETA_5___, o1$rx__sens_rx_r__BY_ETA_5___, tolerance=tol)
 
+      })
+
+      context("3 cmt sensitivities")
+
+      test_that("3 compartment sensitivities; IV bolus Cl, Vc, Q, Vp", {
+
+        pred <- function () {
+          return(Central)
+        }
+
+        pk <- function () {
+          lCl = THETA[1]
+          lVc = THETA[2]
+          lQ = THETA[3]
+          lVp = THETA[4]
+          lQ2 = THETA[5]
+          lVp2 = THETA[6]
+          prop.err = THETA[7]
+          eta.Vc = ETA[1]
+          eta.Cl = ETA[2]
+          eta.Vp = ETA[3]
+          eta.Q = ETA[4]
+          eta.Q2 = ETA[5]
+          eta.Vp2 = ETA[6]
+          Vc <- exp(lVc + eta.Vc)
+          Cl <- exp(lCl + eta.Cl)
+          Vp <- exp(lVp + eta.Vp)
+          Q <- exp(lQ + eta.Q)
+          Q2 <- exp(lQ2 + eta.Q2)
+          Vp2 = exp(lVp2 + eta.Vp2)
+        }
+
+        err <- function () {
+          return(prop(prop.err))
+        }
+
+        mod <- RxODE({
+          Central=linCmt(Vc, Cl, Vp, Q, Vp2, Q2);
+        })
+
+        pk3s <- rxSymPySetupPred(mod, predfn=pred, pkpars=pk, err=err)
+
+        mod2 <- RxODE({
+          Central = centr/Vc;
+          C3 = peri/Vp;
+          C4 = peri2/Vp2
+          d/dt(centr) = - Cl*Central - Q*Central + Q*C3 + Q2*C4 - Q2*Central;
+          d/dt(peri)  = Q*Central - Q*C3;
+          d/dt(peri2) = Q2*Central - Q2*C4;
+        })
+
+        pk3o <- rxSymPySetupPred(mod2, predfn=pred, pkpars=pk, err=err)
+
+        parms <- c("THETA[1]"=log(18), "THETA[2]"=log(40),
+                   "THETA[3]"=log(10), "THETA[4]"=log(297),
+                   "THETA[5]"=log(7),  "THETA[6]"=log(400),
+                   "ETA[1]"=0, "ETA[2]"=0,
+                   "ETA[3]"=0, "ETA[4]"=0,
+                   "ETA[5]"=0, "ETA[6]"=0,
+                   "THETA[7]"=0.2)
+
+        et <- eventTable() %>% add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
+          add.sampling(seq(0, 48, length.out=200))
+
+        s1 <- rxSolve(pk3s$inner, parms, et)
+        o1 <- rxSolve(pk3o$inner, parms, et)
+
+        expect_equal(s1$rx_pred_, o1$rx_pred_, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_1___, o1$rx__sens_rx_pred__BY_ETA_1___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_2___, o1$rx__sens_rx_pred__BY_ETA_2___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_3___, o1$rx__sens_rx_pred__BY_ETA_3___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_4___, o1$rx__sens_rx_pred__BY_ETA_4___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_5___, o1$rx__sens_rx_pred__BY_ETA_5___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_6___, o1$rx__sens_rx_pred__BY_ETA_6___, tolerance=tol)
+        expect_equal(s1$rx_r_, o1$rx_r_, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_1___, o1$rx__sens_rx_r__BY_ETA_1___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_2___, o1$rx__sens_rx_r__BY_ETA_2___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_3___, o1$rx__sens_rx_r__BY_ETA_3___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_4___, o1$rx__sens_rx_r__BY_ETA_4___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_5___, o1$rx__sens_rx_r__BY_ETA_5___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_6___, o1$rx__sens_rx_r__BY_ETA_6___, tolerance=tol)
+
+        etSs  <- et() %>% et(amt=3) %>%
+          et(time=4,amt=3, ss=1, ii=24) %>%
+          et(amt=3, ss=2, ii=24, time=8) %>%
+          et(seq(0,24,length.out=200))
+
+        s1 <- rxSolve(pk3s$inner, parms, etSs)
+        o1 <- rxSolve(pk3o$inner, parms, etSs)
+
+        expect_equal(s1$rx_pred_, o1$rx_pred_, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_1___, o1$rx__sens_rx_pred__BY_ETA_1___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_2___, o1$rx__sens_rx_pred__BY_ETA_2___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_3___, o1$rx__sens_rx_pred__BY_ETA_3___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_4___, o1$rx__sens_rx_pred__BY_ETA_4___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_5___, o1$rx__sens_rx_pred__BY_ETA_5___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_6___, o1$rx__sens_rx_pred__BY_ETA_6___, tolerance=tol)
+        expect_equal(s1$rx_r_, o1$rx_r_, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_1___, o1$rx__sens_rx_r__BY_ETA_1___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_2___, o1$rx__sens_rx_r__BY_ETA_2___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_3___, o1$rx__sens_rx_r__BY_ETA_3___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_4___, o1$rx__sens_rx_r__BY_ETA_4___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_5___, o1$rx__sens_rx_r__BY_ETA_5___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_6___, o1$rx__sens_rx_r__BY_ETA_6___, tolerance=tol)
+
+        etInf <- eventTable() %>%
+          add.dosing(dose=3, rate=1.5, nbr.doses=6, dosing.interval=8, cmt=2) %>%
+          add.sampling(seq(0, 48, length.out=200))
+
+        s1 <- rxSolve(pk3s$inner, parms, etInf)
+        o1 <- rxSolve(pk3o$inner, parms, etInf)
+        
+        expect_equal(s1$rx_pred_, o1$rx_pred_, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_1___, o1$rx__sens_rx_pred__BY_ETA_1___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_2___, o1$rx__sens_rx_pred__BY_ETA_2___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_3___, o1$rx__sens_rx_pred__BY_ETA_3___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_4___, o1$rx__sens_rx_pred__BY_ETA_4___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_5___, o1$rx__sens_rx_pred__BY_ETA_5___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_6___, o1$rx__sens_rx_pred__BY_ETA_6___, tolerance=tol)
+        expect_equal(s1$rx_r_, o1$rx_r_, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_1___, o1$rx__sens_rx_r__BY_ETA_1___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_2___, o1$rx__sens_rx_r__BY_ETA_2___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_3___, o1$rx__sens_rx_r__BY_ETA_3___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_4___, o1$rx__sens_rx_r__BY_ETA_4___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_5___, o1$rx__sens_rx_r__BY_ETA_5___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_6___, o1$rx__sens_rx_r__BY_ETA_6___, tolerance=tol)
+
+        etInfSs <- et() %>% et(amt=3, rate=1.5, cmt=2) %>%
+          et(time=4,amt=3, rate=1.5, ss=1, ii=24, cmt=2) %>%
+          et(time=8, amt=3, rate=1.5, ss=2, ii=24, cmt=2) %>%
+          et(seq(0,24,length.out=200))
+
+        s1 <- rxSolve(pk3s$inner, parms, etInfSs)
+        o1 <- rxSolve(pk3o$inner, parms, etInfSs)
+
+        expect_equal(s1$rx_pred_, o1$rx_pred_, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_1___, o1$rx__sens_rx_pred__BY_ETA_1___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_2___, o1$rx__sens_rx_pred__BY_ETA_2___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_3___, o1$rx__sens_rx_pred__BY_ETA_3___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_4___, o1$rx__sens_rx_pred__BY_ETA_4___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_5___, o1$rx__sens_rx_pred__BY_ETA_5___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_6___, o1$rx__sens_rx_pred__BY_ETA_6___, tolerance=tol)
+        expect_equal(s1$rx_r_, o1$rx_r_, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_1___, o1$rx__sens_rx_r__BY_ETA_1___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_2___, o1$rx__sens_rx_r__BY_ETA_2___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_3___, o1$rx__sens_rx_r__BY_ETA_3___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_4___, o1$rx__sens_rx_r__BY_ETA_4___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_5___, o1$rx__sens_rx_r__BY_ETA_5___, tolerance=tol)
+        expect_equal(s1$rx__sens_rx_r__BY_ETA_6___, o1$rx__sens_rx_r__BY_ETA_6___, tolerance=tol)
+        
       })
 
 }, silent=TRUE, test="lincmt")
