@@ -2006,9 +2006,11 @@ namespace stan {
       T r0;
       T amt;
       T rateAdjust;
+      T tinf;
       tlast = getTime(ind->ix[0], ind);
       int evid, wh, cmt, wh100, whI, wh0, cmtOff;
-      int extraAdvan = 1, doRate=0, doMultiply = 0, doReplace=0;
+      int extraAdvan = 1, doRate=0, doMultiply = 0, doReplace=0,
+	doInf=0;
       int oldIxds = ind->ixds, oldIdx=ind->idx;
       ind->ixds = 0;
       for (int idx = 0; idx <= idxF; idx++) {
@@ -2051,10 +2053,7 @@ namespace stan {
 	      for (int i = oral0+ncmt; i--;){
 		Alast(i, 0) = 0.0;
 	      }
-	      tlast = 0;
-	      curTime = tau;
-	      T tinf;
-	      int doInf=0;
+	      doInf=0;
 	      switch (whI){
 	      case 0: {
 		// Get bolus dose
@@ -2258,7 +2257,7 @@ namespace stan {
 	  rate(doRate-1, 0) += rateAdjust;
 	}
 	rateAdjust=0;
-	doRate = doMultiply=doReplace=0;
+	doRate = doMultiply=doReplace=doInf=0;
 	extraAdvan=1;
 	for (int i = oral0+1; i--;){
 	  bolus(i, 0)= 0.0;
