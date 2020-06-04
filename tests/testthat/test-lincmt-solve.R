@@ -1692,9 +1692,7 @@ rxPermissive({
         expect_equal(s1$rx__sens_rx_pred__BY_ETA_1___, o1$rx__sens_rx_pred__BY_ETA_1___)
         expect_equal(s1$rx__sens_rx_pred__BY_ETA_2___, o1$rx__sens_rx_pred__BY_ETA_2___)
         expect_equal(s1$rx_r_, o1$rx_r_)
-
         expect_equal(s1$rx__sens_rx_r__BY_ETA_1___, o1$rx__sens_rx_r__BY_ETA_1___)
-
         expect_equal(s1$rx__sens_rx_r__BY_ETA_2___, o1$rx__sens_rx_r__BY_ETA_2___)
 
         etSs  <- et() %>% et(amt=3) %>%
@@ -1724,9 +1722,7 @@ rxPermissive({
         expect_equal(s1$rx__sens_rx_pred__BY_ETA_1___, o1$rx__sens_rx_pred__BY_ETA_1___)
         expect_equal(s1$rx__sens_rx_pred__BY_ETA_2___, o1$rx__sens_rx_pred__BY_ETA_2___)
         expect_equal(s1$rx_r_, o1$rx_r_)
-
         expect_equal(s1$rx__sens_rx_r__BY_ETA_1___, o1$rx__sens_rx_r__BY_ETA_1___)
-
         expect_equal(s1$rx__sens_rx_r__BY_ETA_2___, o1$rx__sens_rx_r__BY_ETA_2___)
 
         etInfSs <- et() %>%
@@ -1795,7 +1791,6 @@ rxPermissive({
                    "THETA[4]"=0.2)
 
         s1 <- rxSolve(pk1s$inner, parms, et)
-
         o1 <- rxSolve(pk1o$inner, parms, et)
 
         expect_equal(s1$rx_pred_, o1$rx_pred_, tolerance=tol)
@@ -1846,7 +1841,6 @@ rxPermissive({
           et(seq(0,24,length.out=200))
 
         s1 <- rxSolve(pk1s$inner, parms, etInfSs)
-
         o1 <- rxSolve(pk1o$inner, parms, etInfSs)
 
         expect_equal(s1$rx_pred_, o1$rx_pred_, tolerance=tol)
@@ -1970,12 +1964,11 @@ rxPermissive({
         o1 <- rxSolve(pk2o$inner, parms, etInf)
 
         ## Close to o1
-        expect_true(all(s1$rx_pred_ == 0))
-        expect_true(all(s1$rx__sens_rx_pred__BY_ETA_1___ == 0))
-        expect_true(all(s1$rx__sens_rx_pred__BY_ETA_2___ == 0))
-        expect_true(all(s1$rx__sens_rx_pred__BY_ETA_3___ == 0))
-        expect_true(all(s1$rx__sens_rx_pred__BY_ETA_4___ == 0))
-
+        expect_equal(s1$rx_pred_ ,o1$rx_pred)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_1___,  o1$rx__sens_rx_pred__BY_ETA_1___)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_2___, o1$rx__sens_rx_pred__BY_ETA_2___)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_3___, o1$rx__sens_rx_pred__BY_ETA_3___)
+        expect_equal(s1$rx__sens_rx_pred__BY_ETA_4___, o1$rx__sens_rx_pred__BY_ETA_4___)
         expect_equal(s1$rx_r_, o1$rx_r_, tolerance=tol)
         expect_equal(s1$rx__sens_rx_r__BY_ETA_1___, o1$rx__sens_rx_r__BY_ETA_1___, tolerance=tol)
         expect_equal(s1$rx__sens_rx_r__BY_ETA_2___, o1$rx__sens_rx_r__BY_ETA_2___, tolerance=tol)
@@ -2060,7 +2053,8 @@ rxPermissive({
                    "ETA[5]"=0,
                    "THETA[6]"=0.2)
 
-        et <- eventTable() %>% add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
+        et <- eventTable() %>%
+          add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
           add.sampling(seq(0, 48, length.out=200))
 
         s1 <- rxSolve(pk2s$inner, parms, et)
@@ -2224,7 +2218,8 @@ rxPermissive({
                    "ETA[5]"=0, "ETA[6]"=0,
                    "THETA[7]"=0.2)
 
-        et <- eventTable() %>% add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
+        et <- eventTable() %>%
+          add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
           add.sampling(seq(0, 48, length.out=200))
 
         s1 <- rxSolve(pk3s$inner, parms, et)
