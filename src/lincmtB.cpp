@@ -2018,6 +2018,9 @@ namespace stan {
 	curTime = getTime(ind->ix[idx], ind);
 	evid = ind->evid[ind->ix[idx]];
 	if (isObs(evid)){
+	  if (idx != idxF){
+	    continue;
+	  }
 	} else if (evid == 3){
 	  // Reset event
 	  ind->ixds++;
@@ -2136,6 +2139,10 @@ namespace stan {
 		    rate(0, 0) = 0; rate(1, 0) = r0;
 		  }
 		  A = ssRateTau(ncmt, oral0,params, g, rate, tinf, tau);
+		  rate(0,0) = 0;
+		  if (oral0){
+		    rate(1,0) = 0;
+		  }
 		}
 	      }
 	      if (wh0 == 20) {
@@ -2240,6 +2247,10 @@ namespace stan {
 	      doRate=0;
 	      A = ssRate(ncmt, oral0, params, g, rate);
 	      extraAdvan=0;
+	      rate(0, 0) = 0;
+	      if (oral0){
+		rate(1, 0) = 0;
+	      }
 	    }
 	  }
 	  ind->ixds++;

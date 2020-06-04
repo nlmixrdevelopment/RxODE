@@ -1,7 +1,7 @@
 rxPermissive({
 
     tol  <- 5e-6 ## Current difference for all equations
-    type <- 1
+    type <- 2
 
     for (type in 1:2){
 
@@ -348,6 +348,7 @@ rxPermissive({
       s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=25), events=et)
 
       s.2c <- ode.1cs %>% solve(theta=c(20, 25), events=et)
+
       s.2cK <- ode.2cK %>% solve(theta=c(20, 25), events=et)
       s.2cA1 <- ode.2cA1 %>% solve(theta=c(20, 25), events=et)
       s.2cA2 <- ode.2cA2 %>% solve(theta=c(20, 25), events=et)
@@ -1576,7 +1577,7 @@ rxPermissive({
                 C2 = linCmt(CL, V);
               })))
 
-    context("Steady State Infusions")
+    context(sprintf("Steady State Infusions (%s)", .txt))
 
     test_that("Steady state IV infusion", {
 
@@ -1640,16 +1641,16 @@ rxPermissive({
       expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
 
     })
-    if (FALSE){
       tol <<- 1e-5 ## Current difference for all equations
 
       context("1 cmt sensitivites")
       test_that("1 compartment sensitivities; IV bolus, Cl, V", {
 
-        pred <- function () {return(Central)}
+        pred <- function () {
+          return(Central)
+        }
 
-        pk <- function ()
-        {
+        pk <- function () {
           lCl = THETA[1]
           lVc = THETA[2]
           prop.err = THETA[3]
@@ -1659,8 +1660,7 @@ rxPermissive({
           Cl <- exp(lCl + eta.Cl)
         }
 
-        err <- function ()
-        {
+        err <- function () {
           return(prop(prop.err))
         }
 
@@ -1677,7 +1677,8 @@ rxPermissive({
 
         pk1o <- rxSymPySetupPred(mod2, predfn=pred, pkpars=pk, err=err)
 
-        et <- eventTable() %>% add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
+        et <- eventTable() %>%
+          add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
           add.sampling(seq(0, 48, length.out=200))
 
 
@@ -1728,7 +1729,8 @@ rxPermissive({
 
         expect_equal(s1$rx__sens_rx_r__BY_ETA_2___, o1$rx__sens_rx_r__BY_ETA_2___)
 
-        etInfSs <- et() %>% et(amt=3, rate=1.5) %>%
+        etInfSs <- et() %>%
+          et(amt=3, rate=1.5) %>%
           et(time=4,amt=3, rate=1.5, ss=1, ii=24) %>%
           et(time=8, amt=3, rate=1.5, ss=2, ii=24) %>%
           et(seq(0,24,length.out=200))
@@ -1749,10 +1751,11 @@ rxPermissive({
 
       test_that("1 compartment sensitivities; Oral Cl, V, Ka", {
 
-        pred <- function () {return(Central)}
+        pred <- function () {
+          return(Central)
+        }
 
-        pk <- function ()
-        {
+        pk <- function () {
           lCl = THETA[1]
           lVc = THETA[2]
           lKa = THETA[3]
@@ -1765,8 +1768,7 @@ rxPermissive({
           Ka <- exp(lKa + eta.Ka)
         }
 
-        err <- function ()
-        {
+        err <- function () {
           return(prop(prop.err))
         }
 
@@ -1784,7 +1786,8 @@ rxPermissive({
 
         pk1o <- rxSymPySetupPred(mod2, predfn=pred, pkpars=pk, err=err)
 
-        et <- eventTable() %>% add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
+        et <- eventTable() %>%
+          add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
           add.sampling(seq(0, 48, length.out=200))
 
         parms <- c("THETA[1]" = log(20), "THETA[2]" = log(25), "THETA[3]"=log(2),
@@ -1872,6 +1875,7 @@ rxPermissive({
         expect_equal(s1$rx__sens_rx_r__BY_ETA_1___, o1$rx__sens_rx_r__BY_ETA_1___, tolerance=tol)
         expect_equal(s1$rx__sens_rx_r__BY_ETA_2___, o1$rx__sens_rx_r__BY_ETA_2___, tolerance=tol)
         expect_equal(s1$rx__sens_rx_r__BY_ETA_3___, o1$rx__sens_rx_r__BY_ETA_3___, tolerance=tol)
+        
       })
 
       ## stop("here")
@@ -1879,7 +1883,9 @@ rxPermissive({
       context("2 cmt sensitivites")
       test_that("2 compartment sensitivities; IV bolus Cl, Vc, Q, Vp", {
 
-        pred <- function () {return(Central)}
+        pred <- function () {
+          return(Central)
+        }
 
         pk <- function () {
           lCl = THETA[1]
@@ -1897,8 +1903,7 @@ rxPermissive({
           Q <- exp(lQ + eta.Q)
         }
 
-        err <- function ()
-        {
+        err <- function () {
           return(prop(prop.err))
         }
 
@@ -2003,7 +2008,9 @@ rxPermissive({
 
       test_that("2 compartment sensitivities; Oral Cl, Vc, Q, Vp, Ka", {
 
-        pred <- function () {return(Central)}
+        pred <- function () {
+          return(Central)
+        }
 
         pk <- function () {
           lCl = THETA[1]
@@ -2159,6 +2166,5 @@ rxPermissive({
         expect_equal(s1$rx__sens_rx_r__BY_ETA_5___, o1$rx__sens_rx_r__BY_ETA_5___, tolerance=tol)
 
       })
-    }
 
 }, silent=TRUE, test="lincmt")
