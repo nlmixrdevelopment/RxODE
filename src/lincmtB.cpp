@@ -1983,15 +1983,13 @@ namespace stan {
 			const int trans,
 			const int ncmt,
 			const int linCmt,
-			const int idx,
+			const int idxF,
 			const int sameTime,
 			rx_solving_options_ind *ind,
 			rx_solve *rx){
       rx_solving_options *op = rx->op;
-      int evid, wh, cmt, wh100, whI, wh0;
       Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncmt, 3);
       g = micros2macros(params, ncmt, trans);
-      double *rate0 = ind->linCmtRate;
       Eigen::Matrix<T, Eigen::Dynamic, 1> rate(oral0+1, 1);
       Eigen::Matrix<T, Eigen::Dynamic, 1> bolus(oral0+1, 1);
       for (int i = oral0+1; i--; ){
@@ -1999,49 +1997,34 @@ namespace stan {
       }
       Eigen::Matrix<T, Eigen::Dynamic, 1> Alast(oral0+ncmt, 1);
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(oral0+ncmt, 1);
-      Eigen::Matrix<T, Eigen::Dynamic, 1> Alast0(oral0+ncmt, 1);
       for (int i = oral0+ncmt; i--;){
 	Alast(i, 0) = 0.0;
 	A(i, 0) = 0.0;
-	Alast0(i, 0) = 0.0;
-      }
-      rate(0, 0) = rate0[0];
-      bolus(0, 0) = 0.0;
-      if (oral0) {
-	rate(1, 0) = rate0[1];
-	bolus(1, 0) = 0.0;
       }
       T tlast;
       T curTime=0.0;
       T r0;
-      if (idx <= ind->solved){
-      } else {
-	//A = ind->linCmtAdvan+(op->nlin)*idx;
-	if (idx == 0) {
-	  Alast = Alast0;
-	  tlast = getTime(ind->ix[0], ind);
-	} else {
-	  tlast = getTime(ind->ix[idx-1], ind);
-	  double *tmp = ind->linCmtAdvan+(op->nlin)*(idx-1);
-	  for (int i = oral0+ncmt; i--;){
-	    Alast(i, 0) = tmp[i];
-	  }
-	}
+      T amt;
+      T rateAdjust;
+      tlast = getTime(ind->ix[0], ind);
+      int evid, wh, cmt, wh100, whI, wh0, cmtOff;
+      int extraAdvan = 1, doRate=0, doMultiply = 0, doReplace=0;
+      int oldIxds = ind->ixds, oldIdx=ind->idx;
+      ind->ixds = 0;
+      for (int idx = 0; idx <= idxF; idx++) {
+	ind->idx = idx;
 	curTime = getTime(ind->ix[idx], ind);
 	evid = ind->evid[ind->ix[idx]];
-	int doMultiply = 0, doReplace=0;
-	T amt=0;
-	T rateAdjust= 0;
-	int doRate=0;
-	int extraAdvan = 1;
-	wh0 = 0;
 	if (isObs(evid)){
 	} else if (evid == 3){
 	  // Reset event
-	  Alast=Alast0;
+	  ind->ixds++;
+	  for (int i = oral0+ncmt; i--;){
+	    Alast(i, 0) = 0.0;
+	  }
 	} else {
 	  getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
-	  int cmtOff = cmt-linCmt;
+	  cmtOff = cmt-linCmt;
 	  if ((oral0 && cmtOff > 1) ||
 	      (!oral0 && cmtOff != 0)) {
 	  } else {
@@ -2062,13 +2045,12 @@ namespace stan {
 	      }
 	      // Reset rate
 	      rate(0, 0) = 0;
-	      rate0[0] = 0;
 	      if (oral0) {
 		rate(1, 0) = 0;
-		rate0[1] = 0;
 	      }
-	      // FIXME next
-	      Alast = Alast0;
+	      for (int i = oral0+ncmt; i--;){
+		Alast(i, 0) = 0.0;
+	      }
 	      tlast = 0;
 	      curTime = tau;
 	      T tinf;
@@ -2081,7 +2063,7 @@ namespace stan {
 		} else {
 		  bolus(1, 0) = amt*d_F2;
 		}
-		A = ssTau(ncmt, oral0, params, g,bolus, tau);
+		A = ssTau(ncmt, oral0, params, g, bolus, tau);
 	      } break;
 	      case 8: // Duration is modeled
 	      case 9: { // Rate is modeled
@@ -2089,7 +2071,7 @@ namespace stan {
 		  // cmtOff = 0
 		  if (cmtOff == 0)  {
 		    // Infusion to depot compartment with oral dosing or
-		    // infusion to central compartmenr
+		    // infusion to central compartment
 		    r0 = d_rate1;
 		    tinf = amt/r0*d_F;
 		  } else {
@@ -2244,25 +2226,26 @@ namespace stan {
 	      doRate = cmtOff+1;
 	    } break;
 	    }
+	    if (wh0 == 40){
+	      // Steady state infusion
+	      // Now advance to steady state dosing
+	      // These are easy to solve
+	      for (int i = oral0+1; i--;){
+		rate(i, 0) = 0.0;
+	      }
+	      if (doRate == 1){
+		rate(0, 0) += rateAdjust;
+	      } else {
+		rate(1, 0) += rateAdjust;
+	      }
+	      doRate=0;
+	      A = ssRate(ncmt, oral0, params, g, rate);
+	      extraAdvan=0;
+	    }
 	  }
+	  ind->ixds++;
 	}
 	//
-	if (wh0 == 40){
-	  // Steady state infusion
-	  // Now advance to steady state dosing
-	  // These are easy to solve
-	  for (int i = oral0+1; i--;){
-	    rate(i, 0) = 0.0;
-	  }
-	  if (doRate == 1){
-	    rate(0,0) = rateAdjust;
-	  } else {
-	    rate(1, 0) = rateAdjust;
-	  }
-	  doRate=0;
-	  A = ssRate(ncmt, oral0, params, g, rate);
-	  extraAdvan=0;
-	}
 	if (extraAdvan){
 	  A = doAdvan(ncmt, oral0, tlast, curTime, Alast,
 		      params, g, bolus, rate);
@@ -2272,29 +2255,33 @@ namespace stan {
 	} else if (doMultiply){
 	  A(doMultiply-1, 0) *= amt;
 	} else if (doRate){
-	  rate(doRate-1,0) += rateAdjust;
-	  rate0[doRate-1] += rateAdjust.val();
+	  rate(doRate-1, 0) += rateAdjust;
 	}
-	// Save A and rate
-	double *Ad = ind->linCmtAdvan+(op->nlin)*(idx);
-	T tmpD;
-	for (int i = ncmt+oral0; i--;){
-	  tmpD = A(i, 0);
-	  Ad[i] = tmpD.val();
+	rateAdjust=0;
+	doRate = doMultiply=doReplace=0;
+	extraAdvan=1;
+	for (int i = oral0+1; i--;){
+	  bolus(i, 0)= 0.0;
 	}
-	ind->solved = idx;
+	Alast = A;
+ 	tlast = curTime;
+      }
+      ind->ixds = oldIxds;
+      ind->idx = oldIdx;
+      // Save A and rate
+      double *Ad = ind->linCmtAdvan+(op->nlin)*(idxF);
+      T tmpD;
+      for (int i = ncmt+oral0; i--;){
+	tmpD = A(i, 0);
+	Ad[i] = tmpD.val();
       }
       if (!sameTime){
-	// Compute the advan solution of a t outside of the mesh.
-	Alast = A;
-	A = Alast0;
-	tlast = curTime;
-	curTime = t;
-	for (int i = oral0+1; i--;){
-	  bolus(i, 0) = 0.0;
-	}
-	A = doAdvan(ncmt, oral0, tlast, curTime, Alast,
-		    params, g, bolus, rate);
+      	// Compute the advan solution of a t outside of the mesh.
+      	Alast = A;
+      	tlast = curTime;
+      	curTime = t;
+      	A = doAdvan(ncmt, oral0, tlast, curTime, Alast,
+      		    params, g, bolus, rate);
       }
       Eigen::Matrix<T, Eigen::Dynamic, 1> ret(1,1);
       ret(0, 0) = A(oral0, 0)/v;
@@ -2373,7 +2360,7 @@ static inline double linCmtBg(double *A, int& val, int& trans, int& ncmt,
 
 extern "C" double linCmtB(rx_solve *rx, unsigned int id,
 			  double t, int linCmt,
-			  int i_cmt, int trans, int val,
+			  int ncmt, int trans, int val,
 			  double dd_p1, double dd_v1,
 			  double dd_p2, double dd_p3,
 			  double dd_p4, double dd_p5,
@@ -2398,12 +2385,6 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
     it = getTime(ind->ix[idx], ind);
   }
   int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
-  int ncmt = 1;
-  if (dd_p4 > 0.){
-    ncmt = 3;
-  } else if (dd_p2 > 0.){
-    ncmt = 2;
-  }
   if (idx <= ind->solved && sameTime){
     // Pull from last solved value (cached)
     double *A = ind->linCmtAdvan+(op->nlin)*idx;
@@ -2438,7 +2419,7 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
   double *A = ind->linCmtAdvan+(op->nlin)*idx;
   
   if (sameTime){
-    Rcpp::print(Rcpp::wrap(J));
+    // Rcpp::print(Rcpp::wrap(J));
     A[ncmt + oral0 + 0] = J(0, 0);
     A[ncmt + oral0 + 1] = J(0, 1);
     if (ncmt >=2){
@@ -2461,21 +2442,7 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
       A[3*ncmt + oral0 + 7] = J(0, 2*ncmt + 7);
       A[3*ncmt + oral0 + 8] = J(0, 2*ncmt + 8);
     }
+    ind->solved = idx;
   }
   return linCmtBg(A, val, trans, ncmt, oral0, dd_v1, dd_p3, dd_p5);
-  // if (val == 0) {
-  //   return fx[0];
-  // } else {
-  //   // 1-6 is the Jacobian for the compartment values
-  //   if (val > 6) {
-  //     return J(0, val-6);
-  //   } else {
-  //     if (val > 2*ncmt) {
-  // 	Rcpp::stop(_("invalid derivative"));
-  //     } else {
-  // 	return J(0, val-1);
-  //     }
-  //   }
-  // }
-  return 0.0;
 }
