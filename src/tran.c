@@ -2257,6 +2257,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    // New assignment
 	    tb.ixL = tb.ix;
 	    tb.lh[tb.ix] = 1;
+	  } else if (tb.ix < 0){
+	    sPrint(&buf,"cannot assign protected variable '%s'",v);
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(buf.s);
 	  } else {
 	    /* Rprintf("tb.ixL: %d; tb.ix: %d, NV: %d, %s\n", */
 	    /* 	    tb.ixL, tb.ix, NV, */
@@ -2304,7 +2308,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    if (tb.lh[tb.ix] != 1){
 	      tb.lh[tb.ix] = 1;
 	      if (nodeHas(ini0) && tb.ini0[tb.ix] == 1){
-		sPrint(&buf,"Cannot have conditional initial conditions for %s",v);
+		sPrint(&buf,"cannot have conditional initial conditions for '%s'",v);
 		updateSyntaxCol();
 		trans_syntax_error_report_fn(buf.s);
 	      } else if (tb.ini0[tb.ix] == 1){

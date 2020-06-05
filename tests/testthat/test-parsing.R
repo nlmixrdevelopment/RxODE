@@ -727,6 +727,8 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     badParse("fun8", "a=is.infinite(x,a)")
     badParse("fun9", "a=is.infinite()")
 
+    badParse("fun10", "t=tinf")
+
 
 
 }, silent=TRUE, test="parsing")
