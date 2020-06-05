@@ -2598,6 +2598,31 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     } else {
       getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
       /* REprintf("evid: %d; cmt: %d; %d\n", evid, cmt, linCmt); */
+      if (!oral0 && cmt > linCmt) {
+	int foundBad = 0;
+	for (int j = 0; j < ind->nBadDose; j++){
+	  if (ind->BadDose[j] == cmt+1){
+	    foundBad=1;
+	    break;
+	  }
+	}
+	if (!foundBad){
+	  ind->BadDose[ind->nBadDose]=cmt+1;
+	  ind->nBadDose++;
+	}
+      } else if (oral0 && cmt > linCmt+1) {
+	int foundBad = 0;
+	for (int j = 0; j < ind->nBadDose; j++){
+	  if (ind->BadDose[j] == cmt+1){
+	    foundBad=1;
+	    break;
+	  }
+	}
+	if (!foundBad){
+	  ind->BadDose[ind->nBadDose]=cmt+1;
+	  ind->nBadDose++;
+	}
+      }
       int cmtOff = cmt-linCmt;
       if ((oral0 && cmtOff > 1) ||
 	  (!oral0 && cmtOff != 0)) {

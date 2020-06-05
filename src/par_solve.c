@@ -2592,21 +2592,12 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       ind->solved = -1;
       if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
       if (rx->needSort) doSort(ind);
-      nBadDose = ind->nBadDose;
-      BadDose = ind->BadDose;
       ntimes = ind->n_all_times;
       solve =  ind->solve;
       cov_ptr = ind->cov_ptr;
       par_ptr = ind->par_ptr;
       dose = ind->dose;
       di = 0;
-      if (nBadDose && csim == 0){
-	for (i = 0; i < nBadDose; i++){
-	  if (BadDose[i] > extraCmt){
-	    warning(_("dose to compartment %d ignored (not in ODE; 'id=%d')"), BadDose[i],csub+1);
-	  }
-	}
-      }
       if (ind->allCovWarn && csim == 0){
 	warning(_("one or more covariates were all 'NA' for subject 'id=%d'"), csub+1);
       }
@@ -2978,6 +2969,15 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
         }
 	ind->_newind = 2;
       }
+      nBadDose = ind->nBadDose;
+      BadDose = ind->BadDose;
+      if (nBadDose && csim == 0){
+	for (i = 0; i < nBadDose; i++){
+	  if (BadDose[i] > extraCmt){
+	    warning(_("dose to compartment %d ignored (not in system; 'id=%d')"), BadDose[i],csub+1);
+	  }
+	}
+      }      
       if (updateErr){
         for (j=0; j < errNcol; j++){
           par_ptr[svar[j]] = NA_REAL;
