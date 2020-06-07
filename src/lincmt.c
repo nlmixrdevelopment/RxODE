@@ -260,11 +260,33 @@ static inline void oneCmtKaRateSSr1(double *A1, double *A2,
   *A2 = (*r1)/(*k20);
 }
 
+static inline void oneCmtKaRateSSr1d(double *A1, double *A2,
+				     double *r1,
+				     double *ka, double *k20,
+				     double *A1ka, double *A2ka, double *A2k20) {
+  *A1 = (*r1)/(*ka);
+  *A1ka = (*r1)/((*ka)*(*ka));
+  *A2 = (*r1)/(*k20);
+  *A2ka = 0.0;
+  *A2k20 = (*r1)/((*k20)*(*k20));
+}
+
 static inline void oneCmtKaRateSSr2(double *A1, double *A2,
 				    double *r2,
 				    double *ka, double *k20) {
   *A1 = 0;
   *A2 = (*r2)/(*k20);
+}
+
+static inline void oneCmtKaRateSSr2d(double *A1, double *A2,
+				     double *r2,
+				     double *ka, double *k20,
+				     double *A1ka, double *A2ka, double *A2k20) {
+  *A1 = 0.0;
+  *A1ka = 0.0;
+  *A2 = (*r2)/(*k20);
+  *A2ka = 0.0;
+  *A2k20 = (*r2)/((*k20)*(*k20));
 }
 
 static inline void oneCmtKaRateSStr1(double *A1, double *A2,
@@ -278,6 +300,29 @@ static inline void oneCmtKaRateSStr1(double *A1, double *A2,
   *A2=eK*((*r1)/(*k20) + eiKa*(*r1)/(-(*k20) + (*ka)) - eiK*(*r1)*(*ka)/((*ka)*(*k20) - (*k20)*(*k20))) + (*ka)*(eK - eKa)*((*r1)/(*ka) - eiKa*(*r1)/(*ka))/(-(*k20) + (*ka));
 }
 
+static inline void oneCmtKaRateSStr1d(double *A1, double *A2,
+				      double *tinf, double *tau, double *r1,
+				      double *ka, double *k20,
+				      double *A1ka, double *A2ka, double *A2k20) {
+  double eKa   = exp(-(*ka)*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*(*ka)));
+  double ka1   = (1.0 - exp(-(*ka)*(*tau)));
+  double eKad  = -exp(-(*ka)*((*tau) - (*tinf)))*((*tau) - (*tinf))/(1.0 - exp(-(*ka)*(*tau))) - exp(-(*ka)*(*tau) - (*ka)*((*tau) - (*tinf)))*(*tau)/(ka1*ka1);
+  double eiKa  = exp(-(*ka)*(*tinf));
+  double eiKad =-exp(-(*ka)*(*tinf))*(*tinf);
+  double eiK = exp(-(*k20)*(*tinf));
+  double eiKd = -exp(-(*k20)*(*tinf))*(*tinf);
+  double t1 = (1.0 - exp(-(*tau)*(*k20)));
+  double eK = exp(-(*k20)*((*tau)-(*tinf)))/t1;
+  double eKd = -exp(-(*k20)*((*tau) - (*tinf)))*((*tau) - (*tinf))/(1.0 - exp(-(*tau)*(*k20))) - exp(-(*k20)*((*tau) - (*tinf)) - (*tau)*(*k20))*(*tau)/(t1*t1);
+  *A1=eKa*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
+  *A2=eK*((*r1)/(*k20) + eiKa*(*r1)/(-(*k20) + (*ka)) - eiK*(*r1)*(*ka)/((*ka)*(*k20) - (*k20)*(*k20))) + (*ka)*(eK - eKa)*((*r1)/(*ka) - eiKa*(*r1)/(*ka))/(-(*k20) + (*ka));
+  double ka2 = (*ka)*(*ka);
+  double k202 = (*k20)*(*k20);
+  *A1ka=eKa*(-(*r1)/ka2 - (*r1)*eiKad/(*ka) + (*r1)*eiKa/ka2) + eKad*((*r1)/(*ka) - (*r1)*eiKa/(*ka));
+  *A2ka=eK*(-(*r1)*eiK/(-k202 + (*ka)*(*k20)) - (*r1)*eiKa/pow(-(*k20) + (*ka),2) + (*r1)*eiKad/(-(*k20) + (*ka)) + (*r1)*(*ka)*eiK*(*k20)/pow(-k202 + (*ka)*(*k20), 2)) + eKd*((*r1)/(*k20) + (*r1)*eiKa/(-(*k20) + (*ka)) - (*r1)*(*ka)*eiK/(-k202 + (*ka)*(*k20))) + (eK - eKa)*((*r1)/(*ka) - (*r1)*eiKa/(*ka))/(-(*k20) + (*ka)) - (*ka)*(eK - eKa)*((*r1)/(*ka) - (*r1)*eiKa/(*ka))/pow(-(*k20) + (*ka),2) + (*ka)*(eK - eKa)*(-(*r1)/ka2 - (*r1)*eiKad/(*ka) + (*r1)*eiKa/ka2)/(-(*k20) + (*ka)) + (*ka)*(-eKad + eKd)*((*r1)/(*ka) - (*r1)*eiKa/(*ka))/(-(*k20) + (*ka));
+  *A2k20=eK*(-(*r1)/k202 + (*r1)*eiKa/pow(-(*k20) + (*ka),2) - (*r1)*(*ka)*eiKd/(-k202 + (*ka)*(*k20)) + (*r1)*(*ka)*eiK*(-2*(*k20) + (*ka))/pow(-k202 + (*ka)*(*k20),2)) + (*ka)*(eK - eKa)*((*r1)/(*ka) - (*r1)*eiKa/(*ka))/pow(-(*k20) + (*ka),2);
+}
+
 static inline void oneCmtKaRateSStr2(double *A1, double *A2,
 				     double *tinf, double *tau, double *r2, 
 				     double *ka, double *k20){
@@ -285,6 +330,23 @@ static inline void oneCmtKaRateSStr2(double *A1, double *A2,
   double eK = exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*k20)*(*tau)));
   *A1=0.0;
   *A2=eK*((*r2)/(*k20) - eiK*(*r2)*(-(*k20) + (*ka))/((*ka)*(*k20) - (*k20)*(*k20)));
+}
+
+static inline void oneCmtKaRateSStr2d(double *A1, double *A2,
+				      double *tinf, double *tau, double *r2, 
+				      double *ka, double *k20,
+				      double *A1ka, double *A2ka, double *A2k20){
+  double eiK = exp(-(*k20)*(*tinf));
+  double eiKd = -exp(-(*k20)*(*tinf))*(*tinf);
+  double t1 = (1.0 - exp(-(*tau)*(*k20)));
+  double eK = exp(-(*k20)*((*tau)-(*tinf)))/t1;
+  double eKd = -exp(-(*k20)*((*tau) - (*tinf)))*((*tau) - (*tinf))/(1.0 - exp(-(*tau)*(*k20))) - exp(-(*k20)*((*tau) - (*tinf)) - (*tau)*(*k20))*(*tau)/(t1*t1);
+  *A1=0.0;
+  *A1ka=0.0;
+  *A2=eK*((*r2)/(*k20) - eiK*(*r2)*(-(*k20) + (*ka))/((*ka)*(*k20) - (*k20)*(*k20)));
+  double k202 = (*k20)*(*k20);
+  *A2ka=eK*(-(*r2)*eiK/(-k202 + (*ka)*(*k20)) + (*r2)*eiK*(*k20)*(-(*k20) + (*ka))/pow(-k202 + (*ka)*(*k20),2)) + eKd*((*r2)/(*k20) - (*r2)*eiK*(-(*k20) + (*ka))/(-k202 + (*ka)*(*k20)));
+  *A2k20=eK*(-(*r2)/k202 + (*r2)*eiK/(-k202 + (*ka)*(*k20)) - (*r2)*eiKd*(-(*k20) + (*ka))/(-k202 + (*ka)*(*k20)) + (*r2)*eiK*(-2*(*k20) + (*ka))*(-(*k20) + (*ka))/pow(-k202 + (*ka)*(*k20),2));
 }
 
 static inline void oneCmtKaRate(double *A1, double *A2,
@@ -296,10 +358,28 @@ static inline void oneCmtKaRate(double *A1, double *A2,
   double eKa = exp(-(*ka)*(*t));
   double e20 = exp(-(*k20)*(*t));
   *A1 = (*r1)/(*ka)-(((*r1)-(*A1last)*(*ka))*eKa)/(*ka) + (*b1);
-  double A21 = (((*r1)-(*A1last)*(*ka))*eKa)/((*ka)-(*k20));
-  double A22=((((*ka)-(*k20))*(*r2)+(*ka)*(*r1)+(-(*A2last)-(*A1last))*(*k20)*(*ka)+(*A2last)*(*k20)*(*k20))*e20)/((*k20)*(*ka)-(*k20)*(*k20));
-  double A23 =((*r2)+(*r1))/(*k20);
-  *A2 = A21 - A22 + A23 + (*b2);
+  *A2 = (((*r1)-(*A1last)*(*ka))*eKa)/((*ka)-(*k20)) - ((((*ka)-(*k20))*(*r2)+(*ka)*(*r1)+(-(*A2last)-(*A1last))*(*k20)*(*ka)+(*A2last)*(*k20)*(*k20))*e20)/((*k20)*(*ka)-(*k20)*(*k20))+ ((*r2)+(*r1))/(*k20) + (*b2);
+}
+
+static inline void oneCmtKaRateD(double *A1, double *A2,
+				 double *A1last, double *A2last,
+				 double *t,
+				 double *b1, double *b2,
+				 double *r1, double *r2,
+				 double *ka, double *k20,
+				 double *A1ka, double *A2ka, double *A2k20,
+				 double *A1kalast, double *A2kalast, double *A2k20last) {
+  double eKa = exp(-(*ka)*(*t));
+  double eKad = -(*t)*exp(-(*ka)*(*t));
+  double e20 = exp(-(*k20)*(*t));
+  double e20d = -(*t)*exp(-(*k20)*(*t));
+  *A1 = (*r1)/(*ka)-(((*r1)-(*A1last)*(*ka))*eKa)/(*ka) + (*b1);
+  *A2 = (((*r1)-(*A1last)*(*ka))*eKa)/((*ka)-(*k20)) - ((((*ka)-(*k20))*(*r2)+(*ka)*(*r1)+(-(*A2last)-(*A1last))*(*k20)*(*ka)+(*A2last)*(*k20)*(*k20))*e20)/((*k20)*(*ka)-(*k20)*(*k20))+ ((*r2)+(*r1))/(*k20) + (*b2);
+  double ka2 = (*ka)*(*ka);
+  double k202 = (*k20)*(*k20);
+  *A1ka=-(*r1)/ka2 - eKa*(-(*A1last) - (*ka)*(*A1kalast))/(*ka) - eKad*((*r1) - (*ka)*(*A1last))/(*ka) + eKa*((*r1) - (*ka)*(*A1last))/ka2;
+  *A2ka=-e20*((*r1) + (*r2) + k202*(*A2kalast) + (-(*A1last) - (*A2last))*(*k20) + (*ka)*(*k20)*(-(*A1kalast) - (*A2kalast)))/(-k202 + (*ka)*(*k20)) - eKa*((*r1) - (*ka)*(*A1last))/pow(-(*k20) + (*ka),2) + eKa*(-(*A1last) - (*ka)*(*A1kalast))/(-(*k20) + (*ka)) + eKad*((*r1) - (*ka)*(*A1last))/(-(*k20) + (*ka)) + e20*(*k20)*(k202*(*A2last) + (*r1)*(*ka) + (*r2)*(-(*k20) + (*ka)) + (-(*A1last) - (*A2last))*(*ka)*(*k20))/pow(-k202 + (*ka)*(*k20),2);
+  *A2k20=-((*r1) + (*r2))/k202 - e20*(-(*r2) + 2*(*k20)*(*A2last) + k202*(*A2k20last) + (-(*A1last) - (*A2last))*(*ka) - (*ka)*(*k20)*(*A2k20last))/(-k202 + (*ka)*(*k20)) - e20d*(k202*(*A2last) + (*r1)*(*ka) + (*r2)*(-(*k20) + (*ka)) + (-(*A1last) - (*A2last))*(*ka)*(*k20))/(-k202 + (*ka)*(*k20)) + eKa*((*r1) - (*ka)*(*A1last))/pow(-(*k20) + (*ka),2) + e20*(-2*(*k20) + (*ka))*(k202*(*A2last) + (*r1)*(*ka) + (*r2)*(-(*k20) + (*ka)) + (-(*A1last) - (*A2last))*(*ka)*(*k20))/pow(-k202 + (*ka)*(*k20),2);
 }
 
 /*
@@ -950,11 +1030,34 @@ static inline void threeCmtKa(double *A1, double *A2, double *A3, double *A4,
 static inline void oneCmtRateSSr1(double *A1, double *r1, double *k10) {
   *A1 = (*r1)/(*k10);
 }
+
+// Derivatives
+static inline void oneCmtRateSSr1d(double *A1, double *r1, double *k10,
+				   double *A1k10) {
+  *A1 = (*r1)/(*k10);
+  *A1k10 = -(*r1)/((*k10)*(*k10));
+}
+
+
 static inline void oneCmtRateSS(double *A1, double *tinf, double *tau, double *r1, double *k10) {
   double eiK = exp(-(*k10)*(*tinf));
   double eK = exp(-(*k10)*((*tau)-(*tinf)))/(1.0-exp(-(*k10)*(*tau)));
   *A1=(*r1)*(1-eiK)*eK/((*k10));
 }
+
+static inline void oneCmtRateSSd(double *A1, double *tinf, double *tau, double *r1, double *k10,
+				 double *A1k10) {
+  double eiK = exp(-(*k10)*(*tinf));
+  double eK = exp(-(*k10)*((*tau)-(*tinf)))/(1.0-exp(-(*k10)*(*tau)));
+  *A1=(*r1)*(1-eiK)*eK/((*k10));
+  double eiKd=-exp(-(*k10)*(*tinf))*(*tinf);
+  double tau1 = (1+exp((*tau)*(*k10)));
+  double eKd=-exp(-(*k10)*((*tau)-(*tinf)))*((*tau)-(*tinf))/tau1-
+    exp(-(*k10)*((*tau)-(*tinf)) + (*tau)*(*k10))*(*tau)/(tau1*tau1);
+  *A1k10=-(*r1)*eK*(1-eiK)/((*k10)*(*k10))-
+    (*r1)*eK*eiKd/(*k10) + (*r1)*eKd*(1 - eiK)/(*k10);
+}
+
 static inline void oneCmtRate(double *A1, double *A1last, 
 			      double *t,
 			      double *b1, double *r1,
@@ -962,6 +1065,19 @@ static inline void oneCmtRate(double *A1, double *A1last,
   double eT = exp(-(*k10)*(*t));
   *A1 = (*r1)/(*k10)*(1-eT)+(*A1last)*eT + (*b1);
 }
+
+static inline void oneCmtRateD(double *A1, double *A1last, 
+			       double *t,
+			       double *b1, double *r1,
+			       double *k10,
+			       double *A1k10, double *A1k10last) {
+  double eT = exp(-(*k10)*(*t));
+  *A1 = (*r1)/(*k10)*(1-eT)+(*A1last)*eT + (*b1);
+  double k102 = (*k10)*(*k10);
+  double eTd=(*t)*exp((*t)*(*k10));
+  *A1k10=eT*(*A1k10last) + eTd*(*A1last) - (*r1)*(1 - eT)/k102 - (*r1)*eTd/(*k10);
+}
+
 
 static inline void twoCmtRateSSr1(double *A1, double *A2, 
 				  double *r1,
@@ -1195,10 +1311,26 @@ static inline void oneCmtBolusSS(double *A1, double *tau,
   double eT = 1.0/(1.0-exp(-(*k10)*(*tau)));
   *A1 = (*b1)*eT;
 }
+static inline void oneCmtBolusSSd(double *A1, double *tau,
+				  double *b1, double *k10,
+				  double *A1k10) {
+  double eT = 1.0/(1.0-exp(-(*k10)*(*tau)));
+  double t1 = (1.0 - exp(-(*tau)*(*k10)));
+  double eTd=-1.0*exp(-(*tau)*(*k10))*(*tau)/(t1*t1);
+  *A1 = (*b1)*eT;
+  *A1k10=(*b1)*eTd;
+}
 static inline void oneCmtBolus(double *A1, double *A1last, 
 			       double *t,
 			       double *b1, double *k10) {
   *A1 = (*A1last)*exp(-(*k10)*(*t)) + (*b1);
+}
+static inline void oneCmtBolusD(double *A1, double *A1last, 
+				double *t,
+				double *b1, double *k10,
+				double *A1k10, double *A1k10last) {
+  *A1 = (*A1last)*exp(-(*k10)*(*t)) + (*b1);
+  *A1k10=exp(-(*t)*(*k10))*(*A1k10last) - (*t)*exp(-(*t)*(*k10))*(*A1last);
 }
 
 static inline void twoCmtBolusSS(double *A1, double *A2,
