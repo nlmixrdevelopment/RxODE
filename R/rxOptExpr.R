@@ -1,23 +1,28 @@
-.rxOptFn <- function(fn) {
-  force(fn);
-  function(...) {
-    .ret <- paste0(fn, "(", paste(unlist(list(...)), collapse = ", "), ")")
-    .new <- .rxOptEnv$.rep[[.ret]];
-    if (!is.null(.new)) {
-      if (length(.rxOptEnv$.exclude) != 1) .rxOptEnv$.exclude <- ""
-      if (.new == .rxOptEnv$.exclude) {
-        return(.ret)
-      } else {
-        .rxOptEnv$.new <- c(.rxOptEnv$.new, .new);
-        return(.new)
-      }
+.addExpr <- function(.ret) {
+  .new <- .rxOptEnv$.rep[[.ret]];
+  if (!is.null(.new)) {
+    if (length(.rxOptEnv$.exclude) != 1) .rxOptEnv$.exclude <- ""
+    if (.new == .rxOptEnv$.exclude) {
+      return(.ret)
+    } else {
+      .rxOptEnv$.new <- c(.rxOptEnv$.new, .new);
+      return(.new)
     }
+  } else {
     if (is.null(.rxOptEnv$.list[[.ret]])) {
       .rxOptEnv$.list[[.ret]] <- 1L;
     } else {
       .rxOptEnv$.list[[.ret]] <- .rxOptEnv$.list[[.ret]] + 1L;
     }
-    return(.ret)
+  }
+  return(.ret)
+}
+
+.rxOptFn <- function(fn) {
+  force(fn);
+  function(...) {
+    .ret <- paste0(fn, "(", paste(unlist(list(...)), collapse = ", "), ")")
+    return(.addExpr(.ret))
   }
 }
 .rxOptBin <- function(sep) {
@@ -30,24 +35,13 @@
         .ret <- paste0(gsub(" ", "", sep), e1)
       }
     } else {
-      .ret <- paste0(e1, sep, e2)
-    }
-    .new <- .rxOptEnv$.rep[[.ret]];
-    if (!is.null(.new)) {
-      if (length(.rxOptEnv$.exclude) != 1) .rxOptEnv$.exclude <- ""
-      if (.new == .rxOptEnv$.exclude) {
-        return(.ret)
+      if (sep == "^" && isTRUE(checkmate::checkIntegerish(suppressWarnings(as.numeric(e2)), lower=2))) {
+        .ret <- paste(rep(paste0("(", .addExpr(e1), ")"), as.numeric(e2)), collapse="*")
       } else {
-        .rxOptEnv$.new <- c(.rxOptEnv$.new, .new);
-        return(.new)
+        .ret <- paste0(e1, sep, e2)
       }
     }
-    if (is.null(.rxOptEnv$.list[[.ret]])) {
-      .rxOptEnv$.list[[.ret]] <- 1L;
-    } else {
-      .rxOptEnv$.list[[.ret]] <- .rxOptEnv$.list[[.ret]] + 1L;
-    }
-    return(.ret)
+    return(.addExpr(.ret))
   }
 }
 
@@ -190,7 +184,7 @@
             .cur <- c(.rxOptEnv$.rep[[.i]]);
             if (.i != 1) {
               for (.j in seq(1, .i - 1)) {
-                if (!any(.rxOptEnv$.rep[[.j]] == .rxOptEnv$.added) &&
+                while (!any(.rxOptEnv$.rep[[.j]] == .rxOptEnv$.added) &&
                       regexpr(rex::rex(or(.cur)),
                               names(.rxOptEnv$.rep)[.j]) != -1) {
                   .extra <- c(.extra, paste0(.rxOptEnv$.rep[[.j]],
