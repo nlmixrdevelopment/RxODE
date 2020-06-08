@@ -256,6 +256,9 @@ rxOptExpr <- function(x, msg="model") {
     ## expr2 = expr-ka #nolint
     ## will not become expr = exprka where exprka isn't defined.
     .exprs <- .exprs[regexpr("^[-]", .exprs) == -1];
+    if (length(.exprs) == 0){
+      return(x)
+    }
     .rp <- rxOptRep_(.exprs)
     .rxOptEnv$.rep <- as.list(.rp[[1]]);
     .rxOptEnv$.exclude <- ""
