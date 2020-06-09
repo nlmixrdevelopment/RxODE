@@ -35,8 +35,9 @@
         .ret <- paste0(gsub(" ", "", sep), e1)
       }
     } else {
-      if (sep == "^" && isTRUE(checkmate::checkIntegerish(suppressWarnings(as.numeric(e2)), lower=2))) {
-        .ret <- paste(rep(paste0("(", .addExpr(e1), ")"), as.numeric(e2)), collapse="*")
+      if (sep == "^" && isTRUE(checkmate::checkIntegerish(suppressWarnings(as.numeric(e2)), lower=2,
+                                                          any.missing=FALSE))) {
+        .ret <- paste0("(", paste(rep(paste0("(", e1, ")"), as.numeric(e2)), collapse="*"), ")")
       } else {
         .ret <- paste0(e1, sep, e2)
       }
