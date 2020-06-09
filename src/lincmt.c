@@ -268,10 +268,74 @@ static inline void oneCmtKaRateSSr1(double *A, double *r1,
   A2 = (*r1)/(*k20);
 }
 
+static inline void oneCmtKaRateSSr1D(double *A, double *r1, double *ka, double *k20) {
+#define A1ka A[2]
+#define A1r1 A[3]
+#define A1b1 A[4]
+#define A2ka A[5]
+#define A2k20 A[6]
+#define A2r1 A[7]
+#define A2b1 A[8]
+#define A2r2 A[9]
+#define A2b2 A[10]
+  A1=(*r1)/(*ka);
+  A1ka=-(*r1)/((*ka)*(*ka));
+  A1r1=1.0/(*ka);
+  A1b1=0;
+  A2=(*r1)/(*k20);
+  A2ka=0;
+  A2k20=-(*r1)/((*k20)*(*k20));
+  A2r1=1.0/(*k20);
+  A2b1=0;
+  A2r2=0;
+  A2b2=0;
+#undef A1ka
+#undef A1r1
+#undef A1b1
+#undef A2ka
+#undef A2k20
+#undef A2r1
+#undef A2b1
+#undef A2r2
+#undef A2b2
+}
+
 static inline void oneCmtKaRateSSr2(double *A, double *r2,
 				    double *ka, double *k20) {
   A1 = 0;
   A2 = (*r2)/(*k20);
+}
+
+static inline void oneCmtKaRateSSr2D(double *A, double *r2, double *ka, double *k20) {
+#define A1ka A[2]
+#define A1r1 A[3]
+#define A1b1 A[4]
+#define A2ka A[5]
+#define A2k20 A[6]
+#define A2r1 A[7]
+#define A2b1 A[8]
+#define A2r2 A[9]
+#define A2b2 A[10]
+  A1=0;
+  A1ka=0;
+  A1r1=0;
+  A1b1=0;
+  A2=(*r2)/(*k20);
+  A2ka=0;
+  A2k20=-(*r2)/((*k20)*(*k20));
+  A2r1=0;
+  A2b1=0;
+  A2r2=1.0/(*k20);
+  A2b2=0;
+#undef A1ka
+#undef A1r1
+#undef A1b1
+#undef A2ka
+#undef A2k20
+#undef A2r1
+#undef A2b1
+#undef A2r2
+#undef A2b2
 }
 
 static inline void oneCmtKaRateSStr1(double *A,
@@ -285,6 +349,70 @@ static inline void oneCmtKaRateSStr1(double *A,
   A2=eK*((*r1)/(*k20) + eiKa*(*r1)/(-(*k20) + (*ka)) - eiK*(*r1)*(*ka)/((*ka)*(*k20) - (*k20)*(*k20))) + (*ka)*(eK - eKa)*((*r1)/(*ka) - eiKa*(*r1)/(*ka))/(-(*k20) + (*ka));
 }
 
+static inline void oneCmtKaRateSStr1D(double *A, double *tinf, double *tau, double *r1, double *ka, double *k20) {
+#define A1ka A[2]
+#define A1r1 A[3]
+#define A1b1 A[4]
+#define A2ka A[5]
+#define A2k20 A[6]
+#define A2r1 A[7]
+#define A2b1 A[8]
+#define A2r2 A[9]
+#define A2b2 A[10]
+  double rx0=(*r1)/(*ka);
+  double rx5=(*tau)-(*tinf);
+  double rx7=exp(-(*ka)*(*tau));
+  double rx8=exp(-(*ka)*(*tinf));
+  double rx12=1-rx7;
+  double rx15=rx8*(*r1);
+  double rx24=rx0-rx15/(*ka);
+  A1=exp(-(*ka)*(rx5))*(rx24)/(rx12);
+  double rx6=(((*ka))*((*ka)));
+  double rx9=(*ka)*(rx5);
+  double rx22=rx15*(*tinf);
+  double rx23=rx22/(*ka);
+  double rx26=exp(-(*ka)*(*tau)-rx9);
+  double rx28=rx15/rx6;
+  double rx31=rx26*(*tau);
+  A1ka=exp(-(*ka)*(rx5))*(-(*r1)/rx6+rx28+rx23)/(rx12)-exp(-(*ka)*(rx5))*(rx5)*(rx24)/(rx12)-rx31*(rx24)/(((rx12))*((rx12)));
+  double rx3=1.0/(*ka);
+  A1r1=exp(-(*ka)*(rx5))*(-rx8/(*ka)+rx3)/(rx12);
+  A1b1=0;
+  double rx1=(*r1)/(*k20);
+  double rx2=(*ka)*(*k20);
+  double rx10=(((*k20))*((*k20)));
+  double rx13=exp(-(*k20)*(*tinf));
+  double rx16=rx13*(*r1);
+  double rx19=exp(-(*k20)*(rx5));
+  double rx20=rx16*(*ka);
+  double rx21=rx2-rx10;
+  double rx27=rx15/(-(*k20)+(*ka));
+  double rx33=rx1+rx27;
+  double rx39=rx20/(rx21);
+  double rx42=rx33-rx39;
+  A2=rx19*(rx42)/(1-exp(-(*tau)*(*k20)))+(*ka)*(rx19/(1-exp(-(*tau)*(*k20)))-exp(-(*ka)*(rx5))/(rx12))*(rx24)/(-(*k20)+(*ka));
+  double rx25=(((-(*k20)+(*ka)))*((-(*k20)+(*ka))));
+  double rx38=rx15/rx25;
+  A2ka=(rx19/(1-exp(-(*tau)*(*k20)))-exp(-(*ka)*(rx5))/(rx12))*(rx24)/(-(*k20)+(*ka))+rx19*(-rx13*(*r1)/(rx21)-rx38-rx22/(-(*k20)+(*ka))+rx20*(*k20)/(((rx21))*((rx21))))/(1-exp(-(*tau)*(*k20)))-(*ka)*(rx19/(1-exp(-(*tau)*(*k20)))-exp(-(*ka)*(rx5))/(rx12))*(rx24)/rx25+(*ka)*(rx19/(1-exp(-(*tau)*(*k20)))-exp(-(*ka)*(rx5))/(rx12))*(-(*r1)/rx6+rx28+rx23)/(-(*k20)+(*ka))+(*ka)*(exp(-(*ka)*(rx5))*(rx5)/(rx12)+rx31/(((rx12))*((rx12))))*(rx24)/(-(*k20)+(*ka));
+  double rx4=(*tau)*(*k20);
+  double rx29=exp(-(*k20)*(rx5)-rx4);
+  double rx32=rx29*(*tau);
+  A2k20=rx19*(-(*r1)/rx10+rx38+rx20*(*tinf)/(rx21)+rx20*(-2*(*k20)+(*ka))/(((rx21))*((rx21))))/(1-exp(-(*tau)*(*k20)))+(*ka)*(rx19/(1-exp(-(*tau)*(*k20)))-exp(-(*ka)*(rx5))/(rx12))*(rx24)/rx25+(*ka)*(-rx19*(rx5)/(1-exp(-(*tau)*(*k20)))-rx32/(((1-exp(-(*tau)*(*k20))))*((1-exp(-(*tau)*(*k20))))))*(rx24)/(-(*k20)+(*ka))-rx19*(rx5)*(rx42)/(1-exp(-(*tau)*(*k20)))-rx32*(rx42)/(((1-exp(-(*tau)*(*k20))))*((1-exp(-(*tau)*(*k20)))));
+  A2r1=rx19*(rx8/(-(*k20)+(*ka))-rx13*(*ka)/(rx21)+1.0/(*k20))/(1-exp(-(*tau)*(*k20)))+(*ka)*(-rx8/(*ka)+rx3)*(rx19/(1-exp(-(*tau)*(*k20)))-exp(-(*ka)*(rx5))/(rx12))/(-(*k20)+(*ka));
+  A2b1=0;
+  A2r2=0;
+  A2b2=0;
+#undef A1ka
+#undef A1r1
+#undef A1b1
+#undef A2ka
+#undef A2k20
+#undef A2r1
+#undef A2b1
+#undef A2r2
+#undef A2b2
+}
+
 static inline void oneCmtKaRateSStr2(double *A,
 				     double *tinf, double *tau, double *r2, 
 				     double *ka, double *k20){
@@ -292,6 +420,51 @@ static inline void oneCmtKaRateSStr2(double *A,
   double eK = exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*k20)*(*tau)));
   A1=0.0;
   A2=eK*((*r2)/(*k20) - eiK*(*r2)*(-(*k20) + (*ka))/((*ka)*(*k20) - (*k20)*(*k20)));
+}
+
+static inline void oneCmtKaRateSStr2D(double *A, double *tinf, double *tau, double *r2, double *ka, double *k20) {
+#define A1ka A[2]
+#define A1r1 A[3]
+#define A1b1 A[4]
+#define A2ka A[5]
+#define A2k20 A[6]
+#define A2r1 A[7]
+#define A2b1 A[8]
+#define A2r2 A[9]
+#define A2b2 A[10]
+  A1=0;
+  A1ka=0;
+  A1r1=0;
+  A1b1=0;
+  double rx0=(*r2)/(*k20);
+  double rx1=(*ka)*(*k20);
+  double rx2=(*tau)-(*tinf);
+  double rx3=(((*k20))*((*k20)));
+  double rx4=exp(-(*tau)*(*k20));
+  double rx5=exp(-(*k20)*(*tinf));
+  double rx6=1-rx4;
+  double rx7=rx5*(*r2);
+  double rx8=exp(-(*k20)*(rx2));
+  double rx9=rx1-rx3;
+  double rx10=rx7*(-(*k20)+(*ka));
+  double rx11=rx10/(rx9);
+  double rx13=rx0-rx11;
+  A2=rx8*(rx13)/(rx6);
+  A2ka=rx8*(-rx5*(*r2)/(rx9)+rx7*(*k20)*(-(*k20)+(*ka))/(((rx9))*((rx9))))/(rx6);
+  A2k20=rx8*(-(*r2)/rx3+rx7/(rx9)+rx7*(*tinf)*(-(*k20)+(*ka))/(rx9)+rx7*(-2*(*k20)+(*ka))*(-(*k20)+(*ka))/(((rx9))*((rx9))))/(rx6)-rx8*(rx2)*(rx13)/(rx6)-exp(-(*k20)*(rx2)-(*tau)*(*k20))*(*tau)*(rx13)/(((rx6))*((rx6)));
+  A2r1=0;
+  A2b1=0;
+  A2r2=rx8*(-rx5*(-(*k20)+(*ka))/(rx9)+1.0/(*k20))/(rx6);
+  A2b2=0;
+#undef A1ka
+#undef A1r1
+#undef A1b1
+#undef A2ka
+#undef A2k20
+#undef A2r1
+#undef A2b1
+#undef A2r2
+#undef A2b2
 }
 
 static inline void oneCmtKaRate(double *A, double *Alast, double *t,
@@ -302,6 +475,87 @@ static inline void oneCmtKaRate(double *A, double *Alast, double *t,
   double e20 = exp(-(*k20)*(*t));
   A1 = (*r1)/(*ka)-(((*r1)-A1last*(*ka))*eKa)/(*ka) + (*b1);
   A2 = (((*r1)-A1last*(*ka))*eKa)/((*ka)-(*k20)) - ((((*ka)-(*k20))*(*r2)+(*ka)*(*r1)+(-A2last-A1last)*(*k20)*(*ka)+A2last*(*k20)*(*k20))*e20)/((*k20)*(*ka)-(*k20)*(*k20))+ ((*r2)+(*r1))/(*k20) + (*b2);
+}
+
+static inline void oneCmtKaRateD(double *A, double *Alast, double *t, double *b1, double *b2, double *r1, double *r2, double *ka, double *k20) {
+#define A1ka A[2]
+#define A1r1 A[3]
+#define A1b1 A[4]
+#define A2ka A[5]
+#define A2k20 A[6]
+#define A2r1 A[7]
+#define A2b1 A[8]
+#define A2r2 A[9]
+#define A2b2 A[10]
+#define A1lastka Alast[2]
+#define A1lastr1 Alast[3]
+#define A1lastb1 Alast[4]
+#define A2lastka Alast[5]
+#define A2lastk20 Alast[6]
+#define A2lastr1 Alast[7]
+#define A2lastb1 Alast[8]
+#define A2lastr2 Alast[9]
+#define A2lastb2 Alast[10]
+  double rx5=(*ka)*A1last;
+  double rx6=exp(-(*t)*(*ka));
+  double rx10=(*r1)-rx5;
+  double rx21=rx6*(rx10);
+  A1=(*b1)+(*r1)/(*ka)-rx21/(*ka);
+  double rx7=(((*ka))*((*ka)));
+  double rx11=(*t)*rx6;
+  double rx24=rx11*(rx10);
+  double rx25=rx6*(-(*ka)*A1lastka-A1last);
+  A1ka=-(*r1)/rx7+rx21/rx7-rx25/(*ka)+rx24/(*ka);
+  double rx8=(*ka)*A1lastr1;
+  double rx13=1-rx8;
+  A1r1=-rx6*(rx13)/(*ka)+1.0/(*ka);
+  A1b1=1+rx6*A1lastb1;
+  double rx0=(*r1)+(*r2);
+  double rx1=(*r1)*(*ka);
+  double rx2=(*ka)*(*k20);
+  double rx9=exp(-(*t)*(*k20));
+  double rx12=(*r2)*(-(*k20)+(*ka));
+  double rx14=(((*k20))*((*k20)));
+  double rx15=rx2*A1last;
+  double rx18=rx1+rx12;
+  double rx19=rx14*A2last;
+  double rx20=rx2-rx14;
+  A2=(*b2)+(rx0)/(*k20)-(rx18+rx9*(-A2last+rx19-rx15))/(rx20)+rx21/(-(*k20)+(*ka));
+  double rx22=(((-(*k20)+(*ka)))*((-(*k20)+(*ka))));
+  double rx26=rx19-rx15;
+  double rx27=rx26-A2last;
+  double rx29=rx21/rx22;
+  double rx30=rx9*(rx27);
+  double rx31=rx18+rx30;
+  A2ka=-(rx0+rx9*(-(*k20)*A1last+rx14*A2lastka-rx2*A1lastka-A2lastka))/(rx20)+(*k20)*(rx31)/(((rx20))*((rx20)))-rx29+rx25/(-(*k20)+(*ka))-rx24/(-(*k20)+(*ka));
+  double rx3=rx2*0;
+  double rx16=rx6*(*ka);
+  double rx17=rx16*0;
+  double rx23=rx17/(-(*k20)+(*ka));
+  A2k20=-(rx0)/rx14-(-(*r2)+rx9*(2*(*k20)*A2last+rx14*A2lastk20-rx5-rx3-A2lastk20)-(*t)*rx9*(rx27))/(rx20)+(-2*(*k20)+(*ka))*(rx31)/(((rx20))*((rx20)))+rx29-rx23;
+  double rx4=1.0/(*k20);
+  A2r1=-((*ka)+rx9*(rx14*A2lastr1-rx2*A1lastr1-A2lastr1))/(rx20)+rx6*(rx13)/(-(*k20)+(*ka))+rx4;
+  A2b1=-rx9*(rx14*A2lastb1-rx2*A1lastb1-A2lastb1)/(rx20)-rx16*A1lastb1/(-(*k20)+(*ka));
+  A2r2=-(-(*k20)+(*ka)+rx9*(rx14*A2lastr2-rx3-A2lastr2))/(rx20)-rx23+rx4;
+  A2b2=1-rx9*(rx14*A2lastb2-rx3-A2lastb2)/(rx20)-rx23;
+#undef A1ka
+#undef A1r1
+#undef A1b1
+#undef A2ka
+#undef A2k20
+#undef A2r1
+#undef A2b1
+#undef A2r2
+#undef A2b2
+#undef A1lastka
+#undef A1lastr1
+#undef A1lastb1
+#undef A2lastka
+#undef A2lastk20
+#undef A2lastr1
+#undef A2lastb1
+#undef A2lastr2
+#undef A2lastb2
 }
 
 /*
@@ -678,13 +932,91 @@ static inline void oneCmtKaSSb1(double *A, double *tau,
   A2=(*ka)*(*b1)*(eK - eKa)/(-(*k20) + (*ka));
 }
 
+static inline void oneCmtKaSSb1D(double *A, double *tau, double *b1, double *ka, double *k20) {
+#define A1ka A[2]
+#define A1r1 A[3]
+#define A1b1 A[4]
+#define A2ka A[5]
+#define A2k20 A[6]
+#define A2r1 A[7]
+#define A2b1 A[8]
+#define A2r2 A[9]
+#define A2b2 A[10]
+  double rx1=exp(-(*ka)*(*tau));
+  double rx3=1-rx1;
+  A1=1*(*b1)/(rx3);
+  A1ka=-1*rx1*(*b1)*(*tau)/(((rx3))*((rx3)));
+  A1r1=0;
+  A1b1=1/(rx3);
+  double rx0=(*ka)*(*b1);
+  double rx2=exp(-(*tau)*(*k20));
+  double rx4=1-rx2;
+  double rx5=1.0/(rx3);
+  double rx6=1.0/(rx4);
+  double rx7=1*rx6;
+  double rx10=rx0*(-1*rx5+rx7);
+  A2=rx10/(-(*k20)+(*ka));
+  double rx8=(((-(*k20)+(*ka)))*((-(*k20)+(*ka))));
+  double rx11=rx10/rx8;
+  A2ka=(*b1)*(-1*rx5+rx7)/(-(*k20)+(*ka))-rx11+1*rx1*(*ka)*(*b1)*(*tau)/((-(*k20)+(*ka))*(((rx3))*((rx3))));
+  A2k20=rx11-1*rx2*(*ka)*(*b1)*(*tau)/((-(*k20)+(*ka))*(((rx4))*((rx4))));
+  A2r1=0;
+  A2b1=(*ka)*(-1*rx5+rx7)/(-(*k20)+(*ka));
+  A2r2=0;
+  A2b2=0;
+#undef A1ka
+#undef A1r1
+#undef A1b1
+#undef A2ka
+#undef A2k20
+#undef A2r1
+#undef A2b1
+#undef A2r2
+#undef A2b2
+}
+
 static inline void oneCmtKaSSb2(double *A, double *tau,
 				double *b2, double *ka, double *k20) {
-  /* double eKa = 1.0/(exp(-(*tau)*(*ka))+1.0); */
   double eK =  1.0/(1.0-exp(-(*tau)*(*k20)));
   A1=0.0;
   A2=eK*(*b2);
 }
+
+static inline void oneCmtKaSSb2D(double *A, double *tau, double *b2, double *ka, double *k20) {
+#define A1ka A[2]
+#define A1r1 A[3]
+#define A1b1 A[4]
+#define A2ka A[5]
+#define A2k20 A[6]
+#define A2r1 A[7]
+#define A2b1 A[8]
+#define A2r2 A[9]
+#define A2b2 A[10]
+A1=0;
+A1ka=0;
+A1r1=0;
+A1b1=0;
+double rx0=exp(-(*tau)*(*k20));
+double rx1=1-rx0;
+A2=1*(*b2)/(rx1);
+A2ka=0;
+A2k20=-1*rx0*(*b2)*(*tau)/(((rx1))*((rx1)));
+A2r1=0;
+A2b1=0;
+A2r2=0;
+A2b2=1/(rx1);
+#undef A1ka
+#undef A1r1
+#undef A1b1
+#undef A2ka
+#undef A2k20
+#undef A2r1
+#undef A2b1
+#undef A2r2
+#undef A2b2
+}
+
+
 static inline void oneCmtKa(double *A, double *Alast,
 			    double *t, double *b1, double *b2,
 			    double *ka, double *k20) {
@@ -692,6 +1024,67 @@ static inline void oneCmtKa(double *A, double *Alast,
   A1=A1last*rx_expr_0+(*b1);
   double rx_expr_1=exp(-(*t)*(*k20));
   A2=A1last*(*ka)/((*ka)-(*k20))*(rx_expr_1-rx_expr_0)+A2last*rx_expr_1+(*b2);
+}
+
+static inline void oneCmtKaD(double *A, double *Alast, double *t, double *b1, double *b2, double *ka, double *k20) {
+#define A1ka A[2]
+#define A1r1 A[3]
+#define A1b1 A[4]
+#define A2ka A[5]
+#define A2k20 A[6]
+#define A2r1 A[7]
+#define A2b1 A[8]
+#define A2r2 A[9]
+#define A2b2 A[10]
+#define A1lastka Alast[2]
+#define A1lastr1 Alast[3]
+#define A1lastb1 Alast[4]
+#define A2lastka Alast[5]
+#define A2lastk20 Alast[6]
+#define A2lastr1 Alast[7]
+#define A2lastb1 Alast[8]
+#define A2lastr2 Alast[9]
+#define A2lastb2 Alast[10]
+  double rx0=exp(-(*t)*(*ka));
+  A1=(*b1)+rx0*A1last;
+  double rx2=(*t)*rx0;
+  A1ka=rx0*A1lastka-rx2*A1last;
+  A1r1=rx0*A1lastr1;
+  A1b1=1+rx0*A1lastb1;
+  double rx1=exp(-(*t)*(*k20));
+  double rx4=rx1-rx0;
+  double rx6=(*ka)*(rx4);
+  double rx8=rx6*A1last;
+  A2=(*b2)+rx1*A2last+rx8/(-(*k20)+(*ka));
+  double rx5=(((-(*k20)+(*ka)))*((-(*k20)+(*ka))));
+  double rx10=rx8/rx5;
+  A2ka=rx1*A2lastka+(rx4)*A1last/(-(*k20)+(*ka))-rx10+rx6*A1lastka/(-(*k20)+(*ka))+rx2*(*ka)*A1last/(-(*k20)+(*ka));
+  double rx3=(*t)*rx1;
+  double rx7=rx6*0;
+  double rx9=rx7/(-(*k20)+(*ka));
+  A2k20=rx1*A2lastk20-rx3*A2last+rx10+rx9-rx3*(*ka)*A1last/(-(*k20)+(*ka));
+  A2r1=rx1*A2lastr1+rx6*A1lastr1/(-(*k20)+(*ka));
+  A2b1=rx1*A2lastb1+rx6*A1lastb1/(-(*k20)+(*ka));
+  A2r2=rx1*A2lastr2+rx9;
+  A2b2=1+rx1*A2lastb2+rx9;
+#undef A1ka
+#undef A1r1
+#undef A1b1
+#undef A2ka
+#undef A2k20
+#undef A2r1
+#undef A2b1
+#undef A2r2
+#undef A2b2
+#undef A1lastka
+#undef A1lastr1
+#undef A1lastb1
+#undef A2lastka
+#undef A2lastk20
+#undef A2lastr1
+#undef A2lastb1
+#undef A2lastr2
+#undef A2lastb2
 }
 
 static inline void twoCmtKaSSb1(double *A, double *tau, double *b1,
@@ -928,10 +1321,44 @@ static inline void oneCmtRateSSr1(double *A, double *r1, double *k10) {
   A1 = (*r1)/(*k10);
 }
 
+static inline void oneCmtRateSSr1D(double *A, double *r1, double *k10) {
+#define A1k10 A[1]
+#define A1r1 A[2]
+#define A1b1 A[3]
+  A1=(*r1)/(*k10);
+  A1k10=-(*r1)/((*k10)*(*k10));
+  A1r1=1.0/(*k10);
+  A1b1=0.0;
+#undef A1k10
+#undef A1r1
+#undef A1b1
+}
+
 static inline void oneCmtRateSS(double *A, double *tinf, double *tau, double *r1, double *k10) {
   double eiK = exp(-(*k10)*(*tinf));
   double eK = exp(-(*k10)*((*tau)-(*tinf)))/(1.0-exp(-(*k10)*(*tau)));
   A1=(*r1)*(1-eiK)*eK/((*k10));
+}
+
+static inline void oneCmtRateSSD(double *A, double *tinf, double *tau, double *r1, double *k10) {
+#define A1k10 A[1]
+#define A1r1 A[2]
+#define A1b1 A[3]
+  double rx0=(*tau)-(*tinf);
+  double rx1=exp(-(*tau)*(*k10));
+  double rx2=exp(-(*k10)*(*tinf));
+  double rx3=1-rx1;
+  double rx4=1-rx2;
+  double rx5=exp(-(*k10)*(rx0));
+  double rx6=(*k10)*(rx3);
+  double rx7=rx5*(*r1);
+  A1=rx7*(rx4)/(rx6);
+  A1k10=-rx5*(*r1)*(rx4)/((((*k10))*((*k10)))*(rx3))+exp(-(*k10)*(*tinf)-(*k10)*(rx0))*(*r1)*(*tinf)/(rx6)-rx7*(rx0)*(rx4)/(rx6)-exp(-(*k10)*(rx0)-(*tau)*(*k10))*(*r1)*(*tau)*(rx4)/((*k10)*(((rx3))*((rx3))));
+  A1r1=rx5*(rx4)/(rx6);
+  A1b1=0;
+#undef A1k10
+#undef A1r1
+#undef A1b1
 }
 
 static inline void oneCmtRate(double *A, double *Alast, 
@@ -942,6 +1369,28 @@ static inline void oneCmtRate(double *A, double *Alast,
   A1 = (*r1)/(*k10)*(1-eT)+A1last*eT + (*b1);
 }
 
+static inline void oneCmtRateD(double *A, double *Alast, double *t, double *b1, double *r1, double *k10) {
+#define A1k10 A[1]
+#define A1r1 A[2]
+#define A1b1 A[3]
+#define A1lastk10 Alast[1]
+#define A1lastr1 Alast[2]
+#define A1lastb1 Alast[3]
+  double rx0=exp(-(*t)*(*k10));
+  double rx1=1-rx0;
+  double rx3=(*r1)*(rx1);
+  A1=(*b1)+rx0*A1last+rx3/(*k10);
+  double rx2=(*t)*rx0;
+  A1k10=rx0*A1lastk10-rx3/(((*k10))*((*k10)))-rx2*A1last+rx2*(*r1)/(*k10);
+  A1r1=(rx1)/(*k10)+rx0*A1lastr1;
+  A1b1=1+rx0*A1lastb1;
+#undef A1k10
+#undef A1r1
+#undef A1b1
+#undef A1lastk10
+#undef A1lastr1
+#undef A1lastb1
+}
 static inline void twoCmtRateSSr1(double *A, double *r1,
 				  double *k10, double *k12, double *k21) {
   double E1 = (*k10)+(*k12);
@@ -1168,9 +1617,45 @@ static inline void oneCmtBolusSS(double *A, double *tau,
   double eT = 1.0/(1.0-exp(-(*k10)*(*tau)));
   A1 = (*b1)*eT;
 }
+
+static inline void oneCmtBolusSSD(double *A, double *tau, double *b1, double *k10) {
+#define A1k10 A[1]
+#define A1r1 A[2]
+#define A1b1 A[3]
+  double rx0=exp(-(*tau)*(*k10));
+  double rx1=1-rx0;
+  A1=(*b1)/(rx1);
+  A1k10=-rx0*(*b1)*(*tau)/(((rx1))*((rx1)));
+  A1r1=0;
+  A1b1=1/(rx1);
+#undef A1k10
+#undef A1r1
+#undef A1b1
+}
+
 static inline void oneCmtBolus(double *A, double *Alast, 
 			       double *t, double *b1, double *k10) {
   A1 = A1last*exp(-(*k10)*(*t)) + (*b1);
+}
+
+static inline void oneCmtBolusD(double *A, double *Alast, double *t, double *b1, double *k10) {
+#define A1k10 A[1]
+#define A1r1 A[2]
+#define A1b1 A[3]
+#define A1lastk10 Alast[1]
+#define A1lastr1 Alast[2]
+#define A1lastb1 Alast[3]
+  double rx0=exp(-(*t)*(*k10));
+  A1=(*b1)+rx0*A1last;
+  A1k10=rx0*A1lastk10-(*t)*rx0*A1last;
+  A1r1=rx0*A1lastr1;
+  A1b1=1+rx0*A1lastb1;
+#undef A1k10
+#undef A1r1
+#undef A1b1
+#undef A1lastk10
+#undef A1lastr1
+#undef A1lastb1
 }
 
 static inline void twoCmtBolusSS(double *A,

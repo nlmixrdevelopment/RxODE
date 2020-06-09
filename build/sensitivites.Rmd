@@ -12,6 +12,8 @@ toC <- function(x) {
   extra <- paste0("(",paste(get(".args", globalenv()), collapse = ","),")")
   funReg2 <- rex::rex(capture(funReg),"(",except_any_of(")"),")")
   derReg <- rex::rex("Derivative(",capture("A",or(1:4), "last"), ",",any_spaces, capture(except_any_of(")")), ")")
+  derReg2 <- rex::rex("Derivative(",capture("A1last"), ",",any_spaces, 
+                      capture(or(c("b2","r2","k20"))), ")")
   rep <- paste0("\\1",extra)
   doIt <- function(extra=TRUE) {
     ret <- sapply(c("A1","A2","A3","A4"), function(var) {
@@ -27,6 +29,7 @@ toC <- function(x) {
                       }
                       .d <- D(S(.var2),extra)
                       .d <- gsub(funReg2, "\\1", .d)
+                      .d <- gsub(derReg2, "0", .d, perl=TRUE)
                       .d <- gsub(derReg, "\\1\\2", .d, perl=TRUE)
                       paste0(var,extra,"=",.d)
                     }))
@@ -48,24 +51,101 @@ toC <- function(x) {
   modB <- finalC(rxOptExpr(modB))
   modA <- finalC(rxOptExpr(modA))
   message("linCmtA model (opt):\n")
+  message(get(".fA", globalenv()))
   message(modA)
+  message("}")
   message("\nlinCmtB model (opt):\n")
+  message(get(".fB", globalenv()))
+  options(RxODE.syntax.allow.ini=FALSE)
+  .lhs <- rxModelVars(get(".modB", globalenv()))$lhs
+  options(RxODE.syntax.allow.ini=TRUE)
+  .i <- 0
+  for (.a in paste0("A", 1:4)){
+    if (any(.a == .lhs)){
+      .i <- .i + 1;
+      .lhs <- .lhs[.lhs != .a]
+    }
+  }
+  message(paste(paste0("#define ", .lhs, " A[", seq_along(.lhs) - 1 + .i, "]"), collapse="\n"))
+  if (get(".hasAlast", globalenv())) {
+    message(paste(paste0("#define ", gsub("A([1-4])","A\\1last",.lhs), " Alast[", seq_along(.lhs) - 1 + .i, "]"), collapse="\n"))
+  }
   message(modB)
+  message(paste(paste0("#undef ", .lhs), collapse="\n"))
+  if (get(".hasAlast", globalenv())) {
+    message(paste(paste0("#undef ", gsub("A([1-4])","A\\1last",.lhs)), collapse="\n"))
+  }
+  message("}")
   return(invisible(NULL))
 }
 
 finalC <- function(x){
-  paste0(paste(strsplit(gsub("rx([0-9]+)=","double rx\\1=",gsub("rx_expr_","rx", gsub("~","=",gsub("([A][A-Za-z0-9]*)=","*\\1=",gsub("\\b(k[1-4][0-4]|ka|[rb][1-2]|tau|tinf|t|A[1-4]last(|ka|k20|k10|r[1-2|b[1-2])|A[1-4]k[1-4][0-4]last)\\b","(*\\1)", x),perl=TRUE)))),"\n")[[1]],collapse=";\n"),";")
+  paste0(paste(strsplit(gsub("rx([0-9]+)=","double rx\\1=",gsub("rx_expr_","rx", gsub("~","=",gsub("\\b(k[1-4][0-4]|ka|[rb][1-2]|tau|tinf|t)\\b","(*\\1)", x),perl=TRUE))),"\n")[[1]],collapse=";\n"),";")
 }
 
-.fun <- c("eT","A1last")
+.fun <- c("A1last", "A2last", "A3last", "A4last")
 .args <- c("k10")
 
+.fA <- ""
+.fB <- ""
+
+
 fromC <- function(x) {
-       gsub(" *[*]([^=\n]*)=","\\1=",gsub("double ","",gsub("[(][*]([^*]+)[)]","\\1", x)), perl=TRUE)
+  gsub(" *[*]([^=\n]*)=","\\1=",gsub("double ","",gsub("[(][*]([^*]+)[)]","\\1", x)), perl=TRUE)
 }
+
+.lines <- readLines(devtools::package_file("src/lincmt.c"))
+
+getFun <- function(x="oneCmtKaRateSSr1"){
+  .w <- which(regexpr(paste0("void ", x, " *[(]"), .lines) != -1)[1]
+  .l <- .lines[-seq(1, .w - 1)];
+  .w <- which(regexpr("}", .l) != -1)[1]
+  .l <- .l[seq(1, .w)]
+  .l <- gsub("\t", " ", .l)
+  while (length(grep("[{]", .l[1])) == 0L) {
+    .l[2] <- paste(.l[1:2], collapse=" ")
+    .l <- .l[-1]
+  }
+  .args <- strsplit(gsub(",", " ", gsub("double *[*]", " ", gsub(".*[(]([^)]*)[)].*", "\\1", .l[1]))), " +")[[1]]
+  .args <- .args[.args != ""]
+  .args <- .args[.args != "A"]
+  .hasAlast <- any(.args == "Alast")
+  .args <- .args[.args != "Alast"]
+  .args2 <- .args[.args != "tinf"]
+  .args2 <- .args2[.args2 != "tau"]
+  .args2 <- .args2[.args2 != "r1"]
+  .args2 <- .args2[.args2 != "r2"]
+  .args2 <- .args2[.args2 != "b1"]
+  .args2 <- .args2[.args2 != "b2"]
+  .args2 <- .args2[.args2 != "t"]
+  if (any(.args2 == "ka")){
+      .args2 <- c(.args2, c("r1", "b1", "r2", "b2"))
+  } else {
+      .args2 <- c(.args2, c("r1", "b1"))
+  }
+  
+  assign(".args", .args2, globalenv())
+  .l <- .l[-1]
+  .l <- paste(.l[-length(.l)], collapse="\n");
+  .l <- fromC(.l)
+  assign(".hasAlast", .hasAlast, globalenv());
+  if (.hasAlast){
+    .fargs <- c("A", "Alast", .args)
+  } else {
+    .fargs <- c("A", .args)
+  }
+  .fargs <- paste0("(double *", paste(.fargs, collapse=", double *"), ")")
+  .fA <- paste0("static inline void ", x, .fargs, " {")
+  .fB <- paste0("static inline void ", x, "D", .fargs, " {")
+  assign(".fA", .fA, globalenv())
+  assign(".fB", .fB, globalenv())
+  toC(.l)
+  return(invisible(NULL))
+}
+
 library(symengine)
 library(RxODE)
+##devtools::load_all()
 ```
 
 # One Compartment Sensitivities
@@ -74,118 +154,79 @@ library(RxODE)
 
 
 ```{r}
-toC(fromC("*A1=(*r1)/(*k10)"))
+getFun("oneCmtRateSSr1")
 ```
 
 ## One compartment steady state infusion (Infusion Tau)
 
 ```{r}
-
-.fun <- c("A1last")
-.args <- c("k10", "b1", "r1")
-
-message(toC(fromC("
-  double eiK = exp(-(*k10)*(*tinf));
-  double eK = exp(-(*k10)*((*tau)-(*tinf)))/(1.0-exp(-(*k10)*(*tau)));
-  *A1=(*r1)*(1-eiK)*eK/((*k10));
-                  ")))
+getFun("oneCmtRateSS")
 ```
 
 ## One compartment with during infusion
 
 ```{r}
-
-.fun <- c("A1last")
-.args <- c("k10", "b1", "r1")
-toC(fromC("  double eT = exp(-(*k10)*(*t));
-  *A1 = (*r1)/(*k10)*(1-eT)+(*A1last)*eT + (*b1);"))
-
+getFun("oneCmtRate")
 ```
 
 ## One Compartment Steady State (tau)
 
 
 ```{r}
-toC(fromC("
-  double eT = 1.0/(1.0-exp(-(*k10)*(*tau)));
-  *A1 = (*b1)*eT;"))
+getFun("oneCmtBolusSS")
 ```
 
 ## One Compartment Model (IV bolus)
 
 ```{r}
-toC(fromC("  *A1 = (*A1last)*exp(-(*k10)*(*t)) + (*b1);"))
+getFun("oneCmtBolus")
 ```
 
 ## One Compartment Oral Steady state Rate
 
 ```{r}
-.fun <- c("A1last","A2last")
-.args <- c("ka", "k20", "b1", "r1", "b2", "r2")
-
-toC(fromC("  *A1 = (*r1)/(*ka);
-  *A2 = (*r1)/(*k20);"))
-
-message("\n\nr2:\n\n")
-
-toC(fromC("  *A1 = 0;
-  *A2 = (*r2)/(*k20);"))
+getFun("oneCmtKaRateSSr1")
 ```
 
 ## One compartment Oral Steady State Rate -- depot (tau rate)
 
 ```{r}
-
-toC(fromC("double eKa = exp(-(*ka)*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*(*ka)));
-  double eiKa = exp(-(*ka)*(*tinf));
-  double eiK = exp(-(*k20)*(*tinf));
-  double eK = exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*(*k20)));
-  *A1=eKa*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
-  *A2=eK*((*r1)/(*k20) + eiKa*(*r1)/(-(*k20) + (*ka)) - eiK*(*r1)*(*ka)/((*ka)*(*k20) - (*k20)*(*k20))) + (*ka)*(eK - eKa)*((*r1)/(*ka) - eiKa*(*r1)/(*ka))/(-(*k20) + (*ka));"))
+getFun("oneCmtKaRateSSr2")
 ```
 
+
+## One compartment Oral Steady State Rate -- depot (tau rate)
+
+```{r}
+getFun("oneCmtKaRateSStr1")
+```
 
 ## One compartment Oral Steady State Rate -- central (tau rate)
 
 ```{r}
-toC(fromC("  double eiK = exp(-(*k20)*(*tinf));
-  double eK = exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*k20)*(*tau)));
-  *A1=0.0;
-  *A2=eK*((*r2)/(*k20) - eiK*(*r2)*(-(*k20) + (*ka))/((*ka)*(*k20) - (*k20)*(*k20)));"))
+getFun("oneCmtKaRateSStr2")
 ```
 
 ## One compartment Oral with Rates
 
 ```{r}
-toC(fromC("double eKa = exp(-(*ka)*(*t));
-  double e20 = exp(-(*k20)*(*t));
-  *A1 = (*r1)/(*ka)-(((*r1)-(*A1last)*(*ka))*eKa)/(*ka) + (*b1);
-  *A2 = (((*r1)-(*A1last)*(*ka))*eKa)/((*ka)-(*k20)) - ((((*ka)-(*k20))*(*r2)+(*ka)*(*r1)+(-(*A2last)-(*A1last))*(*k20)*(*ka)+(*A2last)*(*k20)*(*k20))*e20)/((*k20)*(*ka)-(*k20)*(*k20))+ ((*r2)+(*r1))/(*k20) + (*b2);"))
+getFun("oneCmtKaRate")
 ```
 
 ## One Compartment Oral Ka Steady state bolus #1 senstivities
 
 ```{r}
-.fun <- c("eKa", "eK", "A1last", "A2last")
-.args <- c("ka", "k20")
-
-message("double eKad=",toC(D(S(fromC("1.0/(1.0-exp(-(*tau)*(*ka)))")),"ka")))
-message("double eKd=", toC(D(S(fromC("1.0/(1.0-exp(-(*tau)*(*k20)))")),"k20")))
-message("*A1ka=",toC(D(S(fromC("eKa*(*b1)")), "ka")))
-A2 <- "(*ka)*(*b1)*(eK - eKa)/(-(*k20) + (*ka))"
-message("*A2ka=",toC(D(S(fromC(A2)), "ka")))
-message("*A2k20=",toC(D(S(fromC(A2)), "k20")))
+getFun("oneCmtKaSSb1")
 ```
 
 ## One Compartment Oral Ka Steady State Bolus #2 Senstivities
 
 ```{r}
-.fun <- c("eKa", "eK", "A1last", "A2last")
-.args <- c("ka", "k20")
+getFun("oneCmtKaSSb2")
+```
 
-message("double eKd=", toC(D(S(fromC("1.0/(1.0-exp(-(*tau)*(*k20)))")),"k20")))
-A2 <- "eK*(*b2)"
-message("*A2ka=",toC(D(S(fromC(A2)), "ka")))
-message("*A2k20=",toC(D(S(fromC(A2)), "k20")))
+## One Compartment Oral
 
+```{r}
+getFun("oneCmtKa")
 ```
