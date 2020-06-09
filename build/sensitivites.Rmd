@@ -7,56 +7,62 @@ output: html_notebook
 
 ```{r}
 toC <- function(x) {
-  .one <- c("eiK(k10)"="eiK",
-            "ka^2"="ka2",
-            "k20^2"="k202",
-            "eK(k10)"="eK",
-            "eT(k10)"="eT",
-            "eK(ka, k20)"="eK",
-            "Derivative(eK, ka)"="eKd",
-            "Derivative(eK, k20)"="0",
-            "e20(ka, k20)"="e20",
-            "Derivative(e20, ka)"="0",
-            "Derivative(e20, k20)"="e20d",
-            "eiK(ka, k20)"="eiK",
-            "Derivative(eiK, k20)"="eiKd",
-            "Derivative(eiK, ka)"="0",
-            "eKa(ka, k20)"="eKa",
-            "Derivative(eKa, ka)"="eKad",
-            "Derivative(eKa, k20)"="0",
-            "eiKa(ka, k20)"="eiKa",
-            "Derivative(eiKa, ka)"="eiKad",
-            "Derivative(eiKa, k20)"="0",
-            "A1last(k10)"="A1last",
-            "A1last(ka, k20)"="A1last",
-            "A2last(ka, k20)"="A2last",
-            "Derivative(eK, k10)"="eKd",
-            "Derivative(eiK, k10)"="eiKd",
-            "Derivative(eT, k10)"="eTd",
-            "Derivative(A1last, k10)"="A1k10last",
-            "Derivative(A1last, ka)"="A1kalast",
-            "Derivative(A2last, ka)"="A2kalast",
-            "Derivative(A2last, k20)"="A2k20last",
-            "Derivative(A1last, k20)"="0")
-  .ret <- x
-  .n <- names(.one)
-  .v <- setNames(.one, NULL)
-  for (i in seq_along(.n)) {
-    .ret <- gsub(.n[i], .v[i], .ret, fixed = TRUE)
+  s <- rxS(x)
+  funReg <- rex::rex(capture(or(get(".fun",globalenv()))))
+  extra <- paste0("(",paste(get(".args", globalenv()), collapse = ","),")")
+  funReg2 <- rex::rex(capture(funReg),"(",except_any_of(")"),")")
+  derReg <- rex::rex("Derivative(",capture("A",or(1:4), "last"), ",",any_spaces, capture(except_any_of(")")), ")")
+  rep <- paste0("\\1",extra)
+  doIt <- function(extra=TRUE) {
+    ret <- sapply(c("A1","A2","A3","A4"), function(var) {
+      .var <- s[[var]]
+      if (!is.null(.var)) {
+        .var <- as.character(.var)
+        if (extra) {
+          .var2 <- gsub(funReg, rep, .var)
+          .tmp <- c(paste0(var,"=", .var),
+                    sapply(get(".args", globalenv()),function(extra){
+                      if (var == "A1" && any(extra == c("k20","r2","b2"))){
+                        return(NULL)
+                      }
+                      .d <- D(S(.var2),extra)
+                      .d <- gsub(funReg2, "\\1", .d)
+                      .d <- gsub(derReg, "\\1\\2", .d, perl=TRUE)
+                      paste0(var,extra,"=",.d)
+                    }))
+          .tmp <- .tmp[.tmp != "NULL"]
+          paste(.tmp,collapse="\n")
+        } else {
+          paste0(var,"=",.var)
+        }
+      } else {
+        NULL
+      }
+    })
+    return(unlist(ret))
   }
-  gsub("\\b(k[1-4][0-4]|ka|[rb][1-2]|tau|tinf|t|A[1-4](|ka|k20|k10)last|A[1-4]k[1-4][0-4]last)\\b", 
-       "(*\\1)", as.character(S(.ret)), perl=TRUE)
+  modB <- paste(doIt(TRUE), collapse="\n")
+  modA <- paste(doIt(FALSE), collapse="\n")
+  assign(".modA", modA, globalenv())
+  assign(".modB", modB, globalenv())
+  modB <- finalC(rxOptExpr(modB))
+  modA <- finalC(rxOptExpr(modA))
+  message("linCmtA model (opt):\n")
+  message(modA)
+  message("\nlinCmtB model (opt):\n")
+  message(modB)
+  return(invisible(NULL))
+}
+
+finalC <- function(x){
+  paste0(paste(strsplit(gsub("rx([0-9]+)=","double rx\\1=",gsub("rx_expr_","rx", gsub("~","=",gsub("([A][A-Za-z0-9]*)=","*\\1=",gsub("\\b(k[1-4][0-4]|ka|[rb][1-2]|tau|tinf|t|A[1-4]last(|ka|k20|k10|r[1-2|b[1-2])|A[1-4]k[1-4][0-4]last)\\b","(*\\1)", x),perl=TRUE)))),"\n")[[1]],collapse=";\n"),";")
 }
 
 .fun <- c("eT","A1last")
 .args <- c("k10")
 
-fromC <- function(x,functions=get(".fun",globalenv()),
-                  args=get(".args", globalenv())) {
-  funReg <- rex::rex(capture(or(functions)))
-  extra <- paste0("(",paste(args, collapse = ","),")")
-  rep <- paste0("\\1",extra)
-  gsub(funReg, rep, gsub("[(][*]([^*]+)[)]","\\1", x))
+fromC <- function(x) {
+       gsub(" *[*]([^=\n]*)=","\\1=",gsub("double ","",gsub("[(][*]([^*]+)[)]","\\1", x)), perl=TRUE)
 }
 library(symengine)
 library(RxODE)
@@ -68,81 +74,118 @@ library(RxODE)
 
 
 ```{r}
-D(S("r1/k10"),"k10")
-
+toC(fromC("*A1=(*r1)/(*k10)"))
 ```
 
 ## One compartment steady state infusion (Infusion Tau)
 
 ```{r}
-message("eiKd=", toC(D(S("exp(-k10*tinf)"), "k10")))
-message("eKd=", toC(D(S("exp(-k10*(tau-tinf))/(1+exp(k10*tau))"), "k10")))
-message("A1k10=",toC(D(S("(r1)*(1-eiK(k10))*eK(k10)/(k10)"), "k10")))
+
+.fun <- c("A1last")
+.args <- c("k10", "b1", "r1")
+
+message(toC(fromC("
+  double eiK = exp(-(*k10)*(*tinf));
+  double eK = exp(-(*k10)*((*tau)-(*tinf)))/(1.0-exp(-(*k10)*(*tau)));
+  *A1=(*r1)*(1-eiK)*eK/((*k10));
+                  ")))
 ```
 
 ## One compartment with during infusion
 
 ```{r}
-message("eTd=", toC(D(S("exp(k10*t)"), "k10")))
 
-message("*A1k10=",toC(D(S(fromC("(*r1)/(*k10)*(1-eT)+(*A1last)*eT + (*b1)")),"k10")))
+.fun <- c("A1last")
+.args <- c("k10", "b1", "r1")
+toC(fromC("  double eT = exp(-(*k10)*(*t));
+  *A1 = (*r1)/(*k10)*(1-eT)+(*A1last)*eT + (*b1);"))
+
 ```
 
 ## One Compartment Steady State (tau)
 
 
 ```{r}
-message("eTd=",toC(D(S(fromC("1.0/(1.0-exp(-(*k10)*(*tau)))")),"k10")))
-message("*A1k10=",toC(D(S(fromC("(*b1)*eT")),"k10")))
+toC(fromC("
+  double eT = 1.0/(1.0-exp(-(*k10)*(*tau)));
+  *A1 = (*b1)*eT;"))
 ```
 
 ## One Compartment Model (IV bolus)
 
 ```{r}
-message("*A1k10=",toC(D(S(fromC("(*A1last)*exp(-(*k10)*(*t)) + (*b1)")), "k10")))
+toC(fromC("  *A1 = (*A1last)*exp(-(*k10)*(*t)) + (*b1);"))
 ```
 
 ## One Compartment Oral Steady state Rate
 
 ```{r}
-message("*A1ka=",toC(D(S(fromC("(*r1)/(*ka)")),"ka")))
-message("*A2k20=",toC(D(S(fromC("(*r1)/(*k20)")),"k20")))
+.fun <- c("A1last","A2last")
+.args <- c("ka", "k20", "b1", "r1", "b2", "r2")
+
+toC(fromC("  *A1 = (*r1)/(*ka);
+  *A2 = (*r1)/(*k20);"))
+
+message("\n\nr2:\n\n")
+
+toC(fromC("  *A1 = 0;
+  *A2 = (*r2)/(*k20);"))
 ```
 
 ## One compartment Oral Steady State Rate -- depot (tau rate)
 
 ```{r}
-.fun <- c("eKa", "eiKa", "eiK", "eK", "A1last", "A2last")
-.args <- c("ka", "k20")
-message("eKad=",toC(D(S(fromC("exp(-(*ka)*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*(*ka)))")),"ka")))
 
-message("eiKad=",toC(D(S(fromC("exp(-(*ka)*(*tinf))")),"ka")))
-message("eiKd=",toC(D(S(fromC("exp(-(*k20)*(*tinf))")),"k20")))
-message("eKd=", toC(D(S(fromC("exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*(*k20)))")),"k20")))
-message("*A1ka=",toC(D(S(fromC("eKa*((*r1)/(*ka) - eiKa*(*r1)/(*ka))")),"ka")))
-message("*A2ka=",toC(D(S(fromC("eK*((*r1)/(*k20) + eiKa*(*r1)/(-(*k20) + (*ka)) - eiK*(*r1)*(*ka)/((*ka)*(*k20) - (*k20)*(*k20))) + (*ka)*(eK - eKa)*((*r1)/(*ka) - eiKa*(*r1)/(*ka))/(-(*k20) + (*ka))")),"ka")))
-message("*A2k20=",toC(D(S(fromC("eK*((*r1)/(*k20) + eiKa*(*r1)/(-(*k20) + (*ka)) - eiK*(*r1)*(*ka)/((*ka)*(*k20) - (*k20)*(*k20))) + (*ka)*(eK - eKa)*((*r1)/(*ka) - eiKa*(*r1)/(*ka))/(-(*k20) + (*ka))")),"k20")))
+toC(fromC("double eKa = exp(-(*ka)*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*(*ka)));
+  double eiKa = exp(-(*ka)*(*tinf));
+  double eiK = exp(-(*k20)*(*tinf));
+  double eK = exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*(*k20)));
+  *A1=eKa*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
+  *A2=eK*((*r1)/(*k20) + eiKa*(*r1)/(-(*k20) + (*ka)) - eiK*(*r1)*(*ka)/((*ka)*(*k20) - (*k20)*(*k20))) + (*ka)*(eK - eKa)*((*r1)/(*ka) - eiKa*(*r1)/(*ka))/(-(*k20) + (*ka));"))
 ```
 
 
 ## One compartment Oral Steady State Rate -- central (tau rate)
 
 ```{r}
-.fun <- c("eKa", "eiKa", "eiK", "eK", "A1last", "A2last")
-.args <- c("ka", "k20")
-A2 <- "eK*((*r2)/(*k20) - eiK*(*r2)*(-(*k20) + (*ka))/((*ka)*(*k20) - (*k20)*(*k20)))";
-message("*A2ka=",toC(D(S(fromC(A2)),"ka")))
-message("*A2k20=",toC(D(S(fromC(A2)),"k20")))
+toC(fromC("  double eiK = exp(-(*k20)*(*tinf));
+  double eK = exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*k20)*(*tau)));
+  *A1=0.0;
+  *A2=eK*((*r2)/(*k20) - eiK*(*r2)*(-(*k20) + (*ka))/((*ka)*(*k20) - (*k20)*(*k20)));"))
 ```
 
 ## One compartment Oral with Rates
 
 ```{r}
-.fun <- c("eKa", "e20", "A1last", "A2last")
+toC(fromC("double eKa = exp(-(*ka)*(*t));
+  double e20 = exp(-(*k20)*(*t));
+  *A1 = (*r1)/(*ka)-(((*r1)-(*A1last)*(*ka))*eKa)/(*ka) + (*b1);
+  *A2 = (((*r1)-(*A1last)*(*ka))*eKa)/((*ka)-(*k20)) - ((((*ka)-(*k20))*(*r2)+(*ka)*(*r1)+(-(*A2last)-(*A1last))*(*k20)*(*ka)+(*A2last)*(*k20)*(*k20))*e20)/((*k20)*(*ka)-(*k20)*(*k20))+ ((*r2)+(*r1))/(*k20) + (*b2);"))
+```
+
+## One Compartment Oral Ka Steady state bolus #1 senstivities
+
+```{r}
+.fun <- c("eKa", "eK", "A1last", "A2last")
 .args <- c("ka", "k20")
-A1 <- "(*r1)/(*ka)-(((*r1)-(*A1last)*(*ka))*eKa)/(*ka) + (*b1)"
-message("*A1ka=",toC(D(S(fromC(A1)),"ka")))
-A2 <- "(((*r1)-(*A1last)*(*ka))*eKa)/((*ka)-(*k20)) - ((((*ka)-(*k20))*(*r2)+(*ka)*(*r1)+(-(*A2last)-(*A1last))*(*k20)*(*ka)+(*A2last)*(*k20)*(*k20))*e20)/((*k20)*(*ka)-(*k20)*(*k20))+ ((*r2)+(*r1))/(*k20) + (*b2)";
-message("*A2ka=",toC(D(S(fromC(A2)),"ka")))
-message("*A2k20=",toC(D(S(fromC(A2)),"k20")))
+
+message("double eKad=",toC(D(S(fromC("1.0/(1.0-exp(-(*tau)*(*ka)))")),"ka")))
+message("double eKd=", toC(D(S(fromC("1.0/(1.0-exp(-(*tau)*(*k20)))")),"k20")))
+message("*A1ka=",toC(D(S(fromC("eKa*(*b1)")), "ka")))
+A2 <- "(*ka)*(*b1)*(eK - eKa)/(-(*k20) + (*ka))"
+message("*A2ka=",toC(D(S(fromC(A2)), "ka")))
+message("*A2k20=",toC(D(S(fromC(A2)), "k20")))
+```
+
+## One Compartment Oral Ka Steady State Bolus #2 Senstivities
+
+```{r}
+.fun <- c("eKa", "eK", "A1last", "A2last")
+.args <- c("ka", "k20")
+
+message("double eKd=", toC(D(S(fromC("1.0/(1.0-exp(-(*tau)*(*k20)))")),"k20")))
+A2 <- "eK*(*b2)"
+message("*A2ka=",toC(D(S(fromC(A2)), "ka")))
+message("*A2k20=",toC(D(S(fromC(A2)), "k20")))
+
 ```
