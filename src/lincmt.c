@@ -253,167 +253,86 @@ rxOptExpr(rxNorm(RxODE({
 // From Richard Upton with RxODE Expression optimization (and some manual edits)
 ////////////////////////////////////////////////////////////////////////////////
 
-static inline void oneCmtKaRateSSr1(double *A1, double *A2,
-				    double *r1,
+#define A1 A[0]
+#define A2 A[1]
+#define A3 A[2]
+#define A4 A[3]
+#define A1last Alast[0]
+#define A2last Alast[1]
+#define A3last Alast[2]
+#define A4last Alast[3]
+
+static inline void oneCmtKaRateSSr1(double *A, double *r1,
 				    double *ka, double *k20) {
-  *A1 = (*r1)/(*ka);
-  *A2 = (*r1)/(*k20);
+  A1 = (*r1)/(*ka);
+  A2 = (*r1)/(*k20);
 }
 
-static inline void oneCmtKaRateSSr1d(double *A1, double *A2,
-				     double *r1,
-				     double *ka, double *k20,
-				     double *A1ka, double *A2ka, double *A2k20) {
-  *A1 = (*r1)/(*ka);
-  *A1ka = (*r1)/((*ka)*(*ka));
-  *A2 = (*r1)/(*k20);
-  *A2ka = 0.0;
-  *A2k20 = (*r1)/((*k20)*(*k20));
-}
-
-static inline void oneCmtKaRateSSr2(double *A1, double *A2,
-				    double *r2,
+static inline void oneCmtKaRateSSr2(double *A, double *r2,
 				    double *ka, double *k20) {
-  *A1 = 0;
-  *A2 = (*r2)/(*k20);
+  A1 = 0;
+  A2 = (*r2)/(*k20);
 }
 
-static inline void oneCmtKaRateSSr2d(double *A1, double *A2,
-				     double *r2,
-				     double *ka, double *k20,
-				     double *A1ka, double *A2ka, double *A2k20) {
-  *A1 = 0.0;
-  *A1ka = 0.0;
-  *A2 = (*r2)/(*k20);
-  *A2ka = 0.0;
-  *A2k20 = (*r2)/((*k20)*(*k20));
-}
-
-static inline void oneCmtKaRateSStr1(double *A1, double *A2,
+static inline void oneCmtKaRateSStr1(double *A,
 				     double *tinf, double *tau, double *r1,
 				     double *ka, double *k20) {
   double eKa = exp(-(*ka)*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*(*ka)));
   double eiKa = exp(-(*ka)*(*tinf));
   double eiK = exp(-(*k20)*(*tinf));
   double eK = exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*(*k20)));
-  *A1=eKa*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
-  *A2=eK*((*r1)/(*k20) + eiKa*(*r1)/(-(*k20) + (*ka)) - eiK*(*r1)*(*ka)/((*ka)*(*k20) - (*k20)*(*k20))) + (*ka)*(eK - eKa)*((*r1)/(*ka) - eiKa*(*r1)/(*ka))/(-(*k20) + (*ka));
+  A1=eKa*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
+  A2=eK*((*r1)/(*k20) + eiKa*(*r1)/(-(*k20) + (*ka)) - eiK*(*r1)*(*ka)/((*ka)*(*k20) - (*k20)*(*k20))) + (*ka)*(eK - eKa)*((*r1)/(*ka) - eiKa*(*r1)/(*ka))/(-(*k20) + (*ka));
 }
 
-static inline void oneCmtKaRateSStr1d(double *A1, double *A2,
-				      double *tinf, double *tau, double *r1,
-				      double *ka, double *k20,
-				      double *A1ka, double *A2ka, double *A2k20) {
-  double eKa   = exp(-(*ka)*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*(*ka)));
-  double ka1   = (1.0 - exp(-(*ka)*(*tau)));
-  double eKad  = -exp(-(*ka)*((*tau) - (*tinf)))*((*tau) - (*tinf))/(1.0 - exp(-(*ka)*(*tau))) - exp(-(*ka)*(*tau) - (*ka)*((*tau) - (*tinf)))*(*tau)/(ka1*ka1);
-  double eiKa  = exp(-(*ka)*(*tinf));
-  double eiKad =-exp(-(*ka)*(*tinf))*(*tinf);
-  double eiK = exp(-(*k20)*(*tinf));
-  double eiKd = -exp(-(*k20)*(*tinf))*(*tinf);
-  double t1 = (1.0 - exp(-(*tau)*(*k20)));
-  double eK = exp(-(*k20)*((*tau)-(*tinf)))/t1;
-  double eKd = -exp(-(*k20)*((*tau) - (*tinf)))*((*tau) - (*tinf))/(1.0 - exp(-(*tau)*(*k20))) - exp(-(*k20)*((*tau) - (*tinf)) - (*tau)*(*k20))*(*tau)/(t1*t1);
-  *A1=eKa*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
-  *A2=eK*((*r1)/(*k20) + eiKa*(*r1)/(-(*k20) + (*ka)) - eiK*(*r1)*(*ka)/((*ka)*(*k20) - (*k20)*(*k20))) + (*ka)*(eK - eKa)*((*r1)/(*ka) - eiKa*(*r1)/(*ka))/(-(*k20) + (*ka));
-  double ka2 = (*ka)*(*ka);
-  double k202 = (*k20)*(*k20);
-  *A1ka=eKa*(-(*r1)/ka2 - (*r1)*eiKad/(*ka) + (*r1)*eiKa/ka2) + eKad*((*r1)/(*ka) - (*r1)*eiKa/(*ka));
-  *A2ka=eK*(-(*r1)*eiK/(-k202 + (*ka)*(*k20)) - (*r1)*eiKa/pow(-(*k20) + (*ka),2) + (*r1)*eiKad/(-(*k20) + (*ka)) + (*r1)*(*ka)*eiK*(*k20)/pow(-k202 + (*ka)*(*k20), 2)) + eKd*((*r1)/(*k20) + (*r1)*eiKa/(-(*k20) + (*ka)) - (*r1)*(*ka)*eiK/(-k202 + (*ka)*(*k20))) + (eK - eKa)*((*r1)/(*ka) - (*r1)*eiKa/(*ka))/(-(*k20) + (*ka)) - (*ka)*(eK - eKa)*((*r1)/(*ka) - (*r1)*eiKa/(*ka))/pow(-(*k20) + (*ka),2) + (*ka)*(eK - eKa)*(-(*r1)/ka2 - (*r1)*eiKad/(*ka) + (*r1)*eiKa/ka2)/(-(*k20) + (*ka)) + (*ka)*(-eKad + eKd)*((*r1)/(*ka) - (*r1)*eiKa/(*ka))/(-(*k20) + (*ka));
-  *A2k20=eK*(-(*r1)/k202 + (*r1)*eiKa/pow(-(*k20) + (*ka),2) - (*r1)*(*ka)*eiKd/(-k202 + (*ka)*(*k20)) + (*r1)*(*ka)*eiK*(-2*(*k20) + (*ka))/pow(-k202 + (*ka)*(*k20),2)) + (*ka)*(eK - eKa)*((*r1)/(*ka) - (*r1)*eiKa/(*ka))/pow(-(*k20) + (*ka),2);
-}
-
-static inline void oneCmtKaRateSStr2(double *A1, double *A2,
+static inline void oneCmtKaRateSStr2(double *A,
 				     double *tinf, double *tau, double *r2, 
 				     double *ka, double *k20){
   double eiK = exp(-(*k20)*(*tinf));
   double eK = exp(-(*k20)*((*tau)-(*tinf)))/(1.0-exp(-(*k20)*(*tau)));
-  *A1=0.0;
-  *A2=eK*((*r2)/(*k20) - eiK*(*r2)*(-(*k20) + (*ka))/((*ka)*(*k20) - (*k20)*(*k20)));
+  A1=0.0;
+  A2=eK*((*r2)/(*k20) - eiK*(*r2)*(-(*k20) + (*ka))/((*ka)*(*k20) - (*k20)*(*k20)));
 }
 
-static inline void oneCmtKaRateSStr2d(double *A1, double *A2,
-				      double *tinf, double *tau, double *r2, 
-				      double *ka, double *k20,
-				      double *A1ka, double *A2ka, double *A2k20){
-  double eiK = exp(-(*k20)*(*tinf));
-  double eiKd = -exp(-(*k20)*(*tinf))*(*tinf);
-  double t1 = (1.0 - exp(-(*tau)*(*k20)));
-  double eK = exp(-(*k20)*((*tau)-(*tinf)))/t1;
-  double eKd = -exp(-(*k20)*((*tau) - (*tinf)))*((*tau) - (*tinf))/(1.0 - exp(-(*tau)*(*k20))) - exp(-(*k20)*((*tau) - (*tinf)) - (*tau)*(*k20))*(*tau)/(t1*t1);
-  *A1=0.0;
-  *A1ka=0.0;
-  *A2=eK*((*r2)/(*k20) - eiK*(*r2)*(-(*k20) + (*ka))/((*ka)*(*k20) - (*k20)*(*k20)));
-  double k202 = (*k20)*(*k20);
-  *A2ka=eK*(-(*r2)*eiK/(-k202 + (*ka)*(*k20)) + (*r2)*eiK*(*k20)*(-(*k20) + (*ka))/pow(-k202 + (*ka)*(*k20),2)) + eKd*((*r2)/(*k20) - (*r2)*eiK*(-(*k20) + (*ka))/(-k202 + (*ka)*(*k20)));
-  *A2k20=eK*(-(*r2)/k202 + (*r2)*eiK/(-k202 + (*ka)*(*k20)) - (*r2)*eiKd*(-(*k20) + (*ka))/(-k202 + (*ka)*(*k20)) + (*r2)*eiK*(-2*(*k20) + (*ka))*(-(*k20) + (*ka))/pow(-k202 + (*ka)*(*k20),2));
-}
-
-static inline void oneCmtKaRate(double *A1, double *A2,
-				double *A1last, double *A2last,
-				double *t,
+static inline void oneCmtKaRate(double *A, double *Alast, double *t,
 				double *b1, double *b2,
 				double *r1, double *r2,
 				double *ka, double *k20) {
   double eKa = exp(-(*ka)*(*t));
   double e20 = exp(-(*k20)*(*t));
-  *A1 = (*r1)/(*ka)-(((*r1)-(*A1last)*(*ka))*eKa)/(*ka) + (*b1);
-  *A2 = (((*r1)-(*A1last)*(*ka))*eKa)/((*ka)-(*k20)) - ((((*ka)-(*k20))*(*r2)+(*ka)*(*r1)+(-(*A2last)-(*A1last))*(*k20)*(*ka)+(*A2last)*(*k20)*(*k20))*e20)/((*k20)*(*ka)-(*k20)*(*k20))+ ((*r2)+(*r1))/(*k20) + (*b2);
-}
-
-static inline void oneCmtKaRateD(double *A1, double *A2,
-				 double *A1last, double *A2last,
-				 double *t,
-				 double *b1, double *b2,
-				 double *r1, double *r2,
-				 double *ka, double *k20,
-				 double *A1ka, double *A2ka, double *A2k20,
-				 double *A1kalast, double *A2kalast, double *A2k20last) {
-  double eKa = exp(-(*ka)*(*t));
-  double eKad = -(*t)*exp(-(*ka)*(*t));
-  double e20 = exp(-(*k20)*(*t));
-  double e20d = -(*t)*exp(-(*k20)*(*t));
-  *A1 = (*r1)/(*ka)-(((*r1)-(*A1last)*(*ka))*eKa)/(*ka) + (*b1);
-  *A2 = (((*r1)-(*A1last)*(*ka))*eKa)/((*ka)-(*k20)) - ((((*ka)-(*k20))*(*r2)+(*ka)*(*r1)+(-(*A2last)-(*A1last))*(*k20)*(*ka)+(*A2last)*(*k20)*(*k20))*e20)/((*k20)*(*ka)-(*k20)*(*k20))+ ((*r2)+(*r1))/(*k20) + (*b2);
-  double ka2 = (*ka)*(*ka);
-  double k202 = (*k20)*(*k20);
-  *A1ka=-(*r1)/ka2 - eKa*(-(*A1last) - (*ka)*(*A1kalast))/(*ka) - eKad*((*r1) - (*ka)*(*A1last))/(*ka) + eKa*((*r1) - (*ka)*(*A1last))/ka2;
-  *A2ka=-e20*((*r1) + (*r2) + k202*(*A2kalast) + (-(*A1last) - (*A2last))*(*k20) + (*ka)*(*k20)*(-(*A1kalast) - (*A2kalast)))/(-k202 + (*ka)*(*k20)) - eKa*((*r1) - (*ka)*(*A1last))/pow(-(*k20) + (*ka),2) + eKa*(-(*A1last) - (*ka)*(*A1kalast))/(-(*k20) + (*ka)) + eKad*((*r1) - (*ka)*(*A1last))/(-(*k20) + (*ka)) + e20*(*k20)*(k202*(*A2last) + (*r1)*(*ka) + (*r2)*(-(*k20) + (*ka)) + (-(*A1last) - (*A2last))*(*ka)*(*k20))/pow(-k202 + (*ka)*(*k20),2);
-  *A2k20=-((*r1) + (*r2))/k202 - e20*(-(*r2) + 2*(*k20)*(*A2last) + k202*(*A2k20last) + (-(*A1last) - (*A2last))*(*ka) - (*ka)*(*k20)*(*A2k20last))/(-k202 + (*ka)*(*k20)) - e20d*(k202*(*A2last) + (*r1)*(*ka) + (*r2)*(-(*k20) + (*ka)) + (-(*A1last) - (*A2last))*(*ka)*(*k20))/(-k202 + (*ka)*(*k20)) + eKa*((*r1) - (*ka)*(*A1last))/pow(-(*k20) + (*ka),2) + e20*(-2*(*k20) + (*ka))*(k202*(*A2last) + (*r1)*(*ka) + (*r2)*(-(*k20) + (*ka)) + (-(*A1last) - (*A2last))*(*ka)*(*k20))/pow(-k202 + (*ka)*(*k20),2);
+  A1 = (*r1)/(*ka)-(((*r1)-A1last*(*ka))*eKa)/(*ka) + (*b1);
+  A2 = (((*r1)-A1last*(*ka))*eKa)/((*ka)-(*k20)) - ((((*ka)-(*k20))*(*r2)+(*ka)*(*r1)+(-A2last-A1last)*(*k20)*(*ka)+A2last*(*k20)*(*k20))*e20)/((*k20)*(*ka)-(*k20)*(*k20))+ ((*r2)+(*r1))/(*k20) + (*b2);
 }
 
 /*
 Two compartment with rates in each
  */
 
-static inline void twoCmtKaRateSSr1(double *A1, double *A2, double *A3,
-				    double *r1,
+static inline void twoCmtKaRateSSr1(double *A, double *r1,
 				    double *ka,  double *k20, 
 				    double *k23, double *k32) {
   double s = (*k23)+(*k32)+(*k20);
   //#Calculate roots
   double beta  = 0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)));
   double alpha = (*k32)*(*k20)/beta;
-  *A1=(*r1)/(*ka);
-  *A2=(*r1)*(*k32)/(beta*alpha);
-  *A3=(*r1)*(*k23)/(beta*alpha);
+  A1=(*r1)/(*ka);
+  A2=(*r1)*(*k32)/(beta*alpha);
+  A3=(*r1)*(*k23)/(beta*alpha);
 }
 
-static inline void twoCmtKaRateSSr2(double *A1, double *A2, double *A3,
-				    double *r2,
+static inline void twoCmtKaRateSSr2(double *A, double *r2,
 				    double *ka,  double *k20, 
 				    double *k23, double *k32) {
   double s = (*k23)+(*k32)+(*k20);
   //#Calculate roots
   double beta  = 0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)));
   double alpha = (*k32)*(*k20)/beta;
-  *A1=0;
-  *A2=(*r2)*(*k32)/(beta*alpha);
-  *A3=(*r2)*(*k23)/(beta*alpha);
+  A1=0;
+  A2=(*r2)*(*k32)/(beta*alpha);
+  A3=(*r2)*(*k23)/(beta*alpha);
 }
 
-static inline void twoCmtKaRateSStr1(double *A1, double *A2, double *A3,
-				     double *tinf, double *tau, double *r1, 
+static inline void twoCmtKaRateSStr1(double *A, double *tinf, double *tau, double *r1, 
 				     double *ka,  double *k20, 
 				     double *k23, double *k32){
   double s = (*k23)+(*k32)+(*k20);
@@ -438,13 +357,12 @@ static inline void twoCmtKaRateSStr1(double *A1, double *A2, double *A3,
   double eKa = exp(-(*ka)*((*tau)-(*tinf)))/(1.0-exp(-(*ka)*(*tau)));
   double eiKa = exp(-(*ka)*(*tinf));
 
-  *A1=eKa*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
-  *A2=(eA*(-alpha*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))) - eB*(-beta*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))))/(-alpha + beta) + (*ka)*(eA*(-alpha + (*k32))/((-alpha + beta)*(-alpha + (*ka))) + eB*(-beta + (*k32))/((-beta + (*ka))*(alpha - beta)) + eKa*((*k32) - (*ka))/((beta - (*ka))*(alpha - (*ka))))*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
-  *A3=(eA*(-alpha*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k23)*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + ((*k20) + (*k23))*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))) - eB*(-beta*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k23)*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + ((*k20) + (*k23))*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))))/(-alpha + beta) + (*ka)*(*k23)*(eA/((-alpha + beta)*(-alpha + (*ka))) + eB/((-beta + (*ka))*(alpha - beta)) + eKa/((beta - (*ka))*(alpha - (*ka))))*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
+  A1=eKa*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
+  A2=(eA*(-alpha*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))) - eB*(-beta*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))))/(-alpha + beta) + (*ka)*(eA*(-alpha + (*k32))/((-alpha + beta)*(-alpha + (*ka))) + eB*(-beta + (*k32))/((-beta + (*ka))*(alpha - beta)) + eKa*((*k32) - (*ka))/((beta - (*ka))*(alpha - (*ka))))*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
+  A3=(eA*(-alpha*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k23)*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + ((*k20) + (*k23))*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))) - eB*(-beta*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k23)*((*r1)*(*k32)/(beta*alpha) + eiKa*(*r1)*(-(*k32) + (*ka))/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(-alpha + (*k32))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(-beta + (*k32))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + ((*k20) + (*k23))*((*r1)*(*k23)/(beta*alpha) - eiKa*(*r1)*(*k23)/(beta*alpha + (*ka)*(-alpha - beta) + ka2) - eiA*(*r1)*(*ka)*(*k23)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r1)*(*ka)*(*k23)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))))/(-alpha + beta) + (*ka)*(*k23)*(eA/((-alpha + beta)*(-alpha + (*ka))) + eB/((-beta + (*ka))*(alpha - beta)) + eKa/((beta - (*ka))*(alpha - (*ka))))*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
 }
 
-static inline void twoCmtKaRateSStr2(double *A1, double *A2, double *A3,
-				      double *tinf, double *tau, double *r2,
+static inline void twoCmtKaRateSStr2(double *A, double *tinf, double *tau, double *r2,
 				     double *ka,  double *k20, 
 				     double *k23, double *k32) {
   double E2 = (*k20)+(*k23);
@@ -465,15 +383,13 @@ static inline void twoCmtKaRateSStr2(double *A1, double *A2, double *A3,
 
   double beta2 = beta*beta;
   double beta3 = beta2*beta;
-  *A1=0.0;
-  *A2=(eA*(E3*((*r2)*(*k32)/(beta*alpha) - eiA*(*r2)*(-(*k32)*alpha + (*ka)*(-alpha + (*k32)) + alpha2)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k32)*beta + (*ka)*(-beta + (*k32)) + beta2)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - alpha*((*r2)*(*k32)/(beta*alpha) - eiA*(*r2)*(-(*k32)*alpha + (*ka)*(-alpha + (*k32)) + alpha2)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k32)*beta + (*ka)*(-beta + (*k32)) + beta2)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r2)*(*k23)/(beta*alpha) - eiA*(*r2)*(-(*k23)*alpha + (*ka)*(*k23))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k23)*beta + (*ka)*(*k23))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))) - eB*(E3*((*r2)*(*k32)/(beta*alpha) - eiA*(*r2)*(-(*k32)*alpha + (*ka)*(-alpha + (*k32)) + alpha2)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k32)*beta + (*ka)*(-beta + (*k32)) + beta2)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - beta*((*r2)*(*k32)/(beta*alpha) - eiA*(*r2)*(-(*k32)*alpha + (*ka)*(-alpha + (*k32)) + alpha2)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k32)*beta + (*ka)*(-beta + (*k32)) + beta2)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r2)*(*k23)/(beta*alpha) - eiA*(*r2)*(-(*k23)*alpha + (*ka)*(*k23))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k23)*beta + (*ka)*(*k23))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))))/(-alpha + beta);
-  *A3=(eA*(E2*((*r2)*(*k23)/(beta*alpha) - eiA*(*r2)*(-(*k23)*alpha + (*ka)*(*k23))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k23)*beta + (*ka)*(*k23))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - alpha*((*r2)*(*k23)/(beta*alpha) - eiA*(*r2)*(-(*k23)*alpha + (*ka)*(*k23))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k23)*beta + (*ka)*(*k23))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k23)*((*r2)*(*k32)/(beta*alpha) - eiA*(*r2)*(-(*k32)*alpha + (*ka)*(-alpha + (*k32)) + alpha2)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k32)*beta + (*ka)*(-beta + (*k32)) + beta2)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))) - eB*(E2*((*r2)*(*k23)/(beta*alpha) - eiA*(*r2)*(-(*k23)*alpha + (*ka)*(*k23))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k23)*beta + (*ka)*(*k23))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - beta*((*r2)*(*k23)/(beta*alpha) - eiA*(*r2)*(-(*k23)*alpha + (*ka)*(*k23))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k23)*beta + (*ka)*(*k23))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k23)*((*r2)*(*k32)/(beta*alpha) - eiA*(*r2)*(-(*k32)*alpha + (*ka)*(-alpha + (*k32)) + alpha2)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k32)*beta + (*ka)*(-beta + (*k32)) + beta2)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))))/(-alpha + beta);
+  A1=0.0;
+  A2=(eA*(E3*((*r2)*(*k32)/(beta*alpha) - eiA*(*r2)*(-(*k32)*alpha + (*ka)*(-alpha + (*k32)) + alpha2)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k32)*beta + (*ka)*(-beta + (*k32)) + beta2)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - alpha*((*r2)*(*k32)/(beta*alpha) - eiA*(*r2)*(-(*k32)*alpha + (*ka)*(-alpha + (*k32)) + alpha2)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k32)*beta + (*ka)*(-beta + (*k32)) + beta2)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r2)*(*k23)/(beta*alpha) - eiA*(*r2)*(-(*k23)*alpha + (*ka)*(*k23))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k23)*beta + (*ka)*(*k23))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))) - eB*(E3*((*r2)*(*k32)/(beta*alpha) - eiA*(*r2)*(-(*k32)*alpha + (*ka)*(-alpha + (*k32)) + alpha2)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k32)*beta + (*ka)*(-beta + (*k32)) + beta2)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - beta*((*r2)*(*k32)/(beta*alpha) - eiA*(*r2)*(-(*k32)*alpha + (*ka)*(-alpha + (*k32)) + alpha2)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k32)*beta + (*ka)*(-beta + (*k32)) + beta2)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k32)*((*r2)*(*k23)/(beta*alpha) - eiA*(*r2)*(-(*k23)*alpha + (*ka)*(*k23))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k23)*beta + (*ka)*(*k23))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))))/(-alpha + beta);
+  A3=(eA*(E2*((*r2)*(*k23)/(beta*alpha) - eiA*(*r2)*(-(*k23)*alpha + (*ka)*(*k23))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k23)*beta + (*ka)*(*k23))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - alpha*((*r2)*(*k23)/(beta*alpha) - eiA*(*r2)*(-(*k23)*alpha + (*ka)*(*k23))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k23)*beta + (*ka)*(*k23))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k23)*((*r2)*(*k32)/(beta*alpha) - eiA*(*r2)*(-(*k32)*alpha + (*ka)*(-alpha + (*k32)) + alpha2)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k32)*beta + (*ka)*(-beta + (*k32)) + beta2)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))) - eB*(E2*((*r2)*(*k23)/(beta*alpha) - eiA*(*r2)*(-(*k23)*alpha + (*ka)*(*k23))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k23)*beta + (*ka)*(*k23))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) - beta*((*r2)*(*k23)/(beta*alpha) - eiA*(*r2)*(-(*k23)*alpha + (*ka)*(*k23))/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k23)*beta + (*ka)*(*k23))/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3)) + (*k23)*((*r2)*(*k32)/(beta*alpha) - eiA*(*r2)*(-(*k32)*alpha + (*ka)*(-alpha + (*k32)) + alpha2)/(-beta*alpha2 + (*ka)*(beta*alpha - alpha2) + alpha3) + eiB*(*r2)*(-(*k32)*beta + (*ka)*(-beta + (*k32)) + beta2)/(beta2*alpha + (*ka)*(-beta*alpha + beta2) - beta3))))/(-alpha + beta);
 }
 
-static inline void twoCmtKaRate(double *A1, double *A2, double *A3,
-				double *A1last, double *A2last, double *A3last,
-				double *t,
-				double *b1, double *b2,
+static inline void twoCmtKaRate(double *A, double *Alast,
+				double *t, double *b1, double *b2,
 				double *r1, double *r2,
 				double *ka,  double *k20, 
 				double *k23, double *k32) {
@@ -495,13 +411,12 @@ static inline void twoCmtKaRate(double *A1, double *A2, double *A3,
   double beta2 = beta*beta;
   double beta3 = beta2*beta;
   
-  *A1 = (*b1)+(*r1)/(*ka)-(((*r1)-(*A1last)*(*ka))*eKa)/(*ka);
-  *A2 = (*b2)+((((*ka)-(*k32))*(*r1)-(*A1last)*ka2+(*A1last)*(*k32)*(*ka))*eKa)/(ka2+(-beta-alpha)*(*ka)+alpha*beta)+(((((*k32)-beta)*(*ka)-beta*(*k32)+beta2)*(*r2)+((*k32)-beta)*(*ka)*(*r1)+((-(*A3last)-(*A2last)-(*A1last))*beta*(*k32)+((*A2last)+(*A1last))*beta2)*(*ka)+((*A3last)+(*A2last))*beta2*(*k32)-(*A2last)*beta3)*eB)/((beta2-alpha*beta)*(*ka)-beta3+alpha*beta2)-(((((*k32)-alpha)*(*ka)-alpha*(*k32)+alpha2)*(*r2)+((*k32)-alpha)*(*ka)*(*r1)+((-(*A3last)-(*A2last)-(*A1last))*alpha*(*k32)+((*A2last)+(*A1last))*alpha2)*(*ka)+((*A3last)+(*A2last))*alpha2*(*k32)-(*A2last)*alpha3)*eA)/((alpha*beta-alpha2)*(*ka)-alpha2*beta+alpha3)+((*k32)*(*r2)+(*k32)*(*r1))/(alpha*beta);
-  *A3 = -(((*k23)*(*r1)-(*A1last)*(*k23)*(*ka))*eKa)/(ka2+(-beta-alpha)*(*ka)+alpha*beta)+((((*k23)*(*ka)-beta*(*k23))*(*r2)+(*k23)*(*ka)*(*r1)+((-(*A2last)-(*A1last))*beta*(*k23)+(*A3last)*beta2-(*A3last)*E2*beta)*(*ka)+(*A2last)*beta2*(*k23)-(*A3last)*beta3+(*A3last)*E2*beta2)*eB)/((beta2-alpha*beta)*(*ka)-beta3+alpha*beta2)-((((*k23)*(*ka)-alpha*(*k23))*(*r2)+(*k23)*(*ka)*(*r1)+((-(*A2last)-(*A1last))*alpha*(*k23)+(*A3last)*alpha2-(*A3last)*E2*alpha)*(*ka)+(*A2last)*alpha2*(*k23)-(*A3last)*alpha3+(*A3last)*E2*alpha2)*eA)/((alpha*beta-alpha2)*(*ka)-alpha2*beta+alpha3)+((*k23)*(*r2)+(*k23)*(*r1))/(alpha*beta);
+  A1 = (*b1)+(*r1)/(*ka)-(((*r1)-A1last*(*ka))*eKa)/(*ka);
+  A2 = (*b2)+((((*ka)-(*k32))*(*r1)-A1last*ka2+A1last*(*k32)*(*ka))*eKa)/(ka2+(-beta-alpha)*(*ka)+alpha*beta)+(((((*k32)-beta)*(*ka)-beta*(*k32)+beta2)*(*r2)+((*k32)-beta)*(*ka)*(*r1)+((-A3last-A2last-A1last)*beta*(*k32)+(A2last+A1last)*beta2)*(*ka)+(A3last+A2last)*beta2*(*k32)-A2last*beta3)*eB)/((beta2-alpha*beta)*(*ka)-beta3+alpha*beta2)-(((((*k32)-alpha)*(*ka)-alpha*(*k32)+alpha2)*(*r2)+((*k32)-alpha)*(*ka)*(*r1)+((-A3last-A2last-A1last)*alpha*(*k32)+(A2last+A1last)*alpha2)*(*ka)+(A3last+A2last)*alpha2*(*k32)-A2last*alpha3)*eA)/((alpha*beta-alpha2)*(*ka)-alpha2*beta+alpha3)+((*k32)*(*r2)+(*k32)*(*r1))/(alpha*beta);
+  A3 = -(((*k23)*(*r1)-A1last*(*k23)*(*ka))*eKa)/(ka2+(-beta-alpha)*(*ka)+alpha*beta)+((((*k23)*(*ka)-beta*(*k23))*(*r2)+(*k23)*(*ka)*(*r1)+((-A2last-A1last)*beta*(*k23)+A3last*beta2-A3last*E2*beta)*(*ka)+A2last*beta2*(*k23)-A3last*beta3+A3last*E2*beta2)*eB)/((beta2-alpha*beta)*(*ka)-beta3+alpha*beta2)-((((*k23)*(*ka)-alpha*(*k23))*(*r2)+(*k23)*(*ka)*(*r1)+((-A2last-A1last)*alpha*(*k23)+A3last*alpha2-A3last*E2*alpha)*(*ka)+A2last*alpha2*(*k23)-A3last*alpha3+A3last*E2*alpha2)*eA)/((alpha*beta-alpha2)*(*ka)-alpha2*beta+alpha3)+((*k23)*(*r2)+(*k23)*(*r1))/(alpha*beta);
 }
 
-static inline void threeCmtKaRateSSr1(double *A1, double *A2, double *A3, double *A4,
-				      double *r1, 
+static inline void threeCmtKaRateSSr1(double *A, double *r1,
 				      double *ka, double *k20,
 				      double *k23, double *k32,
 				      double *k24, double *k42){
@@ -526,14 +441,13 @@ static inline void threeCmtKaRateSSr1(double *A1, double *A2, double *A3, double
   double lam2 = j3 + rho3*(ct3 - st3);
   double lam3 = j3 -(2.0*rho3*ct3);
   double l123 = 1.0/(lam1*lam2*lam3);
-  *A1=(*r1)/(*ka);
-  *A2=(*r1)*(*k42)*(*k32)*l123;
-  *A3=(*r1)*(*k42)*(*k23)*l123;
-  *A4=(*r1)*(*k24)*(*k32)*l123;
+  A1=(*r1)/(*ka);
+  A2=(*r1)*(*k42)*(*k32)*l123;
+  A3=(*r1)*(*k42)*(*k23)*l123;
+  A4=(*r1)*(*k24)*(*k32)*l123;
 }
 
-static inline void threeCmtKaRateSSr2(double *A1, double *A2, double *A3, double *A4,
-				      double *r2, 
+static inline void threeCmtKaRateSSr2(double *A, double *r2, 
 				      double *ka, double *k20,
 				      double *k23, double *k32,
 				      double *k24, double *k42){
@@ -557,14 +471,13 @@ static inline void threeCmtKaRateSSr2(double *A1, double *A2, double *A3, double
   double lam2 = j3 + rho3*(ct3 - st3);
   double lam3 = j3 -(2.0*rho3*ct3);
   double l123 = 1.0/(lam1*lam2*lam3);
-  *A1=0;
-  *A2=(*r2)*(*k42)*(*k32)*l123;
-  *A3=(*r2)*(*k42)*(*k23)*l123;
-  *A4=(*r2)*(*k24)*(*k32)*l123;
+  A1=0;
+  A2=(*r2)*(*k42)*(*k32)*l123;
+  A3=(*r2)*(*k42)*(*k23)*l123;
+  A4=(*r2)*(*k24)*(*k32)*l123;
 }
 
-static inline void threeCmtKaRateSStr1(double *A1, double *A2, double *A3, double *A4,
-				       double *tinf, double *tau, double *r1, 
+static inline void threeCmtKaRateSStr1(double *A, double *tinf, double *tau, double *r1, 
 				       double *ka, double *k20,
 				       double *k23, double *k32,
 				       double *k24, double *k42){
@@ -618,14 +531,13 @@ static inline void threeCmtKaRateSStr1(double *A1, double *A2, double *A3, doubl
   double lam32 = lam3*lam3;
   double lam33 = lam32*lam3;
   double lam34 = lam33*lam3;
-  *A1=eKa*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
-  *A2=(eL1*(E4 - lam1)*(E3 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)) + eL2*(E4 - lam2)*(E3 - lam2)/((-lam2 + lam3)*(lam1 - lam2)) + eL3*(E3 - lam3)*(E4 - lam3)/((lam2 - lam3)*(lam1 - lam3)))*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*ka)*(eL1*(E4 - lam1)*(E3 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)*((*ka) - lam1)) + eL2*(E4 - lam2)*(E3 - lam2)/((-lam2 + lam3)*(lam1 - lam2)*((*ka) - lam2)) + eL3*(E3 - lam3)*(E4 - lam3)/((lam2 - lam3)*(lam1 - lam3)*((*ka) - lam3)) + eKa*(E3 - (*ka))*(E4 - (*ka))/((-(*ka) + lam1)*(-(*ka) + lam2)*(-(*ka) + lam3)))*((*r1)/(*ka) - eiKa*(*r1)/(*ka)) + eL1*(-lam1*((*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*k42)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3))) + E3*(*k42)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + E4*(*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)))/((lam1 - lam3)*(lam1 - lam2)) + eL3*(lam3*((*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*k42)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3))) - (E3*(*k42)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + E4*(*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((-lam2 + lam3)*(lam1 - lam3)) + eL2*(lam2*((*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*k42)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3))) - (E3*(*k42)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + E4*(*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((lam2 - lam3)*(lam1 - lam2));
-  *A3=(eL1*(E4 - lam1)*(E2 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)) + eL2*(E4 - lam2)*(E2 - lam2)/((-lam2 + lam3)*(lam1 - lam2)) + eL3*(E2 - lam3)*(E4 - lam3)/((lam2 - lam3)*(lam1 - lam3)))*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*ka)*(*k23)*(eL1*(E4 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)*((*ka) - lam1)) + eL2*(E4 - lam2)/((-lam2 + lam3)*(lam1 - lam2)*((*ka) - lam2)) + eL3*(E4 - lam3)/((lam2 - lam3)*(lam1 - lam3)*((*ka) - lam3)) + eKa*(E4 - (*ka))/((-(*ka) + lam1)*(-(*ka) + lam2)*(-(*ka) + lam3)))*((*r1)/(*ka) - eiKa*(*r1)/(*ka)) + eL1*(E4*(*k23)*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*lam1*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*k42)*(*k23)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) - (*k42)*(*k24)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)))/((lam1 - lam3)*(lam1 - lam2)) + eL3*((*k23)*lam3*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E4*(*k23)*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*k42)*(*k23)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) - (*k42)*(*k24)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((-lam2 + lam3)*(lam1 - lam3)) + eL2*((*k23)*lam2*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E4*(*k23)*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*k42)*(*k23)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) - (*k42)*(*k24)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((lam2 - lam3)*(lam1 - lam2));
-  *A4=(eL1*(E3 - lam1)*(E2 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)) + eL2*(E2 - lam2)*(E3 - lam2)/((-lam2 + lam3)*(lam1 - lam2)) + eL3*(E2 - lam3)*(E3 - lam3)/((lam2 - lam3)*(lam1 - lam3)))*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*ka)*(*k24)*(eL1*(E3 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)*((*ka) - lam1)) + eL2*(E3 - lam2)/((-lam2 + lam3)*(lam1 - lam2)*((*ka) - lam2)) + eL3*(E3 - lam3)/((lam2 - lam3)*(lam1 - lam3)*((*ka) - lam3)) + eKa*(E3 - (*ka))/((-(*ka) + lam1)*(-(*ka) + lam2)*(-(*ka) + lam3)))*((*r1)/(*ka) - eiKa*(*r1)/(*ka)) + eL1*(E3*(*k24)*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*(*k32)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*k24)*(*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)) - (*k24)*lam1*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)))/((lam1 - lam3)*(lam1 - lam2)) + eL3*((*k24)*lam3*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E3*(*k24)*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*(*k32)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*k24)*(*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((-lam2 + lam3)*(lam1 - lam3)) + eL2*((*k24)*lam2*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E3*(*k24)*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*(*k32)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*k24)*(*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((lam2 - lam3)*(lam1 - lam2));
+  A1=eKa*((*r1)/(*ka) - eiKa*(*r1)/(*ka));
+  A2=(eL1*(E4 - lam1)*(E3 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)) + eL2*(E4 - lam2)*(E3 - lam2)/((-lam2 + lam3)*(lam1 - lam2)) + eL3*(E3 - lam3)*(E4 - lam3)/((lam2 - lam3)*(lam1 - lam3)))*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*ka)*(eL1*(E4 - lam1)*(E3 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)*((*ka) - lam1)) + eL2*(E4 - lam2)*(E3 - lam2)/((-lam2 + lam3)*(lam1 - lam2)*((*ka) - lam2)) + eL3*(E3 - lam3)*(E4 - lam3)/((lam2 - lam3)*(lam1 - lam3)*((*ka) - lam3)) + eKa*(E3 - (*ka))*(E4 - (*ka))/((-(*ka) + lam1)*(-(*ka) + lam2)*(-(*ka) + lam3)))*((*r1)/(*ka) - eiKa*(*r1)/(*ka)) + eL1*(-lam1*((*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*k42)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3))) + E3*(*k42)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + E4*(*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)))/((lam1 - lam3)*(lam1 - lam2)) + eL3*(lam3*((*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*k42)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3))) - (E3*(*k42)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + E4*(*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((-lam2 + lam3)*(lam1 - lam3)) + eL2*(lam2*((*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*k42)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3))) - (E3*(*k42)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + E4*(*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((lam2 - lam3)*(lam1 - lam2));
+  A3=(eL1*(E4 - lam1)*(E2 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)) + eL2*(E4 - lam2)*(E2 - lam2)/((-lam2 + lam3)*(lam1 - lam2)) + eL3*(E2 - lam3)*(E4 - lam3)/((lam2 - lam3)*(lam1 - lam3)))*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*ka)*(*k23)*(eL1*(E4 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)*((*ka) - lam1)) + eL2*(E4 - lam2)/((-lam2 + lam3)*(lam1 - lam2)*((*ka) - lam2)) + eL3*(E4 - lam3)/((lam2 - lam3)*(lam1 - lam3)*((*ka) - lam3)) + eKa*(E4 - (*ka))/((-(*ka) + lam1)*(-(*ka) + lam2)*(-(*ka) + lam3)))*((*r1)/(*ka) - eiKa*(*r1)/(*ka)) + eL1*(E4*(*k23)*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*lam1*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*k42)*(*k23)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) - (*k42)*(*k24)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)))/((lam1 - lam3)*(lam1 - lam2)) + eL3*((*k23)*lam3*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E4*(*k23)*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*k42)*(*k23)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) - (*k42)*(*k24)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((-lam2 + lam3)*(lam1 - lam3)) + eL2*((*k23)*lam2*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E4*(*k23)*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*k42)*(*k23)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) - (*k42)*(*k24)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((lam2 - lam3)*(lam1 - lam2));
+  A4=(eL1*(E3 - lam1)*(E2 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)) + eL2*(E2 - lam2)*(E3 - lam2)/((-lam2 + lam3)*(lam1 - lam2)) + eL3*(E2 - lam3)*(E3 - lam3)/((lam2 - lam3)*(lam1 - lam3)))*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*ka)*(*k24)*(eL1*(E3 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)*((*ka) - lam1)) + eL2*(E3 - lam2)/((-lam2 + lam3)*(lam1 - lam2)*((*ka) - lam2)) + eL3*(E3 - lam3)/((lam2 - lam3)*(lam1 - lam3)*((*ka) - lam3)) + eKa*(E3 - (*ka))/((-(*ka) + lam1)*(-(*ka) + lam2)*(-(*ka) + lam3)))*((*r1)/(*ka) - eiKa*(*r1)/(*ka)) + eL1*(E3*(*k24)*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*(*k32)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*k24)*(*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3)) - (*k24)*lam1*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)))/((lam1 - lam3)*(lam1 - lam2)) + eL3*((*k24)*lam3*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E3*(*k24)*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*(*k32)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*k24)*(*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((-lam2 + lam3)*(lam1 - lam3)) + eL2*((*k24)*lam2*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E3*(*k24)*(-eiKa*(*r1)*((*k42)*(*k32) + (-(*k32) - (*k42))*(*ka) + ka2)/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) - eiL1*(*r1)*(-(*ka)*lam12 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r1)*(-(*ka)*lam22 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r1)*(-(*ka)*lam32 - (*ka)*(*k42)*(*k32) + ((*k32) + (*k42))*(*ka)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*(*k32)*(eiKa*(*r1)*(-(*k24)*(*k32) + (*ka)*(*k24))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam1)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam2)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*((*ka)*(*k24)*(*k32) - (*ka)*(*k24)*lam3)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*k24)*(*k32)*(eiKa*(*r1)*(-(*k42)*(*k23) + (*ka)*(*k23))/(ka2*lam1 + lam2*(-(*ka)*lam1 + ka2) + lam3*(-(*ka)*lam1 + lam2*(-(*ka) + lam1) + ka2) - ka3) + eiL1*(*r1)*(-(*ka)*(*k23)*lam1 + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r1)*(-(*ka)*(*k23)*lam2 + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r1)*(-(*ka)*(*k23)*lam3 + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r1)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((lam2 - lam3)*(lam1 - lam2));
 }
 
-static inline void threeCmtKaRateSStr2(double *A1, double *A2, double *A3, double *A4,
-				       double *tinf, double *tau, double *r2, 
+static inline void threeCmtKaRateSStr2(double *A, double *tinf, double *tau, double *r2, 
 				       double *ka, double *k20,
 				       double *k23, double *k32,
 				       double *k24, double *k42) {
@@ -679,14 +591,13 @@ static inline void threeCmtKaRateSStr2(double *A1, double *A2, double *A3, doubl
   double lam32 = lam3*lam3;
   double lam33 = lam32*lam3;
   double lam34 = lam33*lam3;
-  *A1=0.0;
-  *A2=(eL1*(E4 - lam1)*(E3 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)) + eL2*(E4 - lam2)*(E3 - lam2)/((-lam2 + lam3)*(lam1 - lam2)) + eL3*(E3 - lam3)*(E4 - lam3)/((lam2 - lam3)*(lam1 - lam3)))*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) + eL1*(-lam1*((*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*k42)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3))) + E3*(*k42)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + E4*(*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)))/((lam1 - lam3)*(lam1 - lam2)) + eL3*(lam3*((*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*k42)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3))) - (E3*(*k42)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + E4*(*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((-lam2 + lam3)*(lam1 - lam3)) + eL2*(lam2*((*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*k42)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3))) - (E3*(*k42)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + E4*(*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((lam2 - lam3)*(lam1 - lam2));
-  *A3=(eL1*(E4 - lam1)*(E2 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)) + eL2*(E4 - lam2)*(E2 - lam2)/((-lam2 + lam3)*(lam1 - lam2)) + eL3*(E2 - lam3)*(E4 - lam3)/((lam2 - lam3)*(lam1 - lam3)))*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)) + eL1*(E4*(*k23)*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*lam1*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*k42)*(*k23)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) - (*k42)*(*k24)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)))/((lam1 - lam3)*(lam1 - lam2)) + eL3*((*k23)*lam3*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E4*(*k23)*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*k42)*(*k23)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) - (*k42)*(*k24)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((-lam2 + lam3)*(lam1 - lam3)) + eL2*((*k23)*lam2*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E4*(*k23)*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*k42)*(*k23)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) - (*k42)*(*k24)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((lam2 - lam3)*(lam1 - lam2));
-  *A4=(eL1*(E3 - lam1)*(E2 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)) + eL2*(E2 - lam2)*(E3 - lam2)/((-lam2 + lam3)*(lam1 - lam2)) + eL3*(E2 - lam3)*(E3 - lam3)/((lam2 - lam3)*(lam1 - lam3)))*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + eL1*(E3*(*k24)*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*(*k32)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*k24)*(*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)) - (*k24)*lam1*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)))/((lam1 - lam3)*(lam1 - lam2)) + eL3*((*k24)*lam3*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E3*(*k24)*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*(*k32)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*k24)*(*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((-lam2 + lam3)*(lam1 - lam3)) + eL2*((*k24)*lam2*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E3*(*k24)*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*(*k32)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*k24)*(*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((lam2 - lam3)*(lam1 - lam2));
+  A1=0.0;
+  A2=(eL1*(E4 - lam1)*(E3 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)) + eL2*(E4 - lam2)*(E3 - lam2)/((-lam2 + lam3)*(lam1 - lam2)) + eL3*(E3 - lam3)*(E4 - lam3)/((lam2 - lam3)*(lam1 - lam3)))*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) + eL1*(-lam1*((*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*k42)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3))) + E3*(*k42)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + E4*(*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)))/((lam1 - lam3)*(lam1 - lam2)) + eL3*(lam3*((*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*k42)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3))) - (E3*(*k42)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + E4*(*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((-lam2 + lam3)*(lam1 - lam3)) + eL2*(lam2*((*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)) + (*k42)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3))) - (E3*(*k42)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + E4*(*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((lam2 - lam3)*(lam1 - lam2));
+  A3=(eL1*(E4 - lam1)*(E2 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)) + eL2*(E4 - lam2)*(E2 - lam2)/((-lam2 + lam3)*(lam1 - lam2)) + eL3*(E2 - lam3)*(E4 - lam3)/((lam2 - lam3)*(lam1 - lam3)))*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)) + eL1*(E4*(*k23)*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*lam1*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*k42)*(*k23)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) - (*k42)*(*k24)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)))/((lam1 - lam3)*(lam1 - lam2)) + eL3*((*k23)*lam3*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E4*(*k23)*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*k42)*(*k23)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) - (*k42)*(*k24)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((-lam2 + lam3)*(lam1 - lam3)) + eL2*((*k23)*lam2*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E4*(*k23)*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) + (*k42)*(*k23)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) - (*k42)*(*k24)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((lam2 - lam3)*(lam1 - lam2));
+  A4=(eL1*(E3 - lam1)*(E2 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)) + eL2*(E2 - lam2)*(E3 - lam2)/((-lam2 + lam3)*(lam1 - lam2)) + eL3*(E2 - lam3)*(E3 - lam3)/((lam2 - lam3)*(lam1 - lam3)))*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + eL1*(E3*(*k24)*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*(*k32)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*k24)*(*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3)) - (*k24)*lam1*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)))/((lam1 - lam3)*(lam1 - lam2)) + eL3*((*k24)*lam3*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E3*(*k24)*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*(*k32)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*k24)*(*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((-lam2 + lam3)*(lam1 - lam3)) + eL2*((*k24)*lam2*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (E3*(*k24)*(-eiL1*(*r2)*(lam1*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam12 - (*ka)*(*k42)*(*k32) + lam13)/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) + eiL2*(*r2)*(lam2*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam22 - (*ka)*(*k42)*(*k32) + lam23)/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) - eiL3*(*r2)*(lam3*((*k42)*(*k32) + ((*k32) + (*k42))*(*ka)) + (-(*k32) - (*k42) - (*ka))*lam32 - (*ka)*(*k42)*(*k32) + lam33)/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k32)/(lam2*lam1*lam3)) - (*k23)*(*k32)*(eiL1*(*r2)*((*k24)*lam12 + lam1*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k24)*lam22 + lam2*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k24)*lam32 + lam3*(-(*k24)*(*k32) - (*ka)*(*k24)) + (*ka)*(*k24)*(*k32))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k24)*(*k32)/(lam2*lam1*lam3)) + (*k24)*(*k32)*(eiL1*(*r2)*((*k23)*lam12 + lam1*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(-(*ka)*lam13 + lam2*((*ka)*lam12 - lam13) + lam3*((*ka)*lam12 + lam2*(-(*ka)*lam1 + lam12) - lam13) + lam14) - eiL2*(*r2)*((*k23)*lam22 + lam2*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam23*((*ka) + lam1) + lam3*(lam22*(-(*ka) - lam1) + (*ka)*lam2*lam1 + lam23) - (*ka)*lam22*lam1 - lam24) + eiL3*(*r2)*((*k23)*lam32 + lam3*(-(*k42)*(*k23) - (*ka)*(*k23)) + (*ka)*(*k42)*(*k23))/(lam32*((*ka)*lam1 + lam2*((*ka) + lam1)) + (-(*ka) - lam1 - lam2)*lam33 - (*ka)*lam2*lam1*lam3 + lam34) + (*r2)*(*k42)*(*k23)/(lam2*lam1*lam3))))/((lam2 - lam3)*(lam1 - lam2));
 }
 
-static inline void threeCmtKaRate(double *A1, double *A2, double *A3, double *A4,
-				  double *A1last, double *A2last, double *A3last, double *A4last,
+static inline void threeCmtKaRate(double *A, double *Alast,
 				  double *t,
 				  double *b1, double *b2,
 				  double *r1, double *r2,
@@ -715,7 +626,7 @@ static inline void threeCmtKaRate(double *A1, double *A2, double *A3, double *A4
   double lam2 = j3 + rho3*(ct3 - st3);
   double lam3 = j3 -(2.0*rho3*ct3);
   double eKa = exp(-(*ka)*(*t));
-  *A1 = (*b1)+ (*r1)/(*ka)-(((*r1)-(*A1last)*(*ka))*eKa)/(*ka);
+  A1 = (*b1)+ (*r1)/(*ka)-(((*r1)-A1last*(*ka))*eKa)/(*ka);
   
   double lam12 = lam1*lam1;
   double lam13 = lam12*lam1;
@@ -732,24 +643,24 @@ static inline void threeCmtKaRate(double *A1, double *A2, double *A3, double *A4
   double ka2 = (*ka)*(*ka);
   double ka3 = ka2*(*ka);
   
-  double a21 = (((lam33+(-(*ka)-(*k42)-(*k32))*lam32+(((*k42)+(*k32))*(*ka)+(*k32)*(*k42))*lam3-(*k32)*(*k42)*(*ka))*(*r2)+(-(*ka)*lam32+((*k42)+(*k32))*(*ka)*lam3-(*k32)*(*k42)*(*ka))*(*r1)-(*A2last)*lam34+(((*A2last)+(*A1last))*(*ka)+((*A4last)+(*A2last))*(*k42)+((*A3last)+(*A2last))*(*k32))*lam33+(((-(*A4last)-(*A2last)-(*A1last))*(*k42)+(-(*A3last)-(*A2last)-(*A1last))*(*k32))*(*ka)+(-(*A4last)-(*A3last)-(*A2last))*(*k32)*(*k42))*lam32+((*A4last)+(*A3last)+(*A2last)+(*A1last))*(*k32)*(*k42)*(*ka)*lam3)*exp(-lam3*(*t)))/(lam34+(-lam2-lam1-(*ka))*lam33+((lam1+(*ka))*lam2+(*ka)*lam1)*lam32-(*ka)*lam1*lam2*lam3);
-  double a22 = (((lam23+(-(*ka)-(*k42)-(*k32))*lam22+(((*k42)+(*k32))*(*ka)+(*k32)*(*k42))*lam2-(*k32)*(*k42)*(*ka))*(*r2)+(-(*ka)*lam22+((*k42)+(*k32))*(*ka)*lam2-(*k32)*(*k42)*(*ka))*(*r1)-(*A2last)*lam24+(((*A2last)+(*A1last))*(*ka)+((*A4last)+(*A2last))*(*k42)+((*A3last)+(*A2last))*(*k32))*lam23+(((-(*A4last)-(*A2last)-(*A1last))*(*k42)+(-(*A3last)-(*A2last)-(*A1last))*(*k32))*(*ka)+(-(*A4last)-(*A3last)-(*A2last))*(*k32)*(*k42))*lam22+((*A4last)+(*A3last)+(*A2last)+(*A1last))*(*k32)*(*k42)*(*ka)*lam2)*exp(-lam2*(*t)))/((lam23+(-lam1-(*ka))*lam22+(*ka)*lam1*lam2)*lam3-lam24+(lam1+(*ka))*lam23-(*ka)*lam1*lam22);
-  double a23 = (((lam13+(-(*ka)-(*k42)-(*k32))*lam12+(((*k42)+(*k32))*(*ka)+(*k32)*(*k42))*lam1-(*k32)*(*k42)*(*ka))*(*r2)+(-(*ka)*lam12+((*k42)+(*k32))*(*ka)*lam1-(*k32)*(*k42)*(*ka))*(*r1)-(*A2last)*lam14+(((*A2last)+(*A1last))*(*ka)+((*A4last)+(*A2last))*(*k42)+((*A3last)+(*A2last))*(*k32))*lam13+(((-(*A4last)-(*A2last)-(*A1last))*(*k42)+(-(*A3last)-(*A2last)-(*A1last))*(*k32))*(*ka)+(-(*A4last)-(*A3last)-(*A2last))*(*k32)*(*k42))*lam12+((*A4last)+(*A3last)+(*A2last)+(*A1last))*(*k32)*(*k42)*(*ka)*lam1)*exp(-lam1*(*t)))/(((lam12-(*ka)*lam1)*lam2-lam13+(*ka)*lam12)*lam3+((*ka)*lam12-lam13)*lam2+lam14-(*ka)*lam13);
-  double a24 = (((ka2+(-(*k42)-(*k32))*(*ka)+(*k32)*(*k42))*(*r1)-(*A1last)*ka3+((*A1last)*(*k42)+(*A1last)*(*k32))*ka2-(*A1last)*(*k32)*(*k42)*(*ka))*exp(-(*ka)*(*t)))/(((lam1-(*ka))*lam2-(*ka)*lam1+ka2)*lam3+(ka2-(*ka)*lam1)*lam2+ka2*lam1-ka3);
+  double a21 = (((lam33+(-(*ka)-(*k42)-(*k32))*lam32+(((*k42)+(*k32))*(*ka)+(*k32)*(*k42))*lam3-(*k32)*(*k42)*(*ka))*(*r2)+(-(*ka)*lam32+((*k42)+(*k32))*(*ka)*lam3-(*k32)*(*k42)*(*ka))*(*r1)-A2last*lam34+((A2last+A1last)*(*ka)+(A4last+A2last)*(*k42)+(A3last+A2last)*(*k32))*lam33+(((-A4last-A2last-A1last)*(*k42)+(-A3last-A2last-A1last)*(*k32))*(*ka)+(-A4last-A3last-A2last)*(*k32)*(*k42))*lam32+(A4last+A3last+A2last+A1last)*(*k32)*(*k42)*(*ka)*lam3)*exp(-lam3*(*t)))/(lam34+(-lam2-lam1-(*ka))*lam33+((lam1+(*ka))*lam2+(*ka)*lam1)*lam32-(*ka)*lam1*lam2*lam3);
+  double a22 = (((lam23+(-(*ka)-(*k42)-(*k32))*lam22+(((*k42)+(*k32))*(*ka)+(*k32)*(*k42))*lam2-(*k32)*(*k42)*(*ka))*(*r2)+(-(*ka)*lam22+((*k42)+(*k32))*(*ka)*lam2-(*k32)*(*k42)*(*ka))*(*r1)-A2last*lam24+((A2last+A1last)*(*ka)+(A4last+A2last)*(*k42)+(A3last+A2last)*(*k32))*lam23+(((-A4last-A2last-A1last)*(*k42)+(-A3last-A2last-A1last)*(*k32))*(*ka)+(-A4last-A3last-A2last)*(*k32)*(*k42))*lam22+(A4last+A3last+A2last+A1last)*(*k32)*(*k42)*(*ka)*lam2)*exp(-lam2*(*t)))/((lam23+(-lam1-(*ka))*lam22+(*ka)*lam1*lam2)*lam3-lam24+(lam1+(*ka))*lam23-(*ka)*lam1*lam22);
+  double a23 = (((lam13+(-(*ka)-(*k42)-(*k32))*lam12+(((*k42)+(*k32))*(*ka)+(*k32)*(*k42))*lam1-(*k32)*(*k42)*(*ka))*(*r2)+(-(*ka)*lam12+((*k42)+(*k32))*(*ka)*lam1-(*k32)*(*k42)*(*ka))*(*r1)-A2last*lam14+((A2last+A1last)*(*ka)+(A4last+A2last)*(*k42)+(A3last+A2last)*(*k32))*lam13+(((-A4last-A2last-A1last)*(*k42)+(-A3last-A2last-A1last)*(*k32))*(*ka)+(-A4last-A3last-A2last)*(*k32)*(*k42))*lam12+(A4last+A3last+A2last+A1last)*(*k32)*(*k42)*(*ka)*lam1)*exp(-lam1*(*t)))/(((lam12-(*ka)*lam1)*lam2-lam13+(*ka)*lam12)*lam3+((*ka)*lam12-lam13)*lam2+lam14-(*ka)*lam13);
+  double a24 = (((ka2+(-(*k42)-(*k32))*(*ka)+(*k32)*(*k42))*(*r1)-A1last*ka3+(A1last*(*k42)+A1last*(*k32))*ka2-A1last*(*k32)*(*k42)*(*ka))*exp(-(*ka)*(*t)))/(((lam1-(*ka))*lam2-(*ka)*lam1+ka2)*lam3+(ka2-(*ka)*lam1)*lam2+ka2*lam1-ka3);
   double a25 = ((*k32)*(*k42)*(*r2)+(*k32)*(*k42)*(*r1))/(lam1*lam2*lam3);
-  *A2 = (*b2)-a21+a22-a23-a24+a25;
-  double a31 = ((((*k23)*lam32+(-(*k23)*(*ka)-(*k23)*(*k42))*lam3+(*k23)*(*k42)*(*ka))*(*r2)+((*k23)*(*k42)*(*ka)-(*k23)*(*ka)*lam3)*(*r1)+(*A3last)*lam34+(-(*A3last)*(*ka)-(*A3last)*(*k42)-(*A2last)*(*k23)-(*A3last)*E2)*lam33+(((*A3last)*(*k42)+((*A2last)+(*A1last))*(*k23)+(*A3last)*E2)*(*ka)+(-(*A3last)*(*k24)+((*A4last)+(*A2last))*(*k23)+(*A3last)*E2)*(*k42))*lam32+((*A3last)*(*k24)+(-(*A4last)-(*A2last)-(*A1last))*(*k23)-(*A3last)*E2)*(*k42)*(*ka)*lam3)*exp(-lam3*(*t)))/(lam34+(-lam2-lam1-(*ka))*lam33+((lam1+(*ka))*lam2+(*ka)*lam1)*lam32-(*ka)*lam1*lam2*lam3);
-  double a32 = ((((*k23)*lam22+(-(*k23)*(*ka)-(*k23)*(*k42))*lam2+(*k23)*(*k42)*(*ka))*(*r2)+((*k23)*(*k42)*(*ka)-(*k23)*(*ka)*lam2)*(*r1)+(*A3last)*lam24+(-(*A3last)*(*ka)-(*A3last)*(*k42)-(*A2last)*(*k23)-(*A3last)*E2)*lam23+(((*A3last)*(*k42)+((*A2last)+(*A1last))*(*k23)+(*A3last)*E2)*(*ka)+(-(*A3last)*(*k24)+((*A4last)+(*A2last))*(*k23)+(*A3last)*E2)*(*k42))*lam22+((*A3last)*(*k24)+(-(*A4last)-(*A2last)-(*A1last))*(*k23)-(*A3last)*E2)*(*k42)*(*ka)*lam2)*exp(-lam2*(*t)))/((lam23+(-lam1-(*ka))*lam22+(*ka)*lam1*lam2)*lam3-lam24+(lam1+(*ka))*lam23-(*ka)*lam1*lam22);
-  double a33 = ((((*k23)*lam12+(-(*k23)*(*ka)-(*k23)*(*k42))*lam1+(*k23)*(*k42)*(*ka))*(*r2)+((*k23)*(*k42)*(*ka)-(*k23)*(*ka)*lam1)*(*r1)+(*A3last)*lam14+(-(*A3last)*(*ka)-(*A3last)*(*k42)-(*A2last)*(*k23)-(*A3last)*E2)*lam13+(((*A3last)*(*k42)+((*A2last)+(*A1last))*(*k23)+(*A3last)*E2)*(*ka)+(-(*A3last)*(*k24)+((*A4last)+(*A2last))*(*k23)+(*A3last)*E2)*(*k42))*lam12+((*A3last)*(*k24)+(-(*A4last)-(*A2last)-(*A1last))*(*k23)-(*A3last)*E2)*(*k42)*(*ka)*lam1)*exp(-lam1*(*t)))/(((lam12-(*ka)*lam1)*lam2-lam13+(*ka)*lam12)*lam3+((*ka)*lam12-lam13)*lam2+lam14-(*ka)*lam13);
-  double a34 = ((((*k23)*(*ka)-(*k23)*(*k42))*(*r1)-(*A1last)*(*k23)*ka2+(*A1last)*(*k23)*(*k42)*(*ka))*exp(-(*ka)*(*t)))/(((lam1-(*ka))*lam2-(*ka)*lam1+ka2)*lam3+(ka2-(*ka)*lam1)*lam2+ka2*lam1-ka3);
+  A2 = (*b2)-a21+a22-a23-a24+a25;
+  double a31 = ((((*k23)*lam32+(-(*k23)*(*ka)-(*k23)*(*k42))*lam3+(*k23)*(*k42)*(*ka))*(*r2)+((*k23)*(*k42)*(*ka)-(*k23)*(*ka)*lam3)*(*r1)+A3last*lam34+(-A3last*(*ka)-A3last*(*k42)-A2last*(*k23)-A3last*E2)*lam33+((A3last*(*k42)+(A2last+A1last)*(*k23)+A3last*E2)*(*ka)+(-A3last*(*k24)+(A4last+A2last)*(*k23)+A3last*E2)*(*k42))*lam32+(A3last*(*k24)+(-A4last-A2last-A1last)*(*k23)-A3last*E2)*(*k42)*(*ka)*lam3)*exp(-lam3*(*t)))/(lam34+(-lam2-lam1-(*ka))*lam33+((lam1+(*ka))*lam2+(*ka)*lam1)*lam32-(*ka)*lam1*lam2*lam3);
+  double a32 = ((((*k23)*lam22+(-(*k23)*(*ka)-(*k23)*(*k42))*lam2+(*k23)*(*k42)*(*ka))*(*r2)+((*k23)*(*k42)*(*ka)-(*k23)*(*ka)*lam2)*(*r1)+A3last*lam24+(-A3last*(*ka)-A3last*(*k42)-A2last*(*k23)-A3last*E2)*lam23+((A3last*(*k42)+(A2last+A1last)*(*k23)+A3last*E2)*(*ka)+(-A3last*(*k24)+(A4last+A2last)*(*k23)+A3last*E2)*(*k42))*lam22+(A3last*(*k24)+(-A4last-A2last-A1last)*(*k23)-A3last*E2)*(*k42)*(*ka)*lam2)*exp(-lam2*(*t)))/((lam23+(-lam1-(*ka))*lam22+(*ka)*lam1*lam2)*lam3-lam24+(lam1+(*ka))*lam23-(*ka)*lam1*lam22);
+  double a33 = ((((*k23)*lam12+(-(*k23)*(*ka)-(*k23)*(*k42))*lam1+(*k23)*(*k42)*(*ka))*(*r2)+((*k23)*(*k42)*(*ka)-(*k23)*(*ka)*lam1)*(*r1)+A3last*lam14+(-A3last*(*ka)-A3last*(*k42)-A2last*(*k23)-A3last*E2)*lam13+((A3last*(*k42)+(A2last+A1last)*(*k23)+A3last*E2)*(*ka)+(-A3last*(*k24)+(A4last+A2last)*(*k23)+A3last*E2)*(*k42))*lam12+(A3last*(*k24)+(-A4last-A2last-A1last)*(*k23)-A3last*E2)*(*k42)*(*ka)*lam1)*exp(-lam1*(*t)))/(((lam12-(*ka)*lam1)*lam2-lam13+(*ka)*lam12)*lam3+((*ka)*lam12-lam13)*lam2+lam14-(*ka)*lam13);
+  double a34 = ((((*k23)*(*ka)-(*k23)*(*k42))*(*r1)-A1last*(*k23)*ka2+A1last*(*k23)*(*k42)*(*ka))*exp(-(*ka)*(*t)))/(((lam1-(*ka))*lam2-(*ka)*lam1+ka2)*lam3+(ka2-(*ka)*lam1)*lam2+ka2*lam1-ka3);
   double a35 = ((*k23)*(*k42)*(*r2)+(*k23)*(*k42)*(*r1))/(lam1*lam2*lam3);
-  *A3=a31-a32+a33+a34+a35;
-  double a41 = ((((*k24)*lam32+(-(*k24)*(*ka)-(*k24)*(*k32))*lam3+(*k24)*(*k32)*(*ka))*(*r2)+((*k24)*(*k32)*(*ka)-(*k24)*(*ka)*lam3)*(*r1)+(*A4last)*lam34+(-(*A4last)*(*ka)-(*A4last)*(*k32)-(*A2last)*(*k24)-(*A4last)*E2)*lam33+(((*A4last)*(*k32)+((*A2last)+(*A1last))*(*k24)+(*A4last)*E2)*(*ka)+(((*A3last)+(*A2last))*(*k24)-(*A4last)*(*k23)+(*A4last)*E2)*(*k32))*lam32+((-(*A3last)-(*A2last)-(*A1last))*(*k24)+(*A4last)*(*k23)-(*A4last)*E2)*(*k32)*(*ka)*lam3)*exp(-lam3*(*t)))/(lam34+(-lam2-lam1-(*ka))*lam33+((lam1+(*ka))*lam2+(*ka)*lam1)*lam32-(*ka)*lam1*lam2*lam3);
-  double a42 = ((((*k24)*lam22+(-(*k24)*(*ka)-(*k24)*(*k32))*lam2+(*k24)*(*k32)*(*ka))*(*r2)+((*k24)*(*k32)*(*ka)-(*k24)*(*ka)*lam2)*(*r1)+(*A4last)*lam24+(-(*A4last)*(*ka)-(*A4last)*(*k32)-(*A2last)*(*k24)-(*A4last)*E2)*lam23+(((*A4last)*(*k32)+((*A2last)+(*A1last))*(*k24)+(*A4last)*E2)*(*ka)+(((*A3last)+(*A2last))*(*k24)-(*A4last)*(*k23)+(*A4last)*E2)*(*k32))*lam22+((-(*A3last)-(*A2last)-(*A1last))*(*k24)+(*A4last)*(*k23)-(*A4last)*E2)*(*k32)*(*ka)*lam2)*exp(-lam2*(*t)))/((lam23+(-lam1-(*ka))*lam22+(*ka)*lam1*lam2)*lam3-lam24+(lam1+(*ka))*lam23-(*ka)*lam1*lam22);
-  double a43 = ((((*k24)*lam12+(-(*k24)*(*ka)-(*k24)*(*k32))*lam1+(*k24)*(*k32)*(*ka))*(*r2)+((*k24)*(*k32)*(*ka)-(*k24)*(*ka)*lam1)*(*r1)+(*A4last)*lam14+(-(*A4last)*(*ka)-(*A4last)*(*k32)-(*A2last)*(*k24)-(*A4last)*E2)*lam13+(((*A4last)*(*k32)+((*A2last)+(*A1last))*(*k24)+(*A4last)*E2)*(*ka)+(((*A3last)+(*A2last))*(*k24)-(*A4last)*(*k23)+(*A4last)*E2)*(*k32))*lam12+((-(*A3last)-(*A2last)-(*A1last))*(*k24)+(*A4last)*(*k23)-(*A4last)*E2)*(*k32)*(*ka)*lam1)*exp(-lam1*(*t)))/(((lam12-(*ka)*lam1)*lam2-lam13+(*ka)*lam12)*lam3+((*ka)*lam12-lam13)*lam2+lam14-(*ka)*lam13);
-  double a44 = ((((*k24)*(*ka)-(*k24)*(*k32))*(*r1)-(*A1last)*(*k24)*ka2+(*A1last)*(*k24)*(*k32)*(*ka))*exp(-(*ka)*(*t)))/(((lam1-(*ka))*lam2-(*ka)*lam1+ka2)*lam3+(ka2-(*ka)*lam1)*lam2+ka2*lam1-ka3);
+  A3=a31-a32+a33+a34+a35;
+  double a41 = ((((*k24)*lam32+(-(*k24)*(*ka)-(*k24)*(*k32))*lam3+(*k24)*(*k32)*(*ka))*(*r2)+((*k24)*(*k32)*(*ka)-(*k24)*(*ka)*lam3)*(*r1)+A4last*lam34+(-A4last*(*ka)-A4last*(*k32)-A2last*(*k24)-A4last*E2)*lam33+((A4last*(*k32)+(A2last+A1last)*(*k24)+A4last*E2)*(*ka)+((A3last+A2last)*(*k24)-A4last*(*k23)+A4last*E2)*(*k32))*lam32+((-A3last-A2last-A1last)*(*k24)+A4last*(*k23)-A4last*E2)*(*k32)*(*ka)*lam3)*exp(-lam3*(*t)))/(lam34+(-lam2-lam1-(*ka))*lam33+((lam1+(*ka))*lam2+(*ka)*lam1)*lam32-(*ka)*lam1*lam2*lam3);
+  double a42 = ((((*k24)*lam22+(-(*k24)*(*ka)-(*k24)*(*k32))*lam2+(*k24)*(*k32)*(*ka))*(*r2)+((*k24)*(*k32)*(*ka)-(*k24)*(*ka)*lam2)*(*r1)+A4last*lam24+(-A4last*(*ka)-A4last*(*k32)-A2last*(*k24)-A4last*E2)*lam23+((A4last*(*k32)+(A2last+A1last)*(*k24)+A4last*E2)*(*ka)+((A3last+A2last)*(*k24)-A4last*(*k23)+A4last*E2)*(*k32))*lam22+((-A3last-A2last-A1last)*(*k24)+A4last*(*k23)-A4last*E2)*(*k32)*(*ka)*lam2)*exp(-lam2*(*t)))/((lam23+(-lam1-(*ka))*lam22+(*ka)*lam1*lam2)*lam3-lam24+(lam1+(*ka))*lam23-(*ka)*lam1*lam22);
+  double a43 = ((((*k24)*lam12+(-(*k24)*(*ka)-(*k24)*(*k32))*lam1+(*k24)*(*k32)*(*ka))*(*r2)+((*k24)*(*k32)*(*ka)-(*k24)*(*ka)*lam1)*(*r1)+A4last*lam14+(-A4last*(*ka)-A4last*(*k32)-A2last*(*k24)-A4last*E2)*lam13+((A4last*(*k32)+(A2last+A1last)*(*k24)+A4last*E2)*(*ka)+((A3last+A2last)*(*k24)-A4last*(*k23)+A4last*E2)*(*k32))*lam12+((-A3last-A2last-A1last)*(*k24)+A4last*(*k23)-A4last*E2)*(*k32)*(*ka)*lam1)*exp(-lam1*(*t)))/(((lam12-(*ka)*lam1)*lam2-lam13+(*ka)*lam12)*lam3+((*ka)*lam12-lam13)*lam2+lam14-(*ka)*lam13);
+  double a44 = ((((*k24)*(*ka)-(*k24)*(*k32))*(*r1)-A1last*(*k24)*ka2+A1last*(*k24)*(*k32)*(*ka))*exp(-(*ka)*(*t)))/(((lam1-(*ka))*lam2-(*ka)*lam1+ka2)*lam3+(ka2-(*ka)*lam1)*lam2+ka2*lam1-ka3);
   double a45 = ((*k24)*(*k32)*(*r2)+(*k24)*(*k32)*(*r1))/(lam1*lam2*lam3);
-  *A4=a41-a42+a43+a44+a45;
+  A4=a41-a42+a43+a44+a45;
 }
 
 
@@ -759,37 +670,31 @@ static inline void threeCmtKaRate(double *A1, double *A2, double *A3, double *A4
 // Abuhelwa2015
 ////////////////////////////////////////////////////////////////////////////////
 
-static inline void oneCmtKaSSb1(double *A1, double *A2,
-				double *tau,
+static inline void oneCmtKaSSb1(double *A, double *tau,
 				double *b1, double *ka, double *k20) {
   double eKa = 1.0/(1.0-exp(-(*tau)*(*ka)));
   double eK =  1.0/(1.0-exp(-(*tau)*(*k20)));
-  *A1=eKa*(*b1);
-  *A2=(*ka)*(*b1)*(eK - eKa)/(-(*k20) + (*ka));
+  A1=eKa*(*b1);
+  A2=(*ka)*(*b1)*(eK - eKa)/(-(*k20) + (*ka));
 }
 
-static inline void oneCmtKaSSb2(double *A1, double *A2,
-				double *tau,
+static inline void oneCmtKaSSb2(double *A, double *tau,
 				double *b2, double *ka, double *k20) {
   /* double eKa = 1.0/(exp(-(*tau)*(*ka))+1.0); */
   double eK =  1.0/(1.0-exp(-(*tau)*(*k20)));
-  *A1=0.0;
-  *A2=eK*(*b2);
+  A1=0.0;
+  A2=eK*(*b2);
 }
-static inline void oneCmtKa(double *A1, double *A2,
-			    double *A1last, double *A2last,
-			    double *t,
-			    double *b1, double *b2,
+static inline void oneCmtKa(double *A, double *Alast,
+			    double *t, double *b1, double *b2,
 			    double *ka, double *k20) {
   double rx_expr_0=exp(-(*t)*(*ka));
-  *A1=(*A1last)*rx_expr_0+(*b1);
+  A1=A1last*rx_expr_0+(*b1);
   double rx_expr_1=exp(-(*t)*(*k20));
-  *A2=(*A1last)*(*ka)/((*ka)-(*k20))*(rx_expr_1-rx_expr_0)+(*A2last)*rx_expr_1+(*b2);
+  A2=A1last*(*ka)/((*ka)-(*k20))*(rx_expr_1-rx_expr_0)+A2last*rx_expr_1+(*b2);
 }
 
-static inline void twoCmtKaSSb1(double *A1, double *A2, double *A3,
-				double *tau,
-				double *b1,
+static inline void twoCmtKaSSb1(double *A, double *tau, double *b1,
 				double *ka, double *k20,
 				double *k23, double *k32) {
   double E2 = (*k20)+(*k23);
@@ -803,14 +708,12 @@ static inline void twoCmtKaSSb1(double *A1, double *A2, double *A3,
   double eKa=1.0/(1.0-exp(-(*tau)*(*ka)));
   double eL1=1.0/(1.0-exp(-(*tau)*lambda1));
   double eL2=1.0/(1.0-exp(-(*tau)*lambda2));
-  *A1=eKa*(*b1);
-  *A2=(*ka)*(*b1)*(eL1*(E3 - lambda1)/((-lambda1 + lambda2)*((*ka) - lambda1)) + eL2*(E3 - lambda2)/((lambda1 - lambda2)*((*ka) - lambda2)) + eKa*(E3 - (*ka))/((-(*ka) + lambda2)*(-(*ka) + lambda1)));
-  *A3=(*ka)*(*b1)*(*k23)*(eL1/((-lambda1 + lambda2)*((*ka) - lambda1)) + eL2/((lambda1 - lambda2)*((*ka) - lambda2)) + eKa/((-(*ka) + lambda2)*(-(*ka) + lambda1)));
+  A1=eKa*(*b1);
+  A2=(*ka)*(*b1)*(eL1*(E3 - lambda1)/((-lambda1 + lambda2)*((*ka) - lambda1)) + eL2*(E3 - lambda2)/((lambda1 - lambda2)*((*ka) - lambda2)) + eKa*(E3 - (*ka))/((-(*ka) + lambda2)*(-(*ka) + lambda1)));
+  A3=(*ka)*(*b1)*(*k23)*(eL1/((-lambda1 + lambda2)*((*ka) - lambda1)) + eL2/((lambda1 - lambda2)*((*ka) - lambda2)) + eKa/((-(*ka) + lambda2)*(-(*ka) + lambda1)));
 }
 
-static inline void twoCmtKaSSb2(double *A1, double *A2, double *A3,
-				double *tau,
-				double *b2,
+static inline void twoCmtKaSSb2(double *A, double *tau, double *b2,
 				double *ka, double *k20,
 				double *k23, double *k32) {
   double E2 = (*k20)+(*k23);
@@ -825,36 +728,33 @@ static inline void twoCmtKaSSb2(double *A1, double *A2, double *A3,
   double eL1=1.0/(1.0-exp(-(*tau)*lambda1));
   double eL2=1.0/(1.0-exp(-(*tau)*lambda2));
 
-  *A1=0.0;
-  *A2=(eL1*((*b2)*E3 - (*b2)*lambda1) - eL2*((*b2)*E3 - (*b2)*lambda2))/(-lambda1 + lambda2);
-  *A3=(eL1*(*b2)*(*k23) - eL2*(*b2)*(*k23))/(-lambda1 + lambda2);
+  A1=0.0;
+  A2=(eL1*((*b2)*E3 - (*b2)*lambda1) - eL2*((*b2)*E3 - (*b2)*lambda2))/(-lambda1 + lambda2);
+  A3=(eL1*(*b2)*(*k23) - eL2*(*b2)*(*k23))/(-lambda1 + lambda2);
 }
 
-static inline void twoCmtKa(double *A1, double *A2, double *A3,
-			    double *A1last, double *A2last, double *A3last,
-			    double *t,
+static inline void twoCmtKa(double *A, double *Alast, double *t,
 			    double *b1, double *b2,
 			    double *ka, double *kel,
 			    double *k12, double *k21)  {
   double rxe2=exp(-(*t)*(*ka));
-  *A1=(*b1)+rxe2*(*A1last);
+  A1=(*b1)+rxe2*A1last;
   double rxe0=(*k12)+(*k21);
   double rxe1=(*k12)+(*kel);
-  double rxe3=(*k21)*(*A2last);
-  double rxe4=(*k21)*(*A3last);
+  double rxe3=(*k21)*A2last;
+  double rxe4=(*k21)*A3last;
   double rxe6=rxe0+(*kel);
   double rxe7=(rxe1)*(*k21);
   double rxe8=rxe6*rxe6;
   double rxe10=sqrt(-4*(-(*k12)*(*k21)+rxe7)+rxe8);
-  *A2=(*b2)+(-exp(-0.5*(*t)*(rxe6-rxe10))*(-0.5*(*A2last)*(rxe6-rxe10)+rxe3+rxe4)+exp(-0.5*(*t)*(rxe6+rxe10))*(-0.5*(*A2last)*(rxe6+rxe10)+rxe3+rxe4))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+(*ka)*(rxe2*((*k21)-(*ka))/((-(*ka)+0.5*(rxe6-rxe10))*(-(*ka)+0.5*(rxe6+rxe10)))+exp(-0.5*(*t)*(rxe6-rxe10))*((*k21)-0.5*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6-rxe10)))+exp(-0.5*(*t)*(rxe6+rxe10))*((*k21)-0.5*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6+rxe10))))*(*A1last);
-  double rxe5=(*k12)*(*A2last);
-  double rxe9=(rxe1)*(*A3last);
-  *A3=(-exp(-0.5*(*t)*(rxe6-rxe10))*(-0.5*(*A3last)*(rxe6-rxe10)+rxe5+rxe9)+exp(-0.5*(*t)*(rxe6+rxe10))*(-0.5*(*A3last)*(rxe6+rxe10)+rxe5+rxe9))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+(*ka)*(*k12)*(*A1last)*(rxe2/((-(*ka)+0.5*(rxe6-rxe10))*(-(*ka)+0.5*(rxe6+rxe10)))+exp(-0.5*(*t)*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6-rxe10)))+exp(-0.5*(*t)*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6+rxe10))));
+  A2=(*b2)+(-exp(-0.5*(*t)*(rxe6-rxe10))*(-0.5*A2last*(rxe6-rxe10)+rxe3+rxe4)+exp(-0.5*(*t)*(rxe6+rxe10))*(-0.5*A2last*(rxe6+rxe10)+rxe3+rxe4))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+(*ka)*(rxe2*((*k21)-(*ka))/((-(*ka)+0.5*(rxe6-rxe10))*(-(*ka)+0.5*(rxe6+rxe10)))+exp(-0.5*(*t)*(rxe6-rxe10))*((*k21)-0.5*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6-rxe10)))+exp(-0.5*(*t)*(rxe6+rxe10))*((*k21)-0.5*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6+rxe10))))*A1last;
+  double rxe5=(*k12)*A2last;
+  double rxe9=(rxe1)*A3last;
+  A3=(-exp(-0.5*(*t)*(rxe6-rxe10))*(-0.5*A3last*(rxe6-rxe10)+rxe5+rxe9)+exp(-0.5*(*t)*(rxe6+rxe10))*(-0.5*A3last*(rxe6+rxe10)+rxe5+rxe9))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+(*ka)*(*k12)*A1last*(rxe2/((-(*ka)+0.5*(rxe6-rxe10))*(-(*ka)+0.5*(rxe6+rxe10)))+exp(-0.5*(*t)*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6-rxe10)))+exp(-0.5*(*t)*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6+rxe10))));
 }
 
 
-static inline void threeCmtKaSSb1(double *A1, double *A2, double *A3, double *A4,
-				  double *tau, double *b1, 
+static inline void threeCmtKaSSb1(double *A, double *tau, double *b1, 
 				  double *KA, double *k20,
 				  double *k23, double *k32,
 				  double *k24, double *k42){
@@ -890,14 +790,13 @@ static inline void threeCmtKaSSb1(double *A1, double *A2, double *A3, double *A4
   double eL2 = 1.0/(1.0-exp(-(*tau)*lambda2));
   double eL3 = 1.0/(1.0-exp(-(*tau)*lambda3));
   
-  *A1=eKa*(*b1);
-  *A2=(*KA)*(*b1)*(eL1*(E3 - lambda1)*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*KA) - lambda1)) + eL2*(E3 - lambda2)*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*KA) - lambda2)) + eL3*(E3 - lambda3)*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*KA) - lambda3)) + eKa*(E3 - (*KA))*(E4 - (*KA))/((-(*KA) + lambda1)*(-(*KA) + lambda3)*(-(*KA) + lambda2)));
-  *A3=(*KA)*(*b1)*(*k23)*(eL1*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*KA) - lambda1)) + eL2*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*KA) - lambda2)) + eL3*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*KA) - lambda3)) + eKa*(E4 - (*KA))/((-(*KA) + lambda1)*(-(*KA) + lambda3)*(-(*KA) + lambda2)));
-  *A4=(*KA)*(*b1)*(*k24)*(eL1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*KA) - lambda1)) + eL2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*KA) - lambda2)) + eL3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*KA) - lambda3)) + eKa*(E3 - (*KA))/((-(*KA) + lambda1)*(-(*KA) + lambda3)*(-(*KA) + lambda2)));
+  A1=eKa*(*b1);
+  A2=(*KA)*(*b1)*(eL1*(E3 - lambda1)*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*KA) - lambda1)) + eL2*(E3 - lambda2)*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*KA) - lambda2)) + eL3*(E3 - lambda3)*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*KA) - lambda3)) + eKa*(E3 - (*KA))*(E4 - (*KA))/((-(*KA) + lambda1)*(-(*KA) + lambda3)*(-(*KA) + lambda2)));
+  A3=(*KA)*(*b1)*(*k23)*(eL1*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*KA) - lambda1)) + eL2*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*KA) - lambda2)) + eL3*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*KA) - lambda3)) + eKa*(E4 - (*KA))/((-(*KA) + lambda1)*(-(*KA) + lambda3)*(-(*KA) + lambda2)));
+  A4=(*KA)*(*b1)*(*k24)*(eL1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*KA) - lambda1)) + eL2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*KA) - lambda2)) + eL3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*KA) - lambda3)) + eKa*(E3 - (*KA))/((-(*KA) + lambda1)*(-(*KA) + lambda3)*(-(*KA) + lambda2)));
 }
 
-static inline void threeCmtKaSSb2(double *A1, double *A2, double *A3, double *A4,
-				  double *tau, double *b2, 
+static inline void threeCmtKaSSb2(double *A, double *tau, double *b2, 
 				  double *KA, double *k20,
 				  double *k23, double *k32,
 				  double *k24, double *k42) {
@@ -932,15 +831,13 @@ static inline void threeCmtKaSSb2(double *A1, double *A2, double *A3, double *A4
   double eL1 = 1.0/(1.0-exp(-(*tau)*lambda1));
   double eL2 = 1.0/(1.0-exp(-(*tau)*lambda2));
   double eL3 = 1.0/(1.0-exp(-(*tau)*lambda3));
-  *A1=0.0;
-  *A2=(*b2)*(eL1*(E3 - lambda1)*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eL2*(E3 - lambda2)*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eL3*(E3 - lambda3)*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)));
-  *A3=eL2*(-(*b2)*E4*(*k23) + (*b2)*(*k23)*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*((*b2)*E4*(*k23) - (*b2)*(*k23)*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-(*b2)*E4*(*k23) + (*b2)*(*k23)*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
-  *A4=eL2*(-(*b2)*E3*(*k24) + (*b2)*(*k24)*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*((*b2)*E3*(*k24) - (*b2)*(*k24)*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-(*b2)*E3*(*k24) + (*b2)*(*k24)*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
+  A1=0.0;
+  A2=(*b2)*(eL1*(E3 - lambda1)*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eL2*(E3 - lambda2)*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eL3*(E3 - lambda3)*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)));
+  A3=eL2*(-(*b2)*E4*(*k23) + (*b2)*(*k23)*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*((*b2)*E4*(*k23) - (*b2)*(*k23)*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-(*b2)*E4*(*k23) + (*b2)*(*k23)*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
+  A4=eL2*(-(*b2)*E3*(*k24) + (*b2)*(*k24)*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*((*b2)*E3*(*k24) - (*b2)*(*k24)*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-(*b2)*E3*(*k24) + (*b2)*(*k24)*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
 }
 
-static inline void threeCmtKa(double *A1, double *A2, double *A3, double *A4,
-			      double *A1last, double *A2last, double *A3last, double *A4last,
-			      double *t,
+static inline void threeCmtKa(double *A, double *Alast, double *t,
 			      double *b1, double *b2,
 			      double *KA, double *k20,
 			      double *k23, double *k32,
@@ -972,10 +869,10 @@ static inline void threeCmtKa(double *A1, double *A2, double *A3, double *A4,
   double lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
   double lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
 
-  double B = (*A3last)*(*k32)+(*A4last)*(*k42);
-  double C = E4*(*A3last)*(*k32)+E3*(*A4last)*(*k42);
-  double I = (*A2last)*(*k23)*E4-(*A3last)*(*k24)*(*k42)+(*A4last)*(*k23)*(*k42);
-  double J = (*A2last)*(*k24)*E3+(*A3last)*(*k24)*(*k32)-(*A4last)*(*k23)*(*k32);
+  double B = A3last*(*k32)+A4last*(*k42);
+  double C = E4*A3last*(*k32)+E3*A4last*(*k42);
+  double I = A2last*(*k23)*E4-A3last*(*k24)*(*k42)+A4last*(*k23)*(*k42);
+  double J = A2last*(*k24)*E3+A3last*(*k24)*(*k32)-A4last*(*k23)*(*k32);
 
   double eL1 = exp(-(*t)*lambda1);
   double eL2 = exp(-(*t)*lambda2);
@@ -998,89 +895,54 @@ static inline void threeCmtKa(double *A1, double *A2, double *A3, double *A4,
   double e4l2 = (E4-lambda2);
   double e4l3 = (E4-lambda3);
   
-  double A2term1 = (*A2last)*(eL1*e3l1*e4l1/(l21*l31)+eL2*e3l2*e4l2/(l12*l32)+eL3*e3l3*e4l3/(l13*l23));
+  double A2term1 = A2last*(eL1*e3l1*e4l1/(l21*l31)+eL2*e3l2*e4l2/(l12*l32)+eL3*e3l3*e4l3/(l13*l23));
   
   double A2term2 = eL1*(C-B*lambda1)/(l12*l13)+eL2*(B*lambda2-C)/(l12*l23)+eL3*(B*lambda3-C)/(l13*l32);
   
-  double A2term3 = (*A1last)*(*KA)*(eL1*e3l1*e4l1/(l21*l31*((*KA)-lambda1))+eL2*e3l2*e4l2/(l12*l32*((*KA)-lambda2))+eL3*e3l3*e4l3/(l13*l23*((*KA)-lambda3))+eKA*(E3-(*KA))*(E4-(*KA))/((lambda1-(*KA))*(lambda2-(*KA))*(lambda3-(*KA))));
+  double A2term3 = A1last*(*KA)*(eL1*e3l1*e4l1/(l21*l31*((*KA)-lambda1))+eL2*e3l2*e4l2/(l12*l32*((*KA)-lambda2))+eL3*e3l3*e4l3/(l13*l23*((*KA)-lambda3))+eKA*(E3-(*KA))*(E4-(*KA))/((lambda1-(*KA))*(lambda2-(*KA))*(lambda3-(*KA))));
   
-  *A2 = A2term1+A2term2+A2term3 + (*b2);
+  A2 = A2term1+A2term2+A2term3 + (*b2);
 
-  double A3term1 = (*A3last)*(eL1*e2l1*e4l1/(l21*l31)+eL2*e2l2*e4l2/(l12*l32)+eL3*(E2-lambda3)*e4l3/(l13*l23));
+  double A3term1 = A3last*(eL1*e2l1*e4l1/(l21*l31)+eL2*e2l2*e4l2/(l12*l32)+eL3*(E2-lambda3)*e4l3/(l13*l23));
   
-  double A3term2 = eL1*(I-(*A2last)*(*k23)*lambda1)/(l12*l13)+eL2*((*A2last)*(*k23)*lambda2-I)/(l12*l23)+eL3*((*A2last)*(*k23)*lambda3-I)/(l13*l32);
+  double A3term2 = eL1*(I-A2last*(*k23)*lambda1)/(l12*l13)+eL2*(A2last*(*k23)*lambda2-I)/(l12*l23)+eL3*(A2last*(*k23)*lambda3-I)/(l13*l32);
   
-  double A3term3 = (*A1last)*(*KA)*(*k23)*(eL1*e4l1/(l21*l31*((*KA)-lambda1))+eL2*e4l2/(l12*l32*((*KA)-lambda2))+eL3*e4l3/(l13*l23*((*KA)-lambda3))+eKA*(E4-(*KA))/((lambda1-(*KA))*(lambda2-(*KA))*(lambda3-(*KA))));
+  double A3term3 = A1last*(*KA)*(*k23)*(eL1*e4l1/(l21*l31*((*KA)-lambda1))+eL2*e4l2/(l12*l32*((*KA)-lambda2))+eL3*e4l3/(l13*l23*((*KA)-lambda3))+eKA*(E4-(*KA))/((lambda1-(*KA))*(lambda2-(*KA))*(lambda3-(*KA))));
   
-  *A3 = A3term1+A3term2+A3term3;// Amount in the first-peripheral compartment
+  A3 = A3term1+A3term2+A3term3;// Amount in the first-peripheral compartment
 
-  double A4term1 = (*A4last)*(eL1*e2l1*e3l1/(l21*l31)+eL2*e2l2*e3l2/(l12*l32)+eL3*(E2-lambda3)*e3l3/(l13*l23));
+  double A4term1 = A4last*(eL1*e2l1*e3l1/(l21*l31)+eL2*e2l2*e3l2/(l12*l32)+eL3*(E2-lambda3)*e3l3/(l13*l23));
   
-  double A4term2 = eL1*(J-(*A2last)*(*k24)*lambda1)/(l12*l13)+eL2*((*A2last)*(*k24)*lambda2-J)/(l12*l23)+eL3*((*A2last)*(*k24)*lambda3-J)/(l13*l32);
+  double A4term2 = eL1*(J-A2last*(*k24)*lambda1)/(l12*l13)+eL2*(A2last*(*k24)*lambda2-J)/(l12*l23)+eL3*(A2last*(*k24)*lambda3-J)/(l13*l32);
   
-  double A4term3 = (*A1last)*(*KA)*(*k24)*(eL1*e3l1/(l21*l31*((*KA)-lambda1))+eL2*e3l2/(l12*l32*((*KA)-lambda2))+eL3*e3l3/(l13*l23*((*KA)-lambda3))+eKA*(E3-(*KA))/((lambda1-(*KA))*(lambda2-(*KA))*(lambda3-(*KA))));
-  *A4 = A4term1+A4term2+A4term3;
+  double A4term3 = A1last*(*KA)*(*k24)*(eL1*e3l1/(l21*l31*((*KA)-lambda1))+eL2*e3l2/(l12*l32*((*KA)-lambda2))+eL3*e3l3/(l13*l23*((*KA)-lambda3))+eKA*(E3-(*KA))/((lambda1-(*KA))*(lambda2-(*KA))*(lambda3-(*KA))));
+  A4 = A4term1+A4term2+A4term3;
 
-  *A1 = (*A1last)*eKA + (*b1);
+  A1 = A1last*eKA + (*b1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // 1-3 compartment bolus during infusion
 ////////////////////////////////////////////////////////////////////////////////
-static inline void oneCmtRateSSr1(double *A1, double *r1, double *k10) {
-  *A1 = (*r1)/(*k10);
+static inline void oneCmtRateSSr1(double *A, double *r1, double *k10) {
+  A1 = (*r1)/(*k10);
 }
 
-// Derivatives
-static inline void oneCmtRateSSr1d(double *A1, double *r1, double *k10,
-				   double *A1k10) {
-  *A1 = (*r1)/(*k10);
-  *A1k10 = -(*r1)/((*k10)*(*k10));
-}
-
-
-static inline void oneCmtRateSS(double *A1, double *tinf, double *tau, double *r1, double *k10) {
+static inline void oneCmtRateSS(double *A, double *tinf, double *tau, double *r1, double *k10) {
   double eiK = exp(-(*k10)*(*tinf));
   double eK = exp(-(*k10)*((*tau)-(*tinf)))/(1.0-exp(-(*k10)*(*tau)));
-  *A1=(*r1)*(1-eiK)*eK/((*k10));
+  A1=(*r1)*(1-eiK)*eK/((*k10));
 }
 
-static inline void oneCmtRateSSd(double *A1, double *tinf, double *tau, double *r1, double *k10,
-				 double *A1k10) {
-  double eiK = exp(-(*k10)*(*tinf));
-  double eK = exp(-(*k10)*((*tau)-(*tinf)))/(1.0-exp(-(*k10)*(*tau)));
-  *A1=(*r1)*(1-eiK)*eK/((*k10));
-  double eiKd=-exp(-(*k10)*(*tinf))*(*tinf);
-  double tau1 = (1+exp((*tau)*(*k10)));
-  double eKd=-exp(-(*k10)*((*tau)-(*tinf)))*((*tau)-(*tinf))/tau1-
-    exp(-(*k10)*((*tau)-(*tinf)) + (*tau)*(*k10))*(*tau)/(tau1*tau1);
-  *A1k10=-(*r1)*eK*(1-eiK)/((*k10)*(*k10))-
-    (*r1)*eK*eiKd/(*k10) + (*r1)*eKd*(1 - eiK)/(*k10);
-}
-
-static inline void oneCmtRate(double *A1, double *A1last, 
+static inline void oneCmtRate(double *A, double *Alast, 
 			      double *t,
 			      double *b1, double *r1,
 			      double *k10) {
   double eT = exp(-(*k10)*(*t));
-  *A1 = (*r1)/(*k10)*(1-eT)+(*A1last)*eT + (*b1);
+  A1 = (*r1)/(*k10)*(1-eT)+A1last*eT + (*b1);
 }
 
-static inline void oneCmtRateD(double *A1, double *A1last, 
-			       double *t,
-			       double *b1, double *r1,
-			       double *k10,
-			       double *A1k10, double *A1k10last) {
-  double eT = exp(-(*k10)*(*t));
-  *A1 = (*r1)/(*k10)*(1-eT)+(*A1last)*eT + (*b1);
-  double k102 = (*k10)*(*k10);
-  double eTd=(*t)*exp((*t)*(*k10));
-  *A1k10=eT*(*A1k10last) + eTd*(*A1last) - (*r1)*(1 - eT)/k102 - (*r1)*eTd/(*k10);
-}
-
-
-static inline void twoCmtRateSSr1(double *A1, double *A2, 
-				  double *r1,
+static inline void twoCmtRateSSr1(double *A, double *r1,
 				  double *k10, double *k12, double *k21) {
   double E1 = (*k10)+(*k12);
   double E2 = (*k21);
@@ -1090,12 +952,11 @@ static inline void twoCmtRateSSr1(double *A1, double *A2,
   double lambda1 = 0.5*(s+sqr);
   double lambda2 = 0.5*(s-sqr);
   double l12 = 1.0/(lambda1*lambda2);
-  *A1=(*r1)*E2*l12;
-  *A2=(*r1)*(*k12)*l12;
+  A1=(*r1)*E2*l12;
+  A2=(*r1)*(*k12)*l12;
 }
 
-static inline void twoCmtRateSS(double *A1, double *A2,
-				double *tinf, double *tau, double *r1, 
+static inline void twoCmtRateSS(double *A, double *tinf, double *tau, double *r1, 
 				double *k10, double *k12, double *k21) {
   double E1 = (*k10)+(*k12);
   double E2 = (*k21);
@@ -1110,13 +971,11 @@ static inline void twoCmtRateSS(double *A1, double *A2,
   double eTi2 = exp(-(*tinf)*lambda2);
   double eT1 =exp(-lambda1*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*lambda1));
   double eT2 =exp(-lambda2*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*lambda2));
-  *A1=(eT1*(E2*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) - lambda1*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) + (*r1)*(*k12)*(*k21)*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) - eT2*(E2*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) - lambda2*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) + (*r1)*(*k12)*(*k21)*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))))/(-lambda1 + lambda2);
-    *A2=(eT1*((*k12)*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) + (*r1)*E1*(*k12)*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2)) - (*r1)*(*k12)*lambda1*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) - eT2*((*k12)*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) + (*r1)*E1*(*k12)*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2)) - (*r1)*(*k12)*lambda2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))))/(-lambda1 + lambda2);
+  A1=(eT1*(E2*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) - lambda1*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) + (*r1)*(*k12)*(*k21)*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) - eT2*(E2*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) - lambda2*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) + (*r1)*(*k12)*(*k21)*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))))/(-lambda1 + lambda2);
+  A2=(eT1*((*k12)*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) + (*r1)*E1*(*k12)*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2)) - (*r1)*(*k12)*lambda1*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) - eT2*((*k12)*((eTi1*(*r1) - eTi2*(*r1))/(-lambda1 + lambda2) + (*r1)*E2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))) + (*r1)*E1*(*k12)*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2)) - (*r1)*(*k12)*lambda2*(1.0/(lambda1*lambda2) + eTi1/((lambda1 - lambda2)*lambda1) - eTi2/((lambda1 - lambda2)*lambda2))))/(-lambda1 + lambda2);
 }
 
-static inline void twoCmtRate(double *A1, double *A2, 
-			      double *A1last, double *A2last,
-			      double *t,
+static inline void twoCmtRate(double *A, double *Alast, double *t,
 			      double *b1, double *Doserate,
 			      double *k10, double *k12, double *k21) {
   double E1 = (*k10)+(*k12);
@@ -1134,23 +993,22 @@ static inline void twoCmtRate(double *A1, double *A2,
   double l12 = (lambda1-lambda2);
   double l21 = (lambda2-lambda1);
 
-  double c10 = ((*A1last)*E2+(*Doserate)+(*A2last)*(*k21));
-  double c11 = (c10-(*A1last)*lambda1)/l21;
-  double c12 = (c10-(*A1last)*lambda2)/l21;
+  double c10 = (A1last*E2+(*Doserate)+A2last*(*k21));
+  double c11 = (c10-A1last*lambda1)/l21;
+  double c12 = (c10-A1last*lambda2)/l21;
   double A1term1 = c11*eT1 - c12*eT2;
   double A1term2 = (*Doserate)*E2*(1/(lambda1*lambda2)+eT1/(lambda1*l12)-eT2/(lambda2*l12));
-  *A1 = A1term1+A1term2 + (*b1);//Amount in the central compartment
+  A1 = A1term1+A1term2 + (*b1);//Amount in the central compartment
 
-  double c20 = ((*A2last)*E1+(*A1last)*(*k12));
-  double c21 = (c20-(*A2last)*lambda1)/l21;
-  double c22 = (c20-(*A2last)*lambda2)/l21;
+  double c20 = (A2last*E1+A1last*(*k12));
+  double c21 = (c20-A2last*lambda1)/l21;
+  double c22 = (c20-A2last*lambda2)/l21;
   double A2term1 = c21*eT1-c22*eT2;
   double A2term2 = (*Doserate)*(*k12)*(1/(lambda1*lambda2)+eT1/(lambda1*l12)-eT2/(lambda2*(lambda1-lambda2)));
-  *A2 = A2term1+A2term2;//Amount in the peripheral compartment
+  A2 = A2term1+A2term2;//Amount in the peripheral compartment
 }
 
-static inline void threeCmtRateSSr1(double *A1, double *A2, double *A3,
-				    double *r1,
+static inline void threeCmtRateSSr1(double *A, double *r1,
 				    double *k10, double *k12, double *k21,
 				    double *k13, double *k31) {
   double E1 = (*k10)+(*k12)+(*k13);
@@ -1180,12 +1038,12 @@ static inline void threeCmtRateSSr1(double *A1, double *A2, double *A3,
   double lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
   double lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
   double l123 = 1.0/(lambda1*lambda2*lambda3);
-  *A1=(*r1)*E2*E3*l123;
-  *A2=(*r1)*E3*(*k12)*l123;
-  *A3=(*r1)*E2*(*k13)*l123;
+  A1=(*r1)*E2*E3*l123;
+  A2=(*r1)*E3*(*k12)*l123;
+  A3=(*r1)*E2*(*k13)*l123;
 }
 
-static inline void threeCmtRateSS(double *A1, double *A2, double *A3,
+static inline void threeCmtRateSS(double *A,
 				  double *tinf, double *tau, double *r1, 
 				  double *k10, double *k12, double *k21,
 				  double *k13, double *k31){
@@ -1221,13 +1079,12 @@ static inline void threeCmtRateSS(double *A1, double *A2, double *A3,
   double eT1 = exp(-lambda1*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*lambda1));
   double eT2 = exp(-lambda2*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*lambda2));
   double eT3 = exp(-lambda3*((*tau)-(*tinf)))/(1.0-exp(-(*tau)*lambda3));
-  *A1=(*r1)*(eT1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eT2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eT3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)))*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + eT2*(lambda2*((*r1)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))) - ((*r1)*E2*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*E3*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda2)*(lambda2 - lambda3)) + eT1*(-lambda1*((*r1)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))) + (*r1)*E2*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*E3*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)))/((lambda1 - lambda3)*(lambda1 - lambda2)) + eT3*(lambda3*((*r1)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))) - ((*r1)*E2*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*E3*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda3)*(-lambda2 + lambda3));
-  *A2=(*r1)*(*k12)*(eT1*(E3 - lambda1)*(E1 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eT2*(E1 - lambda2)*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eT3*(E1 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)))*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + eT2*((*r1)*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda2 - ((*r1)*E3*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k31)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda2)*(lambda2 - lambda3)) + eT1*((*r1)*E3*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda1 + (*r1)*(*k13)*(*k12)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k31)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)))/((lambda1 - lambda3)*(lambda1 - lambda2)) + eT3*((*r1)*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda3 - ((*r1)*E3*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k31)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda3)*(-lambda2 + lambda3));
-  *A3=(*r1)*(*k13)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*(eT1*(E2 - lambda1)*(E1 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eT2*(E1 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eT3*(E1 - lambda3)*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3))) + eT2*((*r1)*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda2 - ((*r1)*E2*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k21)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda2)*(lambda2 - lambda3)) + eT1*((*r1)*E2*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda1 - (*r1)*(*k13)*(*k12)*(*k21)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)))/((lambda1 - lambda3)*(lambda1 - lambda2)) + eT3*((*r1)*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda3 - ((*r1)*E2*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k21)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda3)*(-lambda2 + lambda3));
+  A1=(*r1)*(eT1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eT2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eT3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)))*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + eT2*(lambda2*((*r1)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))) - ((*r1)*E2*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*E3*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda2)*(lambda2 - lambda3)) + eT1*(-lambda1*((*r1)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))) + (*r1)*E2*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*E3*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)))/((lambda1 - lambda3)*(lambda1 - lambda2)) + eT3*(lambda3*((*r1)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))) - ((*r1)*E2*(*k13)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*E3*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda3)*(-lambda2 + lambda3));
+  A2=(*r1)*(*k12)*(eT1*(E3 - lambda1)*(E1 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eT2*(E1 - lambda2)*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eT3*(E1 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)))*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + eT2*((*r1)*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda2 - ((*r1)*E3*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k31)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda2)*(lambda2 - lambda3)) + eT1*((*r1)*E3*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda1 + (*r1)*(*k13)*(*k12)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k31)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)))/((lambda1 - lambda3)*(lambda1 - lambda2)) + eT3*((*r1)*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda3 - ((*r1)*E3*(*k12)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k31)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k31)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda3)*(-lambda2 + lambda3));
+  A3=(*r1)*(*k13)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*(eT1*(E2 - lambda1)*(E1 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eT2*(E1 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eT3*(E1 - lambda3)*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3))) + eT2*((*r1)*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda2 - ((*r1)*E2*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k21)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda2)*(lambda2 - lambda3)) + eT1*((*r1)*E2*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda1 - (*r1)*(*k13)*(*k12)*(*k21)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)))/((lambda1 - lambda3)*(lambda1 - lambda2)) + eT3*((*r1)*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))*lambda3 - ((*r1)*E2*(*k13)*(E2*E3/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) - (*r1)*(*k13)*(*k12)*(*k21)*(E2/(lambda1*lambda2*lambda3) - eTi1*(E2 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E2 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3)) + (*r1)*(*k13)*(*k12)*(*k21)*(E3/(lambda1*lambda2*lambda3) - eTi1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*lambda1) - eTi2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*lambda2) - eTi3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*lambda3))))/((lambda1 - lambda3)*(-lambda2 + lambda3));
 }
 
-static inline void threeCmtRate(double *A1, double *A2, double *A3,
-				double *A1last, double *A2last, double *A3last,
+static inline void threeCmtRate(double *A, double *Alast,
 				double *t, double *b1, double *Doserate,
 				double *k10, double *k12, double *k21,
 				double *k13, double *k31) {
@@ -1258,10 +1115,10 @@ static inline void threeCmtRate(double *A1, double *A2, double *A3,
   double lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
   double lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
 
-  double B = (*A2last)*(*k21)+(*A3last)*(*k31);
-  double C = E3*(*A2last)*(*k21)+E2*(*A3last)*(*k31);
-  double I = (*A1last)*(*k12)*E3-(*A2last)*(*k13)*(*k31)+(*A3last)*(*k12)*(*k31);
-  double J = (*A1last)*(*k13)*E2+(*A2last)*(*k13)*(*k21)-(*A3last)*(*k12)*(*k21);
+  double B = A2last*(*k21)+A3last*(*k31);
+  double C = E3*A2last*(*k21)+E2*A3last*(*k31);
+  double I = A1last*(*k12)*E3-A2last*(*k13)*(*k31)+A3last*(*k12)*(*k31);
+  double J = A1last*(*k13)*E2+A2last*(*k13)*(*k21)-A3last*(*k12)*(*k21);
 
   double eL1 = exp(-(*t)*lambda1);
   double eL2 = exp(-(*t)*lambda2);
@@ -1284,56 +1141,39 @@ static inline void threeCmtRate(double *A1, double *A2, double *A3,
   double e3l2 = (E3-lambda2);
   double e3l3 = (E3-lambda3);
 
-  double A1term1 = (*A1last)*(eL1*e2l1*e3l1/(l21*l31)+eL2*e2l2*e3l2/(l12*l32)+eL3*e2l3*e3l3/(l13*l23));
+  double A1term1 = A1last*(eL1*e2l1*e3l1/(l21*l31)+eL2*e2l2*e3l2/(l12*l32)+eL3*e2l3*e3l3/(l13*l23));
   double A1term2 = eL1*(C-B*lambda1)/(l12*l13)+eL2*(B*lambda2-C)/(l12*l23)+eL3*(B*lambda3-C)/(l13*l32);
   double A1term3 = (*Doserate)*((E2*E3)/(lambda1*lambda2*lambda3)-eL1*e2l1*e3l1/(lambda1*l21*l31)-eL2*e2l2*e3l2/(lambda2*l12*l32)-eL3*e2l3*e3l3/(lambda3*l13*l23));
 
-  *A1 = A1term1+A1term2+A1term3 + (*b1);//Amount in the central compartment
+  A1 = A1term1+A1term2+A1term3 + (*b1);//Amount in the central compartment
 
-  double A2term1 = (*A2last)*(eL1*e1l1*e3l1/(l21*l31)+eL2*e1l2*e3l2/(l12*l32)+eL3*e1l3*e3l3/(l13*l23));
-  double A2term2 = eL1*(I-(*A1last)*(*k12)*lambda1)/(l12*l13)+eL2*((*A1last)*(*k12)*lambda2-I)/(l12*l23)+eL3*((*A1last)*(*k12)*lambda3-I)/(l13*l32);
+  double A2term1 = A2last*(eL1*e1l1*e3l1/(l21*l31)+eL2*e1l2*e3l2/(l12*l32)+eL3*e1l3*e3l3/(l13*l23));
+  double A2term2 = eL1*(I-A1last*(*k12)*lambda1)/(l12*l13)+eL2*(A1last*(*k12)*lambda2-I)/(l12*l23)+eL3*(A1last*(*k12)*lambda3-I)/(l13*l32);
   double A2term3 = (*Doserate)*(*k12)*(E3/(lambda1*lambda2*lambda3)-eL1*e3l1/(lambda1*l21*l31)-eL2*e3l2/(lambda2*l12*l32)-eL3*e3l3/(lambda3*l13*l23));
 
-  *A2 = A2term1+A2term2+A2term3;// Amount in the first-peripheral compartment
+  A2 = A2term1+A2term2+A2term3;// Amount in the first-peripheral compartment
 
-  double A3term1 = (*A3last)*(eL1*e1l1*e2l1/(l21*l31)+eL2*e1l2*e2l2/(l12*l32)+eL3*e1l3*e2l3/(l13*l23));
-  double A3term2 = eL1*(J-(*A1last)*(*k13)*lambda1)/(l12*l13)+eL2*((*A1last)*(*k13)*lambda2-J)/(l12*l23)+eL3*((*A1last)*(*k13)*lambda3-J)/(l13*l32);
+  double A3term1 = A3last*(eL1*e1l1*e2l1/(l21*l31)+eL2*e1l2*e2l2/(l12*l32)+eL3*e1l3*e2l3/(l13*l23));
+  double A3term2 = eL1*(J-A1last*(*k13)*lambda1)/(l12*l13)+eL2*(A1last*(*k13)*lambda2-J)/(l12*l23)+eL3*(A1last*(*k13)*lambda3-J)/(l13*l32);
   double A3term3 = (*Doserate)*(*k13)*(E2/(lambda1*lambda2*lambda3)-eL1*e2l1/(lambda1*l21*l31)-eL2*e2l2/(lambda2*l12*l32)-eL3*e2l3/(lambda3*l13*l23));
 
-  *A3 = A3term1+A3term2+A3term3;//Amount in the second-peripheral compartment
+  A3 = A3term1+A3term2+A3term3;//Amount in the second-peripheral compartment
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // 1-3 compartment bolus only
 //
-static inline void oneCmtBolusSS(double *A1, double *tau,
+static inline void oneCmtBolusSS(double *A, double *tau,
 				 double *b1, double *k10) {
   double eT = 1.0/(1.0-exp(-(*k10)*(*tau)));
-  *A1 = (*b1)*eT;
+  A1 = (*b1)*eT;
 }
-static inline void oneCmtBolusSSd(double *A1, double *tau,
-				  double *b1, double *k10,
-				  double *A1k10) {
-  double eT = 1.0/(1.0-exp(-(*k10)*(*tau)));
-  double t1 = (1.0 - exp(-(*tau)*(*k10)));
-  double eTd=-1.0*exp(-(*tau)*(*k10))*(*tau)/(t1*t1);
-  *A1 = (*b1)*eT;
-  *A1k10=(*b1)*eTd;
-}
-static inline void oneCmtBolus(double *A1, double *A1last, 
-			       double *t,
-			       double *b1, double *k10) {
-  *A1 = (*A1last)*exp(-(*k10)*(*t)) + (*b1);
-}
-static inline void oneCmtBolusD(double *A1, double *A1last, 
-				double *t,
-				double *b1, double *k10,
-				double *A1k10, double *A1k10last) {
-  *A1 = (*A1last)*exp(-(*k10)*(*t)) + (*b1);
-  *A1k10=exp(-(*t)*(*k10))*(*A1k10last) - (*t)*exp(-(*t)*(*k10))*(*A1last);
+static inline void oneCmtBolus(double *A, double *Alast, 
+			       double *t, double *b1, double *k10) {
+  A1 = A1last*exp(-(*k10)*(*t)) + (*b1);
 }
 
-static inline void twoCmtBolusSS(double *A1, double *A2,
+static inline void twoCmtBolusSS(double *A,
 				 double *tau, double *b1, double *k10,
 				 double *k12, double *k21) {
   /* double E1 = (*k10)+(*k12); */
@@ -1348,14 +1188,13 @@ static inline void twoCmtBolusSS(double *A1, double *A2,
   double eL1 = 1.0/(1.0-exp(-(*tau)*lambda1));
   double eL2 = 1.0/(1.0-exp(-(*tau)*lambda2));
   
-  *A1=(eL1*((*b1)*E2 - (*b1)*lambda1) - eL2*((*b1)*E2 - (*b1)*lambda2))/(-lambda1 + lambda2);
-  *A2=(eL1*(*b1)*(*k12) - eL2*(*b1)*(*k12))/(-lambda1 + lambda2);
+  A1=(eL1*((*b1)*E2 - (*b1)*lambda1) - eL2*((*b1)*E2 - (*b1)*lambda2))/(-lambda1 + lambda2);
+  A2=(eL1*(*b1)*(*k12) - eL2*(*b1)*(*k12))/(-lambda1 + lambda2);
 }
 
-static inline void twoCmtBolus(double *A1, double *A2,
-			       double *A1last, double *A2last,
+static inline void twoCmtBolus(double *A, double *Alast,
 			       double *t, double *b1, double *k10,
-			       double *k12, double *k21){
+			       double *k12, double *k21) {
   double E1 = (*k10)+(*k12);
   double E2 = (*k21);
 
@@ -1368,16 +1207,15 @@ static inline void twoCmtBolus(double *A1, double *A2,
   double eT1= exp(-(*t)*lambda1);
   double eT2= exp(-(*t)*lambda2);
 
-  double A1term = ((((*A1last)*E2+(*A2last)*(*k21))-(*A1last)*lambda1)*eT1-(((*A1last)*E2+(*A2last)*(*k21))-(*A1last)*lambda2)*eT2)/(lambda2-lambda1);
+  double A1term = (((A1last*E2+A2last*(*k21))-A1last*lambda1)*eT1-((A1last*E2+A2last*(*k21))-A1last*lambda2)*eT2)/(lambda2-lambda1);
   
-  *A1 = A1term + (*b1); //Amount in the central compartment
+  A1 = A1term + (*b1); //Amount in the central compartment
 
-  double A2term = ((((*A2last)*E1+(*A1last)*(*k12))-(*A2last)*lambda1)*eT1-(((*A2last)*E1+(*A1last)*(*k12))-(*A2last)*lambda2)*eT2)/(lambda2-lambda1);
-    *A2 = A2term;//            #Amount in the peripheral compartment
+  double A2term = (((A2last*E1+A1last*(*k12))-A2last*lambda1)*eT1-((A2last*E1+A1last*(*k12))-A2last*lambda2)*eT2)/(lambda2-lambda1);
+  A2 = A2term;//            #Amount in the peripheral compartment
 }
 
-static inline void threeCmtBolusSS(double *A1, double *A2, double *A3,
-				   double *tau, double *b1, double *k10,
+static inline void threeCmtBolusSS(double *A, double *tau, double *b1, double *k10,
 				   double *k12, double *k21,
 				   double *k13, double *k31){
   double E1 = (*k10)+(*k12)+(*k13);
@@ -1411,13 +1249,12 @@ static inline void threeCmtBolusSS(double *A1, double *A2, double *A3,
   double eL2 = 1.0/(1.0-exp(-(*tau)*lambda2));
   double eL3 = 1.0/(1.0-exp(-(*tau)*lambda3));
 
-  *A1=(*b1)*(eL1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eL2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eL3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)));
-  *A2=eL2*(-(*b1)*E3*(*k12) + (*b1)*(*k12)*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*((*b1)*E3*(*k12) - (*b1)*(*k12)*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-(*b1)*E3*(*k12) + (*b1)*(*k12)*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
-  *A3=eL2*(-(*b1)*E2*(*k13) + (*b1)*(*k13)*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*((*b1)*E2*(*k13) - (*b1)*(*k13)*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-(*b1)*E2*(*k13) + (*b1)*(*k13)*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
+  A1=(*b1)*(eL1*(E2 - lambda1)*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)) + eL2*(E3 - lambda2)*(E2 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)) + eL3*(E2 - lambda3)*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)));
+  A2=eL2*(-(*b1)*E3*(*k12) + (*b1)*(*k12)*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*((*b1)*E3*(*k12) - (*b1)*(*k12)*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-(*b1)*E3*(*k12) + (*b1)*(*k12)*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
+  A3=eL2*(-(*b1)*E2*(*k13) + (*b1)*(*k13)*lambda2)/((lambda1 - lambda2)*(lambda2 - lambda3)) + eL1*((*b1)*E2*(*k13) - (*b1)*(*k13)*lambda1)/((lambda1 - lambda3)*(lambda1 - lambda2)) + eL3*(-(*b1)*E2*(*k13) + (*b1)*(*k13)*lambda3)/((lambda1 - lambda3)*(-lambda2 + lambda3));
 }
 
-static inline void threeCmtBolus(double *A1, double *A2, double *A3,
-				 double *A1last, double *A2last, double *A3last,
+static inline void threeCmtBolus(double *A, double *Alast,
 				 double *t, double *b1, double *k10,
 				 double *k12, double *k21,
 				 double *k13, double *k31){
@@ -1448,10 +1285,10 @@ static inline void threeCmtBolus(double *A1, double *A2, double *A3,
   double lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
   double lambda3 = 0.333333333333333*a -(2*gamma3*ctheta3);
 
-  double B = (*A2last)*(*k21)+(*A3last)*(*k31);
-  double C = E3*(*A2last)*(*k21)+E2*(*A3last)*(*k31);
-  double I = (*A1last)*(*k12)*E3-(*A2last)*(*k13)*(*k31)+(*A3last)*(*k12)*(*k31);
-  double J = (*A1last)*(*k13)*E2+(*A2last)*(*k13)*(*k21)-(*A3last)*(*k12)*(*k21);
+  double B = A2last*(*k21)+A3last*(*k31);
+  double C = E3*A2last*(*k21)+E2*A3last*(*k31);
+  double I = A1last*(*k12)*E3-A2last*(*k13)*(*k31)+A3last*(*k12)*(*k31);
+  double J = A1last*(*k13)*E2+A2last*(*k13)*(*k21)-A3last*(*k12)*(*k21);
 
   double eL1 = exp(-(*t)*lambda1);
   double eL2 = exp(-(*t)*lambda2);
@@ -1474,19 +1311,19 @@ static inline void threeCmtBolus(double *A1, double *A2, double *A3,
   double e3l2 = (E3-lambda2);
   double e3l3 = (E3-lambda3);
 
-  double A1term1 = (*A1last)*(eL1*e2l1*e3l1/(l21*l31)+eL2*e2l2*e3l2/(l12*l32)+eL3*e2l3*e3l3/(l13*l23));
+  double A1term1 = A1last*(eL1*e2l1*e3l1/(l21*l31)+eL2*e2l2*e3l2/(l12*l32)+eL3*e2l3*e3l3/(l13*l23));
   double A1term2 = eL1*(C-B*lambda1)/(l12*l13)+eL2*(B*lambda2-C)/(l12*l23)+eL3*(B*lambda3-C)/(l13*l32);
 
-  *A1 = (*b1)+(A1term1+A1term2);
+  A1 = (*b1)+(A1term1+A1term2);
 
-  double A2term1 = (*A2last)*(eL1*e1l1*e3l1/(l21*l31)+eL2*e1l2*e3l2/(l12*l32)+eL3*e1l3*e3l3/(l13*l23));
-  double A2term2 = eL1*(I-(*A1last)*(*k12)*lambda1)/(l12*l13)+eL2*((*A1last)*(*k12)*lambda2-I)/(l12*l23)+eL3*((*A1last)*(*k12)*lambda3-I)/(l13*l32);
+  double A2term1 = A2last*(eL1*e1l1*e3l1/(l21*l31)+eL2*e1l2*e3l2/(l12*l32)+eL3*e1l3*e3l3/(l13*l23));
+  double A2term2 = eL1*(I-A1last*(*k12)*lambda1)/(l12*l13)+eL2*(A1last*(*k12)*lambda2-I)/(l12*l23)+eL3*(A1last*(*k12)*lambda3-I)/(l13*l32);
 
-  *A2 = A2term1+A2term2;
+  A2 = A2term1+A2term2;
 
-  double A3term1 = (*A3last)*(eL1*e1l1*e2l1/(l21*l31)+eL2*e1l2*e2l2/(l12*l32)+eL3*e1l3*e2l3/(l13*l23));
-  double A3term2 = eL1*(J-(*A1last)*(*k13)*lambda1)/(l12*l13)+eL2*((*A1last)*(*k13)*lambda2-J)/(l12*l23)+eL3*((*A1last)*(*k13)*lambda3-J)/(l13*l32);
-  *A3 = A3term1+A3term2;
+  double A3term1 = A3last*(eL1*e1l1*e2l1/(l21*l31)+eL2*e1l2*e2l2/(l12*l32)+eL3*e1l3*e2l3/(l13*l23));
+  double A3term2 = eL1*(J-A1last*(*k13)*lambda1)/(l12*l13)+eL2*(A1last*(*k13)*lambda2-J)/(l12*l23)+eL3*(A1last*(*k13)*lambda3-J)/(l13*l32);
+  A3 = A3term1+A3term2;
 }
 
 static inline void ssRateTau(double *A,
@@ -1504,15 +1341,15 @@ static inline void ssRateTau(double *A,
     if ((*r1) > 0 ){
       switch (ncmt){
       case 1: {
-	oneCmtKaRateSStr1(&A[0], &A[1], tinf, tau, r1, ka, kel);
+	oneCmtKaRateSStr1(A, tinf, tau, r1, ka, kel);
 	return;
       } break;
       case 2: {
-	twoCmtKaRateSStr1(&A[0], &A[1], &A[2], tinf, tau, r1, ka, kel, k12, k21);
+	twoCmtKaRateSStr1(A, tinf, tau, r1, ka, kel, k12, k21);
 	return;
       } break;
       case 3: {
-	threeCmtKaRateSStr1(&A[0], &A[1], &A[2], &A[3], tinf, tau,
+	threeCmtKaRateSStr1(A, tinf, tau,
 			    r1, ka, kel, k12, k21, k13, k31);
 	return;
       } break;
@@ -1520,16 +1357,15 @@ static inline void ssRateTau(double *A,
     } else {
       switch (ncmt){
       case 1: {
-	oneCmtKaRateSStr2(&A[0], &A[1], tinf, tau, r2, ka, kel);
+	oneCmtKaRateSStr2(A, tinf, tau, r2, ka, kel);
 	return;
       } break;
       case 2: {
-	twoCmtKaRateSStr2(&A[0], &A[1], &A[2], tinf, tau, r2, ka, kel, k12, k21);
+	twoCmtKaRateSStr2(A, tinf, tau, r2, ka, kel, k12, k21);
 	return;
       } break;
       case 3: {
-	threeCmtKaRateSStr2(&A[0], &A[1], &A[2], &A[3], tinf, tau,
-			    r2, ka, kel, k12,  k21, k13, k31);
+	threeCmtKaRateSStr2(A, tinf, tau, r2, ka, kel, k12,  k21, k13, k31);
 	return;
       } break;
       }
@@ -1537,15 +1373,15 @@ static inline void ssRateTau(double *A,
   } else {
     switch (ncmt){
     case 1: {
-      oneCmtRateSS(&A[0], tinf, tau, r1, kel);
+      oneCmtRateSS(A, tinf, tau, r1, kel);
       return;
     } break;
     case 2: {
-      twoCmtRateSS(&A[0], &A[1], tinf, tau, r1, kel, k12, k21);
+      twoCmtRateSS(A, tinf, tau, r1, kel, k12, k21);
       return;
     } break;
     case 3: {
-      threeCmtRateSS(&A[0], &A[1], &A[2], tinf, tau, r1, kel, k12,  k21, k13,  k31);
+      threeCmtRateSS(A, tinf, tau, r1, kel, k12,  k21, k13,  k31);
       return;
     } break;
     }
@@ -1566,32 +1402,30 @@ static inline void ssTau(double *A,
     if ((*b1) > 0 ){
       switch (ncmt){
       case 1: {
-	oneCmtKaSSb1(&A[0], &A[1], tau, b1, ka, kel);
+	oneCmtKaSSb1(A, tau, b1, ka, kel);
 	return;
       } break;
       case 2: {
-	twoCmtKaSSb1(&A[0], &A[1], &A[2], tau, b1, ka, kel, k12, k21);
+	twoCmtKaSSb1(A, tau, b1, ka, kel, k12, k21);
 	return;
       } break;
       case 3: {
-	threeCmtKaSSb1(&A[0], &A[1], &A[2], &A[3],
-		       tau, b1, ka, kel, k12,  k21, k13, k31);
+	threeCmtKaSSb1(A, tau, b1, ka, kel, k12,  k21, k13, k31);
 	return;
       } break;
       }
     } else {
       switch (ncmt){
       case 1: {
-	oneCmtKaSSb2(&A[0], &A[1], tau, b2, ka, kel);
+	oneCmtKaSSb2(A, tau, b2, ka, kel);
 	return;
       } break;
       case 2: {
-	twoCmtKaSSb2(&A[0], &A[1], &A[2], tau, b2, ka, kel, k12, k21);
+	twoCmtKaSSb2(A, tau, b2, ka, kel, k12, k21);
 	return;
       } break;
       case 3: {
-	threeCmtKaSSb2(&A[0], &A[1], &A[2], &A[3],
-		       tau, b2, ka, kel, k12,  k21, k13, k31);
+	threeCmtKaSSb2(A, tau, b2, ka, kel, k12,  k21, k13, k31);
 	return;
       } break;
       }
@@ -1599,16 +1433,15 @@ static inline void ssTau(double *A,
   } else {
     switch (ncmt){
     case 1: {
-      oneCmtBolusSS(&A[0], tau, b1, kel);
+      oneCmtBolusSS(A, tau, b1, kel);
       return;
     } break;
     case 2: {
-      twoCmtBolusSS(&A[0], &A[1], tau, b1, kel, k12, k21);
+      twoCmtBolusSS(A, tau, b1, kel, k12, k21);
       return;
     } break;
     case 3: {
-      threeCmtBolusSS(&A[0], &A[1], &A[2],
-		      tau, b1, kel, k12,  k21, k13,  k31);
+      threeCmtBolusSS(A, tau, b1, kel, k12,  k21, k13,  k31);
       return;
     } break;
     }
@@ -1628,32 +1461,30 @@ static inline void ssRate(double *A,
     if ((*r1) > 0){
       switch (ncmt){
       case 1: {
-	oneCmtKaRateSSr1(&A[0], &A[1], r1, ka, kel);
+	oneCmtKaRateSSr1(A, r1, ka, kel);
 	return;
       } break;
       case 2: {
-	twoCmtKaRateSSr1(&A[0], &A[1], &A[2], r1, ka, kel, k12, k21);
+	twoCmtKaRateSSr1(A, r1, ka, kel, k12, k21);
 	return;
       } break;
       case 3: {
-	threeCmtKaRateSSr1(&A[0], &A[1], &A[2], &A[3],
-			   r1, ka, kel, k12,  k21, k13,  k31);
+	threeCmtKaRateSSr1(A, r1, ka, kel, k12,  k21, k13,  k31);
 	return;
       } break;
       }
     } else {
       switch (ncmt){
       case 1: {
-	oneCmtKaRateSSr2(&A[0], &A[1], r2, ka, kel);
+	oneCmtKaRateSSr2(A, r2, ka, kel);
 	return;
       } break;
       case 2: {
-	twoCmtKaRateSSr2(&A[0], &A[1], &A[2], r2, ka, kel, k12, k21);
+	twoCmtKaRateSSr2(A, r2, ka, kel, k12, k21);
 	return;
       } break;
       case 3: {
-	threeCmtKaRateSSr2(&A[0], &A[1], &A[2], &A[3],
-			   r2, ka, kel, k12,  k21, k13,  k31);
+	threeCmtKaRateSSr2(A, r2, ka, kel, k12,  k21, k13,  k31);
 	return;
       } break;
       }
@@ -1661,16 +1492,15 @@ static inline void ssRate(double *A,
   } else {
     switch (ncmt){
     case 1: {
-      oneCmtRateSSr1(&A[0], r1, kel);
+      oneCmtRateSSr1(A, r1, kel);
       return;
     } break;
     case 2: {
-      twoCmtRateSSr1(&A[0], &A[1], r1, kel, k12, k21);
+      twoCmtRateSSr1(A, r1, kel, k12, k21);
       return;
     } break;
     case 3: {
-      threeCmtRateSSr1(&A[0], &A[1], &A[2], 
-		       r1, kel, k12,  k21, k13,  k31);
+      threeCmtRateSSr1(A, r1, kel, k12,  k21, k13,  k31);
       return;
     } break;
     }
@@ -1696,43 +1526,32 @@ static inline void doAdvan(double *A,// Amounts
     if (oral0){
       switch (ncmt){
       case 1: {
-	oneCmtKaRate(&A[0], &A[1], &Alast[0], &Alast[1],
-		     &t, b1, b2, r1, r2, ka, kel);
+	oneCmtKaRate(A, Alast, &t, b1, b2, r1, r2, ka, kel);
 	return;
       } break;
       case 2: {
-	twoCmtKaRate(&A[0], &A[1], &A[2],
-		     &Alast[0], &Alast[1], &Alast[2],
-		     &t, b1, b2, r1, r2,
+	twoCmtKaRate(A, Alast, &t, b1, b2, r1, r2,
 		     ka,  kel, k12, k21);
 	return;
       } break;
       case 3: {
-	threeCmtKaRate(&A[0], &A[1], &A[2], &A[3],
-		       &Alast[0], &Alast[1], &Alast[2], &Alast[3],
-		       &t, b1, b2, r1, r2,
-		       ka, kel, k12,  k21, k13,  k31);
+	threeCmtKaRate(A, Alast, &t, b1, b2, r1, r2, ka, kel, k12,  k21, k13,  k31);
 	return;
       } break;
       }
     } else {
       switch (ncmt){
       case 1: {
-	oneCmtRate(&A[0], &Alast[0], 
-		   &t, b1, r1, kel);
+	oneCmtRate(A, Alast, &t, b1, r1, kel);
 	return;
       } break;
       case 2: {
-	twoCmtRate(&A[0], &A[1], 
-		   &Alast[0], &Alast[1],
-		   &t, b1, r1,
+	twoCmtRate(A, Alast, &t, b1, r1,
 		   kel, k12, k21);
 	return;
       } break;
       case 3: {
-	threeCmtRate(&A[0], &A[1], &A[2],
-		     &Alast[0], &Alast[1], &Alast[2],
-		     &t, b1, r1, kel,
+	threeCmtRate(A, Alast, &t, b1, r1, kel,
 		     k12, k21, k13, k31);
 	return;
       } break;
@@ -1744,19 +1563,16 @@ static inline void doAdvan(double *A,// Amounts
     if (oral0){
       switch (ncmt){
       case 1: {
-	oneCmtKa(&A[0], &A[1], &Alast[0], &Alast[1],
+	oneCmtKa(A, Alast, 
 		 &t, b1, b2, ka, kel);
 	return;
       } break;
       case 2: {
-	twoCmtKa(&A[0], &A[1], &A[2],
-		 &Alast[0], &Alast[1], &Alast[2],
-		 &t, b1, b2, ka,  kel, k12, k21);
+	twoCmtKa(A, Alast, &t, b1, b2, ka,  kel, k12, k21);
 	return;
       } break;
       case 3: {
-	threeCmtKa(&A[0], &A[1], &A[2], &A[3],
-		   &Alast[0], &Alast[1], &Alast[2], &Alast[3],
+	threeCmtKa(A, Alast, 
 		   &t, b1, b2, ka, kel,
 		   k12,  k21, k13,  k31);
 	return;
@@ -1766,20 +1582,16 @@ static inline void doAdvan(double *A,// Amounts
       // Bolus
       switch (ncmt){
       case 1: {
-	oneCmtBolus(&A[0], &Alast[0],
-		    &t, b1, kel);
+	oneCmtBolus(A, Alast, &t, b1, kel);
 	return;
       } break;
       case 2: {
-	twoCmtBolus(&A[0], &A[1],
-		    &Alast[0], &Alast[1], &t, b1,
+	twoCmtBolus(A, Alast, &t, b1,
 		    kel, k12, k21);
 	return;
       } break;
       case 3: {
-	threeCmtBolus(&A[0], &A[1], &A[2],
-		      &Alast[0], &Alast[1], &Alast[2],
-		      &t, b1, kel, k12, k21, k13, k31);
+	threeCmtBolus(A, Alast, &t, b1, kel, k12, k21, k13, k31);
       } break;
       }
     }
