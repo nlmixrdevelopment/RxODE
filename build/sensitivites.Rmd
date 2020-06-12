@@ -1,6 +1,10 @@
 ---
 title: "Sensitivities in ADVAN solutions"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
 ---
 
 # Helper functions
@@ -118,11 +122,6 @@ getFun <- function(x="oneCmtKaRateSSr1"){
   .args2 <- .args2[.args2 != "b1"]
   .args2 <- .args2[.args2 != "b2"]
   .args2 <- .args2[.args2 != "t"]
-  if (any(.args2 == "ka")){
-      .args2 <- c(.args2, c("r1", "b1", "r2", "b2"))
-  } else {
-      .args2 <- c(.args2, c("r1", "b1"))
-  }
   
   assign(".args", .args2, globalenv())
   .l <- .l[-1]
@@ -229,4 +228,24 @@ getFun("oneCmtKaSSb2")
 
 ```{r}
 getFun("oneCmtKa")
+```
+
+
+# Two compartment Senstivities
+
+## Two compartment oral steady state r1
+
+```{r}
+getFun("twoCmtKaRateSSr1")
+```
+
+## Two compartment oral steady state r2
+
+```{r}
+getFun("twoCmtKaRateSSr2")
+```
+
+## Two compartment oral steady state r1 tau
+```{r}
+getFun("twoCmtKaRateSStr1")
 ```
