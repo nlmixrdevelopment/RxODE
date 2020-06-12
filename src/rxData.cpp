@@ -24,11 +24,11 @@
 #include <checkmate.h>
 #include "../inst/include/RxODE.h"
 #include "ode.h"
-#include "timsort.h"	
-#ifdef rxSortStd	
-#define SORT std::sort	
-#else	
-#define SORT gfx::timsort	
+#include "timsort.h"
+#ifdef rxSortStd
+#define SORT std::sort
+#else
+#define SORT gfx::timsort
 #endif
 #define rxModelVars(a) rxModelVars_(a)
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
@@ -231,7 +231,7 @@ List rxDrop(CharacterVector drop, List input, bool warnDrop) {
   CharacterVector inNames = input.attr("names");
   std::vector<int> keepI;
   int ndrop=0;
-  for (int i = 0; i < inNames.size(); ++i) {
+  for (unsigned int i = 0; i < inNames.size(); ++i) {
     std::string curName = as<std::string>(inNames[i]);
     bool dropCur = false;
     for (int j = drop.size();j--;){
@@ -255,7 +255,7 @@ List rxDrop(CharacterVector drop, List input, bool warnDrop) {
   }
   List ret(keepI.size());
   CharacterVector retN(keepI.size());
-  for (int i = keepI.size(); i--;){
+  for (unsigned int i = keepI.size(); i--;){
     ret[i] = input[keepI[i]];
     retN[i] = inNames[keepI[i]];
   }
@@ -555,10 +555,10 @@ void rxModelsAssign(std::string str, SEXP assign){
   _rxModels[str] = assign;
 }
 
-// 
+//
 inline bool fileExists(const std::string& name) {
-  struct stat buffer;   
-  return (stat (name.c_str(), &buffer) == 0); 
+  struct stat buffer;
+  return (stat (name.c_str(), &buffer) == 0);
 }
 
 // Use this function to keep dynLoad options consistent.
@@ -660,7 +660,7 @@ List rxModelVars_blank(){
   ret[16] = IntegerVector::create(); // dvid
   retN[16] = "dvid";
   ret[17] = List::create();
-  retN[17] = "indLin";  
+  retN[17] = "indLin";
   ret[18] = IntegerVector::create(0); // timeId
   retN[18] = "timeId";
   ret[19] =CharacterVector::create(_["file_md5"] = "", _["parsed_md5"] = ""); // md5
@@ -728,7 +728,7 @@ List rxModelVars_character(const RObject &obj){
   } else if (modList.hasAttribute("names")){
     bool containsPrefix = false;
     CharacterVector modListNames = modList.names();
-    for (int i = 0; i < modListNames.size(); i++){
+    for (unsigned int i = 0; i < modListNames.size(); i++){
       if (modListNames[i] == "prefix"){
 	containsPrefix=true;
 	break;
@@ -757,7 +757,7 @@ List rxModelVars_list(const RObject &obj){
   bool params=false, lhs=false, state=false, trans=false, ini=false, model=false, md5=false, podo=false, dfdy=false;
   List lobj  = asList(obj, "rxModelVars_list");
     CharacterVector nobj = lobj.names();
-    for (int i = 0; i < nobj.size(); i++){
+    for (unsigned int i = 0; i < nobj.size(); i++){
       if (nobj[i] == "modVars"){
 	return(rxModelVars_(lobj["modVars"]));
       } else if (!params && nobj[i]== "params"){
@@ -877,7 +877,7 @@ RObject rxState(const RObject &obj = R_NilValue, RObject state = R_NilValue){
       warning(_("only one state variable should be input"));
     }
     IntegerVector ret(1);
-    for (int i = 0; i < states.size(); i++){
+    for (unsigned int i = 0; i < states.size(); i++){
       if (states[i] == lookup[0]){
 	ret[0] = i+1;
 	return ret;
@@ -1148,15 +1148,15 @@ NumericVector rxSetupIni(const RObject &obj,
 //' Setup the initial conditions.
 //'
 //' @param obj RxODE object
-//' 
+//'
 //' @param inits A numeric vector of initial conditions.
-//' 
+//'
 //' @param extraArgs A list of extra args to parse for initial conditions.
-//' 
+//'
 //' @author Matthew L. Fidler
-//' 
+//'
 //' @keywords internal
-//' 
+//'
 //' @export
 //[[Rcpp::export]]
 NumericVector rxSetupScale(const RObject &obj,
@@ -1403,10 +1403,10 @@ typedef struct {
   int *grc;
   int *gidose;
   int *gpar_cov;
-  
+
   int *gParPos;
   int *gParPos2;
-  
+
   int *gsvar;
   int *gsiV;
   //
@@ -1525,7 +1525,7 @@ extern "C" int rxGetErrsNcol(){
     NumericMatrix sigma = _rxModels[".sigma"];
     int ret = sigma.ncol();
     return ret;
-  } 
+  }
   return 0;
 }
 
@@ -1535,7 +1535,7 @@ extern "C" int rxGetErrsNrow(){
     NumericMatrix sigma = _rxModels[".sigma"];
     int ret = sigma.nrow();
     return ret;
-  } 
+  }
   return 0;
 }
 
@@ -1628,7 +1628,7 @@ void rxSimOmega(bool &simOmega,
     omegaSep=true;
     omegaMC = NumericMatrix(nStud, omegaN.size());
     j=0;
-    for (int i = 0; i < omegaN.size(); i++){
+    for (unsigned int i = 0; i < omegaN.size(); i++){
       for (j = 0; j < thetaN.size(); j++){
 	if (omegaN[i] == thetaN[j]){
 	  omegaMC(_,i) = thetaM(_,j);
@@ -1637,7 +1637,7 @@ void rxSimOmega(bool &simOmega,
       }
       if (j == thetaN.size()){
 	stop(_("parameter '%s' was not simulated in 'thetaMat'"), (as<std::string>(omegaN[i])).c_str());
-      }      
+      }
     }
     simOmega = true;
   } else if (rxIs(omega,"matrix") && nSub > 1){
@@ -1696,7 +1696,7 @@ void rxSimOmega(bool &simOmega,
 //' @param params Named Vector of RxODE model parameters
 //'
 //' @param thetaMat Named theta matrix.
-//' 
+//'
 //' @param thetaLower Lower bounds for simulated population parameter variability (by default -Inf)
 //'
 //' @param thetaUpper Upper bounds for simulated population unexplained variability (by default Inf)
@@ -1710,7 +1710,7 @@ void rxSimOmega(bool &simOmega,
 //'     Cholesky decomposed matrix instead of the traditional
 //'     symmetric matrix.
 //'
-//' @param nSub Number between subject variabilities (ETAs) simulated for every 
+//' @param nSub Number between subject variabilities (ETAs) simulated for every
 //'        realization of the parameters.
 //'
 //' @param omega Named omega matrix.
@@ -1730,12 +1730,12 @@ void rxSimOmega(bool &simOmega,
 //'
 //' @param omegaSeparation @template separation
 //'
-//' @param nStud Number virtual studies to characterize uncertainty in estimated 
+//' @param nStud Number virtual studies to characterize uncertainty in estimated
 //'        parameters.
 //'
 //' @param nObs Number of observations to simulate (with \code{sigma} matrix)
 //'
-//' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
+//' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the
 //'     individual parameters, residuals are updated after solve is completed.
 //'
 //' @param sigmaSeparation @template separation
@@ -1746,13 +1746,13 @@ void rxSimOmega(bool &simOmega,
 //'
 //' @inheritParams rxSolve
 //'
-//' @param dfSub Degrees of freedom to sample the between subject variability matrix from the 
+//' @param dfSub Degrees of freedom to sample the between subject variability matrix from the
 //'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
 //'
-//' @param dfObs Degrees of freedom to sample the unexplained variability matrix from the 
-//'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution. 
+//' @param dfObs Degrees of freedom to sample the unexplained variability matrix from the
+//'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
 //'
-//' @param simSubjects boolean indicated RxODE should simulate subjects in studies (\code{TRUE}, 
+//' @param simSubjects boolean indicated RxODE should simulate subjects in studies (\code{TRUE},
 //'         default) or studies (\code{FALSE})
 //'
 //' @author Matthew L.Fidler
@@ -1816,27 +1816,27 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   if (nSub > 1 && rxIsNull(omega)){
     // rxSolveFree();
     warning(_("multi-subject simulation without without 'omega'"));
-  }    
+  }
   rxSimOmega(simOmega, omegaSep, omegaM, omegaN, omegaMC,
 	     omegaList, thetaN, thetaM, "omega", omega, omegaDf,
 	     omegaLower, omegaUpper, omegaIsChol,
 	     omegaSeparation, omegaXform, dfSub, nStud, nSub);
-  
+
   bool simSigma = false;
   bool sigmaSep=false;
   NumericMatrix sigmaM;
   CharacterVector sigmaN;
   NumericMatrix sigmaMC;
   List sigmaList;
-  
+
   rxSimOmega(simSigma, sigmaSep, sigmaM, sigmaN, sigmaMC,
 	     sigmaList, thetaN, thetaM, "sigma", sigma, sigmaDf,
 	     sigmaLower, sigmaUpper, sigmaIsChol,
 	     sigmaSeparation, sigmaXform, dfObs, nStud, nObs);
-  
+
   // Now create data frame of parameter values
   List iovList;
-  
+
   int pcol = par.size();
   int ocol = 0;
   int ncol = pcol;
@@ -2023,7 +2023,7 @@ List getEtRxsolve(Environment e){
 
     e["add.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$add.sampling(...); invisible(rxSolve(.args.object,events=.et,updateObject=TRUE))}"),
 			      _["envir"]  = e);
-      
+
     e["clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$clear.sampling(...); invisible(rxSolve(.args.object,events=.newEt,updateObject=TRUE))}"),
 				_["envir"]  = e);
 
@@ -2032,13 +2032,13 @@ List getEtRxsolve(Environment e){
 
     e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() .et$get.sampling()"),
 			      _["envir"]  = e);
-      
+
     e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() .et$get.units()"),
 			   _["envir"]  = e);
 
     e["import.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(imp) {.et <- as.et(imp); invisible(rxSolve(.args.object,events=.et,updateObject=TRUE))}"),
 				   _["envir"]  = e);
-      
+
     // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
   }
   return e[".et"];
@@ -2049,7 +2049,7 @@ inline void updateParNames0(CharacterVector &ret, Environment &e,
   if (e.exists(what)){
     CharacterVector out = e[what];
     CharacterVector in = out.names();
-    for (int i = ret.size(); i--;){
+    for (unsigned int i = ret.size(); i--;){
       for (int j = in.size(); j--;){
 	if (as<std::string>(ret[i]) == as<std::string>(in[j])){
 	  ret[i] = out[j];
@@ -2160,9 +2160,9 @@ void updateSolveEnvPost(Environment e){
 	for (unsigned int k = parsdf.nrow(); k--;){
 	  tmp[k] = (k % nsub)+1;
 	}
-	if (idLevels.size() > 0){	
-	  tmp.attr("class") = CharacterVector::create("factor");	
-	  tmp.attr("levels") = idLevels;	
+	if (idLevels.size() > 0){
+	  tmp.attr("class") = CharacterVector::create("factor");
+	  tmp.attr("levels") = idLevels;
 	}
 	prsl[j] = tmp;
 	prsn[j]="id";
@@ -2228,7 +2228,7 @@ extern "C" void rxOptionsIni();
 extern "C" void rxOptionsIniEnsure(int mx);
 extern "C" void parseFree(int last);
 extern "C" void rxClearFuns();
-extern "C" void rxFreeLast();	
+extern "C" void rxFreeLast();
 //' Free the C solving/parsing information.
 //'
 //' Take the ODE C system and free it.
@@ -2350,7 +2350,7 @@ static inline SEXP rxSolve_update(const RObject &object,
     lobj = as<List>(object);
     CharacterVector classattr = object.attr("class");
     e = as<Environment>(classattr.attr(".RxODE.env"));
-  } else  { // if (rxIs(object, "environment")) 
+  } else  { // if (rxIs(object, "environment"))
     e = as<Environment>(object);
     lobj = as<List>(e["obj"]);
   }
@@ -2387,7 +2387,7 @@ static inline SEXP rxSolve_update(const RObject &object,
     new_params = update_params ? params : e[".args.params"];
     new_events = update_events ? events : e[".args.events"];
   }
-    
+
   RObject new_inits = update_inits ? inits : e[".args.inits"];
   List newRxControl = clone(rxControl);
   RObject new_object = as<RObject>(e[".args.object"]);
@@ -2557,7 +2557,7 @@ static inline void rxSolve_simulate(const RObject &obj,
 				    rxSolve_t* rxSolveDat){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
-  
+
   RObject omega = rxControl[Rxc_omega];
   Nullable<NumericVector> omegaDf = asNNv(rxControl[Rxc_omegaDf], "omegaDf");
   bool omegaIsChol = asBool(rxControl[Rxc_omegaIsChol], "Rxc_omegaIsChol");
@@ -2565,7 +2565,7 @@ static inline void rxSolve_simulate(const RObject &obj,
   Nullable<NumericMatrix> thetaMat = as<Nullable<NumericMatrix>>(rxControl[Rxc_thetaMat]);
   Nullable<NumericVector> thetaDf = asNNv(rxControl[Rxc_thetaDf], "thetaDf");
   bool thetaIsChol = asBool(rxControl[Rxc_thetaIsChol], "thetaIsChol");
-  
+
   RObject sigma= rxControl[Rxc_sigma];
   Nullable<NumericVector> sigmaDf= asNNv(rxControl[Rxc_sigmaDf], "sigmaDf");
   bool sigmaIsChol= asBool(rxControl[Rxc_sigmaIsChol], "sigmaIsChol");
@@ -2575,11 +2575,11 @@ static inline void rxSolve_simulate(const RObject &obj,
   unsigned int nStud = asUnsignedInt(rxControl[Rxc_nStud], "nStud");
   double dfSub=asDouble(rxControl[Rxc_dfSub], "dfSub");
   double dfObs=asDouble(rxControl[Rxc_dfObs], "dfObs");
-  
+
   unsigned int nCoresRV = asUnsignedInt(rxControl[Rxc_nCoresRV], "nCoresRV");
-  
+
   bool simSubjects = false;
-  
+
   op->ncoresRV = nCoresRV;
 
   if (!thetaMat.isNull() || !rxIsNull(omega) || !rxIsNull(sigma)){
@@ -2928,7 +2928,7 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
 	}
       }
       // if (nid == 0){
-      // } else 
+      // } else
       if (nid == rxSolveDat->nPopPar || rxSolveDat->nPopPar == 1){
 	ntot = nid;
       } else {
@@ -2937,7 +2937,7 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     } else {
       if (rxSolveDat->nPopPar != 0) ntot = rxSolveDat->nPopPar;
     }
-    
+
     NumericVector time0 = dataf[rxcTime];
     if (rxIs(time0, "units")){
       rxSolveDat->addTimeUnits=true;
@@ -2955,7 +2955,7 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     _globals.gall_times = (double*)calloc(5*time0.size(), sizeof(double));
     std::copy(time0.begin(), time0.end(), &_globals.gall_times[0]);
     _globals.gdv = _globals.gall_times + time0.size(); // Perhaps allocate zero size if missing?
-    _globals.gamt = _globals.gdv + time0.size(); 
+    _globals.gamt = _globals.gdv + time0.size();
     _globals.gii = _globals.gamt + time0.size();
     _globals.glimit=_globals.gii + time0.size();
     NumericVector dv;
@@ -3442,7 +3442,7 @@ static inline List rxSolve_df(const RObject &obj,
       rxSolveDat->covUnits.hasAttribute("names")){
     CharacterVector nmC = rxSolveDat->covUnits.attr("names");
     NumericVector tmpN, tmpN2;
-    for (int i = nmC.size(); i--;){
+    for (unsigned int i = nmC.size(); i--;){
       tmpN = rxSolveDat->covUnits[i];
       if (rxIs(tmpN, "units")){
 	tmpN2 = dat[as<std::string>(nmC[i])];
@@ -3758,7 +3758,7 @@ static inline void rxSolve_updateParams(RObject &trueParams,
       rxSolveDat->par1 = rxSolveDat->parDf;
     } else {
       rxSolveDat->parDf = as<DataFrame>(rxSolveDat->par1);
-    }  
+    }
     rxSolveDat->parType = 2;
     rxSolveDat->nPopPar = rxSolveDat->parDf.nrows();
     unsigned int parDfi = rxSolveDat->parDf.size();
@@ -3774,7 +3774,7 @@ static inline void rxSolve_updateParams(RObject &trueParams,
   } else if (!rxIsNull(rxSolveDat->par1)) {
     rxSolveDat->parNumeric = rxSolveDat->par1;
     // Convert NumericVector to a matrix
-    
+
     rxSolveDat->parMat = NumericMatrix(rx->nsub, rxSolveDat->parNumeric.size());
     unsigned int parDfi = rxSolveDat->parNumeric.size();
     while (parDfi--){
@@ -3882,7 +3882,7 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
     _lastT0 = clock();
 #endif
     return(dat);
-  }    
+  }
 }
 
 SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS);
@@ -3981,7 +3981,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     	(!rxIsNull(rxControl[Rxc_thetaMat]) ||
     	 !rxIsNull(rxControl[Rxc_omega]) ||
     	 !rxIsNull(rxControl[Rxc_sigma]))) {
-      
+
       // Update model, events and parameters based on nesting
       _rxModels[".nestPars"] = expandPars_(wrap(object), wrap(trueParams),
 					   wrap(trueEvents), wrap(rxControl));
@@ -4026,12 +4026,12 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       rxSolveFree();
       stop(_("cannot load RxODE dlls for this model"));
     }
-    // Get model 
+    // Get model
     // Get the C solve object
     rx_solve* rx = getRxSolve_();
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
-    rx_solving_options* op = rx->op;    
+    rx_solving_options* op = rx->op;
 #ifdef rxSolveT
     REprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4282,7 +4282,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time10: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
-    
+
     // Make sure the user input all the parameters.
     rxSolve_parOrder(object, rxControl, specParams, extraArgs,
 		     pars, ev1, inits, rxSolveDat);
@@ -4291,7 +4291,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time11: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
-    
+
     op->svar = &_globals.gsvar[0];
     op->nsvar = rxSolveDat->nsvar;
     if (op->nsvar == 0){
@@ -4592,10 +4592,10 @@ CharacterVector rxSolveDollarNames(RObject obj){
   if (e.exists(".sigmaL")) nExtra++;
   if (e.exists(".thetaL")) nExtra++;
   if (e.exists(".omegaL")) nExtra++;
-  
+
   List pars = List(e[".params.dat"]);
   CharacterVector pn = pars.attr("names");
-  
+
   NumericVector ini = NumericVector(e[".init.dat"]);
   CharacterVector nmi = ini.names();
 
@@ -4603,24 +4603,24 @@ CharacterVector rxSolveDollarNames(RObject obj){
 
   CharacterVector ret(nExtra + names1.size() +
 		      pn.size() + nmi.size() + envl.size());
-  
+
   int j = 0;
-  for (int i = names1.size(); i--;){
+  for (unsigned int i = names1.size(); i--;){
     ret[j++] = names1[i];
   }
 
-  for (int i = pn.size(); i--;){
+  for (unsigned int i = pn.size(); i--;){
     ret[j++] = pn[i];
   }
 
-  for (int i = nmi.size(); i--;){
+  for (unsigned int i = nmi.size(); i--;){
     ret[j++] = as<std::string>(nmi[i]) + "0";
   }
 
-  for (int i = envl.size(); i--;){
+  for (unsigned int i = envl.size(); i--;){
     ret[j++] = envl[i];
   }
-  
+
   ret[j++] = "env";
   ret[j++] = "model";
   ret[j++] = "params";
@@ -4873,7 +4873,7 @@ RObject rxSolveUpdate(RObject obj,
 		    cur = as<std::string>(nmi[i]) + "[0]";
                     if (cur == sarg){
 		      doIt = true;
-		    } 
+		    }
 		  }
 		}
 	      }
@@ -4946,7 +4946,7 @@ void rxRmModelLib_(std::string str){
     if (_rxModels.exists(rxlib)){
       _rxModels.remove(rxlib);
     }
-  }  
+  }
 }
 extern "C" void rxRmModelLib(const char* s){
   std::string str(s);
@@ -5031,8 +5031,8 @@ void rxAssignPtr(SEXP object = R_NilValue){
   getRxSolve_();
   // Update rxModels environment.
   getRxModels();
-  
-  std::string ptr = as<std::string>(trans[RxMvTrans_model_vars]); 
+
+  std::string ptr = as<std::string>(trans[RxMvTrans_model_vars]);
   if (!_rxModels.exists(ptr)){
     _rxModels[ptr] = mv;
   } else if (!rxIsCurrent(as<RObject>(_rxModels[ptr]))) {
@@ -5082,7 +5082,7 @@ std::string rxDll(RObject obj){
     if (!pkgn.isNull()){
       Function rxPkgDll = getRxFn(".rxPkgDll");
       return(as<std::string>(rxPkgDll(wrap(obj))));
-    } 
+    }
     return as<std::string>((as<List>(e["rxDll"]))["dll"]);
   } else if (rxIs(obj,"rxSolve")) {
     CharacterVector cls = obj.attr("class");
@@ -5156,7 +5156,7 @@ CharacterVector rxC(RObject obj){
 
 //' Determine if the DLL associated with the RxODE object is loaded
 //'
-//' @param obj A RxODE family of objects 
+//' @param obj A RxODE family of objects
 //'
 //' @return Boolean returning if the RxODE library is loaded.
 //'
@@ -5176,7 +5176,7 @@ bool rxIsLoaded(RObject obj){
 
 //' Load RxODE object
 //'
-//' @param obj A RxODE family of objects 
+//' @param obj A RxODE family of objects
 //'
 //' @return Boolean returning if the RxODE library is loaded.
 //'
@@ -5289,7 +5289,7 @@ RObject rxUnloadAll_(){
   Function dynUnload("dyn.unload", R_BaseNamespace);
   CharacterVector vars = _rxModels.ls(true);
   std::string exclude = ".rxSolveDat.";
-  for (int i = vars.size(); i--;){
+  for (unsigned int i = vars.size(); i--;){
     std::string varC = as<std::string>(vars[i]);
     if (varC.find(exclude) == std::string::npos){
       if (rxIsInt(_rxModels[varC])){
@@ -5302,13 +5302,13 @@ RObject rxUnloadAll_(){
       }
     }
   }
-  // Now get 
+  // Now get
   return R_NilValue;
 }
 
 //' Unload RxODE object
 //'
-//' @param obj A RxODE family of objects 
+//' @param obj A RxODE family of objects
 //'
 //' @return Boolean returning if the RxODE library is loaded.
 //'
@@ -5417,16 +5417,16 @@ extern "C" int rxIsCurrentC(SEXP obj){
 
 extern "C" int Rcat(char *msg){
   std::string str(msg);
-  Rcpp::Function msgF("message"); 
+  Rcpp::Function msgF("message");
   msgF(str, _["appendLF"]=false);
-  return 1; 
+  return 1;
 }
 
 int isRstudioI = 0;
 
 //[[Rcpp::export]]
 SEXP setRstudio(bool isRstudio=false){
-  if (isRstudio) isRstudioI=1; 
+  if (isRstudio) isRstudioI=1;
   else isRstudioI=0;
   return wrap(isRstudioI);
 }
@@ -5460,46 +5460,46 @@ List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
   CharacterVector newNme(22);
   newNme[0] ="lib.name";
   newLst[0] = libName;
-  
+
   newNme[1] = "jac";
   newLst[1] = asStr(oldTrans[1], "oldTrans[1]");
-  
+
   newNme[2] = "prefix";
   newLst[2] = prefix;
-  
+
   newNme[3] = "dydt";
   newLst[3] = prefix + "dydt";
-  
+
   newNme[4] = "calc_jac";
   newLst[4] = prefix + "calc_jac";
-  
+
   newNme[5] = "calc_lhs";
   newLst[5] = prefix + "calc_lhs";
-  
+
   newNme[6] = "model_vars";
   newLst[6] = prefix + "model_vars";
-  
+
   newNme[7] = "theta";
   newLst[7] = prefix + "theta";
-  
+
   newNme[8]="inis";
   newLst[8]= prefix + "inis";
 
   newNme[9]="dydt_lsoda";
   newLst[9]= prefix + "dydt_lsoda";
-  
+
   newNme[10]="calc_jac_lsoda";
   newLst[10]= prefix + "calc_jac_lsoda";
-  
+
   newNme[11]= "ode_solver_solvedata";
   newLst[11]= prefix + "ode_solver_solvedata";
 
   newNme[12] = "ode_solver_get_solvedata";
   newLst[12] = prefix+"ode_solver_get_solvedata";
-  
+
   newNme[13]= "dydt_liblsoda";
   newLst[13]= prefix + "dydt_liblsoda";
-  
+
   newNme[14]="F";
   newLst[14]= prefix + "F";
 
@@ -5508,24 +5508,24 @@ List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
 
   newNme[16]= "Rate";
   newLst[16] = prefix + "Rate";
-  
+
   newNme[17] ="Dur";
   newLst[17] = prefix + "Dur";
-  
+
   newNme[18] = "mtime";
   newLst[18] = prefix + "mtime";
-  
+
   newNme[19] = "assignFuns";
   newLst[19] = prefix + "assignFuns";
 
   newNme[20] = "ME";
   newLst[20] = prefix + "ME";
-  
+
   newNme[21] = "IndF";
   newLst[21]= prefix + "IndF";
 
   newLst.attr("names") = newNme;
-				   
+
   ret[3] = newLst;
   return(ret);
 }
