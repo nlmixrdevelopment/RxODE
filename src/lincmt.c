@@ -558,9 +558,6 @@ static inline void threeCmtKaRateSStr2(double *A, double *tinf, double *tau, dou
   double lam1 = j3  + rho3*(ct3 + st3);
   double lam2 = j3 + rho3*(ct3 - st3);
   double lam3 = j3 -(2.0*rho3*ct3);
-  
-  /* double eKa = 1.0/(1.0-exp(-(*ka)*(*tau))); */
-  /* double eiKa = exp(-(*ka)*(*tinf)); */
 
   double eL1 = exp(-lam1*((*tau)-(*tinf)))/(1.0-exp(-lam1*(*tau)));
   double eiL1 = exp(-lam1*(*tinf));
@@ -692,7 +689,6 @@ static inline void twoCmtKaSSb1(double *A, double *tau, double *b1,
   double e2e3 = E2+E3;
   double s = sqrt(e2e3*e2e3-4*(E2*E3-(*k23)*(*k32)));
 
-  //calculate hybrid rate constants
   double lambda1 = 0.5*(e2e3+s);
   double lambda2 = 0.5*(e2e3-s);
   double eKa=1.0/(1.0-exp(-(*tau)*(*ka)));
@@ -711,10 +707,8 @@ static inline void twoCmtKaSSb2(double *A, double *tau, double *b2,
   double e2e3 = E2+E3;
   double s = sqrt(e2e3*e2e3-4*(E2*E3-(*k23)*(*k32)));
 
-  //calculate hybrid rate constants
   double lambda1 = 0.5*(e2e3+s);
   double lambda2 = 0.5*(e2e3-s);
-  /* double eKa=1.0/(1.0+exp(-(*tau)*(*ka))); */
   double eL1=1.0/(1.0-exp(-(*tau)*lambda1));
   double eL2=1.0/(1.0-exp(-(*tau)*lambda2));
 
@@ -752,7 +746,6 @@ static inline void threeCmtKaSSb1(double *A, double *tau, double *b1,
   double E3 = (*k32);
   double E4 = (*k42);
 
-  //calculate hybrid rate constants
   double a = E2+E3+E4;
   double b = E2*E3+E4*(E2+E3)-(*k23)*(*k32)-(*k24)*(*k42);
   double c = E2*E3*E4-E4*(*k23)*(*k32)-E3*(*k24)*(*k42);
@@ -794,7 +787,6 @@ static inline void threeCmtKaSSb2(double *A, double *tau, double *b2,
   double E3 = (*k32);
   double E4 = (*k42);
 
-  //calculate hybrid rate constants
   double a = E2+E3+E4;
   double b = E2*E3+E4*(E2+E3)-(*k23)*(*k32)-(*k24)*(*k42);
   double c = E2*E3*E4-E4*(*k23)*(*k32)-E3*(*k24)*(*k42);
@@ -817,7 +809,6 @@ static inline void threeCmtKaSSb2(double *A, double *tau, double *b2,
   double lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
   double lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
 
-  /* double eKa = 1.0/(1.0-exp(-(*tau)*(*KA))); */
   double eL1 = 1.0/(1.0-exp(-(*tau)*lambda1));
   double eL2 = 1.0/(1.0-exp(-(*tau)*lambda2));
   double eL3 = 1.0/(1.0-exp(-(*tau)*lambda3));
@@ -836,7 +827,6 @@ static inline void threeCmtKa(double *A, double *Alast, double *t,
   double E3 = (*k32);
   double E4 = (*k42);
 
-  //calculate hybrid rate constants
   double a = E2+E3+E4;
   double b = E2*E3+E4*(E2+E3)-(*k23)*(*k32)-(*k24)*(*k42);
   double c = E2*E3*E4-E4*(*k23)*(*k32)-E3*(*k24)*(*k42);
@@ -899,7 +889,7 @@ static inline void threeCmtKa(double *A, double *Alast, double *t,
   
   double A3term3 = A1last*(*KA)*(*k23)*(eL1*e4l1/(l21*l31*((*KA)-lambda1))+eL2*e4l2/(l12*l32*((*KA)-lambda2))+eL3*e4l3/(l13*l23*((*KA)-lambda3))+eKA*(E4-(*KA))/((lambda1-(*KA))*(lambda2-(*KA))*(lambda3-(*KA))));
   
-  A3 = A3term1+A3term2+A3term3;// Amount in the first-peripheral compartment
+  A3 = A3term1+A3term2+A3term3;
 
   double A4term1 = A4last*(eL1*e2l1*e3l1/(l21*l31)+eL2*e2l2*e3l2/(l12*l32)+eL3*(E2-lambda3)*e3l3/(l13*l23));
   
@@ -936,7 +926,6 @@ static inline void twoCmtRateSSr1(double *A, double *r1,
 				  double *k10, double *k12, double *k21) {
   double E1 = (*k10)+(*k12);
   double E2 = (*k21);
-  //#calculate hybrid rate constants
   double s = E1+E2;
   double sqr = sqrt(s*s-4*(E1*E2-(*k12)*(*k21)));
   double lambda1 = 0.5*(s+sqr);
@@ -951,7 +940,6 @@ static inline void twoCmtRateSS(double *A, double *tinf, double *tau, double *r1
   double E1 = (*k10)+(*k12);
   double E2 = (*k21);
 
-  //#calculate hybrid rate constants
   double s = E1+E2;
   double sqr = sqrt(s*s-4*(E1*E2-(*k12)*(*k21)));
   double lambda1 = 0.5*(s+sqr);
@@ -971,7 +959,6 @@ static inline void twoCmtRate(double *A, double *Alast, double *t,
   double E1 = (*k10)+(*k12);
   double E2 = (*k21);
 
-  //#calculate hybrid rate constants
   double s = E1+E2;
   double sqr = sqrt(s*s-4*(E1*E2-(*k12)*(*k21)));
   double lambda1 = 0.5*(s+sqr);
@@ -988,14 +975,14 @@ static inline void twoCmtRate(double *A, double *Alast, double *t,
   double c12 = (c10-A1last*lambda2)/l21;
   double A1term1 = c11*eT1 - c12*eT2;
   double A1term2 = (*Doserate)*E2*(1/(lambda1*lambda2)+eT1/(lambda1*l12)-eT2/(lambda2*l12));
-  A1 = A1term1+A1term2 + (*b1);//Amount in the central compartment
+  A1 = A1term1+A1term2 + (*b1);
 
   double c20 = (A2last*E1+A1last*(*k12));
   double c21 = (c20-A2last*lambda1)/l21;
   double c22 = (c20-A2last*lambda2)/l21;
   double A2term1 = c21*eT1-c22*eT2;
   double A2term2 = (*Doserate)*(*k12)*(1/(lambda1*lambda2)+eT1/(lambda1*l12)-eT2/(lambda2*(lambda1-lambda2)));
-  A2 = A2term1+A2term2;//Amount in the peripheral compartment
+  A2 = A2term1+A2term2;
 }
 
 static inline void threeCmtRateSSr1(double *A, double *r1,
@@ -1005,7 +992,6 @@ static inline void threeCmtRateSSr1(double *A, double *r1,
   double E2 = (*k21);
   double E3 = (*k31);
 
-  //#calculate hybrid rate constants
   double a = E1+E2+E3;
   double b = E1*E2+E3*(E1+E2)-(*k12)*(*k21)-(*k13)*(*k31);
   double c = E1*E2*E3-E3*(*k12)*(*k21)-E2*(*k13)*(*k31);
@@ -1041,7 +1027,6 @@ static inline void threeCmtRateSS(double *A,
   double E2 = (*k21);
   double E3 = (*k31);
 
-  //#calculate hybrid rate constants
   double a = E1+E2+E3;
   double b = E1*E2+E3*(E1+E2)-(*k12)*(*k21)-(*k13)*(*k31);
   double c = E1*E2*E3-E3*(*k12)*(*k21)-E2*(*k13)*(*k31);
@@ -1082,7 +1067,6 @@ static inline void threeCmtRate(double *A, double *Alast,
   double E2 = (*k21);
   double E3 = (*k31);
 
-  //#calculate hybrid rate constants
   double a = E1+E2+E3;
   double b = E1*E2+E3*(E1+E2)-(*k12)*(*k21)-(*k13)*(*k31);
   double c = E1*E2*E3-E3*(*k12)*(*k21)-E2*(*k13)*(*k31);
@@ -1135,19 +1119,19 @@ static inline void threeCmtRate(double *A, double *Alast,
   double A1term2 = eL1*(C-B*lambda1)/(l12*l13)+eL2*(B*lambda2-C)/(l12*l23)+eL3*(B*lambda3-C)/(l13*l32);
   double A1term3 = (*Doserate)*((E2*E3)/(lambda1*lambda2*lambda3)-eL1*e2l1*e3l1/(lambda1*l21*l31)-eL2*e2l2*e3l2/(lambda2*l12*l32)-eL3*e2l3*e3l3/(lambda3*l13*l23));
 
-  A1 = A1term1+A1term2+A1term3 + (*b1);//Amount in the central compartment
+  A1 = A1term1+A1term2+A1term3 + (*b1);
 
   double A2term1 = A2last*(eL1*e1l1*e3l1/(l21*l31)+eL2*e1l2*e3l2/(l12*l32)+eL3*e1l3*e3l3/(l13*l23));
   double A2term2 = eL1*(I-A1last*(*k12)*lambda1)/(l12*l13)+eL2*(A1last*(*k12)*lambda2-I)/(l12*l23)+eL3*(A1last*(*k12)*lambda3-I)/(l13*l32);
   double A2term3 = (*Doserate)*(*k12)*(E3/(lambda1*lambda2*lambda3)-eL1*e3l1/(lambda1*l21*l31)-eL2*e3l2/(lambda2*l12*l32)-eL3*e3l3/(lambda3*l13*l23));
 
-  A2 = A2term1+A2term2+A2term3;// Amount in the first-peripheral compartment
+  A2 = A2term1+A2term2+A2term3;
 
   double A3term1 = A3last*(eL1*e1l1*e2l1/(l21*l31)+eL2*e1l2*e2l2/(l12*l32)+eL3*e1l3*e2l3/(l13*l23));
   double A3term2 = eL1*(J-A1last*(*k13)*lambda1)/(l12*l13)+eL2*(A1last*(*k13)*lambda2-J)/(l12*l23)+eL3*(A1last*(*k13)*lambda3-J)/(l13*l32);
   double A3term3 = (*Doserate)*(*k13)*(E2/(lambda1*lambda2*lambda3)-eL1*e2l1/(lambda1*l21*l31)-eL2*e2l2/(lambda2*l12*l32)-eL3*e2l3/(lambda3*l13*l23));
 
-  A3 = A3term1+A3term2+A3term3;//Amount in the second-peripheral compartment
+  A3 = A3term1+A3term2+A3term3;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1167,12 +1151,10 @@ static inline void oneCmtBolus(double *A, double *Alast,
 static inline void twoCmtBolusSS(double *A,
 				 double *tau, double *b1, double *k10,
 				 double *k12, double *k21) {
-  /* double E1 = (*k10)+(*k12); */
   double E2 = (*k21);
 
   double s = (*k12)+(*k21)+(*k10);
   double sqr = sqrt(s*s-4*(*k21)*(*k10));
-  //calculate hybrid rate constants
   double lambda1 = 0.5*(s+sqr);
   double lambda2 = 0.5*(s-sqr);
 
@@ -1191,7 +1173,6 @@ static inline void twoCmtBolus(double *A, double *Alast,
 
   double s = (*k12)+(*k21)+(*k10);
   double sqr = sqrt(s*s-4*(*k21)*(*k10));
-  //calculate hybrid rate constants
   double lambda1 = 0.5*(s+sqr);
   double lambda2 = 0.5*(s-sqr);
 
@@ -1200,10 +1181,10 @@ static inline void twoCmtBolus(double *A, double *Alast,
 
   double A1term = (((A1last*E2+A2last*(*k21))-A1last*lambda1)*eT1-((A1last*E2+A2last*(*k21))-A1last*lambda2)*eT2)/(lambda2-lambda1);
   
-  A1 = A1term + (*b1); //Amount in the central compartment
+  A1 = A1term + (*b1); 
 
   double A2term = (((A2last*E1+A1last*(*k12))-A2last*lambda1)*eT1-((A2last*E1+A1last*(*k12))-A2last*lambda2)*eT2)/(lambda2-lambda1);
-  A2 = A2term;//            #Amount in the peripheral compartment
+  A2 = A2term;
 }
 
 static inline void threeCmtBolusSS(double *A, double *tau, double *b1, double *k10,
@@ -1213,7 +1194,6 @@ static inline void threeCmtBolusSS(double *A, double *tau, double *b1, double *k
   double E2 = (*k21);
   double E3 = (*k31);
 
-  //calculate hybrid rate constants
   double a = E1+E2+E3;
   double b = E1*E2+E3*(E1+E2)-(*k12)*(*k21)-(*k13)*(*k31);
   double c = E1*E2*E3-E3*(*k12)*(*k21)-E2*(*k13)*(*k31);
@@ -1253,7 +1233,6 @@ static inline void threeCmtBolus(double *A, double *Alast,
   double E2 = (*k21);
   double E3 = (*k31);
 
-  //calculate hybrid rate constants
   double a = E1+E2+E3;
   double b = E1*E2+E3*(E1+E2)-(*k12)*(*k21)-(*k13)*(*k31);
   double c = E1*E2*E3-E3*(*k12)*(*k21)-E2*(*k13)*(*k31);
@@ -1324,8 +1303,8 @@ static inline void ssRateTau(double *A,
 			     double *tau,
 			     double *r1,
 			     double *r2,
-			     double *ka, // ka (for oral doses)
-			     double *kel,  //double rx_v,
+			     double *ka, 
+			     double *kel,  
 			     double *k12, double *k21,
 			     double *k13, double *k31){
   if (oral0){

@@ -44,15 +44,15 @@ toC <- function(x) {
   assign(".modB", modB, globalenv())
   modB <- finalC(rxOptExpr(modB))
   modA <- finalC(rxOptExpr(modA))
-  message("linCmtA model (opt):\n")
-  message(get(".fA", globalenv()))
-  message(modA)
-  message("}")
-  message("\nlinCmtB model (opt):\n")
+  # message("linCmtA model (opt):\n")
+  # message(get(".fA", globalenv()))
+  # message(modA)
+  # message("}")
+  # message("\nlinCmtB model (opt):\n")
   .linB <- c(get(".linB", globalenv()))
   .txt <- get(".fB", globalenv());
   .linB <- c(.linB, .txt)
-  message(.txt)
+  # message(.txt)
   options(RxODE.syntax.allow.ini=FALSE)
   .lhs <- rxModelVars(get(".modB", globalenv()))$lhs
   options(RxODE.syntax.allow.ini=TRUE)
@@ -64,27 +64,27 @@ toC <- function(x) {
     }
   }
   .txt <- paste(paste0("#define ", .lhs, " A[", seq_along(.lhs) - 1 + .i, "]"), collapse="\n")
-  message(.txt)
+  # message(.txt)
   .linB <- c(.linB, .txt);
 
   if (get(".hasAlast", globalenv())) {
     .txt <- paste(paste0("#define ", gsub("A([1-4])","A\\1last",.lhs), " Alast[", seq_along(.lhs) - 1 + .i, "]"), collapse="\n");
-    message(.txt)
+    # message(.txt)
     .linB <- c(.linB, .txt)
   }
   modB <- gsub("([(][^)]+[)])\\^2", "(\\1*\\1)", modB, perl=TRUE)
   modB <- gsub("([(][^)]+[)])\\^[(]-1[)]", "(1.0/\\1)", modB, perl=TRUE)
-  message(modB)
+  #message(modB)
   .linB <- c(.linB, modB)
   .txt <- paste(paste0("#undef ", .lhs), collapse="\n")
-  message(.txt)
+  #message(.txt)
   .linB <- c(.linB, .txt)
   if (get(".hasAlast", globalenv())) {
     .txt <- paste(paste0("#undef ", gsub("A([1-4])","A\\1last",.lhs)), collapse="\n")
-    message(.txt)
+    #message(.txt)
     .linB <- c(.linB, .txt)
   }
-  message("}")
+  #message("}")
   .linB <- c(.linB, "}\n");
   assign(".linB", .linB, globalenv())
   return(invisible(NULL))
@@ -101,7 +101,7 @@ finalC <- function(x){
 .fB <- ""
 
 fromC <- function(x) {
-  gsub(" *[*]([^=\n]*)=","\\1=",gsub("double ","",gsub("[(][*]([^*]+)[)]","\\1", x)), perl=TRUE)
+  gsub(" *[*]([^=\n]*)=","\\1=",gsub("double ","",gsub("[(][*]([^*)]+)[)]","\\1", x)), perl=TRUE)
 }
 
 .lines <- readLines(devtools::package_file("src/lincmt.c"))
@@ -151,20 +151,49 @@ getFun <- function(x="oneCmtKaRateSSr1"){
 library(symengine)
 library(RxODE)
 
-.linB <- "
+if (!file.exists(devtools::package_file("src/lincmtB1.h"))){
+
+  .linB <- "
 #ifndef linCmtB1_header
 #define linCmtB1_header
 "
 
-fs <- c("oneCmtRateSSr1", "oneCmtRateSS",
-        "oneCmtRate", "oneCmtBolusSS", "oneCmtBolus",
-        "oneCmtKaRateSSr1", "oneCmtKaRateSSr2", "oneCmtKaRateSStr1", "oneCmtKaRateSStr2",
-        "oneCmtKaRate", "oneCmtKaSSb1", "oneCmtKaSSb2", "oneCmtKa")
-for (f in fs){
-  getFun(f)
+  fs <- c("oneCmtRateSSr1", "oneCmtRateSS",
+          "oneCmtRate", "oneCmtBolusSS", "oneCmtBolus",
+          "oneCmtKaRateSSr1", "oneCmtKaRateSSr2", "oneCmtKaRateSStr1", "oneCmtKaRateSStr2",
+          "oneCmtKaRate", "oneCmtKaSSb1", "oneCmtKaSSb2", "oneCmtKa")
+  rxProgress(length(fs))
+  for (f in fs){
+    getFun(f)
+    rxTick()
+  }
+  rxProgressStop()
+
+  sink(devtools::package_file("src/lincmtB1.h"))
+  cat(paste(.linB, collapse="\n"), "\n")
+  cat("#endif\n")
+  sink()
 }
 
-sink(devtools::package_file("src/lincmtB1.h"))
-cat(paste(.linB, collapse="\n"), "\n")
-cat("#endif\n")
-sink()
+
+if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
+  .linB <- "
+#ifndef linCmtB2_header
+#define linCmtB2_header
+"
+  fs <- c("twoCmtRateSSr1", "twoCmtRateSS",
+          "twoCmtRate", "twoCmtBolusSS", "twoCmtBolus",
+          "twoCmtKaRateSSr1", "twoCmtKaRateSSr2", "twoCmtKaRateSStr1", "twoCmtKaRateSStr2",
+          "twoCmtKaRate", "twoCmtKaSSb1", "twoCmtKaSSb2", "twoCmtKa")
+  rxProgress(length(fs))
+  for (f in fs){
+    getFun(f)
+    rxTick()
+  }
+  rxProgressStop()
+
+  sink(devtools::package_file("src/lincmtB2.h"))
+  cat(paste(.linB, collapse="\n"), "\n")
+  cat("#endif\n")
+  sink()
+}
