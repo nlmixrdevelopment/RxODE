@@ -64,24 +64,18 @@ toC <- function(x) {
     }
   }
   .txt <- paste(paste0("#define ", .lhs, " A[", seq_along(.lhs) - 1 + .i, "]"), collapse="\n")
-  # message(.txt)
-  .linB <- c(.linB, .txt);
-
+  .linB <- c(.linB, .txt)
   if (get(".hasAlast", globalenv())) {
     .txt <- paste(paste0("#define ", gsub("A([1-4])","A\\1last",.lhs), " Alast[", seq_along(.lhs) - 1 + .i, "]"), collapse="\n");
-    # message(.txt)
     .linB <- c(.linB, .txt)
   }
   modB <- gsub("([(][^)]+[)])\\^2", "(\\1*\\1)", modB, perl=TRUE)
   modB <- gsub("([(][^)]+[)])\\^[(]-1[)]", "(1.0/\\1)", modB, perl=TRUE)
-  #message(modB)
   .linB <- c(.linB, modB)
   .txt <- paste(paste0("#undef ", .lhs), collapse="\n")
-  #message(.txt)
   .linB <- c(.linB, .txt)
   if (get(".hasAlast", globalenv())) {
     .txt <- paste(paste0("#undef ", gsub("A([1-4])","A\\1last",.lhs)), collapse="\n")
-    #message(.txt)
     .linB <- c(.linB, .txt)
   }
   #message("}")
@@ -156,6 +150,10 @@ if (!file.exists(devtools::package_file("src/lincmtB1.h"))){
   .linB <- "
 #ifndef linCmtB1_header
 #define linCmtB1_header
+#define A1 A[0]
+#define A2 A[1]
+#define A1last Alast[0]
+#define A2last Alast[1]
 "
 
   fs <- c("oneCmtRateSSr1", "oneCmtRateSS",
@@ -171,7 +169,12 @@ if (!file.exists(devtools::package_file("src/lincmtB1.h"))){
 
   sink(devtools::package_file("src/lincmtB1.h"))
   cat(paste(.linB, collapse="\n"), "\n")
-  cat("#endif\n")
+  cat("
+#undef A1
+#undef A2
+#undef A1last
+#undef A2last
+#endif\n")
   sink()
 }
 
@@ -180,6 +183,12 @@ if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
   .linB <- "
 #ifndef linCmtB2_header
 #define linCmtB2_header
+#define A1 A[0]
+#define A2 A[1]
+#define A3 A[2]
+#define A1last Alast[0]
+#define A2last Alast[1]
+#define A3last Alast[2]
 "
   fs <- c("twoCmtRateSSr1", "twoCmtRateSS",
           "twoCmtRate", "twoCmtBolusSS", "twoCmtBolus",
@@ -194,6 +203,36 @@ if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
 
   sink(devtools::package_file("src/lincmtB2.h"))
   cat(paste(.linB, collapse="\n"), "\n")
-  cat("#endif\n")
+  cat("
+#undef A1
+#undef A2
+#undef A3
+#undef A1last
+#undef A2last
+#undef A3last
+#endif\n")
   sink()
 }
+
+
+## if (!file.exists(devtools::package_file("src/lincmtB3.h"))){
+##   .linB <- "
+## #ifndef linCmtB3_header
+## #define linCmtB3_header
+## "
+##   fs <- c("threeCmtRateSSr1", "threeCmtRateSS",
+##           "threeCmtRate", "threeCmtBolusSS", "threeCmtBolus",
+##           "threeCmtKaRateSSr1", "threeCmtKaRateSSr2", "threeCmtKaRateSStr1", "threeCmtKaRateSStr2",
+##           "threeCmtKaRate", "threeCmtKaSSb1", "threeCmtKaSSb2", "threeCmtKa")
+##   rxProgress(length(fs))
+##   for (f in fs){
+##     getFun(f)
+##     rxTick()
+##   }
+##   rxProgressStop()
+
+##   sink(devtools::package_file("src/lincmtB3.h"))
+##   cat(paste(.linB, collapse="\n"), "\n")
+##   cat("#endif\n")
+##   sink()
+## }

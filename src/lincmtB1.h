@@ -1,6 +1,10 @@
 
 #ifndef linCmtB1_header
 #define linCmtB1_header
+#define A1 A[0]
+#define A2 A[1]
+#define A1last Alast[0]
+#define A2last Alast[1]
 
 static inline void oneCmtRateSSr1D(double *A, double *r1, double *k10) {
 #define A1k10 A[1]
@@ -267,4 +271,9 @@ A2k20=rx1*A2lastk20-rx3*A2last+rx8+rx6*0/(-(*k20)+(*ka))-rx3*(*ka)*A1last/(-(*k2
 #undef A2lastk20
 }
  
+
+#undef A1
+#undef A2
+#undef A1last
+#undef A2last
 #endif
