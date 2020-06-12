@@ -18,6 +18,8 @@
 #define _(String) (String)
 #endif
 
+#include "linCmtB1.h"
+
 // From https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
 double log1mex(double a){
   if (a < M_LN2) return log(-expm1(-a));

@@ -1,0 +1,170 @@
+.linB <- character(0)
+
+toC <- function(x) {
+  s <- rxS(x)
+  funReg <- rex::rex(capture(or(get(".fun",globalenv()))))
+  extra <- paste0("(",paste(get(".args", globalenv()), collapse = ","),")")
+  funReg2 <- rex::rex(capture(funReg),"(",except_any_of(")"),")")
+  derReg <- rex::rex("Derivative(",capture("A",or(1:4), "last"), ",",any_spaces, capture(except_any_of(")")), ")")
+  derReg2 <- rex::rex("Derivative(",capture("A1last"), ",",any_spaces,
+                      capture(or(c("b2","r2","k20"))), ")")
+  rep <- paste0("\\1",extra)
+  doIt <- function(extra=TRUE) {
+    ret <- sapply(c("A1","A2","A3","A4"), function(var) {
+      .var <- s[[var]]
+      if (!is.null(.var)) {
+        .var <- as.character(.var)
+        if (extra) {
+          .var2 <- gsub(funReg, rep, .var)
+          .tmp <- c(paste0(var,"=", .var),
+                    sapply(get(".args", globalenv()),function(extra){
+                      if (var == "A1" && any(extra == c("k20","r2","b2"))){
+                        return(NULL)
+                      }
+                      .d <- D(S(.var2),extra)
+                      .d <- gsub(funReg2, "\\1", .d)
+                      .d <- gsub(derReg2, "0", .d, perl=TRUE)
+                      .d <- gsub(derReg, "\\1\\2", .d, perl=TRUE)
+                      paste0(var,extra,"=",.d)
+                    }))
+          .tmp <- .tmp[.tmp != "NULL"]
+          paste(.tmp,collapse="\n")
+        } else {
+          paste0(var,"=",.var)
+        }
+      } else {
+        NULL
+      }
+    })
+    return(unlist(ret))
+  }
+  modB <- paste(doIt(TRUE), collapse="\n")
+  modA <- paste(doIt(FALSE), collapse="\n")
+  assign(".modA", modA, globalenv())
+  assign(".modB", modB, globalenv())
+  modB <- finalC(rxOptExpr(modB))
+  modA <- finalC(rxOptExpr(modA))
+  message("linCmtA model (opt):\n")
+  message(get(".fA", globalenv()))
+  message(modA)
+  message("}")
+  message("\nlinCmtB model (opt):\n")
+  .linB <- c(get(".linB", globalenv()))
+  .txt <- get(".fB", globalenv());
+  .linB <- c(.linB, .txt)
+  message(.txt)
+  options(RxODE.syntax.allow.ini=FALSE)
+  .lhs <- rxModelVars(get(".modB", globalenv()))$lhs
+  options(RxODE.syntax.allow.ini=TRUE)
+  .i <- 0
+  for (.a in paste0("A", 1:4)){
+    if (any(.a == .lhs)){
+      .i <- .i + 1;
+      .lhs <- .lhs[.lhs != .a]
+    }
+  }
+  .txt <- paste(paste0("#define ", .lhs, " A[", seq_along(.lhs) - 1 + .i, "]"), collapse="\n")
+  message(.txt)
+  .linB <- c(.linB, .txt);
+
+  if (get(".hasAlast", globalenv())) {
+    .txt <- paste(paste0("#define ", gsub("A([1-4])","A\\1last",.lhs), " Alast[", seq_along(.lhs) - 1 + .i, "]"), collapse="\n");
+    message(.txt)
+    .linB <- c(.linB, .txt)
+  }
+  modB <- gsub("([(][^)]+[)])\\^2", "(\\1*\\1)", modB, perl=TRUE)
+  modB <- gsub("([(][^)]+[)])\\^[(]-1[)]", "(1.0/\\1)", modB, perl=TRUE)
+  message(modB)
+  .linB <- c(.linB, modB)
+  .txt <- paste(paste0("#undef ", .lhs), collapse="\n")
+  message(.txt)
+  .linB <- c(.linB, .txt)
+  if (get(".hasAlast", globalenv())) {
+    .txt <- paste(paste0("#undef ", gsub("A([1-4])","A\\1last",.lhs)), collapse="\n")
+    message(.txt)
+    .linB <- c(.linB, .txt)
+  }
+  message("}")
+  .linB <- c(.linB, "}\n");
+  assign(".linB", .linB, globalenv())
+  return(invisible(NULL))
+}
+
+finalC <- function(x){
+  paste0(paste(strsplit(gsub("rx([0-9]+)=","double rx\\1=",gsub("rx_expr_","rx", gsub("~","=",gsub("\\b(k[1-4][0-4]|ka|[rb][1-2]|tau|tinf|t)\\b","(*\\1)", x),perl=TRUE))),"\n")[[1]],collapse=";\n"),";")
+}
+
+.fun <- c("A1last", "A2last", "A3last", "A4last")
+.args <- c("k10")
+
+.fA <- ""
+.fB <- ""
+
+fromC <- function(x) {
+  gsub(" *[*]([^=\n]*)=","\\1=",gsub("double ","",gsub("[(][*]([^*]+)[)]","\\1", x)), perl=TRUE)
+}
+
+.lines <- readLines(devtools::package_file("src/lincmt.c"))
+
+getFun <- function(x="oneCmtKaRateSSr1"){
+  .w <- which(regexpr(paste0("void ", x, " *[(]"), .lines) != -1)[1]
+  .l <- .lines[-seq(1, .w - 1)];
+  .w <- which(regexpr("}", .l) != -1)[1]
+  .l <- .l[seq(1, .w)]
+  .l <- gsub("\t", " ", .l)
+  while (length(grep("[{]", .l[1])) == 0L) {
+    .l[2] <- paste(.l[1:2], collapse=" ")
+    .l <- .l[-1]
+  }
+  .args <- strsplit(gsub(",", " ", gsub("double *[*]", " ", gsub(".*[(]([^)]*)[)].*", "\\1", .l[1]))), " +")[[1]]
+  .args <- .args[.args != ""]
+  .args <- .args[.args != "A"]
+  .hasAlast <- any(.args == "Alast")
+  .args <- .args[.args != "Alast"]
+  .args2 <- .args[.args != "tinf"]
+  .args2 <- .args2[.args2 != "tau"]
+  .args2 <- .args2[.args2 != "r1"]
+  .args2 <- .args2[.args2 != "r2"]
+  .args2 <- .args2[.args2 != "b1"]
+  .args2 <- .args2[.args2 != "b2"]
+  .args2 <- .args2[.args2 != "t"]
+
+  assign(".args", .args2, globalenv())
+  .l <- .l[-1]
+  .l <- paste(.l[-length(.l)], collapse="\n");
+  .l <- fromC(.l)
+  assign(".hasAlast", .hasAlast, globalenv());
+  if (.hasAlast){
+    .fargs <- c("A", "Alast", .args)
+  } else {
+    .fargs <- c("A", .args)
+  }
+  .fargs <- paste0("(double *", paste(.fargs, collapse=", double *"), ")")
+  .fA <- paste0("static inline void ", x, .fargs, " {")
+  .fB <- paste0("static inline void ", x, "D", .fargs, " {")
+  assign(".fA", .fA, globalenv())
+  assign(".fB", .fB, globalenv())
+  toC(.l)
+  return(invisible(NULL))
+}
+
+library(symengine)
+library(RxODE)
+
+.linB <- "
+#ifndef linCmtB1_header
+#define linCmtB1_header
+"
+
+fs <- c("oneCmtRateSSr1", "oneCmtRateSS",
+        "oneCmtRate", "oneCmtBolusSS", "oneCmtBolus",
+        "oneCmtKaRateSSr1", "oneCmtKaRateSSr2", "oneCmtKaRateSStr1", "oneCmtKaRateSStr2",
+        "oneCmtKaRate", "oneCmtKaSSb1", "oneCmtKaSSb2", "oneCmtKa")
+for (f in fs){
+  getFun(f)
+}
+
+sink(devtools::package_file("src/lincmtB1.h"))
+cat(paste(.linB, collapse="\n"), "\n")
+cat("#endif\n")
+sink()
