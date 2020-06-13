@@ -5566,7 +5566,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   int pro=0;
   SEXP inStr = PROTECT(Rf_allocVector(STRSXP, 4)); pro++;
   int doSens = 0;
-  if (TYPEOF(linCmtSens) == LGLSXP) {
+  if (TYPEOF(linCmtSens) == INTSXP){
     doSens = INTEGER(linCmtSens)[0];
   }
   sAppend(&last, "%s%s%s%s", d_tlag.s, d_F.s, d_rate1.s, d_dur1.s);
@@ -5575,12 +5575,16 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   sAppend(&last, "%s%s%s%s",d_tlag2.s, d_F2.s,  d_rate2.s, d_dur2.s);
   SET_STRING_ELT(inStr, 3, mkChar(last.s));
   sClear(&last);
-  if (doSens){
+  if (doSens == 2){
     sAppend(&last, "linCmtB(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
     SET_STRING_ELT(inStr, 0, mkChar(last.s));
     SET_STRING_ELT(inStr, 1, mkChar("0, "));
   } else {
-    sAppend(&last, "linCmtA(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+    if (doSens == 1){
+      sAppend(&last, "linCmtA(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+    } else if (doSens == 3) {
+      sAppend(&last, "linCmtC(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+    }
     SET_STRING_ELT(inStr, 0, mkChar(last.s));
     SET_STRING_ELT(inStr, 1, mkChar(""));
   }

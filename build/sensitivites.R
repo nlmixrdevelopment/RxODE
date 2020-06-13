@@ -215,10 +215,21 @@ if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
 }
 
 
+## This is too complicated to calculate currently
+
 ## if (!file.exists(devtools::package_file("src/lincmtB3.h"))){
 ##   .linB <- "
 ## #ifndef linCmtB3_header
 ## #define linCmtB3_header
+## #define A1 A[0]
+## #define A2 A[1]
+## #define A3 A[2]
+## #define A4 A[3]
+## #define A1last Alast[0]
+## #define A2last Alast[1]
+## #define A3last Alast[2]
+## #define A4last Alast[3]
+
 ## "
 ##   fs <- c("threeCmtRateSSr1", "threeCmtRateSS",
 ##           "threeCmtRate", "threeCmtBolusSS", "threeCmtBolus",
@@ -233,6 +244,13 @@ if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
 
 ##   sink(devtools::package_file("src/lincmtB3.h"))
 ##   cat(paste(.linB, collapse="\n"), "\n")
-##   cat("#endif\n")
+##   cat("
+## #undef A1
+## #undef A2
+## #undef A3
+## #undef A1last
+## #undef A2last
+## #undef A3last
+## #endif\n")
 ##   sink()
 ## }

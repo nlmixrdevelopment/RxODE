@@ -3,10 +3,10 @@ rxPermissive({
     tol  <- 5e-6 ## Current difference for all equations
     type <- 2
 
-    for (type in 1:2){
+    for (type in 1:3) {
 
-      .txt <- switch(type, "linear", "sensitivity");
-      sens <- switch(type, FALSE, TRUE);
+      .txt <- switch(type, "linear", "sensitivity", "linear [no save]");
+      sens <- switch(type, "linCmtA", "linCmtB", "linCmtC");
 
       context(sprintf("Test steady state solutions (%s)", .txt))
 
@@ -1569,7 +1569,6 @@ rxPermissive({
         expect_equal(s.1c$time[1:4], c(0, 0.5, 1, 1.75))
       })
     }
-
     test_that("double linCmt has error",
               expect_error(RxODE({
                 C2 = linCmt(CL, V);
@@ -1640,7 +1639,7 @@ rxPermissive({
       expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
 
     })
-    
+
     tol <- 1e-5 ## Current difference for all equations
 
     context("1 cmt sensitivities")
@@ -1869,7 +1868,7 @@ rxPermissive({
       expect_equal(s1$rx__sens_rx_r__BY_ETA_1___, o1$rx__sens_rx_r__BY_ETA_1___, tolerance=tol)
       expect_equal(s1$rx__sens_rx_r__BY_ETA_2___, o1$rx__sens_rx_r__BY_ETA_2___, tolerance=tol)
       expect_equal(s1$rx__sens_rx_r__BY_ETA_3___, o1$rx__sens_rx_r__BY_ETA_3___, tolerance=tol)
-      
+
     })
 
     context("2 cmt sensitivities")
@@ -1965,7 +1964,7 @@ rxPermissive({
       o1 <- rxSolve(pk2o$inner, parms, etInf)
 
       expect_equal(s1$rx_pred_ ,o1$rx_pred_, tol=tol)
-      
+
       expect_equal(s1$rx__sens_rx_pred__BY_ETA_1___, o1$rx__sens_rx_pred__BY_ETA_1___, tol=tol)
       expect_equal(s1$rx__sens_rx_pred__BY_ETA_2___, o1$rx__sens_rx_pred__BY_ETA_2___, tol=tol)
       expect_equal(s1$rx__sens_rx_pred__BY_ETA_3___, o1$rx__sens_rx_pred__BY_ETA_3___, tol=tol)
@@ -2310,7 +2309,7 @@ rxPermissive({
 
       s1 <- rxSolve(pk3s$inner, parms, etInf)
       o1 <- rxSolve(pk3o$inner, parms, etInf)
-      
+
       expect_equal(s1$rx_pred_, o1$rx_pred_, tolerance=tol)
       expect_equal(s1$rx__sens_rx_pred__BY_ETA_1___, o1$rx__sens_rx_pred__BY_ETA_1___, tolerance=tol)
       expect_equal(s1$rx__sens_rx_pred__BY_ETA_2___, o1$rx__sens_rx_pred__BY_ETA_2___, tolerance=tol)
@@ -2348,7 +2347,7 @@ rxPermissive({
       expect_equal(s1$rx__sens_rx_r__BY_ETA_4___, o1$rx__sens_rx_r__BY_ETA_4___, tolerance=tol)
       expect_equal(s1$rx__sens_rx_r__BY_ETA_5___, o1$rx__sens_rx_r__BY_ETA_5___, tolerance=tol)
       expect_equal(s1$rx__sens_rx_r__BY_ETA_6___, o1$rx__sens_rx_r__BY_ETA_6___, tolerance=tol)
-      
+
     })
 
     test_that("3 compartment sensitivities; Oral Cl, Vc, Q, Vp, Ka", {
@@ -2381,7 +2380,7 @@ rxPermissive({
         Vp2 <- exp(lVp2 + eta.Vp2)
         Ka <- exp(lKa + eta.Ka)
       }
-      
+
       err <- function () {
         return(prop(prop.err))
       }
@@ -2412,7 +2411,7 @@ rxPermissive({
                  "ETA[3]"=0, "ETA[4]"=0,
                  "ETA[5]"=0, "ETA[6]"=0, "ETA[7]"=0,
                  "THETA[8]"=0.2)
-      
+
       et <- eventTable() %>%
         add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
         add.sampling(seq(0, 48, length.out=200))
@@ -2535,7 +2534,7 @@ rxPermissive({
       expect_equal(s1$rx__sens_rx_r__BY_ETA_5___, o1$rx__sens_rx_r__BY_ETA_5___, tolerance=tol)
       expect_equal(s1$rx__sens_rx_r__BY_ETA_6___, o1$rx__sens_rx_r__BY_ETA_6___, tolerance=tol)
       expect_equal(s1$rx__sens_rx_r__BY_ETA_7___, o1$rx__sens_rx_r__BY_ETA_7___, tolerance=tol)
-      
+
 
       etInfSs <- et() %>% et(amt=3, rate=1.5, cmt=1) %>%
         et(time=4,amt=3, rate=1.5, ss=1, ii=24, cmt=1) %>%
@@ -2587,6 +2586,6 @@ rxPermissive({
       expect_equal(s1$rx__sens_rx_r__BY_ETA_5___, o1$rx__sens_rx_r__BY_ETA_5___, tolerance=tol)
       expect_equal(s1$rx__sens_rx_r__BY_ETA_6___, o1$rx__sens_rx_r__BY_ETA_6___, tolerance=tol)
       expect_equal(s1$rx__sens_rx_r__BY_ETA_7___, o1$rx__sens_rx_r__BY_ETA_7___, tolerance=tol)
-      
+
     })
 }, silent=TRUE, test="lincmt")

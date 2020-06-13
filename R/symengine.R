@@ -79,6 +79,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "exp"=1,
   "gamma"=1,
   "linCmtA"=20,
+  "linCmtC"=20,
   "linCmtB"=21,
   "log"=1,
   "polygamma"=2,

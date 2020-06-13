@@ -216,6 +216,14 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       double d_tlag, double d_tlag2, double d_F, double d_F2,
 	       double d_rate, double d_dur, double d_rate2, double d_dur2);
 
+double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
+	       int ncmt, int trans, double d_ka,
+	       double p1, double v1,
+	       double p2, double p3,
+	       double p4, double p5,
+	       double d_tlag, double d_tlag2, double d_F, double d_F2,
+	       double d_rate, double d_dur, double d_rate2, double d_dur2);
+
 double linCmtB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       int i_cmt, int trans, int val,
 	       double dd_p1, double dd_v1,
@@ -434,6 +442,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "isRstudio", (DL_FUNC) isRstudio);
   R_RegisterCCallable("RxODE", "ind_solve", (DL_FUNC) ind_solve);
   R_RegisterCCallable("RxODE", "linCmtA", (DL_FUNC) linCmtA);
+  R_RegisterCCallable("RxODE", "linCmtC", (DL_FUNC) linCmtC);
   R_RegisterCCallable("RxODE", "linCmtB", (DL_FUNC) linCmtB);
   R_RegisterCCallable("RxODE", "_update_par_ptr", (DL_FUNC) _update_par_ptr);
   R_RegisterCCallable("RxODE", "_getParCov", (DL_FUNC) _getParCov);

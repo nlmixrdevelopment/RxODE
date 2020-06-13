@@ -68,10 +68,7 @@ R_PosInf <- Inf # nolint
 ##'
 ##' @param ... ignored arguments.
 ##'
-##' @param linCmtSens A boolean indicating if the linCmt() soultions
-##'     should be calculated with derivatives (sensitivites) to each
-##'     parameter. This is useful for FOCEi and similar calculations.
-##'     By default this is \code{FALSE}.
+##' @param linCmtSens The method to calculate the linCmt() solutions
 ##'
 ##' @param indLin Calculate inductive linearization matrices and
 ##'     compile with inductive linearization support.
@@ -335,7 +332,7 @@ RxODE <- # nolint
              wd = getwd(),
              filename = NULL, extraC = NULL, debug = FALSE, calcJac=NULL, calcSens=NULL,
              collapseModel=FALSE, package=NULL, ...,
-             linCmtSens=FALSE,
+             linCmtType=c("linCmtA", "linCmtB", "linCmtC"),
              indLin=FALSE,
              verbose=FALSE){
     if (!missing(modName)){
@@ -365,9 +362,9 @@ RxODE <- # nolint
     if (!checkmate::checkLogical(collapseModel, max.len=1, any.missing=FALSE)){
         stop("'collapseModel' needs to be logical")
     }
-    if (!checkmate::checkLogical(linCmtSens, max.len=1, any.missing=FALSE)){
-        stop("'linCmtSens' needs to be logical")
-    }
+    ## if (!checkmate::checkLogical(linCmtSens, max.len=1, any.missing=FALSE)){
+    ##     stop("'linCmtSens' needs to be logical")
+    ## }
     if (!checkmate::checkLogical(indLin, max.len=1, any.missing=FALSE)){
         stop("'indLin' needs to be logical")
     }
@@ -423,7 +420,9 @@ RxODE <- # nolint
       .env$.mv <- rxGetModel(.Call(`_RxODE_linCmtGen`,
                                    length(.env$.mv$state),
                                    .vars,
-                                   linCmtSens, verbose))
+                                   setNames(c("linCmtA"=1L, "linCmtB"=2L,
+                                              "linCmtC"=3L)[match.arg(linCmtType)],
+                                            NULL), verbose))
     }
     model <- rxNorm(.env$.mv);
     class(model) <- "rxModelText"

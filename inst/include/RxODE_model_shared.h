@@ -113,6 +113,15 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       // Rate and dur can only apply to central compartment even w/ oral dosing
 	       // Therefore, only 1 model rate is possible with RxODE
 	       double d_rate, double d_dur);
+double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
+	       int ncmt, int trans, double d_ka,
+	       double p1, double v1,
+	       double p2, double p3,
+	       double p4, double p5,
+	       double d_tlag, double d_tlag2, double d_F, double d_F2,
+	       // Rate and dur can only apply to central compartment even w/ oral dosing
+	       // Therefore, only 1 model rate is possible with RxODE
+	       double d_rate, double d_dur);
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
 void _assignFuns(){
   if (_assign_ptr == NULL){
@@ -137,6 +146,7 @@ SEXP _RxODE_rxAssignPtr(SEXP);
 _update_par_ptr_p _update_par_ptr=NULL;
 _getParCov_p _getParCov=NULL;
 linCmtA_p linCmtA;
+linCmtA_p linCmtC;
 linCmtB_p linCmtB;
 _rx_asgn _RxODE_rxAssignPtr =NULL;
 typedef int (*RxODEi_rxbinom) (rx_solving_options_ind* ind, int n, double prob);
@@ -181,6 +191,7 @@ void _assignFuns(){
     _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
     linCmtA=(linCmtA_p)R_GetCCallable("RxODE", "linCmtA");
     linCmtB=(linCmtB_p)R_GetCCallable("RxODE", "linCmtB");
+    linCmtC=(linCmtA_p)R_GetCCallable("RxODE", "linCmtC");
     rxnorm = (RxODEi_fn2)R_GetCCallable("RxODE", "rxnorm");
     rxnormV = (RxODEi_fn2)R_GetCCallable("RxODE", "rxnormV");
     rxbinom = (RxODEi_rxbinom)R_GetCCallable("RxODE","rxbinom") ;
