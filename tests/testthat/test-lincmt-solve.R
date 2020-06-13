@@ -1639,7 +1639,6 @@ rxPermissive({
       expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
 
     })
-    }
 
     tol <- 1e-5 ## Current difference for all equations
     type <- 1
