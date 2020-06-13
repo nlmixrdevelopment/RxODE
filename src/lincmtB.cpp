@@ -2393,17 +2393,17 @@ static inline double linCmtBg(double *A, int& val, int& trans, int& ncmt,
   }
 }
 
-extern "C" double linCmtB(rx_solve *rx, unsigned int id,
-			  double t, int linCmt,
-			  int ncmt, int trans, int val,
-			  double dd_p1, double dd_v1,
-			  double dd_p2, double dd_p3,
-			  double dd_p4, double dd_p5,
-			  double dd_tlag, double dd_F,
-			  double dd_rate, double dd_dur,
-			  // oral extra parameters
-			  double dd_ka, double dd_tlag2,
-			  double dd_F2, double dd_rate2, double dd_dur2){
+extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
+			   double t, int linCmt,
+			   int ncmt, int trans, int val,
+			   double dd_p1, double dd_v1,
+			   double dd_p2, double dd_p3,
+			   double dd_p4, double dd_p5,
+			   double dd_tlag, double dd_F,
+			   double dd_rate, double dd_dur,
+			   // oral extra parameters
+			   double dd_ka, double dd_tlag2,
+			   double dd_F2, double dd_rate2, double dd_dur2){
   // Get  Alast
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   int idx = ind->idx;

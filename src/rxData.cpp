@@ -4012,6 +4012,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx_solve* rx = getRxSolve_();
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
+    rx->sensType = asInt(rxControl[Rxc_sensType], "sensType");
     return rxSolve_update(object, rxControl, specParams,
 			  extraArgs, params, events, inits,
 			  rxSolveDat);
@@ -4031,6 +4032,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx_solve* rx = getRxSolve_();
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
+    rx->sensType = asInt(rxControl[Rxc_sensType], "sensType");
     rx_solving_options* op = rx->op;
 #ifdef rxSolveT
     REprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);

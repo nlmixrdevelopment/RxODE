@@ -56,7 +56,9 @@ rxControl <- function(scale = NULL,
                       cacheEvent=TRUE,
                       mvnfast=FALSE,
                       sumType=c("pairwise", "fsum", "kahan", "neumaier", "c"),
-                      prodType=c("long double", "double", "logify")){
+                      prodType=c("long double", "double", "logify"),
+                      sensType=c("autodiff", "forward", "central")
+                      ){
     .xtra <- list(...);
     if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")) {
         .sigmaXform <- as.integer(sigmaXform)
@@ -182,6 +184,13 @@ rxControl <- function(scale = NULL,
     } else {
       .prod <- which(match.arg(prodType) == c("long double", "double", "logify"))
     }
+
+    if (inherits(sensType, "numeric") ||
+        inherits(sensType, "integer")) {
+      .sensType <- as.integer(sensType)
+    } else {
+      .sensType <- as.integer(which(match.arg(sensType) == c("autodiff", "forward", "central")))
+    }
     .ret <- list(scale=scale,
                  method=method,
                  transitAbs=transitAbs,
@@ -253,7 +262,8 @@ rxControl <- function(scale = NULL,
                  cacheEvent=as.logical(cacheEvent),
                  mvnfast=mvnfast,
                  sumType=as.integer(.sum),
-                 prodType=as.integer(.prod));
+                 prodType=as.integer(.prod),
+                 sensType=as.integer(.sensType))
     return(.ret)
 }
 

@@ -3188,68 +3188,245 @@ double linCmtD(rx_solve *rx, unsigned int id, double t, int linCmt,
   case 0:
     return v0;
   case 1:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1 + h, v1,
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1 + h, v1,
 		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
-		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) + h2*v0;
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2)- v0);
   case 2:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1 + h,
-		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
-		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) + h2*v0;
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1 + h,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
   case 3:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
 		      p2 + h, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
-		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) + h2*v0;
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
   case 4:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
 		      p2, p3 + h, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
-		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) + h2*v0;
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
   case 5:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
 		      p2, p3, p4 + h, p5, d_tlag, d_F, d_rate1, d_dur1, 
-		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) + h2*v0;
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
   case 6:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
-		      p2, p3, p4, p5 + h, d_tlag, d_F, d_rate1, d_dur1, 
-		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) + h2*v0;
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5 + h, d_tlag, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
   case 7:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
-		      p2, p3, p4, p5, d_tlag + h, d_F, d_rate1, d_dur1, 
-		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) + h2*v0;
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag + h, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
   case 8:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
-		      p2, p3, p4, p5, d_tlag, d_F + h, d_rate1, d_dur1, 
-		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) + h2*v0;
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F + h, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
   case 9:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
-		      p2, p3, p4, p5, d_tlag, d_F, d_rate1 + h, d_dur1, 
-		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) + h2*v0;
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1 + h, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
   case 10:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
-		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1 + h, 
-		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) + h2*v0;
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1 + h, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
   case 11:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
 		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-		      d_ka + h, d_tlag2, d_F2,  d_rate2, d_dur2) + h2*v0;
+		       d_ka + h, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
   case 12:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
-		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-		      d_ka, d_tlag2 + h, d_F2,  d_rate2, d_dur2) + h2*v0;
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2 + h, d_F2,  d_rate2, d_dur2) - v0);
   case 13:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
-		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-		      d_ka, d_tlag2, d_F2  + h,  d_rate2, d_dur2) + h2*v0;
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2, d_F2  + h,  d_rate2, d_dur2) - v0);
   case 14:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
-		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-		      d_ka, d_tlag2, d_F2,  d_rate2 + h, d_dur2) + h2*v0;
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2, d_F2,  d_rate2 + h, d_dur2) - v0);
   case 15:
-    return h2*linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
-		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 + h) + h2*v0;
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 + h) - v0);
   default:
     error("undef diff");
   }
 #undef h
 #undef h2
+}
+
+double linCmtE(rx_solve *rx, unsigned int id, double t, int linCmt,
+	       int i_cmt, int trans, int val,
+	       double p1, double v1,
+	       double p2, double p3,
+	       double p4, double p5,
+	       double d_tlag, double d_F, double d_rate1, double d_dur1,
+	       // Oral parameters
+	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2) {
+  // Central difference
+#define h 7.4505805969238281e-09
+#define h2 134217728
+  switch (val){
+  case 0:
+    return linCmtA(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2);
+  case 1:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1 + h, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1 - h, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2));
+  case 2:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1 + h,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1 - h,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2));
+  case 3:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2 + h, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2 - h, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2));
+  case 4:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3 + h, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3 - h, p4, p5, d_tlag, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2));
+  case 5:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4 + h, p5, d_tlag, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4 - h, p5, d_tlag, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2));
+  case 6:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5 + h, d_tlag, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+			  p2, p3, p4, p5 - h, d_tlag, d_F, d_rate1, d_dur1, 
+			  d_ka, d_tlag2, d_F2,  d_rate2, d_dur2));
+  case 7:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag + h, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag - h, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2));
+  case 8:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F + h, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F - h, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2));
+  case 9:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1 + h, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1 - h, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2));
+  case 10:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1 + h, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1 - h, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2));
+  case 11:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka + h, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka - h, d_tlag2, d_F2,  d_rate2, d_dur2));
+  case 12:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2 + h, d_F2,  d_rate2, d_dur2) -
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2 - h, d_F2,  d_rate2, d_dur2));
+  case 13:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2, d_F2  + h,  d_rate2, d_dur2) +
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2, d_F2 - h,  d_rate2, d_dur2));
+  case 14:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2, d_F2,  d_rate2 + h, d_dur2) +
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2, d_F2,  d_rate2 - h, d_dur2));
+  case 15:
+    return h2*(linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 + h) -
+	       linCmtC(rx, id, t, linCmt, i_cmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 - h));
+  default:
+    error("undef diff");
+  }
+#undef h
+#undef h2
+}
+
+extern double linCmtBB(rx_solve *rx, unsigned int id,
+		       double t, int linCmt,
+		       int ncmt, int trans, int val,
+		       double dd_p1, double dd_v1,
+		       double dd_p2, double dd_p3,
+		       double dd_p4, double dd_p5,
+		       double dd_tlag, double dd_F,
+		       double dd_rate, double dd_dur,
+		       // oral extra parameters
+		       double dd_ka, double dd_tlag2,
+		       double dd_F2, double dd_rate2, double dd_dur2);
+
+double linCmtB(rx_solve *rx, unsigned int id,
+	       double t, int linCmt,
+	       int ncmt, int trans, int val,
+	       double dd_p1, double dd_v1,
+	       double dd_p2, double dd_p3,
+	       double dd_p4, double dd_p5,
+	       double dd_tlag, double dd_F,
+	       double dd_rate, double dd_dur,
+	       // oral extra parameters
+	       double dd_ka, double dd_tlag2,
+	       double dd_F2, double dd_rate2, double dd_dur2){
+  switch (rx->sensType){
+  case 1: // sensitivity
+    return linCmtBB(rx, id, t, linCmt, ncmt, trans, val,
+		    dd_p1, dd_v1, dd_p2, dd_p3,
+		    dd_p4, dd_p5, dd_tlag, dd_F,
+		    dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,
+		    dd_rate2, dd_dur2);
+    break;
+  case 2: // forward difference
+    return linCmtD(rx, id, t, linCmt, ncmt, trans, val,
+		    dd_p1, dd_v1, dd_p2, dd_p3,
+		    dd_p4, dd_p5, dd_tlag, dd_F,
+		    dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,
+		    dd_rate2, dd_dur2);
+    break;
+  case 3: //central difference
+    return linCmtE(rx, id, t, linCmt, ncmt, trans, val,
+		   dd_p1, dd_v1, dd_p2, dd_p3,
+		   dd_p4, dd_p5, dd_tlag, dd_F,
+		   dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,
+		   dd_rate2, dd_dur2);
+  default:
+    error("unsupported sensitivity");
+  }
 }

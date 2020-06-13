@@ -204,6 +204,7 @@ typedef struct {
   int safeZero;
   int sumType;
   int prodType;
+  int sensType;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);
