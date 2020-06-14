@@ -3626,33 +3626,17 @@ double derTrans(double *A, int ncmt, int trans, int val,
     }
     switch (trans){
     case 1: // cl=(*p1) v=(*v1) q=(*p2) vp=(*p3)
-#define cl p1
-#define q  p2
-#define vp p3
       switch (val) {
       case 1: // cl
-	// A1k10 A[2]
-	// A2k20 A[7]
-	return A[2+oral0*5]/(v1*v1);
+	return A[2 + oral0 * 5]/(v1 * v1);
       case 2: // v
-	// A1k10 A[2]
-	// A1k12 A[3]
-	//
-	// A2k20  A[7]
-	// A2k23 A[8]
-	return -A[oral0]/(v1*v1) - (q*A[3+oral0*5] + cl*A[2+oral0*5])/(v1*v1*v1);
+	return -A[oral0]/(v1 * v1) +
+	  (-p1 * A[2 + oral0 * 5]/(v1 * v1) -
+	   p2 * A[3 + oral0 * 5]/(v1 *v1))/v1;
       case 3: // q
-	// A1k12 A[3]
-	// A1k21 A[4]
-	// 
-	// A2k23 A[8]
-	// A2k32 A[9]
-	return A[3+oral0*5]/v1 +A[4+oral0*5]/(v1*vp);
+	return (A[4 + oral0 * 5]/p3 + A[3 + oral0 * 5]/v1)/v1;
       case 4: // vp
-	return -q*A[4+oral0*5]/(v1*vp*vp);
-#undef cl
-#undef q
-#undef vp
+	return -p2 * A[4 + oral0 * 5]/(p3 * p3 * v1);
       }
     case 2: // Direct translation
       switch (val) {
@@ -3663,71 +3647,82 @@ double derTrans(double *A, int ncmt, int trans, int val,
       case 2: // v
 	return -A[oral0]/(v1*v1);
       case 3: // k12
-	// A1k12 A[3]
-	// 
-	// A2k23 A[8]
 	return A[3+oral0*5]/v1;
       case 4: // k21
-	// A1k21 A[4]
-	// 
-	// A2k32 A[9]
 	return A[4+oral0*5]/v1;
       }
     case 3: // cl=(*p1) v=(*v1) q=(*p2) vss=(*p3)
-#define cl  p1
-#define q   p2
-#define vss p3
       switch (val) {
       case 1: // cl
-	return A[2+oral0*5]/(v1*v1);
+	return A[2 + oral0 * 5]/(v1 * v1);
       case 2: // v
-	// A1k10 A[2]
-	// A1k12 A[3]
-	// A2k21 A[4]
-	//
-	// A2k20 A[7]
-	// A2k23 A[8]
-	// A2k32 A[9]
-	//
-	return -A[oral0]/(v1*v1)+(-q*A[3+oral0*5]/(v1*v1)+
-				  q*A[4+oral0*5]/((vss-v1)*(vss-v1))-
-				  cl*A[2+oral0*5]/(v1*v1))/v1;
+	return -A[oral0]/(v1 * v1) + (-p1 * A[2 + oral0 * 5]/(v1 * v1) -
+				      p2 * A[3 + oral0 * 5]/(v1 * v1) +
+				      p2 * A[4 + oral0 * 5]/((p3 - v1) * (p3 - v1)))/v1;
       case 3: // q
-	return (A[3+oral0*5]/v1 + A[4+oral0*5]/(vss-v1))/v1;
+	return (A[3 + oral0 * 5]/v1 + A[4 + oral0 * 5]/(p3 - v1))/v1;
       case 4: // vss
-	return -q*A[4+oral0*5]/(v1*(vss-v1)*(vss-v1));
-#undef cl
-#undef q
-#undef vss
+	return -p2 * A[4 + oral0 * 5]/((p3 - v1) * (p3 - v1) * v1);
       }
-    /* case 4: // alpha=(*p1) beta=(*p2) k21=(*p3) */
-    /*   switch (val) { */
-    /*   case 1: // alpha */
-    /*   case 2: // v */
-    /*   case 3: // beta */
-    /*   case 4: // k21 */
-    /*   } */
-    /* case 5: // alpha=(*p1) beta=(*p2) aob=(*p3) */
-    /*   switch (val) { */
-    /*   case 1: // alpha */
-    /*   case 2: // v */
-    /*   case 3: // beta */
-    /*   case 4: // aob */
-    /*   } */
-    /* case 11: // A2 V, alpha=(*p1), beta=(*p2), k21 */
-    /*   switch (val) { */
-    /*   case 1: // alpha */
-    /*   case 2: // v */
-    /*   case 3: // beta */
-    /*   case 4: // k21 */
-    /*   } */
-    /* case 10: // A=(*v1), alpha=(*p1), beta=(*p2), B=(*p3) */
-    /*   switch (val) { */
-    /*   case 1: // alpha */
-    /*   case 2: // A */
-    /*   case 3: // beta */
-    /*   case 4: // B */
-    /*   } */
+    case 4: // alpha=(*p1) beta=(*p2) k21=(*p3)
+      switch (val) {
+      case 1: // alpha
+	return ((1 - p2/p3) * A[3 + oral0 * 5] + p2 * A[2 + oral0 * 5]/p3)/v1;
+      case 2: // v
+	return -A[oral0]/(v1 * v1);
+      case 3: // beta
+	return ((1 - p1/p3) * A[3 + oral0 * 5] + p1 * A[2 + oral0 * 5]/p3)/v1;
+      case 4: // k21
+	return (A[3 + oral0 * 5] * (-1 + p2 * p1/(p3 * p3)) -
+		p2 * p1 * A[2 + oral0 * 5]/(p3 * p3) +
+		A[4 + oral0 * 5])/v1;
+      }
+    case 5: // alpha=(*p1) beta=(*p2) aob=(*p3)
+      switch (val) {
+      case 1: // alpha
+	return (A[4 + oral0 * 5]/(1 + p3) + (p2 * (1 + p3)/(p1 + p2 * p3) -
+					     p2 * p1 * (1 + p3)/((p1 + p2 * p3) * (p1 + p2 * p3))) * A[2 + oral0 * 5] +
+		A[3 + oral0 * 5] * (1 - p2 * (1 + p3)/(p1 + p2 * p3) +
+				    p2 * p1 * (1 + p3)/((p1 + p2 * p3) * (p1 + p2 * p3)) -
+				    (1/(1 + p3))))/v1;
+      case 2: // v
+	return -A[oral0]/(v1 * v1);
+      case 3: // beta
+	return ((p1 * (1 + p3)/(p1 + p2 * p3) -
+		 p2 * p1 * p3 * (1 + p3)/((p1 + p2 * p3) * (p1 + p2 * p3))) * A[2 + oral0 * 5] +
+		(1 - p3/(1 + p3) - p1 * (1 + p3)/(p1 + p2 * p3) +
+		 p2 * p1 * p3 * (1 + p3)/((p1 + p2 * p3) * (p1 + p2 * p3))) * A[3 + oral0 * 5] +
+		p3 * A[4 + oral0 * 5]/(1 + p3))/v1;
+      case 4: // aob
+	return ((p2/(1 + p3) - (p1 + p2 * p3)/((1 + p3) * (1 + p3))) * A[4 + oral0 * 5] +
+		A[2 + oral0 * 5] * (p2 * p1/(p1 + p2 * p3) -
+				    (p2*p2) * p1 * (1 + p3)/((p1 + p2 * p3) * (p1 + p2 * p3))) +
+		A[3 + oral0 * 5] * (-p2/(1 + p3) + (p1 + p2 * p3)/((1 + p3) * (1 + p3)) -
+				    p2 * p1/(p1 + p2 * p3) +
+				    (p2 * p2) * p1 * (1 + p3)/((p1 + p2 * p3) * (p1 + p2 * p3))))/v1;
+      }
+    case 11: // A2 V, alpha=(*p1), beta=(*p2), k21
+      switch (val) {
+      case 1: // alpha
+	return (A[2 + oral0 * 5] * ( p2 * (p3 +  1.0/v1)/(p1 * p3 +  p2/v1) -  p2 * p1 * p3 * (p3 +  1.0/v1)/(((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1)))) + A[3 + oral0 * 5] * (1 -  p3/(p3 +  1.0/v1) -  p2 * (p3 +  1.0/v1)/(p1 * p3 +  p2/v1) +  p2 * p1 * p3 * (p3 +  1.0/v1)/(((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1)))) +  p3 * A[4 + oral0 * 5]/(p3 +  1.0/v1))/v1;
+      case 2: // v
+	return -A[oral0]/(v1*v1) + (A[2 + oral0 * 5] * (- p2 * p1/((v1*v1) * (p1 * p3 +  p2/v1)) +  (p2*p2) * p1 * (p3 +  1.0/v1)/((v1*v1) * (((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1))))) + A[3 + oral0 * 5] * (  p2/((v1*v1) * (p3 +  1.0/v1)) -  (p1 * p3 +  p2/v1)/((v1*v1) * (((p3 +  1.0/v1)) * ((p3 +  1.0/v1)))) +  p2 * p1/((v1*v1) * (p1 * p3 +  p2/v1)) -  (p2*p2) * p1 * (p3 +  1.0/v1)/((v1*v1) *      (((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1))))) + A[4 + oral0 * 5] * (- p2/((v1*v1) * (p3 +  1.0/v1)) +  (p1 * p3 +  p2/v1)/((v1*v1) * (((p3 +  1.0/v1)) * ((p3 +  1.0/v1))))))/v1;
+      case 3: // beta
+	return (A[2 + oral0 * 5] * ( p1 * (p3 +  1.0/v1)/(p1 * p3 +  p2/v1) -  p2 * p1 * (p3 +  1.0/v1)/(v1 * (((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1))))) + A[3 + oral0 * 5] * (1 -  1/(v1 * (p3 +  1.0/v1)) -  p1 * (p3 +  1.0/v1)/(p1 * p3 +  p2/v1) +  p2 * p1 * (p3 +  1.0/v1)/(v1 * (((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1))))) +  A[4 + oral0 * 5]/(v1 * (p3 +  1.0/v1)))/v1;
+      case 4: // k21
+	return ((0 -  p1/(p3 +  1.0/v1) +  (p1 * p3 +  p2/v1)/(((p3 +  1.0/v1)) * ((p3 +  1.0/v1))) -  p2 * p1/(p1 * p3 +  p2/v1) +  p2 * ((p1) * (p1)) * (p3 +  1.0/v1)/(((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1)))) * A[3 + oral0 * 5] + A[2 + oral0 * 5] * (p2 * p1/(p1 * p3 +  p2/v1) -  p2 * ((p1) * (p1)) * (p3 +  1.0/v1)/(((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1)))) + A[4 + oral0 * 5] * ( p1/(p3 + 1.0/v1) -  (p1 * p3 +  p2/v1)/((p3 + 1.0/v1) * (p3 +  1.0/v1))))/v1;
+      }
+    case 10: // A=(*v1), alpha=(*p1), beta=(*p2), B=(*p3)
+      switch (val) {
+      case 1: // alpha
+	return (( (p3 + v1) * p2/(p1 * p3 + p2 * v1) -  (p3 + v1) * p2 * p1 * p3/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) * A[2 + oral0 * 5] + A[3 + oral0 * 5] * (1 -  p3/(p3 + v1) -  (p3 + v1) * p2/(p1 * p3 + p2 * v1) +  (p3 + v1) * p2 * p1 * p3/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) +  p3 * A[4 + oral0 * 5]/(p3 + v1))/v1;
+      case 2: // A
+	return -A[oral0]/(v1*v1) + (( p2 * p1/(p1 * p3 + p2 * v1) -  (p3 + v1) * (p2*p2) * p1/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) * A[2 + oral0 * 5] + A[3 + oral0 * 5] * (0 -  p2/(p3 + v1) +  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1))) -  p2 * p1/(p1 * p3 + p2 * v1) +  (p3 + v1) * (p2*p2) * p1/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) + A[4 + oral0 * 5] * ( p2/(p3 + v1) -  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1)))))/v1;
+      case 3: // beta
+	return (( (p3 + v1) * p1/(p1 * p3 + p2 * v1) -  (p3 + v1) * p2 * p1 * v1/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) * A[2 + oral0 * 5] + A[3 + oral0 * 5] * (1 -  v1/(p3 + v1) -  (p3 + v1) * p1/(p1 * p3 + p2 * v1) +  (p3 + v1) * p2 * p1 * v1/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) +  v1 * A[4 + oral0 * 5]/(p3 + v1))/v1;
+      case 4: // B
+	return (( p2 * p1/(p1 * p3 + p2 * v1) -  (p3 + v1) * p2 * ((p1) * (p1))/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) * A[2 + oral0 * 5] + A[3 + oral0 * 5] * (0 -  p1/(p3 + v1) +  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1))) -  p2 * p1/(p1 * p3 + p2 * v1) +  (p3 + v1) * p2 * ((p1) * (p1))/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) + A[4 + oral0 * 5] * ( p1/(p3 + v1) -  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1)))))/v1;
+      }
     }
   case 1:
     if (val == 11) {

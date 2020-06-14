@@ -254,3 +254,128 @@ if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
 ## #endif\n")
 ##   sink()
 ## }
+
+env <- environment()
+
+
+f <- function(x){
+  if (is.atomic(x)) {
+    return(x)
+  } else if (is.name(x)) {
+    return(x)
+  } else if (is.pairlist(x)){
+    return(x)
+  } else if (is.call(x)) {
+    if (identical(x[[1]], quote(`Subs`))) {
+      .val <- as.character(x[[3]][[2]])
+      if (.val == "xi_1"){
+        return(eval(parse(text="quote(A[2+oral0*5])")))
+      }  else if (.val == "xi_2") {
+        return(eval(parse(text="quote(A[3+oral0*5])")))
+      } else if (.val == "xi_3") {
+        return(eval(parse(text="quote(A[4+oral0*5])")))
+      }
+      stop("error1")
+    } else if (identical(x[[1]], quote(`linCmt`))){
+      return(eval(parse(text="quote(A[oral0])")))
+    } else if (identical(x[[1]], quote(`Derivative`))) {
+      if (as.character(x[[3]]) == "p1"){
+        return(eval(parse(text="quote(A[2+oral0*5])")))
+      } else if (as.character(x[[3]]) == "p2") {
+        return(eval(parse(text="quote(A[3+oral0*5])")))
+      } else if (as.character(x[[3]]) == "p3") {
+        return(eval(parse(text="quote(A[4+oral0*5])")))
+      }
+      stop("derivative")
+    } else if (identical(x[[1]], quote(`^`))) {
+      if (identical(x[[3]], quote(2))) {
+        return(eval(parse(text=paste0("quote((", paste(rep(paste0("(", deparse1(x[[2]]), ")"), 2), collapse="*"), "))"))))
+      } else {
+        if (length(x[[3]]) == 2){
+          if (identical(x[[3]][[2]], quote(-1))){
+            return(eval(parse(text=paste0("quote((1/", paste("(", deparse1(x[[2]]), ")"), "))"))))
+          }
+        }
+      }
+      stop("^")
+    }
+    return(as.call(lapply(x, f)));
+  } else {
+    stop("Don't know how to handle type ", typeof(x),
+         call. = FALSE)
+  }
+}
+
+derTrans <- function(txt="(*rx_v) = (*v1);
+      (*rx_k21) = (*p3);
+      (*rx_k) = (*p1)*(*p2)/(*rx_k21);
+      (*rx_k12) = (*p1) + (*p2) - (*rx_k21) - (*rx_k);") {
+  trans4 <- rxS(fromC(txt))
+
+  l4 <- S(paste0("linCmt(", trans4$rx_k, ", ", trans4$rx_k12, ", ", trans4$rx_k21, ")/v1"))
+
+
+  f2 <- function(par){
+    message(paste0(par, ":"))
+    d2 <- f(eval(parse(text=paste0("quote(",gsub("_xi","xi",D(l4, par)),")"))))
+    message(paste0(deparse1(f(d2)), collapse=" "))
+  }
+
+  invisible(sapply(c("p1", "v1", "p2", "p3"), f2))
+}
+
+message("\ntrans1:")
+derTrans("(*rx_k) = (*p1)/(*v1);
+      (*rx_v) = (*v1);
+      (*rx_k12) = (*p2)/(*v1);
+      (*rx_k21) = (*p2)/(*p3);")
+
+
+message("\ntrans2:")
+derTrans("(*rx_k) = (*p1);
+      (*rx_v) = (*v1);
+      (*rx_k12) = (*p2);
+      (*rx_k21) = (*p3);")
+
+message("\ntrans3:")
+derTrans("(*rx_k) = (*p1)/(*v1);
+      (*rx_v) = (*v1);
+      (*rx_k12) = (*p2)/(*v1);
+      (*rx_k21) = (*p2)/((*p3)-(*v1));")
+
+
+message("\ntrans4")
+derTrans()
+
+
+message("\ntrans5")
+derTrans("(*rx_v)=(*v1);
+      (*rx_k21) = ((*p3)*(*p2)+(*p1))/((*p3)+1.0);
+      (*rx_k) = ((*p1)*(*p2))/(*rx_k21);
+      (*rx_k12) = (*p1) + (*p2) - (*rx_k21) - (*rx_k);")
+
+message("\ntrans11")
+derTrans("
+A=(1/(*v1))
+B=(*p3)
+alpha=(*p1)
+beta=(*p2)
+      (*ncmt)=2;
+      (*rx_v)   = 1/(A+B);
+      (*rx_k21) = (A*beta + B*alpha)*(*rx_v);
+      (*rx_k)   = alpha*beta/(*rx_k21);
+      (*rx_k12) = alpha+beta-(*rx_k21)-(*rx_k);")
+
+
+
+message("\ntrans10")
+derTrans("
+A=(*v1)
+B=(*p3)
+alpha=(*p1)
+beta=(*p2)
+      (*rx_v)   = 1/(A + B);
+      (*rx_k21) = (A*beta + B*alpha)*(*rx_v);
+      (*rx_k)   = alpha*beta/(*rx_k21);
+      (*rx_k12) = alpha + beta - (*rx_k21) - (*rx_k);
+")
