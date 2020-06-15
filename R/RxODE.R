@@ -4,6 +4,7 @@ rex::register_shortcuts("RxODE");
 R_NegInf <- -Inf # nolint
 R_PosInf <- Inf # nolint
 
+.linCmtSens <- NULL
 ##' Create an ODE-based model specification
 ##'
 ##' Create a dynamic ODE-based model object suitably for translation
@@ -332,7 +333,7 @@ RxODE <- # nolint
              wd = getwd(),
              filename = NULL, extraC = NULL, debug = FALSE, calcJac=NULL, calcSens=NULL,
              collapseModel=FALSE, package=NULL, ...,
-             linCmtType=c("linCmtA", "linCmtB", "linCmtC"),
+             linCmtSens=c("linCmtA", "linCmtB", "linCmtC"),
              indLin=FALSE,
              verbose=FALSE){
     if (!missing(modName)){
@@ -362,9 +363,6 @@ RxODE <- # nolint
     if (!checkmate::checkLogical(collapseModel, max.len=1, any.missing=FALSE)){
         stop("'collapseModel' needs to be logical")
     }
-    ## if (!checkmate::checkLogical(linCmtSens, max.len=1, any.missing=FALSE)){
-    ##     stop("'linCmtSens' needs to be logical")
-    ## }
     if (!checkmate::checkLogical(indLin, max.len=1, any.missing=FALSE)){
         stop("'indLin' needs to be logical")
     }
@@ -414,6 +412,7 @@ RxODE <- # nolint
     on.exit(.setTransCode("bad", ""), add=TRUE);
     .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel, indLin=indLin)
     .env$.rxTransCode <- .rxTransCode
+    assignInMyNamespace(".linCmtSens", linCmtSens)
     if (.Call(`_RxODE_isLinCmt`) == 1L){
       .env$.linCmtM <- rxNorm(.env$.mv)
       .vars <- c(.env$.mv$params, .env$.mv$lhs, .env$.mv$slhs)
@@ -421,7 +420,7 @@ RxODE <- # nolint
                                    length(.env$.mv$state),
                                    .vars,
                                    setNames(c("linCmtA"=1L, "linCmtB"=2L,
-                                              "linCmtC"=3L)[match.arg(linCmtType)],
+                                              "linCmtC"=3L)[match.arg(linCmtSens)],
                                             NULL), verbose))
     }
     model <- rxNorm(.env$.mv);
@@ -1009,33 +1008,34 @@ rxMd5 <- function(model,         # Model File
                   ...){
     ## rxMd5 returns MD5 of model file.
     ## digest(file = TRUE) includes file times, so it doesn't work for this needs.
-    if (is(model, "character")){
-        if (length(model) == 1){
-            if (file.exists(model)){
-                .ret <- readLines(model,warn=FALSE);## digest::digest(model, file = TRUE, algo = "md5")
+    if (is(model, "character")) {
+        if (length(model) == 1) {
+            if (file.exists(model)) {
+                .ret <- readLines(model,warn=FALSE)
             } else {
                 .ret <- model
             }
         } else {
-            if (any(names(model)=="normModel")){
-                .ret <- setNames(model["normModel"], NULL);
-                if (any(names(model) == "indLin")){
+            if (any(names(model)=="normModel")) {
+                .ret <- setNames(model["normModel"], NULL)
+                if (any(names(model) == "indLin")) {
                     .ret <- setNames(paste0(.ret, "\n",
                                             model["indLin"]), NULL)
                 }
             } else {
-                stop("unknown model");
+                stop("unknown model")
             }
         }
-        rxSyncOptions();
+        rxSyncOptions()
         .tmp <- c(RxODE.syntax.assign, RxODE.syntax.star.pow, RxODE.syntax.require.semicolon, RxODE.syntax.allow.dots,
                   RxODE.syntax.allow.ini0, RxODE.syntax.allow.ini, RxODE.calculate.jacobian,
-                  RxODE.calculate.sensitivity);
-        .ret <- c(.ret, .tmp, .rxIndLinStrategy, .rxIndLinState, ls(.symengineFs));
+                  RxODE.calculate.sensitivity)
+        .ret <- c(.ret, .tmp, .rxIndLinStrategy, .rxIndLinState,
+                  .linCmtSens, ls(.symengineFs))
         if (is.null(.md5Rx)){
-            .tmp <- getLoadedDLLs()$RxODE;
-            class(.tmp) <- "list";
-            assignInMyNamespace(".md5Rx", digest::digest(.tmp$path, serialize=TRUE, file=TRUE, algo="md5"));
+            .tmp <- getLoadedDLLs()$RxODE
+            class(.tmp) <- "list"
+            assignInMyNamespace(".md5Rx", digest::digest(.tmp$path, serialize=TRUE, file=TRUE, algo="md5"))
         }
         ## new RxODE DLLs gives different digests.
         .ret <- c(.ret, .md5Rx);

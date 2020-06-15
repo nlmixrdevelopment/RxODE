@@ -136,22 +136,22 @@ bool rxIs_list(const RObject &obj, std::string cls){
     std::string cur;
     for (unsigned int i = classattr.size(); i--; ){
       cur = as<std::string>(classattr[i]);
-      if (cur == cls){
-	if (cls == "rxEt"){
+      if (cur == cls) {
+	if (cls == "rxEt") {
 	  List ce = as<List>(classattr.attr(".RxODE.lst"));
 	  List lobj = List(obj);
 	  int nobs = asInt(ce["nobs"], "nobs");
 	  int ndose = asInt(ce["ndose"], "ndose");
-	  if (lobj.size() != 12){
+	  if (lobj.size() != 12) {
 	    lobj.attr("class") = CharacterVector::create("data.frame");
 	    return false;
 	  }
-	  if ( (as<IntegerVector>(lobj[0])).size() != ndose + nobs){
+	  if ( (as<IntegerVector>(lobj[0])).size() != ndose + nobs) {
 	    lobj.attr("class") = CharacterVector::create("data.frame");
 	    return false;
 	  }
 	  return true;
-	} else if (cls == "rxSolve"){
+	} else if (cls == "rxSolve") {
 	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
 	  List lobj = List(obj);
 	  CharacterVector cls2= CharacterVector::create("data.frame");
@@ -4319,10 +4319,39 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     int linKa = linCmtI[RxMvFlag_ka];
     int linB = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linB];
     if (linB) {
-      if (linKa){
-	op->nlin = linNcmt + linKa + 2*linNcmt + 9;
+      if (rx->sensType == 4){
+	// This is the ADVAN senstivities
+	if (linKa){
+	  switch (linNcmt) {
+	  case 1:
+	    op->nlin = 5;
+	    break;
+	  case 2:
+	    op->nlin = 15;
+	    break;
+	  case 3:
+	    op->nlin = 19;
+	    break;
+	  }
+	} else {
+	  switch (linNcmt) {
+	  case 1:
+	    op->nlin = 2;
+	    break;
+	  case 2:
+	    op->nlin = 8;
+	    break;
+	  case 3:
+	    op->nlin = 13;
+	    break;
+	  }
+	}
       } else {
-	op->nlin = linNcmt + 2*linNcmt + 4;
+	if (linKa){
+	  op->nlin = linNcmt + linKa + 2*linNcmt + 9;
+	} else {
+	  op->nlin = linNcmt + 2*linNcmt + 4;
+	}
       }
     } else {
       op->nlin = linNcmt+linKa;

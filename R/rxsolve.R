@@ -57,7 +57,7 @@ rxControl <- function(scale = NULL,
                       mvnfast=FALSE,
                       sumType=c("pairwise", "fsum", "kahan", "neumaier", "c"),
                       prodType=c("long double", "double", "logify"),
-                      sensType=c("autodiff", "forward", "central")
+                      sensType=c("autodiff", "forward", "central", "advan")
                       ){
     .xtra <- list(...);
     if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")) {
@@ -189,7 +189,7 @@ rxControl <- function(scale = NULL,
         inherits(sensType, "integer")) {
       .sensType <- as.integer(sensType)
     } else {
-      .sensType <- as.integer(which(match.arg(sensType) == c("autodiff", "forward", "central")))
+      .sensType <- as.integer(which(match.arg(sensType) == c("autodiff", "forward", "central", "advan")))
     }
     .ret <- list(scale=scale,
                  method=method,

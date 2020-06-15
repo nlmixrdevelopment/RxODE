@@ -3614,8 +3614,8 @@ double derTrans(double *A, int ncmt, int trans, int val,
       return(A[oral0]/v1);
     }
   }
-  switch (ncmt){
-  case 2:
+  switch (ncmt) {
+  case 2: // 2 compartment model
     if (val == 11) {
       // d/dt(ka)
       if (trans == 10) {
@@ -3724,7 +3724,7 @@ double derTrans(double *A, int ncmt, int trans, int val,
 	return (( p2 * p1/(p1 * p3 + p2 * v1) -  (p3 + v1) * p2 * ((p1) * (p1))/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) * A[2 + oral0 * 5] + A[3 + oral0 * 5] * (0 -  p1/(p3 + v1) +  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1))) -  p2 * p1/(p1 * p3 + p2 * v1) +  (p3 + v1) * p2 * ((p1) * (p1))/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) + A[4 + oral0 * 5] * ( p1/(p3 + v1) -  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1)))))/v1;
       }
     }
-  case 1:
+  case 1: // One compartment model
     if (val == 11) {
       // d/dt(ka)
       if (trans == 10) {
@@ -3741,7 +3741,7 @@ double derTrans(double *A, int ncmt, int trans, int val,
 	//A1k10 = A[1]
 	return A[oral0*3 + 1]/(v1*v1);
       case 2: // d/dt(v)
-	return -A[oral0]/(v1*v1);
+	return -A[oral0]/(v1*v1) - p1*A[oral0*3+1]/(v1*v1*v1);
       }
     case 2: // k V
       switch (val) {
@@ -3817,13 +3817,9 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
     if (idx <= ind->solved && sameTime){
       // Pull from last solved value (cached)
       A = ind->linCmtAdvan+(op->nlin)*idx;
-      error("here!!!");
-      // FIXME
-      /* if (trans == 10) { */
-      /* 	return(A[oral0]*(v1+p3+p5)); */
-      /* } else { */
-      /* 	return(A[oral0]/v1); */
-      /* } */
+      return derTrans(A, ncmt, trans, val, p1, v1, p2, p3,
+		      p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
+		      d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
     }
     unsigned int ncmt = 1;
     double rx_k=0, rx_v=0;
@@ -3916,12 +3912,12 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    // Steady state doses; wh0 == 20 is equivalent to SS=2 in NONMEM
 	    double tau = ind->ii[ind->ixds];
 	    // For now advance based solving to steady state (just like ODE)
-	    double aSave[4];
+	    double aSave[15];
 	    if (wh0 == 20) {
 	      doAdvanD(A, Alast, tlast, // Time of last amounts
 		       curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
 		       &d_ka, &rx_k, &rx_k12, &rx_k21);
-	      for (int i = ncmt + oral0; i--;){
+	      for (int i = (ncmt == 1 ? (oral0 ? 5 : 2) : (oral0 ? 15 : 8)); i--;){
 		aSave[i] = A[i];
 	      }
 	    }
@@ -4023,14 +4019,14 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    }
 	    // Now calculate steady state
 	    if (wh0 == 20) {
-	      for (int i = ncmt + oral0; i--;){
+	      for (int i = (ncmt == 1 ? (oral0 ? 5 : 2) : (oral0 ? 15 : 8)); i--;){
 		A[i] += aSave[i];
 	      }
 	    }
 	    extraAdvan=0;
 	  } else if (wh0 == 30) {
 	    // Turning off a compartment; Not supported put everything to NaN
-	    for (int i = ncmt + oral0; i--;){
+	    for (int i = (ncmt == 1 ? (oral0 ? 5 : 2) : (oral0 ? 15 : 8)); i--;){
 	      A[i] = R_NaN;
 	    }
 	    extraAdvan=0;
@@ -4165,8 +4161,9 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
     }
     /* REprintf("t: %f %f %d %d\n", t, A[oral0], idx, ind->ix[idx]); */
     /* REprintf("%f,%f,%f\n", A[oral0], rx_v, A[oral0]/rx_v); */
-    return A[oral0]/rx_v;
-    
+    return derTrans(A, ncmt, trans, val, p1, v1, p2, p3,
+		    p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
+		    d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
   }
   return R_NaN;
 }
