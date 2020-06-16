@@ -10,5 +10,13 @@ rxPermissive({
     expect_error(rxOptExpr("A1=exp(-k10*(tau - tinf))*r1*(1.0 - exp(-k10*tinf))/(k10*(1.0 - exp(-tau*k10)))"), NA)
     expect_error(rxOptExpr("A1=r1/ka\nA1ka=-r1/ka^2\nA1k20=0\nA1b1=0\nA1r1=ka^(-1)\nA2=r1/k20\nA2ka=0\nA2k20=-r1/k20^2\nA2b1=0\nA2r1=k20^(-1)"), NA)
 
+    rxOptExpr("a=1+(-1/2)*b")
+
+    rxOptExpr("a=-1*exp(b)")
+
+    rxOptExpr("a=1+(((-1/2)))*b")
+
+    rxOptExpr("a=1+(1/2)*b; c=d^(1/2); e=(1/2)*f^(1/2)")
+
 }, test="parsing")
 

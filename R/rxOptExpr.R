@@ -28,21 +28,36 @@
 .rxOptBin <- function(sep) {
   force(sep)
   function(e1, e2) {
+    .add <- TRUE
     if (missing(e2)) {
       if (sep == "+") {
         .ret <- paste0(e1)
       } else {
         .ret <- paste0(gsub(" ", "", sep), e1)
       }
+      if (regexpr(rex::rex(start, any_spaces, regNum, any_spaces, end),
+                  .ret, perl=TRUE) != -1) {
+        .add <- FALSE
+      }
     } else {
       if (sep == "^" && isTRUE(checkmate::checkIntegerish(suppressWarnings(as.numeric(e2)), lower=2,
                                                           any.missing=FALSE))) {
         .ret <- paste0("(", paste(rep(paste0("(", e1, ")"), as.numeric(e2)), collapse="*"), ")")
       } else {
+        if ((regexpr(rex::rex(start, any_spaces, regNum, any_spaces, end),
+                     paste0(e1), perl=TRUE) != -1) &&
+              (regexpr(rex::rex(start, any_spaces, regNum, any_spaces, end),
+                       paste0(e2), perl=TRUE) != -1)) {
+          .add <- FALSE
+        }
         .ret <- paste0(e1, sep, e2)
       }
     }
-    return(.addExpr(.ret))
+    if (.add) {
+      return(.addExpr(.ret))
+    } else {
+      return(.ret)
+    }
   }
 }
 
@@ -122,11 +137,14 @@
 }
 
 .rxOptExpr <- function(x) {
-  return(eval(x, .rxOptGetEnv(x)))
+  .ret <- eval(x, .rxOptGetEnv(x))
+  return(..rxOpt(eval(parse(text=paste0("quote(", .ret, ")")))))
 }
 
 ..rxOpt <- function(x, progress=FALSE) {
-  if (is.name(x) || is.atomic(x)) {
+  if (is.atomic(x)) {
+    return(as.character(x))
+  } else if (is.name(x)) {
     return(as.character(x))
   } else if (is.call(x)) {
     .x2 <- x[-1];
@@ -146,6 +164,21 @@
       } else {
         return(unlist(lapply(.x2, ..rxOpt)))
       }
+    } else if (identical(x[[1]], quote(`(`))){
+      .x2 <- x[[2]]
+      .test <- TRUE
+      while (.test){
+        if (length(.x2) == 2){
+          if (identical(.x2[[1]], quote(`(`))) {
+            .x2 <- .x2[[2]]
+          } else {
+            .test <- FALSE
+          }
+        } else {
+          .test <- FALSE
+        }
+      }
+      return(paste0("(", ..rxOpt(.x2), ")"))
     } else if (identical(x[[1]], quote(`*`)) ||
                  identical(x[[1]], quote(`^`)) ||
                  identical(x[[1]], quote(`+`)) ||
@@ -162,11 +195,78 @@
                  identical(x[[1]], quote(`&`)) ||
                  identical(x[[1]], quote(`|`))) {
       if (length(x) == 3) {
+        if (length(x[[2]]) == 2) {
+          if (identical(x[[2]][[1]], quote(`-`)) &&
+                is.atomic(x[[2]][[2]])) {
+            if (is.atomic(x[[3]])){
+              if (identical(x[[1]], quote(`/`))){
+                return(as.character(-x[[2]][[2]] / x[[3]]))
+              } else if (identical(x[[1]], quote(`+`))) {
+                return(as.character(-x[[2]][[2]] + x[[3]]))
+              } else if (identical(x[[1]], quote(`-`))) {
+                return(as.character(-x[[2]][[2]] - x[[3]]))
+              } else if (identical(x[[1]], quote(`*`))) {
+                return(as.character(-x[[2]][[2]] * x[[3]]))
+              }
+            }
+          }
+          if (x[[2]][[2]] == 1 &&
+                identical(x[[1]], quote(`*`))) {
+            return(paste0("-", ..rxOpt(x[[3]])))
+          }
+        }
+        if (is.atomic(x[[2]]) && is.atomic(x[[3]])){
+          if (identical(x[[1]], quote(`/`))){
+            return(as.character(x[[2]] / x[[3]]))
+          } else if (identical(x[[1]], quote(`+`))) {
+            return(as.character(x[[2]] + x[[3]]))
+          } else if (identical(x[[1]], quote(`-`))) {
+            return(as.character(x[[2]] - x[[3]]))
+          } else if (identical(x[[1]], quote(`*`))) {
+            return(as.character(x[[2]] * x[[3]]))
+          }
+        }
+        if (is.atomic(x[[2]])){
+          if (x[[2]] == 1) {
+            if (identical(x[[1]], quote(`*`))) {
+              return(..rxOpt(x[[3]]))
+            }
+          }
+          if (x[[2]] == 0){
+            if (identical(x[[1]], quote(`*`))){
+              return("0")
+            } else if (identical(x[[1]], quote(`+`))) {
+              return(..rxOpt(x[[3]]))
+            } else if (identical(x[[1]], quote(`-`))) {
+              return(paste0("-", ..rxOpt(x[[3]])))
+            } else if (identical(x[[1]], quote(`/`))) {
+              return("0")
+            }
+          }
+        }
+        if (is.atomic(x[[3]])){
+          if (x[[3]] == 1) {
+            if (identical(x[[1]], quote(`*`))) {
+              return(..rxOpt(x[[2]]))
+            }
+          }
+          if (x[[3]] == 0){
+            if (identical(x[[1]], quote(`*`))){
+              return("0")
+            } else if (identical(x[[1]], quote(`+`))) {
+              return(as.character(x[[2]]))
+            } else if (identical(x[[1]], quote(`-`))) {
+              return(as.character(x[[2]]))
+            } else if (identical(x[[2]], quote(`/`))) {
+              stop("cannot divide by zero")
+            }
+          }
+        }
         return(paste0(..rxOpt(x[[2]]), as.character(x[[1]]),
                       ..rxOpt(x[[3]])));
       } else {
         ## Unary Operators
-        return(paste(as.character(x[[1]]),
+        return(paste0(as.character(x[[1]]),
                      ..rxOpt(x[[2]])))
       }
     } else if (identical(x[[1]], quote(`~`)) ||
@@ -195,8 +295,9 @@
                 }
               }
             }
-            .extra <- c(.extra, paste0(.rxOptEnv$.rep[[.i]],
-                                       "~", names(.rxOptEnv$.rep)[.i]));
+            .extra <- c(.extra,
+                        paste0(.rxOptEnv$.rep[[.i]], "~",
+                               ..rxOpt(eval(parse(text=paste0("quote(", names(.rxOptEnv$.rep)[.i], ")"))))))
             .rxOptEnv$.added <- c(.rxOptEnv$.added,
                                   .rxOptEnv$.rep[.i]);
           }
@@ -238,6 +339,9 @@
 ##' @author Matthew L. Fidler
 ##' @export
 rxOptExpr <- function(x, msg="model") {
+  .oldOpts <- options()
+  options(digits=22)
+  on.exit(options(.oldOpts))
   .rxOptEnv$.list <- list();
   .rxOptEnv$.rep <- list();
   .rxOptEnv$.added <- c();
@@ -267,6 +371,6 @@ rxOptExpr <- function(x, msg="model") {
     .opt <- ..rxOpt(.p, progress = TRUE);
     return(paste(.opt, collapse = "\n"))
   } else {
-    return(x)
+    return(paste(.lines, collapse ="\n"))
   }
 }

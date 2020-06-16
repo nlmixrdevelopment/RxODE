@@ -1,36 +1,80 @@
 .linB <- character(0)
 
-toC <- function(x) {
+toC <- function(x, doOpt=TRUE) {
   s <- rxS(x)
-  funReg <- rex::rex(capture(or(get(".fun",globalenv()))))
+  funReg <- rex::rex(boundary, capture(or(get(".fun",globalenv()))), boundary)
   extra <- paste0("(",paste(get(".args", globalenv()), collapse = ","),")")
-  funReg2 <- rex::rex(capture(funReg),"(",except_any_of(")"),")")
-  derReg <- rex::rex("Derivative(",capture("A",or(1:4), "last"), ",",any_spaces, capture(except_any_of(")")), ")")
-  derReg2 <- rex::rex("Derivative(",capture("A1last"), ",",any_spaces,
-                      capture(or(c("b2","r2","k20"))), ")")
   rep <- paste0("\\1",extra)
+  .fun <- get(".fun",globalenv())
+  f <- function(x) {
+    if (is.atomic(x)) {
+      return(x)
+    } else if (is.name(x)) {
+      return(x)
+    } else if (is.pairlist(x)){
+      return(x)
+    } else if (is.call(x)) {
+      if (identical(x[[1]], quote(`Derivative`))) {
+        .of <- f(x[[2]])
+        .to <- f(x[[3]])
+        if (.of == "A1last" && any(.to == c("b2", "r2", "k20"))){
+          return(quote(0))
+        } else {
+          return(eval(parse(text=paste0("quote(", .of, .to, ")"))))
+        }
+        ## if (as.character(x[[3]]) == "p1"){
+        ##   return(eval(parse(text="quote(A[2+oral0*5])")))
+        ## } else if (as.character(x[[3]]) == "p2") {
+        ##   return(eval(parse(text="quote(A[3+oral0*5])")))
+        ## } else if (as.character(x[[3]]) == "p3") {
+        ##   return(eval(parse(text="quote(A[4+oral0*5])")))
+        ## }
+        ## stop("derivative")
+      } else if (identical(x[[1]], quote(`^`))) {
+        if (identical(x[[3]], quote(2))) {
+          return(eval(parse(text=paste0("quote((", paste(rep(paste0("(", deparse1(x[[2]]), ")"), 2), collapse="*"), "))"))))
+        } else if (identical(x[[3]], quote(3))) {
+          return(eval(parse(text=paste0("quote((", paste(rep(paste0("(", deparse1(x[[2]]), ")"), 3), collapse="*"), "))"))))
+        } else if (identical(x[[3]], quote(4))) {
+          return(eval(parse(text=paste0("quote((", paste(rep(paste0("(", deparse1(x[[2]]), ")"), 4), collapse="*"), "))"))))
+        } else {
+          if (length(x[[3]]) == 2){
+            if (identical(x[[3]][[2]], quote(-1))){
+              return(eval(parse(text=paste0("quote((1/", paste("(", deparse1(x[[2]]), ")"), "))"))))
+            }
+          }
+        }
+        print(x)
+        stop("^")
+      } else if (any(deparse1(x[[1]]) == .fun)) {
+        return(x[[1]])
+      }
+      return(as.call(lapply(x, f)));
+    } else {
+      stop("Don't know how to handle type ", typeof(x),
+           call. = FALSE)
+    }
+  }
   doIt <- function(extra=TRUE) {
     ret <- sapply(c("A1","A2","A3","A4"), function(var) {
       .var <- s[[var]]
       if (!is.null(.var)) {
         .var <- as.character(.var)
         if (extra) {
-          .var2 <- gsub(funReg, rep, .var)
+          .var2 <- gsub(funReg, rep, .var, perl=TRUE)
           .tmp <- c(paste0(var,"=", .var),
                     sapply(get(".args", globalenv()),function(extra){
                       if (var == "A1" && any(extra == c("k20","r2","b2"))){
                         return(NULL)
                       }
-                      .d <- D(S(.var2),extra)
-                      .d <- gsub(funReg2, "\\1", .d)
-                      .d <- gsub(derReg2, "0", .d, perl=TRUE)
-                      .d <- gsub(derReg, "\\1\\2", .d, perl=TRUE)
-                      paste0(var,extra,"=",.d)
+                      .d <- f(eval(parse(text=paste0("quote(",D(S(.var2), extra),")"))))
+                      paste0(var,extra,"=",paste(deparse1(.d), collapse=" "))
                     }))
           .tmp <- .tmp[.tmp != "NULL"]
           paste(.tmp,collapse="\n")
         } else {
-          paste0(var,"=",.var)
+          .var <- f(eval(parse(text=paste0("quote(",.var,")"))))
+          paste0(var,"=",paste(deparse1(.var), collapse=" "))
         }
       } else {
         NULL
@@ -42,8 +86,13 @@ toC <- function(x) {
   modA <- paste(doIt(FALSE), collapse="\n")
   assign(".modA", modA, globalenv())
   assign(".modB", modB, globalenv())
-  modB <- finalC(rxOptExpr(modB))
-  modA <- finalC(rxOptExpr(modA))
+  if (doOpt){
+    modB <- finalC(rxOptExpr(modB))
+    modA <- finalC(rxOptExpr(modA))
+  } else {
+    modB <- finalC(modB)
+    modA <- finalC(modA)
+  }
   # message("linCmtA model (opt):\n")
   # message(get(".fA", globalenv()))
   # message(modA)
@@ -100,7 +149,7 @@ fromC <- function(x) {
 
 .lines <- readLines(devtools::package_file("src/lincmt.c"))
 
-getFun <- function(x="oneCmtKaRateSSr1"){
+getFun <- function(x="oneCmtKaRateSSr1", doOpt=TRUE){
   .w <- which(regexpr(paste0("void ", x, " *[(]"), .lines) != -1)[1]
   .l <- .lines[-seq(1, .w - 1)];
   .w <- which(regexpr("}", .l) != -1)[1]
@@ -138,7 +187,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
   .fB <- paste0("static inline void ", x, "D", .fargs, " {")
   assign(".fA", .fA, globalenv())
   assign(".fB", .fB, globalenv())
-  toC(.l)
+  toC(.l, doOpt=doOpt)
   return(invisible(NULL))
 }
 
@@ -196,7 +245,7 @@ if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
           "twoCmtKaRate", "twoCmtKaSSb1", "twoCmtKaSSb2", "twoCmtKa")
   rxProgress(length(fs))
   for (f in fs){
-    getFun(f)
+    getFun(f, doOpt=TRUE)
     rxTick()
   }
   rxProgressStop()
