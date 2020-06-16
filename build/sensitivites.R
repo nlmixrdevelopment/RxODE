@@ -134,7 +134,28 @@ toC <- function(x, doOpt=TRUE) {
 }
 
 finalC <- function(x){
-  paste0(paste(strsplit(gsub("rx([0-9]+)=","double rx\\1=",gsub("rx_expr_","rx", gsub("~","=",gsub("\\b(k[1-4][0-4]|ka|[rb][1-2]|tau|tinf|t)\\b","(*\\1)", x),perl=TRUE))),"\n")[[1]],collapse=";\n"),";")
+  f <- function(x) {
+    if (is.atomic(x)) {
+      return(x)
+    } else if (is.name(x)) {
+      return(x)
+    } else if (is.pairlist(x)){
+      return(x)
+    } else if (is.call(x)) {
+      if (identical(x[[1]], quote(`{`))){
+        return(paste(unlist(lapply(x[-1], function(x){
+          paste(deparse1(f(x)), collapse=" ")
+        })), collapse="\n"))
+      } else if (identical(x[[1]], quote(`/`))) {
+        return(eval(parse(text = paste0("quote(", paste(deparse1(x[[2]]), collapse=" "),
+                                        "/safe_zero(", paste(deparse1(x[[3]]), collapse=" "), "))"))))
+      } else {
+        return(as.call(lapply(x, f)))
+      }
+    }
+  }
+  x <- f(eval(parse(text=paste0("quote({", x, "})"))))
+  paste0(paste(strsplit(gsub("rx([0-9]+) =","double rx\\1=",gsub("rx_expr_","rx", gsub("~","=",gsub("\\b(k[1-4][0-4]|ka|[rb][1-2]|tau|tinf|t)\\b","(*\\1)", x),perl=TRUE))),"\n")[[1]],collapse=";\n"),";")
 }
 
 .fun <- c("A1last", "A2last", "A3last", "A4last")
@@ -199,6 +220,7 @@ if (!file.exists(devtools::package_file("src/lincmtB1.h"))){
   .linB <- "
 #ifndef linCmtB1_header
 #define linCmtB1_header
+#define safe_zero(a) ((a) == 0 ? DOUBLE_EPS : (a))
 #define A1 A[0]
 #define A2 A[1]
 #define A1last Alast[0]
@@ -223,6 +245,7 @@ if (!file.exists(devtools::package_file("src/lincmtB1.h"))){
 #undef A2
 #undef A1last
 #undef A2last
+#undef safe_zero
 #endif\n")
   sink()
 }
@@ -231,6 +254,7 @@ if (!file.exists(devtools::package_file("src/lincmtB1.h"))){
 if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
   .linB <- "
 #ifndef linCmtB2_header
+#define safe_zero(a) ((a) == 0 ? DOUBLE_EPS : (a))
 #define linCmtB2_header
 #define A1 A[0]
 #define A2 A[1]
@@ -259,6 +283,7 @@ if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
 #undef A1last
 #undef A2last
 #undef A3last
+#undef safe_zero
 #endif\n")
   sink()
 }
