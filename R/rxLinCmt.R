@@ -175,14 +175,16 @@ rxDerived <- function(..., verbose=FALSE, digits=0) {
 ##' @return model with linCmt() replaced with linCmtA()
 ##' @author Matthew Fidler
 ##' @export
-rxGetLin <- function(model, linCmtSens=FALSE, verbose=FALSE){
+rxGetLin <- function(model, linCmtSens=c("linCmtA", "linCmtB", "linCmtC"), verbose=FALSE){
   .mv <- rxGetModel(model)
   if (.Call(`_RxODE_isLinCmt`) == 1L){
       .vars <- c(.mv$params, .mv$lhs, .mv$slhs)
       return(.Call(`_RxODE_linCmtGen`,
                                    length(.mv$state),
                                    .vars,
-                                   linCmtSens, verbose))
+                   setNames(c("linCmtA"=1L, "linCmtB"=2L,
+                              "linCmtC"=3L)[match.arg(linCmtSens)],
+                            NULL), verbose))
   } else {
     return(model)
   }
