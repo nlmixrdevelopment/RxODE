@@ -16,7 +16,7 @@ RxODE(
   collapseModel = FALSE,
   package = NULL,
   ...,
-  linCmtSens = FALSE,
+  linCmtSens = c("linCmtA", "linCmtB", "linCmtC"),
   indLin = FALSE,
   verbose = FALSE
 )
@@ -81,10 +81,7 @@ LHS variables when calculating sensitivities.}
 
 \item{...}{ignored arguments.}
 
-\item{linCmtSens}{A boolean indicating if the linCmt() soultions
-should be calculated with derivatives (sensitivites) to each
-parameter. This is useful for FOCEi and similar calculations.
-By default this is \code{FALSE}.}
+\item{linCmtSens}{The method to calculate the linCmt() solutions}
 
 \item{indLin}{Calculate inductive linearization matrices and
     compile with inductive linearization support.

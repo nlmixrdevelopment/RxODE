@@ -25,10 +25,7 @@ rxGetLin(model, linCmtSens = FALSE, verbose = FALSE)
     details, see the sections \dQuote{Details} and
     \dQuote{\code{RxODE Syntax}} below.}
 
-\item{linCmtSens}{A boolean indicating if the linCmt() soultions
-should be calculated with derivatives (sensitivites) to each
-parameter. This is useful for FOCEi and similar calculations.
-By default this is \code{FALSE}.}
+\item{linCmtSens}{The method to calculate the linCmt() solutions}
 }
 \value{
 model with linCmt() replaced with linCmtA()

@@ -2008,7 +2008,7 @@ rxPermissive({
                    "ETA[3]"=0, "ETA[4]"=0,
                    "THETA[5]"=0.2)
 
-        params <- c("THETA[1]"=log(18), "THETA[2]"=log(40),
+        parms <- c("THETA[1]"=log(18), "THETA[2]"=log(40),
                    "THETA[3]"=log(10), "THETA[4]"=log(297),
                    "ETA[1]"=0, "ETA[2]"=0,
                    "ETA[3]"=0, "ETA[4]"=0,
@@ -2018,8 +2018,8 @@ rxPermissive({
           add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
           add.sampling(seq(0, 48, length.out=200))
 
-        s1 <- rxSolve(pk2s$inner, params, et, sensType=sens)
-        o1 <- rxSolve(pk2o$inner, params, et, sensType=sens)
+        s1 <- rxSolve(pk2s$inner, parms, et, sensType=sens)
+        o1 <- rxSolve(pk2o$inner, parms, et, sensType=sens)
 
         s1 <- rxSolve(pk2sK$inner, parms2, et, sensType=sens)
         o1 <- rxSolve(pk2oK$inner, parms2, et, sensType=sens)

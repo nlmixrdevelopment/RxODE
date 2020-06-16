@@ -720,22 +720,22 @@ static inline void twoCmtKaSSb2(double *A, double *tau, double *b2,
 
 static inline void twoCmtKa(double *A, double *Alast, double *t,
 			    double *b1, double *b2,
-			    double *ka, double *k10,
-			    double *k12, double *k21) {
+			    double *ka, double *k20,
+			    double *k23, double *k32) {
   double rxe2=exp(-(*t)*(*ka));
   A1=(*b1)+rxe2*A1last;
-  double rxe0=(*k12)+(*k21);
-  double rxe1=(*k12)+(*k10);
-  double rxe3=(*k21)*A2last;
-  double rxe4=(*k21)*A3last;
-  double rxe6=rxe0+(*k10);
-  double rxe7=(rxe1)*(*k21);
+  double rxe0=(*k23)+(*k32);
+  double rxe1=(*k23)+(*k20);
+  double rxe3=(*k32)*A2last;
+  double rxe4=(*k32)*A3last;
+  double rxe6=rxe0+(*k20);
+  double rxe7=(rxe1)*(*k32);
   double rxe8=rxe6*rxe6;
-  double rxe10=sqrt(-4*(-(*k12)*(*k21)+rxe7)+rxe8);
-  A2=(*b2)+(-exp(-0.5*(*t)*(rxe6-rxe10))*(-0.5*A2last*(rxe6-rxe10)+rxe3+rxe4)+exp(-0.5*(*t)*(rxe6+rxe10))*(-0.5*A2last*(rxe6+rxe10)+rxe3+rxe4))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+(*ka)*(rxe2*((*k21)-(*ka))/((-(*ka)+0.5*(rxe6-rxe10))*(-(*ka)+0.5*(rxe6+rxe10)))+exp(-0.5*(*t)*(rxe6-rxe10))*((*k21)-0.5*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6-rxe10)))+exp(-0.5*(*t)*(rxe6+rxe10))*((*k21)-0.5*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6+rxe10))))*A1last;
-  double rxe5=(*k12)*A2last;
+  double rxe10=sqrt(-4*(-(*k23)*(*k32)+rxe7)+rxe8);
+  A2=(*b2)+(-exp(-0.5*(*t)*(rxe6-rxe10))*(-0.5*A2last*(rxe6-rxe10)+rxe3+rxe4)+exp(-0.5*(*t)*(rxe6+rxe10))*(-0.5*A2last*(rxe6+rxe10)+rxe3+rxe4))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+(*ka)*(rxe2*((*k32)-(*ka))/((-(*ka)+0.5*(rxe6-rxe10))*(-(*ka)+0.5*(rxe6+rxe10)))+exp(-0.5*(*t)*(rxe6-rxe10))*((*k32)-0.5*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6-rxe10)))+exp(-0.5*(*t)*(rxe6+rxe10))*((*k32)-0.5*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6+rxe10))))*A1last;
+  double rxe5=(*k23)*A2last;
   double rxe9=(rxe1)*A3last;
-  A3=(-exp(-0.5*(*t)*(rxe6-rxe10))*(-0.5*A3last*(rxe6-rxe10)+rxe5+rxe9)+exp(-0.5*(*t)*(rxe6+rxe10))*(-0.5*A3last*(rxe6+rxe10)+rxe5+rxe9))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+(*ka)*(*k12)*A1last*(rxe2/((-(*ka)+0.5*(rxe6-rxe10))*(-(*ka)+0.5*(rxe6+rxe10)))+exp(-0.5*(*t)*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6-rxe10)))+exp(-0.5*(*t)*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6+rxe10))));
+  A3=(-exp(-0.5*(*t)*(rxe6-rxe10))*(-0.5*A3last*(rxe6-rxe10)+rxe5+rxe9)+exp(-0.5*(*t)*(rxe6+rxe10))*(-0.5*A3last*(rxe6+rxe10)+rxe5+rxe9))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+(*ka)*(*k23)*A1last*(rxe2/((-(*ka)+0.5*(rxe6-rxe10))*(-(*ka)+0.5*(rxe6+rxe10)))+exp(-0.5*(*t)*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6-rxe10)))+exp(-0.5*(*t)*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*((*ka)-0.5*(rxe6+rxe10))));
 }
 
 
