@@ -146,16 +146,17 @@ finalC <- function(x){
         return(paste(unlist(lapply(x[-1], function(x){
           paste(deparse1(f(x)), collapse=" ")
         })), collapse="\n"))
-      } else if (identical(x[[1]], quote(`/`))) {
-        return(eval(parse(text = paste0("quote(", paste(deparse1(x[[2]]), collapse=" "),
-                                        "/safe_zero(", paste(deparse1(x[[3]]), collapse=" "), "))"))))
-      } else {
+      } ## else if (identical(x[[1]], quote(`/`))) {
+      ##   return(eval(parse(text = paste0("quote(", paste(deparse1(x[[2]]), collapse=" "),
+      ##                                   "/safe_zero(", paste(deparse1(x[[3]]), collapse=" "), "))"))))
+      ## }
+      else {
         return(as.call(lapply(x, f)))
       }
     }
   }
-  ## x <- f(eval(parse(text=paste0("quote({", x, "})"))))
-  paste0(paste(strsplit(gsub("rx([0-9]+) =","double rx\\1=",gsub("rx_expr_","rx", gsub("~","=",gsub("\\b(k[1-4][0-4]|ka|[rb][1-2]|tau|tinf|t)\\b","(*\\1)", x),perl=TRUE))),"\n")[[1]],collapse=";\n"),";")
+  x <- f(eval(parse(text=paste0("quote({", x, "})"))))
+  paste0(paste(strsplit(gsub("rx([0-9]+) *=","double rx\\1=",gsub("rx_expr_","rx", gsub("~","=",gsub("\\b(k[1-4][0-4]|ka|[rb][1-2]|tau|tinf|t)\\b","(*\\1)", x),perl=TRUE))),"\n")[[1]],collapse=";\n"),";")
 }
 
 .fun <- c("A1last", "A2last", "A3last", "A4last")
