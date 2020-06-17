@@ -154,7 +154,7 @@ finalC <- function(x){
       }
     }
   }
-  x <- f(eval(parse(text=paste0("quote({", x, "})"))))
+  ## x <- f(eval(parse(text=paste0("quote({", x, "})"))))
   paste0(paste(strsplit(gsub("rx([0-9]+) =","double rx\\1=",gsub("rx_expr_","rx", gsub("~","=",gsub("\\b(k[1-4][0-4]|ka|[rb][1-2]|tau|tinf|t)\\b","(*\\1)", x),perl=TRUE))),"\n")[[1]],collapse=";\n"),";")
 }
 
@@ -220,7 +220,6 @@ if (!file.exists(devtools::package_file("src/lincmtB1.h"))){
   .linB <- "
 #ifndef linCmtB1_header
 #define linCmtB1_header
-#define safe_zero(a) ((a) == 0 ? DOUBLE_EPS : (a))
 #define A1 A[0]
 #define A2 A[1]
 #define A1last Alast[0]
@@ -245,7 +244,6 @@ if (!file.exists(devtools::package_file("src/lincmtB1.h"))){
 #undef A2
 #undef A1last
 #undef A2last
-#undef safe_zero
 #endif\n")
   sink()
 }
@@ -254,7 +252,6 @@ if (!file.exists(devtools::package_file("src/lincmtB1.h"))){
 if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
   .linB <- "
 #ifndef linCmtB2_header
-#define safe_zero(a) ((a) == 0 ? DOUBLE_EPS : (a))
 #define linCmtB2_header
 #define A1 A[0]
 #define A2 A[1]
@@ -283,7 +280,6 @@ if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
 #undef A1last
 #undef A2last
 #undef A3last
-#undef safe_zero
 #endif\n")
   sink()
 }
