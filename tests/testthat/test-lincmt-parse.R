@@ -1,5 +1,11 @@
 if (FALSE){
-rxPermissive({
+  rxPermissive({
+
+    ("Vc <- nlmixr_lincmt_Vc
+    Cl <- nlmixr_lincmt_Cl
+    Vp <- nlmixr_lincmt_Vp
+    Q <- nlmixr_lincmt_Q
+    nlmixr_lincmt_pred <- linCmt()")
 
     tran1  <- expand.grid(Ka=c("ka",NA),
                           Vc=c("v","vc","v1", NA),

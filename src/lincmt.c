@@ -18,8 +18,8 @@
 #define _(String) (String)
 #endif
 
-#include "linCmtB1.h"
-#include "linCmtB2.h"
+#include "lincmtB1.h"
+#include "lincmtB2.h"
 
 // From https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
 double log1mex(double a){
