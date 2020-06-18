@@ -22,14 +22,6 @@ toC <- function(x, doOpt=TRUE) {
         } else {
           return(eval(parse(text=paste0("quote(", .of, .to, ")"))))
         }
-        ## if (as.character(x[[3]]) == "p1"){
-        ##   return(eval(parse(text="quote(A[2+oral0*5])")))
-        ## } else if (as.character(x[[3]]) == "p2") {
-        ##   return(eval(parse(text="quote(A[3+oral0*5])")))
-        ## } else if (as.character(x[[3]]) == "p3") {
-        ##   return(eval(parse(text="quote(A[4+oral0*5])")))
-        ## }
-        ## stop("derivative")
       } else if (identical(x[[1]], quote(`^`))) {
         if (identical(x[[3]], quote(2))) {
           return(eval(parse(text=paste0("quote((", paste(rep(paste0("(", deparse1(x[[2]]), ")"), 2), collapse="*"), "))"))))
@@ -144,13 +136,9 @@ finalC <- function(x){
     } else if (is.call(x)) {
       if (identical(x[[1]], quote(`{`))){
         return(paste(unlist(lapply(x[-1], function(x){
-          paste(deparse1(f(x)), collapse=" ")
+          gsub(" +", "", paste(deparse1(f(x)), collapse=""))
         })), collapse="\n"))
-      } ## else if (identical(x[[1]], quote(`/`))) {
-      ##   return(eval(parse(text = paste0("quote(", paste(deparse1(x[[2]]), collapse=" "),
-      ##                                   "/safe_zero(", paste(deparse1(x[[3]]), collapse=" "), "))"))))
-      ## }
-      else {
+      } else {
         return(as.call(lapply(x, f)))
       }
     }
@@ -288,43 +276,43 @@ if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
 
 ## This is too complicated to calculate currently
 
-## if (!file.exists(devtools::package_file("src/lincmtB3.h"))){
-##   .linB <- "
-## #ifndef linCmtB3_header
-## #define linCmtB3_header
-## #define A1 A[0]
-## #define A2 A[1]
-## #define A3 A[2]
-## #define A4 A[3]
-## #define A1last Alast[0]
-## #define A2last Alast[1]
-## #define A3last Alast[2]
-## #define A4last Alast[3]
+if (!file.exists(devtools::package_file("src/lincmtB3.h"))){
+  .linB <- "
+#ifndef linCmtB3_header
+#define linCmtB3_header
+#define A1 A[0]
+#define A2 A[1]
+#define A3 A[2]
+#define A4 A[3]
+#define A1last Alast[0]
+#define A2last Alast[1]
+#define A3last Alast[2]
+#define A4last Alast[3]
 
-## "
-##   fs <- c("threeCmtRateSSr1", "threeCmtRateSS",
-##           "threeCmtRate", "threeCmtBolusSS", "threeCmtBolus",
-##           "threeCmtKaRateSSr1", "threeCmtKaRateSSr2", "threeCmtKaRateSStr1", "threeCmtKaRateSStr2",
-##           "threeCmtKaRate", "threeCmtKaSSb1", "threeCmtKaSSb2", "threeCmtKa")
-##   rxProgress(length(fs))
-##   for (f in fs){
-##     getFun(f)
-##     rxTick()
-##   }
-##   rxProgressStop()
+"
+  fs <- c("threeCmtRateSSr1", "threeCmtRateSS",
+          "threeCmtRate", "threeCmtBolusSS", "threeCmtBolus",
+          "threeCmtKaRateSSr1", "threeCmtKaRateSSr2", "threeCmtKaRateSStr1", "threeCmtKaRateSStr2",
+          "threeCmtKaRate", "threeCmtKaSSb1", "threeCmtKaSSb2", "threeCmtKa")
+  rxProgress(length(fs))
+  for (f in fs){
+    getFun(f)
+    rxTick()
+  }
+  rxProgressStop()
 
-##   sink(devtools::package_file("src/lincmtB3.h"))
-##   cat(paste(.linB, collapse="\n"), "\n")
-##   cat("
-## #undef A1
-## #undef A2
-## #undef A3
-## #undef A1last
-## #undef A2last
-## #undef A3last
-## #endif\n")
-##   sink()
-## }
+  sink(devtools::package_file("src/lincmtB3.h"))
+  cat(paste(.linB, collapse="\n"), "\n")
+  cat("
+#undef A1
+#undef A2
+#undef A3
+#undef A1last
+#undef A2last
+#undef A3last
+#endif\n")
+  sink()
+}
 
 env <- environment()
 
