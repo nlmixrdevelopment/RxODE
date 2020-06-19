@@ -3541,7 +3541,6 @@ static inline void doAdvanD(double *A,// Amounts
 			    double *kel,  //double rx_v,
 			    double *k12, double *k21){
   double t = ct - tlast;
-  if ((*r1) > DOUBLE_EPS  || (*r2) > DOUBLE_EPS){
     if (oral0){
       switch (ncmt){
       case 1: {
@@ -3567,35 +3566,6 @@ static inline void doAdvanD(double *A,// Amounts
       } break;
       }
     }
-  } else {
-    // Bolus doses only
-    if (oral0){
-      switch (ncmt){
-      case 1: {
-	oneCmtKaD(A, Alast, 
-		 &t, b1, b2, ka, kel);
-	return;
-      } break;
-      case 2: {
-	twoCmtKaD(A, Alast, &t, b1, b2, ka,  kel, k12, k21);
-	return;
-      } break;
-      }
-    } else {
-      // Bolus
-      switch (ncmt){
-      case 1: {
-	oneCmtBolusD(A, Alast, &t, b1, kel);
-	return;
-      } break;
-      case 2: {
-	twoCmtBolusD(A, Alast, &t, b1,
-		     kel, k12, k21);
-	return;
-      } break;
-      }
-    }
-  }
 }
 
 double derTrans(double *A, int ncmt, int trans, int val,

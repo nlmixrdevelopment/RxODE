@@ -144,7 +144,7 @@ finalC <- function(x){
     }
   }
   x <- f(eval(parse(text=paste0("quote({", x, "})"))))
-  paste0(paste(strsplit(gsub("rx([0-9]+) *=","double rx\\1=",gsub("rx_expr_","rx", gsub("~","=",gsub("\\b(k[1-4][0-4]|ka|[rb][1-2]|tau|tinf|t)\\b","(*\\1)", x),perl=TRUE))),"\n")[[1]],collapse=";\n"),";")
+  paste0(paste(strsplit(gsub("_([0-9]+) *=","double _\\1=",gsub("rx_expr_","_", gsub("~","=",gsub("\\b(k[1-4][0-4]|ka|[rb][1-2]|tau|tinf|t)\\b","(*\\1)", x),perl=TRUE))),"\n")[[1]],collapse=";\n"),";")
 }
 
 .fun <- c("A1last", "A2last", "A3last", "A4last")
@@ -216,11 +216,12 @@ if (!file.exists(devtools::package_file("src/lincmtB1.h"))){
 "
 
   fs <- c("oneCmtRateSSr1", "oneCmtRateSS",
-          "oneCmtRate", "oneCmtBolusSS", "oneCmtBolus",
+          "oneCmtRate", "oneCmtBolusSS",
           "oneCmtKaRateSSr1", "oneCmtKaRateSSr2", "oneCmtKaRateSStr1", "oneCmtKaRateSStr2",
-          "oneCmtKaRate", "oneCmtKaSSb1", "oneCmtKaSSb2", "oneCmtKa")
+          "oneCmtKaRate", "oneCmtKaSSb1", "oneCmtKaSSb2")
   rxProgress(length(fs))
   for (f in fs){
+    message(f)
     getFun(f)
     rxTick()
   }
@@ -250,11 +251,12 @@ if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
 #define A3last Alast[2]
 "
   fs <- c("twoCmtRateSSr1", "twoCmtRateSS",
-          "twoCmtRate", "twoCmtBolusSS", "twoCmtBolus",
+          "twoCmtRate", "twoCmtBolusSS",
           "twoCmtKaRateSSr1", "twoCmtKaRateSSr2", "twoCmtKaRateSStr1", "twoCmtKaRateSStr2",
-          "twoCmtKaRate", "twoCmtKaSSb1", "twoCmtKaSSb2", "twoCmtKa")
+          "twoCmtKaRate", "twoCmtKaSSb1", "twoCmtKaSSb2")
   rxProgress(length(fs))
   for (f in fs){
+    message(f)
     getFun(f, doOpt=TRUE)
     rxTick()
   }
@@ -291,11 +293,12 @@ if (!file.exists(devtools::package_file("src/lincmtB3.h"))){
 
 "
   fs <- c("threeCmtRateSSr1", "threeCmtRateSS",
-          "threeCmtRate", "threeCmtBolusSS", "threeCmtBolus",
+          "threeCmtRate", "threeCmtBolusSS",
           "threeCmtKaRateSSr1", "threeCmtKaRateSSr2", "threeCmtKaRateSStr1", "threeCmtKaRateSStr2",
-          "threeCmtKaRate", "threeCmtKaSSb1", "threeCmtKaSSb2", "threeCmtKa")
+          "threeCmtKaRate", "threeCmtKaSSb1", "threeCmtKaSSb2")
   rxProgress(length(fs))
   for (f in fs){
+    message(f)
     getFun(f)
     rxTick()
   }
