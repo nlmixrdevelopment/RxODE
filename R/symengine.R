@@ -330,6 +330,15 @@ rxRmFun <- function(name){
 ## argument then the derivative of arguments that are not specified
 ## cannot be taken.
 
+.rxD$atan2 <- list(
+  function(y, x) {
+    return(paste0("(", x, ")/((", x, ")^2+(", y, ")^2)"))
+  },
+  function(y, x) {
+    return(paste0("-(", y, ")/((", x, ")^2+(", y, ")^2)"))
+  })
+
+
 .rxD$rxTBS <- list(function(a, lambda, yj){
   paste0("rxTBSd(", a, ",", lambda, ",", yj, ")")
 })
@@ -450,6 +459,8 @@ rxRmFun <- function(name){
     return("(-1)")
   })
 
+
+
 ## Approx a>=b by
 ## 1/2-1/2*tanh(k*x+delta)=1-tol
 ## 1/2-1+tol=1/2*tanh(k*x+delta)
@@ -473,7 +484,7 @@ rxRmFun <- function(name){
                        function(...){stop("bad 'linCmtB' derivative")},
                        function(...){stop("bad 'linCmtB' derivative")},
                        function(...){stop("bad 'linCmtB' derivative")}),
-                  lapply(1:15, .linCmtBgen));
+                  lapply(1:15, .linCmtBgen))
 
 ##' Add to RxODE's derivative tables
 ##'
