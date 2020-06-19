@@ -14,7 +14,29 @@ toC <- function(x, doOpt=TRUE) {
     } else if (is.pairlist(x)){
       return(x)
     } else if (is.call(x)) {
-      if (identical(x[[1]], quote(`Derivative`))) {
+      if (identical(x[[1]], quote(`Subs`))) {
+        f2 <- f(x[[2]])
+        f2 <- paste(deparse1(f2), collapse="")
+        f3 <- deparse1(x[[3]])
+        f3 <- substring(f3, 2, nchar(f3) - 1)
+        f4 <- paste(deparse1(x[[4]]), collapse="")
+        fin <- gsub(f3, f4, f2, fixed=TRUE)
+        return(eval(parse(text=paste0("quote(", fin, ")"))))
+      } else if (identical(x[[1]], quote(`Derivative`))) {
+        if (length(x[[2]]) == 3){
+          if (identical(x[[2]][[1]], quote(`atan2`))){
+            if (identical(x[[3]], quote(`xi_2`))){
+              y <- paste(deparse1(x[[2]][[2]]), collapse="")
+              x <- paste(deparse1(x[[2]][[3]]), collapse="")
+              return(eval(parse(text=paste0("quote(-(", y, ")/((", x, ")^2+(", y, ")^2))"))))
+            } else {
+              y <- paste(deparse1(x[[2]][[2]]), collapse="")
+              x <- paste(deparse1(x[[2]][[3]]), collapse="")
+              return(eval(parse(text=paste0("quote((", x, ")/((", x, ")^2+(", y, ")^2))"))))
+            }
+            stop("d(atan2)")
+          }
+        }
         .of <- f(x[[2]])
         .to <- f(x[[3]])
         if (.of == "A1last" && any(.to == c("b2", "r2", "k20"))){
@@ -36,7 +58,8 @@ toC <- function(x, doOpt=TRUE) {
             }
           }
         }
-        print(x)
+        x[[1]] <- quote(`pow`)
+        return(x)
         stop("^")
       } else if (any(deparse1(x[[1]]) == .fun)) {
         return(x[[1]])
@@ -59,7 +82,7 @@ toC <- function(x, doOpt=TRUE) {
                       if (var == "A1" && any(extra == c("k20","r2","b2"))){
                         return(NULL)
                       }
-                      .d <- f(eval(parse(text=paste0("quote(",D(S(.var2), extra),")"))))
+                      .d <- f(eval(parse(text=paste0("quote(",gsub("_xi","xi",as.character(D(S(.var2), extra))),")"))))
                       paste0(var,extra,"=",paste(deparse1(.d), collapse=" "))
                     }))
           .tmp <- .tmp[.tmp != "NULL"]
@@ -277,6 +300,7 @@ if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
 
 
 ## This is too complicated to calculate currently
+## Get the message Error: cannot allocate vector of size 4.0 Gb
 
 if (!file.exists(devtools::package_file("src/lincmtB3.h"))){
   .linB <- "
@@ -292,6 +316,10 @@ if (!file.exists(devtools::package_file("src/lincmtB3.h"))){
 #define A4last Alast[3]
 
 "
+  sink(devtools::package_file("src/lincmtB3.h"))
+  cat(.linB)
+  sink()
+  .linB <- ""
   fs <- c("threeCmtRateSSr1", "threeCmtRateSS",
           "threeCmtRate", "threeCmtBolusSS",
           "threeCmtKaRateSSr1", "threeCmtKaRateSSr2", "threeCmtKaRateSStr1", "threeCmtKaRateSStr2",
@@ -300,12 +328,15 @@ if (!file.exists(devtools::package_file("src/lincmtB3.h"))){
   for (f in fs){
     message(f)
     getFun(f)
+    sink(devtools::package_file("src/lincmtB3.h"), append=TRUE)
+    cat(paste(.linB, collapse="\n"))
+    sink()
+    .linB <- ""
     rxTick()
   }
   rxProgressStop()
 
-  sink(devtools::package_file("src/lincmtB3.h"))
-  cat(paste(.linB, collapse="\n"), "\n")
+  sink(devtools::package_file("src/lincmtB3.h"), append=TRUE)
   cat("
 #undef A1
 #undef A2
