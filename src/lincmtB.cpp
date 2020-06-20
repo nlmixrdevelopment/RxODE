@@ -2013,7 +2013,7 @@ namespace stan {
 	doInf=0;
       int oldIxds = ind->ixds, oldIdx=ind->idx;
       ind->ixds = 0;
-      for (int idx = 0; idx <= idxF; idx++) {
+      for (int idx = 0; idx <= idxF; ++idx) {
 	ind->idx = idx;
 	curTime = getTime(ind->ix[idx], ind);
 	evid = ind->evid[ind->ix[idx]];

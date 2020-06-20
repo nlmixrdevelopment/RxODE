@@ -2831,10 +2831,8 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
 
   if (t != it) {
     // Try to get another idx by bisection
-    /* REprintf("it pre: %f", it); */
     idxF = _locateTimeIndex(t, ind);
     it = getTime(ind->ix[idxF], ind);
-    /* REprintf("it post: %f", it); */
   }
   unsigned int ncmt = 1;
   double rx_k=0, rx_v=0;
@@ -2842,7 +2840,6 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
   double rx_k21=0;
   double rx_k13=0;
   double rx_k31=0;
-  double rate[2] = {0, 0};
   double b1=0, b2=0, r1 = 0, r2 = 0;
   int oldIxds = ind->ixds, oldIdx=ind->idx;
   if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
@@ -2913,7 +2910,7 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    // Steady state doses; wh0 == 20 is equivalent to SS=2 in NONMEM
 	    double tau = ind->ii[ind->ixds];
 	    // For now advance based solving to steady state (just like ODE)
-	    double aSave[4];
+	    double aSave[4] = {0.0, 0.0, 0.0, 0.0};
 	    if (wh0 == 20) {
 	      doAdvan(A, Alast, tlast, // Time of last amounts
 		      curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
@@ -2925,18 +2922,14 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    }
 	    // Reset all the rates
 	    if (op->nlinR == 2){
-	      rate[0]=0.0;
-	      rate[1]=0.0;
 	      r1=0; r2=0;
 	    } else {
-	      rate[0] = 0.0;
 	      r1=0; r2=0;
 	    }
 	    for (int i = ncmt + oral0; i--;){
 	      Alast[i] = 0.0;
 	    }
 	    tlast = 0;
-	    curTime = tau;
 	    double tinf, r0;
 	    int doInf=0;
 	    switch (whI){
@@ -3007,7 +3000,7 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
 	      if (tinf >= tau){
 		ind->wrongSSDur=1;
 		for (int i = ncmt + oral0; i--;){
-		  A[i] += R_NaN;
+		  A[i] = R_NaN;
 		}
 		extraAdvan=0;
 	      } else {
@@ -3019,6 +3012,11 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
 		ssRateTau(A, ncmt, oral0, &tinf, &tau,
 			  &r1, &r2, &d_ka,
 			  &rx_k, &rx_k12, &rx_k21, &rx_k13, &rx_k31);
+		if (cmtOff == 0){
+		  r1 = 0; r2 = 0;
+		} else {
+		  r1 = 0; r2 = 0;
+		}
 	      }
 	    }
 	    // Now calculate steady state
@@ -3115,10 +3113,9 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    // Now advance to steady state dosing
 	    // These are easy to solve
 	    if (op->nlinR == 2){
-	      rate[0]=0.0;
-	      rate[1]=0.0;
+	      r1=r2=0;
 	    } else {
-	      rate[0] = 0.0;
+	      r1=0;
 	    }
 	    if (doRate == 1){
 	      r1 = rateAdjust;
@@ -3131,9 +3128,11 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    ssRate(A, ncmt, oral0, &r1, &r2,
 		   &d_ka, &rx_k, &rx_k12, &rx_k21,
 		   &rx_k13, &rx_k31);
+	    r1 = 0; r2 = 0;
 	    extraAdvan=0;
 	  }
 	}
+	ind->ixds++;
       }
       if (extraAdvan){
 	doAdvan(A, Alast, tlast, // Time of last amounts
@@ -3146,14 +3145,19 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
       } else if (doMultiply){
 	A[doMultiply-1] *= amt;
       } else if (doRate){
-	rate[doRate-1] += rateAdjust;
+	if (doRate == 1) {
+	  r1 += rateAdjust;
+	} else {
+	  r2 += rateAdjust;
+	}
       }
       rateAdjust=0;
       doRate = doMultiply=doReplace=doInf=0;
       extraAdvan=1;
       for (int i = ncmt + oral0; i--;){
-	Alast[i] += A[i];
+	Alast[i] = A[i];
       }
+      b1=b2=0;
       tlast = curTime;
     }
   }

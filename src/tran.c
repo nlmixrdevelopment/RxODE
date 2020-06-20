@@ -810,6 +810,10 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     aAppendN("linCmtB", 7);
     sAppendN(&sbt,"linCmtB", 7);
     tb.linCmt=2;
+  } else if (nodeHas(identifier) && !strcmp("linCmtC",value)){
+    aAppendN("linCmtC", 7);
+    sAppendN(&sbt,"linCmtC", 7);
+    tb.linCmt=2;
   } else if (!strcmp("NaN",value)){
     aAppendN("NAN", 3);
     sAppendN(&sbt,"NaN", 3);
@@ -1610,7 +1614,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  Free(v);
 	  sAppendN(&sbt, "is.infinite", 11);
 	  continue;
-	} else if (!strcmp("linCmtA", v) ||
+	} else if (!strcmp("linCmtA", v) || !strcmp("linCmtC", v) || 
 		   (isLinB=!strcmp("linCmtB", v))){
 	  D_ParseNode *xpn1;
 	  xpn1 = d_get_child(pn, 3);
