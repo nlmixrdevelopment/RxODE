@@ -33,24 +33,24 @@
 ##' }
 ##'
 ##' @export
-rxProgress <- function(num, core=0L){
-    invisible(.Call(`_rxProgress`, as.integer(num), as.integer(core)));
+rxProgress <- function(num, core = 0L) {
+  invisible(.Call(`_rxProgress`, as.integer(num), as.integer(core)))
 }
 
 ##' @rdname rxProgress
 ##' @export
-rxTick <- function(){
-    invisible(.Call(`_rxTick`));
+rxTick <- function() {
+  invisible(.Call(`_rxTick`))
 }
 
 ##' @rdname rxProgress
 ##' @export
-rxProgressStop <- function(clear=TRUE){
-    invisible(.Call(`_rxProgressStop`, as.integer(clear)));
+rxProgressStop <- function(clear = TRUE) {
+  invisible(.Call(`_rxProgressStop`, as.integer(clear)))
 }
 
 ##' @rdname rxProgress
 ##' @export
-rxProgressAbort <- function(error="Aborted calculation"){
-    invisible(.Call(`_rxProgressAbort`, error));
+rxProgressAbort <- function(error = "Aborted calculation") {
+  invisible(.Call(`_rxProgressAbort`, error))
 }

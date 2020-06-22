@@ -1,12 +1,12 @@
 ##' @export
 ##' @rdname rxnormV
-rxnorm <- function(mean = 0, sd = 1, n=1L, ncores=1L){
-    checkmate::assertNumeric(mean, len=1);
-    checkmate::assertNumeric(sd, lower=0, len=1);
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxnorm_`, mean, sd, n, ncores)
+rxnorm <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(mean, len = 1)
+  checkmate::assertNumeric(sd, lower = 0, len = 1)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxnorm_`, mean, sd, n, ncores)
 }
 
 ##' Simulate random normal variable from threefry/vandercorput generator
@@ -59,13 +59,13 @@ rxnorm <- function(mean = 0, sd = 1, n=1L, ncores=1L){
 ##' s <- rxSolve(rx,et)
 ##'
 ##' @export
-rxnormV <- function(mean = 0, sd = 1, n=1L, ncores=1L){
-    checkmate::assertNumeric(mean, len=1);
-    checkmate::assertNumeric(sd, lower=0, len=1);
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxnormV_`, mean, sd, n, ncores)
+rxnormV <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(mean, len = 1)
+  checkmate::assertNumeric(sd, lower = 0, len = 1)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxnormV_`, mean, sd, n, ncores)
 }
 
 ##' Simulate random poisson variable from threefry generator
@@ -95,12 +95,12 @@ rxnormV <- function(mean = 0, sd = 1, n=1L, ncores=1L){
 ##' s <- rxSolve(rx,et)
 ##'
 ##' @export
-rxpois <- function(lambda, n=1L, ncores=1L){
-    checkmate::assertNumeric(lambda, len=1);
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxpois_`, lambda, n, ncores)
+rxpois <- function(lambda, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(lambda, len = 1)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxpois_`, lambda, n, ncores)
 }
 
 
@@ -131,13 +131,13 @@ rxpois <- function(lambda, n=1L, ncores=1L){
 ##' s <- rxSolve(rx,et)
 ##'
 ##' @export
-rxt <- function(df, n=1L, ncores=1L){
-    checkmate::assertNumeric(df, len=1, lower=0);
-    if (df == 0) stop("'df' must be greater than 0")
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxt__`, df, n, ncores)
+rxt <- function(df, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(df, len = 1, lower = 0)
+  if (df == 0) stop("'df' must be greater than 0")
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxt__`, df, n, ncores)
 }
 
 ##' Simulate uniform variable from threefry generator
@@ -167,13 +167,13 @@ rxt <- function(df, n=1L, ncores=1L){
 ##' s <- rxSolve(rx,et)
 ##'
 ##' @export
-rxunif <- function(min = 0, max = 1, n=1L, ncores=1L){
-    checkmate::assertNumeric(min, len=1);
-    checkmate::assertNumeric(max, len=1);
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxunif_`, min, max, n, ncores)
+rxunif <- function(min = 0, max = 1, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(min, len = 1)
+  checkmate::assertNumeric(max, len = 1)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxunif_`, min, max, n, ncores)
 }
 
 
@@ -204,13 +204,13 @@ rxunif <- function(min = 0, max = 1, n=1L, ncores=1L){
 ##' s <- rxSolve(rx,et)
 ##'
 ##' @export
-rxweibull <- function(shape, scale = 1, n=1L, ncores=1L){
-    checkmate::assertNumeric(shape, len=1);
-    checkmate::assertNumeric(scale, len=1);
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxweibull_`, shape, scale, n, ncores)
+rxweibull <- function(shape, scale = 1, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(shape, len = 1)
+  checkmate::assertNumeric(scale, len = 1)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxweibull_`, shape, scale, n, ncores)
 }
 
 
@@ -241,12 +241,12 @@ rxweibull <- function(shape, scale = 1, n=1L, ncores=1L){
 ##' s <- rxSolve(rx,et)
 ##'
 ##' @export
-rxgeom <- function(prob, n=1L, ncores=1L){
-    checkmate::assertNumeric(prob, len=1, lower=0, upper=1);
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxgeom_`, prob, n, ncores)
+rxgeom <- function(prob, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(prob, len = 1, lower = 0, upper = 1)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxgeom_`, prob, n, ncores)
 }
 
 
@@ -277,15 +277,15 @@ rxgeom <- function(prob, n=1L, ncores=1L){
 ##' s <- rxSolve(rx,et)
 ##'
 ##' @export
-rxbeta <- function(shape1, shape2, n=1L, ncores=1L){
-    checkmate::assertNumeric(shape1, len=1, lower=0);
-    if (shape1 == 0) stop("'shape1' cannot be 0");
-    checkmate::assertNumeric(shape2, len=1, lower=0);
-    if (shape2 == 0) stop("'shape2' cannot be 0");
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxbeta_`, shape1, shape2, n, ncores)
+rxbeta <- function(shape1, shape2, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(shape1, len = 1, lower = 0)
+  if (shape1 == 0) stop("'shape1' cannot be 0")
+  checkmate::assertNumeric(shape2, len = 1, lower = 0)
+  if (shape2 == 0) stop("'shape2' cannot be 0")
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxbeta_`, shape1, shape2, n, ncores)
 }
 
 ##' Simulate gamma variable from threefry generator
@@ -315,20 +315,22 @@ rxbeta <- function(shape1, shape2, n=1L, ncores=1L){
 ##' s <- rxSolve(rx,et)
 ##'
 ##' @export
-rxgamma <- function(shape, rate = 1/scale, scale = 1, n=1L, ncores=1L){
-    checkmate::assertNumeric(shape, len=1, lower=0);
-    if (shape == 0) stop("'shape' cannot be 0");
-    checkmate::assertNumeric(rate, len=1, lower=0);
-    if (rate == 0 || scale == 0) stop("'rate'/'scale' cannot be 0");
-    if (!missing(rate) && !missing(scale)) {
-        if (abs(rate * scale - 1) < 1e-15)
-            warning("specify 'rate' or 'scale' but not both")
-        else stop("specify 'rate' or 'scale' but not both")
+rxgamma <- function(shape, rate = 1 / scale, scale = 1, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(shape, len = 1, lower = 0)
+  if (shape == 0) stop("'shape' cannot be 0")
+  checkmate::assertNumeric(rate, len = 1, lower = 0)
+  if (rate == 0 || scale == 0) stop("'rate'/'scale' cannot be 0")
+  if (!missing(rate) && !missing(scale)) {
+    if (abs(rate * scale - 1) < 1e-15) {
+      warning("specify 'rate' or 'scale' but not both")
+    } else {
+      stop("specify 'rate' or 'scale' but not both")
     }
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxgamma_`, shape, rate, n, ncores)
+  }
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxgamma_`, shape, rate, n, ncores)
 }
 
 
@@ -359,15 +361,15 @@ rxgamma <- function(shape, rate = 1/scale, scale = 1, n=1L, ncores=1L){
 ##' s <- rxSolve(rx,et)
 ##'
 ##' @export
-rxf <- function(df1, df2, n=1L, ncores=1L){
-    checkmate::assertNumeric(df1, len=1, lower=0);
-    if (df1 == 0) stop("'df1' cannot be 0");
-    checkmate::assertNumeric(df2, len=1, lower=0);
-    if (df2 == 0) stop("'df2' cannot be 0");
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxf_`, df1, df2, n, ncores)
+rxf <- function(df1, df2, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(df1, len = 1, lower = 0)
+  if (df1 == 0) stop("'df1' cannot be 0")
+  checkmate::assertNumeric(df2, len = 1, lower = 0)
+  if (df2 == 0) stop("'df2' cannot be 0")
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxf_`, df1, df2, n, ncores)
 }
 
 
@@ -398,13 +400,13 @@ rxf <- function(df1, df2, n=1L, ncores=1L){
 ##' s <- rxSolve(rx,et)
 ##'
 ##' @export
-rxexp <- function(rate, n=1L, ncores=1L){
-    checkmate::assertNumeric(rate, len=1, lower=0);
-    if (rate == 0) stop("'rate' cannot be 0");
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxexp_`, rate, n, ncores)
+rxexp <- function(rate, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(rate, len = 1, lower = 0)
+  if (rate == 0) stop("'rate' cannot be 0")
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxexp_`, rate, n, ncores)
 }
 
 
@@ -435,13 +437,13 @@ rxexp <- function(rate, n=1L, ncores=1L){
 ##' s <- rxSolve(rx,et)
 ##'
 ##' @export
-rxchisq <- function(df, n=1L, ncores=1L){
-    checkmate::assertNumeric(df, len=1, lower=0);
-    if (df == 0) stop("'df' cannot be 0");
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxchisq_`, df, n, ncores)
+rxchisq <- function(df, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(df, len = 1, lower = 0)
+  if (df == 0) stop("'df' cannot be 0")
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxchisq_`, df, n, ncores)
 }
 
 ##' Simulate Cauchy variable from threefry generator
@@ -471,14 +473,14 @@ rxchisq <- function(df, n=1L, ncores=1L){
 ##' s <- rxSolve(rx,et)
 ##'
 ##' @export
-rxcauchy <- function(location = 0, scale = 1, n=1L, ncores=1L){
-    checkmate::assertNumeric(location, len=1);
-    checkmate::assertNumeric(scale, len=1, lower=0);
-    if (scale == 0) stop("'scale' cannot be 0");
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxcauchy_`, location, scale, n, ncores)
+rxcauchy <- function(location = 0, scale = 1, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(location, len = 1)
+  checkmate::assertNumeric(scale, len = 1, lower = 0)
+  if (scale == 0) stop("'scale' cannot be 0")
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxcauchy_`, location, scale, n, ncores)
 }
 
 ##' Simulate Binomial variable from threefry generator
@@ -508,11 +510,11 @@ rxcauchy <- function(location = 0, scale = 1, n=1L, ncores=1L){
 ##' s <- rxSolve(rx,et)
 ##'
 ##' @export
-rxbinom <- function(size, prob, n=1L, ncores=1L) {
-    checkmate::assertNumeric(prob, len=1, lower=0, upper=1);
-    checkmate::assertCount(size);
-    checkmate::assertCount(n)
-    checkmate::assertCount(ncores)
-    rxSeedEng(ncores)
-    .Call(`_RxODE_rxbinom_`, size, prob, n, ncores)
+rxbinom <- function(size, prob, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(prob, len = 1, lower = 0, upper = 1)
+  checkmate::assertCount(size)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxbinom_`, size, prob, n, ncores)
 }

@@ -1,46 +1,47 @@
-rxPermissive({
-    context("Focei Setup checks");
+rxPermissive(
+  {
+    context("Focei Setup checks")
 
     m1 <- RxODE({
-        d/dt(centr) = - CL / V*centr;
+      d / dt(centr) <- -CL / V * centr
     })
 
-    m1a <- RxODE(m1, calcSens=TRUE);
+    m1a <- RxODE(m1, calcSens = TRUE)
 
     test_that("m1a created successfully.", {
-        expect_equal(class(m1a), "RxODE");
+      expect_equal(class(m1a), "RxODE")
     })
 
     m2 <- RxODE({
-        d/dt(depot) = -KA*depot;
-        d/dt(centr) = KA*depot - CL / V*centr;
+      d / dt(depot) <- -KA * depot
+      d / dt(centr) <- KA * depot - CL / V * centr
     })
 
-    pk <- function(){
-        KA = exp(THETA[1])
-        CL = exp(THETA[2] + ETA[1])
-        V = exp(THETA[3] + ETA[2])
+    pk <- function() {
+      KA <- exp(THETA[1])
+      CL <- exp(THETA[2] + ETA[1])
+      V <- exp(THETA[3] + ETA[2])
     }
 
-    pred <- function(){
-        return(cntr);
+    pred <- function() {
+      return(cntr)
     }
 
     test_that("Error when pred dosen't depend on state variables", {
-        expect_error(rxSymPySetupPred(m2, pred, pk));
+      expect_error(rxSymPySetupPred(m2, pred, pk))
     })
 
-    pred <- function(){
-        return(centr);
+    pred <- function() {
+      return(centr)
     }
     ## err ~ prop(.1) + add(.2)
 
-    err <- function(f){
-        return(f ^ 2* theta[4] ^ 2); ## Theta 4 is residual sd for proportional error.
+    err <- function(f) {
+      return(f^2 * theta[4]^2) ## Theta 4 is residual sd for proportional error.
     }
 
-    err2 <- function(f){
-        return(theta[4]); ## SD
+    err2 <- function(f) {
+      return(theta[4]) ## SD
     }
 
     m2a1 <- rxSymPySetupPred(m2, pred, pk)
@@ -50,29 +51,29 @@ rxPermissive({
 
     m2a <- rxSymPySetupPred(m2, pred, pk, err)
 
-    err2 <- function(f){
-        return(prop(0.1));
+    err2 <- function(f) {
+      return(prop(0.1))
     }
 
     m2b <- rxSymPySetupPred(m2, pred, pk, err2)
 
-    err3 <- function(f){
-        return(add(0.05) + prop(0.1));
+    err3 <- function(f) {
+      return(add(0.05) + prop(0.1))
     }
 
-    pk4 <- function(){
-        KA = exp(THETA[1])
-        CL = exp(THETA[2] + ETA[1])
-        V = exp(THETA[3] + ETA[2])
-        prop.err = THETA[4]
+    pk4 <- function() {
+      KA <- exp(THETA[1])
+      CL <- exp(THETA[2] + ETA[1])
+      V <- exp(THETA[3] + ETA[2])
+      prop.err <- THETA[4]
     }
 
-    err4 <- function(f){
-        return(prop(prop.err));
+    err4 <- function(f) {
+      return(prop(prop.err))
     }
 
-    err5 <- function(f){
-        return(add(prop.err));
+    err5 <- function(f) {
+      return(add(prop.err))
     }
 
     m2.4 <- rxSymPySetupPred(m2, pred, pk4, err4)
@@ -81,12 +82,12 @@ rxPermissive({
 
     m2c <- rxSymPySetupPred(m2, pred, pk, err3)
 
-    pred2 <- function(){
-        if (cmt == 2){
-            return(cntr);
-        } else {
-            return(depot)
-        }
+    pred2 <- function() {
+      if (cmt == 2) {
+        return(cntr)
+      } else {
+        return(depot)
+      }
     }
 
     ## FIXME
@@ -94,12 +95,12 @@ rxPermissive({
     ##     expect_warning(rxSymPySetupPred(m2, pred2, pk, err3))
     ## })
 
-    pred2 <- function(){
-        if (cmt == 2){
-            return(centr);
-        } else {
-            return(depot)
-        }
+    pred2 <- function() {
+      if (cmt == 2) {
+        return(centr)
+      } else {
+        return(depot)
+      }
     }
 
     m2d <- rxSymPySetupPred(m2, pred2, pk, err3)
@@ -114,32 +115,32 @@ rxPermissive({
     ##     }
     ## }
 
-    err4 <- function(){
-        if (cmt == 2){
-            return(add(0.3));
-        } else {
-            return(prop(0.3) + add(0.2));
-        }
+    err4 <- function() {
+      if (cmt == 2) {
+        return(add(0.3))
+      } else {
+        return(prop(0.3) + add(0.2))
+      }
     }
 
     m2e <- rxSymPySetupPred(m2, pred2, pk, err4)
 
-    err5 <- function() add(0.3);
+    err5 <- function() add(0.3)
 
     m2f <- rxSymPySetupPred(m2, pred2, pk, err5)
 
     test_that("1, 2 and 3 parameter Pred Setup works", {
-        expect_equal(class(m2a1), "rxFocei")
-        ## expect_equal(class(m2a2), "rxFocei")
-        expect_equal(class(m2a), "rxFocei")
-        expect_equal(class(m2b), "rxFocei")
-        expect_equal(class(m2c), "rxFocei")
-        expect_equal(class(m2d), "rxFocei")
-        expect_equal(class(m2e), "rxFocei")
-        expect_equal(class(m2f), "rxFocei")
-        expect_equal(class(m2.4), "rxFocei")
-        expect_equal(class(m2.5), "rxFocei")
-        expect_true(length(rxInit(m2f$inner)) == 0)
+      expect_equal(class(m2a1), "rxFocei")
+      ## expect_equal(class(m2a2), "rxFocei")
+      expect_equal(class(m2a), "rxFocei")
+      expect_equal(class(m2b), "rxFocei")
+      expect_equal(class(m2c), "rxFocei")
+      expect_equal(class(m2d), "rxFocei")
+      expect_equal(class(m2e), "rxFocei")
+      expect_equal(class(m2f), "rxFocei")
+      expect_equal(class(m2.4), "rxFocei")
+      expect_equal(class(m2.5), "rxFocei")
+      expect_true(length(rxInit(m2f$inner)) == 0)
     })
 
 
@@ -248,38 +249,38 @@ rxPermissive({
 
     ## now try  Rik's example
     rx <- RxODE({
-        d/dt(abs)    = -KA*abs;
-        d/dt(centr)  =  KA*abs-(Cl/Vc)*centr;
-        ## Concentration is calculated
-        cp = centr / Vc;
+      d / dt(abs) <- -KA * abs
+      d / dt(centr) <- KA * abs - (Cl / Vc) * centr
+      ## Concentration is calculated
+      cp <- centr / Vc
     })
 
-    pk <- function(){
-        Cl <- exp(THETA[1] + eta[1])
-        Vc <- exp(THETA[2] + eta[2])
-        KA <- exp(THETA[3] + eta[3])
+    pk <- function() {
+      Cl <- exp(THETA[1] + eta[1])
+      Vc <- exp(THETA[2] + eta[2])
+      KA <- exp(THETA[3] + eta[3])
     }
     pred <- function() cp
 
     m <- rxSymPySetupPred(rx, pred, pk)
     test_that("1, 2 and 3 parameter Pred Setup works", {
-        expect_equal(class(m), "rxFocei")
+      expect_equal(class(m), "rxFocei")
     })
 
     ## Constants
     m2 <- RxODE({
-        KA = 3
-        d/dt(depot) = -KA*depot;
-        d/dt(centr) = KA*depot - CL / V*centr;
+      KA <- 3
+      d / dt(depot) <- -KA * depot
+      d / dt(centr) <- KA * depot - CL / V * centr
     })
 
-    pk <- function(){
-        CL = exp(THETA[1] + ETA[1])
-        V = exp(THETA[2] + ETA[2])
+    pk <- function() {
+      CL <- exp(THETA[1] + ETA[1])
+      V <- exp(THETA[2] + ETA[2])
     }
 
-    pred <- function(){
-        return(centr);
+    pred <- function() {
+      return(centr)
     }
 
     ## to save time constants are put back into pred.only
@@ -292,84 +293,86 @@ rxPermissive({
 
     ## Now Test conditional statements
     mod <- RxODE({
-        Q1 <- 0
-        if (t >= 2 & t < 4) {
-            Q1 <- 1
-        }
-        d/dt(depot) = -ktr * depot
-        d/dt(gut) = ktr * depot - ka * gut + Q1 * gb
-        d/dt(center) = ka * gut - (cl/v + Q/v) * center + Q/vt *
-            tissue
-        d/dt(tissue) = Q/v * center - Q/vt * tissue
-        d/dt(gb) = (cl/v * fgb * center)
-        cp = center/v
+      Q1 <- 0
+      if (t >= 2 & t < 4) {
+        Q1 <- 1
+      }
+      d / dt(depot) <- -ktr * depot
+      d / dt(gut) <- ktr * depot - ka * gut + Q1 * gb
+      d / dt(center) <- ka * gut - (cl / v + Q / v) * center + Q / vt *
+        tissue
+      d / dt(tissue) <- Q / v * center - Q / vt * tissue
+      d / dt(gb) <- (cl / v * fgb * center)
+      cp <- center / v
     })
 
-    pred <- function() cp;
+    pred <- function() cp
 
-    err <- function(){
-        return(lnorm(lnorm.err) + tbs(lambda))
+    err <- function() {
+      return(lnorm(lnorm.err) + tbs(lambda))
     }
 
-    pk <- function(){
-        tktr=THETA[1]
-        tka=THETA[2]
-        tcl=THETA[3]
-        tv=THETA[4]
-        tQ=THETA[5]
-        tvt=THETA[6]
-        tfgb=THETA[7]
-        lnorm.err=THETA[8]
-        lambda = THETA[9]
-        eta.ktr=ETA[1]
-        eta.ka=ETA[2]
-        eta.cl=ETA[3]
-        eta.v=ETA[4]
-        eta.vt=ETA[5]
-        eta.fgb=ETA[6]
-        ktr <- exp(tktr + eta.ktr)
-        ka <- exp(tka + eta.ka)
-        cl <- exp(tcl + eta.cl)
-        v <- exp(tv + eta.v)
-        Q <- exp(tQ)
-        vt <- exp(tvt + eta.vt)
-        fgb <- exp(tfgb + eta.fgb)
+    pk <- function() {
+      tktr <- THETA[1]
+      tka <- THETA[2]
+      tcl <- THETA[3]
+      tv <- THETA[4]
+      tQ <- THETA[5]
+      tvt <- THETA[6]
+      tfgb <- THETA[7]
+      lnorm.err <- THETA[8]
+      lambda <- THETA[9]
+      eta.ktr <- ETA[1]
+      eta.ka <- ETA[2]
+      eta.cl <- ETA[3]
+      eta.v <- ETA[4]
+      eta.vt <- ETA[5]
+      eta.fgb <- ETA[6]
+      ktr <- exp(tktr + eta.ktr)
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl)
+      v <- exp(tv + eta.v)
+      Q <- exp(tQ)
+      vt <- exp(tvt + eta.vt)
+      fgb <- exp(tfgb + eta.fgb)
     }
 
     cond <- rxSymPySetupPred(mod, pred, pk, err)
 
 
-    pk <- function(){
-        lCl=THETA[1]
-        lVc=THETA[2]
-        lKA=THETA[3]
-        lt=THETA[4]
-        prop.err=THETA[5]
-        eta.Cl=ETA[1]
-        eta.Vc=ETA[2]
-        eta.KA=ETA[3]
-        eta.t0=ETA[4]
-        Cl <- exp(lCl + eta.Cl)
-        Vc <- exp(lVc + eta.Vc)
-        KA <- exp(lKA + eta.KA)
-        T0 <- exp(lt + eta.t0)
+    pk <- function() {
+      lCl <- THETA[1]
+      lVc <- THETA[2]
+      lKA <- THETA[3]
+      lt <- THETA[4]
+      prop.err <- THETA[5]
+      eta.Cl <- ETA[1]
+      eta.Vc <- ETA[2]
+      eta.KA <- ETA[3]
+      eta.t0 <- ETA[4]
+      Cl <- exp(lCl + eta.Cl)
+      Vc <- exp(lVc + eta.Vc)
+      KA <- exp(lKA + eta.KA)
+      T0 <- exp(lt + eta.t0)
     }
 
     mod <- RxODE({
-        if (t > T0) {
-            kel <- Cl/Vc
-        }
-        else {
-            kel <- 2 * Cl/Vc
-        }
-        d/dt(depot) = -KA * depot
-        d/dt(centr) = KA * depot - kel * centr
-        cp = centr/Vc
+      if (t > T0) {
+        kel <- Cl / Vc
+      }
+      else {
+        kel <- 2 * Cl / Vc
+      }
+      d / dt(depot) <- -KA * depot
+      d / dt(centr) <- KA * depot - kel * centr
+      cp <- centr / Vc
     })
     cond <- rxSymPySetupPred(mod, pred, pk, err)
 
     ## test_that("Issue #57 if/else", {
     ##     expect_false(any(rxLhs(cond$inner) == "T0"))
     ## })
-
-}, silent=TRUE, test="focei")
+  },
+  silent = TRUE,
+  test = "focei"
+)

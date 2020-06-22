@@ -1,18 +1,23 @@
-rxPermissive({
-test_that("progress_bar", {
-    context("Test progress bar")
-    f <- function(abort=FALSE){
-        on.exit({rxProgressAbort()});
+rxPermissive(
+  {
+    test_that("progress_bar", {
+      context("Test progress bar")
+      f <- function(abort = FALSE) {
+        on.exit({
+          rxProgressAbort()
+        })
         rxProgress(100)
         for (i in 1:100) {
-            rxTick()
-            if (abort && i == 50) stop("here");
+          rxTick()
+          if (abort && i == 50) stop("here")
         }
-        rxProgressStop();
+        rxProgressStop()
         TRUE
-    }
+      }
 
-    expect_true(f())
-    expect_error(f(TRUE))
-})
-}, test="cran")
+      expect_true(f())
+      expect_error(f(TRUE))
+    })
+  },
+  test = "cran"
+)

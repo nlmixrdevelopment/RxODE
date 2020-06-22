@@ -26,17 +26,21 @@ rxUnloadAll <- function() {
       return(.cur$path)
     }
   })
-  if (length(.ret) == 0) return(invisible(.ret))
+  if (length(.ret) == 0) {
+    return(invisible(.ret))
+  }
   .ret <- .ret[[!is.null(.ret)]]
   return(invisible(.ret))
 }
 
 .normalizePath <- function(path, ...) {
   ifelse(.Platform$OS.type == "windows",
-         suppressWarnings(utils::shortPathName(normalizePath(path, ...))),
-  ifelse(regexpr("^[/~]", path) != -1,
-         suppressWarnings(normalizePath(path, ...)),
-         suppressWarnings(normalizePath(file.path(getwd(), path), ...))))
+    suppressWarnings(utils::shortPathName(normalizePath(path, ...))),
+    ifelse(regexpr("^[/~]", path) != -1,
+      suppressWarnings(normalizePath(path, ...)),
+      suppressWarnings(normalizePath(file.path(getwd(), path), ...))
+    )
+  )
 }
 
 ##' Require namespace, otherwise throw error.
@@ -50,7 +54,8 @@ rxReq <- function(pkg) {
   ## nocov start
   if (!requireNamespace(pkg, quietly = TRUE)) {
     stop(sprintf("package \"%s\" needed for this function to work", pkg),
-         call. = FALSE);
+      call. = FALSE
+    )
   }
   ## nocov end
 }
@@ -64,9 +69,9 @@ rxCat <- function(a, ...) {
   ## nocov start
   if (RxODE.verbose) {
     if (is(a, "RxODE")) {
-      message(RxODE::rxNorm(a), appendLF = FALSE);
+      message(RxODE::rxNorm(a), appendLF = FALSE)
     } else {
-      message(a, ..., appendLF = FALSE);
+      message(a, ..., appendLF = FALSE)
     }
   }
   ## nocov end
@@ -89,17 +94,17 @@ rxCat <- function(a, ...) {
 ##' @export
 rxClean <- function(wd) {
   if (!missing(wd)) warning("'wd' is depreciated")
-  rxUnloadAll();
+  rxUnloadAll()
 }
 
-refresh <- function(derivs=FALSE) {
+refresh <- function(derivs = FALSE) {
   ## nocov start
-  cat("Dparser Version\n");
+  cat("Dparser Version\n")
   print(dparser::dpVersion())
-  if (derivs){
-    Sys.setenv(RxODE_derivs=TRUE)
+  if (derivs) {
+    Sys.setenv(RxODE_derivs = TRUE)
   } else {
-    Sys.setenv(RxODE_derivs=FALSE)
+    Sys.setenv(RxODE_derivs = FALSE)
   }
   source(devtools::package_file("build/refresh.R"))
   ## nocov end
@@ -107,34 +112,68 @@ refresh <- function(derivs=FALSE) {
 
 ode.h <- function() {
   ## nocov start
-  cat("Generate header string.\n");
-  r.files <- list.files(devtools::package_file("R"), "[.]R$", full.names=TRUE);
-  r.files <- r.files[regexpr("RxODE_md5.R", r.files, fixed=TRUE) == -1]
-  md5 <- digest::digest(c(sapply(list.files(devtools::package_file("src"),
-                                            pattern="[.](c|cpp|h|hpp|f|R|in)$", full.names=TRUE),
-                                 function(x){digest::digest(x, file=TRUE)}),
-                          sapply(r.files, function(x){digest::digest(x, file=TRUE)}),
-                          sapply(list.files(devtools::package_file("vignettes"), pattern="[.](Rmd)$",
-                                            full.names=TRUE),
-                                 function(x){digest::digest(x, file=TRUE)}),
-                          sapply(list.files(devtools::package_file("demo"), pattern="(R|index)$",
-                                            full.names=TRUE),
-                                 function(x){digest::digest(x, file=TRUE)}),
-                          sapply(list.files(devtools::package_file(),
-                                            pattern="(cleanup.*|configure.*|DESCRIPTION|NAMESPACE)",
-                                            full.names=TRUE),
-                                 function(x){digest::digest(x, file=TRUE)})))
-  hd <- c(sprintf("#define __VER_2__ \"    SET_STRING_ELT(version,2,mkChar(\\\"%s\\\"));\\n\"", md5),
-          sprintf("#define __VER_1__ \"    SET_STRING_ELT(version,1,mkChar(\\\"%s\\\"));\\n\"",
-                  as.vector(RxODE::rxVersion()["repo"])),
-          sprintf("#define __VER_0__ \"    SET_STRING_ELT(version,0,mkChar(\\\"%s\\\"));\\n\"",
-                  sessionInfo()$otherPkgs$RxODE$Version),
-          sprintf("#define __VER_md5__ \"%s\"", md5),
-          sprintf("#define __VER_repo__ \"%s\"", as.vector(RxODE::rxVersion()["repo"])),
-          sprintf("#define __VER_ver__ \"%s\"", sessionInfo()$otherPkgs$RxODE$Version))
+  cat("Generate header string.\n")
+  r.files <- list.files(devtools::package_file("R"), "[.]R$", full.names = TRUE)
+  r.files <- r.files[regexpr("RxODE_md5.R", r.files, fixed = TRUE) == -1]
+  md5 <- digest::digest(c(
+    sapply(
+      list.files(devtools::package_file("src"),
+        pattern = "[.](c|cpp|h|hpp|f|R|in)$", full.names = TRUE
+      ),
+      function(x) {
+        digest::digest(x, file = TRUE)
+      }
+    ),
+    sapply(r.files, function(x) {
+      digest::digest(x, file = TRUE)
+    }),
+    sapply(
+      list.files(devtools::package_file("vignettes"),
+        pattern = "[.](Rmd)$",
+        full.names = TRUE
+      ),
+      function(x) {
+        digest::digest(x, file = TRUE)
+      }
+    ),
+    sapply(
+      list.files(devtools::package_file("demo"),
+        pattern = "(R|index)$",
+        full.names = TRUE
+      ),
+      function(x) {
+        digest::digest(x, file = TRUE)
+      }
+    ),
+    sapply(
+      list.files(devtools::package_file(),
+        pattern = "(cleanup.*|configure.*|DESCRIPTION|NAMESPACE)",
+        full.names = TRUE
+      ),
+      function(x) {
+        digest::digest(x, file = TRUE)
+      }
+    )
+  ))
+  hd <- c(
+    sprintf("#define __VER_2__ \"    SET_STRING_ELT(version,2,mkChar(\\\"%s\\\"));\\n\"", md5),
+    sprintf(
+      "#define __VER_1__ \"    SET_STRING_ELT(version,1,mkChar(\\\"%s\\\"));\\n\"",
+      as.vector(RxODE::rxVersion()["repo"])
+    ),
+    sprintf(
+      "#define __VER_0__ \"    SET_STRING_ELT(version,0,mkChar(\\\"%s\\\"));\\n\"",
+      sessionInfo()$otherPkgs$RxODE$Version
+    ),
+    sprintf("#define __VER_md5__ \"%s\"", md5),
+    sprintf("#define __VER_repo__ \"%s\"", as.vector(RxODE::rxVersion()["repo"])),
+    sprintf("#define __VER_ver__ \"%s\"", sessionInfo()$otherPkgs$RxODE$Version)
+  )
   writeLines(hd, devtools::package_file("src/ode.h"))
-  writeLines(sprintf("RxODE.md5 <- \"%s\"", md5),
-             devtools::package_file("R/RxODE_md5.R"));
+  writeLines(
+    sprintf("RxODE.md5 <- \"%s\"", md5),
+    devtools::package_file("R/RxODE_md5.R")
+  )
   ## nocov end
 }
 
@@ -146,8 +185,8 @@ ode.h <- function() {
 ##' @param type used to be type of product
 ##'
 ##' @export
-rxSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "c")) {
-  stop("'rxSetSum' has been moved to rxSolve(...,sum=)");
+rxSetSum <- function(type = c("pairwise", "fsum", "kahan", "neumaier", "c")) {
+  stop("'rxSetSum' has been moved to rxSolve(...,sum=)")
 }
 
 ##' Defunct setting of product
@@ -155,8 +194,8 @@ rxSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "c")) {
 ##' @param type used to be type of product
 ##'
 ##' @export
-rxSetProd <- function(type=c("long double", "double", "logify")) {
-  stop("'rxSetProd' has been moved to rxSolve(...,sum=)");
+rxSetProd <- function(type = c("long double", "double", "logify")) {
+  stop("'rxSetProd' has been moved to rxSolve(...,sum=)")
 }
 
 ##' Set timing for progress bar
@@ -167,7 +206,7 @@ rxSetProd <- function(type=c("long double", "double", "logify")) {
 ##'
 ##' @export
 ##' @author Matthew Fidler
-rxSetProgressBar <- function(seconds=1.0) {
+rxSetProgressBar <- function(seconds = 1.0) {
   invisible(.Call(`_rxParProgress`, as.double(seconds)))
 }
 
@@ -322,27 +361,36 @@ rxSetProgressBar <- function(seconds=1.0) {
 cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
                    type = c("invWishart", "lkj", "separation"),
                    diagXformType = c("log", "identity", "variance", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity")) {
-  if (is.null(nu) && n == 1L) return(omega)
+  if (is.null(nu) && n == 1L) {
+    return(omega)
+  }
   if (inherits(type, "numeric") || inherits(type, "integer")) {
     .type <- as.integer(type)
   } else {
-    .type <- as.vector(c("invWishart"=1L, "lkj"=2L,
-                         "separation"=3L)[match.arg(type)])
+    .type <- as.vector(c(
+      "invWishart" = 1L, "lkj" = 2L,
+      "separation" = 3L
+    )[match.arg(type)])
   }
   if (.type == 1L) {
     .xform <- 1L
-  }  else if (inherits(diagXformType, "numeric") || inherits(diagXformType, "integer")) {
+  } else if (inherits(diagXformType, "numeric") || inherits(diagXformType, "integer")) {
     .xform <- as.integer(diagXformType)
   } else {
-    .xform <- setNames(c("variance" = 6L, "log" = 5L,
-                         "identity" = 4L, "nlmixrSqrt" = 1L,
-                         "nlmixrLog" = 2L,
-                         "nlmixrIdentity" = 3L)[match.arg(diagXformType)],
-                       NULL)
+    .xform <- setNames(
+      c(
+        "variance" = 6L, "log" = 5L,
+        "identity" = 4L, "nlmixrSqrt" = 1L,
+        "nlmixrLog" = 2L,
+        "nlmixrIdentity" = 3L
+      )[match.arg(diagXformType)],
+      NULL
+    )
   }
   .ret <- .Call(`_RxODE_cvPost_`, nu, omega, n,
-                omegaIsChol, returnChol, .type, .xform,
-                PACKAGE = "RxODE")
+    omegaIsChol, returnChol, .type, .xform,
+    PACKAGE = "RxODE"
+  )
   return(.ret)
 }
 
@@ -378,7 +426,7 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##' @param a threshold for switching between methods; They can be
 ##'   tuned for maximum speed;  There are three cases that are considered:
 ##'
-##'  case 1: a < l < u  
+##'  case 1: a < l < u
 ##'
 ##'  case 2: l < u < -a
 ##'
@@ -392,7 +440,7 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##'
 ##' When abs(u-l)>tol, uses accept-reject from randn
 ##'
-##' @param nlTol Tolerance for newton line-search 
+##' @param nlTol Tolerance for newton line-search
 ##'
 ##' @param nlMaxiter Maximum iterations for newton line-search
 ##'
@@ -452,16 +500,18 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##'    tmp <- matrix(rnorm(d^2), d, d)
 ##'    tcrossprod(tmp, tmp)
 ##' })
-##' 
+##'
 ##'
 ##' rxRmvn(4, setNames(1:d,paste0("a",1:d)), matL)
 ##'
 ##' @author Matthew Fidler, Zdravko Botev and some from Matteo Fasiolo
 ##' @export
-rxRmvn <- function(n, mu=NULL, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=FALSE,
-                   keepNames=TRUE, a=0.4, tol=2.05, nlTol=1e-10, nlMaxiter=100L) {
-  .ret <- .Call(`_RxODE_rxRmvnSEXP`, n, mu, sigma, lower, upper, ncores,
-                isChol, keepNames, a, tol, nlTol, nlMaxiter)
+rxRmvn <- function(n, mu = NULL, sigma, lower = -Inf, upper = Inf, ncores = 1, isChol = FALSE,
+                   keepNames = TRUE, a = 0.4, tol = 2.05, nlTol = 1e-10, nlMaxiter = 100L) {
+  .ret <- .Call(
+    `_RxODE_rxRmvnSEXP`, n, mu, sigma, lower, upper, ncores,
+    isChol, keepNames, a, tol, nlTol, nlMaxiter
+  )
   if (is.matrix(n)) {
     return(invisible())
   }
@@ -479,14 +529,16 @@ rxRmvn <- function(n, mu=NULL, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=F
 ##'     the expression and a list of warning messages
 ##' @author Matthew L. Fidler
 ##' @noRd
-.collectWarnings <- function(expr, lst=FALSE) {
-  .ws <- c();
+.collectWarnings <- function(expr, lst = FALSE) {
+  .ws <- c()
   .thisEnv <- environment()
   .ret <- suppressWarnings(
     withCallingHandlers(expr,
-                        warning = function(w) {
-                          assign(".ws", unique(c(w$message, .ws)), .thisEnv)
-                        }))
+      warning = function(w) {
+        assign(".ws", unique(c(w$message, .ws)), .thisEnv)
+      }
+    )
+  )
   if (lst) {
     return(list(.ret, .ws))
   } else {
@@ -505,7 +557,7 @@ rxRmvn <- function(n, mu=NULL, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=F
 ##' @author Matthew Fidler
 ##' @noRd
 .vecDf <- function(vec, n) {
-  .Call(`_vecDF`, vec, as.integer(n), PACKAGE='RxODE') #nolint
+  .Call(`_vecDF`, vec, as.integer(n), PACKAGE = "RxODE") # nolint
 }
 ##' cbind Ome
 ##'
@@ -516,7 +568,7 @@ rxRmvn <- function(n, mu=NULL, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=F
 ##' @author Matthew Fidler
 ##' @noRd
 .cbindOme <- function(et, mat, n) {
-  .Call(`_cbindOme`, et, mat, as.integer(n), PACKAGE='RxODE') # nolint
+  .Call(`_cbindOme`, et, mat, as.integer(n), PACKAGE = "RxODE") # nolint
 }
 
 ##' Cumulative distribution of standard normal
@@ -533,10 +585,10 @@ rxRmvn <- function(n, mu=NULL, sigma, lower= -Inf, upper=Inf, ncores=1, isChol=F
 ##' pnorm(3)
 ##'
 ##' # This is provided for NONMEM-like compatibility in RxODE models
-##' 
+##'
 ##' @export
-phi <- function(q){
-  .Call(`_phi`, q, PACKAGE='RxODE');
+phi <- function(q) {
+  .Call(`_phi`, q, PACKAGE = "RxODE")
 }
 ##' Gammap: normalized lower incomplete gamma function
 ##'
@@ -544,7 +596,7 @@ phi <- function(q){
 ##'
 ##' @param a The numeric 'a' parameter in the normalized lower
 ##'   incomplete gamma
-##' 
+##'
 ##' @param z The numeric 'z' parameter in the normalized lower
 ##'   incomplete gamma
 ##'
@@ -553,18 +605,18 @@ phi <- function(q){
 ##' The gamma p function is given by:
 ##'
 ##' gammap = lowergamma(a, z)/gamma(a)
-##' 
+##'
 ##' @return gammap results
 ##' @author Matthew L. Fidler
 ##' @examples
-##' 
+##'
 ##' gammap(1,3)
 ##' gammap(1:3,3)
 ##' gammap(1,1:3)
-##' 
+##'
 ##' @export
-gammap <- function(a, z){
-  .Call(`_gammap`, a, z, PACKAGE='RxODE')
+gammap <- function(a, z) {
+  .Call(`_gammap`, a, z, PACKAGE = "RxODE")
 }
 
 ##' Gammaq: normalized upper incomplete gamma function
@@ -573,7 +625,7 @@ gammap <- function(a, z){
 ##'
 ##' @param a The numeric 'a' parameter in the normalized upper
 ##'   incomplete gamma
-##' 
+##'
 ##' @param z The numeric 'z' parameter in the normalized upper
 ##'   incomplete gamma
 ##'
@@ -582,18 +634,18 @@ gammap <- function(a, z){
 ##' The gamma q function is given by:
 ##'
 ##' gammaq = uppergamma(a, z)/gamma(a)
-##' 
+##'
 ##' @return gammaq results
 ##' @author Matthew L. Fidler
 ##' @examples
-##' 
+##'
 ##' gammaq(1,3)
 ##' gammaq(1:3,3)
 ##' gammaq(1,1:3)
-##' 
+##'
 ##' @export
-gammaq <- function(a, z){
-  .Call(`_gammaq`, a, z, PACKAGE='RxODE')
+gammaq <- function(a, z) {
+  .Call(`_gammaq`, a, z, PACKAGE = "RxODE")
 }
 ##' uppergamma:  upper incomplete gamma function
 ##'
@@ -601,7 +653,7 @@ gammaq <- function(a, z){
 ##'
 ##' @param a The numeric 'a' parameter in the upper
 ##'   incomplete gamma
-##' 
+##'
 ##' @param z The numeric 'z' parameter in the upper
 ##'   incomplete gamma
 ##'
@@ -610,22 +662,22 @@ gammaq <- function(a, z){
 ##' The uppergamma function is given by:
 ##'
 ##' \eqn{uppergamma(a, z) = \int_{z}^{\infty}t^{a-1}\cdot e^{-t} dt}
-##' 
+##'
 ##' @return uppergamma results
-##' 
+##'
 ##' @author Matthew L. Fidler
-##' 
+##'
 ##' @examples
-##' 
+##'
 ##' uppergamma(1,3)
-##' 
+##'
 ##' uppergamma(1:3,3)
-##' 
+##'
 ##' uppergamma(1,1:3)
-##' 
+##'
 ##' @export
-uppergamma <- function(a, z){
-  .Call(`_uppergamma`, a, z, PACKAGE='RxODE')
+uppergamma <- function(a, z) {
+  .Call(`_uppergamma`, a, z, PACKAGE = "RxODE")
 }
 
 ##' lowergamma:  upper incomplete gamma function
@@ -634,7 +686,7 @@ uppergamma <- function(a, z){
 ##'
 ##' @param a The numeric 'a' parameter in the upper
 ##'   incomplete gamma
-##' 
+##'
 ##' @param z The numeric 'z' parameter in the upper
 ##'   incomplete gamma
 ##'
@@ -643,22 +695,22 @@ uppergamma <- function(a, z){
 ##' The lowergamma function is given by:
 ##'
 ##' \deqn{lowergamma(a, z) = \int_{0}^{z}t^{a-1}\cdot e^{-t} dt}
-##' 
+##'
 ##' @return lowergamma results
-##' 
+##'
 ##' @author Matthew L. Fidler
-##' 
+##'
 ##' @examples
-##' 
+##'
 ##' lowergamma(1,3)
-##' 
+##'
 ##' lowergamma(1:3,3)
-##' 
+##'
 ##' lowergamma(1,1:3)
-##' 
+##'
 ##' @export
-lowergamma <- function(a, z){
-  .Call(`_lowergamma`, a, z, PACKAGE='RxODE')
+lowergamma <- function(a, z) {
+  .Call(`_lowergamma`, a, z, PACKAGE = "RxODE")
 }
 
 ##' gammapDer:  derivative of gammap
@@ -667,25 +719,25 @@ lowergamma <- function(a, z){
 ##'
 ##' @param a The numeric 'a' parameter in the upper
 ##'   incomplete gamma
-##' 
+##'
 ##' @param z The numeric 'z' parameter in the upper
 ##'   incomplete gamma
 ##'
 ##' @details
-##' 
+##'
 ##' @return lowergamma results
-##' 
+##'
 ##' @author Matthew L. Fidler
-##' 
+##'
 ##' @examples
-##' 
+##'
 ##' gammapDer(1:3,3)
-##' 
+##'
 ##' gammapDer(1,1:3)
-##' 
+##'
 ##' @export
-gammapDer <- function(a, z){
-  .Call(`_gammapDer`, a, z, PACKAGE='RxODE')
+gammapDer <- function(a, z) {
+  .Call(`_gammapDer`, a, z, PACKAGE = "RxODE")
 }
 
 ##' gammaqInv and gammaqInva:  Inverses of normalized gammaq function
@@ -694,7 +746,7 @@ gammapDer <- function(a, z){
 ##'   incomplete gamma
 ##'
 ##' @param x The numeric 'x' parameter in the upper incomplete gamma
-##' 
+##'
 ##' @param q The numeric 'q' parameter in the upper
 ##'   incomplete gamma
 ##'
@@ -711,30 +763,30 @@ gammapDer <- function(a, z){
 ##' equation above
 ##'
 ##' NOTE: gammaqInva is slow
-##' 
+##'
 ##' @return inverse gammaq results
-##' 
+##'
 ##' @author Matthew L. Fidler
-##' 
+##'
 ##' @examples
-##' 
+##'
 ##' gammaqInv(1:3,0.5)
-##' 
+##'
 ##' gammaqInv(1,1:3/3)
 ##'
 ##' gammaqInv(1:3,1:3/3.1)
 ##'
 ##' gammaqInva(1:3,1:3/3.1)
-##' 
+##'
 ##' @export
-gammaqInv <- function(a, q){
-  .Call(`_gammaqInv`, a, q, PACKAGE='RxODE')
+gammaqInv <- function(a, q) {
+  .Call(`_gammaqInv`, a, q, PACKAGE = "RxODE")
 }
 
-##'@rdname gammaqInv
-##'@export
-gammaqInva <- function(x, q){
-  .Call(`_gammaqInva`, x, q, PACKAGE='RxODE')
+##' @rdname gammaqInv
+##' @export
+gammaqInva <- function(x, q) {
+  .Call(`_gammaqInva`, x, q, PACKAGE = "RxODE")
 }
 
 
@@ -744,7 +796,7 @@ gammaqInva <- function(x, q){
 ##'   incomplete gamma
 ##'
 ##' @param x The numeric 'x' parameter in the upper incomplete gamma
-##' 
+##'
 ##' @param p The numeric 'p' parameter in the upper incomplete gamma
 ##'
 ##' @details
@@ -760,37 +812,37 @@ gammaqInva <- function(x, q){
 ##' equation above
 ##'
 ##' NOTE: gammapInva is slow
-##' 
+##'
 ##' @return inverse gammap results
-##' 
+##'
 ##' @author Matthew L. Fidler
-##' 
+##'
 ##' @examples
-##' 
+##'
 ##' gammapInv(1:3,0.5)
-##' 
+##'
 ##' gammapInv(1,1:3/3.1)
 ##'
 ##' gammapInv(1:3,1:3/3.1)
 ##'
 ##' gammapInva(1:3,1:3/3.1)
-##' 
+##'
 ##' @export
-gammapInv <- function(a, p){
-  .Call(`_gammapInv`, a, p, PACKAGE='RxODE')
+gammapInv <- function(a, p) {
+  .Call(`_gammapInv`, a, p, PACKAGE = "RxODE")
 }
 
-##'@rdname gammapInv
-##'@export
-gammapInva <- function(x, p){
-  .Call(`_gammapInva`, x, p, PACKAGE='RxODE')
+##' @rdname gammapInv
+##' @export
+gammapInva <- function(x, p) {
+  .Call(`_gammapInva`, x, p, PACKAGE = "RxODE")
 }
 
 ##' logit and inverse logit (expit) functions
-##' 
+##'
 ##' @param x Input value(s) in range [low,high] to translate -Inf to
 ##'   Inf
-##' 
+##'
 ##' @param alpha Infinite value(s) to translate to range of [low,
 ##'   high]
 ##' @param low Lowest value in the range
@@ -799,9 +851,9 @@ gammapInva <- function(x, p){
 ##' @details
 ##'
 ##' logit is given by:
-##' 
+##'
 ##' \deqn{logit(p) = -log(1/p-1)}
-##' 
+##'
 ##' where:
 ##'
 ##' \deqn{p = \frac{x-low}{high-low}}
@@ -815,13 +867,13 @@ gammapInva <- function(x, p){
 ##' logit(0.25)
 ##'
 ##' expit()
-##' 
+##'
 ##' @export
-logit <- function(x, low=0, high=1){
-  .Call(`_logit`, x, low, high, PACKAGE='RxODE')
+logit <- function(x, low = 0, high = 1) {
+  .Call(`_logit`, x, low, high, PACKAGE = "RxODE")
 }
-##'@rdname logit
-##'@export
-expit <- function(alpha, low=0, high=1){
-  .Call(`_expit`, alpha, low, high, PACKAGE='RxODE')
+##' @rdname logit
+##' @export
+expit <- function(alpha, low = 0, high = 1) {
+  .Call(`_expit`, alpha, low, high, PACKAGE = "RxODE")
 }

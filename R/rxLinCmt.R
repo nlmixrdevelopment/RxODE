@@ -6,35 +6,40 @@
 ##' @keywords internal
 ##' @export
 findLhs <- function(x) {
-    ## Modified from http://adv-r.had.co.nz/Expressions.html find_assign4
-    if (is.atomic(x) || is.name(x)) {
-        character()
-    } else if (is.call(x)) {
-        if ((identical(x[[1]], quote(`<-`)) ||
-             identical(x[[1]], quote(`=`)) ||
-             identical(x[[1]], quote(`~`))) &&
-             is.name(x[[2]])) {
-            .lhs <- as.character(x[[2]])
-        } else {
-            .lhs <- character()
-        }
-        unique(c(.lhs, unlist(lapply(x, RxODE::findLhs))))
-    } else if (is.pairlist(x)) {
-        unique(unlist(lapply(x, RxODE::findLhs)))
+  ## Modified from http://adv-r.had.co.nz/Expressions.html find_assign4
+  if (is.atomic(x) || is.name(x)) {
+    character()
+  } else if (is.call(x)) {
+    if ((identical(x[[1]], quote(`<-`)) ||
+      identical(x[[1]], quote(`=`)) ||
+      identical(x[[1]], quote(`~`))) &&
+      is.name(x[[2]])) {
+      .lhs <- as.character(x[[2]])
     } else {
-        stop(sprintf("do not know how to handle type '%s'", typeof(x)),
-             call. = FALSE)
+      .lhs <- character()
     }
+    unique(c(.lhs, unlist(lapply(x, RxODE::findLhs))))
+  } else if (is.pairlist(x)) {
+    unique(unlist(lapply(x, RxODE::findLhs)))
+  } else {
+    stop(sprintf("do not know how to handle type '%s'", typeof(x)),
+      call. = FALSE
+    )
+  }
 }
 
 
 
-.rxDerivedReg <- rex::rex(start,
-                          or(group(or("V", "Q", "VP", "VT", "CLD"), number),
-                             "KA", "VP", "VT", "CLD", "V", "VC", "CL", "VSS", "K", "KE", "KEL",
-                             "Q", "VT", group("K", number, number), "AOB", "ALPHA", "BETA", "GAMMA",
-                             "A", "B", "C"),
-                          end)
+.rxDerivedReg <- rex::rex(
+  start,
+  or(
+    group(or("V", "Q", "VP", "VT", "CLD"), number),
+    "KA", "VP", "VT", "CLD", "V", "VC", "CL", "VSS", "K", "KE", "KEL",
+    "Q", "VT", group("K", number, number), "AOB", "ALPHA", "BETA", "GAMMA",
+    "A", "B", "C"
+  ),
+  end
+)
 
 ##' Calculate derived parameters for the 1-, 2-, and 3- compartment
 ##' linear models.
@@ -146,24 +151,28 @@ findLhs <- function(x) {
 ##' params <- rxDerived(CL=29.4, V=1:3, digits=2)
 ##'
 ##' @export
-rxDerived <- function(..., verbose=FALSE, digits=0) {
+rxDerived <- function(..., verbose = FALSE, digits = 0) {
   .lst <- list(...)
   if (inherits(.lst[[1]], "data.frame")) {
     .lst <- .lst[[1]]
   }
   .namesU <- toupper(names(.lst))
   .w <- which(regexpr(.rxDerivedReg, .namesU) != -1)
-  if (length(.w) > 1L){
-    if (verbose){
-      message("Parameters: ", paste(names(.lst)[.w], collapse=","))
+  if (length(.w) > 1L) {
+    if (verbose) {
+      message("Parameters: ", paste(names(.lst)[.w], collapse = ","))
     }
-    assign(".lst", .lst, globalenv());
-    .linCmt <- .Call(`_linCmtParse`, names(.lst)[.w],
-                     c("with(.lst,.Call(`_calcDerived`, ","list(", "0, 0, 0, 0, ",
-                       ", 0, 0, 0, 0),digits))"),
-                     verbose)$str
+    assign(".lst", .lst, globalenv())
+    .linCmt <- .Call(
+      `_linCmtParse`, names(.lst)[.w],
+      c(
+        "with(.lst,.Call(`_calcDerived`, ", "list(", "0, 0, 0, 0, ",
+        ", 0, 0, 0, 0),digits))"
+      ),
+      verbose
+    )$str
     .env <- environment()
-    return(eval(parse(text=.linCmt), envir=.env))
+    return(eval(parse(text = .linCmt), envir = .env))
   } else {
     stop("cannot figure out PK parameters to convert")
   }
@@ -175,16 +184,22 @@ rxDerived <- function(..., verbose=FALSE, digits=0) {
 ##' @return model with linCmt() replaced with linCmtA()
 ##' @author Matthew Fidler
 ##' @export
-rxGetLin <- function(model, linCmtSens=c("linCmtA", "linCmtB", "linCmtC"), verbose=FALSE){
+rxGetLin <- function(model, linCmtSens = c("linCmtA", "linCmtB", "linCmtC"), verbose = FALSE) {
   .mv <- rxGetModel(model)
-  if (.Call(`_RxODE_isLinCmt`) == 1L){
-      .vars <- c(.mv$params, .mv$lhs, .mv$slhs)
-      return(.Call(`_RxODE_linCmtGen`,
-                                   length(.mv$state),
-                                   .vars,
-                   setNames(c("linCmtA"=1L, "linCmtB"=2L,
-                              "linCmtC"=3L)[match.arg(linCmtSens)],
-                            NULL), verbose))
+  if (.Call(`_RxODE_isLinCmt`) == 1L) {
+    .vars <- c(.mv$params, .mv$lhs, .mv$slhs)
+    return(.Call(
+      `_RxODE_linCmtGen`,
+      length(.mv$state),
+      .vars,
+      setNames(
+        c(
+          "linCmtA" = 1L, "linCmtB" = 2L,
+          "linCmtC" = 3L
+        )[match.arg(linCmtSens)],
+        NULL
+      ), verbose
+    ))
   } else {
     return(model)
   }

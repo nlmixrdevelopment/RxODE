@@ -1,353 +1,401 @@
 library(RxODE)
-rxPermissive({
+rxPermissive(
+  {
+    for (meth in c("liblsoda", "lsoda")) { ## Dop is very close but doesn't match precisely.
 
-    for (meth in c("liblsoda", "lsoda")){ ## Dop is very close but doesn't match precisely.
+      context(sprintf("Simple test for time-varying covariates (%s)", meth))
 
-        context(sprintf("Simple test for time-varying covariates (%s)", meth))
+      ode <- RxODE({
+        b <- -1
+        d / dt(X) <- a * X + Y * Z
+        d / dt(Y) <- b * (Y - Z)
+        d / dt(Z) <- -X * Y + c * Y - Z
+        printf("%.10f,%.10f\n", t, c)
+      })
 
-        ode <- RxODE({
-            b       = -1
-            d/dt(X) = a*X + Y*Z;
-            d/dt(Y) = b*(Y - Z);
-            d/dt(Z) = -X*Y + c*Y - Z
-            printf("%.10f,%.10f\n",t,c);
-        })
+      et <- eventTable(time.units = "hr") # default time units
+      et$add.sampling(seq(from = 0, to = 100, by = 0.01))
 
-        et <- eventTable(time.units="hr")   # default time units
-        et$add.sampling(seq(from=0, to=100, by=0.01))
+      cov <- data.frame(c = et$get.EventTable()$time + units::set_units(1, h))
 
-        cov <- data.frame(c=et$get.EventTable()$time+units::set_units(1,h));
+      et0 <- et
 
-        et0 <- et;
+      et <- cbind(et, cov)
 
-        et <- cbind(et,cov)
-
-        cov.lin <- approxfun(et$time, et$c, yleft=et$c[1], yright=et$c[length(cov$c)]);
-
-
-        sink("temp.csv");
-        cat("t,c\n");
-        out <- rxSolve(ode,
-                       params = c(a=-8/3, b=-10),
-                       events = et,
-                       inits = c(X=1, Y=1, Z=1),
-                       add.cov=TRUE,
-                       covsInterpolation="linear",
-                       method=meth);
-        sink();
-        lin.interp <- read.csv("temp.csv");
-        unlink("temp.csv");
-
-        lin.interp$c2 <- cov.lin(lin.interp$t);
-
-        test_that("time varying covariates output covariate in data frame",{
-            expect_equal(cov$c,out$c);
-        })
-
-        test_that("Linear Approximation matches approxfun.", {
-            expect_equal(lin.interp$c, lin.interp$c2);
-        })
-
-        ## NONMEM interpolation
-        sink("temp.csv");
-        cat("t,c\n");
-        out <- rxSolve(ode,
-                       params = c(a=-8/3, b=-10),
-                       events = et,
-                       inits = c(X=1, Y=1, Z=1),
-                       covs_interpolation="NOCB", add.cov=TRUE,
-                       method=meth);
-        sink()
-        lin.interp <- read.csv("temp.csv");
-        unlink("temp.csv");
-
-        cov.lin <- approxfun(out$time, out$c, yleft=cov$c[1], yright=cov$c[length(cov$c)],
-                             method="constant", f=1);
-        lin.interp$c2 <- cov.lin(lin.interp$t);
-
-        test_that("NOCB Approximation similar to approxfun.", {
-            expect_equal(lin.interp$c, lin.interp$c2);
-        })
+      cov.lin <- approxfun(et$time, et$c, yleft = et$c[1], yright = et$c[length(cov$c)])
 
 
-        ## midpoint interpolation
-        sink("temp.csv");
-        cat("t,c\n");
-        out <- rxSolve(ode,
-                       params = c(a=-8/3, b=-10),
-                       events = et,
-                       inits = c(X=1, Y=1, Z=1),
-                       covs_interpolation="midpoint", add.cov=TRUE,
-                       method=meth);
-        sink()
-        lin.interp <- read.csv("temp.csv");
-        unlink("temp.csv");
+      sink("temp.csv")
+      cat("t,c\n")
+      out <- rxSolve(ode,
+        params = c(a = -8 / 3, b = -10),
+        events = et,
+        inits = c(X = 1, Y = 1, Z = 1),
+        add.cov = TRUE,
+        covsInterpolation = "linear",
+        method = meth
+      )
+      sink()
+      lin.interp <- read.csv("temp.csv")
+      unlink("temp.csv")
 
-        cov.lin <- approxfun(out$time, out$c, yleft=cov$c[1], yright=cov$c[length(cov$c)],
-                             method="constant", f=0.5);
+      lin.interp$c2 <- cov.lin(lin.interp$t)
 
-        lin.interp$c2 <- cov.lin(lin.interp$t);
+      test_that("time varying covariates output covariate in data frame", {
+        expect_equal(cov$c, out$c)
+      })
 
-        test_that("midpoint Approximation similar to approxfun.", {
-            expect_equal(lin.interp$c, lin.interp$c2);
-        })
+      test_that("Linear Approximation matches approxfun.", {
+        expect_equal(lin.interp$c, lin.interp$c2)
+      })
 
+      ## NONMEM interpolation
+      sink("temp.csv")
+      cat("t,c\n")
+      out <- rxSolve(ode,
+        params = c(a = -8 / 3, b = -10),
+        events = et,
+        inits = c(X = 1, Y = 1, Z = 1),
+        covs_interpolation = "NOCB", add.cov = TRUE,
+        method = meth
+      )
+      sink()
+      lin.interp <- read.csv("temp.csv")
+      unlink("temp.csv")
 
-        ## covs_interpolation
-        sink("temp.csv");
-        cat("t,c\n");
-        out <- rxSolve(ode,
-                       params = c(a=-8/3, b=-10),
-                       events = et,
-                       inits = c(X=1, Y=1, Z=1),
-                       covs_interpolation="constant", add.cov=TRUE,
-                       method=meth);
-        sink()
-        lin.interp <- read.csv("temp.csv");
-        unlink("temp.csv");
+      cov.lin <- approxfun(out$time, out$c,
+        yleft = cov$c[1], yright = cov$c[length(cov$c)],
+        method = "constant", f = 1
+      )
+      lin.interp$c2 <- cov.lin(lin.interp$t)
 
-        cov.lin <- approxfun(out$time, out$c, yleft=cov$c[1], yright=cov$c[length(cov$c)],
-                             method="constant");
-
-        lin.interp$c2 <- cov.lin(lin.interp$t);
-
-        test_that("Constant Approximation similar to approxfun.", {
-            expect_equal(lin.interp$c, lin.interp$c2);
-        })
-
-
-        out <- as.data.frame(out);
-        out <- out[,names(out) != "c"];
-
-        sink("temp");
-        out1 <-
-            rxSolve(ode,
-                    params = c(a=-8/3, b=-10, c = 0),
-                    events = et,
-                    inits = c(X=1, Y=1, Z=1), add.cov=TRUE,
-                    method=meth)
-        sink();
-        unlink("temp");
-
-        out1 <- as.data.frame(out1);
-
-        test_that("time varying covariates produce different outputs",{
-            expect_false(isTRUE(all.equal(out,out1)));
-        })
-
-        cov <- data.frame(c=et0$get.EventTable()$time+units::set_units(1,hr),
-                          a=-et0$get.EventTable()$time/units::set_units(100,hr));
-
-        et <- cbind(et0,cov)
-
-        sink("temp")
-        out <- rxSolve(ode,
-                       params = c(a=-8/3, b=-10),
-                       events = et,
-                       inits = c(X=1, Y=1, Z=1),
-                       add.cov=TRUE,
-                       method=meth)
-
-        out3 <- rxSolve(ode,
-                        params = c(a=-8/3, b=-10),
-                        events = et,
-                        inits = c(X=1, Y=1, Z=1),
-                        add.cov=TRUE,
-                        method=meth)
-        sink();
-        unlink("temp");
-
-        test_that("time varying covariates output covariate in data frame",{
-            expect_equal(cov$c[et0$get.obs.rec()],out$c);
-            expect_equal(cov$a[et0$get.obs.rec()],out$a);
-        })
+      test_that("NOCB Approximation similar to approxfun.", {
+        expect_equal(lin.interp$c, lin.interp$c2)
+      })
 
 
-        cov <- data.frame(c=et0$get.EventTable()$time+units::set_units(1,hr));
-        et <- cbind(et0, cov);
+      ## midpoint interpolation
+      sink("temp.csv")
+      cat("t,c\n")
+      out <- rxSolve(ode,
+        params = c(a = -8 / 3, b = -10),
+        events = et,
+        inits = c(X = 1, Y = 1, Z = 1),
+        covs_interpolation = "midpoint", add.cov = TRUE,
+        method = meth
+      )
+      sink()
+      lin.interp <- read.csv("temp.csv")
+      unlink("temp.csv")
 
-        sink("temp");
-        out2 <- rxSolve(ode,
-                        params = c(a=-8/3, b=-10),
-                        events = et,
-                        inits = c(X=1, Y=1, Z=1),
-                        add.cov=TRUE,
-                        method=meth)
-        sink();
-        unlink("temp");
+      cov.lin <- approxfun(out$time, out$c,
+        yleft = cov$c[1], yright = cov$c[length(cov$c)],
+        method = "constant", f = 0.5
+      )
 
-        test_that("Before assinging the time varying to -8/3, out and out2 should be different",{
-            expect_false(isTRUE(all.equal(out,out2)));
-        })
+      lin.interp$c2 <- cov.lin(lin.interp$t)
 
-        context(sprintf("Test First Assignment (%s)", meth))
-        ## Assign a time-varying to a simple parameter
-        sink("temp");
-        out$a <- -8/3
-        sink();
-        unlink("temp");
-
-        test_that("The out$a=-8/3 works.",{
-            expect_equal(as.data.frame(out),as.data.frame(out2));
-        })
+      test_that("midpoint Approximation similar to approxfun.", {
+        expect_equal(lin.interp$c, lin.interp$c2)
+      })
 
 
-        context(sprintf("Test Second Assignment (%s)", meth))
-        sink("temp")
-        out$a <- out3$a
-        sink();
-        unlink("temp");
+      ## covs_interpolation
+      sink("temp.csv")
+      cat("t,c\n")
+      out <- rxSolve(ode,
+        params = c(a = -8 / 3, b = -10),
+        events = et,
+        inits = c(X = 1, Y = 1, Z = 1),
+        covs_interpolation = "constant", add.cov = TRUE,
+        method = meth
+      )
+      sink()
+      lin.interp <- read.csv("temp.csv")
+      unlink("temp.csv")
 
-        test_that("the out$a = time varying covariate works.",{
-            expect_equal(as.data.frame(out),as.data.frame(out3));
-        })
+      cov.lin <- approxfun(out$time, out$c,
+        yleft = cov$c[1], yright = cov$c[length(cov$c)],
+        method = "constant"
+      )
 
-        context(sprintf("Covariate solve with data frame event table (%s)", meth))
+      lin.interp$c2 <- cov.lin(lin.interp$t)
 
-        ## Covariate solve for data frame
-        d3 <- structure(list(TIME = c(0, 0, 2.99270072992701, 192, 336, 456),
-                             AMT = c(137L, 0L, -137L, 0L, 0L, 0L),
-                             V2I = c(909L, 909L, 909L, 909L, 909L, 909L),
-                             V1I = c(545L, 545L, 545L, 545L, 545L, 545L),
-                             CLI = c(471L, 471L, 471L, 471L, 471L, 471L),
-                             EVID = c(10101L, 0L, 10101L, 0L, 0L, 0L)),
-                        class = "data.frame",
-                        row.names = c(NA,  -6L),
-                        .Names = c("TIME", "AMT", "V2I", "V1I", "CLI", "EVID"))
-
-        mod1 = RxODE({
-            d/dt(A_centr)=-A_centr*(CLI/V1I+204/V1I)+204*A_periph/V2I;
-            d/dt(A_periph)=204*A_centr/V1I-204*A_periph/V2I;
-            d/dt(A_circ)=-4*A_circ*exp(-ETA[2]-THETA[2])+4*A_tr3*exp(-ETA[2]-THETA[2]);
-            A_circ(0)=exp(ETA[1]+THETA[1]);
-            d/dt(A_prol)=4*A_prol*Rx_pow(exp(ETA[1]+THETA[1])/A_circ,exp(THETA[4]))*(-A_centr*exp(ETA[3]+THETA[3])/V1I+1)*exp(-ETA[2]-THETA[2])-4*A_prol*exp(-ETA[2]-THETA[2]);
-            A_prol(0)=exp(ETA[1]+THETA[1]);
-            d/dt(A_tr1)=4*A_prol*exp(-ETA[2]-THETA[2])-4*A_tr1*exp(-ETA[2]-THETA[2]);
-            A_tr1(0)=exp(ETA[1]+THETA[1]);
-            d/dt(A_tr2)=4*A_tr1*exp(-ETA[2]-THETA[2])-4*A_tr2*exp(-ETA[2]-THETA[2]);
-            A_tr2(0)=exp(ETA[1]+THETA[1]);
-            d/dt(A_tr3)=4*A_tr2*exp(-ETA[2]-THETA[2])-4*A_tr3*exp(-ETA[2]-THETA[2]);
-            A_tr3(0)=exp(ETA[1]+THETA[1]);
-        })
-
-        tmp <- rxSolve(mod1, d3, structure(c(2.02103, 4.839305, 3.518676, -1.391113, 0.108127023, -0.064170725, 0.087765769),
-                                           .Names=c(sprintf("THETA[%d]", 1:4), sprintf("ETA[%d]", 1:3))), add.cov=TRUE,
-                       method=meth)
-
-        library(dplyr)
-        test_that("Data Frame single subject solve", {
-            expect_equal(tmp %>% select(CLI, V1I, V2I) %>% as.data.frame, d3 %>% filter(EVID == 0) %>% select(CLI,V1I,V2I) %>% as.data.frame)
-            expect_equal(names(tmp$params), mod1$params[-(1:3)])
-        })
-
-        d3 <- structure(list(ID = c(1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L),
-                             TIME = c(0, 0, 2.99270072992701, 192, 336, 456, 0, 0, 3.07272727272727, 432),
-                             AMT = c(137L, 0L, -137L, 0L, 0L, 0L, 110L, 0L, -110L, 0L),
-                             V2I = c(909L, 909L, 909L, 909L, 909L, 909L, 942L, 942L, 942L, 942L),
-                             V1I = c(545L, 545L, 545L, 545L, 545L, 545L, 306L, 306L, 306L, 306L),
-                             CLI = c(471L, 471L, 471L, 471L, 471L, 471L, 405L, 405L, 405L, 405L),
-                             EVID = c(10101L, 0L, 10101L, 0L, 0L, 0L, 10101L, 0L, 10101L, 0L)),
-                        class = "data.frame", row.names = c(NA,  -10L),
-                        .Names = c("ID", "TIME", "AMT", "V2I", "V1I", "CLI", "EVID"))
+      test_that("Constant Approximation similar to approxfun.", {
+        expect_equal(lin.interp$c, lin.interp$c2)
+      })
 
 
-        par2 <- matrix(c(2.02103, 4.839305, 3.518676, -1.391113, 0.108127023, -0.064170725, 0.087765769,
-                         2.02103, 4.839305, 3.518676, -1.391113,  -0.064170725, 0.087765769,0.108127023), nrow=2, byrow=T,
-                       dimnames=list(NULL, c(sprintf("THETA[%d]", 1:4), sprintf("ETA[%d]", 1:3))));
+      out <- as.data.frame(out)
+      out <- out[, names(out) != "c"]
 
-        tmp <- rxSolve(mod1, d3, par2, add.cov=TRUE, cores=2, method=meth)
+      sink("temp")
+      out1 <-
+        rxSolve(ode,
+          params = c(a = -8 / 3, b = -10, c = 0),
+          events = et,
+          inits = c(X = 1, Y = 1, Z = 1), add.cov = TRUE,
+          method = meth
+        )
+      sink()
+      unlink("temp")
 
-        test_that("Data Frame multi subject solve", {
-            expect_equal(tmp %>% select(CLI, V1I, V2I) %>% as.data.frame, d3 %>% filter(EVID == 0) %>% select(CLI,V1I,V2I) %>% as.data.frame)
-            expect_equal(names(tmp$params)[-1], mod1$params[-(1:3)])
-        })
+      out1 <- as.data.frame(out1)
 
-        ## Now check missing covariate values.
+      test_that("time varying covariates produce different outputs", {
+        expect_false(isTRUE(all.equal(out, out1)))
+      })
 
-        d3na <- structure(list(ID = c(1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L),
-                             TIME = c(0, 0, 2.99270072992701, 192, 336, 456, 0, 0, 3.07272727272727, 432),
-                             AMT = c(137L, 0L, -137L, 0L, 0L, 0L, 110L, 0L, -110L, 0L),
-                             V2I = c(909L, NA_integer_, 909L, 909L, 909L, 909L, 942L, 942L, 942L, 942L),
-                             V1I = c(545L, 545L, 545L, 545L, 545L, 545L, 306L, 306L, 306L, NA_integer_),
-                             CLI = c(471L, 471L, 471L, 471L, NA_integer_, 471L, 405L, 405L, 405L, 405L),
-                             EVID = c(10101L, 0L, 10101L, 0L, 0L, 0L, 10101L, 0L, 10101L, 0L)),
-                        class = "data.frame", row.names = c(NA,  -10L),
-                        .Names = c("ID", "TIME", "AMT", "V2I", "V1I", "CLI", "EVID"))
+      cov <- data.frame(
+        c = et0$get.EventTable()$time + units::set_units(1, hr),
+        a = -et0$get.EventTable()$time / units::set_units(100, hr)
+      )
 
-        tmp <- rxSolve(mod1, d3na, par2, add.cov=TRUE, cores=2, method=meth)
+      et <- cbind(et0, cov)
 
-        tmp2 <- rxSolve(mod1, d3, par2, add.cov=TRUE, cores=2, method=meth)
+      sink("temp")
+      out <- rxSolve(ode,
+        params = c(a = -8 / 3, b = -10),
+        events = et,
+        inits = c(X = 1, Y = 1, Z = 1),
+        add.cov = TRUE,
+        method = meth
+      )
 
-        context(sprintf("Test NA extrapolation for %s solving", meth))
-        test_that("NA solve is the same", {
-            for (i in c("id", "time", "A_centr", "A_periph", "A_circ", "A_prol", "A_tr1", "A_tr2", "A_tr3")){
-                expect_equal(tmp[[i]],tmp2[[i]])
-            }
-        })
+      out3 <- rxSolve(ode,
+        params = c(a = -8 / 3, b = -10),
+        events = et,
+        inits = c(X = 1, Y = 1, Z = 1),
+        add.cov = TRUE,
+        method = meth
+      )
+      sink()
+      unlink("temp")
 
-        d3na <- structure(list(ID = c(1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L),
-                               TIME = c(0, 0, 2.99270072992701, 192, 336, 456, 0, 0, 3.07272727272727, 432),
-                               AMT = c(137L, 0L, -137L, 0L, 0L, 0L, 110L, 0L, -110L, 0L),
-                               V2I = c(909L, NA_integer_, 909L, 909L, 909L, 909L, 942L, 942L, 942L, 942L),
-                               V1I = c(545L, 545L, 545L, 545L, 545L, 545L, NA_integer_, NA_integer_, NA_integer_, NA_integer_),
-                               CLI = c(471L, 471L, 471L, 471L, NA_integer_, 471L, 405L, 405L, 405L, 405L),
-                               EVID = c(10101L, 0L, 10101L, 0L, 0L, 0L, 10101L, 0L, 10101L, 0L)),
-                          class = "data.frame", row.names = c(NA,  -10L),
-                          .Names = c("ID", "TIME", "AMT", "V2I", "V1I", "CLI", "EVID"))
+      test_that("time varying covariates output covariate in data frame", {
+        expect_equal(cov$c[et0$get.obs.rec()], out$c)
+        expect_equal(cov$a[et0$get.obs.rec()], out$a)
+      })
 
-        test_that("All covariates are NA give a warning",{
-                    expect_warning(rxSolve(mod1, d3na, par2, add.cov=TRUE, cores=2, method=meth),"one or more covariates were all 'NA' for subject 'id=2'")
-        })
 
+      cov <- data.frame(c = et0$get.EventTable()$time + units::set_units(1, hr))
+      et <- cbind(et0, cov)
+
+      sink("temp")
+      out2 <- rxSolve(ode,
+        params = c(a = -8 / 3, b = -10),
+        events = et,
+        inits = c(X = 1, Y = 1, Z = 1),
+        add.cov = TRUE,
+        method = meth
+      )
+      sink()
+      unlink("temp")
+
+      test_that("Before assinging the time varying to -8/3, out and out2 should be different", {
+        expect_false(isTRUE(all.equal(out, out2)))
+      })
+
+      context(sprintf("Test First Assignment (%s)", meth))
+      ## Assign a time-varying to a simple parameter
+      sink("temp")
+      out$a <- -8 / 3
+      sink()
+      unlink("temp")
+
+      test_that("The out$a=-8/3 works.", {
+        expect_equal(as.data.frame(out), as.data.frame(out2))
+      })
+
+
+      context(sprintf("Test Second Assignment (%s)", meth))
+      sink("temp")
+      out$a <- out3$a
+      sink()
+      unlink("temp")
+
+      test_that("the out$a = time varying covariate works.", {
+        expect_equal(as.data.frame(out), as.data.frame(out3))
+      })
+
+      context(sprintf("Covariate solve with data frame event table (%s)", meth))
+
+      ## Covariate solve for data frame
+      d3 <- structure(list(
+        TIME = c(0, 0, 2.99270072992701, 192, 336, 456),
+        AMT = c(137L, 0L, -137L, 0L, 0L, 0L),
+        V2I = c(909L, 909L, 909L, 909L, 909L, 909L),
+        V1I = c(545L, 545L, 545L, 545L, 545L, 545L),
+        CLI = c(471L, 471L, 471L, 471L, 471L, 471L),
+        EVID = c(10101L, 0L, 10101L, 0L, 0L, 0L)
+      ),
+      class = "data.frame",
+      row.names = c(NA, -6L),
+      .Names = c("TIME", "AMT", "V2I", "V1I", "CLI", "EVID")
+      )
+
+      mod1 <- RxODE({
+        d / dt(A_centr) <- -A_centr * (CLI / V1I + 204 / V1I) + 204 * A_periph / V2I
+        d / dt(A_periph) <- 204 * A_centr / V1I - 204 * A_periph / V2I
+        d / dt(A_circ) <- -4 * A_circ * exp(-ETA[2] - THETA[2]) + 4 * A_tr3 * exp(-ETA[2] - THETA[2])
+        A_circ(0) <- exp(ETA[1] + THETA[1])
+        d / dt(A_prol) <- 4 * A_prol * Rx_pow(exp(ETA[1] + THETA[1]) / A_circ, exp(THETA[4])) * (-A_centr * exp(ETA[3] + THETA[3]) / V1I + 1) * exp(-ETA[2] - THETA[2]) - 4 * A_prol * exp(-ETA[2] - THETA[2])
+        A_prol(0) <- exp(ETA[1] + THETA[1])
+        d / dt(A_tr1) <- 4 * A_prol * exp(-ETA[2] - THETA[2]) - 4 * A_tr1 * exp(-ETA[2] - THETA[2])
+        A_tr1(0) <- exp(ETA[1] + THETA[1])
+        d / dt(A_tr2) <- 4 * A_tr1 * exp(-ETA[2] - THETA[2]) - 4 * A_tr2 * exp(-ETA[2] - THETA[2])
+        A_tr2(0) <- exp(ETA[1] + THETA[1])
+        d / dt(A_tr3) <- 4 * A_tr2 * exp(-ETA[2] - THETA[2]) - 4 * A_tr3 * exp(-ETA[2] - THETA[2])
+        A_tr3(0) <- exp(ETA[1] + THETA[1])
+      })
+
+      tmp <- rxSolve(mod1, d3, structure(c(2.02103, 4.839305, 3.518676, -1.391113, 0.108127023, -0.064170725, 0.087765769),
+        .Names = c(sprintf("THETA[%d]", 1:4), sprintf("ETA[%d]", 1:3))
+      ),
+      add.cov = TRUE,
+      method = meth
+      )
+
+      library(dplyr)
+      test_that("Data Frame single subject solve", {
+        expect_equal(tmp %>% select(CLI, V1I, V2I) %>% as.data.frame(), d3 %>% filter(EVID == 0) %>% select(CLI, V1I, V2I) %>% as.data.frame())
+        expect_equal(names(tmp$params), mod1$params[-(1:3)])
+      })
+
+      d3 <- structure(list(
+        ID = c(1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L),
+        TIME = c(0, 0, 2.99270072992701, 192, 336, 456, 0, 0, 3.07272727272727, 432),
+        AMT = c(137L, 0L, -137L, 0L, 0L, 0L, 110L, 0L, -110L, 0L),
+        V2I = c(909L, 909L, 909L, 909L, 909L, 909L, 942L, 942L, 942L, 942L),
+        V1I = c(545L, 545L, 545L, 545L, 545L, 545L, 306L, 306L, 306L, 306L),
+        CLI = c(471L, 471L, 471L, 471L, 471L, 471L, 405L, 405L, 405L, 405L),
+        EVID = c(10101L, 0L, 10101L, 0L, 0L, 0L, 10101L, 0L, 10101L, 0L)
+      ),
+      class = "data.frame", row.names = c(NA, -10L),
+      .Names = c("ID", "TIME", "AMT", "V2I", "V1I", "CLI", "EVID")
+      )
+
+
+      par2 <- matrix(c(
+        2.02103, 4.839305, 3.518676, -1.391113, 0.108127023, -0.064170725, 0.087765769,
+        2.02103, 4.839305, 3.518676, -1.391113, -0.064170725, 0.087765769, 0.108127023
+      ),
+      nrow = 2, byrow = T,
+      dimnames = list(NULL, c(sprintf("THETA[%d]", 1:4), sprintf("ETA[%d]", 1:3)))
+      )
+
+      tmp <- rxSolve(mod1, d3, par2, add.cov = TRUE, cores = 2, method = meth)
+
+      test_that("Data Frame multi subject solve", {
+        expect_equal(tmp %>% select(CLI, V1I, V2I) %>% as.data.frame(), d3 %>% filter(EVID == 0) %>% select(CLI, V1I, V2I) %>% as.data.frame())
+        expect_equal(names(tmp$params)[-1], mod1$params[-(1:3)])
+      })
+
+      ## Now check missing covariate values.
+
+      d3na <- structure(list(
+        ID = c(1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L),
+        TIME = c(0, 0, 2.99270072992701, 192, 336, 456, 0, 0, 3.07272727272727, 432),
+        AMT = c(137L, 0L, -137L, 0L, 0L, 0L, 110L, 0L, -110L, 0L),
+        V2I = c(909L, NA_integer_, 909L, 909L, 909L, 909L, 942L, 942L, 942L, 942L),
+        V1I = c(545L, 545L, 545L, 545L, 545L, 545L, 306L, 306L, 306L, NA_integer_),
+        CLI = c(471L, 471L, 471L, 471L, NA_integer_, 471L, 405L, 405L, 405L, 405L),
+        EVID = c(10101L, 0L, 10101L, 0L, 0L, 0L, 10101L, 0L, 10101L, 0L)
+      ),
+      class = "data.frame", row.names = c(NA, -10L),
+      .Names = c("ID", "TIME", "AMT", "V2I", "V1I", "CLI", "EVID")
+      )
+
+      tmp <- rxSolve(mod1, d3na, par2, add.cov = TRUE, cores = 2, method = meth)
+
+      tmp2 <- rxSolve(mod1, d3, par2, add.cov = TRUE, cores = 2, method = meth)
+
+      context(sprintf("Test NA extrapolation for %s solving", meth))
+      test_that("NA solve is the same", {
+        for (i in c("id", "time", "A_centr", "A_periph", "A_circ", "A_prol", "A_tr1", "A_tr2", "A_tr3")) {
+          expect_equal(tmp[[i]], tmp2[[i]])
+        }
+      })
+
+      d3na <- structure(list(
+        ID = c(1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L),
+        TIME = c(0, 0, 2.99270072992701, 192, 336, 456, 0, 0, 3.07272727272727, 432),
+        AMT = c(137L, 0L, -137L, 0L, 0L, 0L, 110L, 0L, -110L, 0L),
+        V2I = c(909L, NA_integer_, 909L, 909L, 909L, 909L, 942L, 942L, 942L, 942L),
+        V1I = c(545L, 545L, 545L, 545L, 545L, 545L, NA_integer_, NA_integer_, NA_integer_, NA_integer_),
+        CLI = c(471L, 471L, 471L, 471L, NA_integer_, 471L, 405L, 405L, 405L, 405L),
+        EVID = c(10101L, 0L, 10101L, 0L, 0L, 0L, 10101L, 0L, 10101L, 0L)
+      ),
+      class = "data.frame", row.names = c(NA, -10L),
+      .Names = c("ID", "TIME", "AMT", "V2I", "V1I", "CLI", "EVID")
+      )
+
+      test_that("All covariates are NA give a warning", {
+        expect_warning(rxSolve(mod1, d3na, par2, add.cov = TRUE, cores = 2, method = meth), "one or more covariates were all 'NA' for subject 'id=2'")
+      })
     }
     ## devtools::install();library(RxODE);rxTest("cov")
 
     context("time-varying covariates work with ODEs")
 
     test_that("time varying covariates lhs", {
+      dfadvan <- structure(list(
+        ID = c(
+          1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+          1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+          2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L,
+          2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L
+        ),
+        TIME = c(
+          0L, 1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L, 12L, 13L, 14L, 15L,
+          16L, 17L, 18L, 19L, 20L, 21L, 22L, 23L, 24L, 0L, 1L, 2L, 3L,
+          4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L, 12L, 13L, 14L, 15L, 16L,
+          17L, 18L, 19L, 20L, 21L, 22L, 23L, 24L
+        ), AMT = c(
+          100L, 0L, 0L,
+          0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L, 0L,
+          0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L, 0L, 0L, 0L,
+          0L, 0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+          0L, 0L, 0L, 0L
+        ), MDV = c(
+          1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+          0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+          0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L,
+          0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L
+        ), CLCR = c(
+          120L, 120L,
+          120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L,
+          120L, 120L, 120L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L,
+          30L, 30L, 30L, 30L, 30L, 30L, 120L, 120L, 120L, 120L, 120L, 120L,
+          120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L,
+          120L, 120L, 120L, 120L
+        )
+      ),
+      row.names = c(NA, -52L), class = "data.frame"
+      )
 
-        dfadvan <- structure(list(ID = c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
-                                         1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
-                                         2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L,
-                                         2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L),
-                                  TIME = c(0L, 1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L, 12L, 13L, 14L, 15L,
-                                           16L, 17L, 18L, 19L, 20L, 21L, 22L, 23L, 24L, 0L, 1L, 2L, 3L,
-                                           4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L, 12L, 13L, 14L, 15L, 16L,
-                                           17L, 18L, 19L, 20L, 21L, 22L, 23L, 24L), AMT = c(100L, 0L, 0L,
-                                                                                            0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L, 0L,
-                                                                                            0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L, 0L, 0L, 0L,
-                                                                                            0L, 0L, 0L, 0L, 0L, 0L, 100L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
-                                                                                            0L, 0L, 0L, 0L), MDV = c(1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
-                                                                                                                     0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
-                                                                                                                     0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L,
-                                                                                                                     0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L), CLCR = c(120L, 120L,
-                                                                                                                                                                           120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L,
-                                                                                                                                                                           120L, 120L, 120L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L, 30L,
-                                                                                                                                                                           30L, 30L, 30L, 30L, 30L, 30L, 120L, 120L, 120L, 120L, 120L, 120L,
-                                                                                                                                                                           120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L, 120L,
-                                                                                                                                                                           120L, 120L, 120L, 120L)),
-                             row.names = c(NA, -52L), class = "data.frame")
+      mod <- RxODE({
+        CLpop <- 2 # clearance
+        Vpop <- 10 # central volume of distribution
+        CL <- CLpop * (CLCR / 100)
+        V <- Vpop
+      })
 
-        mod <- RxODE({
-            CLpop <- 2       # clearance
-            Vpop  <- 10      # central volume of distribution
-            CL <- CLpop*(CLCR/100)
-            V  <- Vpop
-        })
+      mod2 <- RxODE({
+        CLpop <- 2 # clearance
+        Vpop <- 10 # central volume of distribution
+        CL <- CLpop * (CLCR / 100)
+        V <- Vpop
+        d / dt(matt) <- 0
+      })
 
-        mod2 <- RxODE({
-            CLpop <- 2       # clearance
-            Vpop  <- 10      # central volume of distribution
-            CL <- CLpop*(CLCR/100)
-            V  <- Vpop
-            d/dt(matt) = 0
-        })
+      x1 <- rxSolve(mod, dfadvan, keep = "CLCR")
 
-        x1 <- rxSolve(mod, dfadvan, keep="CLCR")
+      x2 <- expect_warning(rxSolve(mod2, dfadvan, keep = "CRCL"))
 
-        x2 <- expect_warning(rxSolve(mod2, dfadvan, keep="CRCL"))
-
-        expect_equal(x1$CL, x2$CL)
+      expect_equal(x1$CL, x2$CL)
     })
-
-}, silent=TRUE, test="cran")
+  },
+  silent = TRUE,
+  test = "cran"
+)

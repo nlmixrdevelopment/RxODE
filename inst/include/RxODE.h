@@ -117,7 +117,7 @@ typedef struct {
   double HMAX; // Determined by diff
   double tlast;
   double podo;
-  double *par_ptr;
+  double *par_ptr; // both time changing and time invariant
   double *dose;
   double *ii;
   double *solve;
@@ -129,6 +129,10 @@ typedef struct {
   int  *evid;
   int *rc;
   double *cov_ptr;
+  // a b
+  // 1 4
+  // 2 5
+  // 3 6
   int n_all_times;
   int nevid2;
   int ixds;

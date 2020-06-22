@@ -1,71 +1,92 @@
-rxPermissive({
+rxPermissive(
+  {
     context("Nesting tests")
 
     mod <- RxODE({
-      eff(0) = 1
-      C2 = centr/V2*(1+prop.err);
-      C3 = peri/V3;
-      CL =  TCl*exp(eta.Cl + iov.Cl)
-      KA = TKA * exp(eta.Ka + iov.Ka)
-      d/dt(depot) =-KA*depot;
-      d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
-      d/dt(peri)  =                    Q*C2 - Q*C3;
-      d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+      eff(0) <- 1
+      C2 <- centr / V2 * (1 + prop.err)
+      C3 <- peri / V3
+      CL <- TCl * exp(eta.Cl + iov.Cl)
+      KA <- TKA * exp(eta.Ka + iov.Ka)
+      d / dt(depot) <- -KA * depot
+      d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+      d / dt(peri) <- Q * C2 - Q * C3
+      d / dt(eff) <- Kin - Kout * (1 - C2 / (EC50 + C2)) * eff
     })
 
     mod.eta <- RxODE({
-      eff(0) = 1
-      C2 = centr/V2*(1+prop.err);
-      C3 = peri/V3;
-      CL =  TCl*exp(ETA[1] + iov.Cl)
-      KA = TKA * exp(ETA[2] + iov.Ka)
-      d/dt(depot) =-KA*depot;
-      d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
-      d/dt(peri)  =                    Q*C2 - Q*C3;
-      d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+      eff(0) <- 1
+      C2 <- centr / V2 * (1 + prop.err)
+      C3 <- peri / V3
+      CL <- TCl * exp(ETA[1] + iov.Cl)
+      KA <- TKA * exp(ETA[2] + iov.Ka)
+      d / dt(depot) <- -KA * depot
+      d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+      d / dt(peri) <- Q * C2 - Q * C3
+      d / dt(eff) <- Kin - Kout * (1 - C2 / (EC50 + C2)) * eff
     })
 
     library(dplyr)
 
-    et(amountUnits="mg", timeUnits="hours") %>%
-      et(amt=10000, addl=9,ii=12,cmt="depot") %>%
-      et(time=120, amt=2000, addl=4, ii=14, cmt="depot") %>%
-      et(seq(0, 240, by=4)) %>% # Assumes sampling when there is no dosing information
-      et(seq(0, 240, by=4) + 0.1) %>% ## adds 0.1 for separate eye
-      et(id=1:20) %>%
+    et(amountUnits = "mg", timeUnits = "hours") %>%
+      et(amt = 10000, addl = 9, ii = 12, cmt = "depot") %>%
+      et(time = 120, amt = 2000, addl = 4, ii = 14, cmt = "depot") %>%
+      et(seq(0, 240, by = 4)) %>% # Assumes sampling when there is no dosing information
+      et(seq(0, 240, by = 4) + 0.1) %>% ## adds 0.1 for separate eye
+      et(id = 1:20) %>%
       ## Add an occasion per dose
-      mutate(occ=cumsum(!is.na(amt))) %>%
-      mutate(occ=ifelse(occ == 0, 1, occ)) %>%
-      mutate(occ=2- occ %% 2) %>%
-      mutate(eye=ifelse(round(time) == time, 1, 2)) %>%
-      mutate(inv=ifelse(id < 10, 1, 2)) ->
-      ev
+      mutate(occ = cumsum(!is.na(amt))) %>%
+      mutate(occ = ifelse(occ == 0, 1, occ)) %>%
+      mutate(occ = 2 - occ %% 2) %>%
+      mutate(eye = ifelse(round(time) == time, 1, 2)) %>%
+      mutate(inv = ifelse(id < 10, 1, 2)) ->
+    ev
 
-    omega <- lotri(lotri(eta.Cl ~ 0.1,
-                         eta.Ka ~ 0.1) | id(nu=100),
-                   lotri(eye.Cl ~ 0.05,
-                         eye.Ka ~ 0.05) | eye(nu=50, same=2),
-                   lotri(iov.Cl ~ 0.01,
-                         iov.Ka ~ 0.01) | occ(nu=200, same=2),
-                   lotri(inv.Cl ~ 0.02,
-                         inv.Ka ~ 0.02) | inv(nu=10, same=2))
+    omega <- lotri(
+      lotri(
+        eta.Cl ~ 0.1,
+        eta.Ka ~ 0.1
+      ) | id(nu = 100),
+      lotri(
+        eye.Cl ~ 0.05,
+        eye.Ka ~ 0.05
+      ) | eye(nu = 50, same = 2),
+      lotri(
+        iov.Cl ~ 0.01,
+        iov.Ka ~ 0.01
+      ) | occ(nu = 200, same = 2),
+      lotri(
+        inv.Cl ~ 0.02,
+        inv.Ka ~ 0.02
+      ) | inv(nu = 10, same = 2)
+    )
     attr(omega, "format") <- "THETA[%d]"
     attr(omega, "start") <- 2L
 
-    ##cvPost(nu=1000, omega, 2)
+    ## cvPost(nu=1000, omega, 2)
 
 
-    omega <- lotri(lotri(eta.Cl ~ 0.1,
-                         eta.Ka ~ 0.1) | id(nu=100),
-                   lotri(eye.Cl ~ 0.05,
-                         eye.Ka ~ 0.05) | eye(nu=50),
-                   lotri(iov.Cl ~ 0.01,
-                         iov.Ka ~ 0.01) | occ(nu=200),
-                   lotri(inv.Cl ~ 0.02,
-                         inv.Ka ~ 0.02) | inv(nu=10))
-    
+    omega <- lotri(
+      lotri(
+        eta.Cl ~ 0.1,
+        eta.Ka ~ 0.1
+      ) | id(nu = 100),
+      lotri(
+        eye.Cl ~ 0.05,
+        eye.Ka ~ 0.05
+      ) | eye(nu = 50),
+      lotri(
+        iov.Cl ~ 0.01,
+        iov.Ka ~ 0.01
+      ) | occ(nu = 200),
+      lotri(
+        inv.Cl ~ 0.02,
+        inv.Ka ~ 0.02
+      ) | inv(nu = 10)
+    )
+
     .ni <- RxODE:::nestingInfo_(omega, ev)
-    
+
     expect_equal(.ni$below, c(eye = 2L, occ = 2L))
     expect_equal(.ni$above, c(inv = 2L))
     expect_true(inherits(.ni$data$eye, "factor"))
@@ -79,34 +100,44 @@ rxPermissive({
     expect_equal(.ni$extraTheta, 4)
     expect_equal(.ni$extraEta, 8)
 
-    .en <- RxODE:::rxExpandNesting(mod, .ni,compile=TRUE)
+    .en <- RxODE:::rxExpandNesting(mod, .ni, compile = TRUE)
 
     .ett <- etTrans(.ni$data, .en$mod)
 
 
-    theta <- c(KA=2.94E-01, CL=1.86E+01, V2=4.02E+01, # central 
-               Q=1.05E+01,  V3=2.97E+02,              # peripheral
-               Kin=1, Kout=1, EC50=200)               # effects
+    theta <- c(
+      KA = 2.94E-01, CL = 1.86E+01, V2 = 4.02E+01, # central
+      Q = 1.05E+01, V3 = 2.97E+02, # peripheral
+      Kin = 1, Kout = 1, EC50 = 200
+    ) # effects
 
-    thetaMat <- lotri(KA~0.01,
-                      CL~0.01,
-                      V2~0.01,
-                      Q~0.01,
-                      V3~0.01,
-                      Kin~0.01,
-                      Kout~0.01,
-                      EC50~0.01)
+    thetaMat <- lotri(
+      KA ~ 0.01,
+      CL ~ 0.01,
+      V2 ~ 0.01,
+      Q ~ 0.01,
+      V3 ~ 0.01,
+      Kin ~ 0.01,
+      Kout ~ 0.01,
+      EC50 ~ 0.01
+    )
 
     .ep <- RxODE:::.expandPars(mod, theta, ev,
-                       control=rxControl(thetaMat=thetaMat,omega=omega,
-                                         nSub=40, nStud=3))
+      control = rxControl(
+        thetaMat = thetaMat, omega = omega,
+        nSub = 40, nStud = 3
+      )
+    )
 
     expect_equal(length(.ep$KA), 120L)
     expect_equal(length(unique(.ep$KA)), 3L)
-    
+
     .ep <- RxODE:::.expandPars(mod, theta, ev,
-                       control=rxControl(thetaMat=thetaMat,omega=omega,
-                                         nStud=3))
+      control = rxControl(
+        thetaMat = thetaMat, omega = omega,
+        nStud = 3
+      )
+    )
 
     expect_equal(length(RxODE:::.rxModels[[".thetaL"]]), 3L)
     expect_equal(length(RxODE:::.rxModels[[".omegaL"]]), 3L)
@@ -116,9 +147,12 @@ rxPermissive({
     expect_true(any(names(.ep) == "eta.Cl"))
 
     .ep <- RxODE:::.expandPars(mod, theta, ev,
-                       control=rxControl(thetaMat=thetaMat,omega=omega,
-                                         nStud=3, nSub=20))
-    
+      control = rxControl(
+        thetaMat = thetaMat, omega = omega,
+        nStud = 3, nSub = 20
+      )
+    )
+
     expect_equal(length(RxODE:::.rxModels[[".thetaL"]]), 3L)
     expect_equal(length(RxODE:::.rxModels[[".omegaL"]]), 3L)
     expect_equal(RxODE:::.rxModels[[".sigmaL"]], NULL)
@@ -126,9 +160,12 @@ rxPermissive({
     expect_true(any(names(.ep) == "eta.Cl"))
 
     .ep <- RxODE:::.expandPars(mod, theta, ev,
-                       control=rxControl(thetaMat=thetaMat,omega=omega,
-                                         sigma=lotri(prop.err~0.1), dfObs=10,
-                                         nStud=3, nSub=20))
+      control = rxControl(
+        thetaMat = thetaMat, omega = omega,
+        sigma = lotri(prop.err ~ 0.1), dfObs = 10,
+        nStud = 3, nSub = 20
+      )
+    )
 
     expect_equal(length(RxODE:::.rxModels[[".thetaL"]]), 3L)
     expect_equal(length(RxODE:::.rxModels[[".omegaL"]]), 3L)
@@ -137,9 +174,12 @@ rxPermissive({
     expect_true(any(names(.ep) == "eta.Cl"))
 
     .ep <- RxODE:::.expandPars(mod, theta, ev,
-                       control=rxControl(thetaMat=thetaMat,
-                                         sigma=lotri(prop.err~0.1), dfObs=10,
-                                         nStud=3, nSub=20))
+      control = rxControl(
+        thetaMat = thetaMat,
+        sigma = lotri(prop.err ~ 0.1), dfObs = 10,
+        nStud = 3, nSub = 20
+      )
+    )
 
     expect_equal(RxODE:::.rxModels[[".thetaL"]], NULL)
     expect_equal(RxODE:::.rxModels[[".omegaL"]], NULL)
@@ -149,8 +189,11 @@ rxPermissive({
 
 
     .ep <- RxODE:::.expandPars(mod, theta, ev,
-                       control=rxControl(sigma=lotri(prop.err~0.1), dfObs=10,
-                                         nStud=3, nSub=20))
+      control = rxControl(
+        sigma = lotri(prop.err ~ 0.1), dfObs = 10,
+        nStud = 3, nSub = 20
+      )
+    )
 
     expect_equal(RxODE:::.rxModels[[".thetaL"]], NULL)
     expect_equal(RxODE:::.rxModels[[".omegaL"]], NULL)
@@ -159,8 +202,11 @@ rxPermissive({
     expect_false(any(names(.ep) == "eta.Cl"))
 
     .ep <- RxODE:::.expandPars(mod, theta, ev,
-                       control=rxControl(sigma=lotri(prop.err~0.1), dfObs=10,
-                                         nStud=3, nSub=20))
+      control = rxControl(
+        sigma = lotri(prop.err ~ 0.1), dfObs = 10,
+        nStud = 3, nSub = 20
+      )
+    )
 
     expect_equal(RxODE:::.rxModels[[".thetaL"]], NULL)
     expect_equal(RxODE:::.rxModels[[".omegaL"]], NULL)
@@ -169,8 +215,11 @@ rxPermissive({
     expect_false(any(names(.ep) == "eta.Cl"))
 
     .ep <- RxODE:::.expandPars(mod, theta, ev,
-                       control=rxControl(omega=lotri(eta.Cl~0.1), dfObs=10,
-                                         nStud=3, nSub=4))
+      control = rxControl(
+        omega = lotri(eta.Cl ~ 0.1), dfObs = 10,
+        nStud = 3, nSub = 4
+      )
+    )
 
     expect_equal(RxODE:::.rxModels[[".thetaL"]], NULL)
     expect_equal(RxODE:::.rxModels[[".omegaL"]], NULL)
@@ -179,7 +228,8 @@ rxPermissive({
     expect_true(any(names(.ep) == "eta.Cl"))
 
     .ep <- RxODE:::.expandPars(mod, theta, ev,
-                       control=rxControl(dfObs=10, nStud=3, nSub=4))
+      control = rxControl(dfObs = 10, nStud = 3, nSub = 4)
+    )
 
     expect_equal(RxODE:::.rxModels[[".thetaL"]], NULL)
     expect_equal(RxODE:::.rxModels[[".omegaL"]], NULL)
@@ -189,11 +239,13 @@ rxPermissive({
 
 
     expect_error(RxODE:::.expandPars(mod, NULL, ev,
-                             control=rxControl(thetaMat=thetaMat,omega=omega, nStud=3)));
-    
+      control = rxControl(thetaMat = thetaMat, omega = omega, nStud = 3)
+    ))
+
     .ep <- RxODE:::.expandPars(mod, NULL, ev,
-                       control=rxControl(omega=omega, nStud=3))
-    
+      control = rxControl(omega = omega, nStud = 3)
+    )
+
     expect_equal(length(RxODE:::.rxModels[[".thetaL"]]), 3L)
     expect_equal(length(RxODE:::.rxModels[[".omegaL"]]), 3L)
     expect_equal(RxODE:::.rxModels[[".sigmaL"]], NULL)
@@ -201,8 +253,11 @@ rxPermissive({
     expect_true(any(names(.ep) == "eta.Cl"))
 
     .ep <- RxODE:::.expandPars(mod, NULL, ev,
-                       control=rxControl(omega=omega,
-                                         nStud=3, dfObs=100, nSub=20,dfSub=10));
+      control = rxControl(
+        omega = omega,
+        nStud = 3, dfObs = 100, nSub = 20, dfSub = 10
+      )
+    )
 
     expect_equal(length(RxODE:::.rxModels[[".thetaL"]]), 3L)
     expect_equal(length(RxODE:::.rxModels[[".omegaL"]]), 3L)
@@ -212,18 +267,23 @@ rxPermissive({
 
 
     .ep <- RxODE:::.expandPars(mod, theta, ev,
-                       control=rxControl(thetaMat=lotri(KA~1, CL~1),
-                                         omega=omega,
-                                         sigma=lotri(prop.err~0.1), dfObs=10,
-                                         nStud=3, nSub=20))
-    
+      control = rxControl(
+        thetaMat = lotri(KA ~ 1, CL ~ 1),
+        omega = omega,
+        sigma = lotri(prop.err ~ 0.1), dfObs = 10,
+        nStud = 3, nSub = 20
+      )
+    )
 
-    
-    
+
+
+
     ## Test edge case -- no between or above occasion variability
 
-    .ni <- RxODE:::nestingInfo_(lotri(lotri(eta.Cl ~ 0.1, eta.Ka ~ 0.1) | id(nu=100)),
-                        ev)
+    .ni <- RxODE:::nestingInfo_(
+      lotri(lotri(eta.Cl ~ 0.1, eta.Ka ~ 0.1) | id(nu = 100)),
+      ev
+    )
 
 
     expect_equal(.ni$above, structure(integer(0), .Names = character(0)))
@@ -233,5 +293,6 @@ rxPermissive({
     expect_equal(names(.ni$omega), "id")
 
     .en <- RxODE:::rxExpandNesting(mod, .ni)
-
-}, test="lvl2")
+  },
+  test = "lvl2"
+)

@@ -1,270 +1,281 @@
-##'@rdname rxSolve
-##'@export
+##' @rdname rxSolve
+##' @export
 rxControl <- function(scale = NULL,
                       method = c("liblsoda", "lsoda", "dop853", "indLin"),
                       transitAbs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
                       maxsteps = 70000L, hmin = 0, hmax = NA_real_,
-                      hmaxSd= 0, hini = 0, maxordn = 12L, maxords = 5L, ...,
+                      hmaxSd = 0, hini = 0, maxordn = 12L, maxords = 5L, ...,
                       cores,
                       covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
                       addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
-                      sigmaLower=-Inf, sigmaUpper=Inf,
+                      sigmaLower = -Inf, sigmaUpper = Inf,
                       nCoresRV = 1L, sigmaIsChol = FALSE,
-                      sigmaSeparation=c("auto", "lkj", "separation"),
-                      sigmaXform=c("identity", "variance", "log", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity"),
-                      nDisplayProgress=10000L,
+                      sigmaSeparation = c("auto", "lkj", "separation"),
+                      sigmaXform = c("identity", "variance", "log", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity"),
+                      nDisplayProgress = 10000L,
                       amountUnits = NA_character_, timeUnits = "hours", stiff,
                       theta = NULL,
-                      thetaLower=-Inf, thetaUpper=Inf,
-                      eta = NULL, addDosing=FALSE,
-                      stateTrim=Inf, updateObject=FALSE,
+                      thetaLower = -Inf, thetaUpper = Inf,
+                      eta = NULL, addDosing = FALSE,
+                      stateTrim = Inf, updateObject = FALSE,
                       omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
-                      omegaSeparation=c("auto", "lkj", "separation"),
-                      omegaXform=c("variance", "identity", "log", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity"),
-                      omegaLower=-Inf, omegaUpper=Inf,
+                      omegaSeparation = c("auto", "lkj", "separation"),
+                      omegaXform = c("variance", "identity", "log", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity"),
+                      omegaLower = -Inf, omegaUpper = Inf,
                       nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
-                      nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS", "data.table", "tbl", "tibble"),
-                      seed=NULL, nsim=NULL,
-                      minSS=10L, maxSS=1000L,
-                      infSSstep=12,
-                      strictSS=TRUE,
-                      params=NULL,
-                      events=NULL,
-                      istateReset=TRUE,
-                      subsetNonmem=TRUE,
-                      linLog=FALSE,
-                      maxAtolRtolFactor=0.1,
-                      from=NULL,
-                      to=NULL,
-                      by=NULL,
-                      length.out=NULL,
-                      iCov=NULL,
-                      keep=NULL,
-                      indLinPhiTol=1e-7,
-                      indLinPhiM=0L,
-                      indLinMatExpType=c("expokit", "Al-Mohy", "arma"),
-                      indLinMatExpOrder=6L,
-                      drop=NULL,
-                      idFactor=TRUE,
-                      mxhnil=0,
-                      hmxi=0.0,
-                      warnIdSort=TRUE,
-                      warnDrop=TRUE,
+                      nStud = 1L, dfSub = 0.0, dfObs = 0.0, returnType = c("rxSolve", "matrix", "data.frame", "data.frame.TBS", "data.table", "tbl", "tibble"),
+                      seed = NULL, nsim = NULL,
+                      minSS = 10L, maxSS = 1000L,
+                      infSSstep = 12,
+                      strictSS = TRUE,
+                      params = NULL,
+                      events = NULL,
+                      istateReset = TRUE,
+                      subsetNonmem = TRUE,
+                      linLog = FALSE,
+                      maxAtolRtolFactor = 0.1,
+                      from = NULL,
+                      to = NULL,
+                      by = NULL,
+                      length.out = NULL,
+                      iCov = NULL,
+                      keep = NULL,
+                      indLinPhiTol = 1e-7,
+                      indLinPhiM = 0L,
+                      indLinMatExpType = c("expokit", "Al-Mohy", "arma"),
+                      indLinMatExpOrder = 6L,
+                      drop = NULL,
+                      idFactor = TRUE,
+                      mxhnil = 0,
+                      hmxi = 0.0,
+                      warnIdSort = TRUE,
+                      warnDrop = TRUE,
                       ssAtol = 1.0e-8,
                       ssRtol = 1.0e-6,
-                      safeZero=TRUE,
-                      cacheEvent=TRUE,
-                      mvnfast=FALSE,
-                      sumType=c("pairwise", "fsum", "kahan", "neumaier", "c"),
-                      prodType=c("long double", "double", "logify"),
-                      sensType=c("advan", "autodiff", "forward", "central")
-                      ){
-    .xtra <- list(...);
-    if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")) {
-        .sigmaXform <- as.integer(sigmaXform)
-    } else {
-        .sigmaXform <- as.vector(c("variance" = 6, "log" = 5, "identity" = 4,
-                                   "nlmixrSqrt" = 1, "nlmixrLog" = 2,
-                                   "nlmixrIdentity" = 3)[match.arg(sigmaXform)]);
-    }
-    if (inherits(omegaXform, "numeric") || inherits(omegaXform, "integer")) {
-        .omegaXform <- as.integer(omegaXform)
-    } else {
-        .omegaXform <- as.vector(c("variance" = 6, "log" = 5,
-                                   "identity" = 4, "nlmixrSqrt" = 1,
-                                   "nlmixrLog" = 2,
-                                   "nlmixrIdentity" = 3)[match.arg(omegaXform)]);
-    }
+                      safeZero = TRUE,
+                      cacheEvent = TRUE,
+                      mvnfast = FALSE,
+                      sumType = c("pairwise", "fsum", "kahan", "neumaier", "c"),
+                      prodType = c("long double", "double", "logify"),
+                      sensType = c("advan", "autodiff", "forward", "central")) {
+  .xtra <- list(...)
+  if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")) {
+    .sigmaXform <- as.integer(sigmaXform)
+  } else {
+    .sigmaXform <- as.vector(c(
+      "variance" = 6, "log" = 5, "identity" = 4,
+      "nlmixrSqrt" = 1, "nlmixrLog" = 2,
+      "nlmixrIdentity" = 3
+    )[match.arg(sigmaXform)])
+  }
+  if (inherits(omegaXform, "numeric") || inherits(omegaXform, "integer")) {
+    .omegaXform <- as.integer(omegaXform)
+  } else {
+    .omegaXform <- as.vector(c(
+      "variance" = 6, "log" = 5,
+      "identity" = 4, "nlmixrSqrt" = 1,
+      "nlmixrLog" = 2,
+      "nlmixrIdentity" = 3
+    )[match.arg(omegaXform)])
+  }
 
-    if (is.null(transitAbs) && !is.null(.xtra$transit_abs)) {
-        transitAbs <- .xtra$transit_abs;
+  if (is.null(transitAbs) && !is.null(.xtra$transit_abs)) {
+    transitAbs <- .xtra$transit_abs
+  }
+  if (missing(updateObject) && !is.null(.xtra$update.object)) {
+    updateObject <- .xtra$update.object
+  }
+  if (missing(covsInterpolation) && !is.null(.xtra$covs_interpolation)) {
+    covsInterpolation <- .xtra$covs_interpolation
+  }
+  if (missing(addCov) && !is.null(.xtra$add.cov)) {
+    addCov <- .xtra$add.cov
+  }
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
+  if (!is.null(nsim)) {
+    if (rxIs(params, "eventTable") || rxIs(events, "eventTable") && nSub == 1L) {
+      nSub <- nsim
+    } else if (nStud == 1L) {
+      nStud <- nsim
     }
-    if (missing(updateObject) && !is.null(.xtra$update.object)) {
-        updateObject <- .xtra$update.object;
+  }
+  ## stiff = TRUE, transitAbs = NULL,
+  ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
+  ## maxords = 5, ..., covsInterpolation = c("linear", "constant", "NOCB", "midpoint"),
+  ## theta=numeric(), eta=numeric(), matrix=TRUE,addCov=FALSE,
+  ## inC=FALSE, counts=NULL, doSolve=TRUE
+  if (!missing(stiff) && missing(method)) {
+    if (rxIs(stiff, "logical")) {
+      if (stiff) {
+        method <- "lsoda"
+        .Deprecated("method = \"lsoda\"", old = "stiff=TRUE")
+      } else {
+        method <- "dop853"
+        .Deprecated("method = \"dop853\"", old = "stiff=FALSE")
+      }
     }
-    if (missing(covsInterpolation) && !is.null(.xtra$covs_interpolation)) {
-        covsInterpolation <- .xtra$covs_interpolation;
-    }
-    if (missing(addCov) && !is.null(.xtra$add.cov)) {
-        addCov <- .xtra$add.cov;
-    }
-    if (!is.null(seed)) {
-        set.seed(seed);
-    }
-    if (!is.null(nsim)) {
-        if (rxIs(params, "eventTable") || rxIs(events, "eventTable") && nSub == 1L) {
-            nSub <- nsim;
-        } else if (nStud == 1L) {
-            nStud <- nsim;
-        }
-    }
-    ## stiff = TRUE, transitAbs = NULL,
-    ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-    ## maxords = 5, ..., covsInterpolation = c("linear", "constant", "NOCB", "midpoint"),
-    ## theta=numeric(), eta=numeric(), matrix=TRUE,addCov=FALSE,
-    ## inC=FALSE, counts=NULL, doSolve=TRUE
-    if (!missing(stiff) && missing(method)) {
-        if (rxIs(stiff, "logical")) {
-            if (stiff) {
-                method <- "lsoda"
-                .Deprecated("method = \"lsoda\"",old="stiff=TRUE")
-            } else {
-                method <- "dop853"
-                .Deprecated("method = \"dop853\"",old="stiff=FALSE")
-            }
-        }
-    } else {
-        if (!rxIs(method, "integer")) {
-            method <- match.arg(method);
-        }
-    }
-    .matrixIdx <- c("rxSolve"=0, "matrix"=1, "data.frame"=2, "data.frame.TBS"=3, "data.table"=4,
-                    "tbl"=5, "tibble"=5);
-    if (!missing(returnType)) {
-        matrix <- .matrixIdx[match.arg(returnType)];
-    } else if (!is.null(.xtra$return.type)) {
-        matrix <- .matrixIdx[.xtra$return.type];
-    } else {
-        matrix <- as.integer(matrix);
-    }
+  } else {
     if (!rxIs(method, "integer")) {
-        .methodIdx <- c("lsoda"=1, "dop853"=0, "liblsoda"=2, "indLin"=3);
-        method <- as.integer(.methodIdx[method]);
+      method <- match.arg(method)
     }
-    if (Sys.info()[["sysname"]] == "SunOS" && method == 2) {
-        method <- 1;
-    }
-    if (length(covsInterpolation) > 1) covsInterpolation <- covsInterpolation[1];
-    if (!rxIs(covsInterpolation, "integer")) {
-        covsInterpolation <- tolower(match.arg(covsInterpolation,
-                                               c("linear", "locf", "LOCF", "constant",
-                                                 "nocb", "NOCB", "midpoint")))
-        if (covsInterpolation == "constant") covsInterpolation <- "locf";
-        covsInterpolation  <- as.integer(which(covsInterpolation ==
-                                               c("linear", "locf", "nocb", "midpoint")) - 1);
-    }
-    if (any(duplicated(names(.xtra)))) {
-        stop("duplicate arguments do not make sense");
-    }
-    if (any(names(.xtra)=="covs")) {
-        stop("covariates can no longer be specified by 'covs' include them in the event dataset");
-    }
-    if (missing(cores)) {
-        cores <- RxODE::rxCores();
-    }
-    if (inherits(sigma, "character")) {
-      .sigma <- sigma
-    } else {
-        .sigma <- lotri(sigma)
-    }
-    if (inherits(omega, "character")) {
-      .omega <- omega
-    } else if (inherits(omega, "lotri")){
-      .omega <- omega
-    } else {
-        .omega <- lotri(omega)
-    }
-    if (inherits(indLinMatExpType, "numeric") ||
-        inherits(indLinMatExpType, "integer")) {
-        .indLinMatExpType <- as.integer(indLinMatExpType);
-    } else {
-        .indLinMatExpTypeIdx <- c("Al-Mohy"=3, "arma"=1, "expokit"=2);
-        .indLinMatExpType <- match.arg(indLinMatExpType)
-        .indLinMatExpType <- as.integer(.indLinMatExpTypeIdx[match.arg(indLinMatExpType)]);
-    }
-    if (inherits(sumType, "numeric") ||
-        inherits(sumType, "integer")) {
-      .sum <- as.integer(sumType)
-    } else {
-      .sum <- which(match.arg(sumType) == c("pairwise", "fsum", "kahan", "neumaier", "c"))
-    }
-    if (inherits(prodType, "numeric") ||
-        inherits(prodType, "integer")) {
-      .prod <- as.integer(prodType)
-    } else {
-      .prod <- which(match.arg(prodType) == c("long double", "double", "logify"))
-    }
+  }
+  .matrixIdx <- c(
+    "rxSolve" = 0, "matrix" = 1, "data.frame" = 2, "data.frame.TBS" = 3, "data.table" = 4,
+    "tbl" = 5, "tibble" = 5
+  )
+  if (!missing(returnType)) {
+    matrix <- .matrixIdx[match.arg(returnType)]
+  } else if (!is.null(.xtra$return.type)) {
+    matrix <- .matrixIdx[.xtra$return.type]
+  } else {
+    matrix <- as.integer(matrix)
+  }
+  if (!rxIs(method, "integer")) {
+    .methodIdx <- c("lsoda" = 1, "dop853" = 0, "liblsoda" = 2, "indLin" = 3)
+    method <- as.integer(.methodIdx[method])
+  }
+  if (Sys.info()[["sysname"]] == "SunOS" && method == 2) {
+    method <- 1
+  }
+  if (length(covsInterpolation) > 1) covsInterpolation <- covsInterpolation[1]
+  if (!rxIs(covsInterpolation, "integer")) {
+    covsInterpolation <- tolower(match.arg(
+      covsInterpolation,
+      c(
+        "linear", "locf", "LOCF", "constant",
+        "nocb", "NOCB", "midpoint"
+      )
+    ))
+    if (covsInterpolation == "constant") covsInterpolation <- "locf"
+    covsInterpolation <- as.integer(which(covsInterpolation ==
+      c("linear", "locf", "nocb", "midpoint")) - 1)
+  }
+  if (any(duplicated(names(.xtra)))) {
+    stop("duplicate arguments do not make sense")
+  }
+  if (any(names(.xtra) == "covs")) {
+    stop("covariates can no longer be specified by 'covs' include them in the event dataset")
+  }
+  if (missing(cores)) {
+    cores <- RxODE::rxCores()
+  }
+  if (inherits(sigma, "character")) {
+    .sigma <- sigma
+  } else {
+    .sigma <- lotri(sigma)
+  }
+  if (inherits(omega, "character")) {
+    .omega <- omega
+  } else if (inherits(omega, "lotri")) {
+    .omega <- omega
+  } else {
+    .omega <- lotri(omega)
+  }
+  if (inherits(indLinMatExpType, "numeric") ||
+    inherits(indLinMatExpType, "integer")) {
+    .indLinMatExpType <- as.integer(indLinMatExpType)
+  } else {
+    .indLinMatExpTypeIdx <- c("Al-Mohy" = 3, "arma" = 1, "expokit" = 2)
+    .indLinMatExpType <- match.arg(indLinMatExpType)
+    .indLinMatExpType <- as.integer(.indLinMatExpTypeIdx[match.arg(indLinMatExpType)])
+  }
+  if (inherits(sumType, "numeric") ||
+    inherits(sumType, "integer")) {
+    .sum <- as.integer(sumType)
+  } else {
+    .sum <- which(match.arg(sumType) == c("pairwise", "fsum", "kahan", "neumaier", "c"))
+  }
+  if (inherits(prodType, "numeric") ||
+    inherits(prodType, "integer")) {
+    .prod <- as.integer(prodType)
+  } else {
+    .prod <- which(match.arg(prodType) == c("long double", "double", "logify"))
+  }
 
-    if (inherits(sensType, "numeric") ||
-        inherits(sensType, "integer")) {
-      .sensType <- as.integer(sensType)
-    } else {
-      .sensType <- as.integer(which(match.arg(sensType) == c("autodiff", "forward", "central", "advan")))
-    }
-    .ret <- list(scale=scale,
-                 method=method,
-                 transitAbs=transitAbs,
-                 atol=atol,
-                 rtol=rtol,
-                 maxsteps=maxsteps,
-                 hmin=hmin,
-                 hmax=hmax,
-                 hini=hini,
-                 maxordn=maxordn,
-                 maxords=maxords,
-                 covsInterpolation=covsInterpolation,
-                 cores=cores,
-                 addCov=addCov,
-                 matrix=matrix,
-                 sigma=.sigma,
-                 sigmaDf=sigmaDf,
-                 nCoresRV=nCoresRV,
-                 sigmaIsChol=sigmaIsChol,
-                 sigmaSeparation=match.arg(sigmaSeparation),
-                 sigmaXform=.sigmaXform,
-                 nDisplayProgress=nDisplayProgress,
-                 amountUnits=amountUnits,
-                 timeUnits=timeUnits,
-                 theta=theta,
-                 eta=eta,
-                 addDosing=addDosing,
-                 stateTrim=stateTrim,
-                 updateObject=updateObject,
-                 omega=.omega,
-                 omegaDf=omegaDf,
-                 omegaIsChol=omegaIsChol,
-                 omegaSeparation=match.arg(omegaSeparation),
-                 omegaXform=.omegaXform,
-                 nSub=nSub,
-                 thetaMat=thetaMat,
-                 thetaDf=thetaDf,
-                 thetaIsChol=thetaIsChol,
-                 nStud=nStud,
-                 dfSub=dfSub,
-                 dfObs=dfObs,
-                 seed=seed,
-                 nsim=nsim,
-                 minSS=minSS, maxSS=maxSS,
-                 strictSS=as.integer(strictSS),
-                 infSSstep=as.double(infSSstep),
-                 istateReset=istateReset,
-                 subsetNonmem=subsetNonmem,
-                 linLog=linLog, hmaxSd=hmaxSd,
-                 maxAtolRtolFactor=maxAtolRtolFactor,
-                 from=from,
-                 to=to,
-                 by=by,
-                 length.out=length.out,
-                 iCov=iCov,
-                 keep=keep, keepF=character(0), keepI=character(0),
-                 drop=drop,
-                 warnDrop=warnDrop,
-                 omegaLower=omegaLower, omegaUpper=omegaUpper,
-                 sigmaLower=sigmaLower, sigmaUpper=sigmaUpper,
-                 thetaLower=thetaLower, thetaUpper=thetaUpper,
-                 indLinPhiM=indLinPhiM,
-                 indLinPhiTol=indLinPhiTol,
-                 indLinMatExpType=.indLinMatExpType,
-                 indLinMatExpOrder=as.integer(indLinMatExpOrder),
-                 idFactor=idFactor,
-                 mxhnil=mxhnil, hmxi=hmxi, warnIdSort=warnIdSort,
-                 ssAtol=ssAtol, ssRtol = ssRtol, safeZero=as.integer(safeZero),
-                 cacheEvent=as.logical(cacheEvent),
-                 mvnfast=mvnfast,
-                 sumType=as.integer(.sum),
-                 prodType=as.integer(.prod),
-                 sensType=as.integer(.sensType))
-    return(.ret)
+  if (inherits(sensType, "numeric") ||
+    inherits(sensType, "integer")) {
+    .sensType <- as.integer(sensType)
+  } else {
+    .sensType <- as.integer(which(match.arg(sensType) == c("autodiff", "forward", "central", "advan")))
+  }
+  .ret <- list(
+    scale = scale,
+    method = method,
+    transitAbs = transitAbs,
+    atol = atol,
+    rtol = rtol,
+    maxsteps = maxsteps,
+    hmin = hmin,
+    hmax = hmax,
+    hini = hini,
+    maxordn = maxordn,
+    maxords = maxords,
+    covsInterpolation = covsInterpolation,
+    cores = cores,
+    addCov = addCov,
+    matrix = matrix,
+    sigma = .sigma,
+    sigmaDf = sigmaDf,
+    nCoresRV = nCoresRV,
+    sigmaIsChol = sigmaIsChol,
+    sigmaSeparation = match.arg(sigmaSeparation),
+    sigmaXform = .sigmaXform,
+    nDisplayProgress = nDisplayProgress,
+    amountUnits = amountUnits,
+    timeUnits = timeUnits,
+    theta = theta,
+    eta = eta,
+    addDosing = addDosing,
+    stateTrim = stateTrim,
+    updateObject = updateObject,
+    omega = .omega,
+    omegaDf = omegaDf,
+    omegaIsChol = omegaIsChol,
+    omegaSeparation = match.arg(omegaSeparation),
+    omegaXform = .omegaXform,
+    nSub = nSub,
+    thetaMat = thetaMat,
+    thetaDf = thetaDf,
+    thetaIsChol = thetaIsChol,
+    nStud = nStud,
+    dfSub = dfSub,
+    dfObs = dfObs,
+    seed = seed,
+    nsim = nsim,
+    minSS = minSS, maxSS = maxSS,
+    strictSS = as.integer(strictSS),
+    infSSstep = as.double(infSSstep),
+    istateReset = istateReset,
+    subsetNonmem = subsetNonmem,
+    linLog = linLog, hmaxSd = hmaxSd,
+    maxAtolRtolFactor = maxAtolRtolFactor,
+    from = from,
+    to = to,
+    by = by,
+    length.out = length.out,
+    iCov = iCov,
+    keep = keep, keepF = character(0), keepI = character(0),
+    drop = drop,
+    warnDrop = warnDrop,
+    omegaLower = omegaLower, omegaUpper = omegaUpper,
+    sigmaLower = sigmaLower, sigmaUpper = sigmaUpper,
+    thetaLower = thetaLower, thetaUpper = thetaUpper,
+    indLinPhiM = indLinPhiM,
+    indLinPhiTol = indLinPhiTol,
+    indLinMatExpType = .indLinMatExpType,
+    indLinMatExpOrder = as.integer(indLinMatExpOrder),
+    idFactor = idFactor,
+    mxhnil = mxhnil, hmxi = hmxi, warnIdSort = warnIdSort,
+    ssAtol = ssAtol, ssRtol = ssRtol, safeZero = as.integer(safeZero),
+    cacheEvent = as.logical(cacheEvent),
+    mvnfast = mvnfast,
+    sumType = as.integer(.sum),
+    prodType = as.integer(.prod),
+    sensType = as.integer(.sensType)
+  )
+  return(.ret)
 }
 
 ##' Solving \& Simulation of a ODE/solved system (and solving options) equation
@@ -706,14 +717,14 @@ rxControl <- function(scale = NULL,
 ##' @author Matthew Fidler, Melissa Hallow and  Wenping Wang
 ##' @export
 rxSolve <- function(object, ...) {
-    UseMethod("rxSolve")
+  UseMethod("rxSolve")
 }
 ##' @rdname rxSolve
 ##' @export
-rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...) {
+rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, ...) {
   on.exit({
-    .clearPipe();
-  });
+    .clearPipe()
+  })
   .applyParams <- FALSE
   .rxParams <- NULL
   if (rxIs(object, "rxEt")) {
@@ -721,7 +732,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
       stop("events can be pipeline or solving arguments not both")
     }
     if (is.null(.pipelineRx)) {
-      stop("need an RxODE compiled model as the start of the pipeline");
+      stop("need an RxODE compiled model as the start of the pipeline")
     } else {
       events <- object
       object <- .pipelineRx
@@ -729,10 +740,10 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
   } else if (rxIs(object, "rxParams")) {
     .applyParams <- TRUE
     if (is.null(params) && !is.null(object$params)) {
-      params <- object$params;
+      params <- object$params
     }
     if (is.null(.pipelineRx)) {
-      stop("need an RxODE compiled model as the start of the pipeline");
+      stop("need an RxODE compiled model as the start of the pipeline")
     } else {
       .rxParams <- object
       object <- .pipelineRx
@@ -740,28 +751,27 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     if (is.null(.pipelineEvents)) {
       stop("need an RxODE events as a part of the pipeline")
     } else {
-      events <- .pipelineEvents;
-      assignInMyNamespace(".pipelineEvents", NULL);
+      events <- .pipelineEvents
+      assignInMyNamespace(".pipelineEvents", NULL)
     }
-
   }
   if (!is.null(.pipelineEvents) && is.null(events) && is.null(params)) {
-    events <- .pipelineEvents;
+    events <- .pipelineEvents
   } else if (!is.null(.pipelineEvents) && !is.null(events)) {
     stop("'events' in pipeline AND in solving arguments, please provide just one")
   } else if (!is.null(.pipelineEvents) && !is.null(params) &&
-             rxIs(params, "event.data.frame")) {
+    rxIs(params, "event.data.frame")) {
     stop("'events' in pipeline AND in solving arguments, please provide just one")
   }
 
   if (!is.null(.pipelineParams) && is.null(params)) {
-    params <- .pipelineParams;
+    params <- .pipelineParams
   } else if (!is.null(.pipelineParams) && !is.null(params)) {
     stop("'params' in pipeline AND in solving arguments, please provide just one")
   }
 
   if (!is.null(.pipelineInits) && is.null(inits)) {
-    inits <- .pipelineInits;
+    inits <- .pipelineInits
   } else if (!is.null(.pipelineInits) && !is.null(inits)) {
     stop("'inits' in pipeline AND in solving arguments, please provide just one")
   }
@@ -771,133 +781,134 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
       inits <- .rxParams$inits
     }
   }
-  .xtra <- list(...);
+  .xtra <- list(...)
   if (any(duplicated(names(.xtra)))) {
-    stop("duplicate arguments do not make sense");
+    stop("duplicate arguments do not make sense")
   }
-  if (any(names(.xtra)=="covs")) {
-    stop("covariates can no longer be specified by 'covs'\n  include them in the event dataset\n\nindividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\ntime varying covariates: modify input event data-frame or\n  'eventTable' to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the variable in the model\n");
+  if (any(names(.xtra) == "covs")) {
+    stop("covariates can no longer be specified by 'covs'\n  include them in the event dataset\n\nindividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\ntime varying covariates: modify input event data-frame or\n  'eventTable' to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the variable in the model\n")
   }
-  .nms <- names(as.list(match.call())[-1]);
-  .lst <- list(...);
+  .nms <- names(as.list(match.call())[-1])
+  .lst <- list(...)
   .setupOnly <- 0L
-  if (any(names(.lst)==".setupOnly")) {
-    .setupOnly <- .lst$.setupOnly;
+  if (any(names(.lst) == ".setupOnly")) {
+    .setupOnly <- .lst$.setupOnly
   }
-  .ctl <- rxControl(...,events=events,params=params);
-  .n1 <- setdiff(intersect(tolower(names(params)),tolower(names(.ctl$iCov))),"id")
-  .n2 <- c(.n1, setdiff(intersect(tolower(names(events)),tolower(names(.ctl$iCov))),"id"))
+  .ctl <- rxControl(..., events = events, params = params)
+  .n1 <- setdiff(intersect(tolower(names(params)), tolower(names(.ctl$iCov))), "id")
+  .n2 <- c(.n1, setdiff(intersect(tolower(names(events)), tolower(names(.ctl$iCov))), "id"))
   .n1 <- unique(c(.n1, .n2))
   if (length(.n1) > 0) {
-    stop(sprintf("'iCov' has information contained in parameters/event data\nduplicate columns: '%s'", paste(.n1, collapse="', '")));
+    stop(sprintf("'iCov' has information contained in parameters/event data\nduplicate columns: '%s'", paste(.n1, collapse = "', '")))
   }
   if (!is.null(.pipelineThetaMat) && is.null(.ctl$thetaMat)) {
-    .ctl$thetaMat <- .pipelineThetaMat;
+    .ctl$thetaMat <- .pipelineThetaMat
   }
   if (!is.null(.pipelineOmega) && is.null(.ctl$omega)) {
-    .ctl$omega <- .pipelineOmega;
+    .ctl$omega <- .pipelineOmega
   }
   if (!is.null(.pipelineSigma) && is.null(.ctl$sigma)) {
-    .ctl$sigma <- .pipelineSigma;
+    .ctl$sigma <- .pipelineSigma
   }
   if (!is.null(.pipelineSigma) && is.null(.ctl$sigma)) {
-    .ctl$sigma <- .pipelineSigma;
+    .ctl$sigma <- .pipelineSigma
   }
-  if (!is.null(.pipelineDfObs) && .ctl$dfObs==0) {
-    .ctl$dfObs <- .pipelineDfObs;
+  if (!is.null(.pipelineDfObs) && .ctl$dfObs == 0) {
+    .ctl$dfObs <- .pipelineDfObs
   }
-  if (!is.null(.pipelineDfSub) && .ctl$dfSub==0) {
-    .ctl$dfSub <- .pipelineDfSub;
+  if (!is.null(.pipelineDfSub) && .ctl$dfSub == 0) {
+    .ctl$dfSub <- .pipelineDfSub
   }
-  if (!is.null(.pipelineNSub) && .ctl$nSub==1) {
-    .ctl$nSub <- .pipelineNSub;
+  if (!is.null(.pipelineNSub) && .ctl$nSub == 1) {
+    .ctl$nSub <- .pipelineNSub
   }
-  if (!is.null(.pipelineNStud) && .ctl$nStud==1) {
-    .ctl$nStud <- .pipelineNStud;
+  if (!is.null(.pipelineNStud) && .ctl$nStud == 1) {
+    .ctl$nStud <- .pipelineNStud
   }
   if (!is.null(.pipelineICov) && is.null(.ctl$iCov)) {
-    .ctl$iCov <- .pipelineICov;
+    .ctl$iCov <- .pipelineICov
   }
   if (!is.null(.pipelineKeep) && is.null(.ctl$keep)) {
-    .ctl$keep <- .pipelineKeep;
+    .ctl$keep <- .pipelineKeep
   }
   if (.applyParams) {
     if (!is.null(.rxParams$thetaMat) && is.null(.ctl$thetaMat)) {
-      .ctl$thetaMat <- .rxParams$thetaMat;
+      .ctl$thetaMat <- .rxParams$thetaMat
     }
     if (!is.null(.rxParams$omega) && is.null(.ctl$omega)) {
-      .ctl$omega <- .rxParams$omega;
+      .ctl$omega <- .rxParams$omega
     }
     if (!is.null(.rxParams$sigma) && is.null(.ctl$sigma)) {
-      .ctl$sigma <- .rxParams$sigma;
+      .ctl$sigma <- .rxParams$sigma
     }
     if (!is.null(.rxParams$dfSub)) {
-      if (.ctl$dfSub== 0) {
-        .ctl$dfSub <- .rxParams$dfSub;
+      if (.ctl$dfSub == 0) {
+        .ctl$dfSub <- .rxParams$dfSub
       }
     }
     if (!is.null(.rxParams$nSub)) {
-      if (.ctl$nSub== 1) {
-        .ctl$nSub <- .rxParams$nSub;
+      if (.ctl$nSub == 1) {
+        .ctl$nSub <- .rxParams$nSub
       }
     }
     if (!is.null(.rxParams$nStud)) {
-      if (.ctl$nStud== 1) {
-        .ctl$nStud <- .rxParams$nStud;
+      if (.ctl$nStud == 1) {
+        .ctl$nStud <- .rxParams$nStud
       }
     }
     if (!is.null(.rxParams$dfObs)) {
       if (.ctl$dfObs == 0) {
-        .ctl$dfObs <- .rxParams$dfObs;
+        .ctl$dfObs <- .rxParams$dfObs
       }
     }
     if (!is.null(.rxParams$iCov)) {
       if (is.null(.ctl$iCov)) {
-        .ctl$iCov <- .rxParams$iCov;
+        .ctl$iCov <- .rxParams$iCov
       }
     }
     if (!is.null(.rxParams$keep)) {
       if (is.null(.ctl$keep)) {
-        .ctl$keep <- .rxParams$keep;
+        .ctl$keep <- .rxParams$keep
       }
     }
   }
-  if (.ctl$nSub==1 && inherits(.ctl$iCov, "data.frame")) {
-    .ctl$nSub <- length(.ctl$iCov[,1])
-  } else if (.ctl$nSub !=1 && .ctl$nStud == 1 && inherits(.ctl$iCov, "data.frame")) {
-    if (.ctl$nSub !=length(.ctl$iCov[,1])) {
-      stop("'nSub' does not match the number of subjects in 'iCov'");
+  if (.ctl$nSub == 1 && inherits(.ctl$iCov, "data.frame")) {
+    .ctl$nSub <- length(.ctl$iCov[, 1])
+  } else if (.ctl$nSub != 1 && .ctl$nStud == 1 && inherits(.ctl$iCov, "data.frame")) {
+    if (.ctl$nSub != length(.ctl$iCov[, 1])) {
+      stop("'nSub' does not match the number of subjects in 'iCov'")
     }
-  } else if (.ctl$nSub !=1 && .ctl$nStud !=1 && inherits(.ctl$iCov, "data.frame")) {
-    if (.ctl$nSub*.ctl$nStud !=length(.ctl$iCov[,1])) {
-      stop("'nSub'*'nStud' does not match the number of subjects in 'iCov'");
+  } else if (.ctl$nSub != 1 && .ctl$nStud != 1 && inherits(.ctl$iCov, "data.frame")) {
+    if (.ctl$nSub * .ctl$nStud != length(.ctl$iCov[, 1])) {
+      stop("'nSub'*'nStud' does not match the number of subjects in 'iCov'")
     }
   }
   ## Prefers individual keep over keeping from the input data
   .keepI <- character(0)
   .keepF <- character(0)
   if (!is.null(.ctl$keep)) {
-    .mv <- rxModelVars(object);
-    .vars <- c(.mv$lhs, .mv$state);
+    .mv <- rxModelVars(object)
+    .vars <- c(.mv$lhs, .mv$state)
     .keepF <- setdiff(.ctl$keep, .vars)
     if (!is.null(.ctl$iCov)) {
-      .keepI <- intersect(.keepF, names(.ctl$iCov));
-      .keepF <- setdiff(.keepF, .keepI);
+      .keepI <- intersect(.keepF, names(.ctl$iCov))
+      .keepF <- setdiff(.keepF, .keepI)
     }
   }
   .ctl$keepI <- .keepI
   .ctl$keepF <- .keepF
   .ret <- .collectWarnings(rxSolveSEXP(object, .ctl, .nms, .xtra,
-                                       params, events, inits,
-                                       setupOnlyS=.setupOnly), lst=TRUE);
+    params, events, inits,
+    setupOnlyS = .setupOnly
+  ), lst = TRUE)
   .ws <- .ret[[2]]
-  .rxModels$.ws <- .ws;
+  .rxModels$.ws <- .ws
   lapply(.ws, function(x) warning(x))
   .ret <- .ret[[1]]
   if (.ctl$matrix == 4L) {
-    data.table::setDT(.ret);
+    data.table::setDT(.ret)
   } else if (.ctl$matrix == 5L) {
-    .ret <- tibble::as_tibble(.ret);
+    .ret <- tibble::as_tibble(.ret)
   }
   return(.ret)
 }
@@ -905,13 +916,13 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
 ##' @rdname rxSolve
 ##' @export
 update.rxSolve <- function(object, ...) {
-    rxSolve(object, ...);
+  rxSolve(object, ...)
 }
 
 ##' @rdname rxSolve
 ##' @export
 predict.RxODE <- function(object, ...) {
-    rxSolve(object, ...);
+  rxSolve(object, ...)
 }
 
 ##' @rdname rxSolve
@@ -931,7 +942,7 @@ predict.rxParams <- predict.RxODE
 ##' @rdname rxSolve
 ##' @export
 simulate.RxODE <- function(object, nsim = 1L, seed = NULL, ...) {
-    rxSolve(object, ..., seed=seed, nsim=nsim);
+  rxSolve(object, ..., seed = seed, nsim = nsim)
 }
 ##' @rdname rxSolve
 ##' @export
@@ -945,16 +956,16 @@ simulate.rxParams <- simulate.RxODE
 ##' @rdname rxSolve
 ##' @export
 solve.rxSolve <- function(a, b, ...) {
-    lst <- as.list(match.call()[-1])
-    n <- names(lst)
-    if (!missing(a)) {
-        n[n == "a"] <- "";
-    }
-    if (!missing(b)) {
-        n[n == "b"] <- "";
-    }
-    names(lst) <- n
-    do.call("rxSolve", lst, envir=parent.frame(1))
+  lst <- as.list(match.call()[-1])
+  n <- names(lst)
+  if (!missing(a)) {
+    n[n == "a"] <- ""
+  }
+  if (!missing(b)) {
+    n[n == "b"] <- ""
+  }
+  names(lst) <- n
+  do.call("rxSolve", lst, envir = parent.frame(1))
 }
 
 ##' @rdname rxSolve
@@ -970,24 +981,24 @@ solve.rxParams <- solve.rxSolve
 solve.rxEt <- solve.rxSolve
 
 ##' @export
-`$.rxSolveParams` <-  function(obj, arg, exact = FALSE) {
-    return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
+`$.rxSolveParams` <- function(obj, arg, exact = FALSE) {
+  return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
 }
 
 
 ##' @export
-`$.rxSolveCovs` <-  function(obj, arg, exact = FALSE) {
-    return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
+`$.rxSolveCovs` <- function(obj, arg, exact = FALSE) {
+  return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
 }
 
-##'@export
+##' @export
 `$.rxSolveSimType` <- function(obj, arg, exact = FALSE) {
-    return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
+  return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
 }
 
 ##' @export
 `$.rxSolve` <- function(obj, arg, exact = FALSE) {
-    return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
+  return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
 }
 
 ##' Check to see if this is an rxSolve object.
@@ -1000,95 +1011,94 @@ solve.rxEt <- solve.rxSolve
 ##' @author Matthew L.Fidler
 ##' @export
 is.rxSolve <- function(x) {
-    .Call(`_RxODE_rxIs`, x, "rxSolve");
+  .Call(`_RxODE_rxIs`, x, "rxSolve")
 }
 
 ##' @author Matthew L.Fidler
 ##' @export
 `[.rxSolve` <- function(x, i, j, drop) {
-    class(x) <- "data.frame";
-    NextMethod("[");
+  class(x) <- "data.frame"
+  NextMethod("[")
 }
 
 ##' @author Matthew L.Fidler
 ##' @export
 "[[.rxSolve" <- function(obj, arg, exact = TRUE) {
-    return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
+  return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
 }
 
 ##' @export
 t.rxSolve <- function(x) {
-    x <- as.matrix(x)
-    NextMethod("t", x);
+  x <- as.matrix(x)
+  NextMethod("t", x)
 }
 
 ##' @export
 dimnames.rxSolve <- function(x) {
-    list(row.names(x), names(x));
+  list(row.names(x), names(x))
 }
 
 ##' @export
 "dimnames<-.rxSolve" <- function(x, value) {
-    class(x) <- "data.frame";
-    "dimnames<-.data.frame"(x, value);
+  class(x) <- "data.frame"
+  "dimnames<-.data.frame"(x, value)
 }
 
-##'@export
+##' @export
 "[<-.rxSolve" <- function(x, i, j, value) {
-    if (missing(i) && rxIs(j, "character")) {
-        ret <- .Call(`_RxODE_rxSolveUpdate`, x, j, value);
-        if (is.null(ret)) {
-            class(x) <- "data.frame";
-            return(`[<-.data.frame`(x,, j, value = value))
-        } else {
-            return(ret);
-        }
-    } else {
-        class(x) <- "data.frame"
-        if (nargs() < 4) {
-            if (missing(j)) {
-                return(`[<-.data.frame`(x, i, value = value))
-            } else {
-                return(`[<-.data.frame`(x,, j, value = value))
-            }
-        } else{
-            return(`[<-.data.frame`(x, i, j, value))
-        }
-    }
-}
-##'@export
-`$<-.rxSolve` <- function(x, name, value) {
-    ret <- .Call(`_RxODE_rxSolveUpdate`, x, name, value);
+  if (missing(i) && rxIs(j, "character")) {
+    ret <- .Call(`_RxODE_rxSolveUpdate`, x, j, value)
     if (is.null(ret)) {
-        class(x) <- "data.frame"
-        return(`$<-.data.frame`(x, name, value));
+      class(x) <- "data.frame"
+      return(`[<-.data.frame`(x, , j, value = value))
     } else {
-        return(ret);
+      return(ret)
     }
+  } else {
+    class(x) <- "data.frame"
+    if (nargs() < 4) {
+      if (missing(j)) {
+        return(`[<-.data.frame`(x, i, value = value))
+      } else {
+        return(`[<-.data.frame`(x, , j, value = value))
+      }
+    } else {
+      return(`[<-.data.frame`(x, i, j, value))
+    }
+  }
 }
-##'@export
+##' @export
+`$<-.rxSolve` <- function(x, name, value) {
+  ret <- .Call(`_RxODE_rxSolveUpdate`, x, name, value)
+  if (is.null(ret)) {
+    class(x) <- "data.frame"
+    return(`$<-.data.frame`(x, name, value))
+  } else {
+    return(ret)
+  }
+}
+##' @export
 "[[<-.rxSolve" <- function(x, i, j, value) {
-    if (missing(j) && rxIs(i, "character")) {
-        ret <- .Call(`_RxODE_rxSolveUpdate`, x, i, value);
-        if (!is.null(ret)) {
-            return(ret);
-        } else {
-            class(x) <- "data.frame"
-            if (missing(j)) {
-                return("[[<-.data.frame"(x, i, value=value))
-            } else {
-                return("[[<-.data.frame"(x, i, j, value))
-            }
-
-        }
+  if (missing(j) && rxIs(i, "character")) {
+    ret <- .Call(`_RxODE_rxSolveUpdate`, x, i, value)
+    if (!is.null(ret)) {
+      return(ret)
     } else {
-        class(x) <- "data.frame"
-        if (missing(j)) {
-            return("[[<-.data.frame"(x, i, value=value))
-        } else {
-            return("[[<-.data.frame"(x, i, j, value))
-        }
+      class(x) <- "data.frame"
+      if (missing(j)) {
+        return("[[<-.data.frame"(x, i, value = value))
+      } else {
+        return("[[<-.data.frame"(x, i, j, value))
+      }
     }
+  } else {
+    class(x) <- "data.frame"
+    if (missing(j)) {
+      return("[[<-.data.frame"(x, i, value = value))
+    } else {
+      return("[[<-.data.frame"(x, i, j, value))
+    }
+  }
 }
 
 ##' Update Solved object with '+'
@@ -1100,16 +1110,16 @@ dimnames.rxSolve <- function(x) {
 ##' @export
 ##' @keywords internal
 `+.rxSolve` <- function(solved, new) {
-    if (rxIs(new, "rx.event")) {
-        return(update(solved, events=new));
-    } else {
-        return(as.data.frame(solved) + new);
-    }
+  if (rxIs(new, "rx.event")) {
+    return(update(solved, events = new))
+  } else {
+    return(as.data.frame(solved) + new)
+  }
 }
 
-##'@export
-drop_units.rxSolve <- function(x){
-    dropUnitsRxSolve(x);
+##' @export
+drop_units.rxSolve <- function(x) {
+  dropUnitsRxSolve(x)
 }
 
 ## dim (gets you nrow and ncol), t, dimnames
