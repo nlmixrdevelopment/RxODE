@@ -338,7 +338,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
     i <- 1;
     theta.part <- lapply(matI, function(x){
       len <- x$fn(NULL, -2L)
-      ret <- as.integer(seq(i, by=1, length=len));
+      ret <- as.integer(seq(i, by=1, length.out=len));
       i <<- max(ret) + 1;
       return(ret)
     })
