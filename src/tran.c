@@ -646,6 +646,8 @@ typedef struct nodeInfo {
   int ifelse_statement;
   int mat0;
   int matF;
+  int equality_str1;
+  int equality_str2;
 } nodeInfo;
 
 #define NIB(what) ni.what
@@ -700,6 +702,8 @@ void niReset(nodeInfo *ni){
   ni->ifelse_statement=-1;
   ni->mat0 = -1;
   ni->matF = -1;
+  ni->equality_str1 = -1;
+  ni->equality_str2 = -1;
 }
 
 int new_de(const char *s){

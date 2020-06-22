@@ -84,9 +84,16 @@ logical_and_expression : equality_expression0
 equality_expression0 : equality_expression |
     '(' equality_expression ')' |
     '!' '(' equality_expression ')' |
+     equality_str |
+    '(' equality_str ')' |
+    '!' '(' equality_str ')' |
     '(' '!' identifier_r ')' |
     '!' identifier_r | 
     '!' function ;
+
+equality_str : equality_str1 | equality_str2;
+equality_str1 : string ('!=' | '==' ) identifier_r;
+equality_str2 : identifier_r ('!=' | '==' ) string;
 
 equality_expression : relational_expression 
     (('!=' | '==' ) relational_expression)* ;
