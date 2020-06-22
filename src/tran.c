@@ -239,6 +239,7 @@ lhs symbols?
   int isNA; // # pi?
   int linCmt; // Unparsed linear compartment
   int linCmtN; // Unparsed linear compartment
+  int linCmtFlg; // Linear compartment flag
   // Save Jacobian information
   int *df;
   int *dy;
@@ -1636,6 +1637,19 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    tb.hasKa=1;
 	  }
 	  Free(v2);
+	  if (tb.linB){
+	    xpn2 = d_get_child(xpn1, 4);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    int tmp = toInt(v2);
+	    if (tmp > 0) {
+	      tmp--;
+	      tmp = 1 << tmp;
+	      if ((tb.linCmtFlg & tmp) == 0){
+		tb.linCmtFlg += tmp;
+	      }
+	    }
+	    Free(v2);
+	  }
         } else {
 	  // Check if this is a valid function
 	  int foundFun = 0;
@@ -2665,7 +2679,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 22));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP sLinCmt = PROTECT(allocVector(INTSXP,7));pro++;\n", 57);
+  sAppendN(&sbOut, "    SEXP sLinCmt = PROTECT(allocVector(INTSXP,8));pro++;\n", 57);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[0]= %d;\n", tb.ncmt);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[1]= %d;\n", tb.hasKa);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[2]= %d;\n", tb.linB);
@@ -2673,7 +2687,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "    INTEGER(sLinCmt)[4]= %d;\n", tb.maxtheta);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[5]= %d;\n", tb.hasCmt);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[6]= %d;\n", tb.linCmtN);
-  sAppendN(&sbOut,"    SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 7));pro++;\n", 59);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[7]= %d;\n", tb.linCmtFlg);
+  sAppendN(&sbOut,"    SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 8));pro++;\n", 59);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 0, mkChar(\"ncmt\"));\n", 49);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 1, mkChar(\"ka\"));\n", 47);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 2, mkChar(\"linB\"));\n", 49);
@@ -2681,6 +2696,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 4, mkChar(\"maxtheta\"));\n", 53);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 5, mkChar(\"hasCmt\"));\n", 51);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 6, mkChar(\"linCmt\"));\n", 51);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 7, mkChar(\"linCmtFlg\"));\n", 54);
   sAppendN(&sbOut, "   setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);\n", 50);
   sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
   sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
@@ -3421,6 +3437,7 @@ void reset (){
   tb.maxeta     = 0;
   tb.linCmt     = 0;
   tb.linCmtN    = -100;
+  tb.linCmtFlg  = 0;
   tb.isPi       = 0;
   tb.isNA       = 0;
   tb.ini_i      = 0;
@@ -3685,14 +3702,15 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   int *iNeedSort  = INTEGER(sNeedSort);
   iNeedSort[0] = needSort;
 
-  SEXP sLinCmt = PROTECT(allocVector(INTSXP,7));pro++;
+  SEXP sLinCmt = PROTECT(allocVector(INTSXP,8));pro++;
   INTEGER(sLinCmt)[0] = tb.ncmt;
   INTEGER(sLinCmt)[1] = tb.hasKa;
   INTEGER(sLinCmt)[2] = tb.linB;
   INTEGER(sLinCmt)[3] = tb.maxeta;
   INTEGER(sLinCmt)[4] = tb.maxtheta;
   INTEGER(sLinCmt)[6] = tb.linCmtN;
-  SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 7));pro++;
+  INTEGER(sLinCmt)[7] = tb.linCmtFlg;
+  SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 8));pro++;
   SET_STRING_ELT(sLinCmtN, 0, mkChar("ncmt"));
   SET_STRING_ELT(sLinCmtN, 1, mkChar("ka"));
   SET_STRING_ELT(sLinCmtN, 2, mkChar("linB"));
@@ -3700,6 +3718,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   SET_STRING_ELT(sLinCmtN, 4, mkChar("maxtheta"));
   SET_STRING_ELT(sLinCmtN, 5, mkChar("hasCmt"));
   SET_STRING_ELT(sLinCmtN, 6, mkChar("linCmt"));
+  SET_STRING_ELT(sLinCmtN, 7, mkChar("linCmtFlg"));
   setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);
   
   SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;
