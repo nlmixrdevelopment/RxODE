@@ -47,7 +47,7 @@ matrix.}
 \item{a}{threshold for switching between methods; They can be
   tuned for maximum speed;  There are three cases that are considered:
 
- case 1: a < l < u  
+ case 1: a < l < u
 
  case 2: l < u < -a
 

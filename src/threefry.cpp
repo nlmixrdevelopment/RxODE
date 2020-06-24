@@ -17,6 +17,7 @@
 #endif
 using namespace Rcpp;
 using namespace arma;
+#include "../inst/include/RxODE_as.h"
 
 //[[Rcpp::export]]
 SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
@@ -1286,4 +1287,114 @@ SEXP rxRmvnSEXP(SEXP nS, SEXP muS, SEXP sigmaS,
   }
   return retS;
   END_RCPP
+}
+
+static inline NumericVector rpp_h(int n, double& lambda, double& t0i, double &tmax){
+  std::exponential_distribution<double> d(lambda);
+  double t0 = t0i;
+  NumericVector ret(n);
+  for (int i = 0; i < n; ++i){
+    t0  += d(_eng);
+    if (t0 >= tmax){
+      while (i < n){
+	ret[i++] = tmax;
+      }
+    } else {
+      ret[i] = t0;
+    }
+  }
+  return ret;
+}
+
+static inline SEXP wrapRandom(NumericVector ret0, bool randomOrder){
+  if (randomOrder){
+    IntegerVector r0 = sample(ret0.size(), ret0.size(), false, R_NilValue, false);
+    NumericVector ret(ret0.size());
+    for (int i = r0.size(); i--;){
+      ret[r0[i]] = ret0[i];
+    }
+    return wrap(ret);
+  } else {
+    return wrap(ret0);
+  }
+}
+
+//[[Rcpp::export]]
+NumericVector rpp_(SEXP nS, SEXP lambdaS, SEXP gammaS, SEXP probS, SEXP t0S, SEXP tmaxS,
+		   SEXP randomOrderS) {
+  double t0 = asDouble(t0S, "t0");
+  double lambda = asDouble(lambdaS, "lambda");
+  int n = asInt(nS, "n");
+  bool randomOrder = asBool(randomOrderS, "randomOrder");
+  double tmax = asDouble(tmaxS, "tmax");
+  if (Rf_isNull(probS)) {
+    if (Rf_isNull(gammaS)){
+      // Homogenous case
+      return wrapRandom(rpp_h(n, lambda, t0, tmax), randomOrder);
+    } else {
+      double gamma = asDouble(gammaS, "gamma");
+      if (gamma == 1.0){
+	// Constant dropout
+	return wrapRandom(rpp_h(n, lambda, t0, tmax), randomOrder);
+      } else {
+	int cur = 0;
+	NumericVector ret(n);
+	std::uniform_real_distribution<double> runif(0.0, 1.0);
+	std::exponential_distribution<double> rexp(lambda);
+	double tnew= t0;
+	double ttest;
+	while (cur != n){
+	  ttest = t0 + rexp(_eng);
+	  if (runif(_eng) < gamma*pow(ttest/tmax , gamma-1.0)){
+	    if (ttest >= tmax){
+	      // Reached the maxumim event, fill with max.
+	      while (cur != n){
+		ret[cur++] = tmax;
+	      }
+	    } else {
+	      ret[cur++] = ttest;
+	      t0 = ttest;
+	    }
+	  }
+	}
+	return wrapRandom(ret, randomOrder);
+      }
+    }
+  } else {
+    // Non homogenous case
+    NumericVector ret(n);
+    Function prob = as<Function>(probS);
+    NumericVector s0;
+    NumericVector p0;
+    NumericVector u0;// = rxunif_(0.0, 1.0, 2*n, 1);
+    if (p0.size() != s0.size()){
+      stop(_("'prob' function should return a vector the same length as the input"));
+    }
+    int cur = 0;
+    double tmaxf = t0;
+    while (cur != n){
+      s0 = rpp_h(2*n, lambda, tmaxf, tmax);
+      p0 = prob(s0);
+      u0 = rxunif_(0.0, 1.0, 2*n, 1);
+      for (int i = 0; i < 2*n; i++){
+	if (p0[i] < 0) stop("'prob' function should return values between 0 and 1");
+	if (p0[i] > 1) stop("'prob' function should return values between 0 and 1");
+	if (u0[i] < p0[i]) {
+	  double val = s0[i];
+	  if (val >= tmax){
+	    // Already reached the maximum event horizon fill with max.
+	    while (cur != n){
+	      ret[cur++] = s0[i];
+	    }
+	  } else {
+	    ret[cur++] = s0[i];
+	    tmaxf = s0[i];
+	    if (cur == n) break;
+	  }
+	}
+      }
+    }
+    return wrapRandom(ret, randomOrder);
+  }
+  return R_NilValue;
 }

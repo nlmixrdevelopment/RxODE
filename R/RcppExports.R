@@ -334,15 +334,15 @@ rxSetupIni <- function(obj, inits = NULL) {
 #' Setup the initial conditions.
 #'
 #' @param obj RxODE object
-#' 
+#'
 #' @param inits A numeric vector of initial conditions.
-#' 
+#'
 #' @param extraArgs A list of extra args to parse for initial conditions.
-#' 
+#'
 #' @author Matthew L. Fidler
-#' 
+#'
 #' @keywords internal
-#' 
+#'
 #' @export
 rxSetupScale <- function(obj, scale = NULL, extraArgs = NULL) {
     .Call(`_RxODE_rxSetupScale`, obj, scale, extraArgs)
@@ -357,7 +357,7 @@ atolRtolFactor_ <- function(factor) {
 #' @param params Named Vector of RxODE model parameters
 #'
 #' @param thetaMat Named theta matrix.
-#' 
+#'
 #' @param thetaLower Lower bounds for simulated population parameter variability (by default -Inf)
 #'
 #' @param thetaUpper Upper bounds for simulated population unexplained variability (by default Inf)
@@ -371,7 +371,7 @@ atolRtolFactor_ <- function(factor) {
 #'     Cholesky decomposed matrix instead of the traditional
 #'     symmetric matrix.
 #'
-#' @param nSub Number between subject variabilities (ETAs) simulated for every 
+#' @param nSub Number between subject variabilities (ETAs) simulated for every
 #'        realization of the parameters.
 #'
 #' @param omega Named omega matrix.
@@ -391,12 +391,12 @@ atolRtolFactor_ <- function(factor) {
 #'
 #' @param omegaSeparation @template separation
 #'
-#' @param nStud Number virtual studies to characterize uncertainty in estimated 
+#' @param nStud Number virtual studies to characterize uncertainty in estimated
 #'        parameters.
 #'
 #' @param nObs Number of observations to simulate (with \code{sigma} matrix)
 #'
-#' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
+#' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the
 #'     individual parameters, residuals are updated after solve is completed.
 #'
 #' @param sigmaSeparation @template separation
@@ -407,13 +407,13 @@ atolRtolFactor_ <- function(factor) {
 #'
 #' @inheritParams rxSolve
 #'
-#' @param dfSub Degrees of freedom to sample the between subject variability matrix from the 
+#' @param dfSub Degrees of freedom to sample the between subject variability matrix from the
 #'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
 #'
-#' @param dfObs Degrees of freedom to sample the unexplained variability matrix from the 
-#'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution. 
+#' @param dfObs Degrees of freedom to sample the unexplained variability matrix from the
+#'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
 #'
-#' @param simSubjects boolean indicated RxODE should simulate subjects in studies (\code{TRUE}, 
+#' @param simSubjects boolean indicated RxODE should simulate subjects in studies (\code{TRUE},
 #'         default) or studies (\code{FALSE})
 #'
 #' @author Matthew L.Fidler
@@ -525,7 +525,7 @@ rxC <- function(obj) {
 
 #' Determine if the DLL associated with the RxODE object is loaded
 #'
-#' @param obj A RxODE family of objects 
+#' @param obj A RxODE family of objects
 #'
 #' @return Boolean returning if the RxODE library is loaded.
 #'
@@ -538,7 +538,7 @@ rxIsLoaded <- function(obj) {
 
 #' Load RxODE object
 #'
-#' @param obj A RxODE family of objects 
+#' @param obj A RxODE family of objects
 #'
 #' @return Boolean returning if the RxODE library is loaded.
 #'
@@ -586,7 +586,7 @@ rxUnloadAll_ <- function() {
 
 #' Unload RxODE object
 #'
-#' @param obj A RxODE family of objects 
+#' @param obj A RxODE family of objects
 #'
 #' @return Boolean returning if the RxODE library is loaded.
 #'
@@ -788,6 +788,10 @@ rxRmvn0 <- function(A_, mu, sigma, lower, upper, ncores = 1L, isChol = FALSE, a 
 
 rxRmvnSEXP <- function(nS, muS, sigmaS, lowerS, upperS, ncoresS, isCholS, keepNamesS, aS, tolS, nlTolS, nlMaxiterS) {
     .Call(`_RxODE_rxRmvnSEXP`, nS, muS, sigmaS, lowerS, upperS, ncoresS, isCholS, keepNamesS, aS, tolS, nlTolS, nlMaxiterS)
+}
+
+rpp_ <- function(nS, lambdaS, gammaS, probS, t0S, tmaxS, randomOrderS) {
+    .Call(`_RxODE_rpp_`, nS, lambdaS, gammaS, probS, t0S, tmaxS, randomOrderS)
 }
 
 rxnormV_ <- function(mean, sd, n, ncores) {

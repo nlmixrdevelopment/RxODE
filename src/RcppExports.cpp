@@ -2385,6 +2385,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rpp_
+NumericVector rpp_(SEXP nS, SEXP lambdaS, SEXP gammaS, SEXP probS, SEXP t0S, SEXP tmaxS, SEXP randomOrderS);
+RcppExport SEXP _RxODE_rpp_(SEXP nSSEXP, SEXP lambdaSSEXP, SEXP gammaSSEXP, SEXP probSSEXP, SEXP t0SSEXP, SEXP tmaxSSEXP, SEXP randomOrderSSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type nS(nSSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type lambdaS(lambdaSSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type gammaS(gammaSSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type probS(probSSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type t0S(t0SSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type tmaxS(tmaxSSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type randomOrderS(randomOrderSSEXP);
+    rcpp_result_gen = Rcpp::wrap(rpp_(nS, lambdaS, gammaS, probS, t0S, tmaxS, randomOrderS));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxnormV_
 NumericVector rxnormV_(double mean, double sd, int n, int ncores);
 RcppExport SEXP _RxODE_rxnormV_(SEXP meanSEXP, SEXP sdSEXP, SEXP nSEXP, SEXP ncoresSEXP) {

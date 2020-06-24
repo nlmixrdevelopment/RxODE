@@ -56,7 +56,7 @@ symmetric matrix.}
 
 \item{omegaXform}{When taking \code{omega} values from the @template Xform}
 
-\item{nSub}{Number between subject variabilities (ETAs) simulated for every 
+\item{nSub}{Number between subject variabilities (ETAs) simulated for every
 realization of the parameters.}
 
 \item{thetaMat}{Named theta matrix.}
@@ -74,10 +74,10 @@ distribution instead of a t-distribution.}
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
 
-\item{nStud}{Number virtual studies to characterize uncertainty in estimated 
+\item{nStud}{Number virtual studies to characterize uncertainty in estimated
 parameters.}
 
-\item{sigma}{Matrix for residual variation.  Adds a "NA" value for each of the 
+\item{sigma}{Matrix for residual variation.  Adds a "NA" value for each of the
 individual parameters, residuals are updated after solve is completed.}
 
 \item{sigmaLower}{Lower bounds for simulated unexplained variability (by default -Inf)}
@@ -104,13 +104,13 @@ threaded ODE solving.}
 
 \item{nObs}{Number of observations to simulate (with \code{sigma} matrix)}
 
-\item{dfSub}{Degrees of freedom to sample the between subject variability matrix from the 
+\item{dfSub}{Degrees of freedom to sample the between subject variability matrix from the
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
-\item{dfObs}{Degrees of freedom to sample the unexplained variability matrix from the 
+\item{dfObs}{Degrees of freedom to sample the unexplained variability matrix from the
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
-\item{simSubjects}{boolean indicated RxODE should simulate subjects in studies (\code{TRUE}, 
+\item{simSubjects}{boolean indicated RxODE should simulate subjects in studies (\code{TRUE},
 default) or studies (\code{FALSE})}
 }
 \description{

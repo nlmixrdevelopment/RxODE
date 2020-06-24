@@ -199,6 +199,9 @@ SEXP _RxODE_rxRmvn0(SEXP, SEXP, SEXP, SEXP, SEXP,
 
 SEXP _RxODE_convertId_(SEXP);
 
+SEXP _RxODE_rpp_(SEXP nS, SEXP lambdaS, SEXP gammaS, SEXP probS, SEXP t0S,
+		 SEXP tmaxS, SEXP randomOrderS);
+
 extern int rxIsCurrentC(SEXP obj);
 
 rx_solve *getRxSolve_();
@@ -412,6 +415,7 @@ void R_init_RxODE(DllInfo *info){
     {"_calcDerived", (DL_FUNC) _calcDerived, 4},
     {"_linCmtParse", (DL_FUNC) _linCmtParse, 3},
     {"_RxODE_linCmtGen", (DL_FUNC) _RxODE_linCmtGen, 4},
+    {"_RxODE_rpp_", (DL_FUNC) _RxODE_rpp_, 7},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

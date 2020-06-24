@@ -518,3 +518,65 @@ rxbinom <- function(size, prob, n = 1L, ncores = 1L) {
   rxSeedEng(ncores)
   .Call(`_RxODE_rxbinom_`, size, prob, n, ncores)
 }
+
+
+##' Simulate a from a poission process
+##'
+##' @param n Number of time points to simulate in the poission process
+##' @param lambda Rate of Poission process
+##' @param gamma Asymmetry rate of poission process.  When gamma=1.0,
+##'   this simulates a homogenous poission process.  When gamma<1.0,
+##'   the poission process has more events early, when gamma > 1.0,
+##'   the poission process has more events late in the process.
+##'
+##'   When gamma is non-zero, the tmax should not be infinite but indicate
+##'   the end of the Poission process to be simulated.  In most
+##'   pharamcometric cases, this will be the end of the study.
+##'   Internally this uses a rate of:
+##'
+##'   l(t) = lambda*gamma*(t/tmax)^(gamma-1)
+##'
+##'
+##' @param prob When specified, this is a probability function with
+##'   one argument, time, that gives the probability that a poission
+##'   time t is accepted as a rejection time.
+##'
+##' @param t0 the starting time of the Poisson process
+##'
+##' @param tmax the maximum time of the Poisson process
+##'
+##' @return
+##'
+##' This returns a vector of the Poisson process times; If the dropout is >=
+##' tmax, then all the rest of the times are = tmax to indicate the
+##' dropout is equal to or after tmax.
+##'
+##' @author Matthew Fidler
+##' @export
+##' @examples
+##'
+##' ## Sample homogenous Poisson process of rate 1/10
+##' rxPp(10, 1/10)
+##'
+##' ## Sample inhomogenous Poission rate of 1/10
+##'
+##' rxPp(10, 1/10,gamma=2,tmax=100)
+##'
+##' ## Typically the Poisson process times are in a sequential order,
+##' ## using randomOrder gives the Poisson process in random order
+##'
+##' rxPp(10, 1/10,gamma=2,tmax=10, randomOrder=TRUE)
+##'
+##' ## This uses an arbitrary function to sample a non-homogenous Poisson process
+##'
+##' rxPp(10, 1/10, prob=function(x){1/x})
+##'
+rxPp <- function(n, lambda, gamma=1.0, prob=NULL, t0=0.0, tmax=Inf, randomOrder=FALSE){
+  checkmate::assertNumeric(t0, len=1, any.missing=FALSE)
+  checkmate::assertNumeric(tmax, len=1, any.missing=FALSE, lower=t0)
+  checkmate::assertNumeric(gamma, len=1, any.missing=FALSE, lower=.Machine$double.eps)
+  checkmate::assertNumeric(lambda, len=1, any.missing=FALSE, lower=.Machine$double.eps)
+  checkmate::assertIntegerish(n, len=1, any.missing=FALSE, lower=1L)
+  checkmate::assertLogical(randomOrder, len=1, any.missing=FALSE)
+  .Call(`_RxODE_rpp_`, n, lambda, gamma, prob, t0, tmax, randomOrder, PACKAGE="RxODE")
+}
