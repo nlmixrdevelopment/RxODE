@@ -14,6 +14,7 @@ Authors@R: c(
       role = "ctb", email = "justin.wilkins@occams.com", comment=c(ORCID="0000-0002-7099-9396")),
    person("Alan", "Hindmarsh",role="ctb"),
    person("Awad H.", "Al-Mohy",role="ctb"),
+   person("Bill", "Denney", role=c("ctb"), email="wdenney@humanpredictions.com", comment=c(ORCID="0000-0002-5759-428X")),
    person("Cleve", "Moler", role="ctb"),
    person("David", "Cooley", role="ctb"), 
    person("Daniel C.", "Dillon", role="ctb"),
