@@ -2611,6 +2611,7 @@ static inline void rxSolve_simulate(const RObject &obj,
   bool simSubjects = false;
 
   op->ncoresRV = nCoresRV;
+  rx->nevid9 = 0;
 
   if (!thetaMat.isNull() || !rxIsNull(omega) || !rxIsNull(sigma)){
     // Simulated Variable3
@@ -2620,7 +2621,6 @@ static inline void rxSolve_simulate(const RObject &obj,
     }
     unsigned int nSub0 = 0;
     int curObs = 0;
-    rx->nevid9 = 0;
     rx->nall = 0;
     rx->nobs = 0;
     rx->nobs2 = 0;
@@ -2642,6 +2642,7 @@ static inline void rxSolve_simulate(const RObject &obj,
 	  if (evid[j] == 0) rx->nobs2++;
 	  if (evid[j] == 9) evid9++;
 	}
+	REprintf("1@evid9: %d\n", evid9);
 	rx->nevid9 = evid9;
       } else {
 	nSub0 =1;
@@ -3148,6 +3149,7 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     rx->nobs = nobst;
     rx->nobs2 = nobs2t;
     rx->nall = nall;
+    REprintf("2@evid9: %d\n", nevid9);
     rx->nevid9 = nevid9;
     // Finalize the prior individual
     ind->n_all_times    = ndoses+nobs;
@@ -4277,13 +4279,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       rxSolveDat->usePar1=true;
       // REprintf("\nnesting:\n");
     }
-    // REprintf("nrows: %d\n",
-    // 	     Rf_length(VECTOR_ELT(rxSolveDat->par1, 0)));
-    // REprintf("ncols: %d\n",
-    // 	     Rf_length(rxSolveDat->par1));
-    // REprintf("nSub: %d, nStud: %d\n", as<int>(rxControl[Rxc_nSub]),
-    // 	     as<int>(rxControl[Rxc_nStud]));
-    // print(wrap(rxSolveDat->par1));
     // .sigma could be reassigned in an update, so check outside simulation function.
     if (_rxModels.exists(".sigma")){
       if (Rf_isMatrix(_rxModels[".sigma"])) {
