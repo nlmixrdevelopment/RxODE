@@ -47,6 +47,18 @@ typedef struct sbuf {
   int sN;
   int o;                        /* offset of print buffer */
 } sbuf;
+  
+typedef struct vLines {
+  char *s;
+  int sN;
+  int o;
+  int n;
+  int nL;
+  char **line;
+  int *lProp;
+  int *lType;
+  int *os;
+} vLines;
 
 typedef struct {
   // These options should not change based on an individual solve
@@ -209,6 +221,9 @@ typedef struct {
   int sumType;
   int prodType;
   int sensType;
+  vLines factors;
+  vLines factorNames;
+  int hasFactors;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);

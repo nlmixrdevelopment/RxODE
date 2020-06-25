@@ -179,20 +179,6 @@ sbuf s_aux_info;
 sbuf s_inits;
 
 /* char s_aux_info[64*MXSYM*4]; */
-
-typedef struct vLines {
-  char *s;
-  int sN;
-  int o;
-  int n;
-  int nL;
-  char **line;
-  int *lProp;
-  int *lType;
-  int *os;
-} vLines;
-
-
 typedef struct symtab {
   vLines ss; // Symbol string or symbol lines
   /* char ss[64*MXSYM]; */                     /* symbol string: all vars*/

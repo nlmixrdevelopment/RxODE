@@ -2229,6 +2229,7 @@ extern "C" void rxOptionsIniEnsure(int mx);
 extern "C" void parseFree(int last);
 extern "C" void rxClearFuns();
 extern "C" void rxFreeLast();
+extern "C" void lineFree(vLines *sbb);
 //' Free the C solving/parsing information.
 //'
 //' Take the ODE C system and free it.
@@ -2237,6 +2238,11 @@ extern "C" void rxFreeLast();
 //' @export
 // [[Rcpp::export]]
 LogicalVector rxSolveFree(){
+  rx_solve* rx = getRxSolve_();
+  if (rx->hasFactors == 1){
+    lineFree(&(rx->factors));
+    lineFree(&(rx->factorNames));
+  }  
   if (!rxIsNull(rxSolveFreeObj)) {
     rxUnlock(rxSolveFreeObj);
     rxSolveFreeObj=R_NilValue;
@@ -2416,6 +2422,9 @@ static inline SEXP rxSolve_update(const RObject &object,
   return dat;
 }
 
+extern "C" void lineIni(vLines *sbb);
+extern "C" void addLine(vLines *sbb, const char *format, ...);
+
 // This updates the event table with sequences and other similar items
 // This is useful when there is an event table without any
 // observations in it.  This is the way that deSolve/mrgsolve handles
@@ -2535,10 +2544,31 @@ static inline void rxSolve_ev1Update(const RObject &obj,
       rxcLimit = -1;
     }
   }
+  rx->hasFactors=0;
   if (rxIs(ev1, "rxEtTrans")){
     CharacterVector cls = ev1.attr("class");
     List tmpL = cls.attr(".RxODE.lst");
     rx->nobs2 = asInt(tmpL[RxTrans_nobs], "nobs");
+    CharacterVector clsEt = Rf_getAttrib(ev1, R_ClassSymbol);
+    List e   = clsEt.attr(".RxODE.lst");
+    rx->hasFactors=1;
+    lineIni(&(rx->factors));
+    lineIni(&(rx->factorNames));
+    SEXP idLvl = e[RxTrans_idLvl];
+    // Extract ID levels so you can be more explicit in errors/call ID==""
+    int len = Rf_length(idLvl);
+    // ID factors are always present in etTrans
+    addLine(&(rx->factorNames), "%s", "ID");
+    for (int i = 0; i < len; i++) {
+      addLine(&(rx->factors), "%s", CHAR(STRING_ELT(idLvl, i)));
+    }
+    // CMT may or may not be present, but the compartment info is present
+    SEXP cmtLvl = e[RxTrans_cmtInfo];
+    len = Rf_length(cmtLvl);
+    addLine(&(rx->factorNames), "%s", "CMT");
+    for (int i = 0; i < len; i++) {
+      addLine(&(rx->factors), "%s", CHAR(STRING_ELT(idLvl, i)));
+    }
   }
   _rxModels[".lastEv1"] = ev1;
 }

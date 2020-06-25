@@ -98,6 +98,7 @@ static inline double getValue(int idx, double *y, rx_solving_options_ind *ind){
   int i = idx;
   double ret = y[ind->ix[idx]];
   if (ISNA(ret)){
+    // FIXME consisent with NOCB
     // Go backward.
     while (ISNA(ret) && i != 0){
       i--; ret = y[ind->ix[i]];
