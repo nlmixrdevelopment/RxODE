@@ -366,6 +366,18 @@ bool rxIs(const RObject &obj, std::string cls){
 }
 
 Function loadNamespace("loadNamespace", R_BaseNamespace);
+
+Environment cliNS = loadNamespace("cli");
+Function cliAlert = as<Function>(cliNS["cli_alert_info"]);
+
+extern "C" void cliAlert(const char *format, ...) {
+  va_list argptr;
+  char buffer[256];
+  va_start(argptr, format);
+  vsprintf(buffer, 256, format, args);
+  cliAlert(wrap(buffer));
+}
+
 bool _mvnfast=false;
 
 SEXP rxRmvn0(NumericMatrix& A_, arma::rowvec mu, arma::mat sigma,

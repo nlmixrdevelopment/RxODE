@@ -80,6 +80,28 @@ rxPermissive(
 
       rxRmvn(10, c(1), diag(1) * 0.01)
     })
+
+    ## test simulating with zero variance
+
+    test_that("zero variance simulations", {
+
+      m <- 1:3
+
+      s <- diag(rep(0, 3))
+
+      set.seed(1)
+
+      x <- rxRmvn(20, m, s, ncores = 1)
+      expect_true(all(x[, 1] == 1))
+      expect_true(all(x[, 2] == 2))
+      expect_true(all(x[, 3] == 3))
+
+      x <- rxRmvn(20, sigma=s, ncores = 1)
+
+      expect_true(all(x == 0))
+
+    })
+
   },
   test = "norm"
 )

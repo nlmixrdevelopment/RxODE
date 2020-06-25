@@ -25,11 +25,16 @@ SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
   int n = A_.nrow();
   int d = mu.n_elem;
   arma::mat ch;
-  if (isChol){
-    ch=arma::trimatu(sigma);
+  if (sigma.is_zero()){
+    ch = sigma;
   } else {
-    ch=arma::trimatu(arma::chol(sigma));
+    if (isChol){
+      ch=arma::trimatu(sigma);
+    } else {
+      ch=arma::trimatu(arma::chol(sigma));
+    }
   }
+  
   if (n < 1) stop(_("n should be a positive integer"));
   if (ncores < 1) stop(_("'ncores' has to be greater than one"));
   if (d != (int)sigma.n_cols) stop("length(mu) != ncol(sigma)");
@@ -644,18 +649,29 @@ arma::mat rxMvrandn_(NumericMatrix A_,
 
   arma::vec low = lower-trans(mu);
   arma::vec up = upper-trans(mu);
-  if (d == 1){
-    double sd = sqrt(sigma(0,0));
-    double l=low(0)/sd;
-    double u=up(0)/sd;
-    for (int i = 0; i < n; ++i){
-      A[i] = sd*trandn(l, u, eng, a, tol)+mu(0);
+  if (A.is_zero()){
+    if (d == 1){
+      for (int i = 0; i < n; ++i) {
+	A[i] = mu(0);
+      }
+    } else {
+      A.zeros();
+      A.each_row() += mu;
     }
   } else {
-    arma::mat ret = mvrandn(low, up, sigma, n, eng, a, tol,
-			    nlTol, nlMaxiter, ncores);
-    ret.each_row() += mu;
-    std::copy(ret.begin(), ret.end(), A.begin());
+    if (d == 1){
+      double sd = sqrt(sigma(0,0));
+      double l=low(0)/sd;
+      double u=up(0)/sd;
+      for (int i = 0; i < n; ++i) {
+	A[i] = sd*trandn(l, u, eng, a, tol)+mu(0);
+      }
+    } else {
+      arma::mat ret = mvrandn(low, up, sigma, n, eng, a, tol,
+			      nlTol, nlMaxiter, ncores);
+      ret.each_row() += mu;
+      std::copy(ret.begin(), ret.end(), A.begin());
+    }
   }
   return A;
 }
@@ -1126,10 +1142,11 @@ SEXP rxRmvn0(NumericMatrix& A_, arma::rowvec mu, arma::mat sigma,
 SEXP qassertS(SEXP in, const char *test, const char *what);
 
 //[[Rcpp::export]]
-SEXP rxRmvnSEXP(SEXP nS, SEXP muS, SEXP sigmaS,
-			 SEXP lowerS, SEXP upperS, SEXP ncoresS, SEXP isCholS,
-			 SEXP keepNamesS,
-			 SEXP aS, SEXP tolS, SEXP nlTolS, SEXP nlMaxiterS){
+SEXP rxRmvnSEXP(SEXP nS,
+		SEXP muS, SEXP sigmaS,
+		SEXP lowerS, SEXP upperS, SEXP ncoresS, SEXP isCholS,
+		SEXP keepNamesS,
+		SEXP aS, SEXP tolS, SEXP nlTolS, SEXP nlMaxiterS){
   BEGIN_RCPP
   int type = TYPEOF(sigmaS);
   bool isSigmaList = (type == VECSXP);

@@ -73,12 +73,16 @@ NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
   if (p == 1){
     // GetRNGstate();
     NumericMatrix ret(1,1);
-    if (omegaIsChol){
-      ret[0] = nu*omega[0]*omega[0]/(Rf_rgamma(nu/2.0,2.0));
+    if (S.is_zero()) {
+      ret[0] = 0.0;
     } else {
-      ret[0] = nu*omega[0]/(Rf_rgamma(nu/2.0,2.0));
+      if (omegaIsChol){
+	ret[0] = nu*omega[0]*omega[0]/(Rf_rgamma(nu/2.0,2.0));
+      } else {
+	ret[0] = nu*omega[0]/(Rf_rgamma(nu/2.0,2.0));
+      }
+      if (returnChol) ret[0] = sqrt(ret[0]);
     }
-    if (returnChol) ret[0] = sqrt(ret[0]);
     // PutRNGstate();
     return ret;
   } else {
@@ -521,7 +525,9 @@ SEXP expandTheta_(SEXP thetaS, SEXP thetaMatS,
   qassertS(thetaMatS, "M", "thetaMat");
   NumericMatrix thetaMat = as<NumericMatrix>(thetaMatS);
   arma::mat tmpM = as<arma::mat>(thetaMat);
-  if (!tmpM.is_sympd()){
+  if (tmpM.is_zero()){
+    cliAlert(_("zero 'thetaMat' specified, no uncertainty in fixed effects"));
+  } else if (!tmpM.is_sympd()){
     rxSolveFree();
     stop(_("'thetaMat' must be a symmetric, positive definite matrix"));
   }
@@ -688,7 +694,9 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     if (omegaIsChol) {
       omega = omega * omega.t();
     }
-    if (!omega.is_sympd()){
+    if (omega.is_zero()){
+      cliAlert(_("zero 'omega', no between subject variability"));
+    } else if (!omega.is_sympd()){
       rxSolveFree();
       stop(_("'omega' must be symmetric, positive definite"));
     }
@@ -901,7 +909,9 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     if (sigmaIsChol) {
       sigma = sigma * sigma.t();
     }
-    if (!sigma.is_sympd()){
+    if (sigma.is_zero()){
+      cliAlert(_("zero 'sigma', no unexplained variability"));
+    } else if (!sigma.is_sympd()){
       rxSolveFree();
       stop(_("'sigma' must be symmetric, positive definite"));
     }
