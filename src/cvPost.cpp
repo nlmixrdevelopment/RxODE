@@ -497,6 +497,8 @@ SEXP rxRmvnSEXP(SEXP nS, SEXP muS, SEXP sigmaS,
 		SEXP keepNamesS,
 		SEXP aS, SEXP tolS, SEXP nlTolS, SEXP nlMaxiterS);
 
+extern "C" void cliAlert(const char *format, ...);
+
 //[[Rcpp::export]]
 SEXP expandTheta_(SEXP thetaS, SEXP thetaMatS,
 		  SEXP thetaLowerS, SEXP thetaUpperS,

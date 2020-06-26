@@ -368,14 +368,15 @@ bool rxIs(const RObject &obj, std::string cls){
 Function loadNamespace("loadNamespace", R_BaseNamespace);
 
 Environment cliNS = loadNamespace("cli");
-Function cliAlert = as<Function>(cliNS["cli_alert_info"]);
+Function cliAlert0 = as<Function>(cliNS["cli_alert_info"]);
 
 extern "C" void cliAlert(const char *format, ...) {
-  va_list argptr;
+  va_list args;
   char buffer[256];
-  va_start(argptr, format);
-  vsprintf(buffer, 256, format, args);
-  cliAlert(wrap(buffer));
+  va_start(args, format);
+  vsnprintf(buffer, 256, format, args);
+  cliAlert0(wrap(buffer));
+  va_end (args);
 }
 
 bool _mvnfast=false;
