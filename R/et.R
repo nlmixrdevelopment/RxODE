@@ -1152,8 +1152,9 @@ as_tibble.rxEt <- function(x, ...) {
   rxReq("tibble")
   if (rxIs(x, "rxEt")) {
     .x <- x
-    .tmp <- .x[, .x$show, drop = FALSE]
-    class(.tmp) <- c("rxEt2", "data.frame")
+    .show <- .x$show;
+    class(.x) <- "data.frame"
+    .tmp <- .x[, .show, drop = FALSE];
     return(tibble::as_tibble(.tmp, ...))
   } else {
     return(tibble::as_tibble(x, ...))

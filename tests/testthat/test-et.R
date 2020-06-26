@@ -507,12 +507,6 @@ rxPermissive(
         expect_false(inherits(tmp$evid, "rxEvid"))
       })
 
-      test_that("tibble conversion #2", {
-        tmp <- dplyr::as.tbl(ev)
-        expect_equal(names(tmp), c("time", "amt", "rate", "ii", "addl", "evid"))
-        expect_false(inherits(tmp$rate, "rxRateDur"))
-        expect_false(inherits(tmp$evid, "rxEvid"))
-      })
     }
 
     context("seq() arguments work; See #97")

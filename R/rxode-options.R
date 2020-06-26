@@ -9,6 +9,13 @@
   if (requireNamespace("mvnfast", quietly = TRUE)) {
     assignInMyNamespace(".mvnfast", loadNamespace("mvnfast"))
   }
+
+  .s3register("tibble::as_tibble", "rxEt")
+  .s3register("data.table::as.data.table", "rxEt")
+
+  ## .s3Register("tibble::as_tibble", "rxEt")
+  ## .s3Register("as.data.table", "rxEt")
+
   backports::import(pkgname)
   ## Setup RxODE.prefer.tbl
   .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO") == "1")
