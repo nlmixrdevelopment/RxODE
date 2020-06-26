@@ -700,7 +700,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       omega = omega * omega.t();
     }
     if (omega.is_zero()){
-      cliAlert(_("zero 'omega', no between subject variability"));
+      cliAlert(_("zero 'omega', no variability from random-effects"));
     } else if (!omega.is_sympd()){
       rxSolveFree();
       stop(_("'omega' must be symmetric, positive definite"));
