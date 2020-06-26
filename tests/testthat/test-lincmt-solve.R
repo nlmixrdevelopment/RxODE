@@ -2256,14 +2256,6 @@ rxPermissive(
         s1 <- rxSolve(pk2sK$inner, parms2, et, sensType = sens)
         o1 <- rxSolve(pk2oK$inner, parms2, et, sensType = sens)
 
-        library(patchwork)
-        plot(s1, rx_pred_) / plot(o1, rx_pred_)
-        plot(s1, rx__sens_rx_pred__BY_ETA_1___) / plot(o1, rx__sens_rx_pred__BY_ETA_1___)
-        plot(s1, rx__sens_rx_pred__BY_ETA_2___) / plot(o1, rx__sens_rx_pred__BY_ETA_2___)
-        plot(s1, rx__sens_rx_pred__BY_ETA_3___) / plot(o1, rx__sens_rx_pred__BY_ETA_3___)
-        plot(s1, rx__sens_rx_pred__BY_ETA_4___) / plot(o1, rx__sens_rx_pred__BY_ETA_4___)
-
-
         expect_equal(s1$rx_pred_, o1$rx_pred_, tolerance = tol)
         expect_equal(s1$rx__sens_rx_pred__BY_ETA_1___, o1$rx__sens_rx_pred__BY_ETA_1___, tolerance = tol)
         expect_equal(s1$rx__sens_rx_pred__BY_ETA_2___, o1$rx__sens_rx_pred__BY_ETA_2___, tolerance = tol)
