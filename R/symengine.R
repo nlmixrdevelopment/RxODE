@@ -1142,9 +1142,9 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
         } else if (any(.fun == c("max", "min"))) {
           .ret <- paste0(.fun, "(", paste(unlist(.ret0), collapse = ","), ")")
         } else if (.fun == "sum") {
-          .ret <- paste0(.fun, "(", paste(paste0("(", unlist(.ret0), ")"), collapse = "+"), ")")
+          .ret <- paste0("(", paste(paste0("(", unlist(.ret0), ")"), collapse = "+"), ")")
         } else if (.fun == "prod") {
-          .ret <- paste0(.fun, "(", paste(paste0("(", unlist(.ret0), ")"), collapse = "*"), ")")
+          .ret <- paste0("(", paste(paste0("(", unlist(.ret0), ")"), collapse = "*"), ")")
         } else if (.fun == "logit") {
           if (length(.ret0) == 1) {
             .ret <- paste0("-log(1/(", unlist(.ret0), ")-1)")
