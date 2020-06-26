@@ -2655,7 +2655,6 @@ static inline void rxSolve_simulate(const RObject &obj,
 	  if (evid[j] == 0) rx->nobs2++;
 	  if (evid[j] == 9) evid9++;
 	}
-	REprintf("1@evid9: %d\n", evid9);
 	rx->nevid9 = evid9;
       } else {
 	nSub0 =1;
@@ -3162,7 +3161,6 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     rx->nobs = nobst;
     rx->nobs2 = nobs2t;
     rx->nall = nall;
-    REprintf("2@evid9: %d\n", nevid9);
     rx->nevid9 = nevid9;
     // Finalize the prior individual
     ind->n_all_times    = ndoses+nobs;

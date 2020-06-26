@@ -69,6 +69,9 @@ arma::mat rwish5(double nu, int p){
 NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
                       bool returnChol = false){
   arma::mat S =as<arma::mat>(omega);
+  if (S.is_zero()){
+    return omega;
+  }
   int p = S.n_rows;
   if (p == 1){
     // GetRNGstate();
