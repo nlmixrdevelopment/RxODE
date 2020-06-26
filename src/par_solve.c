@@ -2615,13 +2615,12 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       for (i = 0; i < ntimes; i++){
 	double *yp = ind->solve+i*op->neq;      
         evid = ind->evid[ind->ix[i]];
-	int evid9 = (evid == 9);
+	if (evid == 9) continue;
 	if (nlhs){
 	  rxCalcLhsP(i, rx, neq[1]);
 	  // In case the evid/time has been re-ordered
 	  evid = ind->evid[ind->ix[i]]; 
 	}
-	if (evid9) continue;
 	if (subsetEvid == 1){
 	  if (isObs(evid) && evid >= 10) continue;
 	  if (isDose(evid)){
