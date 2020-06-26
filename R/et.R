@@ -1213,11 +1213,6 @@ magrittr::`%>%`
 rxEvid <- function(x) {
   return(structure(x, class = "rxEvid"))
 }
-#' @rawNamespace
-#'   S3method(pillar::type_sum, rxEvid)
-#'   S3method(pillar::type_sum, rxRateDur)
-#'   S3method(pillar::pillar_shaft, rxEvid)
-#'   S3method(pillar::pillar_shaft, rxRateDur)
 
 ##' @rdname rxEvid
 ##' @export
@@ -1298,11 +1293,13 @@ as.character.rxEvid <- function(x, ...) {
 }
 
 ##' @rdname rxEvid
+##' @export type_sum.rxEvid
 type_sum.rxEvid <- function(x) {
   "evid"
 }
 
 ##' @rdname rxEvid
+##' @export pillar_shaft.rxEvid
 pillar_shaft.rxEvid <- function(x, ...) {
   .x <- .colorFmt.rxEvid(x)
   pillar::new_pillar_shaft_simple(.x, align = "left")
@@ -1390,7 +1387,7 @@ as.character.rxRateDur <- function(x, ...) {
 }
 
 ##' @rdname rxRateDur
-##' @export
+##' @export type_sum.rxRateDur
 type_sum.rxRateDur <- function(x) {
   .unit <- attr(x, "units")
   if (!is.null(.unit)) {
@@ -1403,6 +1400,7 @@ type_sum.rxRateDur <- function(x) {
 }
 
 ##' @rdname rxRateDur
+##' @export pillar_shaft.rxRateDur
 pillar_shaft.rxRateDur <- function(x, ...) {
   .x <- .colorFmt.rxRateDur(x)
   pillar::new_pillar_shaft_simple(.x, align = "left", width = 10)

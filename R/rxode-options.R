@@ -9,7 +9,15 @@
   if (requireNamespace("mvnfast", quietly = TRUE)) {
     assignInMyNamespace(".mvnfast", loadNamespace("mvnfast"))
   }
-
+  .s3register("pillar::type_sum", "rxEvid")
+  .s3register("pillar::type_sum", "rxRateDur")
+  .s3register("pillar::pillar_shaft", "rxEvid")
+  .s3register("pillar::pillar_shaft", "rxRateDur")
+  .s3register("pillar::type_sum", "units")
+  .s3register("pillar::type_sum", "mixed_units")
+  .s3register("pillar::pillar_shaft", "units")
+  .s3register("pillar::pillar_shaft", "mixed_units")
+  .s3register("pillar::format_type_sum", "type_sum_units")
   .s3register("tibble::as_tibble", "rxEt")
   .s3register("data.table::as.data.table", "rxEt")
 

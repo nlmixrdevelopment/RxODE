@@ -62,7 +62,7 @@ rxPermissive(
     })
 
     test_that("as_data_frame produces reasonable results.", {
-      expect_equal(as.tbl(o1.df), o1.df2)
+      expect_equal(as_tibble(o1.df), o1.df2)
     })
 
     test_that("Character data frame lookup operators [] make sense", {

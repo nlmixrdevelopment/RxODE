@@ -3,12 +3,6 @@
 #' @param x see \link[pillar]{type_sum}
 #' @param ... see \link[pillar]{type_sum}
 #' @param width see \link[pillar]{type_sum}
-#' @rawNamespace
-#'   S3method(pillar::type_sum, units)
-#'   S3method(pillar::type_sum, mixed_units)
-#'   S3method(pillar::pillar_shaft, units)
-#'   S3method(pillar::pillar_shaft, mixed_units)
-#'   S3method(pillar::format_type_sum, type_sum_units)
 type_sum.units <- loadNamespace("units")$type_sum.units
 
 #' @name tibble
@@ -105,10 +99,6 @@ guide_none <- function(title = waiver(), position = waiver()) {
 ##' @importFrom lotri lotri
 ##' @export
 lotri::lotri
-
-##' @importFrom pillar type_sum
-##' @export
-pillar::type_sum
 
 ##' @importFrom ggplot2  label_value
 ##' @export
