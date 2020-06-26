@@ -1046,7 +1046,7 @@ dimnames.rxSolve <- function(x) {
 
 ##' @export
 "[<-.rxSolve" <- function(x, i, j, value) {
-  if (missing(i) && rxIs(j, "character")) {
+  if (missing(i) && !missing(j) && rxIs(j, "character")) {
     ret <- .Call(`_RxODE_rxSolveUpdate`, x, j, value)
     if (is.null(ret)) {
       class(x) <- "data.frame"
