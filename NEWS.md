@@ -29,6 +29,10 @@
 * Completion for all api elements of `rxSolve()` objects, and `et()`
   objects have been added (accessed through `$`)
 
+* Allow simulation with zero matricies, that provide the simulation
+  without variability.  This affects `rxSolve` as well as `rxMvnrnd` and
+  `cvPost` (which will give a zero matrix whenever one is specified)
+
 * `et()` can dose with `length(amt) > 1` as long as the other
   arguments can create a event table.
 
