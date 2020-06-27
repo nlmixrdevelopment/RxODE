@@ -839,7 +839,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
 					NumericVector::create(1e-10), // nlTol
 					IntegerVector::create(100)); // nlMaxiter
       DataFrame newLst = as<DataFrame>(aboveMat);
-      if (!Rf_isNull(et)){
+      if (!Rf_isNull(et) && Rf_length(et) != 0){
 	CharacterVector etListNames = asCv(Rf_getAttrib(et, R_NamesSymbol), "names(et)");
 	int baseSize = et.size();
 	List etFinal(baseSize + newLst.size());

@@ -217,14 +217,14 @@ rxPermissive(
     .ep <- RxODE:::.expandPars(mod, theta, ev,
       control = rxControl(
         omega = lotri(eta.Cl ~ 0.1), dfObs = 10,
-        nStud = 3, nSub = 4
+        nStud = 3, nSub = 20
       )
     )
 
     expect_equal(RxODE:::.rxModels[[".thetaL"]], NULL)
     expect_equal(RxODE:::.rxModels[[".omegaL"]], NULL)
     expect_equal(RxODE:::.rxModels[[".sigmaL"]], NULL)
-    expect_equal(length(.ep$KA), 12L)
+    expect_equal(length(.ep$KA), 60L)
     expect_true(any(names(.ep) == "eta.Cl"))
 
     .ep <- RxODE:::.expandPars(mod, theta, ev,
@@ -249,7 +249,7 @@ rxPermissive(
     expect_equal(length(RxODE:::.rxModels[[".thetaL"]]), 3L)
     expect_equal(length(RxODE:::.rxModels[[".omegaL"]]), 3L)
     expect_equal(RxODE:::.rxModels[[".sigmaL"]], NULL)
-    expect_equal(length(.ep$eta.Ka), 3L)
+    expect_equal(length(.ep$eta.Ka), 60L)
     expect_true(any(names(.ep) == "eta.Cl"))
 
     .ep <- RxODE:::.expandPars(mod, NULL, ev,
@@ -293,6 +293,7 @@ rxPermissive(
     expect_equal(names(.ni$omega), "id")
 
     .en <- RxODE:::rxExpandNesting(mod, .ni)
+
   },
   test = "lvl2"
 )
