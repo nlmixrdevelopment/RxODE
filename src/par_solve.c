@@ -1665,8 +1665,8 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   ind->solved = -1;
   for(i=0; i<nx; i++) {
     ind->idx=i;
-    xout = getTime(ind->ix[i], ind, yp);
     yp = ret+neq[0]*i;
+    xout = getTime(ind->ix[i], ind, yp);
     if(ind->evid[ind->ix[i]] != 3 && xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
       if (ind->err){
 	*rc = -1000;
