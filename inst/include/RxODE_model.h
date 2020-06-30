@@ -88,9 +88,9 @@
 #define rf(ind, x, y) rxf(ind, x, y)
 // int compareFactorVal(int val, const char *valStr, const char *cmpValue)
 // equality_str2 : identifier_r ('!=' | '==' ) string;
-#define _cmp2(val, valStr, type, cmpStr) (type ? _compareFactorVal(val, valStr, cmpStr) | !_compareFactorVal(val, valStr, cmpStr))
-// equality_str1 : string ('!=' | '==' ) identifier_r;
-#define _cmp1(cmpStr, type, val, valStr) (type ? _compareFactorVal(val, valStr, cmpStr) | !_compareFactorVal(val, valStr, cmpStr))
+#define _cmp2(val, valStr, type, cmpStr) (type ? _compareFactorVal(val, valStr, cmpStr) : !_compareFactorVal(val, valStr, cmpStr))
+// equality_str1 : string ('!=' | '==' ) identifier_r; //type=1 is equal, type=0 not equal
+#define _cmp1(cmpStr, type, val, valStr) (type ? _compareFactorVal(val, valStr, cmpStr) : !_compareFactorVal(val, valStr, cmpStr))
 
 // Types for par pointers.r
 typedef int (*RxODE_compareFactorVal_fn)(int val, const char *factor, const char *value);

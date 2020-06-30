@@ -1098,6 +1098,84 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
       D_ParseNode *xpn = d_get_child(pn,i);
 
+      if (nodeHas(equality_str1)){
+	if (i == 0){
+	  // string
+	  aAppendN("_cmp1(", 6);
+	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  sAppend(&sb, "%s, ", v);
+	  sAppend(&sbDt, "%s, ", v);
+	  sAppend(&sbt, "%s", v);
+	  Free(v);
+	  continue;
+	}
+	if (i == 1) {
+	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  if (!strcmp(v, "==")) {
+	    aAppendN("1, ", 3);
+	  } else {
+	    aAppendN("0, ", 3);
+	  }
+	  sAppend(&sbt, "%s", v);
+	  Free(v);
+	  continue;
+	}
+	if (i == 2) {
+	  // identifier_r
+	  // val, valstr
+	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  if (!strcmp(v, "id") || !strcmp(v, "ID") || !strcmp(v, "Id")){
+	    aAppendN("(&_solveData->subjects[_cSub])->id, \"ID\")", 41);
+	    sAppendN(&sbt, "ID", 2);
+	  } else {
+	    if (new_or_ith(v)) addSymbolStr(v);
+	    sAppend(&sb, "%s, \"%s\")", v, v);
+	    sAppend(&sbDt, "%s, \"%s\")", v, v);
+	    sAppend(&sbt, "%s", v);
+	  }
+	  Free(v);
+	  continue;
+	}
+      }
+      if (nodeHas(equality_str2)){
+	if (i == 0){
+	  // identifier_r
+	  aAppendN("_cmp2(", 6);
+	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  if (!strcmp(v, "id") || !strcmp(v, "ID") || !strcmp(v, "Id")){
+	    aAppendN("(&_solveData->subjects[_cSub])->id, \"ID\", ", 42);
+	    sAppendN(&sbt, "ID", 2);
+	  } else {
+	    if (new_or_ith(v)) addSymbolStr(v);
+	    sAppend(&sb, "%s, \"%s\", ", v, v);
+	    sAppend(&sbDt, "%s, \"%s\", ", v, v);
+	    sAppend(&sbt, "%s", v);
+	  }
+	  Free(v);
+	  continue;
+	}
+	if (i == 1) {
+	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  if (!strcmp(v, "==")) {
+	    aAppendN("1, ", 3);
+	  } else {
+	    aAppendN("0, ", 3);
+	  }
+	  sAppend(&sbt, "%s", v);
+	  Free(v);
+	  continue;
+	}
+	if (i == 2) {
+	  // str
+	  // val, valstr
+	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  sAppend(&sb, "%s)", v);
+	  sAppend(&sbDt, "%s)", v);
+	  sAppend(&sbt, "%s", v);
+	  Free(v);
+	  continue;
+	}
+      }
       if (nodeHas(dvid_statementI)){
 	if (tb.dvidn == 0){
 	  // dvid->cmt translation
