@@ -223,6 +223,7 @@ typedef struct {
   int sensType;
   vLines factors;
   vLines factorNames;
+  int factorNs[500];
   int hasFactors;
 } rx_solve;
   

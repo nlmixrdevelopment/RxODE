@@ -88,6 +88,7 @@
 #define rf(ind, x, y) rxf(ind, x, y)
 
 // Types for par pointers.r
+typedef int (*RxODE_compareFactorVal_fn)(int val, const char *factor, const char *value);
 typedef double (*RxODE_fn) (double x);
 typedef int (*RxODE_ifn) (double x);
 typedef double (*RxODE_fn2) (double x, double y);
@@ -215,6 +216,7 @@ extern RxODEi_ifn rxpois;
 extern RxODEi_fn rxt_;
 extern RxODEi_fn2 rxunif;
 extern RxODEi_fn2 rxweibull;
+extern RxODE_compareFactorVal_fn _compareFactorVal;
 #endif
 
 #endif// __RxODE_model_H__

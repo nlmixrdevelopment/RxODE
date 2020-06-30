@@ -286,6 +286,8 @@ double gamma_p_inv(double a, double p);
 double gamma_q_inva(double a, double q);
 double gamma_p_inva(double a, double p);
 
+int compareFactorVal(int val, const char *factor, const char *value);
+
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
@@ -477,6 +479,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "gammapInva", (DL_FUNC) &gamma_p_inva);
   R_RegisterCCallable("RxODE", "gammaqInv", (DL_FUNC) &gamma_q_inv);
   R_RegisterCCallable("RxODE", "gammaqInva", (DL_FUNC) &gamma_q_inva);
+  R_RegisterCCallable("RxODE", "compareFactorVal", (DL_FUNC) &compareFactorVal);
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},

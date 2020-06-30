@@ -176,6 +176,7 @@ RxODEi_ifn rxpois;
 RxODEi_fn rxt_;
 RxODEi_fn2 rxunif;
 RxODEi_fn2 rxweibull;
+RxODE_compareFactorVal_fn _compareFactorVal;
 void _assignFuns(){
   if (_assign_ptr == NULL){
     _getRxSolve_ = (_getRxSolve_t) R_GetCCallable("RxODE","getRxSolve_");
@@ -218,6 +219,7 @@ void _assignFuns(){
     gammapDer  = (RxODE_fn2) R_GetCCallable("RxODE","gammapDer");
     logit = (RxODE_fn3) R_GetCCallable("RxODE", "logit");
     expit = (RxODE_fn3) R_GetCCallable("RxODE", "expit");
+    _compareFactorVal=(RxODE_compareFactorVal_fn) R_GetCCallable("RxODE", "compareFactorVal");
     _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
     _getParCov = (_getParCov_p) R_GetCCallable("RxODE","_getParCov");
     _solveData = _getRxSolve_();

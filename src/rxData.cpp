@@ -2575,6 +2575,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
     for (int i = 0; i < len; i++) {
       addLine(&(rx->factors), "%s", CHAR(STRING_ELT(idLvl, i)));
     }
+    rx->factorNs[rx->hasFactors++] = len;
     // CMT may or may not be present, but the compartment info is present
     SEXP cmtLvl = e[RxTrans_cmtInfo];
     len = Rf_length(cmtLvl);
@@ -2582,6 +2583,8 @@ static inline void rxSolve_ev1Update(const RObject &obj,
     for (int i = 0; i < len; i++) {
       addLine(&(rx->factors), "%s", CHAR(STRING_ELT(idLvl, i)));
     }
+    rx->factorNs[rx->hasFactors++] = len;
+    // FIXME other factors
   }
   _rxModels[".lastEv1"] = ev1;
 }

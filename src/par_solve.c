@@ -339,7 +339,35 @@ void rxOptionsIniEnsure(int mx){
   Free(inds_global);
   inds_global = Calloc(mx, rx_solving_options_ind);
   rx_solve *rx=(&rx_global);
-  rx->subjects = inds_global;  
+  rx->subjects = inds_global;
+}
+
+int compareFactorVal(int val, const char *factor, const char *value){
+  rx_solve *rx=(&rx_global);
+  int base = 0, curLen= rx->factorNs[0], curG=0;
+  if (!strcmp(factor, "id") ||
+      !strcmp(factor, "ID") ||
+      !strcmp(factor, "Id")) {
+    // Since R factors start at one, val index starts at one too
+    if (val-1 < curLen){
+      return (!strcmp(rx->factors.line[val-1], value));
+    } else {
+      return 0;
+    }
+  }
+  base += curLen;
+  curLen = rx->factorNs[++curG];
+  if (!strcmp(factor, "cmt") ||
+      !strcmp(factor, "CMT") ||
+      !strcmp(factor, "Cmt")) {
+    if (val-1 < curLen){
+      return (!strcmp(rx->factors.line[base+val-1], value));
+    } else {
+      return 0;
+    }
+  }
+  // Other factors
+  return 0;
 }
 
 t_dydt dydt = NULL;
