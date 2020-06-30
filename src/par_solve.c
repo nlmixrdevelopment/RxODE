@@ -345,11 +345,15 @@ void rxOptionsIniEnsure(int mx){
 int compareFactorVal(int val, const char *valStr, const char *cmpValue){
   rx_solve *rx=(&rx_global);
   int base = 0, curLen= rx->factorNs[0], curG=0;
-  if (!strcmp(valStr, "id") ||
-      !strcmp(valStr, "ID") ||
-      !strcmp(valStr, "Id")) {
-    // Since R factors start at one, val index starts at one too
+  if (val == 0) {
+    return 0; // Bad value
+  }
+  if (!strcmp(valStr, "ID")) {
+    // For ID these are zero
     if (val-1 < curLen){
+      if (val-1 >= rx->factors.n) {
+	return 0;
+      }
       return (!strcmp(rx->factors.line[val-1], cmpValue));
     } else {
       return 0;
@@ -361,6 +365,9 @@ int compareFactorVal(int val, const char *valStr, const char *cmpValue){
       !strcmp(valStr, "CMT") ||
       !strcmp(valStr, "Cmt")) {
     if (val-1 < curLen){
+      if (base+val-1 >= rx->factors.n) {
+	return 0;
+      }
       return (!strcmp(rx->factors.line[base+val-1], cmpValue));
     } else {
       return 0;

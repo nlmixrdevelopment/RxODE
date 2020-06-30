@@ -158,6 +158,7 @@ typedef struct {
   int *on;
   int idosen;
   int id;
+  int idReal;
   int sim;
   int idx;
   double ylow;

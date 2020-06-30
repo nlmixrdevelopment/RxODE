@@ -2558,13 +2558,12 @@ static inline void rxSolve_ev1Update(const RObject &obj,
     }
   }
   rx->hasFactors=0;
-  if (rxIs(ev1, "rxEtTrans")){
+  if (rxIs(ev1, "rxEtTran")){
     CharacterVector cls = ev1.attr("class");
     List tmpL = cls.attr(".RxODE.lst");
     rx->nobs2 = asInt(tmpL[RxTrans_nobs], "nobs");
     CharacterVector clsEt = Rf_getAttrib(ev1, R_ClassSymbol);
     List e   = clsEt.attr(".RxODE.lst");
-    rx->hasFactors=1;
     lineIni(&(rx->factors));
     lineIni(&(rx->factorNames));
     SEXP idLvl = e[RxTrans_idLvl];
@@ -3090,6 +3089,7 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
 	}
 	// Setup the pointers.
 	ind->id             = nsub+1;
+	ind->idReal         = id[i];
 	ind->solved = -1;
 	ind->bT = NA_REAL;
 	ind->allCovWarn = 0;
@@ -3399,6 +3399,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	    ind->evid =&(indS.evid[0]);
 	    ind->all_times = &(indS.all_times[0]);
 	    ind->id=id+1;
+	    ind->idReal = indS.idReal;
 	    ind->lambda=1.0;
 	    ind->yj = 0;
 	    ind->doSS = 0;

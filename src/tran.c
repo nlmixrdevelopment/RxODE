@@ -1125,7 +1125,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  // val, valstr
 	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  if (!strcmp(v, "id") || !strcmp(v, "ID") || !strcmp(v, "Id")){
-	    aAppendN("(&_solveData->subjects[_cSub])->id, \"ID\")", 41);
+	    aAppendN("(&_solveData->subjects[_cSub])->idReal, \"ID\")", 45);
 	    sAppendN(&sbt, "ID", 2);
 	  } else {
 	    if (new_or_ith(v)) addSymbolStr(v);
@@ -1143,7 +1143,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  aAppendN("_cmp2(", 6);
 	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  if (!strcmp(v, "id") || !strcmp(v, "ID") || !strcmp(v, "Id")){
-	    aAppendN("(&_solveData->subjects[_cSub])->id, \"ID\", ", 42);
+	    aAppendN("(&_solveData->subjects[_cSub])->idReal, \"ID\", ", 46);
 	    sAppendN(&sbt, "ID", 2);
 	  } else {
 	    if (new_or_ith(v)) addSymbolStr(v);

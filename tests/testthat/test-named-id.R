@@ -7,11 +7,47 @@ rxPermissive({
     }
   })
 
+  df <- data.frame(ID=c("matt", "not"),
+                   TIME=c(0, 1))
+
+  ref <- rxSolve(f1, df)
+
+  test_that("id1",{
+    expect_equal(ref$a, c(2, 1))
+  })
+
+  df <- data.frame(ID=c("not", "matt"),
+                   TIME=c(0, 1))
+
+  ref <- rxSolve(f1, df)
+
+  test_that("id2",{
+    expect_equal(ref$a, c(1, 2))
+  })
+
   f2 <- RxODE({
     a = 1
     if ("matt" == ID){
       a = 2
     }
+  })
+
+  df <- data.frame(ID=c("matt", "not"),
+                   TIME=c(0, 1))
+
+  ref <- rxSolve(f2, df)
+
+  test_that("id3",{
+    expect_equal(ref$a, c(2, 1))
+  })
+
+  df <- data.frame(ID=c("not", "matt"),
+                   TIME=c(0, 1))
+
+  ref <- rxSolve(f2, df)
+
+  test_that("id2",{
+    expect_equal(ref$a, c(1, 2))
   })
 
   f3 <- RxODE({
