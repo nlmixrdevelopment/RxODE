@@ -342,26 +342,26 @@ void rxOptionsIniEnsure(int mx){
   rx->subjects = inds_global;
 }
 
-int compareFactorVal(int val, const char *factor, const char *value){
+int compareFactorVal(int val, const char *valStr, const char *cmpValue){
   rx_solve *rx=(&rx_global);
   int base = 0, curLen= rx->factorNs[0], curG=0;
-  if (!strcmp(factor, "id") ||
-      !strcmp(factor, "ID") ||
-      !strcmp(factor, "Id")) {
+  if (!strcmp(valStr, "id") ||
+      !strcmp(valStr, "ID") ||
+      !strcmp(valStr, "Id")) {
     // Since R factors start at one, val index starts at one too
     if (val-1 < curLen){
-      return (!strcmp(rx->factors.line[val-1], value));
+      return (!strcmp(rx->factors.line[val-1], cmpValue));
     } else {
       return 0;
     }
   }
   base += curLen;
   curLen = rx->factorNs[++curG];
-  if (!strcmp(factor, "cmt") ||
-      !strcmp(factor, "CMT") ||
-      !strcmp(factor, "Cmt")) {
+  if (!strcmp(valStr, "cmt") ||
+      !strcmp(valStr, "CMT") ||
+      !strcmp(valStr, "Cmt")) {
     if (val-1 < curLen){
-      return (!strcmp(rx->factors.line[base+val-1], value));
+      return (!strcmp(rx->factors.line[base+val-1], cmpValue));
     } else {
       return 0;
     }
