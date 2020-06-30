@@ -89,15 +89,15 @@
 .rxOptEnv[["!="]] <- .rxOptBin("!=")
 .rxOptEnv[["["]] <- function(name, val) {
   .n <- toupper(name)
-  .err <- "RxODE only supports THETA[#] and ETA[#] numbers."
+  .err <- gettext("RxODE only supports THETA[#] and ETA[#] numbers")
   if (any(.n == c("THETA", "ETA")) && is.numeric(val)) {
     if (round(val) == val && val > 0) {
       return(sprintf("%s[%s]", .n, val))
     } else {
-      stop(.err)
+      stop(.err, call.=FALSE)
     }
   } else {
-    stop(.err)
+    stop(.err, call.=FALSE)
   }
 }
 .rxOptEnv[["{"]] <- function(...) {
@@ -105,15 +105,15 @@
 }
 .rxOptEnv[["["]] <- function(name, val) {
   .n <- toupper(name)
-  .err <- "RxODE only supports THETA[#] and ETA[#] numbers."
+  .err <- gettext("RxODE only supports THETA[#] and ETA[#] numbers")
   if (any(.n == c("THETA", "ETA")) && is.numeric(val)) {
     if (round(val) == val && val > 0) {
       return(sprintf("%s[%s]", .n, val))
     } else {
-      stop(err)
+      stop(err, call.=FALSE)
     }
   } else {
-    stop(err)
+    stop(err, call.=FALSE)
   }
 }
 
@@ -155,7 +155,7 @@
       if (progress) {
         rxProgress(length(.x2))
         on.exit({
-          rxProgressAbort("Stopped optimizing duplicate expressions")
+          rxProgressAbort("stopped optimizing duplicate expressions")
         })
         .ret <- unlist(lapply(.x2, function(x) {
           rxTick()
@@ -260,7 +260,7 @@
             } else if (identical(x[[1]], quote(`-`))) {
               return(as.character(x[[2]]))
             } else if (identical(x[[2]], quote(`/`))) {
-              stop("cannot divide by zero")
+              stop("cannot divide by zero", call.=FALSE)
             }
           }
         }

@@ -30,10 +30,10 @@ rxIsBlock <- function(mat, i) {
 rxSymInvC2 <- function(mat1, diag.xform = c("sqrt", "log", "identity"),
                        allow.cache = TRUE) {
   if (!all(as.vector(mat1) == 1)) {
-    stop("this has to be a matrix of all 1s or 0s.")
+    stop("this has to be a matrix of all 1s or 0s", call.=FALSE)
   }
   if (any(diag(mat1) == 0)) {
-    stop("diagonal elements must be non-zero.")
+    stop("diagonal elements must be non-zero", call.=FALSE)
   }
   cache.file <- file.path(
     rxTempDir(),
@@ -250,7 +250,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform = c("sqrt", "log", "identity")) {
     chol(mat2)
   })
   if (inherits(mat2, "try-error")) {
-    stop("initial 'omega' matrix inverse is non-positive definite.")
+    stop("initial 'omega' matrix inverse is non-positive definite", call.=FALSE)
   }
   mat3 <- mat2
   if (diag.xform == "sqrt") {
@@ -317,7 +317,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform = c("sqrt", "log", "identity")) {
       }
       w <- which(fmat[upper.tri(fmat, TRUE)] != "0")
       if (length(w) == 0) {
-        stop("zero matrix")
+        stop("zero matrix", call.=FALSE)
       }
       ## signature(theta="numeric", tn="integer")
       ## FIXME move these functions to Cpp?

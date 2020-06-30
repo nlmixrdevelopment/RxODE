@@ -153,10 +153,11 @@ rxControl <- function(scale = NULL,
       c("linear", "locf", "nocb", "midpoint")) - 1)
   }
   if (any(duplicated(names(.xtra)))) {
-    stop("duplicate arguments do not make sense")
+    stop("duplicate arguments do not make sense", .call=FALSE)
   }
   if (any(names(.xtra) == "covs")) {
-    stop("covariates can no longer be specified by 'covs' include them in the event dataset")
+    stop("covariates can no longer be specified by 'covs' include them in the event dataset",
+         .call=FALSE)
   }
   if (missing(cores)) {
     cores <- RxODE::rxCores()
@@ -729,10 +730,12 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
   .rxParams <- NULL
   if (rxIs(object, "rxEt")) {
     if (!is.null(events)) {
-      stop("events can be pipeline or solving arguments not both")
+      stop("events can be pipeline or solving arguments not both",
+           call.=FALSE)
     }
     if (is.null(.pipelineRx)) {
-      stop("need an RxODE compiled model as the start of the pipeline")
+      stop("need an RxODE compiled model as the start of the pipeline",
+           call.=FALSE)
     } else {
       events <- object
       object <- .pipelineRx
@@ -743,13 +746,15 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
       params <- object$params
     }
     if (is.null(.pipelineRx)) {
-      stop("need an RxODE compiled model as the start of the pipeline")
+      stop("need an RxODE compiled model as the start of the pipeline",
+           call.=FALSE)
     } else {
       .rxParams <- object
       object <- .pipelineRx
     }
     if (is.null(.pipelineEvents)) {
-      stop("need an RxODE events as a part of the pipeline")
+      stop("need an RxODE events as a part of the pipeline",
+           call.=FALSE)
     } else {
       events <- .pipelineEvents
       assignInMyNamespace(".pipelineEvents", NULL)
@@ -758,22 +763,26 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
   if (!is.null(.pipelineEvents) && is.null(events) && is.null(params)) {
     events <- .pipelineEvents
   } else if (!is.null(.pipelineEvents) && !is.null(events)) {
-    stop("'events' in pipeline AND in solving arguments, please provide just one")
+    stop("'events' in pipeline AND in solving arguments, please provide just one",
+         call.=FALSE)
   } else if (!is.null(.pipelineEvents) && !is.null(params) &&
     rxIs(params, "event.data.frame")) {
-    stop("'events' in pipeline AND in solving arguments, please provide just one")
+    stop("'events' in pipeline AND in solving arguments, please provide just one",
+         call.=FALSE)
   }
 
   if (!is.null(.pipelineParams) && is.null(params)) {
     params <- .pipelineParams
   } else if (!is.null(.pipelineParams) && !is.null(params)) {
-    stop("'params' in pipeline AND in solving arguments, please provide just one")
+    stop("'params' in pipeline AND in solving arguments, please provide just one",
+         call.=FALSE)
   }
 
   if (!is.null(.pipelineInits) && is.null(inits)) {
     inits <- .pipelineInits
   } else if (!is.null(.pipelineInits) && !is.null(inits)) {
-    stop("'inits' in pipeline AND in solving arguments, please provide just one")
+    stop("'inits' in pipeline AND in solving arguments, please provide just one",
+         call.=FALSE)
   }
 
   if (.applyParams) {
@@ -783,10 +792,12 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
   }
   .xtra <- list(...)
   if (any(duplicated(names(.xtra)))) {
-    stop("duplicate arguments do not make sense")
+    stop("duplicate arguments do not make sense",
+         call.=FALSE)
   }
   if (any(names(.xtra) == "covs")) {
-    stop("covariates can no longer be specified by 'covs'\n  include them in the event dataset\n\nindividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\ntime varying covariates: modify input event data-frame or\n  'eventTable' to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the variable in the model\n")
+    stop("covariates can no longer be specified by 'covs'\n  include them in the event dataset\n\nindividual covariates: Can be specified by a 'iCov' dataset\n each each individual covariate has a value\n\ntime varying covariates: modify input event data-frame or\n  'eventTable' to include covariates(https://tinyurl.com/y52wfc2y)\n\nEach approach needs the covariates named to match the variable in the model",
+         call.=FALSE)
   }
   .nms <- names(as.list(match.call())[-1])
   .lst <- list(...)
@@ -799,7 +810,8 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
   .n2 <- c(.n1, setdiff(intersect(tolower(names(events)), tolower(names(.ctl$iCov))), "id"))
   .n1 <- unique(c(.n1, .n2))
   if (length(.n1) > 0) {
-    stop(sprintf("'iCov' has information contained in parameters/event data\nduplicate columns: '%s'", paste(.n1, collapse = "', '")))
+    stop(sprintf(gettext("'iCov' has information contained in parameters/event data\nduplicate columns: '%s'"),
+                 paste(.n1, collapse = "', '")), call.=FALSE)
   }
   if (!is.null(.pipelineThetaMat) && is.null(.ctl$thetaMat)) {
     .ctl$thetaMat <- .pipelineThetaMat
@@ -876,11 +888,13 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
     .ctl$nSub <- length(.ctl$iCov[, 1])
   } else if (.ctl$nSub != 1 && .ctl$nStud == 1 && inherits(.ctl$iCov, "data.frame")) {
     if (.ctl$nSub != length(.ctl$iCov[, 1])) {
-      stop("'nSub' does not match the number of subjects in 'iCov'")
+      stop("'nSub' does not match the number of subjects in 'iCov'",
+           call.=FALSE)
     }
   } else if (.ctl$nSub != 1 && .ctl$nStud != 1 && inherits(.ctl$iCov, "data.frame")) {
     if (.ctl$nSub * .ctl$nStud != length(.ctl$iCov[, 1])) {
-      stop("'nSub'*'nStud' does not match the number of subjects in 'iCov'")
+      stop("'nSub'*'nStud' does not match the number of subjects in 'iCov'",
+           call.=FALSE)
     }
   }
   ## Prefers individual keep over keeping from the input data

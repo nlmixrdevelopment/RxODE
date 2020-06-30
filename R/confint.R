@@ -6,7 +6,7 @@ confint.rxSolve <- function(object, parm = NULL, level = 0.95, ...) {
   ## RxODE::rxReq("dplyr")
   ## RxODE::rxReq("tidyr")
   if (level <= 0 || level >= 1) {
-    stop("simulation summaries must be between 0 and 1")
+    stop("simulation summaries must be between 0 and 1", call.=FALSE)
   }
   .stk <- rxStack(object, parm)
   data.table::setDT(.stk)
@@ -19,9 +19,10 @@ confint.rxSolve <- function(object, parm = NULL, level = 0.95, ...) {
   class(.lst) <- "rxHidden"
   if (object$env$.args$nStud <= 1) {
     if (object$env$.args$nSub < 2500) {
-      warning("In order to put confidence bands around the intervals, you need at least 2500 simulations.")
+      warning("in order to put confidence bands around the intervals, you need at least 2500 simulations")
       message("summarizing data...", appendLF = FALSE)
-      .stk <- .stk[, list(p1 = .p, eff = stats::quantile(.SD$value, probs = .p, na.rm = TRUE), Percentile = sprintf("%s%%", .p * 100)),
+      .stk <- .stk[, list(p1 = .p, eff = stats::quantile(.SD$value, probs = .p, na.rm = TRUE),
+                          Percentile = sprintf("%s%%", .p * 100)),
         by = c("time", "trt")
       ]
       if (requireNamespace("tibble", quietly = TRUE)) {
@@ -30,7 +31,7 @@ confint.rxSolve <- function(object, parm = NULL, level = 0.95, ...) {
       .cls <- c("rxSolveConfint1", class(.stk))
       attr(.cls, ".rx") <- .lst
       class(.stk) <- .cls
-      message("done.")
+      message("done")
       return(.stk)
     } else {
       .n <- round(sqrt(object$env$.args$nSub))
@@ -41,7 +42,7 @@ confint.rxSolve <- function(object, parm = NULL, level = 0.95, ...) {
   } else {
     .n <- object$env$.args$nStud
   }
-  message("Summarizing data")
+  message("summarizing data...", appendLF = FALSE)
   .ret <- .stk[, id := sim.id %% .n][, list(p1 = .p, eff = stats::quantile(.SD$value, probs = .p, na.rm = TRUE)), by = c("id", "time", "trt")][, setNames(
     as.list(stats::quantile(.SD$eff, probs = .p, na.rm = TRUE)),
     sprintf("p%s", .p * 100)
@@ -52,7 +53,7 @@ confint.rxSolve <- function(object, parm = NULL, level = 0.95, ...) {
   if (requireNamespace("tibble", quietly = TRUE)) {
     .ret <- tibble::as_tibble(.ret)
   }
-  message("done.")
+  message("done")
   .cls <- c("rxSolveConfint2", class(.ret))
   attr(.cls, ".rx") <- .lst
   class(.ret) <- .cls

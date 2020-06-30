@@ -53,7 +53,7 @@ rxUnloadAll <- function() {
 rxReq <- function(pkg) {
   ## nocov start
   if (!requireNamespace(pkg, quietly = TRUE)) {
-    stop(sprintf("package \"%s\" needed for this function to work", pkg),
+    stop(sprintf(gettext("package \"%s\" needed for this function to work"), pkg),
       call. = FALSE
     )
   }
@@ -186,7 +186,7 @@ ode.h <- function() {
 ##'
 ##' @export
 rxSetSum <- function(type = c("pairwise", "fsum", "kahan", "neumaier", "c")) {
-  stop("'rxSetSum' has been moved to rxSolve(...,sum=)")
+  stop("'rxSetSum' has been moved to rxSolve(...,sum=)", call.=FALSE)
 }
 
 ##' Defunct setting of product
@@ -195,7 +195,7 @@ rxSetSum <- function(type = c("pairwise", "fsum", "kahan", "neumaier", "c")) {
 ##'
 ##' @export
 rxSetProd <- function(type = c("long double", "double", "logify")) {
-  stop("'rxSetProd' has been moved to rxSolve(...,sum=)")
+  stop("'rxSetProd' has been moved to rxSolve(...,sum=)", call.=FALSE)
 }
 
 ##' Set timing for progress bar

@@ -134,7 +134,8 @@ rxExpandGrid <- function(x, y, type = 0L) {
   })
   if (!identical(.tmp, character())) {
     if (!any(.tmp == .goodFns)) {
-      stop(sprintf("'%s' is from '%s' and cannot be used in this context", deparse(substitute(x)), .tmp))
+      stop(sprintf(gettext("'%s' is from '%s' and cannot be used in this context"), deparse(substitute(x)), .tmp),
+           call.=FALSE)
     }
   }
 }
@@ -199,10 +200,12 @@ rxExpandGrid <- function(x, y, type = 0L) {
         .inis <- paste(paste0(rxState(rx), "(0)=", .inis, "+0.0;"), collapse = "\n")
         .txt[.w] <- .inis
       } else {
-        stop("specified %s initial conditions when there are only %s states", length(.inis), length(rxState(rx)))
+        stop(gettext("specified %s initial conditions when there are only %s states"),
+             length(.inis), length(rxState(rx)), call.=FALSE)
       }
     } else if (length(.w) > 1) {
-      stop("only one 'initCondition=' supported")
+      stop("only one 'initCondition=' supported",
+           call.=FALSE)
     }
     .newmod <- rxGetModel(paste0(paste(.txt, collapse = "\n"), "\n", rxNorm(rx)))
     return(.newmod)
@@ -312,7 +315,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
     .etaVars <- paste0("ETA_", seq(1, .s$..maxEta), "_")
   }
   if (length(.etaVars) == 0L) {
-    stop("cannot identify parameters for sensitivity analysis")
+    stop("cannot identify parameters for sensitivity analysis", call.=FALSE)
   }
   .stateVars <- rxState(.s)
   .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
@@ -367,7 +370,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
     return(.ret)
   })
   if (.all.zero) {
-    stop("none of the predictions depend on 'ETA'")
+    stop("none of the predictions depend on 'ETA'", call.=FALSE)
   }
   if (.any.zero) {
     warning("some of the predictions do not depend on 'ETA'")

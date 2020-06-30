@@ -42,14 +42,15 @@ rxParams.RxODE <- function(obj, constants = TRUE, ...,
   }))) {
     if (length(list(...)) > 0) {
       .clearPipe()
-      stop("unknown arguments in 'rxParams'")
+      stop("unknown arguments in 'rxParams'", call.=FALSE)
     }
     return(rxParams.default(obj, constants = constants))
   } else {
     .lst <- list(...)
     if (length(.lst) > 0) {
       .clearPipe()
-      stop(sprintf("unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'", paste(names(.lst), collapse = ", ")))
+      stop(sprintf(gettext("unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'"),
+                   paste(names(.lst), collapse = ", ")), call.=FALSE)
     }
     ## Most likely
     ## RxODE() %>% rxParams() %>%
@@ -94,14 +95,16 @@ rxParams.rxSolve <- function(obj, constants = TRUE, ...,
   }))) {
     if (length(list(...)) > 0) {
       .clearPipe()
-      stop("unknown arguments in 'rxParams'")
+      stop("unknown arguments in 'rxParams'", call.=FALSE)
     }
     return(rxParams.default(obj, constants = constants))
   } else {
     .lst <- list(...)
     if (length(.lst) > 0) {
       .clearPipe()
-      stop(sprintf("unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'", paste(names(.lst), collapse = ", ")))
+      stop(sprintf(gettext("unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'"),
+                   paste(names(.lst), collapse = ", ")),
+           call.=FALSE)
     }
     ## Most likely
     ## solveObject %>% rxParams() %>%
@@ -146,7 +149,8 @@ rxParams.rxEt <- function(obj, ...,
   .lst <- list(...)
   if (length(.lst) > 0) {
     .clearPipe()
-    stop(sprintf("unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'", paste(names(.lst), collapse = ", ")))
+    stop(sprintf(gettext("unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'"), paste(names(.lst), collapse = ", ")),
+         call.=FALSE)
   }
   .ret <- list(
     params = params, inits = inits, iCov = iCov, keep = keep,

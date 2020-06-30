@@ -411,7 +411,7 @@ symengineC[["/"]] <- function(e1, e2) {
 unknownCsymengine <- function(op) {
   force(op)
   function(...) {
-    stop(sprintf("RxODE doesn't support '%s' translation for 'omega' translation", op))
+    stop(sprintf(gettext("RxODE doesn't support '%s' translation for 'omega' translation"), op), call.=FALSE)
   }
 }
 
@@ -460,7 +460,7 @@ allNames <- function(x) {
     children <- lapply(x[-1], allNames)
     unique(unlist(children))
   } else {
-    stop(sprintf("do not know how to handle type '%s'", typeof(x)),
+    stop(sprintf(gettext("do not know how to handle type '%s'"), typeof(x)),
       call. = FALSE
     )
   }
@@ -476,7 +476,7 @@ allCalls <- function(x) {
   } else if (is.pairlist(x)) {
     unique(unlist(lapply(x[-1], allCalls), use.names = FALSE))
   } else {
-    stop(sprintf("do not know how to handle type '%s'", typeof(x)),
+    stop(sprintf(gettext("do not know how to handle type '%s'"), typeof(x)),
       call. = FALSE
     )
   }
@@ -520,7 +520,7 @@ rxErrEnvF[["{"]] <- function(...) {
 rxErrEnvF[["("]] <- unaryOp("(", ")")
 rxErrEnvF[["["]] <- function(name, val) {
   n <- toupper(name)
-  err <- "RxODE only supports THETA[#] and ETA[#] numbers."
+  err <- gettext("RxODE only supports THETA[#] and ETA[#] numbers")
   if (any(n == c("THETA", "ETA")) && is.numeric(val)) {
     if (round(val) == val && val > 0) {
       if (n == "THETA" && as.numeric(val) <= length(rxErrEnvInit)) {
@@ -529,10 +529,10 @@ rxErrEnvF[["["]] <- function(name, val) {
         return(sprintf("%s[%s]", n, val))
       }
     } else {
-      stop(err)
+      stop(err, call.=FALSE)
     }
   } else {
-    stop(err)
+    stop(err, call.=FALSE)
   }
 }
 
@@ -551,11 +551,11 @@ rxErrEnvLambda <- NULL
 rxErrEnvYJ <- NULL
 rxErrEnvF$lnorm <- function(est) {
   if (rxErrEnvRet != "rx_r_") {
-    stop("'lnorm' can only be in an error function")
+    stop("'lnorm' can only be in an error function", call.=FALSE)
   }
   if (!is.null(rxErrEnvLambda)) {
     if (rxErrEnvLambda != "0" && rxErrEnvYJ != "0") {
-      stop("'lnorm' cannot be used with other data transformations")
+      stop("'lnorm' cannot be used with other data transformations", call.=FALSE)
     }
   }
   estN <- suppressWarnings(as.numeric(est))
@@ -583,11 +583,11 @@ rxErrEnvF$logn <- rxErrEnvF$lnorm
 
 rxErrEnvF$tbs <- function(lambda) {
   if (rxErrEnvRet != "rx_r_") {
-    stop("'tbs' can only be in an error function")
+    stop("'tbs' can only be in an error function", call.=FALSE)
   }
   if (!is.null(rxErrEnvLambda)) {
     if (rxErrEnvYJ != "0" & rxErrEnvLambda != "0" & rxErrEnvLambda != "1") {
-      stop("'tbs' cannot be used with other data transformations")
+      stop("'tbs' cannot be used with other data transformations", call.=FALSE)
     }
   }
   estN <- suppressWarnings(as.numeric(lambda))
@@ -609,11 +609,11 @@ rxErrEnvF$boxCox <- rxErrEnvF$tbs
 
 rxErrEnvF$tbsYj <- function(lambda) {
   if (rxErrEnvRet != "rx_r_") {
-    stop("'tbsYj' can only be in an error function")
+    stop("'tbsYj' can only be in an error function", call.=FALSE)
   }
   if (!is.null(rxErrEnvLambda)) {
     if (rxErrEnvYJ != "1" & rxErrEnvLambda != "0" & rxErrEnvLambda != "1") {
-      stop("'tbsYj' cannot be used with other data transformations")
+      stop("'tbsYj' cannot be used with other data transformations", call.=FALSE)
     }
   }
   estN <- suppressWarnings(as.numeric(lambda))
@@ -635,7 +635,7 @@ rxErrEnvF$yeoJohnson <- rxErrEnvF$tbsYj
 
 rxErrEnvF$add <- function(est) {
   if (rxErrEnvRet != "rx_r_") {
-    stop("'add' can only be in an error function")
+    stop("'add' can only be in an error function", call.=FALSE)
   }
   estN <- suppressWarnings(as.numeric(est))
   if (is.na(estN)) {
@@ -659,11 +659,11 @@ rxErrEnvF$norm <- rxErrEnvF$add
 rxErrEnvF$dnorm <- rxErrEnvF$add
 
 rxErrEnvF[["for"]] <- function(...) {
-  stop("'for' is not supported")
+  stop("'for' is not supported", call.=FALSE)
 }
 rxErrEnvF$`return` <- function(est) {
   if (rxErrEnvRet == "") {
-    stop("function 'PK' should not return anything")
+    stop("function 'PK' should not return anything", call.=FALSE)
   }
   .extra <- ""
   force(est)
@@ -702,7 +702,7 @@ rxErrEnvF[["=="]] <- binaryOp(" == ")
 
 rxErrEnvF$prop <- function(est) {
   if (rxErrEnvRet != "rx_r_") {
-    stop("'prop' can only be in an error function")
+    stop("'prop' can only be in an error function", call.=FALSE)
   }
   estN <- suppressWarnings(as.numeric(est))
   if (is.na(estN)) {
@@ -723,7 +723,7 @@ rxErrEnvF$prop <- function(est) {
 
 rxErrEnvF$pow <- function(est, pow) {
   if (rxErrEnvRet != "rx_r_") {
-    stop("'pow' can only be in an error function")
+    stop("'pow' can only be in an error function", call.=FALSE)
   }
   estN <- suppressWarnings(as.numeric(est))
   if (is.na(estN)) {
@@ -758,13 +758,13 @@ rxErrEnv <- function(expr) {
   n2 <- names
   n2[n2 == "time"] <- "t"
   if (any(n2 == "err")) {
-    stop("use 'return' for errors")
+    stop("use 'return' for errors", call.=FALSE)
   }
   if (any(n2 == "error")) {
-    stop("use 'return' for errors")
+    stop("use 'return' for errors", call.=FALSE)
   }
   if (any(n2 == "rx_r")) {
-    stop("use 'return' for errors")
+    stop("use 'return' for errors", call.=FALSE)
   }
   n2[n2 == "f"] <- "rx_pred_f_"
   symbolList <- setNames(as.list(n2), n1)
@@ -851,15 +851,15 @@ sumProdEnv[["("]] <- function(a) {
 
 sumProdEnv[["["]] <- function(name, val) {
   n <- toupper(name)
-  err <- "RxODE only supports THETA[#] and ETA[#] numbers."
+  err <- gettext("RxODE only supports THETA[#] and ETA[#] numbers")
   if (any(n == c("THETA", "ETA")) && is.numeric(val)) {
     if (round(val) == val && val > 0) {
       return(sprintf("%s[%s]", n, val))
     } else {
-      stop(err)
+      stop(err, call.=FALSE)
     }
   } else {
-    stop(err)
+    stop(err, call.=FALSE)
   }
 }
 

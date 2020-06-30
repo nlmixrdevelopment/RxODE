@@ -18,7 +18,7 @@ type_sum.mixed_units <- loadNamespace("units")$type_sum.mixed_units
 pillar_shaft.mixed_units <- loadNamespace("units")$pillar_shaft.mixed_units
 function(x, ...) {
   if (!requireNamespace("pillar", quietly = TRUE)) {
-    stop("package 'xpillar' not available")
+    stop("package 'xpillar' not available", .call=FALSE)
   }
   out <- format(x, ...)
   pillar::new_pillar_shaft_simple(out, align = "right", min_width = 6)
@@ -93,7 +93,7 @@ ggplot2::waiver
 ##' @inheritParams ggplot2::guide_none
 ##' @export
 guide_none <- function(title = waiver(), position = waiver()) {
-  stop("needs \"ggplot2\" 3.3.0")
+  stop("needs \"ggplot2\" 3.3.0", call.=FALSE)
 }
 
 ##' @importFrom lotri lotri
@@ -151,5 +151,5 @@ ggplot2::expand_limits
 
 .SD <- NULL
 `:=` <- function(...) {
-  stop("This is only used in data.table")
+  stop("this is only used in 'data.table'", .call=FALSE)
 }

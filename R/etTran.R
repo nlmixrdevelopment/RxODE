@@ -80,7 +80,8 @@
       if (skipStop) {
         return(.idData)
       } else {
-        stop(sprintf("there are no individuals left to solve in %s data", type))
+        stop(sprintf(gettext("there are no individuals left to solve in %s data"), type),
+             call.=FALSE)
       }
     }
     if (.wrn != "") warning(.wrn)
@@ -114,11 +115,12 @@
   ## throw an error
 
   .doDate <- FALSE
-  .dupDate <- "dates can only be specified by one of: 'DATE', 'DAT1', 'DAT2', 'DAT3' / 'TIME'"
+  .dupDate <- gettext("dates can only be specified by one of: 'DATE', 'DAT1', 'DAT2', 'DAT3' / 'TIME'")
   .checkBad <- function(d) {
     d <- paste(d)
     if (any(unlist(lapply(strsplit(d, "[^0-9]+"), length)) != 3)) {
-      stop("dates formatted as MONTH-DAY or DAY alone are not supported in this conversion")
+      stop("dates formatted as MONTH-DAY or DAY alone are not supported in this conversion",
+           call.=FALSE)
     }
     return(d)
   }
@@ -141,7 +143,7 @@
   }
   if (any(.colNames == "DAT1")) {
     if (.doDate) {
-      stop(.dupDate)
+      stop(.dupDate, call.=FALSE)
     }
     ## DAT1   day month year
     .datReg2 <- rex::rex(start, any_spaces, capture(numbers), non_numbers, capture(numbers), non_numbers, capture(number, number), any_spaces, end)
@@ -162,7 +164,7 @@
   if (any(.colNames == "DAT2")) {
     ## DAT2   year month day
     if (.doDate) {
-      stop(.dupDate)
+      stop(.dupDate, call.=FALSE)
     }
     .datReg2 <- rex::rex(start, any_spaces, capture(number, number), non_numbers, capture(numbers), non_numbers, capture(numbers), any_spaces, end)
     .datReg4 <- rex::rex(start, any_spaces, capture(number, number, number, number), non_numbers, capture(numbers), non_numbers, capture(numbers), any_spaces, end)
@@ -182,7 +184,7 @@
   if (any(.colNames == "DAT3")) {
     ## DAT3   year day month
     if (.doDate) {
-      stop(.dupDate)
+      stop(.dupDate, call.=FALSE)
     }
     .datReg2 <- rex::rex(start, any_spaces, capture(number, number), non_numbers, capture(numbers), non_numbers, capture(numbers), any_spaces, end)
     .datReg4 <- rex::rex(start, any_spaces, capture(number, number, number, number), non_numbers, capture(numbers), non_numbers, capture(numbers), any_spaces, end)
@@ -201,7 +203,7 @@
   }
   if (.doDate) {
     if (any(is.na(d$DATE.TIME))) {
-      stop("date/time format was not correctly specified")
+      stop("date/time format was not correctly specified", call.=FALSE)
     }
   }
   if (.doDate) {
@@ -225,5 +227,5 @@
   if (is(d$TIME, "numeric") || is(d$TIME, "integer")) {
     return(d)
   }
-  stop("cannot figure out numeric time")
+  stop("cannot figure out numeric time", call.=FALSE)
 }

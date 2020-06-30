@@ -40,7 +40,8 @@ rxIndLinState <- function(prefered = NULL) {
     if (!checkmate::checkCharacter(prefered[[x]],
       names = "unnamed"
     )) {
-      stop(sprintf("'rxIndLinState' list element '%s' must be a unnamed character vector", names(prefered)[x]))
+      stop(sprintf(gettext("'rxIndLinState' list element '%s' must be a unnamed character vector"), names(prefered)[x]),
+           call.=FALSE)
     }
   })
   assignInMyNamespace(".rxIndLinState", prefered)

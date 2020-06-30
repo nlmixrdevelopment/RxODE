@@ -337,12 +337,12 @@ RxODE <- # nolint
            verbose = FALSE) {
     if (!missing(modName)) {
       if (!checkmate::testCharacter(modName, max.len = 1)) {
-        stop("'modName' has to be a single length character")
+        stop("'modName' has to be a single length character", call.=FALSE)
       }
     }
     if (!missing(extraC)) {
       if (!checkmate::testAccess(extraC, "r")) {
-        stop("'extraC' needs to point to a file that exists and is readable")
+        stop("'extraC' needs to point to a file that exists and is readable", call.=FALSE)
       }
     }
     ## if (!missing(calcJac)){
@@ -360,27 +360,30 @@ RxODE <- # nolint
     ##     }
     ## }
     if (!checkmate::checkLogical(collapseModel, max.len = 1, any.missing = FALSE)) {
-      stop("'collapseModel' needs to be logical")
+      stop("'collapseModel' needs to be logical", call.=FALSE)
     }
     if (!checkmate::checkLogical(indLin, max.len = 1, any.missing = FALSE)) {
-      stop("'indLin' needs to be logical")
+      stop("'indLin' needs to be logical", call.=FALSE)
     }
     if (!checkmate::checkLogical(debug, max.len = 1, any.missing = FALSE)) {
-      stop("'debug' needs to be logical")
+      stop("'debug' needs to be logical", call.=FALSE)
     }
     rxTempDir()
     if (!is.null(package)) {
       if (!checkmate::checkCharacter(package, max.len = 1, any.missing = FALSE)) {
-        stop("'package' needs to a single character for the package name")
+        stop("'package' needs to a single character for the package name",
+             call.=FALSE)
       }
 
       if (missing(modName)) {
-        stop("with packages 'modName' is required")
+        stop("with packages 'modName' is required",
+             call.=FALSE)
       }
       modName <- paste0(package, "_", modName)
     }
     if (!missing(model) && !missing(filename)) {
-      stop("must specify exactly one of 'model' or 'filename'")
+      stop("must specify exactly one of 'model' or 'filename'",
+           call.=FALSE)
     }
     if (missing(model) && !missing(filename)) {
       model <- filename
@@ -572,7 +575,7 @@ RxODE <- # nolint
           if ((!all(is.null(getLoadedDLLs()[[.(.env$package)]]))) &&
             loadNamespace("RxODE")$.pkgModelCurrent &&
             utils::packageVersion("RxODE") == .(utils::packageVersion("RxODE"))) {
-            stop("cannot delete Dll in package")
+            stop("cannot delete Dll in package", call.=FALSE)
           } else {
             rx <- .(.env)
             class(rx) <- "RxODE"
@@ -598,7 +601,7 @@ RxODE <- # nolint
     }
 
     .env$parse <- with(.env, function() {
-      stop("'$parse' is no longer supported")
+      stop("'$parse' is no longer supported", call.=FALSE)
     })
     .env$get.index <- eval(bquote(function(s) {
       return(rxState(get("rxDll", envir = .(.env)), s))
@@ -667,7 +670,7 @@ RxODE <- # nolint
       if (.rxPkgLoaded(.env$package)) {
         .ns <- loadNamespace(.env$package)
         if (!exists(".rxUpdated", .ns)) {
-          stop("cannot update package model")
+          stop("cannot update package model", call.=FALSE)
         } else {
           .as <- .ns$.rxUpdated
           assign(.env$modName, .env)
@@ -714,7 +717,7 @@ rxGetModel <- function(model, calcSens = NULL, calcJac = NULL, collapseModel = N
     ## class(model) <- NULL;
   } else if (is(model, "rxModelVars")) {
   } else {
-    stop("cannot figure out how to handle the model argument")
+    stop("cannot figure out how to handle the model argument", call.=FALSE)
   }
   .ret <- rxModelVars(model)
   if (!is.null(calcSens)) {
@@ -726,7 +729,7 @@ rxGetModel <- function(model, calcSens = NULL, calcJac = NULL, collapseModel = N
     }
     if (.calcSens) {
       if (length(rxState(.ret)) == 0L) {
-        stop("sensitivities do not make sense for models without ODEs")
+        stop("sensitivities do not make sense for models without ODEs", call.=FALSE)
       }
       .stateInfo <- .rxGenFunState(.ret)
       .s <- .rxLoadPrune(.ret, FALSE)
@@ -814,7 +817,8 @@ rxGetModel <- function(model, calcSens = NULL, calcJac = NULL, collapseModel = N
     }
     if (.calcJac) {
       if (length(rxState(.ret)) <= 0) {
-        stop("Jacobians do not make sense for models without ODEs")
+        ## Jacobian capitalized because it should be spelled with a capital
+        stop("Jacobians do not make sense for models without ODEs", call.=FALSE)
       }
       .stateInfo <- .rxGenFunState(.ret)
       .s <- .rxLoadPrune(.ret, FALSE)
@@ -907,7 +911,9 @@ rxChain2 <- function(obj, solvedObject) {
 ##' @export
 rxChain2.default <- function(obj, solvedObject) {
   .args <- as.list(match.call())
-  stop(sprintf("Do not know how to add %s to RxODE solved object %s", toString(.args[[2]]), toString(.args[[3]])))
+  stop(sprintf(gettext("Do not know how to add %s to RxODE solved object %s"),
+               toString(.args[[2]]), toString(.args[[3]])),
+       call.=FALSE)
 }
 
 ##' @rdname rxChain2
@@ -1074,7 +1080,7 @@ rxMd5 <- function(model, # Model File
           ), NULL)
         }
       } else {
-        stop("unknown model")
+        stop("unknown model", call.=FALSE)
       }
     }
     rxSyncOptions()
@@ -1215,7 +1221,7 @@ rxTrans.character <- memoise::memoise(function(model,
     } else {
       message(model)
     }
-    stop("cannot create RxODE model")
+    stop("cannot create RxODE model", call.=FALSE)
   }
   md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(c(
     .ret$model,
@@ -1398,7 +1404,7 @@ rxCompile.rxModelVars <- function(model, # Model
       }
       message("")
       if (!(file.exists(.cDllFile))) {
-        stop("error building model on another thread")
+        stop("error building model on another thread", call.=FALSE)
       }
     } else {
       sink(.lock)
@@ -1520,6 +1526,7 @@ rxCompile.rxModelVars <- function(model, # Model
         .out <- sys::exec_internal(cmd = .cmd, args = .args, error = FALSE)
         ## message(paste(rawToChar(.out$stderr),sep="\n"))
         .badBuild <- function(msg, cSrc = TRUE) {
+          msg <- gettext(msg)
           message(msg)
           cli::rule(left = "stdout output")
           message(paste(rawToChar(.out$stdout), sep = "\n"))
@@ -1534,7 +1541,7 @@ rxCompile.rxModelVars <- function(model, # Model
           stop(msg, call. = FALSE)
         }
         if (!(.out$status == 0 & file.exists(.cDllFile))) {
-          .badBuild("Error building model")
+          .badBuild("error building model")
         }
       }
     }

@@ -109,7 +109,7 @@
     }
   } else { ## nocov start
     ## is.pairlist OR is.atomic OR unknown...
-    stop("Unsupported expression.")
+    stop("unsupported expression", call.=FALSE)
   } ## nocov end
 }
 

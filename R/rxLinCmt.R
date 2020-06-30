@@ -160,7 +160,7 @@ rxDerived <- function(..., verbose = FALSE, digits = 0) {
   .w <- which(regexpr(.rxDerivedReg, .namesU) != -1)
   if (length(.w) > 1L) {
     if (verbose) {
-      message("Parameters: ", paste(names(.lst)[.w], collapse = ","))
+      message("parameters: ", paste(names(.lst)[.w], collapse = ","))
     }
     assign(".lst", .lst, globalenv())
     .linCmt <- .Call(
@@ -174,7 +174,7 @@ rxDerived <- function(..., verbose = FALSE, digits = 0) {
     .env <- environment()
     return(eval(parse(text = .linCmt), envir = .env))
   } else {
-    stop("cannot figure out PK parameters to convert")
+    stop("cannot figure out PK parameters to convert", call.=FALSE)
   }
 }
 

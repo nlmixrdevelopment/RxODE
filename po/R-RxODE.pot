@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: RxODE 0.9.1-8\n"
-"POT-Creation-Date: 2019-10-31 22:17\n"
+"Project-Id-Version: RxODE 0.9.2-0\n"
+"POT-Creation-Date: 2020-06-29 21:50\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -10,16 +10,25 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 
-msgid "'gcc' available, assuming it comes from 'rtools'"
-msgstr ""
-
-msgid "RxODE may not work with other compilers"
-msgstr ""
-
-msgid "RxODE requires 'Rtools'\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding"
-msgstr ""
-
 msgid "RxODE requires 'rtools'\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding"
+msgstr ""
+
+msgid "'modName' has to be a single length character"
+msgstr ""
+
+msgid "'extraC' needs to point to a file that exists and is readable"
+msgstr ""
+
+msgid "'collapseModel' needs to be logical"
+msgstr ""
+
+msgid "'indLin' needs to be logical"
+msgstr ""
+
+msgid "'debug' needs to be logical"
+msgstr ""
+
+msgid "'package' needs to a single character for the package name"
 msgstr ""
 
 msgid "with packages 'modName' is required"
@@ -58,6 +67,15 @@ msgstr ""
 msgid "cannot create RxODE model"
 msgstr ""
 
+msgid "creating RxODE include directory"
+msgstr ""
+
+msgid "getting R compile options"
+msgstr ""
+
+msgid "precompiling headers"
+msgstr ""
+
 msgid "RxODE already building model, waiting for lock file removal"
 msgstr ""
 
@@ -70,28 +88,34 @@ msgstr ""
 msgid "error building model on another thread"
 msgstr ""
 
+msgid "do not need to recompile, minimal change to model detected"
+msgstr ""
+
 msgid "unloaded all RxODE dlls before loading the current DLL."
 msgstr ""
 
 msgid "something went wrong in compilation"
 msgstr ""
 
-msgid "C file: %s  ('summary' for code)"
+msgid "'removeJac' is no longer supported"
 msgstr ""
 
-msgid "//C file: %s"
+msgid "'removeSens' is no longer supported"
 msgstr ""
 
-msgid "//"
+msgid "simulation summaries must be between 0 and 1"
 msgstr ""
 
-msgid "bessel_%s requires 3 arguments."
+msgid "In order to put confidence bands around the intervals, you need at least 2500 simulations."
 msgstr ""
 
-msgid "bessel_%s requires 2 arguments."
+msgid "summarizing data..."
 msgstr ""
 
-msgid "the third argument for bessel_%s must be 1 (unscaled) or 2 (scaled)."
+msgid "done."
+msgstr ""
+
+msgid "Summarizing data"
 msgstr ""
 
 msgid "RxODE doesn't support '%s' translation for 'omega' translation"
@@ -100,10 +124,7 @@ msgstr ""
 msgid "do not know how to handle type '%s'"
 msgstr ""
 
-msgid "RxODE does not know how to translate '%s' to SymPy"
-msgstr ""
-
-msgid "RxODE does not know how to translate '%s' to a RxODE compatible function"
+msgid "RxODE only supports THETA[#] and ETA[#] numbers"
 msgstr ""
 
 msgid "'lnorm' can only be in an error function"
@@ -142,19 +163,13 @@ msgstr ""
 msgid "use 'return' for errors"
 msgstr ""
 
-msgid "the errors and predictions need to have the same conditions (if/then statements)"
-msgstr ""
-
-msgid "do not know how to handle this error/pred combination"
-msgstr ""
-
-msgid "else if expressions not supported"
-msgstr ""
-
 msgid "cannot supply both 'by' and 'length.out'"
 msgstr ""
 
 msgid "improper arguments to 'et'"
+msgstr ""
+
+msgid "when supplying vectors of 'time', 'amt' they need to be the same size"
 msgstr ""
 
 msgid "only a single evid 'evid' can be specified ('%s')"
@@ -202,6 +217,12 @@ msgstr ""
 msgid "unable to detect 'ID' correctly in '%s' dataset\nindividual parameters are assumed to have the same order as the dataset"
 msgstr ""
 
+msgid "dates can only be specified by one of: 'DATE', 'DAT1', 'DAT2', 'DAT3' / 'TIME'"
+msgstr ""
+
+msgid "dates formatted as MONTH-DAY or DAY alone are not supported in this conversion"
+msgstr ""
+
 msgid "date/time format was not correctly specified"
 msgstr ""
 
@@ -220,7 +241,25 @@ msgstr ""
 msgid "only compiled models in this package, creating '%s_init.c'"
 msgstr ""
 
-msgid "package 'pillar' not available"
+msgid "'log=\"%s\"' not supported"
+msgstr ""
+
+msgid "package 'xpillar' not available"
+msgstr ""
+
+msgid "needs \"ggplot2\" 3.3.0"
+msgstr ""
+
+msgid "this is only used in 'data.table'"
+msgstr ""
+
+msgid "'rxIndLinState' list element '%s' must be a unnamed character vector"
+msgstr ""
+
+msgid "create inductive linearization matrices"
+msgstr ""
+
+msgid "calculate jacobian"
 msgstr ""
 
 msgid "calculate sensitivities"
@@ -235,25 +274,31 @@ msgstr ""
 msgid "only one 'initCondition=' supported"
 msgstr ""
 
-msgid "pruning branches of full model..."
+msgid "pruning branches (if/else) of full model..."
 msgstr ""
 
-msgid "pruning branches..."
+msgid "pruning branches (if/else)..."
 msgstr ""
 
 msgid "done"
 msgstr ""
 
-msgid "loading full model into symengine environment"
+msgid "loading full model into symengine environment..."
 msgstr ""
 
-msgid "loading into symengine environment"
+msgid "loading into symengine environment..."
 msgstr ""
 
 msgid "creating full model..."
 msgstr ""
 
 msgid "cannot identify parameters for sensitivity analysis"
+msgstr ""
+
+msgid "calculate ∂(f)/∂(η)"
+msgstr ""
+
+msgid "calculate d(f)/d(eta)"
 msgstr ""
 
 msgid "none of the predictions depend on 'ETA'"
@@ -268,127 +313,25 @@ msgstr ""
 msgid "stabilizing round off errors in inner problem..."
 msgstr ""
 
+msgid "calculate ∂(R²)/∂(η)"
+msgstr ""
+
+msgid "calculate d(R^2)/d(eta)"
+msgstr ""
+
 msgid "stabilizing round off errors in events FD model..."
 msgstr ""
 
-msgid "cannot figure out the solved system compartment"
+msgid "Parameters:"
 msgstr ""
 
-msgid "requires parameter '%s'"
+msgid ","
 msgstr ""
 
-msgid "requires one of the following parameters: '%s'"
+msgid "cannot figure out PK parameters to convert"
 msgstr ""
 
-msgid "'rate(depot)' does not work with a solved linear system"
-msgstr ""
-
-msgid "can only specify 'rate(central)' once"
-msgstr ""
-
-msgid "'dur(depot)' does not work with a solved linear system"
-msgstr ""
-
-msgid "can only specify 'dur(central)' once"
-msgstr ""
-
-msgid "'depot(0)' is not supported in the solved system, use an ODE"
-msgstr ""
-
-msgid "'central(0)' is not supported in the solved system, use an ODE"
-msgstr ""
-
-msgid "'lag(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter"
-msgstr ""
-
-msgid "'lag(depot)' cannot be duplicated in a model"
-msgstr ""
-
-msgid "can only specify 'lag(central)' once"
-msgstr ""
-
-msgid "'f(depot)' does not exist without a 'depot' compartment, specify a 'ka' parameter"
-msgstr ""
-
-msgid "'f(depot)' cannot be duplicated in a model"
-msgstr ""
-
-msgid "can only specify 'f(central)' once"
-msgstr ""
-
-msgid "cannot mix 'Vp' and 'V#'"
-msgstr ""
-
-msgid "cannot mix 'Vt' and 'V#'"
-msgstr ""
-
-msgid "cannot mix 'Vp' and 'Vt'"
-msgstr ""
-
-msgid "defined 'VP2' without 'VP'"
-msgstr ""
-
-msgid "defined 'VT2' without 'VT'"
-msgstr ""
-
-msgid "defined 'CLD2' without 'CLD'"
-msgstr ""
-
-msgid "cannot mix 'Q' and 'Cld'"
-msgstr ""
-
-msgid "ambiguous '%s'/'%s' specification"
-msgstr ""
-
-msgid "VC"
-msgstr ""
-
-msgid "cannot define 'Vp' with a 'VSS' defined"
-msgstr ""
-
-msgid "cannot define 'Vt' with a 'VSS' defined"
-msgstr ""
-
-msgid "cannot have volumes other than 'Vss' and central volume defined"
-msgstr ""
-
-msgid "defined '%s' without corresponding volume"
-msgstr ""
-
-msgid "defined 'CLD' without corresponding volume"
-msgstr ""
-
-msgid "'Vss' only supported with 2 compartment models"
-msgstr ""
-
-msgid "Defined '%s' without corresponding volume"
-msgstr ""
-
-msgid "defined 'CLD2' without corresponding volume"
-msgstr ""
-
-msgid "'K12' and 'K21' need to be defined for a 3 compartment model"
-msgstr ""
-
-msgid "A 'gamma' parameter requires 'A'/'B'/'C' and 'alpha'/'beta'"
-msgstr ""
-
-msgid "'K21' requires a beta parameter"
-msgstr ""
-
-msgid "'AOB' requires a beta parameter"
-msgstr ""
-
-msgid "'Beta' requires 'AOB' or 'K21' parameter"
-msgstr ""
-
-msgid "could not figure out the 'linCmt' from the defined parameters"
-msgstr ""
-
-msgid "a three compartment model requires 'BETA'/'B'"
-msgstr ""
-
-msgid "can only have one 'linCmt'() function in the model"
+msgid "cannot divide by zero"
 msgstr ""
 
 msgid "finding duplicate expressions in %s..."
@@ -403,40 +346,73 @@ msgstr ""
 msgid "unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'"
 msgstr ""
 
-msgid ","
-msgstr ""
-
-msgid "Unsupported expression."
+msgid "unsupported expression"
 msgstr ""
 
 msgid "using the first solved parameters for rxShiny"
 msgstr ""
 
-msgid "this has to be a matrix of all 1s or 0s."
+msgid "this has to be a matrix of all 1s or 0s"
 msgstr ""
 
-msgid "diagonal elements must be non-zero."
+msgid "diagonal elements must be non-zero"
 msgstr ""
 
-msgid "initial 'omega' matrix inverse is non-positive definite."
+msgid "diagonal form:"
+msgstr ""
+
+msgid "calculate symbolic inverse: t(chol.mat) %*% chol.mat ..."
+msgstr ""
+
+msgid "initial 'omega' matrix inverse is non-positive definite"
 msgstr ""
 
 msgid "zero matrix"
 msgstr ""
 
-msgid "CRAN only tests"
-msgstr ""
-
 msgid "================================================================================"
 msgstr ""
 
-msgid "timing of CRAN tests (should be under 60 seconds)"
-msgstr ""
-
-msgid "normal tests"
+msgid "%s only tests"
 msgstr ""
 
 msgid "Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to work.\nYou can set up Rtools using the command 'rxWinSetup()'."
+msgstr ""
+
+msgid "%s: %s"
+msgstr ""
+
+msgid "'df' must be greater than 0"
+msgstr ""
+
+msgid "'shape1' cannot be 0"
+msgstr ""
+
+msgid "'shape2' cannot be 0"
+msgstr ""
+
+msgid "'shape' cannot be 0"
+msgstr ""
+
+msgid "'rate'/'scale' cannot be 0"
+msgstr ""
+
+msgid "specify 'rate' or 'scale' but not both"
+msgstr ""
+
+msgid "'df1' cannot be 0"
+msgstr ""
+
+msgid "'df2' cannot be 0"
+msgstr ""
+
+msgid "'rate' cannot be 0"
+msgstr ""
+
+msgid "'df' cannot be 0"
+msgstr ""
+
+msgid "'scale' cannot be 0"
 msgstr ""
 
 msgid "duplicate arguments do not make sense"
@@ -475,22 +451,13 @@ msgstr ""
 msgid "'nSub'*'nStud' does not match the number of subjects in 'iCov'"
 msgstr ""
 
-msgid "simulation summaries must be between 0 and 1"
-msgstr ""
-
-msgid "confidence bands need at least 2500 simulations"
-msgstr ""
-
-msgid "summarizing data"
-msgstr ""
-
 msgid "name argument must be a length-one character vector"
 msgstr ""
 
 msgid "a new function requires a C function so it can be used in RxODE"
 msgstr ""
 
-msgid "already defined user function '%s', remove it fist ('rxRmFun')."
+msgid "already defined user function '%s', remove it fist ('rxRmFun')"
 msgstr ""
 
 msgid "no user function '%s' to remove"
@@ -523,6 +490,9 @@ msgstr ""
 msgid "'lchoose' takes 2 arguments"
 msgstr ""
 
+msgid "'pnorm' can only take 1-3 arguments"
+msgstr ""
+
 msgid "'transit' can only take 2-3 arguments"
 msgstr ""
 
@@ -535,10 +505,13 @@ msgstr ""
 msgid "'%s' takes %s arguments (has %s)"
 msgstr ""
 
-msgid "'%s' not supported in RxODE"
+msgid "'logit' requires 1-3 arguments"
 msgstr ""
 
-msgid "unsupported expression"
+msgid "'expit' requires 1-3 arguments"
+msgstr ""
+
+msgid "function '%s' or its derivatives are not supported in RxODE"
 msgstr ""
 
 msgid "[...] expressions not supported"
@@ -571,19 +544,13 @@ msgstr ""
 msgid "do not know how to handle type"
 msgstr ""
 
-msgid "RxODE doesn't know how to translate '%s' to SymPy."
-msgstr ""
-
-msgid "RxODE doesn't know how to translate '%s' to a RxODE compatible function"
-msgstr ""
-
 msgid "The PK function should not return anything"
 msgstr ""
 
-msgid "pow can only be in an error function"
+msgid "errors and predictions need to have the same conditions ('if'/'then' statements)"
 msgstr ""
 
-msgid "errors and predictions need to have the same conditions (if/then statements)"
+msgid "do not know how to handle this error/pred combination"
 msgstr ""
 
 msgid "'else if' expressions not supported"
@@ -599,4 +566,13 @@ msgid "package \"%s\" needed for this function to work"
 msgstr ""
 
 msgid "'wd' is depreciated"
+msgstr ""
+
+msgid "'rxSetSum' has been moved to rxSolve(...,sum=)"
+msgstr ""
+
+msgid "'rxSetProd' has been moved to rxSolve(...,sum=)"
+msgstr ""
+
+msgid "%s%s"
 msgstr ""

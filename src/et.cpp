@@ -400,7 +400,7 @@ List etSimulate(List curEt){
     }
   }
   if (!recalcTime){
-    warning(_("event table wasn't updated (no dose/sampling windows)"));
+    warning(_("event table was not updated (no dose/sampling windows)"));
     return curEt;
   } else {
     lst.attr("class") = cls;
@@ -1970,7 +1970,7 @@ RObject etCmtInt(RObject et){
     for (int j = newCmt.size();j--;){
       if (oldCmt[j] == "(default)") newCmt[j] = 1;
       else if (oldCmt[j] == "(obs)") newCmt[j] = NA_INTEGER;
-      else stop(_("cannot mix named compartments and integer compartments."));
+      else stop(_("cannot mix named compartments and integer compartments"));
     }
     newEt[4] = newCmt;
   } else {

@@ -353,10 +353,10 @@ SEXP cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
     } else if (typeStr == "separation") {
       type = 3;
     } else {
-      stop(_("Variable 'type': Unrecognized cvPost type='%s'"), typeStr.c_str());
+      stop(_("variable 'type': Unrecognized cvPost type='%s'"), typeStr.c_str());
     }
   } else {
-    stop(_("Variable 'type': Can only use type string or integer[1,3]"));
+    stop(_("variable 'type': Can only use type string or integer[1,3]"));
   }
   if (n == 1 && type == 1){
     if (qtest(omegaS, "M")) {
@@ -457,12 +457,12 @@ SEXP cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
 	  } else if (diagXformTypeStr == "variance") {
 	    diagXformType=6;
 	  } else {
-	    stop(_("Variable 'diagXformType': Unrecognized transformation '%s'"), diagXformTypeStr.c_str());
+	    stop(_("variable 'diagXformType': Unrecognized transformation '%s'"), diagXformTypeStr.c_str());
 	  }
 	} else if (qtest(diagXformTypeS, "X1[1,6]")) {
 	  diagXformType = as<int>(diagXformTypeS);
 	} else {
-	  stop(_("Variable 'diagXformType': Can only use transformation string or integer[1,6]"));
+	  stop(_("variable 'diagXformType': Can only use transformation string or integer[1,6]"));
 	}
 	RObject omega = omegaS;
 	arma::mat om0 = as<arma::mat>(omega);
@@ -523,7 +523,7 @@ SEXP expandTheta_(SEXP thetaS, SEXP thetaMatS,
     }
   }
   if (qtest(thetaS, "M")){
-    stop(_("when specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a 'data.frame'/'matrix'."));
+    stop(_("when specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a 'data.frame'/'matrix'"));
   }
   // int nStud = as<int>(nStudS);
   // thetaMat
