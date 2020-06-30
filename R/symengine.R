@@ -2081,7 +2081,7 @@ rxErrEnvF$"{" <- function(...) {
 rxErrEnvF$"(" <- unaryOp("(", ")")
 rxErrEnvF$"[" <- function(name, val) {
   n <- toupper(name)
-  err <- getext("RxODE only supports THETA[#] and ETA[#] numbers")
+  err <- gettext("RxODE only supports THETA[#] and ETA[#] numbers")
   if (any(n == c("THETA", "ETA")) && is.numeric(val)) {
     if (round(val) == val && val > 0) {
       if (n == "THETA" && as.numeric(val) <= length(rxErrEnv.init)) {

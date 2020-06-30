@@ -464,6 +464,13 @@ int new_or_ith(const char *s) {
     tb.ix=-2;
     return 0;
   }
+  if (!strcmp("ID", s) || !strcmp("id", s) ||
+      !strcmp("Id", s) || !strcmp("iD", s)) {
+    updateSyntaxCol();
+    trans_syntax_error_report_fn(_("'id' can only be used in the following ways 'id==\"id-value\"' or 'id !=\"id-value\"'"));
+    tb.ix=-2;
+    return 0;
+  }
   if (!strcmp("Rprintf", s)){
     updateSyntaxCol();
     trans_syntax_error_report_fn(_("'Rprintf' cannot be a variable in an RxODE model"));
