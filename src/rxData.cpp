@@ -2580,7 +2580,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
     len = Rf_length(cmtLvl);
     addLine(&(rx->factorNames), "%s", "CMT");
     for (int i = 0; i < len; i++) {
-      addLine(&(rx->factors), "%s", CHAR(STRING_ELT(idLvl, i)));
+      addLine(&(rx->factors), "%s", CHAR(STRING_ELT(cmtLvl, i)));
     }
     rx->factorNs[rx->hasFactors++] = len;
     // FIXME other factors

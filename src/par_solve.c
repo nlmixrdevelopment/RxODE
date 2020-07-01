@@ -364,6 +364,7 @@ int compareFactorVal(int val, const char *valStr, const char *cmpValue){
   if (!strcmp(valStr, "cmt") ||
       !strcmp(valStr, "CMT") ||
       !strcmp(valStr, "Cmt")) {
+    if (val < 0) return 0;
     if (val-1 < curLen){
       if (base+val-1 >= rx->factors.n) {
 	return 0;
