@@ -1,5 +1,8 @@
 .rxPrune <- function(x, envir = parent.frame()) {
   if (is.name(x) || is.atomic(x)) {
+    if (is.character(x)){
+      return(deparse1(x))
+    }
     return(as.character(x))
   } else if (is.call(x)) {
     if (identical(x[[1]], quote(`if`))) {

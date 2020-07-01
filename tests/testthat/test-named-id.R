@@ -211,4 +211,12 @@ rxPermissive({
     expect_equal(b, "(id==\"matt\")")
   })
 
+  tmp <- "C2=centr/V;\nC3=peri/V2;\nd/dt(depot)=-KA*depot;\nd/dt(centr)=KA*depot-CL*C2-Q*C2+Q*C3;\nd/dt(peri)=Q*C2-Q*C3;\nC4=CMT;\nif(CMT==\"depot\"){\nprd=depot;\n}\nif(CMT==\"centr\"){\nprd=centr;\n}\nif(CMT==\"peri\"){\nprd=peri;\n}\n"
+
+  test_that("prune checks", {
+    expect_equal(rxPrune(tmp),
+                 "\"C2=centr/V\\nC3=peri/V2\\nd/dt(depot)=-KA*depot\\nd/dt(centr)=KA*depot-CL*C2-Q*C2+Q*C3\\nd/dt(peri)=Q*C2-Q*C3\\nC4=CMT\\nprd=(CMT==\\\"depot\\\")*(depot)\\nprd=(CMT==\\\"centr\\\")*(centr)+(1-((CMT==\\\"centr\\\")))*(prd)\\nprd=(CMT==\\\"peri\\\")*(peri)+(1-((CMT==\\\"peri\\\")))*(prd)\"")
+  })
+
+
 })
