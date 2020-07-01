@@ -603,6 +603,7 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
                       interaction = TRUE, ...,
                       promoteLinSens = TRUE,
                       theta = FALSE) {
+  .clearSEstr()
   assignInMyNamespace("rxErrEnv.lambda", NULL)
   assignInMyNamespace("rxErrEnv.yj", NULL)
   assignInMyNamespace("rxSymPyExpThetas", c())

@@ -638,37 +638,52 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
   }
   return(.rxToSE(eval(parse(text = paste0("quote({", x, "})"))), envir, progress))
 }
+.rxToSEstr <- character(0)
+.clearSEstr <- function(){
+  assignInMyNamespace(".rxToSEstr", character(0))
+}
 ##' @rdname rxToSE
 ##' @export
 .rxToSE <- function(x, envir = NULL, progress = FALSE) {
   .cnst <- names(.rxSEreserved)
   .isEnv <- inherits(envir, "rxS") || inherits(envir, "environment")
   if (is.name(x) || is.atomic(x)) {
-    .ret <- as.character(x)
-    if (any(.ret == .cnst)) {
-      .ret <- paste0("rx_SymPy_Res_", .ret)
-      if (.isEnv && is.name(x)) {
-        if (substr(x, 1, 1) != ".") {
-          if (!exists(.ret, envir = envir)) {
-            assign(.ret, symengine::Symbol(.ret), envir = envir)
-          }
-        }
+    if (is.character(x)){
+      .w <- which(x == .rxToSEstr)
+      if (length(.w) == 1){
+        return(str2lang(paste0("rxQ", .w)))
+      } else {
+        assignInMyNamespace(".rxToSEstr",
+                            c(.rxToSEstr, x))
+        return(str2lang(paste0("rxQ", length(.rxToSEstr))))
       }
-      return(.ret)
     } else {
-      .ret0 <- .rxSEcnt[.ret]
-      if (is.na(.ret0)) {
+      .ret <- as.character(x)
+      if (any(.ret == .cnst)) {
+        .ret <- paste0("rx_SymPy_Res_", .ret)
         if (.isEnv && is.name(x)) {
-          ## message(.ret)
           if (substr(x, 1, 1) != ".") {
-            if (!exists(.ret, envir = envir) && is.name(x)) {
+            if (!exists(.ret, envir = envir)) {
               assign(.ret, symengine::Symbol(.ret), envir = envir)
             }
           }
         }
         return(.ret)
+      } else {
+        .ret0 <- .rxSEcnt[.ret]
+        if (is.na(.ret0)) {
+          if (.isEnv && is.name(x)) {
+            ## message(.ret)
+            if (substr(x, 1, 1) != ".") {
+              if (!exists(.ret, envir = envir) && is.name(x)) {
+                assign(.ret, symengine::Symbol(.ret), envir = envir)
+              }
+            }
+          }
+          return(.ret)
+        }
+        return(setNames(.ret0, NULL))
       }
-      return(setNames(.ret0, NULL))
     }
   } else if (is.call(x)) {
     if (identical(x[[1]], quote(`(`))) {
@@ -1416,6 +1431,16 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
   )
   if (is.name(x) || is.atomic(x)) {
     .ret <- as.character(x)
+    .nchr <- nchar(.ret)
+    if (.nchr > 3){
+      if (substr(.ret, 1,3) == "rxQ") {
+        .back <- suppressWarnings(as.integer(substr(.ret, 4, .nchr)))
+        if (!is.na(.back)){
+          .back <- deparse1(.rxToSEstr[.back])
+          return(.back)
+        }
+      }
+    }
     .ret0 <- .cnst[.ret]
     if (!is.na(.ret0)) {
       return(.ret0)
