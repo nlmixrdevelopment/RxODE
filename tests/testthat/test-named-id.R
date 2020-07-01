@@ -203,4 +203,12 @@ rxPermissive({
     expect_equal(tmp$a, c(1, 2))
   })
 
+  test_that("translation to and from SE", {
+    RxODE:::.clearSEstr()
+    a <- rxToSE("id==\"matt\"")
+    expect_equal(a, "rxEq(id,rxQ1)")
+    b <- rxFromSE(a)
+    expect_equal(b, "(id==\"matt\")")
+  })
+
 })
