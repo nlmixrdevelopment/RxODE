@@ -521,11 +521,25 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   NumericVector nvTmp, nvTmp2;
   bool hasCmt = false;
   int cmtI =0;
+  List inDataF(covCol.size());
+  List inDataLvl(covCol.size());
   for (i = covCol.size(); i--;){
     covUnitsN[i] = lName[covCol[i]];
     nvTmp2 = NumericVector::create(1.0);
     if (hasCmt || as<std::string>(lName[covCol[i]]) != "cmt"){
-      nvTmp = as<NumericVector>(inData[covCol[i]]);
+      RObject cur = inData[covCol[i]];
+      if (TYPEOF(cur) == INTSXP){
+	RObject lvls = cur.attr("levels");
+	if (!Rf_isNull(lvls)){
+	  inDataLvl[i] = lvls;
+	}
+      } else if (TYPEOF(cur) == STRSXP) {
+	cur = convertId_(cur);
+	inDataF[i] = cur;
+	RObject lvls = cur.attr("levels");
+	inDataLvl[i] = lvls;
+      }
+      nvTmp = as<NumericVector>(cur);
       if (!dropUnits && rxIs(nvTmp, "units")){
 	Rf_setAttrib(nvTmp2, R_ClassSymbol, wrap("units"));
 	nvTmp2.attr("units") = nvTmp.attr("units");
@@ -1770,7 +1784,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    nvTmp[jj] = NA_REAL;
 	  } else {
 	    // These covariates are added.
-	    nvTmp2   = as<NumericVector>(inData[covCol[j]]);
+	    SEXP cur = inData[covCol[j]];
+	    if (TYPEOF(cur) == STRSXP) {
+	      // Strings are converted to numbers
+	      cur = inDataF[j];
+	    }
+	    nvTmp2   = as<NumericVector>(cur);
 	    nvTmp[jj] = nvTmp2[idx[idxO[i]]];
 	    if (addId){
 	      nvTmp = as<NumericVector>(lst1[1+j]);
