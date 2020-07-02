@@ -2280,14 +2280,13 @@ extern void setFkeep(List keep){
 }
 
 extern "C" double get_ikeep(int col, int id){
-  NumericVector nv = as<NumericVector>(keepIcov[col]);
-  return nv[id];
+  return REAL(keepIcov[col])[id];
 }
 
 extern "C" double get_fkeep(int col, int id){
-  NumericVector nv = as<NumericVector>(keepFcov[col]);
-  return nv[id];
+  return REAL(keepFcov[col])[id];
 }
+
 extern "C" SEXP get_ikeepn(){
   return as<SEXP>(keepIcov.attr("names"));
 }

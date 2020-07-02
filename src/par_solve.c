@@ -2488,9 +2488,41 @@ extern int rxGetErrsNcol();
 extern int rxGetErrsNrow();
 
 extern double get_ikeep(int col, int id);
+extern int get_ikeepi(int col, int id);
 extern const SEXP get_ikeepn();
 extern double get_fkeep(int col, int id);
+extern int get_fkeepi(int col, int id);
 extern const SEXP get_fkeepn();
+
+SEXP getDfLevels(const char *item, rx_solve *rx){
+  int totN = rx->factorNames.n;
+  int base = 0, curLen= rx->factorNs[0], curG=0;
+  curLen= rx->factorNs[0];
+  base += curLen;
+  curLen = rx->factorNs[++curG];
+  base += curLen;
+  for (int i = 2; i < totN; ++i) {
+    const char *curFactor = rx->factorNames.line[i];
+    curLen = rx->factorNs[i];
+    if (!strcmp(item, curFactor)) {
+      SEXP lvl = PROTECT(allocVector(STRSXP, curLen));
+      for (int j = 0; j < curLen; j++){
+	SET_STRING_ELT(lvl, j, mkChar(rx->factors.line[base+j]));
+      }
+      SEXP val = PROTECT(allocVector(INTSXP, rx->nr));
+      setAttrib(val, R_LevelsSymbol, lvl);
+      SEXP cls = PROTECT(allocVector(STRSXP, 1));
+      SET_STRING_ELT(cls, 0, mkChar("factor"));
+      setAttrib(val,R_ClassSymbol, cls);
+      UNPROTECT(3);
+      return val;
+    }
+    base += curLen;
+  }
+  SEXP val = PROTECT(allocVector(REALSXP, rx->nr));
+  UNPROTECT(1);
+  return val;
+}
 
 extern SEXP RxODE_df(int doDose0, int doTBS){
   rx_solve *rx;
@@ -2599,7 +2631,8 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   // Multiple simulation data?
   int sm = 0;
   if (rx->nsim > 1) sm = 1;
-  int ncols =add_cov*(ncov+ncov0)+nkeep0+nkeep+1+nPrnState+nlhs;
+  int ncols =1+nPrnState+nlhs;
+  int ncols2 = add_cov*(ncov+ncov0)+nkeep0+nkeep;
   int doseCols = 0;
   if (doDose){
     doseCols = 2;
@@ -2609,12 +2642,12 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   if (op->badSolve){
     if (nidCols == 0){
       rxSolveFreeC();
-      error("Could not solve the system.");
+      error(_("could not solve the system"));
     } else {
       warning(_("some ID(s) could not solve the ODEs correctly; These values are replaced with 'NA'"));
     }
   }  
-  SEXP df = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols+doTBS*2+5*nmevid)); pro++;
+  SEXP df = PROTECT(allocVector(VECSXP,ncols+ncols2+nidCols+doseCols+doTBS*2+5*nmevid)); pro++;
   for (i = nidCols; i--;){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, rx->nr))); pro++;
   }
@@ -2638,13 +2671,42 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
     // amt
     SET_VECTOR_ELT(df, i++, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
+  SEXP paramNames = PROTECT(rxParamNames(op->modNamePtr)); pro++;
+  SEXP ikeepNames = PROTECT(get_ikeepn()); pro++;
+  SEXP fkeepNames = PROTECT(get_fkeepn()); pro++;
   for (i = md + sm + doseCols + 2*nmevid; i < ncols + doseCols + nidCols + 2*nmevid; i++){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
+  // These could be factors
+  j = ncols + doseCols + nidCols + 2*nmevid;
+  const char *charItem;
+  int *par_cov = op->par_cov;
+  SEXP lvls, tmp;
+  SEXP lvlSym = PROTECT(install("levels")); pro++;
+  for (i = 0; i < ncov*add_cov; i++){
+    charItem =CHAR(STRING_ELT(paramNames, par_cov[i]-1));
+    SET_VECTOR_ELT(df, j++, PROTECT(getDfLevels(charItem, rx))); pro++;
+    /* SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(paramNames, par_cov[i]-1)); */
+  }
+  par_cov = rx->cov0;
+  for (i = 0; i < ncov0*add_cov; i++){
+    charItem =CHAR(STRING_ELT(paramNames, par_cov[i]));
+    SET_VECTOR_ELT(df, j++, PROTECT(getDfLevels(charItem, rx))); pro++;
+  }
+  for (i = 0; i < nkeep0; i++){
+    charItem =CHAR(STRING_ELT(ikeepNames, i));
+    SET_VECTOR_ELT(df, j++, PROTECT(getDfLevels(charItem, rx))); pro++;
+  }
+  for (i = 0; i < nkeep; i++){
+    charItem = CHAR(STRING_ELT(fkeepNames, i));
+    SET_VECTOR_ELT(df, j++, PROTECT(getDfLevels(charItem, rx))); pro++;
+  }
+  ncols+= ncols2;
   for (i = ncols + doseCols + nidCols + 2*nmevid; i < ncols + doseCols + nidCols + doTBS*2 + nmevid*5; i++){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
   // Now create the data frame
+  int curi = 0;
   for (int csim = 0; csim < nsim; csim++){
     for (csub = 0; csub < nsub; csub++){
       neq[1] = csub+csim*nsub;
@@ -2997,29 +3059,57 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
           // Cov
           if (add_cov*ncov > 0){
 	    for (j = 0; j < add_cov*ncov; j++){
-              dfp = REAL(VECTOR_ELT(df, jj));
-	      // is this ntimes = nAllTimes or nObs time for this subject...?
-	      dfp[ii] = isObs(evid)  ? cov_ptr[j*ntimes+i] : NA_REAL;
+	      tmp = VECTOR_ELT(df, jj);
+	      if (TYPEOF(tmp) == REALSXP) {
+		dfp = REAL(tmp);
+		// is this ntimes = nAllTimes or nObs time for this subject...?
+		dfp[ii] = isObs(evid)  ? cov_ptr[j*ntimes+i] : NA_REAL;
+	      } else {
+		dfi = INTEGER(tmp);
+		// is this ntimes = nAllTimes or nObs time for this subject...?
+		dfi[ii] = isObs(evid)  ? (int)(cov_ptr[j*ntimes+i]) : NA_INTEGER;
+	      }
 	      jj++;
 	    }
           }
 	  if (add_cov*ncov0 > 0){
 	    for (j = 0; j < add_cov*ncov0; j++){
-              dfp = REAL(VECTOR_ELT(df, jj));
-	      // is this ntimes = nAllTimes or nObs time for this subject...?
-	      dfp[ii] = isObs(evid) ? ind->par_ptr[rx->cov0[j]] : NA_REAL;
+	      tmp  = VECTOR_ELT(df, jj);
+	      if (TYPEOF(tmp) == REALSXP){
+		dfp = REAL(tmp);
+		// is this ntimes = nAllTimes or nObs time for this subject...?
+		dfp[ii] = isObs(evid) ? ind->par_ptr[rx->cov0[j]] : NA_REAL;
+	      } else {
+		dfi = INTEGER(tmp);
+		// is this ntimes = nAllTimes or nObs time for this subject...?
+		dfi[ii] = isObs(evid) ? (int)(ind->par_ptr[rx->cov0[j]]) : NA_INTEGER;
+	      }
 	      jj++;
 	    }
 	  }
 	  for (j = 0; j < nkeep0; j++){
-	    dfp = REAL(VECTOR_ELT(df, jj));
-	    dfp[ii] = get_ikeep(j, neq[1]);
+	    tmp = VECTOR_ELT(df, jj);
+	    if (TYPEOF(tmp) == REALSXP){
+	      dfp = REAL(tmp);
+	      dfp[ii] = get_ikeep(j, neq[1]);
+	    } else {
+	      dfi = INTEGER(tmp);
+	      dfi[ii] = (int)(get_ikeep(j, neq[1]));
+	    }
 	    jj++;
 	  }
 	  for (j = 0; j < nkeep; j++){
-	    dfp = REAL(VECTOR_ELT(df, jj));
-	    // is this ntimes = nAllTimes or nObs time for this subject...?
-	    dfp[ii] = get_fkeep(j, i);
+	    tmp = VECTOR_ELT(df, jj);
+	    if (TYPEOF(tmp) == REALSXP){
+	      dfp = REAL(tmp);
+	      // is this ntimes = nAllTimes or nObs time for this subject...?
+	      dfp[ii] = get_fkeep(j, curi + ind->ix[i]);
+	    } else {
+	      dfi = INTEGER(tmp);
+	      /* if (j == 0) REprintf("j: %d, %d; %f\n", j, i, get_fkeep(j, curi + i)); */
+	      // is this ntimes = nAllTimes or nObs time for this subject...?
+	      dfi[ii] = (int) (get_fkeep(j, curi + ind->ix[i]));
+	    }
 	    jj++;
 	  }
 	  // 
@@ -3035,6 +3125,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
         }
 	ind->_newind = 2;
       }
+      curi += ntimes;
       nBadDose = ind->nBadDose;
       BadDose = ind->BadDose;
       if (nBadDose && csim == 0){
@@ -3108,8 +3199,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
     }
   }  
   // Put in Cov names
-  SEXP paramNames = PROTECT(rxParamNames(op->modNamePtr)); pro++;
-  int *par_cov = op->par_cov;
+  par_cov = op->par_cov;
   for (i = 0; i < ncov*add_cov; i++){
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(paramNames, par_cov[i]-1));
     jj++;
@@ -3119,12 +3209,10 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(paramNames, par_cov[i]));
     jj++;
   }
-  SEXP ikeepNames = PROTECT(get_ikeepn()); pro++;
   for (i = 0; i < nkeep0; i++){
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(ikeepNames, i));
     jj++;
   }
-  SEXP fkeepNames = PROTECT(get_fkeepn()); pro++;
   for (i = 0; i < nkeep; i++){
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(fkeepNames, i));
     jj++;
