@@ -550,6 +550,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
     covUnits[i] = nvTmp2;
   }
+  Rf_setAttrib(inDataLvl, R_NamesSymbol, covUnitsN);
   Rf_setAttrib(covUnits, R_NamesSymbol, covUnitsN);
   // EVID = 0; Observations
   // EVID = 1; is illegal, but converted from NONMEM
@@ -1889,7 +1890,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   Rf_setAttrib(lst1F, R_ClassSymbol, wrap("data.frame"));
   Rf_setAttrib(lst1F, R_RowNamesSymbol,
 	       IntegerVector::create(NA_INTEGER, -nid));
-  List e(25);
+  List e(26);
   RxTransNames;
   e[RxTrans_ndose] = IntegerVector::create(ndose);
   e[RxTrans_nobs]  = IntegerVector::create(nobs);
@@ -1938,6 +1939,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   e[RxTrans_keepDosingOnly] = true;
   e[RxTrans_censAdd] = censAdd;
   e[RxTrans_limitAdd] = limitAdd;
+  e[RxTrans_levelInfo] = inDataLvl;
   Rf_setAttrib(keepL, R_NamesSymbol, keepN);
   Rf_setAttrib(keepL, R_ClassSymbol, wrap("data.frame"));
   Rf_setAttrib(keepL, R_RowNamesSymbol,
@@ -1963,7 +1965,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       Rf_setAttrib(tmp, R_LevelsSymbol, idLvl);
     }
   }
-
 #ifdef rxSolveT
   REprintf("  Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();

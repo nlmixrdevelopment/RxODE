@@ -2580,10 +2580,28 @@ static inline void rxSolve_ev1Update(const RObject &obj,
     len = Rf_length(cmtLvl);
     addLine(&(rx->factorNames), "%s", "CMT");
     for (int i = 0; i < len; i++) {
-      addLine(&(rx->factors), "%s", CHAR(STRING_ELT(cmtLvl, i)));
+      addLine(&(rx->factors), "%s",
+	      CHAR(STRING_ELT(cmtLvl, i)));
     }
     rx->factorNs[rx->hasFactors++] = len;
-    // FIXME other factors
+    List lvlInfo = e[RxTrans_levelInfo];
+    SEXP lvlInfoN = lvlInfo.attr("names");
+    for (int i = Rf_length(lvlInfoN);i--;){
+      SEXP cur = lvlInfo[i];
+      if (!Rf_isNull(cur)){
+	len = Rf_length(cur);
+	addLine(&(rx->factorNames), "%s",
+		CHAR(STRING_ELT(lvlInfoN, i)));
+	for (int j = 0; j < len; ++j) {
+	  addLine(&(rx->factors), "%s",
+		  CHAR(STRING_ELT(cur, j)));
+	}
+	rx->factorNs[rx->hasFactors++] = len;
+	if (rx->hasFactors >= 500){
+	  stop(_("RxODE only supports 500 factors"));
+	}
+      }
+    }
   }
   _rxModels[".lastEv1"] = ev1;
 }

@@ -342,10 +342,12 @@ void rxOptionsIniEnsure(int mx){
   rx->subjects = inds_global;
 }
 
-int compareFactorVal(int val, const char *valStr, const char *cmpValue){
+int compareFactorVal(int val,
+		     const char *valStr,
+		     const char *cmpValue){
   rx_solve *rx=(&rx_global);
   int base = 0, curLen= rx->factorNs[0], curG=0;
-  if (val == 0) {
+  if (val <= 0) {
     return 0; // Bad value
   }
   if (!strcmp(valStr, "ID")) {
@@ -364,15 +366,33 @@ int compareFactorVal(int val, const char *valStr, const char *cmpValue){
   if (!strcmp(valStr, "cmt") ||
       !strcmp(valStr, "CMT") ||
       !strcmp(valStr, "Cmt")) {
-    if (val < 0) return 0;
     if (val-1 < curLen){
       if (base+val-1 >= rx->factors.n) {
 	return 0;
       }
-      return (!strcmp(rx->factors.line[base+val-1], cmpValue));
+      return (!strcmp(rx->factors.line[base+val-1],
+		      cmpValue));
     } else {
       return 0;
     }
+  }
+  int totN = rx->factorNames.n;
+  base += curLen;
+  for (int i = 0; i < totN; ++i) {
+    const char *curFactor = rx->factorNames.line[++curG];
+    curLen = rx->factorNs[curG];
+    if (!strcmp(valStr, curFactor)) {
+      if (val-1 < curLen){
+	if (base+val-1 >= rx->factors.n) {
+	  return 0;
+	}
+	return (!strcmp(rx->factors.line[base+val-1],
+			cmpValue));
+      } else {
+	return 0;
+      }
+    }
+    base += curLen;
   }
   // Other factors
   return 0;

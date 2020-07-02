@@ -1,4 +1,3 @@
-
 rxPermissive(
   {
     require(RxODE)
@@ -622,6 +621,46 @@ d/dt(blood)     = a*intestine - b*blood
         expect_equal(attr(class(tmp), ".RxODE.lst")$idLvl, lvls)
         expect_equal(levels(tmp$ID), lvls)
       })
+
+      load(test_path("warfarin.rda"))
+
+      mod <- RxODE({
+        lka <- log(0.1) # log Ka
+        lv <- log(10) # Log Vc
+        lcl <- log(4) # Log Cl
+        lq <- log(10) # log Q
+        lvp <- log(20) # Log Vp
+        eta.ka <- 0
+        eta.v <- 0.1
+        eta.cl <- 0.1
+        ka <- exp(lka + eta.ka + sex + age + dvid)
+        cl <- exp(lcl + eta.cl)
+        v <- exp(lv + eta.v)
+        q <- exp(lq)
+        vp <- exp(lvp)
+        sf <- (sex == "female")
+        sm <- (sex == "male")
+        d.cp <- (dvid == "cp")
+        d.pca <- (dvid == "pca")
+        cp <- linCmt()
+      })
+
+      t <- rxSolve(mod, warfarin, keep=c("sex", "age", "dvid"))
+
+      expect_equal(sort(unique(t$sf)), c(0, 1))
+      expect_equal(sort(unique(t$sm)), c(0, 1))
+      expect_equal(sort(unique(t$d.cp)), c(0, 1))
+      expect_equal(sort(unique(t$d.pca)), c(0, 1))
+
+      ## expect_true(inherits(t$sex, "factor"))
+      ## expect_true(inherits(t$dvid, "factor"))
+
+      t <- rxSolve(mod, warfarin, addCov=TRUE)
+
+      warfarin$sex <- paste(warfarin$sex)
+
+      tmp <- etTrans(warfarin, mod)
+
     }
   },
   test = "cran",
