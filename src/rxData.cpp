@@ -1553,10 +1553,9 @@ extern "C" int rxGetErrsNrow(){
 }
 
 SEXP rxGetFromChar(char *ptr, std::string var){
-  std::string str(ptr);
   // Rcout << str << "\n";
   CharacterVector cv(1);
-  cv[0] = str;
+  cv[0] = Rf_mkChar(ptr);
   List mv = rxModelVars(as<RObject>(cv));
   if (var == ""){
     return wrap(mv);
