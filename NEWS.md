@@ -26,6 +26,9 @@
 
 ## New features
 
+* Comparison of factors/strings is now supported in `RxODE`; Therefore
+  ID=="Study-1" is now allowed.
+
 * Completion for all api elements of `rxSolve()` objects, and `et()`
   objects have been added (accessed through `$`)
 
@@ -120,10 +123,11 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   different.  Infusions to the depot compartment are now supported. 
   
 
-* Added sensitivity auto-differentiation of `linCmt()` solutions (via
-  stan's math headers).  This allows sensitivities of `linCmt()`
-  solutions and enables `nlmixr` focei to support solved systems.
-  - As such, `RxODE` now requires `C++14` support.
+* Added sensitivity auto-differentiation of `linCmt()` solutions.  
+  This allows sensitivities of `linCmt()` solutions and enables
+  `nlmixr` focei to support solved systems.
+  - One solution is to use Stan's auto-differentiation which requires
+    `C++14`
   
 * Added ability to prune branching with `rxPrune`. This converts
   `if`/`else` or `ifelse` to single line statements without any
@@ -167,7 +171,7 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   `is.finite` and `is.infinite` which can be called within the RxODE
   block.
 
-* Allowed the following data variables to be accessed (but not
+* Allowed the following data variables can be accessed (but not
   assigned or used as a state):
   - `cmt`
   - `dvid`
@@ -175,6 +179,8 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   - `ss`
   - `amt`
   - `rate`
+  - `id` which requires calling the id as factor `ID=="1"` for
+    instance.
 
 * Kept `evid` and `ii` as restricted items since they are not part of
   the covariate table and are restricted in use.
