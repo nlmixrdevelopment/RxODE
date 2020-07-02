@@ -34,7 +34,7 @@ SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
       ch=arma::trimatu(arma::chol(sigma));
     }
   }
-  
+
   if (n < 1) stop(_("n should be a positive integer"));
   if (ncores < 1) stop(_("'ncores' has to be greater than one"));
   if (d != (int)sigma.n_cols) stop("length(mu) != ncol(sigma)");
@@ -51,7 +51,7 @@ SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
     arma::mat A(A_.begin(), A_.nrow(), A_.ncol(), false, true);
     sitmo::threefry eng;
     eng.seed(seed);
-       
+
     std::normal_distribution<> snorm(0.0, 1.0);
 
     double acc;
@@ -80,7 +80,7 @@ SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
 	  for (int ii = 0; ii <= ic; ++ii){
 	    acc += A.at(ir,ii) * ch.at(ii,ic);
 	  }
-	  work.at(ic) = acc; 
+	  work.at(ic) = acc;
 	}
 	work += mu;
 	A(arma::span(ir), arma::span::all) = work;
@@ -155,7 +155,7 @@ double trandn(double l, double u, sitmo::threefry& eng, double a=0.4,
   // 'Z' from the non-standard Gaussian N(m,s^2)
   // conditional on l<Z<u, then first simulate
   // X=trandn((l-m)/s,(u-m)/s) and set Z=m+s*X;
-  // 
+  //
   // Reference:
   // Z. I. Botev (2015),
   // "The Normal Law Under Linear Restrictions:
@@ -206,7 +206,7 @@ rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
 		 arma::vec& u, arma::vec mu,
 		 sitmo::threefry& eng,
 		 double a=0.4, double tol = 2.05){
-  // generates the proposals from the exponentially tilted 
+  // generates the proposals from the exponentially tilted
   // sequential importance sampling pdf;
   // output:    'logpr', log-likelihood of sample
   //              Z, random sample
@@ -264,7 +264,7 @@ typedef struct {
   arma::vec l;
   arma::vec u;
   arma::uvec perm;
-  
+
 } rx_cholperms;
 
 rx_cholperms cholperm(arma::mat Sig, arma::vec& cl, arma::vec& cu,
@@ -273,10 +273,10 @@ rx_cholperms cholperm(arma::mat Sig, arma::vec& cl, arma::vec& cu,
   // #  by permuting integration limit vectors l and u.
   // #  Outputs perm, such that Sig(perm,perm)=L%*%t(L).
   // #
-  // # Reference: 
+  // # Reference:
   // #  Gibson G. J., Glasbey C. A., Elston D. A. (1994),
   // #  "Monte Carlo evaluation of multivariate normal integrals and
-  // #  sensitivity to variate ordering", 
+  // #  sensitivity to variate ordering",
   // #  In: Advances in Numerical Methods and Applications, pages 120--126
   arma::vec l=cl;
   arma::vec u=cu;
@@ -581,7 +581,7 @@ arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
   // rescale
   arma::mat L=Lfull.each_col()/D;
   u=u/D;
-  l=l/D; 
+  l=l/D;
   L=L-eye(d, d); // remove diagonal
   // find optimal tilting parameter via non-linear equation solver
   arma::vec xmu = nleq(l,u,L,nlTol, nlMaxiter); // nonlinear equation solver
@@ -706,7 +706,7 @@ IntegerVector rxbinom_(int n0, double prob, int n, int ncores){
   int n2 = ret.size();
   std::binomial_distribution<int> d(n0, prob);
   int *retD = ret.begin();
-  
+
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
@@ -736,7 +736,7 @@ NumericVector rxcauchy_(double location, double scale, int n, int ncores){
   int n2 = ret.size();
   std::cauchy_distribution<double> d(location, scale);
   double *retD = ret.begin();
-  
+
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
@@ -767,7 +767,7 @@ NumericVector rxchisq_(double df, int n, int ncores){
   int n2 = ret.size();
   std::chi_squared_distribution<double> d(df);
   double *retD = ret.begin();
-  
+
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
@@ -797,7 +797,7 @@ NumericVector rxexp_(double rate, int n, int ncores){
   int n2 = ret.size();
   std::exponential_distribution<double> d(rate);
   double *retD = ret.begin();
-  
+
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
@@ -827,7 +827,7 @@ NumericVector rxf_(double df1, double df2, int n, int ncores){
   int n2 = ret.size();
   std::fisher_f_distribution<double> d(df1, df2);
   double *retD = ret.begin();
-  
+
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
@@ -858,7 +858,7 @@ NumericVector rxgamma_(double shape, double rate, int n, int ncores){
   int n2 = ret.size();
   std::gamma_distribution<double> d(shape, 1.0/rate);
   double *retD = ret.begin();
-  
+
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
@@ -891,7 +891,7 @@ NumericVector rxbeta_(double shape1, double shape2, int n, int ncores){
   std::gamma_distribution<double> d1(shape1, 1.0);
   std::gamma_distribution<double> d2(shape2, 1.0);
   double *retD = ret.begin();
-  
+
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
@@ -922,7 +922,7 @@ IntegerVector rxgeom_(double prob, int n, int ncores){
   int n2 = ret.size();
   std::geometric_distribution<int> d(prob);
   int *retD = ret.begin();
-  
+
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
@@ -953,7 +953,7 @@ NumericVector rxnorm_(double mean, double sd, int n, int ncores){
   int n2 = ret.size();
   std::normal_distribution<double> d(mean, sd);
   double *retD = ret.begin();
-  
+
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
@@ -983,7 +983,7 @@ IntegerVector rxpois_(double lambda, int n, int ncores){
   int n2 = ret.size();
   std::poisson_distribution<int> d(lambda);
   int *retD = ret.begin();
-  
+
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
@@ -1013,7 +1013,7 @@ NumericVector rxt__(double df, int n, int ncores){
   int n2 = ret.size();
   std::student_t_distribution<double> d(df);
   double *retD = ret.begin();
-  
+
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
@@ -1043,7 +1043,7 @@ NumericVector rxunif_(double low, double hi, int n, int ncores){
   int n2 = ret.size();
   std::uniform_real_distribution<double> d(low, hi);
   double *retD = ret.begin();
-  
+
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
@@ -1073,7 +1073,7 @@ NumericVector rxweibull_(double shape, double scale, int n, int ncores){
   int n2 = ret.size();
   std::weibull_distribution<double> d(shape, scale);
   double *retD = ret.begin();
-  
+
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
@@ -1175,7 +1175,7 @@ SEXP rxRmvnSEXP(SEXP nS,
   qassertS(isCholS, "B1", "isChol");
   bool isChol = as<bool>(isCholS);
   qassertS(keepNamesS, "B1", "keepNames");
-  bool keepNames = as<bool>(keepNamesS);  
+  bool keepNames = as<bool>(keepNamesS);
 
   // get sigma0
   if (isSigmaList){
@@ -1212,7 +1212,7 @@ SEXP rxRmvnSEXP(SEXP nS,
     qassertS(nS, "X1[1,)", "n");
     n = as<int>(nS);
     A = NumericMatrix(n, d);
-  }  
+  }
   if (sigma0.hasAttribute("dimnames")){
     List curL = as<List>(sigma0.attr("dimnames"));
     if (!Rf_isNull(curL[0])){
@@ -1231,7 +1231,7 @@ SEXP rxRmvnSEXP(SEXP nS,
     qassertS(muS, "R+", "mu");
     muNV = as<NumericVector>(muS);
   }
-  arma::rowvec mu = as<arma::rowvec>(muNV);  
+  arma::rowvec mu = as<arma::rowvec>(muNV);
   if (muNV.size() != d) {
     // REprintf("mu.size: %d, d: %d\n", muNV.size(), d);
     stop(_("'mu' length must match 'sigma' dimensions"));
@@ -1358,7 +1358,6 @@ NumericVector rpp_(SEXP nS, SEXP lambdaS, SEXP gammaS, SEXP probS, SEXP t0S, SEX
 	NumericVector ret(n);
 	std::uniform_real_distribution<double> runif(0.0, 1.0);
 	std::exponential_distribution<double> rexp(lambda);
-	double tnew= t0;
 	double ttest;
 	while (cur != n){
 	  ttest = t0 + rexp(_eng);
