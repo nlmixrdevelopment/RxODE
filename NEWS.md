@@ -221,6 +221,7 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 ## Bug fixes:
  - Occasionally RxODE misidentified dual `lhs`/`param` values.  An
    additional check is performed so that this does not happen.
+ - A fix where all ID information is kept with `keep=c(""..."")`
  - Transit compartment models using the `transit` ODE or variable are
    now allowed.  Also check for more internally parsed items (see
    Issue #145).
