@@ -28,7 +28,13 @@ double _sum(double *input, double *pld, int m, int type, int n, ...){
     input[i] = va_arg(valist, double);
   }
   va_end(valist);
-  return _sumPS(input, n, pld, m, type);
+  double ret = _sumPS(input, n, pld, m, type);
+  if (type == 2 && m < 0){
+    for (int i = -m; i--;){
+      pld[i] = 0.0;
+    }
+  }
+  return ret;
 }
 
 
