@@ -36,7 +36,7 @@ rxPermissive(
       sink(tf)
       expect_error(
         model %>% solve(c(KA = -10), event_table, maxsteps = 5000),
-        rex::rex("Could not solve the system.")
+        rex::rex("could not solve the system")
       )
       sink()
       unlink(tf)
