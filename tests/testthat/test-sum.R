@@ -2,6 +2,7 @@ rxPermissive(
   {
     context("Test PythonFsum")
     test_that("Fsum", {
+
       et <- eventTable() %>%
         add.sampling(0)
 
@@ -17,14 +18,14 @@ rxPermissive(
         s9 <- sum(R_pow(prod(2, 3), 2), 6)
       })
 
-      s <- solve(rx,
+      s <- rxSolve(rx,
         params = c(
           a = 1e16 - 2.,
           b = 1. - 2.^-53,
           c = -(1e16 - 2.),
           d = -(1. - 2.^-53)
         ), et,
-        sum = "fsum"
+        sumType = "fsum"
       )
 
       expect_identical(s$s1, 1e-100)
@@ -35,6 +36,7 @@ rxPermissive(
       expect_identical(s$s6, 10000000000000002.0)
       expect_identical(s$s7, 0.0)
       expect_identical(s$s8, 2.0)
+
     })
   },
   test = "lvl2"
