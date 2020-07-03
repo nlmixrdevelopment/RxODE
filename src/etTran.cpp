@@ -1705,6 +1705,17 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   bool cmtFadd = false;
   int jj = idxO.size()-rmAmt;
   int kk;
+  List inDataFK(keepCol.size());
+  for (j = 0; j < (int)(keepCol.size()); j++){
+    SEXP cur = inData[keepCol[j]];
+    if (TYPEOF(cur) == STRSXP){
+      inDataFK[j] = convertId_(cur);
+    } else if (TYPEOF(cur) == INTSXP){
+      inDataFK[j] = as<NumericVector>(cur);
+    } else {
+      inDataFK[j] = cur;
+    }
+  }
   for (i =idxO.size(); i--;){
     if (idxO[i] != -1){
       jj--;
@@ -1763,8 +1774,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  }
 	} else {
 	  // These keep variables are added.
-	  nvTmp2   = as<NumericVector>(inData[keepCol[j]]);
-	  nvTmp[jj] = nvTmp2[idx[idxO[i]]];
+	  SEXP cur = inDataFK[j];
+	  if (TYPEOF(cur) == INTSXP) {
+	    nvTmp[jj] = (double)(INTEGER(cur)[idx[idxO[i]]]);
+	  } else {
+	    nvTmp[jj] = REAL(cur)[idx[idxO[i]]];
+	  }
+	  
 	}
       }
       for (j = 0; j < (int)(covCol.size()); j++){
