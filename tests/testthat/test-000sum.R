@@ -2,7 +2,6 @@ rxPermissive(
   {
     context("Test PythonFsum")
     test_that("Fsum", {
-
       et <- eventTable() %>%
         add.sampling(0)
 
@@ -36,7 +35,6 @@ rxPermissive(
       expect_identical(s$s6, 10000000000000002.0)
       expect_identical(s$s7, 0.0)
       expect_identical(s$s8, 2.0)
-
     })
   },
   test = "cran"

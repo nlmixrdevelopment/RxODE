@@ -1,6 +1,6 @@
 .rxPrune <- function(x, envir = parent.frame()) {
   if (is.name(x) || is.atomic(x)) {
-    if (is.character(x)){
+    if (is.character(x)) {
       return(deparse1(x))
     }
     return(as.character(x))
@@ -112,7 +112,7 @@
     }
   } else { ## nocov start
     ## is.pairlist OR is.atomic OR unknown...
-    stop("unsupported expression", call.=FALSE)
+    stop("unsupported expression", call. = FALSE)
   } ## nocov end
 }
 

@@ -133,7 +133,7 @@ rxpois <- function(lambda, n = 1L, ncores = 1L) {
 ##' @export
 rxt <- function(df, n = 1L, ncores = 1L) {
   checkmate::assertNumeric(df, len = 1, lower = 0)
-  if (df == 0) stop("'df' must be greater than 0", call.=FALSE)
+  if (df == 0) stop("'df' must be greater than 0", call. = FALSE)
   checkmate::assertCount(n)
   checkmate::assertCount(ncores)
   rxSeedEng(ncores)
@@ -279,9 +279,9 @@ rxgeom <- function(prob, n = 1L, ncores = 1L) {
 ##' @export
 rxbeta <- function(shape1, shape2, n = 1L, ncores = 1L) {
   checkmate::assertNumeric(shape1, len = 1, lower = 0)
-  if (shape1 == 0) stop("'shape1' cannot be 0", call.=FALSE)
+  if (shape1 == 0) stop("'shape1' cannot be 0", call. = FALSE)
   checkmate::assertNumeric(shape2, len = 1, lower = 0)
-  if (shape2 == 0) stop("'shape2' cannot be 0", call.=FALSE)
+  if (shape2 == 0) stop("'shape2' cannot be 0", call. = FALSE)
   checkmate::assertCount(n)
   checkmate::assertCount(ncores)
   rxSeedEng(ncores)
@@ -317,14 +317,14 @@ rxbeta <- function(shape1, shape2, n = 1L, ncores = 1L) {
 ##' @export
 rxgamma <- function(shape, rate = 1 / scale, scale = 1, n = 1L, ncores = 1L) {
   checkmate::assertNumeric(shape, len = 1, lower = 0)
-  if (shape == 0) stop("'shape' cannot be 0", call.=FALSE)
+  if (shape == 0) stop("'shape' cannot be 0", call. = FALSE)
   checkmate::assertNumeric(rate, len = 1, lower = 0)
-  if (rate == 0 || scale == 0) stop("'rate'/'scale' cannot be 0", call.=FALSE)
+  if (rate == 0 || scale == 0) stop("'rate'/'scale' cannot be 0", call. = FALSE)
   if (!missing(rate) && !missing(scale)) {
     if (abs(rate * scale - 1) < 1e-15) {
       warning("specify 'rate' or 'scale' but not both")
     } else {
-      stop("specify 'rate' or 'scale' but not both", call.=FALSE)
+      stop("specify 'rate' or 'scale' but not both", call. = FALSE)
     }
   }
   checkmate::assertCount(n)
@@ -363,9 +363,9 @@ rxgamma <- function(shape, rate = 1 / scale, scale = 1, n = 1L, ncores = 1L) {
 ##' @export
 rxf <- function(df1, df2, n = 1L, ncores = 1L) {
   checkmate::assertNumeric(df1, len = 1, lower = 0)
-  if (df1 == 0) stop("'df1' cannot be 0", call.=FALSE)
+  if (df1 == 0) stop("'df1' cannot be 0", call. = FALSE)
   checkmate::assertNumeric(df2, len = 1, lower = 0)
-  if (df2 == 0) stop("'df2' cannot be 0", call.=FALSE)
+  if (df2 == 0) stop("'df2' cannot be 0", call. = FALSE)
   checkmate::assertCount(n)
   checkmate::assertCount(ncores)
   rxSeedEng(ncores)
@@ -402,7 +402,7 @@ rxf <- function(df1, df2, n = 1L, ncores = 1L) {
 ##' @export
 rxexp <- function(rate, n = 1L, ncores = 1L) {
   checkmate::assertNumeric(rate, len = 1, lower = 0)
-  if (rate == 0) stop("'rate' cannot be 0", call.=FALSE)
+  if (rate == 0) stop("'rate' cannot be 0", call. = FALSE)
   checkmate::assertCount(n)
   checkmate::assertCount(ncores)
   rxSeedEng(ncores)
@@ -439,7 +439,7 @@ rxexp <- function(rate, n = 1L, ncores = 1L) {
 ##' @export
 rxchisq <- function(df, n = 1L, ncores = 1L) {
   checkmate::assertNumeric(df, len = 1, lower = 0)
-  if (df == 0) stop("'df' cannot be 0", call.=FALSE)
+  if (df == 0) stop("'df' cannot be 0", call. = FALSE)
   checkmate::assertCount(n)
   checkmate::assertCount(ncores)
   rxSeedEng(ncores)
@@ -476,7 +476,7 @@ rxchisq <- function(df, n = 1L, ncores = 1L) {
 rxcauchy <- function(location = 0, scale = 1, n = 1L, ncores = 1L) {
   checkmate::assertNumeric(location, len = 1)
   checkmate::assertNumeric(scale, len = 1, lower = 0)
-  if (scale == 0) stop("'scale' cannot be 0", call.=FALSE)
+  if (scale == 0) stop("'scale' cannot be 0", call. = FALSE)
   checkmate::assertCount(n)
   checkmate::assertCount(ncores)
   rxSeedEng(ncores)
@@ -571,12 +571,12 @@ rxbinom <- function(size, prob, n = 1L, ncores = 1L) {
 ##'
 ##' rxPp(10, 1/10, prob=function(x){1/x})
 ##'
-rxPp <- function(n, lambda, gamma=1.0, prob=NULL, t0=0.0, tmax=Inf, randomOrder=FALSE){
-  checkmate::assertNumeric(t0, len=1, any.missing=FALSE)
-  checkmate::assertNumeric(tmax, len=1, any.missing=FALSE, lower=t0)
-  checkmate::assertNumeric(gamma, len=1, any.missing=FALSE, lower=.Machine$double.eps)
-  checkmate::assertNumeric(lambda, len=1, any.missing=FALSE, lower=.Machine$double.eps)
-  checkmate::assertIntegerish(n, len=1, any.missing=FALSE, lower=1L)
-  checkmate::assertLogical(randomOrder, len=1, any.missing=FALSE)
-  .Call(`_RxODE_rpp_`, n, lambda, gamma, prob, t0, tmax, randomOrder, PACKAGE="RxODE")
+rxPp <- function(n, lambda, gamma = 1.0, prob = NULL, t0 = 0.0, tmax = Inf, randomOrder = FALSE) {
+  checkmate::assertNumeric(t0, len = 1, any.missing = FALSE)
+  checkmate::assertNumeric(tmax, len = 1, any.missing = FALSE, lower = t0)
+  checkmate::assertNumeric(gamma, len = 1, any.missing = FALSE, lower = .Machine$double.eps)
+  checkmate::assertNumeric(lambda, len = 1, any.missing = FALSE, lower = .Machine$double.eps)
+  checkmate::assertIntegerish(n, len = 1, any.missing = FALSE, lower = 1L)
+  checkmate::assertLogical(randomOrder, len = 1, any.missing = FALSE)
+  .Call(`_RxODE_rpp_`, n, lambda, gamma, prob, t0, tmax, randomOrder, PACKAGE = "RxODE")
 }

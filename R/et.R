@@ -278,7 +278,7 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
   if (!missing(by)) {
     checkmate::assertNumeric(by, finite = TRUE, max.len = 1, any.missing = FALSE, min = 0)
     if (!missing(length.out)) {
-      stop("cannot supply both 'by' and 'length.out'", call.=FALSE)
+      stop("cannot supply both 'by' and 'length.out'", call. = FALSE)
     }
     .lst <- .lst[names(.lst) != "by"]
     .lst <- .lst[names(.lst) != "envir"]
@@ -366,7 +366,7 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
     .len <- sum(names(.lst) == "")
     if (.len == 2 && is(.lst[[2]], "character")) {
     } else if (.len > 1) {
-      stop("improper arguments to 'et'", call.=FALSE)
+      stop("improper arguments to 'et'", call. = FALSE)
     }
   } else {
     if (all(names(.lst)[-1] == "") && length(.lst) == 3) {
@@ -385,7 +385,7 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
     if (.len == 2 && is(.lst[[3]], "character")) {
     } else if (.len > 1) {
       if (sum(names(.lst)[-1] == "") > 1) {
-        stop("improper arguments to 'et'", call.=FALSE)
+        stop("improper arguments to 'et'", call. = FALSE)
       }
     }
   }
@@ -395,7 +395,7 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
         time <- 0
       } else if (length(time) != length(amt)) {
         if (length(time) != 1) {
-          stop("when supplying vectors of 'time', 'amt' they need to be the same size", call.=FALSE)
+          stop("when supplying vectors of 'time', 'amt' they need to be the same size", call. = FALSE)
         }
       }
       .df <- data.frame(time = time, amt = amt)
@@ -485,7 +485,7 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
           stop(sprintf(
             gettext("only a single evid 'evid' can be specified ('%s')"),
             paste(.evid, collapse = "', '")
-          ), call.=FALSE)
+          ), call. = FALSE)
         } else {
           .evid <- .evid0
         }
@@ -541,7 +541,7 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
           stop(sprintf(
             gettext("only a single compartment 'cmt' can be specified ('%s')"),
             paste(.cmt, collapse = "', '")
-          ), call.=FALSE)
+          ), call. = FALSE)
         } else {
           .cmt <- .cmt0
         }
@@ -569,7 +569,7 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
           stop(sprintf(
             gettext("only a single rate 'rate' can be specified ('%s')"),
             paste(.rate, collapse = "', '")
-          ), call.=FALSE)
+          ), call. = FALSE)
         } else {
           .rate <- .rate0
         }
@@ -605,7 +605,7 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
           stop(sprintf(
             gettext("only a single duration 'dur' can be specified ('%s')"),
             paste(.dur, collapse = "', '")
-          ), call.=FALSE)
+          ), call. = FALSE)
         } else {
           .dur <- .dur0
         }
@@ -679,7 +679,7 @@ set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units
   } else if (mode == "symbols") {
     value <- substitute(value)
     if (is.numeric(value) && !identical(value, 1) && !identical(value, 1L)) {
-      stop("the only valid number defining a unit is '1', signifying a unitless unit", call.=FALSE)
+      stop("the only valid number defining a unit is '1', signifying a unitless unit", call. = FALSE)
     }
   }
   if (identical(value, units::unitless)) {
@@ -1087,8 +1087,8 @@ etRep <- function(x, times = 1, length.out = NA, each = NA, n = NULL, wait = 0, 
   }
   .sampleIx <- c(clear = 0L, use = 1L)
   .waitIx <- c(smart = 0L, `+ii` = 1L)
-  if (!is.na(length.out)) stop("'length.out' makes no sense with event tables", call.=FALSE)
-  if (!is.na(each)) stop("'each' makes no sense with event tables", call.=FALSE)
+  if (!is.na(length.out)) stop("'length.out' makes no sense with event tables", call. = FALSE)
+  if (!is.na(each)) stop("'each' makes no sense with event tables", call. = FALSE)
   .Call(
     `_RxODE_etRep_`, x, as.integer(times),
     wait, as.integer(id), setNames(.sampleIx[match.arg(samples)], NULL),
@@ -1152,9 +1152,9 @@ as_tibble.rxEt <- function(x, ...) {
   rxReq("tibble")
   if (rxIs(x, "rxEt")) {
     .x <- x
-    .show <- .x$show;
+    .show <- .x$show
     class(.x) <- "data.frame"
-    .tmp <- .x[, .show, drop = FALSE];
+    .tmp <- .x[, .show, drop = FALSE]
     return(tibble::as_tibble(.tmp, ...))
   } else {
     return(tibble::as_tibble(x, ...))
@@ -1283,7 +1283,7 @@ as.character.rxEvid <- function(x, ...) {
 
 ##' @export
 `units<-.rxEvid` <- function(x, value) {
-  stop("'evid' is unitless", call.=FALSE)
+  stop("'evid' is unitless", call. = FALSE)
 }
 
 

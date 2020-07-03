@@ -27,7 +27,6 @@ rxPermissive(
     test_that("long lines are handled...", {
       expect_equal(class(focei.mm.mod2), "rxFocei")
     })
-
   },
   silent = TRUE,
   test = "focei"

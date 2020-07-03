@@ -6,7 +6,7 @@ confint.rxSolve <- function(object, parm = NULL, level = 0.95, ...) {
   ## RxODE::rxReq("dplyr")
   ## RxODE::rxReq("tidyr")
   if (level <= 0 || level >= 1) {
-    stop("simulation summaries must be between 0 and 1", call.=FALSE)
+    stop("simulation summaries must be between 0 and 1", call. = FALSE)
   }
   .stk <- rxStack(object, parm)
   data.table::setDT(.stk)
@@ -21,9 +21,11 @@ confint.rxSolve <- function(object, parm = NULL, level = 0.95, ...) {
     if (object$env$.args$nSub < 2500) {
       .mwarn("in order to put confidence bands around the intervals, you need at least 2500 simulations")
       message("summarizing data...", appendLF = FALSE)
-      .stk <- .stk[, list(p1 = .p, eff = stats::quantile(.SD$value, probs = .p, na.rm = TRUE),
-                          Percentile = sprintf("%s%%", .p * 100)),
-        by = c("time", "trt")
+      .stk <- .stk[, list(
+        p1 = .p, eff = stats::quantile(.SD$value, probs = .p, na.rm = TRUE),
+        Percentile = sprintf("%s%%", .p * 100)
+      ),
+      by = c("time", "trt")
       ]
       if (requireNamespace("tibble", quietly = TRUE)) {
         .stk <- tibble::as_tibble(.stk)

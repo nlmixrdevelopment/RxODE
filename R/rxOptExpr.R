@@ -94,10 +94,10 @@
     if (round(val) == val && val > 0) {
       return(sprintf("%s[%s]", .n, val))
     } else {
-      stop(.err, call.=FALSE)
+      stop(.err, call. = FALSE)
     }
   } else {
-    stop(.err, call.=FALSE)
+    stop(.err, call. = FALSE)
   }
 }
 .rxOptEnv[["{"]] <- function(...) {
@@ -110,10 +110,10 @@
     if (round(val) == val && val > 0) {
       return(sprintf("%s[%s]", .n, val))
     } else {
-      stop(err, call.=FALSE)
+      stop(err, call. = FALSE)
     }
   } else {
-    stop(err, call.=FALSE)
+    stop(err, call. = FALSE)
   }
 }
 
@@ -260,7 +260,7 @@
             } else if (identical(x[[1]], quote(`-`))) {
               return(as.character(x[[2]]))
             } else if (identical(x[[2]], quote(`/`))) {
-              stop("cannot divide by zero", call.=FALSE)
+              stop("cannot divide by zero", call. = FALSE)
             }
           }
         }

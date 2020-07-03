@@ -41,7 +41,8 @@ rxIndLinState <- function(prefered = NULL) {
       names = "unnamed"
     )) {
       stop(sprintf(gettext("'rxIndLinState' list element '%s' must be a unnamed character vector"), names(prefered)[x]),
-           call.=FALSE)
+        call. = FALSE
+      )
     }
   })
   assignInMyNamespace(".rxIndLinState", prefered)

@@ -174,7 +174,7 @@ rxDerived <- function(..., verbose = FALSE, digits = 0) {
     .env <- environment()
     return(eval(parse(text = .linCmt), envir = .env))
   } else {
-    stop("cannot figure out PK parameters to convert", call.=FALSE)
+    stop("cannot figure out PK parameters to convert", call. = FALSE)
   }
 }
 

@@ -1,16 +1,16 @@
-.minfo <- function(text, ..., .envir=parent.frame()){
+.minfo <- function(text, ..., .envir = parent.frame()) {
   cli::cli_alert_info(gettext(text), ..., .envir = .envir)
 }
 
-.malert <- function(text, ..., .envir=parent.frame()){
+.malert <- function(text, ..., .envir = parent.frame()) {
   cli::cli_alert(gettext(text), ..., .envir = .envir)
 }
 
-.mwarn <- function(text, ..., .envir=parent.frame()){
+.mwarn <- function(text, ..., .envir = parent.frame()) {
   cli::cli_alert_warning(gettext(text), ..., .envir = .envir)
 }
 
-.msuccess <- function(text, ..., .envir=parent.frame()){
+.msuccess <- function(text, ..., .envir = parent.frame()) {
   cli::cli_alert_success(gettext(text), ..., .envir = .envir)
 }
 
@@ -202,7 +202,7 @@ ode.h <- function() {
 ##'
 ##' @export
 rxSetSum <- function(type = c("pairwise", "fsum", "kahan", "neumaier", "c")) {
-  stop("'rxSetSum' has been moved to rxSolve(...,sum=)", call.=FALSE)
+  stop("'rxSetSum' has been moved to rxSolve(...,sum=)", call. = FALSE)
 }
 
 ##' Defunct setting of product
@@ -211,7 +211,7 @@ rxSetSum <- function(type = c("pairwise", "fsum", "kahan", "neumaier", "c")) {
 ##'
 ##' @export
 rxSetProd <- function(type = c("long double", "double", "logify")) {
-  stop("'rxSetProd' has been moved to rxSolve(...,sum=)", call.=FALSE)
+  stop("'rxSetProd' has been moved to rxSolve(...,sum=)", call. = FALSE)
 }
 
 ##' Set timing for progress bar

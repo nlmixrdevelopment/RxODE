@@ -506,7 +506,6 @@ rxPermissive(
         expect_false(inherits(tmp$rate, "rxRateDur"))
         expect_false(inherits(tmp$evid, "rxEvid"))
       })
-
     }
 
     context("seq() arguments work; See #97")

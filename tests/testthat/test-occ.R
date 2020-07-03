@@ -293,7 +293,6 @@ rxPermissive(
     expect_equal(names(.ni$omega), "id")
 
     .en <- RxODE:::rxExpandNesting(mod, .ni)
-
   },
   test = "lvl2"
 )

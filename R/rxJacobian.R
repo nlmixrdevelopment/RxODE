@@ -135,7 +135,8 @@ rxExpandGrid <- function(x, y, type = 0L) {
   if (!identical(.tmp, character())) {
     if (!any(.tmp == .goodFns)) {
       stop(sprintf(gettext("'%s' is from '%s' and cannot be used in this context"), deparse(substitute(x)), .tmp),
-           call.=FALSE)
+        call. = FALSE
+      )
     }
   }
 }
@@ -201,11 +202,14 @@ rxExpandGrid <- function(x, y, type = 0L) {
         .txt[.w] <- .inis
       } else {
         stop(gettext("specified %s initial conditions when there are only %s states"),
-             length(.inis), length(rxState(rx)), call.=FALSE)
+          length(.inis), length(rxState(rx)),
+          call. = FALSE
+        )
       }
     } else if (length(.w) > 1) {
       stop("only one 'initCondition=' supported",
-           call.=FALSE)
+        call. = FALSE
+      )
     }
     .newmod <- rxGetModel(paste0(paste(.txt, collapse = "\n"), "\n", rxNorm(rx)))
     return(.newmod)
@@ -310,7 +314,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
     .etaVars <- paste0("ETA_", seq(1, .s$..maxEta), "_")
   }
   if (length(.etaVars) == 0L) {
-    stop("cannot identify parameters for sensitivity analysis", call.=FALSE)
+    stop("cannot identify parameters for sensitivity analysis", call. = FALSE)
   }
   .stateVars <- rxState(.s)
   .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
@@ -365,7 +369,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
     return(.ret)
   })
   if (.all.zero) {
-    stop("none of the predictions depend on 'ETA'", call.=FALSE)
+    stop("none of the predictions depend on 'ETA'", call. = FALSE)
   }
   if (.any.zero) {
     warning("some of the predictions do not depend on 'ETA'")
@@ -600,7 +604,9 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
                       theta = FALSE) {
   .clearSEstr()
   assignInMyNamespace(".rxSupportedFunsExtra", TRUE)
-  on.exit({assignInMyNamespace(".rxSupportedFunsExtra", FALSE)})
+  on.exit({
+    assignInMyNamespace(".rxSupportedFunsExtra", FALSE)
+  })
   assignInMyNamespace("rxErrEnv.lambda", NULL)
   assignInMyNamespace("rxErrEnv.yj", NULL)
   assignInMyNamespace("rxSymPyExpThetas", c())

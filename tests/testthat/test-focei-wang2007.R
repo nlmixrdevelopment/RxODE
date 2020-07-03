@@ -32,7 +32,6 @@ rxPermissive(
     }
 
     test_that("wang 2007 focei", {
-
       .pars <- data.frame(
         "ID" = 1:10, "THETA[1]" = 0.5, "THETA[2]" = 0.316227766016838,
         "ETA[1]" = c(0.0715450734486017, 0.00570452906524344, 0.0249471848462488, 0.0319502378032186, -0.00478736811351454, 0.0039789224128819, -0.0118035084999257, 0.00588012198220198, -0.00313671907426165, -0.000666414340548085),
@@ -91,7 +90,7 @@ rxPermissive(
           return(prop(.1))
         },
         optExpression = FALSE
-        )
+      )
 
       solve1 <- rxSolve(rx, .dat, .pars, returnType = "data.frame")
       solve2 <- rxSolve(m2d$inner, .dat, .pars, returnType = "data.frame")
@@ -102,7 +101,6 @@ rxPermissive(
       solve2 <- rxSolve(m2d$inner, .dat, .pars1, returnType = "data.frame")
 
       expect_equal(solve1, solve2)
-
     })
 
     context("foce cross-check with old sympy RxODE")
