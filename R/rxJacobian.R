@@ -639,7 +639,8 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
     .eventEta <- integer()
   }
   for (.v in .s$..eventVars) {
-    .vars <- rxGetModel(paste0("rx_lhs=", as.character(get(.v, envir = .s))))$params
+    .vars <- as.character(get(.v, envir = .s))
+    .vars <- rxGetModel(paste0("rx_lhs=", rxFromSE(.vars)))$params
     for (.v2 in .vars) {
       .reg <- rex::rex(start, "ETA_", capture(any_numbers), "_", end)
       if (regexpr(.reg, .v2) != -1) {
