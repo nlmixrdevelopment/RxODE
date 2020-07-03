@@ -423,7 +423,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
     ""
   ), collapse = "\n")
   if (sum.prod) {
-    .malert("stabilizing round off errors in predictions or EBE model...", appendLF = FALSE)
+    .malert("stabilizing round off errors in predictions or EBE model...")
     .s$..pred <- rxSumProdModel(.s$..pred)
     .msuccess("done")
   }
@@ -599,6 +599,8 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
                       promoteLinSens = TRUE,
                       theta = FALSE) {
   .clearSEstr()
+  assignInMyNamespace(".rxSupportedFunsExtra", TRUE)
+  on.exit({assignInMyNamespace(".rxSupportedFunsExtra", FALSE)})
   assignInMyNamespace("rxErrEnv.lambda", NULL)
   assignInMyNamespace("rxErrEnv.yj", NULL)
   assignInMyNamespace("rxSymPyExpThetas", c())
@@ -640,7 +642,7 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   }
   for (.v in .s$..eventVars) {
     .vars <- as.character(get(.v, envir = .s))
-    .vars <- rxGetModel(paste0("rx_lhs=", rxFromSE(.vars)))$params
+    .vars <- rxGetModel(paste0("rx_lhs=", .vars))$params
     for (.v2 in .vars) {
       .reg <- rex::rex(start, "ETA_", capture(any_numbers), "_", end)
       if (regexpr(.reg, .v2) != -1) {

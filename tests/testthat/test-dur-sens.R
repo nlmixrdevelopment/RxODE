@@ -3,6 +3,7 @@ rxPermissive(
     context("Capture which ETAs are in events")
 
     test_that("duration/f ETAs extracted", {
+
       pk <- function() {
         tka <- THETA[1]
         tcl <- THETA[2]
@@ -53,6 +54,7 @@ rxPermissive(
       expect_equal(pk2$eventEta, c(0L, 0L, 0L, 1L, 1L, 1L))
 
       expect_equal(pk2$inner$params, pk2$pred.nolhs$params)
+
     })
   },
   test = "focei"

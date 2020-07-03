@@ -2600,9 +2600,15 @@ rxSplitPlusQ <- function(x, level = 0, mult = FALSE) {
   }
 }
 
+.rxSupportedFunsExtra <- FALSE
 .rxSupportedFuns <- function() {
-  c(
+  .ret <- c(
     names(.rxSEsingle), names(.rxSEdouble), names(.rxSEeq),
     "linCmt", names(.rxOnly), ls(.symengineFs)
   )
+  if (.rxSupportedFunsExtra){
+    .ret <- c(.ret, c("rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt",
+                      "rxGt", "rxAnd", "rxOr", "rxNot"))
+  }
+  .ret
 }
