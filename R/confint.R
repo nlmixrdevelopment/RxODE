@@ -19,7 +19,7 @@ confint.rxSolve <- function(object, parm = NULL, level = 0.95, ...) {
   class(.lst) <- "rxHidden"
   if (object$env$.args$nStud <= 1) {
     if (object$env$.args$nSub < 2500) {
-      warning("in order to put confidence bands around the intervals, you need at least 2500 simulations")
+      .mwarn("in order to put confidence bands around the intervals, you need at least 2500 simulations")
       message("summarizing data...", appendLF = FALSE)
       .stk <- .stk[, list(p1 = .p, eff = stats::quantile(.SD$value, probs = .p, na.rm = TRUE),
                           Percentile = sprintf("%s%%", .p * 100)),

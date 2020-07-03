@@ -1,3 +1,19 @@
+.minfo <- function(text, ..., .envir=parent.frame()){
+  cli::cli_alert_info(gettext(text), ..., .envir = .envir)
+}
+
+.malert <- function(text, ..., .envir=parent.frame()){
+  cli::cli_alert(gettext(text), ..., .envir = .envir)
+}
+
+.mwarn <- function(text, ..., .envir=parent.frame()){
+  cli::cli_alert_warning(gettext(text), ..., .envir = .envir)
+}
+
+.msuccess <- function(text, ..., .envir=parent.frame()){
+  cli::cli_alert_success(gettext(text), ..., .envir = .envir)
+}
+
 ##' Unloads all RxODE compiled DLLs
 ##'
 ##' @return List of RxODE dlls still loaded

@@ -93,14 +93,14 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
       .f2 <- substr(.f2, 0, nchar(.f2) - 4)
       if (is(.env[[.f2]], "RxODE")) {
         .env[[.f2]]$package <- NULL
-        message(sprintf("recompile '%s'", .f2))
+        .minfo(sprintf("recompile '%s'", .f2))
         .models <- c(.models, .f2)
         eval(parse(text = sprintf("rxUse(%s, internal=internal, overwrite=overwrite, compress=compress)", .f2)),
           envir = .env
         )
         .docFile <- file.path(devtools::package_file("R"), paste0(.f2, "-doc.R"))
         if (!file.exists(.docFile)) {
-          message(sprintf("creating documentation '%s'", .docFile))
+          (sprintf("creating documentation '%s'", .docFile))
           sink(.docFile)
           .tmp <- .env[[.f2]]
           .mv <- rxModelVars(.tmp)
@@ -169,7 +169,7 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
     sapply(
       list.files(devtools::package_file("inst/rx"), pattern = "[.]c", full.names = TRUE),
       function(x) {
-        message(sprintf("copy '%s'", basename(x)))
+        .minfo(sprintf("copy '%s'", basename(x)))
         .f0 <- readLines(x)
         if (.pkg == "RxODE") {
           .f0[1] <- "#include \"../inst/include/RxODE.h\"\n#include \"../inst/include/RxODE_model.h\""
@@ -202,7 +202,7 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
     sink()
     .files <- list.files(devtools::package_file("src"))
     if (all(regexpr(paste0("^", .pkg), .files) != -1)) {
-      message(sprintf("only compiled models in this package, creating '%s_init.c'", .pkg))
+      .minfo(sprintf("only compiled models in this package, creating '%s_init.c'", .pkg))
       sink(file.path(devtools::package_file("src"), paste0(.pkg, "_init.c")))
       cat("#include <R.h>\n#include <Rinternals.h>\n#include <stdlib.h> // for NULL\n#include <R_ext/Rdynload.h>\n")
       cat("#include <RxODE.h>\n")

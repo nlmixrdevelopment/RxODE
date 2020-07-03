@@ -61,7 +61,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
     )
   }
   assign("..vars", .pars, envir = model)
-  message("calculate jacobian")
+  .malert("calculate jacobian")
   rxProgress(dim(.jac)[1])
   on.exit({
     rxProgressAbort()
@@ -87,7 +87,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
     } else {
       .grd <- rxExpandSens_(.state, vars)
     }
-    message("calculate sensitivities")
+    .malert("calculate sensitivities")
     rxProgress(dim(.grd)[1])
     on.exit({
       rxProgressAbort()
@@ -250,25 +250,20 @@ rxExpandGrid <- function(x, y, type = 0L) {
 
 .rxLoadPrune <- function(mod, doConst = TRUE, promoteLinSens = TRUE, fullModel = FALSE) {
   if (fullModel) {
-    message("pruning branches (if/else) of full model...",
-      appendLF = FALSE
-    )
+    .malert("pruning branches ({.code if}/{.code else}) of full model...")
   } else {
-    message("pruning branches (if/else)...",
-      appendLF = FALSE
-    )
+    .malert("pruning branches ({.code if}/{.code else})...")
   }
   .newmod <- rxGetModel(rxPrune(mod))
-  message("done")
+  .msuccess("done")
   ## message("Loading into symengine environment...", appendLF=FALSE)
   if (fullModel) {
-    message("loading full model into symengine environment...", appendLF = FALSE)
+    .malert("loading full model into {.pkg symengine} environment...")
   } else {
-    message("loading into symengine environment...", appendLF = FALSE)
+    .malert("loading into {.pkg symengine} environment...")
   }
   .newmod <- rxS(.newmod, doConst, promoteLinSens = promoteLinSens)
-  message("done")
-  ## message("done.")
+  .msuccess("done")
   return(.newmod)
 }
 
@@ -286,7 +281,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
   .checkGood(pkpars)
   .checkGood(errfn)
   ## Probably need assignInMyNamespace...
-  message("creating full model...", appendLF = FALSE)
+  .malert("creating full model...")
   .stateInfo <- .rxGenFunState(obj)
   .newmod <- .rxGenPkpars(obj, pkpars, init)
   .newmod <- .rxGenPred(.newmod, predfn, errfn, init)
@@ -346,9 +341,9 @@ rxExpandGrid <- function(x, y, type = 0L) {
     ifelse(pred.minus.dv, 1L, 2L)
   )
   if (.useUtf()) {
-    message("calculate \u2202(f)/\u2202(\u03B7)")
+    .malert("calculate \u2202(f)/\u2202(\u03B7)")
   } else {
-    message("calculate d(f)/d(eta)")
+    .malert("calculate d(f)/d(eta)")
   }
   rxProgress(dim(.grd)[1])
   on.exit({
@@ -428,9 +423,9 @@ rxExpandGrid <- function(x, y, type = 0L) {
     ""
   ), collapse = "\n")
   if (sum.prod) {
-    message("stabilizing round off errors in predictions or EBE model...", appendLF = FALSE)
+    .malert("stabilizing round off errors in predictions or EBE model...", appendLF = FALSE)
     .s$..pred <- rxSumProdModel(.s$..pred)
-    message("done")
+    .msuccess("done")
   }
   if (optExpression) {
     .s$..pred <- rxOptExpr(.s$..pred, "EBE model")
@@ -470,9 +465,9 @@ rxExpandGrid <- function(x, y, type = 0L) {
     ""
   ), collapse = "\n")
   if (sum.prod) {
-    message("stabilizing round off errors in inner problem...", appendLF = FALSE)
+    .malert("stabilizing round off errors in inner problem...")
     .s$..inner <- rxSumProdModel(.s$..inner)
-    message("done")
+    .msuccess("done")
   }
   if (optExpression) {
     .s$..inner <- rxOptExpr(.s$..inner, "inner model")
@@ -518,9 +513,9 @@ rxExpandGrid <- function(x, y, type = 0L) {
   .stateVars <- rxState(.s)
   .grd <- rxExpandFEta_(.stateVars, .s$..maxEta, FALSE)
   if (.useUtf()) {
-    message("calculate \u2202(R\u00B2)/\u2202(\u03B7)")
+    .malert("calculate \u2202(R\u00B2)/\u2202(\u03B7)")
   } else {
-    message("calculate d(R^2)/d(eta)")
+    .malert("calculate d(R^2)/d(eta)")
   }
   rxProgress(dim(.grd)[1])
   on.exit({
@@ -628,9 +623,9 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
     if (is.null(x)) {
       return(NULL)
     }
-    message(msg, appendLF = FALSE)
+    .malert(msg)
     .ret <- RxODE(x)
-    message("done")
+    .msuccess("done")
     return(.ret)
   }
   if (exists("..maxTheta", .s)) {
@@ -662,9 +657,9 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   inner <- .toRx(.s$..inner, "compiling inner model...")
   if (any(.eventEta == 1L) && !is.null(inner)) {
     if (sum.prod) {
-      message("stabilizing round off errors in events FD model...", appendLF = FALSE)
+      .malert("stabilizing round off errors in events FD model...")
       .s$..pred.nolhs <- rxSumProdModel(.s$..pred.nolhs)
-      message("done")
+      .msuccess("done")
     }
     if (optExpression) {
       .s$..pred.nolhs <- rxOptExpr(.s$..pred.nolhs, "events FD model")

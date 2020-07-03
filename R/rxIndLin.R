@@ -194,7 +194,7 @@ rxIndLinState <- function(prefered = NULL) {
   .env <- .rxLoadPrune(model, doConst = doConst)
   .states <- rxState(.env)
   rxProgress(length(.states))
-  message("create inductive linearization matrices")
+  .minfo("create inductive linearization matrices")
   on.exit({
     rxProgressAbort()
   })

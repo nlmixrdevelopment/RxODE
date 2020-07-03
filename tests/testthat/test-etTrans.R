@@ -667,7 +667,23 @@ d/dt(blood)     = a*intestine - b*blood
 
       warfarin$sex <- paste(warfarin$sex)
 
-      tmp <- etTrans(warfarin, mod)
+      t <- rxSolve(mod, warfarin, keep=c("sex", "age", "dvid"))
+
+      expect_equal(sort(unique(t$sf)), c(0, 1))
+      expect_equal(sort(unique(t$sm)), c(0, 1))
+      expect_equal(sort(unique(t$d.cp)), c(0, 1))
+      expect_equal(sort(unique(t$d.pca)), c(0, 1))
+
+      expect_true(inherits(t$sex, "factor"))
+      expect_true(inherits(t$dvid, "factor"))
+
+      expect_equal(as.double((t$sex == "male") * 1), t$sm)
+      expect_equal(as.double((t$sex == "female") * 1), t$sf)
+
+      t <- rxSolve(mod, warfarin, addCov=TRUE)
+
+      expect_equal(as.double((t$sex == "male") * 1), t$sm)
+      expect_equal(as.double((t$sex == "female") * 1), t$sf)
 
     }
   },

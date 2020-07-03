@@ -367,7 +367,7 @@ rxOptExpr <- function(x, msg = "model") {
   .rxOptEnv$.rep <- list()
   .rxOptEnv$.added <- c()
   .rxOptEnv$.exclude <- ""
-  message(sprintf("finding duplicate expressions in %s...", msg))
+  .malert(sprintf("finding duplicate expressions in %s...", msg))
   .p <- eval(parse(text = paste0("quote({", x, "})")))
   .lines <- ..rxOpt(.p, progress = TRUE)
   .rxOptEnv$.list <- .rxOptEnv$.list[which(unlist(.rxOptEnv$.list) > 1L)]
@@ -389,7 +389,7 @@ rxOptExpr <- function(x, msg = "model") {
     .rp <- rxOptRep_(.exprs)
     .rxOptEnv$.rep <- as.list(.rp[[1]])
     .rxOptEnv$.exclude <- ""
-    message(sprintf("optimizing duplicate expressions in %s...", msg))
+    .malert(sprintf("optimizing duplicate expressions in %s...", msg))
     .opt <- ..rxOpt(.p, progress = TRUE)
     return(paste(.opt, collapse = "\n"))
   } else {
