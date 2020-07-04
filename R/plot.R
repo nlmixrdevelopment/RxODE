@@ -2,6 +2,9 @@
 #'
 #' @inheritParams ggplot2::theme_grey
 #'
+#' @param grid a Boolean indicating if the grid is on (`TRUE`) or off
+#'   (`FALSE`). This could also be a character indicating `x` or `y`.
+#'
 #' @export
 rxTheme <- function(base_size = 11, base_family = "",
                     base_line_size = base_size / 22,
@@ -56,7 +59,7 @@ rxTheme <- function(base_size = 11, base_family = "",
       if (regexpr("y", grid)[1] < 0) .greyMinorY <- ggplot2::element_blank()
     }
   } else {
-    .panelGrid <- element_blank()
+    .panelGrid <- ggplot2::element_blank()
     .greyMajor <- .panelGrid
     .greyMinor <- .panelGrid
     .greyMajorX <- .greyMajor

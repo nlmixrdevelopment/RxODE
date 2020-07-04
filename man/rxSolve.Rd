@@ -83,7 +83,6 @@ rxControl(
   events = NULL,
   istateReset = TRUE,
   subsetNonmem = TRUE,
-  linLog = FALSE,
   maxAtolRtolFactor = 0.1,
   from = NULL,
   to = NULL,
@@ -552,6 +551,16 @@ multivariate normal package provided in `RxODE`.}
 multiplication and then converts back.
 
 \code{double} uses the standard double scale for multiplication.}
+
+\item{sensType}{Sensitivity type for `linCmt()` model:
+
+\code{advan} Use the direct advan solutions
+
+\code{autodiff} Use the autodiff advan solutions
+
+\code{forward} Use forward difference solutions
+
+\code{central} Use central differences}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE

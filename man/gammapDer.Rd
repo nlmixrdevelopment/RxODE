@@ -19,9 +19,6 @@ lowergamma results
 \description{
 This is the gamma_p_derivative from the boost library
 }
-\details{
-
-}
 \examples{
 
 gammapDer(1:3,3)

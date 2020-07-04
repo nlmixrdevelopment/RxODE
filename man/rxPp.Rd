@@ -38,6 +38,10 @@ time t is accepted as a rejection time.}
 \item{t0}{the starting time of the Poisson process}
 
 \item{tmax}{the maximum time of the Poisson process}
+
+\item{randomOrder}{when `TRUE` randomize the order of the Poisson
+events.  By default (`FALSE`) it returns the Poisson process is
+in order of how the events occurred.}
 }
 \value{
 This returns a vector of the Poisson process times; If the dropout is >=

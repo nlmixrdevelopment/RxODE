@@ -25,28 +25,7 @@ Jacobain according to the specified ODEs.}
 LHS variables when calculating sensitivities.}
 
 \item{indLin}{Calculate inductive linearization matrices and
-    compile with inductive linearization support.
-
-The \dQuote{Rx} in the name \code{RxODE} is meant to suggest the
-abbreviation \emph{Rx} for a medical prescription, and thus to
-suggest the package emphasis on pharmacometrics modeling, including
-pharmacokinetics (PK), pharmacodynamics (PD), disease progression,
-drug-disease modeling, etc.
-
-The ODE-based model specification may be coded inside a character
-string or in a text file, see Section \emph{RxODE Syntax} below for
-coding details.  An internal \code{RxODE} compilation manager
-object translates the ODE system into C, compiles it, and
-dynamically loads the object code into the current R session.  The
-call to \code{RxODE} produces an object of class \code{RxODE} which
-consists of a list-like structure (closure) with various member
-functions (see Section \emph{Value} below).
-
-For evaluating \code{RxODE} models, two types of inputs may be
-provided: a required set of time points for querying the state of
-the ODE system and an optional set of doses (input amounts).  These
-inputs are combined into a single \emph{event table} object created
-with the function \code{\link{eventTable}}.}
+compile with inductive linearization support.}
 }
 \value{
 RxODE trans list

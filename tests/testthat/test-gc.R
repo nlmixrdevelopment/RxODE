@@ -1,5 +1,6 @@
 rxPermissive(
-  {
+{
+  options(RxODE.unload.unused=TRUE)
     library(RxODE)
     library(testthat)
     context("Garbage collection")
@@ -29,6 +30,7 @@ rxPermissive(
 
       options(RxODE.unload.unused = FALSE)
     })
+  options(RxODE.unload.unused=FALSE)
   },
   test = "lvl2"
 )

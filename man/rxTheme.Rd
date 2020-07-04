@@ -20,6 +20,9 @@ rxTheme(
 \item{base_line_size}{base size for line elements}
 
 \item{base_rect_size}{base size for rect elements}
+
+\item{grid}{a Boolean indicating if the grid is on (`TRUE`) or off
+(`FALSE`). This could also be a character indicating `x` or `y`.}
 }
 \description{
 rxTheme is the RxODE theme for plots

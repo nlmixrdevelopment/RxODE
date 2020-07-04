@@ -545,6 +545,10 @@ rxbinom <- function(size, prob, n = 1L, ncores = 1L) {
 ##'
 ##' @param tmax the maximum time of the Poisson process
 ##'
+##' @param randomOrder when `TRUE` randomize the order of the Poisson
+##'   events.  By default (`FALSE`) it returns the Poisson process is
+##'   in order of how the events occurred.
+##'
 ##' @return
 ##'
 ##' This returns a vector of the Poisson process times; If the dropout is >=

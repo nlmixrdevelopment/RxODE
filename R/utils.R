@@ -739,8 +739,6 @@ lowergamma <- function(a, z) {
 ##' @param z The numeric 'z' parameter in the upper
 ##'   incomplete gamma
 ##'
-##' @details
-##'
 ##' @return lowergamma results
 ##'
 ##' @author Matthew L. Fidler
@@ -882,7 +880,7 @@ gammapInva <- function(x, p) {
 ##'
 ##' logit(0.25)
 ##'
-##' expit()
+##' expit(-1.09)
 ##'
 ##' @export
 logit <- function(x, low = 0, high = 1) {

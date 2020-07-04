@@ -287,7 +287,8 @@ double gamma_q_inva(double a, double q);
 double gamma_p_inva(double a, double p);
 
 int compareFactorVal(int val, const char *factor, const char *value);
-
+SEXP _RxODE_rxSolve_(SEXP, SEXP, SEXP, SEXP, SEXP,
+		     SEXP, SEXP, SEXP);
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
@@ -418,6 +419,7 @@ void R_init_RxODE(DllInfo *info){
     {"_linCmtParse", (DL_FUNC) _linCmtParse, 3},
     {"_RxODE_linCmtGen", (DL_FUNC) _RxODE_linCmtGen, 4},
     {"_RxODE_rpp_", (DL_FUNC) _RxODE_rpp_, 7},
+    {"_RxODE_rxSolve_", (DL_FUNC) _RxODE_rxSolve_, 8},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

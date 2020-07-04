@@ -32,7 +32,6 @@ rxControl <- function(scale = NULL,
                       events = NULL,
                       istateReset = TRUE,
                       subsetNonmem = TRUE,
-                      linLog = FALSE,
                       maxAtolRtolFactor = 0.1,
                       from = NULL,
                       to = NULL,
@@ -251,7 +250,7 @@ rxControl <- function(scale = NULL,
     infSSstep = as.double(infSSstep),
     istateReset = istateReset,
     subsetNonmem = subsetNonmem,
-    linLog = linLog, hmaxSd = hmaxSd,
+    hmaxSd = hmaxSd,
     maxAtolRtolFactor = maxAtolRtolFactor,
     from = from,
     to = to,
@@ -690,6 +689,16 @@ rxControl <- function(scale = NULL,
 ##' multiplication and then converts back.
 ##'
 ##' \code{double} uses the standard double scale for multiplication.
+##'
+##' @param sensType Sensitivity type for `linCmt()` model:
+##'
+##' \code{advan} Use the direct advan solutions
+##'
+##' \code{autodiff} Use the autodiff advan solutions
+##'
+##' \code{forward} Use forward difference solutions
+##'
+##' \code{central} Use central differences
 ##'
 ##' @references
 ##'

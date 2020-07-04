@@ -30,6 +30,9 @@ rxGetLin(
     \dQuote{\code{RxODE Syntax}} below.}
 
 \item{linCmtSens}{The method to calculate the linCmt() solutions}
+
+\item{verbose}{When `TRUE` be verbose with the linear
+compartmental model}
 }
 \value{
 model with linCmt() replaced with linCmtA()

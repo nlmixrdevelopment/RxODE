@@ -73,6 +73,11 @@ R_PosInf <- Inf # nolint
 ##' @param indLin Calculate inductive linearization matrices and
 ##'     compile with inductive linearization support.
 ##'
+##' @param verbose When `TRUE` be verbose with the linear
+##'   compartmental model
+##'
+##' @details
+##'
 ##' The \dQuote{Rx} in the name \code{RxODE} is meant to suggest the
 ##' abbreviation \emph{Rx} for a medical prescription, and thus to
 ##' suggest the package emphasis on pharmacometrics modeling, including

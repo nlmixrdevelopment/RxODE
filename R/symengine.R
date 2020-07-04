@@ -945,7 +945,6 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
             stop("only 'THETA[#]' or 'ETA[#]' are supported", call. = FALSE)
           }
         } else {
-          SE
           stop("only 'THETA[#]' or 'ETA[#]' are supported", call. = FALSE)
         }
       } else {
