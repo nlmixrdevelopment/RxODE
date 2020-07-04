@@ -5376,16 +5376,17 @@ RObject rxUnloadAll_(){
   Function dynUnload("dyn.unload", R_BaseNamespace);
   CharacterVector vars = _rxModels.ls(true);
   std::string exclude = ".rxSolveDat.";
-  for (unsigned int i = vars.size(); i--;){
+  for (unsigned int i = vars.size(); i--;) {
     std::string varC = as<std::string>(vars[i]);
     if (varC.find(exclude) == std::string::npos){
       if (rxIsInt(_rxModels[varC])){
-	int val = asInt(_rxModels[varC], "_rxModels[varC]");
-	if (val > 1){
-	} else if (val == 0 && rxUnload_){
-	  dynUnload(varC);
-	  rmRxModelsFromDll(varC);
-	}
+  	int val = asInt(_rxModels[varC], "_rxModels[varC]");
+  	if (val > 1){
+  	} else if (val == 0 && rxUnload_){
+	  // REprintf("var: %s\n", varC.c_str());
+  	  dynUnload(varC);
+  	  rmRxModelsFromDll(varC);
+  	}
       }
     }
   }

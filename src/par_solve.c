@@ -2371,9 +2371,6 @@ void ind_solve(rx_solve *rx, unsigned int cid,
   rxt.n = 100;
   rxt.d = 0;
   rxt.cur = 0;
-  if (assignFuns == NULL){
-    error(_("unloaded dll while solving"));
-  }
   assignFuns();
   rx_solving_options *op = &op_global;
   if (op->neq !=  0){

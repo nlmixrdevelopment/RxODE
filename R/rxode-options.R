@@ -137,7 +137,7 @@ rxOpt <- list(
   RxODE.sympy.run.internal = c(FALSE, FALSE),
   RxODE.syntax.require.ode.first = c(TRUE, TRUE),
   RxODE.compile.O = c("3", "3"),
-  RxODE.unload.unused = c(TRUE, TRUE)
+  RxODE.unload.unused = c(FALSE, FALSE)
 )
 RxODE.prefer.tbl <- NULL
 RxODE.warn.on.assign <- NULL
