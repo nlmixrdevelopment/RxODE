@@ -44,6 +44,7 @@ rxPermissive(
     expect_error(RxODE({
       o <- pnorm()
     }))
+
     expect_error(RxODE({
       o <- pnorm(a, b, c, d)
     }))
@@ -54,7 +55,7 @@ rxPermissive(
 
     expect_equal(
       rxSolve(o, data.frame(a = 1:3), et(0))$o,
-      qnorm(as.double(1:3))
+      suppressWarnings(qnorm(as.double(1:3)))
     )
 
     o <- RxODE({
@@ -63,7 +64,7 @@ rxPermissive(
 
     expect_equal(
       rxSolve(o, data.frame(a = 1:3), et(0))$o,
-      qnorm(as.double(1:3), 0.5)
+      suppressWarnings(qnorm(as.double(1:3), 0.5))
     )
 
     o <- RxODE({
@@ -72,12 +73,13 @@ rxPermissive(
 
     expect_equal(
       rxSolve(o, data.frame(a = 1:3), et(0))$o,
-      qnorm(as.double(1:3), 0.5, 2)
+      suppressWarnings(qnorm(as.double(1:3), 0.5, 2))
     )
 
     expect_error(RxODE({
       o <- qnorm()
     }))
+
     expect_error(RxODE({
       o <- qnorm(a, b, c, d)
     }))
@@ -99,6 +101,7 @@ rxPermissive(
     })
 
     expect_error(rxS(m), NA)
+
   },
   test = "cran"
 )
