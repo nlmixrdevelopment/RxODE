@@ -1,6 +1,8 @@
  rxPermissive(
  {
 
+   context("issue #233")
+
    test_that("Issue #233", {
 
      PKpars <- function() {
