@@ -640,10 +640,26 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
   }
   return(.rxToSE(eval(parse(text = paste0("quote({", x, "})"))), envir, progress))
 }
-.rxToSEstr <- character(0)
-.clearSEstr <- function() {
-  assignInMyNamespace(".rxToSEstr", character(0))
+
+.rxChrToSym <- function(x) {
+  str2lang(paste0("rxQ__",
+                  gsub(" ", "_rxSpace_",
+                       gsub("[.]", "_rxDoT_", x)),
+                  "__rxQ"))
 }
+
+.rxRepRxQ <- function(x) {
+  .nchr <- nchar(x)
+  if (.nchr > 10) {
+    if (substr(x, 1, 5) == "rxQ__") {
+      return(deparse1(gsub("_rxSpace_", " ",
+                           gsub("_rxDoT_", ".",
+                                substr(x, 6, .nchr - 5)))))
+    }
+  }
+  return(x)
+}
+
 ##' @rdname rxToSE
 ##' @export
 .rxToSE <- function(x, envir = NULL, progress = FALSE) {
@@ -651,16 +667,12 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
   .isEnv <- inherits(envir, "rxS") || inherits(envir, "environment")
   if (is.name(x) || is.atomic(x)) {
     if (is.character(x)) {
-      .w <- which(x == .rxToSEstr)
-      if (length(.w) == 1) {
-        return(str2lang(paste0("rxQ", .w)))
-      } else {
-        assignInMyNamespace(
-          ".rxToSEstr",
-          c(.rxToSEstr, x)
-        )
-        return(str2lang(paste0("rxQ", length(.rxToSEstr))))
+      .ret <- .rxChrToSym(x)
+      if (.isEnv) {
+        .ret2 <- as.character(.ret)
+        assign(.ret2, symengine::Symbol(.ret2), envir = envir)
       }
+      return(.ret)
     } else {
       .ret <- as.character(x)
       if (any(.ret == .cnst)) {
@@ -1428,7 +1440,6 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
   return(list(.ret, .env$found))
 }
 
-
 ##' @export
 ##' @rdname rxToSE
 .rxFromSE <- function(x) {
@@ -1437,17 +1448,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
     paste0("rx_SymPy_Res_", names(.rxSEreserved))
   )
   if (is.name(x) || is.atomic(x)) {
-    .ret <- as.character(x)
-    .nchr <- nchar(.ret)
-    if (.nchr > 3) {
-      if (substr(.ret, 1, 3) == "rxQ") {
-        .back <- suppressWarnings(as.integer(substr(.ret, 4, .nchr)))
-        if (!is.na(.back)) {
-          .back <- deparse1(.rxToSEstr[.back])
-          return(.back)
-        }
-      }
-    }
+    .ret <- .rxRepRxQ(as.character(x))
     .ret0 <- .cnst[.ret]
     if (!is.na(.ret0)) {
       return(.ret0)
@@ -2350,6 +2351,21 @@ rxErrEnvF$pow <- function(est, pow) {
   return(ret)
 }
 
+.convStr <- function(x) {
+  if (is.atomic(x) || is.name(x)){
+    if (is.character(x)) {
+      .rxChrToSym(x)
+    } else {
+      return(x)
+    }
+  } else if  (is.call(x) || is.pairlist(x)) {
+    return(as.call(lapply(x, .convStr)))
+  } else {
+    stop("do not know how to handle type ", typeof(x),
+      call. = FALSE)
+  }
+}
+
 rxErrEnv <- function(expr) {
   calls <- allCalls(expr)
   callList <- setNames(lapply(calls, functionOp), calls)
@@ -2489,9 +2505,6 @@ rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL) {
   if (is(substitute(x), "character")) {
     ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(quote({%s}))", x)))
     ret <- substring(ret, 3, nchar(ret) - 2)
-    if (regexpr("else if", ret) != -1) {
-      stop("'else if' expressions not supported", call. = FALSE)
-    }
     assignInMyNamespace("rxErrEnv.diag.est", c())
     assignInMyNamespace("rxErrEnv.theta", 1)
     assignInMyNamespace("rxErrEnv.ret", "rx_r_")
@@ -2510,6 +2523,7 @@ rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL) {
       ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(quote({%s}))", paste(x, collapse = "\n"))))
       ret <- substring(ret, 3, nchar(ret) - 2)
     } else {
+      x <- .convStr(x)
       ret <- eval(x, rxErrEnv(x))
     }
     attr(ret, "ini") <- rxErrEnv.diag.est
@@ -2517,9 +2531,6 @@ rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL) {
     assignInMyNamespace("rxErrEnv.theta", 1)
     assignInMyNamespace("rxErrEnv.ret", "rx_r_")
     assignInMyNamespace("rxErrEnv.init", NULL)
-    if (regexpr("else if", ret) != -1) {
-      stop("'else if' expressions not supported", call. = FALSE)
-    }
     return(ret)
   }
 }

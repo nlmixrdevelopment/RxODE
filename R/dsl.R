@@ -298,9 +298,9 @@ binaryOp <- function(sep) {
   force(sep)
   function(e1, e2) {
     if (missing(e2)) {
-      paste0(gsub(" ", "", sep), e1)
+      paste0(gsub(" ", "", sep), .rxRepRxQ(e1))
     } else {
-      paste0(e1, sep, e2)
+      paste0(.rxRepRxQ(e1), sep, .rxRepRxQ(e2))
     }
   }
 }
@@ -308,7 +308,7 @@ binaryOp <- function(sep) {
 binaryOp2 <- function(sep) {
   force(sep)
   function(e1, e2) {
-    paste0("(", e1, ")", sep, "(", e2, ")")
+    paste0("(", .rxRepRxQ(e1), ")", sep, "(", .rxRepRxQ(e2), ")")
   }
 }
 
@@ -449,6 +449,22 @@ sympyTransit4 <- function(t, n, mtt, bio, podo = "podo", tlast = "tlast") {
     n, ") * ", "(", lktr, " + log(", t, ")) - ",
     ktr, " * (", t, ") - log(gamma(1 + (", n, "))))"
   )
+}
+
+allStrs <- function(x){
+  if (is.atomic(x)) {
+    if (is.character(x)) return(x)
+    return(character())
+  } else if (is.name(x)) {
+    return(as.character())
+  } else if (is.call(x) || is.pairlist(x)) {
+    children <- lapply(x[-1], allStrs)
+    unique(unlist(children))
+  } else {
+    stop(sprintf(gettext("do not know how to handle type '%s'"), typeof(x)),
+      call. = FALSE
+    )
+  }
 }
 
 allNames <- function(x) {
@@ -751,6 +767,9 @@ rxErrEnv <- function(expr) {
 
   ## Known functions
   rxErrFEnv <- cloneEnv(rxErrEnvF, callEnv)
+
+  strs <- allStrs(expr)
+  print(strs)
 
   ## Symbols
   names <- allNames(expr)

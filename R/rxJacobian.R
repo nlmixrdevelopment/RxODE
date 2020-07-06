@@ -602,7 +602,6 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
                       interaction = TRUE, ...,
                       promoteLinSens = TRUE,
                       theta = FALSE) {
-  .clearSEstr()
   assignInMyNamespace(".rxSupportedFunsExtra", TRUE)
   on.exit({
     assignInMyNamespace(".rxSupportedFunsExtra", FALSE)
