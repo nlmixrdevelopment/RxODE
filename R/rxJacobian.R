@@ -314,7 +314,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
     .etaVars <- paste0("ETA_", seq(1, .s$..maxEta), "_")
   }
   if (length(.etaVars) == 0L) {
-    stop("cannot identify parameters for sensitivity analysis", call. = FALSE)
+    stop("cannot identify parameters for sensitivity analysis\n   with nlmixr an 'eta' initial estimate must use '~'", call. = FALSE)
   }
   .stateVars <- rxState(.s)
   .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
