@@ -36,18 +36,25 @@
         .ret <- paste0(gsub(" ", "", sep), e1)
       }
       if (regexpr(rex::rex(start, any_spaces, regNum, any_spaces, end),
-        .ret, perl = TRUE) != -1) {
+        .ret,
+        perl = TRUE
+      ) != -1) {
         .add <- FALSE
       }
     } else {
       if (sep == "^" && isTRUE(checkmate::checkIntegerish(suppressWarnings(as.numeric(e2)),
-        lower = 2, any.missing = FALSE))) {
+        lower = 2, any.missing = FALSE
+      ))) {
         .ret <- paste0("(", paste(rep(paste0("(", e1, ")"), as.numeric(e2)), collapse = "*"), ")")
       } else {
         if ((regexpr(rex::rex(start, any_spaces, regNum, any_spaces, end),
-          paste0(e1), perl = TRUE) != -1) &&
+          paste0(e1),
+          perl = TRUE
+        ) != -1) &&
           (regexpr(rex::rex(start, any_spaces, regNum, any_spaces, end),
-            paste0(e2), perl = TRUE) != -1)) {
+            paste0(e2),
+            perl = TRUE
+          ) != -1)) {
           .add <- FALSE
         }
         .ret <- paste0(e1, sep, e2)

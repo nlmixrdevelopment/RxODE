@@ -451,9 +451,11 @@ sympyTransit4 <- function(t, n, mtt, bio, podo = "podo", tlast = "tlast") {
   )
 }
 
-allStrs <- function(x){
+allStrs <- function(x) {
   if (is.atomic(x)) {
-    if (is.character(x)) return(x)
+    if (is.character(x)) {
+      return(x)
+    }
     return(character())
   } else if (is.name(x)) {
     return(as.character())

@@ -101,7 +101,6 @@ rxPermissive(
     })
 
     expect_error(rxS(m), NA)
-
   },
   test = "cran"
 )

@@ -642,19 +642,27 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
 }
 
 .rxChrToSym <- function(x) {
-  str2lang(paste0("rxQ__",
-                  gsub(" ", "_rxSpace_",
-                       gsub("[.]", "_rxDoT_", x)),
-                  "__rxQ"))
+  str2lang(paste0(
+    "rxQ__",
+    gsub(
+      " ", "_rxSpace_",
+      gsub("[.]", "_rxDoT_", x)
+    ),
+    "__rxQ"
+  ))
 }
 
 .rxRepRxQ <- function(x) {
   .nchr <- nchar(x)
   if (.nchr > 10) {
     if (substr(x, 1, 5) == "rxQ__") {
-      return(deparse1(gsub("_rxSpace_", " ",
-                           gsub("_rxDoT_", ".",
-                                substr(x, 6, .nchr - 5)))))
+      return(deparse1(gsub(
+        "_rxSpace_", " ",
+        gsub(
+          "_rxDoT_", ".",
+          substr(x, 6, .nchr - 5)
+        )
+      )))
     }
   }
   return(x)
@@ -2352,17 +2360,18 @@ rxErrEnvF$pow <- function(est, pow) {
 }
 
 .convStr <- function(x) {
-  if (is.atomic(x) || is.name(x)){
+  if (is.atomic(x) || is.name(x)) {
     if (is.character(x)) {
       .rxChrToSym(x)
     } else {
       return(x)
     }
-  } else if  (is.call(x) || is.pairlist(x)) {
+  } else if (is.call(x) || is.pairlist(x)) {
     return(as.call(lapply(x, .convStr)))
   } else {
     stop("do not know how to handle type ", typeof(x),
-      call. = FALSE)
+      call. = FALSE
+    )
   }
 }
 
