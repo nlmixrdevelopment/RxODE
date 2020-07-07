@@ -659,7 +659,7 @@ simulate.rxEt <- # nolint
   function(object, nsim = 1, seed = NULL, ...) {
     .name <- as.character(substitute(object))
     if (is.null(.pipelineRx) || .name != ".") {
-      if (!missing(nsim)) warning("'nsim' is ignored when simulating event tables")
+      if (!missing(nsim)) warning("'nsim' is ignored when simulating event tables", call. = FALSE)
       if (!is.null(seed)) set.seed(seed)
       return(.Call(`_RxODE_et_`, list(simulate = TRUE), object))
     } else {
@@ -683,7 +683,9 @@ set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units
     }
   }
   if (identical(value, units::unitless)) {
-    warning("clearing both amount and time units\nfor more precise control use 'et(amountUnits=\"\")' or 'et(timeUnits=\"\")'")
+    warning("clearing both amount and time units\nfor more precise control use 'et(amountUnits=\"\")' or 'et(timeUnits=\"\")'",
+      call. = FALSE
+    )
     return(suppressWarnings({
       .Call(`_RxODE_et_`, list(amountUnits = "", timeUnits = ""), x)
     }))
@@ -1048,7 +1050,7 @@ etRbind <- function(..., samples = c("use", "clear"), waitII = c("smart", "+ii")
 ##' @rdname etRbind
 ##' @export
 rbind.rxEt <- function(..., deparse.level = 1) {
-  if (!missing(deparse.level)) warning("'deparse.level' not used with RxODE event tables")
+  if (!missing(deparse.level)) warning("'deparse.level' not used with RxODE event tables", call. = FALSE)
   do.call(etRbind, list(...))
 }
 

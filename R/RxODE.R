@@ -1564,7 +1564,7 @@ rxCompile.rxModelVars <- function(model, # Model
       if (inherits(.tmp, "try-error")) {
         .badBuild("Error loading model (though dll exists)", cSrc = FALSE)
       } else {
-        warning("unloaded all RxODE dlls before loading the current DLL.")
+        warning("unloaded all RxODE dlls before loading the current DLL", call. = FALSE)
       }
     }
     .modVars <- sprintf("%smodel_vars", prefix)

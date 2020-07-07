@@ -575,7 +575,7 @@ rxD <- function(name, derivatives) {
     stop("derivatives must be a list of functions with at least 1 element", call. = FALSE)
   }
   if (exists(name, envir = .rxD)) {
-    warning(sprintf("replacing defined derivatives for '%s'", name))
+    warning(sprintf(gettext("replacing defined derivatives for '%s'"), name), call. = FALSE)
   }
   assign(name, derivatives, envir = .rxD)
   return(invisible())

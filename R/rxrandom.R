@@ -322,7 +322,7 @@ rxgamma <- function(shape, rate = 1 / scale, scale = 1, n = 1L, ncores = 1L) {
   if (rate == 0 || scale == 0) stop("'rate'/'scale' cannot be 0", call. = FALSE)
   if (!missing(rate) && !missing(scale)) {
     if (abs(rate * scale - 1) < 1e-15) {
-      warning("specify 'rate' or 'scale' but not both")
+      warning("specify 'rate' or 'scale' but not both", call. = FALSE)
     } else {
       stop("specify 'rate' or 'scale' but not both", call. = FALSE)
     }

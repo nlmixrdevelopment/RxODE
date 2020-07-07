@@ -85,18 +85,18 @@
         )
       }
     }
-    if (.wrn != "") warning(.wrn)
+    if (.wrn != "") warning(.wrn, call. = FALSE)
     return(.idData)
   } else if (length(.w) == 0L) {
     if (length(idData[, 1]) > 1) {
       if (warnIdSort && .warnIdSort0 && .nid > 1) {
-        warning(sprintf("'ID' missing in '%s' dataset\nindividual parameters are assumed to have the same order as the event dataset", type))
+        warning(sprintf(gettext("'ID' missing in '%s' dataset\nindividual parameters are assumed to have the same order as the event dataset"), type), call. = FALSE)
       }
     }
     return(as.data.frame(idData))
   } else {
     if (length(idData[, 1]) > 1) {
-      warning(sprintf("unable to detect 'ID' correctly in '%s' dataset\nindividual parameters are assumed to have the same order as the dataset", type))
+      warning(sprintf("unable to detect 'ID' correctly in '%s' dataset\nindividual parameters are assumed to have the same order as the dataset", type), call. = FALSE)
     }
     .idData <- idData[, -.w, drop = FALSE]
     return(as.data.frame(.idData))

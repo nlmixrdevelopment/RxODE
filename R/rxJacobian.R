@@ -372,7 +372,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
     stop("none of the predictions depend on 'ETA'", call. = FALSE)
   }
   if (.any.zero) {
-    warning("some of the predictions do not depend on 'ETA'")
+    warning("some of the predictions do not depend on 'ETA'", call. = FALSE)
   }
   .s$..HdEta <- .ret
   .s$..pred.minus.dv <- pred.minus.dv

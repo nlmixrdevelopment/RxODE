@@ -941,7 +941,7 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
   ), lst = TRUE)
   .ws <- .ret[[2]]
   .rxModels$.ws <- .ws
-  lapply(.ws, function(x) warning(x))
+  lapply(.ws, function(x) warning(x, call. = FALSE))
   .ret <- .ret[[1]]
   if (.ctl$matrix == 4L) {
     data.table::setDT(.ret)

@@ -559,7 +559,7 @@ rxRmvn <- function(n, mu = NULL, sigma, lower = -Inf, upper = Inf, ncores = 1, i
     return(list(.ret, .ws))
   } else {
     for (.w in .ws) {
-      warning(.w)
+      warning(.w, call. = FALSE)
     }
     return(.ret)
   }
