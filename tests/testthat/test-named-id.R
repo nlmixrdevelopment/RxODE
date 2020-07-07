@@ -219,9 +219,8 @@ rxPermissive({
   })
 
   test_that("translation to and from SE", {
-    RxODE:::.clearSEstr()
     a <- rxToSE("id==\"matt\"")
-    expect_equal(a, "rxEq(id,rxQ1)")
+    expect_equal(a, "rxEq(id,rxQ__matt__rxQ)")
     b <- rxFromSE(a)
     expect_equal(b, "(id==\"matt\")")
   })
