@@ -371,7 +371,7 @@ rxPermissive(
 
     test_that("PK/Pred/Error function parsing.", {
       expect_error(rxParsePk(pk))
-      expect_error(rxParsePred(pred))
+      expect_error(rxParsePred(pred), NA)
       expect_error(rxParsePred(pred.for))
       expect_error(rxParsePk(err))
       expect_error(rxParsePred(err))
