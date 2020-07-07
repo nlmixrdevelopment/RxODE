@@ -51,7 +51,7 @@ et(amountUnits="mg", timeUnits="hours") %>%
   mutate(occ=ifelse(occ == 0, 1, occ)) %>%
   mutate(occ=2- occ %% 2) %>%
   mutate(eye=ifelse(round(time) == time, 1, 2)) %>%
-  mutate(inv=ifelse(id < 10, 1, 2)) %>% as.tbl ->
+  mutate(inv=ifelse(id < 10, 1, 2)) %>% as_tibble ->
   ev
 ```
 

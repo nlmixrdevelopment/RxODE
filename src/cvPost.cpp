@@ -681,6 +681,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
   SEXP nStudS = PROTECT(control[Rxc_nStud]); pro++;
   int nStud = as<int>(nStudS);
   int nSub = as<int>(control[Rxc_nSub]);
+  SEXP nestObj = objectS;
   rxModelsAssign(".nestObj", objectS);
   rxModelsAssign(".nestEvents", eventsS);
   List et = expandTheta_(paramsS, control[Rxc_thetaMat],
@@ -774,6 +775,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       lotriBelow = lotriSepMat["below"];
       events = ni["data"];
       rxModelsAssign(".nestObj",    en["mod"]);
+      nestObj = en["mod"];
       rxModelsAssign(".nestEvents", ni["data"]);
       rxModelsAssign(".nestTheta",  en["theta"]);
       rxModelsAssign(".nestEta",    en["eta"]);
@@ -781,7 +783,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       aboveSEXP = R_NilValue;
       belowSEXP = omegaS;
       lotriBelow = omegaLotri;
-      events = PROTECT(etTrans(as<List>(eventsS), objectS,
+      events = PROTECT(etTrans(as<List>(eventsS), nestObj,
 			       (INTEGER(mv[RxMv_flags])[RxMvFlag_hasCmt] == 1),
 			       false, false, true, R_NilValue,
 			       control[Rxc_keepF])); pro++;
@@ -949,13 +951,13 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     // To get the right number of sigma observations to match the potential request
     // expand the events to the translated events
     if (Rf_isNull(events)) {
-      events = PROTECT(etTrans(as<List>(eventsS), objectS,
+      events = PROTECT(etTrans(as<List>(eventsS), nestObj,
 			       (INTEGER(mv[RxMv_flags])[RxMvFlag_hasCmt] == 1),
 			       false, false, true, R_NilValue,
 			       control[Rxc_keepF])); pro++;
       rxModelsAssign(".nestEvents", events);
     } else if (!rxIs(events, "rxEtTrans")){
-      events = PROTECT(etTrans(as<List>(events), objectS,
+      events = PROTECT(etTrans(as<List>(events), nestObj,
 			       (INTEGER(mv[RxMv_flags])[RxMvFlag_hasCmt] == 1),
 			       false, false, true, R_NilValue,
 			       control[Rxc_keepF])); pro++;
