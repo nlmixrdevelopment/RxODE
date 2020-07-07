@@ -189,8 +189,7 @@ d/dt(blood)     = a*intestine - b*blood
         expect_false(any(etTrans(dat, mod)$AMT < 0, na.rm = TRUE))
       })
 
-
-      source("theoSd.R")
+      theoSd <- readRDS("theoSd.rds")
 
       d <- theoSd[, names(theoSd) != "EVID"]
 

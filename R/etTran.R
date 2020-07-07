@@ -55,6 +55,7 @@
 ##' @noRd
 .sortId <- function(idData, goodLvl, type = "parameter",
                     warnIdSort, skipStop = TRUE) {
+  ## print(str(idData))
   .n <- tolower(names(idData))
   .w <- which(.n == "id")
   .nid <- length(goodLvl)

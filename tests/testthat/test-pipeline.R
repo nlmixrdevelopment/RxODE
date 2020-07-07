@@ -246,7 +246,7 @@ rxPermissive(
 
     ## Test WT in both iCov and data used.
 
-    source("theoSd.R")
+    theoSd <- readRDS("theoSd.rds")
 
     mod <- RxODE({
       ka <- exp(tka + eta.ka)

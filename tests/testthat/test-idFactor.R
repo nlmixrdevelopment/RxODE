@@ -3,7 +3,8 @@ rxPermissive(
     context("Testing solving with ID(s) in the dataset")
 
     test_that("simple solving with ID(s) in the dataset", {
-      source("theoSd.R")
+
+      theoSd <- readRDS("theoSd.rds")
       d <- theoSd[, names(theoSd) != "EVID"]
       d <- d[d$ID != 10, ]
 
@@ -31,12 +32,13 @@ rxPermissive(
       tmp <- rxSolve(mod, d2)
 
       tmp <- rxSolve(mod, d, idFactor = FALSE)
+
       expect_false(inherits(tmp$id, "factor"))
     })
 
     test_that("Test giving IDs to data-frames", {
-      source("theoSd.R")
-      d <- theoSd
+
+      d <- readRDS("theoSd.rds")
 
       mod <- RxODE({
         ka <- exp(tka)
@@ -78,8 +80,7 @@ rxPermissive(
 
       ## Now add an id to the dataset
 
-      source("theoSd.R")
-      d <- theoSd
+      d <- readRDS("theoSd.rds")
 
       parData <- data.frame(
         id = 1:13, tka = 1 + rnorm(13, sd = 0.01),
@@ -100,8 +101,7 @@ rxPermissive(
       expect_equal(levels(tmp2$id), levels(tmp2$params$id))
 
       ## Now try letters
-      source("theoSd.R")
-      d <- theoSd
+      d <- readRDS("theoSd.rds")
       d$ID <- letters[d$ID]
 
       parData <- data.frame(
@@ -149,8 +149,7 @@ rxPermissive(
     })
 
     test_that("test iCov ID", {
-      source("theoSd.R")
-      d <- theoSd
+      d <- readRDS("theoSd.rds")
 
       mod <- RxODE({
         tka <- 1
@@ -199,8 +198,7 @@ rxPermissive(
 
       ## Now add an id to the dataset
 
-      source("theoSd.R")
-      d <- theoSd
+      d <- readRDS("theoSd.rds")
       d <- d[, names(d) != "WT"]
 
       iCov <- data.frame(id = 1:13, wt = 70 + rnorm(13, sd = 3))
@@ -221,8 +219,7 @@ rxPermissive(
       expect_equal(tmp2$cwt, tmp2$wt)
 
       ## Now try letters
-      source("theoSd.R")
-      d <- theoSd
+      d <- readRDS("theoSd.rds")
       d <- d[, names(d) != "WT"]
       d$ID <- letters[d$ID]
 

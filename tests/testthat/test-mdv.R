@@ -2,7 +2,7 @@ rxPermissive(
   {
     context("mdv tests")
     test_that("mdv means EVID=2 when amt=0", {
-      source("theoSd.R")
+      theoSd <- readRDS("theoSd.rds")
       d <- theoSd[, names(theoSd) != "EVID"]
       d$MDV <- ifelse(d$AMT == 0, 0, 1)
       d <- d[, names(d) != "WT"]
