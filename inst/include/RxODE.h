@@ -196,6 +196,9 @@ typedef struct {
   // Cache alag
   double *alag;
   int alagIx;
+  // Cache F
+  double *cF;
+  int cFix;
 } rx_solving_options_ind;
 
 typedef struct {

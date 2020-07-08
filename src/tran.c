@@ -3146,7 +3146,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 5){
       if (foundF){
-	sAppend(&sbOut,  "// Functional based bioavailability (returns amount)\ndouble %sF(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double _f[%d];\n  (void)_f;\n",
+	sAppend(&sbOut,  "// Functional based bioavailability (returns amount)\ndouble %sF(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double *_f=_solveData->subjects[_cSub].cF;\n  (void)_f;\n",
 		prefix, tb.de.n);
 	for (int jjj = tb.de.n; jjj--;){
 	  sAppend(&sbOut, "  _f[%d]=1.0;\n",jjj);

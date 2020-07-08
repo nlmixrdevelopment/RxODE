@@ -1416,6 +1416,7 @@ typedef struct {
   double *gadvan;
   double *gInfusionRate;
   double *gAlag;
+  double *gF;
   double *gall_times;
   int *gix;
   double *gdv;
@@ -3469,6 +3470,8 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
 	  ind->alag = &_globals.gAlag[op->neq*cid];
 	  ind->alagIx=-1;
+	  ind->cF = &_globals.gF[op->neq*cid];
+	  ind->cFix=-1;
 	  ind->BadDose = &_globals.gBadDose[op->neq*cid];
 	  ind->nBadDose = 0;
 	  // Hmax defined above.
@@ -4524,9 +4527,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
     if (_globals.gsolve != NULL) free(_globals.gsolve);
-    _globals.gsolve = (double*)calloc(n0+nLin+n2+2*n3+n4+n5+n6+ 4*op->neq, sizeof(double));// [n0]
+    _globals.gsolve = (double*)calloc(n0+nLin+n2+3*n3+n4+n5+n6+ 4*op->neq, sizeof(double));// [n0]
 #ifdef rxSolveT
-    REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+n3+n4+n5+n6+ 4*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+3*n3+n4+n5+n6+ 4*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
     if (_globals.gsolve == NULL){
@@ -4537,7 +4540,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _globals.gmtime = _globals.gadvan + nLin; // [n2]
     _globals.gInfusionRate = _globals.gmtime + n2; //[n3]
     _globals.gAlag  = _globals.gInfusionRate + n3; // [n3]
-    _globals.ginits = _globals.gAlag + n3; // [n4]
+    _globals.gF  = _globals.gAlag + n3; // [n3]
+    _globals.ginits = _globals.gF + n3; // [n4]
     std::copy(rxSolveDat->initsC.begin(), rxSolveDat->initsC.end(), &_globals.ginits[0]);
     op->inits = &_globals.ginits[0];
     _globals.glhs = _globals.ginits + n4; // [n5]

@@ -435,11 +435,11 @@ void calcMtime(int solveid, double *mtime){
 static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double time, double *y){
   if (cmt == ind->linCmt) return ind->lag + time;
   if (cmt == ind->linCmt+1) return ind->lag2 +time;
-  if (ind->ix == ind->alagIx){
+  if (ind->idx == ind->alagIx){
     // Use cached value
     return(ind->alag[cmt]+time);
   } else {
-    ind->alagIx=ind->ix;
+    ind->alagIx=ind->idx;
     return LAG(id, cmt, time, y);
   }
 }
@@ -447,7 +447,12 @@ static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double
 double getAmt(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y){
   if (cmt == ind->linCmt) return ind->f*dose;
   if (cmt == ind->linCmt+1) return ind->f2*dose;
-  return AMT(id, cmt, dose, t, y);
+  if (ind->idx == ind->cFix){
+    return ind->cF[cmt]*dose;
+  } else {
+    ind->cFix = ind->idx;
+    return AMT(id, cmt, dose, t, y);
+  }
 }
 
 double getRate(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y){
