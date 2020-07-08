@@ -432,10 +432,16 @@ void calcMtime(int solveid, double *mtime){
   calc_mtime(solveid,mtime);
 }
 
-double getLag(rx_solving_options_ind *ind, int id, int cmt, double time, double *y){
+static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double time, double *y){
   if (cmt == ind->linCmt) return ind->lag + time;
   if (cmt == ind->linCmt+1) return ind->lag2 +time;
-  return LAG(id, cmt, time, y);
+  if (ind->ix == ind->alagIx){
+    // Use cached value
+    return(ind->alag[cmt]+time);
+  } else {
+    ind->alagIx=ind->ix;
+    return LAG(id, cmt, time, y);
+  }
 }
 
 double getAmt(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y){

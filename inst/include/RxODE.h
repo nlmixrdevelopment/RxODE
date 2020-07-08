@@ -193,6 +193,9 @@ typedef struct {
   int linCmtAdvanSetup;
   int cacheME;
   int inLhs;
+  // Cache alag
+  double *alag;
+  int alagIx;
 } rx_solving_options_ind;
 
 typedef struct {

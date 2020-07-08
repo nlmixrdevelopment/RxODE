@@ -3157,7 +3157,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 6){
       if (foundLag){
-	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t, double *__zzStateVar__){\n  double _alag[%d];\n  (void)_alag;\n",
+	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t, double *__zzStateVar__){\n  double *_alag = _solveData->subjects[_cSub].alag;\n  (void)_alag;\n",
 		prefix, tb.de.n);
 	for (int jjj = tb.de.n; jjj--;){
 	  sAppend(&sbOut, "  _alag[%d]=0.0;\n",jjj);
