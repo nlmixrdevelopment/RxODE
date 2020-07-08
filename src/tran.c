@@ -3168,7 +3168,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 7){
       if (foundRate){
-	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double _rate[%d];\n  (void)_rate;\n",
+	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double *_rate= _solveData->subjects[_cSub].cRate;\n  (void)_rate;\n",
 		prefix, tb.de.n);
 	for (int jjj = tb.de.n; jjj--;){
 	  sAppend(&sbOut, "  _rate[%d]=0.0;\n",jjj);
@@ -3179,7 +3179,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 8){
       if (foundDur){
-	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double _dur[%d];\n  (void)_dur;\n",
+	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double *_dur = _solveData->subjects[_cSub].cDur;\n  (void)_dur;\n",
 		prefix, tb.de.n);
 	for (int jjj = tb.de.n; jjj--;){
 	  sAppend(&sbOut, "  _dur[%d]=0.0;\n",jjj);
