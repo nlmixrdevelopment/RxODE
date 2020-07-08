@@ -5,6 +5,7 @@
 #define isObs(evid) ((evid) == 0 || (evid) == 2 || ((evid) >= 9 && (evid) <= 99))
 
 #include "RxODE_control.h"
+#include <stdint.h>    // for uint64_t rather than unsigned long long
 
 #ifdef _isRxODE_
 #else
@@ -226,6 +227,13 @@ typedef struct {
   vLines factorNames;
   int factorNs[500];
   int hasFactors;
+  // For forder
+  uint64_t minD;
+  uint64_t maxD;
+  int maxAllTimes;
+  uint8_t ***keys;// = NULL; keys per thread
+  int spare;
+  int nbyte;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);

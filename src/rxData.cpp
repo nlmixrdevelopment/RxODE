@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <climits>
 #include <checkmate.h>
+#include <stdint.h>    // for uint64_t rather than unsigned long long
 #include "../inst/include/RxODE.h"
 #include "ode.h"
 #include "timsort.h"
@@ -35,6 +36,26 @@
 void resetSolveLinB();
 using namespace Rcpp;
 using namespace arma;
+
+extern "C" uint64_t dtwiddle(const void *p, int i);
+
+// https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L193-L211
+// range_d is modified because it DOES NOT count na/inf because RxODE assumes times cannot be NA, NaN, -Inf, Inf
+static void range_d(double *x, int n, uint64_t *out_min, uint64_t *out_max)
+// return range of finite numbers (excluding NA, NaN, -Inf, +Inf), a count of NA and a count of Inf|-Inf|NaN
+{
+  uint64_t min=0, max=0;
+  int i=0;
+  max = min = dtwiddle(x, i++);
+  for(; i<n; i++) {
+    uint64_t tmp = dtwiddle(x, i);
+    if (tmp>max) max=tmp;
+    else if (tmp<min) min=tmp;
+  }
+  *out_min = min;
+  *out_max = max;
+}
+
 
 #include "../inst/include/RxODE_as.h"
 
@@ -2251,6 +2272,19 @@ extern "C" void lineFree(vLines *sbb);
 // [[Rcpp::export]]
 LogicalVector rxSolveFree(){
   rx_solve* rx = getRxSolve_();
+  rx_solving_options* op = rx->op;
+  // Free the allocated keys
+  for (int i = op->cores; i--;){
+    // In RxODE the keyAlloc size IS 9
+    uint8_t **key = rx->keys[i];
+    for (int j = rx->nbyte; j--;){
+      uint8_t *tt = key[j];
+      free(tt);
+    }
+    free(key);
+  }
+  free(rx->keys);
+  
   if (rx->hasFactors == 1){
     lineFree(&(rx->factors));
     lineFree(&(rx->factorNames));
@@ -3000,6 +3034,9 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     }
 
     NumericVector time0 = dataf[rxcTime];
+    // Get the range
+    range_d(REAL(dataf[rxcTime]), time0.size(), &(rx->minD), &(rx->maxD));
+    
     if (rxIs(time0, "units")){
       rxSolveDat->addTimeUnits=true;
       rxSolveDat->timeUnitsU=time0.attr("units");
@@ -3077,12 +3114,14 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     ind = &(rx->subjects[0]);
     ind->idx=0;
     j=0;
+    rx->maxAllTimes=0;
     int lastId = id[0]-42;
     for (i = 0; i < ids; i++){
       if (lastId != id[i]){
 	if (nall != 0){
 	  // Finalize last solve.
 	  ind->n_all_times    = ndoses+nobs;
+	  if (ind->n_all_times > rx->maxAllTimes) rx->maxAllTimes= ind->n_all_times;
 	  ind->cov_ptr = &(_globals.gcov[curcovi]);
 	  for (ii = 0; ii < ncov; ii++){
 	    NumericVector cur = as<NumericVector>(dataf[covPos[ii]]);
@@ -3174,6 +3213,46 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
       }
       tlast = time0[i];
     }
+    // Get the data range required for radix sort
+    // This is adapted from forder:
+    ////////////////////////////////////////////////////////////////////////////////
+    // https://github.com/Rdatatable/data.table/blob/master/src/forder.c    
+    // in data.table keyAlloc=(ncol+n_cplx)*8+1 which translates to 9
+    // Since the key is constant we can pre-allocate with stack instead key[9]
+    // NA, NaN, and -Inf +Inf not supported
+    uint64_t range = rx->maxD - rx->minD + 1;// +1/*NA*/ +isReal*3/*NaN, -Inf, +Inf*/;
+    int maxBit=0;
+    while (range) { maxBit++; range>>=1; }
+    rx->nbyte = 1+(maxBit-1)/8; // the number of bytes spanned by the value
+    int firstBits = maxBit - (rx->nbyte-1)*8;  // how many bits used in most significant byte
+    // There is only One split since we are only ordering time
+    rx->spare = 8-firstBits; // left align to byte boundary to get better first split.
+    // In forder they allocate the nradix(which is 0) + nbyte
+    // Therefore we allocate nrow*nbyte uint8_t for the key pointers
+    // This equates to n_all_times * nbyte int8_t
+    // However you can also allocate just enough memory for sort based on threads
+    // The key hash would be (max_n_all_times_id)*ncores*nbyte
+    //
+    // Radix sort memory need become http://itu.dk/people/pagh/ads11/11-RadixSortAndSearch.pdf which would be
+    // N=n_all_times+R;  r = size of the "alphabet" which in this case would be the number of bytes
+    // For the memory complexity it becomes n_all_times * nbyte
+
+    // After allocating and dtwiddle threads nradix = nbyte-1 + (spare==0)
+    // End borrowing and commenting from data.table
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    rx->keys = (uint8_t ***)calloc(op->cores, sizeof(uint8_t **));
+    for (i = op->cores; i--;){
+      // In RxODE the keyAlloc size IS 9
+      uint8_t **key = (uint8_t **)calloc(9, sizeof(uint8_t *));
+      for (j = rx->nbyte; j--;){
+	uint8_t *tt = (uint8_t *)calloc(rx->maxAllTimes, sizeof(uint8_t));
+	key[j] = tt;
+      }
+      rx->keys[i] = key;
+    }
+    // Now there is a key per core.
+
     if (doMean){
       hmax2  = hmax2m;
     }

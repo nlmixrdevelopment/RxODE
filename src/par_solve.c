@@ -839,6 +839,25 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
   return getLag(ind, ind->id, ind->cmt, ind->all_times[idx], yp);
 }
 
+uint64_t dtwiddle(const void *p, int i);
+// Adapted from 
+// https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L630-L649
+void writeKeys(rx_solving_options_ind *ind, double *yp, int core){
+  rx_solve *rx = &rx_global;
+  uint8_t **key = rx->keys[core];
+  for (int idx = 0; idx < ind->n_all_times; idx++){
+    // Note this is always ascending so we subtract off the minimum
+    double time = getTime(idx, ind, yp);
+    uint64_t elem=dtwiddle(&time, 0) - rx->minD;
+    elem <<= rx->spare;
+    for (int b=rx->nbyte-1; b>0; b--) {
+      key[b][idx] = (uint8_t)(elem & 0xff);
+      elem >>= 8;
+    } 
+    key[0][idx] |= (uint8_t)(elem & 0xff);
+  }
+}
+
 extern int syncIdx(rx_solving_options_ind *ind){
   if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
     // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
