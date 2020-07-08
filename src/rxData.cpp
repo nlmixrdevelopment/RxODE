@@ -2274,16 +2274,18 @@ LogicalVector rxSolveFree(){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   // Free the allocated keys
-  for (int i = op->cores; i--;){
-    // In RxODE the keyAlloc size IS 9
-    uint8_t **key = rx->keys[i];
-    for (int j = rx->nbyte; j--;){
-      uint8_t *tt = key[j];
-      free(tt);
+  if (rx->keys != NULL) {
+    int i=0;
+    while (rx->keys[i] != NULL){
+      int j = 0; 
+      while(rx->keys[i][j] != NULL){
+	free(rx->keys[i][j++]);
+      }
+      free(rx->keys[i++]);
     }
-    free(key);
   }
   free(rx->keys);
+  rx->keys=NULL;
   
   if (rx->hasFactors == 1){
     lineFree(&(rx->factors));
@@ -3244,12 +3246,10 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     rx->keys = (uint8_t ***)calloc(op->cores, sizeof(uint8_t **));
     for (i = op->cores; i--;){
       // In RxODE the keyAlloc size IS 9
-      uint8_t **key = (uint8_t **)calloc(9, sizeof(uint8_t *));
+      rx->keys[i] = (uint8_t **)calloc(9, sizeof(uint8_t *));
       for (j = rx->nbyte; j--;){
-	uint8_t *tt = (uint8_t *)calloc(rx->maxAllTimes, sizeof(uint8_t));
-	key[j] = tt;
+	rx->keys[i][j] = (uint8_t *)calloc(rx->maxAllTimes, sizeof(uint8_t));
       }
-      rx->keys[i] = key;
     }
     // Now there is a key per core.
 

@@ -340,6 +340,7 @@ void rxOptionsIniEnsure(int mx){
   inds_global = Calloc(mx, rx_solving_options_ind);
   rx_solve *rx=(&rx_global);
   rx->subjects = inds_global;
+  rx->keys = NULL;
 }
 
 int compareFactorVal(int val,
