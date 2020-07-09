@@ -241,7 +241,8 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
   }
 }
 
-void doSort(rx_solving_options_ind *ind);
+/* void doSort(rx_solving_options_ind *ind); */
+void sortRadix(rx_solving_options_ind *ind);
 void calcMtime(int solveid, double *mtime);
 // Advan-style linCmt solutions
 
@@ -1617,7 +1618,7 @@ extern void sortIfNeeded(rx_solve *rx, rx_solving_options_ind *ind, unsigned int
   if (sort){
     rx->needSort = 1;
     if (rx->nMtime) calcMtime(id, ind->mtime);
-    if (rx->needSort) doSort(ind);
+    if (rx->needSort) sortRadix(ind);
   }
 }
 

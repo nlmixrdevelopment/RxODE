@@ -244,8 +244,11 @@ typedef struct {
   uint64_t maxD;
   int maxAllTimes;
   uint8_t ***keys;// = NULL; keys per thread
+  int *TMP;
+  uint8_t *UGRP;
   int spare;
   int nbyte;
+  int nradix;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);

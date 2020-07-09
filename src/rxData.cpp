@@ -2290,7 +2290,14 @@ LogicalVector rxSolveFree(){
   }
   free(rx->keys);
   rx->keys=NULL;
-  
+  if (rx->TMP != NULL){
+    free(rx->TMP);
+  }
+  rx->TMP = NULL;
+  if (rx->UGRP != NULL) {
+    free(rx->UGRP);
+  }
+  rx->UGRP = NULL;
   if (rx->hasFactors == 1){
     lineFree(&(rx->factors));
     lineFree(&(rx->factorNames));
@@ -3219,44 +3226,6 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
       }
       tlast = time0[i];
     }
-    // Get the data range required for radix sort
-    // This is adapted from forder:
-    ////////////////////////////////////////////////////////////////////////////////
-    // https://github.com/Rdatatable/data.table/blob/master/src/forder.c    
-    // in data.table keyAlloc=(ncol+n_cplx)*8+1 which translates to 9
-    // Since the key is constant we can pre-allocate with stack instead key[9]
-    // NA, NaN, and -Inf +Inf not supported
-    uint64_t range = rx->maxD - rx->minD + 1;// +1/*NA*/ +isReal*3/*NaN, -Inf, +Inf*/;
-    int maxBit=0;
-    while (range) { maxBit++; range>>=1; }
-    rx->nbyte = 1+(maxBit-1)/8; // the number of bytes spanned by the value
-    int firstBits = maxBit - (rx->nbyte-1)*8;  // how many bits used in most significant byte
-    // There is only One split since we are only ordering time
-    rx->spare = 8-firstBits; // left align to byte boundary to get better first split.
-    // In forder they allocate the nradix(which is 0) + nbyte
-    // Therefore we allocate nrow*nbyte uint8_t for the key pointers
-    // This equates to n_all_times * nbyte int8_t
-    // However you can also allocate just enough memory for sort based on threads
-    // The key hash would be (max_n_all_times_id)*ncores*nbyte
-    //
-    // Radix sort memory need become http://itu.dk/people/pagh/ads11/11-RadixSortAndSearch.pdf which would be
-    // N=n_all_times+R;  r = size of the "alphabet" which in this case would be the number of bytes
-    // For the memory complexity it becomes n_all_times * nbyte
-
-    // After allocating and dtwiddle threads nradix = nbyte-1 + (spare==0)
-    // End borrowing and commenting from data.table
-    
-    ////////////////////////////////////////////////////////////////////////////////
-    rx->keys = (uint8_t ***)calloc(op->cores, sizeof(uint8_t **));
-    for (i = op->cores; i--;){
-      // In RxODE the keyAlloc size IS 9
-      rx->keys[i] = (uint8_t **)calloc(9, sizeof(uint8_t *));
-      for (j = rx->nbyte; j--;){
-	rx->keys[i][j] = (uint8_t *)calloc(rx->maxAllTimes, sizeof(uint8_t));
-      }
-    }
-    // Now there is a key per core.
-
     if (doMean){
       hmax2  = hmax2m;
     }
@@ -3266,6 +3235,7 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     rx->nevid9 = nevid9;
     // Finalize the prior individual
     ind->n_all_times    = ndoses+nobs;
+    if (ind->n_all_times > rx->maxAllTimes) rx->maxAllTimes= ind->n_all_times;
     ind->cov_ptr = &(_globals.gcov[curcovi]);
     for (ii = 0; ii < ncov; ii++){
       NumericVector cur = as<NumericVector>(dataf[covPos[ii]]);
@@ -3405,7 +3375,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 					  const CharacterVector& pars,
 					  const RObject &ev1,
 					  const RObject &inits,
-					  rxSolve_t* rxSolveDat){
+					  rxSolve_t* rxSolveDat) {
   int i;
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
@@ -3497,6 +3467,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	      ind->cov_ptr = indS.cov_ptr;
 	    }
 	    ind->n_all_times =indS.n_all_times;
+	    if (ind->n_all_times > rx->maxAllTimes) rx->maxAllTimes= ind->n_all_times;
 	    ind->HMAX = indS.HMAX;
 	    ind->idose = &(indS.idose[0]);
 	    ind->ndoses = indS.ndoses;
@@ -3539,6 +3510,50 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
     rxSolveFree();
     stop(_("Something is wrong"));
   }
+  // Get the data range required for radix sort
+  // This is adapted from forder:
+  ////////////////////////////////////////////////////////////////////////////////
+  // https://github.com/Rdatatable/data.table/blob/master/src/forder.c
+  // in data.table keyAlloc=(ncol+n_cplx)*8+1 which translates to 9
+  // Since the key is constant we can pre-allocate with stack instead key[9]
+  // NA, NaN, and -Inf +Inf not supported
+  uint64_t range = rx->maxD - rx->minD;// +1/*NA*/ +isReal*3/*NaN, -Inf, +Inf*/;
+  int maxBit=0;
+  while (range) { maxBit++; range>>=1; }
+  rx->nbyte = 1+(maxBit-1)/8; // the number of bytes spanned by the value
+  int firstBits = maxBit - (rx->nbyte-1)*8;  // how many bits used in most significant byte
+  // There is only One split since we are only ordering time
+  rx->spare = 8-firstBits; // left align to byte boundary to get better first split.
+  // In forder they allocate the nradix(which is 0) + nbyte
+  // Therefore we allocate nrow*nbyte uint8_t for the key pointers
+  // This equates to n_all_times * nbyte int8_t
+  // However you can also allocate just enough memory for sort based on threads
+  // The key hash would be (max_n_all_times_id)*ncores*nbyte
+  //
+  // Radix sort memory need become http://itu.dk/people/pagh/ads11/11-RadixSortAndSearch.pdf which would be
+  // N=n_all_times+R;  r = size of the "alphabet" which in this case would be the number of bytes
+  // For the memory complexity it becomes n_all_times * nbyte
+
+  // After allocating and dtwiddle threads nradix = nbyte-1 + (spare==0)
+  // End borrowing and commenting from data.table
+
+  rx->nradix = rx->nbyte-1 + (rx->spare==0);
+  ////////////////////////////////////////////////////////////////////////////////
+  rx->keys = (uint8_t ***)calloc(op->cores+1, sizeof(uint8_t **));
+  rx->keys[op->cores] = NULL;
+  for (i = op->cores; i--;){
+    // In RxODE the keyAlloc size IS 9
+    rx->keys[i] = (uint8_t **)calloc(10, sizeof(uint8_t *));
+    for (int j = 0; j < 10; j++) rx->keys[i][j] = NULL;
+    for (int b = 0; b < rx->nbyte; b++){
+      rx->keys[i][b] = (uint8_t *)calloc(rx->maxAllTimes+1, sizeof(uint8_t));
+    }
+    // if (i == op->cores - 1 && rx->keys[0][rx->nradix]!=NULL) rx->nradix++;
+  }
+  // Use same variables from data.table
+  rx->TMP =  (int *)malloc(op->cores*UINT16_MAX*sizeof(int)); // used by counting sort (my_n<=65536) in radix_r()
+  rx->UGRP = (uint8_t *)malloc(op->cores*256);                // TODO: align TMP and UGRP to cache lines (and do the same for stack allocations too)
+  // Now there is a key per core
 }
 
 // This creates the final dataset from the currently solved object.
@@ -5718,36 +5733,36 @@ extern "C" {
 }
 
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
-extern "C" void doSort(rx_solving_options_ind *ind){
-  // Reset indexes
-  int idx0 = ind->idx; // Sorting sometimes resets idx, so set to previous value
-  std::iota(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times, 0);
-  // Reset times for infusion
-  int wh, cmt, wh100, whI, wh0;
-  for (int j = ind->n_all_times; j--;){
-    getWh(ind->evid[j], &wh, &cmt, &wh100, &whI, &wh0);
-    if (whI == 6 || whI == 7){
-      ind->all_times[j] = ind->all_times[j-1];
-    }
-  }
-  try {
-    SORT(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
-	 [&ind](int a, int b){
-	   double ta=getTime(a, ind);
-	   if (ind->err){
-	     throw std::runtime_error("error");
-	   }
-	   double tb = getTime(b, ind);
-	   if (ind->err){
-	     throw std::runtime_error("error");
-	   }
-	   if (ta == tb) return a < b;
-	   return ta < tb;
-	 });
-  } catch(...){
-  }
-  ind->idx = idx0; // Sorting sometimes resets idx, so set to previous value
-}
+// extern "C" void doSort(rx_solving_options_ind *ind){
+//   // Reset indexes
+//   int idx0 = ind->idx; // Sorting sometimes resets idx, so set to previous value
+//   std::iota(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times, 0);
+//   // Reset times for infusion
+//   int wh, cmt, wh100, whI, wh0;
+//   for (int j = ind->n_all_times; j--;){
+//     getWh(ind->evid[j], &wh, &cmt, &wh100, &whI, &wh0);
+//     if (whI == 6 || whI == 7){
+//       ind->all_times[j] = ind->all_times[j-1];
+//     }
+//   }
+//   try {
+//     SORT(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
+// 	 [&ind](int a, int b){
+// 	   double ta=getTime(a, ind);
+// 	   if (ind->err){
+// 	     throw std::runtime_error("error");
+// 	   }
+// 	   double tb = getTime(b, ind);
+// 	   if (ind->err){
+// 	     throw std::runtime_error("error");
+// 	   }
+// 	   if (ta == tb) return a < b;
+// 	   return ta < tb;
+// 	 });
+//   } catch(...){
+//   }
+//   ind->idx = idx0; // Sorting sometimes resets idx, so set to previous value
+// }
 
 //[[Rcpp::export]]
 List dropUnitsRxSolve(List x){

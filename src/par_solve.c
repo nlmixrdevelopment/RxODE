@@ -341,6 +341,8 @@ void rxOptionsIniEnsure(int mx){
   rx_solve *rx=(&rx_global);
   rx->subjects = inds_global;
   rx->keys = NULL;
+  rx->TMP=NULL;
+  rx->UGRP=NULL;
 }
 
 int compareFactorVal(int val,
@@ -579,8 +581,6 @@ extern rx_solve *getRxSolve_(){
   rx->op = &op_global;
   return &rx_global;
 }
-
-void doSort(rx_solving_options_ind *ind);
 
 void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0){
   *wh = evid;
@@ -861,23 +861,49 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
   return getLag(ind, ind->id, ind->cmt, ind->all_times[idx], yp);
 }
 
+/* void doSort(rx_solving_options_ind *ind); */
+
+
+void radix_r(const int from, const int to, const int radix,
+	     rx_solving_options_ind *ind, rx_solve *rx);
+
 uint64_t dtwiddle(const void *p, int i);
 // Adapted from 
 // https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L630-L649
-void writeKeys(rx_solving_options_ind *ind, double *yp, int core){
+void sortRadix(rx_solving_options_ind *ind){
+  /* doSort(ind); */
+#ifdef _OPENMP
+  int core = omp_get_thread_num();
+#else
+  int core = 0;
+#endif
   rx_solve *rx = &rx_global;
+  rx_solving_options *op = &op_global;
+  int idx0 = ind->idx;
+  double *yp = ind->solve+op->neq*idx0;  
   uint8_t **key = rx->keys[core];
-  for (int idx = 0; idx < ind->n_all_times; idx++){
+  // Reset times for infusion
+  int wh, cmt, wh100, whI, wh0;
+  for (int i = idx0; i < ind->n_all_times; i++){
+    ind->ix[i] = i;
+    getWh(ind->evid[i], &wh, &cmt, &wh100, &whI, &wh0);
+    if (whI == 6 || whI == 7){
+      ind->all_times[i] = ind->all_times[i-1];
+    }
+    ind->idx = i;
     // Note this is always ascending so we subtract off the minimum
-    double time = getTime(idx, ind, yp);
-    uint64_t elem=dtwiddle(&time, 0) - rx->minD;
+    double time[1];
+    time[0]       = getTime(ind->ix[i], ind, yp);
+    uint64_t elem = dtwiddle(time, 0) - rx->minD;
     elem <<= rx->spare;
     for (int b=rx->nbyte-1; b>0; b--) {
-      key[b][idx] = (uint8_t)(elem & 0xff);
+      key[b][i] = (uint8_t)(elem & 0xff);
       elem >>= 8;
-    } 
-    key[0][idx] |= (uint8_t)(elem & 0xff);
+    }
+    key[0][i] |= (uint8_t)(elem & 0xff);
   }
+  radix_r(idx0, ind->n_all_times-1, 0, ind, rx);
+  ind->idx = idx0;
 }
 
 extern int syncIdx(rx_solving_options_ind *ind){
@@ -1586,7 +1612,7 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   u_inis(neq[1], ret); // Update initial conditions
   unsigned int j;
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-  if (rx->needSort) doSort(ind);
+  if (rx->needSort) sortRadix(ind);
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
   ind->_newind = 1;
   ind->solved = -1;
@@ -1756,7 +1782,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   u_inis(neq[1], ret); // Update initial conditions
   unsigned int j;
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-  if (rx->needSort) doSort(ind);
+  if (rx->needSort) sortRadix(ind);
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
   ind->_newind = 1;
   ind->solved = -1;
@@ -2057,14 +2083,14 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
   u_inis(neq[1], ind->solve); // Update initial conditions
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-  if (rx->needSort) doSort(ind);
+  if (rx->needSort) sortRadix(ind);
   unsigned int j;
   ind->_newind = 1;
   ind->solved = -1;
   for(i=0; i < ind->n_all_times; i++) {
     ind->idx=i;
-    xout = getTime(ind->ix[i], ind, yp);
     yp   = ind->solve+neq[0]*i;
+    xout = getTime(ind->ix[i], ind, yp);
     if(ind->evid[ind->ix[i]] != 3 && xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp))) {
       if (ind->err){
 	ind->rc[0] = -1000;
@@ -2245,7 +2271,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-  if (rx->needSort) doSort(ind);
+  if (rx->needSort) sortRadix(ind);
   //--- inits the system
   unsigned int j;
   ind->_newind = 1;
@@ -2755,8 +2781,9 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       ind->id = neq[1];
       ind->_newind = 1;
       ind->solved = -1;
+      ind->idx = 200;
       if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-      if (rx->needSort) doSort(ind);
+      if (rx->needSort && op->neq == 0) sortRadix(ind);
       ntimes = ind->n_all_times;
       solve =  ind->solve;
       cov_ptr = ind->cov_ptr;
