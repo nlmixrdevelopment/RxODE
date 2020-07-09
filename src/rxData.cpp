@@ -25,12 +25,7 @@
 #include <stdint.h>    // for uint64_t rather than unsigned long long
 #include "../inst/include/RxODE.h"
 #include "ode.h"
-#include "timsort.h"
-#ifdef rxSortStd
 #define SORT std::sort
-#else
-#define SORT gfx::timsort
-#endif
 #define rxModelVars(a) rxModelVars_(a)
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 void resetSolveLinB();
@@ -2287,8 +2282,8 @@ LogicalVector rxSolveFree(){
       }
       free(rx->keys[i++]);
     }
+    free(rx->keys);
   }
-  free(rx->keys);
   rx->keys=NULL;
   if (rx->TMP != NULL){
     free(rx->TMP);
@@ -5733,37 +5728,6 @@ extern "C" {
 }
 
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
-// extern "C" void doSort(rx_solving_options_ind *ind){
-//   // Reset indexes
-//   int idx0 = ind->idx; // Sorting sometimes resets idx, so set to previous value
-//   std::iota(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times, 0);
-//   // Reset times for infusion
-//   int wh, cmt, wh100, whI, wh0;
-//   for (int j = ind->n_all_times; j--;){
-//     getWh(ind->evid[j], &wh, &cmt, &wh100, &whI, &wh0);
-//     if (whI == 6 || whI == 7){
-//       ind->all_times[j] = ind->all_times[j-1];
-//     }
-//   }
-//   try {
-//     SORT(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
-// 	 [&ind](int a, int b){
-// 	   double ta=getTime(a, ind);
-// 	   if (ind->err){
-// 	     throw std::runtime_error("error");
-// 	   }
-// 	   double tb = getTime(b, ind);
-// 	   if (ind->err){
-// 	     throw std::runtime_error("error");
-// 	   }
-// 	   if (ta == tb) return a < b;
-// 	   return ta < tb;
-// 	 });
-//   } catch(...){
-//   }
-//   ind->idx = idx0; // Sorting sometimes resets idx, so set to previous value
-// }
-
 //[[Rcpp::export]]
 List dropUnitsRxSolve(List x){
   List ret;

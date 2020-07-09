@@ -214,7 +214,11 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 
 * Added lower gamma functions See Issue #185
   
-* Updated to [TimSort 1.2.0](https://github.com/timsort/cpp-TimSort/releases/tag/v1.2.0)
+* Removed timsort and changed to a modified radix sort from
+  `data.table`.  The radix search was modified to:
+ - Work directly with `RxODE` internal solved structures
+ - Assume no infinite values or `NA`/`NaN` values of time
+ - Always sort time in ascending order
 
 * More descriptive errors when types of input are different than expected
   

@@ -2,13 +2,7 @@
 #include <RcppArmadillo.h>
 #include <algorithm>
 #include "../inst/include/RxODE.h"
-#include "timsort.h"
-//#define rxSolveT 1
-#ifdef rxSortStd
 #define SORT std::sort
-#else
-#define SORT gfx::timsort
-#endif
 
 #ifdef ENABLE_NLS
 #include <libintl.h>

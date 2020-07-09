@@ -1,12 +1,7 @@
 //#undef NDEBUG
 #include <Rcpp.h>
 #include <R.h>
-#include "timsort.h"
-#ifdef rxSortStd
 #define SORT std::sort
-#else
-#define SORT gfx::timsort
-#endif
 using namespace Rcpp;
 
 #include <checkmate.h>
