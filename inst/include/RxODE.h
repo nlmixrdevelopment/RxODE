@@ -151,7 +151,6 @@ typedef struct {
   int ixds;
   int ndoses;
   double *all_times;
-  double *time2;
   int *ix;
   double *dv;
   double *limit;

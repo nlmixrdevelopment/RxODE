@@ -709,15 +709,11 @@ void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
 
 extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
   // Since the lag time now can depend on state values (and implicitly time), cache the time values
-  // if ind->idx has passed grab the cached time values
-  if (idx < ind->idx) return ind->time2[idx];
   int evid = ind->evid[idx];
   if (evid == 9) return 0;
   if (evid >= 10 && evid <= 99) return ind->mtime[evid-10];
-  if (isObs(evid)) {
-    ind->time2[idx] = ind->all_times[idx];
-    return ind->time2[idx];
-  }
+  if (isObs(evid))  return ind->all_times[idx];
+  if (idx < ind->idx) return ind->all_times[idx];
   getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
   if (ind->wh0 == 40){
   } else {
@@ -731,8 +727,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
 	  if (!(ind->err & 64)){
 	    ind->err += 64;
 	  }
-	  ind->time2[idx] = 0.0;
-	  return ind->time2[idx];
+	  return 0.0;
 	  /* error("Data error 686 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
 	}
 	updateDur(idx-1, ind, yp);
@@ -740,8 +735,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
 	if (!(ind->err & 128)){
 	  ind->err += 128;
 	}
-	ind->time2[idx] = 0.0;
-	return ind->time2[idx];
+	return 0.0;
 	/* error("Data Error -6\n"); */
       }
       break;
@@ -752,8 +746,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
 	  ind->err += 256;
 	}
 	/* error("Data Error 8\n"); */
-	ind->time2[idx] = 0.0;
-	return ind->time2[idx];
+	return 0.0;
       } else {
 	int wh, cmt, wh100, whI, wh0;
 	getWh(ind->evid[idx+1], &wh, &cmt, &wh100, &whI, &wh0);
@@ -761,8 +754,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
 	  if (!(ind->err & 512)){
 	    ind->err += 512;
 	  }
-	  ind->time2[idx] = 0.0;
-	  return ind->time2[idx];
+	  return 0.0;
 	  /* error("Data error 886 (whI=%d, evid=%d to %d)\n", whI, */
 	  /*       ind->evid[idx], ind->evid[idx+1]); */
 	}
@@ -778,8 +770,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
 	    ind->err += 1024;
 	  }
 	  /* error("Data error 797 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
-	  ind->time2[idx] = 0.0;
-	  return ind->time2[idx];
+	  return 0.0;
 	}
 	updateRate(idx-1, ind, yp);
       } else {
@@ -787,8 +778,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
 	  ind->err += 2048;
 	}
 	/* error("Data Error -7\n"); */
-	ind->time2[idx] = 0.0;
-	return ind->time2[idx];
+	return 0.0;
       }
       break;
     case 9:
@@ -799,8 +789,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
 	  ind->err += 4096;
 	}
 	/* error("Data Error 9\n"); */
-	ind->time2[idx] = 0.0;
-	return ind->time2[idx];
+	return 0.0;
       } else {
 	int wh, cmt, wh100, whI, wh0;
 	getWh(ind->evid[idx+1], &wh, &cmt, &wh100, &whI, &wh0);
@@ -808,8 +797,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
 	  if (!(ind->err & 8192)){
 	    ind->err += 8192;
 	  }
-	  ind->time2[idx] = 0.0;
-	  return ind->time2[idx];
+	  return 0.0;
 	  /* error("Data error 997 (whI=%d, evid=%d to %d)\n", whI, */
 	  /*       ind->evid[idx], ind->evid[idx+1]); */
 	}
@@ -838,8 +826,9 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
 	  /* error("Corrupted event table during sort (1)."); */
 	}
 	if (ind->dose[j] > 0){
-	  ind->time2[idx] = getLag(ind, ind->id, ind->cmt, ind->all_times[idx], yp);
-	  return ind->time2[idx];
+	  double ret = getLag(ind, ind->id, ind->cmt, ind->all_times[idx], yp);
+	  if (idx == ind->idx) ind->all_times[idx] = ret;
+	  return ret;
 	} else if (ind->dose[j] < 0){
 	  // f*amt/rate=dur
 	  // amt/rate=durOld
@@ -852,8 +841,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
 	      if (!(ind->err & 32768)){
 		ind->err += 32768;
 	      }
-	      ind->time2[idx] = 0;
-	      return ind->time2[idx];
+	      return 0.0;
 	    }
 	  }
 	  double f = getAmt(ind, ind->id, ind->cmt, 1.0, ind->all_times[ind->idose[j-1]], yp);
@@ -861,22 +849,23 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp){
 			   ind->all_times[ind->idose[k]]); 
 	  double dur = f*durOld;
 	  double t = ind->all_times[ind->idose[k]]+dur;
-	  ind->time2[idx] = getLag(ind, ind->id, ind->cmt, t, yp);
-	  return ind->time2[idx];
+	  double ret = getLag(ind, ind->id, ind->cmt, t, yp);
+	  if (ind->idx == idx) ind->all_times[idx] = ret;
+	  return ret;
 	} else {
 	  /* error("Corrupted events."); */
 	  if (!(ind->err & 131072)){
 	    ind->err += 131072;
 	  }
-	  ind->time2[idx]=0.0;
-	  return ind->time2[idx];
+	  return 0.0;
 	}
       }
       break;
     }
   }
-  ind->time2[idx] = getLag(ind, ind->id, ind->cmt, ind->all_times[idx], yp);
-  return ind->time2[idx];
+  double ret = getLag(ind, ind->id, ind->cmt, ind->all_times[idx], yp);
+  if (ind->idx == idx) ind->all_times[idx] = ret;
+  return ret;
 }
 
 /* void doSort(rx_solving_options_ind *ind); */
