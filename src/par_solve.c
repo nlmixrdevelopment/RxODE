@@ -726,10 +726,15 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
   rx_solving_options *op = &op_global;
   if (ind->wh0 == 40){
   } else {
-    if (ind->idx < idx){
-      yp = ind->solve + op->neq*ind->idx;
+    // yp should be the previous solve values
+    if (idx == 0){
+      yp = ind->solve;
     } else {
-      yp = ind->solve + op->neq*idx;
+      if (ind->idx < idx){
+	yp = ind->solve + op->neq*(ind->idx-1);
+      } else {
+	yp = ind->solve + op->neq*(idx-1);
+      }
     }
     switch(ind->whI){
     case 6:
