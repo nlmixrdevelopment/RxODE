@@ -3365,7 +3365,7 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
 static inline void rxSolve_assignGpars(rxSolve_t* rxSolveDat);
 
 // Normalizes parameter input
-// It will also load the parameters into the solving data structure.
+// It will also (1) load the parameters into the solving data structure, (2) do prework for radix sort
 static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxControl,
 					  const Nullable<CharacterVector> &specParams,
 					  const Nullable<List> &extraArgs,
