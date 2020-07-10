@@ -3438,13 +3438,9 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  if (rx->nMtime > 0) ind->mtime[0]=-1;
 	  ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
 	  ind->alag = &_globals.gAlag[op->neq*cid];
-	  ind->alagIx=-1;
 	  ind->cF = &_globals.gF[op->neq*cid];
-	  ind->cFix=-1;
 	  ind->cRate = &_globals.gRate[op->neq*cid];
-	  ind->cRateIx=-1;
 	  ind->cDur = &_globals.gDur[op->neq*cid];
-	  ind->cDurIx=-1;
 	  ind->BadDose = &_globals.gBadDose[op->neq*cid];
 	  ind->nBadDose = 0;
 	  // Hmax defined above.
