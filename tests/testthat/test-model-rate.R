@@ -14,11 +14,11 @@ rxPermissive(
         f <- 1
         ri <- 10
         li <- 0
-        d / dt(intestine) <- -a * intestine
+        d/dt(intestine) <- -a * intestine
         f(intestine) <- f
         rate(intestine) <- ri
         alag(intestine) <- li
-        d / dt(blood) <- a * intestine - b * blood
+        d/dt(blood) <- a * intestine - b * blood
       })
 
       library(ggplot2)

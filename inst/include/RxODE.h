@@ -195,16 +195,12 @@ typedef struct {
   int inLhs;
   // Cache alag
   double *alag;
-  int alagIx;
   // Cache F
   double *cF;
-  int cFix;
   // Cache rate;
   double *cRate;
-  int cRateIx;
   // Cache duration
   double *cDur;
-  int cDurIx;
 } rx_solving_options_ind;
 
 typedef struct {
