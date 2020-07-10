@@ -1,6 +1,7 @@
 ## Tests for absorption lag time.
 rxPermissive(
-  {
+{
+
     ## 6.1
     mod <- RxODE({
       a <- 6
@@ -8,6 +9,7 @@ rxPermissive(
       d / dt(intestine) <- -a * intestine
       d / dt(blood) <- a * intestine - b * blood
     })
+
     mod2 <- RxODE({
       a <- 6
       b <- 0.6
@@ -15,6 +17,7 @@ rxPermissive(
       alag(intestine) <- 2
       d / dt(blood) <- a * intestine - b * blood
     })
+
     ms <- c("liblsoda", "lsoda", "dop853")
     if (grepl("SunOS", Sys.info()["sysname"])) ms <- "lsoda"
     for (m in ms) {
@@ -56,8 +59,10 @@ rxPermissive(
         expect_equal(solve3$blood, solve2$blood)
       })
 
+      context(sprintf("bad alag (%s)", m))
+
       ## test bad solves -- These could depend on intestine indirectly so these are run-time errors
-      mod2 <- RxODE({
+      mod3 <- RxODE({
         a <- 6
         b <- 0.6
         d / dt(intestine) <- -a * intestine
@@ -72,8 +77,7 @@ rxPermissive(
         dose = 2 / 24, start.time = 0,
         nbr.doses = 10, dosing.interval = 1
       )
-      expect_error(solve(mod2, et))
-
+      expect_error(solve(mod3, et))
 
     }
   },

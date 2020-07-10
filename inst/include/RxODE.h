@@ -64,8 +64,6 @@ typedef struct vLines {
 typedef struct {
   // These options should not change based on an individual solve
   int badSolve;
-  int badRate;
-  int badDur;
   int naTime;
   double ATOL;          //absolute error
   double RTOL;          //relative error
@@ -248,6 +246,7 @@ typedef struct {
   int spare;
   int nbyte;
   int nradix;
+  double *ypNA;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);

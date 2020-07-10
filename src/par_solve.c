@@ -437,25 +437,49 @@ void calcMtime(int solveid, double *mtime){
 static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double time){
   if (cmt == ind->linCmt) return ind->lag + time;
   if (cmt == ind->linCmt+1) return ind->lag2 +time;
-  return LAG(id, cmt, time);
+  double ret = LAG(id, cmt, time);
+  if (ISNA(ret)){
+    rx_solving_options *op = &op_global;
+    op->badSolve=1;
+    op->naTime = 1;
+  }
+  return ret;
 }
 
 static inline double getAmt(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y){
   if (cmt == ind->linCmt) return ind->f*dose;
   if (cmt == ind->linCmt+1) return ind->f2*dose;
-  return AMT(id, cmt, dose, t, y);
+  double ret = AMT(id, cmt, dose, t, y);
+  if (ISNA(ret)){
+    rx_solving_options *op = &op_global;
+    op->badSolve=1;
+    op->naTime = 1;
+  }
+  return ret;
 }
 
 static inline double getRate(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
   if (cmt == ind->linCmt) return ind->rate;
   if (cmt == ind->linCmt+1) return ind->rate;
-  return RATE(id, cmt, dose, t);
+  double ret = RATE(id, cmt, dose, t);
+  if (ISNA(ret)){
+    rx_solving_options *op = &op_global;
+    op->badSolve=1;
+    op->naTime = 1;
+  }
+  return ret;
 }
 
-double getDur(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
+static inline double getDur(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
   if (cmt == ind->linCmt) return ind->dur;
   if (cmt == ind->linCmt+1) return ind->dur;
-  return DUR(id, cmt, dose, t);
+  double ret = DUR(id, cmt, dose, t);
+  if (ISNA(ret)){
+    rx_solving_options *op = &op_global;
+    op->badSolve=1;
+    op->naTime = 1;
+  }
+  return ret;
 }
 
 int global_jt = 2;
@@ -601,12 +625,6 @@ void updateRate(int idx, rx_solving_options_ind *ind, double *yp){
     // 
     amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[j], t, yp);
     rate  = getRate(ind, ind->id, ind->cmt, amt, t);
-    if (ISNA(rate)) {
-      rx_solving_options *op = &op_global;
-      op->badSolve = 1;
-      op->badRate = 1;
-      return;
-    }
     if (rate > 0){
       dur = amt/rate; // mg/hr
       ind->dose[j+1] = -rate;
@@ -667,12 +685,6 @@ static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
     // The duration and f cannot depend on state values
     amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[j], t, yp);
     dur  = getDur(ind, ind->id, ind->cmt, amt, t);
-    if (ISNA(dur)) {
-      rx_solving_options *op = &op_global;
-      op->badSolve = 1;
-      op->badDur = 1;
-      return;
-    }
     if (dur > 0){
       rate = amt/dur;// mg/hr
       ind->dose[j+1] = -rate;
@@ -847,7 +859,13 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	      return 0.0;
 	    }
 	  }
-	  double f = getAmt(ind, ind->id, ind->cmt, 1.0, ind->all_times[ind->idose[j-1]], yp);
+	  rx_solve *rx = &rx_global;
+	  double f = getAmt(ind, ind->id, ind->cmt, 1.0, ind->all_times[ind->idose[j-1]], rx->ypNA);
+	  if (ISNA(f)){
+	    rx_solving_options *op = &op_global;
+	    op->badSolve=1;
+	    op->naTime = 1;
+	  }
 	  double durOld = (ind->all_times[ind->idose[j]] -
 			   ind->all_times[ind->idose[k]]); 
 	  double dur = f*durOld;
@@ -904,11 +922,8 @@ void sortRadix(rx_solving_options_ind *ind){
     // Note this is always ascending so we subtract off the minimum
     double time[1];
     time[0]       = getTime(ind->ix[i], ind);
-    if (ISNA(time[0])){
+    if (op->naTime == 1){
       doSort=0;
-      rx_solving_options *op = &op_global;
-      op->badSolve=1;
-      op->naTime = 1;
       break;
     }
     uint64_t elem = dtwiddle(time, 0) - rx->minD;
@@ -2735,17 +2750,9 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int nidCols = md + sm;
   int pro = 0;
   if (op->badSolve){
-    if (op->badDur) {
-      rxSolveFreeC();
-      error(_("'dur(.)' cannot depend on the state values"));
-    }
-    if (op->badRate) {
-      rxSolveFreeC();
-      error(_("'rate(.)' cannot depend on the state values"));
-    }
     if (op->naTime){
       rxSolveFreeC();
-      error(_("'alag(.)' cannot depend on the state values"));
+      error(_("'alag(.)'/'rate(.)'/'dur(.)' cannot depend on the state values"));
     }
     if (nidCols == 0){
       rxSolveFreeC();
