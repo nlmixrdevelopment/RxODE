@@ -722,6 +722,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
   getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
   double *yp;
   rx_solving_options *op = &op_global;
+  rx_solve *rx = &rx_global;
   if (ind->wh0 == 40){
   } else {
     // yp should be the current solve values
@@ -736,10 +737,10 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
     switch(ind->whI){
     case 6:
       if (idx > 0){
+	yp = rx->ypNA;
 	int wh, cmt, wh100, whI, wh0;
 	getWh(ind->evid[idx-1], &wh, &cmt, &wh100, &whI, &wh0);
 	if (whI != 8){
-	  // FIXME can crash parallel runs and cause many issues.  Need to defer to end.
 	  if (!(ind->err & 64)){
 	    ind->err += 64;
 	  }
@@ -774,6 +775,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	  /* error("Data error 886 (whI=%d, evid=%d to %d)\n", whI, */
 	  /*       ind->evid[idx], ind->evid[idx+1]); */
 	}
+	yp = rx->ypNA;
 	updateDur(idx, ind, yp);
       }
       break;
@@ -788,6 +790,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	  /* error("Data error 797 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
 	  return 0.0;
 	}
+	yp = rx->ypNA;
 	updateRate(idx-1, ind, yp);
       } else {
 	if (!(ind->err & 2048)){
@@ -814,9 +817,8 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	    ind->err += 8192;
 	  }
 	  return 0.0;
-	  /* error("Data error 997 (whI=%d, evid=%d to %d)\n", whI, */
-	  /*       ind->evid[idx], ind->evid[idx+1]); */
 	}
+	yp = rx->ypNA;
 	updateRate(idx, ind, yp);
       }
       break;
