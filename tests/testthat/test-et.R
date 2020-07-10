@@ -539,6 +539,13 @@ rxPermissive(
 
       expect_equal(ev1, ev2)
     })
+
+    context("Issue #236 math in to/from")
+    test_that("Issue #236", {
+      expect_error(et(from=0, to=168*2*6, length.out=168*2*6 + 1), NA)
+    })
+
+
   },
   silent = TRUE,
   test = "cran"

@@ -276,6 +276,7 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
     names(.lst)[1] <- ""
   }
   if (!missing(by)) {
+    force(by)
     checkmate::assertNumeric(by, finite = TRUE, max.len = 1, any.missing = FALSE, min = 0)
     if (!missing(length.out)) {
       stop("cannot supply both 'by' and 'length.out'", call. = FALSE)
@@ -284,30 +285,30 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
     .lst <- .lst[names(.lst) != "envir"]
     if (.isPipe) {
       if (length(.lst) == 3) {
-        .from <- .lst[[2]]
-        .to <- .lst[[3]]
+        .from <- eval(.lst[[2]], envir=envir)
+        .to <- eval(.lst[[3]], envir=envir)
         .lst <- .lst[-3]
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
         .lst[[2]] <- seq(from = .from, to = .to, by = by)
         return(do.call(et.default, .lst, envir = envir))
       } else {
-        .from <- .lst[[2]]
+        .from <- eval(.lst[[2]], envir=envir)
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         .lst[[2]] <- seq(from = .from, by = by)
         return(do.call(et.default, .lst, envir = envir))
       }
     } else {
       if (length(.lst) == 2) {
-        .from <- .lst[[1]]
-        .to <- .lst[[2]]
+        .from <- eval(.lst[[1]], envir=envir)
+        .to <- eval(.lst[[2]], envir=envir)
         .lst <- .lst[-2]
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
         .lst[[1]] <- seq(from = .from, to = .to, by = by)
         return(do.call(et.default, .lst, envir = envir))
       } else {
-        .from <- .lst[[1]]
+        .from <- eval(.lst[[1]], envir=envir)
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         .lst[[1]] <- seq(from = .from, by = by)
         return(do.call(et.default, .lst, envir = envir))
@@ -320,30 +321,30 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
     .lst <- .lst[names(.lst) != "envir"]
     if (.isPipe) {
       if (length(.lst) == 3) {
-        .from <- .lst[[2]]
-        .to <- .lst[[3]]
+        .from <- eval(.lst[[2]], envir = envir)
+        .to <- eval(.lst[[3]], envir=envir)
         .lst <- .lst[-3]
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
         .lst[[2]] <- seq(from = .from, to = .to, length.out = length.out)
         return(do.call(et.default, .lst, envir = envir))
       } else {
-        .from <- .lst[[2]]
+        .from <- eval(.lst[[2]], envir=envir)
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         .lst[[2]] <- seq(from = .from, length.out = length.out)
         return(do.call(et.default, .lst, envir = envir))
       }
     } else {
       if (length(.lst) == 2) {
-        .from <- .lst[[1]]
-        .to <- .lst[[2]]
+        .from <- eval(.lst[[1]], envir=envir)
+        .to <- eval(.lst[[2]], envir=envir)
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
-        .lst <- .lst[-2]
+        .lst <- eval(.lst[-2], envir=envir)
         .lst[[1]] <- seq(from = .from, to = .to, length.out = length.out)
         return(do.call(et.default, .lst, envir = envir))
       } else {
-        .from <- .lst[[1]]
+        .from <- eval(.lst[[1]], envir=envir)
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         .lst[[1]] <- seq(from = .from, length.out = length.out)
         return(do.call(et.default, .lst, envir = envir))
@@ -354,8 +355,8 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
     if (all(names(.lst) == "") && length(.lst) == 2) {
       if ((is(.lst[[1]], "numeric") || is(.lst[[1]], "integer")) &&
         (is(.lst[[2]], "numeric") || is(.lst[[2]], "integer"))) {
-        .from <- .lst[[1]]
-        .to <- .lst[[2]]
+        .from <- eval(.lst[[1]], envir=envir)
+        .to <- eval(.lst[[2]], envir=envir)
         .lst <- .lst[-2]
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
@@ -372,8 +373,8 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
     if (all(names(.lst)[-1] == "") && length(.lst) == 3) {
       if ((is(.lst[[2]], "numeric") || is(.lst[[2]], "integer")) &&
         (is(.lst[[3]], "numeric") || is(.lst[[3]], "integer"))) {
-        .from <- .lst[[2]]
-        .to <- .lst[[3]]
+        .from <- eval(.lst[[2]], envir=envir)
+        .to <- eval(.lst[[3]], envir=envir)
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
         .lst <- .lst[-3]
@@ -1249,7 +1250,7 @@ c.rxEvid <- function(x, ...) {
         )
       )
     )
-  return(format(.x, align = "left"))
+  return(format(.x, justify = "left"))
 }
 
 ##' @rdname rxEvid
@@ -1304,7 +1305,7 @@ type_sum.rxEvid <- function(x) {
 ##' @export pillar_shaft.rxEvid
 pillar_shaft.rxEvid <- function(x, ...) {
   .x <- .colorFmt.rxEvid(x)
-  pillar::new_pillar_shaft_simple(.x, align = "left")
+  pillar::new_pillar_shaft_simple(.x)
 }
 
 ##' @export
