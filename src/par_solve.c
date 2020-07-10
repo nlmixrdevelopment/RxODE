@@ -686,19 +686,22 @@ void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
   }
 }
 
-extern double getTime(int idx, rx_solving_options_ind *ind, double *yp0){
+extern double getTime(int idx, rx_solving_options_ind *ind){
   // Since the lag time now can depend on state values (and implicitly time), cache the time values
   int evid = ind->evid[idx];
-  if (evid == 9) return 0;
+  if (evid == 9) return 0.0;
   if (evid >= 10 && evid <= 99) return ind->mtime[evid-10];
   if (isObs(evid))  return ind->all_times[idx];
+  double ret;
   getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
-  double *yp = yp0;
+  double *yp;
+  rx_solving_options *op = &op_global;
   if (ind->wh0 == 40){
   } else {
     if (ind->idx < idx){
-      rx_solving_options *op = &op_global;
       yp = ind->solve + op->neq*ind->idx;
+    } else {
+      yp = ind->solve + op->neq*idx;
     }
     switch(ind->whI){
     case 6:
@@ -809,7 +812,8 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp0){
 	  /* error("Corrupted event table during sort (1)."); */
 	}
 	if (ind->dose[j] > 0){
-	  return getLag(ind, ind->id, ind->cmt, ind->all_times[idx], yp);
+	  ret = getLag(ind, ind->id, ind->cmt, ind->all_times[idx], yp);
+	  return ret;
 	} else if (ind->dose[j] < 0){
 	  // f*amt/rate=dur
 	  // amt/rate=durOld
@@ -830,7 +834,8 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp0){
 			   ind->all_times[ind->idose[k]]); 
 	  double dur = f*durOld;
 	  double t = ind->all_times[ind->idose[k]]+dur;
-	  return getLag(ind, ind->id, ind->cmt, t, yp);
+	  ret = getLag(ind, ind->id, ind->cmt, t, yp);
+	  return ret;
 	} else {
 	  /* error("Corrupted events."); */
 	  if (!(ind->err & 131072)){
@@ -842,7 +847,8 @@ extern double getTime(int idx, rx_solving_options_ind *ind, double *yp0){
       break;
     }
   }
-  return getLag(ind, ind->id, ind->cmt, ind->all_times[idx], yp);
+  ret = getLag(ind, ind->id, ind->cmt, ind->all_times[idx], yp);
+  return ret;
 }
 
 /* void doSort(rx_solving_options_ind *ind); */
@@ -878,7 +884,7 @@ void sortRadix(rx_solving_options_ind *ind){
     }
     // Note this is always ascending so we subtract off the minimum
     double time[1];
-    time[0]       = getTime(ind->ix[i], ind, yp);
+    time[0]       = getTime(ind->ix[i], ind);
     uint64_t elem = dtwiddle(time, 0) - rx->minD;
     elem <<= rx->spare;
     for (int b=rx->nbyte-1; b>0; b--) {
@@ -1279,8 +1285,8 @@ void handleSS(int *neq,
 	if (ind->dose[j] == -ind->dose[ind->ixds]){
 	  getWh(ind->evid[ind->idose[j]], &wh, &cmt, &wh100, &whI, &wh0);
 	  if (whI == oldI && cmt == ind->cmt){
-	    dur = getTime(ind->idose[j], ind, yp) -
-	      getTime(ind->ix[*i], ind, yp);
+	    dur = getTime(ind->idose[j], ind) -
+	      getTime(ind->ix[*i], ind);
 	    dur2 = ind->ii[ind->ixds] - dur;
 	    /* Rprintf("000; dur: %f; dur2: %f; ii: %f;\n", dur, dur2, ind->ii[ind->ixds]); */
 	    infEixds = j;
@@ -1292,8 +1298,8 @@ void handleSS(int *neq,
       // These are right next to another.
       infBixds = ind->ixds;
       infEixds = ind->ixds+1;
-      dur = getTime(ind->idose[infEixds], ind, yp) -
-	getTime(ind->idose[infBixds],ind, yp);
+      dur = getTime(ind->idose[infEixds], ind) -
+	getTime(ind->idose[infBixds],ind);
       dur2 = ind->ii[ind->ixds] - dur;
     }
     /* bi = *i; */
@@ -1602,7 +1608,7 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   ind->solved = -1;
   for(i=0; i<nx; i++) {
     ind->idx=i;
-    xout = getTime(ind->ix[i], ind, yp);
+    xout = getTime(ind->ix[i], ind);
     yp = ret+neq[0]*i;
     if(ind->evid[ind->ix[i]] != 3 && xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
       if (ind->err){
@@ -1773,7 +1779,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   for(i=0; i<nx; i++) {
     ind->idx=i;
     yp = ret+neq[0]*i;
-    xout = getTime(ind->ix[i], ind, yp);
+    xout = getTime(ind->ix[i], ind);
     if(ind->evid[ind->ix[i]] != 3 && xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
       if (ind->err){
 	*rc = -1000;
@@ -2074,7 +2080,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   for(i=0; i < ind->n_all_times; i++) {
     ind->idx=i;
     yp   = ind->solve+neq[0]*i;
-    xout = getTime(ind->ix[i], ind, yp);
+    xout = getTime(ind->ix[i], ind);
     if(ind->evid[ind->ix[i]] != 3 && xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp))) {
       if (ind->err){
 	ind->rc[0] = -1000;
@@ -2263,7 +2269,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   for(i=0; i<nx; i++) {
     ind->idx=i;
     yp = &ret[neq[0]*i];
-    xout = getTime(ind->ix[i], ind, yp);
+    xout = getTime(ind->ix[i], ind);
     if (global_debug){
       RSprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
     }
@@ -2502,7 +2508,7 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
   lhs = ind->lhs;
   if (i < ind->n_all_times){
     ind->idx=i;
-    time = getTime(ind->ix[i], ind, solve+i*op->neq);
+    time = getTime(ind->ix[i], ind);
     ind->idx=i;
     isDose = !isObs(ind->evid[ind->ix[i]]);
     if (isDose) {
@@ -2807,7 +2813,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 	    }
 	  }
 	}
-	if (isDose(evid)) ind->tlast = getTime(ind->ix[i], ind, yp);
+	if (isDose(evid)) ind->tlast = getTime(ind->ix[i], ind);
         if (updateErr){
           for (j=0; j < errNcol; j++){
 	    par_ptr[svar[j]] = errs[errNrow*j+kk];
@@ -3012,8 +3018,8 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 		      int nWh = 0, nCmt = 0, nWh100 = 0, nWhI = 0, nWh0 = 0;
 		      getWh(ind->evid[ind->idose[jjj]], &nWh, &nCmt, &nWh100, &nWhI, &nWh0);
 		      if (nWhI == whI && nCmt == cmt){
-			curDur = getTime(ind->idose[jjj], ind, yp) -
-			  getTime(ind->ix[i], ind, yp);
+			curDur = getTime(ind->idose[jjj], ind) -
+			  getTime(ind->ix[i], ind);
 			break;
 		      }
 		    }
@@ -3050,8 +3056,8 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 		      int nWh = 0, nCmt = 0, nWh100 = 0, nWhI = 0, nWh0 = 0;
 		      getWh(ind->evid[ind->idose[jjj]], &nWh, &nCmt, &nWh100, &nWhI, &nWh0);
 		      if (nWhI == whI && nCmt == cmt){
-			curDur = getTime(ind->idose[jjj], ind, yp) -
-			  getTime(ind->ix[i], ind, yp);
+			curDur = getTime(ind->idose[jjj], ind) -
+			  getTime(ind->ix[i], ind);
 			break;
 		      }
 		    }
@@ -3090,7 +3096,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 	  }
           // time
           dfp = REAL(VECTOR_ELT(df, jj++));
-          dfp[ii] = getTime(ind->ix[i], ind, yp);
+          dfp[ii] = getTime(ind->ix[i], ind);
           // LHS
           if (nlhs){
 	    for (j = 0; j < nlhs; j++){
@@ -3474,7 +3480,7 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
     for (i=0; i<*ntime; i++){
       ind->idx = i;
       newEvid[i] = ind->evid[ind->ix[i]];
-      newTime[i] = getTime(ind->ix[i], ind, retp+i*(op->neq));
+      newTime[i] = getTime(ind->ix[i], ind);
       if (ind->evid[ind->ix[i]]) ind->tlast = newTime[i];
       // 0 = first subject; Calc lhs changed...
       calc_lhs(subid, newTime[i], retp+i*(op->neq), lhsp+i*(op->nlhs));
