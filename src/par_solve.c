@@ -437,53 +437,25 @@ void calcMtime(int solveid, double *mtime){
 static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double time, double *y){
   if (cmt == ind->linCmt) return ind->lag + time;
   if (cmt == ind->linCmt+1) return ind->lag2 +time;
-  double same = ind->alag[cmt] + time;
-  double ret = LAG(id, cmt, time, y);
-  rx_solve *rx;
-  rx = &rx_global;
-  if (rx->needSort && ind->idx != 0 && fabs(ret-same)  < DOUBLE_EPS){
-    rx->needResort=1;
-  }
-  return ret;
+  return LAG(id, cmt, time, y);
 }
 
 static inline double getAmt(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y){
   if (cmt == ind->linCmt) return ind->f*dose;
   if (cmt == ind->linCmt+1) return ind->f2*dose;
-  double same = ind->cF[cmt]*dose;
-  double ret = AMT(id, cmt, dose, t, y);
-  rx_solve *rx;
-  rx = &rx_global;
-  if (rx->needSort && ind->idx != 0 && fabs(ret-same)  < DOUBLE_EPS){
-    rx->needResort=1;
-  }
-  return ret;
+  return AMT(id, cmt, dose, t, y);
 }
 
 static inline double getRate(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y){
   if (cmt == ind->linCmt) return ind->rate;
   if (cmt == ind->linCmt+1) return ind->rate;
-  double same = ind->cRate[cmt];
-  double ret = RATE(id, cmt, dose, t, y);
-  rx_solve *rx;
-  rx = &rx_global;
-  if (rx->needSort && ind->idx != 0 && fabs(ret-same)  < DOUBLE_EPS){
-    rx->needResort=1;
-  }
-  return ret;
+  return RATE(id, cmt, dose, t, y);
 }
 
 double getDur(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y){
   if (cmt == ind->linCmt) return ind->dur;
   if (cmt == ind->linCmt+1) return ind->dur;
-  double same = ind->cDur[cmt];
-  double ret = DUR(id, cmt, dose, t, y);
-  rx_solve *rx;
-  rx = &rx_global;
-  if (rx->needSort && ind->idx != 0 && fabs(ret-same)  < DOUBLE_EPS){
-    rx->needResort=1;
-  }
-  return ret;
+  return DUR(id, cmt, dose, t, y);
 }
 
 int global_jt = 2;
@@ -927,7 +899,6 @@ void sortRadix(rx_solving_options_ind *ind){
     key[0][i] |= (uint8_t)(elem & 0xff);
   }
   radix_r(0, ind->n_all_times-1, 0, ind, rx);
-  rx->needResort = 0;
 }
 
 extern int syncIdx(rx_solving_options_ind *ind){
@@ -1643,10 +1614,6 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   for(i=0; i<nx; i++) {
     ind->idx=i;
     xout = getTime(ind->ix[i], ind);
-    if (rx->needResort){
-      sortRadix(ind);
-      xout = getTime(ind->ix[i], ind);
-    }
     yp = ret+neq[0]*i;
     if(ind->evid[ind->ix[i]] != 3 && xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
       if (ind->err){
@@ -1818,10 +1785,6 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
     ind->idx=i;
     yp = ret+neq[0]*i;
     xout = getTime(ind->ix[i], ind);
-    if (rx->needResort){
-      sortRadix(ind);
-      xout = getTime(ind->ix[i], ind);
-    }
     if(ind->evid[ind->ix[i]] != 3 && xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
       if (ind->err){
 	*rc = -1000;
@@ -2123,10 +2086,6 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
     ind->idx=i;
     yp   = ind->solve+neq[0]*i;
     xout = getTime(ind->ix[i], ind);
-    if (rx->needResort){
-      sortRadix(ind);
-      xout = getTime(ind->ix[i], ind);
-    }
     if(ind->evid[ind->ix[i]] != 3 && xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp))) {
       if (ind->err){
 	ind->rc[0] = -1000;
@@ -2316,10 +2275,6 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
     ind->idx=i;
     yp = &ret[neq[0]*i];
     xout = getTime(ind->ix[i], ind);
-    if (rx->needResort){
-      sortRadix(ind);
-      xout = getTime(ind->ix[i], ind);
-    }
     if (global_debug){
       RSprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
     }
@@ -2559,10 +2514,6 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
   if (i < ind->n_all_times){
     ind->idx=i;
     time = getTime(ind->ix[i], ind);
-    if (rx->needResort){
-      sortRadix(ind);
-      time = getTime(ind->ix[i], ind);
-    }
     ind->idx=i;
     isDose = !isObs(ind->evid[ind->ix[i]]);
     if (isDose) {
