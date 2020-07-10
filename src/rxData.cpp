@@ -3817,66 +3817,6 @@ static inline void rxSolveSaveRxRestore(rxSolve_t* rxSolveDat){
 }
 
 RObject _curPar;
-static inline bool rxSolve_loaded(const RObject &trueEvents,
-				  RObject &trueParams,
-				  const List &rxControl,
-				  const SEXP &mv,
-				  const RObject &inits){
-  RObject iCov = rxControl[Rxc_iCov];
-  RObject thetaMat = rxControl[Rxc_thetaMat];
-  RObject omega = rxControl[Rxc_omega];
-  RObject sigma = rxControl[Rxc_sigma];
-  // print(trueParams);
-  bool ret = _globals.gsolve != NULL &&
-    asBool(rxControl[Rxc_cacheEvent], "cacheEvent") &&
-    _rxModels.exists(".lastEvents") &&
-    // FIXME:
-    // - Inductive linearization requires a different setup
-    //  - Check to make sure the models are the same.
-    //  - Check oldModel = newModel
-    //  - Options are the same
-    rxIsNull(iCov) && rxIsNull(omega) &&
-    rxIsNull(sigma) && rxIsNull(thetaMat) &&
-    // the #rows of input should be equal.
-    getNRows(trueParams) == as<int>(_rxModels[".lastNrow"]) &&
-    R_compute_identical(as<SEXP>(_rxModels[".lastEvents"]),
-			as<SEXP>(trueEvents), 16) &&
-    R_compute_identical(as<SEXP>(_rxModels[".lastParNames"]),
-			as<SEXP>(trueParams.attr("names")), 16) &&
-    R_compute_identical(as<SEXP>(_rxModels[".lastMv"]), mv, 16) &&
-    R_compute_identical(as<SEXP>(_rxModels[".lastInits"]),as<SEXP>(inits), 16) &&
-    R_compute_identical(as<SEXP>(_rxModels[".lastControl"]), as<SEXP>(rxControl), 16);
-  if (ret && rxIs(trueParams, "data.frame")) {
-    rxSolve_t* rxSolveDat = &rxSolveDatLast;
-    rxSolveSaveRxRestore(rxSolveDat);
-    if (rxSolveDat->idLevels.size() > 0){
-      // FIXME: check to see if IDs are dropped.
-      Function sortId = getRxFn(".sortId");
-      // print(rxSolveDat->idLevels);
-      // print(trueParams);
-      RObject cur = clone(sortId(trueParams,
-  				 rxSolveDat->idLevels,
-  				 "parameters",
-  				 false, false));
-      rx_solve* rx = getRxSolve_();
-      // the #subs of curPar should equal rx->nsub
-      if (getNRows(cur) == rx->nsub){
-  	// Rprintf("1\n");
-  	_rxModels[".saveDf"] = cur;
-  	// print(_rxModels[".saveDf"]);
-      } else {
-  	ret = false;
-      }
-    } else {
-      // Rprintf("2\n");
-      _rxModels[".saveDf"] = trueParams;
-      // print(_rxModels[".saveDf"]);
-    }
-  }
-  // if (ret) Rprintf("cached\n");
-  return ret;
-}
-
 static inline void rxSolve_assignGpars(rxSolve_t* rxSolveDat){
   unsigned int i;
   for (unsigned int j = 0; j < (unsigned int)rxSolveDat->nPopPar; j++){
@@ -4200,33 +4140,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
-    if (setupOnly == 0 &&
-	rxIsNull(setupOnlyObj) &&
-	rxSolve_loaded(trueEvents, trueParams, rxControl, as<SEXP>(rxSolveDat->mv), inits)){
-      rxSolveDat = &rxSolveDatLast;
-      rxSolve_updateParams(trueParams,
-			   object, rxControl, specParams, extraArgs, params,
-			   trueEvents, inits, rxSolveDat);
-      if (_rxModels.exists(".ws") && !rxIsNull(_rxModels[".ws"])){
-	List ws = _rxModels[".ws"];
-	for (int iii = 0; iii < ws.size(); ++iii){
-	  warning(as<std::string>(ws[iii]));
-	}
-      }
-      return rxSolve_finalize(object, rxControl, specParams, extraArgs, params, events,
-			      inits, rxSolveDat);
-      // par_solve(rx);
-      // Free(op->indLin);
-      // rxSolveFree();
-    } else {
-      _rxModels[".lastEvents"] = trueEvents;
-      _rxModels[".lastParNames"] = trueParams.attr("names");
-      _rxModels[".lastNrow"] = getNRows(trueParams);
-      _rxModels[".lastMv"] = rxSolveDat->mv;
-      _rxModels[".lastControl"] = rxControl;
-      _rxModels[".lastInits"] = inits;
-      Free(op->indLin);
-    }
+    _rxModels[".lastEvents"] = trueEvents;
+    _rxModels[".lastParNames"] = trueParams.attr("names");
+    _rxModels[".lastNrow"] = getNRows(trueParams);
+    _rxModels[".lastMv"] = rxSolveDat->mv;
+    _rxModels[".lastControl"] = rxControl;
+    _rxModels[".lastInits"] = inits;
+    Free(op->indLin);
     rxSolveDat->addDosing = asNLv(rxControl[Rxc_addDosing], "addDosing");
 #ifdef rxSolveT
     REprintf("Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
@@ -4542,7 +4462,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
     if (_globals.gsolve != NULL) free(_globals.gsolve);
-    _globals.gsolve = (double*)calloc(n0+nLin+n2+5*n3+n4+n5+n6+ 4*op->neq, sizeof(double));// [n0]
+    _globals.gsolve = (double*)calloc(n0+nLin+n2+5*n3+n4+n5+n6+ 4*op->neq + state.size(), sizeof(double));// [n0]
 #ifdef rxSolveT
     REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+4*n3+n4+n5+n6+ 4*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4571,6 +4491,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _globals.grtol2=_globals.gatol2   + op->neq;  //[op->neq]
     _globals.gssRtol=_globals.grtol2  + op->neq; //[op->neq]
     _globals.gssAtol=_globals.gssRtol + op->neq; //[op->neq]
+    rx->ypNA = _globals.gssAtol + op->neq;
+    std::fill_n(rx->ypNA, rx->ypNA + state.size(), NA_REAL);
+
     std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);
     std::fill_n(&_globals.grtol2[0],op->neq, rtolNV[0]);
     std::copy(atolNV.begin(), atolNV.begin() + min2(op->neq, atolNV.size()), &_globals.gatol2[0]);
