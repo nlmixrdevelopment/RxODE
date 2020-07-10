@@ -3157,7 +3157,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 6){
       if (foundLag){
-	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t, double *__zzStateVar__){\n  double *restrict _alag = _solveData->subjects[_cSub].alag;\n  (void)_alag;\n",
+	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t){\n  double *restrict _alag = _solveData->subjects[_cSub].alag;\n  (void)_alag;\n",
 		prefix, tb.de.n);
 	for (int jjj = tb.de.n; jjj--;){
 	  sAppend(&sbOut, "  _alag[%d]=0.0;\n",jjj);
@@ -3248,9 +3248,15 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	for (i=0; i<tb.de.n; i++) {                   /* name state vars */
 	  buf = tb.ss.line[tb.di[i]];
 	  if(tb.idu[i] != 0){
-	    sAppendN(&sbOut, "  ", 2);
-	    doDot(&sbOut, buf);
-	    sAppend(&sbOut, " = __zzStateVar__[%d]*((double)(_ON[%d]));\n", i, i);	  
+	    if (show_ode == 6){
+	      sAppendN(&sbOut, "  ", 2);
+	      doDot(&sbOut, buf);
+	      sAppend(&sbOut, " = NA_REAL;\n", i, i);
+	    } else {
+	      sAppendN(&sbOut, "  ", 2);
+	      doDot(&sbOut, buf);
+	      sAppend(&sbOut, " = __zzStateVar__[%d]*((double)(_ON[%d]));\n", i, i);
+	    }
 	  } else {
 	    break;
 	  }

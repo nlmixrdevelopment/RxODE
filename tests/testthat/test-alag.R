@@ -55,6 +55,26 @@ rxPermissive(
         expect_equal(solve3$intestine, solve2$intestine)
         expect_equal(solve3$blood, solve2$blood)
       })
+
+      ## test bad solves -- These could depend on intestine indirectly so these are run-time errors
+      mod2 <- RxODE({
+        a <- 6
+        b <- 0.6
+        d / dt(intestine) <- -a * intestine
+        alag(intestine) <- 2 * intestine
+        d / dt(blood) <- a * intestine - b * blood
+      })
+
+      et <- eventTable(time.units = "days")
+      obs <- units::set_units(seq(0, 10, by = 1 / 24), "days")
+      et$add.sampling(obs)
+      et$add.dosing(
+        dose = 2 / 24, start.time = 0,
+        nbr.doses = 10, dosing.interval = 1
+      )
+      expect_error(solve(mod2, et))
+
+
     }
   },
   test = "cran"

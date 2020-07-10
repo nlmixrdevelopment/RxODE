@@ -434,10 +434,10 @@ void calcMtime(int solveid, double *mtime){
   calc_mtime(solveid,mtime);
 }
 
-static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double time, double *y){
+static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double time){
   if (cmt == ind->linCmt) return ind->lag + time;
   if (cmt == ind->linCmt+1) return ind->lag2 +time;
-  return LAG(id, cmt, time, y);
+  return LAG(id, cmt, time);
 }
 
 static inline double getAmt(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y){
@@ -698,15 +698,14 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
   rx_solving_options *op = &op_global;
   if (ind->wh0 == 40){
   } else {
-    // yp should be the previous solve values
-    if (idx == 0){
-      yp = ind->solve;
+    // yp should be the current solve values
+    //
+    // Before solving the solve will be zero
+    // After solving the yp will contain the solved values
+    if (ind->idx < idx){
+      yp = ind->solve + op->neq*ind->idx;
     } else {
-      if (ind->idx < idx){
-	yp = ind->solve + op->neq*(ind->idx-1);
-      } else {
-	yp = ind->solve + op->neq*(idx-1);
-      }
+      yp = ind->solve + op->neq*idx;
     }
     switch(ind->whI){
     case 6:
@@ -817,7 +816,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	  /* error("Corrupted event table during sort (1)."); */
 	}
 	if (ind->dose[j] > 0){
-	  ret = getLag(ind, ind->id, ind->cmt, ind->all_times[idx], yp);
+	  ret = getLag(ind, ind->id, ind->cmt, ind->all_times[idx]);
 	  return ret;
 	} else if (ind->dose[j] < 0){
 	  // f*amt/rate=dur
@@ -839,7 +838,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 			   ind->all_times[ind->idose[k]]); 
 	  double dur = f*durOld;
 	  double t = ind->all_times[ind->idose[k]]+dur;
-	  ret = getLag(ind, ind->id, ind->cmt, t, yp);
+	  ret = getLag(ind, ind->id, ind->cmt, t);
 	  return ret;
 	} else {
 	  /* error("Corrupted events."); */
@@ -852,7 +851,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
       break;
     }
   }
-  ret = getLag(ind, ind->id, ind->cmt, ind->all_times[idx], yp);
+  ret = getLag(ind, ind->id, ind->cmt, ind->all_times[idx]);
   return ret;
 }
 
@@ -878,6 +877,7 @@ void sortRadix(rx_solving_options_ind *ind){
   uint8_t **key = rx->keys[core];
   // Reset times for infusion
   int wh, cmt, wh100, whI, wh0;
+  int doSort = 1;
   for (int i = 0; i < ind->n_all_times; i++){
     ind->ix[i] = i;
     if (i > ind->idx) {
@@ -890,6 +890,13 @@ void sortRadix(rx_solving_options_ind *ind){
     // Note this is always ascending so we subtract off the minimum
     double time[1];
     time[0]       = getTime(ind->ix[i], ind);
+    if (ISNA(time[0])){
+      doSort=0;
+      rx_solving_options *op = &op_global;
+      op->badSolve=1;
+      op->naTime = 1;
+      break;
+    }
     uint64_t elem = dtwiddle(time, 0) - rx->minD;
     elem <<= rx->spare;
     for (int b=rx->nbyte-1; b>0; b--) {
@@ -898,7 +905,7 @@ void sortRadix(rx_solving_options_ind *ind){
     }
     key[0][i] |= (uint8_t)(elem & 0xff);
   }
-  radix_r(0, ind->n_all_times-1, 0, ind, rx);
+  if (doSort) radix_r(0, ind->n_all_times-1, 0, ind, rx);
 }
 
 extern int syncIdx(rx_solving_options_ind *ind){
@@ -976,7 +983,6 @@ static inline int handle_evid(int evid, int neq,
 	/* Rprintf("Supplied an invalid EVID (EVID=%d; cmt %d)", evid, cmt); */
       }
       return 0;
-      
     }
     if (cmt >= neq){
       foundBad = 0;
@@ -1020,6 +1026,7 @@ static inline int handle_evid(int evid, int neq,
 	break;
       case 7: // End modeled rate
       case 6: // end modeled duration
+	// In this case re-sort is not going to be assessed
 	// If cmt is off, don't remove rate....
 	// Probably should throw an error if the infusion rate is on still.
 	InfusionRate[cmt] += dose[ind->ixds]*((double)(ind->on[cmt]));
@@ -1607,7 +1614,10 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   u_inis(neq[1], ret); // Update initial conditions
   unsigned int j;
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-  if (rx->needSort) sortRadix(ind);
+  if (rx->needSort){
+    sortRadix(ind);
+    if (op->badSolve) return;
+  }
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
   ind->_newind = 1;
   ind->solved = -1;
@@ -1777,7 +1787,10 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   u_inis(neq[1], ret); // Update initial conditions
   unsigned int j;
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-  if (rx->needSort) sortRadix(ind);
+  if (rx->needSort) {
+    sortRadix(ind);
+    if (op->badSolve) return;
+  }
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
   ind->_newind = 1;
   ind->solved = -1;
@@ -2078,7 +2091,10 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
   u_inis(neq[1], ind->solve); // Update initial conditions
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-  if (rx->needSort) sortRadix(ind);
+  if (rx->needSort) {
+    sortRadix(ind);
+    if (op->badSolve) return;
+  }
   unsigned int j;
   ind->_newind = 1;
   ind->solved = -1;
@@ -2266,7 +2282,10 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-  if (rx->needSort) sortRadix(ind);
+  if (rx->needSort) {
+    sortRadix(ind);
+    if (op->badSolve) return;
+  }
   //--- inits the system
   unsigned int j;
   ind->_newind = 1;
@@ -2702,6 +2721,10 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int nidCols = md + sm;
   int pro = 0;
   if (op->badSolve){
+    if (op->naTime){
+      rxSolveFreeC();
+      error(_("could not solve the system\n'alag(.)' may depend on the state values"));
+    }
     if (nidCols == 0){
       rxSolveFreeC();
       error(_("could not solve the system"));
