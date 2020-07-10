@@ -3168,7 +3168,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 7){
       if (foundRate){
-	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double *restrict _rate= _solveData->subjects[_cSub].cRate;\n  (void)_rate;\n",
+	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n  double *restrict _rate= _solveData->subjects[_cSub].cRate;\n  (void)_rate;\n",
 		prefix, tb.de.n);
 	for (int jjj = tb.de.n; jjj--;){
 	  sAppend(&sbOut, "  _rate[%d]=0.0;\n",jjj);
@@ -3179,13 +3179,13 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 8){
       if (foundDur){
-	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double *restrict _dur = _solveData->subjects[_cSub].cDur;\n  (void)_dur;\n",
+	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n  double *restrict _dur = _solveData->subjects[_cSub].cDur;\n  (void)_dur;\n",
 		prefix, tb.de.n);
 	for (int jjj = tb.de.n; jjj--;){
 	  sAppend(&sbOut, "  _dur[%d]=0.0;\n",jjj);
 	}
       } else {
-	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n return 0.0;\n",
+	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
 		prefix);
       }
     } else if (show_ode == 9){
@@ -3248,7 +3248,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	for (i=0; i<tb.de.n; i++) {                   /* name state vars */
 	  buf = tb.ss.line[tb.di[i]];
 	  if(tb.idu[i] != 0){
-	    if (show_ode == 6){
+	    if (show_ode == 6 || show_ode == 8 || show_ode == 7){
 	      sAppendN(&sbOut, "  ", 2);
 	      doDot(&sbOut, buf);
 	      sAppend(&sbOut, " = NA_REAL;\n", i, i);

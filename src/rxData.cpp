@@ -4292,6 +4292,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     CharacterVector lhs = rxSolveDat->mv[RxMv_lhs];
     op->neq = state.size();
     op->badSolve = 0;
+    op->badRate = 0;
+    op->badDur = 0;
     op->naTime = 0;
     op->abort = 0;
     op->ATOL = atolNV[0];          //absolute error

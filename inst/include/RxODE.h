@@ -35,8 +35,8 @@ typedef int (*t_dydt_liblsoda)(double t, double *y, double *ydot, void *data);
 typedef void (*t_ode_current)();
 typedef double (*t_F)(int _cSub,  int _cmt, double _amt, double t, double *y);
 typedef double (*t_LAG)(int _cSub,  int _cmt, double t);
-typedef double (*t_RATE)(int _cSub,  int _cmt, double _amt, double t, double *y);
-typedef double (*t_DUR)(int _cSub,  int _cmt, double _amt, double t, double *y);
+typedef double (*t_RATE)(int _cSub,  int _cmt, double _amt, double t);
+typedef double (*t_DUR)(int _cSub,  int _cmt, double _amt, double t);
 
 typedef void (*t_calc_mtime)(int cSub, double *mtime);
   
@@ -64,6 +64,8 @@ typedef struct vLines {
 typedef struct {
   // These options should not change based on an individual solve
   int badSolve;
+  int badRate;
+  int badDur;
   int naTime;
   double ATOL;          //absolute error
   double RTOL;          //relative error

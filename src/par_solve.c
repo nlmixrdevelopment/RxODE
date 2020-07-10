@@ -446,16 +446,16 @@ static inline double getAmt(rx_solving_options_ind *ind, int id, int cmt, double
   return AMT(id, cmt, dose, t, y);
 }
 
-static inline double getRate(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y){
+static inline double getRate(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
   if (cmt == ind->linCmt) return ind->rate;
   if (cmt == ind->linCmt+1) return ind->rate;
-  return RATE(id, cmt, dose, t, y);
+  return RATE(id, cmt, dose, t);
 }
 
-double getDur(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y){
+double getDur(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
   if (cmt == ind->linCmt) return ind->dur;
   if (cmt == ind->linCmt+1) return ind->dur;
-  return DUR(id, cmt, dose, t, y);
+  return DUR(id, cmt, dose, t);
 }
 
 int global_jt = 2;
@@ -598,8 +598,15 @@ void updateRate(int idx, rx_solving_options_ind *ind, double *yp){
       /* error("Corrupted event table during sort (1)."); */
     }
     double dur, rate, amt;
+    // 
     amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[j], t, yp);
-    rate  = getRate(ind, ind->id, ind->cmt, amt, t, yp);
+    rate  = getRate(ind, ind->id, ind->cmt, amt, t);
+    if (ISNA(rate)) {
+      rx_solving_options *op = &op_global;
+      op->badSolve = 1;
+      op->badRate = 1;
+      return;
+    }
     if (rate > 0){
       dur = amt/rate; // mg/hr
       ind->dose[j+1] = -rate;
@@ -630,7 +637,7 @@ void updateRate(int idx, rx_solving_options_ind *ind, double *yp){
   }
 }
 
-void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
+static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
   double t = ind->all_times[idx];
   int oldIdx = ind->idx;
   ind->idx=idx;
@@ -657,8 +664,15 @@ void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
       /* error("Corrupted event table during sort (2)."); */
     }
     double dur, rate, amt;
+    // The duration and f cannot depend on state values
     amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[j], t, yp);
-    dur  = getDur(ind, ind->id, ind->cmt, amt, t, yp);
+    dur  = getDur(ind, ind->id, ind->cmt, amt, t);
+    if (ISNA(dur)) {
+      rx_solving_options *op = &op_global;
+      op->badSolve = 1;
+      op->badDur = 1;
+      return;
+    }
     if (dur > 0){
       rate = amt/dur;// mg/hr
       ind->dose[j+1] = -rate;
@@ -1352,7 +1366,7 @@ void handleSS(int *neq,
       // Rate is fixed, so modifying bio-availability doesn't change duration.
       if (ind->whI == 9){
 	rate  = getRate(ind, ind->id, ind->cmt, 0.0,
-			ind->all_times[ind->idose[ind->ixds]], yp);
+			ind->all_times[ind->idose[ind->ixds]]);
       } else {
 	rate = ind->dose[ind->ixds];
       }
@@ -2721,9 +2735,17 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int nidCols = md + sm;
   int pro = 0;
   if (op->badSolve){
+    if (op->badDur) {
+      rxSolveFreeC();
+      error(_("'dur(.)' cannot depend on the state values"));
+    }
+    if (op->badRate) {
+      rxSolveFreeC();
+      error(_("'rate(.)' cannot depend on the state values"));
+    }
     if (op->naTime){
       rxSolveFreeC();
-      error(_("could not solve the system\n'alag(.)' may depend on the state values"));
+      error(_("'alag(.)' cannot depend on the state values"));
     }
     if (nidCols == 0){
       rxSolveFreeC();
