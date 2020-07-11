@@ -3574,7 +3574,7 @@ static inline void doAdvanD(double *A,// Amounts
     }
 }
 
-double derTrans(double *A, int ncmt, int trans, int val,
+double derTrans(rx_solve *rx, double *A, int ncmt, int trans, int val,
 		double p1, double v1,
 		double p2, double p3,
 		double p4, double p5,
@@ -3744,6 +3744,42 @@ double derTrans(double *A, int ncmt, int trans, int val,
       }
     } break;
   }
+  // Get the extra derivatives
+  if (op->nlin != op->nlin2) {
+    int cur = op->nlin2;
+    if (op->linBflag & 64) {  // tlag 64= bitwShiftL(1, 7-1)
+      if (cur == 7) return A[cur];
+      cur++;
+    }
+    if (op->linBflag & 128) { // f 128 = 1 << 8-1
+      if (cur == 8) return A[cur];
+      cur++;
+    }
+    if (op->linBflag & 256) {  // rate 256 = 1 << 9-1
+      if (cur == 9) return A[cur];
+      cur++;
+    }
+    if (op->linBflag & 512) {  // dur 512 = 1 << 10-1
+      if (cur == 10) return A[cur];
+      cur++;
+    }
+    if (linBflag & 2048) { // tlag2 2048 = 1 << 12 - 1
+      if (cur == 12) return A[cur];
+      cur++;
+    }
+    if (linBflag & 4096) { // f2 4096 = 1 << 13 - 1
+      if (cur == 13) return A[cur];
+      cur++;
+    }
+    if (linBflag & 8192) { // rate2 8192 = 1 << 14 - 1
+      if (cur == 14) return A[cur];
+      cur++;
+    }
+    if (linBflag & 16384) { // dur2 16384 = 1 << 15 - 1
+      if (cur == 15) return A[cur];
+      cur++;
+    }
+  }
   return R_NaN;
 }
 
@@ -3793,7 +3829,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
     if (idx <= ind->solved && sameTime){
       // Pull from last solved value (cached)
       A = ind->linCmtAdvan+(op->nlin)*idx;
-      return derTrans(A, ncmt, trans, val, p1, v1, p2, p3,
+      return derTrans(rx, A, ncmt, trans, val, p1, v1, p2, p3,
 		      p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
 		      d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
     }
@@ -4138,11 +4174,11 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
     /* REprintf("t: %f %f %d %d\n", t, A[oral0], idx, ind->ix[idx]); */
     /* REprintf("%f,%f,%f\n", A[oral0], rx_v, A[oral0]/rx_v); */
     if (op->nlin2 == op->nlin) {
-      return derTrans(A, ncmt, trans, val, p1, v1, p2, p3,
+      return derTrans(rx, A, ncmt, trans, val, p1, v1, p2, p3,
 		      p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
 		      d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
     }
-    double v0 = derTrans(A, ncmt, trans, 0, p1, v1, p2, p3,
+    double v0 = derTrans(rx, A, ncmt, trans, 0, p1, v1, p2, p3,
 			 p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
 			 d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
     int cur = op->nlin2;
@@ -4190,9 +4226,9 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
     }
 #undef h
 #undef h2
-    return derTrans(A, ncmt, trans, val, p1, v1, p2, p3,
-		      p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
-		      d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
+    return derTrans(rx, A, ncmt, trans, val, p1, v1, p2, p3,
+		    p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
+		    d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
   }
   return R_NaN;
 }
