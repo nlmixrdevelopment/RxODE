@@ -4424,6 +4424,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    break;
 	  }
 	}
+	op->nlin2 = op->nlin;
 	op->linBflag = linBflag;
 	// Add the other components
 	if (linBflag & 64){ // tlag 64= bitwShiftL(1, 7-1)

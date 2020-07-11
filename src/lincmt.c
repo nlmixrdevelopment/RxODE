@@ -4137,9 +4137,62 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
     }
     /* REprintf("t: %f %f %d %d\n", t, A[oral0], idx, ind->ix[idx]); */
     /* REprintf("%f,%f,%f\n", A[oral0], rx_v, A[oral0]/rx_v); */
+    if (op->nlin2 == op->nlin) {
+      return derTrans(A, ncmt, trans, val, p1, v1, p2, p3,
+		      p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
+		      d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
+    }
+    double v0 = derTrans(A, ncmt, trans, 0, p1, v1, p2, p3,
+			 p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
+			 d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
+    int cur = op->nlin2;
+#define h 1.4901161193847656e-08
+#define h2 67108864
+    if (op->linBflag & 64) { // tlag
+      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag + h, d_F, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
+    }
+    if (op->linBflag & 128) { // f
+      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F + h, d_rate1, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
+    }
+    if (op->linBflag & 256) { // rate
+      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1 + h, d_dur1, 
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
+    }
+    if (op->linBflag & 512) { // dur
+      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1 + h,
+		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
+    }
+    if (op->linBflag & 2048) { // tlag2
+      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2 + h, d_F2,  d_rate2, d_dur2) - v0);
+    }
+    if (op->linBflag & 4096) { // f2
+      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		       d_ka, d_tlag2, d_F2 + h,  d_rate2, d_dur2) - v0);
+    }
+    if (op->linBflag & 8192) { // rate2
+      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			     d_ka, d_tlag2, d_F2,  d_rate2 + h, d_dur2) - v0);
+    }
+    if (op->linBflag & 16384) { // dur2
+      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			     d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 + h) - v0);
+    }
+#undef h
+#undef h2
     return derTrans(A, ncmt, trans, val, p1, v1, p2, p3,
-		    p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
-		    d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
+		      p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
+		      d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
   }
   return R_NaN;
 }
