@@ -575,10 +575,6 @@ extern rx_solve *getRxSolve2_(){
   return &rx_global;
 }
 extern rx_solve *getRxSolve_(){
-  /* if (set_solve == NULL) */
-  /*   error("RxODE model function pointers are not setup."); */
-  /* set_solve(&rx_global); */
-  rx_solve *rx;
   rx = &rx_global;
   rx->subjects = inds_global;
   rx->op = &op_global;
