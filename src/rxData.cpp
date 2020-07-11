@@ -2674,6 +2674,22 @@ static inline void rxSolve_simulate(const RObject &obj,
   Nullable<NumericVector> sigmaDf= asNNv(rxControl[Rxc_sigmaDf], "sigmaDf");
   bool sigmaIsChol= asBool(rxControl[Rxc_sigmaIsChol], "sigmaIsChol");
   op->isChol = (int)(sigmaIsChol);
+  op->cTlag = false;
+  op->hTlag = 1.4901161193847656e-08;
+  op->cF = false;
+  op->hF = 1.4901161193847656e-08;
+  op->cRate = false;
+  op->hRate = 1.4901161193847656e-08;
+  op->cDur = false;
+  op->hDur = 1.4901161193847656e-08;
+  op->cTlag2 = false;
+  op->hTlag2 = 1.4901161193847656e-08;
+  op->cF2 = false;
+  op->hF2 = 1.4901161193847656e-08;
+  op->cRate2 = false;
+  op->hRate2 = 1.4901161193847656e-08;
+  op->cDur2 = false;
+  op->hDur2 = 1.4901161193847656e-08;
 
   unsigned int nSub = asUnsignedInt(rxControl[Rxc_nSub], "nSub");
   unsigned int nStud = asUnsignedInt(rxControl[Rxc_nStud], "nStud");

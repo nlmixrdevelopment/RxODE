@@ -23,6 +23,7 @@ extern "C" {
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h>
+#include <stdbool.h>
 #include <R_ext/Rdynload.h>
 
 typedef void (*t_dydt)(int *neq, double t, double *A, double *DADT);
@@ -118,6 +119,22 @@ typedef struct {
   int nlin2;
   int nlinR;
   int linBflag;
+  bool cTlag;
+  double hTlag;
+  bool cF;
+  double hF;
+  bool cRate;
+  double hRate;
+  bool cDur;
+  double hDur;
+  bool cTlag2;
+  double hTlag2;
+  bool cF2;
+  double hF2;
+  bool cRate2;
+  double hRate2;
+  bool cDur2;
+  double hDur2;
 } rx_solving_options;
 
 

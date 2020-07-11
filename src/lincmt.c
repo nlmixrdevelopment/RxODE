@@ -3745,6 +3745,7 @@ double derTrans(rx_solve *rx, double *A, int ncmt, int trans, int val,
     } break;
   }
   // Get the extra derivatives
+  rx_solving_options *op = rx->op;
   if (op->nlin != op->nlin2) {
     int cur = op->nlin2;
     if (op->linBflag & 64) {  // tlag 64= bitwShiftL(1, 7-1)
@@ -3763,19 +3764,19 @@ double derTrans(rx_solve *rx, double *A, int ncmt, int trans, int val,
       if (cur == 10) return A[cur];
       cur++;
     }
-    if (linBflag & 2048) { // tlag2 2048 = 1 << 12 - 1
+    if (op->linBflag & 2048) { // tlag2 2048 = 1 << 12 - 1
       if (cur == 12) return A[cur];
       cur++;
     }
-    if (linBflag & 4096) { // f2 4096 = 1 << 13 - 1
+    if (op->linBflag & 4096) { // f2 4096 = 1 << 13 - 1
       if (cur == 13) return A[cur];
       cur++;
     }
-    if (linBflag & 8192) { // rate2 8192 = 1 << 14 - 1
+    if (op->linBflag & 8192) { // rate2 8192 = 1 << 14 - 1
       if (cur == 14) return A[cur];
       cur++;
     }
-    if (linBflag & 16384) { // dur2 16384 = 1 << 15 - 1
+    if (op->linBflag & 16384) { // dur2 16384 = 1 << 15 - 1
       if (cur == 15) return A[cur];
       cur++;
     }
@@ -4182,50 +4183,119 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 			 p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
 			 d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
     int cur = op->nlin2;
-#define h 1.4901161193847656e-08
-#define h2 67108864
     if (op->linBflag & 64) { // tlag
-      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-		       p2, p3, p4, p5, d_tlag + h, d_F, d_rate1, d_dur1, 
-		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
+      if (op->cTlag) {
+	A[cur++] =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			   p2, p3, p4, p5, d_tlag + 0.5*op->hTlag, d_F, d_rate1, d_dur1, 
+			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+		   linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			   p2, p3, p4, p5, d_tlag - 0.5*op->hTlag, d_F, d_rate1, d_dur1, 
+			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hTlag;
+      } else {
+	A[cur++] =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			   p2, p3, p4, p5, d_tlag + op->hTlag, d_F, d_rate1, d_dur1, 
+			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hTlag;
+      }
     }
     if (op->linBflag & 128) { // f
-      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-		       p2, p3, p4, p5, d_tlag, d_F + h, d_rate1, d_dur1, 
-		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
+      if (op->cF) {
+	A[cur++] =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			   p2, p3, p4, p5, d_tlag, d_F + 0.5*op->hF, d_rate1, d_dur1, 
+			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+		   linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			   p2, p3, p4, p5, d_tlag - 0.5*op->hF, d_F, d_rate1, d_dur1, 
+			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hF;
+      } else {
+	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F + op->hF, d_rate1, d_dur1, 
+			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hF;
+      }
+      
     }
     if (op->linBflag & 256) { // rate
-      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-		       p2, p3, p4, p5, d_tlag, d_F, d_rate1 + h, d_dur1, 
-		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
+      if (op->cRate) {
+	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1 + 0.5*op->hRate, d_dur1, 
+			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1 - 0.5*op->hRate, d_dur1, 
+			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hRate;
+      } else {
+	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1 + op->hRate, d_dur1, 
+			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hRate;
+      }
     }
     if (op->linBflag & 512) { // dur
-      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1 + h,
-		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0);
+      if (op->cDur) {
+	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1 + 0.5*op->hDur,
+			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1 - 0.5*op->hDur,
+			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hDur;
+      } else {
+	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1 + op->hDur,
+			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hDur;
+      }
     }
     if (op->linBflag & 2048) { // tlag2
-      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-		       d_ka, d_tlag2 + h, d_F2,  d_rate2, d_dur2) - v0);
+      if (op->cTlag2) {
+	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			    d_ka, d_tlag2 + 0.5*op->hTlag2, d_F2,  d_rate2, d_dur2) -
+		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			    d_ka, d_tlag2 - 0.5*op->hTlag2, d_F2,  d_rate2, d_dur2))/op->hTlag2;
+      } else {
+	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			    d_ka, d_tlag2 + op->hTlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hTlag2;
+      }
     }
     if (op->linBflag & 4096) { // f2
-      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-		       d_ka, d_tlag2, d_F2 + h,  d_rate2, d_dur2) - v0);
+      if (op->cF2) {
+	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			    d_ka, d_tlag2, d_F2 + 0.5*op->hF2,  d_rate2, d_dur2) -
+		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			    d_ka, d_tlag2, d_F2 - 0.5*op->hF2,  d_rate2, d_dur2))/op->hF2;
+      } else {
+	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			    d_ka, d_tlag2, d_F2 + op->hF2,  d_rate2, d_dur2) - v0)/op->hF2;
+      }
     }
     if (op->linBflag & 8192) { // rate2
-      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			     d_ka, d_tlag2, d_F2,  d_rate2 + h, d_dur2) - v0);
+      if (op->cRate2){
+	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			    d_ka, d_tlag2, d_F2,  d_rate2 + 0.5*op->hRate2, d_dur2) -
+		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			    d_ka, d_tlag2, d_F2,  d_rate2 - 0.5*op->hRate2, d_dur2))/op->hRate2;
+      } else {
+	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			    d_ka, d_tlag2, d_F2,  d_rate2 + op->hRate2, d_dur2) - v0)/op->hRate2;
+      }
     }
     if (op->linBflag & 16384) { // dur2
-      A[cur++] = h2*(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			     d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 + h) - v0);
+      if (op->cDur2){
+	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 + 0.5*op->hDur2) -
+		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 - 0.5*op->hDur2))/op->hDur2;
+      } else {
+	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 + op->hDur2) - v0)/op->hDur2;
+      }
     }
-#undef h
-#undef h2
     return derTrans(rx, A, ncmt, trans, val, p1, v1, p2, p3,
 		    p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
 		    d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
