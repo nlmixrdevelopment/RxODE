@@ -575,7 +575,7 @@ extern rx_solve *getRxSolve2_(){
   return &rx_global;
 }
 extern rx_solve *getRxSolve_(){
-  rx = &rx_global;
+  rx_solve *rx = &rx_global;
   rx->subjects = inds_global;
   rx->op = &op_global;
   return &rx_global;
