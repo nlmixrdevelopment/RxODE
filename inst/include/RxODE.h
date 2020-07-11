@@ -116,6 +116,7 @@ typedef struct {
   double hmxi;
   int nlin;
   int nlinR;
+  int linBflag;
 } rx_solving_options;
 
 

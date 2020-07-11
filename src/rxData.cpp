@@ -4394,7 +4394,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     int linNcmt = linCmtI[RxMvFlag_ncmt];
     int linKa = linCmtI[RxMvFlag_ka];
     int linB = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linB];
+    op->linBflag=0;
     if (linB) {
+      int linBflag = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linCmtFlg];
       if (rx->sensType == 4){
 	// This is the ADVAN senstivities
 	if (linKa){
@@ -4421,6 +4423,32 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    op->nlin = 13;
 	    break;
 	  }
+	}
+	op->linBflag = linBflag;
+	// Add the other components
+	if (linBflag & 64){ // tlag 64= bitwShiftL(1, 7-1)
+	  op->nlin++;
+	}
+	if (linBflag & 128){ // f 128 = 1 << 8-1
+	  op->nlin++;
+	}
+	if (linBflag & 256){ // rate 256 = 1 << 9-1
+	  op->nlin++;
+	}
+	if (linBflag & 512){ // dur 512 = 1 << 10-1
+	  op->nlin++;
+	}
+	if (linBflag & 2048) { // tlag2 2048 = 1 << 12 - 1
+	  op->nlin++;
+	}
+	if (linBflag & 4096) { // f2 4096 = 1 << 13 - 1
+	  op->nlin++;
+	}
+	if (linBflag & 8192) { // rate2 8192 = 1 << 14 - 1
+	  op->nlin++;
+	}
+	if (linBflag & 16384) { // dur2 16384 = 1 << 15 - 1
+	  op->nlin++;
 	}
       } else {
 	if (linKa){
