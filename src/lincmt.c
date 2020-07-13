@@ -3749,35 +3749,35 @@ double derTrans(rx_solve *rx, double *A, int ncmt, int trans, int val,
   if (op->nlin != op->nlin2) {
     int cur = op->nlin2;
     if (op->linBflag & 64) {  // tlag 64= bitwShiftL(1, 7-1)
-      if (cur == 7) return A[cur];
+      if (val == 7) return A[cur];
       cur++;
     }
     if (op->linBflag & 128) { // f 128 = 1 << 8-1
-      if (cur == 8) return A[cur];
+      if (val == 8) return A[cur];
       cur++;
     }
     if (op->linBflag & 256) {  // rate 256 = 1 << 9-1
-      if (cur == 9) return A[cur];
+      if (val == 9) return A[cur];
       cur++;
     }
     if (op->linBflag & 512) {  // dur 512 = 1 << 10-1
-      if (cur == 10) return A[cur];
+      if (val == 10) return A[cur];
       cur++;
     }
     if (op->linBflag & 2048) { // tlag2 2048 = 1 << 12 - 1
-      if (cur == 12) return A[cur];
+      if (val == 12) return A[cur];
       cur++;
     }
     if (op->linBflag & 4096) { // f2 4096 = 1 << 13 - 1
-      if (cur == 13) return A[cur];
+      if (val == 13) return A[cur];
       cur++;
     }
     if (op->linBflag & 8192) { // rate2 8192 = 1 << 14 - 1
-      if (cur == 14) return A[cur];
+      if (val == 14) return A[cur];
       cur++;
     }
     if (op->linBflag & 16384) { // dur2 16384 = 1 << 15 - 1
-      if (cur == 15) return A[cur];
+      if (val == 15) return A[cur];
       cur++;
     }
   }
@@ -4186,57 +4186,69 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
     if (op->linBflag & 64) { // tlag
       if (op->cTlag) {
 	A[cur++] =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			   p2, p3, p4, p5, d_tlag + 0.5*op->hTlag, d_F, d_rate1, d_dur1, 
+			   p2, p3, p4, p5, d_tlag + 0.5*op->hTlag,
+			   d_F, d_rate1, d_dur1,
 			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
 		   linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			   p2, p3, p4, p5, d_tlag - 0.5*op->hTlag, d_F, d_rate1, d_dur1, 
+			   p2, p3, p4, p5, d_tlag - 0.5*op->hTlag,
+			   d_F, d_rate1, d_dur1,
 			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hTlag;
       } else {
 	A[cur++] =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			   p2, p3, p4, p5, d_tlag + op->hTlag, d_F, d_rate1, d_dur1, 
-			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hTlag;
+			   p2, p3, p4, p5, d_tlag + op->hTlag, d_F,
+			   d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
+			   d_rate2, d_dur2) - v0)/op->hTlag;
       }
     }
     if (op->linBflag & 128) { // f
       if (op->cF) {
-	A[cur++] =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			   p2, p3, p4, p5, d_tlag, d_F + 0.5*op->hF, d_rate1, d_dur1, 
-			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
-		   linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			   p2, p3, p4, p5, d_tlag - 0.5*op->hF, d_F, d_rate1, d_dur1, 
-			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hF;
+	double c1 = linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F + 0.5*op->hF,
+			    d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
+			    d_rate2, d_dur2);
+	double c2 = linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			    p2, p3, p4, p5, d_tlag, d_F - 0.5*op->hF,
+			    d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
+			    d_rate2, d_dur2);
+	A[cur++] =(c1 - c2)/op->hF;
       } else {
 	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F + op->hF, d_rate1, d_dur1, 
-			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hF;
+			    p2, p3, p4, p5, d_tlag, d_F + op->hF,
+			    d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
+			    d_rate2, d_dur2) - v0)/op->hF;
       }
-      
     }
     if (op->linBflag & 256) { // rate
       if (op->cRate) {
 	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1 + 0.5*op->hRate, d_dur1, 
+			    p2, p3, p4, p5, d_tlag, d_F,
+			    d_rate1 + 0.5*op->hRate, d_dur1,
 			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
 		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1 - 0.5*op->hRate, d_dur1, 
+			    p2, p3, p4, p5, d_tlag, d_F,
+			    d_rate1 - 0.5*op->hRate, d_dur1,
 			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hRate;
       } else {
 	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1 + op->hRate, d_dur1, 
+			    p2, p3, p4, p5, d_tlag, d_F,
+			    d_rate1 + op->hRate, d_dur1,
 			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hRate;
       }
     }
     if (op->linBflag & 512) { // dur
       if (op->cDur) {
 	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1 + 0.5*op->hDur,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1,
+			    d_dur1 + 0.5*op->hDur,
 			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
 		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1 - 0.5*op->hDur,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1,
+			    d_dur1 - 0.5*op->hDur,
 			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hDur;
       } else {
 	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1 + op->hDur,
+			    p2, p3, p4, p5, d_tlag, d_F, d_rate1,
+			    d_dur1 + op->hDur,
 			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hDur;
       }
     }
@@ -4244,56 +4256,68 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
       if (op->cTlag2) {
 	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2 + 0.5*op->hTlag2, d_F2,  d_rate2, d_dur2) -
+			    d_ka, d_tlag2 + 0.5*op->hTlag2, d_F2,
+			    d_rate2, d_dur2) -
 		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2 - 0.5*op->hTlag2, d_F2,  d_rate2, d_dur2))/op->hTlag2;
+			    d_ka, d_tlag2 - 0.5*op->hTlag2, d_F2,
+			    d_rate2, d_dur2))/op->hTlag2;
       } else {
 	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2 + op->hTlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hTlag2;
+			    d_ka, d_tlag2 + op->hTlag2, d_F2, d_rate2,
+			    d_dur2) - v0)/op->hTlag2;
       }
     }
     if (op->linBflag & 4096) { // f2
       if (op->cF2) {
 	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2 + 0.5*op->hF2,  d_rate2, d_dur2) -
+			    d_ka, d_tlag2, d_F2 + 0.5*op->hF2,
+			    d_rate2, d_dur2) -
 		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2 - 0.5*op->hF2,  d_rate2, d_dur2))/op->hF2;
+			    d_ka, d_tlag2, d_F2 - 0.5*op->hF2,
+			    d_rate2, d_dur2))/op->hF2;
       } else {
 	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2 + op->hF2,  d_rate2, d_dur2) - v0)/op->hF2;
+			    d_ka, d_tlag2, d_F2 + op->hF2,
+			    d_rate2, d_dur2) - v0)/op->hF2;
       }
     }
     if (op->linBflag & 8192) { // rate2
       if (op->cRate2){
 	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2,  d_rate2 + 0.5*op->hRate2, d_dur2) -
+			    d_ka, d_tlag2, d_F2,
+			    d_rate2 + 0.5*op->hRate2, d_dur2) -
 		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2,  d_rate2 - 0.5*op->hRate2, d_dur2))/op->hRate2;
+			    d_ka, d_tlag2, d_F2,
+			    d_rate2 - 0.5*op->hRate2, d_dur2))/op->hRate2;
       } else {
 	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2,  d_rate2 + op->hRate2, d_dur2) - v0)/op->hRate2;
+			    d_ka, d_tlag2, d_F2,
+			    d_rate2 + op->hRate2, d_dur2) - v0)/op->hRate2;
       }
     }
     if (op->linBflag & 16384) { // dur2
       if (op->cDur2){
 	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 + 0.5*op->hDur2) -
+			    d_ka, d_tlag2, d_F2,  d_rate2,
+			    d_dur2 + 0.5*op->hDur2) -
 		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 - 0.5*op->hDur2))/op->hDur2;
+			    d_ka, d_tlag2, d_F2,  d_rate2,
+			    d_dur2 - 0.5*op->hDur2))/op->hDur2;
       } else {
 	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 + op->hDur2) - v0)/op->hDur2;
+			    d_ka, d_tlag2, d_F2,  d_rate2,
+			    d_dur2 + op->hDur2) - v0)/op->hDur2;
       }
     }
     return derTrans(rx, A, ncmt, trans, val, p1, v1, p2, p3,
