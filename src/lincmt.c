@@ -38,7 +38,7 @@ extern double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned
       p[0]--;
     }
     if (ind->dose[p[0]] != -dose){
-      error(_("could not find a start to the infusion"));
+      Rf_errorcall(R_NilValue, _("could not find a start to the infusion"));
     }
     return ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p[0]]];
   } else {
@@ -47,7 +47,7 @@ extern double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned
       p[0]++;
     }
     if (ind->dose[p[0]] != -dose){
-      error(_("could not find an end to the infusion"));
+      Rf_errorcall(R_NilValue, _("could not find an end to the infusion"));
     }
     return ind->all_times[ind->idose[p[0]]] - ind->all_times[ind->idose[l]];
   }
@@ -186,7 +186,7 @@ double _getParCov(unsigned int id, rx_solve *rx, int parNo, int idx0){
 }
 
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
-  if (rx == NULL) error(_("solve data is not loaded"));
+  if (rx == NULL) Rf_errorcall(R_NilValue, _("solve data is not loaded"));
   if (ISNA(t)){
     rx_solving_options_ind *ind;
     ind = &(rx->subjects[id]);
@@ -1893,7 +1893,7 @@ SEXP toReal(SEXP in){
     UNPROTECT(1);
     return ret;
   }
-  error(_("not an integer/real"));
+  Rf_errorcall(R_NilValue, _("not an integer/real"));
   return R_NilValue;
 }
 
@@ -1911,7 +1911,7 @@ SEXP derived1(int trans, SEXP inp, double dig) {
     if (lenP == 1){
       lenOut = lenV;
     } else if (lenV != 1){
-      error(_("The dimensions of the parameters must match"));
+      Rf_errorcall(R_NilValue, _("The dimensions of the parameters must match"));
     }
   }
   // vc, kel, vss, cl, thalf, alpha, A, fracA
@@ -2021,7 +2021,7 @@ SEXP derived2(int trans, SEXP inp, double dig) {
 	(lenP2 != 1 && lenP2 != lenOut) ||
 	(lenP3 != 1 && lenP3 != lenOut) ||
 	(lenV != 1  && lenV != lenOut)) {
-      error(_("The dimensions of the parameters must match"));
+      Rf_errorcall(R_NilValue, _("The dimensions of the parameters must match"));
     }
   }
   // vc, kel, k12, k21, vp, vss, cl, q, thalfAlpha, thalfBeta,
@@ -2193,7 +2193,7 @@ SEXP derived3(int trans, SEXP inp, double dig) {
 	(lenP4 != 1 && lenP4 != lenOut) ||
 	(lenP5 != 1 && lenP5 != lenOut) ||
 	(lenV != 1  && lenV != lenOut)) {
-      error(_("The dimensions of the parameters must match"));
+      Rf_errorcall(R_NilValue, _("The dimensions of the parameters must match"));
     }
   }
   // vc, kel, k12, k21, vp, vss, cl, q, thalfAlpha, thalfBeta,
@@ -2408,10 +2408,10 @@ SEXP _calcDerived(SEXP ncmtSXP, SEXP transSXP, SEXP inp, SEXP sigdigSXP) {
       return derived3(trans, inp, dig);
       break;
     default:
-      error(_("'ncmt' needs to be 1-3"));
+      Rf_errorcall(R_NilValue, _("'ncmt' needs to be 1-3"));
     }
   } else {
-    error(_("'inp' needs to be list/data frame"));
+    Rf_errorcall(R_NilValue, _("'inp' needs to be list/data frame"));
   }
   return R_NilValue;
 }
@@ -3246,7 +3246,7 @@ double linCmtD(rx_solve *rx, unsigned int id, double t, int linCmt,
 		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
 		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 + h) - v0);
   default:
-    error("undef diff");
+    Rf_errorcall(R_NilValue, "undef diff");
   }
 #undef h
 #undef h2
@@ -3374,7 +3374,7 @@ double linCmtE(rx_solve *rx, unsigned int id, double t, int linCmt,
 		       p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
 		       d_ka, d_tlag2, d_F2,  d_rate2, d_dur2 - h));
   default:
-    error("undef diff");
+    Rf_errorcall(R_NilValue, "undef diff");
   }
 #undef h
 #undef h2
@@ -4366,6 +4366,6 @@ double linCmtB(rx_solve *rx, unsigned int id,
 		   dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,
 		   dd_rate2, dd_dur2);
   default:
-    error("unsupported sensitivity");
+    Rf_errorcall(R_NilValue, "unsupported sensitivity");
   }
 }

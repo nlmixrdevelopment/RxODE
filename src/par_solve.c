@@ -328,7 +328,7 @@ SEXP _rxProgressAbort(SEXP str){
   par_progress_0=0;
   if (rxt.d != rxt.n || rxt.cur != rxt.n){
     rxSolveFreeC();
-    error(CHAR(STRING_ELT(str,0)));
+    Rf_errorcall(R_NilValue, CHAR(STRING_ELT(str,0)));
   }
   return R_NilValue;
 }
@@ -615,7 +615,7 @@ void updateRate(int idx, rx_solving_options_ind *ind, double *yp){
 	ind->err += 1;
       }
       return;
-      /* error("Corrupted event table during sort (1)."); */
+      /* Rf_errorcall(R_NilValue, "Corrupted event table during sort (1)."); */
     }
     double dur, rate, amt;
     // 
@@ -634,7 +634,7 @@ void updateRate(int idx, rx_solving_options_ind *ind, double *yp){
 	if (rx->needSort & 8){
 	  if (!(ind->err & 2)){
 	    ind->err += 2;
-	    /* error("Rate is zero/negative"); */
+	    /* Rf_errorcall(R_NilValue, "Rate is zero/negative"); */
 	  }
 	  return;
 	} else {
@@ -643,7 +643,7 @@ void updateRate(int idx, rx_solving_options_ind *ind, double *yp){
 	    ind->err += 4;
 	  }
 	  return;
-	  /* error("Modeled rate requested in event table, but not in model; use 'rate(cmt) ='"); */
+	  /* Rf_errorcall(R_NilValue, "Modeled rate requested in event table, but not in model; use 'rate(cmt) ='"); */
 	}
       }
       // error rate is zero/negative
@@ -675,7 +675,7 @@ static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
 	ind->err += 8;
       }
       return;
-      /* error("Corrupted event table during sort (2)."); */
+      /* Rf_errorcall(R_NilValue, "Corrupted event table during sort (2)."); */
     }
     double dur, rate, amt;
     // The duration and f cannot depend on state values
@@ -695,13 +695,13 @@ static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
 	    ind->err += 16;
 	  }
 	  return;
-	  /* error("Duration is zero/negative (dur=%f; cmt=%d; amt=%f)", dur, ind->cmt+1, amt); */
+	  /* Rf_errorcall(R_NilValue, "Duration is zero/negative (dur=%f; cmt=%d; amt=%f)", dur, ind->cmt+1, amt); */
 	} else {
 	  if (!(ind->err & 32)){
 	    ind->err += 32;
 	  }
 	  return;
-	  /* error("Modeled duration requested in event table, but not in model; use 'dur(cmt) ='"); */
+	  /* Rf_errorcall(R_NilValue, "Modeled duration requested in event table, but not in model; use 'dur(cmt) ='"); */
 	}
       }
     }
@@ -741,7 +741,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	    ind->err += 64;
 	  }
 	  return 0.0;
-	  /* error("Data error 686 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
+	  /* Rf_errorcall(R_NilValue, "Data error 686 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
 	}
 	updateDur(idx-1, ind, yp);
       } else {
@@ -749,7 +749,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	  ind->err += 128;
 	}
 	return 0.0;
-	/* error("Data Error -6\n"); */
+	/* Rf_errorcall(R_NilValue, "Data Error -6\n"); */
       }
       break;
     case 8:
@@ -758,7 +758,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	if (!(ind->err & 256)){
 	  ind->err += 256;
 	}
-	/* error("Data Error 8\n"); */
+	/* Rf_errorcall(R_NilValue, "Data Error 8\n"); */
 	return 0.0;
       } else {
 	int wh, cmt, wh100, whI, wh0;
@@ -768,7 +768,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	    ind->err += 512;
 	  }
 	  return 0.0;
-	  /* error("Data error 886 (whI=%d, evid=%d to %d)\n", whI, */
+	  /* Rf_errorcall(R_NilValue, "Data error 886 (whI=%d, evid=%d to %d)\n", whI, */
 	  /*       ind->evid[idx], ind->evid[idx+1]); */
 	}
 	yp = rx->ypNA;
@@ -783,7 +783,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	  if (!(ind->err & 1024)){
 	    ind->err += 1024;
 	  }
-	  /* error("Data error 797 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
+	  /* Rf_errorcall(R_NilValue, "Data error 797 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
 	  return 0.0;
 	}
 	yp = rx->ypNA;
@@ -792,7 +792,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	if (!(ind->err & 2048)){
 	  ind->err += 2048;
 	}
-	/* error("Data Error -7\n"); */
+	/* Rf_errorcall(R_NilValue, "Data Error -7\n"); */
 	return 0.0;
       }
       break;
@@ -803,7 +803,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	if (!(ind->err & 4096)){
 	  ind->err += 4096;
 	}
-	/* error("Data Error 9\n"); */
+	/* Rf_errorcall(R_NilValue, "Data Error 9\n"); */
 	return 0.0;
       } else {
 	int wh, cmt, wh100, whI, wh0;
@@ -837,7 +837,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	    ind->err += 16384;
 	  }
 	  return 0.0;
-	  /* error("Corrupted event table during sort (1)."); */
+	  /* Rf_errorcall(R_NilValue, "Corrupted event table during sort (1)."); */
 	}
 	if (ind->dose[j] > 0){
 	  ret = getLag(ind, ind->id, ind->cmt, ind->all_times[idx]);
@@ -871,7 +871,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	  ret = getLag(ind, ind->id, ind->cmt, t);
 	  return ret;
 	} else {
-	  /* error("Corrupted events."); */
+	  /* Rf_errorcall(R_NilValue, "Corrupted events."); */
 	  if (!(ind->err & 131072)){
 	    ind->err += 131072;
 	  }
@@ -953,7 +953,7 @@ extern int syncIdx(rx_solving_options_ind *ind){
 	ind->err += 262144;
       }
       return 0;
-      /* error("Corrupted event table; EVID=%d: %d %d %d", evid, ind->idose[m], ind->ix[ind->idx], */
+      /* Rf_errorcall(R_NilValue, "Corrupted event table; EVID=%d: %d %d %d", evid, ind->idose[m], ind->ix[ind->idx], */
       /* 	ind->idx); */
     }
     // Need to adjust ixdsr
@@ -977,7 +977,7 @@ extern int syncIdx(rx_solving_options_ind *ind){
 	ind->err += 524288;
       }
       return 0;
-      /* error("The event table has been corrupted; ind->idx: %d ind->ixds: %d ind->idose: %d.", */
+      /* Rf_errorcall(R_NilValue, "The event table has been corrupted; ind->idx: %d ind->ixds: %d ind->idose: %d.", */
       /* 	ind->ix[ind->idx], ind->ixds, ind->idose[ind->ixds]); */
     }
   }
@@ -1048,7 +1048,7 @@ static inline int handle_evid(int evid, int neq,
 	    ind->err += 1048576;
 	  }
 	  return 0;
-	  /* error("SS=2 & Modeled F does not work"); */
+	  /* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
 	}
 	break;
       case 7: // End modeled rate
@@ -1061,7 +1061,7 @@ static inline int handle_evid(int evid, int neq,
 	if (ind->wh0 == 20 &&
 	    getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) !=
 	    dose[ind->ixds]){
-	  /* error("SS=2 & Modeled F does not work"); */
+	  /* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
 	  if (!(ind->err & 2097152)){
 	    ind->err += 2097152;
 	  }
@@ -1076,7 +1076,7 @@ static inline int handle_evid(int evid, int neq,
 	InfusionRate[cmt] += tmp;
 	ind->cacheME=0;
 	if (ind->wh0 == 20 && tmp != dose[ind->ixds]){
-	  /* error("SS=2 & Modeled F does not work"); */
+	  /* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
 	  if (!(ind->err & 4194304)){
 	    ind->err += 4194304;
 	  }
@@ -1088,7 +1088,7 @@ static inline int handle_evid(int evid, int neq,
 	InfusionRate[cmt] += dose[ind->ixds];
 	ind->cacheME=0;
 	if (ind->wh0 == 20 && dose[ind->ixds] > 0 && getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) != dose[ind->ixds]){
-	  /* error("SS=2 & Modeled F does not work"); */
+	  /* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
 	  if (!(ind->err & 4194304)){
 	    ind->err += 4194304;
 	  }
@@ -1349,10 +1349,10 @@ void handleSS(int *neq,
 	ei++;
       }
       if (ind->ix[ei] != ind->idose[infEixds]){
-	/* error("Cannot figure out infusion end time."); */
+	/* Rf_errorcall(R_NilValue, "Cannot figure out infusion end time."); */
 	if (!(ind->err & 8388608)){
 	  ind->err += 8388608;
-	  /* error("Rate is zero/negative"); */
+	  /* Rf_errorcall(R_NilValue, "Rate is zero/negative"); */
 	}
 	return;
       }
@@ -2545,7 +2545,7 @@ extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
     return(ind->lhs[i]);
   } else {
     rxSolveFreeC();
-    error("Trying to access an equation that isn't calculated. lhs(%d/%d)\n",i, op->nlhs);
+    Rf_errorcall(R_NilValue, "Trying to access an equation that isn't calculated. lhs(%d/%d)\n",i, op->nlhs);
   }
   return 0;
 }
@@ -2573,7 +2573,7 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
     }
   } else {
     rxSolveFreeC();
-    error("LHS cannot be calculated (%dth entry).",i);
+    Rf_errorcall(R_NilValue, "LHS cannot be calculated (%dth entry).",i);
   }
 }
 extern void setExtraCmtP(int xtra, rx_solve *rx){
@@ -2649,7 +2649,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int errNrow = rxGetErrsNrow();
   if (op->nsvar != errNcol){
     rxSolveFreeC();
-    error("The simulated residual errors do not match the model specification (%d=%d)",op->nsvar, errNcol);
+    Rf_errorcall(R_NilValue, "The simulated residual errors do not match the model specification (%d=%d)",op->nsvar, errNcol);
   }
   int doDose;
   int evid0 = 0;
@@ -2750,11 +2750,11 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   if (op->badSolve){
     if (op->naTime){
       rxSolveFreeC();
-      error(_("'alag(.)'/'rate(.)'/'dur(.)' cannot depend on the state values"));
+      Rf_errorcall(R_NilValue, _("'alag(.)'/'rate(.)'/'dur(.)' cannot depend on the state values"));
     }
     if (nidCols == 0){
       rxSolveFreeC();
-      error(_("could not solve the system"));
+      Rf_errorcall(R_NilValue, _("could not solve the system"));
     } else {
       warning(_("some ID(s) could not solve the ODEs correctly; These values are replaced with 'NA'"));
     }
