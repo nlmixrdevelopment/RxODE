@@ -1988,16 +1988,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         }
         Free(v);
       }
-      /* if (nodeHas(transit2) && i == 0){ */
-      /*   aAppendN("_transit3P(t, _cSub, ", 21); */
-      /*   sAppendN(&sbt,"transit(", 8); */
-      /*   rx_podo = 1; */
-      /* } */
-      /* if (nodeHas(transit3) && i == 0){ */
-      /*   aAppendN("_transit4P(t, _cSub, ", 21); */
-      /*   sAppendN(&sbt,"transit(", 8); */
-      /*   rx_podo = 1; */
-      /* } */
       if ((nodeHas(fbio) || nodeHas(alag) || 
 	   nodeHas(dur) || nodeHas(rate) ||
 	   nodeHas(cmt_statement)) && i==2) {
@@ -5652,7 +5642,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
 	break;
       case ALAG:
 	sClear(&d_tlag);
-	sAppend(&d_tlag, ", %s, ", centralLines.line[i]);
+	sAppend(&d_tlag, "%s, ", centralLines.line[i]);
 	break;
       case RATE:
 	sClear(&d_rate1);
