@@ -117,7 +117,7 @@ RObject etUpdate(RObject obj,
 	      (strncmp((as<std::string>(nm[i])).c_str(), sarg.c_str(), slen)  == 0 ) &&
 	      (dexact != 1 || (dexact == 1 && slen == slen2))){
 	    if (dexact == -1){
-	      warning(_("partial match of '%s' to '%s'"),sarg.c_str(), (as<std::string>(nm[i])).c_str());
+	      Rf_warningcall(R_NilValue, _("partial match of '%s' to '%s'"),sarg.c_str(), (as<std::string>(nm[i])).c_str());
 	    }
 	    return lst[i];
 	  }
@@ -181,7 +181,7 @@ List etEmpty(CharacterVector units){
   e["clearDosing"] = eval2(_["expr"] = parse2(_["text"] = "function() invisible(.Call(RxODE:::`_RxODE_et_`, list(clearDosing=TRUE),list('last')))"),
 			   _["envir"]  = e);
 
-  e["simulate"] = eval2(_["expr"] = parse2(_["text"] = "function(object, nsim = 1, seed = NULL, ...){if (!missing(nsim)) warning(\"'nsim' is ignored when simulating event tables\");if(!is.null(seed)) set.seed(seed); invisible(.Call(RxODE:::`_RxODE_et_`, list(simulate=TRUE),list('last')))}"));
+  e["simulate"] = eval2(_["expr"] = parse2(_["text"] = "function(object, nsim = 1, seed = NULL, ...){if (!missing(nsim)) Rf_warningcall(R_NilValue, \"'nsim' is ignored when simulating event tables\");if(!is.null(seed)) set.seed(seed); invisible(.Call(RxODE:::`_RxODE_et_`, list(simulate=TRUE),list('last')))}"));
 
   std::string importET = "function(data) invisible(.Call(RxODE:::`_RxODE_et_`, list(data=data),list('import')))";
 
@@ -395,7 +395,7 @@ List etSimulate(List curEt){
     }
   }
   if (!recalcTime){
-    warning(_("event table was not updated (no dose/sampling windows)"));
+    Rf_warningcall(R_NilValue, _("event table was not updated (no dose/sampling windows)"));
     return curEt;
   } else {
     lst.attr("class") = cls;
@@ -974,7 +974,7 @@ List etImportEventTable(List inData, bool warnings = true){
       evidCol = mdvCol;
       oldEvid=asIv(inData[evidCol], "inData[evidCol]");
       if (methodCol != -1 && warnings){
-	warning(_("using 'mdv' instead of 'method'"));
+	Rf_warningcall(R_NilValue, _("using 'mdv' instead of 'method'"));
       }
     } else if (methodCol != -1){
       oldEvid = convertMethod(inData[methodCol]);
@@ -984,7 +984,7 @@ List etImportEventTable(List inData, bool warnings = true){
     }
   } else {
     if (mdvCol != -1 && warnings){
-      warning(_("using 'evid' instead of 'mdv'"));
+      Rf_warningcall(R_NilValue, _("using 'evid' instead of 'mdv'"));
     }
     if (methodCol != -1){
     }
@@ -2604,11 +2604,11 @@ RObject et_(List input, List et__){
 	    return as<RObject>(ret);
 	  }
 	} else {
-	  warning(_("nothing done"));
+	  Rf_warningcall(R_NilValue, _("nothing done"));
 	  return  asList(curEt, "curEt");
 	}
       } else {
-	warning(_("nothing done"));
+	Rf_warningcall(R_NilValue, _("nothing done"));
 	return  asList(curEt, "curEt");
       }
     } else {
@@ -2730,7 +2730,7 @@ RObject et_(List input, List et__){
 	} else if (evid[0] == 2 || evid[0] == 3) {
 	  if (amtIx == -1){
 	    if (amt[0] != 0 && NumericVector::is_na(amt[0])){
-	      warning(_("'%s' is ignored when '%s'=2 or '%s'=3"), amtChar,
+	      Rf_warningcall(R_NilValue, _("'%s' is ignored when '%s'=2 or '%s'=3"), amtChar,
 		      evidChar, evidChar);
 	    }
 	  }
@@ -3030,7 +3030,7 @@ RObject et_(List input, List et__){
 	  if (doUpdateObj && ii[0] == 24){
 	    ii[0]=0;
 	  } else {
-	    warning(_("'%s' requires non zero additional doses ('%s') or steady state dosing ('%s': %f, '%s': %d; '%s': %d), reset '%s' to zero."), iiChar, addlChar, iiChar, ii[0], ssChar, ss[0], addlChar, addl[0],
+	    Rf_warningcall(R_NilValue, _("'%s' requires non zero additional doses ('%s') or steady state dosing ('%s': %f, '%s': %d; '%s': %d), reset '%s' to zero."), iiChar, addlChar, iiChar, ii[0], ssChar, ss[0], addlChar, addl[0],
 		    iiChar);
 	    ii[0]=0;
 	  }
@@ -3303,7 +3303,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	    firstDoseOfEt = false;
 	  } else if (curEvid[j] != 0 && curEvid[j] != 2 && curEvid[j] != 3) {
 	    if (!rbind && i != 0 && trueLastIi == 0 && firstDoseOfEt && curTime[j] < defaultIi){
-	      warning(_("assumed a dose interval of %.1f between event tables; use 'ii' to adjust"), defaultIi);
+	      Rf_warningcall(R_NilValue, _("assumed a dose interval of %.1f between event tables; use 'ii' to adjust"), defaultIi);
 	      maxTime += defaultIi;
 	      timeDelta += defaultIi;
 	    }
@@ -3332,7 +3332,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	    if (tmp > maxTime) maxTime = tmp;
 	  } else if (curEvid[j] != 0 && curEvid[j] != 2 && curEvid[j] != 3){
 	    if (!rbind && i != 0 && trueLastIi == 0 && firstDoseOfEt && curTime[j] < defaultIi){
-	      warning(("assumed a dose interval of %.1f between event tables; use 'ii' to adjust"), defaultIi);
+	      Rf_warningcall(R_NilValue, ("assumed a dose interval of %.1f between event tables; use 'ii' to adjust"), defaultIi);
 	      maxTime += defaultIi;
 	      timeDelta += defaultIi;
 	    }

@@ -576,7 +576,7 @@ arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
   arma::vec D=Lfull.diag();
   arma::uvec perm=out.perm;
   if (any(D < 1e-10)){
-    warning(_("truncated multivariate normal may fail as covariance matrix is singular"));
+    Rf_warningcall(R_NilValue, _("truncated multivariate normal may fail as covariance matrix is singular"));
   }
   // rescale
   arma::mat L=Lfull.each_col()/D;
@@ -611,12 +611,12 @@ arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
     }
     iter++;
     if (iter == 1e3){
-      warning(_("acceptance probability smaller than 0.001"));
+      Rf_warningcall(R_NilValue, _("acceptance probability smaller than 0.001"));
     } else if (iter> 1e4){
       if (accepted == 0) {
 	stop(_("could not sample from truncated normal"));
       } else if (accepted > 1) {
-	warning(_("sample of size %d which is smaller than requested 'n' returned"), accepted);
+	Rf_warningcall(R_NilValue, _("sample of size %d which is smaller than requested 'n' returned"), accepted);
 	ret = ret.rows(0, accepted);
 	break;
       }
