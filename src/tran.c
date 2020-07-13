@@ -3575,7 +3575,7 @@ void writeSb(sbuf *sbb, FILE *fp){
     Rf_errorcall(R_NilValue, _("IO error writing parsed C file"));
   }
 }
-static void rxSyntaxRf_Errorcall(R_NilValue, struct D_Parser *ap);
+static void rxSyntaxError(struct D_Parser *ap);
 
 void trans_internal(char* parse_file, int isStr){
   char *buf1, *buf2, bufe[2048];
@@ -4344,7 +4344,7 @@ char *getLine (char *src, int line, int *lloc)
   return buf;
 }
 
-static void rxSyntaxRf_Errorcall(R_NilValue, struct D_Parser *ap) {
+static void rxSyntaxError(struct D_Parser *ap) {
   if (!rx_suppress_syntax_info){
     if (lastSyntaxErrorLine == 0){
       if (isEsc){

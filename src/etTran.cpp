@@ -198,10 +198,10 @@ IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
 	    warn = warn + std::to_string(warnDvid[i]) + ", ";
 	  }
 	  warn = warn + std::to_string(warnDvid[warnDvid.size()-1]);
-	  Rf_warningcall(R_NilValue, warn);
+	  Rf_warningcall(R_NilValue, warn.c_str());
 	}
 	if (warnConvertDvid.size() > 0){
-	  Rf_warningcall(R_NilValue, warnC);
+	  Rf_warningcall(R_NilValue, warnC.c_str());
 	}
 	return out;
       } else {
@@ -508,7 +508,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	wKeep += " " + as<std::string>(keep[j]);
       }
     }
-    Rf_warningcall(R_NilValue, wKeep);
+    Rf_warningcall(R_NilValue, wKeep.c_str());
   }
   List covUnits(covCol.size());
   CharacterVector covUnitsN(covCol.size());
