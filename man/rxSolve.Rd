@@ -107,7 +107,11 @@ rxControl(
   mvnfast = FALSE,
   sumType = c("pairwise", "fsum", "kahan", "neumaier", "c"),
   prodType = c("long double", "double", "logify"),
-  sensType = c("advan", "autodiff", "forward", "central")
+  sensType = c("advan", "autodiff", "forward", "central"),
+  linDiff = c(tlag = 1.5e-08, f = 1.5e-08, rate = 1.5e-08, dur = 1.5e-08, tlag2 =
+    1.5e-08, f2 = 1.5e-08, rate2 = 1.5e-08, dur2 = 1.5e-08),
+  linDiffCentral = c(tlag = TRUE, f = TRUE, rate = TRUE, dur = TRUE, tlag2 = TRUE, f2 =
+    TRUE, rate2 = TRUE, dur2 = TRUE)
 )
 
 rxSolve(object, ...)
@@ -203,9 +207,7 @@ compartment.  This includes S# = numeric will scale a compartment
 like NONMEM.}
 
 \item{cores}{Number of cores used in parallel ODE solving.  This
-defaults to the number or system cores determined by
-\code{\link{rxCores}} for methods that support parallel
-solving (ie thread-safe methods like "liblsoda").}
+is equivalent to calling \code{\link{setRxThreads}}}
 
 \item{covsInterpolation}{specifies the interpolation method for
     time-varying covariates. When solving ODEs it often samples

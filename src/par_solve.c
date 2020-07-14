@@ -1915,6 +1915,8 @@ extern void ind_liblsoda(rx_solve *rx, int solveid,
   ind_liblsoda0(rx, op, opt, solveid, dydt, u_inis);
 }
 
+extern int getRxThreads(const int64_t n, const bool throttle);
+
 extern void par_liblsoda(rx_solve *rx){
   rx_solving_options *op = &op_global;
 #ifdef _OPENMP
@@ -1947,7 +1949,7 @@ extern void par_liblsoda(rx_solve *rx){
   // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
   int abort = 0;
 #ifdef _OPENMP
-#pragma omp parallel for num_threads(cores)
+#pragma omp parallel for num_threads(getRxThreads(rx->nall, true))
 #endif
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     if (abort == 0){

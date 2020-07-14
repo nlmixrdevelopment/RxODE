@@ -53,7 +53,6 @@ rxControl <- function(scale = NULL,
                       ssRtol = 1.0e-6,
                       safeZero = TRUE,
                       cacheEvent = TRUE,
-                      mvnfast = FALSE,
                       sumType = c("pairwise", "fsum", "kahan", "neumaier", "c"),
                       prodType = c("long double", "double", "logify"),
                       sensType = c("advan", "autodiff", "forward", "central"),
@@ -162,8 +161,8 @@ rxControl <- function(scale = NULL,
       .call = FALSE
     )
   }
-  if (missing(cores)) {
-    cores <- RxODE::rxCores()
+  if (!missing(cores)) {
+    setRxThreads(cores)
   }
   if (inherits(sigma, "character")) {
     .sigma <- sigma
@@ -217,7 +216,6 @@ rxControl <- function(scale = NULL,
     maxordn = maxordn,
     maxords = maxords,
     covsInterpolation = covsInterpolation,
-    cores = cores,
     addCov = addCov,
     matrix = matrix,
     sigma = .sigma,
@@ -274,7 +272,6 @@ rxControl <- function(scale = NULL,
     mxhnil = mxhnil, hmxi = hmxi, warnIdSort = warnIdSort,
     ssAtol = ssAtol, ssRtol = ssRtol, safeZero = as.integer(safeZero),
     cacheEvent = as.logical(cacheEvent),
-    mvnfast = mvnfast,
     sumType = as.integer(.sum),
     prodType = as.integer(.prod),
     sensType = as.integer(.sensType),
@@ -385,9 +382,7 @@ rxControl <- function(scale = NULL,
 ##'     like NONMEM.
 ##'
 ##' @param cores Number of cores used in parallel ODE solving.  This
-##'     defaults to the number or system cores determined by
-##'     \code{\link{rxCores}} for methods that support parallel
-##'     solving (ie thread-safe methods like "liblsoda").
+##'    is equivalent to calling \code{\link{setRxThreads}}
 ##'
 ##' @param covsInterpolation specifies the interpolation method for
 ##'     time-varying covariates. When solving ODEs it often samples

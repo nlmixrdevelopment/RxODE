@@ -891,3 +891,42 @@ logit <- function(x, low = 0, high = 1) {
 expit <- function(alpha, low = 0, high = 1) {
   .Call(`_expit`, alpha, low, high, PACKAGE = "RxODE")
 }
+
+
+##' Get/Set the number of threads that RxODE uses
+##'
+##' @param threads NULL (default) rereads environment variables. 0
+##'   means to use all logical CPUs available. Otherwise a number >= 1
+##' @param percent If provided it should be a number between 2 and
+##'   100; the percentage of logical CPUs to use. By default on
+##'   startup, 50 percent.
+##' @param throttle 1024 (default) means that, roughly speaking, a
+##'   single thread will be used when number of all points<=1024, 2 threads when
+##'   the number of all points is <=2048, etc. The throttle is to speed up small data
+##'   tasks (especially when repeated many times) by not incurring the
+##'   overhead of managing multiple threads. Hence the number of
+##'   threads is throttled (restricted) for small tasks.
+##' @param verbose Display the value of relevant OpenMP settings
+##' @export
+getRxThreads <- function(verbose=FALSE){
+  .Call(`getRxThreads_R`, verbose)
+}
+
+##'@rdname getRxThreads
+##'@export
+setRxThreads <- function (threads = NULL, percent = NULL, throttle=NULL)
+{
+  if (!missing(percent)) {
+    if (!missing(threads)) stop("provide either threads= or percent= but not both")
+    if (length(percent)!=1) stop("percent= is provided but is length ", length(percent))
+    percent=as.integer(percent)
+    if (is.na(percent) || percent<2L || percent>100L) stop("percent==",percent," but should be a number between 2 and 100")
+    invisible(.Call(`setRxthreads`, percent,  TRUE, as.integer(throttle)))
+  } else {
+    invisible(.Call(`setRxthreads`, as.integer(threads), FALSE, as.integer(throttle)))
+  }
+}
+
+##'@rdname getRxThreads
+##'@export
+rxCores <- getRxThreads

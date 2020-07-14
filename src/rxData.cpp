@@ -395,8 +395,6 @@ extern "C" void cliAlert(const char *format, ...) {
   va_end (args);
 }
 
-bool _mvnfast=false;
-
 SEXP rxRmvn0(NumericMatrix& A_, arma::rowvec mu, arma::mat sigma,
 	     arma::vec lower, arma::vec upper, int ncores=1, bool isChol=false,
 	     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100);
@@ -486,49 +484,12 @@ RObject rxSimSigma(const RObject &sigma,
     // Ncores = 1?  Should it be parallelized when it can be...?
     // Note that if so, the number of cores also affects the output.
     // while (totSim < nObs){
-    if (_mvnfast){
-      int totSim = 0;
-      while (totSim < nObs){
-	int curSimN = nObs - totSim;
-	NumericMatrix simMat0(curSimN,sigmaM.ncol());
-	if (df.isNULL()){
-	  Function rmvn = getRxFn(".rmvn");
-	  rmvn(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
-	       _["isChol"]=isChol, _["A"] = simMat0); // simMat is updated with the random deviates
-	} else {
-	  double df2 = asDouble(df, "df");
-	  if (R_FINITE(df2)){
-	    Function rmvt = getRxFn(".rmvt");
-	    rmvt(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["df"] = df,
-		 _["ncores"]=ncores, _["isChol"]=isChol, _["A"] = simMat0);
-	  } else {
-	    Function rmvn = getRxFn(".rmvn");
-	    rmvn(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
-		 _["isChol"]=isChol, _["A"] = simMat0);
-	  }
-	}
-	// Reject any bad simulations if needed
-	for (int i = 0; i < curSimN; i++){
-	  bool goodSim = true;
-	  for (int j = sigmaM.ncol(); j--;){
-	    double cur = simMat0(i, j);
-	    if (cur <= lower[j] || cur >= upper[j]){
-	      goodSim=false;
-	      break;
-	    }
-	  }
-	  if (goodSim){
-	    simMat(totSim, _) = simMat0(i, _);
-	    totSim++;
-	  }
-	}
-      }
-    } else if (df.isNULL()){
+    if (df.isNULL()){
       rxRmvn0(simMat, m, as<arma::mat>(sigmaM), as<arma::vec>(lower),
 	      as<arma::vec>(upper), ncores, isChol, a, tol, nlTol, nlMaxiter);
-	// Function rmvn = as<Function>(mvnfast["rmvn"]);
-	// rmvn(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
-	//      _["isChol"]=isChol, _["A"] = simMat0); // simMat is updated with the random deviates
+      // Function rmvn = as<Function>(mvnfast["rmvn"]);
+      // rmvn(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
+      //      _["isChol"]=isChol, _["A"] = simMat0); // simMat is updated with the random deviates
     } else {
       double df2 = asDouble(df, "df");
       if (R_FINITE(df2)){
@@ -4080,6 +4041,8 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
 
 SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS);
 
+extern "C" int getRxThreads(const int64_t n, const bool throttle);
+
 // [[Rcpp::export]]
 SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const Nullable<CharacterVector> &specParams,
@@ -4095,7 +4058,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     stop(_("control list not setup correctly"));
   }
   maxAtolRtolFactor = asDouble(rxControl[Rxc_maxAtolRtolFactor], "maxAtolRtolFactor");
-  _mvnfast = asBool(rxControl[Rxc_mvnfast], "mvnfast");
   RObject scale = rxControl[Rxc_scale];
   int method = asInt(rxControl[Rxc_method], "method");
   Nullable<LogicalVector> transit_abs = asNLv(rxControl[Rxc_transitAbs], "transitAbs");
@@ -4108,7 +4070,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   double hini = asDouble(rxControl[Rxc_hini], "hini");
   int maxordn = asInt(rxControl[Rxc_maxordn], "maxordn");
   int maxords = asInt(rxControl[Rxc_maxords], "maxords");
-  unsigned int cores = asUnsignedInt(rxControl[Rxc_cores], "cores");
   int covs_interpolation = asInt(rxControl[Rxc_covsInterpolation], "covsInterpolation");
   bool addCov = asBool(rxControl[Rxc_addCov], "addCov");
   int matrix = asInt(rxControl[Rxc_matrix], "matrix");
@@ -4170,8 +4131,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   } else {
     object = obj;
     // Update RxODE model (if needed) and simulate nesting
-    if (!(as<bool>(rxControl[Rxc_mvnfast])) &&
-    	(!rxIsNull(rxControl[Rxc_thetaMat]) ||
+    if ((!rxIsNull(rxControl[Rxc_thetaMat]) ||
     	 !rxIsNull(rxControl[Rxc_omega]) ||
     	 !rxIsNull(rxControl[Rxc_sigma]))) {
 
@@ -4260,9 +4220,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->safeZero = asInt(rxControl[Rxc_safeZero], "safeZero");
     op->stiff = method;
     if (method != 2){
-      op->cores =1;
+      op->cores = getRxThreads(1, false);
     } else {
-      op->cores=cores;
+      op->cores = getRxThreads(INT_MAX, false);
     }
     seedEng(op->cores);
     // Now set up events and parameters

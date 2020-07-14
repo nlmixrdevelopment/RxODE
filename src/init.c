@@ -206,6 +206,9 @@ extern int rxIsCurrentC(SEXP obj);
 
 rx_solve *getRxSolve_();
 
+void avoid_openmp_hang_within_fork();
+void initRxThreads();
+
 // Remove these functions later...
 
 void rxOptionsIni();
@@ -289,6 +292,9 @@ double gamma_p_inva(double a, double p);
 int compareFactorVal(int val, const char *factor, const char *value);
 SEXP _RxODE_rxSolve_(SEXP, SEXP, SEXP, SEXP, SEXP,
 		     SEXP, SEXP, SEXP);
+
+SEXP getRxThreads_R(SEXP verbose);
+SEXP setRxthreads(SEXP threads, SEXP percent, SEXP throttle);
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
@@ -420,6 +426,8 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_linCmtGen", (DL_FUNC) _RxODE_linCmtGen, 4},
     {"_RxODE_rpp_", (DL_FUNC) _RxODE_rpp_, 7},
     {"_RxODE_rxSolve_", (DL_FUNC) _RxODE_rxSolve_, 8},
+    {"getRxThreads_R", (DL_FUNC) getRxThreads_R, 1},
+    {"setRxthreads", (DL_FUNC) setRxthreads, 3},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
@@ -492,6 +500,8 @@ void R_init_RxODE(DllInfo *info){
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info, FALSE);
   rxOptionsIni();
+  initRxThreads();
+  avoid_openmp_hang_within_fork();
   /* rxOptionsIniFocei(); */
 }
 

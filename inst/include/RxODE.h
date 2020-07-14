@@ -487,7 +487,6 @@ static double _powerDL(double x, double lambda, int yj){
 
 }
 
-
 #endif
 #if defined(__cplusplus)
 }
