@@ -3793,8 +3793,8 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       double d_tlag, double d_F, double d_rate1, double d_dur1,
 	       // Oral parameters
 	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2) {
-  if (ncmt == 3) { // for now use central
-    return linCmtE(rx, id, t, linCmt, ncmt, trans, val,
+  if (ncmt == 3) { // for now use autodiff
+    return linCmtBB(rx, id, t, linCmt, ncmt, trans, val,
 		   p1, v1, p2, p3,
 		   p4, p5, d_tlag, d_F,
 		   d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
