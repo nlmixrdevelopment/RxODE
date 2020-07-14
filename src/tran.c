@@ -4713,7 +4713,7 @@ static inline void linCmtCmt(linCmtStruct *lin, const int cmt){
     lin->cmtc = cmt;
   }
   if (lin->cmtc != cmt){
-    Rf_errorcall(R_NilValue, _("inconsistent central compartment numbers, can not have both '1' and '2'"));
+    Rf_errorcall(R_NilValue, _("inconsistent central compartment numbers, not sure if central compartment no is '1' or '2'"));
   }
 }
 
@@ -4903,25 +4903,20 @@ static inline void linCmtC(linCmtStruct *lin, const char *in, int *index) {
     if (in[2] == 'd' || in[2] == 'D') {
       if (in[3] == '\0') {
 	linCmtClStyle(lin, linCmtCld1style);
-	lin->cl = *index;
+	lin->cl1 = *index;
 	return;
       }
       if (in[3] == '1' && in[4] == '\0') {
 	linCmtClStyle(lin, linCmtCld1style);
-	lin->cl1 = *index;
+	  lin->cl2 = *index;
 	return;
       }
       if (in[3] == '2' && in[4] == '\0') {
 	linCmtClStyle(lin, linCmtCld1style);
-	lin->cl2 = *index;
-	return;
-      }
-      if (in[3] == '3' && in[4] == '\0') {
-	linCmtClStyle(lin, linCmtCld1style);
 	lin->cl3 = *index;
 	return;
       }
-      if (in[3] == '4' && in[4] == '\0') {
+      if (in[3] == '3' && in[4] == '\0') {
 	linCmtClStyle(lin, linCmtCld1style);
 	lin->cl4 = *index;
 	return;
@@ -4981,10 +4976,12 @@ static inline void linCmtV(linCmtStruct *lin, const char *in, int *index) {
     return;
   }
   if (in[1] == '1' && in[2] == '\0') {
+    linCmtVStyle(lin, 4);
     lin->v1 = *index;
     return;
   }
   if (in[1] == '2' && in[2] == '\0') {
+    linCmtVStyle(lin, 4);
     lin->v2 = *index;
     return;
   }
@@ -5102,22 +5099,34 @@ static inline void linCmtStr(linCmtStruct *lin, const char *in, int *index) {
 }
 
 static inline void linCmtAdjustPars(linCmtStruct *lin) {
-  if (lin->clStyle == linCmtQstyle){
+  if (lin->clStyle == linCmtQstyle || lin->clStyle == linCmtCld1style){
     // cl,
     if (lin->cl == -1){
-      Rf_errorcall(R_NilValue, _("'Q' parameterization needs 'Cl'"));
+      if (lin->clStyle == linCmtCld1style){
+	Rf_errorcall(R_NilValue, _("'Cld' parameterization needs 'Cl'"));
+      } else {
+	Rf_errorcall(R_NilValue, _("'Q' parameterization needs 'Cl'"));
+      }
     }
     if (lin->cl1 != -1) {
       if (lin->cl2  != -1) {
 	// Cl, Q, Q1
-	Rf_errorcall(R_NilValue, _("cannot mix 'Q' and 'Q1'"));
+	if (lin->clStyle == linCmtQstyle){
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Q' and 'Q1'"));
+	} else {
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Cld' and 'Cld1'"));
+	}
       } else if (lin->cl3 != -1) {
 	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
 	lin->cl2 = lin->cl1;
 	lin->cl1 = -1;
       } else if (lin->cl4 != -1){
 	// Cl, Q, Q3
-	Rf_errorcall(R_NilValue, _("cannot mix 'Q' and 'Q3'"));
+	if (lin->clStyle == linCmtQstyle){
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Q' and 'Q3'"));
+	} else {
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Cld' and 'Cld3'"));
+	}
       } else {
 	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
 	lin->cl2 = lin->cl1;
@@ -5126,33 +5135,46 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
     } else if (lin->cl2  != -1) {
       // Cl, Q1
       if (lin->cl4 != -1) {
-	Rf_errorcall(R_NilValue, _("cannot mix 'Q1' and 'Q3'"));
+	if (lin->clStyle == linCmtQstyle){
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Q1' and 'Q3'"));
+	} else {
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Cld1' and 'Cld3'"));
+	}
       }
     } else if (lin->cl3 != -1){
       lin->cl2 = lin->cl3;
       lin->cl3 = lin->cl4;
-    }
+    } 
   } else {
     if (lin->cl1 != -1){
       // Cl1, Cl2, Cl3
       // -> cl, cl2, cl3
       if (lin->cl != -1) {
-	Rf_errorcall(R_NilValue, _("cannot mix 'Cl' and 'Cl1'"));
-      }
-      linCmtCmt(lin, 1);
-      lin->cl = lin->cl1;
-      lin->cl1 = -1;
-      if (lin->cl4 != -1){
-	Rf_errorcall(R_NilValue, _("specified clearance for 4th compartment, which does not make sense in this context"));
+	// cl, cl1,
+	if (lin->cl2 == -1){
+	  if (lin->cl4 != -1){
+	    Rf_errorcall(R_NilValue, _("error parsing higher 'cl'"));
+	  }
+	  lin->cl4 = lin->cl3;
+	  lin->cl3 = lin->cl2;
+	  lin->cl2 = lin->cl1;
+	  lin->cl1 = -1;
+	} else {
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Cl' and 'Cl1'"));
+	}
+      } else {
+	linCmtCmt(lin, 1);
+	lin->cl = lin->cl1;
+	lin->cl1 = -1;
+	if (lin->cl4 != -1){
+	  Rf_errorcall(R_NilValue, _("specified clearance for 4th compartment, which does not make sense in this context"));
+	}
       }
     } else if (lin->cl2 != -1){
-      if (lin->cl != -1){
+      if (lin->cl == -1){
 	//  Cl2, Cl3, Cl4
 	// -> Cl, cl2, cl3
 	linCmtCmt(lin, 2);
-	lin->cl = lin->cl2;
-	lin->cl2 = lin->cl3;
-	lin->cl3 = lin->cl4;
       } else if (lin->cl4 != -1) {
 	// Cl, Cl2, Cl3 keeps the same;  Cl4 doesn't make sense
 	Rf_errorcall(R_NilValue, _("specified clearance for 4th compartment, which does not make sense in this context"));
@@ -5167,7 +5189,7 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
       }
     }
   }
-  if (lin->v != -1){
+  if (lin->v != -1) {
     if (lin->v1 != -1){
       Rf_errorcall(R_NilValue, _("Cannot specify 'v1' and 'vc'"));
     }
@@ -5197,8 +5219,15 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
 	linCmtCmt(lin, 1);
 	linCmtCmt(lin, 2);
       }
+    } else if (lin->vp1 != -1) {
+	// v, vp1, vp2
+	lin->v2 = lin->vp1;
+	lin->v3 = lin->vp2;
+    } else if (lin->vp2 != -1) {
+	lin->v2 = lin->vp2;
+	lin->v3 = lin->vp3;
     }
-  } else if (lin->v1 != -1){
+  } else if (lin->v1 != -1) {
     linCmtCmt(lin, 1);
     lin->v = lin->v1;
     if (lin->v2 != -1) {
@@ -5224,6 +5253,7 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
   } else if (lin->v2 != -1){
     linCmtCmt(lin, 2);
     lin->v = lin->v2;
+    lin->v2 = -1;
     if (lin->v3 != -1) {
       // v2, v3, v4; Central compartment is 2
       lin->v2 = lin->v3;
@@ -5240,6 +5270,49 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
       } else if (lin->vp3 != -1) {
 	linCmtCmt(lin, 2); 
       }
+    }
+  }
+  if (lin->cl != -1 && lin->v != -1) {
+    if (lin->cl2 != -1) {
+      if (lin->v2 == -1 && lin->vss == -1) {
+	Rf_errorcall(R_NilValue, _("can find distributional clearance but not peripheral volume"));
+      }
+    }
+    if (lin->v2 != -1) {
+      if (lin->cl2 == -1) {
+	Rf_errorcall(R_NilValue, _("can find peripheral volume but not distributlin->v2 ional clearance"));
+      }
+    }
+    if (lin->cl3 != -1) {
+      if (lin->v3 == -1) {
+	Rf_errorcall(R_NilValue, _("can find 2nd distributional clearance but not 2nd peripheral volume"));
+      }
+    }
+    if (lin->v3 != -1) {
+      if (lin->cl3 == -1) {
+	Rf_errorcall(R_NilValue, _("can find 2nd peripheral volume but not 2nd distributional clearance"));
+      }
+    }
+  }
+  if (lin->v != -1 && lin->v2 != -1) {
+    if (lin->v == lin->v2) {
+      Rf_errorcall(R_NilValue, _("cannot distinguish between central and peripheral volumes"));
+    }
+  }
+  if (lin->v2 != -1 && lin->v3 != -1) {
+    if (lin->v2 == lin->v3) {
+      Rf_errorcall(R_NilValue, _("cannot distinguish between 1st and 2nd peripheral volumes"));
+    }
+  }
+
+  if (lin->cl != -1 && lin->cl2 != -1) {
+    if (lin->cl == lin->cl2) {
+      Rf_errorcall(R_NilValue, _("cannot distinguish between central and peripheral clearances"));
+    }
+  }
+  if (lin->cl2 != -1 && lin->cl3 != -1) {
+    if (lin->cl2 == lin->cl3) {
+      Rf_errorcall(R_NilValue, _("cannot distinguish between 1st and 2nd distributional clearances"));
     }
   }
 }
