@@ -9,6 +9,10 @@ rxPermissive(
       expect_equal(rxFromSE("rx__d_dt_matt__"), "d/dt(matt)")
       tmp <- symengine::Symbol("rx__d_dt_matt__")
       expect_equal(rxFromSE(tmp), "d/dt(matt)")
+      expect_equal(rxToSE(d/dt(E)), "rx__d_dt_E__")
+      expect_equal(rxFromSE("rx__d_dt_E__"), "d/dt(E)")
+      tmp <- symengine::Symbol("rx__d_dt_E__")
+      expect_equal(rxFromSE(tmp), "d/dt(E)")
     })
 
     test_that("df(x)/dy(x) parsing", {

@@ -380,7 +380,7 @@ void addLine(vLines *sbb, const char *format, ...){
   // Try first.
   n = vsnprintf(NULL, 0, format, copy);
   if (n < 0){
-    error(_("encoding error in 'addLine'"));
+    Rf_errorcall(R_NilValue, _("encoding error in 'addLine'"));
   }
   va_end(copy);
   if (sbb->sN <= sbb->o + n + 1){
@@ -495,13 +495,13 @@ int new_or_ith(const char *s) {
   }
   if (!strcmp("ifelse", s)){
     updateSyntaxCol();
-    error(_("'ifelse' cannot be a state in an RxODE model"));
+    Rf_errorcall(R_NilValue, _("'ifelse' cannot be a state in an RxODE model"));
     tb.ix=-2;
     return 0;
   }
   if (!strcmp("if", s)){
     updateSyntaxCol();
-    error(_("'if' cannot be a variable/state in an RxODE model"));
+    Rf_errorcall(R_NilValue, _("'if' cannot be a variable/state in an RxODE model"));
     tb.ix=-2;
     return 0;
   }
@@ -701,17 +701,17 @@ void niReset(nodeInfo *ni){
 
 int new_de(const char *s){
   int i;
-  if (!strcmp("cmt", s)) error(_("'cmt' cannot be a state or lhs expression"));
-  if (!strcmp("dvid", s)) error(_("'dvid' cannot be a state or lhs expression"));
-  if (!strcmp("addl", s)) error(_("'addl' cannot be a state or lhs expression"));
-  if (!strcmp("ii", s)) error(_("'ii' cannot be a state or lhs expression"));
-  if (!strcmp("ss", s)) error(_("'ss' cannot be a state or lhs expression"));
-  if (!strcmp("amt", s)) error(_("'amt' cannot be a state or lhs expression"));
-  if (!strcmp("dur", s)) error(_("'dur' cannot be a state or lhs expression"));
-  if (!strcmp("rate", s)) error(_("'rate' cannot be a state or lhs expression"));
-  if (!strcmp("Rprintf", s)) error(_("'Rprintf' cannot be a state"));
-  if (!strcmp("printf", s)) error(_("'printf' cannot be a state"));
-  if (!strcmp("print", s)) error(_("'print' cannot be a state"));
+  if (!strcmp("cmt", s)) Rf_errorcall(R_NilValue, _("'cmt' cannot be a state or lhs expression"));
+  if (!strcmp("dvid", s)) Rf_errorcall(R_NilValue, _("'dvid' cannot be a state or lhs expression"));
+  if (!strcmp("addl", s)) Rf_errorcall(R_NilValue, _("'addl' cannot be a state or lhs expression"));
+  if (!strcmp("ii", s)) Rf_errorcall(R_NilValue, _("'ii' cannot be a state or lhs expression"));
+  if (!strcmp("ss", s)) Rf_errorcall(R_NilValue, _("'ss' cannot be a state or lhs expression"));
+  if (!strcmp("amt", s)) Rf_errorcall(R_NilValue, _("'amt' cannot be a state or lhs expression"));
+  if (!strcmp("dur", s)) Rf_errorcall(R_NilValue, _("'dur' cannot be a state or lhs expression"));
+  if (!strcmp("rate", s)) Rf_errorcall(R_NilValue, _("'rate' cannot be a state or lhs expression"));
+  if (!strcmp("Rprintf", s)) Rf_errorcall(R_NilValue, _("'Rprintf' cannot be a state"));
+  if (!strcmp("printf", s)) Rf_errorcall(R_NilValue, _("'printf' cannot be a state"));
+  if (!strcmp("print", s)) Rf_errorcall(R_NilValue, _("'print' cannot be a state"));
   for (i=0; i<tb.de.n; i++) {
     if (!strcmp(tb.de.line[i], s)) { 
       tb.id = i;
@@ -1988,16 +1988,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         }
         Free(v);
       }
-      /* if (nodeHas(transit2) && i == 0){ */
-      /*   aAppendN("_transit3P(t, _cSub, ", 21); */
-      /*   sAppendN(&sbt,"transit(", 8); */
-      /*   rx_podo = 1; */
-      /* } */
-      /* if (nodeHas(transit3) && i == 0){ */
-      /*   aAppendN("_transit4P(t, _cSub, ", 21); */
-      /*   sAppendN(&sbt,"transit(", 8); */
-      /*   rx_podo = 1; */
-      /* } */
       if ((nodeHas(fbio) || nodeHas(alag) || 
 	   nodeHas(dur) || nodeHas(rate) ||
 	   nodeHas(cmt_statement)) && i==2) {
@@ -2503,7 +2493,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 void err_msg(int chk, const char *msg, int code)
 {
   if(!chk) {
-    error("%s",msg);
+    Rf_errorcall(R_NilValue, "%s",msg);
   }
 }
 
@@ -3575,14 +3565,14 @@ void writeSb(sbuf *sbb, FILE *fp){
     register unsigned written = fwrite(sbb->s + totalWritten, 1, toWrite, fp);
     if( toWrite != written){
       fclose(fp);
-      error(_("IO error writing parsed C file"));
+      Rf_errorcall(R_NilValue, _("IO error writing parsed C file"));
     } else{
       totalWritten += written; // add the written bytes
     }
   }
   if (totalWritten != sbb->o) {
     fclose(fp);
-    error(_("IO error writing parsed C file"));
+    Rf_errorcall(R_NilValue, _("IO error writing parsed C file"));
   }
 }
 static void rxSyntaxError(struct D_Parser *ap);
@@ -3705,7 +3695,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     model_prefix = rc_dup_str(CHAR(STRING_ELT(prefix,0)),0);
   } else {
     sFree(&bufw); sFree(&bufw2);
-    error(_("model prefix must be specified"));
+    Rf_errorcall(R_NilValue, _("model prefix must be specified"));
   }
 
   if (isString(inLinExtra) && length(inLinExtra) == 1){
@@ -3713,14 +3703,14 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     extra_indLin = (char*)rc_dup_str(CHAR(STRING_ELT(inLinExtra,0)),0);
   } else {
     freeP();
-    error(_("extra inductive linearization model variables must be specified"));
+    Rf_errorcall(R_NilValue, _("extra inductive linearization model variables must be specified"));
   }
   if (isString(inME) && length(inME) == 1){
     Free(me_code);
     me_code = rc_dup_str(CHAR(STRING_ELT(inME,0)),0);
   } else {
     freeP();
-    error(_("extra ME code must be specified"));
+    Rf_errorcall(R_NilValue, _("extra ME code must be specified"));
   }
 
   if (isString(model_md5) && length(model_md5) == 1){
@@ -4244,9 +4234,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     sFree(&bufw); sFree(&bufw2);
     if (firstErrD == 1) {
       firstErrD=0;
-      error(firstErr.s);
+      Rf_errorcall(R_NilValue, firstErr.s);
     } else {
-      error(_("syntax errors (see above)"));
+      Rf_errorcall(R_NilValue, _("syntax errors (see above)"));
     }
     
   }
@@ -4256,7 +4246,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 
 SEXP _RxODE_parseModel(SEXP type){
   if (!sbPm.o){
-    error(_("model no longer loaded in memory"));
+    Rf_errorcall(R_NilValue, _("model no longer loaded in memory"));
   }
   int iT = INTEGER(type)[0];
   SEXP pm;
@@ -4304,13 +4294,13 @@ SEXP _RxODE_isLinCmt(){
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
 		    SEXP pMd5, SEXP timeId, SEXP fixInis){
   if (!sbPm.o || !sbNrm.o){
-    error(_("nothing in output queue to write"));
+    Rf_errorcall(R_NilValue, _("nothing in output queue to write"));
   }
   if (!isString(c_file) || length(c_file) != 1){
-    error(_("c_file should only be 1 file"));
+    Rf_errorcall(R_NilValue, _("c_file should only be 1 file"));
   }
   if (length(libname) != 2){
-    error(_("libname needs 2 elements"));
+    Rf_errorcall(R_NilValue, _("libname needs 2 elements"));
   }
   fpIO = fopen(CHAR(STRING_ELT(c_file,0)), "wb");
   err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
@@ -4723,7 +4713,7 @@ static inline void linCmtCmt(linCmtStruct *lin, const int cmt){
     lin->cmtc = cmt;
   }
   if (lin->cmtc != cmt){
-    error(_("inconsistent central compartment numbers, can not have both '1' and '2'"));
+    Rf_errorcall(R_NilValue, _("inconsistent central compartment numbers, not sure if central compartment no is '1' or '2'"));
   }
 }
 
@@ -4736,12 +4726,12 @@ static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
   }
   if ((in[1] == 'e' || in[1] == 'E')) {
     if (in[2] == '\0') {
-      if (lin->kel != -1) error(_("Ambiguous 'kel'"));
+      if (lin->kel != -1) Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
       lin->kel = *index;
       return;
     }
     if ((in[2] == 'l' || in[2] == 'L') && in[3] == '\0') {
-      if (lin->kel != -1) error(_("Ambiguous 'kel'"));
+      if (lin->kel != -1) Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
       lin->kel = *index;
       return;
     }
@@ -4756,7 +4746,7 @@ static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
   if (in[1] == '1') {
     if (in[2] == '0' && in[3] == '\0') {
       linCmtCmt(lin, 1);
-      if (lin->kel != -1) error(_("Ambiguous 'kel'"));
+      if (lin->kel != -1) Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
       lin->kel = *index;
       return;
     }
@@ -4774,7 +4764,7 @@ static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
   if (in[1] == '2') {
     if (in[2] == '0' && in[3] == '\0') {
       linCmtCmt(lin, 2);
-      if (lin->kel != -1) error(_("Ambiguous 'kel'"));
+      if (lin->kel != -1) Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
       lin->kel = *index;
       return;
     }
@@ -4845,7 +4835,7 @@ static inline void linCmtClStyle(linCmtStruct *lin, const int style) {
     sAppendN(&firstErr, "' and '", 7);
     linCmtClStr(&firstErr, style);
     sAppendN(&firstErr, "' clearance styles", 18);
-    error(firstErr.s);
+    Rf_errorcall(R_NilValue, firstErr.s);
   }
 }
 
@@ -4913,25 +4903,20 @@ static inline void linCmtC(linCmtStruct *lin, const char *in, int *index) {
     if (in[2] == 'd' || in[2] == 'D') {
       if (in[3] == '\0') {
 	linCmtClStyle(lin, linCmtCld1style);
-	lin->cl = *index;
+	lin->cl1 = *index;
 	return;
       }
       if (in[3] == '1' && in[4] == '\0') {
 	linCmtClStyle(lin, linCmtCld1style);
-	lin->cl1 = *index;
+	  lin->cl2 = *index;
 	return;
       }
       if (in[3] == '2' && in[4] == '\0') {
 	linCmtClStyle(lin, linCmtCld1style);
-	lin->cl2 = *index;
-	return;
-      }
-      if (in[3] == '3' && in[4] == '\0') {
-	linCmtClStyle(lin, linCmtCld1style);
 	lin->cl3 = *index;
 	return;
       }
-      if (in[3] == '4' && in[4] == '\0') {
+      if (in[3] == '3' && in[4] == '\0') {
 	linCmtClStyle(lin, linCmtCld1style);
 	lin->cl4 = *index;
 	return;
@@ -4972,7 +4957,7 @@ static inline void linCmtVStyle(linCmtStruct *lin, int style) {
     sAppendN(&firstErr, "' and '", 7);
     linCmtVStr(&firstErr, style);
     sAppendN(&firstErr, "' volume styles", 15);
-    error(firstErr.s);
+    Rf_errorcall(R_NilValue, firstErr.s);
   }
 }
 
@@ -4991,10 +4976,12 @@ static inline void linCmtV(linCmtStruct *lin, const char *in, int *index) {
     return;
   }
   if (in[1] == '1' && in[2] == '\0') {
+    linCmtVStyle(lin, 4);
     lin->v1 = *index;
     return;
   }
   if (in[1] == '2' && in[2] == '\0') {
+    linCmtVStyle(lin, 4);
     lin->v2 = *index;
     return;
   }
@@ -5112,22 +5099,34 @@ static inline void linCmtStr(linCmtStruct *lin, const char *in, int *index) {
 }
 
 static inline void linCmtAdjustPars(linCmtStruct *lin) {
-  if (lin->clStyle == linCmtQstyle){
+  if (lin->clStyle == linCmtQstyle || lin->clStyle == linCmtCld1style){
     // cl,
     if (lin->cl == -1){
-      error(_("'Q' parameterization needs 'Cl'"));
+      if (lin->clStyle == linCmtCld1style){
+	Rf_errorcall(R_NilValue, _("'Cld' parameterization needs 'Cl'"));
+      } else {
+	Rf_errorcall(R_NilValue, _("'Q' parameterization needs 'Cl'"));
+      }
     }
     if (lin->cl1 != -1) {
       if (lin->cl2  != -1) {
 	// Cl, Q, Q1
-	error(_("cannot mix 'Q' and 'Q1'"));
+	if (lin->clStyle == linCmtQstyle){
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Q' and 'Q1'"));
+	} else {
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Cld' and 'Cld1'"));
+	}
       } else if (lin->cl3 != -1) {
 	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
 	lin->cl2 = lin->cl1;
 	lin->cl1 = -1;
       } else if (lin->cl4 != -1){
 	// Cl, Q, Q3
-	error(_("cannot mix 'Q' and 'Q3'"));
+	if (lin->clStyle == linCmtQstyle){
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Q' and 'Q3'"));
+	} else {
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Cld' and 'Cld3'"));
+	}
       } else {
 	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
 	lin->cl2 = lin->cl1;
@@ -5136,36 +5135,49 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
     } else if (lin->cl2  != -1) {
       // Cl, Q1
       if (lin->cl4 != -1) {
-	error(_("cannot mix 'Q1' and 'Q3'"));
+	if (lin->clStyle == linCmtQstyle){
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Q1' and 'Q3'"));
+	} else {
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Cld1' and 'Cld3'"));
+	}
       }
     } else if (lin->cl3 != -1){
       lin->cl2 = lin->cl3;
       lin->cl3 = lin->cl4;
-    }
+    } 
   } else {
     if (lin->cl1 != -1){
       // Cl1, Cl2, Cl3
       // -> cl, cl2, cl3
       if (lin->cl != -1) {
-	error(_("cannot mix 'Cl' and 'Cl1'"));
-      }
-      linCmtCmt(lin, 1);
-      lin->cl = lin->cl1;
-      lin->cl1 = -1;
-      if (lin->cl4 != -1){
-	error(_("specified clearance for 4th compartment, which does not make sense in this context"));
+	// cl, cl1,
+	if (lin->cl2 == -1){
+	  if (lin->cl4 != -1){
+	    Rf_errorcall(R_NilValue, _("error parsing higher 'cl'"));
+	  }
+	  lin->cl4 = lin->cl3;
+	  lin->cl3 = lin->cl2;
+	  lin->cl2 = lin->cl1;
+	  lin->cl1 = -1;
+	} else {
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Cl' and 'Cl1'"));
+	}
+      } else {
+	linCmtCmt(lin, 1);
+	lin->cl = lin->cl1;
+	lin->cl1 = -1;
+	if (lin->cl4 != -1){
+	  Rf_errorcall(R_NilValue, _("specified clearance for 4th compartment, which does not make sense in this context"));
+	}
       }
     } else if (lin->cl2 != -1){
-      if (lin->cl != -1){
+      if (lin->cl == -1){
 	//  Cl2, Cl3, Cl4
 	// -> Cl, cl2, cl3
 	linCmtCmt(lin, 2);
-	lin->cl = lin->cl2;
-	lin->cl2 = lin->cl3;
-	lin->cl3 = lin->cl4;
       } else if (lin->cl4 != -1) {
 	// Cl, Cl2, Cl3 keeps the same;  Cl4 doesn't make sense
-	error(_("specified clearance for 4th compartment, which does not make sense in this context"));
+	Rf_errorcall(R_NilValue, _("specified clearance for 4th compartment, which does not make sense in this context"));
       }
     } else if (lin->cl != -1){
       if (lin->cl3 != -1){
@@ -5177,12 +5189,12 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
       }
     }
   }
-  if (lin->v != -1){
+  if (lin->v != -1) {
     if (lin->v1 != -1){
-      error(_("Cannot specify 'v1' and 'vc'"));
+      Rf_errorcall(R_NilValue, _("Cannot specify 'v1' and 'vc'"));
     }
     if (lin->v4 != -1){
-      error(_("Cannot specify 'v4' and 'vc'"));
+      Rf_errorcall(R_NilValue, _("Cannot specify 'v4' and 'vc'"));
     }
     if (lin->v2 != -1) {
       // v, v2, v3; Central Compartment is 1
@@ -5207,8 +5219,15 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
 	linCmtCmt(lin, 1);
 	linCmtCmt(lin, 2);
       }
+    } else if (lin->vp1 != -1) {
+	// v, vp1, vp2
+	lin->v2 = lin->vp1;
+	lin->v3 = lin->vp2;
+    } else if (lin->vp2 != -1) {
+	lin->v2 = lin->vp2;
+	lin->v3 = lin->vp3;
     }
-  } else if (lin->v1 != -1){
+  } else if (lin->v1 != -1) {
     linCmtCmt(lin, 1);
     lin->v = lin->v1;
     if (lin->v2 != -1) {
@@ -5234,6 +5253,7 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
   } else if (lin->v2 != -1){
     linCmtCmt(lin, 2);
     lin->v = lin->v2;
+    lin->v2 = -1;
     if (lin->v3 != -1) {
       // v2, v3, v4; Central compartment is 2
       lin->v2 = lin->v3;
@@ -5250,6 +5270,49 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
       } else if (lin->vp3 != -1) {
 	linCmtCmt(lin, 2); 
       }
+    }
+  }
+  if (lin->cl != -1 && lin->v != -1) {
+    if (lin->cl2 != -1) {
+      if (lin->v2 == -1 && lin->vss == -1) {
+	Rf_errorcall(R_NilValue, _("can find distributional clearance but not peripheral volume"));
+      }
+    }
+    if (lin->v2 != -1) {
+      if (lin->cl2 == -1) {
+	Rf_errorcall(R_NilValue, _("can find peripheral volume but not distributlin->v2 ional clearance"));
+      }
+    }
+    if (lin->cl3 != -1) {
+      if (lin->v3 == -1) {
+	Rf_errorcall(R_NilValue, _("can find 2nd distributional clearance but not 2nd peripheral volume"));
+      }
+    }
+    if (lin->v3 != -1) {
+      if (lin->cl3 == -1) {
+	Rf_errorcall(R_NilValue, _("can find 2nd peripheral volume but not 2nd distributional clearance"));
+      }
+    }
+  }
+  if (lin->v != -1 && lin->v2 != -1) {
+    if (lin->v == lin->v2) {
+      Rf_errorcall(R_NilValue, _("cannot distinguish between central and peripheral volumes"));
+    }
+  }
+  if (lin->v2 != -1 && lin->v3 != -1) {
+    if (lin->v2 == lin->v3) {
+      Rf_errorcall(R_NilValue, _("cannot distinguish between 1st and 2nd peripheral volumes"));
+    }
+  }
+
+  if (lin->cl != -1 && lin->cl2 != -1) {
+    if (lin->cl == lin->cl2) {
+      Rf_errorcall(R_NilValue, _("cannot distinguish between central and peripheral clearances"));
+    }
+  }
+  if (lin->cl2 != -1 && lin->cl3 != -1) {
+    if (lin->cl2 == lin->cl3) {
+      Rf_errorcall(R_NilValue, _("cannot distinguish between 1st and 2nd distributional clearances"));
     }
   }
 }
@@ -5301,13 +5364,13 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	sAppendN(&firstErr, "cannot mix 'Vss' and '", 22);
 	linCmtVStr(&firstErr, lin.vStyle);
 	sAppendN(&firstErr, "' volumes", 9);
-	error(firstErr.s);
+	Rf_errorcall(R_NilValue, firstErr.s);
       }
       if (lin.v == -1) {
-	error(_("cannot figure out a central volume"));
+	Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
       }
       if (lin.cl2 == -1) {
-	error(_("cannot figure out distributional clearance"));
+	Rf_errorcall(R_NilValue, _("cannot figure out distributional clearance"));
       }
       sAppend(&ret0, "%d, %s", trans, mid);
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl)));
@@ -5316,7 +5379,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       sAppend(&ret0, "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.vss)));
     } else {
       if (lin.v == -1) {
-	error(_("cannot figure out a central volume"));
+	Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
       }
       ncmt = 1;
       trans = 1;
@@ -5326,20 +5389,20 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       if (lin.v2 != -1 || lin.cl2 != -1) {
 	ncmt = 2;
 	if (lin.cl2 == -1) {
-	  error(_("cannot figure out distributional clearance"));
+	  Rf_errorcall(R_NilValue, _("cannot figure out distributional clearance"));
 	}
 	if (lin.v2 == -1) {
-	  error(_("cannot figure out distributional volume"));
+	  Rf_errorcall(R_NilValue, _("cannot figure out distributional volume"));
 	}
 	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl2)));
 	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v2)));
 	if (lin.v3 != -1 || lin.cl3 != -1) {
 	  ncmt = 3;
 	  if (lin.cl3 == -1) {
-	    error(_("cannot figure out 2nd distributional clearance"));
+	    Rf_errorcall(R_NilValue, _("cannot figure out 2nd distributional clearance"));
 	  }
 	  if (lin.v3 == -1) {
-	    error(_("cannot figure out 2nd distributional volume"));
+	    Rf_errorcall(R_NilValue, _("cannot figure out 2nd distributional volume"));
 	  }
 	  sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl3)));
 	  sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v3)));
@@ -5353,7 +5416,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     if (verbose) REprintf(_("Detected %d-compartment model in terms of clearance"), ncmt);
   } else if (lin.kel != -1) {
     if (lin.v == -1) {
-      error(_("cannot figure out a central volume"));
+      Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
     }
     ncmt = 1;
     trans = 2;
@@ -5363,16 +5426,16 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     if (lin.k12 != -1 || lin.k21 != -1) {
       if (lin.k12 == -1) {
 	if (lin.cmtc == 1){
-	  error(_("'k12' not found when 'k21' present"));
+	  Rf_errorcall(R_NilValue, _("'k12' not found when 'k21' present"));
 	} else {
-	  error(_("'k23' not found when 'k32' present"));
+	  Rf_errorcall(R_NilValue, _("'k23' not found when 'k32' present"));
 	}
       }
       if (lin.k21 == -1) {
 	if (lin.cmtc == 1){
-	  error(_("'k21' not found when 'k12' present"));
+	  Rf_errorcall(R_NilValue, _("'k21' not found when 'k12' present"));
 	} else {
-	  error(_("'k32' not found when 'k23' present"));
+	  Rf_errorcall(R_NilValue, _("'k32' not found when 'k23' present"));
 	}
       }
       ncmt = 2;
@@ -5381,16 +5444,16 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       if (lin.k13 != -1 || lin.k31 != -1) {
 	if (lin.k13 == -1) {
 	  if (lin.cmtc == 1){
-	    error(_("'k13' not found when 'k31' present"));
+	    Rf_errorcall(R_NilValue, _("'k13' not found when 'k31' present"));
 	  } else {
-	    error(_("'k24' not found when 'k42' present"));
+	    Rf_errorcall(R_NilValue, _("'k24' not found when 'k42' present"));
 	  }
 	}
 	if (lin.k31 == -1) {
 	  if (lin.cmtc == 1){
-	    error(_("'k31' not found when 'k13' present"));
+	    Rf_errorcall(R_NilValue, _("'k31' not found when 'k13' present"));
 	  } else {
-	    error(_("'k42' not found when 'k24' present"));
+	    Rf_errorcall(R_NilValue, _("'k42' not found when 'k24' present"));
 	  }
 	}
 	ncmt = 3;
@@ -5398,6 +5461,12 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k31)));
       } else {
 	sAppendN(&ret0, "0.0, 0.0, ", 10);
+      }
+    } else if (lin.k31 != -1 || lin.k13 != -1){
+      if (lin.cmtc == 1){
+	Rf_errorcall(R_NilValue, _("'k13' or 'k31' present when 'k12' and 'k21' not present"));
+      } else {
+	Rf_errorcall(R_NilValue, _("'k24' or 'k42' present when 'k23' and 'k32' not present"));
       }
     } else {
       sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
@@ -5407,13 +5476,13 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     ncmt = 2;
     trans = 5;
     if (lin.v == -1) {
-      error(_("cannot figure out a central volume"));
+      Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
     }
     if (lin.alpha == -1) {
-      error(_("need an 'alpha' with 'aob'"));
+      Rf_errorcall(R_NilValue, _("need an 'alpha' with 'aob'"));
     }
     if (lin.beta == -1) {
-      error(_("need a 'beta' with 'aob'"));
+      Rf_errorcall(R_NilValue, _("need a 'beta' with 'aob'"));
     }
     sAppend(&ret0, "%d, %s", trans, mid);
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
@@ -5425,13 +5494,13 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     ncmt = 2;
     trans = 4;
     if (lin.v == -1) {
-      error(_("cannot figure out a central volume"));
+      Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
     }
     if (lin.alpha == -1) {
-      error(_("need an 'alpha'"));
+      Rf_errorcall(R_NilValue, _("need an 'alpha'"));
     }
     if (lin.beta == -1) {
-      error(_("need a 'beta'"));
+      Rf_errorcall(R_NilValue, _("need a 'beta'"));
     }
     sAppend(&ret0, "%d, %s", trans, mid);
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
@@ -5458,33 +5527,35 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.a)));
     } else {
       if (lin.v == -1) {
-	error(_("cannot figure out a central volume"));
+	Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
       }
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
     }
     if (lin.beta != -1 || lin.b != -1) {
       ncmt =2;
       if (lin.beta == -1) {
-	error(_("need a 'beta'"));
+	Rf_errorcall(R_NilValue, _("need a 'beta'"));
       }
       if (lin.b == -1) {
-	error(_("need a 'b'"));
+	Rf_errorcall(R_NilValue, _("need a 'b'"));
       }
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.b)));
       if (lin.gamma != -1 || lin.c != -1) {
 	ncmt = 3;
 	if (lin.gamma == -1) {
-	  error(_("need a 'gamma'"));
+	  Rf_errorcall(R_NilValue, _("need a 'gamma'"));
 	}
 	if (lin.c == -1) {
-	  error(_("need a 'c'"));
+	  Rf_errorcall(R_NilValue, _("need a 'c'"));
 	}
 	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.gamma)));
 	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.c)));
       } else {
 	sAppendN(&ret0, "0.0, 0.0, ", 10);
       }
+    } else if (lin.gamma != -1 || lin.c != -1) {
+      Rf_errorcall(R_NilValue, _("a 'gamma' or 'c' specified without 'b' or 'beta'"));
     } else {
       sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
     }
@@ -5535,7 +5606,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
   if (trans == -1) {
     UNPROTECT(_linCmtParsePro);
     _linCmtParsePro=0;
-    error(_("could not figure out linCmt() model"));
+    Rf_errorcall(R_NilValue, _("could not figure out linCmt() model"));
   }
   _linCmtParsePro=0;
   return lst;
@@ -5641,7 +5712,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
       sFree(&d_rate2);
       sFree(&d_dur2);
       sFree(&last);
-      error(firstErr.s);
+      Rf_errorcall(R_NilValue, firstErr.s);
     }
     // central only
     for (i = 0; i < centralLines.n; i++){
@@ -5652,7 +5723,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
 	break;
       case ALAG:
 	sClear(&d_tlag);
-	sAppend(&d_tlag, ", %s, ", centralLines.line[i]);
+	sAppend(&d_tlag, "%s, ", centralLines.line[i]);
 	break;
       case RATE:
 	sClear(&d_rate1);
@@ -5715,7 +5786,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
 	if (line[0] == '('){
 	  sFree(&last);
 	  UNPROTECT(pro);
-	  error(_("linCmt() cannot have any extra parentheses in it"));
+	  Rf_errorcall(R_NilValue, _("linCmt() cannot have any extra parentheses in it"));
 	}
 	line++;
       }

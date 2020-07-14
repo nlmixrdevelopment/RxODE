@@ -4,6 +4,7 @@ rxPermissive(
     type <- 3
 
     for (type in 1:4) {
+
       .txt <- switch(type, "linear", "sensitivity", "linear [no save]", "advanSens")
       sens <- switch(type, "linCmtA", "linCmtB", "linCmtC", "linCmtB")
       sensType <- switch(type, "autodiff", "autodiff", "autodiff", "advan")
@@ -25,7 +26,7 @@ rxPermissive(
       ode.1c <- RxODE(
         {
           C2 <- center / V
-          d / dt(center) <- -CL * C2
+          d/dt(center) <- -CL * C2
         },
         linCmtSens = sens
       )
@@ -63,8 +64,8 @@ rxPermissive(
         {
           C2 <- centr / V
           C3 <- peri / V2
-          d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-          d / dt(peri) <- Q * C2 - Q * C3
+          d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
+          d/dt(peri) <- Q * C2 - Q * C3
         },
         linCmtSens = sens
       )
@@ -101,9 +102,9 @@ rxPermissive(
           C2 <- centr / V
           C3 <- peri / V2
           C4 <- peri2 / V3
-          d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-          d / dt(peri) <- Q * C2 - Q * C3
-          d / dt(peri2) <- Q2 * C2 - Q2 * C4
+          d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+          d/dt(peri) <- Q * C2 - Q * C3
+          d/dt(peri2) <- Q2 * C2 - Q2 * C4
         },
         linCmtSens = sens
       )
@@ -138,8 +139,8 @@ rxPermissive(
       ode.1c.ka <- RxODE(
         {
           C2 <- center / V
-          d / dt(depot) <- -KA * depot
-          d / dt(center) <- KA * depot - CL * C2
+          d/dt(depot) <- -KA * depot
+          d/dt(center) <- KA * depot - CL * C2
         },
         linCmtSens = sens
       )
@@ -207,9 +208,9 @@ rxPermissive(
         {
           C2 <- centr / V
           C3 <- peri / V2
-          d / dt(depot) <- -KA * depot
-          d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-          d / dt(peri) <- Q * C2 - Q * C3
+          d/dt(depot) <- -KA * depot
+          d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+          d/dt(peri) <- Q * C2 - Q * C3
         },
         linCmtSens = sens
       )
@@ -265,10 +266,10 @@ rxPermissive(
         C2 <- centr / V
         C3 <- peri / V2
         C4 <- peri2 / V3
-        d / dt(depot) <- -KA * depot
-        d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-        d / dt(peri) <- Q * C2 - Q * C3
-        d / dt(peri2) <- Q2 * C2 - Q2 * C4
+        d/dt(depot) <- -KA * depot
+        d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+        d/dt(peri) <- Q * C2 - Q * C3
+        d/dt(peri2) <- Q2 * C2 - Q2 * C4
       })
 
       sol.3c.ka <- RxODE(
@@ -323,7 +324,7 @@ rxPermissive(
 
       ode.1c <- RxODE({
         C2 <- center / V
-        d / dt(center) <- -CL * C2
+        d/dt(center) <- -CL * C2
       })
 
       test_that("ode model gives extraCmt=0", {
@@ -455,8 +456,8 @@ rxPermissive(
 
       ode.1c.ka <- RxODE({
         C2 <- center / V
-        d / dt(depot) <- -KA * depot
-        d / dt(center) <- KA * depot - CL * C2
+        d/dt(depot) <- -KA * depot
+        d/dt(center) <- KA * depot - CL * C2
       })
 
       sol.1c.ka <- RxODE(
@@ -538,8 +539,8 @@ rxPermissive(
       ode.2c <- RxODE({
         C2 <- centr / V
         C3 <- peri / V2
-        d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-        d / dt(peri) <- Q * C2 - Q * C3
+        d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
+        d/dt(peri) <- Q * C2 - Q * C3
       })
 
       sol.2c <- RxODE(
@@ -662,9 +663,9 @@ rxPermissive(
       ode.2c.ka <- RxODE({
         C2 <- centr / V
         C3 <- peri / V2
-        d / dt(depot) <- -KA * depot
-        d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-        d / dt(peri) <- Q * C2 - Q * C3
+        d/dt(depot) <- -KA * depot
+        d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+        d/dt(peri) <- Q * C2 - Q * C3
       })
 
       sol.2c.ka <- RxODE(
@@ -830,9 +831,9 @@ rxPermissive(
         C2 <- centr / V
         C3 <- peri / V2
         C4 <- peri2 / V3
-        d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-        d / dt(peri) <- Q * C2 - Q * C3
-        d / dt(peri2) <- Q2 * C2 - Q2 * C4
+        d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+        d/dt(peri) <- Q * C2 - Q * C3
+        d/dt(peri2) <- Q2 * C2 - Q2 * C4
       })
 
       sol.3c <- RxODE(
@@ -932,12 +933,17 @@ rxPermissive(
       o.3c <- ode.3c %>%
         solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
 
-      s.3c <- sol.3c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
+      s.3c <- sol.3c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
 
-      s.3cK <- sol.3cK %>% solve(theta = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
-      s.3cA1 <- sol.3cA1 %>% solve(theta = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
-      s.3cVp <- sol.3cVp %>% solve(theta = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
-      s.3cVt <- sol.3cVt %>% solve(theta = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
+      s.3cK <- sol.3cK %>%
+        solve(theta = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
+      s.3cA1 <- sol.3cA1 %>%
+        solve(theta = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
+      s.3cVp <- sol.3cVp %>%
+        solve(theta = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
+      s.3cVt <- sol.3cVt %>%
+        solve(theta = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
 
       test_that("3 compartment solved models and ODEs same.", {
         expect_equal(o.3c$C2, s.3c$C2, tolerance = tol)
@@ -947,9 +953,11 @@ rxPermissive(
         expect_equal(o.3c$C2, s.3cVt$C2, tolerance = tol)
       })
 
-      o.3c <- ode.3c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = etSs, sensType = sensType)
+      o.3c <- ode.3c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = etSs, sensType = sensType)
 
-      s.3c <- sol.3c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = etSs, sensType = sensType)
+      s.3c <- sol.3c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = etSs, sensType = sensType)
 
       test_that("3 compartment solved models and ODEs same with steady state.", {
         expect_equal(o.3c$C2, s.3c$C2, tolerance = tol)
@@ -959,10 +967,10 @@ rxPermissive(
         C2 <- centr / V
         C3 <- peri / V2
         C4 <- peri2 / V3
-        d / dt(depot) <- -KA * depot
-        d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-        d / dt(peri) <- Q * C2 - Q * C3
-        d / dt(peri2) <- Q2 * C2 - Q2 * C4
+        d/dt(depot) <- -KA * depot
+        d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+        d/dt(peri) <- Q * C2 - Q * C3
+        d/dt(peri2) <- Q2 * C2 - Q2 * C4
       })
 
       sol.3c.ka <- RxODE(
@@ -1031,10 +1039,14 @@ rxPermissive(
 
       goodP(sol.3cA1, 3, 1)
 
-      o.3c <- ode.3c.ka %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = et, sensType = sensType)
-      s.3c <- sol.3c.ka %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = et, sensType = sensType)
-      s.3cK <- sol.3cK %>% solve(theta = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = et, sensType = sensType)
-      s.3cA1 <- sol.3cA1 %>% solve(theta = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = et, sensType = sensType)
+      o.3c <- ode.3c.ka %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = et, sensType = sensType)
+      s.3c <- sol.3c.ka %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = et, sensType = sensType)
+      s.3cK <- sol.3cK %>%
+        solve(theta = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = et, sensType = sensType)
+      s.3cA1 <- sol.3cA1 %>%
+        solve(theta = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = et, sensType = sensType)
 
       test_that("3 compartment oral solved models and ODEs same.", {
         expect_equal(o.3c$C2, s.3c$C2, tolerance = tol)
@@ -1042,9 +1054,10 @@ rxPermissive(
         expect_equal(o.3c$C2, s.3cA1$C2, tolerance = tol)
       })
 
-      o.3c <- ode.3c.ka %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = etSs, sensType = sensType)
-
-      s.3c <- sol.3c.ka %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = etSs, sensType = sensType)
+      o.3c <- ode.3c.ka %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = etSs, sensType = sensType)
+      s.3c <- sol.3c.ka %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = etSs, sensType = sensType)
 
       ## Again the 4 hour strange discontinuity because ss=1
       test_that("3 compartment oral solved models and ODEs same for steady state.", {
@@ -1065,7 +1078,7 @@ rxPermissive(
 
       ode.1c <- RxODE({
         C2 <- center / V
-        d / dt(center) <- -CL * C2
+        d/dt(center) <- -CL * C2
       })
 
       ## Solved systems can check the variables in the RxODE statement
@@ -1095,21 +1108,24 @@ rxPermissive(
       ## The solved systems can be mixed with ODE solving routines (to
       ## speed them up a bit...?)
 
-      o.1c <- ode.1c %>% solve(params = c(V = 20, CL = 25), events = et, sensType = sensType)
-
-      s.1c <- ode.1cs2 %>% solve(params = c(V = 20, CL = 25), events = et, sensType = sensType)
-
-      s.2c <- ode.1cs %>% solve(theta = c(20, 25), events = et, sensType = sensType)
+      o.1c <- ode.1c %>%
+        solve(params = c(V = 20, CL = 25), events = et, sensType = sensType)
+      s.1c <- ode.1cs2 %>%
+        solve(params = c(V = 20, CL = 25), events = et, sensType = sensType)
+      s.2c <- ode.1cs %>%
+        solve(theta = c(20, 25), events = et, sensType = sensType)
 
       test_that("1 compartment solved models and ODEs same.", {
         expect_equal(o.1c$C2, s.1c$C2, tolerance = tol)
         expect_equal(o.1c$C2, s.2c$C2, tolerance = tol)
       })
 
-      o.1c <- ode.1c %>% solve(params = c(V = 20, CL = 10), events = etSs, sensType = sensType)
-
-      s.1c <- ode.1cs2 %>% solve(params = c(V = 20, CL = 10), events = etSs, sensType = sensType)
-      s.2c <- ode.1cs %>% solve(theta = c(20, 10), events = etSs, sensType = sensType)
+      o.1c <- ode.1c %>%
+        solve(params = c(V = 20, CL = 10), events = etSs, sensType = sensType)
+      s.1c <- ode.1cs2 %>%
+        solve(params = c(V = 20, CL = 10), events = etSs, sensType = sensType)
+      s.2c <- ode.1cs %>%
+        solve(theta = c(20, 10), events = etSs, sensType = sensType)
 
       test_that("1 compartment solved models and ODEs same; Steady State", {
         expect_equal(o.1c$C2, s.1c$C2, tolerance = tol)
@@ -1121,8 +1137,8 @@ rxPermissive(
       ode.2c <- RxODE({
         C2 <- centr / V
         C3 <- peri / V2
-        d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-        d / dt(peri) <- Q * C2 - Q * C3
+        d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
+        d/dt(peri) <- Q * C2 - Q * C3
       })
 
       sol.2c <- RxODE(
@@ -1134,17 +1150,19 @@ rxPermissive(
 
       goodP(sol.2c, 2)
 
-      o.2c <- ode.2c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10), events = et, sensType = sensType)
-
-      s.2c <- sol.2c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10), events = et, sensType = sensType)
+      o.2c <- ode.2c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10), events = et, sensType = sensType)
+      s.2c <- sol.2c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10), events = et, sensType = sensType)
 
       test_that("2 compartment solved models and ODEs same.", {
         expect_equal(o.2c$C2, s.2c$C2, tolerance = tol)
       })
 
-      o.2c <- ode.2c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10), events = etSs, sensType = sensType)
-
-      s.2c <- sol.2c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10), events = etSs, sensType = sensType)
+      o.2c <- ode.2c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10), events = etSs, sensType = sensType)
+      s.2c <- sol.2c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10), events = etSs, sensType = sensType)
 
       test_that("2 compartment steady state solved models and ODEs same.", {
         expect_equal(o.2c$C2, s.2c$C2, tolerance = tol)
@@ -1156,9 +1174,9 @@ rxPermissive(
         C2 <- centr / V
         C3 <- peri / V2
         C4 <- peri2 / V3
-        d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-        d / dt(peri) <- Q * C2 - Q * C3
-        d / dt(peri2) <- Q2 * C2 - Q2 * C4
+        d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+        d/dt(peri) <- Q * C2 - Q * C3
+        d/dt(peri2) <- Q2 * C2 - Q2 * C4
       })
 
       sol.3c <- RxODE(
@@ -1170,17 +1188,19 @@ rxPermissive(
 
       goodP(sol.3c, 3)
 
-      o.3c <- ode.3c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
-
-      s.3c <- sol.3c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
+      o.3c <- ode.3c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
+      s.3c <- sol.3c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
 
       test_that("3 compartment solved models and ODEs same.", {
         expect_equal(o.3c$C2, s.3c$C2, tolerance = tol)
       })
 
-      o.3c <- ode.3c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = etSs, sensType = sensType)
-
-      s.3c <- sol.3c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = etSs, sensType = sensType)
+      o.3c <- ode.3c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = etSs, sensType = sensType)
+      s.3c <- sol.3c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = etSs, sensType = sensType)
 
       test_that("3 compartment steady state solved models and ODEs same.", {
         expect_equal(o.3c$C2, s.3c$C2, tolerance = tol)
@@ -1195,7 +1215,7 @@ rxPermissive(
 
       ode.1c <- RxODE({
         C2 <- center / V
-        d / dt(center) <- -CL * C2
+        d/dt(center) <- -CL * C2
       })
 
       ## Solved systems can check the variables in the RxODE statement
@@ -1241,8 +1261,8 @@ rxPermissive(
       ode.2c <- RxODE({
         C2 <- centr / V
         C3 <- peri / V2
-        d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-        d / dt(peri) <- Q * C2 - Q * C3
+        d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
+        d/dt(peri) <- Q * C2 - Q * C3
       })
 
       sol.2c <- RxODE(
@@ -1254,9 +1274,10 @@ rxPermissive(
 
       goodP(sol.2c, 2)
 
-      o.2c <- ode.2c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10), events = et, sensType = sensType)
-
-      s.2c <- sol.2c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10), events = et, sensType = sensType)
+      o.2c <- ode.2c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10), events = et, sensType = sensType)
+      s.2c <- sol.2c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10), events = et, sensType = sensType)
 
       test_that("2 compartment solved models and ODEs same.", {
         expect_equal(o.2c$C2, s.2c$C2, tolerance = tol)
@@ -1268,9 +1289,9 @@ rxPermissive(
         C2 <- centr / V
         C3 <- peri / V2
         C4 <- peri2 / V3
-        d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-        d / dt(peri) <- Q * C2 - Q * C3
-        d / dt(peri2) <- Q2 * C2 - Q2 * C4
+        d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+        d/dt(peri) <- Q * C2 - Q * C3
+        d/dt(peri2) <- Q2 * C2 - Q2 * C4
       })
 
       sol.3c <- RxODE(
@@ -1282,9 +1303,10 @@ rxPermissive(
 
       goodP(sol.3c, 3)
 
-      o.3c <- ode.3c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
-
-      s.3c <- sol.3c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
+      o.3c <- ode.3c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
+      s.3c <- sol.3c %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = et, sensType = sensType)
 
       test_that("3 compartment solved models and ODEs same.", {
         expect_equal(o.3c$C2, s.3c$C2, tolerance = tol)
@@ -1300,8 +1322,8 @@ rxPermissive(
 
       ode.1c.ka <- RxODE({
         C2 <- center / V
-        d / dt(depot) <- -KA * depot
-        d / dt(center) <- KA * depot - CL * C2
+        d/dt(depot) <- -KA * depot
+        d/dt(center) <- KA * depot - CL * C2
       })
 
       sol.1c.ka <- RxODE(
@@ -1325,9 +1347,9 @@ rxPermissive(
       ode.2c.ka <- RxODE({
         C2 <- centr / V
         C3 <- peri / V2
-        d / dt(depot) <- -KA * depot
-        d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-        d / dt(peri) <- Q * C2 - Q * C3
+        d/dt(depot) <- -KA * depot
+        d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+        d/dt(peri) <- Q * C2 - Q * C3
       })
 
       sol.2c.ka <- RxODE(
@@ -1339,9 +1361,10 @@ rxPermissive(
 
       goodP(sol.2c.ka, 2, 1)
 
-      o.2c <- ode.2c.ka %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, KA = 0.3), events = et, sensType = sensType)
-
-      s.2c <- sol.2c.ka %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, KA = 0.3), events = et, sensType = sensType)
+      o.2c <- ode.2c.ka %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, KA = 0.3), events = et, sensType = sensType)
+      s.2c <- sol.2c.ka %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, KA = 0.3), events = et, sensType = sensType)
 
       test_that("2 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
         expect_equal(o.2c$C2, s.2c$C2, tolerance = tol)
@@ -1353,10 +1376,10 @@ rxPermissive(
         C2 <- centr / V
         C3 <- peri / V2
         C4 <- peri2 / V3
-        d / dt(depot) <- -KA * depot
-        d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-        d / dt(peri) <- Q * C2 - Q * C3
-        d / dt(peri2) <- Q2 * C2 - Q2 * C4
+        d/dt(depot) <- -KA * depot
+        d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+        d/dt(peri) <- Q * C2 - Q * C3
+        d/dt(peri2) <- Q2 * C2 - Q2 * C4
       })
 
       sol.3c.ka <- RxODE(
@@ -1368,9 +1391,10 @@ rxPermissive(
 
       goodP(sol.3c.ka, 3, 1)
 
-      o.3c <- ode.3c.ka %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = et, sensType = sensType)
-
-      s.3c <- sol.3c.ka %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = et, sensType = sensType)
+      o.3c <- ode.3c.ka %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = et, sensType = sensType)
+      s.3c <- sol.3c.ka %>%
+        solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3), events = et, sensType = sensType)
 
       test_that("3 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
         expect_equal(o.3c$C2, s.3c$C2, tolerance = tol)
@@ -1386,8 +1410,8 @@ rxPermissive(
 
       ode.1c.ka <- RxODE({
         C2 <- center / V
-        d / dt(depot) <- -KA * depot
-        d / dt(center) <- KA * depot - CL * C2
+        d/dt(depot) <- -KA * depot
+        d/dt(center) <- KA * depot - CL * C2
         f(depot) <- fDepot
         f(center) <- fCenter
       })
@@ -1405,8 +1429,10 @@ rxPermissive(
 
       for (fd in c(0.5, 1, 2)) {
         for (fc in c(0.5, 1, 2)) {
-          o.1c <- ode.1c.ka %>% solve(params = c(V = 20, CL = 25, KA = 2, fDepot = fd, fCenter = fc), events = et, sensType = sensType)
-          s.1c <- sol.1c.ka %>% solve(params = c(V = 20, CL = 25, KA = 2, fDepot = fd, fCenter = fc), events = et, sensType = sensType)
+          o.1c <- ode.1c.ka %>%
+            solve(params = c(V = 20, CL = 25, KA = 2, fDepot = fd, fCenter = fc), events = et, sensType = sensType)
+          s.1c <- sol.1c.ka %>%
+            solve(params = c(V = 20, CL = 25, KA = 2, fDepot = fd, fCenter = fc), events = et, sensType = sensType)
           test_that(sprintf("1 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd, fc), {
             expect_equal(o.1c$C2, s.1c$C2, tolerance = tol)
           })
@@ -1419,9 +1445,9 @@ rxPermissive(
         {
           C2 <- centr / V
           C3 <- peri / V2
-          d / dt(depot) <- -KA * depot
-          d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-          d / dt(peri) <- Q * C2 - Q * C3
+          d/dt(depot) <- -KA * depot
+          d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+          d/dt(peri) <- Q * C2 - Q * C3
           f(depot) <- fDepot
           f(centr) <- fCenter
           ## FIXME:
@@ -1457,10 +1483,10 @@ rxPermissive(
         C2 <- centr / V
         C3 <- peri / V2
         C4 <- peri2 / V3
-        d / dt(depot) <- -KA * depot
-        d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-        d / dt(peri) <- Q * C2 - Q * C3
-        d / dt(peri2) <- Q2 * C2 - Q2 * C4
+        d/dt(depot) <- -KA * depot
+        d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+        d/dt(peri) <- Q * C2 - Q * C3
+        d/dt(peri2) <- Q2 * C2 - Q2 * C4
         f(depot) <- fDepot
         f(centr) <- fCenter
       })
@@ -1478,14 +1504,16 @@ rxPermissive(
 
       for (fd in c(0.5, 1, 2)) {
         for (fc in c(0.5, 1, 2)) {
-          o.3c <- ode.3c.ka %>% solve(params = c(
-            V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7,
-            V3 = 400, KA = 0.3, fDepot = fd, fCenter = fc
-          ), events = et, sensType = sensType)
-          s.3c <- sol.3c.ka %>% solve(params = c(
-            V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3,
-            fDepot = fd, fCenter = fc
-          ), events = et, sensType = sensType)
+          o.3c <- ode.3c.ka %>%
+            solve(params = c(
+              V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7,
+              V3 = 400, KA = 0.3, fDepot = fd, fCenter = fc
+            ), events = et, sensType = sensType)
+          s.3c <- sol.3c.ka %>%
+            solve(params = c(
+              V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, KA = 0.3,
+              fDepot = fd, fCenter = fc
+            ), events = et, sensType = sensType)
           test_that(sprintf("3 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd, fc), {
             expect_equal(o.3c$C2, s.3c$C2, tolerance = tol)
           })
@@ -1503,8 +1531,8 @@ rxPermissive(
       ode.1c.ka <- RxODE(
         {
           C2 <- center / V
-          d / dt(depot) <- -KA * depot
-          d / dt(center) <- KA * depot - CL * C2
+          d/dt(depot) <- -KA * depot
+          d/dt(center) <- KA * depot - CL * C2
           alag(depot) <- lagDepot
           alag(center) <- lagCenter
         },
@@ -1537,9 +1565,9 @@ rxPermissive(
       ode.2c.ka <- RxODE({
         C2 <- centr / V
         C3 <- peri / V2
-        d / dt(depot) <- -KA * depot
-        d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-        d / dt(peri) <- Q * C2 - Q * C3
+        d/dt(depot) <- -KA * depot
+        d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+        d/dt(peri) <- Q * C2 - Q * C3
         alag(depot) <- lagDepot
         alag(centr) <- lagCenter
       })
@@ -1557,8 +1585,10 @@ rxPermissive(
 
       for (fd in c(1, 2, 10)) {
         for (fc in c(1, 2, 10)) {
-          o.2c <- ode.2c.ka %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, KA = 0.3, lagDepot = fd, lagCenter = fc), events = et, sensType = sensType)
-          s.2c <- sol.2c.ka %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, KA = 0.3, lagDepot = fd, lagCenter = fc), events = et, sensType = sensType)
+          o.2c <- ode.2c.ka %>%
+            solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, KA = 0.3, lagDepot = fd, lagCenter = fc), events = et, sensType = sensType)
+          s.2c <- sol.2c.ka %>%
+            solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, KA = 0.3, lagDepot = fd, lagCenter = fc), events = et, sensType = sensType)
           test_that(sprintf("2 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd, fc), {
             expect_equal(o.2c$C2, s.2c$C2, tolerance = tol)
           })
@@ -1572,10 +1602,10 @@ rxPermissive(
           C2 <- centr / V
           C3 <- peri / V2
           C4 <- peri2 / V3
-          d / dt(depot) <- -KA * depot
-          d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-          d / dt(peri) <- Q * C2 - Q * C3
-          d / dt(peri2) <- Q2 * C2 - Q2 * C4
+          d/dt(depot) <- -KA * depot
+          d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+          d/dt(peri) <- Q * C2 - Q * C3
+          d/dt(peri2) <- Q2 * C2 - Q2 * C4
           alag(depot) <- lagDepot
           alag(centr) <- lagCenter
         },
@@ -1613,7 +1643,7 @@ rxPermissive(
 
       ode.1c <- RxODE({
         C2 <- center / V
-        d / dt(center) <- -CL * C2
+        d/dt(center) <- -CL * C2
         rate(center) <- rt
       })
 
@@ -1645,8 +1675,8 @@ rxPermissive(
         {
           C2 <- centr / V
           C3 <- peri / V2
-          d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-          d / dt(peri) <- Q * C2 - Q * C3
+          d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
+          d/dt(peri) <- Q * C2 - Q * C3
           rate(centr) <- rt
         },
         linCmtSens = sens
@@ -1676,9 +1706,9 @@ rxPermissive(
         C2 <- centr / V
         C3 <- peri / V2
         C4 <- peri2 / V3
-        d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-        d / dt(peri) <- Q * C2 - Q * C3
-        d / dt(peri2) <- Q2 * C2 - Q2 * C4
+        d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+        d/dt(peri) <- Q * C2 - Q * C3
+        d/dt(peri2) <- Q2 * C2 - Q2 * C4
         rate(centr) <- rt
       })
 
@@ -1693,8 +1723,10 @@ rxPermissive(
       goodP(sol.3c, 3)
 
       for (rt in seq(0.5, 1, 1.5)) {
-        s.3c <- sol.3c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, rt = rt), events = et, sensType = sensType)
-        o.3c <- ode.3c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, rt = rt), events = et, sensType = sensType)
+        s.3c <- sol.3c %>%
+          solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, rt = rt), events = et, sensType = sensType)
+        o.3c <- ode.3c %>%
+          solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400, rt = rt), events = et, sensType = sensType)
         test_that(sprintf("3 compartment solved models and ODEs same for rate-modeled infusion: %s", rt), {
           expect_equal(o.3c$C2, s.3c$C2, tolerance = tol)
         })
@@ -1704,7 +1736,7 @@ rxPermissive(
 
       ode.1c <- RxODE({
         C2 <- center / V
-        d / dt(center) <- -CL * C2
+        d/dt(center) <- -CL * C2
         dur(center) <- dr
       })
 
@@ -1735,8 +1767,8 @@ rxPermissive(
       ode.2c <- RxODE({
         C2 <- centr / V
         C3 <- peri / V2
-        d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-        d / dt(peri) <- Q * C2 - Q * C3
+        d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
+        d/dt(peri) <- Q * C2 - Q * C3
         dur(centr) <- dr
       })
 
@@ -1764,9 +1796,9 @@ rxPermissive(
         C2 <- centr / V
         C3 <- peri / V2
         C4 <- peri2 / V3
-        d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-        d / dt(peri) <- Q * C2 - Q * C3
-        d / dt(peri2) <- Q2 * C2 - Q2 * C4
+        d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+        d/dt(peri) <- Q * C2 - Q * C3
+        d/dt(peri2) <- Q2 * C2 - Q2 * C4
         dur(centr) <- dr
       })
 
@@ -1792,9 +1824,9 @@ rxPermissive(
         expect_error(RxODE({
           C2 <- centr / V
           C3 <- peri / V2
-          d / dt(depot) <- -KA * depot
-          d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-          d / dt(peri) <- Q * C2 - Q * C3
+          d/dt(depot) <- -KA * depot
+          d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+          d/dt(peri) <- Q * C2 - Q * C3
           alag(depot) <- lagDepot
           alag(centr) <- lagCenter
           alag(central) <- matt
@@ -1805,9 +1837,9 @@ rxPermissive(
         expect_error(RxODE({
           C2 <- centr / V
           C3 <- peri / V2
-          d / dt(dep) <- -KA * dep
-          d / dt(centr) <- KA * dep - CL * C2 - Q * C2 + Q * C3
-          d / dt(peri) <- Q * C2 - Q * C3
+          d/dt(dep) <- -KA * dep
+          d/dt(centr) <- KA * dep - CL * C2 - Q * C2 + Q * C3
+          d/dt(peri) <- Q * C2 - Q * C3
           alag(dep) <- lagDepot
           alag(centr) <- lagCenter
           alag(depot) <- matt
@@ -1837,6 +1869,7 @@ rxPermissive(
       test_that("mtime with solved systems work", {
         expect_equal(s.1c$time[1:4], c(0, 0.5, 1, 1.75))
       })
+
     }
     test_that(
       "double linCmt has error",
@@ -1853,7 +1886,7 @@ rxPermissive(
 
       ode.1c <- RxODE({
         C2 <- center / V
-        d / dt(center) <- -CL * C2
+        d/dt(center) <- -CL * C2
       })
 
       ode.1cs2 <- RxODE({
@@ -1871,8 +1904,8 @@ rxPermissive(
       ode.2c <- RxODE({
         C2 <- centr / V
         C3 <- peri / V2
-        d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-        d / dt(peri) <- Q * C2 - Q * C3
+        d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
+        d/dt(peri) <- Q * C2 - Q * C3
       })
 
       sol.2c <- RxODE({
@@ -1891,9 +1924,9 @@ rxPermissive(
         C2 <- centr / V
         C3 <- peri / V2
         C4 <- peri2 / V3
-        d / dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-        d / dt(peri) <- Q * C2 - Q * C3
-        d / dt(peri2) <- Q2 * C2 - Q2 * C4
+        d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+        d/dt(peri) <- Q * C2 - Q * C3
+        d/dt(peri2) <- Q2 * C2 - Q2 * C4
       })
 
       sol.3c <- RxODE({
@@ -1945,7 +1978,7 @@ rxPermissive(
 
         mod2 <- RxODE({
           Central <- center / Vc
-          d / dt(center) <- -Cl * Central
+          d/dt(center) <- -Cl * Central
         })
 
         pk1o <- rxSymPySetupPred(mod2, predfn = pred, pkpars = pk, err = err)
@@ -2055,8 +2088,8 @@ rxPermissive(
 
         mod2 <- RxODE({
           Central <- center / Vc
-          d / dt(depot) <- -Ka * depot
-          d / dt(center) <- Ka * depot - Cl * Central
+          d/dt(depot) <- -Ka * depot
+          d/dt(center) <- Ka * depot - Cl * Central
         })
 
         pk1o <- rxSymPySetupPred(mod2, predfn = pred, pkpars = pk, err = err)
@@ -2217,14 +2250,14 @@ rxPermissive(
         mod2 <- RxODE({
           Central <- centr / Vc
           C3 <- peri / Vp
-          d / dt(centr) <- -Cl * Central - Q * Central + Q * C3
-          d / dt(peri) <- Q * Central - Q * C3
+          d/dt(centr) <- -Cl * Central - Q * Central + Q * C3
+          d/dt(peri) <- Q * Central - Q * C3
         })
 
         modK2 <- RxODE({
           Central <- centr / Vc
-          d / dt(centr) <- -k10 * centr - k12 * centr + k21 * peri
-          d / dt(peri) <- k12 * centr - k21 * peri
+          d/dt(centr) <- -k10 * centr - k12 * centr + k21 * peri
+          d/dt(peri) <- k12 * centr - k21 * peri
         })
 
         pk2o <- rxSymPySetupPred(mod2, predfn = pred, pkpars = pk, err = err)
@@ -2365,9 +2398,9 @@ rxPermissive(
         mod2 <- RxODE({
           Central <- centr / Vc
           C3 <- peri / Vp
-          d / dt(depot) <- -Ka * depot
-          d / dt(centr) <- Ka * depot - Cl * Central - Q * Central + Q * C3
-          d / dt(peri) <- Q * Central - Q * C3
+          d/dt(depot) <- -Ka * depot
+          d/dt(centr) <- Ka * depot - Cl * Central - Q * Central + Q * C3
+          d/dt(peri) <- Q * Central - Q * C3
         })
 
         pk2o <- rxSymPySetupPred(mod2, predfn = pred, pkpars = pk, err = err)
@@ -2576,9 +2609,9 @@ rxPermissive(
           Central <- centr / Vc
           C3 <- peri / Vp
           C4 <- peri2 / Vp2
-          d / dt(centr) <- -Cl * Central - Q * Central + Q * C3 + Q2 * C4 - Q2 * Central
-          d / dt(peri) <- Q * Central - Q * C3
-          d / dt(peri2) <- Q2 * Central - Q2 * C4
+          d/dt(centr) <- -Cl * Central - Q * Central + Q * C3 + Q2 * C4 - Q2 * Central
+          d/dt(peri) <- Q * Central - Q * C3
+          d/dt(peri2) <- Q2 * Central - Q2 * C4
         })
 
         pk3o <- rxSymPySetupPred(mod2, predfn = pred, pkpars = pk, err = err)
@@ -2730,10 +2763,10 @@ rxPermissive(
           Central <- centr / Vc
           C3 <- peri / Vp
           C4 <- peri2 / Vp2
-          d / dt(depot) <- -Ka * depot
-          d / dt(centr) <- Ka * depot - Cl * Central - Q * Central + Q * C3 - Q2 * Central + Q2 * C4
-          d / dt(peri) <- Q * Central - Q * C3
-          d / dt(peri2) <- Q2 * Central - Q2 * C4
+          d/dt(depot) <- -Ka * depot
+          d/dt(centr) <- Ka * depot - Cl * Central - Q * Central + Q * C3 - Q2 * Central + Q2 * C4
+          d/dt(peri) <- Q * Central - Q * C3
+          d/dt(peri2) <- Q2 * Central - Q2 * C4
         })
 
         pk2o <- rxSymPySetupPred(mod2, predfn = pred, pkpars = pk, err = err)
@@ -2928,6 +2961,129 @@ rxPermissive(
         expect_equal(s1$rx__sens_rx_r__BY_ETA_7___, o1$rx__sens_rx_r__BY_ETA_7___, tolerance = tol)
       })
     }
+
+    context("Make sure central differences are working")
+
+    ## One compartment model without oral absorption
+    pred <- function() {
+      return(Central)
+    }
+
+    pk <- function() {
+      lCl <- THETA[1]
+      lVc <- THETA[2]
+      prop.err <- THETA[3]
+      lF <- THETA[4]
+      lLag <- THETA[5]
+      eta.Vc <- ETA[1]
+      eta.Cl <- ETA[2]
+      eta.f <- ETA[3]
+      eta.lag <- ETA[4]
+      Vc <- exp(lVc + eta.Vc)
+      Cl <- exp(lCl + eta.Cl)
+      fc <- exp(lF + eta.f)
+      lagc <- exp(lLag + eta.lag)
+    }
+
+    err <- function() {
+      return(prop(prop.err))
+    }
+
+    mod <- RxODE({
+      Central <- linCmt(Vc, Cl)
+      f(central) = fc
+      alag(central) = lagc
+    })
+
+    parms <- c(
+      "THETA[1]" = 20, "THETA[2]" = 25, "ETA[1]" = 1, "ETA[2]" = 1,
+      "THETA[3]" = 0.2, "THETA[4]"=log(1), "THETA[5]"=log(0.5),
+      "ETA[3]"=0, "ETA[4]"=0
+    )
+
+    et <- eventTable() %>%
+      add.dosing(dose = 3, nbr.doses = 6, dosing.interval = 8) %>%
+      add.sampling(seq(0, 48, length.out = 200))
+
+    pk2s <- rxSymPySetupPred(mod, predfn = pred, pkpars = pk, err = err)
+
+    s1 <- rxSolve(pk2s$inner, parms, et, sensType = "advan")
+
+    expect_false(any(is.na(s1$rx__sens_rx_pred__BY_ETA_3___)))
+    expect_false(any(is.na(s1$rx__sens_rx_pred__BY_ETA_4___)))
+
+    expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_3___)))
+    expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_4___)))
+
+    ## One compartment model with oral absorption
+
+    pred <- function() {
+      return(Central)
+    }
+
+    pk <- function() {
+      lCl <- THETA[1]
+      lVc <- THETA[2]
+      lQ <- THETA[3]
+      lVp <- THETA[4]
+      lKa <- THETA[5]
+      prop.err <- THETA[6]
+      lF <- THETA[7]
+      lLag <- THETA[8]
+      eta.Vc <- ETA[1]
+      eta.Cl <- ETA[2]
+      eta.Vp <- ETA[3]
+      eta.Q <- ETA[4]
+      eta.Ka <- ETA[5]
+      eta.F <- ETA[6]
+      eta.lag <- ETA[7]
+      Vc <- exp(lVc + eta.Vc)
+      Cl <- exp(lCl + eta.Cl)
+      Vp <- exp(lVp + eta.Vp)
+      Q <- exp(lQ + eta.Q)
+      Ka <- exp(lKa + eta.Ka)
+      F <- exp(lF + eta.F)
+      lag <- exp(lLag + eta.lag)
+    }
+
+    err <- function() {
+      return(prop(prop.err))
+    }
+
+    mod <- RxODE({
+      Central <- linCmt(Vc, Cl, Vp, Q, Ka)
+      f(depot) <- F
+      alag(depot) <- lag
+    })
+
+    pk2s <- rxSymPySetupPred(mod, predfn = pred, pkpars = pk, err = err)
+
+    et <- eventTable() %>%
+      add.dosing(dose = 3, nbr.doses = 6, dosing.interval = 8) %>%
+      add.sampling(seq(0, 48, length.out = 200))
+
+    parms <- c("THETA[1]" = log(18), ## Cl
+          "THETA[2]" = log(40), ## Vc
+          "THETA[3]" = log(10), ## Q
+          "THETA[4]" = log(297), ## Vp
+          "THETA[5]" = log(0.3), ## Ka
+          "ETA[1]" = 0, "ETA[2]" = 0,
+          "ETA[3]" = 0, "ETA[4]" = 0,
+          "ETA[5]" = 0,
+          "THETA[6]" = 0.2, "THETA[7]"=log(1.5), "THETA[8]"=log(0.5),
+          "ETA[6]"=0, "ETA[7]"=0
+        )
+
+    s1 <- rxSolve(pk2s$inner, parms, et, sensType = "advan")
+
+    expect_false(any(is.na(s1$rx__sens_rx_pred__BY_ETA_6___)))
+    expect_false(any(is.na(s1$rx__sens_rx_pred__BY_ETA_7___)))
+
+    expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_6___)))
+    expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_7___)))
+
+
+
   },
   silent = TRUE,
   test = "lincmt"

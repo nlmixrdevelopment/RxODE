@@ -2673,8 +2673,99 @@ static inline void rxSolve_simulate(const RObject &obj,
   RObject sigma= rxControl[Rxc_sigma];
   Nullable<NumericVector> sigmaDf= asNNv(rxControl[Rxc_sigmaDf], "sigmaDf");
   bool sigmaIsChol= asBool(rxControl[Rxc_sigmaIsChol], "sigmaIsChol");
+  double ret = 1.5e-8;
   op->isChol = (int)(sigmaIsChol);
-
+  SEXP tmp = rxControl[Rxc_linDiff];
+  LogicalVector linLV;
+  if (Rf_isLogical(tmp)) {
+    linLV = as<LogicalVector>(tmp);
+  }
+  tmp = rxControl[Rxc_linDiffCentral];
+  NumericVector linNV;
+  if (Rf_isReal(tmp)) {
+    linNV = as<NumericVector>(tmp);
+  }
+  //LogicalVector
+  if (linLV.containsElementNamed("tlag")) {
+    op->cTlag = as<bool>(linLV["tlag"]);
+  } else {
+    op->cTlag = true;
+  }
+  if (linNV.containsElementNamed("tlag")){
+    op->hTlag = as<double>(linNV["tlag"]);
+  } else {
+    op->hTlag = 1.5e-08;
+  }
+  if (linLV.containsElementNamed("f")) {
+    op->cF = as<bool>(linLV["f"]);
+  } else {
+    op->cF = true;
+  }
+  if (linNV.containsElementNamed("f")) {
+    op->hF = as<double>(linNV["f"]);
+  } else {
+    op->hF = 1.5e-08;
+  }
+  if (linLV.containsElementNamed("rate")) {
+    op->cRate = as<bool>(linLV["rate"]);
+  } else {
+    op->cRate = true;
+  }
+  if (linNV.containsElementNamed("rate")) {
+    op->hRate = as<double>(linNV["rate"]);
+  } else {
+    op->hRate = 1.5e-08;
+  }
+  if (linLV.containsElementNamed("dur")) {
+    op->cDur = as<bool>(linLV["dur"]);
+  } else {
+    op->cDur = false;
+  }
+  if (linNV.containsElementNamed("dur")) {
+    op->hDur = as<double>(linNV["dur"]);
+  } else {
+    op->hDur = 1.5e-08;
+  }
+  if (linLV.containsElementNamed("tlag2")) {
+    op->cTlag2 = as<bool>(linLV["tlag2"]);
+  } else {
+    op->cTlag2 = false;
+  }
+  if (linNV.containsElementNamed("tlag2")) {
+    op->hTlag2 = as<double>(linNV["tlag2"]);
+  } else {
+    op->hTlag2 = 1.5e-08;
+  }
+  if (linLV.containsElementNamed("f2")) {
+    op->cF2 = as<bool>(linLV["f2"]);
+  } else {
+    op->cF2 = false;
+  }
+  if (linNV.containsElementNamed("f2")) {
+    op->hF2 = as<double>(linNV["f2"]);
+  } else {
+    op->hF2 = 1.5e-08;
+  }
+  if (linLV.containsElementNamed("rate2")) {
+    op->cRate2 = as<bool>(linLV["rate2"]);
+  } else {
+    op->cRate2 = false;
+  }
+  if (linNV.containsElementNamed("rate2")) {
+    op->hRate2 = as<double>(linNV["rate2"]);
+  } else {
+    op->hRate2 = 1.5e-08;
+  }
+  if (linLV.containsElementNamed("dur2")) {
+    op->cDur2 = as<bool>(linLV["dur2"]);
+  } else {
+    op->cDur2 = false;
+  }
+  if (linNV.containsElementNamed("dur2")) {
+    op->hDur2 = as<double>(linNV["dur2"]);
+  } else {
+    op->hDur2 = 1.5e-08;
+  }
   unsigned int nSub = asUnsignedInt(rxControl[Rxc_nSub], "nSub");
   unsigned int nStud = asUnsignedInt(rxControl[Rxc_nStud], "nStud");
   double dfSub=asDouble(rxControl[Rxc_dfSub], "dfSub");
@@ -4394,7 +4485,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     int linNcmt = linCmtI[RxMvFlag_ncmt];
     int linKa = linCmtI[RxMvFlag_ka];
     int linB = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linB];
+    op->linBflag=0;
     if (linB) {
+      int linBflag = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linCmtFlg];
       if (rx->sensType == 4){
 	// This is the ADVAN senstivities
 	if (linKa){
@@ -4421,6 +4514,33 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    op->nlin = 13;
 	    break;
 	  }
+	}
+	op->nlin2 = op->nlin;
+	op->linBflag = linBflag;
+	// Add the other components
+	if (linBflag & 64){ // tlag 64= bitwShiftL(1, 7-1)
+	  op->nlin++;
+	}
+	if (linBflag & 128){ // f 128 = 1 << 8-1
+	  op->nlin++;
+	}
+	if (linBflag & 256){ // rate 256 = 1 << 9-1
+	  op->nlin++;
+	}
+	if (linBflag & 512){ // dur 512 = 1 << 10-1
+	  op->nlin++;
+	}
+	if (linBflag & 2048) { // tlag2 2048 = 1 << 12 - 1
+	  op->nlin++;
+	}
+	if (linBflag & 4096) { // f2 4096 = 1 << 13 - 1
+	  op->nlin++;
+	}
+	if (linBflag & 8192) { // rate2 8192 = 1 << 14 - 1
+	  op->nlin++;
+	}
+	if (linBflag & 16384) { // dur2 16384 = 1 << 15 - 1
+	  op->nlin++;
 	}
       } else {
 	if (linKa){

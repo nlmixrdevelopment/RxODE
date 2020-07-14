@@ -84,6 +84,8 @@
 #define Rxc_sumType 80
 #define Rxc_prodType 81
 #define Rxc_sensType 82
+#define Rxc_linDiff 83
+#define Rxc_linDiffCentral 84
 #define RxMv_params 0
 #define RxMv_lhs 1
 #define RxMv_state 2

@@ -25,7 +25,7 @@ SEXP _vecDF(SEXP cv, SEXP n_) {
   } else if (typ == INTSXP) {
     n = INTEGER(n_)[0];
   }
-  if (n <= 0) error(_("'n' must be greater than 0"));
+  if (n <= 0) Rf_errorcall(R_NilValue, _("'n' must be greater than 0"));
   int pro = 0;
   int len = length(cv);
   SEXP ret = PROTECT(allocVector(VECSXP, len)); pro++;
@@ -53,7 +53,7 @@ SEXP _vecDF(SEXP cv, SEXP n_) {
 
 SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_) {
   int n = INTEGER(n_)[0];
-  if (n <= 0) error(_("'n' must be greater than 0"));
+  if (n <= 0) Rf_errorcall(R_NilValue, _("'n' must be greater than 0"));
   
   int len1 = length(et_);
   int len1a = 0;
@@ -143,7 +143,7 @@ SEXP _phi(SEXP q) {
       retD[j] = phi((double)(inD[j]));
     }
   } else {
-    error(_("'phi' requires numeric values"));
+    Rf_errorcall(R_NilValue, _("'phi' requires numeric values"));
   }
   UNPROTECT(pro);
   return ret;
@@ -166,7 +166,7 @@ SEXP _gammap(SEXP a, SEXP z) {
   } else if (typea == INTSXP){
     aI = INTEGER(a);
   } else {
-    error(_("'a' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'a' needs to be a number"));
   }
   if (typez == REALSXP){
     realz=1;
@@ -174,7 +174,7 @@ SEXP _gammap(SEXP a, SEXP z) {
   } else if (typez == INTSXP){
     zI = INTEGER(z);
   } else {
-    error(_("'z' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'z' needs to be a number"));
   }
   if (lena == lenz) {
     ret = PROTECT(Rf_allocVector(REALSXP, lena));pro++;
@@ -198,7 +198,7 @@ SEXP _gammap(SEXP a, SEXP z) {
       retD[j] = gamma_p(reala ? aD[j] : (double)aI[j], z0);
     }
   } else {
-    Rf_error(_("inconsistent sizes"));
+    Rf_errorcall(R_NilValue, _("inconsistent sizes"));
   }
   UNPROTECT(pro);
   return ret;
@@ -221,7 +221,7 @@ SEXP _gammaq(SEXP a, SEXP z) {
   } else if (typea == INTSXP){
     aI = INTEGER(a);
   } else {
-    error(_("'a' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'a' needs to be a number"));
   }
   if (typez == REALSXP){
     realz=1;
@@ -229,7 +229,7 @@ SEXP _gammaq(SEXP a, SEXP z) {
   } else if (typez == INTSXP){
     zI = INTEGER(z);
   } else {
-    error(_("'z' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'z' needs to be a number"));
   }
   if (lena == lenz) {
     ret = PROTECT(Rf_allocVector(REALSXP, lena));pro++;
@@ -253,7 +253,7 @@ SEXP _gammaq(SEXP a, SEXP z) {
       retD[j] = gamma_q(reala ? aD[j] : (double)aI[j], z0);
     }
   } else {
-    Rf_error(_("inconsistent sizes"));
+    Rf_errorcall(R_NilValue, _("inconsistent sizes"));
   }
   UNPROTECT(pro);
   return ret;
@@ -276,7 +276,7 @@ SEXP _lowergamma(SEXP a, SEXP z) {
   } else if (typea == INTSXP){
     aI = INTEGER(a);
   } else {
-    error(_("'a' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'a' needs to be a number"));
   }
   if (typez == REALSXP){
     realz=1;
@@ -284,7 +284,7 @@ SEXP _lowergamma(SEXP a, SEXP z) {
   } else if (typez == INTSXP){
     zI = INTEGER(z);
   } else {
-    error(_("'z' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'z' needs to be a number"));
   }
   if (lena == lenz) {
     ret = PROTECT(Rf_allocVector(REALSXP, lena));pro++;
@@ -308,7 +308,7 @@ SEXP _lowergamma(SEXP a, SEXP z) {
       retD[j] = tgamma_lower(reala ? aD[j] : (double)aI[j], z0);
     }
   } else {
-    Rf_error(_("inconsistent sizes"));
+    Rf_errorcall(R_NilValue, _("inconsistent sizes"));
   }
   UNPROTECT(pro);
   return ret;
@@ -331,7 +331,7 @@ SEXP _uppergamma(SEXP a, SEXP z) {
   } else if (typea == INTSXP){
     aI = INTEGER(a);
   } else {
-    error(_("'a' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'a' needs to be a number"));
   }
   if (typez == REALSXP){
     realz=1;
@@ -339,7 +339,7 @@ SEXP _uppergamma(SEXP a, SEXP z) {
   } else if (typez == INTSXP){
     zI = INTEGER(z);
   } else {
-    error(_("'z' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'z' needs to be a number"));
   }
   
   if (lena == lenz) {
@@ -364,7 +364,7 @@ SEXP _uppergamma(SEXP a, SEXP z) {
       retD[j] = tgamma_upper(reala ? aD[j] : (double)aI[j], z0);
     }
   } else {
-    Rf_error(_("inconsistent sizes"));
+    Rf_errorcall(R_NilValue, _("inconsistent sizes"));
   }
   UNPROTECT(pro);
   return ret;
@@ -388,7 +388,7 @@ SEXP _gammapDer(SEXP a, SEXP z) {
   } else if (typea == INTSXP){
     aI = INTEGER(a);
   } else {
-    error(_("'a' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'a' needs to be a number"));
   }
   if (typez == REALSXP){
     realz=1;
@@ -396,7 +396,7 @@ SEXP _gammapDer(SEXP a, SEXP z) {
   } else if (typez == INTSXP){
     zI = INTEGER(z);
   } else {
-    error(_("'z' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'z' needs to be a number"));
   }
   
   if (lena == lenz) {
@@ -421,7 +421,7 @@ SEXP _gammapDer(SEXP a, SEXP z) {
       retD[j] = gamma_p_derivative(reala ? aD[j] : (double)aI[j], z0);
     }
   } else {
-    Rf_error(_("inconsistent sizes"));
+    Rf_errorcall(R_NilValue, _("inconsistent sizes"));
   }
   UNPROTECT(pro);
   return ret;
@@ -444,7 +444,7 @@ SEXP _gammapInv(SEXP a, SEXP z) {
   } else if (typea == INTSXP){
     aI = INTEGER(a);
   } else {
-    error(_("'a' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'a' needs to be a number"));
   }
   if (typez == REALSXP){
     realz=1;
@@ -452,7 +452,7 @@ SEXP _gammapInv(SEXP a, SEXP z) {
   } else if (typez == INTSXP){
     zI = INTEGER(z);
   } else {
-    error(_("'z' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'z' needs to be a number"));
   }
   
   if (lena == lenz) {
@@ -477,7 +477,7 @@ SEXP _gammapInv(SEXP a, SEXP z) {
       retD[j] = gamma_p_inv(reala ? aD[j] : (double)aI[j], z0);
     }
   } else {
-    Rf_error(_("inconsistent sizes"));
+    Rf_errorcall(R_NilValue, _("inconsistent sizes"));
   }
   UNPROTECT(pro);
   return ret;
@@ -500,7 +500,7 @@ SEXP _gammapInva(SEXP a, SEXP z) {
   } else if (typea == INTSXP){
     aI = INTEGER(a);
   } else {
-    error(_("'a' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'a' needs to be a number"));
   }
   if (typez == REALSXP){
     realz=1;
@@ -508,7 +508,7 @@ SEXP _gammapInva(SEXP a, SEXP z) {
   } else if (typez == INTSXP){
     zI = INTEGER(z);
   } else {
-    error(_("'z' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'z' needs to be a number"));
   }
   
   if (lena == lenz) {
@@ -533,7 +533,7 @@ SEXP _gammapInva(SEXP a, SEXP z) {
       retD[j] = gamma_p_inva(reala ? aD[j] : (double)aI[j], z0);
     }
   } else {
-    Rf_error(_("inconsistent sizes"));
+    Rf_errorcall(R_NilValue, _("inconsistent sizes"));
   }
   UNPROTECT(pro);
   return ret;
@@ -558,7 +558,7 @@ SEXP _gammaqInv(SEXP a, SEXP z) {
   } else if (typea == INTSXP){
     aI = INTEGER(a);
   } else {
-    error(_("'a' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'a' needs to be a number"));
   }
   if (typez == REALSXP){
     realz=1;
@@ -566,7 +566,7 @@ SEXP _gammaqInv(SEXP a, SEXP z) {
   } else if (typez == INTSXP){
     zI = INTEGER(z);
   } else {
-    error(_("'z' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'z' needs to be a number"));
   }
   if (lena == lenz) {
     ret = PROTECT(Rf_allocVector(REALSXP, lena));pro++;
@@ -594,7 +594,7 @@ SEXP _gammaqInv(SEXP a, SEXP z) {
       retD[j] = gamma_q_inv(reala ? aD[j] : (double)aI[j], z0);
     }
   } else {
-    Rf_error(_("inconsistent sizes"));
+    Rf_errorcall(R_NilValue, _("inconsistent sizes"));
   }
   UNPROTECT(pro);
   return ret;
@@ -620,7 +620,7 @@ SEXP _gammaqInva(SEXP a, SEXP z) {
   } else if (typea == INTSXP){
     aI = INTEGER(a);
   } else {
-    error(_("'a' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'a' needs to be a number"));
   }
   if (typez == REALSXP){
     realz=1;
@@ -628,7 +628,7 @@ SEXP _gammaqInva(SEXP a, SEXP z) {
   } else if (typez == INTSXP){
     zI = INTEGER(z);
   } else {
-    error(_("'z' needs to be a number"));
+    Rf_errorcall(R_NilValue, _("'z' needs to be a number"));
   }
   if (lena == lenz) {
     ret = PROTECT(Rf_allocVector(REALSXP, lena));pro++;
@@ -656,7 +656,7 @@ SEXP _gammaqInva(SEXP a, SEXP z) {
       retD[j] = gamma_q_inva(reala ? aD[j] : (double)aI[j], z0);
     }
   } else {
-    Rf_error(_("inconsistent sizes"));
+    Rf_errorcall(R_NilValue, _("inconsistent sizes"));
   }
   UNPROTECT(pro);
   return ret;
@@ -680,27 +680,27 @@ SEXP _logit(SEXP xS, SEXP lowS, SEXP highS) {
   int typehigh = TYPEOF(highS);
   double low, high;
   if (Rf_length(lowS) != 1){
-    error(_("'low' must be a numeric of length 1"));
+    Rf_errorcall(R_NilValue, _("'low' must be a numeric of length 1"));
   }
   if (Rf_length(highS) != 1){
-    error(_("'high' must be a numeric of length 1"));
+    Rf_errorcall(R_NilValue, _("'high' must be a numeric of length 1"));
   }
   if (typelow == INTSXP){
     low = (double)(INTEGER(lowS)[0]);
   } else if (typelow == REALSXP) {
     low = REAL(lowS)[0];
   } else {
-    error(_("'low' must be a numeric of length 1"));
+    Rf_errorcall(R_NilValue, _("'low' must be a numeric of length 1"));
   }
   if (typehigh == INTSXP){
     high = (double)(INTEGER(highS)[0]);
   } else if (typehigh == REALSXP) {
     high = REAL(highS)[0];
   } else {
-    error(_("'high' must be a numeric of length 1"));
+    Rf_errorcall(R_NilValue, _("'high' must be a numeric of length 1"));
   }
   if (high <= low) {
-    error(_("'high' must be greater than 'low'"));
+    Rf_errorcall(R_NilValue, _("'high' must be greater than 'low'"));
   }
   int lenx = Rf_length(xS);
   double *xD = NULL;
@@ -734,27 +734,27 @@ SEXP _expit(SEXP xS, SEXP lowS, SEXP highS) {
   int typehigh = TYPEOF(highS);
   double low, high;
   if (Rf_length(lowS) != 1){
-    error(_("'low' must be a numeric of length 1"));
+    Rf_errorcall(R_NilValue, _("'low' must be a numeric of length 1"));
   }
   if (Rf_length(highS) != 1){
-    error(_("'high' must be a numeric of length 1"));
+    Rf_errorcall(R_NilValue, _("'high' must be a numeric of length 1"));
   }
   if (typelow == INTSXP){
     low = (double)(INTEGER(lowS)[0]);
   } else if (typelow == REALSXP) {
     low = REAL(lowS)[0];
   } else {
-    error(_("'low' must be a numeric of length 1"));
+    Rf_errorcall(R_NilValue, _("'low' must be a numeric of length 1"));
   }
   if (typehigh == INTSXP){
     high = (double)(INTEGER(highS)[0]);
   } else if (typehigh == REALSXP) {
     high = REAL(highS)[0];
   } else {
-    error(_("'high' must be a numeric of length 1"));
+    Rf_errorcall(R_NilValue, _("'high' must be a numeric of length 1"));
   }
   if (high <= low) {
-    error(_("'high' must be greater than 'low'"));
+    Rf_errorcall(R_NilValue, _("'high' must be greater than 'low'"));
   }
   int lenx = Rf_length(xS);
   double *xD = NULL;

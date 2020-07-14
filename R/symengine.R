@@ -780,15 +780,27 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
           .x3 <- x[[3]]
           ## df(%s)/dy(%s)
           if (identical(.x2, quote(`d`)) &&
-            identical(.x3[[1]], quote(`dt`))) {
-            .state <- .rxToSE(.x3[[2]], envir = envir)
+                identical(.x3[[1]], quote(`dt`))) {
+            if (length(.x3[[2]]) == 1) {
+              .state <- as.character(.x3[[2]])#.rxToSE(.x3[[2]], envir = envir)
+            } else {
+              .state <- .rxToSE(.x3[[2]], envir = envir)
+            }
             return(paste0("rx__d_dt_", .state, "__"))
           } else {
             if (length(.x2) == 2 && length(.x3) == 2) {
               if (identical(.x2[[1]], quote(`df`)) &&
-                identical(.x3[[1]], quote(`dy`))) {
-                .state <- .rxToSE(.x2[[2]], envir = envir)
-                .var <- .rxToSE(.x3[[2]], envir = envir)
+                    identical(.x3[[1]], quote(`dy`))) {
+                if (length(.x2[[2]]) == 1) {
+                  .state <- as.character(.x2[[2]])
+                } else {
+                  .state <- .rxToSE(.x2[[2]], envir = envir)
+                }
+                if (length(.x3[[2]]) == 1) {
+                  .var <- as.character(.x3[[2]])
+                } else {
+                  .var <- .rxToSE(.x3[[2]], envir=envir)
+                }
                 return(paste0(
                   "rx__df_", .state,
                   "_dy_", .var, "__"
@@ -1472,7 +1484,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
     if (.ret == "E") {
       return("M_E")
     }
-    return(sub(
+    .ret <- sub(
       .regRate, "rate(\\1)",
       sub(
         .regDur, "dur(\\1)",
@@ -1499,7 +1511,9 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
           )
         )
       )
-    ))
+    )
+    .ret <- sub("[(]rx_SymPy_Res_", "(", .ret)
+    return(.ret)
   } else if (is.call(x)) {
     if (identical(x[[1]], quote(`(`))) {
       return(paste0("(", .rxFromSE(x[[2]]), ")"))

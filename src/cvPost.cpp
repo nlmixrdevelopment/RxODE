@@ -468,7 +468,7 @@ SEXP cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
 	arma::mat om0 = as<arma::mat>(omega);
 	om0 = om0.t();
 	List ret(om0.n_cols);
-	if (n != 1) warning(_("'n' is determined by the 'omega' argument which contains the simulated standard deviations"));
+	if (n != 1) Rf_warningcall(R_NilValue, _("'n' is determined by the 'omega' argument which contains the simulated standard deviations"));
 	for (unsigned int i = 0; i < om0.n_cols; i++){
 	  arma::vec sd = om0.col(i);
 	  if (nu < 3){
