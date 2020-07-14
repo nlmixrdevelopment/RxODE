@@ -12,7 +12,7 @@ else
     echo --------[[end ~/.R/Makevars.win]]--------
 fi
 
-echo "if(!file.exists(\"src/Makevars.win\")) writeLines(gsub(\"@ISYSTEM@\",\"I\",gsub(\"@CXX14STD@\",\"CXX14STD = -std=c++1y\",gsub(\"@OPENMP_CXXFLAGS@\",\"-fopenmp\",gsub(\"@OPENMP_CFLAGS@\",\"-fopenmp\",suppressWarnings(readLines(\"src/Makevars.in\")))))),\"src/Makevars.win\")" > build.R    
+echo "if(!file.exists(\"src/Makevars.win\")) writeLines(gsub(\"@ISYSTEM@\",\"I\",gsub(\"@CXX14STD@\",\"CXX14STD = -std=c++1y\",suppressWarnings(readLines(\"src/Makevars.in\")))),\"src/Makevars.win\")" > build.R
 
 ${R_HOME}/bin/R CMD BATCH build.R
 rm build.R
