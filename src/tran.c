@@ -5462,6 +5462,12 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       } else {
 	sAppendN(&ret0, "0.0, 0.0, ", 10);
       }
+    } else if (lin.k31 != -1 || lin.k13 != -1){
+      if (lin.cmtc == 1){
+	Rf_errorcall(R_NilValue, _("'k13' or 'k31' present when 'k12' and 'k21' not present"));
+      } else {
+	Rf_errorcall(R_NilValue, _("'k24' or 'k42' present when 'k23' and 'k32' not present"));
+      }
     } else {
       sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
     }
@@ -5548,6 +5554,8 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       } else {
 	sAppendN(&ret0, "0.0, 0.0, ", 10);
       }
+    } else if (lin.gamma != -1 || lin.c != -1) {
+      Rf_errorcall(R_NilValue, _("a 'gamma' or 'c' specified without 'b' or 'beta'"));
     } else {
       sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
     }
