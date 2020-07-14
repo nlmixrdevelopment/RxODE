@@ -1472,7 +1472,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
     if (.ret == "E") {
       return("M_E")
     }
-    return(sub(
+    .ret <- sub(
       .regRate, "rate(\\1)",
       sub(
         .regDur, "dur(\\1)",
@@ -1499,7 +1499,9 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
           )
         )
       )
-    ))
+    )
+    .ret <- sub("[(]rx_SymPy_Res_", "(", .ret)
+    return(.ret)
   } else if (is.call(x)) {
     if (identical(x[[1]], quote(`(`))) {
       return(paste0("(", .rxFromSE(x[[2]]), ")"))
