@@ -37,7 +37,7 @@ std::string rxIndLin_(CharacterVector states){
   std::string ret = "matrix(c(";
   std::string n = "c(";
   for (int i = 0; i < states.size(); i++){
-    ret += ".rxIndLinLine(.env$rx__d_dt_"+symengineRes(as<std::string>(states[i]))+
+    ret += ".rxIndLinLine(.env$rx__d_dt_"+as<std::string>(states[i])+
       "__" + ",.states, \""+ as<std::string>(states[i]) + "\"),";
     n += "\"" + states[i] +"\",";
   }
