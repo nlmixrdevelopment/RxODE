@@ -268,6 +268,48 @@ rxPermissive(
       expect_equal(tmp2$cwt, tmp2$wt)
 
     })
+
+    test_that("id is retained as an integer", {
+
+      theoSd <- readRDS("theoSd.rds")
+      d <- theoSd[, names(theoSd) != "EVID"]
+      d <- d[d$ID != 10, ]
+
+      d$ID <- as.integer(d$ID)
+
+      mod <- RxODE({
+        tka <- 1
+        tcl <- 2
+        tv <- 3
+        ka <- exp(tka)
+        cl <- exp(tcl)
+        v <- exp(tv)
+        cp <- linCmt()
+      })
+
+      tmp <- rxSolve(mod, d)
+
+      expect_true(is.integer(d$ID))
+      expect_true(is.integer(tmp$id))
+
+      ## Now integerish
+      d$ID <- as.numeric(d$ID)
+
+      tmp <- rxSolve(mod, d)
+
+      expect_true(is.numeric(d$ID))
+      expect_true(is.integer(tmp$id))
+
+      d$ID <- as.numeric(d$ID) + 0.1
+
+      ## Now non integerish
+
+      tmp <- rxSolve(mod, d)
+
+      expect_true(is.numeric(d$ID))
+      expect_true(is.factor(tmp$id))
+
+    })
   },
   test = "cran"
 )
