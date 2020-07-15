@@ -39,9 +39,6 @@
 
 .onAttach <- function(libname, pkgname) {
   ## For some strange reason, mvnfast needs to be loaded before RxODE to work correctly
-  if (requireNamespace("mvnfast", quietly = TRUE)) {
-    assignInMyNamespace(".mvnfast", loadNamespace("mvnfast"))
-  }
   .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO") == "1")
   rxPermissive(respect = TRUE) ## need to call respect on the first time
   if (!.rxWinRtoolsPath(retry = NA)) {
@@ -55,6 +52,18 @@
   rxTempDir()
   .getDTEnv()
   .ggplot2Fix()
+  v <- packageVersion("RxODE")
+  packageStartupMessage("RxODE ", v, " using ", getRxThreads(verbose=FALSE),
+                        " threads (see ?getRxThreads)")
+  if (!.Call(`_rxHasOpenMp`)) {
+    packageStartupMessage("========================================\n",
+        "RxODE has not detected OpenMP support and will run in single-threaded mode\n",
+        if (Sys.info()["sysname"]=="Darwin")
+          "This is a Mac. Please read https://mac.r-project.org/openmp/"
+        else
+          paste0("The system is ", Sys.info()["sysname"], "; To get best performance enable OpenMP"),
+        "\n========================================\n")
+  }
 }
 
 .onUnload <- function(libpath) {

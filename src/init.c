@@ -6,6 +6,21 @@
 #include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
+
+
+SEXP _rxHasOpenMp(){
+  SEXP ret = PROTECT(allocVector(LGLSXP,1));
+#ifdef _OPENMP
+  INTEGER(ret)[0] = 1;
+#else
+  INTEGER(ret)[0] = 0;
+#endif
+  UNPROTECT(1);
+  return ret;
+}
+
+
+
 SEXP _vecDF(SEXP cv, SEXP n_);
 SEXP _RxODE_dropUnitsRxSolve(SEXP);
 SEXP _RxODE_atolRtolFactor_(SEXP);
@@ -428,6 +443,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSolve_", (DL_FUNC) _RxODE_rxSolve_, 8},
     {"getRxThreads_R", (DL_FUNC) getRxThreads_R, 1},
     {"setRxthreads", (DL_FUNC) setRxthreads, 3},
+    {"_rxHasOpenMp", (DL_FUNC) _rxHasOpenMp, 0},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
