@@ -685,8 +685,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   CharacterVector idLvl;
   int idInt=0;
   if (idCol != -1){
-    int type = TYPEOF(inData[idCol]);
-    if (type == INTSXP || type == REALSXP) {
+    if (qtest("X", inData[idCol])){
       int idInt = 1;
     }
     inId = convertId_(inData[idCol]);//as<IntegerVector>();
