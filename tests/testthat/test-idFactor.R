@@ -18,6 +18,8 @@ rxPermissive(
         cp <- linCmt()
       })
 
+      d$ID <- paste(d$ID)
+
       tmp <- rxSolve(mod, d)
       expect_true(inherits(tmp$id, "factor"))
       ## Notice 10 is missing.
@@ -34,11 +36,13 @@ rxPermissive(
       tmp <- rxSolve(mod, d, idFactor = FALSE)
 
       expect_false(inherits(tmp$id, "factor"))
+
     })
 
     test_that("Test giving IDs to data-frames", {
 
       d <- readRDS("theoSd.rds")
+      d$ID <- paste(d$ID)
 
       mod <- RxODE({
         ka <- exp(tka)
@@ -81,6 +85,7 @@ rxPermissive(
       ## Now add an id to the dataset
 
       d <- readRDS("theoSd.rds")
+      d$ID <- paste(d$ID)
 
       parData <- data.frame(
         id = 1:13, tka = 1 + rnorm(13, sd = 0.01),
@@ -149,7 +154,9 @@ rxPermissive(
     })
 
     test_that("test iCov ID", {
+
       d <- readRDS("theoSd.rds")
+      d$ID <- paste(d$ID)
 
       mod <- RxODE({
         tka <- 1
@@ -182,7 +189,7 @@ rxPermissive(
       expect_equal(tmp2$cwt, tmp2$wt)
 
       ## Now drop an id from the dataset
-      d <- d[d$ID != 10, ]
+      d <- d[d$ID != "10", ]
 
       tmp1 <- expect_warning(rxSolve(mod, d, iCov = iCov, keep = "wt"))
       tmp2 <- expect_warning(rxSolve(mod, d, iCov = iCov2, keep = "wt"))
@@ -199,6 +206,7 @@ rxPermissive(
       ## Now add an id to the dataset
 
       d <- readRDS("theoSd.rds")
+      d$ID <- paste(d$ID)
       d <- d[, names(d) != "WT"]
 
       iCov <- data.frame(id = 1:13, wt = 70 + rnorm(13, sd = 3))
@@ -258,6 +266,49 @@ rxPermissive(
       expect_false(all(tmp1$params$wt == tmp2$params$wt))
       expect_equal(tmp1$cwt, tmp1$wt)
       expect_equal(tmp2$cwt, tmp2$wt)
+
+    })
+
+    test_that("id is retained as an integer", {
+
+      theoSd <- readRDS("theoSd.rds")
+      d <- theoSd[, names(theoSd) != "EVID"]
+      d <- d[d$ID != 10, ]
+
+      d$ID <- as.integer(d$ID)
+
+      mod <- RxODE({
+        tka <- 1
+        tcl <- 2
+        tv <- 3
+        ka <- exp(tka)
+        cl <- exp(tcl)
+        v <- exp(tv)
+        cp <- linCmt()
+      })
+
+      tmp <- rxSolve(mod, d)
+
+      expect_true(is.integer(d$ID))
+      expect_true(is.integer(tmp$id))
+
+      ## Now integerish
+      d$ID <- as.numeric(d$ID)
+
+      tmp <- rxSolve(mod, d)
+
+      expect_true(is.numeric(d$ID))
+      expect_true(is.integer(tmp$id))
+
+      d$ID <- as.numeric(d$ID) + 0.1
+
+      ## Now non integerish
+
+      tmp <- rxSolve(mod, d)
+
+      expect_true(is.numeric(d$ID))
+      expect_true(is.factor(tmp$id))
+
     })
   },
   test = "cran"
