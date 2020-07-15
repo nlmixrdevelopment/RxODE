@@ -97,8 +97,9 @@ extern int getRxThreads(const int64_t n, const bool throttle) {
   // throttle==true  : a number of iterations per thread (rxThrottle) is applied before a second thread is utilized 
   // throttle==false : parallel region is already pre-chunked such as in fread; e.g. two batches intended for two threads
   if (n<1) return 1; // 0 or negative could be deliberate in calling code for edge cases where loop is not intended to run at all
-  int64_t ans = throttle ? 1+(n-1)/rxThrottle :  // 1 thread for n<=1024, 2 thread for n<=2048, etc
-                           n;                    // don't use 20 threads for just one or two batches
+  /* int64_t ans = throttle ? 1+(n-1)/rxThrottle :  // 1 thread for n<=1024, 2 thread for n<=2048, etc */
+  /*                          n;                    // don't use 20 threads for just one or two batches */
+  int64_t ans = n;
   return ans >= rxThreads ? rxThreads : (int)ans;
 }
 
