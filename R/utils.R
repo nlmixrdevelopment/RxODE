@@ -892,7 +892,6 @@ expit <- function(alpha, low = 0, high = 1) {
   .Call(`_expit`, alpha, low, high, PACKAGE = "RxODE")
 }
 
-
 ##' Get/Set the number of threads that RxODE uses
 ##'
 ##' @param threads NULL (default) rereads environment variables. 0

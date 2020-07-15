@@ -2304,7 +2304,7 @@ extern "C" SEXP get_fkeepn(){
 
 bool useForder();
 Function getForder();
-int getThrottle();
+extern "C" int getThrottle();
 
 extern "C" void sortIds(rx_solve* rx, int ini) {
   rx_solving_options_ind* ind;

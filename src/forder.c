@@ -99,7 +99,6 @@ extern int getRxThreads(const int64_t n, const bool throttle) {
   if (n<1) return 1; // 0 or negative could be deliberate in calling code for edge cases where loop is not intended to run at all
   int64_t ans = throttle ? 1+(n-1)/rxThrottle :  // 1 thread for n<=2, 2 thread for n<=4, etc
                            n;                    // don't use 20 threads for just one or two batches
-  int64_t ans = n;
   return ans >= rxThreads ? rxThreads : (int)ans;
 }
 
