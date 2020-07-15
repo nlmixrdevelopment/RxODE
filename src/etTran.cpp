@@ -685,8 +685,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   CharacterVector idLvl;
   int idInt=0;
   if (idCol != -1){
-    if (qtest("X", inData[idCol])){
-      int idInt = 1;
+    if (qtest(inData[idCol], "X")){
+      idInt = 1;
     }
     inId = convertId_(inData[idCol]);//as<IntegerVector>();
     idLvl = Rf_getAttrib(inId, R_LevelsSymbol);
@@ -1904,7 +1904,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   Rf_setAttrib(lst1F, R_ClassSymbol, wrap("data.frame"));
   Rf_setAttrib(lst1F, R_RowNamesSymbol,
 	       IntegerVector::create(NA_INTEGER, -nid));
-  List e(26);
+  List e(27);
   RxTransNames;
   e[RxTrans_ndose] = IntegerVector::create(ndose);
   e[RxTrans_nobs]  = IntegerVector::create(nobs);

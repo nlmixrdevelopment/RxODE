@@ -2601,7 +2601,6 @@ static inline void rxSolve_ev1Update(const RObject &obj,
     CharacterVector tmpC = ev1.attr("class");
     List tmpL = tmpC.attr(".RxODE.lst");
     rxSolveDat->idLevels = asCv(tmpL[RxTrans_idLvl], "idLvl");
-    rxSolveDat->
     rx->nKeepF = keepFcov.size();
     rxcEvid = 2;
     rxcTime = 1;
@@ -2630,7 +2629,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
     CharacterVector cls = ev1.attr("class");
     List tmpL = cls.attr(".RxODE.lst");
     rx->nobs2 = asInt(tmpL[RxTrans_nobs], "nobs");
-    rxSolveDat->convertInt = (asInt(tmpL[rxTrans_idInfo], "idInfo")==1);
+    rxSolveDat->convertInt = (asInt(tmpL[RxTrans_idInfo], "idInfo")==1);
     CharacterVector clsEt = Rf_getAttrib(ev1, R_ClassSymbol);
     List e   = clsEt.attr(".RxODE.lst");
     // SETUP factors for ID=="" and CMT="" etc
@@ -3715,12 +3714,16 @@ static inline List rxSolve_df(const RObject &obj,
     did.attr("class") = "factor";
     did.attr("levels") = rxSolveDat->idLevels;
   }
-  if (rxSolveDat->convertInt){
-    IntegerVector lvl = as<IntegerVector>(rxSolveDat->idLevels);
+  if (rxSolveDat->convertInt && rx->nsub > 1){
+    CharacterVector lvlC = rxSolveDat->idLevels;
+    IntegerVector lvlI(lvlC.size());
+    for (int j = lvlC.size(); j--;) {
+      lvlI[j] = atoi(CHAR(lvlC[j]));
+    }
     IntegerVector did = as<IntegerVector>(dat["id"]);
     IntegerVector did2(did.size());
     for (int j = did.size(); j--;){
-      did2[j] = lvl[did[j]-1];
+      did2[j] = lvlI[did[j]-1];
     }
     dat["id"] = did2;
   }
