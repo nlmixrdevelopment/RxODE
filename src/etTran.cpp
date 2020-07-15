@@ -683,7 +683,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   int tmpCmt = 1;
   IntegerVector inId;
   CharacterVector idLvl;
+  int idInt=0;
   if (idCol != -1){
+    int type = TYPEOF(inData[idCol]);
+    if (type == INTSXP || type == REALSXP) {
+      int idInt = 1;
+    }
     inId = convertId_(inData[idCol]);//as<IntegerVector>();
     idLvl = Rf_getAttrib(inId, R_LevelsSymbol);
   } else {
@@ -1950,6 +1955,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   e[RxTrans_censAdd] = censAdd;
   e[RxTrans_limitAdd] = limitAdd;
   e[RxTrans_levelInfo] = inDataLvl;
+  e[RxTrans_idInfo] = idInt;
   Rf_setAttrib(keepL, R_NamesSymbol, keepN);
   Rf_setAttrib(keepL, R_ClassSymbol, wrap("data.frame"));
   Rf_setAttrib(keepL, R_RowNamesSymbol,
