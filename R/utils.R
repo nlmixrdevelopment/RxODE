@@ -897,15 +897,35 @@ expit <- function(alpha, low = 0, high = 1) {
 ##'
 ##' @param threads NULL (default) rereads environment variables. 0
 ##'   means to use all logical CPUs available. Otherwise a number >= 1
+##'
 ##' @param percent If provided it should be a number between 2 and
 ##'   100; the percentage of logical CPUs to use. By default on
 ##'   startup, 50 percent.
-##' @param throttle 1024 (default) means that, roughly speaking, a
-##'   single thread will be used when number of all points<=1024, 2 threads when
-##'   the number of all points is <=2048, etc. The throttle is to speed up small data
+##'
+##' @param throttle 2 (default) means that, roughly speaking, a
+##'   single thread will be used when number subjects solved for is <=2, 2 threads when
+##'   the number of all points is <=4, etc. The throttle is to speed up small data
 ##'   tasks (especially when repeated many times) by not incurring the
-##'   overhead of managing multiple threads. Hence the number of
-##'   threads is throttled (restricted) for small tasks.
+##'   overhead of managing multiple threads.
+##'
+##'   The throttle will also suppress sorting which ID will be solved first
+##'   when there are (nsubject solved)*throttle <= nthreads.  In
+##'   `RxODE` this sorting occurs to minimize the time for waiting for
+##'   another thread to finish. If the last item solved is has a long
+##'   solving time, all the other solving have to wait for that last
+##'   costly solving to occur. If the items which are likely to take
+##'   more time are solved first, this wait is less likely to have an
+##'   impact on the overall solving time.
+##'
+##'   In RxODE the IDs are sorted by the individual number of solving
+##'   points (largest first). It also has a C interface that allows
+##'   these IDs to be resorted by total time spent solving the
+##'   equation.  This allows packages like nlmixr to sort by solving
+##'   time if needed.
+##'
+##'   Overall the the number of threads is throttled (restricted) for
+##'   small tasks and sorting for IDs are suppressed.
+##'
 ##' @param verbose Display the value of relevant OpenMP settings
 ##' @export
 getRxThreads <- function(verbose=FALSE){

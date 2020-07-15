@@ -221,6 +221,7 @@ typedef struct {
   double *cRate;
   // Cache duration
   double *cDur;
+  double solveTime;
 } rx_solving_options_ind;
 
 typedef struct {
@@ -261,6 +262,7 @@ typedef struct {
   int maxAllTimes;
   uint8_t ***keys;// = NULL; keys per thread
   int *TMP;
+  int *ordId;
   uint8_t *UGRP;
   int spare;
   int nbyte;

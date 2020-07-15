@@ -36,10 +36,11 @@ extern "C" uint64_t dtwiddle(const void *p, int i);
 
 // https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L193-L211
 // range_d is modified because it DOES NOT count na/inf because RxODE assumes times cannot be NA, NaN, -Inf, Inf
+// Also can integrate with prior range information (like prior integer range)
 static void range_d(double *x, int n, uint64_t *out_min, uint64_t *out_max)
 // return range of finite numbers (excluding NA, NaN, -Inf, +Inf), a count of NA and a count of Inf|-Inf|NaN
 {
-  uint64_t min=0, max=0;
+  uint64_t min=*out_min, max=*out_max;
   int i=0;
   max = min = dtwiddle(x, i++);
   for(; i<n; i++) {
@@ -50,7 +51,6 @@ static void range_d(double *x, int n, uint64_t *out_min, uint64_t *out_max)
   *out_min = min;
   *out_max = max;
 }
-
 
 #include "../inst/include/RxODE_as.h"
 
@@ -2234,6 +2234,9 @@ extern "C" void lineFree(vLines *sbb);
 LogicalVector rxSolveFree(){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
+  // Free the solve id order
+  if (rx->ordId != NULL) free(rx->ordId);
+  rx->ordId=NULL;
   // Free the allocated keys
   if (rx->keys != NULL) {
     int i=0;
@@ -2298,6 +2301,67 @@ extern "C" SEXP get_ikeepn(){
 extern "C" SEXP get_fkeepn(){
   return as<SEXP>(keepFcov.attr("names"));
 }
+
+bool useForder();
+Function getForder();
+int getThrottle();
+
+extern "C" void sortIds(rx_solve* rx, int ini) {
+  rx_solving_options_ind* ind;
+  int nall = rx->nsub*rx->nsim;
+  // Perhaps throttle this to nall*X
+  if (rx->op->cores >= nall*getThrottle()) {
+    // No point in sorting
+    if (ini) {
+      rx->ordId = (int*)malloc(nall*sizeof(int));
+      std::iota(rx->ordId,rx->ordId+nall,1);
+    } else {
+      std::iota(rx->ordId,rx->ordId+nall,1);
+    }
+  } else {
+    if (ini) {
+      IntegerVector ntimes(nall);
+      IntegerVector ord;
+      for (int i = 0; i < nall; i++) {
+	ind = &(rx->subjects[i]);
+	ntimes[i] = ind->n_all_times;
+      }
+      // If we use data.table directly
+      Function order = getForder();
+      if (useForder()) {
+	ord = order(ntimes, _["na.last"] = LogicalVector::create(NA_LOGICAL),
+		    _["decreasing"] = LogicalVector::create(true));
+      } else {
+	ord = order(ntimes, _["na.last"] = LogicalVector::create(NA_LOGICAL),
+		    _["method"]="radix",
+		    _["decreasing"] = LogicalVector::create(true));
+      }
+      rx->ordId = (int*)malloc(nall*sizeof(int));
+      std::copy(ord.begin(), ord.end(), rx->ordId);
+    } else {
+      // Here we order based on run times.  This way this iteratively
+      // changes the order based on run-time.
+      NumericVector solveTime(nall);
+      IntegerVector ord;
+      for (int i = 0; i < nall; i++) {
+	ind = &(rx->subjects[i]);
+	solveTime[i] = ind->solveTime;
+      }
+      Function order = getForder();
+      if (useForder()) {
+	ord = order(solveTime, _["na.last"] = LogicalVector::create(NA_LOGICAL),
+		    _["decreasing"] = LogicalVector::create(true));
+      } else {
+	ord = order(solveTime, _["na.last"] = LogicalVector::create(NA_LOGICAL),
+		    _["method"]="radix",
+		    _["decreasing"] = LogicalVector::create(true));
+      }
+      // This assumes that this has already been created
+      std::copy(ord.begin(), ord.end(), rx->ordId);
+    }
+  }
+}
+
 typedef struct{
   bool updateObject;
   bool isRxSolve;
@@ -3175,12 +3239,13 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     nsub = 0;
     ind = &(rx->subjects[0]);
     ind->idx=0;
+    ind->solveTime=0.0;
     j=0;
     rx->maxAllTimes=0;
     int lastId = id[0]-42;
-    for (i = 0; i < ids; i++){
-      if (lastId != id[i]){
-	if (nall != 0){
+    for (i = 0; i < ids; i++) {
+      if (lastId != id[i]) {
+	if (nall != 0) {
 	  // Finalize last solve.
 	  ind->n_all_times    = ndoses+nobs;
 	  if (ind->n_all_times > rx->maxAllTimes) rx->maxAllTimes= ind->n_all_times;
@@ -4618,16 +4683,20 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       setupOnlyObj = obj;
       return as<SEXP>(LogicalVector::create(true));
     }
-    if (!rxIsNull(setupOnlyObj)) {
-      rxUnlock(setupOnlyObj);
-      setupOnlyObj = R_NilValue;
-    }
 #ifdef rxSolveT
     REprintf("Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
+    if (op->stiff == 2) { // liblsoda
+      // Order by the number of times per subject
+      sortIds(rx, 1);
+    }
     SEXP ret = rxSolve_finalize(object, rxControl, specParams, extraArgs, params, events,
 				inits, rxSolveDat);
+    if (!rxIsNull(setupOnlyObj)) {
+      rxUnlock(setupOnlyObj);
+      setupOnlyObj = R_NilValue;
+    }            
 #ifdef rxSolveT
     REprintf("Time15: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();

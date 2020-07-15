@@ -82,7 +82,7 @@ void initRxThreads() {
   ans = imin(ans, getIntEnv("OMP_NUM_THREADS", INT_MAX));   //   expectation by reading them again now. OpenMP just reads them on startup (quite reasonably)
   ans = imax(ans, 1);  // just in case omp_get_* returned <=0 for any reason, or the env variables above are set <=0
   rxThreads = ans;
-  rxThrottle = imax(1, getIntEnv("RXODE_THROTTLE", 1024)); // 2nd thread is used only when n>1024, 3rd thread when n>2048, etc
+  rxThrottle = imax(1, getIntEnv("RXODE_THROTTLE", 2)); // 2nd thread is used only when nid>2, 3rd thread when n>4, etc
 }
 
 static const char *mygetenv(const char *name, const char *unset) {
@@ -97,8 +97,8 @@ extern int getRxThreads(const int64_t n, const bool throttle) {
   // throttle==true  : a number of iterations per thread (rxThrottle) is applied before a second thread is utilized 
   // throttle==false : parallel region is already pre-chunked such as in fread; e.g. two batches intended for two threads
   if (n<1) return 1; // 0 or negative could be deliberate in calling code for edge cases where loop is not intended to run at all
-  /* int64_t ans = throttle ? 1+(n-1)/rxThrottle :  // 1 thread for n<=1024, 2 thread for n<=2048, etc */
-  /*                          n;                    // don't use 20 threads for just one or two batches */
+  int64_t ans = throttle ? 1+(n-1)/rxThrottle :  // 1 thread for n<=2, 2 thread for n<=4, etc
+                           n;                    // don't use 20 threads for just one or two batches
   int64_t ans = n;
   return ans >= rxThreads ? rxThreads : (int)ans;
 }
@@ -116,7 +116,7 @@ SEXP getRxThreads_R(SEXP verbose) {
     Rprintf(_("  omp_get_num_procs()            %d\n"), omp_get_num_procs());
     Rprintf(_("  RXODE_NUM_PROCS_PERCENT  %s\n"), mygetenv("RXODE_NUM_PROCS_PERCENT", "unset (default 50)"));
     Rprintf(_("  RXODE_NUM_THREADS        %s\n"), mygetenv("RXODE_NUM_THREADS", "unset"));
-    Rprintf(_("  RXODE_THROTTLE           %s\n"), mygetenv("RXODE_THROTTLE", "unset (default 1024)"));
+    Rprintf(_("  RXODE_THROTTLE           %s\n"), mygetenv("RXODE_THROTTLE", "unset (default 2)"));
     Rprintf(_("  omp_get_thread_limit()         %d\n"), omp_get_thread_limit());
     Rprintf(_("  omp_get_max_threads()          %d\n"), omp_get_max_threads());
     Rprintf(_("  OMP_THREAD_LIMIT               %s\n"), mygetenv("OMP_THREAD_LIMIT", "unset"));  // CRAN sets to 2
@@ -546,4 +546,8 @@ void radix_r(const int from, const int to, const int radix,
   free(starts);
   free(ugrps);
   free(ngrps);
+}
+
+int getThrottle(){
+  return rxThrottle;
 }

@@ -343,6 +343,7 @@ void rxOptionsIniEnsure(int mx){
   rx->keys = NULL;
   rx->TMP=NULL;
   rx->UGRP=NULL;
+  rx->ordId = NULL;
 }
 
 int compareFactorVal(int val,
@@ -885,9 +886,6 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
   return ret;
 }
 
-/* void doSort(rx_solving_options_ind *ind); */
-
-
 void radix_r(const int from, const int to, const int radix,
 	     rx_solving_options_ind *ind, rx_solve *rx);
 
@@ -895,7 +893,6 @@ uint64_t dtwiddle(const void *p, int i);
 // Adapted from 
 // https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L630-L649
 void sortRadix(rx_solving_options_ind *ind){
-  /* doSort(ind); */
 #ifdef _OPENMP
   int core = omp_get_thread_num();
 #else
@@ -1594,7 +1591,8 @@ void handleSS(int *neq,
 // Inductive linearization routines
 
 extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
-			t_update_inis u_inis, t_ME ME, t_IndF IndF){
+			t_update_inis u_inis, t_ME ME, t_IndF IndF) {
+  clock_t t0 = clock();
   assignFuns();
   int i;
   int neq[2];
@@ -1719,6 +1717,7 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
     }
   }
+  ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
 }
 
 extern void ind_indLin(rx_solve *rx,
@@ -1764,10 +1763,20 @@ extern void par_indLin(rx_solve *rx){
 // liblsoda
 extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt_t opt, int solveid, 
 			  t_dydt_liblsoda dydt_liblsoda, t_update_inis u_inis){
+  clock_t t0 = clock();
   int i;
   int neq[2];
   neq[0] = op->neq;
-  neq[1] = solveid;
+  // Here we pick the sorted solveid
+  // rx->ordId[solveid]-1
+  // This -1 is because R is 1 indexed and C/C++ is 0 indexed
+  // This uses data.table for ordering which will return a 1 as the first item
+  // This way we solve based on the item that takes the likely takes most time to solve
+  //
+  // First this is ordered by the number of times needed to solve
+  // If called externally again this is then ordered by the total time that the solver spent in an id.
+  //
+  neq[1] = rx->ordId[solveid]-1;
   /* double *yp = &yp0[neq[1]*neq[0]]; */
   int nx;
   rx_solving_options_ind *ind;
@@ -1892,6 +1901,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   }
   // Reset LHS to NA
   lsoda_free(&ctx);
+  ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
 }
 
 extern void ind_liblsoda(rx_solve *rx, int solveid, 
@@ -1949,7 +1959,7 @@ extern void par_liblsoda(rx_solve *rx){
   // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
   int abort = 0;
 #ifdef _OPENMP
-#pragma omp parallel for num_threads(getRxThreads(rx->nall, true))
+#pragma omp parallel for num_threads(getRxThreads(nsim*nsub, true))
 #endif
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     if (abort == 0){
@@ -2076,6 +2086,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
                        t_dydt_lsoda_dum dydt_lsoda,
                        t_update_inis u_inis,
                        t_jdum_lsoda jdum){
+  clock_t t0 = clock();
   rx_solving_options_ind *ind;
   double *yp;
   void *ctx = NULL;
@@ -2196,6 +2207,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
       if (i+1 != ind->n_all_times) memcpy(ind->solve+neq[0]*(i+1), yp, neq[0]*sizeof(double));
     }
   }
+  ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
 }
 
 extern void ind_lsoda(rx_solve *rx, int solveid,
@@ -2260,6 +2272,7 @@ extern void par_lsoda(rx_solve *rx){
 extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq, 
                      t_dydt c_dydt,
                      t_update_inis u_inis){
+  clock_t t0 = clock();
   double rtol=op->RTOL, atol=op->ATOL;
   int itol=0;           //0: rtol/atol scalars; 1: rtol/atol vectors
   int iout=0;           //iout=0: solout() NEVER called
@@ -2418,6 +2431,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
       if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
     }
   }
+  ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
 }
 
 extern void ind_dop(rx_solve *rx, int solveid,
