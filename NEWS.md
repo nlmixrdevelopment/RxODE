@@ -220,6 +220,9 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
  - Assume no infinite values or `NA`/`NaN` values of time
  - Always sort time in ascending order
 
+* Changed method for setting/getting number of threads based on
+  `data.table`'s method
+
 * More descriptive errors when types of input are different than expected
   
 ## Bug fixes:
