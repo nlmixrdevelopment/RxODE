@@ -24,6 +24,10 @@
   
 * `cvPost` now will returned a named list of matrices if the input matrix was named
 
+* `rxSolve` will now return an integer `id` instead of a factor `id`
+  when `id` is integer or integerish (as defined by checkmate).
+  Otherwise a factor will be returned.
+
 ## New features
 
 * Comparison of factors/strings is now supported in `RxODE`; Therefore
