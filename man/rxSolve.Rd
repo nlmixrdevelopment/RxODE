@@ -104,7 +104,6 @@ rxControl(
   ssRtol = 1e-06,
   safeZero = TRUE,
   cacheEvent = TRUE,
-  mvnfast = FALSE,
   sumType = c("pairwise", "fsum", "kahan", "neumaier", "c"),
   prodType = c("long double", "double", "logify"),
   sensType = c("advan", "autodiff", "forward", "central"),
@@ -246,12 +245,10 @@ default it is equivalent to \code{Inf}, or a normal distribution.}
 \item{sigmaUpper}{Upper bounds for simulated unexplained variability (by default Inf)}
 
 \item{nCoresRV}{Number of cores used for the simulation of the
-sigma variables.  By default this is 1. This uses the package
-\code{\link[mvnfast]{rmvn}} and \code{\link[mvnfast]{rmvt}}.
-To reproduce the results you need to run on the same platform
-with the same number of cores. This is the reason this is set
-to be one, regardless of what the number of cores are used in
-threaded ODE solving.}
+sigma variables.  By default this is 1. To reproduce the results
+you need to run on the same platform with the same number of
+cores. This is the reason this is set to be one, regardless of
+what the number of cores are used in threaded ODE solving.}
 
 \item{sigmaIsChol}{Boolean indicating if the sigma is in the
 Cholesky decomposition instead of a symmetric covariance}
@@ -530,10 +527,6 @@ this is turned on but you may turn it off if you wish.}
 \item{cacheEvent}{is a boolean.  If `TRUE` (default), events are cached in
 memory to speed up solving.}
 
-\item{mvnfast}{Use the `mvnfast` package for multivariate normal
-simulation instead of the thread-safe threefry based
-multivariate normal package provided in `RxODE`.}
-
 \item{sumType}{Sum type to use for \code{sum()} in
     RxODE code blocks.
 
@@ -563,6 +556,13 @@ multiplication and then converts back.
 \code{forward} Use forward difference solutions
 
 \code{central} Use central differences}
+
+\item{linDiff}{This gives the linear difference amount for all the
+types of linear compartment model parameters where sensitivities
+are not calculated.}
+
+\item{linDiffCentral}{This gives the which parameters use central
+differences for the linear compartment model parameters.}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE
