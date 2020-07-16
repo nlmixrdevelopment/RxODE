@@ -1240,6 +1240,21 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    } else {
 	      sAppend(&sb, "_%s1(", v);
 	      sAppend(&sbDt, "_%s1(", v);
+	      if (new_de(v2)){
+		if (rx_syntax_require_ode_first){
+		  updateSyntaxCol();
+		  sPrint(&buf,ODEFIRST,v);
+		  trans_syntax_error_report_fn(buf.s);
+		  continue;
+		}
+		tb.statei++;
+		sAppend(&sb, "%d,", tb.de.n);
+		sAppend(&sbDt, "%d,", tb.de.n);
+	      } else {
+		new_or_ith(v2);
+		sAppend(&sb, "%d,", tb.id);
+		sAppend(&sbDt, "%d,", tb.id);
+	      }
 	      // tad(cmt)
 	    }
 	    sAppend(&sbt, "%s(", v);

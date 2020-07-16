@@ -696,10 +696,22 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param linDiff This gives the linear difference amount for all the
 ##'   types of linear compartment model parameters where sensitivities
-##'   are not calculated.
+##'   are not calculated. The named components of this numeric vector are:
+##'
+##' \itemize{
+##' \item \code{"lag"} Central compartment lag
+##' \item \code{"f"} Central compartment bioavailability
+##' \item \code{"rate"} Central compartment modeled rate
+##' \item \code{"dur"} Central compartment modeled duration
+##' \item \code{"lag2"} Depot compartment lag
+##' \item \code{"f2"} Depot compartment bioavailability
+##' \item \code{"rate2"} Depot compartment modeled rate
+##' \item \code{"dur2"} Depot compartment modeled duration
+##' }
 ##'
 ##' @param linDiffCentral This gives the which parameters use central
-##'   differences for the linear compartment model parameters.
+##'   differences for the linear compartment model parameters.  The
+##'   are the same components as \code{linDiff}
 ##'
 ##' @references
 ##'

@@ -85,13 +85,13 @@
 #define _expit1(x) expit(x, 0.0, 1.0)
 #define _expit2(x, y) expit(x, y, 1.0)
 #define _tad0() (t-_solveData->subjects[_cSub].tlast)
-#define _tad1(x) (t-_solveData->subjects[_cSub].tlastS[x])
+#define _tad1(x,y) (t-_solveData->subjects[_cSub].tlastS[x])
 #define _tafd0()  (t-_solveData->subjects[_cSub].tfirst)
-#define _tafd1(x) (t-_solveData->subjects[_cSub].tfirstS[x])
+#define _tafd1(x,y) (t-_solveData->subjects[_cSub].tfirstS[x])
 #define _tlast0() _solveData->subjects[_cSub].tlast
-#define _tlast1(x) _solveData->subjects[_cSub].tlastS[x]
+#define _tlast1(x,y) _solveData->subjects[_cSub].tlastS[x]
 #define _tfirst0()  _solveData->subjects[_cSub].tfirst
-#define _tfirst1(x) _solveData->subjects[_cSub].tfirstS[x]
+#define _tfirst1(x,y) _solveData->subjects[_cSub].tfirstS[x]
 #undef rf
 #define rf(ind, x, y) rxf(ind, x, y)
 // int compareFactorVal(int val, const char *valStr, const char *cmpValue)

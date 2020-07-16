@@ -997,6 +997,38 @@ extern void handleTlast(double *time, rx_solving_options_ind *ind){
   handleTlastInline(time, ind);
 }
 
+static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind, rx_solving_options *op, rx_solve *rx,
+			     t_update_inis u_inis){
+  ind->ixds = 0; // reset dosing
+  ind->id=solveid;
+  ind->cacheME=0;
+  // neq[0] = op->neq
+  for (int j = op->neq; j--;) {
+    ind->InfusionRate[j] = 0;
+    ind->on[j] = 1;
+    ind->tlastS[j] = NA_REAL;
+    ind->tfirstS[j] = NA_REAL;
+  }
+  ind->inLhs = inLhs;
+  if (rx->nMtime) calc_mtime(solveid, ind->mtime);
+  for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
+  if (inLhs == 0){
+    memcpy(ind->solve, op->inits, op->neq*sizeof(double));
+    u_inis(solveid, ind->solve); // Update initial conditions @ current time
+  }
+  ind->_newind = 1;
+  ind->tlast = NA_REAL;
+  ind->tfirst = NA_REAL;
+  ind->solved = -1;
+  if (rx->needSort){
+    if (inLhs == 0 || (inLhs == 1 && op->neq==0)) {
+      sortRadix(ind);
+      if (op->badSolve) return 0;
+    }
+  }
+  return 1;
+}
+
 
 static inline int handle_evid(int evid, int neq, 
 			      int *BadDose,
@@ -1631,40 +1663,18 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   inits = op->inits;
   int idid = 0;
   ind = &(rx->subjects[neq[1]]);
-  ind->ixds = 0;
-  ind->id = neq[1];
+  if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) return;
   nx = ind->n_all_times;
   evid = ind->evid;
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
-  for (int j = neq[0]; j--;) {
-    ind->InfusionRate[j] = 0;
-    ind->on[j] = 1;
-    ind->cacheME=0;
-  }
   dose = ind->dose;
   ret = ind->solve;
   x = ind->all_times;
   rc= ind->rc;
   double xp = x[0];
   xoutp=xp;
-  //--- inits the system
-  memcpy(ret,inits, neq[0]*sizeof(double));
-  // Reset LHS to NA
-  ind->inLhs = 0;
-  for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
-  u_inis(neq[1], ret); // Update initial conditions
   unsigned int j;
-  if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-  if (rx->needSort){
-    sortRadix(ind);
-    if (op->badSolve) return;
-  }
-  ind->tlast = NA_REAL;
-  ind->tfirst = NA_REAL;
-  /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
-  ind->_newind = 1;
-  ind->solved = -1;
   for(i=0; i<nx; i++) {
     ind->idx=i;
     xout = getTime(ind->ix[i], ind);
@@ -1818,39 +1828,17 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   };
   lsoda_prepare(&ctx, &opt);
   ind = &(rx->subjects[neq[1]]);
-  ind->ixds = 0;
-  ind->id = neq[1];
+  if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) return;
   nx = ind->n_all_times;
   evid = ind->evid;
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
-  for (int j = neq[0]; j--;) {
-    ind->InfusionRate[j] = 0;
-    ind->on[j] = 1;
-    ind->cacheME=0;
-  }
   dose = ind->dose;
   ret = ind->solve;
   x = ind->all_times;
   rc= ind->rc;
   double xp = x[0];
-  //--- inits the system
-  // Reset LHS to NA
-  ind->inLhs = 0;
-  for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
-  memcpy(ret,inits, neq[0]*sizeof(double));
-  u_inis(neq[1], ret); // Update initial conditions
   unsigned int j;
-  if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-  if (rx->needSort) {
-    sortRadix(ind);
-    if (op->badSolve) return;
-  }
-  /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
-  ind->_newind = 1;
-  ind->solved = -1;
-  ind->tlast = NA_REAL;
-  ind->tfirst = NA_REAL;
   for(i=0; i<nx; i++) {
     ind->idx=i;
     yp = ret+neq[0]*i;
@@ -2125,7 +2113,6 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   neq[1] = solveid;
   
   ind = &(rx->subjects[neq[1]]);
-  ind->id = neq[1];
 
   rwork[4] = op->H0; // H0
   rwork[5] = ind->HMAX; // Hmax
@@ -2137,30 +2124,11 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   iwork[7] = op->MXORDN; // MXORDN 
   iwork[8] = op->MXORDS;  // MXORDS
     
-  ind->ixds = 0;
   double xp = ind->all_times[0];
   double xout;
 
-  //--- inits the system
-  for (int j = neq[0]; j--;) {
-    ind->InfusionRate[j] = 0;
-    ind->on[j] = 1;
-  }
-  // Reset LHS to NA
-  ind->inLhs = 0;
-  for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
-  memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
-  u_inis(neq[1], ind->solve); // Update initial conditions
-  if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-  if (rx->needSort) {
-    sortRadix(ind);
-    if (op->badSolve) return;
-  }
+  if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) return;
   unsigned int j;
-  ind->_newind = 1;
-  ind->tlast = NA_REAL;
-  ind->tfirst = NA_REAL;
-  ind->solved = -1;
   for(i=0; i < ind->n_all_times; i++) {
     ind->idx=i;
     yp   = ind->solve+neq[0]*i;
@@ -2323,8 +2291,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   int nx;
   neq[1] = solveid;
   ind = &(rx->subjects[neq[1]]);
-  ind->id = neq[1];
-  ind->ixds = 0;
+  if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) return;
   nx = ind->n_all_times;
   inits = op->inits;
   evid = ind->evid;
@@ -2335,28 +2302,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   x = ind->all_times;
   rc= ind->rc;
   double xp = x[0];
-  //--- inits the system
-  for (int j = neq[0]; j--;) {
-    ind->InfusionRate[j] = 0;
-    ind->on[j] = 1;
-    ind->cacheME=0;
-  }
-  // Reset LHS to NA
-  ind->inLhs = 0;
-  for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
-  memcpy(ret,inits, neq[0]*sizeof(double));
-  u_inis(neq[1], ret); // Update initial conditions
-  if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-  if (rx->needSort) {
-    sortRadix(ind);
-    if (op->badSolve) return;
-  }
-  //--- inits the system
   unsigned int j;
-  ind->_newind = 1;
-  ind->tlast = NA_REAL;
-  ind->tfirst = NA_REAL;
-  ind->solved = -1;
   for(i=0; i<nx; i++) {
     ind->idx=i;
     yp = &ret[neq[0]*i];
@@ -2867,14 +2813,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
     for (csub = 0; csub < nsub; csub++){
       neq[1] = csub+csim*nsub;
       ind = &(rx->subjects[neq[1]]);
-      ind->id = neq[1];
-      ind->_newind = 1;
-      ind->tlast = NA_REAL;
-      ind->tfirst = NA_REAL;
-      ind->solved = -1;
-      ind->idx = 0;
-      if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
-      if (rx->needSort && op->neq == 0) sortRadix(ind);
+      iniSubject(neq[1], 1, ind, op, rx, update_inis);
       ntimes = ind->n_all_times;
       solve =  ind->solve;
       cov_ptr = ind->cov_ptr;
@@ -2884,11 +2823,6 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       if (ind->allCovWarn && csim == 0){
 	warning(_("one or more covariates were all 'NA' for subject 'id=%d'"), csub+1);
       }
-      // Reset lhs to na
-      for (i = op->nlhs; i--;) ind->lhs[i] = NA_REAL;
-      // FIXME if solved don't need to reset
-      ind->inLhs = 1;
-      ind->ixds=0;
       for (i = 0; i < ntimes; i++){
 	ind->idx = i;
 	double *yp = ind->solve+i*op->neq;      
