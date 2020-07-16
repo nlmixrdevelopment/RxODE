@@ -694,6 +694,13 @@ rxControl <- function(scale = NULL,
 ##'
 ##' \code{central} Use central differences
 ##'
+##' @param linDiff This gives the linear difference amount for all the
+##'   types of linear compartment model parameters where sensitivities
+##'   are not calculated.
+##'
+##' @param linDiffCentral This gives the which parameters use central
+##'   differences for the linear compartment model parameters.
+##'
 ##' @references
 ##'
 ##'  "New Scaling and Squaring Algorithm for the Matrix Exponential", by
