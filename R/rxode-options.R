@@ -52,7 +52,7 @@
   rxTempDir()
   .getDTEnv()
   .ggplot2Fix()
-  v <- packageVersion("RxODE")
+  v <- utils::packageVersion("RxODE")
   packageStartupMessage("RxODE ", v, " using ", getRxThreads(verbose=FALSE),
                         " threads (see ?getRxThreads)")
   if (!.Call(`_rxHasOpenMp`)) {
