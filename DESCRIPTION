@@ -62,7 +62,6 @@ Suggests:
     knitr,
     learnr,
     microbenchmark,
-    mvnfast,
     nlme,
     remotes,
     rlang,

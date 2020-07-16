@@ -419,12 +419,10 @@ rxControl <- function(scale = NULL,
 ##'     default it is equivalent to \code{Inf}, or a normal distribution.
 ##'
 ##' @param nCoresRV Number of cores used for the simulation of the
-##'     sigma variables.  By default this is 1. This uses the package
-##'     \code{\link[mvnfast]{rmvn}} and \code{\link[mvnfast]{rmvt}}.
-##'     To reproduce the results you need to run on the same platform
-##'     with the same number of cores. This is the reason this is set
-##'     to be one, regardless of what the number of cores are used in
-##'     threaded ODE solving.
+##'   sigma variables.  By default this is 1. To reproduce the results
+##'   you need to run on the same platform with the same number of
+##'   cores. This is the reason this is set to be one, regardless of
+##'   what the number of cores are used in threaded ODE solving.
 ##'
 ##' @param sigmaIsChol Boolean indicating if the sigma is in the
 ##'     Cholesky decomposition instead of a symmetric covariance
@@ -665,10 +663,6 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param cacheEvent is a boolean.  If `TRUE` (default), events are cached in
 ##'     memory to speed up solving.
-##'
-##' @param mvnfast Use the `mvnfast` package for multivariate normal
-##'     simulation instead of the thread-safe threefry based
-##'     multivariate normal package provided in `RxODE`.
 ##'
 ##' @param sumType Sum type to use for \code{sum()} in
 ##'     RxODE code blocks.
