@@ -3245,6 +3245,8 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     ind = &(rx->subjects[0]);
     ind->idx=0;
     ind->solveTime=0.0;
+    ind->tlast = NA_REAL;
+    ind->tfirst = NA_REAL;
     j=0;
     rx->maxAllTimes=0;
     int lastId = id[0]-42;
@@ -3273,6 +3275,8 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
 	  }
 	  ind = &(rx->subjects[nsub]);
 	  ind->idx=0;
+	  ind->tlast = NA_REAL;
+	  ind->tfirst = NA_REAL;
 	}
 	// Setup the pointers.
 	ind->id             = nsub+1;
@@ -3555,6 +3559,8 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  ind->rate2 = 0.0;
 	  ind->dur2 = 0.0;
 	  ind->idx=0;
+	  ind->tlast = NA_REAL;
+	  ind->tfirst = NA_REAL;
 	  ind->par_ptr = &_globals.gpars[cid*rxSolveDat->npars];
 	  ind->mtime   = &_globals.gmtime[rx->nMtime*cid];
 	  if (rx->nMtime > 0) ind->mtime[0]=-1;
@@ -3568,7 +3574,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  ind->BadDose = &_globals.gBadDose[op->neq*cid];
 	  ind->nBadDose = 0;
 	  // Hmax defined above.
-	  ind->tlast=0.0;
 	  ind->podo = 0.0;
 	  ind->ixds =  0;
 	  ind->sim = simNum+1;

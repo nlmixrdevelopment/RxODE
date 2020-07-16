@@ -982,12 +982,14 @@ extern int syncIdx(rx_solving_options_ind *ind){
 }
 
 static inline void handleTlastInline(double *time, rx_solving_options_ind *ind) {
-  ind->tlast = *time;
-  if (ISNA(ind->tfirst)) ind->tfirst = *time;
-  rx_solving_options *op = &op_global;
-  if (op->neq){
-    ind->tlastS[ind->cmt] = *time;
-    if (ISNA(ind->tfirstS[ind->cmt])) ind->tfirstS[ind->cmt] = *time;
+  if (isDose(ind->evid[ind->ix[ind->idx]])){
+    ind->tlast = *time;
+    if (ISNA(ind->tfirst)) ind->tfirst = *time;
+    rx_solving_options *op = &op_global;
+    if (op->neq){
+      ind->tlastS[ind->cmt] = *time;
+      if (ISNA(ind->tfirstS[ind->cmt])) ind->tfirstS[ind->cmt] = *time;
+    }  
   }
 }
 
@@ -1658,6 +1660,8 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
     sortRadix(ind);
     if (op->badSolve) return;
   }
+  ind->tlast = NA_REAL;
+  ind->tfirst = NA_REAL;
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
   ind->_newind = 1;
   ind->solved = -1;
@@ -1845,6 +1849,8 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
   ind->_newind = 1;
   ind->solved = -1;
+  ind->tlast = NA_REAL;
+  ind->tfirst = NA_REAL;
   for(i=0; i<nx; i++) {
     ind->idx=i;
     yp = ret+neq[0]*i;
@@ -2152,6 +2158,8 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   }
   unsigned int j;
   ind->_newind = 1;
+  ind->tlast = NA_REAL;
+  ind->tfirst = NA_REAL;
   ind->solved = -1;
   for(i=0; i < ind->n_all_times; i++) {
     ind->idx=i;
@@ -2346,6 +2354,8 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   //--- inits the system
   unsigned int j;
   ind->_newind = 1;
+  ind->tlast = NA_REAL;
+  ind->tfirst = NA_REAL;
   ind->solved = -1;
   for(i=0; i<nx; i++) {
     ind->idx=i;
@@ -2419,6 +2429,8 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
         //dadt_counter = 0;
       }
     ind->_newind = 1;
+    ind->tlast = NA_REAL;
+    ind->tfirst = NA_REAL;
     ind->solved = -1;
     if (!op->badSolve){
       ind->idx = i;
@@ -2857,6 +2869,8 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       ind = &(rx->subjects[neq[1]]);
       ind->id = neq[1];
       ind->_newind = 1;
+      ind->tlast = NA_REAL;
+      ind->tfirst = NA_REAL;
       ind->solved = -1;
       ind->idx = 0;
       if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
@@ -3556,6 +3570,8 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
   rx->nsub =1;
   rx->nsim =1;
   ind->_newind=1;
+  ind->tlast = NA_REAL;
+  ind->tfirst = NA_REAL;
   ind->solved = -1;
   rx->stateIgnore = stateIgnore;//gsiVSetup(op->neq);
   rx->nobs =-1;
@@ -3567,6 +3583,8 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 	      dydt, update_inis, global_jt);
   if (op->nlhs) {
     ind->_newind=1;
+    ind->tlast = NA_REAL;
+    ind->tfirst = NA_REAL;
     ind->solved = -1;
     for (i=0; i<*ntime; i++){
       ind->idx = i;
