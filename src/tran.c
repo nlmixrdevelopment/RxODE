@@ -80,7 +80,7 @@
 #define NOINI0 _("'%s(0)' for initialization not allowed\n to allow set 'options(RxODE.syntax.allow.ini0 = TRUE)'")
 #define NOSTATE _("defined 'df(%s)/dy(%s)', but '%s' is not a state")
 #define NOSTATEVAR _("defined 'df(%s)/dy(%s)', but '%s' is not a state or variable")
-#define ODEFIRST _("ODEs compartment 'd/dt(%s)' must be defined before changing its properties (f/alag/rate/dur)\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this will number compartments based on first occurance of property or ODE")
+#define ODEFIRST _("ODEs compartment 'd/dt(%s)' must be defined before changing/accessing its properties (f/alag/rate/dur/tad/tafd)\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this may number compartments based on first occurance of property or ODE")
 #define ZERODVID _("'dvid()' cannot have zeros in it")
 #define ONEDVID _("RxODE only supports one dvid() statement per model")
 
@@ -1243,7 +1243,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      if (new_de(v2)){
 		if (rx_syntax_require_ode_first){
 		  updateSyntaxCol();
-		  sPrint(&buf,ODEFIRST,v);
+		  sPrint(&buf,ODEFIRST,v2);
 		  trans_syntax_error_report_fn(buf.s);
 		  continue;
 		}
