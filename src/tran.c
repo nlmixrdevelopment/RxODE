@@ -1243,17 +1243,20 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      if (new_de(v2)){
 		if (!strcmp("depot", v2)){
 		  tb.hasDepot = 1;
+		  aAppendN("_DEPOT_)", 8)
 		} else if (!strcmp("central", v2)){
 		  tb.hasCentral = 1;
+		  aAppendN("_CENTRAL_)", 10)
 		} else if (rx_syntax_require_ode_first){
 		  updateSyntaxCol();
 		  sPrint(&buf,ODEFIRST,v2);
 		  trans_syntax_error_report_fn(buf.s);
 		  continue;
+		} else {
+		  tb.statei++;
+		  sAppend(&sb, "%d)", tb.de.n);
+		  sAppend(&sbDt, "%d)", tb.de.n);
 		}
-		tb.statei++;
-		sAppend(&sb, "%d)", tb.de.n);
-		sAppend(&sbDt, "%d)", tb.de.n);
 	      } else {
 		new_or_ith(v2);
 		sAppend(&sb, "%d)", tb.id);
@@ -4355,7 +4358,16 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   // show_ode = 0 LHS
   // show_ode = 5 functional bioavailibility
   // show_ode = 6 functional rate
-  
+  if (tb.linCmt != 0) {
+    (&sbOut)->s[0]='\0';
+    if (tb.hasDepot == 1) {
+      sAppend(&sbOut, "#define _DEPOT_ %d\n", tb.statei);
+      sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei+1);
+    } else if (tb.hasCentral == 1) {
+      sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei);
+    }
+    writeSb(&sbOut, fpIO);
+  }
   gCode(1); // d/dt()
   gCode(2); // jac
   gCode(3); // ini()

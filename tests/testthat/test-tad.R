@@ -140,6 +140,7 @@ rxPermissive({
   })
 
   test_that("test parsing of ode", {
+
     expect_error(RxODE({
       KA <- 2.94E-01
       CL <- 1.86E+01
@@ -153,7 +154,6 @@ rxPermissive({
       C3 <- peri / V3
       ## error in capturing early
       f <- tad(eff)
-
       d/dt(depot) <- -KA * depot
       d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
       d/dt(peri) <- Q * C2 - Q * C3
@@ -176,7 +176,6 @@ rxPermissive({
       C3 <- peri / V3
       ## error in capturing early
       f <- tad(eff)
-
       d/dt(depot) <- -KA * depot
       d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
       d/dt(peri) <- Q * C2 - Q * C3
@@ -184,6 +183,28 @@ rxPermissive({
     }), NA)
 
     options(op)
+
+
+    sol.1c.ka <- RxODE({
+      KA = 2
+      V = 20
+      CL = 25
+      C2 <- linCmt(V, CL, KA)
+      tad <- tad()
+      tafd <- tafd()
+      tadd <- tad(depot)
+      tafdd <- tafd(depot)
+      tadc <- tad(central)
+      tafdc <- tafd(central)
+    })
+
+    et <- eventTable() %>%
+      add.dosing(dose = 3, nbr.doses = 6, dosing.interval = 8) %>%
+      add.dosing(dose=6, nbr.doses=6, dosing.interval = 8,
+                 start.time = 2, dosing.to = "central") %>%
+      add.sampling(seq(0, 48, length.out = 200))
+
+    s <- rxSolve(sol.1c.ka, et)
 
   })
 
