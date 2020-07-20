@@ -3565,8 +3565,8 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  ind->mtime   = &_globals.gmtime[rx->nMtime*cid];
 	  if (rx->nMtime > 0) ind->mtime[0]=-1;
 	  ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
-	  ind->tlastS = &_globals.gTlastS[op->neq*cid];
-	  ind->tfirstS = &_globals.gTfirstS[op->neq*cid];
+	  ind->tlastS = &_globals.gTlastS[(op->neq + op->extraCmt)*cid];
+	  ind->tfirstS = &_globals.gTfirstS[(op->neq + op->extraCmt)*cid];
 	  ind->alag = &_globals.gAlag[op->neq*cid];
 	  ind->cF = &_globals.gF[op->neq*cid];
 	  ind->cRate = &_globals.gRate[op->neq*cid];
@@ -4610,8 +4610,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       nLin = rx->nall*nLin*rx->nsim +// Number of linear compartments * number of solved points
 	rx->nsim*rx->nsub*(op->nlinR);// Infusion
     }
-    int n2 = rx->nMtime*rx->nsub*rx->nsim;
-    int n3 = op->neq*rxSolveDat->nSize;
+    int n2  = rx->nMtime*rx->nsub*rx->nsim;
+    int n3  = op->neq*rxSolveDat->nSize;
+    int n3a = (op->neq + op->extraCmt)*rxSolveDat->nSize;
 #ifdef rxSolveT
     REprintf("Time12a: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4632,7 +4633,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
     if (_globals.gsolve != NULL) free(_globals.gsolve);
-    _globals.gsolve = (double*)calloc(n0+nLin+n2+ 7*n3+n4+n5+n6+ 5*op->neq, sizeof(double));// [n0]
+    _globals.gsolve = (double*)calloc(n0+nLin+n2+ 5*n3+n4+n5+n6+
+				      5*op->neq + 2*n3a, sizeof(double));// [n0]
 #ifdef rxSolveT
     REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+7*n3+n4+n5+n6+ 5*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4663,10 +4665,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _globals.gssAtol=_globals.gssRtol + op->neq; //[op->neq]
     // All NA_REAL fill are below;  one statement to initialize them all
     rx->ypNA = _globals.gssAtol + op->neq; // [op->neq]
-    _globals.gTlastS = rx->ypNA + op->neq; // [n3]
-    _globals.gTfirstS = _globals.gTlastS + n3; // [n3]
-
-    std::fill_n(rx->ypNA, op->neq + 2*n3, NA_REAL);
+    _globals.gTlastS = rx->ypNA + op->neq; // [n3a]
+    _globals.gTfirstS = _globals.gTlastS + n3a; // [n3a]
+    std::fill_n(rx->ypNA, op->neq + 2*n3a, NA_REAL);
 
     std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);
     std::fill_n(&_globals.grtol2[0],op->neq, rtolNV[0]);

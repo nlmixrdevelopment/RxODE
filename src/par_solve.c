@@ -986,7 +986,7 @@ static inline void handleTlastInline(double *time, rx_solving_options_ind *ind) 
     ind->tlast = *time;
     if (ISNA(ind->tfirst)) ind->tfirst = *time;
     rx_solving_options *op = &op_global;
-    if (op->neq){
+    if (op->neq + op->extraCmt != 0){
       ind->tlastS[ind->cmt] = *time;
       if (ISNA(ind->tfirstS[ind->cmt])) ind->tfirstS[ind->cmt] = *time;
     }  

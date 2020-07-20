@@ -1235,33 +1235,39 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	    if (allSpaces(v2)){
 	      // tad overall
-	      sAppend(&sb, "_%s0(", v);
-	      sAppend(&sbDt, "_%s0(", v);
+	      sAppend(&sb, "_%s0()", v);
+	      sAppend(&sbDt, "_%s0()", v);
 	    } else {
 	      sAppend(&sb, "_%s1(", v);
 	      sAppend(&sbDt, "_%s1(", v);
 	      if (new_de(v2)){
-		if (rx_syntax_require_ode_first){
+		if (!strcmp("depot", v2)){
+		  tb.hasDepot = 1;
+		} else if (!strcmp("central", v2)){
+		  tb.hasCentral = 1;
+		} else if (rx_syntax_require_ode_first){
 		  updateSyntaxCol();
 		  sPrint(&buf,ODEFIRST,v2);
 		  trans_syntax_error_report_fn(buf.s);
 		  continue;
 		}
 		tb.statei++;
-		sAppend(&sb, "%d,", tb.de.n);
-		sAppend(&sbDt, "%d,", tb.de.n);
+		sAppend(&sb, "%d)", tb.de.n);
+		sAppend(&sbDt, "%d)", tb.de.n);
 	      } else {
 		new_or_ith(v2);
-		sAppend(&sb, "%d,", tb.id);
-		sAppend(&sbDt, "%d,", tb.id);
+		sAppend(&sb, "%d)", tb.id);
+		sAppend(&sbDt, "%d)", tb.id);
 	      }
 	      // tad(cmt)
 	    }
-	    sAppend(&sbt, "%s(", v);
+	    sAppend(&sbt, "%s(%s)", v, v2);
 	    Free(v);
 	    Free(v2);
-	    i = 1;// Parse next arguments
-	    depth=1;
+	    /* REprintf("i: %d / %d\n", i, nch); */
+	    /* i = nch;// skip next arguments */
+	    /* depth=0; */
+	    i = nch;
 	    continue;
 	  }
 	} else if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||

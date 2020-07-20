@@ -2427,8 +2427,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   /* REprintf("F: %f; F2: %f\n", d_F, d_F2); */
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   int evid, wh, cmt, wh100, whI, wh0;
-  /* evid = ind->evid[ind->ix[ind->idx]]; */
-  /* if (evid) REprintf("evid0[%d:%d]: %d; curTime: %f\n", id, ind->idx, evid, t); */
   int idx = ind->idx;
   double Alast0[4] = {0, 0, 0, 0};
   sortIfNeeded(rx, ind, id, &linCmt, &d_tlag, &d_tlag2, &d_F, &d_F2,
@@ -2494,7 +2492,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
       return NA_REAL;
     }
     evid = ind->evid[ind->ix[idx]];
-    /* if (evid) REprintf("evid: %d; curTime: %f\n",evid, curTime); */
     if (op->nlinR == 2){
       r1 = rate[0];
       r2 = rate[1];
