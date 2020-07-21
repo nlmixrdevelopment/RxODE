@@ -4364,7 +4364,12 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
       sAppend(&sbOut, "#define _DEPOT_ %d\n", tb.statei);
       sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei+1);
     } else if (tb.hasCentral == 1) {
-      sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei);
+      if (tb.hasDepot){
+	fclose(fpIO);
+	reset();
+	Rf_errorcall(R_NilValue, _("linCmt() does not have 'depot' compartment without a 'ka'"));
+	return R_NilValue;
+      }
     }
     writeSb(&sbOut, fpIO);
   }

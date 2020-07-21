@@ -230,6 +230,37 @@ rxPermissive({
     expect_equal(s2$tadc, s1$tadc)
     expect_equal(s2$tafdc, s1$tafdc)
 
+    expect_error(RxODE({
+      V = 20
+      CL = 25
+      C2 <- linCmt(V, CL)
+      tad <- tad()
+      tafd <- tafd()
+      tadd <- tad(depot)
+      tafdd <- tafd(depot)
+      tadc <- tad(central)
+      tafdc <- tafd(central)
+    }))
+
+    one.cmt <- RxODE({
+      V = 20
+      CL = 25
+      C2 <- linCmt(V, CL)
+      tad <- tad()
+      tafd <- tafd()
+      tadc <- tad(central)
+      tafdc <- tafd(central)
+    })
+
+    et <- eventTable() %>%
+      add.dosing(dose = 3, nbr.doses = 6, dosing.interval = 8) %>%
+      add.sampling(seq(0, 48, length.out = 200))
+
+    s <- rxSolve(one.cmt, et)
+
+    expect_equal(s$tad, s$tadc)
+    expect_equal(s$tafd, s$tafdc)
+
 
   })
 
