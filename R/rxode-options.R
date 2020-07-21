@@ -5,10 +5,6 @@
   }
 }
 .onLoad <- function(libname, pkgname) { ## nocov start
-  ## For some strange reason, mvnfast needs to be loaded before RxODE to work correctly
-  if (requireNamespace("mvnfast", quietly = TRUE)) {
-    assignInMyNamespace(".mvnfast", loadNamespace("mvnfast"))
-  }
   .s3register("pillar::type_sum", "rxEvid")
   .s3register("pillar::type_sum", "rxRateDur")
   .s3register("pillar::pillar_shaft", "rxEvid")
