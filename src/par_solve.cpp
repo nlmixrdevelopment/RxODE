@@ -6,9 +6,11 @@
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
-#include "dop853.h"
-#include "common.h"
-#include "lsoda.h"
+extern "C" {
+  #include "dop853.h"
+  #include "common.h"
+  #include "lsoda.h"
+}
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 // Yay easy parallel support
 // For Mac, see: http://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/ (as far as I can tell)
@@ -31,12 +33,24 @@
 #endif
 
 int _setSilentErr=0;
-void setSilentErr(int silent){
+extern "C" void setSilentErr(int silent){
   _setSilentErr = silent;
 }
-extern int getSilentErr(){return _setSilentErr;}
+extern "C" int getSilentErr(){return _setSilentErr;}
 
-void rxSolveFreeC();
+extern "C" void rxSolveFreeC();
+
+extern "C" SEXP _rxHasOpenMp(){
+  SEXP ret = PROTECT(allocVector(LGLSXP,1));
+#ifdef _OPENMP
+  INTEGER(ret)[0] = 1;
+#else
+  INTEGER(ret)[0] = 0;
+#endif
+  UNPROTECT(1);
+  return ret;
+}
+
 
 int _isRstudio = 0;
 
@@ -149,17 +163,17 @@ void par_flush_console() {
 #endif
 }
 
-int isRstudio();
-int isProgSupported();
+extern "C" int isRstudio();
+extern "C" int isProgSupported();
 int par_progress_0=0;
 int par_progress_1=0;
 double par_progress__=1.0;
-SEXP _rxParProgress(SEXP num){
+extern "C" SEXP _rxParProgress(SEXP num){
   par_progress__=REAL(num)[0];
   return R_NilValue;
 }
 clock_t _lastT0;
-int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
+extern "C" int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   if (par_progress__ > 0.0){
     float progress =0.0;
     progress = (float)(c);
@@ -281,7 +295,7 @@ typedef struct {
 
 rx_tick rxt;
 
-SEXP _rxTick(){
+extern "C" SEXP _rxTick(){
   rxt.cur++;
   SEXP ret = PROTECT(allocVector(INTSXP, 1));
   rxt.d =par_progress(rxt.cur, rxt.n, rxt.d, rxt.cores, rxt.t0, 0);
@@ -290,7 +304,7 @@ SEXP _rxTick(){
   return ret;
 }
 
-SEXP _rxProgress(SEXP num, SEXP core){
+extern "C" SEXP _rxProgress(SEXP num, SEXP core){
   par_progress_1=0;
   rxt.t0 = clock();
   rxt.cores = INTEGER(core)[0];
@@ -300,7 +314,7 @@ SEXP _rxProgress(SEXP num, SEXP core){
   return R_NilValue;
 }
 
-SEXP _rxProgressStop(SEXP clear){
+extern "C" SEXP _rxProgressStop(SEXP clear){
   int clearB = INTEGER(clear)[0];
   par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 0);
   par_progress_0=0;
@@ -323,7 +337,7 @@ SEXP _rxProgressStop(SEXP clear){
   return R_NilValue;
 }
 
-SEXP _rxProgressAbort(SEXP str){
+extern "C" SEXP _rxProgressAbort(SEXP str){
   par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 0);
   par_progress_0=0;
   if (rxt.d != rxt.n || rxt.cur != rxt.n){
@@ -335,7 +349,7 @@ SEXP _rxProgressAbort(SEXP str){
 
 t_set_solve set_solve = NULL;
 
-void rxOptionsIniEnsure(int mx){
+extern "C" void rxOptionsIniEnsure(int mx){
   Free(inds_global);
   inds_global = Calloc(mx, rx_solving_options_ind);
   rx_solve *rx=(&rx_global);
@@ -346,7 +360,7 @@ void rxOptionsIniEnsure(int mx){
   rx->ordId = NULL;
 }
 
-int compareFactorVal(int val,
+extern "C" int compareFactorVal(int val,
 		     const char *valStr,
 		     const char *cmpValue){
   rx_solve *rx=(&rx_global);
@@ -431,7 +445,7 @@ t_calc_mtime calc_mtime = NULL;
 t_ME ME = NULL;
 t_IndF IndF = NULL;
 
-void calcMtime(int solveid, double *mtime){
+extern "C" void calcMtime(int solveid, double *mtime){
   calc_mtime(solveid,mtime);
 }
 
@@ -553,7 +567,7 @@ void rxUpdateFuns(SEXP trans){
   assignFuns = R_GetCCallable(lib, s_assignFuns);
 }
 
-void rxClearFuns(){
+extern "C" void rxClearFuns(){
   calc_lhs		= NULL;
   dydt			= NULL;
   calc_jac		= NULL;
@@ -565,24 +579,24 @@ void rxClearFuns(){
   dydt_liblsoda		= NULL;
 }
 
-void F77_NAME(dlsoda)(
-                      void (*)(int *, double *, double *, double *),
-                      int *, double *, double *, double *, int *, double *, double *,
-                      int *, int *, int *, double *,int *,int *, int *,
-                      void (*)(int *, double *, double *, int *, int *, double *, int *),
-                      int *);
+extern "C" void F77_NAME(dlsoda)(
+				 void (*)(int *, double *, double *, double *),
+				 int *, double *, double *, double *, int *, double *, double *,
+				 int *, int *, int *, double *,int *,int *, int *,
+				 void (*)(int *, double *, double *, int *, int *, double *, int *),
+				 int *);
 
-extern rx_solve *getRxSolve2_(){
+extern "C" rx_solve *getRxSolve2_(){
   return &rx_global;
 }
-extern rx_solve *getRxSolve_(){
+extern "C" rx_solve *getRxSolve_(){
   rx_solve *rx = &rx_global;
   rx->subjects = inds_global;
   rx->op = &op_global;
   return &rx_global;
 }
 
-void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0){
+extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0){
   *wh = evid;
   *cmt = 0;
   *wh100 = floor(*wh/1e5L);
@@ -709,7 +723,7 @@ static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
   }
 }
 
-extern double getTime(int idx, rx_solving_options_ind *ind){
+extern "C" double getTime(int idx, rx_solving_options_ind *ind){
   // Since the lag time now can depend on state values (and implicitly time), cache the time values
   int evid = ind->evid[idx];
   if (evid == 9) return 0.0;
@@ -886,13 +900,13 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
   return ret;
 }
 
-void radix_r(const int from, const int to, const int radix,
-	     rx_solving_options_ind *ind, rx_solve *rx);
+extern "C" void radix_r(const int from, const int to, const int radix,
+			rx_solving_options_ind *ind, rx_solve *rx);
 
-uint64_t dtwiddle(const void *p, int i);
+extern "C" uint64_t dtwiddle(const void *p, int i);
 // Adapted from 
 // https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L630-L649
-void sortRadix(rx_solving_options_ind *ind){
+extern "C" void sortRadix(rx_solving_options_ind *ind){
 #ifdef _OPENMP
   int core = omp_get_thread_num();
 #else
@@ -932,7 +946,7 @@ void sortRadix(rx_solving_options_ind *ind){
   if (doSort) radix_r(0, ind->n_all_times-1, 0, ind, rx);
 }
 
-extern int syncIdx(rx_solving_options_ind *ind){
+extern "C" int syncIdx(rx_solving_options_ind *ind){
   if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
     // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
     int l = 0, r = ind->ndoses-1, m=0;
@@ -982,18 +996,18 @@ extern int syncIdx(rx_solving_options_ind *ind){
 }
 
 static inline void handleTlastInline(double *time, rx_solving_options_ind *ind) {
-  if (isDose(ind->evid[ind->ix[ind->idx]])){
+  rx_solving_options *op = &op_global;
+  if (op->neq + op->extraCmt != 0 && isDose(ind->evid[ind->ix[ind->idx]])){
     ind->tlast = *time;
+    // REprintf("evid: %d tlast: %f, cmt: %d; %d; %d\n", ind->evid[ind->ix[ind->idx]], ind->tlast, ind->cmt,
+    // 	     op->neq + op->extraCmt, op->extraCmt);
     if (ISNA(ind->tfirst)) ind->tfirst = *time;
-    rx_solving_options *op = &op_global;
-    if (op->neq + op->extraCmt != 0){
-      ind->tlastS[ind->cmt] = *time;
-      if (ISNA(ind->tfirstS[ind->cmt])) ind->tfirstS[ind->cmt] = *time;
-    }  
+    ind->tlastS[ind->cmt] = *time;
+    if (ISNA(ind->tfirstS[ind->cmt])) ind->tfirstS[ind->cmt] = *time;
   }
 }
 
-extern void handleTlast(double *time, rx_solving_options_ind *ind){
+extern "C" void handleTlast(double *time, rx_solving_options_ind *ind){
   handleTlastInline(time, ind);
 }
 
@@ -1186,7 +1200,7 @@ int checkInterrupt() {
   return (R_ToplevelExec(chkIntFn, NULL) == FALSE);
 }
 
-static char *err_msg_ls[]=
+static const char *err_msg_ls[] =
     {
       "excess work done on this call (perhaps wrong jt).",
       "excess accuracy requested (tolerances too small).",
@@ -1198,9 +1212,9 @@ static char *err_msg_ls[]=
     };
 
 //dummy solout fn
-void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtrn){}
+extern "C" void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtrn){}
 
-int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, double tf,
+extern "C" int indLin(int cSub, rx_solving_options *op, double tp, double *yp_, double tf,
 		      double *InfusionRate_, int *on_, 
 		      t_ME ME, t_IndF  IndF);
 
@@ -1240,7 +1254,7 @@ void solveSS_1(int *neq,
     }
     break;
   case 2:
-    lsoda(ctx, yp, &xp, xout);
+    lsoda((lsoda_context_t*)ctx, yp, &xp, xout);
     if (*istate <= 0) {
       RSprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
       /* ind->rc[0] = *istate; */
@@ -1639,7 +1653,7 @@ void handleSS(int *neq,
 //================================================================================
 // Inductive linearization routines
 
-extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
+extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
 			t_update_inis u_inis, t_ME ME, t_IndF IndF) {
   clock_t t0 = clock();
   assignFuns();
@@ -1749,14 +1763,14 @@ extern void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
 }
 
-extern void ind_indLin(rx_solve *rx,
+extern "C" void ind_indLin(rx_solve *rx,
 			 int solveid, t_update_inis u_inis, t_ME ME, t_IndF IndF){
   assignFuns();
   rx_solving_options *op = &op_global;
   ind_indLin0(rx, op, solveid, u_inis, ME, IndF);
 }
 
-extern void par_indLin(rx_solve *rx){
+extern "C" void par_indLin(rx_solve *rx){
   assignFuns();
   rx_solving_options *op = &op_global;
   int cores = 1;
@@ -1790,7 +1804,7 @@ extern void par_indLin(rx_solve *rx){
 
 // ================================================================================
 // liblsoda
-extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt_t opt, int solveid, 
+extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt_t opt, int solveid, 
 			  t_dydt_liblsoda dydt_liblsoda, t_update_inis u_inis){
   clock_t t0 = clock();
   int i;
@@ -1821,11 +1835,12 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   double *yp;
   inits = op->inits;
   struct lsoda_context_t ctx = {
-    .function = dydt_liblsoda,
-    .neq = neq[0],
-    .data = &neq,
-    .state = 1
+     .function = dydt_liblsoda,
+     .data = &neq,
+     .neq = neq[0],
+     .state = 1,
   };
+  
   lsoda_prepare(&ctx, &opt);
   ind = &(rx->subjects[neq[1]]);
   if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) return;
@@ -1913,7 +1928,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
 }
 
-extern void ind_liblsoda(rx_solve *rx, int solveid, 
+extern "C" void ind_liblsoda(rx_solve *rx, int solveid, 
 			 t_dydt_liblsoda dydt, t_update_inis u_inis){
   rx_solving_options *op = &op_global;
   struct lsoda_opt_t opt = {0};
@@ -1934,9 +1949,9 @@ extern void ind_liblsoda(rx_solve *rx, int solveid,
   ind_liblsoda0(rx, op, opt, solveid, dydt, u_inis);
 }
 
-extern int getRxThreads(const int64_t n, const bool throttle);
+extern "C" int getRxThreads(const int64_t n, const bool throttle);
 
-extern void par_liblsoda(rx_solve *rx){
+extern "C" void par_liblsoda(rx_solve *rx){
   rx_solving_options *op = &op_global;
 #ifdef _OPENMP
   int cores = op->cores;
@@ -2046,7 +2061,7 @@ int *global_BadDose(unsigned int mx){
   return global_BadDosep;
 }
 
-void rxOptionsIni(){
+extern "C" void rxOptionsIni(){
   global_iworki = 1024*4;
   global_iworkp=Calloc(1024*4, int);
   
@@ -2068,7 +2083,7 @@ void rxOptionsIni(){
   rx->subjects = inds_global;
 }
 
-void rxOptionsFree(){
+extern "C" void rxOptionsFree(){
   if (global_iworki != 0) Free(global_iworkp);
 
 
@@ -2086,12 +2101,12 @@ void rxOptionsFree(){
   Free(global_scalep);
 }
 
-void rxFreeLast(){
+extern "C" void rxFreeLast(){
   Free(inds_global);
   inds_global=NULL;
 }
 
-extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq, double *rwork, int lrw, int *iwork, int liw, int jt,
+extern "C" void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq, double *rwork, int lrw, int *iwork, int liw, int jt,
                        t_dydt_lsoda_dum dydt_lsoda,
                        t_update_inis u_inis,
                        t_jdum_lsoda jdum){
@@ -2201,7 +2216,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
 }
 
-extern void ind_lsoda(rx_solve *rx, int solveid,
+extern "C" void ind_lsoda(rx_solve *rx, int solveid,
                       t_dydt_lsoda_dum dydt_ls, t_update_inis u_inis, t_jdum_lsoda jdum,
 		      int cjt){
   int neq[2];
@@ -2220,7 +2235,7 @@ extern void ind_lsoda(rx_solve *rx, int solveid,
              dydt_ls, u_inis, jdum);
 }
 
-extern void par_lsoda(rx_solve *rx){
+extern "C" void par_lsoda(rx_solve *rx){
   int nsub = rx->nsub, nsim = rx->nsim;
   int displayProgress = (op_global.nDisplayProgress <= nsim*nsub);
   clock_t t0 = clock();
@@ -2260,7 +2275,7 @@ extern void par_lsoda(rx_solve *rx){
   }
 }
 
-extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq, 
+extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq, 
                      t_dydt c_dydt,
                      t_update_inis u_inis){
   clock_t t0 = clock();
@@ -2273,7 +2288,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   double *yp;
   void *ctx = NULL;
   int istate = 0;
-  static char *err_msg[]=
+  static const char *err_msg[]=
     {
       "input is not consistent",
       "larger nmax is needed",
@@ -2407,7 +2422,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
 }
 
-extern void ind_dop(rx_solve *rx, int solveid,
+extern "C" void ind_dop(rx_solve *rx, int solveid,
 		    t_dydt c_dydt, t_update_inis u_inis){
   rx_solving_options *op = &op_global;
   int neq[2];
@@ -2456,7 +2471,7 @@ void par_dop(rx_solve *rx){
   }
 }
 
-void ind_solve(rx_solve *rx, unsigned int cid,
+extern "C" void ind_solve(rx_solve *rx, unsigned int cid,
 	       t_dydt_liblsoda dydt_lls,
 	       t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
 	       t_dydt c_dydt, t_update_inis u_inis,
@@ -2489,7 +2504,7 @@ void ind_solve(rx_solve *rx, unsigned int cid,
   par_progress_0=0;
 }
 
-inline void par_solve(rx_solve *rx){
+extern "C" void par_solve(rx_solve *rx){
   _isRstudio = isRstudio();
   par_progress_1=0;
   rxt.t0 = clock();
@@ -2522,12 +2537,12 @@ inline void par_solve(rx_solve *rx){
 
 rx_solve *_globalRx = NULL;
 
-extern void rxode_assign_rx(rx_solve *rx){
+extern "C" void rxode_assign_rx(rx_solve *rx){
   _globalRx=rx;
 }
 
 
-extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
+extern "C" double rxLhsP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   rx_solving_options *op = &op_global;
   if (i < op->nlhs){
@@ -2538,7 +2553,7 @@ extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
   }
   return 0;
 }
-extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
+extern "C" void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   rx_solving_options *op = &op_global;
   double *solve, *lhs;
@@ -2566,7 +2581,7 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
     Rf_errorcall(R_NilValue, "LHS cannot be calculated (%dth entry).",i);
   }
 }
-extern void setExtraCmtP(int xtra, rx_solve *rx){
+extern "C" void setExtraCmtP(int xtra, rx_solve *rx){
   rx_solving_options *op = &op_global;
   if (xtra > op->extraCmt){
     op->extraCmt = xtra;
@@ -2577,22 +2592,22 @@ void setExtraCmt(int xtra){
   setExtraCmtP(xtra, _globalRx);
 }
 
-SEXP rxStateNames(char *ptr);
-SEXP rxLhsNames(char *ptr);
-SEXP rxParamNames(char *ptr);
+extern "C" SEXP rxStateNames(char *ptr);
+extern "C" SEXP rxLhsNames(char *ptr);
+extern "C" SEXP rxParamNames(char *ptr);
 
-extern double *rxGetErrs();
-extern int rxGetErrsNcol();
-extern int rxGetErrsNrow();
+extern "C" double *rxGetErrs();
+extern "C" int rxGetErrsNcol();
+extern "C" int rxGetErrsNrow();
 
-extern double get_ikeep(int col, int id);
-extern int get_ikeepi(int col, int id);
-extern const SEXP get_ikeepn();
-extern double get_fkeep(int col, int id);
-extern int get_fkeepi(int col, int id);
-extern const SEXP get_fkeepn();
+extern "C" double get_ikeep(int col, int id);
+extern "C" int get_ikeepi(int col, int id);
+extern "C" const SEXP get_ikeepn();
+extern "C" double get_fkeep(int col, int id);
+extern "C" int get_fkeepi(int col, int id);
+extern "C" const SEXP get_fkeepn();
 
-SEXP getDfLevels(const char *item, rx_solve *rx){
+extern "C" SEXP getDfLevels(const char *item, rx_solve *rx){
   int totN = rx->factorNames.n;
   int base = 0, curLen= rx->factorNs[0], curG=0;
   curLen= rx->factorNs[0];
@@ -2622,7 +2637,7 @@ SEXP getDfLevels(const char *item, rx_solve *rx){
   return val;
 }
 
-extern SEXP RxODE_df(int doDose0, int doTBS){
+extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   rx_solve *rx;
   rx = &rx_global;
   rx_solving_options *op = &op_global;
@@ -3443,7 +3458,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 
 
 // rxSolveOldC
-extern void rxSingleSolve(int subid, double *_theta, double *timep,
+extern "C" void rxSingleSolve(int subid, double *_theta, double *timep,
 			  int *evidp, int *ntime,
 			  double *initsp, double *dosep,
 			  double *ii, double *retp,

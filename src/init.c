@@ -7,19 +7,7 @@
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
 
-
-SEXP _rxHasOpenMp(){
-  SEXP ret = PROTECT(allocVector(LGLSXP,1));
-#ifdef _OPENMP
-  INTEGER(ret)[0] = 1;
-#else
-  INTEGER(ret)[0] = 0;
-#endif
-  UNPROTECT(1);
-  return ret;
-}
-
-
+SEXP _rxHasOpenMp();
 
 SEXP _vecDF(SEXP cv, SEXP n_);
 SEXP _RxODE_dropUnitsRxSolve(SEXP);
