@@ -186,6 +186,8 @@ rxPermissive({
 
   })
 
+  context("tad family of functions with linCmt()")
+
 
   test_that("lincmt solution tad family", {
 
@@ -230,6 +232,10 @@ rxPermissive({
 
 
   })
+
+  context("tad family of functions with linCmt()/ode mix")
+
+
 
 
 
