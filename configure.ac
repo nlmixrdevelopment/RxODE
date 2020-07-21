@@ -34,7 +34,7 @@ AC_SUBST(ISYSTEM)
 AC_CONFIG_FILES([src/Makevars])
 AC_OUTPUT
 
-sh inst/tools/r-stripper/stripper
+sh inst/tools/stripper/stripper
 
 echo --------[[begin src/Makevars]]--------
 cat src/Makevars

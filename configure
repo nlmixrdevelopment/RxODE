@@ -3720,7 +3720,7 @@ $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
 
-sh inst/tools/r-stripper/stripper
+sh inst/tools/stripper/stripper
 
 echo --------[begin src/Makevars]--------
 cat src/Makevars
