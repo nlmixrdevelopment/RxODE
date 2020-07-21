@@ -184,6 +184,10 @@ rxPermissive({
 
     options(op)
 
+  })
+
+
+  test_that("lincmt solution tad family", {
 
     sol.1c.ka <- RxODE({
       KA = 2
@@ -204,9 +208,29 @@ rxPermissive({
                  start.time = 2, dosing.to = "central") %>%
       add.sampling(seq(0, 48, length.out = 200))
 
-    s <- rxSolve(sol.1c.ka, et)
+    s1 <- rxSolve(sol.1c.ka, et)
+
+    sol.1c.ka <- RxODE({
+      KA = 2
+      V = 20
+      CL = 25
+      C2 <- linCmt(V, CL, KA)
+      tad <- tad()
+      tafd <- tafd()
+      tadc <- tad(central)
+      tafdc <- tafd(central)
+    })
+
+    s2 <- rxSolve(sol.1c.ka, et)
+
+    expect_equal(s2$tad, s1$tad)
+    expect_equal(s2$tafd, s1$tafd)
+    expect_equal(s2$tadc, s1$tadc)
+    expect_equal(s2$tafdc, s1$tafdc)
+
 
   })
+
 
 
 })

@@ -4360,7 +4360,7 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   // show_ode = 6 functional rate
   if (tb.linCmt != 0) {
     (&sbOut)->s[0]='\0';
-    if (tb.hasDepot == 1) {
+    if (tb.hasKa == 1) {
       sAppend(&sbOut, "#define _DEPOT_ %d\n", tb.statei);
       sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei+1);
     } else if (tb.hasCentral == 1) {
