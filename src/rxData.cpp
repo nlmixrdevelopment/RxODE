@@ -493,6 +493,7 @@ RObject rxSimSigma(const RObject &sigma,
     } else {
       double df2 = asDouble(df, "df");
       if (R_FINITE(df2)){
+	rxSolveFree();
 	stop(_("t distribution not yet supported"));
 	  // Function rmvt = as<Function>(mvnfast["rmvt"]);
 	// rmvt(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["df"] = df,
@@ -2315,6 +2316,7 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
   if (rx->op->cores >= nall*getThrottle()) {
     // No point in sorting
     if (ini) {
+      if (rx->ordId == NULL) free(rx->ordId);
       rx->ordId = (int*)malloc(nall*sizeof(int));
       std::iota(rx->ordId,rx->ordId+nall,1);
     } else {
@@ -2338,6 +2340,7 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
 		    _["method"]="radix",
 		    _["decreasing"] = LogicalVector::create(true));
       }
+      if (rx->ordId == NULL) free(rx->ordId);
       rx->ordId = (int*)malloc(nall*sizeof(int));
       std::copy(ord.begin(), ord.end(), rx->ordId);
     } else {
@@ -2669,6 +2672,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
 	}
 	rx->factorNs[rx->hasFactors++] = len;
 	if (rx->hasFactors >= 500){
+	  rxSolveFree();
 	  stop(_("RxODE only supports 500 factors"));
 	}
       }
@@ -4139,6 +4143,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const Nullable<List> &extraArgs,
 	      const RObject &params, const RObject &events, const RObject &inits,
 	      const int setupOnly){
+  if (setupOnly == 0){
+    rxSolveFree();
+  }
   rxDropB = false;
 #ifdef rxSolveT
   clock_t _lastT0 = clock();
@@ -4185,6 +4192,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     print(rxControl[Rxc_stateTrim]);
     REprintf("stateTrim\n");
     print(stateTrim);
+    rxSolveFree();
     stop("'stateTrim' must be a vector of 1-2 elements");
   }
   rxSolve_t rxSolveDat0;
@@ -4206,6 +4214,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     trueEvents = events;
     trueParams = params;
   } else {
+    rxSolveFree();
     stop(_("cannot solve without event information"));
   }
   getRxModels();
@@ -4361,7 +4370,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->minSS = asInt(rxControl[Rxc_minSS], "minSS");
     op->maxSS = asInt(rxControl[Rxc_maxSS], "maxSS");
     op->infSSstep = asDouble(rxControl[Rxc_infSSstep], "infSSstep");
-    if (op->infSSstep <= 0) stop(_("'infSSstep' needs to be positive"));
+    if (op->infSSstep <= 0) {
+      rxSolveFree();
+      stop(_("'infSSstep' needs to be positive"));
+    }
     op->indLinPhiTol=asDouble(rxControl[Rxc_indLinPhiTol], "indLinPhiTol");
     op->indLinMatExpType=asInt(rxControl[Rxc_indLinMatExpType], "indLinMatExpType");
     op->indLinPhiM = asInt(rxControl[Rxc_indLinPhiM],"indLinPhiM");
