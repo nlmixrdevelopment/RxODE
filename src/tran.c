@@ -4360,6 +4360,29 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   // show_ode = 5 functional bioavailibility
   // show_ode = 6 functional rate
   if (tb.linCmt != 0) {
+    char *buf;
+    int badCentral=false, badDepot=false;
+    for (int i=tb.de.n; i--;) {                     /* name state vars */
+      buf=tb.ss.line[tb.di[i]];
+      if (tb.hasKa == 1 && !strcmp(buf,"depot")){
+	badDepot=true;
+      } else if (!strcmp(buf, "central")) {
+	badCentral=true;
+      }
+    }
+    if (badCentral && badDepot){
+      fclose(fpIO);
+      reset();
+      Rf_errorcall(R_NilValue, _("linCmt() and ode have 'central' and 'depot' compartments, rename ODE 'central'/'depot'"));
+    } else if (badCentral) {
+      fclose(fpIO);
+      reset();
+      Rf_errorcall(R_NilValue, _("linCmt() and ode has a 'central' compartment, rename ODE 'central'"));
+    } else if (badDepot) {
+      fclose(fpIO);
+      reset();
+      Rf_errorcall(R_NilValue, _("linCmt() and ode has a 'depot' compartment, rename ODE 'depot'"));
+    }
     (&sbOut)->s[0]='\0';
     if (tb.hasKa == 1) {
       sAppend(&sbOut, "#define _DEPOT_ %d\n", tb.statei);

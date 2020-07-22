@@ -1,5 +1,30 @@
 rxPermissive(
 {
+  context("duplicate central/depot #246")
+
+  test_that("error with ambiguous central/depot", {
+    expect_error(RxODE({
+      C2 <- linCmt(V, CL, KA)
+      d/dt(central) = ka2 * depot - kel * central
+    }))
+
+    expect_error(RxODE({
+      C2 <- linCmt(V, CL, KA)
+      d/dt(central) = ka2 * depot - kel * central
+    }))
+
+    expect_error(RxODE({
+      C2 <- linCmt(V, CL, KA)
+      d/dt(depot) = -ka2 * depot
+    }))
+
+    expect_error(RxODE({
+      C2 <- linCmt(V, CL)
+      d/dt(depot) = -ka2 * depot
+    }), NA)
+
+  })
+
 
   tran1 <- expand.grid(
     Ka = c("ka", NA),
