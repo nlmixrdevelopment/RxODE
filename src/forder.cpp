@@ -5,6 +5,7 @@ extern "C" {
 #include "../inst/include/RxODE.h"
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 
+#include <cstdint>
 #include <cerrno>
 #include <ctype.h>     // isspace
 
