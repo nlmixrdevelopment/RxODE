@@ -1259,8 +1259,8 @@ NumericMatrix rxSetupParamsThetaEtaNullParams(const RObject &theta = R_NilValue,
 }
 
 RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
-                                    const RObject &theta = R_NilValue,
-				    const RObject &eta = R_NilValue){
+			      const RObject &theta = R_NilValue,
+			      const RObject &eta = R_NilValue){
   // Now get the parameters as a data.frame
   if (rxIsList(params)) {
     Function asDf("as.data.frame", R_BaseNamespace);
@@ -1445,8 +1445,30 @@ static inline void gparsCovSetupConstant(RObject &ev1, int npars){
     List envCls = tmpCls.attr(".RxODE.lst");
     NumericMatrix iniPars = envCls[RxTrans_pars];
     // Copy the pre-filled covariates into the parameter values.
-    for (int j = rx->nsim;j--;){
-      std::copy(iniPars.begin(), iniPars.end(), &_globals.gpars[0]+rx->nsub*npars*j);
+    if (rx->sample) {
+      int nrow = iniPars.nrow();
+      int ncol = iniPars.ncol();
+      int size = ncol*rx->nsim;
+      NumericMatrix ret(nrow, size);
+      for (int ir = nrow; ir--;){
+	// For sampling  (with replacement)
+	if (rx->par_sample[ir]) {
+	  for (int ic = ncol; ic--;){
+	    ret(ir,ic) = iniPars(ir, (int)unif_rand()*ncol);
+	  }
+	} else {
+	  // This is for copying
+	  for (int ic = ncol; ic--;){
+	    ret(ir,ic) = iniPars(ir, ic % ncol);
+	  }
+	}
+      }
+      // Put sampled dataset in gpars
+      std::copy(ret.begin(),ret.end(),&_globals.gpars[0]);
+    } else {
+      for (int j = rx->nsim;j--;){
+	std::copy(iniPars.begin(), iniPars.end(), &_globals.gpars[0]+rx->nsub*npars*j);
+      }
     }
     IntegerVector parPos = envCls["covParPos0"];
     std::copy(parPos.begin(),parPos.end(), &_globals.gParPos2[0]);
@@ -2238,6 +2260,8 @@ LogicalVector rxSolveFree(){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   // Free the solve id order
+  if (rx->par_sample != NULL) free(rx->par_sample);
+  rx->par_sample=NULL;
   if (rx->ordId != NULL) free(rx->ordId);
   rx->ordId=NULL;
   // Free the allocated keys
@@ -2927,6 +2951,26 @@ static inline void rxSolve_parSetup(const RObject &obj,
   rx_solve* rx = getRxSolve_();
   RObject theta = rxControl[Rxc_theta];
   RObject eta = rxControl[Rxc_eta];
+  //  determine which items will be sampled from
+  rx->sample = false;
+  if (!Rf_isNull(rxControl[Rxc_sampleVars])) {
+    SEXP sampleVars = rxControl[Rxc_sampleVars];
+    if (TYPEOF(sampleVars) != STRSXP){
+      rxSolveFree();
+      stop(_("'sampleVars' must be NULL or a character vector"));
+    }
+    rx->sample = true;
+    if (rx->par_sample != NULL) free(rx->par_sample);
+    rx->par_sample = (int*)calloc(pars.size(), sizeof(int));
+    for (int ip = pars.size(); ip--;){
+      for (int is = Rf_length(sampleVars); is--;){
+	if (!strcmp(pars[ip],CHAR(STRING_ELT(sampleVars, is)))){
+	  rx->par_sample[ip] = 1;
+	  break;
+	}
+      }
+    }
+  }
   if (!theta.isNULL() || !eta.isNULL()){
     rxSolveDat->usePar1=true;
     rxSolveDat->par1 = rxSetupParamsThetaEta(rxSolveDat->par1, theta, eta);

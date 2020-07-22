@@ -190,6 +190,7 @@ double _getParCov(unsigned int id, rx_solve *rx, int parNo, int idx0){
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
   if (rx == NULL) Rf_errorcall(R_NilValue, _("solve data is not loaded"));
   if (ISNA(t)){
+    // functional lag, rate, duration, mtime
     rx_solving_options_ind *ind;
     ind = &(rx->subjects[id]);
     rx_solving_options *op = rx->op;
