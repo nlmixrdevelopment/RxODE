@@ -493,6 +493,7 @@ RObject rxSimSigma(const RObject &sigma,
     } else {
       double df2 = asDouble(df, "df");
       if (R_FINITE(df2)){
+	rxSolveFree();
 	stop(_("t distribution not yet supported"));
 	  // Function rmvt = as<Function>(mvnfast["rmvt"]);
 	// rmvt(_["n"]=curSimN, _["mu"]=m, _["sigma"]=sigmaM, _["df"] = df,
@@ -1371,6 +1372,8 @@ typedef struct {
   double *gsolve;
   double *gadvan;
   double *gInfusionRate;
+  double *gTlastS;
+  double *gTfirstS;
   double *gAlag;
   double *gF;
   double *gRate;
@@ -2313,6 +2316,7 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
   if (rx->op->cores >= nall*getThrottle()) {
     // No point in sorting
     if (ini) {
+      if (rx->ordId == NULL) free(rx->ordId);
       rx->ordId = (int*)malloc(nall*sizeof(int));
       std::iota(rx->ordId,rx->ordId+nall,1);
     } else {
@@ -2336,6 +2340,7 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
 		    _["method"]="radix",
 		    _["decreasing"] = LogicalVector::create(true));
       }
+      if (rx->ordId == NULL) free(rx->ordId);
       rx->ordId = (int*)malloc(nall*sizeof(int));
       std::copy(ord.begin(), ord.end(), rx->ordId);
     } else {
@@ -2667,6 +2672,7 @@ static inline void rxSolve_ev1Update(const RObject &obj,
 	}
 	rx->factorNs[rx->hasFactors++] = len;
 	if (rx->hasFactors >= 500){
+	  rxSolveFree();
 	  stop(_("RxODE only supports 500 factors"));
 	}
       }
@@ -3243,6 +3249,8 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     ind = &(rx->subjects[0]);
     ind->idx=0;
     ind->solveTime=0.0;
+    ind->tlast = NA_REAL;
+    ind->tfirst = NA_REAL;
     j=0;
     rx->maxAllTimes=0;
     int lastId = id[0]-42;
@@ -3271,6 +3279,8 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
 	  }
 	  ind = &(rx->subjects[nsub]);
 	  ind->idx=0;
+	  ind->tlast = NA_REAL;
+	  ind->tfirst = NA_REAL;
 	}
 	// Setup the pointers.
 	ind->id             = nsub+1;
@@ -3553,10 +3563,14 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  ind->rate2 = 0.0;
 	  ind->dur2 = 0.0;
 	  ind->idx=0;
+	  ind->tlast = NA_REAL;
+	  ind->tfirst = NA_REAL;
 	  ind->par_ptr = &_globals.gpars[cid*rxSolveDat->npars];
 	  ind->mtime   = &_globals.gmtime[rx->nMtime*cid];
 	  if (rx->nMtime > 0) ind->mtime[0]=-1;
 	  ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
+	  ind->tlastS = &_globals.gTlastS[(op->neq + op->extraCmt)*cid];
+	  ind->tfirstS = &_globals.gTfirstS[(op->neq + op->extraCmt)*cid];
 	  ind->alag = &_globals.gAlag[op->neq*cid];
 	  ind->cF = &_globals.gF[op->neq*cid];
 	  ind->cRate = &_globals.gRate[op->neq*cid];
@@ -3564,7 +3578,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  ind->BadDose = &_globals.gBadDose[op->neq*cid];
 	  ind->nBadDose = 0;
 	  // Hmax defined above.
-	  ind->tlast=0.0;
 	  ind->podo = 0.0;
 	  ind->ixds =  0;
 	  ind->sim = simNum+1;
@@ -4130,6 +4143,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const Nullable<List> &extraArgs,
 	      const RObject &params, const RObject &events, const RObject &inits,
 	      const int setupOnly){
+  if (setupOnly == 0){
+    rxSolveFree();
+  }
   rxDropB = false;
 #ifdef rxSolveT
   clock_t _lastT0 = clock();
@@ -4176,6 +4192,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     print(rxControl[Rxc_stateTrim]);
     REprintf("stateTrim\n");
     print(stateTrim);
+    rxSolveFree();
     stop("'stateTrim' must be a vector of 1-2 elements");
   }
   rxSolve_t rxSolveDat0;
@@ -4197,6 +4214,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     trueEvents = events;
     trueParams = params;
   } else {
+    rxSolveFree();
     stop(_("cannot solve without event information"));
   }
   getRxModels();
@@ -4352,7 +4370,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->minSS = asInt(rxControl[Rxc_minSS], "minSS");
     op->maxSS = asInt(rxControl[Rxc_maxSS], "maxSS");
     op->infSSstep = asDouble(rxControl[Rxc_infSSstep], "infSSstep");
-    if (op->infSSstep <= 0) stop(_("'infSSstep' needs to be positive"));
+    if (op->infSSstep <= 0) {
+      rxSolveFree();
+      stop(_("'infSSstep' needs to be positive"));
+    }
     op->indLinPhiTol=asDouble(rxControl[Rxc_indLinPhiTol], "indLinPhiTol");
     op->indLinMatExpType=asInt(rxControl[Rxc_indLinMatExpType], "indLinMatExpType");
     op->indLinPhiM = asInt(rxControl[Rxc_indLinPhiM],"indLinPhiM");
@@ -4601,8 +4622,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       nLin = rx->nall*nLin*rx->nsim +// Number of linear compartments * number of solved points
 	rx->nsim*rx->nsub*(op->nlinR);// Infusion
     }
-    int n2 = rx->nMtime*rx->nsub*rx->nsim;
-    int n3 = op->neq*rxSolveDat->nSize;
+    int n2  = rx->nMtime*rx->nsub*rx->nsim;
+    int n3  = op->neq*rxSolveDat->nSize;
+    int n3a = (op->neq + op->extraCmt)*rxSolveDat->nSize;
 #ifdef rxSolveT
     REprintf("Time12a: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4623,9 +4645,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
     if (_globals.gsolve != NULL) free(_globals.gsolve);
-    _globals.gsolve = (double*)calloc(n0+nLin+n2+5*n3+n4+n5+n6+ 4*op->neq + state.size(), sizeof(double));// [n0]
+    _globals.gsolve = (double*)calloc(n0+nLin+n2+ 5*n3+n4+n5+n6+
+				      5*op->neq + 2*n3a, sizeof(double));// [n0]
 #ifdef rxSolveT
-    REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+4*n3+n4+n5+n6+ 4*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+7*n3+n4+n5+n6+ 5*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
     if (_globals.gsolve == NULL){
@@ -4652,8 +4675,11 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _globals.grtol2=_globals.gatol2   + op->neq;  //[op->neq]
     _globals.gssRtol=_globals.grtol2  + op->neq; //[op->neq]
     _globals.gssAtol=_globals.gssRtol + op->neq; //[op->neq]
-    rx->ypNA = _globals.gssAtol + op->neq;
-    std::fill_n(rx->ypNA, state.size(), NA_REAL);
+    // All NA_REAL fill are below;  one statement to initialize them all
+    rx->ypNA = _globals.gssAtol + op->neq; // [op->neq]
+    _globals.gTlastS = rx->ypNA + op->neq; // [n3a]
+    _globals.gTfirstS = _globals.gTlastS + n3a; // [n3a]
+    std::fill_n(rx->ypNA, op->neq + 2*n3a, NA_REAL);
 
     std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);
     std::fill_n(&_globals.grtol2[0],op->neq, rtolNV[0]);
@@ -4931,16 +4957,26 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	dexact = 0;
       }
       unsigned int slen2;
+      bool found = false;
+      int possible = -1;
       for (i = 0; i < n; i++){
 	slen2 = strlen((as<std::string>(nm[i])).c_str());
 	if (slen <= slen2 &&
 	    (strncmp((as<std::string>(nm[i])).c_str(), sarg.c_str(), slen)  == 0 ) &&
 	    (dexact != 1 || (dexact == 1 && slen == slen2))){
-	  if (dexact == -1){
-	    warning(_("partial match of '%s' to '%s'"),sarg.c_str(), (as<std::string>(nm[i])).c_str());
+	  if (slen != slen2){
+	    possible = i;
+	  } else {
+	    return lst[i];
 	  }
-	  return lst[i];
 	}
+      }
+      if (possible != -1){
+	if (dexact == -1){
+	  warning(_("partial match of '%s' to '%s'"),sarg.c_str(),
+		  (as<std::string>(nm[possible])).c_str());
+	}
+	return lst[possible];
       }
       if (rxIs(obj, "rxSolve")){
 	RObject ret0 = rxSolveGet_rxSolve(obj, sarg, exact, lst);
