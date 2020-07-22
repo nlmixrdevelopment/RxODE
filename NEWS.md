@@ -228,6 +228,13 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   `data.table`'s method
 
 * More descriptive errors when types of input are different than expected
+
+## Engine changes
+
+* Moved many C functions to C++.  CRAN OpenMP support requires C++
+  only when C and C++ are mixed.  See:
+
+  https://stackoverflow.com/questions/54056594/cran-acceptable-way-of-linking-to-openmp-some-c-code-called-from-rcpp
   
 ## Bug fixes:
  - Occasionally RxODE misidentified dual `lhs`/`param` values.  An
