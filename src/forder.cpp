@@ -54,7 +54,7 @@ static inline int imin(int a, int b) { return a < b ? a : b; }
 static inline int imax(int a, int b) { return a > b ? a : b; }
 
 
-void initRxThreads() {
+extern "C" void initRxThreads() {
   // called at package startup from init.c
   // also called by setDTthreads(threads=NULL) (default) to reread environment variables; see setDTthreads below
   // No verbosity here in this setter. Verbosity is in getRxThreads(verbose=TRUE)
@@ -89,7 +89,7 @@ static const char *mygetenv(const char *name, const char *unset) {
   return (ans==NULL || ans[0]=='\0') ? unset : ans;
 }
 
-extern int getRxThreads(const int64_t n, const bool throttle) {
+extern "C" int getRxThreads(const int64_t n, const bool throttle) {
   // this is the main getter used by all parallel regions; they specify num_threads(n, true|false).
   // Keep this light, simple and robust. rxSetThreads() ensures 1 <= rxThreads <= omp_get_num_proc()
   // throttle introduced in 1.12.10 (see NEWS item); #4484
@@ -101,7 +101,7 @@ extern int getRxThreads(const int64_t n, const bool throttle) {
   return ans >= rxThreads ? rxThreads : (int)ans;
 }
 
-SEXP getRxThreads_R(SEXP verbose) {
+extern "C" SEXP getRxThreads_R(SEXP verbose) {
   if (!isLogical(verbose) || LENGTH(verbose)!=1 || INTEGER(verbose)[0]==NA_LOGICAL)
     Rf_errorcall(R_NilValue, _("'verbose' must be TRUE or FALSE"));
   if (LOGICAL(verbose)[0]) {
@@ -125,7 +125,7 @@ SEXP getRxThreads_R(SEXP verbose) {
   return ScalarInteger(getRxThreads(INT_MAX, false));
 }
 
-SEXP setRxthreads(SEXP threads, SEXP percent, SEXP throttle) {
+extern "C" SEXP setRxthreads(SEXP threads, SEXP percent, SEXP throttle) {
   if (length(throttle)) {
     if (!isInteger(throttle) || LENGTH(throttle)!=1 || INTEGER(throttle)[0]<1)
       error(_("'throttle' must be a single number, non-NA, and >=1"));
@@ -170,16 +170,16 @@ SEXP setRxthreads(SEXP threads, SEXP percent, SEXP throttle) {
 // Like data.table throttle threads to 1 when forked.
 static int pre_fork_rxThreads = 0;
 
-void when_fork() {
+extern "C" void when_fork() {
   pre_fork_rxThreads = rxThreads;
   rxThreads = 1;
 }
 
-void after_fork() {
+extern "C" void after_fork() {
   rxThreads = pre_fork_rxThreads;
 }
 
-void avoid_openmp_hang_within_fork() {
+extern "C" void avoid_openmp_hang_within_fork() {
   // Called once on loading RxODE from init.c
 #ifdef _OPENMP
   pthread_atfork(&when_fork, &after_fork, NULL);
@@ -199,7 +199,7 @@ static uint64_t dmask=0;
 // for floating point finite you have to flip the other bits too if it was signed: http://stereopsis.com/radix.html
 // CHANGES for RxODE:
 // By definition in RxODE, the value is always finite, drop the NA, NaN, and +-Inf
-uint64_t dtwiddle(const void *p, int i)
+extern "C" uint64_t dtwiddle(const void *p, int i)
 {
   union {
     double d;
@@ -239,7 +239,7 @@ static bool sort_ugrp(uint8_t *x, const int n)
 //  - retgrp = 0 (all pushs are meaningless)
 //  - Keys are stored based on core
 //  - modified so that radix_r is 0 order not 1 order like R (since we are using it in C)
-void radix_r(const int from, const int to, const int radix,
+extern "C" void radix_r(const int from, const int to, const int radix,
 	     rx_solving_options_ind *ind, rx_solve *rx) {
   uint8_t **key = rx->keys[omp_get_thread_num()];
   int *anso = ind->ix;
@@ -546,6 +546,6 @@ void radix_r(const int from, const int to, const int radix,
   free(ngrps);
 }
 
-int getThrottle(){
+extern "C" int getThrottle(){
   return rxThrottle;
 }
