@@ -18,7 +18,13 @@
 \alias{solve.rxEt}
 \title{Solving \& Simulation of a ODE/solved system (and solving options) equation}
 \usage{
-rxControl(
+rxControl(..., params = NULL, events = NULL, inits = NULL)
+
+rxSolve(
+  object,
+  params = NULL,
+  events = NULL,
+  inits = NULL,
   scale = NULL,
   method = c("liblsoda", "lsoda", "dop853", "indLin"),
   transitAbs = NULL,
@@ -79,8 +85,6 @@ rxControl(
   maxSS = 1000L,
   infSSstep = 12,
   strictSS = TRUE,
-  params = NULL,
-  events = NULL,
   istateReset = TRUE,
   subsetNonmem = TRUE,
   maxAtolRtolFactor = 0.1,
@@ -113,8 +117,6 @@ rxControl(
     TRUE, rate2 = TRUE, dur2 = TRUE)
 )
 
-rxSolve(object, ...)
-
 \method{rxSolve}{default}(object, params = NULL, events = NULL, inits = NULL, ...)
 
 \method{update}{rxSolve}(object, ...)
@@ -142,6 +144,28 @@ rxSolve(object, ...)
 \method{solve}{rxEt}(a, b, ...)
 }
 \arguments{
+\item{...}{Other arguments including scaling factors for each
+compartment.  This includes S# = numeric will scale a compartment
+# by a dividing the compartment amount by the scale factor,
+like NONMEM.}
+
+\item{params}{a numeric named vector with values for every
+parameter in the ODE system; the names must correspond to the
+parameter identifiers used in the ODE specification;}
+
+\item{events}{an \code{eventTable} object describing the input
+(e.g., doses) to the dynamic system and observation sampling
+time points (see \code{\link{eventTable}});}
+
+\item{inits}{a vector of initial values of the state variables
+(e.g., amounts in each compartment), and the order in this
+vector must be the same as the state variables (e.g., PK/PD
+compartments);}
+
+\item{object}{is a either a RxODE family of objects, or a file-name
+with a RxODE model specification, or a string with a RxODE
+model specification.}
+
 \item{scale}{a numeric named vector with scaling for ode
 parameters of the system.  The names must correspond to the
 parameter identifiers in the ODE specification. Each of the
@@ -199,11 +223,6 @@ default value is determined by the solver (when hini = 0)}
 
 \item{maxords}{The maximum order to be allowed for the stiff (BDF)
 method.  The default value is 5.  This can be between 1 and 5.}
-
-\item{...}{Other arguments including scaling factors for each
-compartment.  This includes S# = numeric will scale a compartment
-# by a dividing the compartment amount by the scale factor,
-like NONMEM.}
 
 \item{cores}{Number of cores used in parallel ODE solving.  This
 is equivalent to calling \code{\link{setRxThreads}}}
@@ -426,14 +445,6 @@ problems occur is considered the steady state, even though
 either \code{atol}, \code{rtol} or \code{maxSS} have not
 been achieved.}
 
-\item{params}{a numeric named vector with values for every
-parameter in the ODE system; the names must correspond to the
-parameter identifiers used in the ODE specification;}
-
-\item{events}{an \code{eventTable} object describing the input
-(e.g., doses) to the dynamic system and observation sampling
-time points (see \code{\link{eventTable}});}
-
 \item{istateReset}{When \code{TRUE}, reset the \code{ISTATE} variable to 1 for
 lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do
 not reset the \code{ISTATE} variable with doses.}
@@ -575,15 +586,6 @@ multiplication and then converts back.
 \item{linDiffCentral}{This gives the which parameters use central
 differences for the linear compartment model parameters.  The
 are the same components as \code{linDiff}}
-
-\item{object}{is a either a RxODE family of objects, or a file-name
-with a RxODE model specification, or a string with a RxODE
-model specification.}
-
-\item{inits}{a vector of initial values of the state variables
-(e.g., amounts in each compartment), and the order in this
-vector must be the same as the state variables (e.g., PK/PD
-compartments);}
 
 \item{a}{when using \code{solve}, this is equivalent to the
 \code{object} argument.  If you specify \code{object} later in
