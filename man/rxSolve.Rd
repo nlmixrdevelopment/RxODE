@@ -114,7 +114,8 @@ rxSolve(
   linDiff = c(tlag = 1.5e-08, f = 1.5e-08, rate = 1.5e-08, dur = 1.5e-08, tlag2 =
     1.5e-08, f2 = 1.5e-08, rate2 = 1.5e-08, dur2 = 1.5e-08),
   linDiffCentral = c(tlag = TRUE, f = TRUE, rate = TRUE, dur = TRUE, tlag2 = TRUE, f2 =
-    TRUE, rate2 = TRUE, dur2 = TRUE)
+    TRUE, rate2 = TRUE, dur2 = TRUE),
+  sampleVars = NULL
 )
 
 \method{rxSolve}{default}(object, params = NULL, events = NULL, inits = NULL, ...)
@@ -586,6 +587,9 @@ multiplication and then converts back.
 \item{linDiffCentral}{This gives the which parameters use central
 differences for the linear compartment model parameters.  The
 are the same components as \code{linDiff}}
+
+\item{sampleVars}{model variables to sample from the dataset; This
+sampling is done with replacement}
 
 \item{a}{when using \code{solve}, this is equivalent to the
 \code{object} argument.  If you specify \code{object} later in

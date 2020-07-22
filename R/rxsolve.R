@@ -436,6 +436,9 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 ##'   differences for the linear compartment model parameters.  The
 ##'   are the same components as \code{linDiff}
 ##'
+##' @param sampleVars model variables to sample from the dataset; This
+##'   sampling is done with replacement
+##'
 ##' @references
 ##'
 ##'  "New Scaling and Squaring Algorithm for the Matrix Exponential", by
@@ -518,7 +521,8 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
                     prodType = c("long double", "double", "logify"),
                     sensType = c("advan", "autodiff", "forward", "central"),
                     linDiff=c(tlag=1.5e-8, f=1.5e-8, rate=1.5e-8, dur=1.5e-8, tlag2=1.5e-8, f2=1.5e-8, rate2=1.5e-8, dur2=1.5e-8),
-                    linDiffCentral=c(tlag=TRUE, f=TRUE, rate=TRUE, dur=TRUE, tlag2=TRUE, f2=TRUE, rate2=TRUE, dur2=TRUE)) {
+                    linDiffCentral=c(tlag=TRUE, f=TRUE, rate=TRUE, dur=TRUE, tlag2=TRUE, f2=TRUE, rate2=TRUE, dur2=TRUE),
+                    sampleVars=NULL) {
   if (is.null(object)) {
     .xtra <- list(...)
     if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")) {
@@ -737,7 +741,8 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
       prodType = as.integer(.prod),
       sensType = as.integer(.sensType),
       linDiff=linDiff,
-      linDiffCentral=linDiffCentral
+      linDiffCentral=linDiffCentral,
+      sampleVars=sampleVars
     )
     return(.ret)
 
