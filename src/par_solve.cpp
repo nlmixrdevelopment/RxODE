@@ -5,7 +5,6 @@
 #include <Rinternals.h>
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
-#include <R_ext/Print.h>
 #include "../inst/include/RxODE.h"
 extern "C" {
   #include "dop853.h"
@@ -32,12 +31,9 @@ extern "C" {
 #else
 #define _(String) (String)
 #endif
+int _isRstudio = 0;
 
-int _setSilentErr=0;
-extern "C" void setSilentErr(int silent){
-  _setSilentErr = silent;
-}
-extern "C" int getSilentErr(){return _setSilentErr;}
+extern "C" void setRstudioPrint(int rstudio);
 
 extern "C" void rxSolveFreeC();
 
@@ -52,24 +48,7 @@ extern "C" SEXP _rxHasOpenMp(){
   return ret;
 }
 
-
-int _isRstudio = 0;
-
-static inline void RSprintf(const char *format, ...){
-  if (_setSilentErr == 0) {
-    if(_isRstudio){
-      va_list args;
-      va_start(args, format);
-      REvprintf(format, args);
-      va_end(args);
-    } else{
-      va_list args;
-      va_start(args, format);
-      Rvprintf(format, args);
-      va_end(args);
-    } 
-  }
-}
+extern "C" void RSprintf(const char *format, ...);
 
 void printErr(int err, int id){
   RSprintf("Recovered solving errors for internal ID %d (%d):\n", id+1, err);
@@ -198,6 +177,7 @@ extern "C" int par_progress(int c, int n, int d, int cores, clock_t t0, int stop
       if (curTicks > 50) curTicks=50;
       int isSupported = isProgSupported();
       if (_isRstudio) isSupported = 0;
+      
       if (isSupported == -1){
       } else if (isSupported == 0){
 	int i;
@@ -2479,6 +2459,7 @@ extern "C" void ind_solve(rx_solve *rx, unsigned int cid,
 	       int jt){
   par_progress_1=0;
   _isRstudio = isRstudio();
+  setRstudioPrint(_isRstudio);
   rxt.t0 = clock();
   rxt.cores = 1;
   rxt.n = 100;
@@ -2507,6 +2488,7 @@ extern "C" void ind_solve(rx_solve *rx, unsigned int cid,
 
 extern "C" void par_solve(rx_solve *rx){
   _isRstudio = isRstudio();
+  setRstudioPrint(_isRstudio);
   par_progress_1=0;
   rxt.t0 = clock();
   rxt.cores = 1;
