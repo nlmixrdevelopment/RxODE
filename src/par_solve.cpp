@@ -5,6 +5,7 @@
 #include <Rinternals.h>
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
+#include <R_ext/Print.h>
 #include "../inst/include/RxODE.h"
 extern "C" {
   #include "dop853.h"
