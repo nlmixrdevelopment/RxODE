@@ -2,12 +2,10 @@ extern "C" {
 #include <R.h>
 #include <Rversion.h>
 #include <Rinternals.h>
-#include <stdint.h>    // for uint64_t rather than unsigned long long
-#include <stdbool.h>
 #include "../inst/include/RxODE.h"
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 
-#include <errno.h>     // errno
+#include <cerrno>
 #include <ctype.h>     // isspace
 
 #ifdef ENABLE_NLS
