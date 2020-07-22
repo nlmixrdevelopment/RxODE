@@ -23,7 +23,8 @@ rxPermissive({
       tad <- tad()
       tl <- tlast()
       tafd <- tafd()
-      tf <- tfirst()
+      tfirst <- tfirst()
+      tl <- tlast()
       tadd <- tad(depot)
       tfirstd <- tfirst(depot)
       tlastd <- tlast(depot)
@@ -88,15 +89,15 @@ rxPermissive({
     expect_equal(r1$tfirst[1], NA_real_)
     expect_true(all(r1$tfirst[-1] == 1))
 
-    expect_equal(r1$tlast,
+    expect_equal(r1$tl,
                  c(NA, 1, 1, 1, 1, 1, 13, 13, 13, 13, 13, 25, 25, 25, 25, 25,
-                   37, 37, 37, 37, 37, 49, 49, 49, 49, 49, 61, 61, 61, 61, 61, 73,
-                   73, 73, 73, 73, 85, 85, 85, 85, 85, 97, 97, 97, 97, 97, 109,
-                   109, 109, 109, 120, 120, 120, 120, 120, 120, 120, 134, 134, 134,
-                   134, 134, 134, 134, 148, 148, 148, 148, 148, 148, 162, 162, 162,
-                   162, 162, 162, 162, 176, 176, 176, 176, 176, 176, 176, 176, 176,
-                   176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176,
-                   176, 176))
+37, 37, 37, 37, 37, 49, 49, 49, 49, 49, 61, 61, 61, 61, 61, 73,
+73, 73, 73, 73, 85, 85, 85, 85, 85, 97, 97, 97, 97, 97, 109,
+109, 109, 109, 120, 120, 122, 122, 122, 122, 122, 134, 134, 136,
+136, 136, 136, 136, 148, 150, 150, 150, 150, 150, 162, 162, 164,
+164, 164, 164, 164, 176, 176, 178, 178, 178, 178, 178, 178, 178,
+178, 178, 178, 178, 178, 178, 178, 178, 178, 178, 178, 178, 178,
+178, 178))
 
     expect_equal(r1$tfirstd,
                  c(NA, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -266,8 +267,60 @@ rxPermissive({
 
   context("tad family of functions with linCmt()/ode mix")
 
+  test_that("ode mixed", {
+
+    mod3 <- RxODE({
+      KA=2.94E-01;
+      CL=1.86E+01;
+      V2=4.02E+01;
+      Q=1.05E+01;
+      V3=2.97E+02;
+      Kin0=1;
+      Kout=1;
+      EC50=200;
+      ## The linCmt() picks up the variables from above
+      C2   = linCmt();
+      Tz= 8
+      amp=0.1
+      eff(0) = 1  ## This specifies that the effect compartment starts at 1.
+      ## Kin changes based on time of day (like cortosol)
+      Kin =   Kin0 +amp *cos(2*pi*(ctime-Tz)/24)
+      d/dt(eff) =  Kin - Kout*(1-C2/(EC50+C2))*eff;
+      tadd <- tad(depot)
+      tad <- tad()
+      tade <- tad(eff)
+    })
+
+    ev <- eventTable(amount.units="mg", time.units="hours") %>%
+      add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
+      add.sampling(seq(0,48,length.out=100));
 
 
+    ## Create data frame of 8 am dosing for the first dose This is done
+    ## with base R but it can be done with dplyr or data.table
+    ev$ctime <- (ev$time+set_units(8,hr)) %% 24
 
+    x <- rxSolve(mod3, ev)
+
+    expect_equal(x$tad, x$tadd)
+    expect_true(all(is.na(x$tade)))
+
+    ev <- eventTable(amount.units="mg", time.units="hours") %>%
+      add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
+      add.dosing(dose=-1, start.time=6, nbr.doses=1) %>%
+      add.sampling(seq(0,48,length.out=20));
+
+
+    ## Create data frame of 8 am dosing for the first dose This is done
+    ## with base R but it can be done with dplyr or data.table
+    ev$ctime <- (ev$time+set_units(8,hr)) %% 24
+
+    x <- rxSolve(mod3, ev, addDosing=TRUE)
+
+    expect_false(isTRUE(all.equal(x$tad, x$tadd)))
+
+    expect_false(isTRUE(all.equal(x$tad, x$tade)))
+
+  })
 
 })

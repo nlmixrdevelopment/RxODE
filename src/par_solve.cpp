@@ -3539,7 +3539,7 @@ extern "C" void rxSingleSolve(int subid, double *_theta, double *timep,
       ind->idx = i;
       newEvid[i] = ind->evid[ind->ix[i]];
       newTime[i] = getTime(ind->ix[i], ind);
-      if (!isObs(ind->evid[ind->ix[i]])) {
+      if (isDose(ind->evid[ind->ix[i]])) {
 	getWh(ind->evid[ind->ix[i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
 	handleTlastInline(&newTime[i], ind);
       }

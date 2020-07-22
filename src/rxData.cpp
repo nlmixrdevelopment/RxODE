@@ -4957,16 +4957,26 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	dexact = 0;
       }
       unsigned int slen2;
+      bool found = false;
+      int possible = -1;
       for (i = 0; i < n; i++){
 	slen2 = strlen((as<std::string>(nm[i])).c_str());
 	if (slen <= slen2 &&
 	    (strncmp((as<std::string>(nm[i])).c_str(), sarg.c_str(), slen)  == 0 ) &&
 	    (dexact != 1 || (dexact == 1 && slen == slen2))){
-	  if (dexact == -1){
-	    warning(_("partial match of '%s' to '%s'"),sarg.c_str(), (as<std::string>(nm[i])).c_str());
+	  if (slen != slen2){
+	    possible = i;
+	  } else {
+	    return lst[i];
 	  }
-	  return lst[i];
 	}
+      }
+      if (possible != -1){
+	if (dexact == -1){
+	  warning(_("partial match of '%s' to '%s'"),sarg.c_str(),
+		  (as<std::string>(nm[possible])).c_str());
+	}
+	return lst[possible];
       }
       if (rxIs(obj, "rxSolve")){
 	RObject ret0 = rxSolveGet_rxSolve(obj, sarg, exact, lst);
