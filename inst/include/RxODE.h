@@ -83,7 +83,7 @@ typedef struct {
   int *par_cov;
   double *inits;
   double *scale;
-  int do_par_cov;
+  bool do_par_cov;
   // approx fun options
   double f1;
   double f2;

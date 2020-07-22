@@ -3494,7 +3494,7 @@ extern "C" void rxSingleSolve(int subid, double *_theta, double *timep,
   // No covariates not needed.
   // Linear is setup.
   op->ncov = 0;
-  op->do_par_cov=0;
+  op->do_par_cov=false;
   //
   op->inits   = initsp;
   op->scale = scale;
