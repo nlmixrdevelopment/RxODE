@@ -1686,9 +1686,18 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
   List keepL = List(keepCol.size());
   CharacterVector keepN(keepCol.size());
+  IntegerVector keepLc(keepCol.size());
   for (j = 0; j < (int)(keepCol.size()); j++){
     keepL[j] = NumericVector(idxO.size()-rmAmt);
     keepN[j] = dName[keepCol[j]];
+    keepLc[j] = 0;
+    const char* cmp = CHAR(dName[keepCol[j]]);
+    for (int ip = pars.size(); ip--;){
+      if (!strcmp(cmp, CHAR(pars[ip]))) {
+	keepLc[j] = ip+1;
+	break;
+      }
+    }
   }
 #ifdef rxSolveT
   REprintf("  Time10: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
@@ -1959,6 +1968,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   Rf_setAttrib(keepL, R_ClassSymbol, wrap("data.frame"));
   Rf_setAttrib(keepL, R_RowNamesSymbol,
 	       IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt));
+  Rf_setAttrib(keepL, Rf_install("keepCov"), wrap(keepLc));
   setFkeep(keepL);
   Rf_setAttrib(e, R_ClassSymbol, wrap("rxHidden"));
   cls.attr(".RxODE.lst") = e;

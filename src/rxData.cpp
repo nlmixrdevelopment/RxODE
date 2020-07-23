@@ -2313,16 +2313,20 @@ extern "C" void RxODE_assign_fn_pointers(SEXP);
 
 List keepIcov;
 List keepFcov;
+IntegerVector keepFcovI;
 extern void setFkeep(List keep){
   keepFcov=keep;
+  keepFcovI= keepFcov.attr("keepCov");
 }
 
 extern "C" double get_ikeep(int col, int id){
   return REAL(keepIcov[col])[id];
 }
 
-extern "C" double get_fkeep(int col, int id){
-  return REAL(keepFcov[col])[id];
+extern "C" double get_fkeep(int col, int id, rx_solving_options_ind *ind){
+  int idx = keepFcovI[col];
+  if (idx == 0) return REAL(keepFcov[col])[id];
+  return ind->par_ptr[idx-1];
 }
 
 extern "C" SEXP get_ikeepn(){

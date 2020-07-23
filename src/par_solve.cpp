@@ -2586,7 +2586,7 @@ extern "C" int rxGetErrsNrow();
 extern "C" double get_ikeep(int col, int id);
 extern "C" int get_ikeepi(int col, int id);
 extern "C" const SEXP get_ikeepn();
-extern "C" double get_fkeep(int col, int id);
+extern "C" double get_fkeep(int col, int id, rx_solving_options_ind *ind);
 extern "C" int get_fkeepi(int col, int id);
 extern "C" const SEXP get_fkeepn();
 
@@ -2683,7 +2683,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   int i, j;
   int neq[2];
   double *scale;
-  rx_solving_options_ind *ind;  
+  rx_solving_options_ind *ind;
   if (subsetEvid == 1){
     rx->nr=0;
     for (int csim = 0; csim < nsim; csim++){
@@ -2788,7 +2788,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   for (i = 0; i < ncov*add_cov; i++){
     charItem =CHAR(STRING_ELT(paramNames, par_cov[i]-1));
     SET_VECTOR_ELT(df, j++, PROTECT(getDfLevels(charItem, rx))); pro++;
-    /* SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(paramNames, par_cov[i]-1)); */
   }
   par_cov = rx->cov0;
   for (i = 0; i < ncov0*add_cov; i++){
@@ -3155,9 +3154,11 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
             }
           }       
           // Cov
+	  int didUpdate = 0;
           if (add_cov*ncov > 0){
 	    // This takes care of the time varying covariates that may be shuffled.
 	    _update_par_ptr(curT, solveId, rx, ii);
+	    didUpdate=1;
 	    for (j = 0; j < add_cov*ncov; j++){
 	      tmp = VECTOR_ELT(df, jj);
 	      double tmpD = par_ptr[op->par_cov[j]-1];
@@ -3199,17 +3200,18 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
 	    }
 	    jj++;
 	  }
+	  if (nkeep && didUpdate==0) _update_par_ptr(curT, solveId, rx, ii);
 	  for (j = 0; j < nkeep; j++){
 	    tmp = VECTOR_ELT(df, jj);
 	    if (TYPEOF(tmp) == REALSXP){
 	      dfp = REAL(tmp);
 	      // is this ntimes = nAllTimes or nObs time for this subject...?
-	      dfp[ii] = get_fkeep(j, curi + ind->ix[i]);
+	      dfp[ii] = get_fkeep(j, curi + ind->ix[i], ind);
 	    } else {
 	      dfi = INTEGER(tmp);
 	      /* if (j == 0) REprintf("j: %d, %d; %f\n", j, i, get_fkeep(j, curi + i)); */
 	      // is this ntimes = nAllTimes or nObs time for this subject...?
-	      dfi[ii] = (int) (get_fkeep(j, curi + ind->ix[i]));
+	      dfi[ii] = (int) (get_fkeep(j, curi + ind->ix[i], ind));
 	    }
 	    jj++;
 	  }
