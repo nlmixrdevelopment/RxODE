@@ -2956,11 +2956,11 @@ static inline void rxSolve_parSetup(const RObject &obj,
   RObject eta = rxControl[Rxc_eta];
   //  determine which items will be sampled from
   rx->sample = false;
-  if (!Rf_isNull(rxControl[Rxc_sampleVars])) {
-    SEXP sampleVars = rxControl[Rxc_sampleVars];
+  if (!Rf_isNull(rxControl[Rxc_resample])) {
+    SEXP sampleVars = rxControl[Rxc_resample];
     if (TYPEOF(sampleVars) != STRSXP){
       rxSolveFree();
-      stop(_("'sampleVars' must be NULL or a character vector"));
+      stop(_("'resample' must be NULL or a character vector"));
     }
     rx->sample = true;
     if (rx->par_sample != NULL) free(rx->par_sample);
@@ -5668,7 +5668,6 @@ RObject rxUnloadAll_(){
   	int val = asInt(_rxModels[varC], "_rxModels[varC]");
   	if (val > 1){
   	} else if (val == 0 && rxUnload_){
-	  // REprintf("var: %s\n", varC.c_str());
   	  dynUnload(varC);
   	  rmRxModelsFromDll(varC);
   	}

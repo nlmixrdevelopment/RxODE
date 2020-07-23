@@ -203,8 +203,3 @@ open source tool *DParser*, Plevyak (2015).
 ## Bugs and/or deficiencies
 
 - The modulo operator `%` is currently unsupported. 
-- `else if`  is not currently supported 
-- Conditional statements inside a single statement like `ifelse` are
-  not currently supported.
-- Logical expressions within a statement are not supported, that is
-  `(cmt==2)*1+(cmt==3)*4` is not supported

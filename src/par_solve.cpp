@@ -339,7 +339,6 @@ extern "C" void rxOptionsIniEnsure(int mx){
   rx->TMP=NULL;
   rx->UGRP=NULL;
   rx->ordId = NULL;
-  rx->par_sample = NULL;
 }
 
 extern "C" int compareFactorVal(int val,

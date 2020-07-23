@@ -84,7 +84,7 @@
 #define Rxc_sensType 80
 #define Rxc_linDiff 81
 #define Rxc_linDiffCentral 82
-#define Rxc_sampleVars 83
+#define Rxc_resample 83
 #define RxMv_params 0
 #define RxMv_lhs 1
 #define RxMv_state 2
