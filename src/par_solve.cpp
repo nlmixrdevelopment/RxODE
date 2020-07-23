@@ -2620,6 +2620,8 @@ extern "C" SEXP getDfLevels(const char *item, rx_solve *rx){
   return val;
 }
 
+extern "C" void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
+
 extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   rx_solve *rx;
   rx = &rx_global;
@@ -2814,7 +2816,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
       iniSubject(neq[1], 1, ind, op, rx, update_inis);
       ntimes = ind->n_all_times;
       solve =  ind->solve;
-      cov_ptr = ind->cov_ptr;
       par_ptr = ind->par_ptr;
       dose = ind->dose;
       di = 0;
@@ -2846,8 +2847,8 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
 	    }
 	  }
 	}
+	double curT = getTime(ind->ix[i], ind);
 	if (isDose(evid)){
-	  double curT = getTime(ind->ix[i], ind);
 	  getWh(ind->evid[ind->ix[i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
 	  handleTlastInline(&curT, ind);
 	}
@@ -2862,6 +2863,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
 	  }
         }
         jj  = 0 ;
+	int solveId=csim*nsub+csub;
 	if (doDose || (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)){
           // sim.id
           if (sm){
@@ -3154,16 +3156,19 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
           }       
           // Cov
           if (add_cov*ncov > 0){
+	    // This takes care of the time varying covariates that may be shuffled.
+	    _update_par_ptr(curT, solveId, rx, ii);
 	    for (j = 0; j < add_cov*ncov; j++){
 	      tmp = VECTOR_ELT(df, jj);
+	      double tmpD = par_ptr[op->par_cov[j]-1];
 	      if (TYPEOF(tmp) == REALSXP) {
 		dfp = REAL(tmp);
 		// is this ntimes = nAllTimes or nObs time for this subject...?
-		dfp[ii] = isObs(evid)  ? cov_ptr[j*ntimes+i] : NA_REAL;
+		dfp[ii] = tmpD;
 	      } else {
 		dfi = INTEGER(tmp);
 		// is this ntimes = nAllTimes or nObs time for this subject...?
-		dfi[ii] = isObs(evid)  ? (int)(cov_ptr[j*ntimes+i]) : NA_INTEGER;
+		dfi[ii] = (int)(tmpD);
 	      }
 	      jj++;
 	    }
