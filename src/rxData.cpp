@@ -1411,7 +1411,7 @@ typedef struct {
   int *slvr_counter;
   int *dadt_counter;
   int *jac_counter;
-  int *gSampleCov = NULL;
+  int *gSampleCov;
   double *gmtime;
 } rx_globals;
 
@@ -1496,6 +1496,9 @@ void rxFreeErrs(){
 }
 
 extern "C" void gFree(){
+    // Free cov_sample
+  if (_globals.gSampleCov!=NULL) free(_globals.gSampleCov);
+  _globals.gSampleCov=NULL;
   if (_globals.gsolve != NULL) free(_globals.gsolve);
   _globals.gsolve=NULL;
   if (_globals.gon != NULL) free(_globals.gon);
@@ -2260,8 +2263,6 @@ extern "C" void lineFree(vLines *sbb);
 LogicalVector rxSolveFree(){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
-  // Free cov_sample
-  if (_globals.gSampleCov!=NULL) free(_globals.gSampleCov);
   // Free the solve id order
   if (rx->par_sample != NULL) free(rx->par_sample);
   rx->par_sample=NULL;
