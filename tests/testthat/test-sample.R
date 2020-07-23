@@ -43,6 +43,13 @@ rxPermissive({
     merge(cov.df, by="id") %>%
     as_tibble
 
+  e2 <-  et(time.units="hr") %>%
+    ## Specify the id and weight based dosing from covariate data.frame
+    ## This requires RxODE XXX
+    et(id=cov.df$id, amt=6*cov.df$WT, rate=6 * cov.df$WT) %>%
+    ## Sampling is added for each ID
+    et(s)
+
 
   test_that("resample tests: time invariant", {
 
@@ -87,6 +94,58 @@ rxPermissive({
     expect_false(isTRUE(all.equal(r1, r2)))
 
     r3 <- f3[!duplicated(f3$id), c("id", "SEX", "WT", "CRCL")]
+
+    expect_false(isTRUE(all.equal(r1, r3)))
+
+    ## Now try icov option
+
+    f1 <- rxSolve(m1, e2, iCov=cov.df,
+                  ## Lotri uses lower-triangular matrix rep. for named matrix
+                  omega=lotri(eta.cl ~ .306,
+                              eta.q ~0.0652,
+                              eta.v1 ~.567,
+                              eta.v2 ~ .191),
+                  sigma=lotri(err.sd ~ 0.5), addCov = TRUE)
+
+    expect_equal(f1$mWT[!duplicated(f1$id)], f1$WT)
+    expect_equal(f1$mCRCL[!duplicated(f1$id)], f1$CRCL)
+
+    f2 <- rxSolve(m1, e2, iCov=cov.df,
+                  ## Lotri uses lower-triangular matrix rep. for named matrix
+                  omega=lotri(eta.cl ~ .306,
+                              eta.q ~0.0652,
+                              eta.v1 ~.567,
+                              eta.v2 ~ .191),
+                  sigma=lotri(err.sd ~ 0.5), addCov = TRUE,
+                  resample=c("SEX", "WT", "CRCL"))
+
+    expect_equal(f2$mWT[!duplicated(f2$id)], f2$WT)
+    expect_equal(f2$mCRCL[!duplicated(f2$id)], f2$CRCL)
+
+    f3 <- rxSolve(m1, e2, iCov=cov.df,
+                  ## Lotri uses lower-triangular matrix rep. for named matrix
+                  omega=lotri(eta.cl ~ .306,
+                              eta.q ~0.0652,
+                              eta.v1 ~.567,
+                              eta.v2 ~ .191),
+                  sigma=lotri(err.sd ~ 0.5),
+                  keep = c("SEX", "WT", "CRCL"),
+                  resample=c("SEX", "WT", "CRCL"))
+
+    expect_equal(f3$mWT[!duplicated(f3$id)], f3$params$WT)
+    expect_equal(f3$mCRCL[!duplicated(f3$id)], f3$params$CRCL)
+    expect_equal(f3$mWT[!duplicated(f3$id)], f3$WT[!duplicated(f3$id)])
+    expect_equal(f3$mCRCL[!duplicated(f3$id)], f3$CRCL[!duplicated(f3$id)])
+
+    expect_false(isTRUE(all.equal(cov.df$WT, f3$params$WT)))
+    expect_false(isTRUE(all.equal(cov.df$CRCL, f3$params$CRCL)))
+
+    r1 <- f1$params[, c("id", "SEX", "WT", "CRCL")]
+    r2 <- f2$params[, c("id", "SEX", "WT", "CRCL")]
+
+    expect_false(isTRUE(all.equal(r1, r2)))
+
+    r3 <- f3$params[, c("id", "SEX", "WT", "CRCL")]
 
     expect_false(isTRUE(all.equal(r1, r3)))
 
@@ -146,7 +205,7 @@ rxPermissive({
     r1 <- f1[!duplicated(f1$id), c("id", "SEX", "WT", "CRCL")]
     r3 <- f3[!duplicated(f3$id), c("id", "SEX", "WT", "CRCL")]
 
-    expect_false(all.equal(r1$WT, r3$WT))
+    expect_false(isTRUE(all.equal(r1$WT, r3$WT)))
 
   })
 

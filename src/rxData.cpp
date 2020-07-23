@@ -2946,6 +2946,49 @@ static inline void rxSolve_simulate(const RObject &obj,
   }
 }
 
+static inline void rxSolve_resampleIcov(RObject &iCov, const List &rxControl){
+  if (!Rf_isNull(rxControl[Rxc_resample])) {
+	SEXP sampleVars = rxControl[Rxc_resample];
+	if (TYPEOF(sampleVars) != STRSXP){
+	  rxSolveFree();
+	  stop(_("'resample' must be NULL or a character vector"));
+	}
+	List iCovL = as<List>(clone(iCov));
+	CharacterVector iCovN = iCovL.names();
+	for (int ic = iCovL.size(); ic--;){
+	  for (int is = Rf_length(sampleVars); is--;){
+	    if (!strcmp(iCovN[ic],CHAR(STRING_ELT(sampleVars, is)))){
+	      SEXP cur = VECTOR_ELT(iCov, ic);
+	      if (TYPEOF(cur) == INTSXP){
+		int *curI = INTEGER(cur);
+		int nrow = Rf_length(cur);
+		IntegerVector newIV(nrow);
+		for (int j = nrow; j--;) {
+		  newIV[j] = curI[(int)(unif_rand()*nrow)];
+		}
+		RObject curR = cur;
+		if (curR.hasAttribute("levels")) {
+		  newIV.attr("levels") = curR.attr("levels");
+		  newIV.attr("class") = curR.attr("class");
+		}
+		iCovL[ic] = newIV;
+	      } else if (TYPEOF(cur) == REALSXP) {
+		double *curD = REAL(cur);
+		int nrow = Rf_length(cur);
+		NumericVector newNV(nrow);
+		for (int j = nrow; j--;) {
+		  newNV[j] = curD[(int)(unif_rand()*nrow)];
+		}
+		iCovL[ic] = newNV;
+	      }
+	      break;
+	    }
+	  }
+	  iCov = wrap(iCovL);
+	}
+      }
+}
+
 // This will setup the parNumeric, parDf, or parMat for solving. It
 // will also set the parameter type.
 static inline void rxSolve_parSetup(const RObject &obj,
@@ -2996,6 +3039,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
     RObject iCov = rxControl[Rxc_iCov];
     if (!rxIsNull(iCov)){
       // Create a data frame
+      rxSolve_resampleIcov(iCov, rxControl);
       Function sortId = getRxFn(".sortId");
       iCov = clone(sortId(iCov, rxSolveDat->idLevels, "iCov", rxSolveDat->warnIdSort));
       CharacterVector keepC, keepCf;
@@ -3060,6 +3104,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
     }
     RObject iCov = rxControl[Rxc_iCov];
     if (!rxIsNull(iCov)){
+      rxSolve_resampleIcov(iCov, rxControl);
       Function sortId = getRxFn(".sortId");
       iCov = clone(sortId(iCov, rxSolveDat->idLevels, "iCov", rxSolveDat->warnIdSort));
       List lstT=as<List>(iCov);
