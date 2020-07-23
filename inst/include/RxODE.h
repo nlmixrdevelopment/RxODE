@@ -165,6 +165,7 @@ typedef struct {
   int  *evid;
   int *rc;
   double *cov_ptr;
+  int *cov_sample;
   // a b
   // 1 4
   // 2 5

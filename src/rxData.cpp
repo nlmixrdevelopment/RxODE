@@ -1411,6 +1411,7 @@ typedef struct {
   int *slvr_counter;
   int *dadt_counter;
   int *jac_counter;
+  int *gSampleCov = NULL;
   double *gmtime;
 } rx_globals;
 
@@ -2259,6 +2260,8 @@ extern "C" void lineFree(vLines *sbb);
 LogicalVector rxSolveFree(){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
+  // Free cov_sample
+  if (_globals.gSampleCov!=NULL) free(_globals.gSampleCov);
   // Free the solve id order
   if (rx->par_sample != NULL) free(rx->par_sample);
   rx->par_sample=NULL;
@@ -3586,10 +3589,16 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
     {
       gparsCovSetup(rxSolveDat->npars, rxSolveDat->nPopPar, ev1, rx);
       rxSolve_assignGpars(rxSolveDat);
+      // Add sample indicators
+      if (rx->sample){
+	if (_globals.gSampleCov != NULL) free(_globals.gSampleCov);
+	_globals.gSampleCov = (int*)calloc(op->ncov*rx->nsub*rx->nsim, sizeof(int));
+      }
       curSolve=0;
       curLin=0;
       curEvent=0;
       curIdx=0;
+      int curCov=0;
       int curOn=0;
       rx_solving_options_ind indS;
       int linCmt = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linCmt];
@@ -3672,6 +3681,10 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  curOn +=op->neq;
 	  curIdx += ind->n_all_times;
 	  ind->_newind = -1;
+	  if (rx->sample) {
+	    ind->cov_sample = &_globals.gSampleCov[curCov];
+	    curCov += op->ncov;
+	  }
 	}
       }
     }

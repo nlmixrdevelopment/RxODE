@@ -187,54 +187,78 @@ double _getParCov(unsigned int id, rx_solve *rx, int parNo, int idx0){
   return ind->par_ptr[parNo];
 }
 
+double rxunif(rx_solving_options_ind* ind, double low, double hi);
+
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
   if (rx == NULL) Rf_errorcall(R_NilValue, _("solve data is not loaded"));
   if (ISNA(t)){
     // functional lag, rate, duration, mtime
-    rx_solving_options_ind *ind;
+    rx_solving_options_ind *ind, *indSample;
     ind = &(rx->subjects[id]);
     rx_solving_options *op = rx->op;
     // Update all covariate parameters
-    int k;
+    int k, idxSample;
     int ncov = op->ncov;
     if (op->do_par_cov){
       for (k = ncov; k--;){
 	if (op->par_cov[k]){
-	  double *y = ind->cov_ptr + ind->n_all_times*k;
-	  ind->par_ptr[op->par_cov[k]-1] = getValue(idx, y, ind);
+	  if (rx->sample && rx->par_sample[op->par_cov[k]-1] == 1) {
+	    // Get or sample id from overall ids
+	    if (ind->cov_sample[k] == 0) {
+	      ind->cov_sample[k] = (int)rxunif(ind, (double)1, (double)(rx->nsub*rx->nsim+1));
+	    }
+	    indSample = &(rx->subjects[ind->cov_sample[k]-1]);
+	    idxSample = -1;
+	  } else {
+	    indSample = ind;
+	    idxSample = idx;
+	  }
+	  double *y = indSample->cov_ptr + indSample->n_all_times*k;
+	  ind->par_ptr[op->par_cov[k]-1] = getValue(idxSample, y, indSample);
 	  if (idx == 0){
 	    ind->cacheME=0;
-	  } else if (getValue(idx, y, ind) != getValue(idx-1, y, ind)) {
+	  } else if (getValue(idxSample, y, indSample) != getValue(idxSample-1, y, indSample)) {
 	    ind->cacheME=0;
 	  }
 	}
       }
     }
   } else {
-    rx_solving_options_ind *ind;
+    rx_solving_options_ind *ind, *indSample;
     ind = &(rx->subjects[id]);
     rx_solving_options *op = rx->op;
     // Update all covariate parameters
-    int k;
+    int k, idxSample;
     int ncov = op->ncov;
     if (op->do_par_cov){
       for (k = ncov; k--;){
 	if (op->par_cov[k]){
+	  if (rx->sample && rx->par_sample[op->par_cov[k]-1] == 1) {
+	    // Get or sample id from overall ids
+	    if (ind->cov_sample[k] == 0) {
+	      ind->cov_sample[k] = (int)rxunif(ind, (double)1, (double)(rx->nsub*rx->nsim+1));
+	    }
+	    indSample = &(rx->subjects[ind->cov_sample[k]-1]);
+	    idxSample = -1;
+	  } else {
+	    indSample = ind;
+	    idxSample = idx;
+	  }
 	  double *par_ptr = ind->par_ptr;
-	  double *all_times = ind->all_times;
-	  double *y = ind->cov_ptr + ind->n_all_times*k;
-	  if (idx > 0 && idx < ind->n_all_times && t == all_times[idx]){
-	    par_ptr[op->par_cov[k]-1] = getValue(idx, y, ind);
-	    if (idx == 0){
+	  double *all_times = indSample->all_times;
+	  double *y = indSample->cov_ptr + indSample->n_all_times*k;
+	  if (idxSample > 0 && idxSample < indSample->n_all_times && t == all_times[idx]){
+	    par_ptr[op->par_cov[k]-1] = getValue(idxSample, y, indSample);
+	    if (idxSample == 0){
 	      ind->cacheME=0;
-	    } else if (getValue(idx, y, ind) != getValue(idx-1, y, ind)) {
+	    } else if (getValue(idxSample, y, indSample) != getValue(idxSample-1, y, indSample)) {
 	      ind->cacheME=0;
 	    }
 	  } else {
 	    // Use the same methodology as approxfun.
-	    ind->ylow = getValue(0, y, ind);/* cov_ptr[ind->n_all_times*k]; */
-	    ind->yhigh = getValue(ind->n_all_times-1, y, ind);/* cov_ptr[ind->n_all_times*k+ind->n_all_times-1]; */
-	    par_ptr[op->par_cov[k]-1] = rx_approxP(t, y, ind->n_all_times, op, ind);
+	    indSample->ylow = getValue(0, y, indSample);/* cov_ptr[ind->n_all_times*k]; */
+	    indSample->yhigh = getValue(indSample->n_all_times-1, y, indSample);/* cov_ptr[ind->n_all_times*k+ind->n_all_times-1]; */
+	    par_ptr[op->par_cov[k]-1] = rx_approxP(t, y, indSample->n_all_times, op, indSample);
 	    // Don't need to reset ME because solver doesn't use the
 	    // times in-between.
 	  }
