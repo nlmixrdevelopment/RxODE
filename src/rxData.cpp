@@ -1455,7 +1455,7 @@ static inline void gparsCovSetupConstant(RObject &ev1, int npars){
 	// For sampling  (with replacement)
 	if (rx->par_sample[ir]) {
 	  for (int ic = ncol; ic--;){
-	    ret(ir,ic) = iniPars(ir, (int)unif_rand()*ncol);
+	    ret(ir,ic) = iniPars(ir, (int)(unif_rand()*ncol));
 	  }
 	} else {
 	  // This is for copying
