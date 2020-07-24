@@ -3520,114 +3520,132 @@ static inline void rxSolve_resample(const RObject &obj,
   rx->sample = false;
   if (!Rf_isNull(rxControl[Rxc_resample])) {
     SEXP sampleVars = rxControl[Rxc_resample];
-    if (TYPEOF(sampleVars) != STRSXP){
+    bool doSample = true;
+    CharacterVector pars = rxSolveDat->mv[RxMv_params];
+    if (TYPEOF(sampleVars) == LGLSXP) {
+      doSample = asBool(rxControl[Rxc_resample], "resample");
+      if (doSample){
+	CharacterVector vars(op->ncov+rx->nCov0);
+	int *par_cov = op->par_cov;
+	int jj = 0;
+	for (int i = 0; i < op->ncov; i++){
+	  vars[jj++] = pars[par_cov[i]-1];
+	}
+	par_cov = rx->cov0;
+	for (int i = 0; i < rx->nCov0; i++){
+	  vars[jj++] = pars[par_cov[i]];
+	}
+	sampleVars = wrap(vars);
+      }
+    } else if (TYPEOF(sampleVars) != STRSXP){
       rxSolveFree();
       stop(_("'resample' must be NULL or a character vector"));
     }
-    bool resampleID = asBool(rxControl[Rxc_resampleID], "resampleID");
-    CharacterVector pars = rxSolveDat->mv[RxMv_params];
-    rx->sample = true;
-    if (rx->par_sample != NULL) free(rx->par_sample);
-    rx->par_sample = (int*)calloc(pars.size(), sizeof(int));
-    for (int ip = rxSolveDat->npars; ip--;){
-      for (int is = Rf_length(sampleVars); is--;){
-	if (!strcmp(pars[ip],CHAR(STRING_ELT(sampleVars, is)))){
-	  rx->par_sample[ip] = 1;
-	  break;
+    if (doSample){
+      bool resampleID = asBool(rxControl[Rxc_resampleID], "resampleID");
+      rx->sample = true;
+      if (rx->par_sample != NULL) free(rx->par_sample);
+      rx->par_sample = (int*)calloc(pars.size(), sizeof(int));
+      for (int ip = rxSolveDat->npars; ip--;){
+	for (int is = Rf_length(sampleVars); is--;){
+	  if (!strcmp(pars[ip],CHAR(STRING_ELT(sampleVars, is)))){
+	    rx->par_sample[ip] = 1;
+	    break;
+	  }
 	}
       }
-    }
-    List parList;
-    List keepIcovF;
-    CharacterVector parNames;
-    CharacterVector keepNames;
-    List parListF;
-    bool updatePar=false;
-    if (rxSolveDat->usePar1 && (rxSolveDat->par1).sexp_type()==VECSXP) {
-      parList = as<List>(rxSolveDat->par1);
-      parNames = parList.names();
-      parListF = clone(parList);
-      updatePar = true;
-      if (rxSolveDat->par1Keep){
-	keepIcovF = clone(keepIcov);
-	keepNames = keepIcovF.names();
+      List parList;
+      List keepIcovF;
+      CharacterVector parNames;
+      CharacterVector keepNames;
+      List parListF;
+      bool updatePar=false;
+      if (rxSolveDat->usePar1 && (rxSolveDat->par1).sexp_type()==VECSXP) {
+	parList = as<List>(rxSolveDat->par1);
+	parNames = parList.names();
+	parListF = clone(parList);
+	updatePar = true;
+	if (rxSolveDat->par1Keep){
+	  keepIcovF = clone(keepIcov);
+	  keepNames = keepIcovF.names();
+	}
       }
-    }
-    int nrow = rxSolveDat->npars;
-    int ncol = rx->nsub;
-    int size = rx->nsub*rx->nsim;
-    NumericMatrix iniPars(nrow, ncol,&_globals.gpars[0]);
-    NumericMatrix ret(nrow, size);
-    IntegerVector idSel(size);
-    std::fill(idSel.begin(),idSel.end(),0);
-    const char *cur;
-    // add sample indicators
-    if (_globals.gSampleCov != NULL) free(_globals.gSampleCov);
-    _globals.gSampleCov = (int*)calloc(op->ncov*rx->nsub*rx->nsim, sizeof(int));
-    for (int ir = nrow; ir--;){
-      // For sampling  (with replacement)
-      if (rx->par_sample[ir]) {
-	cur = CHAR(pars[ir]);
-	for (int is = size; is--;){
-	  int ic = is % ncol;
-	  int val;
-	  // Retrieve or generate sample
-	  // Only need to resample from the number of input items (ncol)
-	  // Probably doesn't make much difference, though. 
-	  if (resampleID) {
-	    val = idSel[is];
-	    if (val == 0){
-	      val = (int)(unif_rand()*ncol)+1;
-	      idSel[is] = val;
-	      // Fill in the selected ID for the time-varying covariate(s)
-	      // This is filled in reverse order because ind->cov_sample is filled in reverse order
-	      std::fill_n(&_globals.gSampleCov[0]+(size-is-1)*op->ncov, op->ncov, val);
-	    }
-	    val--;
-	  } else {
-	    val = (int)(unif_rand()*ncol);
-	  }
-	  for (int ip = parList.size(); ip--;){
-	    if (!strcmp(CHAR(parNames[ip]), cur)) {
-	      SEXP curIn = parList[ip];
-	      SEXP curOut = parListF[ip];
-	      if (TYPEOF(curIn) == INTSXP) {
-		INTEGER(curOut)[ic] = INTEGER(curIn)[val];
-	      } else if (TYPEOF(curIn) == REALSXP){
-		REAL(curOut)[ic] = REAL(curIn)[val];
+      int nrow = rxSolveDat->npars;
+      int ncol = rx->nsub;
+      int size = rx->nsub*rx->nsim;
+      NumericMatrix iniPars(nrow, ncol,&_globals.gpars[0]);
+      NumericMatrix ret(nrow, size);
+      IntegerVector idSel(size);
+      std::fill(idSel.begin(),idSel.end(),0);
+      const char *cur;
+      // add sample indicators
+      if (_globals.gSampleCov != NULL) free(_globals.gSampleCov);
+      _globals.gSampleCov = (int*)calloc(op->ncov*rx->nsub*rx->nsim, sizeof(int));
+      for (int ir = nrow; ir--;){
+	// For sampling  (with replacement)
+	if (rx->par_sample[ir]) {
+	  cur = CHAR(pars[ir]);
+	  for (int is = size; is--;){
+	    int ic = is % ncol;
+	    int val;
+	    // Retrieve or generate sample
+	    // Only need to resample from the number of input items (ncol)
+	    // Probably doesn't make much difference, though. 
+	    if (resampleID) {
+	      val = idSel[is];
+	      if (val == 0){
+		val = (int)(unif_rand()*ncol)+1;
+		idSel[is] = val;
+		// Fill in the selected ID for the time-varying covariate(s)
+		// This is filled in reverse order because ind->cov_sample is filled in reverse order
+		std::fill_n(&_globals.gSampleCov[0]+(size-is-1)*op->ncov, op->ncov, val);
 	      }
-	      break;
+	      val--;
+	    } else {
+	      val = (int)(unif_rand()*ncol);
 	    }
-	  }
-	  for (int ik = keepIcovF.size();ik--;){
-	    if (!strcmp(CHAR(keepNames[ik]), cur)) {
-	      SEXP curIn  = keepIcov[ik];
-	      SEXP curOut = keepIcovF[ik];
-	      if (TYPEOF(curIn) == INTSXP) {
-		INTEGER(curOut)[ic] = INTEGER(curIn)[val];
-	      } else if (TYPEOF(curIn) == REALSXP){
-		REAL(curOut)[ic] = REAL(curIn)[val];
+	    for (int ip = parList.size(); ip--;){
+	      if (!strcmp(CHAR(parNames[ip]), cur)) {
+		SEXP curIn = parList[ip];
+		SEXP curOut = parListF[ip];
+		if (TYPEOF(curIn) == INTSXP) {
+		  INTEGER(curOut)[ic] = INTEGER(curIn)[val];
+		} else if (TYPEOF(curIn) == REALSXP){
+		  REAL(curOut)[ic] = REAL(curIn)[val];
+		}
+		break;
 	      }
-	      break;
 	    }
+	    for (int ik = keepIcovF.size();ik--;){
+	      if (!strcmp(CHAR(keepNames[ik]), cur)) {
+		SEXP curIn  = keepIcov[ik];
+		SEXP curOut = keepIcovF[ik];
+		if (TYPEOF(curIn) == INTSXP) {
+		  INTEGER(curOut)[ic] = INTEGER(curIn)[val];
+		} else if (TYPEOF(curIn) == REALSXP){
+		  REAL(curOut)[ic] = REAL(curIn)[val];
+		}
+		break;
+	      }
+	    }
+	    ret(ir, is) = iniPars(ir, val);
 	  }
-	  ret(ir, is) = iniPars(ir, val);
-	}
-      } else {
-	// This is for copying
-	for (int is = size; is--;){
-	  ret(ir, is) = iniPars(ir, is % ncol);
+	} else {
+	  // This is for copying
+	  for (int is = size; is--;){
+	    ret(ir, is) = iniPars(ir, is % ncol);
+	  }
 	}
       }
-    }
-    if (updatePar){
-      rxSolveDat->par1 = as<RObject>(parListF);
-      if (rxSolveDat->par1Keep){
-	keepIcov = keepIcovF;
+      if (updatePar){
+	rxSolveDat->par1 = as<RObject>(parListF);
+	if (rxSolveDat->par1Keep){
+	  keepIcov = keepIcovF;
+	}
       }
+      // Put sampled dataset in gpars
+      std::copy(ret.begin(),ret.end(),&_globals.gpars[0]);
     }
-    // Put sampled dataset in gpars
-    std::copy(ret.begin(),ret.end(),&_globals.gpars[0]);
   }
 }
 

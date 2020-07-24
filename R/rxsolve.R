@@ -436,8 +436,11 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 ##'   differences for the linear compartment model parameters.  The
 ##'   are the same components as \code{linDiff}
 ##'
-##' @param resample model variables to resample from the dataset; This
-##'   sampling is done with replacement
+##' @param resample A character vector of model variables to resample
+##'   from the input dataset; This sampling is done with replacement.
+##'   When \code{NULL} or \code{FALSE} no resampling is done.  When
+##'   \code{TRUE} resampling is done on all covariates in the input
+##'   dataset
 ##'
 ##' @param resampleID boolean representing if the resampling should be
 ##'   done on an individual basis \code{TRUE} (ie. a whole patient is
