@@ -3580,7 +3580,8 @@ static inline void rxSolve_resample(const RObject &obj,
 	      val = (int)(unif_rand()*ncol)+1;
 	      idSel[is] = val;
 	      // Fill in the selected ID for the time-varying covariate(s)
-	      std::fill_n(&_globals.gSampleCov[0]+is*op->ncov, op->ncov, val);
+	      // This is filled in reverse order because ind->cov_sample is filled in reverse order
+	      std::fill_n(&_globals.gSampleCov[0]+(size-is-1)*op->ncov, op->ncov, val);
 	    }
 	    val--;
 	  } else {
@@ -3625,13 +3626,6 @@ static inline void rxSolve_resample(const RObject &obj,
 	keepIcov = keepIcovF;
       }
     }
-    // REprintf("iniPars:\n");
-    // print(iniPars);
-    // REprintf("ret:\n");
-    // print(ret);
-    NumericMatrix sampleCov(op->ncov, size, &_globals.gSampleCov[0]);
-    // REprintf("sampleCov:\n");
-    // print(sampleCov);
     // Put sampled dataset in gpars
     std::copy(ret.begin(),ret.end(),&_globals.gpars[0]);
   }

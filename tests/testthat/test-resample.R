@@ -10,11 +10,95 @@ rxPermissive({
     V2 ~ 1.93*(3.13+0.0458*(WT-75.1))*exp(eta.v2)
     cp = max(linCmt() + err.sd, 0.01)
     if (cp == 0.01) cp = NA
+    mSEX = SEX
     mWT = WT
     mCRCL = CRCL
   })
 
   library(dplyr)
+  # Make non-random covariates for testing
+  AGE<-round(seq(18, 18 + 29))
+  SEX <- c(rep(0, 15), rep(1, 15))
+  WT <- seq(60, 60 + 29)
+  CRCL <- seq(30, 30 + 29)
+  ## id is in lower case to match the event table
+  cov.df <- tibble(id=seq_along(AGE), AGE=AGE, SEX=SEX, WT=WT, CRCL=CRCL)
+
+  s<-c(0,0.25,0.5,0.75,1,1.5,seq(2,24,by=1))
+  ## Add 10% diff
+  s <- lapply(s, function(x){d <- x * 0.1; c(x - d, x + d)})
+
+  e <- et() %>%
+    ## Specify the id and weight based dosing from covariate data.frame
+    ## This requires RxODE XXX
+    et(id=cov.df$id, amt=6*cov.df$WT, rate=6 * cov.df$WT) %>%
+    ## Sampling is added for each ID
+    et(s) %>%
+    as.data.frame %>%
+    ## Merge the event table with the covarite information
+    merge(cov.df, by="id") %>%
+    as_tibble
+
+  e2 <-  et() %>%
+    ## Specify the id and weight based dosing from covariate data.frame
+    ## This requires RxODE XXX
+    et(id=cov.df$id, amt=6*cov.df$WT, rate=6 * cov.df$WT) %>%
+    ## Sampling is added for each ID
+    et(s)
+
+  e$WT <- e$WT + e$time / 30
+  e$CRCL <- e$CRCL + e$time / 30
+
+  context("test resampleID behavior")
+
+  test_that("resampleID", {
+
+    f1 <- rxSolve(m1, e,
+                  ## Lotri uses lower-triangular matrix rep. for named matrix
+                  omega=lotri(eta.cl ~ .306,
+                              eta.q ~0.0652,
+                              eta.v1 ~.567,
+                              eta.v2 ~ .191),
+                  sigma=lotri(err.sd ~ 0.5), addCov = TRUE,
+                  addDosing = TRUE)
+
+    expect_equal(f1$WT, e$WT)
+    expect_equal(f1$CRCL, e$CRCL)
+    expect_equal(f1$SEX, e$SEX)
+
+    f2 <- rxSolve(m1, e,
+                  ## Lotri uses lower-triangular matrix rep. for named matrix
+                  omega=lotri(eta.cl ~ .306,
+                              eta.q ~0.0652,
+                              eta.v1 ~.567,
+                              eta.v2 ~ .191),
+                  sigma=lotri(err.sd ~ 0.5), addCov = TRUE,
+                  resample=c("SEX", "WT", "CRCL"),
+                  resampleID=TRUE,
+                  addDosing = TRUE)
+
+    expect_equal(f2$mWT, f2$WT)
+    expect_equal(f2$mCRCL, f2$CRCL)
+    expect_equal(f2$mSEX, f2$SEX)
+
+    r1 <- f1[!duplicated(f1$id), c("id", "SEX", "WT", "CRCL")]
+    r2 <- f2[!duplicated(f2$id), c("id", "SEX", "WT", "CRCL")]
+
+    expect_false(isTRUE(all.equal(r1, r2)))
+
+    ## now test that the covariates are all shifted correctly
+    expect_true(all(r1$WT-r1$CRCL == 30))
+    expect_true(all(r2$WT-r2$CRCL == 30))
+
+    expect_true(all(r1$SEX[r1$CRCL <= 44] == 0))
+    expect_true(all(r1$SEX[r1$CRCL > 44] == 1))
+
+    expect_true(all(r2$SEX[r2$CRCL <= 44] == 0))
+    expect_true(all(r2$SEX[r2$CRCL > 44] == 1))
+
+  })
+
+
   nsub=30
   # Simulate Weight based on age and gender
   AGE<-round(runif(nsub,min=18,max=70))
@@ -219,84 +303,6 @@ rxPermissive({
     }
 
   })
-
-  # Make non-random covariates for testing
-  AGE<-round(seq(18, 18 + 29))
-  SEX <- c(rep(0, 15), rep(1, 15))
-  WT <- seq(60, 60 + 29)
-  CRCL <- seq(30, 30 + 29)
-  ## id is in lower case to match the event table
-  cov.df <- tibble(id=seq_along(AGE), AGE=AGE, SEX=SEX, WT=WT, CRCL=CRCL)
-
-  s<-c(0,0.25,0.5,0.75,1,1.5,seq(2,24,by=1))
-  ## Add 10% diff
-  s <- lapply(s, function(x){d <- x * 0.1; c(x - d, x + d)})
-  
-  e <- et() %>%
-    ## Specify the id and weight based dosing from covariate data.frame
-    ## This requires RxODE XXX
-    et(id=cov.df$id, amt=6*cov.df$WT, rate=6 * cov.df$WT) %>%
-    ## Sampling is added for each ID
-    et(s) %>%
-    as.data.frame %>%
-    ## Merge the event table with the covarite information
-    merge(cov.df, by="id") %>%
-    as_tibble
-
-  e2 <-  et() %>%
-    ## Specify the id and weight based dosing from covariate data.frame
-    ## This requires RxODE XXX
-    et(id=cov.df$id, amt=6*cov.df$WT, rate=6 * cov.df$WT) %>%
-    ## Sampling is added for each ID
-    et(s)
-
-  e$WT <- e$WT + e$time / 30
-  e$CRCL <- e$CRCL + e$time / 30
-
-  context("test resampleID behavior")
-
-  test_that("resampleID", {
-
-    f1 <- rxSolve(m1, e,
-                  ## Lotri uses lower-triangular matrix rep. for named matrix
-                  omega=lotri(eta.cl ~ .306,
-                              eta.q ~0.0652,
-                              eta.v1 ~.567,
-                              eta.v2 ~ .191),
-                  sigma=lotri(err.sd ~ 0.5), addCov = TRUE)
-    
-    f2 <- rxSolve(m1, e,
-                  ## Lotri uses lower-triangular matrix rep. for named matrix
-                  omega=lotri(eta.cl ~ .306,
-                              eta.q ~0.0652,
-                              eta.v1 ~.567,
-                              eta.v2 ~ .191),
-                  sigma=lotri(err.sd ~ 0.5), addCov = TRUE,
-                  resample=c("SEX", "WT", "CRCL"),
-                  resampleID=TRUE)
-
-    expect_equal(f2$mWT, f2$WT)
-    expect_equal(f2$mCRCL, f2$CRCL)
-
-    
-    r1 <- f1[!duplicated(f1$id), c("id", "SEX", "WT", "CRCL")]
-    r2 <- f2[!duplicated(f2$id), c("id", "SEX", "WT", "CRCL")]
-
-    expect_false(isTRUE(all.equal(r1, r2)))
-
-    ## now test that the covariates are all shifted correctly
-    expect_true(all(r1$WT-r1$CRCL == 30))
-    expect_true(all(r2$WT-r2$CRCL == 30))
-    
-    expect_true(all(r1$SEX[r1$CRCL <= 44] == 0))
-    expect_true(all(r1$SEX[r1$CRCL > 44] == 1))
-
-    expect_true(all(r2$SEX[r2$CRCL <= 44] == 0))
-    expect_true(all(r2$SEX[r2$CRCL > 44] == 1))
-
-  })
-
-  
 
 
 },
