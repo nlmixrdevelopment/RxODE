@@ -1259,8 +1259,8 @@ NumericMatrix rxSetupParamsThetaEtaNullParams(const RObject &theta = R_NilValue,
 }
 
 RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
-                                    const RObject &theta = R_NilValue,
-				    const RObject &eta = R_NilValue){
+			      const RObject &theta = R_NilValue,
+			      const RObject &eta = R_NilValue){
   // Now get the parameters as a data.frame
   if (rxIsList(params)) {
     Function asDf("as.data.frame", R_BaseNamespace);
@@ -1411,6 +1411,7 @@ typedef struct {
   int *slvr_counter;
   int *dadt_counter;
   int *jac_counter;
+  int *gSampleCov;
   double *gmtime;
 } rx_globals;
 
@@ -1473,6 +1474,9 @@ void rxFreeErrs(){
 }
 
 extern "C" void gFree(){
+    // Free cov_sample
+  if (_globals.gSampleCov!=NULL) free(_globals.gSampleCov);
+  _globals.gSampleCov=NULL;
   if (_globals.gsolve != NULL) free(_globals.gsolve);
   _globals.gsolve=NULL;
   if (_globals.gon != NULL) free(_globals.gon);
@@ -2238,6 +2242,8 @@ LogicalVector rxSolveFree(){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   // Free the solve id order
+  if (rx->par_sample != NULL) free(rx->par_sample);
+  rx->par_sample=NULL;
   if (rx->ordId != NULL) free(rx->ordId);
   rx->ordId=NULL;
   // Free the allocated keys
@@ -2285,16 +2291,20 @@ extern "C" void RxODE_assign_fn_pointers(SEXP);
 
 List keepIcov;
 List keepFcov;
+IntegerVector keepFcovI;
 extern void setFkeep(List keep){
   keepFcov=keep;
+  keepFcovI= keepFcov.attr("keepCov");
 }
 
 extern "C" double get_ikeep(int col, int id){
   return REAL(keepIcov[col])[id];
 }
 
-extern "C" double get_fkeep(int col, int id){
-  return REAL(keepFcov[col])[id];
+extern "C" double get_fkeep(int col, int id, rx_solving_options_ind *ind){
+  int idx = keepFcovI[col];
+  if (idx == 0) return REAL(keepFcov[col])[id];
+  return ind->par_ptr[idx-1];
 }
 
 extern "C" SEXP get_ikeepn(){
@@ -2379,6 +2389,7 @@ typedef struct{
   List covUnits;
   RObject par1;
   bool usePar1 = false;
+  bool par1Keep = false;
   bool swappedEvents = false;
   RObject par1ini;
   NumericVector initsC;
@@ -2927,6 +2938,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
   rx_solve* rx = getRxSolve_();
   RObject theta = rxControl[Rxc_theta];
   RObject eta = rxControl[Rxc_eta];
+  //  determine which items will be sampled from
   if (!theta.isNULL() || !eta.isNULL()){
     rxSolveDat->usePar1=true;
     rxSolveDat->par1 = rxSetupParamsThetaEta(rxSolveDat->par1, theta, eta);
@@ -2999,6 +3011,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
       rxSolveDat->nmP = rxSolveDat->parDf.names();
       rxSolveDat->nPopPar = rxSolveDat->parDf.nrows();
       rxSolveDat->usePar1=true;
+      rxSolveDat->par1Keep = true;
     }
   } else if (rxIs(rxSolveDat->par1, "data.frame")){
     Function sortId = getRxFn(".sortId");
@@ -3054,6 +3067,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
       lstF.attr("class") = "data.frame";
       lstF.attr("row.names") = lst.attr("row.names");
       rxSolveDat->par1 = as<RObject>(lstF);
+      rxSolveDat->par1Keep=true;
     }
     rxSolveDat->parDf = as<DataFrame>(rxSolveDat->par1);
     rxSolveDat->parType = 2;
@@ -3494,6 +3508,147 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
 
 static inline void rxSolve_assignGpars(rxSolve_t* rxSolveDat);
 
+static inline void rxSolve_resample(const RObject &obj,
+				    const List &rxControl,
+				    const Nullable<CharacterVector> &specParams,
+				    const Nullable<List> &extraArgs,
+				    const RObject &params, const RObject &events,
+				    const RObject &inits,
+				    rxSolve_t* rxSolveDat){
+  rx_solve* rx = getRxSolve_();
+  rx_solving_options* op = rx->op;
+  rx->sample = false;
+  if (!Rf_isNull(rxControl[Rxc_resample])) {
+    SEXP sampleVars = rxControl[Rxc_resample];
+    bool doSample = true;
+    CharacterVector pars = rxSolveDat->mv[RxMv_params];
+    if (TYPEOF(sampleVars) == LGLSXP) {
+      doSample = asBool(rxControl[Rxc_resample], "resample");
+      if (doSample){
+	CharacterVector vars(op->ncov+rx->nCov0);
+	int *par_cov = op->par_cov;
+	int jj = 0;
+	for (int i = 0; i < op->ncov; i++){
+	  vars[jj++] = pars[par_cov[i]-1];
+	}
+	par_cov = rx->cov0;
+	for (int i = 0; i < rx->nCov0; i++){
+	  vars[jj++] = pars[par_cov[i]];
+	}
+	sampleVars = wrap(vars);
+      }
+    } else if (TYPEOF(sampleVars) != STRSXP){
+      rxSolveFree();
+      stop(_("'resample' must be NULL or a character vector"));
+    }
+    if (doSample){
+      bool resampleID = asBool(rxControl[Rxc_resampleID], "resampleID");
+      rx->sample = true;
+      if (rx->par_sample != NULL) free(rx->par_sample);
+      rx->par_sample = (int*)calloc(pars.size(), sizeof(int));
+      for (int ip = rxSolveDat->npars; ip--;){
+	for (int is = Rf_length(sampleVars); is--;){
+	  if (!strcmp(pars[ip],CHAR(STRING_ELT(sampleVars, is)))){
+	    rx->par_sample[ip] = 1;
+	    break;
+	  }
+	}
+      }
+      List parList;
+      List keepIcovF;
+      CharacterVector parNames;
+      CharacterVector keepNames;
+      List parListF;
+      bool updatePar=false;
+      if (rxSolveDat->usePar1 && (rxSolveDat->par1).sexp_type()==VECSXP) {
+	parList = as<List>(rxSolveDat->par1);
+	parNames = parList.names();
+	parListF = clone(parList);
+	updatePar = true;
+	if (rxSolveDat->par1Keep){
+	  keepIcovF = clone(keepIcov);
+	  keepNames = keepIcovF.names();
+	}
+      }
+      int nrow = rxSolveDat->npars;
+      int ncol = rx->nsub;
+      int size = rx->nsub*rx->nsim;
+      NumericMatrix iniPars(nrow, ncol,&_globals.gpars[0]);
+      NumericMatrix ret(nrow, size);
+      IntegerVector idSel(size);
+      std::fill(idSel.begin(),idSel.end(),0);
+      const char *cur;
+      // add sample indicators
+      if (_globals.gSampleCov != NULL) free(_globals.gSampleCov);
+      _globals.gSampleCov = (int*)calloc(op->ncov*rx->nsub*rx->nsim, sizeof(int));
+      for (int ir = nrow; ir--;){
+	// For sampling  (with replacement)
+	if (rx->par_sample[ir]) {
+	  cur = CHAR(pars[ir]);
+	  for (int is = size; is--;){
+	    int ic = is % ncol;
+	    int val;
+	    // Retrieve or generate sample
+	    // Only need to resample from the number of input items (ncol)
+	    // Probably doesn't make much difference, though. 
+	    if (resampleID) {
+	      val = idSel[is];
+	      if (val == 0){
+		val = (int)(unif_rand()*ncol)+1;
+		idSel[is] = val;
+		// Fill in the selected ID for the time-varying covariate(s)
+		// This is filled in reverse order because ind->cov_sample is filled in reverse order
+		std::fill_n(&_globals.gSampleCov[0]+(size-is-1)*op->ncov, op->ncov, val);
+	      }
+	      val--;
+	    } else {
+	      val = (int)(unif_rand()*ncol);
+	    }
+	    for (int ip = parList.size(); ip--;){
+	      if (!strcmp(CHAR(parNames[ip]), cur)) {
+		SEXP curIn = parList[ip];
+		SEXP curOut = parListF[ip];
+		if (TYPEOF(curIn) == INTSXP) {
+		  INTEGER(curOut)[ic] = INTEGER(curIn)[val];
+		} else if (TYPEOF(curIn) == REALSXP){
+		  REAL(curOut)[ic] = REAL(curIn)[val];
+		}
+		break;
+	      }
+	    }
+	    for (int ik = keepIcovF.size();ik--;){
+	      if (!strcmp(CHAR(keepNames[ik]), cur)) {
+		SEXP curIn  = keepIcov[ik];
+		SEXP curOut = keepIcovF[ik];
+		if (TYPEOF(curIn) == INTSXP) {
+		  INTEGER(curOut)[ic] = INTEGER(curIn)[val];
+		} else if (TYPEOF(curIn) == REALSXP){
+		  REAL(curOut)[ic] = REAL(curIn)[val];
+		}
+		break;
+	      }
+	    }
+	    ret(ir, is) = iniPars(ir, val);
+	  }
+	} else {
+	  // This is for copying
+	  for (int is = size; is--;){
+	    ret(ir, is) = iniPars(ir, is % ncol);
+	  }
+	}
+      }
+      if (updatePar){
+	rxSolveDat->par1 = as<RObject>(parListF);
+	if (rxSolveDat->par1Keep){
+	  keepIcov = keepIcovF;
+	}
+      }
+      // Put sampled dataset in gpars
+      std::copy(ret.begin(),ret.end(),&_globals.gpars[0]);
+    }
+  }
+}
+
 // Normalizes parameter input
 // It will also load the parameters into the solving data structure.
 static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxControl,
@@ -3542,10 +3697,13 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
     {
       gparsCovSetup(rxSolveDat->npars, rxSolveDat->nPopPar, ev1, rx);
       rxSolve_assignGpars(rxSolveDat);
+      rxSolve_resample(obj, rxControl, specParams, extraArgs, pars, ev1,
+		     inits, rxSolveDat);
       curSolve=0;
       curLin=0;
       curEvent=0;
       curIdx=0;
+      int curCov=0;
       int curOn=0;
       rx_solving_options_ind indS;
       int linCmt = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linCmt];
@@ -3628,6 +3786,10 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  curOn +=op->neq;
 	  curIdx += ind->n_all_times;
 	  ind->_newind = -1;
+	  if (rx->sample) {
+	    ind->cov_sample = &_globals.gSampleCov[curCov];
+	    curCov += op->ncov;
+	  }
 	}
       }
     }
@@ -5611,7 +5773,6 @@ RObject rxUnloadAll_(){
   	int val = asInt(_rxModels[varC], "_rxModels[varC]");
   	if (val > 1){
   	} else if (val == 0 && rxUnload_){
-	  // REprintf("var: %s\n", varC.c_str());
   	  dynUnload(varC);
   	  rmRxModelsFromDll(varC);
   	}

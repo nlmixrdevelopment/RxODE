@@ -3274,6 +3274,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       if (show_ode == 3){
 	sAppendN(&sbOut, "  _update_par_ptr(0.0, _cSub, _solveData, _idx);\n", 49);
       } else if (show_ode == 6 || show_ode == 7 || show_ode == 8 || show_ode == 9){
+	// functional lag, rate, duration, mtime
 	sAppendN(&sbOut, "  _update_par_ptr(NA_REAL, _cSub, _solveData, _idx);\n", 53);
       } else if (show_ode == 11 || show_ode == 10){
 	sAppendN(&sbOut, "  _update_par_ptr(_t, _cSub, _solveData, _idx);\n", 48);

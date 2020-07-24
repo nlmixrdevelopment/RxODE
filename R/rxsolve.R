@@ -436,6 +436,20 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 ##'   differences for the linear compartment model parameters.  The
 ##'   are the same components as \code{linDiff}
 ##'
+##' @param resample A character vector of model variables to resample
+##'   from the input dataset; This sampling is done with replacement.
+##'   When \code{NULL} or \code{FALSE} no resampling is done.  When
+##'   \code{TRUE} resampling is done on all covariates in the input
+##'   dataset
+##'
+##' @param resampleID boolean representing if the resampling should be
+##'   done on an individual basis \code{TRUE} (ie. a whole patient is
+##'   selected) or each covariate is resampled independent of the
+##'   subject identifier \code{FALSE}.  When \code{resampleID=TRUE}
+##'   correlations of parameters are retained, where as when
+##'   \code{resampleID=FALSE} ignores patient covariate correaltions.
+##'   Hecne the default is \code{resampleID=TRUE}.
+##'
 ##' @references
 ##'
 ##'  "New Scaling and Squaring Algorithm for the Matrix Exponential", by
@@ -518,7 +532,9 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
                     prodType = c("long double", "double", "logify"),
                     sensType = c("advan", "autodiff", "forward", "central"),
                     linDiff=c(tlag=1.5e-8, f=1.5e-8, rate=1.5e-8, dur=1.5e-8, tlag2=1.5e-8, f2=1.5e-8, rate2=1.5e-8, dur2=1.5e-8),
-                    linDiffCentral=c(tlag=TRUE, f=TRUE, rate=TRUE, dur=TRUE, tlag2=TRUE, f2=TRUE, rate2=TRUE, dur2=TRUE)) {
+                    linDiffCentral=c(tlag=TRUE, f=TRUE, rate=TRUE, dur=TRUE, tlag2=TRUE, f2=TRUE, rate2=TRUE, dur2=TRUE),
+                    resample=NULL,
+                    resampleID=TRUE) {
   if (is.null(object)) {
     .xtra <- list(...)
     if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")) {
@@ -737,7 +753,9 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
       prodType = as.integer(.prod),
       sensType = as.integer(.sensType),
       linDiff=linDiff,
-      linDiffCentral=linDiffCentral
+      linDiffCentral=linDiffCentral,
+      resample=resample,
+      resampleID=resampleID
     )
     return(.ret)
 

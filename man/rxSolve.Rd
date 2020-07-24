@@ -114,7 +114,9 @@ rxSolve(
   linDiff = c(tlag = 1.5e-08, f = 1.5e-08, rate = 1.5e-08, dur = 1.5e-08, tlag2 =
     1.5e-08, f2 = 1.5e-08, rate2 = 1.5e-08, dur2 = 1.5e-08),
   linDiffCentral = c(tlag = TRUE, f = TRUE, rate = TRUE, dur = TRUE, tlag2 = TRUE, f2 =
-    TRUE, rate2 = TRUE, dur2 = TRUE)
+    TRUE, rate2 = TRUE, dur2 = TRUE),
+  resample = NULL,
+  resampleID = TRUE
 )
 
 \method{rxSolve}{default}(object, params = NULL, events = NULL, inits = NULL, ...)
@@ -586,6 +588,20 @@ multiplication and then converts back.
 \item{linDiffCentral}{This gives the which parameters use central
 differences for the linear compartment model parameters.  The
 are the same components as \code{linDiff}}
+
+\item{resample}{A character vector of model variables to resample
+from the input dataset; This sampling is done with replacement.
+When \code{NULL} or \code{FALSE} no resampling is done.  When
+\code{TRUE} resampling is done on all covariates in the input
+dataset}
+
+\item{resampleID}{boolean representing if the resampling should be
+done on an individual basis \code{TRUE} (ie. a whole patient is
+selected) or each covariate is resampled independent of the
+subject identifier \code{FALSE}.  When \code{resampleID=TRUE}
+correlations of parameters are retained, where as when
+\code{resampleID=FALSE} ignores patient covariate correaltions.
+Hecne the default is \code{resampleID=TRUE}.}
 
 \item{a}{when using \code{solve}, this is equivalent to the
 \code{object} argument.  If you specify \code{object} later in
