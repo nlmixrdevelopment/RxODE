@@ -30,11 +30,19 @@
 
 ## New features
 
+* Add the ability to resample covariates with `resample=TRUE` or
+  `resample=c("SEX", "CRCL")`.  You can resample all the covariates by
+  `ID` with `resampleID=TRUE` or resample the covariates without
+  respect to `ID` with `resampleID=FALSE`
+
 * Comparison of factors/strings is now supported in `RxODE`; Therefore
   ID=="Study-1" is now allowed.
 
-* Completion for all api elements of `rxSolve()` objects, and `et()`
+* Completion for elements of `rxSolve()` objects, and `et()`
   objects have been added (accessed through `$`)
+
+* Completion of `rxSolve()` arguments are now included since they are
+  part of the main method
 
 * Allow simulation with zero matricies, that provide the simulation
   without variability.  This affects `rxSolve` as well as `rxMvnrnd` and
