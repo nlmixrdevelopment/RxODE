@@ -3556,7 +3556,8 @@ static inline void rxSolve_resample(const RObject &obj,
     int nrow = rxSolveDat->npars;
     int ncol = rx->nsub;
     int size = rx->nsub*rx->nsim;
-    NumericMatrix iniPars(nrow, ncol, &_globals.gpars[0]);
+    NumericMatrix iniPars(nrow, ncol);
+    std::copy(&_globals.gpars[0],&_globals.gpars[0]+nrow*ncol, iniPars.begin());
     NumericMatrix ret(nrow, size);
     IntegerMatrix idSel(size);
     std::fill(idSel.begin(),idSel.end(),0);
@@ -3568,51 +3569,49 @@ static inline void rxSolve_resample(const RObject &obj,
       // For sampling  (with replacement)
       if (rx->par_sample[ir]) {
 	cur = CHAR(pars[ir]);
-	if (updatePar){
-	  for (int is = size; is--;){
-	    int ic = is % ncol;
-	    int val;
-	    // Retrieve or generate sample
-	    // Only need to resample from the number of input items (ncol)
-	    // Probbably doesn't make much difference, though.
-	    if (resampleID) {
-	      val = idSel[is];
-	      if (val == 0){
-		idSel[is] = val = (int)(unif_rand()*ncol)+1;
-		// Fill in the selected ID for the time-varying covariate(s)
-		std::fill(&_globals.gSampleCov[0]+is*op->ncov,
-			  &_globals.gSampleCov[0]+(is+1)*op->ncov, val);
-	      }
-	      val--;
-	    } else {
-	      val = (int)(unif_rand()*ncol);
+	for (int is = size; is--;){
+	  int ic = is % ncol;
+	  int val;
+	  // Retrieve or generate sample
+	  // Only need to resample from the number of input items (ncol)
+	  // Probably doesn't make much difference, though. 
+	  if (resampleID) {
+	    val = idSel[is];
+	    if (val == 0){
+	      val = (int)(unif_rand()*ncol)+1;
+	      idSel[is] = val;
+	      // Fill in the selected ID for the time-varying covariate(s)
+	      std::fill_n(&_globals.gSampleCov[0]+is*op->ncov, op->ncov, val);
 	    }
-	    for (int ip = parList.size(); ip--;){
-	      if (!strcmp(CHAR(parNames[ip]), cur)) {
-		SEXP curIn = parList[ip];
-		SEXP curOut = parListF[ip];
-		if (TYPEOF(curIn) == INTSXP) {
-		  INTEGER(curOut)[ic] = INTEGER(curIn)[val];
-		} else if (TYPEOF(curIn) == REALSXP){
-		  REAL(curOut)[ic] = REAL(curIn)[val];
-		}
-		break;
-	      }
-	    }
-	    for (int ik = keepIcovF.size();ik--;){
-	      if (!strcmp(CHAR(keepNames[ik]), cur)) {
-		SEXP curIn  = keepIcov[ik];
-		SEXP curOut = keepIcovF[ik];
-		if (TYPEOF(curIn) == INTSXP) {
-		  INTEGER(curOut)[ic] = INTEGER(curIn)[val];
-		} else if (TYPEOF(curIn) == REALSXP){
-		  REAL(curOut)[ic] = REAL(curIn)[val];
-		}
-		break;
-	      }
-	    }
-	    ret(ir,is) = iniPars(ir, val);
+	    val--;
+	  } else {
+	    val = (int)(unif_rand()*ncol);
 	  }
+	  for (int ip = parList.size(); ip--;){
+	    if (!strcmp(CHAR(parNames[ip]), cur)) {
+	      SEXP curIn = parList[ip];
+	      SEXP curOut = parListF[ip];
+	      if (TYPEOF(curIn) == INTSXP) {
+		INTEGER(curOut)[ic] = INTEGER(curIn)[val];
+	      } else if (TYPEOF(curIn) == REALSXP){
+		REAL(curOut)[ic] = REAL(curIn)[val];
+	      }
+	      break;
+	    }
+	  }
+	  for (int ik = keepIcovF.size();ik--;){
+	    if (!strcmp(CHAR(keepNames[ik]), cur)) {
+	      SEXP curIn  = keepIcov[ik];
+	      SEXP curOut = keepIcovF[ik];
+	      if (TYPEOF(curIn) == INTSXP) {
+		INTEGER(curOut)[ic] = INTEGER(curIn)[val];
+	      } else if (TYPEOF(curIn) == REALSXP){
+		REAL(curOut)[ic] = REAL(curIn)[val];
+	      }
+	      break;
+	    }
+	  }
+	  ret(ir,is) = iniPars(ir, val);
 	}
       } else {
 	// This is for copying
