@@ -3610,12 +3610,12 @@ static inline void rxSolve_resample(const RObject &obj,
 	      break;
 	    }
 	  }
-	  ret(ir,is) = iniPars(ir, val);
+	  ret(ir, is) = iniPars(ir, val);
 	}
       } else {
 	// This is for copying
 	for (int is = size; is--;){
-	  ret(ir,is) = iniPars(ir, is % ncol);
+	  ret(ir, is) = iniPars(ir, is % ncol);
 	}
       }
     }
@@ -3625,6 +3625,13 @@ static inline void rxSolve_resample(const RObject &obj,
 	keepIcov = keepIcovF;
       }
     }
+    // REprintf("iniPars:\n");
+    // print(iniPars);
+    // REprintf("ret:\n");
+    // print(ret);
+    NumericMatrix sampleCov(op->ncov, size, &_globals.gSampleCov[0]);
+    // REprintf("sampleCov:\n");
+    // print(sampleCov);
     // Put sampled dataset in gpars
     std::copy(ret.begin(),ret.end(),&_globals.gpars[0]);
   }

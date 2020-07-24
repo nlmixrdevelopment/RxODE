@@ -3180,11 +3180,11 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
 	      if (TYPEOF(tmp) == REALSXP){
 		dfp = REAL(tmp);
 		// is this ntimes = nAllTimes or nObs time for this subject...?
-		dfp[ii] = isObs(evid) ? ind->par_ptr[rx->cov0[j]] : NA_REAL;
+		dfp[ii] = ind->par_ptr[rx->cov0[j]];
 	      } else {
 		dfi = INTEGER(tmp);
 		// is this ntimes = nAllTimes or nObs time for this subject...?
-		dfi[ii] = isObs(evid) ? (int)(ind->par_ptr[rx->cov0[j]]) : NA_INTEGER;
+		dfi[ii] = (int)(ind->par_ptr[rx->cov0[j]]);
 	      }
 	      jj++;
 	    }
