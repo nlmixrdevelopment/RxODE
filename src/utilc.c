@@ -22,10 +22,15 @@ int _setSilentErr=0, _isRstudio2=0;
 extern void setSilentErr(int silent){
   _setSilentErr = silent;
 }
+
 extern void setRstudioPrint(int rstudio){
   _isRstudio2=rstudio;
 }
+
+
 extern int getSilentErr(){return _setSilentErr;}
+
+extern int getRstudioPrint(){return _isRstudio2;}
 
 extern void RSprintf(const char *format, ...) {
   if (_setSilentErr == 0) {

@@ -299,6 +299,8 @@ SEXP _RxODE_rxSolve_(SEXP, SEXP, SEXP, SEXP, SEXP,
 SEXP getRxThreads_R(SEXP verbose);
 SEXP setRxthreads(SEXP threads, SEXP percent, SEXP throttle);
 
+int getSilentErr();
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
@@ -435,46 +437,47 @@ void R_init_RxODE(DllInfo *info){
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
-  R_RegisterCCallable("RxODE", "logit", (DL_FUNC) logit);
-  R_RegisterCCallable("RxODE", "expit", (DL_FUNC) expit);
-  R_RegisterCCallable("RxODE", "phi", (DL_FUNC) phi);
-  R_RegisterCCallable("RxODE", "rxnormV", (DL_FUNC) rxnormV);
-  R_RegisterCCallable("RxODE", "rxgamma", (DL_FUNC) rxgamma);
-  R_RegisterCCallable("RxODE", "rxbeta", (DL_FUNC) rxbeta);
-  R_RegisterCCallable("RxODE", "rxbinom", (DL_FUNC) rxbinom);
-  R_RegisterCCallable("RxODE", "rxcauchy", (DL_FUNC) rxcauchy);
-  R_RegisterCCallable("RxODE", "rxchisq", (DL_FUNC) rxchisq);
-  R_RegisterCCallable("RxODE", "rxexp", (DL_FUNC) rxexp);
-  R_RegisterCCallable("RxODE", "rxf", (DL_FUNC) rxf);
-  R_RegisterCCallable("RxODE", "rxgeom", (DL_FUNC) rxgeom);
-  R_RegisterCCallable("RxODE", "rxnorm", (DL_FUNC) rxnorm);
-  R_RegisterCCallable("RxODE", "rxpois", (DL_FUNC) rxpois);
-  R_RegisterCCallable("RxODE", "rxt_", (DL_FUNC) rxt_);
-  R_RegisterCCallable("RxODE", "rxunif", (DL_FUNC) rxunif);
-  R_RegisterCCallable("RxODE", "rxweibull", (DL_FUNC) rxweibull);
-  R_RegisterCCallable("RxODE", "powerDi", (DL_FUNC) powerDi);
-  R_RegisterCCallable("RxODE", "powerD", (DL_FUNC) powerD);
-  R_RegisterCCallable("RxODE", "powerDD", (DL_FUNC) powerDD);
-  R_RegisterCCallable("RxODE", "powerDDD", (DL_FUNC) powerDDD);
-  R_RegisterCCallable("RxODE", "powerL", (DL_FUNC) powerL);
-  R_RegisterCCallable("RxODE", "powerDL", (DL_FUNC) powerDL);
-  R_RegisterCCallable("RxODE", "par_progress", (DL_FUNC) par_progress);
-  R_RegisterCCallable("RxODE", "isRstudio", (DL_FUNC) isRstudio);
-  R_RegisterCCallable("RxODE", "ind_solve", (DL_FUNC) ind_solve);
-  R_RegisterCCallable("RxODE", "linCmtA", (DL_FUNC) linCmtA);
-  R_RegisterCCallable("RxODE", "linCmtC", (DL_FUNC) linCmtC);
-  R_RegisterCCallable("RxODE", "linCmtB", (DL_FUNC) linCmtB);
-  R_RegisterCCallable("RxODE", "_update_par_ptr", (DL_FUNC) _update_par_ptr);
-  R_RegisterCCallable("RxODE", "_getParCov", (DL_FUNC) _getParCov);
-  R_RegisterCCallable("RxODE","rxRmModelLib", (DL_FUNC) rxRmModelLib);
-  R_RegisterCCallable("RxODE","rxGetModelLib", (DL_FUNC) rxGetModelLib);
+  R_RegisterCCallable("RxODE", "getSilentErr", (DL_FUNC) &getSilentErr);
+  R_RegisterCCallable("RxODE", "logit", (DL_FUNC) &logit);
+  R_RegisterCCallable("RxODE", "expit", (DL_FUNC) &expit);
+  R_RegisterCCallable("RxODE", "phi", (DL_FUNC) &phi);
+  R_RegisterCCallable("RxODE", "rxnormV", (DL_FUNC) &rxnormV);
+  R_RegisterCCallable("RxODE", "rxgamma", (DL_FUNC) &rxgamma);
+  R_RegisterCCallable("RxODE", "rxbeta", (DL_FUNC) &rxbeta);
+  R_RegisterCCallable("RxODE", "rxbinom", (DL_FUNC) &rxbinom);
+  R_RegisterCCallable("RxODE", "rxcauchy", (DL_FUNC) &rxcauchy);
+  R_RegisterCCallable("RxODE", "rxchisq", (DL_FUNC) &rxchisq);
+  R_RegisterCCallable("RxODE", "rxexp", (DL_FUNC) &rxexp);
+  R_RegisterCCallable("RxODE", "rxf", (DL_FUNC) &rxf);
+  R_RegisterCCallable("RxODE", "rxgeom", (DL_FUNC) &rxgeom);
+  R_RegisterCCallable("RxODE", "rxnorm", (DL_FUNC) &rxnorm);
+  R_RegisterCCallable("RxODE", "rxpois", (DL_FUNC) &rxpois);
+  R_RegisterCCallable("RxODE", "rxt_", (DL_FUNC) &rxt_);
+  R_RegisterCCallable("RxODE", "rxunif", (DL_FUNC) &rxunif);
+  R_RegisterCCallable("RxODE", "rxweibull", (DL_FUNC) &rxweibull);
+  R_RegisterCCallable("RxODE", "powerDi", (DL_FUNC) &powerDi);
+  R_RegisterCCallable("RxODE", "powerD", (DL_FUNC) &powerD);
+  R_RegisterCCallable("RxODE", "powerDD", (DL_FUNC) &powerDD);
+  R_RegisterCCallable("RxODE", "powerDDD", (DL_FUNC) &powerDDD);
+  R_RegisterCCallable("RxODE", "powerL", (DL_FUNC) &powerL);
+  R_RegisterCCallable("RxODE", "powerDL", (DL_FUNC) &powerDL);
+  R_RegisterCCallable("RxODE", "par_progress", (DL_FUNC) &par_progress);
+  R_RegisterCCallable("RxODE", "isRstudio", (DL_FUNC) &isRstudio);
+  R_RegisterCCallable("RxODE", "ind_solve", (DL_FUNC) &ind_solve);
+  R_RegisterCCallable("RxODE", "linCmtA", (DL_FUNC) &linCmtA);
+  R_RegisterCCallable("RxODE", "linCmtC", (DL_FUNC) &linCmtC);
+  R_RegisterCCallable("RxODE", "linCmtB", (DL_FUNC) &linCmtB);
+  R_RegisterCCallable("RxODE", "_update_par_ptr", (DL_FUNC) &_update_par_ptr);
+  R_RegisterCCallable("RxODE", "_getParCov", (DL_FUNC) &_getParCov);
+  R_RegisterCCallable("RxODE","rxRmModelLib", (DL_FUNC) &rxRmModelLib);
+  R_RegisterCCallable("RxODE","rxGetModelLib", (DL_FUNC) &rxGetModelLib);
   
-  R_RegisterCCallable("RxODE","RxODE_ode_free",           (DL_FUNC) RxODE_ode_free);
+  R_RegisterCCallable("RxODE","RxODE_ode_free",           (DL_FUNC) &RxODE_ode_free);
   
   //Functions
   
-  R_RegisterCCallable("RxODE","RxODE_sum",                (DL_FUNC) RxODE_sum);
-  R_RegisterCCallable("RxODE","RxODE_prod",               (DL_FUNC) RxODE_prod);
+  R_RegisterCCallable("RxODE","RxODE_sum",                (DL_FUNC) &RxODE_sum);
+  R_RegisterCCallable("RxODE","RxODE_prod",               (DL_FUNC) &RxODE_prod);
 
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) &RxODE_assign_fn_pointers);
 
