@@ -3524,6 +3524,7 @@ static inline void rxSolve_resample(const RObject &obj,
       rxSolveFree();
       stop(_("'resample' must be NULL or a character vector"));
     }
+    bool resampleID = asBool(rxControl[Rxc_resampleID], "resampleID");
     CharacterVector pars = rxSolveDat->mv[RxMv_params];
     rx->sample = true;
     if (rx->par_sample != NULL) free(rx->par_sample);
@@ -3557,14 +3558,35 @@ static inline void rxSolve_resample(const RObject &obj,
     int size = rx->nsub*rx->nsim;
     NumericMatrix iniPars(nrow, ncol, &_globals.gpars[0]);
     NumericMatrix ret(nrow, size);
+    IntegerMatrix idSel(size);
+    std::fill(idSel.begin(),idSel.end(),0);
     const char *cur;
+    // add sample indicators
+    if (_globals.gSampleCov != NULL) free(_globals.gSampleCov);
+    _globals.gSampleCov = (int*)calloc(op->ncov*rx->nsub*rx->nsim, sizeof(int));
     for (int ir = nrow; ir--;){
       // For sampling  (with replacement)
       if (rx->par_sample[ir]) {
 	cur = CHAR(pars[ir]);
 	if (updatePar){
-	  for (int ic = ncol; ic--;){
-	    int val = (int)(unif_rand()*ncol);
+	  for (int is = size; is--;){
+	    int ic = is % ncol;
+	    int val;
+	    // Retrieve or generate sample
+	    // Only need to resample from the number of input items (ncol)
+	    // Probbably doesn't make much difference, though.
+	    if (resampleID) {
+	      val = idSel[is];
+	      if (val == 0){
+		idSel[is] = val = (int)(unif_rand()*ncol)+1;
+		// Fill in the selected ID for the time-varying covariate(s)
+		std::fill(&_globals.gSampleCov[0]+is*op->ncov,
+			  &_globals.gSampleCov[0]+(is+1)*op->ncov, val);
+	      }
+	      val--;
+	    } else {
+	      val = (int)(unif_rand()*ncol);
+	    }
 	    for (int ip = parList.size(); ip--;){
 	      if (!strcmp(CHAR(parNames[ip]), cur)) {
 		SEXP curIn = parList[ip];
@@ -3589,13 +3611,13 @@ static inline void rxSolve_resample(const RObject &obj,
 		break;
 	      }
 	    }
-	    ret(ir,ic) = iniPars(ir, val);
+	    ret(ir,is) = iniPars(ir, val);
 	  }
 	}
       } else {
 	// This is for copying
-	for (int ic = ncol; ic--;){
-	  ret(ir,ic) = iniPars(ir, ic % ncol);
+	for (int is = size; is--;){
+	  ret(ir,is) = iniPars(ir, is % ncol);
 	}
       }
     }
@@ -3605,9 +3627,6 @@ static inline void rxSolve_resample(const RObject &obj,
 	keepIcov = keepIcovF;
       }
     }
-    // add sample indicators
-    if (_globals.gSampleCov != NULL) free(_globals.gSampleCov);
-    _globals.gSampleCov = (int*)calloc(op->ncov*rx->nsub*rx->nsim, sizeof(int));
     // Put sampled dataset in gpars
     std::copy(ret.begin(),ret.end(),&_globals.gpars[0]);
   }
