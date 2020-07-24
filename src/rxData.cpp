@@ -3556,10 +3556,9 @@ static inline void rxSolve_resample(const RObject &obj,
     int nrow = rxSolveDat->npars;
     int ncol = rx->nsub;
     int size = rx->nsub*rx->nsim;
-    NumericMatrix iniPars(nrow, ncol);
-    std::copy(&_globals.gpars[0],&_globals.gpars[0]+nrow*ncol, iniPars.begin());
+    NumericMatrix iniPars(nrow, ncol,&_globals.gpars[0]);
     NumericMatrix ret(nrow, size);
-    IntegerMatrix idSel(size);
+    IntegerVector idSel(size);
     std::fill(idSel.begin(),idSel.end(),0);
     const char *cur;
     // add sample indicators
