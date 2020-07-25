@@ -65,7 +65,6 @@ SEXP _RxODE_rxSetupScale(SEXP,SEXP,SEXP);
 SEXP _RxODE_rxSolveGet(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxSolveUpdate(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxAssignPtr(SEXP);
-SEXP _RxODE_rxCores();
 SEXP _RxODE_rxAssignPtr(SEXP objectSEXP);
 SEXP _RxODE_dynLoad(SEXP dllSEXP);
 SEXP _RxODE_rxOptRep_(SEXP);
@@ -330,7 +329,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSetupScale", (DL_FUNC) &_RxODE_rxSetupScale, 3},
     {"_RxODE_rxSolveGet", (DL_FUNC) &_RxODE_rxSolveGet, 3},
     {"_RxODE_rxSolveUpdate", (DL_FUNC) &_RxODE_rxSolveUpdate, 3},
-    {"_RxODE_rxCores",(DL_FUNC) &_RxODE_rxCores, 0},
     {"_RxODE_rxAssignPtr", (DL_FUNC) &_RxODE_rxAssignPtr, 1},
     {"_RxODE_rxRmModelLib_",(DL_FUNC) &_RxODE_rxRmModelLib_, 1},
     {"_RxODE_rxDll",(DL_FUNC) &_RxODE_rxDll, 1},
