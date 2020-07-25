@@ -5529,14 +5529,6 @@ extern "C" void rxAssignPtrC(SEXP obj){
   rxAssignPtr(obj);
 }
 
-//' Get the number of cores in a system
-//' @export
-//[[Rcpp::export]]
-IntegerVector rxCores(){
-  unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
-  return IntegerVector::create((int)(concurentThreadsSupported));
-}
-
 //' Return the DLL associated with the RxODE object
 //'
 //' This will return the dynamic load library or shared object used to

@@ -1354,39 +1354,6 @@ RcppExport SEXP _RxODE_rxAssignPtr(SEXP objectSEXP) {
     UNPROTECT(1);
     return rcpp_result_gen;
 }
-// rxCores
-IntegerVector rxCores();
-static SEXP _RxODE_rxCores_try() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    rcpp_result_gen = Rcpp::wrap(rxCores());
-    return rcpp_result_gen;
-END_RCPP_RETURN_ERROR
-}
-RcppExport SEXP _RxODE_rxCores() {
-    SEXP rcpp_result_gen;
-    {
-        Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_RxODE_rxCores_try());
-    }
-    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
-    if (rcpp_isInterrupt_gen) {
-        UNPROTECT(1);
-        Rf_onintr();
-    }
-    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
-    if (rcpp_isLongjump_gen) {
-        Rcpp::internal::resumeJump(rcpp_result_gen);
-    }
-    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
-    if (rcpp_isError_gen) {
-        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
-        UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
-    }
-    UNPROTECT(1);
-    return rcpp_result_gen;
-}
 // rxDll
 std::string rxDll(RObject obj);
 static SEXP _RxODE_rxDll_try(SEXP objSEXP) {
@@ -2450,7 +2417,6 @@ static int _RxODE_RcppExport_validate(const char* sig) {
         signatures.insert("RObject(*rxGetRxODE)(RObject)");
         signatures.insert("bool(*rxIsCurrent)(RObject)");
         signatures.insert("void(*rxAssignPtr)(SEXP)");
-        signatures.insert("IntegerVector(*rxCores)()");
         signatures.insert("std::string(*rxDll)(RObject)");
         signatures.insert("CharacterVector(*rxC)(RObject)");
         signatures.insert("bool(*rxIsLoaded)(RObject)");
@@ -2505,7 +2471,6 @@ RcppExport SEXP _RxODE_RcppExport_registerCCallable() {
     R_RegisterCCallable("RxODE", "_RxODE_rxGetRxODE", (DL_FUNC)_RxODE_rxGetRxODE_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxIsCurrent", (DL_FUNC)_RxODE_rxIsCurrent_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxAssignPtr", (DL_FUNC)_RxODE_rxAssignPtr_try);
-    R_RegisterCCallable("RxODE", "_RxODE_rxCores", (DL_FUNC)_RxODE_rxCores_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxDll", (DL_FUNC)_RxODE_rxDll_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxC", (DL_FUNC)_RxODE_rxC_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxIsLoaded", (DL_FUNC)_RxODE_rxIsLoaded_try);

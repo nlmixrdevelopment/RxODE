@@ -482,12 +482,6 @@ rxAssignPtr <- function(object = NULL) {
     invisible(.Call(`_RxODE_rxAssignPtr`, object))
 }
 
-#' Get the number of cores in a system
-#' @export
-rxCores <- function() {
-    .Call(`_RxODE_rxCores`)
-}
-
 #' Return the DLL associated with the RxODE object
 #'
 #' This will return the dynamic load library or shared object used to

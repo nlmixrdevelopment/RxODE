@@ -633,27 +633,6 @@ namespace RxODE {
             throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
     }
 
-    inline IntegerVector rxCores() {
-        typedef SEXP(*Ptr_rxCores)();
-        static Ptr_rxCores p_rxCores = NULL;
-        if (p_rxCores == NULL) {
-            validateSignature("IntegerVector(*rxCores)()");
-            p_rxCores = (Ptr_rxCores)R_GetCCallable("RxODE", "_RxODE_rxCores");
-        }
-        RObject rcpp_result_gen;
-        {
-            RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_rxCores();
-        }
-        if (rcpp_result_gen.inherits("interrupted-error"))
-            throw Rcpp::internal::InterruptedException();
-        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
-            throw Rcpp::LongjumpException(rcpp_result_gen);
-        if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
-        return Rcpp::as<IntegerVector >(rcpp_result_gen);
-    }
-
     inline std::string rxDll(RObject obj) {
         typedef SEXP(*Ptr_rxDll)(SEXP);
         static Ptr_rxDll p_rxDll = NULL;
