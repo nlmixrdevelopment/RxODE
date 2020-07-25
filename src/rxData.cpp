@@ -6029,6 +6029,13 @@ List dropUnitsRxSolve(List x){
 }
 
 extern "C" void setSilentErr(int silent);
+
+//' Silence some of RxODE's C/C++ messages
+//'
+//' @param silent can be 0L "noisy"  or 1L "silent"
+//' 
+//' @keywords internal
+//' @export
 //[[Rcpp::export]]
 bool rxSetSilentErr(int silent){
   setSilentErr(silent);
