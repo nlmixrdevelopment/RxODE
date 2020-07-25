@@ -269,7 +269,6 @@
       wsp(iphih+mbrkdwn)   = hj1j*wsp(iphih+mx+mbrkdwn-1)
       wsp(iphih+mbrkdwn+1) = hj1j*wsp(iphih+2*mx+mbrkdwn-1)
  
- 402  continue
 * 
 *---  error estimate ...
 *

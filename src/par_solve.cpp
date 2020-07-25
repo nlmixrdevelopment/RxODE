@@ -2666,7 +2666,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   int *dfi;
   int ii=0, jj = 0, ntimes;
   double *solve;
-  double *cov_ptr;
   int nBadDose;
   int *BadDose;
   int extraCmt = op->extraCmt;
@@ -2783,8 +2782,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   j = ncols + doseCols + nidCols + 2*nmevid;
   const char *charItem;
   int *par_cov = op->par_cov;
-  SEXP lvls, tmp;
-  SEXP lvlSym = PROTECT(install("levels")); pro++;
+  SEXP tmp;
   for (i = 0; i < ncov*add_cov; i++){
     charItem =CHAR(STRING_ELT(paramNames, par_cov[i]-1));
     SET_VECTOR_ELT(df, j++, PROTECT(getDfLevels(charItem, rx))); pro++;
@@ -2823,7 +2821,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
       }
       for (i = 0; i < ntimes; i++){
 	ind->idx = i;
-	double *yp = ind->solve+i*op->neq;      
         evid = ind->evid[ind->ix[i]];
 	if (evid == 9) continue;
 	if (nlhs){
@@ -3491,7 +3488,7 @@ extern "C" void rxSingleSolve(int subid, double *_theta, double *timep,
   ind->id = subid;
   ind->sim = 0;
   ind->ndoses=0;
-  for (unsigned int i = 0; i < ind->n_all_times; i++){
+  for (int i = 0; i < ind->n_all_times; i++){
     if (isDose(ind->evid[i])){
       ind->ndoses++;
       ind->idose[ind->ndoses-1] = i;

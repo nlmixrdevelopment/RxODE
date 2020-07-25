@@ -2240,7 +2240,6 @@ extern "C" void lineFree(vLines *sbb);
 // [[Rcpp::export]]
 LogicalVector rxSolveFree(){
   rx_solve* rx = getRxSolve_();
-  rx_solving_options* op = rx->op;
   // Free the solve id order
   if (rx->par_sample != NULL) free(rx->par_sample);
   rx->par_sample=NULL;
@@ -2718,7 +2717,6 @@ static inline void rxSolve_simulate(const RObject &obj,
   RObject sigma= rxControl[Rxc_sigma];
   Nullable<NumericVector> sigmaDf= asNNv(rxControl[Rxc_sigmaDf], "sigmaDf");
   bool sigmaIsChol= asBool(rxControl[Rxc_sigmaIsChol], "sigmaIsChol");
-  double ret = 1.5e-8;
   op->isChol = (int)(sigmaIsChol);
   SEXP tmp = rxControl[Rxc_linDiff];
   LogicalVector linLV;
@@ -4893,6 +4891,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 #endif// rxSolveT
     if (op->stiff == 2) { // liblsoda
       // Order by the number of times per subject
+      REprintf("sortIds!\n");
       sortIds(rx, 1);
     }
     SEXP ret = rxSolve_finalize(object, rxControl, specParams, extraArgs, params, events,
@@ -5119,7 +5118,6 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	dexact = 0;
       }
       unsigned int slen2;
-      bool found = false;
       int possible = -1;
       for (i = 0; i < n; i++){
 	slen2 = strlen((as<std::string>(nm[i])).c_str());
