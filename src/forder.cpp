@@ -189,7 +189,6 @@ extern "C" void avoid_openmp_hang_within_fork() {
 
 // For RxODE sortType = 1
 // FIXME key per thread
-static uint8_t **key = NULL;
 
 static int dround=0; // No rounding by default
 static uint64_t dmask=0;
