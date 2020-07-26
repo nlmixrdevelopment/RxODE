@@ -4881,6 +4881,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 #endif // rxSolveT
     rxSolve_normalizeParms(object, rxControl, specParams, extraArgs,
 			   pars, ev1, inits, rxSolveDat);
+    if (op->stiff == 2) { // liblsoda
+      // Order by the number of times per subject
+      sortIds(rx, 1);
+    }
     if (setupOnly){
       setupOnlyObj = obj;
       return as<SEXP>(LogicalVector::create(true));
@@ -4889,11 +4893,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
-    if (op->stiff == 2) { // liblsoda
-      // Order by the number of times per subject
-      REprintf("sortIds!\n");
-      sortIds(rx, 1);
-    }
+    
     SEXP ret = rxSolve_finalize(object, rxControl, specParams, extraArgs, params, events,
 				inits, rxSolveDat);
     if (!rxIsNull(setupOnlyObj)) {
