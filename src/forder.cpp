@@ -62,9 +62,7 @@ extern "C" void initRxThreads() {
 #ifdef _OPENMP
   int ans = getIntEnv("RXODE_NUM_THREADS", INT_MIN);
   if (ans>=1) {
-#ifdef _OPENMP
     ans = imin(ans, omp_get_num_procs());  // num_procs is a hard limit; user cannot achieve more. ifndef _OPENMP then myomp.h defines this to be 1
-#else
     ans = 1;
   } else {
     // Only when R_DATATABLE_NUM_THREADS is unset (or <=0) do we use PROCS_PERCENT; #4514
