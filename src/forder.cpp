@@ -33,6 +33,9 @@ int omp_get_max_threads(){
   return 1;
 }
 
+int omp_get_thread_num(){
+  return 1;
+}
 #endif
 
 // Much of this comes from data.table, with references to where it came from
@@ -75,7 +78,6 @@ extern "C" void initRxThreads() {
   int ans = getIntEnv("RXODE_NUM_THREADS", INT_MIN);
   if (ans>=1) {
     ans = imin(ans, omp_get_num_procs());  // num_procs is a hard limit; user cannot achieve more. ifndef _OPENMP then myomp.h defines this to be 1
-    ans = 1;
   } else {
     // Only when R_DATATABLE_NUM_THREADS is unset (or <=0) do we use PROCS_PERCENT; #4514
     int perc = getIntEnv("RXODE_NUM_PROCS_PERCENT", 50); // use "NUM_PROCS" to use the same name as the OpenMP function this uses
@@ -88,7 +90,6 @@ extern "C" void initRxThreads() {
       perc = 50;
     }
     ans = imax(omp_get_num_procs()*perc/100, 1); // imax for when formula would result in 0.
-    ans = 1;
   }
   ans = imin(ans, omp_get_thread_limit());  // honors OMP_THREAD_LIMIT when OpenMP started; e.g. CRAN sets this to 2. Often INT_MAX meaning unlimited/unset
   ans = imin(ans, omp_get_max_threads());   // honors OMP_NUM_THREADS when OpenMP started, plus reflects any omp_set_* calls made since
@@ -123,7 +124,7 @@ extern "C" SEXP getRxThreads_R(SEXP verbose) {
   if (LOGICAL(verbose)[0]) {
 #ifndef _OPENMP
     Rprintf(_("This installation of data.table has not been compiled with OpenMP support.\n"));
-#else  
+#endif
     // this output is captured, paste0(collapse="; ")'d, and placed at the end of test.data.table() for display in the last 13 lines of CRAN check logs
     // it is also printed at the start of test.data.table() so that we can trace any Killed events on CRAN before the end is reached
     // this is printed verbatim (e.g. without using data.table to format the output) in case there is a problem even with simple data.table creation/printing
@@ -137,7 +138,6 @@ extern "C" SEXP getRxThreads_R(SEXP verbose) {
     Rprintf(_("  OMP_NUM_THREADS                %s\n"), mygetenv("OMP_NUM_THREADS", "unset"));
     /* Rprintf(_("  RestoreAfterFork               %s\n"), RestoreAfterFork ? "true" : "false"); */
     Rprintf(_("  RxODE is using %d threads with throttle==%d. See ?setRxthreads.\n"), getRxThreads(INT_MAX, false), rxThrottle);
-#endif
   }
   return ScalarInteger(getRxThreads(INT_MAX, false));
 }
