@@ -89,7 +89,7 @@ extern "C" void initRxThreads() {
 #else
   rxThreads=1;
   rxThrottle=1;  
-#endf
+#endif
 }
 
 static const char *mygetenv(const char *name, const char *unset) {
@@ -115,7 +115,7 @@ extern "C" SEXP getRxThreads_R(SEXP verbose) {
   if (LOGICAL(verbose)[0]) {
 #ifndef _OPENMP
     Rprintf(_("This installation of data.table has not been compiled with OpenMP support.\n"));
-#endif
+#else  
     // this output is captured, paste0(collapse="; ")'d, and placed at the end of test.data.table() for display in the last 13 lines of CRAN check logs
     // it is also printed at the start of test.data.table() so that we can trace any Killed events on CRAN before the end is reached
     // this is printed verbatim (e.g. without using data.table to format the output) in case there is a problem even with simple data.table creation/printing
@@ -129,11 +129,13 @@ extern "C" SEXP getRxThreads_R(SEXP verbose) {
     Rprintf(_("  OMP_NUM_THREADS                %s\n"), mygetenv("OMP_NUM_THREADS", "unset"));
     /* Rprintf(_("  RestoreAfterFork               %s\n"), RestoreAfterFork ? "true" : "false"); */
     Rprintf(_("  RxODE is using %d threads with throttle==%d. See ?setRxthreads.\n"), getRxThreads(INT_MAX, false), rxThrottle);
+#endif
   }
   return ScalarInteger(getRxThreads(INT_MAX, false));
 }
 
 extern "C" SEXP setRxthreads(SEXP threads, SEXP percent, SEXP throttle) {
+#ifdef _OPENMP
   if (length(throttle)) {
     if (!isInteger(throttle) || LENGTH(throttle)!=1 || INTEGER(throttle)[0]<1)
       error(_("'throttle' must be a single number, non-NA, and >=1"));
@@ -172,6 +174,9 @@ extern "C" SEXP setRxthreads(SEXP threads, SEXP percent, SEXP throttle) {
     // a grep in CRAN_Release.cmd.
   }
   return ScalarInteger(old);
+#else
+  return ScalarInteger(1);
+#endif
 }
 
 
