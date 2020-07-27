@@ -253,7 +253,11 @@ static bool sort_ugrp(uint8_t *x, const int n)
 //  - modified so that radix_r is 0 order not 1 order like R (since we are using it in C)
 extern "C" void radix_r(const int from, const int to, const int radix,
 	     rx_solving_options_ind *ind, rx_solve *rx) {
+#ifdef _OPENMP
   uint8_t **key = rx->keys[omp_get_thread_num()];
+#else
+  uint8_t **key = rx->keys[0];
+#endif
   int *anso = ind->ix;
   const int my_n = to-from+1;
   if (my_n==1) {  // minor TODO: batch up the 1's instead in caller (and that's only needed when retgrp anyway)
