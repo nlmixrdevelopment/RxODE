@@ -58,9 +58,14 @@ extern "C" void initRxThreads() {
   // called at package startup from init.c
   // also called by setDTthreads(threads=NULL) (default) to reread environment variables; see setDTthreads below
   // No verbosity here in this setter. Verbosity is in getRxThreads(verbose=TRUE)
+
+#ifdef _OPENMP
   int ans = getIntEnv("RXODE_NUM_THREADS", INT_MIN);
   if (ans>=1) {
+#ifdef _OPENMP
     ans = imin(ans, omp_get_num_procs());  // num_procs is a hard limit; user cannot achieve more. ifndef _OPENMP then myomp.h defines this to be 1
+#else
+    ans = 1;
   } else {
     // Only when R_DATATABLE_NUM_THREADS is unset (or <=0) do we use PROCS_PERCENT; #4514
     int perc = getIntEnv("RXODE_NUM_PROCS_PERCENT", 50); // use "NUM_PROCS" to use the same name as the OpenMP function this uses
@@ -73,6 +78,7 @@ extern "C" void initRxThreads() {
       perc = 50;
     }
     ans = imax(omp_get_num_procs()*perc/100, 1); // imax for when formula would result in 0.
+    ans = 1;
   }
   ans = imin(ans, omp_get_thread_limit());  // honors OMP_THREAD_LIMIT when OpenMP started; e.g. CRAN sets this to 2. Often INT_MAX meaning unlimited/unset
   ans = imin(ans, omp_get_max_threads());   // honors OMP_NUM_THREADS when OpenMP started, plus reflects any omp_set_* calls made since
@@ -82,6 +88,10 @@ extern "C" void initRxThreads() {
   ans = imax(ans, 1);  // just in case omp_get_* returned <=0 for any reason, or the env variables above are set <=0
   rxThreads = ans;
   rxThrottle = imax(1, getIntEnv("RXODE_THROTTLE", 2)); // 2nd thread is used only when nid>2, 3rd thread when n>4, etc
+#else
+  rxThreads=1;
+  rxThrottle=1;  
+#endf
 }
 
 static const char *mygetenv(const char *name, const char *unset) {
