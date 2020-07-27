@@ -330,7 +330,11 @@ extern "C" void radix_r(const int from, const int to, const int radix,
     uint16_t my_counts[256] = {0};  // Needs to be all-0 on entry. This ={0} initialization should be fast as it's on stack. Otherwise, we have to manage
     // a stack of counts anyway since this is called recursively and these counts are needed to make the recursive calls.
     // This thread-private stack alloc has no chance of false sharing and gives omp and compiler best chance.
+#ifdef _OPENMP
     uint8_t * my_ugrp = rx->UGRP + omp_get_thread_num()*256;  // uninitialized is fine; will use the first ngrp items. Only used if sortType==0
+#else
+    uint8_t * my_ugrp = rx->UGRP + omp_get_thread_num()*256;  // uninitialized is fine; will use the first ngrp items. Only used if sortType==0
+#endif
     // TODO: ensure my_counts, my_grp and my_tmp below are cache line aligned on both Linux and Windows.
     const uint8_t * my_key = key[radix]+from;
     int ngrp = 0;          // number of groups (items in ugrp[]). Max value 256 but could be uint8_t later perhaps if 0 is understood as 1.
@@ -359,7 +363,11 @@ extern "C" void radix_r(const int from, const int to, const int radix,
       // TODO: could be allocated up front (like my_TMP below), or are they better on stack like this? TODO: allocating up front would provide to cache-align them.
       for (int i=0, sum=0; i<ngrp; i++) { uint8_t w=my_ugrp[i]; int tmp=my_counts[w]; my_starts[w]=my_starts_copy[w]=sum; sum+=tmp; }  // cumulate in ugrp appearance order
 
+#ifdef _OPENMP
       int * my_TMP = rx->TMP + omp_get_thread_num()*UINT16_MAX; // Allocated up front to save malloc calls which i) block internally and ii) could fail
+#else
+      int * my_TMP = rx->TMP + UINT16_MAX; // Allocated up front to save malloc calls which i) block internally and ii) could fail
+#endif
       if (radix==0) {
 	// anso contains 1:n so skip reading and copying it. Only happens when nrow<65535. Saving worth the branch (untested) when user repeatedly calls a small-n small-cardinality order.
 	for (int i=0; i<my_n; i++) anso[my_starts[my_key[i]]++] = i;  // +1 as R is 1-based.
