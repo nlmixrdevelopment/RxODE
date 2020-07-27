@@ -33,9 +33,6 @@ int omp_get_max_threads(){
   return 1;
 }
 
-int omp_get_thread_num(){
-  return 1;
-}
 #endif
 
 // Much of this comes from data.table, with references to where it came from
