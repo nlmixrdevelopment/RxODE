@@ -895,7 +895,6 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
 #endif
   rx_solve *rx = &rx_global;
   rx_solving_options *op = &op_global;
-  double *yp = ind->solve+op->neq*ind->idx;
   uint8_t **key = rx->keys[core];
   // Reset times for infusion
   int wh, cmt, wh100, whI, wh0;

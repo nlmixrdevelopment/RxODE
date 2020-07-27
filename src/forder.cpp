@@ -19,6 +19,20 @@
 #ifdef _OPENMP
 #include <pthread.h>
 #include <omp.h>
+#else
+
+int omp_get_num_procs(){
+  return 1;
+}
+
+int omp_get_thread_limit(){
+  return 1;
+}
+
+int omp_get_max_threads(){
+  return 1;
+}
+
 #endif
 
 // Much of this comes from data.table, with references to where it came from
@@ -58,8 +72,6 @@ extern "C" void initRxThreads() {
   // called at package startup from init.c
   // also called by setDTthreads(threads=NULL) (default) to reread environment variables; see setDTthreads below
   // No verbosity here in this setter. Verbosity is in getRxThreads(verbose=TRUE)
-
-#ifdef _OPENMP
   int ans = getIntEnv("RXODE_NUM_THREADS", INT_MIN);
   if (ans>=1) {
     ans = imin(ans, omp_get_num_procs());  // num_procs is a hard limit; user cannot achieve more. ifndef _OPENMP then myomp.h defines this to be 1
@@ -86,10 +98,6 @@ extern "C" void initRxThreads() {
   ans = imax(ans, 1);  // just in case omp_get_* returned <=0 for any reason, or the env variables above are set <=0
   rxThreads = ans;
   rxThrottle = imax(1, getIntEnv("RXODE_THROTTLE", 2)); // 2nd thread is used only when nid>2, 3rd thread when n>4, etc
-#else
-  rxThreads=1;
-  rxThrottle=1;  
-#endif
 }
 
 static const char *mygetenv(const char *name, const char *unset) {
@@ -135,7 +143,6 @@ extern "C" SEXP getRxThreads_R(SEXP verbose) {
 }
 
 extern "C" SEXP setRxthreads(SEXP threads, SEXP percent, SEXP throttle) {
-#ifdef _OPENMP
   if (length(throttle)) {
     if (!isInteger(throttle) || LENGTH(throttle)!=1 || INTEGER(throttle)[0]<1)
       error(_("'throttle' must be a single number, non-NA, and >=1"));
@@ -174,9 +181,6 @@ extern "C" SEXP setRxthreads(SEXP threads, SEXP percent, SEXP throttle) {
     // a grep in CRAN_Release.cmd.
   }
   return ScalarInteger(old);
-#else
-  return ScalarInteger(1);
-#endif
 }
 
 
@@ -253,11 +257,7 @@ static bool sort_ugrp(uint8_t *x, const int n)
 //  - modified so that radix_r is 0 order not 1 order like R (since we are using it in C)
 extern "C" void radix_r(const int from, const int to, const int radix,
 	     rx_solving_options_ind *ind, rx_solve *rx) {
-#ifdef _OPENMP
   uint8_t **key = rx->keys[omp_get_thread_num()];
-#else
-  uint8_t **key = rx->keys[0];
-#endif
   int *anso = ind->ix;
   const int my_n = to-from+1;
   if (my_n==1) {  // minor TODO: batch up the 1's instead in caller (and that's only needed when retgrp anyway)
@@ -330,11 +330,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
     uint16_t my_counts[256] = {0};  // Needs to be all-0 on entry. This ={0} initialization should be fast as it's on stack. Otherwise, we have to manage
     // a stack of counts anyway since this is called recursively and these counts are needed to make the recursive calls.
     // This thread-private stack alloc has no chance of false sharing and gives omp and compiler best chance.
-#ifdef _OPENMP
     uint8_t * my_ugrp = rx->UGRP + omp_get_thread_num()*256;  // uninitialized is fine; will use the first ngrp items. Only used if sortType==0
-#else
-    uint8_t * my_ugrp = rx->UGRP + omp_get_thread_num()*256;  // uninitialized is fine; will use the first ngrp items. Only used if sortType==0
-#endif
     // TODO: ensure my_counts, my_grp and my_tmp below are cache line aligned on both Linux and Windows.
     const uint8_t * my_key = key[radix]+from;
     int ngrp = 0;          // number of groups (items in ugrp[]). Max value 256 but could be uint8_t later perhaps if 0 is understood as 1.
@@ -363,11 +359,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
       // TODO: could be allocated up front (like my_TMP below), or are they better on stack like this? TODO: allocating up front would provide to cache-align them.
       for (int i=0, sum=0; i<ngrp; i++) { uint8_t w=my_ugrp[i]; int tmp=my_counts[w]; my_starts[w]=my_starts_copy[w]=sum; sum+=tmp; }  // cumulate in ugrp appearance order
 
-#ifdef _OPENMP
       int * my_TMP = rx->TMP + omp_get_thread_num()*UINT16_MAX; // Allocated up front to save malloc calls which i) block internally and ii) could fail
-#else
-      int * my_TMP = rx->TMP + UINT16_MAX; // Allocated up front to save malloc calls which i) block internally and ii) could fail
-#endif
       if (radix==0) {
 	// anso contains 1:n so skip reading and copying it. Only happens when nrow<65535. Saving worth the branch (untested) when user repeatedly calls a small-n small-cardinality order.
 	for (int i=0; i<my_n; i++) anso[my_starts[my_key[i]]++] = i;  // +1 as R is 1-based.
