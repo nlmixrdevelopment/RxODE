@@ -118,6 +118,21 @@ rxPermissive(
         expect_false(any(a[, i] > i + 1))
       }
 
+      set.seed(10)
+      a1 <- rxRmvn(1, 10, matrix(2),10,11)
+      a2 <- rxRmvn(1, 10, matrix(2),10,11)
+
+      expect_false(all(a1 == a2))
+
+      set.seed(10)
+      a1 <- rxRmvn(1, 10, matrix(2),10,11)
+
+      set.seed(10)
+      a2 <- rxRmvn(1, 10, matrix(2),10,11)
+
+      expect_equal(a1, a2)
+
+
     })
   },
   test = "norm"
