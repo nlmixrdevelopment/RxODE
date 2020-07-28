@@ -643,14 +643,7 @@ arma::mat rxMvrandn_(NumericMatrix A_,
   if (d != (int)sigma.n_rows) stop("length(mu) != ncol(sigma)");
   if (d != (int)A_.ncol()) stop("length(mu) != ncol(A)");
 
-  double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
-  uint32_t seed = static_cast<uint32_t>(seedD);
-  seed = min2(seed, std::numeric_limits<uint32_t>::max() - ncores - 1);
-  sitmo::threefry eng;
   arma::mat A(A_.begin(), A_.nrow(), A_.ncol(), false, true);
-
-  arma::vec low = lower-trans(mu);
-  arma::vec up = upper-trans(mu);
   if (sigma.is_zero()){
     if (d == 1){
       for (int i = 0; i < n; ++i) {
@@ -661,6 +654,15 @@ arma::mat rxMvrandn_(NumericMatrix A_,
       A.each_row() += mu;
     }
   } else {
+    double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
+    uint32_t seed = static_cast<uint32_t>(seedD);
+    seed = min2(seed, std::numeric_limits<uint32_t>::max() - ncores - 1);
+    sitmo::threefry eng;
+    eng.seed(seed);
+
+    arma::vec low = lower-trans(mu);
+    arma::vec up = upper-trans(mu);
+
     if (d == 1){
       double sd = sqrt(sigma(0,0));
       double l=low(0)/sd;
