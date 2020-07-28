@@ -15,10 +15,6 @@
   of sigmas/etas with thread-safe random number generators (calling R
   through `mvnfast` or R's simulation engines are not thread safe).
   
-  * A backward-compatible simulation can be used by `rxSolve(...,
-    mvnfast=TRUE)` (but of course requires the `mvnfast` package
-    installed);  NEED TO CHECK IF THIS IS STILL TRUE;  Is this worthwhile?
-
 * `RxODE` now moved the precise sum/product type options for `sum()`
   and `prod()` to `rxSolve` or `rxControl`
   
