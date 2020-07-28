@@ -534,6 +534,7 @@ int new_or_ith(const char *s) {
   if (!strcmp("podo", s)) {tb.ix=-2; return 0;}
   if (!strcmp("rx__PTR__", s)) {tb.ix=-2; return 0;}
   if (!strcmp("tlast", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("dosenum", s)) {tb.ix=-2; return 0;}
   // Ignore M_ constants
   if (!strcmp("M_E", s)) {tb.ix=-2; return 0;}
   if (!strcmp("M_LOG2E", s)) {tb.ix=-2; return 0;}
@@ -775,6 +776,9 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
   } else if (!strcmp("tlast",value)){
     aAppendN("_solveData->subjects[_cSub].tlast", 33);
     sAppendN(&sbt, "tlast", 5);
+  } else if (!strcmp("dosenum",value)){
+    aAppendN("(double)(_solveData->subjects[_cSub].dosenum)", 45);
+    sAppendN(&sbt, "dosenum", 7);
   } else if (!strcmp("rx__PTR__",value)){
     aAppendN("_solveData, _cSub", 17);
     sAppendN(&sbt, "rx__PTR__", 9);
