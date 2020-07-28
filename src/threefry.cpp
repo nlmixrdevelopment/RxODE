@@ -569,12 +569,12 @@ arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
     stop(_("'lower' is bigger than 'upper' for at least one item"));
   }
   // Cholesky decomposition of matrix
-  rx_cholperms out=cholperm(Sig,lin,uin);
-  arma::mat Lfull=out.L;
-  arma::vec l=out.l;
-  arma::vec u=out.u;
+  rx_cholperms outC=cholperm(Sig,lin,uin);
+  arma::mat Lfull=outC.L;
+  arma::vec l=outC.l;
+  arma::vec u=outC.u;
   arma::vec D=Lfull.diag();
-  arma::uvec perm=out.perm;
+  arma::uvec perm=outC.perm;
   if (any(D < 1e-10)){
     Rf_warningcall(R_NilValue, _("truncated multivariate normal may fail as covariance matrix is singular"));
   }
@@ -603,7 +603,9 @@ arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
     arma::mat curZ  = out.Z;
     // idx=-log(runif(n))>(psistar-logpr); # acceptance tests
     for (int i = n; i--;){
-      if (out.u[i] > (psistar-logpr[i])){
+      if (out.u[i] > (psistar-logpr[i]) &&
+	  all(outC.l < curZ.col(i)) &&
+	  all(outC.u > curZ.col(i))) {
 	ret.col(accepted) =curZ.col(i);
 	accepted++;
 	if (accepted == n) break;
@@ -623,7 +625,7 @@ arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
     }
   }
   ret = trans(ret);
-  ret = ret.cols(out.perm);
+  ret = ret.cols(outC.perm);
   return ret;
 }
 
@@ -649,7 +651,7 @@ arma::mat rxMvrandn_(NumericMatrix A_,
 
   arma::vec low = lower-trans(mu);
   arma::vec up = upper-trans(mu);
-  if (A.is_zero()){
+  if (sigma.is_zero()){
     if (d == 1){
       for (int i = 0; i < n; ++i) {
 	A[i] = mu(0);

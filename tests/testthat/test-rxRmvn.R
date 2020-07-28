@@ -101,6 +101,7 @@ rxPermissive(
     })
 
     test_that("truncated normal simulation", {
+
       set.seed(414)
       d <- 5
       mu <- 1:d
@@ -108,17 +109,15 @@ rxPermissive(
       # Creating covariance matrix
       tmp <- matrix(rnorm(d^2), d, d)
       mcov <- tcrossprod(tmp, tmp)
-      ###### Here we create the matrix that will hold the simulated
-      #  random variables upfront.
-      A <- matrix(NA, 4, d)
-      class(A) <- "numeric" # This is important. We need the elements of A to be of class "numeric".
 
       a <- rxRmvn(10, 1:d, mcov, lower=1:d-1, upper=1:d+1)
+
       for (i in 1:d){
         expect_false(all(a[, i] == i))
         expect_false(any(a[, i] < i - 1))
         expect_false(any(a[, i] > i + 1))
       }
+
     })
   },
   test = "norm"
