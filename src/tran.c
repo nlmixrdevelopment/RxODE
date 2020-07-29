@@ -1227,7 +1227,27 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  isPois=0, isT=0, isUnif=0, isWeibull=0, isNormV=0,
 	  isLead=0, isFirst=0, isLast=0, isDiff=0, isLinB=0,
 	  isPnorm=0, isTad=0, isTafd=0, isTlast = 0, isTfirst = 0;
-	if ((isTad = !strcmp("tad", v)) || (isTafd = !strcmp("tafd", v)) ||
+	if (!strcmp("dosenum", v)) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii == 1){
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    if (allSpaces(v2)){
+	      aAppendN("(double)(_solveData->subjects[_cSub].dosenum)", 45);
+	      sAppendN(&sbt, "dosenum()", 9);
+	    } else {
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
+	    }
+	    Free(v2);
+	  } else {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
+	  }
+	  Free(v);
+	  i = nch;
+	  continue;
+	} else if ((isTad = !strcmp("tad", v)) || (isTafd = !strcmp("tafd", v)) ||
 	    (isTlast = !strcmp("tlast", v)) || (isTfirst = !strcmp("tfirst", v))) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 1){

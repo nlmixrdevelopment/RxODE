@@ -149,6 +149,7 @@ typedef struct {
   int nBadDose;
   double HMAX; // Determined by diff
   double tlast;
+  int dosenum;
   double tfirst;
   double *tlastS;
   double *tfirstS;

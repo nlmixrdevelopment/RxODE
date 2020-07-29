@@ -977,7 +977,8 @@ extern "C" int syncIdx(rx_solving_options_ind *ind){
 
 static inline void handleTlastInline(double *time, rx_solving_options_ind *ind) {
   rx_solving_options *op = &op_global;
-  if (op->neq + op->extraCmt != 0 && isDose(ind->evid[ind->ix[ind->idx]])){
+  if (op->neq + op->extraCmt != 0 && ind->tlast != *time && isDose(ind->evid[ind->ix[ind->idx]])){
+    ind->dosenum++;
     ind->tlast = *time;
     // REprintf("evid: %d tlast: %f, cmt: %d; %d; %d\n", ind->evid[ind->ix[ind->idx]], ind->tlast, ind->cmt,
     // 	     op->neq + op->extraCmt, op->extraCmt);
@@ -1011,6 +1012,7 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
     u_inis(solveid, ind->solve); // Update initial conditions @ current time
   }
   ind->_newind = 1;
+  ind->dosenum = 0;
   ind->tlast = NA_REAL;
   ind->tfirst = NA_REAL;
   ind->solved = -1;
@@ -2370,6 +2372,7 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
         //dadt_counter = 0;
       }
     ind->_newind = 1;
+    ind->dosenum = 0;
     ind->tlast = NA_REAL;
     ind->tfirst = NA_REAL;
     ind->solved = -1;
@@ -3505,6 +3508,7 @@ extern "C" void rxSingleSolve(int subid, double *_theta, double *timep,
   rx->nsub =1;
   rx->nsim =1;
   ind->_newind=1;
+  ind->dosenum=0;
   ind->tlast = NA_REAL;
   ind->tfirst = NA_REAL;
   ind->solved = -1;
@@ -3518,6 +3522,7 @@ extern "C" void rxSingleSolve(int subid, double *_theta, double *timep,
 	      dydt, update_inis, global_jt);
   if (op->nlhs) {
     ind->_newind=1;
+    ind->dosenum = 0;
     ind->tlast = NA_REAL;
     ind->tfirst = NA_REAL;
     ind->solved = -1;
