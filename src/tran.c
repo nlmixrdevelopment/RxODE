@@ -534,7 +534,6 @@ int new_or_ith(const char *s) {
   if (!strcmp("podo", s)) {tb.ix=-2; return 0;}
   if (!strcmp("rx__PTR__", s)) {tb.ix=-2; return 0;}
   if (!strcmp("tlast", s)) {tb.ix=-2; return 0;}
-  if (!strcmp("dosenum", s)) {tb.ix=-2; return 0;}
   // Ignore M_ constants
   if (!strcmp("M_E", s)) {tb.ix=-2; return 0;}
   if (!strcmp("M_LOG2E", s)) {tb.ix=-2; return 0;}
@@ -776,9 +775,6 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
   } else if (!strcmp("tlast",value)){
     aAppendN("_solveData->subjects[_cSub].tlast", 33);
     sAppendN(&sbt, "tlast", 5);
-  } else if (!strcmp("dosenum",value)){
-    aAppendN("(double)(_solveData->subjects[_cSub].dosenum)", 45);
-    sAppendN(&sbt, "dosenum", 7);
   } else if (!strcmp("rx__PTR__",value)){
     aAppendN("_solveData, _cSub", 17);
     sAppendN(&sbt, "rx__PTR__", 9);
@@ -1231,7 +1227,27 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  isPois=0, isT=0, isUnif=0, isWeibull=0, isNormV=0,
 	  isLead=0, isFirst=0, isLast=0, isDiff=0, isLinB=0,
 	  isPnorm=0, isTad=0, isTafd=0, isTlast = 0, isTfirst = 0;
-	if ((isTad = !strcmp("tad", v)) || (isTafd = !strcmp("tafd", v)) ||
+	if (!strcmp("dosenum", v)) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii == 1){
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    if (allSpaces(v2)){
+	      aAppendN("(double)(_solveData->subjects[_cSub].dosenum)", 45);
+	      sAppendN(&sbt, "dosenum()", 9);
+	    } else {
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
+	    }
+	    Free(v2);
+	  } else {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
+	  }
+	  Free(v);
+	  i = nch;
+	  continue;
+	} else if ((isTad = !strcmp("tad", v)) || (isTafd = !strcmp("tafd", v)) ||
 	    (isTlast = !strcmp("tlast", v)) || (isTfirst = !strcmp("tfirst", v))) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 1){

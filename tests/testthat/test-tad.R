@@ -21,7 +21,7 @@ rxPermissive({
       d/dt(eff) <- Kin - Kout * (1 - C2 / (EC50 + C2)) * eff
       ## TAD tests
       tad <- tad()
-      dosen <- dosenum
+      dosen <- dosenum()
       tl <- tlast()
       tafd <- tafd()
       tfirst <- tfirst()
