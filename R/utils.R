@@ -109,8 +109,13 @@ rxCat <- function(a, ...) {
 ##' @author Matthew L. Fidler
 ##' @export
 rxClean <- function(wd) {
-  if (!missing(wd)) warning("'wd' is depreciated")
-  rxUnloadAll()
+  if (!missing(wd)) warning("'wd' is depreciated", call.=FALSE)
+  if (rxUnloadAll()) {
+    unlink(.cacheDefault,TRUE,TRUE)
+    return(invisible(dir.exists(.cacheDefault)))
+  } else {
+    return(invisible(FALSE))
+  }
 }
 
 refresh <- function(derivs = FALSE) {

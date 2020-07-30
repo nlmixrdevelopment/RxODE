@@ -1907,7 +1907,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    break;
 	  case ALAG:
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("Absorption Lag-time cannot depend on Jacobian values");
+	    trans_syntax_error_report_fn("absorption lag-time cannot depend on Jacobian values");
 	    break;
 	  case RATE:
 	    updateSyntaxCol();
