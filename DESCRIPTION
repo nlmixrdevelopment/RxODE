@@ -90,15 +90,13 @@ Imports:
     inline,
     lotri (>= 0.2.2),
     magrittr,
-    memoise,
     methods,
     rex,
     symengine,
     sys,
     units (>= 0.6-0),
     tools,
-    utils,
-    memoise
+    utils
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
