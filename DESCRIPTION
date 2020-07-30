@@ -74,7 +74,9 @@ Suggests:
     tidyr,
     usethis,
     vdiffr,
-    xgxr
+    xgxr,
+    pillar,
+    tibble
 Imports:
     PreciseSums (>= 0.3),
     Rcpp (>= 0.12.3),
@@ -96,8 +98,7 @@ Imports:
     units (>= 0.6-0),
     tools,
     utils,
-    pillar,
-    tibble
+    memoise
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model

@@ -595,7 +595,7 @@ rxSymPyExpEtas <- c()
 ##' @keywords internal
 ##' @export
 ##' @importFrom utils find
-rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
+rxSEinner <- memoise::memoise(function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
                       grad = FALSE, sum.prod = FALSE, pred.minus.dv = TRUE,
                       only.numeric = FALSE,
                       optExpression = TRUE,
@@ -705,7 +705,7 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   )
   class(.ret) <- "rxFocei"
   return(.ret)
-}
+})
 ##' @rdname rxSEinner
 ##' @export
 rxSymPySetupPred <- rxSEinner
