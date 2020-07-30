@@ -412,6 +412,8 @@ rxExpandGrid <- function(x, y, type = 0L) {
     .lhs,
     .s$..stateInfo["statef"],
     .s$..stateInfo["dvid"],
+    "tad=tad()",
+    "dosenum=dosenum()",
     ""
   ), collapse = "\n")
   .s$..pred.nolhs <- paste(c(
