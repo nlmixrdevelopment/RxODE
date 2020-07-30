@@ -895,7 +895,7 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
             .name, "=",
             rxFromSE(.expr)
           )
-          if (!any(.var == c("rx_pred_", "rx_r_"))) {
+          if (regexpr("^(nlmixr|rx)_", .var) == -1) {
             if (.isNum) {
               names(.rx) <- .name
               assign("..lhs0", c(envir$..lhs0, .rx),
