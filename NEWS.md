@@ -14,10 +14,10 @@
   random number generator.  This was done to allow internal resampling
   of sigmas/etas with thread-safe random number generators (calling R
   through `mvnfast` or R's simulation engines are not thread safe).
-  
+
 * `RxODE` now moved the precise sum/product type options for `sum()`
   and `prod()` to `rxSolve` or `rxControl`
-  
+
 * `cvPost` now will returned a named list of matrices if the input matrix was named
 
 * `rxSolve` will now return an integer `id` instead of a factor `id`
@@ -50,7 +50,7 @@
 * Rstudio notebook output makes more sense
 
 * Printing upgraded to cli 2.0
-  
+
 * Caching of internal C data setup is now supported increasing speed
   of `optim` code when:
   - Event Table doesn't change
@@ -65,16 +65,16 @@
   - `first(var)`
   - `last(var)`
   - `diff(var)`
-  
+
 Each of these are similar to the R `lag`, `lead`, `first`, `last` and
 `diff`.  However when undefined, it returns `NA`
 
 * Allow sticky left-handed side of the equation; This means for an
   observation the left handed values are saved for the next
   observations and then reassigned to the last calculated value.
-  
+
   This allows nonmem-style of calculating parameters like tad:
-  
+
 ```r
 mod1 <-RxODE({
     KA=2.94E-01;
@@ -128,19 +128,26 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 * Changed linear solved systems to use "advan" style `linCmt()`
   solutions, to allow correct solutions of time-varying covariate
   values with solved systems; As such, the solutions may be slightly
-  different.  Infusions to the depot compartment are now supported. 
-  
+  different.  Infusions to the depot compartment are now supported.
 
-* Added sensitivity auto-differentiation of `linCmt()` solutions.  
+
+* Added sensitivity auto-differentiation of `linCmt()` solutions.
   This allows sensitivities of `linCmt()` solutions and enables
   `nlmixr` focei to support solved systems.
   - One solution is to use Stan's auto-differentiation which requires
     `C++14`
-  
+
+* When calculating the emperical bayseian estimates for with `rxInner`
+  (used for nlmixr's 'focei') ignore any variable beginning with `rx_`
+  and `nlmixr_` to hide internal variables from table output.  This
+  also added `tad=tad()` and `dosenum=dosenum()` to the `ebe` output
+  allowing grouping by id, dose number and use TAD for individual plot
+  stratification.
+
 * Added ability to prune branching with `rxPrune`. This converts
   `if`/`else` or `ifelse` to single line statements without any
   `if`/`then` branching within them.
-  
+
 * Added ability to take more complex conditional expressions, including:
   - `ifelse(expr, yes, no)`
   - `x = (x==1)*1 + (!(x==1))*2`
@@ -148,14 +155,14 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
     syntax is still only `if`/`else` and the corresponding parsed code
     reflects this preference.
     - Note `ifelse` is not allowed as an ODE compartment or a variable.
-	
+
 * Switched to `symengine` instead of using `sympy`
   - Remove dependence on python.
   - Since symengine is C-based and doesn't require the python
     interface it is much faster than `sympy`, though some functions in
     `sympy` are no longer accessible.
   - Also symengine requires R 3.6, so now RxODE requires R 3.6
-	
+
 * Added new ODE solving method "indLin", or inductive linearization.
   When the full model is a linear ODE system this becomes simply the
   matrix exponential solution.  Currently this requires a different
@@ -192,15 +199,15 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 
 * Kept `evid` and `ii` as restricted items since they are not part of
   the covariate table and are restricted in use.
-  
+
 * Added the following random number generators; They are thread safe
   (based on `threefry` `sitmo` and c++11) and your simulations with
   them will depend on the number of cores used in your simulation (Be
   careful about reproduciblility with large number of threads; Also
   use parallel-solve type of RxODE simulations to avoid the [birthday
   problem](https://www.johndcook.com/blog/2016/01/29/random-number-generator-seed-mistakes/)).
-  
-  
+
+
   During ODE solving, the values of these are `0`, but while
   calculating the final output the variable is randomized at least for
   every output. These are:
@@ -216,12 +223,12 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   - `rxt()`
   - `rxunif()`
   - `rxweibull()`
-  
+
 * Now have a method to use `lotri` to simulate between occasion
   variability and other levels of nesting.
 
 * Added lower gamma functions See Issue #185
-  
+
 * Removed timsort and changed to a modified radix sort from
   `data.table`.  The radix search was modified to:
  - Work directly with `RxODE` internal solved structures
@@ -239,7 +246,7 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   only when C and C++ are mixed.  See:
 
   https://stackoverflow.com/questions/54056594/cran-acceptable-way-of-linking-to-openmp-some-c-code-called-from-rcpp
-  
+
 ## Bug fixes:
  - Occasionally RxODE misidentified dual `lhs`/`param` values.  An
    additional check is performed so that this does not happen.
@@ -259,7 +266,7 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   - Fixed allowing `NA`s in RxODE dataset
   - Fixed setting all compartment default values for bioavailability, rate, etc.
   - Added additional protection against floating point -> NaN for power functions
-  
+
 # RxODE v0.9.1-9
 * Minor namespace/documentation changes for R 4.0 compatibility
 
