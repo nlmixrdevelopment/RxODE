@@ -125,6 +125,12 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 * Now the NONMEM-style `newind` flag can be used to initialize `lhs`
   parameters.
 
+* Added `tad()`, `tad(cmt)` funtions for time since last dose and time
+  since last dose for a compartment; Also added time after first dose
+  and time after first dose for a compartment `tafd()`, `tafd(cmt)`;
+  time of last dose `tlast()`, `tlast(cmt)` and dose number
+  `dosenum()` (currently not for each compartment)
+
 * Changed linear solved systems to use "advan" style `linCmt()`
   solutions, to allow correct solutions of time-varying covariate
   values with solved systems; As such, the solutions may be slightly
