@@ -604,6 +604,16 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
                       interaction = TRUE, ...,
                       promoteLinSens = TRUE,
                       theta = FALSE) {
+  .digest <- digest::digest(list(rxModelVars(obj)$md5["parsed_md5"],
+                                 ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
+                                 ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
+                                 ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
+                                 init, grad, sum.prod, pred.minus.dv, only.numeric, optExpression,
+                                 interaction, promoteLinSens, theta))
+  .path <- file.path(rxTempDir(), paste0("inner-", .digest, ".rds"))
+  if (file.exists(.path)) {
+    return(readRDS(.path))
+  }
   assignInMyNamespace(".rxSupportedFunsExtra", TRUE)
   on.exit({
     assignInMyNamespace(".rxSupportedFunsExtra", FALSE)
@@ -706,6 +716,7 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
     ## cache.file=cache.file
   )
   class(.ret) <- "rxFocei"
+  saveRDS(.ret, .path)
   return(.ret)
 }
 ##' @rdname rxSEinner
