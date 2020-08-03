@@ -3218,7 +3218,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	  stop(_("cannot have event tables with integer and character 'cmt'"));
 	}
 	if (!isCmtInt && rxIs(et["cmt"], "integer")){
-	  stop(_("cannot haveevent tables with integer and character 'cmt'"));
+	  stop(_("cannot have event tables with integer and character 'cmt'"));
 	}
 	LogicalVector newShow = e["show"];
 	for (j = show.size(); j--;){
