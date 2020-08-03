@@ -261,8 +261,10 @@ et.rxParams <- function(x, ..., envir = parent.frame()) {
 
 ##' @rdname et
 ##' @export
-et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, until, id,
-                       amountUnits, timeUnits, addSampling, envir = parent.frame(),
+et.default <- function(x, ..., time, amt, evid, cmt, ii, addl,
+                       ss, rate, dur, until, id,
+                       amountUnits, timeUnits, addSampling,
+                       envir = parent.frame(),
                        by = NULL, length.out = NULL) {
   .lst <- as.list(match.call()[-1])
 
@@ -443,7 +445,14 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur, un
       .et <- et()
       .et$import.EventTable(.df)
       if (.isPipe) {
-        return(etRbind(eval(.lst[[1]], envir = envir), .et))
+        .tmp <- eval(.lst[[1]], envir = envir)
+        if (nrow(.et) == 0){
+          return(.tmp)
+        } else if (nrow(.tmp) == 0){
+          return(.et)
+        } else {
+          return(etRbind(.tmp, .et))
+        }
       } else {
         return(.et)
       }
