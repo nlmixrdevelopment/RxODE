@@ -1645,7 +1645,8 @@ extern void sortIfNeeded(rx_solve *rx, rx_solving_options_ind *ind, unsigned int
   if (sort){
     rx->needSort = 1;
     if (rx->nMtime) calcMtime(id, ind->mtime);
-    if (rx->needSort) sortRadix(ind);
+    /* REprintf("Sort! evid0 %d; %d\n", ind->evid[ind->ix[ind->idx]], ind->linCmt); */
+    sortRadix(ind);
   }
 }
 
@@ -2466,7 +2467,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   /* A = Alast0; Alast=Alast0; */
   double tlast;
   double it = getTime(ind->ix[idx], ind);
-  double curTime=0.0;
+  double curTime=getTime(ind->ix[0], ind); // t[0]
   
   if (t != it) {
     // Try to get another idx by bisection
@@ -2574,6 +2575,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
       } else {
 	syncIdx(ind);
 	amt = ind->dose[ind->ixds];
+	/* REprintf("\tamt0[%d]: %f\n", ind->ixds, amt); */
 	if (!ISNA(amt) && (amt > 0) && (ind->wh0 == 10 || ind->wh0 == 20)) {
 	  // dosing to ind->cmt
 	  // Steady state doses; wh0 == 20 is equivalent to SS=2 in NONMEM
@@ -2701,6 +2703,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	}
 	// dosing to ind->cmt
 	amt = ind->dose[ind->ixds];
+	/* REprintf("\tamt1[%d]: %f\n", ind->ixds, amt); */
 	switch (ind->whI){
 	case 0: { // Bolus dose
 	  // base dose
@@ -2797,25 +2800,29 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 		 &rx_k13, &rx_k31);
 	  extraAdvan=0;
 	}    
-
       }
     }
+    /* if (t < tlast) tlast=t; */
     /* REprintf("evid: %d; wh: %d; ind->cmt: %d; wh100: %d; ind->whI: %d; wh0: %d; %f\n", */
-    /* 	   evid, wh, ind->cmt, wh100, ind->whI, wh0, A[oral0]); */
+    /* 	   evid, ind->wh, ind->cmt, ind->wh100, ind->whI, ind->wh0, A[oral0]); */
     /* REprintf("curTime: t:%f, it: %f curTime:%f, tlast: %f, b1: %f ", t, it, curTime, tlast, b1); */
+    /* REprintf("evid: %d, t: %f, A: %f\n", evid, t, A[oral0]); */
     if (extraAdvan){
       doAdvan(A, Alast, tlast, // Time of last amounts
 	      curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
 	      &d_ka, &rx_k, &rx_k12, &rx_k21,
 	      &rx_k13, &rx_k31);
     }
+    /* REprintf("\t0evid: %d, t: %f, tlast: %f A: %f; extraAdvan: %d\n", */
+    /* 	     evid, t, tlast, A[oral0], extraAdvan); */
     if (doReplace){
       A[doReplace-1] = amt;
     } else if (doMultiply){
       A[doMultiply-1] *= amt;
     } else if (doRate){
       rate[doRate-1] += rateAdjust;
-    } 
+    }
+    /* REprintf("\tevid: %d, t: %f, A: %f\n", evid, t, A[oral0]); */
     ind->solved = idx;
   }
   if (!sameTime){
@@ -2856,7 +2863,7 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
   oral0 = (d_ka > 0) ? 1 : 0;
   double it = getTime(ind->ix[idxF], ind);
   double curTime, tlast;
-  curTime = tlast = getTime(ind->ix[0], ind);
+  curTime = tlast = getTime(ind->ix[0], ind); // t0
 
   if (t != it) {
     // Try to get another idx by bisection
@@ -2888,7 +2895,6 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
       ind->idx = idx;
       curTime = getTime(ind->ix[idx], ind);
       evid = ind->evid[ind->ix[idx]];
-      /* if (evid) REprintf("evid: %d; curTime: %f\n",evid, curTime); */
       ind->wh0 = 0;
       if (isObs(evid)){
 	if (idx != idxF){
@@ -2937,6 +2943,7 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
 	} else {
 	  syncIdx(ind);
 	  amt = ind->dose[ind->ixds];
+	  /* REprintf("\tamt2[%d]: %f\n", ind->ixds, amt); */
 	  if (!ISNA(amt) && (amt > 0) && (ind->wh0 == 10 || ind->wh0 == 20)) {
 	    // dosing to ind->cmt
 	    // Steady state doses; wh0 == 20 is equivalent to SS=2 in NONMEM
@@ -3067,6 +3074,7 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  }
 	  // dosing to ind->cmt
 	  amt = ind->dose[ind->ixds];
+	  REprintf("\tamtA[%d]: %f\n", ind->ixds, amt);
 	  switch (ind->whI){
 	  case 0: { // Bolus dose
 	    // base dose
@@ -3848,7 +3856,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
     /* A = Alast0; Alast=Alast0; */
     double tlast;
     double it = getTime(ind->ix[idx], ind);
-    double curTime=0.0;
+    double curTime= getTime(ind->ix[0], ind); // t0
     if (t != it) {
       // Try to get another idx by bisection
       /* REprintf("it pre: %f", it); */
@@ -3954,6 +3962,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	} else {
 	  syncIdx(ind);
 	  amt = ind->dose[ind->ixds];
+	  REprintf("\tamtB[%d]: %f\n", ind->ixds, amt);
 	  if (!ISNA(amt) && (amt > 0) && (ind->wh0 == 10 || ind->wh0 == 20)) {
 	    // dosing to ind->cmt
 	    // Steady state doses; ind->wh0 == 20 is equivalent to SS=2 in NONMEM
@@ -4080,6 +4089,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  }
 	  // dosing to ind->cmt
 	  amt = ind->dose[ind->ixds];
+	  REprintf("\tamtC[%d]: %f\n", ind->ixds, amt);
 	  switch (ind->whI){
 	  case 0: { // Bolus dose
 	    // base dose

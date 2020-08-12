@@ -1940,6 +1940,43 @@ rxPermissive(
       s.3c <- sol.3c %>% solve(params = c(V = 40, CL = 18, V2 = 297, Q = 10, Q2 = 7, V3 = 400), events = ev, sensType = sensType)
 
       expect_equal(o.3c$C2, s.3c$C2, tolerance = tol)
+
+    })
+
+    context("Issue #258")
+
+    test_that("Issue #258", {
+
+      m258 <- RxODE({
+        ka=1;
+        cl=3.5;
+        vc=40;
+        Conc = linCmt()
+        alag(depot) = 1
+      },
+      linCmtSens = sens)
+
+      m258o <- RxODE({
+        ka=1
+        cl=3.5
+        vc=40
+        d/dt(depot) = -ka * depot
+        d/dt(central) = ka * depot - cl / vc * central
+        Conc = central / vc
+        alag(depot) = 1
+      })
+
+      s1 <- m258 %>%
+        et(dose=100, time=0, addl=6, ii=24)%>%
+        et(0, 250, by=0.1) %>%
+        rxSolve(sensType = sensType)
+
+      s2 <- m258o %>%
+        et(dose=100, time=0, addl=6, ii=24)%>%
+        et(0, 250, by=0.1) %>%
+        rxSolve()
+
+      expect_equal(s1$Conc, s2$Conc)
     })
 
     tol <- 1e-5 ## Current difference for all equations

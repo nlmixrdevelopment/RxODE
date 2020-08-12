@@ -2828,7 +2828,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
 	if (nlhs){
 	  rxCalcLhsP(i, rx, neq[1]);
 	  // In case the evid/time has been re-ordered
-	  evid = ind->evid[ind->ix[i]]; 
+	  evid = ind->evid[ind->ix[ind->idx]];
 	}
 	if (subsetEvid == 1){
 	  if (isObs(evid) && evid >= 10) continue;

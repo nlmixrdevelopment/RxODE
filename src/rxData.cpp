@@ -25,7 +25,6 @@
 #include <stdint.h>    // for uint64_t rather than unsigned long long
 #include "../inst/include/RxODE.h"
 #include "ode.h"
-#define SORT std::sort
 #define rxModelVars(a) rxModelVars_(a)
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 void resetSolveLinB();
