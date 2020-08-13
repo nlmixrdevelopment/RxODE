@@ -34,7 +34,7 @@ int omp_get_max_threads(){
 }
 
 int omp_get_thread_num(){
-  return 1;
+  return 0;
 }
 #endif
 
@@ -203,6 +203,37 @@ extern "C" void avoid_openmp_hang_within_fork() {
 #endif
 }
 
+// Calculate nradix
+extern "C" void calcNradix(int *nbyte, int *nradix, int *spare, uint64_t *maxD, uint64_t *minD){
+  // Get the data range required for radix sort
+  // This is adapted from forder:
+  ////////////////////////////////////////////////////////////////////////////////
+  // https://github.com/Rdatatable/data.table/blob/master/src/forder.c
+  // in data.table keyAlloc=(ncol+n_cplx)*8+1 which translates to 9
+  // Since the key is constant we can pre-allocate with stack instead key[9]
+  // NA, NaN, and -Inf +Inf not supported
+  uint64_t range = *maxD - *minD;// +1/*NA*/ +isReal*3/*NaN, -Inf, +Inf*/;
+  int maxBit=0;
+  while (range) { maxBit++; range>>=1; }
+  *nbyte = 1+(maxBit-1)/8; // the number of bytes spanned by the value
+  int firstBits = maxBit - (*nbyte-1)*8;  // how many bits used in most significant byte
+  // There is only One split since we are only ordering time
+  *spare = 8-firstBits; // left align to byte boundary to get better first split.
+  // In forder they allocate the nradix(which is 0) + nbyte
+  // Therefore we allocate nrow*nbyte uint8_t for the key pointers
+  // This equates to n_all_times * nbyte int8_t
+  // However you can also allocate just enough memory for sort based on threads
+  // The key hash would be (max_n_all_times_id)*ncores*nbyte
+  //
+  // Radix sort memory need become http://itu.dk/people/pagh/ads11/11-RadixSortAndSearch.pdf which would be
+  // N=n_all_times+R;  r = size of the "alphabet" which in this case would be the number of bytes
+  // For the memory complexity it becomes n_all_times * nbyte
+
+  // After allocating and dtwiddle threads nradix = nbyte-1 + (spare==0)
+  // End borrowing and commenting from data.table
+  *nradix = *nbyte-1 + (spare==0);
+}
+
 
 // For RxODE sortType = 1
 // FIXME key per thread
@@ -258,6 +289,7 @@ static bool sort_ugrp(uint8_t *x, const int n)
 extern "C" void radix_r(const int from, const int to, const int radix,
 	     rx_solving_options_ind *ind, rx_solve *rx) {
   uint8_t **key = rx->keys[omp_get_thread_num()];
+  int nradix = rx->nradix[omp_get_thread_num()];
   int *anso = ind->ix;
   const int my_n = to-from+1;
   if (my_n==1) {  // minor TODO: batch up the 1's instead in caller (and that's only needed when retgrp anyway)
@@ -298,7 +330,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
       const int * osub = anso+from;
       for (int i=0; i<my_n; i++) TMP[i] = osub[o[i]];
       memcpy((int *)(anso+from), TMP, my_n*sizeof(int));
-      for (int r=radix+1; r< rx->nradix; r++) {
+      for (int r=radix+1; r< nradix; r++) {
 	const uint8_t * ksub = key[r]+from;
 	for (int i=0; i<my_n; i++) ((uint8_t *)TMP)[i] = ksub[o[i]];
 	memcpy((uint8_t *)(key[r]+from), (uint8_t *)TMP, my_n);
@@ -306,7 +338,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
     }
     // my_key is now grouped (and sorted by group too if sort!=0)
     // all we have left to do is find the group sizes and either recurse or push
-    if (radix+1==rx->nradix) {
+    if (radix+1==nradix) {
       return;
     }
     int ngrp=0, my_gs[my_n];  //minor TODO: could know number of groups with certainty up above
@@ -316,7 +348,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
       else my_gs[ngrp]++;
     }
     ngrp++;
-    if (radix+1==rx->nradix || ngrp==my_n) {  // ngrp==my_n => unique groups all size 1 and we can stop recursing now
+    if (radix+1==nradix || ngrp==my_n) {  // ngrp==my_n => unique groups all size 1 and we can stop recursing now
     } else {
       for (int i=0, f=from; i<ngrp; i++) {
 	radix_r(f, f+my_gs[i]-1, radix+1, ind, rx);
@@ -369,8 +401,8 @@ extern "C" void radix_r(const int from, const int to, const int radix,
 
       // reorder remaining key columns (radix+1 onwards).   This could be done in one-step too (a single pass through x[],  with a larger TMP
       //    that's how its done in the batched approach below.  Which is better?  The way here is multiple (but contiguous) passes through (one-byte) my_key
-      if (radix+1<rx->nradix) {
-	for (int r=radix+1; r<rx->nradix; r++) {
+      if (radix+1<nradix) {
+	for (int r=radix+1; r<nradix; r++) {
 	  memcpy(my_starts, my_starts_copy, 256*sizeof(uint16_t));  // restore starting offsets
 	  //for (int i=0,last=0; i<256; i++) { int tmp=my_counts[i]; if (tmp==0) continue; my_counts[i]=last; last=tmp; }  // rewind ++'s to offsets
 	  const uint8_t * ksub = key[r]+from;
@@ -380,13 +412,13 @@ extern "C" void radix_r(const int from, const int to, const int radix,
       }
     }
 
-    if (radix+1== rx->nradix) {
+    if (radix+1== nradix) {
       return;  // we're done. avoid allocating and populating very last group sizes for last key
     }
     int my_gs[ngrp==0 ? 256 : ngrp];  // ngrp==0 when sort and skip==true; we didn't count the non-zeros in my_counts yet in that case
     ngrp=0;
     for (int i=0; i<256; i++) if (my_counts[i]) my_gs[ngrp++]=my_counts[i];  // this casts from uint16_t to int32, too
-    if (radix+1==rx->nradix) {
+    if (radix+1==nradix) {
       // aside: cannot be all size 1 (a saving used in my_n<=256 case above) because my_n>256 and ngrp<=256
     } else {
       // this single thread will now descend and resolve all groups, now that the groups are close in cache
@@ -408,7 +440,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
   /* if (!counts || !ugrps || !ngrps) STOP(_("Failed to allocate parallel counts. my_n=%d, nBatch=%d"), my_n, nBatch); */
 
   bool skip=true;
-  const int n_rem = rx->nradix-radix-1;   // how many radix are remaining after this one
+  const int n_rem = nradix-radix-1;   // how many radix are remaining after this one
   {
     int     *my_otmp = (int*)malloc(batchSize * sizeof(int)); // thread-private write
     uint8_t *my_ktmp = (uint8_t*)malloc(batchSize * sizeof(uint8_t) * n_rem);
@@ -546,7 +578,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
   for (int i=1; i<ngrp; i++) my_gs[i-1] = starts[ugrp[i]] - starts[ugrp[i-1]];   // use the first row of starts to get totals
   my_gs[ngrp-1] = my_n - starts[ugrp[ngrp-1]];
 
-  if (radix+1==rx->nradix) {
+  if (radix+1==nradix) {
     // aside: ngrp==my_n (all size 1 groups) isn't a possible short-circuit here similar to my_n>256 case above, my_n>65535 but ngrp<=256
   }
   else {

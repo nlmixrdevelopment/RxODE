@@ -2424,7 +2424,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     it = getTime(ind->ix[idx], ind);
     /* REprintf("it post: %f", it); */
   }
-  /* REprintf("idx: %d; solved: %d; t: %f fabs: %f\n", idx, ind->solved, t, fabs(t-it)); */
   int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
   if (idx <= ind->solved && sameTime){
     // Pull from last solved value (cached)

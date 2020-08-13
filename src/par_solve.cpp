@@ -336,6 +336,7 @@ extern "C" void rxOptionsIniEnsure(int mx){
   rx_solve *rx=(&rx_global);
   rx->subjects = inds_global;
   rx->keys = NULL;
+  rx->nradix=NULL;
   rx->TMP=NULL;
   rx->UGRP=NULL;
   rx->ordId = NULL;
@@ -875,6 +876,7 @@ extern "C" double getTime(int idx, rx_solving_options_ind *ind){
 
 extern "C" void radix_r(const int from, const int to, const int radix,
 			rx_solving_options_ind *ind, rx_solve *rx);
+extern "C" void calcNradix(int *nbyte, int *nradix, int *spare, uint64_t *maxD, uint64_t *minD);
 
 extern "C" uint64_t dtwiddle(const void *p, int i);
 // Adapted from 
@@ -891,31 +893,57 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
   // Reset times for infusion
   int wh, cmt, wh100, whI, wh0;
   int doSort = 1;
+  double *time = new double[ind->n_all_times];
+  uint64_t *all = new uint64_t[ind->n_all_times];
+  uint64_t minD, maxD;
+  ind->ixds = 0;
   for (int i = 0; i < ind->n_all_times; i++){
     ind->ix[i] = i;
-    if (i > ind->idx) {
+    ind->idx = i;
+    if (!isObs(ind->evid[i])) {
       getWh(ind->evid[i], &wh, &cmt, &wh100, &whI, &wh0);
       if (whI == 6 || whI == 7) {
-	// Reset only if not calculated
+	// Reset on every sort (since sorted only once)
 	ind->all_times[i] = ind->all_times[i-1];
       }
+      time[i] = getTime(ind->ix[i], ind);
+      ind->ixds++;
+    } else {
+      time[i] = getTime(ind->ix[i], ind);
     }
-    // Note this is always ascending so we subtract off the minimum
-    double time[1];
-    time[0]       = getTime(ind->ix[i], ind);
+    all[i]  = dtwiddle(time, i);
+    if (i == 0){
+      minD = maxD = all[0];
+    } else if (all[i] < minD){
+      minD = all[i];
+    } else if (all[i] > maxD) {
+      maxD = all[i];
+    }
     if (op->naTime == 1){
       doSort=0;
       break;
     }
-    uint64_t elem = dtwiddle(time, 0) - rx->minD;
-    elem <<= rx->spare;
-    for (int b=rx->nbyte-1; b>0; b--) {
-      key[b][i] = (uint8_t)(elem & 0xff);
-      elem >>= 8;
-    }
-    key[0][i] |= (uint8_t)(elem & 0xff);
   }
-  if (doSort) radix_r(0, ind->n_all_times-1, 0, ind, rx);
+  if (doSort){
+    int nradix=0, nbyte=0, spare=0;
+    calcNradix(&nbyte, &nradix, &spare, &maxD, &minD);
+    rx->nradix[core] = nradix;
+    // Allocate more space if needed
+    for (int b = 0; b < nbyte; b++){
+      if (key[b] == NULL) key[b] = (uint8_t *)calloc(rx->maxAllTimes+1, sizeof(uint8_t));
+    }
+    for (int i = 0; i < ind->n_all_times; i++) {
+      uint64_t elem = all[i] - minD;
+      elem <<= spare;
+      for (int b= nbyte-1; b>0; b--) {
+	key[b][i] = (uint8_t)(elem & 0xff);
+	elem >>= 8;
+      }
+      key[0][i] |= (uint8_t)(elem & 0xff);    
+    }
+    radix_r(0, ind->n_all_times-1, 0, ind, rx);
+  }
+  ind->ixds=ind->idx=0;
 }
 
 extern "C" int syncIdx(rx_solving_options_ind *ind){

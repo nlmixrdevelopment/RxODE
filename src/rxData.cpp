@@ -32,6 +32,7 @@ using namespace Rcpp;
 using namespace arma;
 
 extern "C" uint64_t dtwiddle(const void *p, int i);
+extern "C" void calcNradix(int *nbyte, int *nradix, int *spare, uint64_t *maxD, uint64_t *minD);
 
 // https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L193-L211
 // range_d is modified because it DOES NOT count na/inf because RxODE assumes times cannot be NA, NaN, -Inf, Inf
@@ -2244,6 +2245,8 @@ LogicalVector rxSolveFree(){
   rx->par_sample=NULL;
   if (rx->ordId != NULL) free(rx->ordId);
   rx->ordId=NULL;
+  if (rx->nradix != NULL) free(rx->nradix);
+  rx->nradix=NULL;
   // Free the allocated keys
   if (rx->keys != NULL) {
     int i=0;
@@ -3797,27 +3800,11 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   // in data.table keyAlloc=(ncol+n_cplx)*8+1 which translates to 9
   // Since the key is constant we can pre-allocate with stack instead key[9]
   // NA, NaN, and -Inf +Inf not supported
-  uint64_t range = rx->maxD - rx->minD;// +1/*NA*/ +isReal*3/*NaN, -Inf, +Inf*/;
-  int maxBit=0;
-  while (range) { maxBit++; range>>=1; }
-  rx->nbyte = 1+(maxBit-1)/8; // the number of bytes spanned by the value
-  int firstBits = maxBit - (rx->nbyte-1)*8;  // how many bits used in most significant byte
-  // There is only One split since we are only ordering time
-  rx->spare = 8-firstBits; // left align to byte boundary to get better first split.
-  // In forder they allocate the nradix(which is 0) + nbyte
-  // Therefore we allocate nrow*nbyte uint8_t for the key pointers
-  // This equates to n_all_times * nbyte int8_t
-  // However you can also allocate just enough memory for sort based on threads
-  // The key hash would be (max_n_all_times_id)*ncores*nbyte
-  //
-  // Radix sort memory need become http://itu.dk/people/pagh/ads11/11-RadixSortAndSearch.pdf which would be
-  // N=n_all_times+R;  r = size of the "alphabet" which in this case would be the number of bytes
-  // For the memory complexity it becomes n_all_times * nbyte
-
-  // After allocating and dtwiddle threads nradix = nbyte-1 + (spare==0)
-  // End borrowing and commenting from data.table
-
-  rx->nradix = rx->nbyte-1 + (rx->spare==0);
+  int nbyte=0, nradix=0, spare=0;
+  calcNradix(&nbyte, &nradix, &spare, &(rx->maxD), &(rx->minD));
+  
+  rx->nradix = (int*)malloc(op->cores*sizeof(int));//nbyte-1 + (rx->spare==0);
+  std::fill_n(rx->nradix, op->cores, nradix);
   ////////////////////////////////////////////////////////////////////////////////
   rx->keys = (uint8_t ***)calloc(op->cores+1, sizeof(uint8_t **));
   rx->keys[op->cores] = NULL;
@@ -3825,10 +3812,9 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
     // In RxODE the keyAlloc size IS 9
     rx->keys[i] = (uint8_t **)calloc(10, sizeof(uint8_t *));
     for (int j = 0; j < 10; j++) rx->keys[i][j] = NULL;
-    for (int b = 0; b < rx->nbyte; b++){
+    for (int b = 0; b < nbyte; b++){
       rx->keys[i][b] = (uint8_t *)calloc(rx->maxAllTimes+1, sizeof(uint8_t));
     }
-    // if (i == op->cores - 1 && rx->keys[0][rx->nradix]!=NULL) rx->nradix++;
   }
   // Use same variables from data.table
   rx->TMP =  (int *)malloc(op->cores*UINT16_MAX*sizeof(int)); // used by counting sort (my_n<=65536) in radix_r()

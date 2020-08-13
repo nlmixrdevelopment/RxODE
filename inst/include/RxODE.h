@@ -261,9 +261,7 @@ typedef struct {
   int *TMP;
   int *ordId;
   uint8_t *UGRP;
-  int spare;
-  int nbyte;
-  int nradix;
+  int *nradix;
   double *ypNA;
   bool sample;
   int *par_sample;
