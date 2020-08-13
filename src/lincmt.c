@@ -3019,7 +3019,6 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  }
 	  // dosing to ind->cmt
 	  amt = ind->dose[ind->ixds];
-	  REprintf("\tamtA[%d]: %f\n", ind->ixds, amt);
 	  switch (ind->whI){
 	  case 0: { // Bolus dose
 	    // base dose
@@ -3903,7 +3902,6 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	} else {
 	  syncIdx(ind);
 	  amt = ind->dose[ind->ixds];
-	  REprintf("\tamtB[%d]: %f\n", ind->ixds, amt);
 	  if (!ISNA(amt) && (amt > 0) && (ind->wh0 == 10 || ind->wh0 == 20)) {
 	    // dosing to ind->cmt
 	    // Steady state doses; ind->wh0 == 20 is equivalent to SS=2 in NONMEM
@@ -4030,7 +4028,6 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  }
 	  // dosing to ind->cmt
 	  amt = ind->dose[ind->ixds];
-	  REprintf("\tamtC[%d]: %f\n", ind->ixds, amt);
 	  switch (ind->whI){
 	  case 0: { // Bolus dose
 	    // base dose

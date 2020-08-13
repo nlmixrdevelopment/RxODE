@@ -307,6 +307,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
     // to use it once. However, o's type is uint8_t so many moves within this max-256 vector should be faster than many moves in osub (4 byte or 8 byte ints) [1 byte
     // type is always aligned]
     bool skip = true;
+    // Ascending; (sortType=1)
     int start = 1;
     while (start<my_n && my_key[start]>=my_key[start-1]) start++;
     if (start<my_n) {
@@ -324,6 +325,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
 	o[j+1] = i;          // important to initialize o[] even when while() did nothing.
       }
     }
+    // Skip sortType == 0 (line #869-#909)
     if (!skip) {
       // reorder osub and each remaining ksub
       int TMP[my_n];  // on stack fine since my_n is very small (<=256)
@@ -367,13 +369,14 @@ extern "C" void radix_r(const int from, const int to, const int radix,
     const uint8_t * my_key = key[radix]+from;
     int ngrp = 0;          // number of groups (items in ugrp[]). Max value 256 but could be uint8_t later perhaps if 0 is understood as 1.
     bool skip = true;      // i) if already _grouped_ and sortType==0 then caller can skip, ii) if already _grouped and sorted__ when sort!=0 then caller can skip too
+    // sortType = 1, skip https://github.com/Rdatatable/data.table/blob/be6c1fc66a411211c4ca944702c1cab7739445f3/src/forder.c#L956-L964
     for (int i=0; i<my_n; i++) {
       uint8_t elem = my_key[i];
       if (++my_counts[elem]==1) {
 	// first time seen this value.  i==0 always does this branch
 	my_ugrp[ngrp++]=elem;
       } else if (skip && elem!=my_key[i-1]) {   // does not happen for i==0
-	// seen this value before and it isn't the previous value, so data is not grouped
+ 	// seen this value before and it isn't the previous value, so data is not grouped
 	// including "skip &&" first is to avoid the != comparison
 	skip=false;
       }
@@ -389,16 +392,21 @@ extern "C" void radix_r(const int from, const int to, const int radix,
       // cumulate; for forwards-assign to give cpu prefetch best chance (cpu may not support prefetch backwards).
       uint16_t my_starts[256], my_starts_copy[256];
       // TODO: could be allocated up front (like my_TMP below), or are they better on stack like this? TODO: allocating up front would provide to cache-align them.
-      for (int i=0, sum=0; i<ngrp; i++) { uint8_t w=my_ugrp[i]; int tmp=my_counts[w]; my_starts[w]=my_starts_copy[w]=sum; sum+=tmp; }  // cumulate in ugrp appearance order
-
+      // Use https://github.com/Rdatatable/data.table/blob/be6c1fc66a411211c4ca944702c1cab7739445f3/src/forder.c#L991
+      // since sortType=1
+      for (int i=0, sum=0; i<256; i++) { int tmp=my_counts[i]; my_starts[i]=my_starts_copy[i]=sum; sum+=tmp; ngrp+=(tmp>0);}  // cumulate through 0's too (won't be used)
       int * my_TMP = rx->TMP + omp_get_thread_num()*UINT16_MAX; // Allocated up front to save malloc calls which i) block internally and ii) could fail
+      // Modified nalast not used since NAs cannot occur for a good sort of times
       if (radix==0) {
 	// anso contains 1:n so skip reading and copying it. Only happens when nrow<65535. Saving worth the branch (untested) when user repeatedly calls a small-n small-cardinality order.
 	for (int i=0; i<my_n; i++) anso[my_starts[my_key[i]]++] = i;  // +1 as R is 1-based.
 	// The loop counter could be uint_fast16_t since max i here will be UINT16_MAX-1 (65534), hence ++ after last iteration won't overflow 16bits. However, have chosen signed
 	// integer for counters for now, as signed probably very slightly faster than unsigned on most platforms from what I can gather.
+      } else {
+        const int *osub = anso+from;
+        for (int i=0; i<my_n; i++) my_TMP[my_starts[my_key[i]]++] = osub[i];
+        memcpy(anso+from, my_TMP, my_n*sizeof(int));
       }
-
       // reorder remaining key columns (radix+1 onwards).   This could be done in one-step too (a single pass through x[],  with a larger TMP
       //    that's how its done in the batched approach below.  Which is better?  The way here is multiple (but contiguous) passes through (one-byte) my_key
       if (radix+1<nradix) {
@@ -416,6 +424,8 @@ extern "C" void radix_r(const int from, const int to, const int radix,
       return;  // we're done. avoid allocating and populating very last group sizes for last key
     }
     int my_gs[ngrp==0 ? 256 : ngrp];  // ngrp==0 when sort and skip==true; we didn't count the non-zeros in my_counts yet in that case
+    // Use https://github.com/Rdatatable/data.table/blob/be6c1fc66a411211c4ca944702c1cab7739445f3/src/forder.c#L1028-L1029
+    // sortType = 1
     ngrp=0;
     for (int i=0; i<256; i++) if (my_counts[i]) my_gs[ngrp++]=my_counts[i];  // this casts from uint16_t to int32, too
     if (radix+1==nradix) {
@@ -441,13 +451,19 @@ extern "C" void radix_r(const int from, const int to, const int radix,
 
   bool skip=true;
   const int n_rem = nradix-radix-1;   // how many radix are remaining after this one
+  // Since this should also be run on each thread (instead of using threads to speed up sorting), skip the pragma omp
+  // here https://github.com/Rdatatable/data.table/blob/be6c1fc66a411211c4ca944702c1cab7739445f3/src/forder.c#L1059
   {
     int     *my_otmp = (int*)malloc(batchSize * sizeof(int)); // thread-private write
     uint8_t *my_ktmp = (uint8_t*)malloc(batchSize * sizeof(uint8_t) * n_rem);
     // TODO: move these up above and point restrict[me] to them. Easier to Error that way if failed to alloc.
+    // Skip the omp parallel for
     for (int batch=0; batch<nBatch; batch++) {
       const int my_n = (batch==nBatch-1) ? lastBatchSize : batchSize;  // lastBatchSize == batchSize when my_n is a multiple of batchSize
       const int my_from = from + batch*batchSize;
+      // restrict doesn't work in C++ (which is required here because
+      // of C++ OpenMp requirement from CRAN only using one OpenMP
+      // language...)
       uint16_t *      my_counts = counts + batch*256;
       uint8_t  *      my_ugrp   = ugrps  + batch*256;
       int                     my_ngrp   = 0;
@@ -573,6 +589,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
     }
     free(TMP);
   }
+  // notFirst is not used except timing
 
   int my_gs[ngrp];
   for (int i=1; i<ngrp; i++) my_gs[i-1] = starts[ugrp[i]] - starts[ugrp[i-1]];   // use the first row of starts to get totals
@@ -583,6 +600,11 @@ extern "C" void radix_r(const int from, const int to, const int radix,
   }
   else {
     // TODO: explicitly repeat parallel batch for any skew bins
+    // TODO: explicitly repeat parallel batch for any skew bins
+    // all groups are <=65535 and radix_r() will handle each one single-threaded. Therefore, this time
+    // it does make sense to start a parallel team and there will be no nestedness here either.
+    // Skip https://github.com/Rdatatable/data.table/blob/be6c1fc66a411211c4ca944702c1cab7739445f3/src/forder.c#L1234-L1242
+    // retgrp=0
     for (int i=0; i<ngrp; i++) {
       int start = from + starts[ugrp[i]];
       radix_r(start, start+my_gs[i]-1, radix+1, ind, rx);
