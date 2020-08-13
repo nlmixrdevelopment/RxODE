@@ -2648,6 +2648,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  }
 	  extraAdvan=0;
 	}
+	// Use handle_evid here!
 	// dosing to ind->cmt
 	amt = ind->dose[ind->ixds];
 	/* REprintf("\tamt1[%d]: %f\n", ind->ixds, amt); */
@@ -2689,7 +2690,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  }
 	  doRate = cmtOff+1;
 	} break;
-	case 7:{ // End modeled rate
+	case 7: { // End modeled rate
 	  if (cmtOff == 0)  {
 	    // Infusion to central compartment with oral dosing
 	    rateAdjust = -d_rate1;
@@ -3019,6 +3020,7 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  }
 	  // dosing to ind->cmt
 	  amt = ind->dose[ind->ixds];
+	  // do handle evid here
 	  switch (ind->whI){
 	  case 0: { // Bolus dose
 	    // base dose

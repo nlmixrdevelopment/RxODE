@@ -2177,6 +2177,7 @@ namespace stan {
 	      extraAdvan=0;
 	    }
 	    // dosing to cmt
+	    // use handle_evid here
 	    amt = ind->dose[ind->ixds];
 	    switch (whI){
 	    case 0: { // Bolus dose

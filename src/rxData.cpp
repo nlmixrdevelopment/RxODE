@@ -3721,7 +3721,8 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  ind->par_ptr = &_globals.gpars[cid*rxSolveDat->npars];
 	  ind->mtime   = &_globals.gmtime[rx->nMtime*cid];
 	  if (rx->nMtime > 0) ind->mtime[0]=-1;
-	  ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
+	  ind->InfusionRate = &_globals.gInfusionRate[(op->neq+op->extraCmt)*cid];
+	  ind->linCmtRate = ind->InfusionRate + op->neq;
 	  ind->tlastS = &_globals.gTlastS[(op->neq + op->extraCmt)*cid];
 	  ind->tfirstS = &_globals.gTfirstS[(op->neq + op->extraCmt)*cid];
 	  ind->alag = &_globals.gAlag[(op->neq + op->extraCmt)*cid];
@@ -3764,7 +3765,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  int eLen = op->neq*ind->n_all_times;
 	  ind->linCmtAdvan = &_globals.gadvan[curLin];
 	  curLin += (op->nlin)*(ind->n_all_times);
-	  ind->linCmtRate = &_globals.gadvan[curLin];
 	  curLin += op->nlinR;
 	  ind->solve = &_globals.gsolve[curSolve];
 	  curSolve += eLen;
@@ -4760,7 +4760,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (nLin != 0) {
       op->nlinR = 1+linKa;
       nLin = rx->nall*nLin*rx->nsim +// Number of linear compartments * number of solved points
-	rx->nsim*rx->nsub*(op->nlinR);// Infusion
+	0;// Infusion
     }
     int n2  = rx->nMtime*rx->nsub*rx->nsim;
     int n3  = op->neq*rxSolveDat->nSize;
@@ -4785,8 +4785,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
     if (_globals.gsolve != NULL) free(_globals.gsolve);
-    _globals.gsolve = (double*)calloc(n0+nLin+n2+ 1*n3+n4+n5+n6+
-				      5*op->neq + 6*n3a, sizeof(double));// [n0]
+    _globals.gsolve = (double*)calloc(n0+nLin+n2+ n4+n5+n6+
+				      5*op->neq + 7*n3a, sizeof(double));// [n0]
 #ifdef rxSolveT
     REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+7*n3+n4+n5+n6+ 5*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4797,8 +4797,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     }
     _globals.gadvan = _globals.gsolve+n0; // [nLin]
     _globals.gmtime = _globals.gadvan + nLin; // [n2]
-    _globals.gInfusionRate = _globals.gmtime + n2; //[n3]
-    _globals.gAlag  = _globals.gInfusionRate + n3; // [n3a]
+    _globals.gInfusionRate = _globals.gmtime + n2; //[n3a]
+    _globals.gAlag  = _globals.gInfusionRate + n3a; // [n3a]
     _globals.gF  = _globals.gAlag + n3a; // [n3a]
     _globals.gRate  = _globals.gF + n3a; // [n3a]
     _globals.gDur  = _globals.gRate + n3a; // [n3a]
