@@ -1804,7 +1804,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      int didEq = tb.didEq;
 	      if (foundF == 0) needSort+=1;// & 1 when F
 	      foundF=1;
-	      int curType = sbPm.lType[sbPm.n];
 	      aType(FBIO);
 	      addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
 	      addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
@@ -1812,28 +1811,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
-	      aType(curType);
-	    }
-	    Free(v2);
-	    // 12 rate1
-	    xpn2 = d_get_child(xpn1, 12+isLinB);
-	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.")))) {
-	      // has interesting rate
-	      int ixL = tb.ixL;
-	      int didEq = tb.didEq;
-	      if (foundDur == 0) needSort+=4;// & 4 when dur
-	      foundDur=1;
-	      int curType = sbPm.lType[sbPm.n];
-	      aType(DUR);
-	      addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	      addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	      addLine(&sbNrmL, "");
-	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	      ENDLINE;
-	      tb.ixL= ixL; tb.didEq=didEq;
-	      aType(curType);
 	    }
 	    Free(v2);
 	    // 13 dur1
@@ -1844,9 +1821,27 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      // has interesting rate
 	      int ixL = tb.ixL;
 	      int didEq = tb.didEq;
+	      if (foundDur == 0) needSort+=4;// & 4 when dur
+	      foundDur=1;
+	      aType(DUR);
+	      addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    Free(v2);
+	    // 12 rate1
+	    xpn2 = d_get_child(xpn1, 12+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.")))) {
+	      // has interesting rate
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
 	      if (foundRate == 0) needSort+=8;// & 8 when rate
 	      foundRate=1;
-	      int curType = sbPm.lType[sbPm.n];
 	      aType(RATE);
 	      addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
 	      addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
@@ -1854,7 +1849,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
-	      aType(curType);
 	    }
 	    Free(v2);
 	    // 14 -- ka
@@ -1875,7 +1869,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      int didEq = tb.didEq;
 	      if (foundLag == 0) needSort+=2; // & 2 when alag
 	      foundLag=1;
-	      int curType = sbPm.lType[sbPm.n];
 	      aType(ALAG);
 	      addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
 	      addLine(&sbPmDt, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
@@ -1883,7 +1876,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
-	      aType(curType);
 	    }
 	    Free(v2);
 	    // f2 = 16 ; This is 1 instead of zero
@@ -1896,7 +1888,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      int didEq = tb.didEq;
 	      if (foundF == 0) needSort+=1;// & 1 when F
 	      foundF=1;
-	      int curType = sbPm.lType[sbPm.n];
 	      aType(FBIO);
 	      addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
 	      addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
@@ -1904,7 +1895,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
-	      aType(curType);
 	    }
 	    Free(v2);
 	    // rate2 = 17
@@ -1917,7 +1907,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      int didEq = tb.didEq;
 	      if (foundRate == 0) needSort+=8;// & 8 when rate
 	      foundRate=1;
-	      int curType = sbPm.lType[sbPm.n];
 	      aType(RATE);
 	      addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
 	      addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
@@ -1925,7 +1914,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
-	      aType(curType);
 	    }
 	    Free(v2);
 	    // dur2 = 18
@@ -1938,7 +1926,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      int didEq = tb.didEq;
 	      if (foundDur == 0) needSort+=4;// & 4 when dur
 	      foundDur=1;
-	      int curType = sbPm.lType[sbPm.n];
 	      aType(DUR);
 	      addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
 	      addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
@@ -1946,7 +1933,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
-	      aType(curType);
 	    }
 	    Free(v2);
 	    tb.linExtra=true; // Only first call
