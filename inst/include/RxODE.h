@@ -207,14 +207,6 @@ typedef struct {
   double *linCmtAdvan;
   double *linCmtRate;
   int linCmt;
-  double lag;
-  double lag2;
-  double f;
-  double f2;
-  double rate;
-  double rate2;
-  double dur;
-  double dur2;
   int linCmtAdvanSetup;
   int cacheME;
   int inLhs;

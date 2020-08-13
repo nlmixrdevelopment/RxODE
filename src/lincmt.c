@@ -1600,56 +1600,6 @@ static inline void doAdvan(double *A,// Amounts
 
 extern int syncIdx(rx_solving_options_ind *ind);
 
-extern void sortIfNeeded(rx_solve *rx, rx_solving_options_ind *ind, unsigned int id,
-			 int *linCmt,
-			 double *d_tlag, double *d_tlag2,
-			 double *d_F, double *d_F2,
-			 double *d_rate1, double *d_dur1,
-			 double *d_rate2, double *d_dur2){
-  int sort = 0;
-  //d_tlag, double d_tlag2,
-  /* double d_F, double d_F2, */
-  if (ind->lag != *d_tlag){
-    ind->lag = *d_tlag;
-    sort =1;
-  }
-  if (ind->lag2 != *d_tlag2){
-    ind->lag2 = *d_tlag2;
-    sort = 1;
-  }
-  if (ind->f != *d_F){
-    ind->f = *d_F;
-    sort = 1;
-  }
-  if (ind->f2 != *d_F2){
-    ind->f2 = *d_F2;
-    sort = 1;
-  }
-  if (ind->rate != *d_rate1) {
-    ind->rate = *d_rate1;
-    sort = 1;
-  }
-  if (ind->rate2 != *d_rate2){
-    ind->rate2 = *d_rate2;
-    sort = 1;
-  }
-  if (ind->dur != *d_dur1){
-    ind->dur = *d_dur1;
-    sort = 1;
-  }
-  if (ind->dur2 != *d_dur2){
-    ind->dur2 = *d_dur2;
-    sort = 1;
-  }
-  ind->linCmt = *linCmt;
-  if (sort){
-    rx->needSort = 1;
-    if (rx->nMtime) calcMtime(id, ind->mtime);
-    /* REprintf("Sort! evid0 %d; %d\n", ind->evid[ind->ix[ind->idx]], ind->linCmt); */
-    sortRadix(ind);
-  }
-}
-
 static inline int parTrans(int *trans, 
 			   double *p1, double *v1,
 			   double *p2, double *p3,
@@ -2457,8 +2407,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   int evid;
   int idx = ind->idx;
   double Alast0[4] = {0, 0, 0, 0};
-  sortIfNeeded(rx, ind, id, &linCmt, &d_tlag, &d_tlag2, &d_F, &d_F2,
-	       &d_rate1, &d_dur1, &d_rate2, &d_dur2);
   rx_solving_options *op = rx->op;
   int oral0;
   oral0 = (d_ka > 0) ? 1 : 0;
@@ -2476,7 +2424,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     it = getTime(ind->ix[idx], ind);
     /* REprintf("it post: %f", it); */
   }
-  /* REprintf("idx: %d; solved: %d; t: %f fabs: %f\n", idx, ind->solved[idx], t, fabs(t-it)); */
+  /* REprintf("idx: %d; solved: %d; t: %f fabs: %f\n", idx, ind->solved, t, fabs(t-it)); */
   int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
   if (idx <= ind->solved && sameTime){
     // Pull from last solved value (cached)
@@ -2856,8 +2804,6 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
   int idxF = ind->idx;
   double Alast[4] = {0, 0, 0, 0};
   double A[4]     = {0, 0, 0, 0};
-  sortIfNeeded(rx, ind, id, &linCmt, &d_tlag, &d_tlag2, &d_F, &d_F2,
-	       &d_rate1, &d_dur1, &d_rate2, &d_dur2);
   rx_solving_options *op = rx->op;
   int oral0;
   oral0 = (d_ka > 0) ? 1 : 0;
@@ -3838,16 +3784,12 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 		   d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
 		   d_rate2, d_dur2);
   } else {
-
-    /* REprintf("F: %f; F2: %f\n", d_F, d_F2); */
     rx_solving_options_ind *ind = &(rx->subjects[id]);
     int evid;
     /* evid = ind->evid[ind->ix[ind->idx]]; */
     /* if (evid) REprintf("evid0[%d:%d]: %d; curTime: %f\n", id, ind->idx, evid, t); */
     int idx = ind->idx;
     double Alast0[13] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    sortIfNeeded(rx, ind, id, &linCmt, &d_tlag, &d_tlag2, &d_F, &d_F2,
-		 &d_rate1, &d_dur1, &d_rate2, &d_dur2);
     rx_solving_options *op = rx->op;
     int oral0;
     oral0 = (d_ka > 0) ? 1 : 0;

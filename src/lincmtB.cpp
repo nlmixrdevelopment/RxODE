@@ -13,12 +13,6 @@
 
 extern "C" int syncIdx(rx_solving_options_ind *ind);
 
-extern "C" void sortIfNeeded(rx_solve *rx, rx_solving_options_ind *ind, unsigned int id,
-			     int *linCmt,
-			     double *d_tlag, double *d_tlag2,
-			     double *d_F, double *d_F2,
-			     double *d_rate1, double *d_dur1,
-			     double *d_rate2, double *d_dur2);
 
 extern "C" double getTime(int idx, rx_solving_options_ind *ind);
 
@@ -2407,8 +2401,6 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
   // Get  Alast
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   int idx = ind->idx;
-  sortIfNeeded(rx, ind, id, &linCmt, &dd_tlag, &dd_tlag2, &dd_F, &dd_F2,
-	       &dd_rate, &dd_dur, &dd_rate2, &dd_dur2);
   rx_solving_options *op = rx->op;
   int oral0;
   oral0 = (dd_ka != 0) ? 1 : 0;
@@ -3011,8 +3003,6 @@ extern "C" double linCmtSP(rx_solve *rx, unsigned int id, double t, int linCmt,
 			   double dd_F2, double dd_rate2, double dd_dur2){
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   int idx = ind->idx;
-  sortIfNeeded(rx, ind, id, &linCmt, &dd_tlag, &dd_tlag2, &dd_F, &dd_F2,
-	       &dd_rate, &dd_dur, &dd_rate2, &dd_dur2);
   rx_solving_options *op = rx->op;
   int oral0;
   oral0 = (dd_ka != 0) ? 1 : 0;

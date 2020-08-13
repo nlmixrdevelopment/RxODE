@@ -431,10 +431,8 @@ extern "C" void calcMtime(int solveid, double *mtime){
 }
 
 static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double time){
-  if (cmt == ind->linCmt) return ind->lag + time;
-  if (cmt == ind->linCmt+1) return ind->lag2 +time;
   double ret = LAG(id, cmt, time);
-  if (ISNA(ret)){
+  if (ISNA(ret)) {
     rx_solving_options *op = &op_global;
     op->badSolve=1;
     op->naTime = 1;
@@ -443,8 +441,6 @@ static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double
 }
 
 static inline double getAmt(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y){
-  if (cmt == ind->linCmt) return ind->f*dose;
-  if (cmt == ind->linCmt+1) return ind->f2*dose;
   double ret = AMT(id, cmt, dose, t, y);
   if (ISNA(ret)){
     rx_solving_options *op = &op_global;
@@ -455,8 +451,6 @@ static inline double getAmt(rx_solving_options_ind *ind, int id, int cmt, double
 }
 
 static inline double getRate(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
-  if (cmt == ind->linCmt) return ind->rate;
-  if (cmt == ind->linCmt+1) return ind->rate;
   double ret = RATE(id, cmt, dose, t);
   if (ISNA(ret)){
     rx_solving_options *op = &op_global;
@@ -467,8 +461,6 @@ static inline double getRate(rx_solving_options_ind *ind, int id, int cmt, doubl
 }
 
 static inline double getDur(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
-  if (cmt == ind->linCmt) return ind->dur;
-  if (cmt == ind->linCmt+1) return ind->dur;
   double ret = DUR(id, cmt, dose, t);
   if (ISNA(ret)){
     rx_solving_options *op = &op_global;
