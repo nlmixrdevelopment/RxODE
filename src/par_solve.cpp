@@ -472,6 +472,38 @@ static inline double getDur(rx_solving_options_ind *ind, int id, int cmt, double
   return ret;
 }
 
+static inline void postSolve(int *idid, int *rc, int *i, double *yp, const char** err_msg, bool doPrint,
+			     rx_solving_options_ind *ind, rx_solving_options *op, rx_solve *rx) {
+  if (*idid <= 0) {
+    if (err_msg != NULL) {
+      RSprintf("IDID=%d, %s\n", *idid, err_msg[-*idid-1]);
+    }
+    *rc = *idid;
+    // Bad Solve => NA
+    for (int j = op->neq*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+    op->badSolve = 1;
+    *i = ind->n_all_times-1; // Get out of here!
+  } else if (ind->err){
+    if (doPrint) printErr(ind->err, ind->id);
+    /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
+    *rc = -2019;
+    // Bad Solve => NA
+    for (int j = op->neq*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+    op->badSolve = 1;
+    *i = ind->n_all_times-1; // Get out of here!
+  } else {
+    if (R_FINITE(rx->stateTrimU)){
+      double top=fabs(rx->stateTrimU);
+      for (int j = op->neq; j--;) yp[j]= min(top,yp[j]);
+    }
+    if (R_FINITE(rx->stateTrimL)){
+      double bottom=rx->stateTrimL;
+      for (int j = op->neq; j--;) yp[j]= max(bottom,yp[j]);
+    }
+  }
+  ind->slvr_counter[0]++;
+}
+
 int global_jt = 2;
 int global_mf = 22;  
 int global_debug = 0;
@@ -1705,30 +1737,7 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
 	idid = indLin(solveid, op, xoutp, yp, xout, ind->InfusionRate, ind->on, 
 		      ME, IndF);
 	xoutp=xout;
-	if (idid <= 0) {
-	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
-	  *rc = idid;
-	  // Bad Solve => NA
-	  for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
-	} else if (ind->err){
-	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
-	  *rc = idid;
-	  // Bad Solve => NA
-	  for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
-	} else {
-	  if (R_FINITE(rx->stateTrimU)){
-	    double top=fabs(rx->stateTrimU);
-	    for (unsigned int j = neq[0]; j--;) yp[j]= min(top,yp[j]);
-	  }
-	  if (R_FINITE(rx->stateTrimL)){
-	    double bottom=rx->stateTrimL;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= max(bottom,yp[j]);
-	  }
-	}
+	postSolve(&idid, rc, &i, yp, NULL, true, ind, op, rx);
       }
     }
     ind->_newind = 2;
@@ -1865,30 +1874,7 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
 	i = nx-1; // Get out of here!
       } else {
 	lsoda(&ctx, yp, &xp, xout);
-	if (ctx.state <= 0) {
-	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
-	  *rc = ctx.state;
-	  // Bad Solve => NA
-	  for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
-	} else if (ind->err){
-	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
-	  *rc = ctx.state;
-	  // Bad Solve => NA
-	  for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
-	} else {
-	  if (R_FINITE(rx->stateTrimU)){
-	    double top=rx->stateTrimU;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= min(top,yp[j]);
-	  }
-	  if (R_FINITE(rx->stateTrimL)){
-	    double bottom=rx->stateTrimL;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= max(bottom,yp[j]);
-	  }
-	}
+	postSolve(&(ctx.state), rc, &i, yp, NULL, false, ind, op, rx);
       }
     }
     ind->_newind = 2;
@@ -2156,30 +2142,7 @@ extern "C" void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, in
       } else {
 	F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &gitol, &(op->RTOL), &(op->ATOL), &gitask,
 			 &istate, &giopt, rwork, &lrw, iwork, &liw, jdum, &jt);
-	if (istate <= 0) {
-	  RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-(istate)-1]);
-	  ind->rc[0] = istate;
-	  // Bad Solve => NA
-	  for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	  op->badSolve = 1;
-	  i = ind->n_all_times-1; // Get out of here!
-	} else if (ind->err){
-	  ind->rc[0] = -1000;
-	  // Bad Solve => NA
-	  for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	  op->badSolve = 1;
-	  i = ind->n_all_times-1; // Get out of here!
-	} else {
-	  if (R_FINITE(rx->stateTrimU)){
-	    double top=rx->stateTrimU;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= min(top,yp[j]);
-	  }
-	  if (R_FINITE(rx->stateTrimL)){
-	    double bottom=rx->stateTrimL;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= max(bottom,yp[j]);
-	  }
-	}
-	ind->slvr_counter[0]++;
+	postSolve(&istate, ind->rc, &i, yp, err_msg_ls, true, ind, op, rx);
 	//dadt_counter = 0;
       }
     }
@@ -2358,32 +2321,8 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
 			0                       /* declared length of icon */
 			);
 	}
-        if (idid<0) {
-	  RSprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
-	  *rc = idid;
-	  // Bad Solve => NA
-	  for (j = (ind->n_all_times)*neq[0];j--;) yp[i] = NA_REAL; 
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
-	} else if (ind->err){
-	  printErr(ind->err, ind->id);
-	  *rc = idid;
-	  // Bad Solve => NA
-	  for (j = (ind->n_all_times)*neq[0];j--;) yp[i] = NA_REAL; 
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
-	} else {
-	  if (R_FINITE(rx->stateTrimU)){
-	    double top=rx->stateTrimU;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= min(top,yp[j]);
-	  }
-	  if (R_FINITE(rx->stateTrimL)){
-	    double bottom=rx->stateTrimL;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= max(bottom,yp[j]);
-	  }
-	}
+	postSolve(&idid, rc, &i, yp, err_msg, true, ind, op, rx);
         xp = xRead();
-        ind->slvr_counter[0]++;
         //dadt_counter = 0;
       }
     ind->_newind = 1;
