@@ -671,6 +671,7 @@ void updateRate(int idx, rx_solving_options_ind *ind, double *yp){
       // error rate is zero/negative
     }
   }
+  ind->idx=oldIdx;
 }
 
 static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
@@ -728,6 +729,7 @@ static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
       }
     }
   }
+  ind->idx=oldIdx;
 }
 
 extern "C" double getTime(int idx, rx_solving_options_ind *ind){
@@ -1225,9 +1227,10 @@ static inline int handle_evid(int evid, int neq,
   return 0;
 }
 
-extern "C" int handle_evidL(int idx, double *yp, double xout, int id, rx_solving_options_ind *ind){
+extern "C" int handle_evidL(int evid, double *yp, double xout, int id, rx_solving_options_ind *ind){
   rx_solving_options *op = &op_global;
-  return handle_evid(ind->evid[ind->ix[idx]],
+  // In this case dosing to the extra compartments is OK so add it
+  return handle_evid(evid,
 		     op->neq + op->extraCmt, ind->BadDose, ind->InfusionRate, ind->dose, yp, 0,
 		     xout, id, ind);
 }
@@ -2471,33 +2474,6 @@ extern "C" double rxLhsP(int i, rx_solve *rx, unsigned int id){
   }
   return 0;
 }
-extern "C" void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind = &(rx->subjects[id]);
-  rx_solving_options *op = &op_global;
-  double *lhs;
-  double time;
-  int isDose;
-  lhs = ind->lhs;
-  if (i < ind->n_all_times){
-    ind->idx=i;
-    time = getTime(ind->ix[i], ind);
-    ind->idx=i;
-    isDose = !isObs(ind->evid[ind->ix[i]]);
-    if (isDose) {
-      getWh(ind->evid[ind->ix[i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
-      handleTlastInline(&time, ind);
-    }
-    /* if (ind->evid[ind->ix[i]]) REprintf("e[%d;%d]: %d %f\n", id, i, ind->evid[ind->ix[i]], time); */
-    calc_lhs((int)id, time, getSolve(i), lhs);
-    isDose = !isObs(ind->evid[ind->ix[i]]);// Recalculate in case shifted
-    if (isDose){
-      ind->ixds++;
-    }
-  } else {
-    rxSolveFreeC();
-    Rf_errorcall(R_NilValue, "LHS cannot be calculated (%dth entry).",i);
-  }
-}
 
 extern "C" SEXP rxStateNames(char *ptr);
 extern "C" SEXP rxLhsNames(char *ptr);
@@ -2742,13 +2718,12 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
       }
       for (i = 0; i < ntimes; i++){
 	ind->idx = i;
-        evid = ind->evid[ind->ix[i]];
-	if (evid == 9) continue;
+	double curT = getTime(ind->ix[ind->idx], ind);
+        evid = ind->evid[ind->ix[ind->idx]];
 	if (nlhs){
-	  rxCalcLhsP(i, rx, neq[1]);
-	  // In case the evid/time has been re-ordered
-	  evid = ind->evid[ind->ix[ind->idx]];
+	  calc_lhs(neq[1], curT, getSolve(i), ind->lhs);
 	}
+	if (evid == 9) continue;
 	if (subsetEvid == 1){
 	  if (isObs(evid) && evid >= 10) continue;
 	  if (isDose(evid)){
@@ -2764,7 +2739,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
 	    }
 	  }
 	}
-	double curT = getTime(ind->ix[i], ind);
+	
 	if (isDose(evid)){
 	  getWh(ind->evid[ind->ix[i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
 	  handleTlastInline(&curT, ind);

@@ -2395,6 +2395,8 @@ SEXP _calcDerived(SEXP ncmtSXP, SEXP transSXP, SEXP inp, SEXP sigdigSXP) {
   return R_NilValue;
 }
 
+int handle_evidL(int evid, double *yp, double xout, int id, rx_solving_options_ind *ind);
+
 double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       int i_cmt, int trans,
 	       double p1, double v1,
@@ -2419,6 +2421,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   double curTime=getTime(ind->ix[0], ind); // t[0]
   
   if (t != it) {
+    REprintf("t!=it; %f != %f; %d\n", t, it, idx);
     // Try to get another idx by bisection
     /* REprintf("it pre: %f", it); */
     idx = _locateTimeIndex(t, ind);
@@ -2474,10 +2477,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     } else {
       r1 = rate[0];
     }
-    int doMultiply = 0, doReplace=0;
     double amt=0;
-    double rateAdjust= 0;
-    int doRate=0;
     int extraAdvan = 1;
     ind->wh0 = 0;
     if (isObs(evid)){
@@ -2520,8 +2520,13 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
       int cmtOff = ind->cmt-linCmt;
       if ((oral0 && cmtOff > 1) ||
 	  (!oral0 && cmtOff != 0)) {
+	REprintf("cmtOff! %d\n");
       } else {
-	syncIdx(ind);
+	ind->idx = idx;
+	/* REprintf("ind->ixds: %d; ind->idx: %d ind->ix[ind->idx]: %d; ind->idose[ind->ixds]: %d\n", */
+	/* 	 ind->ixds, ind->idx, ind->ix[ind->idx], ind->idose[ind->ixds]); */
+	/* syncIdx(ind); */
+	/* REprintf("ind->ixds (post sync): %d\n", ind->ixds); */
 	amt = ind->dose[ind->ixds];
 	/* REprintf("\tamt0[%d]: %f\n", ind->ixds, amt); */
 	if (!ISNA(amt) && (amt > 0) && (ind->wh0 == 10 || ind->wh0 == 20)) {
@@ -2641,91 +2646,22 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	      A[i] += aSave[i];
 	    }
 	  }
-	  extraAdvan=0;
-	} else if (ind->wh0 == 30) {
-	  // Turning off a compartment; Not supported put everything to NaN
-	  for (int i = ncmt + oral0; i--;){
-	    A[i] = R_NaN;
-	  }
+	  ind->ixds++;
 	  extraAdvan=0;
 	}
-	// Use handle_evid here!
-	// dosing to ind->cmt
-	amt = ind->dose[ind->ixds];
-	/* REprintf("\tamt1[%d]: %f\n", ind->ixds, amt); */
-	switch (ind->whI){
-	case 0: { // Bolus dose
-	  // base dose
-	  if (cmtOff == 0){
-	    b1 = amt*d_F;
-	  } else {
-	    b2 = amt*d_F2;
-	  }
-	} break;
-	case 4: {
-	  doReplace = cmtOff+1;
-	} break;
-	case 5: {
-	  doMultiply= cmtOff+1;
-	} break;
-	case 9: { // modeled rate.
-	  // These are specified in the linCmt
-	  if (cmtOff == 0)  {
-	    // Infusion to central compartment with oral dosing
-	    rateAdjust = d_rate1;
-	  } else {
-	    // Infusion to central compartment or depot
-	    rateAdjust = d_rate2;
-	  }
-	  // Save rate turn off in next dose
-	  doRate = cmtOff+1;
-	} break;
-	case 8: { // modeled duration. 
-	  //InfusionRate[ind->cmt] -= dose[ind->ixds+1];
-	  if (cmtOff == 0) {
-	    // With oral dosing infusion to central compartment
-	    rateAdjust = amt/d_dur1*d_F;
-	  } else {
-	    // Infusion to compartment #1 or depot
-	    rateAdjust = amt/d_dur2*d_F2;
-	  }
-	  doRate = cmtOff+1;
-	} break;
-	case 7: { // End modeled rate
-	  if (cmtOff == 0)  {
-	    // Infusion to central compartment with oral dosing
-	    rateAdjust = -d_rate1;
-	  } else {
-	    // Infusion to central compartment or depot
-	    rateAdjust = -d_rate2;
-	  }
-	  doRate = cmtOff+1;
-	} break;
-	case 1: { // Begin infusion
-	  rateAdjust = amt; // Amt is negative when turning off
-	  doRate = cmtOff+1;
-	} break;
-	case 6: { // end modeled duration
-	  if (cmtOff == 0) {
-	    // With oral dosing infusion to central compartment
-	    rateAdjust = -amt/d_dur1*d_F;
-	  } else {
-	    // Infusion to compartment #1 or depot
-	    rateAdjust = -amt/d_dur2*d_F2;
-	  }
-	  doRate = cmtOff+1;
-	} break;
-	case 2: {
-	  // In this case bio-availability changes the rate, but the duration remains constant.
-	  // rate = amt/dur
-	  if (cmtOff == 0){
-	    rateAdjust = amt*d_F;
-	  } else {
-	    rateAdjust = amt*d_F2;
-	  }
-	  doRate = cmtOff+1;
-	} break;
-	}
+      }
+    }
+    /* if (t < tlast) tlast=t; */
+    /* REprintf("evid: %d; wh: %d; ind->cmt: %d; wh100: %d; ind->whI: %d; wh0: %d; %f\n", */
+    /* 	   evid, ind->wh, ind->cmt, ind->wh100, ind->whI, ind->wh0, A[oral0]); */
+    /* REprintf("curTime: t:%f, it: %f curTime:%f, tlast: %f, b1: %f ", t, it, curTime, tlast, b1); */
+    /* REprintf("evid: %d, t: %f, A: %f\n", evid, t, A[oral0]); */
+    if (extraAdvan) {
+      doAdvan(A, Alast, tlast, // Time of last amounts
+	      curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
+	      &d_ka, &rx_k, &rx_k12, &rx_k21,
+	      &rx_k13, &rx_k31);
+      if (handle_evidL(evid, A, curTime, id, ind)){
 	if (ind->wh0 == 40){
 	  // Steady state infusion
 	  // Now advance to steady state dosing
@@ -2736,41 +2672,14 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  } else {
 	    rate[0] = 0.0;
 	  }
-	  if (doRate == 1){
-	    r1 = rateAdjust;
-	    r2 = 0;
-	  } else {
-	    r1 = 0;
-	    r2 = rateAdjust;
-	  }
-	  doRate=0;
 	  ssRate(A, ncmt, oral0, &r1, &r2,
 		 &d_ka, &rx_k, &rx_k12, &rx_k21,
 		 &rx_k13, &rx_k31);
-	  extraAdvan=0;
-	}    
+	}
       }
-    }
-    /* if (t < tlast) tlast=t; */
-    /* REprintf("evid: %d; wh: %d; ind->cmt: %d; wh100: %d; ind->whI: %d; wh0: %d; %f\n", */
-    /* 	   evid, ind->wh, ind->cmt, ind->wh100, ind->whI, ind->wh0, A[oral0]); */
-    /* REprintf("curTime: t:%f, it: %f curTime:%f, tlast: %f, b1: %f ", t, it, curTime, tlast, b1); */
-    /* REprintf("evid: %d, t: %f, A: %f\n", evid, t, A[oral0]); */
-    if (extraAdvan){
-      doAdvan(A, Alast, tlast, // Time of last amounts
-	      curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
-	      &d_ka, &rx_k, &rx_k12, &rx_k21,
-	      &rx_k13, &rx_k31);
     }
     /* REprintf("\t0evid: %d, t: %f, tlast: %f A: %f; extraAdvan: %d\n", */
     /* 	     evid, t, tlast, A[oral0], extraAdvan); */
-    if (doReplace){
-      A[doReplace-1] = amt;
-    } else if (doMultiply){
-      A[doMultiply-1] *= amt;
-    } else if (doRate){
-      rate[doRate-1] += rateAdjust;
-    }
     /* REprintf("\tevid: %d, t: %f, A: %f\n", evid, t, A[oral0]); */
     ind->solved = idx;
   }
