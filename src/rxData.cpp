@@ -3778,7 +3778,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  std::iota(ind->ix,ind->ix+ind->n_all_times,0);
 	  curEvent += eLen;
 	  ind->on=&_globals.gon[curOn];
-	  curOn +=op->neq;
+	  curOn +=op->neq+op->extraCmt;
 	  curIdx += ind->n_all_times;
 	  ind->_newind = -1;
 	  if (rx->sample) {
@@ -4836,7 +4836,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->ssRtol = _globals.gssRtol;
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
-    int n1 = rx->nsub*rx->nsim*state.size();
+    int n1 = rx->nsub*rx->nsim*(state.size() + op->extraCmt);
 #ifdef rxSolveT
     REprintf("Time12d (fill in!): %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();

@@ -1018,7 +1018,7 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
   ind->id=solveid;
   ind->cacheME=0;
   // neq[0] = op->neq
-  for (int j = op->neq; j--;) {
+  for (int j = (op->neq + op->extraCmt); j--;) {
     ind->InfusionRate[j] = 0;
     ind->on[j] = 1;
     ind->tlastS[j] = NA_REAL;
