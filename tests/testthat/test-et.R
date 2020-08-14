@@ -546,7 +546,7 @@ rxPermissive(
     })
 
     context("Issue #257 -- numeric cmt vectorized")
-    cotext("Issue #257", {
+    test_that("Issue #257", {
       ds4 <-c(1,2,3,4)
       rate <- c(1.5,2.5,3.5,4.5)
       expect_error(et() %>% et(amt=ds4, rate=rate, cmt=4), NA)
