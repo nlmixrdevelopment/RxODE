@@ -13,6 +13,7 @@ extern "C" {
 }
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 #define getSolve(idx) ind->solve+op->neq*(idx)
+#define badSolveExit(i) for (int j = op->neq*(ind->n_all_times); j--;){ ind->solve[j] = NA_REAL;}op->badSolve = 1; i = ind->n_all_times-1; // Get out of here!
 // Yay easy parallel support
 // For Mac, see: http://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/ (as far as I can tell)
 // and https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac
@@ -479,18 +480,13 @@ static inline void postSolve(int *idid, int *rc, int *i, double *yp, const char*
       RSprintf("IDID=%d, %s\n", *idid, err_msg[-*idid-1]);
     }
     *rc = *idid;
-    // Bad Solve => NA
-    for (int j = op->neq*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-    op->badSolve = 1;
-    *i = ind->n_all_times-1; // Get out of here!
+    badSolveExit(*i);
   } else if (ind->err){
     if (doPrint) printErr(ind->err, ind->id);
     /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
     *rc = -2019;
     // Bad Solve => NA
-    for (int j = op->neq*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-    op->badSolve = 1;
-    *i = ind->n_all_times-1; // Get out of here!
+    badSolveExit(*i);
   } else {
     if (R_FINITE(rx->stateTrimU)){
       double top=fabs(rx->stateTrimU);
@@ -1276,16 +1272,12 @@ void solveSS_1(int *neq,
       /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
       ind->rc[0] = idid;
       // Bad Solve => NA
-      for (int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-      op->badSolve = 1;
-      *i = ind->n_all_times-1; // Get out of here!
+      badSolveExit(*i);
     } else if (ind->err){
       /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
       ind->rc[0] = idid;
       // Bad Solve => NA
-      for (int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-      op->badSolve = 1;
-      *i = ind->n_all_times-1; // Get out of here!
+      badSolveExit(*i);
     }
     break;
   case 2:
@@ -1530,9 +1522,7 @@ void handleSS(int *neq,
 	canBreak=1;
 	if (j <= op->minSS -1){
 	  if (ind->rc[0]== -2019){
-	    for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	    op->badSolve = 1;
-	    *i = ind->n_all_times-1;
+	    badSolveExit(*i);
 	    break;
 	  }
  	  for (k = op->neq; k--;) {
@@ -1564,14 +1554,10 @@ void handleSS(int *neq,
       if (dur >= ind->ii[ind->ixds]){
 	ind->wrongSSDur=1;
 	// Bad Solve => NA
-	for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	op->badSolve = 1;
-	*i = nx-1; // Get out of here!
+	badSolveExit(*i);
       } else if (ind->err){
 	printErr(ind->err, ind->id);
-	for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	op->badSolve = 1;
-	*i = nx-1; // Get out of here!
+	badSolveExit(*i);
       } else {
 	// Infusion
 	for (j = 0; j < op->maxSS; j++){
@@ -1596,9 +1582,7 @@ void handleSS(int *neq,
 		      op->do_transit_abs, xout+dur, neq[1], ind);
 	  if (j <= op->minSS -1){
 	    if (ind->rc[0]== -2019){
-	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	      op->badSolve = 1;
-	      *i = ind->n_all_times-1;
+	      badSolveExit(*i);
 	      break;
 	    }
 	    for (k = neq[0]; k--;) {
@@ -1608,9 +1592,7 @@ void handleSS(int *neq,
 	  } else if (j >= op->minSS){
 	    if (ind->rc[0]== -2019){
 	      if (op->strictSS){
-                for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-                op->badSolve = 1;
-                *i = ind->n_all_times-1;
+		badSolveExit(*i);
               } else {
                 for (k = neq[0]; k--;){
                   yp[k] = ind->solveLast[k];
@@ -1631,9 +1613,7 @@ void handleSS(int *neq,
 		    xout2, xp2, id, i, nx, istate, op, ind, u_inis, ctx);
 	  if (j <= op->minSS -1){
 	    if (ind->rc[0]== -2019){
-	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	      op->badSolve = 1;
-	      *i = ind->n_all_times-1;
+	      badSolveExit(*i);
 	      break;
 	    }
 	    for (k = neq[0]; k--;){
@@ -1643,9 +1623,7 @@ void handleSS(int *neq,
 	  } else if (j >= op->minSS){
 	    if (ind->rc[0]== -2019){
 	      if (op->strictSS){
-		for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-                op->badSolve = 1;
-                *i = ind->n_all_times-1;
+		badSolveExit(*i);
               } else {
 		for (k = neq[0]; k--;){
                   yp[k] = ind->solveLast2[k];
@@ -1730,9 +1708,7 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
       if (ind->err){
 	*rc = -1000;
 	// Bad Solve => NA
-	for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	op->badSolve = 1;
-	i = nx-1; // Get out of here!
+	badSolveExit(i);
       } else {
 	idid = indLin(solveid, op, xoutp, yp, xout, ind->InfusionRate, ind->on, 
 		      ME, IndF);
@@ -1869,9 +1845,7 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
       if (ind->err){
 	*rc = -1000;
 	// Bad Solve => NA
-	for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	op->badSolve = 1;
-	i = nx-1; // Get out of here!
+	badSolveExit(i);
       } else {
 	lsoda(&ctx, yp, &xp, xout);
 	postSolve(&(ctx.state), rc, &i, yp, NULL, false, ind, op, rx);
@@ -2136,9 +2110,7 @@ extern "C" void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, in
       if (ind->err){
 	ind->rc[0] = -1000;
 	// Bad Solve => NA
-	for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	op->badSolve = 1;
-	i = ind->n_all_times-1; // Get out of here!
+	badSolveExit(i);
       } else {
 	F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &gitol, &(op->RTOL), &(op->ATOL), &gitask,
 			 &istate, &giopt, rwork, &lrw, iwork, &liw, jdum, &jt);
@@ -2291,9 +2263,7 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
 	  printErr(ind->err, ind->id);
 	  *rc = idid;
 	  // Bad Solve => NA
-	  for (j = (ind->n_all_times)*neq[0];j--;) yp[i] = NA_REAL; 
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
+	  badSolveExit(i);
 	} else {
 	  idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
 			c_dydt,       /* function computing the value of f(x,y) */
