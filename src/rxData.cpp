@@ -1370,7 +1370,6 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 typedef struct {
   int *gon;
   double *gsolve;
-  double *gadvan;
   double *gInfusionRate;
   double *gTlastS;
   double *gTfirstS;
@@ -3664,7 +3663,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   rx_solving_options_ind* ind;
-  int curEvent = 0, curIdx = 0, curSolve=0, curLin=0;
+  int curEvent = 0, curIdx = 0, curSolve=0;
   switch(rxSolveDat->parType){
   case 1: // NumericVector
     {
@@ -3702,7 +3701,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
       rxSolve_resample(obj, rxControl, specParams, extraArgs, pars, ev1,
 		     inits, rxSolveDat);
       curSolve=0;
-      curLin=0;
       curEvent=0;
       curIdx=0;
       int curCov=0;
@@ -3763,11 +3761,10 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	    ind->doSS = 0;
 	  }
 	  int eLen = op->neq*ind->n_all_times;
-	  ind->linCmtAdvan = &_globals.gadvan[curLin];
-	  curLin += (op->nlin)*(ind->n_all_times);
-	  curLin += op->nlinR;
+	  // curLin += (op->nlin)*(ind->n_all_times);
+	  // curLin += op->nlinR;
 	  ind->solve = &_globals.gsolve[curSolve];
-	  curSolve += eLen;
+	  curSolve += (op->neq + op->nlin)*ind->n_all_times;
 	  ind->solveLast = &_globals.gsolve[curSolve];
 	  curSolve += op->neq;
 	  ind->solveLast2 = &_globals.gsolve[curSolve];
@@ -4795,8 +4792,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       rxSolveFree();
       stop(_("could not allocate enough memory for solving"));
     }
-    _globals.gadvan = _globals.gsolve+n0; // [nLin]
-    _globals.gmtime = _globals.gadvan + nLin; // [n2]
+    _globals.gmtime = _globals.gsolve + n0+ nLin; // [n2]
     _globals.gInfusionRate = _globals.gmtime + n2; //[n3a]
     _globals.gAlag  = _globals.gInfusionRate + n3a; // [n3a]
     _globals.gF  = _globals.gAlag + n3a; // [n3a]

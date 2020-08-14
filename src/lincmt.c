@@ -9,7 +9,7 @@
 #define _as_zero(a) (fabs(a) < sqrt(DOUBLE_EPS) ? 0.0 : a)
 #define _as_dbleps(a) (fabs(a) < sqrt(DOUBLE_EPS) ? ((a) < 0 ? -sqrt(DOUBLE_EPS)  : sqrt(DOUBLE_EPS)) : a)
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
-#define getAdvan(idx) ind->linCmtAdvan+(op->nlin)*(idx)
+#define getAdvan(idx) ind->solve+(op->nlin+op->neq)*(idx) + op->neq
 
 #ifdef ENABLE_NLS
 #include <libintl.h>

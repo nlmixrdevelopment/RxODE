@@ -12,7 +12,7 @@ extern "C" {
   #include "lsoda.h"
 }
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
-#define getSolve(idx) ind->solve+op->neq*(idx)
+#define getSolve(idx) ind->solve+ (op->neq + op->nlin)*(idx)
 #define badSolveExit(i) for (int j = op->neq*(ind->n_all_times); j--;){ \
     ind->solve[j] = NA_REAL;\
   } \
@@ -2469,10 +2469,9 @@ extern "C" double rxLhsP(int i, rx_solve *rx, unsigned int id){
 extern "C" void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   rx_solving_options *op = &op_global;
-  double *solve, *lhs;
+  double *lhs;
   double time;
   int isDose;
-  solve = ind->solve;
   lhs = ind->lhs;
   if (i < ind->n_all_times){
     ind->idx=i;
@@ -2484,7 +2483,7 @@ extern "C" void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
       handleTlastInline(&time, ind);
     }
     /* if (ind->evid[ind->ix[i]]) REprintf("e[%d;%d]: %d %f\n", id, i, ind->evid[ind->ix[i]], time); */
-    calc_lhs((int)id, time, solve+i*op->neq, lhs);
+    calc_lhs((int)id, time, getSolve(i), lhs);
     isDose = !isObs(ind->evid[ind->ix[i]]);// Recalculate in case shifted
     if (isDose){
       ind->ixds++;
@@ -2595,7 +2594,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   double *dfp;
   int *dfi;
   int ii=0, jj = 0, ntimes;
-  double *solve;
   int nBadDose;
   int *BadDose;
   int extraCmt = op->extraCmt;
@@ -2742,7 +2740,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
       ind = &(rx->subjects[neq[1]]);
       iniSubject(neq[1], 1, ind, op, rx, update_inis);
       ntimes = ind->n_all_times;
-      solve =  ind->solve;
       par_ptr = ind->par_ptr;
       dose = ind->dose;
       di = 0;
@@ -3075,7 +3072,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
             for (j = 0; j < neq[0]; j++){
               if (!rmState[j]){
                 dfp = REAL(VECTOR_ELT(df, jj));
-                dfp[ii] = solve[j+i*neq[0]] / scale[j];
+                dfp[ii] = (getSolve(i))[j] / scale[j];
                 jj++;
               }
             }
