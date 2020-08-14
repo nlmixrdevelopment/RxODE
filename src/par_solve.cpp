@@ -12,6 +12,7 @@ extern "C" {
   #include "lsoda.h"
 }
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
+#define getSolve(idx) ind->solve+op->neq*(idx)
 // Yay easy parallel support
 // For Mac, see: http://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/ (as far as I can tell)
 // and https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac
@@ -715,9 +716,9 @@ extern "C" double getTime(int idx, rx_solving_options_ind *ind){
     // Before solving the solve will be zero
     // After solving the yp will contain the solved values
     if (ind->idx < idx){
-      yp = ind->solve + op->neq*ind->idx;
+      yp = getSolve(ind->idx);
     } else {
-      yp = ind->solve + op->neq*idx;
+      yp = getSolve(idx);
     }
     switch(ind->whI){
     case 6:
@@ -1672,7 +1673,6 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   int *BadDose;
   double *InfusionRate;
   double *dose;
-  double *ret;
   double xout, xoutp;
   int *rc;
   double *yp;
@@ -1685,7 +1685,6 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
   dose = ind->dose;
-  ret = ind->solve;
   x = ind->all_times;
   rc= ind->rc;
   double xp = x[0];
@@ -1694,7 +1693,7 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   for(i=0; i<nx; i++) {
     ind->idx=i;
     xout = getTime(ind->ix[i], ind);
-    yp = ret+neq[0]*i;
+    yp = getSolve(i);
     if(ind->evid[ind->ix[i]] != 3 && xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
       if (ind->err){
 	*rc = -1000;
@@ -1751,15 +1750,14 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
 	handleSS(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs, xout,
 		 xp, ind->id, &i, nx, &idid, op, ind, u_inis, NULL);
 	if (ind->wh0 == 30){
-	  ret[ind->cmt] = inits[ind->cmt];
+	  yp[ind->cmt] = inits[ind->cmt];
 	}
 	if (rx->istateReset) idid = 1;
 	xp = xout;
       }
-      calc_lhs(neq[1], xout, ret+i*neq[0], ind->lhs);
-      if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
+      calc_lhs(neq[1], xout, getSolve(i), ind->lhs);
+      if (i+1 != nx) memcpy(getSolve(i+1), yp, neq[0]*sizeof(double));
       ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
-      /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
     }
   }
   ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
@@ -1831,7 +1829,6 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   int *BadDose;
   double *InfusionRate;
   double *dose;
-  double *ret;
   double xout;
   int *rc;
   double *yp;
@@ -1851,14 +1848,13 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
   dose = ind->dose;
-  ret = ind->solve;
   x = ind->all_times;
   rc= ind->rc;
   double xp = x[0];
   unsigned int j;
   for(i=0; i<nx; i++) {
     ind->idx=i;
-    yp = ret+neq[0]*i;
+    yp = getSolve(i);
     xout = getTime(ind->ix[i], ind);
     if(ind->evid[ind->ix[i]] != 3 && xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
       if (ind->err){
@@ -1914,13 +1910,13 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
 	handleSS(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs, xout,
 		 xp, ind->id, &i, nx, &ctx.state, op, ind, u_inis, &ctx);
 	if (ind->wh0 == 30){
-	  ret[ind->cmt] = inits[ind->cmt];
+	  yp[ind->cmt] = inits[ind->cmt];
 	}
 	if (rx->istateReset) ctx.state = 1;
 	xp = xout;
       }
-      calc_lhs(neq[1], xout, ret+i*neq[0], ind->lhs);
-      if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
+      calc_lhs(neq[1], xout, getSolve(i), ind->lhs);
+      if (i+1 != nx) memcpy(getSolve(i+1), yp, neq[0]*sizeof(double));
       ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
     }
@@ -2148,7 +2144,7 @@ extern "C" void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, in
   unsigned int j;
   for(i=0; i < ind->n_all_times; i++) {
     ind->idx=i;
-    yp   = ind->solve+neq[0]*i;
+    yp   = getSolve(i);
     xout = getTime(ind->ix[i], ind);
     if(ind->evid[ind->ix[i]] != 3 && xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp))) {
       if (ind->err){
@@ -2211,8 +2207,8 @@ extern "C" void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, in
 	xp = xout;
       }
       // Copy to next solve so when assigned to yp=ind->solve[neq[0]*i]; it will be the prior values
-      calc_lhs(neq[1], xout, ind->solve+i*neq[0], ind->lhs);
-      if (i+1 != ind->n_all_times) memcpy(ind->solve+neq[0]*(i+1), yp, neq[0]*sizeof(double));
+      calc_lhs(neq[1], xout, getSolve(i), ind->lhs);
+      if (i+1 != ind->n_all_times) memcpy(getSolve(i+1), yp, neq[0]*sizeof(double));
     }
   }
   ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
@@ -2303,7 +2299,7 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
   int *BadDose;
   double *InfusionRate;
   double *dose;
-  double *ret, *inits;
+  double *inits;
   int *rc;
   int nx;
   neq[1] = solveid;
@@ -2315,14 +2311,13 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
   dose = ind->dose;
-  ret = ind->solve;
   x = ind->all_times;
   rc= ind->rc;
   double xp = x[0];
   unsigned int j;
   for(i=0; i<nx; i++) {
     ind->idx=i;
-    yp = &ret[neq[0]*i];
+    yp = getSolve(i);
     xout = getTime(ind->ix[i], ind);
     if (global_debug){
       RSprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
@@ -2333,7 +2328,7 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
 	  printErr(ind->err, ind->id);
 	  *rc = idid;
 	  // Bad Solve => NA
-	  for (j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
+	  for (j = (ind->n_all_times)*neq[0];j--;) yp[i] = NA_REAL; 
 	  op->badSolve = 1;
 	  i = nx-1; // Get out of here!
 	} else {
@@ -2367,14 +2362,14 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
 	  RSprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
 	  *rc = idid;
 	  // Bad Solve => NA
-	  for (j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
+	  for (j = (ind->n_all_times)*neq[0];j--;) yp[i] = NA_REAL; 
 	  op->badSolve = 1;
 	  i = nx-1; // Get out of here!
 	} else if (ind->err){
 	  printErr(ind->err, ind->id);
 	  *rc = idid;
 	  // Bad Solve => NA
-	  for (j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
+	  for (j = (ind->n_all_times)*neq[0];j--;) yp[i] = NA_REAL; 
 	  op->badSolve = 1;
 	  i = nx-1; // Get out of here!
 	} else {
@@ -2413,13 +2408,13 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
 	handleSS(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs, xout,
 		 xp, ind->id, &i, nx, &istate, op, ind, u_inis, &ctx);
 	if (ind->wh0 == 30){
-	  ret[ind->cmt] = inits[ind->cmt];
+	  yp[ind->cmt] = inits[ind->cmt];
 	}
 	xp = xout;
       }
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
-      calc_lhs(neq[1], xout, ret+i*neq[0], ind->lhs);
-      if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
+      calc_lhs(neq[1], xout, getSolve(i), ind->lhs);
+      if (i+1 != nx) memcpy(getSolve(i+1), getSolve(i), neq[0]*sizeof(double));
     }
   }
   ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
