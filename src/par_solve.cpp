@@ -13,7 +13,11 @@ extern "C" {
 }
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 #define getSolve(idx) ind->solve+op->neq*(idx)
-#define badSolveExit(i) for (int j = op->neq*(ind->n_all_times); j--;){ ind->solve[j] = NA_REAL;}op->badSolve = 1; i = ind->n_all_times-1; // Get out of here!
+#define badSolveExit(i) for (int j = op->neq*(ind->n_all_times); j--;){ \
+    ind->solve[j] = NA_REAL;\
+  } \
+  op->badSolve = 1; \
+  i = ind->n_all_times-1; // Get out of here!
 // Yay easy parallel support
 // For Mac, see: http://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/ (as far as I can tell)
 // and https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac

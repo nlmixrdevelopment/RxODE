@@ -10,6 +10,7 @@
 #else
 #define _(String) (String)
 #endif
+#define getAdvan(idx) ind->linCmtAdvan+(op->nlin)*(idx)
 
 extern "C" int syncIdx(rx_solving_options_ind *ind);
 
@@ -2299,7 +2300,7 @@ namespace stan {
       ind->ixds = oldIxds;
       ind->idx = oldIdx;
       // Save A and rate
-      double *Ad = ind->linCmtAdvan+(op->nlin)*(idxF);
+      double *Ad = getAdvan(idxF);
       T tmpD;
       for (int i = ncmt+oral0; i--;){
 	tmpD = A(i, 0);
@@ -2415,7 +2416,7 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
   int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
   if (idx <= ind->solved && sameTime){
     // Pull from last solved value (cached)
-    double *A = ind->linCmtAdvan+(op->nlin)*idx;
+    double *A = getAdvan(idx);
     return linCmtBg(A, val, trans, ncmt, oral0, dd_v1, dd_p3, dd_p5);
   }
   MatrixPd params(2*ncmt + 4 + oral0*5, 1);
@@ -2444,7 +2445,7 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
   Eigen::VectorXd fx;
   Eigen::Matrix<double, -1, -1> J;
   stan::math::jacobian(f, params, fx, J);
-  double *A = ind->linCmtAdvan+(op->nlin)*idx;
+  double *A = getAdvan(idx);
   
   if (sameTime){
     // Rcpp::print(Rcpp::wrap(J));
@@ -3017,7 +3018,7 @@ extern "C" double linCmtSP(rx_solve *rx, unsigned int id, double t, int linCmt,
   int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
   if (idx <= ind->solved && sameTime){
     // Pull from last solved value (cached)
-    double *A = ind->linCmtAdvan+(op->nlin)*idx;
+    double *A = getAdvan(idx);
     return linCmtBg(A, val, trans, ncmt, oral0, dd_v1, dd_p3, dd_p5);
   }
   MatrixPd params(2*ncmt+7,1);

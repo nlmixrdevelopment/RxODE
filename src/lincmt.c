@@ -9,6 +9,7 @@
 #define _as_zero(a) (fabs(a) < sqrt(DOUBLE_EPS) ? 0.0 : a)
 #define _as_dbleps(a) (fabs(a) < sqrt(DOUBLE_EPS) ? ((a) < 0 ? -sqrt(DOUBLE_EPS)  : sqrt(DOUBLE_EPS)) : a)
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
+#define getAdvan(idx) ind->linCmtAdvan+(op->nlin)*(idx)
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -2427,7 +2428,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
   if (idx <= ind->solved && sameTime){
     // Pull from last solved value (cached)
-    A = ind->linCmtAdvan+(op->nlin)*idx;
+    A = getAdvan(idx);
     if (trans == 10) {
       return(A[oral0]*(v1+p3+p5));
     } else {
@@ -2451,13 +2452,13 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
       return NA_REAL;
     }
   } else {
-    A = ind->linCmtAdvan+(op->nlin)*idx;
+    A = getAdvan(idx);
     if (idx == 0) {
       Alast = Alast0;
       tlast = getTime(ind->ix[0], ind);
     } else {
       tlast = getTime(ind->ix[idx-1], ind);
-      Alast = ind->linCmtAdvan+(op->nlin)*(idx-1);
+      Alast = getAdvan(idx-1);
     }
     curTime = getTime(ind->ix[idx], ind);
     if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
@@ -3810,7 +3811,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
     int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
     if (idx <= ind->solved && sameTime){
       // Pull from last solved value (cached)
-      A = ind->linCmtAdvan+(op->nlin)*idx;
+      A = getAdvan(idx);
       return derTrans(rx, A, ncmt, trans, val, p1, v1, p2, p3,
 		      p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
 		      d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
@@ -3832,13 +3833,13 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	return NA_REAL;
       }
     } else {
-      A = ind->linCmtAdvan+(op->nlin)*idx;
+      A = getAdvan(idx);
       if (idx == 0) {
 	Alast = Alast0;
 	tlast = getTime(ind->ix[0], ind);
       } else {
 	tlast = getTime(ind->ix[idx-1], ind);
-	Alast = ind->linCmtAdvan+(op->nlin)*(idx-1);
+	Alast = getAdvan(idx);
       }
       curTime = getTime(ind->ix[idx], ind);
       if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
