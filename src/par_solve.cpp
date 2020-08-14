@@ -1088,143 +1088,148 @@ static inline int handle_evid(int evid, int neq,
 			      double xout, int id,
 			      rx_solving_options_ind *ind){
   if (isObs(evid)) return 0;
-  int wh = evid, cmt, foundBad, j;
+  int cmt, foundBad, j;
   double tmp;
-  if (wh) {
-    getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
-    if (ind->wh0 == 40){
-      ind->ixds++;
+  getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
+  if (ind->wh0 == 40){
+    ind->ixds++;
+    return 1;
+  }
+  /* wh100 = ind->wh100; */
+  cmt = ind->cmt;
+  if (cmt<0) {
+    if (!(ind->err & 65536)){
+      ind->err += 65536;
+      /* Rprintf("Supplied an invalid EVID (EVID=%d; cmt %d)", evid, cmt); */
+    }
+    return 0;
+  }
+  if (cmt >= neq){
+    foundBad = 0;
+    for (j = 0; j < ind->nBadDose; j++){
+      if (BadDose[j] == cmt+1){
+	foundBad=1;
+	break;
+      }
+    }
+    if (!foundBad){
+      BadDose[ind->nBadDose]=cmt+1;
+      ind->nBadDose++;
+    }
+  } else {
+    rx_solving_options *op = &op_global;
+    if (syncIdx(ind) == 0) return 0;
+    if (ind->wh0 == 30){
+      yp[cmt]=op_global.inits[cmt];
+      InfusionRate[cmt] = 0;
+      ind->cacheME=0;
+      ind->on[cmt] = 0;
       return 1;
     }
-    /* wh100 = ind->wh100; */
-    wh = ind->wh;
-    cmt = ind->cmt;
-    if (cmt<0) {
-      if (!(ind->err & 65536)){
-	ind->err += 65536;
-	/* Rprintf("Supplied an invalid EVID (EVID=%d; cmt %d)", evid, cmt); */
-      }
-      return 0;
+    if (!ind->doSS && ind->wh0 == 20 && cmt < op->neq){
+      // Save for adding at the end; Only for ODE systems
+      memcpy(ind->solveSave, yp, op->neq*sizeof(double));
     }
-    if (cmt >= neq){
-      foundBad = 0;
-      for (j = 0; j < ind->nBadDose; j++){
-	if (BadDose[j] == cmt+1){
-	  foundBad=1;
-	  break;
+    switch(ind->whI){
+    case 9: // modeled rate.
+    case 8: // modeled duration.
+      // Rate already calculated and saved in the next dose record
+      ind->on[cmt] = 1;
+      ind->cacheME=0;
+      InfusionRate[cmt] -= dose[ind->ixds+1];
+      if (ind->wh0 == 20 && getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) != dose[ind->ixds]){
+	if (!(ind->err & 1048576)){
+	  ind->err += 1048576;
+	}
+	return 0;
+	/* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
+      }
+      break;
+    case 7: // End modeled rate
+    case 6: // end modeled duration
+      // In this case re-sort is not going to be assessed
+      // If cmt is off, don't remove rate....
+      // Probably should throw an error if the infusion rate is on still.
+      InfusionRate[cmt] += dose[ind->ixds]*((double)(ind->on[cmt]));
+      ind->cacheME=0;
+      if (ind->wh0 == 20 &&
+	  getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) !=
+	  dose[ind->ixds]){
+	/* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
+	if (!(ind->err & 2097152)){
+	  ind->err += 2097152;
+	}
+	return 0;
+      }
+      break;
+    case 2:
+      // In this case bio-availability changes the rate, but the
+      // duration remains constant.  rate = amt/dur
+      ind->on[cmt] = 1;
+      tmp = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);
+      InfusionRate[cmt] += tmp;
+      ind->cacheME=0;
+      if (ind->wh0 == 20 && tmp != dose[ind->ixds]){
+	/* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
+	if (!(ind->err & 4194304)){
+	  ind->err += 4194304;
+	}
+	return 0;
+      }
+      break;
+    case 1:
+      ind->on[cmt] = 1;
+      InfusionRate[cmt] += dose[ind->ixds];
+      ind->cacheME=0;
+      if (ind->wh0 == 20 && dose[ind->ixds] > 0 && getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) != dose[ind->ixds]){
+	/* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
+	if (!(ind->err & 4194304)){
+	  ind->err += 4194304;
 	}
       }
-      if (!foundBad){
-	BadDose[ind->nBadDose]=cmt+1;
-	ind->nBadDose++;
-      }
-    } else {
-      if (syncIdx(ind) == 0) return 0;
-      if (ind->wh0 == 30){
-	yp[cmt]=op_global.inits[cmt];
-	InfusionRate[cmt] = 0;
-	ind->cacheME=0;
-	ind->on[cmt] = 0;
-	return 1;
-      }
-      if (!ind->doSS && ind->wh0 == 20){
-	// Save for adding at the end
-	memcpy(ind->solveSave, yp, neq*sizeof(double));
-      }
-      switch(ind->whI){
-      case 9: // modeled rate.
-      case 8: // modeled duration.
-	// Rate already calculated and saved in the next dose record
+      break;
+    case 4: // replace
+      ind->on[cmt] = 1;
+      ind->podo = 0;
+      handleTlastInline(&xout, ind);
+      yp[cmt] = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);     //dosing before obs
+      break;
+    case 5: //multiply
+      ind->on[cmt] = 1;
+      ind->podo = 0;
+      handleTlastInline(&xout, ind);
+      yp[cmt] *= getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);     //dosing before obs
+      break;
+    case 0:
+      if (do_transit_abs) {
 	ind->on[cmt] = 1;
-	ind->cacheME=0;
-	InfusionRate[cmt] -= dose[ind->ixds+1];
-	if (ind->wh0 == 20 && getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) != dose[ind->ixds]){
-	  if (!(ind->err & 1048576)){
-	    ind->err += 1048576;
-	  }
-	  return 0;
-	  /* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
-	}
-	break;
-      case 7: // End modeled rate
-      case 6: // end modeled duration
-	// In this case re-sort is not going to be assessed
-	// If cmt is off, don't remove rate....
-	// Probably should throw an error if the infusion rate is on still.
-	InfusionRate[cmt] += dose[ind->ixds]*((double)(ind->on[cmt]));
-	ind->cacheME=0;
-	if (ind->wh0 == 20 &&
-	    getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) !=
-	    dose[ind->ixds]){
-	  /* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
-	  if (!(ind->err & 2097152)){
-	    ind->err += 2097152;
-	  }
-	  return 0;
-	}
-	break;
-      case 2:
-	// In this case bio-availability changes the rate, but the
-	// duration remains constant.  rate = amt/dur
-	ind->on[cmt] = 1;
-	tmp = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);
-	InfusionRate[cmt] += tmp;
-	ind->cacheME=0;
-	if (ind->wh0 == 20 && tmp != dose[ind->ixds]){
-	  /* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
-	  if (!(ind->err & 4194304)){
-	    ind->err += 4194304;
-	  }
-	  return 0;
-	}
-	break;
-      case 1:
-	ind->on[cmt] = 1;
-	InfusionRate[cmt] += dose[ind->ixds];
-	ind->cacheME=0;
-	if (ind->wh0 == 20 && dose[ind->ixds] > 0 && getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) != dose[ind->ixds]){
-	  /* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
-	  if (!(ind->err & 4194304)){
-	    ind->err += 4194304;
-	  }
-	}
-	break;
-      case 4: // replace
-	ind->on[cmt] = 1;
-	ind->podo = 0;
-	handleTlastInline(&xout, ind);
-	yp[cmt] = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);     //dosing before obs
-	break;
-      case 5: //multiply
-	ind->on[cmt] = 1;
-	ind->podo = 0;
-	handleTlastInline(&xout, ind);
-	yp[cmt] *= getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);     //dosing before obs
-	break;
-      case 0:
-	if (do_transit_abs) {
-	  ind->on[cmt] = 1;
-	  if (ind->wh0 == 20){
-	    tmp = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);
-	    ind->podo = tmp;
-	  } else {
-	    ind->podo = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);
-	  }
-	  handleTlastInline(&xout, ind);
+	if (ind->wh0 == 20){
+	  tmp = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);
+	  ind->podo = tmp;
 	} else {
-	  ind->on[cmt] = 1;
-	  ind->podo = 0;
-	  handleTlastInline(&xout, ind);
-	  yp[cmt] += getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);     //dosing before obs
+	  ind->podo = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);
 	}
+	handleTlastInline(&xout, ind);
+      } else {
+	ind->on[cmt] = 1;
+	ind->podo = 0;
+	handleTlastInline(&xout, ind);
+	yp[cmt] += getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);     //dosing before obs
       }
-      /* istate = 1; */
-      ind->ixds++;
-      /* xp = xout; */
-      return 1;
     }
+    /* istate = 1; */
+    ind->ixds++;
+    /* xp = xout; */
+    return 1;
   }
   return 0;
+}
+
+extern "C" int handle_evidL(int idx, double *yp, double xout, int id, rx_solving_options_ind *ind){
+  rx_solving_options *op = &op_global;
+  return handle_evid(ind->evid[ind->ix[idx]],
+		     op->neq + op->extraCmt, ind->BadDose, ind->InfusionRate, ind->dose, yp, 0,
+		     xout, id, ind);
 }
 
 static void chkIntFn(void *dummy) {
@@ -2493,16 +2498,6 @@ extern "C" void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
     Rf_errorcall(R_NilValue, "LHS cannot be calculated (%dth entry).",i);
   }
 }
-extern "C" void setExtraCmtP(int xtra, rx_solve *rx){
-  rx_solving_options *op = &op_global;
-  if (xtra > op->extraCmt){
-    op->extraCmt = xtra;
-  }
-}
-
-void setExtraCmt(int xtra){
-  setExtraCmtP(xtra, _globalRx);
-}
 
 extern "C" SEXP rxStateNames(char *ptr);
 extern "C" SEXP rxLhsNames(char *ptr);
@@ -2596,7 +2591,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   int ii=0, jj = 0, ntimes;
   int nBadDose;
   int *BadDose;
-  int extraCmt = op->extraCmt;
   int *svar = op->svar;
   int kk = 0;
   int wh, cmt, wh100, whI, wh0;
@@ -3157,7 +3151,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
       BadDose = ind->BadDose;
       if (nBadDose && csim == 0){
 	for (i = 0; i < nBadDose; i++){
-	  if (BadDose[i] > extraCmt){
+	  if (BadDose[i] > op->extraCmt){
 	    warning(_("dose to compartment %d ignored (not in system; 'id=%d')"), BadDose[i],csub+1);
 	  }
 	}
@@ -3429,7 +3423,6 @@ extern "C" void rxSingleSolve(int subid, double *_theta, double *timep,
   //
   op->inits   = initsp;
   op->scale = scale;
-  op->extraCmt = 0;
   rx->nsub =1;
   rx->nsim =1;
   ind->_newind=1;
