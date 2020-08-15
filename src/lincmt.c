@@ -2629,23 +2629,9 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
       r1 = rate[0];
     }
     ind->wh0 = 0;
-    if (isObs(evid)){
-      // Only apply doses when you need to set the solved system.
-      // When it is an observation of course you do not need to apply the doses
-    } else if (evid == 3){
+    if (evid == 3){
       // Reset event
       Alast=Alast0;
-    } else {
-      getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
-      int tmpidx = ind->idx; ind->idx=idx;
-      handleTlast(&(ind->all_times[ind->ix[idx]]), ind);
-      ind->idx=tmpidx;
-      int cmtOff = ind->cmt-linCmt;
-      if ((oral0 && cmtOff > 1) ||
-	  (!oral0 && cmtOff != 0)) {
-      } else {
-	ind->idx = idx;
-      }
     }
     doAdvan(A, Alast, tlast, // Time of last amounts
 	    curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
