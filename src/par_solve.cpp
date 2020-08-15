@@ -978,7 +978,6 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
     }
     radix_r(0, ind->n_all_times-1, 0, ind, rx);
   }
-  ind->ixds=ind->idx=0;
 }
 
 extern "C" int syncIdx(rx_solving_options_ind *ind){
@@ -1077,6 +1076,7 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
       if (op->badSolve) return 0;
     }
   }
+  ind->ixds=ind->idx=0;
   return 1;
 }
 

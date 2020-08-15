@@ -2397,6 +2397,161 @@ SEXP _calcDerived(SEXP ncmtSXP, SEXP transSXP, SEXP inp, SEXP sigdigSXP) {
 
 int handle_evidL(int evid, double *yp, double xout, int id, rx_solving_options_ind *ind);
 
+static inline void handleSSL(double *A,// Amounts
+			     double *Alast, // Last amounts
+			     double tlast, // Time of last amounts
+			     double ct, // Time of the dose
+			     int ncmt, // Number of compartments
+			     int oral0, // Indicator of if this is an oral system
+			     double *b1, // Amount of the dose in compartment #1
+			     double *b2, // Amount of the dose in compartment #2
+			     double *r1, // Rate in Compartment #1
+			     double *r2, // Rate in Compartment #2
+			     double *ka, // ka (for oral doses)
+			     double *kel,  //double rx_v,
+			     double *k12, double *k21,
+			     double *k13, double *k31,
+			     int *linCmt,
+			     double *d_F, double *d_F2,
+
+			     double *d_rate1, double *d_rate2,
+			     double *d_dur1, double *d_dur2,
+			     double *aSave, rx_solving_options_ind* ind) {
+  // handle_evid has been called, so ind->wh0 and like have already been called
+  double *rate = ind->linCmtRate;
+  // not ind->ixds is already advanced
+  double amt = ind->dose[ind->ixds-1];
+  switch(ind->wh0){
+  case 40: { // Steady state constant infusion
+    // Already advanced ind->ixds
+    rate[0] =*r1  = *r2 = 0;
+    if (oral0){
+      rate[1] = 0;
+    }
+    int cmtOff = ind->cmt-*linCmt;
+    if (cmtOff == 0){
+      // Infusion to central compartment with oral dosing
+      *r1 = amt;
+    } else {
+      // Infusion to central compartment or depot
+      *r2 = amt;
+    }
+    ssRate(A, ncmt, oral0, r1, r2,
+	   ka, kel, k12, k21, k13, k31);
+    //
+  } break;
+  case 20: // Steady state + last observed event
+  case 10: { // Steady state
+    double tau = ind->ii[ind->ixds-1];
+    rate[0] =*r1  = *r2 = 0;
+    if (oral0){
+      rate[1] = 0;
+    }
+    int cmtOff = ind->cmt-*linCmt;
+    //*tlast=0; // is this necessary
+    switch (ind->whI) {
+    case 0: { // bolus dose
+      if (cmtOff == 0){
+	*b1 = amt*(*d_F);
+	*b2 = 0;
+      } else {
+	*b1 = 0;
+	*b2 = amt*(*d_F2);
+      }
+      ssTau(A, ncmt, oral0, &tau, b1, b2, ka,
+	    kel, k12, k21, k13, k31);
+    } break;
+    case 8: // Duration is modeled
+    case 9: { // Rate is modeled
+      double tinf;
+      if (ind->whI == 9) {
+	if (cmtOff == 0){
+	  // Infusion to central compartment with oral dosing
+	  *r1 = *d_rate1;
+	  tinf = amt*(*r1)/(*d_F);
+	  rate[0] = *r1;
+	} else {
+	  // Infusion to central compartment or depot
+	  *r2 = *d_rate2;
+	  tinf = amt*(*r2)/(*d_F2);
+	  rate[1] = *r2;
+	}
+      } else {
+	// duration is modeled
+	if (cmtOff == 0) {
+	  // With oral dosing infusion to central compartment
+	  tinf = *d_dur1;
+	  *r1 = amt/tinf*(*d_F);
+	  rate[0] = *r1;
+	} else {
+	  // Infusion to compartment #1 or depot
+	  tinf = *d_dur2;
+	  *r2 = amt/tinf*(*d_F2);
+	  rate[1] = *r2;
+	}
+      }
+      if (tinf >= tau){
+	ind->wrongSSDur=1;
+	for (int i = ncmt + oral0; i--;){
+	  A[i] += R_NaN;
+	}
+      } else {
+	ssRateTau(A, ncmt, oral0, &tinf, &tau,
+		  r1, r2, ka, kel, k12, k21, k13, k31);
+      }
+    } break;
+    case 1: // Infusion rate is fixed
+    case 2: { // Infusion, duration is fixed
+      double tinf;
+      if (ISNA(amt)){
+      } else if (amt > 0) {
+	unsigned int p;
+	tinf = _getDur(ind->ixds-1, ind, 1, &p);
+	if (ind->whI == 1){
+	  // Duration changes with F
+	  if (cmtOff == 0){
+	    tinf *= (*d_F);
+	    *r1 = amt;
+	    rate[0] = *r1;
+	  } else {
+	    tinf *= (*d_F2);
+	    *r2 = amt;
+	    rate[1] = *r2;
+	  }
+	} else {
+	  // rate changes with F; tinf remains constant
+	  if (cmtOff == 0){
+	    *r1 = amt*(*d_F);
+	    rate[0] = *r1;
+	  } else {
+	    *r2 = amt*(*d_F2);
+	    rate[1] = *r2;
+	  }
+	}
+	if (tinf >= tau){
+	  ind->wrongSSDur=1;
+	  for (int i = ncmt + oral0; i--;){
+	    A[i] += R_NaN;
+	  }
+	} else {
+	  ssRateTau(A, ncmt, oral0, &tinf, &tau,
+		    r1, r2, ka, kel, k12, k21, k13, k31);
+	}
+      }
+    } break;
+    }
+    // Add back saved values
+    if (ind->wh0 == 20) {
+      if (amt > 0) {
+	for (int i = ncmt + oral0; i--;){
+	  A[i] += aSave[i];
+	}
+      }
+    }
+  } break;
+  }
+}
+
 double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       int i_cmt, int trans,
 	       double p1, double v1,
@@ -2405,7 +2560,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       double d_tlag, double d_F, double d_rate1, double d_dur1,
 	       // Oral parameters
 	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2) {
-  /* REprintf("F: %f; F2: %f\n", d_F, d_F2); */
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   int evid;
   int idx = ind->idx;
@@ -2421,12 +2575,9 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   double curTime=getTime(ind->ix[0], ind); // t[0]
   
   if (t != it) {
-    REprintf("t!=it; %f != %f; %d\n", t, it, idx);
     // Try to get another idx by bisection
-    /* REprintf("it pre: %f", it); */
     idx = _locateTimeIndex(t, ind);
     it = getTime(ind->ix[idx], ind);
-    /* REprintf("it post: %f", it); */
   }
   int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
   if (idx <= ind->solved && sameTime){
@@ -2477,8 +2628,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     } else {
       r1 = rate[0];
     }
-    double amt=0;
-    int extraAdvan = 1;
     ind->wh0 = 0;
     if (isObs(evid)){
       // Only apply doses when you need to set the solved system.
@@ -2491,196 +2640,28 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
       int tmpidx = ind->idx; ind->idx=idx;
       handleTlast(&(ind->all_times[ind->ix[idx]]), ind);
       ind->idx=tmpidx;
-      /* REprintf("evid: %d; cmt: %d; %d\n", evid, cmt, linCmt); */
-      if (!oral0 && ind->cmt > linCmt) {
-	int foundBad = 0;
-	for (int j = 0; j < ind->nBadDose; j++){
-	  if (ind->BadDose[j] == ind->cmt+1){
-	    foundBad=1;
-	    break;
-	  }
-	}
-	if (!foundBad){
-	  ind->BadDose[ind->nBadDose]=ind->cmt+1;
-	  ind->nBadDose++;
-	}
-      } else if (oral0 && ind->cmt > linCmt+1) {
-	int foundBad = 0;
-	for (int j = 0; j < ind->nBadDose; j++){
-	  if (ind->BadDose[j] == ind->cmt+1){
-	    foundBad=1;
-	    break;
-	  }
-	}
-	if (!foundBad){
-	  ind->BadDose[ind->nBadDose]=ind->cmt+1;
-	  ind->nBadDose++;
-	}
-      }
       int cmtOff = ind->cmt-linCmt;
       if ((oral0 && cmtOff > 1) ||
 	  (!oral0 && cmtOff != 0)) {
-	REprintf("cmtOff! %d\n");
       } else {
 	ind->idx = idx;
-	/* REprintf("ind->ixds: %d; ind->idx: %d ind->ix[ind->idx]: %d; ind->idose[ind->ixds]: %d\n", */
-	/* 	 ind->ixds, ind->idx, ind->ix[ind->idx], ind->idose[ind->ixds]); */
-	/* syncIdx(ind); */
-	/* REprintf("ind->ixds (post sync): %d\n", ind->ixds); */
-	amt = ind->dose[ind->ixds];
-	/* REprintf("\tamt0[%d]: %f\n", ind->ixds, amt); */
-	if (!ISNA(amt) && (amt > 0) && (ind->wh0 == 10 || ind->wh0 == 20)) {
-	  // dosing to ind->cmt
-	  // Steady state doses; wh0 == 20 is equivalent to SS=2 in NONMEM
-	  double tau = ind->ii[ind->ixds];
-	  // For now advance based solving to steady state (just like ODE)
-	  double aSave[4];
-	  if (ind->wh0 == 20) {
-	    doAdvan(A, Alast, tlast, // Time of last amounts
-		    curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
-		    &d_ka, &rx_k, &rx_k12, &rx_k21,
-		    &rx_k13, &rx_k31);
-	    for (int i = ncmt + oral0; i--;){
-	      aSave[i] = A[i];
-	    }
-	  }
-	  // Reset all the rates
-	  if (op->nlinR == 2){
-	    rate[0]=0.0;
-	    rate[1]=0.0;
-	    r1=0; r2=0;
-	  } else {
-	    rate[0] = 0.0;
-	    r1=0; r2=0;
-	  }
-	  Alast = Alast0;
-	  tlast = 0;
-	  curTime = tau;
-	  double tinf, r0;
-	  int doInf=0;
-	  switch (ind->whI){
-	  case 0: {
-	    // Get bolus dose
-	    if (cmtOff == 0){
-	      b1 = amt*d_F;
-	    } else {
-	      b2 = amt*d_F2;
-	    }
-	    ssTau(A, ncmt, oral0, &tau, &b1, &b2, &d_ka,
-		  &rx_k, &rx_k12, &rx_k21, &rx_k13, &rx_k31);
-	  } break;
-	  case 8: // Duration is modeled
-	  case 9: { // Rate is modeled
-	    if (ind->whI == 9) {
-	      if (cmtOff == 0)  {
-		// Infusion to central compartment with oral dosing
-		r0 = d_rate1;
-		tinf = amt/r0*d_F;
-	      } else {
-		// Infusion to central compartment or depot
-		r0 = d_rate2;
-		tinf = amt/r0*d_F2;
-	      }
-	    } else {
-	      // duration is modeled
-	      if (cmtOff == 0) {
-		// With oral dosing infusion to central compartment
-		tinf = d_dur1;
-		r0 = amt/tinf*d_F;
-	      } else {
-		// Infusion to compartment #1 or depot
-		tinf = d_dur2;
-		r0 = amt/tinf*d_F2;
-	      }
-	    }
-	    doInf=1;
-	  } break;
-	  case 1:
-	  case 2: {
-	    if (ISNA(amt)){
-	    } else if (amt > 0) {
-	      doInf=1;
-	      unsigned int p;
-	      r0 = amt;
-	      tinf = _getDur(ind->ixds, ind, 1, &p);
-	      if (ind->whI == 1){
-		// Duration changes
-		if (cmtOff == 0){
-		  tinf *= d_F;
-		} else {
-		  tinf *= d_F2;
-		}
-	      } else {
-		// Rate changes
-		if (cmtOff == 0){
-		  r0 *= d_F;
-		} else {
-		  r0 *= d_F2;
-		}
-	      }
-	    }
-	  }
-	  }
-	  if (doInf){
-	    // Infusion steady state
-	    if (tinf >= tau){
-	      ind->wrongSSDur=1;
-	      for (int i = ncmt + oral0; i--;){
-		A[i] += R_NaN;
-	      }
-	      extraAdvan=0;
-	    } else {
-	      if (cmtOff == 0){
-		r1 = r0; r2 = 0;
-	      } else {
-		r1 = 0; r2 = r0;
-	      }
-	      ssRateTau(A, ncmt, oral0, &tinf, &tau,
-			&r1, &r2, &d_ka,
-			&rx_k, &rx_k12, &rx_k21, &rx_k13, &rx_k31);
-	    }
-	  }
-	  // Now calculate steady state
-	  if (ind->wh0 == 20) {
-	    for (int i = ncmt + oral0; i--;){
-	      A[i] += aSave[i];
-	    }
-	  }
-	  ind->ixds++;
-	  extraAdvan=0;
-	}
       }
     }
-    /* if (t < tlast) tlast=t; */
-    /* REprintf("evid: %d; wh: %d; ind->cmt: %d; wh100: %d; ind->whI: %d; wh0: %d; %f\n", */
-    /* 	   evid, ind->wh, ind->cmt, ind->wh100, ind->whI, ind->wh0, A[oral0]); */
-    /* REprintf("curTime: t:%f, it: %f curTime:%f, tlast: %f, b1: %f ", t, it, curTime, tlast, b1); */
-    /* REprintf("evid: %d, t: %f, A: %f\n", evid, t, A[oral0]); */
-    if (extraAdvan) {
-      doAdvan(A, Alast, tlast, // Time of last amounts
-	      curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
-	      &d_ka, &rx_k, &rx_k12, &rx_k21,
-	      &rx_k13, &rx_k31);
-      if (handle_evidL(evid, A, curTime, id, ind)){
-	if (ind->wh0 == 40){
-	  // Steady state infusion
-	  // Now advance to steady state dosing
-	  // These are easy to solve
-	  if (op->nlinR == 2){
-	    rate[0]=0.0;
-	    rate[1]=0.0;
-	  } else {
-	    rate[0] = 0.0;
-	  }
-	  ssRate(A, ncmt, oral0, &r1, &r2,
-		 &d_ka, &rx_k, &rx_k12, &rx_k21,
-		 &rx_k13, &rx_k31);
-	}
-      }
+    doAdvan(A, Alast, tlast, // Time of last amounts
+	    curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
+	    &d_ka, &rx_k, &rx_k12, &rx_k21,
+	    &rx_k13, &rx_k31);
+    double aSave[4] = {0.0, 0.0, 0.0, 0.0};
+    for (int i = ncmt + oral0; i--;){
+      aSave[i] = A[i];
     }
-    /* REprintf("\t0evid: %d, t: %f, tlast: %f A: %f; extraAdvan: %d\n", */
-    /* 	     evid, t, tlast, A[oral0], extraAdvan); */
-    /* REprintf("\tevid: %d, t: %f, A: %f\n", evid, t, A[oral0]); */
+    if (handle_evidL(evid, A, curTime, id, ind)){
+      handleSSL(A, Alast, tlast, curTime, ncmt, oral0, 
+		&b1, &b2, &r1, &r2, &d_ka, &rx_k,
+		&rx_k12, &rx_k21, &rx_k13, &rx_k31,
+		&linCmt, &d_F, &d_F2, &d_rate1, &d_rate2,
+		&d_dur1, &d_dur2, aSave, ind);
+    }
     ind->solved = idx;
   }
   if (!sameTime){
@@ -2695,8 +2676,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    &d_ka, &rx_k, &rx_k12, &rx_k21,
 	    &rx_k13, &rx_k31);
   }
-  /* REprintf("t: %f %f %d %d\n", t, A[oral0], idx, ind->ix[idx]); */
-  /* REprintf("%f,%f,%f\n", A[oral0], rx_v, A[oral0]/rx_v); */
   return A[oral0]/rx_v;
 }
 
