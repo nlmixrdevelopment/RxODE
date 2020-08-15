@@ -2397,6 +2397,147 @@ SEXP _calcDerived(SEXP ncmtSXP, SEXP transSXP, SEXP inp, SEXP sigdigSXP) {
 
 int handle_evidL(int evid, double *yp, double xout, int id, rx_solving_options_ind *ind);
 
+static inline void ssRateTauD(double *A,
+			      int ncmt,
+			      int oral0,
+			      double *tinf,
+			      double *tau,
+			      double *r1,
+			      double *r2,
+			      double *ka,
+			      double *kel,
+			      double *k12, double *k21){
+  if (oral0){
+    if ((*r1) > 0 ){
+      switch (ncmt){
+      case 1: {
+	oneCmtKaRateSStr1(A, tinf, tau, r1, ka, kel);
+	return;
+      } break;
+      case 2: {
+	twoCmtKaRateSStr1D(A, tinf, tau, r1, ka, kel, k12, k21);
+	return;
+      } break;
+      }
+    } else {
+      switch (ncmt){
+      case 1: {
+	oneCmtKaRateSStr2D(A, tinf, tau, r2, ka, kel);
+	return;
+      } break;
+      case 2: {
+	twoCmtKaRateSStr2D(A, tinf, tau, r2, ka, kel, k12, k21);
+	return;
+      } break;
+      }
+    }
+  } else {
+    switch (ncmt){
+    case 1: {
+      oneCmtRateSSD(A, tinf, tau, r1, kel);
+      return;
+    } break;
+    case 2: {
+      twoCmtRateSSD(A, tinf, tau, r1, kel, k12, k21);
+      return;
+    } break;
+    }
+  }
+}
+
+static inline void ssTauD(double *A,
+			  int ncmt,
+			  int oral0,
+			  double *tau,
+			  double *b1,
+			  double *b2,
+			  double *ka, // ka (for oral doses)
+			  double *kel,  //double rx_v,
+			  double *k12, double *k21){
+  if (oral0){
+    if ((*b1) > 0 ){
+      switch (ncmt){
+      case 1: {
+	oneCmtKaSSb1D(A, tau, b1, ka, kel);
+	return;
+      } break;
+      case 2: {
+	twoCmtKaSSb1D(A, tau, b1, ka, kel, k12, k21);
+	return;
+      } break;
+      }
+    } else {
+      switch (ncmt){
+      case 1: {
+	oneCmtKaSSb2D(A, tau, b2, ka, kel);
+	return;
+      } break;
+      case 2: {
+	twoCmtKaSSb2D(A, tau, b2, ka, kel, k12, k21);
+	return;
+      } break;
+      }
+    }
+  } else {
+    switch (ncmt){
+    case 1: {
+      oneCmtBolusSSD(A, tau, b1, kel);
+      return;
+    } break;
+    case 2: {
+      twoCmtBolusSSD(A, tau, b1, kel, k12, k21);
+      return;
+    } break;
+    }
+  }
+}
+
+static inline void ssRateD(double *A,
+			  int ncmt, // Number of compartments
+			  int oral0, // Indicator of if this is an oral system)
+			  double *r1, // Rate in Compartment #1
+			  double *r2, // Rate in Compartment #2
+			  double *ka, // ka (for oral doses)
+			  double *kel,  //double rx_v,
+			  double *k12, double *k21) {
+  if (oral0){
+    if ((*r1) > 0){
+      switch (ncmt){
+      case 1: {
+	oneCmtKaRateSSr1D(A, r1, ka, kel);
+	return;
+      } break;
+      case 2: {
+	twoCmtKaRateSSr1D(A, r1, ka, kel, k12, k21);
+	return;
+      } break;
+      }
+    } else {
+      switch (ncmt){
+      case 1: {
+	oneCmtKaRateSSr2D(A, r2, ka, kel);
+	return;
+      } break;
+      case 2: {
+	twoCmtKaRateSSr2D(A, r2, ka, kel, k12, k21);
+	return;
+      } break;
+      }
+    }
+  } else {
+    switch (ncmt){
+    case 1: {
+      oneCmtRateSSr1D(A, r1, kel);
+      return;
+    } break;
+    case 2: {
+      twoCmtRateSSr1D(A, r1, kel, k12, k21);
+      return;
+    } break;
+    }
+  }
+}
+
 static inline void handleSSL(double *A,// Amounts
 			     double *Alast, // Last amounts
 			     double tlast, // Time of last amounts
@@ -2417,6 +2558,7 @@ static inline void handleSSL(double *A,// Amounts
 			     double *d_rate1, double *d_rate2,
 			     double *d_dur1, double *d_dur2,
 			     double *aSave, int *nSave,
+			     bool doDiff,
 			     rx_solving_options_ind* ind) {
   // handle_evid has been called, so ind->wh0 and like have already been called
   double *rate = ind->linCmtRate;
@@ -2437,8 +2579,13 @@ static inline void handleSSL(double *A,// Amounts
       // Infusion to central compartment or depot
       *r2 = amt;
     }
-    ssRate(A, ncmt, oral0, r1, r2,
-	   ka, kel, k12, k21, k13, k31);
+    if (doDiff){
+      ssRateD(A, ncmt, oral0, r1, r2,
+	      ka, kel, k12, k21);
+    } else {
+      ssRate(A, ncmt, oral0, r1, r2,
+	     ka, kel, k12, k21, k13, k31);
+    }
     //
   } break;
   case 20: // Steady state + last observed event
@@ -2459,8 +2606,13 @@ static inline void handleSSL(double *A,// Amounts
 	*b1 = 0;
 	*b2 = amt*(*d_F2);
       }
-      ssTau(A, ncmt, oral0, &tau, b1, b2, ka,
+      if (doDiff){
+	ssTauD(A, ncmt, oral0, &tau, b1, b2, ka,
+	       kel, k12, k21);
+      } else {
+	ssTau(A, ncmt, oral0, &tau, b1, b2, ka,
 	    kel, k12, k21, k13, k31);
+      }
     } break;
     case 8: // Duration is modeled
     case 9: { // Rate is modeled
@@ -2497,8 +2649,13 @@ static inline void handleSSL(double *A,// Amounts
 	  A[i] += R_NaN;
 	}
       } else {
-	ssRateTau(A, ncmt, oral0, &tinf, &tau,
+	if (doDiff) {
+	  ssRateTauD(A, ncmt, oral0, &tinf, &tau,
+		     r1, r2, ka, kel, k12, k21);
+	} else {
+	  ssRateTau(A, ncmt, oral0, &tinf, &tau,
 		  r1, r2, ka, kel, k12, k21, k13, k31);
+	}
       }
     } break;
     case 1: // Infusion rate is fixed
@@ -2535,8 +2692,13 @@ static inline void handleSSL(double *A,// Amounts
 	    A[i] += R_NaN;
 	  }
 	} else {
-	  ssRateTau(A, ncmt, oral0, &tinf, &tau,
-		    r1, r2, ka, kel, k12, k21, k13, k31);
+	  if (doDiff){
+	    ssRateTauD(A, ncmt, oral0, &tinf, &tau,
+		       r1, r2, ka, kel, k12, k21);
+	  } else {
+	    ssRateTau(A, ncmt, oral0, &tinf, &tau,
+		      r1, r2, ka, kel, k12, k21, k13, k31);
+	  }
 	}
       }
     } break;
@@ -2648,7 +2810,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 		&b1, &b2, &r1, &r2, &d_ka, &rx_k,
 		&rx_k12, &rx_k21, &rx_k13, &rx_k31,
 		&linCmt, &d_F, &d_F2, &d_rate1, &d_rate2,
-		&d_dur1, &d_dur2, aSave, &nSave, ind);
+		&d_dur1, &d_dur2, aSave, &nSave, false, ind);
     }
     ind->solved = idx;
   }
@@ -2758,7 +2920,7 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
 		  &b1, &b2, &r1, &r2, &d_ka, &rx_k,
 		  &rx_k12, &rx_k21, &rx_k13, &rx_k31,
 		  &linCmt, &d_F, &d_F2, &d_rate1, &d_rate2,
-		  &d_dur1, &d_dur2, aSave, &nSave, ind);
+		  &d_dur1, &d_dur2, aSave, &nSave, false, ind);
       }
       for (int i = nSave; i--;){
 	Alast[i] = A[i];
@@ -3002,147 +3164,6 @@ extern double linCmtBB(rx_solve *rx, unsigned int id,
 		       // oral extra parameters
 		       double dd_ka, double dd_tlag2,
 		       double dd_F2, double dd_rate2, double dd_dur2);
-
-static inline void ssRateTauD(double *A,
-			      int ncmt,
-			      int oral0,
-			      double *tinf,
-			      double *tau,
-			      double *r1,
-			      double *r2,
-			      double *ka, 
-			      double *kel,  
-			      double *k12, double *k21){
-  if (oral0){
-    if ((*r1) > 0 ){
-      switch (ncmt){
-      case 1: {
-	oneCmtKaRateSStr1(A, tinf, tau, r1, ka, kel);
-	return;
-      } break;
-      case 2: {
-	twoCmtKaRateSStr1D(A, tinf, tau, r1, ka, kel, k12, k21);
-	return;
-      } break;
-      }
-    } else {
-      switch (ncmt){
-      case 1: {
-	oneCmtKaRateSStr2D(A, tinf, tau, r2, ka, kel);
-	return;
-      } break;
-      case 2: {
-	twoCmtKaRateSStr2D(A, tinf, tau, r2, ka, kel, k12, k21);
-	return;
-      } break;
-      }
-    }
-  } else {
-    switch (ncmt){
-    case 1: {
-      oneCmtRateSSD(A, tinf, tau, r1, kel);
-      return;
-    } break;
-    case 2: {
-      twoCmtRateSSD(A, tinf, tau, r1, kel, k12, k21);
-      return;
-    } break;
-    }
-  }
-}
-
-static inline void ssTauD(double *A,
-			  int ncmt,
-			  int oral0,
-			  double *tau,
-			  double *b1,
-			  double *b2,
-			  double *ka, // ka (for oral doses)
-			  double *kel,  //double rx_v,
-			  double *k12, double *k21){
-  if (oral0){
-    if ((*b1) > 0 ){
-      switch (ncmt){
-      case 1: {
-	oneCmtKaSSb1D(A, tau, b1, ka, kel);
-	return;
-      } break;
-      case 2: {
-	twoCmtKaSSb1D(A, tau, b1, ka, kel, k12, k21);
-	return;
-      } break;
-      }
-    } else {
-      switch (ncmt){
-      case 1: {
-	oneCmtKaSSb2D(A, tau, b2, ka, kel);
-	return;
-      } break;
-      case 2: {
-	twoCmtKaSSb2D(A, tau, b2, ka, kel, k12, k21);
-	return;
-      } break;
-      }
-    }
-  } else {
-    switch (ncmt){
-    case 1: {
-      oneCmtBolusSSD(A, tau, b1, kel);
-      return;
-    } break;
-    case 2: {
-      twoCmtBolusSSD(A, tau, b1, kel, k12, k21);
-      return;
-    } break;
-    }
-  }
-}
-
-static inline void ssRateD(double *A,
-			  int ncmt, // Number of compartments
-			  int oral0, // Indicator of if this is an oral system)
-			  double *r1, // Rate in Compartment #1
-			  double *r2, // Rate in Compartment #2
-			  double *ka, // ka (for oral doses)
-			  double *kel,  //double rx_v,
-			  double *k12, double *k21) {
-  if (oral0){
-    if ((*r1) > 0){
-      switch (ncmt){
-      case 1: {
-	oneCmtKaRateSSr1D(A, r1, ka, kel);
-	return;
-      } break;
-      case 2: {
-	twoCmtKaRateSSr1D(A, r1, ka, kel, k12, k21);
-	return;
-      } break;
-      }
-    } else {
-      switch (ncmt){
-      case 1: {
-	oneCmtKaRateSSr2D(A, r2, ka, kel);
-	return;
-      } break;
-      case 2: {
-	twoCmtKaRateSSr2D(A, r2, ka, kel, k12, k21);
-	return;
-      } break;
-      }
-    }
-  } else {
-    switch (ncmt){
-    case 1: {
-      oneCmtRateSSr1D(A, r1, kel);
-      return;
-    } break;
-    case 2: {
-      twoCmtRateSSr1D(A, r1, kel, k12, k21);
-      return;
-    } break;
-    }
-  }
-}
 
 static inline void doAdvanD(double *A,// Amounts
 			    double *Alast, // Last amounts
@@ -3496,7 +3517,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 		  &b1, &b2, &r1, &r2, &d_ka, &rx_k,
 		  &rx_k12, &rx_k21, &rx_k13, &rx_k31,
 		  &linCmt, &d_F, &d_F2, &d_rate1, &d_rate2,
-		  &d_dur1, &d_dur2, aSave, &nSave, ind);
+		  &d_dur1, &d_dur2, aSave, &nSave, true, ind);
       }
       ind->solved = idx;
     }
