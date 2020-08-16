@@ -1976,7 +1976,7 @@ rxPermissive(
         et(0, 250, by=0.1) %>%
         rxSolve()
 
-      expect_equal(s1$Conc, s2$Conc)
+      expect_equal(s1$Conc, s2$Conc, tol = tol)
     })
 
     tol <- 1e-5 ## Current difference for all equations
