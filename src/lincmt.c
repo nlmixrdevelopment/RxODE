@@ -2562,7 +2562,7 @@ static inline void handleSSL(double *A,// Amounts
 			     rx_solving_options_ind* ind) {
   // handle_evid has been called, so ind->wh0 and like have already been called
   double *rate = ind->linCmtRate;
-  // not ind->ixds is already advanced
+  // note ind->ixds has already advanced
   double amt = ind->dose[ind->ixds-1];
   switch(ind->wh0){
   case 40: { // Steady state constant infusion
