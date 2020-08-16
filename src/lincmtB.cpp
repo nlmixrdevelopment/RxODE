@@ -2089,6 +2089,7 @@ namespace stan {
 	      } break;
 	      case 8: // Duration is modeled
 	      case 9: { // Rate is modeled
+		amt = -ind->dose[ind->ixds+1];
 		if (whI == 9) {
 		  // cmtOff = 0
 		  if (cmtOff == 0)  {
@@ -2195,53 +2196,23 @@ namespace stan {
 	    case 5: {
 	      doMultiply= cmtOff+1;
 	    } break;
-	    case 9: { // modeled rate.
-	      // These are specified in the linCmt
-	      if (cmtOff == 0)  {
-		// Infusion to central compartment with oral dosing
-		rateAdjust = d_rate1;
-	      } else {
-		// Infusion to central compartment or depot
-		rateAdjust = d_rate2;
-	      }
-	      // Save rate turn off in next dose
-	      doRate = cmtOff+1;
-	    } break;
+	    case 9: 
 	    case 8: { // modeled duration. 
 	      //InfusionRate[cmt] -= dose[ind->ixds+1];
-	      if (cmtOff == 0) {
-		// With oral dosing infusion to central compartment
-		rateAdjust = amt/d_dur1*d_F;
-	      } else {
-		// Infusion to compartment #1 or depot
-		rateAdjust = amt/d_dur2*d_F2;
-	      }
+	      rateAdjust = -ind->dose[ind->ixds+1];
 	      doRate = cmtOff+1;
 	    } break;
+	    case 6: // end modeled duration
 	    case 7:{ // End modeled rate
-	      if (cmtOff == 0)  {
-		// Infusion to central compartment with oral dosing
-		rateAdjust = -d_rate1;
-	      } else {
-		// Infusion to central compartment or depot
-		rateAdjust = -d_rate2;
-	      }
+	      // Infusion to central compartment with oral dosing
+	      rateAdjust = amt;
 	      doRate = cmtOff+1;
 	    } break;
 	    case 1: { // Begin infusion
 	      rateAdjust = amt; // Amt is negative when turning off
 	      doRate = cmtOff+1;
 	    } break;
-	    case 6: { // end modeled duration
-	      if (cmtOff == 0) {
-		// With oral dosing infusion to central compartment
-		rateAdjust = -amt/d_dur1*d_F;
-	      } else {
-		// Infusion to compartment #1 or depot
-		rateAdjust = -amt/d_dur2*d_F2;
-	      }
-	      doRate = cmtOff+1;
-	    } break;
+	    
 	    case 2: {
 	      // In this case bio-availability changes the rate, but the duration remains constant.
 	      // rate = amt/dur
