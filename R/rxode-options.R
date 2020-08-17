@@ -107,20 +107,6 @@ rxTempDir <- function() {
   }
 }
 
-
-##' Clear memoise cache for RxODE
-##'
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
-rxForget <- function() {
-  for (fn in ls(envir = getNamespace("RxODE"))) {
-    if (memoise::is.memoised(getFromNamespace(fn, "RxODE"))) {
-      memoise::forget(getFromNamespace(fn, "RxODE"))
-    }
-  }
-}
-
 ## strict/permissive
 rxOpt <- list(
   RxODE.prefer.tbl = c(FALSE, FALSE),

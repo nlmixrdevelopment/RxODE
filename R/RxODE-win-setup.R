@@ -10,7 +10,7 @@
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxPhysicalDrives <- memoise::memoise(function(duplicates = FALSE) {
+rxPhysicalDrives <- function(duplicates = FALSE) {
   if (.Platform$OS.type == "unix") {
     return(NULL)
   } else {
@@ -58,9 +58,9 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates = FALSE) {
     }
     return(ret)
   }
-})
+}
 
-.rxNlmixr <- memoise::memoise(function() {
+.rxNlmixr <- function() {
   .keys <- NULL
   .keys <- try(utils::readRegistry(sprintf("SOFTWARE\\nlmixr%s", ifelse(.Platform$r_arch == "i386", "32", "")),
     hive = "HCU", maxdepth = 2
@@ -81,9 +81,9 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates = FALSE) {
     }
   }
   return(list())
-})
+}
 
-.rxRtoolsBaseWin <- memoise::memoise(function(retry = FALSE) {
+.rxRtoolsBaseWin <- function(retry = FALSE) {
   if (.Platform$OS.type == "unix" || getOption("RxODE.rtools.setup", FALSE)) {
     return("")
   } else if (file.exists(R.home("rtools"))) {
@@ -91,7 +91,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates = FALSE) {
   } else {
     return(NULL)
   }
-})
+}
 ##' Setup Rtools path
 ##'
 ##' @param rm.rtools Remove the Rtools from the current path specs.
