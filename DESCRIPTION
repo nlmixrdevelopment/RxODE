@@ -90,6 +90,7 @@ Imports:
     inline,
     lotri (>= 0.2.2),
     magrittr,
+    memoise,
     methods,
     rex,
     symengine,
