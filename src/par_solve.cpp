@@ -1069,9 +1069,9 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
   ind->dosenum = 0;
   ind->tlast = NA_REAL;
   ind->tfirst = NA_REAL;
-  ind->solved = -1;
   if (rx->needSort){
     if (inLhs == 0 || (inLhs == 1 && op->neq==0)) {
+      ind->solved = -1;
       sortRadix(ind);
       if (op->badSolve) return 0;
     }
@@ -2422,6 +2422,7 @@ extern "C" void ind_solve(rx_solve *rx, unsigned int cid,
       break;
     }
   }
+  iniSubject(op->neq, 1, &(rx->subjects[cid]), op, rx, u_inis);
   par_progress_0=0;
 }
 
@@ -2726,7 +2727,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
 	if (nlhs){
 	  calc_lhs(neq[1], curT, getSolve(i), ind->lhs);
 	}
-	if (evid == 9) continue;
 	if (subsetEvid == 1){
 	  if (isObs(evid) && evid >= 10) continue;
 	  if (isDose(evid)){
