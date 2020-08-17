@@ -2720,6 +2720,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
 	ind->idx = i;
 	double curT = getTime(ind->ix[ind->idx], ind);
         evid = ind->evid[ind->ix[ind->idx]];
+	if (evid == 9) continue;
 	if (nlhs){
 	  calc_lhs(neq[1], curT, getSolve(i), ind->lhs);
 	}
