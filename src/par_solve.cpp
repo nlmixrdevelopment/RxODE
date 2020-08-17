@@ -12,6 +12,12 @@ extern "C" {
   #include "lsoda.h"
 }
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
+#define getSolve(idx) ind->solve+ (op->neq + op->nlin)*(idx)
+#define badSolveExit(i) for (int j = op->neq*(ind->n_all_times); j--;){ \
+    ind->solve[j] = NA_REAL;\
+  } \
+  op->badSolve = 1; \
+  i = ind->n_all_times-1; // Get out of here!
 // Yay easy parallel support
 // For Mac, see: http://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/ (as far as I can tell)
 // and https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac
@@ -336,6 +342,7 @@ extern "C" void rxOptionsIniEnsure(int mx){
   rx_solve *rx=(&rx_global);
   rx->subjects = inds_global;
   rx->keys = NULL;
+  rx->nradix=NULL;
   rx->TMP=NULL;
   rx->UGRP=NULL;
   rx->ordId = NULL;
@@ -431,10 +438,8 @@ extern "C" void calcMtime(int solveid, double *mtime){
 }
 
 static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double time){
-  if (cmt == ind->linCmt) return ind->lag + time;
-  if (cmt == ind->linCmt+1) return ind->lag2 +time;
   double ret = LAG(id, cmt, time);
-  if (ISNA(ret)){
+  if (ISNA(ret)) {
     rx_solving_options *op = &op_global;
     op->badSolve=1;
     op->naTime = 1;
@@ -443,8 +448,6 @@ static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double
 }
 
 static inline double getAmt(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y){
-  if (cmt == ind->linCmt) return ind->f*dose;
-  if (cmt == ind->linCmt+1) return ind->f2*dose;
   double ret = AMT(id, cmt, dose, t, y);
   if (ISNA(ret)){
     rx_solving_options *op = &op_global;
@@ -455,8 +458,6 @@ static inline double getAmt(rx_solving_options_ind *ind, int id, int cmt, double
 }
 
 static inline double getRate(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
-  if (cmt == ind->linCmt) return ind->rate;
-  if (cmt == ind->linCmt+1) return ind->rate;
   double ret = RATE(id, cmt, dose, t);
   if (ISNA(ret)){
     rx_solving_options *op = &op_global;
@@ -467,8 +468,6 @@ static inline double getRate(rx_solving_options_ind *ind, int id, int cmt, doubl
 }
 
 static inline double getDur(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
-  if (cmt == ind->linCmt) return ind->dur;
-  if (cmt == ind->linCmt+1) return ind->dur;
   double ret = DUR(id, cmt, dose, t);
   if (ISNA(ret)){
     rx_solving_options *op = &op_global;
@@ -476,6 +475,33 @@ static inline double getDur(rx_solving_options_ind *ind, int id, int cmt, double
     op->naTime = 1;
   }
   return ret;
+}
+
+static inline void postSolve(int *idid, int *rc, int *i, double *yp, const char** err_msg, bool doPrint,
+			     rx_solving_options_ind *ind, rx_solving_options *op, rx_solve *rx) {
+  if (*idid <= 0) {
+    if (err_msg != NULL) {
+      RSprintf("IDID=%d, %s\n", *idid, err_msg[-*idid-1]);
+    }
+    *rc = *idid;
+    badSolveExit(*i);
+  } else if (ind->err){
+    if (doPrint) printErr(ind->err, ind->id);
+    /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
+    *rc = -2019;
+    // Bad Solve => NA
+    badSolveExit(*i);
+  } else {
+    if (R_FINITE(rx->stateTrimU)){
+      double top=fabs(rx->stateTrimU);
+      for (int j = op->neq; j--;) yp[j]= min(top,yp[j]);
+    }
+    if (R_FINITE(rx->stateTrimL)){
+      double bottom=rx->stateTrimL;
+      for (int j = op->neq; j--;) yp[j]= max(bottom,yp[j]);
+    }
+  }
+  ind->slvr_counter[0]++;
 }
 
 int global_jt = 2;
@@ -645,6 +671,7 @@ void updateRate(int idx, rx_solving_options_ind *ind, double *yp){
       // error rate is zero/negative
     }
   }
+  ind->idx=oldIdx;
 }
 
 static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
@@ -702,6 +729,7 @@ static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
       }
     }
   }
+  ind->idx=oldIdx;
 }
 
 extern "C" double getTime(int idx, rx_solving_options_ind *ind){
@@ -722,9 +750,9 @@ extern "C" double getTime(int idx, rx_solving_options_ind *ind){
     // Before solving the solve will be zero
     // After solving the yp will contain the solved values
     if (ind->idx < idx){
-      yp = ind->solve + op->neq*ind->idx;
+      yp = getSolve(ind->idx);
     } else {
-      yp = ind->solve + op->neq*idx;
+      yp = getSolve(idx);
     }
     switch(ind->whI){
     case 6:
@@ -883,6 +911,7 @@ extern "C" double getTime(int idx, rx_solving_options_ind *ind){
 
 extern "C" void radix_r(const int from, const int to, const int radix,
 			rx_solving_options_ind *ind, rx_solve *rx);
+extern "C" void calcNradix(int *nbyte, int *nradix, int *spare, uint64_t *maxD, uint64_t *minD);
 
 extern "C" uint64_t dtwiddle(const void *p, int i);
 // Adapted from 
@@ -899,31 +928,56 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
   // Reset times for infusion
   int wh, cmt, wh100, whI, wh0;
   int doSort = 1;
+  double *time = new double[ind->n_all_times];
+  uint64_t *all = new uint64_t[ind->n_all_times];
+  uint64_t minD, maxD;
+  ind->ixds = 0;
   for (int i = 0; i < ind->n_all_times; i++){
     ind->ix[i] = i;
-    if (i > ind->idx) {
+    ind->idx = i;
+    if (!isObs(ind->evid[i])) {
       getWh(ind->evid[i], &wh, &cmt, &wh100, &whI, &wh0);
       if (whI == 6 || whI == 7) {
-	// Reset only if not calculated
+	// Reset on every sort (since sorted only once)
 	ind->all_times[i] = ind->all_times[i-1];
       }
+      time[i] = getTime(ind->ix[i], ind);
+      ind->ixds++;
+    } else {
+      time[i] = getTime(ind->ix[i], ind);
     }
-    // Note this is always ascending so we subtract off the minimum
-    double time[1];
-    time[0]       = getTime(ind->ix[i], ind);
+    all[i]  = dtwiddle(time, i);
+    if (i == 0){
+      minD = maxD = all[0];
+    } else if (all[i] < minD){
+      minD = all[i];
+    } else if (all[i] > maxD) {
+      maxD = all[i];
+    }
     if (op->naTime == 1){
       doSort=0;
       break;
     }
-    uint64_t elem = dtwiddle(time, 0) - rx->minD;
-    elem <<= rx->spare;
-    for (int b=rx->nbyte-1; b>0; b--) {
-      key[b][i] = (uint8_t)(elem & 0xff);
-      elem >>= 8;
-    }
-    key[0][i] |= (uint8_t)(elem & 0xff);
   }
-  if (doSort) radix_r(0, ind->n_all_times-1, 0, ind, rx);
+  if (doSort){
+    int nradix=0, nbyte=0, spare=0;
+    calcNradix(&nbyte, &nradix, &spare, &maxD, &minD);
+    rx->nradix[core] = nradix;
+    // Allocate more space if needed
+    for (int b = 0; b < nbyte; b++){
+      if (key[b] == NULL) key[b] = (uint8_t *)calloc(rx->maxAllTimes+1, sizeof(uint8_t));
+    }
+    for (int i = 0; i < ind->n_all_times; i++) {
+      uint64_t elem = all[i] - minD;
+      elem <<= spare;
+      for (int b= nbyte-1; b>0; b--) {
+	key[b][i] = (uint8_t)(elem & 0xff);
+	elem >>= 8;
+      }
+      key[0][i] |= (uint8_t)(elem & 0xff);    
+    }
+    radix_r(0, ind->n_all_times-1, 0, ind, rx);
+  }
 }
 
 extern "C" int syncIdx(rx_solving_options_ind *ind){
@@ -998,7 +1052,7 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
   ind->id=solveid;
   ind->cacheME=0;
   // neq[0] = op->neq
-  for (int j = op->neq; j--;) {
+  for (int j = (op->neq + op->extraCmt); j--;) {
     ind->InfusionRate[j] = 0;
     ind->on[j] = 1;
     ind->tlastS[j] = NA_REAL;
@@ -1022,6 +1076,7 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
       if (op->badSolve) return 0;
     }
   }
+  ind->ixds=ind->idx=0;
   return 1;
 }
 
@@ -1035,143 +1090,150 @@ static inline int handle_evid(int evid, int neq,
 			      double xout, int id,
 			      rx_solving_options_ind *ind){
   if (isObs(evid)) return 0;
-  int wh = evid, cmt, foundBad, j;
+  int cmt, foundBad, j;
   double tmp;
-  if (wh) {
-    getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
-    if (ind->wh0 == 40){
-      ind->ixds++;
+  getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
+  handleTlastInline(&xout, ind);
+  if (ind->wh0 == 40){
+    ind->ixds++;
+    return 1;
+  }
+  /* wh100 = ind->wh100; */
+  cmt = ind->cmt;
+  if (cmt<0) {
+    if (!(ind->err & 65536)){
+      ind->err += 65536;
+      /* Rprintf("Supplied an invalid EVID (EVID=%d; cmt %d)", evid, cmt); */
+    }
+    return 0;
+  }
+  if (cmt >= neq){
+    foundBad = 0;
+    for (j = 0; j < ind->nBadDose; j++){
+      if (BadDose[j] == cmt+1){
+	foundBad=1;
+	break;
+      }
+    }
+    if (!foundBad){
+      BadDose[ind->nBadDose]=cmt+1;
+      ind->nBadDose++;
+    }
+  } else {
+    rx_solving_options *op = &op_global;
+    if (syncIdx(ind) == 0) return 0;
+    if (ind->wh0 == 30){
+      yp[cmt]=op_global.inits[cmt];
+      InfusionRate[cmt] = 0;
+      ind->cacheME=0;
+      ind->on[cmt] = 0;
       return 1;
     }
-    /* wh100 = ind->wh100; */
-    wh = ind->wh;
-    cmt = ind->cmt;
-    if (cmt<0) {
-      if (!(ind->err & 65536)){
-	ind->err += 65536;
-	/* Rprintf("Supplied an invalid EVID (EVID=%d; cmt %d)", evid, cmt); */
-      }
-      return 0;
+    if (!ind->doSS && ind->wh0 == 20 && cmt < op->neq){
+      // Save for adding at the end; Only for ODE systems
+      memcpy(ind->solveSave, yp, op->neq*sizeof(double));
     }
-    if (cmt >= neq){
-      foundBad = 0;
-      for (j = 0; j < ind->nBadDose; j++){
-	if (BadDose[j] == cmt+1){
-	  foundBad=1;
-	  break;
+    switch(ind->whI){
+    case 9: // modeled rate.
+    case 8: // modeled duration.
+      // Rate already calculated and saved in the next dose record
+      ind->on[cmt] = 1;
+      ind->cacheME=0;
+      InfusionRate[cmt] -= dose[ind->ixds+1];
+      if (ind->wh0 == 20 && getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) != dose[ind->ixds]){
+	if (!(ind->err & 1048576)){
+	  ind->err += 1048576;
+	}
+	return 0;
+	/* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
+      }
+      break;
+    case 7: // End modeled rate
+    case 6: // end modeled duration
+      // In this case re-sort is not going to be assessed
+      // If cmt is off, don't remove rate....
+      // Probably should throw an error if the infusion rate is on still.
+      InfusionRate[cmt] += dose[ind->ixds]*((double)(ind->on[cmt]));
+      ind->cacheME=0;
+      if (ind->wh0 == 20 &&
+	  getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) !=
+	  dose[ind->ixds]){
+	/* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
+	if (!(ind->err & 2097152)){
+	  ind->err += 2097152;
+	}
+	return 0;
+      }
+      break;
+    case 2:
+      // In this case bio-availability changes the rate, but the
+      // duration remains constant.  rate = amt/dur
+      ind->on[cmt] = 1;
+      tmp = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);
+      InfusionRate[cmt] += tmp;
+      ind->cacheME=0;
+      if (ind->wh0 == 20 && tmp != dose[ind->ixds]){
+	/* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
+	if (!(ind->err & 4194304)){
+	  ind->err += 4194304;
+	}
+	return 0;
+      }
+      break;
+    case 1:
+      ind->on[cmt] = 1;
+      InfusionRate[cmt] += dose[ind->ixds];
+      ind->cacheME=0;
+      if (ind->wh0 == 20 && dose[ind->ixds] > 0 && getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) != dose[ind->ixds]){
+	/* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
+	if (!(ind->err & 4194304)){
+	  ind->err += 4194304;
 	}
       }
-      if (!foundBad){
-	BadDose[ind->nBadDose]=cmt+1;
-	ind->nBadDose++;
-      }
-    } else {
-      if (syncIdx(ind) == 0) return 0;
-      if (ind->wh0 == 30){
-	yp[cmt]=op_global.inits[cmt];
-	InfusionRate[cmt] = 0;
-	ind->cacheME=0;
-	ind->on[cmt] = 0;
-	return 1;
-      }
-      if (!ind->doSS && ind->wh0 == 20){
-	// Save for adding at the end
-	memcpy(ind->solveSave, yp, neq*sizeof(double));
-      }
-      switch(ind->whI){
-      case 9: // modeled rate.
-      case 8: // modeled duration.
-	// Rate already calculated and saved in the next dose record
+      break;
+    case 4: // replace
+      ind->on[cmt] = 1;
+      ind->podo = 0;
+      handleTlastInline(&xout, ind);
+      yp[cmt] = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);     //dosing before obs
+      break;
+    case 5: //multiply
+      ind->on[cmt] = 1;
+      ind->podo = 0;
+      handleTlastInline(&xout, ind);
+      yp[cmt] *= getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);     //dosing before obs
+      break;
+    case 0:
+      if (do_transit_abs) {
 	ind->on[cmt] = 1;
-	ind->cacheME=0;
-	InfusionRate[cmt] -= dose[ind->ixds+1];
-	if (ind->wh0 == 20 && getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) != dose[ind->ixds]){
-	  if (!(ind->err & 1048576)){
-	    ind->err += 1048576;
-	  }
-	  return 0;
-	  /* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
-	}
-	break;
-      case 7: // End modeled rate
-      case 6: // end modeled duration
-	// In this case re-sort is not going to be assessed
-	// If cmt is off, don't remove rate....
-	// Probably should throw an error if the infusion rate is on still.
-	InfusionRate[cmt] += dose[ind->ixds]*((double)(ind->on[cmt]));
-	ind->cacheME=0;
-	if (ind->wh0 == 20 &&
-	    getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) !=
-	    dose[ind->ixds]){
-	  /* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
-	  if (!(ind->err & 2097152)){
-	    ind->err += 2097152;
-	  }
-	  return 0;
-	}
-	break;
-      case 2:
-	// In this case bio-availability changes the rate, but the
-	// duration remains constant.  rate = amt/dur
-	ind->on[cmt] = 1;
-	tmp = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);
-	InfusionRate[cmt] += tmp;
-	ind->cacheME=0;
-	if (ind->wh0 == 20 && tmp != dose[ind->ixds]){
-	  /* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
-	  if (!(ind->err & 4194304)){
-	    ind->err += 4194304;
-	  }
-	  return 0;
-	}
-	break;
-      case 1:
-	ind->on[cmt] = 1;
-	InfusionRate[cmt] += dose[ind->ixds];
-	ind->cacheME=0;
-	if (ind->wh0 == 20 && dose[ind->ixds] > 0 && getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) != dose[ind->ixds]){
-	  /* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
-	  if (!(ind->err & 4194304)){
-	    ind->err += 4194304;
-	  }
-	}
-	break;
-      case 4: // replace
-	ind->on[cmt] = 1;
-	ind->podo = 0;
-	handleTlastInline(&xout, ind);
-	yp[cmt] = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);     //dosing before obs
-	break;
-      case 5: //multiply
-	ind->on[cmt] = 1;
-	ind->podo = 0;
-	handleTlastInline(&xout, ind);
-	yp[cmt] *= getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);     //dosing before obs
-	break;
-      case 0:
-	if (do_transit_abs) {
-	  ind->on[cmt] = 1;
-	  if (ind->wh0 == 20){
-	    tmp = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);
-	    ind->podo = tmp;
-	  } else {
-	    ind->podo = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);
-	  }
-	  handleTlastInline(&xout, ind);
+	if (ind->wh0 == 20){
+	  tmp = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);
+	  ind->podo = tmp;
 	} else {
-	  ind->on[cmt] = 1;
-	  ind->podo = 0;
-	  handleTlastInline(&xout, ind);
-	  yp[cmt] += getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);     //dosing before obs
+	  ind->podo = getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);
 	}
+	handleTlastInline(&xout, ind);
+      } else {
+	ind->on[cmt] = 1;
+	ind->podo = 0;
+	handleTlastInline(&xout, ind);
+	yp[cmt] += getAmt(ind, id, cmt, dose[ind->ixds], xout, yp);     //dosing before obs
       }
-      /* istate = 1; */
-      ind->ixds++;
-      /* xp = xout; */
-      return 1;
     }
+    /* istate = 1; */
+    ind->ixds++;
+    /* xp = xout; */
+    return 1;
   }
   return 0;
+}
+
+extern "C" int handle_evidL(int evid, double *yp, double xout, int id, rx_solving_options_ind *ind){
+  rx_solving_options *op = &op_global;
+  // In this case dosing to the extra compartments is OK so add it
+  return handle_evid(evid,
+		     op->neq + op->extraCmt, ind->BadDose, ind->InfusionRate, ind->dose, yp, 0,
+		     xout, id, ind);
 }
 
 static void chkIntFn(void *dummy) {
@@ -1223,16 +1285,12 @@ void solveSS_1(int *neq,
       /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
       ind->rc[0] = idid;
       // Bad Solve => NA
-      for (int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-      op->badSolve = 1;
-      *i = ind->n_all_times-1; // Get out of here!
+      badSolveExit(*i);
     } else if (ind->err){
       /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
       ind->rc[0] = idid;
       // Bad Solve => NA
-      for (int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-      op->badSolve = 1;
-      *i = ind->n_all_times-1; // Get out of here!
+      badSolveExit(*i);
     }
     break;
   case 2:
@@ -1477,9 +1535,7 @@ void handleSS(int *neq,
 	canBreak=1;
 	if (j <= op->minSS -1){
 	  if (ind->rc[0]== -2019){
-	    for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	    op->badSolve = 1;
-	    *i = ind->n_all_times-1;
+	    badSolveExit(*i);
 	    break;
 	  }
  	  for (k = op->neq; k--;) {
@@ -1511,14 +1567,10 @@ void handleSS(int *neq,
       if (dur >= ind->ii[ind->ixds]){
 	ind->wrongSSDur=1;
 	// Bad Solve => NA
-	for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	op->badSolve = 1;
-	*i = nx-1; // Get out of here!
+	badSolveExit(*i);
       } else if (ind->err){
 	printErr(ind->err, ind->id);
-	for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	op->badSolve = 1;
-	*i = nx-1; // Get out of here!
+	badSolveExit(*i);
       } else {
 	// Infusion
 	for (j = 0; j < op->maxSS; j++){
@@ -1543,9 +1595,7 @@ void handleSS(int *neq,
 		      op->do_transit_abs, xout+dur, neq[1], ind);
 	  if (j <= op->minSS -1){
 	    if (ind->rc[0]== -2019){
-	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	      op->badSolve = 1;
-	      *i = ind->n_all_times-1;
+	      badSolveExit(*i);
 	      break;
 	    }
 	    for (k = neq[0]; k--;) {
@@ -1555,9 +1605,7 @@ void handleSS(int *neq,
 	  } else if (j >= op->minSS){
 	    if (ind->rc[0]== -2019){
 	      if (op->strictSS){
-                for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-                op->badSolve = 1;
-                *i = ind->n_all_times-1;
+		badSolveExit(*i);
               } else {
                 for (k = neq[0]; k--;){
                   yp[k] = ind->solveLast[k];
@@ -1578,9 +1626,7 @@ void handleSS(int *neq,
 		    xout2, xp2, id, i, nx, istate, op, ind, u_inis, ctx);
 	  if (j <= op->minSS -1){
 	    if (ind->rc[0]== -2019){
-	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	      op->badSolve = 1;
-	      *i = ind->n_all_times-1;
+	      badSolveExit(*i);
 	      break;
 	    }
 	    for (k = neq[0]; k--;){
@@ -1590,9 +1636,7 @@ void handleSS(int *neq,
 	  } else if (j >= op->minSS){
 	    if (ind->rc[0]== -2019){
 	      if (op->strictSS){
-		for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-                op->badSolve = 1;
-                *i = ind->n_all_times-1;
+		badSolveExit(*i);
               } else {
 		for (k = neq[0]; k--;){
                   yp[k] = ind->solveLast2[k];
@@ -1652,7 +1696,6 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   int *BadDose;
   double *InfusionRate;
   double *dose;
-  double *ret;
   double xout, xoutp;
   int *rc;
   double *yp;
@@ -1665,7 +1708,6 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
   dose = ind->dose;
-  ret = ind->solve;
   x = ind->all_times;
   rc= ind->rc;
   double xp = x[0];
@@ -1674,42 +1716,17 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   for(i=0; i<nx; i++) {
     ind->idx=i;
     xout = getTime(ind->ix[i], ind);
-    yp = ret+neq[0]*i;
+    yp = getSolve(i);
     if(ind->evid[ind->ix[i]] != 3 && xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
       if (ind->err){
 	*rc = -1000;
 	// Bad Solve => NA
-	for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	op->badSolve = 1;
-	i = nx-1; // Get out of here!
+	badSolveExit(i);
       } else {
 	idid = indLin(solveid, op, xoutp, yp, xout, ind->InfusionRate, ind->on, 
 		      ME, IndF);
 	xoutp=xout;
-	if (idid <= 0) {
-	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
-	  *rc = idid;
-	  // Bad Solve => NA
-	  for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
-	} else if (ind->err){
-	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
-	  *rc = idid;
-	  // Bad Solve => NA
-	  for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
-	} else {
-	  if (R_FINITE(rx->stateTrimU)){
-	    double top=fabs(rx->stateTrimU);
-	    for (unsigned int j = neq[0]; j--;) yp[j]= min(top,yp[j]);
-	  }
-	  if (R_FINITE(rx->stateTrimL)){
-	    double bottom=rx->stateTrimL;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= max(bottom,yp[j]);
-	  }
-	}
+	postSolve(&idid, rc, &i, yp, NULL, true, ind, op, rx);
       }
     }
     ind->_newind = 2;
@@ -1731,15 +1748,14 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
 	handleSS(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs, xout,
 		 xp, ind->id, &i, nx, &idid, op, ind, u_inis, NULL);
 	if (ind->wh0 == 30){
-	  ret[ind->cmt] = inits[ind->cmt];
+	  yp[ind->cmt] = inits[ind->cmt];
 	}
 	if (rx->istateReset) idid = 1;
 	xp = xout;
       }
-      calc_lhs(neq[1], xout, ret+i*neq[0], ind->lhs);
-      if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
+      calc_lhs(neq[1], xout, getSolve(i), ind->lhs);
+      if (i+1 != nx) memcpy(getSolve(i+1), yp, neq[0]*sizeof(double));
       ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
-      /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
     }
   }
   ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
@@ -1811,7 +1827,6 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   int *BadDose;
   double *InfusionRate;
   double *dose;
-  double *ret;
   double xout;
   int *rc;
   double *yp;
@@ -1831,48 +1846,22 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
   dose = ind->dose;
-  ret = ind->solve;
   x = ind->all_times;
   rc= ind->rc;
   double xp = x[0];
   unsigned int j;
   for(i=0; i<nx; i++) {
     ind->idx=i;
-    yp = ret+neq[0]*i;
+    yp = getSolve(i);
     xout = getTime(ind->ix[i], ind);
     if(ind->evid[ind->ix[i]] != 3 && xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
       if (ind->err){
 	*rc = -1000;
 	// Bad Solve => NA
-	for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	op->badSolve = 1;
-	i = nx-1; // Get out of here!
+	badSolveExit(i);
       } else {
 	lsoda(&ctx, yp, &xp, xout);
-	if (ctx.state <= 0) {
-	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
-	  *rc = ctx.state;
-	  // Bad Solve => NA
-	  for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
-	} else if (ind->err){
-	  /* RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
-	  *rc = ctx.state;
-	  // Bad Solve => NA
-	  for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
-	} else {
-	  if (R_FINITE(rx->stateTrimU)){
-	    double top=rx->stateTrimU;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= min(top,yp[j]);
-	  }
-	  if (R_FINITE(rx->stateTrimL)){
-	    double bottom=rx->stateTrimL;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= max(bottom,yp[j]);
-	  }
-	}
+	postSolve(&(ctx.state), rc, &i, yp, NULL, false, ind, op, rx);
       }
     }
     ind->_newind = 2;
@@ -1894,13 +1883,13 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
 	handleSS(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs, xout,
 		 xp, ind->id, &i, nx, &ctx.state, op, ind, u_inis, &ctx);
 	if (ind->wh0 == 30){
-	  ret[ind->cmt] = inits[ind->cmt];
+	  yp[ind->cmt] = inits[ind->cmt];
 	}
 	if (rx->istateReset) ctx.state = 1;
 	xp = xout;
       }
-      calc_lhs(neq[1], xout, ret+i*neq[0], ind->lhs);
-      if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
+      calc_lhs(neq[1], xout, getSolve(i), ind->lhs);
+      if (i+1 != nx) memcpy(getSolve(i+1), yp, neq[0]*sizeof(double));
       ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
     }
@@ -2128,42 +2117,17 @@ extern "C" void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, in
   unsigned int j;
   for(i=0; i < ind->n_all_times; i++) {
     ind->idx=i;
-    yp   = ind->solve+neq[0]*i;
+    yp   = getSolve(i);
     xout = getTime(ind->ix[i], ind);
     if(ind->evid[ind->ix[i]] != 3 && xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp))) {
       if (ind->err){
 	ind->rc[0] = -1000;
 	// Bad Solve => NA
-	for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	op->badSolve = 1;
-	i = ind->n_all_times-1; // Get out of here!
+	badSolveExit(i);
       } else {
 	F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &gitol, &(op->RTOL), &(op->ATOL), &gitask,
 			 &istate, &giopt, rwork, &lrw, iwork, &liw, jdum, &jt);
-	if (istate <= 0) {
-	  RSprintf("IDID=%d, %s\n", istate, err_msg_ls[-(istate)-1]);
-	  ind->rc[0] = istate;
-	  // Bad Solve => NA
-	  for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	  op->badSolve = 1;
-	  i = ind->n_all_times-1; // Get out of here!
-	} else if (ind->err){
-	  ind->rc[0] = -1000;
-	  // Bad Solve => NA
-	  for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	  op->badSolve = 1;
-	  i = ind->n_all_times-1; // Get out of here!
-	} else {
-	  if (R_FINITE(rx->stateTrimU)){
-	    double top=rx->stateTrimU;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= min(top,yp[j]);
-	  }
-	  if (R_FINITE(rx->stateTrimL)){
-	    double bottom=rx->stateTrimL;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= max(bottom,yp[j]);
-	  }
-	}
-	ind->slvr_counter[0]++;
+	postSolve(&istate, ind->rc, &i, yp, err_msg_ls, true, ind, op, rx);
 	//dadt_counter = 0;
       }
     }
@@ -2191,8 +2155,8 @@ extern "C" void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, in
 	xp = xout;
       }
       // Copy to next solve so when assigned to yp=ind->solve[neq[0]*i]; it will be the prior values
-      calc_lhs(neq[1], xout, ind->solve+i*neq[0], ind->lhs);
-      if (i+1 != ind->n_all_times) memcpy(ind->solve+neq[0]*(i+1), yp, neq[0]*sizeof(double));
+      calc_lhs(neq[1], xout, getSolve(i), ind->lhs);
+      if (i+1 != ind->n_all_times) memcpy(getSolve(i+1), yp, neq[0]*sizeof(double));
     }
   }
   ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
@@ -2283,7 +2247,7 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
   int *BadDose;
   double *InfusionRate;
   double *dose;
-  double *ret, *inits;
+  double *inits;
   int *rc;
   int nx;
   neq[1] = solveid;
@@ -2295,14 +2259,13 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
   dose = ind->dose;
-  ret = ind->solve;
   x = ind->all_times;
   rc= ind->rc;
   double xp = x[0];
   unsigned int j;
   for(i=0; i<nx; i++) {
     ind->idx=i;
-    yp = &ret[neq[0]*i];
+    yp = getSolve(i);
     xout = getTime(ind->ix[i], ind);
     if (global_debug){
       RSprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
@@ -2313,9 +2276,7 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
 	  printErr(ind->err, ind->id);
 	  *rc = idid;
 	  // Bad Solve => NA
-	  for (j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
+	  badSolveExit(i);
 	} else {
 	  idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
 			c_dydt,       /* function computing the value of f(x,y) */
@@ -2343,32 +2304,8 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
 			0                       /* declared length of icon */
 			);
 	}
-        if (idid<0) {
-	  RSprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
-	  *rc = idid;
-	  // Bad Solve => NA
-	  for (j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
-	} else if (ind->err){
-	  printErr(ind->err, ind->id);
-	  *rc = idid;
-	  // Bad Solve => NA
-	  for (j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
-	  op->badSolve = 1;
-	  i = nx-1; // Get out of here!
-	} else {
-	  if (R_FINITE(rx->stateTrimU)){
-	    double top=rx->stateTrimU;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= min(top,yp[j]);
-	  }
-	  if (R_FINITE(rx->stateTrimL)){
-	    double bottom=rx->stateTrimL;
-	    for (unsigned int j = neq[0]; j--;) yp[j]= max(bottom,yp[j]);
-	  }
-	}
+	postSolve(&idid, rc, &i, yp, err_msg, true, ind, op, rx);
         xp = xRead();
-        ind->slvr_counter[0]++;
         //dadt_counter = 0;
       }
     ind->_newind = 1;
@@ -2393,13 +2330,13 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
 	handleSS(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs, xout,
 		 xp, ind->id, &i, nx, &istate, op, ind, u_inis, &ctx);
 	if (ind->wh0 == 30){
-	  ret[ind->cmt] = inits[ind->cmt];
+	  yp[ind->cmt] = inits[ind->cmt];
 	}
 	xp = xout;
       }
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
-      calc_lhs(neq[1], xout, ret+i*neq[0], ind->lhs);
-      if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
+      calc_lhs(neq[1], xout, getSolve(i), ind->lhs);
+      if (i+1 != nx) memcpy(getSolve(i+1), getSolve(i), neq[0]*sizeof(double));
     }
   }
   ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
@@ -2538,44 +2475,6 @@ extern "C" double rxLhsP(int i, rx_solve *rx, unsigned int id){
   }
   return 0;
 }
-extern "C" void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind = &(rx->subjects[id]);
-  rx_solving_options *op = &op_global;
-  double *solve, *lhs;
-  double time;
-  int isDose;
-  solve = ind->solve;
-  lhs = ind->lhs;
-  if (i < ind->n_all_times){
-    ind->idx=i;
-    time = getTime(ind->ix[i], ind);
-    ind->idx=i;
-    isDose = !isObs(ind->evid[ind->ix[i]]);
-    if (isDose) {
-      getWh(ind->evid[ind->ix[i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
-      handleTlastInline(&time, ind);
-    }
-    /* if (ind->evid[ind->ix[i]]) REprintf("e[%d;%d]: %d %f\n", id, i, ind->evid[ind->ix[i]], time); */
-    calc_lhs((int)id, time, solve+i*op->neq, lhs);
-    isDose = !isObs(ind->evid[ind->ix[i]]);// Recalculate in case shifted
-    if (isDose){
-      ind->ixds++;
-    }
-  } else {
-    rxSolveFreeC();
-    Rf_errorcall(R_NilValue, "LHS cannot be calculated (%dth entry).",i);
-  }
-}
-extern "C" void setExtraCmtP(int xtra, rx_solve *rx){
-  rx_solving_options *op = &op_global;
-  if (xtra > op->extraCmt){
-    op->extraCmt = xtra;
-  }
-}
-
-void setExtraCmt(int xtra){
-  setExtraCmtP(xtra, _globalRx);
-}
 
 extern "C" SEXP rxStateNames(char *ptr);
 extern "C" SEXP rxLhsNames(char *ptr);
@@ -2667,10 +2566,8 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   double *dfp;
   int *dfi;
   int ii=0, jj = 0, ntimes;
-  double *solve;
   int nBadDose;
   int *BadDose;
-  int extraCmt = op->extraCmt;
   int *svar = op->svar;
   int kk = 0;
   int wh, cmt, wh100, whI, wh0;
@@ -2814,7 +2711,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
       ind = &(rx->subjects[neq[1]]);
       iniSubject(neq[1], 1, ind, op, rx, update_inis);
       ntimes = ind->n_all_times;
-      solve =  ind->solve;
       par_ptr = ind->par_ptr;
       dose = ind->dose;
       di = 0;
@@ -2823,13 +2719,14 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
       }
       for (i = 0; i < ntimes; i++){
 	ind->idx = i;
-        evid = ind->evid[ind->ix[i]];
+	double curT = getTime(ind->ix[ind->idx], ind);
+        evid = ind->evid[ind->ix[ind->idx]];
 	if (evid == 9) continue;
+	if (!isObs(evid)) handleTlastInline(&curT, ind);
 	if (nlhs){
-	  rxCalcLhsP(i, rx, neq[1]);
-	  // In case the evid/time has been re-ordered
-	  evid = ind->evid[ind->ix[i]]; 
+	  calc_lhs(neq[1], curT, getSolve(i), ind->lhs);
 	}
+	if (evid == 9) continue;
 	if (subsetEvid == 1){
 	  if (isObs(evid) && evid >= 10) continue;
 	  if (isDose(evid)){
@@ -2845,7 +2742,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
 	    }
 	  }
 	}
-	double curT = getTime(ind->ix[i], ind);
+	
 	if (isDose(evid)){
 	  getWh(ind->evid[ind->ix[i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
 	  handleTlastInline(&curT, ind);
@@ -3147,7 +3044,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
             for (j = 0; j < neq[0]; j++){
               if (!rmState[j]){
                 dfp = REAL(VECTOR_ELT(df, jj));
-                dfp[ii] = solve[j+i*neq[0]] / scale[j];
+                dfp[ii] = (getSolve(i))[j] / scale[j];
                 jj++;
               }
             }
@@ -3232,7 +3129,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
       BadDose = ind->BadDose;
       if (nBadDose && csim == 0){
 	for (i = 0; i < nBadDose; i++){
-	  if (BadDose[i] > extraCmt){
+	  if (BadDose[i] > op->extraCmt){
 	    warning(_("dose to compartment %d ignored (not in system; 'id=%d')"), BadDose[i],csub+1);
 	  }
 	}
@@ -3504,7 +3401,6 @@ extern "C" void rxSingleSolve(int subid, double *_theta, double *timep,
   //
   op->inits   = initsp;
   op->scale = scale;
-  op->extraCmt = 0;
   rx->nsub =1;
   rx->nsim =1;
   ind->_newind=1;

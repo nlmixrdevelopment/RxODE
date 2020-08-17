@@ -10,15 +10,10 @@
 #else
 #define _(String) (String)
 #endif
+#define getAdvan(idx) ind->solve+(op->nlin+op->neq)*(idx) + op->neq
 
 extern "C" int syncIdx(rx_solving_options_ind *ind);
 
-extern "C" void sortIfNeeded(rx_solve *rx, rx_solving_options_ind *ind, unsigned int id,
-			     int *linCmt,
-			     double *d_tlag, double *d_tlag2,
-			     double *d_F, double *d_F2,
-			     double *d_rate1, double *d_dur1,
-			     double *d_rate2, double *d_dur2);
 
 extern "C" double getTime(int idx, rx_solving_options_ind *ind);
 
@@ -2094,6 +2089,7 @@ namespace stan {
 	      } break;
 	      case 8: // Duration is modeled
 	      case 9: { // Rate is modeled
+		amt = -ind->dose[ind->ixds+1];
 		if (whI == 9) {
 		  // cmtOff = 0
 		  if (cmtOff == 0)  {
@@ -2183,6 +2179,7 @@ namespace stan {
 	      extraAdvan=0;
 	    }
 	    // dosing to cmt
+	    // use handle_evid here
 	    amt = ind->dose[ind->ixds];
 	    switch (whI){
 	    case 0: { // Bolus dose
@@ -2199,53 +2196,23 @@ namespace stan {
 	    case 5: {
 	      doMultiply= cmtOff+1;
 	    } break;
-	    case 9: { // modeled rate.
-	      // These are specified in the linCmt
-	      if (cmtOff == 0)  {
-		// Infusion to central compartment with oral dosing
-		rateAdjust = d_rate1;
-	      } else {
-		// Infusion to central compartment or depot
-		rateAdjust = d_rate2;
-	      }
-	      // Save rate turn off in next dose
-	      doRate = cmtOff+1;
-	    } break;
+	    case 9: 
 	    case 8: { // modeled duration. 
 	      //InfusionRate[cmt] -= dose[ind->ixds+1];
-	      if (cmtOff == 0) {
-		// With oral dosing infusion to central compartment
-		rateAdjust = amt/d_dur1*d_F;
-	      } else {
-		// Infusion to compartment #1 or depot
-		rateAdjust = amt/d_dur2*d_F2;
-	      }
+	      rateAdjust = -ind->dose[ind->ixds+1];
 	      doRate = cmtOff+1;
 	    } break;
+	    case 6: // end modeled duration
 	    case 7:{ // End modeled rate
-	      if (cmtOff == 0)  {
-		// Infusion to central compartment with oral dosing
-		rateAdjust = -d_rate1;
-	      } else {
-		// Infusion to central compartment or depot
-		rateAdjust = -d_rate2;
-	      }
+	      // Infusion to central compartment with oral dosing
+	      rateAdjust = amt;
 	      doRate = cmtOff+1;
 	    } break;
 	    case 1: { // Begin infusion
 	      rateAdjust = amt; // Amt is negative when turning off
 	      doRate = cmtOff+1;
 	    } break;
-	    case 6: { // end modeled duration
-	      if (cmtOff == 0) {
-		// With oral dosing infusion to central compartment
-		rateAdjust = -amt/d_dur1*d_F;
-	      } else {
-		// Infusion to compartment #1 or depot
-		rateAdjust = -amt/d_dur2*d_F2;
-	      }
-	      doRate = cmtOff+1;
-	    } break;
+	    
 	    case 2: {
 	      // In this case bio-availability changes the rate, but the duration remains constant.
 	      // rate = amt/dur
@@ -2304,7 +2271,7 @@ namespace stan {
       ind->ixds = oldIxds;
       ind->idx = oldIdx;
       // Save A and rate
-      double *Ad = ind->linCmtAdvan+(op->nlin)*(idxF);
+      double *Ad = getAdvan(idxF);
       T tmpD;
       for (int i = ncmt+oral0; i--;){
 	tmpD = A(i, 0);
@@ -2407,8 +2374,6 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
   // Get  Alast
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   int idx = ind->idx;
-  sortIfNeeded(rx, ind, id, &linCmt, &dd_tlag, &dd_tlag2, &dd_F, &dd_F2,
-	       &dd_rate, &dd_dur, &dd_rate2, &dd_dur2);
   rx_solving_options *op = rx->op;
   int oral0;
   oral0 = (dd_ka != 0) ? 1 : 0;
@@ -2422,7 +2387,7 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
   int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
   if (idx <= ind->solved && sameTime){
     // Pull from last solved value (cached)
-    double *A = ind->linCmtAdvan+(op->nlin)*idx;
+    double *A = getAdvan(idx);
     return linCmtBg(A, val, trans, ncmt, oral0, dd_v1, dd_p3, dd_p5);
   }
   MatrixPd params(2*ncmt + 4 + oral0*5, 1);
@@ -2451,7 +2416,7 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
   Eigen::VectorXd fx;
   Eigen::Matrix<double, -1, -1> J;
   stan::math::jacobian(f, params, fx, J);
-  double *A = ind->linCmtAdvan+(op->nlin)*idx;
+  double *A = getAdvan(idx);
   
   if (sameTime){
     // Rcpp::print(Rcpp::wrap(J));
@@ -3011,8 +2976,6 @@ extern "C" double linCmtSP(rx_solve *rx, unsigned int id, double t, int linCmt,
 			   double dd_F2, double dd_rate2, double dd_dur2){
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   int idx = ind->idx;
-  sortIfNeeded(rx, ind, id, &linCmt, &dd_tlag, &dd_tlag2, &dd_F, &dd_F2,
-	       &dd_rate, &dd_dur, &dd_rate2, &dd_dur2);
   rx_solving_options *op = rx->op;
   int oral0;
   oral0 = (dd_ka != 0) ? 1 : 0;
@@ -3026,7 +2989,7 @@ extern "C" double linCmtSP(rx_solve *rx, unsigned int id, double t, int linCmt,
   int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
   if (idx <= ind->solved && sameTime){
     // Pull from last solved value (cached)
-    double *A = ind->linCmtAdvan+(op->nlin)*idx;
+    double *A = getAdvan(idx);
     return linCmtBg(A, val, trans, ncmt, oral0, dd_v1, dd_p3, dd_p5);
   }
   MatrixPd params(2*ncmt+7,1);

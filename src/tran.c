@@ -72,6 +72,7 @@
 #define TMTIME 18
 #define TMAT0 19
 #define TMATF 20
+#define TLIN 21
 
 #define NOASSIGN _("'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'")
 #define NEEDSEMI _("lines need to end with ';'\n     to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'")
@@ -250,6 +251,8 @@ lhs symbols?
   int curPropN;
   int depotN;
   int centralN;
+  // linCmt extras
+  bool linExtra;
 } symtab;
 symtab tb;
 
@@ -1771,13 +1774,170 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  Free(v2);
 	  if (isLinB) isLinB=1;
 	  tb.linB = isLinB;
-	  xpn2 = d_get_child(xpn1, 14+isLinB);
-	  v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	  if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		 !strcmp(v2, "0.")))) {
-	    tb.hasKa=1;
+	  if (!tb.linExtra) {
+	    // 10 tlag
+	    xpn2 = d_get_child(xpn1, 10+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.")))) {
+	      // has interesting tlag
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundLag == 0) needSort+=2; // & 2 when alag
+	      foundLag=1;
+	      aType(ALAG);
+	      addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbPmDt, "_alag[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    Free(v2);
+	    // 11 f1
+	    xpn2 = d_get_child(xpn1, 11+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
+		   !strcmp(v2, "1.")))) {
+	      // has interesting f1
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundF == 0) needSort+=1;// & 1 when F
+	      foundF=1;
+	      aType(FBIO);
+	      addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    Free(v2);
+	    // 13 dur1
+	    xpn2 = d_get_child(xpn1, 13+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.")))) {
+	      // has interesting rate
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundDur == 0) needSort+=4;// & 4 when dur
+	      foundDur=1;
+	      aType(DUR);
+	      addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    Free(v2);
+	    // 12 rate1
+	    xpn2 = d_get_child(xpn1, 12+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.")))) {
+	      // has interesting rate
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundRate == 0) needSort+=8;// & 8 when rate
+	      foundRate=1;
+	      aType(RATE);
+	      addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    Free(v2);
+	    // 14 -- ka
+	    xpn2 = d_get_child(xpn1, 14+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.")))) {
+	      tb.hasKa=1;
+	    }
+	    Free(v2);
+	    // lag2 = 15
+	    xpn2 = d_get_child(xpn1, 15+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.")))) {
+	      // has interesting tlag
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundLag == 0) needSort+=2; // & 2 when alag
+	      foundLag=1;
+	      aType(ALAG);
+	      addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbPmDt, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    Free(v2);
+	    // f2 = 16 ; This is 1 instead of zero
+	    xpn2 = d_get_child(xpn1, 16+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
+		   !strcmp(v2, "1.")))) {
+	      // has interesting f1
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundF == 0) needSort+=1;// & 1 when F
+	      foundF=1;
+	      aType(FBIO);
+	      addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    Free(v2);
+	    // rate2 = 17
+	    xpn2 = d_get_child(xpn1, 17+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.")))) {
+	      // has interesting rate
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundRate == 0) needSort+=8;// & 8 when rate
+	      foundRate=1;
+	      aType(RATE);
+	      addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    Free(v2);
+	    // dur2 = 18
+	    xpn2 = d_get_child(xpn1, 18+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.")))) {
+	      // has interesting rate
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundDur == 0) needSort+=4;// & 4 when dur
+	      foundDur=1;
+	      aType(DUR);
+	      addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    Free(v2);
+	    tb.linExtra=true; // Only first call
 	  }
-	  Free(v2);
+	  aType(TLIN);
 	  if (tb.linB){
 	    xpn2 = d_get_child(xpn1, 4);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
@@ -2102,7 +2262,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    tb.curPropN=tb.de.n;
 	    if (foundLag == 0) needSort+=2; // & 2 when alag
 	    foundLag=1;
-	    aType(ALAG); 
+	    aType(ALAG);
 	  } else if (nodeHas(dur)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_dur[%d] = ", tb.de.n);
@@ -3203,9 +3363,17 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 5){
       if (foundF){
+	int nnn = tb.de.n;
+	if (tb.linCmt){
+	  if (tb.hasKa){
+	    nnn+=2;
+	  } else {
+	    nnn+=1;
+	  }
+	}
 	sAppend(&sbOut,  "// Functional based bioavailability (returns amount)\ndouble %sF(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double *_f=_solveData->subjects[_cSub].cF;\n  (void)_f;\n",
-		prefix, tb.de.n);
-	for (int jjj = tb.de.n; jjj--;){
+		prefix, nnn);
+	for (int jjj = nnn; jjj--;){
 	  sAppend(&sbOut, "  _f[%d]=1.0;\n",jjj);
 	}
       } else {
@@ -3214,9 +3382,17 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 6){
       if (foundLag){
+	int nnn = tb.de.n;
+	if (tb.linCmt){
+	  if (tb.hasKa){
+	    nnn+=2;
+	  } else {
+	    nnn+=1;
+	  }
+	}
 	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t){\n  double *restrict _alag = _solveData->subjects[_cSub].alag;\n  (void)_alag;\n",
-		prefix, tb.de.n);
-	for (int jjj = tb.de.n; jjj--;){
+		prefix, nnn);
+	for (int jjj = nnn; jjj--;){
 	  sAppend(&sbOut, "  _alag[%d]=0.0;\n",jjj);
 	}
       } else {
@@ -3225,9 +3401,17 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 7){
       if (foundRate){
+	int nnn = tb.de.n;
+	if (tb.linCmt){
+	  if (tb.hasKa){
+	    nnn+=2;
+	  } else {
+	    nnn+=1;
+	  }
+	}
 	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n  double *restrict _rate= _solveData->subjects[_cSub].cRate;\n  (void)_rate;\n",
-		prefix, tb.de.n);
-	for (int jjj = tb.de.n; jjj--;){
+		prefix, nnn);
+	for (int jjj = nnn; jjj--;){
 	  sAppend(&sbOut, "  _rate[%d]=0.0;\n",jjj);
 	}
       } else {
@@ -3236,9 +3420,17 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 8){
       if (foundDur){
+	int nnn = tb.de.n;
+	if (tb.linCmt){
+	  if (tb.hasKa){
+	    nnn+=2;
+	  } else {
+	    nnn+=1;
+	  }
+	}
 	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n  double *restrict _dur = _solveData->subjects[_cSub].cDur;\n  (void)_dur;\n",
-		prefix, tb.de.n);
-	for (int jjj = tb.de.n; jjj--;){
+		prefix, nnn);
+	for (int jjj = nnn; jjj--;){
 	  sAppend(&sbOut, "  _dur[%d]=0.0;\n",jjj);
 	}
       } else {
@@ -3333,6 +3525,13 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	(show_ode != 9 && show_ode != 0 && show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6  && show_ode != 7 && show_ode != 8)){
       for (i = 0; i < sbPm.n; i++){
 	switch(sbPm.lType[i]){
+	case TLIN:
+	  if (show_ode != 10 && show_ode != 11 &&
+	      show_ode != 5 && show_ode != 6 &&
+	      show_ode != 7 && show_ode !=8){
+	    sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  }
+	  break;
 	case TMTIME:
 	case TASSIGN:
 	  if (show_ode != 10 && show_ode != 11){
@@ -3581,6 +3780,7 @@ void reset (){
   tb.hasDepot   = 0;
   tb.hasCentral = 0;
   tb.hasKa      = 0;
+  tb.linExtra     = false;
   tb.hasDepotCmt = 0;
   tb.hasCentralCmt = 0;
   tb.isPi       = 0;

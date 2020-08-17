@@ -207,14 +207,6 @@ typedef struct {
   double *linCmtAdvan;
   double *linCmtRate;
   int linCmt;
-  double lag;
-  double lag2;
-  double f;
-  double f2;
-  double rate;
-  double rate2;
-  double dur;
-  double dur2;
   int linCmtAdvanSetup;
   int cacheME;
   int inLhs;
@@ -269,9 +261,7 @@ typedef struct {
   int *TMP;
   int *ordId;
   uint8_t *UGRP;
-  int spare;
-  int nbyte;
-  int nradix;
+  int *nradix;
   double *ypNA;
   bool sample;
   int *par_sample;

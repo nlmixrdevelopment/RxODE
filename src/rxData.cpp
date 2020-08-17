@@ -25,7 +25,6 @@
 #include <stdint.h>    // for uint64_t rather than unsigned long long
 #include "../inst/include/RxODE.h"
 #include "ode.h"
-#define SORT std::sort
 #define rxModelVars(a) rxModelVars_(a)
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 void resetSolveLinB();
@@ -33,6 +32,7 @@ using namespace Rcpp;
 using namespace arma;
 
 extern "C" uint64_t dtwiddle(const void *p, int i);
+extern "C" void calcNradix(int *nbyte, int *nradix, int *spare, uint64_t *maxD, uint64_t *minD);
 
 // https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L193-L211
 // range_d is modified because it DOES NOT count na/inf because RxODE assumes times cannot be NA, NaN, -Inf, Inf
@@ -1370,7 +1370,6 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 typedef struct {
   int *gon;
   double *gsolve;
-  double *gadvan;
   double *gInfusionRate;
   double *gTlastS;
   double *gTfirstS;
@@ -2245,6 +2244,8 @@ LogicalVector rxSolveFree(){
   rx->par_sample=NULL;
   if (rx->ordId != NULL) free(rx->ordId);
   rx->ordId=NULL;
+  if (rx->nradix != NULL) free(rx->nradix);
+  rx->nradix=NULL;
   // Free the allocated keys
   if (rx->keys != NULL) {
     int i=0;
@@ -3662,7 +3663,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   rx_solving_options_ind* ind;
-  int curEvent = 0, curIdx = 0, curSolve=0, curLin=0;
+  int curEvent = 0, curIdx = 0, curSolve=0;
   switch(rxSolveDat->parType){
   case 1: // NumericVector
     {
@@ -3700,7 +3701,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
       rxSolve_resample(obj, rxControl, specParams, extraArgs, pars, ev1,
 		     inits, rxSolveDat);
       curSolve=0;
-      curLin=0;
       curEvent=0;
       curIdx=0;
       int curCov=0;
@@ -3712,14 +3712,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  unsigned int cid = id+simNum*rx->nsub;
 	  ind = &(rx->subjects[cid]);
 	  ind->linCmt = linCmt;
-	  ind->lag = 0;
-	  ind->lag2 = 0;
-	  ind->f = 1.0;
-	  ind->f2 = 1.0;
-	  ind->rate = 0.0;
-	  ind->dur = 0.0;
-	  ind->rate2 = 0.0;
-	  ind->dur2 = 0.0;
 	  ind->idx=0;
 	  ind->tlast = NA_REAL;
 	  ind->dosenum = 0;
@@ -3727,13 +3719,14 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  ind->par_ptr = &_globals.gpars[cid*rxSolveDat->npars];
 	  ind->mtime   = &_globals.gmtime[rx->nMtime*cid];
 	  if (rx->nMtime > 0) ind->mtime[0]=-1;
-	  ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
+	  ind->InfusionRate = &_globals.gInfusionRate[(op->neq+op->extraCmt)*cid];
+	  ind->linCmtRate = ind->InfusionRate + op->neq;
 	  ind->tlastS = &_globals.gTlastS[(op->neq + op->extraCmt)*cid];
 	  ind->tfirstS = &_globals.gTfirstS[(op->neq + op->extraCmt)*cid];
-	  ind->alag = &_globals.gAlag[op->neq*cid];
-	  ind->cF = &_globals.gF[op->neq*cid];
-	  ind->cRate = &_globals.gRate[op->neq*cid];
-	  ind->cDur = &_globals.gDur[op->neq*cid];
+	  ind->alag = &_globals.gAlag[(op->neq + op->extraCmt)*cid];
+	  ind->cF = &_globals.gF[(op->neq + op->extraCmt)*cid];
+	  ind->cRate = &_globals.gRate[(op->neq + op->extraCmt)*cid];
+	  ind->cDur = &_globals.gDur[(op->neq + op->extraCmt)*cid];
 	  ind->BadDose = &_globals.gBadDose[op->neq*cid];
 	  ind->nBadDose = 0;
 	  // Hmax defined above.
@@ -3768,12 +3761,10 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	    ind->doSS = 0;
 	  }
 	  int eLen = op->neq*ind->n_all_times;
-	  ind->linCmtAdvan = &_globals.gadvan[curLin];
-	  curLin += (op->nlin)*(ind->n_all_times);
-	  ind->linCmtRate = &_globals.gadvan[curLin];
-	  curLin += op->nlinR;
+	  // curLin += (op->nlin)*(ind->n_all_times);
+	  // curLin += op->nlinR;
 	  ind->solve = &_globals.gsolve[curSolve];
-	  curSolve += eLen;
+	  curSolve += (op->neq + op->nlin)*ind->n_all_times;
 	  ind->solveLast = &_globals.gsolve[curSolve];
 	  curSolve += op->neq;
 	  ind->solveLast2 = &_globals.gsolve[curSolve];
@@ -3784,7 +3775,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  std::iota(ind->ix,ind->ix+ind->n_all_times,0);
 	  curEvent += eLen;
 	  ind->on=&_globals.gon[curOn];
-	  curOn +=op->neq;
+	  curOn +=op->neq+op->extraCmt;
 	  curIdx += ind->n_all_times;
 	  ind->_newind = -1;
 	  if (rx->sample) {
@@ -3806,27 +3797,11 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   // in data.table keyAlloc=(ncol+n_cplx)*8+1 which translates to 9
   // Since the key is constant we can pre-allocate with stack instead key[9]
   // NA, NaN, and -Inf +Inf not supported
-  uint64_t range = rx->maxD - rx->minD;// +1/*NA*/ +isReal*3/*NaN, -Inf, +Inf*/;
-  int maxBit=0;
-  while (range) { maxBit++; range>>=1; }
-  rx->nbyte = 1+(maxBit-1)/8; // the number of bytes spanned by the value
-  int firstBits = maxBit - (rx->nbyte-1)*8;  // how many bits used in most significant byte
-  // There is only One split since we are only ordering time
-  rx->spare = 8-firstBits; // left align to byte boundary to get better first split.
-  // In forder they allocate the nradix(which is 0) + nbyte
-  // Therefore we allocate nrow*nbyte uint8_t for the key pointers
-  // This equates to n_all_times * nbyte int8_t
-  // However you can also allocate just enough memory for sort based on threads
-  // The key hash would be (max_n_all_times_id)*ncores*nbyte
-  //
-  // Radix sort memory need become http://itu.dk/people/pagh/ads11/11-RadixSortAndSearch.pdf which would be
-  // N=n_all_times+R;  r = size of the "alphabet" which in this case would be the number of bytes
-  // For the memory complexity it becomes n_all_times * nbyte
-
-  // After allocating and dtwiddle threads nradix = nbyte-1 + (spare==0)
-  // End borrowing and commenting from data.table
-
-  rx->nradix = rx->nbyte-1 + (rx->spare==0);
+  int nbyte=0, nradix=0, spare=0;
+  calcNradix(&nbyte, &nradix, &spare, &(rx->maxD), &(rx->minD));
+  
+  rx->nradix = (int*)malloc(op->cores*sizeof(int));//nbyte-1 + (rx->spare==0);
+  std::fill_n(rx->nradix, op->cores, nradix);
   ////////////////////////////////////////////////////////////////////////////////
   rx->keys = (uint8_t ***)calloc(op->cores+1, sizeof(uint8_t **));
   rx->keys[op->cores] = NULL;
@@ -3834,10 +3809,9 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
     // In RxODE the keyAlloc size IS 9
     rx->keys[i] = (uint8_t **)calloc(10, sizeof(uint8_t *));
     for (int j = 0; j < 10; j++) rx->keys[i][j] = NULL;
-    for (int b = 0; b < rx->nbyte; b++){
+    for (int b = 0; b < nbyte; b++){
       rx->keys[i][b] = (uint8_t *)calloc(rx->maxAllTimes+1, sizeof(uint8_t));
     }
-    // if (i == op->cores - 1 && rx->keys[0][rx->nradix]!=NULL) rx->nradix++;
   }
   // Use same variables from data.table
   rx->TMP =  (int *)malloc(op->cores*UINT16_MAX*sizeof(int)); // used by counting sort (my_n<=65536) in radix_r()
@@ -4783,7 +4757,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (nLin != 0) {
       op->nlinR = 1+linKa;
       nLin = rx->nall*nLin*rx->nsim +// Number of linear compartments * number of solved points
-	rx->nsim*rx->nsub*(op->nlinR);// Infusion
+	0;// Infusion
     }
     int n2  = rx->nMtime*rx->nsub*rx->nsim;
     int n3  = op->neq*rxSolveDat->nSize;
@@ -4808,8 +4782,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
     if (_globals.gsolve != NULL) free(_globals.gsolve);
-    _globals.gsolve = (double*)calloc(n0+nLin+n2+ 5*n3+n4+n5+n6+
-				      5*op->neq + 2*n3a, sizeof(double));// [n0]
+    _globals.gsolve = (double*)calloc(n0+nLin+n2+ n4+n5+n6+
+				      5*op->neq + 7*n3a, sizeof(double));// [n0]
 #ifdef rxSolveT
     REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+7*n3+n4+n5+n6+ 5*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4818,14 +4792,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       rxSolveFree();
       stop(_("could not allocate enough memory for solving"));
     }
-    _globals.gadvan = _globals.gsolve+n0; // [nLin]
-    _globals.gmtime = _globals.gadvan + nLin; // [n2]
-    _globals.gInfusionRate = _globals.gmtime + n2; //[n3]
-    _globals.gAlag  = _globals.gInfusionRate + n3; // [n3]
-    _globals.gF  = _globals.gAlag + n3; // [n3]
-    _globals.gRate  = _globals.gF + n3; // [n3]
-    _globals.gDur  = _globals.gRate + n3; // [n3]
-    _globals.ginits = _globals.gDur + n3; // [n4]
+    _globals.gmtime = _globals.gsolve + n0+ nLin; // [n2]
+    _globals.gInfusionRate = _globals.gmtime + n2; //[n3a]
+    _globals.gAlag  = _globals.gInfusionRate + n3a; // [n3a]
+    _globals.gF  = _globals.gAlag + n3a; // [n3a]
+    _globals.gRate  = _globals.gF + n3a; // [n3a]
+    _globals.gDur  = _globals.gRate + n3a; // [n3a]
+    _globals.ginits = _globals.gDur + n3a; // [n4]
     std::copy(rxSolveDat->initsC.begin(), rxSolveDat->initsC.end(), &_globals.ginits[0]);
     op->inits = &_globals.ginits[0];
     _globals.glhs = _globals.ginits + n4; // [n5]
@@ -4859,7 +4832,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->ssRtol = _globals.gssRtol;
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
-    int n1 = rx->nsub*rx->nsim*state.size();
+    int n1 = rx->nsub*rx->nsim*(state.size() + op->extraCmt);
 #ifdef rxSolveT
     REprintf("Time12d (fill in!): %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
