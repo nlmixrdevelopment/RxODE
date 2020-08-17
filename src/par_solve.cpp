@@ -1093,6 +1093,7 @@ static inline int handle_evid(int evid, int neq,
   int cmt, foundBad, j;
   double tmp;
   getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
+  handleTlastInline(&xout, ind);
   if (ind->wh0 == 40){
     ind->ixds++;
     return 1;
@@ -2721,6 +2722,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
 	double curT = getTime(ind->ix[ind->idx], ind);
         evid = ind->evid[ind->ix[ind->idx]];
 	if (evid == 9) continue;
+	if (!isObs(evid)) handleTlastInline(&curT, ind);
 	if (nlhs){
 	  calc_lhs(neq[1], curT, getSolve(i), ind->lhs);
 	}
