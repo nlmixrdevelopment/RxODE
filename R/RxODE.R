@@ -329,6 +329,7 @@ R_PosInf <- Inf # nolint
 ##' @importFrom utils getFromNamespace assignInMyNamespace download.file head sessionInfo
 ##' @importFrom stats setNames update
 ##' @importFrom methods signature is
+##' @importFrom memoise memoise
 ##' @import tools
 ##' @export
 RxODE <- # nolint
@@ -663,6 +664,7 @@ RxODE <- # nolint
         rxUnloadAll()
       }
     })))
+    RxODE::rxForget()
     if (!is.null(.env$package)) {
       .o <- rxDll(.env)
       .o <- paste0(substr(.o, 0, nchar(.o) - nchar(.Platform$dynlib.ext)), ".o")
@@ -1202,7 +1204,7 @@ rxTrans.default <- function(model,
 
 ##' @rdname rxTrans
 ##' @export
-rxTrans.character <- function(model,
+rxTrans.character <- memoise::memoise(function(model,
                                                modelPrefix = "", # Model Prefix
                                                md5 = "", # Md5 of model
                                                modName = NULL, # Model name for DLL
@@ -1254,7 +1256,7 @@ rxTrans.character <- function(model,
   } else {
     return(c(.ret$trans, .ret$md5))
   }
-}
+})
 
 ##' @rdname rxIsLoaded
 ##' @export
