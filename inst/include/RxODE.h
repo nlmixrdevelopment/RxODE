@@ -6,6 +6,9 @@
 
 #include "RxODE_control.h"
 #include <stdint.h>    // for uint64_t rather than unsigned long long
+#define getAdvan(idx) ind->solve+(op->nlin+op->neq)*(idx) + op->neq
+#define getSolve(idx) ind->solve+ (op->neq + op->nlin)*(idx)
+
 
 #ifdef _isRxODE_
 #else

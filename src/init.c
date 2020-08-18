@@ -250,6 +250,7 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop);
 void ind_solve(rx_solve *rx, unsigned int cid, t_dydt_liblsoda dydt_lls, 
 	       t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
 	       t_dydt c_dydt, t_update_inis u_inis, int jt);
+void par_solve(rx_solve *rx);
 int isRstudio();
 
 extern void rxSingleSolve(int subid, double *_theta, double *timep,
@@ -462,6 +463,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "par_progress", (DL_FUNC) &par_progress);
   R_RegisterCCallable("RxODE", "isRstudio", (DL_FUNC) &isRstudio);
   R_RegisterCCallable("RxODE", "ind_solve", (DL_FUNC) &ind_solve);
+  R_RegisterCCallable("RxODE", "par_solve", (DL_FUNC) &par_solve);
   R_RegisterCCallable("RxODE", "linCmtA", (DL_FUNC) &linCmtA);
   R_RegisterCCallable("RxODE", "linCmtC", (DL_FUNC) &linCmtC);
   R_RegisterCCallable("RxODE", "linCmtB", (DL_FUNC) &linCmtB);

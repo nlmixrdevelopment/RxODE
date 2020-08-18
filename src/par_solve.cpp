@@ -12,7 +12,6 @@ extern "C" {
   #include "lsoda.h"
 }
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
-#define getSolve(idx) ind->solve+ (op->neq + op->nlin)*(idx)
 #define badSolveExit(i) for (int j = op->neq*(ind->n_all_times); j--;){ \
     ind->solve[j] = NA_REAL;\
   } \
@@ -3403,19 +3402,15 @@ extern "C" void rxSingleSolve(int subid, double *_theta, double *timep,
   op->scale = scale;
   rx->nsub =1;
   rx->nsim =1;
-  ind->_newind=1;
-  ind->dosenum=0;
-  ind->tlast = NA_REAL;
-  ind->tfirst = NA_REAL;
-  ind->solved = -1;
   rx->stateIgnore = stateIgnore;//gsiVSetup(op->neq);
   rx->nobs =-1;
   rx->add_cov =0;
   rx->matrix =0;
   ind->mtime = mtime;
+  iniSubject(subid, 1, ind, op, rx, update_inis);
   // Solve without the option of updating residuals.
   ind_solve(rx, subid, dydt_liblsoda, dydt_lsoda_dum, jdum_lsoda,
-	      dydt, update_inis, global_jt);
+	    dydt, update_inis, global_jt);
   if (op->nlhs) {
     ind->_newind=1;
     ind->dosenum = 0;
