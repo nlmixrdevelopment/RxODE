@@ -301,6 +301,9 @@ SEXP setRxthreads(SEXP threads, SEXP percent, SEXP throttle);
 
 int getSilentErr();
 
+int iniSubjectE(int solveid, int inLhs, rx_solving_options_ind *ind, rx_solving_options *op, rx_solve *rx,
+		t_update_inis u_inis);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
@@ -497,6 +500,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "gammaqInv", (DL_FUNC) &gamma_q_inv);
   R_RegisterCCallable("RxODE", "gammaqInva", (DL_FUNC) &gamma_q_inva);
   R_RegisterCCallable("RxODE", "compareFactorVal", (DL_FUNC) &compareFactorVal);
+  R_RegisterCCallable("RxODE", "iniSubjectE", (DL_FUNC) &iniSubjectE);
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},

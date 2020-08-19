@@ -1046,7 +1046,7 @@ extern "C" void handleTlast(double *time, rx_solving_options_ind *ind){
 }
 
 static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind, rx_solving_options *op, rx_solve *rx,
-			     t_update_inis u_inis){
+			     t_update_inis u_inis) {
   ind->ixds = 0; // reset dosing
   ind->id=solveid;
   ind->cacheME=0;
@@ -1077,6 +1077,11 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
   }
   ind->ixds=ind->idx=0;
   return 1;
+}
+
+extern "C" int iniSubjectE(int solveid, int inLhs, rx_solving_options_ind *ind, rx_solving_options *op, rx_solve *rx,
+			   t_update_inis u_inis) {
+  iniSubject(solveid, inLhs, ind, op, rx, u_inis);
 }
 
 
