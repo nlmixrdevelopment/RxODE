@@ -10,7 +10,8 @@
   pkpars = NULL,
   errfn = NULL,
   init = NULL,
-  promoteLinSens = TRUE
+  promoteLinSens = TRUE,
+  full = TRUE
 )
 }
 \arguments{

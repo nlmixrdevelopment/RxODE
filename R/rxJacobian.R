@@ -217,7 +217,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
     return(rx)
   }
 }
-##' Generate Augmented Pred/err RxODE model
+##' Generate Augmented pred/err RxODE model
 ##'
 ##' @inheritParams rxSEinner
 ##' @return A list of (1) RxODE model variables augmented with
@@ -277,15 +277,18 @@ rxExpandGrid <- function(x, y, type = 0L) {
 ##' @return Sympy environment
 ##' @author Matthew Fidler
 .rxGenFun <- function(obj, predfn, pkpars = NULL, errfn = NULL,
-                      init = NULL,
-                      promoteLinSens = TRUE) {
+                      init = NULL, promoteLinSens = TRUE, full=TRUE) {
   rxSolveFree()
   rxTempDir()
   .checkGood(predfn)
   .checkGood(pkpars)
   .checkGood(errfn)
   ## Probably need assignInMyNamespace...
-  .malert("creating full model...")
+  if (full) {
+    .malert("creating full model...")
+  } else {
+    .malert("creating SAEM model...")
+  }
   .stateInfo <- .rxGenFunState(obj)
   .newmod <- .rxGenPkpars(obj, pkpars, init)
   .newmod <- .rxGenPred(.newmod, predfn, errfn, init)
@@ -296,6 +299,53 @@ rxExpandGrid <- function(x, y, type = 0L) {
   .newmod$..extraPars <- .extraPars
   return(.newmod)
 }
+##' Generate pred-only SAEM RxODE model
+##'
+##' @param obj RxODE model (text or actual model)
+##' @param predfn prediction function
+##' @param pkpars PKpars function
+##' @param sum.prod
+##' @param optExpression
+##' @return RxODE text
+##' @author Matt Fidler
+##' @inheritParams rxS
+##' @export
+rxGenSaem <- function(obj, predfn, pkpars = NULL,
+                      sum.prod=FALSE, optExpression=TRUE) {
+  .errfn <- function(){
+    return(add(nlmixrAdd))
+  }
+  .s <- .rxGenFun(obj, predfn, pkpars, errfn=.errfn,
+                  init=NULL, promoteLinSens=FALSE, full=FALSE)
+  .prd <- get("rx_pred_", envir = .s)
+  .prd <- paste0("rx_pred_=", rxFromSE(.prd))
+  .lhs0 <- .s$..lhs0
+  if (is.null(.lhs0)) .lhs0 <- ""
+  .ddt <- .s$..ddt
+  if (is.null(.ddt)) .ddt <- ""
+  .saem <- paste(c(
+    .s$..stateInfo["state"],
+    .lhs0,
+    .ddt,
+    .prd,
+    .s$..stateInfo["statef"],
+    .s$..stateInfo["dvid"],
+    ""
+  ), collapse = "\n")
+
+  if (sum.prod) {
+    .malert("stabilizing round off errors in SAEM model...")
+    .saem <- rxSumProdModel(.saem)
+    .msuccess("done")
+  }
+  if (optExpression) {
+    .saem <- rxOptExpr(.saem, "SAEM model")
+  }
+  return(.saem)
+}
+
+
+
 ##' Generate the ETA sensitivities for FO related methods
 ##'
 ##' @inheritParams rxSEinner

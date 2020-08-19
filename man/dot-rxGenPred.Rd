@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxJacobian.R
 \name{.rxGenPred}
 \alias{.rxGenPred}
-\title{Generate Augmented Pred/err RxODE model}
+\title{Generate Augmented pred/err RxODE model}
 \usage{
 .rxGenPred(obj, predfn, errfn, init)
 }
@@ -20,7 +20,7 @@ A list of (1) RxODE model variables augmented with
     pred/error information and (2) extra error variables created.
 }
 \description{
-Generate Augmented Pred/err RxODE model
+Generate Augmented pred/err RxODE model
 }
 \author{
 Matthew L Fidler
