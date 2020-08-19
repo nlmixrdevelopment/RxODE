@@ -411,6 +411,14 @@ t_calc_lhs calc_lhs = NULL;
 
 t_update_inis update_inis = NULL;
 
+extern "C" t_calc_lhs getRxLhs() {
+  return calc_lhs;
+}
+
+extern "C" t_update_inis getUpdateInis() {
+  return update_inis;
+}
+
 t_dydt_lsoda_dum dydt_lsoda_dum = NULL;
 
 t_dydt_liblsoda dydt_liblsoda = NULL;
@@ -1081,7 +1089,7 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
 
 extern "C" int iniSubjectE(int solveid, int inLhs, rx_solving_options_ind *ind, rx_solving_options *op, rx_solve *rx,
 			   t_update_inis u_inis) {
-  iniSubject(solveid, inLhs, ind, op, rx, u_inis);
+  return iniSubject(solveid, inLhs, ind, op, rx, u_inis);
 }
 
 
