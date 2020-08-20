@@ -16,6 +16,7 @@ statement
   | mat0       end_statement
   | matF       end_statement
   | printf_statement end_statement
+  | param_statement end_statement
   | cmt_statement end_statement
   | dvid_statementI end_statement
   | compound_statement
@@ -34,6 +35,9 @@ selection_statement
 
 cmt_statement
     : 'cmt' '(' identifier_r_no_output ')';
+
+param_statement
+    : 'param' '(' identifier_r_no_output (',' identifier_r_no_output) ')';
 
 printf_statement
   : printf_command '(' string (',' logical_or_expression )* ')';

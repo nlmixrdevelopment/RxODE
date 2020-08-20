@@ -637,6 +637,7 @@ typedef struct nodeInfo {
   int theta0_noout;
   int theta;
   int cmt_statement;
+  int param_statement;
   int dvid_statementI;
   int ifelse;
   int ifelse_statement;
@@ -693,6 +694,7 @@ void niReset(nodeInfo *ni){
   ni->theta0 = -1;
   ni->theta0_noout = -1;
   ni->cmt_statement = -1;
+  ni->param_statement = -1;
   ni->dvid_statementI = -1;
   ni->ifelse = -1;
   ni->ifelse_statement=-1;
@@ -1040,7 +1042,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	tb.matnf++;
       }
       tb.fn = (nodeHas(function) && i==0) ? 1 : 0;
-
       if (nodeHas(ifelse)){
 	if (i == 0){
 	  continue;
@@ -1107,6 +1108,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (tb.fn) depth = 0;
 
       D_ParseNode *xpn = d_get_child(pn,i);
+
+      if (nodeHas(param_statement) && i == 0) {
+	sAppendN(&sbt,"param", 5);
+      }
 
       if (nodeHas(equality_str1)){
 	if (i == 0){
@@ -2638,7 +2643,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
     if (nodeHas(assignment) || nodeHas(ini) || nodeHas(dfdy) ||
         nodeHas(ini0) || nodeHas(ini0f) || nodeHas(fbio) || nodeHas(alag) || nodeHas(rate) || 
-	nodeHas(dur) || nodeHas(mtime)){
+	nodeHas(dur) || nodeHas(mtime)) {
       int isDepot;
       if ((nodeHas(rate) || nodeHas(alag) || nodeHas(fbio) || nodeHas(dur)) &&
 	  ((isDepot = (tb.depotN == tb.di[tb.curPropN])) ||
@@ -2673,6 +2678,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     } else if (nodeHas(derivative)){
       addLine(&sbPm,     "%s);\n", sb.s);
       addLine(&sbPmDt,   "%s);\n", sbDt.s);
+      sAppend(&sbNrm, "%s;\n", sbt.s);
+      addLine(&sbNrmL, "%s;\n", sbt.s);
+      ENDLINE
+    } else if (nodeHas(param_statement)) {
       sAppend(&sbNrm, "%s;\n", sbt.s);
       addLine(&sbNrmL, "%s;\n", sbt.s);
       ENDLINE

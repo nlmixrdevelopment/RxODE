@@ -15,7 +15,7 @@ file <- gsub("^([#]line [0-9]+ )\".*(src)/+(.*)\"","\\1\"\\2/\\3\"",
 sink(devtools::package_file("src/tran.g.d_parser.c"))
 cat(paste(file,collapse="\n"));
 cat("\n");
-sink();
+sink()
 ## sink(devtools::package_file("R/version.R"))
 ## cat("##\' Version and repository for this dparser package.
 ## ##\'

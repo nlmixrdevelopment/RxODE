@@ -26,6 +26,9 @@
 
 ## New features
 
+* Add the ability to order input parameters with the `param()`
+  psuedo-function
+
 * Add the ability to resample covariates with `resample=TRUE` or
   `resample=c("SEX", "CRCL")`.  You can resample all the covariates by
   `ID` with `resampleID=TRUE` or resample the covariates without

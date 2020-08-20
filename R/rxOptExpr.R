@@ -363,6 +363,8 @@ rxOptExpr <- function(x, msg = "model") {
   .oldOpts <- options()
   options(digits = 22)
   on.exit(options(.oldOpts))
+  .mv <- rxModelVars(x)
+  .params <- .mv$params
   .rxOptEnv$.list <- list()
   .rxOptEnv$.rep <- list()
   .rxOptEnv$.added <- c()
