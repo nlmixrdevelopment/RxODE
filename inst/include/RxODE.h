@@ -69,8 +69,8 @@ typedef struct {
   // These options should not change based on an individual solve
   int badSolve;
   int naTime;
-  double ATOL;          //absolute error
-  double RTOL;          //relative error
+  double ATOL; //absolute error
+  double RTOL; //relative error
   double H0;
   double HMIN;
   int mxstep;
@@ -143,7 +143,6 @@ typedef struct {
 
 typedef struct {
   double bT;
-  double diffB[14];
   int *slvr_counter;
   int *dadt_counter;
   int *jac_counter;
