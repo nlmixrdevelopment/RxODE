@@ -312,6 +312,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
 ##' @export
 rxGenSaem <- function(obj, predfn, pkpars = NULL,
                       sum.prod=FALSE, optExpression=TRUE) {
+  .mv <- rxModelVars(obj)
   .errfn <- function(){
     return(add(nlmixrAdd))
   }
@@ -341,6 +342,8 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
   if (optExpression) {
     .saem <- rxOptExpr(.saem, "SAEM model")
   }
+  .saem <- paste0("params(", paste(.mv$params, collapse=","), ")\n",
+                  .saem)
   return(.saem)
 }
 
