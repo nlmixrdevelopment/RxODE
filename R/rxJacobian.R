@@ -312,7 +312,6 @@ rxExpandGrid <- function(x, y, type = 0L) {
 ##' @export
 rxGenSaem <- function(obj, predfn, pkpars = NULL,
                       sum.prod=FALSE, optExpression=TRUE) {
-  .mv <- rxModelVars(obj)
   .errfn <- function(){
     return(add(nlmixrAdd))
   }
@@ -334,6 +333,12 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
     ""
   ), collapse = "\n")
 
+  .mv <- deparse(body(pkpars))
+  .len <- length(.mv)
+  .mv <- if(.mv[1]=="{") .mv[2:(.len-1)] else .mv
+  .mv <- rxModelVars(paste(.mv, collapse="\n"))$params
+
+
   if (sum.prod) {
     .malert("stabilizing round off errors in SAEM model...")
     .saem <- rxSumProdModel(.saem)
@@ -342,7 +347,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
   if (optExpression) {
     .saem <- rxOptExpr(.saem, "SAEM model")
   }
-  .saem <- paste0("params(", paste(.mv$params, collapse=","), ")\n",
+  .saem <- paste0("params(", paste(.mv, collapse=","), ")\n",
                   .saem)
   return(.saem)
 }

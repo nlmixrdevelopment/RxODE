@@ -37,7 +37,7 @@ cmt_statement
     : 'cmt' '(' identifier_r_no_output ')';
 
 param_statement
-    : 'param' '(' identifier_r_no_output (',' identifier_r_no_output) ')';
+    : "params?" '(' identifier_r (',' identifier_r)*  ')';
 
 printf_statement
   : printf_command '(' string (',' logical_or_expression )* ')';
