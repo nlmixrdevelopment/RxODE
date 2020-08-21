@@ -309,6 +309,8 @@ t_update_inis getUpdateInis();
 
 void sortIds(rx_solve* rx, int ini);
 
+void handleTlast(double *time, rx_solving_options_ind *ind);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
@@ -509,6 +511,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "getRxLhs", (DL_FUNC) &getRxLhs);
   R_RegisterCCallable("RxODE", "getUpdateInis", (DL_FUNC) &getUpdateInis);
   R_RegisterCCallable("RxODE", "sortIds", (DL_FUNC) &sortIds);
+  R_RegisterCCallable("RxODE", "handleTlast", (DL_FUNC) &handleTlast);
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},

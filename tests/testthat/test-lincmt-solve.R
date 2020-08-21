@@ -137,14 +137,11 @@ rxPermissive(
 
     context(sprintf("Test steady state solutions 1 cmt ka (%s)", .txt))
 
-    ode.1c.ka <- RxODE(
-    {
+    ode.1c.ka <- RxODE({
       C2 <- center / V
       d/dt(depot) <- -KA * depot
       d/dt(center) <- KA * depot - CL * C2
-    },
-    linCmtSens = sens
-    )
+    }, linCmtSens = sens)
 
     sol.1c.ka <- RxODE(
     {
