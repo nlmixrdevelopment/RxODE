@@ -37,7 +37,7 @@ cmt_statement
     : 'cmt' '(' identifier_r_no_output ')';
 
 param_statement
-    : "params?" '(' identifier_r (',' identifier_r)*  ')';
+    : "params?" '(' (identifier_r | theta0 | theta | eta) (',' (identifier_r | theta0 | theta | eta) )*  ')';
 
 printf_statement
   : printf_command '(' string (',' logical_or_expression )* ')';

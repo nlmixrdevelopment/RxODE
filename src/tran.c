@@ -1111,7 +1111,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
       if (nodeHas(param_statement) && i == 0) {
 	sAppendN(&sbt,"param", 5);
-	sbDt.o = 0; sbt.o = 0;
+	sbDt.o = 0;
       }
 
       if (nodeHas(equality_str1)){

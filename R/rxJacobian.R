@@ -743,7 +743,8 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
       .s$..pred.nolhs <- rxOptExpr(.s$..pred.nolhs, "events FD model")
     }
     .s$..pred.nolhs <- paste(c(
-      paste0("rx_dum_", seq_along(inner$params), "~", inner$params),
+
+      paste0("params(", paste(inner$params, collapse=",") , ")"),
       .s$..pred.nolhs
     ), collapse = "\n")
     pred.opt <- .s$..pred.nolhs
