@@ -10,7 +10,6 @@
 #else
 #define _(String) (String)
 #endif
-#define getAdvan(idx) ind->solve+(op->nlin+op->neq)*(idx) + op->neq
 
 extern "C" int syncIdx(rx_solving_options_ind *ind);
 

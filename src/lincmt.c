@@ -1522,6 +1522,12 @@ static inline void doAdvan(double *A,// Amounts
 			   double *k12, double *k21,
 			   double *k13, double *k31){
   double t = ct - tlast;
+  if (t < sqrt(DOUBLE_EPS)) {
+    for (int i = ncmt+oral0; i--;) {
+      A[i] = Alast[i];
+    }
+    return;
+  }
   if ((*r1) > DOUBLE_EPS  || (*r2) > DOUBLE_EPS){
     if (oral0){
       switch (ncmt){
@@ -2723,8 +2729,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       // Oral parameters
 	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2) {
   rx_solving_options_ind *ind = &(rx->subjects[id]);
-  int evid;
-  int idx = ind->idx;
+  int evid = 0;
   double Alast0[4] = {0, 0, 0, 0};
   rx_solving_options *op = rx->op;
   int oral0;
@@ -2733,24 +2738,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   double *Alast;
   /* A = Alast0; Alast=Alast0; */
   double tlast;
-  double it = getTime(ind->ix[idx], ind);
-  double curTime=getTime(ind->ix[0], ind); // t[0]
-  
-  if (t != it) {
-    // Try to get another idx by bisection
-    idx = _locateTimeIndex(t, ind);
-    it = getTime(ind->ix[idx], ind);
-  }
-  int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
-  if (idx <= ind->solved && sameTime){
-    // Pull from last solved value (cached)
-    A = getAdvan(idx);
-    if (trans == 10) {
-      return(A[oral0]*(v1+p3+p5));
-    } else {
-      return(A[oral0]/v1);
-    }
-  }
   unsigned int ncmt = 1;
   double rx_k=0, rx_v=0;
   double rx_k12=0;
@@ -2759,29 +2746,38 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   double rx_k31=0;
   double *rate = ind->linCmtRate;
   double b1=0, b2=0, r1 = 0, r2 = 0;
-  A = Alast0;
-  if (idx <= ind->solved){
-    if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
-		  &ncmt, &rx_k, &rx_v, &rx_k12,
-		  &rx_k21, &rx_k13, &rx_k31)){
-      REprintf(_("invalid translation\n"));
-      return NA_REAL;
-    }
-  } else {
+  double curTime = getTime(ind->ix[ind->idx], ind);
+  int idx = ind->idx;
+  int sameTime = fabs(t-curTime) < sqrt(DOUBLE_EPS);
+  if (sameTime && idx <= ind->solved){
+    // Pull from last solved value (cached)
     A = getAdvan(idx);
+    if (trans == 10) {
+      return(A[oral0]*(v1+p3+p5));
+    } else {
+      return(A[oral0]/v1);
+    }
+  }
+  while (t < curTime) {
+    idx--;
+    if (idx < 0) return 0.0;
+    curTime = getTime(ind->ix[idx], ind);
+  }
+  A = getAdvan(idx);
+  if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
+		&ncmt, &rx_k, &rx_v, &rx_k12,
+		&rx_k21, &rx_k13, &rx_k31)){
+    REprintf(_("invalid translation\n"));
+    return NA_REAL;
+  }
+  if (idx >= ind->solved){
+    // Not saved, solve
     if (idx == 0) {
       Alast = Alast0;
       tlast = getTime(ind->ix[0], ind);
     } else {
       tlast = getTime(ind->ix[idx-1], ind);
       Alast = getAdvan(idx-1);
-    }
-    curTime = getTime(ind->ix[idx], ind);
-    if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
-		  &ncmt, &rx_k, &rx_v, &rx_k12,
-		  &rx_k21, &rx_k13, &rx_k31)){
-      REprintf(_("invalid translation\n"));
-      return NA_REAL;
     }
     evid = ind->evid[ind->ix[idx]];
     if (op->nlinR == 2){
@@ -2790,40 +2786,43 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     } else {
       r1 = rate[0];
     }
-    ind->wh0 = 0;
     if (evid == 3){
       // Reset event
       Alast=Alast0;
-    }
-    doAdvan(A, Alast, tlast, // Time of last amounts
-	    curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
-	    &d_ka, &rx_k, &rx_k12, &rx_k21,
-	    &rx_k13, &rx_k31);
-    double aSave[4] = {0.0, 0.0, 0.0, 0.0};
-    int nSave = ncmt + oral0;
-    for (int i = nSave; i--;){
-      aSave[i] = A[i];
-    }
-    if (handle_evidL(evid, A, curTime, id, ind)){
-      handleSSL(A, Alast, tlast, curTime, ncmt, oral0, 
-		&b1, &b2, &r1, &r2, &d_ka, &rx_k,
-		&rx_k12, &rx_k21, &rx_k13, &rx_k31,
-		&linCmt, &d_F, &d_F2, &d_rate1, &d_rate2,
-		&d_dur1, &d_dur2, aSave, &nSave, false, ind);
+    } else {
+      doAdvan(A, Alast, tlast, // Time of last amounts
+	      curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
+	      &d_ka, &rx_k, &rx_k12, &rx_k21,
+	      &rx_k13, &rx_k31);
+      double aSave[4] = {0.0, 0.0, 0.0, 0.0};
+      int nSave = ncmt + oral0;
+      for (int i = nSave; i--;){
+	aSave[i] = A[i];
+      }
+      if (handle_evidL(evid, A, curTime, id, ind)){
+	handleSSL(A, Alast, tlast, curTime, ncmt, oral0,
+		  &b1, &b2, &r1, &r2, &d_ka, &rx_k,
+		  &rx_k12, &rx_k21, &rx_k13, &rx_k31,
+		  &linCmt, &d_F, &d_F2, &d_rate1, &d_rate2,
+		  &d_dur1, &d_dur2, aSave, &nSave, false, ind);
+      }
     }
     ind->solved = idx;
   }
+  sameTime = fabs(t-curTime) < sqrt(DOUBLE_EPS);
   if (!sameTime){
     // Compute the advan solution of a t outside of the mesh.
     Alast = A;
-    A = Alast0;
+    double Acur[4] = {0, 0, 0, 0};
     tlast = curTime;
     curTime = t;
     b1 = b2 = 0;
-    doAdvan(A, Alast, tlast, // Time of last amounts
-	    curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
-	    &d_ka, &rx_k, &rx_k12, &rx_k21,
-	    &rx_k13, &rx_k31);
+    // FIXME adjust rates
+    doAdvan(Acur, Alast, tlast, // Time of last amounts
+  	    curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
+  	    &d_ka, &rx_k, &rx_k12, &rx_k21,
+  	    &rx_k13, &rx_k31);
+    return Acur[oral0]/rx_v;
   }
   return A[oral0]/rx_v;
 }

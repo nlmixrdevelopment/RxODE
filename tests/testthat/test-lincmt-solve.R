@@ -1,8 +1,8 @@
 rxPermissive(
 {
 
-    tol <- 5e-6 ## Current difference for all equations
-    type <- 3
+  tol <- 5e-6 ## Current difference for all equations
+  type <- 3
 
   for (type in 1:4) {
 
