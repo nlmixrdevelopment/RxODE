@@ -3434,22 +3434,20 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
     /* evid = ind->evid[ind->ix[ind->idx]]; */
     /* if (evid) REprintf("evid0[%d:%d]: %d; curTime: %f\n", id, ind->idx, evid, t); */
     int idx = ind->idx;
-    double Alast0[13] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    double Alast0[15] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     rx_solving_options *op = rx->op;
-    int oral0;
-    oral0 = (d_ka > 0) ? 1 : 0;
+    int oral0= (d_ka > 0) ? 1 : 0;
     double *A;
     double *Alast;
     /* A = Alast0; Alast=Alast0; */
     double tlast;
-    double it = getTime(ind->ix[idx], ind);
-    double curTime= getTime(ind->ix[0], ind); // t0
-    if (t != it) {
-      // Try to get another idx by bisection
-      idx = _locateTimeIndex(t, ind);
-      it = getTime(ind->ix[idx], ind);
+    double curTime= getTime(ind->ix[idx], ind); // t0
+    while (t < curTime) {
+      idx--;
+      if (idx < 0) return 0.0;
+      curTime = getTime(ind->ix[idx], ind);
     }
-    int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
+    int sameTime = fabs(t-curTime) < sqrt(DOUBLE_EPS);
     if (idx <= ind->solved && sameTime){
       // Pull from last solved value (cached)
       A = getAdvan(idx);
@@ -3501,49 +3499,52 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
       if (evid == 3){
 	// Reset event
 	Alast=Alast0;
-      }
-      doAdvanD(A, Alast, tlast, // Time of last amounts
-	       curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
-	       &d_ka, &rx_k, &rx_k12, &rx_k21);
-      double aSave[15];
-      int nSave = (ncmt == 1 ? (oral0 ? 5 : 2) : (oral0 ? 15 : 8));
-      for (int i = nSave; i--;){
-	aSave[i] = A[i];
-      }
-      if (handle_evidL(evid, A, curTime, id, ind)){
-	handleSSL(A, Alast, tlast, curTime, ncmt, oral0, 
-		  &b1, &b2, &r1, &r2, &d_ka, &rx_k,
-		  &rx_k12, &rx_k21, &rx_k13, &rx_k31,
-		  &linCmt, &d_F, &d_F2, &d_rate1, &d_rate2,
-		  &d_dur1, &d_dur2, aSave, &nSave, true, ind);
+      } else {
+	doAdvanD(A, Alast, tlast, // Time of last amounts
+		 curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
+		 &d_ka, &rx_k, &rx_k12, &rx_k21);
+	double aSave[15];
+	int nSave = (ncmt == 1 ? (oral0 ? 5 : 2) : (oral0 ? 15 : 8));
+	for (int i = nSave; i--;){
+	  aSave[i] = A[i];
+	}
+	if (handle_evidL(evid, A, curTime, id, ind)){
+	  handleSSL(A, Alast, tlast, curTime, ncmt, oral0, 
+		    &b1, &b2, &r1, &r2, &d_ka, &rx_k,
+		    &rx_k12, &rx_k21, &rx_k13, &rx_k31,
+		    &linCmt, &d_F, &d_F2, &d_rate1, &d_rate2,
+		    &d_dur1, &d_dur2, aSave, &nSave, true, ind);
+	}
       }
       ind->solved = idx;
     }
+    double *Ac = A;
     if (!sameTime){
       // Compute the advan solution of a t outside of the mesh.
       Alast = A;
-      A = Alast0;
+      Ac = Alast0;
       tlast = curTime;
       curTime = t;
       b1 = b2 = 0;
-      doAdvanD(A, Alast, tlast, // Time of last amounts
+      doAdvanD(Ac, Alast, tlast, // Time of last amounts
 	      curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
 	      &d_ka, &rx_k, &rx_k12, &rx_k21);
     }
     /* REprintf("t: %f %f %d %d\n", t, A[oral0], idx, ind->ix[idx]); */
     /* REprintf("%f,%f,%f\n", A[oral0], rx_v, A[oral0]/rx_v); */
     if (op->nlin2 == op->nlin) {
-      return derTrans(rx, A, ncmt, trans, val, p1, v1, p2, p3,
+      return derTrans(rx, Ac, ncmt, trans, val, p1, v1, p2, p3,
 		      p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
 		      d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
     }
-    double v0 = derTrans(rx, A, ncmt, trans, 0, p1, v1, p2, p3,
+    double v0 = derTrans(rx, Ac, ncmt, trans, 0, p1, v1, p2, p3,
 			 p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
 			 d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
     int cur = op->nlin2;
-    if (op->linBflag & 64) { // tlag
+    double curD;
+    if ((op->linBflag & 64) && (sameTime || (!sameTime && val == 7))) { // tlag
       if (op->cTlag) {
-	A[cur++] =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			   p2, p3, p4, p5, d_tlag + 0.5*op->hTlag,
 			   d_F, d_rate1, d_dur1,
 			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
@@ -3552,13 +3553,15 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 			   d_F, d_rate1, d_dur1,
 			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hTlag;
       } else {
-	A[cur++] =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			   p2, p3, p4, p5, d_tlag + op->hTlag, d_F,
 			   d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
 			   d_rate2, d_dur2) - v0)/op->hTlag;
       }
+      if (sameTime) A[cur++] = curD;
+      else return curD;
     }
-    if (op->linBflag & 128) { // f
+    if ((op->linBflag & 128) && (sameTime || (!sameTime && val == 8))) { // f
       if (op->cF) {
 	double c1 = linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F + 0.5*op->hF,
@@ -3568,17 +3571,19 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 			    p2, p3, p4, p5, d_tlag, d_F - 0.5*op->hF,
 			    d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
 			    d_rate2, d_dur2);
-	A[cur++] =(c1 - c2)/op->hF;
+	curD =(c1 - c2)/op->hF;
       } else {
-	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F + op->hF,
 			    d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
 			    d_rate2, d_dur2) - v0)/op->hF;
       }
+      if (sameTime) A[cur++] = curD;
+      else return curD;
     }
-    if (op->linBflag & 256) { // rate
+    if ((op->linBflag & 256) && (sameTime || (!sameTime && val == 8))) { // rate
       if (op->cRate) {
-	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F,
 			    d_rate1 + 0.5*op->hRate, d_dur1,
 			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
@@ -3587,15 +3592,17 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 			    d_rate1 - 0.5*op->hRate, d_dur1,
 			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hRate;
       } else {
-	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F,
 			    d_rate1 + op->hRate, d_dur1,
 			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hRate;
       }
+      if (sameTime) A[cur++] = curD;
+      else return curD;
     }
-    if (op->linBflag & 512) { // dur
+    if ((op->linBflag & 512) && (sameTime || (!sameTime && val == 8))) { // dur
       if (op->cDur) {
-	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1,
 			    d_dur1 + 0.5*op->hDur,
 			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
@@ -3604,15 +3611,17 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 			    d_dur1 - 0.5*op->hDur,
 			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hDur;
       } else {
-	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1,
 			    d_dur1 + op->hDur,
 			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hDur;
       }
+      if (sameTime) A[cur++] = curD;
+      return curD;
     }
-    if (op->linBflag & 2048) { // tlag2
+    if ((op->linBflag & 2048) && (sameTime && (!sameTime && val == 12))) { // tlag2
       if (op->cTlag2) {
-	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
 			    d_ka, d_tlag2 + 0.5*op->hTlag2, d_F2,
 			    d_rate2, d_dur2) -
@@ -3621,15 +3630,17 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 			    d_ka, d_tlag2 - 0.5*op->hTlag2, d_F2,
 			    d_rate2, d_dur2))/op->hTlag2;
       } else {
-	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
 			    d_ka, d_tlag2 + op->hTlag2, d_F2, d_rate2,
 			    d_dur2) - v0)/op->hTlag2;
       }
+      if (sameTime) curD = A[cur++];
+      return curD;
     }
-    if (op->linBflag & 4096) { // f2
+    if ((op->linBflag & 4096) && (sameTime || (!sameTime && val == 13))) { // f2
       if (op->cF2) {
-	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
 			    d_ka, d_tlag2, d_F2 + 0.5*op->hF2,
 			    d_rate2, d_dur2) -
@@ -3638,15 +3649,17 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 			    d_ka, d_tlag2, d_F2 - 0.5*op->hF2,
 			    d_rate2, d_dur2))/op->hF2;
       } else {
-	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
 			    d_ka, d_tlag2, d_F2 + op->hF2,
 			    d_rate2, d_dur2) - v0)/op->hF2;
       }
+      if (sameTime) curD = A[cur++];
+      return curD;
     }
-    if (op->linBflag & 8192) { // rate2
+    if ((op->linBflag & 8192) && (sameTime || (!sameTime && val == 14))) { // rate2
       if (op->cRate2){
-	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
 			    d_ka, d_tlag2, d_F2,
 			    d_rate2 + 0.5*op->hRate2, d_dur2) -
@@ -3655,15 +3668,17 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 			    d_ka, d_tlag2, d_F2,
 			    d_rate2 - 0.5*op->hRate2, d_dur2))/op->hRate2;
       } else {
-	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
 			    d_ka, d_tlag2, d_F2,
 			    d_rate2 + op->hRate2, d_dur2) - v0)/op->hRate2;
       }
+      if (sameTime) curD = A[cur++];
+      else return curD;
     }
-    if (op->linBflag & 16384) { // dur2
+    if ((op->linBflag & 16384) && (sameTime || (!sameTime && val == 15))) { // dur2
       if (op->cDur2){
-	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
 			    d_ka, d_tlag2, d_F2,  d_rate2,
 			    d_dur2 + 0.5*op->hDur2) -
@@ -3672,13 +3687,15 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 			    d_ka, d_tlag2, d_F2,  d_rate2,
 			    d_dur2 - 0.5*op->hDur2))/op->hDur2;
       } else {
-	A[cur++] = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
 			    d_ka, d_tlag2, d_F2,  d_rate2,
 			    d_dur2 + op->hDur2) - v0)/op->hDur2;
       }
+      if (sameTime) A[cur++] = curD;
+      return curD;
     }
-    return derTrans(rx, A, ncmt, trans, val, p1, v1, p2, p3,
+    return derTrans(rx, Ac, ncmt, trans, val, p1, v1, p2, p3,
 		    p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
 		    d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
   }
