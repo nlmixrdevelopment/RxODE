@@ -3102,6 +3102,30 @@ static inline void rxSolve_parSetup(const RObject &obj,
   }
 }
 
+extern "C" void setupRxInd(rx_solving_options_ind* ind, int first) {
+  ind->_newind		= -1;
+  ind->allCovWarn	= 0;
+  ind->bT		= NA_REAL;
+  ind->cacheME		= 0;
+  ind->doSS		= 0;
+  ind->dosenum		= 0;
+  ind->err		= 0;
+  ind->idx		= 0;
+  ind->ixds		= 0;
+  ind->lambda		= 1.0;
+  ind->podo		= 0.0;
+  ind->solved		= -1;
+  ind->tfirst		= NA_REAL;
+  ind->tlast		= NA_REAL;
+  ind->yj		= 0;
+  if (first){
+    ind->solveTime	= 0.0;
+    ind->nBadDose	= 0;
+    ind->wrongSSDur	= 0;
+
+  }
+}
+
 // This loops through the data to put each individual into the
 // approiate data structure.
 // At the same time calculate hmax per individual as well
@@ -3260,11 +3284,7 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     int nall = 0, nobst=0, lasti =0, ii=0, nobs2t=0, nevid9=0;
     nsub = 0;
     ind = &(rx->subjects[0]);
-    ind->idx=0;
-    ind->solveTime=0.0;
-    ind->tlast = NA_REAL;
-    ind->dosenum=0;
-    ind->tfirst = NA_REAL;
+    setupRxInd(ind, 1);
     j=0;
     rx->maxAllTimes=0;
     int lastId = id[0]-42;
@@ -3292,24 +3312,11 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
 	    ind->HMAX = hmax0;
 	  }
 	  ind = &(rx->subjects[nsub]);
-	  ind->idx=0;
-	  ind->tlast = NA_REAL;
-	  ind->dosenum =0;
-	  ind->tfirst = NA_REAL;
+	  setupRxInd(ind, 1);
 	}
 	// Setup the pointers.
 	ind->id             = nsub+1;
 	ind->idReal         = id[i];
-	ind->solved = -1;
-	ind->bT = NA_REAL;
-	ind->allCovWarn = 0;
-	ind->wrongSSDur=0;
-	ind->err = 0;
-	ind->cacheME=0;
-	ind->timeReset=1;
-	ind->lambda         =1.0;
-	ind->yj             = 0;
-	ind->doSS = 0;
 	ind->all_times   = &_globals.gall_times[i];
 	ind->dv = &_globals.gdv[i];
 	ind->limit = &_globals.glimit[i];
@@ -3712,10 +3719,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  unsigned int cid = id+simNum*rx->nsub;
 	  ind = &(rx->subjects[cid]);
 	  ind->linCmt = linCmt;
-	  ind->idx=0;
-	  ind->tlast = NA_REAL;
-	  ind->dosenum = 0;
-	  ind->tfirst = NA_REAL;
+	  setupRxInd(ind, 1);
 	  ind->par_ptr = &_globals.gpars[cid*rxSolveDat->npars];
 	  ind->mtime   = &_globals.gmtime[rx->nMtime*cid];
 	  if (rx->nMtime > 0) ind->mtime[0]=-1;
@@ -3728,10 +3732,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  ind->cRate = &_globals.gRate[(op->neq + op->extraCmt)*cid];
 	  ind->cDur = &_globals.gDur[(op->neq + op->extraCmt)*cid];
 	  ind->BadDose = &_globals.gBadDose[op->neq*cid];
-	  ind->nBadDose = 0;
 	  // Hmax defined above.
-	  ind->podo = 0.0;
-	  ind->ixds =  0;
 	  ind->sim = simNum+1;
 	  ind->lhs = &_globals.glhs[cid];
 	  ind->rc = &_globals.grc[cid];
@@ -3756,9 +3757,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	    ind->all_times = &(indS.all_times[0]);
 	    ind->id=id+1;
 	    ind->idReal = indS.idReal;
-	    ind->lambda=1.0;
-	    ind->yj = 0;
-	    ind->doSS = 0;
 	  }
 	  int eLen = op->neq*ind->n_all_times;
 	  // curLin += (op->nlin)*(ind->n_all_times);
@@ -3777,7 +3775,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  ind->on=&_globals.gon[curOn];
 	  curOn +=op->neq+op->extraCmt;
 	  curIdx += ind->n_all_times;
-	  ind->_newind = -1;
 	  if (rx->sample) {
 	    ind->cov_sample = &_globals.gSampleCov[curCov];
 	    curCov += op->ncov;

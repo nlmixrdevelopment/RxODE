@@ -202,7 +202,6 @@ typedef struct {
   int doSS;
   int allCovWarn;
   int wrongSSDur;
-  int timeReset;
   int _newind;
   int err;
   int solved;
