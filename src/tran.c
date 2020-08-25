@@ -202,11 +202,9 @@ lhs symbols?
   int *di;        /* ith of state vars */
   int *idi;       /* should ith state variable be ignored 0/1 */
   int *idu;       /* Has the ith state been used in a derivative expression? */
-  int *fdi;        /* Functional initialization of state variable */
   int *lag;  // Lag number (if present)
   int *dvid;
   int dvidn;
-  int nv;                       /* nbr of symbols */
   int ix;                       /* ith of curr symbol */
   int id;                       /* ith of curr symbol */
   int fn;                       /* curr symbol a fn?*/
@@ -217,7 +215,6 @@ lhs symbols?
   int ini_i; // #ini
   int statei; // # states
   int nExtra;
-  int fdn; // # conditional states
   int sensi;
   int li; // # lhs
   int sli; // # suppressed lhs
@@ -3743,63 +3740,63 @@ void reset (){
   lineIni(&(tb.ss));
   lineIni(&(tb.de));
   
-  tb.lh=Calloc(MXSYM, int);
-  tb.lag=Calloc(MXSYM, int);
-  tb.ini=Calloc(MXSYM, int);
-  tb.mtime=Calloc(MXSYM, int);
-  tb.iniv=Calloc(MXSYM, double);
-  tb.ini0=Calloc(MXSYM, int);
-  
-  tb.di=Calloc(MXDER, int);
-  tb.idi=Calloc(MXDER, int);
-  tb.idu=Calloc(MXDER, int);
-  tb.dvid=Calloc(MXDER, int);
-  tb.df=Calloc(MXSYM, int);
-  tb.dy=Calloc(MXSYM, int);
-  tb.sdfdy=Calloc(MXSYM, int);
-
-  tb.allocS=MXSYM;
-  tb.allocD=MXDER;
-    
-  // Reset Arrays
-  // Reset integers
+  tb.lh		= Calloc(MXSYM, int);
+  tb.ini	= Calloc(MXSYM, int);
+  tb.mtime	= Calloc(MXSYM, int);
+  tb.iniv	= Calloc(MXSYM, double);
+  tb.ini0	= Calloc(MXSYM, int);
+  tb.di		= Calloc(MXDER, int);
+  tb.idi	= Calloc(MXDER, int);
+  tb.idu	= Calloc(MXDER, int);
+  tb.lag	= Calloc(MXSYM, int);
+  tb.dvid	= Calloc(MXDER, int);
   tb.dvidn      = 0;
-  NV		= 0;
-  tb.ixL        = -1;
-  tb.NEnd       = -1;
   tb.ix		= 0;
-  tb.id		= 0;
+  tb.id         = 0;
   tb.fn		= 0;
+  tb.ixL        = -1;
+  tb.didEq      = 0;
+  tb.NEnd       = -1;
   tb.pos_de	= 0;
   tb.ini_i	= 0;
-  tb.nExtra     = 0;
   tb.statei	= 0;
+  tb.nExtra     = 0;
   tb.sensi	= 0;
   tb.li		= 0;
+  tb.sli	= 0;
   tb.pi		= 0;
+  tb.isPi       = 0;
+  tb.isNA       = 0;
+  tb.linCmt     = 0;
+  tb.linCmtN    = -100;
+  tb.linCmtFlg  = 0;
+  tb.df		= Calloc(MXSYM, int);
+  tb.dy		= Calloc(MXSYM, int);
+  tb.sdfdy	= Calloc(MXSYM, int);
   tb.cdf	= 0;
   tb.ndfdy	= 0;
   tb.maxtheta   = 0;
   tb.hasCmt     = 0;
   tb.maxeta     = 0;
-  tb.linCmt     = 0;
-  tb.linCmtN    = -100;
-  tb.linCmtFlg  = 0;
-  tb.isPi       = 0;
-  tb.isNA       = 0;
-  tb.ini_i      = 0;
   tb.hasDepot   = 0;
   tb.hasCentral = 0;
-  tb.hasKa      = 0;
-  tb.linExtra     = false;
   tb.hasDepotCmt = 0;
   tb.hasCentralCmt = 0;
-  tb.isPi       = 0;
-  tb.matn=0;
-  tb.matnf=0;
-  tb.ncmt=0;
-  tb.depotN = -1;
-  tb.centralN = -1;
+  tb.hasKa      = 0;
+  tb.allocS	= MXSYM;
+  tb.allocD	= MXDER;
+  tb.matn	= 0;
+  tb.matnf	= 0;
+  tb.ncmt	= 0;
+  tb.linB	= 0;
+  tb.curPropN	= 0;
+  tb.depotN	= -1;
+  tb.centralN	= -1;
+  tb.linExtra   = false;
+  // Reset Arrays
+  // Reset integers
+  NV		= 0;
+  
   // reset globals
   good_jac = 1;
   found_jac = 0;
