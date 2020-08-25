@@ -253,17 +253,6 @@ void ind_solve(rx_solve *rx, unsigned int cid, t_dydt_liblsoda dydt_lls,
 void par_solve(rx_solve *rx);
 int isRstudio();
 
-extern void rxSingleSolve(int subid, double *_theta, double *timep,
-			  int *evidp, int *ntime,
-			  double *initsp, double *dosep,
-			  double *ii, double *retp,
-			  double *lhsp, int *rc,
-			  double *newTime, int *newEvid,
-			  int *on, int *ix,
-			  int *slvr_counter, int *dadt_counter, int *jac_counter,
-			  double *InfusionRate, int *BadDose, int *idose,
-			  double *scale, int *stateIgnore, double *mtime);
-
 int rxbinom(rx_solving_options_ind* ind, int n, double prob);
 double rxcauchy(rx_solving_options_ind* ind, double location, double scale);
 double rxchisq(rx_solving_options_ind* ind, double df);
@@ -495,7 +484,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "rxIsCurrentC", (DL_FUNC) rxIsCurrentC);
   R_RegisterCCallable("RxODE","RxODE_current_fn_pointer_id", (DL_FUNC) &RxODE_current_fn_pointer_id);
   R_RegisterCCallable("RxODE","getRxSolve_", (DL_FUNC) &getRxSolve_);
-  R_RegisterCCallable("RxODE", "rxSingleSolve", (DL_FUNC) &rxSingleSolve);
 
   R_RegisterCCallable("RxODE", "gammap", (DL_FUNC) &gamma_p);
   R_RegisterCCallable("RxODE", "gammaq", (DL_FUNC) &gamma_q);

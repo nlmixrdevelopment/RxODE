@@ -2730,6 +2730,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2) {
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   int evid = 0;
+  int idx = ind->idx;
   double Alast0[4] = {0, 0, 0, 0};
   rx_solving_options *op = rx->op;
   int oral0;
@@ -2746,8 +2747,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   double rx_k31=0;
   double *rate = ind->linCmtRate;
   double b1=0, b2=0, r1 = 0, r2 = 0;
-  double curTime = getTime(ind->ix[ind->idx], ind);
-  int idx = ind->idx;
+  double curTime = getTime(ind->ix[idx], ind);
   int sameTime = fabs(t-curTime) < sqrt(DOUBLE_EPS);
   if (sameTime && idx <= ind->solved){
     // Pull from last solved value (cached)
