@@ -2806,7 +2806,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 		  &d_dur1, &d_dur2, aSave, &nSave, false, ind);
       }
     }
-    ind->solved = idx;
   }
   sameTime = isSameTime(t, curTime);
   if (!sameTime){
@@ -3515,7 +3514,6 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 		    &d_dur1, &d_dur2, aSave, &nSave, true, ind);
 	}
       }
-      ind->solved = idx;
     }
     double *Ac = A;
     if (!sameTime){

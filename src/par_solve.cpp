@@ -1229,6 +1229,7 @@ static inline int handle_evid(int evid, int neq,
       }
     }
     ind->ixds++;
+    ind->solved = ind->idx;
     return 1;
   }
   return 0;
@@ -2289,47 +2290,42 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
       RSprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
     }
     if (ind->evid[ind->ix[i]] != 3 && !isSameTime(xout, xp)) {
-	if (ind->err){
-	  printErr(ind->err, ind->id);
-	  *rc = idid;
-	  // Bad Solve => NA
-	  badSolveExit(i);
-	} else {
-	  idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
-			c_dydt,       /* function computing the value of f(x,y) */
-			xp,           /* initial x-value */
-			yp,           /* initial values for y */
-			xout,         /* final x-value (xend-x may be positive or negative) */
-			&rtol,          /* relative error tolerance */
-			&atol,          /* absolute error tolerance */
-			itol,         /* switch for rtoler and atoler */
-			solout,         /* function providing the numerical solution during integration */
-			iout,         /* switch for calling solout */
-			NULL,           /* messages stream */
-			DBL_EPSILON,    /* rounding unit */
-			0,              /* safety factor */
-			0,              /* parameters for step size selection */
-			0,
-			0,              /* for stabilized step size control */
-			0,              /* maximal step size */
-			0,            /* initial step size */
-			op->mxstep, /* maximal number of allowed steps */
-			1,            /* switch for the choice of the coefficients */
-			-1,                     /* test for stiffness */
-			0,                      /* number of components for which dense outpout is required */
-			NULL,           /* indexes of components for which dense output is required, >= nrdens */
-			0                       /* declared length of icon */
-			);
-	}
-	postSolve(&idid, rc, &i, yp, err_msg, true, ind, op, rx);
-        xp = xRead();
-        //dadt_counter = 0;
+      if (ind->err){
+	printErr(ind->err, ind->id);
+	*rc = idid;
+	// Bad Solve => NA
+	badSolveExit(i);
+      } else {
+	idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
+		      c_dydt,       /* function computing the value of f(x,y) */
+		      xp,           /* initial x-value */
+		      yp,           /* initial values for y */
+		      xout,         /* final x-value (xend-x may be positive or negative) */
+		      &rtol,          /* relative error tolerance */
+		      &atol,          /* absolute error tolerance */
+		      itol,         /* switch for rtoler and atoler */
+		      solout,         /* function providing the numerical solution during integration */
+		      iout,         /* switch for calling solout */
+		      NULL,           /* messages stream */
+		      DBL_EPSILON,    /* rounding unit */
+		      0,              /* safety factor */
+		      0,              /* parameters for step size selection */
+		      0,
+		      0,              /* for stabilized step size control */
+		      0,              /* maximal step size */
+		      0,            /* initial step size */
+		      op->mxstep, /* maximal number of allowed steps */
+		      1,            /* switch for the choice of the coefficients */
+		      -1,                     /* test for stiffness */
+		      0,                      /* number of components for which dense outpout is required */
+		      NULL,           /* indexes of components for which dense output is required, >= nrdens */
+		      0                       /* declared length of icon */
+		      );
       }
-    ind->_newind = 1;
-    ind->dosenum = 0;
-    ind->tlast = NA_REAL;
-    ind->tfirst = NA_REAL;
-    ind->solved = -1;
+      postSolve(&idid, rc, &i, yp, err_msg, true, ind, op, rx);
+      xp = xRead();
+      //dadt_counter = 0;
+    }
     if (!op->badSolve){
       ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
