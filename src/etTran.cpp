@@ -13,7 +13,6 @@
 #endif
 
 #define rxModelVars(a) rxModelVars_(a)
-#define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 using namespace Rcpp;
 #include <checkmate.h>
 #include "../inst/include/RxODE_as.h"

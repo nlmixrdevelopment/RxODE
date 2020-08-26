@@ -8,7 +8,6 @@
 #define safe_zero(a) ((a) == 0 ? DOUBLE_EPS : (a))
 #define _as_zero(a) (fabs(a) < sqrt(DOUBLE_EPS) ? 0.0 : a)
 #define _as_dbleps(a) (fabs(a) < sqrt(DOUBLE_EPS) ? ((a) < 0 ? -sqrt(DOUBLE_EPS)  : sqrt(DOUBLE_EPS)) : a)
-#define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -1522,7 +1521,7 @@ static inline void doAdvan(double *A,// Amounts
 			   double *k12, double *k21,
 			   double *k13, double *k31){
   double t = ct - tlast;
-  if (t < sqrt(DOUBLE_EPS)) {
+  if (isSameTime(ct, tlast)){
     for (int i = ncmt+oral0; i--;) {
       A[i] = Alast[i];
     }
@@ -2748,7 +2747,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
   double *rate = ind->linCmtRate;
   double b1=0, b2=0, r1 = 0, r2 = 0;
   double curTime = getTime(ind->ix[idx], ind);
-  int sameTime = fabs(t-curTime) < sqrt(DOUBLE_EPS);
+  int sameTime = isSameTime(t, curTime);
   if (sameTime && idx <= ind->solved){
     // Pull from last solved value (cached)
     A = getAdvan(idx);
@@ -2809,7 +2808,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
     }
     ind->solved = idx;
   }
-  sameTime = fabs(t-curTime) < sqrt(DOUBLE_EPS);
+  sameTime = isSameTime(t, curTime);
   if (!sameTime){
     // Compute the advan solution of a t outside of the mesh.
     Alast = A;
@@ -3447,7 +3446,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
       if (idx < 0) return 0.0;
       curTime = getTime(ind->ix[idx], ind);
     }
-    int sameTime = fabs(t-curTime) < sqrt(DOUBLE_EPS);
+    int sameTime = isSameTime(t, curTime);
     if (idx <= ind->solved && sameTime){
       // Pull from last solved value (cached)
       A = getAdvan(idx);

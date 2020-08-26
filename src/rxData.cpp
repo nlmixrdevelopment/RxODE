@@ -3759,8 +3759,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	    ind->idReal = indS.idReal;
 	  }
 	  int eLen = op->neq*ind->n_all_times;
-	  // curLin += (op->nlin)*(ind->n_all_times);
-	  // curLin += op->nlinR;
 	  ind->solve = &_globals.gsolve[curSolve];
 	  curSolve += (op->neq + op->nlin)*ind->n_all_times;
 	  ind->solveLast = &_globals.gsolve[curSolve];
@@ -4686,7 +4684,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       int linBflag = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linCmtFlg];
       if (rx->sensType == 4){
 	// This is the ADVAN senstivities
-	if (linKa){
+	if (linKa) {
 	  switch (linNcmt) {
 	  case 1:
 	    op->nlin = 5;
@@ -4753,8 +4751,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     int nLin = op->nlin;
     if (nLin != 0) {
       op->nlinR = 1+linKa;
-      nLin = rx->nall*nLin*rx->nsim +// Number of linear compartments * number of solved points
-	0;// Infusion
+      nLin = rx->nall*nLin*rx->nsim;// Number of linear compartments * number of solved points
     }
     int n2  = rx->nMtime*rx->nsub*rx->nsim;
     int n3  = op->neq*rxSolveDat->nSize;

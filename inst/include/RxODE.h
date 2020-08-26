@@ -10,12 +10,19 @@
 #define getSolve(idx) ind->solve + (op->neq + op->nlin)*(idx)
 
 
+
 #ifdef _isRxODE_
+
+#define max2( a , b )  ( (a) > (b) ? (a) : (b) )
+#define isSameTime(xout, xp) ((xout)-(xp) <= DBL_EPSILON*max2(fabs(xout),fabs(xp)))
+
 #else
+
 #if defined(__cplusplus)
 #include "RxODE_RcppExports.h"
 #endif
-#endif
+
+#endif // _isRxODE_
 
 #if defined(__cplusplus)
 extern "C" {
