@@ -1367,6 +1367,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	amt.push_back(camt);
       }
       if (cii > 0 && caddl > 0 && flg < 10){
+	ii.pop_back();ii.push_back(0.0);
 	for (j=caddl;j--;){
 	  ctime+=cii;
 	  id.push_back(cid);
