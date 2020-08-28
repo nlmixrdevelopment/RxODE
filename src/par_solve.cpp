@@ -1053,7 +1053,7 @@ extern "C" void handleTlast(double *time, rx_solving_options_ind *ind){
 
 static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind, rx_solving_options *op, rx_solve *rx,
 			     t_update_inis u_inis) {
-  ind->ixds = 0; // reset dosing
+  ind->ixds=ind->idx=0; // reset dosing
   ind->id=solveid;
   ind->cacheME=0;
   // neq[0] = op->neq
@@ -1082,7 +1082,6 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
     
     }
   }
-  ind->ixds=ind->idx=0;
   return 1;
 }
 
