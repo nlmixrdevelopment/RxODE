@@ -1033,6 +1033,7 @@ extern "C" int syncIdx(rx_solving_options_ind *ind){
       /* 	ind->ix[ind->idx], ind->ixds, ind->idose[ind->ixds]); */
     }
   }
+  ind->ixds=ind->idx=0;
   return 1;
 }
 
