@@ -1173,9 +1173,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     case 2:
       cevid = 2;
       if (flg == 30){
+	rateI = 0;
 	cevid = cmt100*100000+rateI*10000+cmt99*100+flg;
-	if (rateI == 0) allInf=false;
-	else allBolus=false;
+	allInf=false; allBolus=false;
       } else {
 	cevid = cmt100*100000+rateI*10000+cmt99*100+1;
 	if (rateI == 0) allInf=false;
@@ -1320,7 +1320,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	}
       }
       ii.push_back(cii);
-      if (flg >= 10 && caddl > 0){
+      if ((flg == 10 || flg == 20 || flg == 40) && caddl > 0){
 	stop(_("'ss' with 'addl' not supported"));
       }
       idx.push_back(i);
@@ -1366,7 +1366,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       } else {
 	amt.push_back(camt);
       }
-      if (cii > 0 && caddl > 0 && flg < 10){
+      if (cii > 0 && caddl > 0 && (flg < 10 || flg == 30)){
 	ii.pop_back();ii.push_back(0.0);
 	for (j=caddl;j--;){
 	  ctime+=cii;
