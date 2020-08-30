@@ -12,6 +12,12 @@ rxGenSaem(obj, predfn, pkpars = NULL, sum.prod = FALSE, optExpression = TRUE)
 \item{predfn}{prediction function}
 
 \item{pkpars}{PKpars function}
+
+\item{sum.prod}{Change addition and deletion to sum() and prod()
+to stabilize round off errors}
+
+\item{optExpression}{Boolean for optimizing expression to minimize
+more expensive calls}
 }
 \value{
 RxODE text
@@ -20,5 +26,5 @@ RxODE text
 Generate pred-only SAEM RxODE model
 }
 \author{
-Matt Fidler
+Matthew Fidler
 }

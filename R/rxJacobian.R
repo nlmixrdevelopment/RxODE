@@ -274,8 +274,11 @@ rxExpandGrid <- function(x, y, type = 0L) {
 ##' Generate and load RxODE function into sympy environment
 ##'
 ##' @inheritParams rxSEinner
+##' @param full A boolean indicating if RxODE is creating a full model
+##'   or a SAEM model
 ##' @return Sympy environment
 ##' @author Matthew Fidler
+##' @noRd
 .rxGenFun <- function(obj, predfn, pkpars = NULL, errfn = NULL,
                       init = NULL, promoteLinSens = TRUE, full=TRUE) {
   rxSolveFree()
@@ -304,14 +307,17 @@ rxExpandGrid <- function(x, y, type = 0L) {
 ##' @param obj RxODE model (text or actual model)
 ##' @param predfn prediction function
 ##' @param pkpars PKpars function
-##' @param sum.prod
-##' @param optExpression
+##' @param sum.prod Change addition and deletion to sum() and prod()
+##'   to stabilize round off errors
+##' @param optExpression Boolean for optimizing expression to minimize
+##'   more expensive calls
 ##' @return RxODE text
-##' @author Matt Fidler
-##' @inheritParams rxS
+##' @author Matthew Fidler
 ##' @export
 rxGenSaem <- function(obj, predfn, pkpars = NULL,
                       sum.prod=FALSE, optExpression=TRUE) {
+  nlmixrAdd <- NULL
+  add <- function(...){}
   .errfn <- function(){
     return(add(nlmixrAdd))
   }
