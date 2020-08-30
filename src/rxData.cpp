@@ -4586,7 +4586,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       rxSolveFree();
       stop(_("unknown covariate interpolation specified"));
     }
-    op->extraCmt=op->neq+as<int>(rxSolveDat->mv[RxMv_extraCmt]);
+    op->extraCmt=as<int>(rxSolveDat->mv[RxMv_extraCmt]);
     op->nDisplayProgress = nDisplayProgress;
     // Covariate options
     // Simulation variabiles
