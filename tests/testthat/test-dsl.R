@@ -238,10 +238,10 @@ rxPermissive(
     })
 
     test_that("Extra Derivative Table Test", {
-      expect_equal(rxFromSE("Derivative(rxTBS(a, b, c), a)"), "rxTBSd(a,b,c)")
-      expect_equal(rxFromSE("Derivative(rxTBSd(a, b, c), a)"), "rxTBSd2(a,b,c)")
-      expect_error(rxFromSE("Derivative(rxTBSd2(a, b, c), a)", unknownDerivatives = "error"))
-      expect_error(rxFromSE("Derivative(rxTBS(a, b, c), d)", unknownDerivatives = "error"))
+      expect_equal(rxFromSE("Derivative(rxTBS(a, b, c, d, e), a)"), "rxTBSd(a,b,c, d, e)")
+      expect_equal(rxFromSE("Derivative(rxTBSd(a, b, c, d, e), a)"), "rxTBSd2(a,b,c, d, e)")
+      expect_error(rxFromSE("Derivative(rxTBSd2(a, b, c, d, e), a)", unknownDerivatives = "error"))
+      expect_error(rxFromSE("Derivative(rxTBS(a, b, c, d, e), d)", unknownDerivatives = "error"))
       expect_error(rxFromSE("Derivative(f(a, b, c), a)", unknownDerivatives = "forward"))
       expect_equal(
         rxFromSE("(2*a + b)*Subs(Derivative(rxTBS(_xi_1, b, c), _xi_1), (_xi_1), (a*b + a^2))"),

@@ -3118,6 +3118,8 @@ extern "C" void setupRxInd(rx_solving_options_ind* ind, int first) {
   ind->tfirst		= NA_REAL;
   ind->tlast		= NA_REAL;
   ind->yj		= 0;
+  ind->logitLow         = 0;
+  ind->logitHi          = 1;
   if (first){
     ind->solveTime	= 0.0;
     ind->nBadDose	= 0;

@@ -459,6 +459,10 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
   .yj <- paste0("rx_yj_~", rxFromSE(.yj))
   .lambda <- paste(get("rx_lambda_", envir = .s))
   .lambda <- paste0("rx_lambda_~", rxFromSE(.lambda))
+  .hi <- paste(get("rx_hi_", envir = .s))
+  .hi <- paste0("rx_hi_~", rxFromSE(.hi))
+  .low <- paste(get("rx_low_", envir = .s))
+  .low <- paste0("rx_low_~", rxFromSE(.low))
   .lhs0 <- .s$..lhs0
   if (is.null(.lhs0)) .lhs0 <- ""
   .lhs <- .s$..lhs
@@ -471,6 +475,8 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
     .ddt,
     .yj,
     .lambda,
+    .hi,
+    .low,
     .prd,
     .r,
     .lhs,
@@ -486,6 +492,8 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
     .ddt,
     .yj,
     .lambda,
+    .hi,
+    .low,
     .prd,
     .r,
     .s$..stateInfo["statef"],
@@ -517,6 +525,10 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
   .yj <- paste0("rx_yj_~", rxFromSE(.yj))
   .lambda <- paste(get("rx_lambda_", envir = .s))
   .lambda <- paste0("rx_lambda_~", rxFromSE(.lambda))
+  .hi <- paste(get("rx_hi_", envir = .s))
+  .hi <- paste0("rx_hi_~", rxFromSE(.hi))
+  .low <- paste(get("rx_low_", envir = .s))
+  .low <- paste0("rx_low_~", rxFromSE(.low))
   .ddt <- .s$..ddt
   if (is.null(.ddt)) .ddt <- character(0)
   .sens <- .s$..sens
@@ -526,6 +538,8 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
     .sens,
     .yj,
     .lambda,
+    .hi,
+    .low,
     .prd,
     .s$..HdEta,
     .r,
@@ -684,6 +698,8 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   })
   assignInMyNamespace("rxErrEnv.lambda", NULL)
   assignInMyNamespace("rxErrEnv.yj", NULL)
+  assignInMyNamespace("rxErrEnv.hi", "1")
+  assignInMyNamespace("rxErrEnv.low", "0")
   assignInMyNamespace("rxSymPyExpThetas", c())
   assignInMyNamespace("rxSymPyExpEtas", c())
   if (only.numeric) {

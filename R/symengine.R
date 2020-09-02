@@ -89,10 +89,10 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "linCmtB" = 21,
   "log" = 1,
   "polygamma" = 2,
-  "rxTBS" = 3,
-  "rxTBSi" = 3,
-  "rxTBSd" = 3,
-  "rxTBSd2" = 3,
+  "rxTBS" = 5,
+  "rxTBSi" = 5,
+  "rxTBSd" = 5,
+  "rxTBSd2" = 5,
   "sin" = 1,
   "sinh" = 1,
   "sqrt" = 1,
@@ -357,12 +357,12 @@ rxRmFun <- function(name) {
 )
 
 
-.rxD$rxTBS <- list(function(a, lambda, yj) {
-  paste0("rxTBSd(", a, ",", lambda, ",", yj, ")")
+.rxD$rxTBS <- list(function(a, lambda, yj, hi, low) {
+  paste0("rxTBSd(", a, ",", lambda, ",", yj, ",", hi, ",", low, ")")
 })
 
-.rxD$rxTBSd <- list(function(a, lambda, yj) {
-  paste0("rxTBSd2(", a, ",", lambda, ",", yj, ")")
+.rxD$rxTBSd <- list(function(a, lambda, yj, hi, low) {
+  paste0("rxTBSd2(", a, ",", lambda, ",", yj, ",", hi, ",", low, ")")
 })
 
 .rxD$..k <- 10
@@ -1976,6 +1976,8 @@ rxS <- function(x, doConst = TRUE, promoteLinSens = FALSE) {
   ## default lambda/yj values
   .env$rx_lambda_ <- symengine::S("1")
   .env$rx_yj_ <- symengine::S("2")
+  .env$rx_low_ <- symengine::S("0")
+  .env$rx_hi_ <- symengine::S("1")
   if (!is.null(.rxSEeqUsr)) {
     sapply(names(.rxSEeqUsr), function(x) {
       assign(.rxFunction(x), x, envir = .env)
@@ -2173,6 +2175,8 @@ rxErrEnv.ret <- "rx_r_"
 rxErrEnv.init <- NULL
 rxErrEnv.lambda <- NULL
 rxErrEnv.yj <- NULL
+rxErrEnv.hi <- 1
+rxErrEnv.low <- 0
 rxErrEnvF$lnorm <- function(est) {
   if (rxErrEnv.ret != "rx_r_") {
     stop("'lnorm' can only be in an error function", call. = FALSE)
@@ -2204,6 +2208,39 @@ rxErrEnvF$lnorm <- function(est) {
 
 rxErrEnvF$dlnorm <- rxErrEnvF$lnorm
 rxErrEnvF$logn <- rxErrEnvF$lnorm
+
+rxErrEnvF$logitNorm <- function(est, low="0", hi="1") {
+  if (rxErrEnv.ret != "rx_r_") {
+    stop("'logitNorm' can only be in an error function", call. = FALSE)
+  }
+  if (!is.null(rxErrEnv.lambda)) {
+    if (rxErrEnv.lambda != "0" && rxErrEnv.yj != "4") {
+      stop("'logitNorm' cannot be used with other data transformations", call. = FALSE)
+    }
+  }
+  estN <- suppressWarnings(as.numeric(est))
+  if (is.na(estN)) {
+    ret <- (sprintf("(%s)^2", est))
+    assignInMyNamespace("rxErrEnv.lambda", "0")
+    assignInMyNamespace("rxErrEnv.yj", "4")
+    assignInMyNamespace("rxErrEnv.hi", hi)
+    assignInMyNamespace("rxErrEnv.low", low)
+  } else {
+    theta <- sprintf("THETA[%s]", rxErrEnv.theta)
+    est <- estN
+    theta.est <- theta
+    ret <- (sprintf("(%s)^2", theta.est))
+    tmp <- rxErrEnv.diag.est
+    tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
+    assignInMyNamespace("rxErrEnv.diag.est", tmp)
+    assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1)
+    assignInMyNamespace("rxErrEnv.lambda", "0")
+    assignInMyNamespace("rxErrEnv.yj", "4")
+    assignInMyNamespace("rxErrEnv.hi", hi)
+    assignInMyNamespace("rxErrEnv.low", low)
+  }
+  return(ret)
+}
 
 rxErrEnvF$tbs <- function(lambda) {
   if (rxErrEnv.ret != "rx_r_") {
@@ -2292,6 +2329,8 @@ rxErrEnvF$`return` <- function(est) {
   .extra <- ""
   force(est)
   if (rxErrEnv.ret == "rx_r_") {
+    .hi <- "1"
+    .low <- "0"
     if (is.null(rxErrEnv.lambda)) {
       .lambda <- "1"
     } else {
@@ -2310,9 +2349,15 @@ rxErrEnvF$`return` <- function(est) {
       .yj <- "3"
       .lambda <- "0"
     }
-    .extra <- sprintf("rx_yj_~%s;\nrx_lambda_~%s;\n", .yj, .lambda)
+    if (.yj == "4" & .lambda == "0") {
+      .hi <- rxErrEnv.hi
+      .low <- rxErrEnv.low
+    }
+    .extra <- sprintf("rx_yj_~%s;\nrx_lambda_~%s;\nrx_hi_~%s\nrx_low_~%s\n", .yj, .lambda, .hi, .low)
     assignInMyNamespace("rxErrEnv.yj", NULL)
     assignInMyNamespace("rxErrEnv.lambda", NULL)
+    assignInMyNamespace("rxErrEnv.hi", "1")
+    assignInMyNamespace("rxErrEnv.low", "0")
   }
   return(sprintf("%s%s=%s;", .extra, rxErrEnv.ret, est))
 }
@@ -2469,7 +2514,7 @@ rxParsePred <- function(x, init = NULL, err = NULL) {
       } else if (regexpr(rex::rex("rx_yj_~3;\nrx_lambda_~0;\n"), .e) != -1) {
         .p <- gsub(.reg, "rx_pred_f_~\\1;\nrx_pred_ = log(\\1)", .p)
       } else {
-        .p <- gsub(.reg, "rx_pred_f_~\\1;\nrx_pred_ = rxTBS(\\1, rx_lambda_, rx_yj_)", .p)
+        .p <- gsub(.reg, "rx_pred_f_~\\1;\nrx_pred_ = rxTBS(\\1, rx_lambda_, rx_yj_, rx_low_, rx_hi_)", .p)
       }
       return(gsub("rx_r_", sprintf("%s\nrx_r_", .p), .e))
     })

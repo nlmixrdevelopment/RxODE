@@ -911,7 +911,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     if (new_or_ith(value)){
       addSymbolStr(value);
       // Ignored variables
-      if (!strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value)){
+      if (!strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value) ||
+	  !strcmp("rx_low_", value) || !strcmp("rx_hi_", value)){
 	tb.lh[NV-1] = 11; // Suppress param printout.
       }
       /* 	      pn->start_loc.col, pn->start_loc.line); */
@@ -2847,7 +2848,8 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     case 0:   // Case 0 is for declaring the variables
       sAppendN(&sbOut,"  ", 2);
       doDot(&sbOut, buf);
-      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf)){
+      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf) ||
+	  !strcmp("rx_hi_", buf) || !strcmp("rx_low_", buf)){
 	sAppendN(&sbOut, "__", 2);
       }
       if (i <NV-1)
@@ -2860,7 +2862,8 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       sAppend(&sbOut,"  ");
       sAppend(&sbOut,"(void)");
       doDot(&sbOut, buf);
-      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf)){
+      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf) ||
+	  !strcmp("rx_low_", buf) || !strcmp("rx_hi_", buf)){
         sAppendN(&sbOut, "__", 2);
       }
       sAppendN(&sbOut, ";\n", 2);

@@ -37,10 +37,12 @@
 #define newind (_solveData->subjects[_cSub]._newind)
 #define rx_lambda_ _solveData->subjects[_cSub].lambda
 #define rx_yj_ _solveData->subjects[_cSub].yj
-#define rxTBS(x, lm, yj)  _powerD(x,  lm, (int)(yj))
-#define rxTBSi(x, lm, yj) _powerDi(x,  lm, (int)(yj))
-#define rxTBSd(x, lm, yj) _powerDD(x, lm, (int)(yj))
-#define rxTBSd2(x, lm, yj) _powerDDD(x, lm, (int)(yj))
+#define rx_hi_ _solveData->subjects[_cSub].logitHi
+#define rx_low_ _solveData->subjects[_cSub].logitLow
+#define rxTBS(x, lm, yj, hi, low)  _powerD(x,  lm, (int)(yj), hi, low)
+#define rxTBSi(x, lm, yj, hi, low) _powerDi(x,  lm, (int)(yj), hi, low)
+#define rxTBSd(x, lm, yj, hi, low) _powerDD(x, lm, (int)(yj), hi, low)
+#define rxTBSd2(x, lm, yj, hi, low) _powerDDD(x, lm, (int)(yj), hi, low)
 #undef rbeta
 #define rbeta(ind, x, y) rxbeta(ind, x, y)
 #undef rnorm

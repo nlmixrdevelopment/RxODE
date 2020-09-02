@@ -198,6 +198,8 @@ typedef struct {
   int idx;
   double ylow;
   double yhigh;
+  double logitHi;
+  double logitLow;
   double lambda;
   double yj;
   // Saved info
@@ -297,10 +299,16 @@ void rxOptionsIniEnsure(int mx);
 void rxUpdateFuns(SEXP trans);
 
 #define _eps sqrt(DOUBLE_EPS)
-static double _powerDi(double x, double lambda, int yj)  __attribute__((unused));
-static double _powerDi(double x, double lambda, int yj){
+// Inverse 
+static double _powerDi(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
+static double _powerDi(double x, double lambda, int yj, double low, double high){
   double x0=x, ret, l2;
   switch(yj){
+  case 4: {
+    // expit
+    double p = 1/(1+exp(-x));
+    return (high-low)*p+low;
+  }
   case 3:
     return exp(x);
   case 2: 
@@ -337,21 +345,26 @@ static double _powerDi(double x, double lambda, int yj){
   return NA_REAL;
 }
 
-static double _powerD(double x, double lambda, int yj)  __attribute__((unused));
-static double _powerD(double x, double lambda, int yj){
-  double x0=x, l2;
+static double _powerD(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
+static double _powerD(double x, double lambda, int yj, double low, double high) {
+  double x0=x, l2, p;
   switch (yj){
-  case 3:
+  case 4: // logitNorm
+    p = (x-low)/(high-low);
+    if (p >= 1) return R_NaN;
+    if (p <= 0) return R_NaN;
+    return -log(1/p-1);
+  case 3: // logNorm
     if (x <= _eps) x0= _eps;
     return log(x0);
-  case 2:
+  case 2: // norm
     return x;
-  case 0:
+  case 0: // boxCoxNorm
     if (lambda == 1.0) return x-1.0;
     if (x <= _eps) x0= _eps;
     if (lambda ==  0.0) return log(x0);
     return (pow(x0, lambda) - 1.0)/lambda;
-  case 1:
+  case 1: // yeoJohnsonNorm
     if (lambda == 1.0) return x;
     if (x >= 0){
       if (lambda == 0) return log1p(x);
@@ -365,10 +378,13 @@ static double _powerD(double x, double lambda, int yj){
   return NA_REAL;
 }
 
-static double _powerDD(double x, double lambda, int yj)  __attribute__((unused));
-static double _powerDD(double x, double lambda, int yj){
-  double x0 = x;
+static double _powerDD(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
+static double _powerDD(double x, double lambda, int yj, double low, double high){
+  double x0 = x, xl;
   switch(yj){
+  case 4: // logitNorm
+    xl = (x-low);
+    return (high - low)/(xl*xl*((high - low)/xl)-1);
   case 3:
     if (x <= _eps) return x0 = _eps;
     return 1/x0;
@@ -393,10 +409,21 @@ static double _powerDD(double x, double lambda, int yj){
   return NA_REAL;
 }
 
-static double _powerDDD(double x, double lambda, int yj) __attribute__((unused));
-static double _powerDDD(double x, double lambda, int yj){
-  double x0 = x;
+static double _powerDDD(double x, double lambda, int yj,double low, double high) __attribute__((unused));
+static double _powerDDD(double x, double lambda, int yj,double low, double high){
+  double x0 = x, hl, hl2, xl, xl2, xl3, xl4, t1, t12;
   switch(yj){
+  case 4: // logit
+    // (high - low)^2/((-low + x)^4*(-1 + (high - low)/(-low + x))^2) - 2*(high - low)/((-low + x)^3*(-1 + (high - low)/(-low + x)))
+    hl = high - low;
+    hl2 = hl*hl;
+    xl = x - low;
+    xl2 = xl*xl;
+    xl3 = xl2*xl;
+    xl4 = xl2*xl2;
+    t1 = (-1 + hl/xl);
+    t12 = t1*t1;
+    return hl2/(xl4*t12) - 2*hl/(xl3*t1);
   case 3:
     if (x <= _eps) x0 = _eps;
     return -1/(x0*x0);
@@ -421,11 +448,16 @@ static double _powerDDD(double x, double lambda, int yj){
   return NA_REAL;
 }
 
-static double _powerL(double x, double lambda, int yj) __attribute__((unused));
-static double _powerL(double x, double lambda, int yj){
-  double x0 = x;
+static double _powerL(double x, double lambda, int yj, double low, double high) __attribute__((unused));
+static double _powerL(double x, double lambda, int yj, double low, double high){
+  double x0 = x, xl, hl;
   switch(yj){
-  case 3:
+  case 4: // logit
+    xl = (x-low);
+    hl = (high - low);
+    return log(hl) - log(xl*xl*(hl/xl)-1);
+    return 0;
+  case 3: 
     if (x <= _eps) x0 = _eps;
     return -log(x0);
   case 2:
@@ -456,11 +488,14 @@ static double _powerL(double x, double lambda, int yj){
   // log(dh/dy) = (1-lambda)*log(-x+1)
 }
 
-static double _powerDL(double x, double lambda, int yj) __attribute__((unused));
-static double _powerDL(double x, double lambda, int yj){
+// extra liklihood
+static double _powerDL(double x, double lambda, int yj, double low, double hi) __attribute__((unused));
+static double _powerDL(double x, double lambda, int yj, double low, double hi){
   // d(logLik/dlambda)
   double x0 = x;
   switch (yj){
+  case 4:
+    return 0;
   case 3:
     if (x <= _eps) x0 = _eps;
     return log(x0);

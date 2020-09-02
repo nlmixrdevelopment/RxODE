@@ -567,6 +567,8 @@ rxErrEnvRet <- "rx_r_"
 rxErrEnvInit <- NULL
 rxErrEnvLambda <- NULL
 rxErrEnvYJ <- NULL
+rxErrEnvHi <- "1"
+rxErrEnvLow <- "0"
 rxErrEnvF$lnorm <- function(est) {
   if (rxErrEnvRet != "rx_r_") {
     stop("'lnorm' can only be in an error function", call. = FALSE)
@@ -595,6 +597,41 @@ rxErrEnvF$lnorm <- function(est) {
   }
   return(ret)
 }
+
+rxErrEnvF$logitNorm <- function(est, low="0", hi="1") {
+  if (rxErrEnvRet != "rx_r_") {
+    stop("'logitNorm' can only be in an error function", call. = FALSE)
+  }
+  if (!is.null(rxErrEnvLambda)) {
+    if (rxErrEnvLambda != "0" && rxErrEnvYJ != "4") {
+      stop("'logitNorm' cannot be used with other data transformations", call. = FALSE)
+    }
+  }
+  estN <- suppressWarnings(as.numeric(est))
+  if (is.na(estN)) {
+    ret <- (sprintf("(%s)^2", est))
+    assignInMyNamespace("rxErrEnvLambda", "0")
+    assignInMyNamespace("rxErrEnvYJ", "4")
+    assignInMyNamespace("rxErrEnvHi", hi)
+    assignInMyNamespace("rxErrEnvLow", low)
+  } else {
+    theta <- sprintf("THETA[%s]", rxErrEnvTheta)
+    est <- estN
+    thetaEst <- theta
+    ret <- (sprintf("(%s)^2", thetaEst))
+    tmp <- rxErrEnvDiagEst
+    tmp[sprintf("THETA[%s]", rxErrEnvTheta)] <- as.numeric(est)
+    assignInMyNamespace("rxErrEnvDiagEst", tmp)
+    assignInMyNamespace("rxErrEnvTheta", rxErrEnvTheta + 1)
+    assignInMyNamespace("rxErrEnvLambda", "0")
+    assignInMyNamespace("rxErrEnvYJ", "4")
+    assignInMyNamespace("rxErrEnvHi", hi)
+    assignInMyNamespace("rxErrEnvLow", low)
+  }
+  return(ret)
+}
+
+
 
 rxErrEnvF$dlnorm <- rxErrEnvF$lnorm
 rxErrEnvF$logn <- rxErrEnvF$lnorm
@@ -704,9 +741,13 @@ rxErrEnvF$`return` <- function(est) {
       .yj <- "3"
       .lambda <- "0"
     }
-    .extra <- sprintf("rx_yj_~%s;\nrx_lambda_~%s;\n", .yj, .lambda)
+    .hi <- rxErrEnvHi
+    .low <- rxErrEnvLow
+    .extra <- sprintf("rx_yj_~%s;\nrx_lambda_~%s;\nrx_hi_~%s\nrx_low_~%s", .yj, .lambda, .hi, .low)
     assignInMyNamespace("rxErrEnvYJ", NULL)
     assignInMyNamespace("rxErrEnvLambda", NULL)
+    assignInMyNamespace("rxErrEnvHi", "1")
+    assignInMyNamespace("rxErrEnvLow", "0")
   }
   return(sprintf("%s%s=%s;", .extra, rxErrEnvRet, est))
 }

@@ -46,6 +46,13 @@ rxPermissive(
 
     m2a1 <- rxSymPySetupPred(m2, pred, pk)
 
+    err3 <- function(f) {
+      return(logitNorm(theta[4], -3, 10)) ## nogitNorm
+    }
+
+    m2a3 <- rxSymPySetupPred(m2, pred, pk, err3)
+
+
     ## Fixme?
     ## m2a2 <- rxSymPySetupPred(m2, pred)
 
@@ -133,6 +140,7 @@ rxPermissive(
       expect_equal(class(m2a1), "rxFocei")
       ## expect_equal(class(m2a2), "rxFocei")
       expect_equal(class(m2a), "rxFocei")
+      expect_equal(class(m2a3), "rxFocei")
       expect_equal(class(m2b), "rxFocei")
       expect_equal(class(m2c), "rxFocei")
       expect_equal(class(m2d), "rxFocei")
