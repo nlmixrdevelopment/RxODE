@@ -143,6 +143,28 @@
   return(..rxOpt(eval(parse(text = paste0("quote(", .ret, ")")))))
 }
 
+..rxOptLhs <- function(x){
+  if (is.atomic(x) || is.name(x)){
+    return(as.character(x))
+  } else if (is.call(x)){
+    if (identical(x[[1]], quote(`/`))){
+      return(paste0(..rxOptLhs(x[[2]]), "/", ..rxOptLhs(x[[3]])))
+    } else if (identical(x[[1]], quote(`(`))){
+      return(paste0("(", ..rxOptLhs(x[[2]]), ")"))
+    } else if (identical(x[[1]], quote(`dt`))){
+      return(paste0("dt(", ..rxOptLhs(x[[2]]), ")"))
+    } else if (identical(x[[1]], quote(`dy`))){
+      return(paste0("dy(", ..rxOptLhs(x[[2]]), ")"))
+    } else if (identical(x[[1]], quote(`df`))){
+      return(paste0("df(", ..rxOptLhs(x[[2]]), ")"))
+    } else if (identical(x[[2]], 0)) {
+      return(paste0(as.character(x[[1]]), "(0)"))
+    } else {
+      stop("unsupported lhs in optimize expression")
+    }
+  }
+}
+
 ..rxOpt <- function(x, progress = FALSE) {
   if (is.atomic(x)) {
     return(as.character(x))
@@ -279,13 +301,20 @@
       identical(x[[1]], quote(`=`)) ||
       identical(x[[1]], quote(`<-`))) {
       .rxOptEnv$.new <- c()
+      .x3 <- .rxOptExpr(x[[3]])
+      if (length(.x3) == 3){
+        if (any(.x3[1] == c("/", "*", "+", "-"))){
+          .x3 <- paste0(.x3[2], .x3[1], .x3[3])
+        }
+      }
+      if (length(.x3) != 1){
+        stop("error optimizing expression, try 'optExpression=FALSE'")
+      }
       .ret <- paste0(
-        ..rxOpt(x[[2]]),
+        ..rxOptLhs(x[[2]]),
         ifelse(identical(x[[1]], quote(`<-`)),
-          "=", as.character(x[[1]])
-        ),
-        .rxOptExpr(x[[3]])
-      )
+          "=", as.character(x[[1]])),
+        .x3)
       .extra <- c()
       if (length(.rxOptEnv$.new) > 0) {
         for (.i in seq_along(.rxOptEnv$.rep)) {
@@ -343,7 +372,7 @@
 ##' This optimizes RxODE code for computer evaluation by only
 ##' calculating redundant expressions once.
 ##'
-##' @param x RxODE model that can be access by rxNorm
+##' @param x RxODE model that can be accessed by rxNorm
 ##'
 ##' @param msg This is the name of type of object that RxODE is
 ##'     optimizing that will in the message when optimizing.  For

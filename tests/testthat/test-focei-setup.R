@@ -380,6 +380,73 @@ rxPermissive(
     ## test_that("Issue #57 if/else", {
     ##     expect_false(any(rxLhs(cond$inner) == "T0"))
     ## })
+
+
+    ## Logit sensitivity problem
+    pk <- function(){
+      t.ef0=THETA[1]
+      t.Emax=THETA[2]
+      t.fct=THETA[3]
+      t.gamma=THETA[4]
+      t.kout=THETA[5]
+      t.kM=THETA[6]
+      t.sM1=THETA[7]
+      t.ktr=THETA[8]
+      t.k1p=THETA[9]
+      t.kp1=THETA[10]
+      Vvit=THETA[11]
+      logit.sd=THETA[12]
+      eta.ef0 = ETA[1]
+      nlmixr_ef0_expr <- expit(t.ef0 + eta.ef0, 50, 90)
+      nlmixr_fct_expr <- expit(t.fct, 0.2, 20)
+      nlmixr_gamma_expr <- t.gamma
+      nlmixr_Emax_expr <- exp(t.Emax)
+      nlmixr_kout_expr <- exp(t.kout)
+      nlmixr_kM_expr <- exp(t.kM)
+      nlmixr_ktr_expr <- exp(t.ktr)
+      nlmixr_sM1_expr <- t.sM1
+      nlmixr_k1p_expr <- exp(t.k1p)
+      nlmixr_kp1_expr <- exp(t.kp1)
+      nlmixr_cvit_expr <- central/Vvit * 1e+06
+    }
+
+    m1 <- RxODE({
+      ef0 <- nlmixr_ef0_expr
+      fct <- nlmixr_fct_expr
+      gamma <- nlmixr_gamma_expr
+      Emax <- nlmixr_Emax_expr
+      kout <- nlmixr_kout_expr
+      kM <- nlmixr_kM_expr
+      ktr <- nlmixr_ktr_expr
+      sM1 <- nlmixr_sM1_expr
+      k1p <- nlmixr_k1p_expr
+      kp1 <- nlmixr_kp1_expr
+      d/dt(central) = -central * log(2)/t12
+      cvit <- nlmixr_cvit_expr
+      d/dt(t1) = central * ktr - t1 * ktr
+      d/dt(t2) = t1 * ktr - t2 * ktr
+      d/dt(t3) = t2 * ktr - t3 * ktr
+      d/dt(t4) = t3 * ktr - t4 * ktr
+      d/dt(M1) = ktr * t4 - kM * M1 - M1 * k1p + Mp * kp1
+      d/dt(Mp) = M1 * k1p - Mp * kp1
+      d/dt(eff) = ef0/kout * (1 + Emax/(1 + (fct * ic50/cvit)^gamma)) - kout * eff * (1 + sM1 * M1)
+      eff(0) = ef0
+      M1(0) = 1;
+      cmt(eff);
+      nlmixr_pred <- eff
+    })
+
+    pred <- function() nlmixr_pred
+
+    err <- function() {
+      return(logitNorm(logit.sd))
+    }
+
+    cond <- rxSymPySetupPred(m1, pred, pk, err)
+
+    expect_true(inherits(cond, "rxFocei"))
+
+
   },
   silent = TRUE,
   test = "focei"
