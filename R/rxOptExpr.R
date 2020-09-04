@@ -370,7 +370,7 @@ rxOptExpr <- function(x, msg = "model") {
   .rxOptEnv$.added <- c()
   .rxOptEnv$.exclude <- ""
   .malert(sprintf("finding duplicate expressions in %s...", msg))
-  .p <- eval(parse(text = paste0("quote({", x, "})")))
+  .p <- eval(parse(text = paste0("quote({", rxNorm(x), "})")))
   .lines <- ..rxOpt(.p, progress = TRUE)
   .rxOptEnv$.list <- .rxOptEnv$.list[which(unlist(.rxOptEnv$.list) > 1L)]
   .exprs <- names(.rxOptEnv$.list)[order(nchar(names(.rxOptEnv$.list)))]
