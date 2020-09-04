@@ -304,11 +304,8 @@ static double _powerDi(double x, double lambda, int yj, double low, double high)
 static double _powerDi(double x, double lambda, int yj, double low, double high){
   double x0=x, ret, l2;
   switch(yj){
-  case 4: {
-    // expit
-    double p = 1/(1+exp(-x));
-    return (high-low)*p+low;
-  }
+  case 4:
+    return (high-low)/(1+exp(-x))+low; // expit
   case 3:
     return exp(x);
   case 2: 
@@ -380,11 +377,10 @@ static double _powerD(double x, double lambda, int yj, double low, double high) 
 
 static double _powerDD(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
 static double _powerDD(double x, double lambda, int yj, double low, double high){
-  double x0 = x, xl;
+  double x0 = x;
   switch(yj){
   case 4: // logitNorm
-    xl = (x-low);
-    return (high - low)/(xl*xl*((high - low)/xl)-1);
+    return (high - low)/((-low + x)*(-low + x)*(-1.0 + (high - low)/(-low + x)));
   case 3:
     if (x <= _eps) return x0 = _eps;
     return 1/x0;
@@ -411,19 +407,15 @@ static double _powerDD(double x, double lambda, int yj, double low, double high)
 
 static double _powerDDD(double x, double lambda, int yj,double low, double high) __attribute__((unused));
 static double _powerDDD(double x, double lambda, int yj,double low, double high){
-  double x0 = x, hl, hl2, xl, xl2, xl3, xl4, t1, t12;
+  double x0 = x, hl, hl2, xl,  t1;
   switch(yj){
   case 4: // logit
     // (high - low)^2/((-low + x)^4*(-1 + (high - low)/(-low + x))^2) - 2*(high - low)/((-low + x)^3*(-1 + (high - low)/(-low + x)))
-    hl = high - low;
+    hl = (high - low);
     hl2 = hl*hl;
-    xl = x - low;
-    xl2 = xl*xl;
-    xl3 = xl2*xl;
-    xl4 = xl2*xl2;
-    t1 = (-1 + hl/xl);
-    t12 = t1*t1;
-    return hl2/(xl4*t12) - 2*hl/(xl3*t1);
+    xl = (-low + x);
+    t1 = (-1.0 + hl/xl);
+    return 1.0*hl2/(hl2*hl2*t1*t1) - 2.0*hl/(xl*xl*xl*t1);
   case 3:
     if (x <= _eps) x0 = _eps;
     return -1/(x0*x0);
@@ -450,12 +442,10 @@ static double _powerDDD(double x, double lambda, int yj,double low, double high)
 
 static double _powerL(double x, double lambda, int yj, double low, double high) __attribute__((unused));
 static double _powerL(double x, double lambda, int yj, double low, double high){
-  double x0 = x, xl, hl;
+  double x0 = x;
   switch(yj){
-  case 4: // logit
-    xl = (x-low);
-    hl = (high - low);
-    return log(hl) - log(xl*xl*(hl/xl)-1);
+  case 4: // logit d/dx(logit(x))
+    return log((high - low)/((-low + x)*(-low + x)*(-1.0 + (high - low)/(-low + x))));
     return 0;
   case 3: 
     if (x <= _eps) x0 = _eps;
