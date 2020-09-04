@@ -658,12 +658,12 @@ RxODE <- # nolint
     .env$calcJac <- (length(.mv$dfdy) > 0)
     .env$calcSens <- (length(.mv$sens) > 0)
     class(.env) <- "RxODE"
-    reg.finalizer(.env, eval(bquote(function(...) {
-      RxODE::rxUnlock(.(.env))
-      if (getOption("RxODE.unload.unused", FALSE)) {
-        rxUnloadAll()
-      }
-    })))
+    ## reg.finalizer(.env, eval(bquote(function(...) {
+    ##   RxODE::rxUnlock(.(.env))
+    ##   if (getOption("RxODE.unload.unused", FALSE)) {
+    ##     rxUnloadAll()
+    ##   }
+    ## })))
     RxODE::rxForget()
     if (!is.null(.env$package)) {
       .o <- rxDll(.env)
