@@ -1783,7 +1783,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    xpn2 = d_get_child(xpn1, 10+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
 	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.")))) {
+		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
 	      // has interesting tlag
 	      int ixL = tb.ixL;
 	      int didEq = tb.didEq;
@@ -1802,7 +1802,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    xpn2 = d_get_child(xpn1, 11+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
 	    if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
-		   !strcmp(v2, "1.")))) {
+		   !strcmp(v2, "1.") || !strcmp(v2, "")))) {
 	      // has interesting f1
 	      int ixL = tb.ixL;
 	      int didEq = tb.didEq;
@@ -1821,7 +1821,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    xpn2 = d_get_child(xpn1, 13+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
 	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.")))) {
+		   !strcmp(v2, "0.")) || !strcmp(v2, ""))) {
 	      // has interesting rate
 	      int ixL = tb.ixL;
 	      int didEq = tb.didEq;
@@ -1840,7 +1840,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    xpn2 = d_get_child(xpn1, 12+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
 	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.")))) {
+		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
 	      // has interesting rate
 	      int ixL = tb.ixL;
 	      int didEq = tb.didEq;
@@ -1867,7 +1867,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    xpn2 = d_get_child(xpn1, 15+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
 	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.")))) {
+		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
 	      // has interesting tlag
 	      int ixL = tb.ixL;
 	      int didEq = tb.didEq;
@@ -1886,7 +1886,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    xpn2 = d_get_child(xpn1, 16+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
 	    if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
-		   !strcmp(v2, "1.")))) {
+		   !strcmp(v2, "1.") || !strcmp(v2, "")))) {
 	      // has interesting f1
 	      int ixL = tb.ixL;
 	      int didEq = tb.didEq;
@@ -1905,7 +1905,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    xpn2 = d_get_child(xpn1, 17+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
 	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.")))) {
+		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
 	      // has interesting rate
 	      int ixL = tb.ixL;
 	      int didEq = tb.didEq;
@@ -1924,7 +1924,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    xpn2 = d_get_child(xpn1, 18+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
 	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.")))) {
+		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
 	      // has interesting rate
 	      int ixL = tb.ixL;
 	      int didEq = tb.didEq;
