@@ -516,7 +516,6 @@ static double _powerDL(double x, double lambda, int yj, double low, double hi){
   // (-x+1)^(2-lambda)/(2-lambda) - 1/(2-lambda)
   // dh/dy = (-x+1)^(1-lambda)
   // log(dh/dy) = (1-lambda)*log(-x+1)
-
 }
 
 #endif

@@ -2177,6 +2177,7 @@ rxErrEnv.lambda <- NULL
 rxErrEnv.yj <- NULL
 rxErrEnv.hi <- 1
 rxErrEnv.low <- 0
+rxErrEnv.combined <- "^2"
 rxErrEnvF$lnorm <- function(est) {
   if (rxErrEnv.ret != "rx_r_") {
     stop("'lnorm' can only be in an error function", call. = FALSE)
@@ -2188,14 +2189,14 @@ rxErrEnvF$lnorm <- function(est) {
   }
   estN <- suppressWarnings(as.numeric(est))
   if (is.na(estN)) {
-    ret <- (sprintf("(%s)^2", est))
+    ret <- (sprintf("(%s)%s", est, rxErrEnv.combined))
     assignInMyNamespace("rxErrEnv.lambda", "0")
     assignInMyNamespace("rxErrEnv.yj", "0")
   } else {
     theta <- sprintf("THETA[%s]", rxErrEnv.theta)
     est <- estN
     theta.est <- theta
-    ret <- (sprintf("(%s)^2", theta.est))
+    ret <- (sprintf("(%s)%s", theta.est, rxErrEnv.combined))
     tmp <- rxErrEnv.diag.est
     tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
     assignInMyNamespace("rxErrEnv.diag.est", tmp)
@@ -2220,7 +2221,7 @@ rxErrEnvF$logitNorm <- function(est, low="0", hi="1") {
   }
   estN <- suppressWarnings(as.numeric(est))
   if (is.na(estN)) {
-    ret <- (sprintf("(%s)^2", est))
+    ret <- (sprintf("(%s)%s", est, rxErrEnv.combined))
     assignInMyNamespace("rxErrEnv.lambda", "0")
     assignInMyNamespace("rxErrEnv.yj", "4")
     assignInMyNamespace("rxErrEnv.hi", hi)
@@ -2229,7 +2230,7 @@ rxErrEnvF$logitNorm <- function(est, low="0", hi="1") {
     theta <- sprintf("THETA[%s]", rxErrEnv.theta)
     est <- estN
     theta.est <- theta
-    ret <- (sprintf("(%s)^2", theta.est))
+    ret <- (sprintf("(%s)%s", theta.est, rxErrEnv.combined))
     tmp <- rxErrEnv.diag.est
     tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
     assignInMyNamespace("rxErrEnv.diag.est", tmp)
@@ -2300,12 +2301,12 @@ rxErrEnvF$add <- function(est) {
   }
   estN <- suppressWarnings(as.numeric(est))
   if (is.na(estN)) {
-    ret <- (sprintf("(%s)^2", est))
+    ret <- (sprintf("(%s)%s", est, rxErrEnv.combined))
   } else {
     theta <- sprintf("THETA[%s]", rxErrEnv.theta)
     est <- estN
     theta.est <- theta
-    ret <- (sprintf("(%s)^2", theta.est))
+    ret <- (sprintf("(%s)%s", theta.est, rxErrEnv.combined))
     tmp <- rxErrEnv.diag.est
     tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
     assignInMyNamespace("rxErrEnv.diag.est", tmp)
@@ -2380,13 +2381,13 @@ rxErrEnvF$prop <- function(est) {
   }
   estN <- suppressWarnings(as.numeric(est))
   if (is.na(estN)) {
-    ret <- (sprintf("(rx_pred_f_)^2 * (%s)^2", est))
+    ret <- (sprintf("(rx_pred_f_)%s * (%s)%s", rxErrEnv.combined, est, rxErrEnv.combined))
   } else {
     est <- estN
     ret <- ""
     theta <- sprintf("THETA[%s]", rxErrEnv.theta)
     theta.est <- theta
-    ret <- (sprintf("(rx_pred_f_)^2*(%s)^2", theta.est))
+    ret <- (sprintf("(rx_pred_f_)%s*(%s)%s", rxErrEnv.combined, theta.est, rxErrEnv.combined))
     tmp <- rxErrEnv.diag.est
     tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
     assignInMyNamespace("rxErrEnv.diag.est", tmp)
@@ -2401,14 +2402,15 @@ rxErrEnvF$pow <- function(est, pow) {
   }
   estN <- suppressWarnings(as.numeric(est))
   if (is.na(estN)) {
-    ret <- (sprintf("(rx_pred_f_)^(2*%s) * (%s)^2", pow, est))
+    ret <- (sprintf("(rx_pred_f_)^(%s%s) * (%s)%s", ifelse(rxErrEnv.combined == "^2", "2*", ""),
+                    pow, est, rxErrEnv.combined))
   } else {
     est <- estN
     ret <- ""
     theta <- sprintf("THETA[%s]", rxErrEnv.theta)
     theta2 <- sprintf("THETA[%s]", rxErrEnv.theta + 1)
     theta.est <- theta
-    ret <- (sprintf("(rx_pred_f_)^(2*%s) * (%s)^2", theta2, theta.est))
+    ret <- (sprintf("(rx_pred_f_)^(%s%s) * (%s)%s", ifelse(rxErrEnv.combined == "^2", "2*", ""), theta2, theta.est, rxErrEnv.combined))
     tmp <- rxErrEnv.diag.est
     tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
     tmp[sprintf("THETA[%s]", rxErrEnv.theta + 1)] <- as.numeric(pow)
@@ -2554,7 +2556,8 @@ rxParsePred <- function(x, init = NULL, err = NULL) {
 ##' @keywords internal
 ##' @author Matthew L. Fidler
 ##' @export
-rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL) {
+rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL,
+                       addProp=c("combined2", "combined1")) {
   if (!missing(baseTheta)) {
     assignInMyNamespace("rxErrEnv.theta", baseTheta)
   }
@@ -2567,19 +2570,28 @@ rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL) {
   if (!missing(init)) {
     assignInMyNamespace("rxErrEnv.init", init)
   }
+  addProp = match.arg(addProp)
+  if (addProp == "combined2") {
+    assignInMyNamespace("rxErrEnv.combined", "^2")
+  } else {
+    assignInMyNamespace("rxErrEnv.combined", "")
+  }
   if (is(x, "function")) {
     x <- rxAddReturn(x, ret != "")
   }
   if (is(substitute(x), "character")) {
-    ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(quote({%s}))", x)))
+    ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(quote({%s}),addProp=\"%s\")", x, addProp)))
     ret <- substring(ret, 3, nchar(ret) - 2)
+    if (rxErrEnv.combined == "") {
+      ret <- paste0("(", ret, ")^2")
+    }
     assignInMyNamespace("rxErrEnv.diag.est", c())
     assignInMyNamespace("rxErrEnv.theta", 1)
     assignInMyNamespace("rxErrEnv.ret", "rx_r_")
     assignInMyNamespace("rxErrEnv.init", NULL)
     return(ret)
   } else if (is(substitute(x), "name")) {
-    ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(%s)", deparse(x))))
+    ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(%s, addProp=\"%s\")", deparse(x), addProp)))
     assignInMyNamespace("rxErrEnv.diag.est", c())
     assignInMyNamespace("rxErrEnv.theta", 1)
     assignInMyNamespace("rxErrEnv.ret", "rx_r_")
@@ -2590,6 +2602,9 @@ rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL) {
     if (is(x, "character")) {
       ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(quote({%s}))", paste(x, collapse = "\n"))))
       ret <- substring(ret, 3, nchar(ret) - 2)
+      if (rxErrEnv.combined == "") {
+        ret <- paste0("(", ret, ")^2")
+      }
     } else {
       x <- .convStr(x)
       ret <- eval(x, rxErrEnv(x))
@@ -2599,6 +2614,7 @@ rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL) {
     assignInMyNamespace("rxErrEnv.theta", 1)
     assignInMyNamespace("rxErrEnv.ret", "rx_r_")
     assignInMyNamespace("rxErrEnv.init", NULL)
+
     return(ret)
   }
 }

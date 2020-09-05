@@ -153,6 +153,18 @@
       return(paste0("(", ..rxOptLhs(x[[2]]), ")"))
     } else if (identical(x[[1]], quote(`dt`))){
       return(paste0("dt(", ..rxOptLhs(x[[2]]), ")"))
+    } else if (identical(x[[1]], quote(`f`))){
+      return(paste0("f(", ..rxOptLhs(x[[2]]), ")"))
+    } else if (identical(x[[1]], quote(`F`))){
+      return(paste0("F(", ..rxOptLhs(x[[2]]), ")"))
+    } else if (identical(x[[1]], quote(`rate`))){
+      return(paste0("rate(", ..rxOptLhs(x[[2]]), ")"))
+    } else if (identical(x[[1]], quote(`alag`))){
+      return(paste0("alag(", ..rxOptLhs(x[[2]]), ")"))
+    } else if (identical(x[[1]], quote(`lag`))){
+      return(paste0("alag(", ..rxOptLhs(x[[2]]), ")"))
+    } else if (identical(x[[1]], quote(`dur`))){
+      return(paste0("dur(", ..rxOptLhs(x[[2]]), ")"))
     } else if (identical(x[[1]], quote(`dy`))){
       return(paste0("dy(", ..rxOptLhs(x[[2]]), ")"))
     } else if (identical(x[[1]], quote(`df`))){
@@ -160,6 +172,7 @@
     } else if (identical(x[[2]], 0)) {
       return(paste0(as.character(x[[1]]), "(0)"))
     } else {
+      print(x)
       stop("unsupported lhs in optimize expression")
     }
   }

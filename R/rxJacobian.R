@@ -223,7 +223,8 @@ rxExpandGrid <- function(x, y, type = 0L) {
 ##' @return A list of (1) RxODE model variables augmented with
 ##'     pred/error information and (2) extra error variables created.
 ##' @author Matthew L Fidler
-.rxGenPred <- function(obj, predfn, errfn, init) {
+.rxGenPred <- function(obj, predfn, errfn, init,
+                       addProp=c("combined2", "combined1")) {
   .extraPars <- c()
   add <- function(...) {} # maker rcheck happy
   if (is.null(errfn)) {
@@ -243,7 +244,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
   }))
   .pars <- .pars[.w]
   .mtheta <- max(as.numeric(gsub(rex::rex("THETA[", capture(numbers), "]"), "\\1", .pars)))
-  .err <- rxParseErr(errfn, baseTheta = .mtheta + 1, init = init)
+  .err <- rxParseErr(errfn, baseTheta = .mtheta + 1, init = init, addProp=addProp)
   .predMod <- rxParsePred(predfn, init = init, .err)
   .extraPars <- attr(.predMod, "ini")
   .predMod <- rxGetModel(.predMod)
@@ -280,7 +281,8 @@ rxExpandGrid <- function(x, y, type = 0L) {
 ##' @author Matthew Fidler
 ##' @noRd
 .rxGenFun <- function(obj, predfn, pkpars = NULL, errfn = NULL,
-                      init = NULL, promoteLinSens = TRUE, full=TRUE) {
+                      init = NULL, promoteLinSens = TRUE, full=TRUE,
+                      addProp=c("combined2", "combined1")) {
   rxSolveFree()
   rxTempDir()
   .checkGood(predfn)
@@ -294,7 +296,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
   }
   .stateInfo <- .rxGenFunState(obj)
   .newmod <- .rxGenPkpars(obj, pkpars, init)
-  .newmod <- .rxGenPred(.newmod, predfn, errfn, init)
+  .newmod <- .rxGenPred(.newmod, predfn, errfn, init, addProp=addProp)
   .extraPars <- .newmod[[2]]
   .newmod <- .newmod[[1]]
   .newmod <- .rxLoadPrune(.newmod, promoteLinSens = promoteLinSens)
@@ -314,13 +316,13 @@ rxExpandGrid <- function(x, y, type = 0L) {
 ##' @return RxODE text
 ##' @author Matthew Fidler
 ##' @export
-rxGenSaem <- function(obj, predfn, pkpars = NULL,
-                      sum.prod=FALSE, optExpression=TRUE) {
+rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=TRUE) {
   nlmixrAdd <- NULL
   add <- function(...){}
   .errfn <- function(){
     return(add(nlmixrAdd))
   }
+  ## Add prop not supplied here, so it doesn't matter what you choose
   .s <- .rxGenFun(obj, predfn, pkpars, errfn=.errfn,
                   init=NULL, promoteLinSens=FALSE, full=FALSE)
   .prd <- get("rx_pred_", envir = .s)
@@ -367,9 +369,9 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
 ##' @author Matthew L. Fidler
 .rxGenEtaS <- function(obj, predfn, pkpars = NULL, errfn = NULL,
                        init = NULL, promoteLinSens = TRUE,
-                       theta = FALSE) {
+                       theta = FALSE, addProp=c("combined2", "combined1")) {
   .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
-    promoteLinSens = promoteLinSens
+    promoteLinSens = promoteLinSens, addProp=addProp
   )
   .etaVars <- c()
   if (theta && exists("..maxTheta", .s)) {
@@ -382,8 +384,8 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
   }
   .stateVars <- rxState(.s)
   .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
-    promoteLinSens = promoteLinSens
-  )
+                  promoteLinSens = promoteLinSens,
+                  addProp=addProp)
   .rxJacobian(.s, c(.stateVars, .etaVars))
   .rxSens(.s, .etaVars)
   return(.s)
@@ -397,11 +399,11 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
 .rxGenHdEta <- function(obj, predfn, pkpars = NULL, errfn = NULL,
                         init = NULL, pred.minus.dv = TRUE,
                         promoteLinSens = TRUE,
-                        theta = FALSE) {
+                        theta = FALSE, addProp=c("combined2", "combined1")) {
   ## Equation 19 in Almquist
   .s <- .rxGenEtaS(obj, predfn, pkpars, errfn, init,
     promoteLinSens = promoteLinSens,
-    theta = theta
+    theta = theta, addProp=addProp
   )
   .stateVars <- rxState(.s)
   .grd <- rxExpandFEta_(
@@ -568,10 +570,11 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
                        sum.prod = FALSE,
                        optExpression = TRUE,
                        promoteLinSens = TRUE,
-                       theta = FALSE) {
+                       theta = FALSE,
+                       addProp=c("combined2", "combined1")) {
   .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv,
-    promoteLinSens = promoteLinSens, theta = theta
-  )
+                    promoteLinSens = promoteLinSens, theta = theta,
+                    addProp=addProp )
   .s$..REta <- NULL
   ## Take etas from rx_r
   eval(parse(text = rxRepR0_(.s$..maxEta)))
@@ -590,10 +593,11 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
                         init = NULL, pred.minus.dv = TRUE,
                         sum.prod = FALSE,
                         optExpression = TRUE,
-                        promoteLinSens = TRUE, theta = FALSE) {
+                        promoteLinSens = TRUE, theta = FALSE,
+                        addProp=c("combined2", "combined1")) {
   .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv,
-    promoteLinSens = promoteLinSens, theta = theta
-  )
+                    promoteLinSens = promoteLinSens, theta = theta,
+                    addProp=addProp)
   .stateVars <- rxState(.s)
   .grd <- rxExpandFEta_(.stateVars, .s$..maxEta, FALSE)
   if (.useUtf()) {
@@ -629,8 +633,8 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL,
                       init = NULL, pred.minus.dv = TRUE,
                       sum.prod = FALSE,
                       optExpression = TRUE,
-                      theta = FALSE) {
-  .s <- .rxGenFun(obj, predfn, pkpars, errfn, init)
+                      theta = FALSE, addProp=c("combined2", "combined1")) {
+  .s <- .rxGenFun(obj, predfn, pkpars, errfn, init, addProp=addProp)
   .s$..inner <- NULL
   .s$..outer <- NULL
   .rxFinalizePred(.s, sum.prod, optExpression)
