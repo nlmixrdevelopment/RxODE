@@ -2138,7 +2138,7 @@ for (op in c(
   rxErrEnvF[[op]] <- binaryOp(paste0(" ", op2, " "))
 }
 for (op in c("=", "~", "<-")) {
-  rxErrEnvF[[op]] <- binaryOp(paste0(" = "))
+  rxErrEnvF[[op]] <- binaryOp(" = ")
 }
 rxErrEnvF$"{" <- function(...) {
   return(sprintf("{\n%s\n}", paste(unlist(list(...)), collapse = "\n")))
@@ -2363,10 +2363,6 @@ rxErrEnvF$`return` <- function(est) {
   return(sprintf("%s%s=%s;", .extra, rxErrEnv.ret, est))
 }
 
-## rxErrEnvF$c <- function(...){
-##     print(sprintf("c(%s)",paste(paste0("rxParseErr(",c(...),")"),collapse=",")))
-##     eval(parse(text=sprintf("c(%s)",paste(paste0("rxParseErr(",c(...),")"),collapse=","))))
-## }
 
 rxErrEnvF$`|` <- binaryOp(" | ")
 rxErrEnvF$`||` <- binaryOp(" || ")
@@ -2485,9 +2481,9 @@ rxParsePk <- function(x, init = NULL) {
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxParsePred <- function(x, init = NULL, err = NULL) {
+rxParsePred <- function(x, init = NULL, err = NULL, addProp=c("combined2", "combined1")) {
   if (is.null(err)) {
-    return(rxParseErr(x, ret = "rx_pred_", init = init))
+    return(rxParseErr(x, ret = "rx_pred_", init = init, addProp=addProp))
   } else {
     .ini <- attr(err, "ini")
     .errs <- rxExpandIfElse(rxGetModel(err))
@@ -2558,6 +2554,7 @@ rxParsePred <- function(x, init = NULL, err = NULL) {
 ##' @export
 rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL,
                        addProp=c("combined2", "combined1")) {
+  addProp = match.arg(addProp)
   if (!missing(baseTheta)) {
     assignInMyNamespace("rxErrEnv.theta", baseTheta)
   }
@@ -2570,7 +2567,6 @@ rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL,
   if (!missing(init)) {
     assignInMyNamespace("rxErrEnv.init", init)
   }
-  addProp = match.arg(addProp)
   if (addProp == "combined2") {
     assignInMyNamespace("rxErrEnv.combined", "^2")
   } else {
@@ -2582,9 +2578,6 @@ rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL,
   if (is(substitute(x), "character")) {
     ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(quote({%s}),addProp=\"%s\")", x, addProp)))
     ret <- substring(ret, 3, nchar(ret) - 2)
-    if (rxErrEnv.combined == "") {
-      ret <- paste0("(", ret, ")^2")
-    }
     assignInMyNamespace("rxErrEnv.diag.est", c())
     assignInMyNamespace("rxErrEnv.theta", 1)
     assignInMyNamespace("rxErrEnv.ret", "rx_r_")
@@ -2602,9 +2595,6 @@ rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL,
     if (is(x, "character")) {
       ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(quote({%s}))", paste(x, collapse = "\n"))))
       ret <- substring(ret, 3, nchar(ret) - 2)
-      if (rxErrEnv.combined == "") {
-        ret <- paste0("(", ret, ")^2")
-      }
     } else {
       x <- .convStr(x)
       ret <- eval(x, rxErrEnv(x))
@@ -2614,7 +2604,6 @@ rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL,
     assignInMyNamespace("rxErrEnv.theta", 1)
     assignInMyNamespace("rxErrEnv.ret", "rx_r_")
     assignInMyNamespace("rxErrEnv.init", NULL)
-
     return(ret)
   }
 }
