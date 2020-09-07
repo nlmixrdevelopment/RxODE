@@ -701,6 +701,18 @@ double logit(double x, double low, double high) {
   return -log(1/p-1);
 }
 
+double probit(double x, double low, double high) {
+  double p = (x-low)/(high-low);
+  if (p >= 1) return R_NaN;
+  if (p <= 0) return R_NaN;
+  return qnorm(x, 0, 1, 1, 0);
+}
+
+double invProbit(double alpha, double low, double high) {
+  double p = pnorm(alpha, 0.0, 1.0, 1, 0);
+  return (high-low)*p + low;
+}
+
 double expit(double alpha, double low, double high) {
   double p = 1/(1+exp(-alpha));
   return (high-low)*p+low;

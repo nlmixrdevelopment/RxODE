@@ -302,8 +302,22 @@ void rxUpdateFuns(SEXP trans);
 // Inverse 
 static double _powerDi(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
 static double _powerDi(double x, double lambda, int yj, double low, double high){
-  double x0=x, ret, l2;
+  double x0=x, ret, l2, yjd;
   switch(yj){
+  case 5: // inverse-Yeo-Johnson followed by expit
+    if (lambda == 1.0) {
+      yjd = x;
+    } else if (x >= 0){
+      if (lambda == 0) yjd = log1p(x);
+      else yjd = (pow(x + 1.0, lambda) - 1.0)/lambda;
+    } else {
+      if (lambda == 2.0) yjd = -log1p(-x);
+      else {
+	l2 = 2.0 - lambda;
+	yjd = (1.0 - pow(1.0 - x, l2))/l2;
+      }
+    }
+    return (high-low)/(1+exp(-yjd))+low;
   case 4:
     return (high-low)/(1+exp(-x))+low; // expit
   case 3:
@@ -346,6 +360,20 @@ static double _powerD(double x, double lambda, int yj, double low, double high) 
 static double _powerD(double x, double lambda, int yj, double low, double high) {
   double x0=x, l2, p;
   switch (yj){
+  case 5: // logit followed by yeo-johnson
+    p = (x-low)/(high-low);
+    if (p >= 1) return R_NaN;
+    if (p <= 0) return R_NaN;
+    p = -log(1/p-1);
+    if (lambda == 1.0) return p;
+    if (p >= 0){
+      if (lambda == 0) return log1p(p);
+      return (pow(p + 1.0, lambda) - 1.0)/lambda;
+    } else {
+      if (lambda == 2.0) return -log1p(-p);
+      l2 = 2.0 - lambda;
+      return (1.0 - pow(1.0 - p, l2))/l2;
+    }
   case 4: // logitNorm
     p = (x-low)/(high-low);
     if (p >= 1) return R_NaN;
@@ -379,6 +407,9 @@ static double _powerDD(double x, double lambda, int yj, double low, double high)
 static double _powerDD(double x, double lambda, int yj, double low, double high){
   double x0 = x;
   switch(yj){
+  case 5: // logit followed by yeo-johnson  yeoJohnson(logit(x))
+    // Subs(Derivative(yeoJohnson(_xi_1), _xi_1), (_xi_1), (logit(x)))*Derivative(logit(x), x)
+    return _powerDD(_powerD(x, lambda, 4, low, high), lambda, 1, low, high)*_powerDD(x, lambda, 4, low, high);
   case 4: // logitNorm
     return (high - low)/((-low + x)*(-low + x)*(-1.0 + (high - low)/(-low + x)));
   case 3:
@@ -392,7 +423,7 @@ static double _powerDD(double x, double lambda, int yj, double low, double high)
     if (lambda == 0.0) return 1/x0;
     // pow(x,lambda)/lambda - 1/lambda
     return pow(x0, lambda-1);
-  case 1:
+  case 1: // Yeo Johnson derivative
     if (lambda ==  1.0) return 1.0;
     if (x >= 0){
       if (lambda == 0.0) return 1.0/(x + 1.0);
@@ -407,8 +438,12 @@ static double _powerDD(double x, double lambda, int yj, double low, double high)
 
 static double _powerDDD(double x, double lambda, int yj,double low, double high) __attribute__((unused));
 static double _powerDDD(double x, double lambda, int yj,double low, double high){
-  double x0 = x, hl, hl2, xl,  t1;
+  double x0 = x, hl, hl2, xl,  t1, dL;
   switch(yj){
+  case 5:
+    //Derivative(logit(x), x)^2*Subs(Derivative(yeoJohnson(_xi_1), _xi_1, _xi_1), (_xi_1), (logit(x))) + Subs(Derivative(yeoJohnson(_xi_1), _xi_1), (_xi_1), (logit(x)))*Derivative(logit(x), x, x)
+    dL = _powerDD(x, lambda, 4, low, high);
+    return dL*dL*_powerDD(_powerD(x, lambda, 4, low, high), lambda, 1, low, high);
   case 4: // logit
     // (high - low)^2/((-low + x)^4*(-1 + (high - low)/(-low + x))^2) - 2*(high - low)/((-low + x)^3*(-1 + (high - low)/(-low + x)))
     hl = (high - low);
@@ -444,9 +479,11 @@ static double _powerL(double x, double lambda, int yj, double low, double high) 
 static double _powerL(double x, double lambda, int yj, double low, double high){
   double x0 = x;
   switch(yj){
+  case 5:
+    // Subs(Derivative(yeoJohnson(_xi_1), _xi_1), (_xi_1), (logit(x)))*Derivative(logit(x), x)
+    return log(_powerDD(_powerD(x, lambda, 4, low, high), lambda, 1, low, high))+log(_powerDD(x, lambda, 4, low, high));
   case 4: // logit d/dx(logit(x))
     return log((high - low)/((-low + x)*(-low + x)*(-1.0 + (high - low)/(-low + x))));
-    return 0;
   case 3: 
     if (x <= _eps) x0 = _eps;
     return -log(x0);
@@ -484,12 +521,16 @@ static double _powerDL(double x, double lambda, int yj, double low, double hi){
   // d(logLik/dlambda)
   double x0 = x;
   switch (yj){
+  case 5:
+    return _powerDL(_powerD(x, lambda, 4, low, high), lambda, 1, low, high);
   case 4:
+    // For logit norm, no dependence on lambda
     return 0;
   case 3:
     if (x <= _eps) x0 = _eps;
     return log(x0);
   case 2:
+    // For normal transform no dependence of lambda
     return 0;
   case 0:
     if (lambda == 1.0) return 0;

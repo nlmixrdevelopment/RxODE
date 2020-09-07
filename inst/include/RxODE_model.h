@@ -81,7 +81,7 @@
 #define _qnorm1(x) qnorm(x, 0.0, 1.0, 1, 0)
 #define _qnorm2(x, mu) qnorm(x, mu, 1.0, 1, 0)
 #define _qnorm3(x, mu, sd) qnorm(x, mu, sd, 1, 0)
-#define probit(x) qnorm(x, 0.0, 1.0, 1, 0)
+#define probitt(x) qnorm(x, 0.0, 1.0, 1, 0)
 #define _logit1(x) logit(x, 0.0, 1.0)
 #define _logit2(x, y) logit(x, y, 1.0)
 #define _expit1(x) expit(x, 0.0, 1.0)
