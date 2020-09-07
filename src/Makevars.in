@@ -28,6 +28,13 @@ OBJECTS =  $(SOURCES_C:.c=.o) $(SOURCES_CPP:.cpp=.o)  $(SOURCES_FORTAN:.f=.o)
 # all: strippedLib
 # $(SHLIB): mylibs
 all: $(SHLIB)
+
+lincmt.o: lincmt.c
+	$(CC) -I"$(R_INCLUDE_DIR)" $(CFLAGS) $(SHLIB_CFLAGS) $(CPICFLAGS) $(PKG_CFLAGS) -I../inst/include/ -fno-var-tracking -O0 -c  lincmt.c -o lincmt.o
+
+lincmtB.o: lincmtB.cpp
+	$(CC) -I"$(R_INCLUDE_DIR)" $(CXXFLAGS) $(SHLIB_CXXFLAGS) $(CPICFLAGS) $(PKG_CXXFLAGS) -I../inst/include/ -fno-var-tracking -O0 -c lincmtB.cpp -o lincmtB.o
+
 # mylibs:  
 # 	$(CC) -I"$(R_INCLUDE_DIR)" $(CFLAGS) $(CPPFLAGS) $(SHLIB_CFLAGS) $(CPICFLAGS) -I../inst/include/ ../inst/include/RxODE_model.h || $(CC) --version
 
