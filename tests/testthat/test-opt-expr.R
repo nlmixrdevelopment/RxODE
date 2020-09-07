@@ -18,6 +18,7 @@ rxPermissive(
     rxOptExpr("a=1+(((-1/2)))*b")
 
     rxOptExpr("a=1+(1/2)*b; c=d^(1/2); e=(1/2)*f^(1/2)")
+
   },
   test = "parsing"
 )

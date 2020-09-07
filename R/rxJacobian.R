@@ -603,6 +603,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
   .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv,
                     promoteLinSens = promoteLinSens, theta = theta,
                     addProp=addProp)
+  assign(".s", .s, globalenv())
   .stateVars <- rxState(.s)
   .grd <- rxExpandFEta_(.stateVars, .s$..maxEta, FALSE)
   if (.useUtf()) {

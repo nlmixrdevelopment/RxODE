@@ -559,6 +559,26 @@ static double _powerDL(double x, double lambda, int yj, double low, double hi){
   // log(dh/dy) = (1-lambda)*log(-x+1)
 }
 
+static inline double abs1(double x){
+  if (x == 0.0) return 1.0;
+  return fabs(x);
+}
+static inline double dabs1(double x){
+  double t1  = tanh(-4.60512018348798+10*(x));
+  double t2 = tanh(10*(x));
+  return x*(5-5*t1*t1)+x*(-5+5*t1*t1)+(x>0)+(x<0)+(-20*tanh(10*(x-0))+20*t2*t2*t2);
+}
+
+static inline double dabs(double x) {
+  double t1 = tanh(4.60512018348798+10*x);
+  return x*(5-5*t1*t1)+x*(-5+5*t1*t1)+(x>=0)+(x<0);
+}
+
+static inline double dabs2(double x) {
+  double t1 = tanh(4.60512018348798+10*(x));
+  return (5-5*t1*t1)+(-5+5*t1*t1);
+}
+
 #endif
 #if defined(__cplusplus)
 }

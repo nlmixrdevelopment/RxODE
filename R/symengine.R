@@ -27,12 +27,15 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "log2" = c("log(", ")/log(2)", "log"),
   "log1pexp" = c("log(1+exp(", "))", "log1pexp"),
   "!" = c("rxNot(", ")", ""),
-  "phi" = c("0.5*(1+erf((", ")/sqrt(2)))")
+  "phi" = c("0.5*(1+erf((", ")/sqrt(2)))"),
+  "abs"=c("abs0(", ")"),
+  "fabs"=c("abs0(", ")")
 )
 
 .SEsingle <- list(
   "rxNot" = c("(!(", "))"),
-  "loggamma" = c("lgamma(", ")")
+  "loggamma" = c("lgamma(", ")"),
+  "abs0"=c("abs(", ")")
 )
 
 .rxSEdouble <- list(
@@ -130,7 +133,11 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "max" = NA,
   "min" = NA,
   "logit" = NA,
-  "expit" = NA
+  "expit" = NA,
+  "dabs"=1,
+  "dabs2"=1,
+  "abs1"=1,
+  "dabs1"=1
 )
 
 .rxOnly <- c(
@@ -355,6 +362,26 @@ rxRmFun <- function(name) {
     return(paste0("-(", y, ")/((", x, ")^2+(", y, ")^2)"))
   }
 )
+
+.rxD$abs0 <- list(function(x){
+  return(paste0("dabs(", x, ")"))
+})
+
+.rxD$abs1 <- list(function(x){
+  return(paste0("dabs1(", x, ")"))
+})
+
+.rxD$dabs1 <- list(function(x){
+  return("0")
+})
+
+.rxD$dabs <- list(function(x){
+  return(paste0("dabs2(", x, ")"))
+})
+
+.rxD$dabs2 <- list(function(x){
+  return("0")
+})
 
 
 .rxD$rxTBS <- list(function(a, lambda, yj, hi, low) {
@@ -1949,16 +1976,8 @@ rxS <- function(x, doConst = TRUE, promoteLinSens = FALSE) {
   .env$..lhs <- c()
   .env$..lhs0 <- c()
   .env$..doConst <- doConst
-  .env$rxTBS <- .rxFunction("rxTBS")
-  .env$rxTBSd <- .rxFunction("rxTBSd")
-  .env$rxTBSd2 <- .rxFunction("rxTBSd2")
-  .env$linCmtA <- .rxFunction("linCmtA")
-  .env$linCmtB <- .rxFunction("linCmtB")
-  for (.f in c(
-    "rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt",
-    "rxGt", "rxAnd", "rxOr", "rxNot"
-  )) {
-    assign(.f, .rxFunction(.f), envir = .env)
+  for (.f in ls(.rxD)) {
+    assign(.f, .rxFunction(.f), envir=.env)
   }
   .env$..s0 <- symengine::S("0")
   .env$..extraTheta <- list()
@@ -2402,13 +2421,13 @@ rxErrEnvF$prop <- function(est) {
   }
   estN <- suppressWarnings(as.numeric(est))
   if (is.na(estN)) {
-    ret <- (sprintf("(rx_pred_f_)%s * (%s)%s", rxErrEnv.combined, est, rxErrEnv.combined))
+    ret <- (sprintf("(abs1(rx_pred_f_))%s * (%s)%s", rxErrEnv.combined, est, rxErrEnv.combined))
   } else {
     est <- estN
     ret <- ""
     theta <- sprintf("THETA[%s]", rxErrEnv.theta)
     theta.est <- theta
-    ret <- (sprintf("(rx_pred_f_)%s*(%s)%s", rxErrEnv.combined, theta.est, rxErrEnv.combined))
+    ret <- (sprintf("(abs1(rx_pred_f_))%s*(%s)%s", rxErrEnv.combined, theta.est, rxErrEnv.combined))
     tmp <- rxErrEnv.diag.est
     tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
     assignInMyNamespace("rxErrEnv.diag.est", tmp)
@@ -2423,7 +2442,7 @@ rxErrEnvF$pow <- function(est, pow) {
   }
   estN <- suppressWarnings(as.numeric(est))
   if (is.na(estN)) {
-    ret <- (sprintf("(rx_pred_f_)^(%s%s) * (%s)%s", ifelse(rxErrEnv.combined == "^2", "2*", ""),
+    ret <- (sprintf("(abs(rx_pred_f_))^(%s%s) * (%s)%s", ifelse(rxErrEnv.combined == "^2", "2*", ""),
                     pow, est, rxErrEnv.combined))
   } else {
     est <- estN
@@ -2431,7 +2450,7 @@ rxErrEnvF$pow <- function(est, pow) {
     theta <- sprintf("THETA[%s]", rxErrEnv.theta)
     theta2 <- sprintf("THETA[%s]", rxErrEnv.theta + 1)
     theta.est <- theta
-    ret <- (sprintf("(rx_pred_f_)^(%s%s) * (%s)%s", ifelse(rxErrEnv.combined == "^2", "2*", ""), theta2, theta.est, rxErrEnv.combined))
+    ret <- (sprintf("(abs(rx_pred_f_))^(%s%s) * (%s)%s", ifelse(rxErrEnv.combined == "^2", "2*", ""), theta2, theta.est, rxErrEnv.combined))
     tmp <- rxErrEnv.diag.est
     tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
     tmp[sprintf("THETA[%s]", rxErrEnv.theta + 1)] <- as.numeric(pow)
@@ -2735,7 +2754,8 @@ rxSplitPlusQ <- function(x, level = 0, mult = FALSE) {
   if (.rxSupportedFunsExtra) {
     .ret <- c(.ret, c(
       "rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt",
-      "rxGt", "rxAnd", "rxOr", "rxNot"
+      "rxGt", "rxAnd", "rxOr", "rxNot", "dabs", "dabs2", "abs0",
+      "dabs1", "abs1"
     ))
   }
   .ret
