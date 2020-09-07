@@ -2215,15 +2215,18 @@ rxErrEnvF$logitNorm <- function(est, low="0", hi="1") {
     stop("'logitNorm' can only be in an error function", call. = FALSE)
   }
   if (!is.null(rxErrEnv.lambda)) {
-    if (rxErrEnv.lambda != "0" && rxErrEnv.yj != "4") {
-      stop("'logitNorm' cannot be used with other data transformations", call. = FALSE)
+    if (rxErrEnv.yj != "1") {
+      if (rxErrEnv.lambda != "0" && rxErrEnv.yj != "4") {
+        stop("'logitNorm' cannot be used with other data transformations", call. = FALSE)
+      }
     }
   }
   estN <- suppressWarnings(as.numeric(est))
   if (is.na(estN)) {
     ret <- (sprintf("(%s)%s", est, rxErrEnv.combined))
     assignInMyNamespace("rxErrEnv.lambda", "0")
-    assignInMyNamespace("rxErrEnv.yj", "4")
+    if (rxErrEnv.yj == "1") assignInMyNamespace("rxErrEnv.yj", "5")
+    else assignInMyNamespace("rxErrEnv.yj", "4")
     assignInMyNamespace("rxErrEnv.hi", hi)
     assignInMyNamespace("rxErrEnv.low", low)
   } else {
@@ -2236,7 +2239,8 @@ rxErrEnvF$logitNorm <- function(est, low="0", hi="1") {
     assignInMyNamespace("rxErrEnv.diag.est", tmp)
     assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1)
     assignInMyNamespace("rxErrEnv.lambda", "0")
-    assignInMyNamespace("rxErrEnv.yj", "4")
+    if (rxErrEnv.yj == "1") assignInMyNamespace("rxErrEnv.yj", "5")
+    else assignInMyNamespace("rxErrEnv.yj", "4")
     assignInMyNamespace("rxErrEnv.hi", hi)
     assignInMyNamespace("rxErrEnv.low", low)
   }
@@ -2274,21 +2278,23 @@ rxErrEnvF$tbsYj <- function(lambda) {
     stop("'tbsYj' can only be in an error function", call. = FALSE)
   }
   if (!is.null(rxErrEnv.lambda)) {
-    if (rxErrEnv.yj != "1" & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1") {
+    if ((rxErrEnv.yj != "1" | rxErrEnv.yj != "4") & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1") {
       stop("'tbsYj' cannot be used with other data transformations", call. = FALSE)
     }
   }
   estN <- suppressWarnings(as.numeric(lambda))
   if (is.na(estN)) {
     assignInMyNamespace("rxErrEnv.lambda", lambda)
-    assignInMyNamespace("rxErrEnv.yj", "1")
+    if (rxErrEnv.yj == "4") assignInMyNamespace("rxErrEnv.yj", "5")
+    else assignInMyNamespace("rxErrEnv.yj", "1")
   } else {
     tmp <- rxErrEnv.diag.est
     tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- estN
     assignInMyNamespace("rxErrEnv.lambda", sprintf("THETA[%s]", rxErrEnv.theta))
     assignInMyNamespace("rxErrEnv.diag.est", tmp)
     assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1)
-    assignInMyNamespace("rxErrEnv.yj", "1")
+    if (rxErrEnv.yj == "4") assignInMyNamespace("rxErrEnv.yj", "5")
+    else assignInMyNamespace("rxErrEnv.yj", "1")
   }
   return("0")
 }

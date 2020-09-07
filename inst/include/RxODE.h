@@ -522,7 +522,7 @@ static double _powerDL(double x, double lambda, int yj, double low, double hi){
   double x0 = x;
   switch (yj){
   case 5:
-    return _powerDL(_powerD(x, lambda, 4, low, high), lambda, 1, low, high);
+    return _powerDL(_powerD(x, lambda, 4, low, hi), lambda, 1, low, hi);
   case 4:
     // For logit norm, no dependence on lambda
     return 0;
