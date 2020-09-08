@@ -2258,7 +2258,7 @@ rxErrEnvF$logitNorm <- function(est, low="0", hi="1") {
   }
   if (!is.null(rxErrEnv.lambda)) {
     if (rxErrEnv.yj != "1") {
-      if (rxErrEnv.lambda != "0" && rxErrEnv.yj != "4") {
+      if (rxErrEnv.yj != "4" & rxErrEnv.yj != "5") {
         stop("'logitNorm' cannot be used with other data transformations", call. = FALSE)
       }
     }
@@ -2303,11 +2303,11 @@ rxErrEnvF$logitNorm <- function(est, low="0", hi="1") {
 
 rxErrEnvF$tbs <- function(lambda) {
   if (rxErrEnv.ret != "rx_r_") {
-    stop("'tbs' can only be in an error function", call. = FALSE)
+    stop("'boxCox' can only be in an error function", call. = FALSE)
   }
   if (!is.null(rxErrEnv.lambda)) {
     if (rxErrEnv.yj != "0" & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1") {
-      stop("'tbs' cannot be used with other data transformations", call. = FALSE)
+      stop("'boxCox' cannot be used with other data transformations", call. = FALSE)
     }
   }
   estN <- suppressWarnings(as.numeric(lambda))
@@ -2329,11 +2329,11 @@ rxErrEnvF$boxCox <- rxErrEnvF$tbs
 
 rxErrEnvF$tbsYj <- function(lambda) {
   if (rxErrEnv.ret != "rx_r_") {
-    stop("'tbsYj' can only be in an error function", call. = FALSE)
+    stop("'yeoJohnson' can only be in an error function", call. = FALSE)
   }
   if (!is.null(rxErrEnv.lambda)) {
-    if ((rxErrEnv.yj != "1" | rxErrEnv.yj != "4") & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1") {
-      stop("'tbsYj' cannot be used with other data transformations", call. = FALSE)
+    if ((rxErrEnv.yj != "1" & rxErrEnv.yj != "4")) {
+      stop("'yeoJohnson' cannot be used with other data transformations", call. = FALSE)
     }
   }
   estN <- suppressWarnings(as.numeric(lambda))
@@ -2374,8 +2374,6 @@ rxErrEnvF$add <- function(est) {
     tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
     assignInMyNamespace("rxErrEnv.diag.est", tmp)
     assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1)
-    assignInMyNamespace("rxErrEnv.lambda", "1")
-    assignInMyNamespace("rxErrEnv.yj", "0")
   }
   return(ret)
 }
