@@ -255,7 +255,6 @@ rxExpandGrid <- function(x, y, type = 0L) {
 
 .rxLoadPrune <- function(mod, doConst = TRUE, promoteLinSens = TRUE, fullModel = FALSE,
                          addProp=c("combined2", "combined1")) {
-  assignInMyNamespace("rxErrEnv.hasAdd", FALSE)
   addProp <- match.arg(addProp)
   if (fullModel) {
     .malert("pruning branches ({.code if}/{.code else}) of full model...")
@@ -532,6 +531,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
 ##' @author Matthew L Fidler
 .rxFinalizeInner <- function(.s, sum.prod = FALSE,
                              optExpression = TRUE) {
+  assignInMyNamespace("rxErrEnv.hasAdd", FALSE)
   .prd <- get("rx_pred_", envir = .s)
   .prd <- paste0("rx_pred_=", rxFromSE(.prd))
   .r <- get("rx_r_", envir = .s)
