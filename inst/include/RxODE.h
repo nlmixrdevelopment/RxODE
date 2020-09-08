@@ -481,10 +481,9 @@ static double _powerL(double x, double lambda, int yj, double low, double high){
   switch(yj){
   case 5:
     // Subs(Derivative(yeoJohnson(_xi_1), _xi_1), (_xi_1), (logit(x)))*Derivative(logit(x), x)
-    return _powerL(_powerD(x, lambda, 4, low, high), lambda, 1, low, high);
+    return log(_powerDD(_powerD(x, lambda, 4, low, high), lambda, 1, low, high))+log(_powerDD(x, lambda, 4, low, high));
   case 4: // logit d/dx(logit(x))
-    // On logit domain, so no difference here
-    return 0;
+    return log((high - low)/((-low + x)*(-low + x)*(-1.0 + (high - low)/(-low + x))));
   case 3: 
     if (x <= _eps) x0 = _eps;
     return -log(x0);
