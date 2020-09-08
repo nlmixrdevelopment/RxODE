@@ -2194,10 +2194,25 @@ rxErrEnv.ret <- "rx_r_"
 rxErrEnv.init <- NULL
 rxErrEnv.lambda <- NULL
 rxErrEnv.yj <- NULL
-rxErrEnv.hi <- 1
-rxErrEnv.low <- 0
 rxErrEnv.combined <- "^2"
 rxErrEnv.hasAdd <- FALSE
+rxErrEnv.hi <- "1"
+rxErrEnv.low <- "0"
+
+.rxErrEnvInit <- function() {
+  assignInMyNamespace("rxErrEnv.hasAdd", FALSE)
+  assignInMyNamespace("rxErrEnv.theta", 1)
+  assignInMyNamespace("rxErrEnv.diag.est", c())
+  assignInMyNamespace("rxErrEnv.ret", "rx_r_")
+  assignInMyNamespace("rxErrEnv.init", NULL)
+  assignInMyNamespace("rxErrEnv.lambda", NULL)
+  assignInMyNamespace("rxErrEnv.yj", NULL)
+  assignInMyNamespace("rxErrEnv.combined", "^2")
+  assignInMyNamespace("rxErrEnv.hi", "1")
+  assignInMyNamespace("rxErrEnv.low", "0")
+}
+
+
 rxErrEnvF$lnorm <- function(est) {
   if (rxErrEnv.ret != "rx_r_") {
     stop("'lnorm' can only be in an error function", call. = FALSE)
@@ -2378,8 +2393,8 @@ rxErrEnvF$`return` <- function(est) {
   .extra <- ""
   force(est)
   if (rxErrEnv.ret == "rx_r_") {
-    .hi <- "1"
-    .low <- "0"
+    .hi <- rxErrEnv.hi
+    .low <- rxErrEnv.low
     if (is.null(rxErrEnv.lambda)) {
       .lambda <- "1"
     } else {
@@ -2398,15 +2413,7 @@ rxErrEnvF$`return` <- function(est) {
       .yj <- "3"
       .lambda <- "0"
     }
-    if (.yj == "4" & .lambda == "0") {
-      .hi <- rxErrEnv.hi
-      .low <- rxErrEnv.low
-    }
     .extra <- sprintf("rx_yj_~%s;\nrx_lambda_~%s;\nrx_hi_~%s\nrx_low_~%s\n", .yj, .lambda, .hi, .low)
-    assignInMyNamespace("rxErrEnv.yj", NULL)
-    assignInMyNamespace("rxErrEnv.lambda", NULL)
-    assignInMyNamespace("rxErrEnv.hi", "1")
-    assignInMyNamespace("rxErrEnv.low", "0")
   }
   return(sprintf("%s%s=%s;", .extra, rxErrEnv.ret, est))
 }

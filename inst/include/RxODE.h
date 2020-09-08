@@ -378,6 +378,7 @@ static double _powerD(double x, double lambda, int yj, double low, double high) 
     p = (x-low)/(high-low);
     if (p >= 1) return R_NaN;
     if (p <= 0) return R_NaN;
+    /* REprintf("%f %f %f\n", x, p, -log(1/p-1)); */
     return -log(1/p-1);
   case 3: // logNorm
     if (x <= _eps) x0= _eps;
@@ -405,13 +406,15 @@ static double _powerD(double x, double lambda, int yj, double low, double high) 
 
 static double _powerDD(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
 static double _powerDD(double x, double lambda, int yj, double low, double high){
-  double x0 = x;
+  double x0 = x, xl, hl;
   switch(yj){
   case 5: // logit followed by yeo-johnson  yeoJohnson(logit(x))
     // Subs(Derivative(yeoJohnson(_xi_1), _xi_1), (_xi_1), (logit(x)))*Derivative(logit(x), x)
     return _powerDD(_powerD(x, lambda, 4, low, high), lambda, 1, low, high)*_powerDD(x, lambda, 4, low, high);
   case 4: // logitNorm
-    return (high - low)/((-low + x)*(-low + x)*(-1.0 + (high - low)/(-low + x)));
+    xl = (x-low);
+    hl = (high - low);
+    return hl/(xl*(hl-xl));
   case 3:
     if (x <= _eps) return x0 = _eps;
     return 1/x0;
@@ -477,13 +480,19 @@ static double _powerDDD(double x, double lambda, int yj,double low, double high)
 
 static double _powerL(double x, double lambda, int yj, double low, double high) __attribute__((unused));
 static double _powerL(double x, double lambda, int yj, double low, double high){
-  double x0 = x;
+  double x0 = x, hl, xl, hl2;
   switch(yj){
   case 5:
     // Subs(Derivative(yeoJohnson(_xi_1), _xi_1), (_xi_1), (logit(x)))*Derivative(logit(x), x)
     return log(_powerDD(_powerD(x, lambda, 4, low, high), lambda, 1, low, high))+log(_powerDD(x, lambda, 4, low, high));
   case 4: // logit d/dx(logit(x))
-    return log((high - low)/((-low + x)*(-low + x)*(-1.0 + (high - low)/(-low + x))));
+    xl = (x-low);
+    if (xl <= _eps) xl = _eps;
+    hl = (high - low);
+    hl2 = hl-xl;
+    if (xl <= _eps) hl2 = _eps;
+    return log(hl)-log(xl)-log(hl2);
+    /* return 0; */
   case 3: 
     if (x <= _eps) x0 = _eps;
     return -log(x0);

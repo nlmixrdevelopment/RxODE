@@ -531,7 +531,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
 ##' @author Matthew L Fidler
 .rxFinalizeInner <- function(.s, sum.prod = FALSE,
                              optExpression = TRUE) {
-  assignInMyNamespace("rxErrEnv.hasAdd", FALSE)
+  .rxErrEnvInit()
   .prd <- get("rx_pred_", envir = .s)
   .prd <- paste0("rx_pred_=", rxFromSE(.prd))
   .r <- get("rx_r_", envir = .s)
