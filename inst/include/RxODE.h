@@ -564,15 +564,11 @@ static inline double abs1(double x){
   return fabs(x);
 }
 static inline double dabs1(double x){
-  if (x > 0) return 1.0;
-  if (x < 0) return -1.0;
-  return 0.0;
+  return (x>0)-(x<0);
 }
 
 static inline double dabs(double x) {
-  if (x > 0) return 1.0;
-  if (x < 0) return -1.0;
-  return 0.0;
+  return (x>0)-(x<0);
 }
 
 static inline double dabs2(double x) {
