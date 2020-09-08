@@ -2197,6 +2197,7 @@ rxErrEnv.yj <- NULL
 rxErrEnv.hi <- 1
 rxErrEnv.low <- 0
 rxErrEnv.combined <- "^2"
+rxErrEnv.hasAdd <- FALSE
 rxErrEnvF$lnorm <- function(est) {
   if (rxErrEnv.ret != "rx_r_") {
     stop("'lnorm' can only be in an error function", call. = FALSE)
@@ -2212,6 +2213,7 @@ rxErrEnvF$lnorm <- function(est) {
     return("")
   } else {
     estN <- suppressWarnings(as.numeric(est))
+    assignInMyNamespace("rxErrEnv.hasAdd", TRUE)
     if (is.na(estN)) {
       ret <- (sprintf("(%s)%s", est, rxErrEnv.combined))
       assignInMyNamespace("rxErrEnv.lambda", "0")
@@ -2255,6 +2257,7 @@ rxErrEnvF$logitNorm <- function(est, low="0", hi="1") {
     return("")
   } else  {
     estN <- suppressWarnings(as.numeric(est))
+    assignInMyNamespace("rxErrEnv.hasAdd", TRUE)
     if (is.na(estN)) {
       ret <- (sprintf("(%s)%s", est, rxErrEnv.combined))
       assignInMyNamespace("rxErrEnv.lambda", "0")
@@ -2343,6 +2346,7 @@ rxErrEnvF$add <- function(est) {
   if (rxErrEnv.ret != "rx_r_") {
     stop("'add' can only be in an error function", call. = FALSE)
   }
+  assignInMyNamespace("rxErrEnv.hasAdd", TRUE)
   estN <- suppressWarnings(as.numeric(est))
   if (is.na(estN)) {
     ret <- (sprintf("(%s)%s", est, rxErrEnv.combined))
@@ -2421,13 +2425,13 @@ rxErrEnvF$prop <- function(est) {
   }
   estN <- suppressWarnings(as.numeric(est))
   if (is.na(estN)) {
-    ret <- (sprintf("(abs1(rx_pred_f_))%s * (%s)%s", rxErrEnv.combined, est, rxErrEnv.combined))
+    ret <- (sprintf("(abs(rx_pred_f_))%s * (%s)%s", rxErrEnv.combined, est, rxErrEnv.combined))
   } else {
     est <- estN
     ret <- ""
     theta <- sprintf("THETA[%s]", rxErrEnv.theta)
     theta.est <- theta
-    ret <- (sprintf("(abs1(rx_pred_f_))%s*(%s)%s", rxErrEnv.combined, theta.est, rxErrEnv.combined))
+    ret <- (sprintf("(abs(rx_pred_f_))%s*(%s)%s", rxErrEnv.combined, theta.est, rxErrEnv.combined))
     tmp <- rxErrEnv.diag.est
     tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
     assignInMyNamespace("rxErrEnv.diag.est", tmp)

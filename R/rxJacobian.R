@@ -255,6 +255,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
 
 .rxLoadPrune <- function(mod, doConst = TRUE, promoteLinSens = TRUE, fullModel = FALSE,
                          addProp=c("combined2", "combined1")) {
+  assignInMyNamespace("rxErrEnv.hasAdd", FALSE)
   addProp <- match.arg(addProp)
   if (fullModel) {
     .malert("pruning branches ({.code if}/{.code else}) of full model...")
@@ -270,6 +271,13 @@ rxExpandGrid <- function(x, y, type = 0L) {
     .malert("loading into {.pkg symengine} environment...")
   }
   .newmod <- rxS(.newmod, doConst, promoteLinSens = promoteLinSens)
+  if (!rxErrEnv.hasAdd) {
+    ## Convert abs() to abs1()
+    .r <- get("rx_r_", envir = .newmod)
+    .r <- paste0("abs1(", rxFromSE(.r), ")")
+    .r <- symengine::S(rxToSE(.r))
+    assign("rx_r_", .r, envir=.newmod)
+  }
   if (addProp == "combined1") {
     assign("rx_r_", get("rx_r_", envir = .newmod)^2, envir=.newmod)
   }
