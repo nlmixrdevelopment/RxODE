@@ -19,7 +19,7 @@ SOURCES_C =  lincmt.c utilc.c call_dvode.c dop853.c tran.c omegaChol.c init.c cf
 SOURCES_CPP = par_solve.cpp lincmtB.cpp forder.cpp rxData.cpp et.cpp boost.cpp fast_factor.cpp etTran.cpp cvPost.cpp expandGrid.cpp  RcppExports.cpp WinDrive.cpp rxInv.cpp rxStack.cpp rxOptRep.cpp expm.cpp threefry.cpp vandercorput.cpp checkmate.cpp 
 SOURCES_FORTAN = dlsoda.f opkda2.f matexp.f dsphiv.f dgpadm.f
 
-OBJECTS =  $(SOURCES_C:.c=.o) $(SOURCES_CPP:.cpp=.o)  $(SOURCES_FORTAN:.f=.o) 
+OBJECTS = $(SOURCES_CPP:.cpp=.o) $(SOURCES_C:.c=.o) $(SOURCES_FORTAN:.f=.o)
 
 # strippedLib: $(SHLIB)
 # 	if test -e "/usr/bin/strip"; then /usr/bin/strip -s $(SHLIB); fi
@@ -33,7 +33,7 @@ lincmt.o: lincmt.c
 	$(CC) -I"$(R_INCLUDE_DIR)" $(CFLAGS) $(SHLIB_CFLAGS) $(CPICFLAGS) $(PKG_CFLAGS) -I../inst/include/ -fno-var-tracking -O0 -c  lincmt.c -o lincmt.o
 
 lincmtB.o: lincmtB.cpp
-	$(CXX) -I"$(R_INCLUDE_DIR)" $(CXXFLAGS) $(SHLIB_CXXFLAGS) $(CPICFLAGS) $(PKG_CXXFLAGS) -I../inst/include/ -fno-var-tracking -O0 -c lincmtB.cpp -o lincmtB.o
+	$(CXX) -I"$(R_INCLUDE_DIR)" -DNDEBUG $(CXXPICFLAGS) $(PKG_CXXFLAGS) $(CFLAGS) $(CXXFLAGS) $(SHLIB_CXXFLAGS) -I../inst/include/ -O0 -c lincmtB.cpp -o lincmtB.o
 
 # mylibs:  
 # 	$(CXX) -I"$(R_INCLUDE_DIR)" $(CFLAGS) $(CPPFLAGS) $(SHLIB_CFLAGS) $(CPICFLAGS) -I../inst/include/ ../inst/include/RxODE_model.h || $(CC) --version
