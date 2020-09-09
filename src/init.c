@@ -300,6 +300,9 @@ void sortIds(rx_solve* rx, int ini);
 
 void handleTlast(double *time, rx_solving_options_ind *ind);
 
+SEXP _probit(SEXP xS, SEXP lowS, SEXP highS);
+SEXP _probitInv(SEXP xS, SEXP lowS, SEXP highS);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
@@ -432,6 +435,8 @@ void R_init_RxODE(DllInfo *info){
     {"getRxThreads_R", (DL_FUNC) getRxThreads_R, 1},
     {"setRxthreads", (DL_FUNC) setRxthreads, 3},
     {"_rxHasOpenMp", (DL_FUNC) _rxHasOpenMp, 0},
+    {"_probit", (DL_FUNC) _probit, 3},
+    {"_probitInv", (DL_FUNC) _probitInv, 3},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

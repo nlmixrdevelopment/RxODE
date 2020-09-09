@@ -708,9 +708,115 @@ double probit(double x, double low, double high) {
   return Rf_qnorm5(x, 0, 1, 1, 0);
 }
 
-double invProbit(double alpha, double low, double high) {
+SEXP _probit(SEXP xS, SEXP lowS, SEXP highS) {
+  int typex = TYPEOF(xS);
+  int typelow = TYPEOF(lowS);
+  int typehigh = TYPEOF(highS);
+  double low, high;
+  if (Rf_length(lowS) != 1){
+    Rf_errorcall(R_NilValue, _("'low' must be a numeric of length 1"));
+  }
+  if (Rf_length(highS) != 1){
+    Rf_errorcall(R_NilValue, _("'high' must be a numeric of length 1"));
+  }
+  if (typelow == INTSXP){
+    low = (double)(INTEGER(lowS)[0]);
+  } else if (typelow == REALSXP) {
+    low = REAL(lowS)[0];
+  } else {
+    Rf_errorcall(R_NilValue, _("'low' must be a numeric of length 1"));
+  }
+  if (typehigh == INTSXP){
+    high = (double)(INTEGER(highS)[0]);
+  } else if (typehigh == REALSXP) {
+    high = REAL(highS)[0];
+  } else {
+    Rf_errorcall(R_NilValue, _("'high' must be a numeric of length 1"));
+  }
+  if (high <= low) {
+    Rf_errorcall(R_NilValue, _("'high' must be greater than 'low'"));
+  }
+  int lenx = Rf_length(xS);
+  double *xD = NULL;
+  int *xI = NULL;
+  int isD=0;
+  if (typex == REALSXP){
+    isD=1;
+    xD = REAL(xS);
+  } else if (typex == INTSXP){
+    xI = INTEGER(xS);
+  }
+  SEXP ret = PROTECT(Rf_allocVector(REALSXP, lenx));
+  double *retD = REAL(ret);
+  if (isD){
+    for (int i = lenx; i--;){
+      retD[i] = probit(xD[i], low, high);
+    }
+  } else {
+    for (int i = lenx; i--;){
+      retD[i] = probit((double)(xI[i]), low, high);
+    }
+  }
+  UNPROTECT(1);
+  return ret;
+}
+
+double probitInv(double alpha, double low, double high) {
   double p = Rf_pnorm5(alpha, 0.0, 1.0, 1, 0);
   return (high-low)*p + low;
+}
+
+SEXP _probitInv(SEXP xS, SEXP lowS, SEXP highS) {
+  int typex = TYPEOF(xS);
+  int typelow = TYPEOF(lowS);
+  int typehigh = TYPEOF(highS);
+  double low, high;
+  if (Rf_length(lowS) != 1){
+    Rf_errorcall(R_NilValue, _("'low' must be a numeric of length 1"));
+  }
+  if (Rf_length(highS) != 1){
+    Rf_errorcall(R_NilValue, _("'high' must be a numeric of length 1"));
+  }
+  if (typelow == INTSXP){
+    low = (double)(INTEGER(lowS)[0]);
+  } else if (typelow == REALSXP) {
+    low = REAL(lowS)[0];
+  } else {
+    Rf_errorcall(R_NilValue, _("'low' must be a numeric of length 1"));
+  }
+  if (typehigh == INTSXP){
+    high = (double)(INTEGER(highS)[0]);
+  } else if (typehigh == REALSXP) {
+    high = REAL(highS)[0];
+  } else {
+    Rf_errorcall(R_NilValue, _("'high' must be a numeric of length 1"));
+  }
+  if (high <= low) {
+    Rf_errorcall(R_NilValue, _("'high' must be greater than 'low'"));
+  }
+  int lenx = Rf_length(xS);
+  double *xD = NULL;
+  int *xI = NULL;
+  int isD=0;
+  if (typex == REALSXP){
+    isD=1;
+    xD = REAL(xS);
+  } else if (typex == INTSXP){
+    xI = INTEGER(xS);
+  }
+  SEXP ret = PROTECT(Rf_allocVector(REALSXP, lenx));
+  double *retD = REAL(ret);
+  if (isD){
+    for (int i = lenx; i--;){
+      retD[i] = probitInv(xD[i], low, high);
+    }
+  } else {
+    for (int i = lenx; i--;){
+      retD[i] = probitInv((double)(xI[i]), low, high);
+    }
+  }
+  UNPROTECT(1);
+  return ret;
 }
 
 double expit(double alpha, double low, double high) {

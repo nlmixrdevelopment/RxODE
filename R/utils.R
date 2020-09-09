@@ -892,6 +892,25 @@ expit <- function(alpha, low = 0, high = 1) {
   .Call(`_expit`, alpha, low, high, PACKAGE = "RxODE")
 }
 
+##' probit and inverse probit functions
+##'
+##' @inheritParams logit
+##' @examples
+##'
+##' probit(0.25)
+##'
+##' probitInv(-0.674)
+##' @export
+probit <- function(x, low=0, high=1) {
+  .Call(`_probit`, x, low, high, PACKAGE = "RxODE")
+}
+
+##'@rdname probit
+##'@export
+probitInv <- function(x, low=0, high=1) {
+  .Call(`_probitInv`, x, low, high, PACKAGE = "RxODE")
+}
+
 ##' Get/Set the number of threads that RxODE uses
 ##'
 ##' @param threads NULL (default) rereads environment variables. 0
