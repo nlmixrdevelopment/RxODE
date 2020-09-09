@@ -1,5 +1,6 @@
 rxPermissive({
   context("Issue #243: reserved symengine variables")
+
   pars <- function(){
     tbeta=THETA[1]
     tTmax=THETA[2]

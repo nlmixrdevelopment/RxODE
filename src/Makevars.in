@@ -35,7 +35,3 @@ lincmt.o: lincmt.c
 lincmtB.o: lincmtB.cpp
 	$(CXX) -I"$(R_INCLUDE_DIR)" -DNDEBUG $(CXXPICFLAGS) $(PKG_CXXFLAGS) $(CFLAGS) $(CXXFLAGS) $(SHLIB_CXXFLAGS) -I../inst/include/ -O0 -c lincmtB.cpp -o lincmtB.o
 
-# mylibs:  
-# 	$(CXX) -I"$(R_INCLUDE_DIR)" $(CFLAGS) $(CPPFLAGS) $(SHLIB_CFLAGS) $(CPICFLAGS) -I../inst/include/ ../inst/include/RxODE_model.h || $(CC) --version
-
-

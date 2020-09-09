@@ -35,8 +35,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 
 .SEsingle <- list(
   "rxNot" = c("(!(", "))"),
-  "loggamma" = c("lgamma(", ")"),
-  "abs0"=c("abs(", ")")
+  "loggamma" = c("lgamma(", ")")
 )
 
 .rxSEdouble <- list(
@@ -139,7 +138,8 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "dabs2"=1,
   "abs1"=1,
   "dabs1"=1,
-  "erfinv"=1
+  "erfinv"=1,
+  "abs0"=1
 )
 
 .rxOnly <- c(
