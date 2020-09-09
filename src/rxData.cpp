@@ -3773,6 +3773,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  std::iota(ind->ix,ind->ix+ind->n_all_times,0);
 	  curEvent += eLen;
 	  ind->on=&_globals.gon[curOn];
+	  ind->onLin = ind->on + op->neq;
 	  curOn +=op->neq+op->extraCmt;
 	  curIdx += ind->n_all_times;
 	  if (rx->sample) {

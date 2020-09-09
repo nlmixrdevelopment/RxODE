@@ -191,6 +191,7 @@ typedef struct {
   int *cens;
   int *idose;
   int *on;
+  int *onLin;
   int idosen;
   int id;
   int idReal;
