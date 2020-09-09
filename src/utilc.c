@@ -705,11 +705,11 @@ double probit(double x, double low, double high) {
   double p = (x-low)/(high-low);
   if (p >= 1) return R_NaN;
   if (p <= 0) return R_NaN;
-  return qnorm(x, 0, 1, 1, 0);
+  return Rf_qnorm5(x, 0, 1, 1, 0);
 }
 
 double invProbit(double alpha, double low, double high) {
-  double p = pnorm(alpha, 0.0, 1.0, 1, 0);
+  double p = Rf_pnorm5(alpha, 0.0, 1.0, 1, 0);
   return (high-low)*p + low;
 }
 

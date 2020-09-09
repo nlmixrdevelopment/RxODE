@@ -299,11 +299,32 @@ void rxOptionsIniEnsure(int mx);
 void rxUpdateFuns(SEXP trans);
 
 #define _eps sqrt(DOUBLE_EPS)
+
+static inline double erfinv(double x)  __attribute__((unused));
+static inline double erfinv(double x) {
+  return Rf_qnorm5((1 + x)/2.0, 0, 1, 1, 0)*M_SQRT1_2;
+}
 // Inverse 
 static double _powerDi(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
 static double _powerDi(double x, double lambda, int yj, double low, double high){
   double x0=x, ret, l2, yjd;
   switch(yj){
+  case 7: // inverse-Yeo Johnson followed by pnorm
+    if (lambda == 1.0) {
+      yjd = x;
+    } else if (x >= 0){
+      if (lambda == 0) yjd = log1p(x);
+      else yjd = (pow(x + 1.0, lambda) - 1.0)/lambda;
+    } else {
+      if (lambda == 2.0) yjd = -log1p(-x);
+      else {
+	l2 = 2.0 - lambda;
+	yjd = (1.0 - pow(1.0 - x, l2))/l2;
+      }
+    }
+    return (high-low)*Rf_pnorm5(x, 0, 1, 1, 0)+low;
+  case 6: // probitInverse
+    return (high-low)*Rf_pnorm5(x, 0, 1, 1, 0)+low;
   case 5: // inverse-Yeo-Johnson followed by expit
     if (lambda == 1.0) {
       yjd = x;
@@ -360,6 +381,27 @@ static double _powerD(double x, double lambda, int yj, double low, double high) 
 static double _powerD(double x, double lambda, int yj, double low, double high) {
   double x0=x, l2, p;
   switch (yj){
+  case 7:
+    p = (x-low)/(high-low);
+    if (p >= 1) return R_NaN;
+    if (p <= 0) return R_NaN;
+    /* REprintf("%f %f %f\n", x, p, -log(1/p-1)); */
+    p = Rf_qnorm5(p, 0, 1, 1, 0);
+    if (lambda == 1.0) return p;
+    if (p >= 0){
+      if (lambda == 0) return log1p(p);
+      return (pow(p + 1.0, lambda) - 1.0)/lambda;
+    } else {
+      if (lambda == 2.0) return -log1p(-p);
+      l2 = 2.0 - lambda;
+      return (1.0 - pow(1.0 - p, l2))/l2;
+    }
+  case 6: // probitNorm
+    p = (x-low)/(high-low);
+    if (p >= 1) return R_NaN;
+    if (p <= 0) return R_NaN;
+    /* REprintf("%f %f %f\n", x, p, -log(1/p-1)); */
+    return Rf_qnorm5(p, 0, 1, 1, 0);
   case 5: // logit followed by yeo-johnson
     p = (x-low)/(high-low);
     if (p >= 1) return R_NaN;
@@ -406,8 +448,16 @@ static double _powerD(double x, double lambda, int yj, double low, double high) 
 
 static double _powerDD(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
 static double _powerDD(double x, double lambda, int yj, double low, double high){
-  double x0 = x, xl, hl;
+  double x0 = x, xl, hl,eri;
   switch(yj){
+  case 7:
+    // Subs(Derivative(yeoJohnson(_xi_1), _xi_1), (_xi_1), (logit(x)))*Derivative(logit(x), x)
+    return _powerDD(_powerD(x, lambda, 6, low, high), lambda, 1, low, high)*_powerDD(x, lambda, 6, low, high);
+  case 6: // derivative
+    // 2.82842712474619*M_SQRT_PI/2*exp((erfinv(-1+2*(-low+x)/(high-low)))^2)/(high-low)
+    hl = (high-low);
+    eri = erfinv(-1+2*(-low+x)/hl);
+    return 2.506628274631000241612*exp(eri*eri)/hl;
   case 5: // logit followed by yeo-johnson  yeoJohnson(logit(x))
     // Subs(Derivative(yeoJohnson(_xi_1), _xi_1), (_xi_1), (logit(x)))*Derivative(logit(x), x)
     return _powerDD(_powerD(x, lambda, 4, low, high), lambda, 1, low, high)*_powerDD(x, lambda, 4, low, high);
@@ -441,8 +491,16 @@ static double _powerDD(double x, double lambda, int yj, double low, double high)
 
 static double _powerDDD(double x, double lambda, int yj,double low, double high) __attribute__((unused));
 static double _powerDDD(double x, double lambda, int yj,double low, double high){
-  double x0 = x, hl, hl2, xl,  t1, dL;
+  double x0 = x, hl, hl2, xl,  t1, dL, eri;
   switch(yj){
+  case 7:
+    dL = _powerDD(x, lambda, 6, low, high);
+    return dL*dL*_powerDD(_powerD(x, lambda, 6, low, high), lambda, 1, low, high);
+  case 6: // derivative
+    //10.026513098524*exp(erfinv(-1+2*(-low+x)/(high-low))^2)*M_SQRT_PI/2*exp((erfinv(-1+2*(-low+x)/(high-low)))^2)*erfinv(-1+2*(-low+x)/(high-low))/(high-low)^2
+    hl = (high-low);
+    eri = erfinv(-1+2*(-low+x)/hl);
+    return 8.885765876316728650863*exp(2*eri*eri)*eri/(hl*hl);
   case 5:
     //Derivative(logit(x), x)^2*Subs(Derivative(yeoJohnson(_xi_1), _xi_1, _xi_1), (_xi_1), (logit(x))) + Subs(Derivative(yeoJohnson(_xi_1), _xi_1), (_xi_1), (logit(x)))*Derivative(logit(x), x, x)
     dL = _powerDD(x, lambda, 4, low, high);
@@ -480,8 +538,14 @@ static double _powerDDD(double x, double lambda, int yj,double low, double high)
 
 static double _powerL(double x, double lambda, int yj, double low, double high) __attribute__((unused));
 static double _powerL(double x, double lambda, int yj, double low, double high){
-  double x0 = x, hl, xl, hl2;
+  double x0 = x, hl, xl, hl2, eri;
   switch(yj){
+  case 7:
+    return log(_powerDD(_powerD(x, lambda, 6, low, high), lambda, 1, low, high))+log(_powerDD(x, lambda, 6, low, high));
+  case 6:
+    hl = (high-low);
+    eri = erfinv(-1+2*(-low+x)/hl);
+    return 0.918938533204672669541 +eri*eri-log(hl);
   case 5:
     // Subs(Derivative(yeoJohnson(_xi_1), _xi_1), (_xi_1), (logit(x)))*Derivative(logit(x), x)
     return log(_powerDD(_powerD(x, lambda, 4, low, high), lambda, 1, low, high))+log(_powerDD(x, lambda, 4, low, high));
@@ -530,6 +594,8 @@ static double _powerDL(double x, double lambda, int yj, double low, double hi){
   // d(logLik/dlambda)
   double x0 = x;
   switch (yj){
+  case 6:
+    return 0; // does not depend on lambda
   case 5:
     return _powerDL(_powerD(x, lambda, 4, low, hi), lambda, 1, low, hi);
   case 4:

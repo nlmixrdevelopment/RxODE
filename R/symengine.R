@@ -29,6 +29,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "!" = c("rxNot(", ")", ""),
   "phi" = c("0.5*(1+erf((", ")/sqrt(2)))"),
   "abs"=c("abs0(", ")"),
+  "qnorm"=c("sqrt(2)*erfinv(2*(", ")-1)"),
   "fabs"=c("abs0(", ")")
 )
 
@@ -137,7 +138,8 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "dabs"=1,
   "dabs2"=1,
   "abs1"=1,
-  "dabs1"=1
+  "dabs1"=1,
+  "erfinv"=1
 )
 
 .rxOnly <- c(
@@ -360,6 +362,13 @@ rxRmFun <- function(name) {
   },
   function(y, x) {
     return(paste0("-(", y, ")/((", x, ")^2+(", y, ")^2)"))
+  }
+)
+
+.rxD$erfinv <- list(
+  function(x){
+    ## http://specialfunctionswiki.org/index.php/Derivative_of_inverse_error_function
+    return(paste0("sqrt(pi)/2*exp((erfinv(", x, "))^2)"))
   }
 )
 
@@ -2301,6 +2310,56 @@ rxErrEnvF$logitNorm <- function(est, low="0", hi="1") {
   return(ret)
 }
 
+rxErrEnvF$probitNorm <- function(est, low="0", hi="1") {
+  if (rxErrEnv.ret != "rx_r_") {
+    stop("'probitNorm' can only be in an error function", call. = FALSE)
+  }
+  if (!is.null(rxErrEnv.lambda)) {
+    if (rxErrEnv.yj != "1") {
+      if (rxErrEnv.yj != "6" & rxErrEnv.yj != "7") {
+        print(rxErrEnv.yj)
+        stop("'probitNorm' cannot be used with other data transformations", call. = FALSE)
+      }
+    }
+  }
+  if (is.na(est)){
+    if (is.null(rxErrEnv.yj)) assignInMyNamespace("rxErrEnv.yj", "6")
+    else if (rxErrEnv.yj == "1") assignInMyNamespace("rxErrEnv.yj", "7")
+    else assignInMyNamespace("rxErrEnv.yj", "6")
+    assignInMyNamespace("rxErrEnv.hi", hi)
+    assignInMyNamespace("rxErrEnv.low", low)
+    return("")
+  } else  {
+    estN <- suppressWarnings(as.numeric(est))
+    assignInMyNamespace("rxErrEnv.hasAdd", TRUE)
+    if (is.na(estN)) {
+      ret <- (sprintf("(%s)%s", est, rxErrEnv.combined))
+      assignInMyNamespace("rxErrEnv.lambda", "0")
+      if (is.null(rxErrEnv.yj)) assignInMyNamespace("rxErrEnv.yj", "6")
+      else if (rxErrEnv.yj == "1") assignInMyNamespace("rxErrEnv.yj", "7")
+      else assignInMyNamespace("rxErrEnv.yj", "6")
+      assignInMyNamespace("rxErrEnv.hi", hi)
+      assignInMyNamespace("rxErrEnv.low", low)
+    } else {
+      theta <- sprintf("THETA[%s]", rxErrEnv.theta)
+      est <- estN
+      theta.est <- theta
+      ret <- (sprintf("(%s)%s", theta.est, rxErrEnv.combined))
+      tmp <- rxErrEnv.diag.est
+      tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
+      assignInMyNamespace("rxErrEnv.diag.est", tmp)
+      assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1)
+      assignInMyNamespace("rxErrEnv.lambda", "0")
+      if (is.null(rxErrEnv.yj)) assignInMyNamespace("rxErrEnv.yj", "6")
+      else if (rxErrEnv.yj == "1") assignInMyNamespace("rxErrEnv.yj", "7")
+      else assignInMyNamespace("rxErrEnv.yj", "6")
+      assignInMyNamespace("rxErrEnv.hi", hi)
+      assignInMyNamespace("rxErrEnv.low", low)
+    }
+  }
+  return(ret)
+}
+
 rxErrEnvF$tbs <- function(lambda) {
   if (rxErrEnv.ret != "rx_r_") {
     stop("'boxCox' can only be in an error function", call. = FALSE)
@@ -2332,7 +2391,7 @@ rxErrEnvF$tbsYj <- function(lambda) {
     stop("'yeoJohnson' can only be in an error function", call. = FALSE)
   }
   if (!is.null(rxErrEnv.lambda)) {
-    if ((rxErrEnv.yj != "1" & rxErrEnv.yj != "4")) {
+    if ((rxErrEnv.yj != "1" & rxErrEnv.yj != "4" & rxErrEnv.yj != "6")) {
       stop("'yeoJohnson' cannot be used with other data transformations", call. = FALSE)
     }
   }
@@ -2341,6 +2400,7 @@ rxErrEnvF$tbsYj <- function(lambda) {
     assignInMyNamespace("rxErrEnv.lambda", lambda)
     if (is.null(rxErrEnv.yj)) assignInMyNamespace("rxErrEnv.yj", "1")
     else if (rxErrEnv.yj == "4") assignInMyNamespace("rxErrEnv.yj", "5")
+    else if (rxErrEnv.yj == "6") assignInMyNamespace("rxErrEnv.yj", "7")
     else assignInMyNamespace("rxErrEnv.yj", "1")
   } else {
     tmp <- rxErrEnv.diag.est
@@ -2350,6 +2410,7 @@ rxErrEnvF$tbsYj <- function(lambda) {
     assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1)
     if (is.null(rxErrEnv.yj)) assignInMyNamespace("rxErrEnv.yj", "1")
     else if (rxErrEnv.yj == "4") assignInMyNamespace("rxErrEnv.yj", "5")
+    else if (rxErrEnv.yj == "6") assignInMyNamespace("rxErrEnv.yj", "7")
     else assignInMyNamespace("rxErrEnv.yj", "1")
   }
   return("0")
