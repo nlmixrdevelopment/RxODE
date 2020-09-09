@@ -1860,8 +1860,10 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
         if (length(x) == 3) {
           .fun <- as.character(x[[2]])
           .var <- .rxFromSE(x[[3]])
-          if (.fun == "abs0") {
-            return(paste0("abs(", .var, ")"))
+          if (length(.fun) == 1){
+            if (.fun == "abs0") {
+              return(paste0("abs(", .var, ")"))
+            }
           }
           .args <- .fun[-1]
           .args <- lapply(.args, .rxFromSE)
