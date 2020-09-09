@@ -7,7 +7,7 @@
 rxOptExpr(x, msg = "model")
 }
 \arguments{
-\item{x}{RxODE model that can be access by rxNorm}
+\item{x}{RxODE model that can be accessed by rxNorm}
 
 \item{msg}{This is the name of type of object that RxODE is
     optimizing that will in the message when optimizing.  For

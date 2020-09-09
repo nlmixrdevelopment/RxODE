@@ -4,7 +4,13 @@
 \alias{rxParseErr}
 \title{Prepare Error function for inclusion in RxODE}
 \usage{
-rxParseErr(x, baseTheta, ret = "rx_r_", init = NULL)
+rxParseErr(
+  x,
+  baseTheta,
+  ret = "rx_r_",
+  init = NULL,
+  addProp = c("combined2", "combined1")
+)
 }
 \arguments{
 \item{x}{error function}

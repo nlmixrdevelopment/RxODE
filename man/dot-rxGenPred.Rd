@@ -4,7 +4,7 @@
 \alias{.rxGenPred}
 \title{Generate Augmented pred/err RxODE model}
 \usage{
-.rxGenPred(obj, predfn, errfn, init)
+.rxGenPred(obj, predfn, errfn, init, addProp = c("combined2", "combined1"))
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -14,6 +14,14 @@
 \item{errfn}{Error function}
 
 \item{init}{Initialization parameters for scaling.}
+
+\item{addProp}{one of "combined1" and "combined2"; These are the
+  two forms of additive+proportional errors supported by
+  monolix/nonmem:
+
+combined1: transform(y)=transform(f)+(a+b*abs(f)^c)\vareps
+
+combined2: transform(y)=transform(f)+(a^2+b^2*abs(f)^(2c))\vareps}
 }
 \value{
 A list of (1) RxODE model variables augmented with

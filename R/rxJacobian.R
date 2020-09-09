@@ -687,6 +687,14 @@ rxSymPyExpEtas <- c()
 ##'     for FOCEi (not needed for FOCE)
 ##' @param theta Calculate THETA derivatives instead of ETA
 ##'     derivatives.  By default FALSE
+##' @param addProp one of "combined1" and "combined2"; These are the
+##'   two forms of additive+proportional errors supported by
+##'   monolix/nonmem:
+##'
+##' combined1: transform(y)=transform(f)+(a+b*abs(f)^c)\vareps
+##'
+##' combined2: transform(y)=transform(f)+(a^2+b^2*abs(f)^(2c))\vareps
+##'
 ##' @return RxODE object expanded with predfn and with calculated
 ##'     sensitivities.
 ##' @inheritParams rxS
