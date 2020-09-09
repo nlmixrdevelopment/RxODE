@@ -140,7 +140,8 @@
 .rxOptExpr <- function(x) {
   x <- .convStr(x)
   .ret <- eval(x, .rxOptGetEnv(x))
-  return(..rxOpt(eval(parse(text = paste0("quote(", .ret, ")")))))
+  .ret <- eval(parse(text = paste0("quote(", .ret, ")")))
+  return(..rxOpt(.ret))
 }
 
 ..rxOptLhs <- function(x){
@@ -186,7 +187,6 @@
   } else if (is.call(x)) {
     .x2 <- x[-1]
     if (identical(x[[1]], quote(`{`))) {
-      ## Probably can implement a progress bar here.
       if (progress) {
         rxProgress(length(.x2))
         on.exit({
@@ -291,9 +291,9 @@
             if (identical(x[[1]], quote(`*`))) {
               return("0")
             } else if (identical(x[[1]], quote(`+`))) {
-              return(as.character(x[[2]]))
+              return(..rxOpt(x[[2]]))
             } else if (identical(x[[1]], quote(`-`))) {
-              return(as.character(x[[2]]))
+              return(..rxOpt(x[[2]]))
             } else if (identical(x[[2]], quote(`/`))) {
               stop("cannot divide by zero", call. = FALSE)
             }

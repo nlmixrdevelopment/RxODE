@@ -19,6 +19,10 @@ rxPermissive(
 
     rxOptExpr("a=1+(1/2)*b; c=d^(1/2); e=(1/2)*f^(1/2)")
 
+    test_that("simple expression optimization", {
+      expect_equal(length(RxODE:::..rxOpt(quote(exp(ETA[1] + THETA[4]) + 0))), 1L)
+    })
+
   },
   test = "parsing"
 )
