@@ -28,7 +28,6 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "log1pexp" = c("log(1+exp(", "))", "log1pexp"),
   "!" = c("rxNot(", ")", ""),
   "phi" = c("0.5*(1+erf((", ")/sqrt(2)))"),
-  "abs"=c("abs0(", ")"),
   "qnorm"=c("sqrt(2)*erfinv(2*(", ")-1)"),
   "fabs"=c("abs0(", ")")
 )
@@ -375,6 +374,11 @@ rxRmFun <- function(name) {
 .rxD$abs0 <- list(function(x){
   return(paste0("dabs(", x, ")"))
 })
+
+.rxD$abs <- list(function(x){
+  return(paste0("dabs(", x, ")"))
+})
+
 
 .rxD$abs1 <- list(function(x){
   return(paste0("dabs1(", x, ")"))
@@ -1856,6 +1860,9 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
         if (length(x) == 3) {
           .fun <- as.character(x[[2]])
           .var <- .rxFromSE(x[[3]])
+          if (.fun == "abs0") {
+            return(paste0("abs(", .var, ")"))
+          }
           .args <- .fun[-1]
           .args <- lapply(.args, .rxFromSE)
           .with <- which(.var == .args)
