@@ -1897,6 +1897,61 @@ rxPermissive(
 
     })
 
+    test_that(sprintf("off compartment (%s)", .txt), {
+
+      ode.1c <- RxODE(
+      {
+        C2 <- center / V
+        d/dt(center) <- -CL * C2
+      },
+      linCmtSens = sens)
+
+      sol.1c <- RxODE(
+      {
+        C2 <- linCmt(CL, V)
+      },
+      linCmtSens = sens)
+
+      et <- eventTable() %>%
+        add.dosing(dose = 3, nbr.doses = 6, dosing.interval = 8) %>%
+        et(time=25, cmt= -1) %>%
+        add.sampling(seq(0, 48, length.out = 200))
+
+      et2 <- eventTable() %>%
+        add.dosing(dose = 3, nbr.doses = 6, dosing.interval = 8) %>%
+        et(time=25, cmt= -2) %>%
+        add.sampling(seq(0, 48, length.out = 200))
+
+      o1 <- rxSolve(ode.1c, params = c(V = 20, CL = 25), events = et)
+      s1 <- rxSolve(sol.1c, params = c(V = 20, CL = 25), events = et, sensType = sensType)
+
+      expect_equal(o1$C2, s1$C2, tol=tol)
+
+
+      ode.1c.ka <- RxODE({
+        C2 <- center / V
+        d/dt(depot) <- -KA * depot
+        d/dt(center) <- KA * depot - CL * C2
+      }, linCmtSens = sens)
+
+      sol.1c.ka <- RxODE(
+      {
+        C2 <- linCmt(V, CL, KA)
+      },
+      linCmtSens = sens)
+
+      o1 <- rxSolve(ode.1c.ka, params = c(V = 20, CL = 25, KA = 2), events = et)
+      s1 <- rxSolve(sol.1c.ka, params = c(V = 20, CL = 25, KA = 2), events = et, sensType = sensType)
+
+      ## expect_equal(o1$C2, s1$C2, tol=tol * 100)
+
+      o1 <- rxSolve(ode.1c.ka, params = c(V = 20, CL = 25, KA = 2), events = et2)
+      s1 <- rxSolve(sol.1c.ka, params = c(V = 20, CL = 25, KA = 2), events = et2, sensType = sensType)
+
+      expect_equal(o1$C2, s1$C2, tol=tol)
+
+    })
+
   }
     test_that(
       "double linCmt has error",
@@ -3145,8 +3200,6 @@ rxPermissive(
 
     expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_6___)))
     expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_7___)))
-
-
 
   },
   silent = TRUE,
