@@ -691,9 +691,9 @@ rxSymPyExpEtas <- c()
 ##'   two forms of additive+proportional errors supported by
 ##'   monolix/nonmem:
 ##'
-##' combined1: transform(y)=transform(f)+(a+b*abs(f)^c)\vareps
+##' combined1: transform(y)=transform(f)+(a+b*abs(f)^c)*eps
 ##'
-##' combined2: transform(y)=transform(f)+(a^2+b^2*abs(f)^(2c))\vareps
+##' combined2: transform(y)=transform(f)+(a^2+b^2*abs(f)^(2c))*eps
 ##'
 ##' @return RxODE object expanded with predfn and with calculated
 ##'     sensitivities.
