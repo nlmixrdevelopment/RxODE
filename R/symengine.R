@@ -30,12 +30,14 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "phi" = c("0.5*(1+erf((", ")/sqrt(2)))"),
   "abs"=c("abs0(", ")"),
   "qnorm"=c("sqrt(2)*erfinv(2*(", ")-1)"),
-  "fabs"=c("abs0(", ")")
+  "fabs"=c("abs0(", ")"),
+  "abs"=c("abs0(", ")")
 )
 
 .SEsingle <- list(
   "rxNot" = c("(!(", "))"),
-  "loggamma" = c("lgamma(", ")")
+  "loggamma" = c("lgamma(", ")"),
+  "abs0"=c("abs(", ")")
 )
 
 .rxSEdouble <- list(
@@ -138,8 +140,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "dabs2"=1,
   "abs1"=1,
   "dabs1"=1,
-  "erfinv"=1,
-  "abs0"=1
+  "erfinv"=1
 )
 
 .rxOnly <- c(
