@@ -1994,7 +1994,7 @@ rxS <- function(x, doConst = TRUE, promoteLinSens = FALSE) {
   .env$..lhs <- c()
   .env$..lhs0 <- c()
   .env$..doConst <- doConst
-  for (.f in ls(.rxD)) {
+  for (.f in c(ls(.rxD), "linCmtA", "linCmtB")) {
     assign(.f, .rxFunction(.f), envir=.env)
   }
   .env$..s0 <- symengine::S("0")
