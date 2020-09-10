@@ -63,7 +63,7 @@ dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noou
 dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
 fbio        : ('f' | 'F')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_or_expression;
-alag        : 'alag'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_or_expression;
+alag        : ('alag' | 'lag')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_or_expression;
 rate        : 'rate'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_or_expression;
 dur        : 'dur'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) logical_or_expression;
 

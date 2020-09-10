@@ -6,17 +6,18 @@ rxPermissive(
     mod <- RxODE({
       a <- 6
       b <- 0.6
-      d / dt(intestine) <- -a * intestine
-      d / dt(blood) <- a * intestine - b * blood
+      d/dt(intestine) <- -a * intestine
+      d/dt(blood) <- a * intestine - b * blood
     })
 
     mod2 <- RxODE({
       a <- 6
       b <- 0.6
-      d / dt(intestine) <- -a * intestine
-      alag(intestine) <- 2
-      d / dt(blood) <- a * intestine - b * blood
+      d/dt(intestine) <- -a * intestine
+      lag(intestine) <- 2
+      d/dt(blood) <- a * intestine - b * blood
     })
+
 
     ms <- c("liblsoda", "lsoda", "dop853")
     if (grepl("SunOS", Sys.info()["sysname"])) ms <- "lsoda"
