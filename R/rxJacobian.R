@@ -355,13 +355,14 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
     .s$..stateInfo["dvid"],
     ""
   ), collapse = "\n")
-
-  .mv <- deparse(body(pkpars))
-  .len <- length(.mv)
-  .mv <- if(.mv[1]=="{") .mv[2:(.len-1)] else .mv
-  .mv <- rxModelVars(paste(.mv, collapse="\n"))$params
-
-
+  if (is.null(pkpars)){
+    .mv <- rxModelVars(obj)$params
+  } else {
+    .mv <- deparse(body(pkpars))
+    .len <- length(.mv)
+    .mv <- if(.mv[1]=="{") .mv[2:(.len-1)] else .mv
+    .mv <- rxModelVars(paste(.mv, collapse="\n"))$params
+  }
   if (sum.prod) {
     .malert("stabilizing round off errors in SAEM model...")
     .saem <- rxSumProdModel(.saem)
