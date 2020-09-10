@@ -111,6 +111,7 @@ rxCat <- function(a, ...) {
 rxClean <- function(wd) {
   if (!missing(wd)) warning("'wd' is depreciated")
   rxUnloadAll()
+  unlink(rxTempDir(), recursive=TRUE, force=TRUE)
 }
 
 refresh <- function(derivs = FALSE) {
