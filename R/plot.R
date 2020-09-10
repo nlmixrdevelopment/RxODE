@@ -183,16 +183,19 @@ rxTheme <- function(base_size = 11, base_family = "",
 plot.rxSolve <- function(x, y, ..., log = "",
                          xlab = "Time", ylab = "") {
   .data <- NULL
-  .call <- as.list(match.call()[-(1:3)])
+  .y <- as.character(substitute(y))
+  .call0 <- match.call()[-c(1:2)]
+  .call <- as.list(.call0)
   .w <- names(.call) %in% c("x", "y", "log")
   if (length(.w) > 0) {
     .call <- .call[-.w]
   }
-  .cmts <- c(
-    as.character(substitute(y)),
-    names(sapply(as.character(.call), `c`))
-  )
-  if (length(.cmts) == 1 && .cmts[1] == "") {
+  .cmts <- c(as.character(substitute(y)),
+             names(sapply(as.character(.call), `c`)))
+
+  .cmts <- .cmts[!duplicated(.cmts)]
+  .cmts <- intersect(.cmts, c(rxState(x),rxLhs(x)))
+  if (length(.cmts) == 0) {
     .cmts <- NULL
   }
   .dat <- rxStack(x, .cmts)

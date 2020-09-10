@@ -22,13 +22,13 @@ rxPermissive(
         rateDepot <- 1250
         C2 <- centr / V2
         C3 <- peri / V3
-        d / dt(depot) <- -KA * depot
+        d/dt(depot) <- -KA * depot
         f(depot) <- fdepot
         dur(depot) <- durDepot
         rate(depot) <- rateDepot
-        d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-        d / dt(peri) <- Q * C2 - Q * C3
-        d / dt(eff) <- Kin - Kout * (1 - C2 / (EC50 + C2)) * eff
+        d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+        d/dt(peri) <- Q * C2 - Q * C3
+        d/dt(eff) <- Kin - Kout * (1 - C2 / (EC50 + C2)) * eff
         eff(0) <- 1
       })
 
@@ -184,6 +184,11 @@ rxPermissive(
           vdiffr::expect_doppelganger(paste0("plot-multi-", .repel, .xgxtxt, "all-log-y"), s2 %>% plot(log = "y"))
           vdiffr::expect_doppelganger(paste0("plot-multi-", .repel, .xgxtxt, "all-log-xy"), s2 %>% plot(log = "xy"))
           vdiffr::expect_doppelganger(paste0("plot-multi-", .repel, .xgxtxt, "all-log-yx"), s2 %>% plot(log = "yx"))
+
+          ## Issue #284
+          vdiffr::expect_doppelganger(paste0("plot-multi-", .repel, .xgxtxt, "284-log-yx"), s2 %>% plot(C2, eff, log = "yx"))
+          vdiffr::expect_doppelganger(paste0("plot-multi-", .repel, .xgxtxt, "284-log-y"), s2 %>% plot(C2, eff, log = "y"))
+          vdiffr::expect_doppelganger(paste0("plot-multi-", .repel, .xgxtxt, "284-log-x"), s2 %>% plot(C2, eff, log = "x"))
         }
       }
       f(TRUE)
