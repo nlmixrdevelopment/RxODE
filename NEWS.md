@@ -1,9 +1,6 @@
 # RxODE xxxx
 ## Breaking changes
 
-* `lag(cmt) = ` is no longer supported because `lag()` is now allowed
-  to use lagged covariates and observations.
-
 * RxODE can only use supported functions (could be breaking); You may
   add your own functions with `rxFun` and their derivatives with `rxD`
 
