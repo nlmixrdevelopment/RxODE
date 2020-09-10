@@ -2,7 +2,7 @@ rxPermissive(
 {
 
   tol <- 5e-6 ## Current difference for all equations
-  type <- 3
+  type <- 1
 
   for (type in 1:4) {
 
@@ -1897,8 +1897,9 @@ rxPermissive(
 
     })
 
+    context(sprintf("off (%s)", .txt))
     test_that(sprintf("off compartment (%s)", .txt), {
-
+      skip_if(.txt == "sensitivity")
       ode.1c <- RxODE(
       {
         C2 <- center / V
@@ -1943,7 +1944,7 @@ rxPermissive(
       o1 <- rxSolve(ode.1c.ka, params = c(V = 20, CL = 25, KA = 2), events = et)
       s1 <- rxSolve(sol.1c.ka, params = c(V = 20, CL = 25, KA = 2), events = et, sensType = sensType)
 
-      ## expect_equal(o1$C2, s1$C2, tol=tol * 100)
+      expect_equal(o1$C2, s1$C2, tol=tol)
 
       o1 <- rxSolve(ode.1c.ka, params = c(V = 20, CL = 25, KA = 2), events = et2)
       s1 <- rxSolve(sol.1c.ka, params = c(V = 20, CL = 25, KA = 2), events = et2, sensType = sensType)

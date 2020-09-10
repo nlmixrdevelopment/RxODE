@@ -1,3 +1,5 @@
+#define A1l Alast[0]*((double)on[0])
+#define A2l Alast[1]*((double)on[1])
 #define o1 ((double)on[0])
 #define o2 ((double)on[1])
 
@@ -36,9 +38,9 @@ static inline void oneCmtRateD(double *A, double *Alast, int *on, double *t, dou
 double _0=exp(-(*t)*(*k10));
 double _1=1-_0;
 double _3=(*r1)*(_1);
- A1=o1*((*b1)+_0*A1last+_3/(*k10));
+ A1=o1*((*b1)+_0*A1l+_3/(*k10));
 double _2=(*t)*_0;
-A1k10=_0*A1lastk10-_3/(((*k10))*((*k10)))-_2*A1last+_2*(*r1)/(*k10);
+A1k10=_0*A1lastk10-_3/(((*k10))*((*k10)))-_2*A1l+_2*(*r1)/(*k10);
 #undef A1k10
 #undef A1lastk10
 }
@@ -153,7 +155,7 @@ static inline void oneCmtKaRateD(double *A, double *Alast, int *on, double *t, d
 #define A1lastka Alast[2]
 #define A2lastka Alast[3]
 #define A2lastk20 Alast[4]
-double _3=(*ka)*A1last;
+double _3=(*ka)*A1l;
 double _5=exp(-(*t)*(*ka));
 double _8=(*r1)-_3;
 double _17=_5*(_8);
@@ -161,20 +163,20 @@ A1=o1*((*b1)+(*r1)/(*ka)-_17/(*ka));
 double _4=((*ka))*((*ka));
 double _9=(*t)*_5;
 double _19=_9*(_8);
-double _20=_5*(-(*ka)*A1lastka-A1last);
+double _20=_5*(-(*ka)*A1lastka-A1l);
 A1ka=-(*r1)/(_4)+_17/(_4)-_20/(*ka)+_19/(*ka);
 double _0=(*r1)+(*r2);
 double _1=(*r1)*(*ka);
 double _2=(*ka)*(*k20);
 double _6=exp(-(*t)*(*k20));
 double _10=(*r2)*(-(*k20)+(*ka));
-double _12=(-A1last-A2last)*(*ka);
-A2=o2*((*b2)+(_0)/(*k20)-_6*((((*k20))*((*k20)))*A2last+_1+_10+_12*(*k20))/(_2-(((*k20))*((*k20))))+_17/(-(*k20)+(*ka)));
+double _12=(-A1l-A2l)*(*ka);
+A2=o2*((*b2)+(_0)/(*k20)-_6*((((*k20))*((*k20)))*A2l+_1+_10+_12*(*k20))/(_2-(((*k20))*((*k20))))+_17/(-(*k20)+(*ka)));
 double _7=((*k20))*((*k20));
 double _16=(-(*k20)+(*ka))*(-(*k20)+(*ka));
 double _23=_17/(_16);
-A2ka=-_6*(_0+(_7)*A2lastka+(-A1last-A2last)*(*k20)+(-A1lastka-A2lastka)*(*ka)*(*k20))/(_2-(_7))-_23+_20/(-(*k20)+(*ka))-_19/(-(*k20)+(*ka))+_6*(*k20)*((_7)*A2last+_1+_10+_12*(*k20))/((_2-(((*k20))*((*k20))))*(_2-(((*k20))*((*k20)))));
-A2k20=-(_0)/(_7)-_6*(-(*r2)+2*(*k20)*A2last+(_7)*A2lastk20+_12+(-0-A2lastk20)*(*ka)*(*k20))/(_2-(_7))+_23+(*t)*_6*((_7)*A2last+_1+_10+_12*(*k20))/(_2-(_7))+_6*(-2*(*k20)+(*ka))*((_7)*A2last+_1+_10+_12*(*k20))/((_2-(((*k20))*((*k20))))*(_2-(((*k20))*((*k20)))))-0/(-(*k20)+(*ka));
+A2ka=-_6*(_0+(_7)*A2lastka+(-A1l-A2l)*(*k20)+(-A1lastka-A2lastka)*(*ka)*(*k20))/(_2-(_7))-_23+_20/(-(*k20)+(*ka))-_19/(-(*k20)+(*ka))+_6*(*k20)*((_7)*A2l+_1+_10+_12*(*k20))/((_2-(((*k20))*((*k20))))*(_2-(((*k20))*((*k20)))));
+A2k20=-(_0)/(_7)-_6*(-(*r2)+2*(*k20)*A2l+(_7)*A2lastk20+_12+(-0-A2lastk20)*(*ka)*(*k20))/(_2-(_7))+_23+(*t)*_6*((_7)*A2l+_1+_10+_12*(*k20))/(_2-(_7))+_6*(-2*(*k20)+(*ka))*((_7)*A2l+_1+_10+_12*(*k20))/((_2-(((*k20))*((*k20))))*(_2-(((*k20))*((*k20)))))-0/(-(*k20)+(*ka));
 #undef A1ka
 #undef A2ka
 #undef A2k20
