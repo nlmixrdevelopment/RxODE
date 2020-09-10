@@ -9,12 +9,12 @@ file.copy(devtools::package_file("src/RxODE_types.h"),
 cat("Update Parser c file\n");
 dparser::mkdparse(devtools::package_file("inst/tran.g"),
          devtools::package_file("src/"),
-         grammar_ident="RxODE");
+         grammar_ident="RxODE")
 file <- gsub("^([#]line [0-9]+ )\".*(src)/+(.*)\"","\\1\"\\2/\\3\"",
              readLines(devtools::package_file("src/tran.g.d_parser.c")))
 sink(devtools::package_file("src/tran.g.d_parser.c"))
-cat(paste(file,collapse="\n"));
-cat("\n");
+cat(paste(file,collapse="\n"))
+cat("\n")
 sink()
 ## sink(devtools::package_file("R/version.R"))
 ## cat("##\' Version and repository for this dparser package.
@@ -64,12 +64,10 @@ gen.ome <- function(mx){
 ## cpp code
 
 if (Sys.getenv("RxODE_derivs") == "TRUE"){
-
-    gen.ome(12);
-
+  gen.ome(12)
 }
 
-document();
+#document()
 
 
 
