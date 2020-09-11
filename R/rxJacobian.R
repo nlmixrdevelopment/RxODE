@@ -256,13 +256,14 @@ rxExpandGrid <- function(x, y, type = 0L) {
 .rxFixR <- function(.newmod, addProp) {
   if (!exists("..fixR", envir=.newmod)) {
     if (exists("rx_r_", envir=.newmod)) {
-      if (!rxErrEnv.hasAdd) {
-        ## Convert abs() to abs1()
-        .r <- get("rx_r_", envir = .newmod)
-        .r <- paste0("abs1(", rxFromSE(.r), ")")
-        .r <- symengine::S(rxToSE(.r))
-        assign("rx_r_", .r, envir=.newmod)
-      }
+      ## Breaks focei for non-trivial examples
+      ## if (!rxErrEnv.hasAdd) {
+      ##   ## Convert abs() to abs1()
+      ##   .r <- get("rx_r_", envir = .newmod)
+      ##   .r <- paste0("abs1(", rxFromSE(.r), ")")
+      ##   .r <- symengine::S(rxToSE(.r))
+      ##   assign("rx_r_", .r, envir=.newmod)
+      ## }
       if (addProp == "combined1") {
         assign("rx_r_", get("rx_r_", envir = .newmod)^2, envir=.newmod)
       }
@@ -698,9 +699,9 @@ rxSymPyExpEtas <- c()
 ##'   two forms of additive+proportional errors supported by
 ##'   monolix/nonmem:
 ##'
-##' combined1: transform(y)=transform(f)+(a+b*abs(f)^c)*eps
+##' combined1: transform(y)=transform(f)+(a+b*f^c)*eps
 ##'
-##' combined2: transform(y)=transform(f)+(a^2+b^2*abs(f)^(2c))*eps
+##' combined2: transform(y)=transform(f)+(a^2+b^2*f^(2c))*eps
 ##'
 ##' @return RxODE object expanded with predfn and with calculated
 ##'     sensitivities.
