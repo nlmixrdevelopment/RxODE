@@ -1579,6 +1579,12 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
         if (.x1 == "^" && .x3 == "1") {
           return(.x2)
         }
+        if (.x1 == "^" && is.numeric(x[[3]])) {
+          if (round(x[[3]]) == x[[3]]){
+            return(paste0("Rx_pow_di(", .x2, ",", .x3, ")"))
+          }
+          return(paste0("Rx_pow(", .x2, ",", .x3, ")"))
+        }
         .ret <- paste0(.x2, .x1, .x3)
         ## FIXME parsing to figure out if *2 or *0.5 *0.4 is in
         ## expression
@@ -1603,7 +1609,6 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
         ))) {
           return("M_SQRT_2dPI")
         }
-
         if (any(.ret == c(
           "(pi)^0.5", "(pi)^(1/2)",
           "pi^0.5", "pi^(1/2)"
@@ -1628,6 +1633,9 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
           "1/((M_2PI)^0.5)", "1/((M_2PI)^(1/2))"
         ))) {
           return("M_1_SQRT_2PI")
+        }
+        if (.x1 == "^") {
+          return(paste0("Rx_pow(", .x2, ",", .x3, ")"))
         }
         return(.ret)
       } else {
