@@ -253,6 +253,24 @@ rxExpandGrid <- function(x, y, type = 0L) {
   return(list(.full, .extraPars))
 }
 
+.rxFixR <- function(.newmod, addProp) {
+  if (!exists("..fixR", envir=.newmod)) {
+    if (exists("rx_r_", envir=.newmod)) {
+      if (!rxErrEnv.hasAdd) {
+        ## Convert abs() to abs1()
+        .r <- get("rx_r_", envir = .newmod)
+        .r <- paste0("abs1(", rxFromSE(.r), ")")
+        .r <- symengine::S(rxToSE(.r))
+        assign("rx_r_", .r, envir=.newmod)
+      }
+      if (addProp == "combined1") {
+        assign("rx_r_", get("rx_r_", envir = .newmod)^2, envir=.newmod)
+      }
+      assign("..fixR", TRUE, envir=.newmod)
+    }
+  }
+}
+
 .rxLoadPrune <- function(mod, doConst = TRUE, promoteLinSens = TRUE, fullModel = FALSE,
                          addProp=c("combined2", "combined1")) {
   addProp <- match.arg(addProp)
@@ -270,19 +288,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
     .malert("loading into {.pkg symengine} environment...")
   }
   .newmod <- rxS(.newmod, doConst, promoteLinSens = promoteLinSens)
-  if (exists("rx_r", envir=.newmod)) {
-    if (!rxErrEnv.hasAdd) {
-      ## Convert abs() to abs1()
-      .r <- get("rx_r_", envir = .newmod)
-      .r <- paste0("abs1(", rxFromSE(.r), ")")
-      .r <- symengine::S(rxToSE(.r))
-      assign("rx_r_", .r, envir=.newmod)
-    }
-    if (addProp == "combined1") {
-      assign("rx_r_", get("rx_r_", envir = .newmod)^2, envir=.newmod)
-    }
-  }
-
+  .rxFixR(.newmod, addProp)
   .msuccess("done")
   return(.newmod)
 }
