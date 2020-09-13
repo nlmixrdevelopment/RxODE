@@ -638,8 +638,11 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
            .call = FALSE
            )
     }
-    if (!missing(cores)) {
-      setRxThreads(cores)
+    if (missing(cores)){
+      cores <- 0L
+    } else if (!missing(cores)) {
+      checkmate::assert_integerish(cores, lower =0L, len = 1)
+      cores <- as.integer(cores)
     }
     if (inherits(sigma, "character")) {
       .sigma <- sigma
@@ -755,7 +758,8 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
       linDiff=linDiff,
       linDiffCentral=linDiffCentral,
       resample=resample,
-      resampleID=resampleID
+      resampleID=resampleID,
+      cores=cores
     )
     return(.ret)
 

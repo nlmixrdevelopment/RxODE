@@ -2320,10 +2320,10 @@ Function getForder();
 extern "C" int getThrottle();
 
 extern "C" void sortIds(rx_solve* rx, int ini) {
-  // rx_solving_options_ind* ind;
+  rx_solving_options_ind* ind;
   int nall = rx->nsub*rx->nsim;
   // Perhaps throttle this to nall*X
-  // if (rx->op->cores >= nall*getThrottle()) {
+  if (rx->op->cores == 1 || rx->op->cores >= nall*getThrottle()) {
     // No point in sorting
     if (ini) {
       if (rx->ordId == NULL) free(rx->ordId);
@@ -2332,49 +2332,49 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
     } else {
       std::iota(rx->ordId,rx->ordId+nall,1);
     }
-  // }  else {
-  //   if (ini) {
-  //     IntegerVector ntimes(nall);
-  //     IntegerVector ord;
-  //     for (int i = 0; i < nall; i++) {
-  // 	ind = &(rx->subjects[i]);
-  // 	ntimes[i] = ind->n_all_times;
-  //     }
-  //     // If we use data.table directly
-  //     Function order = getForder();
-  //     if (useForder()) {
-  // 	ord = order(ntimes, _["na.last"] = LogicalVector::create(NA_LOGICAL),
-  // 		    _["decreasing"] = LogicalVector::create(true));
-  //     } else {
-  // 	ord = order(ntimes, _["na.last"] = LogicalVector::create(NA_LOGICAL),
-  // 		    _["method"]="radix",
-  // 		    _["decreasing"] = LogicalVector::create(true));
-  //     }
-  //     if (rx->ordId == NULL) free(rx->ordId);
-  //     rx->ordId = (int*)malloc(nall*sizeof(int));
-  //     std::copy(ord.begin(), ord.end(), rx->ordId);
-  //   } else {
-  //     // Here we order based on run times.  This way this iteratively
-  //     // changes the order based on run-time.
-  //     NumericVector solveTime(nall);
-  //     IntegerVector ord;
-  //     for (int i = 0; i < nall; i++) {
-  // 	ind = &(rx->subjects[i]);
-  // 	solveTime[i] = ind->solveTime;
-  //     }
-  //     Function order = getForder();
-  //     if (useForder()) {
-  // 	ord = order(solveTime, _["na.last"] = LogicalVector::create(NA_LOGICAL),
-  // 		    _["decreasing"] = LogicalVector::create(true));
-  //     } else {
-  // 	ord = order(solveTime, _["na.last"] = LogicalVector::create(NA_LOGICAL),
-  // 		    _["method"]="radix",
-  // 		    _["decreasing"] = LogicalVector::create(true));
-  //     }
-  //     // This assumes that this has already been created
-  //     std::copy(ord.begin(), ord.end(), rx->ordId);
-  //   }
-  // }
+  }  else {
+    if (ini) {
+      IntegerVector ntimes(nall);
+      IntegerVector ord;
+      for (int i = 0; i < nall; i++) {
+  	ind = &(rx->subjects[i]);
+  	ntimes[i] = ind->n_all_times;
+      }
+      // If we use data.table directly
+      Function order = getForder();
+      if (useForder()) {
+  	ord = order(ntimes, _["na.last"] = LogicalVector::create(NA_LOGICAL),
+  		    _["decreasing"] = LogicalVector::create(true));
+      } else {
+  	ord = order(ntimes, _["na.last"] = LogicalVector::create(NA_LOGICAL),
+  		    _["method"]="radix",
+  		    _["decreasing"] = LogicalVector::create(true));
+      }
+      if (rx->ordId == NULL) free(rx->ordId);
+      rx->ordId = (int*)malloc(nall*sizeof(int));
+      std::copy(ord.begin(), ord.end(), rx->ordId);
+    } else {
+      // Here we order based on run times.  This way this iteratively
+      // changes the order based on run-time.
+      NumericVector solveTime(nall);
+      IntegerVector ord;
+      for (int i = 0; i < nall; i++) {
+  	ind = &(rx->subjects[i]);
+  	solveTime[i] = ind->solveTime;
+      }
+      Function order = getForder();
+      if (useForder()) {
+  	ord = order(solveTime, _["na.last"] = LogicalVector::create(NA_LOGICAL),
+  		    _["decreasing"] = LogicalVector::create(true));
+      } else {
+  	ord = order(solveTime, _["na.last"] = LogicalVector::create(NA_LOGICAL),
+  		    _["method"]="radix",
+  		    _["decreasing"] = LogicalVector::create(true));
+      }
+      // This assumes that this has already been created
+      std::copy(ord.begin(), ord.end(), rx->ordId);
+    }
+  }
 }
 
 typedef struct{
@@ -4456,7 +4456,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if (method != 2){
       op->cores = getRxThreads(1, false);
     } else {
-      op->cores = getRxThreads(INT_MAX, false);
+      op->cores = asInt(rxControl[Rxc_cores], "cores");
+      if (op->cores == 0) {
+	op->cores = getRxThreads(INT_MAX, false);
+      }
     }
     seedEng(op->cores);
     // Now set up events and parameters
