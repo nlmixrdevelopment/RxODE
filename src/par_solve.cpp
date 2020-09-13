@@ -1852,7 +1852,7 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
      .function = dydt_liblsoda,
      .data = &neq,
      .neq = neq[0],
-     .state = 1,
+     .state = 1
   };
   
   lsoda_prepare(&ctx, &opt);
