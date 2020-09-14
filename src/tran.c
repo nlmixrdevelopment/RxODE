@@ -1041,7 +1041,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sAppend(&sb, "_matf[%d] = _IR[%d] + ", tb.matnf, tb.matnf);
 	tb.matnf++;
       }
-      tb.fn = ( i==0 && (nodeHas(function) || nodeHas(function_name))) ? 1 : 0;
+      tb.fn = (i==0 && (nodeHas(function)) ? 1 : 0);
+      if (tb.fn == 0) tb.fn = (i==0 && (nodeHas(function_name)) ? 2 : 0);
       
       if (nodeHas(ifelse)){
 	if (i == 0){
