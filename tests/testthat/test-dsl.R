@@ -114,6 +114,7 @@ rxPermissive(
       expect_equal(rxFromSE("log(10)"), "M_LN10")
 
       expect_equal(rxToSE("M_LN_SQRT_PI"), "log(sqrt(pi))")
+
       expect_equal(rxFromSE("log(sqrt(pi))"), "M_LN_SQRT_PI")
       expect_equal(rxFromSE("log(pi**0.5)"), "M_LN_SQRT_PI")
       expect_equal(rxFromSE("log(pi^0.5)"), "M_LN_SQRT_PI")
@@ -245,7 +246,7 @@ rxPermissive(
       expect_error(rxFromSE("Derivative(f(a, b, c), a)", unknownDerivatives = "forward"))
       expect_equal(
         rxFromSE("(2*a + b)*Subs(Derivative(rxTBS(_xi_1, b, c, d, f), _xi_1), (_xi_1), (a*b + a^2))"),
-        "(2*a+b)*rxTBSd(a*b+a^2,b,c,d,f)"
+        "(2*a+b)*rxTBSd(a*b+Rx_pow_di(a,2),b,c,d,f)"
       )
     })
 

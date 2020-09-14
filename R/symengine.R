@@ -1583,7 +1583,17 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
           if (round(x[[3]]) == x[[3]]){
             return(paste0("Rx_pow_di(", .x2, ",", .x3, ")"))
           }
-          return(paste0("Rx_pow(", .x2, ",", .x3, ")"))
+          if (.x3 == 0.5) {
+            if (.x2 == "pi"){
+              return("M_SQRT_PI")
+            } else if (any(.x2 == c("M_2_PI", "(M_2_PI)"))) {
+              return("M_SQRT_2dPI")
+            } else {
+              return(paste0("sqrt(", .x2, ")"))
+            }
+          } else {
+            return(paste0("Rx_pow(", .x2, ",", .x3, ")"))
+          }
         }
         .ret <- paste0(.x2, .x1, .x3)
         ## FIXME parsing to figure out if *2 or *0.5 *0.4 is in
@@ -1605,7 +1615,8 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
         }
         if (any(.ret == c(
           "(M_2_PI)^0.5", "(M_2_PI)^(1/2)",
-          "M_2_PI^0.5", "M_2_PI^(1/2)"
+          "M_2_PI^0.5", "M_2_PI^(1/2)",
+          "sqrt((M_2_PI))"
         ))) {
           return("M_SQRT_2dPI")
         }
@@ -1629,14 +1640,15 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
         }
         if (any(.ret == c(
           "1/sqrt(M_2PI)",
+          "1/(sqrt((M_2PI)))",
           "1/(M_2PI^0.5)", "1/(M_2PI^(1/2))",
           "1/((M_2PI)^0.5)", "1/((M_2PI)^(1/2))"
         ))) {
           return("M_1_SQRT_2PI")
         }
-        if (.x1 == "^") {
-          return(paste0("Rx_pow(", .x2, ",", .x3, ")"))
-        }
+        ## if (.x1 == "^") {
+        ##   return(paste0("Rx_pow(", .x2, ",", .x3, ")"))
+        ## }
         return(.ret)
       } else {
         ## Unary Operators
@@ -1784,6 +1796,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
                   return("M_LN_SQRT_PI")
                 }
                 if (any(.ret == c(
+                  "log(sqrt((M_PI_2)))",
                   "log(sqrt(M_PI_2))",
                   "log((M_PI_2)^(1/2))",
                   "log((M_PI_2)^0.5)",
@@ -1793,6 +1806,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
                   return("M_LN_SQRT_PId2")
                 }
                 if (any(.ret == c(
+                  "log(sqrt((M_2PI)))",
                   "log(sqrt(M_2PI))",
                   "log((M_2PI)^0.5)",
                   "log((M_2PI)^(1/2))",
@@ -1853,7 +1867,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
           if (.ret == "sqrt(pi)") {
             return("M_SQRT_PI")
           }
-          if (.ret == "sqrt(M_2_PI)") {
+          if (any(.ret == c("sqrt(M_2_PI)", "sqrt((M_2_PI))"))) {
             return("M_SQRT_2dPI")
           }
           return(.ret)
