@@ -607,6 +607,7 @@ typedef struct nodeInfo {
   int factorial_exp;
   int fbio;
   int function;
+  int function_name;
   int identifier;
   int identifier_r;
   int identifier_r_no_output;
@@ -664,6 +665,7 @@ void niReset(nodeInfo *ni){
   ni->factorial_exp = -1;
   ni->fbio = -1;
   ni->function = -1;
+  ni->function_name=-1;
   ni->identifier = -1;
   ni->identifier_r = -1;
   ni->identifier_r_no_output = -1;
@@ -1004,7 +1006,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
         continue;
       }
-      
+
       if ((i == 3 || i == 4 || i < 2) &&
 	  (nodeHas(derivative) ||nodeHas(fbio) || nodeHas(alag) ||
 	   nodeHas(rate) || nodeHas(dur))) continue;
@@ -1039,7 +1041,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sAppend(&sb, "_matf[%d] = _IR[%d] + ", tb.matnf, tb.matnf);
 	tb.matnf++;
       }
-      tb.fn = (nodeHas(function) && i==0) ? 1 : 0;
+      tb.fn = ( i==0 && (nodeHas(function) || nodeHas(function_name))) ? 1 : 0;
+      
       if (nodeHas(ifelse)){
 	if (i == 0){
 	  continue;
@@ -1103,7 +1106,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	}
       }
 
-      if (tb.fn) depth = 0;
+      if (tb.fn == 1) depth = 0;
 
       D_ParseNode *xpn = d_get_child(pn,i);
 
@@ -1228,7 +1231,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	}
 	continue;
       }
-      if (tb.fn){
+      if (tb.fn == 1){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	int isNorm=0, isExp=0, isF=0, isGamma=0, isBeta=0,
 	  isPois=0, isT=0, isUnif=0, isWeibull=0, isNormV=0,
