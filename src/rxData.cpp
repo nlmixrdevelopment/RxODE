@@ -2329,9 +2329,9 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
       if (rx->ordId == NULL) free(rx->ordId);
       rx->ordId = (int*)malloc(nall*sizeof(int));
       std::iota(rx->ordId,rx->ordId+nall,1);
-    } else {
-      std::iota(rx->ordId,rx->ordId+nall,1);
-    }
+    } // else {
+    //   std::iota(rx->ordId,rx->ordId+nall,1);
+    // }
   }  else {
     if (ini) {
       IntegerVector ntimes(nall);
