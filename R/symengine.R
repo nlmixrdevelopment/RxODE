@@ -2016,7 +2016,8 @@ rxS <- function(x, doConst = TRUE, promoteLinSens = FALSE) {
   .env$..lhs <- c()
   .env$..lhs0 <- c()
   .env$..doConst <- doConst
-  for (.f in c(ls(.rxD), "linCmtA", "linCmtB")) {
+  for (.f in c(ls(.rxD), "linCmtA", "linCmtB", "rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt",
+               "rxGt", "rxAnd", "rxOr", "rxNot", "rxTBS","rxTBSd", "rxTBSd2")) {
     assign(.f, .rxFunction(.f), envir=.env)
   }
   .env$..s0 <- symengine::S("0")
