@@ -21,6 +21,12 @@
   when `id` is integer or integerish (as defined by checkmate).
   Otherwise a factor will be returned.
 
+* When mixing ODE and `linCmt()` the `depot`/`central` will be the
+  first 1-2 compartments and the rest of the ODEs will be the
+  following compartments.  This is more typical of how ODEs are
+  written so should be more in line with how the systems are
+  described.
+
 ## New features
 
 * Add the ability to order input parameters with the `param()`

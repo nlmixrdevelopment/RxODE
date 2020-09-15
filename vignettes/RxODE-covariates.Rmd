@@ -33,7 +33,7 @@ mod3 <- RxODE({
 })
 
 ev <- et(amount.units="mg", time.units="hours") %>%
-    et(amt=10000, cmt=2) %>%
+    et(amt=10000, cmt=1) %>%
     et(0,48,length.out=100) %>%
     et(id=1:4);
 
@@ -92,7 +92,7 @@ mod3 <- RxODE({
 
 
 ev <- eventTable(amount.units="mg", time.units="hours") %>%
-    add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
+    add.dosing(dose=10000, nbr.doses=1) %>%
     add.sampling(seq(0,48,length.out=100));
 
 

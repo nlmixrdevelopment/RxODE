@@ -582,14 +582,18 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   // Enlarge compartments
   if (extraCmt == 2){
     CharacterVector newState(state0.size()+2);
-    for (int j = state0.size();j--;) newState[j] = state0[j];
-    newState[state0.size()] = "depot";
-    newState[state0.size()+1] = "central";
+    // for (int j = state0.size();j--;) newState[j] = state0[j];
+    // newState[state0.size()] = "depot";
+    // newState[state0.size()+1] = "central";
+    newState[0] = "depot";
+    newState[1] = "central";
+    for (int j = state0.size();j--;) newState[j+2] = state0[j];
     state0 = newState;
   } else if (extraCmt==1){
     CharacterVector newState(state0.size()+1);
-    for (int j = state0.size();j--;) newState[j] = state0[j];
-    newState[state0.size()] = "central";
+    newState[0] = "central";
+    for (int j = state0.size();j--;) newState[j+1] = state0[j];
+    // newState[state0.size()] = "central";
     state0 = newState;
   }
   CharacterVector state(state0.size() + stateE.size());
