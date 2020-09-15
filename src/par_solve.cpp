@@ -619,25 +619,6 @@ extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh
   *wh0 = floor((*wh%10000)/100);
   *cmt = *wh0 - 1 + *wh100*100;
   *wh0 = evid - *wh100*1e5 - *whI*1e4 - *wh0*100;
-  if (rx_global.ka) {
-    switch (*cmt) {
-    case 0:
-      *cmt = op_global.neq;
-      break;
-    case 1:
-      *cmt = op_global.neq + 1;
-      break;
-    default:
-      *cmt -= 2;
-      break;
-    }
-  } else if (rx_global.ncmt) {
-    if (*cmt == 0) {
-      *cmt = op_global.neq;
-    } else {
-      *cmt -= 1;
-    }
-  }
 }
 
 void updateRate(int idx, rx_solving_options_ind *ind, double *yp){
@@ -2714,7 +2695,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
   // These could be factors
-  j = ncols + doseCols + nidCols + 2*nmevid + ka + ncmt;
+  j = ncols + doseCols + nidCols + 2*nmevid;
   const char *charItem;
   int *par_cov = op->par_cov;
   SEXP tmp;
@@ -2736,7 +2717,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
     SET_VECTOR_ELT(df, j++, PROTECT(getDfLevels(charItem, rx))); pro++;
   }
   ncols+= ncols2;
-  for (i = ncols + doseCols + nidCols + 2*nmevid; i < ncols + doseCols + nidCols + doTBS*4 + nmevid*5 + ka + ncmt; i++){
+  for (i = ncols + doseCols + nidCols + 2*nmevid; i < ncols + doseCols + nidCols + doTBS*4 + nmevid*5; i++){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
   // Now create the data frame
@@ -3304,9 +3285,9 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   setAttrib(df, R_NamesSymbol, sexp_colnames);
   SEXP df2;
   if (nmevid){
-    df2 = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols+doTBS*2+5*nmevid + ka + ncmt-
+    df2 = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols+doTBS*2+5*nmevid-
 			      dullRate - dullDur-dullSS-dullIi)); pro++;
-    SEXP sexp_colnames2 = PROTECT(allocVector(STRSXP,ncols+nidCols+doseCols+doTBS*2+5*nmevid + ka + ncmt-
+    SEXP sexp_colnames2 = PROTECT(allocVector(STRSXP,ncols+nidCols+doseCols+doTBS*2+5*nmevid-
 					      dullRate - dullDur-dullSS-dullIi)); pro++;
     jj = 0;
     kk = 0;
