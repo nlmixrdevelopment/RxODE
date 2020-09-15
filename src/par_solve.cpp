@@ -2538,7 +2538,7 @@ extern "C" SEXP getDfLevels(const char *item, rx_solve *rx){
 
 extern "C" void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
 
-extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
+extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   rx_solve *rx;
   rx = &rx_global;
   rx_solving_options *op = &op_global;
@@ -2551,8 +2551,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   int nobs = rx->nobs - rx->nevid9;
   int nsim = rx->nsim;
   int nall = rx->nall - rx->nevid9;
-  int ncmt = rx->ncmt;
-  int ka = rx->ka;
   int errNcol = rxGetErrsNcol();
   int errNrow = rxGetErrsNrow();
   if (op->nsvar != errNcol){
@@ -2664,7 +2662,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
       warning(_("some ID(s) could not solve the ODEs correctly; These values are replaced with 'NA'"));
     }
   }  
-  SEXP df = PROTECT(allocVector(VECSXP,ncols+ncols2+nidCols+doseCols+doTBS*4+5*nmevid+ka+ncmt)); pro++;
+  SEXP df = PROTECT(allocVector(VECSXP,ncols+ncols2+nidCols+doseCols+doTBS*4+5*nmevid)); pro++;
   for (i = nidCols; i--;){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, rx->nr))); pro++;
   }
@@ -2691,7 +2689,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   SEXP paramNames = PROTECT(rxParamNames(op->modNamePtr)); pro++;
   SEXP ikeepNames = PROTECT(get_ikeepn()); pro++;
   SEXP fkeepNames = PROTECT(get_fkeepn()); pro++;
-  for (i = md + sm + doseCols + 2*nmevid; i < ncols + doseCols + nidCols + 2*nmevid + ka + ncmt; i++){
+  for (i = md + sm + doseCols + 2*nmevid; i < ncols + doseCols + nidCols + 2*nmevid; i++){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
   // These could be factors
@@ -3055,27 +3053,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	      jj++;
              }
           }
-	  // linCmt()
-	  if (ka){
-	    dfp = REAL(VECTOR_ELT(df, jj));
-	    dfp[ii] = (getAdvan(i))[0];
-	    jj++;
-	  }
-	  if (ncmt) {
-	    dfp = REAL(VECTOR_ELT(df, jj));
-	    dfp[ii] = (getAdvan(i))[ka];
-	    jj++;
-	    if (ncmt >=2) {
-	      dfp = REAL(VECTOR_ELT(df, jj));
-	      dfp[ii] = (getAdvan(i))[ka+1];
-	      jj++;
-	      if (ncmt == 3){
-		dfp = REAL(VECTOR_ELT(df, jj));
-		dfp[ii] = (getAdvan(i))[ka+2];
-		jj++;
-	      }
-	    }
-	  }
           // States
           if (nPrnState){
             for (j = 0; j < neq[0]; j++){
@@ -3189,7 +3166,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   INTEGER(sexp_rownames)[0] = NA_INTEGER;
   INTEGER(sexp_rownames)[1] = -rx->nr;
   setAttrib(df, R_RowNamesSymbol, sexp_rownames);
-  SEXP sexp_colnames = PROTECT(allocVector(STRSXP,ncols+nidCols+doseCols+doTBS*4+5*nmevid+ka+ncmt)); pro++;
+  SEXP sexp_colnames = PROTECT(allocVector(STRSXP,ncols+nidCols+doseCols+doTBS*4+5*nmevid)); pro++;
   jj = 0;
   if (sm){
     SET_STRING_ELT(sexp_colnames, jj, mkChar("sim.id"));
@@ -3230,19 +3207,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
     SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(lhsNames,i));
     jj++;
   }
-  // linCmt() names
-  if (ka) {
-    SET_STRING_ELT(sexp_colnames, jj++, mkChar("depot"));
-  }
-  if (ncmt) {
-    SET_STRING_ELT(sexp_colnames, jj++, mkChar("central"));
-    if (ncmt >= 2) {
-      SET_STRING_ELT(sexp_colnames, jj++, mkChar("peripheral1"));
-      if (ncmt == 3) {
-	SET_STRING_ELT(sexp_colnames, jj++, mkChar("peripheral2"));
-      }
-    }
-  }  
   // Put in state names
   SEXP stateNames = PROTECT(rxStateNames(op->modNamePtr)); pro++;
   if (nPrnState){
@@ -3252,7 +3216,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
         jj++;
       }
     }
-  }
+  }  
   // Put in Cov names
   par_cov = op->par_cov;
   for (i = 0; i < ncov*add_cov; i++){

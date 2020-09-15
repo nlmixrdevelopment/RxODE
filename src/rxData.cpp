@@ -3715,10 +3715,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
       int curCov=0;
       int curOn=0;
       rx_solving_options_ind indS;
-      int *flagI = INTEGER(rxSolveDat->mv[RxMv_flags]);
-      int linCmt = flagI[RxMvFlag_linCmt];
-      rx->ka = flagI[RxMvFlag_ka];
-      rx->ncmt = flagI[RxMvFlag_ncmt];
+      int linCmt = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linCmt];
       for (unsigned int simNum = rx->nsim; simNum--;){
 	for (unsigned int id = rx->nsub; id--;){
 	  unsigned int cid = id+simNum*rx->nsub;
