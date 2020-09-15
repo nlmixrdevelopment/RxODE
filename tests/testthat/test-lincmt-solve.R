@@ -26,8 +26,8 @@ rxPermissive(
 
     ode.1c <- RxODE(
     {
-      C2 <- center / V
-      d/dt(center) <- -CL * C2
+      C2 <- central / V
+      d/dt(central) <- -CL * C2
     },
     linCmtSens = sens
     )
@@ -63,10 +63,10 @@ rxPermissive(
 
     ode.2c <- RxODE(
     {
-      C2 <- centr / V
-      C3 <- peri / V2
-      d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-      d/dt(peri) <- Q * C2 - Q * C3
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      d/dt(central) <- -CL * C2 - Q * C2 + Q * C3
+      d/dt(peripheral1) <- Q * C2 - Q * C3
     },
     linCmtSens = sens
     )
@@ -100,12 +100,12 @@ rxPermissive(
 
     ode.3c <- RxODE(
     {
-      C2 <- centr / V
-      C3 <- peri / V2
-      C4 <- peri2 / V3
-      d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-      d/dt(peri) <- Q * C2 - Q * C3
-      d/dt(peri2) <- Q2 * C2 - Q2 * C4
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      C4 <- peripheral2 / V3
+      d/dt(central) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+      d/dt(peripheral1) <- Q * C2 - Q * C3
+      d/dt(peripheral2) <- Q2 * C2 - Q2 * C4
     },
     linCmtSens = sens
     )
@@ -138,9 +138,9 @@ rxPermissive(
     context(sprintf("Test steady state solutions 1 cmt ka (%s)", .txt))
 
     ode.1c.ka <- RxODE({
-      C2 <- center / V
+      C2 <- central / V
       d/dt(depot) <- -KA * depot
-      d/dt(center) <- KA * depot - CL * C2
+      d/dt(central) <- KA * depot - CL * C2
     }, linCmtSens = sens)
 
     sol.1c.ka <- RxODE(
@@ -204,11 +204,11 @@ rxPermissive(
 
     ode.2c.ka <- RxODE(
     {
-      C2 <- centr / V
-      C3 <- peri / V2
+      C2 <- central / V
+      C3 <- peripheral1 / V2
       d/dt(depot) <- -KA * depot
-      d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-      d/dt(peri) <- Q * C2 - Q * C3
+      d/dt(central) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+      d/dt(peripheral1) <- Q * C2 - Q * C3
     },
     linCmtSens = sens
     )
@@ -261,13 +261,13 @@ rxPermissive(
     context(sprintf("Test steady state solutions 3 cmt ka (%s)", .txt))
 
     ode.3c.ka <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
-      C4 <- peri2 / V3
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      C4 <- peripheral2 / V3
       d/dt(depot) <- -KA * depot
-      d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-      d/dt(peri) <- Q * C2 - Q * C3
-      d/dt(peri2) <- Q2 * C2 - Q2 * C4
+      d/dt(central) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+      d/dt(peripheral1) <- Q * C2 - Q * C3
+      d/dt(peripheral2) <- Q2 * C2 - Q2 * C4
     })
 
     sol.3c.ka <- RxODE(
@@ -321,8 +321,8 @@ rxPermissive(
       add.sampling(seq(0, 48, length.out = 200))
 
     ode.1c <- RxODE({
-      C2 <- center / V
-      d/dt(center) <- -CL * C2
+      C2 <- central / V
+      d/dt(central) <- -CL * C2
     })
 
     test_that("ode model gives extraCmt=0", {
@@ -453,9 +453,9 @@ rxPermissive(
     })
 
     ode.1c.ka <- RxODE({
-      C2 <- center / V
+      C2 <- central / V
       d/dt(depot) <- -KA * depot
-      d/dt(center) <- KA * depot - CL * C2
+      d/dt(central) <- KA * depot - CL * C2
     })
 
     sol.1c.ka <- RxODE(
@@ -535,10 +535,10 @@ rxPermissive(
     })
 
     ode.2c <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
-      d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-      d/dt(peri) <- Q * C2 - Q * C3
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      d/dt(central) <- -CL * C2 - Q * C2 + Q * C3
+      d/dt(peripheral1) <- Q * C2 - Q * C3
     })
 
     sol.2c <- RxODE(
@@ -659,11 +659,11 @@ rxPermissive(
     })
 
     ode.2c.ka <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
+      C2 <- central / V
+      C3 <- peripheral1 / V2
       d/dt(depot) <- -KA * depot
-      d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-      d/dt(peri) <- Q * C2 - Q * C3
+      d/dt(central) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+      d/dt(peripheral1) <- Q * C2 - Q * C3
     })
 
     sol.2c.ka <- RxODE(
@@ -826,12 +826,12 @@ rxPermissive(
     context(sprintf("Test the solved equations 3 cmt (%s)", .txt))
 
     ode.3c <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
-      C4 <- peri2 / V3
-      d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-      d/dt(peri) <- Q * C2 - Q * C3
-      d/dt(peri2) <- Q2 * C2 - Q2 * C4
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      C4 <- peripheral2 / V3
+      d/dt(central) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+      d/dt(peripheral1) <- Q * C2 - Q * C3
+      d/dt(peripheral2) <- Q2 * C2 - Q2 * C4
     })
 
     sol.3c <- RxODE(
@@ -962,13 +962,13 @@ rxPermissive(
     })
 
     ode.3c.ka <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
-      C4 <- peri2 / V3
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      C4 <- peripheral2 / V3
       d/dt(depot) <- -KA * depot
-      d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-      d/dt(peri) <- Q * C2 - Q * C3
-      d/dt(peri2) <- Q2 * C2 - Q2 * C4
+      d/dt(central) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+      d/dt(peripheral1) <- Q * C2 - Q * C3
+      d/dt(peripheral2) <- Q2 * C2 - Q2 * C4
     })
 
     sol.3c.ka <- RxODE(
@@ -1075,8 +1075,8 @@ rxPermissive(
       et(seq(0, 24, length.out = 200))
 
     ode.1c <- RxODE({
-      C2 <- center / V
-      d/dt(center) <- -CL * C2
+      C2 <- central / V
+      d/dt(central) <- -CL * C2
     })
 
     ## Solved systems can check the variables in the RxODE statement
@@ -1133,10 +1133,10 @@ rxPermissive(
     context(sprintf("Infusion Models 2 cmt (%s)", .txt))
 
     ode.2c <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
-      d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-      d/dt(peri) <- Q * C2 - Q * C3
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      d/dt(central) <- -CL * C2 - Q * C2 + Q * C3
+      d/dt(peripheral1) <- Q * C2 - Q * C3
     })
 
     sol.2c <- RxODE(
@@ -1169,12 +1169,12 @@ rxPermissive(
     context(sprintf("Infusion Models 3 cmt (%s)", .txt))
 
     ode.3c <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
-      C4 <- peri2 / V3
-      d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-      d/dt(peri) <- Q * C2 - Q * C3
-      d/dt(peri2) <- Q2 * C2 - Q2 * C4
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      C4 <- peripheral2 / V3
+      d/dt(central) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+      d/dt(peripheral1) <- Q * C2 - Q * C3
+      d/dt(peripheral2) <- Q2 * C2 - Q2 * C4
     })
 
     sol.3c <- RxODE(
@@ -1212,8 +1212,8 @@ rxPermissive(
       add.sampling(seq(0, 48, length.out = 200))
 
     ode.1c <- RxODE({
-      C2 <- center / V
-      d/dt(center) <- -CL * C2
+      C2 <- central / V
+      d/dt(central) <- -CL * C2
     })
 
     ## Solved systems can check the variables in the RxODE statement
@@ -1257,10 +1257,10 @@ rxPermissive(
     context(sprintf("Infusion + Bolus 2 cmt (%s)", .txt))
 
     ode.2c <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
-      d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-      d/dt(peri) <- Q * C2 - Q * C3
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      d/dt(central) <- -CL * C2 - Q * C2 + Q * C3
+      d/dt(peripheral1) <- Q * C2 - Q * C3
     })
 
     sol.2c <- RxODE(
@@ -1284,12 +1284,12 @@ rxPermissive(
     context(sprintf("Infusion + Bolus 3 cmt (%s)", .txt))
 
     ode.3c <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
-      C4 <- peri2 / V3
-      d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-      d/dt(peri) <- Q * C2 - Q * C3
-      d/dt(peri2) <- Q2 * C2 - Q2 * C4
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      C4 <- peripheral2 / V3
+      d/dt(central) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+      d/dt(peripheral1) <- Q * C2 - Q * C3
+      d/dt(peripheral2) <- Q2 * C2 - Q2 * C4
     })
 
     sol.3c <- RxODE(
@@ -1319,9 +1319,9 @@ rxPermissive(
       add.sampling(seq(0, 48, length.out = 200))
 
     ode.1c.ka <- RxODE({
-      C2 <- center / V
+      C2 <- central / V
       d/dt(depot) <- -KA * depot
-      d/dt(center) <- KA * depot - CL * C2
+      d/dt(central) <- KA * depot - CL * C2
     })
 
     sol.1c.ka <- RxODE(
@@ -1343,11 +1343,11 @@ rxPermissive(
     context(sprintf("Oral + Infusion + Bolus Models 2 cmt (%s)", .txt))
 
     ode.2c.ka <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
+      C2 <- central / V
+      C3 <- peripheral1 / V2
       d/dt(depot) <- -KA * depot
-      d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-      d/dt(peri) <- Q * C2 - Q * C3
+      d/dt(central) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+      d/dt(peripheral1) <- Q * C2 - Q * C3
     })
 
     sol.2c.ka <- RxODE(
@@ -1371,13 +1371,13 @@ rxPermissive(
     context(sprintf("Oral + Infusion + Bolus Models 3 cmt (%s)", .txt))
 
     ode.3c.ka <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
-      C4 <- peri2 / V3
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      C4 <- peripheral2 / V3
       d/dt(depot) <- -KA * depot
-      d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-      d/dt(peri) <- Q * C2 - Q * C3
-      d/dt(peri2) <- Q2 * C2 - Q2 * C4
+      d/dt(central) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+      d/dt(peripheral1) <- Q * C2 - Q * C3
+      d/dt(peripheral2) <- Q2 * C2 - Q2 * C4
     })
 
     sol.3c.ka <- RxODE(
@@ -1407,11 +1407,11 @@ rxPermissive(
       add.sampling(seq(0, 48, length.out = 200))
 
     ode.1c.ka <- RxODE({
-      C2 <- center / V
+      C2 <- central / V
       d/dt(depot) <- -KA * depot
-      d/dt(center) <- KA * depot - CL * C2
+      d/dt(central) <- KA * depot - CL * C2
       f(depot) <- fDepot
-      f(center) <- fCenter
+      f(central) <- fCenter
     })
 
     sol.1c.ka <- RxODE(
@@ -1441,13 +1441,13 @@ rxPermissive(
 
     ode.2c.ka <- RxODE(
     {
-      C2 <- centr / V
-      C3 <- peri / V2
+      C2 <- central / V
+      C3 <- peripheral1 / V2
       d/dt(depot) <- -KA * depot
-      d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-      d/dt(peri) <- Q * C2 - Q * C3
+      d/dt(central) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+      d/dt(peripheral1) <- Q * C2 - Q * C3
       f(depot) <- fDepot
-      f(centr) <- fCenter
+      f(central) <- fCenter
       ## FIXME:
       ## f(central) should throw an error
     },
@@ -1478,15 +1478,15 @@ rxPermissive(
     context(sprintf("Modeled bio-availability 3 cmt (%s)", .txt))
 
     ode.3c.ka <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
-      C4 <- peri2 / V3
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      C4 <- peripheral2 / V3
       d/dt(depot) <- -KA * depot
-      d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-      d/dt(peri) <- Q * C2 - Q * C3
-      d/dt(peri2) <- Q2 * C2 - Q2 * C4
+      d/dt(central) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+      d/dt(peripheral1) <- Q * C2 - Q * C3
+      d/dt(peripheral2) <- Q2 * C2 - Q2 * C4
       f(depot) <- fDepot
-      f(centr) <- fCenter
+      f(central) <- fCenter
     })
 
     sol.3c.ka <- RxODE(
@@ -1528,11 +1528,11 @@ rxPermissive(
 
     ode.1c.ka <- RxODE(
     {
-      C2 <- center / V
+      C2 <- central / V
       d/dt(depot) <- -KA * depot
-      d/dt(center) <- KA * depot - CL * C2
+      d/dt(central) <- KA * depot - CL * C2
       alag(depot) <- lagDepot
-      alag(center) <- lagCenter
+      alag(central) <- lagCenter
     },
     linCmtSens = sens
     )
@@ -1561,13 +1561,13 @@ rxPermissive(
     context(sprintf("Modeled lag time 2 cmt (%s)", .txt))
 
     ode.2c.ka <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
+      C2 <- central / V
+      C3 <- peripheral1 / V2
       d/dt(depot) <- -KA * depot
-      d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-      d/dt(peri) <- Q * C2 - Q * C3
+      d/dt(central) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+      d/dt(peripheral1) <- Q * C2 - Q * C3
       alag(depot) <- lagDepot
-      alag(centr) <- lagCenter
+      alag(central) <- lagCenter
     })
 
     sol.2c.ka <- RxODE(
@@ -1597,15 +1597,15 @@ rxPermissive(
 
     ode.3c.ka <- RxODE(
     {
-      C2 <- centr / V
-      C3 <- peri / V2
-      C4 <- peri2 / V3
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      C4 <- peripheral2 / V3
       d/dt(depot) <- -KA * depot
-      d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-      d/dt(peri) <- Q * C2 - Q * C3
-      d/dt(peri2) <- Q2 * C2 - Q2 * C4
+      d/dt(central) <- KA * depot - CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+      d/dt(peripheral1) <- Q * C2 - Q * C3
+      d/dt(peripheral2) <- Q2 * C2 - Q2 * C4
       alag(depot) <- lagDepot
-      alag(centr) <- lagCenter
+      alag(central) <- lagCenter
     },
     linCmtSens = sens
     )
@@ -1640,9 +1640,9 @@ rxPermissive(
     context(sprintf("Modeled rate 1 cmt (%s)", .txt))
 
     ode.1c <- RxODE({
-      C2 <- center / V
-      d/dt(center) <- -CL * C2
-      rate(center) <- rt
+      C2 <- central / V
+      d/dt(central) <- -CL * C2
+      rate(central) <- rt
     })
 
     sol.1c <- RxODE(
@@ -1671,11 +1671,11 @@ rxPermissive(
 
     ode.2c <- RxODE(
     {
-      C2 <- centr / V
-      C3 <- peri / V2
-      d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-      d/dt(peri) <- Q * C2 - Q * C3
-      rate(centr) <- rt
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      d/dt(central) <- -CL * C2 - Q * C2 + Q * C3
+      d/dt(peripheral1) <- Q * C2 - Q * C3
+      rate(central) <- rt
     },
     linCmtSens = sens
     )
@@ -1701,13 +1701,13 @@ rxPermissive(
     context(sprintf("Modeled rate 3 cmt (%s)", .txt))
 
     ode.3c <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
-      C4 <- peri2 / V3
-      d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-      d/dt(peri) <- Q * C2 - Q * C3
-      d/dt(peri2) <- Q2 * C2 - Q2 * C4
-      rate(centr) <- rt
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      C4 <- peripheral2 / V3
+      d/dt(central) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+      d/dt(peripheral1) <- Q * C2 - Q * C3
+      d/dt(peripheral2) <- Q2 * C2 - Q2 * C4
+      rate(central) <- rt
     })
 
     sol.3c <- RxODE(
@@ -1733,9 +1733,9 @@ rxPermissive(
     context(sprintf("Modeled duration 1 cmt (%s)", .txt))
 
     ode.1c <- RxODE({
-      C2 <- center / V
-      d/dt(center) <- -CL * C2
-      dur(center) <- dr
+      C2 <- central / V
+      d/dt(central) <- -CL * C2
+      dur(central) <- dr
     })
 
     sol.1c <- RxODE(
@@ -1763,11 +1763,11 @@ rxPermissive(
     context(sprintf("Modeled duration 2 cmt (%s)", .txt))
 
     ode.2c <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
-      d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-      d/dt(peri) <- Q * C2 - Q * C3
-      dur(centr) <- dr
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      d/dt(central) <- -CL * C2 - Q * C2 + Q * C3
+      d/dt(peripheral1) <- Q * C2 - Q * C3
+      dur(central) <- dr
     })
 
     sol.2c <- RxODE(
@@ -1791,13 +1791,13 @@ rxPermissive(
     context(sprintf("Modeled duration 3 cmt (%s)", .txt))
 
     ode.3c <- RxODE({
-      C2 <- centr / V
-      C3 <- peri / V2
-      C4 <- peri2 / V3
-      d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-      d/dt(peri) <- Q * C2 - Q * C3
-      d/dt(peri2) <- Q2 * C2 - Q2 * C4
-      dur(centr) <- dr
+      C2 <- central / V
+      C3 <- peripheral1 / V2
+      C4 <- peripheral2 / V3
+      d/dt(central) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+      d/dt(peripheral1) <- Q * C2 - Q * C3
+      d/dt(peripheral2) <- Q2 * C2 - Q2 * C4
+      dur(central) <- dr
     })
 
     sol.3c <- RxODE(
@@ -1820,26 +1820,26 @@ rxPermissive(
 
     test_that("central should throw error", {
       expect_error(RxODE({
-        C2 <- centr / V
-        C3 <- peri / V2
+        C2 <- central / V
+        C3 <- peripheral1 / V2
         d/dt(depot) <- -KA * depot
-        d/dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-        d/dt(peri) <- Q * C2 - Q * C3
+        d/dt(central) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+        d/dt(peripheral1) <- Q * C2 - Q * C3
         alag(depot) <- lagDepot
-        alag(centr) <- lagCenter
+        alag(central) <- lagCenter
         alag(central) <- matt
       }))
     })
 
     test_that("depot should throw error", {
       expect_error(RxODE({
-        C2 <- centr / V
-        C3 <- peri / V2
+        C2 <- central / V
+        C3 <- peripheral1 / V2
         d/dt(dep) <- -KA * dep
-        d/dt(centr) <- KA * dep - CL * C2 - Q * C2 + Q * C3
-        d/dt(peri) <- Q * C2 - Q * C3
+        d/dt(central) <- KA * dep - CL * C2 - Q * C2 + Q * C3
+        d/dt(peripheral1) <- Q * C2 - Q * C3
         alag(dep) <- lagDepot
-        alag(centr) <- lagCenter
+        alag(central) <- lagCenter
         alag(depot) <- matt
       }))
     })
@@ -1874,8 +1874,8 @@ rxPermissive(
 
       ode.1c <- RxODE(
       {
-        C2 <- center / V
-        d/dt(center) <- -CL * C2
+        C2 <- central / V
+        d/dt(central) <- -CL * C2
       },
       linCmtSens = sens)
 
@@ -1902,8 +1902,8 @@ rxPermissive(
       skip_if(.txt == "sensitivity")
       ode.1c <- RxODE(
       {
-        C2 <- center / V
-        d/dt(center) <- -CL * C2
+        C2 <- central / V
+        d/dt(central) <- -CL * C2
       },
       linCmtSens = sens)
 
@@ -1930,9 +1930,9 @@ rxPermissive(
 
 
       ode.1c.ka <- RxODE({
-        C2 <- center / V
+        C2 <- central / V
         d/dt(depot) <- -KA * depot
-        d/dt(center) <- KA * depot - CL * C2
+        d/dt(central) <- KA * depot - CL * C2
       }, linCmtSens = sens)
 
       sol.1c.ka <- RxODE(
@@ -1968,8 +1968,8 @@ rxPermissive(
       ev <- et(amt = 0, ss = 1, rate = 10000 / 8)
 
       ode.1c <- RxODE({
-        C2 <- center / V
-        d/dt(center) <- -CL * C2
+        C2 <- central / V
+        d/dt(central) <- -CL * C2
       })
 
       ode.1cs2 <- RxODE({
@@ -1985,10 +1985,10 @@ rxPermissive(
       expect_equal(o.1c$C2, s.1c$C2, tolerance = tol)
 
       ode.2c <- RxODE({
-        C2 <- centr / V
-        C3 <- peri / V2
-        d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3
-        d/dt(peri) <- Q * C2 - Q * C3
+        C2 <- central / V
+        C3 <- peripheral1 / V2
+        d/dt(central) <- -CL * C2 - Q * C2 + Q * C3
+        d/dt(peripheral1) <- Q * C2 - Q * C3
       })
 
       sol.2c <- RxODE({
@@ -2004,12 +2004,12 @@ rxPermissive(
       expect_equal(o.2c$C2, s.2c$C2, tolerance = tol)
 
       ode.3c <- RxODE({
-        C2 <- centr / V
-        C3 <- peri / V2
-        C4 <- peri2 / V3
-        d/dt(centr) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
-        d/dt(peri) <- Q * C2 - Q * C3
-        d/dt(peri2) <- Q2 * C2 - Q2 * C4
+        C2 <- central / V
+        C3 <- peripheral1 / V2
+        C4 <- peripheral2 / V3
+        d/dt(central) <- -CL * C2 - Q * C2 + Q * C3 - Q2 * C2 + Q2 * C4
+        d/dt(peripheral1) <- Q * C2 - Q * C3
+        d/dt(peripheral2) <- Q2 * C2 - Q2 * C4
       })
 
       sol.3c <- RxODE({
@@ -2097,8 +2097,8 @@ rxPermissive(
         pk1s <- rxSymPySetupPred(mod, predfn = pred, pkpars = pk, err = err)
 
         mod2 <- RxODE({
-          Central <- center / Vc
-          d/dt(center) <- -Cl * Central
+          Central <- central / Vc
+          d/dt(central) <- -Cl * Central
         })
 
         pk1o <- rxSymPySetupPred(mod2, predfn = pred, pkpars = pk, err = err)
@@ -2207,9 +2207,9 @@ rxPermissive(
         pk1s <- rxSymPySetupPred(mod, predfn = pred, pkpars = pk, err = err)
 
         mod2 <- RxODE({
-          Central <- center / Vc
+          Central <- central / Vc
           d/dt(depot) <- -Ka * depot
-          d/dt(center) <- Ka * depot - Cl * Central
+          d/dt(central) <- Ka * depot - Cl * central
         })
 
         pk1o <- rxSymPySetupPred(mod2, predfn = pred, pkpars = pk, err = err)
@@ -2368,16 +2368,16 @@ rxPermissive(
         pk2sK <- rxSymPySetupPred(modK, predfn = pred, pkpars = pk2, err = err)
 
         mod2 <- RxODE({
-          Central <- centr / Vc
-          C3 <- peri / Vp
-          d/dt(centr) <- -Cl * Central - Q * Central + Q * C3
-          d/dt(peri) <- Q * Central - Q * C3
+          Central <- central / Vc
+          C3 <- peripheral1 / Vp
+          d/dt(central) <- -Cl * Central - Q * Central + Q * C3
+          d/dt(peripheral1) <- Q * Central - Q * C3
         })
 
         modK2 <- RxODE({
-          Central <- centr / Vc
-          d/dt(centr) <- -k10 * centr - k12 * centr + k21 * peri
-          d/dt(peri) <- k12 * centr - k21 * peri
+          Central <- central / Vc
+          d/dt(central) <- -k10 * central - k12 * central + k21 * peripheral1
+          d/dt(peripheral1) <- k12 * central - k21 * peripheral1
         })
 
         pk2o <- rxSymPySetupPred(mod2, predfn = pred, pkpars = pk, err = err)
@@ -2516,11 +2516,11 @@ rxPermissive(
         pk2s <- rxSymPySetupPred(mod, predfn = pred, pkpars = pk, err = err)
 
         mod2 <- RxODE({
-          Central <- centr / Vc
-          C3 <- peri / Vp
+          Central <- central / Vc
+          C3 <- peripheral1 / Vp
           d/dt(depot) <- -Ka * depot
-          d/dt(centr) <- Ka * depot - Cl * Central - Q * Central + Q * C3
-          d/dt(peri) <- Q * Central - Q * C3
+          d/dt(central) <- Ka * depot - Cl * Central - Q * Central + Q * C3
+          d/dt(peripheral1) <- Q * Central - Q * C3
         })
 
         pk2o <- rxSymPySetupPred(mod2, predfn = pred, pkpars = pk, err = err)
@@ -2726,12 +2726,12 @@ rxPermissive(
         pk3s <- rxSymPySetupPred(mod, predfn = pred, pkpars = pk, err = err)
 
         mod2 <- RxODE({
-          Central <- centr / Vc
-          C3 <- peri / Vp
-          C4 <- peri2 / Vp2
-          d/dt(centr) <- -Cl * Central - Q * Central + Q * C3 + Q2 * C4 - Q2 * Central
-          d/dt(peri) <- Q * Central - Q * C3
-          d/dt(peri2) <- Q2 * Central - Q2 * C4
+          Central <- central / Vc
+          C3 <- peripheral1 / Vp
+          C4 <- peripheral2 / Vp2
+          d/dt(central) <- -Cl * Central - Q * Central + Q * C3 + Q2 * C4 - Q2 * Central
+          d/dt(peripheral1) <- Q * Central - Q * C3
+          d/dt(peripheral2) <- Q2 * Central - Q2 * C4
         })
 
         pk3o <- rxSymPySetupPred(mod2, predfn = pred, pkpars = pk, err = err)
@@ -2880,13 +2880,13 @@ rxPermissive(
         pk2s <- rxSymPySetupPred(mod, predfn = pred, pkpars = pk, err = err)
 
         mod2 <- RxODE({
-          Central <- centr / Vc
-          C3 <- peri / Vp
-          C4 <- peri2 / Vp2
+          Central <- central / Vc
+          C3 <- peripheral1 / Vp
+          C4 <- peripheral2 / Vp2
           d/dt(depot) <- -Ka * depot
-          d/dt(centr) <- Ka * depot - Cl * Central - Q * Central + Q * C3 - Q2 * Central + Q2 * C4
-          d/dt(peri) <- Q * Central - Q * C3
-          d/dt(peri2) <- Q2 * Central - Q2 * C4
+          d/dt(central) <- Ka * depot - Cl * Central - Q * Central + Q * C3 - Q2 * Central + Q2 * C4
+          d/dt(peripheral1) <- Q * Central - Q * C3
+          d/dt(peripheral2) <- Q2 * Central - Q2 * C4
         })
 
         pk2o <- rxSymPySetupPred(mod2, predfn = pred, pkpars = pk, err = err)

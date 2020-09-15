@@ -276,6 +276,8 @@ typedef struct {
   double *ypNA;
   bool sample;
   int *par_sample;
+  int ncmt;
+  int ka;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);
