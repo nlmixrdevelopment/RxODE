@@ -1433,11 +1433,11 @@ rxCompile.rxModelVars <-  function(model, # Model
                     .fixInis <- c(sprintf("double _theta_%s[%d];", .md5, prefix),
                                   paste(sapply(.mv$params, function(x){
                                       if (!is.na(.mv$ini[x])){
-                                          ret <- sprintf("_theta_%d[%d] = %.16f;", prefix, .i, as.vector(.mv$ini[x]));
+                                          ret <- sprintf("_theta_%s[%d] = %.16f;", prefix, .i, as.vector(.mv$ini[x]));
                                           .i <<- .i + 1;
                                           return(ret)
                                       } else {
-                                          ret <- sprintf("_theta_%d[%d] = theta[%d];", prefix, .i, .j);
+                                          ret <- sprintf("_theta_%s[%d] = theta[%d];", prefix, .i, .j);
                                           .i <<- .i + 1;
                                           .j <<- .j + 1;
                                           return(ret);
