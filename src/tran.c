@@ -2850,48 +2850,33 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       sAppend(&sbOut, " = _PL[%d];\n", j++);
       break;
     case 0:   // Case 0 is for declaring the variables
-      if (tb.linCmt != 0 && (!strcmp(buf,"depot") || !strcmp(buf,"central") ||
-			     !strcmp(buf,"peripheral1") ||!strcmp(buf,"peripheral2"))) {
-	if (i >=NV-1)  {
-	  sAppendN(&sbOut, "  _rxNil;\n  (void)_rxNil;\n", 25);
-	}
-      } else {
-	sAppendN(&sbOut,"  ", 2);
-	doDot(&sbOut, buf);
-	if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf) ||
-	    !strcmp("rx_hi_", buf) || !strcmp("rx_low_", buf)){
-	  sAppendN(&sbOut, "__", 2);
-	}
-	if (i <NV-1)
-	  sAppendN(&sbOut, ",\n", 2);
-	else
-	  sAppendN(&sbOut, ";\n", 2);
+      sAppendN(&sbOut,"  ", 2);
+      doDot(&sbOut, buf);
+      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf) ||
+	  !strcmp("rx_hi_", buf) || !strcmp("rx_low_", buf)){
+	sAppendN(&sbOut, "__", 2);
       }
+      if (i <NV-1)
+        sAppendN(&sbOut, ",\n", 2);
+      else
+        sAppendN(&sbOut, ";\n", 2);
       break;
     case 2: // Case 2 is for suppressing all the warnings for the variables by using (void)var;
       // See https://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
-      if (tb.linCmt != 0 && (!strcmp(buf,"depot") || !strcmp(buf,"central") ||
-			     !strcmp(buf,"peripheral1") ||!strcmp(buf,"peripheral2"))) {
-      } else {
-	sAppend(&sbOut,"  ");
-	sAppend(&sbOut,"(void)");
-	doDot(&sbOut, buf);
-	if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf) ||
-	    !strcmp("rx_low_", buf) || !strcmp("rx_hi_", buf)){
-	  sAppendN(&sbOut, "__", 2);
-	}
-	sAppendN(&sbOut, ";\n", 2);
+      sAppend(&sbOut,"  ");
+      sAppend(&sbOut,"(void)");
+      doDot(&sbOut, buf);
+      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf) ||
+	  !strcmp("rx_low_", buf) || !strcmp("rx_hi_", buf)){
+        sAppendN(&sbOut, "__", 2);
       }
+      sAppendN(&sbOut, ";\n", 2);
       break;
     case 1:
       // Case 1 is for declaring the par_ptr.
-      if (tb.linCmt != 0 && (!strcmp(buf,"depot") || !strcmp(buf,"central") ||
-			     !strcmp(buf,"peripheral1") ||!strcmp(buf,"peripheral2"))) {
-      } else {
-	sAppendN(&sbOut,"  ", 2);
-	doDot(&sbOut, buf);      
-	sAppend(&sbOut, " = _PP[%d];\n", j++);
-      }
+      sAppendN(&sbOut,"  ", 2);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, " = _PP[%d];\n", j++);
       break;
     default: break;
     }
@@ -2919,15 +2904,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
       sAppend(&s_aux_info, "  SET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n",
 	      li++, buf);
       if (islhs == 70){
-	bool doIt = true;
-	if (tb.linCmt != 0 && (!strcmp(buf,"depot") || !strcmp(buf,"central") ||
-			       !strcmp(buf,"peripheral1") ||!strcmp(buf,"peripheral2"))) {
-	      doIt=false;
-	}
-	if (doIt) {
-	  sAppend(&s_aux_info, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n",
-		  pi++, buf);
-	}
+	sAppend(&s_aux_info, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n",
+		pi++, buf);
       }
     } else {
       int foundIt=0;
@@ -2952,14 +2930,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
       if (!foundIt){
 	sPrint(&bufw, "%s", buf);
       }
-      bool doIt = true;
-      if (tb.linCmt != 0 && (!strcmp(buf,"depot") || !strcmp(buf,"central") ||
-			     !strcmp(buf,"peripheral1") ||!strcmp(buf,"peripheral2"))) {
-	doIt=false;
-      }
-      if (doIt) {
-	sAppend(&s_aux_info, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, bufw.s);
-      }
+      sAppend(&s_aux_info, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, bufw.s);
     }
   }
   int nExtra=0;
@@ -4317,14 +4288,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 	if (!strcmp("CMT", buf)) {
 	  tb.hasCmt = 1;
 	}
-	bool doIt = true;
-	if (tb.linCmt != 0 && (!strcmp(buf,"depot") || !strcmp(buf,"central") ||
-			       !strcmp(buf,"peripheral1") ||!strcmp(buf,"peripheral2"))) {
-	      doIt=false;
-	}
-	if (doIt) {
-	  SET_STRING_ELT(params, pi++, mkChar(buf));
-	}
+	SET_STRING_ELT(params, pi++, mkChar(buf));
       }
     } else {
       int foundIt=0;
@@ -4352,14 +4316,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       if (!strcmp("CMT", bufw.s)) {
 	tb.hasCmt = 1;
       }
-      bool doIt = true;
-      if (tb.linCmt != 0 && (!strcmp(buf,"depot") || !strcmp(buf,"central") ||
-			     !strcmp(buf,"peripheral1") ||!strcmp(buf,"peripheral2"))) {
-	doIt=false;
-      }
-      if (doIt) {
-	SET_STRING_ELT(params, pi++, mkChar(bufw.s));
-      }
+      SET_STRING_ELT(params, pi++, mkChar(bufw.s));
     }
   }
   INTEGER(sLinCmt)[5] = tb.hasCmt;
@@ -4664,15 +4621,8 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
     }
     (&sbOut)->s[0]='\0';
     if (tb.hasKa == 1) {
-      if (tb.linCmt != 0) {
-	sAppend(&sbOut, "#define _DEPOT_ %d\n", tb.statei);
-	sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei+1);
-	sAppend(&sbOut, "#define depot __zzStateVar__[%d]\n", tb.statei);
-	sAppend(&sbOut, "#define central __zzStateVar__[%d]\n", tb.statei+1);
-	sAppend(&sbOut, "#define peripheral1 __zzStateVar__[%d]\n", tb.statei+2);
-	sAppend(&sbOut, "#define peripheral2 __zzStateVar__[%d]\n", tb.statei+3);
-      }
-      
+      sAppend(&sbOut, "#define _DEPOT_ %d\n", tb.statei);
+      sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei+1);
     } else if (tb.hasCentral == 1) {
       if (tb.hasDepot){
 	fclose(fpIO);
@@ -4680,12 +4630,7 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
 	Rf_errorcall(R_NilValue, _("linCmt() does not have 'depot' compartment without a 'ka'"));
 	return R_NilValue;
       }
-      if (tb.linCmt != 0) {
-	sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei);
-	sAppend(&sbOut, "#define central __zzStateVar__[%d]\n", tb.statei);
-	sAppend(&sbOut, "#define peripheral1 __zzStateVar__[%d]\n", tb.statei+1);
-	sAppend(&sbOut, "#define peripheral2 __zzStateVar__[%d]\n", tb.statei+2);
-      }
+      sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei);
     }
     writeSb(&sbOut, fpIO);
   }
