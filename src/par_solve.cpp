@@ -619,10 +619,6 @@ extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh
   *wh0 = floor((*wh%10000)/100);
   *cmt = *wh0 - 1 + *wh100*100;
   *wh0 = evid - *wh100*1e5 - *whI*1e4 - *wh0*100;
-  if (op_global.extraCmt == 0 || op_global.neq == 0) {
-    return;
-  }
-  // Change cmt number for mixed ode/linCmt()
   if (rx_global.ka) {
     switch (*cmt) {
     case 0:

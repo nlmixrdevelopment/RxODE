@@ -4672,17 +4672,20 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
 	sAppend(&sbOut, "#define peripheral1 __zzStateVar__[%d]\n", tb.statei+2);
 	sAppend(&sbOut, "#define peripheral2 __zzStateVar__[%d]\n", tb.statei+3);
       }
-    } else if (tb.linCmt != 0) {
+      
+    } else if (tb.hasCentral == 1) {
       if (tb.hasDepot){
 	fclose(fpIO);
 	reset();
 	Rf_errorcall(R_NilValue, _("linCmt() does not have 'depot' compartment without a 'ka'"));
 	return R_NilValue;
       }
-      sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei);
-      sAppend(&sbOut, "#define central __zzStateVar__[%d]\n", tb.statei);
-      sAppend(&sbOut, "#define peripheral1 __zzStateVar__[%d]\n", tb.statei+1);
-      sAppend(&sbOut, "#define peripheral2 __zzStateVar__[%d]\n", tb.statei+2);
+      if (tb.linCmt != 0) {
+	sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei);
+	sAppend(&sbOut, "#define central __zzStateVar__[%d]\n", tb.statei);
+	sAppend(&sbOut, "#define peripheral1 __zzStateVar__[%d]\n", tb.statei+1);
+	sAppend(&sbOut, "#define peripheral2 __zzStateVar__[%d]\n", tb.statei+2);
+      }
     }
     writeSb(&sbOut, fpIO);
   }
