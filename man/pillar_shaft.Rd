@@ -9,7 +9,7 @@ pillar_shaft(x, ...)
 \arguments{
 \item{x}{A vector to format}
 
-\item{...}{Unused, for extensibility.}
+\item{...}{Arguments passed to methods.}
 }
 \description{
 Re export of pillar_shaft
