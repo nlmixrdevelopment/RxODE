@@ -17,8 +17,8 @@
 #define _(String) (String)
 #endif
 
-#include "lincmtB1.h"
-#include "lincmtB2.h"
+#include "lincmtB1d.h"
+#include "lincmtB2d.h"
 
 void handleTlast(double *time, rx_solving_options_ind *ind);
 
@@ -951,16 +951,14 @@ static inline void oneCmtRate(double *A, double *Alast,
   A1 = (*r1)/(*k10)*(1-eT)+A1last*eT + (*b1);
 }
 
-static inline void twoCmtRateSSr1(double *A, double *r1,
-				  double *k10, double *k12, double *k21) {
+static inline void twoCmtRateSSr1(double *A, double *r1, double *k10, double *k12, double *k21) {
   double E1 = (*k10)+(*k12);
-  double E2 = (*k21);
-  double s = E1+E2;
-  double sqr = sqrt(s*s-4*(E1*E2-(*k12)*(*k21)));
+  double s = E1+(*k21);
+  double sqr = sqrt(s*s-4*(E1*(*k21)-(*k12)*(*k21)));
   double lambda1 = 0.5*(s+sqr);
   double lambda2 = 0.5*(s-sqr);
   double l12 = 1.0/(lambda1*lambda2);
-  A1=(*r1)*E2*l12;
+  A1=(*r1)*(*k21)*l12;
   A2=(*r1)*(*k12)*l12;
 }
 
@@ -1348,8 +1346,7 @@ static inline void ssRateTau(double *A,
 	return;
       } break;
       case 3: {
-	threeCmtKaRateSStr1(A, tinf, tau,
-			    r1, ka, kel, k12, k21, k13, k31);
+	threeCmtKaRateSStr1(A, tinf, tau, r1, ka, kel, k12, k21, k13, k31);
 	return;
       } break;
       }
@@ -2401,16 +2398,9 @@ SEXP _calcDerived(SEXP ncmtSXP, SEXP transSXP, SEXP inp, SEXP sigdigSXP) {
 
 int handle_evidL(int evid, double *yp, double xout, int id, rx_solving_options_ind *ind);
 
-static inline void ssRateTauD(double *A,
-			      int ncmt,
-			      int oral0,
-			      double *tinf,
-			      double *tau,
-			      double *r1,
-			      double *r2,
-			      double *ka,
-			      double *kel,
-			      double *k12, double *k21){
+static inline void ssRateTauD(double *A, int ncmt, int oral0, double *tinf,
+			      double *tau, double *r1, double *r2, double *ka,
+			      double *kel, double *k12, double *k21) {
   if (oral0){
     if ((*r1) > 0 ){
       switch (ncmt){
