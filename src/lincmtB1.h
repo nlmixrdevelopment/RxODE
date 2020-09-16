@@ -1,4 +1,4 @@
-y#ifndef linCmtB1_header
+#ifndef linCmtB1_header
 #define linCmtB1_header
 #define A1 A[0]
 #define A2 A[1]
