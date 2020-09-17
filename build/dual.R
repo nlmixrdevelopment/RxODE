@@ -10,8 +10,9 @@ toDual <- function(x="0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)))"){
         return(TRUE)
       }
     } else if (is.call(x)){
-      if (identical(x[[1]], quote(`-`)) & length(x == 2)) {
+      if (identical(x[[1]], quote(`-`)) & length(x) == 2) {
         if (length(x[[2]]) == 1){
+          if (is.numeric(x[[2]])) return(TRUE)
           if (any(as.character(x[[2]]) == c("t", "r1", "r2", "b1", "b2", "tau", "tinf"))) {
             return(TRUE)
           }
@@ -23,7 +24,8 @@ toDual <- function(x="0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)))"){
   as.char <- function(x){
     if (is.numeric(x)) return(as.character(x))
     if (is.call(x)) {
-      if (identical(x[[1]], quote(`-`)) & length(x == 2)) {
+      if (identical(x[[1]], quote(`-`)) & length(x) == 2) {
+        if (is.numeric(x[[2]])) return(as.character(paste0("-", x[[2]])))
         if (length(x[[2]]) == 1){
           return(paste0("-SB_", x[[2]], "_SE"))}
         }
@@ -34,7 +36,7 @@ toDual <- function(x="0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)))"){
     if (is.atomic(x)) {
       return(x)
     } else if (is.name(x)) {
-      if (as.character(x) == "ka") assign(".hasKa2", TRUE, globalenv())
+      if (tolower(as.character(x)) == "ka") assign(".hasKa2", TRUE, globalenv())
       return(x)
     } else if (is.pairlist(x)){
       return(x)
@@ -80,7 +82,9 @@ toDual <- function(x="0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)))"){
         } else if (is.num(x[[3]])){
           return(eval(parse(text=paste0("quote(add2d(", deparse1(f(x[[2]])), ",", as.char(x[[3]]), "))"))))
         }
-        return(eval(parse(text=paste0("quote(add2(", deparse1(f(x[[2]])), ",", deparse1(f(x[[3]])), "))"))))
+        .x2 <- deparse1(f(x[[2]]))
+        .x3 <- deparse1(f(x[[3]]))
+        return(eval(parse(text=paste0("quote(add2(", .x2, ",", .x3, "))"))))
       } else if (identical(x[[1]], quote(`sqrt`))) {
         return(eval(parse(text=paste0("quote(sqrtD(", deparse1(f(x[[2]])), "))"))))
       } else if (identical(x[[1]], quote(`/`))){
@@ -98,6 +102,14 @@ toDual <- function(x="0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)))"){
         }
       } else if (identical(x[[1]], quote(`exp`))) {
         return(eval(parse(text=paste0("quote(expD(", deparse1(f(x[[2]])), "))"))))
+      } else if (identical(x[[1]], quote(`sin`))) {
+        return(eval(parse(text=paste0("quote(sinD(", deparse1(f(x[[2]])), "))"))))
+      } else if (identical(x[[1]], quote(`cos`))) {
+        return(eval(parse(text=paste0("quote(cosD(", deparse1(f(x[[2]])), "))"))))
+      } else if (identical(x[[1]], quote(`R_pow`))) {
+        return(eval(parse(text=paste0("quote(pow2d(", deparse1(f(x[[2]])), ",", deparse1(f(x[[3]])), "))"))))
+      } else if (identical(x[[1]], quote(`atan2`))) {
+        return(eval(parse(text=paste0("quote(atan2D(", deparse1(f(x[[2]])), ",", deparse1(f(x[[3]])), "))"))))
       } else if (identical(x[[1]], quote(`(`))) {
       } else {
         message("un-handled")
@@ -129,7 +141,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
   .args <- .args[.args != ""]
   .args <- .args[.args != "A"]
   .hasAlast <- any(.args == "Alast")
-  .hasKa <- any(.args == "ka")
+  .hasKa <- any(tolower(.args) == "ka")
   .args <- .args[.args != "Alast"]
   .args2 <- .args[.args != "tinf"]
   .args2 <- .args2[.args2 != "tau"]
@@ -149,7 +161,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
     .fargs <- c("A", .args)
   }
   .fargs <- sapply(.fargs, function(x){
-    if (any(x == c("ka", "k23", "k32", "k20", "k12", "k21", "k10"))) return(paste0(x, "d"))
+    if (any(x == c("ka", "k23", "k32", "k20", "k12", "k21", "k10", "k13", "k31", "k24", "k42"))) return(paste0(x, "d"))
     x
   })
   .fargs <- paste0("(double *", paste(.fargs, collapse=", double *"), ")")
@@ -291,6 +303,122 @@ getFun <- function(x="oneCmtKaRateSSr1"){
                          "}"),
                        collapse="\n")
       }
+    } else if (regexpr("threeCmt", x) != -1) {
+      if (.hasAlast) {
+        .ret <- paste0(c(.fB,
+                         ifelse(.hasKa2, "dualN ka  = iniD(*kad,  0);", "(void)(*kad);"),
+                         "dualN k20 = iniD(*k20d, 1);",
+                         "dualN k23 = iniD(*k23d, 2);",
+                         "dualN k32 = iniD(*k32d, 3);",
+                         "dualN k24 = iniD(*k24d, 4);",
+                         "dualN k42 = iniD(*k42d, 5);",
+                         "dualN A1last = iniD(Alast[0],-1);",
+                         "A1last.grad[0] = Alast[4];",
+                         "A1last.grad[1] = 0.0;", # doesn't depend on k20
+                         "A1last.grad[2] = Alast[5];",
+                         "A1last.grad[3] = Alast[6];",
+                         "A1last.grad[4] = Alast[7];",
+                         "A1last.grad[5] = Alast[8];",
+                         "dualN A2last = iniD(Alast[1],-1);",
+                         "A2last.grad[0] = Alast[9];",
+                         "A2last.grad[1] = Alast[10];",
+                         "A2last.grad[2] = Alast[11];",
+                         "A1last.grad[3] = Alast[12];",
+                         "A1last.grad[4] = Alast[13];",
+                         "A1last.grad[5] = Alast[14];",
+                         "dualN A3last = iniD(Alast[2],-1);",
+                         "A3last.grad[0] = Alast[15];",
+                         "A3last.grad[1] = Alast[16];",
+                         "A3last.grad[2] = Alast[17];",
+                         "A3last.grad[3] = Alast[18];",
+                         "A3last.grad[4] = Alast[19];",
+                         "A3last.grad[5] = Alast[20];",
+                         "dualN A4last = iniD(Alast[3],-1);",
+                         "A4last.grad[0] = Alast[21];",
+                         "A4last.grad[1] = Alast[22];",
+                         "A4last.grad[2] = Alast[23];",
+                         "A4last.grad[3] = Alast[24];",
+                         "A4last.grad[4] = Alast[25];",
+                         "A4last.grad[5] = Alast[26];",
+                         .ret,
+                         "A[0] = A1.f;",
+                         "A[1] = A2.f;",
+                         "A[2] = A3.f;",
+                         "A[3] = A4.f;",
+                         ## A1 derivatives
+                         "A[4] = A1.grad[0];",
+                         # doesn't depend on k20
+                         "A[5] = A1.grad[2];",
+                         "A[6] = A1.grad[3];",
+                         "A[7] = A1.grad[4];",
+                         "A[8] = A1.grad[5];",
+                         ## A2 derivatives
+                         "A[ 9] = A2.grad[0];",
+                         "A[10] = A2.grad[1];",
+                         "A[11] = A2.grad[2];",
+                         "A[12] = A2.grad[3];",
+                         "A[13] = A2.grad[4];",
+                         "A[14] = A2.grad[5];",
+                         ## A3 derivatives
+                         "A[15] = A3.grad[0];",
+                         "A[16] = A3.grad[1];",
+                         "A[17] = A3.grad[2];",
+                         "A[18] = A3.grad[3];",
+                         "A[19] = A3.grad[4];",
+                         "A[20] = A3.grad[5];",
+                         ## A4 derivatives
+                         "A[21] = A4.grad[0];",
+                         "A[22] = A4.grad[1];",
+                         "A[23] = A4.grad[2];",
+                         "A[24] = A4.grad[3];",
+                         "A[25] = A4.grad[4];",
+                         "A[26] = A4.grad[5];",
+                         "}"),
+                       collapse="\n")
+      } else {
+        .ret <- paste0(c(.fB,
+                         ifelse(.hasKa2, "dualN ka  = iniD(*kad,  0);", "(void)(*kad);"),
+                         "dualN k20 = iniD(*k20d, 1);",
+                         "dualN k23 = iniD(*k23d, 2);",
+                         "dualN k32 = iniD(*k32d, 3);",
+                         "dualN k24 = iniD(*k24d, 4);",
+                         "dualN k42 = iniD(*k42d, 5);",
+                         .ret,
+                         "A[0] = A1.f;",
+                         "A[1] = A2.f;",
+                         "A[2] = A3.f;",
+                         "A[3] = A4.f;",
+                         ## A1 derivatives
+                         "A[4] = A1.grad[0];",
+                         # doesn't depend on k20
+                         "A[5] = A1.grad[2];",
+                         "A[6] = A1.grad[3];",
+                         "A[7] = A1.grad[4];",
+                         "A[8] = A1.grad[5];",
+                         ## A2 derivatives
+                         "A[ 9] = A2.grad[0];",
+                         "A[10] = A2.grad[1];",
+                         "A[11] = A2.grad[2];",
+                         "A[12] = A2.grad[3];",
+                         "A[13] = A2.grad[4];",
+                         "A[14] = A2.grad[5];",
+                         ## A3 derivatives
+                         "A[15] = A3.grad[0];",
+                         "A[16] = A3.grad[1];",
+                         "A[17] = A3.grad[2];",
+                         "A[18] = A3.grad[3];",
+                         "A[19] = A3.grad[4];",
+                         "A[20] = A3.grad[5];",
+                         ## A4 derivatives
+                         "A[21] = A4.grad[0];",
+                         "A[22] = A4.grad[1];",
+                         "A[23] = A4.grad[2];",
+                         "A[24] = A4.grad[3];",
+                         "A[25] = A4.grad[4];",
+                         "A[26] = A4.grad[5];",
+                         "}"),
+                       collapse="\n")
+      }
     }
   } else {
     if (regexpr("oneCmt", x) != -1) {
@@ -371,6 +499,88 @@ getFun <- function(x="oneCmtKaRateSSr1"){
                          "}"),
                        collapse="\n")
       }
+    } else if (regexpr("threeCmt", x) != -1) {
+      if (.hasAlast) {
+        .ret <- paste0(c(.fB,
+                         "dualN k10 = iniD(*k10d, 0);",
+                         "dualN k12 = iniD(*k12d, 1);",
+                         "dualN k21 = iniD(*k21d, 2);",
+                         "dualN k13 = iniD(*k13d, 3);",
+                         "dualN k31 = iniD(*k31d, 4);",
+                         "dualN A1last = iniD(Alast[0],-1);",
+                         "A1last.grad[0] = Alast[3];",
+                         "A1last.grad[1] = Alast[4];",
+                         "A1last.grad[2] = Alast[5];",
+                         "A1last.grad[3] = Alast[6];",
+                         "A1last.grad[4] = Alast[7];",
+                         "dualN A2last = iniD(Alast[1],-1);",
+                         "A2last.grad[0] = Alast[8];",
+                         "A2last.grad[1] = Alast[9];",
+                         "A2last.grad[2] = Alast[10];",
+                         "A2last.grad[3] = Alast[11];",
+                         "A2last.grad[4] = Alast[12];",
+                         "dualN A3last = iniD(Alast[2],-1);",
+                         "A3last.grad[0] = Alast[13];",
+                         "A3last.grad[1] = Alast[14];",
+                         "A3last.grad[2] = Alast[15];",
+                         "A3last.grad[3] = Alast[16];",
+                         "A3last.grad[4] = Alast[17];",
+                         .ret,
+                         "A[0] = A1.f;",
+                         "A[1] = A2.f;",
+                         "A[2] = A3.f;",
+                         ## A1 derivatives
+                         "A[3] = A1.grad[0];",
+                         "A[4] = A1.grad[1];",
+                         "A[5] = A1.grad[2];",
+                         "A[6] = A1.grad[3];",
+                         "A[7] = A1.grad[4];",
+                         ## A2 derivatives
+                         "A[8] = A2.grad[0];",
+                         "A[9] = A2.grad[1];",
+                         "A[10] = A2.grad[2];",
+                         "A[11] = A2.grad[3];",
+                         "A[12] = A2.grad[4];",
+                         ## A3 derivatives
+                         "A[13] = A3.grad[0];",
+                         "A[14] = A3.grad[1];",
+                         "A[15] = A3.grad[2];",
+                         "A[16] = A3.grad[3];",
+                         "A[17] = A3.grad[4];",
+                         "}"),
+                       collapse="\n")
+      } else {
+        .ret <- paste0(c(.fB,
+                         "dualN k10 = iniD(*k10d, 0);",
+                         "dualN k12 = iniD(*k12d, 1);",
+                         "dualN k21 = iniD(*k21d, 2);",
+                         "dualN k13 = iniD(*k13d, 3);",
+                         "dualN k31 = iniD(*k31d, 4);",
+                         .ret,
+                         "A[0] = A1.f;",
+                         "A[1] = A2.f;",
+                         "A[2] = A3.f;",
+                         ## A1 derivatives
+                         "A[3] = A1.grad[0];",
+                         "A[4] = A1.grad[1];",
+                         "A[5] = A1.grad[2];",
+                         "A[6] = A1.grad[3];",
+                         "A[7] = A1.grad[4];",
+                         ## A2 derivatives
+                         "A[8] = A2.grad[0];",
+                         "A[9] = A2.grad[1];",
+                         "A[10] = A2.grad[2];",
+                         "A[11] = A2.grad[3];",
+                         "A[12] = A2.grad[4];",
+                         ## A3 derivatives
+                         "A[13] = A3.grad[0];",
+                         "A[14] = A3.grad[1];",
+                         "A[15] = A3.grad[2];",
+                         "A[16] = A3.grad[3];",
+                         "A[17] = A3.grad[4];",
+                         "}"),
+                       collapse="\n")
+      }
     }
   }
   return(.ret)
@@ -408,4 +618,20 @@ if (!file.exists(devtools::package_file("src/lincmtB2d.h"))){
 ", .f, "#endif"), devtools::package_file("src/lincmtB2d.h"))
 }
 
-## toDual("exp(-(*ka)*(*t))")
+unlink(devtools::package_file("src/lincmtB3d.h"))
+if (!file.exists(devtools::package_file("src/lincmtB3d.h"))) {
+  fs <- c("threeCmtRateSSr1", "threeCmtRateSS",
+          "threeCmtRate", "threeCmtBolusSS",
+          "threeCmtKaRateSSr1", "threeCmtKaRateSSr2", "threeCmtKaRateSStr1", "threeCmtKaRateSStr2",
+          "threeCmtKaRate", "threeCmtKaSSb1", "threeCmtKaSSb2")
+
+  .f <- paste(sapply(fs, getFun), collapse="\n");
+  writeLines(c("
+#ifndef linCmtB3_header
+#define linCmtB3_header
+#include \"dual.h\"
+", .f, "#endif"), devtools::package_file("src/lincmtB3d.h"))
+
+}
+
+##toDual("(*b2)-a21+a22-a23-a24+a25")

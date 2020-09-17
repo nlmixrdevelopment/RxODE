@@ -4687,7 +4687,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->linBflag=0;
     if (linB) {
       int linBflag = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linCmtFlg];
-      if (rx->sensType == 4){
+      if (rx->sensType == 4) {
 	// This is the ADVAN senstivities
 	if (linKa) {
 	  switch (linNcmt) {
@@ -4695,10 +4695,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    op->nlin = 5;
 	    break;
 	  case 2:
-	    op->nlin = 15;
+	    op->nlin = 14;
 	    break;
 	  case 3:
-	    op->nlin = 19;
+	    op->nlin = 27;
 	    break;
 	  }
 	} else {
@@ -4710,7 +4710,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    op->nlin = 8;
 	    break;
 	  case 3:
-	    op->nlin = 13;
+	    op->nlin = 18;
 	    break;
 	  }
 	}
@@ -4772,7 +4772,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time12b: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
-
 
     int n4 = rxSolveDat->initsC.size();
     int n5 = lhs.size()*rxSolveDat->nSize;

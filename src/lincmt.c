@@ -19,6 +19,7 @@
 
 #include "lincmtB1d.h"
 #include "lincmtB2d.h"
+#include "lincmtB3d.h"
 
 void handleTlast(double *time, rx_solving_options_ind *ind);
 
@@ -450,7 +451,7 @@ static inline void threeCmtKaRateSSr1(double *A, double *r1,
   double k = (*k23)*(*k42)+(*k20)*(*k32)+(*k20)*(*k42)+(*k32)*(*k42)+(*k24)*(*k32);
   double l = (*k20)*(*k32)*(*k42);
 
-  double m = 0.3333333333333333*(3.0*k - j*j);
+  double m = 0.3333333333333333*(3.0*k- j*j);
   double n = 0.03703703703703703*(2.0*j*j*j - 9.0*j*k + 27.0*l);
   double Q = 0.25*n*n + 0.03703703703703703*m*m*m;
 
@@ -768,7 +769,7 @@ static inline void twoCmtKa(double *A, double *Alast, double *t,
 
 
 static inline void threeCmtKaSSb1(double *A, double *tau, double *b1, 
-				  double *KA, double *k20,
+				  double *ka, double *k20,
 				  double *k23, double *k32,
 				  double *k24, double *k42){
   double E2 = (*k20)+(*k23)+(*k24);
@@ -797,19 +798,19 @@ static inline void threeCmtKaSSb1(double *A, double *tau, double *b1,
   double lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
   double lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
 
-  double eKa = 1.0/(1.0-exp(-(*tau)*(*KA)));
+  double eKa = 1.0/(1.0-exp(-(*tau)*(*ka)));
   double eL1 = 1.0/(1.0-exp(-(*tau)*lambda1));
   double eL2 = 1.0/(1.0-exp(-(*tau)*lambda2));
   double eL3 = 1.0/(1.0-exp(-(*tau)*lambda3));
   
   A1=eKa*(*b1);
-  A2=(*KA)*(*b1)*(eL1*(E3 - lambda1)*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*KA) - lambda1)) + eL2*(E3 - lambda2)*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*KA) - lambda2)) + eL3*(E3 - lambda3)*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*KA) - lambda3)) + eKa*(E3 - (*KA))*(E4 - (*KA))/((-(*KA) + lambda1)*(-(*KA) + lambda3)*(-(*KA) + lambda2)));
-  A3=(*KA)*(*b1)*(*k23)*(eL1*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*KA) - lambda1)) + eL2*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*KA) - lambda2)) + eL3*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*KA) - lambda3)) + eKa*(E4 - (*KA))/((-(*KA) + lambda1)*(-(*KA) + lambda3)*(-(*KA) + lambda2)));
-  A4=(*KA)*(*b1)*(*k24)*(eL1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*KA) - lambda1)) + eL2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*KA) - lambda2)) + eL3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*KA) - lambda3)) + eKa*(E3 - (*KA))/((-(*KA) + lambda1)*(-(*KA) + lambda3)*(-(*KA) + lambda2)));
+  A2=(*ka)*(*b1)*(eL1*(E3 - lambda1)*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*ka) - lambda1)) + eL2*(E3 - lambda2)*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*ka) - lambda2)) + eL3*(E3 - lambda3)*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*ka) - lambda3)) + eKa*(E3 - (*ka))*(E4 - (*ka))/((-(*ka) + lambda1)*(-(*ka) + lambda3)*(-(*ka) + lambda2)));
+  A3=(*ka)*(*b1)*(*k23)*(eL1*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*ka) - lambda1)) + eL2*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*ka) - lambda2)) + eL3*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*ka) - lambda3)) + eKa*(E4 - (*ka))/((-(*ka) + lambda1)*(-(*ka) + lambda3)*(-(*ka) + lambda2)));
+  A4=(*ka)*(*b1)*(*k24)*(eL1*(E3 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*((*ka) - lambda1)) + eL2*(E3 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*((*ka) - lambda2)) + eL3*(E3 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*((*ka) - lambda3)) + eKa*(E3 - (*ka))/((-(*ka) + lambda1)*(-(*ka) + lambda3)*(-(*ka) + lambda2)));
 }
 
 static inline void threeCmtKaSSb2(double *A, double *tau, double *b2, 
-				  double *KA, double *k20,
+				  double *ka, double *k20,
 				  double *k23, double *k32,
 				  double *k24, double *k42) {
   double E2 = (*k20)+(*k23)+(*k24);
@@ -849,7 +850,7 @@ static inline void threeCmtKaSSb2(double *A, double *tau, double *b2,
 
 static inline void threeCmtKa(double *A, double *Alast, double *t,
 			      double *b1, double *b2,
-			      double *KA, double *k20,
+			      double *ka, double *k20,
 			      double *k23, double *k32,
 			      double *k24, double *k42) {
   double E2 = (*k20)+(*k23)+(*k24);
@@ -886,7 +887,7 @@ static inline void threeCmtKa(double *A, double *Alast, double *t,
   double eL1 = exp(-(*t)*lambda1);
   double eL2 = exp(-(*t)*lambda2);
   double eL3 = exp(-(*t)*lambda3);
-  double eKA = exp(-(*t)*(*KA));
+  double eka = exp(-(*t)*(*ka));
 
   double l12 = (lambda1-lambda2);
   double l13 = (lambda1-lambda3);
@@ -908,7 +909,7 @@ static inline void threeCmtKa(double *A, double *Alast, double *t,
   
   double A2term2 = eL1*(C-B*lambda1)/(l12*l13)+eL2*(B*lambda2-C)/(l12*l23)+eL3*(B*lambda3-C)/(l13*l32);
   
-  double A2term3 = A1last*(*KA)*(eL1*e3l1*e4l1/(l21*l31*((*KA)-lambda1))+eL2*e3l2*e4l2/(l12*l32*((*KA)-lambda2))+eL3*e3l3*e4l3/(l13*l23*((*KA)-lambda3))+eKA*(E3-(*KA))*(E4-(*KA))/((lambda1-(*KA))*(lambda2-(*KA))*(lambda3-(*KA))));
+  double A2term3 = A1last*(*ka)*(eL1*e3l1*e4l1/(l21*l31*((*ka)-lambda1))+eL2*e3l2*e4l2/(l12*l32*((*ka)-lambda2))+eL3*e3l3*e4l3/(l13*l23*((*ka)-lambda3))+eka*(E3-(*ka))*(E4-(*ka))/((lambda1-(*ka))*(lambda2-(*ka))*(lambda3-(*ka))));
   
   A2 = A2term1+A2term2+A2term3 + (*b2);
 
@@ -916,7 +917,7 @@ static inline void threeCmtKa(double *A, double *Alast, double *t,
   
   double A3term2 = eL1*(I-A2last*(*k23)*lambda1)/(l12*l13)+eL2*(A2last*(*k23)*lambda2-I)/(l12*l23)+eL3*(A2last*(*k23)*lambda3-I)/(l13*l32);
   
-  double A3term3 = A1last*(*KA)*(*k23)*(eL1*e4l1/(l21*l31*((*KA)-lambda1))+eL2*e4l2/(l12*l32*((*KA)-lambda2))+eL3*e4l3/(l13*l23*((*KA)-lambda3))+eKA*(E4-(*KA))/((lambda1-(*KA))*(lambda2-(*KA))*(lambda3-(*KA))));
+  double A3term3 = A1last*(*ka)*(*k23)*(eL1*e4l1/(l21*l31*((*ka)-lambda1))+eL2*e4l2/(l12*l32*((*ka)-lambda2))+eL3*e4l3/(l13*l23*((*ka)-lambda3))+eka*(E4-(*ka))/((lambda1-(*ka))*(lambda2-(*ka))*(lambda3-(*ka))));
   
   A3 = A3term1+A3term2+A3term3;
 
@@ -924,10 +925,10 @@ static inline void threeCmtKa(double *A, double *Alast, double *t,
   
   double A4term2 = eL1*(J-A2last*(*k24)*lambda1)/(l12*l13)+eL2*(A2last*(*k24)*lambda2-J)/(l12*l23)+eL3*(A2last*(*k24)*lambda3-J)/(l13*l32);
   
-  double A4term3 = A1last*(*KA)*(*k24)*(eL1*e3l1/(l21*l31*((*KA)-lambda1))+eL2*e3l2/(l12*l32*((*KA)-lambda2))+eL3*e3l3/(l13*l23*((*KA)-lambda3))+eKA*(E3-(*KA))/((lambda1-(*KA))*(lambda2-(*KA))*(lambda3-(*KA))));
+  double A4term3 = A1last*(*ka)*(*k24)*(eL1*e3l1/(l21*l31*((*ka)-lambda1))+eL2*e3l2/(l12*l32*((*ka)-lambda2))+eL3*e3l3/(l13*l23*((*ka)-lambda3))+eka*(E3-(*ka))/((lambda1-(*ka))*(lambda2-(*ka))*(lambda3-(*ka))));
   A4 = A4term1+A4term2+A4term3;
 
-  A1 = A1last*eKA + (*b1);
+  A1 = A1last*eka + (*b1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2400,7 +2401,7 @@ int handle_evidL(int evid, double *yp, double xout, int id, rx_solving_options_i
 
 static inline void ssRateTauD(double *A, int ncmt, int oral0, double *tinf,
 			      double *tau, double *r1, double *r2, double *ka,
-			      double *kel, double *k12, double *k21) {
+			      double *kel, double *k12, double *k21, double *k13, double *k31) {
   if (oral0){
     if ((*r1) > 0 ){
       switch (ncmt){
@@ -2412,6 +2413,10 @@ static inline void ssRateTauD(double *A, int ncmt, int oral0, double *tinf,
 	twoCmtKaRateSStr1D(A, tinf, tau, r1, ka, kel, k12, k21);
 	return;
       } break;
+      case 3: {
+	threeCmtKaRateSStr1D(A, tinf, tau, r1, ka, kel, k12, k21, k13, k31);
+	return;
+      } break;
       }
     } else {
       switch (ncmt){
@@ -2421,6 +2426,10 @@ static inline void ssRateTauD(double *A, int ncmt, int oral0, double *tinf,
       } break;
       case 2: {
 	twoCmtKaRateSStr2D(A, tinf, tau, r2, ka, kel, k12, k21);
+	return;
+      } break;
+      case 3: {
+	threeCmtKaRateSStr2D(A, tinf, tau, r2, ka, kel, k12, k21, k13, k31);
 	return;
       } break;
       }
@@ -2435,6 +2444,10 @@ static inline void ssRateTauD(double *A, int ncmt, int oral0, double *tinf,
       twoCmtRateSSD(A, tinf, tau, r1, kel, k12, k21);
       return;
     } break;
+    case 3: {
+      threeCmtRateSSD(A, tinf, tau, r1, kel, k12, k21, k13, k31);
+      return;
+    } break;
     }
   }
 }
@@ -2447,7 +2460,7 @@ static inline void ssTauD(double *A,
 			  double *b2,
 			  double *ka, // ka (for oral doses)
 			  double *kel,  //double rx_v,
-			  double *k12, double *k21){
+			  double *k12, double *k21, double *k13, double *k31){
   if (oral0){
     if ((*b1) > 0 ){
       switch (ncmt){
@@ -2459,6 +2472,10 @@ static inline void ssTauD(double *A,
 	twoCmtKaSSb1D(A, tau, b1, ka, kel, k12, k21);
 	return;
       } break;
+      case 3: {
+	threeCmtKaSSb1D(A, tau, b1, ka, kel, k12, k21, k13, k31);
+	return;
+      } break;
       }
     } else {
       switch (ncmt){
@@ -2468,6 +2485,10 @@ static inline void ssTauD(double *A,
       } break;
       case 2: {
 	twoCmtKaSSb2D(A, tau, b2, ka, kel, k12, k21);
+	return;
+      } break;
+      case 3: {
+	threeCmtKaSSb2D(A, tau, b2, ka, kel, k12, k21, k13, k31);
 	return;
       } break;
       }
@@ -2482,18 +2503,23 @@ static inline void ssTauD(double *A,
       twoCmtBolusSSD(A, tau, b1, kel, k12, k21);
       return;
     } break;
+    case 3: {
+      threeCmtBolusSSD(A, tau, b1, kel, k12, k21, k13, k31);
+      return;
+    } break;
     }
   }
 }
 
 static inline void ssRateD(double *A,
-			  int ncmt, // Number of compartments
-			  int oral0, // Indicator of if this is an oral system)
-			  double *r1, // Rate in Compartment #1
-			  double *r2, // Rate in Compartment #2
-			  double *ka, // ka (for oral doses)
-			  double *kel,  //double rx_v,
-			  double *k12, double *k21) {
+			   int ncmt, // Number of compartments
+			   int oral0, // Indicator of if this is an oral system)
+			   double *r1, // Rate in Compartment #1
+			   double *r2, // Rate in Compartment #2
+			   double *ka, // ka (for oral doses)
+			   double *kel,  //double rx_v,
+			   double *k12, double *k21,
+			   double *k13, double *k31) {
   if (oral0){
     if ((*r1) > 0){
       switch (ncmt){
@@ -2505,6 +2531,10 @@ static inline void ssRateD(double *A,
 	twoCmtKaRateSSr1D(A, r1, ka, kel, k12, k21);
 	return;
       } break;
+      case 3: {
+	threeCmtKaRateSSr1D(A, r1, ka, kel, k12, k21, k13, k31);
+	return;
+      }
       }
     } else {
       switch (ncmt){
@@ -2514,6 +2544,10 @@ static inline void ssRateD(double *A,
       } break;
       case 2: {
 	twoCmtKaRateSSr2D(A, r2, ka, kel, k12, k21);
+	return;
+      } break;
+      case 3: {
+	threeCmtKaRateSSr2D(A, r2, ka, kel, k12, k21, k13, k31);
 	return;
       } break;
       }
@@ -2526,6 +2560,10 @@ static inline void ssRateD(double *A,
     } break;
     case 2: {
       twoCmtRateSSr1D(A, r1, kel, k12, k21);
+      return;
+    } break;
+    case 3: {
+      threeCmtRateSSr1D(A, r1, kel, k12, k21, k13, k31);
       return;
     } break;
     }
@@ -2575,7 +2613,7 @@ static inline void handleSSL(double *A,// Amounts
     }
     if (doDiff){
       ssRateD(A, ncmt, oral0, r1, r2,
-	      ka, kel, k12, k21);
+	      ka, kel, k12, k21, k13, k31);
     } else {
       ssRate(A, ncmt, oral0, r1, r2,
 	     ka, kel, k12, k21, k13, k31);
@@ -2602,7 +2640,7 @@ static inline void handleSSL(double *A,// Amounts
       }
       if (doDiff){
 	ssTauD(A, ncmt, oral0, &tau, b1, b2, ka,
-	       kel, k12, k21);
+	       kel, k12, k21, k13, k31);
       } else {
 	ssTau(A, ncmt, oral0, &tau, b1, b2, ka,
 	    kel, k12, k21, k13, k31);
@@ -2645,7 +2683,7 @@ static inline void handleSSL(double *A,// Amounts
       } else {
 	if (doDiff) {
 	  ssRateTauD(A, ncmt, oral0, &tinf, &tau,
-		     r1, r2, ka, kel, k12, k21);
+		     r1, r2, ka, kel, k12, k21, k13, k31);
 	} else {
 	  ssRateTau(A, ncmt, oral0, &tinf, &tau,
 		  r1, r2, ka, kel, k12, k21, k13, k31);
@@ -2688,7 +2726,7 @@ static inline void handleSSL(double *A,// Amounts
 	} else {
 	  if (doDiff){
 	    ssRateTauD(A, ncmt, oral0, &tinf, &tau,
-		       r1, r2, ka, kel, k12, k21);
+		       r1, r2, ka, kel, k12, k21, k13, k31);
 	  } else {
 	    ssRateTau(A, ncmt, oral0, &tinf, &tau,
 		      r1, r2, ka, kel, k12, k21, k13, k31);
@@ -3163,7 +3201,7 @@ static inline void doAdvanD(double *A,// Amounts
 			    double *r2, // Rate in Compartment #2
 			    double *ka, // ka (for oral doses)
 			    double *kel,  //double rx_v,
-			    double *k12, double *k21){
+			    double *k12, double *k21, double *k13, double *k31){
   double t = ct - tlast;
     if (oral0){
       switch (ncmt){
@@ -3176,6 +3214,11 @@ static inline void doAdvanD(double *A,// Amounts
 		      ka,  kel, k12, k21);
 	return;
       } break;
+      case 3: {
+	threeCmtKaRateD(A, Alast, &t, b1, b2, r1, r2,
+			ka,  kel, k12, k21, k13, k31);
+	return;
+      } break;
       }
     } else {
       switch (ncmt){
@@ -3186,6 +3229,11 @@ static inline void doAdvanD(double *A,// Amounts
       case 2: {
 	twoCmtRateD(A, Alast, &t, b1, r1,
 		    kel, k12, k21);
+	return;
+      } break;
+      case 3: {
+	threeCmtRateD(A, Alast, &t, b1, r1,
+		      kel, k12, k21, k13, k31);
 	return;
       } break;
       }
@@ -3403,289 +3451,281 @@ double derTrans(rx_solve *rx, double *A, int ncmt, int trans, int val,
 }
 
 double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
-	       int ncmt, int trans, int val,
+	       int i_cmt, int trans, int val,
 	       double p1, double v1,
 	       double p2, double p3,
 	       double p4, double p5,
 	       double d_tlag, double d_F, double d_rate1, double d_dur1,
 	       // Oral parameters
 	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2) {
-  if (ncmt == 3) { // for now use autodiff
-    return linCmtBB(rx, id, t, linCmt, ncmt, trans, val,
-		   p1, v1, p2, p3,
-		   p4, p5, d_tlag, d_F,
-		   d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
-		   d_rate2, d_dur2);
+  rx_solving_options_ind *ind = &(rx->subjects[id]);
+  int evid;
+  /* evid = ind->evid[ind->ix[ind->idx]]; */
+  /* if (evid) REprintf("evid0[%d:%d]: %d; curTime: %f\n", id, ind->idx, evid, t); */
+  int idx = ind->idx;
+  double Alast0[15] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  rx_solving_options *op = rx->op;
+  int oral0= (d_ka > 0) ? 1 : 0;
+  double *A;
+  double *Alast;
+  /* A = Alast0; Alast=Alast0; */
+  double tlast;
+  double curTime= getTime(ind->ix[idx], ind); // t0
+  while (t < curTime) {
+    idx--;
+    if (idx < 0) return 0.0;
+    curTime = getTime(ind->ix[idx], ind);
+  }
+  int sameTime = isSameTime(t, curTime);
+  if (idx <= ind->solved && sameTime){
+    // Pull from last solved value (cached)
+    A = getAdvan(idx);
+    return derTrans(rx, A, i_cmt, trans, val, p1, v1, p2, p3,
+		    p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
+		    d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
+  }
+  unsigned int ncmt = 1;
+  double rx_k=0, rx_v=0;
+  double rx_k12=0;
+  double rx_k21=0;
+  double rx_k13=0;
+  double rx_k31=0;
+  double *rate = ind->linCmtRate;
+  double b1=0, b2=0, r1 = 0, r2 = 0;
+  A = Alast0;
+  if (idx <= ind->solved){
+    if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
+		  &ncmt, &rx_k, &rx_v, &rx_k12,
+		  &rx_k21, &rx_k13, &rx_k31)){
+      /* REprintf(_("invalid translation\n")); */
+      return NA_REAL;
+    }
   } else {
-    rx_solving_options_ind *ind = &(rx->subjects[id]);
-    int evid;
-    /* evid = ind->evid[ind->ix[ind->idx]]; */
-    /* if (evid) REprintf("evid0[%d:%d]: %d; curTime: %f\n", id, ind->idx, evid, t); */
-    int idx = ind->idx;
-    double Alast0[15] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    rx_solving_options *op = rx->op;
-    int oral0= (d_ka > 0) ? 1 : 0;
-    double *A;
-    double *Alast;
-    /* A = Alast0; Alast=Alast0; */
-    double tlast;
-    double curTime= getTime(ind->ix[idx], ind); // t0
-    while (t < curTime) {
-      idx--;
-      if (idx < 0) return 0.0;
-      curTime = getTime(ind->ix[idx], ind);
-    }
-    int sameTime = isSameTime(t, curTime);
-    if (idx <= ind->solved && sameTime){
-      // Pull from last solved value (cached)
-      A = getAdvan(idx);
-      return derTrans(rx, A, ncmt, trans, val, p1, v1, p2, p3,
-		      p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
-		      d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
-    }
-    unsigned int ncmt = 1;
-    double rx_k=0, rx_v=0;
-    double rx_k12=0;
-    double rx_k21=0;
-    double rx_k13=0;
-    double rx_k31=0;
-    double *rate = ind->linCmtRate;
-    double b1=0, b2=0, r1 = 0, r2 = 0;
-    A = Alast0;
-    if (idx <= ind->solved){
-      if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
-		    &ncmt, &rx_k, &rx_v, &rx_k12,
-		    &rx_k21, &rx_k13, &rx_k31)){
-	/* REprintf(_("invalid translation\n")); */
-	return NA_REAL;
-      }
+    A = getAdvan(idx);
+    if (idx == 0) {
+      Alast = Alast0;
+      tlast = getTime(ind->ix[0], ind);
     } else {
-      A = getAdvan(idx);
-      if (idx == 0) {
-	Alast = Alast0;
-	tlast = getTime(ind->ix[0], ind);
-      } else {
-	tlast = getTime(ind->ix[idx-1], ind);
-	Alast = getAdvan(idx-1);
+      tlast = getTime(ind->ix[idx-1], ind);
+      Alast = getAdvan(idx-1);
+    }
+    curTime = getTime(ind->ix[idx], ind);
+    if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
+		  &ncmt, &rx_k, &rx_v, &rx_k12,
+		  &rx_k21, &rx_k13, &rx_k31)){
+      /* REprintf(_("invalid translation\n")); */
+      return NA_REAL;
+    }
+    evid = ind->evid[ind->ix[idx]];
+    /* if (evid) REprintf("evid: %d; curTime: %f\n",evid, curTime); */
+    if (op->nlinR == 2){
+      r1 = rate[0];
+      r2 = rate[1];
+    } else {
+      r1 = rate[0];
+    }
+    ind->wh0 = 0;
+    if (evid == 3){
+      // Reset event
+      Alast=Alast0;
+    } else {
+      doAdvanD(A, Alast, tlast, // Time of last amounts
+	       curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
+	       &d_ka, &rx_k, &rx_k12, &rx_k21, &rx_k13, &rx_k31);
+      double aSave[15];
+      int nSave = (ncmt == 1 ? (oral0 ? 5 : 2) : (oral0 ? 15 : 8));
+      for (int i = nSave; i--;){
+	aSave[i] = A[i];
       }
-      curTime = getTime(ind->ix[idx], ind);
-      if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
-		    &ncmt, &rx_k, &rx_v, &rx_k12,
-		    &rx_k21, &rx_k13, &rx_k31)){
-	/* REprintf(_("invalid translation\n")); */
-	return NA_REAL;
-      }
-      evid = ind->evid[ind->ix[idx]];
-      /* if (evid) REprintf("evid: %d; curTime: %f\n",evid, curTime); */
-      if (op->nlinR == 2){
-	r1 = rate[0];
-	r2 = rate[1];
-      } else {
-	r1 = rate[0];
-      }
-      ind->wh0 = 0;
-      if (evid == 3){
-	// Reset event
-	Alast=Alast0;
-      } else {
-	doAdvanD(A, Alast, tlast, // Time of last amounts
-		 curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
-		 &d_ka, &rx_k, &rx_k12, &rx_k21);
-	double aSave[15];
-	int nSave = (ncmt == 1 ? (oral0 ? 5 : 2) : (oral0 ? 15 : 8));
-	for (int i = nSave; i--;){
-	  aSave[i] = A[i];
-	}
-	if (handle_evidL(evid, A, curTime, id, ind)){
-	  handleSSL(A, Alast, tlast, curTime, ncmt, oral0, 
-		    &b1, &b2, &r1, &r2, &d_ka, &rx_k,
-		    &rx_k12, &rx_k21, &rx_k13, &rx_k31,
-		    &linCmt, &d_F, &d_F2, &d_rate1, &d_rate2,
-		    &d_dur1, &d_dur2, aSave, &nSave, true, ind);
-	}
+      if (handle_evidL(evid, A, curTime, id, ind)){
+	handleSSL(A, Alast, tlast, curTime, ncmt, oral0, 
+		  &b1, &b2, &r1, &r2, &d_ka, &rx_k,
+		  &rx_k12, &rx_k21, &rx_k13, &rx_k31,
+		  &linCmt, &d_F, &d_F2, &d_rate1, &d_rate2,
+		  &d_dur1, &d_dur2, aSave, &nSave, true, ind);
       }
     }
-    double *Ac = A;
-    if (!sameTime){
-      // Compute the advan solution of a t outside of the mesh.
-      Alast = A;
-      Ac = Alast0;
-      tlast = curTime;
-      curTime = t;
-      b1 = b2 = 0;
-      doAdvanD(Ac, Alast, tlast, // Time of last amounts
-	      curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
-	      &d_ka, &rx_k, &rx_k12, &rx_k21);
-    }
-    /* REprintf("t: %f %f %d %d\n", t, A[oral0], idx, ind->ix[idx]); */
-    /* REprintf("%f,%f,%f\n", A[oral0], rx_v, A[oral0]/rx_v); */
-    if (op->nlin2 == op->nlin) {
-      return derTrans(rx, Ac, ncmt, trans, val, p1, v1, p2, p3,
-		      p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
-		      d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
-    }
-    double v0 = derTrans(rx, Ac, ncmt, trans, 0, p1, v1, p2, p3,
-			 p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
-			 d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
-    int cur = op->nlin2;
-    double curD;
-    if ((op->linBflag & 64) && (sameTime || (!sameTime && val == 7))) { // tlag
-      if (op->cTlag) {
-	curD =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			   p2, p3, p4, p5, d_tlag + 0.5*op->hTlag,
-			   d_F, d_rate1, d_dur1,
-			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
-		   linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			   p2, p3, p4, p5, d_tlag - 0.5*op->hTlag,
-			   d_F, d_rate1, d_dur1,
-			   d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hTlag;
-      } else {
-	curD =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			   p2, p3, p4, p5, d_tlag + op->hTlag, d_F,
-			   d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
-			   d_rate2, d_dur2) - v0)/op->hTlag;
-      }
-      if (sameTime) A[cur++] = curD;
-      else return curD;
-    }
-    if ((op->linBflag & 128) && (sameTime || (!sameTime && val == 8))) { // f
-      if (op->cF) {
-	double c1 = linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F + 0.5*op->hF,
-			    d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
-			    d_rate2, d_dur2);
-	double c2 = linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F - 0.5*op->hF,
-			    d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
-			    d_rate2, d_dur2);
-	curD =(c1 - c2)/op->hF;
-      } else {
-	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F + op->hF,
-			    d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
-			    d_rate2, d_dur2) - v0)/op->hF;
-      }
-      if (sameTime) A[cur++] = curD;
-      else return curD;
-    }
-    if ((op->linBflag & 256) && (sameTime || (!sameTime && val == 8))) { // rate
-      if (op->cRate) {
-	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F,
-			    d_rate1 + 0.5*op->hRate, d_dur1,
-			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
-		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F,
-			    d_rate1 - 0.5*op->hRate, d_dur1,
-			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hRate;
-      } else {
-	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F,
-			    d_rate1 + op->hRate, d_dur1,
-			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hRate;
-      }
-      if (sameTime) A[cur++] = curD;
-      else return curD;
-    }
-    if ((op->linBflag & 512) && (sameTime || (!sameTime && val == 8))) { // dur
-      if (op->cDur) {
-	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1,
-			    d_dur1 + 0.5*op->hDur,
-			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
-		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1,
-			    d_dur1 - 0.5*op->hDur,
-			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hDur;
-      } else {
-	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1,
-			    d_dur1 + op->hDur,
-			    d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hDur;
-      }
-      if (sameTime) A[cur++] = curD;
-      return curD;
-    }
-    if ((op->linBflag & 2048) && (sameTime && (!sameTime && val == 12))) { // tlag2
-      if (op->cTlag2) {
-	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2 + 0.5*op->hTlag2, d_F2,
-			    d_rate2, d_dur2) -
-		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2 - 0.5*op->hTlag2, d_F2,
-			    d_rate2, d_dur2))/op->hTlag2;
-      } else {
-	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2 + op->hTlag2, d_F2, d_rate2,
-			    d_dur2) - v0)/op->hTlag2;
-      }
-      if (sameTime) curD = A[cur++];
-      return curD;
-    }
-    if ((op->linBflag & 4096) && (sameTime || (!sameTime && val == 13))) { // f2
-      if (op->cF2) {
-	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2 + 0.5*op->hF2,
-			    d_rate2, d_dur2) -
-		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2 - 0.5*op->hF2,
-			    d_rate2, d_dur2))/op->hF2;
-      } else {
-	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2 + op->hF2,
-			    d_rate2, d_dur2) - v0)/op->hF2;
-      }
-      if (sameTime) curD = A[cur++];
-      return curD;
-    }
-    if ((op->linBflag & 8192) && (sameTime || (!sameTime && val == 14))) { // rate2
-      if (op->cRate2){
-	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2,
-			    d_rate2 + 0.5*op->hRate2, d_dur2) -
-		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2,
-			    d_rate2 - 0.5*op->hRate2, d_dur2))/op->hRate2;
-      } else {
-	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2,
-			    d_rate2 + op->hRate2, d_dur2) - v0)/op->hRate2;
-      }
-      if (sameTime) curD = A[cur++];
-      else return curD;
-    }
-    if ((op->linBflag & 16384) && (sameTime || (!sameTime && val == 15))) { // dur2
-      if (op->cDur2){
-	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2,  d_rate2,
-			    d_dur2 + 0.5*op->hDur2) -
-		    linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2,  d_rate2,
-			    d_dur2 - 0.5*op->hDur2))/op->hDur2;
-      } else {
-	curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
-			    p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
-			    d_ka, d_tlag2, d_F2,  d_rate2,
-			    d_dur2 + op->hDur2) - v0)/op->hDur2;
-      }
-      if (sameTime) A[cur++] = curD;
-      return curD;
-    }
+  }
+  double *Ac = A;
+  if (!sameTime){
+    // Compute the advan solution of a t outside of the mesh.
+    Alast = A;
+    Ac = Alast0;
+    tlast = curTime;
+    curTime = t;
+    b1 = b2 = 0;
+    doAdvanD(Ac, Alast, tlast, // Time of last amounts
+	     curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
+	     &d_ka, &rx_k, &rx_k12, &rx_k21, &rx_k13, &rx_k31);
+  }
+  /* REprintf("t: %f %f %d %d\n", t, A[oral0], idx, ind->ix[idx]); */
+  /* REprintf("%f,%f,%f\n", A[oral0], rx_v, A[oral0]/rx_v); */
+  if (op->nlin2 == op->nlin) {
     return derTrans(rx, Ac, ncmt, trans, val, p1, v1, p2, p3,
 		    p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
 		    d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
   }
+  double v0 = derTrans(rx, Ac, ncmt, trans, 0, p1, v1, p2, p3,
+		       p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
+		       d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
+  int cur = op->nlin2;
+  double curD;
+  if ((op->linBflag & 64) && (sameTime || (!sameTime && val == 7))) { // tlag
+    if (op->cTlag) {
+      curD =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		     p2, p3, p4, p5, d_tlag + 0.5*op->hTlag,
+		     d_F, d_rate1, d_dur1,
+		     d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	     linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		     p2, p3, p4, p5, d_tlag - 0.5*op->hTlag,
+		     d_F, d_rate1, d_dur1,
+		     d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hTlag;
+    } else {
+      curD =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		     p2, p3, p4, p5, d_tlag + op->hTlag, d_F,
+		     d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
+		     d_rate2, d_dur2) - v0)/op->hTlag;
+    }
+    if (sameTime) A[cur++] = curD;
+    else return curD;
+  }
+  if ((op->linBflag & 128) && (sameTime || (!sameTime && val == 8))) { // f
+    if (op->cF) {
+      double c1 = linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			  p2, p3, p4, p5, d_tlag, d_F + 0.5*op->hF,
+			  d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
+			  d_rate2, d_dur2);
+      double c2 = linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			  p2, p3, p4, p5, d_tlag, d_F - 0.5*op->hF,
+			  d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
+			  d_rate2, d_dur2);
+      curD =(c1 - c2)/op->hF;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F + op->hF,
+		      d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
+		      d_rate2, d_dur2) - v0)/op->hF;
+    }
+    if (sameTime) A[cur++] = curD;
+    else return curD;
+  }
+  if ((op->linBflag & 256) && (sameTime || (!sameTime && val == 8))) { // rate
+    if (op->cRate) {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F,
+		      d_rate1 + 0.5*op->hRate, d_dur1,
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	      linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F,
+		      d_rate1 - 0.5*op->hRate, d_dur1,
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hRate;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F,
+		      d_rate1 + op->hRate, d_dur1,
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hRate;
+    }
+    if (sameTime) A[cur++] = curD;
+    else return curD;
+  }
+  if ((op->linBflag & 512) && (sameTime || (!sameTime && val == 8))) { // dur
+    if (op->cDur) {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1,
+		      d_dur1 + 0.5*op->hDur,
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	      linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1,
+		      d_dur1 - 0.5*op->hDur,
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hDur;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1,
+		      d_dur1 + op->hDur,
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hDur;
+    }
+    if (sameTime) A[cur++] = curD;
+    return curD;
+  }
+  if ((op->linBflag & 2048) && (sameTime && (!sameTime && val == 12))) { // tlag2
+    if (op->cTlag2) {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2 + 0.5*op->hTlag2, d_F2,
+		      d_rate2, d_dur2) -
+	      linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2 - 0.5*op->hTlag2, d_F2,
+		      d_rate2, d_dur2))/op->hTlag2;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2 + op->hTlag2, d_F2, d_rate2,
+		      d_dur2) - v0)/op->hTlag2;
+    }
+    if (sameTime) curD = A[cur++];
+    return curD;
+  }
+  if ((op->linBflag & 4096) && (sameTime || (!sameTime && val == 13))) { // f2
+    if (op->cF2) {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2 + 0.5*op->hF2,
+		      d_rate2, d_dur2) -
+	      linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2 - 0.5*op->hF2,
+		      d_rate2, d_dur2))/op->hF2;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2 + op->hF2,
+		      d_rate2, d_dur2) - v0)/op->hF2;
+    }
+    if (sameTime) curD = A[cur++];
+    return curD;
+  }
+  if ((op->linBflag & 8192) && (sameTime || (!sameTime && val == 14))) { // rate2
+    if (op->cRate2){
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2,
+		      d_rate2 + 0.5*op->hRate2, d_dur2) -
+	      linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2,
+		      d_rate2 - 0.5*op->hRate2, d_dur2))/op->hRate2;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2,
+		      d_rate2 + op->hRate2, d_dur2) - v0)/op->hRate2;
+    }
+    if (sameTime) curD = A[cur++];
+    else return curD;
+  }
+  if ((op->linBflag & 16384) && (sameTime || (!sameTime && val == 15))) { // dur2
+    if (op->cDur2){
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2,  d_rate2,
+		      d_dur2 + 0.5*op->hDur2) -
+	      linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2,  d_rate2,
+		      d_dur2 - 0.5*op->hDur2))/op->hDur2;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2,  d_rate2,
+		      d_dur2 + op->hDur2) - v0)/op->hDur2;
+    }
+    if (sameTime) A[cur++] = curD;
+    return curD;
+  }
+  return derTrans(rx, Ac, ncmt, trans, val, p1, v1, p2, p3,
+		  p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
+		  d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
   return R_NaN;
 }
 
