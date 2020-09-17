@@ -159,4 +159,53 @@ dualN iniD(double val, int which){
   return ret;
 }
 
+dualN atan2D(dualN y, dualN x) {
+  double derg = y.f * y.f;
+  double derf = x.f * x.f;
+  derg = 1.0 / (derg + derf);
+  derf = x.f * derg;
+  derg = y.f * derg;
+  dualN ret;
+  ret.f = atan2(y.f, x.f);
+  ret.grad[0] = y.grad[0] * derf - derg * x.grad[0];
+  ret.grad[1] = y.grad[1] * derf - derg * x.grad[1];
+  ret.grad[2] = y.grad[2] * derf - derg * x.grad[2];
+  ret.grad[3] = y.grad[3] * derf - derg * x.grad[3];
+  return ret;
+}
+
+dualN cosD(dualN x){
+  //dual(f = cos(x@f), grad = -x@grad * sin(x@f))
+  dualN ret;
+  ret.f = cos(x.f);
+  double sf = sin(x.f);
+  ret.grad[0] = x.grad[0] * sf;
+  ret.grad[1] = x.grad[1] * sf;
+  ret.grad[2] = x.grad[2] * sf;
+  ret.grad[3] = x.grad[3] * sf;
+  return ret;
+}
+
+dualN sinD(dualN x) {
+  dualN ret;
+  ret.f = sin(x.f);
+  double cs = cos(x.f);
+  ret.grad[0] = x.grad[0] * cs;
+  ret.grad[1] = x.grad[1] * cs;
+  ret.grad[2] = x.grad[2] * cs;
+  ret.grad[3] = x.grad[3] * cs;
+  return ret;
+}
+
+dualN pow2d(dualN base, double e) {
+  dualN ret;
+  ret.f = pow(base.f, e);
+  double mult = e*pow(base.f, e - 1.0);
+  ret.grad[0] = base.grad[0] * mult;
+  ret.grad[1] = base.grad[1] * mult;
+  ret.grad[2] = base.grad[2] * mult;
+  ret.grad[3] = base.grad[3] * mult;
+  return ret;
+}
+
 #endif
