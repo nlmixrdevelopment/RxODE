@@ -1119,26 +1119,43 @@ dimnames.rxSolve <- function(x) {
 }
 
 ##' @export
-"[<-.rxSolve" <- function(x, i, j, value) {
-  if (missing(i) && !missing(j) && rxIs(j, "character")) {
-    ret <- .Call(`_RxODE_rxSolveUpdate`, x, j, value)
-    if (is.null(ret)) {
-      class(x) <- "data.frame"
-      return(`[<-.data.frame`(x, , j, value = value))
+"dimnames<-.rxSolve" <- function(x, value){
+    class(x) <- "data.frame";
+    "dimnames<-.data.frame"(x, value);
+}
+
+##'@export
+"[<-.rxSolve" <- function(x, i, j, value){
+  if (missing(i) && !missing(j)){
+    if (rxIs(j, "character")) {
+      ret <- .Call(`_RxODE_rxSolveUpdate`, x, j, value);
+      if (is.null(ret)){
+        class(x) <- "data.frame";
+        return(`[<-.data.frame`(x,, j, value = value))
+      } else {
+        return(ret);
+      }
+    }
+  }
+  class(x) <- "data.frame"
+  if (nargs() < 4){
+    if (missing(j)){
+      return(`[<-.data.frame`(x, i, value = value))
     } else {
-      return(ret)
+      return(`[<-.data.frame`(x,, j, value = value))
+    }
+  } else{
+    return(`[<-.data.frame`(x, i, j, value))
+  }
+  class(x) <- "data.frame"
+  if (nargs() < 4) {
+    if (missing(j)) {
+      return(`[<-.data.frame`(x, i, value = value))
+    } else {
+      return(`[<-.data.frame`(x, , j, value = value))
     }
   } else {
-    class(x) <- "data.frame"
-    if (nargs() < 4) {
-      if (missing(j)) {
-        return(`[<-.data.frame`(x, i, value = value))
-      } else {
-        return(`[<-.data.frame`(x, , j, value = value))
-      }
-    } else {
-      return(`[<-.data.frame`(x, i, j, value))
-    }
+    return(`[<-.data.frame`(x, i, j, value))
   }
 }
 ##' @export
