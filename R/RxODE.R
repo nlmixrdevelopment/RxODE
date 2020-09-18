@@ -1430,7 +1430,7 @@ rxCompile.rxModelVars <-  function(model, # Model
               .i <- 0;
               .md5 <- rxMd5(.mv)
                 if (length(.mv$ini) > 0){
-                    .fixInis <- c(sprintf("double _theta_%s[%d];", .md5, prefix),
+                    .fixInis <- c(sprintf("double _theta_%s[%d];", prefix, length(.mv$params)),
                                   paste(sapply(.mv$params, function(x){
                                       if (!is.na(.mv$ini[x])){
                                           ret <- sprintf("_theta_%s[%d] = %.16f;", prefix, .i, as.vector(.mv$ini[x]));
