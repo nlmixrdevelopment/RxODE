@@ -167,6 +167,7 @@ typedef struct {
   double *dose;
   double *ii;
   double *solve;
+  double *saveLin;
   double *mtime;
   double *solveSave;
   double *solveLast;
@@ -214,6 +215,7 @@ typedef struct {
   int _newind;
   int err;
   int solved;
+  int savedIdx;
   double *linCmtAdvan;
   double *linCmtRate;
   int linCmt;
