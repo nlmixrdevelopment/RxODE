@@ -1370,7 +1370,6 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 typedef struct {
   int *gon;
   double *gsolve;
-  double *glin;
   double *gInfusionRate;
   double *gTlastS;
   double *gTfirstS;
@@ -3116,7 +3115,6 @@ extern "C" void setupRxInd(rx_solving_options_ind* ind, int first) {
   ind->lambda		= 1.0;
   ind->podo		= 0.0;
   ind->solved		= -1;
-  ind->savedIdx         = -1;
   ind->tfirst		= NA_REAL;
   ind->tlast		= NA_REAL;
   ind->yj		= 0;
@@ -3674,7 +3672,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   rx_solving_options_ind* ind;
-  int curEvent = 0, curIdx = 0, curSolve=0, curLin=0;
+  int curEvent = 0, curIdx = 0, curSolve=0;
   switch(rxSolveDat->parType){
   case 1: // NumericVector
     {
@@ -3713,7 +3711,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 		     inits, rxSolveDat);
       curSolve=0;
       curEvent=0;
-      curLin=0;
       curIdx=0;
       int curCov=0;
       int curOn=0;
@@ -3765,10 +3762,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  }
 	  int eLen = op->neq*ind->n_all_times;
 	  ind->solve = &_globals.gsolve[curSolve];
-	  ind->saveLin = &_globals.glin[curLin];
-	  if (op->extraCmt != 0) {
-	    curLin += 17;
-	  }
 	  curSolve += (op->neq + op->nlin)*ind->n_all_times;
 	  ind->solveLast = &_globals.gsolve[curSolve];
 	  curSolve += op->neq;
@@ -4786,9 +4779,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // they do they need to be a parameter.
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
-    int n7 = 17*rx->nsub*rx->nsim*op->extraCmt;
     if (_globals.gsolve != NULL) free(_globals.gsolve);
-    _globals.gsolve = (double*)calloc(n0+nLin+n2+ n4+n5+n6+n7+
+    _globals.gsolve = (double*)calloc(n0+nLin+n2+ n4+n5+n6+
 				      5*op->neq + 7*n3a, sizeof(double));// [n0]
 #ifdef rxSolveT
     REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+7*n3+n4+n5+n6+ 5*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
@@ -4814,14 +4806,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     std::copy(scaleC.begin(),scaleC.end(),&_globals.gscale[0]);
     op->scale = &_globals.gscale[0];
     _globals.gatol2=_globals.gscale   + n6; //[op->neq]
-    _globals.grtol2=_globals.gatol2   + op->neq; //[op->neq]
+    _globals.grtol2=_globals.gatol2   + op->neq;  //[op->neq]
     _globals.gssRtol=_globals.grtol2  + op->neq; //[op->neq]
     _globals.gssAtol=_globals.gssRtol + op->neq; //[op->neq]
     // All NA_REAL fill are below;  one statement to initialize them all
     rx->ypNA = _globals.gssAtol + op->neq; // [op->neq]
     _globals.gTlastS = rx->ypNA + op->neq; // [n3a]
     _globals.gTfirstS = _globals.gTlastS + n3a; // [n3a]
-    _globals.glin = _globals.gTlastS + n3a; //[n7]
     std::fill_n(rx->ypNA, op->neq + 2*n3a, NA_REAL);
 
     std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);

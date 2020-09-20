@@ -3242,61 +3242,41 @@ static inline void doAdvanD(double *A,// Amounts
 
 
 typedef struct parT {
-  double p1;
-  double v1;
-  double p2;
-  double p3;
-  double p4;
-  double p5;
-  double rx_k;
-  double rx_v;
-  double rx_k12;
-  double rx_k21;
-  double rx_k13;
-  double rx_k31;
-  double d_tlag;
-  double d_F;
-  double d_rate1;
-  double d_dur1;
-  // Oral parameters
-  double d_ka;
-  double d_tlag2;
-  double d_F2;
-  double d_rate2;
-  double d_dur2;
-  int trans;
-  int ncmt;
+  dualN p1;
+  dualN v1;
+  dualN p2;
+  dualN p3;
+  dualN p4;
+  dualN p5;
+  dualN rx_k;
+  dualN rx_v;
+  dualN rx_k12;
+  dualN rx_k21;
+  dualN rx_k13;
+  dualN rx_k31;
 } parT;
 
 #undef beta
 static inline int parTransD(parT *tr, int *trans, int *ncmt, double *p1, double *v1,
-			    double *p2, double *p3,
-			    double *p4, double *p5,
-			    double d_tlag, double d_F, double d_rate1, double d_dur1,
-			    // Oral parameters
-			    double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2){
-  tr->d_tlag = d_tlag;
-  tr->d_F = d_F;
-  tr->d_rate1 = d_rate1;
-  tr->d_dur1 = d_dur1;
-  tr->d_ka = d_ka;
-  tr->d_tlag2 = d_tlag2;
-  tr->d_F2 = d_F2;
-  tr->d_rate2 = d_rate2;
-  tr->d_dur2 = d_dur2;
-  tr->ncmt = *ncmt;
-  tr->trans = *trans;
-  double alpha, beta, gamma, A, B, C, btemp, ctemp, dtemp;
+			     double *p2, double *p3,
+			     double *p4, double *p5){
+  tr->p1 = iniD(*p1, 0);
+  tr->p2 = iniD(*p2, 1);
+  tr->p3 = iniD(*p3, 2);
+  tr->p4 = iniD(*p4, 3);
+  tr->p5 = iniD(*p5, 4);
+  tr->v1 = iniD(*v1, 5);
+  dualN alpha, beta, gamma, A, B, C, btemp, ctemp, dtemp;
   if ((*p5) > 0.) {
     (*ncmt) = 3;
     switch (*trans) {
     case 1: // cl v q vp
-      tr->rx_k = tr->p1 / tr->v1; // k = CL/V
+      tr->rx_k = div2(tr->p1, tr->v1); // k = CL/V
       tr->rx_v = tr->v1;
-      tr->rx_k12 = tr->p2 / tr->v1; // k12 = Q/V
-      tr->rx_k21 = tr->p2 / tr->p3; // k21 = Q/Vp
-      tr->rx_k13 = tr->p4 / tr->v1; // k31 = Q2/V
-      tr->rx_k31 = tr->p4 / tr->p5; // k31 = Q2/Vp2
+      tr->rx_k12 = div2(tr->p2, tr->v1); // k12 = Q/V
+      tr->rx_k21 = div2(tr->p2, tr->p3); // k21 = Q/Vp
+      tr->rx_k13 = div2(tr->p4, tr->v1); // k31 = Q2/V
+      tr->rx_k31 = div2(tr->p4, tr->p5); // k31 = Q2/Vp2
       break;
     case 2: // k=(*p1) v=(*v1) k12=(*p2) k21=(*p3) k13=(*p4) k31=(*p5)
       tr->rx_k = tr->p1;
@@ -3309,23 +3289,24 @@ static inline int parTransD(parT *tr, int *trans, int *ncmt, double *p1, double 
     case 11:
     case 10:
       (*ncmt)=3;
-      if (*trans == 11) A = 1.0 / tr->v1;
+      if (*trans == 11) A = divd2(1.0,tr->v1);
       else A = tr->v1;
       B = tr->p3;
       C = tr->p5;
       alpha = tr->p1;
       beta = tr->p2;
       gamma = tr->p4;
-      tr->rx_v = 1.0/(A + B +C);
-      btemp =  -(alpha*C + alpha*B + gamma*A + gamma*B + beta*A + beta*C)*(tr->rx_v);
-      ctemp = (alpha*beta*C + alpha*gamma*B + beta*gamma*A)*(tr->rx_v);
-      dtemp = sqrt(btemp*btemp-4*ctemp);
-      tr->rx_k21 = 0.5*(-btemp+dtemp);
-      tr->rx_k31 = 0.5*(-btemp-dtemp);
-      tr->rx_k   = alpha*beta*gamma/(tr->rx_k21)/(tr->rx_k31);
-      tr->rx_k12 = ((beta*gamma + alpha*beta + alpha*gamma) - (tr->rx_k21)*(alpha+beta+gamma) -
-		    (tr->rx_k) * (tr->rx_k31) + (tr->rx_k21)*(tr->rx_k21))/((tr->rx_k31) - (tr->rx_k21));
-      tr->rx_k13 = alpha + beta + gamma - ((tr->rx_k) + (tr->rx_k12) + (tr->rx_k21) + (tr->rx_k31));
+      tr->rx_v = divd2(1,(add2(add2(A,B),C)));
+      btemp = prod2(negD((add2(add2(add2(add2(add2(prod2(alpha,C),prod2(alpha,B)),prod2(gamma,A)),prod2(gamma,B)),prod2(beta,A)),prod2(beta,C)))),tr->rx_v);
+      ctemp = prod2((add2(add2(prod2(prod2(alpha,beta),C),prod2(prod2(alpha,gamma),B)),prod2(prod2(beta,gamma),A))),tr->rx_v);
+      dtemp = sqrtD(subtr2(prod2(btemp,btemp),prodd2(4.0,ctemp)));
+      tr->rx_k21 = prodd2(0.5,(add2(negD(btemp),dtemp)));
+      tr->rx_k31 = prodd2(0.5,(subtr2(negD(btemp),dtemp)));
+      tr->rx_k   = div2(div2(prod2(prod2(alpha,beta),gamma),tr->rx_k21),tr->rx_k31);
+      tr->rx_k12 = div2((add2(subtr2(subtr2((add2(add2(prod2(beta,gamma),prod2(alpha,beta)),prod2(alpha,gamma))),
+					   prod2(tr->rx_k21,(add2(add2(alpha,beta),gamma)))),prod2(tr->rx_k,tr->rx_k31)),
+			     prod2(tr->rx_k21,tr->rx_k21))),(subtr2(tr->rx_k31,tr->rx_k21)));
+      tr->rx_k13 = subtr2(add2(add2(alpha,beta),gamma),(add2(add2(add2(tr->rx_k,tr->rx_k12),tr->rx_k21),tr->rx_k31)));
       break;
     default:
       /* REprintf(_("invalid trans (3 cmt trans %d)\n"), *trans); */
@@ -3335,10 +3316,10 @@ static inline int parTransD(parT *tr, int *trans, int *ncmt, double *p1, double 
     (*ncmt) = 2;
     switch (*trans){
     case 1: // cl=(*p1) v=(*v1) q=(*p2) vp=(*p3)
-      tr->rx_k = tr->p1 / tr->v1; // k = CL/V
+      tr->rx_k = div2(tr->p1,tr->v1); // k = CL/V
       tr->rx_v = tr->v1;
-      tr->rx_k12 = tr->p2 /  tr->v1; // k12 = Q/V
-      tr->rx_k21 = tr->p2 / tr->p3; // k21 = Q/Vp
+      tr->rx_k12 = div2(tr->p2, tr->v1); // k12 = Q/V
+      tr->rx_k21 = div2(tr->p2, tr->p3); // k21 = Q/Vp
       break;
     case 2: // k=(*p1), (*v1)=v k12=(*p2) k21=(*p3)
       tr->rx_k= tr->p1;
@@ -3347,35 +3328,35 @@ static inline int parTransD(parT *tr, int *trans, int *ncmt, double *p1, double 
       tr->rx_k21 = tr->p3;
       break;
     case 3: // cl=(*p1) v=(*v1) q=(*p2) vss=(*p3)
-      tr->rx_k = tr->p1 / tr->v1; // k = CL/V
+      tr->rx_k = div2(tr->p1, tr->v1); // k = CL/V
       tr->rx_v = tr->v1;
-      tr->rx_k12 = tr->p2 / tr->v1; // k12 = Q/V
-      tr->rx_k21 = tr->p2/(tr->p3 - tr->v1); // k21 = Q/(Vss-V)
+      tr->rx_k12 = div2(tr->p2,tr->v1); // k12 = Q/V
+      tr->rx_k21 = div2(tr->p2,(subtr2(tr->p3,tr->v1))); // k21 = Q/(Vss-V)
       break;
     case 4: // alpha=(*p1) beta=(*p2) k21=(*p3)
-      tr->rx_v   = tr->v1;
+      tr->rx_v = tr->v1;
       tr->rx_k21 = tr->p3;
-      tr->rx_k   = tr->p1 * tr->p2 / tr->rx_k21; // (*p1) = alpha (*p2) = beta
-      tr->rx_k12 = tr->p1 + tr->p2 - tr->rx_k21 - tr->rx_k;
+      tr->rx_k = div2(prod2(tr->p1,tr->p2),tr->rx_k21); // (*p1) = alpha (*p2) = beta
+      tr->rx_k12 = subtr2(subtr2(add2(tr->p1,tr->p2),tr->rx_k21),tr->rx_k);
       break;
     case 5: // alpha=(*p1) beta=(*p2) aob=(*p3)
       tr->rx_v = tr->v1;
-      tr->rx_k21 = (tr->p3 * tr->p2 + tr->p1)/(tr->p3 + 1.0);
-      tr->rx_k = (tr->p1 *tr->p2)/tr->rx_k21;
-      tr->rx_k12 = tr->p1 + tr->p2 - tr->rx_k21 - tr->rx_k;
+      tr->rx_k21 = div2((add2(prod2(tr->p3,tr->p2),tr->p1)),(add2d(tr->p3,1)));
+      tr->rx_k = div2((prod2(tr->p1,tr->p2)),tr->rx_k21);
+      tr->rx_k12 = subtr2(subtr2(add2(tr->p1,tr->p2),tr->rx_k21),tr->rx_k);
       break;
     case 10:
     case 11: // A2 V, alpha=(*p1), beta=(*p2), k21
-      if (*trans == 11) A = 1.0 / tr->v1;
+      if (*trans == 11) A = divd2(1,tr->v1);
       else A = tr->v1;
       B  = tr->p3;
       alpha = tr->p1;
       beta = tr->p2;
       (*ncmt)=2;
-      tr->rx_v   = 1.0/(A + B);
-      tr->rx_k21 = (A * beta + B * alpha)/tr->rx_v;
-      tr->rx_k   = alpha * beta / tr->rx_k21;
-      tr->rx_k12 = alpha + beta - tr->rx_k21 - tr->rx_k;
+      tr->rx_v   = divd2(1,(add2(A,B)));
+      tr->rx_k21 = prod2((add2(prod2(A,beta),prod2(B,alpha))),tr->rx_v);
+      tr->rx_k   = div2(prod2(alpha,beta),tr->rx_k21);
+      tr->rx_k12 = subtr2(subtr2(add2(alpha,beta),tr->rx_k21),tr->rx_k);
       break;
     default:
       /* REprintf(_("invalid trans (2 cmt trans %d)\n"), trans); */
@@ -3385,7 +3366,7 @@ static inline int parTransD(parT *tr, int *trans, int *ncmt, double *p1, double 
     (*ncmt) = 1;
     switch(*trans){
     case 1: // cl v
-      tr->rx_k = tr->p1 / tr->v1; // k = CL/V
+      tr->rx_k = div2(tr->p1, tr->v1); // k = CL/V
       tr->rx_v = tr->v1;
       break;
     case 2: // k V
@@ -3398,7 +3379,7 @@ static inline int parTransD(parT *tr, int *trans, int *ncmt, double *p1, double 
       break;
     case 10: // alpha A
       tr->rx_k = tr->p1;
-      tr->rx_v = 1.0/tr->v1;
+      tr->rx_v = divd2(1, tr->v1);
       break;
     default:
       return 0;
@@ -3409,333 +3390,230 @@ static inline int parTransD(parT *tr, int *trans, int *ncmt, double *p1, double 
   return 1;
 }
 
-void derTrans(rx_solve *rx, unsigned int id, double t, int linCmt, double *A, parT *tr, rx_solving_options_ind *ind) {
-  // rx_solve *rx, unsigned int id, double t, int linCmt,
-  int oral0 = (tr->d_ka > 0) ? 1 : 0;
-  rx_solving_options *op = rx->op;
-  double c = 1.0 / tr->rx_v;
-  double cp = A[oral0]*c;
-  ind->saveLin[0]  = t;
-  ind->saveLin[16] = cp;
-  ind->saveLin[1] = ind->saveLin[2] = ind->saveLin[3] = ind->saveLin[4] = ind->saveLin[5] =
-    ind->saveLin[6] = ind->saveLin[7] =  ind->saveLin[8] = ind->saveLin[9] =  ind->saveLin[10] =
-    ind->saveLin[11] = ind->saveLin[12] = ind->saveLin[13] = ind->saveLin[14] = ind->saveLin[15] = NA_REAL;
-    
-  switch (tr->ncmt) {
-  case 3:
-    break;
-  case 2:
-    switch (tr->trans) {
+double derTrans(rx_solve *rx, double *A, int ncmt, int trans, int val,
+		double p1, double v1,
+		double p2, double p3,
+		double p4, double p5,
+		double d_tlag, double d_F, double d_rate1, double d_dur1,
+		// Oral parameters
+		double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2) {
+  int oral0 = (d_ka > 0) ? 1 : 0;
+  if (val == 0){
+    // Apply trans
+    if (trans == 10) {
+      return(A[oral0]*(v1+p3+p5));
+    } else {
+      return(A[oral0]/v1);
+    }
+  }
+  switch (ncmt) {
+  case 3: // 3 compartment model
+    if (val == 11) {
+      // d/dt(ka)
+      // A[21] = d/dt(ka)
+      if (trans == 10) {
+	return A[21]*v1;
+      } else {
+	return A[21]/v1;
+      }
+    }
+  case 2: // 2 compartment model
+    if (val == 11) {
+      // d/dt(ka)
+      if (trans == 10) {
+	return A[6]*v1;
+      } else {
+	return A[6]/v1;
+      }
+    }
+    switch (trans){
     case 1: // cl=(*p1) v=(*v1) q=(*p2) vp=(*p3)
-      //  A[2] for IV
-      // A[7] = A2.grad[1];
-      ind->saveLin[1] = A[2 + oral0*5] * c * c;
-      // dV
-      ind->saveLin[2] = -A[oral0] * c * c +
-	  (-tr->p1 * A[2 + oral0 * 5] * c * c -
-	   tr->p2 * A[3 + oral0 * 5] * c * c) * c;
-      // dQ
-      ind->saveLin[3] = (A[4 + oral0 * 5] / tr->p3 + A[3 + oral0 * 5] * c) * c;
-      // dVp
-      ind->saveLin[4] = -tr->p2 * A[4 + oral0 * 5]/(tr->p3 * tr->p3 * tr->v1);
-      break;
+      switch (val) {
+      case 1: // cl
+	return A[2 + oral0 * 5]/(v1 * v1);
+      case 2: // v
+	return -A[oral0]/(v1 * v1) +
+	  (-p1 * A[2 + oral0 * 5]/(v1 * v1) -
+	   p2 * A[3 + oral0 * 5]/(v1 *v1))/v1;
+      case 3: // q
+	return (A[4 + oral0 * 5]/p3 + A[3 + oral0 * 5]/v1)/v1;
+      case 4: // vp
+	return -p2 * A[4 + oral0 * 5]/(p3 * p3 * v1);
+      }
     case 2: // Direct translation
-      // dK10
-      ind->saveLin[1] = A[2 + oral0*5] * c;
-      // dV
-      ind->saveLin[2] = -A[oral0] * c * c;
-      // dK12
-      ind->saveLin[3] = A[3+oral0*5] * c;
-      // dK21
-      ind->saveLin[4] = A[4+oral0*5] * c;
-      break;
+      switch (val) {
+      case 1: // k
+	// A1k10 A[2]
+	// A2k20 A[7]
+	return A[2+oral0*5]/v1;
+      case 2: // v
+	return -A[oral0]/(v1*v1);
+      case 3: // k12
+	return A[3+oral0*5]/v1;
+      case 4: // k21
+	return A[4+oral0*5]/v1;
+      }
     case 3: // cl=(*p1) v=(*v1) q=(*p2) vss=(*p3)
-      ind->saveLin[1] = A[2 + oral0 * 5] * c * c;
-      ind->saveLin[2] = -A[oral0] * c * c +
-	(-tr->p1 * A[2 + oral0 * 5] * c * c -
-	 tr->p2 * A[3 + oral0 * 5] * c * c +
-	 tr->p2 * A[4 + oral0 * 5]/((tr->p3 - tr->v1) * (tr->p3 - tr->v1))) * c;
-      ind->saveLin[3] = (A[3 + oral0 * 5]*c + A[4 + oral0 * 5]/(tr->p3 - tr->v1)) * c;
-      ind->saveLin[4] = -tr->p2 * A[4 + oral0 * 5]/((tr->p3 - tr->v1) * (tr->p3 - tr->v1) * tr->v1);
-      break;
+      switch (val) {
+      case 1: // cl
+	return A[2 + oral0 * 5]/(v1 * v1);
+      case 2: // v
+	return -A[oral0]/(v1 * v1) + (-p1 * A[2 + oral0 * 5]/(v1 * v1) -
+				      p2 * A[3 + oral0 * 5]/(v1 * v1) +
+				      p2 * A[4 + oral0 * 5]/((p3 - v1) * (p3 - v1)))/v1;
+      case 3: // q
+	return (A[3 + oral0 * 5]/v1 + A[4 + oral0 * 5]/(p3 - v1))/v1;
+      case 4: // vss
+	return -p2 * A[4 + oral0 * 5]/((p3 - v1) * (p3 - v1) * v1);
+      }
     case 4: // alpha=(*p1) beta=(*p2) k21=(*p3)
-      ind->saveLin[1] = ((1 - tr->p2/tr->p3) * A[3 + oral0 * 5] + tr->p2 * A[2 + oral0 * 5]/tr->p3) * c;
-      ind->saveLin[2] = -A[oral0] * c * c;
-      ind->saveLin[3] = ((1.0 - tr->p1 / tr->p3) * A[3 + oral0 * 5] + tr->p1 * A[2 + oral0 * 5] / tr->p3) * c;
-      ind->saveLin[4] = (A[3 + oral0 * 5] * (-1.0 + tr->p2 * tr->p1/(tr->p3 * tr->p3)) -
-			 tr->p2 * tr->p1 * A[2 + oral0 * 5]/(tr->p3 * tr->p3) +
-			 A[4 + oral0 * 5]) * c;
-      break;
+      switch (val) {
+      case 1: // alpha
+	return ((1 - p2/p3) * A[3 + oral0 * 5] + p2 * A[2 + oral0 * 5]/p3)/v1;
+      case 2: // v
+	return -A[oral0]/(v1 * v1);
+      case 3: // beta
+	return ((1 - p1/p3) * A[3 + oral0 * 5] + p1 * A[2 + oral0 * 5]/p3)/v1;
+      case 4: // k21
+	return (A[3 + oral0 * 5] * (-1 + p2 * p1/(p3 * p3)) -
+		p2 * p1 * A[2 + oral0 * 5]/(p3 * p3) +
+		A[4 + oral0 * 5])/v1;
+      }
     case 5: // alpha=(*p1) beta=(*p2) aob=(*p3)
-      ind->saveLin[1] = (A[4 + oral0 * 5]/(1 + tr->p3) +
-			 (tr->p2 * (1 + tr->p3)/(tr->p1 + tr->p2 * tr->p3) -
-			  tr->p2 * tr->p1 * (1 + tr->p3)/((tr->p1 + tr->p2 * tr->p3) *
-							  (tr->p1 + tr->p2 * tr->p3))) *
-			 A[2 + oral0 * 5] + A[3 + oral0 * 5] * (1 - tr->p2 * (1 + tr->p3)/(tr->p1 + tr->p2 * tr->p3) +
-								tr->p2 * tr->p1 * (1 + tr->p3)/((tr->p1 + tr->p2 * tr->p3) * (tr->p1 + tr->p2 * tr->p3)) -
-					     (1/(1 + tr->p3)))) * c;
-      ind->saveLin[2] =-A[oral0]*c*c;
-      ind->saveLin[3] = ((tr->p1 * (1 + tr->p3)/(tr->p1 + tr->p2 * tr->p3) -
-			  tr->p2 * tr->p1 * tr->p3 * (1 + tr->p3)/((tr->p1 + tr->p2 * tr->p3) * (tr->p1 + tr->p2 * tr->p3))) *
-			 A[2 + oral0 * 5] + (1 - tr->p3/(1 + tr->p3) - tr->p1 * (1 + tr->p3)/(tr->p1 + tr->p2 * tr->p3) +
-			  tr->p2 * tr->p1 * tr->p3 * (1 + tr->p3)/((tr->p1 + tr->p2 * tr->p3) * (tr->p1 + tr->p2 * tr->p3))) * A[3 + oral0 * 5] +
-			 tr->p3 * A[4 + oral0 * 5]/(1 + tr->p3)) * c;
-      ind->saveLin[4] = ((tr->p2/(1 + tr->p3) - (tr->p1 + tr->p2 * tr->p3)/((1 + tr->p3) * (1 + tr->p3))) * A[4 + oral0 * 5] +
-		A[2 + oral0 * 5] * (tr->p2 * tr->p1/(tr->p1 + tr->p2 * tr->p3) -
-				    (tr->p2*tr->p2) * tr->p1 * (1 + tr->p3)/((tr->p1 + tr->p2 * tr->p3) * (tr->p1 + tr->p2 * tr->p3))) +
-		A[3 + oral0 * 5] * (-tr->p2/(1 + tr->p3) + (tr->p1 + tr->p2 * tr->p3)/((1 + tr->p3) * (1 + tr->p3)) -
-				    tr->p2 * tr->p1/(tr->p1 + tr->p2 * tr->p3) +
-				    (tr->p2 * tr->p2) * tr->p1 * (1 + tr->p3)/((tr->p1 + tr->p2 * tr->p3) * (tr->p1 + tr->p2 * tr->p3)))) * c;
-      break;
-#define p1 tr->p1
-#define v1 tr->v1
-#define p2 tr->p2
-#define p3 tr->p3
-    case 10: // A=(*v1), alpha=(*p1), beta=(*p2), B=(*p3)
-      ind->saveLin[1] = (A[2 + oral0 * 5] * ( p2 * (p3 +  1.0/v1)/(p1 * p3 +  p2/v1) -  p2 * p1 * p3 * (p3 +  1.0/v1)/(((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1)))) + A[3 + oral0 * 5] * (1 -  p3/(p3 +  1.0/v1) -  p2 * (p3 +  1.0/v1)/(p1 * p3 +  p2/v1) +  p2 * p1 * p3 * (p3 +  1.0/v1)/(((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1)))) +  p3 * A[4 + oral0 * 5]/(p3 +  1.0/v1))/v1;
-      ind->saveLin[2] = -A[oral0]/(v1*v1) + (A[2 + oral0 * 5] * (- p2 * p1/((v1*v1) * (p1 * p3 +  p2/v1)) +  (p2*p2) * p1 * (p3 +  1.0/v1)/((v1*v1) * (((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1))))) + A[3 + oral0 * 5] * (  p2/((v1*v1) * (p3 +  1.0/v1)) -  (p1 * p3 +  p2/v1)/((v1*v1) * (((p3 +  1.0/v1)) * ((p3 +  1.0/v1)))) +  p2 * p1/((v1*v1) * (p1 * p3 +  p2/v1)) -  (p2*p2) * p1 * (p3 +  1.0/v1)/((v1*v1) *      (((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1))))) + A[4 + oral0 * 5] * (- p2/((v1*v1) * (p3 +  1.0/v1)) +  (p1 * p3 +  p2/v1)/((v1*v1) * (((p3 +  1.0/v1)) * ((p3 +  1.0/v1))))))/v1;
-      ind->saveLin[3] = (A[2 + oral0 * 5] * ( p1 * (p3 +  1.0/v1)/(p1 * p3 +  p2/v1) -  p2 * p1 * (p3 +  1.0/v1)/(v1 * (((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1))))) + A[3 + oral0 * 5] * (1 -  1/(v1 * (p3 +  1.0/v1)) -  p1 * (p3 +  1.0/v1)/(p1 * p3 +  p2/v1) +  p2 * p1 * (p3 +  1.0/v1)/(v1 * (((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1))))) +  A[4 + oral0 * 5]/(v1 * (p3 +  1.0/v1)))/v1;
-      ind->saveLin[4] =  ((0 -  p1/(p3 +  1.0/v1) +  (p1 * p3 +  p2/v1)/(((p3 +  1.0/v1)) * ((p3 +  1.0/v1))) -  p2 * p1/(p1 * p3 +  p2/v1) +  p2 * ((p1) * (p1)) * (p3 +  1.0/v1)/(((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1)))) * A[3 + oral0 * 5] + A[2 + oral0 * 5] * (p2 * p1/(p1 * p3 +  p2/v1) -  p2 * ((p1) * (p1)) * (p3 +  1.0/v1)/(((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1)))) + A[4 + oral0 * 5] * ( p1/(p3 + 1.0/v1) -  (p1 * p3 +  p2/v1)/((p3 + 1.0/v1) * (p3 +  1.0/v1))))/v1;
-      break;
+      switch (val) {
+      case 1: // alpha
+	return (A[4 + oral0 * 5]/(1 + p3) + (p2 * (1 + p3)/(p1 + p2 * p3) -
+					     p2 * p1 * (1 + p3)/((p1 + p2 * p3) * (p1 + p2 * p3))) * A[2 + oral0 * 5] +
+		A[3 + oral0 * 5] * (1 - p2 * (1 + p3)/(p1 + p2 * p3) +
+				    p2 * p1 * (1 + p3)/((p1 + p2 * p3) * (p1 + p2 * p3)) -
+				    (1/(1 + p3))))/v1;
+      case 2: // v
+	return -A[oral0]/(v1 * v1);
+      case 3: // beta
+	return ((p1 * (1 + p3)/(p1 + p2 * p3) -
+		 p2 * p1 * p3 * (1 + p3)/((p1 + p2 * p3) * (p1 + p2 * p3))) * A[2 + oral0 * 5] +
+		(1 - p3/(1 + p3) - p1 * (1 + p3)/(p1 + p2 * p3) +
+		 p2 * p1 * p3 * (1 + p3)/((p1 + p2 * p3) * (p1 + p2 * p3))) * A[3 + oral0 * 5] +
+		p3 * A[4 + oral0 * 5]/(1 + p3))/v1;
+      case 4: // aob
+	return ((p2/(1 + p3) - (p1 + p2 * p3)/((1 + p3) * (1 + p3))) * A[4 + oral0 * 5] +
+		A[2 + oral0 * 5] * (p2 * p1/(p1 + p2 * p3) -
+				    (p2*p2) * p1 * (1 + p3)/((p1 + p2 * p3) * (p1 + p2 * p3))) +
+		A[3 + oral0 * 5] * (-p2/(1 + p3) + (p1 + p2 * p3)/((1 + p3) * (1 + p3)) -
+				    p2 * p1/(p1 + p2 * p3) +
+				    (p2 * p2) * p1 * (1 + p3)/((p1 + p2 * p3) * (p1 + p2 * p3))))/v1;
+      }
     case 11: // A2 V, alpha=(*p1), beta=(*p2), k21
-      ind->saveLin[1] = (( (p3 + v1) * p2/(p1 * p3 + p2 * v1) -  (p3 + v1) * p2 * p1 * p3/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) * A[2 + oral0 * 5] + A[3 + oral0 * 5] * (1 -  p3/(p3 + v1) -  (p3 + v1) * p2/(p1 * p3 + p2 * v1) +  (p3 + v1) * p2 * p1 * p3/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) +  p3 * A[4 + oral0 * 5]/(p3 + v1))/v1;
-      ind->saveLin[2] = -A[oral0]/(v1*v1) + (( p2 * p1/(p1 * p3 + p2 * v1) -  (p3 + v1) * (p2*p2) * p1/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) * A[2 + oral0 * 5] + A[3 + oral0 * 5] * (0 -  p2/(p3 + v1) +  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1))) -  p2 * p1/(p1 * p3 + p2 * v1) +  (p3 + v1) * (p2*p2) * p1/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) + A[4 + oral0 * 5] * ( p2/(p3 + v1) -  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1)))))/v1;
-      ind->saveLin[3] = (( (p3 + v1) * p1/(p1 * p3 + p2 * v1) -  (p3 + v1) * p2 * p1 * v1/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) * A[2 + oral0 * 5] + A[3 + oral0 * 5] * (1 -  v1/(p3 + v1) -  (p3 + v1) * p1/(p1 * p3 + p2 * v1) +  (p3 + v1) * p2 * p1 * v1/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) +  v1 * A[4 + oral0 * 5]/(p3 + v1))/v1;
-      ind->saveLin[4] = (( p2 * p1/(p1 * p3 + p2 * v1) -  (p3 + v1) * p2 * ((p1) * (p1))/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) * A[2 + oral0 * 5] + A[3 + oral0 * 5] * (0 -  p1/(p3 + v1) +  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1))) -  p2 * p1/(p1 * p3 + p2 * v1) +  (p3 + v1) * p2 * ((p1) * (p1))/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) + A[4 + oral0 * 5] * ( p1/(p3 + v1) -  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1)))))/v1;
-      break;
+      switch (val) {
+      case 1: // alpha
+	return (A[2 + oral0 * 5] * ( p2 * (p3 +  1.0/v1)/(p1 * p3 +  p2/v1) -  p2 * p1 * p3 * (p3 +  1.0/v1)/(((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1)))) + A[3 + oral0 * 5] * (1 -  p3/(p3 +  1.0/v1) -  p2 * (p3 +  1.0/v1)/(p1 * p3 +  p2/v1) +  p2 * p1 * p3 * (p3 +  1.0/v1)/(((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1)))) +  p3 * A[4 + oral0 * 5]/(p3 +  1.0/v1))/v1;
+      case 2: // v
+	return -A[oral0]/(v1*v1) + (A[2 + oral0 * 5] * (- p2 * p1/((v1*v1) * (p1 * p3 +  p2/v1)) +  (p2*p2) * p1 * (p3 +  1.0/v1)/((v1*v1) * (((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1))))) + A[3 + oral0 * 5] * (  p2/((v1*v1) * (p3 +  1.0/v1)) -  (p1 * p3 +  p2/v1)/((v1*v1) * (((p3 +  1.0/v1)) * ((p3 +  1.0/v1)))) +  p2 * p1/((v1*v1) * (p1 * p3 +  p2/v1)) -  (p2*p2) * p1 * (p3 +  1.0/v1)/((v1*v1) *      (((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1))))) + A[4 + oral0 * 5] * (- p2/((v1*v1) * (p3 +  1.0/v1)) +  (p1 * p3 +  p2/v1)/((v1*v1) * (((p3 +  1.0/v1)) * ((p3 +  1.0/v1))))))/v1;
+      case 3: // beta
+	return (A[2 + oral0 * 5] * ( p1 * (p3 +  1.0/v1)/(p1 * p3 +  p2/v1) -  p2 * p1 * (p3 +  1.0/v1)/(v1 * (((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1))))) + A[3 + oral0 * 5] * (1 -  1/(v1 * (p3 +  1.0/v1)) -  p1 * (p3 +  1.0/v1)/(p1 * p3 +  p2/v1) +  p2 * p1 * (p3 +  1.0/v1)/(v1 * (((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1))))) +  A[4 + oral0 * 5]/(v1 * (p3 +  1.0/v1)))/v1;
+      case 4: // k21
+	return ((0 -  p1/(p3 +  1.0/v1) +  (p1 * p3 +  p2/v1)/(((p3 +  1.0/v1)) * ((p3 +  1.0/v1))) -  p2 * p1/(p1 * p3 +  p2/v1) +  p2 * ((p1) * (p1)) * (p3 +  1.0/v1)/(((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1)))) * A[3 + oral0 * 5] + A[2 + oral0 * 5] * (p2 * p1/(p1 * p3 +  p2/v1) -  p2 * ((p1) * (p1)) * (p3 +  1.0/v1)/(((p1 * p3 +  p2/v1)) * ((p1 * p3 +  p2/v1)))) + A[4 + oral0 * 5] * ( p1/(p3 + 1.0/v1) -  (p1 * p3 +  p2/v1)/((p3 + 1.0/v1) * (p3 +  1.0/v1))))/v1;
+      }
+    case 10: // A=(*v1), alpha=(*p1), beta=(*p2), B=(*p3)
+      switch (val) {
+      case 1: // alpha
+	return (( (p3 + v1) * p2/(p1 * p3 + p2 * v1) -  (p3 + v1) * p2 * p1 * p3/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) * A[2 + oral0 * 5] + A[3 + oral0 * 5] * (1 -  p3/(p3 + v1) -  (p3 + v1) * p2/(p1 * p3 + p2 * v1) +  (p3 + v1) * p2 * p1 * p3/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) +  p3 * A[4 + oral0 * 5]/(p3 + v1))/v1;
+      case 2: // A
+	return -A[oral0]/(v1*v1) + (( p2 * p1/(p1 * p3 + p2 * v1) -  (p3 + v1) * (p2*p2) * p1/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) * A[2 + oral0 * 5] + A[3 + oral0 * 5] * (0 -  p2/(p3 + v1) +  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1))) -  p2 * p1/(p1 * p3 + p2 * v1) +  (p3 + v1) * (p2*p2) * p1/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) + A[4 + oral0 * 5] * ( p2/(p3 + v1) -  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1)))))/v1;
+      case 3: // beta
+	return (( (p3 + v1) * p1/(p1 * p3 + p2 * v1) -  (p3 + v1) * p2 * p1 * v1/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) * A[2 + oral0 * 5] + A[3 + oral0 * 5] * (1 -  v1/(p3 + v1) -  (p3 + v1) * p1/(p1 * p3 + p2 * v1) +  (p3 + v1) * p2 * p1 * v1/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) +  v1 * A[4 + oral0 * 5]/(p3 + v1))/v1;
+      case 4: // B
+	return (( p2 * p1/(p1 * p3 + p2 * v1) -  (p3 + v1) * p2 * ((p1) * (p1))/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) * A[2 + oral0 * 5] + A[3 + oral0 * 5] * (0 -  p1/(p3 + v1) +  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1))) -  p2 * p1/(p1 * p3 + p2 * v1) +  (p3 + v1) * p2 * ((p1) * (p1))/(((p1 * p3 + p2 * v1)) * ((p1 * p3 + p2 * v1)))) + A[4 + oral0 * 5] * ( p1/(p3 + v1) -  (p1 * p3 + p2 * v1)/(((p3 + v1)) * ((p3 + v1)))))/v1;
+      }
     }
-#undef p1
-#undef v1
-#undef p2
-#undef p3
-
-    break;
-  case 1:
-    // A[1]
-    // A[4] = dA/dk20
-    switch (tr->trans) {
+  case 1: // One compartment model
+    if (val == 11) {
+      // d/dt(ka)
+      if (trans == 10) {
+	return A[3]*v1;
+      } else {
+	return A[3]/v1;
+      }
+    }
+    switch (trans){
     case 1: // cl v
-      // d(Cp)/dCl
-      ind->saveLin[1] = A[1 + oral0*3] * c * c;
-      // d(Cp)/dV
-      // -A(Cl/V)/V^2 - Cl*Subs(Derivative(A(_xi_1), _xi_1), (_xi_1), (Cl/V))/V^3
-      ind->saveLin[2] = -cp * c  -  tr->p1 * A[1 + oral0*3] * c * c;
-      break;
+      switch (val){
+      case 1: // d/dt(p1) = d/dt(cl) f = A[oral0]/v
+	//A2k20 = A[4]
+	//A1k10 = A[1]
+	return A[oral0*3 + 1]/(v1*v1);
+      case 2: // d/dt(v)
+	return -A[oral0]/(v1*v1) - p1*A[oral0*3+1]/(v1*v1*v1);
+      }
     case 2: // k V
-      ind->saveLin[1] = A[1 + oral0*3] * c;
-      ind->saveLin[2] = -A[1 + oral0*3] * c * c;
-      break;
+      switch (val) {
+      case 1: // d/dt(p1) = d/dt(kel)
+	//A2k20 = A[4]
+	//A1k10 = A[1]
+	return A[oral0*3 + 1]/(v1);
+      case 2: // d/dt(v)
+	return -A[oral0]/(v1*v1);
+      }
     case 11: // alpha V
-      ind->saveLin[1] = A[1 + oral0*3] * c;
-      ind->saveLin[2] = -A[1 + oral0*3] * c * c;
-      break;
+      switch (val) {
+      case 1: // d/dt(p1) = d/dt(alpha)  //alpha=kel
+	return A[oral0*3 + 1]/(v1);
+      case 2: // d/dt(v)
+	return -A[oral0]/(v1*v1);
+      }
     case 10: // alpha A
-      ind->saveLin[1] = A[1 + oral0*3] * c;
-      ind->saveLin[2] = A[oral0];
-      break;
-    }
-    break;
-    // dA/dp1
-    ind->saveLin[1] = NA_REAL;
-    // dA/dv
-    // tr->v1 = iniD(*v1, 5);
-    ind->saveLin[2] = NA_REAL;
-    // dA/dp2
-    ind->saveLin[3] = NA_REAL;
-    // dA/dp3
-    ind->saveLin[4] = NA_REAL;
-    // dA/dp4
-    ind->saveLin[5] = NA_REAL;
-    // dA/dp5
-    ind->saveLin[6] = NA_REAL;
-    // dA/d_tlag
-    ind->saveLin[7] = NA_REAL;
-    // dA/d_F
-    ind->saveLin[8] = NA_REAL;
-    // dA/d_rate1
-    ind->saveLin[9] = NA_REAL;
-    // dA/d_dur1
-    ind->saveLin[10] = NA_REAL;
-    // dA/d_ka
-    ind->saveLin[11] = NA_REAL;
-    // dA/d_tlag2
-    ind->saveLin[12] = NA_REAL;
-    // dA/d_F2
-    ind->saveLin[13] = NA_REAL;
-    // dA/d_rate2
-    ind->saveLin[14] = NA_REAL;
-    // dA/d_dur2
-    ind->saveLin[15] = NA_REAL;
-    break;
+      switch (val) {
+      case 1: // d/dt(alpha)
+	return A[oral0*3+1]*v1;
+      case 2: // d/dt(A)
+	return A[oral0];
+      }
+    } break;
   }
-  if (op->cTlag) {
-    // dA/d_tlag
-    if (op->linBflag & 64) { // f 64 = 1 << 7-1 or bitwShiftL(1, 7-1)
-      ind->saveLin[7] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans, tr->p1, tr->v1, 
-				 tr->p2, tr->p3, tr->p4, tr->p5,
-				 tr->d_tlag + 0.5*op->hTlag,
-				 tr->d_F, tr->d_rate1, tr->d_dur1, tr->d_ka, tr->d_tlag2, tr->d_F2,  tr->d_rate2, tr->d_dur2) -
-			 linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans, tr->p1, tr->v1,
-				 tr->p2, tr->p3, tr->p4, tr->p5,
-				 tr->d_tlag - 0.5*op->hTlag,
-				 tr->d_F, tr->d_rate1, tr->d_dur1, tr->d_ka, tr->d_tlag2, tr->d_F2,  tr->d_rate2, tr->d_dur2))/op->hTlag;
+  // Get the extra derivatives
+  rx_solving_options *op = rx->op;
+  if (op->nlin != op->nlin2) {
+    int cur = op->nlin2;
+    if (op->linBflag & 64) {  // tlag 64= bitwShiftL(1, 7-1)
+      if (val == 7) return A[cur];
+      cur++;
     }
-    //dA/d_F
     if (op->linBflag & 128) { // f 128 = 1 << 8-1
-      ind->saveLin[8] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans, tr->p1, tr->v1, 
-				 tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag,
-				 tr->d_F + 0.5*op->hF,
-				 tr->d_rate1, tr->d_dur1, tr->d_ka, tr->d_tlag2, tr->d_F2,  tr->d_rate2, tr->d_dur2) -
-			 linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans, tr->p1, tr->v1,
-				 tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag - 0.5*op->hTlag,
-				 tr->d_F - 0.5*op->hF,
-				 tr->d_rate1, tr->d_dur1, tr->d_ka, tr->d_tlag2, tr->d_F2,  tr->d_rate2, tr->d_dur2))/op->hF;
+      if (val == 8) return A[cur];
+      cur++;
     }
-    // dA/d_rate1
-    if (op->linBflag & 256) { // rate1 bitwShiftL(1, 9-1)
-      ind->saveLin[9] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				 tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F,
-				 tr->d_rate1 + 0.5*op->hRate,
-				 tr->d_dur1, tr->d_ka, tr->d_tlag2, tr->d_F2,  tr->d_rate2, tr->d_dur2) -
-			 linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				 tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F,
-				 tr->d_rate1 - 0.5*op->hRate,
-				 tr->d_dur1, tr->d_ka, tr->d_tlag2, tr->d_F2,  tr->d_rate2, tr->d_dur2))/op->hRate;
+    if (op->linBflag & 256) {  // rate 256 = 1 << 9-1
+      if (val == 9) return A[cur];
+      cur++;
     }
-    // dA/t_dur1
-    if (op->linBflag & 512) { // rate1 bitwShiftL(1, 10-1)
-      ind->saveLin[10] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1 + 0.5*op->hDur,
-				  tr->d_ka, tr->d_tlag2, tr->d_F2,  tr->d_rate2, tr->d_dur2) -
-			  linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1 - 0.5*op->hDur,
-				  tr->d_ka, tr->d_tlag2, tr->d_F2,  tr->d_rate2, tr->d_dur2))/op->hDur;
+    if (op->linBflag & 512) {  // dur 512 = 1 << 10-1
+      if (val == 10) return A[cur];
+      cur++;
     }
-    // dA/d_ka #11 bitwShiftL(1, 11-1)
-    // dA/d_tlag2 #12 bitwShiftL(1, 12-1)
-    if (op->linBflag & 2048) {
-      //  + 0.5*op->hTlag
-      ind->saveLin[12] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1, tr->d_ka,
-				  tr->d_tlag2 + 0.5*op->hTlag2,
-				  tr->d_F2,  tr->d_rate2, tr->d_dur2) -
-			  linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1, tr->d_ka,
-				  tr->d_tlag2 - 0.5*op->hTlag2,
-				  tr->d_F2,  tr->d_rate2, tr->d_dur2))/op->hTlag2;
+    if (op->linBflag & 2048) { // tlag2 2048 = 1 << 12 - 1
+      if (val == 12) return A[cur];
+      cur++;
     }
-    // dA/d_F2 #13 bitwShiftL(1, 13-1)
-    if (op->linBflag & 4096) {
-      ind->saveLin[13] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1, tr->d_ka, tr->d_tlag2,
-				  tr->d_F2 + 0.5*op->hF2,  tr->d_rate2, tr->d_dur2) -
-			  linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1, tr->d_ka, tr->d_tlag2,
-				  tr->d_F2 - 0.5*op->hF2, tr->d_rate2, tr->d_dur2))/op->hF2;
+    if (op->linBflag & 4096) { // f2 4096 = 1 << 13 - 1
+      if (val == 13) return A[cur];
+      cur++;
     }
-    // dA/d_rate2 #14 bitwShiftL(1, 14-1) 8192
-    if (op->linBflag & 8192) {
-      ind->saveLin[14] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1, tr->d_ka, tr->d_tlag2,
-				  tr->d_F2, tr->d_rate2 + 0.5*op->hRate2, tr->d_dur2) -
-			  linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1, tr->d_ka, tr->d_tlag2,
-				  tr->d_F2, tr->d_rate2 - 0.5*op->hRate2, tr->d_dur2))/op->hRate2;
+    if (op->linBflag & 8192) { // rate2 8192 = 1 << 14 - 1
+      if (val == 14) return A[cur];
+      cur++;
     }
-    // dA/d_dur2 #15 bitwShiftL(1, 15-1) 16384
-    if (op->linBflag & 16384) {
-      ind->saveLin[15] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1, tr->d_ka, tr->d_tlag2,
-				  tr->d_F2, tr->d_rate2, tr->d_dur2 + 0.5*op->hDur2) -
-			  linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1, tr->d_ka, tr->d_tlag2,
-				  tr->d_F2, tr->d_rate2, tr->d_dur2 - 0.5*op->hDur2))/op->hDur2;
-    }
-  } else {
-    // dA/d_tlag
-    if (op->linBflag & 64) { // f 64 = 1 << 7-1 or bitwShiftL(1, 7-1)
-      ind->saveLin[7] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans, tr->p1, tr->v1, 
-				 tr->p2, tr->p3, tr->p4, tr->p5,
-				 tr->d_tlag + op->hTlag,
-				 tr->d_F, tr->d_rate1, tr->d_dur1, tr->d_ka, tr->d_tlag2, tr->d_F2,  tr->d_rate2, tr->d_dur2) -
-			 ind->saveLin[16])/op->hTlag;
-    }
-    //dA/d_F
-    if (op->linBflag & 128) { // f 128 = 1 << 8-1
-      ind->saveLin[8] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans, tr->p1, tr->v1, 
-				 tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag,
-				 tr->d_F + op->hF,
-				 tr->d_rate1, tr->d_dur1, tr->d_ka, tr->d_tlag2, tr->d_F2,  tr->d_rate2, tr->d_dur2) -
-			 ind->saveLin[16])/op->hF;
-    }
-    // dA/d_rate1
-    if (op->linBflag & 256) { // rate1 bitwShiftL(1, 9-1)
-      ind->saveLin[9] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				 tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F,
-				 tr->d_rate1 + op->hRate,
-				 tr->d_dur1, tr->d_ka, tr->d_tlag2, tr->d_F2,  tr->d_rate2, tr->d_dur2) -
-			 ind->saveLin[16])/op->hRate;
-    }
-    // dA/t_dur1
-    if (op->linBflag & 512) { // rate1 bitwShiftL(1, 10-1)
-      ind->saveLin[10] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1 + op->hDur,
-				  tr->d_ka, tr->d_tlag2, tr->d_F2,  tr->d_rate2, tr->d_dur2) -
-			  ind->saveLin[16])/op->hDur;
-    }
-    // dA/d_ka #11 bitwShiftL(1, 11-1)
-    // dA/d_tlag2 #12 bitwShiftL(1, 12-1)
-    if (op->linBflag & 2048) {
-      //  + op->hTlag
-      ind->saveLin[12] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1, tr->d_ka,
-				  tr->d_tlag2 + op->hTlag2,
-				  tr->d_F2,  tr->d_rate2, tr->d_dur2) -
-			  ind->saveLin[16])/op->hTlag2;
-    }
-    // dA/d_F2 #13 bitwShiftL(1, 13-1)
-    if (op->linBflag & 4096) {
-      ind->saveLin[13] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1, tr->d_ka, tr->d_tlag2,
-				  tr->d_F2 + op->hF2,  tr->d_rate2, tr->d_dur2) -
-			  ind->saveLin[16])/op->hF2;
-    }
-    // dA/d_rate2 #14 bitwShiftL(1, 14-1) 8192
-    if (op->linBflag & 8192) {
-      ind->saveLin[14] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1, tr->d_ka, tr->d_tlag2,
-				  tr->d_F2, tr->d_rate2 + op->hRate2, tr->d_dur2) -
-			  ind->saveLin[16])/op->hRate2;
-    }
-    // dA/d_dur2 #15 bitwShiftL(1, 15-1) 16384
-    if (op->linBflag & 16384) {
-      ind->saveLin[15] = (linCmtC(rx, id, t, linCmt, tr->ncmt, tr->trans,
-				  tr->p1, tr->v1, tr->p2, tr->p3, tr->p4, tr->p5, tr->d_tlag, tr->d_F, tr->d_rate1,
-				  tr->d_dur1, tr->d_ka, tr->d_tlag2,
-				  tr->d_F2, tr->d_rate2, tr->d_dur2 + op->hDur2) -
-			  ind->saveLin[16])/op->hDur2;
+    if (op->linBflag & 16384) { // dur2 16384 = 1 << 15 - 1
+      if (val == 15) return A[cur];
+      cur++;
     }
   }
-  ind->savedIdx = ind->idx;
+  return R_NaN;
 }
 
 double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       int i_cmt, int trans, int val,
-	       double p1, double v1, double p2, double p3,
+	       double p1, double v1,
+	       double p2, double p3,
 	       double p4, double p5,
 	       double d_tlag, double d_F, double d_rate1, double d_dur1,
 	       // Oral parameters
@@ -3745,12 +3623,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
   /* evid = ind->evid[ind->ix[ind->idx]]; */
   /* if (evid) REprintf("evid0[%d:%d]: %d; curTime: %f\n", id, ind->idx, evid, t); */
   int idx = ind->idx;
-  double Alast0[27] = {0.0, 0.0, 0.0, 0.0, 0.0, // 5
-		       0.0, 0.0, 0.0, 0.0, 0.0, // 10
-		       0.0, 0.0, 0.0, 0.0, 0.0, // 15
-		       0.0, 0.0, 0.0, 0.0, 0.0, // 20
-		       0.0, 0.0, 0.0, 0.0, 0.0, // 25
-		       0.0, 0.0}; // 27
+  double Alast0[15] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   rx_solving_options *op = rx->op;
   int oral0= (d_ka > 0) ? 1 : 0;
   double *A;
@@ -3764,23 +3637,29 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
     curTime = getTime(ind->ix[idx], ind);
   }
   int sameTime = isSameTime(t, curTime);
-  int ncmt = 1;
-  parT tr;
-  if (!parTransD(&tr, &trans, &ncmt, &p1, &v1, &p2, &p3, &p4, &p5,
-		 d_tlag, d_F, d_rate1, d_dur1, d_ka, d_tlag2, d_F2, d_rate2, d_dur2)){
-    return NA_REAL;
-  }
   if (idx <= ind->solved && sameTime){
     // Pull from last solved value (cached)
     A = getAdvan(idx);
-    derTrans(rx, id, t, linCmt, A, &tr, ind);
-    if (val == 0) return ind->saveLin[16];
-    return ind->saveLin[val];
+    return derTrans(rx, A, i_cmt, trans, val, p1, v1, p2, p3,
+		    p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
+		    d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
   }
+  unsigned int ncmt = 1;
+  double rx_k=0, rx_v=0;
+  double rx_k12=0;
+  double rx_k21=0;
+  double rx_k13=0;
+  double rx_k31=0;
   double *rate = ind->linCmtRate;
   double b1=0, b2=0, r1 = 0, r2 = 0;
   A = Alast0;
   if (idx <= ind->solved){
+    if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
+		  &ncmt, &rx_k, &rx_v, &rx_k12,
+		  &rx_k21, &rx_k13, &rx_k31)){
+      /* REprintf(_("invalid translation\n")); */
+      return NA_REAL;
+    }
   } else {
     A = getAdvan(idx);
     if (idx == 0) {
@@ -3791,6 +3670,12 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
       Alast = getAdvan(idx-1);
     }
     curTime = getTime(ind->ix[idx], ind);
+    if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
+		  &ncmt, &rx_k, &rx_v, &rx_k12,
+		  &rx_k21, &rx_k13, &rx_k31)){
+      /* REprintf(_("invalid translation\n")); */
+      return NA_REAL;
+    }
     evid = ind->evid[ind->ix[idx]];
     /* if (evid) REprintf("evid: %d; curTime: %f\n",evid, curTime); */
     if (op->nlinR == 2){
@@ -3806,28 +3691,16 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
     } else {
       doAdvanD(A, Alast, tlast, // Time of last amounts
 	       curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
-	       &d_ka, &(tr.rx_k), &(tr.rx_k12), &(tr.rx_k21),
-	       &(tr.rx_k13), &(tr.rx_k31));
-      double aSave[27];
-      int nSave;// = (ncmt == 1 ? (oral0 ? 5 : 2) : (oral0 ? 15 : 8));
-      switch (ncmt) {
-      case 1:
-	nSave = (oral0 ? 5 : 2);
-	break;
-      case 2:
-	nSave = (oral0 ? 14 : 8);
-	break;
-      case 3:
-	nSave = (oral0 ? 27 : 18);
-	break;
-      }
+	       &d_ka, &rx_k, &rx_k12, &rx_k21, &rx_k13, &rx_k31);
+      double aSave[15];
+      int nSave = (ncmt == 1 ? (oral0 ? 5 : 2) : (oral0 ? 15 : 8));
       for (int i = nSave; i--;){
 	aSave[i] = A[i];
       }
       if (handle_evidL(evid, A, curTime, id, ind)){
 	handleSSL(A, Alast, tlast, curTime, ncmt, oral0, 
-		  &b1, &b2, &r1, &r2, &d_ka, &(tr.rx_k),
-		  &(tr.rx_k12), &(tr.rx_k21), &(tr.rx_k13), &(tr.rx_k31),
+		  &b1, &b2, &r1, &r2, &d_ka, &rx_k,
+		  &rx_k12, &rx_k21, &rx_k13, &rx_k31,
 		  &linCmt, &d_F, &d_F2, &d_rate1, &d_rate2,
 		  &d_dur1, &d_dur2, aSave, &nSave, true, ind);
       }
@@ -3843,12 +3716,177 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
     b1 = b2 = 0;
     doAdvanD(Ac, Alast, tlast, // Time of last amounts
 	     curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
-	     &d_ka, &(tr.rx_k), &(tr.rx_k12), &(tr.rx_k21),
-	     &(tr.rx_k13), &(tr.rx_k31));
+	     &d_ka, &rx_k, &rx_k12, &rx_k21, &rx_k13, &rx_k31);
   }
-  derTrans(rx, id, t, linCmt, A, &tr, ind);
-  if (val == 0) return ind->saveLin[16];
-  return ind->saveLin[val];
+  /* REprintf("t: %f %f %d %d\n", t, A[oral0], idx, ind->ix[idx]); */
+  /* REprintf("%f,%f,%f\n", A[oral0], rx_v, A[oral0]/rx_v); */
+  if (op->nlin2 == op->nlin) {
+    return derTrans(rx, Ac, ncmt, trans, val, p1, v1, p2, p3,
+		    p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
+		    d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
+  }
+  double v0 = derTrans(rx, Ac, ncmt, trans, 0, p1, v1, p2, p3,
+		       p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
+		       d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
+  int cur = op->nlin2;
+  double curD;
+  if ((op->linBflag & 64) && (sameTime || (!sameTime && val == 7))) { // tlag
+    if (op->cTlag) {
+      curD =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		     p2, p3, p4, p5, d_tlag + 0.5*op->hTlag,
+		     d_F, d_rate1, d_dur1,
+		     d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	     linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		     p2, p3, p4, p5, d_tlag - 0.5*op->hTlag,
+		     d_F, d_rate1, d_dur1,
+		     d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hTlag;
+    } else {
+      curD =(linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		     p2, p3, p4, p5, d_tlag + op->hTlag, d_F,
+		     d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
+		     d_rate2, d_dur2) - v0)/op->hTlag;
+    }
+    if (sameTime) A[cur++] = curD;
+    else return curD;
+  }
+  if ((op->linBflag & 128) && (sameTime || (!sameTime && val == 8))) { // f
+    if (op->cF) {
+      double c1 = linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			  p2, p3, p4, p5, d_tlag, d_F + 0.5*op->hF,
+			  d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
+			  d_rate2, d_dur2);
+      double c2 = linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+			  p2, p3, p4, p5, d_tlag, d_F - 0.5*op->hF,
+			  d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
+			  d_rate2, d_dur2);
+      curD =(c1 - c2)/op->hF;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F + op->hF,
+		      d_rate1, d_dur1, d_ka, d_tlag2, d_F2,
+		      d_rate2, d_dur2) - v0)/op->hF;
+    }
+    if (sameTime) A[cur++] = curD;
+    else return curD;
+  }
+  if ((op->linBflag & 256) && (sameTime || (!sameTime && val == 8))) { // rate
+    if (op->cRate) {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F,
+		      d_rate1 + 0.5*op->hRate, d_dur1,
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	      linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F,
+		      d_rate1 - 0.5*op->hRate, d_dur1,
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hRate;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F,
+		      d_rate1 + op->hRate, d_dur1,
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hRate;
+    }
+    if (sameTime) A[cur++] = curD;
+    else return curD;
+  }
+  if ((op->linBflag & 512) && (sameTime || (!sameTime && val == 8))) { // dur
+    if (op->cDur) {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1,
+		      d_dur1 + 0.5*op->hDur,
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) -
+	      linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1,
+		      d_dur1 - 0.5*op->hDur,
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2))/op->hDur;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1,
+		      d_dur1 + op->hDur,
+		      d_ka, d_tlag2, d_F2,  d_rate2, d_dur2) - v0)/op->hDur;
+    }
+    if (sameTime) A[cur++] = curD;
+    return curD;
+  }
+  if ((op->linBflag & 2048) && (sameTime && (!sameTime && val == 12))) { // tlag2
+    if (op->cTlag2) {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2 + 0.5*op->hTlag2, d_F2,
+		      d_rate2, d_dur2) -
+	      linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2 - 0.5*op->hTlag2, d_F2,
+		      d_rate2, d_dur2))/op->hTlag2;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2 + op->hTlag2, d_F2, d_rate2,
+		      d_dur2) - v0)/op->hTlag2;
+    }
+    if (sameTime) curD = A[cur++];
+    return curD;
+  }
+  if ((op->linBflag & 4096) && (sameTime || (!sameTime && val == 13))) { // f2
+    if (op->cF2) {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2 + 0.5*op->hF2,
+		      d_rate2, d_dur2) -
+	      linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2 - 0.5*op->hF2,
+		      d_rate2, d_dur2))/op->hF2;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2 + op->hF2,
+		      d_rate2, d_dur2) - v0)/op->hF2;
+    }
+    if (sameTime) curD = A[cur++];
+    return curD;
+  }
+  if ((op->linBflag & 8192) && (sameTime || (!sameTime && val == 14))) { // rate2
+    if (op->cRate2){
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2,
+		      d_rate2 + 0.5*op->hRate2, d_dur2) -
+	      linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2,
+		      d_rate2 - 0.5*op->hRate2, d_dur2))/op->hRate2;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2,
+		      d_rate2 + op->hRate2, d_dur2) - v0)/op->hRate2;
+    }
+    if (sameTime) curD = A[cur++];
+    else return curD;
+  }
+  if ((op->linBflag & 16384) && (sameTime || (!sameTime && val == 15))) { // dur2
+    if (op->cDur2){
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2,  d_rate2,
+		      d_dur2 + 0.5*op->hDur2) -
+	      linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2,  d_rate2,
+		      d_dur2 - 0.5*op->hDur2))/op->hDur2;
+    } else {
+      curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
+		      p2, p3, p4, p5, d_tlag, d_F, d_rate1, d_dur1,
+		      d_ka, d_tlag2, d_F2,  d_rate2,
+		      d_dur2 + op->hDur2) - v0)/op->hDur2;
+    }
+    if (sameTime) A[cur++] = curD;
+    return curD;
+  }
+  return derTrans(rx, Ac, ncmt, trans, val, p1, v1, p2, p3,
+		  p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,
+		  d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
+  return R_NaN;
 }
 
 double linCmtB(rx_solve *rx, unsigned int id,
