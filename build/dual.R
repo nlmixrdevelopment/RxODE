@@ -274,23 +274,17 @@ getFun <- function(x="oneCmtKaRateSSr1"){
                          "A[6] = A1.grad[dP3];",
                          "A[7] = A1.grad[dV1];",
                          # doesn't depend on k20
-                         "A[8]  = A1.grad[dKa];",
-                         "A[9]  = A1.grad[dP1];",
-                         "A[10] = A1.grad[dP2];",
-                         "A[11] = A1.grad[dP3];",
-                         "A[12] = A1.grad[dV1];",
+                         "A[8]  = A2.grad[dKa];",
+                         "A[9]  = A2.grad[dP1];",
+                         "A[10] = A2.grad[dP2];",
+                         "A[11] = A2.grad[dP3];",
+                         "A[12] = A2.grad[dV1];",
                          ## A2 derivatives
-                         "A[13] = A2.grad[dKa];", # ka
-                         "A[14] = A2.grad[dP1];", # k20
-                         "A[15] = A2.grad[dP2];", # k23
-                         "A[16] = A2.grad[dP3];", # k32
-                         "A[17] = A2.grad[dV1];", # k32
-                         ## A3 derivatives
-                         "A[18] = A3.grad[dKa];", # ka
-                         "A[19] = A3.grad[dP1];", # k20
-                         "A[20] = A3.grad[dP2];", # k23
-                         "A[21] = A3.grad[dP3];", # k32
-                         "A[22] = A3.grad[dV1];", # k32
+                         "A[13] = A3.grad[dKa];", # ka
+                         "A[14] = A3.grad[dP1];", # k20
+                         "A[15] = A3.grad[dP2];", # k23
+                         "A[16] = A3.grad[dP3];", # k32
+                         "A[17] = A3.grad[dV1];", # k32
                          "return A2;",
                          "}"),
                        collapse="\n")
@@ -307,24 +301,18 @@ getFun <- function(x="oneCmtKaRateSSr1"){
                          "A[5] = A1.grad[dP2];",
                          "A[6] = A1.grad[dP3];",
                          "A[7] = A1.grad[dV1];",
-                         # doesn't depend on k20
-                         "A[8]  = A1.grad[dKa];",
-                         "A[9]  = A1.grad[dP1];",
-                         "A[10] = A1.grad[dP2];",
-                         "A[11] = A1.grad[dP3];",
-                         "A[12] = A1.grad[dV1];",
-                         ## A2 derivatives
-                         "A[13] = A2.grad[dKa];", # ka
-                         "A[14] = A2.grad[dP1];", # k20
-                         "A[15] = A2.grad[dP2];", # k23
-                         "A[16] = A2.grad[dP3];", # k32
-                         "A[17] = A2.grad[dV1];", # k32
+                         # A2
+                         "A[8]  = A2.grad[dKa];",
+                         "A[9]  = A2.grad[dP1];",
+                         "A[10] = A2.grad[dP2];",
+                         "A[11] = A2.grad[dP3];",
+                         "A[12] = A2.grad[dV1];",
                          ## A3 derivatives
-                         "A[18] = A3.grad[dKa];", # ka
-                         "A[19] = A3.grad[dP1];", # k20
-                         "A[20] = A3.grad[dP2];", # k23
-                         "A[21] = A3.grad[dP3];", # k32
-                         "A[22] = A3.grad[dV1];", # k32
+                         "A[13] = A3.grad[dKa];", # ka
+                         "A[14] = A3.grad[dP1];", # k20
+                         "A[15] = A3.grad[dP2];", # k23
+                         "A[16] = A3.grad[dP3];", # k32
+                         "A[17] = A3.grad[dV1];", # k32
                          "return A2;",
                          "}"),
                        collapse="\n")

@@ -312,6 +312,109 @@ static inline dualN ssTauG(double *A,
     } break;
     }
   }
+  Rf_errorcall(R_NilValue, _("invalid model"));
+  dualN ret;
+  return ret;
+}
+
+static inline dualN ssRateG(double *A,
+			   parTr *tr,
+			   double *r1, // Rate in Compartment #1
+			   double *r2) {
+  if (tr->oral0) {
+    if ((*r1) > 0){
+      switch (tr->ncmt){
+      case 1: {
+	return oneCmtKaRateSSr1G(A, r1, tr->ka, tr->rx_k);
+      } break;
+      case 2: {
+	return twoCmtKaRateSSr1G(A, r1, tr->ka, tr->rx_k,
+				tr->rx_k12, tr->rx_k21);
+      } break;
+      case 3: {
+	return threeCmtKaRateSSr1G(A, r1, tr->ka, tr->rx_k, tr->rx_k12, tr->rx_k21, tr->rx_k13,  tr->rx_k31);
+      } break;
+      }
+    } else {
+      switch (tr->ncmt){
+      case 1: {
+	return oneCmtKaRateSSr2G(A, r2, tr->ka, tr->rx_k);
+      } break;
+      case 2: {
+	return twoCmtKaRateSSr2G(A, r2, tr->ka, tr->rx_k, tr->rx_k12, tr->rx_k21);
+      } break;
+      case 3: {
+	return threeCmtKaRateSSr2G(A, r2, tr->ka, tr->rx_k, tr->rx_k12,  tr->rx_k21, tr->rx_k13,  tr->rx_k31);
+      } break;
+      }
+    }
+  } else {
+    switch (tr->ncmt){
+    case 1: {
+      return oneCmtRateSSr1G(A, r1, tr->rx_k);
+    } break;
+    case 2: {
+      return twoCmtRateSSr1G(A, r1, tr->rx_k, tr->rx_k12, tr->rx_k21);
+    } break;
+    case 3: {
+      return threeCmtRateSSr1G(A, r1, tr->rx_k, tr->rx_k12,  tr->rx_k21, tr->rx_k13, tr->rx_k31);
+    } break;
+    }
+  }
+  Rf_errorcall(R_NilValue, _("invalid model"));
+  dualN ret;
+  return ret;
+}
+
+static inline dualN lookupDualN(double *A, parTr *tr) {
+  dualN ret;
+  if (tr->oral0) {
+    ret.f  = A[1];
+    switch (tr->ncmt){
+    case 1:
+      ret.grad[dKa] = A[5];
+      ret.grad[dP1] = A[6];
+      ret.grad[dV1] = A[7];
+      return ret;
+    case 2:
+      ret.grad[dKa] = A[8];
+      ret.grad[dP1] = A[9];
+      ret.grad[dP2]=  A[10];
+      ret.grad[dP3]=  A[11];
+      ret.grad[dV1]=  A[12];
+      return ret;
+    case 3:
+      ret.grad[dKa] = A[11];
+      ret.grad[dP1] = A[12];
+      ret.grad[dP2]=  A[13];
+      ret.grad[dP3]=  A[14];
+      ret.grad[dP4]=  A[15];
+      ret.grad[dP5]=  A[16];
+      ret.grad[dV1]=  A[17];
+      return ret;
+  } else {
+      ret.f = A[0];
+      switch (tr->ncmt){
+      case 1:
+	ret.grad[dP1] = A[1];
+	ret.grad[dV1] = A[2];
+	return ret;
+      case 2:
+	ret.grad[dP1] = A[2];
+	ret.grad[dP2] = A[3];
+	ret.grad[dP3] = A[4];
+	ret.grad[dV1] = A[5];
+	return ret;
+      case 3:
+	ret.grad[dP1] = A[3];
+	ret.grad[dP2] = A[4];
+	ret.grad[dP3] = A[5];
+	ret.grad[dP4] = A[6];
+	ret.grad[dP5] = A[7];
+	ret.grad[dV1] = A[8];
+	return ret;
+      }
+  }
 }
 
 
@@ -349,9 +452,7 @@ static inline dualN handleSSLG(double *A,// Amounts
       // Infusion to central compartment or depot
       *r2 = amt;
     }
-    /* ssRateD(A, ncmt, oral0, r1, r2, */
-    /* 	    ka, kel, k12, k21, k13, k31); */
-    //
+    ret = ssRateG(A, tr, r1, r2);
   } break;
   case 20: // Steady state + last observed event
   case 10: { // Steady state
@@ -407,6 +508,7 @@ static inline dualN handleSSLG(double *A,// Amounts
 	for (int i = tr->ncmt + tr->oral0; i--;){
 	  A[i] += R_NaN;
 	}
+	ret = lookupDualN(A, tr);
       } else {
 	ret = ssRateTauG(A, &tinf, &tau, tr, r1, r2);
       }
@@ -457,6 +559,7 @@ static inline dualN handleSSLG(double *A,// Amounts
 	  A[i] += aSave[i];
 	}
       }
+      ret = lookupDualN(A, tr);
     }
   } break;
   }
@@ -580,7 +683,7 @@ double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
       nSave = (tr.oral0 ? 8 : 3);
       break;
     case 2:
-      nSave = (tr.oral0 ? 23 : 10);
+      nSave = (tr.oral0 ? 18 : 10);
       break;
     case 3:
       nSave = (tr.oral0 ? 32 : 21);
