@@ -1,12 +1,9 @@
 
-#ifndef linCmtB2_header
-#define linCmtB2_header
+#ifndef linCmtB2g_header
+#define linCmtB2g_header
 #include "dual.h"
 
-static inline void twoCmtRateSSr1D(double *A, double *r1, double *k10d, double *k12d, double *k21d) {
-dualN k10 = iniD(*k10d, 0);
-dualN k12 = iniD(*k12d, 1);
-dualN k21 = iniD(*k21d, 2);
+static inline dualN twoCmtRateSSr1G(double *A, double *r1, dualN k10, dualN k12, dualN k21) {
 dualN E1=add2(k10,k12);
 dualN s=add2(E1,k21);
 dualN sqr=sqrtD(subtr2(prod2(s,s),prodd2(4,(subtr2(prod2(E1,k21),prod2(k12,k21))))));
@@ -17,17 +14,17 @@ dualN A1=prod2(prodd2((*r1),k21),l12);
 dualN A2=prod2(prodd2((*r1),k12),l12);
 A[0] = A1.f;
 A[1] = A2.f;
-A[2] = A1.grad[0];
-A[3] = A1.grad[1];
-A[4] = A1.grad[2];
-A[5] = A2.grad[0];
-A[6] = A2.grad[1];
-A[7] = A2.grad[2];
+A[2] = A1.grad[dP1];
+A[3] = A1.grad[dP2];
+A[4] = A1.grad[dP3];
+A[5] = A1.grad[dV1];
+A[6] = A2.grad[dP1];
+A[7] = A2.grad[dP2];
+A[8] = A2.grad[dP3];
+A[9] = A2.grad[dV1];
+return A1;
 }
-static inline void twoCmtRateSSD(double *A, double *tinf, double *tau, double *r1, double *k10d, double *k12d, double *k21d) {
-dualN k10 = iniD(*k10d, 0);
-dualN k12 = iniD(*k12d, 1);
-dualN k21 = iniD(*k21d, 2);
+static inline dualN twoCmtRateSSG(double *A, double *tinf, double *tau, double *r1, dualN k10, dualN k12, dualN k21) {
 dualN E1=add2(k10,k12);
 dualN E2=k21;
 dualN s=add2(E1,E2);
@@ -42,25 +39,27 @@ dualN A1=div2((subtr2(prod2(eT1,(add2(subtr2(prod2(E2,(add2(div2((subtr2(prod2d(
 dualN A2=div2((subtr2(prod2(eT1,(subtr2(add2(prod2(k12,(add2(div2((subtr2(prod2d(eTi1,(*r1)),prod2d(eTi2,(*r1)))),(add2(negD(lambda1),lambda2))),prod2(prodd2((*r1),E2),(subtr2(add2(divd2(1,(prod2(lambda1,lambda2))),div2(eTi1,(prod2((subtr2(lambda1,lambda2)),lambda1)))),div2(eTi2,(prod2((subtr2(lambda1,lambda2)),lambda2))))))))),prod2(prod2(prodd2((*r1),E1),k12),(subtr2(add2(divd2(1,(prod2(lambda1,lambda2))),div2(eTi1,(prod2((subtr2(lambda1,lambda2)),lambda1)))),div2(eTi2,(prod2((subtr2(lambda1,lambda2)),lambda2))))))),prod2(prod2(prodd2((*r1),k12),lambda1),(subtr2(add2(divd2(1,(prod2(lambda1,lambda2))),div2(eTi1,(prod2((subtr2(lambda1,lambda2)),lambda1)))),div2(eTi2,(prod2((subtr2(lambda1,lambda2)),lambda2))))))))),prod2(eT2,(subtr2(add2(prod2(k12,(add2(div2((subtr2(prod2d(eTi1,(*r1)),prod2d(eTi2,(*r1)))),(add2(negD(lambda1),lambda2))),prod2(prodd2((*r1),E2),(subtr2(add2(divd2(1,(prod2(lambda1,lambda2))),div2(eTi1,(prod2((subtr2(lambda1,lambda2)),lambda1)))),div2(eTi2,(prod2((subtr2(lambda1,lambda2)),lambda2))))))))),prod2(prod2(prodd2((*r1),E1),k12),(subtr2(add2(divd2(1,(prod2(lambda1,lambda2))),div2(eTi1,(prod2((subtr2(lambda1,lambda2)),lambda1)))),div2(eTi2,(prod2((subtr2(lambda1,lambda2)),lambda2))))))),prod2(prod2(prodd2((*r1),k12),lambda2),(subtr2(add2(divd2(1,(prod2(lambda1,lambda2))),div2(eTi1,(prod2((subtr2(lambda1,lambda2)),lambda1)))),div2(eTi2,(prod2((subtr2(lambda1,lambda2)),lambda2))))))))))),(add2(negD(lambda1),lambda2)));
 A[0] = A1.f;
 A[1] = A2.f;
-A[2] = A1.grad[0];
-A[3] = A1.grad[1];
-A[4] = A1.grad[2];
-A[5] = A2.grad[0];
-A[6] = A2.grad[1];
-A[7] = A2.grad[2];
+A[2] = A1.grad[dP1];
+A[3] = A1.grad[dP2];
+A[4] = A1.grad[dP3];
+A[5] = A1.grad[dV1];
+A[6] = A2.grad[dP1];
+A[7] = A2.grad[dP2];
+A[8] = A2.grad[dP3];
+A[9] = A2.grad[dV1];
+return A1;
 }
-static inline void twoCmtRateD(double *A, double *Alast, double *t, double *b1, double *r1, double *k10d, double *k12d, double *k21d) {
-dualN k10 = iniD(*k10d, 0);
-dualN k12 = iniD(*k12d, 1);
-dualN k21 = iniD(*k21d, 2);
+static inline dualN twoCmtRateG(double *A, double *Alast, double *t, double *b1, double *r1, dualN k10, dualN k12, dualN k21) {
 dualN A1last = iniD(Alast[0],-1);
-A1last.grad[0] = Alast[2];
-A1last.grad[1] = Alast[3];
-A1last.grad[2] = Alast[4];
+A1last.grad[dP1] = Alast[2];
+A1last.grad[dP2] = Alast[3];
+A1last.grad[dP3] = Alast[4];
+A1last.grad[dV1] = Alast[5];
 dualN A2last = iniD(Alast[1],-1);
-A2last.grad[0] = Alast[5];
-A2last.grad[1] = Alast[6];
-A2last.grad[2] = Alast[7];
+A2last.grad[dP1] = Alast[5];
+A2last.grad[dP2] = Alast[6];
+A2last.grad[dP3] = Alast[7];
+A2last.grad[dV1] = Alast[8];
 dualN E1=add2(k10,k12);
 dualN E2=k21;
 dualN s=add2(E1,E2);
@@ -85,17 +84,17 @@ dualN A2term2=prod2(prodd2((*r1),k12),(subtr2(add2(divd2(1,(prod2(lambda1,lambda
 dualN A2=add2(A2term1,A2term2);
 A[0] = A1.f;
 A[1] = A2.f;
-A[2] = A1.grad[0];
-A[3] = A1.grad[1];
-A[4] = A1.grad[2];
-A[5] = A2.grad[0];
-A[6] = A2.grad[1];
-A[7] = A2.grad[2];
+A[2] = A1.grad[dP1];
+A[3] = A1.grad[dP2];
+A[4] = A1.grad[dP3];
+A[5] = A1.grad[dV1];
+A[6] = A2.grad[dP1];
+A[7] = A2.grad[dP2];
+A[8] = A2.grad[dP3];
+A[9] = A2.grad[dV1];
+return A1;
 }
-static inline void twoCmtBolusSSD(double *A, double *tau, double *b1, double *k10d, double *k12d, double *k21d) {
-dualN k10 = iniD(*k10d, 0);
-dualN k12 = iniD(*k12d, 1);
-dualN k21 = iniD(*k21d, 2);
+static inline dualN twoCmtBolusSSG(double *A, double *tau, double *b1, dualN k10, dualN k12, dualN k21) {
 dualN E2=k21;
 dualN s=add2(add2(k12,k21),k10);
 dualN sqr=sqrtD(subtr2(prod2(s,s),prod2(prodd2(4,k21),k10)));
@@ -107,18 +106,18 @@ dualN A1=div2((subtr2(prod2(eL1,(subtr2(prodd2((*b1),E2),prodd2((*b1),lambda1)))
 dualN A2=div2((subtr2(prod2(prod2d(eL1,(*b1)),k12),prod2(prod2d(eL2,(*b1)),k12))),(add2(negD(lambda1),lambda2)));
 A[0] = A1.f;
 A[1] = A2.f;
-A[2] = A1.grad[0];
-A[3] = A1.grad[1];
-A[4] = A1.grad[2];
-A[5] = A2.grad[0];
-A[6] = A2.grad[1];
-A[7] = A2.grad[2];
+A[2] = A1.grad[dP1];
+A[3] = A1.grad[dP2];
+A[4] = A1.grad[dP3];
+A[5] = A1.grad[dV1];
+A[6] = A2.grad[dP1];
+A[7] = A2.grad[dP2];
+A[8] = A2.grad[dP3];
+A[9] = A2.grad[dV1];
+return A1;
 }
-static inline void twoCmtKaRateSSr1D(double *A, double *r1, double *kad, double *k20d, double *k23d, double *k32d) {
-dualN ka  = iniD(*kad,  0);
-dualN k20 = iniD(*k20d, 1);
-dualN k23 = iniD(*k23d, 2);
-dualN k32 = iniD(*k32d, 3);
+static inline dualN twoCmtKaRateSSr1G(double *A, double *r1, dualN ka, dualN k20, dualN k23, dualN k32) {
+//has ka
 dualN s=add2(add2(k23,k32),k20);
 dualN beta=prodd2(0.5,(subtr2(s,sqrtD(subtr2(prod2(s,s),prod2(prodd2(4,k32),k20))))));
 dualN alpha=div2(prod2(k32,k20),beta);
@@ -128,23 +127,30 @@ dualN A3=div2(prodd2((*r1),k23),(prod2(beta,alpha)));
 A[0] = A1.f;
 A[1] = A2.f;
 A[2] = A3.f;
-A[3] = A1.grad[0];
-A[4] = A1.grad[2];
-A[5] = A1.grad[3];
-A[6] = A2.grad[0];
-A[7] = A2.grad[1];
-A[8] = A2.grad[2];
-A[9] = A2.grad[3];
-A[10] = A3.grad[0];
-A[11] = A3.grad[1];
-A[12] = A3.grad[2];
-A[13] = A3.grad[3];
+A[3] = A1.grad[dKa];
+A[4] = A1.grad[dP1];
+A[5] = A1.grad[dP2];
+A[6] = A1.grad[dP3];
+A[7] = A1.grad[dV1];
+A[8]  = A1.grad[dKa];
+A[9]  = A1.grad[dP1];
+A[10] = A1.grad[dP2];
+A[11] = A1.grad[dP3];
+A[12] = A1.grad[dV1];
+A[13] = A2.grad[dKa];
+A[14] = A2.grad[dP1];
+A[15] = A2.grad[dP2];
+A[16] = A2.grad[dP3];
+A[17] = A2.grad[dV1];
+A[18] = A3.grad[dKa];
+A[19] = A3.grad[dP1];
+A[20] = A3.grad[dP2];
+A[21] = A3.grad[dP3];
+A[22] = A3.grad[dV1];
+return A2;
 }
-static inline void twoCmtKaRateSSr2D(double *A, double *r2, double *kad, double *k20d, double *k23d, double *k32d) {
-(void)(*kad);
-dualN k20 = iniD(*k20d, 1);
-dualN k23 = iniD(*k23d, 2);
-dualN k32 = iniD(*k32d, 3);
+static inline dualN twoCmtKaRateSSr2G(double *A, double *r2, dualN ka, dualN k20, dualN k23, dualN k32) {
+(void)(ka);
 dualN s=add2(add2(k23,k32),k20);
 dualN beta=prodd2(0.5,(subtr2(s,sqrtD(subtr2(prod2(s,s),prod2(prodd2(4,k32),k20))))));
 dualN alpha=div2(prod2(k32,k20),beta);
@@ -154,23 +160,30 @@ dualN A3=div2(prodd2((*r2),k23),(prod2(beta,alpha)));
 A[0] = A1.f;
 A[1] = A2.f;
 A[2] = A3.f;
-A[3] = A1.grad[0];
-A[4] = A1.grad[2];
-A[5] = A1.grad[3];
-A[6] = A2.grad[0];
-A[7] = A2.grad[1];
-A[8] = A2.grad[2];
-A[9] = A2.grad[3];
-A[10] = A3.grad[0];
-A[11] = A3.grad[1];
-A[12] = A3.grad[2];
-A[13] = A3.grad[3];
+A[3] = A1.grad[dKa];
+A[4] = A1.grad[dP1];
+A[5] = A1.grad[dP2];
+A[6] = A1.grad[dP3];
+A[7] = A1.grad[dV1];
+A[8]  = A1.grad[dKa];
+A[9]  = A1.grad[dP1];
+A[10] = A1.grad[dP2];
+A[11] = A1.grad[dP3];
+A[12] = A1.grad[dV1];
+A[13] = A2.grad[dKa];
+A[14] = A2.grad[dP1];
+A[15] = A2.grad[dP2];
+A[16] = A2.grad[dP3];
+A[17] = A2.grad[dV1];
+A[18] = A3.grad[dKa];
+A[19] = A3.grad[dP1];
+A[20] = A3.grad[dP2];
+A[21] = A3.grad[dP3];
+A[22] = A3.grad[dV1];
+return A2;
 }
-static inline void twoCmtKaRateSStr1D(double *A, double *tinf, double *tau, double *r1, double *kad, double *k20d, double *k23d, double *k32d) {
-dualN ka  = iniD(*kad,  0);
-dualN k20 = iniD(*k20d, 1);
-dualN k23 = iniD(*k23d, 2);
-dualN k32 = iniD(*k32d, 3);
+static inline dualN twoCmtKaRateSStr1G(double *A, double *tinf, double *tau, double *r1, dualN ka, dualN k20, dualN k23, dualN k32) {
+//has ka
 dualN s=add2(add2(k23,k32),k20);
 dualN beta=prodd2(0.5,(subtr2(s,sqrtD(subtr2(prod2(s,s),prod2(prodd2(4,k32),k20))))));
 dualN alpha=div2(prod2(k32,k20),beta);
@@ -191,23 +204,30 @@ dualN A3=add2(div2((subtr2(prod2(eA,(add2(add2(prod2(negD(alpha),(add2(subtr2(su
 A[0] = A1.f;
 A[1] = A2.f;
 A[2] = A3.f;
-A[3] = A1.grad[0];
-A[4] = A1.grad[2];
-A[5] = A1.grad[3];
-A[6] = A2.grad[0];
-A[7] = A2.grad[1];
-A[8] = A2.grad[2];
-A[9] = A2.grad[3];
-A[10] = A3.grad[0];
-A[11] = A3.grad[1];
-A[12] = A3.grad[2];
-A[13] = A3.grad[3];
+A[3] = A1.grad[dKa];
+A[4] = A1.grad[dP1];
+A[5] = A1.grad[dP2];
+A[6] = A1.grad[dP3];
+A[7] = A1.grad[dV1];
+A[8]  = A1.grad[dKa];
+A[9]  = A1.grad[dP1];
+A[10] = A1.grad[dP2];
+A[11] = A1.grad[dP3];
+A[12] = A1.grad[dV1];
+A[13] = A2.grad[dKa];
+A[14] = A2.grad[dP1];
+A[15] = A2.grad[dP2];
+A[16] = A2.grad[dP3];
+A[17] = A2.grad[dV1];
+A[18] = A3.grad[dKa];
+A[19] = A3.grad[dP1];
+A[20] = A3.grad[dP2];
+A[21] = A3.grad[dP3];
+A[22] = A3.grad[dV1];
+return A2;
 }
-static inline void twoCmtKaRateSStr2D(double *A, double *tinf, double *tau, double *r2, double *kad, double *k20d, double *k23d, double *k32d) {
-dualN ka  = iniD(*kad,  0);
-dualN k20 = iniD(*k20d, 1);
-dualN k23 = iniD(*k23d, 2);
-dualN k32 = iniD(*k32d, 3);
+static inline dualN twoCmtKaRateSStr2G(double *A, double *tinf, double *tau, double *r2, dualN ka, dualN k20, dualN k23, dualN k32) {
+//has ka
 dualN E2=add2(k20,k23);
 dualN E3=k32;
 dualN s=add2(add2(k23,k32),k20);
@@ -227,38 +247,48 @@ dualN A3=div2((subtr2(prod2(eA,(add2(subtr2(prod2(E2,(add2(subtr2(div2(prodd2((*
 A[0] = A1.f;
 A[1] = A2.f;
 A[2] = A3.f;
-A[3] = A1.grad[0];
-A[4] = A1.grad[2];
-A[5] = A1.grad[3];
-A[6] = A2.grad[0];
-A[7] = A2.grad[1];
-A[8] = A2.grad[2];
-A[9] = A2.grad[3];
-A[10] = A3.grad[0];
-A[11] = A3.grad[1];
-A[12] = A3.grad[2];
-A[13] = A3.grad[3];
+A[3] = A1.grad[dKa];
+A[4] = A1.grad[dP1];
+A[5] = A1.grad[dP2];
+A[6] = A1.grad[dP3];
+A[7] = A1.grad[dV1];
+A[8]  = A1.grad[dKa];
+A[9]  = A1.grad[dP1];
+A[10] = A1.grad[dP2];
+A[11] = A1.grad[dP3];
+A[12] = A1.grad[dV1];
+A[13] = A2.grad[dKa];
+A[14] = A2.grad[dP1];
+A[15] = A2.grad[dP2];
+A[16] = A2.grad[dP3];
+A[17] = A2.grad[dV1];
+A[18] = A3.grad[dKa];
+A[19] = A3.grad[dP1];
+A[20] = A3.grad[dP2];
+A[21] = A3.grad[dP3];
+A[22] = A3.grad[dV1];
+return A2;
 }
-static inline void twoCmtKaRateD(double *A, double *Alast, double *t, double *b1, double *b2, double *r1, double *r2, double *kad, double *k20d, double *k23d, double *k32d) {
-dualN ka  = iniD(*kad,  0);
-dualN k20 = iniD(*k20d, 1);
-dualN k23 = iniD(*k23d, 2);
-dualN k32 = iniD(*k32d, 3);
+static inline dualN twoCmtKaRateG(double *A, double *Alast, double *t, double *b1, double *b2, double *r1, double *r2, dualN ka, dualN k20, dualN k23, dualN k32) {
+// has ka
 dualN A1last = iniD(Alast[0],-1);
-A1last.grad[0] = Alast[3];
-A1last.grad[1] = 0.0;
-A1last.grad[2] = Alast[4];
-A1last.grad[3] = Alast[5];
+A1last.grad[dKa] = Alast[3];
+A1last.grad[dP1] = Alast[4];
+A1last.grad[dP2] = Alast[5];
+A1last.grad[dP3] = Alast[6];
+A1last.grad[dV1] = Alast[7];
 dualN A2last = iniD(Alast[1],-1);
-A2last.grad[0] = Alast[6];
-A2last.grad[1] = Alast[7];
-A2last.grad[2] = Alast[8];
-A1last.grad[3] = Alast[9];
+A2last.grad[dKa] = Alast[8];
+A2last.grad[dP1] = Alast[9];
+A2last.grad[dP2] = Alast[10];
+A1last.grad[dP3] = Alast[11];
+A1last.grad[dV1] = Alast[12];
 dualN A3last = iniD(Alast[2],-1);
-A3last.grad[0] = Alast[10];
-A3last.grad[1] = Alast[11];
-A3last.grad[2] = Alast[12];
-A3last.grad[3] = Alast[13];
+A3last.grad[dKa] = Alast[13];
+A3last.grad[dP1] = Alast[14];
+A3last.grad[dP2] = Alast[15];
+A3last.grad[dP3] = Alast[16];
+A3last.grad[dV1] = Alast[17];
 dualN E2=add2(k20,k23);
 dualN s=add2(add2(k23,k32),k20);
 dualN beta=prodd2(0.5,(subtr2(s,sqrtD(subtr2(prod2(s,s),prod2(prodd2(4,k32),k20))))));
@@ -277,23 +307,30 @@ dualN A3=add2(subtr2(add2(div2(negD((prod2((subtr2(prod2d(k23,(*r1)),prod2(prod2
 A[0] = A1.f;
 A[1] = A2.f;
 A[2] = A3.f;
-A[3] = A1.grad[0];
-A[4] = A1.grad[2];
-A[5] = A1.grad[3];
-A[6] = A2.grad[0];
-A[7] = A2.grad[1];
-A[8] = A2.grad[2];
-A[9] = A2.grad[3];
-A[10] = A3.grad[0];
-A[11] = A3.grad[1];
-A[12] = A3.grad[2];
-A[13] = A3.grad[3];
+A[3] = A1.grad[dKa];
+A[4] = A1.grad[dP1];
+A[5] = A1.grad[dP2];
+A[6] = A1.grad[dP3];
+A[7] = A1.grad[dV1];
+A[8]  = A1.grad[dKa];
+A[9]  = A1.grad[dP1];
+A[10] = A1.grad[dP2];
+A[11] = A1.grad[dP3];
+A[12] = A1.grad[dV1];
+A[13] = A2.grad[dKa];
+A[14] = A2.grad[dP1];
+A[15] = A2.grad[dP2];
+A[16] = A2.grad[dP3];
+A[17] = A2.grad[dV1];
+A[18] = A3.grad[dKa];
+A[19] = A3.grad[dP1];
+A[20] = A3.grad[dP2];
+A[21] = A3.grad[dP3];
+A[22] = A3.grad[dV1];
+return A2;
 }
-static inline void twoCmtKaSSb1D(double *A, double *tau, double *b1, double *kad, double *k20d, double *k23d, double *k32d) {
-dualN ka  = iniD(*kad,  0);
-dualN k20 = iniD(*k20d, 1);
-dualN k23 = iniD(*k23d, 2);
-dualN k32 = iniD(*k32d, 3);
+static inline dualN twoCmtKaSSb1G(double *A, double *tau, double *b1, dualN ka, dualN k20, dualN k23, dualN k32) {
+//has ka
 dualN E2=add2(k20,k23);
 dualN E3=k32;
 dualN e2e3=add2(E2,E3);
@@ -309,23 +346,30 @@ dualN A3=prod2(prod2(prod2d(ka,(*b1)),k23),(add2(add2(div2(eL1,(prod2((add2(negD
 A[0] = A1.f;
 A[1] = A2.f;
 A[2] = A3.f;
-A[3] = A1.grad[0];
-A[4] = A1.grad[2];
-A[5] = A1.grad[3];
-A[6] = A2.grad[0];
-A[7] = A2.grad[1];
-A[8] = A2.grad[2];
-A[9] = A2.grad[3];
-A[10] = A3.grad[0];
-A[11] = A3.grad[1];
-A[12] = A3.grad[2];
-A[13] = A3.grad[3];
+A[3] = A1.grad[dKa];
+A[4] = A1.grad[dP1];
+A[5] = A1.grad[dP2];
+A[6] = A1.grad[dP3];
+A[7] = A1.grad[dV1];
+A[8]  = A1.grad[dKa];
+A[9]  = A1.grad[dP1];
+A[10] = A1.grad[dP2];
+A[11] = A1.grad[dP3];
+A[12] = A1.grad[dV1];
+A[13] = A2.grad[dKa];
+A[14] = A2.grad[dP1];
+A[15] = A2.grad[dP2];
+A[16] = A2.grad[dP3];
+A[17] = A2.grad[dV1];
+A[18] = A3.grad[dKa];
+A[19] = A3.grad[dP1];
+A[20] = A3.grad[dP2];
+A[21] = A3.grad[dP3];
+A[22] = A3.grad[dV1];
+return A2;
 }
-static inline void twoCmtKaSSb2D(double *A, double *tau, double *b2, double *kad, double *k20d, double *k23d, double *k32d) {
-(void)(*kad);
-dualN k20 = iniD(*k20d, 1);
-dualN k23 = iniD(*k23d, 2);
-dualN k32 = iniD(*k32d, 3);
+static inline dualN twoCmtKaSSb2G(double *A, double *tau, double *b2, dualN ka, dualN k20, dualN k23, dualN k32) {
+(void)(ka);
 dualN E2=add2(k20,k23);
 dualN E3=k32;
 dualN e2e3=add2(E2,E3);
@@ -340,16 +384,26 @@ dualN A3=div2((subtr2(prod2(prod2d(eL1,(*b2)),k23),prod2(prod2d(eL2,(*b2)),k23))
 A[0] = A1.f;
 A[1] = A2.f;
 A[2] = A3.f;
-A[3] = A1.grad[0];
-A[4] = A1.grad[2];
-A[5] = A1.grad[3];
-A[6] = A2.grad[0];
-A[7] = A2.grad[1];
-A[8] = A2.grad[2];
-A[9] = A2.grad[3];
-A[10] = A3.grad[0];
-A[11] = A3.grad[1];
-A[12] = A3.grad[2];
-A[13] = A3.grad[3];
+A[3] = A1.grad[dKa];
+A[4] = A1.grad[dP1];
+A[5] = A1.grad[dP2];
+A[6] = A1.grad[dP3];
+A[7] = A1.grad[dV1];
+A[8]  = A1.grad[dKa];
+A[9]  = A1.grad[dP1];
+A[10] = A1.grad[dP2];
+A[11] = A1.grad[dP3];
+A[12] = A1.grad[dV1];
+A[13] = A2.grad[dKa];
+A[14] = A2.grad[dP1];
+A[15] = A2.grad[dP2];
+A[16] = A2.grad[dP3];
+A[17] = A2.grad[dV1];
+A[18] = A3.grad[dKa];
+A[19] = A3.grad[dP1];
+A[20] = A3.grad[dP2];
+A[21] = A3.grad[dP3];
+A[22] = A3.grad[dV1];
+return A2;
 }
 #endif
