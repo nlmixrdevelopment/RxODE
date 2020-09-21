@@ -268,6 +268,53 @@ static inline dualN ssRateTauG(double *A,
 }
 
 
+static inline dualN ssTauG(double *A,
+			   double *tau,
+			   parTr *tr,
+			   double *b1,
+			   double *b2){
+  if (tr->oral0){
+    if ((*b1) > 0 ){
+      switch (tr->ncmt){
+      case 1: {
+	return oneCmtKaSSb1G(A, tau, b1, tr->ka, tr->rx_k);
+      } break;
+      case 2: {
+	return twoCmtKaSSb1G(A, tau, b1, tr->ka, tr->rx_k, tr->rx_k12, tr->rx_k21);
+      } break;
+      case 3: {
+	return threeCmtKaSSb1G(A, tau, b1, tr->ka, tr->rx_k, tr->rx_k12,  tr->rx_k21, tr->rx_k13, tr->rx_k31);
+      } break;
+      }
+    } else {
+      switch (tr->ncmt){
+      case 1: {
+	return oneCmtKaSSb2G(A, tau, b2, tr->ka, tr->rx_k);
+      } break;
+      case 2: {
+	return twoCmtKaSSb2G(A, tau, b2, tr->ka, tr->rx_k, tr->rx_k12, tr->rx_k21);
+      } break;
+      case 3: {
+	return threeCmtKaSSb2G(A, tau, b2, tr->ka, tr->rx_k, tr->rx_k12,  tr->rx_k21, tr->rx_k13, tr->rx_k31);
+      } break;
+      }
+    }
+  } else {
+    switch (tr->ncmt){
+    case 1: {
+      return oneCmtBolusSSG(A, tau, b1, tr->rx_k);
+    } break;
+    case 2: {
+      return twoCmtBolusSSG(A, tau, b1, tr->rx_k, tr->rx_k12, tr->rx_k21);
+    } break;
+    case 3: {
+      return threeCmtBolusSSG(A, tau, b1, tr->rx_k, tr->rx_k12,  tr->rx_k21, tr->rx_k13,  tr->rx_k31);
+    } break;
+    }
+  }
+}
+
+
 static inline dualN handleSSLG(double *A,// Amounts
 			       double *Alast, // Last amounts
 			       double tlast, // Time of last amounts
@@ -324,8 +371,7 @@ static inline dualN handleSSLG(double *A,// Amounts
 	*b1 = 0;
 	*b2 = amt*(tr->d_F2);
       }
-      /* ssTauD(A, ncmt, oral0, &tau, b1, b2, ka, */
-      /* 	     kel, k12, k21, k13, k31); */
+      ret = ssTauG(A, &tau, tr, b1, b2);
     } break;
     case 8: // Duration is modeled
     case 9: { // Rate is modeled
@@ -551,7 +597,7 @@ double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
   if (!sameTime){
     // Compute the advan solution of a t outside of the mesh.
     Alast = A;
-    Ac = Alast0;
+    /* Ac = Alast0; */
     tlast = curTime;
     curTime = t;
     b1 = b2 = 0;
