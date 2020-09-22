@@ -160,9 +160,9 @@ dualN div2(dualN e1, dualN e2) {
   ret.grad[1] = (e1.grad[1] - ret.f * e2.grad[1]) * invE2;
   ret.grad[2] = (e1.grad[2] - ret.f * e2.grad[2]) * invE2;
   ret.grad[3] = (e1.grad[3] - ret.f * e2.grad[3]) * invE2;
-  ret.grad[4] = (e1.grad[3] - ret.f * e2.grad[4]) * invE2;
-  ret.grad[5] = (e1.grad[3] - ret.f * e2.grad[5]) * invE2;
-  ret.grad[6] = (e1.grad[3] - ret.f * e2.grad[6]) * invE2;
+  ret.grad[4] = (e1.grad[4] - ret.f * e2.grad[4]) * invE2;
+  ret.grad[5] = (e1.grad[5] - ret.f * e2.grad[5]) * invE2;
+  ret.grad[6] = (e1.grad[6] - ret.f * e2.grad[6]) * invE2;
   return ret;
 }
 

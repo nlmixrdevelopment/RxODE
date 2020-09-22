@@ -726,6 +726,7 @@ double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
   if (val == 4) return ret.grad[dP3];
   if (val == 5) return ret.grad[dP4];
   if (val == 6) return ret.grad[dP5];
+  if (val == 11) return ret.grad[dKa];
   /* int cur = op->nlin2; */
   /* if (!sameTime) { */
   /*   if (op->cTlag) { */
