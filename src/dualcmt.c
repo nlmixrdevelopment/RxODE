@@ -392,28 +392,29 @@ static inline dualN lookupDualN(double *A, parTr *tr) {
       ret.grad[dP5]=  A[16];
       ret.grad[dV1]=  A[17];
       return ret;
+    }
   } else {
-      ret.f = A[0];
-      switch (tr->ncmt){
-      case 1:
-	ret.grad[dP1] = A[1];
-	ret.grad[dV1] = A[2];
-	return ret;
-      case 2:
-	ret.grad[dP1] = A[2];
-	ret.grad[dP2] = A[3];
-	ret.grad[dP3] = A[4];
-	ret.grad[dV1] = A[5];
-	return ret;
-      case 3:
-	ret.grad[dP1] = A[3];
-	ret.grad[dP2] = A[4];
-	ret.grad[dP3] = A[5];
-	ret.grad[dP4] = A[6];
-	ret.grad[dP5] = A[7];
-	ret.grad[dV1] = A[8];
-	return ret;
-      }
+    ret.f = A[0];
+    switch (tr->ncmt){
+    case 1:
+      ret.grad[dP1] = A[1];
+      ret.grad[dV1] = A[2];
+      return ret;
+    case 2:
+      ret.grad[dP1] = A[2];
+      ret.grad[dP2] = A[3];
+      ret.grad[dP3] = A[4];
+      ret.grad[dV1] = A[5];
+      return ret;
+    case 3:
+      ret.grad[dP1] = A[3];
+      ret.grad[dP2] = A[4];
+      ret.grad[dP3] = A[5];
+      ret.grad[dP4] = A[6];
+      ret.grad[dP5] = A[7];
+      ret.grad[dV1] = A[8];
+      return ret;
+    }
   }
 }
 

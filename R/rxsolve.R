@@ -530,7 +530,7 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
                     cacheEvent = TRUE,
                     sumType = c("pairwise", "fsum", "kahan", "neumaier", "c"),
                     prodType = c("long double", "double", "logify"),
-                    sensType = c("advan", "autodiff", "forward", "central"),
+                    sensType = c("advan", "autodiff", "forward", "central", "dual"),
                     linDiff=c(tlag=1.5e-8, f=1.5e-8, rate=1.5e-8, dur=1.5e-8, tlag2=1.5e-8, f2=1.5e-8, rate2=1.5e-8, dur2=1.5e-8),
                     linDiffCentral=c(tlag=TRUE, f=TRUE, rate=TRUE, dur=TRUE, tlag2=TRUE, f2=TRUE, rate2=TRUE, dur2=TRUE),
                     resample=NULL,
@@ -681,7 +681,7 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
           inherits(sensType, "integer")) {
       .sensType <- as.integer(sensType)
     } else {
-      .sensType <- as.integer(which(match.arg(sensType) == c("autodiff", "forward", "central", "advan")))
+      .sensType <- as.integer(which(match.arg(sensType) == c("autodiff", "forward", "central", "advan", "dual")))
     }
     .ret <- list(
       scale = scale,

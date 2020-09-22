@@ -3733,6 +3733,15 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
   return R_NaN;
 }
 
+double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
+	       int i_cmt, int trans, int val,
+	       double p1, double v1,
+	       double p2, double p3,
+	       double p4, double p5,
+	       double d_tlag, double d_F, double d_rate1, double d_dur1,
+	       // Oral parameters
+	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2);
+
 double linCmtB(rx_solve *rx, unsigned int id,
 	       double t, int linCmt,
 	       int ncmt, int trans, int val,
@@ -3767,6 +3776,12 @@ double linCmtB(rx_solve *rx, unsigned int id,
 		   dd_rate2, dd_dur2);
   case 4: // symbolic advan
     return linCmtF(rx, id, t, linCmt, ncmt, trans, val,
+		   dd_p1, dd_v1, dd_p2, dd_p3,
+		   dd_p4, dd_p5, dd_tlag, dd_F,
+		   dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,
+		   dd_rate2, dd_dur2);
+  case 5: // dual numbers
+    return linCmtG(rx, id, t, linCmt, ncmt, trans, val,
 		   dd_p1, dd_v1, dd_p2, dd_p3,
 		   dd_p4, dd_p5, dd_tlag, dd_F,
 		   dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,

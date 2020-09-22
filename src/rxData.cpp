@@ -4692,25 +4692,25 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	if (linKa) {
 	  switch (linNcmt) {
 	  case 1:
-	    op->nlin = 5;
+	    op->nlin = 8;
 	    break;
 	  case 2:
-	    op->nlin = 14;
+	    op->nlin = 18;
 	    break;
 	  case 3:
-	    op->nlin = 27;
+	    op->nlin = 32;
 	    break;
 	  }
 	} else {
 	  switch (linNcmt) {
 	  case 1:
-	    op->nlin = 2;
+	    op->nlin = 3;
 	    break;
 	  case 2:
-	    op->nlin = 8;
+	    op->nlin = 10;
 	    break;
 	  case 3:
-	    op->nlin = 18;
+	    op->nlin = 21;
 	    break;
 	  }
 	}
