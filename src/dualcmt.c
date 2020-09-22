@@ -416,6 +416,8 @@ static inline dualN lookupDualN(double *A, parTr *tr) {
       return ret;
     }
   }
+  Rf_errorcall(R_NilValue, _("invalid model"));
+  return ret;
 }
 
 
@@ -612,6 +614,11 @@ static inline dualN doAdvanG(double *A,// Amounts
   return ret;
 }
 
+double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt, int i_cmt, int trans,
+	       double p1, double v1, double p2, double p3, double p4, double p5,
+	       double d_tlag, double d_F, double d_rate1, double d_dur1,
+	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2);
+
 double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       int i_cmt, int trans, int val,
 	       double p1, double v1,
@@ -711,6 +718,197 @@ double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
   ret = div2(ret,tr.rx_v);
   // Now the derivatives are in ret.grad[0-6]
   // and ret.f = cp
-  return ret.f;
-  return R_NaN;
+  // Fill in solve save.
+  if (val == 0) return ret.f;
+  if (val == 1) return ret.grad[dP1];
+  if (val == 2) return ret.grad[dV1];
+  if (val == 3) return ret.grad[dP2];
+  if (val == 4) return ret.grad[dP3];
+  if (val == 5) return ret.grad[dP4];
+  if (val == 6) return ret.grad[dP5];
+  /* int cur = op->nlin2; */
+  /* if (!sameTime) { */
+  /*   if (op->cTlag) { */
+  /*     // dA/d_tlag */
+  /*     if (op->linBflag & 64) { // f 64 = 1 << 7-1 or bitwShiftL(1, 7-1) */
+  /* 	A[cur++] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, tr.p1.f, tr.v1.f, */
+  /* 			    tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, */
+  /* 			    tr.d_tlag + 0.5*op->hTlag, */
+  /* 			    tr.d_F, tr.d_rate1, tr.d_dur1, tr.ka.f, tr.d_tlag2, tr.d_F2,  tr.d_rate2, tr.d_dur2) - */
+  /* 		    linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, tr.p1.f, tr.v1.f, */
+  /* 			    tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, */
+  /* 			    tr.d_tlag - 0.5*op->hTlag, */
+  /* 			    tr.d_F, tr.d_rate1, tr.d_dur1, tr.ka.f, tr.d_tlag2, tr.d_F2,  tr.d_rate2, tr.d_dur2))/op->hTlag; */
+  /*     } */
+  /*     //dA/d_F */
+  /*     if (op->linBflag & 128) { // f 128 = 1 << 8-1 */
+  /* 	ind->solveSave[8] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, tr.p1.f, tr.v1.f, */
+  /* 				     tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, */
+  /* 				     tr.d_F + 0.5*op->hF, */
+  /* 				     tr.d_rate1, tr.d_dur1, tr.ka.f, tr.d_tlag2, tr.d_F2,  tr.d_rate2, tr.d_dur2) - */
+  /* 			     linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, tr.p1.f, tr.v1.f, */
+  /* 				     tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag - 0.5*op->hTlag, */
+  /* 				     tr.d_F - 0.5*op->hF, */
+  /* 				     tr.d_rate1, tr.d_dur1, tr.ka.f, tr.d_tlag2, tr.d_F2,  tr.d_rate2, tr.d_dur2))/op->hF; */
+  /* 	A[cur++] = ind->solveSave[8]; */
+  /*     } */
+  /*     // dA/d_rate1 */
+  /*     if (op->linBflag & 256) { // rate1 bitwShiftL(1, 9-1) */
+  /* 	ind->solveSave[9] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				     tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, */
+  /* 				     tr.d_rate1 + 0.5*op->hRate, */
+  /* 				     tr.d_dur1, tr.ka.f, tr.d_tlag2, tr.d_F2,  tr.d_rate2, tr.d_dur2) - */
+  /* 			     linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				     tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, */
+  /* 				     tr.d_rate1 - 0.5*op->hRate, */
+  /* 				     tr.d_dur1, tr.ka.f, tr.d_tlag2, tr.d_F2,  tr.d_rate2, tr.d_dur2))/op->hRate; */
+  /* 	A[cur++] = ind->solveSave[9]; */
+  /*     } */
+  /*     // dA/t_dur1 */
+  /*     if (op->linBflag & 512) { // rate1 bitwShiftL(1, 10-1) */
+  /* 	ind->solveSave[10] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1 + 0.5*op->hDur, */
+  /* 				      tr.ka.f, tr.d_tlag2, tr.d_F2,  tr.d_rate2, tr.d_dur2) - */
+  /* 			      linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1 - 0.5*op->hDur, */
+  /* 				      tr.ka.f, tr.d_tlag2, tr.d_F2,  tr.d_rate2, tr.d_dur2))/op->hDur; */
+  /* 	A[cur++] = ind->solveSave[10]; */
+  /*     } */
+  /*     // dA/d_ka #11 bitwShiftL(1, 11-1) */
+  /*     // dA/d_tlag2 #12 bitwShiftL(1, 12-1) */
+  /*     if (op->linBflag & 2048) { */
+  /* 	//  + 0.5*op->hTlag */
+  /* 	ind->solveSave[12] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1, tr.ka.f, */
+  /* 				      tr.d_tlag2 + 0.5*op->hTlag2, */
+  /* 				      tr.d_F2,  tr.d_rate2, tr.d_dur2) - */
+  /* 			      linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1, tr.ka.f, */
+  /* 				      tr.d_tlag2 - 0.5*op->hTlag2, */
+  /* 				      tr.d_F2,  tr.d_rate2, tr.d_dur2))/op->hTlag2; */
+  /* 	A[cur++] = ind->solveSave[12]; */
+  /*     } */
+  /*     // dA/d_F2 #13 bitwShiftL(1, 13-1) */
+  /*     if (op->linBflag & 4096) { */
+  /* 	ind->solveSave[13] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1, tr.ka.f, tr.d_tlag2, */
+  /* 				      tr.d_F2 + 0.5*op->hF2,  tr.d_rate2, tr.d_dur2) - */
+  /* 			      linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1, tr.ka.f, tr.d_tlag2, */
+  /* 				      tr.d_F2 - 0.5*op->hF2, tr.d_rate2, tr.d_dur2))/op->hF2; */
+  /* 	A[cur++] = ind->solveSave[13]; */
+  /*     } */
+  /*     // dA/d_rate2 #14 bitwShiftL(1, 14-1) 8192 */
+  /*     if (op->linBflag & 8192) { */
+  /* 	ind->solveSave[14] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1, tr.ka.f, tr.d_tlag2, */
+  /* 				      tr.d_F2, tr.d_rate2 + 0.5*op->hRate2, tr.d_dur2) - */
+  /* 			      linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1, tr.ka.f, tr.d_tlag2, */
+  /* 				      tr.d_F2, tr.d_rate2 - 0.5*op->hRate2, tr.d_dur2))/op->hRate2; */
+  /* 	A[cur++] = ind->solveSave[14]; */
+  /*     } */
+  /*     // dA/d_dur2 #15 bitwShiftL(1, 15-1) 16384 */
+  /*     if (op->linBflag & 16384) { */
+  /* 	ind->solveSave[15] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1, tr.ka.f, tr.d_tlag2, */
+  /* 				      tr.d_F2, tr.d_rate2, tr.d_dur2 + 0.5*op->hDur2) - */
+  /* 			      linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1, tr.ka.f, tr.d_tlag2, */
+  /* 				      tr.d_F2, tr.d_rate2, tr.d_dur2 - 0.5*op->hDur2))/op->hDur2; */
+  /* 	A[cur++] = ind->solveSave[15]; */
+
+  /*     } */
+  /*   } else { */
+  /*     // dA/d_tlag */
+  /*     if (op->linBflag & 64) { // f 64 = 1 << 7-1 or bitwShiftL(1, 7-1) */
+  /* 	ind->solveSave[7] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, tr.p1.f, tr.v1.f, */
+  /* 				     tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, */
+  /* 				     tr.d_tlag + op->hTlag, */
+  /* 				     tr.d_F, tr.d_rate1, tr.d_dur1, tr.ka.f, tr.d_tlag2, tr.d_F2,  tr.d_rate2, tr.d_dur2) - */
+  /* 			     ind->solveSave[0])/op->hTlag; */
+  /* 	A[cur++] = ind->solveSave[7]; */
+  /*     } */
+  /*     //dA/d_F */
+  /*     if (op->linBflag & 128) { // f 128 = 1 << 8-1 */
+  /* 	ind->solveSave[8] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, tr.p1.f, tr.v1.f, */
+  /* 				     tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, */
+  /* 				     tr.d_F + op->hF, */
+  /* 				     tr.d_rate1, tr.d_dur1, tr.ka.f, tr.d_tlag2, tr.d_F2,  tr.d_rate2, tr.d_dur2) - */
+  /* 			     ind->solveSave[0])/op->hF; */
+  /* 	A[cur++] = ind->solveSave[8]; */
+  /*     } */
+  /*     // dA/d_rate1 */
+  /*     if (op->linBflag & 256) { // rate1 bitwShiftL(1, 9-1) */
+  /* 	ind->solveSave[9] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				     tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, */
+  /* 				     tr.d_rate1 + op->hRate, */
+  /* 				     tr.d_dur1, tr.ka.f, tr.d_tlag2, tr.d_F2,  tr.d_rate2, tr.d_dur2) - */
+  /* 			     ind->solveSave[0])/op->hRate; */
+  /* 	A[cur++] = ind->solveSave[9]; */
+  /*     } */
+  /*     // dA/t_dur1 */
+  /*     if (op->linBflag & 512) { // rate1 bitwShiftL(1, 10-1) */
+  /* 	ind->solveSave[10] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1 + op->hDur, */
+  /* 				      tr.ka.f, tr.d_tlag2, tr.d_F2,  tr.d_rate2, tr.d_dur2) - */
+  /* 			      ind->solveSave[0])/op->hDur; */
+  /* 	A[cur++] = ind->solveSave[10]; */
+  /*     } */
+  /*     // dA/d_ka #11 bitwShiftL(1, 11-1) */
+  /*     // dA/d_tlag2 #12 bitwShiftL(1, 12-1) */
+  /*     if (op->linBflag & 2048) { */
+  /* 	//  + op->hTlag */
+  /* 	ind->solveSave[12] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1, tr.ka.f, */
+  /* 				      tr.d_tlag2 + op->hTlag2, */
+  /* 				      tr.d_F2,  tr.d_rate2, tr.d_dur2) - */
+  /* 			      ind->solveSave[0])/op->hTlag2; */
+  /* 	A[cur++] = ind->solveSave[12]; */
+  /*     } */
+  /*     // dA/d_F2 #13 bitwShiftL(1, 13-1) */
+  /*     if (op->linBflag & 4096) { */
+  /* 	ind->solveSave[13] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1, tr.ka.f, tr.d_tlag2, */
+  /* 				      tr.d_F2 + op->hF2,  tr.d_rate2, tr.d_dur2) - */
+  /* 			      ind->solveSave[0])/op->hF2; */
+  /* 	A[cur++] = ind->solveSave[13]; */
+  /*     } */
+  /*     // dA/d_rate2 #14 bitwShiftL(1, 14-1) 8192 */
+  /*     if (op->linBflag & 8192) { */
+  /* 	ind->solveSave[14] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1, tr.ka.f, tr.d_tlag2, */
+  /* 				      tr.d_F2, tr.d_rate2 + op->hRate2, tr.d_dur2) - */
+  /* 			      ind->solveSave[0])/op->hRate2; */
+  /* 	A[cur++] = ind->solveSave[14]; */
+  /*     } */
+  /*     // dA/d_dur2 #15 bitwShiftL(1, 15-1) 16384 */
+  /*     if (op->linBflag & 16384) { */
+  /* 	ind->solveSave[15] = (linCmtC(rx, id, t, linCmt, tr.ncmt, tr.trans, */
+  /* 				      tr.p1.f, tr.v1.f, tr.p2.f, tr.p3.f, tr.p4.f, tr.p5.f, tr.d_tlag, tr.d_F, tr.d_rate1, */
+  /* 				      tr.d_dur1, tr.ka.f, tr.d_tlag2, */
+  /* 				      tr.d_F2, tr.d_rate2, tr.d_dur2 + op->hDur2) - */
+  /* 			      ind->solveSave[0])/op->hDur2; */
+  /* 	A[cur++] = ind->solveSave[15]; */
+  /*     } */
+  /*   } */
+  /* } */
+  //double d_tlag, double d_F, double d_rate1, double d_dur1,
+  // Oral parameters
+  // double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2
+  return NA_REAL;
 }
