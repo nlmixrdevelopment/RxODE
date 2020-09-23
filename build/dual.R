@@ -32,45 +32,119 @@ toDual <- function(x="0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)))"){
     }
     return(paste0("SB_", x, "_SE"))
   }
+  is.temp <- function(x){
+    (regexpr("\\(", x) != -1)
+  }
   f <- function(x) {
     if (is.atomic(x)) {
       return(x)
     } else if (is.name(x)) {
-      if (tolower(as.character(x)) == "ka") assign(".hasKa2", TRUE, globalenv())
+      .x <- as.character(x)
+      if (tolower(.x) == "ka") assign(".hasKa2", TRUE, globalenv())
+      if (!any(.x == c("ka", "k23", "k32", "k20", "k12", "k21", "k10", "k13", "k31", "k24", "k42", "tau", "r1", "r2", "b1", "b2", "tinf"))) {
+        if (regexpr("^[A-Za-z]", .x) != -1){
+          return(eval(parse(text=paste0("quote(AND_", .x, ")"))))
+        }
+      }
       return(x)
     } else if (is.pairlist(x)){
       return(x)
     } else if (is.call(x)) {
       if (identical(x[[1]], quote(`*`))) {
-        if (is.num(x[[2]])) {
-          return(eval(parse(text=paste0("quote(prodd2(", as.char(x[[2]]), ",", deparse1(f(x[[3]])), "))"))))
-        } else if (is.num(x[[3]])){
-          return(eval(parse(text=paste0("quote(prod2d(", deparse1(f(x[[2]])), ",", as.char(x[[3]]) , "))"))))
-        }
         .x1 <- deparse1(f(x[[2]]))
         .x2 <- deparse1(f(x[[3]]))
+        if (is.num(x[[2]])) {
+          if (is.temp(.x2)) {
+            return(eval(parse(text=paste0("quote(prodd2X(", as.char(x[[2]]), ",", .x2, "))"))))
+          } else {
+            .cur <- get(".curDual", globalenv())
+            dn <- paste0("rx_dn", .cur)
+            assign(".curDual", .cur + 1, globalenv())
+            return(eval(parse(text=paste0("quote(prodd2(", as.char(x[[2]]), ",", .x2, ",", dn, "))"))))
+          }
+        } else if (is.num(x[[3]])){
+          if (is.temp(.x1)) {
+            return(eval(parse(text=paste0("quote(prod2dX(", .x1, ",", as.char(x[[3]]) , "))"))))
+          } else {
+            .cur <- get(".curDual", globalenv())
+            dn <- paste0("rx_dn", .cur)
+            assign(".curDual", .cur + 1, globalenv())
+            return(eval(parse(text=paste0("quote(prod2d(", .x1, ",", as.char(x[[3]]) , ",", dn, "))"))))
+          }
+        }
         if (any(.x2 == c("(SB_tau_SE - SB_tinf_SE)", "(SB_tau_SE * SB_tinf_SE)"))){
-          return(eval(parse(text=paste0("quote(prodd2(", .x2, ",", .x1, "))"))))
+          if (is.temp(.x1)){
+            return(eval(parse(text=paste0("quote(prodd2X(", .x2, ",", .x1, "))"))))
+          } else {
+            .cur <- get(".curDual", globalenv())
+            dn <- paste0("rx_dn", .cur)
+            assign(".curDual", .cur + 1, globalenv())
+            return(eval(parse(text=paste0("quote(prodd2(", .x2, ",", .x1, ",", dn, "))"))))
+          }
         } else {
-          return(eval(parse(text=paste0("quote(prod2(", .x1, ",", .x2, "))"))))
+          if (is.temp(.x1)) {
+            return(eval(parse(text=paste0("quote(prod2X(", .x1, ",", .x2, "))"))))
+          } else if (is.temp(.x2)){
+            return(eval(parse(text=paste0("quote(prod2X2(", .x1, ",", .x2, "))"))))
+          } else {
+            .cur <- get(".curDual", globalenv())
+            dn <- paste0("rx_dn", .cur)
+            assign(".curDual", .cur + 1, globalenv())
+            return(eval(parse(text=paste0("quote(prod2(", .x2, ",", .x1, ",", dn, "))"))))
+          }
         }
       } else if (identical(x[[1]], quote(`-`))) {
         if (length(x) == 2){
+          .x2 <- deparse1(f(x[[2]]));
           if (is.num(x[[2]])){
-            return(eval(parse(text=paste0("quote(-", deparse1(f(x[[2]])), ")"))))
+            return(eval(parse(text=paste0("quote(-", .x2, ")"))))
           } else {
-            return(eval(parse(text=paste0("quote(negD(", deparse1(f(x[[2]])), "))"))))
+            if (is.temp(.x2)) {
+              return(eval(parse(text=paste0("quote(negDX(", deparse1(f(x[[2]])), "))"))))
+            } else {
+              .cur <- get(".curDual", globalenv())
+              dn <- paste0("rx_dn", .cur)
+              assign(".curDual", .cur + 1, globalenv())
+              return(eval(parse(text=paste0("quote(negD(", deparse1(f(x[[2]])), ",", dn, "))"))))
+            }
           }
         }
         if (is.num(x[[2]]) && is.num(x[[3]])) {
           return(eval(parse(text=paste0("quote(", as.char(x[[2]]), "-", as.char(x[[3]]), ")"))))
         }
         if (is.num(x[[2]])) {
-          return(eval(parse(text=paste0("quote(subtrd2(", as.char(x[[2]]), ",", deparse1(f(x[[3]])), "))"))))
+          .x3 <- deparse1(f(x[[3]]))
+          if (is.temp(.x3)){
+            return(eval(parse(text=paste0("quote(subtrd2X(", as.char(x[[2]]), ",", .x3, "))"))))
+          } else {
+            .cur <- get(".curDual", globalenv())
+            dn <- paste0("rx_dn", .cur)
+            assign(".curDual", .cur + 1, globalenv())
+            return(eval(parse(text=paste0("quote(subtrd2(", as.char(x[[2]]), ",", .x3, ",", dn, "))"))))
+          }
         } else if (is.num(x[[3]])){
-          return(eval(parse(text=paste0("quote(subtr2d(", deparse1(f(x[[2]])), ",", as.char(x[[3]]), "))"))))
+          .x2 <- deparse1(f(x[[2]]))
+          if (is.temp(.x2)){
+             return(eval(parse(text=paste0("quote(subtr2dX(", .x2, ",", as.char(x[[3]]), "))"))))
+          } else {
+            .cur <- get(".curDual", globalenv())
+            dn <- paste0("rx_dn", .cur)
+            assign(".curDual", .cur + 1, globalenv())
+            return(eval(parse(text=paste0("quote(subtr2d(", .x2, ",", as.char(x[[3]]),",", dn, "))"))))
+          }
         }
-        return(eval(parse(text=paste0("quote(subtr2(", deparse1(f(x[[2]])), ",", deparse1(f(x[[3]])), "))"))))
+        .x2 <- deparse1(f(x[[2]]))
+        .x3 <- deparse1(f(x[[3]]))
+        if (is.temp(.x2)){
+          return(eval(parse(text=paste0("quote(subtr2X(", .x2, ",", .x3, "))"))))
+        } else if (is.temp(.x3)) {
+          return(eval(parse(text=paste0("quote(subtr2X2(", .x2, ",", .x3, "))"))))
+        } else {
+          .cur <- get(".curDual", globalenv())
+          dn <- paste0("rx_dn", .cur)
+          assign(".curDual", .cur + 1, globalenv())
+          return(eval(parse(text=paste0("quote(subtr2(", .x2, ",", .x3, ",", dn, "))"))))
+        }
       } else if (identical(x[[1]], quote(`+`))) {
         if (length(x) == 2){
           return(x[[2]])
@@ -78,38 +152,149 @@ toDual <- function(x="0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)))"){
         if (is.num(x[[2]]) & is.num(x[[3]])) {
           return(eval(parse(text=paste0("quote(", as.char(x[[2]]), "+", as.char(x[[3]]), ")"))))
         } else if (is.num(x[[2]])) {
-          return(eval(parse(text=paste0("quote(addd2(", as.char(x[[2]]), ",", deparse1(f(x[[3]])), "))"))))
+          .x3 <- deparse1(f(x[[3]]))
+          if (is.temp(.x3)) {
+            return(eval(parse(text=paste0("quote(addd2X(", as.char(x[[2]]), ",", .x3, "))"))))
+          } else {
+            .cur <- get(".curDual", globalenv())
+            dn <- paste0("rx_dn", .cur)
+            assign(".curDual", .cur + 1, globalenv())
+            return(eval(parse(text=paste0("quote(addd2(", as.char(x[[2]]), ",", .x3, ",", dn, "))"))))
+          }
         } else if (is.num(x[[3]])){
-          return(eval(parse(text=paste0("quote(add2d(", deparse1(f(x[[2]])), ",", as.char(x[[3]]), "))"))))
+          .x2 <- deparse1(f(x[[2]]))
+          if (is.temp(.x2)) {
+            return(eval(parse(text=paste0("quote(add2dX(", .x2, ",", as.char(x[[3]]), "))"))))
+          } else {
+            .cur <- get(".curDual", globalenv())
+            dn <- paste0("rx_dn", .cur)
+            assign(".curDual", .cur + 1, globalenv())
+            return(eval(parse(text=paste0("quote(add2d(", .x2, ",", as.char(x[[3]]), ",", dn, "))"))))
+          }
         }
         .x2 <- deparse1(f(x[[2]]))
         .x3 <- deparse1(f(x[[3]]))
-        return(eval(parse(text=paste0("quote(add2(", .x2, ",", .x3, "))"))))
+        if (is.temp(.x2)) {
+          return(eval(parse(text=paste0("quote(add2X(", .x2, ",", .x3, "))"))))
+        } else if (is.temp(.x3)) {
+          return(eval(parse(text=paste0("quote(add2X2(", .x2, ",", .x3, "))"))))
+        } else {
+          .cur <- get(".curDual", globalenv())
+          dn <- paste0("rx_dn", .cur)
+          assign(".curDual", .cur + 1, globalenv())
+          return(eval(parse(text=paste0("quote(add2(", .x2, ",", .x3, ",", dn, "))"))))
+        }
       } else if (identical(x[[1]], quote(`sqrt`))) {
-        return(eval(parse(text=paste0("quote(sqrtD(", deparse1(f(x[[2]])), "))"))))
+        .x2 <- deparse1(f(x[[2]]))
+        if (is.temp(.x2)){
+          return(eval(parse(text=paste0("quote(sqrtDX(", .x2, "))"))))
+        } else {
+          .cur <- get(".curDual", globalenv())
+          dn <- paste0("rx_dn", .cur)
+          assign(".curDual", .cur + 1, globalenv())
+          return(eval(parse(text=paste0("quote(sqrtD(", .x2, ",", dn, "))"))))
+        }
       } else if (identical(x[[1]], quote(`/`))){
         if (is.num(x[[2]])) {
-          return(eval(parse(text=paste0("quote(divd2(", as.char(x[[2]]), ",", deparse1(f(x[[3]])), "))"))))
+          .x3 <- deparse1(f(x[[3]]))
+          if (is.temp(.x3)) {
+            return(eval(parse(text=paste0("quote(divd2X(", as.char(x[[2]]), ",", .x3, "))"))))
+          } else {
+            .cur <- get(".curDual", globalenv())
+            dn <- paste0("rx_dn", .cur)
+            assign(".curDual", .cur + 1, globalenv())
+            return(eval(parse(text=paste0("quote(divd2(", as.char(x[[2]]), ",", deparse1(f(x[[3]])), ",", dn, "))"))))
+          }
         } else if (is.num(x[[3]])){
-          return(eval(parse(text=paste0("quote(div2d(", deparse1(f(x[[2]])), ",", as.char(x[[3]]), "))"))))
+          .x2 <- deparse1(f(x[[2]]))
+          if (is.temp(.x2)) {
+            return(eval(parse(text=paste0("quote(div2dX(", .x2, ",", as.char(x[[3]]), "))"))))
+          } else {
+            .cur <- get(".curDual", globalenv())
+            dn <- paste0("rx_dn", .cur)
+            assign(".curDual", .cur + 1, globalenv())
+            return(eval(parse(text=paste0("quote(div2d(", .x2, ",", as.char(x[[3]]), ",", dn, "))"))))
+          }
         }
         .x1 <- deparse1(f(x[[2]]))
         .x2 <- deparse1(f(x[[3]]))
         if (.x1 == "(SB_r2_SE + SB_r1_SE)"){
-          return(eval(parse(text=paste0("quote(divd2(", .x1, ",", .x2, "))"))))
+          if (is.temp(.x2)) {
+            return(eval(parse(text=paste0("quote(divd2X(", .x1, ",", .x2, "))"))))
+          } else {
+            .cur <- get(".curDual", globalenv())
+            dn <- paste0("rx_dn", .cur)
+            assign(".curDual", .cur + 1, globalenv())
+            return(eval(parse(text=paste0("quote(divd2(", .x1, ",", .x2, ",", dn, "))"))))
+          }
         } else {
-          return(eval(parse(text=paste0("quote(div2(", .x1, ",", .x2, "))"))))
+          if (is.temp(.x1)){
+            return(eval(parse(text=paste0("quote(div2X(", .x1, ",", .x2, "))"))))
+          } else if (is.temp(.x2)) {
+            return(eval(parse(text=paste0("quote(div2X2(", .x1, ",", .x2, "))"))))
+          } else {
+            .cur <- get(".curDual", globalenv())
+            dn <- paste0("rx_dn", .cur)
+            assign(".curDual", .cur + 1, globalenv())
+            return(eval(parse(text=paste0("quote(div2(", .x1, ",", .x2, ",", dn, "))"))))
+          }
         }
       } else if (identical(x[[1]], quote(`exp`))) {
-        return(eval(parse(text=paste0("quote(expD(", deparse1(f(x[[2]])), "))"))))
+        .x2 <- deparse1(f(x[[2]]))
+        if (is.temp(.x2)) {
+          return(eval(parse(text=paste0("quote(expDX(", .x2, "))"))))
+        } else {
+          .cur <- get(".curDual", globalenv())
+          dn <- paste0("rx_dn", .cur)
+          assign(".curDual", .cur + 1, globalenv())
+          return(eval(parse(text=paste0("quote(expD(", .x2, ",", dn, "))"))))
+        }
       } else if (identical(x[[1]], quote(`sin`))) {
-        return(eval(parse(text=paste0("quote(sinD(", deparse1(f(x[[2]])), "))"))))
+        .x2 <- deparse1(f(x[[2]]))
+        if (is.temp(.x2)) {
+          return(eval(parse(text=paste0("quote(sinDX(", .x2, "))"))))
+        } else {
+          .cur <- get(".curDual", globalenv())
+          dn <- paste0("rx_dn", .cur)
+          assign(".curDual", .cur + 1, globalenv())
+          return(eval(parse(text=paste0("quote(sinD(", .x2, ",", dn, "))"))))
+        }
       } else if (identical(x[[1]], quote(`cos`))) {
-        return(eval(parse(text=paste0("quote(cosD(", deparse1(f(x[[2]])), "))"))))
+        .x2 <- deparse1(f(x[[2]]))
+        if (is.temp(.x2)) {
+          return(eval(parse(text=paste0("quote(cosDX(", .x2, "))"))))
+        } else {
+          .cur <- get(".curDual", globalenv())
+          dn <- paste0("rx_dn", .cur)
+          assign(".curDual", .cur + 1, globalenv())
+          return(eval(parse(text=paste0("quote(cosD(", .x2, ",", dn, "))"))))
+        }
       } else if (identical(x[[1]], quote(`R_pow`))) {
-        return(eval(parse(text=paste0("quote(pow2d(", deparse1(f(x[[2]])), ",", deparse1(f(x[[3]])), "))"))))
+        .x2 <- deparse1(f(x[[2]]))
+        .x3 <- deparse1(f(x[[3]]))
+        if (is.temp(.x2)) {
+          return(eval(parse(text=paste0("quote(pow2dX(", .x2, ",", .x3, "))"))))
+        } else if (is.temp(.x3)) {
+          return(eval(parse(text=paste0("quote(pow2dX2(", .x2, ",", .x3, "))"))))
+        } else {
+          .cur <- get(".curDual", globalenv())
+          dn <- paste0("rx_dn", .cur)
+          assign(".curDual", .cur + 1, globalenv())
+          return(eval(parse(text=paste0("quote(pow2d(", .x2, ",", .x3, ",", dn, "))"))))
+        }
       } else if (identical(x[[1]], quote(`atan2`))) {
-        return(eval(parse(text=paste0("quote(atan2D(", deparse1(f(x[[2]])), ",", deparse1(f(x[[3]])), "))"))))
+        .x2 <- deparse1(f(x[[2]]))
+        .x3 <- deparse1(f(x[[3]]))
+        if (is.temp(.x2)) {
+          return(eval(parse(text=paste0("quote(atan2DX(", .x2, ",", .x3, "))"))))
+        } else if (is.temp(.x3)) {
+          return(eval(parse(text=paste0("quote(atan2DX2(", .x2, ",", .x3, "))"))))
+        } else {
+          .cur <- get(".curDual", globalenv())
+          dn <- paste0("rx_dn", .cur)
+          assign(".curDual", .cur + 1, globalenv())
+          return(eval(parse(text=paste0("quote(atan2D(", .x2, ",", .x3, ",", dn, "))"))))
+        }
       } else if (identical(x[[1]], quote(`(`))) {
       } else {
         message("un-handled")
@@ -119,15 +304,39 @@ toDual <- function(x="0.5*(s - sqrt(s*s - 4*(*k32)*(*k20)))"){
       return(as.call(lapply(x, f)));
     }
   }
-  return(gsub(" +", "", deparse1(f(eval(parse(text=paste0("quote(", fromC(x), ")")))))))
+  return(gsub("AND_", "&", gsub("rx_dn", "&rx_dn", gsub(" +", "", deparse1(f(eval(parse(text=paste0("quote(", fromC(x), ")")))))))))
 }
 
 .lines <- readLines(devtools::package_file("src/lincmt.c"))
+
+doLines <- function(.l){
+  .l <- strsplit(.l, "\n")[[1]]
+  .l <- strsplit(.l, "=")
+  .l <- lapply(seq_along(.l), function(.i){
+    .cur <- .l[[.i]];
+    if (any(is.na(.cur))) return("");
+    if (length(.cur) != 2) return("")
+    .l1 <- gsub(" +", "", .cur[1])
+    if (.l1 == "A3") assign(".hasA3", TRUE, globalenv())
+    if (.l1 == "A3") assign(".hasA4", TRUE, globalenv())
+    assign(".curDual", 0, globalenv())
+    .l2 <- toDual(gsub(";", "", .cur[2]))
+    assign(".maxDual", max(get(".maxDual", globalenv()),
+                           get(".curDual", globalenv())), globalenv())
+    if (.l1 == "A1" & .l2 == "0")
+      return("dualN A1;\niniD(0, -1, &A1);")
+    return(paste0("dualN ", .l1, ";\nassignD(&", .l1, ",", .l2, ");"))
+  })
+  .l <- .l[.l != ""]
+  .l
+}
 
 getFun <- function(x="oneCmtKaRateSSr1"){
   assign(".hasA3", FALSE, globalenv())
   assign(".hasA4", FALSE, globalenv())
   assign(".hasKa2", FALSE, globalenv())
+  assign(".curDual", 0, globalenv())
+  assign(".maxDual", 0, globalenv())
   .w <- which(regexpr(paste0("void ", x, " *[(]"), .lines) != -1)[1]
   .l <- .lines[-seq(1, .w - 1)];
   .w <- which(regexpr("}", .l) != -1)[1]
@@ -154,6 +363,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
   assign(".args", .args2, globalenv())
   .l <- .l[-1]
   .l <- paste(.l[-length(.l)], collapse="\n");
+
   .l <- fromC(.l)
   if (.hasAlast){
     .fargs <- c("A", "Alast", .args)
@@ -161,27 +371,15 @@ getFun <- function(x="oneCmtKaRateSSr1"){
     .fargs <- c("A", .args)
   }
   .fargs <- sapply(.fargs, function(x){
-    if (any(x == c("ka", "k23", "k32", "k20", "k12", "k21", "k10", "k13", "k31", "k24", "k42"))) return(paste0("dualN ", x))
+    if (any(x == c("ka", "k23", "k32", "k20", "k12", "k21", "k10", "k13", "k31", "k24", "k42"))) return(paste0("dualN *", x))
     paste0("double *", x)
   })
   .fargs <- paste0("(", paste(.fargs, collapse=", "), ")")
   .fB <- paste0("static inline dualN ", x, "G", .fargs, " {")
-  .l <- strsplit(.l, "\n")[[1]]
-  .l <- strsplit(.l, "=")
-  .l <- lapply(seq_along(.l), function(.i){
-    .cur <- .l[[.i]];
-    if (any(is.na(.cur))) return("");
-    if (length(.cur) != 2) return("")
-    .l1 <- gsub(" +", "", .cur[1])
-    if (.l1 == "A3") assign(".hasA3", TRUE, globalenv())
-    if (.l1 == "A3") assign(".hasA4", TRUE, globalenv())
-    .l2 <- toDual(gsub(";", "", .cur[2]))
-    if (.l1 == "A1" & .l2 == "0")
-      return("dualN A1=iniD(0, -1);")
-    return(paste0("dualN ", .l1, "=", .l2, ";"))
-  })
-  .l <- .l[.l != ""]
+
+  .l <- doLines(.l)
   .ret <- gsub("_SE", ")", gsub("SB_", "(*", paste(unlist(.l), collapse="\n")));
+  .fB <- paste0(.fB, "\n", paste0("dualN ", paste(paste0("rx_dn", seq(0, get(".maxDual", globalenv()) - 1)), collapse=","), ";"))
 
   if (.hasKa) {
     if (regexpr("oneCmt", x) != -1) {
@@ -191,11 +389,11 @@ getFun <- function(x="oneCmtKaRateSSr1"){
         #define A2k20 A[4]
         .ret <- paste0(c(.fB,
                          ifelse(.hasKa2, "// has ka", "(void)(ka);"),
-                         "dualN A1last = iniD(Alast[0],-1);",
+                         "dualN A1last;\nA1last.f = Alast[0];",
                          "A1last.grad[dKa] = Alast[2];",
                          "A1last.grad[dP1] = Alast[3];",
                          "A1last.grad[dV1] = Alast[4];",
-                         "dualN A2last = iniD(Alast[1],-1);",
+                         "dualN A2last;\nA2last.f = Alast[1];",
                          "A2last.grad[dKa] = Alast[5];", # ka
                          "A2last.grad[dP1] = Alast[6];", # k20
                          "A2last.grad[dV1] = Alast[7];", # dVp
@@ -237,13 +435,13 @@ getFun <- function(x="oneCmtKaRateSSr1"){
       if (.hasAlast) {
         .ret <- paste0(c(.fB,
                          ifelse(.hasKa2, "// has ka", "(void)(ka);"),
-                         "dualN A1last = iniD(Alast[0],-1);",
+                         "dualN A1last;\nA1last.f =Alast[0];",
                          "A1last.grad[dKa] = Alast[3];",
                          "A1last.grad[dP1] = Alast[4];", # doesn't depend on k20
                          "A1last.grad[dP2] = Alast[5];",
                          "A1last.grad[dP3] = Alast[6];",
                          "A1last.grad[dV1] = Alast[7];",
-                         "dualN A2last = iniD(Alast[1],-1);",
+                         "dualN A2last;\nA2last.f = Alast[1];",
                          #define A2ka A[6]
                          #define A2k20 A[7]
                          #define A2k23 A[8]
@@ -253,7 +451,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
                          "A2last.grad[dP2] = Alast[10];", # k23
                          "A1last.grad[dP3] = Alast[11];", # k32
                          "A1last.grad[dV1] = Alast[12];", # k32
-                         "dualN A3last = iniD(Alast[2],-1);",
+                         "dualN A3last;\nA3last.f = Alast[2];",
                          #define A3lastka Alast[10]
                          #define A3lastk20 Alast[11]
                          #define A3lastk23 Alast[12]
@@ -321,7 +519,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
       if (.hasAlast) {
         .ret <- paste0(c(.fB,
                          ifelse(.hasKa2, "// has ka", "(void)(ka);"),
-                         "dualN A1last = iniD(Alast[0],-1);",
+                         "dualN A1last;\nA1last.f = Alast[0];",
                          "A1last.grad[dKa] = Alast[4];",
                          "A1last.grad[dP1] = Alast[5];", # doesn't depend on k20
                          "A1last.grad[dP2] = Alast[6];",
@@ -329,7 +527,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
                          "A1last.grad[dP4] = Alast[8];",
                          "A1last.grad[dP5] = Alast[9];",
                          "A1last.grad[dV1] = Alast[10];",
-                         "dualN A2last = iniD(Alast[1],-1);",
+                         "dualN A2last;\nA2last.f = Alast[1];",
                          "A2last.grad[dKa] = Alast[11];",
                          "A2last.grad[dP1] = Alast[12];",
                          "A2last.grad[dP2] = Alast[13];",
@@ -337,7 +535,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
                          "A1last.grad[dP4] = Alast[15];",
                          "A1last.grad[dP5] = Alast[16];",
                          "A1last.grad[dV1] = Alast[17];",
-                         "dualN A3last = iniD(Alast[2],-1);",
+                         "dualN A3last;\nA3last.f = Alast[2];",
                          "A3last.grad[dKa] = Alast[18];",
                          "A3last.grad[dP1] = Alast[19];",
                          "A3last.grad[dP2] = Alast[20];",
@@ -345,7 +543,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
                          "A3last.grad[dP4] = Alast[22];",
                          "A3last.grad[dP5] = Alast[23];",
                          "A3last.grad[dV1] = Alast[24];",
-                         "dualN A4last = iniD(Alast[3],-1);",
+                         "dualN A4last;\nA4last.f = Alast[3];",
                          "A4last.grad[dKa] = Alast[25];",
                          "A4last.grad[dP1] = Alast[26];",
                          "A4last.grad[dP2] = Alast[27];",
@@ -445,7 +643,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
         #define A2ka A[3]
         #define A2k20 A[4]
         .ret <- paste0(c(.fB,
-                         "dualN A1last = iniD(Alast[0],-1);",
+                         "dualN A1last;\nA1last.f = Alast[0];",
                          "A1last.grad[dKa] = Alast[1];",
                          .ret,
                          "A[0] = A1.f;",
@@ -476,12 +674,12 @@ getFun <- function(x="oneCmtKaRateSSr1"){
         #define A2k12 A[6]
         #define A2k21 A[7]
         .ret <- paste0(c(.fB,
-                         "dualN A1last = iniD(Alast[0],-1);",
+                         "dualN A1last;\nA1last.f = Alast[0];",
                          "A1last.grad[dP1] = Alast[2];",
                          "A1last.grad[dP2] = Alast[3];",
                          "A1last.grad[dP3] = Alast[4];",
                          "A1last.grad[dV1] = Alast[5];",
-                         "dualN A2last = iniD(Alast[1],-1);",
+                         "dualN A2last;\nA2last.f=Alast[1];",
                          "A2last.grad[dP1] = Alast[5];", # k10
                          "A2last.grad[dP2] = Alast[6];", # k12
                          "A2last.grad[dP3] = Alast[7];", # k21
@@ -525,21 +723,21 @@ getFun <- function(x="oneCmtKaRateSSr1"){
     } else if (regexpr("threeCmt", x) != -1) {
       if (.hasAlast) {
         .ret <- paste0(c(.fB,
-                         "dualN A1last = iniD(Alast[0],-1);",
+                         "dualN A1last;\nA1last.f = Alast[0];",
                          "A1last.grad[dP1] = Alast[3];",
                          "A1last.grad[dP2] = Alast[4];",
                          "A1last.grad[dP3] = Alast[5];",
                          "A1last.grad[dP4] = Alast[6];",
                          "A1last.grad[dP5] = Alast[7];",
                          "A1last.grad[dV1] = Alast[8];",
-                         "dualN A2last = iniD(Alast[1],-1);",
+                         "dualN A2last;\nA2last.f = Alast[1];",
                          "A2last.grad[dP1] = Alast[9];",
                          "A2last.grad[dP2] = Alast[10];",
                          "A2last.grad[dP3] = Alast[11];",
                          "A2last.grad[dP4] = Alast[12];",
                          "A2last.grad[dP5] = Alast[13];",
                          "A2last.grad[dV1] = Alast[14];",
-                         "dualN A3last = iniD(Alast[2],-1);",
+                         "dualN A3last;\nA3last.f = Alast[2];",
                          "A3last.grad[dP1] = Alast[15];",
                          "A3last.grad[dP2] = Alast[16];",
                          "A3last.grad[dP3] = Alast[17];",

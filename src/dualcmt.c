@@ -82,56 +82,65 @@ static inline parTr parTrans(int *trans,
   ret.d_F2 = d_F2;
   ret.d_rate2 = d_rate2;
   ret.d_dur2 = d_dur2;
-  ret.ka = iniD(*ka, dKa);
-  ret.p1 = iniD(*p1, dP1);
-  ret.p2 = iniD(*p2, dP2);
-  ret.p3 = iniD(*p3, dP3);
-  ret.p4 = iniD(*p4, dP4);
-  ret.p5 = iniD(*p5, dP5);
-  ret.v1 = iniD(*v1, dV1);
+  iniD(*ka, dKa, &ret.ka);
+  iniD(*p1, dP1, &ret.p1);
+  iniD(*p2, dP2, &ret.p2);
+  iniD(*p3, dP3, &ret.p3);
+  iniD(*p4, dP4, &ret.p4);
+  iniD(*p5, dP5, &ret.p5);
+  iniD(*v1, dV1, &ret.v1);
   ret.oral0 = (*ka > 0) ? 1 : 0;
-  dualN alpha, beta, gamma, A, B, C, btemp, ctemp, dtemp;
+  dualN alpha, beta, gamma, A, B, C, btemp, ctemp, dtemp,
+    rx_dn0, rx_dn1, rx_dn2, rx_dn3, rx_dn4, rx_dn5, rx_dn6, rx_dn7,
+    rx_dn8, rx_dn9, rx_dn10, rx_dn11;
   if ((*p5) > 0.) {
     ret.ncmt = 3;
     ret.trans = *trans;
     switch (*trans) {
     case 1: // cl v q vp
-      ret.rx_k = div2(ret.p1,ret.v1); // k = CL/V
-      ret.rx_v = ret.v1;
-      ret.rx_k12 = div2(ret.p2,ret.v1); // k12 = Q/V
-      ret.rx_k21 = div2(ret.p2,ret.p3); // k21 = Q/Vp
-      ret.rx_k13 = div2(ret.p4,ret.v1); // k31 = Q2/V
-      ret.rx_k31 = div2(ret.p4,ret.p5); // k31 = Q2/Vp2
+      div2(&ret.p1, &ret.v1, &ret.rx_k); // k = CL/V
+      assignD(&ret.rx_v,&ret.v1);
+      div2(&ret.p2,&ret.v1, &ret.rx_k12); // k12 = Q/V
+      div2(&ret.p2, &ret.p3, &ret.rx_k21); // k21 = Q/Vp
+      div2(&ret.p4,&ret.v1, &ret.rx_k13); // k31 = Q2/V
+      div2(&ret.p4,&ret.p5, &ret.rx_k31); // k31 = Q2/Vp2
       break;
     case 2: // k=(*p1) v=(*v1) k12=(*p2) k21=(*p3) k13=(*p4) k31=(*p5)
-      ret.rx_k = ret.p1;
-      ret.rx_v = ret.v1;
-      ret.rx_k12 = ret.p2;
-      ret.rx_k21 = ret.p3;
-      ret.rx_k13 = ret.p4;
-      ret.rx_k31 = ret.p5;
+      assignD(&ret.rx_k,&ret.p1);
+      assignD(&ret.rx_v, &ret.v1);
+      assignD(&ret.rx_k12, &ret.p2);
+      assignD(&ret.rx_k21, &ret.p3);
+      assignD(&ret.rx_k13, &ret.p4);
+      assignD(&ret.rx_k31, &ret.p5);
       break;
     case 10:
     case 11:
-      if (*trans == 11) A = divd2(1,ret.v1);
-      else A = ret.v1;
-      B  = ret.p3;
-      C =  ret.p5;
-      alpha = ret.p1;
-      beta = ret.p2;
-      gamma = ret.p4;
-      ret.rx_v= divd2(1,(add2(add2(A,B),C)));
-      btemp = prod2(negD((add2(add2(add2(add2(add2(prod2(alpha,C),prod2(alpha,B)),prod2(gamma,A)),prod2(gamma,B)),prod2(beta,A)),prod2(beta,C)))),ret.rx_v);
-      ctemp = prod2((add2(add2(prod2(prod2(alpha,beta),C),prod2(prod2(alpha,gamma),B)),prod2(prod2(beta,gamma),A))),ret.rx_v);
-      dtemp = sqrtD(subtr2(prod2(btemp,btemp),prodd2(4,ctemp)));
-      ret.rx_k21 = prodd2(0.5,(add2(negD(btemp),dtemp)));
-      ret.rx_k31 = prodd2(0.5,(subtr2(negD(btemp),dtemp)));
-      ret.rx_k   = div2(div2(prod2(prod2(alpha,beta),gamma),ret.rx_k21),ret.rx_k31);
-      ret.rx_k12 = div2((add2(subtr2(subtr2((add2(add2(prod2(beta,gamma),prod2(alpha,beta)),prod2(alpha,gamma))),
-					    prod2(ret.rx_k21,(add2(add2(alpha,beta),gamma)))),
-				     prod2(ret.rx_k,ret.rx_k31)),prod2(ret.rx_k21,ret.rx_k21))),
-			(subtr2(ret.rx_k31,ret.rx_k21)));
-      ret.rx_k13 = subtr2(add2(add2(alpha,beta),gamma),(add2(add2(add2(ret.rx_k,ret.rx_k12),ret.rx_k21),ret.rx_k31)));
+      if (*trans == 11) assignD(&A,divd2(1,&ret.v1, &rx_dn0));
+      else assignD(&A, &ret.v1);
+      assignD(&B, &ret.p3);
+      assignD(&C, &ret.p5);
+      assignD(&alpha, &ret.p1);
+      assignD(&beta, &ret.p2);
+      assignD(&gamma, &ret.p4);
+      assignD(&ret.rx_v,divd2X(1,(add2X(add2(&A,&B,&rx_dn0),&C))));
+      assignD(&btemp,prod2X(negDX((add2X(add2X(add2X(add2X(add2X(prod2(&C,&alpha,&rx_dn6),
+								 prod2(&B,&alpha,&rx_dn7)),
+							   prod2(&A,&gamma,&rx_dn8)),prod2(&B,&gamma,&rx_dn9)),
+					       prod2(&A,&beta,&rx_dn10)),prod2(&C,&beta,&rx_dn11)))),&ret.rx_v));
+      assignD(&ctemp,prod2X((add2X(add2X(prod2X(prod2(&beta,&alpha,&rx_dn0),&C),
+					 prod2X(prod2(&gamma,&alpha,&rx_dn1),&B)),
+				   prod2X(prod2(&gamma,&beta,&rx_dn2),&A))),&ret.rx_v));
+      assignD(&dtemp,sqrtDX(subtr2X(prod2(&btemp,&btemp,&rx_dn0),prodd2(4,&ctemp,&rx_dn1))));
+      assignD(&ret.rx_k21,prodd2X(0.5,(add2X(negD(&btemp,&rx_dn0),&dtemp))));
+      assignD(&ret.rx_k31,prodd2X(0.5,(subtr2X(negD(&btemp,&rx_dn0),&dtemp))));
+      assignD(&ret.rx_k,div2X(div2X(prod2X(prod2(&beta,&alpha,&rx_dn0),&gamma),&ret.rx_k21),&ret.rx_k31));
+      assignD(&ret.rx_k12,div2X((add2X(subtr2X(subtr2X((add2X(add2X(prod2(&gamma,&beta,&rx_dn0),
+								    prod2(&beta,&alpha,&rx_dn1)),
+							      prod2(&gamma,&alpha,&rx_dn2))),
+						       prod2X2(&ret.rx_k21,(add2X(add2(&alpha,&beta,&rx_dn3),&gamma)))),
+					       prod2(&ret.rx_k31,&ret.rx_k,&rx_dn4)),prod2(&ret.rx_k21,&ret.rx_k21,&rx_dn5))),
+				(subtr2(&ret.rx_k31,&ret.rx_k21,&rx_dn6))));
+      assignD(&ret.rx_k13,subtr2X(add2X(add2(&alpha,&beta,&rx_dn0),&gamma),(add2X(add2X(add2(&ret.rx_k,&ret.rx_k12,&rx_dn1),&ret.rx_k21),&ret.rx_k31))));
       break;
     default:
       /* REprintf(_("invalid trans (3 cmt trans %d)\n"), *trans); */
@@ -142,46 +151,46 @@ static inline parTr parTrans(int *trans,
     ret.trans = *trans;
     switch (*trans){
     case 1: // cl=(*p1) v=(*v1) q=(*p2) vp=(*p3)
-      ret.rx_k = div2(ret.p1,ret.v1); // k = CL/V
-      ret.rx_v = ret.v1;
-      ret.rx_k12 = div2(ret.p2,ret.v1); // k12 = Q/V
-      ret.rx_k21 = div2(ret.p2,ret.p3); // k21 = Q/Vp
+      div2(&ret.p1, &ret.v1, &ret.rx_k); // k = CL/V
+      assignD(&ret.rx_v, &ret.v1);
+      div2(&ret.p2, &ret.v1, &ret.rx_k12); // k12 = Q/V
+      div2(&ret.p2, &ret.p3, &ret.rx_k21); // k21 = Q/Vp
       break;
     case 2: // k=(*p1), (*v1)=v k12=(*p2) k21=(*p3)
-      ret.rx_k = ret.p1;
-      ret.rx_v = ret.v1;
-      ret.rx_k12 = ret.p2;
-      ret.rx_k21 = ret.p3;
+      assignD(&ret.rx_k, &ret.p1);
+      assignD(&ret.rx_v, &ret.v1);
+      assignD(&ret.rx_k12, &ret.p2);
+      assignD(&ret.rx_k21, &ret.p3);
       break;
     case 3: // cl=(*p1) v=(*v1) q=(*p2) vss=(*p3)
-      ret.rx_k = div2(ret.p1,ret.v1); // k = CL/V
-      ret.rx_v = ret.v1;
-      ret.rx_k12 = div2(ret.p2, ret.v1); // k12 = Q/V
-      ret.rx_k21 = div2(ret.p2,(subtr2(ret.p3,ret.v1))); // k21 = Q/(Vss-V)
+      div2(&ret.p1, &ret.v1, &ret.rx_k); // k = CL/V
+      assignD(&ret.rx_v, &ret.v1);
+      div2(&ret.p2, &ret.v1, &ret.rx_k12); // k12 = Q/V
+      div2(&ret.p2,(subtr2(&ret.p3,&ret.v1,&rx_dn0)), &ret.rx_k21); // k21 = Q/(Vss-V)
       break;
     case 4: // alpha=(*p1) beta=(*p2) k21=(*p3)
-      ret.rx_v = ret.v1;
-      ret.rx_k21 = ret.p3;
-      ret.rx_k = div2(prod2(ret.p1,ret.p2),ret.rx_k21); // (*p1) = alpha (*p2) = beta
-      ret.rx_k12 = subtr2(subtr2(add2(ret.p1,ret.p2),ret.rx_k21),ret.rx_k);
+      assignD(&ret.rx_v, &ret.v1);
+      assignD(&ret.rx_k21, &ret.p3);
+      div2(prod2(&ret.p1,&ret.p2, &rx_dn0),&ret.rx_k21, &ret.rx_k); // (*p1) = alpha (*p2) = beta
+      subtr2(subtr2X(add2(&ret.p1,&ret.p2, &rx_dn0),&ret.rx_k21), &ret.rx_k, &ret.rx_k12);
       break;
     case 5: // alpha=(*p1) beta=(*p2) aob=(*p3)
-      ret.rx_v= ret.v1;
-      ret.rx_k21 = div2((add2(prod2(ret.p3,ret.p2),ret.p1)),(add2d(ret.p3,1.0)));
-      ret.rx_k = div2((prod2(ret.p1,ret.p2)),ret.rx_k21);
-      ret.rx_k12 = subtr2(subtr2(add2(ret.p1,ret.p2),ret.rx_k21),ret.rx_k);
+      assignD(&ret.rx_v, &ret.v1);
+      div2((add2X(prod2(&ret.p3, &ret.p2, &rx_dn0),&ret.p1)),(add2d(&ret.p3,1.0, &rx_dn1)), &ret.rx_k21);
+      div2((prod2(&ret.p1,&ret.p2, &rx_dn0)),&ret.rx_k21, &ret.rx_k);
+      subtr2(subtr2X(add2(&ret.p1,&ret.p2, &rx_dn0), &ret.rx_k21), &ret.rx_k, &ret.rx_k12);
       break;
     case 10:
     case 11: // A2 V, alpha=(*p1), beta=(*p2), k21
-      if (*trans == 11) A  = divd2(1,ret.v1);
-      else A  = ret.v1;
-      B = ret.p3;
-      alpha = ret.p1;
-      beta =ret.p2;
-      ret.rx_v   = divd2(1,(add2(A,B)));
-      ret.rx_k21 = prod2((add2(prod2(A,beta),prod2(B,alpha))),ret.rx_v);
-      ret.rx_k   = div2(prod2(alpha,beta),ret.rx_k21);
-      ret.rx_k12 = subtr2(subtr2(add2(alpha,beta),ret.rx_k21),ret.rx_k);
+      if (*trans == 11) divd2(1,&ret.v1, &A);
+      else assignD(&A, &ret.v1);
+      assignD(&B, &ret.p3);
+      assignD(&alpha, &ret.p1);
+      assignD(&beta, &ret.p2);
+      divd2(1,(add2(&A,&B, &rx_dn0)), &ret.rx_v);
+      prod2((add2X(prod2(&A, &beta, &rx_dn0), prod2(&B, &alpha, &rx_dn1))),&ret.rx_v, &ret.rx_k21);
+      div2(prod2(&alpha, &beta,  &rx_dn0), &ret.rx_k21, &ret.rx_k);
+      subtr2(subtr2X(add2(&alpha,&beta, &rx_dn0),&ret.rx_k21), &ret.rx_k, &ret.rx_k12);
       break;
     default:
       /* REprintf(_("invalid trans (2 cmt trans %d)\n"), trans); */
@@ -192,20 +201,20 @@ static inline parTr parTrans(int *trans,
     ret.trans = *trans;
     switch(*trans){
     case 1: // cl v
-      ret.rx_k = div2(ret.p1,ret.v1); // k = CL/V
-      ret.rx_v = ret.v1;
+      div2(&ret.p1, &ret.v1, &ret.rx_k); // k = CL/V
+      assignD(&ret.rx_v, &ret.v1);
       break;
     case 2: // k V
-      ret.rx_k = ret.p1;
-      ret.rx_v = ret.v1;
+      assignD(&ret.rx_k, &ret.p1);
+      assignD(&ret.rx_v, &ret.v1);
       break;
     case 11: // alpha V
-      ret.rx_k = ret.p1;
-      ret.rx_v = ret.v1;
+      assignD(&ret.rx_k, &ret.p1);
+      assignD(&ret.rx_v, &ret.v1);
       break;
     case 10: // alpha A
-      ret.rx_k = ret.p1;
-      ret.rx_v = divd2(1,ret.v1);
+      assignD(&ret.rx_k, &ret.p1);
+      divd2(1, &ret.v1, &ret.rx_v);
       break;
     default:
       Rf_errorcall(R_NilValue, _("invalid translation"));
@@ -226,39 +235,39 @@ static inline dualN ssRateTauG(double *A,
     if ((*r1) > 0 ){
       switch (tr->ncmt){
       case 1: {
-	return oneCmtKaRateSStr1G(A, tinf, tau, r1, tr->ka, tr->rx_k);
+	return oneCmtKaRateSStr1G(A, tinf, tau, r1, &tr->ka, &tr->rx_k);
       } break;
       case 2: {
-	return twoCmtKaRateSStr1G(A, tinf, tau, r1, tr->ka, tr->rx_k, tr->rx_k12, tr->rx_k21);
+	return twoCmtKaRateSStr1G(A, tinf, tau, r1, &tr->ka, &tr->rx_k, &tr->rx_k12, &tr->rx_k21);
       } break;
       case 3: {
-	return threeCmtKaRateSStr1G(A, tinf, tau, r1, tr->ka, tr->rx_k,
-				    tr->rx_k12, tr->rx_k21, tr->rx_k13, tr->rx_k31);
+	return threeCmtKaRateSStr1G(A, tinf, tau, r1, &tr->ka, &tr->rx_k,
+				    &tr->rx_k12, &tr->rx_k21, &tr->rx_k13, &tr->rx_k31);
       } break;
       }
     } else {
       switch (tr->ncmt){
       case 1: {
-	return  oneCmtKaRateSStr2G(A, tinf, tau, r2, tr->ka, tr->rx_k);
+	return  oneCmtKaRateSStr2G(A, tinf, tau, r2, &tr->ka, &tr->rx_k);
       } break;
       case 2: {
-	return twoCmtKaRateSStr2G(A, tinf, tau, r2, tr->ka, tr->rx_k, tr->rx_k12, tr->rx_k21);
+	return twoCmtKaRateSStr2G(A, tinf, tau, r2, &tr->ka, &tr->rx_k, &tr->rx_k12, &tr->rx_k21);
       } break;
       case 3: {
-	return threeCmtKaRateSStr2G(A, tinf, tau, r2, tr->ka, tr->rx_k, tr->rx_k12,  tr->rx_k21, tr->rx_k13, tr->rx_k31);
+	return threeCmtKaRateSStr2G(A, tinf, tau, r2, &tr->ka, &tr->rx_k, &tr->rx_k12,  &tr->rx_k21, &tr->rx_k13, &tr->rx_k31);
       } break;
       }
     }
   } else {
     switch (tr->ncmt){
     case 1: {
-      return oneCmtRateSSG(A, tinf, tau, r1, tr->rx_k);
+      return oneCmtRateSSG(A, tinf, tau, r1, &tr->rx_k);
     } break;
     case 2: {
-      return twoCmtRateSSG(A, tinf, tau, r1, tr->rx_k, tr->rx_k12, tr->rx_k21);
+      return twoCmtRateSSG(A, tinf, tau, r1, &tr->rx_k, &tr->rx_k12, &tr->rx_k21);
     } break;
     case 3: {
-      return threeCmtRateSSG(A, tinf, tau, r1, tr->rx_k, tr->rx_k12,  tr->rx_k21, tr->rx_k13,  tr->rx_k31);
+      return threeCmtRateSSG(A, tinf, tau, r1, &tr->rx_k, &tr->rx_k12,  &tr->rx_k21, &tr->rx_k13,  &tr->rx_k31);
     } break;
     }
   }
@@ -277,38 +286,38 @@ static inline dualN ssTauG(double *A,
     if ((*b1) > 0 ){
       switch (tr->ncmt){
       case 1: {
-	return oneCmtKaSSb1G(A, tau, b1, tr->ka, tr->rx_k);
+	return oneCmtKaSSb1G(A, tau, b1, &tr->ka, &tr->rx_k);
       } break;
       case 2: {
-	return twoCmtKaSSb1G(A, tau, b1, tr->ka, tr->rx_k, tr->rx_k12, tr->rx_k21);
+	return twoCmtKaSSb1G(A, tau, b1, &tr->ka, &tr->rx_k, &tr->rx_k12, &tr->rx_k21);
       } break;
       case 3: {
-	return threeCmtKaSSb1G(A, tau, b1, tr->ka, tr->rx_k, tr->rx_k12,  tr->rx_k21, tr->rx_k13, tr->rx_k31);
+	return threeCmtKaSSb1G(A, tau, b1, &tr->ka, &tr->rx_k, &tr->rx_k12,  &tr->rx_k21, &tr->rx_k13, &tr->rx_k31);
       } break;
       }
     } else {
       switch (tr->ncmt){
       case 1: {
-	return oneCmtKaSSb2G(A, tau, b2, tr->ka, tr->rx_k);
+	return oneCmtKaSSb2G(A, tau, b2, &tr->ka, &tr->rx_k);
       } break;
       case 2: {
-	return twoCmtKaSSb2G(A, tau, b2, tr->ka, tr->rx_k, tr->rx_k12, tr->rx_k21);
+	return twoCmtKaSSb2G(A, tau, b2, &tr->ka, &tr->rx_k, &tr->rx_k12, &tr->rx_k21);
       } break;
       case 3: {
-	return threeCmtKaSSb2G(A, tau, b2, tr->ka, tr->rx_k, tr->rx_k12,  tr->rx_k21, tr->rx_k13, tr->rx_k31);
+	return threeCmtKaSSb2G(A, tau, b2, &tr->ka, &tr->rx_k, &tr->rx_k12,  &tr->rx_k21, &tr->rx_k13, &tr->rx_k31);
       } break;
       }
     }
   } else {
     switch (tr->ncmt){
     case 1: {
-      return oneCmtBolusSSG(A, tau, b1, tr->rx_k);
+      return oneCmtBolusSSG(A, tau, b1, &tr->rx_k);
     } break;
     case 2: {
-      return twoCmtBolusSSG(A, tau, b1, tr->rx_k, tr->rx_k12, tr->rx_k21);
+      return twoCmtBolusSSG(A, tau, b1, &tr->rx_k, &tr->rx_k12, &tr->rx_k21);
     } break;
     case 3: {
-      return threeCmtBolusSSG(A, tau, b1, tr->rx_k, tr->rx_k12,  tr->rx_k21, tr->rx_k13,  tr->rx_k31);
+      return threeCmtBolusSSG(A, tau, b1, &tr->rx_k, &tr->rx_k12,  &tr->rx_k21, &tr->rx_k13,  &tr->rx_k31);
     } break;
     }
   }
@@ -325,39 +334,39 @@ static inline dualN ssRateG(double *A,
     if ((*r1) > 0){
       switch (tr->ncmt){
       case 1: {
-	return oneCmtKaRateSSr1G(A, r1, tr->ka, tr->rx_k);
+	return oneCmtKaRateSSr1G(A, r1, &tr->ka, &tr->rx_k);
       } break;
       case 2: {
-	return twoCmtKaRateSSr1G(A, r1, tr->ka, tr->rx_k,
-				tr->rx_k12, tr->rx_k21);
+	return twoCmtKaRateSSr1G(A, r1, &tr->ka, &tr->rx_k,
+				&tr->rx_k12, &tr->rx_k21);
       } break;
       case 3: {
-	return threeCmtKaRateSSr1G(A, r1, tr->ka, tr->rx_k, tr->rx_k12, tr->rx_k21, tr->rx_k13,  tr->rx_k31);
+	return threeCmtKaRateSSr1G(A, r1, &tr->ka, &tr->rx_k, &tr->rx_k12, &tr->rx_k21, &tr->rx_k13,  &tr->rx_k31);
       } break;
       }
     } else {
       switch (tr->ncmt){
       case 1: {
-	return oneCmtKaRateSSr2G(A, r2, tr->ka, tr->rx_k);
+	return oneCmtKaRateSSr2G(A, r2, &tr->ka, &tr->rx_k);
       } break;
       case 2: {
-	return twoCmtKaRateSSr2G(A, r2, tr->ka, tr->rx_k, tr->rx_k12, tr->rx_k21);
+	return twoCmtKaRateSSr2G(A, r2, &tr->ka, &tr->rx_k, &tr->rx_k12, &tr->rx_k21);
       } break;
       case 3: {
-	return threeCmtKaRateSSr2G(A, r2, tr->ka, tr->rx_k, tr->rx_k12,  tr->rx_k21, tr->rx_k13,  tr->rx_k31);
+	return threeCmtKaRateSSr2G(A, r2, &tr->ka, &tr->rx_k, &tr->rx_k12,  &tr->rx_k21, &tr->rx_k13,  &tr->rx_k31);
       } break;
       }
     }
   } else {
     switch (tr->ncmt){
     case 1: {
-      return oneCmtRateSSr1G(A, r1, tr->rx_k);
+      return oneCmtRateSSr1G(A, r1, &tr->rx_k);
     } break;
     case 2: {
-      return twoCmtRateSSr1G(A, r1, tr->rx_k, tr->rx_k12, tr->rx_k21);
+      return twoCmtRateSSr1G(A, r1, &tr->rx_k, &tr->rx_k12, &tr->rx_k21);
     } break;
     case 3: {
-      return threeCmtRateSSr1G(A, r1, tr->rx_k, tr->rx_k12,  tr->rx_k21, tr->rx_k13, tr->rx_k31);
+      return threeCmtRateSSr1G(A, r1, &tr->rx_k, &tr->rx_k12,  &tr->rx_k21, &tr->rx_k13, &tr->rx_k31);
     } break;
     }
   }
@@ -583,29 +592,29 @@ static inline dualN doAdvanG(double *A,// Amounts
   if (tr->oral0) {
     switch (tr->ncmt) {
     case 1: {
-      return oneCmtKaRateG(A, Alast, &t, b1, b2, r1, r2, tr->ka, tr->rx_k);
+      return oneCmtKaRateG(A, Alast, &t, b1, b2, r1, r2, &tr->ka, &tr->rx_k);
     } break;
     case 2: {
       return twoCmtKaRateG(A, Alast, &t, b1, b2, r1, r2,
-			   tr->ka,  tr->rx_k, tr->rx_k12, tr->rx_k21);
+			   &tr->ka,  &tr->rx_k, &tr->rx_k12, &tr->rx_k21);
     } break;
     case 3: {
       return threeCmtKaRateG(A, Alast, &t, b1, b2, r1, r2,
-  		      tr->ka,  tr->rx_k, tr->rx_k12, tr->rx_k21, tr->rx_k13, tr->rx_k31);
+  		      &tr->ka,  &tr->rx_k, &tr->rx_k12, &tr->rx_k21, &tr->rx_k13, &tr->rx_k31);
     } break;
     }
   } else {
     switch (tr->ncmt){
     case 1: {
-      return oneCmtRateG(A, Alast, &t, b1, r1, tr->rx_k);
+      return oneCmtRateG(A, Alast, &t, b1, r1, &tr->rx_k);
     } break;
     case 2: {
       return twoCmtRateG(A, Alast, &t, b1, r1,
-  		  tr->rx_k, tr->rx_k12, tr->rx_k21);
+  		  &tr->rx_k, &tr->rx_k12, &tr->rx_k21);
     } break;
     case 3: {
       return threeCmtRateG(A, Alast, &t, b1, r1,
-  		    tr->rx_k, tr->rx_k12, tr->rx_k21, tr->rx_k13, tr->rx_k31);
+  		    &tr->rx_k, &tr->rx_k12, &tr->rx_k21, &tr->rx_k13, &tr->rx_k31);
     }
     }
   }
@@ -682,8 +691,8 @@ double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
     // Reset event
     Alast=Alast0;
   } else {
-    ret = doAdvanG(A, Alast, tlast, // Time of last amounts
-	     curTime, &tr, &b1, &b2, &r1, &r2);
+    ret=doAdvanG(A, Alast, tlast, // Time of last amounts
+			    curTime, &tr, &b1, &b2, &r1, &r2);
     double aSave[31];
     int nSave = 0;
     switch(tr.ncmt) {
@@ -713,9 +722,9 @@ double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
     curTime = t;
     b1 = b2 = 0;
     ret = doAdvanG(A, Alast, tlast, // Time of last amounts
-		   curTime, &tr,  &b1, &b2, &r1, &r2);
+			   curTime, &tr,  &b1, &b2, &r1, &r2);
   }
-  ret = div2(ret,tr.rx_v);
+  div2(&ret, &tr.rx_v, &ret);
   // Now the derivatives are in ret.grad[0-6]
   // and ret.f = cp
   // Fill in solve save.
