@@ -1,6 +1,7 @@
 rxPermissive({
   context("Issue 299")
   test_that("issue #229", {
+
     model <- RxODE({
       cmt(SC_AKR)
       cmt(Cent_AKR)
@@ -43,7 +44,7 @@ rxPermissive({
 
     s <- rxSolve(model, parm, d_mod)
 
-    expect_true(all(diff(order(s$id, s$time)) == 1))
+    expect_true(suppressWarnings(all(diff(order(s$id, s$time)) == 1)))
 
   })
 
