@@ -3,12 +3,11 @@ rxPermissive(
 
   tol <- 5e-6 ## Current difference for all equations
   type <- 1
-
   for (type in 1:4) {
 
-    .txt <- switch(type, "linear", "sensitivity", "linear [no save]", "advanSens")
-    sens <- switch(type, "linCmtA", "linCmtB", "linCmtC", "linCmtB")
-    sensType <- switch(type, "autodiff", "autodiff", "autodiff", "advan")
+    .txt <- switch(type, "linear", "sensitivity", "linear [no save]", "advanSens", "dual")
+    sens <- switch(type, "linCmtA", "linCmtB", "linCmtC", "linCmtB", "linCmtB")
+    sensType <- switch(type, "autodiff", "autodiff", "autodiff", "advan", "dual")
 
     etSsB <- et() %>%
       et(amt = 3) %>%
@@ -2006,13 +2005,14 @@ rxPermissive(
       expect_equal(s1$Conc, s2$Conc, tol = tol)
     })
 
+
     tol <- 1e-5 ## Current difference for all equations
     type <- 1
 
     ## forward/central differences don't work here...
 
     for (type in c(1, 4)) {
-      sens <- switch(type, "autodiff", "forward", "central", "advan")
+      sens <- switch(type, "autodiff", "forward", "central", "advan", "dual")
 
       context(sprintf("1 cmt sensitivities (%s)", sens))
       test_that("1 compartment sensitivities; IV bolus, Cl, V", {
@@ -2123,6 +2123,7 @@ rxPermissive(
       ## Now oral
 
       test_that("1 compartment sensitivities; Oral Cl, V, Ka", {
+
         pred <- function() {
           return(Central)
         }
@@ -2257,8 +2258,10 @@ rxPermissive(
         expect_equal(s1$rx__sens_rx_r__BY_ETA_3___, o1$rx__sens_rx_r__BY_ETA_3___, tolerance = tol)
       })
 
+
       context(sprintf("2 cmt sensitivities (%s)", sens))
       test_that("2 compartment sensitivities; IV bolus Cl, Vc, Q, Vp", {
+
         pred <- function() {
           return(Central)
         }
