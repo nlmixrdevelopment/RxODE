@@ -12,12 +12,29 @@
 
 typedef struct dualN {
   double f;
-  int n;
   double grad[7];
 } dualN;
 
-dualN sqrtD(dualN x) {
+dualN iniD(double val, int which){
   dualN ret;
+  ret.f = val;
+  ret.grad[0] = 0.0;
+  ret.grad[1] = 0.0;
+  ret.grad[2] = 0.0;
+  ret.grad[3] = 0.0;
+  ret.grad[4] = 0.0;
+  ret.grad[5] = 0.0;
+  ret.grad[6] = 0.0;
+  if (which >= 0) {
+    ret.grad[which] = 1.0;
+  }
+  return ret;
+}
+
+#define iniD0() iniD(NAN, -1)
+
+dualN sqrtD(dualN x) {
+  dualN ret = iniD0();
   ret.f = sqrt(x.f);
   double gr = 0.5 / ret.f;
   ret.grad[0] = x.grad[0]*gr;
@@ -31,7 +48,7 @@ dualN sqrtD(dualN x) {
 }
 
 dualN expD(dualN x) {
-  dualN ret;
+  dualN ret = iniD0();
   ret.f = exp(x.f);
   ret.grad[0] = x.grad[0]*ret.f;
   ret.grad[1] = x.grad[1]*ret.f;
@@ -44,7 +61,7 @@ dualN expD(dualN x) {
 }
 
 dualN add2(dualN x, dualN y) {
-  dualN ret;
+  dualN ret = iniD0();
   ret.f = x.f + y.f;
   ret.grad[0] = x.grad[0] + y.grad[0];
   ret.grad[1] = x.grad[1] + y.grad[1];
@@ -133,7 +150,6 @@ dualN prod2(dualN e1, dualN e2) {
   ret.grad[4] = e1.grad[4] * e2.f + e1.f * e2.grad[4];
   ret.grad[5] = e1.grad[5] * e2.f + e1.f * e2.grad[5];
   ret.grad[6] = e1.grad[6] * e2.f + e1.f * e2.grad[6];
-
   return ret;
 }
 
@@ -195,21 +211,6 @@ dualN div2d(dualN e1, double e2) {
   return ret;
 }
 
-dualN iniD(double val, int which){
-  dualN ret;
-  ret.f = val;
-  ret.grad[0] = 0.0;
-  ret.grad[1] = 0.0;
-  ret.grad[2] = 0.0;
-  ret.grad[3] = 0.0;
-  ret.grad[4] = 0.0;
-  ret.grad[5] = 0.0;
-  ret.grad[6] = 0.0;
-  if (which >= 0) {
-    ret.grad[which] = 1.0;
-  }
-  return ret;
-}
 
 dualN atan2D(dualN y, dualN x) {
   double derg = y.f * y.f;
