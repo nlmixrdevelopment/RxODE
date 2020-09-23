@@ -3209,6 +3209,8 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     NumericVector time0 = dataf[rxcTime];
     // Get the range
     range_d(REAL(dataf[rxcTime]), time0.size(), &(rx->minD), &(rx->maxD));
+    rx->minD -= (rx->maxD-rx->minD);
+    rx->maxD += (rx->maxD-rx->minD);
     
     if (rxIs(time0, "units")){
       rxSolveDat->addTimeUnits=true;

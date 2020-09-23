@@ -1999,7 +1999,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   Rf_setAttrib(lstF, R_RowNamesSymbol, IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt));
   if (doWarnNeg){
     if (!warnedNeg){
-      Rf_warningcall(R_NilValue, _("\nwith negative times, compartments initialize at first negative observed tim.\nwith positive times, compartments initialize at time zero\nuse 'rxSetIni0(FALSE)' to initialize at first observed time\nthis warning is displayed once per session"));
+      Rf_warningcall(R_NilValue, _("\nwith negative times, compartments initialize at first negative observed time\nwith positive times, compartments initialize at time zero\nuse 'rxSetIni0(FALSE)' to initialize at first observed time\nthis warning is displayed once per session"));
       warnedNeg=true;
     } 
   }
