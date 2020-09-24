@@ -32,8 +32,3 @@ OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_CPP:.cpp=.o) $(SOURCES_FORTAN:.f=.o)
 # all: strippedLib
 # $(SHLIB): mylibs
 all: $(SHLIB)
-
-lincmt.o: lincmt.c
-	$(CC) -I"$(R_INCLUDE_DIR)" $(CFLAGS) $(SHLIB_CFLAGS) $(CPICFLAGS) $(PKG_CFLAGS) -I../inst/include/ -fno-var-tracking $(OL) -c lincmt.c -o lincmt.o
-
-

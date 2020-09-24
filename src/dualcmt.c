@@ -28,38 +28,6 @@ double getTime(int idx, rx_solving_options_ind *ind);
 double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned int *p);
 
 
-typedef struct parTr {
-  int trans;
-  int ncmt;
-  int oral0;
-  int linCmt;
-  rx_solving_options_ind *ind;
-  double d_tlag;
-  double d_F;
-  double d_rate1;
-  double d_dur1;
-  // Oral parameters
-  double d_tlag2;
-  double d_F2;
-  double d_rate2;
-  double d_dur2;
-  // Input parameters 
-  dualN p1;
-  dualN v1;
-  dualN p2;
-  dualN p3;
-  dualN p4;
-  dualN p5;
-  dualN ka;
-  // Output parameters
-  dualN rx_k;
-  dualN rx_v;
-  dualN rx_k12;
-  dualN rx_k21;
-  dualN rx_k13;
-  dualN rx_k31;
-} parTr;
-
 #undef beta
 static inline parTr parTrans(int *trans, 
 			     double *p1, double *v1,
@@ -70,142 +38,150 @@ static inline parTr parTrans(int *trans,
 			     double d_tlag, double d_F, double d_rate1, double d_dur1,
 			     // Oral parameters
 			     double d_tlag2, double d_F2,  double d_rate2, double d_dur2){
-  parTr ret;
-  ret.ind = ind;
-  ret.linCmt = linCmt;
-  ret.d_tlag = d_tlag;
-  ret.d_F = d_F;
-  ret.d_rate1 = d_rate1;
-  ret.d_dur1 = d_dur1;
+  if (ind->tr.id == ind->id &&
+      ind->tr.p1.f == *p1 &&
+      ind->tr.v1.f == *v1 &&
+      ind->tr.p2.f == *p2 &&
+      ind->tr.p3.f == *p3 &&
+      ind->tr.p4.f == *p4 &&
+      ind->tr.p5.f == *p5) {
+    return ind->tr;
+  }
+  ind->tr.id= ind->id;
+  ind->tr.linCmt = linCmt;
+  ind->tr.d_tlag = d_tlag;
+  ind->tr.d_F = d_F;
+  ind->tr.d_rate1 = d_rate1;
+  ind->tr.d_dur1 = d_dur1;
   // Oral parameters
-  ret.d_tlag2 = d_tlag2;
-  ret.d_F2 = d_F2;
-  ret.d_rate2 = d_rate2;
-  ret.d_dur2 = d_dur2;
-  ret.ka = iniD(*ka, dKa);
-  ret.p1 = iniD(*p1, dP1);
-  ret.p2 = iniD(*p2, dP2);
-  ret.p3 = iniD(*p3, dP3);
-  ret.p4 = iniD(*p4, dP4);
-  ret.p5 = iniD(*p5, dP5);
-  ret.v1 = iniD(*v1, dV1);
-  ret.oral0 = (*ka > 0) ? 1 : 0;
+  ind->tr.d_tlag2 = d_tlag2;
+  ind->tr.d_F2 = d_F2;
+  ind->tr.d_rate2 = d_rate2;
+  ind->tr.d_dur2 = d_dur2;
+  ind->tr.ka = iniD(*ka, dKa);
+  ind->tr.p1 = iniD(*p1, dP1);
+  ind->tr.p2 = iniD(*p2, dP2);
+  ind->tr.p3 = iniD(*p3, dP3);
+  ind->tr.p4 = iniD(*p4, dP4);
+  ind->tr.p5 = iniD(*p5, dP5);
+  ind->tr.v1 = iniD(*v1, dV1);
+  ind->tr.oral0 = (*ka > 0) ? 1 : 0;
   dualN alpha, beta, gamma, A, B, C, btemp, ctemp, dtemp;
   if ((*p5) > 0.) {
-    ret.ncmt = 3;
-    ret.trans = *trans;
+    ind->tr.ncmt = 3;
+    ind->tr.trans = *trans;
     switch (*trans) {
     case 1: // cl v q vp
-      ret.rx_k = div2(ret.p1,ret.v1); // k = CL/V
-      ret.rx_v = ret.v1;
-      ret.rx_k12 = div2(ret.p2,ret.v1); // k12 = Q/V
-      ret.rx_k21 = div2(ret.p2,ret.p3); // k21 = Q/Vp
-      ret.rx_k13 = div2(ret.p4,ret.v1); // k31 = Q2/V
-      ret.rx_k31 = div2(ret.p4,ret.p5); // k31 = Q2/Vp2
+      ind->tr.rx_k = div2(ind->tr.p1,ind->tr.v1); // k = CL/V
+      ind->tr.rx_v = ind->tr.v1;
+      ind->tr.rx_k12 = div2(ind->tr.p2,ind->tr.v1); // k12 = Q/V
+      ind->tr.rx_k21 = div2(ind->tr.p2,ind->tr.p3); // k21 = Q/Vp
+      ind->tr.rx_k13 = div2(ind->tr.p4,ind->tr.v1); // k31 = Q2/V
+      ind->tr.rx_k31 = div2(ind->tr.p4,ind->tr.p5); // k31 = Q2/Vp2
       break;
     case 2: // k=(*p1) v=(*v1) k12=(*p2) k21=(*p3) k13=(*p4) k31=(*p5)
-      ret.rx_k = ret.p1;
-      ret.rx_v = ret.v1;
-      ret.rx_k12 = ret.p2;
-      ret.rx_k21 = ret.p3;
-      ret.rx_k13 = ret.p4;
-      ret.rx_k31 = ret.p5;
+      ind->tr.rx_k = ind->tr.p1;
+      ind->tr.rx_v = ind->tr.v1;
+      ind->tr.rx_k12 = ind->tr.p2;
+      ind->tr.rx_k21 = ind->tr.p3;
+      ind->tr.rx_k13 = ind->tr.p4;
+      ind->tr.rx_k31 = ind->tr.p5;
       break;
     case 10:
     case 11:
-      if (*trans == 11) A = divd2(1,ret.v1);
-      else A = ret.v1;
-      B  = ret.p3;
-      C =  ret.p5;
-      alpha = ret.p1;
-      beta = ret.p2;
-      gamma = ret.p4;
-      ret.rx_v= divd2(1,(add2(add2(A,B),C)));
-      btemp = prod2(negD((add2(add2(add2(add2(add2(prod2(alpha,C),prod2(alpha,B)),prod2(gamma,A)),prod2(gamma,B)),prod2(beta,A)),prod2(beta,C)))),ret.rx_v);
-      ctemp = prod2((add2(add2(prod2(prod2(alpha,beta),C),prod2(prod2(alpha,gamma),B)),prod2(prod2(beta,gamma),A))),ret.rx_v);
+      if (*trans == 11) A = divd2(1,ind->tr.v1);
+      else A = ind->tr.v1;
+      B  = ind->tr.p3;
+      C =  ind->tr.p5;
+      alpha = ind->tr.p1;
+      beta = ind->tr.p2;
+      gamma = ind->tr.p4;
+      ind->tr.rx_v= divd2(1,(add2(add2(A,B),C)));
+      btemp = prod2(negD((add2(add2(add2(add2(add2(prod2(alpha,C),prod2(alpha,B)),prod2(gamma,A)),prod2(gamma,B)),prod2(beta,A)),prod2(beta,C)))),ind->tr.rx_v);
+      ctemp = prod2((add2(add2(prod2(prod2(alpha,beta),C),prod2(prod2(alpha,gamma),B)),prod2(prod2(beta,gamma),A))),ind->tr.rx_v);
       dtemp = sqrtD(subtr2(prod2(btemp,btemp),prodd2(4,ctemp)));
-      ret.rx_k21 = prodd2(0.5,(add2(negD(btemp),dtemp)));
-      ret.rx_k31 = prodd2(0.5,(subtr2(negD(btemp),dtemp)));
-      ret.rx_k   = div2(div2(prod2(prod2(alpha,beta),gamma),ret.rx_k21),ret.rx_k31);
-      ret.rx_k12 = div2((add2(subtr2(subtr2((add2(add2(prod2(beta,gamma),prod2(alpha,beta)),prod2(alpha,gamma))),
-					    prod2(ret.rx_k21,(add2(add2(alpha,beta),gamma)))),
-				     prod2(ret.rx_k,ret.rx_k31)),prod2(ret.rx_k21,ret.rx_k21))),
-			(subtr2(ret.rx_k31,ret.rx_k21)));
-      ret.rx_k13 = subtr2(add2(add2(alpha,beta),gamma),(add2(add2(add2(ret.rx_k,ret.rx_k12),ret.rx_k21),ret.rx_k31)));
+      ind->tr.rx_k21 = prodd2(0.5,(add2(negD(btemp),dtemp)));
+      ind->tr.rx_k31 = prodd2(0.5,(subtr2(negD(btemp),dtemp)));
+      ind->tr.rx_k   = div2(div2(prod2(prod2(alpha,beta),gamma),ind->tr.rx_k21),ind->tr.rx_k31);
+      ind->tr.rx_k12 = div2((add2(subtr2(subtr2((add2(add2(prod2(beta,gamma),prod2(alpha,beta)),prod2(alpha,gamma))),
+					    prod2(ind->tr.rx_k21,(add2(add2(alpha,beta),gamma)))),
+				     prod2(ind->tr.rx_k,ind->tr.rx_k31)),prod2(ind->tr.rx_k21,ind->tr.rx_k21))),
+			(subtr2(ind->tr.rx_k31,ind->tr.rx_k21)));
+      ind->tr.rx_k13 = subtr2(add2(add2(alpha,beta),gamma),(add2(add2(add2(ind->tr.rx_k,ind->tr.rx_k12),ind->tr.rx_k21),ind->tr.rx_k31)));
       break;
     default:
       /* REprintf(_("invalid trans (3 cmt trans %d)\n"), *trans); */
       Rf_errorcall(R_NilValue, _("invalid translation"));
     }
   } else if ((*p3) > 0.) {
-    ret.ncmt = 2;
-    ret.trans = *trans;
+    ind->tr.ncmt = 2;
+    ind->tr.trans = *trans;
     switch (*trans){
     case 1: // cl=(*p1) v=(*v1) q=(*p2) vp=(*p3)
-      ret.rx_k = div2(ret.p1,ret.v1); // k = CL/V
-      ret.rx_v = ret.v1;
-      ret.rx_k12 = div2(ret.p2,ret.v1); // k12 = Q/V
-      ret.rx_k21 = div2(ret.p2,ret.p3); // k21 = Q/Vp
+      ind->tr.rx_k = div2(ind->tr.p1,ind->tr.v1); // k = CL/V
+      ind->tr.rx_v = ind->tr.v1;
+      ind->tr.rx_k12 = div2(ind->tr.p2,ind->tr.v1); // k12 = Q/V
+      ind->tr.rx_k21 = div2(ind->tr.p2,ind->tr.p3); // k21 = Q/Vp
       break;
     case 2: // k=(*p1), (*v1)=v k12=(*p2) k21=(*p3)
-      ret.rx_k = ret.p1;
-      ret.rx_v = ret.v1;
-      ret.rx_k12 = ret.p2;
-      ret.rx_k21 = ret.p3;
+      ind->tr.rx_k = ind->tr.p1;
+      ind->tr.rx_v = ind->tr.v1;
+      ind->tr.rx_k12 = ind->tr.p2;
+      ind->tr.rx_k21 = ind->tr.p3;
       break;
     case 3: // cl=(*p1) v=(*v1) q=(*p2) vss=(*p3)
-      ret.rx_k = div2(ret.p1,ret.v1); // k = CL/V
-      ret.rx_v = ret.v1;
-      ret.rx_k12 = div2(ret.p2, ret.v1); // k12 = Q/V
-      ret.rx_k21 = div2(ret.p2,(subtr2(ret.p3,ret.v1))); // k21 = Q/(Vss-V)
+      ind->tr.rx_k = div2(ind->tr.p1,ind->tr.v1); // k = CL/V
+      ind->tr.rx_v = ind->tr.v1;
+      ind->tr.rx_k12 = div2(ind->tr.p2, ind->tr.v1); // k12 = Q/V
+      ind->tr.rx_k21 = div2(ind->tr.p2,(subtr2(ind->tr.p3,ind->tr.v1))); // k21 = Q/(Vss-V)
       break;
     case 4: // alpha=(*p1) beta=(*p2) k21=(*p3)
-      ret.rx_v = ret.v1;
-      ret.rx_k21 = ret.p3;
-      ret.rx_k = div2(prod2(ret.p1,ret.p2),ret.rx_k21); // (*p1) = alpha (*p2) = beta
-      ret.rx_k12 = subtr2(subtr2(add2(ret.p1,ret.p2),ret.rx_k21),ret.rx_k);
+      ind->tr.rx_v = ind->tr.v1;
+      ind->tr.rx_k21 = ind->tr.p3;
+      ind->tr.rx_k = div2(prod2(ind->tr.p1,ind->tr.p2),ind->tr.rx_k21); // (*p1) = alpha (*p2) = beta
+      ind->tr.rx_k12 = subtr2(subtr2(add2(ind->tr.p1,ind->tr.p2),ind->tr.rx_k21),ind->tr.rx_k);
       break;
     case 5: // alpha=(*p1) beta=(*p2) aob=(*p3)
-      ret.rx_v= ret.v1;
-      ret.rx_k21 = div2((add2(prod2(ret.p3,ret.p2),ret.p1)),(add2d(ret.p3,1.0)));
-      ret.rx_k = div2((prod2(ret.p1,ret.p2)),ret.rx_k21);
-      ret.rx_k12 = subtr2(subtr2(add2(ret.p1,ret.p2),ret.rx_k21),ret.rx_k);
+      ind->tr.rx_v= ind->tr.v1;
+      ind->tr.rx_k21 = div2((add2(prod2(ind->tr.p3,ind->tr.p2),ind->tr.p1)),(add2d(ind->tr.p3,1.0)));
+      ind->tr.rx_k = div2((prod2(ind->tr.p1,ind->tr.p2)),ind->tr.rx_k21);
+      ind->tr.rx_k12 = subtr2(subtr2(add2(ind->tr.p1,ind->tr.p2),ind->tr.rx_k21),ind->tr.rx_k);
       break;
     case 10:
     case 11: // A2 V, alpha=(*p1), beta=(*p2), k21
-      if (*trans == 11) A  = divd2(1,ret.v1);
-      else A  = ret.v1;
-      B = ret.p3;
-      alpha = ret.p1;
-      beta =ret.p2;
-      ret.rx_v   = divd2(1,(add2(A,B)));
-      ret.rx_k21 = prod2((add2(prod2(A,beta),prod2(B,alpha))),ret.rx_v);
-      ret.rx_k   = div2(prod2(alpha,beta),ret.rx_k21);
-      ret.rx_k12 = subtr2(subtr2(add2(alpha,beta),ret.rx_k21),ret.rx_k);
+      if (*trans == 11) A  = divd2(1,ind->tr.v1);
+      else A  = ind->tr.v1;
+      B = ind->tr.p3;
+      alpha = ind->tr.p1;
+      beta =ind->tr.p2;
+      ind->tr.rx_v   = divd2(1,(add2(A,B)));
+      ind->tr.rx_k21 = prod2((add2(prod2(A,beta),prod2(B,alpha))),ind->tr.rx_v);
+      ind->tr.rx_k   = div2(prod2(alpha,beta),ind->tr.rx_k21);
+      ind->tr.rx_k12 = subtr2(subtr2(add2(alpha,beta),ind->tr.rx_k21),ind->tr.rx_k);
       break;
     default:
       /* REprintf(_("invalid trans (2 cmt trans %d)\n"), trans); */
       Rf_errorcall(R_NilValue, _("invalid translation"));
     }
   } else if ((*p1) > 0.) {
-    ret.ncmt = 1;
-    ret.trans = *trans;
+    ind->tr.ncmt = 1;
+    ind->tr.trans = *trans;
     switch(*trans){
     case 1: // cl v
-      ret.rx_k = div2(ret.p1,ret.v1); // k = CL/V
-      ret.rx_v = ret.v1;
+      ind->tr.rx_k = div2(ind->tr.p1,ind->tr.v1); // k = CL/V
+      ind->tr.rx_v = ind->tr.v1;
       break;
     case 2: // k V
-      ret.rx_k = ret.p1;
-      ret.rx_v = ret.v1;
+      ind->tr.rx_k = ind->tr.p1;
+      ind->tr.rx_v = ind->tr.v1;
       break;
     case 11: // alpha V
-      ret.rx_k = ret.p1;
-      ret.rx_v = ret.v1;
+      ind->tr.rx_k = ind->tr.p1;
+      ind->tr.rx_v = ind->tr.v1;
       break;
     case 10: // alpha A
-      ret.rx_k = ret.p1;
-      ret.rx_v = divd2(1,ret.v1);
+      ind->tr.rx_k = ind->tr.p1;
+      ind->tr.rx_v = divd2(1,ind->tr.v1);
       break;
     default:
       Rf_errorcall(R_NilValue, _("invalid translation"));
@@ -213,7 +189,7 @@ static inline parTr parTrans(int *trans,
   } else {
     Rf_errorcall(R_NilValue, _("invalid translation"));
   }
-  return ret;
+  return ind->tr;
 }
 
 static inline dualN ssRateTauG(double *A,
@@ -421,6 +397,7 @@ static inline dualN lookupDualN(double *A, int oral0, int ncmt) {
 }
 
 
+rx_solve *getRxSolve_();
 static inline dualN handleSSLG(double *A,// Amounts
 			       double *Alast, // Last amounts
 			       double tlast, // Time of last amounts
@@ -434,7 +411,8 @@ static inline dualN handleSSLG(double *A,// Amounts
 			       double *aSave,
 			       dualN ret0
 			       ) {
-  rx_solving_options_ind *ind = tr->ind;
+  rx_solve* rx = getRxSolve_();
+  rx_solving_options_ind *ind = &(rx->subjects[tr->id]);
   // handle_evid has been called, so ind->wh0 and like have already been called
   double *rate = ind->linCmtRate;
   // note ind->ixds has already advanced

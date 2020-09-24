@@ -10,11 +10,6 @@
 #define dP5 5
 #define dV1 6
 
-typedef struct dualN {
-  double f;
-  double grad[7];
-} dualN;
-
 dualN iniD(double val, int which){
   dualN ret;
   ret.f = val;

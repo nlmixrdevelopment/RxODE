@@ -18,7 +18,7 @@
 #endif
 
 #include "lincmtB1.h"
-#include "lincmtB2.h"
+//#include "lincmtB2.h"
 //#include "lincmtB3d.h"
 
 void handleTlast(double *time, rx_solving_options_ind *ind);
@@ -2409,10 +2409,10 @@ static inline void ssRateTauD(double *A, int ncmt, int oral0, double *tinf,
 	oneCmtKaRateSStr1(A, tinf, tau, r1, ka, kel);
 	return;
       } break;
-      case 2: {
-	twoCmtKaRateSStr1D(A, tinf, tau, r1, ka, kel, k12, k21);
-	return;
-      } break;
+      /* case 2: { */
+      /* 	twoCmtKaRateSStr1D(A, tinf, tau, r1, ka, kel, k12, k21); */
+      /* 	return; */
+      /* } break; */
       /* case 3: { */
       /* 	threeCmtKaRateSStr1D(A, tinf, tau, r1, ka, kel, k12, k21, k13, k31); */
       /* 	return; */
@@ -2424,10 +2424,10 @@ static inline void ssRateTauD(double *A, int ncmt, int oral0, double *tinf,
 	oneCmtKaRateSStr2D(A, tinf, tau, r2, ka, kel);
 	return;
       } break;
-      case 2: {
-	twoCmtKaRateSStr2D(A, tinf, tau, r2, ka, kel, k12, k21);
-	return;
-      } break;
+      /* case 2: { */
+      /* 	twoCmtKaRateSStr2D(A, tinf, tau, r2, ka, kel, k12, k21); */
+      /* 	return; */
+      /* } break; */
       /* case 3: { */
       /* 	threeCmtKaRateSStr2D(A, tinf, tau, r2, ka, kel, k12, k21, k13, k31); */
       /* 	return; */
@@ -2440,10 +2440,10 @@ static inline void ssRateTauD(double *A, int ncmt, int oral0, double *tinf,
       oneCmtRateSSD(A, tinf, tau, r1, kel);
       return;
     } break;
-    case 2: {
-      twoCmtRateSSD(A, tinf, tau, r1, kel, k12, k21);
-      return;
-    } break;
+    /* case 2: { */
+    /*   twoCmtRateSSD(A, tinf, tau, r1, kel, k12, k21); */
+    /*   return; */
+    /* } break; */
     /* case 3: { */
     /*   threeCmtRateSSD(A, tinf, tau, r1, kel, k12, k21, k13, k31); */
     /*   return; */
@@ -2468,10 +2468,10 @@ static inline void ssTauD(double *A,
 	oneCmtKaSSb1D(A, tau, b1, ka, kel);
 	return;
       } break;
-      case 2: {
-	twoCmtKaSSb1D(A, tau, b1, ka, kel, k12, k21);
-	return;
-      } break;
+      /* case 2: { */
+      /* 	twoCmtKaSSb1D(A, tau, b1, ka, kel, k12, k21); */
+      /* 	return; */
+      /* } break; */
       /* case 3: { */
       /* 	threeCmtKaSSb1D(A, tau, b1, ka, kel, k12, k21, k13, k31); */
       /* 	return; */
@@ -2483,10 +2483,10 @@ static inline void ssTauD(double *A,
 	oneCmtKaSSb2D(A, tau, b2, ka, kel);
 	return;
       } break;
-      case 2: {
-	twoCmtKaSSb2D(A, tau, b2, ka, kel, k12, k21);
-	return;
-      } break;
+      /* case 2: { */
+      /* 	twoCmtKaSSb2D(A, tau, b2, ka, kel, k12, k21); */
+      /* 	return; */
+      /* } break; */
       /* case 3: { */
       /* 	threeCmtKaSSb2D(A, tau, b2, ka, kel, k12, k21, k13, k31); */
       /* 	return; */
@@ -2499,10 +2499,10 @@ static inline void ssTauD(double *A,
       oneCmtBolusSSD(A, tau, b1, kel);
       return;
     } break;
-    case 2: {
-      twoCmtBolusSSD(A, tau, b1, kel, k12, k21);
-      return;
-    } break;
+    /* case 2: { */
+    /*   twoCmtBolusSSD(A, tau, b1, kel, k12, k21); */
+    /*   return; */
+    /* } break; */
     /* case 3: { */
     /*   threeCmtBolusSSD(A, tau, b1, kel, k12, k21, k13, k31); */
     /*   return; */
@@ -2527,10 +2527,10 @@ static inline void ssRateD(double *A,
 	oneCmtKaRateSSr1D(A, r1, ka, kel);
 	return;
       } break;
-      case 2: {
-	twoCmtKaRateSSr1D(A, r1, ka, kel, k12, k21);
-	return;
-      } break;
+      /* case 2: { */
+      /* 	twoCmtKaRateSSr1D(A, r1, ka, kel, k12, k21); */
+      /* 	return; */
+      /* } break; */
       /* case 3: { */
       /* 	threeCmtKaRateSSr1D(A, r1, ka, kel, k12, k21, k13, k31); */
       /* 	return; */
@@ -2542,10 +2542,10 @@ static inline void ssRateD(double *A,
 	oneCmtKaRateSSr2D(A, r2, ka, kel);
 	return;
       } break;
-      case 2: {
-	twoCmtKaRateSSr2D(A, r2, ka, kel, k12, k21);
-	return;
-      } break;
+      /* case 2: { */
+      /* 	twoCmtKaRateSSr2D(A, r2, ka, kel, k12, k21); */
+      /* 	return; */
+      /* } break; */
       /* case 3: { */
       /* 	threeCmtKaRateSSr2D(A, r2, ka, kel, k12, k21, k13, k31); */
       /* 	return; */
@@ -2558,10 +2558,10 @@ static inline void ssRateD(double *A,
       oneCmtRateSSr1D(A, r1, kel);
       return;
     } break;
-    case 2: {
-      twoCmtRateSSr1D(A, r1, kel, k12, k21);
-      return;
-    } break;
+    /* case 2: { */
+    /*   twoCmtRateSSr1D(A, r1, kel, k12, k21); */
+    /*   return; */
+    /* } break; */
     /* case 3: { */
     /*   threeCmtRateSSr1D(A, r1, kel, k12, k21, k13, k31); */
     /*   return; */
@@ -3197,11 +3197,11 @@ static inline void doAdvanD(double *A,// Amounts
 	oneCmtKaRateD(A, Alast, &t, b1, b2, r1, r2, ka, kel);
 	return;
       } break;
-      case 2: {
-	twoCmtKaRateD(A, Alast, &t, b1, b2, r1, r2,
-		      ka,  kel, k12, k21);
-	return;
-      } break;
+      /* case 2: { */
+      /* 	twoCmtKaRateD(A, Alast, &t, b1, b2, r1, r2, */
+      /* 		      ka,  kel, k12, k21); */
+      /* 	return; */
+      /* } break; */
       /* case 3: { */
       /* 	threeCmtKaRateD(A, Alast, &t, b1, b2, r1, r2, */
       /* 			ka,  kel, k12, k21, k13, k31); */
@@ -3214,11 +3214,11 @@ static inline void doAdvanD(double *A,// Amounts
 	oneCmtRateD(A, Alast, &t, b1, r1, kel);
 	return;
       } break;
-      case 2: {
-	twoCmtRateD(A, Alast, &t, b1, r1,
-		    kel, k12, k21);
-	return;
-      } break;
+      /* case 2: { */
+      /* 	twoCmtRateD(A, Alast, &t, b1, r1, */
+      /* 		    kel, k12, k21); */
+      /* 	return; */
+      /* } break; */
       /* case 3: { */
       /* 	threeCmtRateD(A, Alast, &t, b1, r1, */
       /* 		      kel, k12, k21, k13, k31); */
@@ -3455,7 +3455,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       double d_tlag, double d_F, double d_rate1, double d_dur1,
 	       // Oral parameters
 	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2) {
-  if (i_cmt == 3)
+  if (i_cmt == 3 || i_cmt == 2)
     return linCmtG(rx, id, t, linCmt, i_cmt, trans, val,
 		   p1, v1, p2, p3, p4, p5, d_tlag, d_F,
 		   d_rate1, d_dur1, d_ka, d_tlag2, d_F2, d_rate2, d_dur2);

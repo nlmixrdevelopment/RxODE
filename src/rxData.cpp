@@ -3124,8 +3124,8 @@ extern "C" void setupRxInd(rx_solving_options_ind* ind, int first) {
     ind->solveTime	= 0.0;
     ind->nBadDose	= 0;
     ind->wrongSSDur	= 0;
-
   }
+  ind->tr.id = -1;
 }
 
 // This loops through the data to put each individual into the

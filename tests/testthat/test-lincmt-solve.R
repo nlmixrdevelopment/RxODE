@@ -3,7 +3,7 @@ rxPermissive(
 
   tol <- 5e-6 ## Current difference for all equations
   type <- 1
-  for (type in 1:4) {
+  for (type in 5) {
 
     .txt <- switch(type, "linear", "sensitivity", "linear [no save]", "advanSens", "dual")
     sens <- switch(type, "linCmtA", "linCmtB", "linCmtC", "linCmtB", "linCmtB")
@@ -2011,11 +2011,12 @@ rxPermissive(
 
     ## forward/central differences don't work here...
 
-    for (type in c(1, 4)) {
+    for (type in 5) {
       sens <- switch(type, "autodiff", "forward", "central", "advan", "dual")
 
       context(sprintf("1 cmt sensitivities (%s)", sens))
       test_that("1 compartment sensitivities; IV bolus, Cl, V", {
+
         pred <- function() {
           return(Central)
         }
@@ -2429,6 +2430,7 @@ rxPermissive(
 
 
       test_that("2 compartment sensitivities; Oral Cl, Vc, Q, Vp, Ka", {
+
         pred <- function() {
           return(Central)
         }

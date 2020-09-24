@@ -27,7 +27,7 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
-  
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <R.h>
@@ -35,6 +35,44 @@ extern "C" {
 #include <Rmath.h>
 #include <stdbool.h>
 #include <R_ext/Rdynload.h>
+
+typedef struct dualN {
+  double f;
+  double grad[7];
+} dualN;
+
+
+typedef struct parTr {
+  int trans;
+  int ncmt;
+  int oral0;
+  int linCmt;
+  int id;
+  double d_tlag;
+  double d_F;
+  double d_rate1;
+  double d_dur1;
+  // Oral parameters
+  double d_tlag2;
+  double d_F2;
+  double d_rate2;
+  double d_dur2;
+  // Input parameters 
+  dualN p1;
+  dualN v1;
+  dualN p2;
+  dualN p3;
+  dualN p4;
+  dualN p5;
+  dualN ka;
+  // Output parameters
+  dualN rx_k;
+  dualN rx_v;
+  dualN rx_k12;
+  dualN rx_k21;
+  dualN rx_k13;
+  dualN rx_k31;
+} parTr;
 
 typedef void (*t_dydt)(int *neq, double t, double *A, double *DADT);
 typedef void (*t_calc_jac)(int *neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
@@ -229,6 +267,7 @@ typedef struct {
   // Cache duration
   double *cDur;
   double solveTime;
+  parTr tr;
 } rx_solving_options_ind;
 
 typedef struct {
