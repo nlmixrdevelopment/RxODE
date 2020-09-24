@@ -8,7 +8,9 @@
     ## Setup RxODE.prefer.tbl
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
     rxPermissive(respect=TRUE); ## need to call respect on the first time
-    suppressMessages(.rxWinRtoolsPath(retry=NA))
+    if (Sys.which("make") == "") {
+        packageStartupMessage("make not found; you may need Rtools to use RxODE")
+    }
     rxTempDir();
     if (!interactive()){
         setProgSupported(0);
@@ -20,11 +22,14 @@
 .onAttach <- function(libname, pkgname){
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
     rxPermissive(respect=TRUE); ## need to call respect on the first time
-    if (!.rxWinRtoolsPath(retry=NA)){
-        ## nocov start
-        packageStartupMessage("Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to work.\nYou can set up Rtools using the command 'rxWinSetup()'.\n");
-        ## nocov end
+    if (Sys.which("make") == "") {
+        packageStartupMessage("make not found; you may need Rtools to use RxODE")
     }
+    #if (!.rxWinRtoolsPath(retry=NA)){
+    #    ## nocov start
+    #    packageStartupMessage("Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to work.\nYou can set up Rtools using the command 'rxWinSetup()'.\n");
+    #    ## nocov end
+    #}
     if (!interactive()){
         setProgSupported(0);
     }
