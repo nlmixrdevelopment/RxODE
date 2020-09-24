@@ -366,11 +366,11 @@ static inline dualN ssRateG(double *A,
   return ret;
 }
 
-static inline dualN lookupDualN(double *A, parTr *tr) {
+static inline dualN lookupDualN(double *A, int oral0, int ncmt) {
   dualN ret;
-  if (tr->oral0) {
+  if (oral0) {
     ret.f  = A[1];
-    switch (tr->ncmt){
+    switch (ncmt){
     case 1:
       ret.grad[dKa] = A[5];
       ret.grad[dP1] = A[6];
@@ -395,7 +395,7 @@ static inline dualN lookupDualN(double *A, parTr *tr) {
     }
   } else {
     ret.f = A[0];
-    switch (tr->ncmt){
+    switch (ncmt){
     case 1:
       ret.grad[dP1] = A[1];
       ret.grad[dV1] = A[2];
@@ -511,7 +511,7 @@ static inline dualN handleSSLG(double *A,// Amounts
 	for (int i = tr->ncmt + tr->oral0; i--;){
 	  A[i] += R_NaN;
 	}
-	ret = lookupDualN(A, tr);
+	ret = lookupDualN(A, tr->oral0, tr->ncmt);
       } else {
 	ret = ssRateTauG(A, &tinf, &tau, tr, r1, r2);
       }
@@ -562,7 +562,7 @@ static inline dualN handleSSLG(double *A,// Amounts
 	  A[i] += aSave[i];
 	}
       }
-      ret = lookupDualN(A, tr);
+      ret = lookupDualN(A, tr->oral0, tr->ncmt);
     }
   } break;
   }
@@ -651,7 +651,30 @@ double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
     curTime = getTime(ind->ix[idx], ind);
   }
   int sameTime = isSameTime(t, curTime);
-  
+  if (idx <= ind->solved && sameTime){
+    // Pull from last solved value (cached)
+    A = getAdvan(idx);
+    int oral0 = (d_ka > 0);
+    dualN ret = lookupDualN(A, oral0, i_cmt);
+    dualN Vc;
+    if (trans == 10 || trans == 11) {
+      parTr tr =  parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
+		       &d_ka, ind, linCmt,
+		       d_tlag, d_F, d_rate1, d_dur1, d_tlag2, d_F2,  d_rate2, d_dur2);
+      Vc = tr.rx_v;
+    } else {
+      Vc = iniD(v1,dV1);
+    }
+    ret =div2(ret, Vc);
+    if (val == 0) return ret.f;
+    if (val == 1) return ret.grad[dP1];
+    if (val == 2) return ret.grad[dV1];
+    if (val == 3) return ret.grad[dP2];
+    if (val == 4) return ret.grad[dP3];
+    if (val == 5) return ret.grad[dP4];
+    if (val == 6) return ret.grad[dP5];
+    if (val == 11) return ret.grad[dKa];
+  }
   parTr tr =  parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
 		       &d_ka, ind, linCmt,
 		       d_tlag, d_F, d_rate1, d_dur1, d_tlag2, d_F2,  d_rate2, d_dur2);
@@ -683,7 +706,7 @@ double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
     Alast=Alast0;
   } else {
     ret = doAdvanG(A, Alast, tlast, // Time of last amounts
-	     curTime, &tr, &b1, &b2, &r1, &r2);
+		   curTime, &tr, &b1, &b2, &r1, &r2);
     double aSave[31];
     int nSave = 0;
     switch(tr.ncmt) {
