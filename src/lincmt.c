@@ -3177,18 +3177,6 @@ double linCmtE(rx_solve *rx, unsigned int id, double t, int linCmt,
 #undef h2
 }
 
-extern double linCmtBB(rx_solve *rx, unsigned int id,
-		       double t, int linCmt,
-		       int ncmt, int trans, int val,
-		       double dd_p1, double dd_v1,
-		       double dd_p2, double dd_p3,
-		       double dd_p4, double dd_p5,
-		       double dd_tlag, double dd_F,
-		       double dd_rate, double dd_dur,
-		       // oral extra parameters
-		       double dd_ka, double dd_tlag2,
-		       double dd_F2, double dd_rate2, double dd_dur2);
-
 static inline void doAdvanD(double *A,// Amounts
 			    double *Alast, // Last amounts
 			    double tlast, // Time of last amounts
@@ -3450,6 +3438,15 @@ double derTrans(rx_solve *rx, double *A, int ncmt, int trans, int val,
   return R_NaN;
 }
 
+double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
+	       int i_cmt, int trans, int val,
+	       double p1, double v1,
+	       double p2, double p3,
+	       double p4, double p5,
+	       double d_tlag, double d_F, double d_rate1, double d_dur1,
+	       // Oral parameters
+	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2);
+
 double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       int i_cmt, int trans, int val,
 	       double p1, double v1,
@@ -3459,9 +3456,9 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       // Oral parameters
 	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2) {
   if (i_cmt == 3)
-    return linCmtBB(rx, id, t, linCmt, i_cmt, trans, val,
-		    p1, v1, p2, p3, p4, p5, d_tlag, d_F,
-		    d_rate1, d_dur1, d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
+    return linCmtG(rx, id, t, linCmt, i_cmt, trans, val,
+		   p1, v1, p2, p3, p4, p5, d_tlag, d_F,
+		   d_rate1, d_dur1, d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   int evid;
   /* evid = ind->evid[ind->ix[ind->idx]]; */
@@ -3755,11 +3752,7 @@ double linCmtB(rx_solve *rx, unsigned int id,
 	       double dd_F2, double dd_rate2, double dd_dur2){
   switch (rx->sensType){
   case 1: // sensitivity
-    return linCmtBB(rx, id, t, linCmt, ncmt, trans, val,
-		    dd_p1, dd_v1, dd_p2, dd_p3,
-		    dd_p4, dd_p5, dd_tlag, dd_F,
-		    dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,
-		    dd_rate2, dd_dur2);
+    Rf_errorcall(R_NilValue, _("autodiff no longer supported"));
     break;
   case 2: // forward difference
     return linCmtD(rx, id, t, linCmt, ncmt, trans, val,

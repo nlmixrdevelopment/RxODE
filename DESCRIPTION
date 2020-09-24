@@ -119,9 +119,7 @@ RoxygenNote: 7.1.1
 Biarch: true
 LinkingTo: dparser(>= 0.1.8),
 	   PreciseSums (>= 0.3),
-	   RcppEigen (>= 0.3.3.3.0),
-	   sitmo, StanHeaders (>= 2.18.0),
-	   BH, checkmate
+	   RcppEigen (>= 0.3.3.3.0), sitmo, BH, checkmate
 Encoding: UTF-8
 LazyData: true
 Language: en-US
