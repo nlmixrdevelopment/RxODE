@@ -191,4 +191,4 @@ rxPermissive({
     options(RxODE.xgxr=TRUE)
     options(RxODE.ggrepel=TRUE)
     options(RxODE.theme=TRUE)
-}, silent=TRUE, test="plot")
+}, silent=TRUE, on.validate=TRUE)

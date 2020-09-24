@@ -30,4 +30,4 @@ rxPermissive({
         expect_identical(s$s8, 2.0)
         rxSetSum("pairwise")
     })
-})
+}, on.validate=TRUE)
