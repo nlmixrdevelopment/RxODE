@@ -983,6 +983,9 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
 	key[b][i] = (uint8_t)(elem & 0xff);
 	elem >>= 8;
       }
+      // RxODE uses key[0][i] = 0 | (uint8_t)(elem & 0xff) instead of
+      //  key[0][i] |= (uint8_t)(elem & 0xff)
+      // because unlike data.table, key[0][i] is not necessarily zero. 
       key[0][i] = 0 | (uint8_t)(elem & 0xff);
     }
     radix_r(0, ind->n_all_times-1, 0, ind, rx);
