@@ -42,9 +42,15 @@ rxPermissive({
 
     d_mod <- readRDS(test_path("test-issue-299.rds"))
 
-    s <- rxSolve(model, parm, d_mod)
+    s <- suppressWarnings(rxSolve(model, parm, d_mod))
 
-    expect_true(suppressWarnings(all(diff(order(s$id, s$time)) == 1)))
+    expect_true(all(diff(order(s$id, s$time)) == 1))
+
+
+    d2 <- d_mod[d_mod$ID == 43, ]
+
+    s <- suppressWarnings(rxSolve(model, parm, d2, addDosing=NA))
+
 
   })
 

@@ -1,6 +1,7 @@
 #include <R.h>
 #include <Rversion.h>
 #include <Rinternals.h>
+#include <algorithm>
 #include "../inst/include/RxODE.h"
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 
@@ -301,15 +302,22 @@ extern "C" void radix_r(const int from, const int to, const int radix,
     // insert sort with some twists:
     // i) detects if grouped; if sortType==0 can then skip
     // ii) keeps group appearance order at byte level to minimize movement
-    uint8_t * my_key = key[radix]+from;  // safe to write as we don't use this radix again
+    // The key cannot be restricted because CRAN requires forder to use Cpp and restrict is a C only keyword
+    // (ie any openmp needs to be in C++ since the c++ linker is used with the openmp options)
+    uint8_t *my_key = key[radix]+from;  // safe to write as we don't use this radix again
     uint8_t o[my_n];
     // if last key (i.e. radix+1==nradix) there are no more keys to reorder so we could reorder osub by reference directly and save allocating and populating o just
     // to use it once. However, o's type is uint8_t so many moves within this max-256 vector should be faster than many moves in osub (4 byte or 8 byte ints) [1 byte
     // type is always aligned]
     bool skip = true;
     // Ascending; (sortType=1)
+    // Skipped https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L869-L908 because sortType=1
     int start = 1;
-    while (start<my_n && my_key[start]>=my_key[start-1]) start++;
+    // REprintf("my_n: %d\n", my_n);
+    while (start<my_n && my_key[start]>=my_key[start-1]) {
+      start++;
+    }
+    // REprintf("start: %d; %d >= %d\n", start, my_key[start], my_key[start-1]);
     if (start<my_n) {
       skip = false;  // finding start is really just to take skip out of the loop below
       for (int i=0; i<start; i++) o[i]=i;  // always at least sets o[0]=0
@@ -325,15 +333,14 @@ extern "C" void radix_r(const int from, const int to, const int radix,
 	o[j+1] = i;          // important to initialize o[] even when while() did nothing.
       }
     }
-    // Skip sortType == 0 (line #869-#909)
     if (!skip) {
       // reorder osub and each remaining ksub
       int TMP[my_n];  // on stack fine since my_n is very small (<=256)
-      const int * osub = anso+from;
+      const int *osub = anso+from;
       for (int i=0; i<my_n; i++) TMP[i] = osub[o[i]];
       memcpy((int *)(anso+from), TMP, my_n*sizeof(int));
       for (int r=radix+1; r< nradix; r++) {
-	const uint8_t * ksub = key[r]+from;
+	const uint8_t *ksub = key[r]+from;
 	for (int i=0; i<my_n; i++) ((uint8_t *)TMP)[i] = ksub[o[i]];
 	memcpy((uint8_t *)(key[r]+from), (uint8_t *)TMP, my_n);
       }
@@ -361,26 +368,24 @@ extern "C" void radix_r(const int from, const int to, const int radix,
   }
   else if (my_n<=UINT16_MAX) {    // UINT16_MAX==65535 (important not 65536)
     // if (nth==1) Rprintf(_("counting clause: radix=%d, my_n=%d\n"), radix, my_n);
-    uint16_t my_counts[256] = {0};  // Needs to be all-0 on entry. This ={0} initialization should be fast as it's on stack. Otherwise, we have to manage
+    uint16_t my_counts[256];// = {0};  // Needs to be all-0 on entry. This ={0} initialization should be fast as it's on stack. Otherwise, we have to manage
     // a stack of counts anyway since this is called recursively and these counts are needed to make the recursive calls.
     // This thread-private stack alloc has no chance of false sharing and gives omp and compiler best chance.
-    uint8_t * my_ugrp = rx->UGRP + omp_get_thread_num()*256;  // uninitialized is fine; will use the first ngrp items. Only used if sortType==0
+    // RxODE change use std::fill_n();  In my experience sometimes = {0}; doesn't always fill 0.
+    std::fill_n(my_counts, 256, 0);
+    //uint8_t * my_ugrp = rx->UGRP + omp_get_thread_num()*256;  // uninitialized is fine; will use the first ngrp items. Only used if sortType==0
     // TODO: ensure my_counts, my_grp and my_tmp below are cache line aligned on both Linux and Windows.
     const uint8_t * my_key = key[radix]+from;
     int ngrp = 0;          // number of groups (items in ugrp[]). Max value 256 but could be uint8_t later perhaps if 0 is understood as 1.
     bool skip = true;      // i) if already _grouped_ and sortType==0 then caller can skip, ii) if already _grouped and sorted__ when sort!=0 then caller can skip too
-    // sortType = 1, skip https://github.com/Rdatatable/data.table/blob/be6c1fc66a411211c4ca944702c1cab7739445f3/src/forder.c#L956-L964
-    for (int i=0; i<my_n; i++) {
-      uint8_t elem = my_key[i];
-      if (++my_counts[elem]==1) {
-	// first time seen this value.  i==0 always does this branch
-	my_ugrp[ngrp++]=elem;
-      } else if (skip && elem!=my_key[i-1]) {   // does not happen for i==0
- 	// seen this value before and it isn't the previous value, so data is not grouped
-	// including "skip &&" first is to avoid the != comparison
-	skip=false;
-      }
+    // sortType = 1, keep https://github.com/Rdatatable/data.table/blob/be6c1fc66a411211c4ca944702c1cab7739445f3/src/forder.c#L956-L964
+    for (int i=0; i<my_n; ++i) my_counts[my_key[i]]++;  // minimal branch-free loop first, #3647
+    for (int i=1; i<my_n; ++i) {
+      if (my_key[i]<my_key[i-1]) { skip=false; break; }
+      // stop early as soon as not-ordered is detected; likely quickly when it isn't sorted
+      // otherwise, it's worth checking if it is ordered because skip saves time later
     }
+    // skip https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L965-L978
     if (!skip) {
       // reorder anso and remaining radix keys
 
@@ -399,6 +404,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
       // Modified nalast not used since NAs cannot occur for a good sort of times
       if (radix==0) {
 	// anso contains 1:n so skip reading and copying it. Only happens when nrow<65535. Saving worth the branch (untested) when user repeatedly calls a small-n small-cardinality order.
+	// RxODE: change 0 instead of +1 because C is 0-based
 	for (int i=0; i<my_n; i++) anso[my_starts[my_key[i]]++] = i;  // +1 as R is 1-based.
 	// The loop counter could be uint_fast16_t since max i here will be UINT16_MAX-1 (65534), hence ++ after last iteration won't overflow 16bits. However, have chosen signed
 	// integer for counters for now, as signed probably very slightly faster than unsigned on most platforms from what I can gather.
@@ -464,8 +470,8 @@ extern "C" void radix_r(const int from, const int to, const int radix,
       // restrict doesn't work in C++ (which is required here because
       // of C++ OpenMp requirement from CRAN only using one OpenMP
       // language...)
-      uint16_t *      my_counts = counts + batch*256;
-      uint8_t  *      my_ugrp   = ugrps  + batch*256;
+      uint16_t *my_counts = counts + batch*256;
+      uint8_t  *my_ugrp   = ugrps  + batch*256;
       int                     my_ngrp   = 0;
       bool                    my_skip   = true;
       const uint8_t * my_key    = key[radix] + my_from;
@@ -599,7 +605,6 @@ extern "C" void radix_r(const int from, const int to, const int radix,
     // aside: ngrp==my_n (all size 1 groups) isn't a possible short-circuit here similar to my_n>256 case above, my_n>65535 but ngrp<=256
   }
   else {
-    // TODO: explicitly repeat parallel batch for any skew bins
     // TODO: explicitly repeat parallel batch for any skew bins
     // all groups are <=65535 and radix_r() will handle each one single-threaded. Therefore, this time
     // it does make sense to start a parallel team and there will be no nestedness here either.

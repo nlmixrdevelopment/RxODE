@@ -972,7 +972,9 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
     rx->nradix[core] = nradix;
     // Allocate more space if needed
     for (int b = 0; b < nbyte; b++){
-      if (key[b] == NULL) key[b] = (uint8_t *)calloc(rx->maxAllTimes+1, sizeof(uint8_t));
+      if (key[b] == NULL) {
+	key[b] = (uint8_t *)calloc(rx->maxAllTimes+1, sizeof(uint8_t));
+      }
     }
     for (int i = 0; i < ind->n_all_times; i++) {
       uint64_t elem = all[i] - minD;
@@ -981,7 +983,7 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
 	key[b][i] = (uint8_t)(elem & 0xff);
 	elem >>= 8;
       }
-      key[0][i] |= (uint8_t)(elem & 0xff);    
+      key[0][i] = 0 | (uint8_t)(elem & 0xff);
     }
     radix_r(0, ind->n_all_times-1, 0, ind, rx);
   }
