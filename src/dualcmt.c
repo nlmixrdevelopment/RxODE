@@ -633,17 +633,7 @@ double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
     // Pull from last solved value (cached)
     A = getAdvan(idx);
     int oral0 = (d_ka > 0);
-    dualN ret = lookupDualN(A, oral0, i_cmt);
-    dualN Vc;
-    if (trans == 10 || trans == 11) {
-      parTr tr =  parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
-		       &d_ka, ind, linCmt,
-		       d_tlag, d_F, d_rate1, d_dur1, d_tlag2, d_F2,  d_rate2, d_dur2);
-      Vc = tr.rx_v;
-    } else {
-      Vc = iniD(v1,dV1);
-    }
-    ret =div2(ret, Vc);
+    dualN ret = div2(lookupDualN(A, oral0, i_cmt), ind->tr.rx_v);
     if (val == 0) return ret.f;
     if (val == 1) return ret.grad[dP1];
     if (val == 2) return ret.grad[dV1];
