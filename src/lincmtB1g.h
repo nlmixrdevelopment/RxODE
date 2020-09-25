@@ -20,7 +20,8 @@ A[2] = A1.grad[dV1];
 return A1;
 }
 static inline dualN oneCmtRateG(double *A, double *Alast, double *t, double *b1, double *r1, dualN k10) {
-dualN A1last = iniD(Alast[0],-1);
+dualN A1last;
+A1last.f=Alast[0];
 A1last.grad[dKa] = Alast[1];
 dualN eT=expD(prod2d(negD(k10),(*t)));
 dualN A1=add2d(add2(prod2(divd2((*r1),k10),(subtrd2(1,eT))),prod2(A1last,eT)),(*b1));
@@ -53,7 +54,8 @@ return A2;
 }
 static inline dualN oneCmtKaRateSSr2G(double *A, double *r2, dualN ka, dualN k20) {
 (void)(ka);
-dualN A1=iniD(0, -1);
+dualN A1;
+iniD(0, -1, &A1);
 dualN A2=divd2((*r2),k20);
 A[0] = A1.f;
 A[1] = A2.f;
@@ -87,7 +89,8 @@ static inline dualN oneCmtKaRateSStr2G(double *A, double *tinf, double *tau, dou
 // has ka
 dualN eiK=expD(prod2d(negD(k20),(*tinf)));
 dualN eK=div2(expD(prodd2(((*tau)-(*tinf)),negD(k20))),(subtrd2(1,expD(prod2d(negD(k20),(*tau))))));
-dualN A1=iniD(0, -1);
+dualN A1;
+iniD(0, -1, &A1);
 dualN A2=prod2(eK,(subtr2(divd2((*r2),k20),div2(prod2(prod2d(eiK,(*r2)),(add2(negD(k20),ka))),(subtr2(prod2(ka,k20),prod2(k20,k20)))))));
 A[0] = A1.f;
 A[1] = A2.f;
@@ -101,11 +104,13 @@ return A2;
 }
 static inline dualN oneCmtKaRateG(double *A, double *Alast, double *t, double *b1, double *b2, double *r1, double *r2, dualN ka, dualN k20) {
 // has ka
-dualN A1last = iniD(Alast[0],-1);
+dualN A1last;
+A1last.f=Alast[0];
 A1last.grad[dKa] = Alast[2];
 A1last.grad[dP1] = Alast[3];
 A1last.grad[dV1] = Alast[4];
-dualN A2last = iniD(Alast[1],-1);
+dualN A2last;
+A2last.f = Alast[1];
 A2last.grad[dKa] = Alast[5];
 A2last.grad[dP1] = Alast[6];
 A2last.grad[dV1] = Alast[7];
@@ -142,7 +147,8 @@ return A2;
 static inline dualN oneCmtKaSSb2G(double *A, double *tau, double *b2, dualN ka, dualN k20) {
 (void)(ka);
 dualN eK=divd2(1,(subtrd2(1,expD(prodd2(-(*tau),k20)))));
-dualN A1=iniD(0, -1);
+dualN A1;
+iniD(0, -1, &A1);
 dualN A2=prod2d(eK,(*b2));
 A[0] = A1.f;
 A[1] = A2.f;

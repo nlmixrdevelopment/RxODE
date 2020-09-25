@@ -10,26 +10,24 @@
 #define dP5 5
 #define dV1 6
 
-dualN iniD(double val, int which){
-  dualN ret;
-  ret.f = val;
-  ret.grad[0] = 0.0;
-  ret.grad[1] = 0.0;
-  ret.grad[2] = 0.0;
-  ret.grad[3] = 0.0;
-  ret.grad[4] = 0.0;
-  ret.grad[5] = 0.0;
-  ret.grad[6] = 0.0;
+void iniD(double val, int which, dualN *ret){
+  ret->f = val;
+  ret->grad[0] = 0.0;
+  ret->grad[1] = 0.0;
+  ret->grad[2] = 0.0;
+  ret->grad[3] = 0.0;
+  ret->grad[4] = 0.0;
+  ret->grad[5] = 0.0;
+  ret->grad[6] = 0.0;
   if (which >= 0) {
-    ret.grad[which] = 1.0;
+    ret->grad[which] = 1.0;
   }
-  return ret;
 }
 
 #define iniD0() iniD(NAN, -1)
 
 dualN sqrtD(dualN x) {
-  dualN ret = iniD0();
+  dualN ret;
   ret.f = sqrt(x.f);
   double gr = 0.5 / ret.f;
   ret.grad[0] = x.grad[0]*gr;
@@ -43,7 +41,7 @@ dualN sqrtD(dualN x) {
 }
 
 dualN expD(dualN x) {
-  dualN ret = iniD0();
+  dualN ret;
   ret.f = exp(x.f);
   ret.grad[0] = x.grad[0]*ret.f;
   ret.grad[1] = x.grad[1]*ret.f;
@@ -56,7 +54,7 @@ dualN expD(dualN x) {
 }
 
 dualN add2(dualN x, dualN y) {
-  dualN ret = iniD0();
+  dualN ret;
   ret.f = x.f + y.f;
   ret.grad[0] = x.grad[0] + y.grad[0];
   ret.grad[1] = x.grad[1] + y.grad[1];

@@ -58,13 +58,13 @@ static inline parTr parTrans(int *trans,
   ind->tr.d_F2 = d_F2;
   ind->tr.d_rate2 = d_rate2;
   ind->tr.d_dur2 = d_dur2;
-  ind->tr.ka = iniD(*ka, dKa);
-  ind->tr.p1 = iniD(*p1, dP1);
-  ind->tr.p2 = iniD(*p2, dP2);
-  ind->tr.p3 = iniD(*p3, dP3);
-  ind->tr.p4 = iniD(*p4, dP4);
-  ind->tr.p5 = iniD(*p5, dP5);
-  ind->tr.v1 = iniD(*v1, dV1);
+  iniD(*ka, dKa, &ind->tr.ka);
+  iniD(*p1, dP1, &ind->tr.p1);
+  iniD(*p2, dP2, &ind->tr.p2);
+  iniD(*p3, dP3, &ind->tr.p3);
+  iniD(*p4, dP4, &ind->tr.p4);
+  iniD(*p5, dP5, &ind->tr.p5);
+  iniD(*v1, dV1, &ind->tr.v1);
   ind->tr.oral0 = (*ka > 0) ? 1 : 0;
   dualN alpha, beta, gamma, A, B, C, btemp, ctemp, dtemp;
   if ((*p5) > 0.) {

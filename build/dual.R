@@ -177,7 +177,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
     if (.l1 == "A3") assign(".hasA4", TRUE, globalenv())
     .l2 <- toDual(gsub(";", "", .cur[2]))
     if (.l1 == "A1" & .l2 == "0")
-      return("dualN A1=iniD(0, -1);")
+      return("dualN A1;\niniD(0, -1, &A1);")
     return(paste0("dualN ", .l1, "=", .l2, ";"))
   })
   .l <- .l[.l != ""]
@@ -191,11 +191,11 @@ getFun <- function(x="oneCmtKaRateSSr1"){
         #define A2k20 A[4]
         .ret <- paste0(c(.fB,
                          ifelse(.hasKa2, "// has ka", "(void)(ka);"),
-                         "dualN A1last = iniD(Alast[0],-1);",
+                         "dualN A1last;\nA1last.f=Alast[0];",
                          "A1last.grad[dKa] = Alast[2];",
                          "A1last.grad[dP1] = Alast[3];",
                          "A1last.grad[dV1] = Alast[4];",
-                         "dualN A2last = iniD(Alast[1],-1);",
+                         "dualN A2last;\nA2last.f = Alast[1];",
                          "A2last.grad[dKa] = Alast[5];", # ka
                          "A2last.grad[dP1] = Alast[6];", # k20
                          "A2last.grad[dV1] = Alast[7];", # dVp
@@ -237,13 +237,13 @@ getFun <- function(x="oneCmtKaRateSSr1"){
       if (.hasAlast) {
         .ret <- paste0(c(.fB,
                          ifelse(.hasKa2, "// has ka", "(void)(ka);"),
-                         "dualN A1last = iniD(Alast[0],-1);",
+                         "dualN A1last;\nA1last.f = Alast[0];",
                          "A1last.grad[dKa] = Alast[3];",
                          "A1last.grad[dP1] = Alast[4];", # doesn't depend on k20
                          "A1last.grad[dP2] = Alast[5];",
                          "A1last.grad[dP3] = Alast[6];",
                          "A1last.grad[dV1] = Alast[7];",
-                         "dualN A2last = iniD(Alast[1],-1);",
+                         "dualN A2last;\nA2last.f = Alast[1];",
                          #define A2ka A[6]
                          #define A2k20 A[7]
                          #define A2k23 A[8]
@@ -253,7 +253,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
                          "A2last.grad[dP2] = Alast[10];", # k23
                          "A1last.grad[dP3] = Alast[11];", # k32
                          "A1last.grad[dV1] = Alast[12];", # k32
-                         "dualN A3last = iniD(Alast[2],-1);",
+                         "dualN A3last;\nA3last.f= Alast[2];",
                          #define A3lastka Alast[10]
                          #define A3lastk20 Alast[11]
                          #define A3lastk23 Alast[12]
@@ -321,7 +321,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
       if (.hasAlast) {
         .ret <- paste0(c(.fB,
                          ifelse(.hasKa2, "// has ka", "(void)(ka);"),
-                         "dualN A1last = iniD(Alast[0],-1);",
+                         "dualN A1last;\nA1last.f = Alast[0];",
                          "A1last.grad[dKa] = Alast[4];",
                          "A1last.grad[dP1] = Alast[5];", # doesn't depend on k20
                          "A1last.grad[dP2] = Alast[6];",
@@ -329,7 +329,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
                          "A1last.grad[dP4] = Alast[8];",
                          "A1last.grad[dP5] = Alast[9];",
                          "A1last.grad[dV1] = Alast[10];",
-                         "dualN A2last = iniD(Alast[1],-1);",
+                         "dualN A2last;\nA2last.f = Alast[1];",
                          "A2last.grad[dKa] = Alast[11];",
                          "A2last.grad[dP1] = Alast[12];",
                          "A2last.grad[dP2] = Alast[13];",
@@ -337,7 +337,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
                          "A1last.grad[dP4] = Alast[15];",
                          "A1last.grad[dP5] = Alast[16];",
                          "A1last.grad[dV1] = Alast[17];",
-                         "dualN A3last = iniD(Alast[2],-1);",
+                         "dualN A3last;\nA3last.f = Alast[2];",
                          "A3last.grad[dKa] = Alast[18];",
                          "A3last.grad[dP1] = Alast[19];",
                          "A3last.grad[dP2] = Alast[20];",
@@ -345,7 +345,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
                          "A3last.grad[dP4] = Alast[22];",
                          "A3last.grad[dP5] = Alast[23];",
                          "A3last.grad[dV1] = Alast[24];",
-                         "dualN A4last = iniD(Alast[3],-1);",
+                         "dualN A4last;\nA4last.f = Alast[3];",
                          "A4last.grad[dKa] = Alast[25];",
                          "A4last.grad[dP1] = Alast[26];",
                          "A4last.grad[dP2] = Alast[27];",
@@ -445,7 +445,7 @@ getFun <- function(x="oneCmtKaRateSSr1"){
         #define A2ka A[3]
         #define A2k20 A[4]
         .ret <- paste0(c(.fB,
-                         "dualN A1last = iniD(Alast[0],-1);",
+                         "dualN A1last;\nA1last.f=Alast[0];",
                          "A1last.grad[dKa] = Alast[1];",
                          .ret,
                          "A[0] = A1.f;",
@@ -476,12 +476,12 @@ getFun <- function(x="oneCmtKaRateSSr1"){
         #define A2k12 A[6]
         #define A2k21 A[7]
         .ret <- paste0(c(.fB,
-                         "dualN A1last = iniD(Alast[0],-1);",
+                         "dualN A1last;A1last.f = Alast[0];",
                          "A1last.grad[dP1] = Alast[2];",
                          "A1last.grad[dP2] = Alast[3];",
                          "A1last.grad[dP3] = Alast[4];",
                          "A1last.grad[dV1] = Alast[5];",
-                         "dualN A2last = iniD(Alast[1],-1);",
+                         "dualN A2last; A2last.f = Alast[1];",
                          "A2last.grad[dP1] = Alast[5];", # k10
                          "A2last.grad[dP2] = Alast[6];", # k12
                          "A2last.grad[dP3] = Alast[7];", # k21
@@ -525,21 +525,21 @@ getFun <- function(x="oneCmtKaRateSSr1"){
     } else if (regexpr("threeCmt", x) != -1) {
       if (.hasAlast) {
         .ret <- paste0(c(.fB,
-                         "dualN A1last = iniD(Alast[0],-1);",
+                         "dualN A1last;\nA1last.f = Alast[0];",
                          "A1last.grad[dP1] = Alast[3];",
                          "A1last.grad[dP2] = Alast[4];",
                          "A1last.grad[dP3] = Alast[5];",
                          "A1last.grad[dP4] = Alast[6];",
                          "A1last.grad[dP5] = Alast[7];",
                          "A1last.grad[dV1] = Alast[8];",
-                         "dualN A2last = iniD(Alast[1],-1);",
+                         "dualN A2last;\nA2last.f = Alast[1];",
                          "A2last.grad[dP1] = Alast[9];",
                          "A2last.grad[dP2] = Alast[10];",
                          "A2last.grad[dP3] = Alast[11];",
                          "A2last.grad[dP4] = Alast[12];",
                          "A2last.grad[dP5] = Alast[13];",
                          "A2last.grad[dV1] = Alast[14];",
-                         "dualN A3last = iniD(Alast[2],-1);",
+                         "dualN A3last;\nA3last.f = Alast[2];",
                          "A3last.grad[dP1] = Alast[15];",
                          "A3last.grad[dP2] = Alast[16];",
                          "A3last.grad[dP3] = Alast[17];",
