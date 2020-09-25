@@ -257,8 +257,22 @@ dualN sinD(dualN x) {
 
 dualN pow2d(dualN base, double e) {
   dualN ret;
-  ret.f = pow(base.f, e);
+  ret.f = R_pow(base.f, e);
   double mult = e*pow(base.f, e - 1.0);
+  ret.grad[0] = base.grad[0] * mult;
+  ret.grad[1] = base.grad[1] * mult;
+  ret.grad[2] = base.grad[2] * mult;
+  ret.grad[3] = base.grad[3] * mult;
+  ret.grad[4] = base.grad[4] * mult;
+  ret.grad[5] = base.grad[5] * mult;
+  ret.grad[6] = base.grad[6] * mult;
+  return ret;
+}
+
+dualN pow2i(dualN base, int e) {
+  dualN ret;
+  ret.f = R_pow_di(base.f, e);
+  double mult = (double)(e)*R_pow_di(base.f, e - 1);
   ret.grad[0] = base.grad[0] * mult;
   ret.grad[1] = base.grad[1] * mult;
   ret.grad[2] = base.grad[2] * mult;
