@@ -2,7 +2,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 //#undef NDEBUG
 #define NCMT 100
-// NONMEM 7.1 has a max of 50 obesrvations/individual
+// NONMEM 7.1 has a max of 50 obesrrvations/individual
 #define MAXIDS 500
 #define NALL 500
 #define NDOSES 50

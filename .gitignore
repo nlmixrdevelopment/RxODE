@@ -30,3 +30,4 @@ inst/doc
 /inst/tutorials/events/.Rhistory
 /tests/testthat/.Rhistory
 /inst/.Rhistory
+/src/RxODE.so
