@@ -633,17 +633,17 @@ namespace RxODE {
         return Rcpp::as<bool >(rcpp_result_gen);
     }
 
-    inline RObject rxUnloadAll() {
-        typedef SEXP(*Ptr_rxUnloadAll)();
-        static Ptr_rxUnloadAll p_rxUnloadAll = NULL;
-        if (p_rxUnloadAll == NULL) {
-            validateSignature("RObject(*rxUnloadAll)()");
-            p_rxUnloadAll = (Ptr_rxUnloadAll)R_GetCCallable("RxODE", "_RxODE_rxUnloadAll");
+    inline RObject rxUnloadAll_() {
+        typedef SEXP(*Ptr_rxUnloadAll_)();
+        static Ptr_rxUnloadAll_ p_rxUnloadAll_ = NULL;
+        if (p_rxUnloadAll_ == NULL) {
+            validateSignature("RObject(*rxUnloadAll_)()");
+            p_rxUnloadAll_ = (Ptr_rxUnloadAll_)R_GetCCallable("RxODE", "_RxODE_rxUnloadAll_");
         }
         RObject rcpp_result_gen;
         {
             RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_rxUnloadAll();
+            rcpp_result_gen = p_rxUnloadAll_();
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();

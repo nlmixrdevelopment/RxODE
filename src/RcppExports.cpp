@@ -1190,20 +1190,20 @@ RcppExport SEXP _RxODE_rxAllowUnload(SEXP allowSEXP) {
     UNPROTECT(1);
     return rcpp_result_gen;
 }
-// rxUnloadAll
-RObject rxUnloadAll();
-static SEXP _RxODE_rxUnloadAll_try() {
+// rxUnloadAll_
+RObject rxUnloadAll_();
+static SEXP _RxODE_rxUnloadAll__try() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    rcpp_result_gen = Rcpp::wrap(rxUnloadAll());
+    rcpp_result_gen = Rcpp::wrap(rxUnloadAll_());
     return rcpp_result_gen;
 END_RCPP_RETURN_ERROR
 }
-RcppExport SEXP _RxODE_rxUnloadAll() {
+RcppExport SEXP _RxODE_rxUnloadAll_() {
     SEXP rcpp_result_gen;
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_RxODE_rxUnloadAll_try());
+        rcpp_result_gen = PROTECT(_RxODE_rxUnloadAll__try());
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
@@ -1649,7 +1649,7 @@ static int _RxODE_RcppExport_validate(const char* sig) {
         signatures.insert("RObject(*rxLock)(RObject)");
         signatures.insert("RObject(*rxUnlock)(RObject)");
         signatures.insert("bool(*rxAllowUnload)(bool)");
-        signatures.insert("RObject(*rxUnloadAll)()");
+        signatures.insert("RObject(*rxUnloadAll_)()");
         signatures.insert("bool(*rxDynUnload)(RObject)");
         signatures.insert("bool(*rxDelete)(RObject)");
         signatures.insert("SEXP(*setRstudio)(bool)");
@@ -1696,7 +1696,7 @@ RcppExport SEXP _RxODE_RcppExport_registerCCallable() {
     R_RegisterCCallable("RxODE", "_RxODE_rxLock", (DL_FUNC)_RxODE_rxLock_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxUnlock", (DL_FUNC)_RxODE_rxUnlock_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxAllowUnload", (DL_FUNC)_RxODE_rxAllowUnload_try);
-    R_RegisterCCallable("RxODE", "_RxODE_rxUnloadAll", (DL_FUNC)_RxODE_rxUnloadAll_try);
+    R_RegisterCCallable("RxODE", "_RxODE_rxUnloadAll_", (DL_FUNC)_RxODE_rxUnloadAll__try);
     R_RegisterCCallable("RxODE", "_RxODE_rxDynUnload", (DL_FUNC)_RxODE_rxDynUnload_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxDelete", (DL_FUNC)_RxODE_rxDelete_try);
     R_RegisterCCallable("RxODE", "_RxODE_setRstudio", (DL_FUNC)_RxODE_setRstudio_try);

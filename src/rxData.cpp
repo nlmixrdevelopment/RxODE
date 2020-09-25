@@ -1,7 +1,7 @@
 // [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 #define NCMT 100
-// NONMEM 7.1 has a max of 50 obesrvations/individual
+// NONMEM 7.1 has a max of 50 obesrrvations/individual
 #define MAXIDS 500
 #define NALL 500
 #define NDOSES 50
@@ -4244,7 +4244,7 @@ bool rxAllowUnload(bool allow){
 //' @return NULL
 //' @export
 //[[Rcpp::export]]
-RObject rxUnloadAll(){
+RObject rxUnloadAll_(){
   getRxModels();
   Function dynUnload("dyn.unload", R_BaseNamespace);
   CharacterVector vars = _rxModels.ls(true);

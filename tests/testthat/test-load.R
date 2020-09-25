@@ -51,4 +51,4 @@ d/dt(y3) = a3*y1*y2
         expect_true(file.exists(dll));
     })
 
-}, silent=TRUE);
+}, silent=TRUE, on.validate=TRUE);

@@ -8,9 +8,6 @@
     ## Setup RxODE.prefer.tbl
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
     rxPermissive(respect=TRUE); ## need to call respect on the first time
-    if (Sys.which("make") == "") {
-        packageStartupMessage("make not found; you may need Rtools to use RxODE")
-    }
     rxTempDir();
     if (!interactive()){
         setProgSupported(0);

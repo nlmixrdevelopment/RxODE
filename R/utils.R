@@ -203,3 +203,8 @@ rxC14 <- function(){
 rxSetProgressBar <- function(seconds=1.0) {
     invisible(.Call(`_rxParProgress`, as.double(seconds)))
 }
+##'@export
+##'@rdname rxUnloadAll_
+rxUnloadAll <- function(){
+    try(rxUnloadAll_(), silent=TRUE)
+}

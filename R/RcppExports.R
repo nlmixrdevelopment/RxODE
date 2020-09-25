@@ -495,8 +495,8 @@ rxAllowUnload <- function(allow) {
 #' Unload all RxODE Dlls that are not locked for solving.
 #' @return NULL
 #' @export
-rxUnloadAll <- function() {
-    .Call(`_RxODE_rxUnloadAll`)
+rxUnloadAll_ <- function() {
+    .Call(`_RxODE_rxUnloadAll_`)
 }
 
 #' Unload RxODE object
