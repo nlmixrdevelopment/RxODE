@@ -1897,6 +1897,7 @@ rxPermissive(
     })
 
   }
+  stop("a")
     test_that(
       "double linCmt has error",
       expect_error(RxODE({

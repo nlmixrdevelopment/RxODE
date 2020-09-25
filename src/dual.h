@@ -4,13 +4,20 @@
 
 #define dKa 0
 #define dP1 1
-#define dP2 2
-#define dP3 3
-#define dP4 4
-#define dP5 5
-#define dV1 6
+#define dV1 2
+#define dP2 3
+#define dP3 4
+#define dP4 5
+#define dP5 6
 
-void iniD(double val, int which, dualN *ret){
+/*
+typedef struct dualN {
+  double f;
+  double grad[7];
+} dualN;
+*/
+
+static inline void iniD(double val, int which, dualN *ret){
   ret->f = val;
   ret->grad[0] = 0.0;
   ret->grad[1] = 0.0;
@@ -22,6 +29,37 @@ void iniD(double val, int which, dualN *ret){
   if (which >= 0) {
     ret->grad[which] = 1.0;
   }
+}
+
+static inline int restoreD(double f, double *val, int oral, int ncmt, dualN *ret) {
+  ret->f = f;
+  int cur = 0;
+  ret->grad[dKa] = (oral ? val[cur++] : 0.0);
+  ret->grad[dP1] = val[cur++];
+  ret->grad[dV1] = val[cur++];
+  ret->grad[dP2] = (ncmt >= 2 ? val[cur++] : 0.0);
+  ret->grad[dP3] = (ncmt >= 2 ? val[cur++] : 0.0);
+  ret->grad[dP4] = (ncmt == 3 ? val[cur++] : 0.0);
+  ret->grad[dP5] = (ncmt == 3 ? val[cur++] : 0.0);
+  return cur;
+}
+
+static inline int saveD(double *val, int oral, int ncmt, dualN *ret) {
+  int cur=0;
+  if (oral) {
+    val[cur++] = ret->grad[dKa];
+  }
+  val[cur++] = ret->grad[dP1];
+  val[cur++] = ret->grad[dV1];
+  if (ncmt >= 2){
+    val[cur++] = ret->grad[dP2];
+    val[cur++] = ret->grad[dP3];
+    if (ncmt >= 3) {
+      val[cur++] = ret->grad[dP2];
+      val[cur++] = ret->grad[dP3];
+    }
+  }
+  return cur;
 }
 
 #define iniD0() iniD(NAN, -1)
@@ -256,7 +294,7 @@ dualN sinD(dualN x) {
 dualN pow2d(dualN base, double e) {
   dualN ret;
   ret.f = R_pow(base.f, e);
-  double mult = e*pow(base.f, e - 1.0);
+  double mult = e*R_pow(base.f, e - 1.0);
   ret.grad[0] = base.grad[0] * mult;
   ret.grad[1] = base.grad[1] * mult;
   ret.grad[2] = base.grad[2] * mult;

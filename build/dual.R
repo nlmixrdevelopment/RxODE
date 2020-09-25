@@ -191,25 +191,17 @@ getFun <- function(x="oneCmtKaRateSSr1"){
         #define A2k20 A[4]
         .ret <- paste0(c(.fB,
                          ifelse(.hasKa2, "// has ka", "(void)(ka);"),
-                         "dualN A1last;\nA1last.f=Alast[0];",
-                         "A1last.grad[dKa] = Alast[2];",
-                         "A1last.grad[dP1] = Alast[3];",
-                         "A1last.grad[dV1] = Alast[4];",
-                         "dualN A2last;\nA2last.f = Alast[1];",
-                         "A2last.grad[dKa] = Alast[5];", # ka
-                         "A2last.grad[dP1] = Alast[6];", # k20
-                         "A2last.grad[dV1] = Alast[7];", # dVp
+                         "dualN A1last;",
+                         "dualN A2last;",
+                         "double *_cur=Alast+2;",
+                         "_cur += restoreD(Alast[0], _cur, 1, 1, &A1last);",
+                         "restoreD(Alast[1], _cur, 1, 1, &A2last);",
                          .ret,
-                         "A[0] = A1.f;",
-                         "A[1] = A2.f;",
-                         ## A1 derivatives
-                         "A[2] = A1.grad[dKa];",
-                         "A[3] = A1.grad[dP1];",
-                         "A[4] = A1.grad[dV1];",
-                         ## A2 derivatives
-                         "A[5] = A2.grad[dKa];",
-                         "A[6] = A2.grad[dP1];",
-                         "A[7] = A2.grad[dV1];",
+                         "A[0]=A1.f;",
+                         "A[1]=A2.f;",
+                         "_cur = A+2;",
+                         "_cur += saveD(_cur, 1, 1, &A1);",
+                         "saveD(_cur, 1, 1, &A2);",
                          "return A2;",
                          "}"),
                        collapse="\n")
@@ -217,14 +209,11 @@ getFun <- function(x="oneCmtKaRateSSr1"){
         .ret <- paste0(c(.fB,
                          ifelse(.hasKa2, "// has ka", "(void)(ka);"),
                          .ret,
-                         "A[0] = A1.f;",
-                         "A[1] = A2.f;",
-                         "A[2] = A1.grad[dKa];",
-                         "A[3] = A1.grad[dP1];",
-                         "A[4] = A1.grad[dV1];",
-                         "A[5] = A2.grad[dKa];",
-                         "A[6] = A2.grad[dP1];",
-                         "A[7] = A2.grad[dV1];",
+                         "A[0]=A1.f;",
+                         "A[1]=A2.f;",
+                         "double *_cur=A+2;",
+                         "_cur += saveD(_cur, 1, 1, &A1);",
+                         "saveD(_cur, 1, 1, &A2);",
                          "return A2;",
                          "}"),
                        collapse="\n")
@@ -237,54 +226,21 @@ getFun <- function(x="oneCmtKaRateSSr1"){
       if (.hasAlast) {
         .ret <- paste0(c(.fB,
                          ifelse(.hasKa2, "// has ka", "(void)(ka);"),
-                         "dualN A1last;\nA1last.f = Alast[0];",
-                         "A1last.grad[dKa] = Alast[3];",
-                         "A1last.grad[dP1] = Alast[4];", # doesn't depend on k20
-                         "A1last.grad[dP2] = Alast[5];",
-                         "A1last.grad[dP3] = Alast[6];",
-                         "A1last.grad[dV1] = Alast[7];",
-                         "dualN A2last;\nA2last.f = Alast[1];",
-                         #define A2ka A[6]
-                         #define A2k20 A[7]
-                         #define A2k23 A[8]
-                         #define A2k32 A[9]
-                         "A2last.grad[dKa] = Alast[8];", # ka
-                         "A2last.grad[dP1] = Alast[9];", # k20
-                         "A2last.grad[dP2] = Alast[10];", # k23
-                         "A1last.grad[dP3] = Alast[11];", # k32
-                         "A1last.grad[dV1] = Alast[12];", # k32
-                         "dualN A3last;\nA3last.f= Alast[2];",
-                         #define A3lastka Alast[10]
-                         #define A3lastk20 Alast[11]
-                         #define A3lastk23 Alast[12]
-                         #define A3lastk32 Alast[13]
-                         "A3last.grad[dKa] = Alast[13];", # ka
-                         "A3last.grad[dP1] = Alast[14];", # k20
-                         "A3last.grad[dP2] = Alast[15];", # k23
-                         "A3last.grad[dP3] = Alast[16];", # k32
-                         "A3last.grad[dV1] = Alast[17];", # k32
+                         "dualN A1last;",
+                         "dualN A2last;",
+                         "dualN A3last;",
+                         "double *_cur = Alast+3;",
+                         "_cur += restoreD(Alast[0], _cur, 1, 2, &A1last);",
+                         "_cur += restoreD(Alast[1], _cur, 1, 2, &A2last);",
+                         "restoreD(Alast[2], _cur, 1, 2, &A3last);",
                          .ret,
-                         "A[0] = A1.f;",
-                         "A[1] = A2.f;",
-                         "A[2] = A3.f;",
-                         ## A1 derivatives
-                         "A[3] = A1.grad[dKa];",
-                         "A[4] = A1.grad[dP1];",
-                         "A[5] = A1.grad[dP2];",
-                         "A[6] = A1.grad[dP3];",
-                         "A[7] = A1.grad[dV1];",
-                         # doesn't depend on k20
-                         "A[8]  = A2.grad[dKa];",
-                         "A[9]  = A2.grad[dP1];",
-                         "A[10] = A2.grad[dP2];",
-                         "A[11] = A2.grad[dP3];",
-                         "A[12] = A2.grad[dV1];",
-                         ## A2 derivatives
-                         "A[13] = A3.grad[dKa];", # ka
-                         "A[14] = A3.grad[dP1];", # k20
-                         "A[15] = A3.grad[dP2];", # k23
-                         "A[16] = A3.grad[dP3];", # k32
-                         "A[17] = A3.grad[dV1];", # k32
+                         "A[0]=A1.f;",
+                         "A[1]=A2.f;",
+                         "A[2]=A3.f;",
+                         "_cur = A+3;",
+                         "_cur += saveD(_cur, 1, 2, &A1);",
+                         "_cur += saveD(_cur, 1, 2, &A2);",
+                         "saveD(_cur, 1, 2, &A3);",
                          "return A2;",
                          "}"),
                        collapse="\n")
@@ -292,27 +248,13 @@ getFun <- function(x="oneCmtKaRateSSr1"){
         .ret <- paste0(c(.fB,
                          ifelse(.hasKa2, "//has ka", "(void)(ka);"),
                          .ret,
-                         "A[0] = A1.f;",
-                         "A[1] = A2.f;",
-                         "A[2] = A3.f;",
-                         ## A1 derivatives
-                         "A[3] = A1.grad[dKa];",
-                         "A[4] = A1.grad[dP1];",
-                         "A[5] = A1.grad[dP2];",
-                         "A[6] = A1.grad[dP3];",
-                         "A[7] = A1.grad[dV1];",
-                         # A2
-                         "A[8]  = A2.grad[dKa];",
-                         "A[9]  = A2.grad[dP1];",
-                         "A[10] = A2.grad[dP2];",
-                         "A[11] = A2.grad[dP3];",
-                         "A[12] = A2.grad[dV1];",
-                         ## A3 derivatives
-                         "A[13] = A3.grad[dKa];", # ka
-                         "A[14] = A3.grad[dP1];", # k20
-                         "A[15] = A3.grad[dP2];", # k23
-                         "A[16] = A3.grad[dP3];", # k32
-                         "A[17] = A3.grad[dV1];", # k32
+                         "A[0]=A1.f;",
+                         "A[1]=A2.f;",
+                         "A[2]=A3.f;",
+                         "double *_cur = A+3;",
+                         "_cur += saveD(_cur, 1, 2, &A1);",
+                         "_cur += saveD(_cur, 1, 2, &A2);",
+                         "saveD(_cur, 1, 2, &A3);",
                          "return A2;",
                          "}"),
                        collapse="\n")
@@ -321,75 +263,25 @@ getFun <- function(x="oneCmtKaRateSSr1"){
       if (.hasAlast) {
         .ret <- paste0(c(.fB,
                          ifelse(.hasKa2, "// has ka", "(void)(ka);"),
-                         "dualN A1last;\nA1last.f = Alast[0];",
-                         "A1last.grad[dKa] = Alast[4];",
-                         "A1last.grad[dP1] = Alast[5];", # doesn't depend on k20
-                         "A1last.grad[dP2] = Alast[6];",
-                         "A1last.grad[dP3] = Alast[7];",
-                         "A1last.grad[dP4] = Alast[8];",
-                         "A1last.grad[dP5] = Alast[9];",
-                         "A1last.grad[dV1] = Alast[10];",
-                         "dualN A2last;\nA2last.f = Alast[1];",
-                         "A2last.grad[dKa] = Alast[11];",
-                         "A2last.grad[dP1] = Alast[12];",
-                         "A2last.grad[dP2] = Alast[13];",
-                         "A1last.grad[dP3] = Alast[14];",
-                         "A1last.grad[dP4] = Alast[15];",
-                         "A1last.grad[dP5] = Alast[16];",
-                         "A1last.grad[dV1] = Alast[17];",
-                         "dualN A3last;\nA3last.f = Alast[2];",
-                         "A3last.grad[dKa] = Alast[18];",
-                         "A3last.grad[dP1] = Alast[19];",
-                         "A3last.grad[dP2] = Alast[20];",
-                         "A3last.grad[dP3] = Alast[21];",
-                         "A3last.grad[dP4] = Alast[22];",
-                         "A3last.grad[dP5] = Alast[23];",
-                         "A3last.grad[dV1] = Alast[24];",
-                         "dualN A4last;\nA4last.f = Alast[3];",
-                         "A4last.grad[dKa] = Alast[25];",
-                         "A4last.grad[dP1] = Alast[26];",
-                         "A4last.grad[dP2] = Alast[27];",
-                         "A4last.grad[dP3] = Alast[28];",
-                         "A4last.grad[dP4] = Alast[29];",
-                         "A4last.grad[dP5] = Alast[30];",
-                         "A4last.grad[dV1] = Alast[31];",
+                         "dualN A1last;",
+                         "dualN A2last;",
+                         "dualN A3last;",
+                         "dualN A4last;",
+                         "double *_cur = Alast+4;",
+                         "_cur += restoreD(Alast[0], _cur, 1, 3, &A1last);",
+                         "_cur += restoreD(Alast[1], _cur, 1, 3, &A2last);",
+                         "_cur += restoreD(Alast[2], _cur, 1, 3, &A3last);",
+                         "restoreD(Alast[3], _cur, 1, 3, &A4last);",
                          .ret,
-                         "A[0] = A1.f;",
-                         "A[1] = A2.f;",
-                         "A[2] = A3.f;",
-                         "A[3] = A4.f;",
-                         ## A1 derivatives
-                         "A[4] = A1.grad[dKa];",
-                         "A[5] = A1.grad[dP1];",
-                         "A[6] = A1.grad[dP2];",
-                         "A[7] = A1.grad[dP3];",
-                         "A[8] = A1.grad[dP4];",
-                         "A[9] = A1.grad[dP5];",
-                         "A[10] = A1.grad[dV1];",
-                         ## A2 derivatives
-                         "A[11] = A2.grad[dKa];",
-                         "A[12] = A2.grad[dP1];",
-                         "A[13] = A2.grad[dP2];",
-                         "A[14] = A2.grad[dP3];",
-                         "A[15] = A2.grad[dP4];",
-                         "A[16] = A2.grad[dP5];",
-                         "A[17] = A2.grad[dV1];",
-                         ## A3 derivatives
-                         "A[18] = A3.grad[dKa];",
-                         "A[19] = A3.grad[dP1];",
-                         "A[20] = A3.grad[dP2];",
-                         "A[21] = A3.grad[dP3];",
-                         "A[22] = A3.grad[dP4];",
-                         "A[23] = A3.grad[dP5];",
-                         "A[24] = A3.grad[dV1];",
-                         ## A4 derivatives
-                         "A[25] = A4.grad[dKa];",
-                         "A[26] = A4.grad[dP1];",
-                         "A[27] = A4.grad[dP2];",
-                         "A[28] = A4.grad[dP3];",
-                         "A[29] = A4.grad[dP4];",
-                         "A[30] = A4.grad[dP5];",
-                         "A[31] = A4.grad[dV1];",
+                         "A[0]=A1.f;",
+                         "A[1]=A2.f;",
+                         "A[2]=A3.f;",
+                         "A[3]=A4.f;",
+                         "_cur = A+4;",
+                         "_cur += saveD(_cur, 1, 3, &A1);",
+                         "_cur += saveD(_cur, 1, 3, &A2);",
+                         "_cur += saveD(_cur, 1, 3, &A3);",
+                         "saveD(_cur, 1, 3, &A4);",
                          "return A2;",
                          "}"),
                        collapse="\n")
@@ -397,42 +289,15 @@ getFun <- function(x="oneCmtKaRateSSr1"){
         .ret <- paste0(c(.fB,
                          ifelse(.hasKa2, "// has Ka", "(void)(ka);"),
                          .ret,
-                         "A[0] = A1.f;",
-                         "A[1] = A2.f;",
-                         "A[2] = A3.f;",
-                         "A[3] = A4.f;",
-                         ## A1 derivatives
-                         "A[4] = A1.grad[dKa];",
-                         "A[5] = A1.grad[dP1];",
-                         "A[6] = A1.grad[dP2];",
-                         "A[7] = A1.grad[dP3];",
-                         "A[8] = A1.grad[dP4];",
-                         "A[9] = A1.grad[dP5];",
-                         "A[10] = A1.grad[dV1];",
-                         ## A2 derivatives
-                         "A[11] = A2.grad[dKa];",
-                         "A[12] = A2.grad[dP1];",
-                         "A[13] = A2.grad[dP2];",
-                         "A[14] = A2.grad[dP3];",
-                         "A[15] = A2.grad[dP4];",
-                         "A[16] = A2.grad[dP5];",
-                         "A[17] = A2.grad[dV1];",
-                         ## A3 derivatives
-                         "A[18] = A3.grad[dKa];",
-                         "A[19] = A3.grad[dP1];",
-                         "A[20] = A3.grad[dP2];",
-                         "A[21] = A3.grad[dP3];",
-                         "A[22] = A3.grad[dP4];",
-                         "A[23] = A3.grad[dP5];",
-                         "A[24] = A3.grad[dV1];",
-                         ## A4 derivatives
-                         "A[25] = A4.grad[dKa];",
-                         "A[26] = A4.grad[dP1];",
-                         "A[27] = A4.grad[dP2];",
-                         "A[28] = A4.grad[dP3];",
-                         "A[29] = A4.grad[dP4];",
-                         "A[30] = A4.grad[dP5];",
-                         "A[31] = A4.grad[dV1];",
+                         "double *_cur = A+4;",
+                         "A[0]=A1.f;",
+                         "A[1]=A2.f;",
+                         "A[2]=A3.f;",
+                         "A[3]=A4.f;",
+                         "_cur += saveD(_cur, 1, 3, &A1);",
+                         "_cur += saveD(_cur, 1, 3, &A2);",
+                         "_cur += saveD(_cur, 1, 3, &A3);",
+                         "saveD(_cur, 1, 3, &A4);",
                          "return A2;",
                          "}"),
                        collapse="\n")
@@ -445,13 +310,13 @@ getFun <- function(x="oneCmtKaRateSSr1"){
         #define A2ka A[3]
         #define A2k20 A[4]
         .ret <- paste0(c(.fB,
-                         "dualN A1last;\nA1last.f=Alast[0];",
-                         "A1last.grad[dKa] = Alast[1];",
+                         "dualN A1last;",
+                         "double *_cur = Alast+1;",
+                         "restoreD(Alast[0], _cur, 0, 1, &A1last);",
                          .ret,
-                         "A[0] = A1.f;",
-                         ## A1 derivatives
-                         "A[1] = A1.grad[dP1];",
-                         "A[2] = A1.grad[dV1];",
+                         "A[0]=A1.f;",
+                         "_cur=A+1;",
+                         "saveD(_cur, 0, 1, &A1);",
                          "return A1;",
                          ## A2 derivatives
                          "}"),
@@ -459,65 +324,38 @@ getFun <- function(x="oneCmtKaRateSSr1"){
       } else {
         .ret <- paste0(c(.fB,
                          .ret,
-                         "A[0] = A1.f;",
-                         "A[1] = A1.grad[dP1];",
-                         "A[2] = A1.grad[dV1];",
+                         "double *_cur = A+1;",
+                         "A[0]=A1.f;",
+                         "saveD(_cur, 0, 1, &A1);",
                          "return A1;",
                          "}"),
                        collapse="\n")
       }
     } else if (regexpr("twoCmt", x) != -1) {
       if (.hasAlast) {
-        #define A1k10 A[2]
-        #define A1k12 A[3]
-        #define A1k21 A[4]
-
-        #define A2k10 A[5]
-        #define A2k12 A[6]
-        #define A2k21 A[7]
         .ret <- paste0(c(.fB,
-                         "dualN A1last;A1last.f = Alast[0];",
-                         "A1last.grad[dP1] = Alast[2];",
-                         "A1last.grad[dP2] = Alast[3];",
-                         "A1last.grad[dP3] = Alast[4];",
-                         "A1last.grad[dV1] = Alast[5];",
-                         "dualN A2last; A2last.f = Alast[1];",
-                         "A2last.grad[dP1] = Alast[5];", # k10
-                         "A2last.grad[dP2] = Alast[6];", # k12
-                         "A2last.grad[dP3] = Alast[7];", # k21
-                         "A2last.grad[dV1] = Alast[8];", # k21
+                         "dualN A1last;",
+                         "dualN A2last;",
+                         "double *_cur = Alast+2;",
+                         "_cur += restoreD(Alast[0], _cur, 0, 2, &A1last);",
+                         "restoreD(Alast[1], _cur, 0, 2, &A2last);",
                          .ret,
-                         "A[0] = A1.f;",
-                         "A[1] = A2.f;",
-                         ## A1 derivatives
-                         "A[2] = A1.grad[dP1];",
-                         "A[3] = A1.grad[dP2];",
-                         "A[4] = A1.grad[dP3];",
-                         "A[5] = A1.grad[dV1];",
-                         ## A2 derivatives
-                         "A[6] = A2.grad[dP1];", # ka
-                         "A[7] = A2.grad[dP2];", # k20
-                         "A[8] = A2.grad[dP3];", # k23
-                         "A[9] = A2.grad[dV1];", # k23
+                         "_cur=A+2;",
+                         "A[0]=A1.f;",
+                         "A[1]=A2.f;",
+                         "_cur += saveD(_cur, 0, 2, &A1);",
+                         "saveD(_cur, 0, 2, &A2);",
                          "return A1;",
                          "}"),
                        collapse="\n")
       } else {
         .ret <- paste0(c(.fB,
                          .ret,
-                         "A[0] = A1.f;",
-                         "A[1] = A2.f;",
-                         ## A1 derivatives
-                         "A[2] = A1.grad[dP1];",
-                         "A[3] = A1.grad[dP2];",
-                         "A[4] = A1.grad[dP3];",
-                         "A[5] = A1.grad[dV1];",
-
-                         ## A2 derivatives
-                         "A[6] = A2.grad[dP1];", # ka
-                         "A[7] = A2.grad[dP2];", # k20
-                         "A[8] = A2.grad[dP3];", # k23
-                         "A[9] = A2.grad[dV1];", # k23
+                         "double *_cur=A+2;",
+                         "A[0]=A1.f;",
+                         "A[1]=A2.f;",
+                         "_cur += saveD(_cur, 0, 2, &A1);",
+                         "saveD(_cur, 0, 2, &A2);",
                          "return A1;",
                          "}"),
                        collapse="\n")
@@ -525,82 +363,34 @@ getFun <- function(x="oneCmtKaRateSSr1"){
     } else if (regexpr("threeCmt", x) != -1) {
       if (.hasAlast) {
         .ret <- paste0(c(.fB,
-                         "dualN A1last;\nA1last.f = Alast[0];",
-                         "A1last.grad[dP1] = Alast[3];",
-                         "A1last.grad[dP2] = Alast[4];",
-                         "A1last.grad[dP3] = Alast[5];",
-                         "A1last.grad[dP4] = Alast[6];",
-                         "A1last.grad[dP5] = Alast[7];",
-                         "A1last.grad[dV1] = Alast[8];",
-                         "dualN A2last;\nA2last.f = Alast[1];",
-                         "A2last.grad[dP1] = Alast[9];",
-                         "A2last.grad[dP2] = Alast[10];",
-                         "A2last.grad[dP3] = Alast[11];",
-                         "A2last.grad[dP4] = Alast[12];",
-                         "A2last.grad[dP5] = Alast[13];",
-                         "A2last.grad[dV1] = Alast[14];",
-                         "dualN A3last;\nA3last.f = Alast[2];",
-                         "A3last.grad[dP1] = Alast[15];",
-                         "A3last.grad[dP2] = Alast[16];",
-                         "A3last.grad[dP3] = Alast[17];",
-                         "A3last.grad[dP4] = Alast[18];",
-                         "A3last.grad[dP5] = Alast[19];",
-                         "A3last.grad[dV1] = Alast[20];",
+                         "dualN A1last;",
+                         "dualN A2last;",
+                         "dualN A3last;",
+                         "double *_cur=Alast+3;",
+                         "_cur += restoreD(Alast[0], _cur, 0, 3, &A1last);",
+                         "_cur += restoreD(Alast[1], _cur, 0, 3, &A2last);",
+                         "restoreD(Alast[2], _cur, 0, 3, &A3last);",
                          .ret,
-                         "A[0] = A1.f;",
-                         "A[1] = A2.f;",
-                         "A[2] = A3.f;",
-                         ## A1 derivatives
-                         "A[3] = A1.grad[dP1];",
-                         "A[4] = A1.grad[dP2];",
-                         "A[5] = A1.grad[dP3];",
-                         "A[6] = A1.grad[dP4];",
-                         "A[7] = A1.grad[dP5];",
-                         "A[8] = A1.grad[dV1];",
-                         ## A2 derivatives
-                         "A[9] = A2.grad[dP1];",
-                         "A[10] = A2.grad[dP2];",
-                         "A[11] = A2.grad[dP3];",
-                         "A[12] = A2.grad[dP4];",
-                         "A[13] = A2.grad[dP5];",
-                         "A[14] = A2.grad[dV1];",
-                         ## A3 derivatives
-                         "A[15] = A3.grad[dP1];",
-                         "A[16] = A3.grad[dP2];",
-                         "A[17] = A3.grad[dP3];",
-                         "A[18] = A3.grad[dP4];",
-                         "A[19] = A3.grad[dP5];",
-                         "A[20] = A3.grad[dV1];",
+                         "_cur=A+3;",
+                         "A[0]=A1.f;",
+                         "A[1]=A2.f;",
+                         "A[2]=A3.f;",
+                         "_cur += saveD(_cur, 0, 3, &A1);",
+                         "_cur += saveD(_cur, 0, 3, &A2);",
+                         "saveD(_cur, 0, 3, &A3);",
                          "return A1;",
                          "}"),
                        collapse="\n")
       } else {
         .ret <- paste0(c(.fB,
                          .ret,
-                         "A[0] = A1.f;",
-                         "A[1] = A2.f;",
-                         "A[2] = A3.f;",
-                         ## A1 derivatives
-                         "A[3] = A1.grad[dP1];",
-                         "A[4] = A1.grad[dP2];",
-                         "A[5] = A1.grad[dP3];",
-                         "A[6] = A1.grad[dP4];",
-                         "A[7] = A1.grad[dP5];",
-                         "A[8] = A1.grad[dV1];",
-                         ## A2 derivatives
-                         "A[9] = A2.grad[dP1];",
-                         "A[10] = A2.grad[dP2];",
-                         "A[11] = A2.grad[dP3];",
-                         "A[12] = A2.grad[dP4];",
-                         "A[13] = A2.grad[dP5];",
-                         "A[14] = A2.grad[dV1];",
-                         ## A3 derivatives
-                         "A[15] = A3.grad[dP1];",
-                         "A[16] = A3.grad[dP2];",
-                         "A[17] = A3.grad[dP3];",
-                         "A[18] = A3.grad[dP4];",
-                         "A[19] = A3.grad[dP5];",
-                         "A[20] = A3.grad[dV1];",
+                         "double *_cur=A+3;",
+                         "A[0]=A1.f;",
+                         "A[1]=A2.f;",
+                         "A[2]=A3.f;",
+                         "_cur += saveD(_cur, 0, 3, &A1);",
+                         "_cur += saveD(_cur, 0, 3, &A2);",
+                         "saveD(_cur, 0, 3, &A3);",
                          "return A1;",
                          "}"),
                        collapse="\n")
