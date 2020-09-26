@@ -18,7 +18,7 @@
 #endif
 
 #include "lincmtB1.h"
-//#include "lincmtB2.h"
+#include "lincmtB2.h"
 //#include "lincmtB3d.h"
 
 void handleTlast(double *time, rx_solving_options_ind *ind);
@@ -3197,11 +3197,11 @@ static inline void doAdvanD(double *A,// Amounts
 	oneCmtKaRateD(A, Alast, &t, b1, b2, r1, r2, ka, kel);
 	return;
       } break;
-      /* case 2: { */
-      /* 	twoCmtKaRateD(A, Alast, &t, b1, b2, r1, r2, */
-      /* 		      ka,  kel, k12, k21); */
-      /* 	return; */
-      /* } break; */
+      case 2: {
+      	twoCmtKaRateD(A, Alast, &t, b1, b2, r1, r2,
+      		      ka,  kel, k12, k21);
+      	return;
+      } break;
       /* case 3: { */
       /* 	threeCmtKaRateD(A, Alast, &t, b1, b2, r1, r2, */
       /* 			ka,  kel, k12, k21, k13, k31); */
@@ -3214,11 +3214,11 @@ static inline void doAdvanD(double *A,// Amounts
 	oneCmtRateD(A, Alast, &t, b1, r1, kel);
 	return;
       } break;
-      /* case 2: { */
-      /* 	twoCmtRateD(A, Alast, &t, b1, r1, */
-      /* 		    kel, k12, k21); */
-      /* 	return; */
-      /* } break; */
+      case 2: {
+      	twoCmtRateD(A, Alast, &t, b1, r1,
+      		    kel, k12, k21);
+      	return;
+      } break;
       /* case 3: { */
       /* 	threeCmtRateD(A, Alast, &t, b1, r1, */
       /* 		      kel, k12, k21, k13, k31); */

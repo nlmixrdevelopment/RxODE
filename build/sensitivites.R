@@ -273,10 +273,10 @@ if (!file.exists(devtools::package_file("src/lincmtB2.h"))){
 #define A2last Alast[1]
 #define A3last Alast[2]
 "
-  fs <- c("twoCmtRateSSr1", "twoCmtRateSS",
-          "twoCmtRate", "twoCmtBolusSS",
-          "twoCmtKaRateSSr1", "twoCmtKaRateSSr2", "twoCmtKaRateSStr1", "twoCmtKaRateSStr2",
-          "twoCmtKaRate", "twoCmtKaSSb1", "twoCmtKaSSb2")
+  fs <- c(## "twoCmtRateSSr1", "twoCmtRateSS",
+          "twoCmtRate", ##"twoCmtBolusSS",
+          ##"twoCmtKaRateSSr1", "twoCmtKaRateSSr2", "twoCmtKaRateSStr1", "twoCmtKaRateSStr2",
+          "twoCmtKaRate")##, "twoCmtKaSSb1", "twoCmtKaSSb2")
   rxProgress(length(fs))
   for (f in fs){
     message(f)
@@ -320,10 +320,10 @@ if (!file.exists(devtools::package_file("src/lincmtB3.h"))){
   cat(.linB)
   sink()
   .linB <- ""
-  fs <- c("threeCmtRateSSr1", "threeCmtRateSS",
-          "threeCmtRate", "threeCmtBolusSS",
-          "threeCmtKaRateSSr1", "threeCmtKaRateSSr2", "threeCmtKaRateSStr1", "threeCmtKaRateSStr2",
-          "threeCmtKaRate", "threeCmtKaSSb1", "threeCmtKaSSb2")
+  fs <- c(#"threeCmtRateSSr1", "threeCmtRateSS",
+          "threeCmtRate", #"threeCmtBolusSS",
+          #"threeCmtKaRateSSr1", "threeCmtKaRateSSr2", "threeCmtKaRateSStr1", "threeCmtKaRateSStr2",
+          "threeCmtKaRate") #"threeCmtKaSSb1", "threeCmtKaSSb2")
   rxProgress(length(fs))
   for (f in fs){
     message(f)
