@@ -217,13 +217,14 @@ dualN divd2(double e1, dualN e2) {
   dualN ret;
   double invE2 = 1.0 / e2.f;
   ret.f = e1*invE2;
-  ret.grad[0] = ret.f * invE2 * e2.grad[0];
-  ret.grad[1] = ret.f * invE2 * e2.grad[1];
-  ret.grad[2] = ret.f * invE2 * e2.grad[2];
-  ret.grad[3] = ret.f * invE2 * e2.grad[3];
-  ret.grad[4] = ret.f * invE2 * e2.grad[4];
-  ret.grad[5] = ret.f * invE2 * e2.grad[5];
-  ret.grad[6] = ret.f * invE2 * e2.grad[6];
+  invE2 = ret.f*invE2;
+  ret.grad[0] = invE2 * e2.grad[0];
+  ret.grad[1] = invE2 * e2.grad[1];
+  ret.grad[2] = invE2 * e2.grad[2];
+  ret.grad[3] = invE2 * e2.grad[3];
+  ret.grad[4] = invE2 * e2.grad[4];
+  ret.grad[5] = invE2 * e2.grad[5];
+  ret.grad[6] = invE2 * e2.grad[6];
   return ret;
 }
 
