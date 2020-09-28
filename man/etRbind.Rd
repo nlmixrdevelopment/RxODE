@@ -151,7 +151,7 @@ plot(repCycle4, C2)
 Wang W, Hallow K, James D (2015). "A Tutorial on RxODE: Simulating
 Differential Equation Pharmacometric Models in R." CPT:
 Pharmacometrics \& Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
-<URL: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/>.
+<URL: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/>.
 }
 \seealso{
 \code{\link{eventTable}}, \code{\link{add.sampling}},
