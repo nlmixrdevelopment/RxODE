@@ -1455,36 +1455,7 @@ rxCompile.rxModelVars <- function(model, # Model
         .mv <- model
         .j <- 0
         .i <- 0
-        if (length(.mv$ini) > 0) {
-          .fixInis <- c(
-            sprintf("double _theta_%s[%d];", prefix, length(.mv$params)),
-            paste(sapply(.mv$params, function(x) {
-              if (!is.na(.mv$ini[x])) {
-                ret <- sprintf("_theta_%s[%d] = %.16f;", prefix, .i, as.vector(.mv$ini[x]))
-                .i <<- .i + 1
-                return(ret)
-              } else {
-                ret <- sprintf("_theta_%s[%d] = theta[%d];", prefix, .i, .j)
-                .i <<- .i + 1
-                .j <<- .j + 1
-                return(ret)
-              }
-            }), collapse = " ")
-          )
-        } else {
-          .fixInis <- c(
-            sprintf("double _theta_%s[%d];", prefix, length(.mv$params)),
-            ifelse(length(.mv$params) == 0,
-              "",
-              paste(paste0(
-                "_theta_", prefix, "[", seq_along(.mv$params) - 1, "] = theta[",
-                seq_along(.mv$params) - 1, "];"
-              ), collapse = "\n")
-            )
-          )
-        }
         .trans <- c(.mv$trans, .mv$md5)
-        .trans["fix_inis"] <- .fixInis[2]
         ## Load model into memory if needed
         if (.Call(`_RxODE_codeLoaded`) == 0L) .rxModelVarsCharacter(setNames(.mv$model, NULL))
         .prefix2 <- .rxModelVarsCCache[[3]]
@@ -1497,14 +1468,13 @@ rxCompile.rxModelVars <- function(model, # Model
           .libname <- c(package, gsub(.Platform$dynlib.ext, "", basename(.cDllFile)))
           .Call(
             `_RxODE_codegen`, .cFile, prefix, .libname,
-            .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"])), .fixInis
-          )
+            .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"])))
         } else {
           .libname <- gsub(.Platform$dynlib.ext, "", basename(.cDllFile))
           .libname <- c(.libname, .libname)
           .Call(
             `_RxODE_codegen`, .cFile, prefix, .libname,
-            .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"])), .fixInis
+            .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"]))
           )
         }
         .defs <- ""

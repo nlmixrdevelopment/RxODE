@@ -43,8 +43,6 @@
 	  CHAR(STRING_ELT(libname, 0)),		\
 	  CHAR(STRING_ELT(pMd5,0)),		\
 	  CHAR(STRING_ELT(timeId, 0)),		\
-	  CHAR(STRING_ELT(fixInis, 0)),         \
-	  CHAR(STRING_ELT(fixInis, 1)),         \
 	  CHAR(STRING_ELT(libname, 1)));					\
   writeSb(&sbOut, fpIO);
 
@@ -3307,7 +3305,6 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut,"\n//Initialize the dll to match RxODE's calls\nvoid R_init0_%s(){\n  // Get C callables on load; Otherwise it isn't thread safe\n", libname2);
   sAppendN(&sbOut, "  _assignFuns();\n", 17);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sassignFuns\", (DL_FUNC) %sassignFuns);\n", libname, prefix, prefix);
-  sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%stheta\", (DL_FUNC) %stheta);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sinis\",(DL_FUNC) %sinis);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sdydt\",(DL_FUNC) %sdydt);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%scalc_lhs\",(DL_FUNC) %scalc_lhs);\n", libname, prefix, prefix);
@@ -3335,7 +3332,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
 }
 
 
-void codegen(char *model, int show_ode, const char *prefix, const char *libname, const char *pMd5, const char *timeId, const char *fixInis0, const char *fixInis1, const char *libname2) {
+void codegen(char *model, int show_ode, const char *prefix, const char *libname, const char *pMd5, const char *timeId, const char *libname2) {
   if (show_ode == 4) {
     print_aux_info(model, prefix, libname, pMd5, timeId, libname2);
   } else {
@@ -3365,7 +3362,6 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       sAppend(&sbOut, "extern void  %sode_solver_solvedata (rx_solve *solve){\n  _solveData = solve;\n}\n",prefix);
       sAppend(&sbOut, "extern rx_solve *%sode_solver_get_solvedata(){\n  return _solveData;\n}\n", prefix);
       sAppend(&sbOut, "SEXP %smodel_vars();\n", prefix);
-      sAppend(&sbOut, "%s\nextern double* %stheta(double *theta){\n  %s\n  return _theta_%s;\n}\n", fixInis0, prefix, fixInis1, prefix);
       sAppendN(&sbOut,"\n", 1);
       sAppendN(&sbOut, "\n// prj-specific differential eqns\nvoid ", 40);
       sAppend(&sbOut, "%sdydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n", prefix);
@@ -4575,7 +4571,7 @@ SEXP _RxODE_isLinCmt(){
 }
 
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
-		    SEXP pMd5, SEXP timeId, SEXP fixInis){
+		    SEXP pMd5, SEXP timeId){
   if (!sbPm.o || !sbNrm.o){
     Rf_errorcall(R_NilValue, _("nothing in output queue to write"));
   }

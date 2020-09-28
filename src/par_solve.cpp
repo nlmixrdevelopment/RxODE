@@ -429,8 +429,6 @@ t_get_solve get_solve = NULL;
 
 t_assignFuns assignFuns=NULL;
 
-t_get_theta get_theta = NULL;
-
 t_F AMT = NULL;
 t_LAG LAG = NULL;
 t_RATE RATE = NULL;
@@ -577,7 +575,6 @@ void rxUpdateFuns(SEXP trans){
   ME  = (t_ME) R_GetCCallable(lib, s_ME);
   IndF  = (t_IndF) R_GetCCallable(lib, s_IndF);
   calc_mtime = (t_calc_mtime) R_GetCCallable(lib, s_mtime);
-  get_theta = (t_get_theta) R_GetCCallable(lib, s_theta);
   assignFuns = R_GetCCallable(lib, s_assignFuns);
 }
 
