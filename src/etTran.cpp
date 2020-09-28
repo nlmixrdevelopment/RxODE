@@ -1330,6 +1330,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       idxO.push_back(curIdx);curIdx++;
       ndose++;
       if (rateI > 2 && rateI != 4 && rateI != 5 && flg != 40){
+	if (ISNA(camt) || camt <= 0.0) {
+	  stop(_("infusion with unsupported 'amt' value"));
+	}
 	amt.push_back(camt);
 	// turn off
 	id.push_back(cid);
@@ -1364,6 +1367,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  ndose++;
 	}
       } else {
+	if (ISNA(camt) || camt <= 0.0) {
+	  stop(_("'amt' value NA or 0"));
+	}
 	amt.push_back(camt);
       }
       if (cii > 0 && caddl > 0 && (flg < 10 || flg == 30)){
