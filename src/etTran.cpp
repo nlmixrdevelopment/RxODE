@@ -1330,8 +1330,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       idxO.push_back(curIdx);curIdx++;
       ndose++;
       if (rateI > 2 && rateI != 4 && rateI != 5 && flg != 40){
-	if (ISNA(camt) || camt <= 0.0) {
-	  stop(_("infusion with unsupported 'amt' value"));
+	if (ISNA(camt) || camt == 0.0) {
+	  stop(_("'amt' value NA or 0 for dose event"));
 	}
 	amt.push_back(camt);
 	// turn off
@@ -1367,8 +1367,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  ndose++;
 	}
       } else {
-	if (ISNA(camt) || camt <= 0.0) {
-	  stop(_("'amt' value NA or 0"));
+	if (cevid != 0 && (ISNA(camt) || camt == 0.0)) {
+	  stop(_("'amt' value NA or 0 for dose event"));
 	}
 	amt.push_back(camt);
       }
