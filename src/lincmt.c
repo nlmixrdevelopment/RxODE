@@ -3446,6 +3446,15 @@ double derTrans(rx_solve *rx, double *A, int ncmt, int trans, int val,
   return R_NaN;
 }
 
+double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
+	       int i_cmt, int trans, int val,
+	       double p1, double v1,
+	       double p2, double p3,
+	       double p4, double p5,
+	       double d_tlag, double d_F, double d_rate1, double d_dur1,
+	       // Oral parameters
+	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2);
+
 double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       int i_cmt, int trans, int val,
 	       double p1, double v1,
