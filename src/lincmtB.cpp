@@ -1928,7 +1928,7 @@ namespace stan {
       Rcpp::stop("doAdvan error; ncmt: %d, oral0: %d", ncmt, oral0);
       return params;
     }
-            
+    
 #undef v
 #undef k20
 #undef kel
@@ -1970,7 +1970,7 @@ namespace stan {
 #define d_dur2  params(ncmt*2+8, 0)
 #define v       g(0, 0)
     template <class T>
-    Eigen::Matrix<T, Eigen::Dynamic, 1>
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>
     genericCmtInterface(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
 			const double t,
 			const int oral0,
@@ -2284,8 +2284,12 @@ namespace stan {
       	A = doAdvan(ncmt, oral0, tlast, curTime, Alast,
       		    params, g, bolus, rate);
       }
-      Eigen::Matrix<T, Eigen::Dynamic, 1> ret(1,1);
+      // Alast(oral0+ncmt, 1)
+      Eigen::Matrix<T, Eigen::Dynamic, 1> ret(oral0+ncmt+1,1);
       ret(0, 0) = A(oral0, 0)/v;
+      for (int i = ncmt+oral0; i--;){
+	ret(1+i, 0) = A(i, 0);
+      }
       return ret;
     }
     struct linCmtFun {
@@ -2415,8 +2419,8 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
   Eigen::VectorXd fx;
   Eigen::Matrix<double, -1, -1> J;
   stan::math::jacobian(f, params, fx, J);
+  // Rcpp::print(Rcpp::wrap(J));
   double *A = getAdvan(idx);
-  
   if (sameTime){
     // Rcpp::print(Rcpp::wrap(J));
     A[ncmt + oral0 + 0] = J(0, 0);
