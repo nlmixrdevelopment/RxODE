@@ -925,20 +925,27 @@ namespace stan {
 	     Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
 	     Eigen::Matrix<T, Eigen::Dynamic, 1>& bolus) {
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
-      T rxe2=exp(-t*ka);
-      A1=b1+rxe2*A1last;
-      T rxe0=k12+k21;
-      T rxe1=k12+kel;
-      T rxe3=k21*A2last;
-      T rxe4=k21*A3last;
-      T rxe6=rxe0+kel;
-      T rxe7=(rxe1)*k21;
-      T rxe8=rxe6*rxe6;
-      T rxe10=sqrt(-4*(-k12*k21+rxe7)+rxe8);
-      A2=b2+(-exp(-0.5*t*(rxe6-rxe10))*(-0.5*A2last*(rxe6-rxe10)+rxe3+rxe4)+exp(-0.5*t*(rxe6+rxe10))*(-0.5*A2last*(rxe6+rxe10)+rxe3+rxe4))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+ka*(rxe2*(k21-ka)/((-ka+0.5*(rxe6-rxe10))*(-ka+0.5*(rxe6+rxe10)))+exp(-0.5*t*(rxe6-rxe10))*(k21-0.5*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*(ka-0.5*(rxe6-rxe10)))+exp(-0.5*t*(rxe6+rxe10))*(k21-0.5*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*(ka-0.5*(rxe6+rxe10))))*A1last;
-      T rxe5=k12*A2last;
-      T rxe9=(rxe1)*A3last;
-      A3=(-exp(-0.5*t*(rxe6-rxe10))*(-0.5*A3last*(rxe6-rxe10)+rxe5+rxe9)+exp(-0.5*t*(rxe6+rxe10))*(-0.5*A3last*(rxe6+rxe10)+rxe5+rxe9))/(0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))+ka*k12*A1last*(rxe2/((-ka+0.5*(rxe6-rxe10))*(-ka+0.5*(rxe6+rxe10)))+exp(-0.5*t*(rxe6-rxe10))/((-0.5*(rxe6-rxe10)+0.5*(rxe6+rxe10))*(ka-0.5*(rxe6-rxe10)))+exp(-0.5*t*(rxe6+rxe10))/((0.5*(rxe6-rxe10)-0.5*(rxe6+rxe10))*(ka-0.5*(rxe6+rxe10))));
+      T E2 =  k20+ k23;
+      T s = k23+k32+k20;
+      //#Calculate roots
+      T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
+      T alpha = k32*k20/beta;
+
+      T eKa = exp(-ka*t);
+      T eA = exp(-alpha*t);
+      T eB = exp(-beta*t);
+
+      T ka2 = ka*ka;
+  
+      T alpha2 = alpha*alpha;
+      T alpha3 = alpha2*alpha;
+  
+      T beta2 = beta*beta;
+      T beta3 = beta2*beta;
+  
+      A1 = b1 + eKa*A1last;
+      A2 = b2 - eA*(-alpha3*A2last + ka*((A1last + A2last)*alpha2 + k32*alpha*(-A1last - A2last - A3last)) + (A2last + A3last)*k32*alpha2)/(alpha3 - beta*alpha2 + ka*(-alpha2 + beta*alpha)) + eB*(-beta3*A2last + ka*((A1last + A2last)*beta2 + k32*beta*(-A1last - A2last - A3last)) + (A2last + A3last)*k32*beta2)/(-beta3 + beta2*alpha + ka*(beta2 - beta*alpha)) + eKa*(-ka2*A1last + ka*k32*A1last)/(ka2 + beta*alpha + ka*(-alpha - beta));
+      A3 = -eA*(-alpha3*A3last + ka*(alpha2*A3last - E2*alpha*A3last + (-A1last - A2last)*k23*alpha) + E2*alpha2*A3last + k23*alpha2*A2last)/(alpha3 - beta*alpha2 + ka*(-alpha2 + beta*alpha)) + eB*(-beta3*A3last + ka*(beta2*A3last - E2*beta*A3last + (-A1last - A2last)*k23*beta) + E2*beta2*A3last + k23*beta2*A2last)/(-beta3 + beta2*alpha + ka*(beta2 - beta*alpha)) + ka*eKa*k23*A1last/(ka2 + beta*alpha + ka*(-alpha - beta));
       return A;
     }
     
@@ -2523,6 +2530,8 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
 	AlastA(i, 0) -= AlastG(i, 2*ncmt)*dd_ka;
       }
     }
+    // REprintf("AlastG\n");
+    // Rcpp::print(Rcpp::wrap(AlastG));
   } else {
     AlastG.setZero(ncmt+oral0, ncmt*2+oral0);
     AlastA.setZero(ncmt+oral0, 1);
@@ -2532,7 +2541,10 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
   Eigen::Matrix<double, -1, -1> J;
   stan::math::jacobian(f, params, fx, J);
   if (sameTime) {
+    // REprintf("J:\n");
+    // Rcpp::print(Rcpp::wrap(J));
     A = getAdvan(idx);
+    // REprintf("A(cur): %f\n", A[oral0]);
     A[ncmt + oral0 + 0] = J(0, 0);
     A[ncmt + oral0 + 1] = J(0, 1);
     if (ncmt >=2){
