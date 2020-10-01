@@ -3125,7 +3125,6 @@ extern "C" void setupRxInd(rx_solving_options_ind* ind, int first) {
     ind->nBadDose	= 0;
     ind->wrongSSDur	= 0;
   }
-  ind->tr.id = -1;
 }
 
 // This loops through the data to put each individual into the
@@ -4695,10 +4694,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    op->nlin = 8;
 	    break;
 	  case 2:
-	    op->nlin = 18;
+	    op->nlin = linNcmt + linKa + (2*linNcmt+linNcmt)*(linNcmt+linKa+1) + 2*linNcmt+1;
 	    break;
 	  case 3:
-	    op->nlin = 32;
+	    op->nlin = linNcmt + linKa + (2*linNcmt+linNcmt)*(linNcmt+linKa+1) + 2*linNcmt+1;
 	    break;
 	  }
 	} else {
@@ -4707,10 +4706,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	    op->nlin = 3;
 	    break;
 	  case 2:
-	    op->nlin = 10;
+	    op->nlin = linNcmt + linKa + (2*linNcmt+linNcmt)*(linNcmt+linKa+1) + 2*linNcmt+1;
 	    break;
 	  case 3:
-	    op->nlin = 21;
+	    op->nlin = linNcmt + linKa + (2*linNcmt+linNcmt)*(linNcmt+linKa+1) + 2*linNcmt+1;
 	    break;
 	  }
 	}

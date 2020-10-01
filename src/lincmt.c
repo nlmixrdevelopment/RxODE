@@ -3464,10 +3464,6 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       // Oral parameters
 	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2) {
   if (i_cmt == 3 || i_cmt == 2)
-    return linCmtG(rx, id, t, linCmt, i_cmt, trans, val,
-		   p1, v1, p2, p3, p4, p5, d_tlag, d_F,
-		   d_rate1, d_dur1, d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
-  if (i_cmt == 3)
     return linCmtBB(rx, id, t, linCmt, i_cmt, trans, val,
 		    p1, v1, p2, p3, p4, p5, d_tlag, d_F,
 		    d_rate1, d_dur1, d_ka, d_tlag2, d_F2, d_rate2, d_dur2);
@@ -3785,12 +3781,6 @@ double linCmtB(rx_solve *rx, unsigned int id,
 		   dd_rate2, dd_dur2);
   case 4: // symbolic advan
     return linCmtF(rx, id, t, linCmt, ncmt, trans, val,
-		   dd_p1, dd_v1, dd_p2, dd_p3,
-		   dd_p4, dd_p5, dd_tlag, dd_F,
-		   dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,
-		   dd_rate2, dd_dur2);
-  case 5: // dual numbers
-    return linCmtG(rx, id, t, linCmt, ncmt, trans, val,
 		   dd_p1, dd_v1, dd_p2, dd_p3,
 		   dd_p4, dd_p5, dd_tlag, dd_F,
 		   dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,

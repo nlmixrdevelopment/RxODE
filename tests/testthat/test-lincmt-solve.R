@@ -2,12 +2,13 @@ rxPermissive(
 {
 
   tol <- 5e-6 ## Current difference for all equations
-  type <- 1
-  for (type in 5) {
+  type <- 2
 
-    .txt <- switch(type, "linear", "sensitivity", "linear [no save]", "advanSens", "dual")
-    sens <- switch(type, "linCmtA", "linCmtB", "linCmtC", "linCmtB", "linCmtB")
-    sensType <- switch(type, "autodiff", "autodiff", "autodiff", "advan", "dual")
+  for (type in c(1:4)) {
+
+    .txt <- switch(type, "linear", "sensitivity", "linear [no save]", "advanSens")
+    sens <- switch(type, "linCmtA", "linCmtB", "linCmtC", "linCmtB")
+    sensType <- switch(type, "autodiff", "autodiff", "autodiff", "advan")
 
     etSsB <- et() %>%
       et(amt = 3) %>%
@@ -1897,7 +1898,6 @@ rxPermissive(
     })
 
   }
-  stop("a")
     test_that(
       "double linCmt has error",
       expect_error(RxODE({
@@ -2012,8 +2012,8 @@ rxPermissive(
 
     ## forward/central differences don't work here...
 
-    for (type in 5) {
-      sens <- switch(type, "autodiff", "forward", "central", "advan", "dual")
+  for (type in c(1, 4)) {
+      sens <- switch(type, "autodiff", "forward", "central", "advan")
 
       context(sprintf("1 cmt sensitivities (%s)", sens))
       test_that("1 compartment sensitivities; IV bolus, Cl, V", {
