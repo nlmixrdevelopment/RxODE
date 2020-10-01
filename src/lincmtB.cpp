@@ -2032,22 +2032,37 @@ namespace stan {
 			const int trans,
 			const int ncmt,
 			const int linCmt,
-			const int idxF,
+			const int idx,
 			const int sameTime,
 			rx_solving_options_ind *ind,
-			rx_solve *rx){
+			rx_solve *rx,
+			const Eigen::Matrix<double, -1, -1>& AlastA,
+			const Eigen::Matrix<double, -1, -1>& AlastG){
       rx_solving_options *op = rx->op;
       Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncmt, 3);
       g = micros2macros(params, ncmt, trans);
       Eigen::Matrix<T, Eigen::Dynamic, 1> rate(oral0+1, 1);
       Eigen::Matrix<T, Eigen::Dynamic, 1> bolus(oral0+1, 1);
+      double *rateD = ind->linCmtRate;
       for (int i = oral0+1; i--; ){
-	rate(i, 0) = bolus(i, 0) = 0.0;
+	bolus(i, 0) = 0.0;
+	rate(i, 0) = rateD[i];
       }
       Eigen::Matrix<T, Eigen::Dynamic, 1> Alast(oral0+ncmt, 1);
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(oral0+ncmt, 1);
       for (int i = oral0+ncmt; i--;){
-	Alast(i, 0) = 0.0;
+	Alast(i, 0) = AlastA(i, 0) + params(0, 0)*AlastG(i, 0) + params(1, 0)*AlastG(i, 1);
+	if (ncmt >= 2) {
+	  Alast(i, 0) += params(2, 0)*AlastG(i, 2) + params(3, 0)*AlastG(i, 3);
+	  if (ncmt == 3) {
+	    Alast(i, 0) += params(4, 0)*AlastG(i, 4) + params(5, 0)*AlastG(i, 5);
+	  }
+	}
+	// REprintf("Alast(i: %d, 0): %f\n", i, Alast(i, 0).val());
+	if (oral0) {
+	  Alast(i, 0) += params(2*ncmt, 0)*AlastG(i,2*ncmt);
+	}
+	// REprintf("Alast(i: %d, 0): %f\n", i, Alast(i, 0).val());
 	A(i, 0) = 0.0;
       }
       T tlast;
@@ -2056,23 +2071,19 @@ namespace stan {
       T amt;
       T rateAdjust;
       T tinf;
-      tlast = getTime(ind->ix[0], ind);
       int evid, wh, cmt, wh100, whI, wh0, cmtOff;
+      curTime = getTime(ind->ix[idx], ind);
+      if (idx == 0) {
+	tlast = curTime;
+      } else {
+	tlast = getTime(ind->ix[idx-1], ind);
+      }
       int extraAdvan = 1, doRate=0, doMultiply = 0, doReplace=0,
 	doInf=0;
-      int oldIxds = ind->ixds, oldIdx=ind->idx;
-      ind->ixds = 0;
-      for (int idx = 0; idx <= idxF; ++idx) {
-	ind->idx = idx;
-	curTime = getTime(ind->ix[idx], ind);
 	evid = ind->evid[ind->ix[idx]];
 	if (isObs(evid)){
-	  if (idx != idxF){
-	    continue;
-	  }
 	} else if (evid == 3){
 	  // Reset event
-	  ind->ixds++;
 	  for (int i = oral0+ncmt; i--;){
 	    Alast(i, 0) = 0.0;
 	  }
@@ -2299,7 +2310,6 @@ namespace stan {
 	      }
 	    }
 	  }
-	  ind->ixds++;
 	}
 	//
 	if (extraAdvan){
@@ -2321,15 +2331,10 @@ namespace stan {
 	}
 	Alast = A;
  	tlast = curTime;
-      }
-      ind->ixds = oldIxds;
-      ind->idx = oldIdx;
       // Save A and rate
-      double *Ad = getAdvan(idxF);
-      T tmpD;
+      double *Ad = getAdvan(idx);
       for (int i = ncmt+oral0; i--;){
-	tmpD = A(i, 0);
-	Ad[i] = tmpD.val();
+	Ad[i] = A(i, 0).val();
       }
       if (!sameTime){
       	// Compute the advan solution of a t outside of the mesh.
@@ -2345,6 +2350,9 @@ namespace stan {
       for (int i = ncmt+oral0; i--;){
 	ret(1+i, 0) = A(i, 0);
       }
+      for (int i = oral0+1; i--; ){
+	rateD[i] = rate(i, 0).val();
+      }
       return ret;
     }
     struct linCmtFun {
@@ -2353,6 +2361,8 @@ namespace stan {
       rx_solving_options_ind *ind_;
       rx_solve *rx_;
       const Eigen::Matrix<double, Eigen::Dynamic, 1>& pard_;
+      const Eigen::Matrix<double, -1, -1>& AlastA_;
+      const Eigen::Matrix<double, -1, -1>& AlastG_;
       linCmtFun(const double t,
 		const int ncmt,
 		const int oral0,
@@ -2362,7 +2372,9 @@ namespace stan {
 		const int sameTime,
 		rx_solving_options_ind *ind,
 		rx_solve *rx,
-		const Eigen::Matrix<double, Eigen::Dynamic, 1>& pard) :
+		const Eigen::Matrix<double, Eigen::Dynamic, 1>& pard,
+		const Eigen::Matrix<double, -1, -1>& AlastA,
+		const Eigen::Matrix<double, -1, -1>& AlastG) :
 	t_(t),
 	ncmt_(ncmt),
 	linCmt_(linCmt),
@@ -2372,11 +2384,14 @@ namespace stan {
 	sameTime_(sameTime),
 	ind_(ind),
 	rx_(rx),
-	pard_(pard)
+	pard_(pard),
+	AlastA_(AlastA),
+	AlastG_(AlastG)
       { }
       template <typename T>
       Eigen::Matrix<T, Eigen::Dynamic, 1> operator()(Eigen::Matrix<T, Eigen::Dynamic, 1>& params) const {
-	return genericCmtInterface(params, pard_, t_, oral0_, trans_, ncmt_, linCmt_, idx_, sameTime_, ind_, rx_);
+	return genericCmtInterface(params, pard_, t_, oral0_, trans_, ncmt_, linCmt_, idx_, sameTime_, ind_, rx_,
+				   AlastA_, AlastG_);
       }
     };
     }
@@ -2409,7 +2424,8 @@ static inline double linCmtBg(double *A, int& val, int& trans, int& ncmt,
   } else {
     // 2*ncmt + oral0
     if (val == 11) {
-      return A[3*ncmt+oral0];
+      if (oral0) return A[ncmt + oral0 + 2*ncmt];
+      return 0.0;
     } else if (val <= 7) {
       return A[ncmt+oral0+val-1];
     } else {
@@ -2475,25 +2491,80 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
     pard(6, 0) = dd_rate2;
     pard(7, 0) = dd_dur2;
   }
-  stan::math::linCmtFun f(t, ncmt, oral0, trans, linCmt, idx, sameTime, ind, rx, pard);
+  // Restore last values from gradient into a matrix
+  Eigen::Matrix<double, -1, -1> AlastG(ncmt+oral0, ncmt*2+oral0);
+  Eigen::Matrix<double, -1, -1> AlastA(ncmt+oral0,1);
+  double *A;
+  if (idx != 0){
+    A = getAdvan(idx-1);
+    for (int i = 0; i < ncmt+oral0; i++) {
+      AlastG(i, 0) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 0];
+      AlastG(i, 1) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 1];
+      // Alast Adjusted
+      AlastA(i, 0) = A[i];
+      AlastA(i, 0) -= AlastG(i, 0)*dd_p1;
+      AlastA(i, 0) -= AlastG(i, 1)*dd_v1;
+      if (ncmt >=2){
+	AlastG(i, 2) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 2];
+	AlastG(i, 3) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 3];
+	// Adjust alast
+	AlastA(i, 0) -= AlastG(i, 2)*dd_p2;
+	AlastA(i, 0) -= AlastG(i, 3)*dd_p3;
+	if (ncmt >= 3){
+	  AlastG(i, 4) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 4];
+	  AlastG(i, 5) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 5];
+	  // Adjust Alast
+	  AlastA(i, 0) -= AlastG(i, 4)*dd_p4;
+	  AlastA(i, 0) -= AlastG(i, 5)*dd_p5;
+	}
+      }
+      if (oral0) {
+	AlastG(i, 2*ncmt) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 2*ncmt];
+	AlastA(i, 0) -= AlastG(i, 2*ncmt)*dd_ka;
+      }
+    }
+  } else {
+    AlastG.setZero(ncmt+oral0, ncmt*2+oral0);
+    AlastA.setZero(ncmt+oral0, 1);
+  }
+  stan::math::linCmtFun f(t, ncmt, oral0, trans, linCmt, idx, sameTime, ind, rx, pard, AlastA, AlastG);
   Eigen::VectorXd fx;
   Eigen::Matrix<double, -1, -1> J;
   stan::math::jacobian(f, params, fx, J);
-  double *A = getAdvan(idx);
-  if (sameTime){
+  if (sameTime) {
+    A = getAdvan(idx);
     A[ncmt + oral0 + 0] = J(0, 0);
     A[ncmt + oral0 + 1] = J(0, 1);
     if (ncmt >=2){
       A[ncmt + oral0 + 2] = J(0, 2);
       A[ncmt + oral0 + 3] = J(0, 3);
-      if (ncmt >= 3){
+      if (ncmt == 3){
 	A[ncmt + oral0 + 4] = J(0, 4);
 	A[ncmt + oral0 + 5] = J(0, 5);
       }
     }
     if (oral0) {
-      A[3*ncmt + oral0] = J(0, 2*ncmt);
+      A[ncmt + oral0 + 2*ncmt] = J(0, 2*ncmt);
     }
+    // Save A1-A4
+    for (int i = 0; i < ncmt+oral0; i++) {
+      //(3*ncmt+2*oral0)+0
+      A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 0] = J(i+1, 0);
+      A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 1] = J(i+1, 1);
+      if (ncmt >=2){
+	A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 2] = J(i+1, 2);
+	A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 3] = J(i+1, 3);
+	if (ncmt == 3){
+	  A[ncmt + oral0 + (2*ncmt+oral0)*(i+1)+ 4] = J(i+1, 4);
+	  A[ncmt + oral0 + (2*ncmt+oral0)*(i+1)+ 5] = J(i+1, 5);
+	}
+      }
+      if (oral0) {
+	//(3*ncmt+oral0)+2*ncmt
+	A[ncmt + oral0 + (2*ncmt+oral0)*(i+1)+ 2*ncmt] = J(i+1, 2*ncmt);
+      }
+    }
+    // (4+(ncmt+oral0))*ncmt + (2+ncmt+oral0)*oral0+1
     ind->solved = idx;
   }
   return linCmtBg(A, val, trans, ncmt, oral0, dd_v1, dd_p3, dd_p5);
