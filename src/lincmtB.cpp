@@ -39,8 +39,11 @@ namespace stan {
     Eigen::Matrix<T, Eigen::Dynamic, 2>
     micros2macros(const Eigen::Matrix<T, Eigen::Dynamic, 1>& p,
 		  const int& ncmt,
-		  const int& trans){
-      Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncmt,3);
+		  const int& trans,
+		  const int& oral0){
+      int ncnst = ncmt;
+      if (oral0 && ncmt == 2) ncnst = 4;
+      Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncnst,3);
       T btemp, ctemp, dtemp;
 #define p1    p[0]
 #define v1    p[1]
@@ -50,6 +53,8 @@ namespace stan {
 #define p5    p[5]
 #define v     g(0, 0)
 #define k     g(0, 1)
+#define k20   g(0, 1)
+
       
 #define k12   g(1, 0)
 #define k23   g(1, 0)
@@ -183,6 +188,16 @@ namespace stan {
 	default:
 	  REprintf(_("invalid trans (2 cmt trans %d)\n"), trans);
 	  return g;
+	}
+	// Now calculate the alpha/beta for oral
+	if (oral0){
+#define alpha g(2, 0)
+#undef beta
+#define beta g(2, 1)
+#define alpha g(2, 0)
+#define beta g(2, 1)
+	  beta = 0.5*(k23+k32+k20 - sqrt(pow(k23+k32+k20,2) - 4*k32*k20));
+	  alpha = k32*k20/beta;
 	}
       } break;
       case 1:{ // One compartment model
@@ -356,6 +371,8 @@ namespace stan {
 #define f2    pard(5, 0)
 #define rate2 pard(6, 0)
 #define dur2  pard(7, 0)
+#define alpha g(2, 0)
+#define beta g(2, 1)
 
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
@@ -364,10 +381,7 @@ namespace stan {
 		     Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
 		     Eigen::Matrix<double, Eigen::Dynamic, 1>& rate) {
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
-      T s = k23+k32+k20;
       //#Calculate roots
-      T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
-      T alpha = k32*k20/beta;
       A1=r1/ka;
       A2=r1*k32/(beta*alpha);
       A3=r1*k23/(beta*alpha);
@@ -381,10 +395,7 @@ namespace stan {
 		     Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
 		     Eigen::Matrix<double, Eigen::Dynamic, 1>& rate) {
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
-      T s = k23+k32+k20;
       //#Calculate roots
-      T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
-      T alpha = k32*k20/beta;
       A1=0;
       A2=r2*k32/(beta*alpha);
       A3=r2*k23/(beta*alpha);
@@ -399,10 +410,7 @@ namespace stan {
 		      Eigen::Matrix<double, Eigen::Dynamic, 1>& rate,
 		      double tinf, double tau){
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
-      T s = k23+k32+k20;
       //#Calculate roots
-      T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
-      T alpha = k32*k20/beta;
 
       T eA = exp(-alpha*(tau-tinf))/(1.0-exp(-alpha*tau));
       T eB = exp(-beta*(tau-tinf))/(1.0-exp(-beta*tau));
@@ -437,10 +445,7 @@ namespace stan {
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
       T E2 = k20+k23;
       T E3 = k32;
-      T s = k23+k32+k20;
       //#Calculate roots
-      T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
-      T alpha = k32*k20/beta;
 
       T eA = exp(-alpha*(tau-tinf))/(1.0-exp(-alpha*tau));
       T eB = exp(-beta*(tau-tinf))/(1.0-exp(-beta*tau));
@@ -469,10 +474,6 @@ namespace stan {
 		 Eigen::Matrix<double, Eigen::Dynamic, 1>& rate) {
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
       T E2 =  k20+ k23;
-      T s = k23+k32+k20;
-      //#Calculate roots
-      T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
-      T alpha = k32*k20/beta;
 
       T eKa = exp(-ka*t);
       T eA = exp(-alpha*t);
@@ -493,6 +494,8 @@ namespace stan {
     }
     
         // undefine extras
+#undef alpha
+#undef beta
 #undef tlag
 #undef F
 #undef rate1
@@ -2047,7 +2050,7 @@ namespace stan {
 			const Eigen::Matrix<double, -1, -1>& AlastG){
       rx_solving_options *op = rx->op;
       Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncmt, 3);
-      g = micros2macros(params, ncmt, trans);
+      g = micros2macros(params, ncmt, trans, oral0);
       Eigen::Matrix<double, Eigen::Dynamic, 1> rate(oral0+1, 1);
       Eigen::Matrix<double, Eigen::Dynamic, 1> bolus(oral0+1, 1);
       double *rateD = ind->linCmtRate;
