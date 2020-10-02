@@ -43,6 +43,7 @@ namespace stan {
 		  const int& oral0){
       int ncnst = ncmt;
       if (ncmt == 2) ncnst = 3;
+      if (ncmt == 3) ncnst = 5;
       Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncnst,2);
       T btemp, ctemp, dtemp;
 #define p1    p[0]
@@ -127,6 +128,40 @@ namespace stan {
 #define beta Rf_beta
 	  break;
 	}
+	// Now get lambda1, lambda2, lambda3 cached
+#undef k
+#define lam1 g(3, 0)
+#define lam2 g(3, 1)
+#define lam3 g(4, 0)
+#define l123 g(4, 1)
+	//##Calculate roots - see Upton, 2004
+	T j = k23+k20+k32+k42+k24;
+	T k = k23*k42+k20*k32+k20*k42+k32*k42+k24*k32;
+	T l = k20*k32*k42;
+
+	T m = 0.3333333333333333*(3.0*k - j*j);
+	T n = 0.03703703703703703*(2.0*j*j*j - 9.0*j*k + 27.0*l);
+	T Q = 0.25*n*n + 0.03703703703703703*m*m*m;
+
+	T alpha = sqrt(-Q);
+	T beta = -0.5*n;
+	T rho=sqrt(beta*beta+alpha*alpha);
+	T theta = atan2(alpha,beta);
+	T ct3 = cos(0.3333333333333333*theta);
+	T rho3 = pow(rho,0.3333333333333333);
+	T st3 = 1.732050807568877193177*sin(0.3333333333333333*theta);
+	T j3 = 0.3333333333333333*j;
+	lam1 = j3  + rho3*(ct3 + st3);
+	lam2 = j3 + rho3*(ct3 - st3);
+	lam3 = j3 -(2.0*rho3*ct3);
+	l123 = 1.0/(lam1*lam2*lam3);
+	return g;
+#undef lam1
+#undef lam2
+#undef lam3
+#undef k
+#define k     g(0, 1)
+
       } break;
       case 2:{ // 2 compartment model
 	switch (trans){
@@ -516,6 +551,10 @@ namespace stan {
 #define tlag2 pard(4, 0)
 #define f2    pard(5, 0)
 #define dur2  pard(6, 0)
+#define lam1 g(3, 0)
+#define lam2 g(3, 1)
+#define lam3 g(4, 0)
+#define l123 g(4, 1)
 
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
@@ -525,26 +564,6 @@ namespace stan {
 		       Eigen::Matrix<double, Eigen::Dynamic, 1>& rate){
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(4, 1);
       //##Calculate roots - see Upton, 2004
-      T j = k23+k20+k32+k42+k24;
-      T k = k23*k42+k20*k32+k20*k42+k32*k42+k24*k32;
-      T l = k20*k32*k42;
-
-      T m = 0.3333333333333333*(3.0*k - j*j);
-      T n = 0.03703703703703703*(2.0*j*j*j - 9.0*j*k + 27.0*l);
-      T Q = 0.25*n*n + 0.03703703703703703*m*m*m;
-
-      T alpha = sqrt(-Q);
-      T beta = -0.5*n;
-      T rho=sqrt(beta*beta+alpha*alpha);
-      T theta = atan2(alpha,beta);
-      T ct3 = cos(0.3333333333333333*theta);
-      T rho3 = pow(rho,0.3333333333333333);
-      T st3 = 1.732050807568877193177*sin(0.3333333333333333*theta);
-      T j3 = 0.3333333333333333*j;
-      T lam1 = j3  + rho3*(ct3 + st3);
-      T lam2 = j3 + rho3*(ct3 - st3);
-      T lam3 = j3 -(2.0*rho3*ct3);
-      T l123 = 1.0/(lam1*lam2*lam3);
       A1=r1/ka;
       A2=r1*k42*k32*l123;
       A3=r1*k42*k23*l123;
@@ -559,26 +578,6 @@ namespace stan {
 		       Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
 		       Eigen::Matrix<double, Eigen::Dynamic, 1>& rate){
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(4, 1);
-      T j = k23+k20+k32+k42+k24;
-      T k = k23*k42+k20*k32+k20*k42+k32*k42+k24*k32;
-      T l = k20*k32*k42;
-
-      T m = 0.3333333333333333*(3.0*k - j*j);
-      T n = 0.03703703703703703*(2.0*j*j*j - 9.0*j*k + 27.0*l);
-      T Q = 0.25*n*n + 0.03703703703703703*m*m*m;
-
-      T alpha = sqrt(-Q);
-      T beta = -0.5*n;
-      T rho=sqrt(beta*beta+alpha*alpha);
-      T theta = atan2(alpha,beta);
-      T ct3 = cos(0.3333333333333333*theta);
-      T rho3 = pow(rho,0.3333333333333333);
-      T st3 = 1.732050807568877193177*sin(0.3333333333333333*theta);
-      T j3 = 0.3333333333333333*j;
-      T lam1 = j3  + rho3*(ct3 + st3);
-      T lam2 = j3 + rho3*(ct3 - st3);
-      T lam3 = j3 -(2.0*rho3*ct3);
-      T l123 = 1.0/(lam1*lam2*lam3);
       A1=0;
       A2=r2*k42*k32*l123;
       A3=r2*k42*k23*l123;
@@ -598,25 +597,6 @@ namespace stan {
       T E3 = k32;
       T E4 = k42;
       //##Calculate roots - see Upton, 2004
-      T j = k23+k20+k32+k42+k24;
-      T k = k23*k42+k20*k32+k20*k42+k32*k42+k24*k32;
-      T l = k20*k32*k42;
-
-      T m = 0.3333333333333333*(3.0*k - j*j);
-      T n = 0.03703703703703703*(2.0*j*j*j - 9.0*j*k + 27.0*l);
-      T Q = 0.25*n*n + 0.03703703703703703*m*m*m;
-
-      T alpha = sqrt(-Q);
-      T beta = -0.5*n;
-      T rho=sqrt(beta*beta+alpha*alpha);
-      T theta = atan2(alpha,beta);
-      T ct3 = cos(0.3333333333333333*theta);
-      T rho3 = pow(rho,0.3333333333333333);
-      T st3 = 1.732050807568877193177*sin(0.3333333333333333*theta);
-      T j3 = 0.3333333333333333*j;
-      T lam1 = j3  + rho3*(ct3 + st3);
-      T lam2 = j3 + rho3*(ct3 - st3);
-      T lam3 = j3 -(2.0*rho3*ct3);
   
       T eKa = exp(-ka*(tau-tinf))/(1.0-exp(-ka*tau));
       T eiKa = exp(-ka*tinf);
@@ -662,27 +642,6 @@ namespace stan {
       T E2 =  k20+ k23 + k24;
       T E3 = k32;
       T E4 = k42;
-      //##Calculate roots - see Upton, 2004
-      T j = k23+k20+k32+k42+k24;
-      T k = k23*k42+k20*k32+k20*k42+k32*k42+k24*k32;
-      T l = k20*k32*k42;
-
-      T m = 0.3333333333333333*(3.0*k - j*j);
-      T n = 0.03703703703703703*(2.0*j*j*j - 9.0*j*k + 27.0*l);
-      T Q = 0.25*n*n + 0.03703703703703703*m*m*m;
-
-      T alpha = sqrt(-Q);
-      T beta = -0.5*n;
-      T rho=sqrt(beta*beta+alpha*alpha);
-      T theta = atan2(alpha,beta);
-      T ct3 = cos(0.3333333333333333*theta);
-      T rho3 = pow(rho,0.3333333333333333);
-      T st3 = 1.732050807568877193177*sin(0.3333333333333333*theta);
-      T j3 = 0.3333333333333333*j;
-      T lam1 = j3  + rho3*(ct3 + st3);
-      T lam2 = j3 + rho3*(ct3 - st3);
-      T lam3 = j3 -(2.0*rho3*ct3);
-  
       /* T eKa = 1.0/(1.0-exp(-ka*tau)); */
       /* T eiKa = exp(-ka*tinf); */
 
@@ -727,25 +686,6 @@ namespace stan {
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(4, 1);
       T E2 =  k20+ k23 + k24;
       //##Calculate roots - see Upton, 2004
-      T j = k23+k20+k32+k42+k24;
-      T k = k23*k42+k20*k32+k20*k42+k32*k42+k24*k32;
-      T l = k20*k32*k42;
-
-      T m = 0.3333333333333333*(3.0*k - j*j);
-      T n = 0.03703703703703703*(2.0*j*j*j - 9.0*j*k + 27.0*l);
-      T Q = 0.25*n*n + 0.03703703703703703*m*m*m;
-
-      T alpha = sqrt(-Q);
-      T beta = -0.5*n;
-      T rho=sqrt(beta*beta+alpha*alpha);
-      T theta = atan2(alpha,beta);
-      T ct3 = cos(0.3333333333333333*theta);
-      T rho3 = pow(rho,0.3333333333333333);
-      T st3 = 1.732050807568877193177*sin(0.3333333333333333*theta);
-      T j3 = 0.3333333333333333*j;
-      T lam1 = j3  + rho3*(ct3 + st3);
-      T lam2 = j3 + rho3*(ct3 - st3);
-      T lam3 = j3 -(2.0*rho3*ct3);
       T eKa = exp(-ka*t);
       A1 = b1+ r1/ka-((r1-A1last*ka)*eKa)/ka;
   
@@ -794,6 +734,10 @@ namespace stan {
 #undef tlag2
 #undef f2
 #undef dur2
+#undef lam1
+#undef lam2
+#undef lam3
+
 
 
         // one compartment ka translations ncmt=1
@@ -970,6 +914,10 @@ namespace stan {
 #define f2    pard(5, 0)
 #define rate2 pard(6, 0)
 #define dur2  pard(7, 0)
+#define lambda1 g(3, 0)
+#define lambda2 g(3, 1)
+#define lambda3 g(4, 0)
+#define l123 g(4, 1)
     
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
@@ -984,27 +932,6 @@ namespace stan {
       T E4 = k42;
 
       //calculate hybrid rate constants
-      T a = E2+E3+E4;
-      T b = E2*E3+E4*(E2+E3)-k23*k32-k24*k42;
-      T c = E2*E3*E4-E4*k23*k32-E3*k24*k42;
-
-      T a2 = a*a;
-      T m = 0.333333333333333*(3.0*b - a2);
-      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
-      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
-
-      T alpha = sqrt(-Q);
-      T beta = -0.5*n;
-      T gamma = sqrt(beta*beta+alpha*alpha);
-      T theta = atan2(alpha,beta);
-      T theta3 = 0.333333333333333*theta;
-      T ctheta3 = cos(theta3);
-      T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = pow(gamma,0.333333333333333);
-  
-      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
-      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
-      T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
 
       T eKa = 1.0/(1.0-exp(-tau*ka));
       T eL1 = 1.0/(1.0-exp(-tau*lambda1));
@@ -1031,27 +958,6 @@ namespace stan {
       T E4 = k42;
 
       //calculate hybrid rate constants
-      T a = E2+E3+E4;
-      T b = E2*E3+E4*(E2+E3)-k23*k32-k24*k42;
-      T c = E2*E3*E4-E4*k23*k32-E3*k24*k42;
-
-      T a2 = a*a;
-      T m = 0.333333333333333*(3.0*b - a2);
-      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
-      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
-
-      T alpha = sqrt(-Q);
-      T beta = -0.5*n;
-      T gamma = sqrt(beta*beta+alpha*alpha);
-      T theta = atan2(alpha,beta);
-      T theta3 = 0.333333333333333*theta;
-      T ctheta3 = cos(theta3);
-      T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = pow(gamma,0.333333333333333);
-  
-      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
-      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
-      T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
 
       /* T eKa = 1.0/(1.0-exp(-tau*KA)); */
       T eL1 = 1.0/(1.0-exp(-tau*lambda1));
@@ -1077,28 +983,6 @@ namespace stan {
       T E4 = k42;
 
       //calculate hybrid rate constants
-      T a = E2+E3+E4;
-      T b = E2*E3+E4*(E2+E3)-k23*k32-k24*k42;
-      T c = E2*E3*E4-E4*k23*k32-E3*k24*k42;
-
-      T a2 = a*a;
-      T m = 0.333333333333333*(3.0*b - a2);
-      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
-      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
-
-      T alpha = sqrt(-Q);
-      T beta = -0.5*n;
-      T gamma = sqrt(beta*beta+alpha*alpha);
-      T theta = atan2(alpha,beta);
-      T theta3 = 0.333333333333333*theta;
-      T ctheta3 = cos(theta3);
-      T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = pow(gamma,0.333333333333333);
-  
-      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
-      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
-      T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
-
       T B = A3last*k32+A4last*k42;
       T C = E4*A3last*k32+E3*A4last*k42;
       T I = A2last*k23*E4-A3last*k24*k42+A4last*k23*k42;
@@ -1161,6 +1045,11 @@ namespace stan {
 #undef tlag2
 #undef f2
 #undef dur2
+#undef lambda1
+#undef lambda2
+#undef lambda3
+#undef l123
+
 
 
         // one compartment ka translations ncmt=1
@@ -1333,6 +1222,10 @@ namespace stan {
 #define f2    pard(5, 0)
 #define rate2 pard(6, 0)
 #define dur2  pard(7, 0)
+#define lambda1 g(3, 0)
+#define lambda2 g(3, 1)
+#define lambda3 g(4, 0)
+#define l123 g(4, 1)
 
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
@@ -1346,28 +1239,6 @@ namespace stan {
       T E3 = k31;
 
       //#calculate hybrid rate constants
-      T a = E1+E2+E3;
-      T b = E1*E2+E3*(E1+E2)-k12*k21-k13*k31;
-      T c = E1*E2*E3-E3*k12*k21-E2*k13*k31;
-
-      T a2 = a*a;
-      T m = 0.333333333333333*(3.0*b - a2);
-      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
-      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
-
-      T alpha = sqrt(-Q);
-      T beta = -0.5*n;
-      T gamma = sqrt(beta*beta+alpha*alpha);
-      T theta = atan2(alpha,beta);
-      T theta3 = 0.333333333333333*theta;
-      T ctheta3 = cos(theta3);
-      T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = pow(gamma,0.333333333333333);
-  
-      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
-      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
-      T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
-      T l123 = 1.0/(lambda1*lambda2*lambda3);
       A1=r1*E2*E3*l123;
       A2=r1*E3*k12*l123;
       A3=r1*E2*k13*l123;
@@ -1387,27 +1258,6 @@ namespace stan {
       T E3 = k31;
 
       //#calculate hybrid rate constants
-      T a = E1+E2+E3;
-      T b = E1*E2+E3*(E1+E2)-k12*k21-k13*k31;
-      T c = E1*E2*E3-E3*k12*k21-E2*k13*k31;
-
-      T a2 = a*a;
-      T m = 0.333333333333333*(3.0*b - a2);
-      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
-      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
-
-      T alpha = sqrt(-Q);
-      T beta = -0.5*n;
-      T gamma = sqrt(beta*beta+alpha*alpha);
-      T theta = atan2(alpha,beta);
-      T theta3 = 0.333333333333333*theta;
-      T ctheta3 = cos(theta3);
-      T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = pow(gamma,0.333333333333333);
-  
-      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
-      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
-      T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
       T eTi1 = exp(-tinf*lambda1);
       T eTi2 = exp(-tinf*lambda2);
       T eTi3 = exp(-tinf*lambda3);
@@ -1434,28 +1284,6 @@ namespace stan {
       T E3 = k31;
 
       //#calculate hybrid rate constants
-      T a = E1+E2+E3;
-      T b = E1*E2+E3*(E1+E2)-k12*k21-k13*k31;
-      T c = E1*E2*E3-E3*k12*k21-E2*k13*k31;
-
-      T a2 = a*a;
-      T m = 0.333333333333333*(3.0*b - a2);
-      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
-      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
-
-      T alpha = sqrt(-Q);
-      T beta = -0.5*n;
-      T gamma = sqrt(beta*beta+alpha*alpha);
-      T theta = atan2(alpha,beta);
-      T theta3 = 0.333333333333333*theta;
-      T ctheta3 = cos(theta3);
-      T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = pow(gamma,0.333333333333333);
-  
-      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
-      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
-      T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
-
       T B = A2last*k21+A3last*k31;
       T C = E3*A2last*k21+E2*A3last*k31;
       T I = A1last*k12*E3-A2last*k13*k31+A3last*k12*k31;
@@ -1511,6 +1339,11 @@ namespace stan {
 #undef tlag2
 #undef f2
 #undef dur2
+#undef lambda1
+#undef lambda2
+#undef lambda3
+#undef l123
+
 
     // one compartment ka translations ncmt=1
 #define tlag  pard(0, 0)
@@ -1641,6 +1474,9 @@ namespace stan {
 #define f2    pard(5, 0)
 #define rate2 pard(6, 0)
 #define dur2  pard(7, 0)
+#define lambda1 g(3, 0)
+#define lambda2 g(3, 1)
+#define lambda3 g(4, 0)
 
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
@@ -1655,27 +1491,6 @@ namespace stan {
       T E3 = k31;
 
       //calculate hybrid rate constants
-      T a = E1+E2+E3;
-      T b = E1*E2+E3*(E1+E2)-k12*k21-k13*k31;
-      T c = E1*E2*E3-E3*k12*k21-E2*k13*k31;
-
-      T a2 = a*a;
-      T m = 0.333333333333333*(3.0*b - a2);
-      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
-      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
-
-      T alpha = sqrt(-Q);
-      T beta = -0.5*n;
-      T gamma = sqrt(beta*beta+alpha*alpha);
-      T theta = atan2(alpha,beta);
-
-      T theta3 = 0.333333333333333*theta;
-      T ctheta3 = cos(theta3);
-      T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = pow(gamma,0.333333333333333);
-      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
-      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
-      T lambda3 = 0.333333333333333*a -(2*gamma3*ctheta3);
 
       T eL1 = 1.0/(1.0-exp(-tau*lambda1));
       T eL2 = 1.0/(1.0-exp(-tau*lambda2));
@@ -1700,27 +1515,6 @@ namespace stan {
       T E3 = k31;
 
       //calculate hybrid rate constants
-      T a = E1+E2+E3;
-      T b = E1*E2+E3*(E1+E2)-k12*k21-k13*k31;
-      T c = E1*E2*E3-E3*k12*k21-E2*k13*k31;
-
-      T a2 = a*a;
-      T m = 0.333333333333333*(3.0*b - a2);
-      T n = 0.03703703703703703*(2.0*a2*a - 9.0*a*b + 27.0*c);
-      T Q = 0.25*(n*n) + 0.03703703703703703*(m*m*m);
-
-      T alpha = sqrt(-Q);
-      T beta = -0.5*n;
-      T gamma = sqrt(beta*beta+alpha*alpha);
-      T theta = atan2(alpha,beta);
-
-      T theta3 = 0.333333333333333*theta;
-      T ctheta3 = cos(theta3);
-      T stheta3 = 1.7320508075688771932*sin(theta3);
-      T gamma3 = pow(gamma,0.333333333333333);
-      T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
-      T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
-      T lambda3 = 0.333333333333333*a -(2*gamma3*ctheta3);
 
       T B = A2last*k21+A3last*k31;
       T C = E3*A2last*k21+E2*A3last*k31;
@@ -1987,7 +1781,9 @@ namespace stan {
       Rcpp::stop("doAdvan error; ncmt: %d, oral0: %d", ncmt, oral0);
       return params;
     }
-    
+#undef lambda1
+#undef lambda2
+#undef lambda3
 #undef v
 #undef k20
 #undef kel
@@ -2047,6 +1843,7 @@ namespace stan {
       rx_solving_options *op = rx->op;
       int ncnst = ncmt;
       if (ncmt == 2) ncnst = 3;
+      if (ncmt == 3) ncnst = 5;
       Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncnst,2);
       // Restore g matrix with polynomials
       for (int i = ncnst; i--;) {
@@ -2580,8 +2377,6 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
   Eigen::VectorXd fxm = fx.array()-(J.array().rowwise() *  params.transpose().array()).rowwise().sum().array();
   Eigen::MatrixXd fin(J.rows(),J.cols()+2);
   fin << params, fxm, J;
-  // REprintf("fin\n");
-  // Rcpp::print(Rcpp::wrap(fin));
   // Rcpp::print(Rcpp::wrap(fx));
 
   stan::math::linCmtFun f(t, ncmt, oral0, trans, linCmt, idx, sameTime, ind, rx, pard, AlastA, AlastG, fin);
