@@ -1839,7 +1839,7 @@ namespace stan {
 			rx_solve *rx,
 			const Eigen::Matrix<double, -1, -1>& AlastA,
 			const Eigen::Matrix<double, -1, -1>& AlastG,
-			const Eigen::Matrix<double, -1, -1>& parTransM){
+			const Eigen::Map<Eigen::Matrix<double, -1, -1>>& parTransM){
       rx_solving_options *op = rx->op;
       int ncnst = ncmt;
       if (ncmt == 2) ncnst = 3;
@@ -2195,7 +2195,7 @@ namespace stan {
       const Eigen::Matrix<double, Eigen::Dynamic, 1>& pard_;
       const Eigen::Matrix<double, -1, -1>& AlastA_;
       const Eigen::Matrix<double, -1, -1>& AlastG_;
-      const Eigen::Matrix<double, -1, -1>& parTransM_;
+      const Eigen::Map<Eigen::Matrix<double, -1, -1>> parTransM_;
       linCmtFun(const double t,
 		const int ncmt,
 		const int oral0,
@@ -2208,7 +2208,7 @@ namespace stan {
 		const Eigen::Matrix<double, Eigen::Dynamic, 1>& pard,
 		const Eigen::Matrix<double, -1, -1>& AlastA,
 		const Eigen::Matrix<double, -1, -1>& AlastG,
-		const Eigen::Matrix<double, -1, -1>& parTransM) :
+		const Eigen::Map<Eigen::Matrix<double, -1, -1>> parTransM) :
 	t_(t),
 	ncmt_(ncmt),
 	linCmt_(linCmt),
@@ -2364,6 +2364,22 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
     AlastG.setZero(ncmt+oral0, ncmt*2+oral0);
     AlastA.setZero(ncmt+oral0, 1);
   }
+  int nrows, ncols;
+  switch(ncmt) {
+  case 3:
+    nrows=10;
+    ncols=9;
+    break;
+  case 2:
+    nrows=6;
+    ncols=7;
+    break;
+  case 1:
+    nrows=2;
+    ncols=5;
+    break;
+  }
+  Eigen::Map<Eigen::Matrix<double, -1, -1>> fin(ind->linTr, nrows, ncols);// fin(nrows,ncols);
   Eigen::VectorXd fx;
   Eigen::Matrix<double, -1, -1> J;
   stan::math::parTransFun tr(ncmt, trans, oral0);
@@ -2374,9 +2390,7 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
   // Rcpp::print(Rcpp::wrap(J));
   // Rcpp::print(Rcpp::wrap((J.array().rowwise() *  params.transpose().array())));
   // Rcpp::print(Rcpp::wrap((J.array().rowwise() *  params.transpose().array()).rowwise().sum()));
-  Eigen::VectorXd fxm = fx.array()-(J.array().rowwise() *  params.transpose().array()).rowwise().sum().array();
-  Eigen::MatrixXd fin(J.rows(),J.cols()+2);
-  fin << params, fxm, J;
+  fin << params, fx.array()-(J.array().rowwise() *  params.transpose().array()).rowwise().sum().array(), J;
   // Rcpp::print(Rcpp::wrap(fx));
 
   stan::math::linCmtFun f(t, ncmt, oral0, trans, linCmt, idx, sameTime, ind, rx, pard, AlastA, AlastG, fin);
