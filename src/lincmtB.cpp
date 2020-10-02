@@ -42,8 +42,8 @@ namespace stan {
 		  const int& trans,
 		  const int& oral0){
       int ncnst = ncmt;
-      if (oral0 && ncmt == 2) ncnst = 4;
-      Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncnst,3);
+      if (ncmt == 2) ncnst = 3;
+      Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncnst,2);
       T btemp, ctemp, dtemp;
 #define p1    p[0]
 #define v1    p[1]
@@ -190,15 +190,18 @@ namespace stan {
 	  return g;
 	}
 	// Now calculate the alpha/beta for oral
-	if (oral0){
-#define alpha g(2, 0)
+#undef alpha
 #undef beta
 #define beta g(2, 1)
 #define alpha g(2, 0)
 #define beta g(2, 1)
-	  beta = 0.5*(k23+k32+k20 - sqrt(pow(k23+k32+k20,2) - 4*k32*k20));
-	  alpha = k32*k20/beta;
-	}
+#define lambda1 g(2, 0)
+#define lambda2 g(2, 1)
+	beta = 0.5*(k23+k32+k20 - sqrt(pow(k23+k32+k20,2) - 4*k32*k20));
+	alpha = k32*k20/beta;
+	return g;
+#undef alpha
+#undef beta
       } break;
       case 1:{ // One compartment model
 	switch(trans){
@@ -868,6 +871,11 @@ namespace stan {
 #define f2    pard(5, 0)
 #define rate2 pard(6, 0)
 #define dur2  pard(7, 0)
+#define alpha g(2, 0)
+#define beta g(2, 1)
+#define lambda1 g(2, 0)
+#define lambda2 g(2, 1)
+
 
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
@@ -877,14 +885,9 @@ namespace stan {
 		 Eigen::Matrix<double, Eigen::Dynamic, 1>& bolus,
 		 double tau) {
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
-      T E2 = k20+k23;
       T E3 = k32;
-      T e2e3 = E2+E3;
-      T s = sqrt(e2e3*e2e3-4*(E2*E3-k23*k32));
 
       //calculate hybrid rate constants
-      T lambda1 = 0.5*(e2e3+s);
-      T lambda2 = 0.5*(e2e3-s);
       T eKa=1.0/(1.0-exp(-tau*ka));
       T eL1=1.0/(1.0-exp(-tau*lambda1));
       T eL2=1.0/(1.0-exp(-tau*lambda2));
@@ -902,14 +905,8 @@ namespace stan {
 		 Eigen::Matrix<double, Eigen::Dynamic, 1>& bolus,
 		 double tau) {
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
-      T E2 = k20+k23;
       T E3 = k32;
-      T e2e3 = E2+E3;
-      T s = sqrt(e2e3*e2e3-4*(E2*E3-k23*k32));
 
-      //calculate hybrid rate constants
-      T lambda1 = 0.5*(e2e3+s);
-      T lambda2 = 0.5*(e2e3-s);
       /* T eKa=1.0/(1.0+exp(-tau*ka)); */
       T eL1=1.0/(1.0-exp(-tau*lambda1));
       T eL2=1.0/(1.0-exp(-tau*lambda2));
@@ -929,10 +926,7 @@ namespace stan {
 	     Eigen::Matrix<double, Eigen::Dynamic, 1>& bolus) {
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
       T E2 =  k20+ k23;
-      T s = k23+k32+k20;
       //#Calculate roots
-      T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
-      T alpha = k32*k20/beta;
 
       T eKa = exp(-ka*t);
       T eA = exp(-alpha*t);
@@ -961,6 +955,11 @@ namespace stan {
 #undef tlag2
 #undef f2
 #undef dur2
+#undef alpha
+#undef beta
+#undef lambda1
+#undef lambda2
+
     // three compartment ka translations ncmt=1
 #define tlag  pard(0,  0)
 #define F     pard(1,  0)
@@ -1232,6 +1231,11 @@ namespace stan {
 #define f2    pard(5, 0)
 #define rate2 pard(6, 0)
 #define dur2  pard(7, 0)
+#define beta g(2, 1)
+#define alpha g(2, 0)
+#define beta g(2, 1)
+#define lambda1 g(2, 0)
+#define lambda2 g(2, 1)
 
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
@@ -1243,10 +1247,6 @@ namespace stan {
       T E1 = k10+k12;
       T E2 = k21;
       //#calculate hybrid rate constants
-      T s = E1+E2;
-      T sqr = sqrt(s*s-4*(E1*E2-k12*k21));
-      T lambda1 = 0.5*(s+sqr);
-      T lambda2 = 0.5*(s-sqr);
       T l12 = 1.0/(lambda1*lambda2);
       A1=r1*E2*l12;
       A2=r1*k12*l12;
@@ -1265,11 +1265,6 @@ namespace stan {
       T E2 = k21;
 
       //#calculate hybrid rate constants
-      T s = E1+E2;
-      T sqr = sqrt(s*s-4*(E1*E2-k12*k21));
-      T lambda1 = 0.5*(s+sqr);
-      T lambda2 = 0.5*(s-sqr);
-
       T eTi1 = exp(-tinf*lambda1);
       T eTi2 = exp(-tinf*lambda2);
       T eT1 =exp(-lambda1*(tau-tinf))/(1.0-exp(-tau*lambda1));
@@ -1292,10 +1287,6 @@ namespace stan {
       T E2 = k21;
 
       //#calculate hybrid rate constants
-      T s = E1+E2;
-      T sqr = sqrt(s*s-4*(E1*E2-k12*k21));
-      T lambda1 = 0.5*(s+sqr);
-      T lambda2 = 0.5*(s-sqr);
 
       T eT1 = exp(-t*lambda1);
       T eT2 = exp(-t*lambda2);
@@ -1328,6 +1319,10 @@ namespace stan {
 #undef tlag2
 #undef f2
 #undef dur2
+#undef alpha
+#undef beta
+#undef lambda1
+#undef lambda2
     // three compartment ka translations ncmt=1
 #define tlag  pard(0,  0)
 #define F     pard(1,  0)
@@ -2047,10 +2042,22 @@ namespace stan {
 			rx_solving_options_ind *ind,
 			rx_solve *rx,
 			const Eigen::Matrix<double, -1, -1>& AlastA,
-			const Eigen::Matrix<double, -1, -1>& AlastG){
+			const Eigen::Matrix<double, -1, -1>& AlastG,
+			const Eigen::Matrix<double, -1, -1>& parTransM){
       rx_solving_options *op = rx->op;
-      Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncmt, 3);
-      g = micros2macros(params, ncmt, trans, oral0);
+      int ncnst = ncmt;
+      if (ncmt == 2) ncnst = 3;
+      Eigen::Matrix<T, Eigen::Dynamic, 2> g(ncnst,2);
+      // Restore g matrix with polynomials
+      for (int i = ncnst; i--;) {
+	g(i, 0) = parTransM(i*2, 1);// + params(0, 0)*parTransM(i*2, 3) + params(1, 0)*parTransM(i*2, 4);
+	g(i, 1) = parTransM(i*2+1, 1);// + params(0, 0)*parTransM(i*2+1, 3) + params(1, 0)*parTransM(i*2+1, 4);
+	for (int j = 2; j < parTransM.cols(); j++) {
+	  g(i, 0) += parTransM(i*2, j)*params(j-2,0);
+	  g(i, 1) += parTransM(i*2+1, j)*params(j-2,0);
+	}
+      }
+      // g = micros2macros(params, ncmt, trans, oral0);
       Eigen::Matrix<double, Eigen::Dynamic, 1> rate(oral0+1, 1);
       Eigen::Matrix<double, Eigen::Dynamic, 1> bolus(oral0+1, 1);
       double *rateD = ind->linCmtRate;
@@ -2365,6 +2372,24 @@ namespace stan {
       }
       return ret;
     }
+    struct parTransFun {
+      const int ncmt_,  trans_, oral0_;
+      parTransFun(const int ncmt, const int trans, const int oral0) :
+	ncmt_(ncmt),
+	trans_(trans),
+	oral0_(oral0)
+      { }
+      template <typename T>
+      Eigen::Matrix<T, Eigen::Dynamic, 1> operator()(Eigen::Matrix<T, Eigen::Dynamic, 1>& params) const {
+	Eigen::Matrix<T, Eigen::Dynamic, 2> ret0 = micros2macros(params, ncmt_, trans_, oral0_);
+	Eigen::Matrix<T, Eigen::Dynamic, 1> ret(2*ret0.rows(), 1);
+	for (int i = ret0.rows(); i--;) {
+	  ret(i*2,0) = ret0(i, 0);
+	  ret(i*2+1,0) = ret0(i, 1);
+	}
+	return ret;
+      }
+    };
     struct linCmtFun {
       const double t_;
       const int ncmt_, linCmt_, oral0_, trans_, idx_, sameTime_;
@@ -2373,6 +2398,7 @@ namespace stan {
       const Eigen::Matrix<double, Eigen::Dynamic, 1>& pard_;
       const Eigen::Matrix<double, -1, -1>& AlastA_;
       const Eigen::Matrix<double, -1, -1>& AlastG_;
+      const Eigen::Matrix<double, -1, -1>& parTransM_;
       linCmtFun(const double t,
 		const int ncmt,
 		const int oral0,
@@ -2384,7 +2410,8 @@ namespace stan {
 		rx_solve *rx,
 		const Eigen::Matrix<double, Eigen::Dynamic, 1>& pard,
 		const Eigen::Matrix<double, -1, -1>& AlastA,
-		const Eigen::Matrix<double, -1, -1>& AlastG) :
+		const Eigen::Matrix<double, -1, -1>& AlastG,
+		const Eigen::Matrix<double, -1, -1>& parTransM) :
 	t_(t),
 	ncmt_(ncmt),
 	linCmt_(linCmt),
@@ -2396,12 +2423,13 @@ namespace stan {
 	rx_(rx),
 	pard_(pard),
 	AlastA_(AlastA),
-	AlastG_(AlastG)
+	AlastG_(AlastG),
+	parTransM_(parTransM)
       { }
       template <typename T>
       Eigen::Matrix<T, Eigen::Dynamic, 1> operator()(Eigen::Matrix<T, Eigen::Dynamic, 1>& params) const {
 	return genericCmtInterface(params, pard_, t_, oral0_, trans_, ncmt_, linCmt_, idx_, sameTime_, ind_, rx_,
-				   AlastA_, AlastG_);
+				   AlastA_, AlastG_, parTransM_);
       }
     };
     }
@@ -2539,12 +2567,27 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
     AlastG.setZero(ncmt+oral0, ncmt*2+oral0);
     AlastA.setZero(ncmt+oral0, 1);
   }
-  stan::math::linCmtFun f(t, ncmt, oral0, trans, linCmt, idx, sameTime, ind, rx, pard, AlastA, AlastG);
   Eigen::VectorXd fx;
   Eigen::Matrix<double, -1, -1> J;
+  stan::math::parTransFun tr(ncmt, trans, oral0);
+  stan::math::jacobian(tr, params, fx, J);
+
+  // REprintf("J:\n");
+  // Rcpp::print(Rcpp::wrap(params));
+  // Rcpp::print(Rcpp::wrap(J));
+  // Rcpp::print(Rcpp::wrap((J.array().rowwise() *  params.transpose().array())));
+  // Rcpp::print(Rcpp::wrap((J.array().rowwise() *  params.transpose().array()).rowwise().sum()));
+  Eigen::VectorXd fxm = fx.array()-(J.array().rowwise() *  params.transpose().array()).rowwise().sum().array();
+  Eigen::MatrixXd fin(J.rows(),J.cols()+2);
+  fin << params, fxm, J;
+  // REprintf("fin\n");
+  // Rcpp::print(Rcpp::wrap(fin));
+  // Rcpp::print(Rcpp::wrap(fx));
+
+  stan::math::linCmtFun f(t, ncmt, oral0, trans, linCmt, idx, sameTime, ind, rx, pard, AlastA, AlastG, fin);
   stan::math::jacobian(f, params, fx, J);
   if (sameTime) {
-    // REprintf("J:\n");
+    // REprintf("J2:\n");
     // Rcpp::print(Rcpp::wrap(J));
     A = getAdvan(idx);
     // REprintf("A(cur): %f\n", A[oral0]);
