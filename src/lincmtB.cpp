@@ -947,13 +947,15 @@ namespace stan {
 
       T Al23  = (A2last + A3last)*k32;
       T Al123 = (A1last + A2last + A3last)*k32;
+      T Al12 = (A1last + A2last);
+      T Al12k23 = Al12*k23;
 
       A1 = b1 + eKa*A1last;
-      A2 = b2 - eA0*(ka*((A1last + A2last)*alpha2 - alpha*Al123) + Al23*alpha2 - alpha3*A2last) +
-	eB0*(ka*((A1last + A2last)*beta2 - beta*Al123) + Al23*beta2 - beta3*A2last) +
+      A2 = b2 - eA0*(ka*(Al12*alpha2 - alpha*Al123) + Al23*alpha2 - alpha3*A2last) +
+	eB0*(ka*(Al12*beta2 - beta*Al123) + Al23*beta2 - beta3*A2last) +
 	eKa0*(ka*k32 - ka2);
-      A3 = eB0*(ka*(beta2*A3last - E2*beta*A3last - (A1last + A2last)*k23*beta) + E2*beta2*A3last + k23*beta2*A2last - beta3*A3last) +
-	-eA0*(ka*(alpha2*A3last - E2*alpha*A3last - (A1last + A2last)*k23*alpha) + E2*alpha2*A3last + k23*alpha2*A2last-alpha3*A3last)+
+      A3 = eB0*(ka*(beta2*A3last - E2*beta*A3last - Al12k23*beta) + E2*beta2*A3last + k23*beta2*A2last - beta3*A3last) +
+	-eA0*(ka*(alpha2*A3last - E2*alpha*A3last - Al12k23*alpha) + E2*alpha2*A3last + k23*alpha2*A2last-alpha3*A3last)+
 	eKa0*ka*k23;
       return A;
     }
