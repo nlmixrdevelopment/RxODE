@@ -945,9 +945,12 @@ namespace stan {
       T eB0 = exp(-beta*t)/(beta2*alpha + ka*(beta2 - beta*alpha) - beta3);
       T eKa0 = eKa*A1last/(ka2 + beta*alpha - ka*(alpha + beta));
 
+      T Al23  = (A2last + A3last)*k32;
+      T Al123 = (A1last + A2last + A3last)*k32;
+
       A1 = b1 + eKa*A1last;
-      A2 = b2 - eA0*(ka*((A1last + A2last)*alpha2 - k32*alpha*(A1last + A2last + A3last)) + (A2last + A3last)*k32*alpha2 - alpha3*A2last) +
-	eB0*(ka*((A1last + A2last)*beta2 - k32*beta*(A1last + A2last + A3last)) + (A2last + A3last)*k32*beta2 - beta3*A2last) +
+      A2 = b2 - eA0*(ka*((A1last + A2last)*alpha2 - alpha*Al123) + Al23*alpha2 - alpha3*A2last) +
+	eB0*(ka*((A1last + A2last)*beta2 - beta*Al123) + Al23*beta2 - beta3*A2last) +
 	eKa0*(ka*k32 - ka2);
       A3 = eB0*(ka*(beta2*A3last - E2*beta*A3last - (A1last + A2last)*k23*beta) + E2*beta2*A3last + k23*beta2*A2last - beta3*A3last) +
 	-eA0*(ka*(alpha2*A3last - E2*alpha*A3last - (A1last + A2last)*k23*alpha) + E2*alpha2*A3last + k23*alpha2*A2last-alpha3*A3last)+
