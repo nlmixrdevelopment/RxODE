@@ -92,7 +92,8 @@ extern bool useForder(){
 }
 
 IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
-		    const int stateSize, const int sensSize, IntegerVector& curDvid){
+		    const int stateSize, const int sensSize, IntegerVector& curDvid,
+		    const IntegerVector& inId, const CharacterVector& idLvl){
   RObject cmtInfo = R_NilValue;
   List extraCmt;
   if (rxIsNumIntLgl(inCmt)){
@@ -131,7 +132,8 @@ IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
 	  } else {
 	    k++;
 	    if (isNeg){
-	      stop(_("negative compartments on non-ode 'cmt' (%s) does not make sense"), curLvl.c_str());
+	      stop(_("negative compartments on non-ode 'cmt' (%s) does not make sense (id: %s, row: %d)"),
+		   curLvl.c_str(), CHAR(idLvl[((inId.size() == 0) ? 1 : inId[i])-1]), i+1);
 	    } else {
 	      List tmpList(extraCmt.size()+1);
 	      for (int i = extraCmt.size(); i--;) tmpList[i] = extraCmt[i];
@@ -263,7 +265,8 @@ IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
 	    if (as<std::string>(cur) == strCmt){
 	      foundState = true;
 	      if (isNeg){
-		stop(_("negative compartments on non-ode 'cmt' (%s) does not make sense"), strCmt.c_str());
+		stop(_("negative compartments on non-ode 'cmt' (%s) does not make sense (id: %s row: %d)"), strCmt.c_str(),
+		     CHAR(idLvl[((inId.size() == 0) ? 1 : inId[i])-1]), i+1);
 	      } else {
 		newCmt.push_back(state.size()+j+1);
 	      }
@@ -272,7 +275,8 @@ IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
 	  }
 	  if (!foundState){
 	    if (isNeg){
-	      stop(_("negative compartments on non-ode 'cmt' (%s) does not make sense"), strCmt.c_str());
+	      stop(_("negative compartments on non-ode 'cmt' (%s) does not make sense (id: %s row: %d)"), strCmt.c_str(),
+		   CHAR(idLvl[((inId.size() == 0) ? 1 : inId[i])-1]), i+1);
 	    } else {
 	      List tmpList(extraCmt.size()+1);
 	      for (int i = extraCmt.size(); i--;) tmpList[i] = extraCmt[i];
@@ -664,21 +668,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     addTimeUnits=true;
     timeUnits=inTime.attr("units");
   }
-  IntegerVector inCmt;
-  RObject cmtInfo = R_NilValue;
-  if (cmtCol != -1){
-    inCmt = as<IntegerVector>(toCmt(inData[cmtCol], state, false,
-				    state0.size(), stateS.size(), curDvid));//as<IntegerVector>();
-    cmtInfo = inCmt.attr("cmtNames");
-    inCmt.attr("cmtNames") = R_NilValue;
-  }
-  IntegerVector inDvid;
-  if (dvidCol != -1){
-    inDvid = as<IntegerVector>(toCmt(inData[dvidCol], state, true,
-				     state0.size(), stateS.size(),
-				     curDvid));//as<IntegerVector>();
-    inDvid.attr("cmtNames") = R_NilValue;
-  }
   int tmpCmt = 1;
   IntegerVector inId;
   CharacterVector idLvl;
@@ -691,6 +680,22 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     idLvl = Rf_getAttrib(inId, R_LevelsSymbol);
   } else {
     idLvl = CharacterVector::create("1");
+  }
+  IntegerVector inCmt;
+  RObject cmtInfo = R_NilValue;
+  if (cmtCol != -1){
+    inCmt = as<IntegerVector>(toCmt(inData[cmtCol], state, false,
+				    state0.size(), stateS.size(), curDvid,
+				    inId, idLvl));//as<IntegerVector>();
+    cmtInfo = inCmt.attr("cmtNames");
+    inCmt.attr("cmtNames") = R_NilValue;
+  }
+  IntegerVector inDvid;
+  if (dvidCol != -1){
+    inDvid = as<IntegerVector>(toCmt(inData[dvidCol], state, true,
+				     state0.size(), stateS.size(),
+				     curDvid, inId, idLvl));//as<IntegerVector>();
+    inDvid.attr("cmtNames") = R_NilValue;
   }
   IntegerVector inSs;
   if (ssCol != -1){
@@ -1370,7 +1375,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  ndose++;
 	}
       } else {
-	if (cevid != 0 && cevid != 2 && flg != 30 && ISNA(camt)) {
+	if (cevid != 0 && cevid != 2 && cevid != 9 && flg != 30 && ISNA(camt)) {
  	  stop(_("'amt' value NA for dose event; (id: %s, amt: %f, evid: %d RxODE evid: %d, row: %d)"), CHAR(idLvl[cid-1]), camt, inEvid[i], cevid, (int)i+1);
 	}
 	amt.push_back(camt);

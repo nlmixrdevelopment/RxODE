@@ -40,7 +40,6 @@ d/dt(blood)     = a*intestine - b*blood
       et$cmt <- factor(et$cmt)
       ett2 <- RxODE:::etTrans(et, mod, keepDosingOnly = TRUE)
 
-
       test_that("factor and character give same compartment information", {
         expect_equal(attr(class(ett2), ".RxODE.lst")$cmtInfo, attr(class(ett1), ".RxODE.lst")$cmtInfo)
         expect_equal(attr(class(ett2), ".RxODE.lst")$cmtInfo, c("intestine", "blood", "out"))
@@ -683,6 +682,7 @@ d/dt(blood)     = a*intestine - b*blood
 
       expect_equal(as.double((t$sex == "male") * 1), t$sm)
       expect_equal(as.double((t$sex == "female") * 1), t$sf)
+
     }
   },
   test = "cran",

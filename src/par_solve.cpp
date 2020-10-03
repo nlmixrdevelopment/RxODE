@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <R.h>
+#include <string>
 #include <Rinternals.h>
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
@@ -55,8 +56,27 @@ extern "C" SEXP _rxHasOpenMp(){
 
 extern "C" void RSprintf(const char *format, ...);
 
+rx_solve rx_global;
+
+static inline const char *getId(int id) {
+  rx_solve *rx = &rx_global;
+  int curLen=  rx->factorNs[0];
+  std::string unknownId = "Unknown";
+  if (id < 0) {
+    return unknownId.c_str(); // Bad value
+  }
+  if (id < curLen){
+    if (id >= rx->factors.n) {
+      return unknownId.c_str();
+    }
+    return rx->factors.line[id];
+  } else {
+    return unknownId.c_str();
+  }
+}
+
 void printErr(int err, int id){
-  RSprintf("Recovered solving errors for internal ID %d (%d):\n", id+1, err);
+  RSprintf("Recovered solving errors for internal ID %s (%d):\n", getId(id), err);
   if (err & 1){
     RSprintf("  Corrupted event table during sort (1)\n");
   }
@@ -134,8 +154,6 @@ void printErr(int err, int id){
   }
   
 }
-
-rx_solve rx_global;
 
 rx_solving_options op_global;
 
@@ -351,7 +369,7 @@ extern "C" int compareFactorVal(int val,
 		     const char *valStr,
 		     const char *cmpValue){
   rx_solve *rx=(&rx_global);
-  int base = 0, curLen= rx->factorNs[0], curG=0;
+  int base = 0, curLen=  rx->factorNs[0], curG=0;
   if (val <= 0) {
     return 0; // Bad value
   }
@@ -528,7 +546,7 @@ double *global_rwork(unsigned int mx){
 void rxUpdateFuns(SEXP trans){
   const char *lib, *s_dydt, *s_calc_jac, *s_calc_lhs, *s_inis, *s_dydt_lsoda_dum, *s_dydt_jdum_lsoda, 
     *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_AMT, *s_LAG, *s_RATE,
-    *s_DUR, *s_mtime, *s_theta, *s_assignFuns,
+    *s_DUR, *s_mtime, *s_assignFuns,
     *s_ME, *s_IndF;
   lib = CHAR(STRING_ELT(trans, 0));
   s_dydt = CHAR(STRING_ELT(trans, 3));
@@ -548,7 +566,6 @@ void rxUpdateFuns(SEXP trans){
   s_assignFuns=CHAR(STRING_ELT(trans, 19));
   s_ME=CHAR(STRING_ELT(trans, 20));
   s_IndF=CHAR(STRING_ELT(trans, 21));
-  s_theta=CHAR(STRING_ELT(trans, 7));
   global_jt = 2;
   global_mf = 22;  
   global_debug = 0;
@@ -2488,7 +2505,7 @@ extern "C" double rxLhsP(int i, rx_solve *rx, unsigned int id){
     return(ind->lhs[i]);
   } else {
     rxSolveFreeC();
-    Rf_errorcall(R_NilValue, "Trying to access an equation that isn't calculated. lhs(%d/%d)\n",i, op->nlhs);
+    Rf_errorcall(R_NilValue, "Trying to access an equation that isn't calculated. lhs(%d/%d); id: %s\n",i, op->nlhs, getId(id));
   }
   return 0;
 }
