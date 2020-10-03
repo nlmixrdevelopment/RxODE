@@ -1849,10 +1849,22 @@ namespace stan {
       for (int i = ncnst; i--;) {
 	g(i, 0) = parTransM(i*2, 1);// + params(0, 0)*parTransM(i*2, 3) + params(1, 0)*parTransM(i*2, 4);
 	g(i, 1) = parTransM(i*2+1, 1);// + params(0, 0)*parTransM(i*2+1, 3) + params(1, 0)*parTransM(i*2+1, 4);
-	for (int j = 2; j < parTransM.cols(); j++) {
-	  g(i, 0) += parTransM(i*2, j)*params(j-2,0);
-	  g(i, 1) += parTransM(i*2+1, j)*params(j-2,0);
+	for (int j = 0; j < parTransM.cols()-2; ++j) {
+	  // REprintf("parTransM(%d, %d/%d;%d;%d)\n", i*2, j, parTransM.cols(), parTransM.rows(), params.rows());
+	  g(i, 0) += parTransM(i*2, j+2)*params(j, 0);
+	  // REprintf("parTransM(%d, %d/%d), %f\n", i*2, j, parTransM.cols(), parTransM(i*2, j));
+	  // REprintf("parTransM(%d, %d/%d)\n", i*2 + 1, j, parTransM.cols());
+	  g(i, 1) += parTransM(i*2+1, j+2)*params(j, 0);
+	  // REprintf("parTransM(%d, %d/%d), %f\n", i*2 + 1, j, parTransM.cols(), parTransM(i*2+1, j));
 	}
+	// for (int j = 0; j < parTransM.cols(); j++) {
+	//   REprintf("parTransM(%d, %d/%d;%d;%d)\n", i*2, j, parTransM.cols(), parTransM.rows(), params.rows());
+	//   g(i, 0) += parTransM(i*2, j)*params(j-2,0);
+	//   REprintf("parTransM(%d, %d/%d), %f\n", i*2, j, parTransM.cols(), parTransM(i*2, j));
+	//   REprintf("parTransM(%d, %d/%d)\n", i*2 + 1, j, parTransM.cols());
+	//   g(i, 1) += parTransM(i*2+1, j)*params(j-2,0);
+	//   REprintf("parTransM(%d, %d/%d), %f\n", i*2 + 1, j, parTransM.cols(), parTransM(i*2+1, j));
+	// }
       }
       // g = micros2macros(params, ncmt, trans, oral0);
       Eigen::Matrix<double, Eigen::Dynamic, 1> rate(oral0+1, 1);
@@ -2365,32 +2377,66 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
     AlastA.setZero(ncmt+oral0, 1);
   }
   int nrows, ncols;
-  switch(ncmt) {
-  case 3:
-    nrows=10;
-    ncols=9;
-    break;
-  case 2:
-    nrows=6;
-    ncols=7;
-    break;
-  case 1:
-    nrows=2;
-    ncols=5;
-    break;
+  if (oral0) {
+    switch(ncmt) {
+    case 3:
+      nrows=10;
+      ncols=9;
+      break;
+    case 2:
+      nrows=6;
+      ncols=7;
+      break;
+    case 1:
+      nrows=2;
+      ncols=5;
+      break;
+    }
+  } else {
+    switch(ncmt) {
+    case 3:
+      nrows=10;
+      ncols=8;
+      break;
+    case 2:
+      nrows=6;
+      ncols=6;
+      break;
+    case 1:
+      nrows=2;
+      ncols=4;
+      break;
+    }
   }
+  
   Eigen::Map<Eigen::Matrix<double, -1, -1>> fin(ind->linTr, nrows, ncols);// fin(nrows,ncols);
   Eigen::VectorXd fx;
   Eigen::Matrix<double, -1, -1> J;
-  stan::math::parTransFun tr(ncmt, trans, oral0);
-  stan::math::jacobian(tr, params, fx, J);
-
+  int doTran =0;
+  if (ind->idx == 0 ||
+      (ncmt == 3 && (dd_p1 != fin(0, 0) || dd_v1 != fin(1, 0) ||
+		     dd_p2 != fin(2, 0) || dd_p3 != fin(3, 0) ||
+		     dd_p4 != fin(4, 0) || dd_p5 != fin(5, 0))) ||
+      (ncmt == 2 && (dd_p1 != fin(0, 0) || dd_v1 != fin(1, 0) ||
+		     dd_p2 != fin(2, 0) || dd_p3 != fin(3, 0))) ||
+      (ncmt == 1 && (dd_p1 != fin(0, 0) || dd_v1 != fin(1, 0)))) {
+    // Need to recalculate translation
+    stan::math::parTransFun tr(ncmt, trans, oral0);
+    stan::math::jacobian(tr, params, fx, J);
+    // REprintf("J:\n");
+    // Rcpp::print(Rcpp::wrap(J));
+    fin << params, fx.array()-(J.array().rowwise() *  params.transpose().array()).rowwise().sum().array(), J;
+    // REprintf("fin %d x %d (created)\n", nrows, ncols);
+    // Rcpp::print(Rcpp::wrap(fin));
+  } else {
+    // REprintf("fin %d x %d (restored)\n", nrows, ncols);
+    // Rcpp::print(Rcpp::wrap(fin));
+  }
   // REprintf("J:\n");
   // Rcpp::print(Rcpp::wrap(params));
   // Rcpp::print(Rcpp::wrap(J));
   // Rcpp::print(Rcpp::wrap((J.array().rowwise() *  params.transpose().array())));
   // Rcpp::print(Rcpp::wrap((J.array().rowwise() *  params.transpose().array()).rowwise().sum()));
-  fin << params, fx.array()-(J.array().rowwise() *  params.transpose().array()).rowwise().sum().array(), J;
   // Rcpp::print(Rcpp::wrap(fx));
 
   stan::math::linCmtFun f(t, ncmt, oral0, trans, linCmt, idx, sameTime, ind, rx, pard, AlastA, AlastG, fin);

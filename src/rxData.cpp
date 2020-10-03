@@ -4751,17 +4751,32 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       } else {
 	op->nlin = linNcmt + linKa + (2*linNcmt+linNcmt)*(linNcmt+linKa+1) + 2*linNcmt+1;//(4+linNcmt+linKa)*linNcmt+(2+linNcmt+linKa)*linKa+1;
 	// ncmt + oral0 + (2*ncmt+oral)*(ncmt+oral0+1) + 2*ncmt
-	switch (linNcmt) {
-	case 3:
-	  linTr = 90; // 10 x 9
-	  break;
-	case 2:
-	  linTr = 42; // 6 x 7
-	  break;
-	case 1:
-	  linTr = 10; // 2x5
-	  break;
+	if (linKa) {
+	  switch (linNcmt) {
+	  case 3:
+	    linTr = 90; // 10 x 9
+	    break;
+	  case 2:
+	    linTr = 42; // 6 x 7
+	    break;
+	  case 1:
+	    linTr = 10; // 2x5
+	    break;
+	  }
+	} else {
+	  switch (linNcmt) {
+	  case 3:
+	    linTr = 80; // 10 x 8
+	    break;
+	  case 2:
+	    linTr = 36; // 6 x 6
+	    break;
+	  case 1:
+	    linTr = 8; // 2x4
+	    break;
+	  }
 	}
+	
       }
     } else {
       op->nlin = linNcmt+linKa;
