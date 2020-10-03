@@ -846,7 +846,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     else ccens = inCens[i];
     if (ccens != 0 && ccens != 1 &&
 	ccens != -1 && !IntegerVector::is_na(ccens))
-      stop(_("censoring column can only be -1, 0 or 1"));
+      stop(_("censoring column can only be -1, 0 or 1 (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
     if (ISNA(cdv) && ccens != 0) {
       if (!IntegerVector::is_na(ccens)) {
 	warnCensNA=true;
@@ -858,7 +858,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     else climit = inLimit[i];
     if (ISNA(climit)) climit = R_NegInf;
     if (std::isinf(ctime)){
-      stop(_("infinite times are not allowed"));
+      stop(_("infinite times are not allowed (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
     }
     if (ctime < 0 && _ini0){
       doWarnNeg=true;
@@ -916,7 +916,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (IntegerVector::is_na(inCmt[i])){
 	tmpCmt = 1;
       } else if (inCmt[i] < 0){
-	if (flg != 1) stop(_("steady state records cannot be on negative compartments"));
+	if (flg != 1) stop(_("steady state records cannot be on negative compartments (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
 	flg = 30;
 	tmpCmt = -tmpCmt;
       }
@@ -946,7 +946,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       } else if (rate == -2.0){
 	// duration is modeled
 	if (flg == 40){
-	  stop(_("when using steady state constant infusion modeling duration does not make sense"));
+	  stop(_("when using steady state constant infusion modeling duration does not make sense (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
 	}
 	rateI = 8;
       } else if (rate > 0){
@@ -965,19 +965,19 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (inDur[i] == -1.0){
 	// rate is modeled
 	if (flg == 40){
-	  stop(_("specifying duration with a steady state constant infusion makes no sense"));
+	  stop(_("specifying duration with a steady state constant infusion makes no sense (id: %s row: %d)"), CHAR(idLvl[cid-1]), i+1);
 	}
 	rateI = 9;
       } else if (inDur[i] == -2.0){
 	// duration is modeled
 	if (flg == 40){
-	  stop(_("specifying duration with a steady state constant infusion makes no sense"));
+	  stop(_("specifying duration with a steady state constant infusion makes no sense (id: %d row: %d)"), CHAR(idLvl[cid-1]), i+1);
 	}
 	rateI = 8;
       } else if (inDur[i] > 0){
 	// Duration is fixed
 	if (flg == 40){
-	  stop(_("specifying duration with a steady state constant infusion makes no sense"));
+	  stop(_("specifying duration with a steady state constant infusion makes no sense (id: %d row: %d)"), CHAR(idLvl[cid-1]), i+1);
 	}
 	if (evidCol == -1 || inEvid[i] == 1 || inEvid[i] == 4){
 	  rateI = 2;
@@ -988,7 +988,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	}  
       }
     } else {
-      stop(_("'rate' and/or 'dur' are not specified correctly"));
+      stop(_("'rate' and/or 'dur' are not specified correctly (id: %d row: %d)"), CHAR(idLvl[cid-1]), i+1);
     }
     if (addlCol == -1) caddl=0;
     else caddl = inAddl[i];
@@ -1006,7 +1006,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	}
       } else {
 	if (mdvCol != -1 && (inMdv[i] == 0 || IntegerVector::is_na(inMdv[i]))){
-	  stop(_("'amt' or 'dur'/'rate' are non-zero therefore MDV cannot = 0"));
+	  stop(_("'amt' or 'dur'/'rate' are non-zero therefore MDV cannot = 0 (id: %s row: %d)"), CHAR(idLvl[cid-1]), i+1);
 	}
 	// For Rates and non-zero amts, assume dosing event
 	cevid = cmt100*100000+rateI*10000+cmt99*100+flg;
@@ -1066,7 +1066,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    limit.push_back(cdv);
 	    swapDvLimit=true;
 	  } else if (cdv == climit){
-	    stop(_("'limit' (%f) cannot equal 'dv' (%f)"), climit, cdv);
+	    stop(_("'limit' (%f) cannot equal 'dv' (%f) id: %s row: %d"), climit, cdv, CHAR(idLvl[cid-1]), i+1);
 	  } else {
 	    dv.push_back(cdv);
 	    limit.push_back(climit);
@@ -1099,7 +1099,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	      !IntegerVector::is_na(inDvid[i]) &&
 	      inDvid[i]>0){
 	    if (goodCmt && cmt != inDvid[i] && cmt != 1 && cmt != 0){
-	      stop(_("'cmt' and 'dvid' specify different compartments"));
+	      stop(_("'cmt' and 'dvid' specify different compartments (id: %s row: %d)"), CHAR(idLvl[cid-1]), i+1);
 	    }
 	    cmt = inDvid[i];
 	    goodCmt=true;
@@ -1126,7 +1126,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    Rprintf(("'DVID': %d\t"), inDvid[i]);
 	  }
 	  Rprintf("'CMT': %d\n", cmt);
-	  stop(_("'dvid'->'cmt' or 'cmt' on observation record on a undefined compartment (use 'cmt()' 'dvid()')"));
+	  stop(_("'dvid'->'cmt' or 'cmt' on observation record on a undefined compartment (use 'cmt()' 'dvid()') id: %s row: %d"),
+	       CHAR(idLvl[cid-1]), i+1);
 	}
 	id.push_back(cid);
 	evid.push_back(cevid);
@@ -1149,7 +1150,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    limit.push_back(cdv);
 	    swapDvLimit=true;
 	  } else if (cdv == climit){
-	    stop(_("'limit' (%f) cannot equal 'dv' (%f)"), climit, cdv);
+	    stop(_("'limit' (%f) cannot equal 'dv' (%f) id: %s row: %d"), climit, cdv, CHAR(idLvl[cid-1]), i+1);
 	  } else {
 	    dv.push_back(cdv);
 	    limit.push_back(climit);
@@ -1164,7 +1165,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       break;
     case 1:
       if (mdvCol != -1 && (inMdv[i] == 0 || IntegerVector::is_na(inMdv[i]))){
-	stop(_("'mdv' cannot be 0 when 'evid'=1"));
+	stop(_("'mdv' cannot be 0 when 'evid'=1 id: %s row: %d"), CHAR(idLvl[cid-1]), i+1);
       }
       cevid = cmt100*100000+rateI*10000+cmt99*100+flg;
       if (rateI == 0) allInf=false;
@@ -1253,7 +1254,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       break;
     case 4:
       if (mdvCol != -1 && (inMdv[i] == 0 || IntegerVector::is_na(inMdv[i]))){
-	stop(_("'mdv' cannot be 0 when 'evid'=4"));
+	stop(_("'mdv' cannot be 0 when 'evid'=4 id: %s row: %d"), CHAR(idLvl[cid-1]), i+1);
       }
       id.push_back(cid);
       evid.push_back(3);
@@ -1278,14 +1279,14 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       else allBolus=false;
       break;
     case 5: // replace
-      if (rateI != 0) stop(_("cannot have an infusion event with a replacement event"));
+      if (rateI != 0) stop(_("cannot have an infusion event with a replacement event (id: %s row: %d)"), CHAR(idLvl[cid-1]), i+1);
       rateI=4;
       cevid = cmt100*100000+rateI*10000+cmt99*100+flg;
       allInf=false;
       allBolus=false;
       break;
     case 6: // multiply
-      if (rateI != 0) stop(_("cannot have an infusion event with a multiplication event"));
+      if (rateI != 0) stop(_("cannot have an infusion event with a multiplication event (id: %s row: %d)"), CHAR(idLvl[cid-1]), i+1);
       rateI=5;
       cevid = cmt100*100000+rateI*10000+cmt99*100+flg;
       allInf=false;
@@ -1321,7 +1322,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
       ii.push_back(cii);
       if ((flg == 10 || flg == 20 || flg == 40) && caddl > 0){
-	stop(_("'ss' with 'addl' not supported"));
+	stop(_("'ss' with 'addl' not supported (id: %s row: %d)"), CHAR(idLvl[cid-1]), i+1);
       }
       idx.push_back(i);
       dv.push_back(NA_REAL);
@@ -1331,7 +1332,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       ndose++;
       if (rateI > 2 && rateI != 4 && rateI != 5 && flg != 40){
 	if (ISNA(camt) || camt == 0.0) {
-	  stop(_("'amt' value NA or 0 for dose event"));
+	  if (nevid != 2){
+	    stop(_("'amt' value NA or 0 for dose event (id: %s row: %d)"), CHAR(idLvl[cid-1]), i+1);
+	  }
 	}
 	amt.push_back(camt);
 	// turn off
@@ -1367,8 +1370,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  ndose++;
 	}
       } else {
-	if (cevid != 0 && (ISNA(camt) || camt == 0.0)) {
-	  stop(_("'amt' value NA or 0 for dose event"));
+	if (cevid != 0 && cevid != 2 && flg != 30 && ISNA(camt)) {
+ 	  stop(_("'amt' value NA for dose event; (id: %s, amt: %f, evid: %d RxODE evid: %d, row: %d)"), CHAR(idLvl[cid-1]), camt, inEvid[i], cevid, (int)i+1);
 	}
 	amt.push_back(camt);
       }

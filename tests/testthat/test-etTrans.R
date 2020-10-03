@@ -1,7 +1,7 @@
 rxPermissive(
   {
-    require(RxODE)
     for (radi in 1:3) {
+
       rxUseRadixSort(switch(radi, FALSE, TRUE, TRUE))
       RxODE:::forderForceBase(switch(radi, FALSE, TRUE, FALSE))
       radix <- switch(radi, "timsort", "base::order", "data.table::forder")
