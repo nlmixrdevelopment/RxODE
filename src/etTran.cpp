@@ -340,7 +340,7 @@ bool warnedNeg=false;
 //'
 //' @param inData Data frame to translate
 //' @param obj Model to translate data 
-//' @param addCmt Add compartment to data frame (default code{FALSE}).
+//' @param addCmt Add compartment to data frame (default \code{FALSE}).
 //' @param dropUnits Boolean to drop the units (default \code{FALSE}).
 //' @param allTimeVar Treat all covariates as if they were time-varying
 //' @param keepDosingOnly keep the individuals who only have dosing records and any
