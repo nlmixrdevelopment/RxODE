@@ -1454,15 +1454,15 @@ static inline void gparsCovSetupConstant(RObject &ev1, int npars){
     rx->cov0 = _globals.gParPos2;
   }
 }
-void gparsCovSetup(int npars, int nPopPar, RObject ev1,rx_solve* rx){
+void gparsCovSetup(int npars, int nPopPar, int nsub, RObject ev1,rx_solve* rx){
   if (_globals.gpars != NULL) free(_globals.gpars);
-  _globals.gpars = (double*)calloc(npars*nPopPar, sizeof(double));
+  _globals.gpars = (double*)calloc(npars*max2(nsub, nPopPar), sizeof(double));
   if (_globals.gpars == NULL){
     rxSolveFree();
     stop(_("could not allocate memory for solving parameters"));
   }
   // Fill the parameters with NA.
-  std::fill_n(&_globals.gpars[0], npars*nPopPar, NA_REAL);
+  // std::fill_n(&_globals.gpars[0], npars*nPopPar, NA_REAL);
   gparsCovSetupConstant(ev1, npars);
 }
 
@@ -3704,7 +3704,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
     }
   case 3: // NumericMatrix
     {
-      gparsCovSetup(rxSolveDat->npars, rxSolveDat->nPopPar, ev1, rx);
+      gparsCovSetup(rxSolveDat->npars, rxSolveDat->nPopPar, rx->nsub*rx->nsim, ev1, rx);
       rxSolve_assignGpars(rxSolveDat);
       rxSolve_resample(obj, rxControl, specParams, extraArgs, pars, ev1,
 		     inits, rxSolveDat);
