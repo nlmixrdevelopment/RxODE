@@ -50,20 +50,20 @@ namespace stan {
 #define p5    p[5]
 #define v     g(0, 0)
 #define k     g(0, 1)
-      
+
 #define k12   g(1, 0)
 #define k23   g(1, 0)
-      
+
 #define k21   g(1, 1)
 #define k32   g(1, 1)
-      
+
 #define k13   g(2, 0)
 #define k24   g(2, 0)
-      
+
 #define k31   g(2, 1)
 #define k42   g(2, 1)
       switch (ncmt) {
-      case 3: { // 3 compartment model 
+      case 3: { // 3 compartment model
 	switch (trans){
 	case 1: // cl v q vp
 	  k = p1/v1; // k = CL/V
@@ -214,7 +214,7 @@ namespace stan {
 #undef p3
 #undef p4
 #undef p4
-      
+
 #undef k
 #undef v
 #undef k12
@@ -237,7 +237,7 @@ namespace stan {
 #define k21   g(1, 1)
 #define k13   g(2, 0)
 #define k31   g(2, 1)
-    
+
 #define A1    A(0, 0)
 #define A2    A(1, 0)
 #define A3    A(2, 0)
@@ -318,7 +318,7 @@ namespace stan {
       A2=eK*(r2/k20 - eiK*r2*(-k20 + ka)/(ka*k20 - k20*k20));
       return A;
     }
-    
+
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
     oneCmtKaRate(double t, Eigen::Matrix<T, Eigen::Dynamic, 1>& Alast,
@@ -479,19 +479,19 @@ namespace stan {
       T eB = exp(-beta*t);
 
       T ka2 = ka*ka;
-  
+
       T alpha2 = alpha*alpha;
       T alpha3 = alpha2*alpha;
-  
+
       T beta2 = beta*beta;
       T beta3 = beta2*beta;
-  
+
       A1 = b1+r1/ka-((r1-A1last*ka)*eKa)/ka;
       A2 = b2+(((ka-k32)*r1-A1last*ka2+A1last*k32*ka)*eKa)/(ka2+(-beta-alpha)*ka+alpha*beta)+((((k32-beta)*ka-beta*k32+beta2)*r2+(k32-beta)*ka*r1+((-A3last-A2last-A1last)*beta*k32+(A2last+A1last)*beta2)*ka+(A3last+A2last)*beta2*k32-A2last*beta3)*eB)/((beta2-alpha*beta)*ka-beta3+alpha*beta2)-((((k32-alpha)*ka-alpha*k32+alpha2)*r2+(k32-alpha)*ka*r1+((-A3last-A2last-A1last)*alpha*k32+(A2last+A1last)*alpha2)*ka+(A3last+A2last)*alpha2*k32-A2last*alpha3)*eA)/((alpha*beta-alpha2)*ka-alpha2*beta+alpha3)+(k32*r2+k32*r1)/(alpha*beta);
       A3 = -((k23*r1-A1last*k23*ka)*eKa)/(ka2+(-beta-alpha)*ka+alpha*beta)+(((k23*ka-beta*k23)*r2+k23*ka*r1+((-A2last-A1last)*beta*k23+A3last*beta2-A3last*E2*beta)*ka+A2last*beta2*k23-A3last*beta3+A3last*E2*beta2)*eB)/((beta2-alpha*beta)*ka-beta3+alpha*beta2)-(((k23*ka-alpha*k23)*r2+k23*ka*r1+((-A2last-A1last)*alpha*k23+A3last*alpha2-A3last*E2*alpha)*ka+A2last*alpha2*k23-A3last*alpha3+A3last*E2*alpha2)*eA)/((alpha*beta-alpha2)*ka-alpha2*beta+alpha3)+(k23*r2+k23*r1)/(alpha*beta);
       return A;
     }
-    
+
         // undefine extras
 #undef tlag
 #undef F
@@ -611,7 +611,7 @@ namespace stan {
       T lam1 = j3  + rho3*(ct3 + st3);
       T lam2 = j3 + rho3*(ct3 - st3);
       T lam3 = j3 -(2.0*rho3*ct3);
-  
+
       T eKa = exp(-ka*(tau-tinf))/(1.0-exp(-ka*tau));
       T eiKa = exp(-ka*tinf);
 
@@ -676,7 +676,7 @@ namespace stan {
       T lam1 = j3  + rho3*(ct3 + st3);
       T lam2 = j3 + rho3*(ct3 - st3);
       T lam3 = j3 -(2.0*rho3*ct3);
-  
+
       /* T eKa = 1.0/(1.0-exp(-ka*tau)); */
       /* T eiKa = exp(-ka*tinf); */
 
@@ -709,7 +709,7 @@ namespace stan {
       A4=(eL1*(E3 - lam1)*(E2 - lam1)/((-lam1 + lam3)*(-lam1 + lam2)) + eL2*(E2 - lam2)*(E3 - lam2)/((-lam2 + lam3)*(lam1 - lam2)) + eL3*(E2 - lam3)*(E3 - lam3)/((lam2 - lam3)*(lam1 - lam3)))*(eiL1*r2*(k24*lam12 + lam1*(-k24*k32 - ka*k24) + ka*k24*k32)/(-ka*lam13 + lam2*(ka*lam12 - lam13) + lam3*(ka*lam12 + lam2*(-ka*lam1 + lam12) - lam13) + lam14) - eiL2*r2*(k24*lam22 + lam2*(-k24*k32 - ka*k24) + ka*k24*k32)/(lam23*(ka + lam1) + lam3*(lam22*(-ka - lam1) + ka*lam2*lam1 + lam23) - ka*lam22*lam1 - lam24) + eiL3*r2*(k24*lam32 + lam3*(-k24*k32 - ka*k24) + ka*k24*k32)/(lam32*(ka*lam1 + lam2*(ka + lam1)) + (-ka - lam1 - lam2)*lam33 - ka*lam2*lam1*lam3 + lam34) + r2*k24*k32/(lam2*lam1*lam3)) + eL1*(E3*k24*(-eiL1*r2*(lam1*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam12 - ka*k42*k32 + lam13)/(-ka*lam13 + lam2*(ka*lam12 - lam13) + lam3*(ka*lam12 + lam2*(-ka*lam1 + lam12) - lam13) + lam14) + eiL2*r2*(lam2*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam22 - ka*k42*k32 + lam23)/(lam23*(ka + lam1) + lam3*(lam22*(-ka - lam1) + ka*lam2*lam1 + lam23) - ka*lam22*lam1 - lam24) - eiL3*r2*(lam3*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam32 - ka*k42*k32 + lam33)/(lam32*(ka*lam1 + lam2*(ka + lam1)) + (-ka - lam1 - lam2)*lam33 - ka*lam2*lam1*lam3 + lam34) + r2*k42*k32/(lam2*lam1*lam3)) - k23*k32*(eiL1*r2*(k24*lam12 + lam1*(-k24*k32 - ka*k24) + ka*k24*k32)/(-ka*lam13 + lam2*(ka*lam12 - lam13) + lam3*(ka*lam12 + lam2*(-ka*lam1 + lam12) - lam13) + lam14) - eiL2*r2*(k24*lam22 + lam2*(-k24*k32 - ka*k24) + ka*k24*k32)/(lam23*(ka + lam1) + lam3*(lam22*(-ka - lam1) + ka*lam2*lam1 + lam23) - ka*lam22*lam1 - lam24) + eiL3*r2*(k24*lam32 + lam3*(-k24*k32 - ka*k24) + ka*k24*k32)/(lam32*(ka*lam1 + lam2*(ka + lam1)) + (-ka - lam1 - lam2)*lam33 - ka*lam2*lam1*lam3 + lam34) + r2*k24*k32/(lam2*lam1*lam3)) + k24*k32*(eiL1*r2*(k23*lam12 + lam1*(-k42*k23 - ka*k23) + ka*k42*k23)/(-ka*lam13 + lam2*(ka*lam12 - lam13) + lam3*(ka*lam12 + lam2*(-ka*lam1 + lam12) - lam13) + lam14) - eiL2*r2*(k23*lam22 + lam2*(-k42*k23 - ka*k23) + ka*k42*k23)/(lam23*(ka + lam1) + lam3*(lam22*(-ka - lam1) + ka*lam2*lam1 + lam23) - ka*lam22*lam1 - lam24) + eiL3*r2*(k23*lam32 + lam3*(-k42*k23 - ka*k23) + ka*k42*k23)/(lam32*(ka*lam1 + lam2*(ka + lam1)) + (-ka - lam1 - lam2)*lam33 - ka*lam2*lam1*lam3 + lam34) + r2*k42*k23/(lam2*lam1*lam3)) - k24*lam1*(-eiL1*r2*(lam1*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam12 - ka*k42*k32 + lam13)/(-ka*lam13 + lam2*(ka*lam12 - lam13) + lam3*(ka*lam12 + lam2*(-ka*lam1 + lam12) - lam13) + lam14) + eiL2*r2*(lam2*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam22 - ka*k42*k32 + lam23)/(lam23*(ka + lam1) + lam3*(lam22*(-ka - lam1) + ka*lam2*lam1 + lam23) - ka*lam22*lam1 - lam24) - eiL3*r2*(lam3*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam32 - ka*k42*k32 + lam33)/(lam32*(ka*lam1 + lam2*(ka + lam1)) + (-ka - lam1 - lam2)*lam33 - ka*lam2*lam1*lam3 + lam34) + r2*k42*k32/(lam2*lam1*lam3)))/((lam1 - lam3)*(lam1 - lam2)) + eL3*(k24*lam3*(-eiL1*r2*(lam1*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam12 - ka*k42*k32 + lam13)/(-ka*lam13 + lam2*(ka*lam12 - lam13) + lam3*(ka*lam12 + lam2*(-ka*lam1 + lam12) - lam13) + lam14) + eiL2*r2*(lam2*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam22 - ka*k42*k32 + lam23)/(lam23*(ka + lam1) + lam3*(lam22*(-ka - lam1) + ka*lam2*lam1 + lam23) - ka*lam22*lam1 - lam24) - eiL3*r2*(lam3*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam32 - ka*k42*k32 + lam33)/(lam32*(ka*lam1 + lam2*(ka + lam1)) + (-ka - lam1 - lam2)*lam33 - ka*lam2*lam1*lam3 + lam34) + r2*k42*k32/(lam2*lam1*lam3)) - (E3*k24*(-eiL1*r2*(lam1*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam12 - ka*k42*k32 + lam13)/(-ka*lam13 + lam2*(ka*lam12 - lam13) + lam3*(ka*lam12 + lam2*(-ka*lam1 + lam12) - lam13) + lam14) + eiL2*r2*(lam2*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam22 - ka*k42*k32 + lam23)/(lam23*(ka + lam1) + lam3*(lam22*(-ka - lam1) + ka*lam2*lam1 + lam23) - ka*lam22*lam1 - lam24) - eiL3*r2*(lam3*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam32 - ka*k42*k32 + lam33)/(lam32*(ka*lam1 + lam2*(ka + lam1)) + (-ka - lam1 - lam2)*lam33 - ka*lam2*lam1*lam3 + lam34) + r2*k42*k32/(lam2*lam1*lam3)) - k23*k32*(eiL1*r2*(k24*lam12 + lam1*(-k24*k32 - ka*k24) + ka*k24*k32)/(-ka*lam13 + lam2*(ka*lam12 - lam13) + lam3*(ka*lam12 + lam2*(-ka*lam1 + lam12) - lam13) + lam14) - eiL2*r2*(k24*lam22 + lam2*(-k24*k32 - ka*k24) + ka*k24*k32)/(lam23*(ka + lam1) + lam3*(lam22*(-ka - lam1) + ka*lam2*lam1 + lam23) - ka*lam22*lam1 - lam24) + eiL3*r2*(k24*lam32 + lam3*(-k24*k32 - ka*k24) + ka*k24*k32)/(lam32*(ka*lam1 + lam2*(ka + lam1)) + (-ka - lam1 - lam2)*lam33 - ka*lam2*lam1*lam3 + lam34) + r2*k24*k32/(lam2*lam1*lam3)) + k24*k32*(eiL1*r2*(k23*lam12 + lam1*(-k42*k23 - ka*k23) + ka*k42*k23)/(-ka*lam13 + lam2*(ka*lam12 - lam13) + lam3*(ka*lam12 + lam2*(-ka*lam1 + lam12) - lam13) + lam14) - eiL2*r2*(k23*lam22 + lam2*(-k42*k23 - ka*k23) + ka*k42*k23)/(lam23*(ka + lam1) + lam3*(lam22*(-ka - lam1) + ka*lam2*lam1 + lam23) - ka*lam22*lam1 - lam24) + eiL3*r2*(k23*lam32 + lam3*(-k42*k23 - ka*k23) + ka*k42*k23)/(lam32*(ka*lam1 + lam2*(ka + lam1)) + (-ka - lam1 - lam2)*lam33 - ka*lam2*lam1*lam3 + lam34) + r2*k42*k23/(lam2*lam1*lam3))))/((-lam2 + lam3)*(lam1 - lam3)) + eL2*(k24*lam2*(-eiL1*r2*(lam1*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam12 - ka*k42*k32 + lam13)/(-ka*lam13 + lam2*(ka*lam12 - lam13) + lam3*(ka*lam12 + lam2*(-ka*lam1 + lam12) - lam13) + lam14) + eiL2*r2*(lam2*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam22 - ka*k42*k32 + lam23)/(lam23*(ka + lam1) + lam3*(lam22*(-ka - lam1) + ka*lam2*lam1 + lam23) - ka*lam22*lam1 - lam24) - eiL3*r2*(lam3*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam32 - ka*k42*k32 + lam33)/(lam32*(ka*lam1 + lam2*(ka + lam1)) + (-ka - lam1 - lam2)*lam33 - ka*lam2*lam1*lam3 + lam34) + r2*k42*k32/(lam2*lam1*lam3)) - (E3*k24*(-eiL1*r2*(lam1*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam12 - ka*k42*k32 + lam13)/(-ka*lam13 + lam2*(ka*lam12 - lam13) + lam3*(ka*lam12 + lam2*(-ka*lam1 + lam12) - lam13) + lam14) + eiL2*r2*(lam2*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam22 - ka*k42*k32 + lam23)/(lam23*(ka + lam1) + lam3*(lam22*(-ka - lam1) + ka*lam2*lam1 + lam23) - ka*lam22*lam1 - lam24) - eiL3*r2*(lam3*(k42*k32 + (k32 + k42)*ka) + (-k32 - k42 - ka)*lam32 - ka*k42*k32 + lam33)/(lam32*(ka*lam1 + lam2*(ka + lam1)) + (-ka - lam1 - lam2)*lam33 - ka*lam2*lam1*lam3 + lam34) + r2*k42*k32/(lam2*lam1*lam3)) - k23*k32*(eiL1*r2*(k24*lam12 + lam1*(-k24*k32 - ka*k24) + ka*k24*k32)/(-ka*lam13 + lam2*(ka*lam12 - lam13) + lam3*(ka*lam12 + lam2*(-ka*lam1 + lam12) - lam13) + lam14) - eiL2*r2*(k24*lam22 + lam2*(-k24*k32 - ka*k24) + ka*k24*k32)/(lam23*(ka + lam1) + lam3*(lam22*(-ka - lam1) + ka*lam2*lam1 + lam23) - ka*lam22*lam1 - lam24) + eiL3*r2*(k24*lam32 + lam3*(-k24*k32 - ka*k24) + ka*k24*k32)/(lam32*(ka*lam1 + lam2*(ka + lam1)) + (-ka - lam1 - lam2)*lam33 - ka*lam2*lam1*lam3 + lam34) + r2*k24*k32/(lam2*lam1*lam3)) + k24*k32*(eiL1*r2*(k23*lam12 + lam1*(-k42*k23 - ka*k23) + ka*k42*k23)/(-ka*lam13 + lam2*(ka*lam12 - lam13) + lam3*(ka*lam12 + lam2*(-ka*lam1 + lam12) - lam13) + lam14) - eiL2*r2*(k23*lam22 + lam2*(-k42*k23 - ka*k23) + ka*k42*k23)/(lam23*(ka + lam1) + lam3*(lam22*(-ka - lam1) + ka*lam2*lam1 + lam23) - ka*lam22*lam1 - lam24) + eiL3*r2*(k23*lam32 + lam3*(-k42*k23 - ka*k23) + ka*k42*k23)/(lam32*(ka*lam1 + lam2*(ka + lam1)) + (-ka - lam1 - lam2)*lam33 - ka*lam2*lam1*lam3 + lam34) + r2*k42*k23/(lam2*lam1*lam3))))/((lam2 - lam3)*(lam1 - lam2));
       return A;
     }
-    
+
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
     threeCmtKaRate(double t, Eigen::Matrix<T, Eigen::Dynamic, 1>& Alast,
@@ -742,22 +742,22 @@ namespace stan {
       T lam3 = j3 -(2.0*rho3*ct3);
       T eKa = exp(-ka*t);
       A1 = b1+ r1/ka-((r1-A1last*ka)*eKa)/ka;
-  
+
       T lam12 = lam1*lam1;
       T lam13 = lam12*lam1;
       T lam14 = lam13*lam1;
-  
+
       T lam22 = lam2*lam2;
       T lam23 = lam22*lam2;
       T lam24 = lam23*lam2;
-  
+
       T lam32 = lam3*lam3;
       T lam33 = lam32*lam3;
       T lam34 = lam33*lam3;
 
       T ka2 = ka*ka;
       T ka3 = ka2*ka;
-  
+
       T a21 = (((lam33+(-ka-k42-k32)*lam32+((k42+k32)*ka+k32*k42)*lam3-k32*k42*ka)*r2+(-ka*lam32+(k42+k32)*ka*lam3-k32*k42*ka)*r1-A2last*lam34+((A2last+A1last)*ka+(A4last+A2last)*k42+(A3last+A2last)*k32)*lam33+(((-A4last-A2last-A1last)*k42+(-A3last-A2last-A1last)*k32)*ka+(-A4last-A3last-A2last)*k32*k42)*lam32+(A4last+A3last+A2last+A1last)*k32*k42*ka*lam3)*exp(-lam3*t))/(lam34+(-lam2-lam1-ka)*lam33+((lam1+ka)*lam2+ka*lam1)*lam32-ka*lam1*lam2*lam3);
       T a22 = (((lam23+(-ka-k42-k32)*lam22+((k42+k32)*ka+k32*k42)*lam2-k32*k42*ka)*r2+(-ka*lam22+(k42+k32)*ka*lam2-k32*k42*ka)*r1-A2last*lam24+((A2last+A1last)*ka+(A4last+A2last)*k42+(A3last+A2last)*k32)*lam23+(((-A4last-A2last-A1last)*k42+(-A3last-A2last-A1last)*k32)*ka+(-A4last-A3last-A2last)*k32*k42)*lam22+(A4last+A3last+A2last+A1last)*k32*k42*ka*lam2)*exp(-lam2*t))/((lam23+(-lam1-ka)*lam22+ka*lam1*lam2)*lam3-lam24+(lam1+ka)*lam23-ka*lam1*lam22);
       T a23 = (((lam13+(-ka-k42-k32)*lam12+((k42+k32)*ka+k32*k42)*lam1-k32*k42*ka)*r2+(-ka*lam12+(k42+k32)*ka*lam1-k32*k42*ka)*r1-A2last*lam14+((A2last+A1last)*ka+(A4last+A2last)*k42+(A3last+A2last)*k32)*lam13+(((-A4last-A2last-A1last)*k42+(-A3last-A2last-A1last)*k32)*ka+(-A4last-A3last-A2last)*k32*k42)*lam12+(A4last+A3last+A2last+A1last)*k32*k42*ka*lam1)*exp(-lam1*t))/(((lam12-ka*lam1)*lam2-lam13+ka*lam12)*lam3+(ka*lam12-lam13)*lam2+lam14-ka*lam13);
@@ -799,7 +799,7 @@ namespace stan {
 #define tlag2 pard(4, 0)
 #define f2    pard(5, 0)
 #define rate2 pard(6, 0)
-#define dur2  pard(7, 0)    
+#define dur2  pard(7, 0)
 
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
@@ -808,7 +808,7 @@ namespace stan {
 		 Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
 		 Eigen::Matrix<double, Eigen::Dynamic, 1>& bolus,
 		 double tau) {
-      
+
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(2, 1);
       T eKa = 1.0/(1.0-exp(-tau*ka));
       T eK =  1.0/(1.0-exp(-tau*k20));
@@ -830,7 +830,7 @@ namespace stan {
       A2=eK*b2;
       return A;
     }
-    
+
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
     oneCmtKa(double t, Eigen::Matrix<T, Eigen::Dynamic, 1>& Alast,
@@ -932,23 +932,29 @@ namespace stan {
       T alpha = k32*k20/beta;
 
       T eKa = exp(-ka*t);
-      T eA = exp(-alpha*t);
-      T eB = exp(-beta*t);
 
       T ka2 = ka*ka;
-  
+
       T alpha2 = alpha*alpha;
       T alpha3 = alpha2*alpha;
-  
+
       T beta2 = beta*beta;
       T beta3 = beta2*beta;
-  
+
+      T eA0 = exp(-alpha*t)/(alpha3 - beta*alpha2 + ka*(-alpha2 + beta*alpha));
+      T eB0 = exp(-beta*t)/(beta2*alpha + ka*(beta2 - beta*alpha) - beta3);
+      T eKa0 = eKa*A1last/(ka2 + beta*alpha - ka*(alpha + beta));
+
       A1 = b1 + eKa*A1last;
-      A2 = b2 - eA*(-alpha3*A2last + ka*((A1last + A2last)*alpha2 + k32*alpha*(-A1last - A2last - A3last)) + (A2last + A3last)*k32*alpha2)/(alpha3 - beta*alpha2 + ka*(-alpha2 + beta*alpha)) + eB*(-beta3*A2last + ka*((A1last + A2last)*beta2 + k32*beta*(-A1last - A2last - A3last)) + (A2last + A3last)*k32*beta2)/(-beta3 + beta2*alpha + ka*(beta2 - beta*alpha)) + eKa*(-ka2*A1last + ka*k32*A1last)/(ka2 + beta*alpha + ka*(-alpha - beta));
-      A3 = -eA*(-alpha3*A3last + ka*(alpha2*A3last - E2*alpha*A3last + (-A1last - A2last)*k23*alpha) + E2*alpha2*A3last + k23*alpha2*A2last)/(alpha3 - beta*alpha2 + ka*(-alpha2 + beta*alpha)) + eB*(-beta3*A3last + ka*(beta2*A3last - E2*beta*A3last + (-A1last - A2last)*k23*beta) + E2*beta2*A3last + k23*beta2*A2last)/(-beta3 + beta2*alpha + ka*(beta2 - beta*alpha)) + ka*eKa*k23*A1last/(ka2 + beta*alpha + ka*(-alpha - beta));
+      A2 = b2 - eA0*(ka*((A1last + A2last)*alpha2 - k32*alpha*(A1last + A2last + A3last)) + (A2last + A3last)*k32*alpha2 - alpha3*A2last) +
+	eB0*(ka*((A1last + A2last)*beta2 - k32*beta*(A1last + A2last + A3last)) + (A2last + A3last)*k32*beta2 - beta3*A2last) +
+	eKa0*(ka*k32 - ka2);
+      A3 = eB0*(ka*(beta2*A3last - E2*beta*A3last - (A1last + A2last)*k23*beta) + E2*beta2*A3last + k23*beta2*A2last - beta3*A3last) +
+	-eA0*(ka*(alpha2*A3last - E2*alpha*A3last - (A1last + A2last)*k23*alpha) + E2*alpha2*A3last + k23*alpha2*A2last-alpha3*A3last)+
+	eKa0*ka*k23;
       return A;
     }
-    
+
     // undefine extras
 #undef tlag
 #undef F
@@ -968,7 +974,7 @@ namespace stan {
 #define f2    pard(5, 0)
 #define rate2 pard(6, 0)
 #define dur2  pard(7, 0)
-    
+
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
     threeCmtKaSSb1(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
@@ -999,7 +1005,7 @@ namespace stan {
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
       T gamma3 = pow(gamma,0.333333333333333);
-  
+
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
       T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
@@ -1008,7 +1014,7 @@ namespace stan {
       T eL1 = 1.0/(1.0-exp(-tau*lambda1));
       T eL2 = 1.0/(1.0-exp(-tau*lambda2));
       T eL3 = 1.0/(1.0-exp(-tau*lambda3));
-  
+
       A1=eKa*b1;
       A2=ka*b1*(eL1*(E3 - lambda1)*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*(ka - lambda1)) + eL2*(E3 - lambda2)*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*(ka - lambda2)) + eL3*(E3 - lambda3)*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*(ka - lambda3)) + eKa*(E3 - ka)*(E4 - ka)/((-ka + lambda1)*(-ka + lambda3)*(-ka + lambda2)));
       A3=ka*b1*k23*(eL1*(E4 - lambda1)/((-lambda1 + lambda3)*(-lambda1 + lambda2)*(ka - lambda1)) + eL2*(E4 - lambda2)/((lambda1 - lambda2)*(-lambda2 + lambda3)*(ka - lambda2)) + eL3*(E4 - lambda3)/((lambda1 - lambda3)*(lambda2 - lambda3)*(ka - lambda3)) + eKa*(E4 - ka)/((-ka + lambda1)*(-ka + lambda3)*(-ka + lambda2)));
@@ -1046,7 +1052,7 @@ namespace stan {
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
       T gamma3 = pow(gamma,0.333333333333333);
-  
+
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
       T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
@@ -1092,7 +1098,7 @@ namespace stan {
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
       T gamma3 = pow(gamma,0.333333333333333);
-  
+
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
       T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
@@ -1122,27 +1128,27 @@ namespace stan {
       T e4l1 = (E4-lambda1);
       T e4l2 = (E4-lambda2);
       T e4l3 = (E4-lambda3);
-  
+
       T A2term1 = A2last*(eL1*e3l1*e4l1/(l21*l31)+eL2*e3l2*e4l2/(l12*l32)+eL3*e3l3*e4l3/(l13*l23));
-  
+
       T A2term2 = eL1*(C-B*lambda1)/(l12*l13)+eL2*(B*lambda2-C)/(l12*l23)+eL3*(B*lambda3-C)/(l13*l32);
-  
+
       T A2term3 = A1last*ka*(eL1*e3l1*e4l1/(l21*l31*(ka-lambda1))+eL2*e3l2*e4l2/(l12*l32*(ka-lambda2))+eL3*e3l3*e4l3/(l13*l23*(ka-lambda3))+eKA*(E3-ka)*(E4-ka)/((lambda1-ka)*(lambda2-ka)*(lambda3-ka)));
-  
+
       A2 = A2term1+A2term2+A2term3 + b2;
 
       T A3term1 = A3last*(eL1*e2l1*e4l1/(l21*l31)+eL2*e2l2*e4l2/(l12*l32)+eL3*(E2-lambda3)*e4l3/(l13*l23));
-  
+
       T A3term2 = eL1*(I-A2last*k23*lambda1)/(l12*l13)+eL2*(A2last*k23*lambda2-I)/(l12*l23)+eL3*(A2last*k23*lambda3-I)/(l13*l32);
-  
+
       T A3term3 = A1last*ka*k23*(eL1*e4l1/(l21*l31*(ka-lambda1))+eL2*e4l2/(l12*l32*(ka-lambda2))+eL3*e4l3/(l13*l23*(ka-lambda3))+eKA*(E4-ka)/((lambda1-ka)*(lambda2-ka)*(lambda3-ka)));
-  
+
       A3 = A3term1+A3term2+A3term3;// Amount in the first-peripheral compartment
 
       T A4term1 = A4last*(eL1*e2l1*e3l1/(l21*l31)+eL2*e2l2*e3l2/(l12*l32)+eL3*(E2-lambda3)*e3l3/(l13*l23));
-  
+
       T A4term2 = eL1*(J-A2last*k24*lambda1)/(l12*l13)+eL2*(A2last*k24*lambda2-J)/(l12*l23)+eL3*(A2last*k24*lambda3-J)/(l13*l32);
-  
+
       T A4term3 = A1last*ka*k24*(eL1*e3l1/(l21*l31*(ka-lambda1))+eL2*e3l2/(l12*l32*(ka-lambda2))+eL3*e3l3/(l13*l23*(ka-lambda3))+eKA*(E3-ka)/((lambda1-ka)*(lambda2-ka)*(lambda3-ka)));
       A4 = A4term1+A4term2+A4term3;
 
@@ -1182,7 +1188,7 @@ namespace stan {
       A1 = r1/k10;
       return A;
     }
-    
+
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
     oneCmtRateSS(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
@@ -1365,7 +1371,7 @@ namespace stan {
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
       T gamma3 = pow(gamma,0.333333333333333);
-  
+
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
       T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
@@ -1406,7 +1412,7 @@ namespace stan {
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
       T gamma3 = pow(gamma,0.333333333333333);
-  
+
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
       T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
@@ -1453,7 +1459,7 @@ namespace stan {
       T ctheta3 = cos(theta3);
       T stheta3 = 1.7320508075688771932*sin(theta3);
       T gamma3 = pow(gamma,0.333333333333333);
-  
+
       T lambda1 = 0.333333333333333*a + gamma3*(ctheta3 + stheta3);
       T lambda2 = 0.333333333333333*a + gamma3*(ctheta3 -stheta3);
       T lambda3 = 0.333333333333333*a -(2.0*gamma3*ctheta3);
@@ -1473,7 +1479,7 @@ namespace stan {
       T l23 = (lambda2-lambda3);
       T l31 = (lambda3-lambda1);
       T l32 = (lambda3-lambda2);
-  
+
       T e1l1 = (E1-lambda1);
       T e1l2 = (E1-lambda2);
       T e1l3 = (E1-lambda3);
@@ -1524,7 +1530,7 @@ namespace stan {
 #define f2    pard(5, 0)
 #define rate2 pard(6, 0)
 #define dur2  pard(7, 0)
-    
+
     template <class T>
     Eigen::Matrix<T, Eigen::Dynamic, 1>
     oneCmtBolusSS(Eigen::Matrix<T, Eigen::Dynamic, 1>& params,
@@ -1545,7 +1551,7 @@ namespace stan {
 		const Eigen::Matrix<double, Eigen::Dynamic, 1>& pard,
 		Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
 		Eigen::Matrix<double, Eigen::Dynamic, 1>& bolus) {
-      Eigen::Matrix<T, Eigen::Dynamic, 1> A(1, 1);      
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(1, 1);
       A1 = A1last*exp(-k10*t) + b1;
       return A;
     }
@@ -1589,7 +1595,7 @@ namespace stan {
 
       T eL1 = 1.0/(1.0-exp(-tau*lambda1));
       T eL2 = 1.0/(1.0-exp(-tau*lambda2));
-  
+
       A1=(eL1*(b1*E2 - b1*lambda1) - eL2*(b1*E2 - b1*lambda2))/(-lambda1 + lambda2);
       A2=(eL1*b1*k12 - eL2*b1*k12)/(-lambda1 + lambda2);
       return A;
@@ -1616,7 +1622,7 @@ namespace stan {
       T eT2= exp(-t*lambda2);
 
       T A1term = (((A1last*E2+A2last*k21)-A1last*lambda1)*eT1-((A1last*E2+A2last*k21)-A1last*lambda2)*eT2)/(lambda2-lambda1);
-  
+
       A1 = A1term + b1; //Amount in the central compartment
 
       T A2term = (((A2last*E1+A1last*k12)-A2last*lambda1)*eT1-((A2last*E1+A1last*k12)-A2last*lambda2)*eT2)/(lambda2-lambda1);
@@ -1739,7 +1745,7 @@ namespace stan {
       T l23 = (lambda2-lambda3);
       T l31 = (lambda3-lambda1);
       T l32 = (lambda3-lambda2);
-  
+
       T e1l1 = (E1-lambda1);
       T e1l2 = (E1-lambda2);
       T e1l3 = (E1-lambda3);
@@ -1763,7 +1769,7 @@ namespace stan {
       T A3term1 = A3last*(eL1*e1l1*e2l1/(l21*l31)+eL2*e1l2*e2l2/(l12*l32)+eL3*e1l3*e2l3/(l13*l23));
       T A3term2 = eL1*(J-A1last*k13*lambda1)/(l12*l13)+eL2*(A1last*k13*lambda2-J)/(l12*l23)+eL3*(A1last*k13*lambda3-J)/(l13*l32);
       A3 = A3term1+A3term2;
-      
+
       return A;
     }
 
@@ -1989,7 +1995,7 @@ namespace stan {
       Rcpp::stop("doAdvan error; ncmt: %d, oral0: %d", ncmt, oral0);
       return params;
     }
-    
+
 #undef v
 #undef k20
 #undef kel
@@ -2240,7 +2246,7 @@ namespace stan {
 	      }
 	      if (wh0 == 20) {
 		A = A + aSave;
-	      } 
+	      }
 	      extraAdvan=0;
 	    } else if (wh0 == 30){
 	      // Turning off a compartment; Not supported put everything to NaN
@@ -2268,8 +2274,8 @@ namespace stan {
 	    case 5: {
 	      doMultiply= cmtOff+1;
 	    } break;
-	    case 9: 
-	    case 8: { // modeled duration. 
+	    case 9:
+	    case 8: { // modeled duration.
 	      //InfusionRate[cmt] -= dose[ind->ixds+1];
 	      rateAdjust = -ind->dose[ind->ixds+1];
 	      doRate = cmtOff+1;
@@ -2284,7 +2290,7 @@ namespace stan {
 	      rateAdjust = amt; // Amt is negative when turning off
 	      doRate = cmtOff+1;
 	    } break;
-	    
+
 	    case 2: {
 	      // In this case bio-availability changes the rate, but the duration remains constant.
 	      // rate = amt/dur
@@ -2427,7 +2433,7 @@ static inline double linCmtBg(double *A, int& val, int& trans, int& ncmt,
       return(A[oral0]*(dd_v1 + dd_p3 + dd_p5));
     } else {
       return(A[oral0]/dd_v1);
-    }    
+    }
   } else {
     // 2*ncmt + oral0
     if (val == 11) {
@@ -2459,7 +2465,7 @@ extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
   int oral0;
   oral0 = (dd_ka != 0) ? 1 : 0;
   double it = getTime(ind->ix[idx], ind);
-  
+
   if (t != it) {
     // Try to get another idx by bisection
     idx = _locateTimeIndex(t, ind);
