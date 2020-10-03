@@ -19,9 +19,9 @@
   two forms of additive+proportional errors supported by
   monolix/nonmem:
 
-combined1: transform(y)=transform(f)+(a+b*abs(f)^c)*eps
+combined1: transform(y)=transform(f)+(a+b*f^c)*eps
 
-combined2: transform(y)=transform(f)+(a^2+b^2*abs(f)^(2c))*eps}
+combined2: transform(y)=transform(f)+(a^2+b^2*f^(2c))*eps}
 }
 \value{
 A list of (1) RxODE model variables augmented with
