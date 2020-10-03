@@ -216,7 +216,6 @@ typedef struct {
   int solved;
   double *linCmtAdvan;
   double *linCmtRate;
-  double *linTr; // Parameter trans matrix
   int linCmt;
   int linCmtAdvanSetup;
   int cacheME;

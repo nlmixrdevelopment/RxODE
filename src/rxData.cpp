@@ -31,8 +31,6 @@ void resetSolveLinB();
 using namespace Rcpp;
 using namespace arma;
 
-int linTr=0;
-
 extern "C" uint64_t dtwiddle(const void *p, int i);
 extern "C" void calcNradix(int *nbyte, int *nradix, int *spare, uint64_t *maxD, uint64_t *minD);
 
@@ -1371,7 +1369,6 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 
 typedef struct {
   int *gon;
-  double *glinTr;
   double *gsolve;
   double *gInfusionRate;
   double *gTlastS;
@@ -3674,7 +3671,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   rx_solving_options_ind* ind;
-  int curEvent = 0, curIdx = 0, curSolve=0, curLin2=0;
+  int curEvent = 0, curIdx = 0, curSolve=0;
   switch(rxSolveDat->parType){
   case 1: // NumericVector
     {
@@ -3714,7 +3711,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
       curSolve=0;
       curEvent=0;
       curIdx=0;
-      curLin2=0;
       int curCov=0;
       int curOn=0;
       rx_solving_options_ind indS;
@@ -3744,8 +3740,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  ind->slvr_counter = &_globals.slvr_counter[cid];
 	  ind->dadt_counter = &_globals.dadt_counter[cid];
 	  ind->jac_counter = &_globals.jac_counter[cid];
-	  ind->linTr = &_globals.glinTr[curLin2];
-	  curLin2 += linTr;
 	  if (simNum){
 	    // Assign the pointers to the shared data
 	    indS = rx->subjects[id];
@@ -4690,8 +4684,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     int linKa = linCmtI[RxMvFlag_ka];
     int linB = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linB];
     op->linBflag=0;
-    linTr=0;
-
     if (linB) {
       int linBflag = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linCmtFlg];
       if (rx->sensType == 4) {
@@ -4751,32 +4743,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       } else {
 	op->nlin = linNcmt + linKa + (2*linNcmt+linNcmt)*(linNcmt+linKa+1) + 2*linNcmt+1;//(4+linNcmt+linKa)*linNcmt+(2+linNcmt+linKa)*linKa+1;
 	// ncmt + oral0 + (2*ncmt+oral)*(ncmt+oral0+1) + 2*ncmt
-	if (linKa) {
-	  switch (linNcmt) {
-	  case 3:
-	    linTr = 90; // 10 x 9
-	    break;
-	  case 2:
-	    linTr = 42; // 6 x 7
-	    break;
-	  case 1:
-	    linTr = 10; // 2x5
-	    break;
-	  }
-	} else {
-	  switch (linNcmt) {
-	  case 3:
-	    linTr = 80; // 10 x 8
-	    break;
-	  case 2:
-	    linTr = 36; // 6 x 6
-	    break;
-	  case 1:
-	    linTr = 8; // 2x4
-	    break;
-	  }
-	}
-	
       }
     } else {
       op->nlin = linNcmt+linKa;
@@ -4784,11 +4750,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     op->nlinR = 0;
     int n0 = (rx->nall+3*rx->nsub)*(state.size())*rx->nsim;
     int nLin = op->nlin;
-    int nLin2=0;
     if (nLin != 0) {
       op->nlinR = 1+linKa;
       nLin = rx->nall*nLin*rx->nsim;// Number of linear compartments * number of solved points
-      nLin2 = rx->nsim*rx->nsub*linTr;
     }
     int n2  = rx->nMtime*rx->nsub*rx->nsim;
     int n3  = op->neq*rxSolveDat->nSize;
@@ -4812,7 +4776,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
     if (_globals.gsolve != NULL) free(_globals.gsolve);
-    _globals.gsolve = (double*)calloc(n0+nLin+nLin2+n2+ n4+n5+n6+
+    _globals.gsolve = (double*)calloc(n0+nLin+n2+ n4+n5+n6+
 				      5*op->neq + 7*n3a, sizeof(double));// [n0]
 #ifdef rxSolveT
     REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+7*n3+n4+n5+n6+ 5*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
@@ -4845,7 +4809,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->ypNA = _globals.gssAtol + op->neq; // [op->neq]
     _globals.gTlastS = rx->ypNA + op->neq; // [n3a]
     _globals.gTfirstS = _globals.gTlastS + n3a; // [n3a]
-    _globals.glinTr = _globals.gTfirstS + n3a; //  [nLin2]
     std::fill_n(rx->ypNA, op->neq + 2*n3a, NA_REAL);
 
     std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);
