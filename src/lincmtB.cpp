@@ -954,8 +954,8 @@ namespace stan {
       A2 = b2 - eA0*(ka*(Al12*alpha2 - alpha*Al123) + Al23*alpha2 - alpha3*A2last) +
 	eB0*(ka*(Al12*beta2 - beta*Al123) + Al23*beta2 - beta3*A2last) +
 	eKa0*(ka*k32 - ka2);
-      A3 = eB0*(ka*(beta2*A3last - E2*beta*A3last - Al12k23*beta) + E2*beta2*A3last + k23*beta2*A2last - beta3*A3last) +
-	-eA0*(ka*(alpha2*A3last - E2*alpha*A3last - Al12k23*alpha) + E2*alpha2*A3last + k23*alpha2*A2last-alpha3*A3last)+
+      A3 = eB0*(A3last*(ka*beta2-ka*E2*beta+ E2*beta2 - beta3) - ka*Al12k23*beta  + k23*beta2*A2last) +
+	-eA0*(ka*alpha2*A3last - ka*E2*alpha*A3last - ka*Al12k23*alpha + E2*alpha2*A3last + k23*alpha2*A2last-alpha3*A3last)+
 	eKa0*ka*k23;
       return A;
     }
