@@ -1296,12 +1296,12 @@ namespace stan {
 	       Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
 	       Eigen::Matrix<double, Eigen::Dynamic, 1>& bolus,
 	       Eigen::Matrix<double, Eigen::Dynamic, 1>& rate) {
-      Eigen::Matrix<T, Eigen::Dynamic, 1> A(2, 1);
       //#calculate hybrid rate constants
+      Eigen::Matrix<T, Eigen::Dynamic, 1> A(2, 1);
 #define E1 (k10+k12)
 #define E2 k21
-
-#define s (E1+E2)
+      //#calculate hybrid rate constants
+#define s  (E1+E2)
       T sqr = sqrt(s*s-4*(E1*E2-k12*k21));
       T lambda1 = 0.5*(s+sqr);
       T lambda2 = 0.5*(s-sqr);
@@ -1309,32 +1309,23 @@ namespace stan {
       T eT1 = exp(-t*lambda1);
       T eT2 = exp(-t*lambda2);
 
-#define l12  (lambda1-lambda2)
-#define l21  (lambda2-lambda1);
+#define l12 (lambda1-lambda2)
+#define l21 (lambda2-lambda1);
+
       T c10 = (A1last*E2+Doserate+A2last*k21);
       T c11 = (c10-A1last*lambda1)/l21;
       T c12 = (c10-A1last*lambda2)/l21;
-#define A1term1 c11*eT1 - c12*eT2
-#define d12  1.0/(lambda1*lambda2)
-      T T1 = (d12+(eT1-eT2)/(lambda1*l12));
-#define A1term2 Doserate*E2*T1
-      A1 = A1term1+A1term2 + b1;//Amount in the central compartment
+      A1 = c11*eT1 - c12*eT2 + Doserate*E2*(1/(lambda1*lambda2)+eT1/(lambda1*l12)-eT2/(lambda2*l12)) + b1;//Amount in the central compartment
 
       T c20 = (A2last*E1+A1last*k12);
       T c21 = (c20-A2last*lambda1)/l21;
       T c22 = (c20-A2last*lambda2)/l21;
-#define A2term1  c21*eT1-c22*eT2
-#define A2term2  Doserate*k12*T1
-      A2 = A2term1+A2term2;//Amount in the peripheral compartment
-#undef l12
-#undef l21
-#undef A1term1
-#undef A1term2
-#undef A2term1
-#undef A2term2
+      A2 = c21*eT1-c22*eT2 + Doserate*k12*(1/(lambda1*lambda2)+eT1/(lambda1*l12)-eT2/(lambda2*(lambda1-lambda2)));//Amount in the peripheral compartment
+#undef s
 #undef E1
 #undef E2
-#undef s
+#undef l12
+#undef l21
       return A;
     }
 
@@ -1627,18 +1618,20 @@ namespace stan {
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(2, 1);
 #define E1 (k10+k12)
 #define E2 k21
-
-      T s = k12+k21+k10;
+#define s  (k12+k21+k10)
       T sqr = sqrt(s*s-4*k21*k10);
       //calculate hybrid rate constants
       T lambda1 = 0.5*(s+sqr);
       T lambda2 = 0.5*(s-sqr);
 
-      T eT1= exp(-t*lambda1)/(lambda2-lambda1);
-      T eT2= exp(-t*lambda2)/(lambda2-lambda1);
+      T eT1= exp(-t*lambda1);
+      T eT2= exp(-t*lambda2);
+      T c10 = (A1last*E2+A2last*k21);
+      T c20 = (A2last*E1+A1last*k12);
 
-      A1 = ((A1last*E2 + A2last*k21) - A1last*lambda1)*eT1 - ((A1last*E2 + A2last*k21) - A1last*lambda2)*eT2 + b1; // Amount in the central compartment
-      A2 = ((A2last*E1 + A1last*k12) - A2last*lambda1)*eT1 - ((A2last*E1 + A1last*k12) - A2last*lambda2)*eT2;// Amount in the peripheral compartment
+      A1 = ((c10-A1last*lambda1)*eT1-(c10-A1last*lambda2)*eT2)/(lambda2-lambda1) + b1; //Amount in the central compartment
+      A2 = ((c20-A2last*lambda1)*eT1-(c20-A2last*lambda2)*eT2)/(lambda2-lambda1);//            #Amount in the peripheral compartment
+#undef s
 #undef E1
 #undef E2
       return A;
