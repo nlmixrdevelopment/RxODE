@@ -474,6 +474,10 @@ namespace stan {
       T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
       T alpha = k32*k20/beta;
 
+      T eKa = exp(-ka*t);
+      T eA = exp(-alpha*t);
+      T eB = exp(-beta*t);
+
       T ka2 = ka*ka;
 
       T alpha2 = alpha*alpha;
@@ -482,14 +486,9 @@ namespace stan {
       T beta2 = beta*beta;
       T beta3 = beta2*beta;
 
-      T eKa0 = exp(-ka*t);
-      T eKa = eKa0/(ka2+(-beta-alpha)*ka+alpha*beta);
-      T eA = exp(-alpha*t)/((alpha*beta-alpha2)*ka-alpha2*beta+alpha3);
-      T eB = exp(-beta*t)/((beta2-alpha*beta)*ka-beta3+alpha*beta2);
-
-      A1 = b1+r1/ka*(1-eKa0)+A1last*eKa0;
-      A2 = b2+(((ka-k32)*r1-A1last*ka2+A1last*k32*ka)*eKa)+((((k32-beta)*ka-beta*k32+beta2)*r2+(k32-beta)*ka*r1+((-A3last-A2last-A1last)*beta*k32+(A2last+A1last)*beta2)*ka+(A3last+A2last)*beta2*k32-A2last*beta3)*eB)-((((k32-alpha)*ka-alpha*k32+alpha2)*r2+(k32-alpha)*ka*r1+((-A3last-A2last-A1last)*alpha*k32+(A2last+A1last)*alpha2)*ka+(A3last+A2last)*alpha2*k32-A2last*alpha3)*eA)+(k32*r2+k32*r1)/(alpha*beta);
-      A3 = -((k23*r1-A1last*k23*ka)*eKa)+(((k23*ka-beta*k23)*r2+k23*ka*r1+((-A2last-A1last)*beta*k23+A3last*beta2-A3last*E2*beta)*ka+A2last*beta2*k23-A3last*beta3+A3last*E2*beta2)*eB)-(((k23*ka-alpha*k23)*r2+k23*ka*r1+((-A2last-A1last)*alpha*k23+A3last*alpha2-A3last*E2*alpha)*ka+A2last*alpha2*k23-A3last*alpha3+A3last*E2*alpha2)*eA)+(k23*r2+k23*r1)/(alpha*beta);
+      A1 = b1+r1/ka-((r1-A1last*ka)*eKa)/ka;
+      A2 = b2+(((ka-k32)*r1-A1last*ka2+A1last*k32*ka)*eKa)/(ka2+(-beta-alpha)*ka+alpha*beta)+((((k32-beta)*ka-beta*k32+beta2)*r2+(k32-beta)*ka*r1+((-A3last-A2last-A1last)*beta*k32+(A2last+A1last)*beta2)*ka+(A3last+A2last)*beta2*k32-A2last*beta3)*eB)/((beta2-alpha*beta)*ka-beta3+alpha*beta2)-((((k32-alpha)*ka-alpha*k32+alpha2)*r2+(k32-alpha)*ka*r1+((-A3last-A2last-A1last)*alpha*k32+(A2last+A1last)*alpha2)*ka+(A3last+A2last)*alpha2*k32-A2last*alpha3)*eA)/((alpha*beta-alpha2)*ka-alpha2*beta+alpha3)+(k32*r2+k32*r1)/(alpha*beta);
+      A3 = -((k23*r1-A1last*k23*ka)*eKa)/(ka2+(-beta-alpha)*ka+alpha*beta)+(((k23*ka-beta*k23)*r2+k23*ka*r1+((-A2last-A1last)*beta*k23+A3last*beta2-A3last*E2*beta)*ka+A2last*beta2*k23-A3last*beta3+A3last*E2*beta2)*eB)/((beta2-alpha*beta)*ka-beta3+alpha*beta2)-(((k23*ka-alpha*k23)*r2+k23*ka*r1+((-A2last-A1last)*alpha*k23+A3last*alpha2-A3last*E2*alpha)*ka+A2last*alpha2*k23-A3last*alpha3+A3last*E2*alpha2)*eA)/((alpha*beta-alpha2)*ka-alpha2*beta+alpha3)+(k23*r2+k23*r1)/(alpha*beta);
       return A;
     }
 
@@ -1297,11 +1296,11 @@ namespace stan {
 	       Eigen::Matrix<double, Eigen::Dynamic, 1>& bolus,
 	       Eigen::Matrix<double, Eigen::Dynamic, 1>& rate) {
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(2, 1);
-      //#calculate hybrid rate constants
-#define E1 (k10+k12)
-#define E2 k21
+      T E1 = k10+k12;
+      T E2 = k21;
 
-#define s (E1+E2)
+      //#calculate hybrid rate constants
+      T s = E1+E2;
       T sqr = sqrt(s*s-4*(E1*E2-k12*k21));
       T lambda1 = 0.5*(s+sqr);
       T lambda2 = 0.5*(s-sqr);
@@ -1309,32 +1308,22 @@ namespace stan {
       T eT1 = exp(-t*lambda1);
       T eT2 = exp(-t*lambda2);
 
-#define l12  (lambda1-lambda2)
-#define l21  (lambda2-lambda1);
+      T l12 = (lambda1-lambda2);
+      T l21 = (lambda2-lambda1);
+
       T c10 = (A1last*E2+Doserate+A2last*k21);
       T c11 = (c10-A1last*lambda1)/l21;
       T c12 = (c10-A1last*lambda2)/l21;
-#define A1term1 c11*eT1 - c12*eT2
-#define d12  1.0/(lambda1*lambda2)
-      T T1 = (d12+(eT1-eT2)/(lambda1*l12));
-#define A1term2 Doserate*E2*T1
+      T A1term1 = c11*eT1 - c12*eT2;
+      T A1term2 = Doserate*E2*(1/(lambda1*lambda2)+eT1/(lambda1*l12)-eT2/(lambda2*l12));
       A1 = A1term1+A1term2 + b1;//Amount in the central compartment
 
       T c20 = (A2last*E1+A1last*k12);
       T c21 = (c20-A2last*lambda1)/l21;
       T c22 = (c20-A2last*lambda2)/l21;
-#define A2term1  c21*eT1-c22*eT2
-#define A2term2  Doserate*k12*T1
+      T A2term1 = c21*eT1-c22*eT2;
+      T A2term2 = Doserate*k12*(1/(lambda1*lambda2)+eT1/(lambda1*l12)-eT2/(lambda2*(lambda1-lambda2)));
       A2 = A2term1+A2term2;//Amount in the peripheral compartment
-#undef l12
-#undef l21
-#undef A1term1
-#undef A1term2
-#undef A2term1
-#undef A2term2
-#undef E1
-#undef E2
-#undef s
       return A;
     }
 
@@ -1625,8 +1614,8 @@ namespace stan {
 		Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
 		Eigen::Matrix<double, Eigen::Dynamic, 1>& bolus) {
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(2, 1);
-#define E1 (k10+k12)
-#define E2 k21
+      T E1 = k10+k12;
+      T E2 = k21;
 
       T s = k12+k21+k10;
       T sqr = sqrt(s*s-4*k21*k10);
@@ -1634,13 +1623,15 @@ namespace stan {
       T lambda1 = 0.5*(s+sqr);
       T lambda2 = 0.5*(s-sqr);
 
-      T eT1= exp(-t*lambda1)/(lambda2-lambda1);
-      T eT2= exp(-t*lambda2)/(lambda2-lambda1);
+      T eT1= exp(-t*lambda1);
+      T eT2= exp(-t*lambda2);
 
-      A1 = ((A1last*E2 + A2last*k21) - A1last*lambda1)*eT1 - ((A1last*E2 + A2last*k21) - A1last*lambda2)*eT2 + b1; // Amount in the central compartment
-      A2 = ((A2last*E1 + A1last*k12) - A2last*lambda1)*eT1 - ((A2last*E1 + A1last*k12) - A2last*lambda2)*eT2;// Amount in the peripheral compartment
-#undef E1
-#undef E2
+      T A1term = (((A1last*E2+A2last*k21)-A1last*lambda1)*eT1-((A1last*E2+A2last*k21)-A1last*lambda2)*eT2)/(lambda2-lambda1);
+
+      A1 = A1term + b1; //Amount in the central compartment
+
+      T A2term = (((A2last*E1+A1last*k12)-A2last*lambda1)*eT1-((A2last*E1+A1last*k12)-A2last*lambda2)*eT2)/(lambda2-lambda1);
+      A2 = A2term;//            #Amount in the peripheral compartment
       return A;
     }
 
@@ -2461,59 +2452,23 @@ static inline double linCmtBg(double *A, int& val, int& trans, int& ncmt,
   }
 }
 
-
-extern "C" double linCmtD(rx_solve *rx, unsigned int id,
-			  double t, int linCmt,
-			  int ncmt, int trans, int val,
-			  double dd_p1, double dd_v1,
-			  double dd_p2, double dd_p3,
-			  double dd_p4, double dd_p5,
-			  double dd_tlag, double dd_F,
-			  double dd_rate, double dd_dur,
-			  // oral extra parameters
-			  double dd_ka, double dd_tlag2,
-			  double dd_F2, double dd_rate2, double dd_dur2);
-extern "C" double linCmtE(rx_solve *rx, unsigned int id,
-			  double t, int linCmt,
-			  int ncmt, int trans, int val,
-			  double dd_p1, double dd_v1,
-			  double dd_p2, double dd_p3,
-			  double dd_p4, double dd_p5,
-			  double dd_tlag, double dd_F,
-			  double dd_rate, double dd_dur,
-			  // oral extra parameters
-			  double dd_ka, double dd_tlag2,
-			  double dd_F2, double dd_rate2, double dd_dur2);
-extern "C" double linCmtF(rx_solve *rx, unsigned int id,
-			  double t, int linCmt,
-			  int ncmt, int trans, int val,
-			  double dd_p1, double dd_v1,
-			  double dd_p2, double dd_p3,
-			  double dd_p4, double dd_p5,
-			  double dd_tlag, double dd_F,
-			  double dd_rate, double dd_dur,
-			  // oral extra parameters
-			  double dd_ka, double dd_tlag2,
-			  double dd_F2, double dd_rate2, double dd_dur2);
-extern "C" double linCmtB(rx_solve *rx, unsigned int id,
-			  double t, int linCmt,
-			  int ncmt, int trans, int val,
-			  double dd_p1, double dd_v1,
-			  double dd_p2, double dd_p3,
-			  double dd_p4, double dd_p5,
-			  double dd_tlag, double dd_F,
-			  double dd_rate, double dd_dur,
-			  // oral extra parameters
-			  double dd_ka, double dd_tlag2,
-			  double dd_F2, double dd_rate2, double dd_dur2){
-  switch (rx->sensType){
-  case 1: {// sensitivity
-    // Get  Alast
-    stanad:
+extern "C" double linCmtBB(rx_solve *rx, unsigned int id,
+			   double t, int linCmt,
+			   int ncmt, int trans, int val,
+			   double dd_p1, double dd_v1,
+			   double dd_p2, double dd_p3,
+			   double dd_p4, double dd_p5,
+			   double dd_tlag, double dd_F,
+			   double dd_rate, double dd_dur,
+			   // oral extra parameters
+			   double dd_ka, double dd_tlag2,
+			   double dd_F2, double dd_rate2, double dd_dur2){
+  // Get  Alast
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   int idx = ind->idx;
   rx_solving_options *op = rx->op;
-  int oral0 = (dd_ka != 0) ? 1 : 0;
+  int oral0;
+  oral0 = (dd_ka != 0) ? 1 : 0;
   double it = getTime(ind->ix[idx], ind);
 
   if (t != it) {
@@ -2636,29 +2591,4 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
     ind->solved = idx;
   }
   return linCmtBg(A, val, trans, ncmt, oral0, dd_v1, dd_p3, dd_p5);
-  }
-    break;
-  case 2: // forward difference
-    return linCmtD(rx, id, t, linCmt, ncmt, trans, val,
-		    dd_p1, dd_v1, dd_p2, dd_p3,
-		    dd_p4, dd_p5, dd_tlag, dd_F,
-		    dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,
-		    dd_rate2, dd_dur2);
-    break;
-  case 3: //central difference
-    return linCmtE(rx, id, t, linCmt, ncmt, trans, val,
-		   dd_p1, dd_v1, dd_p2, dd_p3,
-		   dd_p4, dd_p5, dd_tlag, dd_F,
-		   dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,
-		   dd_rate2, dd_dur2);
-  case 4: // symbolic advan
-    if (ncmt == 2 || ncmt == 3) goto stanad;
-    return linCmtF(rx, id, t, linCmt, ncmt, trans, val,
-		   dd_p1, dd_v1, dd_p2, dd_p3,
-		   dd_p4, dd_p5, dd_tlag, dd_F,
-		   dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,
-		   dd_rate2, dd_dur2);
-  default:
-    Rf_errorcall(R_NilValue, "unsupported sensitivity");
-  }
 }
