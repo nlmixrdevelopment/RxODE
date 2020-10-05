@@ -926,38 +926,43 @@ namespace stan {
 	     Eigen::Matrix<T, Eigen::Dynamic, 2>& g,
 	     Eigen::Matrix<double, Eigen::Dynamic, 1>& bolus) {
       Eigen::Matrix<T, Eigen::Dynamic, 1> A(3, 1);
-      T E2 =  k20+ k23;
-      T s = k23+k32+k20;
+#define E2 (k20+ k23)
+#define s  (k23+k32+k20)
       //#Calculate roots
       T beta  = 0.5*(s - sqrt(s*s - 4*k32*k20));
       T alpha = k32*k20/beta;
 
-      T eKa = exp(-ka*t);
 
-      T ka2 = ka*ka;
+#define ka2 (ka*ka)
 
-      T alpha2 = alpha*alpha;
-      T alpha3 = alpha2*alpha;
+      T alpha2 = (alpha*alpha);
+      T alpha3 =  alpha2*alpha;
 
-      T beta2 = beta*beta;
+      T beta2 = (beta*beta);
       T beta3 = beta2*beta;
 
       T eA0 = exp(-alpha*t)/(alpha3 - beta*alpha2 + ka*(-alpha2 + beta*alpha));
       T eB0 = exp(-beta*t)/(beta2*alpha + ka*(beta2 - beta*alpha) - beta3);
-      T eKa0 = eKa*A1last/(ka2 + beta*alpha - ka*(alpha + beta));
 
       T Al23  = (A2last + A3last)*k32;
       T Al123 = (A1last + A2last + A3last)*k32;
-      T Al12 = (A1last + A2last);
-      T Al12k23 = Al12*k23;
-
-      A1 = b1 + eKa*A1last;
+      T Al12 =  (A1last + A2last);
+      T eKa0 = exp(-ka*t);
+      A1 = b1 + eKa0*A1last;
+      eKa0 = eKa0*A1last/(ka2 + beta*alpha - ka*(alpha + beta));
       A2 = b2 - eA0*(ka*(Al12*alpha2 - alpha*Al123) + Al23*alpha2 - alpha3*A2last) +
 	eB0*(ka*(Al12*beta2 - beta*Al123) + Al23*beta2 - beta3*A2last) +
 	eKa0*(ka*k32 - ka2);
-      A3 = eB0*(A3last*(ka*beta2-ka*E2*beta+ E2*beta2 - beta3) - ka*Al12k23*beta  + k23*beta2*A2last) +
-	-eA0*(ka*alpha2*A3last - ka*E2*alpha*A3last - ka*Al12k23*alpha + E2*alpha2*A3last + k23*alpha2*A2last-alpha3*A3last)+
+      Al12 =  Al12*k23;
+      A3 = eB0*(A3last*(ka*beta2-ka*E2*beta+ E2*beta2 - beta3) - ka*Al12*beta  + k23*beta2*A2last) 
+	-eA0*(ka*alpha2*A3last - ka*E2*alpha*A3last - ka*Al12*alpha + E2*alpha2*A3last + k23*alpha2*A2last-alpha3*A3last)+
 	eKa0*ka*k23;
+#undef E2
+#undef s
+#undef ka2
+#undef beta2
+#undef alpha2
+#undef Al12
       return A;
     }
 
