@@ -305,10 +305,11 @@ static void sPut(sbuf *sbb, char what) {
 
 void sAppend(sbuf *sbb, const char *format, ...) {
   int n = 0;
+  char *zero = "";
   va_list argptr, copy;
   va_start(argptr, format);
   va_copy(copy, argptr);
-  n = vsnprintf(NULL, 0, format, copy) + 1;
+  n = vsnprintf(zero, 0, format, copy) + 1;
   va_end(copy);
   if (sbb->sN <= sbb->o + n + 1) {
     int mx = sbb->o + n + 1 + MXBUF;
@@ -322,11 +323,12 @@ void sAppend(sbuf *sbb, const char *format, ...) {
 
 void sPrint(sbuf *sbb, const char *format, ...) {
   sClear(sbb);
+  char *zero = "";
   int n = 0;
   va_list argptr, copy;
   va_start(argptr, format);
   va_copy(copy, argptr);
-  n = vsnprintf(NULL, 0, format, copy) + 1;
+  n = vsnprintf(zero, 0, format, copy) + 1;
   va_end(copy);
   if (sbb->sN <= sbb->o + n + 1){
     int mx = sbb->o + n + 1 + MXBUF;
@@ -372,11 +374,12 @@ void lineFree(vLines *sbb){
 
 void addLine(vLines *sbb, const char *format, ...){
   int n = 0;
+  char *zero = "";
   va_list argptr, copy;
   va_start(argptr, format);
   va_copy(copy, argptr);
   // Try first.
-  n = vsnprintf(NULL, 0, format, copy);
+  n = vsnprintf(zero, 0, format, copy);
   if (n < 0){
     Rf_errorcall(R_NilValue, _("encoding error in 'addLine'"));
   }
