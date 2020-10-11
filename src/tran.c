@@ -1,5 +1,6 @@
 #include <sys/stat.h> 
 #include <fcntl.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>   /* dj: import intptr_t */
@@ -379,7 +380,7 @@ void addLine(vLines *sbb, const char *format, ...){
   // Try first.
   n = vsnprintf(zero, 0, format, copy);
   if (n < 0){
-    error("encoding error in 'addLine' format: '%s' n: %d", format, n);
+    error("encoding error in 'addLine' format: '%s' n: %d; errno: %d", format, n, errno);
   }
   va_end(copy);
   if (sbb->sN <= sbb->o + n + 1){
