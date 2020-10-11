@@ -303,7 +303,7 @@ static void sPut(sbuf *sbb, char what){
 }
 void sAppend(sbuf *sbb, const char *format, ...){
   int n = 0;
-  char *zero = "";
+  char zero[2];
   va_list argptr, copy;
   va_start(argptr, format);
   va_copy(copy, argptr);
@@ -321,7 +321,7 @@ void sAppend(sbuf *sbb, const char *format, ...){
 
 void sPrint(sbuf *sbb, const char *format, ...){
   sClear(sbb);
-  char *zero = "";
+  char zero[2];
   int n = 0;
   va_list argptr, copy;
   va_start(argptr, format);
@@ -372,14 +372,14 @@ void lineFree(vLines *sbb){
 
 void addLine(vLines *sbb, const char *format, ...){
   int n = 0;
-  char *zero = "";
+  char zero[2];
   va_list argptr, copy;
   va_start(argptr, format);
   va_copy(copy, argptr);
   // Try first.
   n = vsnprintf(zero, 0, format, copy);
   if (n < 0){
-    error("Encoding error in addLine");
+    error("encoding error in 'addLine' format: '%s' n: %d", format, n);
   }
   va_end(copy);
   if (sbb->sN <= sbb->o + n + 1){

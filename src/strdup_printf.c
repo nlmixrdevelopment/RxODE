@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 char * _strdup_printf(char * fmt, ...) {
-  char *zero = "";
+  char zero[2];
   va_list va;
   va_start(va, fmt);
   int s = vsnprintf(zero, 0, fmt, va);
