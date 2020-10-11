@@ -327,11 +327,11 @@ rxRmFun <- function(name) {
 ## "rxTBS", "rxTBSd"
 
 .rxSEreserved <- list(
-  "e" = "M_E",
-  "E" = "M_E",
+  "e" = 2.718281828459045090796,
+  "E" = 2.718281828459045090796,
   "EulerGamma" = 0.57721566490153286060651209008240243104215933593992,
   "Catalan" = 0.915965594177219015054603514932384110774,
-  "GoldenRatio" = "(1+sqrt(5)/2)",
+  "GoldenRatio" = 2.118033988749894902526,
   "I" = 1i
 )
 ## diff(rxTBS(a,lambda,yj),a)
@@ -2019,6 +2019,9 @@ rxS <- function(x, doConst = TRUE, promoteLinSens = FALSE) {
   for (.f in c(ls(.rxD), "linCmtA", "linCmtB", "rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt",
                "rxGt", "rxAnd", "rxOr", "rxNot", "rxTBS","rxTBSd", "rxTBSd2")) {
     assign(.f, .rxFunction(.f), envir=.env)
+  }
+  for (.v in seq_along(.rxSEreserved)) {
+    assign(names(.rxSEreserved)[.v], .rxSEreserved[[.v]], envir=.env)
   }
   .env$..s0 <- symengine::S("0")
   .env$..extraTheta <- list()

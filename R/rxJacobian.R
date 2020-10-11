@@ -243,7 +243,11 @@ rxExpandGrid <- function(x, y, type = 0L) {
     return(substr(x, 0, 2) == "TH")
   }))
   .pars <- .pars[.w]
-  .mtheta <- max(as.numeric(gsub(rex::rex("THETA[", capture(numbers), "]"), "\\1", .pars)))
+  if (length(.pars) > 0) {
+      .mtheta <- max(as.numeric(gsub(rex::rex("THETA[", capture(numbers), "]"), "\\1", .pars)))
+  } else {
+    .mtheta <- 0
+  }
   .err <- rxParseErr(errfn, baseTheta = .mtheta + 1, init = init, addProp=addProp)
   .predMod <- rxParsePred(predfn, init = init, .err)
   .extraPars <- attr(.predMod, "ini")
