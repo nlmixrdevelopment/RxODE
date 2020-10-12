@@ -304,11 +304,15 @@ static void sPut(sbuf *sbb, char what){
 }
 void sAppend(sbuf *sbb, const char *format, ...){
   int n = 0;
-  char zero[2];
   va_list argptr, copy;
   va_start(argptr, format);
   va_copy(copy, argptr);
+#if defined(_WIN32) || defined(WIN32)
+  n = vsnprintf(NULL, 0, format, copy) + 1;
+#else
+  char zero[2];
   n = vsnprintf(zero, 0, format, copy) + 1;
+#endif
   va_end(copy);
   if (sbb->sN <= sbb->o + n + 1){
     int mx = sbb->o + n + 1 + MXBUF;
@@ -322,12 +326,16 @@ void sAppend(sbuf *sbb, const char *format, ...){
 
 void sPrint(sbuf *sbb, const char *format, ...){
   sClear(sbb);
-  char zero[2];
   int n = 0;
   va_list argptr, copy;
   va_start(argptr, format);
   va_copy(copy, argptr);
+#if defined(_WIN32) || defined(WIN32)
+  n = vsnprintf(NULL, 0, format, copy) + 1;
+#else
+  char zero[2];
   n = vsnprintf(zero, 0, format, copy) + 1;
+#endif
   va_end(copy);
   if (sbb->sN <= sbb->o + n + 1){
     int mx = sbb->o + n + 1 + MXBUF;
@@ -373,12 +381,17 @@ void lineFree(vLines *sbb){
 
 void addLine(vLines *sbb, const char *format, ...){
   int n = 0;
-  char zero[2];
   va_list argptr, copy;
   va_start(argptr, format);
   va_copy(copy, argptr);
+  errno = 0;
   // Try first.
+#if defined(_WIN32) || defined(WIN32)
+  n = vsnprintf(NULL, 0, format, copy);
+#else
+  char zero[2];
   n = vsnprintf(zero, 0, format, copy);
+#endif
   if (n < 0){
     error("encoding error in 'addLine' format: '%s' n: %d; errno: %d", format, n, errno);
   }
