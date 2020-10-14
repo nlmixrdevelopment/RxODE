@@ -343,6 +343,13 @@ rxExpandGrid <- function(x, y, type = 0L) {
 ##' @author Matthew Fidler
 ##' @export
 rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=TRUE) {
+  .digest <- digest::digest(list(rxModelVars(obj)$md5["parsed_md5"],
+                                 ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
+                                 sum.prod, optExpression))
+  .path <- file.path(rxTempDir(), paste0("saem-", .digest, ".rds"))
+  if (file.exists(.path)) {
+    return(readRDS(.path))
+  }
   nlmixrAdd <- NULL
   add <- function(...){}
   .errfn <- function(){
@@ -384,6 +391,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
   }
   .saem <- paste0("params(", paste(.mv, collapse=","), ")\n",
                   .saem)
+  saveRDS(.saem, .path)
   return(.saem)
 }
 
