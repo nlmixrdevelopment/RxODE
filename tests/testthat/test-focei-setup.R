@@ -446,6 +446,42 @@ rxPermissive(
 
     expect_true(inherits(cond, "rxFocei"))
 
+    ## Error
+
+    mod <- RxODE({
+      tka=THETA[1]
+      tcl=THETA[2]
+      tv=THETA[3]
+      probit.sd=THETA[4]
+      prop.sd=THETA[5]
+      lambda=THETA[6]
+      eta.ka=ETA[1]
+      eta.cl=ETA[2]
+      eta.v=ETA[3]
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl)
+      v <- exp(tv + eta.v)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      ipre = center/v
+      nlmixr_pred <- ipre
+      cmt(ipre);
+    })
+
+    ## Deparse will split to multiple lines
+    err <- function () {
+      return(probitNorm(probit.sd, -0.5, 14) + prop(prop.sd) +
+               yeoJohnson(lambda))
+    }
+
+    dp1 <- rxSymPySetupPred(mod,
+                            function() { return(nlmixr_pred) }, NULL, err,
+                            grad=FALSE, pred.minus.dv = TRUE, sum.prod = FALSE,
+                            interaction=TRUE, only.numeric=FALSE, run.internal=TRUE,
+                            addProp="combined2", optExpression=TRUE)
+    expect_true(inherits(dp1, "rxFocei"))
+
+
 
   },
   silent = TRUE,

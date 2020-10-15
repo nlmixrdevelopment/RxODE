@@ -130,11 +130,11 @@ rxExpandGrid <- function(x, y, type = 0L) {
 .goodFns <- c(".GlobalEnv", "package:RxODE", "package:nlmixr")
 .checkGood <- function(x) {
   .tmp <- suppressWarnings({
-    find(deparse(substitute(x)))
+    find(deparse1(substitute(x)))
   })
   if (!identical(.tmp, character())) {
     if (!any(.tmp == .goodFns)) {
-      stop(sprintf(gettext("'%s' is from '%s' and cannot be used in this context"), deparse(substitute(x)), .tmp),
+      stop(sprintf(gettext("'%s' is from '%s' and cannot be used in this context"), deparse1(substitute(x)), .tmp),
         call. = FALSE
       )
     }
@@ -344,7 +344,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
 ##' @export
 rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=TRUE) {
   .digest <- digest::digest(list(rxModelVars(obj)$md5["parsed_md5"],
-                                 ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
+                                 ifelse(is.function(pkpars), paste(deparse1(body(pkpars)), collapse=""), ""),
                                  sum.prod, optExpression))
   .path <- file.path(rxTempDir(), paste0("saem-", .digest, ".rds"))
   if (file.exists(.path)) {
@@ -376,7 +376,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
   if (is.null(pkpars)){
     .mv <- rxModelVars(obj)$params
   } else {
-    .mv <- deparse(body(pkpars))
+    .mv <- deparse1(body(pkpars))
     .len <- length(.mv)
     .mv <- if(.mv[1]=="{") .mv[2:(.len-1)] else .mv
     .mv <- rxModelVars(paste(.mv, collapse="\n"))$params
@@ -728,9 +728,9 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
                       promoteLinSens = TRUE, theta = FALSE, addProp=c("combined2", "combined1")) {
   addProp <- match.arg(addProp)
   .digest <- digest::digest(list(rxModelVars(obj)$md5["parsed_md5"],
-                                 ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
-                                 ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
-                                 ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
+                                 ifelse(is.function(predfn), paste(deparse1(body(predfn)), collapse=""), ""),
+                                 ifelse(is.function(pkpars), paste(deparse1(body(pkpars)), collapse=""), ""),
+                                 ifelse(is.function(errfn), paste(deparse1(body(errfn)), collapse=""), ""),
                                  init, grad, sum.prod, pred.minus.dv, only.numeric, optExpression,
                                  interaction, promoteLinSens, theta,
                                  addProp))

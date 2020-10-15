@@ -650,7 +650,7 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
   if (is(substitute(x), "character")) {
     force(x)
   } else if (is(substitute(x), "{")) {
-    x <- deparse(substitute(x))
+    x <- deparse1(substitute(x))
     if (x[1] == "{") {
       x <- x[-1]
       x <- x[-length(x)]
@@ -1324,7 +1324,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
   if (is(substitute(x), "character")) {
     return(.rxFromSE(eval(parse(text = paste0("quote({", .rxUnXi(x), "})")))))
   } else if (is(substitute(x), "{")) {
-    x <- deparse(substitute(x))
+    x <- deparse1(substitute(x))
     if (x[1] == "{") {
       x <- x[-1]
       x <- x[-length(x)]
@@ -1361,7 +1361,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
         }
       }
     }
-    x <- eval(parse(text = paste("quote(", .rxUnXi(paste(deparse(x), collapse = " ")), ")")))
+    x <- eval(parse(text = paste("quote(", .rxUnXi(paste(deparse1(x), collapse = " ")), ")")))
     .ret <- .rxFromSE(x)
     return(.ret)
   }
@@ -2733,7 +2733,7 @@ rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL,
     assignInMyNamespace("rxErrEnv.init", NULL)
     return(ret)
   } else if (is(substitute(x), "name")) {
-    ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(%s, addProp=\"%s\")", deparse(x), addProp)))
+    ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(%s, addProp=\"%s\")", deparse1(x), addProp)))
     assignInMyNamespace("rxErrEnv.diag.est", c())
     assignInMyNamespace("rxErrEnv.theta", 1)
     assignInMyNamespace("rxErrEnv.ret", "rx_r_")
@@ -2790,7 +2790,7 @@ rxSplitPlusQ <- function(x, level = 0, mult = FALSE) {
   }
   if (is.name(x) || is.atomic(x)) {
     if (level == 0) {
-      return(paste(deparse(x), collapse = ""))
+      return(paste(deparse1(x), collapse = ""))
     } else {
       return(character())
     }
@@ -2801,27 +2801,27 @@ rxSplitPlusQ <- function(x, level = 0, mult = FALSE) {
         identical(x[[1]], quote(`-`))) && level == 0))) {
       if (length(x) == 3) {
         if (identical(x[[1]], quote(`+`))) {
-          one <- paste(deparse(x[[3]]), collapse = "")
+          one <- paste(deparse1(x[[3]]), collapse = "")
         } else if (!mult) {
-          one <- paste("-", paste(deparse(x[[3]]), collapse = ""))
+          one <- paste("-", paste(deparse1(x[[3]]), collapse = ""))
         } else if (identical(x[[1]], quote(`*`))) {
-          one <- paste(deparse(x[[3]]), collapse = "")
+          one <- paste(deparse1(x[[3]]), collapse = "")
         } else if (mult) {
-          one <- paste("1/", paste(deparse(x[[3]]), collapse = ""))
+          one <- paste("1/", paste(deparse1(x[[3]]), collapse = ""))
         }
         tmp <- rxSplitPlusQ(x[[2]], level = 0, mult = mult)
         if (length(tmp) > 0) {
           return(c(tmp, one))
         } else {
-          tmp <- paste(deparse(x[[2]]), collapse = "")
+          tmp <- paste(deparse1(x[[2]]), collapse = "")
           return(c(tmp, one))
         }
       } else {
         ## Unary + or -
         if (identical(x[[1]], quote(`+`))) {
-          one <- paste(deparse(x[[2]]), collapse = "")
+          one <- paste(deparse1(x[[2]]), collapse = "")
         } else {
-          one <- paste("-", paste(deparse(x[[2]]), collapse = ""))
+          one <- paste("-", paste(deparse1(x[[2]]), collapse = ""))
         }
         return(one)
       }
@@ -2829,7 +2829,7 @@ rxSplitPlusQ <- function(x, level = 0, mult = FALSE) {
       tmp <- unlist(lapply(x, rxSplitPlusQ, level = 1, mult = mult))
       if (level == 0) {
         if (length(tmp) == 0) {
-          tmp <- paste(deparse(x), collapse = "")
+          tmp <- paste(deparse1(x), collapse = "")
         }
       }
       return(tmp)
@@ -2839,7 +2839,7 @@ rxSplitPlusQ <- function(x, level = 0, mult = FALSE) {
     tmp <- unlist(lapply(x, rxSplitPlusQ, level = level, mult = mult))
     if (level == 0) {
       if (length(tmp) == 0) {
-        tmp <- paste(deparse(x), collapse = "")
+        tmp <- paste(deparse1(x), collapse = "")
       }
     }
     return(tmp)
