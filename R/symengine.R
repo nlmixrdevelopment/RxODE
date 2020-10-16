@@ -2541,6 +2541,27 @@ rxErrEnvF$prop <- function(est) {
   return(ret)
 }
 
+rxErrEnvF$propT <- function(est) {
+  if (rxErrEnv.ret != "rx_r_") {
+    stop("'propT' can only be in an error function")
+  }
+  estN <- suppressWarnings(as.numeric(est))
+  if (is.na(estN)) {
+    ret <- (sprintf("(rx_pred_)%s * (%s)%s", rxErrEnv.combined, est, rxErrEnv.combined))
+  } else {
+    est <- estN
+    ret <- ""
+    theta <- sprintf("THETA[%s]", rxErrEnv.theta)
+    theta.est <- theta
+    ret <- (sprintf("(rx_pred_)%s*(%s)%s", rxErrEnv.combined, theta.est, rxErrEnv.combined))
+    tmp <- rxErrEnv.diag.est
+    tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
+    assignInMyNamespace("rxErrEnv.diag.est", tmp)
+    assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1)
+  }
+  return(ret)
+}
+
 rxErrEnvF$pow <- function(est, pow) {
   if (rxErrEnv.ret != "rx_r_") {
     stop("'pow' can only be in an error function", call. = FALSE)
@@ -2556,6 +2577,30 @@ rxErrEnvF$pow <- function(est, pow) {
     theta2 <- sprintf("THETA[%s]", rxErrEnv.theta + 1)
     theta.est <- theta
     ret <- (sprintf("(rx_pred_f_)^(%s%s) * (%s)%s", ifelse(rxErrEnv.combined == "^2", "2*", ""), theta2, theta.est, rxErrEnv.combined))
+    tmp <- rxErrEnv.diag.est
+    tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
+    tmp[sprintf("THETA[%s]", rxErrEnv.theta + 1)] <- as.numeric(pow)
+    assignInMyNamespace("rxErrEnv.diag.est", tmp)
+    assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 2)
+  }
+  return(ret)
+}
+
+rxErrEnvF$powT <- function(est, pow) {
+  if (rxErrEnv.ret != "rx_r_") {
+    stop("'powT' can only be in an error function", call. = FALSE)
+  }
+  estN <- suppressWarnings(as.numeric(est))
+  if (is.na(estN)) {
+    ret <- (sprintf("(rx_pred_)^(%s%s) * (%s)%s", ifelse(rxErrEnv.combined == "^2", "2*", ""),
+                    pow, est, rxErrEnv.combined))
+  } else {
+    est <- estN
+    ret <- ""
+    theta <- sprintf("THETA[%s]", rxErrEnv.theta)
+    theta2 <- sprintf("THETA[%s]", rxErrEnv.theta + 1)
+    theta.est <- theta
+    ret <- (sprintf("(rx_pred_)^(%s%s) * (%s)%s", ifelse(rxErrEnv.combined == "^2", "2*", ""), theta2, theta.est, rxErrEnv.combined))
     tmp <- rxErrEnv.diag.est
     tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est)
     tmp[sprintf("THETA[%s]", rxErrEnv.theta + 1)] <- as.numeric(pow)

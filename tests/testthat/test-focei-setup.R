@@ -481,8 +481,6 @@ rxPermissive(
                             addProp="combined2", optExpression=TRUE)
     expect_true(inherits(dp1, "rxFocei"))
 
-
-
   },
   silent = TRUE,
   test = "focei"
