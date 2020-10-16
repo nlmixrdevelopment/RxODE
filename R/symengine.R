@@ -1263,7 +1263,7 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
           }
         } else if (.fun == "expit") {
           if (length(.ret0) == 1) {
-            .ret <- paste0("1/(1+exp(-(", unlist(.ret0)[1], "))")
+            .ret <- paste0("1/(1+exp(-(", unlist(.ret0)[1], ")))")
           } else if (length(.ret0) == 2) {
             .ret0 <- unlist(.ret0)
             .p <- paste0("1/(1+exp(-(", .ret0[1], ")))")
@@ -2006,6 +2006,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
 rxS <- function(x, doConst = TRUE, promoteLinSens = FALSE) {
   .cnst <- names(.rxSEreserved)
   .env <- new.env(parent = loadNamespace("symengine"))
+  on.exit(assign(".env", .env, globalenv()))
   .env$..mv <- rxModelVars(x)
   .env$..jac0 <- c()
   .env$..jac0.. <- list()
