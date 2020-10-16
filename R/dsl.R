@@ -250,9 +250,16 @@ rxExpandIfElse <- function(model, removeInis = TRUE, removePrint = TRUE) {
 ##' @return Function with parens removed and add a return statment.
 ##' @author Matthew L. Fidler
 rxAddReturn <- function(fn, ret = TRUE) {
-  txt <- deparse1(body(fn))
+  txt <- deparse(body(fn))
   if (txt[1] == "{") {
     txt <- txt[-c(1, length(txt))]
+  }
+  .v <- try(parse(text=txt[length(txt)]), silent = TRUE)
+  while (inherits(.v, "try-error")) {
+    .v0 <- txt[length(txt)]
+    txt <- txt[-length(txt)]
+    txt[length(txt)] <- paste(txt[length(txt)], .v0)
+    .v <- try(parse(text=txt[length(txt)]), silent = TRUE)
   }
   ## FIXME, naieve assumption about functions.
   if (ret) {
