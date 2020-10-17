@@ -860,8 +860,14 @@ gammapInva <- function(x, p) {
 ##'
 ##' @param alpha Infinite value(s) to translate to range of [low,
 ##'   high]
+##'
 ##' @param low Lowest value in the range
+##'
 ##' @param high Highest value in the range
+##'
+##' @param mean logit-scale mean
+##'
+##' @param sd logit-scale standard deviation
 ##'
 ##' @details
 ##'
@@ -877,11 +883,18 @@ gammapInva <- function(x, p) {
 ##'
 ##' \deqn{expit(p, low, high) = \frac{high-low}{1+exp(-alpha)}+low}
 ##'
+##' The `logitNormInfo()` gives the mean, variance and coefficient of
+##' variability on the untransformed scale.
+##'
 ##' @examples
 ##'
 ##' logit(0.25)
 ##'
 ##' expit(-1.09)
+##'
+##' logitNormInfo(logit(0.25),sd=0.1)
+##'
+##' logitNormInfo(logit(1,0,10), sd=1, low=0, high=10)
 ##'
 ##' @export
 logit <- function(x, low = 0, high = 1) {
@@ -893,6 +906,16 @@ expit <- function(alpha, low = 0, high = 1) {
   .Call(`_expit`, alpha, low, high, PACKAGE = "RxODE")
 }
 
+##' @rdname logit
+##' @export
+logitNormInfo <- function(mean=0, sd=1, low=0, high=1,  abs.tol=1e-6, ...) {
+  .fM1 <- function(x) .Call(`_expit`, x, low, high, PACKAGE = "RxODE") * dnorm(x, mean=mean, sd=sd)
+  .m <- integrate(.fM1,-Inf,Inf, abs.tol = abs.tol, ...)$value
+  .fV <- function(x) (.Call(`_expit`, x, low, high, PACKAGE = "RxODE") - .m)^2 * dnorm(x, mean=mean, sd=sd)
+  .v <- integrate(.fV,-Inf,Inf, abs.tol = abs.tol, ...)$value
+  c(mean=.m, var=.v, cv=sqrt(.v) / .m)
+}
+
 ##' probit and inverse probit functions
 ##'
 ##' @inheritParams logit
@@ -901,6 +924,11 @@ expit <- function(alpha, low = 0, high = 1) {
 ##' probit(0.25)
 ##'
 ##' probitInv(-0.674)
+##'
+##' probitNormInfo(probit(0.25),sd=0.1)
+##'
+##' probitNormInfo(probit(1,0,10), sd=1, low=0, high=10)
+##'
 ##' @export
 probit <- function(x, low=0, high=1) {
   .Call(`_probit`, x, low, high, PACKAGE = "RxODE")
@@ -910,6 +938,17 @@ probit <- function(x, low=0, high=1) {
 ##'@export
 probitInv <- function(x, low=0, high=1) {
   .Call(`_probitInv`, x, low, high, PACKAGE = "RxODE")
+}
+
+
+##' @rdname logit
+##' @export
+probitNormInfo <- function(mean=0, sd=1, low=0, high=1,  abs.tol=1e-6, ...) {
+  .fM1 <- function(x) .Call(`_probitInv`, x, low, high, PACKAGE = "RxODE") * dnorm(x, mean=mean, sd=sd)
+  .m <- integrate(.fM1,-Inf,Inf, abs.tol = abs.tol, ...)$value
+  .fV <- function(x) (.Call(`_probitInv`, x, low, high, PACKAGE = "RxODE") - .m)^2 * dnorm(x, mean=mean, sd=sd)
+  .v <- integrate(.fV,-Inf,Inf, abs.tol = abs.tol, ...)$value
+  c(mean=.m, var=.v, cv=sqrt(.v) / .m)
 }
 
 ##' Get/Set the number of threads that RxODE uses

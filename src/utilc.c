@@ -695,17 +695,19 @@ SEXP _gammaqInva(SEXP a, SEXP z) {
 }
 
 double logit(double x, double low, double high) {
-  double p = (x-low)/(high-low);
-  if (p >= 1) return R_NaN;
-  if (p <= 0) return R_NaN;
-  return -log(1/p-1);
+  return _powerD(x, 1.0, 4, low, high);
+}
+
+double expit(double alpha, double low, double high) {
+  return _powerDi(alpha, 1.0, 4, low, high);
 }
 
 double probit(double x, double low, double high) {
-  double p = (x-low)/(high-low);
-  if (p >= 1) return R_NaN;
-  if (p <= 0) return R_NaN;
-  return Rf_qnorm5(x, 0, 1, 1, 0);
+  return _powerD(x, 1.0, 6, low, high);
+}
+
+double probitInv(double alpha, double low, double high) {
+  return _powerDi(alpha, 1.0, 6, low, high);
 }
 
 SEXP _probit(SEXP xS, SEXP lowS, SEXP highS) {
@@ -761,11 +763,6 @@ SEXP _probit(SEXP xS, SEXP lowS, SEXP highS) {
   return ret;
 }
 
-double probitInv(double alpha, double low, double high) {
-  double p = Rf_pnorm5(alpha, 0.0, 1.0, 1, 0);
-  return (high-low)*p + low;
-}
-
 SEXP _probitInv(SEXP xS, SEXP lowS, SEXP highS) {
   int typex = TYPEOF(xS);
   int typelow = TYPEOF(lowS);
@@ -817,11 +814,6 @@ SEXP _probitInv(SEXP xS, SEXP lowS, SEXP highS) {
   }
   UNPROTECT(1);
   return ret;
-}
-
-double expit(double alpha, double low, double high) {
-  double p = 1/(1+exp(-alpha));
-  return (high-low)*p+low;
 }
 
 SEXP _logit(SEXP xS, SEXP lowS, SEXP highS) {
