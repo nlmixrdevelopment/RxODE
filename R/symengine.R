@@ -28,6 +28,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "log1pexp" = c("log(1+exp(", "))", "log1pexp"),
   "!" = c("rxNot(", ")", ""),
   "phi" = c("0.5*(1+erf((", ")/sqrt(2)))"),
+  "pnorm" = c("0.5*(1+erf((", ")/sqrt(2)))"),
   "qnorm"=c("sqrt(2)*erfinv(2*(", ")-1)"),
   "fabs"=c("abs0(", ")")
 )
@@ -133,6 +134,8 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "min" = NA,
   "logit" = NA,
   "expit" = NA,
+  "probit"=NA,
+  "probitInv"=NA,
   "dabs"=1,
   "dabs2"=1,
   "abs1"=1,
@@ -1238,6 +1241,54 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
           .ret <- paste0("(", paste(paste0("(", unlist(.ret0), ")"), collapse = "+"), ")")
         } else if (.fun == "prod") {
           .ret <- paste0("(", paste(paste0("(", unlist(.ret0), ")"), collapse = "*"), ")")
+        } else if (.fun == "probitInv") {
+          ##erf <- function(x) 2 * pnorm(x * sqrt(2)) - 1 (probitInv=pnorm)
+          if (length(.ret0) == 1) {
+            .ret <- paste0("0.5*(1+erf((", unlist(.ret0)[1], ")/sqrt(2)))")
+          } else if (length(.ret0) == 2) {
+            .ret0 <- unlist(.ret0)
+            .p <- paste0("0.5*(1+erf((", .ret0[1], ")/sqrt(2)))")
+            ## return (high-low)*p+low;
+            .ret <- paste0(
+              "(1.0-(", .ret0[2], "))*(", .p,
+              ")+(", .ret0[2], ")"
+            )
+          } else if (length(.ret0) == 3) {
+            .ret0 <- unlist(.ret0)
+            .p <- paste0("0.5*(1+erf((", .ret0[1], ")/sqrt(2)))")
+            .ret <- paste0(
+              "((", .ret0[3], ")-(", .ret0[2], "))*(", .p,
+              ")+(", .ret0[2], ")"
+            )
+          } else {
+            stop("'probitInv' requires 1-3 arguments",
+              call. = FALSE
+            )
+          }
+        } else if (.fun == "probit") {
+          ##erfinv <- function (x) qnorm((1 + x)/2)/sqrt(2) (probit=qnorm )
+          if (length(.ret0) == 1) {
+            .ret <- paste0("sqrt(2)*erfinv(2*(", unlist(.ret0), ")-1)")
+          } else if (length(.ret0) == 2) {
+            .ret0 <- unlist(.ret0)
+            .p <- paste0(
+              "((", .ret0[1], ")-(", .ret0[2], "))/(1.0-",
+              "(", .ret0[2], "))"
+            )
+            .ret <- paste0("sqrt(2)*erfinv(2*(", .p, ")-1)")
+          } else if (length(.ret0) == 3) {
+            .ret0 <- unlist(.ret0)
+            ## (x-low)/(high-low)
+            .p <- paste0(
+              "((", .ret0[1], ")-(", .ret0[2],
+              "))/((", .ret0[3], ")-(", .ret0[2], "))"
+            )
+            .ret <- paste0("sqrt(2)*erfinv(2*(", .p, ")-1)")
+          } else {
+            stop("'probit' requires 1-3 arguments",
+              call. = FALSE
+            )
+          }
         } else if (.fun == "logit") {
           if (length(.ret0) == 1) {
             .ret <- paste0("-log(1/(", unlist(.ret0), ")-1)")
