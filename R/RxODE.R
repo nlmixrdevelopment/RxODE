@@ -327,7 +327,7 @@ R_PosInf <- Inf # nolint
 ##' @importFrom Rcpp evalCpp
 ##' @importFrom checkmate qassert
 ##' @importFrom utils getFromNamespace assignInMyNamespace download.file head sessionInfo
-##' @importFrom stats setNames update
+##' @importFrom stats setNames update dnorm integrate
 ##' @importFrom methods signature is
 ##' @importFrom memoise memoise
 ##' @import tools

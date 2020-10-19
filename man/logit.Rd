@@ -29,6 +29,10 @@ high]}
 \item{mean}{logit-scale mean}
 
 \item{sd}{logit-scale standard deviation}
+
+\item{abs.tol}{absolute accuracy requested.}
+
+\item{...}{other parameters passed to `integrate()`}
 }
 \description{
 logit and inverse logit (expit) functions

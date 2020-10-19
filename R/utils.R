@@ -869,6 +869,10 @@ gammapInva <- function(x, p) {
 ##'
 ##' @param sd logit-scale standard deviation
 ##'
+##' @inheritParams stats::integrate
+##'
+##' @param ... other parameters passed to `integrate()`
+##'
 ##' @details
 ##'
 ##' logit is given by:
