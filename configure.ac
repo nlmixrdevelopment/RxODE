@@ -34,7 +34,7 @@ AC_SUBST(ISYSTEM)
 AC_CONFIG_FILES([src/Makevars])
 AC_OUTPUT
 
-echo "writeLines(sprintf(\"RxODE.md5 <- \\\"%s\\\"\\n\", digest::digest(sapply(c(paste0(\"src/\", list.files(\"src\", pattern = \"[.](c|h|cpp|f)$\")), paste0(\"inst/include/\", list.files(\"inst/include\")), paste0(\"R/\", list.files(\"R/\", pattern = \"[.]R\"))), digest::digest, file = TRUE))), \"R/RxODE_md5.R\")" > build.R
+echo "unlink(\"R/RxODE_md5.R\"); writeLines(sprintf(\"RxODE.md5 <- \\\"%s\\\"\\n\", digest::digest(sapply(c(paste0(\"src/\", list.files(\"src\", pattern = \"[.](c|h|cpp|f)$\")), paste0(\"inst/include/\", list.files(\"inst/include\")), paste0(\"R/\", list.files(\"R/\", pattern = \"[.]R\"))), digest::digest, file = TRUE))), \"R/RxODE_md5.R\")" > build.R
 
 ${R_HOME}/bin/R CMD BATCH build.R
 rm build.R
