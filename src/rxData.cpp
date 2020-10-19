@@ -4640,7 +4640,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 #endif// rxSolveT
     rxOptionsIniEnsure(rxSolveDat->nPopPar); // 1 simulation per parameter specification
 
-
     // Setup some data-based parameters like hmax
     rxSolve_datSetupHmax(object, rxControl, specParams, extraArgs,
 			 pars, ev1, inits, rxSolveDat);

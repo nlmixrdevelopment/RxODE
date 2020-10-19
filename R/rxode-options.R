@@ -19,9 +19,7 @@
 
   ## .s3Register("tibble::as_tibble", "rxEt")
   ## .s3Register("as.data.table", "rxEt")
-
   backports::import(pkgname)
-  backports::import(deparse1)
   ## Setup RxODE.prefer.tbl
   .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO") == "1")
   rxPermissive(respect = TRUE) ## need to call respect on the first time
@@ -71,6 +69,17 @@
   ## nocov end
 }
 
+.mkCache <- function(.tmp) {
+  if (!file.exists(.tmp)) {
+    dir.create(.tmp, recursive = TRUE)
+  } else if (!file.exists(file.path(.tmp, paste(RxODE.md5, ".md5")))) {
+    packageStartupMessage("detected new version of RxODE, cleaning cache")
+    unlink(.tmp, recursive=TRUE, force=TRUE)
+    dir.create(.tmp, recursive = TRUE)
+    writeLines("RxODE", file.path(.tmp, paste(RxODE.md5, ".md5")))
+  }
+}
+
 .rxTempDir0 <- NULL
 .cacheDefault <- NULL
 ##' Get the RxODE temporary directory
@@ -90,9 +99,7 @@ rxTempDir <- function() {
         .tmp <- R_user_dir("RxODE", "cache")
       }
     }
-    if (!file.exists(.tmp)) {
-      dir.create(.tmp, recursive = TRUE)
-    }
+    .mkCache(.tmp)
     .tmp <- .normalizePath(.tmp)
     Sys.setenv(rxTempDir = .tmp)
     utils::assignInMyNamespace(".rxTempDir0", .tmp)
@@ -100,9 +107,7 @@ rxTempDir <- function() {
     return(.tmp)
   } else {
     .tmp <- getFromNamespace(".rxTempDir0", "RxODE")
-    if (!file.exists(.tmp)) {
-      dir.create(.tmp, recursive = TRUE)
-    }
+    .mkCache(.tmp)
     utils::assignInMyNamespace("RxODE.cache.directory", .tmp)
     return(.tmp)
   }

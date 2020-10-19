@@ -23,7 +23,7 @@ if [ "$R_HOME" = "" ]; then
 fi
 
 if [ -z $1 ]; then
-    $R_HOME/bin/Rscript inst/tools/stripper.R
+    $R_HOME/bin/Rscript inst/tools/r-stripper/stripper.R
 else
-    $R_HOME/bin/Rscript inst/tools/stripper.R "$1"
+    $R_HOME/bin/Rscript inst/tools/r-stripper/stripper.R "$1"
 fi

@@ -2057,7 +2057,6 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
 rxS <- function(x, doConst = TRUE, promoteLinSens = FALSE) {
   .cnst <- names(.rxSEreserved)
   .env <- new.env(parent = loadNamespace("symengine"))
-  on.exit(assign(".env", .env, globalenv()))
   .env$..mv <- rxModelVars(x)
   .env$..jac0 <- c()
   .env$..jac0.. <- list()
