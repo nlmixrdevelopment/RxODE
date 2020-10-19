@@ -60,7 +60,7 @@ rxPermissive(
 
     expect_equal(
       rxToSE("expit(a)"),
-      "1/(1+exp(-(a))"
+      "1/(1+exp(-(a)))"
     )
     expect_equal(
       rxToSE("expit(a,b)"),

@@ -98,7 +98,7 @@ rxPermissive(
       ## expect_equal(rxFromSymPy(log((1 + x)^2)), "log1p(Rx_pow_di(x, 2)+2 * x)")
       ## expect_equal(rxFromSymPy(log((0.75 + x)^2)), "log1p(Rx_pow_di(x, 2)+1.5 * x-0.4375)")
 
-      expect_equal(rxFromSE(E), "M_E")
+      expect_equal(rxFromSE(E), "2.7182818284590451")
       expect_equal(rxToSE(M_E), "E")
 
       expect_equal(rxToSE(exp(1)), "E")
