@@ -300,7 +300,7 @@ rxPermissive({
     })
 
     ev <- eventTable(amount.units="mg", time.units="hours") %>%
-      add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
+      add.dosing(dose=10000, nbr.doses=1, dosing.to=1) %>%
       add.sampling(seq(0,48,length.out=100));
 
 
@@ -314,7 +314,7 @@ rxPermissive({
     expect_true(all(is.na(x$tade)))
 
     ev <- eventTable(amount.units="mg", time.units="hours") %>%
-      add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
+      add.dosing(dose=10000, nbr.doses=1, dosing.to=) %>%
       add.dosing(dose=-1, start.time=6, nbr.doses=1) %>%
       add.sampling(seq(0,48,length.out=20));
 

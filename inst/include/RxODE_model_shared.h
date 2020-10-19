@@ -108,6 +108,8 @@ double _transit3P(double t, unsigned int id, double n, double mtt){
   return exp(log(_solveData->subjects[id].podo)+lktr+n*(lktr+log(tc))-ktr*(tc)-lgamma1p(n));
 }
 
+typedef int (*_RxODE_swapCmt_type)(int *cmt);
+_RxODE_swapCmt_type _swapCmt;
 
 #ifdef _isRxODE_
 double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
@@ -142,6 +144,7 @@ void _assignFuns(){
     _prodType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_prod_get");
     _sumType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_sum_get");
     _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
+    _swapCmt=(_RxODE_swapCmt_type)R_GetCCallable("RxODE", "_RxODE_swapCmt");
     /* solveLinB=(solveLinB_p)R_GetCCallable("RxODE", "solveLinB"); */
     /* _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr"); */
     _solveData = _getRxSolve_();
@@ -228,6 +231,7 @@ void _assignFuns(){
     _compareFactorVal=(RxODE_compareFactorVal_fn) R_GetCCallable("RxODE", "compareFactorVal");
     _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
     _getParCov = (_getParCov_p) R_GetCCallable("RxODE","_getParCov");
+    _swapCmt=(_RxODE_swapCmt_type)R_GetCCallable("RxODE", "_RxODE_swapCmt");
     _solveData = _getRxSolve_();
   }
 }

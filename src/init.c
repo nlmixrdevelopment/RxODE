@@ -302,6 +302,8 @@ void handleTlast(double *time, rx_solving_options_ind *ind);
 SEXP _probit(SEXP xS, SEXP lowS, SEXP highS);
 SEXP _probitInv(SEXP xS, SEXP lowS, SEXP highS);
 
+int _RxODE_swapCmt(int cmt);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
@@ -474,6 +476,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "_getParCov", (DL_FUNC) &_getParCov);
   R_RegisterCCallable("RxODE","rxRmModelLib", (DL_FUNC) &rxRmModelLib);
   R_RegisterCCallable("RxODE","rxGetModelLib", (DL_FUNC) &rxGetModelLib);
+  R_RegisterCCallable("RxODE", "_RxODE_swapCmt", (DL_FUNC) &_RxODE_swapCmt);
   
   R_RegisterCCallable("RxODE","RxODE_ode_free",           (DL_FUNC) &RxODE_ode_free);
   

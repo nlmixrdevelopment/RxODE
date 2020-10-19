@@ -1,5 +1,5 @@
 ## Refactor Jacobian calculation
-##' Faster expand.grid
+##' Faster old expand.grid (except with altrep)
 ##'
 ##' Only support x and y as characters right now
 ##'

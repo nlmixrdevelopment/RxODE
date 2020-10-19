@@ -275,7 +275,11 @@ typedef struct {
   double *ypNA;
   bool sample;
   int *par_sample;
+  int linKa;
+  int linNcmt;
 } rx_solve;
+
+  
   
 typedef void (*t_set_solve)(rx_solve *);
 typedef rx_solve *(*t_get_solve)();

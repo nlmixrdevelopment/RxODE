@@ -624,6 +624,31 @@ extern "C" rx_solve *getRxSolve_(){
   return &rx_global;
 }
 
+extern "C" int _RxODE_swapCmt(int cmt) {
+  if (rx_global.linNcmt != 0) {
+    if (rx_global.linKa) {
+      switch (cmt) {
+      case 0:
+	return op_global.neq;
+	break;
+      case 1:
+	return op_global.neq + 1;
+	break;
+      default:
+	return cmt - 2;
+	break;
+      }
+    } else {
+      if (cmt == 0) {
+	return op_global.neq;
+      } else {
+	return cmt - 1;
+      }
+    }
+  }
+  return cmt;
+}
+
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0){
   *wh = evid;
   *cmt = 0;
@@ -633,6 +658,28 @@ extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh
   *wh0 = floor((*wh%10000)/100);
   *cmt = *wh0 - 1 + *wh100*100;
   *wh0 = evid - *wh100*1e5 - *whI*1e4 - *wh0*100;
+  if (rx_global.linNcmt != 0) {
+    if (rx_global.linKa) {
+      switch (*cmt) {
+      case 0:
+	*cmt = op_global.neq;
+	break;
+      case 1:
+	*cmt = op_global.neq + 1;
+	break;
+      default:
+	*cmt -= 2;
+	break;
+      }
+    } else {
+      if (*cmt == 0) {
+	*cmt = op_global.neq;
+      } else {
+	*cmt -= 1;
+      }
+    }
+  }
+  *cmt = _RxODE_swapCmt(*cmt);
 }
 
 void updateRate(int idx, rx_solving_options_ind *ind, double *yp){
