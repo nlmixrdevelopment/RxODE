@@ -19,9 +19,7 @@
 
   ## .s3Register("tibble::as_tibble", "rxEt")
   ## .s3Register("as.data.table", "rxEt")
-
   backports::import(pkgname)
-  backports::import(deparse1)
   ## Setup RxODE.prefer.tbl
   .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO") == "1")
   rxPermissive(respect = TRUE) ## need to call respect on the first time
