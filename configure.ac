@@ -40,6 +40,8 @@ ${R_HOME}/bin/R CMD BATCH build.R
 rm build.R
 rm build.Rout
 
+${R_HOME}/bin/R CMD BATCH  inst/tools/r-stripper/stripper.R
+
 echo --------[[begin src/Makevars]]--------
 cat src/Makevars
 echo --------[[end src/Makevars]]--------
@@ -47,4 +49,3 @@ echo --------[[end src/Makevars]]--------
 echo --------[[begin R/RxODE_md5.R]]--------
 cat R/RxODE_md5.R
 echo --------[[end R/RxODE_md5.R]]--------
-

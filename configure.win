@@ -17,7 +17,10 @@ echo "if(!file.exists(\"src/Makevars.win\")) writeLines(gsub(\"@ISYSTEM@\",\"I\"
 ${R_HOME}/bin/R CMD BATCH build.R
 rm build.R
 rm build.Rout
-sh inst/tools/stripper
+
+${R_HOME}/bin/R CMD BATCH inst/tools/r-stripper/stripper.R
+rm stripper.Rout
+
 echo --------[[begin src/Makevars.win]]--------
 cat src/Makevars.win
 echo --------[[end src/Makevars.win]]--------
