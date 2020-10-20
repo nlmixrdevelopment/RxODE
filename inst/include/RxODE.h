@@ -229,6 +229,7 @@ typedef struct {
   // Cache duration
   double *cDur;
   double solveTime;
+  double curShift;
 } rx_solving_options_ind;
 
 typedef struct {
@@ -275,6 +276,7 @@ typedef struct {
   double *ypNA;
   bool sample;
   int *par_sample;
+  double maxShift;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);

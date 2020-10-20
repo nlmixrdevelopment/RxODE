@@ -128,7 +128,7 @@ d/dt(blood)     = a*intestine - b*blood
   .n <- gsub("[.]", "_", names(attr(class(ett1), ".RxODE")))
 
   cat(paste(paste0("#define RxTrans_", .n, " ", seq_along(.n)-1),collapse="\n"))
-  cat(paste0("\n#define RxTransNames CharacterVector _en(27);",
+  cat(paste0("\n#define RxTransNames CharacterVector _en(28);",
              paste(paste0("_en[",seq_along(.n)-1,']="', .n, '";'), collapse=""),"e.names() = _en;"))
   cat("\n");
   cat("\n#endif // __RxODE_control_H__\n")

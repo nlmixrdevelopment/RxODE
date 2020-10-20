@@ -2743,7 +2743,7 @@ static inline void handleSSL(double *A,// Amounts
   }
 }
 
-double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
+double linCmtA(rx_solve *rx, unsigned int id, double _t, int linCmt,
 	       int i_cmt, int trans,
 	       double p1, double v1,
 	       double p2, double p3,
@@ -2752,6 +2752,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       // Oral parameters
 	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2) {
   rx_solving_options_ind *ind = &(rx->subjects[id]);
+  double t = _t - ind->curShift;
   int evid = 0;
   int idx = ind->idx;
   double Alast0[4] = {0, 0, 0, 0};
@@ -2850,7 +2851,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double t, int linCmt,
 }
 
 
-double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
+double linCmtC(rx_solve *rx, unsigned int id, double _t, int linCmt,
 	       int i_cmt, int trans,
 	       double p1, double v1,
 	       double p2, double p3,
@@ -2859,6 +2860,7 @@ double linCmtC(rx_solve *rx, unsigned int id, double t, int linCmt,
 	       // Oral parameters
 	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2) {
   rx_solving_options_ind *ind = &(rx->subjects[id]);
+  double t = _t - ind->curShift;
   rx_solving_options *op = rx->op;
   double *rate = ind->linCmtRate;
   int oldIdx = ind->idx;
@@ -3434,16 +3436,7 @@ double derTrans(rx_solve *rx, double *A, int ncmt, int trans, int val,
   return R_NaN;
 }
 
-double linCmtG(rx_solve *rx, unsigned int id, double t, int linCmt,
-	       int i_cmt, int trans, int val,
-	       double p1, double v1,
-	       double p2, double p3,
-	       double p4, double p5,
-	       double d_tlag, double d_F, double d_rate1, double d_dur1,
-	       // Oral parameters
-	       double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2);
-
-double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
+double linCmtF(rx_solve *rx, unsigned int id, double _t, int linCmt,
 	       int i_cmt, int trans, int val,
 	       double p1, double v1,
 	       double p2, double p3,
@@ -3456,6 +3449,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double t, int linCmt,
   /* 		    p1, v1, p2, p3, p4, p5, d_tlag, d_F, */
   /* 		    d_rate1, d_dur1, d_ka, d_tlag2, d_F2, d_rate2, d_dur2); */
   rx_solving_options_ind *ind = &(rx->subjects[id]);
+  double t = _t - ind->curShift;
   int evid;
   /* evid = ind->evid[ind->ix[ind->idx]]; */
   /* if (evid) REprintf("evid0[%d:%d]: %d; curTime: %f\n", id, ind->idx, evid, t); */

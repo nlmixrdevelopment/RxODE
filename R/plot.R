@@ -202,9 +202,17 @@ plot.rxSolve <- function(x, y, ..., log = "",
   .nlvl <- 1L
   if (any(names(.dat) == "id")) {
     if (any(names(.dat) == "sim.id")) {
-      .dat$id <- factor(paste0("id=", .dat$id, ", sim.id=", .dat$sim.id))
+      if (any(names(.dat) == "resetno")) {
+        .dat$id <- factor(paste0("id=", .dat$id, ", sim.id=", .dat$sim.id, ", resetno=", .dat$resetno))
+      } else {
+        .dat$id <- factor(paste0("id=", .dat$id, ", sim.id=", .dat$sim.id))
+      }
     } else {
-      .dat$id <- factor(.dat$id)
+      if (any(names(.dat) == "resetno")) {
+        .dat$id <- factor(paste0("id=", .dat$id, ", resetno=", .dat$resetno))
+      } else {
+        .dat$id <- factor(.dat$id)
+      }
     }
     .nlvl <- length(levels(.dat$id))
     .dat2 <- .dat[rev(seq_along(.dat$id)), ]
@@ -216,7 +224,11 @@ plot.rxSolve <- function(x, y, ..., log = "",
     .aesG <- aes(.data$time, .data$value, group = .data$id)
     .aesLab <- aes(label = .data$label)
   } else if (any(names(.dat) == "sim.id")) {
-    .dat$sim.id <- factor(.dat$sim.id)
+    if (any(names(.dat) == "resetno")) {
+      .dat$sim.id <- factor(paste0("sim.id=", .dat$sim.id, ", resetno=", .dat$resetno))
+    } else {
+      .dat$sim.id <- factor(.dat$sim.id)
+    }
     .nlvl <- length(levels(.dat$sim.id))
     .dat2 <- .dat[rev(seq_along(.dat$sim.id)), ]
     .dat2$label <- .dat$sim.id
@@ -225,6 +237,17 @@ plot.rxSolve <- function(x, y, ..., log = "",
     .dat2 <- .dat2[!duplicated(paste0(.dat2$sim.id, .dat2$trt)), ]
     .aes <- aes(.data$time, .data$value, color = .data$sim.id)
     .aesG <- aes(.data$time, .data$value, group = .data$sim.id)
+    .aesLab <- aes(label = .data$label)
+  } else if (any(names(.dat) == "resetno")) {
+    .dat$resetno <- factor(.dat$resetno)
+    .nlvl <- length(levels(.dat$resetno))
+    .dat2 <- .dat[rev(seq_along(.dat$resetno)), ]
+    .dat2$label <- .dat$resetno
+    .dat2$time <- .dropUnits(.dat2$time)
+    row.names(.dat2) <- NULL
+    .dat2 <- .dat2[!duplicated(paste0(.dat2$resetno, .dat2$trt)), ]
+    .aes <- aes(.data$time, .data$value, color = .data$resetno)
+    .aesG <- aes(.data$time, .data$value, group = .data$resetno)
     .aesLab <- aes(label = .data$label)
   } else {
     .aes <- aes(.data$time, .data$value)
