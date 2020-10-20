@@ -2561,7 +2561,7 @@ extern "C" SEXP getDfLevels(const char *item, rx_solve *rx){
 
 extern "C" void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
 
-extern "C" SEXP RxODE_df(int doDose0, int doTBS){
+extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   rx_solve *rx;
   rx = &rx_global;
   rx_solving_options *op = &op_global;
@@ -2671,7 +2671,9 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   if (doDose){
     doseCols = 2;
   }
-  int nidCols = md + sm;
+  int ms = 0;
+  if (rx->maxShift != 0.0) ms = 1;
+  int nidCols = md + sm + ms;
   int pro = 0;
   if (op->badSolve){
     if (op->naTime){
@@ -2712,7 +2714,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   SEXP paramNames = PROTECT(rxParamNames(op->modNamePtr)); pro++;
   SEXP ikeepNames = PROTECT(get_ikeepn()); pro++;
   SEXP fkeepNames = PROTECT(get_fkeepn()); pro++;
-  for (i = md + sm + doseCols + 2*nmevid; i < ncols + doseCols + nidCols + 2*nmevid; i++){
+  for (i = md + sm + ms + doseCols + 2*nmevid; i < ncols + doseCols + nidCols + 2*nmevid; i++){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
   // These could be factors
@@ -2743,8 +2745,10 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   }
   // Now create the data frame
   int curi = 0;
+  int resetno = 0;
   for (int csim = 0; csim < nsim; csim++){
     for (csub = 0; csub < nsub; csub++){
+      resetno=0;
       neq[1] = csub+csim*nsub;
       ind = &(rx->subjects[neq[1]]);
       iniSubject(neq[1], 1, ind, op, rx, update_inis);
@@ -2757,7 +2761,10 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
       }
       for (i = 0; i < ntimes; i++){
 	ind->idx = i;
-	if (evid == 3) ind->curShift -= rx->maxShift;
+	if (evid == 3) {
+	  ind->curShift -= rx->maxShift;
+	  resetno++;
+	}
 	double curT = getTime(ind->ix[ind->idx], ind) + ind->curShift;
         evid = ind->evid[ind->ix[ind->idx]];
 	if (evid == 9) continue;
@@ -2809,6 +2816,11 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
             dfi[ii] = csub+1;
             jj++;
           }
+	  if (ms) {
+	    dfi = INTEGER(VECTOR_ELT(df, jj));
+            dfi[ii] = resetno+1;
+            jj++;
+	  }
 	  if (doDose){
 	    if (nmevid){
 	      if (isObs(evid)) {
@@ -3198,6 +3210,10 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
   // id
   if (md){
     SET_STRING_ELT(sexp_colnames, jj, mkChar("id"));
+    jj++;
+  }
+  if (ms) {
+    SET_STRING_ELT(sexp_colnames, jj, mkChar("resetno"));
     jj++;
   }
   if (doDose){
