@@ -842,7 +842,15 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   REprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
-  for (int i = 0; i < inTime.size(); i++){
+
+  bool isSorted = true;
+  int lastId = NA_INTEGER;
+  double lastTime = NA_REAL;
+  bool hasReset = false;
+  bool resetTime = true;
+  double maxShift = 0;
+
+  for (int i = 0; i < inTime.size(); i++) {
     if (idCol == -1) cid = 1;
     else cid = inId[i];
     if (dvCol == -1) cdv = NA_REAL;
@@ -1226,7 +1234,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  idxO.push_back(curIdx);curIdx++;
 	  ndose++;
 	}
-	
 	cevid = -1;
       }
       break;
@@ -1242,6 +1249,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       evid.push_back(3);
       cmtF.push_back(cmt);
       time.push_back(ctime);
+      if (lastTime > ctime) {
+	maxShift = max2(maxShift, lastTime-ctime);
+      }
+      hasReset = true;
+      lastTime = ctime; // To see if this is NONMEM-style sorted; ie. resets can reset time, but otherwise sorted by ID and time
       if (ctime == 0){
 	if (std::find(zeroId.begin(), zeroId.end(), cid) == zeroId.end()){
 	  zeroId.push_back(cid);
@@ -1265,6 +1277,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       evid.push_back(3);
       cmtF.push_back(cmt);
       time.push_back(ctime);
+      if (lastTime > ctime) {
+	maxShift = max2(maxShift, lastTime-ctime);
+      }
+      hasReset = true;
+      lastTime = ctime; // To see if this is NONMEM-style sorted; ie. resets can reset time, but otherwise sorted by ID and time
       if (ctime == 0){
 	if (std::find(zeroId.begin(), zeroId.end(), cid) == zeroId.end()){
 	  zeroId.push_back(cid);
@@ -1431,6 +1448,38 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	}
       }
     }
+    if (lastId != cid) {
+      // New Id
+      lastId = cid;
+    } else if (lastTime > ctime) {
+      isSorted = false; // The prior EVID=3 w/reset a reset time
+    }
+    lastTime = ctime;
+  }
+  if (hasReset && isSorted){
+    // Here EVID=3 resets time
+    // need to reset times here based on maxShift
+    if (maxShift > 0) {
+      maxShift += 0.1;
+      lastId = NA_INTEGER;
+      lastTime = time[0];
+      double curShift = 0.0;
+      for (int j = 0; j < evid.size(); ++j) {
+	if (lastId != id[j]) {
+	  lastId = id[j];
+	  curShift = 0.0;
+	  lastTime = time[j];
+	}
+	if (evid[j] == 3) {
+	  curShift += maxShift;
+	}
+	time[j] += curShift;
+	lastTime = time[j];
+      }
+    }
+  } else if (hasReset & !isSorted & maxShift > 0) {
+    warning(_("there are evid=3/4 records in an incorrectly sorted dataset, system is reset, but time is not reset"));
+    maxShift = 0.0;
   }
 #ifdef rxSolveT
   REprintf("  Time5: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
@@ -1583,7 +1632,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   
   
   if (idxO.size()==0) stop(_("empty data"));
-  int lastId = id[idxO.back()]+42;
+  lastId = id[idxO.back()]+42;
   int rmAmt = 0;
   // Remove trailing doses
   if (!keepDosingOnly){
@@ -1927,7 +1976,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   Rf_setAttrib(lst1F, R_ClassSymbol, wrap("data.frame"));
   Rf_setAttrib(lst1F, R_RowNamesSymbol,
 	       IntegerVector::create(NA_INTEGER, -nid));
-  List e(27);
+  List e(28);
   RxTransNames;
   e[RxTrans_ndose] = IntegerVector::create(ndose);
   e[RxTrans_nobs]  = IntegerVector::create(nobs);
@@ -1978,6 +2027,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   e[RxTrans_limitAdd] = limitAdd;
   e[RxTrans_levelInfo] = inDataLvl;
   e[RxTrans_idInfo] = idInt;
+  e[RxTrans_maxShift] = maxShift;
   Rf_setAttrib(keepL, R_NamesSymbol, keepN);
   Rf_setAttrib(keepL, R_ClassSymbol, wrap("data.frame"));
   Rf_setAttrib(keepL, R_RowNamesSymbol,
