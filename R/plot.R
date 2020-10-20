@@ -202,14 +202,14 @@ plot.rxSolve <- function(x, y, ..., log = "",
   .nlvl <- 1L
   if (any(names(.dat) == "id")) {
     if (any(names(.dat) == "sim.id")) {
-      if (any(names(.dat)) == "resetno") {
-        .dat$id <- factor(paste0("id=", .dat$id, ", sim.id=", .dat$sim.id, ", resetno=", dat$resetno))
+      if (any(names(.dat) == "resetno")) {
+        .dat$id <- factor(paste0("id=", .dat$id, ", sim.id=", .dat$sim.id, ", resetno=", .dat$resetno))
       } else {
         .dat$id <- factor(paste0("id=", .dat$id, ", sim.id=", .dat$sim.id))
       }
     } else {
       if (any(names(.dat) == "resetno")) {
-        .dat$id <- factor(paste0("id=", .dat$id, ", resetno=", dat$resetno))
+        .dat$id <- factor(paste0("id=", .dat$id, ", resetno=", .dat$resetno))
       } else {
         .dat$id <- factor(.dat$id)
       }
@@ -224,8 +224,8 @@ plot.rxSolve <- function(x, y, ..., log = "",
     .aesG <- aes(.data$time, .data$value, group = .data$id)
     .aesLab <- aes(label = .data$label)
   } else if (any(names(.dat) == "sim.id")) {
-    if (any(names(.dat)) == "resetno") {
-      .dat$sim.id <- factor(paste0("sim.id=", .dat$sim.id, ", resetno=", dat$resetno))
+    if (any(names(.dat) == "resetno")) {
+      .dat$sim.id <- factor(paste0("sim.id=", .dat$sim.id, ", resetno=", .dat$resetno))
     } else {
       .dat$sim.id <- factor(.dat$sim.id)
     }
