@@ -2494,7 +2494,7 @@ extern "C" double linCmtF(rx_solve *rx, unsigned int id,
 			  double dd_ka, double dd_tlag2,
 			  double dd_F2, double dd_rate2, double dd_dur2);
 extern "C" double linCmtB(rx_solve *rx, unsigned int id,
-			  double t, int linCmt,
+			  double _t, int linCmt,
 			  int ncmt, int trans, int val,
 			  double dd_p1, double dd_v1,
 			  double dd_p2, double dd_p3,
@@ -2509,6 +2509,7 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
     // Get  Alast
     stanad:
   rx_solving_options_ind *ind = &(rx->subjects[id]);
+  double t = _t - ind->curShift;
   int idx = ind->idx;
   rx_solving_options *op = rx->op;
   int oral0 = (dd_ka != 0) ? 1 : 0;
@@ -2637,21 +2638,21 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
   }
     break;
   case 2: // forward difference
-    return linCmtD(rx, id, t, linCmt, ncmt, trans, val,
+    return linCmtD(rx, id, _t, linCmt, ncmt, trans, val,
 		    dd_p1, dd_v1, dd_p2, dd_p3,
 		    dd_p4, dd_p5, dd_tlag, dd_F,
 		    dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,
 		    dd_rate2, dd_dur2);
     break;
   case 3: //central difference
-    return linCmtE(rx, id, t, linCmt, ncmt, trans, val,
+    return linCmtE(rx, id, _t, linCmt, ncmt, trans, val,
 		   dd_p1, dd_v1, dd_p2, dd_p3,
 		   dd_p4, dd_p5, dd_tlag, dd_F,
 		   dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,
 		   dd_rate2, dd_dur2);
   case 4: // symbolic advan
     if (ncmt == 2 || ncmt == 3) goto stanad;
-    return linCmtF(rx, id, t, linCmt, ncmt, trans, val,
+    return linCmtF(rx, id, _t, linCmt, ncmt, trans, val,
 		   dd_p1, dd_v1, dd_p2, dd_p3,
 		   dd_p4, dd_p5, dd_tlag, dd_F,
 		   dd_rate, dd_dur, dd_ka, dd_tlag2, dd_F2,
