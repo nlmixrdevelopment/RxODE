@@ -1460,7 +1460,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       // New Id
       lastId = cid;
     } else if (lastTime > ctime) {
-      REprintf("lastTime: %f ctime: %f\n", lastTime, ctime);
       isSorted = false; // The prior EVID=3 w/reset a reset time
     }
   }
