@@ -3305,6 +3305,11 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
       SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
       jj++;kk++;
     }
+    if (ms) {
+      SET_STRING_ELT(sexp_colnames, jj, mkChar("resetno"));
+      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+      jj++; kk++;
+    }
     SET_STRING_ELT(sexp_colnames2, jj, mkChar("evid"));
     SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
     jj++;kk++;
