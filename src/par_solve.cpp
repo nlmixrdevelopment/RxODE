@@ -754,7 +754,8 @@ static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
 }
 
 extern "C" double getTime(int idx, rx_solving_options_ind *ind){
-  // Since the lag time now can depend on state values (and implicitly time), cache the time values
+  rx_solving_options *op = &op_global;
+  rx_solve *rx = &rx_global;
   int evid = ind->evid[idx];
   if (evid == 9) return 0.0;
   if (evid >= 10 && evid <= 99) return ind->mtime[evid-10];
@@ -762,8 +763,6 @@ extern "C" double getTime(int idx, rx_solving_options_ind *ind){
   double ret;
   getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
   double *yp;
-  rx_solving_options *op = &op_global;
-  rx_solve *rx = &rx_global;
   if (ind->wh0 == 40){
   } else {
     // yp should be the current solve values
@@ -1075,6 +1074,7 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
   ind->ixds=ind->idx=0; // reset dosing
   ind->id=solveid;
   ind->cacheME=0;
+  ind->curShift=0.0;
   // neq[0] = op->neq
   for (int j = (op->neq + op->extraCmt); j--;) {
     ind->InfusionRate[j] = 0;
@@ -1750,7 +1750,7 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   unsigned int j;
   for(i=0; i<nx; i++) {
     ind->idx=i;
-    xout = getTime(ind->ix[i], ind);
+    xout = getTime(ind->ix[i], ind) + ind->curShift;
     yp = getSolve(i);
     if(ind->evid[ind->ix[i]] != 3 && !isSameTime(xout, xp)) {
       if (ind->err){
@@ -1768,6 +1768,7 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
     if (!op->badSolve){
       ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
+	ind->curShift -= rx->maxShift;
 	for (j = neq[0]; j--;) {
 	  ind->InfusionRate[j] = 0;
 	  ind->on[j] = 1;
@@ -1889,7 +1890,7 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   for(i=0; i<nx; i++) {
     ind->idx=i;
     yp = getSolve(i);
-    xout = getTime(ind->ix[i], ind);
+    xout = getTime(ind->ix[i], ind)  + ind->curShift;
     if(ind->evid[ind->ix[i]] != 3 && !isSameTime(xout, xp)) {
       if (ind->err){
 	*rc = -1000;
@@ -1904,6 +1905,7 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
     if (!op->badSolve){
       ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
+	ind->curShift -= rx->maxShift;
 	for (j = neq[0]; j--;) {
 	  ind->InfusionRate[j] = 0;
 	  ind->on[j] = 1;
@@ -2155,7 +2157,7 @@ extern "C" void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, in
   for(i=0; i < ind->n_all_times; i++) {
     ind->idx=i;
     yp   = getSolve(i);
-    xout = getTime(ind->ix[i], ind);
+    xout = getTime(ind->ix[i], ind)  + ind->curShift;
     if (ind->evid[ind->ix[i]] != 3 && !isSameTime(xout, xp)) {
       if (ind->err){
 	ind->rc[0] = -1000;
@@ -2172,6 +2174,7 @@ extern "C" void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, in
     if (!op->badSolve){
       ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
+	ind->curShift -= rx->maxShift;
 	for (j = neq[0]; j--;) {
 	  ind->InfusionRate[j] = 0;
 	  ind->on[j] = 1;
@@ -2304,7 +2307,7 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
   for(i=0; i<nx; i++) {
     ind->idx=i;
     yp = getSolve(i);
-    xout = getTime(ind->ix[i], ind);
+    xout = getTime(ind->ix[i], ind) + ind->curShift;
     if (global_debug){
       RSprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
     }
@@ -2348,6 +2351,7 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
     if (!op->badSolve){
       ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
+	ind->curShift -= rx->maxShift;
 	for (j = neq[0]; j--;) {
 	  ind->InfusionRate[j] = 0;
 	  ind->on[j] = 1;
@@ -2753,10 +2757,10 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
       }
       for (i = 0; i < ntimes; i++){
 	ind->idx = i;
-	double curT = getTime(ind->ix[ind->idx], ind);
+	if (evid == 3) ind->curShift -= rx->maxShift;
+	double curT = getTime(ind->ix[ind->idx], ind) + ind->curShift;
         evid = ind->evid[ind->ix[ind->idx]];
 	if (evid == 9) continue;
-	if (!isObs(evid)) handleTlastInline(&curT, ind);
 	if (nlhs){
 	  calc_lhs(neq[1], curT, getSolve(i), ind->lhs);
 	}
@@ -3063,7 +3067,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS){
 	  }
           // time
           dfp = REAL(VECTOR_ELT(df, jj++));
-          dfp[ii] = getTime(ind->ix[i], ind);
+          dfp[ii] = getTime(ind->ix[i], ind)  + ind->curShift;
           // LHS
           if (nlhs){
 	    for (j = 0; j < nlhs; j++){

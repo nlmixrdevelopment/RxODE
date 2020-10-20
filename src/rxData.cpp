@@ -200,6 +200,8 @@ bool rxIs_list(const RObject &obj, std::string cls){
 	hasDf=true;
       }
     }
+    rx_solve* rx = getRxSolve_();
+    rx->maxShift = 0.0;
     if (hasDf && (cls == "rx.event" || cls == "event.data.frame")){
       if (classattr[0] == "rxEtTran"){
 	rxcEvid = 2;
@@ -211,6 +213,7 @@ bool rxIs_list(const RObject &obj, std::string cls){
 	List e = as<List>(classattr.attr(".RxODE.lst"));
 	int censAdd = asInt(e[RxTrans_censAdd], "censAdd");
 	int limitAdd = asInt(e[RxTrans_limitAdd], "limitAdd");
+	rx->maxShift = asDouble(e[RxTrans_maxShift],"maxShift");
 	if (censAdd == 1 && limitAdd == 1) {
 	  rxcCens = 6;
 	  rxcLimit = 7;
