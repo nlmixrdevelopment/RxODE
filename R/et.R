@@ -1014,11 +1014,11 @@ etSeq <- function(..., samples = c("clear", "use"), waitII = c("smart", "+ii"), 
   ## etSeq_(List ets, bool clearSampling=clearSampling);
   .sampleIx <- c(clear = 0L, use = 1L)
   .waitIx <- c(smart = 0L, `+ii` = 1L)
-  .Call(
+  .collectWarnings(.Call(
     `_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(samples)], NULL),
     setNames(.waitIx[match.arg(waitII)], NULL), as.double(ii), FALSE, 0L,
     0L, TRUE, character(0), logical(0), FALSE
-  )
+  ))
 }
 ##' Combining event tables
 ##'
@@ -1049,12 +1049,12 @@ etRbind <- function(..., samples = c("use", "clear"), waitII = c("smart", "+ii")
   .sampleIx <- c(clear = 0L, use = 1L)
   .waitIx <- c(smart = 0L, `+ii` = 1L)
   .idIx <- c(merge = 0L, unique = 1L)
-  .Call(
+  .collectWarnings(.Call(
     `_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(samples)], NULL),
     setNames(.waitIx[match.arg(waitII)], NULL), as.double(0), TRUE,
     setNames(.idIx[match.arg(id)], NULL),
     0L, TRUE, character(0), logical(0), FALSE
-  )
+  ))
 }
 
 ##' @rdname etRbind
@@ -1101,11 +1101,11 @@ etRep <- function(x, times = 1, length.out = NA, each = NA, n = NULL, wait = 0, 
   .waitIx <- c(smart = 0L, `+ii` = 1L)
   if (!is.na(length.out)) stop("'length.out' makes no sense with event tables", call. = FALSE)
   if (!is.na(each)) stop("'each' makes no sense with event tables", call. = FALSE)
-  .Call(
+  .collectWarnings(.Call(
     `_RxODE_etRep_`, x, as.integer(times),
     wait, as.integer(id), setNames(.sampleIx[match.arg(samples)], NULL),
     setNames(.waitIx[match.arg(waitII)], NULL), as.double(ii)
-  )
+  ))
 }
 
 ##' @rdname etRep

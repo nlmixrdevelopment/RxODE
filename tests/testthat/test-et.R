@@ -552,6 +552,25 @@ rxPermissive(
       expect_error(et() %>% et(amt=ds4, rate=rate, cmt=4), NA)
     })
 
+    test_that("etRep #313", {
+
+      sch1 <- et(timeUnits = "hr") %>%
+        et(amt=100, ii=24, until=set_units(2,"days"))
+
+      toto <- rep(sch1, times=10, wait=set_units(19,"days"))
+
+      expect_equal(toto$time, seq(0, by=504, length.out=10))
+
+      sch1 <- et(timeUnits = "hr") %>%
+        et(amt=100, ii=24, until=set_units(2,"days")) %>%
+        etExpand()
+
+      toto1 <- etExpand(toto)
+
+      toto <- expect_warning(rep(sch1, times=10, wait=set_units(19,"days")))
+
+    })
+
 
   },
   silent = TRUE,

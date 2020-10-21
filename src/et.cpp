@@ -3202,7 +3202,8 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
   bool firstDoseOfEt=true;
   for (i = 0 ;i < ets.size(); i++){
     lastId=-1;// New id of each event table will trigger id change for unique
-    if (rxIs(ets[i], "rxEt")){
+    if (rxIs(ets[i], "rxEt")) {
+      maxTime = 0;
       List et = ets[i];
       cls = as<CharacterVector>(et.attr("class"));
       e = cls.attr(".RxODE.lst");
@@ -3289,11 +3290,11 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	  }
 	}
 	addl.push_back(curAddl[j]);
-	if (!ISNA(curHigh[j])){
+	if (!ISNA(curHigh[j])) {
 	  if (curAddl[j] > 0){
 	    if (i != 0 && trueLastIi == 0 && firstDoseOfEt && curTime[j] < curIi[j]){
-		maxTime += curIi[j];
-		timeDelta += curIi[j];
+	      maxTime += curIi[j];
+	      timeDelta += curIi[j];
 	    }
 	    lastIi = curIi[j];
 	    trueLastIi=lastIi;
@@ -3358,17 +3359,18 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
       if (rbind){
 	maxTime = 0;
       }
-    } else if (rxIs(ets[i], "numeric") || rxIs(ets[i], "integer")){
-      if (rxIs(ets[i], "units")){
+      timeDelta += maxTime;
+    } else if (rxIs(ets[i], "numeric") || rxIs(ets[i], "integer")) {
+      if (rxIs(ets[i], "units")) {
 	maxTime = asDouble(setUnits(ets[i], as<std::string>(units["time"])), "units[\"time\"]");
       } else {
 	maxTime = asDouble(ets[i], "ets[i]");
       }
-      if (waitType == 0 && maxTime > lastIi){
+      if (waitType == 0 && maxTime > lastIi) {
 	maxTime -= lastIi;
       }
+      timeDelta += maxTime;
     }
-    timeDelta += maxTime;
   }
   if (needSort){
     if (useRadix()){
@@ -3541,6 +3543,7 @@ List etRep_(RObject curEt, int times, NumericVector wait, IntegerVector ids, int
     seqLst[i*2] = curEt;
     seqLst[i*2+1] = wait;
   }
+  // Rcpp::print(Rcpp::wrap(seqLst));
   return etSeq_(seqLst, handleSamples, waitType, ii, false,0,
 		len*times, (IDs.size() != 1), e["units"],
 		e["show"], rxIs(curEt, "integer"));
