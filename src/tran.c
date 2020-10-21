@@ -3314,7 +3314,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "}\n", 2);
 
   sAppend(&sbOut,"extern void %sdydt_lsoda(int *neq, double *t, double *A, double *DADT)\n{\n  %sdydt(neq, *t, A, DADT);\n}\n", prefix, prefix);
-  sAppend(&sbOut, "extern int %sdydt_liblsoda(double t, double *y, double *ydot, void *data)\n{\n  int *neq = (int*)(data);\n  %sdydt(neq, t, y, ydot);\n  return(0);\n}\n",
+  sAppend(&sbOut, "extern int %sdydt_liblsoda(double __t, double *y, double *ydot, void *data)\n{\n  int *neq = (int*)(data);\n  %sdydt(neq, __t, y, ydot);\n  return(0);\n}\n",
 	  prefix,prefix);
   sAppend(&sbOut,"extern void %scalc_jac_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){\n  // Update all covariate parameters\n  %scalc_jac(neq, *t, A, JAC, *nrowpd);\n}\n",
 	  prefix, prefix);
@@ -3381,9 +3381,9 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       sAppend(&sbOut, "SEXP %smodel_vars();\n", prefix);
       sAppendN(&sbOut,"\n", 1);
       sAppendN(&sbOut, "\n// prj-specific differential eqns\nvoid ", 40);
-      sAppend(&sbOut, "%sdydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n", prefix);
+      sAppend(&sbOut, "%sdydt(int *_neq, double __t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n  double t = __t + _solveData->subjects[_neq[1]].curShift;\n  (void)t;\n  ", prefix);
     } else if (show_ode == 2){
-      sAppend(&sbOut, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n", prefix);
+      sAppend(&sbOut, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double __t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n  double t = __t + _solveData->subjects[_neq[1]].curShift;\n  (void)t;\n  ", prefix);
     } else if (show_ode == 3){
       sAppend(&sbOut,  "// Functional based initial conditions.\nvoid %sinis(int _cSub, double *__zzStateVar__){\n", prefix);
       if (foundF0){
@@ -3399,13 +3399,13 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	    nnn+=1;
 	  }
 	}
-	sAppend(&sbOut,  "// Functional based bioavailability (returns amount)\ndouble %sF(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double *_f=_solveData->subjects[_cSub].cF;\n  (void)_f;\n",
+	sAppend(&sbOut,  "// Functional based bioavailability (returns amount)\ndouble %sF(int _cSub,  int _cmt, double _amt, double __t, double *__zzStateVar__){\n  double *_f=_solveData->subjects[_cSub].cF;\n  (void)_f;\n  double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ",
 		prefix, nnn);
 	for (int jjj = nnn; jjj--;){
 	  sAppend(&sbOut, "  _f[%d]=1.0;\n",jjj);
 	}
       } else {
-	sAppend(&sbOut,  "// Functional based bioavailability\ndouble %sF(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n return _amt;\n",
+	sAppend(&sbOut,  "// Functional based bioavailability\ndouble %sF(int _cSub,  int _cmt, double _amt, double __t, double *__zzStateVar__){\n return _amt;\n",
 		prefix);
       }
     } else if (show_ode == 6){
@@ -3418,13 +3418,13 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	    nnn+=1;
 	  }
 	}
-	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t){\n  double *restrict _alag = _solveData->subjects[_cSub].alag;\n  (void)_alag;\n",
+	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double __t){\n  double *restrict _alag = _solveData->subjects[_cSub].alag;\n  (void)_alag; \n  double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ",
 		prefix, nnn);
 	for (int jjj = nnn; jjj--;){
 	  sAppend(&sbOut, "  _alag[%d]=0.0;\n",jjj);
 	}
       } else {
-	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t, double *__zzStateVar__){\n return t;\n",
+	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double __t, double *__zzStateVar__){\n return __t;\n",
 		prefix);
       }
     } else if (show_ode == 7){
@@ -3437,13 +3437,13 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	    nnn+=1;
 	  }
 	}
-	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n  double *restrict _rate= _solveData->subjects[_cSub].cRate;\n  (void)_rate;\n",
+	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double __t){\n  double *restrict _rate= _solveData->subjects[_cSub].cRate;\n  (void)_rate;\n   double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ",
 		prefix, nnn);
 	for (int jjj = nnn; jjj--;){
 	  sAppend(&sbOut, "  _rate[%d]=0.0;\n",jjj);
 	}
       } else {
-	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n return 0.0;\n",
+	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double __t, double *__zzStateVar__){\n return 0.0;\n",
 		prefix);
       }
     } else if (show_ode == 8){
@@ -3456,13 +3456,13 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	    nnn+=1;
 	  }
 	}
-	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n  double *restrict _dur = _solveData->subjects[_cSub].cDur;\n  (void)_dur;\n",
+	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double __t){\n  double *restrict _dur = _solveData->subjects[_cSub].cDur;\n  (void)_dur;\n    double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ",
 		prefix, nnn);
 	for (int jjj = nnn; jjj--;){
 	  sAppend(&sbOut, "  _dur[%d]=0.0;\n",jjj);
 	}
       } else {
-	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
+	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double __t){\n return 0.0;\n",
 		prefix);
       }
     } else if (show_ode == 9){
@@ -3474,12 +3474,12 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 		prefix);
       }
     } else if (show_ode == 10){
-      sAppend(&sbOut, "// Matrix Exponential (%d)\nvoid %sME(int _cSub, double _t, double t, double *_mat, const double *__zzStateVar__){\n",
+      sAppend(&sbOut, "// Matrix Exponential (%d)\nvoid %sME(int _cSub, double _t, double __t, double *_mat, const double *__zzStateVar__){\n   double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ",
 	      tb.matn, prefix);
     } else if (show_ode == 11){
-      sAppend(&sbOut, "// Inductive linearization Matf\nvoid %sIndF(int _cSub, double _t, double t, double *_matf){\n", prefix);
+      sAppend(&sbOut, "// Inductive linearization Matf\nvoid %sIndF(int _cSub, double _t, double __t, double *_matf){\n   double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ", prefix);
     } else {
-      sAppend(&sbOut,  "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n", prefix);
+      sAppend(&sbOut,  "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double __t, double *__zzStateVar__, double *_lhs) {\n   double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ", prefix);
     }
     if ((show_ode == 2 && found_jac == 1 && good_jac == 1) ||
 	(show_ode != 2 && show_ode != 3 && show_ode != 5  && show_ode != 8 &&
@@ -3519,7 +3519,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       } else if (show_ode == 11 || show_ode == 10){
 	sAppendN(&sbOut, "  _update_par_ptr(_t, _cSub, _solveData, _idx);\n", 48);
       } else {
-	sAppendN(&sbOut, "  _update_par_ptr(t, _cSub, _solveData, _idx);\n", 47);
+	sAppendN(&sbOut, "  _update_par_ptr(__t, _cSub, _solveData, _idx);\n", 49);
       }
       prnt_vars(1, 1, "", "\n",show_ode);                   /* pass system pars */
       if (show_ode != 9 && show_ode != 11){
@@ -3646,7 +3646,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	break;
       case 6:
 	// Alag
-	sAppendN(&sbOut, "\n  return t + _alag[_cmt];\n", 27);
+	sAppendN(&sbOut, "\n  return t + _alag[_cmt] - _solveData->subjects[_cSub].curShift;\n", 66);
 	break;
       case 5:
 	sAppendN(&sbOut, "\n  return _f[_cmt]*_amt;\n", 25);

@@ -847,7 +847,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   int lastId = NA_INTEGER;
   double lastTime = NA_REAL;
   bool hasReset = false;
-  bool resetTime = true;
   double maxShift = 0;
 
   for (int i = 0; i < inTime.size(); i++) {
@@ -875,7 +874,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (inEvid[i] != 3 && inEvid[i] != 4) {
 	isSorted = false; // The prior EVID=3 w/reset a reset time
 	// REprintf("\t not sorted");
-      } else {
+      } else if (lastTime > ctime) {
 	maxShift = max2(maxShift, lastTime-ctime);
       }
     }
@@ -1462,7 +1461,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       lastId = NA_INTEGER;
       lastTime = time[0];
       double curShift = 0.0;
-      for (int j = 0; j < evid.size(); ++j) {
+      for (int j = 0; j < (int)evid.size(); ++j) {
 	if (lastId != id[j]) {
 	  lastId = id[j];
 	  curShift = 0.0;
@@ -1475,7 +1474,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	lastTime = time[j];
       }
     }
-  } else if (hasReset & !isSorted & maxShift > 0) {
+  } else if (hasReset && !isSorted && maxShift > 0) {
     warning(_("there are evid=3/4 records in an incorrectly sorted dataset, system is reset, but time is not reset"));
     maxShift = 0.0;
   }
