@@ -867,6 +867,19 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
     }
     ctime=inTime[i];
+    // REprintf("lastId: %d; cid: %d, lastTime: %f, ctime %f\n", lastId, cid, lastTime, ctime);
+    if (IntegerVector::is_na(lastId)) {
+      lastId = cid;
+    } else if (lastId != cid) {
+    } else if (lastTime > ctime) {
+      if (inEvid[i] != 3 && inEvid[i] != 4) {
+	isSorted = false; // The prior EVID=3 w/reset a reset time
+	// REprintf("\t not sorted");
+      } else {
+	maxShift = max2(maxShift, lastTime-ctime);
+      }
+    }
+    lastTime = ctime;
     if (limitCol == -1) climit = R_NegInf;
     else climit = inLimit[i];
     if (ISNA(climit)) climit = R_NegInf;
@@ -889,7 +902,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	evid.push_back(j+10);
 	cmtF.push_back(0);
 	time.push_back(0.0);
-	lastTime=0;
 	amt.push_back(NA_REAL);
 	ii.push_back(0.0);
 	dv.push_back(NA_REAL);
@@ -1068,7 +1080,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	evid.push_back(2);
 	cmtF.push_back(cmt);
 	time.push_back(ctime);
-	lastTime=ctime;
 	amt.push_back(NA_REAL);
 	ii.push_back(0.0);
 	idx.push_back(i);
@@ -1148,7 +1159,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	evid.push_back(cevid);
 	cmtF.push_back(cmt);
 	time.push_back(ctime);
-	lastTime=ctime;
 	if (ctime == 0){
 	  if (std::find(zeroId.begin(), zeroId.end(), cid) == zeroId.end()){
 	    zeroId.push_back(cid);
@@ -1207,7 +1217,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	evid.push_back(2);
 	cmtF.push_back(cmt);
 	time.push_back(ctime);
-	lastTime=ctime;
 	if (ctime == 0){
 	  if (std::find(zeroId.begin(), zeroId.end(), cid) == zeroId.end()){
 	    zeroId.push_back(cid);
@@ -1229,7 +1238,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  evid.push_back(cevid);
 	  cmtF.push_back(cmt);
 	  time.push_back(ctime);
-	  lastTime=ctime;
 	  amt.push_back(0.0);
 	  ii.push_back(0.0);
 	  idx.push_back(i);
@@ -1254,10 +1262,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       evid.push_back(3);
       cmtF.push_back(cmt);
       time.push_back(ctime);
-      if (lastTime > ctime) {	
-	maxShift = max2(maxShift, lastTime-ctime);
-      }
-      lastTime = ctime;
       hasReset = true;
       if (ctime == 0){
 	if (std::find(zeroId.begin(), zeroId.end(), cid) == zeroId.end()){
@@ -1282,11 +1286,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       evid.push_back(3);
       cmtF.push_back(cmt);
       time.push_back(ctime);
-      if (lastTime > ctime) {
-	maxShift = max2(maxShift, lastTime-ctime);
-      }
-      // To see if this is NONMEM-style sorted; ie. resets can reset time, but otherwise sorted by ID and time
-      lastTime=ctime;
       hasReset = true;
       if (ctime == 0){
 	if (std::find(zeroId.begin(), zeroId.end(), cid) == zeroId.end()){
@@ -1343,7 +1342,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       evid.push_back(cevid);
       cmtF.push_back(cmt);
       time.push_back(ctime);
-      lastTime = ctime;
       if (ctime == 0){
 	if (std::find(zeroId.begin(), zeroId.end(), cid) == zeroId.end()){
 	  zeroId.push_back(cid);
@@ -1371,7 +1369,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	evid.push_back(nevid);
 	cmtF.push_back(cmt);
 	time.push_back(ctime);
-	lastTime=ctime;
 	amt.push_back(camt);
 	ii.push_back(0.0);
 	idx.push_back(-1);
@@ -1455,12 +1452,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  }
 	}
       }
-    }
-    if (lastId != cid) {
-      // New Id
-      lastId = cid;
-    } else if (lastTime > ctime) {
-      isSorted = false; // The prior EVID=3 w/reset a reset time
     }
   }
   if (hasReset && isSorted){
