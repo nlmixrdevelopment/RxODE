@@ -1060,12 +1060,13 @@ extern "C" int syncIdx(rx_solving_options_ind *ind){
 
 static inline void handleTlastInline(double *time, rx_solving_options_ind *ind) {
   rx_solving_options *op = &op_global;
-  if (op->neq + op->extraCmt != 0 && ind->tlast != *time && isDose(ind->evid[ind->ix[ind->idx]])){
+  double _time = *time + ind->curShift;
+  if (op->neq + op->extraCmt != 0 && ind->tlast != _time && isDose(ind->evid[ind->ix[ind->idx]])){
     ind->dosenum++;
-    ind->tlast = *time;
-    if (ISNA(ind->tfirst)) ind->tfirst = *time;
-    ind->tlastS[ind->cmt] = *time;
-    if (ISNA(ind->tfirstS[ind->cmt])) ind->tfirstS[ind->cmt] = *time;
+    ind->tlast = _time;
+    if (ISNA(ind->tfirst)) ind->tfirst = _time;
+    ind->tlastS[ind->cmt] = _time;
+    if (ISNA(ind->tfirstS[ind->cmt])) ind->tfirstS[ind->cmt] = _time;
   }
 }
 
@@ -2771,6 +2772,10 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	double curT = getTime(ind->ix[ind->idx], ind);
         evid = ind->evid[ind->ix[ind->idx]];
 	if (evid == 9) continue;
+	if (isDose(evid)){
+	  getWh(ind->evid[ind->ix[i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
+	  handleTlastInline(&curT, ind);
+	}
 	if (nlhs){
 	  calc_lhs(neq[1], curT, getSolve(i), ind->lhs);
 	}
@@ -2790,10 +2795,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	  }
 	}
 	
-	if (isDose(evid)){
-	  getWh(ind->evid[ind->ix[i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
-	  handleTlastInline(&curT, ind);
-	}
         if (updateErr){
           for (j=0; j < errNcol; j++){
 	    par_ptr[svar[j]] = errs[errNrow*j+kk];
