@@ -9,8 +9,6 @@
 #define getAdvan(idx) ind->solve + (op->neq + op->nlin)*(idx) + op->neq
 #define getSolve(idx) ind->solve + (op->neq + op->nlin)*(idx)
 
-
-
 #ifdef _isRxODE_
 
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
