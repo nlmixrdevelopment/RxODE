@@ -4686,6 +4686,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     int linKa = linCmtI[RxMvFlag_ka];
     int linB = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linB];
     op->linBflag=0;
+    rx->linKa = linKa;
+    rx->linNcmt = linNcmt;
     if (linB) {
       int linBflag = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linCmtFlg];
       if (rx->sensType == 4) {

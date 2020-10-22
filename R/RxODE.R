@@ -1337,7 +1337,7 @@ rxCompile <- function(model, dir, prefix, force = FALSE, modName = NULL,
       .args <- paste0(
         .cc, " -I", gsub("[\\]", "/", .normalizePath(R.home("include"))), " ",
         .cflags, " ", .shlibCflags, " ", .cpicflags, " -I", gsub("[\\]", "/", .normalizePath(.include)), " ",
-        paste(gsub("[\\]", "/", .normalizePath(.include)), "RxODE_model.h", sep = "/"),
+        paste(gsub("[\\]", "/", .normalizePath(.include)), "RxODE_model_shared.h", sep = "/"),
         ""
       )
       system(.args)
