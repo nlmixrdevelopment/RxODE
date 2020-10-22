@@ -1,20 +1,29 @@
 # -*- mode: makefile-gmake -*-
-CXX_STD     = CXX11
+ARMA=`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e 'cat(file.path(find.package("RcppArmadillo"),"include"))'`
+BH=`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e 'cat(file.path(find.package("BH"),"include"))'`
+RCPP=`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e 'cat(file.path(find.package("Rcpp"),"include"))'`
+EG=`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e 'cat(file.path(find.package("RcppEigen"),"include"))'`
+SH=`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e 'cat(file.path(find.package("StanHeaders"),"include"))'`
+CXX_STD = CXX14
+@CXX14STD@
+
+
+OL=`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e 'cat(ifelse("$(WIN)"=="32","-O1",""))'`
 
 ################################################################################
 ## Package library flags.
-PKG_LIBS    = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) @OPENMP_CFLAGS@
+PKG_LIBS    = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
 
 # Release options
-PKG_CFLAGS  = @OPENMP_CFLAGS@ -D_isRxODE_
-PKG_CXXFLAGS = @OPENMP_CXXFLAGS@ -D_isRxODE_
+PKG_CFLAGS  =  -D_isRxODE_
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -D_isRxODE_ -DBOOST_DISABLE_ASSERTS -@ISYSTEM@"$(BH)" -@ISYSTEM@"$(EG)" -@ISYSTEM@"$(SH)" -@ISYSTEM@"$(RCPP)" -@ISYSTEM@"$(ARMA)"
 
 
-SOURCES_C = call_dvode.c dop853.c tran.c omegaChol.c init.c par_solve.c cfode.c common.c corfailure.c correction.c daxpy.c ddot.c dgefa.c dgesl.c dscal.c fnorm.c idamax.c intdy.c lsoda.c methodswitch.c orderswitch.c prja.c scaleh.c solsy.c stoda.c vmnorm.c strdup_printf.c rprintf.c lincmt.c box.c 
-SOURCES_CPP = RcppExports.cpp WinDrive.cpp rxInv.cpp rxData.cpp etTran.cpp et.cpp rxStack.cpp cvPost.cpp
-SOURCES_FORTAN = dlsoda.f opkda2.f
+SOURCES_C = lincmt.c utilc.c call_dvode.c dop853.c tran.c omegaChol.c init.c cfode.c common.c corfailure.c correction.c daxpy.c ddot.c dgefa.c dgesl.c dscal.c fnorm.c idamax.c intdy.c lsoda.c methodswitch.c orderswitch.c prja.c scaleh.c solsy.c stoda.c vmnorm.c strdup_printf.c rprintf.c box.c matexp_HM98.c checkmate_stub.c
+SOURCES_CPP = par_solve.cpp etTran.cpp lincmtB.cpp forder.cpp rxData.cpp et.cpp boost.cpp fast_factor.cpp cvPost.cpp expandGrid.cpp  RcppExports.cpp WinDrive.cpp rxInv.cpp rxStack.cpp rxOptRep.cpp expm.cpp threefry.cpp vandercorput.cpp checkmate.cpp
+SOURCES_FORTAN = dlsoda.f opkda2.f matexp.f dsphiv.f dgpadm.f
 
-OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_FORTAN:.f=.o) $(SOURCES_CPP:.cpp=.o)
+OBJECTS = $(SOURCES_CPP:.cpp=.o) $(SOURCES_C:.c=.o) $(SOURCES_FORTAN:.f=.o)
 
 # strippedLib: $(SHLIB)
 # 	if test -e "/usr/bin/strip"; then /usr/bin/strip -s $(SHLIB); fi
@@ -23,7 +32,10 @@ OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_FORTAN:.f=.o) $(SOURCES_CPP:.cpp=.o)
 # all: strippedLib
 # $(SHLIB): mylibs
 all: $(SHLIB)
-# mylibs:  
-# 	$(CC) -I"$(R_INCLUDE_DIR)" $(CFLAGS) $(CPPFLAGS) $(SHLIB_CFLAGS) $(CPICFLAGS) -I../inst/include/ ../inst/include/RxODE_model.h || $(CC) --version
 
+# lincmt.o: lincmt.c
+# 	$(CC) -I"$(R_INCLUDE_DIR)" $(CFLAGS) $(SHLIB_CFLAGS) $(CPICFLAGS) $(PKG_CFLAGS) -I../inst/include/ -fno-var-tracking $(OL) -c lincmt.c -o lincmt.o
+
+#lincmtB.o: lincmtB.cpp
+#	$(CXX) -I"$(R_INCLUDE_DIR)" -DNDEBUG $(CXXPICFLAGS) $(PKG_CXXFLAGS) $(CXXFLAGS) $(SHLIB_CXXFLAGS) -I../inst/include/ $(OL) -c lincmtB.cpp -o lincmtB.o
 

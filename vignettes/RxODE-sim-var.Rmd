@@ -72,7 +72,7 @@ The next step to simulate is to create the dosing regimen for overall simulation
 
 ```{r}
 ev <- et(amount.units="mg", time.units="hours") %>%
-    et(amt=10000, cmt="centr")
+  et(amt=10000, cmt="centr")
 ```
 If you wish, you can also add sampling times (though now RxODE can fill these in for you):
 
@@ -148,13 +148,16 @@ confint(sim, "eff", level=0.95) %>%
     plot(ylab="Effect")
 ```
 
+
+
+
 Note that you can see the parameters that were simulated for the example
 
 ```{r}
 head(sim$param)
 ```
 
-### Simulation of unexplained variability 
+### Simulation of unexplained variability (sigma)
 
 In addition to conveniently simulating between subject variability,
 you can also easily simulate unexplained variability.
@@ -214,7 +217,7 @@ sim  <- rxSolve(mod, theta, dat, omega=omega, sigma=sigma)
 sim %>% select(id, time, e, cp)
 ```
 
-#### Simulation of Clinical Trials
+# Simulation of Clinical Trials
 
 By either using a simple single event table, or data from a clinical
 trial as described above, a complete clinical trial simulation can be
@@ -226,37 +229,42 @@ in both your between subject variability as well as the unexplained
 variability.
 
 `RxODE` allows you to account for these uncertainties by simulating
-multiple virtual "studies," specified by the parameter `nStud`.  In a
-single virtual study:
+multiple virtual "studies," specified by the parameter `nStud`.  Each
+of these studies samples a realization of fixed effect parameters and
+covariance matrices for the between subject variability(`omega`) and
+unexplained variabilities (`sigma`). Depending on the information you
+have from the models, there are a few strategies for simulating a
+realization of the `omega` and `sigma` matrices. 
 
-- A Population effect parameter is sampled from a multivariate normal
-  distribution with mean given by the parameter estimates and the
-  variance specified by the named matrix `thetaMat`.
-  
-- A between subject variability/covariance matrix is sampled from
-  either a scaled inverse chi-squared distribution (for the univariate
-  case) or a inverse Wishart that is parameterized to scale to the
-  conjugate prior covariance term, as described by
-  the
-  [wikipedia article](https://en.wikipedia.org/wiki/Scaled_inverse_chi-squared_distribution). (This
-  is not the same as
-  the
-  [scaled inverse Wishart distribution](http://andrewgelman.com/2012/08/22/the-scaled-inverse-wishart-prior-distribution-for-a-covariance-matrix-in-a-hierarchical-model/) ).
-  In the case of the between subject variability, the
-  variance/covariance matrix is given by the 'omega' matrix parameter
-  and the degrees of freedom is the number of subjects in the
-  simulation.
-  
-- Unexplained variability is also simulated from the scaled inverse
-  chi squared distribution or inverse Wishart distribution with the
-  variance/covariance matrix given by the 'sigma' matrix parameter and
-  the degrees of freedom given by the number of observations being
-  simulated.
-  
-The covariance/variance prior is simulated from `RxODE`s `cvPost()` function.
+The first strategy occurs when either there is not any standard errors
+for standard deviations (or related parameters), or there is a modeled
+correlation in the model you are simulating from.  In that case the
+suggested strategy is to use the inverse Wishart (parameterized to
+scale to the conjugate prior)/[scaled inverse chi
+distribution](https://en.wikipedia.org/wiki/Scaled_inverse_chi-squared_distribution).
+this approach uses a single parameter to inform the variability of the
+covariance matrix sampled (the degrees of freedom).
 
+The second strategy occurs if you have standard errors on the
+variance/standard deviation with no modeled correlations in the
+covariance matrix.  In this approach you perform separate simulations
+for the standard deviations and the correlation matrix.  First you
+simulate the variance/standard deviation components in the `thetaMat`
+multivariate normal simulation.  After simulation and transformation
+to standard deviations, a correlation matrix is simulated using the
+degrees of freedom of your covariance matrix.  Combining the simulated
+standard deviation with the simulated correlation matrix will give a
+simulated covariance matrix. For smaller dimension covariance matrices
+(dimension < 10x10) it is recommended you use the `lkj` distribution
+to simulate the correlation matrix.  For higher dimension covariance
+matrices it is suggested you use the inverse wishart distribution
+(transformed to a correlation matrix) for the simulations.
+
+The covariance/variance prior is simulated from `RxODE`s `cvPost()`
+function.
+
+## Simulation from inverse Wishart correlations
 An example of this simulation is below:
-
 ```{r}
 
 ## Creating covariance matrix
@@ -286,6 +294,99 @@ head(sim$sigma.list)
 
 You can also see the parameter realizations from the `$params` data frame.
 
+## Simulate using variance/standard deviation standard errors
+
+Lets assume we wish to simulate from [the nonmem run included in
+xpose](https://github.com/UUPharmacometrics/xpose/blob/master/inst/extdata/run001.lst)
+
+First we setup the model:
+
+```{r}
+rx1 <- RxODE({
+    cl <- tcl*(1+crcl.cl*(CLCR-65)) * exp(eta.v)
+    v <- tv * WT * exp(eta.v)
+    ka <- tka * exp(eta.ka)
+    ipred <- linCmt()
+    obs <- ipred * (1 + prop.sd) + add.sd 
+})
+```
+
+Next we input the estimated parameters:
+
+```{r}
+theta <- c(tcl=2.63E+01, tv=1.35E+00, tka=4.20E+00, tlag=2.08E-01,
+           prop.sd=2.05E-01, add.sd=1.06E-02, crcl.cl=7.17E-03,
+           ## Note that since we are using the separation strategy the ETA variances are here too
+           eta.cl=7.30E-02,  eta.v=3.80E-02, eta.ka=1.91E+00)
+```
+
+And also their covariances; To me, the easiest way to create a named
+covariance matrix is to use `lotri()`:
+
+```{r}
+thetaMat <- lotri(
+    tcl + tv + tka + tlag + prop.sd + add.sd + crcl.cl + eta.cl + eta.v + eta.ka ~
+        c(7.95E-01,
+          2.05E-02, 1.92E-03,
+          7.22E-02, -8.30E-03, 6.55E-01,
+          -3.45E-03, -6.42E-05, 3.22E-03, 2.47E-04,
+          8.71E-04, 2.53E-04, -4.71E-03, -5.79E-05, 5.04E-04,
+          6.30E-04, -3.17E-06, -6.52E-04, -1.53E-05, -3.14E-05, 1.34E-05,
+          -3.30E-04, 5.46E-06, -3.15E-04, 2.46E-06, 3.15E-06, -1.58E-06, 2.88E-06,
+          -1.29E-03, -7.97E-05, 1.68E-03, -2.75E-05, -8.26E-05, 1.13E-05, -1.66E-06, 1.58E-04,
+          -1.23E-03, -1.27E-05, -1.33E-03, -1.47E-05, -1.03E-04, 1.02E-05, 1.67E-06, 6.68E-05, 1.56E-04,
+          7.69E-02, -7.23E-03, 3.74E-01, 1.79E-03, -2.85E-03, 1.18E-05, -2.54E-04, 1.61E-03, -9.03E-04, 3.12E-01))
+
+evw <- et(amount.units="mg", time.units="hours") %>%
+    et(amt=100) %>%
+    ## For this problem we will simulate with sampling windows
+    et(list(c(0, 0.5),
+       c(0.5, 1),
+       c(1, 3),
+       c(3, 6),
+       c(6, 12))) %>%
+    et(id=1:1000)
+
+## From the run we know that:
+##   total number of observations is: 476
+##    Total number of individuals:     74
+sim  <- rxSolve(rx1, theta, evw,  nSub=100, nStud=10,
+                thetaMat=thetaMat,
+                ## Match boundaries of problem
+                thetaLower=0, 
+                sigma=c("prop.sd", "add.sd"), ## Sigmas are standard deviations
+                sigmaXform="identity", # default sigma xform="identity"
+                omega=c("eta.cl", "eta.v", "eta.ka"), ## etas are variances
+                omegaXform="variance", # default omega xform="variance"
+                iCov=data.frame(WT=rnorm(1000, 70, 15), CLCR=rnorm(1000, 65, 25)),
+                dfSub=74, dfObs=476);
+
+print(sim)
+## Notice that the simulation time-points change for the individual
+
+## If you want the same sampling time-points you can do that as well:
+evw <- et(amount.units="mg", time.units="hours") %>%
+    et(amt=100) %>%
+    et(0, 24, length.out=50) %>%
+    et(id=1:100)
+
+sim  <- rxSolve(rx1, theta, evw,  nSub=100, nStud=10,
+                thetaMat=thetaMat,
+                ## Match boundaries of problem
+                thetaLower=0, 
+                sigma=c("prop.sd", "add.sd"), ## Sigmas are standard deviations
+                sigmaXform="identity", # default sigma xform="identity"
+                omega=c("eta.cl", "eta.v", "eta.ka"), ## etas are variances
+                omegaXform="variance", # default omega xform="variance"
+                iCov=data.frame(WT=rnorm(1000, 70, 15), CLCR=rnorm(1000, 65, 25)),
+                dfSub=74, dfObs=476)
+s <-sim %>% confint(c("centr", "eff"))
+plot(s)
+```
+
+
+
+## Simulate without uncertainty in `omega` or `sigma` parameters
 If you do not wish to sample from the prior distributions of either
 the `omega` or `sigma` matrices, you can turn off this feature by
 specifying the `simVariability = FALSE` option when solving:
@@ -300,8 +401,8 @@ plot(s)
 ```
 
 
-Note since realizations of `omega` and `sigma` were not simulated, `$omega.list` and
-`$sigma.list` both return `NULL`.
+Note since realizations of `omega` and `sigma` were not simulated,
+`$omega.list` and `$sigma.list` both return `NULL`.
 
 #### RxODE multi-threaded solving and simulation
 

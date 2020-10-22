@@ -2,18 +2,9 @@
 % Please edit documentation in R/RxODE.R
 \name{coef.RxODE}
 \alias{coef.RxODE}
-\alias{coef.RxCompilationManager}
-\alias{coef.solveRxODE}
-\alias{coef.rxDll}
 \title{Return the RxODE coefficients}
 \usage{
 \method{coef}{RxODE}(object, ...)
-
-\method{coef}{RxCompilationManager}(...)
-
-\method{coef}{solveRxODE}(object, ...)
-
-\method{coef}{rxDll}(...)
 }
 \arguments{
 \item{object}{is an RxODE object}

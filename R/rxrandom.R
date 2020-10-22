@@ -1,0 +1,586 @@
+##' @export
+##' @rdname rxnormV
+rxnorm <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(mean, len = 1)
+  checkmate::assertNumeric(sd, lower = 0, len = 1)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxnorm_`, mean, sd, n, ncores)
+}
+
+##' Simulate random normal variable from threefry/vandercorput generator
+##'
+##' @inheritParams stats::rnorm
+##'
+##' @param n number of observations
+##'
+##' @param ncores Number of cores for the simulation
+##'
+##' `rxnorm` simulates using the threefry sitmo generator; `rxnormV`
+##' uses the vandercorput generator
+##'
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxnorm(n=10) # with rxnorm you have to explicitly state n
+##' rxnorm(n=10,ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxnorm(2,3) ## The first 2 arguments are the mean and standard deviation
+##'
+##'
+##' ## This example uses `rxnorm` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxnorm()
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' ## Use vandercorput generator
+##'
+##' rxnormV(n=10) # with rxnorm you have to explicitly state n
+##' rxnormV(n=10,ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxnormV(2,3) ## The first 2 arguments are the mean and standard deviation
+##'
+##'
+##' ## This example uses `rxnormV` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxnormV()
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxnormV <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(mean, len = 1)
+  checkmate::assertNumeric(sd, lower = 0, len = 1)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxnormV_`, mean, sd, n, ncores)
+}
+
+##' Simulate random poisson variable from threefry generator
+##'
+##' @inheritParams stats::rpois
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxpois(lambda=3, n=10) # with rxpois you have to explicitly state n
+##' rxpois(lambda=3, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxpois(4) ## The first arguments are the lambda parameter
+##'
+##'
+##' ## This example uses `rxpois` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxpois(3)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxpois <- function(lambda, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(lambda, len = 1)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxpois_`, lambda, n, ncores)
+}
+
+
+##' Simulate student t variable from threefry generator
+##'
+##' @inheritParams stats::rt
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxt(df=3, n=10) # with rxt you have to explicitly state n
+##' rxt(df=3, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxt(4) ## The first argument is the df parameter
+##'
+##'
+##' ## This example uses `rxt` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxt(3)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxt <- function(df, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(df, len = 1, lower = 0)
+  if (df == 0) stop("'df' must be greater than 0", call. = FALSE)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxt__`, df, n, ncores)
+}
+
+##' Simulate uniform variable from threefry generator
+##'
+##' @inheritParams stats::runif
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxunif(min=0, max=4, n=10) # with rxunif you have to explicitly state n
+##' rxunif(min=0, max=4, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxunif()
+##'
+##'
+##' ## This example uses `rxunif` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxunif(0,3)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxunif <- function(min = 0, max = 1, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(min, len = 1)
+  checkmate::assertNumeric(max, len = 1)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxunif_`, min, max, n, ncores)
+}
+
+
+##' Simulate weibull variable from threefry generator
+##'
+##' @inheritParams stats::rweibull
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxweibull(shape=1, scale=4, n=10) # with rxweibull you have to explicitly state n
+##' rxweibull(shape=1, scale=4, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxweibull(3)
+##'
+##'
+##' ## This example uses `rxweibull` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxweibull(1,3)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxweibull <- function(shape, scale = 1, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(shape, len = 1)
+  checkmate::assertNumeric(scale, len = 1)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxweibull_`, shape, scale, n, ncores)
+}
+
+
+##' Simulate geometric variable from threefry generator
+##'
+##' @inheritParams stats::rgeom
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxgeom(0.5, n=10) # with rxgeom you have to explicitly state n
+##' rxgeom(0.25, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxgeom(0.75)
+##'
+##'
+##' ## This example uses `rxgeom` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxgeom(0.24)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxgeom <- function(prob, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(prob, len = 1, lower = 0, upper = 1)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxgeom_`, prob, n, ncores)
+}
+
+
+##' Simulate beta variable from threefry generator
+##'
+##' @inheritParams stats::rbeta
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxbeta(0.5, 0.5, n=10) # with rxbeta you have to explicitly state n
+##' rxbeta(5, 1, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxbeta(1, 3)
+##'
+##'
+##' ## This example uses `rxbeta` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxbeta(2, 2)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxbeta <- function(shape1, shape2, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(shape1, len = 1, lower = 0)
+  if (shape1 == 0) stop("'shape1' cannot be 0", call. = FALSE)
+  checkmate::assertNumeric(shape2, len = 1, lower = 0)
+  if (shape2 == 0) stop("'shape2' cannot be 0", call. = FALSE)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxbeta_`, shape1, shape2, n, ncores)
+}
+
+##' Simulate gamma variable from threefry generator
+##'
+##' @inheritParams stats::rgamma
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxgamma(0.5, n=10) # with rxgamma you have to explicitly state n
+##' rxgamma(5, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxgamma(1)
+##'
+##'
+##' ## This example uses `rxbeta` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxgamma(2)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxgamma <- function(shape, rate = 1 / scale, scale = 1, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(shape, len = 1, lower = 0)
+  if (shape == 0) stop("'shape' cannot be 0", call. = FALSE)
+  checkmate::assertNumeric(rate, len = 1, lower = 0)
+  if (rate == 0 || scale == 0) stop("'rate'/'scale' cannot be 0", call. = FALSE)
+  if (!missing(rate) && !missing(scale)) {
+    if (abs(rate * scale - 1) < 1e-15) {
+      warning("specify 'rate' or 'scale' but not both", call. = FALSE)
+    } else {
+      stop("specify 'rate' or 'scale' but not both", call. = FALSE)
+    }
+  }
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxgamma_`, shape, rate, n, ncores)
+}
+
+
+##' Simulate F variable from threefry generator
+##'
+##' @inheritParams stats::rf
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxf(0.5, 0.5, n=10) # with rxf you have to explicitly state n
+##' rxf(5, 1, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxf(1, 3)
+##'
+##'
+##' ## This example uses `rxf` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxf(2, 2)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxf <- function(df1, df2, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(df1, len = 1, lower = 0)
+  if (df1 == 0) stop("'df1' cannot be 0", call. = FALSE)
+  checkmate::assertNumeric(df2, len = 1, lower = 0)
+  if (df2 == 0) stop("'df2' cannot be 0", call. = FALSE)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxf_`, df1, df2, n, ncores)
+}
+
+
+##' Simulate exponential variable from threefry generator
+##'
+##' @inheritParams stats::rexp
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxexp(0.5, n=10) # with rxexp you have to explicitly state n
+##' rxexp(5, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxexp(1)
+##'
+##'
+##' ## This example uses `rxexp` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxexp(2)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxexp <- function(rate, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(rate, len = 1, lower = 0)
+  if (rate == 0) stop("'rate' cannot be 0", call. = FALSE)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxexp_`, rate, n, ncores)
+}
+
+
+##' Simulate chi-squared variable from threefry generator
+##'
+##' @inheritParams stats::rchisq
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxchisq(0.5, n=10) # with rxchisq you have to explicitly state n
+##' rxchisq(5, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxchisq(1)
+##'
+##'
+##' ## This example uses `rxchisq` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxchisq(2)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxchisq <- function(df, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(df, len = 1, lower = 0)
+  if (df == 0) stop("'df' cannot be 0", call. = FALSE)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxchisq_`, df, n, ncores)
+}
+
+##' Simulate Cauchy variable from threefry generator
+##'
+##' @inheritParams stats::rcauchy
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxcauchy(0, 1, n=10) # with rxcauchy you have to explicitly state n
+##' rxcauchy(0.5, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxcauchy(3)
+##'
+##'
+##' ## This example uses `rxcauchy` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxcauchy(2)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxcauchy <- function(location = 0, scale = 1, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(location, len = 1)
+  checkmate::assertNumeric(scale, len = 1, lower = 0)
+  if (scale == 0) stop("'scale' cannot be 0", call. = FALSE)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxcauchy_`, location, scale, n, ncores)
+}
+
+##' Simulate Binomial variable from threefry generator
+##'
+##' @inheritParams stats::rbinom
+##' @inheritParams rxnormV
+##'
+##' @template birthdayProblem
+##' @examples
+##'
+##' ## Use threefry engine
+##'
+##' rxbinom(10, 0.9, n=10) # with rxbinom you have to explicitly state n
+##' rxbinom(3, 0.5, n=10, ncores=2) # You can parallelize the simulation using openMP
+##'
+##' rxbinom(4,0.7)
+##'
+##'
+##' ## This example uses `rxbinom` directly in the model
+##'
+##' rx <- RxODE({
+##'   a = rxbinom(1,0.5)
+##' })
+##'
+##' et <- et(1,id=1:2)
+##'
+##' s <- rxSolve(rx,et)
+##'
+##' @export
+rxbinom <- function(size, prob, n = 1L, ncores = 1L) {
+  checkmate::assertNumeric(prob, len = 1, lower = 0, upper = 1)
+  checkmate::assertCount(size)
+  checkmate::assertCount(n)
+  checkmate::assertCount(ncores)
+  rxSeedEng(ncores)
+  .Call(`_RxODE_rxbinom_`, size, prob, n, ncores)
+}
+
+
+##' Simulate a from a poission process
+##'
+##' @param n Number of time points to simulate in the poission process
+##' @param lambda Rate of Poission process
+##' @param gamma Asymmetry rate of poission process.  When gamma=1.0,
+##'   this simulates a homogenous poission process.  When gamma<1.0,
+##'   the poission process has more events early, when gamma > 1.0,
+##'   the poission process has more events late in the process.
+##'
+##'   When gamma is non-zero, the tmax should not be infinite but indicate
+##'   the end of the Poission process to be simulated.  In most
+##'   pharamcometric cases, this will be the end of the study.
+##'   Internally this uses a rate of:
+##'
+##'   l(t) = lambda*gamma*(t/tmax)^(gamma-1)
+##'
+##'
+##' @param prob When specified, this is a probability function with
+##'   one argument, time, that gives the probability that a poission
+##'   time t is accepted as a rejection time.
+##'
+##' @param t0 the starting time of the Poisson process
+##'
+##' @param tmax the maximum time of the Poisson process
+##'
+##' @param randomOrder when `TRUE` randomize the order of the Poisson
+##'   events.  By default (`FALSE`) it returns the Poisson process is
+##'   in order of how the events occurred.
+##'
+##' @return
+##'
+##' This returns a vector of the Poisson process times; If the dropout is >=
+##' tmax, then all the rest of the times are = tmax to indicate the
+##' dropout is equal to or after tmax.
+##'
+##' @author Matthew Fidler
+##' @export
+##' @examples
+##'
+##' ## Sample homogenous Poisson process of rate 1/10
+##' rxPp(10, 1/10)
+##'
+##' ## Sample inhomogenous Poission rate of 1/10
+##'
+##' rxPp(10, 1/10,gamma=2,tmax=100)
+##'
+##' ## Typically the Poisson process times are in a sequential order,
+##' ## using randomOrder gives the Poisson process in random order
+##'
+##' rxPp(10, 1/10,gamma=2,tmax=10, randomOrder=TRUE)
+##'
+##' ## This uses an arbitrary function to sample a non-homogenous Poisson process
+##'
+##' rxPp(10, 1/10, prob=function(x){1/x})
+##'
+rxPp <- function(n, lambda, gamma = 1.0, prob = NULL, t0 = 0.0, tmax = Inf, randomOrder = FALSE) {
+  checkmate::assertNumeric(t0, len = 1, any.missing = FALSE)
+  checkmate::assertNumeric(tmax, len = 1, any.missing = FALSE, lower = t0)
+  checkmate::assertNumeric(gamma, len = 1, any.missing = FALSE, lower = .Machine$double.eps)
+  checkmate::assertNumeric(lambda, len = 1, any.missing = FALSE, lower = .Machine$double.eps)
+  checkmate::assertIntegerish(n, len = 1, any.missing = FALSE, lower = 1L)
+  checkmate::assertLogical(randomOrder, len = 1, any.missing = FALSE)
+  .Call(`_RxODE_rpp_`, n, lambda, gamma, prob, t0, tmax, randomOrder, PACKAGE = "RxODE")
+}

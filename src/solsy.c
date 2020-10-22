@@ -23,7 +23,7 @@ int solsy(struct lsoda_context_t * ctx, double *y)
 	const int neq = ctx->neq;
 	if (_C(miter) != 2) {
 		/* miter has to be 2. the miter=5 case is not implemented. */
-		error("liblsoda does not implement this. (solsy)");
+		Rf_errorcall(R_NilValue, "liblsoda does not implement this. (solsy)");
 	}
 	if (_C(miter) == 2)
 		dgesl0(_C(wm), neq, _C(ipvt), y, 0);

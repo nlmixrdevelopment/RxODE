@@ -1,7 +1,8 @@
-require(RxODE);
-context("Test Jacobian specification")
-require(digest)
-rxPermissive({
+rxPermissive(
+  {
+    require(RxODE)
+    context("Test Jacobian specification")
+    require(digest)
 
     ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf p15
     Vtpol <- RxODE("
@@ -30,23 +31,23 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ")
 
 
-    et <- eventTable();
-    et$add.sampling(seq(0,30,by=0.01))
+    et <- eventTable()
+    et$add.sampling(seq(0, 30, by = 0.01))
 
-    stiff <- solve(Vtpol,et);
+    stiff <- solve(Vtpol, et)
 
     ## plot(stiff$time,stiff$y,type="l")
-    counts <- data.frame(stiff$counts,mu=1,digest=digest(round(as.data.frame(stiff),3)));
+    counts <- data.frame(stiff$counts, mu = 1, digest = digest(round(as.data.frame(stiff), 3)))
 
-    for (i in 10^(1:7)){
-        stiff$mu <- i;
-        ## plot(stiff$time,stiff$y,type="l");
-        ## title(sprintf("mu=%s",i));
-        counts <- rbind(counts, data.frame(stiff$counts,mu=i,digest=digest(round(as.data.frame(stiff),3))));
+    for (i in 10^(1:7)) {
+      stiff$mu <- i
+      ## plot(stiff$time,stiff$y,type="l");
+      ## title(sprintf("mu=%s",i));
+      counts <- rbind(counts, data.frame(stiff$counts, mu = i, digest = digest(round(as.data.frame(stiff), 3))))
     }
 
-    test_that("No User jacobian are called.",{
-        expect_true(all(counts$jac == 0))
+    test_that("No User jacobian are called.", {
+      expect_true(all(counts$jac == 0))
     })
 
     ## Data sets match
@@ -57,18 +58,18 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     ##     expect_equal(digest(counts),"982ce8816e9e1f5db6ee315c71b6a7dc")
     ## })
 
-    counts0 <- counts;
+    counts0 <- counts
 
 
-    stiff <- solve(Vtpol2,et);
+    stiff <- solve(Vtpol2, et)
     ## plot(stiff$time,stiff$y,type="l")
-    counts <- data.frame(stiff$counts,mu=1,digest=digest(round(as.data.frame(stiff),3)));
+    counts <- data.frame(stiff$counts, mu = 1, digest = digest(round(as.data.frame(stiff), 3)))
 
-    for (i in 10^(1:7)){
-        stiff$mu <- i;
-        ## plot(stiff$time,stiff$y,type="l");
-        ## title(sprintf("mu=%s",i));
-        counts <- rbind(counts, data.frame(stiff$counts,mu=i,digest=digest(round(as.data.frame(stiff),3))));
+    for (i in 10^(1:7)) {
+      stiff$mu <- i
+      ## plot(stiff$time,stiff$y,type="l");
+      ## title(sprintf("mu=%s",i));
+      counts <- rbind(counts, data.frame(stiff$counts, mu = i, digest = digest(round(as.data.frame(stiff), 3))))
     }
 
     ## print(counts)
@@ -79,8 +80,10 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     ##     expect_true(!all(counts$user_jac == 0))
     ## })
 
-    test_that("Same solutions",{
-        expect_true(all(counts0$digest == counts$digest))
+    test_that("Same solutions", {
+      expect_true(all(counts0$digest == counts$digest))
     })
-
-}, silent=TRUE)
+  },
+  silent = TRUE,
+  test = "cran"
+)

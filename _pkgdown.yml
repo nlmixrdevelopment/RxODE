@@ -149,6 +149,10 @@ navbar:
        - text: "--------------------------"
        - text: Adding Circadian Rythmn (time-varying covariates)
          href: articles/RxODE-covariates.html
+       - text: Weight Based Dosing 
+         href: articles/RxODE-wt.html
+       - text: Simulating Multiple levels of nesting (iov, between study etc)
+         href: articles/RxODE-nesting.html
   - text: "Functions"
     icon: fa-file-code-o
     href: https://nlmixrdevelopment.github.io/RxODE/reference/index.html
