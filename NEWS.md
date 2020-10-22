@@ -15,11 +15,19 @@
 * `RxODE` now moved the precise sum/product type options for `sum()`
   and `prod()` to `rxSolve` or `rxControl`
 
-* `cvPost` now will returned a named list of matrices if the input matrix was named
+* `cvPost` now will returned a named list of matrices if the input
+  matrix was named
 
 * `rxSolve` will now return an integer `id` instead of a factor `id`
   when `id` is integer or integerish (as defined by checkmate).
   Otherwise a factor will be returned.
+  
+* When mixing ODEs and `linCmt()` models, the `linCmt()` compartments
+  are 1 and possibly 2 instead of right after the last internal ODE.
+  This is more aligned with how PK/PD models are typically defined.
+  
+* `EVID=3` and `EVID=4` now (possibly) reset time as well.  This
+  occurs when the input dataset is sorted before solving
 
 ## New features
 
@@ -243,6 +251,9 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 
 * Changed method for setting/getting number of threads based on
   `data.table`'s method
+  
+* Added function `rxDerived` which will calculate derived parameters
+  for 1, 2, and 3 compartment models
 
 * More descriptive errors when types of input are different than expected
 
@@ -256,13 +267,18 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 ## Bug fixes:
  - Occasionally RxODE misidentified dual `lhs`/`param` values.  An
    additional check is performed so that this does not happen.
+   
  - For solved matrices with similar names (like "tadd" and "tad")
    RxODE will now prefer exact matches instead of the first match
    found when accessing the items with `$tad`.
+   
  - A fix where all ID information is kept with `keep=c(""..."")`
+ 
  - Transit compartment models using the `transit` ODE or variable are
    now allowed.  Also check for more internally parsed items (see
    Issue #145).
+   
+ - Bug fix for `etSeq` and `etRep` where greater than 2 items were mis-caluclated
 
 # RxODE v0.9.2-0
 * New plotting engine
