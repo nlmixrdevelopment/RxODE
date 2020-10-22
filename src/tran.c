@@ -1343,7 +1343,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           i = 1;// Parse next arguments
 	  depth=1;
 	  continue;
-	} else if (!strcmp("logit", v) || !strcmp("expit", v)){
+	} else if (!strcmp("logit", v) || !strcmp("expit", v),
+		   !strcmp("invLogit", v) || !strcmp("logitInv", v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 1){
 	    D_ParseNode *xpn = d_get_child(pn, 2);

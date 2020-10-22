@@ -29,6 +29,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "!" = c("rxNot(", ")", ""),
   "phi" = c("0.5*(1+erf((", ")/sqrt(2)))"),
   "pnorm" = c("0.5*(1+erf((", ")/sqrt(2)))"),
+  "normcdf" = c("0.5*(1+erf((", ")/sqrt(2)))"),
   "qnorm"=c("sqrt(2)*erfinv(2*(", ")-1)"),
   "fabs"=c("abs0(", ")")
 )
@@ -1079,7 +1080,9 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
       } else {
         stop("'lchoose' takes 2 arguments", call. = FALSE)
       }
-    } else if (identical(x[[1]], quote(`pnorm`))) {
+    } else if ((identical(x[[1]], quote(`pnorm`))) |
+                 (identical(x[[1]], quote(`normcdf`))) |
+                 (identical(x[[1]], quote(`phi`)))) {
       if (length(x) == 4) {
         ## pnorm(q, mean, sd)
         if (.isEnv) {
@@ -1312,7 +1315,7 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
               call. = FALSE
             )
           }
-        } else if (.fun == "expit") {
+        } else if (any(.fun == c("expit", "invLogit", "logitInv"))) {
           if (length(.ret0) == 1) {
             .ret <- paste0("1/(1+exp(-(", unlist(.ret0)[1], ")))")
           } else if (length(.ret0) == 2) {
@@ -2947,12 +2950,12 @@ rxSplitPlusQ <- function(x, level = 0, mult = FALSE) {
 }
 
 .rxSupportedFunsExtra <- FALSE
-.rxSupportedFuns <- function() {
+.rxSupportedFuns <- function(extra=.rxSupportedFunsExtra) {
   .ret <- c(
     names(.rxSEsingle), names(.rxSEdouble), names(.rxSEeq),
     "linCmt", names(.rxOnly), ls(.symengineFs)
   )
-  if (.rxSupportedFunsExtra) {
+  if (extra) {
     .ret <- c(.ret, c(
       "rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt",
       "rxGt", "rxAnd", "rxOr", "rxNot", "dabs", "dabs2", "abs0",
@@ -2960,4 +2963,14 @@ rxSplitPlusQ <- function(x, level = 0, mult = FALSE) {
     ))
   }
   .ret
+}
+
+
+##' Get list of supported functions
+##'
+##' @examples
+##' rxFuns()
+##'@export
+rxSupportedFuns <- function() {
+  .rxSupportedFuns(FALSE)
 }
