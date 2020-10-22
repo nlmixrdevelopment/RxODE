@@ -8,6 +8,7 @@
 \usage{
 rxTrans(
   model,
+  extraC = NULL,
   modelPrefix = "",
   md5 = "",
   modName = NULL,
@@ -17,6 +18,7 @@ rxTrans(
 
 \method{rxTrans}{default}(
   model,
+  extraC = NULL,
   modelPrefix = "",
   md5 = "",
   modName = NULL,
@@ -26,6 +28,7 @@ rxTrans(
 
 \method{rxTrans}{character}(
   model,
+  extraC = NULL,
   modelPrefix = "",
   md5 = "",
   modName = NULL,
@@ -51,6 +54,11 @@ rxTrans(
 (see also the \code{filename} argument). For
     details, see the sections \dQuote{Details} and
     \dQuote{\code{RxODE Syntax}} below.}
+
+\item{extraC}{Extra c code to include in the model.  This can be
+useful to specify functions in the model.  These C functions
+should usually take \code{double} precision arguments, and
+return \code{double} precision values.}
 
 \item{modelPrefix}{Prefix of the model functions that will be
 compiled to make sure that multiple RxODE objects can coexist

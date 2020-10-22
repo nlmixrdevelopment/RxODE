@@ -20,25 +20,14 @@ environment:
    APPVEYOR_CACHE_SKIP_SAVE: true
    USE_RTOOLS: true
    _R_CHECK_FORCE_SUGGESTS_: false
-   NOT_CRAN: true
-   WARNINGS_ARE_ERRORS: 1
-  matrix:
-  - R_VERSION: devel
-    rxCran: cran
-  - R_VERSION: release
-    rxCran: cran
    
 build_script:
   - travis-tool.sh install_github nlmixrdevelopment/PreciseSums
   - travis-tool.sh install_github nlmixrdevelopment/n1qn1
-  - travis-tool.sh install_github symengine/symengine.R
   - travis-tool.sh install_deps
 
 test_script:
   - travis-tool.sh run_tests
-
-matrix:
-  fast_finish: true
 
 on_failure:
   - 7z a failure.zip *.Rcheck\*

@@ -2,32 +2,18 @@
 % Please edit documentation in R/et.R
 \name{rxRateDur}
 \alias{rxRateDur}
-\alias{[.rxRateDur}
 \alias{as.rxRateDur}
-\alias{as.character.rxRateDur}
-\alias{[[.rxRateDur}
 \alias{type_sum.rxRateDur}
-\alias{pillar_shaft.rxRateDur}
 \title{Creates a rxRateDur object}
 \usage{
 rxRateDur(x)
 
-\method{[}{rxRateDur}(x, ...)
-
 as.rxRateDur(x)
 
-\method{as.character}{rxRateDur}(x, ...)
-
-\method{[[}{rxRateDur}(x, ...)
-
-type_sum.rxRateDur(x)
-
-pillar_shaft.rxRateDur(x, ...)
+\method{type_sum}{rxRateDur}(x)
 }
 \arguments{
 \item{x}{rxRateDur data}
-
-\item{...}{Other parameters}
 }
 \description{
 This is primarily to display information about rate

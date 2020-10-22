@@ -15,6 +15,7 @@
 \alias{xlab}
 \alias{waiver}
 \alias{lotri}
+\alias{type_sum}
 \alias{label_value}
 \alias{label_both}
 \alias{label_context}
@@ -38,6 +39,8 @@ below to see their documentation.
   \item{lotri}{\code{\link[lotri]{lotri}}}
 
   \item{magrittr}{\code{\link[magrittr:pipe]{\%>\%}}}
+
+  \item{pillar}{\code{\link[pillar]{type_sum}}}
 
   \item{units}{\code{\link[units]{drop_units}}, \code{\link[units]{set_units}}}
 }}

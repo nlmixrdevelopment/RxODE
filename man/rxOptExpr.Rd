@@ -4,17 +4,10 @@
 \alias{rxOptExpr}
 \title{Optimize RxODE for computer evaluation}
 \usage{
-rxOptExpr(x, msg = "model")
+rxOptExpr(x)
 }
 \arguments{
-\item{x}{RxODE model that can be accessed by rxNorm}
-
-\item{msg}{This is the name of type of object that RxODE is
-    optimizing that will in the message when optimizing.  For
-    example "model" will produce the following message while
-    optimizing the model:
-
- finding duplicate expressions in model...}
+\item{x}{RxODE model that can be access by rxNorm}
 }
 \value{
 Optimized RxODE model text.  The order and type lhs and

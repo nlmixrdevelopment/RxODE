@@ -11,6 +11,7 @@ rxCompile(
   model,
   dir,
   prefix,
+  extraC = NULL,
   force = FALSE,
   modName = NULL,
   package = NULL,
@@ -21,6 +22,7 @@ rxCompile(
   model,
   dir = NULL,
   prefix = NULL,
+  extraC = NULL,
   force = FALSE,
   modName = NULL,
   package = NULL,
@@ -65,6 +67,11 @@ rxCompile(
 \item{prefix}{is a string indicating the prefix to use in the C
 based functions.  If missing, it is calculated based on file
 name, or md5 of parsed model.}
+
+\item{extraC}{Extra c code to include in the model.  This can be
+useful to specify functions in the model.  These C functions
+should usually take \code{double} precision arguments, and
+return \code{double} precision values.}
 
 \item{force}{is a boolean stating if the (re)compile should be
 forced if RxODE detects that the models are the same as already

@@ -84,7 +84,7 @@ m1 <-RxODE({
     d/dt(peri)  =                    Q*C2 - Q*C3;
     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
     eff(0) = 1
-})
+});
 ```
 
 ## Adding doses to the event table

@@ -1,5 +1,5 @@
 Package: RxODE
-Version: 0.9.2-2
+Version: 0.9.2-1
 Title: Facilities for Simulating from ODE-Based Models
 Authors@R: c(
    person("Matthew L.","Fidler",
@@ -12,92 +12,80 @@ Authors@R: c(
    person("Zufar", "Mulyukov", role="ctb", email="zufar.mulyukov@novartis.com"),
    person("Justin", "Wilkins", 
       role = "ctb", email = "justin.wilkins@occams.com", comment=c(ORCID="0000-0002-7099-9396")),
-   person("Alan", "Hindmarsh",role="ctb"),
-   person("Awad H.", "Al-Mohy",role="ctb"),
-   person("Bill", "Denney", role=c("ctb"), email="wdenney@humanpredictions.com", comment=c(ORCID="0000-0002-5759-428X")),
-   person("Matt", "Dowle", role="ctb", email="mattjdowle@gmail.com"),
-   person("Cleve", "Moler", role="ctb"),
-   person("David", "Cooley", role="ctb"), 
-   person("Daniel C.", "Dillon", role="ctb"),
-   person("Drew", "Schmidt", role="ctb"),
-   person("Emma", "Schwager", role="ctb"),
-   person("Arun", "Srinivasan", role="ctb", email="arunkumar.sriniv@gmail.com"),
-   person("Ernst", "Hairer", role="ctb"),
-   person("G", "Grothendieck", role="ctb"),
-   person("Gerhard", "Wanner", role="ctb"),
-   person("Hadley", "Wickham", role="ctb"),
-   person("Heng", "Li", role="ctb"),
-   person("J", "Colinge", role="ctb"),
-   person("Jack", "Dongarra", role="ctb"),
-   person("Linda", "Petzold", role="ctb"),
-   person("Martin", "Maechler", role="ctb"),
-   person("Matteo", "Fasiolo", email = "matteo.fasiolo@gmail.com", role = "ctb"),
-   person("Max", "Gordon", role="ctb"),
-   person("Nicholas J.", "Higham",role="ctb"),
-   person("Robert", "Gentleman",role="ctb"),
-   person("Roger B.", "Sidje", role="ctb"),
-   person("Ross", "Ihaka",role="ctb"),
    person("Simon", "Frost", role="ctb"),
-   person("Kevin", "Ushey", role="ctb"),
-   person("Yu", "Feng", role="ctb"),
-   person("Zdravko I.", "Botev", role="ctb"),
-   person("R core team", role="ctb")
+   person("Goro", "Fuji",  role="ctb", email="gfuji@cpan.org"),
+   person("Morwenn","", role="ctb"),
+   person("Heng", "Li", role="ctb"),
+   person("Yu", "Feng", role="ctb"),	
+   person("Alan", "Hindmarsh",role="ctb"),
+   person("Linda", "Petzold", role="ctb"),
+   person("Ernst", "Hairer", role="ctb"),
+   person("Gerhard", "Wanner", role="ctb"),
+   person("J", "Colinge", role="ctb"),
+   person("Hadley", "Wickham", role="ctb"),
+   person("G", "Grothendieck", role="ctb"),
+   person("Robert", "Gentleman",role="ctb"),
+   person("Daniel C.", "Dillon", role="ctb"),
+   person("Ross", "Ihaka", role="ctb"),
+   person("Cleve", "Moler", role="ctb"),
+   person("Jack", "Dongarra", role="ctb"),
+   person("R core team", role="cph")
    )
 Maintainer: Wenping Wang <wwang8198@gmail.com>
 Depends:
     R (>= 3.6.0)
 Suggests:
-    Matrix,
     DT,
-    covr,
-    crayon,
-    curl,
     data.table (>= 1.12.4),
-    devtools,
-    digest,
-    dplyr (>= 0.8.0),
-    ggrepel,
-    gridExtra,
-    htmltools,
-    knitr,
-    learnr,
-    microbenchmark,
     nlme,
-    remotes,
-    rlang,
-    rmarkdown,
-    scales,
     shiny,
-    stringi,
     tcltk,
     testthat,
-    tidyr,
     usethis,
-    vdiffr,
+    devtools,
+    covr,
+    rmarkdown,
+    SnakeCharmR,
+    dplyr (>= 0.8.0),
+    tidyr,
+    tibble,
+    curl,
+    gridExtra,
+    microbenchmark,
+    scales,
+    stringi,
+    htmltools,
+    reticulate,
+    rlang,
+    installr,
+    learnr,
+    remotes,
+    crayon,
     xgxr,
-    pillar,
-    tibble
+    digest,
+    vdiffr,
+    ggrepel
 Imports:
+    knitr,
+    Matrix,
     PreciseSums (>= 0.3),
     Rcpp (>= 0.12.3),
-    RcppArmadillo (>= 0.9.300.2.0),
-    assertthat,
-    backports,
-    checkmate,
-    cli (>= 2.0.0),
+    brew,
+    cli,
     dparser (>= 0.1.8),
     ggplot2,
     inline,
-    lotri (>= 0.2.2),
     magrittr,
     memoise,
     methods,
+    mvnfast,
+    pillar,
     rex,
-    symengine,
     sys,
-    units (>= 0.6-0),
-    tools,
-    utils
+    units(>= 0.6-0),
+    utils,
+    assertthat,
+    lotri
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
@@ -109,7 +97,10 @@ Description: Facilities for running simulations from ordinary
     Section 6.3, Appendix A, and Appendix D in the "R Administration and
     Installation" manual. Also the code is mostly released under GPL.  The
     VODE and LSODA are in the public domain.  The information is available
-    in the inst/COPYRIGHTS. 
+    in the inst/COPYRIGHTS. You can also obtain the archived SnakeCharmR for
+    python integration from CRAN archives
+    <https://cran.r-project.org/src/contrib/Archive/SnakeCharmR/> or
+    <https://github.com/nlmixrdevelopment/SnakeCharmR>.
 BugReports: https://github.com/nlmixrdevelopment/RxODE/issues
 NeedsCompilation: yes
 VignetteBuilder: knitr
@@ -117,11 +108,7 @@ License: GPL (>= 3)
 URL: https://nlmixrdevelopment.github.io/RxODE/
 RoxygenNote: 7.1.1
 Biarch: true
-LinkingTo: dparser(>= 0.1.8),
-	   PreciseSums (>= 0.3),
-	   RcppEigen (>= 0.3.3.3.0),
-	   sitmo, StanHeaders (>= 2.18.0),
-	   BH, checkmate
+LinkingTo: dparser(>= 0.1.8), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.9.300.2.0), PreciseSums (>= 0.3)
 Encoding: UTF-8
 LazyData: true
 Language: en-US
