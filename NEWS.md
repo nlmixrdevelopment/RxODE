@@ -27,7 +27,7 @@
   This is more aligned with how PK/PD models are typically defined.
   
 * `EVID=3` and `EVID=4` now (possibly) reset time as well.  This
-  occurs when the input dataset is sorted before solving
+  occurs when the input dataset is sorted before solving.
 
 ## New features
 
