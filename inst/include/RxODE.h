@@ -277,6 +277,8 @@ typedef struct {
   bool sample;
   int *par_sample;
   double maxShift;
+  int linKa;
+  int linNcmt;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);
