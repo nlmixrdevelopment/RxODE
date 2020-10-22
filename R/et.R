@@ -1,30 +1,32 @@
-.etAddCls <- function(x) {
-  if (inherits(x, "rxEt")) {
-    .x <- x
-    .cls <- class(x)
-    class(.x) <- "data.frame"
-    if (!is.null(.x[["evid"]])) {
-      class(.x[["evid"]]) <- "rxEvid"
-      .tmp <- .x[["rate"]]
-      .cls2 <- class(.tmp)
-      if (!inherits(.cls2, "rxRateDur")) {
-        class(.tmp) <- c("rxRateDur", .cls2)
-      }
-      .x[["rate"]] <- .tmp
-      .tmp <- .x[["dur"]]
-      .cls2 <- class(.tmp)
-      if (!inherits(.cls2, "rxRateDur")) {
-        class(.tmp) <- c("rxRateDur", .cls2)
-      }
-      .x[["dur"]] <- .tmp
-      class(.x) <- .cls
-      return(.x)
+.etAddCls <- function(x){
+    if (inherits(x, "rxEt")){
+        .x <- x;
+        .cls <- class(x);
+        class(.x) <- "data.frame"
+        if (!is.null(.x[["evid"]])){
+            class(.x[["evid"]]) <- "rxEvid";
+
+            .tmp <- .x[["rate"]];
+            .cls2 <- class(.tmp);
+            if (!inherits(.cls2, "rxRateDur")){
+                class(.tmp) <- c("rxRateDur", .cls2);
+            }
+            .x[["rate"]] <- .tmp
+
+            .tmp <- .x[["dur"]];
+            .cls2 <- class(.tmp);
+            if (!inherits(.cls2, "rxRateDur")){
+                class(.tmp) <- c("rxRateDur", .cls2);
+            }
+            .x[["dur"]] <- .tmp
+            class(.x) <- .cls
+            return(.x)
+        } else {
+            return(x)
+        }
     } else {
-      return(x)
+        return(x)
     }
-  } else {
-    return(x)
-  }
 }
 ##' Event Table Function
 ##'
@@ -153,564 +155,516 @@
 ##' @template etExamples
 ##'
 ##' @export
-et <- function(x, ..., envir = parent.frame()) {
-  UseMethod("et")
+et <- function(x, ..., envir=parent.frame()){
+    UseMethod("et");
 }
 
-.pipelineRx <- NULL
-.pipelineInits <- NULL
-.pipelineEvents <- NULL
-.pipelineParams <- NULL
-.pipelineICov <- NULL
-.pipelineKeep <- NULL
+.pipelineRx       <- NULL
+.pipelineInits    <- NULL
+.pipelineEvents   <- NULL
+.pipelineParams   <- NULL
+.pipelineICov     <- NULL
+.pipelineKeep     <- NULL
 .pipelineThetaMat <- NULL
-.pipelineOmega <- NULL
-.pipelineIov <- NULL
-.pipelineSigma <- NULL
-.pipelineDfObs <- NULL
-.pipelineDfSub <- NULL
-.pipelineNSub <- NULL
-.pipelineNStud <- NULL
+.pipelineOmega    <- NULL
+.pipelineSigma    <- NULL
+.pipelineDfObs    <- NULL
+.pipelineDfSub    <- NULL
+.pipelineNSub    <- NULL
+.pipelineNStud    <- NULL
 
 ##' Clear/Set pipeline
 ##'
 ##' @inheritParams rxControl
 ##' @param rx RxODE object
 ##' @keywords intenral
-##' @export
-.clearPipe <- function(rx = NULL, inits = NULL,
-                       events = NULL, params = NULL,
-                       iCov = NULL, keep = NULL,
-                       thetaMat = NULL, omega = NULL,
-                       sigma = NULL, dfObs = NULL,
-                       dfSub = NULL, nSub = NULL,
-                       nStud = NULL) {
-  assignInMyNamespace(".pipelineRx", rx)
-  assignInMyNamespace(".pipelineInits", inits)
-  assignInMyNamespace(".pipelineEvents", events)
-  assignInMyNamespace(".pipelineParams", params)
-  assignInMyNamespace(".pipelineICov", iCov)
-  assignInMyNamespace(".pipelineKeep", keep)
-  assignInMyNamespace(".pipelineThetaMat", thetaMat)
-  assignInMyNamespace(".pipelineOmega", omega)
-  assignInMyNamespace(".pipelineSigma", sigma)
-  assignInMyNamespace(".pipelineDfObs", dfObs)
-  assignInMyNamespace(".pipelineDfSub", dfSub)
-  assignInMyNamespace(".pipelineNSub", nSub)
-  assignInMyNamespace(".pipelineNStud", nStud)
+##'@export
+.clearPipe <- function(rx=NULL, inits=NULL,
+                       events=NULL, params=NULL,
+                       iCov=NULL, keep=NULL,
+                       thetaMat=NULL, omega=NULL,
+                       sigma=NULL, dfObs=NULL,
+                       dfSub=NULL, nSub=NULL,
+                       nStud=NULL){
+    assignInMyNamespace(".pipelineRx", rx)
+    assignInMyNamespace(".pipelineInits", inits)
+    assignInMyNamespace(".pipelineEvents", events)
+    assignInMyNamespace(".pipelineParams", params)
+    assignInMyNamespace(".pipelineICov", iCov)
+    assignInMyNamespace(".pipelineKeep", keep)
+    assignInMyNamespace(".pipelineThetaMat", thetaMat)
+    assignInMyNamespace(".pipelineOmega", omega)
+    assignInMyNamespace(".pipelineSigma", sigma)
+    assignInMyNamespace(".pipelineDfObs", dfObs)
+    assignInMyNamespace(".pipelineDfSub", dfSub)
+    assignInMyNamespace(".pipelineNSub", nSub)
+    assignInMyNamespace(".pipelineNStud", nStud)
 }
 
 ##' @rdname et
 ##' @export
-et.RxODE <- function(x, ..., envir = parent.frame()) {
-  .clearPipe()
-  assignInMyNamespace(".pipelineRx", x)
-  do.call(et, c(list(...), list(envir = envir)), envir = envir)
+et.RxODE <- function(x,...,envir=parent.frame()){
+    .clearPipe();
+    assignInMyNamespace(".pipelineRx", x);
+    do.call(et, c(list(...), list(envir=envir)), envir=envir);
 }
 ##' @rdname et
 ##' @export
-et.rxSolve <- function(x, ..., envir = parent.frame()) {
-  ## Need to extract:
-  ## 1. RxODE model
-  assignInMyNamespace(".pipelineRx", x$.args.object)
-  ## 2. RxODE parameters
-  assignInMyNamespace(".pipelineParams", x$.args.par0)
-  assignInMyNamespace(".pipelineICov", x$.args$iCov)
-  assignInMyNamespace(".pipelineKeep", x$.args$keep)
-  ## 3. RxODE inits
-  assignInMyNamespace(".pipelineInits", x$.args.inits)
-  ## 4. RxODE thetaMat
-  assignInMyNamespace(".pipelineThetaMat", x$.args$thetaMat)
-  ## 5. RxODE omega
-  assignInMyNamespace(".pipelineOmega", x$.args$omega)
-  ## 6. RxODE sigma
-  assignInMyNamespace(".pipelineSigma", x$.args$sigma)
-  ## 7. RxODE dfObs
-  assignInMyNamespace(".pipelineDfObs", x$env$.args$dfObs)
-  ## 8. RxODE dfSub
-  assignInMyNamespace(".pipelineDfSub", x$env$.args$dfSub)
-  do.call(et, c(list(...), list(envir = envir)), envir = envir)
+et.rxSolve <- function(x, ..., envir=parent.frame()){
+    ## Need to extract:
+    ## 1. RxODE model
+    assignInMyNamespace(".pipelineRx",x$args.object)
+    ## 2. RxODE parameters
+    assignInMyNamespace(".pipelineParams", x$args.par0);
+    assignInMyNamespace(".pipelineICov", x$args$iCov);
+    assignInMyNamespace(".pipelineKeep", x$args$keep);
+    ## 3. RxODE inits
+    assignInMyNamespace(".pipelineInits", x$args.inits);
+    ## 4. RxODE thetaMat
+    assignInMyNamespace(".pipelineThetaMat", x$args$thetaMat);
+    ## 5. RxODE omega
+    assignInMyNamespace(".pipelineOmega", x$args$omega);
+    ## 6. RxODE sigma
+    assignInMyNamespace(".pipelineSigma", x$args$sigma);
+    ## 7. RxODE dfObs
+    assignInMyNamespace(".pipelineDfObs", x$env$args$dfObs)
+    ## 8. RxODE dfSub
+    assignInMyNamespace(".pipelineDfSub", x$env$args$dfSub)
+    do.call(et, c(list(...), list(envir=envir)), envir=envir);
 }
 
-##' @rdname et
-##' @export
-et.rxParams <- function(x, ..., envir = parent.frame()) {
-  ## Need to extract:
-  ## 1. RxODE model
-  ## 2. RxODE parameters
-  if (!is.null(x$params)) assignInMyNamespace(".pipelineParams", x$params)
-  if (!is.null(x$iCov)) assignInMyNamespace(".pipelineICov", x$iCov)
-  if (!is.null(x$keep)) assignInMyNamespace(".pipelineKeep", x$keep)
-  ## 3. RxODE inits
-  if (!is.null(x$inits)) assignInMyNamespace(".pipelineInits", x$inits)
-  ## 4. RxODE thetaMat
-  if (!is.null(x$thetaMat)) assignInMyNamespace(".pipelineThetaMat", x$thetaMat)
-  ## 5. RxODE omega
-  if (!is.null(x$omega)) assignInMyNamespace(".pipelineOmega", x$omega)
-  ## 6. RxODE sigma
-  if (!is.null(x$sigma)) assignInMyNamespace(".pipelineSigma", x$sigma)
-  ## 7. RxODE dfObs
-  if (!is.null(x$dfObs)) assignInMyNamespace(".pipelineDfObs", x$dfObs)
-  ## 8. RxODE dfSub
-  if (!is.null(x$dfSub)) assignInMyNamespace(".pipelineDfSub", x$dfSub)
-  if (!is.null(x$nSub)) assignInMyNamespace(".pipelineNSub", x$nSub)
-  if (!is.null(x$nStud)) assignInMyNamespace(".pipelineNStud", x$nStud)
+##'@rdname et
+##'@export
+et.rxParams <- function(x,..., envir=parent.frame()){
+    ## Need to extract:
+    ## 1. RxODE model
+    ## 2. RxODE parameters
+    if (!is.null(x$params)) assignInMyNamespace(".pipelineParams", x$params);
+    if (!is.null(x$iCov)) assignInMyNamespace(".pipelineICov", x$iCov);
+    if (!is.null(x$keep)) assignInMyNamespace(".pipelineKeep", x$keep);
+    ## 3. RxODE inits
+    if (!is.null(x$inits)) assignInMyNamespace(".pipelineInits", x$inits);
+    ## 4. RxODE thetaMat
+    if (!is.null(x$thetaMat)) assignInMyNamespace(".pipelineThetaMat", x$thetaMat);
+    ## 5. RxODE omega
+    if (!is.null(x$omega)) assignInMyNamespace(".pipelineOmega", x$omega);
+    ## 6. RxODE sigma
+    if (!is.null(x$sigma)) assignInMyNamespace(".pipelineSigma", x$sigma);
+    ## 7. RxODE dfObs
+    if (!is.null(x$dfObs)) assignInMyNamespace(".pipelineDfObs", x$dfObs);
+    ## 8. RxODE dfSub
+    if (!is.null(x$dfSub)) assignInMyNamespace(".pipelineDfSub", x$dfSub);
+    if (!is.null(x$nSub)) assignInMyNamespace(".pipelineNSub", x$nSub);
+    if (!is.null(x$nStud)) assignInMyNamespace(".pipelineNStud", x$nStud);
 
-  do.call(et, c(list(...), list(envir = envir)), envir = envir)
+    do.call(et, c(list(...), list(envir=envir)), envir=envir);
 }
 
-##' @rdname et
-##' @export
-et.default <- function(x, ..., time, amt, evid, cmt, ii, addl,
-                       ss, rate, dur, until, id,
-                       amountUnits, timeUnits, addSampling,
-                       envir = parent.frame(),
-                       by = NULL, length.out = NULL) {
-  .lst <- as.list(match.call()[-1])
+##'@rdname et
+##'@export
+et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until, id,
+                       amountUnits, timeUnits, addSampling, envir=parent.frame(),
+                       by=NULL, length.out=NULL){
+    .lst <- as.list(match.call()[-1]);
 
-  .isPipe <- as.character(substitute(x))
-  if (length(.isPipe) == 1) {
-    .isPipe <- (.isPipe == ".")
-  } else {
-    .isPipe <- FALSE
-  }
-  if (!missing(x)) {
-    names(.lst)[1] <- ""
-  }
-  if (!missing(by)) {
-    force(by)
-    checkmate::assertNumeric(by, finite = TRUE, max.len = 1, any.missing = FALSE, min = 0)
-    if (!missing(length.out)) {
-      stop("cannot supply both 'by' and 'length.out'", call. = FALSE)
-    }
-    .lst <- .lst[names(.lst) != "by"]
-    .lst <- .lst[names(.lst) != "envir"]
-    if (.isPipe) {
-      if (length(.lst) == 3) {
-        .from <- eval(.lst[[2]], envir=envir)
-        .to <- eval(.lst[[3]], envir=envir)
-        .lst <- .lst[-3]
-        checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
-        checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
-        .lst[[2]] <- seq(from = .from, to = .to, by = by)
-        return(do.call(et.default, .lst, envir = envir))
-      } else {
-        .from <- eval(.lst[[2]], envir=envir)
-        checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
-        .lst[[2]] <- seq(from = .from, by = by)
-        return(do.call(et.default, .lst, envir = envir))
-      }
+    .isPipe <- as.character(substitute(x));
+    if (length(.isPipe)==1) {
+        .isPipe <- (.isPipe==".");
     } else {
-      if (length(.lst) == 2) {
-        .from <- eval(.lst[[1]], envir=envir)
-        .to <- eval(.lst[[2]], envir=envir)
-        .lst <- .lst[-2]
-        checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
-        checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
-        .lst[[1]] <- seq(from = .from, to = .to, by = by)
-        return(do.call(et.default, .lst, envir = envir))
-      } else {
-        .from <- eval(.lst[[1]], envir=envir)
-        checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
-        .lst[[1]] <- seq(from = .from, by = by)
-        return(do.call(et.default, .lst, envir = envir))
-      }
+        .isPipe <- FALSE
     }
-  }
-  if (!missing(length.out)) {
-    checkmate::assertCount(length.out)
-    .lst <- .lst[names(.lst) != "length.out"]
-    .lst <- .lst[names(.lst) != "envir"]
-    if (.isPipe) {
-      if (length(.lst) == 3) {
-        .from <- eval(.lst[[2]], envir = envir)
-        .to <- eval(.lst[[3]], envir=envir)
-        .lst <- .lst[-3]
-        checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
-        checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
-        .lst[[2]] <- seq(from = .from, to = .to, length.out = length.out)
-        return(do.call(et.default, .lst, envir = envir))
-      } else {
-        .from <- eval(.lst[[2]], envir=envir)
-        checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
-        .lst[[2]] <- seq(from = .from, length.out = length.out)
-        return(do.call(et.default, .lst, envir = envir))
-      }
-    } else {
-      if (length(.lst) == 2) {
-        .from <- eval(.lst[[1]], envir=envir)
-        .to <- eval(.lst[[2]], envir=envir)
-        checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
-        checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
-        .lst <- eval(.lst[-2], envir=envir)
-        .lst[[1]] <- seq(from = .from, to = .to, length.out = length.out)
-        return(do.call(et.default, .lst, envir = envir))
-      } else {
-        .from <- eval(.lst[[1]], envir=envir)
-        checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
-        .lst[[1]] <- seq(from = .from, length.out = length.out)
-        return(do.call(et.default, .lst, envir = envir))
-      }
+    if (!missing(x)){
+        names(.lst)[1] <- "";
     }
-  }
-  if (!.isPipe) {
-    if (all(names(.lst) == "") && length(.lst) == 2) {
-      if ((is(.lst[[1]], "numeric") || is(.lst[[1]], "integer")) &&
-        (is(.lst[[2]], "numeric") || is(.lst[[2]], "integer"))) {
-        .from <- eval(.lst[[1]], envir=envir)
-        .to <- eval(.lst[[2]], envir=envir)
-        .lst <- .lst[-2]
-        checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
-        checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
-        .lst[[1]] <- seq(from = .from, to = .to)
-        return(do.call(et.default, .lst, envir = envir))
-      }
-    }
-    .len <- sum(names(.lst) == "")
-    if (.len == 2 && is(.lst[[2]], "character")) {
-    } else if (.len > 1) {
-      stop("improper arguments to 'et'", call. = FALSE)
-    }
-  } else {
-    if (all(names(.lst)[-1] == "") && length(.lst) == 3) {
-      if ((is(.lst[[2]], "numeric") || is(.lst[[2]], "integer")) &&
-        (is(.lst[[3]], "numeric") || is(.lst[[3]], "integer"))) {
-        .from <- eval(.lst[[2]], envir=envir)
-        .to <- eval(.lst[[3]], envir=envir)
-        checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
-        checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
-        .lst <- .lst[-3]
-        .lst[[2]] <- seq(from = .from, to = .to)
-        return(do.call(et.default, .lst, envir = envir))
-      }
-    }
-    .len <- sum(names(.lst)[-1] == "")
-    if (.len == 2 && is(.lst[[3]], "character")) {
-    } else if (.len > 1) {
-      if (sum(names(.lst)[-1] == "") > 1) {
-        stop("improper arguments to 'et'", call. = FALSE)
-      }
-    }
-  }
-  if (!missing(amt)) {
-    if (length(amt) > 1) {
-      if (missing(time)) {
-        time <- 0
-      } else if (length(time) != length(amt)) {
-        if (length(time) != 1) {
-          stop("when supplying vectors of 'time', 'amt' they need to be the same size", call. = FALSE)
+    if (!missing(by)){
+        if (!missing(length.out)){
+            stop("Cannot supply 'by' and 'length.out', only use one.");
         }
-      }
-      .df <- data.frame(time = time, amt = amt)
-      ##
-      if (!missing(id)) {
-        .df$id <- id
-      }
-      if (missing(cmt)) {
-        .df$cmt <- "(default)"
-      } else {
-        .df$cmt <- cmt
-      }
-      .df$amt <- amt
-      if (missing(rate)) {
-        .df$rate <- 0.0
-      } else {
-        .df$rate <- rate
-      }
-      if (missing(ii)) {
-        .df$ii <- 0.0
-      } else {
-        .df$ii <- ii
-      }
-      if (missing(addl)) {
-        .df$addl <- 0L
-      } else {
-        .df$addl <- addl
-      }
-      if (missing(evid)) {
-        .df$evid <- 1L
-      } else {
-        .df$evid <- evid
-      }
-      if (missing(ss)) {
-        .df$ss <- 0L
-      } else {
-        .df$ss <- ss
-      }
-      if (missing(dur)) {
-        .df$dur <- 0.0
-      } else {
-        .df$dur <- dur
-      }
-      .et <- et()
-      .et$import.EventTable(.df)
-      if (.isPipe) {
-        .tmp <- eval(.lst[[1]], envir = envir)
-        if (nrow(.et) == 0){
-          return(.tmp)
-        } else if (nrow(.tmp) == 0){
-          return(.et)
+        .lst <- .lst[names(.lst) != "by"];
+        .lst <- .lst[names(.lst) != "envir"];
+        if (.isPipe){
+            if (length(.lst)==3){
+                .from <- .lst[[2]];
+                .to <- .lst[[3]];
+                .lst <- .lst[-3];
+                .lst[[2]] <- seq(from=.from, to=.to, by=by);
+                return(do.call(et.default, .lst, envir=envir))
+            } else {
+                .from <- .lst[[2]];
+                .lst[[2]] <- seq(from=.from, by=by);
+                return(do.call(et.default, .lst, envir=envir))
+            }
         } else {
-          return(etRbind(.tmp, .et))
+            if (length(.lst)==2){
+                .from <- .lst[[1]];
+                .to <- .lst[[2]];
+                .lst <- .lst[-2];
+                .lst[[1]] <- seq(from=.from, to=.to, by=by);
+                return(do.call(et.default, .lst, envir=envir))
+            } else {
+                .from <- .lst[[1]];
+                .lst[[1]] <- seq(from=.from, by=by);
+                return(do.call(et.default, .lst, envir=envir))
+            }
         }
-      } else {
-        return(.et)
-      }
     }
-  }
-  if (!missing(time)) {
-    if (inherits(time, "list")) {
-      checkmate::assertList(time,
-        any.missing = FALSE,
-        unique = FALSE,
-        names = "unnamed"
-      )
-    } else {
-      checkmate::assertNumeric(time,
-        finite = TRUE,
-        any.missing = FALSE,
-        unique = TRUE,
-        names = "unnamed"
-      )
-    }
-    .lst$time <- time
-  }
-  if (!missing(amt)) {
-    checkmate::assertNumeric(amt,
-      finite = TRUE,
-      any.missing = FALSE,
-      max.len = 1,
-      names = "unnamed"
-    )
-    .lst$amt <- amt
-  }
-  if (!missing(evid)) {
-    .evid <- as.character(substitute(evid))
-    if (length(.evid) != 1) {
-      if (all(.evid == .evid[1])) {
-        .evid <- .evid[1]
-      } else {
-        .evid0 <- suppressWarnings(try(as.numeric(evid), silent = TRUE))
-        if (inherits(.evid, "try-error")) {
-          stop(sprintf(
-            gettext("only a single evid 'evid' can be specified ('%s')"),
-            paste(.evid, collapse = "', '")
-          ), call. = FALSE)
+    if (!missing(length.out)){
+        .lst <- .lst[names(.lst) != "length.out"];
+        .lst <- .lst[names(.lst) != "envir"];
+        if (.isPipe){
+            if (length(.lst)==3){
+                .from <- .lst[[2]];
+                .to <- .lst[[3]];
+                .lst <- .lst[-3];
+                .lst[[2]] <- seq(from=.from, to=.to, length.out=length.out);
+                return(do.call(et.default, .lst, envir=envir))
+            } else {
+                .from <- .lst[[2]];
+                .lst[[2]] <- seq(from=.from, length.out=length.out);
+                return(do.call(et.default, .lst, envir=envir))
+            }
         } else {
-          .evid <- .evid0
+            if (length(.lst)==2){
+                .from <- .lst[[1]];
+                .to <- .lst[[2]];
+                .lst <- .lst[-2];
+                .lst[[1]] <- seq(from=.from, to=.to, length.out=length.out);
+                return(do.call(et.default, .lst, envir=envir))
+            } else {
+                .from <- .lst[[1]];
+                .lst[[1]] <- seq(from=.from, length.out=length.out);
+                return(do.call(et.default, .lst, envir=envir))
+            }
         }
-      }
     }
-    if (.evid == "obs" || .evid == "0") {
-      .tmp <- try(eval(evid, envir = envir), silent = TRUE)
-      if (inherits(.tmp, "try-error")) {
-        .lst$evid <- 0L
-      } else {
-        .lst$evid <- as.integer(.tmp)
-      }
-    } else if (.evid == "dose" || .evid == "1") {
-      .tmp <- try(eval(evid, envir = envir), silent = TRUE)
-      if (inherits(.tmp, "try-error")) {
-        .lst$evid <- 1L
-      } else {
-        .lst$evid <- as.integer(.tmp)
-      }
-    } else if (.evid == "other" || .evid == "2") {
-      .tmp <- try(eval(evid, envir = envir), silent = TRUE)
-      if (inherits(.tmp, "try-error")) {
-        .lst$evid <- 2L
-      } else {
-        .lst$evid <- as.integer(.tmp)
-      }
-    } else if (.evid == "reset" || .evid == "3") {
-      .tmp <- try(eval(evid, envir = envir), silent = TRUE)
-      if (inherits(.tmp, "try-error")) {
-        .lst$evid <- 3L
-      } else {
-        .lst$evid <- as.integer(.tmp)
-      }
-    } else if (.evid == "doseReset" || .evid == "resetDose" || .evid == "4") {
-      .tmp <- try(eval(evid, envir = envir), silent = TRUE)
-      if (inherits(.tmp, "try-error")) {
-        .lst$evid <- 4L
-      } else {
-        .lst$evid <- as.integer(.tmp)
-      }
+    if (!.isPipe){
+        if (all(names(.lst)=="") && length(.lst)==2){
+            if ((is(.lst[[1]], "numeric") || is(.lst[[1]], "integer")) &&
+                (is(.lst[[2]], "numeric") || is(.lst[[2]], "integer"))){
+                .from <- .lst[[1]];
+                .to <- .lst[[2]];
+                .lst <- .lst[-2];
+                .lst[[1]] <- seq(from=.from, to=.to);
+                return(do.call(et.default, .lst, envir=envir))
+            }
+        }
+        .len <- sum(names(.lst)=="");
+        if (.len==2 && is(.lst[[2]], "character")){
+        } else if (.len > 1){
+            stop("Improper arguments to et(); Can be like seq or call out dosing elements.")
+        }
     } else {
-      .lst$evid <- as.integer(evid)
+        if (all(names(.lst)[-1]=="") && length(.lst)==3){
+            if ((is(.lst[[2]], "numeric") || is(.lst[[2]], "integer")) &&
+                (is(.lst[[3]], "numeric") || is(.lst[[3]], "integer"))){
+                .from <- .lst[[2]];
+                .to <- .lst[[3]];
+                .lst <- .lst[-3];
+                .lst[[2]] <- seq(from=.from, to=.to);
+                return(do.call(et.default, .lst, envir=envir))
+            }
+        }
+        .len <- sum(names(.lst)[-1]=="");
+        if (.len==2 && is(.lst[[3]], "character")){
+        } else if (.len > 1){
+            if (sum(names(.lst)[-1]=="") > 1){
+                stop("Improper arguments to et(); Can be like seq or call out dosing elements.")
+            }
+        }
     }
-  }
-  if (!missing(cmt)) {
-    .cmt <- as.character(substitute(cmt))
-    if (length(.cmt) != 1) {
-      if (all(.cmt == .cmt[1])) {
-        .cmt <- .cmt[1]
-      } else {
-        .cmt0 <- suppressWarnings(try(as.numeric(cmt), silent = TRUE))
-        if (inherits(.cmt, "try-error")) {
-          stop(sprintf(
-            gettext("only a single compartment 'cmt' can be specified ('%s')"),
-            paste(.cmt, collapse = "', '")
-          ), call. = FALSE)
+
+    if (!missing(time)){
+        .lst$time <- time;
+    }
+    if (!missing(amt)){
+        .lst$amt <- amt;
+    }
+    if (!missing(evid)){
+        .evid <- as.character(substitute(evid))
+        if (length(.evid) !=1) {
+            if (all(.evid==.evid[1])){
+                .evid  <- .evid[1]
+            } else {
+                .evid0  <- suppressWarnings(try(as.numeric(evid),silent=TRUE));
+                if (inherits(.evid, "try-error")){
+                    stop(sprintf("Only a single evid 'evid' can be specified ('%s').",
+                                 paste(.evid, collapse="', '")));
+                } else {
+                    .evid  <- .evid0
+                }
+            }
+        }
+        if (.evid=="obs" || .evid=="0"){
+            .tmp <- try(eval(evid, envir=envir), silent=TRUE);
+            if (inherits(.tmp, "try-error")){
+                .lst$evid <- 0L;
+            } else {
+                .lst$evid <- as.integer(.tmp);
+            }
+        } else if (.evid=="dose" || .evid=="1") {
+            .tmp <- try(eval(evid, envir=envir), silent=TRUE);
+            if (inherits(.tmp, "try-error")){
+                .lst$evid <- 1L;
+            } else {
+                .lst$evid <- as.integer(.tmp);
+            }
+        } else if (.evid=="other" || .evid=="2") {
+            .tmp <- try(eval(evid, envir=envir), silent=TRUE);
+            if (inherits(.tmp, "try-error")){
+                .lst$evid <- 2L;
+            } else {
+                .lst$evid <- as.integer(.tmp);
+            }
+        } else if (.evid=="reset" || .evid=="3") {
+            .tmp <- try(eval(evid, envir=envir), silent=TRUE);
+            if (inherits(.tmp, "try-error")){
+                .lst$evid <- 3L;
+            } else {
+                .lst$evid <- as.integer(.tmp);
+            }
+        } else if (.evid=="doseReset" || .evid=="resetDose" || .evid=="4") {
+            .tmp <- try(eval(evid, envir=envir), silent=TRUE);
+            if (inherits(.tmp, "try-error")){
+                .lst$evid <- 4L;
+            } else {
+                .lst$evid <- as.integer(.tmp);
+            }
         } else {
-          .cmt <- .cmt0
+            .lst$evid <- as.integer(evid);
         }
-      }
     }
-    .cmt1 <- try(suppressWarnings(as.integer(cmt)), silent = TRUE)
-    if (inherits(.cmt1, "try-error")) {
-      .lst$cmt <- .cmt
-    } else {
-      if (is.na(.cmt1)) {
-        .lst$cmt <- .cmt
-      } else {
-        .lst$cmt <- .cmt1
-      }
-    }
-  }
-  if (!missing(rate)) {
-    .rate <- as.character(substitute(rate))
-    if (length(.rate) != 1) {
-      if (all(.rate == .rate[1])) {
-        .rate <- .rate[1]
-      } else {
-        .rate0 <- suppressWarnings(try(as.numeric(rate), silent = TRUE))
-        if (inherits(.rate, "try-error")) {
-          stop(sprintf(
-            gettext("only a single rate 'rate' can be specified ('%s')"),
-            paste(.rate, collapse = "', '")
-          ), call. = FALSE)
+    if (!missing(cmt)){
+        .cmt <- as.character(substitute(cmt));
+        if (length(.cmt) !=1) {
+            if (all(.cmt==.cmt[1])){
+                .cmt  <- .cmt[1]
+            } else {
+                .cmt0  <- suppressWarnings(try(as.numeric(cmt),silent=TRUE));
+                if (inherits(.cmt, "try-error")){
+                    stop(sprintf("Only a single compartment 'cmt' can be specified ('%s').",
+                                 paste(.cmt, collapse="', '")));
+                } else {
+                    .cmt  <- .cmt0
+                }
+            }
+        }
+        .cmt1 <- try(suppressWarnings(as.integer(cmt)), silent=TRUE);
+        if (inherits(.cmt1, "try-error")){
+            .lst$cmt <- .cmt
         } else {
-          .rate <- .rate0
+            if (is.na(.cmt1)){
+                .lst$cmt <- .cmt
+            } else {
+                .lst$cmt <- .cmt1
+            }
         }
-      }
     }
-    if (.rate == "model" || .rate == "modeled" ||
-      .rate == "modelled" || .rate == "rate") {
-      .rate <- try(eval(rate, envir = envir), silent = TRUE)
-      if (!inherits(.rate, "try-error")) {
-        .lst$rate <- .rate
-      } else {
-        .lst$rate <- -1.0
-      }
-    } else if (.rate == "dur" || .rate == "duration") {
-      .rate <- try(eval(rate, envir = envir), silent = TRUE)
-      if (!inherits(.rate, "try-error")) {
-        .lst$rate <- .rate
-      } else {
-        .lst$rate <- -2.0
-      }
-    } else {
-      .lst$rate <- rate
-    }
-  }
-  if (!missing(dur)) {
-    .dur <- as.character(substitute(dur))
-    if (length(.dur) != 1) {
-      if (all(.dur == .dur[1])) {
-        .dur <- .dur[1]
-      } else {
-        .dur0 <- suppressWarnings(try(as.numeric(dur), silent = TRUE))
-        if (inherits(.dur, "try-error")) {
-          stop(sprintf(
-            gettext("only a single duration 'dur' can be specified ('%s')"),
-            paste(.dur, collapse = "', '")
-          ), call. = FALSE)
+    if (!missing(rate)){
+        .rate <- as.character(substitute(rate));
+        if (length(.rate) !=1) {
+            if (all(.rate==.rate[1])){
+                .rate  <- .rate[1]
+            } else {
+                .rate0  <- suppressWarnings(try(as.numeric(rate),silent=TRUE));
+                if (inherits(.rate, "try-error")){
+                    stop(sprintf("Only a single rate 'rate' can be specified ('%s').",
+                                 paste(.rate, collapse="', '")));
+                } else {
+                    .rate  <- .rate0
+                }
+            }
+        }
+        if (.rate=="model" || .rate=="modeled" ||
+            .rate=="modelled" || .rate=="rate"){
+            .rate <- try(eval(rate, envir=envir), silent=TRUE);
+            if (!inherits(.rate, "try-error")){
+                .lst$rate <- .rate
+            } else {
+                .lst$rate <- -1.0
+            }
+        } else if (.rate=="dur" || .rate=="duration"){
+            .rate <- try(eval(rate, envir=envir), silent=TRUE);
+            if (!inherits(.rate, "try-error")){
+                .lst$rate <- .rate;
+            } else {
+                .lst$rate <- -2.0;
+            }
         } else {
-          .dur <- .dur0
+            .lst$rate <- rate;
         }
-      }
     }
-    if (.dur == "model" || .dur == "modeled" ||
-      .dur == "modelled" || .dur == "dur" ||
-      .dur == "duration") {
-      .dur <- try(eval(dur, envir = envir), silent = TRUE)
-      if (inherits(.dur, "try-error")) {
-        .lst$rate <- -2.0
-        .lst <- .lst[names(.lst) != "dur"]
-      } else {
-        .lst$dur <- .dur
-      }
-    } else if (.dur == "rate") {
-      .dur <- try(eval(dur, envir = envir), silent = TRUE)
-      if (inherits(.dur, "try-error")) {
-        .lst$rate <- -1.0
-        .lst <- .lst[names(.lst) != "dur"]
-      } else {
-        .lst$dur <- .dur
-      }
-    } else {
-      .lst$dur <- dur
+    if (!missing(dur)){
+        .dur <- as.character(substitute(dur));
+        if (length(.dur) !=1) {
+            if (all(.dur==.dur[1])){
+                .dur  <- .dur[1]
+            } else {
+                .dur0  <- suppressWarnings(try(as.numeric(dur),silent=TRUE));
+                if (inherits(.dur, "try-error")){
+                    stop(sprintf("Only a single duration 'dur' can be specified ('%s').",
+                                 paste(.dur, collapse="', '")));
+                } else {
+                    .dur  <- .dur0
+                }
+            }
+        }
+        if (.dur=="model" || .dur=="modeled" ||
+            .dur=="modelled" || .dur=="dur" ||
+            .dur=="duration"){
+            .dur <- try(eval(dur,envir=envir), silent=TRUE);
+            if (inherits(.dur, "try-error")){
+                .lst$rate <- -2.0
+                .lst <- .lst[names(.lst) != "dur"]
+            } else {
+                .lst$dur <- .dur
+            }
+        } else if (.dur=="rate"){
+            .dur <- try(eval(dur,envir=envir), silent=TRUE);
+            if (inherits(.dur, "try-error")){
+                .lst$rate <- -1.0;
+                .lst <- .lst[names(.lst) != "dur"];
+            } else {
+                .lst$dur <- .dur
+            }
+
+        } else {
+            .lst$dur <- dur;
+        }
     }
-  }
-  .unitNames <- names(.lst)
-  .unitNames <- .unitNames[regexpr("^(amount|time)", .unitNames) != -1]
-  .unitNames <- .unitNames[.unitNames != "time"]
-  for (.u in .unitNames) {
-    if (inherits(.lst[[.u]], "name")) {
-      .tmp <- .lst[[.u]]
-      .tmp <- deparse(substitute(.tmp))
-      .lst[[.u]] <- .tmp
+    .unitNames <- names(.lst);
+    .unitNames <- .unitNames[regexpr("^(amount|time)",.unitNames) != -1];
+    .unitNames <- .unitNames[.unitNames != "time"];
+    for (.u in .unitNames){
+        if (inherits(.lst[[.u]], "name")){
+            .tmp <- .lst[[.u]];
+            .tmp <- deparse(substitute(.tmp))
+            .lst[[.u]] <- .tmp
+        }
     }
-  }
-  .lst <- lapply(.lst, function(x) {
-    eval(x, envir)
-  })
-  .Call(`_RxODE_et_`, .lst, list())
+    .lst <- lapply(.lst,function(x){
+        eval(x,envir)
+    });
+    .Call(`_RxODE_et_`, .lst, list())
 }
 
 ##' @export
-`$.rxEt` <- function(obj, arg, exact = FALSE) {
-  return(.Call(`_RxODE_etUpdate`, obj, arg, NULL, exact))
+`$.rxEt` <-  function(obj, arg, exact = FALSE){
+    return(.Call(`_RxODE_etUpdate`, obj, arg, NULL, exact))
 }
 
 ##' @export
-simulate.rxEt <- # nolint
-  function(object, nsim = 1, seed = NULL, ...) {
+simulate.rxEt <- function (object, nsim = 1, seed = NULL, ...){
     .name <- as.character(substitute(object))
-    if (is.null(.pipelineRx) || .name != ".") {
-      if (!missing(nsim)) warning("'nsim' is ignored when simulating event tables", call. = FALSE)
-      if (!is.null(seed)) set.seed(seed)
-      return(.Call(`_RxODE_et_`, list(simulate = TRUE), object))
+    if (is.null(.pipelineRx) || .name != "."){
+        if (!missing(nsim)) warning("'nsim' is ignored when simulating event tables");
+        if(!is.null(seed)) set.seed(seed);
+        return(.Call(`_RxODE_et_`, list(simulate=TRUE), object))
     } else {
-      return(rxSolve(object, ..., seed = seed, nsim = nsim))
+        return(rxSolve(object, ..., seed=seed, nsim=nsim));
     }
-  }
-
-##' @export
-drop_units.rxEt <- function(x) {
-  .Call(`_RxODE_et_`, list(amountUnits = NA_character_, timeUnits = NA_character_), x)
 }
 
-##' @export
-set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units_mode")) {
-  if (missing(value)) {
-    value <- units::unitless
-  } else if (mode == "symbols") {
-    value <- substitute(value)
-    if (is.numeric(value) && !identical(value, 1) && !identical(value, 1L)) {
-      stop("the only valid number defining a unit is '1', signifying a unitless unit", call. = FALSE)
-    }
-  }
-  if (identical(value, units::unitless)) {
-    warning("clearing both amount and time units\nfor more precise control use 'et(amountUnits=\"\")' or 'et(timeUnits=\"\")'",
-      call. = FALSE
-    )
-    return(suppressWarnings({
-      .Call(`_RxODE_et_`, list(amountUnits = "", timeUnits = ""), x)
-    }))
-  } else {
-    if (!rxIs(value, "character")) value <- deparse(value)
-    .tUnit <- units::set_units(1, "sec", mode = "standard")
-    .isTime <- try(units::set_units(units::set_units(1, value, mode = "standard"), "sec"), silent = TRUE)
-    if (inherits(.isTime, "try-error")) {
-      ## Amount
-      return(.Call(`_RxODE_et_`, list(amountUnits = value), x))
+
+##'@export
+print.rxEt <- function(x,...){
+    ## nocov start
+    if (rxIs(x, "rxEt")){
+        bound <- .getBound(x, parent.frame(2));
+        .cliRule(center=crayon::bold(paste0("EventTable with ",x$nobs+x$ndose, " records")));
+        ## sprintf(" with %s records%s:\n", x$nobs+x$ndose,
+        ##                                           ifelse(x$maxId==1, "", sprintf(" (%d IDs)", abs(x$maxId))))
+        .units <- x$.units;
+        .maxId <- length(x$IDs)
+        if (.maxId !=1){
+            cat(sprintf("   %s individuals\n", .maxId))
+        }
+        cat(sprintf("   %s dosing records (see %s$%s(); add with %s or %s)\n",
+                    x$ndose, crayon::yellow(bound), crayon::blue("get.dosing"),
+                    crayon::blue("add.dosing"), crayon::blue("et")))
+        cat(sprintf("   %s observation times (see %s$%s(); add with %s or %s)\n",
+                    x$nobs, crayon::yellow(bound), crayon::blue("get.sampling"),
+                    crayon::blue("add.sampling"), crayon::blue("et")))
+        if (x$show["addl"]){
+            cat(sprintf("   multiple doses in `addl` columns, expand with %s$%s(); or %s(%s)\n",
+                        crayon::yellow(bound), crayon::blue("expand"),
+                        crayon::blue("etExpand"), crayon::yellow(bound)))
+        }
+        if (x$nobs!=0 | x$ndose!=0){
+            .cliRule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":")));
+            print(tibble::as_tibble(data.frame(.etAddCls(x))));
+        }
+        .cliRule();
+        invisible(x)
     } else {
-      ##
-      return(.Call(`_RxODE_et_`, list(timeUnits = value), x))
+        print.data.frame(x)
     }
-  }
+    ## nocov end
+}
+
+##'@export
+str.rxEt <- function(object, ...){
+    ## nocov start
+    cat("rxEt methods and properties:\n");
+    cat(" $ get.EventTable   :function ()\n");
+    cat(" $ get.obs.rec      :function ()  \n");
+    cat(" $ get.nobs         :function ()  \n");
+    cat(" $ add.dosing       :function ()  \n");
+    cat(" $ clear.dosing     :function ()  \n");
+    cat(" $ get.dosing       :function ()  \n");
+    cat(" $ add.sampling     :function ()  \n");
+    cat(" $ clear.sampling   :function ()  \n");
+    cat(" $ get.sampling     :function ()  \n");
+    cat(" $ get.units        :function ()  \n");
+    cat(" $ import.EventTable:function ()  \n");
+    cat(" $ copy             :function ()  \n");
+    cat(" $ expand           :function ()  \n");
+    return(invisible(NextMethod("str", ...)))
+    ## nocov end
+}
+
+##'@export
+print.rxHidden <- function(x,...){
+    ## nocov start
+    cat("\r");
+    ##nocov end
+}
+
+##'@export
+str.rxHidden <- function(object,...){
+    ##nocov start
+    cat("\r");
+    ##nocov end
+}
+
+##'@export
+drop_units.rxEt <- function(x){
+    .Call(`_RxODE_et_`, list(amountUnits=NA_character_, timeUnits=NA_character_), x)
+}
+
+##'@export
+set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units_mode")){
+    if (missing(value))
+        value <- units::unitless
+    else if (mode == "symbols") {
+        value <- substitute(value)
+        if (is.numeric(value) && !identical(value, 1) && !identical(value, 1L))
+            stop("The only valid number defining a unit is '1', signifying a unitless unit")
+    }
+    if (identical(value, units::unitless)){
+        warning("Clearing both amount and time units; For more precise control use et(amountUnits=\"\") or et(timeUnits=\"\")")
+        return(suppressWarnings({.Call(`_RxODE_et_`, list(amountUnits="", timeUnits=""), x)}))
+    } else {
+        if (!rxIs(value, "character")) value <- deparse(value);
+        .tUnit <- units::set_units(1, "sec", mode="standard");
+        .isTime <- try(units::set_units(units::set_units(1, value, mode="standard"), "sec"), silent=TRUE);
+        if (inherits(.isTime, "try-error")){
+            ## Amount
+            return(.Call(`_RxODE_et_`, list(amountUnits=value), x))
+        } else {
+            ##
+            return(.Call(`_RxODE_et_`, list(timeUnits=value), x));
+        }
+    }
 }
 
 ##' Add dosing to eventTable
@@ -743,29 +697,22 @@ set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units
 ##' @author Matthew L. Fidler
 ##' @template etExamples
 ##' @export
-# nolint start
-add.dosing <- function(eventTable, dose, nbr.doses = 1L,
-                       dosing.interval = 24, dosing.to = 1L,
-                       rate = NULL, amount.units = NA_character_,
-                       start.time = 0.0, do.sampling = FALSE,
-                       time.units = NA_character_, ...) {
-  .lst <- list(
-    dose = dose,
-    nbr.doses = nbr.doses,
-    start.time = start.time,
-    do.sampling = do.sampling,
-    ...
-  )
-  if (!is.na(amount.units)) .lst$amount.units <- amount.units
-  if (!is.na(time.units)) .lst$time.units <- time.units
-  if (dosing.to != 1) .lst$dosing.to <- dosing.to
-  if (!is.null(rate)) .lst$rate <- rate
-  if (nbr.doses > 1) {
-    .lst$dosing.interval <- dosing.interval
-  } else {
-    .lst$dosing.interval <- 0.0
-  }
-  .Call(`_RxODE_et_`, .lst, eventTable)
+add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, dosing.to = 1L, rate = NULL, amount.units = NA_character_, start.time = 0.0, do.sampling = FALSE, time.units = NA_character_, ...) {
+    .lst <- list(dose=dose,
+                 nbr.doses=nbr.doses,
+                 start.time=start.time,
+                 do.sampling=do.sampling,
+                 ...);
+    if (!is.na(amount.units)) .lst$amount.units <- amount.units;
+    if (!is.na(time.units)) .lst$time.units <- time.units;
+    if (dosing.to != 1) .lst$dosing.to <- dosing.to
+    if (!is.null(rate)) .lst$rate <- rate;
+    if (nbr.doses > 1){
+        .lst$dosing.interval <- dosing.interval;
+    } else {
+        .lst$dosing.interval <- 0.0;
+    }
+    .Call(`_RxODE_et_`, .lst, eventTable);
 }
 
 ##' Add sampling to eventTable
@@ -782,10 +729,10 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L,
 ##'     will be updated even if you don't reassign the eventTable)
 ##' @template etExamples
 ##' @export
-add.sampling <- function(eventTable, time, time.units = NA) {
-  .lst <- list(time = time)
-  if (!is.na(time.units)) .lst$time.units <- time.units
-  return(.Call(`_RxODE_et_`, .lst, eventTable))
+add.sampling <- function(eventTable, time, time.units = NA){
+    .lst <- list(time=time);
+    if (!is.na(time.units)) .lst$time.units <- time.units;
+    return(.Call(`_RxODE_et_`, .lst, eventTable));
 }
 
 
@@ -942,19 +889,12 @@ add.sampling <- function(eventTable, time, time.units = NA) {
 ##' @concept Pharmacokinetics (PK)
 ##' @concept Pharmacodynamics (PD)
 ##' @export
-eventTable <- function(amount.units = NA, time.units = NA) {
-  .lst <- list()
-  if (!missing(amount.units)) {
-    checkmate::assertCharacter(amount.units, max.len = 1)
-    .lst$amount.units <- amount.units
-  }
-  if (!missing(time.units)) {
-    checkmate::assertCharacter(time.units, max.len = 1)
-    .lst$time.units <- time.units
-  }
-  .Call(`_RxODE_et_`, .lst, list())
+eventTable <- function(amount.units = NA, time.units = NA){
+    .lst <- list()
+    if (!missing(amount.units)) .lst$amount.units <- amount.units;
+    if (!missing(time.units)) .lst$time.units <- time.units
+    .Call(`_RxODE_et_`, .lst, list())
 }
-# nolint end
 
 ##' Sequence of event tables
 ##'
@@ -1010,15 +950,13 @@ eventTable <- function(amount.units = NA, time.units = NA) {
 ##' @template etExamples
 ##'
 ##' @export
-etSeq <- function(..., samples = c("clear", "use"), waitII = c("smart", "+ii"), ii = 24) {
-  ## etSeq_(List ets, bool clearSampling=clearSampling);
-  .sampleIx <- c(clear = 0L, use = 1L)
-  .waitIx <- c(smart = 0L, `+ii` = 1L)
-  .collectWarnings(.Call(
-    `_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(samples)], NULL),
-    setNames(.waitIx[match.arg(waitII)], NULL), as.double(ii), FALSE, 0L,
-    0L, TRUE, character(0), logical(0), FALSE
-  ))
+etSeq <- function(...,samples=c("clear", "use"), waitII=c("smart", "+ii"), ii=24){
+    ## etSeq_(List ets, bool clearSampling=clearSampling);
+    .sampleIx <- c(clear=0L,use=1L);
+    .waitIx <- c(smart=0L, `+ii`=1L)
+    .Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(samples)],NULL),
+          setNames(.waitIx[match.arg(waitII)],NULL), as.double(ii), FALSE, 0L,
+          0L, TRUE, character(0),logical(0),FALSE);
 }
 ##' Combining event tables
 ##'
@@ -1044,35 +982,33 @@ etSeq <- function(..., samples = c("clear", "use"), waitII = c("smart", "+ii"), 
 ##' @template etExamples
 ##'
 ##' @export
-etRbind <- function(..., samples = c("use", "clear"), waitII = c("smart", "+ii"),
-                    id = c("merge", "unique")) {
-  .sampleIx <- c(clear = 0L, use = 1L)
-  .waitIx <- c(smart = 0L, `+ii` = 1L)
-  .idIx <- c(merge = 0L, unique = 1L)
-  .collectWarnings(.Call(
-    `_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(samples)], NULL),
-    setNames(.waitIx[match.arg(waitII)], NULL), as.double(0), TRUE,
-    setNames(.idIx[match.arg(id)], NULL),
-    0L, TRUE, character(0), logical(0), FALSE
-  ))
+etRbind <- function(...,samples=c("use", "clear"),waitII=c("smart", "+ii"),
+                    id=c("merge", "unique")){
+    .sampleIx <- c(clear=0L,use=1L);
+    .waitIx <- c(smart=0L, `+ii`=1L);
+    .idIx <- c(merge=0L,unique=1L);
+    .Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(samples)],NULL),
+          setNames(.waitIx[match.arg(waitII)],NULL), as.double(0), TRUE,
+          setNames(.idIx[match.arg(id)],NULL),
+          0L, TRUE, character(0),logical(0),FALSE);
 }
 
-##' @rdname etRbind
-##' @export
-rbind.rxEt <- function(..., deparse.level = 1) {
-  if (!missing(deparse.level)) warning("'deparse.level' not used with RxODE event tables", call. = FALSE)
-  do.call(etRbind, list(...))
+##'@rdname etRbind
+##'@export
+rbind.rxEt <- function(..., deparse.level = 1){
+    if (!missing(deparse.level)) warning("deparse.level not used with RxODE event tables");
+    do.call(etRbind,list(...));
 }
 
-##' @rdname etSeq
-##' @export
-seq.rxEt <- function(...) {
-  do.call(etSeq, list(...))
+##'@rdname etSeq
+##'@export
+seq.rxEt <- function(...){
+    do.call(etSeq,list(...));
 }
 
-##' @export
-c.rxEt <- function(...) {
-  do.call(etSeq, list(...))
+##'@export
+c.rxEt <- function(...){
+    do.call(etSeq,list(...));
 }
 
 ##' Repeat an RxODE event table
@@ -1091,64 +1027,64 @@ c.rxEt <- function(...) {
 ##' @inheritParams etSeq
 ##' @template etExamples
 ##' @export
-etRep <- function(x, times = 1, length.out = NA, each = NA, n = NULL, wait = 0, id = integer(0),
-                  samples = c("clear", "use"),
-                  waitII = c("smart", "+ii"), ii = 24) {
-  if (!is.null(n)) {
-    times <- n
-  }
-  .sampleIx <- c(clear = 0L, use = 1L)
-  .waitIx <- c(smart = 0L, `+ii` = 1L)
-  if (!is.na(length.out)) stop("'length.out' makes no sense with event tables", call. = FALSE)
-  if (!is.na(each)) stop("'each' makes no sense with event tables", call. = FALSE)
-  .collectWarnings(.Call(
-    `_RxODE_etRep_`, x, as.integer(times),
-    wait, as.integer(id), setNames(.sampleIx[match.arg(samples)], NULL),
-    setNames(.waitIx[match.arg(waitII)], NULL), as.double(ii)
-  ))
+etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, id=integer(0),
+                  samples=c("clear", "use"),
+                  waitII=c("smart", "+ii"), ii=24){
+    if (!is.null(n)){
+        times <- n;
+    }
+    .sampleIx <- c(clear=0L,use=1L);
+    .waitIx <- c(smart=0L, `+ii`=1L)
+    if (!is.na(length.out)) stop("'length.out' makes no sense with event tables");
+    if (!is.na(each)) stop("'each' makes no sense with event tables");
+    .Call(`_RxODE_etRep_`, x, as.integer(times),
+          wait, as.integer(id), setNames(.sampleIx[match.arg(samples)],NULL),
+          setNames(.waitIx[match.arg(waitII)],NULL), as.double(ii))
 }
 
-##' @rdname etRep
-##' @export
-rep.rxEt <- function(x, ...) {
-  do.call(etRep, list(x = x, ...))
+##'@rdname etRep
+##'@export
+rep.rxEt <- function(x, ...){
+    do.call(etRep,list(x=x,...));
 }
 ##' Coerce object to data.frame
 ##'
 ##' @param x Object to coerce to et.
 ##' @param ... Other parameters
-##' @export
-as.et <- function(x, ...) {
-  UseMethod("as.et")
+##'@export
+as.et <- function(x,...){
+    UseMethod("as.et");
 }
-##' @rdname as.et
-##' @export
-as.et.default <- function(x, ...) {
-  .e <- et()
-  .e$import.EventTable(as.data.frame(x))
-  return(.e)
+##'@rdname as.et
+##'@export
+as.et.default <- function(x,...){
+    .e <- et();
+    .e$import.EventTable(as.data.frame(x));
+    return(.e);
+
 }
-##' @export
-as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...) {
-  if (rxIs(x, "rxEt")) {
-    .x <- x
-    .tmp <- .x[, .x$show, drop = FALSE]
-    class(.tmp) <- c("rxEt2", "data.frame")
-    return(as.data.frame(.tmp, row.names = NULL, optional = FALSE, ...))
-  } else {
-    return(as.data.frame(x, row.names = NULL, optional = FALSE, ...))
-  }
+##'@noRd
+##'@export
+as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...){
+    if (rxIs(x, "rxEt")){
+        .x <- x
+        .tmp <- .x[,.x$show,drop = FALSE];
+        class(.tmp) <- c("rxEt2", "data.frame");
+        return(as.data.frame(.tmp, row.names = NULL, optional = FALSE, ...))
+    } else {
+        return(as.data.frame(x, row.names = NULL, optional = FALSE, ...))
+    }
 }
 
-.datatable.aware <- TRUE
+.datatable.aware=TRUE
 ##' Convert an event table to a data.table
 ##'
 ##' @inheritParams data.table::as.data.table
 ##'
-##' @export as.data.table.rxEt
-as.data.table.rxEt <- function(x, keep.rownames = FALSE, ...) {
-  rxReq("data.table")
-  return(data.table::as.data.table(as.data.frame.rxEt(x, ...), keep.rownames = keep.rownames, ...))
+##'@export as.data.table.rxEt
+as.data.table.rxEt <- function (x, keep.rownames = FALSE, ...){
+    rxReq("data.table")
+    return(data.table::as.data.table(as.data.frame.rxEt(x, ...), keep.rownames=keep.rownames, ...))
 }
 
 ##' Convert to tbl
@@ -1159,7 +1095,6 @@ as.data.table.rxEt <- function(x, keep.rownames = FALSE, ...) {
 ##'
 ##' @return tibble of event table
 ##'
-##' @export as_tibble.rxEt
 ##'@export as_tibble.rxEt
 as_tibble.rxEt <- function(x, ...) {
   rxReq("tibble")
@@ -1183,8 +1118,8 @@ as_tibble.rxEt <- function(x, ...) {
 ##'
 ##' @author Matthew L.Fidler
 ##' @export
-is.rxEt <- function(x) {
-  .Call(`_RxODE_rxIs`, x, "rxEt")
+is.rxEt <- function(x){
+    .Call(`_RxODE_rxIs`, x, "rxEt");
 }
 ##' Expand additional doses
 ##'
@@ -1200,8 +1135,8 @@ is.rxEt <- function(x) {
 ##'
 ##' ev$expand() ## Expands the current event table and saves it in ev
 ##' @export
-etExpand <- function(et) {
-  .Call(`_RxODE_et_`, list(expand = TRUE), et)
+etExpand <- function(et){
+    .Call(`_RxODE_et_`, list(expand=TRUE), et)
 }
 
 ##' @importFrom magrittr %>%
@@ -1223,72 +1158,76 @@ magrittr::`%>%`
 ##' rxEvid(1:7)
 ##'
 ##' @export
-rxEvid <- function(x) {
-  return(structure(x, class = "rxEvid"))
+rxEvid <- function(x){
+    return(structure(x, class="rxEvid"))
 }
 
-##' @rdname rxEvid
-##' @export
-as.rxEvid <- rxEvid
+#' @rawNamespace
+#'   S3method(pillar::type_sum, rxEvid)
+#'   S3method(pillar::type_sum, rxRateDur)
+#'   S3method(pillar::pillar_shaft, rxEvid)
+#'   S3method(pillar::pillar_shaft, rxRateDur)
 
-##' @rdname rxEvid
+##'@rdname rxEvid
 ##' @export
-c.rxEvid <- function(x, ...) {
-  return(as.rxEvid(NextMethod()))
+as.rxEvid <- rxEvid;
+
+##'@rdname rxEvid
+##' @export
+c.rxEvid <- function(x, ...){
+    return(as.rxEvid(NextMethod()))
 }
 
-##' @rdname rxEvid
-##' @export
-`[.rxEvid` <- function(x, ...) {
-  return(as.rxEvid(NextMethod()))
+##'@rdname rxEvid
+##'@export
+`[.rxEvid` <- function(x, ...){
+    return(as.rxEvid(NextMethod()))
 }
-.colorFmt.rxEvid <- function(x, ...) {
-  .x <- unclass(x)
-  .x <-
-    ifelse(.x == 0, paste0(crayon::blue$bold("0"), ":", crayon::white("Observation")),
-      ifelse(.x == 1, paste0(crayon::blue$bold("1"), ":", crayon::yellow("Dose (Add)")),
+.colorFmt.rxEvid <- function(x, ...){
+    .x <- unclass(x);
+    .x <-
+        ifelse(.x == 0, paste0(crayon::blue$bold("0"), ":", crayon::white("Observation")),
+        ifelse(.x == 1, paste0(crayon::blue$bold("1"), ":", crayon::yellow("Dose (Add)")),
         ifelse(.x == 2, paste0(crayon::blue$bold("2"), ":", crayon::yellow("Other")),
-          ifelse(.x == 3, paste0(crayon::blue$bold("3"), ":", crayon::red("Reset")),
-            ifelse(.x == 4, paste0(crayon::blue$bold("4"), ":", crayon::red("Reset"), "&", crayon::yellow("Dose")),
-              ifelse(.x == 5, paste0(crayon::blue$bold("5"), ":", crayon::red("Replace")),
-                ifelse(.x == 6, paste0(crayon::blue$bold("6"), ":", crayon::yellow("Multiply")),
-                  paste0(crayon::blue$red(.x), ":", crayon::red("Invalid"))
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-  return(format(.x, justify = "left"))
+        ifelse(.x == 3, paste0(crayon::blue$bold("3"), ":", crayon::red("Reset")),
+        ifelse(.x == 4, paste0(crayon::blue$bold("4"), ":", crayon::red("Reset"), "&", crayon::yellow("Dose")),
+        ifelse(.x == 5, paste0(crayon::blue$bold("5"), ":", crayon::red("Replace")),
+        ifelse(.x == 6, paste0(crayon::blue$bold("6"), ":", crayon::yellow("Multiply")),
+               paste0(crayon::blue$red(.x), ":", crayon::red("Invalid")))))))))
+    return(format(.x, align="left"))
 }
 
-##' @rdname rxEvid
-##' @export
-as.character.rxEvid <- function(x, ...) {
-  .x <- unclass(x)
-  .x <-
-    ifelse(.x == 0, "0:Observation",
-      ifelse(.x == 1, "1:Dose (Add)",
+##'@rdname rxEvid
+##'@export
+as.character.rxEvid <- function(x, ...){
+    .x <- unclass(x);
+    .x <-
+        ifelse(.x == 0, "0:Observation",
+        ifelse(.x == 1, "1:Dose (Add)",
         ifelse(.x == 2, "2:Other",
-          ifelse(.x == 3, "3:Reset",
-            ifelse(.x == 4, "4:Reset&Dose",
-              ifelse(.x == 5, "5:Replace",
-                ifelse(.x == 6, "6:Multiply",
-                  paste0(.x, ":Invalid")
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-  return(.x)
+        ifelse(.x == 3, "3:Reset",
+        ifelse(.x == 4, "4:Reset&Dose",
+        ifelse(.x == 5, "5:Replace",
+        ifelse(.x == 6, "6:Multiply",
+               paste0(.x, ":Invalid"))))))))
+    return(.x)
 }
 
+##'@rdname rxEvid
+##'@export
+format.rxEvid <- function(x, ...){
+    .x <- unclass(x)
+    format(as.character.rxEvid(.x), align="left", width=12);
+}
 
+##'@rdname rxEvid
+##' @export
+print.rxEvid <- function(x, ...){
+    cat(paste(.colorFmt.rxEvid(x),collapse="\n"),"\n")
+    return(invisible(x))
+}
 
-##' @rdname rxEvid
+##'@rdname rxEvid
 ##' @export
 `[[.rxEvid` <- function(x, ...) {
   as.rxEvid(NextMethod())
@@ -1296,28 +1235,31 @@ as.character.rxEvid <- function(x, ...) {
 
 ##' @export
 `units<-.rxEvid` <- function(x, value) {
-  stop("'evid' is unitless", call. = FALSE)
+    stop("'evid' is unitless");
 }
 
 
 ##' @export
 `[<-.rxEvid` <- function(x, i, value) {
-  as.rxEvid(NextMethod())
+    as.rxEvid(NextMethod())
 }
 
-##' @rdname rxEvid
-##' @export type_sum.rxEvid
-type_sum.rxEvid <- function(x) {
-  "evid"
+##'@rdname rxEvid
+type_sum.rxEvid <- function(x){
+    "evid"
 }
 
-##' @rdname rxEvid
-##' @export pillar_shaft.rxEvid
-pillar_shaft.rxEvid <- function(x, ...) {
-  .x <- .colorFmt.rxEvid(x)
-  pillar::new_pillar_shaft_simple(.x)
+##'@rdname rxEvid
+pillar_shaft.rxEvid <- function(x, ...){
+    .x <- .colorFmt.rxEvid(x)
+    pillar::new_pillar_shaft_simple(.x, align = "left")
 }
 
+##' Convert to data.frame
+##'
+##' @inheritParams base::as.data.frame
+##' @param nm Name of column in new data frame
+##' @noRd
 ##' @export
 as.data.frame.rxEvid <- base::as.data.frame.difftime
 
@@ -1326,122 +1268,139 @@ as.data.frame.rxEvid <- base::as.data.frame.difftime
 ##' This is primarily to display information about rate
 ##'
 ##' @param x rxRateDur data
-##' @param ... Other parameters
 ##'
-##' @export
-rxRateDur <- function(x) {
-  return(structure(x, class = "rxRateDur"))
+##'@export
+rxRateDur <- function(x){
+    return(structure(x, class="rxRateDur"))
 }
 
-##' @rdname rxRateDur
-##' @export
-`[.rxRateDur` <- function(x, ...) {
-  return(as.rxRateDur(NextMethod()))
+##'@noRd
+##'@export
+`[.rxRateDur` <- function(x, ...){
+    return(as.rxRateDur(NextMethod()))
 }
 
-##' @rdname rxRateDur
+##'@rdname rxRateDur
 ##' @export
-as.rxRateDur <- rxRateDur
-##' @rdname rxEvid
+as.rxRateDur <- rxRateDur;
+
+##' @noRd
 ##' @export
-c.rxRateDur <- function(x, ...) {
-  return(as.rxRateDur(NextMethod()))
+c.rxRateDur <- function(x, ...){
+    return(as.rxRateDur(NextMethod()))
 }
 
-##' @rdname rxRateDur
-##' @export
-as.character.rxRateDur <- function(x, ...) {
-  .x <- unclass(x)
-  .x <-
-    ifelse(.x == -1, "-1:rate",
-      ifelse(.x == -2, "-2:dur",
+##'@noRd
+##'@export
+as.character.rxRateDur <- function(x, ...){
+    .x <- unclass(x);
+    .x <-
+        ifelse(.x == -1, "-1:rate",
+        ifelse(.x == -2, "-2:dur",
         ifelse(.x < 0, paste0(as.character(.x), ":Invalid"),
-          sprintf(" %-8g", .x)
-        )
-      )
-    )
-  return(.x)
+               sprintf(" %-8g", .x))))
+    return(.x)
 }
 
-.fmt <- function(x, width = 9) {
-  .g <- sprintf(paste0(" %-", width - 1, "g"), unclass(x))
-  .f <- sprintf(paste0(" %-", width - 1, "f"), unclass(x))
-  .ncg <- nchar(.g)
-  .ncf <- nchar(.f)
-  .ret <- ifelse(.ncg == width, .g,
-    ifelse(.ncf == width, .f, .g)
-  )
-  return(.ret)
+.fmt <- function(x, width=9){
+    .g <- sprintf(paste0(" %-", width - 1, "g"), unclass(x))
+    .f <- sprintf(paste0(" %-", width - 1, "f"), unclass(x))
+    .ncg <- nchar(.g)
+    .ncf <- nchar(.f)
+    .ret <- ifelse(.ncg == width, .g,
+            ifelse(.ncf == width, .f, .g))
+    return(.ret)
 }
 
 
-.colorFmt.rxRateDur <- function(x, ...) {
-  .x <- unclass(x)
-  .x <-
-    ifelse(.x == -1, paste0(crayon::red("-1"), ":", crayon::yellow("rate")),
-      ifelse(.x == -2, paste0(crayon::red("-2"), ":", crayon::yellow("dur")),
+.colorFmt.rxRateDur <- function(x, ...){
+    .x <- unclass(x);
+    .x <-
+        ifelse(.x == -1, paste0(crayon::red("-1"), ":", crayon::yellow("rate")),
+        ifelse(.x == -2, paste0(crayon::red("-2"), ":", crayon::yellow("dur")),
         ifelse(.x < 0, paste0(crayon::red(as.character(.x)), ":", crayon::red("Invalid")),
-          .fmt(.x)
-        )
-      )
-    )
-  return(.x)
+               .fmt(.x))))
+    return(.x)
 }
 
-##' @rdname rxRateDur
+##'@noRd
+print.rxRateDur <- function(x, ...){
+    cat(paste(.colorFmt.rxRateDur(x),collapse="\n"),"\n")
+    return(invisible(x))
+}
+
+##'@noRd
+##'@export
+format.rxRateDur <- function(x, ...){
+    .x <- unclass(x)
+    format(as.character.rxRateDur(.x), align="left");
+}
+
+##'@noRd
 ##' @export
 `[[.rxRateDur` <- function(x, ...) {
   as.rxRateDur(NextMethod())
 }
 
+##' @noRd
 ##' @export
 `[<-.rxRateDur` <- function(x, i, value) {
-  as.rxRateDur(NextMethod())
+    as.rxRateDur(NextMethod())
 }
 
-##' @rdname rxRateDur
-##' @export type_sum.rxRateDur
-type_sum.rxRateDur <- function(x) {
-  .unit <- attr(x, "units")
-  if (!is.null(.unit)) {
-    .tmp <- x
-    class(.tmp) <- "units"
-    return(pillar::type_sum(.tmp))
-  } else {
-    return("rate/dur")
-  }
+##'@rdname rxRateDur
+##'@export
+type_sum.rxRateDur <- function(x){
+    .unit <- attr(x, "units")
+    if (!is.null(.unit)){
+        .tmp <- x;
+        class(.tmp) <- "units"
+        return(pillar::type_sum(.tmp))
+    } else {
+        return("rate/dur")
+    }
 }
 
-##' @rdname rxRateDur
-##' @export pillar_shaft.rxRateDur
-pillar_shaft.rxRateDur <- function(x, ...) {
-  .x <- .colorFmt.rxRateDur(x)
-  pillar::new_pillar_shaft_simple(.x, align = "left", width = 10)
+##' Pillar shaft for rxRateDur
+##'
+##'@inheritParams pillar::pillar_shaft
+##'@export
+pillar_shaft.rxRateDur <- function(x, ...){
+    .x <- .colorFmt.rxRateDur(x)
+    pillar::new_pillar_shaft_simple(.x, align = "left", width=10)
 }
 
+##' Re export of pillar_shaft
+##'
+##' @inheritParams pillar::pillar_shaft
+##'
+##'@export
+pillar_shaft <- pillar::pillar_shaft
+
+#' @noRd
 #' @export
 as.data.frame.rxRateDur <- base::as.data.frame.difftime
 
 #' @export
-set_units.rxRateDur <- function(x, value, ..., mode = units::units_options("set_units_mode")) {
-  if (inherits(x, "units")) {
-    .ret <- x
-    .ret0 <- unclass(x)
-    .w1 <- which(.ret0 == -1)
-    .w2 <- which(.ret0 == -2)
-    .lst <- as.list(match.call())[-1]
-    class(.ret0) <- "units"
-    .lst[[1]] <- .ret0
-    .ret <- do.call(units::set_units, .lst)
-    if (length(.w1) > 0) .ret[.w1] <- -1
-    if (length(.w2) > 0) .ret[.w2] <- -2
-    class(.ret) <- c("rxRateDur", "units")
-    return(.ret)
-  } else {
-    .lst <- as.list(match.call())[-1]
-    .lst[[1]] <- unclass(x)
-    .ret <- do.call(units::set_units, .lst)
-    class(.ret) <- c("rxRateDur", "units")
-    return(.ret)
-  }
+set_units.rxRateDur <- function(x, value, ..., mode = units::units_options("set_units_mode")){
+    if (inherits(x, "units")){
+        .ret <- x;
+        .ret0 <- unclass(x)
+        .w1 <- which(.ret0 == -1)
+        .w2 <- which(.ret0 == -2);
+        .lst <- as.list(match.call())[-1]
+        class(.ret0) <- "units"
+        .lst[[1]] <- .ret0
+        .ret <- do.call(units::set_units, .lst)
+        if (length(.w1) > 0) .ret[.w1] <- -1
+        if (length(.w2) > 0) .ret[.w2] <- -2
+        class(.ret) <- c("rxRateDur", "units")
+        return(.ret)
+    } else {
+        .lst <- as.list(match.call())[-1]
+        .lst[[1]] <- unclass(x);
+        .ret <- do.call(units::set_units, .lst)
+        class(.ret) <- c("rxRateDur", "units")
+        return(.ret)
+    }
 }

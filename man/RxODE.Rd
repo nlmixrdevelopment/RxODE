@@ -15,10 +15,7 @@ RxODE(
   calcSens = NULL,
   collapseModel = FALSE,
   package = NULL,
-  ...,
-  linCmtSens = c("linCmtA", "linCmtB", "linCmtC"),
-  indLin = FALSE,
-  verbose = FALSE
+  ...
 )
 }
 \arguments{
@@ -79,15 +76,28 @@ LHS variables when calculating sensitivities.}
 
 \item{package}{Package name for pre-compiled binaries.}
 
-\item{...}{ignored arguments.}
+\item{...}{ignored arguments.
 
-\item{linCmtSens}{The method to calculate the linCmt() solutions}
+The \dQuote{Rx} in the name \code{RxODE} is meant to suggest the
+abbreviation \emph{Rx} for a medical prescription, and thus to
+suggest the package emphasis on pharmacometrics modeling, including
+pharmacokinetics (PK), pharmacodynamics (PD), disease progression,
+drug-disease modeling, etc.
 
-\item{indLin}{Calculate inductive linearization matrices and
-compile with inductive linearization support.}
+The ODE-based model specification may be coded inside a character
+string or in a text file, see Section \emph{RxODE Syntax} below for
+coding details.  An internal \code{RxODE} compilation manager
+object translates the ODE system into C, compiles it, and
+dynamically loads the object code into the current R session.  The
+call to \code{RxODE} produces an object of class \code{RxODE} which
+consists of a list-like structure (closure) with various member
+functions (see Section \emph{Value} below).
 
-\item{verbose}{When `TRUE` be verbose with the linear
-compartmental model}
+For evaluating \code{RxODE} models, two types of inputs may be
+provided: a required set of time points for querying the state of
+the ODE system and an optional set of doses (input amounts).  These
+inputs are combined into a single \emph{event table} object created
+with the function \code{\link{eventTable}}.}
 }
 \value{
 An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang (2001))
@@ -164,28 +174,6 @@ An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang
 \description{
 Create a dynamic ODE-based model object suitably for translation
 into fast C code
-}
-\details{
-The \dQuote{Rx} in the name \code{RxODE} is meant to suggest the
-abbreviation \emph{Rx} for a medical prescription, and thus to
-suggest the package emphasis on pharmacometrics modeling, including
-pharmacokinetics (PK), pharmacodynamics (PD), disease progression,
-drug-disease modeling, etc.
-
-The ODE-based model specification may be coded inside a character
-string or in a text file, see Section \emph{RxODE Syntax} below for
-coding details.  An internal \code{RxODE} compilation manager
-object translates the ODE system into C, compiles it, and
-dynamically loads the object code into the current R session.  The
-call to \code{RxODE} produces an object of class \code{RxODE} which
-consists of a list-like structure (closure) with various member
-functions (see Section \emph{Value} below).
-
-For evaluating \code{RxODE} models, two types of inputs may be
-provided: a required set of time points for querying the state of
-the ODE system and an optional set of doses (input amounts).  These
-inputs are combined into a single \emph{event table} object created
-with the function \code{\link{eventTable}}.
 }
 \section{RxODE Syntax}{
 

@@ -4,7 +4,7 @@
 \alias{rxMd5}
 \title{Return the md5 of an RxODE object or file}
 \usage{
-rxMd5(model, ...)
+rxMd5(model, extraC = NULL, ...)
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:
@@ -24,6 +24,11 @@ rxMd5(model, ...)
 (see also the \code{filename} argument). For
     details, see the sections \dQuote{Details} and
     \dQuote{\code{RxODE Syntax}} below.}
+
+\item{extraC}{Extra c code to include in the model.  This can be
+useful to specify functions in the model.  These C functions
+should usually take \code{double} precision arguments, and
+return \code{double} precision values.}
 
 \item{...}{ignored arguments}
 }

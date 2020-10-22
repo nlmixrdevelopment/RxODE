@@ -1,4 +1,3 @@
-//#undef NDEBUG
 #if defined(_WIN32) || defined(WIN32)
 #include <windows.h>
 #undef ERROR

@@ -11,8 +11,6 @@ rxSimThetaOmega(
   omegaLower = as.numeric(c(R_NegInf)),
   omegaUpper = as.numeric(c(R_PosInf)),
   omegaIsChol = FALSE,
-  omegaSeparation = "auto",
-  omegaXform = 1L,
   nSub = 1L,
   thetaMat = NULL,
   thetaLower = as.numeric(c(R_NegInf)),
@@ -25,8 +23,6 @@ rxSimThetaOmega(
   sigmaUpper = as.numeric(c(R_PosInf)),
   sigmaDf = NULL,
   sigmaIsChol = FALSE,
-  sigmaSeparation = "auto",
-  sigmaXform = 1L,
   nCoresRV = 1L,
   nObs = 1L,
   dfSub = 0,
@@ -52,11 +48,7 @@ distribution instead of a t-distribution.}
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
 
-\item{omegaSeparation}{@template separation}
-
-\item{omegaXform}{When taking \code{omega} values from the @template Xform}
-
-\item{nSub}{Number between subject variabilities (ETAs) simulated for every
+\item{nSub}{Number between subject variabilities (ETAs) simulated for every 
 realization of the parameters.}
 
 \item{thetaMat}{Named theta matrix.}
@@ -74,10 +66,10 @@ distribution instead of a t-distribution.}
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
 
-\item{nStud}{Number virtual studies to characterize uncertainty in estimated
+\item{nStud}{Number virtual studies to characterize uncertainty in estimated 
 parameters.}
 
-\item{sigma}{Matrix for residual variation.  Adds a "NA" value for each of the
+\item{sigma}{Matrix for residual variation.  Adds a "NA" value for each of the 
 individual parameters, residuals are updated after solve is completed.}
 
 \item{sigmaLower}{Lower bounds for simulated unexplained variability (by default -Inf)}
@@ -90,25 +82,23 @@ default it is equivalent to \code{Inf}, or a normal distribution.}
 \item{sigmaIsChol}{Boolean indicating if the sigma is in the
 Cholesky decomposition instead of a symmetric covariance}
 
-\item{sigmaSeparation}{@template separation}
-
-\item{sigmaXform}{When taking \code{sigma} values from the @template Xform}
-
 \item{nCoresRV}{Number of cores used for the simulation of the
-sigma variables.  By default this is 1. To reproduce the results
-you need to run on the same platform with the same number of
-cores. This is the reason this is set to be one, regardless of
-what the number of cores are used in threaded ODE solving.}
+sigma variables.  By default this is 1. This uses the package
+\code{\link[mvnfast]{rmvn}} and \code{\link[mvnfast]{rmvt}}.
+To reproduce the results you need to run on the same platform
+with the same number of cores. This is the reason this is set
+to be one, regardless of what the number of cores are used in
+threaded ODE solving.}
 
 \item{nObs}{Number of observations to simulate (with \code{sigma} matrix)}
 
-\item{dfSub}{Degrees of freedom to sample the between subject variability matrix from the
+\item{dfSub}{Degrees of freedom to sample the between subject variability matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
-\item{dfObs}{Degrees of freedom to sample the unexplained variability matrix from the
+\item{dfObs}{Degrees of freedom to sample the unexplained variability matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
-\item{simSubjects}{boolean indicated RxODE should simulate subjects in studies (\code{TRUE},
+\item{simSubjects}{boolean indicated RxODE should simulate subjects in studies (\code{TRUE}, 
 default) or studies (\code{FALSE})}
 }
 \description{

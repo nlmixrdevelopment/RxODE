@@ -1,8 +1,7 @@
-rxPermissive(
-  {
-    context("Working Directory + Model Name (Issue #4)")
-
-    model_text <- "
+if (Sys.getenv("covr") !="true"){
+    rxPermissive({
+        context("Working Directory + Model Name (Issue #4)")
+        model_text <- "
   C2 = centr/V2;
   C3 = peri/V3;
   d/dt(depot) =-KA*depot;
@@ -10,23 +9,19 @@ rxPermissive(
   d/dt(peri)  =                    Q*C2 - Q*C3;
   d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
   "
-    modName <- paste(sample(LETTERS, 5), collapse = "")
-    model <- RxODE::RxODE(model = model_text, modName = modName, wd = "mytempdir")
+        modName <- paste(sample(LETTERS, 5), collapse="")
+        model   <- RxODE::RxODE(model = model_text, modName=modName, wd='mytempdir')
 
-    test_that("Model has the correct states", {
-      expect_equal(
-        rxState(model),
-        c("depot", "centr", "peri", "eff")
-      )
-      expect_equal(
-        rxParams(model),
-        c("V2", "V3", "KA", "CL", "Q", "Kin", "Kout", "EC50")
-      )
-    })
+        test_that("Model has the correct states", {
+            expect_equal(rxState(model),
+                         c("depot", "centr", "peri", "eff"));
+            expect_equal(rxParams(model),
+                         c("V2", "V3", "KA", "CL", "Q", "Kin", "Kout", "EC50"));
+        })
 
-    rxDelete(model)
-    unlink("mytempdir", recursive = TRUE)
-  },
-  silent = TRUE,
-  test = "cran"
-)
+        rxDelete(model);
+        unlink("mytempdir", recursive=TRUE);
+
+  }, silent=TRUE, cran=TRUE)
+
+}

@@ -587,8 +587,6 @@ PACKAGE_URL=''
 ac_unique_file="src/init.c"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-ISYSTEM
-CXX14STD
 OPENMP_CXXFLAGS
 OPENMP_CFLAGS
 OBJEXT
@@ -640,6 +638,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_openmp
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1265,6 +1264,12 @@ if test -n "$ac_init_help"; then
    esac
   cat <<\_ACEOF
 
+Optional Features:
+  --disable-option-checking  ignore unrecognized --enable/--with options
+  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
+  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --disable-openmp        do not use OpenMP
+
 Some influential environment variables:
   CC          C compiler command
   CFLAGS      C compiler flags
@@ -1391,6 +1396,52 @@ fi
   as_fn_set_status $ac_retval
 
 } # ac_fn_c_try_compile
+
+# ac_fn_c_try_link LINENO
+# -----------------------
+# Try to link conftest.$ac_ext, and return whether this succeeded.
+ac_fn_c_try_link ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  rm -f conftest.$ac_objext conftest$ac_exeext
+  if { { ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_link") 2>conftest.err
+  ac_status=$?
+  if test -s conftest.err; then
+    grep -v '^ *+' conftest.err >conftest.er1
+    cat conftest.er1 >&5
+    mv -f conftest.er1 conftest.err
+  fi
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 test -x conftest$ac_exeext
+       }; then :
+  ac_retval=0
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_retval=1
+fi
+  # Delete the IPA/IPO (Inter Procedural Analysis/Optimization) information
+  # created by the PGI compiler (conftest_ipa8_conftest.oo), as it would
+  # interfere with the next link command; also delete a directory that is
+  # left behind by Apple's compiler.  We do this before executing the actions.
+  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+  as_fn_set_status $ac_retval
+
+} # ac_fn_c_try_link
 cat >config.log <<_ACEOF
 This file contains any messages produced by compilers while
 running configure, to aid debugging if configure makes a mistake.
@@ -2548,16 +2599,101 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 # Check for OpenMP
 
-CXX14STD=""
 
-ISYSTEM="I"
-if test "${GCC}" = yes; then
-  ISYSTEM="isystem"
+  OPENMP_CFLAGS=
+  # Check whether --enable-openmp was given.
+if test "${enable_openmp+set}" = set; then :
+  enableval=$enable_openmp;
 fi
 
+  if test "$enable_openmp" != no; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $CC option to support OpenMP" >&5
+$as_echo_n "checking for $CC option to support OpenMP... " >&6; }
+if ${ac_cv_prog_c_openmp+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifndef _OPENMP
+ choke me
+#endif
+#include <omp.h>
+int main () { return omp_get_num_threads (); }
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_prog_c_openmp='none needed'
+else
+  ac_cv_prog_c_openmp='unsupported'
+	  	  	  	  	  	  	                                	  	  	  	  	  	  for ac_option in -fopenmp -xopenmp -openmp -mp -omp -qsmp=omp -homp \
+                           -Popenmp --openmp; do
+	    ac_save_CFLAGS=$CFLAGS
+	    CFLAGS="$CFLAGS $ac_option"
+	    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifndef _OPENMP
+ choke me
+#endif
+#include <omp.h>
+int main () { return omp_get_num_threads (); }
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_prog_c_openmp=$ac_option
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+	    CFLAGS=$ac_save_CFLAGS
+	    if test "$ac_cv_prog_c_openmp" != unsupported; then
+	      break
+	    fi
+	  done
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_prog_c_openmp" >&5
+$as_echo "$ac_cv_prog_c_openmp" >&6; }
+    case $ac_cv_prog_c_openmp in #(
+      "none needed" | unsupported)
+	;; #(
+      *)
+	OPENMP_CFLAGS=$ac_cv_prog_c_openmp ;;
+    esac
+  fi
 
 
 
+# since some systems have broken OMP libraries
+# we also check that the actual package will work
+ac_pkg_openmp=no
+if test -n "${OPENMP_CFLAGS}"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether OpenMP will work in a package" >&5
+$as_echo_n "checking whether OpenMP will work in a package... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <omp.h>
+int
+main ()
+{
+ return omp_get_num_threads ();
+  ;
+  return 0;
+}
+_ACEOF
+  PKG_CFLAGS="${OPENMP_CFLAGS}" PKG_LIBS="${OPENMP_CFLAGS}" "$RBIN" CMD SHLIB conftest.c 1>&5 2>&5 && "$RBIN" --vanilla -q -e "dyn.load(paste('conftest',.Platform\$dynlib.ext,sep=''))" 1>&5 2>&5 && ac_pkg_openmp=yes
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${ac_pkg_openmp}" >&5
+$as_echo "${ac_pkg_openmp}" >&6; }
+fi
+
+# if ${ac_pkg_openmp} = "yes" then we have OMP, otherwise it will be "no"
+if test "${ac_pkg_openmp}" = no; then
+  OPENMP_CFLAGS=''
+fi
+
+OPENMP_CXXFLAGS="${OPENMP_CFLAGS}"
 
 
 
@@ -3719,20 +3855,7 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
-
-echo "unlink(\"R/RxODE_md5.R\"); writeLines(sprintf(\"RxODE.md5 <- \\\"%s\\\"\\n\", digest::digest(sapply(c(paste0(\"src/\", list.files(\"src\", pattern = \".(c|h|cpp|f)$\")), paste0(\"inst/include/\", list.files(\"inst/include\")), paste0(\"R/\", list.files(\"R/\", pattern = \".R\"))), digest::digest, file = TRUE))), \"R/RxODE_md5.R\")" > build.R
-
-${R_HOME}/bin/R CMD BATCH build.R
-rm build.R
-rm build.Rout
-
-${R_HOME}/bin/R CMD BATCH  inst/tools/r-stripper/stripper.R
-rm stripper.Rout
-
+sh inst/tools/stripper
 echo --------[begin src/Makevars]--------
 cat src/Makevars
 echo --------[end src/Makevars]--------
-
-echo --------[begin R/RxODE_md5.R]--------
-cat R/RxODE_md5.R
-echo --------[end R/RxODE_md5.R]--------

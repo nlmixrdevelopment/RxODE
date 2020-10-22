@@ -51,8 +51,8 @@ the exceptions:
  
 | Data Item | Meaning               | Notes                                                                        |
 |-----------|-----------------------|------------------------------------------------------------------------------|
-| id        | Individual identifier | Can be a integer, factor, character, or numeric                              |
-| time      | Individual time       | Numeric for each time.                                                       |
+| id        | Individual identifier | Must be an integer > 0, sorted                                               |
+| time      | Individual time       | For each ID must be ascending and non-negative                               |
 | amt       | dose amount           | Positive for doses zero/NA for observations                                  |
 | rate      | infusion rate         | When specified the infusion duration will be dur=amt/rate                    |
 |           |                       | rate = -1, rate modeled; rate = -2, duration modeled                         |

@@ -2,13 +2,31 @@
 % Please edit documentation in R/utils.R
 \name{rxSetSum}
 \alias{rxSetSum}
-\title{Defunct setting of sum}
+\title{Choose the type of sums to use for RxODE.}
 \usage{
 rxSetSum(type = c("pairwise", "fsum", "kahan", "neumaier", "c"))
 }
 \arguments{
-\item{type}{used to be type of product}
+\item{type}{Sum type to use for \code{rxSum} and \code{sum()} in
+    RxODE code blocks.
+
+\code{pairwise} uses the pairwise sum (fast, default)
+
+\code{fsum} uses Python's fsum function (most accurate)
+
+\code{kahan} uses kahan correction
+
+\code{neumaier} uses Neumaier correction
+
+\code{c} uses no correction, bud default/native summing}
+}
+\value{
+nothing
 }
 \description{
-Defunct setting of sum
+Choose the types of sums to use in RxODE.  These are used in the
+RxODE \code{sum} blocks and the \code{rxSum} function
+}
+\author{
+Matthew L. Fidler
 }

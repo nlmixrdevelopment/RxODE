@@ -1,5 +1,5 @@
-rxPermissive(
-  {
+rxPermissive({
+
     context("Test large model compiles")
 
     mod <- RxODE("
@@ -1525,8 +1525,7 @@ d/dt(RISF) = tubular_reabsorption - capillary_filtration;
 ")
 
     test_that("large models compile", {
-      expect_true(inherits(mod, "RxODE"))
+        expect_true(inherits(mod, "RxODE"))
     })
-  },
-  test = "lvl2"
-)
+
+}, cran=FALSE)

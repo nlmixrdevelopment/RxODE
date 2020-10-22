@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "common.h"
 #include "lsoda.h"
-
 int main(void) {
 	int i, j;
 	cfode(1);

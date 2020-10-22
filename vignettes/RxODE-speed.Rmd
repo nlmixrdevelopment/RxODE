@@ -30,7 +30,6 @@ The original code from the `RxODE` tutorial is below:
 library(RxODE)
 library(microbenchmark)
 library(mvnfast)
-library(ggplot2)
 
 mod1 <- RxODE({
     C2 = centr/V2;
@@ -67,7 +66,7 @@ runFor <- function(){
     res <- NULL
     for (i in 1:nsub) {
         params <- params.all[i,]
-        x <- mod1$solve(params, ev, cacheEvent=FALSE)
+        x <- mod1$solve(params, ev)
         ##Store results for effect compartment
         res <- cbind(res, x[, "eff"])
     }
@@ -82,7 +81,7 @@ In general for R, the `apply` types of functions perform better than a
 ```{r}
 runSapply <- function(){
     res <- apply(params.all, 1, function(theta)
-        mod1$run(theta, ev, cacheEvent=FALSE)[, "eff"])
+        mod1$run(theta, ev)[, "eff"])
 }
 ```
 ## Run using a single-threaded solve
@@ -95,7 +94,7 @@ information:
 
 ```{r}
 runSingleThread <- function(){
-    solve(mod1, params.all, ev, cores=1, cacheEvent=FALSE)[,c("sim.id", "time", "eff")]
+    solve(mod1, params.all, ev, cores=1)[,c("sim.id", "time", "eff")]
 }
 ```
 
@@ -107,7 +106,7 @@ in `rxControl()` or `rxSolve()`).
 
 ```{r}
 run2Thread <- function(){
-    solve(mod1, params.all, ev, cores=2, cacheEvent=FALSE)[,c("sim.id", "time", "eff")]
+    solve(mod1, params.all, ev, cores=2)[,c("sim.id", "time", "eff")]
 }
 ```
 
@@ -121,7 +120,7 @@ print(bench)
 ```
 
 ```{r}
-autoplot(bench)
+plot(bench)
 ```
 
 It is clear that the **largest** jump in performance when using the
@@ -134,7 +133,7 @@ We can explore the number of threads further with the following code:
 
 ```{r}
 runThread <- function(n){
-    solve(mod1, params.all, ev, cores=n, cacheEvent=FALSE)[,c("sim.id", "time", "eff")]
+    solve(mod1, params.all, ev, cores=n)[,c("sim.id", "time", "eff")]
 }
 
 bench <- eval(parse(text=sprintf("microbenchmark(%s)",
@@ -144,7 +143,7 @@ print(bench)
 ```
 
 ```{r}
-autoplot(bench)
+plot(bench)
 ```
 
 There is a suite spot in speed vs number or cores. The system type, 

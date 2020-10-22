@@ -4,10 +4,12 @@
 \alias{rxWinSetup}
 \title{Setup Windows components for RxODE}
 \usage{
-rxWinSetup(rm.rtools = TRUE)
+rxWinSetup(rm.rtools = TRUE, rm.python = TRUE)
 }
 \arguments{
 \item{rm.rtools}{Remove the Rtools from the current path specs.}
+
+\item{rm.python}{Remove Python from the current path specs.}
 }
 \description{
 Setup Windows components for RxODE
