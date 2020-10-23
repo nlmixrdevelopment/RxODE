@@ -4822,6 +4822,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->ypNA = _globals.gssAtol + op->neq; // [op->neq]
     _globals.gTlastS = rx->ypNA + op->neq; // [n3a]
     _globals.gTfirstS = _globals.gTlastS + n3a; // [n3a]
+    _globals.gIndSim = _globals.gTfirstS + n3a;// [n7]
     std::fill_n(rx->ypNA, op->neq + 2*n3a, NA_REAL);
 
     std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);

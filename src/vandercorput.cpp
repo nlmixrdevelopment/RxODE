@@ -1,6 +1,7 @@
 //#undef NDEBUG
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 #include <RcppArmadillo.h>
+#include "../inst/include/RxODE.h"
 #include <vandercorput.h>
 #ifdef _OPENMP
 #include <omp.h>
@@ -22,9 +23,18 @@ void seedEngV(uint32_t seed){
   _engV.seed(seed);
 }
 
-extern "C" double rxnormV(double mean, double sd){
+extern "C" double rxnormV(rx_solving_options_ind* ind, double mean, double sd){
+  if (!ind->inLhs) return 0;
   std::normal_distribution<double> d(mean, sd);
   return d(_engV);
+}
+
+extern "C" double rinormV(rx_solving_options_ind* ind, int id, double mean, double sd){
+  if (ind->isIni == 1) {
+    std::normal_distribution<double> d(mean, sd);
+    ind->simIni[id] = d(_engV);
+  }
+  return ind->simIni[id];
 }
 
 

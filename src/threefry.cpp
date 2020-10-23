@@ -940,11 +940,11 @@ extern "C" double rxbeta(rx_solving_options_ind* ind, double shape1, double shap
 }
 
 extern "C" double ribeta(rx_solving_options_ind* ind, int id, double shape1, double shape2) {
-  if (ind->isIni) {
+  if (ind->isIni == 1) {
+    int inLhs = ind->inLhs;
     ind->inLhs = 1;
-    double x = rxgamma(ind, shape1, 1.0);
-    ind->simIni[id] = x/(x+rxgamma(ind, shape2, 1.0));
-    ind->inLhs = 0;
+    ind->simIni[id] = rxbeta(ind, shape1, shape2);
+    ind->inLhs = inLhs;
   }
   return ind->simIni[id];
 }
@@ -984,9 +984,9 @@ extern "C" int rxgeom(rx_solving_options_ind* ind, double prob){
 extern "C" int rigeom(rx_solving_options_ind* ind, int id, double prob){
   if (ind->isIni) {
     std::geometric_distribution<int> d(prob);
-    ind->simIni[id] = d(_eng);
+    ind->simIni[id] = (double)d(_eng);
   }
-  return ind->simIni[id];
+  return (int)ind->simIni[id];
 }
 
 //[[Rcpp::export]]
@@ -1059,7 +1059,7 @@ extern "C" int rxpois( rx_solving_options_ind* ind, double lambda){
 }
 
 extern "C" int ripois(rx_solving_options_ind* ind, int id, double lambda){
-  if (!ind->isIni){
+  if (ind->isIni == 1){
     std::poisson_distribution<int> d(lambda);
     ind->simIni[id] = d(_eng);
   }
@@ -1097,7 +1097,7 @@ extern "C" double rxt_(rx_solving_options_ind* ind, double df){
 }
 
 extern "C" int rit_(rx_solving_options_ind* ind, int id, double df){
-  if (!ind->isIni){
+  if (ind->isIni == 1){
     std::student_t_distribution<double> d(df);
     ind->simIni[id] =  d(_eng);
   }
@@ -1135,7 +1135,7 @@ extern "C" double rxunif(rx_solving_options_ind* ind, double low, double hi){
 }
 
 extern "C" double riunif(rx_solving_options_ind* ind, int id, double low, double hi){
-  if (!ind->isIni) {
+  if (ind->isIni == 1) {
     std::uniform_real_distribution<double> d(low, hi);
     ind->simIni[id] = d(_eng);
   }

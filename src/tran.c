@@ -1676,10 +1676,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		   (isInd = !strcmp("richisq", v)) ||
 		   (isExp = !strcmp("rxexp", v) ||
 		    !strcmp("rexp", v) ||
-		    (isInd == !strcmp("riexp", v))) ||
+		    (isInd = !strcmp("riexp", v))) ||
 		   (isT = !strcmp("rxt", v) ||
 		    !strcmp("rt", v) ||
-		    (isInd == !strcmp("rit", v)))) {
+		    (isInd = !strcmp("rit", v)))) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 1){
 	    sPrint(&buf, _("'%s' takes 1 arguments"), v);
@@ -1708,8 +1708,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      }
 	    } else if (isT){
 	      if (isInd) {
-		sAppend(&sb,"rit(%d, ", tb.nInd);
-		sAppend(&sbDt,"rit(%d, ", tb.nInd++);
+		sAppend(&sb,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd);
+		sAppend(&sbDt,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd++);
 		foundF0=1;
 		sAppendN(&sbt, "rit(", 4);
 	      } else {
@@ -1794,8 +1794,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(_("'ribinom'/'rbinom'/'rxbinom' takes 2 arguments 'rxbinom(size, prob)'"));
 	  } else {
-	    aAppendN("(double)rxbinom(&_solveData->subjects[_cSub], (int)", 51);
-	    sAppendN(&sbt, "rxbinom(", 8);
+	    if (isInd){
+	      sAppend(&sb,   "(double)ribinom(&_solveData->subjects[_cSub], %d, (int)" , tb.nInd);
+	      sAppend(&sbDt, "(double)ribinom(&_solveData->subjects[_cSub], %d, (int)", tb.nInd++);
+	      sAppendN(&sbt, "ribinom(", 8);
+	    } else {
+	      aAppendN("(double)rxbinom(&_solveData->subjects[_cSub], (int)", 51);
+	      sAppendN(&sbt, "rxbinom(", 8);
+	    }
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;

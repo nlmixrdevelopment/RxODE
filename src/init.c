@@ -267,7 +267,6 @@ double rxgamma(rx_solving_options_ind* ind, double shape, double rate);
 double rxbeta(rx_solving_options_ind* ind, double shape1, double shape2);
 double rxnormV(rx_solving_options_ind* ind, double mean, double sd);
 
-
 int ribinom(rx_solving_options_ind* ind, int id, int n, double prob);
 double ricauchy(rx_solving_options_ind* ind, int id, double location, double scale);
 double richisq(rx_solving_options_ind* ind, int id, double df);
@@ -463,7 +462,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "phi", (DL_FUNC) &phi);
   
   R_RegisterCCallable("RxODE", "rxnormV", (DL_FUNC) &rxnormV);
-
+  R_RegisterCCallable("RxODE", "rinormV", (DL_FUNC) &rinormV);
   
   R_RegisterCCallable("RxODE", "rxgamma", (DL_FUNC) &rxgamma);
   R_RegisterCCallable("RxODE", "rxbeta", (DL_FUNC) &rxbeta);
