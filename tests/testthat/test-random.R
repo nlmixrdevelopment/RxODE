@@ -694,6 +694,13 @@ rxPermissive(
       expect_error(RxODE({
         x1 <- rweibull()
       }))
+
+      rx <- RxODE({
+        x2 <- rinorm(a)
+        x3 <- rinorm(b, c)
+        d/dt(x0) <- 0
+      })
+
     })
   },
   test = "norm"

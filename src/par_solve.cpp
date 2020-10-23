@@ -1111,9 +1111,13 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
   ind->inLhs = inLhs;
   if (rx->nMtime) calc_mtime(solveid, ind->mtime);
   for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
-  if (inLhs == 0) {
-    memcpy(ind->solve, op->inits, op->neq*sizeof(double));
+  if ((inLhs == 0 && op->neq > 0) ||
+      (inLhs == 1 && op->neq == 0 && rx->nIndSim > 0)) {
+    ind->isIni = 1;
+    // Also can update individual random variables (if needed)
+    if (inLhs == 0) memcpy(ind->solve, op->inits, op->neq*sizeof(double));
     u_inis(solveid, ind->solve); // Update initial conditions @ current time
+    ind->isIni = 0;
   }
   ind->_newind = 1;
   ind->dosenum = 0;
@@ -1124,7 +1128,6 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
     if (rx->needSort){
       sortRadix(ind);
       if (op->badSolve) return 0;
-    
     }
   }
   ind->ixds=ind->idx=0;

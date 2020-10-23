@@ -705,6 +705,14 @@ extern "C" int rxbinom(rx_solving_options_ind* ind, int n, double prob){
   return d(_eng);
 }
 
+extern "C" int ribinom(rx_solving_options_ind* ind, int id, int n, double prob){
+  if (ind->isIni == 1) {
+    std::binomial_distribution<int> d(n, prob);
+    ind->simIni[id] = (double) d(_eng);
+  }
+  return (int)ind->simIni[id];
+}
+
 //[[Rcpp::export]]
 IntegerVector rxbinom_(int n0, double prob, int n, int ncores){
   IntegerVector ret(n);
@@ -733,6 +741,14 @@ extern "C" double rxcauchy(rx_solving_options_ind* ind, double location, double 
   if (!ind->inLhs) return 0;
   std::cauchy_distribution<double> d(location, scale);
   return d(_eng);
+}
+
+extern "C" double ricauchy(rx_solving_options_ind* ind, int id, double location, double scale){
+  if (ind->isIni == 1) {
+    std::cauchy_distribution<double> d(location, scale);
+    ind->simIni[id] = d(_eng);
+  }
+  return ind->simIni[id];
 }
 
 //[[Rcpp::export]]
@@ -766,6 +782,15 @@ extern "C" double rxchisq(rx_solving_options_ind* ind, double df){
   return d(_eng);
 }
 
+extern "C" double richisq(rx_solving_options_ind* ind, int id, double df){
+  if (ind->isIni == 1) {
+    // Non central not supported in C++11
+    std::chi_squared_distribution<double> d(df);
+    ind->simIni[id] = d(_eng);
+  }
+  return ind->simIni[id];
+}
+
 //[[Rcpp::export]]
 NumericVector rxchisq_(double df, int n, int ncores){
   NumericVector ret(n);
@@ -796,6 +821,15 @@ extern "C" double rxexp(rx_solving_options_ind* ind, double rate){
   return d(_eng);
 }
 
+
+extern "C" double riexp(rx_solving_options_ind* ind, int id, double rate){
+  if (ind->isIni) {
+    std::exponential_distribution<double> d(rate);
+    ind->simIni[id] = d(_eng);
+  }
+  return ind->simIni[id];
+}
+
 //[[Rcpp::export]]
 NumericVector rxexp_(double rate, int n, int ncores){
   NumericVector ret(n);
@@ -824,6 +858,14 @@ extern "C" double rxf(rx_solving_options_ind* ind, double df1, double df2){
   if (!ind->inLhs) return 0;
   std::fisher_f_distribution<double> d(df1, df2);
   return d(_eng);
+}
+
+extern "C" double rif(rx_solving_options_ind* ind, int id, double df1, double df2){
+  if (ind->isIni) {
+    std::fisher_f_distribution<double> d(df1, df2);
+    ind->simIni[id] =  d(_eng);
+  }
+  return ind->simIni[id];
 }
 
 //[[Rcpp::export]]
@@ -857,6 +899,14 @@ extern "C" double rxgamma(rx_solving_options_ind* ind, double shape, double rate
   return d(_eng);
 }
 
+extern "C" double rigamma(rx_solving_options_ind* ind, int id, double shape, double rate) {
+  if (ind->isIni) {
+    std::gamma_distribution<double> d(shape, 1.0/rate);
+    ind->simIni[id] =  d(_eng);
+  }
+  return ind->simIni[id];
+}
+
 //[[Rcpp::export]]
 NumericVector rxgamma_(double shape, double rate, int n, int ncores){
   NumericVector ret(n);
@@ -881,12 +931,22 @@ NumericVector rxgamma_(double shape, double rate, int n, int ncores){
   return ret;
 }
 
-extern "C" double rxbeta(rx_solving_options_ind* ind, double shape1, double shape2){
+extern "C" double rxbeta(rx_solving_options_ind* ind, double shape1, double shape2) {
   if (!ind->inLhs) return 0;
   // Efficient simulation when shape1 and shape2 are "large"
   // (p 658) Intro Prob Stats 8th Ed by Sheldon Ross
   double x = rxgamma(ind, shape1,1.0);
   return x/(x+rxgamma(ind, shape2, 1.0));
+}
+
+extern "C" double ribeta(rx_solving_options_ind* ind, int id, double shape1, double shape2) {
+  if (ind->isIni) {
+    ind->inLhs = 1;
+    double x = rxgamma(ind, shape1, 1.0);
+    ind->simIni[id] = x/(x+rxgamma(ind, shape2, 1.0));
+    ind->inLhs = 0;
+  }
+  return ind->simIni[id];
 }
 
 //[[Rcpp::export]]
@@ -921,6 +981,14 @@ extern "C" int rxgeom(rx_solving_options_ind* ind, double prob){
   return d(_eng);
 }
 
+extern "C" int rigeom(rx_solving_options_ind* ind, int id, double prob){
+  if (ind->isIni) {
+    std::geometric_distribution<int> d(prob);
+    ind->simIni[id] = d(_eng);
+  }
+  return ind->simIni[id];
+}
+
 //[[Rcpp::export]]
 IntegerVector rxgeom_(double prob, int n, int ncores){
   IntegerVector ret(n);
@@ -950,6 +1018,14 @@ extern "C" double rxnorm(rx_solving_options_ind* ind, double mean, double sd){
   if (!ind->inLhs) return 0.0;
   std::normal_distribution<double> d(mean, sd);
   return d(_eng);
+}
+
+extern "C" double rinorm(rx_solving_options_ind* ind, int id, double mean, double sd) {
+  if (ind->isIni) {
+    std::normal_distribution<double> d(mean, sd);
+    ind->simIni[id] = d(_eng);
+  }
+  return ind->simIni[id];
 }
 
 //[[Rcpp::export]]
@@ -982,6 +1058,14 @@ extern "C" int rxpois( rx_solving_options_ind* ind, double lambda){
   return d(_eng);
 }
 
+extern "C" int ripois(rx_solving_options_ind* ind, int id, double lambda){
+  if (!ind->isIni){
+    std::poisson_distribution<int> d(lambda);
+    ind->simIni[id] = d(_eng);
+  }
+  return ind->simIni[id];
+}
+
 //[[Rcpp::export]]
 IntegerVector rxpois_(double lambda, int n, int ncores){
   IntegerVector ret(n);
@@ -1010,6 +1094,14 @@ extern "C" double rxt_(rx_solving_options_ind* ind, double df){
   if (!ind->inLhs) return 0.0;
   std::student_t_distribution<double> d(df);
   return d(_eng);
+}
+
+extern "C" int rit_(rx_solving_options_ind* ind, int id, double df){
+  if (!ind->isIni){
+    std::student_t_distribution<double> d(df);
+    ind->simIni[id] =  d(_eng);
+  }
+  return ind->simIni[id];
 }
 
 //[[Rcpp::export]]
@@ -1042,6 +1134,14 @@ extern "C" double rxunif(rx_solving_options_ind* ind, double low, double hi){
   return d(_eng);
 }
 
+extern "C" double riunif(rx_solving_options_ind* ind, int id, double low, double hi){
+  if (!ind->isIni) {
+    std::uniform_real_distribution<double> d(low, hi);
+    ind->simIni[id] = d(_eng);
+  }
+  return ind->simIni[id];
+}
+
 //[[Rcpp::export]]
 NumericVector rxunif_(double low, double hi, int n, int ncores){
   NumericVector ret(n);
@@ -1070,6 +1170,15 @@ extern "C" double rxweibull(rx_solving_options_ind* ind, double shape, double sc
   if (!ind->inLhs) return 0.0;
   std::weibull_distribution<double> d(shape, scale);
   return d(_eng);
+}
+
+
+extern "C" double riweibull(rx_solving_options_ind* ind, int id, double shape, double scale){
+  if (ind->isIni) {
+    std::weibull_distribution<double> d(shape, scale);
+    ind->simIni[id] = d(_eng);
+  }
+  return ind->simIni[id];
 }
 
 //[[Rcpp::export]]

@@ -66,6 +66,8 @@
   - `inits` do not change (though you can specify them as `cmt(0)=...`
     in the model and change them by parameters)
   - See Issue #109
+  
+* Allow `while(logical)` statements with ability to break out if them by `break`
 
 * Allow accessing different time-varying components of an input dataset for each indivdiual with:
   - `lag(var, #)`

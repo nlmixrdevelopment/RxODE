@@ -40,37 +40,56 @@
 #define rxTBSd(x, lm, yj, hi, low) _powerDD(x, lm, (int)(yj), hi, low)
 #define rxTBSd2(x, lm, yj, hi, low) _powerDDD(x, lm, (int)(yj), hi, low)
 #define normcdf(x) phi(x)
+#define _getIndSim(id, val) (_solveData->subjects[_cSub].isIni == 1 ? \
+			     (_solveData->subjects[_cSub].simIni[id] = (val)) : _solveData->subjects[_cSub].simIni[id])
 #undef rbeta
 #define rbeta(ind, x, y) rxbeta(ind, x, y)
+#define ribeta(ind, id, x, y) _getIndSim(id, rxbeta(ind, x, y))
 #undef rnorm
 #define rnorm(ind,x,y) rxnorm(ind, x,y)
+#define rinorm(ind, id, x,y) _getIndSim(id, rxnorm(ind, x,y))
 #define rxnorm1(x) rxnorm(&_solveData->subjects[_cSub], x, 1.0)
-#define rnorm1(x) rxnorm(&_solveData->subjects[_cSub],x, 1.0)
+#define rnorm1(rx) rxnorm(&_solveData->subjects[_cSub],x, 1.0)
+#define rinorm1(id, x) _getIndSim(id, rxnorm(&_solveData->subjects[_cSub], x, 1.0))
 #define rnormV(ind, x,y) rxnormV(ind,x,y)
+#define rinormV(ind,id,  x,y) _getIndSim(id, rxnormV(ind,x,y))
 #define rxnormV1(x) rxnormV(&_solveData->subjects[_cSub],x, 1.0)
+#define rinormV1(id, x) _getIndSim(id, rxnormV(&_solveData->subjects[_cSub],x, 1.0))
 #define rnormV1(x) rxnormV(&_solveData->subjects[_cSub],x, 1.0)
 #undef rcauchy 
 #define rcauchy(ind, x, y) rxcauchy(ind,x,y)
+#define ricauchy(ind, id, x, y) _getIndSim(id, rxcauchy(ind,x,y))
 #define rxcauchy1(x) rxcauchy(&_solveData->subjects[_cSub],x, 1.0)
+#define ricauchy1(id, x) _getIndSim(id, rxcauchy(&_solveData->subjects[_cSub],x, 1.0))
 #undef rchisq
 #define rchisq(ind, x) rxchisq(ind, x)
+#define richisq(ind, id, x) _getIndSim(id, rxchisq(ind, x))
 #undef rexp
 #define rexp(ind, x) rxexp(ind, x)
+#define riexp(ind, id, x) _getIndSim(id, rxexp(ind, x))
 #undef rgamma
 #define rgamma(ind, x,y) rxgamma(ind, x,y)
+#define rigamma(ind, id, x,y) _getIndSim(id, rxgamma(ind, x,y))
 #define rgamma1(x) rxgamma(&_solveData->subjects[_cSub], x,1.0)
 #define rxgamma1(x) rxgamma(&_solveData->subjects[_cSub], x,1.0)
+#define rigamma1(id, x) _getIndSim(id, rxgamma(&_solveData->subjects[_cSub], x, 1.0))
 #undef rgeom
 #define rgeom(ind,x) rxgeom(ind,x)
+#define rigeom(ind,id, x) _getIndSim(id, rxgeom(ind,x))
 #undef rpois
 #define rpois(ind,x) rxpois(ind,x)
+#define ripois(ind,id, x) _getIndSim(id, rxpois(ind,x)))
 #undef runif
 #define runif(ind,x,y) rxunif(ind,x,y)
+#define riunif(ind,id, x,y) _getIndSim(id, rxunif(ind,x,y))
 #define runif1(x) rxunif(&_solveData->subjects[_cSub],x,1.0)
+#define riunif1(id, x) _getIndSim(id, rxunif(&_solveData->subjects[_cSub],x,1.0))
 #define rxunif1(x) rxunif(&_solveData->subjects[_cSub],x,1.0)
 #undef rweibull
 #define rweibull(ind,x,y) rxweibull(ind,x,y)
+#define riweibull(ind, id, x,y) _getIndSim(id, rxweibull(ind,x,y))
 #define rxweibull1(x) rxweibull(&_solveData->subjects[_cSub],x,1.0)
+#define riweibull1(id, x) _getIndSim(id, rxweibull(&_solveData->subjects[_cSub],x,1.0))
 #define rweibull1(x) rxweibull(&_solveData->subjects[_cSub],x,1.0)
 #define _pnorm1(x) pnorm(x, 0.0, 1.0, 1, 0)
 #define _pnorm2(x, mu) pnorm(x, mu, 1.0, 1, 0)
@@ -98,6 +117,8 @@
 #define _tfirst1(x) _solveData->subjects[_cSub].tfirstS[x]
 #undef rf
 #define rf(ind, x, y) rxf(ind, x, y)
+#define rif(ind, id, x, y) _getIndSim(id, rxf(ind, x, y))
+#define rit(id, x) _getIndSim(id, rxt_(&_solveData->subjects[_cSub], x))
 // int compareFactorVal(int val, const char *valStr, const char *cmpValue)
 // equality_str2 : identifier_r ('!=' | '==' ) string;
 #define _cmp2(val, valStr, type, cmpStr) (type ? _compareFactorVal(val, valStr, cmpStr) : !_compareFactorVal(val, valStr, cmpStr))

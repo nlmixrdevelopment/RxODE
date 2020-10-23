@@ -1372,6 +1372,7 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 
 typedef struct {
   int *gon;
+  double *gIndSim;
   double *gsolve;
   double *gInfusionRate;
   double *gTlastS;
@@ -3123,6 +3124,7 @@ extern "C" void setupRxInd(rx_solving_options_ind* ind, int first) {
   ind->yj		= 0;
   ind->logitLow         = 0;
   ind->logitHi          = 1;
+  ind->isIni            = 0;
   if (first){
     ind->solveTime	= 0.0;
     ind->nBadDose	= 0;
@@ -3716,8 +3718,10 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
       curIdx=0;
       int curCov=0;
       int curOn=0;
+      int curSimIni=0;
       rx_solving_options_ind indS;
       int linCmt = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linCmt];
+      int nIndSim = rx->nIndSim;
       for (unsigned int simNum = rx->nsim; simNum--;){
 	for (unsigned int id = rx->nsub; id--;){
 	  unsigned int cid = id+simNum*rx->nsub;
@@ -3764,6 +3768,8 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  }
 	  int eLen = op->neq*ind->n_all_times;
 	  ind->solve = &_globals.gsolve[curSolve];
+	  ind->simIni = &_globals.gIndSim[curSimIni];
+	  curSimIni += nIndSim;
 	  curSolve += (op->neq + op->nlin)*ind->n_all_times;
 	  ind->solveLast = &_globals.gsolve[curSolve];
 	  curSolve += op->neq;
@@ -4418,6 +4424,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // Get model
     // Get the C solve object
     rx_solve* rx = getRxSolve_();
+    rx->nIndSim = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_nIndSim];
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
     rx->sensType = asInt(rxControl[Rxc_sensType], "sensType");
@@ -4779,8 +4786,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // they do they need to be a parameter.
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
+    int nIndSim = rx->nIndSim;
+    int n7 =  nIndSim * rx->nsub * rx->nsim;
     if (_globals.gsolve != NULL) free(_globals.gsolve);
-    _globals.gsolve = (double*)calloc(n0+nLin+n2+ n4+n5+n6+
+    _globals.gsolve = (double*)calloc(n0+nLin+n2+ n4+n5+n6+ n7 +
 				      5*op->neq + 7*n3a, sizeof(double));// [n0]
 #ifdef rxSolveT
     REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+7*n3+n4+n5+n6+ 5*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);

@@ -266,6 +266,24 @@ double rxweibull(rx_solving_options_ind* ind, double shape, double scale);
 double rxgamma(rx_solving_options_ind* ind, double shape, double rate);
 double rxbeta(rx_solving_options_ind* ind, double shape1, double shape2);
 double rxnormV(rx_solving_options_ind* ind, double mean, double sd);
+
+
+int ribinom(rx_solving_options_ind* ind, int id, int n, double prob);
+double ricauchy(rx_solving_options_ind* ind, int id, double location, double scale);
+double richisq(rx_solving_options_ind* ind, int id, double df);
+double riexp(rx_solving_options_ind* ind, int id, double rate);
+double rif(rx_solving_options_ind* ind, int id, double df1, double df2);
+int rigeom(rx_solving_options_ind* ind, int id, double prob);
+double rinorm(rx_solving_options_ind* ind, int id, double mean, double sd);
+int ripois(rx_solving_options_ind* ind, int id, double lambda);
+double rit_(rx_solving_options_ind* ind, int id, double df);
+double riunif(rx_solving_options_ind* ind, int id, double low, double hi);
+double riweibull(rx_solving_options_ind* ind, int id, double shape, double scale);
+double rigamma(rx_solving_options_ind* ind, int id, double shape, double rate);
+double ribeta(rx_solving_options_ind* ind, int id, double shape1, double shape2);
+double rinormV(rx_solving_options_ind* ind, int id, double mean, double sd);
+
+
 double phi(double q);
 SEXP _phi(SEXP q);
 SEXP _calcDerived(SEXP transSXP, SEXP ncmt, SEXP inp, SEXP dig);
@@ -443,7 +461,10 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "logit", (DL_FUNC) &logit);
   R_RegisterCCallable("RxODE", "expit", (DL_FUNC) &expit);
   R_RegisterCCallable("RxODE", "phi", (DL_FUNC) &phi);
+  
   R_RegisterCCallable("RxODE", "rxnormV", (DL_FUNC) &rxnormV);
+
+  
   R_RegisterCCallable("RxODE", "rxgamma", (DL_FUNC) &rxgamma);
   R_RegisterCCallable("RxODE", "rxbeta", (DL_FUNC) &rxbeta);
   R_RegisterCCallable("RxODE", "rxbinom", (DL_FUNC) &rxbinom);
@@ -457,6 +478,21 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "rxt_", (DL_FUNC) &rxt_);
   R_RegisterCCallable("RxODE", "rxunif", (DL_FUNC) &rxunif);
   R_RegisterCCallable("RxODE", "rxweibull", (DL_FUNC) &rxweibull);
+
+  R_RegisterCCallable("RxODE", "rigamma", (DL_FUNC) &rigamma);
+  R_RegisterCCallable("RxODE", "ribeta", (DL_FUNC) &ribeta);
+  R_RegisterCCallable("RxODE", "ribinom", (DL_FUNC) &ribinom);
+  R_RegisterCCallable("RxODE", "ricauchy", (DL_FUNC) &ricauchy);
+  R_RegisterCCallable("RxODE", "richisq", (DL_FUNC) &richisq);
+  R_RegisterCCallable("RxODE", "riexp", (DL_FUNC) &riexp);
+  R_RegisterCCallable("RxODE", "rif", (DL_FUNC) &rif);
+  R_RegisterCCallable("RxODE", "rigeom", (DL_FUNC) &rigeom);
+  R_RegisterCCallable("RxODE", "rinorm", (DL_FUNC) &rinorm);
+  R_RegisterCCallable("RxODE", "ripois", (DL_FUNC) &ripois);
+  R_RegisterCCallable("RxODE", "rit_", (DL_FUNC) &rit_);
+  R_RegisterCCallable("RxODE", "riunif", (DL_FUNC) &riunif);
+  R_RegisterCCallable("RxODE", "riweibull", (DL_FUNC) &riweibull);
+  
   R_RegisterCCallable("RxODE", "powerDi", (DL_FUNC) &powerDi);
   R_RegisterCCallable("RxODE", "powerD", (DL_FUNC) &powerD);
   R_RegisterCCallable("RxODE", "powerDD", (DL_FUNC) &powerDD);
