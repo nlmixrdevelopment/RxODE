@@ -22,8 +22,6 @@ statement
   | compound_statement
   | selection_statement
   | ifelse_statement
-  | while_statement
-  | br_statement
   | end_statement ;
 
 
@@ -34,12 +32,6 @@ ifelse_statement
 
 selection_statement
   : 'if' '(' logical_or_expression ')' statement ('else' statement)?;
-
-while_statement
-  : 'while' '(' logical_or_expression ')' statement;
-
-br_statement
-  : 'break'  end_statement;
 
 cmt_statement
     : 'cmt' '(' identifier_r_no_output ')';

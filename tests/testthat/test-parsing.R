@@ -884,11 +884,6 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
 
     badParse("fun10", "t=tinf")
     badParse("fun11", "time=tinf")
-
-    goodParse("while", "while(TRUE){a <- rxnorm();if (a>0) break;}")
-    badParse("while", "while(TRUE){a <- rxnorm(); }; break;")
-
-    badParse("while", "while(TRUE){a <- rxnorm(); d/dt(kyle)=-kyle*kel }");
   },
   silent = TRUE,
   test = "parsing"

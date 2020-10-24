@@ -551,10 +551,6 @@ int new_or_ith(const char *s) {
   if (!strcmp("podo", s)) {tb.ix=-2; return 0;}
   if (!strcmp("rx__PTR__", s)) {tb.ix=-2; return 0;}
   if (!strcmp("tlast", s)) {tb.ix=-2; return 0;}
-  if (!strcmp("TRUE", s)) {tb.ix=-2; return 0;}
-  if (!strcmp("T", s)) {tb.ix=-2; return 0;}
-  if (!strcmp("FALSE", s)) {tb.ix=-2; return 0;}
-  if (!strcmp("F", s)) {tb.ix=-2; return 0;}
   // Ignore M_ constants
   if (!strcmp("M_E", s)) {tb.ix=-2; return 0;}
   if (!strcmp("M_LOG2E", s)) {tb.ix=-2; return 0;}
@@ -649,8 +645,6 @@ typedef struct nodeInfo {
   int prod;
   int rate;
   int selection_statement;
-  int while_statement;
-  int br_statement;
   int selection_statement__9;
   int sign;
   int sum;
@@ -710,8 +704,6 @@ void niReset(nodeInfo *ni){
   ni->rate = -1;
   ni->selection_statement = -1;
   ni->selection_statement__9 = -1;
-  ni->while_statement = -1;
-  ni->br_statement = -1;
   ni->sign = -1;
   ni->sum = -1;
   ni->theta = -1;
@@ -804,18 +796,6 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
   } else if (!strcmp("tlast",value)){
     aAppendN("_solveData->subjects[_cSub].tlast", 33);
     sAppendN(&sbt, "tlast", 5);
-  } else if (!strcmp("TRUE",value)){
-    aAppendN("1", 1);
-    sAppendN(&sbt, "TRUE", 4);
-  } else if (!strcmp("T",value)){
-    aAppendN("1", 1);
-    sAppendN(&sbt, "TRUE", 4);
-  } else if (!strcmp("FALSE",value)){
-    aAppendN("0", 1);
-    sAppendN(&sbt, "FALSE", 5);
-  } else if (!strcmp("F",value)){
-    aAppendN("0", 1);
-    sAppendN(&sbt, "FALSE", 5);
   } else if (!strcmp("rx__PTR__",value)){
     aAppendN("_solveData, _cSub", 17);
     sAppendN(&sbt, "rx__PTR__", 9);
@@ -1366,7 +1346,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           i = 1;// Parse next arguments
 	  depth=1;
 	  continue;
-	} else if (!strcmp("logit", v) || !strcmp("expit", v) ||
+	} else if (!strcmp("logit", v) || !strcmp("expit", v),
 		   !strcmp("invLogit", v) || !strcmp("logitInv", v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 1){
@@ -2121,61 +2101,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
         continue;
       }
-      if (nodeHas(br_statement) && i != 0) continue;
-      if (nodeHas(br_statement) && i == 0) {
-      	if (tb.nwhile == 0) {
-      	  updateSyntaxCol();
-      	  trans_syntax_error_report_fn(_("'break' can only be used inside a while statement"));
-      	}
-      	sb.o=0;sbDt.o=0; sbt.o=0;
-      	aType(TLOGIC);
-      	aAppendN("break;", 6);
-      	sAppendN(&sbt,"break;", 6);
-      	addLine(&sbPm, "%s\n", sb.s);
-      	addLine(&sbPmDt, "%s\n", sbDt.s);
-      	sAppend(&sbNrm, "%s\n", sbt.s);
-      	addLine(&sbNrmL, "%s\n", sbt.s);
-      	ENDLINE;
-      	continue;
-      }
-      if (nodeHas(while_statement) && i == 0) continue;
-      if (nodeHas(while_statement) && i==1) {
-	sb.o = 0; sbDt.o = 0; sbt.o = 0;
-	aType(TLOGIC);
-	sAppendN(&sb, "while (", 7);
-	sAppendN(&sbDt, "while (", 7);
-        sAppendN(&sbt,"while (", 7);
-        continue;
-      }
-      if (nodeHas(while_statement) && i==3) {
-	aType(TLOGIC);
-	aAppendN(") {", 3);
-        sAppendN(&sbt, ") {", 3);
-	addLine(&sbPm, "%s\n", sb.s);
-	addLine(&sbPmDt, "%s\n", sbDt.s);
-	sAppend(&sbNrm, "%s\n", sbt.s);
-	addLine(&sbNrmL, "%s\n", sbt.s);
-	ENDLINE;
-	continue;
-      }
-      if (nodeHas(while_statement) && i==4) {
-	tb.nwhile++;
-	wprint_parsetree(pt, xpn, depth, fn, client_data);
-	sb.o=0;sbDt.o=0; sbt.o=0;
-	aType(TLOGIC);
-	aAppendN("}", 2);
-	sAppendN(&sbt,"}",2);
-	addLine(&sbPm, "%s\n", sb.s);
-	addLine(&sbPmDt, "%s\n", sbDt.s);
-	sAppend(&sbNrm, "%s\n", sbt.s);
-	addLine(&sbNrmL, "%s\n", sbt.s);
-	ENDLINE;
-	tb.nwhile--;
-	continue;
-      } else {
-	wprint_parsetree(pt, xpn, depth, fn, client_data);
-      }
-      
+      wprint_parsetree(pt, xpn, depth, fn, client_data);
       if (rx_syntax_require_semicolon && nodeHas(end_statement) && i == 0){
         if (xpn->start_loc.s ==  xpn->end){
 	  updateSyntaxCol();
@@ -2663,14 +2589,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sAppend(&sbDt,"%s",v);
 	sAppend(&sbt, "%s(0)",v);
 	Free(v);
-      }
-      if (tb.nwhile > 0 &&
-	  (nodeHas(ini0) || nodeHas(fbio) || nodeHas(alag) || nodeHas(rate) || nodeHas(dur) ||
-	   nodeHas(derivative) || nodeHas(dfdy) || nodeHas(mat0) || nodeHas(matF) || nodeHas(param_statement) ||
-	   nodeHas(cmt_statement) || nodeHas(dvid_statementI) || nodeHas(mtime))) {
-	updateSyntaxCol();
-	trans_syntax_error_report_fn(_("illegal statement inside a while statement"));
-	continue;
       }
 
       if ((i==0 && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0))) ||
