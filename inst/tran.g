@@ -19,6 +19,7 @@ statement
   | param_statement end_statement
   | cmt_statement end_statement
   | dvid_statementI end_statement
+  | break_statement end_statement
   | compound_statement
   | selection_statement
   | ifelse_statement
@@ -32,6 +33,9 @@ ifelse_statement
 
 selection_statement
   :   "(if|while)" '(' logical_or_expression ')' statement ('else' statement)?;
+
+break_statement
+    : 'break';
 
 cmt_statement
     : 'cmt' '(' identifier_r_no_output ')';

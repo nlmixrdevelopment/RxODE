@@ -646,6 +646,7 @@ typedef struct nodeInfo {
   int rate;
   int selection_statement;
   int selection_statement__9;
+  int break_statement;
   int sign;
   int sum;
   int theta0;
@@ -704,6 +705,7 @@ void niReset(nodeInfo *ni){
   ni->rate = -1;
   ni->selection_statement = -1;
   ni->selection_statement__9 = -1;
+  ni->break_statement = -1;
   ni->sign = -1;
   ni->sum = -1;
   ni->theta = -1;
@@ -2299,6 +2301,24 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppendN(&sbt,"if (", 4);
 	}
         continue;
+      }
+      if (nodeHas(break_statement) && i == 0) {
+	if (tb.nwhile > 0) {
+	  aType(TLOGIC);
+	  sb.o = 0; sbDt.o = 0; sbt.o = 0;
+	  /* aType(100); */
+	  aAppendN("break;", 6);
+	  sAppendN(&sbt, "break;", 6);
+	  addLine(&sbPm, "%s\n", sb.s);
+	  addLine(&sbPmDt, "%s\n", sbDt.s);
+	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  addLine(&sbNrmL, "%s\n", sbt.s);
+	  ENDLINE;
+	  continue;
+	} else {
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn(_("'break' can only be used in  'while' statement"));
+	}
       }
       if (nodeHas(selection_statement) && i==3) {
 	aType(TLOGIC);
