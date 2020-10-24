@@ -31,7 +31,7 @@ ifelse_statement
    : 'ifelse' '(' logical_or_expression ','  statement ',' statement ')' end_statement;
 
 selection_statement
-  : 'if' '(' logical_or_expression ')' statement ('else' statement)?;
+  :   "(if|while)" '(' logical_or_expression ')' statement ('else' statement)?;
 
 cmt_statement
     : 'cmt' '(' identifier_r_no_output ')';

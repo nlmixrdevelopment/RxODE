@@ -1007,6 +1007,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
   //depth++;
   if (nch != 0) {
+    int isWhile=0;
     if (nodeHas(power_expression)) {
       aAppendN("R_pow(_as_dbleps(", 17);
     }
@@ -1346,7 +1347,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           i = 1;// Parse next arguments
 	  depth=1;
 	  continue;
-	} else if (!strcmp("logit", v) || !strcmp("expit", v),
+	} else if (!strcmp("logit", v) || !strcmp("expit", v) ||
 		   !strcmp("invLogit", v) || !strcmp("logitInv", v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 1){
@@ -2268,11 +2269,35 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       
       //inits
+      if (nodeHas(selection_statement) && i== 0 ) {
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	isWhile = !strcmp("while", v);
+	Free(v);
+	if (isWhile) {
+	  D_ParseNode *xpn2 = d_get_child(pn, 5);
+	  v = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
+	  if (v[0] == 0) {
+	    Free(v);
+	  } else {
+	    Free(v);
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'while' cannot be followed by 'else' (did you mean 'if'/'else')"));
+	  }
+	}
+        continue;
+      }
       if (nodeHas(selection_statement) && i==1) {
 	sb.o = 0; sbDt.o = 0; sbt.o = 0;
-	sAppendN(&sb, "if (", 4);
-	sAppendN(&sbDt, "if (", 4);
-        sAppendN(&sbt,"if (", 4);
+	if (isWhile) {
+	  sAppendN(&sb, "while (", 7);
+	  sAppendN(&sbDt, "while (", 7);
+	  sAppendN(&sbt,"while (", 7);
+	  tb.nwhile++;
+	} else {
+	  sAppendN(&sb, "if (", 4);
+	  sAppendN(&sbDt, "if (", 4);
+	  sAppendN(&sbt,"if (", 4);
+	}
         continue;
       }
       if (nodeHas(selection_statement) && i==3) {
@@ -2732,7 +2757,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
       }
     }
-
+    if (isWhile) {
+      tb.nwhile--;
+    }
     if (nodeHas(assignment) || nodeHas(ini) || nodeHas(dfdy) ||
         nodeHas(ini0) || nodeHas(ini0f) || nodeHas(fbio) || nodeHas(alag) || nodeHas(rate) || 
 	nodeHas(dur) || nodeHas(mtime)) {
