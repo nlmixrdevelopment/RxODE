@@ -49,7 +49,7 @@
 #define rnorm(ind,x,y) rxnorm(ind, x,y)
 #define rxnorm1(x) rxnorm(&_solveData->subjects[_cSub], x, 1.0)
 #define rnorm1(x) rxnorm(&_solveData->subjects[_cSub],x, 1.0)
-#define rxnormV1(x) rinorm(&_solveData->subjects[_cSub], x, 1.0)
+#define rxnormV1(x) rxnorm(&_solveData->subjects[_cSub], x, 1.0)
 #define rinorm1(id, x) rinorm(&_solveData->subjects[_cSub], id, x, 1.0)
 #define rinormV1(id, x) rinorm(&_solveData->subjects[_cSub], id, x, 1.0)
 
