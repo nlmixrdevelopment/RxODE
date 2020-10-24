@@ -1082,7 +1082,8 @@ extern "C" int syncIdx(rx_solving_options_ind *ind){
 static inline void handleTlastInline(double *time, rx_solving_options_ind *ind) {
   rx_solving_options *op = &op_global;
   double _time = *time + ind->curShift;
-  if (op->neq + op->extraCmt != 0 && ind->tlast != _time && isDose(ind->evid[ind->ix[ind->idx]])){
+  if (op->neq + op->extraCmt != 0 && ind->tlast != _time && isDose(ind->evid[ind->ix[ind->idx]]) &&
+      ind->cmt < op->neq + op->extraCmt){
     ind->dosenum++;
     ind->tlast = _time;
     if (ISNA(ind->tfirst)) ind->tfirst = _time;
@@ -2640,7 +2641,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   int //dullEvid = 1,
     dullRate=1, dullDur=1,
     dullSS=1, dullIi=1;
-  int csub = 0, evid;
+  int csub = 0, evid = 0;
   int nsub = rx->nsub;
   int *rmState = rx->stateIgnore;
   int nPrnState =0;

@@ -2957,7 +2957,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
       stop(_("if parameters are not named, they must match the order and size of the parameters in the model"));
     }
     RObject iCov = rxControl[Rxc_iCov];
-    if (!rxIsNull(iCov)){
+    if (!rxIsNull(iCov)) {
       // Create a data frame
       Function sortId = getRxFn(".sortId");
       iCov = clone(sortId(iCov, rxSolveDat->idLevels, "iCov", rxSolveDat->warnIdSort));
@@ -3016,7 +3016,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
       rxSolveDat->usePar1=true;
       rxSolveDat->par1Keep = true;
     }
-  } else if (rxIs(rxSolveDat->par1, "data.frame")){
+  } else if (rxIs(rxSolveDat->par1, "data.frame")) {
     Function sortId = getRxFn(".sortId");
     if (rxSolveDat->idLevels.size() > 0){
       rxSolveDat->par1 = clone(sortId(rxSolveDat->par1, rxSolveDat->idLevels, "parameters", rxSolveDat->warnIdSort));
@@ -3076,7 +3076,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
     rxSolveDat->parType = 2;
     rxSolveDat->nmP = rxSolveDat->parDf.names();
     rxSolveDat->nPopPar = rxSolveDat->parDf.nrows();
-  } else if (rxIs(rxSolveDat->par1, "matrix")){
+  } else if (rxIs(rxSolveDat->par1, "matrix")) {
     RObject iCov = rxControl[Rxc_iCov];
     if (!rxIsNull(iCov)){
       rxSolveFree();
