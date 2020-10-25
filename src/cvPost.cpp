@@ -743,7 +743,11 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     // When there is only one level in omega, there is no nesting and
     // the nesting information can be inferred
     RObject omegaLotriRO = as<RObject>(omegaLotri);
-    CharacterVector omegaLotriNames = Rf_getAttrib(omegaLotriRO, R_NamesSymbol);
+    CharacterVector omegaLotriNames;
+    SEXP tmp = Rf_getAttrib(omegaLotriRO, R_NamesSymbol);
+    if (!Rf_isNull(tmp)) {
+      omegaLotriNames=tmp;
+    }
     if (omegaLotriNames.size() > 1) {
       List eventsL = as<List>(eventsS);
       CharacterVector eventNames = eventsL.names();
@@ -973,16 +977,15 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     List bounds = lotriGetBounds(sigmaLotri, R_NilValue, R_NilValue);
     NumericVector upper = bounds[0];
     NumericVector lower = bounds[1];
-    SEXP sigmaMat = rxRmvnSEXP(n2,
-			     R_NilValue, sigmaList,
-			     upper, lower, // lower upper 
-			     control[Rxc_nCoresRV],
-			     LogicalVector::create(false), // isChol
-			     LogicalVector::create(true), // keepNames
-			     NumericVector::create(0.4), // a
-			     NumericVector::create(2.05), // tol
-			     NumericVector::create(1e-10), // nlTol
-			     IntegerVector::create(100)); // nlMaxiter
+    SEXP sigmaMat = rxRmvnSEXP(n2, R_NilValue, sigmaList,
+			       upper, lower, // lower upper 
+			       control[Rxc_nCoresRV],
+			       LogicalVector::create(false), // isChol
+			       LogicalVector::create(true), // keepNames
+			       NumericVector::create(0.4), // a
+			       NumericVector::create(2.05), // tol
+			       NumericVector::create(1e-10), // nlTol
+			       IntegerVector::create(100)); // nlMaxiter
     if (Rf_length(sigmaList) >= 1 &&
 	asDouble(lotriMaxNu(sigmaLotri), "lotriMaxNu(sigmaLotri)") > 1.0) {
       rxModelsAssign(".sigmaL", sigmaList);

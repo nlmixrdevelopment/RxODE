@@ -22,7 +22,7 @@ using namespace arma;
 
 //[[Rcpp::export]]
 SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
-	     int ncores=1, bool isChol=false){
+	     int ncores=1, bool isChol=false) {
   int n = A_.nrow();
   int d = mu.n_elem;
   arma::mat ch;

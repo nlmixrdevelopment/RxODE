@@ -1694,7 +1694,6 @@ void rxSimOmega(bool &simOmega,
   }
 }
 
-
 //' Simulate Parameters from a Theta/Omega specification
 //'
 //' @param params Named Vector of RxODE model parameters
@@ -1958,7 +1957,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     _rxModels[".omegaL"] = omegaList;
   }
   if (dfObs > 0 && nStud > 1){
-    _rxModels[".sigmaL"] =sigmaList;
+    _rxModels[".sigmaL"] = sigmaList;
   }
   return ret0;
 }
