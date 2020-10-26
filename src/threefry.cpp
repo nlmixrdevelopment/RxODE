@@ -630,21 +630,19 @@ arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
   return ret;
 }
 
-//[[Rcpp::export]]
-arma::mat rxMvrandn_(NumericMatrix A_,
+arma::mat rxMvrandn__(arma::mat& A,
 		     arma::rowvec mu, arma::mat sigma, arma::vec lower,
 		     arma::vec upper, int ncores=1,
 		     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
-  int n = A_.nrow();
+  int n = A.n_rows;
   int d = mu.n_elem;
   arma::mat ch;
   if (n < 1) stop(_("n should be a positive integer"));
   if (ncores < 1) stop(_("'ncores' has to be greater than one"));
   if (d != (int)sigma.n_cols) stop("length(mu) != ncol(sigma)");
   if (d != (int)sigma.n_rows) stop("length(mu) != ncol(sigma)");
-  if (d != (int)A_.ncol()) stop("length(mu) != ncol(A)");
+  if (d != (int)A.n_cols) stop("length(mu) != ncol(A)");
 
-  arma::mat A(A_.begin(), A_.nrow(), A_.ncol(), false, true);
   if (sigma.is_zero()){
     if (d == 1){
       for (int i = 0; i < n; ++i) {
@@ -679,6 +677,15 @@ arma::mat rxMvrandn_(NumericMatrix A_,
     }
   }
   return A;
+}
+
+//[[Rcpp::export]]
+arma::mat rxMvrandn_(NumericMatrix A_,
+		     arma::rowvec mu, arma::mat sigma, arma::vec lower,
+		     arma::vec upper, int ncores=1,
+		     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
+  arma::mat A(A_.begin(), A_.nrow(), A_.ncol(), false, true);
+  return rxMvrandn__(A, mu, sigma, lower, upper, ncores, a, tol, nlTol, nlMaxiter);
 }
 
 
