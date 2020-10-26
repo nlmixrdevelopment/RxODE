@@ -93,6 +93,60 @@ SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
   return R_NilValue;
 }
 
+void rxRmvn2_(arma::mat& A, arma::rowvec mu, arma::mat sigma,
+	      int ncores=1, bool isChol=false) {
+  int n = A.n_rows;
+  int d = mu.n_elem;
+  arma::mat ch;
+  if (sigma.is_zero()){
+    ch = sigma;
+  } else {
+    if (isChol){
+      ch=arma::trimatu(sigma);
+    } else {
+      ch=arma::trimatu(arma::chol(sigma));
+    }
+  }
+
+  if (n < 1) stop(_("n should be a positive integer"));
+  if (ncores < 1) stop(_("'ncores' has to be greater than one"));
+  if (d != (int)sigma.n_cols) stop("length(mu) != ncol(sigma)");
+  if (d != (int)sigma.n_rows) stop("length(mu) != ncol(sigma)");
+  if (d != (int)A.n_cols) stop("length(mu) != ncol(A)");
+
+  double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
+  uint32_t seed = static_cast<uint32_t>(seedD);
+  seed = min2(seed, std::numeric_limits<uint32_t>::max() - ncores - 1);
+  sitmo::threefry eng;
+  eng.seed(seed);
+
+  std::normal_distribution<> snorm(0.0, 1.0);
+
+  double acc;
+  arma::rowvec work(d);
+  for (int i = 0; i < n*d; ++i){
+    A[i] = snorm(eng);
+  }
+  if (d == 1){
+    double sd = ch(0, 0);
+    for (int i = 0; i < n; i++){
+      A[i] = A[i]*sd+mu(0);
+    }
+  } else {
+    for(int ir = 0; ir < n; ++ir){
+      for(int ic = d; ic--;){
+	acc = 0.0;
+	for (int ii = 0; ii <= ic; ++ii){
+	  acc += A.at(ir,ii) * ch.at(ii,ic);
+	}
+	work.at(ic) = acc;
+      }
+      work += mu;
+      A(arma::span(ir), arma::span::all) = work;
+    }
+  }
+}
+
 
 // Adapted from https://github.com/cran/TruncatedNormal/blob/7364c5bc3f7c84d00eb4a767807b103b4232b648/R/ntail.R
 double ntail(double l, double u, sitmo::threefry& eng){
@@ -630,10 +684,10 @@ arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
   return ret;
 }
 
-arma::mat rxMvrandn__(arma::mat& A,
-		     arma::rowvec mu, arma::mat sigma, arma::vec lower,
-		     arma::vec upper, int ncores=1,
-		     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
+void rxMvrandn__(arma::mat& A,
+		 arma::rowvec mu, arma::mat sigma, arma::vec lower,
+		 arma::vec upper, int ncores=1,
+		 double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
   int n = A.n_rows;
   int d = mu.n_elem;
   arma::mat ch;
@@ -676,7 +730,6 @@ arma::mat rxMvrandn__(arma::mat& A,
       std::copy(ret.begin(), ret.end(), A.begin());
     }
   }
-  return A;
 }
 
 //[[Rcpp::export]]
@@ -685,7 +738,8 @@ arma::mat rxMvrandn_(NumericMatrix A_,
 		     arma::vec upper, int ncores=1,
 		     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
   arma::mat A(A_.begin(), A_.nrow(), A_.ncol(), false, true);
-  return rxMvrandn__(A, mu, sigma, lower, upper, ncores, a, tol, nlTol, nlMaxiter);
+  rxMvrandn__(A, mu, sigma, lower, upper, ncores, a, tol, nlTol, nlMaxiter);
+  return A;
 }
 
 
@@ -1257,6 +1311,32 @@ SEXP rxRmvn0(NumericMatrix& A_, arma::rowvec mu, arma::mat sigma,
     return R_NilValue;
   } else {
     return rxRmvn_(A_, mu, sigma, ncores, isChol);
+  }
+}
+
+// Armadillo-only simulation (for simeta and simeps)
+void rxRmvnA(arma::mat & A_, arma::rowvec mu, arma::mat sigma,
+	     arma::vec lower, arma::vec upper, int ncores=1, bool isChol=false,
+	     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
+  bool trunc = false;
+  if (anyFinite(lower)){
+    trunc = true;
+  } else if (anyFinite(upper)){
+    trunc = true;
+  }
+  if (trunc){
+    arma::mat sigma0 = sigma;
+    if (isChol){
+      sigma0 = sigma * sigma.t();
+    }
+    // IntegerVector dm = as<IntegerVector>(A_.attr("dim"));
+    int n = A_.n_rows;
+    arma::vec lower0 = fillVec(lower, A_.n_cols);
+    arma::vec upper0 = fillVec(upper, A_.n_cols);
+    rxMvrandn__(A_, mu, sigma0, lower0,
+	       upper0, ncores, a, tol, nlTol,nlMaxiter);
+  } else {
+    rxRmvn2_(A_, mu, sigma, ncores, isChol);
   }
 }
 
