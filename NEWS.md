@@ -227,6 +227,7 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   During ODE solving, the values of these are `0`, but while
   calculating the final output the variable is randomized at least for
   every output. These are:
+  
   - `rxnorm()` and `rxnormV()` (low discrepancy normal)
   - `rxcauchy()`
   - `rxchisq()`
@@ -239,6 +240,22 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   - `rxt()`
   - `rxunif()`
   - `rxweibull()`
+  
+  In addition, while initializing the system, the following values are
+  simulated and retained for each individual:
+  
+  - `rinorm()` and `rinormV()` (low discrepancy normal)
+  - `ricauchy()`
+  - `richisq()`
+  - `riexp()`
+  - `rif()`
+  - `rigamma()`
+  - `ribeta()`
+  - `rigeom()`
+  - `ripois()`
+  - `rit()`
+  - `riunif()`
+  - `riweibull()`
 
 * Now have a method to use `lotri` to simulate between occasion
   variability and other levels of nesting.
