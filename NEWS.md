@@ -256,6 +256,16 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   - `rit()`
   - `riunif()`
   - `riweibull()`
+  
+* Added the ability to integrate standard deviations/errors of omega
+  diagonals and sigma diagonals.  This is done by specifying the omega
+  diagonals in the theta matrix and having them represent the
+  variabilties or standard deviations. Then these standard deviations
+  are simulated along with the correlations using the IJK correlation
+  matrix (omega dimension < 10) or a correlation matrix or Inverse
+  Wishart-based correlation matrix (omega dimension > 10).  The
+  information about how to simulate this is in the variability
+  simulation vignette.
 
 * Now have a method to use `lotri` to simulate between occasion
   variability and other levels of nesting.
