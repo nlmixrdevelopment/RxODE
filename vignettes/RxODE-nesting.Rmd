@@ -167,7 +167,7 @@ For between eye variability and between occasion variability each
 individual simulates a number of variables that become the between eye
 and between occasion variability;  In the case of the eye:
 
-```{r}
+```
 eye.Cl = (eye == 1) * `eye.Cl(eye==1)` + (eye == 2) * `eye.Cl(eye==2)`
 ```
 
