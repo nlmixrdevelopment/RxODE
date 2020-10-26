@@ -758,11 +758,11 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       } else if (nSub <= 1) {
 	// control[Rxc_nSub] = nid;
 	nSub = nid;
-      } else if (nSub % nid != 0) {
+      } else if ((nSub*nStud) % nid != 0) {
 	rxSolveFree();
 	UNPROTECT(pro);
 	stop(_("provided multi-subject data (n=%d) trying to simulate a different number of subjects (n=%d)"),
-	     nid, nSub);
+	     nid, nSub*nStud);
       }
       RObject objectRO = as<RObject>(objectS);
       IntegerVector flags = as<IntegerVector>(mv[RxMv_flags]);
@@ -799,16 +799,15 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       if (nid <= 1) {
       } else if (nSub <= 1) {
 	nSub = nid;
-      } else if (nSub % nid != 0) {
+      } else if ((nSub*nStud) % nid != 0) {
 	rxSolveFree();
 	UNPROTECT(pro);
 	stop(_("provided multi-subject data (n=%d) trying to simulate a different number of subjects (n=%d)"),
-	     nid, nSub);
+	     nid, nSub*nStud);
       }
       rxModelsAssign(".nestEta",    R_NilValue);
       rxModelsAssign(".nestTheta",  R_NilValue);
     }
-    // Get all the names for
     allNames = as<CharacterVector>(lotriAllNames(omegaLotri));
     methodStr = as<std::string>(control[Rxc_omegaSeparation]);
     methodInt = getMethodInt(methodStr, allNames, et);
