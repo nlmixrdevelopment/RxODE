@@ -386,13 +386,36 @@ plot(s)
 
 
 ## Simulate without uncertainty in `omega` or `sigma` parameters
+
 If you do not wish to sample from the prior distributions of either
 the `omega` or `sigma` matrices, you can turn off this feature by
 specifying the `simVariability = FALSE` option when solving:
 
 ```{r}
-sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
-                simVariability=FALSE);
+
+mod <- RxODE({
+  eff(0) = 1
+  C2 = centr/V2;
+  C3 = peri/V3;
+  CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
+  d/dt(depot) =-KA*depot;
+  d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+  d/dt(peri)  =                    Q*C2 - Q*C3;
+  d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+  e = eff+eff.err
+  cp = centr*(1+cp.err)
+})
+
+theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central 
+           Q=1.05E+01, V3=2.97E+02,                # peripheral
+           Kin=1, Kout=1, EC50=200)                # effects  
+
+sigma <- lotri(eff.err ~ 0.1, cp.err ~ 0.1)
+
+
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma,
+                thetaMat=tMat, nStud=10,
+                simVariability=FALSE)
 
 s <-sim %>% confint(c("centr", "eff"))
 
