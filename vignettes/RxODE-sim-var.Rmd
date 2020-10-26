@@ -34,15 +34,17 @@ can set create an RxODE model describing this system below:
 ```{r}
 library(RxODE)
 
+set.seed(32)
+
 mod <- RxODE({
-    eff(0) = 1
-    C2 = centr/V2*(1+prop.err);
-    C3 = peri/V3;
-    CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
-    d/dt(depot) =-KA*depot;
-    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
-    d/dt(peri)  =                    Q*C2 - Q*C3;
-    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+  eff(0) = 1
+  C2 = centr/V2*(1+prop.err);
+  C3 = peri/V3;
+  CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
+  d/dt(depot) =-KA*depot;
+  d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+  d/dt(peri)  =                    Q*C2 - Q*C3;
+  d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 })
 ```
 
@@ -148,9 +150,6 @@ confint(sim, "eff", level=0.95) %>%
     plot(ylab="Effect")
 ```
 
-
-
-
 Note that you can see the parameters that were simulated for the example
 
 ```{r}
@@ -164,16 +163,16 @@ you can also easily simulate unexplained variability.
 
 ```{r}
 mod <- RxODE({
-    eff(0) = 1
-    C2 = centr/V2;
-    C3 = peri/V3;
-    CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
-    d/dt(depot) =-KA*depot;
-    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
-    d/dt(peri)  =                    Q*C2 - Q*C3;
-    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
-    e = eff+eff.err
-    cp = centr*(1+cp.err)
+  eff(0) = 1
+  C2 = centr/V2;
+  C3 = peri/V3;
+  CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
+  d/dt(depot) =-KA*depot;
+  d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+  d/dt(peri)  =                    Q*C2 - Q*C3;
+  d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+  e = eff+eff.err
+  cp = centr*(1+cp.err)
 })
 
 theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central 
@@ -266,7 +265,6 @@ function.
 ## Simulation from inverse Wishart correlations
 An example of this simulation is below:
 ```{r}
-
 ## Creating covariance matrix
 tmp <- matrix(rnorm(8^2), 8, 8)
 tMat <- tcrossprod(tmp, tmp) / (8 ^ 2)
@@ -303,11 +301,11 @@ First we setup the model:
 
 ```{r}
 rx1 <- RxODE({
-    cl <- tcl*(1+crcl.cl*(CLCR-65)) * exp(eta.v)
-    v <- tv * WT * exp(eta.v)
-    ka <- tka * exp(eta.ka)
-    ipred <- linCmt()
-    obs <- ipred * (1 + prop.sd) + add.sd 
+  cl <- tcl*(1+crcl.cl*(CLCR-65)) * exp(eta.v)
+  v <- tv * WT * exp(eta.v)
+  ka <- tka * exp(eta.ka)
+  ipred <- linCmt()
+  obs <- ipred * (1 + prop.sd) + add.sd 
 })
 ```
 
@@ -380,20 +378,44 @@ sim  <- rxSolve(rx1, theta, evw,  nSub=100, nStud=10,
                 omegaXform="variance", # default omega xform="variance"
                 iCov=data.frame(WT=rnorm(1000, 70, 15), CLCR=rnorm(1000, 65, 25)),
                 dfSub=74, dfObs=476)
-s <-sim %>% confint(c("centr", "eff"))
+
+s <-sim %>% confint(c("ipred"))
 plot(s)
 ```
 
 
 
 ## Simulate without uncertainty in `omega` or `sigma` parameters
+
 If you do not wish to sample from the prior distributions of either
 the `omega` or `sigma` matrices, you can turn off this feature by
 specifying the `simVariability = FALSE` option when solving:
 
 ```{r}
-sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
-                simVariability=FALSE);
+
+mod <- RxODE({
+  eff(0) = 1
+  C2 = centr/V2;
+  C3 = peri/V3;
+  CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
+  d/dt(depot) =-KA*depot;
+  d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+  d/dt(peri)  =                    Q*C2 - Q*C3;
+  d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+  e = eff+eff.err
+  cp = centr*(1+cp.err)
+})
+
+theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central 
+           Q=1.05E+01, V3=2.97E+02,                # peripheral
+           Kin=1, Kout=1, EC50=200)                # effects  
+
+sigma <- lotri(eff.err ~ 0.1, cp.err ~ 0.1)
+
+
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma,
+                thetaMat=tMat, nStud=10,
+                simVariability=FALSE)
 
 s <-sim %>% confint(c("centr", "eff"))
 

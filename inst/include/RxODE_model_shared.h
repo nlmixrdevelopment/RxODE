@@ -39,18 +39,28 @@
 #define rxTBSi(x, lm, yj, hi, low) _powerDi(x,  lm, (int)(yj), hi, low)
 #define rxTBSd(x, lm, yj, hi, low) _powerDD(x, lm, (int)(yj), hi, low)
 #define rxTBSd2(x, lm, yj, hi, low) _powerDDD(x, lm, (int)(yj), hi, low)
+#define normcdf(x) phi(x)
+#define _getIndSim(id, val) (_solveData->subjects[_cSub].isIni == 1 ? \
+			     (_solveData->subjects[_cSub].simIni[id] = (val)) : _solveData->subjects[_cSub].simIni[id])
 #undef rbeta
 #define rbeta(ind, x, y) rxbeta(ind, x, y)
+#define ribeta(ind, id, x, y) _getIndSim(id, rxbeta(ind, x, y))
 #undef rnorm
 #define rnorm(ind,x,y) rxnorm(ind, x,y)
 #define rxnorm1(x) rxnorm(&_solveData->subjects[_cSub], x, 1.0)
 #define rnorm1(x) rxnorm(&_solveData->subjects[_cSub],x, 1.0)
+#define rxnormV1(x) rxnorm(&_solveData->subjects[_cSub], x, 1.0)
+#define rinorm1(id, x) rinorm(&_solveData->subjects[_cSub], id, x, 1.0)
+#define rinormV1(id, x) rinorm(&_solveData->subjects[_cSub], id, x, 1.0)
+
+// FIXME: need to use same scheme here
 #define rnormV(ind, x,y) rxnormV(ind,x,y)
-#define rxnormV1(x) rxnormV(&_solveData->subjects[_cSub],x, 1.0)
-#define rnormV1(x) rxnormV(&_solveData->subjects[_cSub],x, 1.0)
+#define rnormV1(ind, id, x) rxnormV(ind, id, x, 1.0)
+  
 #undef rcauchy 
 #define rcauchy(ind, x, y) rxcauchy(ind,x,y)
 #define rxcauchy1(x) rxcauchy(&_solveData->subjects[_cSub],x, 1.0)
+#define ricauchy1(id, x) ricauchy(&_solveData->subjects[_cSub], id, x, 1.0)
 #undef rchisq
 #define rchisq(ind, x) rxchisq(ind, x)
 #undef rexp
@@ -59,6 +69,7 @@
 #define rgamma(ind, x,y) rxgamma(ind, x,y)
 #define rgamma1(x) rxgamma(&_solveData->subjects[_cSub], x,1.0)
 #define rxgamma1(x) rxgamma(&_solveData->subjects[_cSub], x,1.0)
+#define rigamma1(id, x) rigamma(&_solveData->subjects[_cSub], id, x,1.0)
 #undef rgeom
 #define rgeom(ind,x) rxgeom(ind,x)
 #undef rpois
@@ -67,21 +78,28 @@
 #define runif(ind,x,y) rxunif(ind,x,y)
 #define runif1(x) rxunif(&_solveData->subjects[_cSub],x,1.0)
 #define rxunif1(x) rxunif(&_solveData->subjects[_cSub],x,1.0)
+#define riunif1(id, x) riunif(&_solveData->subjects[_cSub],id, x,1.0)
 #undef rweibull
 #define rweibull(ind,x,y) rxweibull(ind,x,y)
-#define rxweibull1(x) rxweibull(&_solveData->subjects[_cSub],x,1.0)
-#define rweibull1(x) rxweibull(&_solveData->subjects[_cSub],x,1.0)
+#define rxweibull1(x) rxweibull(&_solveData->subjects[_cSub], x, 1.0)
+#define riweibull1(id, x) riweibull(&_solveData->subjects[_cSub], id, x, 1.0)
+#define rweibull1(x) rxweibull(&_solveData->subjects[_cSub], x, 1.0)
 #define _pnorm1(x) pnorm(x, 0.0, 1.0, 1, 0)
 #define _pnorm2(x, mu) pnorm(x, mu, 1.0, 1, 0)
 #define _pnorm3(x, mu, sd) pnorm(x, mu, sd, 1, 0)
 #define _qnorm1(x) qnorm(x, 0.0, 1.0, 1, 0)
 #define _qnorm2(x, mu) qnorm(x, mu, 1.0, 1, 0)
 #define _qnorm3(x, mu, sd) qnorm(x, mu, sd, 1, 0)
+#define norminv(x) qnorm(x, 0.0, 1.0, 1, 0)
 #define probitt(x) qnorm(x, 0.0, 1.0, 1, 0)
 #define _logit1(x) logit(x, 0.0, 1.0)
 #define _logit2(x, y) logit(x, y, 1.0)
 #define _expit1(x) expit(x, 0.0, 1.0)
 #define _expit2(x, y) expit(x, y, 1.0)
+#define _invLogit1(x) expit(x, 0.0, 1.0)
+#define _invLogit2(x, y) expit(x, y, 1.0)
+#define _logitInv1(x) expit(x, 0.0, 1.0)
+#define _logitInv2(x, y) expit(x, y, 1.0)
 #define _tad0() (t-_solveData->subjects[_cSub].tlast)
 #define _tad1(x) (t-_solveData->subjects[_cSub].tlastS[x])
 #define _tafd0()  (t-_solveData->subjects[_cSub].tfirst)
@@ -112,7 +130,14 @@ typedef int (*RxODEi_ifn) (rx_solving_options_ind* ind, double x);
 typedef double (*RxODEi_fn2) (rx_solving_options_ind* ind, double x, double y);
 typedef double (*RxODEi_fn3i) (rx_solving_options_ind* ind, double x, double y, int i);
 typedef double (*RxODEi_fn2i) (rx_solving_options_ind* ind, double x, int i);
-typedef int (*RxODEi_fn0i) (rx_solving_options_ind* ind);
+
+typedef int (*RxODEi2_fn0i) (rx_solving_options_ind* ind, int id);
+typedef double (*RxODEi2_fn) (rx_solving_options_ind* ind, int id, double x);
+typedef int (*RxODEi2_ifn) (rx_solving_options_ind* ind, int id, double x);
+typedef double (*RxODEi2_fn2) (rx_solving_options_ind* ind, int id, double x, double y);
+typedef double (*RxODEi2_fn3i) (rx_solving_options_ind* ind, int id, double x, double y, int i);
+typedef double (*RxODEi2_fn2i) (rx_solving_options_ind* ind, int id, double x, int i);
+
 typedef double (*RxODE_vec) (int val, rx_solve *rx, unsigned int id);
 typedef double (*RxODE_val) (rx_solve *rx, unsigned int id);
 typedef void (*RxODE_assign_ptr)(SEXP);
@@ -170,39 +195,6 @@ typedef rx_solve *(*_getRxSolve_t)();
 _getRxSolve_t _getRxSolve_;
 
 void _assignFuns();
-
-
-extern RxODE_assign_ptr _assign_ptr;
-extern _rxRmModelLibType _rxRmModelLib;
-extern _rxGetModelLibType _rxGetModelLib;
-extern RxODE_ode_solver_old_c _old_c;
-extern RxODE_fn0i _ptr;
-extern _rxIsCurrentC_type _rxIsCurrentC;
-extern _rxSumType _sumPS;
-extern _rxProdType _prodPS;
-extern RxODE_fn0i _prodType;
-extern RxODE_fn0i _sumType;
-extern rx_solve *_solveData;
-
-extern linCmtA_p linCmtA;
-extern linCmtB_p linCmtB;
-extern _update_par_ptr_p _update_par_ptr;
-extern _getParCov_p _getParCov;
-extern _rx_asgn _RxODE_rxAssignPtr;
-extern RxODEi_fn2 rxcauchy;
-extern RxODEi_fn rxchisq;
-extern RxODEi_fn rxexp;
-extern RxODEi_fn2 rxf;
-extern RxODEi_ifn rxgeom;
-extern RxODEi_fn2 rxnorm;
-extern RxODEi_fn2 rxnormV;
-extern RxODEi_fn2 rxgamma;
-extern RxODEi_fn2 rxbeta;
-extern RxODEi_ifn rxpois;
-extern RxODEi_fn rxt_;
-extern RxODEi_fn2 rxunif;
-extern RxODEi_fn2 rxweibull;
-extern RxODE_compareFactorVal_fn _compareFactorVal;
 
 rx_solve *_solveData = NULL;
 RxODE_assign_ptr _assign_ptr = NULL;
@@ -312,12 +304,8 @@ linCmtA_p linCmtC;
 linCmtB_p linCmtB;
 _rx_asgn _RxODE_rxAssignPtr =NULL;
 typedef int (*RxODEi_rxbinom) (rx_solving_options_ind* ind, int n, double prob);
-RxODEi_fn2 rxnorm;
-RxODEi_fn2 rxnormV;
-RxODEi_rxbinom rxbinom;
-RxODEi_fn2 rxcauchy;
-RxODEi_fn rxchisq;
-RxODEi_fn rxexp;
+typedef int (*RxODEi2_ribinom) (rx_solving_options_ind* ind, int id, int n, double prob);
+
 RxODE_fn phi;
 RxODE_fn3 logit;
 RxODE_fn3 expit;
@@ -330,6 +318,13 @@ RxODE_fn2 gammapDer;
 RxODE_fn2 gammapInva;
 RxODE_fn2 gammaqInv;
 RxODE_fn2 gammaqInva;
+
+RxODEi_fn2 rxnorm;
+RxODEi_fn2 rxnormV;
+RxODEi_rxbinom rxbinom;
+RxODEi_fn2 rxcauchy;
+RxODEi_fn rxchisq;
+RxODEi_fn rxexp;
 RxODEi_fn2 rxf;
 RxODEi_ifn rxgeom;
 RxODEi_fn2 rxgamma;
@@ -338,6 +333,22 @@ RxODEi_ifn rxpois;
 RxODEi_fn rxt_;
 RxODEi_fn2 rxunif;
 RxODEi_fn2 rxweibull;
+
+RxODEi2_fn2 rinorm;
+RxODEi2_fn2 rinormV;
+RxODEi2_ribinom ribinom;
+RxODEi2_fn2 ricauchy;
+RxODEi2_fn richisq;
+RxODEi2_fn riexp;
+RxODEi2_fn2 rif;
+RxODEi2_ifn rigeom;
+RxODEi2_fn2 rigamma;
+RxODEi2_fn2 ribeta;
+RxODEi2_ifn ripois;
+RxODEi2_fn rit_;
+RxODEi2_fn2 riunif;
+RxODEi2_fn2 riweibull;
+
 RxODE_compareFactorVal_fn _compareFactorVal;
 void _assignFuns(){
   if (_assign_ptr == NULL){
@@ -355,13 +366,13 @@ void _assignFuns(){
     linCmtA=(linCmtA_p)R_GetCCallable("RxODE", "linCmtA");
     linCmtB=(linCmtB_p)R_GetCCallable("RxODE", "linCmtB");
     linCmtC=(linCmtA_p)R_GetCCallable("RxODE", "linCmtC");
+    
     rxnorm = (RxODEi_fn2)R_GetCCallable("RxODE", "rxnorm");
     rxnormV = (RxODEi_fn2)R_GetCCallable("RxODE", "rxnormV");
     rxbinom = (RxODEi_rxbinom)R_GetCCallable("RxODE","rxbinom") ;
     rxcauchy = (RxODEi_fn2)R_GetCCallable("RxODE","rxcauchy") ;
     rxchisq = (RxODEi_fn)R_GetCCallable("RxODE","rxchisq") ;
     rxexp = (RxODEi_fn)R_GetCCallable("RxODE","rxexp");
-    phi = (RxODE_fn)R_GetCCallable("RxODE","phi");
     rxf = (RxODEi_fn2)R_GetCCallable("RxODE","rxf") ;
     rxgeom = (RxODEi_ifn)R_GetCCallable("RxODE","rxgeom") ;
     rxgamma = (RxODEi_fn2)R_GetCCallable("RxODE","rxgamma") ;
@@ -370,6 +381,23 @@ void _assignFuns(){
     rxt_ = (RxODEi_fn)R_GetCCallable("RxODE","rxt_") ;
     rxunif = (RxODEi_fn2)R_GetCCallable("RxODE","rxunif") ;
     rxweibull = (RxODEi_fn2)R_GetCCallable("RxODE","rxweibull");
+
+    rinorm = (RxODEi2_fn2)R_GetCCallable("RxODE", "rinorm");
+    rinormV = (RxODEi2_fn2)R_GetCCallable("RxODE", "rinormV");
+    ribinom = (RxODEi2_ribinom)R_GetCCallable("RxODE","ribinom") ;
+    ricauchy = (RxODEi2_fn2)R_GetCCallable("RxODE","ricauchy") ;
+    richisq = (RxODEi2_fn)R_GetCCallable("RxODE","richisq") ;
+    riexp = (RxODEi2_fn)R_GetCCallable("RxODE","riexp");
+    rif = (RxODEi2_fn2)R_GetCCallable("RxODE","rif") ;
+    rigeom = (RxODEi2_ifn)R_GetCCallable("RxODE","rigeom") ;
+    rigamma = (RxODEi2_fn2)R_GetCCallable("RxODE","rigamma") ;
+    ribeta = (RxODEi2_fn2)R_GetCCallable("RxODE","ribeta") ;
+    ripois = (RxODEi2_ifn)R_GetCCallable("RxODE","ripois") ;
+    rit_ = (RxODEi2_fn)R_GetCCallable("RxODE","rit_") ;
+    riunif = (RxODEi2_fn2)R_GetCCallable("RxODE","riunif") ;
+    riweibull = (RxODEi2_fn2)R_GetCCallable("RxODE","riweibull");
+    
+    phi = (RxODE_fn)R_GetCCallable("RxODE","phi");
     gammap = (RxODE_fn2) R_GetCCallable("RxODE","gammap");
     gammaq = (RxODE_fn2) R_GetCCallable("RxODE","gammaq");
     gammapInv = (RxODE_fn2) R_GetCCallable("RxODE","gammapInv");

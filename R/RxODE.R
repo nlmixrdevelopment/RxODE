@@ -1316,14 +1316,14 @@ rxCompile <- function(model, dir, prefix, force = FALSE, modName = NULL,
   if (dir.exists(.cache)) {
     .include <- .normalizePath(file.path(.cache, "include"))
     if (!dir.exists(.include)) {
-      message("creating RxODE include directory")
+      .malert("creating RxODE include directory")
       dir.create(.include, recursive = TRUE)
       .sysInclude <- system.file("include", package = "RxODE")
       .files <- list.files(.sysInclude)
       sapply(.files, function(file) {
         file.copy(file.path(.sysInclude, file), file.path(.include, file))
       })
-      message("getting R compile options")
+      .malert("getting R compile options")
       .cc <- rawToChar(sys::exec_internal(file.path(R.home("bin"), "R"), c("CMD", "config", "CC"))$stdout)
       .cc <- gsub("\n", "", .cc)
       .cflags <- rawToChar(sys::exec_internal(file.path(R.home("bin"), "R"), c("CMD", "config", "CFLAGS"))$stdout)
@@ -1333,7 +1333,7 @@ rxCompile <- function(model, dir, prefix, force = FALSE, modName = NULL,
       .cpicflags <- rawToChar(sys::exec_internal(file.path(R.home("bin"), "R"), c("CMD", "config", "CPICFLAGS"))$stdout)
       .cpicflags <- gsub("\n", "", .cpicflags)
 
-      message("precompiling headers")
+      .malert("precompiling headers")
       .args <- paste0(
         .cc, " -I", gsub("[\\]", "/", .normalizePath(R.home("include"))), " ",
         .cflags, " ", .shlibCflags, " ", .cpicflags, " -I", gsub("[\\]", "/", .normalizePath(.include)), " ",
@@ -1341,6 +1341,7 @@ rxCompile <- function(model, dir, prefix, force = FALSE, modName = NULL,
         ""
       )
       system(.args)
+      .msuccess("done")
       return(.include)
     }
   }

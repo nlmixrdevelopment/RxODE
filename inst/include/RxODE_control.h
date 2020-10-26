@@ -117,6 +117,7 @@
 #define RxMvFlag_hasCmt 5
 #define RxMvFlag_linCmt 6
 #define RxMvFlag_linCmtFlg 7
+#define RxMvFlag_nIndSim 8
 
 #define RxMvTrans_lib_name 0
 #define RxMvTrans_jac 1

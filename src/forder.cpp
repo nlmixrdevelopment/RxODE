@@ -305,7 +305,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
     // The key cannot be restricted because CRAN requires forder to use Cpp and restrict is a C only keyword
     // (ie any openmp needs to be in C++ since the c++ linker is used with the openmp options)
     uint8_t *my_key = key[radix]+from;  // safe to write as we don't use this radix again
-    uint8_t *o = new uint8_t[my_n];
+    uint8_t *o = (uint8_t *)malloc(my_n*sizeof(uint8_t));
     // if last key (i.e. radix+1==nradix) there are no more keys to reorder so we could reorder osub by reference directly and save allocating and populating o just
     // to use it once. However, o's type is uint8_t so many moves within this max-256 vector should be faster than many moves in osub (4 byte or 8 byte ints) [1 byte
     // type is always aligned]
@@ -335,7 +335,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
     }
     if (!skip) {
       // reorder osub and each remaining ksub
-      int *TMP = new int[my_n];  // on stack fine since my_n is very small (<=256)
+      int *TMP = (int*)malloc(my_n*sizeof(int)); // on stack fine since my_n is very small (<=256)
       const int *osub = anso+from;
       for (int i=0; i<my_n; i++) TMP[i] = osub[o[i]];
       memcpy((int *)(anso+from), TMP, my_n*sizeof(int));
@@ -344,15 +344,16 @@ extern "C" void radix_r(const int from, const int to, const int radix,
 	for (int i=0; i<my_n; i++) ((uint8_t *)TMP)[i] = ksub[o[i]];
 	memcpy((uint8_t *)(key[r]+from), (uint8_t *)TMP, my_n);
       }
-      delete TMP;
+      free(TMP);
     }
     // my_key is now grouped (and sorted by group too if sort!=0)
     // all we have left to do is find the group sizes and either recurse or push
     if (radix+1==nradix) {
+      free(o);
       return;
     }
     int ngrp=0;
-    int *my_gs = new int[my_n];  //minor TODO: could know number of groups with certainty up above
+    int *my_gs = (int *)malloc(my_n*sizeof(int)); //minor TODO: could know number of groups with certainty up above
     my_gs[ngrp]=1;
     for (int i=1; i<my_n; i++) {
       if (my_key[i]!=my_key[i-1]) my_gs[++ngrp] = 1;
@@ -366,8 +367,8 @@ extern "C" void radix_r(const int from, const int to, const int radix,
 	f+=my_gs[i];
       }
     }
-    delete my_gs;
-    delete o;
+    free(my_gs);
+    free(o);
     return;
   }
   else if (my_n<=UINT16_MAX) {    // UINT16_MAX==65535 (important not 65536)
@@ -433,7 +434,8 @@ extern "C" void radix_r(const int from, const int to, const int radix,
     if (radix+1== nradix) {
       return;  // we're done. avoid allocating and populating very last group sizes for last key
     }
-    int *my_gs = new int[ngrp==0 ? 256 : ngrp];  // ngrp==0 when sort and skip==true; we didn't count the non-zeros in my_counts yet in that case
+    // int *my_gs = new int[ngrp==0 ? 256 : ngrp]; 
+    int *my_gs = (int *)malloc((ngrp==0 ? 256 : ngrp)*sizeof(int)); // ngrp==0 when sort and skip==true; we didn't count the non-zeros in my_counts yet in that case
     // Use https://github.com/Rdatatable/data.table/blob/be6c1fc66a411211c4ca944702c1cab7739445f3/src/forder.c#L1028-L1029
     // sortType = 1
     ngrp=0;
@@ -447,7 +449,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
 	my_from+=my_gs[i];
       }
     }
-    delete my_gs;
+    free(my_gs);
     return;
   }
   // else parallel batches. This is called recursively but only once or maybe twice before resolving to UINT16_MAX branch above
@@ -624,6 +626,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
   free(starts);
   free(ugrps);
   free(ngrps);
+  delete my_gs;
 }
 
 extern "C" int getThrottle(){

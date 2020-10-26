@@ -72,11 +72,11 @@
 .mkCache <- function(.tmp) {
   if (!file.exists(.tmp)) {
     dir.create(.tmp, recursive = TRUE)
-  } else if (!file.exists(file.path(.tmp, paste(RxODE.md5, ".md5")))) {
+  } else if (!file.exists(file.path(.tmp, paste0(RxODE.md5, ".md5")))) {
     packageStartupMessage("detected new version of RxODE, cleaning cache")
     unlink(.tmp, recursive=TRUE, force=TRUE)
     dir.create(.tmp, recursive = TRUE)
-    writeLines("RxODE", file.path(.tmp, paste(RxODE.md5, ".md5")))
+    writeLines("RxODE", file.path(.tmp, paste0(RxODE.md5, ".md5")))
   }
 }
 

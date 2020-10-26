@@ -66,6 +66,8 @@
   - `inits` do not change (though you can specify them as `cmt(0)=...`
     in the model and change them by parameters)
   - See Issue #109
+  
+* Allow `while(logical)` statements with ability to break out if them by `break`
 
 * Allow accessing different time-varying components of an input dataset for each indivdiual with:
   - `lag(var, #)`
@@ -225,6 +227,7 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   During ODE solving, the values of these are `0`, but while
   calculating the final output the variable is randomized at least for
   every output. These are:
+  
   - `rxnorm()` and `rxnormV()` (low discrepancy normal)
   - `rxcauchy()`
   - `rxchisq()`
@@ -237,6 +240,32 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   - `rxt()`
   - `rxunif()`
   - `rxweibull()`
+  
+  In addition, while initializing the system, the following values are
+  simulated and retained for each individual:
+  
+  - `rinorm()` and `rinormV()` (low discrepancy normal)
+  - `ricauchy()`
+  - `richisq()`
+  - `riexp()`
+  - `rif()`
+  - `rigamma()`
+  - `ribeta()`
+  - `rigeom()`
+  - `ripois()`
+  - `rit()`
+  - `riunif()`
+  - `riweibull()`
+  
+* Added the ability to integrate standard deviations/errors of omega
+  diagonals and sigma diagonals.  This is done by specifying the omega
+  diagonals in the theta matrix and having them represent the
+  variabilties or standard deviations. Then these standard deviations
+  are simulated along with the correlations using the IJK correlation
+  matrix (omega dimension < 10) or a correlation matrix or Inverse
+  Wishart-based correlation matrix (omega dimension > 10).  The
+  information about how to simulate this is in the variability
+  simulation vignette.
 
 * Now have a method to use `lotri` to simulate between occasion
   variability and other levels of nesting.

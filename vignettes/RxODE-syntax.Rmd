@@ -200,6 +200,10 @@ part of the modeling output.
 The ODE specification mini-language is parsed with the help of the
 open source tool *DParser*, Plevyak (2015).
 
+## Supported functions
+
+All the supported functions in RxODE can be seen with the `
+
 ## Bugs and/or deficiencies
 
 - The modulo operator `%` is currently unsupported. 

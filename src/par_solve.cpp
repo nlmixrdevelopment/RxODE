@@ -1082,7 +1082,8 @@ extern "C" int syncIdx(rx_solving_options_ind *ind){
 static inline void handleTlastInline(double *time, rx_solving_options_ind *ind) {
   rx_solving_options *op = &op_global;
   double _time = *time + ind->curShift;
-  if (op->neq + op->extraCmt != 0 && ind->tlast != _time && isDose(ind->evid[ind->ix[ind->idx]])){
+  if (op->neq + op->extraCmt != 0 && ind->tlast != _time && isDose(ind->evid[ind->ix[ind->idx]]) &&
+      ind->cmt < op->neq + op->extraCmt){
     ind->dosenum++;
     ind->tlast = _time;
     if (ISNA(ind->tfirst)) ind->tfirst = _time;
@@ -1111,9 +1112,13 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
   ind->inLhs = inLhs;
   if (rx->nMtime) calc_mtime(solveid, ind->mtime);
   for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
-  if (inLhs == 0) {
-    memcpy(ind->solve, op->inits, op->neq*sizeof(double));
+  if ((inLhs == 0 && op->neq > 0) ||
+      (inLhs == 1 && op->neq == 0 && rx->nIndSim > 0)) {
+    ind->isIni = 1;
+    // Also can update individual random variables (if needed)
+    if (inLhs == 0) memcpy(ind->solve, op->inits, op->neq*sizeof(double));
     u_inis(solveid, ind->solve); // Update initial conditions @ current time
+    ind->isIni = 0;
   }
   ind->_newind = 1;
   ind->dosenum = 0;
@@ -1124,7 +1129,6 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
     if (rx->needSort){
       sortRadix(ind);
       if (op->badSolve) return 0;
-    
     }
   }
   ind->ixds=ind->idx=0;
@@ -2637,7 +2641,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   int //dullEvid = 1,
     dullRate=1, dullDur=1,
     dullSS=1, dullIi=1;
-  int csub = 0, evid;
+  int csub = 0, evid = 0;
   int nsub = rx->nsub;
   int *rmState = rx->stateIgnore;
   int nPrnState =0;
@@ -2818,6 +2822,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	
         if (updateErr){
           for (j=0; j < errNcol; j++){
+	    // The error pointer is updated if needed
 	    par_ptr[svar[j]] = errs[errNrow*j+kk];
           }
 	  if ((doDose && evid!= 9) || (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)){

@@ -164,14 +164,12 @@ rxPermissive(
         x1 <- rcauchy()
         x2 <- rxcauchy(a)
         x3 <- rcauchy(b, c)
-        d / dt(x0) <- 0
+        d/dt(x0) <- 0
       })
 
       ev <- et(1, id = 1:100)
 
       f <- rxSolve(rx, ev, c(a = 3, b = 5, c = 2), cores = 2)
-
-
       ## Seed tests
 
       ## Make sure seeds are reproducible
@@ -694,6 +692,52 @@ rxPermissive(
       expect_error(RxODE({
         x1 <- rweibull()
       }))
+
+      rx <- RxODE({
+        x0  <- rxnorm()
+        x1  <- rinorm(a)
+        x2  <- rinorm(b, c)
+        x3  <- rinorm()
+        x4  <- rinormV()
+        x5  <- rinormV(a)
+        x6  <- rinormV(b, c)
+        x7  <- ricauchy()
+        x8 <- ricauchy(a)
+        x9 <- ricauchy(b, c)
+        x10 <- richisq(15)
+        x11 <- riexp(0.5)
+        x12 <- rif(10, 20)
+        x13 <- rigamma(9, 0.5)
+        x14 <- rigamma(7.5)
+        x15 <- rit(20)
+        x16 <- riunif()
+        x17 <- riunif(a)
+        x18 <- riunif(b, c)
+        x19 <- riweibull(9, 0.5)
+        x20 <- riweibull(7.5)
+        ## int, likely to repeat
+        x21 <- ripois(1)
+        x22 <- ribeta(2, 5) ##?
+        x23 <- rigeom(0.5)
+        x24 <- ribinom(10, 0.5)
+        ##
+        d/dt(xx) <- 0
+      })
+
+      set.seed(10)
+
+      ev <- et(c(1, 2), id = 1:5)
+
+      f <- rxSolve(rx, ev, c(a = 3, b = 5, c = 2), cores = 2)
+
+      expect_equal(sum(duplicated(f$x0)), 0)
+
+      for (i in 1:20) {
+        expect_equal(sum(duplicated(f[[paste0("x", i)]])), 5)
+      }
+
+
+
     })
   },
   test = "norm"

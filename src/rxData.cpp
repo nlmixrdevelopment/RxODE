@@ -1372,6 +1372,7 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 
 typedef struct {
   int *gon;
+  double *gIndSim;
   double *gsolve;
   double *gInfusionRate;
   double *gTlastS;
@@ -1693,7 +1694,6 @@ void rxSimOmega(bool &simOmega,
   }
 }
 
-
 //' Simulate Parameters from a Theta/Omega specification
 //'
 //' @param params Named Vector of RxODE model parameters
@@ -1957,7 +1957,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     _rxModels[".omegaL"] = omegaList;
   }
   if (dfObs > 0 && nStud > 1){
-    _rxModels[".sigmaL"] =sigmaList;
+    _rxModels[".sigmaL"] = sigmaList;
   }
   return ret0;
 }
@@ -2956,7 +2956,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
       stop(_("if parameters are not named, they must match the order and size of the parameters in the model"));
     }
     RObject iCov = rxControl[Rxc_iCov];
-    if (!rxIsNull(iCov)){
+    if (!rxIsNull(iCov)) {
       // Create a data frame
       Function sortId = getRxFn(".sortId");
       iCov = clone(sortId(iCov, rxSolveDat->idLevels, "iCov", rxSolveDat->warnIdSort));
@@ -3015,7 +3015,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
       rxSolveDat->usePar1=true;
       rxSolveDat->par1Keep = true;
     }
-  } else if (rxIs(rxSolveDat->par1, "data.frame")){
+  } else if (rxIs(rxSolveDat->par1, "data.frame")) {
     Function sortId = getRxFn(".sortId");
     if (rxSolveDat->idLevels.size() > 0){
       rxSolveDat->par1 = clone(sortId(rxSolveDat->par1, rxSolveDat->idLevels, "parameters", rxSolveDat->warnIdSort));
@@ -3075,7 +3075,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
     rxSolveDat->parType = 2;
     rxSolveDat->nmP = rxSolveDat->parDf.names();
     rxSolveDat->nPopPar = rxSolveDat->parDf.nrows();
-  } else if (rxIs(rxSolveDat->par1, "matrix")){
+  } else if (rxIs(rxSolveDat->par1, "matrix")) {
     RObject iCov = rxControl[Rxc_iCov];
     if (!rxIsNull(iCov)){
       rxSolveFree();
@@ -3123,6 +3123,7 @@ extern "C" void setupRxInd(rx_solving_options_ind* ind, int first) {
   ind->yj		= 0;
   ind->logitLow         = 0;
   ind->logitHi          = 1;
+  ind->isIni            = 0;
   if (first){
     ind->solveTime	= 0.0;
     ind->nBadDose	= 0;
@@ -3716,8 +3717,10 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
       curIdx=0;
       int curCov=0;
       int curOn=0;
+      int curSimIni=0;
       rx_solving_options_ind indS;
       int linCmt = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_linCmt];
+      int nIndSim = rx->nIndSim;
       for (unsigned int simNum = rx->nsim; simNum--;){
 	for (unsigned int id = rx->nsub; id--;){
 	  unsigned int cid = id+simNum*rx->nsub;
@@ -3764,6 +3767,8 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  }
 	  int eLen = op->neq*ind->n_all_times;
 	  ind->solve = &_globals.gsolve[curSolve];
+	  ind->simIni = &_globals.gIndSim[curSimIni];
+	  curSimIni += nIndSim;
 	  curSolve += (op->neq + op->nlin)*ind->n_all_times;
 	  ind->solveLast = &_globals.gsolve[curSolve];
 	  curSolve += op->neq;
@@ -4366,10 +4371,12 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   } else {
     object = obj;
     // Update RxODE model (if needed) and simulate nesting
-    if ((!rxIsNull(rxControl[Rxc_thetaMat]) ||
-    	 !rxIsNull(rxControl[Rxc_omega]) ||
-    	 !rxIsNull(rxControl[Rxc_sigma]))) {
-
+    if ((!Rf_isNull(rxControl[Rxc_thetaMat]) ||
+    	 !Rf_isNull(rxControl[Rxc_omega]) ||
+    	 !Rf_isNull(rxControl[Rxc_sigma])) &&
+	rxIs(rxControl[Rxc_omega], "lotri") &&
+	TYPEOF(rxControl[Rxc_sigma]) != STRSXP
+	) {
       // Update model, events and parameters based on nesting
       _rxModels[".nestPars"] = expandPars_(wrap(object), wrap(trueParams),
 					   wrap(trueEvents), wrap(rxControl));
@@ -4418,6 +4425,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // Get model
     // Get the C solve object
     rx_solve* rx = getRxSolve_();
+    rx->nIndSim = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_nIndSim];
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
     rx->sensType = asInt(rxControl[Rxc_sensType], "sensType");
@@ -4779,8 +4787,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // they do they need to be a parameter.
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     int n6 = scaleC.size();
+    int nIndSim = rx->nIndSim;
+    int n7 =  nIndSim * rx->nsub * rx->nsim;
     if (_globals.gsolve != NULL) free(_globals.gsolve);
-    _globals.gsolve = (double*)calloc(n0+nLin+n2+ n4+n5+n6+
+    _globals.gsolve = (double*)calloc(n0+nLin+n2+ n4+n5+n6+ n7 +
 				      5*op->neq + 7*n3a, sizeof(double));// [n0]
 #ifdef rxSolveT
     REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+7*n3+n4+n5+n6+ 5*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
@@ -4813,6 +4823,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->ypNA = _globals.gssAtol + op->neq; // [op->neq]
     _globals.gTlastS = rx->ypNA + op->neq; // [n3a]
     _globals.gTfirstS = _globals.gTlastS + n3a; // [n3a]
+    _globals.gIndSim = _globals.gTfirstS + n3a;// [n7]
     std::fill_n(rx->ypNA, op->neq + 2*n3a, NA_REAL);
 
     std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);

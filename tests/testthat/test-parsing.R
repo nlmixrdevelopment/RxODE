@@ -884,6 +884,13 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
 
     badParse("fun10", "t=tinf")
     badParse("fun11", "time=tinf")
+
+    badParse("while/else", "a=1;while(1){a=a+3} else { a=3}")
+
+    goodParse("while", "a=1;while(1){a=a+3}")
+
+    goodParse("while-break", "a=1;while(1){a=a+3; break;}")
+    badParse("while-break-bad", "a=1;while(1){a=a+3;}; break;")
   },
   silent = TRUE,
   test = "parsing"

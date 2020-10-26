@@ -230,6 +230,8 @@ typedef struct {
   double *cDur;
   double solveTime;
   double curShift;
+  double *simIni;
+  int isIni;
 } rx_solving_options_ind;
 
 typedef struct {
@@ -237,6 +239,7 @@ typedef struct {
   rx_solving_options *op;
   int nsub;
   int nsim;
+  int nIndSim;
   int nall;
   int nevid9;
   int nobs;
