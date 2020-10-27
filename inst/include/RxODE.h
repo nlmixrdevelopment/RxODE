@@ -1,4 +1,4 @@
-#pragma once
+e#pragma once
 #ifndef __RxODE_H__
 #define __RxODE_H__
 #define isDose(evid) ((evid) == 3 || (evid) >= 100)
@@ -116,6 +116,7 @@ typedef struct {
   int ncoresRV;
   int isChol;
   int *svar;
+  int *ovar;
   int nsvar;
   int abort;
   int minSS;
@@ -239,6 +240,13 @@ typedef struct {
   rx_solving_options *op;
   int nsub;
   int nsim;
+  int neta;
+  double *omegaD;
+  double *omegaLower;
+  double *omegaUpper;
+  double *sigmaD;
+  double *sigmaLower;
+  double *sigmaUpper;
   int nIndSim;
   int nall;
   int nevid9;

@@ -2665,7 +2665,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	    getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
 	    if (whI != 7  && whI != 6){
 	      if (whI != 1 || (whI == 1 && dose[di++] > 0)) {
-		rx->nr++;
+		rx->nr++; 
 	      }
 	    } else {
 	      di++;
@@ -2820,11 +2820,14 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	  }
 	}
 	
-        if (updateErr){
-          for (j=0; j < errNcol; j++){
-	    // The error pointer is updated if needed
-	    par_ptr[svar[j]] = errs[errNrow*j+kk];
-          }
+        if (updateErr && errNcol > 0){
+	  if (par_ptr[svar[0]] == 0.0) {
+	    for (j=0; j < errNcol; j++){
+	      // The error pointer is updated if needed
+	      par_ptr[svar[j]] = errs[errNrow*j+kk];
+	    }
+	  }
+          
 	  if ((doDose && evid!= 9) || (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)){
 	    // Only increment if this is an observation or of this a
 	    // simulation that requests dosing information too.

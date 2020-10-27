@@ -1340,6 +1340,59 @@ void rxRmvnA(arma::mat & A_, arma::rowvec mu, arma::mat sigma,
   }
 }
 
+extern "C" void simvar(double *out, int *n, double *lowerd, double *upperd,  double *sigmad) {
+  arma::mat A(&out[0], 1, *n, false, true);
+  arma::vec lower(&lower[0], *n, false, true);
+  arma::vec upper(&upper[0], *n, false, true);
+  arma::rowvec mu(*n, arma::fill::zeros);
+  arma::mat sigma(&sigmad[0], *n, *n, false, true);
+  // FIXME? allow changing of a, tol nlTol and nlMaxiter?
+  rxRmvnA(A, mu, sigma, lower, upper, 1, false, 0.4, 2.05, 1e-10, 100);
+}
+
+extern "C" void simeta(int id) {
+  rx_solve* rx = getRxSolve_();
+  rx_solving_options_ind *ind = &(rx->subjects[id]);
+  if (ind->isIni == 1) { // only initialize at beginning
+    rx_solving_options *op = rx->op;
+    // In this case the par_ptr will be updated with the new values, but they are out of order
+    arma::mat out(1, rx->neta);
+    // ind->id  = csub+csim*nsub;
+    int csim = floor(ind->id/rx->nsub);
+    double *curSigma = rx->omegaD + rx->neta*rx->neta*csim;
+    simvar(&out[0], &(rx->neta), rx->omegaLower, rx->omegaUpper, curSigma);
+    int *ovar = op->ovar;
+    double *par_ptr = ind->par_ptr;
+    for (int j=0; j < rx->neta; j++){
+      // The error pointer is updated if needed
+      par_ptr[ovar[j]] = out[j];
+    }
+  }
+}
+
+extern "C" int rxGetErrsNcol();
+
+extern "C" void simeps(int id) {
+  rx_solve* rx = getRxSolve_();
+  rx_solving_options_ind *ind = &(rx->subjects[id]);
+  if (ind->inLhs == 1) { // only change while calculating the lhs
+    rx_solving_options *op = rx->op;
+    // In this case the par_ptr will be updated with the new values, but they are out of order
+    int errNcol = rxGetErrsNcol();
+    arma::mat out(1, errNcol);
+    // ind->id  = csub+csim*nsub;
+    int csim = floor(ind->id/rx->nsub);
+    double *curSigma = rx->sigmaD + errNcol*errNcol*csim;
+    simvar(&out[0], &(rx->neta), rx->sigmaLower, rx->sigmaUpper, curSigma);
+    int *svar = op->svar;
+    double *par_ptr = ind->par_ptr;
+    for (int j=0; j < rx->neta; j++){
+      // The error pointer is updated if needed
+      par_ptr[svar[j]] = out[j];
+    }
+  }
+}
+
 SEXP qassertS(SEXP in, const char *test, const char *what);
 
 //[[Rcpp::export]]
