@@ -1129,6 +1129,23 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	}
       }
 
+      if (nodeHas(simfun_statement) && i == 0) {
+	i = nch; // done
+	sb.o=0;sbDt.o=0; sbt.o=0;
+	D_ParseNode *xpn = d_get_child(pn,i);
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	aType(TLOGIC);
+	sAppend(&sb, "%s(_cSub);", v);
+	/* sAppend(&sbDt, "", v); */
+	sAppend(&sbt, "%s();", v);
+	addLine(&sbPm, "%s\n", sb.s);
+	addLine(&sbPmDt, "%s\n", sbDt.s);
+	sAppend(&sbNrm, "%s\n", sbt.s);
+	addLine(&sbNrmL, "%s\n", sbt.s);
+	ENDLINE;
+	continue;
+      }
+
       if (tb.fn == 1) depth = 0;
 
       D_ParseNode *xpn = d_get_child(pn,i);

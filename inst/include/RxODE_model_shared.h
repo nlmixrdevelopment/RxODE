@@ -149,6 +149,10 @@ typedef  SEXP (*_rx_asgn) (SEXP objectSEXP);
 typedef int(*_rxIsCurrentC_type)(SEXP);
 typedef double(*_rxSumType)(double *, int, double *, int, int);
 
+typedef void(*_simfun)(int id);
+
+_simfun simeps, simeta;
+
 double _sum(double *input, double *pld, int m, int type, int n, ...);
 
 typedef double(*_rxProdType)(double*, double*, int, int);
@@ -409,6 +413,8 @@ void _assignFuns(){
     gammapDer  = (RxODE_fn2) R_GetCCallable("RxODE","gammapDer");
     logit = (RxODE_fn3) R_GetCCallable("RxODE", "logit");
     expit = (RxODE_fn3) R_GetCCallable("RxODE", "expit");
+    simeta =(_simfun) R_GetCCallable("RxODE", "simeta");
+    simeps =(_simfun) R_GetCCallable("RxODE", "simeps");
     _compareFactorVal=(RxODE_compareFactorVal_fn) R_GetCCallable("RxODE", "compareFactorVal");
     _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
     _getParCov = (_getParCov_p) R_GetCCallable("RxODE","_getParCov");
