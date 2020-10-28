@@ -661,6 +661,7 @@ typedef struct nodeInfo {
   int matF;
   int equality_str1;
   int equality_str2;
+  int simfun_statement;
 } nodeInfo;
 
 #define NIB(what) ni.what
@@ -720,6 +721,7 @@ void niReset(nodeInfo *ni){
   ni->matF = -1;
   ni->equality_str1 = -1;
   ni->equality_str2 = -1;
+  ni->simfun_statement = -1;
 }
 
 int new_de(const char *s){
@@ -1026,7 +1028,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
         continue;
       }
-
       if ((i == 3 || i == 4 || i < 2) &&
 	  (nodeHas(derivative) ||nodeHas(fbio) || nodeHas(alag) ||
 	   nodeHas(rate) || nodeHas(dur))) continue;
@@ -1050,6 +1051,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (nodeHas(mtime) && (i == 0 || i == 1 || i == 3)) continue;
       if (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) continue;
       if (i != 2 && (nodeHas(mat0) || nodeHas(matF))) continue;
+
       if (nodeHas(mat0)){
 	aType(TMAT0);
 	sb.o =0; sbDt.o =0;

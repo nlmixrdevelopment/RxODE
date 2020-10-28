@@ -20,6 +20,7 @@ statement
   | cmt_statement end_statement
   | dvid_statementI end_statement
   | break_statement end_statement
+  | simfun_statement end_statement
   | compound_statement
   | selection_statement
   | ifelse_statement
@@ -36,6 +37,8 @@ selection_statement
 
 break_statement
     : 'break';
+
+simfun_statement : "(simeps|simeta)" '(' ')' ;
 
 cmt_statement
     : 'cmt' '(' identifier_r_no_output ')';

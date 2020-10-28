@@ -1,4 +1,4 @@
-e#pragma once
+#pragma once
 #ifndef __RxODE_H__
 #define __RxODE_H__
 #define isDose(evid) ((evid) == 3 || (evid) >= 100)
