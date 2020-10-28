@@ -1625,7 +1625,7 @@ void rxSimOmega(bool &simOmega,
 		int nStud = 1,
 		int nSub = 1){
   int j;
-  if (rxIsNull(omega)){
+  if (Rf_isNull(omega)){
   } else if (rxIsChar(omega)){
     // Create a matrix in order of the names.
     omegaN = as<CharacterVector>(omega);
@@ -1693,6 +1693,8 @@ void rxSimOmega(bool &simOmega,
     }
   }
 }
+
+arma::vec fillVec(arma::vec& in, int len);
 
 //' Simulate Parameters from a Theta/Omega specification
 //'
@@ -1789,6 +1791,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
                      double dfSub = 0,
                      double dfObs = 0,
 		     bool simSubjects=true){
+  rx_solve* rx = getRxSolve_();
   NumericVector par;
   if (params.isNull()){
     rxSolveFree();
@@ -1824,18 +1827,85 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 	     omegaList, thetaN, thetaM, "omega", omega, omegaDf,
 	     omegaLower, omegaUpper, omegaIsChol,
 	     omegaSeparation, omegaXform, dfSub, nStud, nSub);
-
+  if (Rf_isNull(omega) || rxIsChar(omega)){
+  } else {
+    // Fill in omega information for simeta()
+    arma::mat omega0;
+    if (nStud == 1) {
+      if (omegaIsChol) {
+	omega0 = as<arma::mat>(omegaM);
+	omega0 = omega0 * arma::trans(omega0);
+      } else {
+	omega0 = as<arma::mat>(omegaM);
+      }
+      if (rx->omegaD != NULL) free(rx->omegaD);
+      rx->omegaD = (double*)malloc(omega0.n_rows*omega0.n_rows*sizeof(double));
+      std::copy(&omega0[0], &omega0[0] + omega0.n_rows*omega0.n_rows, rx->omegaD);
+    } else {
+      omega0 = as<arma::mat>(omegaList[0]);
+      if (rx->omegaD != NULL) free(rx->omegaD);
+      rx->omegaD = (double*)malloc(omega0.n_rows*omega0.n_rows*omegaList.size()*sizeof(double));
+      for (int i = 0; i < omegaList.size(); i++) {
+	omega0 = as<arma::mat>(omegaList[0]);
+	std::copy(&omega0[0], &omega0[0] + omega0.n_rows*omega0.n_rows, rx->omegaD+i*omega0.n_rows*omega0.n_rows);
+      }
+    }
+    if (rx->omegaLower == NULL) free(rx->omegaLower);
+    if (rx->omegaUpper == NULL) free(rx->omegaUpper);
+    rx->omegaLower = (double*)malloc(omega0.n_rows*sizeof(double));
+    rx->omegaUpper = (double*)malloc(omega0.n_rows*sizeof(double));
+    arma::vec in = as<arma::vec>(omegaLower);
+    arma::vec lowerOmegaV = fillVec(in, omega0.n_rows);
+    in = as<arma::vec>(omegaUpper);
+    arma::vec upperOmegaV = fillVec(in, omega0.n_rows);
+    std::copy(&lowerOmegaV[0], &lowerOmegaV[0] + omega0.n_rows, rx->omegaLower);
+    std::copy(&upperOmegaV[0], &upperOmegaV[0] + omega0.n_rows, rx->omegaUpper);
+  }
   bool simSigma = false;
   bool sigmaSep=false;
   NumericMatrix sigmaM;
   CharacterVector sigmaN;
   NumericMatrix sigmaMC;
   List sigmaList;
-
   rxSimOmega(simSigma, sigmaSep, sigmaM, sigmaN, sigmaMC,
 	     sigmaList, thetaN, thetaM, "sigma", sigma, sigmaDf,
 	     sigmaLower, sigmaUpper, sigmaIsChol,
 	     sigmaSeparation, sigmaXform, dfObs, nStud, nObs);
+
+  if (Rf_isNull(sigma) || rxIsChar(sigma)){
+  } else {
+    // Fill in sigma information for simeta()
+    arma::mat sigma0;
+    if (nStud == 1) {
+      if (sigmaIsChol) {
+	sigma0 = as<arma::mat>(sigmaM);
+	sigma0 = sigma0 * arma::trans(sigma0);
+      } else {
+	sigma0 = as<arma::mat>(sigmaM);
+      }
+      if (rx->sigmaD != NULL) free(rx->sigmaD);
+      rx->sigmaD = (double*)malloc(sigma0.n_rows*sigma0.n_rows*sizeof(double));
+      std::copy(&sigma0[0], &sigma0[0] + sigma0.n_rows*sigma0.n_rows, rx->sigmaD);
+    } else {
+      sigma0 = as<arma::mat>(sigmaList[0]);
+      if (rx->sigmaD != NULL) free(rx->sigmaD);
+      rx->sigmaD = (double*)malloc(sigma0.n_rows*sigma0.n_rows*sigmaList.size()*sizeof(double));
+      for (int i = 0; i < sigmaList.size(); i++) {
+	sigma0 = as<arma::mat>(sigmaList[0]);
+	std::copy(&sigma0[0], &sigma0[0] + sigma0.n_rows*sigma0.n_rows, rx->sigmaD+i*sigma0.n_rows*sigma0.n_rows);
+      }
+    }
+    if (rx->sigmaLower == NULL) free(rx->sigmaLower);
+    if (rx->sigmaUpper == NULL) free(rx->sigmaUpper);
+    rx->sigmaLower = (double*)malloc(sigma0.n_rows*sizeof(double));
+    rx->sigmaUpper = (double*)malloc(sigma0.n_rows*sizeof(double));
+    arma::vec in = as<arma::vec>(sigmaLower);
+    arma::vec lowerSigmaV = fillVec(in, sigma0.n_rows);
+    in = as<arma::vec>(sigmaUpper);
+    arma::vec upperSigmaV = fillVec(in, sigma0.n_rows);
+    std::copy(&lowerSigmaV[0], &lowerSigmaV[0] + sigma0.n_rows, rx->sigmaLower);
+    std::copy(&upperSigmaV[0], &upperSigmaV[0] + sigma0.n_rows, rx->sigmaUpper);
+  }
 
   // Now create data frame of parameter values
   List iovList;
@@ -1885,7 +1955,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     // Now Omega Covariates
     if (ocol > 0){
       if (dfSub > 0 && nStud > 1){
-        // nm = ret0[j]; // parameter columnem
+        // nm = ret0[j]; // parameter column
         nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaList[i]), as<RObject>(omegaDf), nCoresRV, false, nSub,
 					   false, omegaLower, omegaUpper));
       } else {
@@ -2249,6 +2319,10 @@ LogicalVector rxSolveFree(){
   rx->ordId=NULL;
   if (rx->nradix != NULL) free(rx->nradix);
   rx->nradix=NULL;
+  // Free the omega info
+  if (rx->omegaD != NULL) free(rx->omegaD);
+  if (rx->omegaLower != NULL) free(rx->omegaLower);
+  if (rx->omegaUpper != NULL) free(rx->omegaUpper);
   // Free the allocated keys
   if (rx->keys != NULL) {
     int i=0;

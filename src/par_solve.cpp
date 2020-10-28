@@ -358,6 +358,12 @@ extern "C" void rxOptionsIniEnsure(int mx){
   inds_global = Calloc(mx, rx_solving_options_ind);
   rx_solve *rx=(&rx_global);
   rx->subjects = inds_global;
+  rx->omegaD = NULL;
+  rx->omegaLower = NULL;
+  rx->omegaUpper = NULL;
+  rx->sigmaD = NULL;
+  rx->sigmaLower = NULL;
+  rx->sigmaUpper = NULL;
   rx->keys = NULL;
   rx->nradix=NULL;
   rx->TMP=NULL;
