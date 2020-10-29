@@ -2321,8 +2321,11 @@ LogicalVector rxSolveFree(){
   rx->nradix=NULL;
   // Free the omega info
   if (rx->omegaD != NULL) free(rx->omegaD);
+  rx->omegaD = NULL;
   if (rx->omegaLower != NULL) free(rx->omegaLower);
+  rx->omegaLower = NULL;
   if (rx->omegaUpper != NULL) free(rx->omegaUpper);
+  rx->omegaUpper = NULL;
   // Free the allocated keys
   if (rx->keys != NULL) {
     int i=0;
