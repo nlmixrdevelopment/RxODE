@@ -736,6 +736,45 @@ rxPermissive(
         expect_equal(sum(duplicated(f[[paste0("x", i)]])), 5)
       }
 
+      set.seed(10)
+      rx1 <- RxODE({
+        c <- 0 + err
+        i = 0;
+      })
+
+      e <- et(0, 10)
+
+      f1 <- rxSolve(rx1, e, sigma=lotri(err ~ 1))
+
+      expect_true(f1$c[1] != 0)
+
+      rx <- RxODE({
+        c <- 0 + err
+        i = 0;
+        while (c < 0) {
+          simeps()
+          c <- 0 + err
+          i = i + 1
+          if (i > 10) break;
+        }
+      })
+
+
+      set.seed(10)
+      f2 <- rxSolve(rx, e, sigma=lotri(err ~ 1))
+
+      expect_true(f2$c[1] != 0)
+
+      expect_false(all(f1$c > 0))
+
+      expect_true(all(f2$c > 0))
+
+      f3 <- f2[f2$i == 0, c("time", "c")]
+
+      f3 <- merge(f1, f3, by="time")
+
+      ## If the condition is already satisfied, it should keep the originally simulated values
+      expect_equal(f3$c.x, f3$c.y)
 
 
     })

@@ -1315,8 +1315,8 @@ SEXP rxRmvn0(NumericMatrix& A_, arma::rowvec mu, arma::mat sigma,
 }
 
 // Armadillo-only simulation (for simeta and simeps)
-void rxRmvnA(arma::mat & A_, arma::rowvec mu, arma::mat sigma,
-	     arma::vec lower, arma::vec upper, int ncores=1, bool isChol=false,
+void rxRmvnA(arma::mat & A_, arma::rowvec & mu, arma::mat &sigma,
+	     arma::vec & lower, arma::vec & upper, int ncores=1, bool isChol=false,
 	     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
   bool trunc = false;
   if (anyFinite(lower)){
@@ -1340,15 +1340,48 @@ void rxRmvnA(arma::mat & A_, arma::rowvec mu, arma::mat sigma,
   }
 }
 
-extern "C" void simvar(double *out, int *n, double *lowerd, double *upperd,  double *sigmad) {
-  arma::mat A(&out[0], 1, *n, false, true);
-  arma::vec lower(&lower[0], *n, false, true);
-  arma::vec upper(&upper[0], *n, false, true);
-  arma::rowvec mu(*n, arma::fill::zeros);
-  arma::mat sigma(&sigmad[0], *n, *n, false, true);
+arma::vec getLowerVec(int type, rx_solve* rx);
+arma::vec getUpperVec(int type, rx_solve* rx);
+arma::mat getArmaMat(int type, int csim, rx_solve* rx);
+
+void simvar(double *out, int type, int csim, rx_solve* rx) {
+  int n = 0;
+  if (type == 0) { // eps
+    n = rx->neps;
+  } else {
+    n = rx->neta;
+  }
+  arma::mat A(&out[0], 1, n, false, true);
+  arma::vec lower = getLowerVec(type, rx);
+  arma::vec upper = getUpperVec(type, rx);
+  arma::rowvec mu(n, arma::fill::zeros);
+  arma::mat sigma = getArmaMat(type, csim, rx);
+
   // FIXME? allow changing of a, tol nlTol and nlMaxiter?
   rxRmvnA(A, mu, sigma, lower, upper, 1, false, 0.4, 2.05, 1e-10, 100);
 }
+extern "C" void simeps(int id) {
+  rx_solve* rx = getRxSolve_();
+  rx_solving_options_ind *ind = &(rx->subjects[id]);
+  REprintf("simeps: %d %d", ind->inLhs, rx->neps);
+  if (ind->inLhs == 1) { // only change while calculating the lhs
+    rx_solving_options *op = rx->op;
+    // In this case the par_ptr will be updated with the new values, but they are out of order
+    arma::mat out(1, rx->neps);
+    // ind->id  = csub+csim*nsub;
+    int csim = floor(ind->id/rx->nsub);
+    REprintf("simvar %d; %d %d\n", rx->neps, csim, rx->neps*rx->neps*csim);
+    simvar(&out[0], 0, csim, rx);
+    int *svar = op->svar;
+    double *par_ptr = ind->par_ptr;
+    for (int j=0; j < rx->neps; j++){
+      // The error pointer is updated if needed
+      REprintf("simeps update %d to %f\n", j, out[j]);
+      par_ptr[svar[j]] = out[j];
+    }
+  }
+}
+
 
 extern "C" void simeta(int id) {
   rx_solve* rx = getRxSolve_();
@@ -1359,36 +1392,12 @@ extern "C" void simeta(int id) {
     arma::mat out(1, rx->neta);
     // ind->id  = csub+csim*nsub;
     int csim = floor(ind->id/rx->nsub);
-    double *curSigma = rx->omegaD + rx->neta*rx->neta*csim;
-    simvar(&out[0], &(rx->neta), rx->omegaLower, rx->omegaUpper, curSigma);
+    simvar(&out[0], 1, csim, rx);
     int *ovar = op->ovar;
     double *par_ptr = ind->par_ptr;
     for (int j=0; j < rx->neta; j++){
       // The error pointer is updated if needed
       par_ptr[ovar[j]] = out[j];
-    }
-  }
-}
-
-extern "C" int rxGetErrsNcol();
-
-extern "C" void simeps(int id) {
-  rx_solve* rx = getRxSolve_();
-  rx_solving_options_ind *ind = &(rx->subjects[id]);
-  if (ind->inLhs == 1) { // only change while calculating the lhs
-    rx_solving_options *op = rx->op;
-    // In this case the par_ptr will be updated with the new values, but they are out of order
-    int errNcol = rxGetErrsNcol();
-    arma::mat out(1, errNcol);
-    // ind->id  = csub+csim*nsub;
-    int csim = floor(ind->id/rx->nsub);
-    double *curSigma = rx->sigmaD + errNcol*errNcol*csim;
-    simvar(&out[0], &(rx->neta), rx->sigmaLower, rx->sigmaUpper, curSigma);
-    int *svar = op->svar;
-    double *par_ptr = ind->par_ptr;
-    for (int j=0; j < rx->neta; j++){
-      // The error pointer is updated if needed
-      par_ptr[svar[j]] = out[j];
     }
   }
 }

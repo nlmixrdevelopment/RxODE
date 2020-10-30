@@ -241,12 +241,7 @@ typedef struct {
   int nsub;
   int nsim;
   int neta;
-  double *omegaD;
-  double *omegaLower;
-  double *omegaUpper;
-  double *sigmaD;
-  double *sigmaLower;
-  double *sigmaUpper;
+  int neps;
   int nIndSim;
   int nall;
   int nevid9;

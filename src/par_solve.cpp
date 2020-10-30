@@ -358,12 +358,6 @@ extern "C" void rxOptionsIniEnsure(int mx){
   inds_global = Calloc(mx, rx_solving_options_ind);
   rx_solve *rx=(&rx_global);
   rx->subjects = inds_global;
-  rx->omegaD = NULL;
-  rx->omegaLower = NULL;
-  rx->omegaUpper = NULL;
-  rx->sigmaD = NULL;
-  rx->sigmaLower = NULL;
-  rx->sigmaUpper = NULL;
   rx->keys = NULL;
   rx->nradix=NULL;
   rx->TMP=NULL;
@@ -2807,6 +2801,17 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	  getWh(ind->evid[ind->ix[i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
 	  handleTlastInline(&curT, ind);
 	}
+	if (updateErr){
+	  for (j=0; j < errNcol; j++){
+	    // The error pointer is updated if needed
+	    par_ptr[svar[j]] = errs[errNrow*j+kk];
+	  }
+	  if ((doDose && evid!= 9) || (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)){
+	    // Only increment if this is an observation or of this a
+	    // simulation that requests dosing information too.
+            kk++;
+	  }
+        }
 	if (nlhs){
 	  calc_lhs(neq[1], curT, getSolve(i), ind->lhs);
 	}
@@ -2825,21 +2830,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	    }
 	  }
 	}
-	
-        if (updateErr && errNcol > 0){
-	  if (par_ptr[svar[0]] == 0.0) {
-	    for (j=0; j < errNcol; j++){
-	      // The error pointer is updated if needed
-	      par_ptr[svar[j]] = errs[errNrow*j+kk];
-	    }
-	  }
-          
-	  if ((doDose && evid!= 9) || (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)){
-	    // Only increment if this is an observation or of this a
-	    // simulation that requests dosing information too.
-            kk++;
-	  }
-        }
+        
         jj  = 0 ;
 	int solveId=csim*nsub+csub;
 	if (doDose || (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)){

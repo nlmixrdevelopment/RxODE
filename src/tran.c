@@ -1135,8 +1135,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	D_ParseNode *xpn = d_get_child(pn, 0);
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	aType(TLOGIC);
-	sAppend(&sb, "%s(_cSub);", v);
-	sAppend(&sbDt, "%s(_cSub);", v);
+	sAppend(&sb, "%s(_cSub);\n  _SYNC_%s_;", v, v);
+	sAppend(&sbDt, "%s(_cSub);\n  _SYNC_%s_;", v, v);
 	sAppend(&sbt, "%s();", v);
 	addLine(&sbPm, "%s\n", sb.s);
 	addLine(&sbPmDt, "%s\n", sbDt.s);
@@ -2912,6 +2912,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     // show_ode == 12 initialize lhs to last value
     // show_ode == 13 #define lags for lhs values
     // show_ode == 14 #define lags for params/covs
+    // show_ode == 15 #define sync lhs for simeps
     if (show_ode == 2 || show_ode == 0){
       //__DDtStateVar_#__
       for (i = 0; i < tb.de.n; i++){
@@ -2923,7 +2924,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       }
     }
     // Now get Jacobain information  __PDStateVar_df_dy__ if needed
-    if (show_ode != 3){
+    if (show_ode != 3 && show_ode != 15){
       for (i = 0; i < tb.ndfdy; i++){
 	buf1 = tb.ss.line[tb.df[i]];
 	buf2 = tb.ss.line[tb.dy[i]];
@@ -3032,6 +3033,12 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       sAppendN(&sbOut,"  ", 2);
       doDot(&sbOut, buf);
       sAppend(&sbOut, " = _PP[%d];\n", j++);
+      break;
+    case 15:
+      // Case 15 is for declaring the sync parameters
+      sAppend(&sbOut,"  if (_solveData->op->svar[_svari] == %d) {", j);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, " = _PP[%d];}; ", j++);
       break;
     default: break;
     }
@@ -3516,7 +3523,9 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       // Now define lhs lags
       prnt_vars(4, 1, "", "", 13);
       // And covariate/parameter lags
-      prnt_vars(5, 1, "", "", 14);
+      prnt_vars(5, 1, "", "", 15);
+      // Add sync PP define
+      prnt_vars(15, 1, "#define _SYNC_simeps_ for (int _svari=_solveData->neps; _svari--;){", "}\n", 15);
       sAppendN(&sbOut,"#include \"extraC.h\"\n", 20);
       sAppend(&sbOut, "extern void  %sode_solver_solvedata (rx_solve *solve){\n  _solveData = solve;\n}\n",prefix);
       sAppend(&sbOut, "extern rx_solve *%sode_solver_get_solvedata(){\n  return _solveData;\n}\n", prefix);

@@ -1416,6 +1416,8 @@ typedef struct {
   int *jac_counter;
   int *gSampleCov;
   double *gmtime;
+  double *gsigma = NULL;
+  double *gomega = NULL;
 } rx_globals;
 
 rx_globals _globals;
@@ -1694,6 +1696,30 @@ void rxSimOmega(bool &simOmega,
   }
 }
 
+arma::vec getLowerVec(int type, rx_solve* rx) {
+  if (type == 0) { // eps
+    return arma::vec(_globals.gsigma, rx->neps, false, true);
+  } else { // eta
+    return arma::vec(_globals.gsigma, rx->neta, false, true);
+  }
+}
+
+arma::vec getUpperVec(int type, rx_solve* rx) {
+  if (type == 0) { // eps
+    return arma::vec(_globals.gsigma + rx->neps, rx->neps, false, true);
+  } else { // eta
+    return arma::vec(_globals.gsigma + rx->neta, rx->neta, false, true);
+  }
+}
+
+arma::mat getArmaMat(int type, int csim, rx_solve* rx) {
+  if (type == 0) { // eps
+    return arma::mat(_globals.gsigma + 2 * rx->neps + csim * rx->neps * rx->neps, rx->neps, rx->neps, false, true);
+  } else { // eta
+    return arma::mat(_globals.gsigma + 2 * rx->neta  + csim * rx->neta * rx->neta, rx->neta,  rx->neta, false, true);
+  }
+}
+
 arma::vec fillVec(arma::vec& in, int len);
 
 //' Simulate Parameters from a Theta/Omega specification
@@ -1838,28 +1864,29 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
       } else {
 	omega0 = as<arma::mat>(omegaM);
       }
-      if (rx->omegaD != NULL) free(rx->omegaD);
-      rx->omegaD = (double*)malloc(omega0.n_rows*omega0.n_rows*sizeof(double));
-      std::copy(&omega0[0], &omega0[0] + omega0.n_rows*omega0.n_rows, rx->omegaD);
+      if (_globals.gomega != NULL) free(_globals.gomega);
+      rx->neta = omega0.n_rows;
+      _globals.gomega = (double*)malloc((2 * rx->neta + rx->neta * rx->neta)*sizeof(double));
+      std::copy(&omega0[0], &omega0[0] + omega0.n_rows*omega0.n_rows, _globals.gomega + 2 * rx->neta);
     } else {
       omega0 = as<arma::mat>(omegaList[0]);
-      if (rx->omegaD != NULL) free(rx->omegaD);
-      rx->omegaD = (double*)malloc(omega0.n_rows*omega0.n_rows*omegaList.size()*sizeof(double));
+      if (_globals.gomega != NULL) free(_globals.gomega);
+      _globals.gomega = (double*)malloc((2 * rx->neta + rx->neta * rx->neta * omegaList.size())*sizeof(double));
       for (int i = 0; i < omegaList.size(); i++) {
 	omega0 = as<arma::mat>(omegaList[0]);
-	std::copy(&omega0[0], &omega0[0] + omega0.n_rows*omega0.n_rows, rx->omegaD+i*omega0.n_rows*omega0.n_rows);
+	std::copy(&omega0[0], &omega0[0] + rx->neta * rx->neta, _globals.gomega + 2 * rx->neta + i * rx->neta * rx->neta);
       }
     }
-    if (rx->omegaLower == NULL) free(rx->omegaLower);
-    if (rx->omegaUpper == NULL) free(rx->omegaUpper);
-    rx->omegaLower = (double*)malloc(omega0.n_rows*sizeof(double));
-    rx->omegaUpper = (double*)malloc(omega0.n_rows*sizeof(double));
     arma::vec in = as<arma::vec>(omegaLower);
     arma::vec lowerOmegaV = fillVec(in, omega0.n_rows);
     in = as<arma::vec>(omegaUpper);
     arma::vec upperOmegaV = fillVec(in, omega0.n_rows);
-    std::copy(&lowerOmegaV[0], &lowerOmegaV[0] + omega0.n_rows, rx->omegaLower);
-    std::copy(&upperOmegaV[0], &upperOmegaV[0] + omega0.n_rows, rx->omegaUpper);
+    std::copy(&lowerOmegaV[0], &lowerOmegaV[0] + omega0.n_rows, _globals.gomega);
+    std::copy(&upperOmegaV[0], &upperOmegaV[0] + omega0.n_rows, _globals.gomega + rx->neta);
+    // structure of _globals.gomega is
+    // lower
+    // upper
+    // matrix list (n x n;  nStud matrices)
   }
   bool simSigma = false;
   bool sigmaSep=false;
@@ -1883,28 +1910,33 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
       } else {
 	sigma0 = as<arma::mat>(sigmaM);
       }
-      if (rx->sigmaD != NULL) free(rx->sigmaD);
-      rx->sigmaD = (double*)malloc(sigma0.n_rows*sigma0.n_rows*sizeof(double));
-      std::copy(&sigma0[0], &sigma0[0] + sigma0.n_rows*sigma0.n_rows, rx->sigmaD);
+      if (_globals.gsigma != NULL) free(_globals.gsigma);
+      rx->neps = sigma0.n_rows;
+      _globals.gsigma = (double*)malloc((rx->neps * rx->neps + 2 * rx->neps)* sizeof(double));
+      std::copy(&sigma0[0], &sigma0[0] + rx->neps * rx->neps, _globals.gsigma + 2 * rx->neps);
+      // print(wrap(sigma0));
+      // arma::mat sigma2(rx->sigmaD, 1, 1, false, true);
+      // print(wrap(sigma2));
+      
     } else {
       sigma0 = as<arma::mat>(sigmaList[0]);
-      if (rx->sigmaD != NULL) free(rx->sigmaD);
-      rx->sigmaD = (double*)malloc(sigma0.n_rows*sigma0.n_rows*sigmaList.size()*sizeof(double));
+      if (_globals.gsigma != NULL) free(_globals.gsigma);
+      rx->neps = sigma0.n_rows;
+      _globals.gsigma = (double*)malloc((rx->neps * rx->neps * sigmaList.size() + 2 * rx->neps) * sizeof(double));
       for (int i = 0; i < sigmaList.size(); i++) {
 	sigma0 = as<arma::mat>(sigmaList[0]);
-	std::copy(&sigma0[0], &sigma0[0] + sigma0.n_rows*sigma0.n_rows, rx->sigmaD+i*sigma0.n_rows*sigma0.n_rows);
+	std::copy(&sigma0[0], &sigma0[0] + rx->neps * rx->neps, _globals.gsigma + 2 * rx->neps + i * rx->neps * rx->neps);
       }
     }
-    if (rx->sigmaLower == NULL) free(rx->sigmaLower);
-    if (rx->sigmaUpper == NULL) free(rx->sigmaUpper);
-    rx->sigmaLower = (double*)malloc(sigma0.n_rows*sizeof(double));
-    rx->sigmaUpper = (double*)malloc(sigma0.n_rows*sizeof(double));
     arma::vec in = as<arma::vec>(sigmaLower);
     arma::vec lowerSigmaV = fillVec(in, sigma0.n_rows);
-    in = as<arma::vec>(sigmaUpper);
     arma::vec upperSigmaV = fillVec(in, sigma0.n_rows);
-    std::copy(&lowerSigmaV[0], &lowerSigmaV[0] + sigma0.n_rows, rx->sigmaLower);
-    std::copy(&upperSigmaV[0], &upperSigmaV[0] + sigma0.n_rows, rx->sigmaUpper);
+    std::copy(&lowerSigmaV[0], &lowerSigmaV[0] + rx->neps, _globals.gsigma);
+    std::copy(&upperSigmaV[0], &upperSigmaV[0] + rx->neps, _globals.gsigma + rx->neps);
+    // structure of _globals.gsigma is
+    // lower
+    // upper
+    // matrix list (n x n;  nStud matrices)
   }
 
   // Now create data frame of parameter values
@@ -2320,12 +2352,10 @@ LogicalVector rxSolveFree(){
   if (rx->nradix != NULL) free(rx->nradix);
   rx->nradix=NULL;
   // Free the omega info
-  if (rx->omegaD != NULL) free(rx->omegaD);
-  rx->omegaD = NULL;
-  if (rx->omegaLower != NULL) free(rx->omegaLower);
-  rx->omegaLower = NULL;
-  if (rx->omegaUpper != NULL) free(rx->omegaUpper);
-  rx->omegaUpper = NULL;
+  if (_globals.gomega != NULL) free(_globals.gomega);
+  _globals.gomega = NULL;
+  if (_globals.gsigma != NULL) free(_globals.gsigma);
+  _globals.gsigma = NULL;
   // Free the allocated keys
   if (rx->keys != NULL) {
     int i=0;
@@ -4502,6 +4532,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // Get model
     // Get the C solve object
     rx_solve* rx = getRxSolve_();
+    rx->neta = 0;
+    rx->neps = 0;
     rx->nIndSim = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_nIndSim];
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
