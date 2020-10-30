@@ -1899,46 +1899,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 	     sigmaLower, sigmaUpper, sigmaIsChol,
 	     sigmaSeparation, sigmaXform, dfObs, nStud, nObs);
 
-  if (Rf_isNull(sigma) || rxIsChar(sigma)){
-  } else {
-    // Fill in sigma information for simeta()
-    arma::mat sigma0;
-    if (nStud == 1) {
-      if (sigmaIsChol) {
-	sigma0 = as<arma::mat>(sigmaM);
-	sigma0 = sigma0 * arma::trans(sigma0);
-      } else {
-	sigma0 = as<arma::mat>(sigmaM);
-      }
-      if (_globals.gsigma != NULL) free(_globals.gsigma);
-      rx->neps = sigma0.n_rows;
-      _globals.gsigma = (double*)malloc((rx->neps * rx->neps + 2 * rx->neps)* sizeof(double));
-      std::copy(&sigma0[0], &sigma0[0] + rx->neps * rx->neps, _globals.gsigma + 2 * rx->neps);
-      // print(wrap(sigma0));
-      // arma::mat sigma2(rx->sigmaD, 1, 1, false, true);
-      // print(wrap(sigma2));
-      
-    } else {
-      sigma0 = as<arma::mat>(sigmaList[0]);
-      if (_globals.gsigma != NULL) free(_globals.gsigma);
-      rx->neps = sigma0.n_rows;
-      _globals.gsigma = (double*)malloc((rx->neps * rx->neps * sigmaList.size() + 2 * rx->neps) * sizeof(double));
-      for (int i = 0; i < sigmaList.size(); i++) {
-	sigma0 = as<arma::mat>(sigmaList[0]);
-	std::copy(&sigma0[0], &sigma0[0] + rx->neps * rx->neps, _globals.gsigma + 2 * rx->neps + i * rx->neps * rx->neps);
-      }
-    }
-    arma::vec in = as<arma::vec>(sigmaLower);
-    arma::vec lowerSigmaV = fillVec(in, sigma0.n_rows);
-    arma::vec upperSigmaV = fillVec(in, sigma0.n_rows);
-    std::copy(&lowerSigmaV[0], &lowerSigmaV[0] + rx->neps, _globals.gsigma);
-    std::copy(&upperSigmaV[0], &upperSigmaV[0] + rx->neps, _globals.gsigma + rx->neps);
-    // structure of _globals.gsigma is
-    // lower
-    // upper
-    // matrix list (n x n;  nStud matrices)
-  }
-
   // Now create data frame of parameter values
   List iovList;
 
@@ -2060,6 +2020,42 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   }
   if (dfObs > 0 && nStud > 1){
     _rxModels[".sigmaL"] = sigmaList;
+  }
+
+  if (Rf_isNull(sigma) || rxIsChar(sigma)){
+  } else {
+    // Fill in sigma information for simeta()
+    arma::mat sigma0;
+    if (dfObs > 0 && nStud > 1) {
+      sigma0 = as<arma::mat>(sigmaList[0]);
+      if (_globals.gsigma != NULL) free(_globals.gsigma);
+      rx->neps = sigma0.n_rows;
+      _globals.gsigma = (double*)malloc((rx->neps * rx->neps * sigmaList.size() + 2 * rx->neps) * sizeof(double));
+      for (int i = 0; i < sigmaList.size(); i++) {
+	sigma0 = as<arma::mat>(sigmaList[i]);
+	std::copy(&sigma0[0], &sigma0[0] + rx->neps * rx->neps, _globals.gsigma + 2 * rx->neps + i * rx->neps * rx->neps);
+      }
+    } else {
+      if (sigmaIsChol) {
+	sigma0 = as<arma::mat>(sigmaM);
+	sigma0 = sigma0 * arma::trans(sigma0);
+      } else {
+	sigma0 = as<arma::mat>(sigmaM);
+      }
+      if (_globals.gsigma != NULL) free(_globals.gsigma);
+      rx->neps = sigma0.n_rows;
+      _globals.gsigma = (double*)malloc((rx->neps * rx->neps + 2 * rx->neps)* sizeof(double));
+      std::copy(&sigma0[0], &sigma0[0] + rx->neps * rx->neps, _globals.gsigma + 2 * rx->neps);      
+    }
+    arma::vec in = as<arma::vec>(sigmaLower);
+    arma::vec lowerSigmaV = fillVec(in, sigma0.n_rows);
+    arma::vec upperSigmaV = fillVec(in, sigma0.n_rows);
+    std::copy(&lowerSigmaV[0], &lowerSigmaV[0] + rx->neps, _globals.gsigma);
+    std::copy(&upperSigmaV[0], &upperSigmaV[0] + rx->neps, _globals.gsigma + rx->neps);
+    // structure of _globals.gsigma is
+    // lower
+    // upper
+    // matrix list (n x n;  nStud matrices)
   }
   return ret0;
 }

@@ -736,7 +736,50 @@ rxPermissive(
         expect_equal(sum(duplicated(f[[paste0("x", i)]])), 5)
       }
 
+      rx <- RxODE({
+        x0  <- rxnorm()
+        x1  <- rinorm(a)
+        x2  <- rinorm(b, c)
+        x3  <- rinorm()
+        x4  <- rinormV()
+        x5  <- rinormV(a)
+        x6  <- rinormV(b, c)
+        x7  <- ricauchy()
+        x8 <- ricauchy(a)
+        x9 <- ricauchy(b, c)
+        x10 <- richisq(15)
+        x11 <- riexp(0.5)
+        x12 <- rif(10, 20)
+        x13 <- rigamma(9, 0.5)
+        x14 <- rigamma(7.5)
+        x15 <- rit(20)
+        x16 <- riunif()
+        x17 <- riunif(a)
+        x18 <- riunif(b, c)
+        x19 <- riweibull(9, 0.5)
+        x20 <- riweibull(7.5)
+        ## int, likely to repeat
+        x21 <- ripois(1)
+        x22 <- ribeta(2, 5) ##?
+        x23 <- rigeom(0.5)
+        x24 <- ribinom(10, 0.5)
+        ##
+      })
+
       set.seed(10)
+
+      ev <- et(c(1, 2), id = 1:5)
+
+      f <- rxSolve(rx, ev, c(a = 3, b = 5, c = 2), cores = 2)
+
+      expect_equal(sum(duplicated(f$x0)), 0)
+
+      for (i in 1:20) {
+        expect_equal(sum(duplicated(f[[paste0("x", i)]])), 5)
+      }
+
+      context("simeps")
+
       rx1 <- RxODE({
         c <- 0 + err
         i = 0;
@@ -744,6 +787,7 @@ rxPermissive(
 
       e <- et(0, 10)
 
+      set.seed(10)
       f1 <- rxSolve(rx1, e, sigma=lotri(err ~ 1))
 
       expect_true(f1$c[1] != 0)
@@ -758,7 +802,6 @@ rxPermissive(
           if (i > 10) break;
         }
       })
-
 
       set.seed(10)
       f2 <- rxSolve(rx, e, sigma=lotri(err ~ 1))
@@ -776,6 +819,51 @@ rxPermissive(
       ## If the condition is already satisfied, it should keep the originally simulated values
       expect_equal(f3$c.x, f3$c.y)
 
+
+      set.seed(10)
+      f1 <- rxSolve(rx, e, sigma=lotri(err ~ 1), nStud=3)
+
+      expect_true(all(f1$c > 0))
+
+      expect_true(f1$c[1] != 0)
+
+      set.seed(10)
+      f2 <- rxSolve(rx1, e, sigma=lotri(err ~ 1), nStud=3)
+
+      expect_false(all(f2$c > 0))
+
+      expect_true(f2$c[1] != 0)
+
+      f3 <- merge(f1, f2, by=c("sim.id", "time"))
+
+      f3 <- f3[f3$i == 0, ]
+
+      expect_equal(f3$c.x, f3$c.y)
+
+      set.seed(10)
+      f1 <- rxSolve(rx, e, sigma=lotri(err ~ 1), nStud=3, dfObs=100)
+
+      expect_true(all(f1$c > 0))
+
+      expect_true(f1$c[1] != 0)
+
+
+      set.seed(10)
+      f2 <- rxSolve(rx1, e, sigma=lotri(err ~ 1), nStud=3, dfObs=100)
+
+      expect_false(all(f2$c > 0))
+
+      expect_true(f2$c[1] != 0)
+
+
+      f3b <- merge(f1, f2, by=c("sim.id", "time"))
+
+      f3b <- f3b[f3b$i == 0, ]
+
+      expect_equal(f3b$c.x, f3b$c.y)
+
+      expect_false(identical(f3b$c.x, f3$c.x))
+      expect_false(identical(f3b$c.y, f3$c.y))
 
     })
   },

@@ -1363,20 +1363,17 @@ void simvar(double *out, int type, int csim, rx_solve* rx) {
 extern "C" void simeps(int id) {
   rx_solve* rx = getRxSolve_();
   rx_solving_options_ind *ind = &(rx->subjects[id]);
-  REprintf("simeps: %d %d", ind->inLhs, rx->neps);
   if (ind->inLhs == 1) { // only change while calculating the lhs
     rx_solving_options *op = rx->op;
     // In this case the par_ptr will be updated with the new values, but they are out of order
     arma::mat out(1, rx->neps);
     // ind->id  = csub+csim*nsub;
     int csim = floor(ind->id/rx->nsub);
-    REprintf("simvar %d; %d %d\n", rx->neps, csim, rx->neps*rx->neps*csim);
     simvar(&out[0], 0, csim, rx);
     int *svar = op->svar;
     double *par_ptr = ind->par_ptr;
     for (int j=0; j < rx->neps; j++){
       // The error pointer is updated if needed
-      REprintf("simeps update %d to %f\n", j, out[j]);
       par_ptr[svar[j]] = out[j];
     }
   }
