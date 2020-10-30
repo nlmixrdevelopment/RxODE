@@ -1135,6 +1135,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	D_ParseNode *xpn = d_get_child(pn, 0);
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	aType(TLOGIC);
+	if (!strcmp("simeta", v)) {
+	  foundF0=1;
+	}
 	sAppend(&sb, "%s(_cSub);\n  _SYNC_%s_;", v, v);
 	sAppend(&sbDt, "%s(_cSub);\n  _SYNC_%s_;", v, v);
 	sAppend(&sbt, "%s();", v);
@@ -1783,10 +1786,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  i = 1;// Parse next arguments
 	  depth=1;
 	  Free(v);
-	  /* if (isInd) { */
-	  /*   sAppendN(&sb, ")", 1); */
-	  /*   sAppendN(&sbDt, ")", 1); */
-	  /* } */
 	  continue;
 	} else if (!strcmp("rbinom", v) ||
 		   !strcmp("rxbinom", v) ||
