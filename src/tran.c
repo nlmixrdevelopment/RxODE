@@ -1136,7 +1136,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	aType(TLOGIC);
 	sAppend(&sb, "%s(_cSub);", v);
-	/* sAppend(&sbDt, "", v); */
+	sAppend(&sbDt, "%s(_cSub);", v);
 	sAppend(&sbt, "%s();", v);
 	addLine(&sbPm, "%s\n", sb.s);
 	addLine(&sbPmDt, "%s\n", sbDt.s);
