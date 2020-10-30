@@ -3035,8 +3035,14 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       sAppend(&sbOut, " = _PP[%d];\n", j++);
       break;
     case 15:
-      // Case 15 is for declaring the sync parameters
+      // Case 15 is for declaring eps the sync parameters
       sAppend(&sbOut,"  if (_solveData->op->svar[_svari] == %d) {", j);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, " = _PP[%d];}; ", j++);
+      break;
+    case 16:
+      // Case 16 is for declaring eta the sync parameters
+      sAppend(&sbOut,"  if (_solveData->op->ovar[_ovari] == %d) {", j);
       doDot(&sbOut, buf);
       sAppend(&sbOut, " = _PP[%d];}; ", j++);
       break;
@@ -3526,6 +3532,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       prnt_vars(5, 1, "", "", 15);
       // Add sync PP define
       prnt_vars(15, 1, "#define _SYNC_simeps_ for (int _svari=_solveData->neps; _svari--;){", "}\n", 15);
+      prnt_vars(16, 1, "#define _SYNC_simeta_ for (int _ovari=_solveData->neta; _ovari--;){", "}\n", 16);
       sAppendN(&sbOut,"#include \"extraC.h\"\n", 20);
       sAppend(&sbOut, "extern void  %sode_solver_solvedata (rx_solve *solve){\n  _solveData = solve;\n}\n",prefix);
       sAppend(&sbOut, "extern rx_solve *%sode_solver_get_solvedata(){\n  return _solveData;\n}\n", prefix);
