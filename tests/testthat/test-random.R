@@ -865,6 +865,33 @@ rxPermissive(
       expect_false(identical(f3b$c.x, f3$c.x))
       expect_false(identical(f3b$c.y, f3$c.y))
 
+
+      context("simeta()")
+
+      rx <- RxODE({
+        wt <- 70 * exp(eta.wt)
+        i <- 0
+        while((wt < 60) || (wt > 80)) {
+          i <- i + 1;
+          if(i > 100) break;
+          simeta();
+          wt = 70*exp(eta.wt);
+        }
+      })
+
+      e <- et(1:2, id=1:4)
+
+      f <- rxSolve(rx, e, omega=lotri(eta.wt ~ 0.5 ^ 2))
+
+      expect_true(all(f$wt > 60))
+      expect_true(all(f$wt < 80))
+
+      expect_equal(length(unique(f$wt)), 4)
+
+      f <- rxSolve(rx, e, omega=lotri(eta.wt ~ 0.5 ^ 2), nStud=3)
+
+      f <- rxSolve(rx, e, omega=lotri(eta.wt ~ 0.5 ^ 2), nStud=3, dfSub=40)
+
     })
   },
   test = "norm"

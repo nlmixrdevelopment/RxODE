@@ -251,6 +251,7 @@ lhs symbols?
   bool linExtra;
   int nwhile;
   int nInd;
+  int simflg;
 } symtab;
 symtab tb;
 
@@ -1137,6 +1138,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	aType(TLOGIC);
 	if (!strcmp("simeta", v)) {
 	  foundF0=1;
+	  if ((tb.simflg & 1) == 0) tb.simflg += 1;
+	} else {
+	  if ((tb.simflg & 2) == 0) tb.simflg += 2;
 	}
 	sAppend(&sb, "%s(_cSub);\n  _SYNC_%s_;", v, v);
 	sAppend(&sbDt, "%s(_cSub);\n  _SYNC_%s_;", v, v);
@@ -3153,7 +3157,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 22));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP sLinCmt = PROTECT(allocVector(INTSXP,9));pro++;\n", 57);
+  sAppendN(&sbOut, "    SEXP sLinCmt = PROTECT(allocVector(INTSXP,10));pro++;\n", 57);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[0]= %d;\n", tb.ncmt);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[1]= %d;\n", tb.hasKa);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[2]= %d;\n", tb.linB);
@@ -3163,7 +3167,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "    INTEGER(sLinCmt)[6]= %d;\n", tb.linCmtN);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[7]= %d;\n", tb.linCmtFlg);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[8]= %d;\n", tb.nInd);
-  sAppendN(&sbOut,"    SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 9));pro++;\n", 59);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[9]= %d;\n", tb.simflg);
+  sAppendN(&sbOut,"    SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 10));pro++;\n", 59);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 0, mkChar(\"ncmt\"));\n", 49);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 1, mkChar(\"ka\"));\n", 47);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 2, mkChar(\"linB\"));\n", 49);
@@ -3173,6 +3178,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 6, mkChar(\"linCmt\"));\n", 51);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 7, mkChar(\"linCmtFlg\"));\n", 54);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 8, mkChar(\"nIndSim\"));\n", 52);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 9, mkChar(\"simflg\"));\n", 51);
   sAppendN(&sbOut, "   setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);\n", 50);
   sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
   sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
@@ -3972,6 +3978,7 @@ void reset (){
   tb.linExtra   = false;
   tb.nwhile     = 0;
   tb.nInd       = 0;
+  tb.simflg     = 0;
   // Reset Arrays
   // Reset integers
   NV		= 0;
@@ -4226,7 +4233,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   int *iNeedSort  = INTEGER(sNeedSort);
   iNeedSort[0] = needSort;
 
-  SEXP sLinCmt = PROTECT(allocVector(INTSXP,9));pro++;
+  SEXP sLinCmt = PROTECT(allocVector(INTSXP,10));pro++;
   INTEGER(sLinCmt)[0] = tb.ncmt;
   INTEGER(sLinCmt)[1] = tb.hasKa;
   INTEGER(sLinCmt)[2] = tb.linB;
@@ -4235,7 +4242,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   INTEGER(sLinCmt)[6] = tb.linCmtN;
   INTEGER(sLinCmt)[7] = tb.linCmtFlg;
   INTEGER(sLinCmt)[8] = tb.nInd;
-  SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 9));pro++;
+  INTEGER(sLinCmt)[9] = tb.simflg;
+  
+  SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 10));pro++;
   SET_STRING_ELT(sLinCmtN, 0, mkChar("ncmt"));
   SET_STRING_ELT(sLinCmtN, 1, mkChar("ka"));
   SET_STRING_ELT(sLinCmtN, 2, mkChar("linB"));
@@ -4245,6 +4254,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   SET_STRING_ELT(sLinCmtN, 6, mkChar("linCmt"));
   SET_STRING_ELT(sLinCmtN, 7, mkChar("linCmtFlg"));
   SET_STRING_ELT(sLinCmtN, 8, mkChar("nIndSim"));
+  SET_STRING_ELT(sLinCmtN, 9, mkChar("simflg"));
   setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);
   
   SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;

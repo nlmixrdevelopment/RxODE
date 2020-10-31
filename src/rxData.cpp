@@ -1409,6 +1409,7 @@ typedef struct {
   int *gParPos2;
 
   int *gsvar;
+  int *govar;
   int *gsiV;
   //
   int *slvr_counter;
@@ -1700,7 +1701,7 @@ arma::vec getLowerVec(int type, rx_solve* rx) {
   if (type == 0) { // eps
     return arma::vec(_globals.gsigma, rx->neps, false, true);
   } else { // eta
-    return arma::vec(_globals.gsigma, rx->neta, false, true);
+    return arma::vec(_globals.gomega, rx->neta, false, true);
   }
 }
 
@@ -1708,7 +1709,7 @@ arma::vec getUpperVec(int type, rx_solve* rx) {
   if (type == 0) { // eps
     return arma::vec(_globals.gsigma + rx->neps, rx->neps, false, true);
   } else { // eta
-    return arma::vec(_globals.gsigma + rx->neta, rx->neta, false, true);
+    return arma::vec(_globals.gomega + rx->neta, rx->neta, false, true);
   }
 }
 
@@ -1716,7 +1717,7 @@ arma::mat getArmaMat(int type, int csim, rx_solve* rx) {
   if (type == 0) { // eps
     return arma::mat(_globals.gsigma + 2 * rx->neps + csim * rx->neps * rx->neps, rx->neps, rx->neps, false, true);
   } else { // eta
-    return arma::mat(_globals.gsigma + 2 * rx->neta  + csim * rx->neta * rx->neta, rx->neta,  rx->neta, false, true);
+    return arma::mat(_globals.gomega + 2 * rx->neta  + csim * rx->neta * rx->neta, rx->neta,  rx->neta, false, true);
   }
 }
 
@@ -1853,41 +1854,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 	     omegaList, thetaN, thetaM, "omega", omega, omegaDf,
 	     omegaLower, omegaUpper, omegaIsChol,
 	     omegaSeparation, omegaXform, dfSub, nStud, nSub);
-  if (Rf_isNull(omega) || rxIsChar(omega)){
-  } else {
-    // Fill in omega information for simeta()
-    arma::mat omega0;
-    if (nStud == 1) {
-      if (omegaIsChol) {
-	omega0 = as<arma::mat>(omegaM);
-	omega0 = omega0 * arma::trans(omega0);
-      } else {
-	omega0 = as<arma::mat>(omegaM);
-      }
-      if (_globals.gomega != NULL) free(_globals.gomega);
-      rx->neta = omega0.n_rows;
-      _globals.gomega = (double*)malloc((2 * rx->neta + rx->neta * rx->neta)*sizeof(double));
-      std::copy(&omega0[0], &omega0[0] + omega0.n_rows*omega0.n_rows, _globals.gomega + 2 * rx->neta);
-    } else {
-      omega0 = as<arma::mat>(omegaList[0]);
-      if (_globals.gomega != NULL) free(_globals.gomega);
-      _globals.gomega = (double*)malloc((2 * rx->neta + rx->neta * rx->neta * omegaList.size())*sizeof(double));
-      for (int i = 0; i < omegaList.size(); i++) {
-	omega0 = as<arma::mat>(omegaList[0]);
-	std::copy(&omega0[0], &omega0[0] + rx->neta * rx->neta, _globals.gomega + 2 * rx->neta + i * rx->neta * rx->neta);
-      }
-    }
-    arma::vec in = as<arma::vec>(omegaLower);
-    arma::vec lowerOmegaV = fillVec(in, omega0.n_rows);
-    in = as<arma::vec>(omegaUpper);
-    arma::vec upperOmegaV = fillVec(in, omega0.n_rows);
-    std::copy(&lowerOmegaV[0], &lowerOmegaV[0] + omega0.n_rows, _globals.gomega);
-    std::copy(&upperOmegaV[0], &upperOmegaV[0] + omega0.n_rows, _globals.gomega + rx->neta);
-    // structure of _globals.gomega is
-    // lower
-    // upper
-    // matrix list (n x n;  nStud matrices)
-  }
   bool simSigma = false;
   bool sigmaSep=false;
   NumericMatrix sigmaM;
@@ -2053,6 +2019,42 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     std::copy(&lowerSigmaV[0], &lowerSigmaV[0] + rx->neps, _globals.gsigma);
     std::copy(&upperSigmaV[0], &upperSigmaV[0] + rx->neps, _globals.gsigma + rx->neps);
     // structure of _globals.gsigma is
+    // lower
+    // upper
+    // matrix list (n x n;  nStud matrices)
+  }
+  
+  if (Rf_isNull(omega) || rxIsChar(omega)){
+  } else {
+    // Fill in omega information for simeta()
+    arma::mat omega0;
+    if (dfSub > 0 && nStud > 1) {
+      omega0 = as<arma::mat>(omegaList[0]);
+      if (_globals.gomega != NULL) free(_globals.gomega);
+      _globals.gomega = (double*)malloc((2 * rx->neta + rx->neta * rx->neta * omegaList.size())*sizeof(double));
+      for (int i = 0; i < omegaList.size(); i++) {
+	omega0 = as<arma::mat>(omegaList[0]);
+	std::copy(&omega0[0], &omega0[0] + rx->neta * rx->neta, _globals.gomega + 2 * rx->neta + i * rx->neta * rx->neta);
+      }
+    } else {
+      if (omegaIsChol) {
+	omega0 = as<arma::mat>(omegaM);
+	omega0 = omega0 * arma::trans(omega0);
+      } else {
+	omega0 = as<arma::mat>(omegaM);
+      }
+      if (_globals.gomega != NULL) free(_globals.gomega);
+      rx->neta = omega0.n_rows;
+      _globals.gomega = (double*)malloc((2 * rx->neta + rx->neta * rx->neta)*sizeof(double));
+      std::copy(&omega0[0], &omega0[0] + rx->neta * rx->neta, _globals.gomega + 2 * rx->neta);      
+    }
+    arma::vec in = as<arma::vec>(omegaLower);
+    arma::vec lowerOmegaV = fillVec(in, rx->neta);
+    in = as<arma::vec>(omegaUpper);
+    arma::vec upperOmegaV = fillVec(in, rx->neta);
+    std::copy(&lowerOmegaV[0], &lowerOmegaV[0] + rx->neta, _globals.gomega);
+    std::copy(&upperOmegaV[0], &upperOmegaV[0] + rx->neta, _globals.gomega + rx->neta);
+    // structure of _globals.gomega is
     // lower
     // upper
     // matrix list (n x n;  nStud matrices)
@@ -2503,6 +2505,7 @@ typedef struct{
   bool fromIni = false;
   IntegerVector eGparPos;
   CharacterVector sigmaN;
+  CharacterVector omegaN;
   NumericVector parNumeric;
   DataFrame parDf;
   NumericMatrix parMat;
@@ -3530,13 +3533,14 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   if (_globals.gParPos != NULL) free(_globals.gParPos);
-  _globals.gParPos = (int*)calloc(rxSolveDat->npars*2 + rxSolveDat->sigmaN.size(), sizeof(int));// [npars]
+  _globals.gParPos = (int*)calloc(rxSolveDat->npars*2 + rxSolveDat->sigmaN.size() + rxSolveDat->omegaN.size(), sizeof(int));// [npars]
   if (_globals.gParPos == NULL){
     rxSolveFree();
     stop(_("cannot allocate enough memory to sort input parameters"));
   }
   _globals.gParPos2 =  _globals.gParPos + rxSolveDat->npars; // [npars]
   _globals.gsvar =  _globals.gParPos2 + rxSolveDat->npars;//[sigmaN.size()]
+  _globals.govar =  _globals.gsvar + rxSolveDat->sigmaN.size(); // [omegaN.size()]
   std::string errStr = "";
   bool allPars = true;
   bool curPar = false;
@@ -3551,6 +3555,13 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
   int i, j;
   for (i = rxSolveDat->npars; i--;){
     curPar = false;
+    // Check for the omega-style simulated parameters.
+    for (j = rxSolveDat->omegaN.size(); j--;){
+      if (rxSolveDat->omegaN[j] == pars[i]){
+	_globals.govar[j] = i;
+	break;
+      }
+    }
     // Check to see if this is a covariate.
     for (j = op->ncov; j--;){
       if (_globals.gpar_cov[j] == (int)(i + 1)){
@@ -4179,6 +4190,7 @@ static inline void rxSolveSaveRxSolve(rxSolve_t* rxSolveDat){
   _rxModels[".rxSolveDat.initsC"] = rxSolveDat->initsC;
   _rxModels[".rxSolveDat.eGparPos"] = rxSolveDat->eGparPos;
   _rxModels[".rxSolveDat.sigmaN"] = rxSolveDat->sigmaN;
+  _rxModels[".rxSolveDat.omegaN"] = rxSolveDat->omegaN;
   _rxModels[".rxSolveDat.parNumeric"] = rxSolveDat->parNumeric;
   _rxModels[".rxSolveDat.parDf"] = rxSolveDat->parDf;
   _rxModels[".rxSolveDat.parMat"] = rxSolveDat->parMat;
@@ -4198,6 +4210,7 @@ static inline void rxSolveSaveRxRestore(rxSolve_t* rxSolveDat){
   rxSolveDat->initsC = as<NumericVector>(_rxModels[".rxSolveDat.initsC"]);
   rxSolveDat->eGparPos = as<IntegerVector>(_rxModels[".rxSolveDat.eGparPos"]);
   rxSolveDat->sigmaN = as<CharacterVector>(_rxModels[".rxSolveDat.sigmaN"]);
+  rxSolveDat->omegaN = as<CharacterVector>(_rxModels[".rxSolveDat.omegaN"]);
   rxSolveDat->parNumeric = as<NumericVector>(_rxModels[".rxSolveDat.parNumeric"]);
   rxSolveDat->parDf = as<DataFrame>(_rxModels[".rxSolveDat.parDf"]);
   rxSolveDat->parMat = as<NumericMatrix>(_rxModels[".rxSolveDat.parMat"]);
@@ -4531,6 +4544,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->neta = 0;
     rx->neps = 0;
     rx->nIndSim = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_nIndSim];
+    rx->simflg  = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_simflg];
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
     rx->sensType = asInt(rxControl[Rxc_sensType], "sensType");
@@ -4743,6 +4757,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	_rxModels.remove(".sigma");
       }
     }
+    if (_rxModels.exists(".omega")){
+      if (Rf_isMatrix(_rxModels[".omega"])) {
+	rxSolveDat->omegaN= as<CharacterVector>((as<List>((as<NumericMatrix>(_rxModels[".omega"])).attr("dimnames")))[1]);
+      } else {
+	_rxModels.remove(".omega");
+      }
+    }
 #ifdef rxSolveT
     REprintf("Time8: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4775,6 +4796,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 #endif // rxSolveT
 
     op->svar = &_globals.gsvar[0];
+    op->ovar = &_globals.govar[0];
     op->nsvar = rxSolveDat->nsvar;
     if (op->nsvar == 0){
       getRxModels();

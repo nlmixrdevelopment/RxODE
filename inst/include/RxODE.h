@@ -243,6 +243,7 @@ typedef struct {
   int neta;
   int neps;
   int nIndSim;
+  int simflg;
   int nall;
   int nevid9;
   int nobs;

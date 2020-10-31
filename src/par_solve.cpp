@@ -1113,7 +1113,7 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
   if (rx->nMtime) calc_mtime(solveid, ind->mtime);
   for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   if ((inLhs == 0 && op->neq > 0) ||
-      (inLhs == 1 && op->neq == 0 && rx->nIndSim > 0)) {
+      (inLhs == 1 && op->neq == 0 && (rx->nIndSim > 0 || (rx->simflg & 1) != 0 ))) {
     ind->isIni = 1;
     // Also can update individual random variables (if needed)
     if (inLhs == 0) memcpy(ind->solve, op->inits, op->neq*sizeof(double));
