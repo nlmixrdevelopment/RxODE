@@ -116,7 +116,7 @@ Of course this additional parameter could also be a state value, like `eff`:
 
 ```{r}
 ## They also takes many of the standard plot arguments; See ?plot
-plot(sim, eff, log="y", ylab="Effect")
+plot(sim, eff, ylab="Effect")
 ```
 
 Or you could even look at the two side-by-side:
@@ -124,6 +124,13 @@ Or you could even look at the two side-by-side:
 ```{r}
 plot(sim, C2, eff)
 ```
+
+Or stack them with `patchwork`
+```{r}
+library(patchwork)
+plot(sim, C2, log="y") / plot(sim, eff)
+```
+
 
 ### Processing the data to create summary plots
 
@@ -448,7 +455,8 @@ s <-sim %>% confint(c("eff", "centr"))
 ```
 
 The default for this is `1` core since the result depends on the
-number of cores and the random seed you use in your simulation.
-However, you can always speed up this process with more cores if you
-are sure your collaborators have the same number of cores available to
-them and have OpenMP thread-capable compile.
+number of cores and the random seed you use in your simulation as well
+as the work-load each thread is sharing/architecture.  However, you can always
+speed up this process with more cores if you are sure your
+collaborators have the same number of cores available to them and have
+OpenMP thread-capable compile.

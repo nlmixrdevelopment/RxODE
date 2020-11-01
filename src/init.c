@@ -319,6 +319,9 @@ void handleTlast(double *time, rx_solving_options_ind *ind);
 SEXP _probit(SEXP xS, SEXP lowS, SEXP highS);
 SEXP _probitInv(SEXP xS, SEXP lowS, SEXP highS);
 
+void simeps(int id);
+void simeta(int id);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
@@ -456,6 +459,8 @@ void R_init_RxODE(DllInfo *info){
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
+  R_RegisterCCallable("RxODE", "simeps", (DL_FUNC) &simeps);
+  R_RegisterCCallable("RxODE", "simeta", (DL_FUNC) &simeta);
   R_RegisterCCallable("RxODE", "getSilentErr", (DL_FUNC) &getSilentErr);
   R_RegisterCCallable("RxODE", "logit", (DL_FUNC) &logit);
   R_RegisterCCallable("RxODE", "expit", (DL_FUNC) &expit);

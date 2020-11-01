@@ -93,6 +93,60 @@ SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
   return R_NilValue;
 }
 
+void rxRmvn2_(arma::mat& A, arma::rowvec mu, arma::mat sigma,
+	      int ncores=1, bool isChol=false) {
+  int n = A.n_rows;
+  int d = mu.n_elem;
+  arma::mat ch;
+  if (sigma.is_zero()){
+    ch = sigma;
+  } else {
+    if (isChol){
+      ch=arma::trimatu(sigma);
+    } else {
+      ch=arma::trimatu(arma::chol(sigma));
+    }
+  }
+
+  if (n < 1) stop(_("n should be a positive integer"));
+  if (ncores < 1) stop(_("'ncores' has to be greater than one"));
+  if (d != (int)sigma.n_cols) stop("length(mu) != ncol(sigma)");
+  if (d != (int)sigma.n_rows) stop("length(mu) != ncol(sigma)");
+  if (d != (int)A.n_cols) stop("length(mu) != ncol(A)");
+
+  double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
+  uint32_t seed = static_cast<uint32_t>(seedD);
+  seed = min2(seed, std::numeric_limits<uint32_t>::max() - ncores - 1);
+  sitmo::threefry eng;
+  eng.seed(seed);
+
+  std::normal_distribution<> snorm(0.0, 1.0);
+
+  double acc;
+  arma::rowvec work(d);
+  for (int i = 0; i < n*d; ++i){
+    A[i] = snorm(eng);
+  }
+  if (d == 1){
+    double sd = ch(0, 0);
+    for (int i = 0; i < n; i++){
+      A[i] = A[i]*sd+mu(0);
+    }
+  } else {
+    for(int ir = 0; ir < n; ++ir){
+      for(int ic = d; ic--;){
+	acc = 0.0;
+	for (int ii = 0; ii <= ic; ++ii){
+	  acc += A.at(ir,ii) * ch.at(ii,ic);
+	}
+	work.at(ic) = acc;
+      }
+      work += mu;
+      A(arma::span(ir), arma::span::all) = work;
+    }
+  }
+}
+
 
 // Adapted from https://github.com/cran/TruncatedNormal/blob/7364c5bc3f7c84d00eb4a767807b103b4232b648/R/ntail.R
 double ntail(double l, double u, sitmo::threefry& eng){
@@ -630,21 +684,19 @@ arma::mat mvrandn(arma::vec lin, arma::vec uin, arma::mat Sig, int n,
   return ret;
 }
 
-//[[Rcpp::export]]
-arma::mat rxMvrandn_(NumericMatrix A_,
-		     arma::rowvec mu, arma::mat sigma, arma::vec lower,
-		     arma::vec upper, int ncores=1,
-		     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
-  int n = A_.nrow();
+void rxMvrandn__(arma::mat& A,
+		 arma::rowvec mu, arma::mat sigma, arma::vec lower,
+		 arma::vec upper, int ncores=1,
+		 double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
+  int n = A.n_rows;
   int d = mu.n_elem;
   arma::mat ch;
   if (n < 1) stop(_("n should be a positive integer"));
   if (ncores < 1) stop(_("'ncores' has to be greater than one"));
   if (d != (int)sigma.n_cols) stop("length(mu) != ncol(sigma)");
   if (d != (int)sigma.n_rows) stop("length(mu) != ncol(sigma)");
-  if (d != (int)A_.ncol()) stop("length(mu) != ncol(A)");
+  if (d != (int)A.n_cols) stop("length(mu) != ncol(A)");
 
-  arma::mat A(A_.begin(), A_.nrow(), A_.ncol(), false, true);
   if (sigma.is_zero()){
     if (d == 1){
       for (int i = 0; i < n; ++i) {
@@ -678,6 +730,15 @@ arma::mat rxMvrandn_(NumericMatrix A_,
       std::copy(ret.begin(), ret.end(), A.begin());
     }
   }
+}
+
+//[[Rcpp::export]]
+arma::mat rxMvrandn_(NumericMatrix A_,
+		     arma::rowvec mu, arma::mat sigma, arma::vec lower,
+		     arma::vec upper, int ncores=1,
+		     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
+  arma::mat A(A_.begin(), A_.nrow(), A_.ncol(), false, true);
+  rxMvrandn__(A, mu, sigma, lower, upper, ncores, a, tol, nlTol, nlMaxiter);
   return A;
 }
 
@@ -1250,6 +1311,91 @@ SEXP rxRmvn0(NumericMatrix& A_, arma::rowvec mu, arma::mat sigma,
     return R_NilValue;
   } else {
     return rxRmvn_(A_, mu, sigma, ncores, isChol);
+  }
+}
+
+// Armadillo-only simulation (for simeta and simeps)
+void rxRmvnA(arma::mat & A_, arma::rowvec & mu, arma::mat &sigma,
+	     arma::vec & lower, arma::vec & upper, int ncores=1, bool isChol=false,
+	     double a=0.4, double tol = 2.05, double nlTol=1e-10, int nlMaxiter=100){
+  bool trunc = false;
+  if (anyFinite(lower)){
+    trunc = true;
+  } else if (anyFinite(upper)){
+    trunc = true;
+  }
+  if (trunc){
+    arma::mat sigma0 = sigma;
+    if (isChol){
+      sigma0 = sigma * sigma.t();
+    }
+    // IntegerVector dm = as<IntegerVector>(A_.attr("dim"));
+    int n = A_.n_rows;
+    arma::vec lower0 = fillVec(lower, A_.n_cols);
+    arma::vec upper0 = fillVec(upper, A_.n_cols);
+    rxMvrandn__(A_, mu, sigma0, lower0,
+	       upper0, ncores, a, tol, nlTol,nlMaxiter);
+  } else {
+    rxRmvn2_(A_, mu, sigma, ncores, isChol);
+  }
+}
+
+arma::vec getLowerVec(int type, rx_solve* rx);
+arma::vec getUpperVec(int type, rx_solve* rx);
+arma::mat getArmaMat(int type, int csim, rx_solve* rx);
+
+void simvar(double *out, int type, int csim, rx_solve* rx) {
+  int n = 0;
+  if (type == 0) { // eps
+    n = rx->neps;
+  } else {
+    n = rx->neta;
+  }
+  arma::mat A(&out[0], 1, n, false, true);
+  arma::vec lower = getLowerVec(type, rx);
+  arma::vec upper = getUpperVec(type, rx);
+  arma::rowvec mu(n, arma::fill::zeros);
+  arma::mat sigma = getArmaMat(type, csim, rx);
+
+  // FIXME? allow changing of a, tol nlTol and nlMaxiter?
+  rxRmvnA(A, mu, sigma, lower, upper, 1, false, 0.4, 2.05, 1e-10, 100);
+}
+extern "C" void simeps(int id) {
+  rx_solve* rx = getRxSolve_();
+  rx_solving_options_ind *ind = &(rx->subjects[id]);
+  if (ind->inLhs == 1) { // only change while calculating the lhs
+    rx_solving_options *op = rx->op;
+    // In this case the par_ptr will be updated with the new values, but they are out of order
+    arma::mat out(1, rx->neps);
+    // ind->id  = csub+csim*nsub;
+    int csim = floor(ind->id/rx->nsub);
+    simvar(&out[0], 0, csim, rx);
+    int *svar = op->svar;
+    double *par_ptr = ind->par_ptr;
+    for (int j=0; j < rx->neps; j++){
+      // The error pointer is updated if needed
+      par_ptr[svar[j]] = out[j];
+    }
+  }
+}
+
+
+extern "C" void simeta(int id) {
+  rx_solve* rx = getRxSolve_();
+  rx_solving_options_ind *ind = &(rx->subjects[id]);
+  if (ind->isIni == 1) { // only initialize at beginning
+    rx_solving_options *op = rx->op;
+    // In this case the par_ptr will be updated with the new values, but they are out of order
+    arma::mat out(1, rx->neta);
+    // ind->id  = csub+csim*nsub;
+    int csim = floor(ind->id/rx->nsub);
+    simvar(&out[0], 1, csim, rx);
+    int *ovar = op->ovar;
+    double *par_ptr = ind->par_ptr;
+    for (int j=0; j < rx->neta; j++){
+      // The error pointer is updated if needed
+      par_ptr[ovar[j]] = out[j];
+    }
   }
 }
 

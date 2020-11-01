@@ -251,6 +251,7 @@ lhs symbols?
   bool linExtra;
   int nwhile;
   int nInd;
+  int simflg;
 } symtab;
 symtab tb;
 
@@ -661,6 +662,7 @@ typedef struct nodeInfo {
   int matF;
   int equality_str1;
   int equality_str2;
+  int simfun_statement;
 } nodeInfo;
 
 #define NIB(what) ni.what
@@ -720,6 +722,7 @@ void niReset(nodeInfo *ni){
   ni->matF = -1;
   ni->equality_str1 = -1;
   ni->equality_str2 = -1;
+  ni->simfun_statement = -1;
 }
 
 int new_de(const char *s){
@@ -1026,7 +1029,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
         continue;
       }
-
       if ((i == 3 || i == 4 || i < 2) &&
 	  (nodeHas(derivative) ||nodeHas(fbio) || nodeHas(alag) ||
 	   nodeHas(rate) || nodeHas(dur))) continue;
@@ -1050,6 +1052,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (nodeHas(mtime) && (i == 0 || i == 1 || i == 3)) continue;
       if (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) continue;
       if (i != 2 && (nodeHas(mat0) || nodeHas(matF))) continue;
+
       if (nodeHas(mat0)){
 	aType(TMAT0);
 	sb.o =0; sbDt.o =0;
@@ -1125,6 +1128,29 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	} else if (i == 8){
 	  continue;
 	}
+      }
+
+      if (nodeHas(simfun_statement) && i == 0) {
+	i = nch; // done
+	sb.o=0;sbDt.o=0; sbt.o=0;
+	D_ParseNode *xpn = d_get_child(pn, 0);
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	aType(TLOGIC);
+	if (!strcmp("simeta", v)) {
+	  foundF0=1;
+	  if ((tb.simflg & 1) == 0) tb.simflg += 1;
+	} else {
+	  if ((tb.simflg & 2) == 0) tb.simflg += 2;
+	}
+	sAppend(&sb, "%s(_cSub);\n  _SYNC_%s_;", v, v);
+	sAppend(&sbDt, "%s(_cSub);\n  _SYNC_%s_;", v, v);
+	sAppend(&sbt, "%s();", v);
+	addLine(&sbPm, "%s\n", sb.s);
+	addLine(&sbPmDt, "%s\n", sbDt.s);
+	sAppend(&sbNrm, "%s\n", sbt.s);
+	addLine(&sbNrmL, "%s\n", sbt.s);
+	ENDLINE;
+	continue;
       }
 
       if (tb.fn == 1) depth = 0;
@@ -1764,10 +1790,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  i = 1;// Parse next arguments
 	  depth=1;
 	  Free(v);
-	  /* if (isInd) { */
-	  /*   sAppendN(&sb, ")", 1); */
-	  /*   sAppendN(&sbDt, ")", 1); */
-	  /* } */
 	  continue;
 	} else if (!strcmp("rbinom", v) ||
 		   !strcmp("rxbinom", v) ||
@@ -2893,6 +2915,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     // show_ode == 12 initialize lhs to last value
     // show_ode == 13 #define lags for lhs values
     // show_ode == 14 #define lags for params/covs
+    // show_ode == 15 #define sync lhs for simeps
     if (show_ode == 2 || show_ode == 0){
       //__DDtStateVar_#__
       for (i = 0; i < tb.de.n; i++){
@@ -2904,7 +2927,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       }
     }
     // Now get Jacobain information  __PDStateVar_df_dy__ if needed
-    if (show_ode != 3){
+    if (show_ode != 3 && show_ode != 15){
       for (i = 0; i < tb.ndfdy; i++){
 	buf1 = tb.ss.line[tb.df[i]];
 	buf2 = tb.ss.line[tb.dy[i]];
@@ -3014,6 +3037,18 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       doDot(&sbOut, buf);
       sAppend(&sbOut, " = _PP[%d];\n", j++);
       break;
+    case 15:
+      // Case 15 is for declaring eps the sync parameters
+      sAppend(&sbOut,"  if (_solveData->op->svar[_svari] == %d) {", j);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, " = _PP[%d];}; ", j++);
+      break;
+    case 16:
+      // Case 16 is for declaring eta the sync parameters
+      sAppend(&sbOut,"  if (_solveData->op->ovar[_ovari] == %d) {", j);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, " = _PP[%d];}; ", j++);
+      break;
     default: break;
     }
   }
@@ -3122,7 +3157,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 22));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP sLinCmt = PROTECT(allocVector(INTSXP,9));pro++;\n", 57);
+  sAppendN(&sbOut, "    SEXP sLinCmt = PROTECT(allocVector(INTSXP,10));pro++;\n", 57);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[0]= %d;\n", tb.ncmt);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[1]= %d;\n", tb.hasKa);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[2]= %d;\n", tb.linB);
@@ -3132,7 +3167,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "    INTEGER(sLinCmt)[6]= %d;\n", tb.linCmtN);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[7]= %d;\n", tb.linCmtFlg);
   sAppend(&sbOut, "    INTEGER(sLinCmt)[8]= %d;\n", tb.nInd);
-  sAppendN(&sbOut,"    SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 9));pro++;\n", 59);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[9]= %d;\n", tb.simflg);
+  sAppendN(&sbOut,"    SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 10));pro++;\n", 59);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 0, mkChar(\"ncmt\"));\n", 49);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 1, mkChar(\"ka\"));\n", 47);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 2, mkChar(\"linB\"));\n", 49);
@@ -3142,6 +3178,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 6, mkChar(\"linCmt\"));\n", 51);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 7, mkChar(\"linCmtFlg\"));\n", 54);
   sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 8, mkChar(\"nIndSim\"));\n", 52);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 9, mkChar(\"simflg\"));\n", 51);
   sAppendN(&sbOut, "   setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);\n", 50);
   sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
   sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
@@ -3497,7 +3534,10 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       // Now define lhs lags
       prnt_vars(4, 1, "", "", 13);
       // And covariate/parameter lags
-      prnt_vars(5, 1, "", "", 14);
+      prnt_vars(5, 1, "", "", 15);
+      // Add sync PP define
+      prnt_vars(15, 1, "#define _SYNC_simeps_ for (int _svari=_solveData->neps; _svari--;){", "}\n", 15);
+      prnt_vars(16, 1, "#define _SYNC_simeta_ for (int _ovari=_solveData->neta; _ovari--;){", "}\n", 16);
       sAppendN(&sbOut,"#include \"extraC.h\"\n", 20);
       sAppend(&sbOut, "extern void  %sode_solver_solvedata (rx_solve *solve){\n  _solveData = solve;\n}\n",prefix);
       sAppend(&sbOut, "extern rx_solve *%sode_solver_get_solvedata(){\n  return _solveData;\n}\n", prefix);
@@ -3938,6 +3978,7 @@ void reset (){
   tb.linExtra   = false;
   tb.nwhile     = 0;
   tb.nInd       = 0;
+  tb.simflg     = 0;
   // Reset Arrays
   // Reset integers
   NV		= 0;
@@ -4192,7 +4233,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   int *iNeedSort  = INTEGER(sNeedSort);
   iNeedSort[0] = needSort;
 
-  SEXP sLinCmt = PROTECT(allocVector(INTSXP,9));pro++;
+  SEXP sLinCmt = PROTECT(allocVector(INTSXP,10));pro++;
   INTEGER(sLinCmt)[0] = tb.ncmt;
   INTEGER(sLinCmt)[1] = tb.hasKa;
   INTEGER(sLinCmt)[2] = tb.linB;
@@ -4201,7 +4242,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   INTEGER(sLinCmt)[6] = tb.linCmtN;
   INTEGER(sLinCmt)[7] = tb.linCmtFlg;
   INTEGER(sLinCmt)[8] = tb.nInd;
-  SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 9));pro++;
+  INTEGER(sLinCmt)[9] = tb.simflg;
+  
+  SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 10));pro++;
   SET_STRING_ELT(sLinCmtN, 0, mkChar("ncmt"));
   SET_STRING_ELT(sLinCmtN, 1, mkChar("ka"));
   SET_STRING_ELT(sLinCmtN, 2, mkChar("linB"));
@@ -4211,6 +4254,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   SET_STRING_ELT(sLinCmtN, 6, mkChar("linCmt"));
   SET_STRING_ELT(sLinCmtN, 7, mkChar("linCmtFlg"));
   SET_STRING_ELT(sLinCmtN, 8, mkChar("nIndSim"));
+  SET_STRING_ELT(sLinCmtN, 9, mkChar("simflg"));
   setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);
   
   SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;

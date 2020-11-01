@@ -116,6 +116,7 @@ typedef struct {
   int ncoresRV;
   int isChol;
   int *svar;
+  int *ovar;
   int nsvar;
   int abort;
   int minSS;
@@ -239,7 +240,10 @@ typedef struct {
   rx_solving_options *op;
   int nsub;
   int nsim;
+  int neta;
+  int neps;
   int nIndSim;
+  int simflg;
   int nall;
   int nevid9;
   int nobs;

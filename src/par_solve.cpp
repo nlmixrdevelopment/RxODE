@@ -1113,7 +1113,7 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
   if (rx->nMtime) calc_mtime(solveid, ind->mtime);
   for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   if ((inLhs == 0 && op->neq > 0) ||
-      (inLhs == 1 && op->neq == 0 && rx->nIndSim > 0)) {
+      (inLhs == 1 && op->neq == 0 && (rx->nIndSim > 0 || (rx->simflg & 1) != 0 ))) {
     ind->isIni = 1;
     // Also can update individual random variables (if needed)
     if (inLhs == 0) memcpy(ind->solve, op->inits, op->neq*sizeof(double));
@@ -2665,7 +2665,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	    getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
 	    if (whI != 7  && whI != 6){
 	      if (whI != 1 || (whI == 1 && dose[di++] > 0)) {
-		rx->nr++;
+		rx->nr++; 
 	      }
 	    } else {
 	      di++;
@@ -2801,6 +2801,17 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	  getWh(ind->evid[ind->ix[i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
 	  handleTlastInline(&curT, ind);
 	}
+	if (updateErr){
+	  for (j=0; j < errNcol; j++){
+	    // The error pointer is updated if needed
+	    par_ptr[svar[j]] = errs[errNrow*j+kk];
+	  }
+	  if ((doDose && evid!= 9) || (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)){
+	    // Only increment if this is an observation or of this a
+	    // simulation that requests dosing information too.
+            kk++;
+	  }
+        }
 	if (nlhs){
 	  calc_lhs(neq[1], curT, getSolve(i), ind->lhs);
 	}
@@ -2819,18 +2830,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	    }
 	  }
 	}
-	
-        if (updateErr){
-          for (j=0; j < errNcol; j++){
-	    // The error pointer is updated if needed
-	    par_ptr[svar[j]] = errs[errNrow*j+kk];
-          }
-	  if ((doDose && evid!= 9) || (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)){
-	    // Only increment if this is an observation or of this a
-	    // simulation that requests dosing information too.
-            kk++;
-	  }
-        }
+        
         jj  = 0 ;
 	int solveId=csim*nsub+csub;
 	if (doDose || (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)){
