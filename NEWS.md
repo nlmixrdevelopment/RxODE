@@ -21,11 +21,11 @@
 * `rxSolve` will now return an integer `id` instead of a factor `id`
   when `id` is integer or integerish (as defined by checkmate).
   Otherwise a factor will be returned.
-  
+
 * When mixing ODEs and `linCmt()` models, the `linCmt()` compartments
   are 1 and possibly 2 instead of right after the last internal ODE.
   This is more aligned with how PK/PD models are typically defined.
-  
+
 * `EVID=3` and `EVID=4` now (possibly) reset time as well.  This
   occurs when the input dataset is sorted before solving.
 
@@ -66,7 +66,7 @@
   - `inits` do not change (though you can specify them as `cmt(0)=...`
     in the model and change them by parameters)
   - See Issue #109
-  
+
 * Allow `while(logical)` statements with ability to break out if them by `break`
 
 * Allow accessing different time-varying components of an input dataset for each indivdiual with:
@@ -227,7 +227,7 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   During ODE solving, the values of these are `0`, but while
   calculating the final output the variable is randomized at least for
   every output. These are:
-  
+
   - `rxnorm()` and `rxnormV()` (low discrepancy normal)
   - `rxcauchy()`
   - `rxchisq()`
@@ -240,10 +240,10 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   - `rxt()`
   - `rxunif()`
   - `rxweibull()`
-  
+
   In addition, while initializing the system, the following values are
   simulated and retained for each individual:
-  
+
   - `rinorm()` and `rinormV()` (low discrepancy normal)
   - `ricauchy()`
   - `richisq()`
@@ -256,7 +256,17 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   - `rit()`
   - `riunif()`
   - `riweibull()`
-  
+
+  Added `simeta()` which simulates a new `eta` when called based
+  on the possibly truncated normal `omega` specified by the original
+  simulation.  This simulation occurs at the same time as the ODE is
+  initialized or when an ODE is missing, before calculating the final
+  output values.  The `omega` will reflect whatever study is being simulated.
+
+  Added `simeps()` which simulates a new `eps` from the possibly
+  truncated normal `sigma` at the same time as calculating the final
+  output values. Before this time, the `sigma` variables are zero.
+
 * Added the ability to integrate standard deviations/errors of omega
   diagonals and sigma diagonals.  This is done by specifying the omega
   diagonals in the theta matrix and having them represent the
@@ -280,7 +290,7 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 
 * Changed method for setting/getting number of threads based on
   `data.table`'s method
-  
+
 * Added function `rxDerived` which will calculate derived parameters
   for 1, 2, and 3 compartment models
 
@@ -296,17 +306,17 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 ## Bug fixes:
  - Occasionally RxODE misidentified dual `lhs`/`param` values.  An
    additional check is performed so that this does not happen.
-   
+
  - For solved matrices with similar names (like "tadd" and "tad")
    RxODE will now prefer exact matches instead of the first match
    found when accessing the items with `$tad`.
-   
+
  - A fix where all ID information is kept with `keep=c(""..."")`
- 
+
  - Transit compartment models using the `transit` ODE or variable are
    now allowed.  Also check for more internally parsed items (see
    Issue #145).
-   
+
  - Bug fix for `etSeq` and `etRep` where greater than 2 items were mis-caluclated
 
 # RxODE v0.9.2-0
