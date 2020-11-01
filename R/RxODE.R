@@ -1374,7 +1374,9 @@ rxCompile.rxModelVars <- function(model, # Model
     .dir <- dir
     if (file.exists(.dir)) {
       if (!file.exists(file.path(.dir, paste0(RxODE.md5, ".md5")))) {
+        .malert("remove old RxODE dir {.file {.dir}}")
         unlink(.dir, recursive=TRUE, force=TRUE)
+        .msuccess("done")
       }
     }
   }
