@@ -638,6 +638,7 @@ rxPermissive(
     context("rweibull tests")
 
     test_that("rweibull tests", {
+
       rx <- RxODE({
         x1 <- rweibull(9, 0.5)
         x2 <- rxweibull(7.5)
@@ -692,6 +693,11 @@ rxPermissive(
       expect_error(RxODE({
         x1 <- rweibull()
       }))
+    })
+
+    context("individual random number generation")
+
+    test_that("individual random variable tests", {
 
       rx <- RxODE({
         x0  <- rxnorm()
@@ -733,7 +739,9 @@ rxPermissive(
       expect_equal(sum(duplicated(f$x0)), 0)
 
       for (i in 1:20) {
-        expect_equal(sum(duplicated(f[[paste0("x", i)]])), 5)
+        expect_equal(sum(duplicated(paste0(f$id, f[[paste0("x", i)]]))), 5)
+        .s <- sum(duplicated(f[[paste0("x", i)]]))
+        expect_true(.s < 10)
       }
 
       rx <- RxODE({
@@ -775,11 +783,14 @@ rxPermissive(
       expect_equal(sum(duplicated(f$x0)), 0)
 
       for (i in 1:20) {
-        expect_equal(sum(duplicated(f[[paste0("x", i)]])), 5)
+        expect_equal(sum(duplicated(paste0(f$id, f[[paste0("x", i)]]))), 5)
+        .s <- sum(duplicated(f[[paste0("x", i)]]))
+        expect_true(.s < 10)
       }
+    })
 
-      context("simeps")
-
+    context("simeps()")
+    test_that("simeps", {
       rx1 <- RxODE({
         c <- 0 + err
         i = 0;
@@ -855,7 +866,6 @@ rxPermissive(
 
       expect_true(f2$c[1] != 0)
 
-
       f3b <- merge(f1, f2, by=c("sim.id", "time"))
 
       f3b <- f3b[f3b$i == 0, ]
@@ -865,8 +875,18 @@ rxPermissive(
       expect_false(identical(f3b$c.x, f3$c.x))
       expect_false(identical(f3b$c.y, f3$c.y))
 
+      ## Check to make sure that this only accesses the
+      f1 <- rxSolve(rx, e, sigma=lotri(err ~ 1), nStud=3)
 
-      context("simeta()")
+      expect_true(all(f1$c > 0))
+
+      expect_true(f1$c[1] != 0)
+
+    })
+
+    context("simeta()")
+
+    test_that("simeta", {
 
       rx <- RxODE({
         wt <- 70 * exp(eta.wt)
@@ -881,16 +901,28 @@ rxPermissive(
 
       e <- et(1:2, id=1:4)
 
-      f <- rxSolve(rx, e, omega=lotri(eta.wt ~ 0.5 ^ 2))
+      f <- rxSolve(rx, e, omega=lotri(eta.wt ~ 0.1 ^ 2))
 
       expect_true(all(f$wt > 60))
       expect_true(all(f$wt < 80))
 
       expect_equal(length(unique(f$wt)), 4)
 
-      f <- rxSolve(rx, e, omega=lotri(eta.wt ~ 0.5 ^ 2), nStud=3)
+      f <- rxSolve(rx, e, omega=lotri(eta.wt ~ 0.5 ^ 2), nStud=10)
 
+      expect_true(all(f$wt > 60))
+      expect_true(all(f$wt < 80))
+
+      expect_equal(length(unique(f$wt)), 4 * 10)
+
+      ## this one should work
       f <- rxSolve(rx, e, omega=lotri(eta.wt ~ 0.5 ^ 2), nStud=3, dfSub=40)
+
+      expect_true(all(f$wt > 60))
+      expect_true(all(f$wt < 80))
+
+      expect_equal(length(unique(f$wt)), 4 * 3)
+
 
     })
   },

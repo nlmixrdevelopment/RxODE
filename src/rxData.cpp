@@ -1418,7 +1418,9 @@ typedef struct {
   int *gSampleCov;
   double *gmtime;
   double *gsigma = NULL;
+  int nSigma = 0;
   double *gomega = NULL;
+  int nOmega = 0;
 } rx_globals;
 
 rx_globals _globals;
@@ -1715,9 +1717,17 @@ arma::vec getUpperVec(int type, rx_solve* rx) {
 
 arma::mat getArmaMat(int type, int csim, rx_solve* rx) {
   if (type == 0) { // eps
-    return arma::mat(_globals.gsigma + 2 * rx->neps + csim * rx->neps * rx->neps, rx->neps, rx->neps, false, true);
+    if (_globals.nSigma == 1) {
+      return arma::mat(_globals.gsigma + 2 * rx->neps + csim * rx->neps * rx->neps, rx->neps, rx->neps, false, true);
+    } else {
+      return arma::mat(_globals.gsigma + 2 * rx->neps, rx->neps, rx->neps, false, true);
+    }
   } else { // eta
-    return arma::mat(_globals.gomega + 2 * rx->neta  + csim * rx->neta * rx->neta, rx->neta,  rx->neta, false, true);
+    if (_globals.nOmega == 1) {
+      return arma::mat(_globals.gomega + 2 * rx->neta  + csim * rx->neta * rx->neta, rx->neta,  rx->neta, false, true);
+    } else {
+      return arma::mat(_globals.gomega + 2 * rx->neta, rx->neta,  rx->neta, false, true);
+    }
   }
 }
 
@@ -1983,6 +1993,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   }
   if (dfSub > 0 && nStud > 1){
     _rxModels[".omegaL"] = omegaList;
+    _rxModels[".omegaN"] = omegaN;
   }
   if (dfObs > 0 && nStud > 1){
     _rxModels[".sigmaL"] = sigmaList;
@@ -2001,6 +2012,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 	sigma0 = as<arma::mat>(sigmaList[i]);
 	std::copy(&sigma0[0], &sigma0[0] + rx->neps * rx->neps, _globals.gsigma + 2 * rx->neps + i * rx->neps * rx->neps);
       }
+      _globals.nSigma = 1;
     } else {
       if (sigmaIsChol) {
 	sigma0 = as<arma::mat>(sigmaM);
@@ -2011,7 +2023,8 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
       if (_globals.gsigma != NULL) free(_globals.gsigma);
       rx->neps = sigma0.n_rows;
       _globals.gsigma = (double*)malloc((rx->neps * rx->neps + 2 * rx->neps)* sizeof(double));
-      std::copy(&sigma0[0], &sigma0[0] + rx->neps * rx->neps, _globals.gsigma + 2 * rx->neps);      
+      std::copy(&sigma0[0], &sigma0[0] + rx->neps * rx->neps, _globals.gsigma + 2 * rx->neps);
+      _globals.nSigma = 0;
     }
     arma::vec in = as<arma::vec>(sigmaLower);
     arma::vec lowerSigmaV = fillVec(in, sigma0.n_rows);
@@ -2030,12 +2043,14 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     arma::mat omega0;
     if (dfSub > 0 && nStud > 1) {
       omega0 = as<arma::mat>(omegaList[0]);
+      rx->neta = omega0.n_rows;
       if (_globals.gomega != NULL) free(_globals.gomega);
       _globals.gomega = (double*)malloc((2 * rx->neta + rx->neta * rx->neta * omegaList.size())*sizeof(double));
       for (int i = 0; i < omegaList.size(); i++) {
-	omega0 = as<arma::mat>(omegaList[0]);
+	omega0 = as<arma::mat>(omegaList[i]);
 	std::copy(&omega0[0], &omega0[0] + rx->neta * rx->neta, _globals.gomega + 2 * rx->neta + i * rx->neta * rx->neta);
       }
+      _globals.nOmega = 1;
     } else {
       if (omegaIsChol) {
 	omega0 = as<arma::mat>(omegaM);
@@ -2046,7 +2061,8 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
       if (_globals.gomega != NULL) free(_globals.gomega);
       rx->neta = omega0.n_rows;
       _globals.gomega = (double*)malloc((2 * rx->neta + rx->neta * rx->neta)*sizeof(double));
-      std::copy(&omega0[0], &omega0[0] + rx->neta * rx->neta, _globals.gomega + 2 * rx->neta);      
+      std::copy(&omega0[0], &omega0[0] + rx->neta * rx->neta, _globals.gomega + 2 * rx->neta);
+      _globals.nOmega = 0;
     }
     arma::vec in = as<arma::vec>(omegaLower);
     arma::vec lowerOmegaV = fillVec(in, rx->neta);
@@ -2582,6 +2598,7 @@ static inline SEXP rxSolve_update(const RObject &object,
   }
   if(e.exists(".omegaL")){
     _rxModels[".omegaL"] = as<List>(e[".omegaL"]);
+    _rxModels[".omegaN"] = as<List>(e[".omegaN"]);
   }
   if(e.exists(".thetaL")){
     _rxModels[".thetaL"] = as<List>(e[".thetaL"]);
@@ -4763,6 +4780,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       } else {
 	_rxModels.remove(".omega");
       }
+    } else if (_rxModels.exists(".omegaN")) {
+      rxSolveDat->omegaN = as<CharacterVector>(_rxModels[".omegaN"]);
     }
 #ifdef rxSolveT
     REprintf("Time8: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
