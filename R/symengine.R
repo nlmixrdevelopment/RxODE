@@ -2969,7 +2969,7 @@ rxSplitPlusQ <- function(x, level = 0, mult = FALSE) {
 ##' Get list of supported functions
 ##'
 ##' @examples
-##' rxFuns()
+##' rxSupportedFuns()
 ##'@export
 rxSupportedFuns <- function() {
   .rxSupportedFuns(FALSE)
