@@ -1372,10 +1372,18 @@ rxCompile.rxModelVars <- function(model, # Model
     }
   } else {
     .dir <- dir
+    if (file.exists(.dir)) {
+      if (!file.exists(file.path(.dir, paste0(RxODE.md5, ".md5")))) {
+        .malert("remove old RxODE dir {.file {.dir}}")
+        unlink(.dir, recursive=TRUE, force=TRUE)
+        .msuccess("done")
+      }
+    }
   }
   .dir <- suppressMessages(.normalizePath(.dir, mustWork = FALSE))
   if (!file.exists(.dir)) {
     dir.create(.dir, recursive = TRUE)
+    writeLines("RxODE", file.path(.dir, paste0(RxODE.md5, ".md5")))
   }
 
   .cFile <- file.path(.dir, sprintf("%s.c", substr(prefix, 0, nchar(prefix) - 1)))

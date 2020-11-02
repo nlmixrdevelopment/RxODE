@@ -10,5 +10,5 @@ rxSupportedFuns()
 Get list of supported functions
 }
 \examples{
-rxFuns()
+rxSupportedFuns()
 }
