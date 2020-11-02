@@ -1,3 +1,4 @@
+#pragma once
 #ifndef __RxODE_model_shared_H__
 #define __RxODE_model_shared_H__
 #include <RxODE.h>

@@ -172,10 +172,12 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
         .minfo(sprintf("copy '%s'", basename(x)))
         .f0 <- readLines(x)
         if (.pkg == "RxODE") {
-          .f0[1] <- "#include \"../inst/include/RxODE.h\"\n#include \"../inst/include/RxODE_model.h\""
+          .f0[1] <- "#include \"../inst/include/RxODE.h\"\n#include \"../inst/include/RxODE_model_shared.h\""
         } else {
-          .f0[1] <- "#include <RxODE.h>\n#include <RxODE_model.h>"
+          .f0[1] <- "#include <RxODE.h>\n#include <RxODE_model_shared.h>"
         }
+        .w <- which(.f0 == "#include \"extraC.h\"")[1]
+        .f0[.w] <- .extraCnow
         writeLines(text = .f0, con = file.path(devtools::package_file("src"), basename(x)))
       }
     )
@@ -206,7 +208,7 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
       sink(file.path(devtools::package_file("src"), paste0(.pkg, "_init.c")))
       cat("#include <R.h>\n#include <Rinternals.h>\n#include <stdlib.h> // for NULL\n#include <R_ext/Rdynload.h>\n")
       cat("#include <RxODE.h>\n")
-      cat("#include <RxODE_model.h>\n")
+      cat("#include <RxODE_model_shared.h>\n")
       cat(paste0('#include "', .pkg, '_compiled.h"\n'))
       cat(sprintf("void R_init_%s(DllInfo *info){\n", .pkg))
       cat(sprintf("  R_init0_%s_RxODE_models();\n", .pkg))
@@ -230,38 +232,10 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
     .modName <- as.character(substitute(obj))
     .pkg <- basename(usethis::proj_get())
     .env <- new.env(parent = baseenv())
-    ## if (.pkg=="RxODE"){
-    ##     ## Don't recompile, just update internals
-    ##     obj$package <- "RxODE";
-    ##     obj$modName <- paste0("RxODE_",.modName);
-    ##     obj$mdir  <- devtools::package_file("inst/rx");
-    ##     .updateRxModelLib(obj);
-    ##     .dll <- obj$rxDll;
-    ##     .mv <- rxUpdateTrans_(.dll$modVars, paste0("RxODE_",.modName,"_"),
-    ##                           "RxODE");
-    ##     .dll$modVars <- .mv
-    ##     obj$rxDll <- .dll
-    ##     rxCompile(.mv,
-    ##               dir=devtools::package_file("inst/rx"),
-    ##               prefix=paste0("RxODE_",.modName,"_"),
-    ##               extraC = NULL,
-    ##               debug = NULL,
-    ##               modName = paste("RxODE_",.modName),
-    ##               package="RxODE");
-    ##     assign(.modName, obj, .env);
-    ##     assign("internal", internal, .env)
-    ##     assign("overwrite", overwrite, .env)
-    ##     assign("compress", compress, .env)
-    ##     eval(parse(text=sprintf("usethis::use_data(%s, internal=internal, overwrite=overwrite, compress=compress)", .modName)),
-    ##          envir=.env)
-    ## }
-    ## else {
-    obj$package <- NULL
     assign(.modName, RxODE(rxNorm(obj), package = .pkg, modName = .modName), .env)
     assign("internal", internal, .env)
     assign("overwrite", overwrite, .env)
     assign("compress", compress, .env)
     eval(parse(text = sprintf("usethis::use_data(%s, internal=internal, overwrite=overwrite, compress=compress)", .modName)), envir = .env)
-    ## }
   }
 }
