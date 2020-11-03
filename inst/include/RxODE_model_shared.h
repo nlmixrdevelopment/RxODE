@@ -151,7 +151,7 @@ typedef double(*_rxSumType)(double *, int, double *, int, int);
 
 typedef void(*_simfun)(int id);
 
-_simfun simeps, simeta;
+extern _simfun simeps, simeta;
 
 double _sum(double *input, double *pld, int m, int type, int n, ...);
 
@@ -196,230 +196,83 @@ typedef double (*_getParCov_p)(unsigned int id, rx_solve *rx, int parNo, int idx
 
 typedef rx_solve *(*_getRxSolve_t)();
 
-_getRxSolve_t _getRxSolve_;
-
-void _assignFuns();
-
-rx_solve *_solveData = NULL;
-RxODE_assign_ptr _assign_ptr = NULL;
-_rxRmModelLibType _rxRmModelLib = NULL;
-_rxGetModelLibType _rxGetModelLib = NULL;
-RxODE_ode_solver_old_c _old_c = NULL;
-RxODE_fn0i _ptrid=NULL;
-_rxIsCurrentC_type _rxIsCurrentC=NULL;
-_rxSumType _sumPS = NULL;
-_rxProdType _prodPS = NULL;
-
-RxODE_fn0i _prodType = NULL;
-RxODE_fn0i _sumType = NULL;
-
-
-double _sum(double *input, double *pld, int m, int type, int n, ...){
-  va_list valist;
-  va_start(valist, n);
-  for (unsigned int i = 0; i < n; i++){
-    input[i] = va_arg(valist, double);
-  }
-  va_end(valist);
-  double ret = _sumPS(input, n, pld, m, type);
-  if (type == 2 && m < 0){
-    for (int i = -m; i--;){
-      pld[i] = 0.0;
-    }
-  }
-  return ret;
-}
-
-
-double _prod(double *input, double *p, int type, int n, ...){
-  va_list valist;
-  va_start(valist, n);
-  for (unsigned int i = 0; i < n; i++){
-    input[i] = va_arg(valist, double);
-  }
-  va_end(valist);
-  return _prodPS(input, p, n, type);
-}
-
-double _sign(unsigned int n, ...){
-  va_list valist;
-  va_start(valist, n);
-  double s = 1;
-  for (unsigned int i = 0; i < n; i++){
-    s = sign(va_arg(valist, double))*s;
-    if (s == 0){
-      break;
-    }
-  }
-  va_end(valist);
-  return s;
-}
-
-double _max(unsigned int n, ...){
-  va_list valist;
-  va_start(valist, n);
-  double mx = NA_REAL;
-  double tmp = 0;
-  if (n >= 1){
-    mx = va_arg(valist, double);
-    for (unsigned int i = 1; i < n; i++){
-      tmp = va_arg(valist, double);
-      if (tmp>mx) mx=tmp;
-    }
-    va_end(valist);
-  }
-  return mx;
-}
-
-double _min(unsigned int n, ...){
-  va_list valist;
-  va_start(valist, n);
-  double mn = NA_REAL;
-  double tmp = 0;
-  if (n >= 1){
-    mn = va_arg(valist, double);
-    for (unsigned int i = 1; i < n; i++){
-      tmp = va_arg(valist, double);
-      if (tmp<mn) mn=tmp;
-    }
-    va_end(valist);
-  }
-  return mn;
-}
-
-double _transit4P(double t, unsigned int id, double n, double mtt, double bio){
-  double ktr = (n+1)/mtt;
-  double lktr = log(n+1)-log(mtt);
-  double tc = (t-(_solveData->subjects[id].tlast));
-  return exp(log(bio*(_solveData->subjects[id].podo))+lktr+n*(lktr+log(tc))-ktr*(tc)-lgamma1p(n));
-}
-
-double _transit3P(double t, unsigned int id, double n, double mtt){
-  double ktr = (n+1)/mtt;
-  double lktr = log(n+1)-log(mtt);
-  double tc = (t-(_solveData->subjects[id].tlast));
-  return exp(log(_solveData->subjects[id].podo)+lktr+n*(lktr+log(tc))-ktr*(tc)-lgamma1p(n));
-}
-
-_update_par_ptr_p _update_par_ptr=NULL;
-_getParCov_p _getParCov=NULL;
-linCmtA_p linCmtA;
-linCmtA_p linCmtC;
-linCmtB_p linCmtB;
-_rx_asgn _RxODE_rxAssignPtr =NULL;
 typedef int (*RxODEi_rxbinom) (rx_solving_options_ind* ind, int n, double prob);
 typedef int (*RxODEi2_ribinom) (rx_solving_options_ind* ind, int id, int n, double prob);
 
-RxODE_fn phi;
-RxODE_fn3 logit;
-RxODE_fn3 expit;
-RxODE_fn2 gammap;
-RxODE_fn2 gammaq;
-RxODE_fn2 lowergamma;
-RxODE_fn2 uppergamma;
-RxODE_fn2 gammapInv;
-RxODE_fn2 gammapDer;
-RxODE_fn2 gammapInva;
-RxODE_fn2 gammaqInv;
-RxODE_fn2 gammaqInva;
+void _assignFuns();
+double _sum(double *input, double *pld, int m, int type, int n, ...);
+double _prod(double *input, double *p, int type, int n, ...);
+double _sign(unsigned int n, ...);
+double _max(unsigned int n, ...);
+double _min(unsigned int n, ...);
+double _transit4P(double t, unsigned int id, double n, double mtt, double bio);
+double _transit3P(double t, unsigned int id, double n, double mtt);
 
-RxODEi_fn2 rxnorm;
-RxODEi_fn2 rxnormV;
-RxODEi_rxbinom rxbinom;
-RxODEi_fn2 rxcauchy;
-RxODEi_fn rxchisq;
-RxODEi_fn rxexp;
-RxODEi_fn2 rxf;
-RxODEi_ifn rxgeom;
-RxODEi_fn2 rxgamma;
-RxODEi_fn2 rxbeta;
-RxODEi_ifn rxpois;
-RxODEi_fn rxt_;
-RxODEi_fn2 rxunif;
-RxODEi_fn2 rxweibull;
+extern _getRxSolve_t _getRxSolve_;
 
-RxODEi2_fn2 rinorm;
-RxODEi2_fn2 rinormV;
-RxODEi2_ribinom ribinom;
-RxODEi2_fn2 ricauchy;
-RxODEi2_fn richisq;
-RxODEi2_fn riexp;
-RxODEi2_fn2 rif;
-RxODEi2_ifn rigeom;
-RxODEi2_fn2 rigamma;
-RxODEi2_fn2 ribeta;
-RxODEi2_ifn ripois;
-RxODEi2_fn rit_;
-RxODEi2_fn2 riunif;
-RxODEi2_fn2 riweibull;
+extern rx_solve *_solveData;
+extern RxODE_assign_ptr _assign_ptr;
+extern _rxRmModelLibType _rxRmModelLib;
+extern _rxGetModelLibType _rxGetModelLib;
+extern RxODE_ode_solver_old_c _old_c;
+extern RxODE_fn0i _ptrid;
+extern _rxIsCurrentC_type _rxIsCurrentC;
+extern _rxSumType _sumPS;
+extern _rxProdType _prodPS;
 
-RxODE_compareFactorVal_fn _compareFactorVal;
-void _assignFuns(){
-  if (_assign_ptr == NULL){
-    _getRxSolve_ = (_getRxSolve_t) R_GetCCallable("RxODE","getRxSolve_");
-    _assign_ptr=(RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
-    _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
-    _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
-    _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
-    _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
-    _sumPS  = (_rxSumType) R_GetCCallable("PreciseSums","PreciseSums_sum_r");
-    _prodPS = (_rxProdType) R_GetCCallable("PreciseSums","PreciseSums_prod_r");
-    _prodType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_prod_get");
-    _sumType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_sum_get");
-    _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
-    linCmtA=(linCmtA_p)R_GetCCallable("RxODE", "linCmtA");
-    linCmtB=(linCmtB_p)R_GetCCallable("RxODE", "linCmtB");
-    linCmtC=(linCmtA_p)R_GetCCallable("RxODE", "linCmtC");
-    
-    rxnorm = (RxODEi_fn2)R_GetCCallable("RxODE", "rxnorm");
-    rxnormV = (RxODEi_fn2)R_GetCCallable("RxODE", "rxnormV");
-    rxbinom = (RxODEi_rxbinom)R_GetCCallable("RxODE","rxbinom") ;
-    rxcauchy = (RxODEi_fn2)R_GetCCallable("RxODE","rxcauchy") ;
-    rxchisq = (RxODEi_fn)R_GetCCallable("RxODE","rxchisq") ;
-    rxexp = (RxODEi_fn)R_GetCCallable("RxODE","rxexp");
-    rxf = (RxODEi_fn2)R_GetCCallable("RxODE","rxf") ;
-    rxgeom = (RxODEi_ifn)R_GetCCallable("RxODE","rxgeom") ;
-    rxgamma = (RxODEi_fn2)R_GetCCallable("RxODE","rxgamma") ;
-    rxbeta = (RxODEi_fn2)R_GetCCallable("RxODE","rxbeta") ;
-    rxpois = (RxODEi_ifn)R_GetCCallable("RxODE","rxpois") ;
-    rxt_ = (RxODEi_fn)R_GetCCallable("RxODE","rxt_") ;
-    rxunif = (RxODEi_fn2)R_GetCCallable("RxODE","rxunif") ;
-    rxweibull = (RxODEi_fn2)R_GetCCallable("RxODE","rxweibull");
+extern RxODE_fn0i _prodType;
+extern RxODE_fn0i _sumType;
 
-    rinorm = (RxODEi2_fn2)R_GetCCallable("RxODE", "rinorm");
-    rinormV = (RxODEi2_fn2)R_GetCCallable("RxODE", "rinormV");
-    ribinom = (RxODEi2_ribinom)R_GetCCallable("RxODE","ribinom") ;
-    ricauchy = (RxODEi2_fn2)R_GetCCallable("RxODE","ricauchy") ;
-    richisq = (RxODEi2_fn)R_GetCCallable("RxODE","richisq") ;
-    riexp = (RxODEi2_fn)R_GetCCallable("RxODE","riexp");
-    rif = (RxODEi2_fn2)R_GetCCallable("RxODE","rif") ;
-    rigeom = (RxODEi2_ifn)R_GetCCallable("RxODE","rigeom") ;
-    rigamma = (RxODEi2_fn2)R_GetCCallable("RxODE","rigamma") ;
-    ribeta = (RxODEi2_fn2)R_GetCCallable("RxODE","ribeta") ;
-    ripois = (RxODEi2_ifn)R_GetCCallable("RxODE","ripois") ;
-    rit_ = (RxODEi2_fn)R_GetCCallable("RxODE","rit_") ;
-    riunif = (RxODEi2_fn2)R_GetCCallable("RxODE","riunif") ;
-    riweibull = (RxODEi2_fn2)R_GetCCallable("RxODE","riweibull");
-    
-    phi = (RxODE_fn)R_GetCCallable("RxODE","phi");
-    gammap = (RxODE_fn2) R_GetCCallable("RxODE","gammap");
-    gammaq = (RxODE_fn2) R_GetCCallable("RxODE","gammaq");
-    gammapInv = (RxODE_fn2) R_GetCCallable("RxODE","gammapInv");
-    gammapInva = (RxODE_fn2) R_GetCCallable("RxODE","gammapInva");
-    gammaqInv = (RxODE_fn2) R_GetCCallable("RxODE","gammaqInv");
-    gammaqInva = (RxODE_fn2) R_GetCCallable("RxODE","gammaqInva");
-    uppergamma = (RxODE_fn2) R_GetCCallable("RxODE","uppergamma");
-    lowergamma = (RxODE_fn2) R_GetCCallable("RxODE","lowergamma");
-    gammapDer  = (RxODE_fn2) R_GetCCallable("RxODE","gammapDer");
-    logit = (RxODE_fn3) R_GetCCallable("RxODE", "logit");
-    expit = (RxODE_fn3) R_GetCCallable("RxODE", "expit");
-    simeta =(_simfun) R_GetCCallable("RxODE", "simeta");
-    simeps =(_simfun) R_GetCCallable("RxODE", "simeps");
-    _compareFactorVal=(RxODE_compareFactorVal_fn) R_GetCCallable("RxODE", "compareFactorVal");
-    _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
-    _getParCov = (_getParCov_p) R_GetCCallable("RxODE","_getParCov");
-    _solveData = _getRxSolve_();
-  }
-}
+extern _update_par_ptr_p _update_par_ptr;
+extern _getParCov_p _getParCov;
+extern linCmtA_p linCmtA;
+extern linCmtA_p linCmtC;
+extern linCmtB_p linCmtB;
+extern _rx_asgn _RxODE_rxAssignPtr;
+
+extern RxODE_fn phi;
+extern RxODE_fn3 logit;
+extern RxODE_fn3 expit;
+extern RxODE_fn2 gammap;
+extern RxODE_fn2 gammaq;
+extern RxODE_fn2 lowergamma;
+extern RxODE_fn2 uppergamma;
+extern RxODE_fn2 gammapInv;
+extern RxODE_fn2 gammapDer;
+extern RxODE_fn2 gammapInva;
+extern RxODE_fn2 gammaqInv;
+extern RxODE_fn2 gammaqInva;
+
+extern RxODEi_fn2 rxnorm;
+extern RxODEi_fn2 rxnormV;
+extern RxODEi_rxbinom rxbinom;
+extern RxODEi_fn2 rxcauchy;
+extern RxODEi_fn rxchisq;
+extern RxODEi_fn rxexp;
+extern RxODEi_fn2 rxf;
+extern RxODEi_ifn rxgeom;
+extern RxODEi_fn2 rxgamma;
+extern RxODEi_fn2 rxbeta;
+extern RxODEi_ifn rxpois;
+extern RxODEi_fn rxt_;
+extern RxODEi_fn2 rxunif;
+extern RxODEi_fn2 rxweibull;
+
+extern RxODEi2_fn2 rinorm;
+extern RxODEi2_fn2 rinormV;
+extern RxODEi2_ribinom ribinom;
+extern RxODEi2_fn2 ricauchy;
+extern RxODEi2_fn richisq;
+extern RxODEi2_fn riexp;
+extern RxODEi2_fn2 rif;
+extern RxODEi2_ifn rigeom;
+extern RxODEi2_fn2 rigamma;
+extern RxODEi2_fn2 ribeta;
+extern RxODEi2_ifn ripois;
+extern RxODEi2_fn rit_;
+extern RxODEi2_fn2 riunif;
+extern RxODEi2_fn2 riweibull;
+
+extern RxODE_compareFactorVal_fn _compareFactorVal;
 
 #endif // __RxODE_model_shared_H__
