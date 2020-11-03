@@ -1,6 +1,8 @@
 #include <RxODE_model_shared.h>
 _getRxSolve_t _getRxSolve_;
 
+_simfun simeps, simeta;
+
 rx_solve *_solveData = NULL;
 RxODE_assign_ptr _assign_ptr = NULL;
 _rxRmModelLibType _rxRmModelLib = NULL;

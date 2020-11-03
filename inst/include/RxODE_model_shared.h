@@ -151,7 +151,7 @@ typedef double(*_rxSumType)(double *, int, double *, int, int);
 
 typedef void(*_simfun)(int id);
 
-_simfun simeps, simeta;
+extern _simfun simeps, simeta;
 
 double _sum(double *input, double *pld, int m, int type, int n, ...);
 

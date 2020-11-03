@@ -4,6 +4,14 @@
   assignInMyNamespace(".pkgModelCurrent", value)
 }
 
+.isWritable <- function(...) {
+  .ret <- try(assertthat::is.writeable(...), silent=TRUE)
+  if (inherits(.ret, "try-error")) {
+    .ret <- FALSE
+  }
+  .ret
+}
+
 .rxPkgInst <- function(obj) {
   .wd <- getwd()
   if (regexpr(obj$package, .wd) != -1) {
@@ -11,7 +19,7 @@
   } else {
     .inst <- system.file(package = obj$package)
   }
-  if (assertthat::is.writeable(.inst)) {
+  if (.isWritable(.inst)) {
     if (regexpr("inst$", .inst) != -1) {
       return(.inst)
     }
@@ -26,7 +34,7 @@
     return(.inst2)
   } else {
     .inst <- "~/.rxCache/"
-    if (assertthat::is.writeable(.inst)) {
+    if (.isWritable(.inst)) {
       return(.inst)
     }
     return(rxTempDir())
@@ -164,6 +172,9 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
     }
     if (!dir.exists(devtools::package_file("src"))) {
       dir.create(devtools::package_file("src"), recursive = TRUE)
+      .minfo("copy RxODE_model_shared.c")
+      file.copy(file.path(system.file(package="RxODE"), "include", "RxODE_model_shared.c"),
+                file.path(devtools::package_file("src"), "RxODE_model_shared.c"))
     }
     .pkg <- basename(usethis::proj_get())
     sapply(
@@ -178,6 +189,8 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
         }
         .w <- which(.f0 == "#include \"extraC.h\"")[1]
         .f0[.w] <- .extraCnow
+        .w <- which(.f0 == "#include <RxODE_model_shared.c>")[1]
+        .f0 <- .f0[-.w]
         writeLines(text = .f0, con = file.path(devtools::package_file("src"), basename(x)))
       }
     )
@@ -238,4 +251,80 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
     assign("compress", compress, .env)
     eval(parse(text = sprintf("usethis::use_data(%s, internal=internal, overwrite=overwrite, compress=compress)", .modName)), envir = .env)
   }
+}
+
+##' Creates a package from compiled RxODE models
+##'
+##' @param ... Models to build a package from
+##' @param package String of the package name to create
+##' @param action Type of action to take after package is created
+##' @inheritParams usethis::create_package
+##'
+##' @author Matthew Fidler
+##' @export
+rxPkg <- function(..., package,
+                  wd=getwd(),
+                  action=c("install", "build", "binary", "create"),
+                  fields=list()) {
+  if (missing(package)) {
+    stop("'package' needs to be specified")
+  }
+  action <- match.arg(action)
+  .owd <- getwd()
+  .op <- options()
+  on.exit({setwd(.owd);options(.op)})
+  .dir <- wd
+  if (!dir.exists(.dir)) {
+    dir.create(.dir)
+  }
+  setwd(.dir)
+  options(usethis.description = list(`Title`="This is generated from RxODE"))
+  .dir2 <- file.path(.dir, package)
+  usethis::create_package(.dir2,
+                          fields = fields,
+                          rstudio = FALSE,
+                          roxygen = TRUE,
+                          check_name = TRUE,
+                          open = FALSE)
+  setwd(.dir2)
+
+  usethis::use_package("RxODE", "LinkingTo")
+  usethis::use_package("RxODE", "Depends")
+  .p <- devtools::package_file("DESCRIPTION")
+  writeLines(c(readLines(.p),
+               "NeedsCompilation: yes",
+               "Biarch: true"), .p)
+  ## Now use rxUse for each item
+  .env <- new.env()
+  .lst <- as.list(match.call()[-1])
+  .w <- which(names(.lst) == "")
+  .lst <- .lst[.w]
+
+  for (.i in seq_along(.lst)){
+    .v <- as.character(deparse(.lst[[.i]]))
+    assign(.v, eval(.lst[[.i]], envir=parent.frame(1)), .env)
+    print(.env[[.v]])
+    eval(parse(text=sprintf("rxUse(%s)", .v)), envir=.env)
+  }
+
+  ## Final rxUse to generate all code
+  rxUse()
+
+  .p <- file.path(devtools::package_file("R"), "rxUpdated.R")
+  .f <- readLines(.p)
+  .w <- which(regexpr("@useDynLib", .f) != -1)
+
+  if (length(.w) == 0) {
+    .f <- c(paste0("##' @useDynLib ", "test",", .registration=TRUE"), .f)
+    writeLines(.f, .p)
+  }
+  devtools::document()
+  if (action == "install") {
+    devtools::install()
+  } else if (action == "build") {
+    devtools::build()
+  } else if (action == "zip") {
+    devtools::build(binary=TRUE)
+  }
+  invisible()
 }
