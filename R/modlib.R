@@ -72,6 +72,8 @@
   ))) != 0)
 }
 
+.rxUseCdir <- ""
+
 ##' Use model object in your package
 ##' @param obj model to save.
 ##' @param internal If this is run internally.  By default this is FALSE
@@ -172,13 +174,13 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
     }
     if (!dir.exists(devtools::package_file("src"))) {
       dir.create(devtools::package_file("src"), recursive = TRUE)
-      .minfo("copy RxODE_model_shared.c")
-      file.copy(file.path(system.file(package="RxODE"), "include", "RxODE_model_shared.c"),
-                file.path(devtools::package_file("src"), "RxODE_model_shared.c"))
     }
+    .minfo("copy RxODE_model_shared.c")
+    file.copy(file.path(system.file(package="RxODE"), "include", "RxODE_model_shared.c"),
+                file.path(devtools::package_file("src"), "RxODE_model_shared.c"))
     .pkg <- basename(usethis::proj_get())
     sapply(
-      list.files(devtools::package_file("inst/rx"), pattern = "[.]c", full.names = TRUE),
+      list.files(.rxUseCdir, pattern = "[.]c", full.names = TRUE),
       function(x) {
         .minfo(sprintf("copy '%s'", basename(x)))
         .f0 <- readLines(x)
@@ -216,6 +218,7 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
     cat("\n")
     sink()
     .files <- list.files(devtools::package_file("src"))
+    .files <- .files[regexpr("RxODE_model_shared", .files) == -1]
     if (all(regexpr(paste0("^", .pkg), .files) != -1)) {
       .minfo(sprintf("only compiled models in this package, creating '%s_init.c'", .pkg))
       sink(file.path(devtools::package_file("src"), paste0(.pkg, "_init.c")))
@@ -240,12 +243,17 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
       cat(".rxUpdated <- new.env(parent=emptyenv())\n")
       sink()
     }
+    unlink(devtools::package_file("inst/rx"), recursive = TRUE, force=TRUE)
+    if (length(list.files(devtools::package_file("inst"))) == 0) {
+      unlink(devtools::package_file("inst"), recursive = TRUE, force=TRUE)
+    }
     return(invisible(TRUE))
   } else {
     .modName <- as.character(substitute(obj))
     .pkg <- basename(usethis::proj_get())
     .env <- new.env(parent = baseenv())
     assign(.modName, RxODE(rxNorm(obj), package = .pkg, modName = .modName), .env)
+    assignInMyNamespace(".rxUseCdir", dirname(rxC(.env[[.modName]])))
     assign("internal", internal, .env)
     assign("overwrite", overwrite, .env)
     assign("compress", compress, .env)
@@ -259,17 +267,19 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
 ##' @param package String of the package name to create
 ##' @param action Type of action to take after package is created
 ##' @inheritParams usethis::create_package
-##'
 ##' @author Matthew Fidler
 ##' @export
 rxPkg <- function(..., package,
                   wd=getwd(),
                   action=c("install", "build", "binary", "create"),
+                  license=c("gpl3", "gpl2", "mit"),
+                  name="Firstname Lastname",
                   fields=list()) {
   if (missing(package)) {
     stop("'package' needs to be specified")
   }
   action <- match.arg(action)
+  license <- match.arg(license)
   .owd <- getwd()
   .op <- options()
   on.exit({setwd(.owd);options(.op)})
@@ -278,7 +288,8 @@ rxPkg <- function(..., package,
     dir.create(.dir)
   }
   setwd(.dir)
-  options(usethis.description = list(`Title`="This is generated from RxODE"))
+  options(usethis.description = list(`Title`="This is generated from RxODE"),
+          usethis.full_name = ifelse(missing(name), getOption("usethis.full_name", "Firstname Lastname"), name))
   .dir2 <- file.path(.dir, package)
   usethis::create_package(.dir2,
                           fields = fields,
@@ -287,9 +298,15 @@ rxPkg <- function(..., package,
                           check_name = TRUE,
                           open = FALSE)
   setwd(.dir2)
-
   usethis::use_package("RxODE", "LinkingTo")
   usethis::use_package("RxODE", "Depends")
+  if (license == "gpl3") {
+    usethis::use_gpl3_license()
+  } else if (license == "gpl2") {
+    usethis::use_gpl2_license()
+  } else if (license == "mit") {
+    usethis::use_mit_license()
+  }
   .p <- devtools::package_file("DESCRIPTION")
   writeLines(c(readLines(.p),
                "NeedsCompilation: yes",
@@ -315,7 +332,9 @@ rxPkg <- function(..., package,
   .w <- which(regexpr("@useDynLib", .f) != -1)
 
   if (length(.w) == 0) {
-    .f <- c(paste0("##' @useDynLib ", package,", .registration=TRUE"), .f)
+    .f <- c(paste0("##' @useDynLib ", package,", .registration=TRUE"),
+            "##' @import RxODE",
+            .f)
     writeLines(.f, .p)
   }
   devtools::document()
