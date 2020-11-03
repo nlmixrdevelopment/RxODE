@@ -315,15 +315,33 @@ rxPkg <- function(..., package,
   .w <- which(regexpr("@useDynLib", .f) != -1)
 
   if (length(.w) == 0) {
-    .f <- c(paste0("##' @useDynLib ", "test",", .registration=TRUE"), .f)
+    .f <- c(paste0("##' @useDynLib ", package,", .registration=TRUE"), .f)
     writeLines(.f, .p)
   }
   devtools::document()
+  if (!file.exists("configure.win")) {
+    writeLines(c("#!/bin/sh",
+                 "echo \"unlink('src', recursive=TRUE);RxODE::rxUse()\" > build.R",
+                 "${R_HOME}/bin/Rscript build.R",
+                 "rm build.R"
+                 ), "configure.win")
+  }
+  if (!file.exists("configure")) {
+    writeLines(c("#!/bin/sh",
+                 "echo \"unlink('src', recursive=TRUE);RxODE::rxUse()\" > build.R",
+                 "${R_HOME}/bin/Rscript build.R",
+                 "rm build.R"
+                 ), "configure")
+    if (!file.exists("configure.ac")) {
+      writeLines("## dummy autoconf script",
+                 "configure.ac")
+    }
+  }
   if (action == "install") {
     devtools::install()
   } else if (action == "build") {
     devtools::build()
-  } else if (action == "zip") {
+  } else if (action == "binary") {
     devtools::build(binary=TRUE)
   }
   invisible()
