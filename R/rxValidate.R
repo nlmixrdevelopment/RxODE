@@ -8,6 +8,9 @@
 ##' @export
 rxValidate <- function(type = NULL, check = FALSE) {
   ## rxVersion(" Validation", TRUE);
+  .op <- options()
+  on.exit(options(.op))
+  options(testthat.progress.max_fails=10000000000)
   .tests <- c(
     "cran", "norm", "demo", "lvl2", "parsing",
     "focei", "indLin", "lincmt",
