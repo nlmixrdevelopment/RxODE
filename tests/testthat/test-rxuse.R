@@ -24,7 +24,7 @@ rxPermissive({
     dir <- tempdir()
 
     expect_error(rxPkg(mod, mod2, package="rxm", wd=dir), NA)
-    unlink(dir, recursive=TRUE)
+    ## unlink(dir, recursive=TRUE)
 
     # when load_all is used, you get
     ## Error: package ‘RxODE’ required by ‘rxm’ could not be found

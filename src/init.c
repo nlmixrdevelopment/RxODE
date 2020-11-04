@@ -281,6 +281,7 @@ double riweibull(rx_solving_options_ind* ind, int id, double shape, double scale
 double rigamma(rx_solving_options_ind* ind, int id, double shape, double rate);
 double ribeta(rx_solving_options_ind* ind, int id, double shape1, double shape2);
 double rinormV(rx_solving_options_ind* ind, int id, double mean, double sd);
+const char *rxGetId(int id);
 
 
 double phi(double q);
@@ -544,6 +545,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "getUpdateInis", (DL_FUNC) &getUpdateInis);
   R_RegisterCCallable("RxODE", "sortIds", (DL_FUNC) &sortIds);
   R_RegisterCCallable("RxODE", "handleTlast", (DL_FUNC) &handleTlast);
+  R_RegisterCCallable("RxODE", "rxGetId", (DL_FUNC) &rxGetId);
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},

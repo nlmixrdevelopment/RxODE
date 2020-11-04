@@ -61,18 +61,22 @@ rx_solve rx_global;
 static inline const char *getId(int id) {
   rx_solve *rx = &rx_global;
   int curLen=  rx->factorNs[0];
-  std::string unknownId = "Unknown";
+  const char *unknownId = "Unknown";
   if (id < 0) {
-    return unknownId.c_str(); // Bad value
+    return unknownId; // Bad value
   }
   if (id < curLen){
     if (id >= rx->factors.n) {
-      return unknownId.c_str();
+      return unknownId;
     }
     return rx->factors.line[id];
   } else {
-    return unknownId.c_str();
+    return unknownId;
   }
+}
+
+extern "C" const char *rxGetId(int id) {
+  return getId(id);
 }
 
 void printErr(int err, int id){
