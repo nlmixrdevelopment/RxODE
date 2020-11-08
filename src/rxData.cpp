@@ -3956,14 +3956,14 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 
 // This creates the final dataset from the currently solved object.
 // Most of this is a direct C call, but some items are done in C++
-static inline List rxSolve_df(const RObject &obj,
-			      const List &rxControl,
-			      const Nullable<CharacterVector> &specParams,
-			      const Nullable<List> &extraArgs,
-			      const RObject &params,
-			      const RObject &events,
-			      const RObject &inits,
-			      rxSolve_t* rxSolveDat){
+List rxSolve_df(const RObject &obj,
+		const List &rxControl,
+		const Nullable<CharacterVector> &specParams,
+		const Nullable<List> &extraArgs,
+		const RObject &params,
+		const RObject &events,
+		const RObject &inits,
+		rxSolve_t* rxSolveDat){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   if (op->abort){

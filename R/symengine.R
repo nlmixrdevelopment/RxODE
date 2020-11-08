@@ -757,6 +757,7 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
     if (identical(x[[1]], quote(`(`))) {
       return(paste0("(", .rxToSE(x[[2]], envir = envir), ")"))
     } else if (identical(x[[1]], quote(`{`))) {
+      .x2 <- x[-1]
       if (progress) {
         rxProgress(length(.x2))
         on.exit({
@@ -768,7 +769,6 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
         }), collapse = "\n")
         rxProgressStop()
       } else {
-        .x2 <- x[-1]
         .ret <- paste(lapply(.x2, .rxToSE, envir = envir),
           collapse = "\n"
         )
