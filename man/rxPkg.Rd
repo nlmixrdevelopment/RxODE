@@ -9,6 +9,8 @@ rxPkg(
   package,
   wd = getwd(),
   action = c("install", "build", "binary", "create"),
+  license = c("gpl3", "lgpl", "mit", "agpl3"),
+  name = "Firstname Lastname",
   fields = list()
 )
 }
@@ -17,7 +19,21 @@ rxPkg(
 
 \item{package}{String of the package name to create}
 
+\item{wd}{character string with a working directory where to
+create a subdirectory according to \code{modName}. When
+specified, a subdirectory named after the
+\dQuote{\code{modName.d}} will be created and populated with a
+C file, a dynamic loading library, plus various other working
+files. If missing, the files are created (and removed) in the
+temporary directory, and the RxODE DLL for the model is
+created in the current directory named \code{rx_????_platform}, for
+example \code{rx_129f8f97fb94a87ca49ca8dafe691e1e_i386.dll}}
+
 \item{action}{Type of action to take after package is created}
+
+\item{license}{is the type of license for the package.}
+
+\item{name}{Full name of author}
 
 \item{fields}{A named list of fields to add to \code{DESCRIPTION}, potentially
 overriding default values. See \code{\link[usethis:use_description]{use_description()}} for how you can set

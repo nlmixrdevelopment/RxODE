@@ -266,13 +266,16 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
 ##' @param ... Models to build a package from
 ##' @param package String of the package name to create
 ##' @param action Type of action to take after package is created
+##' @param name Full name of author
+##' @param license is the type of license for the package.
 ##' @inheritParams usethis::create_package
+##' @inheritParams RxODE
 ##' @author Matthew Fidler
 ##' @export
 rxPkg <- function(..., package,
                   wd=getwd(),
                   action=c("install", "build", "binary", "create"),
-                  license=c("gpl3", "gpl2", "mit"),
+                  license=c("gpl3", "lgpl", "mit", "agpl3"),
                   name="Firstname Lastname",
                   fields=list()) {
   if (missing(package)) {
@@ -302,8 +305,12 @@ rxPkg <- function(..., package,
   usethis::use_package("RxODE", "Depends")
   if (license == "gpl3") {
     usethis::use_gpl3_license()
-  } else if (license == "gpl2") {
-    usethis::use_gpl2_license()
+  } else if (license == "lgpl") {
+    usethis::use_lgpl_license()
+  } else if (license == "agpl3") {
+    usethis::use_agpl3_license()
+  } else if (license == "agpl2") {
+    usethis::use_agpl2_license()
   } else if (license == "mit") {
     usethis::use_mit_license()
   }
