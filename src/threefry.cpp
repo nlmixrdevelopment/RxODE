@@ -1329,8 +1329,6 @@ void rxRmvnA(arma::mat & A_, arma::rowvec & mu, arma::mat &sigma,
     if (isChol){
       sigma0 = sigma * sigma.t();
     }
-    // IntegerVector dm = as<IntegerVector>(A_.attr("dim"));
-    int n = A_.n_rows;
     arma::vec lower0 = fillVec(lower, A_.n_cols);
     arma::vec upper0 = fillVec(upper, A_.n_cols);
     rxMvrandn__(A_, mu, sigma0, lower0,
