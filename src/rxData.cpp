@@ -2390,6 +2390,9 @@ LogicalVector rxSolveFree(){
   if (rx->UGRP != NULL) {
     free(rx->UGRP);
   }
+  if (rx->ordId != NULL) {
+    free(rx->ordId);
+  }
   rx->UGRP = NULL;
   if (rx->hasFactors == 1){
     lineFree(&(rx->factors));
@@ -3938,6 +3941,18 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   rx->nradix = (int*)malloc(op->cores*sizeof(int));//nbyte-1 + (rx->spare==0);
   std::fill_n(rx->nradix, op->cores, nradix);
   ////////////////////////////////////////////////////////////////////////////////
+  if (rx->keys!=NULL) {
+    int i=0;
+    while (rx->keys[i] != NULL){
+      int j = 0; 
+      while(rx->keys[i][j] != NULL){
+	free(rx->keys[i][j++]);
+      }
+      free(rx->keys[i++]);
+    }
+    free(rx->keys);
+  }
+  
   rx->keys = (uint8_t ***)calloc(op->cores+1, sizeof(uint8_t **));
   rx->keys[op->cores] = NULL;
   for (i = op->cores; i--;){
@@ -3949,7 +3964,9 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
     }
   }
   // Use same variables from data.table
+  if (rx->TMP != NULL) free(rx->TMP);
   rx->TMP =  (int *)malloc(op->cores*UINT16_MAX*sizeof(int)); // used by counting sort (my_n<=65536) in radix_r()
+  if (rx->UGRP != NULL) free(rx->TMP);
   rx->UGRP = (uint8_t *)malloc(op->cores*256);                // TODO: align TMP and UGRP to cache lines (and do the same for stack allocations too)
   // Now there is a key per core
 }

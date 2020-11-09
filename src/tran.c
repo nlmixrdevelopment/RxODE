@@ -1149,6 +1149,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	addLine(&sbPmDt, "%s\n", sbDt.s);
 	sAppend(&sbNrm, "%s\n", sbt.s);
 	addLine(&sbNrmL, "%s\n", sbt.s);
+	Free(v);
 	ENDLINE;
 	continue;
       }
@@ -2074,6 +2075,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    }
 	    Free(v2);
 	  }
+	  Free(v);
         } else {
 	  // Check if this is a valid function
 	  int foundFun = 0;
@@ -2524,7 +2526,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       if (nodeHas(derivative) && i==2) {
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (new_de(v)){
+        if (new_de(v)) {
 	  tb.statei++;
 	  if (strncmp(v, "rx__sens_", 3) == 0){
 	    tb.sensi++;
@@ -2563,6 +2565,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    tb.idi[tb.de.n-1] = 0;
 	    sAppendN(&sbt, "=", 1);
 	  }
+	  Free(v);
         } else {
 	  new_or_ith(v);
 	  /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
