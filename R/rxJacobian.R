@@ -348,7 +348,10 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
                                  sum.prod, optExpression))
   .path <- file.path(rxTempDir(), paste0("saem-", .digest, ".rds"))
   if (file.exists(.path)) {
-    return(readRDS(.path))
+    .ret <- try(readRDS(.path), silent=TRUE)
+    if (!inherits(.ret, "try-error")) {
+      return(.ret)
+    }
   }
   nlmixrAdd <- NULL
   add <- function(...){}
