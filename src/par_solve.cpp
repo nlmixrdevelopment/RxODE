@@ -1910,7 +1910,6 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   ctx->neq = neq[0];
   ctx->state = 1;
   ctx->error=NULL;
-  lsoda_prepare(ctx, &opt);
   ind = &(rx->subjects[neq[1]]);
   if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) return;
   nx = ind->n_all_times;
@@ -1922,6 +1921,7 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   rc= ind->rc;
   double xp = x[0];
   unsigned int j;
+  lsoda_prepare(ctx, &opt);
   for(i=0; i<nx; i++) {
     ind->idx=i;
     yp = getSolve(i);
@@ -1970,6 +1970,7 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   }
   // Reset LHS to NA
   lsoda_free(ctx);
+  free(ctx);
   ind->solveTime += ((double)(clock() - t0))/CLOCKS_PER_SEC;
 }
 
