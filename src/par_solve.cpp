@@ -978,7 +978,7 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
   uint64_t minD, maxD;
   ind->ixds = 0;
   ind->curShift = 0;
-  for (int i = 0; i < ind->n_all_times; i++){
+  for (int i = 0; i < ind->n_all_times; i++) {
     ind->ix[i] = i;
     ind->idx = i;
     if (!isObs(ind->evid[i])) {
@@ -1032,6 +1032,8 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
     }
     radix_r(0, ind->n_all_times-1, 0, ind, rx);
   }
+  delete[] time;
+  delete[] all;
 }
 
 extern "C" int syncIdx(rx_solving_options_ind *ind){

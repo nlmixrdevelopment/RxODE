@@ -626,7 +626,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
   free(starts);
   free(ugrps);
   free(ngrps);
-  delete my_gs;
+  delete[] my_gs;
 }
 
 extern "C" int getThrottle(){
