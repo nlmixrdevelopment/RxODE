@@ -4166,6 +4166,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     extra_indLin = (char*)rc_dup_str(CHAR(STRING_ELT(inLinExtra,0)),0);
   } else {
     freeP();
+    sFree(&bufw); sFree(&bufw2);
     Rf_errorcall(R_NilValue, _("extra inductive linearization model variables must be specified"));
   }
   if (isString(inME) && length(inME) == 1){
@@ -4173,6 +4174,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     me_code = rc_dup_str(CHAR(STRING_ELT(inME,0)),0);
   } else {
     freeP();
+    sFree(&bufw); sFree(&bufw2);
     Rf_errorcall(R_NilValue, _("extra ME code must be specified"));
   }
 
