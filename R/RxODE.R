@@ -1074,7 +1074,9 @@ rxMd5 <- function(model, # Model File
                   ...) {
   ## rxMd5 returns MD5 of model file.
   ## digest(file = TRUE) includes file times, so it doesn't work for this needs.
-  if (is(model, "character")) {
+  if (missing(model)) {
+    return(RxODE.md5)
+  } else if (is(model, "character")) {
     if (length(model) == 1) {
       if (file.exists(model)) {
         .ret <- readLines(model, warn = FALSE)
