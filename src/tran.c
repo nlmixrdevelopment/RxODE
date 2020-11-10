@@ -926,7 +926,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   int nch = d_get_number_of_children(pn), i, ii, found, safe_zero = 0;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
   sbuf buf;
-  sIniTo(&buf, 1024);
+  sIniTo(&buf, 1024);/// loss records
   double d;
   if ((nodeHas(identifier) || nodeHas(identifier_r) ||
        nodeHas(identifier_r_no_output)  ||
@@ -1330,6 +1330,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		  updateSyntaxCol();
 		  sPrint(&buf,ODEFIRST,v2);
 		  trans_syntax_error_report_fn(buf.s);
+		  Free(v);
 		  continue;
 		} else {
 		  tb.statei++;
@@ -2593,8 +2594,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    // keep it ignored.
 	    sAppendN(&sbt, "=", 1);
 	  }
+	  Free(v);
         }
-        Free(v);
         continue;
       }
       if (nodeHas(der_rhs)) {
@@ -2728,7 +2729,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	if (nodeHas(mtime)){
 	  tb.lh[tb.ix] = 1;
 	  tb.mtime[tb.ix] = 1;
-	} else if (nodeHas(assignment)  || (!rx_syntax_allow_ini && nodeHas(ini))){
+	} else if (nodeHas(assignment)  || (!rx_syntax_allow_ini && nodeHas(ini))) {
 	  if (tb.ix+1 == NV && tb.NEnd != NV){
 	    // New assignment
 	    tb.ixL = tb.ix;
@@ -2750,15 +2751,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    }
 	    tb.ixL=-1;
 	  }
-        } else if (nodeHas(ini) || nodeHas(ini0)){
+        } else if (nodeHas(ini) || nodeHas(ini0)) {
           if (tb.ini[tb.ix] == 0){
             // If there is only one initialzation call, then assume
             // this is a parameter with an initial value.
             tb.ini[tb.ix] = 1;
             if (nodeHas(ini0)){
 	      tb.ini0[tb.ix] = 1;
-	      Free(v);
 	      xpn = d_get_child(pn, 3);
+	      Free(v);
 	      v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	      sscanf(v, "%lf", &d);
 	      tb.iniv[tb.ix] = d;
@@ -2768,8 +2769,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
               if (strncmp(v,"rx_",3)==0){
                 tb.lh[tb.ix] = 1;
               } else {
-		Free(v);
 		xpn = d_get_child(pn, 2);
+		Free(v);
 		v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 		sscanf(v, "%lf", &d);
 		tb.iniv[tb.ix] = d;
@@ -4135,7 +4136,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   char *in = NULL;
   char *buf, *df, *dy;
   sbuf bufw, bufw2;
-  sIniTo(&bufw, 1024); sIniTo(&bufw2, 2100);
+  sIniTo(&bufw, 1024);
+  sIniTo(&bufw2, 2100);
   int i, j, islhs, pi=0, li=0, sli = 0, ini_i = 0,k=0, m=0, p=0;
   // Make sure buffers are initialized.
   isEsc=INTEGER(isEscIn)[0];
@@ -4711,7 +4713,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     } else {
       Rf_errorcall(R_NilValue, _("syntax errors (see above)"));
     }
-    
   }
   sFree(&bufw); sFree(&bufw2);
   return lst;
@@ -5913,14 +5914,20 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	linCmtVStr(&firstErr, lin.vStyle);
 	sAppendN(&firstErr, "' volumes", 9);
 	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
 	Rf_errorcall(R_NilValue, firstErr.s);
       }
       if (lin.v == -1) {
 	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
 	Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
       }
       if (lin.cl2 == -1) {
 	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
 	Rf_errorcall(R_NilValue, _("cannot figure out distributional clearance"));
       }
       sAppend(&ret0, "%d, %s", trans, mid);
@@ -5931,6 +5938,8 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     } else {
       if (lin.v == -1) {
 	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
 	Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
       }
       ncmt = 1;
@@ -5942,10 +5951,14 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	ncmt = 2;
 	if (lin.cl2 == -1) {
 	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
 	  Rf_errorcall(R_NilValue, _("cannot figure out distributional clearance"));
 	}
 	if (lin.v2 == -1) {
 	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
 	  Rf_errorcall(R_NilValue, _("cannot figure out distributional volume"));
 	}
 	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl2)));
@@ -5954,10 +5967,14 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	  ncmt = 3;
 	  if (lin.cl3 == -1) {
 	    parseFree(0);
+	    sFree(&ret0);
+	    sFree(&ret);
 	    Rf_errorcall(R_NilValue, _("cannot figure out 2nd distributional clearance"));
 	  }
 	  if (lin.v3 == -1) {
 	    parseFree(0);
+	    sFree(&ret0);
+	    sFree(&ret);
 	    Rf_errorcall(R_NilValue, _("cannot figure out 2nd distributional volume"));
 	  }
 	  sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl3)));
@@ -5973,6 +5990,8 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
   } else if (lin.kel != -1) {
     if (lin.v == -1) {
       parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
       Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
     }
     ncmt = 1;
@@ -5984,18 +6003,26 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       if (lin.k12 == -1) {
 	if (lin.cmtc == 1){
 	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
 	  Rf_errorcall(R_NilValue, _("'k12' not found when 'k21' present"));
 	} else {
 	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
 	  Rf_errorcall(R_NilValue, _("'k23' not found when 'k32' present"));
 	}
       }
       if (lin.k21 == -1) {
 	if (lin.cmtc == 1){
 	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
 	  Rf_errorcall(R_NilValue, _("'k21' not found when 'k12' present"));
 	} else {
 	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
 	  Rf_errorcall(R_NilValue, _("'k32' not found when 'k23' present"));
 	}
       }
@@ -6005,18 +6032,26 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       if (lin.k13 != -1 || lin.k31 != -1) {
 	if (lin.k13 == -1) {
 	  if (lin.cmtc == 1){
+	    sFree(&ret0);
+	    sFree(&ret);
 	    parseFree(0);
 	    Rf_errorcall(R_NilValue, _("'k13' not found when 'k31' present"));
 	  } else {
+	    sFree(&ret0);
+	    sFree(&ret);
 	    parseFree(0);
 	    Rf_errorcall(R_NilValue, _("'k24' not found when 'k42' present"));
 	  }
 	}
 	if (lin.k31 == -1) {
 	  if (lin.cmtc == 1){
+	    sFree(&ret0);
+	    sFree(&ret);
 	    parseFree(0);
 	    Rf_errorcall(R_NilValue, _("'k31' not found when 'k13' present"));
 	  } else {
+	    sFree(&ret0);
+	    sFree(&ret);
 	    parseFree(0);
 	    Rf_errorcall(R_NilValue, _("'k42' not found when 'k24' present"));
 	  }
@@ -6029,9 +6064,13 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       }
     } else if (lin.k31 != -1 || lin.k13 != -1){
       if (lin.cmtc == 1){
+	sFree(&ret0);
+	sFree(&ret);
 	parseFree(0);
 	Rf_errorcall(R_NilValue, _("'k13' or 'k31' present when 'k12' and 'k21' not present"));
       } else {
+	sFree(&ret0);
+	sFree(&ret);
 	parseFree(0);
 	Rf_errorcall(R_NilValue, _("'k24' or 'k42' present when 'k23' and 'k32' not present"));
       }
@@ -6044,14 +6083,20 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     trans = 5;
     if (lin.v == -1) {
       parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
       Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
     }
     if (lin.alpha == -1) {
       parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
       Rf_errorcall(R_NilValue, _("need an 'alpha' with 'aob'"));
     }
     if (lin.beta == -1) {
       parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
       Rf_errorcall(R_NilValue, _("need a 'beta' with 'aob'"));
     }
     sAppend(&ret0, "%d, %s", trans, mid);
@@ -6065,14 +6110,20 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     trans = 4;
     if (lin.v == -1) {
       parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
       Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
     }
     if (lin.alpha == -1) {
       parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
       Rf_errorcall(R_NilValue, _("need an 'alpha'"));
     }
     if (lin.beta == -1) {
       parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
       Rf_errorcall(R_NilValue, _("need a 'beta'"));
     }
     sAppend(&ret0, "%d, %s", trans, mid);
@@ -6101,6 +6152,8 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     } else {
       if (lin.v == -1) {
 	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
 	Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
       }
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
@@ -6109,10 +6162,14 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       ncmt =2;
       if (lin.beta == -1) {
 	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
 	Rf_errorcall(R_NilValue, _("need a 'beta'"));
       }
       if (lin.b == -1) {
 	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
 	Rf_errorcall(R_NilValue, _("need a 'b'"));
       }
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
@@ -6121,10 +6178,14 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	ncmt = 3;
 	if (lin.gamma == -1) {
 	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
 	  Rf_errorcall(R_NilValue, _("need a 'gamma'"));
 	}
 	if (lin.c == -1) {
 	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
 	  Rf_errorcall(R_NilValue, _("need a 'c'"));
 	}
 	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.gamma)));
@@ -6134,6 +6195,8 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       }
     } else if (lin.gamma != -1 || lin.c != -1) {
       parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
       Rf_errorcall(R_NilValue, _("a 'gamma' or 'c' specified without 'b' or 'beta'"));
     } else {
       sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);

@@ -2036,7 +2036,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     // upper
     // matrix list (n x n;  nStud matrices)
   }
-  
+
   if (Rf_isNull(omega) || rxIsChar(omega)){
   } else {
     // Fill in omega information for simeta()
@@ -2374,30 +2374,37 @@ LogicalVector rxSolveFree(){
   if (rx->keys != NULL) {
     int i=0;
     while (rx->keys[i] != NULL){
-      int j = 0; 
+      int j = 0;
       while(rx->keys[i][j] != NULL){
-	free(rx->keys[i][j++]);
+	free(rx->keys[i][j]);
+	rx->keys[i][j++] = NULL;
       }
-      free(rx->keys[i++]);
+      free(rx->keys[i]);
+      rx->keys[i++] = NULL;
     }
     free(rx->keys);
+    rx->keys=NULL;
   }
-  rx->keys=NULL;
+
   if (rx->TMP != NULL){
     free(rx->TMP);
   }
   rx->TMP = NULL;
+
   if (rx->UGRP != NULL) {
     free(rx->UGRP);
   }
+  rx->UGRP = NULL;
+
   if (rx->ordId != NULL) {
     free(rx->ordId);
   }
-  rx->UGRP = NULL;
+  rx->ordId = NULL;
+
   if (rx->hasFactors == 1){
     lineFree(&(rx->factors));
     lineFree(&(rx->factorNames));
-  }  
+  }
   if (!rxIsNull(rxSolveFreeObj)) {
     rxUnlock(rxSolveFreeObj);
     rxSolveFreeObj=R_NilValue;
@@ -2454,6 +2461,7 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
     // No point in sorting
     if (ini) {
       if (rx->ordId == NULL) free(rx->ordId);
+      rx->ordId=NULL;
       rx->ordId = (int*)malloc(nall*sizeof(int));
       std::iota(rx->ordId,rx->ordId+nall,1);
     } // else {
@@ -2478,6 +2486,7 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
   		    _["decreasing"] = LogicalVector::create(true));
       }
       if (rx->ordId == NULL) free(rx->ordId);
+      rx->ordId=NULL;
       rx->ordId = (int*)malloc(nall*sizeof(int));
       std::copy(ord.begin(), ord.end(), rx->ordId);
     } else {
@@ -3338,7 +3347,7 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
     NumericVector time0 = dataf[rxcTime];
     // Get the range
     range_d(REAL(dataf[rxcTime]), time0.size(), &(rx->minD), &(rx->maxD));
-    
+
     if (rxIs(time0, "units")){
       rxSolveDat->addTimeUnits=true;
       rxSolveDat->timeUnitsU=time0.attr("units");
@@ -3737,7 +3746,7 @@ static inline void rxSolve_resample(const RObject &obj,
 	    int val;
 	    // Retrieve or generate sample
 	    // Only need to resample from the number of input items (ncol)
-	    // Probably doesn't make much difference, though. 
+	    // Probably doesn't make much difference, though.
 	    if (resampleID) {
 	      val = idSel[is];
 	      if (val == 0){
@@ -3937,22 +3946,24 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   // NA, NaN, and -Inf +Inf not supported
   int nbyte=0, nradix=0, spare=0;
   calcNradix(&nbyte, &nradix, &spare, &(rx->maxD), &(rx->minD));
-  
+
   rx->nradix = (int*)malloc(op->cores*sizeof(int));//nbyte-1 + (rx->spare==0);
   std::fill_n(rx->nradix, op->cores, nradix);
   ////////////////////////////////////////////////////////////////////////////////
   if (rx->keys!=NULL) {
     int i=0;
     while (rx->keys[i] != NULL){
-      int j = 0; 
+      int j = 0;
       while(rx->keys[i][j] != NULL){
-	free(rx->keys[i][j++]);
+	free(rx->keys[i][j]);
+	rx->keys[i][j++] = NULL;
       }
-      free(rx->keys[i++]);
+      free(rx->keys[i]);
+      rx->keys[i++] = NULL;
     }
     free(rx->keys);
   }
-  
+  rx->keys = NULL;
   rx->keys = (uint8_t ***)calloc(op->cores+1, sizeof(uint8_t **));
   rx->keys[op->cores] = NULL;
   for (i = op->cores; i--;){
@@ -3965,8 +3976,10 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   }
   // Use same variables from data.table
   if (rx->TMP != NULL) free(rx->TMP);
+  rx->TMP = NULL;
   rx->TMP =  (int *)malloc(op->cores*UINT16_MAX*sizeof(int)); // used by counting sort (my_n<=65536) in radix_r()
   if (rx->UGRP != NULL) free(rx->TMP);
+  rx->UGRP = NULL;
   rx->UGRP = (uint8_t *)malloc(op->cores*256);                // TODO: align TMP and UGRP to cache lines (and do the same for stack allocations too)
   // Now there is a key per core
 }
@@ -5041,13 +5054,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     REprintf("Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
-    
+
     SEXP ret = rxSolve_finalize(object, rxControl, specParams, extraArgs, params, events,
 				inits, rxSolveDat);
     if (!rxIsNull(setupOnlyObj)) {
       rxUnlock(setupOnlyObj);
       setupOnlyObj = R_NilValue;
-    }            
+    }
 #ifdef rxSolveT
     REprintf("Time15: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -6171,7 +6184,7 @@ extern "C" void setSilentErr(int silent);
 //' Silence some of RxODE's C/C++ messages
 //'
 //' @param silent can be 0L "noisy"  or 1L "silent"
-//' 
+//'
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
