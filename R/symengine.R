@@ -1033,6 +1033,18 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
       } else {
         stop("only 'THETA[#]' or 'ETA[#]' are supported", call. = FALSE)
       }
+    } else if (identical(x[[1]], quote(`tad`))) {
+      .len <- length(x)
+      if (.len == 1L) {
+      } else if (.len == 2L) {
+        if (length(x[[2]]) != 1) {
+          stop(as.character(x[[1]]), "() must be used with a state", call.=FALSE)
+        }
+        return(paste0("(t-tlast(", as.character(x[[2]]), "))"))
+      } else {
+        stop(as.character(x[[1]]), "() can have 0-1 arguments", call.=FALSE)
+      }
+      return(paste0("(t-tlast())"))
     } else if (identical(x[[1]], quote(`tlast`)) ||
                  identical(x[[1]], quote(`tfirst`))) {
       .len <- length(x)

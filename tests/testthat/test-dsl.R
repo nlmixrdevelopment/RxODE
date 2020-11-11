@@ -440,6 +440,13 @@ rxPermissive(
     expect_equal(rxToSE("dosenum()"), "dosenum()")
     expect_equal(rxFromSE("dosenum()"), "dosenum()")
 
+    # tad()
+    expect_equal(rxToSE("tad()"), "(t-tad())")
+    expect_equal(rxToSE("tad(matt)"), "(t-tad(matt))")
+    expect_error(rxToSE("tad(matt,f)"))
+    expect_error(rxToSE("tad(matt+f)"))
+
+
   },
   test = "parsing"
 )
