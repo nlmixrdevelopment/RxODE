@@ -147,7 +147,10 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "dabs1"=1,
   "erfinv"=1,
   "abs0"=1,
-  "dosenum"=0
+  "dosenum"=0,
+  "first"=1,
+  "last"=1,
+  "diff"=1
 )
 
 .rxOnly <- c(
@@ -556,9 +559,9 @@ rxRmFun <- function(name) {
 
 .rxD$tlast <- list(function(a){return("0")})
 .rxD$tfirst <- list(function(a){return("0")})
-
-
-
+.rxD$first <- list(function(a){return("0")})
+.rxD$last <- list(function(a){return("0")})
+.rxD$diff <- list(function(a){return("0")})
 
 ## Approx a>=b by
 ## 1/2-1/2*tanh(k*x+delta)=1-tol

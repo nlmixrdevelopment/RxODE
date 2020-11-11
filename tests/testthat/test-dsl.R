@@ -441,8 +441,8 @@ rxPermissive(
     expect_equal(rxFromSE("dosenum()"), "dosenum()")
 
     # tad()
-    expect_equal(rxToSE("tad()"), "(t-tad())")
-    expect_equal(rxToSE("tad(matt)"), "(t-tad(matt))")
+    expect_equal(rxToSE("tad()"), "(t-tlast())")
+    expect_equal(rxToSE("tad(matt)"), "(t-tlast(matt))")
     expect_error(rxToSE("tad(matt,f)"))
     expect_error(rxToSE("tad(matt+f)"))
 
@@ -461,6 +461,7 @@ rxPermissive(
     expect_error(rxToSE("lag(b, 3+4)"))
     expect_equal(rxFromSE("Derivative(lag(a,b), a)"), "0")
     expect_equal(rxFromSE("Derivative(lag(a,b), b)"), "0")
+    expect_equal(rxFromSE("Derivative(lag(a), a)"), "0")
     expect_equal(rxFromSE("lag(a,b)"), "lag(a,b)")
     expect_equal(rxFromSE("lag(a)"), "lag(a)")
 
@@ -473,10 +474,27 @@ rxPermissive(
     expect_error(rxToSE("lead(b, 3+4)"))
     expect_equal(rxFromSE("Derivative(lead(a,b), a)"), "0")
     expect_equal(rxFromSE("Derivative(lead(a,b), b)"), "0")
+    expect_equal(rxFromSE("Derivative(lead(a), a)"), "0")
     expect_equal(rxFromSE("lead(a,b)"), "lead(a,b)")
     expect_equal(rxFromSE("lead(a)"), "lead(a)")
 
+    # first
+    expect_error(rxToSE("first()"))
+    expect_equal(rxToSE("first(v)"), "first(v)")
+    expect_equal(rxFromSE("Derivative(first(a),a)"), "0")
+    expect_equal(rxFromSE("first(v)"), "first(v)")
 
+    # last
+    expect_error(rxToSE("last()"))
+    expect_equal(rxToSE("last(v)"), "last(v)")
+    expect_equal(rxFromSE("Derivative(last(a),a)"), "0")
+    expect_equal(rxFromSE("last(v)"), "last(v)")
+
+    # diff
+    expect_error(rxToSE("diff()"))
+    expect_equal(rxToSE("diff(v)"), "diff(v)")
+    expect_equal(rxFromSE("Derivative(diff(a),a)"), "0")
+    expect_equal(rxFromSE("diff(v)"), "diff(v)")
 
   },
   test = "parsing"
