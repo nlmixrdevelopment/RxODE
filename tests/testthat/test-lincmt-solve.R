@@ -4,7 +4,7 @@ rxPermissive(
   tol <- 5e-6 ## Current difference for all equations
   type <- 2
 
-  for (type in c(2)) {
+  for (type in 1:4) {
 
     .txt <- switch(type, "linear", "sensitivity", "linear [no save]", "advanSens")
     sens <- switch(type, "linCmtA", "linCmtB", "linCmtC", "linCmtB")

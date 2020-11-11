@@ -3642,7 +3642,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double _t, int linCmt,
 		      d_ka, d_tlag2 + op->hTlag2, d_F2, d_rate2,
 		      d_dur2) - v0)/op->hTlag2;
     }
-    if (sameTime) curD = A[cur++];
+    if (sameTime) A[cur++] = curD;
     return curD;
   }
   if ((op->linBflag & 4096) && (sameTime || (!sameTime && val == 13))) { // f2
@@ -3661,7 +3661,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double _t, int linCmt,
 		      d_ka, d_tlag2, d_F2 + op->hF2,
 		      d_rate2, d_dur2) - v0)/op->hF2;
     }
-    if (sameTime) curD = A[cur++];
+    if (sameTime) A[cur++] = curD;
     return curD;
   }
   if ((op->linBflag & 8192) && (sameTime || (!sameTime && val == 14))) { // rate2
@@ -3680,7 +3680,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double _t, int linCmt,
 		      d_ka, d_tlag2, d_F2,
 		      d_rate2 + op->hRate2, d_dur2) - v0)/op->hRate2;
     }
-    if (sameTime) curD = A[cur++];
+    if (sameTime) A[cur++] = curD;
     else return curD;
   }
   if ((op->linBflag & 16384) && (sameTime || (!sameTime && val == 15))) { // dur2
