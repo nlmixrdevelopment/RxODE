@@ -452,6 +452,19 @@ rxPermissive(
     expect_error(rxToSE("tafd(matt,f)"))
     expect_error(rxToSE("tafd(matt+f)"))
 
+    # lag()
+    expect_error(rxToSE("lag()"))
+    expect_equal(rxToSE("lag(b)"), "lag(b)")
+    expect_error(rxToSE("lag(b+3)"))
+    expect_equal(rxToSE("lag(b, 3)"), "lag(b, 3)")
+    expect_error(rxToSE("lag(b, c)"))
+    expect_error(rxToSE("lag(b, 3+4)"))
+    expect_equal(rxFromSE("Derivative(lag(a,b), a)"), "0")
+    expect_equal(rxFromSE("Derivative(lag(a,b), b)"), "0")
+    expect_equal(rxFromSE("lag(a,b)"), "lag(a,b)")
+    expect_equal(rxFromSE("lag(a)"), "lag(a)")
+
+
 
 
   },
