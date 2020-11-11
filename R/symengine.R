@@ -144,7 +144,8 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "abs1"=1,
   "dabs1"=1,
   "erfinv"=1,
-  "abs0"=1
+  "abs0"=1,
+  "dosenum"=0
 )
 
 .rxOnly <- c(
