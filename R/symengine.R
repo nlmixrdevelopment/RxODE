@@ -902,6 +902,9 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
           if (any(as.character(x[[2]][[1]]) == c("alag", "lag", "F", "f", "rate", "dur"))) {
             envir$..eventVars <- unique(c(.var, envir$..eventVars))
           }
+          if (any(as.character(x[[2]][[1]]) == c("mtime"))) {
+            envir$..mtimeVars <- unique(c(.var, envir$..mtimeVars))
+          }
         }
       }
       if (inherits(x[[3]], "numeric") || inherits(x[[3]], "integer")) {
@@ -2184,6 +2187,7 @@ rxS <- function(x, doConst = TRUE, promoteLinSens = FALSE) {
   .env$..extraEta <- list()
   .env$..curCall <- character(0)
   .env$..eventVars <- c()
+  .env$..mtimeVars <- c()
   .env$polygamma <- function(a, b) {
     ## symengine::subs(symengine::subs(..polygamma, ..a, a), ..b,  b)
     symengine::psigamma(b, a)
