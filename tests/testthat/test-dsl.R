@@ -446,6 +446,13 @@ rxPermissive(
     expect_error(rxToSE("tad(matt,f)"))
     expect_error(rxToSE("tad(matt+f)"))
 
+    # tafd()
+    expect_equal(rxToSE("tafd()"), "(t-tfirst())")
+    expect_equal(rxToSE("tafd(matt)"), "(t-tfirst(matt))")
+    expect_error(rxToSE("tafd(matt,f)"))
+    expect_error(rxToSE("tafd(matt+f)"))
+
+
 
   },
   test = "parsing"
