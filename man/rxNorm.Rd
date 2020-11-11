@@ -12,8 +12,8 @@ rxNorm(obj, condition = NULL, removeInis, removeJac, removeSens)
 \item{condition}{Character string of a logical condition to use
 for subsetting the normalized model.  When missing, and a
 condition is not set via \code{rxCondition}, return the whole
-code with all the conditional settings intact.  When a
-condition is set with \code{rxCondition}, use that condition.}
+code with all the conditional settings intact.  When a condition
+is set with \code{rxCondition}, use that condition.}
 
 \item{removeInis}{A boolean indicating if parameter initialization
 will be removed from the model}

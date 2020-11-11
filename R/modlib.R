@@ -4,6 +4,15 @@
   assignInMyNamespace(".pkgModelCurrent", value)
 }
 
+.norm2 <- function(obj) {
+  if (inherits(obj, "RxODE")){
+    if (exists(".linCmtM", obj)){
+      return(get(".linCmtM", obj))
+    }
+  }
+  setNames(RxODE::rxModelVars(obj)$model["normModel"], NULL)
+}
+
 .isWritable <- function(...) {
   .ret <- try(assertthat::is.writeable(...), silent=TRUE)
   if (inherits(.ret, "try-error")) {
@@ -156,7 +165,7 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
           cat("##'\n")
           cat(sprintf("##' \\emph{Model Code}\n",.f2))
           cat("##'\n")
-          .code  <- deparse(body(eval(parse(text=paste("function(){",rxNorm(.tmp, linCmt=TRUE),"}")))))
+          .code  <- deparse(body(eval(parse(text=paste("function(){",.norm2(.tmp),"}")))))
           .code[1]  <- "RxODE({"
           .code[length(.code)]  <- "})";
           cat(paste(paste0("##' ",.code,"\n"),collapse=""));
@@ -252,7 +261,7 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
     .modName <- as.character(substitute(obj))
     .pkg <- basename(usethis::proj_get())
     .env <- new.env(parent = baseenv())
-    assign(.modName, RxODE(rxNorm(obj, linCmt=TRUE), package = .pkg, modName = .modName), .env)
+    assign(.modName, RxODE(.norm2(obj), package = .pkg, modName = .modName), .env)
     assignInMyNamespace(".rxUseCdir", dirname(rxC(.env[[.modName]])))
     assign("internal", internal, .env)
     assign("overwrite", overwrite, .env)

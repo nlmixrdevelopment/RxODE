@@ -330,6 +330,7 @@ R_PosInf <- Inf # nolint
 ##' @importFrom stats setNames update dnorm integrate
 ##' @importFrom methods signature is
 ##' @importFrom memoise memoise
+##' @importFrom utils capture.output
 ##' @import tools
 ##' @export
 RxODE <- # nolint
@@ -501,6 +502,8 @@ RxODE <- # nolint
             package = .(.env$package)
           )
         }
+        .rxDll$linCmtM <- .(ifelse(exists(".linCmtM", .env),
+                                   get(".linCmtM", .env), NA))
         assign("rxDll", .rxDll, envir = .(.env))
         assign(".mv", .rxDll$modVars, envir = .(.env))
       })
@@ -1674,15 +1677,10 @@ rxCondition <- function(obj, condition = NULL) {
 ##'   removed.
 ##' @param removeSens A boolean indicating if the sensitivities will
 ##'   be removed.
-##' @param linCmt A boolean that tells if RxODE should try to get
-##'   `linCmt()` syntax.  By default this is off.
 ##' @return Normalized Normal syntax (no comments)
 ##' @author Matthew L. Fidler
 ##' @export
-rxNorm <- function(obj, condition = NULL, removeInis, removeJac, removeSens, linCmt=FALSE) {
-  ## if (inherits(obj, "RxODE") & linCmt & exists(".linCmtM", obj)) {
-  ##   return(get(".linCmtM", obj))
-  ## } else
+rxNorm <- function(obj, condition = NULL, removeInis, removeJac, removeSens) {
   if (!missing(removeInis) || !missing(removeJac) || !missing(removeSens)) {
     .ret <- strsplit(rxNorm(obj, condition), "\n")[[1]]
     if (missing(removeInis)) {

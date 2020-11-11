@@ -435,6 +435,11 @@ rxPermissive(
     expect_equal(rxFromSE("tfirst(matt)"), "tfirst(matt)")
     expect_equal(rxFromSE("tfirst()"), "tfirst()")
 
+    # dosenum
+    expect_error(rxToSE("dosenum(a)"))
+    expect_equal(rxToSE("dosenum()"), "dosenum()")
+    expect_equal(rxFromSE("dosenum()"), "dosenum()")
+
   },
   test = "parsing"
 )

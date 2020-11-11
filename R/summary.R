@@ -62,7 +62,11 @@ summary.rxDll <- function(object, ...) {
     }), "\n")
     print(.mv$indLin)
   }
-  .tmp <- as.vector(rxNorm(object, linCmt=TRUE))
+  if (!is.na(object$linCmtM)) {
+    .tmp <- object$linCmtM
+  } else {
+    .tmp <- setNames(RxODE::rxModelVars(object)$model["normModel"], NULL)
+  }
   class(.tmp) <- "rxModelText"
   print(.tmp)
   return(invisible(object))
