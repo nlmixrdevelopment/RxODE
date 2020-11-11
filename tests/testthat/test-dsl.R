@@ -464,6 +464,17 @@ rxPermissive(
     expect_equal(rxFromSE("lag(a,b)"), "lag(a,b)")
     expect_equal(rxFromSE("lag(a)"), "lag(a)")
 
+    # lead()
+    expect_error(rxToSE("lead()"))
+    expect_equal(rxToSE("lead(b)"), "lead(b)")
+    expect_error(rxToSE("lead(b+3)"))
+    expect_equal(rxToSE("lead(b, 3)"), "lead(b, 3)")
+    expect_error(rxToSE("lead(b, c)"))
+    expect_error(rxToSE("lead(b, 3+4)"))
+    expect_equal(rxFromSE("Derivative(lead(a,b), a)"), "0")
+    expect_equal(rxFromSE("Derivative(lead(a,b), b)"), "0")
+    expect_equal(rxFromSE("lead(a,b)"), "lead(a,b)")
+    expect_equal(rxFromSE("lead(a)"), "lead(a)")
 
 
 

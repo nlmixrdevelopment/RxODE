@@ -140,6 +140,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "tlast"=NA,
   "tfirst"=NA,
   "lag"=NA,
+  "lead"=NA,
   "dabs"=1,
   "dabs2"=1,
   "abs1"=1,
@@ -1046,26 +1047,28 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
         stop(as.character(x[[1]]), "() can have 0-1 arguments", call.=FALSE)
       }
       return(paste0("(t-tlast())"))
-    } else if (identical(x[[1]], quote(`lag`))) {
+    } else if (identical(x[[1]], quote(`lag`)) ||
+                 identical(x[[1]], quote(`lead`))) {
       .len <- length(x)
+      .fun <- as.character(x[[1]])
       if (.len == 1L) {
-        stop("lag() takes 1-2 arguments")
+        stop(.fun, "() takes 1-2 arguments")
       } else if (.len == 2L) {
         if (length(x[[2]]) != 1) {
-          stop("lag() must be used with a variable", call.=FALSE)
+          stop(.fun, "() must be used with a variable", call.=FALSE)
         }
-        return(paste0("lag(", as.character(x[[2]]), ")"))
+        return(paste0(.fun, "(", as.character(x[[2]]), ")"))
       } else if (.len == 3L) {
         if (length(x[[2]]) != 1) {
-          stop("lag() must be used with a variable", call.=FALSE)
+          stop(.fun, "() must be used with a variable", call.=FALSE)
         }
         if (length(x[[3]]) != 1) {
-          stop("lag(", as.character(x[[2]]), ", #) must have an integer for the number of lagged doses", call.=FALSE)
+          stop(.fun, "(", as.character(x[[2]]), ", #) must have an integer for the number of lagged doses", call.=FALSE)
         }
         if (regexpr(rex::rex(maybe(one_of("-", "+")), regDecimalint), as.character(x[[3]]), perl=TRUE) == -1) {
-          stop("lag(", as.character(x[[2]]), ", #) must have an integer for the number of lagged doses", call.=FALSE)
+          stop(.fun, "(", as.character(x[[2]]), ", #) must have an integer for the number of lagged doses", call.=FALSE)
         }
-        return(paste0("lag(", as.character(x[[2]]), ", ", as.character(x[[3]]), ")"))
+        return(paste0(.fun, "(", as.character(x[[2]]), ", ", as.character(x[[3]]), ")"))
       } else {
         stop(as.character(x[[1]]), "() can have 0-1 arguments", call.=FALSE)
       }
@@ -1793,12 +1796,14 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
       stop("[...] expressions not supported",
         call. = FALSE
         )
-    } else if (identical(x[[1]], quote(`lag`))) {
+    } else if (identical(x[[1]], quote(`lag`)) ||
+               identical(x[[1]], quote(`lead`))) {
       .a <- .rxFromSE(x[[2]])
+      .fun <- as.character(x[[1]])
       if (length(x) == 3) {
-        return(paste0("lag(", .a, ",", .rxFromSE(x[[3]]), ")"))
+        return(paste0(.fun, "(", .a, ",", .rxFromSE(x[[3]]), ")"))
       } else {
-        return(paste0("lag(", .a, ")"))
+        return(paste0(.fun, "(", .a, ")"))
       }
     } else if (identical(x[[1]], quote(`polygamma`))) {
       if (length(x == 3)) {
@@ -2056,7 +2061,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
           if (length(.with) != 1) {
             .errD(force = TRUE)
           }
-          if (.fun[1] == "lag") return("0")
+          if (any(.fun[1] == c("lead", "lag"))) return("0")
           if (exists(.fun[1], envir = .rxD)) {
             .funLst <- get(.fun[1], envir = .rxD)
             if (length(.funLst) < .with) {
@@ -2157,7 +2162,7 @@ rxS <- function(x, doConst = TRUE, promoteLinSens = FALSE) {
   .env$..lhs0 <- c()
   .env$..doConst <- doConst
   for (.f in c(ls(.rxD), "linCmtA", "linCmtB", "rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt",
-               "rxGt", "rxAnd", "rxOr", "rxNot", "rxTBS","rxTBSd", "rxTBSd2", "lag")) {
+               "rxGt", "rxAnd", "rxOr", "rxNot", "rxTBS","rxTBSd", "rxTBSd2", "lag", "lead")) {
     assign(.f, .rxFunction(.f), envir=.env)
   }
   for (.v in seq_along(.rxSEreserved)) {
