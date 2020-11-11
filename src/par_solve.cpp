@@ -3191,7 +3191,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	      dfp[ii] = get_fkeep(j, curi + ind->ix[i], ind);
 	    } else {
 	      dfi = INTEGER(tmp);
-	      /* if (j == 0) REprintf("j: %d, %d; %f\n", j, i, get_fkeep(j, curi + i)); */
+	      /* if (j == 0) RSprintf("j: %d, %d; %f\n", j, i, get_fkeep(j, curi + i)); */
 	      // is this ntimes = nAllTimes or nObs time for this subject...?
 	      dfi[ii] = (int) (get_fkeep(j, curi + ind->ix[i], ind));
 	    }

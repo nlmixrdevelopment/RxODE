@@ -14,6 +14,8 @@
 #define _(String) (String)
 #endif
 
+void RSprintf(const char *format, ...);
+
 int intdy(struct lsoda_context_t * ctx, double t, int k, double *dky)
 
 /*
@@ -45,12 +47,12 @@ int intdy(struct lsoda_context_t * ctx, double t, int k, double *dky)
 
 	const int neq = ctx->neq;
 	if (k < 0 || k > _C(nq)) {
-	  REprintf(_("[intdy] k = %d illegal\n"), k);
+	  RSprintf(_("[intdy] k = %d illegal\n"), k);
 	  return -1;
 	}
 	tp = _C(tn) - _C(hu) - 100. * ETA * (_C(tn) + _C(hu));
 	if ((t - tp) * (t - _C(tn)) > 0.) {
-	  REprintf(_("intdy -- t = %g illegal. t not in interval tcur - _C(hu) to tcur\n"), t);
+	  RSprintf(_("intdy -- t = %g illegal. t not in interval tcur - _C(hu) to tcur\n"), t);
 	  return -2;
 	}
 	s = (t - _C(tn)) / _C(h);

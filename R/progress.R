@@ -28,8 +28,8 @@
 ##'   rxProgressStop();
 ##'  }
 ##'
-##' \dontrun{
-##' f();
+##' \donttest{
+##' f()
 ##' }
 ##'
 ##' @export

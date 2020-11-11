@@ -313,11 +313,9 @@ extern "C" void radix_r(const int from, const int to, const int radix,
     // Ascending; (sortType=1)
     // Skipped https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L869-L908 because sortType=1
     int start = 1;
-    // REprintf("my_n: %d\n", my_n);
     while (start<my_n && my_key[start]>=my_key[start-1]) {
       start++;
     }
-    // REprintf("start: %d; %d >= %d\n", start, my_key[start], my_key[start-1]);
     if (start<my_n) {
       skip = false;  // finding start is really just to take skip out of the loop below
       for (int i=0; i<start; i++) o[i]=i;  // always at least sets o[0]=0

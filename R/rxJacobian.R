@@ -23,7 +23,7 @@
 ##'   Var2 = rep.int(seq2, rep.int(length(seq1),length(seq2))))
 ##' }
 ##'
-##' \dontrun{
+##' \donttest{
 ##'  microbenchmark::microbenchmark(rxExpandGrid(letters, letters), expand.grid.jc(letters, letters))
 ##' }
 ##' @export

@@ -33,6 +33,7 @@ using namespace arma;
 
 extern "C" uint64_t dtwiddle(const void *p, int i);
 extern "C" void calcNradix(int *nbyte, int *nradix, int *spare, uint64_t *maxD, uint64_t *minD);
+extern "C" void RSprintf(const char *format, ...);
 
 // https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L193-L211
 // range_d is modified because it DOES NOT count na/inf because RxODE assumes times cannot be NA, NaN, -Inf, Inf
@@ -4361,7 +4362,7 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
   rx_solve* rx = getRxSolve_();
   par_solve(rx);
 #ifdef rxSolveT
-    REprintf("  Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("  Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
 
@@ -4369,7 +4370,7 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
 			params, events, inits, rxSolveDat);
 
 #ifdef rxSolveT
-    REprintf("  Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("  Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
   rxUnlock(obj);
@@ -4378,7 +4379,7 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
     warning(_("dropped key column, returning data.frame instead of special solved data.frame"));
   }
 #ifdef rxSolveT
-    REprintf("  Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("  Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
   if (rx->matrix){
@@ -4402,7 +4403,7 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
       dat.attr("class") = "data.frame";
       // Free(op->indLin);
 #ifdef rxSolveT
-    REprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif
       return dat;
@@ -4414,7 +4415,7 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
       tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
       // Free(op->indLin);
 #ifdef rxSolveT
-    REprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif
       return tmpM;
@@ -4430,7 +4431,7 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
     dat.attr("class") = cls;
     // Free(op->indLin);
 #ifdef rxSolveT
-    REprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif
     return(dat);
@@ -4492,9 +4493,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       stateTrimL = -stateTrimU;
     }
   } else {
-    REprintf("rxControl\n");
+    RSprintf("rxControl\n");
     print(rxControl[Rxc_stateTrim]);
-    REprintf("stateTrim\n");
+    RSprintf("stateTrim\n");
     print(stateTrim);
     rxSolveFree();
     stop("'stateTrim' must be a vector of 1-2 elements");
@@ -4577,7 +4578,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   } else {
     rxLock(object);
 #ifdef rxSolveT
-    REprintf("Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
     // Load model
@@ -4597,7 +4598,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->sensType = asInt(rxControl[Rxc_sensType], "sensType");
     rx_solving_options* op = rx->op;
 #ifdef rxSolveT
-    REprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
     _rxModels[".lastEvents"] = trueEvents;
@@ -4609,7 +4610,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     Free(op->indLin);
     rxSolveDat->addDosing = asNLv(rxControl[Rxc_addDosing], "addDosing");
 #ifdef rxSolveT
-    REprintf("Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
     CharacterVector pars = rxSolveDat->mv[RxMv_params];
@@ -4652,7 +4653,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       rxSolveDat->fromIni=true;
     }
 #ifdef rxSolveT
-    REprintf("Time5: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time5: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
     // Update event table with observations if they are missing
@@ -4660,7 +4661,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 		      ev1, inits, rxSolveDat);
 
 #ifdef rxSolveT
-    REprintf("Time6: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time6: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
     // Now get the parameters (and covariates)
@@ -4783,18 +4784,18 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rxSolveDat->par1ini = rxSolveDat->par1;
     // This will update par1 with simulated values
 #ifdef rxSolveT
-    REprintf("Time7: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time7: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
     if (!didNesting) {
       rxSolve_simulate(object, rxControl, specParams, extraArgs,
 		       params, ev1, inits, rxSolveDat);
-      // REprintf("\nold method:\n");
+      // RSprintf("\nold method:\n");
     } else {
       rxSolveDat->warnIdSort = false;
       rxSolveDat->par1 =  as<RObject>(_rxModels[".nestPars"]);
       rxSolveDat->usePar1=true;
-      // REprintf("\nnesting:\n");
+      // RSprintf("\nnesting:\n");
     }
     // .sigma could be reassigned in an update, so check outside simulation function.
     if (_rxModels.exists(".sigma")){
@@ -4814,14 +4815,14 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       rxSolveDat->omegaN = as<CharacterVector>(_rxModels[".omegaN"]);
     }
 #ifdef rxSolveT
-    REprintf("Time8: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time8: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
     // This will setup the parameters
     rxSolve_parSetup(object, rxControl, specParams, extraArgs,
 		     pars, ev1, inits, rxSolveDat);
 #ifdef rxSolveT
-    REprintf("Time9: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time9: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
     rxOptionsIniEnsure(rxSolveDat->nPopPar); // 1 simulation per parameter specification
@@ -4831,7 +4832,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 			 pars, ev1, inits, rxSolveDat);
 
 #ifdef rxSolveT
-    REprintf("Time10: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time10: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
 
@@ -4840,7 +4841,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 		     pars, ev1, inits, rxSolveDat);
 
 #ifdef rxSolveT
-    REprintf("Time11: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time11: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
 
@@ -4859,7 +4860,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       stop(_("number of parameters (%d) solved by RxODE for multi-subject data needs to be a multiple of the number of subjects (%d)"),rxSolveDat->nPopPar, rx->nsub);
     }
 #ifdef rxSolveT
-    REprintf("Time12: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time12: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
     rxSolveDat->nSize = rxSolveDat->nPopPar*rx->nsub;
@@ -4946,14 +4947,14 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     int n3  = op->neq*rxSolveDat->nSize;
     int n3a = (op->neq + op->extraCmt)*rxSolveDat->nSize;
 #ifdef rxSolveT
-    REprintf("Time12a: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time12a: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
 
     rxSolveDat->initsC = rxInits(object, inits, state, 0.0);
 
 #ifdef rxSolveT
-    REprintf("Time12b: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time12b: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
 
@@ -4969,7 +4970,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _globals.gsolve = (double*)calloc(n0+nLin+n2+ n4+n5+n6+ n7 +
 				      5*op->neq + 7*n3a, sizeof(double));// [n0]
 #ifdef rxSolveT
-    REprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+7*n3+n4+n5+n6+ 5*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time12c (double alloc %d): %f\n",n0+nLin+n2+7*n3+n4+n5+n6+ 5*op->neq,((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
     if (_globals.gsolve == NULL){
@@ -5019,13 +5020,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
     int n1 = rx->nsub*rx->nsim*(state.size() + op->extraCmt);
 #ifdef rxSolveT
-    REprintf("Time12d (fill in!): %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time12d (fill in!): %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
     if (_globals.gon != NULL) free(_globals.gon);
     _globals.gon = (int*)calloc(n1+n3 + 4*rxSolveDat->nSize + 2*rx->nall*rx->nsim, sizeof(int)); // [n1]
 #ifdef rxSolveT
-    REprintf("Time12e (int alloc %d): %f\n", n1+n3 + 4*rxSolveDat->nSize, ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time12e (int alloc %d): %f\n", n1+n3 + 4*rxSolveDat->nSize, ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
     std::fill_n(&_globals.gon[0], n1, 1);
@@ -5037,7 +5038,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _globals.gix=_globals.jac_counter+rxSolveDat->nSize; // rx->nall*rx->nsim
 
 #ifdef rxSolveT
-    REprintf("Time13: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time13: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
     rxSolve_normalizeParms(object, rxControl, specParams, extraArgs,
@@ -5051,7 +5052,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       return as<SEXP>(LogicalVector::create(true));
     }
 #ifdef rxSolveT
-    REprintf("Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif// rxSolveT
 
@@ -5062,7 +5063,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       setupOnlyObj = R_NilValue;
     }
 #ifdef rxSolveT
-    REprintf("Time15: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+    RSprintf("Time15: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
 #endif // rxSolveT
     return ret;

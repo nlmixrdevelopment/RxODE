@@ -46,7 +46,7 @@
 ##' @seealso \code{\link{RxODE}},\code{\link{eventTable}}, and the package \pkg{shiny} (\url{https://shiny.rstudio.com}).
 ##'
 ##' @examples
-##' \dontrun{
+##' \donttest{
 ##' # create the shiny app example (template)
 ##' genShinyApp.template(appDir = "myapp")
 ##' # run the shiny app

@@ -209,6 +209,39 @@ rxStrict <- function(expr, silent = .isTestthat(), respect = FALSE) {
   do.call(getFromNamespace("rxOptions", "RxODE"), args, envir = parent.frame(1))
   ## nocov end
 }
+
+##' Respect suppress messages
+##'
+##' This turns on the silent REprintf in C when `suppressMessages()` is
+##' turned on. This makes the `REprintf` act like `messages` in R,
+##' they can be suppressed with `suppressMessages()`
+##'
+##' @return Nothing
+##' @author Matthew Fidler
+##' @export
+##' @examples
+##'
+##' # rxSupressMsg() is called with RxODE()
+##'
+##' # Note the errors are output to the console
+##'
+##' try(RxODE("d/dt(matt)=/3"),silent=TRUE)
+##'
+##' # When using suppressMessages, the output is suppressed
+##'
+##' suppressMessages(try(RxODE("d/dt(matt)=/3"),silent=TRUE))
+##'
+##' # In RxODE, we use REprintf so that interrupted threads do not crash R
+##' # if there is a user interrupt. This isn't captured by R's messages, but
+##' # This interface allows the `suppressMessages()` to suppress the C printing
+##' # as well
+##'
+##' # If you  want to suppress messages from RxODE in other packages, you can use
+##' # this function
+rxSuppressMsg <- function() {
+  rxSetSilentErr(as.integer(length(capture.output(message("ABC"),type="message"))==0L))
+  invisible(NULL)
+}
 ##' Options for RxODE
 ##'
 ##' This is a backend for \code{rxPermissive} (with

@@ -340,6 +340,7 @@ RxODE <- # nolint
            linCmtSens = c("linCmtA", "linCmtB", "linCmtC"),
            indLin = FALSE,
            verbose = FALSE) {
+    rxSuppressMsg()
     if (!missing(modName)) {
       if (!checkmate::testCharacter(modName, max.len = 1)) {
         stop("'modName' has to be a single length character", call. = FALSE)
@@ -1663,20 +1664,25 @@ rxCondition <- function(obj, condition = NULL) {
 ##'
 ##' @inheritParams rxModelVars
 ##' @param condition Character string of a logical condition to use
-##'     for subsetting the normalized model.  When missing, and a
-##'     condition is not set via \code{rxCondition}, return the whole
-##'     code with all the conditional settings intact.  When a
-##'     condition is set with \code{rxCondition}, use that condition.
+##'   for subsetting the normalized model.  When missing, and a
+##'   condition is not set via \code{rxCondition}, return the whole
+##'   code with all the conditional settings intact.  When a condition
+##'   is set with \code{rxCondition}, use that condition.
 ##' @param removeInis A boolean indicating if parameter initialization
-##'     will be removed from the model
+##'   will be removed from the model
 ##' @param removeJac A boolean indicating if the Jacobians will be
-##'     removed.
+##'   removed.
 ##' @param removeSens A boolean indicating if the sensitivities will
-##'     be removed.
+##'   be removed.
+##' @param linCmt A boolean that tells if RxODE should try to get
+##'   `linCmt()` syntax.  By default this is off.
 ##' @return Normalized Normal syntax (no comments)
 ##' @author Matthew L. Fidler
 ##' @export
-rxNorm <- function(obj, condition = NULL, removeInis, removeJac, removeSens) {
+rxNorm <- function(obj, condition = NULL, removeInis, removeJac, removeSens, linCmt=FALSE) {
+  ## if (inherits(obj, "RxODE") & linCmt & exists(".linCmtM", obj)) {
+  ##   return(get(".linCmtM", obj))
+  ## } else
   if (!missing(removeInis) || !missing(removeJac) || !missing(removeSens)) {
     .ret <- strsplit(rxNorm(obj, condition), "\n")[[1]]
     if (missing(removeInis)) {

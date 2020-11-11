@@ -207,12 +207,12 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 ##' @examples
 ##'
 ##'
-##' \dontrun{
+##' \donttest{
 ##' ## Right now RxODE is not aware of the function f
 ##' ## Therefore it cannot translate it to symengine or
 ##' ## Compile a model with it.
 ##'
-##' RxODE("a=fun(a,b,c)")
+##' try(RxODE("a=fun(a,b,c)"))
 ##'
 ##' ## Note for this approach to work, it cannot interfere with C
 ##' ## function names or reserved RxODE specical terms.  Therefore

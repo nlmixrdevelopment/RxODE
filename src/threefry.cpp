@@ -1491,7 +1491,6 @@ SEXP rxRmvnSEXP(SEXP nS,
   }
   arma::rowvec mu = as<arma::rowvec>(muNV);
   if (muNV.size() != d) {
-    // REprintf("mu.size: %d, d: %d\n", muNV.size(), d);
     stop(_("'mu' length must match 'sigma' dimensions"));
   }
   if (muNV.hasAttribute("names")) {

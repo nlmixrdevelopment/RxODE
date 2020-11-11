@@ -17,6 +17,8 @@ using namespace Rcpp;
 #include <checkmate.h>
 #include "../inst/include/RxODE_as.h"
 
+void RSprintf(const char *format, ...);
+
 List rxModelVars_(const RObject &obj);
 bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
@@ -33,7 +35,7 @@ bool forderForceBase_ = false;
 //'   \code{data.table}'s parallel radix sorting.
 //'
 //' @examples
-//' \dontrun{
+//' \donttest{
 //' forderForceBase(TRUE) # Use base `order` for RxODE sorts
 //' forderForceBase(FALSE) # Use base `data.table` for RxODE sorts
 //' }
@@ -419,7 +421,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
 #ifdef rxSolveT
-   REprintf("  Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+   RSprintf("  Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
    _lastT0 = clock();
 #endif
   // Translates events + model into translated events
@@ -501,7 +503,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
 #ifdef rxSolveT
-  REprintf("  Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
   if ((int)(keepCol.size())!=(int)keep.size()){
@@ -661,7 +663,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   cens.reserve(resSize);
 
 #ifdef rxSolveT
-  REprintf("  Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
   
@@ -843,7 +845,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   // cens = NA_INTEGER with LIMIT is M2
   bool doWarnNeg=false;
 #ifdef rxSolveT
-  REprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
 
@@ -870,14 +872,14 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
     }
     ctime=inTime[i];
-    // REprintf("lastId: %d; cid: %d, lastTime: %f, ctime %f\n", lastId, cid, lastTime, ctime);
+    // RSprintf("lastId: %d; cid: %d, lastTime: %f, ctime %f\n", lastId, cid, lastTime, ctime);
     if (IntegerVector::is_na(lastId)) {
       lastId = cid;
     } else if (lastId != cid) {
     } else if (lastTime > ctime) {
       if (inEvid[i] != 3 && inEvid[i] != 4) {
 	isSorted = false; // The prior EVID=3 w/reset a reset time
-	// REprintf("\t not sorted");
+	// RSprintf("\t not sorted");
       } else if (lastTime > ctime) {
 	maxShift = max2(maxShift, lastTime-ctime);
       }
@@ -1483,7 +1485,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     maxShift = 0.0;
   }
 #ifdef rxSolveT
-  REprintf("  Time5: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time5: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif  
   bool redoId=false;
@@ -1501,7 +1503,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
 #ifdef rxSolveT
-  REprintf("  Time6: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time6: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
   if (zeroId.size() != allId.size()){
@@ -1538,7 +1540,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
   if (warnCensNA) Rf_warningcall(R_NilValue, _("censoring missing 'DV' values do not make sense"));
 #ifdef rxSolveT  
-  REprintf("  Time7: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time7: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
   if (useRadix_){
@@ -1627,7 +1629,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
 #ifdef rxSolveT
-  REprintf("  Time8: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time8: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
   
@@ -1683,7 +1685,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   std::vector<bool> sub0(baseSize+censAdd+limitAdd+covCol.size(), true);
   CharacterVector nme(baseSize+censAdd+limitAdd+covCol.size());
 #ifdef rxSolveT
-  REprintf("  Time9: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time9: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
   
@@ -1764,7 +1766,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
 #ifdef rxSolveT
-  REprintf("  Time10: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time10: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
 
@@ -1906,7 +1908,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
 #ifdef rxSolveT
-  REprintf("  Time11: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time11: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
   
@@ -1953,7 +1955,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     stop(_("corrupted event table"));
   }
 #ifdef rxSolveT
-  REprintf("  Time12: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time12: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
   IntegerVector tmp = lst1F[0];
@@ -1969,7 +1971,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   }
 
 #ifdef rxSolveT
-  REprintf("  Time13: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time13: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
   
@@ -2056,7 +2058,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
 #ifdef rxSolveT
-  REprintf("  Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time14: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
   Rf_setAttrib(lstF, R_NamesSymbol, nmeF);
@@ -2069,7 +2071,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     } 
   }
 #ifdef rxSolveT
-  REprintf("  Time15: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  RSprintf("  Time15: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
   return lstF;

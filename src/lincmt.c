@@ -1668,7 +1668,6 @@ static inline int parTrans(int *trans,
 #define beta Rf_beta
       break;
     default:
-      /* REprintf(_("invalid trans (3 cmt trans %d)\n"), *trans); */
       return NA_REAL;
     }
   } else if ((*p3) > 0.) {
@@ -1725,8 +1724,6 @@ static inline int parTrans(int *trans,
       (*rx_k21) = (A*beta + B*alpha)*(*rx_v);
       (*rx_k)   = alpha*beta/(*rx_k21);
       (*rx_k12) = alpha + beta - (*rx_k21) - (*rx_k);
-      /* REprintf("A: %f, B: %f, alpha: %f, beta: %f\n", A, B, alpha, beta); */
-      /* REprintf("V: %f, k10: %f, k12: %f, k21: %f\n", rx_v, rx_k, rx_k12, rx_k21); */
 #undef A
 #undef B
 #undef alpha
@@ -1734,7 +1731,6 @@ static inline int parTrans(int *trans,
 #define beta Rf_beta
       break;
     default:
-      /* REprintf(_("invalid trans (2 cmt trans %d)\n"), trans); */
       return NA_REAL;
     }
   } else if ((*p1) > 0.) {
@@ -2791,7 +2787,6 @@ double linCmtA(rx_solve *rx, unsigned int id, double _t, int linCmt,
   if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
 		&ncmt, &rx_k, &rx_v, &rx_k12,
 		&rx_k21, &rx_k13, &rx_k31)){
-    /* REprintf(_("invalid translation\n")); */
     return NA_REAL;
   }
   if (idx >= ind->solved){
@@ -2897,7 +2892,6 @@ double linCmtC(rx_solve *rx, unsigned int id, double _t, int linCmt,
   if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
 		&ncmt, &rx_k, &rx_v, &rx_k12,
 		&rx_k21, &rx_k13, &rx_k31)){
-    /* REprintf(_("invalid translation\n")); */
     return NA_REAL;
   } else {
     ind->ixds = 0;
@@ -3452,7 +3446,6 @@ double linCmtF(rx_solve *rx, unsigned int id, double _t, int linCmt,
   double t = _t - ind->curShift;
   int evid;
   /* evid = ind->evid[ind->ix[ind->idx]]; */
-  /* if (evid) REprintf("evid0[%d:%d]: %d; curTime: %f\n", id, ind->idx, evid, t); */
   int idx = ind->idx;
   double Alast0[15] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   rx_solving_options *op = rx->op;
@@ -3488,7 +3481,6 @@ double linCmtF(rx_solve *rx, unsigned int id, double _t, int linCmt,
     if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
 		  &ncmt, &rx_k, &rx_v, &rx_k12,
 		  &rx_k21, &rx_k13, &rx_k31)){
-      /* REprintf(_("invalid translation\n")); */
       return NA_REAL;
     }
   } else {
@@ -3504,11 +3496,9 @@ double linCmtF(rx_solve *rx, unsigned int id, double _t, int linCmt,
     if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
 		  &ncmt, &rx_k, &rx_v, &rx_k12,
 		  &rx_k21, &rx_k13, &rx_k31)){
-      /* REprintf(_("invalid translation\n")); */
       return NA_REAL;
     }
     evid = ind->evid[ind->ix[idx]];
-    /* if (evid) REprintf("evid: %d; curTime: %f\n",evid, curTime); */
     if (op->nlinR == 2){
       r1 = rate[0];
       r2 = rate[1];
@@ -3549,8 +3539,6 @@ double linCmtF(rx_solve *rx, unsigned int id, double _t, int linCmt,
 	     curTime, ncmt, oral0, &b1, &b2, &r1, &r2,
 	     &d_ka, &rx_k, &rx_k12, &rx_k21, &rx_k13, &rx_k31);
   }
-  /* REprintf("t: %f %f %d %d\n", t, A[oral0], idx, ind->ix[idx]); */
-  /* REprintf("%f,%f,%f\n", A[oral0], rx_v, A[oral0]/rx_v); */
   if (op->nlin2 == op->nlin) {
     return derTrans(rx, Ac, ncmt, trans, val, p1, v1, p2, p3,
 		    p4, p5, d_tlag,  d_F,  d_rate1,  d_dur1,

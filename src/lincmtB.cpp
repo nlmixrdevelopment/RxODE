@@ -12,14 +12,11 @@
 #endif
 
 extern "C" int syncIdx(rx_solving_options_ind *ind);
-
-
 extern "C" double getTime(int idx, rx_solving_options_ind *ind);
-
 extern "C" int _locateTimeIndex(double obs_time,  rx_solving_options_ind *ind);
 extern "C" double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned int *p);
-
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
+extern "C" void RSprintf(const char *format, ...);
 
 namespace stan {
   namespace math {
@@ -181,7 +178,7 @@ namespace stan {
 #define beta Rf_beta
 	  break;
 	default:
-	  REprintf(_("invalid trans (2 cmt trans %d)\n"), trans);
+	  RSprintf(_("invalid trans (2 cmt trans %d)\n"), trans);
 	  return g;
 	}
       } break;
@@ -2083,11 +2080,9 @@ namespace stan {
 	    Alast(i, 0) += params(4, 0)*AlastG(i, 4) + params(5, 0)*AlastG(i, 5);
 	  }
 	}
-	// REprintf("Alast(i: %d, 0): %f\n", i, Alast(i, 0).val());
 	if (oral0) {
 	  Alast(i, 0) += params(2*ncmt, 0)*AlastG(i,2*ncmt);
 	}
-	// REprintf("Alast(i: %d, 0): %f\n", i, Alast(i, 0).val());
 	A(i, 0) = 0.0;
       }
       double tlast;
@@ -2585,7 +2580,6 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
 	AlastA(i, 0) -= AlastG(i, 2*ncmt)*dd_ka;
       }
     }
-    // REprintf("AlastG\n");
     // Rcpp::print(Rcpp::wrap(AlastG));
   } else {
     AlastG.setZero(ncmt+oral0, ncmt*2+oral0);
@@ -2596,10 +2590,8 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
   Eigen::Matrix<double, -1, -1> J;
   stan::math::jacobian(f, params, fx, J);
   if (sameTime) {
-    // REprintf("J:\n");
     // Rcpp::print(Rcpp::wrap(J));
     A = getAdvan(idx);
-    // REprintf("A(cur): %f\n", A[oral0]);
     A[ncmt + oral0 + 0] = J(0, 0);
     A[ncmt + oral0 + 1] = J(0, 1);
     if (ncmt >=2){

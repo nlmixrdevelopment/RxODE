@@ -15,6 +15,7 @@
 #define _(String) (String)
 #endif
 
+void RSprintf(const char *format, ...);
 
 int prja(struct lsoda_context_t * ctx, double *y)
 {
@@ -38,7 +39,7 @@ int prja(struct lsoda_context_t * ctx, double *y)
    If _C(miter) = 2, make neq calls to f to approximate J.
 */
 	if (_C(miter) != 2) {
-	  REprintf(_("[prja] _C(miter) != 2\n"));
+	  RSprintf(_("[prja] _C(miter) != 2\n"));
 		return 0;
 	}
 	if (_C(miter) == 2) {

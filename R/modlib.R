@@ -154,13 +154,13 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
             cat("##' }\n")
           }
           cat("##'\n")
-          ## cat(sprintf("##' \\emph{Model Code}\n",.f2))
-          ## cat("##'\n")
-          ## .code  <- deparse(body(eval(parse(text=paste("function(){",rxNorm(.tmp),"}")))))
-          ## .code[1]  <- "RxODE({"
-          ## .code[length(.code)]  <- "})";
-          ## cat(paste(paste0("##' ",.code,"\n"),collapse=""));
-          ## cat("##'\n")
+          cat(sprintf("##' \\emph{Model Code}\n",.f2))
+          cat("##'\n")
+          .code  <- deparse(body(eval(parse(text=paste("function(){",rxNorm(.tmp, linCmt=TRUE),"}")))))
+          .code[1]  <- "RxODE({"
+          .code[length(.code)]  <- "})";
+          cat(paste(paste0("##' ",.code,"\n"),collapse=""));
+          cat("##'\n")
           cat(paste(paste0("##' @seealso \\code{\\link[RxODE]{eventTable}}, \\code{\\link[RxODE]{et}}, \\code{\\link[RxODE]{rxSolve}}, \\code{\\link[RxODE]{RxODE}}\n")))
           cat("##' \n")
           cat("##' @examples\n")
@@ -252,7 +252,7 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
     .modName <- as.character(substitute(obj))
     .pkg <- basename(usethis::proj_get())
     .env <- new.env(parent = baseenv())
-    assign(.modName, RxODE(rxNorm(obj), package = .pkg, modName = .modName), .env)
+    assign(.modName, RxODE(rxNorm(obj, linCmt=TRUE), package = .pkg, modName = .modName), .env)
     assignInMyNamespace(".rxUseCdir", dirname(rxC(.env[[.modName]])))
     assign("internal", internal, .env)
     assign("overwrite", overwrite, .env)

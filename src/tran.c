@@ -92,10 +92,7 @@
 #include <stdint.h>
 #endif
 
-extern int getSilentErr();
-
-#define RSprintf(fmt,...) if (getSilentErr() == 0) REprintf(fmt,__VA_ARGS__)
-#define RSprintf0(fmt) if (getSilentErr() == 0) REprintf(fmt)
+void RSprintf(const char *format, ...);
 
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
@@ -1347,7 +1344,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbt, "%s(%s)", v, v2);
 	    Free(v);
 	    Free(v2);
-	    /* REprintf("i: %d / %d\n", i, nch); */
+	    /* RSprintf("i: %d / %d\n", i, nch); */
 	    /* i = nch;// skip next arguments */
 	    /* depth=0; */
 	    i = nch;
@@ -2827,7 +2824,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  curLineType(&centralLines, sbPm.lType[sbPm.n]);
 	  addLine(&centralLines, "%s", c);
 	}
-	/* REprintf("c: %s, lType: %d\n", c, sbPm.lType[sbPm.n], isDepot); */
+	/* RSprintf("c: %s, lType: %d\n", c, sbPm.lType[sbPm.n], isDepot); */
       } else {
 	addLine(&sbNrmL, "%s;\n", sbt.s);
       }
@@ -3795,11 +3792,11 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  }
 	  break;
 	default:
-	  REprintf("line Number: %d\n", i);
-	  REprintf("type: %d\n", sbPm.lType[i]);
-	  REprintf("line: %s\n", sbPm.line[i]);
-	  REprintf("PmDt Line: %s\n", sbPmDt.line[i]);
-	  REprintf("Prop: %d\n", sbPm.lProp[i]);
+	  RSprintf("line Number: %d\n", i);
+	  RSprintf("type: %d\n", sbPm.lType[i]);
+	  RSprintf("line: %s\n", sbPm.line[i]);
+	  RSprintf("PmDt Line: %s\n", sbPmDt.line[i]);
+	  RSprintf("Prop: %d\n", sbPm.lProp[i]);
 	}
       }
       // End statements
@@ -4700,10 +4697,10 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 	}
       }
       if (isEsc){
-	RSprintf0("\n\033[1m================================================================================\033[0m\n");
+	RSprintf("\n\033[1m================================================================================\033[0m\n");
       }
       else {
-	RSprintf0("\n================================================================================\n");
+	RSprintf("\n================================================================================\n");
       }
     }
     sFree(&bufw); sFree(&bufw2);
@@ -4860,10 +4857,10 @@ static void rxSyntaxError(struct D_Parser *ap) {
   if (!rx_suppress_syntax_info){
     if (lastSyntaxErrorLine == 0){
       if (isEsc){
-	RSprintf0(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
+	RSprintf(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
       }
       else {
-	RSprintf0(_("RxODE Model Syntax Error:\n================================================================================"));
+	RSprintf(_("RxODE Model Syntax Error:\n================================================================================"));
       }
       lastSyntaxErrorLine=1;
     }
@@ -4894,10 +4891,10 @@ static void rxSyntaxError(struct D_Parser *ap) {
     }
     else{
       if (isEsc){
-	RSprintf0(_("\n\n\033[1mRxODE syntax error\033[0m:\n"));
+	RSprintf(_("\n\n\033[1mRxODE syntax error\033[0m:\n"));
       }
       else{
-	RSprintf0(_("\n\nRxODE syntax error:\n"));
+	RSprintf(_("\n\nRxODE syntax error:\n"));
       }
       if (firstErrD == 0) {
 	sAppendN(&firstErr, "RxODE syntax error:\n", 20);
@@ -4937,7 +4934,7 @@ static void rxSyntaxError(struct D_Parser *ap) {
 	sAppend(&firstErr, "%c", buf[i]);
       }
     }
-    RSprintf0("\n      ");
+    RSprintf("\n      ");
     if (firstErrD == 0) {
       sAppendN(&firstErr, "\n      ", 7);
     }
@@ -4947,7 +4944,7 @@ static void rxSyntaxError(struct D_Parser *ap) {
       if (col == len) col = 0;
       if (col){
 	for (int i = 0; i < col; i++){
-	  RSprintf0(" ");
+	  RSprintf(" ");
 	  if (firstErrD == 0) {
 	    sAppendN(&firstErr, " ", 1);
 	  }
@@ -4956,34 +4953,34 @@ static void rxSyntaxError(struct D_Parser *ap) {
 	len = p->user.loc.col - col;
 	if (len > 0 && len < 40){
 	  for (int i = len; i--;) {
-	    RSprintf0("~");
+	    RSprintf("~");
 	    if (firstErrD == 0) {
 	      sAppendN(&firstErr, "~", 1);
 	    }
 	  }
 	}
 	if (isEsc) {
-	  RSprintf0("\033[35m\033[1m^\033[0m");
+	  RSprintf("\033[35m\033[1m^\033[0m");
 	}
 	else {
-	  RSprintf0("^");
+	  RSprintf("^");
 	}
 	if (firstErrD == 0) {
 	  sAppendN(&firstErr, "^", 1);
 	}
       } else {
 	for (int i = 0; i < p->user.loc.col; i++){
-	  RSprintf0(" ");
+	  RSprintf(" ");
 	  if (firstErrD == 0) {
 	    sAppendN(&firstErr, " ", 1);
 	  }
 	  if (i == len-2) { i++; break;}
 	}
 	if (isEsc) {
-	  RSprintf0("\033[35m\033[1m^\033[0m");
+	  RSprintf("\033[35m\033[1m^\033[0m");
 	}
 	else {
-	  RSprintf0("^");
+	  RSprintf("^");
 	}
 	if (firstErrD == 0) {
 	  sAppendN(&firstErr, "^", 1);
@@ -4992,17 +4989,17 @@ static void rxSyntaxError(struct D_Parser *ap) {
       }
     } else {
       for (int i = 0; i < p->user.loc.col; i++){
-	RSprintf0(" ");
+	RSprintf(" ");
 	if (firstErrD == 0) {
 	  sAppendN(&firstErr, " ", 1);
 	}
 	if (i == len-2) { i++; break;}
       }
       if (isEsc) {
-	RSprintf0("\033[35m\033[1m^\033[0m");
+	RSprintf("\033[35m\033[1m^\033[0m");
       }
       else {
-	RSprintf0("^");
+	RSprintf("^");
       }
       if (firstErrD == 0) {
 	sAppendN(&firstErr, "^", 1);
@@ -5022,10 +5019,10 @@ static void trans_syntax_error_report_fn0(char *err){
   if (!rx_suppress_syntax_info){
     if (lastSyntaxErrorLine == 0){
       if (isEsc) {
-	RSprintf0(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
+	RSprintf(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
       }
       else {
-	RSprintf0(_("RxODE model syntax error:\n================================================================================"));
+	RSprintf(_("RxODE model syntax error:\n================================================================================"));
       }
       lastSyntaxErrorLine=1;
     }
@@ -5043,10 +5040,10 @@ static void trans_syntax_error_report_fn(char *err) {
   if (!rx_suppress_syntax_info){
     if (lastSyntaxErrorLine == 0){
       if (isEsc) {
-	RSprintf0(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
+	RSprintf(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
       }
       else {
-	RSprintf0(_("RxODE model syntax error:\n================================================================================"));
+	RSprintf(_("RxODE model syntax error:\n================================================================================"));
       }
       lastSyntaxErrorLine=1;
     }
@@ -5058,7 +5055,7 @@ static void trans_syntax_error_report_fn(char *err) {
       Free(buf);
     }
     if (lastSyntaxErrorLine < p->user.loc.line){
-      RSprintf0("\n");
+      RSprintf("\n");
       lastSyntaxErrorLine++;
     }
     if (isEsc) {
@@ -5068,7 +5065,7 @@ static void trans_syntax_error_report_fn(char *err) {
       RSprintf("\n:%03d: %s:\n", p->user.loc.line, err);
     }
     buf = getLine(gBuf, p->user.loc.line, &gBufLast);
-    RSprintf0("      ");
+    RSprintf("      ");
     int i, len = strlen(buf);
     for (i = 0; i < p->user.loc.col; i++){
       RSprintf("%c", buf[i]);
@@ -5083,21 +5080,21 @@ static void trans_syntax_error_report_fn(char *err) {
     for (; i < len; i++){
       RSprintf("%c", buf[i]);
     }
-    RSprintf0("\n      ");
+    RSprintf("\n      ");
     Free(buf);
     for (int i = 0; i < p->user.loc.col; i++){
-      RSprintf0(" ");
+      RSprintf(" ");
       if (i == len-2) { i++; break;}
     }
     if (isEsc) {
-      RSprintf0("\033[35m\033[1m^\033[0m");
+      RSprintf("\033[35m\033[1m^\033[0m");
     }
     else {
-      RSprintf0("^");
+      RSprintf("^");
     }
     if (syntaxErrorExtra > 0 && syntaxErrorExtra < 40){
       for (int i = syntaxErrorExtra; i--;) {
-	RSprintf0("~");
+	RSprintf("~");
       }
     }
     syntaxErrorExtra=0;
@@ -5986,7 +5983,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
       }
     }
-    if (verbose) REprintf(_("Detected %d-compartment model in terms of clearance"), ncmt);
+    if (verbose) RSprintf(_("Detected %d-compartment model in terms of clearance"), ncmt);
   } else if (lin.kel != -1) {
     if (lin.v == -1) {
       parseFree(0);
@@ -6077,7 +6074,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     } else {
       sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
     }
-    if (verbose) REprintf(_("detected %d-compartment model in terms of micro-constants"), ncmt);
+    if (verbose) RSprintf(_("detected %d-compartment model in terms of micro-constants"), ncmt);
   } else if (lin.aob != -1) {
     ncmt = 2;
     trans = 5;
@@ -6104,7 +6101,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
     sAppend(&ret0, "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.aob)));
-    if (verbose) REprintf(_("detected %d-compartment model in terms of 'alpha' and 'aob'"), ncmt);
+    if (verbose) RSprintf(_("detected %d-compartment model in terms of 'alpha' and 'aob'"), ncmt);
   } else if (lin.k21 != -1) {
     ncmt = 2;
     trans = 4;
@@ -6133,9 +6130,9 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     sAppend(&ret0, "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.k21)));
     if (verbose) {
       if (lin.cmtc == 1) {
-	REprintf(_("detected %d-compartment model in terms of 'alpha' or 'k21'"), ncmt);
+	RSprintf(_("detected %d-compartment model in terms of 'alpha' or 'k21'"), ncmt);
       } else {
-	REprintf(_("detected %d-compartment model in terms of 'alpha' or 'k32'"), ncmt);
+	RSprintf(_("detected %d-compartment model in terms of 'alpha' or 'k32'"), ncmt);
       }
     }
   } else if (lin.alpha != -1) {
@@ -6203,9 +6200,9 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     }
     if (verbose) {
       if (lin.a != -1){
-	REprintf(_("detected %d-compartment model in terms of 'alpha' and central volume"), ncmt);
+	RSprintf(_("detected %d-compartment model in terms of 'alpha' and central volume"), ncmt);
       } else {
-	REprintf(_("detected %d-compartment model in terms of 'alpha' and 'a'"), ncmt);
+	RSprintf(_("detected %d-compartment model in terms of 'alpha' and 'a'"), ncmt);
       }
     }
   }
@@ -6214,10 +6211,10 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
   sAppend(&ret, "%s", end1);
   if (lin.ka == -1) {
     sAppendN(&ret, "0.0", 3);
-    if (verbose) REprintf("\n");
+    if (verbose) RSprintf("\n");
   } else {
     sAppend(&ret, "%s", CHAR(STRING_ELT(vars, lin.ka)));
-    if (verbose) REprintf(_(" with first order absorption\n"));
+    if (verbose) RSprintf(_(" with first order absorption\n"));
   }
   sAppend(&ret, "%s", end2);
   int pro = 0;
@@ -6301,7 +6298,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
 	sAppend(&d_dur1, "%s, ", depotLines.line[i]);
 	break;
       default:
-	REprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
+	RSprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
       }
     }
     for (i = 0; i < centralLines.n; i++){
@@ -6340,7 +6337,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
 	sAppend(&last, "'dur(depot)' ", 13);
 	break;
       default:
-	REprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
+	RSprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
       }
     }
     if (last.o) {

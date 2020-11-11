@@ -64,7 +64,7 @@ These functions create a simple, but working example of a
     their specific \code{RxODE} models.
 }
 \examples{
-\dontrun{
+\donttest{
 # create the shiny app example (template)
 genShinyApp.template(appDir = "myapp")
 # run the shiny app
