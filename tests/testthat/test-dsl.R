@@ -496,6 +496,30 @@ rxPermissive(
     expect_equal(rxFromSE("Derivative(diff(a),a)"), "0")
     expect_equal(rxFromSE("diff(v)"), "diff(v)")
 
+    # is.nan
+    expect_error(rxToSE("is.nan()"))
+    expect_equal(rxToSE("is.nan(v)"), "is.nan(v)")
+    expect_equal(rxFromSE("Derivative(is.nan(a),a)"), "0")
+    expect_equal(rxFromSE("is.nan(v)"), "is.nan(v)")
+
+    # is.na
+    expect_error(rxToSE("is.na()"))
+    expect_equal(rxToSE("is.na(v)"), "is.na(v)")
+    expect_equal(rxFromSE("Derivative(is.na(a),a)"), "0")
+    expect_equal(rxFromSE("is.na(v)"), "is.na(v)")
+
+    # is.finite
+    expect_error(rxToSE("is.finite()"))
+    expect_equal(rxToSE("is.finite(v)"), "is.finite(v)")
+    expect_equal(rxFromSE("Derivative(is.finite(a),a)"), "0")
+    expect_equal(rxFromSE("is.finite(v)"), "is.finite(v)")
+
+    # is.infinite
+    expect_error(rxToSE("is.infinite()"))
+    expect_equal(rxToSE("is.infinite(v)"), "is.infinite(v)")
+    expect_equal(rxFromSE("Derivative(is.infinite(a),a)"), "0")
+    expect_equal(rxFromSE("is.infinite(v)"), "is.infinite(v)")
+
   },
   test = "parsing"
 )

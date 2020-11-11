@@ -150,7 +150,11 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "dosenum"=0,
   "first"=1,
   "last"=1,
-  "diff"=1
+  "diff"=1,
+  "is.nan"=1,
+  "is.na"=1,
+  "is.finite"=1,
+  "is.infinite"=1
 )
 
 .rxOnly <- c(
@@ -562,6 +566,10 @@ rxRmFun <- function(name) {
 .rxD$first <- list(function(a){return("0")})
 .rxD$last <- list(function(a){return("0")})
 .rxD$diff <- list(function(a){return("0")})
+.rxD$is.nan <- list(function(a){return("0")})
+.rxD$is.na <- list(function(a){return("0")})
+.rxD$is.finite <- list(function(a){return("0")})
+.rxD$is.infinite <- list(function(a){return("0")})
 
 ## Approx a>=b by
 ## 1/2-1/2*tanh(k*x+delta)=1-tol
