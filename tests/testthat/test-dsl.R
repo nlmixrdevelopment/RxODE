@@ -410,6 +410,31 @@ rxPermissive(
     ## sum/prod testing
     expect_equal(rxToSE("sum(a,b,c)"), "((a)+(b)+(c))")
     expect_equal(rxToSE("prod(a,b,c)"), "((a)*(b)*(c))")
+
+    ## tlast
+    expect_error(rxToSE("tlast(matt+3)"))
+    expect_error(rxToSE("tlast(matt, 3)"))
+    expect_equal(rxToSE("tlast(matt)"), "tlast(matt)")
+    expect_equal(rxToSE("tlast()"), "tlast()")
+    expect_equal(rxFromSE("Derivative(tlast(matt), matt)"), "0")
+    expect_equal(rxFromSE("tlast(matt)"), "tlast(matt)")
+
+    expect_error(rxFromSE("tlast(matt,2)"))
+    expect_equal(rxFromSE("tlast(matt)"), "tlast(matt)")
+    expect_equal(rxFromSE("tlast()"), "tlast()")
+
+    ## tfirst
+    expect_error(rxToSE("tfirst(matt+3)"))
+    expect_error(rxToSE("tfirst(matt, 3)"))
+    expect_equal(rxToSE("tfirst(matt)"), "tfirst(matt)")
+    expect_equal(rxToSE("tfirst()"), "tfirst()")
+    expect_equal(rxFromSE("Derivative(tfirst(matt), matt)"), "0")
+    expect_equal(rxFromSE("tfirst(matt)"), "tfirst(matt)")
+
+    expect_error(rxFromSE("tfirst(matt,2)"))
+    expect_equal(rxFromSE("tfirst(matt)"), "tfirst(matt)")
+    expect_equal(rxFromSE("tfirst()"), "tfirst()")
+
   },
   test = "parsing"
 )

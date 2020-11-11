@@ -137,6 +137,8 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   "expit" = NA,
   "probit"=NA,
   "probitInv"=NA,
+  "tlast"=NA,
+  "tfirst"=NA,
   "dabs"=1,
   "dabs2"=1,
   "abs1"=1,
@@ -548,6 +550,10 @@ rxRmFun <- function(name) {
     return("(-1)")
   }
 )
+
+.rxD$tlast <- list(function(a){return("0")})
+.rxD$tfirst <- list(function(a){return("0")})
+
 
 
 
@@ -1026,6 +1032,19 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
       } else {
         stop("only 'THETA[#]' or 'ETA[#]' are supported", call. = FALSE)
       }
+    } else if (identical(x[[1]], quote(`tlast`)) ||
+                 identical(x[[1]], quote(`tfirst`))) {
+      .len <- length(x)
+      if (.len == 1L) {
+      } else if (.len == 2L) {
+        if (length(x[[2]]) != 1) {
+          stop(as.character(x[[1]]), "() must be used with a state", call.=FALSE)
+        }
+        return(paste0(as.character(x[[1]]), "(", as.character(x[[2]]), ")"))
+      } else {
+        stop(as.character(x[[1]]), "() can have 0-1 arguments", call.=FALSE)
+      }
+      return(paste0(as.character(x[[1]]), "()"))
     } else if (identical(x[[1]], quote(`psigamma`))) {
       if (length(x == 3)) {
         if (.isEnv) {
@@ -2030,6 +2049,15 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
           ")"
         )
         return(.ret)
+      } else if (any(paste(.ret0[[1]]) == c("tlast", "tfirst"))) {
+        if (length(.ret0) == 1L) {
+          return(paste0(.ret0[[1]], "()"))
+        } else if (length(.ret0) == 2L) {
+          if (length(.ret0[[2]]) == 1L) {
+            return(paste0(.ret0[[1]], "(", .ret0[[2]], ")"))
+          }
+        }
+        stop(paste0(.ret0[[1]], "() takes 0-1 arguments"))
       } else {
         stop(sprintf(gettext("'%s' not supported in symengine->RxODE"), paste(.ret0[[1]])),
           call. = FALSE
