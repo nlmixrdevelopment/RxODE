@@ -4630,10 +4630,11 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->safeZero = asInt(rxControl[Rxc_safeZero], "safeZero");
     op->stiff = method;
     if (method != 2){
-      op->cores = getRxThreads(1, false);
+      op->cores = 1;//getRxThreads(1, false);
     } else {
       op->cores = asInt(rxControl[Rxc_cores], "cores");
       if (op->cores == 0) {
+	// FIXME getRxThreads(nsim*nsub, true) should be here
 	op->cores = getRxThreads(INT_MAX, false);
       }
     }
