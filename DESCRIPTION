@@ -70,7 +70,6 @@ Suggests:
     scales,
     shiny,
     stringi,
-    tcltk,
     testthat,
     tidyr,
     usethis,

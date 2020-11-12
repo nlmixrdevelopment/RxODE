@@ -37,7 +37,7 @@ bool forderForceBase_ = false;
 //' @examples
 //' \donttest{
 //' forderForceBase(TRUE) # Use base `order` for RxODE sorts
-//' forderForceBase(FALSE) # Use base `data.table` for RxODE sorts
+//' forderForceBase(FALSE) # Use `data.table` for RxODE sorts
 //' }
 //'@export
 //[[Rcpp::export]]

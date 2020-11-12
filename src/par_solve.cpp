@@ -1912,8 +1912,8 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   ctx->error=NULL;
   ind = &(rx->subjects[neq[1]]);
   if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) {
-    lsoda_free(ctx);
     free(ctx);
+    ctx = NULL;
     return;
   }
   nx = ind->n_all_times;
