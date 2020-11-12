@@ -8,7 +8,7 @@
   simulations based on the threefry sitmo library.  Therefore random
   numbers generated within `RxODE` like providing
   `rxSolve(...,omega=)` will have different results with this new
-  random number generator.  This was done to allow internal resampling
+  random number generator.  This was done to allow internal re-sampling
   of sigmas/etas with thread-safe random number generators (calling R
   through `mvnfast` or R's simulation engines are not thread safe).
 
@@ -32,7 +32,7 @@
 ## New features
 
 * Add the ability to order input parameters with the `param()`
-  psuedo-function
+  pseudo-function
 
 * Add the ability to resample covariates with `resample=TRUE` or
   `resample=c("SEX", "CRCL")`.  You can resample all the covariates by
@@ -48,7 +48,7 @@
 * Completion of `rxSolve()` arguments are now included since they are
   part of the main method
 
-* Allow simulation with zero matricies, that provide the simulation
+* Allow simulation with zero matrices, that provide the simulation
   without variability.  This affects `rxSolve` as well as `rxMvnrnd` and
   `cvPost` (which will give a zero matrix whenever one is specified)
 
@@ -69,7 +69,9 @@
 
 * Allow `while(logical)` statements with ability to break out if them by `break`
 
-* Allow accessing different time-varying components of an input dataset for each indivdiual with:
+* Allow accessing different time-varying components of an input
+  dataset for each individual with:
+
   - `lag(var, #)`
   - `lead(var, #)`
   - `first(var)`
@@ -83,7 +85,7 @@ Each of these are similar to the R `lag`, `lead`, `first`, `last` and
   observation the left handed values are saved for the next
   observations and then reassigned to the last calculated value.
 
-  This allows nonmem-style of calculating parameters like tad:
+  This allows NONMEM-style of calculating parameters like tad:
 
 ```r
 mod1 <-RxODE({
@@ -135,14 +137,14 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 * Now the NONMEM-style `newind` flag can be used to initialize `lhs`
   parameters.
 
-* Added `tad()`, `tad(cmt)` funtions for time since last dose and time
+* Added `tad()`, `tad(cmt)` functions for time since last dose and time
   since last dose for a compartment; Also added time after first dose
   and time after first dose for a compartment `tafd()`, `tafd(cmt)`;
   time of last dose `tlast()`, `tlast(cmt)` and dose number
   `dosenum()` (currently not for each compartment)
 
 * Changed linear solved systems to use "advan" style `linCmt()`
-  solutions, to allow correct solutions of time-varying covariate
+  solutions, to allow correct solutions of time-varying covariates
   values with solved systems; As such, the solutions may be slightly
   different.  Infusions to the depot compartment are now supported.
 
@@ -153,7 +155,7 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   - One solution is to use Stan's auto-differentiation which requires
     `C++14`
 
-* When calculating the emperical bayseian estimates for with `rxInner`
+* When calculating the empirical Bayesian estimates for with `rxInner`
   (used for nlmixr's 'focei') ignore any variable beginning with `rx_`
   and `nlmixr_` to hide internal variables from table output.  This
   also added `tad=tad()` and `dosenum=dosenum()` to the `ebe` output
@@ -219,7 +221,7 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 * Added the following random number generators; They are thread safe
   (based on `threefry` `sitmo` and c++11) and your simulations with
   them will depend on the number of cores used in your simulation (Be
-  careful about reproduciblility with large number of threads; Also
+  careful about reproducibility with large number of threads; Also
   use parallel-solve type of RxODE simulations to avoid the [birthday
   problem](https://www.johndcook.com/blog/2016/01/29/random-number-generator-seed-mistakes/)).
 
@@ -270,7 +272,7 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 * Added the ability to integrate standard deviations/errors of omega
   diagonals and sigma diagonals.  This is done by specifying the omega
   diagonals in the theta matrix and having them represent the
-  variabilties or standard deviations. Then these standard deviations
+  variabilities or standard deviations. Then these standard deviations
   are simulated along with the correlations using the IJK correlation
   matrix (omega dimension < 10) or a correlation matrix or Inverse
   Wishart-based correlation matrix (omega dimension > 10).  The
@@ -287,6 +289,8 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
  - Work directly with `RxODE` internal solved structures
  - Assume no infinite values or `NA`/`NaN` values of time
  - Always sort time in ascending order
+ - Changed sorting to run in a single thread instead of taking over
+   all the threads like data.table
 
 * Changed method for setting/getting number of threads based on
   `data.table`'s method
@@ -317,7 +321,8 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
    now allowed.  Also check for more internally parsed items (see
    Issue #145).
 
- - Bug fix for `etSeq` and `etRep` where greater than 2 items were mis-caluclated
+ - Bug fix for `etSeq` and `etRep` where greater than 2 items were
+   mis-calculated
 
 # RxODE v0.9.2-0
 * New plotting engine
@@ -336,3 +341,10 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   value (Issue #135)
 * Added LINPACK authors as contributors
 * Added a `NEWS.md` file to track changes to the package
+
+<!--  LocalWords:  resample covariates Rstudio NONMEM advan focei
+ -->
+<!--  LocalWords:  nlmixr's symengine linearization RxODE
+ -->
+<!--  LocalWords:  reproducibility
+ -->
