@@ -10,7 +10,7 @@ output:
 If there is an individual covariate you wish to solve for you may specify it by the `iCov` dataset:
 
 ```{r}
-## library(RxODE)
+library(RxODE)
 library(units)
 library(xgxr)
 

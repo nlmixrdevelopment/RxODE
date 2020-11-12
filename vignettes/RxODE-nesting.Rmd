@@ -38,6 +38,7 @@ This event table contains nesting variables:
  - occ: occasion
  
 ```{r}
+library(RxODE)
 library(dplyr)
 
 et(amountUnits="mg", timeUnits="hours") %>%
@@ -147,7 +148,7 @@ be the `inv.Cl` for investigator 1, `inv.Cl(inv==2)` will be the
 study and then combined to form the between investigator
 variability. In equation form these represent the following:
 
-```{c}
+```
 inv.Cl = (inv == 1) * `inv.Cl(inv==1)` + (inv == 2) * `inv.Cl(inv==2)`
 ```
 

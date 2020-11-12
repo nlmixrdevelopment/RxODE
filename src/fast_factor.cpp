@@ -114,7 +114,7 @@ SEXP fast_factor_unsorted( const Vector<RTYPE>& x, SEXP oldLvl) {
     }
   }
   Rf_setAttrib(outS, R_LevelsSymbol, lvl);
-  Rf_setAttrib(outS, R_ClassSymbol, fac);
+  Rf_setAttrib(outS, Rf_install("class"), fac);
   return outS;
 }
 //[[Rcpp::export]]

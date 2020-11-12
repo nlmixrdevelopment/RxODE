@@ -28,6 +28,7 @@ The original code from the `RxODE` tutorial is below:
 ```{r}
 
 library(RxODE)
+
 library(microbenchmark)
 library(mvnfast)
 library(ggplot2)
@@ -49,7 +50,7 @@ ev <- et() %>%
     et(time=120, amt=20000, addl=4, ii=24) %>%
     et(0:240) ## Add Sampling
 
-nsub <- 100 # 100 subproblems
+nsub <- 1000 # 1000 subproblems
 sigma <- matrix(c(0.09,0.08,0.08,0.25),2,2) # IIV covariance matrix
 mv <- rmvn(n=nsub, rep(0,2), sigma) # Sample from covariance matrix
 CL <- 7*exp(mv[,1])
@@ -138,7 +139,7 @@ runThread <- function(n){
 }
 
 bench <- eval(parse(text=sprintf("microbenchmark(%s)",
-                                     paste(paste0("runThread(", seq(1, rxCores()),")"),
+                                     paste(paste0("runThread(", seq(1, rxCores() * 2),")"),
                                            collapse=","))))
 print(bench)
 ```

@@ -79,7 +79,7 @@ e <- et() %>%
     as.data.frame %>%
     ## Merge the event table with the covarite information
     merge(cov.df, by="id") %>%
-    as.tbl
+    as_tibble
 
 
 e
@@ -95,42 +95,12 @@ data <- rxSolve(m1, e,
                          eta.v1 ~.567,
                          eta.v2 ~ .191),
              sigma=lotri(prop.err ~ 0.15),
-             addDosing = TRUE, addCov = TRUE,
-             returnType = "data.frame")
+             addDosing = TRUE, addCov = TRUE)
 
-one.cmt <- function() {
-  ini({
-    tcl <- log(0.807)
-    tv1 <- log(4.8)
-    tq <- log(3.46)
-    tv2 <- log(6.04)
-    eta.cl ~ 0.2
-    eta.v1 ~ 0.2
-    prop.sd <- 0.1
-  })
-  model({
-    cl <- exp(tcl + eta.cl)
-    v1 <- exp(tv1 + eta.v1)
-    q <- exp(tq)
-    v2 <- exp(tv2)
-    linCmt() ~ prop(prop.sd)
-  })
-}
+print(data)
 
-library(nlmixr)
-
-fit <- nlmixr(one.cmt, data, "saem")
-
+plot(data, log="y")
 ```
-# Summarizing Daptomycin
-
-```{r}
-f2 <- f %>%
-    confint(parm="A2")
-
-plot(f2)
-```
-
 
 # Daptomycin Reference
 
