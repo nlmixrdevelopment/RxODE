@@ -49,7 +49,8 @@
   .ggplot2Fix()
   v <- utils::packageVersion("RxODE")
   packageStartupMessage("RxODE ", v, " using ", getRxThreads(verbose=FALSE),
-                        " threads (see ?getRxThreads)")
+                        " threads (see ?getRxThreads)",
+                        ifelse(.cacheIsTemp, "\n  create cache: `rxCreateCache()`; need for some parallel routines", ""))
   if (!.Call(`_rxHasOpenMp`)) {
     packageStartupMessage("========================================\n",
         "RxODE has not detected OpenMP support and will run in single-threaded mode\n",
@@ -73,13 +74,14 @@
   if (!file.exists(.tmp)) {
     dir.create(.tmp, recursive = TRUE)
   } else if (!file.exists(file.path(.tmp, paste0(RxODE.md5, ".md5")))) {
-    packageStartupMessage("detected new version of RxODE, cleaning cache")
+    if (!.cacheIsTemp) packageStartupMessage("detected new version of RxODE, cleaning cache")
     unlink(.tmp, recursive=TRUE, force=TRUE)
     dir.create(.tmp, recursive = TRUE)
     writeLines("RxODE", file.path(.tmp, paste0(RxODE.md5, ".md5")))
   }
 }
 
+.cacheIsTemp <- TRUE
 .rxTempDir0 <- NULL
 .cacheDefault <- NULL
 ##' Get the RxODE temporary directory
@@ -89,14 +91,20 @@
 rxTempDir <- function() {
   if (is.null(getFromNamespace(".rxTempDir0", "RxODE"))) {
     .tmp <- Sys.getenv("rxTempDir")
+    .rxUserDir <- R_user_dir("RxODE", "cache")
+    assignInMyNamespace(".cacheIsTemp", FALSE)
+    if (!file.exists(.rxUserDir)) {
+      .rxUserDir <- file.path(tempdir(),"RxODE")
+      assignInMyNamespace(".cacheIsTemp", TRUE)
+    }
     if (.tmp == "") {
       if (is.null(.cacheDefault)) {
-        assignInMyNamespace(".cacheDefault", R_user_dir("RxODE", "cache"))
+        assignInMyNamespace(".cacheDefault", .rxUserDir)
       }
       if (getOption("RxODE.cache.directory", .cacheDefault) != ".") {
         .tmp <- getOption("RxODE.cache.directory", .cacheDefault)
       } else {
-        .tmp <- R_user_dir("RxODE", "cache")
+        .tmp <- .rxUserDi
       }
     }
     .mkCache(.tmp)
@@ -111,6 +119,19 @@ rxTempDir <- function() {
     utils::assignInMyNamespace("RxODE.cache.directory", .tmp)
     return(.tmp)
   }
+}
+##' .. content for \description{} (no empty lines) ..
+##'
+##' .. content for \details{} ..
+##' @author Matthew Fidler
+rxCreateCache <- function() {
+  .tmp <- R_user_dir("RxODE", "cache")
+  assignInMyNamespace(".cacheDefault", R_user_dir("RxODE", "cache"))
+  .mkCache(.tmp)
+  .tmp <- .normalizePath(.tmp)
+  Sys.setenv(rxTempDir = .tmp)
+  utils::assignInMyNamespace(".rxTempDir0", .tmp)
+  utils::assignInMyNamespace("RxODE.cache.directory", .tmp)
 }
 
 
