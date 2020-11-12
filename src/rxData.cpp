@@ -2461,7 +2461,7 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
   if (rx->op->cores == 1 || rx->op->cores >= nall*getThrottle()) {
     // No point in sorting
     if (ini) {
-      if (rx->ordId == NULL) free(rx->ordId);
+      if (rx->ordId != NULL) free(rx->ordId);
       rx->ordId=NULL;
       rx->ordId = (int*)malloc(nall*sizeof(int));
       std::iota(rx->ordId,rx->ordId+nall,1);
@@ -3947,7 +3947,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   // NA, NaN, and -Inf +Inf not supported
   int nbyte=0, nradix=0, spare=0;
   calcNradix(&nbyte, &nradix, &spare, &(rx->maxD), &(rx->minD));
-
+  if (rx->nradix != NULL) free(rx->nradix);
   rx->nradix = (int*)malloc(op->cores*sizeof(int));//nbyte-1 + (rx->spare==0);
   std::fill_n(rx->nradix, op->cores, nradix);
   ////////////////////////////////////////////////////////////////////////////////
