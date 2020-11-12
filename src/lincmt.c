@@ -3588,7 +3588,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double _t, int linCmt,
     if (sameTime) A[cur++] = curD;
     else return curD;
   }
-  if ((op->linBflag & 256) && (sameTime || (!sameTime && val == 8))) { // rate
+  if ((op->linBflag & 256) && (sameTime || (!sameTime && val == 9))) { // rate
     if (op->cRate) {
       curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 		      p2, p3, p4, p5, d_tlag, d_F,
@@ -3607,7 +3607,7 @@ double linCmtF(rx_solve *rx, unsigned int id, double _t, int linCmt,
     if (sameTime) A[cur++] = curD;
     else return curD;
   }
-  if ((op->linBflag & 512) && (sameTime || (!sameTime && val == 8))) { // dur
+  if ((op->linBflag & 512) && (sameTime || (!sameTime && val == 10))) { // dur
     if (op->cDur) {
       curD = (linCmtC(rx, id, t, linCmt, ncmt, trans, p1, v1,
 		      p2, p3, p4, p5, d_tlag, d_F, d_rate1,

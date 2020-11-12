@@ -531,7 +531,7 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
                     sumType = c("pairwise", "fsum", "kahan", "neumaier", "c"),
                     prodType = c("long double", "double", "logify"),
                     sensType = c("advan", "autodiff", "forward", "central"),
-                    linDiff=c(tlag=1.5e-8, f=1.5e-8, rate=1.5e-8, dur=1.5e-8, tlag2=1.5e-8, f2=1.5e-8, rate2=1.5e-8, dur2=1.5e-8),
+                    linDiff=c(tlag=1.5e-5, f=1.5e-5, rate=1.5e-5, dur=1.5e-5, tlag2=1.5e-5, f2=1.5e-5, rate2=1.5e-5, dur2=1.5e-5),
                     linDiffCentral=c(tlag=TRUE, f=TRUE, rate=TRUE, dur=TRUE, tlag2=TRUE, f2=TRUE, rate2=TRUE, dur2=TRUE),
                     resample=NULL,
                     resampleID=TRUE) {

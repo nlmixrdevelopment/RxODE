@@ -2877,7 +2877,7 @@ static inline void rxSolve_simulate(const RObject &obj,
   if (linNV.containsElementNamed("tlag")){
     op->hTlag = as<double>(linNV["tlag"]);
   } else {
-    op->hTlag = 1.5e-08;
+    op->hTlag = 1.5e-5;
   }
   if (linLV.containsElementNamed("f")) {
     op->cF = as<bool>(linLV["f"]);
@@ -2887,7 +2887,7 @@ static inline void rxSolve_simulate(const RObject &obj,
   if (linNV.containsElementNamed("f")) {
     op->hF = as<double>(linNV["f"]);
   } else {
-    op->hF = 1.5e-08;
+    op->hF = 1.5e-5;
   }
   if (linLV.containsElementNamed("rate")) {
     op->cRate = as<bool>(linLV["rate"]);
@@ -2897,7 +2897,7 @@ static inline void rxSolve_simulate(const RObject &obj,
   if (linNV.containsElementNamed("rate")) {
     op->hRate = as<double>(linNV["rate"]);
   } else {
-    op->hRate = 1.5e-08;
+    op->hRate = 1.5e-5;
   }
   if (linLV.containsElementNamed("dur")) {
     op->cDur = as<bool>(linLV["dur"]);
@@ -2907,7 +2907,7 @@ static inline void rxSolve_simulate(const RObject &obj,
   if (linNV.containsElementNamed("dur")) {
     op->hDur = as<double>(linNV["dur"]);
   } else {
-    op->hDur = 1.5e-08;
+    op->hDur = 1.5e-5;
   }
   if (linLV.containsElementNamed("tlag2")) {
     op->cTlag2 = as<bool>(linLV["tlag2"]);
@@ -2917,7 +2917,7 @@ static inline void rxSolve_simulate(const RObject &obj,
   if (linNV.containsElementNamed("tlag2")) {
     op->hTlag2 = as<double>(linNV["tlag2"]);
   } else {
-    op->hTlag2 = 1.5e-08;
+    op->hTlag2 = 1.5e-5;
   }
   if (linLV.containsElementNamed("f2")) {
     op->cF2 = as<bool>(linLV["f2"]);
@@ -2927,7 +2927,7 @@ static inline void rxSolve_simulate(const RObject &obj,
   if (linNV.containsElementNamed("f2")) {
     op->hF2 = as<double>(linNV["f2"]);
   } else {
-    op->hF2 = 1.5e-08;
+    op->hF2 = 1.5e-5;
   }
   if (linLV.containsElementNamed("rate2")) {
     op->cRate2 = as<bool>(linLV["rate2"]);
@@ -2937,7 +2937,7 @@ static inline void rxSolve_simulate(const RObject &obj,
   if (linNV.containsElementNamed("rate2")) {
     op->hRate2 = as<double>(linNV["rate2"]);
   } else {
-    op->hRate2 = 1.5e-08;
+    op->hRate2 = 1.5e-5;
   }
   if (linLV.containsElementNamed("dur2")) {
     op->cDur2 = as<bool>(linLV["dur2"]);
@@ -2947,7 +2947,7 @@ static inline void rxSolve_simulate(const RObject &obj,
   if (linNV.containsElementNamed("dur2")) {
     op->hDur2 = as<double>(linNV["dur2"]);
   } else {
-    op->hDur2 = 1.5e-08;
+    op->hDur2 = 1.5e-5;
   }
   unsigned int nSub = asUnsignedInt(rxControl[Rxc_nSub], "nSub");
   unsigned int nStud = asUnsignedInt(rxControl[Rxc_nStud], "nStud");

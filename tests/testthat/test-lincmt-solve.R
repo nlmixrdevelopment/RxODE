@@ -3032,7 +3032,8 @@ rxPermissive(
       })
     }
 
-    context("Make sure central differences are working")
+  context("Make sure central differences are working")
+  test_that("central differences", {
 
     ## One compartment model without oral absorption
     pred <- function() {
@@ -3068,7 +3069,7 @@ rxPermissive(
     parms <- c(
       "THETA[1]" = 20, "THETA[2]" = 25, "ETA[1]" = 1, "ETA[2]" = 1,
       "THETA[3]" = 0.2, "THETA[4]"=log(1), "THETA[5]"=log(0.5),
-      "ETA[3]"=0, "ETA[4]"=0
+      "ETA[3]"=1, "ETA[4]"=1
     )
 
     et <- eventTable() %>%
@@ -3133,16 +3134,16 @@ rxPermissive(
       add.sampling(seq(0, 48, length.out = 200))
 
     parms <- c("THETA[1]" = log(18), ## Cl
-          "THETA[2]" = log(40), ## Vc
-          "THETA[3]" = log(10), ## Q
-          "THETA[4]" = log(297), ## Vp
-          "THETA[5]" = log(0.3), ## Ka
-          "ETA[1]" = 0, "ETA[2]" = 0,
-          "ETA[3]" = 0, "ETA[4]" = 0,
-          "ETA[5]" = 0,
-          "THETA[6]" = 0.2, "THETA[7]"=log(1.5), "THETA[8]"=log(0.5),
-          "ETA[6]"=0, "ETA[7]"=0
-        )
+               "THETA[2]" = log(40), ## Vc
+               "THETA[3]" = log(10), ## Q
+               "THETA[4]" = log(297), ## Vp
+               "THETA[5]" = log(0.3), ## Ka
+               "ETA[1]" = 0, "ETA[2]" = 0,
+               "ETA[3]" = 0, "ETA[4]" = 0,
+               "ETA[5]" = 0,
+               "THETA[6]" = 0.2, "THETA[7]"=log(1.5), "THETA[8]"=log(0.5),
+               "ETA[6]"=0, "ETA[7]"=0
+               )
 
     s1 <- rxSolve(pk2s$inner, parms, et, sensType = "advan")
 
@@ -3151,6 +3152,8 @@ rxPermissive(
 
     expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_6___)))
     expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_7___)))
+
+  })
 
 
 

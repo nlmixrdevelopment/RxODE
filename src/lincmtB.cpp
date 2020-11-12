@@ -2428,30 +2428,172 @@ namespace stan {
 #undef d_dur2
 #undef v
 
+#undef p5
+
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> MatrixPd;
 
+extern "C" double linCmtC(rx_solve *rx, unsigned int id, double _t, int linCmt,
+			  int i_cmt, int trans,
+			  double p1, double v1,
+			  double p2, double p3,
+			  double p4, double p5,
+			  double d_tlag, double d_F, double d_rate1, double d_dur1,
+			  // Oral parameters
+			  double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2);
 
+double updateDiff(rx_solve *rx, unsigned int id, double t, int value, int linCmt,
+		  int ncmt, int trans,
+		  double p1, double v1,
+		  double p2, double p3,
+		  double p4, double p5,
+		  double d_tlag, double d_F, double d_rate1, double d_dur1,
+		  // Oral parameters
+		  double d_ka, double d_tlag2, double d_F2,  double d_rate2, double d_dur2,
+		  int central, double h, double &v0) {
+  double p00[15] = {p1, v1, p2, p3, p4, p5, d_tlag, d_F,  d_rate1, d_dur1, d_ka, d_tlag2, d_F2, d_rate2, d_dur2};
+  if (central) {
+    double p01[15] = {p1, v1, p2, p3, p4, p5, d_tlag, d_F,  d_rate1, d_dur1, d_ka, d_tlag2, d_F2, d_rate2, d_dur2};
+    p00[value-1] += 0.5*h;
+    p01[value-1] -= 0.5*h;
+    return (linCmtC(rx, id, t, linCmt, ncmt, trans, p00[0], p00[1],
+		    p00[2], p00[3], p00[4], p00[5], p00[6], p00[7], p00[8], p00[9],
+		    p00[10], p00[11], p00[12],  p00[13], p00[14]) -
+	    linCmtC(rx, id, t, linCmt, ncmt, trans, p00[0], p00[1],
+		    p01[2], p01[3], p01[4], p01[5], p01[6], p01[7], p01[8], p01[9],
+		    p01[10], p01[11], p01[12],  p01[13], p01[14]))/h;
+  } else {
+    p00[value-1] +=h;
+    return (linCmtC(rx, id, t, linCmt, ncmt, trans,p00[0], p00[1],
+		    p00[2], p00[3], p00[4], p00[5], p00[6], p00[7], p00[8], p00[9],
+		    p00[10], p00[11], p00[12],  p00[13], p00[14]) - v0)/h;
+  }
+}
 
-static inline double linCmtBg(double *A, int& val, int& trans, int& ncmt,
+static inline double linCmtBg(double *A, double &t, int& val, int& trans, int& ncmt,
 			      int& oral0, double& dd_v1, double& dd_p3,
-			      double& dd_p5){
+			      double& dd_p5, bool interpolate, int id){
   if (val == 0){
     if (trans == 10) {
       return(A[oral0]*(dd_v1 + dd_p3 + dd_p5));
     } else {
       return(A[oral0]/dd_v1);
     }
-  } else {
-    // 2*ncmt + oral0
-    if (val == 11) {
+  } else if (val == 11) {
       if (oral0) return A[ncmt + oral0 + 2*ncmt];
       return 0.0;
-    } else if (val <= 7) {
-      return A[ncmt+oral0+val-1];
-    } else {
-      Rcpp::stop("not implemented");
+  } else if (val <= 7) {
+    return A[ncmt+oral0+val-1];
+  } else {
+    rx_solve* rx = getRxSolve_();
+    rx_solving_options *op = rx->op;
+    int cur = op->nlin2;
+    rx_solving_options_ind *ind = &(rx->subjects[id]);
+    if (op->linBflag & 64) { // tlag
+      if (val == 7) {
+	if (interpolate) {
+	  double tlast  = getTime(ind->ix[ind->idx-1], ind);
+	  double *Alast = getAdvan(ind->idx-1);
+	  double tcur  = getTime(ind->ix[ind->idx], ind);
+	  return (A[cur] - Alast[cur])/(tcur-tlast)*(t-tlast)+Alast[cur];
+	} else {
+	  return A[cur];
+	}
+      }
+      cur++;
+    }
+    if (op->linBflag & 128) { // f 8
+      if (interpolate) {
+	double tlast  = getTime(ind->ix[ind->idx-1], ind);
+	double *Alast = getAdvan(ind->idx-1);
+	double tcur  = getTime(ind->ix[ind->idx], ind);
+	return (A[cur] - Alast[cur])/(tcur-tlast)*(t-tlast)+Alast[cur];
+      } else {
+	if (val == 8) {
+	  return A[cur];
+	}
+      }
+      cur++;
+    }
+    if (op->linBflag & 256) { // rate 9
+      if (val == 9) {
+	if (interpolate) {
+	  double tlast  = getTime(ind->ix[ind->idx-1], ind);
+	  double *Alast = getAdvan(ind->idx-1);
+	  double tcur  = getTime(ind->ix[ind->idx], ind);
+	  return (A[cur] - Alast[cur])/(tcur-tlast)*(t-tlast)+Alast[cur];
+	} else {
+	  return A[cur];
+	}
+      }
+      cur++;
+    }
+    if (op->linBflag & 512) { // dur 10
+      if (val == 10) {
+	if (interpolate) {
+	  double tlast  = getTime(ind->ix[ind->idx-1], ind);
+	  double *Alast = getAdvan(ind->idx-1);
+	  double tcur  = getTime(ind->ix[ind->idx], ind);
+	  return (A[cur] - Alast[cur])/(tcur-tlast)*(t-tlast)+Alast[cur];
+	} else {
+	  return A[cur];
+	}
+      }
+      cur++;
+    }
+    if (op->linBflag & 2048) { // tlag2 12
+      if (val == 12) {
+	if (interpolate) {
+	  double tlast  = getTime(ind->ix[ind->idx-1], ind);
+	  double *Alast = getAdvan(ind->idx-1);
+	  double tcur  = getTime(ind->ix[ind->idx], ind);
+	  return (A[cur] - Alast[cur])/(tcur-tlast)*(t-tlast)+Alast[cur];
+	} else {
+	  return A[cur];
+	}
+      }
+      cur++;
+    }
+    if (op->linBflag & 4096) { // f2 13
+      if (val == 13) {
+	if (interpolate) {
+	  double tlast  = getTime(ind->ix[ind->idx-1], ind);
+	  double *Alast = getAdvan(ind->idx-1);
+	  double tcur  = getTime(ind->ix[ind->idx], ind);
+	  return (A[cur] - Alast[cur])/(tcur-tlast)*(t-tlast)+Alast[cur];
+	} else {
+	  return A[cur];
+	}
+      }
+      cur++;
+    }
+    if (op->linBflag & 8192) { // rate2 14
+      if (val == 14) {
+	if (interpolate) {
+	  double tlast  = getTime(ind->ix[ind->idx-1], ind);
+	  double *Alast = getAdvan(ind->idx-1);
+	  double tcur  = getTime(ind->ix[ind->idx], ind);
+	  return (A[cur] - Alast[cur])/(tcur-tlast)*(t-tlast)+Alast[cur];
+	} else {
+	  return A[cur];
+	}
+      }
+      cur++;
+    }
+    if (op->linBflag & 16384) { // dur2 15
+      if (val == 15) {
+	if (interpolate) {
+	  double tlast  = getTime(ind->ix[ind->idx-1], ind);
+	  double *Alast = getAdvan(ind->idx-1);
+	  double tcur  = getTime(ind->ix[ind->idx], ind);
+	  return (A[cur] - Alast[cur])/(tcur-tlast)*(t-tlast)+Alast[cur];
+	} else {
+	  return A[cur];
+	}
+      }
+      cur++;
     }
   }
+  return NA_REAL;
 }
 
 
@@ -2503,130 +2645,193 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
   case 1: {// sensitivity
     // Get  Alast
     stanad:
-  rx_solving_options_ind *ind = &(rx->subjects[id]);
-  double t = _t - ind->curShift;
-  int idx = ind->idx;
-  rx_solving_options *op = rx->op;
-  int oral0 = (dd_ka != 0) ? 1 : 0;
-  double it = getTime(ind->ix[idx], ind);
+    rx_solving_options_ind *ind = &(rx->subjects[id]);
+    double t = _t - ind->curShift;
+    int idx = ind->idx;
+    rx_solving_options *op = rx->op;
+    int oral0 = (dd_ka != 0) ? 1 : 0;
+    double it = getTime(ind->ix[idx], ind);
 
-  if (t != it) {
-    // Try to get another idx by bisection
-    idx = _locateTimeIndex(t, ind);
-    it = getTime(ind->ix[idx], ind);
-  }
-  int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
-  if (idx <= ind->solved && sameTime){
-    // Pull from last solved value (cached)
-    double *A = getAdvan(idx);
-    return linCmtBg(A, val, trans, ncmt, oral0, dd_v1, dd_p3, dd_p5);
-  }
-  MatrixPd params(2*ncmt + oral0, 1);
-  params(0, 0) = dd_p1;
-  params(1, 0) = dd_v1;
-  if (ncmt >=2 ){
-    params(2,0) = dd_p2;
-    params(3,0) = dd_p3;
-    if (ncmt >= 3){
-      params(4,0) = dd_p4;
-      params(5,0) = dd_p5;
+    if (t != it) {
+      // Try to get another idx by bisection
+      idx = _locateTimeIndex(t, ind);
+      it = getTime(ind->ix[idx], ind);
     }
-  }
-  if (oral0) {
-    params(2*ncmt, 0) = dd_ka;
-  }
-
-  MatrixPd pard(4 + 4*oral0, 1);
-
-  pard(0, 0) = dd_tlag;
-  pard(1, 0) = dd_F;
-  pard(2, 0) = dd_rate;
-  pard(3, 0) = dd_dur;
-  if (oral0) {
-    pard(4, 0) = dd_tlag2;
-    pard(5, 0) = dd_F2;
-    pard(6, 0) = dd_rate2;
-    pard(7, 0) = dd_dur2;
-  }
-  // Restore last values from gradient into a matrix
-  Eigen::Matrix<double, -1, -1> AlastG(ncmt+oral0, ncmt*2+oral0);
-  Eigen::Matrix<double, -1, -1> AlastA(ncmt+oral0,1);
-  double *A;
-  if (idx != 0){
-    A = getAdvan(idx-1);
-    for (int i = 0; i < ncmt+oral0; i++) {
-      AlastG(i, 0) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 0];
-      AlastG(i, 1) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 1];
-      // Alast Adjusted
-      AlastA(i, 0) = A[i];
-      AlastA(i, 0) -= AlastG(i, 0)*dd_p1;
-      AlastA(i, 0) -= AlastG(i, 1)*dd_v1;
-      if (ncmt >=2){
-	AlastG(i, 2) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 2];
-	AlastG(i, 3) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 3];
-	// Adjust alast
-	AlastA(i, 0) -= AlastG(i, 2)*dd_p2;
-	AlastA(i, 0) -= AlastG(i, 3)*dd_p3;
-	if (ncmt >= 3){
-	  AlastG(i, 4) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 4];
-	  AlastG(i, 5) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 5];
-	  // Adjust Alast
-	  AlastA(i, 0) -= AlastG(i, 4)*dd_p4;
-	  AlastA(i, 0) -= AlastG(i, 5)*dd_p5;
-	}
-      }
-      if (oral0) {
-	AlastG(i, 2*ncmt) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 2*ncmt];
-	AlastA(i, 0) -= AlastG(i, 2*ncmt)*dd_ka;
-      }
+    int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
+    if (idx <= ind->solved && sameTime){
+      // Pull from last solved value (cached)
+      double *A = getAdvan(idx);
+      return linCmtBg(A, t, val, trans, ncmt, oral0, dd_v1, dd_p3, dd_p5, true, id);
     }
-    // Rcpp::print(Rcpp::wrap(AlastG));
-  } else {
-    AlastG.setZero(ncmt+oral0, ncmt*2+oral0);
-    AlastA.setZero(ncmt+oral0, 1);
-  }
-  stan::math::linCmtFun f(t, ncmt, oral0, trans, linCmt, idx, sameTime, ind, rx, pard, AlastA, AlastG);
-  Eigen::VectorXd fx;
-  Eigen::Matrix<double, -1, -1> J;
-  stan::math::jacobian(f, params, fx, J);
-  if (sameTime) {
-    // Rcpp::print(Rcpp::wrap(J));
-    A = getAdvan(idx);
-    A[ncmt + oral0 + 0] = J(0, 0);
-    A[ncmt + oral0 + 1] = J(0, 1);
-    if (ncmt >=2){
-      A[ncmt + oral0 + 2] = J(0, 2);
-      A[ncmt + oral0 + 3] = J(0, 3);
-      if (ncmt == 3){
-	A[ncmt + oral0 + 4] = J(0, 4);
-	A[ncmt + oral0 + 5] = J(0, 5);
+    MatrixPd params(2*ncmt + oral0, 1);
+    params(0, 0) = dd_p1;
+    params(1, 0) = dd_v1;
+    if (ncmt >=2 ){
+      params(2,0) = dd_p2;
+      params(3,0) = dd_p3;
+      if (ncmt >= 3){
+	params(4,0) = dd_p4;
+	params(5,0) = dd_p5;
       }
     }
     if (oral0) {
-      A[ncmt + oral0 + 2*ncmt] = J(0, 2*ncmt);
+      params(2*ncmt, 0) = dd_ka;
     }
-    // Save A1-A4
-    for (int i = 0; i < ncmt+oral0; i++) {
-      //(3*ncmt+2*oral0)+0
-      A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 0] = J(i+1, 0);
-      A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 1] = J(i+1, 1);
+
+    MatrixPd pard(4 + 4*oral0, 1);
+
+    pard(0, 0) = dd_tlag;
+    pard(1, 0) = dd_F;
+    pard(2, 0) = dd_rate;
+    pard(3, 0) = dd_dur;
+    if (oral0) {
+      pard(4, 0) = dd_tlag2;
+      pard(5, 0) = dd_F2;
+      pard(6, 0) = dd_rate2;
+      pard(7, 0) = dd_dur2;
+    }
+    // Restore last values from gradient into a matrix
+    Eigen::Matrix<double, -1, -1> AlastG(ncmt+oral0, ncmt*2+oral0);
+    Eigen::Matrix<double, -1, -1> AlastA(ncmt+oral0,1);
+    double *A;
+    if (idx != 0){
+      A = getAdvan(idx-1);
+      for (int i = 0; i < ncmt+oral0; i++) {
+	AlastG(i, 0) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 0];
+	AlastG(i, 1) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 1];
+	// Alast Adjusted
+	AlastA(i, 0) = A[i];
+	AlastA(i, 0) -= AlastG(i, 0)*dd_p1;
+	AlastA(i, 0) -= AlastG(i, 1)*dd_v1;
+	if (ncmt >=2){
+	  AlastG(i, 2) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 2];
+	  AlastG(i, 3) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 3];
+	  // Adjust alast
+	  AlastA(i, 0) -= AlastG(i, 2)*dd_p2;
+	  AlastA(i, 0) -= AlastG(i, 3)*dd_p3;
+	  if (ncmt >= 3){
+	    AlastG(i, 4) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 4];
+	    AlastG(i, 5) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 5];
+	    // Adjust Alast
+	    AlastA(i, 0) -= AlastG(i, 4)*dd_p4;
+	    AlastA(i, 0) -= AlastG(i, 5)*dd_p5;
+	  }
+	}
+	if (oral0) {
+	  AlastG(i, 2*ncmt) = A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 2*ncmt];
+	  AlastA(i, 0) -= AlastG(i, 2*ncmt)*dd_ka;
+	}
+      }
+      // Rcpp::print(Rcpp::wrap(AlastG));
+    } else {
+      AlastG.setZero(ncmt+oral0, ncmt*2+oral0);
+      AlastA.setZero(ncmt+oral0, 1);
+    }
+    stan::math::linCmtFun f(t, ncmt, oral0, trans, linCmt, idx, sameTime, ind, rx, pard, AlastA, AlastG);
+    Eigen::VectorXd fx;
+    Eigen::Matrix<double, -1, -1> J;
+    stan::math::jacobian(f, params, fx, J);
+    if (sameTime) {
+      // Rcpp::print(Rcpp::wrap(J));
+      A = getAdvan(idx);
+      A[ncmt + oral0 + 0] = J(0, 0);
+      A[ncmt + oral0 + 1] = J(0, 1);
       if (ncmt >=2){
-	A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 2] = J(i+1, 2);
-	A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 3] = J(i+1, 3);
+	A[ncmt + oral0 + 2] = J(0, 2);
+	A[ncmt + oral0 + 3] = J(0, 3);
 	if (ncmt == 3){
-	  A[ncmt + oral0 + (2*ncmt+oral0)*(i+1)+ 4] = J(i+1, 4);
-	  A[ncmt + oral0 + (2*ncmt+oral0)*(i+1)+ 5] = J(i+1, 5);
+	  A[ncmt + oral0 + 4] = J(0, 4);
+	  A[ncmt + oral0 + 5] = J(0, 5);
 	}
       }
       if (oral0) {
-	//(3*ncmt+oral0)+2*ncmt
-	A[ncmt + oral0 + (2*ncmt+oral0)*(i+1)+ 2*ncmt] = J(i+1, 2*ncmt);
+	A[ncmt + oral0 + 2*ncmt] = J(0, 2*ncmt);
       }
+      // Save A1-A4
+      for (int i = 0; i < ncmt+oral0; i++) {
+	//(3*ncmt+2*oral0)+0
+	A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 0] = J(i+1, 0);
+	A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 1] = J(i+1, 1);
+	if (ncmt >=2){
+	  A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 2] = J(i+1, 2);
+	  A[ncmt + oral0 + (2*ncmt+oral0)*(i+1) + 3] = J(i+1, 3);
+	  if (ncmt == 3){
+	    A[ncmt + oral0 + (2*ncmt+oral0)*(i+1)+ 4] = J(i+1, 4);
+	    A[ncmt + oral0 + (2*ncmt+oral0)*(i+1)+ 5] = J(i+1, 5);
+	  }
+	}
+	if (oral0) {
+	  //(3*ncmt+oral0)+2*ncmt
+	  A[ncmt + oral0 + (2*ncmt+oral0)*(i+1)+ 2*ncmt] = J(i+1, 2*ncmt);
+	}
+      }
+      // (4+(ncmt+oral0))*ncmt + (2+ncmt+oral0)*oral0+1
+      int cur = op->nlin2;
+      double v0=NA_REAL;
+      if (trans == 10) {
+	v0 =  A[oral0]*(dd_v1 + dd_p3 + dd_p5);
+      } else {
+	v0 = A[oral0]/dd_v1;
+      }
+      if (op->linBflag & 64) { // tlag
+	A[cur++] = updateDiff(rx, id, _t, 7, linCmt, ncmt, trans,
+			      dd_p1, dd_v1, dd_p2, dd_p3, dd_p4, dd_p5,
+			      dd_tlag, dd_F, dd_rate, dd_dur, 
+			      dd_ka, dd_tlag2, dd_F2,  dd_rate2, dd_dur2,
+			      op->cTlag, op->hTlag, v0);
+      }
+      if (op->linBflag & 128) { // f 8
+	A[cur++] = updateDiff(rx, id, _t, 8, linCmt, ncmt, trans,
+			      dd_p1, dd_v1, dd_p2, dd_p3, dd_p4, dd_p5,
+			      dd_tlag, dd_F, dd_rate, dd_dur, 
+			      dd_ka, dd_tlag2, dd_F2,  dd_rate2, dd_dur2,
+			      op->cF, op->hF, v0);
+      }
+      if (op->linBflag & 256) { // rate 9
+	A[cur++] = updateDiff(rx, id, _t, 9, linCmt, ncmt, trans,
+			      dd_p1, dd_v1, dd_p2, dd_p3, dd_p4, dd_p5,
+			      dd_tlag, dd_F, dd_rate, dd_dur, 
+			      dd_ka, dd_tlag2, dd_F2,  dd_rate2, dd_dur2,
+			      op->cRate, op->hRate, v0);
+      }
+      if (op->linBflag & 512) { // dur 10
+	A[cur++] = updateDiff(rx, id, _t, 10, linCmt, ncmt, trans,
+			      dd_p1, dd_v1, dd_p2, dd_p3, dd_p4, dd_p5,
+			      dd_tlag, dd_F, dd_rate, dd_dur, 
+			      dd_ka, dd_tlag2, dd_F2,  dd_rate2, dd_dur2,
+			      op->cDur, op->hDur, v0);
+      }
+      if (op->linBflag & 2048) { // tlag2 12
+	A[cur++] = updateDiff(rx, id, _t, 12, linCmt, ncmt, trans,
+			      dd_p1, dd_v1, dd_p2, dd_p3, dd_p4, dd_p5,
+			      dd_tlag, dd_F, dd_rate, dd_dur, 
+			      dd_ka, dd_tlag2, dd_F2,  dd_rate2, dd_dur2,
+			      op->cTlag2, op->hTlag2, v0);
+      }
+      if (op->linBflag & 4096) { // f2 13
+	A[cur++] = updateDiff(rx, id, _t, 13, linCmt, ncmt, trans,
+			      dd_p1, dd_v1, dd_p2, dd_p3, dd_p4, dd_p5,
+			      dd_tlag, dd_F, dd_rate, dd_dur, 
+			      dd_ka, dd_tlag2, dd_F2,  dd_rate2, dd_dur2,
+			      op->cF2, op->hF2, v0);
+      }
+      if (op->linBflag & 8192) { // rate2 14
+	A[cur++] = updateDiff(rx, id, _t, 14, linCmt, ncmt, trans,
+			      dd_p1, dd_v1, dd_p2, dd_p3, dd_p4, dd_p5,
+			      dd_tlag, dd_F, dd_rate, dd_dur, 
+			      dd_ka, dd_tlag2, dd_F2,  dd_rate2, dd_dur2,
+			      op->cRate2, op->hRate2, v0);
+      }
+      if (op->linBflag & 16384) { // dur2 15
+	A[cur++] = updateDiff(rx, id, _t, 15, linCmt, ncmt, trans,
+			      dd_p1, dd_v1, dd_p2, dd_p3, dd_p4, dd_p5,
+			      dd_tlag, dd_F, dd_rate, dd_dur, 
+			      dd_ka, dd_tlag2, dd_F2,  dd_rate2, dd_dur2,
+			      op->cDur2, op->hDur2, v0);
+      }
+      ind->solved = idx;
     }
-    // (4+(ncmt+oral0))*ncmt + (2+ncmt+oral0)*oral0+1
-    ind->solved = idx;
-  }
-  return linCmtBg(A, val, trans, ncmt, oral0, dd_v1, dd_p3, dd_p5);
+    return linCmtBg(A, t, val, trans, ncmt, oral0, dd_v1, dd_p3, dd_p5, false, id);
   }
     break;
   case 2: // forward difference
