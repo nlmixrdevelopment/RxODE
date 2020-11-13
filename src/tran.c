@@ -4153,7 +4153,6 @@ void trans_internal(char* parse_file, int isStr){
     if (gBufFree) Free(gBuf);
     gBuf = rc_sbuf_read(parse_file);
     gBufFree=1;
-    Free(parse_file);
     err_msg((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2);
   }
   sFree(&sbNrm);
@@ -4218,7 +4217,6 @@ void trans_internal(char* parse_file, int isStr){
       }
     }
   }
-  /* Free(parse_file); */
 }
 
 SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,

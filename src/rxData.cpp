@@ -2387,7 +2387,7 @@ LogicalVector rxSolveFree(){
     rx->keys=NULL;
   }
 
-  if (rx->TMP != NULL){
+  if (rx->TMP != NULL) {
     free(rx->TMP);
   }
   rx->TMP = NULL;
