@@ -2486,7 +2486,7 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
   		    _["method"]="radix",
   		    _["decreasing"] = LogicalVector::create(true));
       }
-      if (rx->ordId == NULL) free(rx->ordId);
+      if (rx->ordId != NULL) free(rx->ordId);
       rx->ordId=NULL;
       rx->ordId = (int*)malloc(nall*sizeof(int));
       std::copy(ord.begin(), ord.end(), rx->ordId);
