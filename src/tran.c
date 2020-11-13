@@ -1327,6 +1327,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		  updateSyntaxCol();
 		  sPrint(&buf,ODEFIRST,v2);
 		  trans_syntax_error_report_fn(buf.s);
+		  Free(v2);
 		  Free(v);
 		  continue;
 		} else {
