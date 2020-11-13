@@ -4045,7 +4045,7 @@ void writeSb(sbuf *sbb, FILE *fp){
 }
 static void rxSyntaxError(struct D_Parser *ap);
 
-void trans_internal(char* parse_file, int isStr){
+void trans_internal(const char* parse_file, int isStr){
   char *buf1, *buf2, bufe[2048];
   int i,j,found,islhs;
   freeP();
@@ -4058,7 +4058,7 @@ void trans_internal(char* parse_file, int isStr){
     if (gBufFree) Free(gBuf);
     // Should be able to use gBuf directly, but I believe it cause
     // problems with R's garbage collection, so duplicate the string.
-    gBuf = (char*)rc_dup_str(parse_file, 0);
+    gBuf = (char*)(parse_file);
     gBufFree=0;
   } else {
     if (gBufFree) Free(gBuf);
@@ -4134,7 +4134,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 		  SEXP isEscIn, SEXP inLinExtra, SEXP inME,
 		  SEXP goodFuns){
   _goodFuns = goodFuns;
-  char *in = NULL;
+  const char *in = NULL;
   char *buf, *df, *dy;
 
   int i, j, islhs, pi=0, li=0, sli = 0, ini_i = 0,k=0, m=0, p=0;
@@ -4186,7 +4186,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     badMd5=1;
   }
 
-  in = rc_dup_str(CHAR(STRING_ELT(parse_file,0)),0);
+  in = CHAR(STRING_ELT(parse_file,0));
   trans_internal(in, isStr);
   extraCmt = 0;
   if (tb.linCmt){
