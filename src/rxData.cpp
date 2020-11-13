@@ -3979,7 +3979,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   if (rx->TMP != NULL) free(rx->TMP);
   rx->TMP = NULL;
   rx->TMP =  (int *)malloc(op->cores*UINT16_MAX*sizeof(int)); // used by counting sort (my_n<=65536) in radix_r()
-  if (rx->UGRP != NULL) free(rx->TMP);
+  if (rx->UGRP != NULL) free(rx->UGRP);
   rx->UGRP = NULL;
   rx->UGRP = (uint8_t *)malloc(op->cores*256);                // TODO: align TMP and UGRP to cache lines (and do the same for stack allocations too)
   // Now there is a key per core
