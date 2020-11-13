@@ -391,8 +391,8 @@ void addLine(vLines *sbb, const char *format, ...){
     Rf_errorcall(R_NilValue, _("encoding error in 'addLine' format: '%s' n: %d; errno: %d"), format, n, errno);
   }
   va_end(copy);
-  if (sbb->sN <= sbb->o + n + 1){
-    int mx = sbb->sN + n + 1 + MXBUF;
+  if (sbb->sN <= sbb->o + n){
+    int mx = sbb->sN + n + 2 + MXBUF;
     sbb->s = Realloc(sbb->s, mx, char);
     // The sbb->line are not correct any longer because the pointer for sbb->s has been updated;
     // Fix them
@@ -403,8 +403,8 @@ void addLine(vLines *sbb, const char *format, ...){
   }
   vsprintf(sbb->s + sbb->o, format, argptr);
   va_end(argptr);
-  if (sbb->n + 1 >= sbb->nL){
-    int mx = sbb->nL + n + MXLINE;
+  if (sbb->n + 2 >= sbb->nL){
+    int mx = sbb->nL + n + 2 + MXLINE;
     sbb->lProp = Realloc(sbb->lProp, mx, int);
     sbb->lType = Realloc(sbb->lType, mx, int);
     sbb->line = Realloc(sbb->line, mx, char*);
