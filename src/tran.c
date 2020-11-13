@@ -4158,19 +4158,19 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   rx_podo = 0;
 
   if (isString(prefix) && length(prefix) == 1){
-    model_prefix = rc_dup_str(CHAR(STRING_ELT(prefix,0)),0);
+    model_prefix = CHAR(STRING_ELT(prefix,0));
   } else {
     Rf_errorcall(R_NilValue, _("model prefix must be specified"));
   }
 
   if (isString(inLinExtra) && length(inLinExtra) == 1){
-    extra_indLin = (char*)rc_dup_str(CHAR(STRING_ELT(inLinExtra,0)),0);
+    extra_indLin =CHAR(STRING_ELT(inLinExtra,0));
   } else {
     freeP();
     Rf_errorcall(R_NilValue, _("extra inductive linearization model variables must be specified"));
   }
   if (isString(inME) && length(inME) == 1){
-    me_code = rc_dup_str(CHAR(STRING_ELT(inME,0)),0);
+    me_code = CHAR(STRING_ELT(inME,0));
   } else {
     freeP();
     Rf_errorcall(R_NilValue, _("extra ME code must be specified"));
