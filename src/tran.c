@@ -3874,6 +3874,8 @@ void parseFree(int last){
   sFree(&sbNrm);
   sFree(&s_aux_info);
   sFree(&s_inits);
+  sFree(&_bufw);
+  sFree(&_bufw2);
   sFree(&firstErr);
   lineFree(&sbPm);
   lineFree(&sbPmDt);
@@ -3911,6 +3913,8 @@ void parseFree(int last){
 void reset (){
   // Reset sb/sbt string buffers
   parseFree(0);
+  sIniTo(&_bufw, 1024);
+  sIniTo(&_bufw2, 2100);
   sIniTo(&sb, MXSYM);
   sIniTo(&sbDt, MXDER);
   sIniTo(&sbt, MXBUF);
@@ -4137,8 +4141,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   _goodFuns = goodFuns;
   char *in = NULL;
   char *buf, *df, *dy;
-  sIniTo(&_bufw, 1024);
-  sIniTo(&_bufw2, 2100);
 
   int i, j, islhs, pi=0, li=0, sli = 0, ini_i = 0,k=0, m=0, p=0;
   // Make sure buffers are initialized.
