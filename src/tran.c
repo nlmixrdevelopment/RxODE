@@ -442,9 +442,9 @@ vLines sbPm, sbPmDt, sbNrmL;
 sbuf sbNrm;
 vLines depotLines, centralLines;
 
-char *model_prefix = NULL;
-char *extra_indLin =NULL;
-char *me_code = NULL;
+const char *model_prefix = NULL;
+const char *extra_indLin =NULL;
+const char *me_code = NULL;
 const char *md5 = NULL;
 int badMd5 = 0;
 int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0, needSort=0;
