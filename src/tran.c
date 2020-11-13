@@ -3865,6 +3865,8 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
   }
 }
 
+sbuf _bufw, _bufw2;
+
 void parseFree(int last){
   sFree(&sb);
   sFree(&sbDt);
@@ -4129,16 +4131,14 @@ void trans_internal(char* parse_file, int isStr){
   Free(parse_file);
 }
 
-sbuf _bufw, _bufw2;
-sIniTo(&_bufw, 1024);
-sIniTo(&_bufw2, 2100);
-
 SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 		  SEXP isEscIn, SEXP inLinExtra, SEXP inME,
 		  SEXP goodFuns){
   _goodFuns = goodFuns;
   char *in = NULL;
   char *buf, *df, *dy;
+  sIniTo(&_bufw, 1024);
+  sIniTo(&_bufw2, 2100);
 
   int i, j, islhs, pi=0, li=0, sli = 0, ini_i = 0,k=0, m=0, p=0;
   // Make sure buffers are initialized.
