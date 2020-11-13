@@ -915,14 +915,14 @@ int allSpaces(char *v2) {
 
 int depotAttr=0, centralAttr=0;
 
+sbuf _gbuf;
+
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
   nodeInfo ni;
   niReset(&ni);
   int nch = d_get_number_of_children(pn), i, ii, found, safe_zero = 0;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
-  sbuf buf;
-  sIniTo(&buf, 1024);/// loss records
   double d;
   if ((nodeHas(identifier) || nodeHas(identifier_r) ||
        nodeHas(identifier_r_no_output)  ||
@@ -1339,8 +1339,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		  aAppendN("_CENTRAL_)", 10)
 		} else if (rx_syntax_require_ode_first){
 		  updateSyntaxCol();
-		  sPrint(&buf,ODEFIRST,v2);
-		  trans_syntax_error_report_fn(buf.s);
+		  sPrint(&_gbuf,ODEFIRST,v2);
+		  trans_syntax_error_report_fn(_gbuf.s);
 		  popLine(&_dupStrs);
 		  popLine(&_dupStrs);
 		  /* Free(v2); */
@@ -1402,11 +1402,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	    if (allSpaces(v2)){
 	      updateSyntaxCol();
-	      sPrint(&buf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
+	      sPrint(&_gbuf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
 		     v, v);
 	      /* Free(v2); */
 	      popLine(&_dupStrs);
-	      trans_syntax_error_report_fn(buf.s);
+	      trans_syntax_error_report_fn(_gbuf.s);
 	    }
 	    /* Free(v2); */
 	    popLine(&_dupStrs);
@@ -1423,9 +1423,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbt, "%s(", v);
 	  } else {
 	    updateSyntaxCol();
-	    sPrint(&buf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
+	    sPrint(&_gbuf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
 		   v, v);
-	    trans_syntax_error_report_fn(buf.s);
+	    trans_syntax_error_report_fn(_gbuf.s);
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
@@ -1447,14 +1447,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    if (allSpaces(v2)){
 	      if (isFirst || isLast){
 		updateSyntaxCol();
-		sPrint(&buf, _("'%s' takes 1 argument '%s(parameter)'"),
+		sPrint(&_gbuf, _("'%s' takes 1 argument '%s(parameter)'"),
 		       v, v);
-		trans_syntax_error_report_fn(buf.s);
+		trans_syntax_error_report_fn(_gbuf.s);
 	      } else {
 		updateSyntaxCol();
-		sPrint(&buf, _("'%s' takes 1-2 arguments '%s(parameter, k)'"),
+		sPrint(&_gbuf, _("'%s' takes 1-2 arguments '%s(parameter, k)'"),
 		       v, v);
-		trans_syntax_error_report_fn(buf.s);
+		trans_syntax_error_report_fn(_gbuf.s);
 	      }
 	    } else {
 	      tb.fn=0;
@@ -1480,21 +1480,21 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  } else if (ii != 2){
 	    if (isFirst || isLast){
 		updateSyntaxCol();
-		sPrint(&buf, _("'%s' takes 1 argument %s(parameter)"),
+		sPrint(&_gbuf, _("'%s' takes 1 argument %s(parameter)"),
 		       v, v);
-		trans_syntax_error_report_fn(buf.s);
+		trans_syntax_error_report_fn(_gbuf.s);
 	    } else {
 	      updateSyntaxCol();
-	      sPrint(&buf, _("'%s' takes 1-2 arguments %s(parameter, k)"),
+	      sPrint(&_gbuf, _("'%s' takes 1-2 arguments %s(parameter, k)"),
 		     v, v);
-	      trans_syntax_error_report_fn(buf.s);
+	      trans_syntax_error_report_fn(_gbuf.s);
 	    }
 	  } else if (ii == 2){
 	    if (isFirst || isLast){
 	      updateSyntaxCol();
-	      sPrint(&buf, _("'%s' takes 1 argument %s(parameter)"),
+	      sPrint(&_gbuf, _("'%s' takes 1 argument %s(parameter)"),
 		     v, v);
-	      trans_syntax_error_report_fn(buf.s);
+	      trans_syntax_error_report_fn(_gbuf.s);
 	    } else {
 	      // Check lag(x, 1);  Its OK with lhs, but nothing else is...
 	      xpn = d_get_child(pn, 3);
@@ -1508,12 +1508,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      popLine(&_dupStrs);
 	      if (lagNo == NA_INTEGER){
 		updateSyntaxCol();
-		sPrint(&buf, _("'%s(parameter, k)' requires k to be an integer"), v);
-		trans_syntax_error_report_fn(buf.s);
+		sPrint(&_gbuf, _("'%s(parameter, k)' requires k to be an integer"), v);
+		trans_syntax_error_report_fn(_gbuf.s);
 	      } else if (isDiff && lagNo <= 0){
 		updateSyntaxCol();
-		sPrint(&buf, _("'%s(parameter, k)' requires k to be an integer >= 1"), v);
-		trans_syntax_error_report_fn(buf.s);
+		sPrint(&_gbuf, _("'%s(parameter, k)' requires k to be an integer >= 1"), v);
+		trans_syntax_error_report_fn(_gbuf.s);
 	      } else {
 		D_ParseNode *xpn = d_get_child(pn, 2);
 		char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -1724,9 +1724,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		    (isInd = !strcmp("rit", v)))) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 1){
-	    sPrint(&buf, _("'%s' takes 1 arguments"), v);
+	    sPrint(&_gbuf, _("'%s' takes 1 arguments"), v);
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(buf.s);
+	    trans_syntax_error_report_fn(_gbuf.s);
 	  } else {
 	    D_ParseNode *xpn = d_get_child(pn, 2);
 	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -1745,9 +1745,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		}
 		sAppend(&sbt, "%s(", v);
 	      } else {
-		sPrint(&buf, _("'%s' takes 1 argument"), v);
+		sPrint(&_gbuf, _("'%s' takes 1 argument"), v);
 		updateSyntaxCol();
-		trans_syntax_error_report_fn(buf.s);
+		trans_syntax_error_report_fn(_gbuf.s);
 	      }
 	    } else if (isT){
 	      if (isInd) {
@@ -2145,9 +2145,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    }
 	  }
 	  if (foundFun == 0){
-	    sPrint(&buf, _("function '%s' is not supported in RxODE"), v);
+	    sPrint(&_gbuf, _("function '%s' is not supported in RxODE"), v);
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(buf.s);
+	    trans_syntax_error_report_fn(_gbuf.s);
 	  }
 	}
         /* Free(v); */
@@ -2156,13 +2156,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
       if (nodeHas(theta)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        sPrint(&buf,"_THETA_%s_",v);
+        sPrint(&_gbuf,"_THETA_%s_",v);
 	ii = strtoimax(v,NULL,10);
 	if (ii > tb.maxtheta){
 	  tb.maxtheta =ii;
 	}
-	if (new_or_ith(buf.s)){
-	  addSymbolStr(buf.s);
+	if (new_or_ith(_gbuf.s)){
+	  addSymbolStr(_gbuf.s);
         }
         sAppend(&sb,"_THETA_%s_",v);
 	sAppend(&sbDt,"_THETA_%s_",v);
@@ -2178,9 +2178,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         if (ii > tb.maxeta){
           tb.maxeta =ii;
         }
-        sPrint(&buf,"_ETA_%s_",v);
-        if (new_or_ith(buf.s)){
-	  addSymbolStr(buf.s);
+        sPrint(&_gbuf,"_ETA_%s_",v);
+        if (new_or_ith(_gbuf.s)){
+	  addSymbolStr(_gbuf.s);
         }
         sAppend(&sb, "_ETA_%s_",v);
 	sAppend(&sbDt, "_ETA_%s_",v);
@@ -2275,8 +2275,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbt,"df(%s)/dy(",v);
 	    if (new_de(v)){
 	      updateSyntaxCol();
-	      sPrint(&buf,_("d/dt(%s) needs to be defined before using a Jacobians for this state"),v);
-	      trans_syntax_error_report_fn(buf.s);
+	      sPrint(&_gbuf,_("d/dt(%s) needs to be defined before using a Jacobians for this state"),v);
+	      trans_syntax_error_report_fn(_gbuf.s);
 	    } else {
 	      sAppend(&sb, "__PDStateVar__[%d*(__NROWPD__)+",tb.id);
 	    }
@@ -2291,8 +2291,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppend(&sbt,"df(%s)/dy(",v);
 	  if (new_de(v)){
 	    updateSyntaxCol();
-	    sPrint(&buf,_("d/dt(%s) needs to be defined before using a Jacobians for this state"),v);
-            trans_syntax_error_report_fn(buf.s);
+	    sPrint(&_gbuf,_("d/dt(%s) needs to be defined before using a Jacobians for this state"),v);
+            trans_syntax_error_report_fn(_gbuf.s);
 	  } else {
 	    sAppend(&sb,"__PDStateVar__[%d*(__NROWPD__)+",tb.id);
 	  }
@@ -2308,17 +2308,17 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	ii = 0;
 	if (strstr(v,"THETA[") != NULL){
 	  good_jac=0;
-	  sPrint(&buf,"_THETA_%.*s_",(int)(strlen(v))-7,v+6);
+	  sPrint(&_gbuf,"_THETA_%.*s_",(int)(strlen(v))-7,v+6);
 	  sAppend(&sbt, "%s)",v);
 	  sAppendN(&sb, "0]", 2);
-	  sAppend(&sbDt, "%s__",buf.s);
+	  sAppend(&sbDt, "%s__",_gbuf.s);
 	  ii = 1;
 	} else if (strstr(v,"ETA[") != NULL) {
 	  good_jac=0;
-	  sPrint(&buf,"_ETA_%.*s_",(int)(strlen(v))-5,v+4);
+	  sPrint(&_gbuf,"_ETA_%.*s_",(int)(strlen(v))-5,v+4);
           sAppend(&sbt, "%s)",v);
           sAppendN(&sb, "0]",2);
-	  sAppend(&sbDt, "%s__",buf.s);
+	  sAppend(&sbDt, "%s__",_gbuf.s);
           ii = 1;
         } else {
 	  sAppend(&sbDt, "%s__",v);
@@ -2336,7 +2336,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           aAppendN(" = ", 3);
           sAppendN(&sbt ,"=", 1);
 	  if (ii == 1){
-	    new_or_ith(buf.s);
+	    new_or_ith(_gbuf.s);
           } else {
 	    new_or_ith(v);
           }
@@ -2475,8 +2475,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      tb.hasCentral = 1;
 	    } else {
 	      updateSyntaxCol();
-	      sPrint(&buf,ODEFIRST,v);
-	      trans_syntax_error_report_fn(buf.s);
+	      sPrint(&_gbuf,ODEFIRST,v);
+	      trans_syntax_error_report_fn(_gbuf.s);
 	    }
 	  }
 	  tb.statei++;
@@ -2619,8 +2619,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
 	       (tb.lh[tb.ix] == 1 || tb.lh[tb.ix] == 70))){
 	    updateSyntaxCol();
-            sPrint(&buf,_("cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'"),v,v);
-            trans_syntax_error_report_fn0(buf.s);
+            sPrint(&_gbuf,_("cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'"),v,v);
+            trans_syntax_error_report_fn0(_gbuf.s);
           }
 	  tb.lh[tb.ix] = 9;
           tb.di[tb.de.n] = tb.ix;
@@ -2704,9 +2704,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    if (new_de(v)){
 	      /* sPrint(&buf2,"d/dt(%s)",v); */
 	      updateSyntaxCol();
-	      sPrint(&buf,"Tried to use d/dt(%s) before it was defined",v);
+	      sPrint(&_gbuf,"Tried to use d/dt(%s) before it was defined",v);
 	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(buf.s);
+	      trans_syntax_error_report_fn(_gbuf.s);
 	    } else {
 	      if (sbPm.lType[sbPm.n] == TJAC){
 		sAppend(&sb,   "__DDtStateVar_%d__", tb.id);
@@ -2756,14 +2756,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      }
 	    } else {
 	      updateSyntaxCol();
-	      sPrint(&buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
-	      trans_syntax_error_report_fn(buf.s);
+	      sPrint(&_gbuf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
+	      trans_syntax_error_report_fn(_gbuf.s);
 	    }
           }
           if (!rx_syntax_allow_ini0 && nodeHas(ini0)){
-            sPrint(&buf,NOINI0,v);
+            sPrint(&_gbuf,NOINI0,v);
 	    updateSyntaxCol();
-            trans_syntax_error_report_fn(buf.s);
+            trans_syntax_error_report_fn(_gbuf.s);
           }
         } else {
           sb.o = 0; sbDt.o = 0;
@@ -2778,9 +2778,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		tb.lh[tb.ix] = 19;
 	      }
 	    } else {
-	      sPrint(&buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
+	      sPrint(&_gbuf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
 	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(buf.s);
+	      trans_syntax_error_report_fn(_gbuf.s);
 
 	    }
 
@@ -2811,9 +2811,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    tb.ixL = tb.ix;
 	    tb.lh[tb.ix] = 1;
 	  } else if (tb.ix < 0){
-	    sPrint(&buf,"cannot assign protected variable '%s'",v);
+	    sPrint(&_gbuf,"cannot assign protected variable '%s'",v);
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(buf.s);
+	    trans_syntax_error_report_fn(_gbuf.s);
 	  } else {
 	    /* Rprintf("tb.ixL: %d; tb.ix: %d, NV: %d, %s\n", */
 	    /* 	    tb.ixL, tb.ix, NV, */
@@ -2865,9 +2865,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    if (tb.lh[tb.ix] != 1){
 	      tb.lh[tb.ix] = 1;
 	      if (nodeHas(ini0) && tb.ini0[tb.ix] == 1){
-		sPrint(&buf,"cannot have conditional initial conditions for '%s'",v);
+		sPrint(&_gbuf,"cannot have conditional initial conditions for '%s'",v);
 		updateSyntaxCol();
-		trans_syntax_error_report_fn(buf.s);
+		trans_syntax_error_report_fn(_gbuf.s);
 	      } else if (tb.ini0[tb.ix] == 1){
 		tb.iniv[tb.ix] = NA_REAL;
 		tb.ini_i--;
@@ -2970,7 +2970,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     }
 
   }
-  sFree(&buf);
 }
 
 void err_msg(int chk, const char *msg, int code)
@@ -3960,6 +3959,7 @@ void parseFree(int last){
   sFree(&_bufw);
   sFree(&_bufw2);
   sFree(&firstErr);
+  sFree(&_gbuf);
   lineFree(&sbPm);
   lineFree(&sbPmDt);
   lineFree(&sbNrmL);
@@ -4003,6 +4003,7 @@ void reset (){
   sIniTo(&sbt, MXBUF);
   sIniTo(&sbNrm, MXBUF);
   sIniTo(&s_aux_info, 64*MXSYM);
+  sIniTo(&_gbuf, 1024);
   firstErrD=0;
 
   sIniTo(&s_inits, MXSYM);
