@@ -1473,7 +1473,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      int lagNo=0;
 	      if (strlen(v2) > 2){
 		lagNo = toInt(v2+1);
-		if (isLead) lagNo = -lagNo;
+		if (isLead && !ISNA(lagNo)) lagNo = -lagNo;
 	      }
 	      /* Free(v2); */
 	      if (lagNo == NA_INTEGER){

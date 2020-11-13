@@ -33,6 +33,8 @@ News.md
 /?config.log
 ^/?docs/*$
 ^/?man-roxygen/.*$
+^/?man-roxygen$
+tests/testthat/_snaps$
 vignettes/RxODE-wt.Rmd
 vignettes/RxODE-nesting.Rmd
 vignettes/RxODE-tutorials.Rmd
