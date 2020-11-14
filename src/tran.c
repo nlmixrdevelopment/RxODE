@@ -1473,7 +1473,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      int lagNo=0;
 	      if (strlen(v2) > 2){
 		lagNo = toInt(v2+1);
-		if (isLead && !ISNA(lagNo)) lagNo = -lagNo;
+		if (isLead && lagNo != NA_INTEGER) lagNo = -lagNo;
 	      }
 	      /* Free(v2); */
 	      if (lagNo == NA_INTEGER){
@@ -3915,6 +3915,7 @@ void reset (){
   sIniTo(&sbNrm, MXBUF);
   sIniTo(&s_aux_info, 64*MXSYM);
   sIniTo(&_gbuf, 1024);
+  sIniTo(&firstErr, MXBUF);
   firstErrD=0;
 
   sIniTo(&s_inits, MXSYM);
