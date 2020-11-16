@@ -2554,6 +2554,7 @@ typedef struct{
   bool warnIdSort;
   CharacterVector idLevels;
   bool convertInt = false;
+  bool throttle = false;
 } rxSolve_t;
 
 SEXP rxSolve_(const RObject &obj, const List &rxControl, const Nullable<CharacterVector> &specParams,
@@ -3953,7 +3954,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   int nbyte=0, nradix=0, spare=0;
   calcNradix(&nbyte, &nradix, &spare, &(rx->maxD), &(rx->minD));
   if (_globals.nradix != NULL) free(_globals.nradix);
-  rx->nradix = _globals.nradix =  (int*)malloc(op->cores*sizeof(int));//nbyte-1 + (rx->spare==0); // lost
+  rx->nradix = _globals.nradix (int*)malloc(op->cores*sizeof(int));//nbyte-1 + (rx->spare==0); // lost
   std::fill_n(rx->nradix, op->cores, nradix);
   ////////////////////////////////////////////////////////////////////////////////
   if (_globals.keys!=NULL) {
@@ -4365,6 +4366,9 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
 
   rxSolveSaveRxSolve(rxSolveDat);
   rx_solve* rx = getRxSolve_();
+  if (rxSolveDat->throttle){
+    op->cores = getRxThreads(rx->nsim*rx->nsub, true);
+  }
   par_solve(rx);
 #ifdef rxSolveT
     RSprintf("  Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
@@ -4613,7 +4617,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _rxModels[".lastControl"] = rxControl;
     _rxModels[".lastInits"] = inits;
     Free(op->indLin);
-    rxSolveDat->addDosing = asNLv(rxControl[Rxc_addDosing], "addDosing");
+    rxSolveDatd->addDosing = asNLv(rxControl[Rxc_addDosing], "addDosing");
 #ifdef rxSolveT
     RSprintf("Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4634,13 +4638,14 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->istateReset = asInt(rxControl[Rxc_istateReset], "istateReset");
     rx->safeZero = asInt(rxControl[Rxc_safeZero], "safeZero");
     op->stiff = method;
+    rxSolveDat->throttle = false;
     if (method != 2){
       op->cores = 1;//getRxThreads(1, false);
     } else {
       op->cores = asInt(rxControl[Rxc_cores], "cores");
       if (op->cores == 0) {
-	// FIXME getRxThreads(nsim*nsub, true) should be here
 	op->cores = getRxThreads(INT_MAX, false);
+	rxSolveDat->throttle = true;
       }
     }
     seedEng(op->cores);
