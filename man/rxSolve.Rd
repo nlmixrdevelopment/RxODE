@@ -111,8 +111,8 @@ rxSolve(
   sumType = c("pairwise", "fsum", "kahan", "neumaier", "c"),
   prodType = c("long double", "double", "logify"),
   sensType = c("advan", "autodiff", "forward", "central"),
-  linDiff = c(tlag = 1.5e-08, f = 1.5e-08, rate = 1.5e-08, dur = 1.5e-08, tlag2 =
-    1.5e-08, f2 = 1.5e-08, rate2 = 1.5e-08, dur2 = 1.5e-08),
+  linDiff = c(tlag = 1.5e-05, f = 1.5e-05, rate = 1.5e-05, dur = 1.5e-05, tlag2 =
+    1.5e-05, f2 = 1.5e-05, rate2 = 1.5e-05, dur2 = 1.5e-05),
   linDiffCentral = c(tlag = TRUE, f = TRUE, rate = TRUE, dur = TRUE, tlag2 = TRUE, f2 =
     TRUE, rate2 = TRUE, dur2 = TRUE),
   resample = NULL,

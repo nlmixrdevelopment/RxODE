@@ -120,10 +120,16 @@ rxTempDir <- function() {
     return(.tmp)
   }
 }
-##' .. content for \description{} (no empty lines) ..
+##' This will create the cache directory for RxODE to save between sessions
 ##'
-##' .. content for \details{} ..
+##' When run, if the `R_user_dir` for RxODE's cache isn't present,
+##' create the cache
+##'
+##' @return nothing
+##'
 ##' @author Matthew Fidler
+##'
+##' @export
 rxCreateCache <- function() {
   .tmp <- R_user_dir("RxODE", "cache")
   assignInMyNamespace(".cacheDefault", R_user_dir("RxODE", "cache"))
@@ -132,6 +138,7 @@ rxCreateCache <- function() {
   Sys.setenv(rxTempDir = .tmp)
   utils::assignInMyNamespace(".rxTempDir0", .tmp)
   utils::assignInMyNamespace("RxODE.cache.directory", .tmp)
+  invisible()
 }
 
 
