@@ -213,7 +213,9 @@ IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
 	int baseSize = stateSize - sensSize;
 	// Sensitivity equations are ignored in CMT data items.
 	for (int i = in.size(); i--;){
-	  if (in[i] > 0 && in[i] <= baseSize){
+	  if (in[i] == NA_INTEGER) {
+	    out[i] = in[i];
+	  } else if (in[i] > 0 && in[i] <= baseSize){
 	    out[i] = in[i];
 	  } else if (in[i] > 0) {
 	    out[i] = in[i]+sensSize;

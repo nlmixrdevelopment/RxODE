@@ -222,6 +222,7 @@ arma::vec phiv(double t, arma::mat& A, arma::vec& u,
   
       t_now = t_now + t_step;
       t_new = gamma * t_step * pow(t_step*tol/err_loc, xm);
+      t_new = std::max(std::min(t_new, 1e300), 1.0-200);
       s = R_pow_di(10.0, floor(log10(t_new))-1);
       t_new = ceil(t_new/s) * s;
       err_loc = std::max(err_loc,rndoff);

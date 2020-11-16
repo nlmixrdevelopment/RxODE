@@ -196,6 +196,9 @@ extern "C" int par_progress(int c, int n, int d, int cores, clock_t t0, int stop
       if (progress == 1.0){
 	par_progress_1=1;
       }
+      if (std::isnan(progress)) {
+	progress=0.0;
+      }
       int nticks= (int)(progress * 50);
       int curTicks = d;
       if (nticks < 0) nticks=0;

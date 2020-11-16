@@ -2506,7 +2506,8 @@ static inline double linCmtBg(double *A, double &t, int& val, int& trans, int& n
 	double tlast  = getTime(ind->ix[ind->idx-1], ind);
 	double *Alast = getAdvan(ind->idx-1);
 	double tcur  = getTime(ind->ix[ind->idx], ind);
-	return (A[cur] - Alast[cur])/(tcur-tlast)*(t-tlast)+Alast[cur];
+	double diff = (A[cur] - Alast[cur]);
+	return diff/(tcur-tlast)*(t-tlast)+Alast[cur];
       } else {
 	if (val == 8) {
 	  return A[cur];
