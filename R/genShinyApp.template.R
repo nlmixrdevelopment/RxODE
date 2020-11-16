@@ -51,7 +51,7 @@
 ##' genShinyApp.template(appDir = "myapp")
 ##' # run the shiny app
 ##' library(shiny)
-##' runApp("myapp")
+##' try(runApp("myapp")) # Won't launch in environments without browsers
 ##' }
 ##' @keywords simulation nonlinear
 ##' @concept PK/PD

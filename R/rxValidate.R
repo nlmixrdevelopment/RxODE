@@ -15,7 +15,7 @@ rxValidate <- function(type = NULL, check = FALSE) {
     "cran", "norm", "demo", "lvl2", "parsing",
     "focei", "indLin", "lincmt",
     "plot", "print",
-    "parseLincmt"
+    "parseLincmt", "rxuse"
   )
   if (is.character(type)) {
     if (type == "covr") {

@@ -52,4 +52,4 @@ rxPermissive({
 
   })
 
-}, test="lvl2")
+}, test="rxuse")
