@@ -1422,6 +1422,11 @@ typedef struct {
   int nSigma = 0;
   double *gomega = NULL;
   int nOmega = 0;
+  int *ordId = NULL;
+  int *nradix = NULL;
+  uint8_t *** keys = NULL;
+  uint8_t * UGRP = NULL;
+  int * TMP = NULL;
 } rx_globals;
 
 rx_globals _globals;
@@ -2362,45 +2367,45 @@ LogicalVector rxSolveFree(){
   // Free the solve id order
   if (rx->par_sample != NULL) free(rx->par_sample);
   rx->par_sample=NULL;
-  if (rx->ordId != NULL) free(rx->ordId);
-  rx->ordId=NULL;
-  if (rx->nradix != NULL) free(rx->nradix);
-  rx->nradix=NULL;
+  if (_globals.ordId != NULL) free(_globals.ordId);
+  _globals.ordId = rx->ordId = NULL;
+  if (_globals.nradix != NULL) free(_globals.nradix);
+  _globals.nradix=NULL;
   // Free the omega info
   if (_globals.gomega != NULL) free(_globals.gomega);
   _globals.gomega = NULL;
   if (_globals.gsigma != NULL) free(_globals.gsigma);
   _globals.gsigma = NULL;
   // Free the allocated keys
-  if (rx->keys != NULL) {
+  if (_globals.keys != NULL) {
     int i=0;
-    while (rx->keys[i] != NULL){
+    while (_globals.keys[i] != NULL){
       int j = 0;
-      while(rx->keys[i][j] != NULL){
-	free(rx->keys[i][j]);
-	rx->keys[i][j++] = NULL;
+      while(_globals.keys[i][j] != NULL){
+	free(_globals.keys[i][j]);
+	_globals.keys[i][j++] = NULL;
       }
-      free(rx->keys[i]);
-      rx->keys[i++] = NULL;
+      free(_globals.keys[i]);
+      _globals.keys[i++] = NULL;
     }
-    free(rx->keys);
-    rx->keys=NULL;
+    free(_globals.keys);
+    _globals.keys=NULL;
   }
 
-  if (rx->TMP != NULL) {
-    free(rx->TMP);
+  if (_globals.TMP != NULL) {
+    free(_globals.TMP);
   }
-  rx->TMP = NULL;
+  _globals.TMP = NULL;
 
-  if (rx->UGRP != NULL) {
-    free(rx->UGRP);
+  if (_globals.UGRP != NULL) {
+    free(_globals.UGRP);
   }
-  rx->UGRP = NULL;
+  _globals.UGRP = rx->UGRP = NULL;
 
-  if (rx->ordId != NULL) {
-    free(rx->ordId);
+  if (_globals.ordId != NULL) {
+    free(_globals.ordId);
   }
-  rx->ordId = NULL;
+  _globals.ordId = rx->ordId = NULL;
 
   if (rx->hasFactors == 1){
     lineFree(&(rx->factors));
@@ -2461,9 +2466,9 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
   if (rx->op->cores == 1 || rx->op->cores >= nall*getThrottle()) {
     // No point in sorting
     if (ini) {
-      if (rx->ordId != NULL) free(rx->ordId);
-      rx->ordId=NULL;
-      rx->ordId = (int*)malloc(nall*sizeof(int));
+      if (_globals.ordId != NULL) free(_globals.ordId);
+      _globals.ordId=NULL;
+      rx->ordId = _globals.ordId = (int*)malloc(nall*sizeof(int)); // lost
       std::iota(rx->ordId,rx->ordId+nall,1);
     } // else {
     //   std::iota(rx->ordId,rx->ordId+nall,1);
@@ -2486,9 +2491,9 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
   		    _["method"]="radix",
   		    _["decreasing"] = LogicalVector::create(true));
       }
-      if (rx->ordId != NULL) free(rx->ordId);
-      rx->ordId=NULL;
-      rx->ordId = (int*)malloc(nall*sizeof(int));
+      if (_globals.ordId != NULL) free(_globals.ordId);
+      _globals.ordId=NULL;
+      rx->ordId = _globals.ordId = (int*)malloc(nall*sizeof(int));
       std::copy(ord.begin(), ord.end(), rx->ordId);
     } else {
       // Here we order based on run times.  This way this iteratively
@@ -3947,25 +3952,25 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   // NA, NaN, and -Inf +Inf not supported
   int nbyte=0, nradix=0, spare=0;
   calcNradix(&nbyte, &nradix, &spare, &(rx->maxD), &(rx->minD));
-  if (rx->nradix != NULL) free(rx->nradix);
-  rx->nradix = (int*)malloc(op->cores*sizeof(int));//nbyte-1 + (rx->spare==0);
+  if (_globals.nradix != NULL) free(_globals.nradix);
+  rx->nradix = _globals.nradix =  (int*)malloc(op->cores*sizeof(int));//nbyte-1 + (rx->spare==0); // lost
   std::fill_n(rx->nradix, op->cores, nradix);
   ////////////////////////////////////////////////////////////////////////////////
-  if (rx->keys!=NULL) {
+  if (_globals.keys!=NULL) {
     int i=0;
-    while (rx->keys[i] != NULL){
+    while (_globals.keys[i] != NULL){
       int j = 0;
-      while(rx->keys[i][j] != NULL){
-	free(rx->keys[i][j]);
-	rx->keys[i][j++] = NULL;
+      while(_globals.keys[i][j] != NULL){
+	free(_globals.keys[i][j]);
+	_globals.keys[i][j++] = NULL;
       }
-      free(rx->keys[i]);
-      rx->keys[i++] = NULL;
+      free(_globals.keys[i]);
+      _globals.keys[i++] = NULL;
     }
-    free(rx->keys);
+    free(_globals.keys);
   }
-  rx->keys = NULL;
-  rx->keys = (uint8_t ***)calloc(op->cores+1, sizeof(uint8_t **));
+  rx->keys = _globals.keys = NULL;
+  rx->keys = _globals.keys = (uint8_t ***)calloc(op->cores+1, sizeof(uint8_t **)); // lost
   rx->keys[op->cores] = NULL;
   for (i = op->cores; i--;){
     // In RxODE the keyAlloc size IS 9
@@ -3976,12 +3981,12 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
     }
   }
   // Use same variables from data.table
-  if (rx->TMP != NULL) free(rx->TMP);
-  rx->TMP = NULL;
-  rx->TMP =  (int *)malloc(op->cores*UINT16_MAX*sizeof(int)); // used by counting sort (my_n<=65536) in radix_r()
-  if (rx->UGRP != NULL) free(rx->UGRP);
-  rx->UGRP = NULL;
-  rx->UGRP = (uint8_t *)malloc(op->cores*256);                // TODO: align TMP and UGRP to cache lines (and do the same for stack allocations too)
+  if (_globals.TMP != NULL) free(_globals.TMP);
+  _globals.TMP = NULL;
+  rx->TMP = _globals.TMP =  (int *)malloc(op->cores*UINT16_MAX*sizeof(int)); // used by counting sort (my_n<=65536) in radix_r()
+  if (_globals.UGRP != NULL) free(_globals.UGRP);
+  _globals.UGRP = NULL;
+  rx->UGRP = _globals.UGRP = (uint8_t *)malloc(op->cores*256); // TODO: align TMP and UGRP to cache lines (and do the same for stack allocations too) 
   // Now there is a key per core
 }
 
