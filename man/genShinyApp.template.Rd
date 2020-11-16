@@ -68,6 +68,7 @@ These functions create a simple, but working example of a
 # create the shiny app example (template)
 genShinyApp.template(appDir = "myapp")
 # run the shiny app
+library(shiny)
 runApp("myapp")
 }
 }

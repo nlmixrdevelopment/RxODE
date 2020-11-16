@@ -50,6 +50,7 @@
 ##' # create the shiny app example (template)
 ##' genShinyApp.template(appDir = "myapp")
 ##' # run the shiny app
+##' library(shiny)
 ##' runApp("myapp")
 ##' }
 ##' @keywords simulation nonlinear
