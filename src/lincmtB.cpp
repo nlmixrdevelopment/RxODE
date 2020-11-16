@@ -2502,12 +2502,13 @@ static inline double linCmtBg(double *A, double &t, int& val, int& trans, int& n
       cur++;
     }
     if (op->linBflag & 128) { // f 8
-      if (interpolate) {
+      if (interpolate && ind->idx > 0) {
 	double tlast  = getTime(ind->ix[ind->idx-1], ind);
 	double *Alast = getAdvan(ind->idx-1);
 	double tcur  = getTime(ind->ix[ind->idx], ind);
 	double diff = (A[cur] - Alast[cur]);
 	return diff/(tcur-tlast)*(t-tlast)+Alast[cur];
+	return A[cur];
       } else {
 	if (val == 8) {
 	  return A[cur];
