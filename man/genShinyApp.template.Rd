@@ -69,7 +69,7 @@ These functions create a simple, but working example of a
 genShinyApp.template(appDir = "myapp")
 # run the shiny app
 library(shiny)
-try(runApp("myapp")) # Won't launch in environments without browsers
+# runApp("myapp") # Won't launch in environments without browsers
 }
 }
 \seealso{

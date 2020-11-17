@@ -2089,7 +2089,7 @@ namespace stan {
       double curTime=0.0;
       double r0;
       double amt;
-      double rateAdjust;
+      double rateAdjust = 0.0;
       double tinf;
       int evid, wh, cmt, wh100, whI, wh0, cmtOff;
       curTime = getTime(ind->ix[idx], ind);
@@ -2695,7 +2695,7 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
     // Restore last values from gradient into a matrix
     Eigen::Matrix<double, -1, -1> AlastG(ncmt+oral0, ncmt*2+oral0);
     Eigen::Matrix<double, -1, -1> AlastA(ncmt+oral0,1);
-    double *A;
+    double *A = NULL;
     if (idx != 0){
       A = getAdvan(idx-1);
       for (int i = 0; i < ncmt+oral0; i++) {
