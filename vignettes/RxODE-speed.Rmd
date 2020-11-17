@@ -139,7 +139,7 @@ runThread <- function(n){
 }
 
 bench <- eval(parse(text=sprintf("microbenchmark(%s)",
-                                     paste(paste0("runThread(", seq(1, rxCores() * 2),")"),
+                                     paste(paste0("runThread(", seq(1, rxCores()),")"),
                                            collapse=","))))
 print(bench)
 ```
@@ -148,11 +148,12 @@ print(bench)
 autoplot(bench)
 ```
 
-There is a suite spot in speed vs number or cores. The system type, 
-complexity of the ODE solving and the number of subjects may affect
-this arbitrary number of threads. 4 threads is a good number
-to use without any prior knowledge because most systems these days
-have at least 4 threads (or 2 processors with 4 threads).
+There can be a suite spot in speed vs number or cores. The system type
+(mac, linux, windows and/or processor), complexity of the ODE solving
+and the number of subjects may affect this arbitrary number of
+threads. 4 threads is a good number to use without any prior knowledge
+because most systems these days have at least 4 threads (or 2
+processors with 4 threads).
 
 # A real life example
 
