@@ -34,6 +34,7 @@ using namespace arma;
 extern "C" uint64_t dtwiddle(const void *p, int i);
 extern "C" void calcNradix(int *nbyte, int *nradix, int *spare, uint64_t *maxD, uint64_t *minD);
 extern "C" void RSprintf(const char *format, ...);
+extern "C" int getRxThreads(const int64_t n, const bool throttle);
 
 // https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L193-L211
 // range_d is modified because it DOES NOT count na/inf because RxODE assumes times cannot be NA, NaN, -Inf, Inf
@@ -3954,7 +3955,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   int nbyte=0, nradix=0, spare=0;
   calcNradix(&nbyte, &nradix, &spare, &(rx->maxD), &(rx->minD));
   if (_globals.nradix != NULL) free(_globals.nradix);
-  rx->nradix = _globals.nradix (int*)malloc(op->cores*sizeof(int));//nbyte-1 + (rx->spare==0); // lost
+  rx->nradix = _globals.nradix = (int*)malloc(op->cores*sizeof(int));//nbyte-1 + (rx->spare==0); // lost
   std::fill_n(rx->nradix, op->cores, nradix);
   ////////////////////////////////////////////////////////////////////////////////
   if (_globals.keys!=NULL) {
@@ -4367,7 +4368,7 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
   rxSolveSaveRxSolve(rxSolveDat);
   rx_solve* rx = getRxSolve_();
   if (rxSolveDat->throttle){
-    op->cores = getRxThreads(rx->nsim*rx->nsub, true);
+    rx->op->cores = getRxThreads(rx->nsim*rx->nsub, true);
   }
   par_solve(rx);
 #ifdef rxSolveT
@@ -4617,7 +4618,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _rxModels[".lastControl"] = rxControl;
     _rxModels[".lastInits"] = inits;
     Free(op->indLin);
-    rxSolveDatd->addDosing = asNLv(rxControl[Rxc_addDosing], "addDosing");
+    rxSolveDat->addDosing = asNLv(rxControl[Rxc_addDosing], "addDosing");
 #ifdef rxSolveT
     RSprintf("Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
