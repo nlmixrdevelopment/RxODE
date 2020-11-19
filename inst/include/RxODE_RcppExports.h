@@ -1515,6 +1515,48 @@ namespace RxODE {
         return Rcpp::as<NumericVector >(rcpp_result_gen);
     }
 
+    inline arma::mat rxrandnV(unsigned int nrow, unsigned int ncol) {
+        typedef SEXP(*Ptr_rxrandnV)(SEXP,SEXP);
+        static Ptr_rxrandnV p_rxrandnV = NULL;
+        if (p_rxrandnV == NULL) {
+            validateSignature("arma::mat(*rxrandnV)(unsigned int,unsigned int)");
+            p_rxrandnV = (Ptr_rxrandnV)R_GetCCallable("RxODE", "_RxODE_rxrandnV");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxrandnV(Shield<SEXP>(Rcpp::wrap(nrow)), Shield<SEXP>(Rcpp::wrap(ncol)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<arma::mat >(rcpp_result_gen);
+    }
+
+    inline NumericVector rxnormV_(double mean, double sd, int n, int ncores) {
+        typedef SEXP(*Ptr_rxnormV_)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_rxnormV_ p_rxnormV_ = NULL;
+        if (p_rxnormV_ == NULL) {
+            validateSignature("NumericVector(*rxnormV_)(double,double,int,int)");
+            p_rxnormV_ = (Ptr_rxnormV_)R_GetCCallable("RxODE", "_RxODE_rxnormV_");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxnormV_(Shield<SEXP>(Rcpp::wrap(mean)), Shield<SEXP>(Rcpp::wrap(sd)), Shield<SEXP>(Rcpp::wrap(n)), Shield<SEXP>(Rcpp::wrap(ncores)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<NumericVector >(rcpp_result_gen);
+    }
+
 }
 
 #endif // RCPP_RxODE_RCPPEXPORTS_H_GEN_

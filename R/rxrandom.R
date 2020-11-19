@@ -523,7 +523,9 @@ rxbinom <- function(size, prob, n = 1L, ncores = 1L) {
 ##' Simulate a from a poission process
 ##'
 ##' @param n Number of time points to simulate in the poission process
+##'
 ##' @param lambda Rate of Poission process
+##'
 ##' @param gamma Asymmetry rate of poission process.  When gamma=1.0,
 ##'   this simulates a homogenous poission process.  When gamma<1.0,
 ##'   the poission process has more events early, when gamma > 1.0,
@@ -583,4 +585,25 @@ rxPp <- function(n, lambda, gamma = 1.0, prob = NULL, t0 = 0.0, tmax = Inf, rand
   checkmate::assertIntegerish(n, len = 1, any.missing = FALSE, lower = 1L)
   checkmate::assertLogical(randomOrder, len = 1, any.missing = FALSE)
   .Call(`_RxODE_rpp_`, n, lambda, gamma, prob, t0, tmax, randomOrder, PACKAGE = "RxODE")
+}
+
+##' Create a random "normal" matrix using vandercorput generator
+##'
+##' @param nrow Number of rows
+##'
+##' @param ncol Number of Columns
+##'
+##' @return Matrix of random numbers
+##'
+##' @author Matthew Fidler
+##' @export
+##' @examples
+##'
+##' rxRandNV(1,1)
+##' rxRandNV(3,2)
+##'
+rxRandNV <- function(nrow=1, ncol=1){
+  checkmate::assertIntegerish(nrow, len = 1, any.missing = FALSE, lower = 1L)
+  checkmate::assertIntegerish(ncol, len = 1, any.missing = FALSE, lower = 1L)
+  .Call(`_RxODE_rxrandnV`, as.integer(nrow), as.integer(ncol))
 }

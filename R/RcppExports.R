@@ -103,9 +103,9 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
 #'   \code{data.table}'s parallel radix sorting.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' forderForceBase(TRUE) # Use base `order` for RxODE sorts
-#' forderForceBase(FALSE) # Use base `data.table` for RxODE sorts
+#' forderForceBase(FALSE) # Use `data.table` for RxODE sorts
 #' }
 #'@export
 forderForceBase <- function(forceBase = FALSE) {
@@ -140,7 +140,7 @@ rxUseRadixSort <- function(useRadix = TRUE) {
 #'
 #' @param inData Data frame to translate
 #' @param obj Model to translate data 
-#' @param addCmt Add compartment to data frame (default code{FALSE}).
+#' @param addCmt Add compartment to data frame (default \code{FALSE}).
 #' @param dropUnits Boolean to drop the units (default \code{FALSE}).
 #' @param allTimeVar Treat all covariates as if they were time-varying
 #' @param keepDosingOnly keep the individuals who only have dosing records and any
@@ -629,7 +629,7 @@ dropUnitsRxSolve <- function(x) {
 #' Silence some of RxODE's C/C++ messages
 #'
 #' @param silent can be 0L "noisy"  or 1L "silent"
-#' 
+#'
 #' @keywords internal
 #' @export
 rxSetSilentErr <- function(silent) {
@@ -792,6 +792,10 @@ rxRmvnSEXP <- function(nS, muS, sigmaS, lowerS, upperS, ncoresS, isCholS, keepNa
 
 rpp_ <- function(nS, lambdaS, gammaS, probS, t0S, tmaxS, randomOrderS) {
     .Call(`_RxODE_rpp_`, nS, lambdaS, gammaS, probS, t0S, tmaxS, randomOrderS)
+}
+
+rxrandnV <- function(nrow, ncol) {
+    .Call(`_RxODE_rxrandnV`, nrow, ncol)
 }
 
 rxnormV_ <- function(mean, sd, n, ncores) {

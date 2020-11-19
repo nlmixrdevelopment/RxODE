@@ -1,3 +1,4 @@
+// [[Rcpp::interfaces(r, cpp)]]
 //#undef NDEBUG
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 #include <RcppArmadillo.h>
@@ -35,6 +36,18 @@ extern "C" double rinormV(rx_solving_options_ind* ind, int id, double mean, doub
     ind->simIni[id] = d(_engV);
   }
   return ind->simIni[id];
+}
+
+//[[Rcpp::export]]
+arma::mat rxrandnV(unsigned int nrow, unsigned int ncol){
+  arma::mat ret(nrow, ncol);
+  std::normal_distribution<double> d(0.0, 1.0);
+  for (int j = nrow; j--;) {
+    for (int i = ncol; i--;) {
+      ret(j,i) = d(_engV);
+    }
+  }
+  return ret;
 }
 
 
