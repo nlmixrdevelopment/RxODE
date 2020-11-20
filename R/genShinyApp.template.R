@@ -52,6 +52,7 @@
 ##' # run the shiny app
 ##' library(shiny)
 ##' # runApp("myapp") # Won't launch in environments without browsers
+##' unlink("myapp", recursive=TRUE, force=TRUE) # remove myapp
 ##' }
 ##' @keywords simulation nonlinear
 ##' @concept PK/PD

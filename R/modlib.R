@@ -318,8 +318,6 @@ rxPkg <- function(..., package,
     usethis::use_lgpl_license()
   } else if (license == "agpl3") {
     usethis::use_agpl3_license()
-  } else if (license == "agpl2") {
-    usethis::use_agpl2_license()
   } else if (license == "mit") {
     usethis::use_mit_license()
   }

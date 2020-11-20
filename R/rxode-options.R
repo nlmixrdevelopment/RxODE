@@ -104,7 +104,7 @@ rxTempDir <- function() {
       if (getOption("RxODE.cache.directory", .cacheDefault) != ".") {
         .tmp <- getOption("RxODE.cache.directory", .cacheDefault)
       } else {
-        .tmp <- .rxUserDi
+        .tmp <- .rxUserDir
       }
     }
     .mkCache(.tmp)
