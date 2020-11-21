@@ -277,7 +277,7 @@ rxFun <- function(name, args, cCode) {
   }
   assignInMyNamespace(".rxSEeqUsr", c(.rxSEeqUsr, setNames(length(args), name)))
   assignInMyNamespace(".rxCcode", c(.rxCcode, setNames(cCode, name)))
-  .symengineFs[[name]] <- symengine::FunctionSymbol(name, args)
+  assign(name, symengine::Function(name), envir = .symengineFs)
   return(invisible())
 }
 
@@ -2085,7 +2085,14 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
             if (is.null(.derFun)) {
               return(.errD())
             }
-            return(do.call(.derFun, as.list(.args)))
+            .ret <- try(do.call(.derFun, as.list(.args)), silent=TRUE)
+            if (inherits(.ret, "try-error")) {
+              warning("an error occurred looking up the derivative for '",
+                      .derFun, "' using numerical differences instead")
+              return(.errD())
+            } else {
+              return(.ret)
+            }
           } else {
             if (.rxFromNumDer == 0L) {
               stop(sprintf(gettext("RxODE/symengine does not know how to take a derivative of '%s'"), .fun[1]),
