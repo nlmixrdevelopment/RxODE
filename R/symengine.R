@@ -271,10 +271,10 @@ rxFun <- function(name, args, cCode) {
   }
   if (missing(cCode)) stop("a new function requires a C function so it can be used in RxODE", call. = FALSE)
   if (any(name == names(.rxSEeqUsr))) {
-    stop(sprintf(gettext("already defined user function '%s', remove it fist ('rxRmFun')"), name),
-      call. = FALSE
-    )
+    stop("already defined user function '", name, "', remove it fist ('rxRmFun')",
+         call. = FALSE)
   }
+  suppressWarnings(rxRmFun(name))
   assignInMyNamespace(".rxSEeqUsr", c(.rxSEeqUsr, setNames(length(args), name)))
   assignInMyNamespace(".rxCcode", c(.rxCcode, setNames(cCode, name)))
   assign(name, symengine::Function(name), envir = .symengineFs)
@@ -290,7 +290,7 @@ rxRmFun <- function(name) {
     )
   }
   if (!any(name == names(.rxSEeqUsr))) {
-    stop(sprintf(gettext("no user function '%s' to remove"), name))
+    warning("no user function '", name, "' to remove", call.=FALSE)
   }
   .w <- which(name == names(.rxSEeqUsr))
   if (length(.w) == 1L) assignInMyNamespace(".rxSEeqUsr", .rxSEeqUsr[-.w])
@@ -2088,7 +2088,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
             .ret <- try(do.call(.derFun, as.list(.args)), silent=TRUE)
             if (inherits(.ret, "try-error")) {
               warning("an error occurred looking up the derivative for '",
-                      .derFun, "' using numerical differences instead")
+                      .fun[1], "' using numerical differences instead")
               return(.errD())
             } else {
               return(.ret)
