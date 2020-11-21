@@ -38,7 +38,7 @@
   rxPermissive(respect = TRUE) ## need to call respect on the first time
   if (!.rxWinRtoolsPath(retry = NA)) {
     ## nocov start
-    packageStartupMessage("Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to work.\nYou can set up Rtools using the command 'rxWinSetup()'.\n")
+    packageStartupMessage("Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to compile models\n")
     ## nocov end
   }
   if (!interactive()) {
@@ -52,7 +52,7 @@
                         " threads (see ?getRxThreads)",
                         ifelse(.cacheIsTemp, "\n  create cache: `rxCreateCache()`; need for some parallel routines", ""))
   if (!.Call(`_rxHasOpenMp`)) {
-    packageStartupMessage("========================================\n",
+"========================================\n",
         "RxODE has not detected OpenMP support and will run in single-threaded mode\n",
         if (Sys.info()["sysname"]=="Darwin")
           "This is a Mac. Please read https://mac.r-project.org/openmp/"
