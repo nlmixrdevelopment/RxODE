@@ -52,7 +52,7 @@ You can install the released version of RxODE from
 install.packages("RxODE")
 ```
 
-To run RxODE, you need a working c compiler.  To use parallel threaded
+To build models with RxODE, you need a working c compiler.  To use parallel threaded
 solving in RxODE, this c compiler needs to support open-mp.
 
 You can check to see if R has working c compiler you can check with:
@@ -82,15 +82,14 @@ rtools directly.
 ### Mac OSX
 
 Installation on a mac is much similar to RxODE installation under
-windows.  To enable open mp on R and RxODE, you will need to install
-the gfortran and clang compilers located at
-https://cran.r-project.org/bin/macosx/tools/
+windows.  To get the most speed you need OpenMP enabled.  Here is some discussion about this:
+
+https://mac.r-project.org/openmp/
 
 ### Linux
 
 To install on linux make sure you install gcc (with openmp support)
-and gfortran using your distribution's package manager.
-
+and gfortran using your distribution's package manager. 
 
 ## Development Version
 
@@ -145,9 +144,8 @@ released on CRAN.  Each uses compiled code to have faster ODE solving.
   algorithm)
 
 - [dMod](https://cran.r-project.org/package=dMod), which uses a unique
-  syntax to create "reactions".  These reactions are not low-level ODE
-  equations, but create them and then created c code for a compiled
-  deSolve model.
+  syntax to create "reactions".  These reactions create the underlying
+  ODEs and then created c code for a compiled deSolve model.
   
   In contrast `RxODE` defines ODE systems at a lower level.  `RxODE`'s
   parsing of the mini-language comes from C, whereas `dMod`'s parsing
@@ -171,8 +169,8 @@ And there is one package that is not released on CRAN:
   `PKPDsim` is not thread-safe.
 
 The open pharmacometrics open source community is fairly friendly, and
-the RxODE maintainers has had positive interactions with all the
-maintainer all of the ODE-solving pharmacometric projects listed.
+the RxODE maintainers has had positive interactions with all of the
+ODE-solving pharmacometric projects listed.
 
 ## PK Solved systems
 
@@ -199,7 +197,7 @@ maintainer all of the ODE-solving pharmacometric projects listed.
 ### RxODE:
 
 RxODE supports 1-3 compartment models with gradients (using stan
-math's auto-differentiation) for superpositioning as well as with same
+math's auto-differentiation).  This currently uses the same
 equations as PKADVAN to allow time-varying covariates. 
 
 RxODE can mix ODEs and solved systems

@@ -52,7 +52,7 @@
                         " threads (see ?getRxThreads)",
                         ifelse(.cacheIsTemp, "\n  create cache: `rxCreateCache()`; need for some parallel routines", ""))
   if (!.Call(`_rxHasOpenMp`)) {
-"========================================\n",
+    packageStartupMessage("========================================\n",
         "RxODE has not detected OpenMP support and will run in single-threaded mode\n",
         if (Sys.info()["sysname"]=="Darwin")
           "This is a Mac. Please read https://mac.r-project.org/openmp/"
