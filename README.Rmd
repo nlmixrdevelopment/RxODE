@@ -113,6 +113,11 @@ development version from
 devtools::install_github("nlmixrdevelopment/RxODE")
 ```
 
+# Illustrated Example
+
+```{r child='man/RxODE-intro-chunk.Rmd'}
+```
+
 # Related R Packages
 ## ODE solving
 

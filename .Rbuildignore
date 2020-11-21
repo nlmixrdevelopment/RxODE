@@ -34,6 +34,8 @@ News.md
 ^/?docs/*$
 ^/?man-roxygen/.*$
 ^/?man-roxygen$
+^/?man/figures/.*$
+^/?man/figures$
 tests/testthat/_snaps$
 vignettes/RxODE-wt.Rmd
 vignettes/RxODE-nesting.Rmd
