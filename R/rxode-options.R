@@ -267,7 +267,13 @@ rxStrict <- function(expr, silent = .isTestthat(), respect = FALSE) {
 ##' # If you  want to suppress messages from RxODE in other packages, you can use
 ##' # this function
 rxSuppressMsg <- function() {
-  rxSetSilentErr(as.integer(length(capture.output(message("ABC"),type="message"))==0L))
+  .knitrRunning <- FALSE
+  if (requireNamespace("knitr", quietly = TRUE)) {
+   .knitrRunning <- length(knitr::opts_current$get()) > 0
+  }
+  if (!.knitrRunning) {
+    rxSetSilentErr(as.integer(length(capture.output(message("ABC"),type="message"))==0L))
+  }
   invisible(NULL)
 }
 ##' Options for RxODE
