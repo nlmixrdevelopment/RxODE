@@ -1,15 +1,23 @@
-#include <sys/stat.h> 
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>   /* dj: import intptr_t */
 #include "ode.h"
+#include <errno.h>
 #include <dparser.h>
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 #include <Rmath.h>
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
 #include "tran.g.d_parser.c"
 #include "../inst/include/RxODE.h"
 #define max(a,b) (a)>(b) ? (a):(b)
@@ -28,7 +36,7 @@
 #define STRINGIFY(...) STRINGIFY_AUX(__VA_ARGS__)
 #define STRINGIFY_AUX(...) #__VA_ARGS__
 
-#define ENDLINE tb.ixL=-1; tb.didEq=0;tb.NEnd=NV;
+#define ENDLINE tb.ixL=-1; tb.didEq=0; tb.NEnd=NV;
 
 #define gCode(i) (&sbOut)->s[0]='\0';		\
   (&sbOut)->o=0;				\
@@ -36,14 +44,12 @@
 	  CHAR(STRING_ELT(libname, 0)),		\
 	  CHAR(STRING_ELT(pMd5,0)),		\
 	  CHAR(STRING_ELT(timeId, 0)),		\
-	  CHAR(STRING_ELT(fixInis, 0)),         \
-	  CHAR(STRING_ELT(fixInis, 1)),         \
 	  CHAR(STRING_ELT(libname, 1)));					\
   writeSb(&sbOut, fpIO);
 
 #define aAppendN(str, len) sAppendN(&sb, str, len); sAppendN(&sbDt, str, len);
-#define aProp(prop) curLineProp(&sbPm, prop); curLineProp(&sbPmDt, prop);
-#define aType(type) curLineType(&sbPm, type); curLineType(&sbPmDt, type); 
+#define aProp(prop) curLineProp(&sbPm, prop); curLineProp(&sbPmDt, prop); curLineProp(&sbNrmL, prop);
+#define aType(type) curLineType(&sbPm, type); curLineType(&sbPmDt, type); curLineType(&sbNrmL, type);
 
 #define FBIO 1
 #define ALAG 2
@@ -63,17 +69,20 @@
 #define PFPRN 16
 #define TASSIGN 17
 #define TMTIME 18
+#define TMAT0 19
+#define TMATF 20
+#define TLIN 21
 
-#define NOASSIGN "'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'"
-#define NEEDSEMI "Lines need to end with ';'\n     To match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'"
-#define NEEDPOW "'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'"
-#define NODOT "'.' in variables and states not supported, use '_' instead or set 'options(RxODE.syntax.allow.dots = TRUE)'"
-#define NOINI0 "'%s(0)' for initialization not allowed.  To allow set 'options(RxODE.syntax.allow.ini0 = TRUE)'"
-#define NOSTATE "Defined 'df(%s)/dy(%s)', but '%s' is not a state"
-#define NOSTATEVAR "Defined 'df(%s)/dy(%s)', but '%s' is not a state or variable"
-#define ODEFIRST "ODEs compartment 'd/dt(%s)' must be defined before changing its properties (f/alag/rate/dur).\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this will number compartments based on first occurrence of property or ODE"
-#define ZERODVID "dvid() cannot have zeros in it"
-#define ONEDVID "RxODE only supports one dvid() statement per model"
+#define NOASSIGN _("'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'")
+#define NEEDSEMI _("lines need to end with ';'\n     to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'")
+#define NEEDPOW _("'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'")
+#define NODOT _("'.' in variables and states not supported, use '_' instead or set 'options(RxODE.syntax.allow.dots = TRUE)'")
+#define NOINI0 _("'%s(0)' for initialization not allowed\n to allow set 'options(RxODE.syntax.allow.ini0 = TRUE)'")
+#define NOSTATE _("defined 'df(%s)/dy(%s)', but '%s' is not a state")
+#define NOSTATEVAR _("defined 'df(%s)/dy(%s)', but '%s' is not a state or variable")
+#define ODEFIRST _("ODEs compartment 'd/dt(%s)' must be defined before changing/accessing its properties (f/alag/rate/dur/tad/tafd)\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this may number compartments based on first occurance of property or ODE")
+#define ZERODVID _("'dvid()' cannot have zeros in it")
+#define ONEDVID _("RxODE only supports one dvid() statement per model")
 
 #include <string.h>
 #include <stdlib.h>
@@ -83,13 +92,7 @@
 #include <stdint.h>
 #endif
 
-extern int getSilentErr();
-
-#define RSprintf(fmt,...) if (getSilentErr() == 0) REprintf(fmt,__VA_ARGS__)
-#define RSprintf0(fmt) if (getSilentErr() == 0) REprintf(fmt)
-
-void setInits(SEXP init);
-int getInits(sbuf *s_aux_info);
+void RSprintf(const char *format, ...);
 
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
@@ -118,7 +121,7 @@ int rc_buf_read(const char *pathname, char **buf, int *len) {
   *buf = 0;
   *len = 0;
   fd = open(pathname, O_RDONLY);
-  if (fd <= 0) 
+  if (fd <= 0)
     return -1;
   memset(&sb, 0, sizeof(sb));
   fstat(fd, &sb);
@@ -146,25 +149,11 @@ int syntaxErrorExtra = 0;
 int isEsc=0;
 const char *lastStr;
 int lastStrLoc=0;
-// Taken from dparser and changed to use Calloc
-char * rc_dup_str(const char *s, const char *e) {
-  lastStr=s;
-  int l = e ? e-s : (int)strlen(s);
-  syntaxErrorExtra=min(l-1, 40);
-  char *ss = Calloc(l+1,char);
-  memcpy(ss, s, l);
-  ss[l] = 0;
-  return ss;
-}
 
-// Taken from dparser and changed to use R_alloc
-char * r_dup_str(const char *s, const char *e) {
-  int l = e ? e-s : (int)strlen(s);
-  char *ss = (char*)R_alloc(l+1,sizeof(char));
-  memcpy(ss, s, l);
-  ss[l] = 0;
-  return ss;
-}
+SEXP _goodFuns;
+char * rc_dup_str(const char *s, const char *e);
+vLines _dupStrs;
+vLines _dupStrs;
 
 int rx_syntax_error = 0, rx_suppress_syntax_info=0, rx_podo = 0, rx_syntax_require_ode_first = 1;
 
@@ -180,22 +169,8 @@ sbuf s_aux_info;
 sbuf s_inits;
 
 /* char s_aux_info[64*MXSYM*4]; */
-
-typedef struct vLines {
-  char *s;
-  int sN;
-  int o;
-  int n;
-  int nL;
-  char **line;
-  int *lProp;
-  int *lType;
-  int *os;
-} vLines;
-
-
 typedef struct symtab {
-  vLines ss;
+  vLines ss; // Symbol string or symbol lines
   /* char ss[64*MXSYM]; */                     /* symbol string: all vars*/
   vLines de;             /* symbol string: all Des*/
   int *lh;        /*
@@ -216,10 +191,9 @@ lhs symbols?
   int *di;        /* ith of state vars */
   int *idi;       /* should ith state variable be ignored 0/1 */
   int *idu;       /* Has the ith state been used in a derivative expression? */
-  int *fdi;        /* Functional initialization of state variable */
+  int *lag;  // Lag number (if present)
   int *dvid;
   int dvidn;
-  int nv;                       /* nbr of symbols */
   int ix;                       /* ith of curr symbol */
   int id;                       /* ith of curr symbol */
   int fn;                       /* curr symbol a fn?*/
@@ -230,12 +204,15 @@ lhs symbols?
   int ini_i; // #ini
   int statei; // # states
   int nExtra;
-  int fdn; // # conditional states
   int sensi;
   int li; // # lhs
+  int sli; // # suppressed lhs
   int pi; // # param
   int isPi; // # pi?
+  int isNA; // # pi?
   int linCmt; // Unparsed linear compartment
+  int linCmtN; // Unparsed linear compartment
+  int linCmtFlg; // Linear compartment flag
   // Save Jacobian information
   int *df;
   int *dy;
@@ -243,6 +220,7 @@ lhs symbols?
   int cdf;
   int ndfdy;
   int maxtheta;
+  int hasCmt;
   int maxeta;
   int hasDepot;
   int hasCentral;
@@ -251,11 +229,27 @@ lhs symbols?
   int hasKa;
   int allocS;
   int allocD;
+  int matn;
+  int matnf;
+  int ncmt;
+  int linB;
+  // curPropN
+  int curPropN;
+  int depotN;
+  int centralN;
+  // linCmt extras
+  bool linExtra;
+  int nwhile;
+  int nInd;
+  int simflg;
 } symtab;
 symtab tb;
 
 sbuf sb, sbDt; /* buffer w/ current parsed & translated line */
 sbuf sbt;
+
+sbuf firstErr;
+int firstErrD=0;
 
 void sIniTo(sbuf *sbb, int to){
   sbb->s = Calloc(to, char);
@@ -293,8 +287,8 @@ void sAppendN(sbuf *sbb, const char *what, int n){
   sbb->o +=n;
 }
 
-static void sPut(sbuf *sbb, char what){
-  if (sbb->sN <= 2 + sbb->o){
+static void sPut(sbuf *sbb, char what) {
+  if (sbb->sN <= 2 + sbb->o) {
     int mx = sbb->o + 2 + MXBUF;
     sbb->s = Realloc(sbb->s, mx, char);
     sbb->sN = mx;
@@ -302,7 +296,8 @@ static void sPut(sbuf *sbb, char what){
   sprintf(sbb->s+sbb->o, "%c", what);
   sbb->o++;
 }
-void sAppend(sbuf *sbb, const char *format, ...){
+
+void sAppend(sbuf *sbb, const char *format, ...) {
   int n = 0;
   va_list argptr, copy;
   va_start(argptr, format);
@@ -314,7 +309,7 @@ void sAppend(sbuf *sbb, const char *format, ...){
   n = vsnprintf(zero, 0, format, copy) + 1;
 #endif
   va_end(copy);
-  if (sbb->sN <= sbb->o + n + 1){
+  if (sbb->sN <= sbb->o + n + 1) {
     int mx = sbb->o + n + 1 + MXBUF;
     sbb->s = Realloc(sbb->s, mx, char);
     sbb->sN = mx;
@@ -324,7 +319,7 @@ void sAppend(sbuf *sbb, const char *format, ...){
   sbb->o += n-1;
 }
 
-void sPrint(sbuf *sbb, const char *format, ...){
+void sPrint(sbuf *sbb, const char *format, ...) {
   sClear(sbb);
   int n = 0;
   va_list argptr, copy;
@@ -393,11 +388,11 @@ void addLine(vLines *sbb, const char *format, ...){
   n = vsnprintf(zero, 0, format, copy);
 #endif
   if (n < 0){
-    error("encoding error in 'addLine' format: '%s' n: %d; errno: %d", format, n, errno);
+    Rf_errorcall(R_NilValue, _("encoding error in 'addLine' format: '%s' n: %d; errno: %d"), format, n, errno);
   }
   va_end(copy);
-  if (sbb->sN <= sbb->o + n + 1){
-    int mx = sbb->sN + n + 1 + MXBUF;
+  if (sbb->sN <= sbb->o + n){
+    int mx = sbb->sN + n + 2 + MXBUF;
     sbb->s = Realloc(sbb->s, mx, char);
     // The sbb->line are not correct any longer because the pointer for sbb->s has been updated;
     // Fix them
@@ -408,8 +403,8 @@ void addLine(vLines *sbb, const char *format, ...){
   }
   vsprintf(sbb->s + sbb->o, format, argptr);
   va_end(argptr);
-  if (sbb->n + 1 >= sbb->nL){
-    int mx = sbb->nL + n + MXLINE;
+  if (sbb->n + 2 >= sbb->nL){
+    int mx = sbb->nL + n + 2 + MXLINE;
     sbb->lProp = Realloc(sbb->lProp, mx, int);
     sbb->lType = Realloc(sbb->lType, mx, int);
     sbb->line = Realloc(sbb->line, mx, char*);
@@ -433,11 +428,25 @@ void curLineType(vLines *sbb, int propId){
   sbb->lType[sbb->n] = propId;
 }
 
+static inline void addSymbolStr(char *value){
+  addLine(&(tb.ss),"%s",value);
+  if (tb.depotN == -1 && !strcmp("depot", value)) {
+    tb.depotN = NV-1;
+  } else if (tb.centralN && !strcmp("central", value)){
+    tb.centralN = NV-1;
+  }
+}
 
-vLines sbPm, sbPmDt;
+
+vLines sbPm, sbPmDt, sbNrmL;
 sbuf sbNrm;
+vLines depotLines, centralLines;
 
-char *extra_buf, *model_prefix, *md5 = NULL;
+const char *model_prefix = NULL;
+const char *extra_indLin =NULL;
+const char *me_code = NULL;
+const char *md5 = NULL;
+int badMd5 = 0;
 int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0, needSort=0;
 
 sbuf sbOut;
@@ -456,52 +465,77 @@ int new_or_ith(const char *s) {
 
   if (tb.fn) {tb.ix=-2; return 0;}
   if (!strcmp("t", s)) {tb.ix=-2; return 0;}
-  if (!strcmp("rate", s)){
+  if (!strcmp("lhs", s)){tb.ix=-1; return 0;}
+  if (!strcmp("printf", s)){
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'rate' cannot be a variable in an RxODE model");
-    tb.ix=-2; 
+    trans_syntax_error_report_fn(_("'printf' cannot be a variable in an RxODE model"));
+    tb.ix=-2;
     return 0;
   }
-  if (!strcmp("dur", s)){
+  if (!strcmp("ID", s) || !strcmp("id", s) ||
+      !strcmp("Id", s) || !strcmp("iD", s)) {
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'dur' cannot be a variable in an RxODE model");
-    tb.ix=-2; 
+    trans_syntax_error_report_fn(_("'id' can only be used in the following ways 'id==\"id-value\"' or 'id !=\"id-value\"'"));
+    tb.ix=-2;
     return 0;
   }
+  if (!strcmp("Rprintf", s)){
+    updateSyntaxCol();
+    trans_syntax_error_report_fn(_("'Rprintf' cannot be a variable in an RxODE model"));
+    tb.ix=-2;
+    return 0;
+  }
+  if (!strcmp("print", s)){
+    updateSyntaxCol();
+    trans_syntax_error_report_fn(_("'print' cannot be a variable in an RxODE model"));
+    tb.ix=-2;
+    return 0;
+  }
+  /* if (!strcmp("dur", s)){ */
+  /*   updateSyntaxCol(); */
+  /*   trans_syntax_error_report_fn(_("'dur' cannot be a variable in an RxODE model")); */
+  /*   tb.ix=-2;  */
+  /*   return 0; */
+  /* } */
   if (!strcmp("amt", s)){
-    updateSyntaxCol();
-    trans_syntax_error_report_fn("'amt' cannot be a variable in an RxODE model");
-    tb.ix=-2; 
+    tb.ix=-2;
     return 0;
   }
-  if (!strcmp("ss", s)){
+  if (!strcmp("ifelse", s)){
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'ss' cannot be a variable in an RxODE model");
-    tb.ix=-2; 
+    Rf_errorcall(R_NilValue, _("'ifelse' cannot be a state in an RxODE model"));
+    tb.ix=-2;
     return 0;
   }
-  if (!strcmp("addl", s)){
+  if (!strcmp("if", s)){
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'addl' cannot be a variable in an RxODE model");
-    tb.ix=-2; 
+    Rf_errorcall(R_NilValue, _("'if' cannot be a variable/state in an RxODE model"));
+    tb.ix=-2;
     return 0;
   }
-  if (!strcmp("evid", s)){
+  /* if (!strcmp("ss", s)){ */
+  /*   updateSyntaxCol(); */
+  /*   trans_syntax_error_report_fn(_("'ss' cannot be a variable in an RxODE model")); */
+  /*   tb.ix=-2;  */
+  /*   return 0; */
+  /* } */
+  /* if (!strcmp("addl", s)){ */
+  /*   updateSyntaxCol(); */
+  /*   trans_syntax_error_report_fn(_("'addl' cannot be a variable in an RxODE model")); */
+  /*   tb.ix=-2;  */
+  /*   return 0; */
+  /* } */
+  if (!strcmp("evid", s)){ // This is mangled by RxODE so don't use it.
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'evid' cannot be a variable in an RxODE model");
-    tb.ix=-2; 
+    trans_syntax_error_report_fn(_("'evid' cannot be a variable in an RxODE model"));
+    tb.ix=-2;
     return 0;
   }
-  if (!strcmp("ii", s)){
+  if (!strcmp("ii", s)){ // This is internally driven and not in the
+  			 // covariate table so don't use it.
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'ii' cannot be a variable in an RxODE model");
-    tb.ix=-2; 
-    return 0;
-  }
-  if (!strcmp("dvid", s)){
-    updateSyntaxCol();
-    trans_syntax_error_report_fn("'dvid' cannot be a variable in an RxODE model");
-    tb.ix=-2; 
+    trans_syntax_error_report_fn(_("'ii' cannot be a variable in an RxODE model"));
+    tb.ix=-2;
     return 0;
   }
   if (!strcmp("time", s)) {tb.ix=-2; return 0;}
@@ -533,6 +567,9 @@ int new_or_ith(const char *s) {
   if (!strcmp("M_LN_SQRT_2PI", s)) {tb.ix=-2; return 0;}
   if (!strcmp("M_LN_SQRT_PId2", s)) {tb.ix=-2; return 0;}
   if (!strcmp("pi", s)) tb.isPi=1;
+  if (!strcmp("NA", s)) return 0;
+  if (!strcmp("NaN", s)) return 0;
+  if (!strcmp("Inf", s)) return 0;
   if (!tb.hasKa && !strcmp("ka", s)) tb.hasKa=1;
   if (!tb.hasKa && !strcmp("Ka", s)) tb.hasKa=1;
   if (!tb.hasKa && !strcmp("KA", s)) tb.hasKa=1;
@@ -551,6 +588,7 @@ int new_or_ith(const char *s) {
   if (NV+1 > tb.allocS){
     tb.allocS += MXSYM;
     tb.lh = Realloc(tb.lh, tb.allocS, int);
+    tb.lag = Realloc(tb.lag, tb.allocS, int);
     tb.ini= Realloc(tb.ini, tb.allocS, int);
     tb.mtime=Realloc(tb.mtime, tb.allocS, int);
     tb.iniv=Realloc(tb.iniv, tb.allocS, double);
@@ -577,6 +615,7 @@ typedef struct nodeInfo {
   int factorial_exp;
   int fbio;
   int function;
+  int function_name;
   int identifier;
   int identifier_r;
   int identifier_r_no_output;
@@ -597,16 +636,23 @@ typedef struct nodeInfo {
   int prod;
   int rate;
   int selection_statement;
-  int selection_statement__8;
+  int selection_statement__9;
+  int break_statement;
   int sign;
   int sum;
   int theta0;
   int theta0_noout;
   int theta;
-  int transit2;
-  int transit3;
   int cmt_statement;
+  int param_statement;
   int dvid_statementI;
+  int ifelse;
+  int ifelse_statement;
+  int mat0;
+  int matF;
+  int equality_str1;
+  int equality_str2;
+  int simfun_statement;
 } nodeInfo;
 
 #define NIB(what) ni.what
@@ -629,6 +675,7 @@ void niReset(nodeInfo *ni){
   ni->factorial_exp = -1;
   ni->fbio = -1;
   ni->function = -1;
+  ni->function_name=-1;
   ni->identifier = -1;
   ni->identifier_r = -1;
   ni->identifier_r_no_output = -1;
@@ -649,22 +696,40 @@ void niReset(nodeInfo *ni){
   ni->rate = -1;
   ni->rate = -1;
   ni->selection_statement = -1;
-  ni->selection_statement__8 = -1;
+  ni->selection_statement__9 = -1;
+  ni->break_statement = -1;
   ni->sign = -1;
   ni->sum = -1;
   ni->theta = -1;
   ni->theta0 = -1;
   ni->theta0_noout = -1;
-  ni->transit2 = -1;
-  ni->transit3 = -1;
   ni->cmt_statement = -1;
+  ni->param_statement = -1;
   ni->dvid_statementI = -1;
+  ni->ifelse = -1;
+  ni->ifelse_statement=-1;
+  ni->mat0 = -1;
+  ni->matF = -1;
+  ni->equality_str1 = -1;
+  ni->equality_str2 = -1;
+  ni->simfun_statement = -1;
 }
 
 int new_de(const char *s){
   int i;
+  if (!strcmp("cmt", s)) Rf_errorcall(R_NilValue, _("'cmt' cannot be a state or lhs expression"));
+  if (!strcmp("dvid", s)) Rf_errorcall(R_NilValue, _("'dvid' cannot be a state or lhs expression"));
+  if (!strcmp("addl", s)) Rf_errorcall(R_NilValue, _("'addl' cannot be a state or lhs expression"));
+  if (!strcmp("ii", s)) Rf_errorcall(R_NilValue, _("'ii' cannot be a state or lhs expression"));
+  if (!strcmp("ss", s)) Rf_errorcall(R_NilValue, _("'ss' cannot be a state or lhs expression"));
+  if (!strcmp("amt", s)) Rf_errorcall(R_NilValue, _("'amt' cannot be a state or lhs expression"));
+  if (!strcmp("dur", s)) Rf_errorcall(R_NilValue, _("'dur' cannot be a state or lhs expression"));
+  if (!strcmp("rate", s)) Rf_errorcall(R_NilValue, _("'rate' cannot be a state or lhs expression"));
+  if (!strcmp("Rprintf", s)) Rf_errorcall(R_NilValue, _("'Rprintf' cannot be a state"));
+  if (!strcmp("printf", s)) Rf_errorcall(R_NilValue, _("'printf' cannot be a state"));
+  if (!strcmp("print", s)) Rf_errorcall(R_NilValue, _("'print' cannot be a state"));
   for (i=0; i<tb.de.n; i++) {
-    if (!strcmp(tb.de.line[i], s)) { 
+    if (!strcmp(tb.de.line[i], s)) {
       tb.id = i;
       return 0;
     }
@@ -674,10 +739,39 @@ int new_de(const char *s){
     tb.di=Realloc(tb.di, tb.allocD, int);
     tb.idi=Realloc(tb.idi, tb.allocD, int);
     tb.idu=Realloc(tb.idu, tb.allocD, int);
-    tb.fdi=Realloc(tb.fdi, tb.allocD, int);
     tb.dvid=Realloc(tb.dvid, tb.allocD, int);
   }
   return 1;
+}
+
+void doDot(sbuf *out, char *buf){
+  for (int k = 0; k < (int)strlen(buf); k++){
+    if (buf[k] == '.'){
+      sAppend(out,"_DoT_");
+      if (rx_syntax_allow_dots == 0){
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(NODOT);
+      }
+    } else {
+      sPut(out,buf[k]);
+    }
+  }
+}
+
+void doDot2(sbuf *sb, sbuf *sbDt, char *buf){
+  for (int k = 0; k < (int)strlen(buf); k++) {
+    if (buf[k] == '.') {
+      sAppend(sb,"_DoT_");
+      sAppend(sbDt,"_DoT_");
+      if (rx_syntax_allow_dots == 0){
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(NODOT);
+      }
+    } else {
+      sPut(sb,buf[k]);
+      sPut(sbDt,buf[k]);
+    }
+  }
 }
 
 void wprint_node(int depth, char *name, char *value, void *client_data) {
@@ -713,13 +807,41 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     aAppendN("fabs", 4);
     sAppendN(&sbt,"abs", 3);
   } else if (nodeHas(identifier) && !strcmp("linCmt",value)) {
-    aAppendN("linCmt", 6);
-    sAppendN(&sbt,"linCmt", 6);
-    tb.linCmt=1;
-  } else if (nodeHas(identifier) && !strcmp("solveLinB",value)){
-    aAppendN("solveLinB", 9);
-    sAppendN(&sbt,"solveLinB", 9);
+    if (tb.linCmt == 0){
+      aAppendN("linCmt", 6);
+      aProp(-100);
+      sAppendN(&sbt,"linCmt", 6);
+      tb.linCmt=1;
+    } else {
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("only one 'linCmt()' per model"));
+    }
+  } else if (nodeHas(identifier) && !strcmp("linCmtA",value)){
+    aAppendN("linCmtA", 7);
+    sAppendN(&sbt,"linCmtA", 7);
     tb.linCmt=2;
+  } else if (nodeHas(identifier) && !strcmp("linCmtB",value)){
+    aAppendN("linCmtB", 7);
+    sAppendN(&sbt,"linCmtB", 7);
+    tb.linCmt=2;
+  } else if (nodeHas(identifier) && !strcmp("linCmtC",value)){
+    aAppendN("linCmtC", 7);
+    sAppendN(&sbt,"linCmtC", 7);
+    tb.linCmt=2;
+  } else if (!strcmp("NaN",value)){
+    aAppendN("NAN", 3);
+    sAppendN(&sbt,"NaN", 3);
+  } else if (!strcmp("NA",value)){
+    aAppendN("NA_REAL", 7);
+    sAppendN(&sbt,"NA", 2);
+  } else if (!strcmp("Inf",value)){
+    if (sbt.o > 0 && sbt.s[sbt.o-1] == '-'){
+      sb.o--; sbDt.o--;
+      aAppendN("R_NegInf", 8);
+    } else {
+      aAppendN("R_PosInf", 8);
+    }
+    sAppendN(&sbt,"Inf", 3);
   } else {
     // Apply fix for dot.syntax
     for (i = 0; i < (int)strlen(value); i++){
@@ -738,7 +860,9 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     }
   }
 }
+
 char *gBuf;
+int gBufFree=0;
 int gBufLast;
 D_Parser *curP=NULL;
 D_ParseNode *_pn = 0;
@@ -754,29 +878,61 @@ void freeP(){
   }
   curP = NULL;
 }
+
+int toInt(char *v2){
+  errno = 0;
+  char *v3 = v2;
+  char *endptr = NULL;
+  long lagNoL = strtol(v3, &endptr, 10);
+  int lagNo;
+  if (errno == 0 && v3 && !*endptr){
+    lagNo = (int)(lagNoL);
+  } else {
+    lagNo = NA_INTEGER;
+  }
+  errno=0;
+  return lagNo;
+}
+
+int skipDouble=0;
+
+int allSpaces(char *v2) {
+  int iii=0;
+  int allSpace=1;
+  while(v2[iii] != '\0'){
+    if (!isspace(v2[iii])){
+      allSpace=0;
+      break;
+    }
+  }
+  return allSpace;
+}
+
+int depotAttr=0, centralAttr=0;
+
+sbuf _gbuf;
+
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
   nodeInfo ni;
   niReset(&ni);
-  int nch = d_get_number_of_children(pn), i, k, ii, found, safe_zero = 0;
+  int nch = d_get_number_of_children(pn), i, ii, found, safe_zero = 0;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
-  sbuf buf;
-  sIniTo(&buf, 1024);
   double d;
   if ((nodeHas(identifier) || nodeHas(identifier_r) ||
        nodeHas(identifier_r_no_output)  ||
-       nodeHas(theta0_noout) || 
+       nodeHas(theta0_noout) ||
        nodeHas(theta0))) {
     if (new_or_ith(value)){
-      /* Rprintf("%s [%d]->%s; %d:%d\n",name, NV,value, pn->start_loc.s, pn->end); */
-      addLine(&(tb.ss),"%s",value);
+      addSymbolStr(value);
       // Ignored variables
-      if (!strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value)){
+      if (!strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value) ||
+	  !strcmp("rx_low_", value) || !strcmp("rx_hi_", value)){
 	tb.lh[NV-1] = 11; // Suppress param printout.
       }
-    } else if (tb.ix == tb.ixL && tb.didEq==1){
-      /* Rprintf("Found Dual LHS/PARAM: %s; %d; %s; col:%d line:%d\n", tb.ss.line[tb.ix], tb.ix, name, */
       /* 	      pn->start_loc.col, pn->start_loc.line); */
+    } else if (tb.ix == tb.ixL && tb.didEq==1 &&
+	       !strcmp(value, tb.ss.line[tb.ix])){
       // This is x = x*exp(matt)
       // lhs defined in terms of a parameter
       if (tb.lh[tb.ix] == 10){
@@ -792,8 +948,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       ) {
     sPut(&sb, name[0]);
     sPut(&sbDt, name[0]);
-    if (!(strcmp(",", name)) && depth == 1){
+    if (!skipDouble && !(strcmp(",", name)) && depth == 1){
       aAppendN("(double)", 8);
+      skipDouble=0;
     }
     sPut(&sbt, name[0]);
   }
@@ -814,13 +971,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       !strcmp(">=", name) ||
       !strcmp("!", name) ||
       !strcmp("<", name) ||
-      !strcmp(">", name) ||
-
-      (!strcmp("=", name) && (tb.didEq=1))
-      )
+      !strcmp(">", name))
     fn(depth, name, value, client_data);
-  
-  // Operator synonyms  
+  if (!strcmp("=", name)){
+    tb.didEq=1;
+    fn(depth, name, value, client_data);
+  }
+
+  // Operator synonyms
   if (!strcmp("<-",name)){
     aAppendN(" =", 2);
     sAppendN(&sbt, "=", 1);
@@ -841,10 +999,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     sAppendN(&sbt, "&&", 2);
   }
 
-  Free(value);
+  /* Free(value); */
 
   //depth++;
   if (nch != 0) {
+    int isWhile=0;
     if (nodeHas(power_expression)) {
       aAppendN("R_pow(_as_dbleps(", 17);
     }
@@ -858,16 +1017,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  updateSyntaxCol();
           trans_syntax_error_report_fn(NOASSIGN);
         }
-        Free(v);
+        /* Free(v); */
         continue;
       }
-      
       if ((i == 3 || i == 4 || i < 2) &&
 	  (nodeHas(derivative) ||nodeHas(fbio) || nodeHas(alag) ||
 	   nodeHas(rate) || nodeHas(dur))) continue;
-      
+
       if ((i == 3 || i < 2) && nodeHas(der_rhs)) continue;
-      
 
       if (nodeHas(dfdy)     && i< 2)   continue;
       if (nodeHas(dfdy_rhs) && i< 2)   continue;
@@ -875,24 +1032,206 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (nodeHas(dfdy_rhs) && i == 3) continue;
       if (nodeHas(dfdy)     && i == 5) continue;
       if (nodeHas(dfdy_rhs) && i == 5) continue;
-      
+
       if (nodeHas(dfdy)     && i == 6) continue;
       if (nodeHas(ini0)     && i == 1) continue;
 
-      if (nodeHas(transit2) && i == 1) continue;
-      if (nodeHas(transit3) && i == 1) continue;
+      if (nodeHas(dvid_statementI) && i != 0) continue;
 
 
       if ((nodeHas(theta) || nodeHas(eta)) && i != 2) continue;
       if (nodeHas(mtime) && (i == 0 || i == 1 || i == 3)) continue;
       if (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) continue;
-      if (i != 0 && nodeHas(dvid_statementI)) continue;
-      tb.fn = (nodeHas(function) && i==0) ? 1 : 0;
+      if (i != 2 && (nodeHas(mat0) || nodeHas(matF))) continue;
 
-      if (tb.fn) depth = 0;
+      if (nodeHas(mat0)){
+	aType(TMAT0);
+	sb.o =0; sbDt.o =0;
+	sAppend(&sb, "_mat[%d] = ", tb.matn++);
+      }
+      if (nodeHas(matF)){
+	aType(TMATF);
+	sb.o =0; sbDt.o =0;
+	sAppend(&sb, "_matf[%d] = _IR[%d] + ", tb.matnf, tb.matnf);
+	tb.matnf++;
+      }
+      tb.fn = (i==0 && (nodeHas(function)) ? 1 : 0);
+      if (tb.fn == 0) tb.fn = (i==0 && (nodeHas(function_name)) ? 2 : 0);
+
+      if (nodeHas(ifelse)){
+	if (i == 0){
+	  continue;
+	} else if (i == 1){
+	  aAppendN("((", 2);
+	  sAppendN(&sbt,"ifelse(", 7);
+	  continue;
+	} else if (i == 3){
+	  aAppendN(") ? (", 5);
+	  sAppendN(&sbt,",", 1);
+	  continue;
+	} else if (i == 5){
+	  aAppendN(") : (", 5);
+	  sAppendN(&sbt,",", 1);
+	  continue;
+	} else if (i == 7){
+	  aAppendN("))", 2);
+	  sAppendN(&sbt,")", 1);
+	  continue;
+	}
+      }
+      if (nodeHas(ifelse_statement)){
+	if (i == 0){
+	  continue;
+	} else if (i == 1){
+	  aAppendN("if (", 4);
+	  sAppendN(&sbt, "if (", 4);
+	  continue;
+	} else if (i == 3){
+	  aType(TLOGIC);
+	  aAppendN(") {", 3);
+	  sAppendN(&sbt,") {", 3);
+	  addLine(&sbPm, "%s\n", sb.s);
+	  addLine(&sbPmDt, "%s\n", sbDt.s);
+	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  addLine(&sbNrmL, "%s\n", sbt.s);
+	  sb.o=0;sbDt.o=0; sbt.o=0;
+	  continue;
+	} else if (i == 5){
+	  sb.o=0;sbDt.o=0; sbt.o=0;
+	  aType(TLOGIC);
+	  aAppendN("}\nelse {", 8);
+	  sAppendN(&sbt,"}\nelse {", 1);
+	  addLine(&sbPm, "%s\n", sb.s);
+	  addLine(&sbPmDt, "%s\n", sbDt.s);
+	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  addLine(&sbNrmL, "%s\n", sbt.s);
+	  continue;
+	} else if (i == 7){
+	  sb.o=0;sbDt.o=0; sbt.o=0;
+	  aType(TLOGIC);
+	  aAppendN("}", 1);
+	  sAppendN(&sbt,"}", 1);
+	  addLine(&sbPm, "%s\n", sb.s);
+	  addLine(&sbPmDt, "%s\n", sbDt.s);
+	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  addLine(&sbNrmL, "%s\n", sbt.s);
+	  continue;
+	} else if (i == 8){
+	  continue;
+	}
+      }
+
+      if (nodeHas(simfun_statement) && i == 0) {
+	i = nch; // done
+	sb.o=0;sbDt.o=0; sbt.o=0;
+	D_ParseNode *xpn = d_get_child(pn, 0);
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	aType(TLOGIC);
+	if (!strcmp("simeta", v)) {
+	  foundF0=1;
+	  if ((tb.simflg & 1) == 0) tb.simflg += 1;
+	} else {
+	  if ((tb.simflg & 2) == 0) tb.simflg += 2;
+	}
+	sAppend(&sb, "%s(_cSub);\n  _SYNC_%s_;", v, v);
+	sAppend(&sbDt, "%s(_cSub);\n  _SYNC_%s_;", v, v);
+	sAppend(&sbt, "%s();", v);
+	addLine(&sbPm, "%s\n", sb.s);
+	addLine(&sbPmDt, "%s\n", sbDt.s);
+	sAppend(&sbNrm, "%s\n", sbt.s);
+	addLine(&sbNrmL, "%s\n", sbt.s);
+	/* Free(v); */
+	ENDLINE;
+	continue;
+      }
+
+      if (tb.fn == 1) depth = 0;
 
       D_ParseNode *xpn = d_get_child(pn,i);
 
+      if (nodeHas(param_statement) && i == 0) {
+	sAppendN(&sbt,"param", 5);
+	sbDt.o = 0;
+      }
+
+      if (nodeHas(equality_str1)){
+	if (i == 0){
+	  // string
+	  aAppendN("_cmp1(", 6);
+	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  sAppend(&sb, "%s, ", v);
+	  sAppend(&sbDt, "%s, ", v);
+	  sAppend(&sbt, "%s", v);
+	  /* Free(v); */
+	  continue;
+	}
+	if (i == 1) {
+	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  if (!strcmp(v, "==")) {
+	    aAppendN("1, ", 3);
+	  } else {
+	    aAppendN("0, ", 3);
+	  }
+	  sAppend(&sbt, "%s", v);
+	  /* Free(v); */
+	  continue;
+	}
+	if (i == 2) {
+	  // identifier_r
+	  // val, valstr
+	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  if (!strcmp(v, "id") || !strcmp(v, "ID") || !strcmp(v, "Id")){
+	    aAppendN("(&_solveData->subjects[_cSub])->idReal, \"ID\")", 45);
+	    sAppendN(&sbt, "ID", 2);
+	  } else {
+	    if (new_or_ith(v)) addSymbolStr(v);
+	    sAppend(&sb, "%s, \"%s\")", v, v);
+	    sAppend(&sbDt, "%s, \"%s\")", v, v);
+	    sAppend(&sbt, "%s", v);
+	  }
+	  /* Free(v); */
+	  continue;
+	}
+      }
+      if (nodeHas(equality_str2)){
+	if (i == 0){
+	  // identifier_r
+	  aAppendN("_cmp2(", 6);
+	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  if (!strcmp(v, "id") || !strcmp(v, "ID") || !strcmp(v, "Id")){
+	    aAppendN("(&_solveData->subjects[_cSub])->idReal, \"ID\", ", 46);
+	    sAppendN(&sbt, "ID", 2);
+	  } else {
+	    if (new_or_ith(v)) addSymbolStr(v);
+	    sAppend(&sb, "%s, \"%s\", ", v, v);
+	    sAppend(&sbDt, "%s, \"%s\", ", v, v);
+	    sAppend(&sbt, "%s", v);
+	  }
+	  /* Free(v); */
+	  continue;
+	}
+	if (i == 1) {
+	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  if (!strcmp(v, "==")) {
+	    aAppendN("1, ", 3);
+	  } else {
+	    aAppendN("0, ", 3);
+	  }
+	  sAppend(&sbt, "%s", v);
+	  /* Free(v); */
+	  continue;
+	}
+	if (i == 2) {
+	  // str
+	  // val, valstr
+	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  sAppend(&sb, "%s)", v);
+	  sAppend(&sbDt, "%s)", v);
+	  sAppend(&sbt, "%s", v);
+	  /* Free(v); */
+	  continue;
+	}
+      }
       if (nodeHas(dvid_statementI)){
 	if (tb.dvidn == 0){
 	  // dvid->cmt translation
@@ -900,7 +1239,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  xpn = d_get_child(pn,2);
 	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  tb.dvid[0]=atoi(v);
-	  Free(v);
+	  /* Free(v); */
 	  if (tb.dvid[0] == 0){
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(ZERODVID);
@@ -914,15 +1253,16 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    v = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
 	    tb.dvid[i+1]=atoi(v+1);
 	    if (tb.dvid[i+1] == 0){
-	      Free(v);
+	      /* Free(v); */
 	      updateSyntaxCol();
 	      trans_syntax_error_report_fn(ZERODVID);
 	    }
 	    sAppend(&sbt, ",%d", tb.dvid[i+1]);
-	    Free(v);
+	    /* Free(v); */
 	  }
 	  sAppend(&sbNrm, "%s);\n", sbt.s);
-	  Free(v);
+	  addLine(&sbNrmL, "%s);\n", sbt.s);
+	  /* Free(v); */
 	  continue;
 	} else {
 	  updateSyntaxCol();
@@ -930,20 +1270,93 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	}
 	continue;
       }
-      if (tb.fn){
+      if (tb.fn == 1){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
+	int isNorm=0, isExp=0, isF=0, isGamma=0, isBeta=0,
+	  isPois=0, isT=0, isUnif=0, isWeibull=0, isNormV=0,
+	  isLead=0, isFirst=0, isLast=0, isDiff=0, isLinB=0,
+	  isPnorm=0, isTad=0, isTafd=0, isTlast = 0, isTfirst = 0,
+	  isInd=0;
+	if (!strcmp("dosenum", v)) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii == 1){
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    if (allSpaces(v2)){
+	      aAppendN("(double)(_solveData->subjects[_cSub].dosenum)", 45);
+	      sAppendN(&sbt, "dosenum()", 9);
+	    } else {
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
+	    }
+	    /* Free(v2); */
+	  } else {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
+	  }
+	  /* Free(v); */
+	  i = nch;
+	  continue;
+	} else if ((isTad = !strcmp("tad", v)) || (isTafd = !strcmp("tafd", v)) ||
+	    (isTlast = !strcmp("tlast", v)) || (isTfirst = !strcmp("tfirst", v))) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii == 1){
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    if (allSpaces(v2)){
+	      // tad overall
+	      sAppend(&sb, "_%s0()", v);
+	      sAppend(&sbDt, "_%s0()", v);
+	    } else {
+	      sAppend(&sb, "_%s1(", v);
+	      sAppend(&sbDt, "_%s1(", v);
+	      if (new_de(v2)){
+		if (!strcmp("depot", v2)){
+		  tb.hasDepot = 1;
+		  aAppendN("_DEPOT_)", 8)
+		} else if (!strcmp("central", v2)){
+		  tb.hasCentral = 1;
+		  aAppendN("_CENTRAL_)", 10)
+		} else if (rx_syntax_require_ode_first){
+		  updateSyntaxCol();
+		  sPrint(&_gbuf,ODEFIRST,v2);
+		  trans_syntax_error_report_fn(_gbuf.s);
+		  /* Free(v2); */
+		  /* Free(v); */
+		  continue;
+		} else {
+		  tb.statei++;
+		  sAppend(&sb, "%d)", tb.de.n);
+		  sAppend(&sbDt, "%d)", tb.de.n);
+		}
+	      } else {
+		new_or_ith(v2);
+		sAppend(&sb, "%d)", tb.id);
+		sAppend(&sbDt, "%d)", tb.id);
+	      }
+	      // tad(cmt)
+	    }
+	    sAppend(&sbt, "%s(%s)", v, v2);
+	    /* Free(v); */
+	    /* Free(v2); */
+	    /* RSprintf("i: %d / %d\n", i, nch); */
+	    /* i = nch;// skip next arguments */
+	    /* depth=0; */
+	    i = nch;
+	    continue;
+	  }
+	} else if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
 	    !strcmp("max",v) || !strcmp("min",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (!strcmp("prod", v)){
-            sAppend(&sb, "_prod(_p, _input, _prodType(), %d, (double) ", ii);
-	    sAppend(&sbDt, "_prod(_p, _input, _prodType(), %d, (double) ", ii);
+            sAppend(&sb, "_prod(_p, _input, _solveData->prodType, %d, (double) ", ii);
+	    sAppend(&sbDt, "_prod(_p, _input, _solveData->prodType, %d, (double) ", ii);
             if (maxSumProdN < ii){
               maxSumProdN = ii;
             }
           } else if (!strcmp("sum", v)){
-	    sAppend(&sb, "_sum(_p, _pld, -__MAX_PROD__, _sumType(), %d, (double) ", ii);
-	    sAppend(&sbDt, "_sum(_p, _pld, -__MAX_PROD__, _sumType(), %d, (double) ", ii);
+	    sAppend(&sb, "_sum(_p, _pld, -__MAX_PROD__, _solveData->sumType, %d, (double) ", ii);
+	    sAppend(&sbDt, "_sum(_p, _pld, -__MAX_PROD__, _solveData->sumType, %d, (double) ", ii);
             if (SumProdLD < ii){
               SumProdLD = ii;
             }
@@ -952,28 +1365,743 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_%s(%d, (double) ", v, ii);
 	  }
 	  sAppend(&sbt, "%s(", v);
-          Free(v);
+          /* Free(v); */
           i = 1;// Parse next arguments
 	  depth=1;
 	  continue;
-        }
-        Free(v);
+	} else if (!strcmp("logit", v) || !strcmp("expit", v) ||
+		   !strcmp("invLogit", v) || !strcmp("logitInv", v)){
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii == 1){
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    if (allSpaces(v2)){
+	      updateSyntaxCol();
+	      sPrint(&_gbuf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
+		     v, v);
+	      /* Free(v2); */
+	      trans_syntax_error_report_fn(_gbuf.s);
+	    }
+	    /* Free(v2); */
+	    sAppend(&sb, "_%s1(", v);
+	    sAppend(&sbDt,"_%s1(", v);
+	    sAppend(&sbt, "%s(", v);
+	  } else if (ii == 2) {
+	    sAppend(&sb, "_%s2(", v);
+	    sAppend(&sbDt,"_%s2(", v);
+	    sAppend(&sbt, "%s(", v);
+	  } else if (ii == 3) {
+	    sAppend(&sb, "%s(", v);
+	    sAppend(&sbDt,"%s(", v);
+	    sAppend(&sbt, "%s(", v);
+	  } else {
+	    updateSyntaxCol();
+	    sPrint(&_gbuf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
+		   v, v);
+	    trans_syntax_error_report_fn(_gbuf.s);
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  /* Free(v); */
+	  continue;
+	} else if (!strcmp("lag", v) || (isLead = !strcmp("lead", v)) ||
+		   (isDiff = !strcmp("diff", v)) ||
+		   (isFirst = !strcmp("first", v)) ||
+		   (isLast = !strcmp("last", v))) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  // lag(par, 1) => lag_par(1)
+	  // lag(par) => lag_par(1)
+	  // Header what lag_par means.
+	  if (ii == 1){
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    int lagNo=0;
+	    if (allSpaces(v2)){
+	      if (isFirst || isLast){
+		updateSyntaxCol();
+		sPrint(&_gbuf, _("'%s' takes 1 argument '%s(parameter)'"),
+		       v, v);
+		trans_syntax_error_report_fn(_gbuf.s);
+	      } else {
+		updateSyntaxCol();
+		sPrint(&_gbuf, _("'%s' takes 1-2 arguments '%s(parameter, k)'"),
+		       v, v);
+		trans_syntax_error_report_fn(_gbuf.s);
+	      }
+	    } else {
+	      tb.fn=0;
+	      lagNo = 1;
+	      if (isLead) lagNo=-1;
+	      if (isFirst || isLast) lagNo=NA_INTEGER;
+	      if (new_or_ith(v2)){
+		addSymbolStr(v2);
+		tb.lag[NV-1] = lagNo;
+	      } else {
+		tb.lag[tb.ix] = lagNo;
+	      }
+	      tb.fn=1;
+	    }
+	    sAppend(&sb,"%s_", v);
+	    sAppend(&sbDt,"%s_", v);
+	    doDot2(&sb, &sbDt, v2);
+	    sAppendN(&sb, "1(", 2);
+	    sAppendN(&sbDt, "1(", 2);
+	    sAppend(&sbt, "%s(", v);
+	    /* Free(v2); */
+	  } else if (ii != 2){
+	    if (isFirst || isLast){
+		updateSyntaxCol();
+		sPrint(&_gbuf, _("'%s' takes 1 argument %s(parameter)"),
+		       v, v);
+		trans_syntax_error_report_fn(_gbuf.s);
+	    } else {
+	      updateSyntaxCol();
+	      sPrint(&_gbuf, _("'%s' takes 1-2 arguments %s(parameter, k)"),
+		     v, v);
+	      trans_syntax_error_report_fn(_gbuf.s);
+	    }
+	  } else if (ii == 2){
+	    if (isFirst || isLast){
+	      updateSyntaxCol();
+	      sPrint(&_gbuf, _("'%s' takes 1 argument %s(parameter)"),
+		     v, v);
+	      trans_syntax_error_report_fn(_gbuf.s);
+	    } else {
+	      // Check lag(x, 1);  Its OK with lhs, but nothing else is...
+	      xpn = d_get_child(pn, 3);
+	      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	      int lagNo=0;
+	      if (strlen(v2) > 2){
+		lagNo = toInt(v2+1);
+		if (isLead && lagNo != NA_INTEGER) lagNo = -lagNo;
+	      }
+	      /* Free(v2); */
+	      if (lagNo == NA_INTEGER){
+		updateSyntaxCol();
+		sPrint(&_gbuf, _("'%s(parameter, k)' requires k to be an integer"), v);
+		trans_syntax_error_report_fn(_gbuf.s);
+	      } else if (isDiff && lagNo <= 0){
+		updateSyntaxCol();
+		sPrint(&_gbuf, _("'%s(parameter, k)' requires k to be an integer >= 1"), v);
+		trans_syntax_error_report_fn(_gbuf.s);
+	      } else {
+		D_ParseNode *xpn = d_get_child(pn, 2);
+		char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+		tb.fn=0;
+		if (new_or_ith(v2)){
+		  addSymbolStr(v2);
+		  tb.lag[NV-1] = lagNo;
+		} else {
+		  tb.lag[tb.ix] = lagNo;
+		}
+		tb.fn=1;
+		if (lagNo == 0){
+		  doDot2(&sb, &sbDt, v2);
+		  /* Free(v2); */
+		  /* Free(v); */
+		  i = 4;// skip next arguments
+		  depth=1;
+		  continue;
+		} else {
+		  skipDouble=1;
+		  sAppend(&sb,   "%s_", v);
+		  sAppend(&sbDt,   "%s_", v);
+		  doDot2(&sb, &sbDt, v2);
+		  sAppendN(&sb,   "(", 1);
+		  sAppendN(&sbDt,   "(", 1);
+		  sAppend(&sbt,  "%s(", v);
+		}
+		/* Free(v2); */
+	      }
+	    }
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  /* Free(v); */
+	  continue;
+	} else if ((isPnorm = !strcmp("pnorm", v)) ||
+		   !strcmp("qnorm", v)){
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii == 1) {
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    int allSpace=allSpaces(v2);
+	    /* Free(v2); */
+	    if (allSpace){
+	      updateSyntaxCol();
+	      if (isPnorm){
+		trans_syntax_error_report_fn(_("'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"));
+	      } else {
+		trans_syntax_error_report_fn(_("'qnorm' in RxODE takes 1-3 arguments pnorm(p, mean, sd)"));
+	      }
+	    } else {
+	      sAppend(&sb, "_%s1(", v);
+	      sAppend(&sbDt,"_%s1(", v);
+	      sAppend(&sbt, "%s(", v);
+	    }
+	  } else if (ii == 2) {
+	    sAppend(&sb,"_%s2(", v);
+	    sAppend(&sbDt,"_%s2(", v);
+	    sAppend(&sbt, "%s(", v);
+	  } else if (ii == 3) {
+	    sAppend(&sb,"_%s3(", v);
+	    sAppend(&sbDt,"_%s3(", v);
+	    sAppend(&sbt, "%s(", v);
+	  } else {
+	    updateSyntaxCol();
+	    if (isPnorm){
+	      trans_syntax_error_report_fn(_("'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"));
+	    } else {
+	      trans_syntax_error_report_fn(_("'qnorm' in RxODE takes 1-3 arguments pnorm(p, mean, sd)"));
+	    }
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  /* Free(v); */
+	  continue;
+	} else if (!strcmp("transit", v)) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii == 2){
+	    aAppendN("_transit3P(t, _cSub, ", 21);
+	    sAppendN(&sbt,"transit(", 8);
+	    rx_podo=1;
+	  } else if (ii == 3){
+	    aAppendN("_transit4P(t, _cSub, ", 21);
+	    sAppendN(&sbt,"transit(", 8);
+	    rx_podo = 1;
+	  } else {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'transit' takes 2-3 arguments transit(n, mtt, bio)"));
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  /* Free(v); */
+	  continue;
+	} else if ((isNorm = !strcmp("rnorm", v) ||
+		    !strcmp("rxnorm", v) || (isInd = !strcmp("rinorm", v))) ||
+		   (isNormV = !strcmp("rnormV", v) ||
+		    !strcmp("rxnormV", v) || (isInd = !strcmp("rinormV", v))) ||
+		   !strcmp("rxcauchy", v) || (isInd = !strcmp("ricauchy", v)) ||
+		   !strcmp("rcauchy", v) ||
+		   (isF = !strcmp("rxf", v) ||
+		    !strcmp("rf", v) || (isInd = !strcmp("rif", v))) ||
+		   (isGamma = !strcmp("rxgamma", v) ||
+		    !strcmp("rgamma", v) || (isInd = !strcmp("rigamma", v))) ||
+		   (isBeta = !strcmp("rxbeta", v) ||
+		    !strcmp("rbeta", v) || (isInd = !strcmp("ribeta", v))) ||
+		   (isUnif = !strcmp("rxunif", v) ||
+		    !strcmp("runif", v) || (isInd = !strcmp("riunif", v))) ||
+		   (isWeibull = !strcmp("rxweibull", v) ||
+		    !strcmp("rweibull", v) || (isInd = !strcmp("riweibull", v)))) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii == 1){
+	    if (isF){
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'rif'/'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
+	    } else if (isBeta){
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'ribeta'/'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"));
+	    } else {
+	      D_ParseNode *xpn = d_get_child(pn, 2);
+	      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	      int allSpace=allSpaces(v2);
+	      /* Free(v2); */
+	      if (allSpace){
+		if (isGamma){
+		  updateSyntaxCol();
+		  trans_syntax_error_report_fn(_("'rigamma'/'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"));
+		} else if (isWeibull){
+		  updateSyntaxCol();
+		  trans_syntax_error_report_fn(_("'riweibull'/'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, scale)'"));
+		} else if (isInd) {
+		  // rxnorm()
+		  sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, 0.0, 1.0",  v, tb.nInd);
+		  sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, 0.0, 1.0", v, tb.nInd++);
+		  foundF0=1;
+		} else {
+		  sAppend(&sb,"%s(&_solveData->subjects[_cSub], 0.0, 1.0", v);
+		  sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 0.0, 1.0", v);
+		}
+		sAppend(&sbt, "%s(", v);
+	      } else {
+		//rxnorm(x)
+		if (isInd) {
+		  sAppend(&sb,"%s1(%d,", v, tb.nInd);
+		  sAppend(&sbDt,"%s1(%d,", v, tb.nInd++);
+		  foundF0=1;
+		} else {
+		  sAppend(&sb,"%s1(", v);
+		  sAppend(&sbDt,"%s1(", v);
+		}
+		sAppend(&sbt, "%s(", v);
+	      }
+	    }
+	  } else if (ii == 2){
+	    if (isInd){
+	      foundF0=1;
+	      sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd);
+	      sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd++);
+	    } else {
+	      sAppend(&sb,"%s(&_solveData->subjects[_cSub], ", v);
+	      sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], ", v);
+	    }
+	    sAppend(&sbt, "%s(", v);
+	  } else {
+	    updateSyntaxCol();
+	    if (isNormV){
+	      trans_syntax_error_report_fn(_("'rinormV'/'rxnormV'/'rnormV' takes 0-2 arguments 'rxnormV(mean, sd)'"));
+	    } else if (isNorm){
+	      trans_syntax_error_report_fn(_("'rinorm'/'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"));
+	    } else if (isF) {
+	      trans_syntax_error_report_fn(_("'rif'/'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
+	    } else if (isBeta) {
+	      trans_syntax_error_report_fn(_("'ribeta'/'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"));
+	    } else if (isGamma) {
+	      trans_syntax_error_report_fn(_("'rigamma'/'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"));
+	    } else if (isWeibull) {
+	      trans_syntax_error_report_fn(_("'riweibull'/'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, scale)'"));
+	    } else if (isUnif){
+	      trans_syntax_error_report_fn(_("'riunif'/'rxunif'/'runif' takes 0-2 arguments 'rxunif(min, max)'"));
+	    } else {
+	      trans_syntax_error_report_fn(_("'ricauchy'/'rxcauchy'/'rcauchy' takes 0-2 arguments 'rxcauchy(location, scale)'"));
+	    }
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  /* Free(v); */
+	  /* if (isInd) { */
+	  /*   sAppendN(&sb, ")", 1); */
+	  /*   sAppendN(&sbDt, ")", 1); */
+	  /* } */
+	  continue;
+	} else if (!strcmp("rchisq", v) ||
+		   !strcmp("rxchisq", v) ||
+		   (isInd = !strcmp("richisq", v)) ||
+		   (isExp = !strcmp("rxexp", v) ||
+		    !strcmp("rexp", v) ||
+		    (isInd = !strcmp("riexp", v))) ||
+		   (isT = !strcmp("rxt", v) ||
+		    !strcmp("rt", v) ||
+		    (isInd = !strcmp("rit", v)))) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii != 1){
+	    sPrint(&_gbuf, _("'%s' takes 1 arguments"), v);
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_gbuf.s);
+	  } else {
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    int allSpace=allSpaces(v2);
+	    /* Free(v2); */
+	    if (allSpace){
+	      if (isExp){
+		if (isInd) {
+		  sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, 1.0", v, tb.nInd);
+		  sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, 1.0", v, tb.nInd++);
+		  foundF0=1;
+		} else {
+		  sAppend(&sb,"%s(&_solveData->subjects[_cSub], 1.0", v);
+		  sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 1.0", v);
+		}
+		sAppend(&sbt, "%s(", v);
+	      } else {
+		sPrint(&_gbuf, _("'%s' takes 1 argument"), v);
+		updateSyntaxCol();
+		trans_syntax_error_report_fn(_gbuf.s);
+	      }
+	    } else if (isT){
+	      if (isInd) {
+		sAppend(&sb,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd);
+		sAppend(&sbDt,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd++);
+		foundF0=1;
+		sAppendN(&sbt, "rit(", 4);
+	      } else {
+		sAppendN(&sb,"rxt_(&_solveData->subjects[_cSub], ", 35);
+		sAppendN(&sbDt,"rxt_(&_solveData->subjects[_cSub], ", 35);
+		sAppendN(&sbt, "rxt(", 4);
+	      }
+	    } else {
+	      if (isInd) {
+		sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd);
+		sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd++);
+		foundF0=1;
+	      } else {
+		sAppend(&sb,"%s(&_solveData->subjects[_cSub], ", v);
+		sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], ", v);
+	      }
+	      sAppend(&sbt, "%s(", v);
+	    }
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  /* Free(v); */
+	  /* if (isInd) { */
+	  /*   sAppendN(&sb, ")", 1); */
+	  /*   sAppendN(&sbDt, ")", 1); */
+	  /* } */
+	  continue;
+	} else if (!strcmp("rxgeom", v) ||
+		   !strcmp("rgeom", v) ||
+		   (isInd = !strcmp("rigeom", v)) ||
+		   (isPois= !strcmp("rxpois", v) ||
+		    !strcmp("rpois", v) ||
+		    (isInd = !strcmp("ripois", v)))) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii != 1){
+	    updateSyntaxCol();
+	    if (isPois){
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'ripois'/'rxpois'/'rpois' takes 1 argument 'rxpois(lambda)'"));
+	    } else {
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'rigeom'/'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
+	    }
+	  } else {
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    int allSpace=allSpaces(v2);
+	    /* Free(v2); */
+	    if (allSpace){
+	      if (isPois){
+		updateSyntaxCol();
+		trans_syntax_error_report_fn(_("'ripois'/'rxpois'/'rpois' takes 1 argument 'rxpois(lambda)'"));
+	      } else {
+		updateSyntaxCol();
+		trans_syntax_error_report_fn(_("'rigeom'/'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
+	      }
+	    } else {
+	      if (isInd) {
+		sAppend(&sb, "(double)%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd);
+		sAppend(&sbDt, "(double)%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd++);
+		foundF0=1;
+	      } else {
+		sAppend(&sb, "(double)%s(&_solveData->subjects[_cSub], ", v);
+		sAppend(&sbDt, "(double)%s(&_solveData->subjects[_cSub], ", v);
+	      }
+	      sAppend(&sbt, "%s(", v);
+	    }
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  /* Free(v); */
+	  continue;
+	} else if (!strcmp("rbinom", v) ||
+		   !strcmp("rxbinom", v) ||
+		   (isInd = !strcmp("ribinom", v))) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  if (ii != 2){
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'ribinom'/'rbinom'/'rxbinom' takes 2 arguments 'rxbinom(size, prob)'"));
+	  } else {
+	    if (isInd){
+	      sAppend(&sb,   "(double)ribinom(&_solveData->subjects[_cSub], %d, (int)" , tb.nInd);
+	      sAppend(&sbDt, "(double)ribinom(&_solveData->subjects[_cSub], %d, (int)", tb.nInd++);
+	      sAppendN(&sbt, "ribinom(", 8);
+	    } else {
+	      aAppendN("(double)rxbinom(&_solveData->subjects[_cSub], (int)", 51);
+	      sAppendN(&sbt, "rxbinom(", 8);
+	    }
+	  }
+	  i = 1;// Parse next arguments
+	  depth=1;
+	  /* Free(v); */
+	  /* if (isInd) { */
+	  /*   sAppendN(&sb, ")", 1); */
+	  /*   sAppendN(&sbDt, ")", 1); */
+	  /* } */
+	  continue;
+	} else if (!strcmp("is.nan", v)) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  D_ParseNode *xpn = d_get_child(pn, 2);
+	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  int allSpace=allSpaces(v2);
+	  /* Free(v2); */
+	  if (ii != 1 || (ii == 1 && allSpace)) {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'is.nan' takes 1 argument"));
+	  }
+	  sAppendN(&sb, "isnan", 5);
+	  sAppendN(&sbDt, "isnan", 5);
+	  sAppendN(&sbt, "is.nan", 6);
+	  /* Free(v); */
+	  continue;
+	} else if (!strcmp("is.na", v)) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  D_ParseNode *xpn = d_get_child(pn, 2);
+	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  int allSpace=allSpaces(v2);
+	  /* Free(v2); */
+	  if (ii != 1 || (ii == 1 && allSpace)) {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'is.na' takes 1 argument"));
+	  }
+	  sAppendN(&sb, "ISNA", 4);
+	  sAppendN(&sbDt, "ISNA", 4);
+	  sAppendN(&sbt, "is.na", 5);
+	  /* Free(v); */
+	  continue;
+	} else if (!strcmp("is.finite", v)) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  D_ParseNode *xpn = d_get_child(pn, 2);
+	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  int allSpace=allSpaces(v2);
+	  /* Free(v2); */
+	  if (ii != 1 || (ii == 1 && allSpace)) {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'is.finite' takes 1 argument"));
+	  }
+	  sAppendN(&sb, "R_FINITE", 8);
+	  sAppendN(&sbDt, "R_FINITE", 8);
+	  sAppendN(&sbt, "is.finite", 9);
+	  /* Free(v); */
+	  continue;
+	} else if (!strcmp("is.infinite", v)) {
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	  D_ParseNode *xpn = d_get_child(pn, 2);
+	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  int allSpace=allSpaces(v2);
+	  /* Free(v2); */
+	  if (ii != 1 || (ii == 1 && allSpace)) {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'is.infinite' takes 1 argument"));
+	  }
+	  if (sbt.o > 0 && sbt.s[sbt.o-1] == '!'){
+	    sb.o--;sbDt.o--;
+	    sAppendN(&sb, "R_FINITE", 8);
+	    sAppendN(&sbDt, "R_FINITE", 8);
+	  } else {
+	    sAppendN(&sb, "!R_FINITE", 9);
+	    sAppendN(&sbDt, "!R_FINITE", 9);
+	  }
+	  /* Free(v); */
+	  sAppendN(&sbt, "is.infinite", 11);
+	  continue;
+	} else if (!strcmp("linCmtA", v) || !strcmp("linCmtC", v) ||
+		   (isLinB=!strcmp("linCmtB", v))){
+	  D_ParseNode *xpn1;
+	  xpn1 = d_get_child(pn, 3);
+	  D_ParseNode *xpn2;
+	  xpn2 = d_get_child(xpn1, 1);
+	  char *v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
+	  tb.linCmtN = toInt(v2+1);
+	  /* Free(v2); */
+	  xpn2 = d_get_child(xpn1, 2);
+	  v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
+	  tb.ncmt = toInt(v2+1);
+	  /* Free(v2); */
+	  if (isLinB) isLinB=1;
+	  tb.linB = isLinB;
+	  if (!tb.linExtra) {
+	    // 10 tlag
+	    xpn2 = d_get_child(xpn1, 10+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	      // has interesting tlag
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundLag == 0) needSort+=2; // & 2 when alag
+	      foundLag=1;
+	      aType(ALAG);
+	      addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbPmDt, "_alag[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    /* Free(v2); */
+	    // 11 f1
+	    xpn2 = d_get_child(xpn1, 11+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
+		   !strcmp(v2, "1.") || !strcmp(v2, "")))) {
+	      // has interesting f1
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundF == 0) needSort+=1;// & 1 when F
+	      foundF=1;
+	      aType(FBIO);
+	      addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    /* Free(v2); */
+	    // 13 dur1
+	    xpn2 = d_get_child(xpn1, 13+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.")) || !strcmp(v2, ""))) {
+	      // has interesting rate
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundDur == 0) needSort+=4;// & 4 when dur
+	      foundDur=1;
+	      aType(DUR);
+	      addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    /* Free(v2); */
+	    // 12 rate1
+	    xpn2 = d_get_child(xpn1, 12+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	      // has interesting rate
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundRate == 0) needSort+=8;// & 8 when rate
+	      foundRate=1;
+	      aType(RATE);
+	      addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    /* Free(v2); */
+	    // 14 -- ka
+	    xpn2 = d_get_child(xpn1, 14+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.")))) {
+	      tb.hasKa=1;
+	    }
+	    /* Free(v2); */
+	    // lag2 = 15
+	    xpn2 = d_get_child(xpn1, 15+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	      // has interesting tlag
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundLag == 0) needSort+=2; // & 2 when alag
+	      foundLag=1;
+	      aType(ALAG);
+	      addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbPmDt, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    /* Free(v2); */
+	    // f2 = 16 ; This is 1 instead of zero
+	    xpn2 = d_get_child(xpn1, 16+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
+		   !strcmp(v2, "1.") || !strcmp(v2, "")))) {
+	      // has interesting f1
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundF == 0) needSort+=1;// & 1 when F
+	      foundF=1;
+	      aType(FBIO);
+	      addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    /* Free(v2); */
+	    // rate2 = 17
+	    xpn2 = d_get_child(xpn1, 17+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	      // has interesting rate
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundRate == 0) needSort+=8;// & 8 when rate
+	      foundRate=1;
+	      aType(RATE);
+	      addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    /* Free(v2); */
+	    // dur2 = 18
+	    xpn2 = d_get_child(xpn1, 18+isLinB);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	      // has interesting rate
+	      int ixL = tb.ixL;
+	      int didEq = tb.didEq;
+	      if (foundDur == 0) needSort+=4;// & 4 when dur
+	      foundDur=1;
+	      aType(DUR);
+	      addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	      addLine(&sbNrmL, "");
+	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	      ENDLINE;
+	      tb.ixL= ixL; tb.didEq=didEq;
+	    }
+	    /* Free(v2); */
+	    tb.linExtra=true; // Only first call
+	  }
+	  aType(TLIN);
+	  if (tb.linB){
+	    xpn2 = d_get_child(xpn1, 4);
+	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	    int tmp = toInt(v2);
+	    if (tmp > 0) {
+	      tmp--;
+	      tmp = 1 << tmp;
+	      if ((tb.linCmtFlg & tmp) == 0){
+		tb.linCmtFlg += tmp;
+	      }
+	    }
+	    /* Free(v2); */
+	  }
+	  /* Free(v); */
+        } else {
+	  // Check if this is a valid function
+	  int foundFun = 0;
+	  for (int j = length(_goodFuns); j--;){
+	    if (!strcmp(CHAR(STRING_ELT(_goodFuns, j)),v)){
+	      foundFun = 1;
+	      j=0;
+	      break;
+	    }
+	  }
+	  if (foundFun == 0){
+	    sPrint(&_gbuf, _("function '%s' is not supported in RxODE"), v);
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_gbuf.s);
+	  }
+	}
+        /* Free(v); */
       }
-      
+
       if (nodeHas(theta)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        sPrint(&buf,"_THETA_%s_",v);
+        sPrint(&_gbuf,"_THETA_%s_",v);
 	ii = strtoimax(v,NULL,10);
 	if (ii > tb.maxtheta){
 	  tb.maxtheta =ii;
 	}
-	if (new_or_ith(buf.s)){
-	  addLine(&(tb.ss),"%s",buf.s);
+	if (new_or_ith(_gbuf.s)){
+	  addSymbolStr(_gbuf.s);
         }
         sAppend(&sb,"_THETA_%s_",v);
 	sAppend(&sbDt,"_THETA_%s_",v);
         sAppend(&sbt,"THETA[%s]",v);
-        Free(v);
+        /* Free(v); */
         continue;
       }
 
@@ -983,14 +2111,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         if (ii > tb.maxeta){
           tb.maxeta =ii;
         }
-        sPrint(&buf,"_ETA_%s_",v);
-        if (new_or_ith(buf.s)){
-	  addLine(&(tb.ss),"%s",buf.s);
+        sPrint(&_gbuf,"_ETA_%s_",v);
+        if (new_or_ith(_gbuf.s)){
+	  addSymbolStr(_gbuf.s);
         }
         sAppend(&sb, "_ETA_%s_",v);
 	sAppend(&sbDt, "_ETA_%s_",v);
         sAppend(&sbt,"ETA[%s]",v);
-        Free(v);
+        /* Free(v); */
         continue;
       }
       wprint_parsetree(pt, xpn, depth, fn, client_data);
@@ -998,9 +2126,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         if (xpn->start_loc.s ==  xpn->end){
 	  updateSyntaxCol();
           trans_syntax_error_report_fn(NEEDSEMI);
-        } 
+        }
       }
-      
+
       if (nodeHas(mult_part)){
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (i == 0){
@@ -1017,7 +2145,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  safe_zero = 0;
 	}
-	Free(v);
+	/* Free(v); */
       }
       if (nodeHas(printf_statement)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -1038,11 +2166,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  addLine(&sbPm, "%s;\n", sb.s);
 	  addLine(&sbPmDt, "%s;\n", sbDt.s);
 	  sAppend(&sbNrm, "%s;\n", sbt.s);
+	  addLine(&sbNrmL, "%s;\n", sbt.s);
 	  ENDLINE
         }
-        Free(v);
+        /* Free(v); */
         continue;
-      } 
+      }
 
       if ((nodeHas(dfdy) || nodeHas(dfdy_rhs)) && i == 2){
         found_jac = 1;
@@ -1052,19 +2181,23 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  switch(sbPm.lType[sbPm.n]){
 	  case FBIO:
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("Bioavailability cannot depend on Jacobian values");
+	    trans_syntax_error_report_fn(_("bioavailability cannot depend on Jacobian values"));
 	    break;
 	  case ALAG:
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("Absorption Lag-time cannot depend on Jacobian values");
+	    trans_syntax_error_report_fn("absorption lag-time cannot depend on Jacobian values");
 	    break;
 	  case RATE:
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("Model-based rate cannot depend on Jacobian values");
+	    trans_syntax_error_report_fn(_("model-based rate cannot depend on Jacobian values"));
 	    break;
 	  case DUR:
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("Model-based duration cannot depend on Jacobian values");
+	    trans_syntax_error_report_fn(_("model-based duration cannot depend on Jacobian values"));
+	    break;
+	  case TMAT0:
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("model-based matricies cannot depend on Jacobian values"));
 	    break;
 	  default: {
 	    aType(TJAC);
@@ -1072,8 +2205,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbt,"df(%s)/dy(",v);
 	    if (new_de(v)){
 	      updateSyntaxCol();
-	      sPrint(&buf,"d/dt(%s) needs to be defined before using a Jacobians for this state",v);
-	      trans_syntax_error_report_fn(buf.s);
+	      sPrint(&_gbuf,_("d/dt(%s) needs to be defined before using a Jacobians for this state"),v);
+	      trans_syntax_error_report_fn(_gbuf.s);
 	    } else {
 	      sAppend(&sb, "__PDStateVar__[%d*(__NROWPD__)+",tb.id);
 	    }
@@ -1088,15 +2221,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppend(&sbt,"df(%s)/dy(",v);
 	  if (new_de(v)){
 	    updateSyntaxCol();
-	    sPrint(&buf,"d/dt(%s) needs to be defined before using a Jacobians for this state",v);
-            trans_syntax_error_report_fn(buf.s);
+	    sPrint(&_gbuf,_("d/dt(%s) needs to be defined before using a Jacobians for this state"),v);
+            trans_syntax_error_report_fn(_gbuf.s);
 	  } else {
 	    sAppend(&sb,"__PDStateVar__[%d*(__NROWPD__)+",tb.id);
 	  }
 	  new_or_ith(v);
 	  tb.cdf = tb.ix;
         }
-        Free(v);
+        /* Free(v); */
         continue;
       }
       if ((nodeHas(dfdy) || nodeHas(dfdy_rhs)) && i == 4){
@@ -1104,17 +2237,17 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	ii = 0;
 	if (strstr(v,"THETA[") != NULL){
 	  good_jac=0;
-	  sPrint(&buf,"_THETA_%.*s_",(int)(strlen(v))-7,v+6);
+	  sPrint(&_gbuf,"_THETA_%.*s_",(int)(strlen(v))-7,v+6);
 	  sAppend(&sbt, "%s)",v);
 	  sAppendN(&sb, "0]", 2);
-	  sAppend(&sbDt, "%s__",buf.s);
+	  sAppend(&sbDt, "%s__",_gbuf.s);
 	  ii = 1;
 	} else if (strstr(v,"ETA[") != NULL) {
 	  good_jac=0;
-	  sPrint(&buf,"_ETA_%.*s_",(int)(strlen(v))-5,v+4);
+	  sPrint(&_gbuf,"_ETA_%.*s_",(int)(strlen(v))-5,v+4);
           sAppend(&sbt, "%s)",v);
           sAppendN(&sb, "0]",2);
-	  sAppend(&sbDt, "%s__",buf.s);
+	  sAppend(&sbDt, "%s__",_gbuf.s);
           ii = 1;
         } else {
 	  sAppend(&sbDt, "%s__",v);
@@ -1132,7 +2265,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           aAppendN(" = ", 3);
           sAppendN(&sbt ,"=", 1);
 	  if (ii == 1){
-	    new_or_ith(buf.s);
+	    new_or_ith(_gbuf.s);
           } else {
 	    new_or_ith(v);
           }
@@ -1150,17 +2283,59 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    tb.cdf = -1;
           }
         }
-        Free(v);
+        /* Free(v); */
         continue;
       }
-      
+
       //inits
+      if (nodeHas(selection_statement) && i== 0 ) {
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	isWhile = !strcmp("while", v);
+	/* Free(v); */
+	if (isWhile) {
+	  D_ParseNode *xpn2 = d_get_child(pn, 5);
+	  v = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
+	  if (v[0] == 0) {
+	    /* Free(v); */
+	  } else {
+	    /* Free(v); */
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'while' cannot be followed by 'else' (did you mean 'if'/'else')"));
+	  }
+	}
+        continue;
+      }
       if (nodeHas(selection_statement) && i==1) {
 	sb.o = 0; sbDt.o = 0; sbt.o = 0;
-	sAppendN(&sb, "if (", 4);
-	sAppendN(&sbDt, "if (", 4);
-        sAppendN(&sbt,"if (", 4);
+	if (isWhile) {
+	  sAppendN(&sb, "while (", 7);
+	  sAppendN(&sbDt, "while (", 7);
+	  sAppendN(&sbt,"while (", 7);
+	  tb.nwhile++;
+	} else {
+	  sAppendN(&sb, "if (", 4);
+	  sAppendN(&sbDt, "if (", 4);
+	  sAppendN(&sbt,"if (", 4);
+	}
         continue;
+      }
+      if (nodeHas(break_statement) && i == 0) {
+	if (tb.nwhile > 0) {
+	  aType(TLOGIC);
+	  sb.o = 0; sbDt.o = 0; sbt.o = 0;
+	  /* aType(100); */
+	  aAppendN("break;", 6);
+	  sAppendN(&sbt, "break;", 6);
+	  addLine(&sbPm, "%s\n", sb.s);
+	  addLine(&sbPmDt, "%s\n", sbDt.s);
+	  sAppend(&sbNrm, "%s\n", sbt.s);
+	  addLine(&sbNrmL, "%s\n", sbt.s);
+	  ENDLINE;
+	  continue;
+	} else {
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn(_("'break' can only be used in  'while' statement"));
+	}
       }
       if (nodeHas(selection_statement) && i==3) {
 	aType(TLOGIC);
@@ -1170,10 +2345,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	addLine(&sbPm, "%s\n", sb.s);
 	addLine(&sbPmDt, "%s\n", sbDt.s);
 	sAppend(&sbNrm, "%s\n", sbt.s);
+	addLine(&sbNrmL, "%s\n", sbt.s);
 	ENDLINE
         continue;
       }
-      if (nodeHas(selection_statement__8) && i==0) {
+      if (nodeHas(selection_statement__9) && i==0) {
 	sb.o = 0; sbDt.o = 0; sbt.o = 0;
 	aType(TLOGIC);
 	aAppendN("}\nelse {", 8);
@@ -1181,10 +2357,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	addLine(&sbPm, "%s\n", sb.s);
 	addLine(&sbPmDt, "%s\n", sbDt.s);
 	sAppend(&sbNrm, "%s\n", sbt.s);
+	addLine(&sbNrmL, "%s\n", sbt.s);
 	ENDLINE
         continue;
       }
-
       if (nodeHas(power_expression) && i==0) {
         aAppendN("),", 2);
         sAppendN(&sbt, "^", 1);
@@ -1195,19 +2371,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  updateSyntaxCol();
           trans_syntax_error_report_fn(NEEDPOW);
         }
-        Free(v);
+        /* Free(v); */
       }
-      if (nodeHas(transit2) && i == 0){
-        aAppendN("_transit3P(t, _cSub, ", 21);
-        sAppendN(&sbt,"transit(", 8);
-        rx_podo = 1;
-      }
-      if (nodeHas(transit3) && i == 0){
-        aAppendN("_transit4P(t, _cSub, ", 21);
-        sAppendN(&sbt,"transit(", 8);
-        rx_podo = 1;
-      }
-      if ((nodeHas(fbio) || nodeHas(alag) || 
+      if ((nodeHas(fbio) || nodeHas(alag) ||
 	   nodeHas(dur) || nodeHas(rate) ||
 	   nodeHas(cmt_statement)) && i==2) {
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -1233,8 +2399,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      tb.hasCentral = 1;
 	    } else {
 	      updateSyntaxCol();
-	      sPrint(&buf,ODEFIRST,v);
-	      trans_syntax_error_report_fn(buf.s);
+	      sPrint(&_gbuf,ODEFIRST,v);
+	      trans_syntax_error_report_fn(_gbuf.s);
 	    }
 	  }
 	  tb.statei++;
@@ -1243,6 +2409,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_f[%d] = ", tb.de.n);
 	    sAppend(&sbDt, "_f[%d] = ", tb.de.n);
 	    sAppend(&sbt, "f(%s)=", v);
+	    tb.curPropN=tb.de.n;
 	    if (foundF == 0) needSort+=1;// & 1 when F
 	    foundF=1;
 	    aType(FBIO);
@@ -1251,14 +2418,16 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_alag[%d] = ", tb.de.n);
 	    sAppend(&sbDt, "_alag[%d] = ", tb.de.n);
 	    sAppend(&sbt, "alag(%s)=", v);
+	    tb.curPropN=tb.de.n;
 	    if (foundLag == 0) needSort+=2; // & 2 when alag
 	    foundLag=1;
-	    aType(ALAG); 
+	    aType(ALAG);
 	  } else if (nodeHas(dur)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_dur[%d] = ", tb.de.n);
 	    sAppend(&sbDt, "_dur[%d] = ", tb.de.n);
 	    sAppend(&sbt, "dur(%s)=", v);
+	    tb.curPropN=tb.de.n;
 	    if (foundDur == 0) needSort+=4;// & 4 when dur
 	    foundDur=1;
 	    aType(DUR);
@@ -1267,6 +2436,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_rate[%d] = ", tb.de.n);
 	    sAppend(&sbDt, "_rate[%d] = ", tb.de.n);
 	    sAppend(&sbt, "rate(%s)=", v);
+	    tb.curPropN=tb.de.n;
 	    if (foundRate == 0) needSort+=8;// & 8 when rate
 	    foundRate=1;
 	    aType(RATE);
@@ -1274,6 +2444,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sbt, "cmt(%s)", v);
 	    sAppend(&sbNrm, "%s;\n", sbt.s);
+	    addLine(&sbNrmL, "%s;\n", sbt.s);
 	  }
           new_or_ith(v);
 	  aProp(tb.de.n);
@@ -1298,6 +2469,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_f[%d] = ", tb.id);
 	    sAppend(&sbDt, "_f[%d] = ", tb.id);
 	    sAppend(&sbt, "f(%s)=", v);
+	    tb.curPropN=tb.id;
 	    if (foundF == 0) needSort+=1;// & 1 when F
 	    foundF=1;
 	    aType(FBIO);
@@ -1306,6 +2478,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_alag[%d] = ", tb.id);
 	    sAppend(&sbDt, "_alag[%d] = ", tb.id);
 	    sAppend(&sbt, "alag(%s)=", v);
+	    tb.curPropN=tb.id;
 	    if (foundLag == 0) needSort+=2; // & 2 when alag
 	    foundLag=1;
 	    aType(ALAG);
@@ -1314,6 +2487,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_dur[%d] = ", tb.id);
 	    sAppend(&sbDt, "_dur[%d] = ", tb.id);
 	    sAppend(&sbt, "dur(%s)=", v);
+	    tb.curPropN=tb.id;
 	    if (foundDur == 0) needSort+=4;// & 4 when dur
 	    foundDur=1;
 	    aType(DUR);
@@ -1322,29 +2496,30 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_rate[%d] = ", tb.id);
 	    sAppend(&sbDt, "_rate[%d] = ", tb.id);
 	    sAppend(&sbt, "rate(%s)=", v);
+	    tb.curPropN=tb.id;
 	    if (foundRate == 0) needSort+=8;// & 8 when rate
 	    foundRate=1;
 	    aType(RATE);
           }
         }
-        Free(v);
+        /* Free(v); */
         continue;
       }
       if (nodeHas(derivative) && i==5) {
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	if (!strcmp("+", v) || 
+	if (!strcmp("+", v) ||
 	    !strcmp("-", v)){
           // = + is output  or = InfusionRate + is outupt.
         } else {
 	  // = + is output  or = InfusionRate + is outupt.
           aAppendN("+ ", 2);
         }
-	Free(v);
+	/* Free(v); */
 	continue;
       }
       if (nodeHas(derivative) && i==2) {
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (new_de(v)){
+        if (new_de(v)) {
 	  tb.statei++;
 	  if (strncmp(v, "rx__sens_", 3) == 0){
 	    tb.sensi++;
@@ -1366,13 +2541,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
 	       (tb.lh[tb.ix] == 1 || tb.lh[tb.ix] == 70))){
 	    updateSyntaxCol();
-            sPrint(&buf,"Cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'",v,v);
-            trans_syntax_error_report_fn0(buf.s);
+            sPrint(&_gbuf,_("cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'"),v,v);
+            trans_syntax_error_report_fn0(_gbuf.s);
           }
 	  tb.lh[tb.ix] = 9;
           tb.di[tb.de.n] = tb.ix;
 	  addLine(&(tb.de),"%s",v);
-	  Free(v);
+	  /* Free(v); */
 	  xpn = d_get_child(pn,4);
           v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  tb.idu[tb.de.n-1] = 1;
@@ -1383,6 +2558,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    tb.idi[tb.de.n-1] = 0;
 	    sAppendN(&sbt, "=", 1);
 	  }
+	  /* Free(v); */
         } else {
 	  new_or_ith(v);
 	  /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
@@ -1399,7 +2575,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  aProp(tb.id);
 	  sbt.o=0;
 	  sAppend(&sbt, "d/dt(%s)", v);
-	  Free(v);
+	  /* Free(v); */
           xpn = d_get_child(pn,4);
           v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
           if (!strcmp("~",v)){
@@ -1410,32 +2586,35 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    // keep it ignored.
 	    sAppendN(&sbt, "=", 1);
 	  }
+	  /* Free(v); */
         }
-        Free(v);
         continue;
       }
       if (nodeHas(der_rhs)) {
 	switch(sbPm.lType[sbPm.n]){
 	case TMTIME:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Modeling times cannot depend on state values");
+	  trans_syntax_error_report_fn(_("modeling times cannot depend on state values"));
 	  break;
 	case FBIO:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Bioavailability cannot depend on state values");
+	  trans_syntax_error_report_fn(_("bioavailability cannot depend on state values"));
 	  break;
 	case ALAG:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Absorption Lag-time cannot depend on state values");
+	  trans_syntax_error_report_fn(_("absorption lag-time cannot depend on state values"));
 	  break;
 	case RATE:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Model-based rate cannot depend on state values");
+	  trans_syntax_error_report_fn(_("model-based rate cannot depend on state values"));
 	  break;
 	case DUR:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Model-based duration cannot depend on state values");
+	  trans_syntax_error_report_fn(_("model-based duration cannot depend on state values"));
 	  break;
+	case TMAT0:
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn(_("model-based matricies cannot depend on state values"));
 	default:
 	  {
 	    updateSyntaxCol();
@@ -1443,9 +2622,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    if (new_de(v)){
 	      /* sPrint(&buf2,"d/dt(%s)",v); */
 	      updateSyntaxCol();
-	      sPrint(&buf,"Tried to use d/dt(%s) before it was defined",v);
+	      sPrint(&_gbuf,"Tried to use d/dt(%s) before it was defined",v);
 	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(buf.s);
+	      trans_syntax_error_report_fn(_gbuf.s);
 	    } else {
 	      if (sbPm.lType[sbPm.n] == TJAC){
 		sAppend(&sb,   "__DDtStateVar_%d__", tb.id);
@@ -1458,8 +2637,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      aProp(tb.id);
 	      sAppend(&sbt, "d/dt(%s)", v);
 	    }
-	    Free(v);
-	  } 
+	    /* Free(v); */
+	  }
 	}
         continue;
       }
@@ -1472,7 +2651,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sAppend(&sb,  "%s",v);
 	sAppend(&sbDt,"%s",v);
 	sAppend(&sbt, "%s(0)",v);
-	Free(v);
+	/* Free(v); */
       }
 
       if ((i==0 && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0))) ||
@@ -1482,18 +2661,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sb.o =0; sbDt.o =0;
           /* aAppendN("(__0__)", 7); */
 	  aType(TINI);
-          for (k = 0; k < (int)strlen(v); k++){
-            if (v[k] == '.'){
-                aAppendN("_DoT_", 5);
-		if (rx_syntax_allow_dots == 0){
-	          updateSyntaxCol();
-		  trans_syntax_error_report_fn(NODOT);
-		}
-            } else {
-              sPut(&sb, v[k]);
-	      sPut(&sbDt, v[k]);
-            }
-          }
+	  doDot2(&sb, &sbDt, v);
           if (nodeHas(ini) && !new_de(v)){
 	    if (tb.idu[tb.id] == 0){
 	      new_or_ith(v);
@@ -1504,29 +2672,18 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      }
 	    } else {
 	      updateSyntaxCol();
-	      sPrint(&buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
-	      trans_syntax_error_report_fn(buf.s);
+	      sPrint(&_gbuf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
+	      trans_syntax_error_report_fn(_gbuf.s);
 	    }
           }
           if (!rx_syntax_allow_ini0 && nodeHas(ini0)){
-            sPrint(&buf,NOINI0,v);
+            sPrint(&_gbuf,NOINI0,v);
 	    updateSyntaxCol();
-            trans_syntax_error_report_fn(buf.s);
+            trans_syntax_error_report_fn(_gbuf.s);
           }
         } else {
           sb.o = 0; sbDt.o = 0;
-          for (k = 0; k < (int)strlen(v); k++){
-            if (v[k] == '.'){
-	      aAppendN("_DoT_", 5);
-	      if (rx_syntax_allow_dots == 0){
-		updateSyntaxCol();
-		trans_syntax_error_report_fn(NODOT);
-	      }
-            } else {
-              sPut(&sb, v[k]);
-	      sPut(&sbDt, v[k]);
-            }
-          }
+	  doDot2(&sb, &sbDt, v);
           if (!new_de(v)){
 	    if (tb.idu[tb.id] == 0){
 	      // Change to 19 for LHS w/stateExtra
@@ -1537,12 +2694,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		tb.lh[tb.ix] = 19;
 	      }
 	    } else {
-	      sPrint(&buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
+	      sPrint(&_gbuf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
 	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(buf.s);
-	      
+	      trans_syntax_error_report_fn(_gbuf.s);
+
 	    }
-            
+
           }
 	  aType(TASSIGN);
         }
@@ -1564,11 +2721,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	if (nodeHas(mtime)){
 	  tb.lh[tb.ix] = 1;
 	  tb.mtime[tb.ix] = 1;
-	} else if (nodeHas(assignment)  || (!rx_syntax_allow_ini && nodeHas(ini))){
+	} else if (nodeHas(assignment)  || (!rx_syntax_allow_ini && nodeHas(ini))) {
 	  if (tb.ix+1 == NV && tb.NEnd != NV){
 	    // New assignment
 	    tb.ixL = tb.ix;
 	    tb.lh[tb.ix] = 1;
+	  } else if (tb.ix < 0){
+	    sPrint(&_gbuf,"cannot assign protected variable '%s'",v);
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_gbuf.s);
 	  } else {
 	    /* Rprintf("tb.ixL: %d; tb.ix: %d, NV: %d, %s\n", */
 	    /* 	    tb.ixL, tb.ix, NV, */
@@ -1582,15 +2743,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    }
 	    tb.ixL=-1;
 	  }
-        } else if (nodeHas(ini) || nodeHas(ini0)){
+        } else if (nodeHas(ini) || nodeHas(ini0)) {
           if (tb.ini[tb.ix] == 0){
             // If there is only one initialzation call, then assume
             // this is a parameter with an initial value.
             tb.ini[tb.ix] = 1;
             if (nodeHas(ini0)){
 	      tb.ini0[tb.ix] = 1;
-	      Free(v);
 	      xpn = d_get_child(pn, 3);
+	      /* Free(v); */
 	      v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	      sscanf(v, "%lf", &d);
 	      tb.iniv[tb.ix] = d;
@@ -1600,14 +2761,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
               if (strncmp(v,"rx_",3)==0){
                 tb.lh[tb.ix] = 1;
               } else {
-		Free(v);
 		xpn = d_get_child(pn, 2);
+		/* Free(v); */
 		v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 		sscanf(v, "%lf", &d);
 		tb.iniv[tb.ix] = d;
 		tb.ini_i++;
 	      }
             }
+	    /* Free(v); */
 	    continue;
           } else {
             // There is more than one call to this variable, it is a
@@ -1616,9 +2778,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    if (tb.lh[tb.ix] != 1){
 	      tb.lh[tb.ix] = 1;
 	      if (nodeHas(ini0) && tb.ini0[tb.ix] == 1){
-		sPrint(&buf,"Cannot have conditional initial conditions for %s",v);
+		sPrint(&_gbuf,"cannot have conditional initial conditions for '%s'",v);
 		updateSyntaxCol();
-		trans_syntax_error_report_fn(buf.s);
+		trans_syntax_error_report_fn(_gbuf.s);
 	      } else if (tb.ini0[tb.ix] == 1){
 		tb.iniv[tb.ix] = NA_REAL;
 		tb.ini_i--;
@@ -1627,24 +2789,59 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		tb.ini_i--;
 	      }
 	    }
-	    tb.ini0[tb.ix] = 0;	      
+	    tb.ini0[tb.ix] = 0;
           }
         }
-        Free(v);
+        /* Free(v); */
       }
     }
-
+    if (isWhile) {
+      tb.nwhile--;
+    }
     if (nodeHas(assignment) || nodeHas(ini) || nodeHas(dfdy) ||
-        nodeHas(ini0) || nodeHas(ini0f) || nodeHas(fbio) || nodeHas(alag) || nodeHas(rate) || 
-	nodeHas(dur) || nodeHas(mtime)){
+        nodeHas(ini0) || nodeHas(ini0f) || nodeHas(fbio) || nodeHas(alag) || nodeHas(rate) ||
+	nodeHas(dur) || nodeHas(mtime)) {
+      int isDepot;
+      if ((nodeHas(rate) || nodeHas(alag) || nodeHas(fbio) || nodeHas(dur)) &&
+	  ((isDepot = (tb.depotN == tb.di[tb.curPropN])) ||
+	   (tb.centralN == tb.di[tb.curPropN]))) {
+	char *c = sb.s;
+	while ((*c != '=') && (*c != '~')) {
+	  c++;
+	}
+	while ((*c == '=') || (*c == '~') || (*c == ' ')){
+	  c++;
+	}
+	if (isDepot){
+	  curLineType(&depotLines, sbPm.lType[sbPm.n]);
+	  addLine(&depotLines, "%s", c);
+	} else {
+	  curLineType(&centralLines, sbPm.lType[sbPm.n]);
+	  addLine(&centralLines, "%s", c);
+	}
+	/* RSprintf("c: %s, lType: %d\n", c, sbPm.lType[sbPm.n], isDepot); */
+      } else {
+	addLine(&sbNrmL, "%s;\n", sbt.s);
+      }
       addLine(&sbPm,     "%s;\n", sb.s);
       addLine(&sbPmDt,   "%s;\n", sbDt.s);
       sAppend(&sbNrm, "%s;\n", sbt.s);
       ENDLINE
+    } else if ((nodeHas(mat0) || nodeHas(matF))){
+      addLine(&sbPm,     "%s;\n", sb.s);
+      addLine(&sbPmDt,   "%s;\n", sbDt.s);
+      ENDLINE
+      /* sAppend(&sbNrm, "", sbt.s); */
     } else if (nodeHas(derivative)){
       addLine(&sbPm,     "%s);\n", sb.s);
       addLine(&sbPmDt,   "%s);\n", sbDt.s);
       sAppend(&sbNrm, "%s;\n", sbt.s);
+      addLine(&sbNrmL, "%s;\n", sbt.s);
+      ENDLINE
+    } else if (nodeHas(param_statement)) {
+      sbDt.o = 0; sbt.o = 0;
+      sAppend(&sbNrm, "%s;\n", sbt.s);
+      addLine(&sbNrmL, "%s;\n", sbt.s);
       ENDLINE
     }
 
@@ -1662,9 +2859,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	updateSyntaxCol();
         trans_syntax_error_report_fn(NOASSIGN);
       }
-      Free(v);
+      /* Free(v); */
     }
-    
+
     if (nodeHas(selection_statement)){
       sb.o = 0; sbDt.o = 0; sbt.o = 0;
       aType(TLOGIC);
@@ -1676,26 +2873,26 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       addLine(&sbPm,   "%s\n", sb.s);
       addLine(&sbPmDt, "%s\n", sbDt.s);
       sAppend(&sbNrm,  "%s\n", sbt.s);
+      addLine(&sbNrmL, "%s\n", sbt.s);
       ENDLINE
     }
     if (nodeHas(power_expression)) {
       aAppendN(")", 1);
     }
-    
+
   }
-  sFree(&buf); 
 }
 
 void err_msg(int chk, const char *msg, int code)
 {
   if(!chk) {
-    error("%s",msg);
+    Rf_errorcall(R_NilValue, "%s",msg);
   }
 }
 
 /* when prnt_vars() is called, user defines the behavior in "case" */
 void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str, int show_ode) {
-  int i, j, k;
+  int i, j;
   char *buf, *buf1, *buf2;
   sAppend(&sbOut, "%s", pre_str);
   if (scenario == 0 || scenario == 2){
@@ -1708,6 +2905,12 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     // show_ode == 7 functional rate
     // show_ode == 8 functional duration
     // show_ode == 9 functional mtimes
+    // show_ode == 10 ME matrix
+    // show_ode == 11 Inductive vector
+    // show_ode == 12 initialize lhs to last value
+    // show_ode == 13 #define lags for lhs values
+    // show_ode == 14 #define lags for params/covs
+    // show_ode == 15 #define sync lhs for simeps
     if (show_ode == 2 || show_ode == 0){
       //__DDtStateVar_#__
       for (i = 0; i < tb.de.n; i++){
@@ -1719,7 +2922,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       }
     }
     // Now get Jacobain information  __PDStateVar_df_dy__ if needed
-    if (show_ode != 3){
+    if (show_ode != 3 && show_ode != 15){
       for (i = 0; i < tb.ndfdy; i++){
 	buf1 = tb.ss.line[tb.df[i]];
 	buf2 = tb.ss.line[tb.dy[i]];
@@ -1735,24 +2938,76 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     }
   }
   for (i=0, j=0; i<NV; i++) {
-    if (lhs && tb.lh[i]>0 && tb.lh[i] != 70) continue;
+    if (scenario == 5){
+      if (tb.lag[i] == 0) continue;
+      if (tb.lh[i] == 1) continue;
+    } else if(scenario == 4){
+      if (tb.lag[i] == 0) continue;
+      if (tb.lh[i] != 1) continue;
+    } else if (scenario == 3 || scenario == 4){
+      if (!(tb.lh[i] == 1 || tb.lh[i] == 19 || tb.lh[i] == 70)) continue;
+    } else {
+      if (lhs && tb.lh[i]>0 && tb.lh[i] != 70) continue;
+    }
     /* retieve_var(i, buf); */
     buf = tb.ss.line[i];
     switch(scenario) {
+    case 5: // Case 5 is for using #define lag_var(x)
+      sAppendN(&sbOut, "#define diff_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) (x - _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - 1))\n", j);
+      sAppendN(&sbOut, "#define diff_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "(x,y) (x - _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - (y)))\n", j);
+      sAppendN(&sbOut, "#define first_", 14);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, NA_INTEGER)\n", j);
+      sAppendN(&sbOut, "#define last_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->n_all_times - 1)\n", j);
+      sAppendN(&sbOut, "#define lead_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx + 1)\n", j);
+      sAppendN(&sbOut, "#define lead_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "(x, y) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx + (y))\n", j);
+      sAppendN(&sbOut, "#define lag_", 12);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - 1)\n", j);
+      sAppendN(&sbOut, "#define lag_", 12);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "(x,y) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - (y))\n", j++);
+      break;
+    case 4: // Case 4 is for using #define lag_var(x)
+      sAppendN(&sbOut, "#define lead_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", j);
+      sAppendN(&sbOut, "#define lead_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "(x,y) _solveData->subjects[_cSub].lhs[%d]\n", j);
+      sAppendN(&sbOut, "#define diff_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", j);
+      sAppendN(&sbOut, "#define diff_", 13);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "(x,y) _solveData->subjects[_cSub].lhs[%d]\n", j);
+      sAppendN(&sbOut, "#define lag_", 12);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", j);
+      sAppendN(&sbOut, "#define lag_", 12);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, "(x, y) _solveData->subjects[_cSub].lhs[%d]\n", j++);
+      break;
+    case 3: // Case 3 is for using the last lhs value
+      sAppendN(&sbOut, "  ", 2);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, " = _PL[%d];\n", j++);
+      break;
     case 0:   // Case 0 is for declaring the variables
       sAppendN(&sbOut,"  ", 2);
-      for (k = 0; k < (int)strlen(buf); k++){
-        if (buf[k] == '.'){
-          sAppend(&sbOut,"_DoT_");
-          if (rx_syntax_allow_dots == 0){
-	    updateSyntaxCol();
-            trans_syntax_error_report_fn(NODOT);
-          }
-        } else {
-          sPut(&sbOut,buf[k]);
-        }
-      }
-      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf)){
+      doDot(&sbOut, buf);
+      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf) ||
+	  !strcmp("rx_hi_", buf) || !strcmp("rx_low_", buf)){
 	sAppendN(&sbOut, "__", 2);
       }
       if (i <NV-1)
@@ -1764,18 +3019,9 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       // See https://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
       sAppend(&sbOut,"  ");
       sAppend(&sbOut,"(void)");
-      for (k = 0; k < (int)strlen(buf); k++){
-        if (buf[k] == '.'){
-          sAppendN(&sbOut,"_DoT_", 5);
-          if (rx_syntax_allow_dots == 0){
-	    updateSyntaxCol();
-            trans_syntax_error_report_fn(NODOT);
-          }
-        } else {
-          sPut(&sbOut,buf[k]);
-        }
-      }
-      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf)){
+      doDot(&sbOut, buf);
+      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf) ||
+	  !strcmp("rx_low_", buf) || !strcmp("rx_hi_", buf)){
         sAppendN(&sbOut, "__", 2);
       }
       sAppendN(&sbOut, ";\n", 2);
@@ -1783,18 +3029,20 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     case 1:
       // Case 1 is for declaring the par_ptr.
       sAppendN(&sbOut,"  ", 2);
-      for (k = 0; k < (int)strlen(buf); k++){
-        if (buf[k] == '.'){
-          sAppendN(&sbOut,"_DoT_", 5);
-          if (rx_syntax_allow_dots == 0){
-	    updateSyntaxCol();
-            trans_syntax_error_report_fn(NODOT);
-          }
-        } else {
-          sPut(&sbOut, buf[k]);
-        }
-      }
+      doDot(&sbOut, buf);
       sAppend(&sbOut, " = _PP[%d];\n", j++);
+      break;
+    case 15:
+      // Case 15 is for declaring eps the sync parameters
+      sAppend(&sbOut,"  if (_solveData->op->svar[_svari] == %d) {", j);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, " = _PP[%d];}; ", j++);
+      break;
+    case 16:
+      // Case 16 is for declaring eta the sync parameters
+      sAppend(&sbOut,"  if (_solveData->op->ovar[_ovari] == %d) {", j);
+      doDot(&sbOut, buf);
+      sAppend(&sbOut, " = _PP[%d];}; ", j++);
       break;
     default: break;
     }
@@ -1804,8 +3052,8 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
 
 void print_aux_info(char *model, const char *prefix, const char *libname, const char *pMd5, const char *timeId,
 		    const char *libname2){
-  int i, j, islhs,pi = 0,li = 0, statei = 0, sensi=0, normi=0,fdi=0,
-    in_str=0;
+  int i, j, islhs,pi = 0,li = 0, sli = 0,
+    statei = 0, sensi=0, normi=0, in_str=0;
   char *buf;
   sbuf bufw;
   sIniTo(&bufw, 1024);
@@ -1813,12 +3061,17 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   /* char bufw[1024]; */
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
-    if (islhs>1 && islhs != 19 && islhs != 70) continue;      /* is a state var */
+    if (islhs>1 && islhs != 19 && islhs != 70 && islhs != 10) continue;      /* is a state var */
     buf = tb.ss.line[i];
-    if (islhs == 1 || islhs == 19 || islhs == 70){
-      sAppend(&s_aux_info, "  SET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n", li++, buf);
+    if (islhs == 10){
+      sAppend(&s_aux_info, "  SET_STRING_ELT(slhs,%d,mkChar(\"%s\"));\n",
+	      sli++, buf);
+    } else if (islhs == 1 || islhs == 19 || islhs == 70){
+      sAppend(&s_aux_info, "  SET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n",
+	      li++, buf);
       if (islhs == 70){
-	sAppend(&s_aux_info, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, buf);
+	sAppend(&s_aux_info, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n",
+		pi++, buf);
       }
     } else {
       int foundIt=0;
@@ -1859,9 +3112,6 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
 	sAppend(&s_aux_info, "    SET_STRING_ELT(normState,%d,mkChar(\"%s\"));\n", normi++, buf);
 	sAppend(&s_aux_info, "    _SR[%d] = %d;\n", statei-1, tb.idi[i]);
       }
-      if (tb.fdi[i]){
-	sAppend(&s_aux_info, "    SET_STRING_ELT(fn_ini,%d,mkChar(\"%s\"));\n", fdi++, buf);
-      }
     } else {
       sAppend(&s_aux_info, "    SET_STRING_ELT(extraState, %d, mkChar(\"%s\"));\n", nExtra++, buf);
     }
@@ -1893,15 +3143,38 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
       sClear(&bufw);
       sAppend(&bufw,"%s",buf);
     }
-    
+
     sAppend(&s_aux_info, "%s)\"));\n",bufw.s);
   }
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
-  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 20));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 20));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 22));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
+  sAppendN(&sbOut, "    SEXP sLinCmt = PROTECT(allocVector(INTSXP,10));pro++;\n", 57);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[0]= %d;\n", tb.ncmt);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[1]= %d;\n", tb.hasKa);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[2]= %d;\n", tb.linB);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[3]= %d;\n", tb.maxeta);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[4]= %d;\n", tb.maxtheta);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[5]= %d;\n", tb.hasCmt);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[6]= %d;\n", tb.linCmtN);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[7]= %d;\n", tb.linCmtFlg);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[8]= %d;\n", tb.nInd);
+  sAppend(&sbOut, "    INTEGER(sLinCmt)[9]= %d;\n", tb.simflg);
+  sAppendN(&sbOut,"    SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 10));pro++;\n", 59);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 0, mkChar(\"ncmt\"));\n", 49);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 1, mkChar(\"ka\"));\n", 47);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 2, mkChar(\"linB\"));\n", 49);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 3, mkChar(\"maxeta\"));\n", 51);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 4, mkChar(\"maxtheta\"));\n", 53);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 5, mkChar(\"hasCmt\"));\n", 51);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 6, mkChar(\"linCmt\"));\n", 51);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 7, mkChar(\"linCmtFlg\"));\n", 54);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 8, mkChar(\"nIndSim\"));\n", 52);
+  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 9, mkChar(\"simflg\"));\n", 51);
+  sAppendN(&sbOut, "   setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);\n", 50);
   sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
   sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
   sAppendN(&sbOut, "    SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;\n", 56);
@@ -1912,6 +3185,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut,  "    iExtraCmt[0] = %d;\n", extraCmt);
   sAppend(&sbOut, "    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
   sAppend(&sbOut, "    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
+  sAppend(&sbOut, "    SEXP slhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",sli);
   sAppend(&sbOut, "    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
   sAppend(&sbOut, "  SEXP extraState = PROTECT(allocVector(STRSXP, %d));pro++;\n",nExtra);
   sAppend(&sbOut, "    SEXP stateRmS = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
@@ -1919,14 +3193,13 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "    INTEGER(timeInt)[0] = %s;\n", timeId);
   sAppend(&sbOut, "    SEXP sens     = PROTECT(allocVector(STRSXP, %d));pro++;\n",sensi);
   sAppend(&sbOut, "    SEXP normState= PROTECT(allocVector(STRSXP, %d));pro++;\n",statei-sensi);
-  sAppend(&sbOut, "    SEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));pro++;\n",fdi);
   sAppend(&sbOut, "    SEXP dfdy     = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ndfdy);
-  sAppendN(&sbOut, "    SEXP tran     = PROTECT(allocVector(STRSXP, 20));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP trann    = PROTECT(allocVector(STRSXP, 20));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP tran     = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP trann    = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP model    = PROTECT(allocVector(STRSXP, 1));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP modeln   = PROTECT(allocVector(STRSXP, 1));pro++;\n", 59);
+  sAppendN(&sbOut, "    SEXP model    = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
+  sAppendN(&sbOut, "    SEXP modeln   = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP version    = PROTECT(allocVector(STRSXP, 3));pro++;\n", 61);
   sAppendN(&sbOut, "    SEXP versionn   = PROTECT(allocVector(STRSXP, 3));pro++;\n", 61);
 
@@ -1940,9 +3213,9 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
 
   sAppend(&sbOut, "%s",s_aux_info.s);
   // Save for outputting in trans
-  tb.fdn = fdi;
-  tb.pi = pi;
-  tb.li = li;
+  tb.pi  = pi;
+  tb.li  = li;
+  tb.sli = sli;
   tb.sensi  = sensi;
   sAppendN(&sbOut, "    SET_STRING_ELT(modeln,0,mkChar(\"normModel\"));\n", 50);
   sAppendN(&sbOut, "    SET_STRING_ELT(model,0,mkChar(\"", 35);
@@ -1977,9 +3250,45 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
     }
   }
   sAppendN(&sbOut, "\"));\n", 5);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(modeln,1,mkChar(\"indLin\"));\n", 47);
+  sAppendN(&sbOut, "    SET_STRING_ELT(model,1,mkChar(\"", 35);
+  in_str=0;
+  int strL = strlen(me_code);
+  for (i = 0; i < strL; i++){
+    if (me_code[i] == '"'){
+      if (in_str==1){
+	in_str=0;
+      } else {
+	in_str=1;
+      }
+      sAppendN(&sbOut, "\\\"", 2);
+    } else if (me_code[i] == '\''){
+      if (in_str==1){
+	in_str=0;
+      } else {
+	in_str=1;
+      }
+      sAppendN(&sbOut, "'", 1);
+    } else if (me_code[i] == ' '){
+      if (in_str==1){
+	sAppendN(&sbOut, " ", 1);
+      }
+    } else if (me_code[i] == '\n'){
+      sAppendN(&sbOut, "\\n", 2);
+    } else if (me_code[i] == '\t'){
+      sAppendN(&sbOut, "\\t", 2);
+    } else if (me_code[i] == '\\'){
+      sAppendN(&sbOut, "\\\\", 2);
+    } else if (me_code[i] >= 33  && me_code[i] <= 126){ // ASCII only
+      sPut(&sbOut, me_code[i]);
+    }
+  }
+  sAppendN(&sbOut, "\"));\n", 5);
+
   sClear(&s_aux_info);
   tb.ini_i = gnini;
-  
+
   sAppend(&sbOut, "    SEXP ini    = PROTECT(allocVector(REALSXP,%d));pro++;\n",tb.ini_i);
   sAppend(&sbOut, "    SEXP inin   = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ini_i);
   sAppend(&sbOut, "%s", s_inits.s);
@@ -1989,19 +3298,19 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
 
   sAppendN(&sbOut, "    SET_STRING_ELT(names,1,mkChar(\"lhs\"));\n", 43);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  1,lhs);\n", 33);
-  
+
   sAppendN(&sbOut, "    SET_STRING_ELT(names,2,mkChar(\"state\"));\n", 45);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  2,state);\n", 35);
-  
+
   sAppendN(&sbOut, "    SET_STRING_ELT(names,3,mkChar(\"trans\"));\n", 45);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  3,tran);\n", 34);
-  
+
   sAppendN(&sbOut, "    SET_STRING_ELT(names,4,mkChar(\"model\"));\n", 45);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  4,model);\n", 35);
-  
+
   sAppendN(&sbOut, "    SET_STRING_ELT(names,5,mkChar(\"ini\"));\n", 43);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  5,ini);\n", 33);
-  
+
   sAppendN(&sbOut, "    SET_STRING_ELT(names,6,mkChar(\"podo\"));\n", 44);
   sAppend(&sbOut, "    SET_VECTOR_ELT(lst,   6,ScalarLogical(%d));\n",rx_podo);
 
@@ -2010,54 +3319,66 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
 
   sAppendN(&sbOut, "    SET_STRING_ELT(names,8,mkChar(\"sens\"));\n", 44);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  8,sens);\n", 34);
-  
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,9,mkChar(\"fn.ini\"));\n", 46);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  9,fn_ini);\n", 36);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,10,mkChar(\"state.ignore\"));\n", 53);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  10,stateRmS);\n", 39);
-  
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,11,mkChar(\"version\"));\n", 48);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  11,version);\n", 38);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,9,mkChar(\"state.ignore\"));\n", 52);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  9,stateRmS);\n", 38);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,12,mkChar(\"normal.state\"));\n", 53);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  12,normState);\n", 40);
-  
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,13,mkChar(\"needSort\"));\n", 49);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  13,sNeedSort);\n", 40);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,10,mkChar(\"version\"));\n", 48);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  10,version);\n", 38);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,14,mkChar(\"nMtime\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  14,sMtime);\n", 37);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,11,mkChar(\"normal.state\"));\n", 53);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  11,normState);\n", 40);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,15,mkChar(\"extraCmt\"));\n", 49);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  15,sExtraCmt);\n", 40);
-  
-  sAppendN(&sbOut, "    SET_STRING_ELT(names, 16, mkChar(\"stateExtra\"));\n", 53);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  16, extraState);\n", 42);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,12,mkChar(\"needSort\"));\n", 49);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  12,sNeedSort);\n", 40);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names, 17, mkChar(\"dvid\"));\n", 47);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,13,mkChar(\"nMtime\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  13,sMtime);\n", 37);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,14,mkChar(\"extraCmt\"));\n", 49);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  14,sExtraCmt);\n", 40);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names, 15, mkChar(\"stateExtra\"));\n", 53);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  15, extraState);\n", 42);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names, 16, mkChar(\"dvid\"));\n", 47);
   sAppend(&sbOut,   "    SEXP sDvid = PROTECT(allocVector(INTSXP,%d));pro++;\n", tb.dvidn);
-  
+
   for (int di = 0; di < tb.dvidn; di++){
     sAppend(&sbOut, "    INTEGER(sDvid)[%d] = %d;\n",di, tb.dvid[di]);
   }
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst, 17, sDvid);\n", 36);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst, 16, sDvid);\n", 36);
 
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,18,mkChar(\"timeId\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  18,timeInt);\n", 38);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,20,mkChar(\"timeId\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  20,timeInt);\n", 38);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,19,mkChar(\"md5\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  19,mmd5);\n", 34);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,17,mkChar(\"indLin\"));\n", 47);
+  // FIX with extra
+  sAppend(&sbOut,"%s", extra_indLin);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,21,mkChar(\"md5\"));\n", 43);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  21,mmd5);\n", 34);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,18,mkChar(\"flags\"));\n", 46);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  18,sLinCmt);\n", 38);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,19,mkChar(\"slhs\"));\n", 45);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  19,slhs);\n", 35);
 
   // const char *rxVersion(const char *what)
-  
+
   // md5 values
   sAppendN(&sbOut, "    SET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n", 48);
-  sAppend(&sbOut, "    SET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
+  if (badMd5){
+    sAppendN(&sbOut, "    SET_STRING_ELT(mmd5,0,mkChar(\"\"));\n", 39);
+  } else {
+    sAppend(&sbOut, "    SET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
+  }
   sAppendN(&sbOut, "    SET_STRING_ELT(mmd5n,1,mkChar(\"parsed_md5\"));\n", 50);
   sAppend(&sbOut, "    SET_STRING_ELT(mmd5,1,mkChar(\"%s\"));\n", pMd5);
-  
+
   // now trans output
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,0,mkChar(\"lib.name\"));\n", 48);
   sAppend(&sbOut, "    SET_STRING_ELT(tran, 0,mkChar(\"%s\"));\n", libname);
@@ -2082,22 +3403,22 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
 
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,6,mkChar(\"model_vars\"));\n", 50);
   sAppend(&sbOut, "    SET_STRING_ELT(tran, 6,mkChar(\"%smodel_vars\"));\n", prefix);
-  
+
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,7,mkChar(\"theta\"));\n", 45);
   sAppend(&sbOut, "    SET_STRING_ELT(tran, 7,mkChar(\"%stheta\"));\n", prefix);
-  
+
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,8,mkChar(\"inis\"));\n", 44);
   sAppend(&sbOut, "    SET_STRING_ELT(tran, 8,mkChar(\"%sinis\"));\n", prefix);
-  
+
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,  9,mkChar(\"dydt_lsoda\"));\n", 52);
   sAppend(&sbOut, "    SET_STRING_ELT(tran,   9,mkChar(\"%sdydt_lsoda\"));\n", prefix);
-  
+
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,10,mkChar(\"calc_jac_lsoda\"));\n", 55);
   sAppend(&sbOut, "    SET_STRING_ELT(tran, 10,mkChar(\"%scalc_jac_lsoda\"));\n", prefix);
-  
+
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,11,mkChar(\"ode_solver_solvedata\"));\n", 61);
   sAppend(&sbOut, "    SET_STRING_ELT(tran, 11,mkChar(\"%sode_solver_solvedata\"));\n", prefix);
-  
+
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,12,mkChar(\"ode_solver_get_solvedata\"));\n", 65);
   sAppend(&sbOut, "    SET_STRING_ELT(tran, 12,mkChar(\"%sode_solver_get_solvedata\"));\n", prefix);
 
@@ -2122,6 +3443,12 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,19,mkChar(\"assignFuns\"));\n", 51);
   sAppend(&sbOut,  "    SET_STRING_ELT(tran, 19,mkChar(\"%sassignFuns\"));\n", prefix);
 
+  sAppendN(&sbOut, "    SET_STRING_ELT(trann,20,mkChar(\"ME\"));\n", 43);
+  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 20,mkChar(\"%sME\"));\n", prefix);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(trann,21,mkChar(\"IndF\"));\n", 45);
+  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 21,mkChar(\"%sIndF\"));\n", prefix);
+
   sAppendN(&sbOut, "    setAttrib(tran, R_NamesSymbol, trann);\n", 43);
   sAppendN(&sbOut, "    setAttrib(mmd5, R_NamesSymbol, mmd5n);\n", 43);
   sAppendN(&sbOut, "    setAttrib(model, R_NamesSymbol, modeln);\n", 45);
@@ -2133,7 +3460,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    classgets(lst, cls);\n", 25);
   sAppendN(&sbOut, "    _assign_ptr(lst);\n", 22);
   sAppendN(&sbOut, "    UNPROTECT(pro);\n", 20);
-  
+
   sAppendN(&sbOut, "    return lst;\n", 16);
   sAppendN(&sbOut, "  } else {\n", 11);
   sAppendN(&sbOut, "    UNPROTECT(pro);\n", 20);
@@ -2142,7 +3469,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "}\n", 2);
 
   sAppend(&sbOut,"extern void %sdydt_lsoda(int *neq, double *t, double *A, double *DADT)\n{\n  %sdydt(neq, *t, A, DADT);\n}\n", prefix, prefix);
-  sAppend(&sbOut, "extern int %sdydt_liblsoda(double t, double *y, double *ydot, void *data)\n{\n  int *neq = (int*)(data);\n  %sdydt(neq, t, y, ydot);\n  return(0);\n}\n",
+  sAppend(&sbOut, "extern int %sdydt_liblsoda(double __t, double *y, double *ydot, void *data)\n{\n  int *neq = (int*)(data);\n  %sdydt(neq, __t, y, ydot);\n  return(0);\n}\n",
 	  prefix,prefix);
   sAppend(&sbOut,"extern void %scalc_jac_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){\n  // Update all covariate parameters\n  %scalc_jac(neq, *t, A, JAC, *nrowpd);\n}\n",
 	  prefix, prefix);
@@ -2150,7 +3477,6 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut,"\n//Initialize the dll to match RxODE's calls\nvoid R_init0_%s(){\n  // Get C callables on load; Otherwise it isn't thread safe\n", libname2);
   sAppendN(&sbOut, "  _assignFuns();\n", 17);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sassignFuns\", (DL_FUNC) %sassignFuns);\n", libname, prefix, prefix);
-  sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%stheta\", (DL_FUNC) %stheta);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sinis\",(DL_FUNC) %sinis);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sdydt\",(DL_FUNC) %sdydt);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%scalc_lhs\",(DL_FUNC) %scalc_lhs);\n", libname, prefix, prefix);
@@ -2163,7 +3489,9 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sLag\", (DL_FUNC) %sLag);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sRate\", (DL_FUNC) %sRate);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sDur\", (DL_FUNC) %sDur);\n", libname, prefix, prefix);
-sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%smtime\", (DL_FUNC) %smtime);\n", libname, prefix, prefix);
+  sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%smtime\", (DL_FUNC) %smtime);\n", libname, prefix, prefix);
+  sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sME\", (DL_FUNC) %sME);\n", libname, prefix, prefix);
+  sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sIndF\", (DL_FUNC) %sIndF);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sdydt_liblsoda\", (DL_FUNC) %sdydt_liblsoda);\n", libname, prefix, prefix);
   sAppend(&sbOut,"}\n//Initialize the dll to match RxODE's calls\nvoid R_init_%s(DllInfo *info){\n  // Get C callables on load; Otherwise it isn't thread safe\n  R_init0_%s();", libname2, libname2);
   sAppend(&sbOut, "\n  static const R_CallMethodDef callMethods[]  = {\n    {\"%smodel_vars\", (DL_FUNC) &%smodel_vars, 0},\n    {NULL, NULL, 0}\n  };\n",
@@ -2176,11 +3504,11 @@ sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%smtime\", (DL_FUNC) %smtime);\n
 }
 
 
-void codegen(char *model, int show_ode, const char *prefix, const char *libname, const char *pMd5, const char *timeId, const char *fixInis0, const char *fixInis1, const char *libname2) {
+void codegen(char *model, int show_ode, const char *prefix, const char *libname, const char *pMd5, const char *timeId, const char *libname2) {
   if (show_ode == 4) {
     print_aux_info(model, prefix, libname, pMd5, timeId, libname2);
   } else {
-    int i, j, k;
+    int i, j;
     char *buf;
     if (show_ode == 1){
       sAppendN(&sbOut,"#include <RxODE_model_shared.h>\n",32);
@@ -2198,15 +3526,23 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       } else {
 	sAppendN(&sbOut,"#define _CMT CMT\n", 17);
       }
+      // Now define lhs lags
+      prnt_vars(4, 1, "", "", 13);
+      // And covariate/parameter lags
+      prnt_vars(5, 1, "", "", 15);
+      // Add sync PP define
+      prnt_vars(15, 1, "#define _SYNC_simeps_ for (int _svari=_solveData->neps; _svari--;){", "}\n", 15);
+      prnt_vars(16, 1, "#define _SYNC_simeta_ for (int _ovari=_solveData->neta; _ovari--;){", "}\n", 16);
+      sAppendN(&sbOut,"#include \"extraC.h\"\n", 20);
+      sAppendN(&sbOut,"#include <RxODE_model_shared.c>\n", 32);
       sAppend(&sbOut, "extern void  %sode_solver_solvedata (rx_solve *solve){\n  _solveData = solve;\n}\n",prefix);
       sAppend(&sbOut, "extern rx_solve *%sode_solver_get_solvedata(){\n  return _solveData;\n}\n", prefix);
       sAppend(&sbOut, "SEXP %smodel_vars();\n", prefix);
-      sAppend(&sbOut, "%s\nextern double* %stheta(double *theta){\n  %s\n  return _%s_t;\n}\n", fixInis0, prefix, fixInis1, prefix);
       sAppendN(&sbOut,"\n", 1);
       sAppendN(&sbOut, "\n// prj-specific differential eqns\nvoid ", 40);
-      sAppend(&sbOut, "%sdydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n", prefix);
+      sAppend(&sbOut, "%sdydt(int *_neq, double __t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n  double t = __t + _solveData->subjects[_neq[1]].curShift;\n  (void)t;\n  ", prefix);
     } else if (show_ode == 2){
-      sAppend(&sbOut, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n", prefix);
+      sAppend(&sbOut, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double __t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n  double t = __t + _solveData->subjects[_neq[1]].curShift;\n  (void)t;\n  ", prefix);
     } else if (show_ode == 3){
       sAppend(&sbOut,  "// Functional based initial conditions.\nvoid %sinis(int _cSub, double *__zzStateVar__){\n", prefix);
       if (foundF0){
@@ -2214,46 +3550,78 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 5){
       if (foundF){
-	sAppend(&sbOut,  "// Functional based bioavailability (returns amount)\ndouble %sF(int _cSub,  int _cmt, double _amt, double t){\n  double _f[%d];\n  (void)_f;\n",
-		prefix, tb.de.n);
-	for (int jjj = tb.de.n; jjj--;){
+	int nnn = tb.de.n;
+	if (tb.linCmt){
+	  if (tb.hasKa){
+	    nnn+=2;
+	  } else {
+	    nnn+=1;
+	  }
+	}
+	sAppend(&sbOut,  "// Functional based bioavailability (returns amount)\ndouble %sF(int _cSub,  int _cmt, double _amt, double __t, double *__zzStateVar__){\n  double *_f=_solveData->subjects[_cSub].cF;\n  (void)_f;\n  double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ",
+		prefix, nnn);
+	for (int jjj = nnn; jjj--;){
 	  sAppend(&sbOut, "  _f[%d]=1.0;\n",jjj);
 	}
       } else {
-	sAppend(&sbOut,  "// Functional based bioavailability\ndouble %sF(int _cSub,  int _cmt, double _amt, double t){\n return _amt;\n",
+	sAppend(&sbOut,  "// Functional based bioavailability\ndouble %sF(int _cSub,  int _cmt, double _amt, double __t, double *__zzStateVar__){\n return _amt;\n",
 		prefix);
       }
     } else if (show_ode == 6){
       if (foundLag){
-	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t){\n  double _alag[%d];\n  (void)_alag;\n",
-		prefix, tb.de.n);
-	for (int jjj = tb.de.n; jjj--;){
+	int nnn = tb.de.n;
+	if (tb.linCmt){
+	  if (tb.hasKa){
+	    nnn+=2;
+	  } else {
+	    nnn+=1;
+	  }
+	}
+	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double __t){\n  double *restrict _alag = _solveData->subjects[_cSub].alag;\n  (void)_alag; \n  double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ",
+		prefix, nnn);
+	for (int jjj = nnn; jjj--;){
 	  sAppend(&sbOut, "  _alag[%d]=0.0;\n",jjj);
 	}
       } else {
-	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t){\n return t;\n",
+	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double __t, double *__zzStateVar__){\n return __t;\n",
 		prefix);
       }
     } else if (show_ode == 7){
       if (foundRate){
-	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n  double _rate[%d];\n  (void)_rate;\n",
-		prefix, tb.de.n);
-	for (int jjj = tb.de.n; jjj--;){
+	int nnn = tb.de.n;
+	if (tb.linCmt){
+	  if (tb.hasKa){
+	    nnn+=2;
+	  } else {
+	    nnn+=1;
+	  }
+	}
+	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double __t){\n  double *restrict _rate= _solveData->subjects[_cSub].cRate;\n  (void)_rate;\n   double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ",
+		prefix, nnn);
+	for (int jjj = nnn; jjj--;){
 	  sAppend(&sbOut, "  _rate[%d]=0.0;\n",jjj);
 	}
       } else {
-	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
+	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double __t, double *__zzStateVar__){\n return 0.0;\n",
 		prefix);
       }
     } else if (show_ode == 8){
       if (foundDur){
-	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n  double _dur[%d];\n  (void)_dur;\n",
-		prefix, tb.de.n);
-	for (int jjj = tb.de.n; jjj--;){
+	int nnn = tb.de.n;
+	if (tb.linCmt){
+	  if (tb.hasKa){
+	    nnn+=2;
+	  } else {
+	    nnn+=1;
+	  }
+	}
+	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double __t){\n  double *restrict _dur = _solveData->subjects[_cSub].cDur;\n  (void)_dur;\n    double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ",
+		prefix, nnn);
+	for (int jjj = nnn; jjj--;){
 	  sAppend(&sbOut, "  _dur[%d]=0.0;\n",jjj);
 	}
       } else {
-	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
+	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double __t){\n return 0.0;\n",
 		prefix);
       }
     } else if (show_ode == 9){
@@ -2264,26 +3632,35 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppend(&sbOut,  "// Model Times\nvoid %smtime(int _cSub, double *_mtime){\n",
 		prefix);
       }
-      
+    } else if (show_ode == 10){
+      sAppend(&sbOut, "// Matrix Exponential (%d)\nvoid %sME(int _cSub, double _t, double __t, double *_mat, const double *__zzStateVar__){\n   double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ",
+	      tb.matn, prefix);
+    } else if (show_ode == 11){
+      sAppend(&sbOut, "// Inductive linearization Matf\nvoid %sIndF(int _cSub, double _t, double __t, double *_matf){\n   double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ", prefix);
     } else {
-      sAppend(&sbOut,  "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n", prefix);
+      sAppend(&sbOut,  "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double __t, double *__zzStateVar__, double *_lhs) {\n   double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ", prefix);
     }
     if ((show_ode == 2 && found_jac == 1 && good_jac == 1) ||
 	(show_ode != 2 && show_ode != 3 && show_ode != 5  && show_ode != 8 &&
-	 show_ode !=0 && show_ode != 9) ||
+	 show_ode != 7 && show_ode != 6 &&
+	 show_ode !=0 && show_ode != 9 && show_ode != 10 && show_ode != 11) ||
 	(show_ode == 8 && foundDur) ||
 	(show_ode == 7 && foundRate) ||
 	(show_ode == 6 && foundLag) ||
 	(show_ode == 5 && foundF) ||
-	(show_ode == 3 && foundF0) || 
+	(show_ode == 3 && foundF0) ||
 	(show_ode == 0 && tb.li) ||
-	(show_ode == 9 && nmtime)){
+	(show_ode == 9 && nmtime) ||
+	(show_ode == 10 && tb.matn) ||
+	(show_ode == 11 && tb.matnf)){
       prnt_vars(0, 0, "  double ", "\n",show_ode);     /* declare all used vars */
       if (maxSumProdN > 0 || SumProdLD > 0){
 	int mx = maxSumProdN;
 	if (SumProdLD > mx) mx = SumProdLD;
 	sAppend(&sbOut,  "  double _p[%d], _input[%d];\n", mx, mx);
 	sAppend(&sbOut,  "  double _pld[%d];\n", mx);
+	sAppend(&sbOut,  "  for (int ddd=%d; ddd--;){_p[ddd]=_input[ddd]=_pld[ddd]=0.0;}", mx);
+
       }
       else prnt_vars(2, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
       if (maxSumProdN){
@@ -2292,32 +3669,31 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  sAppendN(&sbOut,  "  (void)_pld;\n", 14);
 	}
       }
+      prnt_vars(3, 0,"","\n", 12);
       if (show_ode == 3){
 	sAppendN(&sbOut, "  _update_par_ptr(0.0, _cSub, _solveData, _idx);\n", 49);
       } else if (show_ode == 6 || show_ode == 7 || show_ode == 8 || show_ode == 9){
+	// functional lag, rate, duration, mtime
 	sAppendN(&sbOut, "  _update_par_ptr(NA_REAL, _cSub, _solveData, _idx);\n", 53);
+      } else if (show_ode == 11 || show_ode == 10){
+	sAppendN(&sbOut, "  _update_par_ptr(_t, _cSub, _solveData, _idx);\n", 48);
       } else {
-	sAppendN(&sbOut, "  _update_par_ptr(t, _cSub, _solveData, _idx);\n", 47);
+	sAppendN(&sbOut, "  _update_par_ptr(__t, _cSub, _solveData, _idx);\n", 49);
       }
       prnt_vars(1, 1, "", "\n",show_ode);                   /* pass system pars */
-      if (show_ode != 7 && show_ode != 5 &&
-	  show_ode != 6 && show_ode != 8 && show_ode != 9){
+      if (show_ode != 9 && show_ode != 11){
 	for (i=0; i<tb.de.n; i++) {                   /* name state vars */
 	  buf = tb.ss.line[tb.di[i]];
 	  if(tb.idu[i] != 0){
-	    sAppendN(&sbOut, "  ", 2);
-	    for (k = 0; k < (int)strlen(buf); k++){
-	      if (buf[k] == '.'){
-		sAppendN(&sbOut, "_DoT_", 5);
-		if (rx_syntax_allow_dots == 0){
-		  updateSyntaxCol();
-		  trans_syntax_error_report_fn(NODOT);
-		}
-	      } else {
-		sPut(&sbOut, buf[k]);
-	      }
+	    if (show_ode == 6 || show_ode == 8 || show_ode == 7){
+	      sAppendN(&sbOut, "  ", 2);
+	      doDot(&sbOut, buf);
+	      sAppend(&sbOut, " = NA_REAL;\n", i, i);
+	    } else {
+	      sAppendN(&sbOut, "  ", 2);
+	      doDot(&sbOut, buf);
+	      sAppend(&sbOut, " = __zzStateVar__[%d]*((double)(_ON[%d]));\n", i, i);
 	    }
-	    sAppend(&sbOut, " = __zzStateVar__[%d]*((double)(_ON[%d]));\n", i, i);	  
 	  } else {
 	    break;
 	  }
@@ -2336,23 +3712,34 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	(show_ode != 9 && show_ode != 0 && show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6  && show_ode != 7 && show_ode != 8)){
       for (i = 0; i < sbPm.n; i++){
 	switch(sbPm.lType[i]){
+	case TLIN:
+	  if (show_ode != 10 && show_ode != 11 &&
+	      show_ode != 5 && show_ode != 6 &&
+	      show_ode != 7 && show_ode !=8){
+	    sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  }
+	  break;
 	case TMTIME:
 	case TASSIGN:
-	  sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  if (show_ode != 10 && show_ode != 11){
+	    sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  }
 	  break;
 	case TINI:
 	  // See if this is an ini or a reclaimed expression.
-	  if (sbPm.lProp[i] >= 0 ){
-	    tb.ix = sbPm.lProp[i];
-	    if (tb.lh[tb.ix] == 1 || tb.lh[tb.ix] == 70){
-	      sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  if (show_ode != 10 && show_ode != 11){
+	    if (sbPm.lProp[i] >= 0 ){
+	      tb.ix = sbPm.lProp[i];
+	      if (tb.lh[tb.ix] == 1 || tb.lh[tb.ix] == 70){
+		sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	      }
 	    }
-	  }	  
+	  }
 	  break;
 	case TF0:
 	  // functional ini
 	  if (show_ode == 3) sAppend(&sbOut,"  %s",sbPmDt.line[i]);
-	  break;	  
+	  break;
 	case FBIO:
 	  if (show_ode == 5) sAppend(&sbOut,"  %s", sbPmDt.line[i]);
 	  break;
@@ -2372,7 +3759,8 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	case TDDT:
 	  // d/dt()
 	  if (show_ode != 3 && show_ode != 5 && show_ode != 6 &&
-	      show_ode != 7 && show_ode != 8 && show_ode != 9){
+	      show_ode != 7 && show_ode != 8 && show_ode != 9 &&
+	      show_ode !=10 && show_ode != 11){
 	    sAppend(&sbOut, "  %s", show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
 	  }
 	  break;
@@ -2383,14 +3771,26 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  }
 	  break;
 	case TLOGIC:
-	  sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  if (show_ode != 10 && show_ode != 11){
+	    sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  }
+	  break;
+	case TMAT0:
+	  if (show_ode == 10){
+	    sAppend(&sbOut,"  %s", sbPm.line[i]);
+	  }
+	  break;
+	case TMATF:
+	  if (show_ode == 11){
+	    sAppend(&sbOut,"  %s", sbPm.line[i]);
+	  }
 	  break;
 	default:
-	  REprintf("Line Number: %d\n", i);
-	  REprintf("Type: %d\n", sbPm.lType[i]);
-	  REprintf("Line: %s\n", sbPm.line[i]);
-	  REprintf("PmDt Line: %s\n", sbPmDt.line[i]);
-	  REprintf("Prop: %d\n", sbPm.lProp[i]);
+	  RSprintf("line Number: %d\n", i);
+	  RSprintf("type: %d\n", sbPm.lType[i]);
+	  RSprintf("line: %s\n", sbPm.line[i]);
+	  RSprintf("PmDt Line: %s\n", sbPmDt.line[i]);
+	  RSprintf("Prop: %d\n", sbPm.lProp[i]);
 	}
       }
       // End statements
@@ -2405,7 +3805,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	break;
       case 6:
 	// Alag
-	sAppendN(&sbOut, "\n  return t + _alag[_cmt];\n", 27);
+	sAppendN(&sbOut, "\n  return t + _alag[_cmt] - _solveData->subjects[_cSub].curShift;\n", 66);
 	break;
       case 5:
 	sAppendN(&sbOut, "\n  return _f[_cmt]*_amt;\n", 25);
@@ -2423,17 +3823,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	for (i = 0; i < tb.de.n; i++){
 	  buf=tb.ss.line[tb.di[i]];
 	  sAppend(&sbOut, "  __zzStateVar__[%d]=((double)(_ON[%d]))*(",i,i);
-	  for (k = 0; k < (int)strlen(buf); k++){
-	    if (buf[k] == '.'){
-	      sAppendN(&sbOut, "_DoT_", 5);
-	      if (rx_syntax_allow_dots == 0){
-		updateSyntaxCol();
-		trans_syntax_error_report_fn(NODOT);
-	      }
-	    } else {
-	      sPut(&sbOut, buf[k]);
-	    }
-	  }
+	  doDot(&sbOut, buf);
 	  sAppendN(&sbOut,  ");\n", 3);
 	}
       }
@@ -2446,17 +3836,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	if (tb.lh[i] != 1 && tb.lh[i] != 19 && tb.lh[i] != 70) continue;
 	buf = tb.ss.line[i];
 	sAppend(&sbOut,  "  _lhs[%d]=", j);
-	for (k = 0; k < (int)strlen(buf); k++){
-	  if (buf[k] == '.'){
-	    sAppendN(&sbOut, "_DoT_", 5);
-	    if (rx_syntax_allow_dots == 0){
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(NODOT);
-	    }
-	  } else {
-	    sPut(&sbOut, buf[k]);
-	  }
-	}
+	doDot(&sbOut, buf);
 	sAppendN(&sbOut,  ";\n", 2);
 	j++;
       }
@@ -2467,17 +3847,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	if (tb.mtime[i] != 1) continue;
 	buf = tb.ss.line[i];
 	sAppend(&sbOut,  "  _mtime[%d]=", j);
-	for (k = 0; k < (int)strlen(buf); k++){
-	  if (buf[k] == '.'){
-	    sAppendN(&sbOut, "_DoT_", 5);
-	    if (rx_syntax_allow_dots == 0){
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(NODOT);
-	    }
-	  } else {
-	    sPut(&sbOut, buf[k]);
-	  }
-	}
+	doDot(&sbOut, buf);
 	sAppendN(&sbOut,  ";\n", 2);
 	j++;
       }
@@ -2488,6 +3858,8 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
   }
 }
 
+sbuf _bufw, _bufw2;
+
 void parseFree(int last){
   sFree(&sb);
   sFree(&sbDt);
@@ -2495,12 +3867,20 @@ void parseFree(int last){
   sFree(&sbNrm);
   sFree(&s_aux_info);
   sFree(&s_inits);
+  sFree(&_bufw);
+  sFree(&_bufw2);
+  sFree(&firstErr);
+  sFree(&_gbuf);
   lineFree(&sbPm);
   lineFree(&sbPmDt);
+  lineFree(&sbNrmL);
   lineFree(&(tb.ss));
   lineFree(&(tb.de));
-
+  lineFree(&depotLines);
+  lineFree(&centralLines);
+  lineFree(&_dupStrs);
   Free(tb.lh);
+  Free(tb.lag);
   Free(tb.ini);
   Free(tb.mtime);
   Free(tb.iniv);
@@ -2508,84 +3888,108 @@ void parseFree(int last){
   Free(tb.di);
   Free(tb.idi);
   Free(tb.idu);
-  Free(tb.fdi);
   Free(tb.dvid);
   Free(tb.df);
   Free(tb.dy);
   Free(tb.sdfdy);
+  freeP();
   if (last){
-    Free(extra_buf);
     Free(model_prefix);
     Free(md5);
     Free(gBuf);
+    Free(me_code);
     sFree(&sbOut);
     freeP();
+    sFree(&_bufw);
+    sFree(&_bufw2);
   }
 }
 void reset (){
   // Reset sb/sbt string buffers
   parseFree(0);
+  sIniTo(&_bufw, 1024);
+  sIniTo(&_bufw2, 2100);
   sIniTo(&sb, MXSYM);
   sIniTo(&sbDt, MXDER);
   sIniTo(&sbt, MXBUF);
   sIniTo(&sbNrm, MXBUF);
   sIniTo(&s_aux_info, 64*MXSYM);
+  sIniTo(&_gbuf, 1024);
+  sIniTo(&firstErr, MXBUF);
+  firstErrD=0;
 
   sIniTo(&s_inits, MXSYM);
 
   lineIni(&sbPm);
   lineIni(&sbPmDt);
+  lineIni(&sbNrmL);
+  lineIni(&depotLines);
+  lineIni(&centralLines);
+  lineIni(&_dupStrs);
 
   lineIni(&(tb.ss));
   lineIni(&(tb.de));
-  
-  tb.lh=Calloc(MXSYM, int);
-  tb.ini=Calloc(MXSYM, int);
-  tb.mtime=Calloc(MXSYM, int);
-  tb.iniv=Calloc(MXSYM, double);
-  tb.ini0=Calloc(MXSYM, int);
-  
-  tb.di=Calloc(MXDER, int);
-  tb.idi=Calloc(MXDER, int);
-  tb.idu=Calloc(MXDER, int);
-  tb.fdi=Calloc(MXDER, int);
-  tb.dvid=Calloc(MXDER, int);
-  tb.df=Calloc(MXSYM, int);
-  tb.dy=Calloc(MXSYM, int);
-  tb.sdfdy=Calloc(MXSYM, int);
 
-  tb.allocS=MXSYM;
-  tb.allocD=MXDER;
-    
-  // Reset Arrays
-  // Reset integers
+  tb.lh		= Calloc(MXSYM, int);
+  tb.ini	= Calloc(MXSYM, int);
+  tb.mtime	= Calloc(MXSYM, int);
+  tb.iniv	= Calloc(MXSYM, double);
+  tb.ini0	= Calloc(MXSYM, int);
+  tb.di		= Calloc(MXDER, int);
+  tb.idi	= Calloc(MXDER, int);
+  tb.idu	= Calloc(MXDER, int);
+  tb.lag	= Calloc(MXSYM, int);
+  tb.dvid	= Calloc(MXDER, int);
   tb.dvidn      = 0;
-  NV		= 0;
-  tb.ixL        = -1;
-  tb.NEnd       = -1;
   tb.ix		= 0;
-  tb.id		= 0;
+  tb.id         = 0;
   tb.fn		= 0;
+  tb.ixL        = -1;
+  tb.didEq      = 0;
+  tb.NEnd       = -1;
   tb.pos_de	= 0;
   tb.ini_i	= 0;
-  tb.nExtra     = 0;
   tb.statei	= 0;
+  tb.nExtra     = 0;
   tb.sensi	= 0;
   tb.li		= 0;
+  tb.sli	= 0;
   tb.pi		= 0;
+  tb.isPi       = 0;
+  tb.isNA       = 0;
+  tb.linCmt     = 0;
+  tb.linCmtN    = -100;
+  tb.linCmtFlg  = 0;
+  tb.df		= Calloc(MXSYM, int);
+  tb.dy		= Calloc(MXSYM, int);
+  tb.sdfdy	= Calloc(MXSYM, int);
   tb.cdf	= 0;
   tb.ndfdy	= 0;
   tb.maxtheta   = 0;
+  tb.hasCmt     = 0;
   tb.maxeta     = 0;
-  tb.fdn        = 0;
-  tb.linCmt     = 0;
-  tb.isPi       = 0;
-  tb.ini_i      = 0;
   tb.hasDepot   = 0;
   tb.hasCentral = 0;
-  tb.hasKa      = 0;
   tb.hasDepotCmt = 0;
   tb.hasCentralCmt = 0;
+  tb.hasKa      = 0;
+  tb.allocS	= MXSYM;
+  tb.allocD	= MXDER;
+  tb.matn	= 0;
+  tb.matnf	= 0;
+  tb.ncmt	= 0;
+  tb.linB	= 0;
+  tb.curPropN	= 0;
+  tb.depotN	= -1;
+  tb.centralN	= -1;
+  tb.linExtra   = false;
+  tb.nwhile     = 0;
+  tb.nInd       = 0;
+  tb.simflg     = 0;
+  // Reset Arrays
+  // Reset integers
+  NV		= 0;
+
   // reset globals
   good_jac = 1;
   found_jac = 0;
@@ -2602,9 +4006,11 @@ void reset (){
   maxSumProdN = 0;
   SumProdLD = 0;
 
-  Free(md5);
   foundDur=0;
   foundF0=0;
+  nmtime=0;
+  syntaxErrorExtra=0;
+  lastSyntaxErrorLine=0;
   foundF=0;
   foundLag=0;
   foundRate=0;
@@ -2628,43 +4034,48 @@ void writeSb(sbuf *sbb, FILE *fp){
     register unsigned written = fwrite(sbb->s + totalWritten, 1, toWrite, fp);
     if( toWrite != written){
       fclose(fp);
-      error("IO error writing parsed C file.");
+      Rf_errorcall(R_NilValue, _("IO error writing parsed C file"));
     } else{
       totalWritten += written; // add the written bytes
     }
   }
   if (totalWritten != sbb->o) {
     fclose(fp);
-    error("IO error writing parsed C file.");
+    Rf_errorcall(R_NilValue, _("IO error writing parsed C file"));
   }
 }
 static void rxSyntaxError(struct D_Parser *ap);
 
-void trans_internal(char* parse_file, int isStr){
+void trans_internal(const char* parse_file, int isStr){
   char *buf1, *buf2, bufe[2048];
   int i,j,found,islhs;
   freeP();
   curP = new_D_Parser(&parser_tables_RxODE, sizeof(D_ParseNode_User));
   curP->save_parse_tree = 1;
   curP->error_recovery = 1;
-  curP->initial_scope = NULL; 
+  curP->initial_scope = NULL;
   curP->syntax_error_fn = rxSyntaxError;
   if (isStr){
-    Free(gBuf);
+    if (gBufFree) Free(gBuf);
     // Should be able to use gBuf directly, but I believe it cause
     // problems with R's garbage collection, so duplicate the string.
-    gBuf = (char*)rc_dup_str(parse_file, 0);
+    gBuf = (char*)(parse_file);
+    gBufFree=0;
   } else {
-    Free(gBuf);
+    if (gBufFree) Free(gBuf);
     gBuf = rc_sbuf_read(parse_file);
-    Free(parse_file);
+    gBufFree=1;
     err_msg((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2);
   }
   sFree(&sbNrm);
   sIniTo(&sbNrm, MXBUF);
   lineIni(&sbPm);
   lineIni(&sbPmDt);
-  
+  lineIni(&sbNrmL);
+  // do not free these, they remain until next parse for quick parsing of linCmt() models
+  lineIni(&depotLines);
+  lineIni(&centralLines);
+
   _pn= dparse(curP, gBuf, (int)strlen(gBuf));
   if (!_pn || curP->syntax_errors) {
     rx_syntax_error = 1;
@@ -2718,21 +4129,21 @@ void trans_internal(char* parse_file, int isStr){
       }
     }
   }
-  Free(parse_file);
 }
 
-SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr,
-		  SEXP isEscIn){
-  char *in = NULL;
+SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
+		  SEXP isEscIn, SEXP inLinExtra, SEXP inME,
+		  SEXP goodFuns){
+  _goodFuns = goodFuns;
+  const char *in = NULL;
   char *buf, *df, *dy;
-  sbuf bufw, bufw2;
-  sIniTo(&bufw, 1024); sIniTo(&bufw2, 2100);
-  int i, j, islhs, pi=0, li=0, ini_i = 0,k=0, l=0, m=0, p=0;
+
+  int i, j, islhs, pi=0, li=0, sli = 0, ini_i = 0,k=0, m=0, p=0;
   // Make sure buffers are initialized.
   isEsc=INTEGER(isEscIn)[0];
 
   int isStr =INTEGER(parseStr)[0];
-  reset(); 
+  reset();
   rx_syntax_assign = R_get_option("RxODE.syntax.assign",1);
   rx_syntax_star_pow = R_get_option("RxODE.syntax.star.pow",1);
   rx_syntax_require_semicolon = R_get_option("RxODE.syntax.require.semicolon",0);
@@ -2746,44 +4157,37 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   set_d_rdebug_grammar_level(0);
   set_d_verbose_level(0);
   rx_podo = 0;
-  if (isString(extra_c) && length(extra_c) == 1){
-    in = rc_dup_str(CHAR(STRING_ELT(extra_c,0)),0);
-    Free(extra_buf);
-    extra_buf = rc_sbuf_read(in);
-    Free(in);
-    if (!((intptr_t) extra_buf)){
-      Free(extra_buf);
-      extra_buf = Calloc(1,char);
-      extra_buf[0]='\0';
-    }
-  } else {
-    Free(extra_buf);
-    extra_buf =  Calloc(1,char);
-    extra_buf[0] = '\0';
-  }
 
   if (isString(prefix) && length(prefix) == 1){
-    Free(model_prefix);
-    model_prefix = rc_dup_str(CHAR(STRING_ELT(prefix,0)),0);
+    model_prefix = CHAR(STRING_ELT(prefix,0));
   } else {
-    sFree(&bufw); sFree(&bufw2);
-    error("model prefix must be specified");
+    Rf_errorcall(R_NilValue, _("model prefix must be specified"));
+  }
+
+  if (isString(inLinExtra) && length(inLinExtra) == 1){
+    extra_indLin =CHAR(STRING_ELT(inLinExtra,0));
+  } else {
+    freeP();
+    Rf_errorcall(R_NilValue, _("extra inductive linearization model variables must be specified"));
+  }
+  if (isString(inME) && length(inME) == 1){
+    me_code = CHAR(STRING_ELT(inME,0));
+  } else {
+    freeP();
+    Rf_errorcall(R_NilValue, _("extra ME code must be specified"));
   }
 
   if (isString(model_md5) && length(model_md5) == 1){
-    Free(md5);
-    md5 = rc_dup_str(CHAR(STRING_ELT(model_md5,0)),0);
+    md5 = CHAR(STRING_ELT(model_md5,0));
+    badMd5 = 0;
     if (strlen(md5)!= 32){
-      md5 = Calloc(1,char);
-      md5[0] = '\0';
+      badMd5=1;
     }
   } else {
-    Free(md5);
-    md5 = Calloc(1,char);
-    md5[0] = '\0';
+    badMd5=1;
   }
 
-  in = rc_dup_str(CHAR(STRING_ELT(parse_file,0)),0);
+  in = CHAR(STRING_ELT(parse_file,0));
   trans_internal(in, isStr);
   extraCmt = 0;
   if (tb.linCmt){
@@ -2793,24 +4197,26 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
       extraCmt=1;
     }
     if (tb.hasDepotCmt){
-      trans_syntax_error_report_fn0("cmt(depot) does not work with linCmt()");
+      trans_syntax_error_report_fn0(_("'cmt(depot)' does not work with 'linCmt()'"));
     }
     if (tb.hasCentralCmt) {
-      trans_syntax_error_report_fn0("cmt(central) does not work with linCmt()");
+      trans_syntax_error_report_fn0("'cmt(central)' does not work with 'linCmt()'");
     }
   } else {
     if (tb.hasDepot && rx_syntax_require_ode_first){
-      sPrint(&bufw2, ODEFIRST, "depot");
-      trans_syntax_error_report_fn0(bufw2.s);
+      sPrint(&_bufw2, ODEFIRST, "depot");
+      trans_syntax_error_report_fn0(_bufw2.s);
     } else if (tb.hasCentral && rx_syntax_require_ode_first){
-      sPrint(&bufw2, ODEFIRST, "depot");
-      trans_syntax_error_report_fn0(bufw2.s);
+      sPrint(&_bufw2, ODEFIRST, "depot");
+      trans_syntax_error_report_fn0(_bufw2.s);
     }
   }
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
-    if (islhs>1 && islhs != 19 && islhs != 70) continue;      /* is a state var */
-    if (islhs == 1 || islhs == 19 || islhs == 70){
+    if (islhs>1 && islhs != 19 && islhs != 70 && islhs != 10) continue;      /* is a state var */
+    if (islhs == 10){
+      sli++;
+    } else if (islhs == 1 || islhs == 19 || islhs == 70){
       li++;
       if (islhs == 70) pi++;
     } else {
@@ -2819,21 +4225,46 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   }
   tb.pi=pi;
   tb.li=li;
-  
+  tb.sli=sli;
+
   int pro = 0;
-  SEXP lst   = PROTECT(allocVector(VECSXP, 18));pro++;
-  SEXP names = PROTECT(allocVector(STRSXP, 18));pro++;
+  SEXP lst   = PROTECT(allocVector(VECSXP, 20));pro++;
+  SEXP names = PROTECT(allocVector(STRSXP, 20));pro++;
 
   SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;
   int *iNeedSort  = INTEGER(sNeedSort);
   iNeedSort[0] = needSort;
-  
+
+  SEXP sLinCmt = PROTECT(allocVector(INTSXP,10));pro++;
+  INTEGER(sLinCmt)[0] = tb.ncmt;
+  INTEGER(sLinCmt)[1] = tb.hasKa;
+  INTEGER(sLinCmt)[2] = tb.linB;
+  INTEGER(sLinCmt)[3] = tb.maxeta;
+  INTEGER(sLinCmt)[4] = tb.maxtheta;
+  INTEGER(sLinCmt)[6] = tb.linCmtN;
+  INTEGER(sLinCmt)[7] = tb.linCmtFlg;
+  INTEGER(sLinCmt)[8] = tb.nInd;
+  INTEGER(sLinCmt)[9] = tb.simflg;
+
+  SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 10));pro++;
+  SET_STRING_ELT(sLinCmtN, 0, mkChar("ncmt"));
+  SET_STRING_ELT(sLinCmtN, 1, mkChar("ka"));
+  SET_STRING_ELT(sLinCmtN, 2, mkChar("linB"));
+  SET_STRING_ELT(sLinCmtN, 3, mkChar("maxeta"));
+  SET_STRING_ELT(sLinCmtN, 4, mkChar("maxtheta"));
+  SET_STRING_ELT(sLinCmtN, 5, mkChar("hasCmt"));
+  SET_STRING_ELT(sLinCmtN, 6, mkChar("linCmt"));
+  SET_STRING_ELT(sLinCmtN, 7, mkChar("linCmtFlg"));
+  SET_STRING_ELT(sLinCmtN, 8, mkChar("nIndSim"));
+  SET_STRING_ELT(sLinCmtN, 9, mkChar("simflg"));
+  setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);
+
   SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;
   int *iMtime  = INTEGER(sMtime);
   iMtime[0] = (int)nmtime;
-  
-  SEXP tran  = PROTECT(allocVector(STRSXP, 20));pro++;
-  SEXP trann = PROTECT(allocVector(STRSXP, 20));pro++;
+
+  SEXP tran  = PROTECT(allocVector(STRSXP, 22));pro++;
+  SEXP trann = PROTECT(allocVector(STRSXP, 22));pro++;
 
   int offCmt=0,nExtra = 0;
   for (int i = 0; i < tb.statei; i++){
@@ -2846,16 +4277,14 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
       if (tb.linCmt == 0){
 	UNPROTECT(pro);
 	char *v = rc_dup_str(buf, 0);
-	sprintf(buf, "Compartment '%s' needs differential equations defined", v);
-	Free(v);
+	sprintf(buf, "compartment '%s' needs differential equations defined", v);
 	updateSyntaxCol();
 	trans_syntax_error_report_fn(buf);
       } else if (!strcmp("depot", buf) || !strcmp("central", buf)) {
       } else {
 	UNPROTECT(pro);
 	char *v = rc_dup_str(buf, 0);
-	sprintf(buf, "Compartment '%s' needs differential equations defined", v);
-	Free(v);
+	sprintf(buf, _("compartment '%s' needs differential equations defined"), v);
 	updateSyntaxCol();
 	trans_syntax_error_report_fn(buf);
       }
@@ -2869,16 +4298,15 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SEXP stateRmS   = PROTECT(allocVector(INTSXP,tb.statei-tb.nExtra));pro++;
   int *stateRm    = INTEGER(stateRmS);
   SEXP extraState = PROTECT(allocVector(STRSXP,nExtra));pro++;
-  
+
   SEXP sens     = PROTECT(allocVector(STRSXP,tb.sensi));pro++;
   SEXP normState= PROTECT(allocVector(STRSXP,tb.statei-tb.sensi-nExtra));pro++;
-  
-  SEXP fn_ini   = PROTECT(allocVector(STRSXP, tb.fdn));pro++;
 
   SEXP dfdy = PROTECT(allocVector(STRSXP,tb.ndfdy));pro++;
-  
+
   SEXP params = PROTECT(allocVector(STRSXP, tb.pi));pro++;
   SEXP lhs    = PROTECT(allocVector(STRSXP, tb.li));pro++;
+  SEXP slhs   = PROTECT(allocVector(STRSXP, tb.sli));pro++;
 
   SEXP inin  = PROTECT(allocVector(STRSXP, tb.isPi + tb.ini_i));pro++;
   SEXP ini   = PROTECT(allocVector(REALSXP, tb.isPi + tb.ini_i));pro++;
@@ -2886,7 +4314,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
   SEXP version  = PROTECT(allocVector(STRSXP, 3));pro++;
   SEXP versionn = PROTECT(allocVector(STRSXP, 3)); pro++;
-  
+
   SET_STRING_ELT(versionn,0,mkChar("version"));
   SET_STRING_ELT(versionn,1,mkChar("repo"));
   SET_STRING_ELT(versionn,2,mkChar("md5"));
@@ -2961,11 +4389,11 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   }
   tb.ini_i = ini_i;
 
-  setAttrib(ini,   R_NamesSymbol, inin);  
-  
-  SEXP model  = PROTECT(allocVector(STRSXP,1));pro++;
-  SEXP modeln = PROTECT(allocVector(STRSXP,1));pro++;
-  k=0;j=0;l=0;m=0,p=0;
+  setAttrib(ini,   R_NamesSymbol, inin);
+
+  SEXP model  = PROTECT(allocVector(STRSXP,2));pro++;
+  SEXP modeln = PROTECT(allocVector(STRSXP,2));pro++;
+  k=0;j=0;m=0,p=0;
   for (i=0; i<tb.de.n; i++) {                     /* name state vars */
     buf=tb.ss.line[tb.di[i]];
     if (tb.idu[i] == 1){
@@ -2978,18 +4406,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 	SET_STRING_ELT(state,k++,mkChar(buf));
 	stateRm[k-1]=tb.idi[i];
       }
-      if (tb.fdi[i]){
-	SET_STRING_ELT(fn_ini,l++,mkChar(buf));
-      }
     } else {
-      if (tb.fdi[i]){
-	UNPROTECT(pro);
-	updateSyntaxCol();
-	char *v = rc_dup_str(buf, 0);
-	sprintf(buf, "Initialization of non-ODE compartment '%s' makes no sense", v);
-	Free(v);
-	trans_syntax_error_report_fn(buf);
-      }
       SET_STRING_ELT(extraState, p++, mkChar(buf));
     }
   }
@@ -2998,72 +4415,105 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     dy=tb.ss.line[tb.dy[i]];
     int foundIt=0;
     for (j = 1; j <= tb.maxtheta;j++){
-      sPrint(&bufw,"_THETA_%d_",j);
-      if (!strcmp(dy,bufw.s)){
-        sPrint(&bufw,"THETA[%d]",j);
+      sPrint(&_bufw,"_THETA_%d_",j);
+      if (!strcmp(dy,_bufw.s)){
+        sPrint(&_bufw,"THETA[%d]",j);
 	foundIt=1;
 	break;
       }
     }
     if (!foundIt){
       for (j = 1; j <= tb.maxeta;j++){
-	sPrint(&bufw,"_ETA_%d_",j);
-	if (!strcmp(dy,bufw.s)){
-	  sPrint(&bufw,"ETA[%d]",j);
+	sPrint(&_bufw,"_ETA_%d_",j);
+	if (!strcmp(dy,_bufw.s)){
+	  sPrint(&_bufw,"ETA[%d]",j);
 	}
       }
     }
     if (!foundIt){
-      sClear(&bufw);
-      sPrint(&bufw,"%s",dy);
+      sClear(&_bufw);
+      sPrint(&_bufw,"%s",dy);
     }
-    sPrint(&bufw2,"df(%s)/dy(%s)",df,bufw.s);
-    SET_STRING_ELT(dfdy,i,mkChar(bufw2.s));
+    sPrint(&_bufw2,"df(%s)/dy(%s)",df,_bufw.s);
+    SET_STRING_ELT(dfdy,i,mkChar(_bufw2.s));
   }
-  li=0, pi=0;
+  li=0, pi=0, sli = 0;
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
-    if (islhs>1 && islhs != 19 && islhs != 70) continue;      /* is a state var */
+    if (islhs == 10){
+      SET_STRING_ELT(slhs, sli++, mkChar(tb.ss.line[i]));
+    }
+    if (islhs>1 && islhs != 19 && islhs != 70) {
+      if (tb.lag[i] != 0){
+	buf=tb.ss.line[i];
+	if (islhs == 9){
+	  sPrint(&_bufw, _("state '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"), buf);
+	  trans_syntax_error_report_fn0(_bufw.s);
+	} else if (islhs == 10 || islhs == 11){
+	  sPrint(&_bufw, _("suppress '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"), buf);
+	  trans_syntax_error_report_fn0(_bufw.s);
+	}
+      }
+      continue;
+    }      /* is a state var */
     buf=tb.ss.line[i];
+    if (tb.lag[i] != 0){
+      if (islhs == 70){
+	sPrint(&_bufw, _("redefined '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"), buf);
+	trans_syntax_error_report_fn0(_bufw.s);
+      } else if (islhs == 1 && tb.lag[i] != 1){
+	sPrint(&_bufw, _("lhs '%s': only 'lag(%s,1)' and 'diff(%s,1)' supported"), buf, buf, buf);
+	trans_syntax_error_report_fn0(_bufw.s);
+      }
+    }
     if (islhs == 1 || islhs == 19 || islhs == 70){
-      SET_STRING_ELT(lhs,li++,mkChar(buf));
-      if (islhs == 70) SET_STRING_ELT(params,pi++,mkChar(buf));
+      SET_STRING_ELT(lhs, li++, mkChar(buf));
+      if (islhs == 70) {
+	if (!strcmp("CMT", buf)) {
+	  tb.hasCmt = 1;
+	}
+	SET_STRING_ELT(params, pi++, mkChar(buf));
+      }
     } else {
       int foundIt=0;
       for (j = 1; j <= tb.maxtheta;j++){
-	sPrint(&bufw,"_THETA_%d_",j);
-	if (!strcmp(buf, bufw.s)){
-	  sPrint(&bufw,"THETA[%d]",j);
+	sPrint(&_bufw,"_THETA_%d_",j);
+	if (!strcmp(buf, _bufw.s)){
+	  sPrint(&_bufw,"THETA[%d]",j);
 	  foundIt=1;
 	  break;
 	}
       }
       if (!foundIt){
 	for (j = 1; j <= tb.maxeta;j++){
-	  sPrint(&bufw,"_ETA_%d_",j);
-	  if (!strcmp(buf, bufw.s)){
-	    sPrint(&bufw,"ETA[%d]",j);
+	  sPrint(&_bufw,"_ETA_%d_",j);
+	  if (!strcmp(buf, _bufw.s)){
+	    sPrint(&_bufw,"ETA[%d]",j);
 	    foundIt=1;
 	    break;
 	  }
 	}
       }
       if (!foundIt){
-	sPrint(&bufw, "%s", buf);
+	sPrint(&_bufw, "%s", buf);
       }
-      SET_STRING_ELT(params,pi++,mkChar(bufw.s));
+      if (!strcmp("CMT", _bufw.s)) {
+	tb.hasCmt = 1;
+      }
+      SET_STRING_ELT(params, pi++, mkChar(_bufw.s));
     }
   }
+  INTEGER(sLinCmt)[5] = tb.hasCmt;
   tb.ini_i = length(ini);
   sPrint(&s_inits,"%s", s_aux_info.s);
   gnini = length(ini);
 
   SET_STRING_ELT(names,0,mkChar("params"));
   SET_VECTOR_ELT(lst,  0,params);
-  
+
   SET_STRING_ELT(names,1,mkChar("lhs"));
   SET_VECTOR_ELT(lst,  1,lhs);
-  
+
   SET_STRING_ELT(names,2,mkChar("state"));
   SET_VECTOR_ELT(lst,  2,state);
 
@@ -3084,130 +4534,149 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
   SET_STRING_ELT(names,8,mkChar("sens"));
   SET_VECTOR_ELT(lst,  8,sens);
-  
-  SET_STRING_ELT(names,9,mkChar("fn.ini"));
-  SET_VECTOR_ELT(lst,  9,fn_ini);
 
-  SET_STRING_ELT(names,10,mkChar("state.ignore"));
-  SET_VECTOR_ELT(lst,  10,stateRmS);
+  SET_STRING_ELT(names,9,mkChar("state.ignore"));
+  SET_VECTOR_ELT(lst,  9,stateRmS);
 
-  SET_STRING_ELT(names,11,mkChar("version"));
-  SET_VECTOR_ELT(lst,  11,version);
+  SET_STRING_ELT(names,10,mkChar("version"));
+  SET_VECTOR_ELT(lst,  10,version);
 
-  SET_STRING_ELT(names,12,mkChar("normal.state"));
-  SET_VECTOR_ELT(lst,  12,normState);
-  
-  SET_STRING_ELT(names,13,mkChar("needSort"));
-  SET_VECTOR_ELT(lst,  13,sNeedSort);
+  SET_STRING_ELT(names,11,mkChar("normal.state"));
+  SET_VECTOR_ELT(lst,  11,normState);
 
-  SET_STRING_ELT(names,14,mkChar("nMtime"));
-  SET_VECTOR_ELT(lst,  14,sMtime);
+  SET_STRING_ELT(names,12,mkChar("needSort"));
+  SET_VECTOR_ELT(lst,  12,sNeedSort);
 
-  SET_STRING_ELT(names, 15, mkChar("extraCmt"));
+  SET_STRING_ELT(names,13,mkChar("nMtime"));
+  SET_VECTOR_ELT(lst,  13,sMtime);
+
+  SET_STRING_ELT(names, 14, mkChar("extraCmt"));
   SEXP sExtraCmt = PROTECT(allocVector(INTSXP,1));pro++;
   INTEGER(sExtraCmt)[0] = extraCmt;
-  SET_VECTOR_ELT(lst, 15, sExtraCmt);
+  SET_VECTOR_ELT(lst, 14, sExtraCmt);
 
-  SET_STRING_ELT(names, 16, mkChar("stateExtra"));
-  SET_VECTOR_ELT(lst,  16, extraState);
+  SET_STRING_ELT(names, 15, mkChar("stateExtra"));
+  SET_VECTOR_ELT(lst,   15, extraState);
 
-  SET_STRING_ELT(names, 17, mkChar("dvid"));
+  SET_STRING_ELT(names, 16, mkChar("dvid"));
   SEXP sDvid = PROTECT(allocVector(INTSXP,tb.dvidn));pro++;
   for (i = 0; i < tb.dvidn; i++) INTEGER(sDvid)[i]=tb.dvid[i];
-  SET_VECTOR_ELT(lst,  17, sDvid);
+  SET_VECTOR_ELT(lst,  16, sDvid);
 
-  sPrint(&bufw,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
+  SET_STRING_ELT(names, 17, mkChar("indLin"));
+  SEXP matLst = PROTECT(allocVector(VECSXP, 0));pro++;
+  SET_VECTOR_ELT(lst,  17, matLst);
+
+  SET_STRING_ELT(names, 18, mkChar("flags"));
+  SET_VECTOR_ELT(lst,   18, sLinCmt);
+
+  SET_STRING_ELT(names, 19, mkChar("slhs"));
+  SET_VECTOR_ELT(lst,   19, slhs);
+
+  sPrint(&_bufw,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
+
   SET_STRING_ELT(trann,0,mkChar("lib.name"));
-  SET_STRING_ELT(tran,0,mkChar(bufw.s));
-  
+  SET_STRING_ELT(tran,0,mkChar(_bufw.s));
+
   SET_STRING_ELT(trann,1,mkChar("jac"));
   if (found_jac == 1 && good_jac == 1){
     SET_STRING_ELT(tran,1,mkChar("fulluser")); // Full User Matrix
   } else {
     SET_STRING_ELT(tran,1,mkChar("fullint")); // Full Internal Matrix
   }
-  
+
   SET_STRING_ELT(trann,2,mkChar("prefix"));
-  SET_STRING_ELT(tran,2,mkChar(bufw.s));
+  SET_STRING_ELT(tran,2,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%sdydt",model_prefix);
+  sPrint(&_bufw,"%sdydt",model_prefix);
   SET_STRING_ELT(trann,3,mkChar("dydt"));
-  SET_STRING_ELT(tran,3,mkChar(bufw.s)) ;
+  SET_STRING_ELT(tran,3,mkChar(_bufw.s)) ;
 
-  sPrint(&bufw,"%scalc_jac",model_prefix);
+  sPrint(&_bufw,"%scalc_jac",model_prefix);
   SET_STRING_ELT(trann,4,mkChar("calc_jac"));
-  SET_STRING_ELT(tran, 4,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 4,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%scalc_lhs",model_prefix);
+  sPrint(&_bufw,"%scalc_lhs",model_prefix);
   SET_STRING_ELT(trann,5,mkChar("calc_lhs"));
-  SET_STRING_ELT(tran, 5,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 5,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%smodel_vars",model_prefix);
+  sPrint(&_bufw,"%smodel_vars",model_prefix);
   SET_STRING_ELT(trann,6,mkChar("model_vars"));
-  SET_STRING_ELT(tran, 6,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 6,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%stheta",model_prefix);
+  sPrint(&_bufw,"%stheta",model_prefix);
   SET_STRING_ELT(trann,7,mkChar("theta"));
-  SET_STRING_ELT(tran, 7,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 7,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%sinis",model_prefix);
+  sPrint(&_bufw,"%sinis",model_prefix);
   SET_STRING_ELT(trann,8,mkChar("inis"));
-  SET_STRING_ELT(tran, 8,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 8,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%sdydt_lsoda",model_prefix);
+  sPrint(&_bufw,"%sdydt_lsoda",model_prefix);
   SET_STRING_ELT(trann,9,mkChar("dydt_lsoda"));
-  SET_STRING_ELT(tran, 9,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 9,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%scalc_jac_lsoda",model_prefix);
+  sPrint(&_bufw,"%scalc_jac_lsoda",model_prefix);
   SET_STRING_ELT(trann,10,mkChar("calc_jac_lsoda"));
-  SET_STRING_ELT(tran, 10,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 10,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%sode_solver_solvedata",model_prefix);
+  sPrint(&_bufw,"%sode_solver_solvedata",model_prefix);
   SET_STRING_ELT(trann,11,mkChar("ode_solver_solvedata"));
-  SET_STRING_ELT(tran, 11,mkChar(bufw.s));
-  
-  sPrint(&bufw,"%sode_solver_get_solvedata",model_prefix);
+  SET_STRING_ELT(tran, 11,mkChar(_bufw.s));
+
+  sPrint(&_bufw,"%sode_solver_get_solvedata",model_prefix);
   SET_STRING_ELT(trann,12,mkChar("ode_solver_get_solvedata"));
-  SET_STRING_ELT(tran, 12,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 12,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%sdydt_liblsoda",model_prefix);
+  sPrint(&_bufw,"%sdydt_liblsoda",model_prefix);
   SET_STRING_ELT(trann,13,mkChar("dydt_liblsoda"));
-  SET_STRING_ELT(tran, 13,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 13,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%sF",model_prefix);
+  sPrint(&_bufw,"%sF",model_prefix);
   SET_STRING_ELT(trann,14,mkChar("F"));
-  SET_STRING_ELT(tran, 14,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 14,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%sLag",model_prefix);
+  sPrint(&_bufw,"%sLag",model_prefix);
   SET_STRING_ELT(trann,15,mkChar("Lag"));
-  SET_STRING_ELT(tran, 15,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 15,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%sRate",model_prefix);
+  sPrint(&_bufw,"%sRate",model_prefix);
   SET_STRING_ELT(trann,16,mkChar("Rate"));
-  SET_STRING_ELT(tran, 16,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 16,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%sDur",model_prefix);
+  sPrint(&_bufw,"%sDur",model_prefix);
   SET_STRING_ELT(trann,17,mkChar("Dur"));
-  SET_STRING_ELT(tran, 17,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 17,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%smtime",model_prefix);
+  sPrint(&_bufw,"%smtime",model_prefix);
   SET_STRING_ELT(trann,18,mkChar("mtime"));
-  SET_STRING_ELT(tran, 18,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 18,mkChar(_bufw.s));
 
-  sPrint(&bufw,"%sassignFuns",model_prefix);
+  sPrint(&_bufw,"%sassignFuns",model_prefix);
   SET_STRING_ELT(trann,19,mkChar("assignFuns"));
-  SET_STRING_ELT(tran, 19,mkChar(bufw.s));
+  SET_STRING_ELT(tran, 19,mkChar(_bufw.s));
+
+  sPrint(&_bufw,"%sME",model_prefix);
+  SET_STRING_ELT(trann,20,mkChar("ME"));
+  SET_STRING_ELT(tran, 20,mkChar(_bufw.s));
+
+  sPrint(&_bufw,"%sIndF",model_prefix);
+  SET_STRING_ELT(trann,21,mkChar("IndF"));
+  SET_STRING_ELT(tran, 21,mkChar(_bufw.s));
 
   SET_STRING_ELT(modeln,0,mkChar("normModel"));
   SET_STRING_ELT(model,0,mkChar(sbNrm.s));
-  
+
+  SET_STRING_ELT(modeln,1,mkChar("indLin"));
+  SET_STRING_ELT(model,1,mkChar(me_code));
+
   setAttrib(tran,  R_NamesSymbol, trann);
   setAttrib(lst,   R_NamesSymbol, names);
   setAttrib(model, R_NamesSymbol, modeln);
   SEXP cls = PROTECT(allocVector(STRSXP, 1));pro++;
   SET_STRING_ELT(cls, 0, mkChar("rxModelVars"));
   classgets(lst, cls);
-  
+
   UNPROTECT(pro);
   if (rx_syntax_error){
     if(!rx_suppress_syntax_info){
@@ -3223,22 +4692,25 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 	}
       }
       if (isEsc){
-	RSprintf0("\n\033[1m================================================================================\033[0m\n");
+	RSprintf("\n\033[1m================================================================================\033[0m\n");
       }
       else {
-	RSprintf0("\n================================================================================\n");
+	RSprintf("\n================================================================================\n");
       }
     }
-    sFree(&bufw); sFree(&bufw2);
-    error("Syntax Errors (see above)");
+    if (firstErrD == 1) {
+      firstErrD=0;
+      Rf_errorcall(R_NilValue, firstErr.s);
+    } else {
+      Rf_errorcall(R_NilValue, _("syntax errors (see above)"));
+    }
   }
-  sFree(&bufw); sFree(&bufw2);
   return lst;
 }
 
 SEXP _RxODE_parseModel(SEXP type){
   if (!sbPm.o){
-    error("Model no longer loaded in memory.");
+    Rf_errorcall(R_NilValue, _("model no longer loaded in memory"));
   }
   int iT = INTEGER(type)[0];
   SEXP pm;
@@ -3271,6 +4743,11 @@ SEXP _RxODE_codeLoaded(){
   return pm;
 }
 
+SEXP _RxODE_clearTrans(){
+  reset();
+  return R_NilValue;
+}
+
 SEXP _RxODE_isLinCmt(){
   SEXP ret = PROTECT(allocVector(INTSXP, 1));
   INTEGER(ret)[0]=tb.linCmt;
@@ -3279,15 +4756,15 @@ SEXP _RxODE_isLinCmt(){
 }
 
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
-		    SEXP pMd5, SEXP timeId, SEXP fixInis){
+		    SEXP pMd5, SEXP timeId){
   if (!sbPm.o || !sbNrm.o){
-    error("Nothing in output queue to write");
+    Rf_errorcall(R_NilValue, _("nothing in output queue to write"));
   }
   if (!isString(c_file) || length(c_file) != 1){
-    error("c_file should only be 1 file");
+    Rf_errorcall(R_NilValue, _("c_file should only be 1 file"));
   }
   if (length(libname) != 2){
-    error("libname needs 2 elements");
+    Rf_errorcall(R_NilValue, _("libname needs 2 elements"));
   }
   fpIO = fopen(CHAR(STRING_ELT(c_file,0)), "wb");
   err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
@@ -3299,7 +4776,45 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   // show_ode = 0 LHS
   // show_ode = 5 functional bioavailibility
   // show_ode = 6 functional rate
-  
+  if (tb.linCmt != 0) {
+    char *buf;
+    int badCentral=false, badDepot=false;
+    for (int i=tb.de.n; i--;) {                     /* name state vars */
+      buf=tb.ss.line[tb.di[i]];
+      if (tb.hasKa == 1 && !strcmp(buf,"depot")){
+	badDepot=true;
+      } else if (!strcmp(buf, "central")) {
+	badCentral=true;
+      }
+    }
+    if (badCentral && badDepot){
+      fclose(fpIO);
+      reset();
+      Rf_errorcall(R_NilValue, _("linCmt() and ode have 'central' and 'depot' compartments, rename ODE 'central'/'depot'"));
+    } else if (badCentral) {
+      fclose(fpIO);
+      reset();
+      Rf_errorcall(R_NilValue, _("linCmt() and ode has a 'central' compartment, rename ODE 'central'"));
+    } else if (badDepot) {
+      fclose(fpIO);
+      reset();
+      Rf_errorcall(R_NilValue, _("linCmt() and ode has a 'depot' compartment, rename ODE 'depot'"));
+    }
+    (&sbOut)->s[0]='\0';
+    if (tb.hasKa == 1) {
+      sAppend(&sbOut, "#define _DEPOT_ %d\n", tb.statei);
+      sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei+1);
+    } else if (tb.hasCentral == 1) {
+      if (tb.hasDepot){
+	fclose(fpIO);
+	reset();
+	Rf_errorcall(R_NilValue, _("linCmt() does not have 'depot' compartment without a 'ka'"));
+	return R_NilValue;
+      }
+      sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei);
+    }
+    writeSb(&sbOut, fpIO);
+  }
   gCode(1); // d/dt()
   gCode(2); // jac
   gCode(3); // ini()
@@ -3309,8 +4824,11 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   gCode(7);
   gCode(8);
   gCode(9); // mtime
+  gCode(10); //mat
+  gCode(11); //matF
   gCode(4); // Registration
   fclose(fpIO);
+  reset();
   return R_NilValue;
 }
 
@@ -3332,10 +4850,10 @@ static void rxSyntaxError(struct D_Parser *ap) {
   if (!rx_suppress_syntax_info){
     if (lastSyntaxErrorLine == 0){
       if (isEsc){
-	RSprintf0("\033[1mRxODE Model Syntax Error:\n================================================================================\033[0m");
+	RSprintf(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
       }
       else {
-	RSprintf0("RxODE Model Syntax Error:\n================================================================================");
+	RSprintf(_("RxODE Model Syntax Error:\n================================================================================"));
       }
       lastSyntaxErrorLine=1;
     }
@@ -3345,6 +4863,7 @@ static void rxSyntaxError(struct D_Parser *ap) {
       buf = getLine(gBuf, lastSyntaxErrorLine, &gBufLast);
       RSprintf("\n:%03d: %s", lastSyntaxErrorLine, buf);
       Free(buf);
+
     }
     char *after = 0;
     ZNode *z = p->snode_hash.last_all ? p->snode_hash.last_all->zns.v[0] : 0;
@@ -3354,21 +4873,26 @@ static void rxSyntaxError(struct D_Parser *ap) {
       after = rc_dup_str(z->pn->parse_node.start_loc.s, z->pn->parse_node.end);
     if (after){
       if (isEsc){
-	RSprintf("\n\n\033[1mRxODE syntax error after\033[0m '\033[35m\033[1m%s\033[0m':\n",  after);
+	RSprintf(_("\n\n\033[1mRxODE syntax error after\033[0m '\033[35m\033[1m%s\033[0m':\n"),  after);
       }
       else {
-	RSprintf("\n\nRxODE syntax error after '%s':\n",  after);
+	RSprintf(_("\n\nRxODE syntax error after '%s'\n"),  after);
+      }
+      if (firstErrD == 0) {
+	sAppend(&firstErr, _("RxODE syntax error after '%s':\n"), after);
       }
     }
     else{
       if (isEsc){
-	RSprintf0("\n\n\033[1mRxODE syntax error\033[0m:\n");
+	RSprintf(_("\n\n\033[1mRxODE syntax error\033[0m:\n"));
       }
       else{
-	RSprintf0("\n\nRxODE syntax error:\n");
+	RSprintf(_("\n\nRxODE syntax error:\n"));
+      }
+      if (firstErrD == 0) {
+	sAppendN(&firstErr, "RxODE syntax error:\n", 20);
       }
     }
-
     buf = getLine(gBuf, p->user.loc.line, &gBufLast);
     if (lastSyntaxErrorLine < p->user.loc.line) lastSyntaxErrorLine++;
     if (isEsc) {
@@ -3377,9 +4901,15 @@ static void rxSyntaxError(struct D_Parser *ap) {
     else {
       RSprintf(":%03d: ", p->user.loc.line);
     }
+    if (firstErrD == 0) {
+      sAppend(&firstErr, ":%03d: ", p->user.loc.line);
+    }
     int col = 0, len= strlen(buf), lenv, i;
     for (i = 0; i < p->user.loc.col; i++){
       RSprintf("%c", buf[i]);
+      if (firstErrD == 0) {
+	sAppend(&firstErr, "%c", buf[i]);
+      }
       if (i == len-2) { i++; break;}
     }
     if (isEsc) {
@@ -3388,58 +4918,91 @@ static void rxSyntaxError(struct D_Parser *ap) {
     else {
       RSprintf("%c", buf[i++]);
     }
+    if (firstErrD == 0) {
+      sAppend(&firstErr, "%c", buf[i-1]);
+    }
     for (; i < len; i++){
       RSprintf("%c", buf[i]);
+      if (firstErrD == 0) {
+	sAppend(&firstErr, "%c", buf[i]);
+      }
     }
-    RSprintf0("\n      ");
-    
+    RSprintf("\n      ");
+    if (firstErrD == 0) {
+      sAppendN(&firstErr, "\n      ", 7);
+    }
     if (after){
       lenv = strlen(after);
       while (col != len && strncmp(buf + col, after, lenv) != 0) col++;
       if (col == len) col = 0;
       if (col){
 	for (int i = 0; i < col; i++){
-	  RSprintf0(" ");
+	  RSprintf(" ");
+	  if (firstErrD == 0) {
+	    sAppendN(&firstErr, " ", 1);
+	  }
 	  if (i == len-2) { i++; break;}
 	}
 	len = p->user.loc.col - col;
 	if (len > 0 && len < 40){
 	  for (int i = len; i--;) {
-	    RSprintf0("~");
+	    RSprintf("~");
+	    if (firstErrD == 0) {
+	      sAppendN(&firstErr, "~", 1);
+	    }
 	  }
 	}
 	if (isEsc) {
-	  RSprintf0("\033[35m\033[1m^\033[0m");
+	  RSprintf("\033[35m\033[1m^\033[0m");
 	}
 	else {
-	  RSprintf0("^");
+	  RSprintf("^");
+	}
+	if (firstErrD == 0) {
+	  sAppendN(&firstErr, "^", 1);
 	}
       } else {
 	for (int i = 0; i < p->user.loc.col; i++){
-	  RSprintf0(" ");
+	  RSprintf(" ");
+	  if (firstErrD == 0) {
+	    sAppendN(&firstErr, " ", 1);
+	  }
 	  if (i == len-2) { i++; break;}
 	}
 	if (isEsc) {
-	  RSprintf0("\033[35m\033[1m^\033[0m");
+	  RSprintf("\033[35m\033[1m^\033[0m");
 	}
 	else {
-	  RSprintf0("^");
+	  RSprintf("^");
 	}
+	if (firstErrD == 0) {
+	  sAppendN(&firstErr, "^", 1);
+	}
+
       }
     } else {
       for (int i = 0; i < p->user.loc.col; i++){
-	RSprintf0(" ");
+	RSprintf(" ");
+	if (firstErrD == 0) {
+	  sAppendN(&firstErr, " ", 1);
+	}
 	if (i == len-2) { i++; break;}
       }
       if (isEsc) {
-	RSprintf0("\033[35m\033[1m^\033[0m");
+	RSprintf("\033[35m\033[1m^\033[0m");
       }
       else {
-	RSprintf0("^");
+	RSprintf("^");
+      }
+      if (firstErrD == 0) {
+	sAppendN(&firstErr, "^", 1);
       }
     }
     Free(buf);
-    if (after) Free(after);
+    if (firstErrD == 0) {
+      firstErrD = 1;
+      sAppendN(&firstErr, "\nmore errors could be listed above", 34);
+    }
   }
   rx_syntax_error = 1;
 }
@@ -3448,10 +5011,10 @@ static void trans_syntax_error_report_fn0(char *err){
   if (!rx_suppress_syntax_info){
     if (lastSyntaxErrorLine == 0){
       if (isEsc) {
-	RSprintf0("\033[1mRxODE Model Syntax Error:\n================================================================================\033[0m");
+	RSprintf(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
       }
       else {
-	RSprintf0("RxODE Model Syntax Error:\n================================================================================");
+	RSprintf(_("RxODE model syntax error:\n================================================================================"));
       }
       lastSyntaxErrorLine=1;
     }
@@ -3469,10 +5032,10 @@ static void trans_syntax_error_report_fn(char *err) {
   if (!rx_suppress_syntax_info){
     if (lastSyntaxErrorLine == 0){
       if (isEsc) {
-	RSprintf0("\033[1mRxODE Model Syntax Error:\n================================================================================\033[0m");
+	RSprintf(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
       }
       else {
-	RSprintf0("RxODE Model Syntax Error:\n================================================================================");
+	RSprintf(_("RxODE model syntax error:\n================================================================================"));
       }
       lastSyntaxErrorLine=1;
     }
@@ -3484,7 +5047,7 @@ static void trans_syntax_error_report_fn(char *err) {
       Free(buf);
     }
     if (lastSyntaxErrorLine < p->user.loc.line){
-      RSprintf0("\n");
+      RSprintf("\n");
       lastSyntaxErrorLine++;
     }
     if (isEsc) {
@@ -3494,7 +5057,7 @@ static void trans_syntax_error_report_fn(char *err) {
       RSprintf("\n:%03d: %s:\n", p->user.loc.line, err);
     }
     buf = getLine(gBuf, p->user.loc.line, &gBufLast);
-    RSprintf0("      ");
+    RSprintf("      ");
     int i, len = strlen(buf);
     for (i = 0; i < p->user.loc.col; i++){
       RSprintf("%c", buf[i]);
@@ -3509,21 +5072,21 @@ static void trans_syntax_error_report_fn(char *err) {
     for (; i < len; i++){
       RSprintf("%c", buf[i]);
     }
-    RSprintf0("\n      ");
+    RSprintf("\n      ");
     Free(buf);
     for (int i = 0; i < p->user.loc.col; i++){
-      RSprintf0(" ");
+      RSprintf(" ");
       if (i == len-2) { i++; break;}
     }
     if (isEsc) {
-      RSprintf0("\033[35m\033[1m^\033[0m");
+      RSprintf("\033[35m\033[1m^\033[0m");
     }
     else {
-      RSprintf0("^");
+      RSprintf("^");
     }
     if (syntaxErrorExtra > 0 && syntaxErrorExtra < 40){
       for (int i = syntaxErrorExtra; i--;) {
-	RSprintf0("~");
+	RSprintf("~");
       }
     }
     syntaxErrorExtra=0;
@@ -3547,3 +5110,1338 @@ void updateSyntaxCol(){
   p->user.loc.line=lineNum;
   p->user.loc.col=colNum;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// linCmtParse
+
+typedef struct linCmtStruct {
+  int ka;
+
+  int k12;
+  int k21;
+
+  int k13;
+  int k31;
+
+  int kel;
+
+  int a;
+  int b;
+  int c;
+
+  int aob;
+
+  int alpha;
+  int beta;
+  int gamma;
+
+  int cl;
+
+  int cl1;
+  int cl2;
+  int cl3;
+  int cl4;
+
+  int v;
+
+  int v1;
+  int v2;
+  int v3;
+  int v4;
+
+  int vp;
+  int vp1;
+  int vp2;
+  int vp3;
+
+  int vss;
+
+  int cmtc;
+
+  int clStyle;
+  int vStyle;
+} linCmtStruct;
+
+static inline void linCmtIni(linCmtStruct *lin){
+  lin->ka   = -1;
+
+  lin->k12  = -1;
+  lin->k21  = -1;
+
+  lin->k13  = -1;
+  lin->k31  = -1;
+
+  lin->cmtc = -1;
+  lin->kel  = -1;
+
+  lin->cl = -1;
+
+  lin->cl1 = -1;
+  lin->cl2 = -1;
+  lin->cl3 = -1;
+  lin->cl4 = -1;
+
+  lin->v = -1;
+
+  lin->v1 = -1;
+  lin->v2 = -1;
+  lin->v3 = -1;
+  lin->v4 = -1;
+
+  lin->vp = -1;
+  lin->vp1 = -1;
+  lin->vp2 = -1;
+  lin->vp3 = -1;
+
+  lin->vss = -1;
+
+  lin->a = -1;
+  lin->b = -1;
+  lin->c = -1;
+
+  lin->aob = -1;
+
+  lin->alpha = -1;
+  lin->beta  = -1;
+  lin->gamma = -1;
+
+  lin->clStyle=-1;
+  lin->vStyle = -1;
+}
+
+static inline void linCmtCmt(linCmtStruct *lin, const int cmt){
+  if (lin->cmtc == -1) {
+    lin->cmtc = cmt;
+  }
+  if (lin->cmtc != cmt){
+    parseFree(0);
+    Rf_errorcall(R_NilValue, _("inconsistent central compartment numbers, not sure if central compartment no is '1' or '2'"));
+  }
+}
+
+static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
+  // ke, kel, k10 or k20
+  //
+  if (in[1] == '\0') {
+    lin->kel = *index;
+    return;
+  }
+  if ((in[1] == 'e' || in[1] == 'E')) {
+    if (in[2] == '\0') {
+      if (lin->kel != -1) {
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
+      }
+      lin->kel = *index;
+      return;
+    }
+    if ((in[2] == 'l' || in[2] == 'L') && in[3] == '\0') {
+      if (lin->kel != -1) {
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
+      }
+      lin->kel = *index;
+      return;
+    }
+  }
+  if ((in[1] == 'a' || in[1] == 'A') &&
+      in[2] == '\0') {
+    lin->ka = *index;
+    return;
+  }
+  // Support: k12, k21, k13, k31 when central compartment is 1
+  // Also support:  k23, k32, k24, k42 when central compartment is 2
+  if (in[1] == '1') {
+    if (in[2] == '0' && in[3] == '\0') {
+      linCmtCmt(lin, 1);
+      if (lin->kel != -1) {
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
+      }
+      lin->kel = *index;
+      return;
+    }
+    if (in[2] == '2' && in[3] == '\0') {
+      linCmtCmt(lin, 1);
+      lin->k12 = *index;
+      return;
+    }
+    if (in[2] == '3' && in[3] == '\0') {
+      linCmtCmt(lin, 1);
+      lin->k13 = *index;
+      return;
+    }
+  }
+  if (in[1] == '2') {
+    if (in[2] == '0' && in[3] == '\0') {
+      linCmtCmt(lin, 2);
+      if (lin->kel != -1) {
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
+      }
+      lin->kel = *index;
+      return;
+    }
+    if (in[2] == '1' && in[3] == '\0') {
+      linCmtCmt(lin, 1);
+      lin->k21 = *index;
+      return;
+    }
+    if (in[2] == '3' && in[3] == '\0') {
+      linCmtCmt(lin, 2);
+      // k23->k12
+      lin->k12 = *index;
+      return;
+    }
+    if (in[2] == '4' && in[3] == '\0') {
+      linCmtCmt(lin, 2);
+      // k24->k13
+      lin->k13 = *index;
+      return;
+    }
+  }
+  if (in[1] == '3')  {
+    if (in[2] == '1' && in[3] == '\0') {
+      linCmtCmt(lin, 1);
+      lin->k31 = *index;
+      return;
+    }
+    if (in[2] == '2' && in[3] == '\0') {
+      linCmtCmt(lin, 2);
+      // k32->k21
+      lin->k21 = *index;
+      return;
+    }
+  }
+  if (in[1] == '4' && in[2] == '2' && in[3] == '\0') {
+    linCmtCmt(lin, 2);
+    // k42 -> k31
+    lin->k31 = *index;
+  }
+}
+
+#define linCmtCl1style 1
+#define linCmtCld1style 2
+#define linCmtQstyle 3
+
+static inline void linCmtClStr(sbuf *buf, const int style){
+  switch(style){
+  case linCmtCl1style:
+    sAppendN(buf, "Cl#", 3);
+    break;
+  case linCmtCld1style:
+    sAppendN(buf, "Cld#", 4);
+    break;
+  case linCmtQstyle:
+    sAppendN(buf, "Q", 1);
+    break;
+  }
+}
+
+static inline void linCmtClStyle(linCmtStruct *lin, const int style) {
+  if (lin->clStyle == -1) {
+    lin->clStyle = style;
+  }
+  if (lin->clStyle != style) {
+    sClear(&firstErr);
+    sAppendN(&firstErr, "cannot mix '", 12);
+    linCmtClStr(&firstErr, lin->clStyle);
+    sAppendN(&firstErr, "' and '", 7);
+    linCmtClStr(&firstErr, style);
+    sAppendN(&firstErr, "' clearance styles", 18);
+    parseFree(0);
+    Rf_errorcall(R_NilValue, firstErr.s);
+  }
+}
+
+static inline void linCmtQ(linCmtStruct *lin, const char *in, int *index) {
+  if (in[1] == '\0') {
+    // Q
+    linCmtClStyle(lin, linCmtQstyle);
+    lin->cl1 = *index;
+    return;
+  }
+  if (in[1] == '1' && in[2] == '\0') {
+    // Q1
+    linCmtClStyle(lin, linCmtQstyle);
+    lin->cl2 = *index;
+    return;
+  }
+  if (in[1] == '2' && in[2] == '\0') {
+    // Q2
+    linCmtClStyle(lin, linCmtQstyle);
+    lin->cl3 = *index;
+    return;
+  }
+  if (in[1] == '3' && in[2] == '\0') {
+    // Q3
+    linCmtClStyle(lin, linCmtQstyle);
+    lin->cl4 = *index;
+    return;
+  }
+}
+
+
+static inline void linCmtC(linCmtStruct *lin, const char *in, int *index) {
+  // CL, CL1, CL2, CL3, CL4
+  // CLD, CLD1, CLD2, CLD3, CL4
+  if (in[1] == '\0'){
+    // C
+    lin->c = *index;
+    return;
+  }
+  if (in[1] == 'l' || in[1] == 'L') {
+    if (in[2] == '\0') {
+      lin->cl = *index;
+      return;
+    }
+    if (in[2] == '1' && in[3] == '\0') {
+      linCmtClStyle(lin, linCmtCl1style);
+      lin->cl1 = *index;
+      return;
+    }
+    if (in[2] == '2' && in[3] == '\0') {
+      linCmtClStyle(lin, linCmtCl1style);
+      lin->cl2 = *index;
+      return;
+    }
+    if (in[2] == '3' && in[3] == '\0') {
+      linCmtClStyle(lin, linCmtCl1style);
+      lin->cl3 = *index;
+      return;
+    }
+    if (in[2] == '4' && in[3] == '\0') {
+      linCmtClStyle(lin, linCmtCl1style);
+      lin->cl4 = *index;
+      return;
+    }
+    if (in[2] == 'd' || in[2] == 'D') {
+      if (in[3] == '\0') {
+	linCmtClStyle(lin, linCmtCld1style);
+	lin->cl1 = *index;
+	return;
+      }
+      if (in[3] == '1' && in[4] == '\0') {
+	linCmtClStyle(lin, linCmtCld1style);
+	  lin->cl2 = *index;
+	return;
+      }
+      if (in[3] == '2' && in[4] == '\0') {
+	linCmtClStyle(lin, linCmtCld1style);
+	lin->cl3 = *index;
+	return;
+      }
+      if (in[3] == '3' && in[4] == '\0') {
+	linCmtClStyle(lin, linCmtCld1style);
+	lin->cl4 = *index;
+	return;
+      }
+    }
+  }
+}
+#define linCmtVdStyle 1
+#define linCmtVtStyle 2
+#define linCmtVpStyle 3
+#define linCmtVnStyle 4
+
+static inline void linCmtVStr(sbuf *buf, const int style){
+  switch(style){
+  case linCmtVdStyle:
+    sAppendN(buf, "Vd", 2);
+    break;
+  case linCmtVtStyle:
+    sAppendN(buf, "Vt", 2);
+    break;
+  case linCmtVpStyle:
+    sAppendN(buf, "Vp", 2);
+    break;
+  case linCmtVnStyle:
+    sAppendN(buf, "V#", 2);
+    break;
+  }
+}
+
+static inline void linCmtVStyle(linCmtStruct *lin, int style) {
+  if (lin->vStyle == -1) {
+    lin->vStyle = style;
+  }
+  if (lin->vStyle != style) {
+    sClear(&firstErr);
+    sAppendN(&firstErr, "cannot mix '", 12);
+    linCmtVStr(&firstErr, lin->vStyle);
+    sAppendN(&firstErr, "' and '", 7);
+    linCmtVStr(&firstErr, style);
+    sAppendN(&firstErr, "' volume styles", 15);
+    parseFree(0);
+    Rf_errorcall(R_NilValue, firstErr.s);
+  }
+}
+
+static inline void linCmtV(linCmtStruct *lin, const char *in, int *index) {
+  if ((in[1] == 's' || in[1] == 'S') &&
+      (in[2] == 's' || in[2] == 'S') &&
+      in[3] == '\0') {
+    lin->vss = *index;
+    return;
+  }
+  // v1, v2, v3, v4
+  // vt1, vt2, vt3, vt4
+  // vp1, vp2, vp3, vp4
+  if (in[1] == '\0') {
+    lin->v = *index;
+    return;
+  }
+  if (in[1] == '1' && in[2] == '\0') {
+    linCmtVStyle(lin, 4);
+    lin->v1 = *index;
+    return;
+  }
+  if (in[1] == '2' && in[2] == '\0') {
+    linCmtVStyle(lin, 4);
+    lin->v2 = *index;
+    return;
+  }
+  if (in[1] == '3' && in[2] == '\0') {
+    linCmtVStyle(lin, 4);
+    lin->v3 = *index;
+    return;
+  }
+  if (in[1] == '4' && in[2] == '\0') {
+    linCmtVStyle(lin, 4);
+    lin->v4 = *index;
+    return;
+  }
+  if ((in[1] == 'c' || in[1] == 'C') &&
+      in[2] == '\0') {
+    lin->v = *index;
+    return;
+  }
+  int vType = (in[1] == 'd' || in[1] == 'D')*1 +
+    (in[1] == 't' || in[1] == 'T')*2 +
+    (in[1] == 'p' || in[1] == 'P')*3;
+  if (vType) {
+    linCmtVStyle(lin, vType);
+    // vp, vp1
+    // vp, vp2
+    // vp, vp3
+    // vp1, vp2
+    // vp2, vp3
+    if (in[2] == '\0') {
+      lin->vp = *index;
+      return;
+    }
+    if (in[2] == '1' && in[3] == '\0') {
+      lin->vp1 = *index;
+      return;
+    }
+    if (in[2] == '2' && in[3] == '\0') {
+      lin->vp2 = *index;
+      return;
+    }
+    if (in[2] == '3' && in[3] == '\0') {
+      lin->vp3 = *index;
+      return;
+    }
+  }
+}
+
+static inline void linCmtB(linCmtStruct *lin, const char *in, int *index) {
+  if (in[1] == '\0') {
+    lin->b = *index;
+    return;
+  }
+  if ((in[1] == 'E' || in[1] == 'e') &&
+      (in[2] == 'T' || in[2] == 't') &&
+      (in[3] == 'A' || in[3] == 'a') &&
+      in[4] == '\0') {
+    lin->beta = *index;
+    return;
+  }
+}
+
+static inline void linCmtA(linCmtStruct *lin, const char *in, int *index) {
+  if (in[1] == '\0') {
+    lin->a = *index;
+    return;
+  }
+  if ((in[1] == 'O' || in[1] == 'o') &&
+      (in[2] == 'B' || in[2] == 'b') &&
+      in[3] == '\0') {
+    lin->aob = *index;
+    return;
+  }
+  if ((in[1] == 'L' || in[1] == 'l') &&
+      (in[2] == 'P' || in[2] == 'p') &&
+      (in[3] == 'H' || in[3] == 'h') &&
+      (in[4] == 'A' || in[4] == 'a') &&
+      in[5] == '\0') {
+    lin->alpha = *index;
+    return;
+  }
+}
+
+static inline void linCmtStr(linCmtStruct *lin, const char *in, int *index) {
+  if (in[0] == 'v' || in[0] == 'V') {
+    linCmtV(lin, in, index);
+    return;
+  }
+  if (in[0] == 'c' || in[0] == 'C') {
+    linCmtC(lin, in, index);
+    return;
+  }
+  if (in[0] == 'k' || in[0] == 'K') {
+    linCmtK(lin, in, index);
+    return;
+  }
+  if (in[0] == 'Q' || in[0] == 'q') {
+    linCmtQ(lin, in, index);
+    return;
+  }
+  if (in[0] == 'A' || in[0] == 'a') {
+    linCmtA(lin, in, index);
+  }
+  if (in[0] == 'B' || in[0] == 'b') {
+    linCmtB(lin, in, index);
+  }
+  if ((in[0] == 'G' || in[0] == 'g') &&
+      (in[1] == 'A' || in[1] == 'a') &&
+      (in[2] == 'M' || in[2] == 'm') &&
+      (in[3] == 'M' || in[3] == 'm') &&
+      (in[4] == 'A' || in[4] == 'a') &&
+      in[5] == '\0') {
+    lin->gamma = *index;
+    return;
+  }
+}
+
+static inline void linCmtAdjustPars(linCmtStruct *lin) {
+  if (lin->clStyle == linCmtQstyle || lin->clStyle == linCmtCld1style){
+    // cl,
+    if (lin->cl == -1){
+      if (lin->clStyle == linCmtCld1style){
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("'Cld' parameterization needs 'Cl'"));
+      } else {
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("'Q' parameterization needs 'Cl'"));
+      }
+    }
+    if (lin->cl1 != -1) {
+      if (lin->cl2  != -1) {
+	// Cl, Q, Q1
+	if (lin->clStyle == linCmtQstyle){
+	  parseFree(0);
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Q' and 'Q1'"));
+	} else {
+	  parseFree(0);
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Cld' and 'Cld1'"));
+	}
+      } else if (lin->cl3 != -1) {
+	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
+	lin->cl2 = lin->cl1;
+	lin->cl1 = -1;
+      } else if (lin->cl4 != -1){
+	// Cl, Q, Q3
+	if (lin->clStyle == linCmtQstyle){
+	  parseFree(0);
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Q' and 'Q3'"));
+	} else {
+	  parseFree(0);
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Cld' and 'Cld3'"));
+	}
+      } else {
+	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
+	lin->cl2 = lin->cl1;
+	lin->cl1 = -1;
+      }
+    } else if (lin->cl2  != -1) {
+      // Cl, Q1
+      if (lin->cl4 != -1) {
+	if (lin->clStyle == linCmtQstyle){
+	  parseFree(0);
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Q1' and 'Q3'"));
+	} else {
+	  parseFree(0);
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Cld1' and 'Cld3'"));
+	}
+      }
+    } else if (lin->cl3 != -1){
+      lin->cl2 = lin->cl3;
+      lin->cl3 = lin->cl4;
+    }
+  } else {
+    if (lin->cl1 != -1){
+      // Cl1, Cl2, Cl3
+      // -> cl, cl2, cl3
+      if (lin->cl != -1) {
+	// cl, cl1,
+	if (lin->cl2 == -1){
+	  if (lin->cl4 != -1){
+	    parseFree(0);
+	    Rf_errorcall(R_NilValue, _("error parsing higher 'cl'"));
+	  }
+	  lin->cl4 = lin->cl3;
+	  lin->cl3 = lin->cl2;
+	  lin->cl2 = lin->cl1;
+	  lin->cl1 = -1;
+	} else {
+	  parseFree(0);
+	  Rf_errorcall(R_NilValue, _("cannot mix 'Cl' and 'Cl1'"));
+	}
+      } else {
+	linCmtCmt(lin, 1);
+	lin->cl = lin->cl1;
+	lin->cl1 = -1;
+	if (lin->cl4 != -1){
+	  parseFree(0);
+	  Rf_errorcall(R_NilValue, _("specified clearance for 4th compartment, which does not make sense in this context"));
+	}
+      }
+    } else if (lin->cl2 != -1){
+      if (lin->cl == -1){
+	//  Cl2, Cl3, Cl4
+	// -> Cl, cl2, cl3
+	linCmtCmt(lin, 2);
+      } else if (lin->cl4 != -1) {
+	// Cl, Cl2, Cl3 keeps the same;  Cl4 doesn't make sense
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("specified clearance for 4th compartment, which does not make sense in this context"));
+      }
+    } else if (lin->cl != -1){
+      if (lin->cl3 != -1){
+	// Cl, Cl3, Cl4
+	//-> Cl, Cl2, cl3
+	lin->cl2 = lin->cl3;
+	lin->cl3 = lin->cl4;
+	lin->cl4 = -1;
+      }
+    }
+  }
+  if (lin->v != -1) {
+    if (lin->v1 != -1){
+      parseFree(0);
+      Rf_errorcall(R_NilValue, _("Cannot specify 'v1' and 'vc'"));
+    }
+    if (lin->v4 != -1){
+      parseFree(0);
+      Rf_errorcall(R_NilValue, _("Cannot specify 'v4' and 'vc'"));
+    }
+    if (lin->v2 != -1) {
+      // v, v2, v3; Central Compartment is 1
+      linCmtCmt(lin, 1);
+      linCmtVStyle(lin, 4); // V#
+    } else if (lin->v3 != -1) {
+      // v, v3, v4; Central compartment is 2
+      linCmtCmt(lin, 2);
+      linCmtVStyle(lin, 4); // V#
+      lin->v2 = lin->v3;
+      lin->v3 = lin->v4;
+    } else if (lin->vp != -1){
+      lin->v2 = lin->vp;
+      if (lin->vp1 != -1){
+	// v, vp, vp, vp1
+	lin->v3 = lin->vp1;
+      } else if (lin->vp2 != -1) {
+	// v, vp, vp, vp2
+	lin->v3 = lin->vp2;
+      } else if (lin->vp3 != -1) {
+	// v, vp, vp, vp3
+	linCmtCmt(lin, 1);
+	linCmtCmt(lin, 2);
+      }
+    } else if (lin->vp1 != -1) {
+	// v, vp1, vp2
+	lin->v2 = lin->vp1;
+	lin->v3 = lin->vp2;
+    } else if (lin->vp2 != -1) {
+	lin->v2 = lin->vp2;
+	lin->v3 = lin->vp3;
+    }
+  } else if (lin->v1 != -1) {
+    linCmtCmt(lin, 1);
+    lin->v = lin->v1;
+    if (lin->v2 != -1) {
+      // v1, v2, v3; Central Compartment is 1
+      linCmtCmt(lin, 1);
+      linCmtVStyle(lin, 4); // V#
+    } else if (lin->v3 != -1) {
+      // v1, v3, v4; Central compartment is 2
+      linCmtCmt(lin, 2);
+    } else if (lin->vp != -1){
+      // v1, vp,
+      lin->v2 = lin->vp;
+      if (lin->vp1 != -1){
+	// v1, vp, vp1
+	lin->v3 = lin->vp1;
+      } else if (lin->vp2 != -1) {
+	// v, vp, vp2
+	lin->v3 = lin->vp2;
+      } else if (lin->vp3 != -1) {
+	linCmtCmt(lin, 2);
+      }
+    }
+  } else if (lin->v2 != -1){
+    linCmtCmt(lin, 2);
+    lin->v = lin->v2;
+    lin->v2 = -1;
+    if (lin->v3 != -1) {
+      // v2, v3, v4; Central compartment is 2
+      lin->v2 = lin->v3;
+      lin->v3 = lin->v4;
+    } else if (lin->vp != -1){
+      // v2, vp,
+      lin->v2 = lin->vp;
+      if (lin->vp1 != -1){
+	// v2, vp, vp1
+	lin->v3 = lin->vp1;
+      } else if (lin->vp2 != -1) {
+	// v2, vp, vp2
+	lin->v3 = lin->vp2;
+      } else if (lin->vp3 != -1) {
+	linCmtCmt(lin, 2);
+      }
+    }
+  }
+  if (lin->cl != -1 && lin->v != -1) {
+    if (lin->cl2 != -1) {
+      if (lin->v2 == -1 && lin->vss == -1) {
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("can find distributional clearance but not peripheral volume"));
+      }
+    }
+    if (lin->v2 != -1) {
+      if (lin->cl2 == -1) {
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("can find peripheral volume but not distributlin->v2 ional clearance"));
+      }
+    }
+    if (lin->cl3 != -1) {
+      if (lin->v3 == -1) {
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("can find 2nd distributional clearance but not 2nd peripheral volume"));
+      }
+    }
+    if (lin->v3 != -1) {
+      if (lin->cl3 == -1) {
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("can find 2nd peripheral volume but not 2nd distributional clearance"));
+      }
+    }
+  }
+  if (lin->v != -1 && lin->v2 != -1) {
+    if (lin->v == lin->v2) {
+      parseFree(0);
+      Rf_errorcall(R_NilValue, _("cannot distinguish between central and peripheral volumes"));
+    }
+  }
+  if (lin->v2 != -1 && lin->v3 != -1) {
+    if (lin->v2 == lin->v3) {
+      parseFree(0);
+      Rf_errorcall(R_NilValue, _("cannot distinguish between 1st and 2nd peripheral volumes"));
+    }
+  }
+
+  if (lin->cl != -1 && lin->cl2 != -1) {
+    if (lin->cl == lin->cl2) {
+      parseFree(0);
+      Rf_errorcall(R_NilValue, _("cannot distinguish between central and peripheral clearances"));
+    }
+  }
+  if (lin->cl2 != -1 && lin->cl3 != -1) {
+    if (lin->cl2 == lin->cl3) {
+      parseFree(0);
+      Rf_errorcall(R_NilValue, _("cannot distinguish between 1st and 2nd distributional clearances"));
+    }
+  }
+}
+
+int _linCmtParsePro=0;
+SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
+  const char *first = "linCmtB(rx__PTR__, t, ";
+  const char *mid = "0, ";
+  const char *end1 = "rx_tlag, rx_F, rx_rate, rx_dur,";
+  const char *end2 = ", yrx_tlag2, rx_F2, rx_rate2, rx_dur2)";
+  int verbose = 0;
+  if (TYPEOF(verboseSXP) == LGLSXP) {
+    verbose = INTEGER(verboseSXP)[0];
+  }
+  int type = TYPEOF(inStr);
+  if (type == STRSXP) {
+    int len = Rf_length(inStr);
+    if (len > 0) {
+      first = CHAR(STRING_ELT(inStr, 0));
+    }
+    if (len > 1) {
+      mid = CHAR(STRING_ELT(inStr, 1));
+    }
+    if (len > 2) {
+      end1 = CHAR(STRING_ELT(inStr, 2));
+    }
+    if (len > 3) {
+      end2 = CHAR(STRING_ELT(inStr, 3));
+    }
+  }
+  linCmtStruct lin;
+  linCmtIni(&lin);
+  for (int i = Rf_length(vars); i--;){
+    linCmtStr(&lin, CHAR(STRING_ELT(vars, i)), &i);
+  }
+  linCmtAdjustPars(&lin);
+  int trans =-1;
+  int ncmt = -1;
+  sbuf ret0, ret;
+  sIni(&ret0);
+  sIni(&ret);
+  if (lin.cl != -1) {
+    trans = 1;
+    if (lin.vss != -1) {
+      ncmt = 2;
+      trans = 3;
+      if (lin.vStyle != -1) {
+	sClear(&firstErr);
+	sAppendN(&firstErr, "cannot mix 'Vss' and '", 22);
+	linCmtVStr(&firstErr, lin.vStyle);
+	sAppendN(&firstErr, "' volumes", 9);
+	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
+	Rf_errorcall(R_NilValue, firstErr.s);
+      }
+      if (lin.v == -1) {
+	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
+	Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
+      }
+      if (lin.cl2 == -1) {
+	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
+	Rf_errorcall(R_NilValue, _("cannot figure out distributional clearance"));
+      }
+      sAppend(&ret0, "%d, %s", trans, mid);
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl)));
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl2)));
+      sAppend(&ret0, "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.vss)));
+    } else {
+      if (lin.v == -1) {
+	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
+	Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
+      }
+      ncmt = 1;
+      trans = 1;
+      sAppend(&ret0, "%d, %s", trans, mid);
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl)));
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+      if (lin.v2 != -1 || lin.cl2 != -1) {
+	ncmt = 2;
+	if (lin.cl2 == -1) {
+	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
+	  Rf_errorcall(R_NilValue, _("cannot figure out distributional clearance"));
+	}
+	if (lin.v2 == -1) {
+	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
+	  Rf_errorcall(R_NilValue, _("cannot figure out distributional volume"));
+	}
+	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl2)));
+	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v2)));
+	if (lin.v3 != -1 || lin.cl3 != -1) {
+	  ncmt = 3;
+	  if (lin.cl3 == -1) {
+	    parseFree(0);
+	    sFree(&ret0);
+	    sFree(&ret);
+	    Rf_errorcall(R_NilValue, _("cannot figure out 2nd distributional clearance"));
+	  }
+	  if (lin.v3 == -1) {
+	    parseFree(0);
+	    sFree(&ret0);
+	    sFree(&ret);
+	    Rf_errorcall(R_NilValue, _("cannot figure out 2nd distributional volume"));
+	  }
+	  sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl3)));
+	  sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v3)));
+	} else {
+	  sAppendN(&ret0, "0.0, 0.0, ", 10);
+	}
+      } else {
+	sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
+      }
+    }
+    if (verbose) RSprintf(_("Detected %d-compartment model in terms of clearance"), ncmt);
+  } else if (lin.kel != -1) {
+    if (lin.v == -1) {
+      parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
+      Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
+    }
+    ncmt = 1;
+    trans = 2;
+    sAppend(&ret0, "%d, %s", trans, mid);
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.kel)));
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+    if (lin.k12 != -1 || lin.k21 != -1) {
+      if (lin.k12 == -1) {
+	if (lin.cmtc == 1){
+	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
+	  Rf_errorcall(R_NilValue, _("'k12' not found when 'k21' present"));
+	} else {
+	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
+	  Rf_errorcall(R_NilValue, _("'k23' not found when 'k32' present"));
+	}
+      }
+      if (lin.k21 == -1) {
+	if (lin.cmtc == 1){
+	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
+	  Rf_errorcall(R_NilValue, _("'k21' not found when 'k12' present"));
+	} else {
+	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
+	  Rf_errorcall(R_NilValue, _("'k32' not found when 'k23' present"));
+	}
+      }
+      ncmt = 2;
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k12)));
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k21)));
+      if (lin.k13 != -1 || lin.k31 != -1) {
+	if (lin.k13 == -1) {
+	  if (lin.cmtc == 1){
+	    sFree(&ret0);
+	    sFree(&ret);
+	    parseFree(0);
+	    Rf_errorcall(R_NilValue, _("'k13' not found when 'k31' present"));
+	  } else {
+	    sFree(&ret0);
+	    sFree(&ret);
+	    parseFree(0);
+	    Rf_errorcall(R_NilValue, _("'k24' not found when 'k42' present"));
+	  }
+	}
+	if (lin.k31 == -1) {
+	  if (lin.cmtc == 1){
+	    sFree(&ret0);
+	    sFree(&ret);
+	    parseFree(0);
+	    Rf_errorcall(R_NilValue, _("'k31' not found when 'k13' present"));
+	  } else {
+	    sFree(&ret0);
+	    sFree(&ret);
+	    parseFree(0);
+	    Rf_errorcall(R_NilValue, _("'k42' not found when 'k24' present"));
+	  }
+	}
+	ncmt = 3;
+	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k13)));
+	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k31)));
+      } else {
+	sAppendN(&ret0, "0.0, 0.0, ", 10);
+      }
+    } else if (lin.k31 != -1 || lin.k13 != -1){
+      if (lin.cmtc == 1){
+	sFree(&ret0);
+	sFree(&ret);
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("'k13' or 'k31' present when 'k12' and 'k21' not present"));
+      } else {
+	sFree(&ret0);
+	sFree(&ret);
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("'k24' or 'k42' present when 'k23' and 'k32' not present"));
+      }
+    } else {
+      sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
+    }
+    if (verbose) RSprintf(_("detected %d-compartment model in terms of micro-constants"), ncmt);
+  } else if (lin.aob != -1) {
+    ncmt = 2;
+    trans = 5;
+    if (lin.v == -1) {
+      parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
+      Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
+    }
+    if (lin.alpha == -1) {
+      parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
+      Rf_errorcall(R_NilValue, _("need an 'alpha' with 'aob'"));
+    }
+    if (lin.beta == -1) {
+      parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
+      Rf_errorcall(R_NilValue, _("need a 'beta' with 'aob'"));
+    }
+    sAppend(&ret0, "%d, %s", trans, mid);
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
+    sAppend(&ret0, "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.aob)));
+    if (verbose) RSprintf(_("detected %d-compartment model in terms of 'alpha' and 'aob'"), ncmt);
+  } else if (lin.k21 != -1) {
+    ncmt = 2;
+    trans = 4;
+    if (lin.v == -1) {
+      parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
+      Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
+    }
+    if (lin.alpha == -1) {
+      parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
+      Rf_errorcall(R_NilValue, _("need an 'alpha'"));
+    }
+    if (lin.beta == -1) {
+      parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
+      Rf_errorcall(R_NilValue, _("need a 'beta'"));
+    }
+    sAppend(&ret0, "%d, %s", trans, mid);
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
+    sAppend(&ret0, "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.k21)));
+    if (verbose) {
+      if (lin.cmtc == 1) {
+	RSprintf(_("detected %d-compartment model in terms of 'alpha' or 'k21'"), ncmt);
+      } else {
+	RSprintf(_("detected %d-compartment model in terms of 'alpha' or 'k32'"), ncmt);
+      }
+    }
+  } else if (lin.alpha != -1) {
+    ncmt = 1;
+    if (lin.a != -1){
+      trans = 10;
+    } else {
+      trans = 11;
+    }
+    sAppend(&ret0, "%d, %s", trans, mid);
+    sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
+    if (lin.a != -1) {
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.a)));
+    } else {
+      if (lin.v == -1) {
+	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
+	Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
+      }
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+    }
+    if (lin.beta != -1 || lin.b != -1) {
+      ncmt =2;
+      if (lin.beta == -1) {
+	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
+	Rf_errorcall(R_NilValue, _("need a 'beta'"));
+      }
+      if (lin.b == -1) {
+	parseFree(0);
+	sFree(&ret0);
+	sFree(&ret);
+	Rf_errorcall(R_NilValue, _("need a 'b'"));
+      }
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
+      sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.b)));
+      if (lin.gamma != -1 || lin.c != -1) {
+	ncmt = 3;
+	if (lin.gamma == -1) {
+	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
+	  Rf_errorcall(R_NilValue, _("need a 'gamma'"));
+	}
+	if (lin.c == -1) {
+	  parseFree(0);
+	  sFree(&ret0);
+	  sFree(&ret);
+	  Rf_errorcall(R_NilValue, _("need a 'c'"));
+	}
+	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.gamma)));
+	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.c)));
+      } else {
+	sAppendN(&ret0, "0.0, 0.0, ", 10);
+      }
+    } else if (lin.gamma != -1 || lin.c != -1) {
+      parseFree(0);
+      sFree(&ret0);
+      sFree(&ret);
+      Rf_errorcall(R_NilValue, _("a 'gamma' or 'c' specified without 'b' or 'beta'"));
+    } else {
+      sAppendN(&ret0, "0.0, 0.0, 0.0, 0.0, ", 20);
+    }
+    if (verbose) {
+      if (lin.a != -1){
+	RSprintf(_("detected %d-compartment model in terms of 'alpha' and central volume"), ncmt);
+      } else {
+	RSprintf(_("detected %d-compartment model in terms of 'alpha' and 'a'"), ncmt);
+      }
+    }
+  }
+  sAppend(&ret, "%s", first);
+  sAppend(&ret, "%d, %s", ncmt, ret0.s);
+  sAppend(&ret, "%s", end1);
+  if (lin.ka == -1) {
+    sAppendN(&ret, "0.0", 3);
+    if (verbose) RSprintf("\n");
+  } else {
+    sAppend(&ret, "%s", CHAR(STRING_ELT(vars, lin.ka)));
+    if (verbose) RSprintf(_(" with first order absorption\n"));
+  }
+  sAppend(&ret, "%s", end2);
+  int pro = 0;
+  SEXP strV = PROTECT(allocVector(STRSXP, 1)); pro++;
+  SEXP lst = PROTECT(allocVector(VECSXP, 3)); pro++;
+  SEXP lstN = PROTECT(allocVector(STRSXP, 3)); pro++;
+
+  SEXP transSXP = PROTECT(allocVector(INTSXP, 1)); pro++;
+  INTEGER(transSXP)[0] = trans;
+
+  SEXP ncmtSXP = PROTECT(allocVector(INTSXP, 1)); pro++;
+  INTEGER(ncmtSXP)[0] = ncmt;
+
+  SET_STRING_ELT(strV, 0, mkChar(ret.s));
+  SET_VECTOR_ELT(lst,  0, strV);
+  SET_STRING_ELT(lstN, 0, mkChar("str"));
+
+  SET_STRING_ELT(lstN, 1, mkChar("ncmt"));
+  SET_VECTOR_ELT(lst,  1, ncmtSXP);
+
+  SET_STRING_ELT(lstN, 2, mkChar("trans"));
+  SET_VECTOR_ELT(lst,  2, transSXP);
+
+  setAttrib(lst, R_NamesSymbol, lstN);
+  sFree(&ret0);
+  sFree(&ret);
+  UNPROTECT(pro);
+  if (trans == -1) {
+    UNPROTECT(_linCmtParsePro);
+    _linCmtParsePro=0;
+    parseFree(0);
+    Rf_errorcall(R_NilValue, _("could not figure out linCmt() model"));
+  }
+  _linCmtParsePro=0;
+  return lst;
+}
+
+SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
+  /* SEXP ret = PROTECT(allocVector(STRSXP, 1)); */
+  sbuf last;
+  sbuf d_tlag, d_tlag2, d_F,  d_F2, d_rate1, d_dur1,
+    d_rate2, d_dur2;
+  int i = 0;
+  sIni(&last);
+
+  sIni(&d_tlag);
+  sIni(&d_tlag2);
+  sIni(&d_F);
+  sIni(&d_F2);
+  sIni(&d_rate1);
+  sIni(&d_dur1);
+  sIni(&d_rate2);
+  sIni(&d_dur2);
+
+  sAppendN(&d_tlag,"0.0, ", 5);
+  sAppendN(&d_tlag2, ", 0.0, ", 7);
+  sAppendN(&d_F, "1.0, ", 5);
+  sAppendN(&d_F2, "1.0, ", 5);
+  sAppendN(&d_rate1, "0.0, ", 5);
+  sAppendN(&d_dur1, "0.0, ", 5);
+  sAppendN(&d_rate2, "0.0, ", 5);
+  sAppendN(&d_dur2, "0.0)", 4);
+  if (tb.hasKa){
+    // depot, central
+    for (i = 0; i < depotLines.n; i++){
+      switch(depotLines.lType[i]){
+      case FBIO:
+	sClear(&d_F);
+	sAppend(&d_F, "%s, ", depotLines.line[i]);
+	break;
+      case ALAG:
+	sClear(&d_tlag);
+	sAppend(&d_tlag, "%s, ", depotLines.line[i]);
+	break;
+      case RATE:
+	sClear(&d_rate1);
+	sAppend(&d_rate1, "%s, ", depotLines.line[i]);
+	break;
+      case DUR:
+	sClear(&d_dur1);
+	sAppend(&d_dur1, "%s, ", depotLines.line[i]);
+	break;
+      default:
+	RSprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
+      }
+    }
+    for (i = 0; i < centralLines.n; i++){
+      switch(centralLines.lType[i]){
+      case FBIO:
+	sClear(&d_F2);
+	sAppend(&d_F2, "%s, ", centralLines.line[i]);
+	break;
+      case ALAG:
+	sClear(&d_tlag2);
+	sAppend(&d_tlag2, ", %s, ", centralLines.line[i]);
+	break;
+      case RATE:
+	sClear(&d_rate2);
+	sAppend(&d_rate2, "%s, ", centralLines.line[i]);
+	break;
+      case DUR:
+	sClear(&d_dur2);
+	sAppend(&d_dur2, "%s)", centralLines.line[i]);
+	break;
+      }
+    }
+  } else {
+    for (i = 0; i < depotLines.n; i++){
+      switch(depotLines.lType[i]){
+      case FBIO:
+	sAppendN(&last, "'f(depot)' ", 11);
+	break;
+      case ALAG:
+	sAppendN(&last, "'alag(depot)' ", 14);
+	break;
+      case RATE:
+	sAppend(&last, "'rate(depot)' ", 14);
+	break;
+      case DUR:
+	sAppend(&last, "'dur(depot)' ", 13);
+	break;
+      default:
+	RSprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
+      }
+    }
+    if (last.o) {
+      sClear(&firstErr);
+      sAppend(&firstErr, "%s does not exist without a 'depot' compartment, specify a 'ka' parameter", last.s);
+      sFree(&d_tlag);
+      sFree(&d_tlag2);
+      sFree(&d_F);
+      sFree(&d_F2);
+      sFree(&d_rate1);
+      sFree(&d_dur1);
+      sFree(&d_rate2);
+      sFree(&d_dur2);
+      sFree(&last);
+      parseFree(0);
+      Rf_errorcall(R_NilValue, firstErr.s);
+    }
+    // central only
+    for (i = 0; i < centralLines.n; i++){
+      switch(centralLines.lType[i]){
+      case FBIO:
+	sClear(&d_F);
+	sAppend(&d_F, "%s, ", centralLines.line[i]);
+	break;
+      case ALAG:
+	sClear(&d_tlag);
+	sAppend(&d_tlag, "%s, ", centralLines.line[i]);
+	break;
+      case RATE:
+	sClear(&d_rate1);
+	sAppend(&d_rate1, "%s, ", centralLines.line[i]);
+	break;
+      case DUR:
+	sClear(&d_dur1);
+	sAppend(&d_dur1, "%s, ", centralLines.line[i]);
+	break;
+      }
+    }
+  }
+  int pro=0;
+  SEXP inStr = PROTECT(Rf_allocVector(STRSXP, 4)); pro++;
+  int doSens = 0;
+  if (TYPEOF(linCmtSens) == INTSXP){
+    doSens = INTEGER(linCmtSens)[0];
+  }
+  sAppend(&last, "%s%s%s%s", d_tlag.s, d_F.s, d_rate1.s, d_dur1.s);
+  SET_STRING_ELT(inStr, 2, mkChar(last.s));
+  sClear(&last);
+  sAppend(&last, "%s%s%s%s",d_tlag2.s, d_F2.s,  d_rate2.s, d_dur2.s);
+  SET_STRING_ELT(inStr, 3, mkChar(last.s));
+  sClear(&last);
+  if (doSens == 2){
+    sAppend(&last, "linCmtB(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+    SET_STRING_ELT(inStr, 0, mkChar(last.s));
+    SET_STRING_ELT(inStr, 1, mkChar("0, "));
+  } else {
+    if (doSens == 1){
+      sAppend(&last, "linCmtA(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+    } else if (doSens == 3) {
+      sAppend(&last, "linCmtC(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+    }
+    SET_STRING_ELT(inStr, 0, mkChar(last.s));
+    SET_STRING_ELT(inStr, 1, mkChar(""));
+  }
+  sFree(&d_tlag);
+  sFree(&d_tlag2);
+  sFree(&d_F);
+  sFree(&d_F2);
+  sFree(&d_rate1);
+  sFree(&d_dur1);
+  sFree(&d_rate2);
+  sFree(&d_dur2);
+  sFree(&last);
+  _linCmtParsePro=pro;
+  SEXP linCmtP = PROTECT(_linCmtParse(vars, inStr, verbose)); pro++;
+  sIni(&last);
+  for (i = 0; i < sbNrmL.n; i++){
+    if (sbNrmL.lProp[i]== -100){
+      char *line = sbNrmL.line[i];
+      while (strncmp(line, "linCmt(", 7)){
+	sPut(&last, line[0]);
+	line++;
+      }
+      line +=7;
+      sAppend(&last, "%s", CHAR(STRING_ELT(VECTOR_ELT(linCmtP, 0), 0)));
+      while (line[0] != ')'){
+	if (line[0] == '('){
+	  sFree(&last);
+	  UNPROTECT(pro);
+	  parseFree(0);
+	  Rf_errorcall(R_NilValue, _("linCmt() cannot have any extra parentheses in it"));
+	}
+	line++;
+      }
+      sAppend(&last, "%s", ++line);
+    } else {
+      sAppend(&last, "%s", sbNrmL.line[i]);
+    }
+  }
+  SEXP ret = PROTECT(Rf_allocVector(STRSXP,1)); pro++;
+  SET_STRING_ELT(ret, 0, mkChar(last.s));
+  sFree(&last);
+  UNPROTECT(pro);
+  return ret;
+}
+
+// Taken from dparser and changed to use Calloc
+char * rc_dup_str(const char *s, const char *e) {
+  lastStr=s;
+  int l = e ? e-s : (int)strlen(s);
+  syntaxErrorExtra=min(l-1, 40);
+  addLine(&_dupStrs, "%.*s", l, s);
+  return _dupStrs.line[_dupStrs.n-1];
+}
+

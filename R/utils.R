@@ -1,12 +1,62 @@
-.cliRule <- function(...){
-    cat(utils::capture.output(cli::rule(...)), "\n", sep="")
+.minfo <- function(text, ..., .envir = parent.frame()) {
+  cli::cli_alert_info(gettext(text), ..., .envir = .envir)
 }
-.normalizePath <- function(path, ...){
-    ifelse(.Platform$OS.type=="windows",
-           suppressWarnings(utils::shortPathName(normalizePath(path, ...))),
+
+.malert <- function(text, ..., .envir = parent.frame()) {
+  cli::cli_alert(gettext(text), ..., .envir = .envir)
+}
+
+.mwarn <- function(text, ..., .envir = parent.frame()) {
+  cli::cli_alert_warning(gettext(text), ..., .envir = .envir)
+}
+
+.msuccess <- function(text, ..., .envir = parent.frame()) {
+  cli::cli_alert_success(gettext(text), ..., .envir = .envir)
+}
+
+##' Unloads all RxODE compiled DLLs
+##'
+##' @return List of RxODE dlls still loaded
+##'
+##' @examples
+##'
+##' print(rxUnloadAll())
+##'
+##' @export
+rxUnloadAll <- function() {
+  .Call(`_RxODE_rxUnloadAll_`) # nolint
+  .dll <- getLoadedDLLs()
+  .n <- names(.dll)
+  .n <- .n[regexpr("^rx_[a-f0-9]{32}", .n) != -1]
+  .ret <- lapply(.n, function(rx) {
+    .cur <- .dll[[rx]]
+    class(.cur) <- NULL
+    .num <- .rxModels[[.cur$path]]
+    if (is.null(.num)) {
+      dyn.unload(.cur$path)
+      return(NULL)
+    } else if (identical(.num, 0L)) {
+      dyn.unload(.cur$path)
+      return(NULL)
+    } else {
+      return(.cur$path)
+    }
+  })
+  if (length(.ret) == 0) {
+    return(invisible(.ret))
+  }
+  .ret <- .ret[[!is.null(.ret)]]
+  return(invisible(.ret))
+}
+
+.normalizePath <- function(path, ...) {
+  ifelse(.Platform$OS.type == "windows",
+    suppressWarnings(utils::shortPathName(normalizePath(path, ...))),
     ifelse(regexpr("^[/~]", path) != -1,
-           suppressWarnings(normalizePath(path, ...)),
-           suppressWarnings(normalizePath(file.path(getwd(), path), ...))))
+      suppressWarnings(normalizePath(path, ...)),
+      suppressWarnings(normalizePath(file.path(getwd(), path), ...))
+    )
+  )
 }
 
 ##' Require namespace, otherwise throw error.
@@ -16,12 +66,14 @@
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
-rxReq <- function(pkg){
-    ## nocov start
-    if (!requireNamespace(pkg, quietly = TRUE)) {
-        stop(sprintf("Package \"%s\" needed for this function to work. Please install it.", pkg), call. = FALSE);
-    }
-    ## nocov end
+rxReq <- function(pkg) {
+  ## nocov start
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    stop(sprintf(gettext("package \"%s\" needed for this function to work"), pkg),
+      call. = FALSE
+    )
+  }
+  ## nocov end
 }
 ##' Use cat when RxODE.verbose is TRUE
 ##'
@@ -29,16 +81,16 @@ rxReq <- function(pkg){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxCat <- function(a, ...){
-    ## nocov start
-    if (RxODE.verbose){
-        if (is(a, "RxODE")){
-            message(RxODE::rxNorm(a), appendLF=FALSE);
-        } else {
-            message(a, ..., appendLF=FALSE);
-        }
+rxCat <- function(a, ...) {
+  ## nocov start
+  if (RxODE.verbose) {
+    if (is(a, "RxODE")) {
+      message(RxODE::rxNorm(a), appendLF = FALSE)
+    } else {
+      message(a, ..., appendLF = FALSE)
     }
-    ## nocov end
+  }
+  ## nocov end
 }
 
 
@@ -56,141 +108,112 @@ rxCat <- function(a, ...){
 ##'
 ##' @author Matthew L. Fidler
 ##' @export
-rxClean <- function(wd){
-    if (!missing(wd)) warning("'wd' is depreciated")
-    rxUnloadAll();
+rxClean <- function(wd) {
+  if (!missing(wd)) warning("'wd' is depreciated")
+  rxUnloadAll()
+  unlink(rxTempDir(), recursive=TRUE, force=TRUE)
 }
 
-refresh <- function(derivs=FALSE){
-    ## nocov start
-    cat("Dparser Version\n");
-    print(dparser::dpVersion())
-    if (derivs){
-        Sys.setenv(RxODE_derivs=TRUE)
-    } else {
-        Sys.setenv(RxODE_derivs=FALSE)
-    }
-    source(devtools::package_file("build/refresh.R"))
-    ## nocov end
+refresh <- function(derivs = FALSE) {
+  ## nocov start
+  cat("Dparser Version\n")
+  print(dparser::dpVersion())
+  if (derivs) {
+    Sys.setenv(RxODE_derivs = TRUE)
+  } else {
+    Sys.setenv(RxODE_derivs = FALSE)
+  }
+  source(devtools::package_file("build/refresh.R"))
+  ## nocov end
 }
 
-ode.h <- function(){
-    ## nocov start
-    cat("Generate header string.\n");
-    r.files <- list.files(devtools::package_file("R"), "[.]R$", full.names=TRUE);
-    r.files <- r.files[regexpr("RxODE_md5.R", r.files, fixed=TRUE) == -1]
-    md5 <- digest::digest(c(sapply(list.files(devtools::package_file("src"),
-                                              pattern="[.](c|cpp|h|hpp|f|R|in)$", full.names=TRUE),
-                                   function(x){digest::digest(x, file=TRUE)}),
-                            sapply(r.files, function(x){digest::digest(x, file=TRUE)}),
-                            sapply(list.files(devtools::package_file("vignettes"), pattern="[.](Rmd)$",
-                                              full.names=TRUE),
-                                   function(x){digest::digest(x, file=TRUE)}),
-                            sapply(list.files(devtools::package_file("demo"), pattern="(R|index)$",
-                                              full.names=TRUE),
-                                   function(x){digest::digest(x, file=TRUE)}),
-                            sapply(list.files(devtools::package_file(),
-                                              pattern="(cleanup.*|configure.*|DESCRIPTION|NAMESPACE)",
-                                              full.names=TRUE),
-                                   function(x){digest::digest(x, file=TRUE)})))
-    hd <- c(sprintf("#define __VER_2__ \"    SET_STRING_ELT(version,2,mkChar(\\\"%s\\\"));\\n\"", md5),
-            sprintf("#define __VER_1__ \"    SET_STRING_ELT(version,1,mkChar(\\\"%s\\\"));\\n\"",
-                    as.vector(RxODE::rxVersion()["repo"])),
-            sprintf("#define __VER_0__ \"    SET_STRING_ELT(version,0,mkChar(\\\"%s\\\"));\\n\"",
-                    sessionInfo()$otherPkgs$RxODE$Version),
-            sprintf("#define __VER_md5__ \"%s\"", md5),
-            sprintf("#define __VER_repo__ \"%s\"", as.vector(RxODE::rxVersion()["repo"])),
-            sprintf("#define __VER_ver__ \"%s\"", sessionInfo()$otherPkgs$RxODE$Version))
-    writeLines(hd, devtools::package_file("src/ode.h"))
-    writeLines(sprintf("RxODE.md5 <- \"%s\"", md5),
-               devtools::package_file("R/RxODE_md5.R"));
-    ## nocov end
+ode.h <- function() {
+  ## nocov start
+  cat("Generate header string.\n")
+  r.files <- list.files(devtools::package_file("R"), "[.]R$", full.names = TRUE)
+  r.files <- r.files[regexpr("RxODE_md5.R", r.files, fixed = TRUE) == -1]
+  md5 <- digest::digest(c(
+    sapply(
+      list.files(devtools::package_file("src"),
+        pattern = "[.](c|cpp|h|hpp|f|R|in)$", full.names = TRUE
+      ),
+      function(x) {
+        digest::digest(x, file = TRUE)
+      }
+    ),
+    sapply(r.files, function(x) {
+      digest::digest(x, file = TRUE)
+    }),
+    sapply(
+      list.files(devtools::package_file("vignettes"),
+        pattern = "[.](Rmd)$",
+        full.names = TRUE
+      ),
+      function(x) {
+        digest::digest(x, file = TRUE)
+      }
+    ),
+    sapply(
+      list.files(devtools::package_file("demo"),
+        pattern = "(R|index)$",
+        full.names = TRUE
+      ),
+      function(x) {
+        digest::digest(x, file = TRUE)
+      }
+    ),
+    sapply(
+      list.files(devtools::package_file(),
+        pattern = "(cleanup.*|configure.*|DESCRIPTION|NAMESPACE)",
+        full.names = TRUE
+      ),
+      function(x) {
+        digest::digest(x, file = TRUE)
+      }
+    )
+  ))
+  hd <- c(
+    sprintf("#define __VER_2__ \"    SET_STRING_ELT(version,2,mkChar(\\\"%s\\\"));\\n\"", md5),
+    sprintf(
+      "#define __VER_1__ \"    SET_STRING_ELT(version,1,mkChar(\\\"%s\\\"));\\n\"",
+      as.vector(RxODE::rxVersion()["repo"])
+    ),
+    sprintf(
+      "#define __VER_0__ \"    SET_STRING_ELT(version,0,mkChar(\\\"%s\\\"));\\n\"",
+      sessionInfo()$otherPkgs$RxODE$Version
+    ),
+    sprintf("#define __VER_md5__ \"%s\"", md5),
+    sprintf("#define __VER_repo__ \"%s\"", as.vector(RxODE::rxVersion()["repo"])),
+    sprintf("#define __VER_ver__ \"%s\"", sessionInfo()$otherPkgs$RxODE$Version)
+  )
+  writeLines(hd, devtools::package_file("src/ode.h"))
+  writeLines(
+    sprintf("RxODE.md5 <- \"%s\"", md5),
+    devtools::package_file("R/RxODE_md5.R")
+  )
+  ## nocov end
 }
 
 
 
-##' Choose the type of sums to use for RxODE.
-##'
-##' Choose the types of sums to use in RxODE.  These are used in the
-##' RxODE \code{sum} blocks and the \code{rxSum} function
-##'
-##' @param type Sum type to use for \code{rxSum} and \code{sum()} in
-##'     RxODE code blocks.
-##'
-##' \code{pairwise} uses the pairwise sum (fast, default)
-##'
-##' \code{fsum} uses Python's fsum function (most accurate)
-##'
-##' \code{kahan} uses kahan correction
-##'
-##' \code{neumaier} uses Neumaier correction
-##'
-##' \code{c} uses no correction, bud default/native summing
-##'
-##' @return nothing
-##' @author Matthew L. Fidler
-##' @export
-rxSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "c")){
-    PreciseSums::psSetSum(type);
-}
 
-##' Choose the type of product to use in RxODE.  These are used in the
-##' RxODE \code{prod} blocks
+##' Defunct setting of sum
 ##'
-##' @param type  Product to use for \code{prod()} in RxODE blocks
-##'
-##' \code{long double} converts to long double, performs the
-##' multiplication and then converts back.
-##'
-##' \code{double} uses the standard double scale for multiplication.
-##'
-##' @return nothing
-##' @author Matthew L. Fidler
-##' @export
-rxSetProd <- function(type=c("long double", "double", "logify")){
-    PreciseSums::psSetProd(type);
-}
-
-##' Setup C++14 support in windows (required for nlmixr)
-##'
-##' @return nothing
+##' @param type used to be type of product
 ##'
 ##' @export
-rxC14 <- function(){
-    ## nocov start
-    .dotR <- file.path(Sys.getenv("HOME"), ".R")
-    if (!file.exists(.dotR)) dir.create(.dotR)
-    .M <- file.path(.dotR, ifelse(.Platform$OS.type!="windows", "Makevars.win", "Makevars"))
-    if (!file.exists(.M)) file.create(.M)
-    .lines <-suppressWarnings(readLines(.M));
-    .write <- FALSE
-    .w <- which(regexpr(rex::rex(any_spaces, "CXX14", any_spaces, "="), .lines) != -1)
-    if (length(.w)==0L){
-        .write <- TRUE
-        .lines[length(.lines)+1] <- ifelse(.Platform$OS.type!="windows","CXX14=$(BINPREF)g++ $(M_ARCH)", "CXX14=g++")
-    }
-    if (.Platform$OS.type!="windows"){
-        .w <- which(regexpr(rex::rex(any_spaces, "CXX14STD", any_spaces, "="), .lines) != -1)
-        if (length(.w)==0L){
-            .write <- TRUE
-            .lines[length(.lines)+1] <- "CXX14STD=-std=c++1y"
-        }
-    }
-    .w <- which(regexpr(rex::rex(any_spaces, "CXX14FLAGS", any_spaces, "="), .lines) != -1)
-    if (length(.w)==0L){
-        .write <- TRUE
-        .lines[length(.lines)+1] <- "CXX14FLAGS=-O2 -Wall"
-    }
-    if (.write) {
-        writeLines(.lines, .M);
-        message("C++14 setup")
-    } else {
-        message("C++14 was already setup")
-    }
-    return(invisible(""));
-    ## nocov end
+rxSetSum <- function(type = c("pairwise", "fsum", "kahan", "neumaier", "c")) {
+  stop("'rxSetSum' has been moved to rxSolve(...,sum=)", call. = FALSE)
 }
 
+##' Defunct setting of product
+##'
+##' @param type used to be type of product
+##'
+##' @export
+rxSetProd <- function(type = c("long double", "double", "logify")) {
+  stop("'rxSetProd' has been moved to rxSolve(...,sum=)", call. = FALSE)
+}
 
 ##' Set timing for progress bar
 ##'
@@ -200,9 +223,796 @@ rxC14 <- function(){
 ##'
 ##' @export
 ##' @author Matthew Fidler
-rxSetProgressBar <- function(seconds=1.0) {
-    invisible(.Call(`_rxParProgress`, as.double(seconds)))
+rxSetProgressBar <- function(seconds = 1.0) {
+  invisible(.Call(`_rxParProgress`, as.double(seconds)))
 }
+
+##' Sample a covariance Matrix from the Posterior Inverse Wishart
+##' distribution.
+##'
+##' Note this Inverse wishart rescaled to match the original scale of
+##' the covariance matrix.
+##'
+##' If your covariance matrix is a 1x1 matrix, this uses an scaled
+##' inverse chi-squared which is equivalent to the Inverse Wishart
+##' distribution in the uni-directional case.
+##'
+##' @param nu Degrees of Freedom (Number of Observations) for
+##'        covariance matrix simulation.
+##'
+##' @param omega Either the estimate of covariance matrix or the
+##'     estimated standard deviations in matrix form each row forming
+##'     the standard deviation simulated values
+##'
+##' @param n Number of Matrices to sample.  By default this is 1.
+##'     This is only useful when \code{omega} is a matrix.  Otherwise
+##'     it is determined by the number of rows in the input
+##'     \code{omega} matrix of standard deviations
+##'
+##' @param omegaIsChol is an indicator of if the omega matrix is in
+##'   the Cholesky decomposition. This is only used when code{type="invWishart"}
+##'
+##' @param returnChol Return the Cholesky decomposition of the
+##'   covariance matrix sample. This is only used when code{type="invWishart"}
+##'
+##' @param diagXformType Diagonal transformation type.  These could be:
+##'
+##' \itemize{
+##'
+##' \item{log} The standard deviations are log transformed, so the
+##'   actual standard deviations are exp(omega)
+##'
+##' \item{identity} The standard deviations are not transformed. The
+##' standard deviations are not transformed;  They should be positive.
+##'
+##' \item{variance} The variances are specified in the \code{omega}
+##' matrix; They are transformed into standard deviations.
+##'
+##' \item{nlmixrSqrt} These standard deviations come from an nlmixr
+##' omega matrix where diag(chol(inv(omega))) = x^2
+##'
+##' \item{nlmixrLog} These standard deviations come from a nlmixr
+##' omega matrix omega matrix where diag(chol(solve(omega))) = exp(x)
+##'
+##' \item{nlmixrIdentity} These standard deviations come from a nlmixr
+##' omega matrix omega matrix where diag(chol(solve(omega))) = x
+##'
+##' }
+##'
+##'  The nlmixr transformations only make sense when there is no
+##'  off-diagonal correlations modeled.
+##'
+##' @param type The type of covariance posterior that is being
+##'     simulated.  This can be:
+##'
+##' \itemize{
+##'
+##' \item{invWishart} The posterior is an inverse wishart; This allows
+##' for correlations between parameters to be modeled.  All the
+##' uncertainty in the parameter is captured in the degrees of freedom
+##' parameter.
+##'
+##' \item{lkj} The posterior separates the standard deviation
+##' estimates (modeled outside and provided in the \code{omega}
+##' argument) and the correlation estimates. The correlation estimate
+##' is simulated with the \code{\link{rLKJ1}}.  This simulation uses
+##' the relationship \code{eta=(nu-1)/2}.  This is relationship based
+##' on the proof of the relationship between the restricted
+##' LKJ-distribution and inverse wishart distribution (XXXXXX).  Once
+##' the correlation posterior is calculated, the estimated standard
+##' deviations are then combined with the simulated correlation matrix
+##' to create the covariance matrix.
+##'
+##' \item{separation} Like the \code{lkj} option, this separates out
+##' the estimation of the correlation and standard deviation.  Instead
+##' of using the \code{LKJ} distribution to simulate the correlation,
+##' it simulates the inverse wishart of the identity matrix and
+##' converts the result to a correlation matrix.  This correlation
+##' matrix is then used with the standard deviation to calculate the
+##' simulated covariance matrix.
+##'
+##' }
+##'
+##' @return a matrix (n=1) or a list of matrices  (n > 1)
+##'
+##' @details
+##'
+##' In general, the separation strategy is preferred for diagonal
+##' matrices.  If the dimension of the matrix is below 10, \code{lkj}
+##' is numerically faster than \code{separation} method.  However, the
+##' \code{lkj} method has densities too close to zero (XXXX) when the
+##' dimension is above 10.  In that case, though computationally more
+##' expensive \code{separation} method performs better.
+##'
+##' For matrices with modeled covariances, the easiest method to use
+##' is the inverse Wishart which allows the simulation of correlation
+##' matrices (XXXX).  This method is more well suited for well behaved
+##' matrices, that is the variance components are not too low or too
+##' high.  When modeling nonlinear mixed effects modeling matrices
+##' with too high or low variances are considered sub-optimal in
+##' describing a system.  With these rules in mind, it is reasonable
+##' to use the inverse Wishart.
+##'
+##' @author Matthew L.Fidler & Wenping Wang
+##'
+##' @references
+##'
+##' Alvarez I, Niemi J and Simpson M. (2014) \emph{Bayesian Inference for a
+##' Covariance Matrix}. Conference on Applied Statistics in Agriculture.
+##' \url{https://newprairiepress.org/cgi/viewcontent.cgi?article=1004&context=agstatconference}
+##'
+##'
+##' Wang1 Z, Wu Y, and Chu H. (2018) \emph{On Equivalence of the LKJ
+##' distribution and the restricted Wishart distribution}. arXiv:1809.04746
+##'
+##' @examples
+##'
+##' ## Sample a single covariance.
+##' draw1 <- cvPost(3, matrix(c(1,.3,.3,1),2,2))
+##'
+##' ## Sample 3 covariances
+##' set.seed(42)
+##' draw3 <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3)
+##'
+##' ## Sample 3 covariances, but return the cholesky decomposition
+##' set.seed(42)
+##' draw3c <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3, returnChol=TRUE)
+##'
+##' ## Sample 3 covariances with lognormal standard deviations via LKJ
+##' ## correlation sample
+##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="lkj")
+##'
+##' ## or return cholesky decomposition
+##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="lkj",
+##'   returnChol=TRUE)
+##'
+##' ## Sample 3 covariances with lognormal standard deviations via separation
+##' ## strategy using inverse Wishart correlation sample
+##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="separation")
+##'
+##' ## or returning the cholesky decomposition
+##' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="separation",
+##'   returnChol=TRUE)
+##'
+##' @export
+cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
+                   type = c("invWishart", "lkj", "separation"),
+                   diagXformType = c("log", "identity", "variance", "nlmixrSqrt", "nlmixrLog", "nlmixrIdentity")) {
+  if (is.null(nu) && n == 1L) {
+    return(omega)
+  }
+  if (inherits(type, "numeric") || inherits(type, "integer")) {
+    .type <- as.integer(type)
+  } else {
+    .type <- as.vector(c(
+      "invWishart" = 1L, "lkj" = 2L,
+      "separation" = 3L
+    )[match.arg(type)])
+  }
+  if (.type == 1L) {
+    .xform <- 1L
+  } else if (inherits(diagXformType, "numeric") || inherits(diagXformType, "integer")) {
+    .xform <- as.integer(diagXformType)
+  } else {
+    .xform <- setNames(
+      c(
+        "variance" = 6L, "log" = 5L,
+        "identity" = 4L, "nlmixrSqrt" = 1L,
+        "nlmixrLog" = 2L,
+        "nlmixrIdentity" = 3L
+      )[match.arg(diagXformType)],
+      NULL
+    )
+  }
+  .ret <- .Call(`_RxODE_cvPost_`, nu, omega, n,
+    omegaIsChol, returnChol, .type, .xform,
+    PACKAGE = "RxODE"
+  )
+  return(.ret)
+}
+
+##' Simulate from a (truncated) multivariate normal
+##'
+##' This is simulated with the fast, thread-safe threefry simulator
+##' and can use multiple cores to generate the random deviates.
+##'
+##' @param n Number of random row vectors to be simulated OR the
+##'     matrix to use for simulation (faster).
+##'
+##' @param mu mean vector
+##'
+##' @param sigma Covariance matrix for multivariate normal or a list
+##'   of covariance matrices. If a list of covariance matrix, each
+##'   matrix will simulate `n` matrices and combine them to a full
+##'   matrix
+##'
+##' @param lower is a vector of the lower bound for the truncated
+##'     multivariate norm
+##'
+##' @param upper is a vector of the upper bound for the truncated
+##'     multivariate norm
+##'
+##' @param ncores Number of cores used in the simulation
+##'
+##' @param isChol A boolean indicating if \code{sigma} is a cholesky
+##'     decomposition of the covariance matrix.
+##'
+##' @param keepNames Keep the names from either the mean or covariance
+##'     matrix.
+##'
+##' @param a threshold for switching between methods; They can be
+##'   tuned for maximum speed;  There are three cases that are considered:
+##'
+##'  case 1: a < l < u
+##'
+##'  case 2: l < u < -a
+##'
+##'  case 3: otherwise
+##'
+##' where l=lower and u = upper
+##'
+##' @param tol When case 3 is used from the above possibilitys, the
+##'   tol value controls the acceptance rejection and
+##'   inverse-transformation;
+##'
+##' When abs(u-l)>tol, uses accept-reject from randn
+##'
+##' @param nlTol Tolerance for newton line-search
+##'
+##' @param nlMaxiter Maximum iterations for newton line-search
+##'
+##' @return
+##'
+##' If \code{n==integer} (default) the output is an (n x d) matrix
+##' where the i-th row is the i-th simulated vector.
+##'
+##' If \code{is.matrix(n)} then the random vector are store in \code{n},
+##' which is provided by the user, and the function returns
+##' \code{NULL} invisibly.
+##'
+##' @references John K. Salmon, Mark A. Moraes, Ron O. Dror, and David
+##'     E. Shaw (2011). Parallel Random Numbers: As Easy as 1, 2, 3.
+##'     D. E. Shaw Research, New York, NY 10036, USA.
+##'
+##' @examples
+##'
+##' ## From mvnfast
+##' ## Unlike mvnfast, uses threefry simulation
+##'
+##'  d <- 5
+##' mu <- 1:d
+##'
+##' # Creating covariance matrix
+##' tmp <- matrix(rnorm(d^2), d, d)
+##' mcov <- tcrossprod(tmp, tmp)
+##'
+##'
+##' set.seed(414)
+##' rxRmvn(4, 1:d, mcov)
+##'
+##' set.seed(414)
+##' rxRmvn(4, 1:d, mcov)
+##'
+##' set.seed(414)
+##' rxRmvn(4, 1:d, mcov, ncores = 2) # r.v. generated on the second core are different
+##'
+##' ###### Here we create the matrix that will hold the simulated
+##' #  random variables upfront.
+##' A <- matrix(NA, 4, d)
+##' class(A) <- "numeric" # This is important. We need the elements of A to be of class "numeric".
+##'
+##' set.seed(414)
+##' rxRmvn(A, 1:d, mcov, ncores = 2) # This returns NULL ...
+##' A                                # ... but the result is here
+##'
+##' ## You can also simulate from a truncated normal:
+##'
+##' rxRmvn(10, 1:d, mcov, lower=1:d-1, upper=1:d+1)
+##'
+##'
+##' # You can also simulate from different matrices (if they match
+##' # dimensions) by using a list of matrices.
+##'
+##' matL <- lapply(1:4,function(...){
+##'    tmp <- matrix(rnorm(d^2), d, d)
+##'    tcrossprod(tmp, tmp)
+##' })
+##'
+##'
+##' rxRmvn(4, setNames(1:d,paste0("a",1:d)), matL)
+##'
+##' @author Matthew Fidler, Zdravko Botev and some from Matteo Fasiolo
+##' @export
+rxRmvn <- function(n, mu = NULL, sigma, lower = -Inf, upper = Inf, ncores = 1, isChol = FALSE,
+                   keepNames = TRUE, a = 0.4, tol = 2.05, nlTol = 1e-10, nlMaxiter = 100L) {
+  .ret <- .Call(
+    `_RxODE_rxRmvnSEXP`, n, mu, sigma, lower, upper, ncores,
+    isChol, keepNames, a, tol, nlTol, nlMaxiter
+  )
+  if (is.matrix(n)) {
+    return(invisible())
+  }
+  return(.ret)
+}
+
+##' Collect warnings and just warn once.
+##'
+##' @param expr R expression
+##' @param lst When \code{TRUE} return a list with
+##'     list(object,warnings) instead of issuing the warnings.
+##'     Otherwise, when \code{FALSE} issue the warnings and return the
+##'     object.
+##' @return The value of the expression or a list with the value of
+##'     the expression and a list of warning messages
+##' @author Matthew L. Fidler
+##' @noRd
+.collectWarnings <- function(expr, lst = FALSE) {
+  .ws <- c()
+  .thisEnv <- environment()
+  .ret <- suppressWarnings(
+    withCallingHandlers(expr,
+      warning = function(w) {
+        assign(".ws", unique(c(w$message, .ws)), .thisEnv)
+      }
+    )
+  )
+  if (lst) {
+    return(list(.ret, .ws))
+  } else {
+    for (.w in .ws) {
+      warning(.w, call. = FALSE)
+    }
+    return(.ret)
+  }
+}
+
+##' Convert numeric vector to repeated data.frame
+##'
+##' @param vec Named input vector
+##' @param n Number of columns
+##' @return Data frame with repeated vec
+##' @author Matthew Fidler
+##' @noRd
+.vecDf <- function(vec, n) {
+  .Call(`_vecDF`, vec, as.integer(n), PACKAGE = "RxODE") # nolint
+}
+##' cbind Ome
+##'
+##' @param et The theta data frame
+##' @param mat The full matrix simulation from omegas
+##' @param n number of subject simulated
+##' @return data frame with et combined with simulated omega matrix values
+##' @author Matthew Fidler
+##' @noRd
+.cbindOme <- function(et, mat, n) {
+  .Call(`_cbindOme`, et, mat, as.integer(n), PACKAGE = "RxODE") # nolint
+}
+
+##' Cumulative distribution of standard normal
+##'
+##' @inheritParams stats::pnorm
+##' @return cumulative distribution of standard normal distribution
+##' @author Matthew Fidler
+##' @examples
+##'
+##' # phi is equivalent to pnorm(x)
+##' phi(3)
+##'
+##' # See
+##' pnorm(3)
+##'
+##' # This is provided for NONMEM-like compatibility in RxODE models
+##'
+##' @export
+phi <- function(q) {
+  .Call(`_phi`, q, PACKAGE = "RxODE")
+}
+##' Gammap: normalized lower incomplete gamma function
+##'
+##' This is the gamma_p from the boost library
+##'
+##' @param a The numeric 'a' parameter in the normalized lower
+##'   incomplete gamma
+##'
+##' @param z The numeric 'z' parameter in the normalized lower
+##'   incomplete gamma
+##'
+##' @details
+##'
+##' The gamma p function is given by:
+##'
+##' gammap = lowergamma(a, z)/gamma(a)
+##'
+##' @return gammap results
+##' @author Matthew L. Fidler
+##' @examples
+##'
+##' gammap(1,3)
+##' gammap(1:3,3)
+##' gammap(1,1:3)
+##'
+##' @export
+gammap <- function(a, z) {
+  .Call(`_gammap`, a, z, PACKAGE = "RxODE")
+}
+
+##' Gammaq: normalized upper incomplete gamma function
+##'
+##' This is the gamma_q from the boost library
+##'
+##' @param a The numeric 'a' parameter in the normalized upper
+##'   incomplete gamma
+##'
+##' @param z The numeric 'z' parameter in the normalized upper
+##'   incomplete gamma
+##'
+##' @details
+##'
+##' The gamma q function is given by:
+##'
+##' gammaq = uppergamma(a, z)/gamma(a)
+##'
+##' @return gammaq results
+##' @author Matthew L. Fidler
+##' @examples
+##'
+##' gammaq(1,3)
+##' gammaq(1:3,3)
+##' gammaq(1,1:3)
+##'
+##' @export
+gammaq <- function(a, z) {
+  .Call(`_gammaq`, a, z, PACKAGE = "RxODE")
+}
+##' uppergamma:  upper incomplete gamma function
+##'
+##' This is the tgamma from the boost library
+##'
+##' @param a The numeric 'a' parameter in the upper
+##'   incomplete gamma
+##'
+##' @param z The numeric 'z' parameter in the upper
+##'   incomplete gamma
+##'
+##' @details
+##'
+##' The uppergamma function is given by:
+##'
+##' \eqn{uppergamma(a, z) = \int_{z}^{\infty}t^{a-1}\cdot e^{-t} dt}
+##'
+##' @return uppergamma results
+##'
+##' @author Matthew L. Fidler
+##'
+##' @examples
+##'
+##' uppergamma(1,3)
+##'
+##' uppergamma(1:3,3)
+##'
+##' uppergamma(1,1:3)
+##'
+##' @export
+uppergamma <- function(a, z) {
+  .Call(`_uppergamma`, a, z, PACKAGE = "RxODE")
+}
+
+##' lowergamma:  upper incomplete gamma function
+##'
+##' This is the tgamma_lower from the boost library
+##'
+##' @param a The numeric 'a' parameter in the upper
+##'   incomplete gamma
+##'
+##' @param z The numeric 'z' parameter in the upper
+##'   incomplete gamma
+##'
+##' @details
+##'
+##' The lowergamma function is given by:
+##'
+##' \deqn{lowergamma(a, z) = \int_{0}^{z}t^{a-1}\cdot e^{-t} dt}
+##'
+##' @return lowergamma results
+##'
+##' @author Matthew L. Fidler
+##'
+##' @examples
+##'
+##' lowergamma(1,3)
+##'
+##' lowergamma(1:3,3)
+##'
+##' lowergamma(1,1:3)
+##'
+##' @export
+lowergamma <- function(a, z) {
+  .Call(`_lowergamma`, a, z, PACKAGE = "RxODE")
+}
+
+##' gammapDer:  derivative of gammap
+##'
+##' This is the gamma_p_derivative from the boost library
+##'
+##' @param a The numeric 'a' parameter in the upper
+##'   incomplete gamma
+##'
+##' @param z The numeric 'z' parameter in the upper
+##'   incomplete gamma
+##'
+##' @return lowergamma results
+##'
+##' @author Matthew L. Fidler
+##'
+##' @examples
+##'
+##' gammapDer(1:3,3)
+##'
+##' gammapDer(1,1:3)
+##'
+##' @export
+gammapDer <- function(a, z) {
+  .Call(`_gammapDer`, a, z, PACKAGE = "RxODE")
+}
+
+##' gammaqInv and gammaqInva:  Inverses of normalized gammaq function
+##'
+##' @param a The numeric 'a' parameter in the upper
+##'   incomplete gamma
+##'
+##' @param x The numeric 'x' parameter in the upper incomplete gamma
+##'
+##' @param q The numeric 'q' parameter in the upper
+##'   incomplete gamma
+##'
+##' @details
+##'
+##' With the equation:
+##'
+##' q = gammaq(a, x)
+##'
+##' The 'gammaqInv' function returns a value 'x' that satisfies the
+##' equation above
+##'
+##' The 'gammaqInva' function returns a value 'a' that satisfies the
+##' equation above
+##'
+##' NOTE: gammaqInva is slow
+##'
+##' @return inverse gammaq results
+##'
+##' @author Matthew L. Fidler
+##'
+##' @examples
+##'
+##' gammaqInv(1:3,0.5)
+##'
+##' gammaqInv(1,1:3/3)
+##'
+##' gammaqInv(1:3,1:3/3.1)
+##'
+##' gammaqInva(1:3,1:3/3.1)
+##'
+##' @export
+gammaqInv <- function(a, q) {
+  .Call(`_gammaqInv`, a, q, PACKAGE = "RxODE")
+}
+
+##' @rdname gammaqInv
+##' @export
+gammaqInva <- function(x, q) {
+  .Call(`_gammaqInva`, x, q, PACKAGE = "RxODE")
+}
+
+
+##' gammapInv and gammapInva:  Inverses of normalized gammap function
+##'
+##' @param a The numeric 'a' parameter in the upper
+##'   incomplete gamma
+##'
+##' @param x The numeric 'x' parameter in the upper incomplete gamma
+##'
+##' @param p The numeric 'p' parameter in the upper incomplete gamma
+##'
+##' @details
+##'
+##' With the equation:
+##'
+##' p = gammap(a, x)
+##'
+##' The 'gammapInv' function returns a value 'x' that satisfies the
+##' equation above
+##'
+##' The 'gammapInva' function returns a value 'q' that satisfies the
+##' equation above
+##'
+##' NOTE: gammapInva is slow
+##'
+##' @return inverse gammap results
+##'
+##' @author Matthew L. Fidler
+##'
+##' @examples
+##'
+##' gammapInv(1:3,0.5)
+##'
+##' gammapInv(1,1:3/3.1)
+##'
+##' gammapInv(1:3,1:3/3.1)
+##'
+##' gammapInva(1:3,1:3/3.1)
+##'
+##' @export
+gammapInv <- function(a, p) {
+  .Call(`_gammapInv`, a, p, PACKAGE = "RxODE")
+}
+
+##' @rdname gammapInv
+##' @export
+gammapInva <- function(x, p) {
+  .Call(`_gammapInva`, x, p, PACKAGE = "RxODE")
+}
+
+##' logit and inverse logit (expit) functions
+##'
+##' @param x Input value(s) in range [low,high] to translate -Inf to
+##'   Inf
+##'
+##' @param alpha Infinite value(s) to translate to range of [low,
+##'   high]
+##'
+##' @param low Lowest value in the range
+##'
+##' @param high Highest value in the range
+##'
+##' @param mean logit-scale mean
+##'
+##' @param sd logit-scale standard deviation
+##'
+##' @inheritParams stats::integrate
+##'
+##' @param ... other parameters passed to `integrate()`
+##'
+##' @details
+##'
+##' logit is given by:
+##'
+##' \deqn{logit(p) = -log(1/p-1)}
+##'
+##' where:
+##'
+##' \deqn{p = \frac{x-low}{high-low}}
+##'
+##'  expit is given by:
+##'
+##' \deqn{expit(p, low, high) = \frac{high-low}{1+exp(-alpha)}+low}
+##'
+##' The `logitNormInfo()` gives the mean, variance and coefficient of
+##' variability on the untransformed scale.
+##'
+##' @examples
+##'
+##' logit(0.25)
+##'
+##' expit(-1.09)
+##'
+##' logitNormInfo(logit(0.25),sd=0.1)
+##'
+##' logitNormInfo(logit(1,0,10), sd=1, low=0, high=10)
+##'
+##' @export
+logit <- function(x, low = 0, high = 1) {
+  .Call(`_logit`, x, low, high, PACKAGE = "RxODE")
+}
+##' @rdname logit
+##' @export
+expit <- function(alpha, low = 0, high = 1) {
+  .Call(`_expit`, alpha, low, high, PACKAGE = "RxODE")
+}
+
+##' @rdname logit
+##' @export
+logitNormInfo <- function(mean=0, sd=1, low=0, high=1,  abs.tol=1e-6, ...) {
+  .fM1 <- function(x) .Call(`_expit`, x, low, high, PACKAGE = "RxODE") * dnorm(x, mean=mean, sd=sd)
+  .m <- integrate(.fM1,-Inf,Inf, abs.tol = abs.tol, ...)$value
+  .fV <- function(x) (.Call(`_expit`, x, low, high, PACKAGE = "RxODE") - .m)^2 * dnorm(x, mean=mean, sd=sd)
+  .v <- integrate(.fV,-Inf,Inf, abs.tol = abs.tol, ...)$value
+  c(mean=.m, var=.v, cv=sqrt(.v) / .m)
+}
+
+##' probit and inverse probit functions
+##'
+##' @inheritParams logit
+##' @examples
+##'
+##' probit(0.25)
+##'
+##' probitInv(-0.674)
+##'
+##' probitNormInfo(probit(0.25),sd=0.1)
+##'
+##' probitNormInfo(probit(1,0,10), sd=1, low=0, high=10)
+##'
+##' @export
+probit <- function(x, low=0, high=1) {
+  .Call(`_probit`, x, low, high, PACKAGE = "RxODE")
+}
+
+##'@rdname probit
+##'@export
+probitInv <- function(x, low=0, high=1) {
+  .Call(`_probitInv`, x, low, high, PACKAGE = "RxODE")
+}
+
+
+##' @rdname logit
+##' @export
+probitNormInfo <- function(mean=0, sd=1, low=0, high=1,  abs.tol=1e-6, ...) {
+  .fM1 <- function(x) .Call(`_probitInv`, x, low, high, PACKAGE = "RxODE") * dnorm(x, mean=mean, sd=sd)
+  .m <- integrate(.fM1,-Inf,Inf, abs.tol = abs.tol, ...)$value
+  .fV <- function(x) (.Call(`_probitInv`, x, low, high, PACKAGE = "RxODE") - .m)^2 * dnorm(x, mean=mean, sd=sd)
+  .v <- integrate(.fV,-Inf,Inf, abs.tol = abs.tol, ...)$value
+  c(mean=.m, var=.v, cv=sqrt(.v) / .m)
+}
+
+##' Get/Set the number of threads that RxODE uses
+##'
+##' @param threads NULL (default) rereads environment variables. 0
+##'   means to use all logical CPUs available. Otherwise a number >= 1
+##'
+##' @param percent If provided it should be a number between 2 and
+##'   100; the percentage of logical CPUs to use. By default on
+##'   startup, 50 percent.
+##'
+##' @param throttle 2 (default) means that, roughly speaking, a
+##'   single thread will be used when number subjects solved for is <=2, 2 threads when
+##'   the number of all points is <=4, etc. The throttle is to speed up small data
+##'   tasks (especially when repeated many times) by not incurring the
+##'   overhead of managing multiple threads.
+##'
+##'   The throttle will also suppress sorting which ID will be solved first
+##'   when there are (nsubject solved)*throttle <= nthreads.  In
+##'   `RxODE` this sorting occurs to minimize the time for waiting for
+##'   another thread to finish. If the last item solved is has a long
+##'   solving time, all the other solving have to wait for that last
+##'   costly solving to occur. If the items which are likely to take
+##'   more time are solved first, this wait is less likely to have an
+##'   impact on the overall solving time.
+##'
+##'   In RxODE the IDs are sorted by the individual number of solving
+##'   points (largest first). It also has a C interface that allows
+##'   these IDs to be resorted by total time spent solving the
+##'   equation.  This allows packages like nlmixr to sort by solving
+##'   time if needed.
+##'
+##'   Overall the the number of threads is throttled (restricted) for
+##'   small tasks and sorting for IDs are suppressed.
+##'
+##' @param verbose Display the value of relevant OpenMP settings
+##' @export
+getRxThreads <- function(verbose=FALSE){
+  .Call(`getRxThreads_R`, verbose)
+}
+
+##'@rdname getRxThreads
+##'@export
+setRxThreads <- function (threads = NULL, percent = NULL, throttle=NULL)
+{
+  if (!missing(percent)) {
+    if (!missing(threads)) stop("provide either threads= or percent= but not both")
+    if (length(percent)!=1) stop("percent= is provided but is length ", length(percent))
+    percent=as.integer(percent)
+    if (is.na(percent) || percent<2L || percent>100L) stop("percent==",percent," but should be a number between 2 and 100")
+    invisible(.Call(`setRxthreads`, percent,  TRUE, as.integer(throttle)))
+  } else {
+    invisible(.Call(`setRxthreads`, as.integer(threads), FALSE, as.integer(throttle)))
+  }
+}
+
+##'@rdname getRxThreads
+##'@export
+rxCores <- getRxThreads
+
 ##'@export
 ##'@rdname rxUnloadAll_
 rxUnloadAll <- function(){

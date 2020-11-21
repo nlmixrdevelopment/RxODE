@@ -9,15 +9,15 @@
 \alias{pillar_shaft.mixed_units}
 \title{type_sum function for units}
 \usage{
-\method{type_sum}{units}(x, ...)
+type_sum.units(x, ...)
 
 format_type_sum.type_sum_units(x, width, ...)
 
-\method{pillar_shaft}{units}(x, ...)
+pillar_shaft.units(x, ...)
 
-\method{type_sum}{mixed_units}(x, ...)
+type_sum.mixed_units(x, ...)
 
-\method{pillar_shaft}{mixed_units}(x, ...)
+pillar_shaft.mixed_units(x, ...)
 }
 \arguments{
 \item{x}{see \link[pillar]{type_sum}}

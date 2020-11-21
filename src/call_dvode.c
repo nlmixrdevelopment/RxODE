@@ -10,6 +10,7 @@
 #include <PreciseSums.h>
 #include "../inst/include/RxODE.h"
 
+
 //--------------------------------------------------------------------------
 
 // These are now allocated via R structures in Rcpp.

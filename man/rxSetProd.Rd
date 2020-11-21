@@ -2,26 +2,13 @@
 % Please edit documentation in R/utils.R
 \name{rxSetProd}
 \alias{rxSetProd}
-\title{Choose the type of product to use in RxODE.  These are used in the
-RxODE \code{prod} blocks}
+\title{Defunct setting of product}
 \usage{
 rxSetProd(type = c("long double", "double", "logify"))
 }
 \arguments{
-\item{type}{Product to use for \code{prod()} in RxODE blocks
-
-\code{long double} converts to long double, performs the
-multiplication and then converts back.
-
-\code{double} uses the standard double scale for multiplication.}
-}
-\value{
-nothing
+\item{type}{used to be type of product}
 }
 \description{
-Choose the type of product to use in RxODE.  These are used in the
-RxODE \code{prod} blocks
-}
-\author{
-Matthew L. Fidler
+Defunct setting of product
 }

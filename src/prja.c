@@ -7,6 +7,16 @@
 #include "common.h"
 #include "lsoda_internal.h"
 
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
+
+void RSprintf(const char *format, ...);
+
 int prja(struct lsoda_context_t * ctx, double *y)
 {
 	int             i, ier, j;
@@ -29,7 +39,7 @@ int prja(struct lsoda_context_t * ctx, double *y)
    If _C(miter) = 2, make neq calls to f to approximate J.
 */
 	if (_C(miter) != 2) {
-		REprintf("[prja] _C(miter) != 2\n");
+	  RSprintf(_("[prja] _C(miter) != 2\n"));
 		return 0;
 	}
 	if (_C(miter) == 2) {

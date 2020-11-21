@@ -4,7 +4,13 @@
 \alias{rxGetModel}
 \title{Get model properties without compiling it.}
 \usage{
-rxGetModel(model, calcSens = NULL, calcJac = NULL, collapseModel = NULL)
+rxGetModel(
+  model,
+  calcSens = NULL,
+  calcJac = NULL,
+  collapseModel = NULL,
+  indLin = FALSE
+)
 }
 \arguments{
 \item{model}{RxODE specification}
@@ -17,6 +23,9 @@ Jacobain according to the specified ODEs.}
 
 \item{collapseModel}{boolean indicating if RxODE will remove all
 LHS variables when calculating sensitivities.}
+
+\item{indLin}{Calculate inductive linearization matrices and
+compile with inductive linearization support.}
 }
 \value{
 RxODE trans list

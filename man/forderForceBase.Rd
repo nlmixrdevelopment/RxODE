@@ -15,8 +15,8 @@ forderForceBase(forceBase = FALSE)
 Force using base order for RxODE radix sorting
 }
 \examples{
-\dontrun{
+\donttest{
 forderForceBase(TRUE) # Use base `order` for RxODE sorts
-forderForceBase(FALSE) # Use base `data.table` for RxODE sorts
+forderForceBase(FALSE) # Use `data.table` for RxODE sorts
 }
 }

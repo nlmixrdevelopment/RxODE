@@ -8,6 +8,13 @@
 #include <memory.h>
 #include "dop853.h"
 
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
 
 static long int     nfcn, nstep, naccpt, nrejct;
 static double       hout, xold, xout;
@@ -391,7 +398,7 @@ static int dopcor (int *nptr, FcnEqDiff fcn, double x, double* y, double xend,
       if (irtrn < 0)
         {
           /* if (fileout) */
-            Rprintf("Exit of dop853 at x = %.16e\r\n", x);
+	  Rprintf(_("exit of dop853 at x = %.16e\n"), x);
           return 2;
         }
     }
@@ -402,7 +409,7 @@ static int dopcor (int *nptr, FcnEqDiff fcn, double x, double* y, double xend,
       if (nstep > nmax)
         {
           /* if (fileout) */
-            Rprintf ( "Exit of dop853 at x = %.16e, more than nmax = %li are needed\r\n", x, nmax);
+	  Rprintf (_("exit of dop853 at x = %.16e, more than nmax = %li are needed\n"), x, nmax);
           xout = x;
           hout = h;
           return -2;
@@ -411,7 +418,7 @@ static int dopcor (int *nptr, FcnEqDiff fcn, double x, double* y, double xend,
       if (0.1 * fabs(h) <= fabs(x) * uround)
         {
           /* if (fileout) */
-            Rprintf ("Exit of dop853 at x = %.16e, step size too small h = %.16e\r\n", x, h);
+	  Rprintf (_("exit of dop853 at x = %.16e, step size too small h = %.16e\n"), x, h);
           xout = x;
           hout = h;
           return -3;
@@ -543,8 +550,7 @@ static int dopcor (int *nptr, FcnEqDiff fcn, double x, double* y, double xend,
                   iasti++;
                   if (iasti == 15)
                     {
-		      Rprintf ("The problem seems to become stiff at x = %.16e\r\n", x);                        
-
+		      Rprintf (_("the problem seems to become stiff at x = %.16e\n"), x); 
 		      xout = x;
 		      hout = h;
 		      return -4;
@@ -659,7 +665,7 @@ static int dopcor (int *nptr, FcnEqDiff fcn, double x, double* y, double xend,
               if (irtrn < 0)
                 {
                   /* if (fileout) */
-                    Rprintf ( "Exit of dop853 at x = %.16e\r\n", x);
+		  Rprintf ( _("exit of dop853 at x = %.16e\n"), x);
                   return 2;
                 }
             }
@@ -715,7 +721,7 @@ int dop853
   if (n == INT_MAX)
     {
       /* if (fileout) */
-        Rprintf ("System too big, max. n = %u\r\n", INT_MAX-1);
+      Rprintf (_("system too big, max. n = %u\n"), INT_MAX-1);
       arret = 1;
     }
 
@@ -725,7 +731,7 @@ int dop853
   else if (nmax <= 0)
     {
       /* if (fileout) */
-        Rprintf ( "Wrong input, nmax = %li\r\n", nmax);
+      Rprintf ( _("wrong input, nmax = %li\n"), nmax);
       arret = 1;
     }
 
@@ -735,7 +741,7 @@ int dop853
   else if ((meth <= 0) || (meth >= 2))
     {
       /* if (fileout) */
-        Rprintf ("Curious input, meth = %i\r\n", meth);
+      Rprintf (_("curious input, meth = %i\n"), meth);
       arret = 1;
     }
 
@@ -749,7 +755,7 @@ int dop853
   if ((iout < 0) || (iout > 2))
     {
       /* if (fileout) */
-        Rprintf ( "Wrong input, iout = %i\r\n", iout);
+      Rprintf ( _("wrong input, iout = %i\n"), iout);
       arret = 1;
     }
 
@@ -757,7 +763,7 @@ int dop853
   if (nrdens > n)
     {
       /* if (fileout) */
-        Rprintf ( "Curious input, nrdens = %u\r\n", nrdens);
+      Rprintf ( _("curious input, nrdens = %u\n"), nrdens);
       arret = 1;
     }
   else if (nrdens)
@@ -778,7 +784,7 @@ int dop853
           !rcont6 || !rcont7 || !rcont8 || (!indir && (nrdens < n)))
         {
           /* if (fileout) */
-            Rprintf ( "Not enough free memory for rcont12345678&indir\r\n");
+	  Rprintf ( _("not enough free memory for rcont12345678&indir\n"));
           arret = 1;
         }
 
@@ -786,19 +792,19 @@ int dop853
       if (nrdens == n)
         {
           if (icont)
-            Rprintf ( "Warning : when nrdens = n there is no need allocating memory for icont\r\n");
+            Rprintf ( _("warning : when nrdens = n there is no need allocating memory for icont\n"));
           nrds = n;
         }
       else if (licont < nrdens)
         {
           /* if (fileout) */
-            Rprintf ( "Insufficient storage for icont, min. licont = %u\r\n", nrdens);
+	  Rprintf ( _("insufficient storage for icont, min. licont = %u\n"), nrdens);
           arret = 1;
         }
       else
         {
           if ((iout < 2) && fileout)
-            fprintf (fileout, "Warning : put iout = 2 for dense output\r\n");
+            fprintf (fileout, "Warning : put iout = 2 for dense output\n");
           nrds = nrdens;
           for (i = 0; i < n; i++)
             indir[i] = INT_MAX;
@@ -813,7 +819,7 @@ int dop853
   else if ((uround <= 1.0E-35) || (uround >= 1.0))
     {
       if (fileout)
-        fprintf (fileout, "Which machine do you have ? Your uround was : %.16e\r\n", uround);
+        fprintf (fileout, "Which machine do you have ? Your uround was : %.16e\n", uround);
       arret = 1;
     }
 
@@ -823,7 +829,7 @@ int dop853
   else if ((safe >= 1.0) || (safe <= 1.0E-4))
     {
       if (fileout)
-        fprintf (fileout, "Curious input for safety factor, safe = %.16e\r\n", safe);
+        fprintf (fileout, "Curious input for safety factor, safe = %.16e\n", safe);
       arret = 1;
     }
 
@@ -841,7 +847,7 @@ int dop853
   else if (beta > 0.2)
     {
       if (fileout)
-        fprintf (fileout, "Curious input for beta : beta = %.16e\r\n", beta);
+        fprintf (fileout, "Curious input for beta : beta = %.16e\n", beta);
       arret = 1;
     }
 
@@ -865,7 +871,7 @@ int dop853
   if (!yy1 || !k1 || !k2 || !k3 || !k4 || !k5 || !k6 || !k7 || !k8 || !k9 || !k10)
     {
       if (fileout)
-        fprintf (fileout, "Not enough free memory for the method\r\n");
+        fprintf (fileout, "Not enough free memory for the method\n");
       arret = 1;
     }
 
@@ -965,7 +971,7 @@ double contd8 (int ii, double x)
 
   if (i == INT_MAX)
     {
-      Rprintf ("No dense output available for %uth component", ii);
+      Rprintf (_("no dense output available for %uth component"), ii);
       return 0.0;
     }
 

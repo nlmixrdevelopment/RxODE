@@ -7,7 +7,8 @@
 .setWarnIdSort(warnIdSort = TRUE)
 }
 \arguments{
-\item{warnIdSort}{Boolean for if the sorting warning is turned on or off.}
+\item{warnIdSort}{Boolean for if the sorting warning is turned on
+or off.}
 }
 \value{
 Nothing

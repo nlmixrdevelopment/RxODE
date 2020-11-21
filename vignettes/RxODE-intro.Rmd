@@ -43,7 +43,7 @@ mod1 <-RxODE({
     d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
     d/dt(peri)  =                    Q*C2 - Q*C3;
     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
-});
+})
 ```
 
 ## Specify ODE parameters and initial conditions
@@ -130,7 +130,8 @@ need for compartment renumbering.
 These events can also be combined and expanded (to multi-subject
 events and complex regimens) with `rbind`, `c`, `seq`, and `rep`. For
 more information about creating complex dosing regimens using RxODE
-see the [RxODE events vignette](https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-events.html).
+see the [RxODE events
+vignette](https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-events.html).
 
 
 # Solving ODEs

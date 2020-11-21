@@ -1,72 +1,81 @@
-
-rxPermissive({
-
+rxPermissive(
+  {
     library(RxODE)
-    context("Test pipeline style of interacting with RxODE");
+    context("Test pipeline style of interacting with RxODE")
 
     mod <- RxODE({
-        eff(0) = 1
-        C2 = centr/V2;
-        C3 = peri/V3;
-        CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
-        d/dt(depot) =-KA*depot;
-        d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
-        d/dt(peri)  =                    Q*C2 - Q*C3;
-        d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
-    });
+      eff(0) <- 1
+      C2 <- centr / V2
+      C3 <- peri / V3
+      CL <- TCl * exp(eta.Cl) ## This is coded as a variable in the model
+      d / dt(depot) <- -KA * depot
+      d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+      d / dt(peri) <- Q * C2 - Q * C3
+      d / dt(eff) <- Kin - Kout * (1 - C2 / (EC50 + C2)) * eff
+    })
 
-    fun <- function(type){
-        set.seed(12)
-        p1 <- mod %>%
-            rxParams(params=c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01, # central
-                              Q=1.05E+01,  V3=2.97E+02,              # peripheral
-                              Kin=1, Kout=1, EC50=200),
-                     inits=c(eff=1),
-                     omega=lotri(eta.Cl ~ 0.4^2)) %>%
-            et(amountUnits="mg", timeUnits="hours") %>%
-            et(amt=10000, cmt=2, ii=12, until=48) %>%
-            et(seq(0,48,length.out=100));
-        if (type=="rxSolve"){
-            p1 <- p1 %>%
-                rxSolve(nSub=30)
-        } else if (type=="solve"){
-            p1 <- p1 %>%
-                solve(nSub=30)
-        } else if (type=="simulate"){
-            p1 <- p1 %>%
-                simulate(nSub=30)
-        } else if (type=="predict"){
-            p1 <- p1 %>%
-                predict(nSub=30)
-        }
-        ##
-        set.seed(12)
-        p2 <- mod %>%
-            et(amountUnits="mg", timeUnits="hours") %>%
-            et(amt=10000, cmt=2, ii=12, until=48) %>%
-            et(seq(0,48,length.out=100)) %>%
-            rxParams(params=c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01, # central
-                              Q=1.05E+01,  V3=2.97E+02,              # peripheral
-                              Kin=1, Kout=1, EC50=200),
-                     inits=c(eff=1),
-                     omega=lotri(eta.Cl ~ 0.4^2));
-        if (type=="rxSolve"){
-            p2 <- p2 %>%
-                rxSolve(nSub=30)
-        } else if (type=="solve"){
-            p2 <- p2 %>%
-                solve(nSub=30)
-        } else if (type=="simulate"){
-            p2 <- p2 %>%
-                simulate(nSub=30)
-        } else if (type=="predict"){
-            p2 <- p2 %>%
-                predict(nSub=30)
-        }
-        test_that(sprintf("mod > et > rxParams > %s == mod > rxParams > et > %s",
-                          type, type), {
-            expect_equal(as.data.frame(p1), as.data.frame(p2))
-        })
+    fun <- function(type) {
+      set.seed(12)
+      p1 <- mod %>%
+        rxParams(
+          params = c(
+            KA = 2.94E-01, TCl = 1.86E+01, V2 = 4.02E+01, # central
+            Q = 1.05E+01, V3 = 2.97E+02, # peripheral
+            Kin = 1, Kout = 1, EC50 = 200
+          ),
+          inits = c(eff = 1),
+          omega = lotri(eta.Cl ~ 0.4^2)
+        ) %>%
+        et(amountUnits = "mg", timeUnits = "hours") %>%
+        et(amt = 10000, cmt = 2, ii = 12, until = 48) %>%
+        et(seq(0, 48, length.out = 100))
+      if (type == "rxSolve") {
+        p1 <- p1 %>%
+          rxSolve(nSub = 30)
+      } else if (type == "solve") {
+        p1 <- p1 %>%
+          solve(nSub = 30)
+      } else if (type == "simulate") {
+        p1 <- p1 %>%
+          simulate(nSub = 30)
+      } else if (type == "predict") {
+        p1 <- p1 %>%
+          predict(nSub = 30)
+      }
+      ##
+      set.seed(12)
+      p2 <- mod %>%
+        et(amountUnits = "mg", timeUnits = "hours") %>%
+        et(amt = 10000, cmt = 2, ii = 12, until = 48) %>%
+        et(seq(0, 48, length.out = 100)) %>%
+        rxParams(
+          params = c(
+            KA = 2.94E-01, TCl = 1.86E+01, V2 = 4.02E+01, # central
+            Q = 1.05E+01, V3 = 2.97E+02, # peripheral
+            Kin = 1, Kout = 1, EC50 = 200
+          ),
+          inits = c(eff = 1),
+          omega = lotri(eta.Cl ~ 0.4^2)
+        )
+      if (type == "rxSolve") {
+        p2 <- p2 %>%
+          rxSolve(nSub = 30)
+      } else if (type == "solve") {
+        p2 <- p2 %>%
+          solve(nSub = 30)
+      } else if (type == "simulate") {
+        p2 <- p2 %>%
+          simulate(nSub = 30)
+      } else if (type == "predict") {
+        p2 <- p2 %>%
+          predict(nSub = 30)
+      }
+      test_that(sprintf(
+        "mod > et > rxParams > %s == mod > rxParams > et > %s",
+        type, type
+      ), {
+        expect_equal(as.data.frame(p1), as.data.frame(p2))
+      })
     }
 
     fun("rxSolve")
@@ -76,66 +85,80 @@ rxPermissive({
 
 
     p1 <- mod %>%
-            rxParams(params=c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01, # central
-                              Q=1.05E+01,  V3=2.97E+02,              # peripheral
-                              Kin=1, Kout=1, EC50=200),
-                     inits=c(eff=1),
-                     omega=lotri(eta.Cl ~ 0.4^2)) %>%
-            et(amountUnits="mg", timeUnits="hours") %>%
-            et(amt=10000, cmt=2, ii=12, until=48) %>%
-        et(seq(0,48,length.out=100)) %>%
-        rxSolve(nSub=4);
+      rxParams(
+        params = c(
+          KA = 2.94E-01, TCl = 1.86E+01, V2 = 4.02E+01, # central
+          Q = 1.05E+01, V3 = 2.97E+02, # peripheral
+          Kin = 1, Kout = 1, EC50 = 200
+        ),
+        inits = c(eff = 1),
+        omega = lotri(eta.Cl ~ 0.4^2)
+      ) %>%
+      et(amountUnits = "mg", timeUnits = "hours") %>%
+      et(amt = 10000, cmt = 2, ii = 12, until = 48) %>%
+      et(seq(0, 48, length.out = 100)) %>%
+      rxSolve(nSub = 4)
 
-    ps1 <- p1%>% rxParams(inits=c(eff=2),dfSub=4) %>%
-        rxSolve(nSub=6, nStud=3)
-
+    ps1 <- p1 %>%
+      rxParams(inits = c(eff = 2), dfSub = 4) %>%
+      rxSolve(nSub = 6, nStud = 3)
 
     test_that("can update parameters from solve", {
-        expect_true(is(ps1, "rxSolve"))
-        expect_false(is.null(ps1$omegaList))
+      expect_true(is(ps1, "rxSolve"))
+      expect_false(is.null(ps1$omegaList))
     })
 
-    ps2 <- p1 %>% et(amt=10000, cmt=2, ii=24, until=48) %>%
-        et(seq(0,48,length.out=100)) %>%
-        rxSolve(nSub=4)
-    test_that("Can update event table in pipline solve",{
-        expect_true(is(ps1, "rxSolve"))
+    ps2 <- p1 %>%
+      et(amt = 10000, cmt = 2, ii = 24, until = 48) %>%
+      et(seq(0, 48, length.out = 100)) %>%
+      rxSolve(nSub = 4)
+
+    test_that("Can update event table in pipline solve", {
+      expect_true(is(ps1, "rxSolve"))
     })
 
     ## Now test iCov
     popex <- RxODE({
-        TVKA = 0.5;
-        TVCL = 1
-        TVV = 24
-        WT=70
-        CL = exp(log(TVCL) + 0.75*log(WT/70) + ECL);
-        V  = exp(log(TVV)  +      log(WT/70) + EV );
-        KA = exp(log(TVKA)                   + EKA);
-        IPRED = linCmt();
-        DV = IPRED*exp(err);
+      TVKA <- 0.5
+      TVCL <- 1
+      TVV <- 24
+      WT <- 70
+      CL <- exp(log(TVCL) + 0.75 * log(WT / 70) + ECL)
+      V <- exp(log(TVV) + log(WT / 70) + EV)
+      KA <- exp(log(TVKA) + EKA)
+      IPRED <- linCmt()
+      DV <- IPRED * exp(err)
     })
 
     set.seed(99)
     p1 <- popex %>%
-        rxParams(omega=lotri(ECL ~ 0.3,
-                             EV ~ 0.1,
-                             EKA ~ 0.5),
-                 sigma=lotri(err ~ 0.1),
-                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
-        et(amountUnits="mg", timeUnits="hours") %>%
-        et(amt=100, ii=12, until=48) %>%
-        rxSolve()
+      rxParams(
+        omega = lotri(
+          ECL ~ 0.3,
+          EV ~ 0.1,
+          EKA ~ 0.5
+        ),
+        sigma = lotri(err ~ 0.1),
+        iCov = data.frame(WT = rnorm(10, 70, 4))
+      ) %>%
+      et(amountUnits = "mg", timeUnits = "hours") %>%
+      et(amt = 100, ii = 12, until = 48) %>%
+      rxSolve()
 
     set.seed(99)
     p2 <- popex %>%
-        et(amountUnits="mg", timeUnits="hours") %>%
-        et(amt=100, ii=12, until=48) %>%
-        rxParams(omega=lotri(ECL ~ 0.3,
-                             EV ~ 0.1,
-                             EKA ~ 0.5),
-                 sigma=lotri(err ~ 0.1),
-                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
-        rxSolve()
+      et(amountUnits = "mg", timeUnits = "hours") %>%
+      et(amt = 100, ii = 12, until = 48) %>%
+      rxParams(
+        omega = lotri(
+          ECL ~ 0.3,
+          EV ~ 0.1,
+          EKA ~ 0.5
+        ),
+        sigma = lotri(err ~ 0.1),
+        iCov = data.frame(WT = rnorm(10, 70, 4))
+      ) %>%
+      rxSolve()
 
     expect_equal(as.data.frame(p1), as.data.frame(p2))
 
@@ -143,89 +166,113 @@ rxPermissive({
     ## Test parameters as a vector only with iCov
     set.seed(99)
     p1 <- popex %>%
-        rxParams(params=c(ECL=0, EV=0, EKA=0, err=0),
-                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
-        et(amountUnits="mg", timeUnits="hours") %>%
-        et(amt=100, ii=12, until=48) %>%
-        rxSolve()
+      rxParams(
+        params = c(ECL = 0, EV = 0, EKA = 0, err = 0),
+        iCov = data.frame(WT = rnorm(10, 70, 4))
+      ) %>%
+      et(amountUnits = "mg", timeUnits = "hours") %>%
+      et(amt = 100, ii = 12, until = 48) %>%
+      rxSolve()
 
     expect_true(!any(duplicated(p1$params$WT)))
 
     set.seed(99)
     p1 <- popex %>%
-        rxParams(params=c(ECL=0, EV=0, EKA=0, err=0),
-                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
-        et(amountUnits="mg", timeUnits="hours") %>%
-        et(amt=100, ii=12, until=48) %>%
-        rxSolve(keep="WT")
+      rxParams(
+        params = c(ECL = 0, EV = 0, EKA = 0, err = 0),
+        iCov = data.frame(WT = rnorm(10, 70, 4))
+      ) %>%
+      et(amountUnits = "mg", timeUnits = "hours") %>%
+      et(amt = 100, ii = 12, until = 48) %>%
+      rxSolve(keep = "WT")
 
     ## add evid too
     p1 <- popex %>%
-        rxParams(params=c(ECL=0, EV=0, EKA=0, err=0),
-                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
-        et(amountUnits="mg", timeUnits="hours") %>%
-        et(amt=100, ii=12, until=48) %>%
-        rxSolve(keep="WT",addDosing=TRUE)
+      rxParams(
+        params = c(ECL = 0, EV = 0, EKA = 0, err = 0),
+        iCov = data.frame(WT = rnorm(10, 70, 4))
+      ) %>%
+      et(amountUnits = "mg", timeUnits = "hours") %>%
+      et(amt = 100, ii = 12, until = 48) %>%
+      rxSolve(keep = "WT", addDosing = TRUE)
 
     ##
     set.seed(99)
     p1 <- popex %>%
-        rxParams(omega=lotri(ECL ~ 0.3,
-                             EV ~ 0.1,
-                             EKA ~ 0.5),
-                 sigma=lotri(err ~ 0.1),
-                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
-        et(amountUnits="mg", timeUnits="hours") %>%
-        et(amt=100, ii=12, until=48) %>%
-        rxSolve(keep="WT")
+      rxParams(
+        omega = lotri(
+          ECL ~ 0.3,
+          EV ~ 0.1,
+          EKA ~ 0.5
+        ),
+        sigma = lotri(err ~ 0.1),
+        iCov = data.frame(WT = rnorm(10, 70, 4))
+      ) %>%
+      et(amountUnits = "mg", timeUnits = "hours") %>%
+      et(amt = 100, ii = 12, until = 48) %>%
+      rxSolve(keep = "WT")
 
     set.seed(99)
     p2 <- popex %>%
-        et(amountUnits="mg", timeUnits="hours") %>%
-        et(amt=100, ii=12, until=48) %>%
-        rxParams(omega=lotri(ECL ~ 0.3,
-                             EV ~ 0.1,
-                             EKA ~ 0.5),
-                 sigma=lotri(err ~ 0.1),
-                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
-        rxSolve(keep="WT")
+      et(amountUnits = "mg", timeUnits = "hours") %>%
+      et(amt = 100, ii = 12, until = 48) %>%
+      rxParams(
+        omega = lotri(
+          ECL ~ 0.3,
+          EV ~ 0.1,
+          EKA ~ 0.5
+        ),
+        sigma = lotri(err ~ 0.1),
+        iCov = data.frame(WT = rnorm(10, 70, 4))
+      ) %>%
+      rxSolve(keep = "WT")
 
     expect_error(popex %>%
-                 et(amountUnits="mg", timeUnits="hours") %>%
-                 et(amt=100, ii=12, until=48) %>%
-                 rxParams(omega=lotri(ECL ~ 0.3,
-                                      EV ~ 0.1,
-                                      EKA ~ 0.5),
-                          sigma=lotri(err ~ 0.1),
-                          atol=1e-3,
-                          iCov=data.frame(WT=rnorm(10,70,4))) %>%
-                 rxSolve(keep="WT"))
+      et(amountUnits = "mg", timeUnits = "hours") %>%
+      et(amt = 100, ii = 12, until = 48) %>%
+      rxParams(
+        omega = lotri(
+          ECL ~ 0.3,
+          EV ~ 0.1,
+          EKA ~ 0.5
+        ),
+        sigma = lotri(err ~ 0.1),
+        atol = 1e-3,
+        iCov = data.frame(WT = rnorm(10, 70, 4))
+      ) %>%
+      rxSolve(keep = "WT"))
 
     expect_equal(data.frame(p1), data.frame(p2))
 
     ## Test WT in both iCov and data used.
 
-    source("theoSd.R")
+    theoSd <- readRDS("theoSd.rds")
 
-    mod  <- RxODE({
-        ka <- exp(tka + eta.ka)
-        cl <- exp(tcl + eta.cl)
-        v <- exp(tv + eta.v)
-        cp <- linCmt()
+    mod <- RxODE({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl)
+      v <- exp(tv + eta.v)
+      cp <- linCmt()
     })
 
-    tmp <- mod %>% solve(theoSd, c(tka=1, tcl=2, tv=3, eta.ka=0, eta.cl=0, eta.v=0), keep="WT")
-    expect_true(any(names(tmp)=="WT"))
+    tmp <- mod %>% solve(theoSd, c(tka = 1, tcl = 2, tv = 3, eta.ka = 0, eta.cl = 0, eta.v = 0), keep = "WT")
+    expect_true(any(names(tmp) == "WT"))
 
-    tmp <- mod %>% solve(theoSd, c(tka=1, tcl=2, tv=3, eta.ka=0, eta.cl=0, eta.v=0))
-    expect_false(any(names(tmp)=="WT"))
+    tmp <- mod %>% solve(theoSd, c(tka = 1, tcl = 2, tv = 3, eta.ka = 0, eta.cl = 0, eta.v = 0))
+    expect_false(any(names(tmp) == "WT"))
 
 
-    tmp <- mod %>% solve(theoSd, c(tka=1, tcl=2, tv=3, eta.ka=0, eta.cl=0, eta.v=0), keep="WT",
-                         addDosing=TRUE)
-    expect_true(any(names(tmp)=="WT"))
+    tmp <- mod %>% solve(theoSd, c(tka = 1, tcl = 2, tv = 3, eta.ka = 0, eta.cl = 0, eta.v = 0),
+      keep = "WT",
+      addDosing = TRUE
+    )
+    expect_true(any(names(tmp) == "WT"))
 
-    tmp <- mod %>% solve(theoSd, c(tka=1, tcl=2, tv=3, eta.ka=0, eta.cl=0, eta.v=0),
-                         addDosing=TRUE)
-    expect_false(any(names(tmp)=="WT"))
-})
+    tmp <- mod %>% solve(theoSd, c(tka = 1, tcl = 2, tv = 3, eta.ka = 0, eta.cl = 0, eta.v = 0),
+      addDosing = TRUE
+    )
+
+    expect_false(any(names(tmp) == "WT"))
+  },
+  test = "cran"
+)

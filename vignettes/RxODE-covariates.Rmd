@@ -33,7 +33,7 @@ mod3 <- RxODE({
 })
 
 ev <- et(amount.units="mg", time.units="hours") %>%
-    et(amt=10000, cmt=2) %>%
+    et(amt=10000, cmt=1) %>%
     et(0,48,length.out=100) %>%
     et(id=1:4);
 
@@ -46,7 +46,7 @@ r1 <- solve(mod3, ev,
             keep="WT")
 print(r1)
 
-plot(r1, C2) + xgx_scale_y_log10()
+plot(r1, C2, log="y") 
 ```
 
 # Time Varying Covariates
@@ -92,7 +92,7 @@ mod3 <- RxODE({
 
 
 ev <- eventTable(amount.units="mg", time.units="hours") %>%
-    add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
+    add.dosing(dose=10000, nbr.doses=1, dosing.to=1) %>%
     add.sampling(seq(0,48,length.out=100));
 
 
@@ -115,8 +115,7 @@ between the covariate values. It is equivalent to R's `approxfun` with
 `method="linear"`.
 
 ```{r}
-library(ggplot2)
-plot(r1,C2) +ylab("Central Concentration") + xlab("Time");
+plot(r1,C2, ylab="Central Concentration")
 ```
 
 ```{r}
@@ -142,15 +141,14 @@ print(r1)
 which gives the following plots:
 
 ```{r}
-plot(r1,C2) + ylab("Central Concentration") + xlab("Time");
+plot(r1,C2, ylab="Central Concentration", xlab="Time")
 ```
 
 ```{r}
-plot(r1,eff) + ylab("Effect") + xlab("Time");
+plot(r1,eff, ylab="Effect", xlab="Time")
 ```
 
 In this case, the plots seem to be smoother.
-
 
 You can also use NONMEM's preferred interpolation style of next
 observation carried backward (NOCB):
@@ -163,11 +161,11 @@ print(r1)
 which gives the following plots:
 
 ```{r}
-plot(r1,C2) + ylab("Central Concentration") + xlab("Time");
+plot(r1,C2, ylab="Central Concentration", xlab="Time")
 ```
 
 ```{r}
-plot(r1,eff) + ylab("Effect") + xlab("Time");
+plot(r1,eff, ylab="Effect", xlab="Time")
 ```
 
 

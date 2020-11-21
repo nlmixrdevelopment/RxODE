@@ -1,8 +1,16 @@
 // [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::depends(RcppArmadillo)]]
+//#undef NDEBUG
 #include <stdarg.h>
 #include <RcppArmadillo.h>
 #include <R.h>
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
 using namespace Rcpp;
 using namespace R;
 using namespace arma;
@@ -21,7 +29,7 @@ NumericVector rxInv(SEXP matrix){
   success = inv(imat, smatrix);
   if (!success){
     imat = pinv(smatrix);
-    Rprintf("Warning: matrix seems singular; Using pseudo-inverse\n");
+    Rprintf(_("matrix seems singular; Using pseudo-inverse\n"));
   }
   NumericVector ret;
   ret = wrap(imat);
@@ -42,11 +50,11 @@ arma::mat rxToCholOmega(arma::mat cholMat){
     if (success) return cholO;
     success = inv(cholO, cholMat);
     if (success) return cholO;
-    stop("Cannot invert in `rxToCholOmega`");
+    stop(_("can not invert in 'rxToCholOmega'"));
   } catch (...) {
     success = inv(cholO, cholMat);
     if (success) return cholO;
-    stop("Cannot invert in `rxToCholOmega`");
+    stop(_("can not invert in 'rxToCholOmega'"));
   }
   // should not get here.
   return cholO;
@@ -106,11 +114,11 @@ RObject rxSymInvChol(RObject invObjOrMatrix, Nullable<NumericVector> theta = R_N
         tn = -1;
       } else if (type == "d(omegaInv)"){
         if (tn <= 0){
-          stop("Theta number must be positive for d(omegaInv).");
+          stop(_("theta number must be positive for 'd(omegaInv)'"));
         }
       } else if (type == "d(D)"){
         if (tn <= 0){
-          stop("Theta number must be positive for d(D).");
+          stop(_("theta number must be positive for 'd(D)'"));
         }
         tn = -2 - tn;
       } else if (type == "ntheta"){
@@ -120,7 +128,6 @@ RObject rxSymInvChol(RObject invObjOrMatrix, Nullable<NumericVector> theta = R_N
         Function fn = as<Function>(invObj["fn"]);
         return fn(par, tn);
       // } catch (...) {
-      //   stop("Unspported invobj type.");
       // }
     }
   } else  {
@@ -144,7 +151,7 @@ RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVec
       if (e.exists("invobj")){
         invObj = as<List>(e["invobj"]);
       } else {
-        stop("Error in rxSymInvCholEnvCalculate environment.");
+        stop(_("error in 'rxSymInvCholEnvCalculate' environment"));
       }
       if (what == "xType"){
 	e["xType"] = rxSymInvChol(invObj,NumericVector::create(1),"xType",0);
@@ -157,7 +164,7 @@ RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVec
       if (e.exists("theta")){
         theta = as<NumericVector>(e["theta"]);
       } else {
-        stop("theta for omega calculations not setup yet.");
+        stop(_("theta for omega calculations not setup yet"));
       }
       int ntheta = theta.size(), i=0;
       if (what == "theta.diag"){
@@ -255,10 +262,10 @@ RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVec
         e["theta"] = par;
         return(obj);
       } else {
-	stop("theta has to have %d elements.", ntheta);
+	stop(_("theta has to have %d elements"), ntheta);
       }
     } else {
-      stop("Can only assign 'theta' in this environment.");
+      stop(_("Can only assign 'theta' in this environment"));
     }
   }
   return R_NilValue;

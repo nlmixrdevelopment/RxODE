@@ -18,15 +18,21 @@
 \alias{solve.rxEt}
 \title{Solving \& Simulation of a ODE/solved system (and solving options) equation}
 \usage{
-rxControl(
+rxControl(..., params = NULL, events = NULL, inits = NULL)
+
+rxSolve(
+  object,
+  params = NULL,
+  events = NULL,
+  inits = NULL,
   scale = NULL,
-  method = c("liblsoda", "lsoda", "dop853"),
+  method = c("liblsoda", "lsoda", "dop853", "indLin"),
   transitAbs = NULL,
   atol = 1e-08,
   rtol = 1e-06,
   maxsteps = 70000L,
-  hmin = 0L,
-  hmax = NA,
+  hmin = 0,
+  hmax = NA_real_,
   hmaxSd = 0,
   hini = 0,
   maxordn = 12L,
@@ -42,6 +48,9 @@ rxControl(
   sigmaUpper = Inf,
   nCoresRV = 1L,
   sigmaIsChol = FALSE,
+  sigmaSeparation = c("auto", "lkj", "separation"),
+  sigmaXform = c("identity", "variance", "log", "nlmixrSqrt", "nlmixrLog",
+    "nlmixrIdentity"),
   nDisplayProgress = 10000L,
   amountUnits = NA_character_,
   timeUnits = "hours",
@@ -56,6 +65,9 @@ rxControl(
   omega = NULL,
   omegaDf = NULL,
   omegaIsChol = FALSE,
+  omegaSeparation = c("auto", "lkj", "separation"),
+  omegaXform = c("variance", "identity", "log", "nlmixrSqrt", "nlmixrLog",
+    "nlmixrIdentity"),
   omegaLower = -Inf,
   omegaUpper = Inf,
   nSub = 1L,
@@ -73,11 +85,8 @@ rxControl(
   maxSS = 1000L,
   infSSstep = 12,
   strictSS = TRUE,
-  params = NULL,
-  events = NULL,
   istateReset = TRUE,
   subsetNonmem = TRUE,
-  linLog = FALSE,
   maxAtolRtolFactor = 0.1,
   from = NULL,
   to = NULL,
@@ -85,6 +94,10 @@ rxControl(
   length.out = NULL,
   iCov = NULL,
   keep = NULL,
+  indLinPhiTol = 1e-07,
+  indLinPhiM = 0L,
+  indLinMatExpType = c("expokit", "Al-Mohy", "arma"),
+  indLinMatExpOrder = 6L,
   drop = NULL,
   idFactor = TRUE,
   mxhnil = 0,
@@ -93,10 +106,18 @@ rxControl(
   warnDrop = TRUE,
   ssAtol = 1e-08,
   ssRtol = 1e-06,
-  safeZero = TRUE
+  safeZero = TRUE,
+  cacheEvent = TRUE,
+  sumType = c("pairwise", "fsum", "kahan", "neumaier", "c"),
+  prodType = c("long double", "double", "logify"),
+  sensType = c("advan", "autodiff", "forward", "central"),
+  linDiff = c(tlag = 1.5e-05, f = 1.5e-05, rate = 1.5e-05, dur = 1.5e-05, tlag2 =
+    1.5e-05, f2 = 1.5e-05, rate2 = 1.5e-05, dur2 = 1.5e-05),
+  linDiffCentral = c(tlag = TRUE, f = TRUE, rate = TRUE, dur = TRUE, tlag2 = TRUE, f2 =
+    TRUE, rate2 = TRUE, dur2 = TRUE),
+  resample = NULL,
+  resampleID = TRUE
 )
-
-rxSolve(object, ...)
 
 \method{rxSolve}{default}(object, params = NULL, events = NULL, inits = NULL, ...)
 
@@ -125,6 +146,28 @@ rxSolve(object, ...)
 \method{solve}{rxEt}(a, b, ...)
 }
 \arguments{
+\item{...}{Other arguments including scaling factors for each
+compartment.  This includes S# = numeric will scale a compartment
+# by a dividing the compartment amount by the scale factor,
+like NONMEM.}
+
+\item{params}{a numeric named vector with values for every
+parameter in the ODE system; the names must correspond to the
+parameter identifiers used in the ODE specification;}
+
+\item{events}{an \code{eventTable} object describing the input
+(e.g., doses) to the dynamic system and observation sampling
+time points (see \code{\link{eventTable}});}
+
+\item{inits}{a vector of initial values of the state variables
+(e.g., amounts in each compartment), and the order in this
+vector must be the same as the state variables (e.g., PK/PD
+compartments);}
+
+\item{object}{is a either a RxODE family of objects, or a file-name
+with a RxODE model specification, or a string with a RxODE
+model specification.}
+
 \item{scale}{a numeric named vector with scaling for ode
 parameters of the system.  The names must correspond to the
 parameter identifiers in the ODE specification. Each of the
@@ -141,6 +184,8 @@ variable by 2.}
       solving, but allows user Jacobian specification.
 \item \code{"dop853"} -- DOP853 solver.  Does not support parallel thread-based
         solving nor user Jacobain specification
+\item \code{"indLin"} -- Solving through inductive linearization.  The RxODE dll
+        must be setup specially to use this solving routine.
 }}
 
 \item{transitAbs}{boolean indicating if this is a transit
@@ -181,15 +226,8 @@ default value is determined by the solver (when hini = 0)}
 \item{maxords}{The maximum order to be allowed for the stiff (BDF)
 method.  The default value is 5.  This can be between 1 and 5.}
 
-\item{...}{Other arguments including scaling factors for each
-compartment.  This includes S# = numeric will scale a compartment
-# by a dividing the compartment amount by the scale factor,
-like NONMEM.}
-
 \item{cores}{Number of cores used in parallel ODE solving.  This
-defaults to the number or system cores determined by
-\code{\link{rxCores}} for methods that support parallel
-solving (ie thread-safe methods like "liblsoda").}
+is equivalent to calling \code{\link{setRxThreads}}}
 
 \item{covsInterpolation}{specifies the interpolation method for
     time-varying covariates. When solving ODEs it often samples
@@ -228,15 +266,17 @@ default it is equivalent to \code{Inf}, or a normal distribution.}
 \item{sigmaUpper}{Upper bounds for simulated unexplained variability (by default Inf)}
 
 \item{nCoresRV}{Number of cores used for the simulation of the
-sigma variables.  By default this is 1. This uses the package
-\code{\link[mvnfast]{rmvn}} and \code{\link[mvnfast]{rmvt}}.
-To reproduce the results you need to run on the same platform
-with the same number of cores. This is the reason this is set
-to be one, regardless of what the number of cores are used in
-threaded ODE solving.}
+sigma variables.  By default this is 1. To reproduce the results
+you need to run on the same platform with the same number of
+cores. This is the reason this is set to be one, regardless of
+what the number of cores are used in threaded ODE solving.}
 
 \item{sigmaIsChol}{Boolean indicating if the sigma is in the
 Cholesky decomposition instead of a symmetric covariance}
+
+\item{sigmaSeparation}{@template separation}
+
+\item{sigmaXform}{When taking \code{sigma} values from the @template Xform}
 
 \item{nDisplayProgress}{An integer indicating the minimum number
 of c-based solves before a progress bar is shown.  By default
@@ -332,11 +372,15 @@ distribution instead of a t-distribution.}
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
 
+\item{omegaSeparation}{@template separation}
+
+\item{omegaXform}{When taking \code{omega} values from the @template Xform}
+
 \item{omegaLower}{Lower bounds for simulated ETAs (by default -Inf)}
 
 \item{omegaUpper}{Upper bounds for simulated ETAs (by default Inf)}
 
-\item{nSub}{Number between subject variabilities (ETAs) simulated for every 
+\item{nSub}{Number between subject variabilities (ETAs) simulated for every
 realization of the parameters.}
 
 \item{thetaMat}{Named theta matrix.}
@@ -350,13 +394,13 @@ distribution instead of a t-distribution.}
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
 
-\item{nStud}{Number virtual studies to characterize uncertainty in estimated 
+\item{nStud}{Number virtual studies to characterize uncertainty in estimated
 parameters.}
 
-\item{dfSub}{Degrees of freedom to sample the between subject variability matrix from the 
+\item{dfSub}{Degrees of freedom to sample the between subject variability matrix from the
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
-\item{dfObs}{Degrees of freedom to sample the unexplained variability matrix from the 
+\item{dfObs}{Degrees of freedom to sample the unexplained variability matrix from the
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
 \item{returnType}{This tells what type of object is returned.  The currently supported types are:
@@ -403,23 +447,11 @@ problems occur is considered the steady state, even though
 either \code{atol}, \code{rtol} or \code{maxSS} have not
 been achieved.}
 
-\item{params}{a numeric named vector with values for every
-parameter in the ODE system; the names must correspond to the
-parameter identifiers used in the ODE specification;}
-
-\item{events}{an \code{eventTable} object describing the input
-(e.g., doses) to the dynamic system and observation sampling
-time points (see \code{\link{eventTable}});}
-
 \item{istateReset}{When \code{TRUE}, reset the \code{ISTATE} variable to 1 for
 lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do
 not reset the \code{ISTATE} variable with doses.}
 
 \item{subsetNonmem}{subset to NONMEM compatible EVIDs only.  By default TRUE.}
-
-\item{linLog}{Boolean indicating if linear compartment models be
-calculated more accurately in the log-space (slower) By
-default this is off (\code{FALSE})}
 
 \item{maxAtolRtolFactor}{The maximum \code{atol}/\code{rtol} that
 FOCEi and other routines may adjust to.  By default 0.1}
@@ -447,6 +479,29 @@ data.frame.}
 is kept once per line.  For the input dataset, if any records
 are added to the data LOCF (Last Observation Carried forward)
 imputation is performed.}
+
+\item{indLinPhiTol}{the requested accuracy tolerance on
+exponential matrix.}
+
+\item{indLinPhiM}{the maximum size for the Krylov basis}
+
+\item{indLinMatExpType}{This is them matrix exponential type that
+    is use for RxODE.  Currently the following are supported:
+
+\itemize{
+
+\item{Al-Mohy} Uses the exponential matrix method of Al-Mohy Higham (2009)
+
+\item{arma} Use the exponential matrix from RcppArmadillo
+
+\item{expokit} Use the exponential matrix from Roger B. Sidje (1998)
+
+}}
+
+\item{indLinMatExpOrder}{an integer, the order of approximation to
+be used, for the \code{Al-Mohy} and \code{expokit} values.
+The best value for this depends on machine precision (and
+slightly on the matrix). We use \code{6} as a default.}
 
 \item{drop}{Columns to drop from the output}
 
@@ -482,14 +537,71 @@ vector based on each state.}
 \item{safeZero}{Use safe zero divide and log routines.  By default
 this is turned on but you may turn it off if you wish.}
 
-\item{object}{is a either a RxODE family of objects, or a file-name
-with a RxODE model specification, or a string with a RxODE
-model specification.}
+\item{cacheEvent}{is a boolean.  If `TRUE` (default), events are cached in
+memory to speed up solving.}
 
-\item{inits}{a vector of initial values of the state variables
-(e.g., amounts in each compartment), and the order in this
-vector must be the same as the state variables (e.g., PK/PD
-compartments);}
+\item{sumType}{Sum type to use for \code{sum()} in
+    RxODE code blocks.
+
+\code{pairwise} uses the pairwise sum (fast, default)
+
+\code{fsum} uses Python's fsum function (most accurate)
+
+\code{kahan} uses Kahan correction
+
+\code{neumaier} uses Neumaier correction
+
+\code{c} uses no correction: default/native summing}
+
+\item{prodType}{Product to use for \code{prod()} in RxODE blocks
+
+\code{long double} converts to long double, performs the
+multiplication and then converts back.
+
+\code{double} uses the standard double scale for multiplication.}
+
+\item{sensType}{Sensitivity type for `linCmt()` model:
+
+\code{advan} Use the direct advan solutions
+
+\code{autodiff} Use the autodiff advan solutions
+
+\code{forward} Use forward difference solutions
+
+\code{central} Use central differences}
+
+\item{linDiff}{This gives the linear difference amount for all the
+  types of linear compartment model parameters where sensitivities
+  are not calculated. The named components of this numeric vector are:
+
+\itemize{
+\item \code{"lag"} Central compartment lag
+\item \code{"f"} Central compartment bioavailability
+\item \code{"rate"} Central compartment modeled rate
+\item \code{"dur"} Central compartment modeled duration
+\item \code{"lag2"} Depot compartment lag
+\item \code{"f2"} Depot compartment bioavailability
+\item \code{"rate2"} Depot compartment modeled rate
+\item \code{"dur2"} Depot compartment modeled duration
+}}
+
+\item{linDiffCentral}{This gives the which parameters use central
+differences for the linear compartment model parameters.  The
+are the same components as \code{linDiff}}
+
+\item{resample}{A character vector of model variables to resample
+from the input dataset; This sampling is done with replacement.
+When \code{NULL} or \code{FALSE} no resampling is done.  When
+\code{TRUE} resampling is done on all covariates in the input
+dataset}
+
+\item{resampleID}{boolean representing if the resampling should be
+done on an individual basis \code{TRUE} (ie. a whole patient is
+selected) or each covariate is resampled independent of the
+subject identifier \code{FALSE}.  When \code{resampleID=TRUE}
+correlations of parameters are retained, where as when
+\code{resampleID=FALSE} ignores patient covariate correaltions.
+Hecne the default is \code{resampleID=TRUE}.}
 
 \item{a}{when using \code{solve}, this is equivalent to the
 \code{object} argument.  If you specify \code{object} later in
@@ -522,6 +634,13 @@ This uses RxODE family of objects, file, or model specification to
 solve a ODE system.
 }
 \references{
+"New Scaling and Squaring Algorithm for the Matrix Exponential", by
+ Awad H. Al-Mohy and Nicholas J. Higham, August 2009
+
+Roger B. Sidje (1998).  EXPOKIT: Software package for computing
+matrix exponentials.  ACM - Transactions on Mathematical Software
+\emph{24}(1), 130-156.
+
 Hindmarsh, A. C.
 \emph{ODEPACK, A Systematized Collection of ODE Solvers}.
 Scientific Computing, R. S. Stepleman et al. (Eds.),

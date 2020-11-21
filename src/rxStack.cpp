@@ -1,4 +1,6 @@
+//#undef NDEBUG
 #include <Rcpp.h>
+#include "../inst/include/RxODE.h"
 
 using namespace Rcpp;
 
@@ -29,9 +31,9 @@ bool hasElement(CharacterVector one, std::string what){
 List rxStack(List Data, Nullable<CharacterVector> vars=R_NilValue){
   
   List mv = rxModelVars(Data);
-  CharacterVector lhs = mv["lhs"];
-  CharacterVector state = mv["state"];
-  IntegerVector stateIgnore = mv["state.ignore"];
+  CharacterVector lhs = mv[RxMv_lhs];
+  CharacterVector state = mv[RxMv_state];
+  IntegerVector stateIgnore = mv[RxMv_state_ignore];
   int nfactor = lhs.size();
   int j, k;
   bool allVars = vars.isNull();
@@ -69,6 +71,8 @@ List rxStack(List Data, Nullable<CharacterVector> vars=R_NilValue){
   if (bSimId) ncols++;
   bool bId=Data.containsElementNamed("id");
   if (bId) ncols++;
+  bool bReset=Data.containsElementNamed("resetno");
+  if (bReset) ncols++;
   bool bEvid=Data.containsElementNamed("evid");
   if (bEvid) ncols++;
   bool bAmt=Data.containsElementNamed("amt");
@@ -85,7 +89,6 @@ List rxStack(List Data, Nullable<CharacterVector> vars=R_NilValue){
     }
     ret["sim.id"] = outSimId;
   }
-  
   IntegerVector inId;
   IntegerVector outId;
   if (bId){
@@ -96,7 +99,16 @@ List rxStack(List Data, Nullable<CharacterVector> vars=R_NilValue){
     }
     ret["id"] = outId;
   }
-
+  IntegerVector inReset;
+  IntegerVector outReset;
+  if (bReset){
+    inReset = Data["resetno"];
+    outReset = IntegerVector(inReset.size()*nfactor);
+    for (j = nfactor; j--;){
+      std::copy(inReset.begin(),inReset.end(),outReset.begin()+j*inReset.size());
+    }
+    ret["resetno"] = outReset;
+  }
   IntegerVector inEvid;
   IntegerVector outEvid;
   if (bEvid){

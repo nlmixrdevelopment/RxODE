@@ -4,6 +4,8 @@
 #include "common.h"
 #include "cfode_static.h"
 
+void RSprintf(const char *format, ...);
+
 void cfode_static (struct lsoda_context_t * ctx, int meth)
 {
 #ifdef CFODE_STATIC
@@ -19,18 +21,18 @@ void cfode_static (struct lsoda_context_t * ctx, int meth)
 }
 #include <stdio.h>
 void printcm12() {
-	REprintf("static double cm1[13] = {\n");
+	RSprintf("static double cm1[13] = {\n");
 	int i;
 	for(i = 0; i < 13; i++) {
-		REprintf("%a, ", (tesco1)[i][2] *(elco1)[i][i + 1]);
-		if((i + 1) % 4 == 0) REprintf("\n  ");
+		RSprintf("%a, ", (tesco1)[i][2] *(elco1)[i][i + 1]);
+		if((i + 1) % 4 == 0) RSprintf("\n  ");
 	}
-	REprintf("};\n");
-	REprintf("static double cm2[13] = {\n");
+	RSprintf("};\n");
+	RSprintf("static double cm2[13] = {\n");
 	for(i = 0; i < 13; i++) {
-		REprintf("%a, ", (tesco2)[i][2] *(elco2)[i][i + 1]);
-		if((i + 1) % 4 == 0) REprintf("\n  ");
+		RSprintf("%a, ", (tesco2)[i][2] *(elco2)[i][i + 1]);
+		if((i + 1) % 4 == 0) RSprintf("\n  ");
 	}
-	REprintf("};\n");
+	RSprintf("};\n");
 	
 }

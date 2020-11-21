@@ -9,9 +9,7 @@ rxOptions(
   op.rx = NULL,
   silent = .isTestthat(),
   respect = FALSE,
-  cran = FALSE,
-  on.validate = FALSE,
-  test = NULL
+  test = "cran"
 )
 }
 \arguments{
@@ -28,14 +26,9 @@ interactive output (useful in testing).}
 This is called at startup, but really should not be called
 elsewhere, otherwise the options are not changed.}
 
-\item{cran}{When specified and true, run on CRAN. Otherwise it is
-skipped on CRAN.}
-
-\item{on.validate}{When TRUE run only when validating.}
-
 \item{test}{When specified as a string, the enclosed test is
-skipped unless the environmental variable "rxTest" equals this
-value.}
+skipped unless the environmental variable "NOT_CRAN" equals this
+value. Special values are "cran" which means test on CRAN}
 }
 \description{
 This is a backend for \code{rxPermissive} (with

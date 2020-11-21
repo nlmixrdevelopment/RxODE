@@ -20,7 +20,7 @@ etTrans(
 
 \item{obj}{Model to translate data}
 
-\item{addCmt}{Add compartment to data frame (default code{FALSE}).}
+\item{addCmt}{Add compartment to data frame (default \code{FALSE}).}
 
 \item{dropUnits}{Boolean to drop the units (default \code{FALSE}).}
 

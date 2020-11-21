@@ -64,11 +64,13 @@ These functions create a simple, but working example of a
     their specific \code{RxODE} models.
 }
 \examples{
-\dontrun{
+\donttest{
 # create the shiny app example (template)
 genShinyApp.template(appDir = "myapp")
 # run the shiny app
-runApp("myapp")
+library(shiny)
+# runApp("myapp") # Won't launch in environments without browsers
+unlink("myapp", recursive=TRUE, force=TRUE) # remove myapp
 }
 }
 \seealso{

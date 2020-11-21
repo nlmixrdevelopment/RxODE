@@ -51,8 +51,8 @@ f <- function(){
   rxProgressStop();
  }
 
-\dontrun{
-f();
+\donttest{
+f()
 }
 
 }

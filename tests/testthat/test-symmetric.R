@@ -1,6 +1,7 @@
 ## test ODE parsing for syntax errors
-library(RxODE)
-rxPermissive({
+rxPermissive(
+  {
+    library(RxODE)
 
     context("Test errors with non-symmetric matrices")
     set.seed(42)
@@ -52,57 +53,81 @@ rxPermissive({
 
 "
 
-    mod <- RxODE(model=ode)
+    mod <- RxODE(model = ode)
 
-    theta <- c(tVg=9.33, Vp=8.56, tQ=0.442,
-               tClg=0.0287, tClgi=0.0059,
-               Iss=9.3, Gss=150,
-               tCli=1.22, tVi=6.09,
-               IPRG=1.42,
-               keog=0.0289, keoi=0.0213,
-               mtt=34.9 , n=1.27,
-               Emax=1.47, ka=0.02865, CA50=14.8)
+    theta <- c(
+      tVg = 9.33, Vp = 8.56, tQ = 0.442,
+      tClg = 0.0287, tClgi = 0.0059,
+      Iss = 9.3, Gss = 150,
+      tCli = 1.22, tVi = 6.09,
+      IPRG = 1.42,
+      keog = 0.0289, keoi = 0.0213,
+      mtt = 34.9, n = 1.27,
+      Emax = 1.47, ka = 0.02865, CA50 = 14.8
+    )
 
-    omega1 <- matrix(c(0.0887, -0.192, 0.0855, 0.0, 0.73, -0.12, 0.0, 0.0, 0.165),3,3,
-                     dimnames=list(NULL,c("eta.Vg", "eta.Q", "eta.Vi")));
-    omega2 <- matrix(0.352,dimnames=list(NULL,c("eta.Clg")));
-    omega3 <- matrix(0.207,dimnames=list(NULL,c("eta.Clgi")));
-    omega4 <- matrix(0.0852,dimnames=list(NULL,c("eta.Cli")));
+    omega1 <- matrix(c(0.0887, -0.192, 0.0855, 0.0, 0.73, -0.12, 0.0, 0.0, 0.165), 3, 3,
+      dimnames = list(NULL, c("eta.Vg", "eta.Q", "eta.Vi"))
+    )
+    omega2 <- matrix(0.352, dimnames = list(NULL, c("eta.Clg")))
+    omega3 <- matrix(0.207, dimnames = list(NULL, c("eta.Clgi")))
+    omega4 <- matrix(0.0852, dimnames = list(NULL, c("eta.Cli")))
 
-    et <- eventTable(amount.units = "mg", time.units = "min");
-    et$add.dosing(dose=75000, nbr.doses=1, start.time = 0, dosing.to = 1);
-    et$add.sampling(0:360);
+    et <- eventTable(amount.units = "mg", time.units = "min")
+    et$add.dosing(dose = 75000, nbr.doses = 1, start.time = 0, dosing.to = 1)
+    et$add.sampling(0:360)
 
-    et <- et %>% et(id=1:7)
+    et <- et %>% et(id = 1:7)
 
-    test_that("non-symmetric omegas throw errors",
-              expect_error(rxSolve(mod, theta, et, omega=list(omega1, omega2, omega3, omega4)),
-                           "omega.*symmetric"))
+    test_that(
+      "non-symmetric omegas throw errors",
+      expect_error(
+        rxSolve(mod, theta, et, omega = list(omega1, omega2, omega3, omega4)),
+        "omega.*symmetric"
+      )
+    )
 
-    test_that("non-symmetric sigmas throw errors",
-              expect_error(rxSolve(mod, theta, et, sigma=list(omega1, omega2, omega3, omega4)),
-                           "sigma.*symmetric"))
-
-    tMat <- mod$params
-    tMat  <- tMat[regexpr("eta", tMat) == -1]
-    tM <- diag(length(tMat))
-    dimnames(tM) <- list(tMat, tMat);
-    tM[1,2] <- 2
-
-    omega  <- lotri({
-        eta.Vg + eta.Q + eta.Vi ~
-            c(0.0887,
-              -0.1920, 0.73,
-              0.0855, -0.12, 0.165);
-        eta.Clg ~ 0.352
-        eta.Clgi ~ 0.207
-        eta.Cli ~ 0.0852
+    test_that("non-symmetric sigmas throw errors", {
+      expect_error(
+        rxSolve(mod, theta, et,
+          omega = lotri(eta.Cli ~ 0.0854),
+          sigma = list(omega1, omega2, omega3)
+        ),
+        "sigma.*symmetric"
+      )
+      expect_error(
+        expect_warning(rxSolve(mod, theta, et,
+          sigma = list(omega1, omega2, omega3, omega4)
+        )),
+        "sigma.*symmetric"
+      )
     })
 
-    test_that("non-symmetric sigmas throw errors",
-              expect_error(rxSolve(mod, theta, et, thetaMat=tM, omega=omega),
-                           "thetaMat.*symmetric"))
+    tMat <- mod$params
+    tMat <- tMat[regexpr("eta", tMat) == -1]
+    tM <- diag(length(tMat))
+    dimnames(tM) <- list(tMat, tMat)
+    tM[1, 2] <- 2
 
+    omega <- lotri({
+      eta.Vg + eta.Q + eta.Vi ~
+      c(
+        0.0887,
+        -0.1920, 0.73,
+        0.0855, -0.12, 0.165
+      )
+      eta.Clg ~ 0.352
+      eta.Clgi ~ 0.207
+      eta.Cli ~ 0.0852
+    })
 
-
-})
+    test_that(
+      "non-symmetric sigmas throw errors",
+      expect_error(
+        rxSolve(mod, theta, et, thetaMat = tM, omega = omega),
+        "thetaMat.*symmetric"
+      )
+    )
+  },
+  test = "parsing"
+)
