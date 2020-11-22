@@ -10,7 +10,71 @@ output:
 # Using Pre-compiled models in your packages
 
 If you have a package and would like to include pre-compiled RxODE
-models in your package you can.  To illustrate, lets start with a
+models in your package it is easy to create the package. You simple
+make the package with the `rxPkg()` command.
+
+```
+library(RxODE);
+## Now Create a model
+idr <- RxODE({
+    C2 = centr/V2;
+    C3 = peri/V3;
+    d/dt(depot) =-KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri)  =                    Q*C2 - Q*C3;
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+})
+
+## You can specify as many models as you want to add
+
+rxPkg(idr, package="myPackage"); ## Add the idr model to your package
+```
+
+This will:
+
+- Add the model to your package; You can use the package data as `idr` once the package loads
+
+- Add the right package requirements to the DESCRIPTION file.  You
+  will want to update this to describe the package and modify authors,
+  license etc.
+
+- Create skeleton model documentation files you can add to for your
+  package documentation.  In this case it would be the file
+  `idr-doc.R` in your `R` directory
+- Create a `configure` and `configure.win` script that removes and
+  regenerates the `src` directory based on whatever version of `RxODE`
+  this is compiled against. This should be modified if you plan to
+  have your own compiled code, though this is not suggested.
+  
+- You can write your own R code in your package that interacts with
+  the RxODE object so you can distribute shiny apps and similar things
+  in the package context. 
+  
+Once this is present you can add more models to your package by
+`rxUse()`.  Simply compile the RxODE model in your package then add
+the model with `rxUse()`
+
+```
+rxUse(model)
+```
+
+Now both `model` and `idr` are in the model library. This will also
+create `model-doc.R` in your R directory so you can document this
+model.
+
+You can then use `devtools` methods to install/test your model
+
+```
+devtools::load_all() # Load all the functions in the package
+devtools::document() # Create package documentation
+devtools::install() # Install package
+devtools::check() # Check the package
+devtools::build() # build the package so you can submit it to places like CRAN
+```
+
+# Using Models in a already present package
+
+To illustrate, lets start with a
 blank package
 
 ```
@@ -130,13 +194,30 @@ RxODE::cvPost
 RxODE::`%>%`
 ```
 
-
 - You also need to instruct R to load the model library models
   included in the model's dll.  This is done by:
 
 ```
 # In this case `rxModels` is the package name
 ##' @useDynLib rxModels, .registration=TRUE
+```
+
+If this is a R package with RxODE models and you do not intend to add
+any other compiled sources (recommended), you can add the following configure scripts
+
+```sh
+#!/bin/sh
+# This should be used for both configure and configure.win
+echo "unlink('src', recursive=TRUE);RxODE::rxUse()" > build.R
+${R_HOME}/bin/Rscript build.R
+rm build.R
+```
+
+Depending on the `check` you may need a dummy autoconf script,
+
+```sh
+## dummy autoconf script
+## It is saved to configure.ac
 ```
 
 If you want to integrate with other sources in your `Rcpp` or

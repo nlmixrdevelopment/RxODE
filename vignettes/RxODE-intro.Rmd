@@ -25,5 +25,5 @@ applied more generally to any ODE model.
 
 # Description of RxODE illustrated through an example
 
-```{r child='../man/RxODE-intro-chunk.Rmd'}
+```{r child='../man/rmdhunks/RxODE-intro-chunk.Rmd'}
 ```

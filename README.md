@@ -1,6 +1,10 @@
 <!--
 ---
-output: github_document
+output:
+  md_document:
+    variant: markdown_github
+    toc: true
+    toc_depth: 3
 ---
 -->
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -120,6 +124,7 @@ To load `RxODE` package and compile the model:
 ```r
 library(RxODE)
 library(units)
+#> udunits system database from /usr/share/xml/udunits
 
 mod1 <-RxODE({
     C2 = centr/V2;
@@ -129,11 +134,6 @@ mod1 <-RxODE({
     d/dt(peri)  =                    Q*C2 - Q*C3;
     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 })
-#> 
-#> → creating RxODE include directory
-#> → getting R compile options
-#> → precompiling headers
-#> ✔ done
 #> 
 ```
 

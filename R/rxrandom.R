@@ -584,6 +584,9 @@ rxPp <- function(n, lambda, gamma = 1.0, prob = NULL, t0 = 0.0, tmax = Inf, rand
   checkmate::assertNumeric(lambda, len = 1, any.missing = FALSE, lower = .Machine$double.eps)
   checkmate::assertIntegerish(n, len = 1, any.missing = FALSE, lower = 1L)
   checkmate::assertLogical(randomOrder, len = 1, any.missing = FALSE)
+  if (gamma != 1.0 & is.infinite(tmax)) {
+    stop("when 'gamma' is not 1, 'tmax' cannot be infinite")
+  }
   .Call(`_RxODE_rpp_`, n, lambda, gamma, prob, t0, tmax, randomOrder, PACKAGE = "RxODE")
 }
 

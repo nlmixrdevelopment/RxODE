@@ -313,6 +313,7 @@
 <div class="sourceCode" id="cb5"><pre class="downlit">
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-quantities/units/">units</a></span><span class="op">)</span>
+<span class="co">#&gt; udunits system database from /usr/share/xml/udunits</span>
 
 <span class="va">mod1</span> <span class="op">&lt;-</span><span class="fu"><a href="reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
     <span class="va">C2</span> <span class="op">=</span> <span class="va">centr</span><span class="op">/</span><span class="va">V2</span>;
@@ -322,7 +323,6 @@
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">peri</span><span class="op">)</span>  <span class="op">=</span>                    <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>  <span class="op">=</span> <span class="va">Kin</span> <span class="op">-</span> <span class="va">Kout</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">C2</span><span class="op">/</span><span class="op">(</span><span class="va">EC50</span><span class="op">+</span><span class="va">C2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="va">eff</span>;
 <span class="op">}</span><span class="op">)</span>
-<span class="co">#&gt; ABC</span>
 <span class="co">#&gt; </span></pre></div>
 <div id="specify-ode-parameters-and-initial-conditions" class="section level2">
 <h2 class="hasAnchor">
@@ -500,9 +500,8 @@
 <p>However for pharmacometrics-specific ODE solving, there are only 2 packages other than <a href="https://CRAN.R-project.org/package=RxODE">RxODE</a> released on CRAN. Each uses compiled code to have faster ODE solving.</p>
 <ul>
 <li>
-<p><a href="https://CRAN.R-project.org/package=mrgsolve">mrgsolve</a>, which uses a thread-safe C++ lsoda solver to solve ODE systems. The user is required to write hybrid R/C++ code to create a mrgsolve model.</p>
+<p><a href="https://CRAN.R-project.org/package=mrgsolve">mrgsolve</a>, which uses C++ lsoda solver to solve ODE systems. The user is required to write hybrid R/C++ code to create a mrgsolve model which is translated to C++ for solving.</p>
 <p>In contrast, <code>RxODE</code> has a R-like mini-language that is parsed into C code that solves the ODE system.</p>
-<p>Both <code>mrgsolve</code> and <code>RxODE</code> implement thread-safe ODE solving. In <code>RxODE</code> threading for each individual ODE solved is turned on by default and the supported RxODE functions are all thread-safe. Not all functions in <code>mrgsolve</code> are thread safe currently, so caution should be used when using some functions (like random number generation) or using custom functions.</p>
 <p>Unlike <code>RxODE</code>, <code>mrgsolve</code> does not currently support symbolic manipulation of ODE systems, like automatic Jacobian calculation or forward sensitivity calculation (<code>RxODE</code> currently supports this and this is the basis of <a href="https://cran.r-project.org/package=nlmixr">nlmixr</a>’s FOCEi algorithm)</p>
 </li>
 <li>
@@ -525,6 +524,8 @@
 <div id="pk-solved-systems" class="section level2">
 <h2 class="hasAnchor">
 <a href="#pk-solved-systems" class="anchor"></a>PK Solved systems</h2>
+<p>RxODE supports 1-3 compartment models with gradients (using stan math’s auto-differentiation). This currently uses the same equations as PKADVAN to allow time-varying covariates.</p>
+<p>RxODE can mix ODEs and solved systems.</p>
 <div id="the-following-packages-for-solved-pk-systems-are-on-cran" class="section level3">
 <h3 class="hasAnchor">
 <a href="#the-following-packages-for-solved-pk-systems-are-on-cran" class="anchor"></a>The following packages for solved PK systems are on CRAN</h3>
@@ -532,7 +533,7 @@
 <li>
 <a href="https://CRAN.R-project.org/package=mrgsolve">mrgsolve</a> currently has 1-2 compartment (super-positioning) models built-in. The solved systems and ODEs cannot currently be mixed. Since this uses super-positioning, time-varying covariates are not supported.</li>
 <li>
-<a href="https://github.com/kestrel99/pmxTools">pmxTools</a> currently have 1-3 compartment (super-positioning) models built-in. This is a R-only implementation. mixed. Since this uses super-positioning, time-varying covariates are not supported.</li>
+<a href="https://github.com/kestrel99/pmxTools">pmxTools</a> currently have 1-3 compartment (super-positioning) models built-in. This is a R-only implementation. Since this uses super-positioning, time-varying covariates are not supported.</li>
 <li>
 <a href="https://cran.r-project.org/web/packages/PKPDmodels/index.html">PKPDmodels</a> has a one-compartment model with gradients. Since this uses super-positioning, time varying covariates are not supported.</li>
 </ul>
@@ -544,12 +545,6 @@
 <li>
 <a href="https://github.com/abuhelwa/PKADVAN_Rpackage">PKADVAN</a> Provides 1-3 compartment models using non-superpositioning. This allows time-varying covariates.</li>
 </ul>
-</div>
-<div id="rxode-1" class="section level3">
-<h3 class="hasAnchor">
-<a href="#rxode-1" class="anchor"></a>RxODE:</h3>
-<p>RxODE supports 1-3 compartment models with gradients (using stan math’s auto-differentiation). This currently uses the same equations as PKADVAN to allow time-varying covariates.</p>
-<p>RxODE can mix ODEs and solved systems</p>
 </div>
 </div>
 </div>

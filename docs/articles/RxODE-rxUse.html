@@ -221,7 +221,7 @@
       <h1 data-toc-skip>Compiled RxODE models in Packages</h1>
                         <h4 class="author">Matthew Fidler</h4>
             
-            <h4 class="date">2020-11-21</h4>
+            <h4 class="date">2020-11-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-rxUse.Rmd"><code>vignettes/RxODE-rxUse.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-rxUse.Rmd</code></div>
@@ -233,7 +233,43 @@
 <div id="using-pre-compiled-models-in-your-packages" class="section level1">
 <h1 class="hasAnchor">
 <a href="#using-pre-compiled-models-in-your-packages" class="anchor"></a>Using Pre-compiled models in your packages</h1>
-<p>If you have a package and would like to include pre-compiled RxODE models in your package you can. To illustrate, lets start with a blank package</p>
+<p>If you have a package and would like to include pre-compiled RxODE models in your package it is easy to create the package. You simple make the package with the <code><a href="../reference/rxPkg.html">rxPkg()</a></code> command.</p>
+<pre><code><a href="https://nlmixrdevelopment.github.io/RxODE/">library(RxODE);
+## Now Create a model
+idr &lt;- RxODE({
+    C2 = centr/V2;
+    C3 = peri/V3;
+    d/dt(depot) =-KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri)  =                    Q*C2 - Q*C3;
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+})
+
+## You can specify as many models as you want to add
+
+rxPkg(idr, package="myPackage"); ## Add the idr model to your package</a></code></pre>
+<p>This will:</p>
+<ul>
+<li><p>Add the model to your package; You can use the package data as <code>idr</code> once the package loads</p></li>
+<li><p>Add the right package requirements to the DESCRIPTION file. You will want to update this to describe the package and modify authors, license etc.</p></li>
+<li><p>Create skeleton model documentation files you can add to for your package documentation. In this case it would be the file <code>idr-doc.R</code> in your <code>R</code> directory</p></li>
+<li><p>Create a <code>configure</code> and <code>configure.win</code> script that removes and regenerates the <code>src</code> directory based on whatever version of <code>RxODE</code> this is compiled against. This should be modified if you plan to have your own compiled code, though this is not suggested.</p></li>
+<li><p>You can write your own R code in your package that interacts with the RxODE object so you can distribute shiny apps and similar things in the package context.</p></li>
+</ul>
+<p>Once this is present you can add more models to your package by <code><a href="../reference/rxUse.html">rxUse()</a></code>. Simply compile the RxODE model in your package then add the model with <code><a href="../reference/rxUse.html">rxUse()</a></code></p>
+<pre><code><a href="../reference/rxUse.html">rxUse(model)</a></code></pre>
+<p>Now both <code>model</code> and <code>idr</code> are in the model library. This will also create <code>model-doc.R</code> in your R directory so you can document this model.</p>
+<p>You can then use <code>devtools</code> methods to install/test your model</p>
+<pre><code><a href="https://devtools.r-lib.org//reference/load_all.html">devtools::load_all() # Load all the functions in the package
+devtools::document() # Create package documentation
+devtools::install() # Install package
+devtools::check() # Check the package
+devtools::build() # build the package so you can submit it to places like CRAN</a></code></pre>
+</div>
+<div id="using-models-in-a-already-present-package" class="section level1">
+<h1 class="hasAnchor">
+<a href="#using-models-in-a-already-present-package" class="anchor"></a>Using Models in a already present package</h1>
+<p>To illustrate, lets start with a blank package</p>
 <pre><code><a href="https://nlmixrdevelopment.github.io/RxODE/">library(RxODE)
 library(usethis)
 pkgPath  &lt;- file.path(rxTempDir(),"MyRxModel")
@@ -332,6 +368,15 @@ RxODE::`%&gt;%`</a></code></pre>
 </ul>
 <pre><code># In this case `rxModels` is the package name
 ##' @useDynLib rxModels, .registration=TRUE</code></pre>
+<p>If this is a R package with RxODE models and you do not intend to add any other compiled sources (recommended), you can add the following configure scripts</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="co">#!/bin/sh</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="co"># This should be used for both configure and configure.win</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="bu">echo</span> <span class="st">"unlink('src', recursive=TRUE);RxODE::rxUse()"</span> <span class="op">&gt;</span> build.R</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="va">${R_HOME}</span><span class="ex">/bin/Rscript</span> build.R</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a><span class="fu">rm</span> build.R</span></code></pre></div>
+<p>Depending on the <code>check</code> you may need a dummy autoconf script,</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="co">## dummy autoconf script</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="co">## It is saved to configure.ac</span></span></code></pre></div>
 <p>If you want to integrate with other sources in your <code>Rcpp</code> or <code>C</code>/<code>Fortan</code> based packages, you need to include <code>rxModels-compiled.h</code> and: - Add the define macro <code>compiledModelCall</code> to the list of registered <code>.Call</code> functions. - Register C interface to allow model solving by <code>R_init0_rxModels_RxODE_models()</code> (again <code>rxModels</code> would be replaced by your package name).</p>
 <p>Once this is complete, you can compile/document by the standard methods:</p>
 <pre><code><a href="https://devtools.r-lib.org//reference/load_all.html">devtools::load_all()

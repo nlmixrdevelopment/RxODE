@@ -991,12 +991,12 @@ type=1L is jacobian expand grid (adds symbols)</p></td>
 <span class='co'># \donttest{</span>
  <span class='fu'>microbenchmark</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html'>microbenchmark</a></span><span class='op'>(</span><span class='fu'>rxExpandGrid</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span>, <span class='fu'>expand.grid.jc</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; Unit: microseconds
-#&gt;                              expr    min      lq     mean median     uq     max
-#&gt;    rxExpandGrid(letters, letters)  8.067  8.2860  8.63296  8.473  8.664  21.855
-#&gt;  expand.grid.jc(letters, letters) 12.019 12.3525 15.52846 12.546 12.774 298.474
-#&gt;  neval
-#&gt;    100
-#&gt;    100</div><div class='input'><span class='co'># }</span>
+#&gt;                              expr    min      lq     mean  median     uq
+#&gt;    rxExpandGrid(letters, letters) 10.511 10.8135 11.43790 11.0835 11.558
+#&gt;  expand.grid.jc(letters, letters) 15.558 15.9325 20.64431 16.2375 16.814
+#&gt;      max neval
+#&gt;   30.656   100
+#&gt;  422.480   100</div><div class='input'><span class='co'># }</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
