@@ -17,23 +17,27 @@
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png" />
 
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
 <!-- headroom.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -42,7 +46,7 @@
 
 <!-- docsearch -->
 <script src="../docsearch.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.3/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous" />
 <link href="../docsearch.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
 
@@ -51,7 +55,6 @@
 <meta property="og:title" content="Sequence of event tables — etSeq" />
 <meta property="og:description" content="This combines a sequence of event tables." />
 <meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png" />
-<meta name="twitter:card" content="summary" />
 
 
 
@@ -69,7 +72,7 @@
 
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -83,7 +86,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0-0</span>
       </span>
     </div>
 
@@ -199,6 +202,12 @@
     <li>
       <a href="../articles/RxODE-covariates.html">Adding Circadian Rythmn (time-varying covariates)</a>
     </li>
+    <li>
+      <a href="../articles/RxODE-wt.html">Weight Based Dosing</a>
+    </li>
+    <li>
+      <a href="../articles/RxODE-nesting.html">Simulating Multiple levels of nesting (iov, between study etc)</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -255,7 +264,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Sequence of event tables</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/nlmixrdevelopment/RxODE/blob/master/R/et.R'><code>R/et.R</code></a></small>
     <div class="hidden name"><code>etSeq.Rd</code></div>
     </div>
 
@@ -263,10 +272,10 @@
     <p>This combines a sequence of event tables.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>etSeq</span>(<span class='no'>...</span>, <span class='kw'>samples</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"clear"</span>, <span class='st'>"use"</span>), <span class='kw'>waitII</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"smart"</span>, <span class='st'>"+ii"</span>), <span class='kw'>ii</span> <span class='kw'>=</span> <span class='fl'>24</span>)
+    <pre class="usage"><span class='fu'>etSeq</span><span class='op'>(</span><span class='va'>...</span>, samples <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"clear"</span>, <span class='st'>"use"</span><span class='op'>)</span>, waitII <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"smart"</span>, <span class='st'>"+ii"</span><span class='op'>)</span>, ii <span class='op'>=</span> <span class='fl'>24</span><span class='op'>)</span>
 
 <span class='co'># S3 method for rxEt</span>
-<span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='no'>...</span>)</pre>
+<span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span><span class='op'>(</span><span class='va'>...</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -325,101 +334,100 @@ interval.</p>
     <p>Wang W, Hallow K, James D (2015). "A Tutorial on RxODE: Simulating
 Differential Equation Pharmacometric Models in R." CPT:
 Pharmacometrics \&amp; Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
-&lt;URL: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/&gt;.</p>
+&lt;URL: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/&gt;.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p><code><a href='eventTable.html'>eventTable</a></code>, <code><a href='add.sampling.html'>add.sampling</a></code>,
     <code><a href='add.dosing.html'>add.dosing</a></code>, <code><a href='et.html'>et</a></code>,
     <code><a href='etRep.html'>etRep</a></code>, <code><a href='etRbind.html'>etRbind</a></code>,
     <code><a href='RxODE.html'>RxODE</a></code></p></div>
+    <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
+
+    <p>Matthew L Fidler, Wenping Wang</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'>
 <span class='co'>## Model from RxODE tutorial</span>
-<span class='no'>mod1</span> <span class='kw'>&lt;-</span><span class='fu'><a href='RxODE.html'>RxODE</a></span>({
-    <span class='no'>KA</span><span class='kw'>=</span><span class='fl'>2.94E-01</span>;
-    <span class='no'>CL</span><span class='kw'>=</span><span class='fl'>1.86E+01</span>;
-    <span class='no'>V2</span><span class='kw'>=</span><span class='fl'>4.02E+01</span>;
-    <span class='no'>Q</span><span class='kw'>=</span><span class='fl'>1.05E+01</span>;
-    <span class='no'>V3</span><span class='kw'>=</span><span class='fl'>2.97E+02</span>;
-    <span class='no'>Kin</span><span class='kw'>=</span><span class='fl'>1</span>;
-    <span class='no'>Kout</span><span class='kw'>=</span><span class='fl'>1</span>;
-    <span class='no'>EC50</span><span class='kw'>=</span><span class='fl'>200</span>;
-    <span class='no'>C2</span> <span class='kw'>=</span> <span class='no'>centr</span>/<span class='no'>V2</span>;
-    <span class='no'>C3</span> <span class='kw'>=</span> <span class='no'>peri</span>/<span class='no'>V3</span>;
-    <span class='no'>d</span>/<span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span>(<span class='no'>depot</span>) <span class='kw'>=</span>-<span class='no'>KA</span>*<span class='no'>depot</span>;
-    <span class='no'>d</span>/<span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span>(<span class='no'>centr</span>) <span class='kw'>=</span> <span class='no'>KA</span>*<span class='no'>depot</span> - <span class='no'>CL</span>*<span class='no'>C2</span> - <span class='no'>Q</span>*<span class='no'>C2</span> + <span class='no'>Q</span>*<span class='no'>C3</span>;
-    <span class='no'>d</span>/<span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span>(<span class='no'>peri</span>)  <span class='kw'>=</span>                    <span class='no'>Q</span>*<span class='no'>C2</span> - <span class='no'>Q</span>*<span class='no'>C3</span>;
-    <span class='no'>d</span>/<span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span>(<span class='no'>eff</span>)  <span class='kw'>=</span> <span class='no'>Kin</span> - <span class='no'>Kout</span>*(<span class='fl'>1</span>-<span class='no'>C2</span>/(<span class='no'>EC50</span>+<span class='no'>C2</span>))*<span class='no'>eff</span>;
-});
-
+<span class='va'>mod1</span> <span class='op'>&lt;-</span><span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span>
+    <span class='va'>KA</span><span class='op'>=</span><span class='fl'>2.94E-01</span>;
+    <span class='va'>CL</span><span class='op'>=</span><span class='fl'>1.86E+01</span>;
+    <span class='va'>V2</span><span class='op'>=</span><span class='fl'>4.02E+01</span>;
+    <span class='va'>Q</span><span class='op'>=</span><span class='fl'>1.05E+01</span>;
+    <span class='va'>V3</span><span class='op'>=</span><span class='fl'>2.97E+02</span>;
+    <span class='va'>Kin</span><span class='op'>=</span><span class='fl'>1</span>;
+    <span class='va'>Kout</span><span class='op'>=</span><span class='fl'>1</span>;
+    <span class='va'>EC50</span><span class='op'>=</span><span class='fl'>200</span>;
+    <span class='va'>C2</span> <span class='op'>=</span> <span class='va'>centr</span><span class='op'>/</span><span class='va'>V2</span>;
+    <span class='va'>C3</span> <span class='op'>=</span> <span class='va'>peri</span><span class='op'>/</span><span class='va'>V3</span>;
+    <span class='va'>d</span><span class='op'>/</span><span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span><span class='op'>(</span><span class='va'>depot</span><span class='op'>)</span> <span class='op'>=</span><span class='op'>-</span><span class='va'>KA</span><span class='op'>*</span><span class='va'>depot</span>;
+    <span class='va'>d</span><span class='op'>/</span><span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span><span class='op'>(</span><span class='va'>centr</span><span class='op'>)</span> <span class='op'>=</span> <span class='va'>KA</span><span class='op'>*</span><span class='va'>depot</span> <span class='op'>-</span> <span class='va'>CL</span><span class='op'>*</span><span class='va'>C2</span> <span class='op'>-</span> <span class='va'>Q</span><span class='op'>*</span><span class='va'>C2</span> <span class='op'>+</span> <span class='va'>Q</span><span class='op'>*</span><span class='va'>C3</span>;
+    <span class='va'>d</span><span class='op'>/</span><span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span><span class='op'>(</span><span class='va'>peri</span><span class='op'>)</span>  <span class='op'>=</span>                    <span class='va'>Q</span><span class='op'>*</span><span class='va'>C2</span> <span class='op'>-</span> <span class='va'>Q</span><span class='op'>*</span><span class='va'>C3</span>;
+    <span class='va'>d</span><span class='op'>/</span><span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span><span class='op'>(</span><span class='va'>eff</span><span class='op'>)</span>  <span class='op'>=</span> <span class='va'>Kin</span> <span class='op'>-</span> <span class='va'>Kout</span><span class='op'>*</span><span class='op'>(</span><span class='fl'>1</span><span class='op'>-</span><span class='va'>C2</span><span class='op'>/</span><span class='op'>(</span><span class='va'>EC50</span><span class='op'>+</span><span class='va'>C2</span><span class='op'>)</span><span class='op'>)</span><span class='op'>*</span><span class='va'>eff</span>;
+<span class='op'>}</span><span class='op'>)</span>;
+</div><div class='output co'>#&gt; <span class='message'>ABC</span></div><div class='input'>
 <span class='co'>## These are making the more complex regimens of the RxODE tutorial</span>
 
 <span class='co'>## bid for 5 days</span>
-<span class='no'>bid</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span>(<span class='kw'>timeUnits</span><span class='kw'>=</span><span class='st'>"hr"</span>) <span class='kw'>%&gt;%</span>
-       <span class='fu'><a href='et.html'>et</a></span>(<span class='kw'>amt</span><span class='kw'>=</span><span class='fl'>10000</span>,<span class='kw'>ii</span><span class='kw'>=</span><span class='fl'>12</span>,<span class='kw'>until</span><span class='kw'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fl'>5</span>, <span class='st'>"days"</span>))
+<span class='va'>bid</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>timeUnits<span class='op'>=</span><span class='st'>"hr"</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+       <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>amt<span class='op'>=</span><span class='fl'>10000</span>,ii<span class='op'>=</span><span class='fl'>12</span>,until<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span><span class='op'>(</span><span class='fl'>5</span>, <span class='st'>"days"</span><span class='op'>)</span><span class='op'>)</span>
 
 <span class='co'>## qd for 5 days</span>
-<span class='no'>qd</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span>(<span class='kw'>timeUnits</span><span class='kw'>=</span><span class='st'>"hr"</span>) <span class='kw'>%&gt;%</span>
-      <span class='fu'><a href='et.html'>et</a></span>(<span class='kw'>amt</span><span class='kw'>=</span><span class='fl'>20000</span>,<span class='kw'>ii</span><span class='kw'>=</span><span class='fl'>24</span>,<span class='kw'>until</span><span class='kw'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fl'>5</span>, <span class='st'>"days"</span>))
+<span class='va'>qd</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>timeUnits<span class='op'>=</span><span class='st'>"hr"</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+      <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>amt<span class='op'>=</span><span class='fl'>20000</span>,ii<span class='op'>=</span><span class='fl'>24</span>,until<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span><span class='op'>(</span><span class='fl'>5</span>, <span class='st'>"days"</span><span class='op'>)</span><span class='op'>)</span>
 
 <span class='co'>## bid for 5 days followed by qd for 5 days</span>
 
-<span class='no'>et</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='no'>bid</span>,<span class='no'>qd</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='et.html'>et</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>,<span class='fl'>11</span>*<span class='fl'>24</span>,<span class='kw'>length.out</span><span class='kw'>=</span><span class='fl'>100</span>));
+<span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span><span class='op'>(</span><span class='va'>bid</span>,<span class='va'>qd</span><span class='op'>)</span> <span class='op'>%&gt;%</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span><span class='op'>(</span><span class='fl'>0</span>,<span class='fl'>11</span><span class='op'>*</span><span class='fl'>24</span>,length.out<span class='op'>=</span><span class='fl'>100</span><span class='op'>)</span><span class='op'>)</span>;
 
-<span class='no'>bidQd</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span>(<span class='no'>mod1</span>, <span class='no'>et</span>)
+<span class='va'>bidQd</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxControl.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>mod1</span>, <span class='va'>et</span><span class='op'>)</span>
 
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>bidQd</span>, <span class='no'>C2</span>)</div><div class='img'><img src='etSeq-1.png' alt='' width='700' height='433' /></div><div class='input'>
+<span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>bidQd</span>, <span class='va'>C2</span><span class='op'>)</span>
+</div><div class='img'><img src='etSeq-1.png' alt='' width='700' height='433' /></div><div class='input'>
 
 <span class='co'>## Now Infusion for 5 days followed by oral for 5 days</span>
 
 <span class='co'>##  note you can dose to a named compartment instead of using the compartment number</span>
-<span class='no'>infusion</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span>(<span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hr"</span>) <span class='kw'>%&gt;%</span>
-      <span class='fu'><a href='et.html'>et</a></span>(<span class='kw'>amt</span><span class='kw'>=</span><span class='fl'>10000</span>, <span class='kw'>rate</span><span class='kw'>=</span><span class='fl'>5000</span>, <span class='kw'>ii</span><span class='kw'>=</span><span class='fl'>24</span>, <span class='kw'>until</span><span class='kw'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fl'>5</span>, <span class='st'>"days"</span>), <span class='kw'>cmt</span><span class='kw'>=</span><span class='st'>"centr"</span>)
+<span class='va'>infusion</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>timeUnits <span class='op'>=</span> <span class='st'>"hr"</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+      <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>amt<span class='op'>=</span><span class='fl'>10000</span>, rate<span class='op'>=</span><span class='fl'>5000</span>, ii<span class='op'>=</span><span class='fl'>24</span>, until<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span><span class='op'>(</span><span class='fl'>5</span>, <span class='st'>"days"</span><span class='op'>)</span>, cmt<span class='op'>=</span><span class='st'>"centr"</span><span class='op'>)</span>
 
 
-<span class='no'>qd</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span>(<span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hr"</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='et.html'>et</a></span>(<span class='kw'>amt</span><span class='kw'>=</span><span class='fl'>10000</span>, <span class='kw'>ii</span><span class='kw'>=</span><span class='fl'>24</span>, <span class='kw'>until</span><span class='kw'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fl'>5</span>, <span class='st'>"days"</span>), <span class='kw'>cmt</span><span class='kw'>=</span><span class='st'>"depot"</span>)
+<span class='va'>qd</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>timeUnits <span class='op'>=</span> <span class='st'>"hr"</span><span class='op'>)</span> <span class='op'>%&gt;%</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>amt<span class='op'>=</span><span class='fl'>10000</span>, ii<span class='op'>=</span><span class='fl'>24</span>, until<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span><span class='op'>(</span><span class='fl'>5</span>, <span class='st'>"days"</span><span class='op'>)</span>, cmt<span class='op'>=</span><span class='st'>"depot"</span><span class='op'>)</span>
 
-<span class='no'>et</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='no'>infusion</span>,<span class='no'>qd</span>)
+<span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span><span class='op'>(</span><span class='va'>infusion</span>,<span class='va'>qd</span><span class='op'>)</span>
 
-<span class='no'>infusionQd</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span>(<span class='no'>mod1</span>, <span class='no'>et</span>)
+<span class='va'>infusionQd</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxControl.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>mod1</span>, <span class='va'>et</span><span class='op'>)</span>
 
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>infusionQd</span>, <span class='no'>C2</span>)</div><div class='img'><img src='etSeq-2.png' alt='' width='700' height='433' /></div><div class='input'>
+<span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>infusionQd</span>, <span class='va'>C2</span><span class='op'>)</span>
+</div><div class='img'><img src='etSeq-2.png' alt='' width='700' height='433' /></div><div class='input'>
 <span class='co'>## 2wk-on, 1wk-off</span>
 
-<span class='no'>qd</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span>(<span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hr"</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='et.html'>et</a></span>(<span class='kw'>amt</span><span class='kw'>=</span><span class='fl'>10000</span>, <span class='kw'>ii</span><span class='kw'>=</span><span class='fl'>24</span>, <span class='kw'>until</span><span class='kw'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fl'>2</span>, <span class='st'>"weeks"</span>), <span class='kw'>cmt</span><span class='kw'>=</span><span class='st'>"depot"</span>)
+<span class='va'>qd</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>timeUnits <span class='op'>=</span> <span class='st'>"hr"</span><span class='op'>)</span> <span class='op'>%&gt;%</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>amt<span class='op'>=</span><span class='fl'>10000</span>, ii<span class='op'>=</span><span class='fl'>24</span>, until<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span><span class='op'>(</span><span class='fl'>2</span>, <span class='st'>"weeks"</span><span class='op'>)</span>, cmt<span class='op'>=</span><span class='st'>"depot"</span><span class='op'>)</span>
 
-<span class='no'>et</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='no'>qd</span>, <span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fl'>1</span>,<span class='st'>"weeks"</span>), <span class='no'>qd</span>) <span class='kw'>%&gt;%</span>
-     <span class='fu'><a href='add.sampling.html'>add.sampling</a></span>(<span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>5.5</span>,<span class='kw'>by</span><span class='kw'>=</span><span class='fl'>0.005</span>),<span class='no'>weeks</span>))
+<span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span><span class='op'>(</span><span class='va'>qd</span>, <span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span><span class='op'>(</span><span class='fl'>1</span>,<span class='st'>"weeks"</span><span class='op'>)</span>, <span class='va'>qd</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+     <span class='fu'><a href='add.sampling.html'>add.sampling</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>5.5</span>,by<span class='op'>=</span><span class='fl'>0.005</span><span class='op'>)</span>,<span class='va'>weeks</span><span class='op'>)</span><span class='op'>)</span>
 
-<span class='no'>wkOnOff</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span>(<span class='no'>mod1</span>, <span class='no'>et</span>)
+<span class='va'>wkOnOff</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxControl.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>mod1</span>, <span class='va'>et</span><span class='op'>)</span>
 
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>wkOnOff</span>, <span class='no'>C2</span>)</div><div class='img'><img src='etSeq-3.png' alt='' width='700' height='433' /></div><div class='input'>
+<span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>wkOnOff</span>, <span class='va'>C2</span><span class='op'>)</span>
+</div><div class='img'><img src='etSeq-3.png' alt='' width='700' height='433' /></div><div class='input'>
 <span class='co'>## You can also repeat the cycle easily with the rep function</span>
 
-<span class='no'>qd</span> <span class='kw'>&lt;-</span><span class='fu'><a href='et.html'>et</a></span>(<span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hr"</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='et.html'>et</a></span>(<span class='kw'>amt</span><span class='kw'>=</span><span class='fl'>10000</span>, <span class='kw'>ii</span><span class='kw'>=</span><span class='fl'>24</span>, <span class='kw'>until</span><span class='kw'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fl'>2</span>, <span class='st'>"weeks"</span>), <span class='kw'>cmt</span><span class='kw'>=</span><span class='st'>"depot"</span>)
+<span class='va'>qd</span> <span class='op'>&lt;-</span><span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>timeUnits <span class='op'>=</span> <span class='st'>"hr"</span><span class='op'>)</span> <span class='op'>%&gt;%</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>amt<span class='op'>=</span><span class='fl'>10000</span>, ii<span class='op'>=</span><span class='fl'>24</span>, until<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span><span class='op'>(</span><span class='fl'>2</span>, <span class='st'>"weeks"</span><span class='op'>)</span>, cmt<span class='op'>=</span><span class='st'>"depot"</span><span class='op'>)</span>
 
-<span class='no'>et</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='etRep.html'>etRep</a></span>(<span class='no'>qd</span>, <span class='kw'>times</span><span class='kw'>=</span><span class='fl'>4</span>, <span class='kw'>wait</span><span class='kw'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fl'>1</span>,<span class='st'>"weeks"</span>)) <span class='kw'>%&gt;%</span>
-     <span class='fu'><a href='add.sampling.html'>add.sampling</a></span>(<span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>12.5</span>,<span class='kw'>by</span><span class='kw'>=</span><span class='fl'>0.005</span>),<span class='no'>weeks</span>))
+<span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='etRep.html'>etRep</a></span><span class='op'>(</span><span class='va'>qd</span>, times<span class='op'>=</span><span class='fl'>4</span>, wait<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span><span class='op'>(</span><span class='fl'>1</span>,<span class='st'>"weeks"</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+     <span class='fu'><a href='add.sampling.html'>add.sampling</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/pkg/units/man/set_units.html'>set_units</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>12.5</span>,by<span class='op'>=</span><span class='fl'>0.005</span><span class='op'>)</span>,<span class='va'>weeks</span><span class='op'>)</span><span class='op'>)</span>
 
-<span class='no'>repCycle4</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span>(<span class='no'>mod1</span>, <span class='no'>et</span>)
+<span class='va'>repCycle4</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxControl.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>mod1</span>, <span class='va'>et</span><span class='op'>)</span>
 
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>repCycle4</span>, <span class='no'>C2</span>)</div><div class='img'><img src='etSeq-4.png' alt='' width='700' height='433' /></div><div class='input'>
+<span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>repCycle4</span>, <span class='va'>C2</span><span class='op'>)</span>
+</div><div class='img'><img src='etSeq-4.png' alt='' width='700' height='433' /></div><div class='input'>
 
 </div></pre>
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#details">Details</a></li>
-      <li><a href="#references">References</a></li>
-      <li><a href="#see-also">See also</a></li>
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
-    <h2>Author</h2>
-    <p>Matthew L Fidler, Wenping Wang</p>
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 
@@ -430,7 +438,7 @@ Pharmacometrics \&amp; Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

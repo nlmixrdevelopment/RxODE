@@ -55,9 +55,9 @@ end-of-line).
 A block of statements is a set of statements delimited by
 curly braces, `{ ... }`.
 
-Statements can be either assignments, conditional `if` statements, or
-printing statements (for debugging/testing). Assignment statements can
-be:
+Statements can be either assignments, conditional `if` or `while`
+statements, or printing statements (for debugging/testing). Assignment
+statements can be:
 
 - **simple** assignments, where the left hand is an identifier (i.e.,
   variable)
@@ -202,8 +202,20 @@ open source tool *DParser*, Plevyak (2015).
 
 ## Supported functions
 
-All the supported functions in RxODE can be seen with the `
+All the supported functions in RxODE can be seen with the
+`rxSupportedFuns()`.
+
+A brief description of the built-in functions is
+in the following table:
+
+```{r}
+clLinCmt <- read.csv("syntax-functions.csv");
+library(DT)
+datatable(clLinCmt, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T) )
+```
+
+Note that `lag(cmt) = ` is equivalent to `alag(cmt) = ` and not the same as `= lag(wt)`
 
 ## Bugs and/or deficiencies
 
-- The modulo operator `%` is currently unsupported. 
+- The modulo operator `%%` is currently unsupported. 

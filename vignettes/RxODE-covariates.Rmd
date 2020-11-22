@@ -9,7 +9,7 @@ output:
 
 If there is an individual covariate you wish to solve for you may specify it by the `iCov` dataset:
 
-```{r}
+```{r individual-covariates}
 library(RxODE)
 library(units)
 library(xgxr)
@@ -114,11 +114,11 @@ data.  When this happens, this ODE solver can use linear interpolation
 between the covariate values. It is equivalent to R's `approxfun` with
 `method="linear"`.
 
-```{r}
+```{r time-varying-linear-central}
 plot(r1,C2, ylab="Central Concentration")
 ```
 
-```{r}
+```{r time-varying-linear-effect}
 plot(r1,eff) + ylab("Effect") + xlab("Time");
 ```
 
@@ -140,11 +140,11 @@ print(r1)
 
 which gives the following plots:
 
-```{r}
+```{r time-varying-constant-central}
 plot(r1,C2, ylab="Central Concentration", xlab="Time")
 ```
 
-```{r}
+```{r time-varying-constant-effect}
 plot(r1,eff, ylab="Effect", xlab="Time")
 ```
 
@@ -160,11 +160,11 @@ print(r1)
 
 which gives the following plots:
 
-```{r}
+```{r time-varying-nocb-central}
 plot(r1,C2, ylab="Central Concentration", xlab="Time")
 ```
 
-```{r}
+```{r time-varying-nocb-effect}
 plot(r1,eff, ylab="Effect", xlab="Time")
 ```
 

@@ -17,23 +17,27 @@
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png" />
 
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
 <!-- headroom.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -42,7 +46,7 @@
 
 <!-- docsearch -->
 <script src="../docsearch.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.3/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous" />
 <link href="../docsearch.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
 
@@ -52,7 +56,6 @@
 <meta property="og:description" content="Create a dynamic ODE-based model object suitably for translation
 into fast C code" />
 <meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png" />
-<meta name="twitter:card" content="summary" />
 
 
 
@@ -70,7 +73,7 @@ into fast C code" />
 
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -84,7 +87,7 @@ into fast C code" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0-0</span>
       </span>
     </div>
 
@@ -200,6 +203,12 @@ into fast C code" />
     <li>
       <a href="../articles/RxODE-covariates.html">Adding Circadian Rythmn (time-varying covariates)</a>
     </li>
+    <li>
+      <a href="../articles/RxODE-wt.html">Weight Based Dosing</a>
+    </li>
+    <li>
+      <a href="../articles/RxODE-nesting.html">Simulating Multiple levels of nesting (iov, between study etc)</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -256,7 +265,7 @@ into fast C code" />
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Create an ODE-based model specification</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/nlmixrdevelopment/RxODE/blob/master/R/RxODE.R'><code>R/RxODE.R</code></a></small>
     <div class="hidden name"><code>RxODE.Rd</code></div>
     </div>
 
@@ -265,19 +274,22 @@ into fast C code" />
 into fast C code</p>
     </div>
 
-    <pre class="usage"><span class='fu'>RxODE</span>(
-  <span class='no'>model</span>,
-  <span class='kw'>modName</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/basename.html'>basename</a></span>(<span class='no'>wd</span>),
-  <span class='kw'>wd</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/getwd.html'>getwd</a></span>(),
-  <span class='kw'>filename</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>extraC</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>debug</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>calcJac</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>calcSens</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>collapseModel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>package</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='no'>...</span>
-)</pre>
+    <pre class="usage"><span class='fu'>RxODE</span><span class='op'>(</span>
+  <span class='va'>model</span>,
+  modName <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/basename.html'>basename</a></span><span class='op'>(</span><span class='va'>wd</span><span class='op'>)</span>,
+  wd <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/getwd.html'>getwd</a></span><span class='op'>(</span><span class='op'>)</span>,
+  filename <span class='op'>=</span> <span class='cn'>NULL</span>,
+  extraC <span class='op'>=</span> <span class='cn'>NULL</span>,
+  debug <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  calcJac <span class='op'>=</span> <span class='cn'>NULL</span>,
+  calcSens <span class='op'>=</span> <span class='cn'>NULL</span>,
+  collapseModel <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  package <span class='op'>=</span> <span class='cn'>NULL</span>,
+  <span class='va'>...</span>,
+  linCmtSens <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"linCmtA"</span>, <span class='st'>"linCmtB"</span>, <span class='st'>"linCmtC"</span><span class='op'>)</span>,
+  indLin <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  verbose <span class='op'>=</span> <span class='cn'>FALSE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -356,25 +368,21 @@ LHS variables when calculating sensitivities.</p></td>
     </tr>
     <tr>
       <th>...</th>
-      <td><p>ignored arguments.</p>
-<p>The &#8220;Rx&#8221; in the name <code>RxODE</code> is meant to suggest the
-abbreviation <em>Rx</em> for a medical prescription, and thus to
-suggest the package emphasis on pharmacometrics modeling, including
-pharmacokinetics (PK), pharmacodynamics (PD), disease progression,
-drug-disease modeling, etc.</p>
-<p>The ODE-based model specification may be coded inside a character
-string or in a text file, see Section <em>RxODE Syntax</em> below for
-coding details.  An internal <code>RxODE</code> compilation manager
-object translates the ODE system into C, compiles it, and
-dynamically loads the object code into the current R session.  The
-call to <code>RxODE</code> produces an object of class <code>RxODE</code> which
-consists of a list-like structure (closure) with various member
-functions (see Section <em>Value</em> below).</p>
-<p>For evaluating <code>RxODE</code> models, two types of inputs may be
-provided: a required set of time points for querying the state of
-the ODE system and an optional set of doses (input amounts).  These
-inputs are combined into a single <em>event table</em> object created
-with the function <code><a href='eventTable.html'>eventTable</a></code>.</p></td>
+      <td><p>ignored arguments.</p></td>
+    </tr>
+    <tr>
+      <th>linCmtSens</th>
+      <td><p>The method to calculate the linCmt() solutions</p></td>
+    </tr>
+    <tr>
+      <th>indLin</th>
+      <td><p>Calculate inductive linearization matrices and
+compile with inductive linearization support.</p></td>
+    </tr>
+    <tr>
+      <th>verbose</th>
+      <td><p>When `TRUE` be verbose with the linear
+compartmental model</p></td>
     </tr>
     </table>
 
@@ -390,8 +398,8 @@ with the function <code><a href='eventTable.html'>eventTable</a></code>.</p></td
         specification. These will be output when the model is computed (i.e., the ODE solved by integration).</p></dd>
 
       <dt>solve</dt><dd><p>this function solves (integrates) the ODE. This
-          is done by passing the code to <code><a href='rxSolve.html'>rxSolve</a></code>.
-          This is as if you called <code><a href='rxSolve.html'>rxSolve(RxODEobject, ...)</a></code>,
+          is done by passing the code to <code><a href='rxControl.html'>rxSolve</a></code>.
+          This is as if you called <code><a href='rxControl.html'>rxSolve(RxODEobject, ...)</a></code>,
           but returns a matrix instead of a rxSolve object.          <code>params</code>: a numeric named vector with values for every parameter
           in the ODE system; the names must correspond to the parameter
           identifiers used in the ODE specification;          <code>events</code>: an <code>eventTable</code> object describing the
@@ -430,6 +438,26 @@ with the function <code><a href='eventTable.html'>eventTable</a></code>.</p></td
       <dt>get.index</dt><dd><p>deprecated.</p></dd>
       <dt>getObj</dt><dd><p>internal (not user callable) function.</p></dd>
 
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>The &#8220;Rx&#8221; in the name <code>RxODE</code> is meant to suggest the
+abbreviation <em>Rx</em> for a medical prescription, and thus to
+suggest the package emphasis on pharmacometrics modeling, including
+pharmacokinetics (PK), pharmacodynamics (PD), disease progression,
+drug-disease modeling, etc.</p>
+<p>The ODE-based model specification may be coded inside a character
+string or in a text file, see Section <em>RxODE Syntax</em> below for
+coding details.  An internal <code>RxODE</code> compilation manager
+object translates the ODE system into C, compiles it, and
+dynamically loads the object code into the current R session.  The
+call to <code>RxODE</code> produces an object of class <code>RxODE</code> which
+consists of a list-like structure (closure) with various member
+functions (see Section <em>Value</em> below).</p>
+<p>For evaluating <code>RxODE</code> models, two types of inputs may be
+provided: a required set of time points for querying the state of
+the ODE system and an optional set of doses (input amounts).  These
+inputs are combined into a single <em>event table</em> object created
+with the function <code><a href='eventTable.html'>eventTable</a></code>.</p>
     <h2 class="hasAnchor" id="rxode-syntax"><a class="anchor" href="#rxode-syntax"></a>RxODE Syntax</h2>
 
     
@@ -455,8 +483,8 @@ for very stiff differential systems.</p>
 <p>Expressions in assignment and &#8216;<code>if</code>&#8217; statements can be
 numeric or logical (no character expressions are currently
 supported). Numeric expressions can include the following numeric
-operators (&#8216;<code>+</code>&#8217;, &#8216;<code>-</code>&#8217;, &#8216;<code>*</code>&#8217;,
-&#8216;<code>/</code>&#8217;, &#8216;<code>^</code>&#8217;), and those mathematical
+operators (&#8216;<code><a href='https://rdrr.io/r/base/Arithmetic.html'>+</a></code>&#8217;, &#8216;<code><a href='https://rdrr.io/r/base/Arithmetic.html'>-</a></code>&#8217;, &#8216;<code><a href='https://rdrr.io/r/base/Arithmetic.html'>*</a></code>&#8217;,
+&#8216;<code><a href='https://rdrr.io/r/base/Arithmetic.html'>/</a></code>&#8217;, &#8216;<code><a href='https://rdrr.io/r/base/Arithmetic.html'>^</a></code>&#8217;), and those mathematical
 functions defined in the C or the R math libraries (e.g.,
 <code>fabs</code>, <code>exp</code>, <code>log</code>, <code>sin</code>).  (Notice that the
 modulo operator &#8216;<code>%</code>&#8217; is currently not supported.)</p>
@@ -506,10 +534,13 @@ Springer-Verlag (1993).</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p><code><a href='eventTable.html'>eventTable</a></code>, <code><a href='et.html'>et</a></code>, <code><a href='add.sampling.html'>add.sampling</a></code>, <code><a href='add.dosing.html'>add.dosing</a></code></p></div>
+    <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
+
+    <p>Melissa Hallow, Wenping Wang and Matthew Fidler</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='co'># Step 1 - Create a model specification</span>
-<span class='no'>ode</span> <span class='kw'>&lt;-</span> <span class='st'>"
+<span class='va'>ode</span> <span class='op'>&lt;-</span> <span class='st'>"
    # A 4-compartment model, 3 PK and a PD (effect) compartment
    # (notice state variable names 'depot', 'centr', 'peri', 'eff')
 
@@ -521,8 +552,9 @@ Springer-Verlag (1993).</p>
    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 "</span>
 
-<span class='no'>m1</span> <span class='kw'>&lt;-</span> <span class='fu'>RxODE</span>(<span class='kw'>model</span> <span class='kw'>=</span> <span class='no'>ode</span>)
-<span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>0.9.2-0 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_4b7546a8e049faa13d89ceb1c062a775</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
+<span class='va'>m1</span> <span class='op'>&lt;-</span> <span class='fu'>RxODE</span><span class='op'>(</span>model <span class='op'>=</span> <span class='va'>ode</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='message'>ABC</span></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>m1</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>1.0.0-0 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_11131c70fa4dca95e0e48469c5aca825</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</div><div class='input'>
@@ -531,30 +563,32 @@ Springer-Verlag (1993).</p>
 
 <span class='co'># QD (once daily) dosing for 5 days.</span>
 
-<span class='no'>qd</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='eventTable.html'>eventTable</a></span>(<span class='kw'>amount.units</span> <span class='kw'>=</span> <span class='st'>"ug"</span>, <span class='kw'>time.units</span> <span class='kw'>=</span> <span class='st'>"hours"</span>)
-<span class='no'>qd</span>$<span class='fu'><a href='add.dosing.html'>add.dosing</a></span>(<span class='kw'>dose</span> <span class='kw'>=</span> <span class='fl'>10000</span>, <span class='kw'>nbr.doses</span> <span class='kw'>=</span> <span class='fl'>5</span>, <span class='kw'>dosing.interval</span> <span class='kw'>=</span> <span class='fl'>24</span>)
+<span class='va'>qd</span> <span class='op'>&lt;-</span> <span class='fu'><a href='eventTable.html'>eventTable</a></span><span class='op'>(</span>amount.units <span class='op'>=</span> <span class='st'>"ug"</span>, time.units <span class='op'>=</span> <span class='st'>"hours"</span><span class='op'>)</span>
+<span class='va'>qd</span><span class='op'>$</span><span class='fu'>add.dosing</span><span class='op'>(</span>dose <span class='op'>=</span> <span class='fl'>10000</span>, nbr.doses <span class='op'>=</span> <span class='fl'>5</span>, dosing.interval <span class='op'>=</span> <span class='fl'>24</span><span class='op'>)</span>
 
 <span class='co'># Sample the system hourly during the first day, every 8 hours</span>
 <span class='co'># then after</span>
 
-<span class='no'>qd</span>$<span class='fu'><a href='add.sampling.html'>add.sampling</a></span>(<span class='fl'>0</span>:<span class='fl'>24</span>)
-<span class='no'>qd</span>$<span class='fu'><a href='add.sampling.html'>add.sampling</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='kw'>from</span> <span class='kw'>=</span> <span class='fl'>24</span>+<span class='fl'>8</span>, <span class='kw'>to</span> <span class='kw'>=</span> <span class='fl'>5</span>*<span class='fl'>24</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='fl'>8</span>))
+<span class='va'>qd</span><span class='op'>$</span><span class='fu'>add.sampling</span><span class='op'>(</span><span class='fl'>0</span><span class='op'>:</span><span class='fl'>24</span><span class='op'>)</span>
+<span class='va'>qd</span><span class='op'>$</span><span class='fu'>add.sampling</span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span><span class='op'>(</span>from <span class='op'>=</span> <span class='fl'>24</span><span class='op'>+</span><span class='fl'>8</span>, to <span class='op'>=</span> <span class='fl'>5</span><span class='op'>*</span><span class='fl'>24</span>, by <span class='op'>=</span> <span class='fl'>8</span><span class='op'>)</span><span class='op'>)</span>
 
 <span class='co'># Step 3 - set starting parameter estimates and initial</span>
 <span class='co'># values of the state</span>
 
-<span class='no'>theta</span> <span class='kw'>&lt;-</span>
-    <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='kw'>KA</span> <span class='kw'>=</span> <span class='fl'>.291</span>, <span class='kw'>CL</span> <span class='kw'>=</span> <span class='fl'>18.6</span>,
-      <span class='kw'>V2</span> <span class='kw'>=</span> <span class='fl'>40.2</span>, <span class='kw'>Q</span> <span class='kw'>=</span> <span class='fl'>10.5</span>, <span class='kw'>V3</span> <span class='kw'>=</span> <span class='fl'>297.0</span>,
-      <span class='kw'>Kin</span> <span class='kw'>=</span> <span class='fl'>1.0</span>, <span class='kw'>Kout</span> <span class='kw'>=</span> <span class='fl'>1.0</span>, <span class='kw'>EC50</span> <span class='kw'>=</span> <span class='fl'>200.0</span>)
+<span class='va'>theta</span> <span class='op'>&lt;-</span>
+    <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span>KA <span class='op'>=</span> <span class='fl'>.291</span>, CL <span class='op'>=</span> <span class='fl'>18.6</span>,
+      V2 <span class='op'>=</span> <span class='fl'>40.2</span>, Q <span class='op'>=</span> <span class='fl'>10.5</span>, V3 <span class='op'>=</span> <span class='fl'>297.0</span>,
+      Kin <span class='op'>=</span> <span class='fl'>1.0</span>, Kout <span class='op'>=</span> <span class='fl'>1.0</span>, EC50 <span class='op'>=</span> <span class='fl'>200.0</span><span class='op'>)</span>
 
 <span class='co'># init state variable</span>
-<span class='no'>inits</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>1</span>);
+<span class='va'>inits</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>1</span><span class='op'>)</span>;
 
 <span class='co'># Step 4 - Fit the model to the data</span>
 
-<span class='no'>qd.cp</span> <span class='kw'>&lt;-</span> <span class='no'>m1</span>$<span class='fu'><a href='https://rdrr.io/r/base/solve.html'>solve</a></span>(<span class='no'>theta</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='no'>qd</span>, <span class='no'>inits</span>)</div><div class='output co'>#&gt; <span class='warning'>Warning: Assumed order of inputs: depot, centr, peri, eff</span></div><div class='input'>
-<span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span>(<span class='no'>qd.cp</span>)</div><div class='output co'>#&gt;      time       C2        C3     depot    centr      peri      eff
+<span class='va'>qd.cp</span> <span class='op'>&lt;-</span> <span class='va'>m1</span><span class='op'>$</span><span class='fu'>solve</span><span class='op'>(</span><span class='va'>theta</span>, events <span class='op'>=</span> <span class='va'>qd</span>, <span class='va'>inits</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='warning'>Warning: Assumed order of inputs: depot, centr, peri, eff</span></div><div class='input'>
+<span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span><span class='op'>(</span><span class='va'>qd.cp</span><span class='op'>)</span>
+</div><div class='output co'>#&gt;      time       C2        C3     depot    centr      peri      eff
 #&gt; [1,]    0  0.00000 0.0000000 10000.000    0.000    0.0000 1.000000
 #&gt; [2,]    1 43.99334 0.9113641  7475.157 1768.532  270.6751 1.083968
 #&gt; [3,]    2 54.50866 2.6510696  5587.797 2191.248  787.3677 1.179529
@@ -564,13 +598,13 @@ Springer-Verlag (1993).</p>
 <span class='co'># This returns a matrix.  Note that you can also</span>
 <span class='co'># solve using name initial values. For example:</span>
 
-<span class='no'>inits</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='kw'>eff</span> <span class='kw'>=</span> <span class='fl'>1</span>);
+<span class='va'>inits</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span>eff <span class='op'>=</span> <span class='fl'>1</span><span class='op'>)</span>;
 
-<span class='no'>qd.cp</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/solve.html'>solve</a></span>(<span class='no'>m1</span>, <span class='no'>theta</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='no'>qd</span>, <span class='no'>inits</span>);
+<span class='va'>qd.cp</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>m1</span>, <span class='va'>theta</span>, events <span class='op'>=</span> <span class='va'>qd</span>, <span class='va'>inits</span><span class='op'>)</span>;
 
-<span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span>(<span class='no'>qd.cp</span>)</div><div class='output co'>#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ </span><span style='font-weight: bold;'>Solved RxODE object</span><span> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+<span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>qd.cp</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ </span><span style='font-weight: bold;'>Solved RxODE object</span><span> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
 #&gt; ── </span><span style='font-weight: bold;'>Parameters</span><span> (</span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>): ───────────────────────────────────────────────────────
-#&gt;  
 #&gt;      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 #&gt;  40.200 297.000   0.291  18.600  10.500   1.000   1.000 200.000 
 #&gt; ── </span><span style='font-weight: bold;'>Initial Conditions</span><span> (</span><span style='color: #0000BB;font-weight: bold;'>$inits</span><span>): ────────────────────────────────────────────────
@@ -588,22 +622,14 @@ Springer-Verlag (1993).</p>
 #&gt; </span><span style='color: #555555;'>6</span><span>     5  36.5 7.14   </span><span style='text-decoration: underline;'>2</span><span>334. </span><span style='text-decoration: underline;'>1</span><span>466. </span><span style='text-decoration: underline;'>2</span><span>120.  1.21
 #&gt; </span><span style='color: #555555;'># … with 31 more rows</span><span>
 #&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</div><div class='input'>
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>qd.cp</span>)</div><div class='img'><img src='RxODE-1.png' alt='' width='700' height='433' /></div><div class='input'>
+<span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>qd.cp</span><span class='op'>)</span>
+</div><div class='img'><img src='RxODE-1.png' alt='' width='700' height='433' /></div><div class='input'>
 </div></span></pre>
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
-      <li><a href="#rxode-syntax">RxODE Syntax</a></li>
-      <li><a href="#references">References</a></li>
-      <li><a href="#see-also">See also</a></li>
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
-    <h2>Author</h2>
-    <p>Melissa Hallow, Wenping Wang and Matthew Fidler</p>
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 
@@ -614,7 +640,7 @@ Springer-Verlag (1993).</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

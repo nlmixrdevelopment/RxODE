@@ -2860,7 +2860,7 @@ double linCmtC(rx_solve *rx, unsigned int id, double _t, int linCmt,
   double *rate = ind->linCmtRate;
   int oldIdx = ind->idx;
   int oldIxds = ind->ixds;
-  double or1, or2;
+  double or1 = 0.0, or2=0.0;
   if (op->nlinR == 2){
     or1 = rate[0];
     or2 = rate[1];

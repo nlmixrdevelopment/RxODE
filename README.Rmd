@@ -179,6 +179,13 @@ ODE-solving pharmacometric projects listed.
 
 ## PK Solved systems
 
+RxODE supports 1-3 compartment models with gradients (using stan
+math's auto-differentiation).  This currently uses the same
+equations as PKADVAN to allow time-varying covariates.
+
+RxODE can mix ODEs and solved systems.
+
+
 ### The following packages for solved PK systems are on CRAN
 
  - [mrgsolve](https://CRAN.R-project.org/package=mrgsolve) currently
@@ -199,11 +206,5 @@ ODE-solving pharmacometric projects listed.
    1-3 compartment models using non-superpositioning.  This allows
    time-varying covariates.
    
-### RxODE:
 
-RxODE supports 1-3 compartment models with gradients (using stan
-math's auto-differentiation).  This currently uses the same
-equations as PKADVAN to allow time-varying covariates. 
-
-RxODE can mix ODEs and solved systems
 

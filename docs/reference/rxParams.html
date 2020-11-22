@@ -17,23 +17,27 @@
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png" />
 
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
 <!-- headroom.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -42,7 +46,7 @@
 
 <!-- docsearch -->
 <script src="../docsearch.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.3/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous" />
 <link href="../docsearch.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
 
@@ -52,7 +56,6 @@
 <meta property="og:description" content="This returns the model's parameters that are required to solve the
 ODE system, and can be used to pipe parameters into an RxODE solve" />
 <meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png" />
-<meta name="twitter:card" content="summary" />
 
 
 
@@ -70,7 +73,7 @@ ODE system, and can be used to pipe parameters into an RxODE solve" />
 
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -84,7 +87,7 @@ ODE system, and can be used to pipe parameters into an RxODE solve" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0-0</span>
       </span>
     </div>
 
@@ -200,6 +203,12 @@ ODE system, and can be used to pipe parameters into an RxODE solve" />
     <li>
       <a href="../articles/RxODE-covariates.html">Adding Circadian Rythmn (time-varying covariates)</a>
     </li>
+    <li>
+      <a href="../articles/RxODE-wt.html">Weight Based Dosing</a>
+    </li>
+    <li>
+      <a href="../articles/RxODE-nesting.html">Simulating Multiple levels of nesting (iov, between study etc)</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -256,7 +265,7 @@ ODE system, and can be used to pipe parameters into an RxODE solve" />
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Parameters specified by the model</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/nlmixrdevelopment/RxODE/blob/master/R/rxParams.R'><code>R/rxParams.R</code></a></small>
     <div class="hidden name"><code>rxParams.Rd</code></div>
     </div>
 
@@ -265,62 +274,62 @@ ODE system, and can be used to pipe parameters into an RxODE solve" />
 ODE system, and can be used to pipe parameters into an RxODE solve</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rxParams</span>(<span class='no'>obj</span>, <span class='no'>...</span>)
+    <pre class="usage"><span class='fu'>rxParams</span><span class='op'>(</span><span class='va'>obj</span>, <span class='va'>...</span><span class='op'>)</span>
 
 <span class='co'># S3 method for RxODE</span>
-<span class='fu'>rxParams</span>(
-  <span class='no'>obj</span>,
-  <span class='kw'>constants</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='no'>...</span>,
-  <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
-)
+<span class='fu'>rxParams</span><span class='op'>(</span>
+  <span class='va'>obj</span>,
+  constants <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  <span class='va'>...</span>,
+  params <span class='op'>=</span> <span class='cn'>NULL</span>,
+  inits <span class='op'>=</span> <span class='cn'>NULL</span>,
+  iCov <span class='op'>=</span> <span class='cn'>NULL</span>,
+  keep <span class='op'>=</span> <span class='cn'>NULL</span>,
+  thetaMat <span class='op'>=</span> <span class='cn'>NULL</span>,
+  omega <span class='op'>=</span> <span class='cn'>NULL</span>,
+  dfSub <span class='op'>=</span> <span class='cn'>NULL</span>,
+  sigma <span class='op'>=</span> <span class='cn'>NULL</span>,
+  dfObs <span class='op'>=</span> <span class='cn'>NULL</span>,
+  nSub <span class='op'>=</span> <span class='cn'>NULL</span>,
+  nStud <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span>
 
 <span class='co'># S3 method for rxSolve</span>
-<span class='fu'>rxParams</span>(
-  <span class='no'>obj</span>,
-  <span class='kw'>constants</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='no'>...</span>,
-  <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
-)
+<span class='fu'>rxParams</span><span class='op'>(</span>
+  <span class='va'>obj</span>,
+  constants <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  <span class='va'>...</span>,
+  params <span class='op'>=</span> <span class='cn'>NULL</span>,
+  inits <span class='op'>=</span> <span class='cn'>NULL</span>,
+  iCov <span class='op'>=</span> <span class='cn'>NULL</span>,
+  keep <span class='op'>=</span> <span class='cn'>NULL</span>,
+  thetaMat <span class='op'>=</span> <span class='cn'>NULL</span>,
+  omega <span class='op'>=</span> <span class='cn'>NULL</span>,
+  dfSub <span class='op'>=</span> <span class='cn'>NULL</span>,
+  sigma <span class='op'>=</span> <span class='cn'>NULL</span>,
+  dfObs <span class='op'>=</span> <span class='cn'>NULL</span>,
+  nSub <span class='op'>=</span> <span class='cn'>NULL</span>,
+  nStud <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span>
 
 <span class='co'># S3 method for rxEt</span>
-<span class='fu'>rxParams</span>(
-  <span class='no'>obj</span>,
-  <span class='no'>...</span>,
-  <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
-)
+<span class='fu'>rxParams</span><span class='op'>(</span>
+  <span class='va'>obj</span>,
+  <span class='va'>...</span>,
+  params <span class='op'>=</span> <span class='cn'>NULL</span>,
+  inits <span class='op'>=</span> <span class='cn'>NULL</span>,
+  iCov <span class='op'>=</span> <span class='cn'>NULL</span>,
+  keep <span class='op'>=</span> <span class='cn'>NULL</span>,
+  thetaMat <span class='op'>=</span> <span class='cn'>NULL</span>,
+  omega <span class='op'>=</span> <span class='cn'>NULL</span>,
+  dfSub <span class='op'>=</span> <span class='cn'>NULL</span>,
+  sigma <span class='op'>=</span> <span class='cn'>NULL</span>,
+  dfObs <span class='op'>=</span> <span class='cn'>NULL</span>,
+  nSub <span class='op'>=</span> <span class='cn'>NULL</span>,
+  nStud <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span>
 
-<span class='fu'>rxParam</span>(<span class='no'>obj</span>, <span class='no'>...</span>)</pre>
+<span class='fu'>rxParam</span><span class='op'>(</span><span class='va'>obj</span>, <span class='va'>...</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -382,7 +391,7 @@ for simulations.</p></td>
     </tr>
     <tr>
       <th>dfSub</th>
-      <td><p>Degrees of freedom to sample the between subject variability matrix from the 
+      <td><p>Degrees of freedom to sample the between subject variability matrix from the
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.</p></td>
     </tr>
     <tr>
@@ -394,17 +403,17 @@ observation in the solved system.</p></td>
     </tr>
     <tr>
       <th>dfObs</th>
-      <td><p>Degrees of freedom to sample the unexplained variability matrix from the 
+      <td><p>Degrees of freedom to sample the unexplained variability matrix from the
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.</p></td>
     </tr>
     <tr>
       <th>nSub</th>
-      <td><p>Number between subject variabilities (ETAs) simulated for every 
+      <td><p>Number between subject variabilities (ETAs) simulated for every
 realization of the parameters.</p></td>
     </tr>
     <tr>
       <th>nStud</th>
-      <td><p>Number virtual studies to characterize uncertainty in estimated 
+      <td><p>Number virtual studies to characterize uncertainty in estimated
 parameters.</p></td>
     </tr>
     </table>
@@ -413,17 +422,15 @@ parameters.</p></td>
 
     <p>When extracting the parameters from an RxODE model, a
     character vector listing the parameters in the model.</p>
+    <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
+
+    <p>Matthew L.Fidler</p>
 
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
-    </ul>
-
-    <h2>Author</h2>
-    <p>Matthew L.Fidler</p>
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 
@@ -434,7 +441,7 @@ parameters.</p></td>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

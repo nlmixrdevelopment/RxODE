@@ -928,11 +928,11 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     // Convert to a lotri matrix
     SEXP sigmaPre = PROTECT(wrap(sigma)); pro++;
     Rf_setAttrib(sigmaPre, R_DimNamesSymbol, as<SEXP>(dimnames));
-    sigmaLotri = asLotriMat(sigmaPre,
-			    as<SEXP>(List::create(_["lower"] = control[Rxc_sigmaLower],
-						  _["upper"] = control[Rxc_sigmaUpper],
-						  _["nu"]    = control[Rxc_dfObs])),
-			    as<SEXP>(CharacterVector::create("id")));
+    sigmaLotri = PROTECT(asLotriMat(sigmaPre,
+				    as<SEXP>(List::create(_["lower"] = control[Rxc_sigmaLower],
+							  _["upper"] = control[Rxc_sigmaUpper],
+							  _["nu"]    = control[Rxc_dfObs])),
+				    as<SEXP>(CharacterVector::create("id")))); pro++;
   } else if (isLotri(sigmaS)) {
     sigmaLotri = sigmaS;
   } else if (!Rf_isNull(sigmaS)){
