@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: RxODE 0.9.2-0\n"
+"Project-Id-Version: RxODE 1.0.0-0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-22 14:06-0500\n"
+"POT-Creation-Date: 2020-11-21 22:42-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -114,34 +114,34 @@ msgstr ""
 msgid "'omega' needs to be a matrix or lotri matrix"
 msgstr ""
 
-#: cvPost.cpp:760 cvPost.cpp:801 rxData.cpp:2862
+#: cvPost.cpp:764 cvPost.cpp:805 rxData.cpp:3018
 #, c-format
 msgid ""
 "provided multi-subject data (n=%d) trying to simulate a different number of "
 "subjects (n=%d)"
 msgstr ""
 
-#: cvPost.cpp:920
+#: cvPost.cpp:923
 msgid "zero 'sigma', no unexplained variability"
 msgstr ""
 
-#: cvPost.cpp:923
+#: cvPost.cpp:926
 msgid "'sigma' must be symmetric, positive definite"
 msgstr ""
 
-#: cvPost.cpp:938
+#: cvPost.cpp:941
 msgid "'sigma' needs to be a matrix or lotri matrix"
 msgstr ""
 
-#: cvPost.cpp:1076
+#: cvPost.cpp:1078
 msgid "un-handled nesting information"
 msgstr ""
 
-#: cvPost.cpp:1100
+#: cvPost.cpp:1102
 msgid "cannot find 'id' column in dataset"
 msgstr ""
 
-#: cvPost.cpp:1113
+#: cvPost.cpp:1115
 msgid "'omega' must be a list/lotri/matrix"
 msgstr ""
 
@@ -209,7 +209,7 @@ msgstr ""
 msgid "no dense output available for %uth component"
 msgstr ""
 
-#: et.cpp:120 rxData.cpp:4976
+#: et.cpp:120 rxData.cpp:5310
 #, c-format
 msgid "partial match of '%s' to '%s'"
 msgstr ""
@@ -233,11 +233,11 @@ msgstr ""
 msgid "unknown method: '%s'"
 msgstr ""
 
-#: et.cpp:947 etTran.cpp:450
+#: et.cpp:947 etTran.cpp:457
 msgid "can only specify either 'amt' or 'value'"
 msgstr ""
 
-#: et.cpp:951 etTran.cpp:454
+#: et.cpp:951 etTran.cpp:461
 msgid "can only specify either 'cmt', 'ytype', 'state' or 'var'"
 msgstr ""
 
@@ -551,220 +551,268 @@ msgstr ""
 msgid "cannot figure out what type of 'EventTable' you are trying to create"
 msgstr ""
 
-#: et.cpp:3218
+#: et.cpp:3219 et.cpp:3222
 msgid "cannot have event tables with integer and character 'cmt'"
 msgstr ""
 
-#: et.cpp:3221
-msgid "cannot haveevent tables with integer and character 'cmt'"
-msgstr ""
-
-#: et.cpp:3306
+#: et.cpp:3307
 #, c-format
 msgid ""
 "assumed a dose interval of %.1f between event tables; use 'ii' to adjust"
 msgstr ""
 
-#: et.cpp:3407
+#: et.cpp:3409
 msgid "no events table found for 'seq'/'rep'/'rbind'/'c'"
 msgstr ""
 
-#: et.cpp:3528
+#: et.cpp:3530
 msgid "'wait' cannot be a vector"
 msgstr ""
 
-#: etTran.cpp:135 etTran.cpp:267 etTran.cpp:276
+#: etTran.cpp:137
 #, c-format
-msgid "negative compartments on non-ode 'cmt' (%s) does not make sense"
+msgid ""
+"negative compartments on non-ode 'cmt' (%s) does not make sense (id: %s, "
+"row: %d)"
 msgstr ""
 
-#: etTran.cpp:296
+#: etTran.cpp:272 etTran.cpp:282
+#, c-format
+msgid ""
+"negative compartments on non-ode 'cmt' (%s) does not make sense (id: %s row: "
+"%d)"
+msgstr ""
+
+#: etTran.cpp:303
 msgid "should not reach here"
 msgstr ""
 
-#: etTran.cpp:470
+#: etTran.cpp:477
 msgid "cannot keep 'evid'; try 'addDosing'"
 msgstr ""
 
-#: etTran.cpp:611
+#: etTran.cpp:622
 msgid "'time' is required in dataset"
 msgstr ""
 
-#: etTran.cpp:702
+#: etTran.cpp:714
 msgid "steady state column ('ss') needs to be an integer"
 msgstr ""
 
-#: etTran.cpp:713
+#: etTran.cpp:725
 msgid "event id ('evid') needs to be an integer"
 msgstr ""
 
-#: etTran.cpp:722
+#: etTran.cpp:734
 msgid "missing DV ('mdv') needs to be an integer"
 msgstr ""
 
-#: etTran.cpp:736
+#: etTran.cpp:748
 msgid "missing dependent variable ('mdv') needs to be an integer"
 msgstr ""
 
-#: etTran.cpp:744
+#: etTran.cpp:756
 msgid "'rate' needs to be a number"
 msgstr ""
 
-#: etTran.cpp:753
+#: etTran.cpp:765
 msgid "'dur' needs to be a number"
 msgstr ""
 
-#: etTran.cpp:768
+#: etTran.cpp:780
 msgid "amount ('amt') needs to be a number"
 msgstr ""
 
-#: etTran.cpp:776
+#: etTran.cpp:788
 msgid "inter-dose interval ('ii') needs to be a number"
 msgstr ""
 
-#: etTran.cpp:784
+#: etTran.cpp:796
 msgid "number of additional doses ('addl') needs to be an integer"
 msgstr ""
 
-#: etTran.cpp:792
+#: etTran.cpp:804
 msgid "dependent variable ('dv') needs to be a number"
 msgstr ""
 
-#: etTran.cpp:800
+#: etTran.cpp:812
 msgid "censoring variable ('cens') needs to be a number"
 msgstr ""
 
-#: etTran.cpp:808
+#: etTran.cpp:820
 msgid "limit variable ('limit') needs to be a number"
 msgstr ""
 
-#: etTran.cpp:850
-msgid "censoring column can only be -1, 0 or 1"
+#: etTran.cpp:869
+#, c-format
+msgid "censoring column can only be -1, 0 or 1 (id: %s, row: %d)"
 msgstr ""
 
-#: etTran.cpp:862
-msgid "infinite times are not allowed"
+#: etTran.cpp:894
+#, c-format
+msgid "infinite times are not allowed (id: %s, row: %d)"
 msgstr ""
 
-#: etTran.cpp:920
-msgid "steady state records cannot be on negative compartments"
+#: etTran.cpp:952
+#, c-format
+msgid ""
+"steady state records cannot be on negative compartments (id: %s, row: %d)"
 msgstr ""
 
-#: etTran.cpp:950
+#: etTran.cpp:982
+#, c-format
 msgid ""
 "when using steady state constant infusion modeling duration does not make "
-"sense"
+"sense (id: %s, row: %d)"
 msgstr ""
 
-#: etTran.cpp:969 etTran.cpp:975 etTran.cpp:981
+#: etTran.cpp:1001
+#, c-format
 msgid ""
-"specifying duration with a steady state constant infusion makes no sense"
+"specifying duration with a steady state constant infusion makes no sense "
+"(id: %s row: %d)"
 msgstr ""
 
-#: etTran.cpp:992
-msgid "'rate' and/or 'dur' are not specified correctly"
+#: etTran.cpp:1007 etTran.cpp:1013
+#, c-format
+msgid ""
+"specifying duration with a steady state constant infusion makes no sense "
+"(id: %d row: %d)"
 msgstr ""
 
-#: etTran.cpp:1010
-msgid "'amt' or 'dur'/'rate' are non-zero therefore MDV cannot = 0"
+#: etTran.cpp:1024
+#, c-format
+msgid "'rate' and/or 'dur' are not specified correctly (id: %d row: %d)"
 msgstr ""
 
-#: etTran.cpp:1048
+#: etTran.cpp:1042
+#, c-format
+msgid ""
+"'amt' or 'dur'/'rate' are non-zero therefore MDV cannot = 0 (id: %s row: %d)"
+msgstr ""
+
+#: etTran.cpp:1080
 msgid "'addl' is ignored with observations"
 msgstr ""
 
-#: etTran.cpp:1070 etTran.cpp:1153
+#: etTran.cpp:1102 etTran.cpp:1186
 #, c-format
-msgid "'limit' (%f) cannot equal 'dv' (%f)"
+msgid "'limit' (%f) cannot equal 'dv' (%f) id: %s row: %d"
 msgstr ""
 
-#: etTran.cpp:1103
-msgid "'cmt' and 'dvid' specify different compartments"
+#: etTran.cpp:1135
+#, c-format
+msgid "'cmt' and 'dvid' specify different compartments (id: %s row: %d)"
 msgstr ""
 
-#: etTran.cpp:1124
+#: etTran.cpp:1156
 msgid "'DVID'/'CMT' translation:\n"
 msgstr ""
 
-#: etTran.cpp:1130
+#: etTran.cpp:1162
+#, c-format
 msgid ""
 "'dvid'->'cmt' or 'cmt' on observation record on a undefined compartment (use "
-"'cmt()' 'dvid()')"
+"'cmt()' 'dvid()') id: %s row: %d"
 msgstr ""
 
-#: etTran.cpp:1168
-msgid "'mdv' cannot be 0 when 'evid'=1"
+#: etTran.cpp:1201
+#, c-format
+msgid "'mdv' cannot be 0 when 'evid'=1 id: %s row: %d"
 msgstr ""
 
-#: etTran.cpp:1185
+#: etTran.cpp:1218
 msgid "'addl' is ignored with 'EVID=2'"
 msgstr ""
 
-#: etTran.cpp:1188
+#: etTran.cpp:1221
 msgid "'ss' is ignored with 'EVID=2'"
 msgstr ""
 
-#: etTran.cpp:1231
+#: etTran.cpp:1263
 msgid "'addl' is ignored with 'EVID=3'"
 msgstr ""
 
-#: etTran.cpp:1234
+#: etTran.cpp:1266
 msgid "'ss' is ignored with 'EVID=3'"
 msgstr ""
 
-#: etTran.cpp:1257
-msgid "'mdv' cannot be 0 when 'evid'=4"
+#: etTran.cpp:1290
+#, c-format
+msgid "'mdv' cannot be 0 when 'evid'=4 id: %s row: %d"
 msgstr ""
 
-#: etTran.cpp:1282
-msgid "cannot have an infusion event with a replacement event"
+#: etTran.cpp:1316
+#, c-format
+msgid "cannot have an infusion event with a replacement event (id: %s row: %d)"
 msgstr ""
 
-#: etTran.cpp:1289
-msgid "cannot have an infusion event with a multiplication event"
+#: etTran.cpp:1323
+#, c-format
+msgid ""
+"cannot have an infusion event with a multiplication event (id: %s row: %d)"
 msgstr ""
 
-#: etTran.cpp:1300
+#: etTran.cpp:1334
 msgid "'rate' or 'dur' is ignored with classic RxODE 'EVID's"
 msgstr ""
 
-#: etTran.cpp:1304
+#: etTran.cpp:1338
 msgid "'ss' is ignored with classic RxODE 'EVID's"
 msgstr ""
 
-#: etTran.cpp:1325
-msgid "'ss' with 'addl' not supported"
+#: etTran.cpp:1359
+#, c-format
+msgid "'ss' with 'addl' not supported (id: %s row: %d)"
 msgstr ""
 
-#: etTran.cpp:1475
+#: etTran.cpp:1370
+#, c-format
+msgid "'amt' value NA or 0 for dose event (id: %s row: %d)"
+msgstr ""
+
+#: etTran.cpp:1408
+#, c-format
+msgid ""
+"'amt' value NA for dose event; (id: %s, amt: %f, evid: %d RxODE evid: %d, "
+"row: %d)"
+msgstr ""
+
+#: etTran.cpp:1486
+msgid ""
+"there are evid=3/4 records in an incorrectly sorted dataset, system is "
+"reset, but time is not reset"
+msgstr ""
+
+#: etTran.cpp:1543
 msgid "censoring missing 'DV' values do not make sense"
 msgstr ""
 
-#: etTran.cpp:1571 etTran.cpp:1593
+#: etTran.cpp:1639 etTran.cpp:1661
 msgid "empty data"
 msgstr ""
 
-#: etTran.cpp:1609
+#: etTran.cpp:1677
 msgid "while censoring is included in dataset, no observations are censored"
 msgstr ""
 
-#: etTran.cpp:1613
+#: etTran.cpp:1681
 msgid "'dv' and 'limit' swapped since 'limit' > 'dv'"
 msgstr ""
 
-#: etTran.cpp:1725
+#: etTran.cpp:1802
 msgid "number of individuals not calculated correctly"
 msgstr ""
 
-#: etTran.cpp:1880
+#: etTran.cpp:1957
 msgid "corrupted event table"
 msgstr ""
 
-#: etTran.cpp:1992
+#: etTran.cpp:2071
 msgid ""
 "\n"
 "with negative times, compartments initialize at first negative observed "
-"tim.\n"
+"time\n"
 "with positive times, compartments initialize at time zero\n"
 "use 'rxSetIni0(FALSE)' to initialize at first observed time\n"
 "this warning is displayed once per session"
@@ -778,12 +826,12 @@ msgstr ""
 msgid "requested tolerance is too high"
 msgstr ""
 
-#: expm.cpp:409
+#: expm.cpp:410
 #, c-format
 msgid "unsupported indLin code: %d"
 msgstr ""
 
-#: forder.cpp:44
+#: forder.cpp:62
 #, c-format
 msgid ""
 "ignoring invalid %s==\"%s\"\n"
@@ -792,7 +840,7 @@ msgid ""
 " See ?RxODE::setDTthreads"
 msgstr ""
 
-#: forder.cpp:70
+#: forder.cpp:88
 #, c-format
 msgid ""
 "ignoring invalid RXODE_NUM_PROCS_PERCENT==%d.\n"
@@ -800,85 +848,85 @@ msgid ""
 "rxSetThreads"
 msgstr ""
 
-#: forder.cpp:106
+#: forder.cpp:124
 msgid "'verbose' must be TRUE or FALSE"
 msgstr ""
 
-#: forder.cpp:109
+#: forder.cpp:127
 msgid ""
 "This installation of data.table has not been compiled with OpenMP support.\n"
 msgstr ""
 
-#: forder.cpp:114
+#: forder.cpp:132
 #, c-format
 msgid "  omp_get_num_procs()            %d\n"
 msgstr ""
 
-#: forder.cpp:115
+#: forder.cpp:133
 #, c-format
 msgid "  RXODE_NUM_PROCS_PERCENT  %s\n"
 msgstr ""
 
-#: forder.cpp:116
+#: forder.cpp:134
 #, c-format
 msgid "  RXODE_NUM_THREADS        %s\n"
 msgstr ""
 
-#: forder.cpp:117
+#: forder.cpp:135
 #, c-format
 msgid "  RXODE_THROTTLE           %s\n"
 msgstr ""
 
-#: forder.cpp:118
+#: forder.cpp:136
 #, c-format
 msgid "  omp_get_thread_limit()         %d\n"
 msgstr ""
 
-#: forder.cpp:119
+#: forder.cpp:137
 #, c-format
 msgid "  omp_get_max_threads()          %d\n"
 msgstr ""
 
-#: forder.cpp:120
+#: forder.cpp:138
 #, c-format
 msgid "  OMP_THREAD_LIMIT               %s\n"
 msgstr ""
 
-#: forder.cpp:121
+#: forder.cpp:139
 #, c-format
 msgid "  OMP_NUM_THREADS                %s\n"
 msgstr ""
 
-#: forder.cpp:123
+#: forder.cpp:141
 #, c-format
 msgid "  RxODE is using %d threads with throttle==%d. See ?setRxthreads.\n"
 msgstr ""
 
-#: forder.cpp:131
+#: forder.cpp:149
 msgid "'throttle' must be a single number, non-NA, and >=1"
 msgstr ""
 
-#: forder.cpp:145
+#: forder.cpp:163
 msgid "threads= must be either NULL or a single number >= 0 See ?setRxthreads"
 msgstr ""
 
-#: forder.cpp:149
+#: forder.cpp:167
 msgid "internal error: percent= must be TRUE or FALSE at C level"
 msgstr ""
 
-#: forder.cpp:152
+#: forder.cpp:170
 #, c-format
 msgid ""
 "internal error: threads==%d should be between 2 and 100 (percent=TRUE at C "
 "level)"
 msgstr ""
 
-#: intdy.c:48
+#: intdy.c:50
 #, c-format
 msgid "[intdy] k = %d illegal\n"
 msgstr ""
 
-#: intdy.c:53
+#: intdy.c:55
 #, c-format
 msgid "intdy -- t = %g illegal. t not in interval tcur - _C(hu) to tcur\n"
 msgstr ""
@@ -891,476 +939,442 @@ msgstr ""
 msgid "could not find an end to the infusion"
 msgstr ""
 
-#: lincmt.c:191
+#: lincmt.c:193
 msgid "solve data is not loaded"
 msgstr ""
 
-#: lincmt.c:1696
-#, c-format
-msgid "invalid trans (3 cmt trans %d)\n"
+#: lincmt.c:1869
+msgid "not an integer/real"
 msgstr ""
 
-#: lincmt.c:1762 lincmtB.cpp:190
+#: lincmt.c:1887 lincmt.c:1997 lincmt.c:2169
+msgid "The dimensions of the parameters must match"
+msgstr ""
+
+#: lincmt.c:2384
+msgid "'ncmt' needs to be 1-3"
+msgstr ""
+
+#: lincmt.c:2387
+msgid "'inp' needs to be list/data frame"
+msgstr ""
+
+#: lincmtB.cpp:181
 #, c-format
 msgid "invalid trans (2 cmt trans %d)\n"
 msgstr ""
 
-#: lincmt.c:1898
-msgid "not an integer/real"
-msgstr ""
-
-#: lincmt.c:1916 lincmt.c:2026 lincmt.c:2198
-msgid "The dimensions of the parameters must match"
-msgstr ""
-
-#: lincmt.c:2413
-msgid "'ncmt' needs to be 1-3"
-msgstr ""
-
-#: lincmt.c:2416
-msgid "'inp' needs to be list/data frame"
-msgstr ""
-
-#: lincmt.c:2477 lincmt.c:2493 lincmt.c:2852 lincmt.c:3856 lincmt.c:3872
-msgid "invalid translation\n"
-msgstr ""
-
-#: lincmtB.cpp:2390
-#, c-format
-msgid "invalid derivative i: %d"
-msgstr ""
-
-#: lincmtB.cpp:2835
-msgid "infusions to depot are not possible with the linear solved system\n"
-msgstr ""
-
-#: lincmtB.cpp:2840 lincmtB.cpp:2942
-msgid "you cannot turn off a compartment with a solved system\n"
-msgstr ""
-
-#: lincmtB.cpp:2855
-msgid "could not find an end to the infusion\n"
-msgstr ""
-
-#: lincmtB.cpp:2870
-msgid "Could not find a start to the infusion\n"
-msgstr ""
-
-#: lincmtB.cpp:2882
-msgid "bioavailability cannot be negative or zero\n"
-msgstr ""
-
-#: lincmtB.cpp:2955
-msgid "invalid evid in linear solved system\n"
-msgstr ""
-
-#: lsoda.c:219
+#: lsoda.c:221
 #, c-format
 msgid "[lsoda] illegal itask = %d\n"
 msgstr ""
 
-#: lsoda.c:224
+#: lsoda.c:226
 #, c-format
 msgid "[lsoda] ixpr = %d is illegal\n"
 msgstr ""
 
-#: lsoda.c:228
+#: lsoda.c:230
 msgid "[lsoda] mxstep < 0\n"
 msgstr ""
 
-#: lsoda.c:233
+#: lsoda.c:235
 msgid "[lsoda] mxhnil < 0\n"
 msgstr ""
 
-#: lsoda.c:238
+#: lsoda.c:240
 #, c-format
 msgid "[lsoda] mxordn = %d is less than 0\n"
 msgstr ""
 
-#: lsoda.c:244
+#: lsoda.c:246
 #, c-format
 msgid "[lsoda] mxords = %d is less than 0\n"
 msgstr ""
 
-#: lsoda.c:251
+#: lsoda.c:253
 msgid "[lsoda] hmax < 0.\n"
 msgstr ""
 
-#: lsoda.c:258
+#: lsoda.c:260
 msgid "[lsoda] hmin < 0.\n"
 msgstr ""
 
-#: lsoda.c:488
+#: lsoda.c:490
 #, c-format
 msgid "unhandled error message: %s\n"
 msgstr ""
 
-#: lsoda.c:766
+#: lsoda.c:768
 #, c-format
 msgid "lsoda -- warning..internal t = %g and _C(h) = %g are\n"
 msgstr ""
 
-#: lsoda.c:767
+#: lsoda.c:769
 msgid "         such that in the machine, t + _C(h) = t on the next step\n"
 msgstr ""
 
-#: lsoda.c:768
+#: lsoda.c:770
 msgid "         solver will continue anyway.\n"
 msgstr ""
 
-#: lsoda.c:770
+#: lsoda.c:772
 #, c-format
 msgid "lsoda -- above warning has been issued %d times,\n"
 msgstr ""
 
-#: lsoda.c:771
+#: lsoda.c:773
 msgid "         it will not be issued again for this problem\n"
 msgstr ""
 
-#: lsoda.c:803
+#: lsoda.c:805
 msgid "[lsoda] a switch to the stiff method has occurred "
 msgstr ""
 
-#: lsoda.c:805
+#: lsoda.c:807
 msgid "[lsoda] a switch to the nonstiff method has occurred"
 msgstr ""
 
-#: lsoda.c:806
+#: lsoda.c:808
 #, c-format
 msgid "at t = %g, tentative step size _C(h) = %g, step _C(nst) = %d\n"
 msgstr ""
 
-#: par_solve.cpp:2741
+#: par_solve.cpp:2724
 msgid "'alag(.)'/'rate(.)'/'dur(.)' cannot depend on the state values"
 msgstr ""
 
-#: par_solve.cpp:2745
+#: par_solve.cpp:2728
 msgid "could not solve the system"
 msgstr ""
 
-#: par_solve.cpp:2747
+#: par_solve.cpp:2730
 msgid ""
 "some ID(s) could not solve the ODEs correctly; These values are replaced "
 "with 'NA'"
 msgstr ""
 
-#: par_solve.cpp:2822
+#: par_solve.cpp:2803
 #, c-format
 msgid "one or more covariates were all 'NA' for subject 'id=%d'"
 msgstr ""
 
-#: par_solve.cpp:3230
+#: par_solve.cpp:3232
 #, c-format
 msgid "dose to compartment %d ignored (not in system; 'id=%d')"
 msgstr ""
 
-#: prja.c:41
+#: prja.c:42
 msgid "[prja] _C(miter) != 2\n"
 msgstr ""
 
-#: rxData.cpp:270
+#: rxData.cpp:275
 msgid "column(s) in 'drop' were not in solved data"
 msgstr ""
 
-#: rxData.cpp:414
+#: rxData.cpp:419
 #, c-format
 msgid "refusing to simulate %d items"
 msgstr ""
 
-#: rxData.cpp:421
+#: rxData.cpp:426
 msgid "matrix must be a square matrix"
 msgstr ""
 
-#: rxData.cpp:429
+#: rxData.cpp:434
 msgid "matrix must have named dimensions (try 'lotri')"
 msgstr ""
 
-#: rxData.cpp:461
+#: rxData.cpp:466
 msgid ""
 "lower bounds needs to be a named vector, a single value or exactly the same "
 "size"
 msgstr ""
 
-#: rxData.cpp:481
+#: rxData.cpp:486
 msgid ""
 "upper bounds needs to be a named vector, a single value or exactly the same "
 "size"
 msgstr ""
 
-#: rxData.cpp:497
+#: rxData.cpp:502
 msgid "t distribution not yet supported"
 msgstr ""
 
-#: rxData.cpp:777
+#: rxData.cpp:782
 msgid "cannot figure out the model variables"
 msgstr ""
 
-#: rxData.cpp:807 rxData.cpp:825
+#: rxData.cpp:812 rxData.cpp:830
 msgid "class:\t"
 msgstr ""
 
-#: rxData.cpp:813 rxData.cpp:831
+#: rxData.cpp:818 rxData.cpp:836
 msgid "need an RxODE-type object to extract model variables"
 msgstr ""
 
-#: rxData.cpp:821
+#: rxData.cpp:826
 msgid "a NULL object does not have any RxODE model variables"
 msgstr ""
 
-#: rxData.cpp:865
+#: rxData.cpp:870
 msgid "can only lookup one state at a time"
 msgstr ""
 
-#: rxData.cpp:868
+#: rxData.cpp:873
 msgid "only one state variable should be input"
 msgstr ""
 
-#: rxData.cpp:878
+#: rxData.cpp:883
 #, c-format
 msgid "cannot locate compartment \"%s\""
 msgstr ""
 
-#: rxData.cpp:1113
+#: rxData.cpp:1118
 msgid ""
 "only one estimate per named list item; use 'list(x=1)' instead of "
 "'list(x=1:2)'"
 msgstr ""
 
-#: rxData.cpp:1120
+#: rxData.cpp:1125
 msgid "incompatible initial estimate"
 msgstr ""
 
-#: rxData.cpp:1172
+#: rxData.cpp:1177
 #, c-format
 msgid ""
 "trying to scale the same compartment by 'scale=c(%s=%f,...)' and 'S%d=%f' "
 "choose one"
 msgstr ""
 
-#: rxData.cpp:1183
+#: rxData.cpp:1188
 #, c-format
 msgid ""
 "trying to scale the same compartment by 'scale=c(%s=%f,...)' and 's%d=%f' "
 "choose one"
 msgstr ""
 
-#: rxData.cpp:1207
+#: rxData.cpp:1212
 msgid "scaled a compartment that is not defined by the RxODE model"
 msgstr ""
 
-#: rxData.cpp:1231 rxData.cpp:1235
+#: rxData.cpp:1236 rxData.cpp:1240
 #, c-format
 msgid "'%s' is not compatible with 'params'"
 msgstr ""
 
-#: rxData.cpp:1307 rxData.cpp:1311
+#: rxData.cpp:1312 rxData.cpp:1316
 msgid "'theta' is not compatible with 'params'"
 msgstr ""
 
-#: rxData.cpp:1331 rxData.cpp:1335
+#: rxData.cpp:1336 rxData.cpp:1340
 msgid "'eta' is not compatible with 'params'"
 msgstr ""
 
-#: rxData.cpp:1348
+#: rxData.cpp:1353
 msgid "parameter names must be specified"
 msgstr ""
 
-#: rxData.cpp:1462
+#: rxData.cpp:1478
 msgid "could not allocate memory for solving parameters"
 msgstr ""
 
-#: rxData.cpp:1503
+#: rxData.cpp:1522
 msgid "memory for residual errors could not be allocated"
 msgstr ""
 
-#: rxData.cpp:1510
+#: rxData.cpp:1529
 msgid "cannot allocate memory to simulate the residuals"
 msgstr ""
 
-#: rxData.cpp:1569
+#: rxData.cpp:1588
 msgid "'thetaMat' must be a named matrix"
 msgstr ""
 
-#: rxData.cpp:1575 rxData.cpp:2885
+#: rxData.cpp:1594 rxData.cpp:3041
 msgid "'thetaMat' must be symmetric"
 msgstr ""
 
-#: rxData.cpp:1596
+#: rxData.cpp:1615
 msgid "'thetaMat' is ignored since nStud <= 1"
 msgstr ""
 
-#: rxData.cpp:1636
+#: rxData.cpp:1655
 #, c-format
 msgid "parameter '%s' was not simulated in 'thetaMat'"
 msgstr ""
 
-#: rxData.cpp:1645
+#: rxData.cpp:1664
 #, c-format
 msgid "'%s' must be a named matrix"
 msgstr ""
 
-#: rxData.cpp:1653
+#: rxData.cpp:1672
 #, c-format
 msgid "'%s' must be symmetric"
 msgstr ""
 
-#: rxData.cpp:1789
+#: rxData.cpp:1842
 msgid "requires 'params'"
 msgstr ""
 
-#: rxData.cpp:1794
+#: rxData.cpp:1847
 msgid "'params' must be a named vector"
 msgstr ""
 
-#: rxData.cpp:1815
+#: rxData.cpp:1868
 msgid "multi-subject simulation without without 'omega'"
 msgstr ""
 
-#: rxData.cpp:2082
+#: rxData.cpp:2211
 msgid "ran out of memory during 'updateSolveEnvPost'"
 msgstr ""
 
-#: rxData.cpp:2424
+#: rxData.cpp:2580
 msgid "No additional parameters were specified, returning original object"
 msgstr ""
 
-#: rxData.cpp:2502
+#: rxData.cpp:2659
 msgid "can not update object"
 msgstr ""
 
-#: rxData.cpp:2550
+#: rxData.cpp:2707
 msgid "'from' must be of length 1"
 msgstr ""
 
-#: rxData.cpp:2558
+#: rxData.cpp:2715
 msgid "'to' must be of length 1"
 msgstr ""
 
-#: rxData.cpp:2568
+#: rxData.cpp:2725
 msgid "'by' must be of length 1"
 msgstr ""
 
-#: rxData.cpp:2576
+#: rxData.cpp:2733
 msgid "'length.out' must be of length 1"
 msgstr ""
 
-#: rxData.cpp:2582
+#: rxData.cpp:2739
 msgid "cannot use both 'by' and 'length.out' for RxODE simulations"
 msgstr ""
 
-#: rxData.cpp:2676
+#: rxData.cpp:2833
 msgid "RxODE only supports 500 factors"
 msgstr ""
 
-#: rxData.cpp:2819
+#: rxData.cpp:2975
 msgid ""
 "when specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a "
 "'data.frame'/'matrix'."
 msgstr ""
 
-#: rxData.cpp:2942 rxData.cpp:3078 rxData.cpp:3087
+#: rxData.cpp:3099 rxData.cpp:3237 rxData.cpp:3246
 msgid ""
 "if parameters are not named, they must match the order and size of the "
 "parameters in the model"
 msgstr ""
 
-#: rxData.cpp:3066
+#: rxData.cpp:3225
 msgid "matrix parameters with 'iCov' 'data.frame' is not supported"
 msgstr ""
 
-#: rxData.cpp:3139
+#: rxData.cpp:3324
 msgid "can not allocate enough memory to load 'evid'"
 msgstr ""
 
-#: rxData.cpp:3183
+#: rxData.cpp:3368
 msgid "nothing to solve"
 msgstr ""
 
-#: rxData.cpp:3237
+#: rxData.cpp:3422
 msgid "can not allocate memory for the covariates"
 msgstr ""
 
-#: rxData.cpp:3336
+#: rxData.cpp:3506
 msgid "data must be ordered by 'ID' and 'TIME' variables"
 msgstr ""
 
-#: rxData.cpp:3406
+#: rxData.cpp:3576
 msgid "cannot allocate enough memory to sort input parameters"
 msgstr ""
 
-#: rxData.cpp:3516
+#: rxData.cpp:3706
+msgid "'resample' must be NULL or a character vector"
+msgstr ""
+
+#: rxData.cpp:3835
 msgid "nPopPar != 1 but parameters are specified as a NumericVector"
 msgstr ""
 
-#: rxData.cpp:3637
+#: rxData.cpp:3946
 msgid "Something is wrong"
 msgstr ""
 
-#: rxData.cpp:3699
+#: rxData.cpp:4009
 msgid "aborted solve"
 msgstr ""
 
-#: rxData.cpp:4074
+#: rxData.cpp:4389
 msgid ""
 "dropped key column, returning data.frame instead of special solved data.frame"
 msgstr ""
 
-#: rxData.cpp:4155
+#: rxData.cpp:4470
 msgid "control list not setup correctly"
 msgstr ""
 
-#: rxData.cpp:4218
+#: rxData.cpp:4533
 msgid "cannot solve without event information"
 msgstr ""
 
-#: rxData.cpp:4228
+#: rxData.cpp:4543
 msgid "cannot update this object"
 msgstr ""
 
-#: rxData.cpp:4280
+#: rxData.cpp:4597
 msgid "cannot load RxODE dlls for this model"
 msgstr ""
 
-#: rxData.cpp:4375
+#: rxData.cpp:4701
 msgid "'infSSstep' needs to be positive"
 msgstr ""
 
-#: rxData.cpp:4419
+#: rxData.cpp:4745
 msgid "assumed transit compartment model since 'podo' is in the model"
 msgstr ""
 
-#: rxData.cpp:4455
+#: rxData.cpp:4781
 msgid "unknown covariate interpolation specified"
 msgstr ""
 
-#: rxData.cpp:4537
+#: rxData.cpp:4872
 #, c-format
 msgid ""
 "number of parameters (%d) solved by RxODE for multi-subject data needs to be "
 "a multiple of the number of subjects (%d)"
 msgstr ""
 
-#: rxData.cpp:4656
+#: rxData.cpp:4990
 msgid "could not allocate enough memory for solving"
 msgstr ""
 
-#: rxData.cpp:5049
+#: rxData.cpp:5383
 msgid "cannot update nonexistent parameters"
 msgstr ""
 
-#: rxData.cpp:5303
+#: rxData.cpp:5637
 msgid "Can not figure out the RxODE object"
 msgstr ""
 
-#: rxData.cpp:5417 rxData.cpp:5460
+#: rxData.cpp:5743 rxData.cpp:5786
 msgid "can not figure out the DLL for this object"
 msgstr ""
 
-#: rxData.cpp:5644
+#: rxData.cpp:5969
 msgid "package-based models cannot be unloaded"
 msgstr ""
 
-#: rxData.cpp:5691
+#: rxData.cpp:6016
 msgid "package-based models cannot be deleted"
 msgstr ""
 
@@ -1397,72 +1411,72 @@ msgstr ""
 msgid "Can only assign 'theta' in this environment"
 msgstr ""
 
-#: threefry.cpp:38 threefry.cpp:638
+#: threefry.cpp:39 threefry.cpp:111 threefry.cpp:694
 msgid "n should be a positive integer"
 msgstr ""
 
-#: threefry.cpp:39 threefry.cpp:564 threefry.cpp:639
+#: threefry.cpp:40 threefry.cpp:112 threefry.cpp:619 threefry.cpp:695
 msgid "'ncores' has to be greater than one"
 msgstr ""
 
-#: threefry.cpp:418
+#: threefry.cpp:473
 #, c-format
 msgid "dimension wrong in 'gradpsi' (d=%d)"
 msgstr ""
 
-#: threefry.cpp:520
+#: threefry.cpp:575
 msgid "covariance matrix is ill-conditioned and method failed (truncated mvn)"
 msgstr ""
 
-#: threefry.cpp:566
+#: threefry.cpp:621
 msgid "'lower' and 'upper' must have the same number of elements."
 msgstr ""
 
-#: threefry.cpp:567
+#: threefry.cpp:622
 msgid ""
 "'sigma' must be a square matrix with the same dimension as 'upper' and "
 "'lower'"
 msgstr ""
 
-#: threefry.cpp:569
+#: threefry.cpp:624
 msgid "'lower' is bigger than 'upper' for at least one item"
 msgstr ""
 
-#: threefry.cpp:579
+#: threefry.cpp:634
 msgid "truncated multivariate normal may fail as covariance matrix is singular"
 msgstr ""
 
-#: threefry.cpp:614
+#: threefry.cpp:671
 msgid "acceptance probability smaller than 0.001"
 msgstr ""
 
-#: threefry.cpp:617
+#: threefry.cpp:674
 msgid "could not sample from truncated normal"
 msgstr ""
 
-#: threefry.cpp:619
+#: threefry.cpp:676
 #, c-format
 msgid "sample of size %d which is smaller than requested 'n' returned"
 msgstr ""
 
-#: threefry.cpp:1184
+#: threefry.cpp:1442
 msgid "when 'sigma' is a list, it has to have at least 1 element"
 msgstr ""
 
-#: threefry.cpp:1187
+#: threefry.cpp:1445
 msgid "'sigma' must be a list of square symmetric matrices"
 msgstr ""
 
-#: threefry.cpp:1198
+#: threefry.cpp:1456
 #, c-format
 msgid "'sigma' list element %d does not match dimension of first matrix"
 msgstr ""
 
-#: threefry.cpp:1237
+#: threefry.cpp:1494
 msgid "'mu' length must match 'sigma' dimensions"
 msgstr ""
 
-#: threefry.cpp:1387
+#: threefry.cpp:1644
 msgid "'prob' function should return a vector the same length as the input"
 msgstr ""
 
@@ -1527,236 +1541,253 @@ msgstr ""
 msgid "RxODE only supports one dvid() statement per model"
 msgstr ""
 
-#: tran.c:383
-msgid "encoding error in 'addLine'"
+#: tran.c:391
+#, c-format
+msgid "encoding error in 'addLine' format: '%s' n: %d; errno: %d"
 msgstr ""
 
-#: tran.c:463
+#: tran.c:471
 msgid "'printf' cannot be a variable in an RxODE model"
 msgstr ""
 
-#: tran.c:470
+#: tran.c:478
 msgid ""
 "'id' can only be used in the following ways 'id==\"id-value\"' or 'id !=\"id-"
 "value\"'"
 msgstr ""
 
-#: tran.c:476
+#: tran.c:484
 msgid "'Rprintf' cannot be a variable in an RxODE model"
 msgstr ""
 
-#: tran.c:482
+#: tran.c:490
 msgid "'print' cannot be a variable in an RxODE model"
 msgstr ""
 
-#: tran.c:498
+#: tran.c:506
 msgid "'ifelse' cannot be a state in an RxODE model"
 msgstr ""
 
-#: tran.c:504
+#: tran.c:512
 msgid "'if' cannot be a variable/state in an RxODE model"
 msgstr ""
 
-#: tran.c:522
+#: tran.c:530
 msgid "'evid' cannot be a variable in an RxODE model"
 msgstr ""
 
-#: tran.c:529
+#: tran.c:537
 msgid "'ii' cannot be a variable in an RxODE model"
 msgstr ""
 
-#: tran.c:704
+#: tran.c:720
 msgid "'cmt' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:705
+#: tran.c:721
 msgid "'dvid' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:706
+#: tran.c:722
 msgid "'addl' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:707
+#: tran.c:723
 msgid "'ii' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:708
+#: tran.c:724
 msgid "'ss' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:709
+#: tran.c:725
 msgid "'amt' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:710
+#: tran.c:726
 msgid "'dur' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:711
+#: tran.c:727
 msgid "'rate' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:712
+#: tran.c:728
 msgid "'Rprintf' cannot be a state"
 msgstr ""
 
-#: tran.c:713
+#: tran.c:729
 msgid "'printf' cannot be a state"
 msgstr ""
 
-#: tran.c:714
+#: tran.c:730
 msgid "'print' cannot be a state"
 msgstr ""
 
-#: tran.c:801
+#: tran.c:817
 msgid "only one 'linCmt()' per model"
 msgstr ""
 
-#: tran.c:1307 tran.c:1326
+#: tran.c:1290 tran.c:1295
+msgid "'dosenum' does not currently take arguments 'dosenum()'"
+msgstr ""
+
+#: tran.c:1380 tran.c:1399
 #, c-format
 msgid "'%s' takes 1-3 arguments '%s(x,low,high)'"
 msgstr ""
 
-#: tran.c:1349
+#: tran.c:1422
 #, c-format
 msgid "'%s' takes 1 argument '%s(parameter)'"
 msgstr ""
 
-#: tran.c:1354
+#: tran.c:1427
 #, c-format
 msgid "'%s' takes 1-2 arguments '%s(parameter, k)'"
 msgstr ""
 
-#: tran.c:1381 tran.c:1393
+#: tran.c:1454 tran.c:1466
 #, c-format
 msgid "'%s' takes 1 argument %s(parameter)"
 msgstr ""
 
-#: tran.c:1386
+#: tran.c:1459
 #, c-format
 msgid "'%s' takes 1-2 arguments %s(parameter, k)"
 msgstr ""
 
-#: tran.c:1408
+#: tran.c:1481
 #, c-format
 msgid "'%s(parameter, k)' requires k to be an integer"
 msgstr ""
 
-#: tran.c:1412
+#: tran.c:1485
 #, c-format
 msgid "'%s(parameter, k)' requires k to be an integer >= 1"
 msgstr ""
 
-#: tran.c:1460 tran.c:1480
+#: tran.c:1533 tran.c:1553
 msgid "'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"
 msgstr ""
 
-#: tran.c:1462 tran.c:1482
+#: tran.c:1535 tran.c:1555
 msgid "'qnorm' in RxODE takes 1-3 arguments pnorm(p, mean, sd)"
 msgstr ""
 
-#: tran.c:1501
+#: tran.c:1574
 msgid "'transit' takes 2-3 arguments transit(n, mtt, bio)"
 msgstr ""
 
-#: tran.c:1527 tran.c:1565
-msgid "'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"
+#: tran.c:1600 tran.c:1656
+msgid "'rif'/'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"
 msgstr ""
 
-#: tran.c:1530 tran.c:1567
-msgid "'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"
+#: tran.c:1603 tran.c:1658
+msgid "'ribeta'/'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"
 msgstr ""
 
-#: tran.c:1539 tran.c:1569
-msgid "'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"
+#: tran.c:1612 tran.c:1660
+msgid "'rigamma'/'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"
 msgstr ""
 
-#: tran.c:1542 tran.c:1571
-msgid "'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, scale)'"
+#: tran.c:1615 tran.c:1662
+msgid ""
+"'riweibull'/'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, "
+"scale)'"
 msgstr ""
 
-#: tran.c:1561
-msgid "'rxnormV'/'rnormV' takes 0-2 arguments 'rxnormV(mean, sd)'"
+#: tran.c:1652
+msgid "'rinormV'/'rxnormV'/'rnormV' takes 0-2 arguments 'rxnormV(mean, sd)'"
 msgstr ""
 
-#: tran.c:1563
-msgid "'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"
+#: tran.c:1654
+msgid "'rinorm'/'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"
 msgstr ""
 
-#: tran.c:1573
-msgid "'rxunif'/'runif' takes 0-2 arguments 'rxunif(min, max)'"
+#: tran.c:1664
+msgid "'riunif'/'rxunif'/'runif' takes 0-2 arguments 'rxunif(min, max)'"
 msgstr ""
 
-#: tran.c:1575
-msgid "'rxcauchy'/'rcauchy' takes 0-2 arguments 'rxcauchy(location, scale)'"
+#: tran.c:1666
+msgid ""
+"'ricauchy'/'rxcauchy'/'rcauchy' takes 0-2 arguments 'rxcauchy(location, "
+"scale)'"
 msgstr ""
 
-#: tran.c:1590
+#: tran.c:1688
 #, c-format
 msgid "'%s' takes 1 arguments"
 msgstr ""
 
-#: tran.c:1604
+#: tran.c:1708
 #, c-format
 msgid "'%s' takes 1 argument"
 msgstr ""
 
-#: tran.c:1631 tran.c:1644
-msgid "'rxpois'/'rpois' takes 1 argument 'rxpois(lambda)'"
+#: tran.c:1754 tran.c:1767
+msgid "'ripois'/'rxpois'/'rpois' takes 1 argument 'rxpois(lambda)'"
 msgstr ""
 
-#: tran.c:1634 tran.c:1647
-msgid "'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"
+#: tran.c:1757 tran.c:1770
+msgid "'rigeom'/'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"
 msgstr ""
 
-#: tran.c:1664
-msgid "'rbinom'/'rxbinom' takes 2 arguments 'rxbinom(size, prob)'"
+#: tran.c:1794
+msgid "'ribinom'/'rbinom'/'rxbinom' takes 2 arguments 'rxbinom(size, prob)'"
 msgstr ""
 
-#: tran.c:1681
+#: tran.c:1821
 msgid "'is.nan' takes 1 argument"
 msgstr ""
 
-#: tran.c:1696
+#: tran.c:1836
 msgid "'is.na' takes 1 argument"
 msgstr ""
 
-#: tran.c:1711
+#: tran.c:1851
 msgid "'is.finite' takes 1 argument"
 msgstr ""
 
-#: tran.c:1726
+#: tran.c:1866
 msgid "'is.infinite' takes 1 argument"
 msgstr ""
 
-#: tran.c:1785
+#: tran.c:2083
 #, c-format
 msgid "function '%s' is not supported in RxODE"
 msgstr ""
 
-#: tran.c:1886
+#: tran.c:2184
 msgid "bioavailability cannot depend on Jacobian values"
 msgstr ""
 
-#: tran.c:1894
+#: tran.c:2192
 msgid "model-based rate cannot depend on Jacobian values"
 msgstr ""
 
-#: tran.c:1898
+#: tran.c:2196
 msgid "model-based duration cannot depend on Jacobian values"
 msgstr ""
 
-#: tran.c:1902
+#: tran.c:2200
 msgid "model-based matricies cannot depend on Jacobian values"
 msgstr ""
 
-#: tran.c:1910 tran.c:1926
+#: tran.c:2208 tran.c:2224
 #, c-format
 msgid "d/dt(%s) needs to be defined before using a Jacobians for this state"
 msgstr ""
 
-#: tran.c:2205
+#: tran.c:2303
+msgid "'while' cannot be followed by 'else' (did you mean 'if'/'else')"
+msgstr ""
+
+#: tran.c:2337
+msgid "'break' can only be used in  'while' statement"
+msgstr ""
+
+#: tran.c:2544
 #, c-format
 msgid ""
 "cannot assign state variable %s; For initial condition assignment use '%s(0) "
@@ -1765,126 +1796,126 @@ msgid ""
 "  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'"
 msgstr ""
 
-#: tran.c:2257
+#: tran.c:2597
 msgid "modeling times cannot depend on state values"
 msgstr ""
 
-#: tran.c:2261
+#: tran.c:2601
 msgid "bioavailability cannot depend on state values"
 msgstr ""
 
-#: tran.c:2265
+#: tran.c:2605
 msgid "absorption lag-time cannot depend on state values"
 msgstr ""
 
-#: tran.c:2269
+#: tran.c:2609
 msgid "model-based rate cannot depend on state values"
 msgstr ""
 
-#: tran.c:2273
+#: tran.c:2613
 msgid "model-based duration cannot depend on state values"
 msgstr ""
 
-#: tran.c:2277
+#: tran.c:2617
 msgid "model-based matricies cannot depend on state values"
 msgstr ""
 
-#: tran.c:3615 tran.c:3622
+#: tran.c:4037 tran.c:4044
 msgid "IO error writing parsed C file"
 msgstr ""
 
-#: tran.c:3745
+#: tran.c:4164
 msgid "model prefix must be specified"
 msgstr ""
 
-#: tran.c:3753
+#: tran.c:4171
 msgid "extra inductive linearization model variables must be specified"
 msgstr ""
 
-#: tran.c:3760
+#: tran.c:4177
 msgid "extra ME code must be specified"
 msgstr ""
 
-#: tran.c:3783
+#: tran.c:4200
 msgid "'cmt(depot)' does not work with 'linCmt()'"
 msgstr ""
 
-#: tran.c:3866
+#: tran.c:4287
 #, c-format
 msgid "compartment '%s' needs differential equations defined"
 msgstr ""
 
-#: tran.c:4030
+#: tran.c:4450
 #, c-format
 msgid "state '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"
 msgstr ""
 
-#: tran.c:4033
+#: tran.c:4453
 #, c-format
 msgid "suppress '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"
 msgstr ""
 
-#: tran.c:4042
+#: tran.c:4462
 #, c-format
 msgid "redefined '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"
 msgstr ""
 
-#: tran.c:4045
+#: tran.c:4465
 #, c-format
 msgid "lhs '%s': only 'lag(%s,1)' and 'diff(%s,1)' supported"
 msgstr ""
 
-#: tran.c:4286
+#: tran.c:4705
 msgid "syntax errors (see above)"
 msgstr ""
 
-#: tran.c:4296
+#: tran.c:4713
 msgid "model no longer loaded in memory"
 msgstr ""
 
-#: tran.c:4344
+#: tran.c:4761
 msgid "nothing in output queue to write"
 msgstr ""
 
-#: tran.c:4347
+#: tran.c:4764
 msgid "c_file should only be 1 file"
 msgstr ""
 
-#: tran.c:4350
+#: tran.c:4767
 msgid "libname needs 2 elements"
 msgstr ""
 
-#: tran.c:4376
+#: tran.c:4793
 msgid ""
 "linCmt() and ode have 'central' and 'depot' compartments, rename ODE "
 "'central'/'depot'"
 msgstr ""
 
-#: tran.c:4380
+#: tran.c:4797
 msgid "linCmt() and ode has a 'central' compartment, rename ODE 'central'"
 msgstr ""
 
-#: tran.c:4384
+#: tran.c:4801
 msgid "linCmt() and ode has a 'depot' compartment, rename ODE 'depot'"
 msgstr ""
 
-#: tran.c:4394
+#: tran.c:4811
 msgid "linCmt() does not have 'depot' compartment without a 'ka'"
 msgstr ""
 
-#: tran.c:4436 tran.c:4598 tran.c:4619
+#: tran.c:4853 tran.c:5014 tran.c:5035
 msgid ""
 "[1mRxODE model syntax error:\n"
 "================================================================================[0m"
 msgstr ""
 
-#: tran.c:4439
+#: tran.c:4856
 msgid ""
 "RxODE Model Syntax Error:\n"
 "================================================================================"
 msgstr ""
 
-#: tran.c:4459
+#: tran.c:4876
 #, c-format
 msgid ""
 "\n"
@@ -1892,7 +1923,7 @@ msgid ""
 "[1mRxODE syntax error after[0m '[35m[1m%s[0m':\n"
 msgstr ""
 
-#: tran.c:4462
+#: tran.c:4879
 #, c-format
 msgid ""
 "\n"
@@ -1900,297 +1931,299 @@ msgid ""
 "RxODE syntax error after '%s'\n"
 msgstr ""
 
-#: tran.c:4465
+#: tran.c:4882
 #, c-format
 msgid "RxODE syntax error after '%s':\n"
 msgstr ""
 
-#: tran.c:4470
+#: tran.c:4887
 msgid ""
 "\n"
 "\n"
 "[1mRxODE syntax error[0m:\n"
 msgstr ""
 
-#: tran.c:4473
+#: tran.c:4890
 msgid ""
 "\n"
 "\n"
 "RxODE syntax error:\n"
 msgstr ""
 
-#: tran.c:4601 tran.c:4622
+#: tran.c:5017 tran.c:5038
 msgid ""
 "RxODE model syntax error:\n"
 "================================================================================"
 msgstr ""
 
-#: tran.c:4802
+#: tran.c:5218
 msgid ""
 "inconsistent central compartment numbers, not sure if central compartment no "
 "is '1' or '2'"
 msgstr ""
 
-#: tran.c:4817 tran.c:4825 tran.c:4843 tran.c:4864
+#: tran.c:5233 tran.c:5241 tran.c:5259 tran.c:5280
 msgid "Ambiguous 'kel'"
 msgstr ""
 
-#: tran.c:5207
+#: tran.c:5623
 msgid "'Cld' parameterization needs 'Cl'"
 msgstr ""
 
-#: tran.c:5210
+#: tran.c:5626
 msgid "'Q' parameterization needs 'Cl'"
 msgstr ""
 
-#: tran.c:5218
+#: tran.c:5634
 msgid "cannot mix 'Q' and 'Q1'"
 msgstr ""
 
-#: tran.c:5221
+#: tran.c:5637
 msgid "cannot mix 'Cld' and 'Cld1'"
 msgstr ""
 
-#: tran.c:5231
+#: tran.c:5647
 msgid "cannot mix 'Q' and 'Q3'"
 msgstr ""
 
-#: tran.c:5234
+#: tran.c:5650
 msgid "cannot mix 'Cld' and 'Cld3'"
 msgstr ""
 
-#: tran.c:5246
+#: tran.c:5662
 msgid "cannot mix 'Q1' and 'Q3'"
 msgstr ""
 
-#: tran.c:5249
+#: tran.c:5665
 msgid "cannot mix 'Cld1' and 'Cld3'"
 msgstr ""
 
-#: tran.c:5265
+#: tran.c:5681
 msgid "error parsing higher 'cl'"
 msgstr ""
 
-#: tran.c:5273
+#: tran.c:5689
 msgid "cannot mix 'Cl' and 'Cl1'"
 msgstr ""
 
-#: tran.c:5281 tran.c:5292
+#: tran.c:5697 tran.c:5708
 msgid ""
 "specified clearance for 4th compartment, which does not make sense in this "
 "context"
 msgstr ""
 
-#: tran.c:5307
+#: tran.c:5723
 msgid "Cannot specify 'v1' and 'vc'"
 msgstr ""
 
-#: tran.c:5311
+#: tran.c:5727
 msgid "Cannot specify 'v4' and 'vc'"
 msgstr ""
 
-#: tran.c:5393
+#: tran.c:5809
 msgid "can find distributional clearance but not peripheral volume"
 msgstr ""
 
-#: tran.c:5399
+#: tran.c:5815
 msgid "can find peripheral volume but not distributlin->v2 ional clearance"
 msgstr ""
 
-#: tran.c:5405
+#: tran.c:5821
 msgid "can find 2nd distributional clearance but not 2nd peripheral volume"
 msgstr ""
 
-#: tran.c:5411
+#: tran.c:5827
 msgid "can find 2nd peripheral volume but not 2nd distributional clearance"
 msgstr ""
 
-#: tran.c:5418
+#: tran.c:5834
 msgid "cannot distinguish between central and peripheral volumes"
 msgstr ""
 
-#: tran.c:5424
+#: tran.c:5840
 msgid "cannot distinguish between 1st and 2nd peripheral volumes"
 msgstr ""
 
-#: tran.c:5431
+#: tran.c:5847
 msgid "cannot distinguish between central and peripheral clearances"
 msgstr ""
 
-#: tran.c:5437
+#: tran.c:5853
 msgid "cannot distinguish between 1st and 2nd distributional clearances"
 msgstr ""
 
-#: tran.c:5494 tran.c:5508 tran.c:5550 tran.c:5621 tran.c:5642 tran.c:5678
+#: tran.c:5914 tran.c:5932 tran.c:5984 tran.c:6077 tran.c:6104 tran.c:6146
 msgid "cannot figure out a central volume"
 msgstr ""
 
-#: tran.c:5498 tran.c:5519
+#: tran.c:5920 tran.c:5945
 msgid "cannot figure out distributional clearance"
 msgstr ""
 
-#: tran.c:5523
+#: tran.c:5951
 msgid "cannot figure out distributional volume"
 msgstr ""
 
-#: tran.c:5531
+#: tran.c:5961
 msgid "cannot figure out 2nd distributional clearance"
 msgstr ""
 
-#: tran.c:5535
+#: tran.c:5967
 msgid "cannot figure out 2nd distributional volume"
 msgstr ""
 
-#: tran.c:5546
+#: tran.c:5978
 #, c-format
 msgid "Detected %d-compartment model in terms of clearance"
 msgstr ""
 
-#: tran.c:5561
+#: tran.c:5997
 msgid "'k12' not found when 'k21' present"
 msgstr ""
 
-#: tran.c:5564
+#: tran.c:6002
 msgid "'k23' not found when 'k32' present"
 msgstr ""
 
-#: tran.c:5570
+#: tran.c:6010
 msgid "'k21' not found when 'k12' present"
 msgstr ""
 
-#: tran.c:5573
+#: tran.c:6015
 msgid "'k32' not found when 'k23' present"
 msgstr ""
 
-#: tran.c:5583
+#: tran.c:6027
 msgid "'k13' not found when 'k31' present"
 msgstr ""
 
-#: tran.c:5586
+#: tran.c:6032
 msgid "'k24' not found when 'k42' present"
 msgstr ""
 
-#: tran.c:5592
+#: tran.c:6040
 msgid "'k31' not found when 'k13' present"
 msgstr ""
 
-#: tran.c:5595
+#: tran.c:6045
 msgid "'k42' not found when 'k24' present"
 msgstr ""
 
-#: tran.c:5607
+#: tran.c:6059
 msgid "'k13' or 'k31' present when 'k12' and 'k21' not present"
 msgstr ""
 
-#: tran.c:5610
+#: tran.c:6064
 msgid "'k24' or 'k42' present when 'k23' and 'k32' not present"
 msgstr ""
 
-#: tran.c:5615
+#: tran.c:6069
 #, c-format
 msgid "detected %d-compartment model in terms of micro-constants"
 msgstr ""
 
-#: tran.c:5625
+#: tran.c:6083
 msgid "need an 'alpha' with 'aob'"
 msgstr ""
 
-#: tran.c:5629
+#: tran.c:6089
 msgid "need a 'beta' with 'aob'"
 msgstr ""
 
-#: tran.c:5636
+#: tran.c:6096
 #, c-format
 msgid "detected %d-compartment model in terms of 'alpha' and 'aob'"
 msgstr ""
 
-#: tran.c:5646
+#: tran.c:6110
 msgid "need an 'alpha'"
 msgstr ""
 
-#: tran.c:5650 tran.c:5686
+#: tran.c:6116 tran.c:6156
 msgid "need a 'beta'"
 msgstr ""
 
-#: tran.c:5659
+#: tran.c:6125
 #, c-format
 msgid "detected %d-compartment model in terms of 'alpha' or 'k21'"
 msgstr ""
 
-#: tran.c:5661
+#: tran.c:6127
 #, c-format
 msgid "detected %d-compartment model in terms of 'alpha' or 'k32'"
 msgstr ""
 
-#: tran.c:5690
+#: tran.c:6162
 msgid "need a 'b'"
 msgstr ""
 
-#: tran.c:5698
+#: tran.c:6172
 msgid "need a 'gamma'"
 msgstr ""
 
-#: tran.c:5702
+#: tran.c:6178
 msgid "need a 'c'"
 msgstr ""
 
-#: tran.c:5711
+#: tran.c:6189
 msgid "a 'gamma' or 'c' specified without 'b' or 'beta'"
 msgstr ""
 
-#: tran.c:5717
+#: tran.c:6195
 #, c-format
 msgid "detected %d-compartment model in terms of 'alpha' and central volume"
 msgstr ""
 
-#: tran.c:5719
+#: tran.c:6197
 #, c-format
 msgid "detected %d-compartment model in terms of 'alpha' and 'a'"
 msgstr ""
 
-#: tran.c:5731
+#: tran.c:6209
 msgid " with first order absorption\n"
 msgstr ""
 
-#: tran.c:5763
+#: tran.c:6241
 msgid "could not figure out linCmt() model"
 msgstr ""
 
-#: tran.c:5945
+#: tran.c:6423
 msgid "linCmt() cannot have any extra parentheses in it"
 msgstr ""
 
-#: utilc.c:55 utilc.c:83
+#: utilc.c:60 utilc.c:88
 msgid "'n' must be greater than 0"
 msgstr ""
 
-#: utilc.c:173
+#: utilc.c:178
 msgid "'phi' requires numeric values"
 msgstr ""
 
-#: utilc.c:196 utilc.c:251 utilc.c:306 utilc.c:361 utilc.c:418 utilc.c:474
-#: utilc.c:530 utilc.c:588 utilc.c:650
+#: utilc.c:201 utilc.c:256 utilc.c:311 utilc.c:366 utilc.c:423 utilc.c:479
+#: utilc.c:535 utilc.c:593 utilc.c:655
 msgid "'a' needs to be a number"
 msgstr ""
 
-#: utilc.c:204 utilc.c:259 utilc.c:314 utilc.c:369 utilc.c:426 utilc.c:482
-#: utilc.c:538 utilc.c:596 utilc.c:658
+#: utilc.c:209 utilc.c:264 utilc.c:319 utilc.c:374 utilc.c:431 utilc.c:487
+#: utilc.c:543 utilc.c:601 utilc.c:663
 msgid "'z' needs to be a number"
 msgstr ""
 
-#: utilc.c:228 utilc.c:283 utilc.c:338 utilc.c:394 utilc.c:451 utilc.c:507
-#: utilc.c:563 utilc.c:624 utilc.c:686
+#: utilc.c:233 utilc.c:288 utilc.c:343 utilc.c:399 utilc.c:456 utilc.c:512
+#: utilc.c:568 utilc.c:629 utilc.c:691
 msgid "inconsistent sizes"
 msgstr ""
 
-#: utilc.c:710 utilc.c:720 utilc.c:764 utilc.c:774
+#: utilc.c:719 utilc.c:729 utilc.c:772 utilc.c:782 utilc.c:825 utilc.c:835
+#: utilc.c:879 utilc.c:889
 msgid "'low' must be a numeric of length 1"
 msgstr ""
 
-#: utilc.c:713 utilc.c:727 utilc.c:767 utilc.c:781
+#: utilc.c:722 utilc.c:736 utilc.c:775 utilc.c:789 utilc.c:828 utilc.c:842
+#: utilc.c:882 utilc.c:896
 msgid "'high' must be a numeric of length 1"
 msgstr ""
 
-#: utilc.c:730 utilc.c:784
+#: utilc.c:739 utilc.c:792 utilc.c:845 utilc.c:899
 msgid "'high' must be greater than 'low'"
 msgstr ""

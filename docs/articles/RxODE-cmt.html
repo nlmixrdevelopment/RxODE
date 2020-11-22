@@ -318,11 +318,12 @@
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">Venous_Blood</span><span class="op">)</span> <span class="op">=</span> <span class="va">QHT</span><span class="op">*</span><span class="va">Heart</span><span class="op">/</span><span class="va">KbHT</span><span class="op">/</span><span class="va">VHT</span> <span class="op">+</span> <span class="va">QBR</span><span class="op">*</span><span class="va">Brain</span><span class="op">/</span><span class="va">KbBR</span><span class="op">/</span><span class="va">VBR</span> <span class="op">+</span> <span class="va">QMU</span><span class="op">*</span><span class="va">Muscles</span><span class="op">/</span><span class="va">KbMU</span><span class="op">/</span><span class="va">VMU</span> <span class="op">+</span> <span class="va">QAD</span><span class="op">*</span><span class="va">Adipose</span><span class="op">/</span><span class="va">KbAD</span><span class="op">/</span><span class="va">VAD</span> <span class="op">+</span> <span class="va">QSK</span><span class="op">*</span><span class="va">Skin</span><span class="op">/</span><span class="va">KbSK</span><span class="op">/</span><span class="va">VSK</span> <span class="op">+</span> <span class="va">QLI</span><span class="op">*</span><span class="va">Liver</span><span class="op">/</span><span class="va">KbLI</span><span class="op">/</span><span class="va">VLI</span> <span class="op">+</span> <span class="va">QBO</span><span class="op">*</span><span class="va">Bones</span><span class="op">/</span><span class="va">KbBO</span><span class="op">/</span><span class="va">VBO</span> <span class="op">+</span> <span class="va">QKI</span><span class="op">*</span><span class="va">Kidneys</span><span class="op">/</span><span class="va">KbKI</span><span class="op">/</span><span class="va">VKI</span> <span class="op">+</span> <span class="va">QRB</span><span class="op">*</span><span class="va">Rest_of_Body</span><span class="op">/</span><span class="va">KbRB</span><span class="op">/</span><span class="va">VRB</span> <span class="op">-</span> <span class="va">QLU</span><span class="op">*</span><span class="va">Venous_Blood</span><span class="op">/</span><span class="va">VVB</span>;
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">Rest_of_Body</span><span class="op">)</span> <span class="op">=</span> <span class="va">QRB</span><span class="op">*</span><span class="op">(</span><span class="va">Arterial_Blood</span><span class="op">/</span><span class="va">VAB</span> <span class="op">-</span> <span class="va">Rest_of_Body</span><span class="op">/</span><span class="va">KbRB</span><span class="op">/</span><span class="va">VRB</span><span class="op">)</span>;
 <span class="op">}</span><span class="op">)</span></pre></div>
+<pre><code>#&gt; </code></pre>
 <p>If you look at the summary, you can see where RxODE assigned the compartment number(s)</p>
-<div class="sourceCode" id="cb4"><pre class="downlit">
+<div class="sourceCode" id="cb5"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">pbpk</span><span class="op">)</span></pre></div>
-<pre><code>#&gt; RxODE 1.0.0-0 model named rx_d904d0a5ddfa5b15a58d987382703629 model (ready). 
-#&gt; DLL: /home/matt/.cache/R/RxODE/rx_d904d0a5ddfa5b15a58d987382703629__.rxd/rx_d904d0a5ddfa5b15a58d987382703629_.so
+<pre><code>#&gt; RxODE 1.0.0-0 model named rx_e89e7d5850947ea5721e6a1cf6f0dbf9 model (ready). 
+#&gt; DLL: /home/matt/.cache/R/RxODE/rx_e89e7d5850947ea5721e6a1cf6f0dbf9__.rxd/rx_e89e7d5850947ea5721e6a1cf6f0dbf9_.so
 #&gt; NULL
 #&gt; 
 #&gt; Calculated Variables:
@@ -416,7 +417,7 @@
 <h1 class="hasAnchor">
 <a href="#changing-compartment-numbers-by-pre-declaring-the-compartments" class="anchor"></a>Changing compartment numbers by pre-declaring the compartments</h1>
 <p>To add the compartments to the RxODE model in the order you desire you simply need to pre-declare the compartments with <code>cmt</code>. For example specifying is <code>Venous_Blood</code> and <code>Skin</code> to be the 1st and 2nd compartments, respectively, is simple:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit">
+<div class="sourceCode" id="cb7"><pre class="downlit">
 <span class="va">pbpk2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
     <span class="fu">cmt</span><span class="op">(</span><span class="va">Venous_Blood</span><span class="op">)</span> <span class="co">## Now this is the first compartment, ie cmt=1</span>
     <span class="fu">cmt</span><span class="op">(</span><span class="va">Skin</span><span class="op">)</span> <span class="co">## Skin may be a compartment you wish to dose to as well, so it is now cmt=2</span>
@@ -500,10 +501,11 @@
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">Venous_Blood</span><span class="op">)</span> <span class="op">=</span> <span class="va">QHT</span><span class="op">*</span><span class="va">Heart</span><span class="op">/</span><span class="va">KbHT</span><span class="op">/</span><span class="va">VHT</span> <span class="op">+</span> <span class="va">QBR</span><span class="op">*</span><span class="va">Brain</span><span class="op">/</span><span class="va">KbBR</span><span class="op">/</span><span class="va">VBR</span> <span class="op">+</span> <span class="va">QMU</span><span class="op">*</span><span class="va">Muscles</span><span class="op">/</span><span class="va">KbMU</span><span class="op">/</span><span class="va">VMU</span> <span class="op">+</span> <span class="va">QAD</span><span class="op">*</span><span class="va">Adipose</span><span class="op">/</span><span class="va">KbAD</span><span class="op">/</span><span class="va">VAD</span> <span class="op">+</span> <span class="va">QSK</span><span class="op">*</span><span class="va">Skin</span><span class="op">/</span><span class="va">KbSK</span><span class="op">/</span><span class="va">VSK</span> <span class="op">+</span> <span class="va">QLI</span><span class="op">*</span><span class="va">Liver</span><span class="op">/</span><span class="va">KbLI</span><span class="op">/</span><span class="va">VLI</span> <span class="op">+</span> <span class="va">QBO</span><span class="op">*</span><span class="va">Bones</span><span class="op">/</span><span class="va">KbBO</span><span class="op">/</span><span class="va">VBO</span> <span class="op">+</span> <span class="va">QKI</span><span class="op">*</span><span class="va">Kidneys</span><span class="op">/</span><span class="va">KbKI</span><span class="op">/</span><span class="va">VKI</span> <span class="op">+</span> <span class="va">QRB</span><span class="op">*</span><span class="va">Rest_of_Body</span><span class="op">/</span><span class="va">KbRB</span><span class="op">/</span><span class="va">VRB</span> <span class="op">-</span> <span class="va">QLU</span><span class="op">*</span><span class="va">Venous_Blood</span><span class="op">/</span><span class="va">VVB</span>;
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">Rest_of_Body</span><span class="op">)</span> <span class="op">=</span> <span class="va">QRB</span><span class="op">*</span><span class="op">(</span><span class="va">Arterial_Blood</span><span class="op">/</span><span class="va">VAB</span> <span class="op">-</span> <span class="va">Rest_of_Body</span><span class="op">/</span><span class="va">KbRB</span><span class="op">/</span><span class="va">VRB</span><span class="op">)</span>;
 <span class="op">}</span><span class="op">)</span></pre></div>
+<pre><code>#&gt; </code></pre>
 <p>You can see this change in the simple printout</p>
-<div class="sourceCode" id="cb7"><pre class="downlit">
+<div class="sourceCode" id="cb9"><pre class="downlit">
 <span class="va">pbpk2</span></pre></div>
-<pre><code>#&gt; RxODE 1.0.0-0 model named rx_db6bc817fd8f2984be9143abb84b87cc model (ready). 
+<pre><code>#&gt; RxODE 1.0.0-0 model named rx_79ea97107ff0a74cfe77bcb80251dbce model (ready). 
 #&gt; x$state: Venous_Blood, Skin, Lungs, Heart, Brain, Muscles, Adipose, Spleen, Pancreas, Liver, Stomach, Gut, Bones, Kidneys, Arterial_Blood, Rest_of_Body
 #&gt; x$params: lKbBR, lKbMU, lKbAD, lCLint, eta.LClint, lKbBO, lKbRB, WT, BP, fup
 #&gt; x$lhs: KbBR, KbMU, KbAD, CLint, KbBO, KbRB, CO, QHT, QBR, QMU, QAD, QSK, QSP, QPA, QLI, QST, QGU, QHA, QBO, QKI, QRB, QLU, VLU, VHT, VBR, VMU, VAD, VSK, VSP, VPA, VLI, VST, VGU, VBO, VKI, VAB, VVB, VRB, fub, KbLU, KbHT, KbSK, KbSP, KbPA, KbLI, KbST, KbGU, KbKI, S15, C15</code></pre>
@@ -514,15 +516,17 @@
 <a href="#appending-compartments-to-the-model" class="anchor"></a>Appending compartments to the model</h1>
 <p>You can also append “compartments” to the model. Because of the ODE solving internals, you cannot add fake compartments to the model until after all the differential equations are defined.</p>
 <p>For example this is legal:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit">
+<div class="sourceCode" id="cb11"><pre class="downlit">
 <span class="va">ode.1c.ka</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
     <span class="va">C2</span> <span class="op">=</span> <span class="va">center</span><span class="op">/</span><span class="va">V</span>;
     <span class="va">d</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">=</span> <span class="op">-</span><span class="va">KA</span> <span class="op">*</span> <span class="va">depot</span>
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">center</span><span class="op">)</span> <span class="op">=</span> <span class="va">KA</span> <span class="op">*</span> <span class="va">depot</span> <span class="op">-</span> <span class="va">CL</span><span class="op">*</span><span class="va">C2</span>
     <span class="fu">cmt</span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>;
-<span class="op">}</span><span class="op">)</span>
+<span class="op">}</span><span class="op">)</span></pre></div>
+<pre><code>#&gt; </code></pre>
+<div class="sourceCode" id="cb13"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">ode.1c.ka</span><span class="op">)</span></pre></div>
-<pre><code>#&gt; RxODE 1.0.0-0 model named rx_4035308aab11de965be5891ca9ba9be4 model (ready). 
+<pre><code>#&gt; RxODE 1.0.0-0 model named rx_4f137a742b269c64190dc2bb1182dd36 model (ready). 
 #&gt; $state: depot, center
 #&gt; $stateExtra: eff
 #&gt; $params: V, KA, CL
