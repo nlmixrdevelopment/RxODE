@@ -710,11 +710,11 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     Rf_setAttrib(omegaPre, R_DimNamesSymbol, as<SEXP>(dimnames));
     
     // Convert to a lotri matrix
-    omegaLotri = asLotriMat(omegaPre,
-			    as<SEXP>(List::create(_["lower"] = control[Rxc_omegaLower],
-						  _["upper"] = control[Rxc_omegaUpper],
-						  _["nu"]    = control[Rxc_dfSub])),
-			    as<SEXP>(CharacterVector::create("id")));
+    omegaLotri = PROTECT(asLotriMat(omegaPre,
+				    as<SEXP>(List::create(_["lower"] = control[Rxc_omegaLower],
+							  _["upper"] = control[Rxc_omegaUpper],
+							  _["nu"]    = control[Rxc_dfSub])),
+				    as<SEXP>(CharacterVector::create("id")))); pro++;
   } else if (isLotri(omegaS)) {
     omegaLotri = omegaS;
   } else if (Rf_isNull(omegaS)){
@@ -771,10 +771,10 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       List en = rxExpandNesting(objectRO, ni, true);
       aboveSEXP = PROTECT(as<SEXP>(ni["above"])); pro++;
       belowSEXP = PROTECT(as<SEXP>(ni["below"])); pro++;
-      List lotriSepMat = as<List>(lotriSep(omegaLotri,aboveSEXP,
-					   belowSEXP,
-					   as<SEXP>(IntegerVector::create(cureta)),
-					   as<SEXP>(IntegerVector::create(curtheta))));
+      List lotriSepMat = as<List>(PROTECT(lotriSep(omegaLotri,aboveSEXP,
+						   belowSEXP,
+						   as<SEXP>(IntegerVector::create(cureta)),
+						   as<SEXP>(IntegerVector::create(curtheta))))); pro++;
       lotriAbove = lotriSepMat["above"];
       lotriBelow = lotriSepMat["below"];
       events = ni["data"];
@@ -808,7 +808,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       rxModelsAssign(".nestEta",    R_NilValue);
       rxModelsAssign(".nestTheta",  R_NilValue);
     }
-    allNames = as<CharacterVector>(lotriAllNames(omegaLotri));
+    allNames = as<CharacterVector>(PROTECT(lotriAllNames(omegaLotri))); pro++;
     methodStr = as<std::string>(control[Rxc_omegaSeparation]);
     methodInt = getMethodInt(methodStr, allNames, et);
 
@@ -829,7 +829,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       } else {
 	rxModelsAssign(".thetaL", R_NilValue);
       }
-      List bounds = lotriGetBounds(lotriAbove, R_NilValue, R_NilValue);
+      List bounds = PROTECT(lotriGetBounds(lotriAbove, R_NilValue, R_NilValue)); pro++;
       NumericVector upper = bounds[0];
       NumericVector lower = bounds[1];
       // With 
@@ -883,7 +883,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       } else {
 	rxModelsAssign(".omegaL", R_NilValue);
       }
-      List bounds = lotriGetBounds(lotriBelow, R_NilValue, R_NilValue);
+      List bounds = PROTECT(lotriGetBounds(lotriBelow, R_NilValue, R_NilValue)); pro++;
       NumericVector upper = bounds[0];
       NumericVector lower = bounds[1];
       NumericMatrix belowMat = rxRmvnSEXP(IntegerVector::create(nSub),
@@ -941,7 +941,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     stop(_("'sigma' needs to be a matrix or lotri matrix"));
   }
   if (!Rf_isNull(sigmaS)) {
-    allNames = as<CharacterVector>(lotriAllNames(sigmaLotri));
+    allNames = as<CharacterVector>(PROTECT(lotriAllNames(sigmaLotri))); pro++;
     methodStr = as<std::string>(control[Rxc_sigmaSeparation]);
     methodInt = getMethodInt(methodStr, allNames, et);
     SEXP sigmaList = PROTECT(cvPost_(et, // In case needed
@@ -973,7 +973,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     } else {
       n2[0] = nobs;
     }
-    List bounds = lotriGetBounds(sigmaLotri, R_NilValue, R_NilValue);
+    List bounds = PROTECT(lotriGetBounds(sigmaLotri, R_NilValue, R_NilValue)); pro++;
     NumericVector upper = bounds[0];
     NumericVector lower = bounds[1];
     SEXP sigmaMat = rxRmvnSEXP(n2, R_NilValue, sigmaList,
@@ -1108,8 +1108,8 @@ SEXP nestingInfo_(SEXP omega, List data) {
     lotriOmega = omega;
   } else if (Rf_isMatrix(omega)) {
     setupLotri();
-    lotriOmega = asLotriMat(omega, R_NilValue,
-			    wrap(CharacterVector::create(idName)));
+    lotriOmega = PROTECT(asLotriMat(omega, R_NilValue,
+				    wrap(CharacterVector::create(idName)))); pro++;
   } else {
     rxSolveFree();
     stop(_("'omega' must be a list/lotri/matrix"));

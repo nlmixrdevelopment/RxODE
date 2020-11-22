@@ -29,10 +29,12 @@ reference:
 - title: Using RxODE in Packages
   contents:
   - rxUse
+  - rxPkg
 - title: Specialized Simulation functions
   contents:
   - cvPost
   - rinvchisq
+  - rxPp
 - title: Optimizing models and/or adding precision
   contents:
   - rxOptExpr
