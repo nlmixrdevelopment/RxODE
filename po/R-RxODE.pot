@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: RxODE 1.0.0-0\n"
-"POT-Creation-Date: 2020-11-21 22:42\n"
+"POT-Creation-Date: 2020-11-21 22:59\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -305,9 +305,6 @@ msgid "; To get best performance enable OpenMP"
 msgstr ""
 
 msgid "detected new version of RxODE, cleaning cache"
-msgstr ""
-
-msgid "ABC"
 msgstr ""
 
 msgid "%s: %s"
