@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Simulate a from a poission process — rxPp • RxODE</title>
+<title>Simulate a from a Poisson process — rxPp • RxODE</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -52,8 +52,8 @@
 
 
 
-<meta property="og:title" content="Simulate a from a poission process — rxPp" />
-<meta property="og:description" content="Simulate a from a poission process" />
+<meta property="og:title" content="Simulate a from a Poisson process — rxPp" />
+<meta property="og:description" content="Simulate a from a Poisson process" />
 <meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png" />
 
 
@@ -263,13 +263,13 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Simulate a from a poission process</h1>
+    <h1>Simulate a from a Poisson process</h1>
     <small class="dont-index">Source: <a href='https://github.com/nlmixrdevelopment/RxODE/blob/master/R/rxrandom.R'><code>R/rxrandom.R</code></a></small>
     <div class="hidden name"><code>rxPp.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Simulate a from a poission process</p>
+    <p>Simulate a from a Poisson process</p>
     </div>
 
     <pre class="usage"><span class='fu'>rxPp</span><span class='op'>(</span>
@@ -287,20 +287,20 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>n</th>
-      <td><p>Number of time points to simulate in the poission process</p></td>
+      <td><p>Number of time points to simulate in the Poisson process</p></td>
     </tr>
     <tr>
       <th>lambda</th>
-      <td><p>Rate of Poission process</p></td>
+      <td><p>Rate of Poisson process</p></td>
     </tr>
     <tr>
       <th>gamma</th>
-      <td><p>Asymmetry rate of poission process.  When gamma=1.0,
-  this simulates a homogenous poission process.  When gamma&lt;1.0,
-  the poission process has more events early, when gamma &gt; 1.0,
-  the poission process has more events late in the process.</p>
+      <td><p>Asymmetry rate of Poisson process.  When gamma=1.0,
+  this simulates a homogenous Poisson process.  When gamma&lt;1.0,
+  the Poisson process has more events early, when gamma &gt; 1.0,
+  the Poisson process has more events late in the process.</p>
 <p>When gamma is non-zero, the tmax should not be infinite but indicate
-  the end of the Poission process to be simulated.  In most
+  the end of the Poisson process to be simulated.  In most
   pharamcometric cases, this will be the end of the study.
   Internally this uses a rate of:</p>
 <p>l(t) = lambda*gamma*(t/tmax)^(gamma-1)</p></td>
@@ -308,7 +308,7 @@
     <tr>
       <th>prob</th>
       <td><p>When specified, this is a probability function with
-one argument, time, that gives the probability that a poission
+one argument, time, that gives the probability that a Poisson
 time t is accepted as a rejection time.</p></td>
     </tr>
     <tr>
@@ -342,7 +342,7 @@ dropout is equal to or after tmax.</p>
 <span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>10</span><span class='op'>)</span>
 </div><div class='output co'>#&gt;  [1] 12.63950 26.44291 40.04105 45.55494 61.89415 64.24578 65.56525 68.04926
 #&gt;  [9] 73.80819 86.37053</div><div class='input'>
-<span class='co'>## Sample inhomogenous Poission rate of 1/10</span>
+<span class='co'>## Sample inhomogenous Poisson rate of 1/10</span>
 
 <span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>10</span>,gamma<span class='op'>=</span><span class='fl'>2</span>,tmax<span class='op'>=</span><span class='fl'>100</span><span class='op'>)</span>
 </div><div class='output co'>#&gt;  [1]  8.388721 12.007209 18.928419 31.615574 31.985592 35.790884 37.382763
