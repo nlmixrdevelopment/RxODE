@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxJacobian.R
 \name{.rxGenFocei}
 \alias{.rxGenFocei}
-\title{Generate peices for FOCEi inner problem}
+\title{Generate pieces for FOCEi inner problem}
 \usage{
 .rxGenFocei(
   obj,
@@ -56,7 +56,7 @@ combined2: transform(y)=transform(f)+(a^2+b^2*f^(2c))*eps}
 RxODE/symengine environment
 }
 \description{
-Generate peices for FOCEi inner problem
+Generate pieces for FOCEi inner problem
 }
 \author{
 Matthew L. Fidler

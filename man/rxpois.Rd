@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxrandom.R
 \name{rxpois}
 \alias{rxpois}
-\title{Simulate random poisson variable from threefry generator}
+\title{Simulate random Poisson variable from threefry generator}
 \usage{
 rxpois(lambda, n = 1L, ncores = 1L)
 }

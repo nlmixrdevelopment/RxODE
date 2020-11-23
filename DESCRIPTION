@@ -48,6 +48,7 @@ Maintainer: Wenping Wang <wwang8198@gmail.com>
 Depends:
     R (>= 3.6.0)
 Suggests:
+    spelling,
     Matrix,
     DT,
     covr,

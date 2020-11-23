@@ -12,7 +12,7 @@
 ##' \item[curState] Prefer parameterizing in terms of the current
 ##'    state, followed by the first state observed in the term.
 ##'
-##' \item[split] Split the paramterization between all states in the
+##' \item[split] Split the parameterization between all states in the
 ##' term by dividing each by the number of states in the term and then
 ##' adding a matrix term for each state.
 ##' }
@@ -27,25 +27,25 @@ rxIndLinStrategy <- function(strategy = c("curState", "split")) {
 .rxIndLinState <- NULL
 ##' Set the preferred factoring by state
 ##'
-##' @param prefered A list of each state's prefered factorization
+##' @param preferred A list of each state's preferred factorization
 ##' @return Nothing
 ##' @author Matthew Fidler
 ##' @export
-rxIndLinState <- function(prefered = NULL) {
-  if (is.null(prefered)) {
-    return(assignInMyNamespace(".rxIndLinState", prefered))
+rxIndLinState <- function(preferred = NULL) {
+  if (is.null(preferred)) {
+    return(assignInMyNamespace(".rxIndLinState", preferred))
   }
-  checkmate::assertList(prefered, names = "unique")
-  lapply(seq_along(prefered), function(x) {
-    if (!checkmate::checkCharacter(prefered[[x]],
+  checkmate::assertList(preferred, names = "unique")
+  lapply(seq_along(preferred), function(x) {
+    if (!checkmate::checkCharacter(preferred[[x]],
       names = "unnamed"
     )) {
-      stop(sprintf(gettext("'rxIndLinState' list element '%s' must be a unnamed character vector"), names(prefered)[x]),
+      stop(sprintf(gettext("'rxIndLinState' list element '%s' must be a unnamed character vector"), names(preferred)[x]),
         call. = FALSE
       )
     }
   })
-  assignInMyNamespace(".rxIndLinState", prefered)
+  assignInMyNamespace(".rxIndLinState", preferred)
 }
 
 .rxIndLinLine <- function(line, states, state0) {

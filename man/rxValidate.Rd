@@ -10,7 +10,7 @@ rxValidate(type = NULL, check = FALSE)
 rxTest(type = NULL, check = FALSE)
 }
 \arguments{
-\item{type}{Type of test or fitler of test type}
+\item{type}{Type of test or filter of test type}
 
 \item{check}{Use devtools::check instead}
 }

@@ -68,7 +68,7 @@ rxnormV <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
   .Call(`_RxODE_rxnormV_`, mean, sd, n, ncores)
 }
 
-##' Simulate random poisson variable from threefry generator
+##' Simulate random Poisson variable from threefry generator
 ##'
 ##' @inheritParams stats::rpois
 ##' @inheritParams rxnormV
@@ -520,19 +520,19 @@ rxbinom <- function(size, prob, n = 1L, ncores = 1L) {
 }
 
 
-##' Simulate a from a poission process
+##' Simulate a from a Poisson process
 ##'
-##' @param n Number of time points to simulate in the poission process
+##' @param n Number of time points to simulate in the Poisson process
 ##'
-##' @param lambda Rate of Poission process
+##' @param lambda Rate of Poisson process
 ##'
-##' @param gamma Asymmetry rate of poission process.  When gamma=1.0,
-##'   this simulates a homogenous poission process.  When gamma<1.0,
-##'   the poission process has more events early, when gamma > 1.0,
-##'   the poission process has more events late in the process.
+##' @param gamma Asymmetry rate of Poisson process.  When gamma=1.0,
+##'   this simulates a homogenous Poisson process.  When gamma<1.0,
+##'   the Poisson process has more events early, when gamma > 1.0,
+##'   the Poisson process has more events late in the process.
 ##'
 ##'   When gamma is non-zero, the tmax should not be infinite but indicate
-##'   the end of the Poission process to be simulated.  In most
+##'   the end of the Poisson process to be simulated.  In most
 ##'   pharamcometric cases, this will be the end of the study.
 ##'   Internally this uses a rate of:
 ##'
@@ -540,7 +540,7 @@ rxbinom <- function(size, prob, n = 1L, ncores = 1L) {
 ##'
 ##'
 ##' @param prob When specified, this is a probability function with
-##'   one argument, time, that gives the probability that a poission
+##'   one argument, time, that gives the probability that a Poisson
 ##'   time t is accepted as a rejection time.
 ##'
 ##' @param t0 the starting time of the Poisson process
@@ -564,7 +564,7 @@ rxbinom <- function(size, prob, n = 1L, ncores = 1L) {
 ##' ## Sample homogenous Poisson process of rate 1/10
 ##' rxPp(10, 1/10)
 ##'
-##' ## Sample inhomogenous Poission rate of 1/10
+##' ## Sample inhomogenous Poisson rate of 1/10
 ##'
 ##' rxPp(10, 1/10,gamma=2,tmax=100)
 ##'

@@ -448,7 +448,7 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 ##'   subject identifier \code{FALSE}.  When \code{resampleID=TRUE}
 ##'   correlations of parameters are retained, where as when
 ##'   \code{resampleID=FALSE} ignores patient covariate correaltions.
-##'   Hecne the default is \code{resampleID=TRUE}.
+##'   Hence the default is \code{resampleID=TRUE}.
 ##'
 ##' @references
 ##'

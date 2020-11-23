@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxrandom.R
 \name{rxPp}
 \alias{rxPp}
-\title{Simulate a from a poission process}
+\title{Simulate a from a Poisson process}
 \usage{
 rxPp(
   n,
@@ -15,24 +15,24 @@ rxPp(
 )
 }
 \arguments{
-\item{n}{Number of time points to simulate in the poission process}
+\item{n}{Number of time points to simulate in the Poisson process}
 
-\item{lambda}{Rate of Poission process}
+\item{lambda}{Rate of Poisson process}
 
-\item{gamma}{Asymmetry rate of poission process.  When gamma=1.0,
-  this simulates a homogenous poission process.  When gamma<1.0,
-  the poission process has more events early, when gamma > 1.0,
-  the poission process has more events late in the process.
+\item{gamma}{Asymmetry rate of Poisson process.  When gamma=1.0,
+  this simulates a homogenous Poisson process.  When gamma<1.0,
+  the Poisson process has more events early, when gamma > 1.0,
+  the Poisson process has more events late in the process.
 
   When gamma is non-zero, the tmax should not be infinite but indicate
-  the end of the Poission process to be simulated.  In most
+  the end of the Poisson process to be simulated.  In most
   pharamcometric cases, this will be the end of the study.
   Internally this uses a rate of:
 
   l(t) = lambda*gamma*(t/tmax)^(gamma-1)}
 
 \item{prob}{When specified, this is a probability function with
-one argument, time, that gives the probability that a poission
+one argument, time, that gives the probability that a Poisson
 time t is accepted as a rejection time.}
 
 \item{t0}{the starting time of the Poisson process}
@@ -49,14 +49,14 @@ tmax, then all the rest of the times are = tmax to indicate the
 dropout is equal to or after tmax.
 }
 \description{
-Simulate a from a poission process
+Simulate a from a Poisson process
 }
 \examples{
 
 ## Sample homogenous Poisson process of rate 1/10
 rxPp(10, 1/10)
 
-## Sample inhomogenous Poission rate of 1/10
+## Sample inhomogenous Poisson rate of 1/10
 
 rxPp(10, 1/10,gamma=2,tmax=100)
 

@@ -451,7 +451,7 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 ##'
 ##' where l=lower and u = upper
 ##'
-##' @param tol When case 3 is used from the above possibilitys, the
+##' @param tol When case 3 is used from the above possibilities, the
 ##'   tol value controls the acceptance rejection and
 ##'   inverse-transformation;
 ##'

@@ -11,7 +11,7 @@ rxExpandGrid(x, y, type = 0L)
 
 \item{y}{second element (must be character)}
 
-\item{type}{Internal type=0L is traditional expand gridn and
+\item{type}{Internal type=0L is traditional expand grid and
 type=1L is jacobian expand grid (adds symbols)}
 }
 \value{

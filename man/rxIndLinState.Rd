@@ -4,10 +4,10 @@
 \alias{rxIndLinState}
 \title{Set the preferred factoring by state}
 \usage{
-rxIndLinState(prefered = NULL)
+rxIndLinState(preferred = NULL)
 }
 \arguments{
-\item{prefered}{A list of each state's prefered factorization}
+\item{preferred}{A list of each state's preferred factorization}
 }
 \value{
 Nothing

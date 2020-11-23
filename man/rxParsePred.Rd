@@ -9,7 +9,7 @@ rxParsePred(x, init = NULL, err = NULL, addProp = c("combined2", "combined1"))
 \arguments{
 \item{x}{pred function}
 
-\item{init}{Initilization vector}
+\item{init}{Initialization vector}
 }
 \value{
 RxODE transformed text.

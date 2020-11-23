@@ -5,7 +5,7 @@
 ##'
 ##' @param x first element (must be character)
 ##' @param y second element (must be character)
-##' @param type Internal type=0L is traditional expand gridn and
+##' @param type Internal type=0L is traditional expand grid and
 ##'     type=1L is jacobian expand grid (adds symbols)
 ##' @return Expand grid
 ##' @author Matthew Fidler
@@ -623,7 +623,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
   return(.s)
 }
 
-##' Generate peices for FOCEi inner problem
+##' Generate pieces for FOCEi inner problem
 ##'
 ##' @inheritParams rxSEinner
 ##' @return RxODE/symengine environment
@@ -663,7 +663,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
   return(.s)
 }
 
-##' Generate peices for EBE only problem
+##' Generate pieces for EBE only problem
 ##'
 ##' @inheritParams rxSEinner
 ##' @return RxODE/symengine environment

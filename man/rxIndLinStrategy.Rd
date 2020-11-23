@@ -14,7 +14,7 @@ rxIndLinStrategy(strategy = c("curState", "split"))
 \item[curState] Prefer parameterizing in terms of the current
    state, followed by the first state observed in the term.
 
-\item[split] Split the paramterization between all states in the
+\item[split] Split the parameterization between all states in the
 term by dividing each by the number of states in the term and then
 adding a matrix term for each state.
 }}

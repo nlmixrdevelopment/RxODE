@@ -55,7 +55,7 @@ matrix.}
 
 where l=lower and u = upper}
 
-\item{tol}{When case 3 is used from the above possibilitys, the
+\item{tol}{When case 3 is used from the above possibilities, the
   tol value controls the acceptance rejection and
   inverse-transformation;
 

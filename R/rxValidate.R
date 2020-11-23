@@ -2,7 +2,7 @@
 ##'
 ##' This allows easy validation/qualification of nlmixr by running the
 ##' testing suite on your system.
-##' @param type Type of test or fitler of test type
+##' @param type Type of test or filter of test type
 ##' @param check Use devtools::check instead
 ##' @author Matthew L. Fidler
 ##' @export

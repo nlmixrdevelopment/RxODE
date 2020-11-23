@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxJacobian.R
 \name{.rxGenEBE}
 \alias{.rxGenEBE}
-\title{Generate peices for EBE only problem}
+\title{Generate pieces for EBE only problem}
 \usage{
 .rxGenEBE(
   obj,
@@ -52,7 +52,7 @@ combined2: transform(y)=transform(f)+(a^2+b^2*f^(2c))*eps}
 RxODE/symengine environment
 }
 \description{
-Generate peices for EBE only problem
+Generate pieces for EBE only problem
 }
 \author{
 Matthew L. Fidler
