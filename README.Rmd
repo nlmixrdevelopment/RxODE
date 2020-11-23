@@ -164,8 +164,8 @@ released on CRAN.  Each uses compiled code to have faster ODE solving.
   and calculates forward sensitivities and adjoint sensitivities of
   systems.
   
-  Unlike `mrgsolve` and `RxODE`, `dMod` is not thread-safe since
-  `deSolve` is not yet thread-safe.
+  Unlike `RxODE`, `dMod` is not thread-safe since `deSolve` is not yet
+  thread-safe.
 
 And there is one package that is not released on CRAN:
 

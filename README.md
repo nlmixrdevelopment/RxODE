@@ -123,6 +123,7 @@ To load `RxODE` package and compile the model:
 
 ```r
 library(RxODE)
+#> RxODE 1.0.0.0 using 4 threads (see ?getRxThreads)
 library(units)
 #> udunits system database from /usr/share/xml/udunits
 
@@ -134,6 +135,11 @@ mod1 <-RxODE({
     d/dt(peri)  =                    Q*C2 - Q*C3;
     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 })
+#> 
+#> → creating RxODE include directory
+#> → getting R compile options
+#> → precompiling headers
+#> ✔ done
 #> 
 ```
 
@@ -366,8 +372,8 @@ released on CRAN.  Each uses compiled code to have faster ODE solving.
   and calculates forward sensitivities and adjoint sensitivities of
   systems.
   
-  Unlike `mrgsolve` and `RxODE`, `dMod` is not thread-safe since
-  `deSolve` is not yet thread-safe.
+  Unlike `RxODE`, `dMod` is not thread-safe since `deSolve` is not yet
+  thread-safe.
 
 And there is one package that is not released on CRAN:
 
