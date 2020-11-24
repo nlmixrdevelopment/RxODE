@@ -203,6 +203,10 @@ SEXP _RxODE_convertId_(SEXP);
 SEXP _RxODE_rpp_(SEXP nS, SEXP lambdaS, SEXP gammaS, SEXP probS, SEXP t0S,
 		 SEXP tmaxS, SEXP randomOrderS);
 
+SEXP _RxODE_rxQs(SEXP);
+
+SEXP _RxODE_rxQr(SEXP);
+
 extern int rxIsCurrentC(SEXP obj);
 
 rx_solve *getRxSolve_();
@@ -459,9 +463,12 @@ void R_init_RxODE(DllInfo *info){
     {"_probit", (DL_FUNC) _probit, 3},
     {"_probitInv", (DL_FUNC) _probitInv, 3},
     {"_RxODE_rxrandnV", (DL_FUNC) _RxODE_rxrandnV, 2},
+    {"_RxODE_rxQs", (DL_FUNC) _RxODE_rxQs, 1},
+    {"_RxODE_rxQr", (DL_FUNC) _RxODE_rxQr, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
+  R_RegisterCCallable("RxODE","_RxODE_rxQr", (DL_FUNC) &_RxODE_rxQr);
   R_RegisterCCallable("RxODE", "simeps", (DL_FUNC) &simeps);
   R_RegisterCCallable("RxODE", "simeta", (DL_FUNC) &simeta);
   R_RegisterCCallable("RxODE", "getSilentErr", (DL_FUNC) &getSilentErr);
