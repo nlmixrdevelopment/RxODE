@@ -331,6 +331,7 @@ R_PosInf <- Inf # nolint
 ##' @importFrom methods signature is
 ##' @importFrom memoise memoise
 ##' @importFrom utils capture.output
+##' @importFrom qs qsave
 ##' @import tools
 ##' @export
 RxODE <- # nolint
