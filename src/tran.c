@@ -3158,16 +3158,24 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
   sAppendN(&sbOut, "    SEXP hash    = PROTECT(allocVector(STRSXP, 1));pro++;\n", 58);
-  sAppendN(&sbOut,"    SET_STRING_ELT(hash, 0, mkChar(\"", 36);
+  sAppend(&sbOut, "#define __doBuf__  sprintf(buf, \"", _mv.o+1);
+  int off=0;
+  int off2 = 0;
   for (i = 0; i < _mv.o; i++){
-    if (_mv.s[i] == '"'){
+    if (off != 0 && off % 4095 == 0) {
+      sAppend(&sbOut, "\"); \\\n sprintf(buf+%d, \"", off2);
+    }
+    off++;
+    off2++;
+    if (_mv.s[i] == '%'){
+      sAppendN(&sbOut, "%%", 2);
+      off++;
+    } else if (_mv.s[i] == '"'){
       sAppendN(&sbOut, "\\\"", 2);
     } else if (_mv.s[i] == '\''){
       sAppendN(&sbOut, "'", 1);
     } else if (_mv.s[i] == ' '){
-      if (in_str==1){
-  	sAppendN(&sbOut, " ", 1);
-      }
+      sAppendN(&sbOut, " ", 1);
     } else if (_mv.s[i] == '\n'){
       sAppendN(&sbOut, "\\n", 2);
     } else if (_mv.s[i] == '\t'){
@@ -3176,10 +3184,12 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
       sAppendN(&sbOut, "\\\\", 2);
     } else if (_mv.s[i] >= 33  && _mv.s[i] <= 126){ // ASCII only
       sPut(&sbOut, _mv.s[i]);
-    }
+    } 
   }
-  sAppendN(&sbOut, "\"));\n", 5);  
-  sAppend(&sbOut, "    SEXP lst      = PROTECT(_rxQr(hash));pro++;\n", _mv.s);
+  sAppendN(&sbOut, "\");\n", 4);
+  sAppend(&sbOut,"    char buf[%d];\n    __doBuf__\n#undef __doBuf__\n", off+1);
+  sAppendN(&sbOut,"    SET_STRING_ELT(hash, 0, mkChar(buf));\n", 42);
+  sAppendN(&sbOut, "    SEXP lst      = PROTECT(_rxQr(hash));pro++;\n", 48);
   sAppendN(&sbOut, "    _assign_ptr(lst);\n", 22);
   sAppendN(&sbOut, "    UNPROTECT(pro);\n", 20);
 
