@@ -2915,7 +2915,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       //__DDtStateVar_#__
       for (i = 0; i < tb.de.n; i++){
 	if (scenario == 0){
-	  sAppend(&sbOut,"  __DDtStateVar_%d__,\n",i);
+	  sAppend(&sbOut,"  double  __DDtStateVar_%d__;\n",i);
 	} else {
 	  sAppend(&sbOut,"  (void)__DDtStateVar_%d__;\n",i);
 	}
@@ -2929,7 +2929,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
         // This is for dydt/ LHS/ or jacobian for df(state)/dy(parameter)
         if (show_ode == 1 || show_ode == 0 || tb.sdfdy[i] == 1){
 	  if (scenario == 0){
-	    sAppend(&sbOut,"  __PDStateVar_%s_SeP_%s__,\n",buf1,buf2);
+	    sAppend(&sbOut,"  double __PDStateVar_%s_SeP_%s__;\n",buf1,buf2);
           } else {
 	    sAppend(&sbOut,"  (void)__PDStateVar_%s_SeP_%s__;\n",buf1,buf2);
 	  }
@@ -2938,6 +2938,17 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     }
   }
   for (i=0, j=0; i<NV; i++) {
+    if (tb.lh[i] == 9){
+      int doCont=0;
+      for (int j = 0; j < tb.de.n; j++) {
+	if (tb.di[j] == i) {
+	  if (!tb.idu[j]) doCont = 1;
+	  break;
+	}
+      }
+      if (doCont) continue;
+    }
+    /* REprintf("%s: %d\n", tb.ss.line[i], tb.lh[i]); */
     if (scenario == 5){
       if (tb.lag[i] == 0) continue;
       if (tb.lh[i] == 1) continue;
@@ -3004,16 +3015,13 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       sAppend(&sbOut, " = _PL[%d];\n", j++);
       break;
     case 0:   // Case 0 is for declaring the variables
-      sAppendN(&sbOut,"  ", 2);
+      sAppendN(&sbOut,"  double ", 9);
       doDot(&sbOut, buf);
       if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf) ||
 	  !strcmp("rx_hi_", buf) || !strcmp("rx_low_", buf)){
 	sAppendN(&sbOut, "__", 2);
       }
-      if (i <NV-1)
-        sAppendN(&sbOut, ",\n", 2);
-      else
-        sAppendN(&sbOut, ";\n", 2);
+      sAppendN(&sbOut, ";\n", 2);
       break;
     case 2: // Case 2 is for suppressing all the warnings for the variables by using (void)var;
       // See https://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
@@ -3653,7 +3661,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	(show_ode == 9 && nmtime) ||
 	(show_ode == 10 && tb.matn) ||
 	(show_ode == 11 && tb.matnf)){
-      prnt_vars(0, 0, "  double ", "\n",show_ode);     /* declare all used vars */
+      prnt_vars(0, 0, "", "\n",show_ode);     /* declare all used vars */
       if (maxSumProdN > 0 || SumProdLD > 0){
 	int mx = maxSumProdN;
 	if (SumProdLD > mx) mx = SumProdLD;
@@ -3690,6 +3698,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	      doDot(&sbOut, buf);
 	      sAppend(&sbOut, " = NA_REAL;\n", i, i);
 	    } else {
+	      // stateExtra
 	      sAppendN(&sbOut, "  ", 2);
 	      doDot(&sbOut, buf);
 	      sAppend(&sbOut, " = __zzStateVar__[%d]*((double)(_ON[%d]));\n", i, i);
@@ -3820,11 +3829,13 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       sAppendN(&sbOut,  "}\n", 2);
     } else if (show_ode == 3){
       if (foundF0){
-	for (i = 0; i < tb.de.n; i++){
-	  buf=tb.ss.line[tb.di[i]];
-	  sAppend(&sbOut, "  __zzStateVar__[%d]=((double)(_ON[%d]))*(",i,i);
-	  doDot(&sbOut, buf);
-	  sAppendN(&sbOut,  ");\n", 3);
+	for (i = 0; i < tb.de.n; i++) {
+	  if (tb.idu[i]) {
+	    buf=tb.ss.line[tb.di[i]];
+	    sAppend(&sbOut, "  __zzStateVar__[%d]=((double)(_ON[%d]))*(",i,i);
+	    doDot(&sbOut, buf);
+	    sAppendN(&sbOut,  ");\n", 3);
+	  }
 	}
       }
       sAppendN(&sbOut,  "}\n", 2);
