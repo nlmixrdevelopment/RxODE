@@ -5,7 +5,7 @@
 //[[Rcpp::export]]
 Rcpp::CharacterVector rxQs(SEXP const x) {
   Rcpp::CharacterVector ret(1);
-  ret[0] = qs::base91_encode(qs::c_qserialize(x, "high", "zstd", 22, 4, false));
+  ret[0] = qs::base91_encode(qs::c_qserialize(x, "high", "zstd", 4, 15, false));
   return ret;
 }
 
