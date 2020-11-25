@@ -307,6 +307,11 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 
   https://stackoverflow.com/questions/54056594/cran-acceptable-way-of-linking-to-openmp-some-c-code-called-from-rcpp
 
+* No longer produce C code that create the model variables directly
+  into the C file.  Instead, use `qs` to serialize, compress and
+  encode in base91 and then write the string into the C file. The `qs`
+  package then decodes all of that into the model variables.
+
 ## Bug fixes:
  - Occasionally RxODE misidentified dual `lhs`/`param` values.  An
    additional check is performed so that this does not happen.
