@@ -50,7 +50,7 @@
   v <- utils::packageVersion("RxODE")
   packageStartupMessage("RxODE ", v, " using ", getRxThreads(verbose=FALSE),
                         " threads (see ?getRxThreads)",
-                        ifelse(.cacheIsTemp, "\n  create cache: `rxCreateCache()`; need for some parallel routines", ""))
+                        ifelse(.cacheIsTemp, "\n  no cache: create with `rxCreateCache()`", ""))
   if (!.Call(`_rxHasOpenMp`)) {
     packageStartupMessage("========================================\n",
         "RxODE has not detected OpenMP support and will run in single-threaded mode\n",

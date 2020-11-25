@@ -443,7 +443,6 @@ sbuf sbNrm;
 vLines depotLines, centralLines;
 
 const char *model_prefix = NULL;
-const char *extra_indLin =NULL;
 const char *me_code = NULL;
 const char *md5 = NULL;
 int badMd5 = 0;
@@ -910,7 +909,7 @@ int allSpaces(char *v2) {
 
 int depotAttr=0, centralAttr=0;
 
-sbuf _gbuf;
+sbuf _gbuf, _mv;
 
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
@@ -3061,7 +3060,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
 void print_aux_info(char *model, const char *prefix, const char *libname, const char *pMd5, const char *timeId,
 		    const char *libname2){
   int i, j, islhs,pi = 0,li = 0, sli = 0,
-    statei = 0, sensi=0, normi=0, in_str=0;
+    statei = 0, sensi=0, normi=0;
   char *buf;
   sbuf bufw;
   sIniTo(&bufw, 1024);
@@ -3157,315 +3156,42 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
-  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 22));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP sLinCmt = PROTECT(allocVector(INTSXP,10));pro++;\n", 57);
-  sAppend(&sbOut, "    INTEGER(sLinCmt)[0]= %d;\n", tb.ncmt);
-  sAppend(&sbOut, "    INTEGER(sLinCmt)[1]= %d;\n", tb.hasKa);
-  sAppend(&sbOut, "    INTEGER(sLinCmt)[2]= %d;\n", tb.linB);
-  sAppend(&sbOut, "    INTEGER(sLinCmt)[3]= %d;\n", tb.maxeta);
-  sAppend(&sbOut, "    INTEGER(sLinCmt)[4]= %d;\n", tb.maxtheta);
-  sAppend(&sbOut, "    INTEGER(sLinCmt)[5]= %d;\n", tb.hasCmt);
-  sAppend(&sbOut, "    INTEGER(sLinCmt)[6]= %d;\n", tb.linCmtN);
-  sAppend(&sbOut, "    INTEGER(sLinCmt)[7]= %d;\n", tb.linCmtFlg);
-  sAppend(&sbOut, "    INTEGER(sLinCmt)[8]= %d;\n", tb.nInd);
-  sAppend(&sbOut, "    INTEGER(sLinCmt)[9]= %d;\n", tb.simflg);
-  sAppendN(&sbOut,"    SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 10));pro++;\n", 59);
-  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 0, mkChar(\"ncmt\"));\n", 49);
-  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 1, mkChar(\"ka\"));\n", 47);
-  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 2, mkChar(\"linB\"));\n", 49);
-  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 3, mkChar(\"maxeta\"));\n", 51);
-  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 4, mkChar(\"maxtheta\"));\n", 53);
-  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 5, mkChar(\"hasCmt\"));\n", 51);
-  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 6, mkChar(\"linCmt\"));\n", 51);
-  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 7, mkChar(\"linCmtFlg\"));\n", 54);
-  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 8, mkChar(\"nIndSim\"));\n", 52);
-  sAppendN(&sbOut,"    SET_STRING_ELT(sLinCmtN, 9, mkChar(\"simflg\"));\n", 51);
-  sAppendN(&sbOut, "   setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);\n", 50);
-  sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
-  sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
-  sAppendN(&sbOut, "    SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;\n", 56);
-  sAppendN(&sbOut, "    int *iMtime  = INTEGER(sMtime);\n", 36);
-  sAppend(&sbOut,  "    iMtime[0] = %d;\n", nmtime);
-  sAppendN(&sbOut, "    SEXP sExtraCmt = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
-  sAppendN(&sbOut, "    int *iExtraCmt  = INTEGER(sExtraCmt);\n", 42);
-  sAppend(&sbOut,  "    iExtraCmt[0] = %d;\n", extraCmt);
-  sAppend(&sbOut, "    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
-  sAppend(&sbOut, "    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
-  sAppend(&sbOut, "    SEXP slhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",sli);
-  sAppend(&sbOut, "    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
-  sAppend(&sbOut, "  SEXP extraState = PROTECT(allocVector(STRSXP, %d));pro++;\n",nExtra);
-  sAppend(&sbOut, "    SEXP stateRmS = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
-  sAppendN(&sbOut, "    SEXP timeInt = PROTECT(allocVector(INTSXP, 1));pro++;\n", 58);
-  sAppend(&sbOut, "    INTEGER(timeInt)[0] = %s;\n", timeId);
-  sAppend(&sbOut, "    SEXP sens     = PROTECT(allocVector(STRSXP, %d));pro++;\n",sensi);
-  sAppend(&sbOut, "    SEXP normState= PROTECT(allocVector(STRSXP, %d));pro++;\n",statei-sensi);
-  sAppend(&sbOut, "    SEXP dfdy     = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ndfdy);
-  sAppendN(&sbOut, "    SEXP tran     = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP trann    = PROTECT(allocVector(STRSXP, 22));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP model    = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP modeln   = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP version    = PROTECT(allocVector(STRSXP, 3));pro++;\n", 61);
-  sAppendN(&sbOut, "    SEXP versionn   = PROTECT(allocVector(STRSXP, 3));pro++;\n", 61);
-
-  sAppend(&sbOut,  __VER_0__);
-  sAppend(&sbOut,  __VER_1__);
-  sAppend(&sbOut,  __VER_2__);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(versionn,0,mkChar(\"version\"));\n", 50);
-  sAppendN(&sbOut, "    SET_STRING_ELT(versionn,1,mkChar(\"repo\"));\n", 47);
-  sAppendN(&sbOut, "    SET_STRING_ELT(versionn,2,mkChar(\"md5\"));\n", 46);
-
-  sAppend(&sbOut, "%s",s_aux_info.s);
-  // Save for outputting in trans
-  tb.pi  = pi;
-  tb.li  = li;
-  tb.sli = sli;
-  tb.sensi  = sensi;
-  sAppendN(&sbOut, "    SET_STRING_ELT(modeln,0,mkChar(\"normModel\"));\n", 50);
-  sAppendN(&sbOut, "    SET_STRING_ELT(model,0,mkChar(\"", 35);
-  in_str=0;
-  for (i = 0; i < sbNrm.o; i++){
-    if (sbNrm.s[i] == '"'){
-      if (in_str==1){
-	in_str=0;
-      } else {
-	in_str=1;
-      }
-      sAppendN(&sbOut, "\\\"", 2);
-    } else if (sbNrm.s[i] == '\''){
-      if (in_str==1){
-	in_str=0;
-      } else {
-	in_str=1;
-      }
-      sAppendN(&sbOut, "'", 1);
-    } else if (sbNrm.s[i] == ' '){
-      if (in_str==1){
-	sAppendN(&sbOut, " ", 1);
-      }
-    } else if (sbNrm.s[i] == '\n'){
-      sAppendN(&sbOut, "\\n", 2);
-    } else if (sbNrm.s[i] == '\t'){
-      sAppendN(&sbOut, "\\t", 2);
-    } else if (sbNrm.s[i] == '\\'){
-      sAppendN(&sbOut, "\\\\", 2);
-    } else if (sbNrm.s[i] >= 33  && sbNrm.s[i] <= 126){ // ASCII only
-      sPut(&sbOut, sbNrm.s[i]);
+  sAppendN(&sbOut, "    SEXP hash    = PROTECT(allocVector(STRSXP, 1));pro++;\n", 58);
+  sAppend(&sbOut, "#define __doBuf__  sprintf(buf, \"", _mv.o+1);
+  int off=0;
+  int off2 = 0;
+  for (i = 0; i < _mv.o; i++){
+    if (off != 0 && off % 4095 == 0) {
+      sAppend(&sbOut, "\"); \\\n sprintf(buf+%d, \"", off2);
     }
-  }
-  sAppendN(&sbOut, "\"));\n", 5);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(modeln,1,mkChar(\"indLin\"));\n", 47);
-  sAppendN(&sbOut, "    SET_STRING_ELT(model,1,mkChar(\"", 35);
-  in_str=0;
-  int strL = strlen(me_code);
-  for (i = 0; i < strL; i++){
-    if (me_code[i] == '"'){
-      if (in_str==1){
-	in_str=0;
-      } else {
-	in_str=1;
-      }
+    off++;
+    off2++;
+    if (_mv.s[i] == '%'){
+      sAppendN(&sbOut, "%%", 2);
+      off++;
+    } else if (_mv.s[i] == '?') {
+      // Avoid digrahps/trigraphs
+      sAppendN(&sbOut, "\\?", 2);
+    } else if (_mv.s[i] == '"'){
       sAppendN(&sbOut, "\\\"", 2);
-    } else if (me_code[i] == '\''){
-      if (in_str==1){
-	in_str=0;
-      } else {
-	in_str=1;
-      }
+    } else if (_mv.s[i] == '\''){
       sAppendN(&sbOut, "'", 1);
-    } else if (me_code[i] == ' '){
-      if (in_str==1){
-	sAppendN(&sbOut, " ", 1);
-      }
-    } else if (me_code[i] == '\n'){
+    } else if (_mv.s[i] == ' '){
+      sAppendN(&sbOut, " ", 1);
+    } else if (_mv.s[i] == '\n'){
       sAppendN(&sbOut, "\\n", 2);
-    } else if (me_code[i] == '\t'){
+    } else if (_mv.s[i] == '\t'){
       sAppendN(&sbOut, "\\t", 2);
-    } else if (me_code[i] == '\\'){
+    } else if (_mv.s[i] == '\\'){
       sAppendN(&sbOut, "\\\\", 2);
-    } else if (me_code[i] >= 33  && me_code[i] <= 126){ // ASCII only
-      sPut(&sbOut, me_code[i]);
-    }
+    } else if (_mv.s[i] >= 33  && _mv.s[i] <= 126){ // ASCII only
+      sPut(&sbOut, _mv.s[i]);
+    } 
   }
-  sAppendN(&sbOut, "\"));\n", 5);
-
-  sClear(&s_aux_info);
-  tb.ini_i = gnini;
-
-  sAppend(&sbOut, "    SEXP ini    = PROTECT(allocVector(REALSXP,%d));pro++;\n",tb.ini_i);
-  sAppend(&sbOut, "    SEXP inin   = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ini_i);
-  sAppend(&sbOut, "%s", s_inits.s);
-  // Vector Names
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,0,mkChar(\"params\"));\n", 46);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  0,params);\n", 36);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,1,mkChar(\"lhs\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  1,lhs);\n", 33);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,2,mkChar(\"state\"));\n", 45);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  2,state);\n", 35);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,3,mkChar(\"trans\"));\n", 45);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  3,tran);\n", 34);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,4,mkChar(\"model\"));\n", 45);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  4,model);\n", 35);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,5,mkChar(\"ini\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  5,ini);\n", 33);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,6,mkChar(\"podo\"));\n", 44);
-  sAppend(&sbOut, "    SET_VECTOR_ELT(lst,   6,ScalarLogical(%d));\n",rx_podo);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,7,mkChar(\"dfdy\"));\n", 44);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  7,dfdy);\n", 34);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,8,mkChar(\"sens\"));\n", 44);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  8,sens);\n", 34);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,9,mkChar(\"state.ignore\"));\n", 52);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  9,stateRmS);\n", 38);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,10,mkChar(\"version\"));\n", 48);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  10,version);\n", 38);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,11,mkChar(\"normal.state\"));\n", 53);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  11,normState);\n", 40);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,12,mkChar(\"needSort\"));\n", 49);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  12,sNeedSort);\n", 40);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,13,mkChar(\"nMtime\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  13,sMtime);\n", 37);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,14,mkChar(\"extraCmt\"));\n", 49);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  14,sExtraCmt);\n", 40);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names, 15, mkChar(\"stateExtra\"));\n", 53);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  15, extraState);\n", 42);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names, 16, mkChar(\"dvid\"));\n", 47);
-  sAppend(&sbOut,   "    SEXP sDvid = PROTECT(allocVector(INTSXP,%d));pro++;\n", tb.dvidn);
-
-  for (int di = 0; di < tb.dvidn; di++){
-    sAppend(&sbOut, "    INTEGER(sDvid)[%d] = %d;\n",di, tb.dvid[di]);
-  }
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst, 16, sDvid);\n", 36);
-
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,20,mkChar(\"timeId\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  20,timeInt);\n", 38);
-
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,17,mkChar(\"indLin\"));\n", 47);
-  // FIX with extra
-  sAppend(&sbOut,"%s", extra_indLin);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,21,mkChar(\"md5\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  21,mmd5);\n", 34);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,18,mkChar(\"flags\"));\n", 46);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  18,sLinCmt);\n", 38);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,19,mkChar(\"slhs\"));\n", 45);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  19,slhs);\n", 35);
-
-  // const char *rxVersion(const char *what)
-
-  // md5 values
-  sAppendN(&sbOut, "    SET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n", 48);
-  if (badMd5){
-    sAppendN(&sbOut, "    SET_STRING_ELT(mmd5,0,mkChar(\"\"));\n", 39);
-  } else {
-    sAppend(&sbOut, "    SET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
-  }
-  sAppendN(&sbOut, "    SET_STRING_ELT(mmd5n,1,mkChar(\"parsed_md5\"));\n", 50);
-  sAppend(&sbOut, "    SET_STRING_ELT(mmd5,1,mkChar(\"%s\"));\n", pMd5);
-
-  // now trans output
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,0,mkChar(\"lib.name\"));\n", 48);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran, 0,mkChar(\"%s\"));\n", libname);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,1,mkChar(\"jac\"));\n", 43);
-  if (found_jac == 1 && good_jac == 1){
-    sAppendN(&sbOut, "    SET_STRING_ELT(tran,1,mkChar(\"fulluser\"));\n", 47); // Full User Matrix
-  } else {
-    sAppendN(&sbOut, "    SET_STRING_ELT(tran,1,mkChar(\"fullint\"));\n", 46); // Full Internal Matrix
-  }
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,2,mkChar(\"prefix\"));\n", 46);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran, 2,mkChar(\"%s\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,3,mkChar(\"dydt\"));\n", 44);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran, 3,mkChar(\"%sdydt\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,4,mkChar(\"calc_jac\"));\n", 48);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran, 4,mkChar(\"%scalc_jac\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,5,mkChar(\"calc_lhs\"));\n", 48);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran, 5,mkChar(\"%scalc_lhs\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,6,mkChar(\"model_vars\"));\n", 50);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran, 6,mkChar(\"%smodel_vars\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,7,mkChar(\"theta\"));\n", 45);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran, 7,mkChar(\"%stheta\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,8,mkChar(\"inis\"));\n", 44);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran, 8,mkChar(\"%sinis\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,  9,mkChar(\"dydt_lsoda\"));\n", 52);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran,   9,mkChar(\"%sdydt_lsoda\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,10,mkChar(\"calc_jac_lsoda\"));\n", 55);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran, 10,mkChar(\"%scalc_jac_lsoda\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,11,mkChar(\"ode_solver_solvedata\"));\n", 61);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran, 11,mkChar(\"%sode_solver_solvedata\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,12,mkChar(\"ode_solver_get_solvedata\"));\n", 65);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran, 12,mkChar(\"%sode_solver_get_solvedata\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,13,mkChar(\"dydt_liblsoda\"));\n", 54);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran, 13,mkChar(\"%sdydt_liblsoda\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,14,mkChar(\"F\"));\n", 42);
-  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 14,mkChar(\"%sF\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,15,mkChar(\"Lag\"));\n", 44);
-  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 15,mkChar(\"%sLag\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,16,mkChar(\"Rate\"));\n", 45);
-  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 16,mkChar(\"%sRate\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,17,mkChar(\"Dur\"));\n", 44);
-  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 17,mkChar(\"%sDur\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,18,mkChar(\"mtime\"));\n", 46);
-  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 18,mkChar(\"%smtime\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,19,mkChar(\"assignFuns\"));\n", 51);
-  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 19,mkChar(\"%sassignFuns\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,20,mkChar(\"ME\"));\n", 43);
-  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 20,mkChar(\"%sME\"));\n", prefix);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,21,mkChar(\"IndF\"));\n", 45);
-  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 21,mkChar(\"%sIndF\"));\n", prefix);
-
-  sAppendN(&sbOut, "    setAttrib(tran, R_NamesSymbol, trann);\n", 43);
-  sAppendN(&sbOut, "    setAttrib(mmd5, R_NamesSymbol, mmd5n);\n", 43);
-  sAppendN(&sbOut, "    setAttrib(model, R_NamesSymbol, modeln);\n", 45);
-  sAppendN(&sbOut, "    setAttrib(ini, R_NamesSymbol, inin);\n", 41);
-  sAppendN(&sbOut, "    setAttrib(version, R_NamesSymbol, versionn);\n", 49);
-  sAppendN(&sbOut, "    setAttrib(lst, R_NamesSymbol, names);\n", 42);
-  sAppendN(&sbOut, "    SEXP cls = PROTECT(allocVector(STRSXP, 1));pro++;\n", 54);
-  sAppendN(&sbOut, "    SET_STRING_ELT(cls, 0, mkChar(\"rxModelVars\"));\n", 51);
-  sAppendN(&sbOut, "    classgets(lst, cls);\n", 25);
+  sAppendN(&sbOut, "\");\n", 4);
+  sAppend(&sbOut,"    char buf[%d];\n    __doBuf__\n#undef __doBuf__\n", off+1);
+  sAppendN(&sbOut,"    SET_STRING_ELT(hash, 0, mkChar(buf));\n", 42);
+  sAppendN(&sbOut, "    SEXP lst      = PROTECT(_rxQr(hash));pro++;\n", 48);
   sAppendN(&sbOut, "    _assign_ptr(lst);\n", 22);
   sAppendN(&sbOut, "    UNPROTECT(pro);\n", 20);
 
@@ -3882,6 +3608,7 @@ void parseFree(int last){
   sFree(&_bufw2);
   sFree(&firstErr);
   sFree(&_gbuf);
+  sFree(&_mv);
   lineFree(&sbPm);
   lineFree(&sbPmDt);
   lineFree(&sbNrmL);
@@ -3926,6 +3653,7 @@ void reset (){
   sIniTo(&sbNrm, MXBUF);
   sIniTo(&s_aux_info, 64*MXSYM);
   sIniTo(&_gbuf, 1024);
+  sIni(&_mv);
   sIniTo(&firstErr, MXBUF);
   firstErrD=0;
 
@@ -4142,9 +3870,11 @@ void trans_internal(const char* parse_file, int isStr){
   }
 }
 
+SEXP _RxODE_rxQs(SEXP);
+SEXP _RxODE_rxQr(SEXP);
+
 SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
-		  SEXP isEscIn, SEXP inLinExtra, SEXP inME,
-		  SEXP goodFuns){
+		  SEXP isEscIn, SEXP inME, SEXP goodFuns){
   _goodFuns = goodFuns;
   const char *in = NULL;
   char *buf, *df, *dy;
@@ -4175,12 +3905,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     Rf_errorcall(R_NilValue, _("model prefix must be specified"));
   }
 
-  if (isString(inLinExtra) && length(inLinExtra) == 1){
-    extra_indLin =CHAR(STRING_ELT(inLinExtra,0));
-  } else {
-    freeP();
-    Rf_errorcall(R_NilValue, _("extra inductive linearization model variables must be specified"));
-  }
   if (isString(inME) && length(inME) == 1){
     me_code = CHAR(STRING_ELT(inME,0));
   } else {
@@ -4687,7 +4411,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   SEXP cls = PROTECT(allocVector(STRSXP, 1));pro++;
   SET_STRING_ELT(cls, 0, mkChar("rxModelVars"));
   classgets(lst, cls);
-
   UNPROTECT(pro);
   if (rx_syntax_error){
     if(!rx_suppress_syntax_info){
@@ -4754,11 +4477,6 @@ SEXP _RxODE_codeLoaded(){
   return pm;
 }
 
-SEXP _RxODE_clearTrans(){
-  reset();
-  return R_NilValue;
-}
-
 SEXP _RxODE_isLinCmt(){
   SEXP ret = PROTECT(allocVector(INTSXP, 1));
   INTEGER(ret)[0]=tb.linCmt;
@@ -4767,7 +4485,7 @@ SEXP _RxODE_isLinCmt(){
 }
 
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
-		    SEXP pMd5, SEXP timeId){
+		    SEXP pMd5, SEXP timeId, SEXP mvLast){
   if (!sbPm.o || !sbNrm.o){
     Rf_errorcall(R_NilValue, _("nothing in output queue to write"));
   }
@@ -4779,6 +4497,63 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   }
   fpIO = fopen(CHAR(STRING_ELT(c_file,0)), "wb");
   err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
+  if (badMd5){
+    SET_STRING_ELT(VECTOR_ELT(mvLast, RxMv_md5), 0, mkChar(""));
+  } else {
+    SET_STRING_ELT(VECTOR_ELT(mvLast, RxMv_md5), 0, mkChar(md5));
+  }
+  SET_STRING_ELT(VECTOR_ELT(mvLast, RxMv_model), 1, mkChar(me_code));
+  int pro = 0;
+  SEXP trans = PROTECT(VECTOR_ELT(mvLast, RxMv_trans)); pro++;
+  sbuf buf;
+  sIni(&buf);
+  if (strcmp(CHAR(STRING_ELT(trans, 0)), CHAR(STRING_ELT(libname, 0)))) {
+    SET_STRING_ELT(trans, 0, STRING_ELT(libname, 0)); // libname
+    SET_STRING_ELT(trans, 2, STRING_ELT(prefix, 0)); // prefix
+    const char *curPrefix = CHAR(STRING_ELT(prefix,0));
+    sPrint(&buf, "%sdydt", curPrefix);
+    SET_STRING_ELT(trans, 3, mkChar(buf.s)); // dydt
+    sPrint(&buf, "%scalc_jac", curPrefix);
+    SET_STRING_ELT(trans, 4, mkChar(buf.s)); // calc_jac
+    sPrint(&buf, "%scalc_lhs", curPrefix);
+    SET_STRING_ELT(trans, 5, mkChar(buf.s)); // calc_lhs
+    sPrint(&buf, "%smodel_vars", curPrefix);
+    SET_STRING_ELT(trans, 6, mkChar(buf.s)); // model_vars
+    sPrint(&buf, "%stheta", curPrefix);
+    SET_STRING_ELT(trans, 7, mkChar(buf.s)); // theta
+    sPrint(&buf, "%sinis", curPrefix);
+    SET_STRING_ELT(trans, 8, mkChar(buf.s)); // inis
+    sPrint(&buf, "%sdydt_lsoda", curPrefix);
+    SET_STRING_ELT(trans, 9, mkChar(buf.s)); // dydt_lsoda
+    sPrint(&buf, "%scalc_jac_lsoda", curPrefix);
+    SET_STRING_ELT(trans, 10, mkChar(buf.s)); // calc_jac_lsoda
+    sPrint(&buf, "%sode_solver_solvedata", curPrefix);
+    SET_STRING_ELT(trans, 11, mkChar(buf.s)); // ode_solver_solvedata
+    sPrint(&buf, "%sode_solver_get_solvedata", curPrefix);
+    SET_STRING_ELT(trans, 12, mkChar(buf.s)); // ode_solver_get_solvedata
+    sPrint(&buf, "%sdydt_liblsoda", curPrefix);
+    SET_STRING_ELT(trans, 13, mkChar(buf.s)); // dydt_liblsoda
+    sPrint(&buf, "%sF", curPrefix);
+    SET_STRING_ELT(trans, 14, mkChar(buf.s)); // F
+    sPrint(&buf, "%sLag", curPrefix);
+    SET_STRING_ELT(trans, 15, mkChar(buf.s)); // Lag
+    sPrint(&buf, "%sRate", curPrefix);
+    SET_STRING_ELT(trans, 16, mkChar(buf.s)); // Rate
+    sPrint(&buf, "%sDur", curPrefix);
+    SET_STRING_ELT(trans, 17, mkChar(buf.s)); // Dur
+    sPrint(&buf, "%smtime", curPrefix);
+    SET_STRING_ELT(trans, 18, mkChar(buf.s)); // mtime
+    sPrint(&buf, "%sassignFuns", curPrefix);
+    SET_STRING_ELT(trans, 19, mkChar(buf.s)); // assignFuns
+    sPrint(&buf, "%sME", curPrefix);
+    SET_STRING_ELT(trans, 20, mkChar(buf.s)); // ME
+    sPrint(&buf, "%sIndF", curPrefix);
+    SET_STRING_ELT(trans, 21, mkChar(buf.s)); // IndF
+  }
+  sPrint(&_mv, "%s", CHAR(STRING_ELT(PROTECT(_RxODE_rxQs(mvLast)), 0))); pro++;
+  UNPROTECT(pro);
+  sFree(&buf);
+  //SET_STRING_ELT(tran, 0, mkChar());
   sFree(&sbOut);
   sIniTo(&sbOut, (int)((sbPm.sN)*5.3));
   // show_ode = 1 dydt

@@ -4730,6 +4730,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	  op->doIndLin=2;
 	}
       }
+    } else if (indLin.size() == 3) {
+      // f is NULL
     }
     op->H0 = hini;
     op->HMIN = hmin;
@@ -6093,7 +6095,6 @@ extern "C" int isProgSupported(){
 SEXP getProgSupported(){
   return wrap(isProgSupportedI);
 }
-
 //[[Rcpp::export]]
 List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
   CharacterVector oldTrans = asCv(ret["trans"], "ret[\"trans\"]");
@@ -6168,6 +6169,7 @@ List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
   newLst.attr("names") = newNme;
 
   ret[3] = newLst;
+
   return(ret);
 }
 

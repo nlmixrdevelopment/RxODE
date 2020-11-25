@@ -9,7 +9,7 @@ removableDrive <- function(driveRoot) {
 #'
 #' @param n Number of random samples
 #' @param nu degrees of freedom of inverse chi square
-#' @param scale  Scale of inverse chi squared distribution
+#' @param scale  Scale of inverse chi squared distribution 
 #'         (default is 1).
 #' @return a vector of inverse chi squared deviates .
 #' @examples
@@ -128,7 +128,7 @@ rxSetIni0 <- function(ini0 = TRUE) {
 #' By default RxODE uses radix sort when possible.
 #'
 #' @param useRadix Use \code{order} with \code{method} = \code{radix}
-#'   when appropriate.
+#'   when appropriate.  Otherwise use \code{timsort}.
 #'
 #' @export
 #' @author Matthew Fidler
@@ -139,7 +139,7 @@ rxUseRadixSort <- function(useRadix = TRUE) {
 #' Event translation for RxODE
 #'
 #' @param inData Data frame to translate
-#' @param obj Model to translate data
+#' @param obj Model to translate data 
 #' @param addCmt Add compartment to data frame (default \code{FALSE}).
 #' @param dropUnits Boolean to drop the units (default \code{FALSE}).
 #' @param allTimeVar Treat all covariates as if they were time-varying
@@ -196,11 +196,11 @@ rxExpandNesting <- function(obj, nestingInfo, compile = FALSE) {
 #'    When doIndLin == 0, cache > 0 = nInf-1
 #' @param ME the RxODE matrix exponential function
 #' @param IndF The RxODE Inductive Linearization function F
-#'
+#' 
 #' @return Returns a status for solving
-#'
+#' 
 #'   1 = Successful solve
-#'
+#' 
 #'   -1 = Maximum number of iterations reached when doing
 #'        inductive linearization
 NULL
@@ -211,6 +211,14 @@ rxIndLin_ <- function(states) {
 
 convertId_ <- function(x) {
     .Call(`_RxODE_convertId_`, x)
+}
+
+rxQs <- function(x) {
+    .Call(`_RxODE_rxQs`, x)
+}
+
+rxQr <- function(encoded_string) {
+    .Call(`_RxODE_rxQr`, encoded_string)
 }
 
 #' Check the type of an object using Rcpp
@@ -636,7 +644,7 @@ rxSetSilentErr <- function(silent) {
     .Call(`_RxODE_rxSetSilentErr`, silent)
 }
 
-#' Invert matrix using RcppArmadillo.
+#' Invert matrix using RcppArmadillo.  
 #'
 #' @param matrix matrix to be inverted.
 #' @return inverse or pseudo inverse of matrix.
@@ -696,7 +704,7 @@ rxOptRep_ <- function(input) {
 #'
 #' @return Stacked data with \code{value} and \code{trt}, where value is the values
 #'   and \code{trt} is the state and \code{lhs} variables.
-#'
+#' 
 #' @author Matthew Fidler
 rxStack <- function(Data, vars = NULL) {
     .Call(`_RxODE_rxStack`, Data, vars)

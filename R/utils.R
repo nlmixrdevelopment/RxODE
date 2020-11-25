@@ -112,6 +112,7 @@ rxClean <- function(wd) {
   if (!missing(wd)) warning("'wd' is depreciated")
   rxUnloadAll()
   unlink(rxTempDir(), recursive=TRUE, force=TRUE)
+  suppressMessages(.mkCache(rxTempDir()))
 }
 
 refresh <- function(derivs = FALSE) {
