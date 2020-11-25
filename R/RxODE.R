@@ -1515,7 +1515,10 @@ rxCompile.rxModelVars <- function(model, # Model
         }
 
         .out <- sys::exec_internal(cmd = .cmd, args = .args, error = FALSE)
-        message(paste(rawToChar(.out$stderr),sep="\n"))
+        .stderr <- rawToChar(.out$stderr)
+        if (!(all(.stderr == "") & length(.stderr) == 1)) {
+          message(paste(.stderr, sep="\n"))
+        }
         .badBuild <- function(msg, cSrc = TRUE) {
           msg <- gettext(msg)
           message(msg)
