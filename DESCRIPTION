@@ -94,6 +94,7 @@ Imports:
     memoise,
     methods,
     rex,
+    qs,
     symengine,
     sys,
     units (>= 0.6-0),

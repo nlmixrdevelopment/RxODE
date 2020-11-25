@@ -93,7 +93,7 @@ https://mac.r-project.org/openmp/
 ### Linux
 
 To install on linux make sure you install gcc (with openmp support)
-and gfortran using your distribution's package manager. 
+and gfortran using your distribution's package manager.
 
 ## Development Version
 
@@ -123,7 +123,6 @@ To load `RxODE` package and compile the model:
 
 ```r
 library(RxODE)
-#> RxODE 1.0.0.0 using 4 threads (see ?getRxThreads)
 library(units)
 #> udunits system database from /usr/share/xml/udunits
 
@@ -137,7 +136,6 @@ mod1 <-RxODE({
 })
 #> 
 #> qs v0.23.1. See ChangeLog for update details.
-#> 
 ```
 
 ## Specify ODE parameters and initial conditions
@@ -336,7 +334,7 @@ This is a brief comparison of pharmacometric ODE solving R packages to
 There are several [R packages for differential
 equations](https://cran.r-project.org/web/views/DifferentialEquations.html).
 The most popular is
-[deSolve](https://cran.r-project.org/package=deSolve).  
+[deSolve](https://cran.r-project.org/package=deSolve).
 
 However for pharmacometrics-specific ODE solving, there are only 2
 packages other than [RxODE](https://CRAN.R-project.org/package=RxODE)
@@ -346,10 +344,10 @@ released on CRAN.  Each uses compiled code to have faster ODE solving.
   C++ lsoda solver to solve ODE systems.  The user is
   required to write hybrid R/C++ code to create a mrgsolve
   model which is translated to C++ for solving.
-  
+
   In contrast, `RxODE` has a R-like mini-language that is parsed into
   C code that solves the ODE system.
-  
+
   Unlike `RxODE`, `mrgsolve` does not currently support symbolic
   manipulation of ODE systems, like automatic Jacobian calculation or
   forward sensitivity calculation (`RxODE` currently supports this and
@@ -360,26 +358,26 @@ released on CRAN.  Each uses compiled code to have faster ODE solving.
 - [dMod](https://cran.r-project.org/package=dMod), which uses a unique
   syntax to create "reactions".  These reactions create the underlying
   ODEs and then created c code for a compiled deSolve model.
-  
+
   In contrast `RxODE` defines ODE systems at a lower level.  `RxODE`'s
   parsing of the mini-language comes from C, whereas `dMod`'s parsing
   comes from R.
-  
+
   Like `RxODE`, `dMod` supports symbolic manipulation of ODE systems
   and calculates forward sensitivities and adjoint sensitivities of
   systems.
-  
+
   Unlike `RxODE`, `dMod` is not thread-safe since `deSolve` is not yet
   thread-safe.
 
 And there is one package that is not released on CRAN:
 
 - [PKPDsim](https://github.com/InsightRX/PKPDsim) which defines models
-  in an R-like syntax and converts the system to compiled code. 
-  
+  in an R-like syntax and converts the system to compiled code.
+
   Like `mrgsolve`, `PKPDsim` does not currently support symbolic
   manipulation of ODE systems.
-  
+
   `PKPDsim` is not thread-safe.
 
 The open pharmacometrics open source community is fairly friendly, and
@@ -399,19 +397,15 @@ RxODE can mix ODEs and solved systems.
 
  - [mrgsolve](https://CRAN.R-project.org/package=mrgsolve) currently
    has 1-2 compartment (poly-exponential models) models built-in.  The
-   solved systems and ODEs cannot currently be mixed. 
+   solved systems and ODEs cannot currently be mixed.
  - [pmxTools](https://github.com/kestrel99/pmxTools) currently have
    1-3 compartment (super-positioning) models built-in. This is a
    R-only implementation.
  - [PKPDmodels](https://cran.r-project.org/web/packages/PKPDmodels/index.html)
-   has a one-compartment model with gradients. Since this uses
-   super-positioning.
+   has a one-compartment model with gradients.
 
 ### Non-CRAN libraries:
 
  - [PKADVAN](https://github.com/abuhelwa/PKADVAN_Rpackage) Provides
    1-3 compartment models using non-superpositioning.  This allows
    time-varying covariates.
-   
-
-

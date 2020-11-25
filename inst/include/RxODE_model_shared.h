@@ -18,6 +18,7 @@
 #define safe_zero(a) (&_solveData->safeZero ? ((a) == 0 ? DOUBLE_EPS : (a)) : (a))
 #define _as_zero(a) (&_solveData->safeZero && fabs(a) < sqrt(DOUBLE_EPS) ? 0.0 : a)
 #define _as_dbleps(a) (&_solveData->safeZero && fabs(a) < sqrt(DOUBLE_EPS) ? ((a) < 0 ? -sqrt(DOUBLE_EPS)  : sqrt(DOUBLE_EPS)) : a)
+#define _as_dbleps2(a) (&_solveData->safeZero && fabs(a) < sqrt(DOUBLE_EPS) ? sqrt(DOUBLE_EPS) : a)
 #define factorial(a) exp(lgamma1p(a))
 #define sign_exp(sgn, x)(((sgn) > 0.0) ? exp(x) : (((sgn) < 0.0) ? -exp(x) : 0.0))
 #define Rx_pow(a, b) R_pow(a, b)
