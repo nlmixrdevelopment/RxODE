@@ -4549,7 +4549,6 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
     SET_STRING_ELT(trans, 20, mkChar(buf.s)); // ME
     sPrint(&buf, "%sIndF", curPrefix);
     SET_STRING_ELT(trans, 21, mkChar(buf.s)); // IndF
-    PrintValue(trans);
   }
   sPrint(&_mv, "%s", CHAR(STRING_ELT(PROTECT(_RxODE_rxQs(mvLast)), 0))); pro++;
   UNPROTECT(pro);
