@@ -22,6 +22,7 @@ linCmtA_p linCmtA;
 linCmtA_p linCmtC;
 linCmtB_p linCmtB;
 _rx_asgn _RxODE_rxAssignPtr =NULL;
+_rx_asgn _rxQr =NULL;
 
 RxODE_fn phi;
 RxODE_fn3 logit;
@@ -155,6 +156,8 @@ double _transit3P(double t, unsigned int id, double n, double mtt){
   return exp(log(_solveData->subjects[id].podo)+lktr+n*(lktr+log(tc))-ktr*(tc)-lgamma1p(n));
 }
 
+
+
 void _assignFuns() {
   if (_assign_ptr == NULL){
     _getRxSolve_ = (_getRxSolve_t) R_GetCCallable("RxODE","getRxSolve_");
@@ -162,6 +165,7 @@ void _assignFuns() {
     _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
     _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
     _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
+    _rxQr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxQr");
     _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
     _sumPS  = (_rxSumType) R_GetCCallable("PreciseSums","PreciseSums_sum_r");
     _prodPS = (_rxProdType) R_GetCCallable("PreciseSums","PreciseSums_prod_r");

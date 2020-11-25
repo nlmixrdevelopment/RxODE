@@ -8,7 +8,7 @@ rxUseRadixSort(useRadix = TRUE)
 }
 \arguments{
 \item{useRadix}{Use \code{order} with \code{method} = \code{radix}
-when appropriate.}
+when appropriate.  Otherwise use \code{timsort}.}
 }
 \description{
 By default RxODE uses radix sort when possible.
