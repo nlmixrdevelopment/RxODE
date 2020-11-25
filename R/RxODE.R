@@ -1487,14 +1487,15 @@ rxCompile.rxModelVars <- function(model, # Model
           .libname <- c(package, gsub(.Platform$dynlib.ext, "", basename(.cDllFile)))
           .Call(
             `_RxODE_codegen`, .cFile, prefix, .libname,
-            .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"])))
+            .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"])),
+            .rxModelVarsLast)
         } else {
           .libname <- gsub(.Platform$dynlib.ext, "", basename(.cDllFile))
           .libname <- c(.libname, .libname)
           .Call(
             `_RxODE_codegen`, .cFile, prefix, .libname,
-            .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"]))
-          )
+            .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"])),
+            .rxModelVarsLast)
         }
         .defs <- ""
         .ret <- sprintf(
@@ -1735,6 +1736,7 @@ rxNorm <- function(obj, condition = NULL, removeInis, removeJac, removeSens) {
 
 
 .rxModelVarsCCache <- NULL
+.rxModelVarsLast <- NULL
 .rxModelVarsCharacter <- function(obj) {
   if (length(obj) == 1) {
     .parseModel <- tempfile("parseModel4")
@@ -1753,6 +1755,7 @@ rxNorm <- function(obj, condition = NULL, removeInis, removeJac, removeSens) {
     .ret <- rxTrans(.parseModel, modelPrefix = .prefix, modVars = TRUE)
     .cFile <- list(.exists, ifelse(.exists, obj, ""), .prefix)
     assignInMyNamespace(".rxModelVarsCCache", .cFile)
+    assignInMyNamespace(".rxModelVarsLast", .ret)
     return(.ret)
   } else {
     .rxModelVarsCharacter(paste(obj, collapse = "\n"))

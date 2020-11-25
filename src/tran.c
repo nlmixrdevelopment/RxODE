@@ -3061,7 +3061,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
 void print_aux_info(char *model, const char *prefix, const char *libname, const char *pMd5, const char *timeId,
 		    const char *libname2){
   int i, j, islhs,pi = 0,li = 0, sli = 0,
-    statei = 0, sensi=0, normi=0, in_str=0;
+    statei = 0, sensi=0, normi=0;
   char *buf;
   sbuf bufw;
   sIniTo(&bufw, 1024);
@@ -3170,6 +3170,9 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
     if (_mv.s[i] == '%'){
       sAppendN(&sbOut, "%%", 2);
       off++;
+    } else if (_mv.s[i] == '?') {
+      // Avoid digrahps/trigraphs
+      sAppendN(&sbOut, "\\?", 2);
     } else if (_mv.s[i] == '"'){
       sAppendN(&sbOut, "\\\"", 2);
     } else if (_mv.s[i] == '\''){
@@ -3871,12 +3874,6 @@ void trans_internal(const char* parse_file, int isStr){
 SEXP _RxODE_rxQs(SEXP);
 SEXP _RxODE_rxQr(SEXP);
 
-// Here we can get the qsignature
-void updateMv(SEXP lst) {
-  sPrint(&_mv, "%s", CHAR(STRING_ELT(PROTECT(_RxODE_rxQs(lst)), 0))); 
-  UNPROTECT(1);
-}
-
 SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 		  SEXP isEscIn, SEXP inLinExtra, SEXP inME,
 		  SEXP goodFuns){
@@ -4501,7 +4498,7 @@ SEXP _RxODE_isLinCmt(){
 }
 
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
-		    SEXP pMd5, SEXP timeId){
+		    SEXP pMd5, SEXP timeId, SEXP mvLast){
   if (!sbPm.o || !sbNrm.o){
     Rf_errorcall(R_NilValue, _("nothing in output queue to write"));
   }
@@ -4513,6 +4510,64 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   }
   fpIO = fopen(CHAR(STRING_ELT(c_file,0)), "wb");
   err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
+  if (badMd5){
+    SET_STRING_ELT(VECTOR_ELT(mvLast, RxMv_md5), 0, mkChar(""));
+  } else {
+    SET_STRING_ELT(VECTOR_ELT(mvLast, RxMv_md5), 0, mkChar(md5));
+  }
+  SET_STRING_ELT(VECTOR_ELT(mvLast, RxMv_model), 1, mkChar(me_code));
+  int pro = 0;
+  SEXP trans = PROTECT(VECTOR_ELT(mvLast, RxMv_trans)); pro++;
+  sbuf buf;
+  sIni(&buf);
+  if (strcmp(CHAR(STRING_ELT(trans, 0)), CHAR(STRING_ELT(libname, 0)))) {
+    SET_STRING_ELT(trans, 0, STRING_ELT(libname, 0)); // libname
+    SET_STRING_ELT(trans, 2, STRING_ELT(prefix, 0)); // prefix
+    const char *curPrefix = CHAR(STRING_ELT(prefix,0));
+    sPrint(&buf, "%sdydt", curPrefix);
+    SET_STRING_ELT(trans, 3, mkChar(buf.s)); // dydt
+    sPrint(&buf, "%scalc_jac", curPrefix);
+    SET_STRING_ELT(trans, 4, mkChar(buf.s)); // calc_jac
+    sPrint(&buf, "%scalc_lhs", curPrefix);
+    SET_STRING_ELT(trans, 5, mkChar(buf.s)); // calc_lhs
+    sPrint(&buf, "%smodel_vars", curPrefix);
+    SET_STRING_ELT(trans, 6, mkChar(buf.s)); // model_vars
+    sPrint(&buf, "%stheta", curPrefix);
+    SET_STRING_ELT(trans, 7, mkChar(buf.s)); // theta
+    sPrint(&buf, "%sinis", curPrefix);
+    SET_STRING_ELT(trans, 8, mkChar(buf.s)); // inis
+    sPrint(&buf, "%sdydt_lsoda", curPrefix);
+    SET_STRING_ELT(trans, 9, mkChar(buf.s)); // dydt_lsoda
+    sPrint(&buf, "%scalc_jac_lsoda", curPrefix);
+    SET_STRING_ELT(trans, 10, mkChar(buf.s)); // calc_jac_lsoda
+    sPrint(&buf, "%sode_solver_solvedata", curPrefix);
+    SET_STRING_ELT(trans, 11, mkChar(buf.s)); // ode_solver_solvedata
+    sPrint(&buf, "%sode_solver_get_solvedata", curPrefix);
+    SET_STRING_ELT(trans, 12, mkChar(buf.s)); // ode_solver_get_solvedata
+    sPrint(&buf, "%sdydt_liblsoda", curPrefix);
+    SET_STRING_ELT(trans, 13, mkChar(buf.s)); // dydt_liblsoda
+    sPrint(&buf, "%sF", curPrefix);
+    SET_STRING_ELT(trans, 14, mkChar(buf.s)); // F
+    sPrint(&buf, "%sLag", curPrefix);
+    SET_STRING_ELT(trans, 15, mkChar(buf.s)); // Lag
+    sPrint(&buf, "%sRate", curPrefix);
+    SET_STRING_ELT(trans, 16, mkChar(buf.s)); // Rate
+    sPrint(&buf, "%sDur", curPrefix);
+    SET_STRING_ELT(trans, 17, mkChar(buf.s)); // Dur
+    sPrint(&buf, "%smtime", curPrefix);
+    SET_STRING_ELT(trans, 18, mkChar(buf.s)); // mtime
+    sPrint(&buf, "%sassignFuns", curPrefix);
+    SET_STRING_ELT(trans, 19, mkChar(buf.s)); // assignFuns
+    sPrint(&buf, "%sME", curPrefix);
+    SET_STRING_ELT(trans, 20, mkChar(buf.s)); // ME
+    sPrint(&buf, "%sIndF", curPrefix);
+    SET_STRING_ELT(trans, 21, mkChar(buf.s)); // IndF
+    PrintValue(trans);
+  }
+  sPrint(&_mv, "%s", CHAR(STRING_ELT(PROTECT(_RxODE_rxQs(mvLast)), 0))); pro++;
+  UNPROTECT(pro);
+  sFree(&buf);
+  //SET_STRING_ELT(tran, 0, mkChar());
   sFree(&sbOut);
   sIniTo(&sbOut, (int)((sbPm.sN)*5.3));
   // show_ode = 1 dydt

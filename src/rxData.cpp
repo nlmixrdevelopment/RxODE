@@ -6093,7 +6093,6 @@ extern "C" int isProgSupported(){
 SEXP getProgSupported(){
   return wrap(isProgSupportedI);
 }
-extern "C" void updateMv(SEXP lst);
 //[[Rcpp::export]]
 List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
   CharacterVector oldTrans = asCv(ret["trans"], "ret[\"trans\"]");
@@ -6169,7 +6168,6 @@ List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
 
   ret[3] = newLst;
 
-  updateMv(wrap(ret));
   return(ret);
 }
 
