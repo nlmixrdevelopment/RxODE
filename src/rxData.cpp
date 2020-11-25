@@ -4730,6 +4730,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	  op->doIndLin=2;
 	}
       }
+    } else if (indLin.size() == 3) {
+      // f is NULL
     }
     op->H0 = hini;
     op->HMIN = hmin;

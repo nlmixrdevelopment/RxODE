@@ -168,6 +168,7 @@ rxIndLinState <- function(preferred = NULL) {
   return(c(.ret, paste0(.fullIndLin)))
 }
 
+.indLinInfo <- list()
 ##' This creates the inductive linearization pieces to integrate into
 ##' a RxODE model.
 ##'
@@ -205,73 +206,20 @@ rxIndLinState <- function(preferred = NULL) {
   .ret0 <- .ret[.states, .states, drop = FALSE]
   .ret1 <- .ret[, "_rxF", drop = FALSE]
   .code <- c(paste0("_rxM=", as.vector(.ret0), ";"))
-  .codeSave <- c(
-    "SEXP matLst = PROTECT(allocVector(VECSXP, 4));pro++;",
-    "SEXP matNme = PROTECT(allocVector(STRSXP, 4));pro++;",
-    "SET_STRING_ELT(matNme, 0, mkChar(\"A\"));",
-    "SET_STRING_ELT(matNme, 1, mkChar(\"f\"));",
-    "SET_STRING_ELT(matNme, 2, mkChar(\"fullIndLin\"));",
-    "SET_STRING_ELT(matNme, 3, mkChar(\"wIndLin\"));",
-    "setAttrib(matLst, R_NamesSymbol, matNme);",
-    ## mat0 setup the nstate x nstate matrix for
-    ## inductive linearization
-    sprintf("SEXP mat0 = PROTECT(allocMatrix(STRSXP, %s, %s));pro++;", dim(.ret0)[1], dim(.ret0)[2]),
-    paste(paste0("SET_STRING_ELT(mat0, ", seq_along(as.vector(.ret0)) - 1, ",mkChar(\"", as.vector(.ret0), "\"));"), collapse = "\n"),
-    sprintf("SEXP mat0nn = PROTECT(allocVector(STRSXP, %s));pro++;", dim(.ret0)[[1]]),
-    paste(paste0(
-      "SET_STRING_ELT(mat0nn, ", seq_along(dimnames(.ret0)[[1]]) - 1,
-      ",mkChar(\"", dimnames(.ret0)[[1]], "\"));"
-    ), collapse = "\n"),
-    ## Assumes state is the SEXP that we can use for
-    ## state names.
-    "SEXP mat0n = PROTECT(allocVector(VECSXP, 2));pro++;",
-    "SET_VECTOR_ELT(mat0n, 0, mat0nn);",
-    "SET_VECTOR_ELT(mat0n, 1, mat0nn);",
-    "setAttrib(mat0, R_DimNamesSymbol, mat0n);"
-  )
-  if (!all(.ret1 == "0")) {
-    .code <- c(.code, paste("_rxF=", as.vector(.ret1)))
-    .codeSave <- c(
-      .codeSave,
-      ## Now setup matF or the F matrix from inductive linearization
-      sprintf("SEXP matF = PROTECT(allocMatrix(STRSXP, %s, %s));pro++;", dim(.ret1)[1], dim(.ret1)[2]),
-      paste(paste0("SET_STRING_ELT(matF, ", seq_along(as.vector(.ret1)) - 1, ",mkChar(\"", as.vector(.ret1), "\"));"), collapse = "\n"),
-      "SEXP matFd = PROTECT(allocVector(INTSXP, 2));pro++;",
-      ## Assumes state is the SEXP that we can use for state names.
-      "SEXP matFn = PROTECT(allocVector(VECSXP, 2));pro++;",
-      "SET_VECTOR_ELT(matFn, 0, state);",
-      "SEXP matrxF = PROTECT(allocVector(STRSXP,1)); pro++;",
-      "SET_STRING_ELT(matrxF, 0, mkChar(\"_rxF\"));",
-      "SET_VECTOR_ELT(matFn, 1, matrxF);",
-      "setAttrib(matF,R_DimNamesSymbol, matFn);",
-      "SET_VECTOR_ELT(matLst, 0, mat0);",
-      "SET_VECTOR_ELT(matLst, 1, matF);"
-    )
+  if (all(.ret1 == "0")) {
+    .ret <- list(A=.ret0,
+                 f=NULL,
+                 fullIndLin=.fullIndLin,
+                 wIndLin=.w)
   } else {
-    .codeSave <- c(
-      .codeSave,
-      ## Now setup matF or the F matrix from inductive linearization
-      "SET_VECTOR_ELT(matLst, 0, mat0);",
-      "SET_VECTOR_ELT(matLst, 1, R_NilValue);"
-    )
+    .ret <- list(A=.ret0,
+                 f=.ret1,
+                 fullIndLin=.fullIndLin,
+                 wIndLin=.w)
+    .code <- c(.code, paste("_rxF=", as.vector(.ret1)))
   }
-  .codeSave <- c(
-    .codeSave,
-    "SEXP fullIndLin = PROTECT(allocVector(LGLSXP, 1)); pro++;",
-    paste0("LOGICAL(fullIndLin)[0] = ", ifelse(.fullIndLin, "1", "0"), ";"),
-    "SET_VECTOR_ELT(matLst, 2, fullIndLin);",
-    sprintf("SEXP intLin = PROTECT(allocVector(INTSXP, %s));pro++;", length(.w)),
-    paste(sprintf("INTEGER(intLin)[%s]=%s;", seq_along(.w) - 1, .w), collapse = "\n"),
-    "SET_VECTOR_ELT(matLst, 3, intLin);",
-    "SET_VECTOR_ELT(lst,  17, matLst);"
-  )
-  ## Generate extra RxODE code for generating right functions.
-  .code <- paste(.code, collapse = "\n")
-  ## Generate C code for .ret0 and .ret1
-  .ret <- list(
-    .ret0, .ret1, .code,
-    paste(.codeSave, collapse = "\n")
-  )
+  assignInMyNamespace(".indLinInfo", .ret)
   rxProgressStop()
-  return(.ret)
+  .malert("indLin is in development and results subject to change")
+  return(paste(.code, collapse="\n"))
 }

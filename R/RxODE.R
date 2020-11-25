@@ -4,6 +4,10 @@ R_NegInf <- -Inf # nolint
 R_PosInf <- Inf # nolint
 
 .linCmtSens <- NULL
+.clearME <- function(){
+  assignInMyNamespace(".rxMECode", "")
+}
+
 ##' Create an ODE-based model specification
 ##'
 ##' Create a dynamic ODE-based model object suitably for translation
@@ -421,11 +425,7 @@ RxODE <- # nolint
       }
     }
     .env <- new.env(parent = baseenv())
-    .env$.rxTransCode <- "SEXP matLst = PROTECT(allocVector(VECSXP, 0));pro++;\n SET_VECTOR_ELT(lst,  17, matLst);\n"
-    .setTransCode(.env$.rxTransCode, "")
-    on.exit(.setTransCode("bad", ""), add = TRUE)
     .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel, indLin = indLin)
-    .env$.rxTransCode <- .rxTransCode
     assignInMyNamespace(".linCmtSens", linCmtSens)
     if (.Call(`_RxODE_isLinCmt`) == 1L) {
       .env$.linCmtM <- rxNorm(.env$.mv)
@@ -485,10 +485,9 @@ RxODE <- # nolint
         if (file.exists(wd)) {
           setwd(wd)
         }
-        .rx$.setTransCode(get(".rxTransCode", envir = .(.env)))
         on.exit({
           setwd(.lwd)
-          .rx$.setTransCode("bad")
+          .rx$.clearME()
         })
         .rx$.extraC(extraC)
         if (missing.modName) {
@@ -872,10 +871,9 @@ rxGetModel <- function(model, calcSens = NULL, calcJac = NULL, collapseModel = N
     }
   }
   if (indLin) {
-    .ret0 <- .rxIndLin(.ret)
-    .new <- paste0(rxNorm(.ret), "\n", .ret0[[3]])
-    .setTransCode(.ret0[[4]], .ret0[[3]])
-    .Call(`_RxODE_clearTrans`)
+    .code <- .rxIndLin(.ret)
+    .new <- paste0(rxNorm(.ret), "\n", .code)
+    assignInMyNamespace(".rxMECode", .code)
     .ret <- rxModelVars(.new)
   }
   return(.ret)
@@ -1122,7 +1120,7 @@ rxMd5 <- function(model, # Model File
     .ret <- c(.ret, RxODE::rxVersion())
     return(list(
       text = model,
-      digest = digest::digest(.ret, serialize = TRUE, algo = "md5")
+      digest = digest::digest(list(.ret, .indLinInfo), serialize = TRUE, algo = "md5")
     ))
   } else {
     RxODE::rxModelVars(model)$md5
@@ -1195,19 +1193,7 @@ rxTrans.default <- function(model,
   }
 }
 
-.rxTransCode <- "bad"
 .rxMECode <- ""
-##' Set translation extra code
-##'
-##' @param x Code to set
-##' @return nothing
-##' @author Matthew Fidler
-##' @keywords internal
-##' @noRd
-.setTransCode <- function(x = "bad", y = "") {
-  assignInMyNamespace(".rxTransCode", x)
-  assignInMyNamespace(".rxMECode", y)
-}
 
 ##' @rdname rxTrans
 ##' @export
@@ -1230,7 +1216,7 @@ rxTrans.character <- memoise::memoise(function(model,
   .ret <- .Call(
     `_RxODE_trans`, model, modelPrefix, md5, .isStr,
     as.integer(crayon::has_color()),
-    .rxTransCode, .rxMECode, .rxSupportedFuns()
+    .rxMECode, .rxSupportedFuns()
   )
   if (inherits(.ret, "try-error")) {
     message("model")
@@ -1483,6 +1469,10 @@ rxCompile.rxModelVars <- function(model, # Model
         if (!is.null(modName)) {
           .newMod <- regexpr("_new", modName) != -1
         }
+        .rxModelVarsLast[[18]] <- .indLinInfo
+        .model <- .rxModelVarsLast$model
+        .model["indLin"] <- .rxMECode
+        .rxModelVarsLast$model <- .model
         if (!is.null(package) & !.newMod) {
           .libname <- c(package, gsub(.Platform$dynlib.ext, "", basename(.cDllFile)))
           .Call(

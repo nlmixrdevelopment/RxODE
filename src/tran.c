@@ -443,7 +443,6 @@ sbuf sbNrm;
 vLines depotLines, centralLines;
 
 const char *model_prefix = NULL;
-const char *extra_indLin =NULL;
 const char *me_code = NULL;
 const char *md5 = NULL;
 int badMd5 = 0;
@@ -3875,8 +3874,7 @@ SEXP _RxODE_rxQs(SEXP);
 SEXP _RxODE_rxQr(SEXP);
 
 SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
-		  SEXP isEscIn, SEXP inLinExtra, SEXP inME,
-		  SEXP goodFuns){
+		  SEXP isEscIn, SEXP inME, SEXP goodFuns){
   _goodFuns = goodFuns;
   const char *in = NULL;
   char *buf, *df, *dy;
@@ -3907,12 +3905,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     Rf_errorcall(R_NilValue, _("model prefix must be specified"));
   }
 
-  if (isString(inLinExtra) && length(inLinExtra) == 1){
-    extra_indLin =CHAR(STRING_ELT(inLinExtra,0));
-  } else {
-    freeP();
-    Rf_errorcall(R_NilValue, _("extra inductive linearization model variables must be specified"));
-  }
   if (isString(inME) && length(inME) == 1){
     me_code = CHAR(STRING_ELT(inME,0));
   } else {
@@ -4483,11 +4475,6 @@ SEXP _RxODE_codeLoaded(){
   }
   UNPROTECT(1);
   return pm;
-}
-
-SEXP _RxODE_clearTrans(){
-  reset();
-  return R_NilValue;
 }
 
 SEXP _RxODE_isLinCmt(){
