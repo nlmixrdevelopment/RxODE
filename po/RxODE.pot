@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RxODE 1.0.0-0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-21 22:42-0600\n"
+"POT-Creation-Date: 2020-11-25 11:28-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -209,7 +209,7 @@ msgstr ""
 msgid "no dense output available for %uth component"
 msgstr ""
 
-#: et.cpp:120 rxData.cpp:5310
+#: et.cpp:120 rxData.cpp:5312
 #, c-format
 msgid "partial match of '%s' to '%s'"
 msgstr ""
@@ -1339,42 +1339,42 @@ msgstr ""
 msgid "'infSSstep' needs to be positive"
 msgstr ""
 
-#: rxData.cpp:4745
+#: rxData.cpp:4747
 msgid "assumed transit compartment model since 'podo' is in the model"
 msgstr ""
 
-#: rxData.cpp:4781
+#: rxData.cpp:4783
 msgid "unknown covariate interpolation specified"
 msgstr ""
 
-#: rxData.cpp:4872
+#: rxData.cpp:4874
 #, c-format
 msgid ""
 "number of parameters (%d) solved by RxODE for multi-subject data needs to be "
 "a multiple of the number of subjects (%d)"
 msgstr ""
 
-#: rxData.cpp:4990
+#: rxData.cpp:4992
 msgid "could not allocate enough memory for solving"
 msgstr ""
 
-#: rxData.cpp:5383
+#: rxData.cpp:5385
 msgid "cannot update nonexistent parameters"
 msgstr ""
 
-#: rxData.cpp:5637
+#: rxData.cpp:5639
 msgid "Can not figure out the RxODE object"
 msgstr ""
 
-#: rxData.cpp:5743 rxData.cpp:5786
+#: rxData.cpp:5745 rxData.cpp:5788
 msgid "can not figure out the DLL for this object"
 msgstr ""
 
-#: rxData.cpp:5969
+#: rxData.cpp:5971
 msgid "package-based models cannot be unloaded"
 msgstr ""
 
-#: rxData.cpp:6016
+#: rxData.cpp:6018
 msgid "package-based models cannot be deleted"
 msgstr ""
 
@@ -1546,248 +1546,248 @@ msgstr ""
 msgid "encoding error in 'addLine' format: '%s' n: %d; errno: %d"
 msgstr ""
 
-#: tran.c:471
+#: tran.c:470
 msgid "'printf' cannot be a variable in an RxODE model"
 msgstr ""
 
-#: tran.c:478
+#: tran.c:477
 msgid ""
 "'id' can only be used in the following ways 'id==\"id-value\"' or 'id !=\"id-"
 "value\"'"
 msgstr ""
 
-#: tran.c:484
+#: tran.c:483
 msgid "'Rprintf' cannot be a variable in an RxODE model"
 msgstr ""
 
-#: tran.c:490
+#: tran.c:489
 msgid "'print' cannot be a variable in an RxODE model"
 msgstr ""
 
-#: tran.c:506
+#: tran.c:505
 msgid "'ifelse' cannot be a state in an RxODE model"
 msgstr ""
 
-#: tran.c:512
+#: tran.c:511
 msgid "'if' cannot be a variable/state in an RxODE model"
 msgstr ""
 
-#: tran.c:530
+#: tran.c:529
 msgid "'evid' cannot be a variable in an RxODE model"
 msgstr ""
 
-#: tran.c:537
+#: tran.c:536
 msgid "'ii' cannot be a variable in an RxODE model"
 msgstr ""
 
-#: tran.c:720
+#: tran.c:719
 msgid "'cmt' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:721
+#: tran.c:720
 msgid "'dvid' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:722
+#: tran.c:721
 msgid "'addl' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:723
+#: tran.c:722
 msgid "'ii' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:724
+#: tran.c:723
 msgid "'ss' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:725
+#: tran.c:724
 msgid "'amt' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:726
+#: tran.c:725
 msgid "'dur' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:727
+#: tran.c:726
 msgid "'rate' cannot be a state or lhs expression"
 msgstr ""
 
-#: tran.c:728
+#: tran.c:727
 msgid "'Rprintf' cannot be a state"
 msgstr ""
 
-#: tran.c:729
+#: tran.c:728
 msgid "'printf' cannot be a state"
 msgstr ""
 
-#: tran.c:730
+#: tran.c:729
 msgid "'print' cannot be a state"
 msgstr ""
 
-#: tran.c:817
+#: tran.c:816
 msgid "only one 'linCmt()' per model"
 msgstr ""
 
-#: tran.c:1290 tran.c:1295
+#: tran.c:1289 tran.c:1294
 msgid "'dosenum' does not currently take arguments 'dosenum()'"
 msgstr ""
 
-#: tran.c:1380 tran.c:1399
+#: tran.c:1379 tran.c:1398
 #, c-format
 msgid "'%s' takes 1-3 arguments '%s(x,low,high)'"
 msgstr ""
 
-#: tran.c:1422
+#: tran.c:1421
 #, c-format
 msgid "'%s' takes 1 argument '%s(parameter)'"
 msgstr ""
 
-#: tran.c:1427
+#: tran.c:1426
 #, c-format
 msgid "'%s' takes 1-2 arguments '%s(parameter, k)'"
 msgstr ""
 
-#: tran.c:1454 tran.c:1466
+#: tran.c:1453 tran.c:1465
 #, c-format
 msgid "'%s' takes 1 argument %s(parameter)"
 msgstr ""
 
-#: tran.c:1459
+#: tran.c:1458
 #, c-format
 msgid "'%s' takes 1-2 arguments %s(parameter, k)"
 msgstr ""
 
-#: tran.c:1481
+#: tran.c:1480
 #, c-format
 msgid "'%s(parameter, k)' requires k to be an integer"
 msgstr ""
 
-#: tran.c:1485
+#: tran.c:1484
 #, c-format
 msgid "'%s(parameter, k)' requires k to be an integer >= 1"
 msgstr ""
 
-#: tran.c:1533 tran.c:1553
+#: tran.c:1532 tran.c:1552
 msgid "'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"
 msgstr ""
 
-#: tran.c:1535 tran.c:1555
+#: tran.c:1534 tran.c:1554
 msgid "'qnorm' in RxODE takes 1-3 arguments pnorm(p, mean, sd)"
 msgstr ""
 
-#: tran.c:1574
+#: tran.c:1573
 msgid "'transit' takes 2-3 arguments transit(n, mtt, bio)"
 msgstr ""
 
-#: tran.c:1600 tran.c:1656
+#: tran.c:1599 tran.c:1655
 msgid "'rif'/'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"
 msgstr ""
 
-#: tran.c:1603 tran.c:1658
+#: tran.c:1602 tran.c:1657
 msgid "'ribeta'/'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"
 msgstr ""
 
-#: tran.c:1612 tran.c:1660
+#: tran.c:1611 tran.c:1659
 msgid "'rigamma'/'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"
 msgstr ""
 
-#: tran.c:1615 tran.c:1662
+#: tran.c:1614 tran.c:1661
 msgid ""
 "'riweibull'/'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, "
 "scale)'"
 msgstr ""
 
-#: tran.c:1652
+#: tran.c:1651
 msgid "'rinormV'/'rxnormV'/'rnormV' takes 0-2 arguments 'rxnormV(mean, sd)'"
 msgstr ""
 
-#: tran.c:1654
+#: tran.c:1653
 msgid "'rinorm'/'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"
 msgstr ""
 
-#: tran.c:1664
+#: tran.c:1663
 msgid "'riunif'/'rxunif'/'runif' takes 0-2 arguments 'rxunif(min, max)'"
 msgstr ""
 
-#: tran.c:1666
+#: tran.c:1665
 msgid ""
 "'ricauchy'/'rxcauchy'/'rcauchy' takes 0-2 arguments 'rxcauchy(location, "
 "scale)'"
 msgstr ""
 
-#: tran.c:1688
+#: tran.c:1687
 #, c-format
 msgid "'%s' takes 1 arguments"
 msgstr ""
 
-#: tran.c:1708
+#: tran.c:1707
 #, c-format
 msgid "'%s' takes 1 argument"
 msgstr ""
 
-#: tran.c:1754 tran.c:1767
+#: tran.c:1753 tran.c:1766
 msgid "'ripois'/'rxpois'/'rpois' takes 1 argument 'rxpois(lambda)'"
 msgstr ""
 
-#: tran.c:1757 tran.c:1770
+#: tran.c:1756 tran.c:1769
 msgid "'rigeom'/'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"
 msgstr ""
 
-#: tran.c:1794
+#: tran.c:1793
 msgid "'ribinom'/'rbinom'/'rxbinom' takes 2 arguments 'rxbinom(size, prob)'"
 msgstr ""
 
-#: tran.c:1821
+#: tran.c:1820
 msgid "'is.nan' takes 1 argument"
 msgstr ""
 
-#: tran.c:1836
+#: tran.c:1835
 msgid "'is.na' takes 1 argument"
 msgstr ""
 
-#: tran.c:1851
+#: tran.c:1850
 msgid "'is.finite' takes 1 argument"
 msgstr ""
 
-#: tran.c:1866
+#: tran.c:1865
 msgid "'is.infinite' takes 1 argument"
 msgstr ""
 
-#: tran.c:2083
+#: tran.c:2082
 #, c-format
 msgid "function '%s' is not supported in RxODE"
 msgstr ""
 
-#: tran.c:2184
+#: tran.c:2183
 msgid "bioavailability cannot depend on Jacobian values"
 msgstr ""
 
-#: tran.c:2192
+#: tran.c:2191
 msgid "model-based rate cannot depend on Jacobian values"
 msgstr ""
 
-#: tran.c:2196
+#: tran.c:2195
 msgid "model-based duration cannot depend on Jacobian values"
 msgstr ""
 
-#: tran.c:2200
+#: tran.c:2199
 msgid "model-based matricies cannot depend on Jacobian values"
 msgstr ""
 
-#: tran.c:2208 tran.c:2224
+#: tran.c:2207 tran.c:2223
 #, c-format
 msgid "d/dt(%s) needs to be defined before using a Jacobians for this state"
 msgstr ""
 
-#: tran.c:2303
+#: tran.c:2302
 msgid "'while' cannot be followed by 'else' (did you mean 'if'/'else')"
 msgstr ""
 
-#: tran.c:2337
+#: tran.c:2336
 msgid "'break' can only be used in  'while' statement"
 msgstr ""
 
-#: tran.c:2544
+#: tran.c:2543
 #, c-format
 msgid ""
 "cannot assign state variable %s; For initial condition assignment use '%s(0) "
@@ -1796,126 +1796,122 @@ msgid ""
 "  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'"
 msgstr ""
 
-#: tran.c:2597
+#: tran.c:2596
 msgid "modeling times cannot depend on state values"
 msgstr ""
 
-#: tran.c:2601
+#: tran.c:2600
 msgid "bioavailability cannot depend on state values"
 msgstr ""
 
-#: tran.c:2605
+#: tran.c:2604
 msgid "absorption lag-time cannot depend on state values"
 msgstr ""
 
-#: tran.c:2609
+#: tran.c:2608
 msgid "model-based rate cannot depend on state values"
 msgstr ""
 
-#: tran.c:2613
+#: tran.c:2612
 msgid "model-based duration cannot depend on state values"
 msgstr ""
 
-#: tran.c:2617
+#: tran.c:2616
 msgid "model-based matricies cannot depend on state values"
 msgstr ""
 
-#: tran.c:4037 tran.c:4044
+#: tran.c:3776 tran.c:3783
 msgid "IO error writing parsed C file"
 msgstr ""
 
-#: tran.c:4164
+#: tran.c:3905
 msgid "model prefix must be specified"
 msgstr ""
 
-#: tran.c:4171
-msgid "extra inductive linearization model variables must be specified"
-msgstr ""
-
-#: tran.c:4177
+#: tran.c:3912
 msgid "extra ME code must be specified"
 msgstr ""
 
-#: tran.c:4200
+#: tran.c:3935
 msgid "'cmt(depot)' does not work with 'linCmt()'"
 msgstr ""
 
-#: tran.c:4287
+#: tran.c:4022
 #, c-format
 msgid "compartment '%s' needs differential equations defined"
 msgstr ""
 
-#: tran.c:4450
+#: tran.c:4185
 #, c-format
 msgid "state '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"
 msgstr ""
 
-#: tran.c:4453
+#: tran.c:4188
 #, c-format
 msgid "suppress '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"
 msgstr ""
 
-#: tran.c:4462
+#: tran.c:4197
 #, c-format
 msgid "redefined '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"
 msgstr ""
 
-#: tran.c:4465
+#: tran.c:4200
 #, c-format
 msgid "lhs '%s': only 'lag(%s,1)' and 'diff(%s,1)' supported"
 msgstr ""
 
-#: tran.c:4705
+#: tran.c:4439
 msgid "syntax errors (see above)"
 msgstr ""
 
-#: tran.c:4713
+#: tran.c:4447
 msgid "model no longer loaded in memory"
 msgstr ""
 
-#: tran.c:4761
+#: tran.c:4490
 msgid "nothing in output queue to write"
 msgstr ""
 
-#: tran.c:4764
+#: tran.c:4493
 msgid "c_file should only be 1 file"
 msgstr ""
 
-#: tran.c:4767
+#: tran.c:4496
 msgid "libname needs 2 elements"
 msgstr ""
 
-#: tran.c:4793
+#: tran.c:4579
 msgid ""
 "linCmt() and ode have 'central' and 'depot' compartments, rename ODE "
 "'central'/'depot'"
 msgstr ""
 
-#: tran.c:4797
+#: tran.c:4583
 msgid "linCmt() and ode has a 'central' compartment, rename ODE 'central'"
 msgstr ""
 
-#: tran.c:4801
+#: tran.c:4587
 msgid "linCmt() and ode has a 'depot' compartment, rename ODE 'depot'"
 msgstr ""
 
-#: tran.c:4811
+#: tran.c:4597
 msgid "linCmt() does not have 'depot' compartment without a 'ka'"
 msgstr ""
 
-#: tran.c:4853 tran.c:5014 tran.c:5035
+#: tran.c:4639 tran.c:4800 tran.c:4821
 msgid ""
 "[1mRxODE model syntax error:\n"
 "================================================================================[0m"
 msgstr ""
 
-#: tran.c:4856
+#: tran.c:4642
 msgid ""
 "RxODE Model Syntax Error:\n"
 "================================================================================"
 msgstr ""
 
-#: tran.c:4876
+#: tran.c:4662
 #, c-format
 msgid ""
 "\n"
@@ -1923,7 +1919,7 @@ msgid ""
 "[1mRxODE syntax error after[0m '[35m[1m%s[0m':\n"
 msgstr ""
 
-#: tran.c:4879
+#: tran.c:4665
 #, c-format
 msgid ""
 "\n"
@@ -1931,263 +1927,263 @@ msgid ""
 "RxODE syntax error after '%s'\n"
 msgstr ""
 
-#: tran.c:4882
+#: tran.c:4668
 #, c-format
 msgid "RxODE syntax error after '%s':\n"
 msgstr ""
 
-#: tran.c:4887
+#: tran.c:4673
 msgid ""
 "\n"
 "\n"
 "[1mRxODE syntax error[0m:\n"
 msgstr ""
 
-#: tran.c:4890
+#: tran.c:4676
 msgid ""
 "\n"
 "\n"
 "RxODE syntax error:\n"
 msgstr ""
 
-#: tran.c:5017 tran.c:5038
+#: tran.c:4803 tran.c:4824
 msgid ""
 "RxODE model syntax error:\n"
 "================================================================================"
 msgstr ""
 
-#: tran.c:5218
+#: tran.c:5004
 msgid ""
 "inconsistent central compartment numbers, not sure if central compartment no "
 "is '1' or '2'"
 msgstr ""
 
-#: tran.c:5233 tran.c:5241 tran.c:5259 tran.c:5280
+#: tran.c:5019 tran.c:5027 tran.c:5045 tran.c:5066
 msgid "Ambiguous 'kel'"
 msgstr ""
 
-#: tran.c:5623
+#: tran.c:5409
 msgid "'Cld' parameterization needs 'Cl'"
 msgstr ""
 
-#: tran.c:5626
+#: tran.c:5412
 msgid "'Q' parameterization needs 'Cl'"
 msgstr ""
 
-#: tran.c:5634
+#: tran.c:5420
 msgid "cannot mix 'Q' and 'Q1'"
 msgstr ""
 
-#: tran.c:5637
+#: tran.c:5423
 msgid "cannot mix 'Cld' and 'Cld1'"
 msgstr ""
 
-#: tran.c:5647
+#: tran.c:5433
 msgid "cannot mix 'Q' and 'Q3'"
 msgstr ""
 
-#: tran.c:5650
+#: tran.c:5436
 msgid "cannot mix 'Cld' and 'Cld3'"
 msgstr ""
 
-#: tran.c:5662
+#: tran.c:5448
 msgid "cannot mix 'Q1' and 'Q3'"
 msgstr ""
 
-#: tran.c:5665
+#: tran.c:5451
 msgid "cannot mix 'Cld1' and 'Cld3'"
 msgstr ""
 
-#: tran.c:5681
+#: tran.c:5467
 msgid "error parsing higher 'cl'"
 msgstr ""
 
-#: tran.c:5689
+#: tran.c:5475
 msgid "cannot mix 'Cl' and 'Cl1'"
 msgstr ""
 
-#: tran.c:5697 tran.c:5708
+#: tran.c:5483 tran.c:5494
 msgid ""
 "specified clearance for 4th compartment, which does not make sense in this "
 "context"
 msgstr ""
 
-#: tran.c:5723
+#: tran.c:5509
 msgid "Cannot specify 'v1' and 'vc'"
 msgstr ""
 
-#: tran.c:5727
+#: tran.c:5513
 msgid "Cannot specify 'v4' and 'vc'"
 msgstr ""
 
-#: tran.c:5809
+#: tran.c:5595
 msgid "can find distributional clearance but not peripheral volume"
 msgstr ""
 
-#: tran.c:5815
+#: tran.c:5601
 msgid "can find peripheral volume but not distributlin->v2 ional clearance"
 msgstr ""
 
-#: tran.c:5821
+#: tran.c:5607
 msgid "can find 2nd distributional clearance but not 2nd peripheral volume"
 msgstr ""
 
-#: tran.c:5827
+#: tran.c:5613
 msgid "can find 2nd peripheral volume but not 2nd distributional clearance"
 msgstr ""
 
-#: tran.c:5834
+#: tran.c:5620
 msgid "cannot distinguish between central and peripheral volumes"
 msgstr ""
 
-#: tran.c:5840
+#: tran.c:5626
 msgid "cannot distinguish between 1st and 2nd peripheral volumes"
 msgstr ""
 
-#: tran.c:5847
+#: tran.c:5633
 msgid "cannot distinguish between central and peripheral clearances"
 msgstr ""
 
-#: tran.c:5853
+#: tran.c:5639
 msgid "cannot distinguish between 1st and 2nd distributional clearances"
 msgstr ""
 
-#: tran.c:5914 tran.c:5932 tran.c:5984 tran.c:6077 tran.c:6104 tran.c:6146
+#: tran.c:5700 tran.c:5718 tran.c:5770 tran.c:5863 tran.c:5890 tran.c:5932
 msgid "cannot figure out a central volume"
 msgstr ""
 
-#: tran.c:5920 tran.c:5945
+#: tran.c:5706 tran.c:5731
 msgid "cannot figure out distributional clearance"
 msgstr ""
 
-#: tran.c:5951
+#: tran.c:5737
 msgid "cannot figure out distributional volume"
 msgstr ""
 
-#: tran.c:5961
+#: tran.c:5747
 msgid "cannot figure out 2nd distributional clearance"
 msgstr ""
 
-#: tran.c:5967
+#: tran.c:5753
 msgid "cannot figure out 2nd distributional volume"
 msgstr ""
 
-#: tran.c:5978
+#: tran.c:5764
 #, c-format
 msgid "Detected %d-compartment model in terms of clearance"
 msgstr ""
 
-#: tran.c:5997
+#: tran.c:5783
 msgid "'k12' not found when 'k21' present"
 msgstr ""
 
-#: tran.c:6002
+#: tran.c:5788
 msgid "'k23' not found when 'k32' present"
 msgstr ""
 
-#: tran.c:6010
+#: tran.c:5796
 msgid "'k21' not found when 'k12' present"
 msgstr ""
 
-#: tran.c:6015
+#: tran.c:5801
 msgid "'k32' not found when 'k23' present"
 msgstr ""
 
-#: tran.c:6027
+#: tran.c:5813
 msgid "'k13' not found when 'k31' present"
 msgstr ""
 
-#: tran.c:6032
+#: tran.c:5818
 msgid "'k24' not found when 'k42' present"
 msgstr ""
 
-#: tran.c:6040
+#: tran.c:5826
 msgid "'k31' not found when 'k13' present"
 msgstr ""
 
-#: tran.c:6045
+#: tran.c:5831
 msgid "'k42' not found when 'k24' present"
 msgstr ""
 
-#: tran.c:6059
+#: tran.c:5845
 msgid "'k13' or 'k31' present when 'k12' and 'k21' not present"
 msgstr ""
 
-#: tran.c:6064
+#: tran.c:5850
 msgid "'k24' or 'k42' present when 'k23' and 'k32' not present"
 msgstr ""
 
-#: tran.c:6069
+#: tran.c:5855
 #, c-format
 msgid "detected %d-compartment model in terms of micro-constants"
 msgstr ""
 
-#: tran.c:6083
+#: tran.c:5869
 msgid "need an 'alpha' with 'aob'"
 msgstr ""
 
-#: tran.c:6089
+#: tran.c:5875
 msgid "need a 'beta' with 'aob'"
 msgstr ""
 
-#: tran.c:6096
+#: tran.c:5882
 #, c-format
 msgid "detected %d-compartment model in terms of 'alpha' and 'aob'"
 msgstr ""
 
-#: tran.c:6110
+#: tran.c:5896
 msgid "need an 'alpha'"
 msgstr ""
 
-#: tran.c:6116 tran.c:6156
+#: tran.c:5902 tran.c:5942
 msgid "need a 'beta'"
 msgstr ""
 
-#: tran.c:6125
+#: tran.c:5911
 #, c-format
 msgid "detected %d-compartment model in terms of 'alpha' or 'k21'"
 msgstr ""
 
-#: tran.c:6127
+#: tran.c:5913
 #, c-format
 msgid "detected %d-compartment model in terms of 'alpha' or 'k32'"
 msgstr ""
 
-#: tran.c:6162
+#: tran.c:5948
 msgid "need a 'b'"
 msgstr ""
 
-#: tran.c:6172
+#: tran.c:5958
 msgid "need a 'gamma'"
 msgstr ""
 
-#: tran.c:6178
+#: tran.c:5964
 msgid "need a 'c'"
 msgstr ""
 
-#: tran.c:6189
+#: tran.c:5975
 msgid "a 'gamma' or 'c' specified without 'b' or 'beta'"
 msgstr ""
 
-#: tran.c:6195
+#: tran.c:5981
 #, c-format
 msgid "detected %d-compartment model in terms of 'alpha' and central volume"
 msgstr ""
 
-#: tran.c:6197
+#: tran.c:5983
 #, c-format
 msgid "detected %d-compartment model in terms of 'alpha' and 'a'"
 msgstr ""
 
-#: tran.c:6209
+#: tran.c:5995
 msgid " with first order absorption\n"
 msgstr ""
 
-#: tran.c:6241
+#: tran.c:6027
 msgid "could not figure out linCmt() model"
 msgstr ""
 
-#: tran.c:6423
+#: tran.c:6209
 msgid "linCmt() cannot have any extra parentheses in it"
 msgstr ""
 

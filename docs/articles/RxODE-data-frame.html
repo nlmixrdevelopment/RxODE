@@ -220,7 +220,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE Data Frames</h1>
             
-            <h4 class="date">2020-11-22</h4>
+            <h4 class="date">2020-11-25</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-data-frame.Rmd"><code>vignettes/RxODE-data-frame.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-data-frame.Rmd</code></div>
@@ -236,8 +236,8 @@
 <h2 class="hasAnchor">
 <a href="#creating-an-interactive-data-frame" class="anchor"></a>Creating an interactive data frame</h2>
 <p>RxODE supports returning a solved object that is a modified data-frame. This is done by the <code><a href="https://rdrr.io/r/stats/predict.html">predict()</a></code>, <code><a href="https://rdrr.io/r/base/solve.html">solve()</a></code>, or <code><a href="../reference/rxControl.html">rxSolve()</a></code> methods.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit">
-
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-quantities/units/">units</a></span><span class="op">)</span>
 
@@ -288,10 +288,10 @@
 <span class="co">#&gt; 5     4  44.5 5.98   3085. 1789. 1776.  1.23</span>
 <span class="co">#&gt; 6     5  36.5 7.18   2299. 1467. 2132.  1.21</span>
 <span class="co">#&gt; # ... with 235 more rows</span>
-<span class="co">#&gt; ________________________________________________________________________________</span></pre></div>
+<span class="co">#&gt; ________________________________________________________________________________</span></code></pre></div>
 <p>or</p>
-<div class="sourceCode" id="cb2"><pre class="downlit">
-<span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">mod1</span>,<span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">mod1</span>,<span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
 <span class="co">#&gt; ______________________________ Solved RxODE object _____________________________</span>
 <span class="co">#&gt; -- Parameters ($params): -------------------------------------------------------</span>
@@ -311,10 +311,10 @@
 <span class="co">#&gt; 5     4  44.5 5.98   3085. 1789. 1776.  1.23</span>
 <span class="co">#&gt; 6     5  36.5 7.18   2299. 1467. 2132.  1.21</span>
 <span class="co">#&gt; # ... with 235 more rows</span>
-<span class="co">#&gt; ________________________________________________________________________________</span></pre></div>
+<span class="co">#&gt; ________________________________________________________________________________</span></code></pre></div>
 <p>Or with <code>mattigr</code></p>
-<div class="sourceCode" id="cb3"><pre class="downlit">
-<span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
 <span class="co">#&gt; ______________________________ Solved RxODE object _____________________________</span>
 <span class="co">#&gt; -- Parameters ($params): -------------------------------------------------------</span>
@@ -334,14 +334,14 @@
 <span class="co">#&gt; 5     4  44.5 5.98   3085. 1789. 1776.  1.23</span>
 <span class="co">#&gt; 6     5  36.5 7.18   2299. 1467. 2132.  1.21</span>
 <span class="co">#&gt; # ... with 235 more rows</span>
-<span class="co">#&gt; ________________________________________________________________________________</span></pre></div>
+<span class="co">#&gt; ________________________________________________________________________________</span></code></pre></div>
 </div>
 <div id="using-the-solved-object-as-a-simple-data-frame" class="section level2">
 <h2 class="hasAnchor">
 <a href="#using-the-solved-object-as-a-simple-data-frame" class="anchor"></a>Using the solved object as a simple data frame</h2>
 <p>The solved object acts as a <code>data.frame</code> or <code>tbl</code> that can be filtered by <code>dpylr</code>. For example you could filter it easily.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit">
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
 <span class="co">## You can  drop units for comparisons and filtering</span>
 <span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">theta</span>,<span class="va">ev</span>,<span class="va">inits</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="va">drop_units</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">time</span> <span class="op">&lt;=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="va">as.tbl</span>
@@ -355,7 +355,7 @@
 <span class="co">#&gt; 1     0   0   0     10000     0     0   1   </span>
 <span class="co">#&gt; 2     1  44.4 0.920  7453. 1784.  273.  1.08</span>
 <span class="co">#&gt; 3     2  54.9 2.67   5554. 2206.  794.  1.18</span>
-<span class="co">#&gt; 4     3  51.9 4.46   4140. 2087. 1324.  1.23</span></pre></div>
+<span class="co">#&gt; 4     3  51.9 4.46   4140. 2087. 1324.  1.23</span></code></pre></div>
 </div>
 </div>
 <div id="updating-the-data-set-interactively" class="section level1">
@@ -363,8 +363,8 @@
 <a href="#updating-the-data-set-interactively" class="anchor"></a>Updating the data-set interactively</h1>
 <p>However it isn’t just a simple data object. You can use the solved object to update parameters on the fly, or even change the sampling time.</p>
 <p>First we need to recreate the original solved system:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit">
-<span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">theta</span>,<span class="va">ev</span>,<span class="va">inits</span><span class="op">)</span>;
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">theta</span>,<span class="va">ev</span>,<span class="va">inits</span><span class="op">)</span>;
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
 <span class="co">#&gt; ______________________________ Solved RxODE object _____________________________</span>
 <span class="co">#&gt; -- Parameters ($params): -------------------------------------------------------</span>
@@ -384,17 +384,17 @@
 <span class="co">#&gt; 5     4  44.5 5.98   3085. 1789. 1776.  1.23</span>
 <span class="co">#&gt; 6     5  36.5 7.18   2299. 1467. 2132.  1.21</span>
 <span class="co">#&gt; # ... with 235 more rows</span>
-<span class="co">#&gt; ________________________________________________________________________________</span></pre></div>
+<span class="co">#&gt; ________________________________________________________________________________</span></code></pre></div>
 <div id="modifying-initial-conditions" class="section level2">
 <h2 class="hasAnchor">
 <a href="#modifying-initial-conditions" class="anchor"></a>Modifying initial conditions</h2>
 <p>To examine or change initial conditions, you can use the syntax <code>cmt.0</code>, <code>cmt0</code>, or <code>cmt_0</code>. In the case of the <code>eff</code> compartment defined by the model, this is:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit">
-<span class="va">x</span><span class="op">$</span><span class="va">eff0</span>
-<span class="co">#&gt; [1] 1</span></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">x</span><span class="op">$</span><span class="va">eff0</span>
+<span class="co">#&gt; [1] 1</span></code></pre></div>
 <p>which shows the initial condition of the effect compartment. If you wished to change this initial condition to 2, this can be done easily by:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit">
-<span class="va">x</span><span class="op">$</span><span class="va">eff0</span> <span class="op">&lt;-</span> <span class="fl">2</span>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">x</span><span class="op">$</span><span class="va">eff0</span> <span class="op">&lt;-</span> <span class="fl">2</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
 <span class="co">#&gt; ______________________________ Solved RxODE object _____________________________</span>
 <span class="co">#&gt; -- Parameters ($params): -------------------------------------------------------</span>
@@ -415,7 +415,7 @@
 <span class="co">#&gt; 6     5  36.5 7.18   2299. 1467. 2132.  1.23</span>
 <span class="co">#&gt; # ... with 235 more rows</span>
 <span class="co">#&gt; ________________________________________________________________________________</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-data-frame_files/figure-html/unnamed-chunk-8-1.png" width="100%"></p>
 </div>
 <div id="modifying-observation-times-for-rxode" class="section level2">
@@ -423,8 +423,8 @@
 <a href="#modifying-observation-times-for-rxode" class="anchor"></a>Modifying observation times for RxODE</h2>
 <p>Notice that the initial effect is now <code>2</code>.</p>
 <p>You can also change the sampling times easily by this method by changing <code>t</code> or <code>time</code>. For example:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit">
-<span class="va">x</span><span class="op">$</span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5</span>,length.out<span class="op">=</span><span class="fl">20</span><span class="op">)</span>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">x</span><span class="op">$</span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5</span>,length.out<span class="op">=</span><span class="fl">20</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
 <span class="co">#&gt; ______________________________ Solved RxODE object _____________________________</span>
 <span class="co">#&gt; -- Parameters ($params): -------------------------------------------------------</span>
@@ -445,19 +445,19 @@
 <span class="co">#&gt; 6 1.3157895  50.1 1.44    6792. 2013. 427.   1.44</span>
 <span class="co">#&gt; # ... with 14 more rows</span>
 <span class="co">#&gt; ________________________________________________________________________________</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-data-frame_files/figure-html/unnamed-chunk-9-1.png" width="100%"></p>
 </div>
 <div id="modifying-simulation-parameters" class="section level2">
 <h2 class="hasAnchor">
 <a href="#modifying-simulation-parameters" class="anchor"></a>Modifying simulation parameters</h2>
 <p>You can also access or change parameters by the <code><a href="https://rdrr.io/r/base/Extract.html">$</a></code> operator. For example, accessing <code>KA</code> can be done by:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit">
-<span class="va">x</span><span class="op">$</span><span class="va">KA</span>
-<span class="co">#&gt; [1] 0.294</span></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">x</span><span class="op">$</span><span class="va">KA</span>
+<span class="co">#&gt; [1] 0.294</span></code></pre></div>
 <p>And you may change it by assigning it to a new value.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit">
-<span class="va">x</span><span class="op">$</span><span class="va">KA</span> <span class="op">&lt;-</span> <span class="fl">1</span>;
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">x</span><span class="op">$</span><span class="va">KA</span> <span class="op">&lt;-</span> <span class="fl">1</span>;
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
 <span class="co">#&gt; ______________________________ Solved RxODE object _____________________________</span>
 <span class="co">#&gt; -- Parameters ($params): -------------------------------------------------------</span>
@@ -478,7 +478,7 @@
 <span class="co">#&gt; 6 1.3157895 106.  3.66   2683. 4272. 1086.   1.64</span>
 <span class="co">#&gt; # ... with 14 more rows</span>
 <span class="co">#&gt; ________________________________________________________________________________</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-data-frame_files/figure-html/unnamed-chunk-11-1.png" width="100%"></p>
 <p>You can access/change all the parameters, initialization(s) or events with the <code>$params</code>, <code>$inits</code>, <code>$events</code> accessor syntax, similar to what is used above.</p>
 <p>This syntax makes it easy to update and explore the effect of various parameters on the solved object.</p>

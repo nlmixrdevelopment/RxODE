@@ -220,7 +220,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Easy RxODE Event Tables</h1>
             
-            <h4 class="date">2020-11-22</h4>
+            <h4 class="date">2020-11-25</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-event-table.Rmd"><code>vignettes/RxODE-event-table.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-event-table.Rmd</code></div>
@@ -234,18 +234,18 @@
 <a href="#creating-rxodes-event-tables" class="anchor"></a>Creating RxODE’s event tables</h1>
 <p>An event table in RxODE is a specialized data frame that acts as a container for all of RxODE’s events and observation times.</p>
 <p>To create an RxODE event table you may use the code <code><a href="../reference/eventTable.html">eventTable()</a></code>, <code><a href="../reference/et.html">et()</a></code>, or even create your own data frame with the right event information contained in it. This is closely related to the <a href="RxODE-event-types.html">types of events that RxODE supports</a>.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit">
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></pre></div>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; RxODE 1.0.0.0 using 4 threads (see ?getRxThreads)</code></pre>
-<div class="sourceCode" id="cb3"><pre class="downlit">
-<span class="op">(</span><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>;</pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="op">(</span><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>;</code></pre></div>
 <pre><code>#&gt; --------------------------- EventTable with 0 records --------------------------
 #&gt; 
 #&gt;    0 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    0 observation times (see x$get.sampling(); add with add.sampling or et)</code></pre>
 <p>or</p>
-<div class="sourceCode" id="cb5"><pre class="downlit">
-<span class="op">(</span><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>;</pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="op">(</span><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>;</code></pre></div>
 <pre><code>#&gt; --------------------------- EventTable with 0 records --------------------------
 #&gt; 
 #&gt;    0 dosing records (see x$get.dosing(); add with add.dosing or et)
@@ -298,8 +298,8 @@
 </table>
 <p>Sampling times can be added with <code>add.sampling(</code> sampling times <code>)</code> or <code>et(</code> sampling times <code>)</code>. <a href="#add-doses-and-samples-within-a-sampling-window">Dosing intervals and sampling windows</a> are also supported.</p>
 <p>For these models, we can illustrate by using the model shared in the RxODE tutorial:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit">
-<span class="co">## Model from RxODE tutorial</span>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co">## Model from RxODE tutorial</span>
 <span class="va">m1</span> <span class="op">&lt;-</span><span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
     <span class="va">KA</span><span class="op">=</span><span class="fl">2.94E-01</span>;
     <span class="va">CL</span><span class="op">=</span><span class="fl">1.86E+01</span>;
@@ -323,8 +323,8 @@
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">peri</span><span class="op">)</span>  <span class="op">=</span>                    <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>  <span class="op">=</span> <span class="va">Kin</span> <span class="op">-</span> <span class="va">Kout</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">C2</span><span class="op">/</span><span class="op">(</span><span class="va">EC50</span><span class="op">+</span><span class="va">C2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="va">eff</span>;
     <span class="fu">eff</span><span class="op">(</span><span class="fl">0</span><span class="op">)</span> <span class="op">=</span> <span class="fl">1</span>
-<span class="op">}</span><span class="op">)</span></pre></div>
-<pre><code>#&gt; </code></pre>
+<span class="op">}</span><span class="op">)</span></code></pre></div>
+<pre><code>#&gt; qs v0.23.1. See ChangeLog for update details.</code></pre>
 <div id="adding-doses-to-the-event-table" class="section level2">
 <h2 class="hasAnchor">
 <a href="#adding-doses-to-the-event-table" class="anchor"></a>Adding doses to the event table</h2>
@@ -362,8 +362,8 @@
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb9"><pre class="downlit">
-<span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">"mg"</span>, time.units<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">"mg"</span>, time.units<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span>
 
 <span class="co">## The methods ar attached to the event table, so you can use them</span>
 <span class="co">## directly</span>
@@ -374,7 +374,7 @@
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="va">ev</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/add.dosing.html">add.dosing</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">5000</span>, nbr.doses<span class="op">=</span><span class="fl">14</span>, dosing.interval<span class="op">=</span><span class="fl">12</span><span class="op">)</span><span class="co"># maintenance</span>
 
-<span class="va">ev</span></pre></div>
+<span class="va">ev</span></code></pre></div>
 <pre><code>#&gt; --------------------------- EventTable with 2 records --------------------------
 #&gt; 
 #&gt;    2 dosing records (see x$get.dosing(); add with add.dosing or et)
@@ -388,15 +388,15 @@
 #&gt; 2     0  5000    12    13 1:Dose (Add)</code></pre>
 <p>Notice that the units were specified in the table. When specified, the units use the <code>units</code> package to keep track of the units and convert them if needed. Additionally, <code>ggforce</code> uses them to label the <code>ggplot</code> axes. The <code>set_units</code> and <code>drop_units</code> are useful to set and drop the RxODE event table units.</p>
 <p>In this example, you can see the time axes is labeled:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit">
-<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 <p>If you are more familiar with the NONMEM/RxODE event records, you can also specify dosing using <code>et</code> with the dose elements directly:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit">
-<span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, until <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">3</span>, <span class="va">days</span><span class="op">)</span>, ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="co"># loading doses</span>
 
-<span class="va">ev</span></pre></div>
+<span class="va">ev</span></code></pre></div>
 <pre><code>#&gt; --------------------------- EventTable with 1 records --------------------------
 #&gt; 
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
@@ -408,8 +408,8 @@
 #&gt;     [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;evid&gt;      
 #&gt; 1     0 10000    12     6 1:Dose (Add)</code></pre>
 <p>Which gives:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit">
-<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <p>This shows how easy creating event tables can be.</p>
 </div>
@@ -417,8 +417,8 @@
 <h2 class="hasAnchor">
 <a href="#adding-sampling-to-an-event-table" class="anchor"></a>Adding sampling to an event table</h2>
 <p>If you notice in the above examples, RxODE generated some default sampling times since there was not any sampling times. If you wish more control over the sampling time, you should add the samples to the RxODE event table by <code>add.sampling</code> or <code>et</code></p>
-<div class="sourceCode" id="cb15"><pre class="downlit">
-<span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">"mg"</span>, time.units<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">"mg"</span>, time.units<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span>
 
 <span class="co">## The methods ar attached to the event table, so you can use them</span>
 <span class="co">## directly</span>
@@ -426,7 +426,7 @@
 
 <span class="va">ev</span><span class="op">$</span><span class="fu">add.sampling</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">24</span>,by<span class="op">=</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>
 
-<span class="va">ev</span></pre></div>
+<span class="va">ev</span></code></pre></div>
 <pre><code>#&gt; --------------------------- EventTable with 8 records --------------------------
 #&gt; 
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
@@ -445,16 +445,16 @@
 #&gt; 7    20    NA    NA    NA 0:Observation
 #&gt; 8    24    NA    NA    NA 0:Observation</code></pre>
 <p>Which gives:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit">
-<span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 <p>Or if you use <code>et</code> you can simply add them in a similar way to <code>add.sampling</code>:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit">
-<span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, until <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">3</span>, <span class="va">days</span><span class="op">)</span>, ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># loading doses</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">24</span>,by<span class="op">=</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>
 
-<span class="va">ev</span></pre></div>
+<span class="va">ev</span></code></pre></div>
 <pre><code>#&gt; --------------------------- EventTable with 8 records --------------------------
 #&gt; 
 #&gt;    1 dosing records (see x$get.dosing(); add with add.dosing or et)
@@ -473,8 +473,8 @@
 #&gt; 7    20    NA    NA    NA 0:Observation
 #&gt; 8    24    NA    NA    NA 0:Observation</code></pre>
 <p>which gives the following RxODE solve:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit">
-<span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 <p>Note the jagged nature of these plots since there was only a few sample times.</p>
 </div>
@@ -482,13 +482,13 @@
 <h2 class="hasAnchor">
 <a href="#expand-the-event-table-to-a-multi-subject-event-table-" class="anchor"></a>Expand the event table to a multi-subject event table.</h2>
 <p>The only thing that is needed to expand an event table is a list of IDs that you want to expand;</p>
-<div class="sourceCode" id="cb21"><pre class="downlit">
-<span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, until <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">3</span>, <span class="va">days</span><span class="op">)</span>, ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># loading doses</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">48</span>,length.out<span class="op">=</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>id<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span>
 
-<span class="va">ev</span></pre></div>
+<span class="va">ev</span></code></pre></div>
 <pre><code>#&gt; -------------------------- EventTable with 804 records -------------------------
 #&gt;    4 individuals
 #&gt;    4 dosing records (see x$get.dosing(); add with add.dosing or et)
@@ -510,11 +510,11 @@
 #&gt; 10     1 1.9296482    NA    NA    NA 0:Observation
 #&gt; # ... with 794 more rows</code></pre>
 <p>You can see in the following simulation there are 4 individuals that are solved for:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit">
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>,
       params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>KA<span class="op">=</span><span class="fl">0.294</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>, <span class="fl">18.6</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+    <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; Warning: 'ID' missing in 'parameters' dataset
 #&gt; individual parameters are assumed to have the same order as the event dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
@@ -524,13 +524,13 @@
 <a href="#add-doses-and-samples-within-a-sampling-window" class="anchor"></a>Add doses and samples within a sampling window</h2>
 <p>In addition to adding fixed doses and fixed sampling times, you can have windows where you sample and draw doses from. For dosing windows you specify the time as an ordered numerical vector with the lowest dosing time and the highest dosing time inside a list.</p>
 <p>In this example, you start with a dosing time with a 6 hour dosing window:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit">
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">6</span><span class="op">)</span><span class="op">)</span>, amt<span class="op">=</span><span class="fl">10000</span>, until <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">2</span>, <span class="va">days</span><span class="op">)</span>, ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># loading doses</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>id<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span>
 
-<span class="va">ev</span></pre></div>
+<span class="va">ev</span></code></pre></div>
 <pre><code>#&gt; -------------------------- EventTable with 16 records --------------------------
 #&gt;    4 individuals
 #&gt;    16 dosing records (see x$get.dosing(); add with add.dosing or et)
@@ -556,28 +556,28 @@
 #&gt; 15     4    24 29.6224525    30 10000 1:Dose (Add)
 #&gt; 16     4    36 41.4888363    42 10000 1:Dose (Add)</code></pre>
 <p>You can clearly see different dosing times in the following simulation:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit">
-<span class="va">ev</span> <span class="op">&lt;-</span> <span class="va">ev</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">48</span>,length.out<span class="op">=</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="va">ev</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">48</span>,length.out<span class="op">=</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span>
 
-<span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>KA<span class="op">=</span><span class="fl">0.294</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>, <span class="fl">18.6</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>KA<span class="op">=</span><span class="fl">0.294</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>, <span class="fl">18.6</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; Warning: 'ID' missing in 'parameters' dataset
 #&gt; individual parameters are assumed to have the same order as the event dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
 <p>Of course in reality the dosing interval may only be 2 hours:</p>
-<div class="sourceCode" id="cb29"><pre class="downlit">
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span>, amt<span class="op">=</span><span class="fl">10000</span>, until <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">2</span>, <span class="va">days</span><span class="op">)</span>, ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># loading doses</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>id<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">48</span>,length.out<span class="op">=</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span>
 
-<span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>KA<span class="op">=</span><span class="fl">0.294</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>, <span class="fl">18.6</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>KA<span class="op">=</span><span class="fl">0.294</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>, <span class="fl">18.6</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; Warning: 'ID' missing in 'parameters' dataset
 #&gt; individual parameters are assumed to have the same order as the event dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
 <p>The same sort of thing can be specified with sampling times. To specify the sampling times in terms of a sampling window, you can create a list of the sampling times. Each sampling time will be a two element ordered numeric vector.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit">
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span>, amt<span class="op">=</span><span class="fl">10000</span>, until <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">2</span>, <span class="va">days</span><span class="op">)</span>, ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># loading doses</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>id<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span>
@@ -590,7 +590,7 @@
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="va">ev</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="va">samples</span><span class="op">)</span>
 
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>KA<span class="op">=</span><span class="fl">0.294</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>, <span class="fl">18.6</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>KA<span class="op">=</span><span class="fl">0.294</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>, <span class="fl">18.6</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; Warning: 'ID' missing in 'parameters' dataset
 #&gt; individual parameters are assumed to have the same order as the event dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
@@ -605,8 +605,8 @@
 <h2 class="hasAnchor">
 <a href="#sequencing-event-tables" class="anchor"></a>Sequencing event tables</h2>
 <p>One way to combine event table is to sequence them by <code>c</code>, <code>seq</code> or <code>etSeq</code>. This takes the two dosing groups and adds at least one inter-dose interval between them:</p>
-<div class="sourceCode" id="cb33"><pre class="downlit">
-<span class="co">## bid for 5 days</span>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co">## bid for 5 days</span>
 <span class="va">bid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
        <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>,ii<span class="op">=</span><span class="fl">12</span>,until<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">5</span>, <span class="st">"days"</span><span class="op">)</span><span class="op">)</span>
 
@@ -617,23 +617,23 @@
 <span class="co">## bid for 5 days followed by qd for 5 days</span>
 <span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">bid</span>,<span class="va">qd</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">11</span><span class="op">*</span><span class="fl">24</span>,length.out<span class="op">=</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span>;
 
-<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
 <p>When sequencing events, you can also separate this sequence by a period of time; For example if you wanted to separate this by a week, you could easily do that with the following sequence of event tables:</p>
-<div class="sourceCode" id="cb34"><pre class="downlit">
-<span class="co">## bid for 5 days followed by qd for 5 days</span>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co">## bid for 5 days followed by qd for 5 days</span>
 <span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">bid</span>,<span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">1</span>, <span class="st">"week"</span><span class="op">)</span>, <span class="va">qd</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">18</span><span class="op">*</span><span class="fl">24</span>,length.out<span class="op">=</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span>;
 
-<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
 <p>Note that in this example the time between the bid and the qd event tables is exactly one week, not 1 week plus 24 hours because of the inter-dose interval. If you want that behavior, you can sequence it using the <code>wait="+ii"</code>.</p>
-<div class="sourceCode" id="cb35"><pre class="downlit">
-<span class="co">## bid for 5 days followed by qd for 5 days</span>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co">## bid for 5 days followed by qd for 5 days</span>
 <span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">bid</span>,<span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">1</span>, <span class="st">"week"</span><span class="op">)</span>, <span class="va">qd</span>,wait<span class="op">=</span><span class="st">"+ii"</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">18</span><span class="op">*</span><span class="fl">24</span>,length.out<span class="op">=</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span>;
 
-<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
 <p>Also note, that RxODE assumes that the dosing is what you want to space the event tables by, and clears out any sampling records when you combine the event tables. If that is not true, you can also use the option <code>samples="use"</code></p>
 </div>
@@ -641,13 +641,13 @@
 <h2 class="hasAnchor">
 <a href="#repeating-event-tables" class="anchor"></a>Repeating event tables</h2>
 <p>You can have an event table that you can repeat with <code>etRep</code> or <code>rep</code>. For example 4 rounds of 2 weeks on QD therapy and 1 week off of therapy can be simply specified:</p>
-<div class="sourceCode" id="cb36"><pre class="downlit">
-<span class="va">qd</span> <span class="op">&lt;-</span><span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits <span class="op">=</span> <span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, ii<span class="op">=</span><span class="fl">24</span>, until<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">2</span>, <span class="st">"weeks"</span><span class="op">)</span>, cmt<span class="op">=</span><span class="st">"depot"</span><span class="op">)</span>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">qd</span> <span class="op">&lt;-</span><span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits <span class="op">=</span> <span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, ii<span class="op">=</span><span class="fl">24</span>, until<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">2</span>, <span class="st">"weeks"</span><span class="op">)</span>, cmt<span class="op">=</span><span class="st">"depot"</span><span class="op">)</span>
 
 <span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="va">qd</span>, times<span class="op">=</span><span class="fl">4</span>, wait<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">1</span>,<span class="st">"weeks"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
       <span class="fu"><a href="../reference/add.sampling.html">add.sampling</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12.5</span>,by<span class="op">=</span><span class="fl">0.005</span><span class="op">)</span>,<span class="va">weeks</span><span class="op">)</span><span class="op">)</span>
 
-<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span>  <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span>  <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-22-1.png" width="700"></p>
 <p>This is a simplified way to use a sequence of event tables. Therefore, many of the same options still apply; That is <code>samples</code> are cleared unless you use <code>samples="use"</code>, and the time between event tables is at least the inter-dose interval. You can adjust the timing by the <code>wait</code> option.</p>
 </div>
@@ -656,8 +656,8 @@
 <a href="#combining-event-tables-with-rbind" class="anchor"></a>Combining event tables with rbind</h2>
 <p>You may combine event tables with <code>rbind</code>. This does not consider the event times when combining the event tables, but keeps them the same times. If you space the event tables by a waiting period, it also does not consider the inter-dose interval.</p>
 <p>Using the previous <code>seq</code> you can clearly see the difference. Here was the sequence:</p>
-<div class="sourceCode" id="cb37"><pre class="downlit">
-<span class="co">## bid for 5 days</span>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co">## bid for 5 days</span>
 <span class="va">bid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
        <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>,ii<span class="op">=</span><span class="fl">12</span>,until<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">5</span>, <span class="st">"days"</span><span class="op">)</span><span class="op">)</span>
 
@@ -668,31 +668,31 @@
 <span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">bid</span>,<span class="va">qd</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">18</span><span class="op">*</span><span class="fl">24</span>,length.out<span class="op">=</span><span class="fl">500</span><span class="op">)</span><span class="op">)</span>;
 
-<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-23-1.png" width="700"></p>
 <p>But if you bind them together with <code>rbind</code></p>
-<div class="sourceCode" id="cb38"><pre class="downlit">
-<span class="co">## bid for 5 days</span>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co">## bid for 5 days</span>
 <span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">bid</span>,<span class="va">qd</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">18</span><span class="op">*</span><span class="fl">24</span>,length.out<span class="op">=</span><span class="fl">500</span><span class="op">)</span><span class="op">)</span>;
 
-<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-24-1.png" width="700"></p>
 <p>Still the waiting period applies (but does not consider the inter-dose interval)</p>
-<div class="sourceCode" id="cb39"><pre class="downlit">
-<span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">bid</span>,wait<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">10</span>,<span class="va">days</span><span class="op">)</span>,<span class="va">qd</span><span class="op">)</span> <span class="op">%&gt;%</span>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">bid</span>,wait<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">10</span>,<span class="va">days</span><span class="op">)</span>,<span class="va">qd</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">18</span><span class="op">*</span><span class="fl">24</span>,length.out<span class="op">=</span><span class="fl">500</span><span class="op">)</span><span class="op">)</span>;
 
-<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-25-1.png" width="700"></p>
 <p>You can also bind the tables together and make each ID in the event table unique; This can be good to combine cohorts with different expected dosing and sampling times. This requires the <code>id="unique"</code> option; Using the first example shows how this is different in this case:</p>
-<div class="sourceCode" id="cb40"><pre class="downlit">
-<span class="co">## bid for 5 days</span>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co">## bid for 5 days</span>
 <span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/etRbind.html">etRbind</a></span><span class="op">(</span><span class="va">bid</span>,<span class="va">qd</span>, id<span class="op">=</span><span class="st">"unique"</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">150</span>,length.out<span class="op">=</span><span class="fl">500</span><span class="op">)</span><span class="op">)</span>;
 
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
-<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span> <span class="op">~</span> <span class="va">id</span><span class="op">)</span></pre></div>
+<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span> <span class="op">~</span> <span class="va">id</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-26-1.png" width="700"></p>
 </div>
 </div>

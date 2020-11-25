@@ -136,10 +136,7 @@ mod1 <-RxODE({
     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 })
 #> 
-#> → creating RxODE include directory
-#> → getting R compile options
-#> → precompiling headers
-#> ✔ done
+#> qs v0.23.1. See ChangeLog for update details.
 #> 
 ```
 
@@ -401,16 +398,14 @@ RxODE can mix ODEs and solved systems.
 ### The following packages for solved PK systems are on CRAN
 
  - [mrgsolve](https://CRAN.R-project.org/package=mrgsolve) currently
-   has 1-2 compartment (super-positioning) models built-in.  The
-   solved systems and ODEs cannot currently be mixed. Since this uses
-   super-positioning, time-varying covariates are not supported.
+   has 1-2 compartment (poly-exponential models) models built-in.  The
+   solved systems and ODEs cannot currently be mixed. 
  - [pmxTools](https://github.com/kestrel99/pmxTools) currently have
    1-3 compartment (super-positioning) models built-in. This is a
-   R-only implementation. Since this uses super-positioning,
-   time-varying covariates are not supported.
+   R-only implementation.
  - [PKPDmodels](https://cran.r-project.org/web/packages/PKPDmodels/index.html)
    has a one-compartment model with gradients. Since this uses
-   super-positioning, time varying covariates are not supported.
+   super-positioning.
 
 ### Non-CRAN libraries:
 

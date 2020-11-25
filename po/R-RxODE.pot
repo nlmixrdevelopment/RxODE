@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: RxODE 1.0.0-0\n"
-"POT-Creation-Date: 2020-11-21 22:59\n"
+"POT-Creation-Date: 2020-11-25 11:28\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -280,7 +280,7 @@ msgstr ""
 msgid "threads (see ?getRxThreads)"
 msgstr ""
 
-msgid "create cache: `rxCreateCache()`; need for some parallel routines"
+msgid "no cache: create with `rxCreateCache()`"
 msgstr ""
 
 msgid "========================================"
@@ -341,6 +341,9 @@ msgid "'df' cannot be 0"
 msgstr ""
 
 msgid "'scale' cannot be 0"
+msgstr ""
+
+msgid "when 'gamma' is not 1, 'tmax' cannot be infinite"
 msgstr ""
 
 msgid "duplicate arguments do not make sense"
