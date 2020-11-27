@@ -156,7 +156,31 @@ double _transit3P(double t, unsigned int id, double n, double mtt){
   return exp(log(_solveData->subjects[id].podo)+lktr+n*(lktr+log(tc))-ktr*(tc)-lgamma1p(n));
 }
 
+double Rx_pow_di(double x, int i) {
+  double ret = R_pow_di(x, i);
+  if (R_FINITE(ret)) return ret;
+  if (&_solveData->safeZero) {
+    if (ret > 0) {
+      return 1e300;
+    } else {
+      return 1e-300;
+    }
+  }
+  return ret;
+}
 
+double Rx_pow(double x, double y) {
+  double ret = R_pow(x, y);
+  if (R_FINITE(ret)) return ret;
+  if (&_solveData->safeZero) {
+    if (ret > 0) {
+      return 1e300;
+    } else {
+      return 1e-300;
+    }
+  }
+  return ret;
+}
 
 void _assignFuns() {
   if (_assign_ptr == NULL){

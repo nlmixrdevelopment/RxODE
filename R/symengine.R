@@ -1475,7 +1475,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
   } else {
     .xc <- as.character(substitute(x))
     x <- substitute(x)
-    if (length(.xc == 1)) {
+    if (length(.xc)  == 1) {
       .found <- FALSE
       .frames <- seq(1, sys.nframe())
       .frames <- .frames[.frames != 0]
@@ -1709,15 +1709,22 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
       identical(x[[1]], quote(`^`)) ||
       identical(x[[1]], quote(`+`)) ||
       identical(x[[1]], quote(`-`)) ||
-      identical(x[[1]], quote(`/`))) {
+        identical(x[[1]], quote(`/`))) {
       if (length(x) == 3) {
         .x1 <- as.character(x[[1]])
         .x2 <- x[[2]]
         .x2 <- .rxFromSE(.x2)
         .x3 <- x[[3]]
         .x3 <- .rxFromSE(.x3)
+        .x3v <- try(eval(parse(text=.x3)), silent=TRUE)
+        if (inherits(.x3v, "numeric")) {
+          .x3 <- paste(.x3v)
+        }
         if (.x1 == "^" && .x3 == "1") {
           return(.x2)
+        }
+        if (.x1 == "^" && .x3 == "-1") {
+          return(paste0("(1/(", .x2, "))"))
         }
         if (.x1 == "^" && is.numeric(x[[3]])) {
           if (round(x[[3]]) == x[[3]]){

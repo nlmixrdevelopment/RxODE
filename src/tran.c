@@ -1004,7 +1004,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   if (nch != 0) {
     int isWhile=0;
     if (nodeHas(power_expression)) {
-      aAppendN("R_pow(_as_dbleps(", 17);
+      aAppendN("Rx_pow(_as_dbleps(", 18);
     }
     for (i = 0; i < nch; i++) {
       if (!rx_syntax_assign  &&
