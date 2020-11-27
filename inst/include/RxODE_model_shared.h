@@ -21,6 +21,8 @@
 #define _as_dbleps2(a) (&_solveData->safeZero && fabs(a) < sqrt(DOUBLE_EPS) ? sqrt(DOUBLE_EPS) : a)
 #define factorial(a) exp(lgamma1p(a))
 #define sign_exp(sgn, x)(((sgn) > 0.0) ? exp(x) : (((sgn) < 0.0) ? -exp(x) : 0.0))
+#define Rx_pow(a, b) R_pow(a, b)
+#define Rx_pow_di(a, b) R_pow_di(a, b)
 #define abs_log1p(x) (((x) + 1.0 > 0.0) ? log1p(x) : (((x) + 1.0 > 0.0) ? log1p(-x) : 0.0))
 #define abs_log(x) ((&_solveData->safeZero && fabs(x) <= sqrt(DOUBLE_EPS)) ? log(sqrt(DOUBLE_EPS)) : (((x) > 0.0) ? log(x) ? (((x) == 0) ? 0.0 : log(-x))))
 #define _IR (_solveData->subjects[_cSub].InfusionRate)
@@ -206,9 +208,6 @@ double _max(unsigned int n, ...);
 double _min(unsigned int n, ...);
 double _transit4P(double t, unsigned int id, double n, double mtt, double bio);
 double _transit3P(double t, unsigned int id, double n, double mtt);
-
-double Rx_pow(double x, double y);
-double Rx_pow_di(double x, int i);
 
 extern _getRxSolve_t _getRxSolve_;
 
