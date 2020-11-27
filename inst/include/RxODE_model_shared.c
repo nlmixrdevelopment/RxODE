@@ -163,7 +163,7 @@ double Rx_pow_di(double x, int i) {
     if (ret > 0) {
       return 1e300;
     } else {
-      return 1e-300;
+      return -1e300;
     }
   }
   return ret;
@@ -176,7 +176,7 @@ double Rx_pow(double x, double y) {
     if (ret > 0) {
       return 1e300;
     } else {
-      return 1e-300;
+      return -1e300;
     }
   }
   return ret;
