@@ -555,7 +555,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "sortIds", (DL_FUNC) &sortIds);
   R_RegisterCCallable("RxODE", "handleTlast", (DL_FUNC) &handleTlast);
   R_RegisterCCallable("RxODE", "rxGetId", (DL_FUNC) &rxGetId);
-  R_RegisetrCCallable("RxODE", "getTime", (DL_FUNC) &getTime);
+  R_RegisterCCallable("RxODE", "getTime", (DL_FUNC) &getTime);
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},
