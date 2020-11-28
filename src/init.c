@@ -327,6 +327,8 @@ SEXP _RxODE_rxrandnV(SEXP, SEXP);
 void simeps(int id);
 void simeta(int id);
 
+double getTime(int idx, rx_solving_options_ind *ind);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
@@ -553,6 +555,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "sortIds", (DL_FUNC) &sortIds);
   R_RegisterCCallable("RxODE", "handleTlast", (DL_FUNC) &handleTlast);
   R_RegisterCCallable("RxODE", "rxGetId", (DL_FUNC) &rxGetId);
+  R_RegisetrCCallable("RxODE", "getTime", (DL_FUNC) &getTime);
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},
