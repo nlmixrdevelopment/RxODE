@@ -4,7 +4,14 @@
 \alias{rxGenSaem}
 \title{Generate pred-only SAEM RxODE model}
 \usage{
-rxGenSaem(obj, predfn, pkpars = NULL, sum.prod = FALSE, optExpression = TRUE)
+rxGenSaem(
+  obj,
+  predfn,
+  pkpars = NULL,
+  sum.prod = FALSE,
+  optExpression = TRUE,
+  loadSymengine = TRUE
+)
 }
 \arguments{
 \item{obj}{RxODE model (text or actual model)}
@@ -18,6 +25,11 @@ to stabilize round off errors}
 
 \item{optExpression}{Boolean for optimizing expression to minimize
 more expensive calls}
+
+\item{loadSymengine}{Boolean indicating if the model should be
+loaded into symengine.  This cause all the ODEs to be collapsed
+into one expression that is eventually optimized if
+\code{optExpression} is \code{TRUE}.}
 }
 \value{
 RxODE text

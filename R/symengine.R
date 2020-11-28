@@ -784,7 +784,7 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
           rxProgressAbort()
         })
         .ret <- paste(lapply(.x2, function(x) {
-          rxTick
+          rxTick()
           .rxToSE(x, envir = envir)
         }), collapse = "\n")
         rxProgressStop()

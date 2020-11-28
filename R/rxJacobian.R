@@ -330,6 +330,69 @@ rxExpandGrid <- function(x, y, type = 0L) {
   .newmod$..extraPars <- .extraPars
   return(.newmod)
 }
+.rxGenSaemHide0 <- function(x) {
+  if (is.name(x) || is.atomic(x)) {
+    return(as.character(x))
+  } else if (is.call(x)) {
+    if (identical(x[[1]], quote(`(`))) {
+      return(paste0("(", .rxGenSaemHide0(x[[2]]), ")"))
+    } else if (identical(x[[1]], quote(`{`))) {
+      return(paste0("{\n", paste(lapply(x[-1], .rxGenSaemHide0), collapse = "\n"), "\n}"))
+    } else if (as.character(x[[1]]) == "if") {
+      if (length(x) == 3) {
+        return(paste0("if (", .rxGenSaemHide0(x[[2]]), ") ", .rxGenSaemHide0(x[[3]])))
+      } else if (length(x) == 4) {
+        return(paste0("if (", .rxGenSaemHide0(x[[2]]), ") ", .rxGenSaemHide0(x[[3]]), " else ", .rxGenSaemHide0(x[[4]])))
+      }
+    } else if (identical(x[[1]], quote(`*`)) ||
+                 identical(x[[1]], quote(`**`)) ||
+                 identical(x[[1]], quote(`^`)) ||
+                 identical(x[[1]], quote(`+`)) ||
+                 identical(x[[1]], quote(`-`)) ||
+                 identical(x[[1]], quote(`/`)) ||
+                 identical(x[[1]], quote(`==`)) ||
+                 identical(x[[1]], quote(`!=`)) ||
+                 identical(x[[1]], quote(`>=`)) ||
+                 identical(x[[1]], quote(`<=`)) ||
+                 identical(x[[1]], quote(`<`)) ||
+                 identical(x[[1]], quote(`>`)) ||
+                 identical(x[[1]], quote(`&&`)) ||
+                 identical(x[[1]], quote(`&`)) ||
+                 identical(x[[1]], quote(`||`)) ||
+                 identical(x[[1]], quote(`|`))
+                 ) {
+      if (length(x) == 3) {
+        return(paste0(.rxGenSaemHide0(x[[2]]),
+                      as.character(x[[1]]),
+                      .rxGenSaemHide0(x[[3]])))
+      } else {
+        ##Unary Operators
+        return(paste(
+          as.character(x[[1]]),
+          .rxGenSaemHide0(x[[2]])
+        ))
+      }
+    } else if (identical(x[[1]], quote(`=`)) ||
+                 identical(x[[1]], quote(`<-`)) ||
+                 identical(x[[1]], quote(`~`))) {
+      .x2 <- .rxGenSaemHide0(x[[2]])
+      if (.x2 == "nlmixr_pred" || regexpr("[(]", .x2) != -1) {
+        return(paste0(.x2, "=",
+                      .rxGenSaemHide0(x[[3]])))
+      } else {
+        return(paste0(.x2, "~",
+                      .rxGenSaemHide0(x[[3]])))
+      }
+    } else {
+      return(paste0(as.character(x[[1]]), "(", paste(unlist(lapply(x[-1], .rxGenSaemHide0)), collapse=", "), ")"))
+    }
+  }
+}
+.rxGenSaemHide <- function(x) {
+  .ret <- strsplit(.rxGenSaemHide0(eval(parse(text=paste0("quote({", x, "})")))), "\n")[[1]]
+  .ret <- .ret[-c(1, length(.ret))]
+  paste(.ret, collapse="\n")
+}
 ##' Generate pred-only SAEM RxODE model
 ##'
 ##' @param obj RxODE model (text or actual model)
@@ -339,13 +402,18 @@ rxExpandGrid <- function(x, y, type = 0L) {
 ##'   to stabilize round off errors
 ##' @param optExpression Boolean for optimizing expression to minimize
 ##'   more expensive calls
+##' @param loadSymengine Boolean indicating if the model should be
+##'   loaded into symengine.  This cause all the ODEs to be collapsed
+##'   into one expression that is eventually optimized if
+##'   \code{optExpression} is \code{TRUE}.
 ##' @return RxODE text
 ##' @author Matthew Fidler
 ##' @export
-rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=TRUE) {
+rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=TRUE,
+                      loadSymengine=TRUE) {
   .digest <- digest::digest(list(rxModelVars(obj)$md5["parsed_md5"],
                                  ifelse(is.function(pkpars), paste(deparse1(body(pkpars)), collapse=""), ""),
-                                 sum.prod, optExpression))
+                                 sum.prod, optExpression, loadSymengine))
   .path <- file.path(rxTempDir(), paste0("saem-", .digest, ".rds"))
   if (file.exists(.path)) {
     .ret <- try(readRDS(.path), silent=TRUE)
@@ -358,31 +426,61 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
   .errfn <- function(){
     return(add(nlmixrAdd))
   }
+  ## FIXME need to check if predfn is nlmixr_pred
   ## Add prop not supplied here, so it doesn't matter what you choose
-  .s <- .rxGenFun(obj, predfn, pkpars, errfn=.errfn,
-                  init=NULL, promoteLinSens=FALSE, full=FALSE)
-  .prd <- get("rx_pred_", envir = .s)
-  .prd <- paste0("rx_pred_=", rxFromSE(.prd))
-  .lhs0 <- .s$..lhs0
-  if (is.null(.lhs0)) .lhs0 <- ""
-  .ddt <- .s$..ddt
-  if (is.null(.ddt)) .ddt <- ""
-  .saem <- paste(c(
-    .s$..stateInfo["state"],
-    .lhs0,
-    .ddt,
-    .prd,
-    .s$..stateInfo["statef"],
-    .s$..stateInfo["dvid"],
-    ""
-  ), collapse = "\n")
-  if (is.null(pkpars)){
-    .mv <- rxModelVars(obj)$params
+  if (loadSymengine) {
+    .s <- .rxGenFun(obj, predfn, pkpars, errfn=.errfn,
+                    init=NULL, promoteLinSens=FALSE, full=FALSE)
+    .prd <- get("rx_pred_", envir = .s)
+    .prd <- paste0("rx_pred_=", rxFromSE(.prd))
+    .lhs0 <- .s$..lhs0
+    if (is.null(.lhs0)) .lhs0 <- ""
+    .ddt <- .s$..ddt
+    if (is.null(.ddt)) .ddt <- ""
+    .saem <- paste(c(
+      .s$..stateInfo["state"],
+      .lhs0,
+      .ddt,
+      .prd,
+      .s$..stateInfo["statef"],
+      .s$..stateInfo["dvid"],
+      ""
+    ), collapse = "\n")
+    if (is.null(pkpars)){
+      .mv <- rxModelVars(obj)$params
+    } else {
+      .mv <- deparse1(body(pkpars))
+      .len <- length(.mv)
+      .mv <- if(.mv[1]=="{") .mv[2:(.len-1)] else .mv
+      .mv <- rxModelVars(paste(.mv, collapse="\n"))$params
+    }
   } else {
-    .mv <- deparse1(body(pkpars))
-    .len <- length(.mv)
-    .mv <- if(.mv[1]=="{") .mv[2:(.len-1)] else .mv
-    .mv <- rxModelVars(paste(.mv, collapse="\n"))$params
+    if (is.null(pkpars)){
+      .mv <- rxModelVars(obj)
+      .state <- .mv$state
+      .mv <- .mv$params
+      .saem <- rxNorm(obj)
+    } else {
+      .mv <- deparse(body(pkpars))
+      .len <- length(.mv)
+      .mv <- if(.mv[1]=="{") .mv[2:(.len-1)] else .mv
+      .pre <- paste(.mv, collapse="\n")
+      .saem <- paste0(.pre, "\n", rxNorm(obj))
+      .mv <- rxModelVars(.saem)
+      .state <- .mv$state
+      .mv <- .mv$params
+    }
+    if (!any(rxModelVars(.saem)$lhs == "nlmixr_pred")) {
+      warning("this was not generated from nlmixr, loading into symengine")
+      return(rxGenSaem(obj=obj, predfn=predfn, pkpars=pkpars, sum.prod=sum.prod, optExpression=optExpression,
+                       loadSymengine=TRUE))
+    }
+    .malert("generate SAEM model")
+    .saem <- .rxGenSaemHide(.saem)
+    .saem <- paste0(ifelse(length(.state) > 0,
+                           paste(paste0("cmt(", .state, ")"), collapse="\n"), ""), "\n",
+                    .saem)
+    .msuccess("done")
   }
   if (sum.prod) {
     .malert("stabilizing round off errors in SAEM model...")
@@ -395,6 +493,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
   .saem <- paste0("params(", paste(.mv, collapse=","), ")\n",
                   .saem)
   saveRDS(.saem, .path)
+
   return(.saem)
 }
 

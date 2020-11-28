@@ -230,6 +230,7 @@ extern linCmtA_p linCmtA;
 extern linCmtA_p linCmtC;
 extern linCmtB_p linCmtB;
 extern _rx_asgn _RxODE_rxAssignPtr;
+extern _rx_asgn _rxQr;
 
 extern RxODE_fn phi;
 extern RxODE_fn3 logit;
