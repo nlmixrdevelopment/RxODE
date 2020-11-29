@@ -5,20 +5,23 @@
   }
 }
 .onLoad <- function(libname, pkgname) { ## nocov start
-  .s3register("pillar::type_sum", "rxEvid")
-  .s3register("pillar::type_sum", "rxRateDur")
-  .s3register("pillar::pillar_shaft", "rxEvid")
-  .s3register("pillar::pillar_shaft", "rxRateDur")
-  .s3register("pillar::type_sum", "units")
-  .s3register("pillar::type_sum", "mixed_units")
-  .s3register("pillar::pillar_shaft", "units")
-  .s3register("pillar::pillar_shaft", "mixed_units")
-  .s3register("pillar::format_type_sum", "type_sum_units")
-  .s3register("tibble::as_tibble", "rxEt")
-  .s3register("data.table::as.data.table", "rxEt")
-
-  ## .s3Register("tibble::as_tibble", "rxEt")
-  ## .s3Register("as.data.table", "rxEt")
+  if (requireNamespace("pillar", quietly = TRUE)) {
+    .s3register("pillar::type_sum", "rxEvid")
+    .s3register("pillar::type_sum", "rxRateDur")
+    .s3register("pillar::pillar_shaft", "rxEvid")
+    .s3register("pillar::pillar_shaft", "rxRateDur")
+    .s3register("pillar::type_sum", "units")
+    .s3register("pillar::type_sum", "mixed_units")
+    .s3register("pillar::pillar_shaft", "units")
+    .s3register("pillar::pillar_shaft", "mixed_units")
+    .s3register("pillar::format_type_sum", "type_sum_units")
+  }
+  if (requireNamespace("tibble", quietly = TRUE)) {
+    .s3register("tibble::as_tibble", "rxEt")
+  }
+  if (requireNamespace("data.table", quietly = TRUE)) {
+    .s3register("data.table::as.data.table", "rxEt")
+  }
   backports::import(pkgname)
   ## Setup RxODE.prefer.tbl
   .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO") == "1")
