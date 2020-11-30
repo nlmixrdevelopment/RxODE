@@ -1594,7 +1594,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		    !strcmp("runif", v) || (isInd = !strcmp("riunif", v))) ||
 		   (isWeibull = !strcmp("rxweibull", v) ||
 		    !strcmp("rweibull", v) || (isInd = !strcmp("riweibull", v)))) {
-	  if (tb.thread != 1) tb.thread = 2;
+	  if (tb.thread != 0) tb.thread = 2;
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 1){
 	    if (isF){
@@ -1685,7 +1685,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		   (isT = !strcmp("rxt", v) ||
 		    !strcmp("rt", v) ||
 		    (isInd = !strcmp("rit", v)))) {
-	  if (tb.thread != 1) tb.thread = 2;
+	  if (tb.thread != 0) tb.thread = 2;
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 1){
 	    sPrint(&_gbuf, _("'%s' takes 1 arguments"), v);
@@ -1749,7 +1749,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		   (isPois= !strcmp("rxpois", v) ||
 		    !strcmp("rpois", v) ||
 		    (isInd = !strcmp("ripois", v)))) {
-	  if (tb.thread != 1) tb.thread = 2;
+	  if (tb.thread != 0) tb.thread = 2;
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 1){
 	    updateSyntaxCol();
@@ -1792,7 +1792,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	} else if (!strcmp("rbinom", v) ||
 		   !strcmp("rxbinom", v) ||
 		   (isInd = !strcmp("ribinom", v))) {
-	  if (tb.thread != 1) tb.thread = 2;
+	  if (tb.thread != 0) tb.thread = 2;
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 2){
 	    updateSyntaxCol();
