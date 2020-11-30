@@ -971,6 +971,7 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
   }
   .ctl$keepI <- .keepI
   .ctl$keepF <- .keepF
+  rxSolveFree()
   .ret <- .collectWarnings(rxSolveSEXP(object, .ctl, .nms, .xtra,
     params, events, inits,
     setupOnlyS = .setupOnly

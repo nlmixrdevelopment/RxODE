@@ -203,6 +203,10 @@ bool rxIs_list(const RObject &obj, std::string cls){
       }
     }
     rx_solve* rx = getRxSolve_();
+    rx->nCov0    = 0;
+    rx->nKeep0   = 0;
+    rx->nKeepF   = 0;
+    rx->op->ncov = 0;
     rx->maxShift = 0.0;
     if (hasDf && (cls == "rx.event" || cls == "event.data.frame")){
       if (classattr[0] == "rxEtTran"){
