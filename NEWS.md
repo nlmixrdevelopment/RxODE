@@ -269,6 +269,18 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   truncated normal `sigma` at the same time as calculating the final
   output values. Before this time, the `sigma` variables are zero.
 
+  All these change to one thread by default to make sure the
+  simulation is reproducible. With high loads/difficult problems the
+  random number generator may be on a different thread and give a
+  different number than another computer/try.
+
+  These numbers are still non-correlated random numbers (based on the
+  sitmo test) with the exception of the vandercorput distributions, so
+  if you increase the number of threads (cores=...) the results should
+  still be valid, though maybe harder to reproduce.  The faster the
+  random number generation, the more likely these results will be
+  reproduced across platforms.
+
 * Added the ability to integrate standard deviations/errors of omega
   diagonals and sigma diagonals.  This is done by specifying the omega
   diagonals in the theta matrix and having them represent the

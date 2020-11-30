@@ -242,6 +242,7 @@ lhs symbols?
   int nwhile;
   int nInd;
   int simflg;
+  int thread;
 } symtab;
 symtab tb;
 
@@ -1122,6 +1123,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
       if (nodeHas(simfun_statement) && i == 0) {
 	i = nch; // done
+	if (tb.thread != 1) tb.thread = 2;
 	sb.o=0;sbDt.o=0; sbt.o=0;
 	D_ParseNode *xpn = d_get_child(pn, 0);
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -1592,6 +1594,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		    !strcmp("runif", v) || (isInd = !strcmp("riunif", v))) ||
 		   (isWeibull = !strcmp("rxweibull", v) ||
 		    !strcmp("rweibull", v) || (isInd = !strcmp("riweibull", v)))) {
+	  if (tb.thread != 1) tb.thread = 2;
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii == 1){
 	    if (isF){
@@ -1682,6 +1685,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		   (isT = !strcmp("rxt", v) ||
 		    !strcmp("rt", v) ||
 		    (isInd = !strcmp("rit", v)))) {
+	  if (tb.thread != 1) tb.thread = 2;
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 1){
 	    sPrint(&_gbuf, _("'%s' takes 1 arguments"), v);
@@ -1745,6 +1749,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		   (isPois= !strcmp("rxpois", v) ||
 		    !strcmp("rpois", v) ||
 		    (isInd = !strcmp("ripois", v)))) {
+	  if (tb.thread != 1) tb.thread = 2;
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 1){
 	    updateSyntaxCol();
@@ -1787,6 +1792,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	} else if (!strcmp("rbinom", v) ||
 		   !strcmp("rxbinom", v) ||
 		   (isInd = !strcmp("ribinom", v))) {
+	  if (tb.thread != 1) tb.thread = 2;
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  if (ii != 2){
 	    updateSyntaxCol();
@@ -3679,6 +3685,7 @@ void reset (){
   tb.idu	= Calloc(MXDER, int);
   tb.lag	= Calloc(MXSYM, int);
   tb.dvid	= Calloc(MXDER, int);
+  tb.thread     = 1; // Thread safe flag
   tb.dvidn      = 0;
   tb.ix		= 0;
   tb.id         = 0;
@@ -3970,7 +3977,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   int *iNeedSort  = INTEGER(sNeedSort);
   iNeedSort[0] = needSort;
 
-  SEXP sLinCmt = PROTECT(allocVector(INTSXP,10));pro++;
+  SEXP sLinCmt = PROTECT(allocVector(INTSXP,11));pro++;
   INTEGER(sLinCmt)[0] = tb.ncmt;
   INTEGER(sLinCmt)[1] = tb.hasKa;
   INTEGER(sLinCmt)[2] = tb.linB;
@@ -3980,8 +3987,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   INTEGER(sLinCmt)[7] = tb.linCmtFlg;
   INTEGER(sLinCmt)[8] = tb.nInd;
   INTEGER(sLinCmt)[9] = tb.simflg;
+  INTEGER(sLinCmt)[10]= tb.thread;
 
-  SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 10));pro++;
+  SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 11));pro++;
   SET_STRING_ELT(sLinCmtN, 0, mkChar("ncmt"));
   SET_STRING_ELT(sLinCmtN, 1, mkChar("ka"));
   SET_STRING_ELT(sLinCmtN, 2, mkChar("linB"));
@@ -3992,6 +4000,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   SET_STRING_ELT(sLinCmtN, 7, mkChar("linCmtFlg"));
   SET_STRING_ELT(sLinCmtN, 8, mkChar("nIndSim"));
   SET_STRING_ELT(sLinCmtN, 9, mkChar("simflg"));
+  SET_STRING_ELT(sLinCmtN, 10, mkChar("thread"));
   setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);
 
   SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;

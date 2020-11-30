@@ -4648,9 +4648,45 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       op->cores = 1;//getRxThreads(1, false);
     } else {
       op->cores = asInt(rxControl[Rxc_cores], "cores");
+      int thread = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_thread];
       if (op->cores == 0) {
-	op->cores = getRxThreads(INT_MAX, false);
-	rxSolveDat->throttle = true;
+	switch (thread) {
+	case 2:
+	  // Thread safe, but possibly not reproducible
+	  warning(_("thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)"));
+	  op->cores = 1;
+	  rxSolveDat->throttle = false;
+	  break;
+	case 1:
+	  // Thread safe, and reproducible
+	  op->cores = getRxThreads(INT_MAX, false);
+	  rxSolveDat->throttle = true;
+	  break;
+	case 0:
+	  // Not thread safe.
+	  warning(_("not thread safe method, using 1 core"));
+	  op->cores = 1;
+	  rxSolveDat->throttle = false;
+	  break;
+	}
+      } else {
+	switch (thread) {
+	case 2:
+	  // Thread safe, but possibly not reproducible
+	  warning(_("thread safe method, but results may depend on system/load"));
+	  break;
+	case 1:
+	  // Thread safe, and reproducible
+	  op->cores = getRxThreads(INT_MAX, false);
+	  rxSolveDat->throttle = true;
+	  break;
+	case 0:
+	  // Not thread safe.
+	  warning(_("not thread safe method, using 1 core"));
+	  op->cores = 1;
+	  rxSolveDat->throttle = false;
+	  break;
+	}
       }
     }
     seedEng(op->cores);
