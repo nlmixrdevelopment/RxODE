@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RxODE 1.0.0-0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-30 15:27-0600\n"
+"POT-Creation-Date: 2020-11-30 16:17-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -209,7 +209,7 @@ msgstr ""
 msgid "no dense output available for %uth component"
 msgstr ""
 
-#: et.cpp:120 rxData.cpp:5316
+#: et.cpp:120 rxData.cpp:5352
 #, c-format
 msgid "partial match of '%s' to '%s'"
 msgstr ""
@@ -1335,46 +1335,60 @@ msgstr ""
 msgid "cannot load RxODE dlls for this model"
 msgstr ""
 
-#: rxData.cpp:4705
+#: rxData.cpp:4656
+msgid ""
+"thread safe method, but results may depend on system/load, using 1 core (can "
+"change with `cores=`)"
+msgstr ""
+
+#: rxData.cpp:4667 rxData.cpp:4685
+msgid "not thread safe method, using 1 core"
+msgstr ""
+
+#: rxData.cpp:4676
+msgid "thread safe method, but results may depend on system/load"
+msgstr ""
+
+#: rxData.cpp:4741
 msgid "'infSSstep' needs to be positive"
 msgstr ""
 
-#: rxData.cpp:4751
+#: rxData.cpp:4787
 msgid "assumed transit compartment model since 'podo' is in the model"
 msgstr ""
 
-#: rxData.cpp:4787
+#: rxData.cpp:4823
 msgid "unknown covariate interpolation specified"
 msgstr ""
 
-#: rxData.cpp:4878
+#: rxData.cpp:4914
 #, c-format
 msgid ""
 "number of parameters (%d) solved by RxODE for multi-subject data needs to be "
 "a multiple of the number of subjects (%d)"
 msgstr ""
 
-#: rxData.cpp:4996
+#: rxData.cpp:5032
 msgid "could not allocate enough memory for solving"
 msgstr ""
 
-#: rxData.cpp:5389
+#: rxData.cpp:5425
 msgid "cannot update nonexistent parameters"
 msgstr ""
 
-#: rxData.cpp:5643
+#: rxData.cpp:5679
 msgid "Can not figure out the RxODE object"
 msgstr ""
 
-#: rxData.cpp:5749 rxData.cpp:5792
+#: rxData.cpp:5785 rxData.cpp:5828
 msgid "can not figure out the DLL for this object"
 msgstr ""
 
-#: rxData.cpp:5975
+#: rxData.cpp:6011
 msgid "package-based models cannot be unloaded"
 msgstr ""
 
-#: rxData.cpp:6022
+#: rxData.cpp:6058
 msgid "package-based models cannot be deleted"
 msgstr ""
 
