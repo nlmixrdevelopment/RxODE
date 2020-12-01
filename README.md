@@ -49,6 +49,8 @@ few key parts:
 
 ## Installation
 
+
+
 You can install the released version of RxODE from
 [CRAN](https://CRAN.R-project.org) with:
 
@@ -109,7 +111,6 @@ development version from
 # install.packages("devtools")
 devtools::install_github("nlmixrdevelopment/RxODE")
 ```
-
 # Illustrated Example
 
 
@@ -136,10 +137,6 @@ mod1 <-RxODE({
 })
 #> 
 #> qs v0.23.4.
-#> → creating RxODE include directory
-#> → getting R compile options
-#> → precompiling headers
-#> ✔ done
 ```
 
 ## Specify ODE parameters and initial conditions
