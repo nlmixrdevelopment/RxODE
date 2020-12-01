@@ -1640,6 +1640,27 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
   return(list(.ret, .env$found))
 }
 
+.rxFromSEnum <- function(x) {
+  .ret <- as.character(x)
+  .retl <- nchar(.ret)
+  if (.retl > 5) {
+    .op <- options()
+    options(digits=22); on.exit(options(.op))
+    .rx <- names(.rxSEcnt)
+    .val <- setNames(.rxSEcnt, NULL)
+    E <- exp(1)
+    for (.i in seq_along(.rx)) {
+      .tmp <- try(eval(parse(text=paste0("substr(paste(",.val[.i], "), 1, .retl)"))), silent=TRUE)
+      if (!inherits(.tmp, "try-error")) {
+        if (.ret == .tmp) {
+          return(.rx[.i])
+        }
+      }
+    }
+  }
+  return(.ret)
+}
+
 ##' @export
 ##' @rdname rxToSE
 .rxFromSE <- function(x) {
@@ -1648,7 +1669,8 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
     paste0("rx_SymPy_Res_", names(.rxSEreserved))
   )
   if (is.name(x) || is.atomic(x)) {
-    .ret <- .rxRepRxQ(as.character(x))
+    .ret <- .rxFromSEnum(x)
+    .ret <- .rxRepRxQ(.ret)
     .ret0 <- .cnst[.ret]
     if (!is.na(.ret0)) {
       return(.ret0)
@@ -1693,6 +1715,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
       )
     )
     .ret <- sub("[(]rx_SymPy_Res_", "(", .ret)
+
     return(.ret)
   } else if (is.call(x)) {
     if (identical(x[[1]], quote(`(`))) {
@@ -1718,7 +1741,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
         .x3 <- .rxFromSE(.x3)
         .x3v <- try(eval(parse(text=.x3)), silent=TRUE)
         if (inherits(.x3v, "numeric")) {
-          .x3 <- paste(.x3v)
+          .x3 <- .rxFromSEnum(.x3v)
         }
         if (.x1 == "^" && .x3 == "1") {
           return(.x2)
@@ -1731,7 +1754,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
             return(paste0("Rx_pow_di(", .x2, ",", .x3, ")"))
           }
           if (.x3 == 0.5) {
-            if (.x2 == "pi"){
+            if (any(.x2 == c("pi", "M_PI"))){
               return("M_SQRT_PI")
             } else if (any(.x2 == c("M_2_PI", "(M_2_PI)"))) {
               return("M_SQRT_2dPI")
@@ -1745,19 +1768,19 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
         .ret <- paste0(.x2, .x1, .x3)
         ## FIXME parsing to figure out if *2 or *0.5 *0.4 is in
         ## expression
-        if (any(.ret == c("pi*2", "2*pi"))) {
+        if (any(.ret == c("pi*2", "2*pi", "M_PI*2", "2*M_PI"))) {
           return("M_2PI")
         }
-        if (any(.ret == c("pi/2", "pi*0.5", "0.5*pi"))) {
+        if (any(.ret == c("pi/2", "pi*0.5", "0.5*pi", "M_PI/2", "M_PI*0.5", "0.5*M_PI"))) {
           return("M_PI_2")
         }
-        if (any(.ret == c("pi/4", "pi*0.25", "0.25*pi"))) {
+        if (any(.ret == c("pi/4", "pi*0.25", "0.25*pi", "M_PI/4", "M_PI*0.25", "0.25*M_PI"))) {
           return("M_PI_4")
         }
-        if (.ret == "1/pi") {
+        if (any(.ret == c("1/pi", "1/M_PI"))) {
           return("M_1_PI")
         }
-        if (.ret == "2/pi") {
+        if (any(.ret == c("2/pi", "2/M_PI"))) {
           return("M_2_PI")
         }
         if (any(.ret == c(
@@ -1769,7 +1792,9 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
         }
         if (any(.ret == c(
           "(pi)^0.5", "(pi)^(1/2)",
-          "pi^0.5", "pi^(1/2)"
+          "pi^0.5", "pi^(1/2)",
+          "(M_PI)^0.5", "(M_PI)^(1/2)",
+          "M_PI^0.5", "M_PI^(1/2)"
         ))) {
           return("M_SQRT_PI")
         }
