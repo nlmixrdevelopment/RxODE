@@ -116,7 +116,8 @@ rxSolve(
   linDiffCentral = c(tlag = TRUE, f = TRUE, rate = TRUE, dur = TRUE, tlag2 = TRUE, f2 =
     TRUE, rate2 = TRUE, dur2 = TRUE),
   resample = NULL,
-  resampleID = TRUE
+  resampleID = TRUE,
+  maxwhile = 1e+05
 )
 
 \method{rxSolve}{default}(object, params = NULL, events = NULL, inits = NULL, ...)
@@ -602,6 +603,9 @@ subject identifier \code{FALSE}.  When \code{resampleID=TRUE}
 correlations of parameters are retained, where as when
 \code{resampleID=FALSE} ignores patient covariate correaltions.
 Hence the default is \code{resampleID=TRUE}.}
+
+\item{maxwhile}{represents the maximum times a while loop is
+evaluated before exiting.  By default this is 100000}
 
 \item{a}{when using \code{solve}, this is equivalent to the
 \code{object} argument.  If you specify \code{object} later in
