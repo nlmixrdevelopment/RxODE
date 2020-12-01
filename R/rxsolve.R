@@ -450,6 +450,9 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 ##'   \code{resampleID=FALSE} ignores patient covariate correaltions.
 ##'   Hence the default is \code{resampleID=TRUE}.
 ##'
+##' @param maxwhile represents the maximum times a while loop is
+##'   evaluated before exiting.  By default this is 100000
+##'
 ##' @references
 ##'
 ##'  "New Scaling and Squaring Algorithm for the Matrix Exponential", by
@@ -534,7 +537,8 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
                     linDiff=c(tlag=1.5e-5, f=1.5e-5, rate=1.5e-5, dur=1.5e-5, tlag2=1.5e-5, f2=1.5e-5, rate2=1.5e-5, dur2=1.5e-5),
                     linDiffCentral=c(tlag=TRUE, f=TRUE, rate=TRUE, dur=TRUE, tlag2=TRUE, f2=TRUE, rate2=TRUE, dur2=TRUE),
                     resample=NULL,
-                    resampleID=TRUE) {
+                    resampleID=TRUE,
+                    maxwhile=100000) {
   if (is.null(object)) {
     .xtra <- list(...)
     if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")) {
@@ -759,6 +763,7 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
       linDiffCentral=linDiffCentral,
       resample=resample,
       resampleID=resampleID,
+      maxwhile=maxwhile,
       cores=cores
     )
     return(.ret)

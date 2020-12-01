@@ -203,11 +203,6 @@ bool rxIs_list(const RObject &obj, std::string cls){
       }
     }
     rx_solve* rx = getRxSolve_();
-    rx->nCov0    = 0;
-    rx->nKeep0   = 0;
-    rx->nKeepF   = 0;
-    rx->op->ncov = 0;
-    rx->maxShift = 0.0;
     if (hasDf && (cls == "rx.event" || cls == "event.data.frame")){
       if (classattr[0] == "rxEtTran"){
 	rxcEvid = 2;
@@ -3992,7 +3987,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   rx->TMP = _globals.TMP =  (int *)malloc(op->cores*UINT16_MAX*sizeof(int)); // used by counting sort (my_n<=65536) in radix_r()
   if (_globals.UGRP != NULL) free(_globals.UGRP);
   _globals.UGRP = NULL;
-  rx->UGRP = _globals.UGRP = (uint8_t *)malloc(op->cores*256); // TODO: align TMP and UGRP to cache lines (and do the same for stack allocations too) 
+  rx->UGRP = _globals.UGRP = (uint8_t *)malloc(op->cores*256); // TODO: align TMP and UGRP to cache lines (and do the same for stack allocations too)
   // Now there is a key per core
 }
 
@@ -4033,6 +4028,9 @@ List rxSolve_df(const RObject &obj,
   if (doTBS) rx->matrix=2;
   if (rx->matrix == 4 || rx->matrix == 5) rx->matrix=2;
   List dat = RxODE_df(doDose, doTBS);
+  if (rx->whileexit) {
+    warning(_("exited from at least one while after %d iterations, (increase with `rxSolve(..., maxwhile=#)`)"), rx->maxwhile);
+  }
   if (!rxIsNull(rxControl[Rxc_drop])) {
     dat = rxDrop(asCv(rxControl[Rxc_drop], "drop"), dat, asBool(rxControl[Rxc_warnDrop], "warnDrop"));
   }
@@ -4583,6 +4581,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   }
   if (rxSolveDat->isRxSolve || rxSolveDat->isEnvironment){
     rx_solve* rx = getRxSolve_();
+    rx->nCov0    = 0;
+    rx->nKeep0   = 0;
+    rx->nKeepF   = 0;
+    rx->op->ncov = 0;
+    rx->maxShift = 0.0;
+    rx->maxwhile = asInt(rxControl[Rxc_maxwhile], "maxwhile");
+    rx->whileexit = 0;
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
     rx->sensType = asInt(rxControl[Rxc_sensType], "sensType");
@@ -4610,6 +4615,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
     rx->sensType = asInt(rxControl[Rxc_sensType], "sensType");
+    rx->nCov0    = 0;
+    rx->nKeep0   = 0;
+    rx->nKeepF   = 0;
+    rx->op->ncov = 0;
+    rx->maxShift = 0.0;
+    rx->maxwhile = asInt(rxControl[Rxc_maxwhile], "maxwhile");
+    rx->whileexit = 0;
     rx_solving_options* op = rx->op;
 #ifdef rxSolveT
     RSprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
@@ -4648,9 +4660,45 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       op->cores = 1;//getRxThreads(1, false);
     } else {
       op->cores = asInt(rxControl[Rxc_cores], "cores");
+      int thread = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_thread];
       if (op->cores == 0) {
-	op->cores = getRxThreads(INT_MAX, false);
-	rxSolveDat->throttle = true;
+	switch (thread) {
+	case 2:
+	  // Thread safe, but possibly not reproducible
+	  warning(_("thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)"));
+	  op->cores = 1;
+	  rxSolveDat->throttle = false;
+	  break;
+	case 1:
+	  // Thread safe, and reproducible
+	  op->cores = getRxThreads(INT_MAX, false);
+	  rxSolveDat->throttle = true;
+	  break;
+	case 0:
+	  // Not thread safe.
+	  warning(_("not thread safe method, using 1 core"));
+	  op->cores = 1;
+	  rxSolveDat->throttle = false;
+	  break;
+	}
+      } else {
+	switch (thread) {
+	case 2:
+	  // Thread safe, but possibly not reproducible
+	  warning(_("thread safe method, but results may depend on system/load"));
+	  break;
+	case 1:
+	  // Thread safe, and reproducible
+	  op->cores = getRxThreads(INT_MAX, false);
+	  rxSolveDat->throttle = true;
+	  break;
+	case 0:
+	  // Not thread safe.
+	  warning(_("not thread safe method, using 1 core"));
+	  op->cores = 1;
+	  rxSolveDat->throttle = false;
+	  break;
+	}
       }
     }
     seedEng(op->cores);

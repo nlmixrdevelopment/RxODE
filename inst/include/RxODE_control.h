@@ -86,7 +86,8 @@
 #define Rxc_linDiffCentral 82
 #define Rxc_resample 83
 #define Rxc_resampleID 84
-#define Rxc_cores 85
+#define Rxc_maxwhile 85
+#define Rxc_cores 86
 #define RxMv_params 0
 #define RxMv_lhs 1
 #define RxMv_state 2
@@ -119,6 +120,7 @@
 #define RxMvFlag_linCmtFlg 7
 #define RxMvFlag_nIndSim 8
 #define RxMvFlag_simflg 9
+#define RxMvFlag_thread 10
 
 #define RxMvTrans_lib_name 0
 #define RxMvTrans_jac 1

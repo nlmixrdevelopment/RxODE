@@ -135,7 +135,11 @@ mod1 <-RxODE({
     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 })
 #> 
-#> qs v0.23.1. See ChangeLog for update details.
+#> qs v0.23.4.
+#> → creating RxODE include directory
+#> → getting R compile options
+#> → precompiling headers
+#> ✔ done
 ```
 
 ## Specify ODE parameters and initial conditions
