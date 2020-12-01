@@ -287,6 +287,7 @@ typedef struct {
   int linKa;
   int linNcmt;
   int maxwhile;
+  int whileexit;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);

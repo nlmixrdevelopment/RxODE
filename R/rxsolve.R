@@ -450,7 +450,7 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 ##'   \code{resampleID=FALSE} ignores patient covariate correaltions.
 ##'   Hence the default is \code{resampleID=TRUE}.
 ##'
-##' @param maxwhere represents the maximum times a where loop is
+##' @param maxwhile represents the maximum times a while loop is
 ##'   evaluated before exiting.  By default this is 100000
 ##'
 ##' @references
@@ -538,7 +538,7 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
                     linDiffCentral=c(tlag=TRUE, f=TRUE, rate=TRUE, dur=TRUE, tlag2=TRUE, f2=TRUE, rate2=TRUE, dur2=TRUE),
                     resample=NULL,
                     resampleID=TRUE,
-                    maxwhere=100000) {
+                    maxwhile=100000) {
   if (is.null(object)) {
     .xtra <- list(...)
     if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")) {
@@ -763,7 +763,7 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
       linDiffCentral=linDiffCentral,
       resample=resample,
       resampleID=resampleID,
-      maxwhere=maxwhere,
+      maxwhile=maxwhile,
       cores=cores
     )
     return(.ret)

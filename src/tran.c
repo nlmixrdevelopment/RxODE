@@ -2314,7 +2314,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sb.o = 0; sbDt.o = 0; sbt.o = 0;
 	if (isWhile) {
 	  sAppendN(&sb, "_itwhile=0;\nwhile (", 19);
-	  sAppendN(&sbDt, "_itwhile=0;while (", 19);
+	  sAppendN(&sbDt, "_itwhile=0;\nwhile (", 19);
 	  sAppendN(&sbt,"while (", 7);
 	  tb.nwhile++;
 	} else {
@@ -2872,8 +2872,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       aType(TLOGIC);
       /* aType(300); */
       if (isWhile) {
-	sAppendN(&sb,   "if (_itwhile > _solveData->maxwhile) break;\n}", 45);
-	sAppendN(&sbDt, "if (_itwhile > _solveData->maxwhile) break;\n}", 45);
+	sAppendN(&sb,   "if (_itwhile > _solveData->maxwhile) {_solveData->whileexit=1;break;}\n}\n", 72);
+	sAppendN(&sbDt, "if (_itwhile > _solveData->maxwhile) {_solveData->whileexit=1;break;}\n}\n", 72);
 	sAppendN(&sbt, "}", 1);
       } else {
 	sAppendN(&sb, "}", 1);

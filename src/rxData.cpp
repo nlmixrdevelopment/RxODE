@@ -4028,6 +4028,9 @@ List rxSolve_df(const RObject &obj,
   if (doTBS) rx->matrix=2;
   if (rx->matrix == 4 || rx->matrix == 5) rx->matrix=2;
   List dat = RxODE_df(doDose, doTBS);
+  if (rx->whileexit) {
+    warning(_("exited from at least one while after %d iterations, (increase with `rxSolve(..., maxwhile=#)`)"), rx->maxwhile);
+  }
   if (!rxIsNull(rxControl[Rxc_drop])) {
     dat = rxDrop(asCv(rxControl[Rxc_drop], "drop"), dat, asBool(rxControl[Rxc_warnDrop], "warnDrop"));
   }
@@ -4584,6 +4587,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->op->ncov = 0;
     rx->maxShift = 0.0;
     rx->maxwhile = asInt(rxControl[Rxc_maxwhile], "maxwhile");
+    rx->whileexit = 0;
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
     rx->sensType = asInt(rxControl[Rxc_sensType], "sensType");
@@ -4617,6 +4621,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->op->ncov = 0;
     rx->maxShift = 0.0;
     rx->maxwhile = asInt(rxControl[Rxc_maxwhile], "maxwhile");
+    rx->whileexit = 0;
     rx_solving_options* op = rx->op;
 #ifdef rxSolveT
     RSprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
