@@ -203,11 +203,6 @@ bool rxIs_list(const RObject &obj, std::string cls){
       }
     }
     rx_solve* rx = getRxSolve_();
-    rx->nCov0    = 0;
-    rx->nKeep0   = 0;
-    rx->nKeepF   = 0;
-    rx->op->ncov = 0;
-    rx->maxShift = 0.0;
     if (hasDf && (cls == "rx.event" || cls == "event.data.frame")){
       if (classattr[0] == "rxEtTran"){
 	rxcEvid = 2;
@@ -3992,7 +3987,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   rx->TMP = _globals.TMP =  (int *)malloc(op->cores*UINT16_MAX*sizeof(int)); // used by counting sort (my_n<=65536) in radix_r()
   if (_globals.UGRP != NULL) free(_globals.UGRP);
   _globals.UGRP = NULL;
-  rx->UGRP = _globals.UGRP = (uint8_t *)malloc(op->cores*256); // TODO: align TMP and UGRP to cache lines (and do the same for stack allocations too) 
+  rx->UGRP = _globals.UGRP = (uint8_t *)malloc(op->cores*256); // TODO: align TMP and UGRP to cache lines (and do the same for stack allocations too)
   // Now there is a key per core
 }
 
@@ -4583,6 +4578,12 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   }
   if (rxSolveDat->isRxSolve || rxSolveDat->isEnvironment){
     rx_solve* rx = getRxSolve_();
+    rx->nCov0    = 0;
+    rx->nKeep0   = 0;
+    rx->nKeepF   = 0;
+    rx->op->ncov = 0;
+    rx->maxShift = 0.0;
+    rx->maxwhile = asInt(rxControl[Rxc_maxwhile], "maxwhile");
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
     rx->sensType = asInt(rxControl[Rxc_sensType], "sensType");
@@ -4610,6 +4611,12 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
     rx->sensType = asInt(rxControl[Rxc_sensType], "sensType");
+    rx->nCov0    = 0;
+    rx->nKeep0   = 0;
+    rx->nKeepF   = 0;
+    rx->op->ncov = 0;
+    rx->maxShift = 0.0;
+    rx->maxwhile = asInt(rxControl[Rxc_maxwhile], "maxwhile");
     rx_solving_options* op = rx->op;
 #ifdef rxSolveT
     RSprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);

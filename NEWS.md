@@ -67,7 +67,10 @@
     in the model and change them by parameters)
   - See Issue #109
 
-* Allow `while(logical)` statements with ability to break out if them by `break`
+* Allow `while(logical)` statements with ability to break out if them
+  by `break`. The while has an escape valve controlled by `maxwhere`
+  which by default is 10000 iterations. It can be change with
+  `rxSolve(..., maxwhere = NNN)`
 
 * Allow accessing different time-varying components of an input
   dataset for each individual with:
