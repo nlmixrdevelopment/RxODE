@@ -95,7 +95,7 @@ rxPermissive(
       )
 
       expect_error(rxRmFun(list("a")))
-      expect_error(rxRmFun("a"))
+      expect_warning(rxRmFun("a"))
 
       rxRmFun("fun")
       expect_error(RxODE("a=fun(d,b,c)"))
