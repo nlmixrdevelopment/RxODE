@@ -58,6 +58,7 @@ few key parts:
 
 ```{r child='man-roxygen/rmdhunks/RxODE-install-hunk.Rmd'}
 ```
+
 # Illustrated Example
 
 ```{r child='man/rmdhunks/RxODE-intro-chunk.Rmd'}

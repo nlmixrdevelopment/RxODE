@@ -388,11 +388,10 @@ compartmental model</p></td>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>An object (closure) of class &#8220;<code>RxODE</code>&#8221; (see Chambers and Temple Lang (2001))
+    <p>An object (environment) of class &#8220;<code>RxODE</code>&#8221; (see Chambers and Temple Lang (2001))
      consisting of the following list of strings and functions:</p>
 <p></p>
-<dt>modName</dt><dd><p>the name of the model (a copy of the input argument).</p></dd>
-    <dt>model</dt><dd><p>a character string holding the source model specification.</p></dd>
+<dt>model</dt><dd><p>a character string holding the source model specification.</p></dd>
     <dt>get.modelVars</dt><dd><p>a function that returns a list with 3 character
         vectors, <code>params</code>, <code>state</code>, and <code>lhs</code> of variable names used in the model
         specification. These will be output when the model is computed (i.e., the ODE solved by integration).</p></dd>
@@ -451,66 +450,126 @@ coding details.  An internal <code>RxODE</code> compilation manager
 object translates the ODE system into C, compiles it, and
 dynamically loads the object code into the current R session.  The
 call to <code>RxODE</code> produces an object of class <code>RxODE</code> which
-consists of a list-like structure (closure) with various member
+consists of a list-like structure (environment) with various member
 functions (see Section <em>Value</em> below).</p>
 <p>For evaluating <code>RxODE</code> models, two types of inputs may be
 provided: a required set of time points for querying the state of
 the ODE system and an optional set of doses (input amounts).  These
 inputs are combined into a single <em>event table</em> object created
-with the function <code><a href='eventTable.html'>eventTable</a></code>.</p>
+with the function <code><a href='eventTable.html'>eventTable</a></code> or <code><a href='et.html'>et</a></code>.</p>
+<p>An <code>RxODE</code> model specification consists of one or more statements
+optionally terminated by semi-colons <code>;</code> and optional comments (comments
+are delimited by <code>#</code> and an end-of-line).</p>
+<p>A block of statements is a set of statements delimited by curly braces,
+<code>{ ... }</code>.</p>
+<p>Statements can be either assignments, conditional <code>if</code>/<code>else if</code>/<code>else</code>,
+<code>while</code> loops (can be exited by <code>break</code>), special statements, or
+printing statements (for debugging/testing)</p>
+<p>Assignment statements can be:</p><ul>
+<li><p><strong>simple</strong> assignments, where the left hand is an identifier (i.e.,
+variable)</p></li>
+<li><p>special <strong>time-derivative</strong> assignments, where the left hand
+specifies the change of the amount in the corresponding state
+variable (compartment) with respect to time e.g., <code>d/dt(depot)</code>:</p></li>
+<li><p>special <strong>initial-condition</strong> assignments where the left hand
+specifies the compartment of the initial condition being specified,
+e.g. <code>depot(0) = 0</code></p></li>
+<li><p>special model event changes including <strong>bioavailability</strong>
+(<code>f(depot)=1</code>), <strong>lag time</strong> (<code>alag(depot)=0</code>), <strong>modeled rate</strong>
+(<code>rate(depot)=2</code>) and <strong>modeled duration</strong> (<code>dur(depot)=2</code>). An
+example of these model features and the event specification for the
+modeled infusions the RxODE data specification is found in <a href='https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html'>RxODE events vignette</a>.</p></li>
+<li><p>special <strong>change point syntax, or model times</strong>. These model times
+are specified by <code>mtime(var)=time</code></p></li>
+<li><p>special <strong>Jacobian-derivative</strong> assignments, where the left hand
+specifies the change in the compartment ode with respect to a
+variable. For example, if <code>d/dt(y) = dy</code>, then a Jacobian for this
+compartment can be specified as <code>df(y)/dy(dy) = 1</code>. There may be
+some advantage to obtaining the solution or specifying the Jacobian
+for very stiff ODE systems. However, for the few stiff systems we
+tried with LSODA, this actually slightly slowed down the solving.</p></li>
+</ul>
+
+<p>Note that assignment can be done by <code><a href='https://rdrr.io/r/base/assignOps.html'>=</a></code>, <code>&lt;-</code> or <code><a href='https://rdrr.io/r/base/tilde.html'>~</a></code>.</p>
+<p>When assigning with the <code><a href='https://rdrr.io/r/base/tilde.html'>~</a></code> operator, the <strong>simple assignments</strong> and
+<strong>time-derivative</strong> assignments will not be output.</p>
+<p>Special statements can be:</p><ul>
+<li><p><strong>Compartment declaration statements</strong>, which can change the default
+dosing compartment and the assumed compartment number(s) as well as
+add extra compartment names at the end (useful for multiple-endpoint
+nlmixr models); These are specified by <code>cmt(compartmentName)</code></p></li>
+<li><p><strong>Parameter declaration statements</strong>, which can make sure the input
+parameters are in a certain order instead of ordering the parameters
+by the order they are parsed. This is useful for keeping the
+parameter order the same when using 2 different ODE models. These
+are specified by <code>param(par1, par2,...)</code></p></li>
+</ul>
+
+<p>An example model is shown below:</p><pre>   <span class='co'># simple assignment</span>
+   <span class='va'>C2</span> <span class='op'>=</span> <span class='va'>centr</span><span class='op'>/</span><span class='va'>V2</span>;
+
+   <span class='co'># time-derivative assignment</span>
+   <span class='va'>d</span><span class='op'>/</span><span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span><span class='op'>(</span><span class='va'>centr</span><span class='op'>)</span> <span class='op'>=</span> <span class='cn'>F</span><span class='op'>*</span><span class='va'>KA</span><span class='op'>*</span><span class='va'>depot</span> <span class='op'>-</span> <span class='va'>CL</span><span class='op'>*</span><span class='va'>C2</span> <span class='op'>-</span> <span class='va'>Q</span><span class='op'>*</span><span class='va'>C2</span> <span class='op'>+</span> <span class='va'>Q</span><span class='op'>*</span><span class='va'>C3</span>; 
+</pre>
+
+<p>Expressions in assignment and <code>if</code> statements can be numeric or logical,
+however, no character nor integer expressions are currently supported.</p>
+<p>Numeric expressions can include the following numeric operators <code>+, -, *, /, ^</code> and those mathematical functions defined in the C or the R math
+libraries (e.g., <code>fabs</code>, <code>exp</code>, <code>log</code>, <code>sin</code>, <code>abs</code>).</p>
+<p>You may also access the R’s functions in the <a href='https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Numerical-analysis-subroutines'>R math libraries</a>,
+like <code>lgammafn</code> for the log gamma function.</p>
+<p>The <code>RxODE</code> syntax is case-sensitive, i.e., <code>ABC</code> is different than
+<code>abc</code>, <code>Abc</code>, <code>ABc</code>, etc.</p><h3 class='hasAnchor' id='arguments'><a class='anchor' href='#arguments'></a>Identifiers</h3>
+
+
+<p>Like R, Identifiers (variable names) may consist of one or more
+alphanumeric, underscore <code>_</code> or period <code>.</code> characters, but the first
+character cannot be a digit or underscore <code>_</code>.</p>
+<p>Identifiers in a model specification can refer to:</p><ul>
+<li><p>State variables in the dynamic system (e.g., compartments in a
+pharmacokinetics model).</p></li>
+<li><p>Implied input variable, <code>t</code> (time), <code>tlast</code> (last time point), and
+<code>podo</code> (oral dose, in the undocumented case of absorption transit
+models).</p></li>
+<li><p>Special constants like <code>pi</code> or <a href='https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Mathematical-constants'>R’s predefined constants</a>.</p></li>
+<li><p>Model parameters (e.g., <code>ka</code> rate of absorption, <code>CL</code> clearance,
+etc.)</p></li>
+<li><p>Others, as created by assignments as part of the model
+specification; these are referred as <em>LHS</em> (left-hand side)
+variable.</p></li>
+</ul>
+
+<p>Currently, the <code>RxODE</code> modeling language only recognizes system state
+variables and “parameters”, thus, any values that need to be passed from
+R to the ODE model (e.g., <code>age</code>) should be either passed in the <code>params</code>
+argument of the integrator function <code><a href='rxControl.html'>rxSolve()</a></code> or be in the supplied
+event data-set.</p>
+<p>There are certain variable names that are in the <code>RxODE</code> event tables.
+To avoid confusion, the following event table-related items cannot be
+assigned, or used as a state but can be accessed in the RxODE code:</p><ul>
+<li><p><code>cmt</code></p></li>
+<li><p><code>dvid</code></p></li>
+<li><p><code>addl</code></p></li>
+<li><p><code>ss</code></p></li>
+<li><p><code>rate</code></p></li>
+<li><p><code>id</code></p></li>
+</ul>
+
+<p>However the following variables are cannot be used in a model
+specification - <code>evid</code> - <code>ii</code></p>
+<p>Sometimes RxODE generates variables that are fed back to RxODE.
+Similarly, nlmixr generates some variables that are used in nlmixr
+estimation and simulation. These variables start with the either the
+<code>rx</code> or <code>nlmixr</code> prefixes. To avoid any problems, it is suggested to not
+use these variables starting with either the <code>rx</code> or <code>nlmixr</code> prefixes.</p>
+<p>The ODE specification mini-language is parsed with the help of the open
+source tool , Plevyak (2015).</p>
+
     <h2 class="hasAnchor" id="rxode-syntax"><a class="anchor" href="#rxode-syntax"></a>RxODE Syntax</h2>
 
     
 
 
-<p>An <code>RxODE</code> model specification consists of one or more
-statements terminated by semi-colons, &#8216;<code>;</code>&#8217;, and
-optional comments (comments are delimited by <code>#</code> and an
-end-of-line marker).  <strong>NB:</strong> Comments are not allowed inside
-statements.</p>
-<p>A block of statements is a set of statements delimited by curly
-braces, &#8216;<code>{ ... }</code>&#8217;. Statements can be either
-assignments or conditional <code>if</code> statements. Assignment
-statements can be: (1) &#8220;simple&#8221; assignments, where the left
-hand is an identifier (i.e., variable), (2) special
-&#8220;time-derivative&#8221; assignments, where the left hand specifies
-the change of that variable with respect to time e.g.,
-<code>d/dt(depot)</code>, or (3) special &#8220;jacobian&#8221; assignments,
-where the left hand specifies the change of of the ODE with respect
-to one of the parameters, e.g. <code>df(depot)/dy(kel)</code>.  The
-&#8220;jacobian&#8221; assignments are not required, and are only useful
-for very stiff differential systems.</p>
-<p>Expressions in assignment and &#8216;<code>if</code>&#8217; statements can be
-numeric or logical (no character expressions are currently
-supported). Numeric expressions can include the following numeric
-operators (&#8216;<code><a href='https://rdrr.io/r/base/Arithmetic.html'>+</a></code>&#8217;, &#8216;<code><a href='https://rdrr.io/r/base/Arithmetic.html'>-</a></code>&#8217;, &#8216;<code><a href='https://rdrr.io/r/base/Arithmetic.html'>*</a></code>&#8217;,
-&#8216;<code><a href='https://rdrr.io/r/base/Arithmetic.html'>/</a></code>&#8217;, &#8216;<code><a href='https://rdrr.io/r/base/Arithmetic.html'>^</a></code>&#8217;), and those mathematical
-functions defined in the C or the R math libraries (e.g.,
-<code>fabs</code>, <code>exp</code>, <code>log</code>, <code>sin</code>).  (Notice that the
-modulo operator &#8216;<code>%</code>&#8217; is currently not supported.)</p>
-<p>Identifiers in an <code>RxODE</code> model specification can refer to:</p><ul>
-<li><p>state variables in the dynamic system (e.g., compartments in a
-         pharmacokinetics/pharamcodynamics model);</p></li>
-<li><p>implied input variable, <code>t</code> (time),
-   <code>podo</code> (oral dose, for absorption models), and
-   <code>tlast</code> (last time point);</p></li>
-<li><p>model parameters, (<code>ka</code> rate of absorption, <code>CL</code>
-       clearance, etc.);</p></li>
-<li><p><code>pi</code>, for the constant pi.</p></li>
-<li><p>others, as created by assignments as part of the model
-         specification.</p></li>
-</ul>
-
-<p>Identifiers consists of case-sensitive alphanumeric characters,
-plus the underscore &#8216;_&#8217; character.  <strong>NB:</strong> the dot
-&#8216;.&#8217; character is <strong>not</strong> a valid character identifier.</p>
-<p>The values of these variables at pre-specified time points are
-saved as part of the fitted/integrated/solved model (see
-<code><a href='eventTable.html'>eventTable</a></code>, in particular its member function
-<code>add.sampling</code> that defines a set of time points at which to
-capture a snapshot of the system via the values of these variables).</p>
-<p>The ODE specification mini-language is parsed with the help of the
-open source tool <code>dparser</code>, Plevyak (2015).</p>
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
     <p>Chamber, J. M. and Temple Lang, D. (2001)
@@ -553,8 +612,8 @@ Springer-Verlag (1993).</p>
 "</span>
 
 <span class='va'>m1</span> <span class='op'>&lt;-</span> <span class='fu'>RxODE</span><span class='op'>(</span>model <span class='op'>=</span> <span class='va'>ode</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='message'> </span></div><div class='output co'>#&gt; <span class='message'>qs v0.23.1. See ChangeLog for update details.</span></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>m1</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>1.0.0-0 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_5ee33bdb7e870885f245c14d9a0fed50</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
+</div><div class='output co'>#&gt; <span class='message'> </span></div><div class='output co'>#&gt; <span class='message'>qs v0.23.4.</span></div><div class='output co'>#&gt; <span class='message'>→ creating RxODE include directory</span></div><div class='output co'>#&gt; <span class='message'>→ getting R compile options</span></div><div class='output co'>#&gt; <span class='message'>→ precompiling headers</span></div><div class='output co'>#&gt; <span class='message'><span style='color: #00BB00;'>✔</span><span> done</span></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>m1</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; </span><span style='font-weight: bold;'>RxODE </span><span>1.0.0-0 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_b3c504d7e6a9f7d44fb822ab67625cfb</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</div><div class='input'>

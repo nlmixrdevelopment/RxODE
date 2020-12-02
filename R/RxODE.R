@@ -94,77 +94,22 @@ R_PosInf <- Inf # nolint
 ##' object translates the ODE system into C, compiles it, and
 ##' dynamically loads the object code into the current R session.  The
 ##' call to \code{RxODE} produces an object of class \code{RxODE} which
-##' consists of a list-like structure (closure) with various member
+##' consists of a list-like structure (environment) with various member
 ##' functions (see Section \emph{Value} below).
 ##'
 ##' For evaluating \code{RxODE} models, two types of inputs may be
 ##' provided: a required set of time points for querying the state of
 ##' the ODE system and an optional set of doses (input amounts).  These
 ##' inputs are combined into a single \emph{event table} object created
-##' with the function \code{\link{eventTable}}.
+##' with the function \code{\link{eventTable}} or \code{\link{et}}.
 ##'
 ##' @section RxODE Syntax:
 ##'
-##' An \code{RxODE} model specification consists of one or more
-##' statements terminated by semi-colons, \sQuote{\code{;}}, and
-##' optional comments (comments are delimited by \code{#} and an
-##' end-of-line marker).  \strong{NB:} Comments are not allowed inside
-##' statements.
+##' @includeRmd man/rmdhunks/RxODE-syntax-hunk.Rmd
 ##'
-##' A block of statements is a set of statements delimited by curly
-##' braces, \sQuote{\code{\{ ... \}}}. Statements can be either
-##' assignments or conditional \code{if} statements. Assignment
-##' statements can be: (1) \dQuote{simple} assignments, where the left
-##' hand is an identifier (i.e., variable), (2) special
-##' \dQuote{time-derivative} assignments, where the left hand specifies
-##' the change of that variable with respect to time e.g.,
-##' \code{d/dt(depot)}, or (3) special \dQuote{jacobian} assignments,
-##' where the left hand specifies the change of of the ODE with respect
-##' to one of the parameters, e.g. \code{df(depot)/dy(kel)}.  The
-##' \dQuote{jacobian} assignments are not required, and are only useful
-##' for very stiff differential systems.
-##'
-##' Expressions in assignment and \sQuote{\code{if}} statements can be
-##' numeric or logical (no character expressions are currently
-##' supported). Numeric expressions can include the following numeric
-##' operators (\sQuote{\code{+}}, \sQuote{\code{-}}, \sQuote{\code{*}},
-##' \sQuote{\code{/}}, \sQuote{\code{^}}), and those mathematical
-##' functions defined in the C or the R math libraries (e.g.,
-##' \code{fabs}, \code{exp}, \code{log}, \code{sin}).  (Notice that the
-##' modulo operator \sQuote{\code{\%}} is currently not supported.)
-##'
-##' Identifiers in an \code{RxODE} model specification can refer to:
-##' \itemize{
-##'    \item state variables in the dynamic system (e.g., compartments in a
-##'          pharmacokinetics/pharamcodynamics model);
-##'    \item implied input variable, \code{t} (time),
-##'    \code{podo} (oral dose, for absorption models), and
-##'    \code{tlast} (last time point);
-##'    \item model parameters, (\code{ka} rate of absorption, \code{CL}
-##'        clearance, etc.);
-##'    \item \code{pi}, for the constant pi.
-##'    \item others, as created by assignments as part of the model
-##'          specification.
-##' }
-##'
-##' Identifiers consists of case-sensitive alphanumeric characters,
-##' plus the underscore \sQuote{_} character.  \strong{NB:} the dot
-##' \sQuote{.} character is \strong{not} a valid character identifier.
-##'
-##' The values of these variables at pre-specified time points are
-##' saved as part of the fitted/integrated/solved model (see
-##' \code{\link{eventTable}}, in particular its member function
-##' \code{add.sampling} that defines a set of time points at which to
-##' capture a snapshot of the system via the values of these variables).
-##'
-##' The ODE specification mini-language is parsed with the help of the
-##' open source tool \code{dparser}, Plevyak (2015).
-##'
-##'
-##' @return An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang (2001))
+##' @return An object (environment) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang (2001))
 ##'      consisting of the following list of strings and functions:
 ##'
-##'     \item{modName}{the name of the model (a copy of the input argument).}
 ##'     \item{model}{a character string holding the source model specification.}
 ##'     \item{get.modelVars}{a function that returns a list with 3 character
 ##'         vectors, \code{params}, \code{state}, and \code{lhs} of variable names used in the model

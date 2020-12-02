@@ -372,7 +372,8 @@ solve a ODE system.</p>
   linDiffCentral <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span>tlag <span class='op'>=</span> <span class='cn'>TRUE</span>, f <span class='op'>=</span> <span class='cn'>TRUE</span>, rate <span class='op'>=</span> <span class='cn'>TRUE</span>, dur <span class='op'>=</span> <span class='cn'>TRUE</span>, tlag2 <span class='op'>=</span> <span class='cn'>TRUE</span>, f2 <span class='op'>=</span>
     <span class='cn'>TRUE</span>, rate2 <span class='op'>=</span> <span class='cn'>TRUE</span>, dur2 <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>,
   resample <span class='op'>=</span> <span class='cn'>NULL</span>,
-  resampleID <span class='op'>=</span> <span class='cn'>TRUE</span>
+  resampleID <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  maxwhile <span class='op'>=</span> <span class='fl'>1e+05</span>
 <span class='op'>)</span>
 
 <span class='co'># S3 method for default</span>
@@ -1026,6 +1027,11 @@ subject identifier <code>FALSE</code>.  When <code>resampleID=TRUE</code>
 correlations of parameters are retained, where as when
 <code>resampleID=FALSE</code> ignores patient covariate correaltions.
 Hence the default is <code>resampleID=TRUE</code>.</p></td>
+    </tr>
+    <tr>
+      <th>maxwhile</th>
+      <td><p>represents the maximum times a while loop is
+evaluated before exiting.  By default this is 100000</p></td>
     </tr>
     <tr>
       <th>a</th>

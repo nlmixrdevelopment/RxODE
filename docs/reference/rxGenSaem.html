@@ -272,7 +272,14 @@
     <p>Generate pred-only SAEM RxODE model</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rxGenSaem</span><span class='op'>(</span><span class='va'>obj</span>, <span class='va'>predfn</span>, pkpars <span class='op'>=</span> <span class='cn'>NULL</span>, sum.prod <span class='op'>=</span> <span class='cn'>FALSE</span>, optExpression <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>rxGenSaem</span><span class='op'>(</span>
+  <span class='va'>obj</span>,
+  <span class='va'>predfn</span>,
+  pkpars <span class='op'>=</span> <span class='cn'>NULL</span>,
+  sum.prod <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  optExpression <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  loadSymengine <span class='op'>=</span> <span class='cn'>TRUE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -298,6 +305,13 @@ to stabilize round off errors</p></td>
       <th>optExpression</th>
       <td><p>Boolean for optimizing expression to minimize
 more expensive calls</p></td>
+    </tr>
+    <tr>
+      <th>loadSymengine</th>
+      <td><p>Boolean indicating if the model should be
+loaded into symengine.  This cause all the ODEs to be collapsed
+into one expression that is eventually optimized if
+<code>optExpression</code> is <code>TRUE</code>.</p></td>
     </tr>
     </table>
 
