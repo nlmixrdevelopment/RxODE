@@ -299,7 +299,9 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 
 * Added lower gamma functions See Issue #185
 
-* Removed timsort and changed to a modified radix sort from
+* Upgraded comparison sort to timsort 2.0.1
+
+* Changed in-place sort to a modified radix sort from
   `data.table`.  The radix search was modified to:
  - Work directly with `RxODE` internal solved structures
  - Assume no infinite values or `NA`/`NaN` values of time

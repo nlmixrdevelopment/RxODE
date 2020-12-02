@@ -2,7 +2,8 @@
 #include <RcppArmadillo.h>
 #include <algorithm>
 #include "../inst/include/RxODE.h"
-#define SORT std::sort
+#include "timsort.h"
+#define SORT gfx::timsort
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
