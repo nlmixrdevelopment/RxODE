@@ -1,10 +1,9 @@
 rxPermissive(
   {
-    for (radi in 1:3) {
+    for (radi in 1:2) {
 
-      rxUseRadixSort(switch(radi, FALSE, TRUE, TRUE))
-      RxODE:::forderForceBase(switch(radi, FALSE, TRUE, FALSE))
-      radix <- switch(radi, "timsort", "base::order", "data.table::forder")
+      RxODE:::forderForceBase(switch(radi, TRUE, FALSE))
+      radix <- switch(radi, "base::order", "data.table::forder")
       context(sprintf("etTrans checks (radix: %s)", radix))
       rxSetIni0(FALSE)
 
