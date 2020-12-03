@@ -209,10 +209,12 @@ during one call to the solver. (5000 by default)}
 value is 0.}
 
 \item{hmax}{The maximum absolute step size allowed.  When
-\code{hmax=NA} (default), uses the average difference (+hmaxSd*sd) in times
-and sampling events. When \code{hmax=NULL} RxODE uses the
-maximum difference in times in your sampling and events.  The
-value 0 is equivalent to infinite maximum absolute step size.}
+\code{hmax=NA} (default), uses the average difference +
+hmaxSd*sd in times and sampling events. The \code{hmaxSd} is a user
+specified parameter and which defaults to zero.  When
+\code{hmax=NULL} RxODE uses the maximum difference in times in
+your sampling and events.  The value 0 is equivalent to infinite
+maximum absolute step size.}
 
 \item{hmaxSd}{The number of standard deviations of the time
 difference to add to hmax. The default is 0}
@@ -237,10 +239,10 @@ is equivalent to calling \code{\link{setRxThreads}}}
     interpolated.  Currently this can be:
 
 \itemize{
-\item \code{"linear"} interpolation (the default), which interpolates the covariate
+\item \code{"linear"} interpolation, which interpolates the covariate
     by solving the line between the observed covariates and extrapolating the new
     covariate value.
-\item \code{"constant"} -- Last observation carried forward.
+\item \code{"constant"} -- Last observation carried forward (the default).
 \item \code{"NOCB"} -- Next Observation Carried Backward.  This is the same method
       that NONMEM uses.
 \item \code{"midpoint"} Last observation carried forward to midpoint; Next observation
@@ -275,7 +277,7 @@ what the number of cores are used in threaded ODE solving.}
 \item{sigmaIsChol}{Boolean indicating if the sigma is in the
 Cholesky decomposition instead of a symmetric covariance}
 
-\item{sigmaSeparation}{@template separation}
+\item{sigmaSeparation}{separation strategy for sigma;}
 
 \item{sigmaXform}{When taking \code{sigma} values from the @template Xform}
 
@@ -322,9 +324,9 @@ added to parameters}
     \code{FALSE}). When \code{addDosing} is \code{NULL}, only
     include \code{EVID=0} on solve and exclude any model-times or
     \code{EVID=2}. If \code{addDosing} is \code{NA} the classic
-    \code{RxODE} EVID events. When \code{addDosing} is \code{TRUE}
+    \code{RxODE} EVID events are returned. When \code{addDosing} is \code{TRUE}
     add the event information in NONMEM-style format; If
-    \code{subsetNonmem=FALSE} RxODE will also extra event types
+    \code{subsetNonmem=FALSE} RxODE will also include extra event types
     (\code{EVID}) for ending infusion and modeled times:
 
 \itemize{
@@ -636,6 +638,22 @@ An \dQuote{rxSolve} solve object that stores the solved
 \description{
 This uses RxODE family of objects, file, or model specification to
 solve a ODE system.
+
+\code{"lkj"} simulates the correlation matrix from the
+\code{rLKJ1} matrix with the distribution parameter \code{eta}
+equal to the degrees of freedom \code{nu} by \code{(nu-1)/2}
+}
+\details{
+\code{"separation"} simulates from the identity inverse Wishart
+covariance matrix with \code{nu} degrees of freedom.  This is then
+converted to a covariance matrix and augmented with the modeled
+standard deviations.  While computationally more complex than the
+\code{"lkj"} prior, it performs better when the covariance matrix
+size is greater or equal to 10
+
+\code{"auto"} chooses \code{"lkj"} when the dimension of the
+matrix is less than 10 and \code{"separation"} when greater
+than equal to 10.
 }
 \references{
 "New Scaling and Squaring Algorithm for the Matrix Exponential", by

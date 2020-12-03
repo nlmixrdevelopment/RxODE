@@ -23,9 +23,10 @@ your own R session; They are built into Rstudio 1.3 and can be run
 from any R session by:
 
 ```
-learnr::run_tutorial("tutorial", "RxODE")
-```
+## RxODE Syntax
+learnr::run_tutorial("RxODE00syntax", "RxODE")
 
-Here are the current tutorials:
-- RxODE syntax `learnr::run_tutorial("RxODE00syntax", "RxODE")`
-- RxODE event tables `learnr::run_tutorial("RxODevents", "RxODE")`
+## RxODE event tables 
+
+learnr::run_tutorial("RxODevents", "RxODE")
+```

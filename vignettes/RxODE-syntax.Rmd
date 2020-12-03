@@ -47,7 +47,7 @@ describes the communication of variables between `R` and the
 
 ## Syntax
 
-```{r child='man/rmdhunks/RxODE-syntax-hunk.Rmd'}
+```{r child='../man/rmdhunks/RxODE-syntax-hunk.Rmd'}
 ```
 
 

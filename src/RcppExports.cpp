@@ -257,17 +257,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rxUseRadixSort
-bool rxUseRadixSort(bool useRadix);
-RcppExport SEXP _RxODE_rxUseRadixSort(SEXP useRadixSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< bool >::type useRadix(useRadixSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxUseRadixSort(useRadix));
-    return rcpp_result_gen;
-END_RCPP
-}
 // etTrans
 List etTrans(List inData, const RObject& obj, bool addCmt, bool dropUnits, bool allTimeVar, bool keepDosingOnly, Nullable<LogicalVector> combineDvid, CharacterVector keep);
 RcppExport SEXP _RxODE_etTrans(SEXP inDataSEXP, SEXP objSEXP, SEXP addCmtSEXP, SEXP dropUnitsSEXP, SEXP allTimeVarSEXP, SEXP keepDosingOnlySEXP, SEXP combineDvidSEXP, SEXP keepSEXP) {

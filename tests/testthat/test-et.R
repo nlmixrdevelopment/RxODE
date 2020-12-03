@@ -1,11 +1,10 @@
 require(dplyr)
 rxPermissive(
   {
-    for (radi in c(1, 2, 3)) {
-      rxUseRadixSort(switch(radi, FALSE, TRUE, TRUE))
-      RxODE:::forderForceBase(switch(radi, FALSE, TRUE, FALSE))
-      radix <- switch(radi, "timsort", "base::order", "data.table::forder")
-      context(sprintf("Test event Table et(...) radix:%s", radix))
+    for (radi in c(1, 2)) {
+      RxODE:::forderForceBase(switch(radi, TRUE, FALSE))
+      radix <- switch(radi, "base::order", "data.table::forder")
+      context(sprintf("Test event Table et(...) sort:%s", radix))
       library(units)
       library(dplyr)
 

@@ -457,6 +457,9 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 ##' @param maxwhile represents the maximum times a while loop is
 ##'   evaluated before exiting.  By default this is 100000
 ##'
+##'
+##'
+##'
 ##' @references
 ##'
 ##'  "New Scaling and Squaring Algorithm for the Matrix Exponential", by

@@ -24,9 +24,7 @@ to solve the RxODE object.}
  Currently, events can be of two types: dosing events that represent
  inputs to the system and sampling time events that represent
  observations of the system with \sQuote{amount.units} and
- \sQuote{time.units}, respectively. In the future, additional events
- may include resetting of state variables (compartments), for
- instance, to indicate time after \dQuote{wash-out}, etc.}
+ \sQuote{time.units}, respectively.}
 }
 \value{
 A modified data.frame with the following accessible functions:

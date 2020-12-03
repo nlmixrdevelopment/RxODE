@@ -68,7 +68,6 @@ SEXP _RxODE_dynLoad(SEXP dllSEXP);
 SEXP _RxODE_rxOptRep_(SEXP);
 SEXP _RxODE_rxIndLin_(SEXP);
 SEXP _rxParProgress(SEXP);
-SEXP _RxODE_rxUseRadixSort(SEXP);
 SEXP _RxODE_forderForceBase(SEXP);
 SEXP _RxODE_rxRmvn_(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxCholperm(SEXP, SEXP, SEXP, SEXP);
@@ -401,7 +400,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxUnlock", (DL_FUNC) &_RxODE_rxUnlock, 1},
     {"_RxODE_rxAllowUnload", (DL_FUNC) &_RxODE_rxAllowUnload, 1},
     {"_rxParProgress", (DL_FUNC) &_rxParProgress, 1},
-    {"_RxODE_rxUseRadixSort", (DL_FUNC) &_RxODE_rxUseRadixSort, 1},
     {"_RxODE_forderForceBase", (DL_FUNC) &_RxODE_forderForceBase, 1},
     {"_RxODE_rLKJ1", (DL_FUNC) &_RxODE_rLKJ1, 3},
     {"_RxODE_rLKJcv1", (DL_FUNC) &_RxODE_rLKJcv1, 2},

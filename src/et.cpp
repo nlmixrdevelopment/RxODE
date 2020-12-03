@@ -41,8 +41,6 @@ NumericVector setUnits(NumericVector obj, std::string unit){
 
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 
-extern bool useRadix();
-
 //[[Rcpp::export]]
 CharacterVector etDollarNames(RObject obj){
   if (rxIs(obj,"rxEt")){
@@ -320,38 +318,21 @@ List etSort(List& curEt){
   std::copy(curEvid.begin(), curEvid.end(), std::back_inserter(evid));
   std::vector<int> idx(id.size());
   Environment b=Rcpp::Environment::base_namespace();
-  if (useRadix()){
-    IntegerVector ivId=wrap(id);
-    NumericVector nvTime=wrap(time);
-    IntegerVector ivEvid=wrap(evid);
-    Function order = getForder();
-    IntegerVector ord;
-    if (useForder()){
-      ord = order(ivId, nvTime, ivEvid,
-		  _["na.last"] = LogicalVector::create(NA_LOGICAL));
-    } else {
-      ord = order(ivId, nvTime, ivEvid,
-		  _["na.last"] = LogicalVector::create(NA_LOGICAL),
-		  _["method"]="radix");
-    }
-    ord = ord - 1;
-    idx = as<std::vector<int>>(ord);
+  IntegerVector ivId=wrap(id);
+  NumericVector nvTime=wrap(time);
+  IntegerVector ivEvid=wrap(evid);
+  Function order = getForder();
+  IntegerVector ord;
+  if (useForder()){
+    ord = order(ivId, nvTime, ivEvid,
+		_["na.last"] = LogicalVector::create(NA_LOGICAL));
   } else {
-    std::iota(idx.begin(),idx.end(),0);
-    SORT(idx.begin(),idx.end(),
-	 [id,time,evid](int a, int b){
-	   if (id[a] == id[b]){
-	     if (time[a] == time[b]){
-	       if (evid[a] == evid[b]){
-		 return a < b;
-	       }
-	       return evid[a] < evid[b];
-	     }
-	     return time[a] < time[b];
-	   }
-	   return id[a] < id[b];
-	 });
+    ord = order(ivId, nvTime, ivEvid,
+		_["na.last"] = LogicalVector::create(NA_LOGICAL),
+		_["method"]="radix");
   }
+  ord = ord - 1;
+  idx = as<std::vector<int>>(ord);
   List newEt(curEt.size());
   int i, j, newSize = time.size();
   IntegerVector tmpI, tmpI2;
@@ -485,38 +466,21 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
       nobs++;
     }
   }
-  if (useRadix()){
-    IntegerVector ivId=wrap(id);
-    NumericVector nvTime=wrap(time);
-    IntegerVector ivEvid=wrap(evid);
-    Function order = getForder();
-    IntegerVector ord;
-    if (useForder()){
-      ord = order(ivId, nvTime, ivEvid,
-		  _["na.last"] = LogicalVector::create(NA_LOGICAL));
-    } else {
-      ord = order(ivId, nvTime, ivEvid,
-		  _["na.last"] = LogicalVector::create(NA_LOGICAL),
-		  _["method"]="radix");
-    }
-    ord = ord - 1;
-    idx = as<std::vector<int>>(ord);
+  IntegerVector ivId=wrap(id);
+  NumericVector nvTime=wrap(time);
+  IntegerVector ivEvid=wrap(evid);
+  Function order = getForder();
+  IntegerVector ord;
+  if (useForder()){
+    ord = order(ivId, nvTime, ivEvid,
+		_["na.last"] = LogicalVector::create(NA_LOGICAL));
   } else {
-    std::iota(idx.begin(),idx.end(),0);
-    SORT(idx.begin(),idx.end(),
-       [id,time,evid](int a, int b){
-	 if (id[a] == id[b]){
-	   if (time[a] == time[b]){
-	     if (evid[a] == evid[b]){
-	       return a < b;
-	     }
-	     return evid[a] < evid[b];
-	   }
-	   return time[a] < time[b];
-	 }
-	 return id[a] < id[b];
-       });
+    ord = order(ivId, nvTime, ivEvid,
+		_["na.last"] = LogicalVector::create(NA_LOGICAL),
+		_["method"]="radix");
   }
+  ord = ord - 1;
+  idx = as<std::vector<int>>(ord);
   List lst(curEt.size());
   IntegerVector tmpI = asIv(curEt["id"], "curEt[\"id\"]"), tmpI2;
   NumericVector tmpN, tmpN2;
@@ -1491,38 +1455,21 @@ List etExpandAddl(List curEt){
     }
   }
   std::vector<int> idx(time.size());
-  if (useRadix()){
-    IntegerVector ivId=wrap(id);
-    NumericVector nvTime=wrap(time);
-    IntegerVector ivEvid=wrap(evid);
-    Function order = getForder();
-    IntegerVector ord;
-    if (useForder()){
-      ord = order(ivId, nvTime, ivEvid,
-		  _["na.last"] = LogicalVector::create(NA_LOGICAL));
-    } else {
-      ord = order(ivId, nvTime, ivEvid,
-		  _["na.last"] = LogicalVector::create(NA_LOGICAL),
-		  _["method"]="radix");
-    }
-    ord = ord - 1;
-    idx = as<std::vector<int>>(ord);
+  IntegerVector ivId=wrap(id);
+  NumericVector nvTime=wrap(time);
+  IntegerVector ivEvid=wrap(evid);
+  Function order = getForder();
+  IntegerVector ord;
+  if (useForder()){
+    ord = order(ivId, nvTime, ivEvid,
+		_["na.last"] = LogicalVector::create(NA_LOGICAL));
   } else {
-    std::iota(idx.begin(),idx.end(),0);
-    SORT(idx.begin(),idx.end(),
-	 [id,time,evid](int a, int b){
-	   if (id[a] == id[b]){
-	     if (time[a] == time[b]){
-	       if (evid[a] == evid[b]){
-		 return a < b;
-	       }
-	       return evid[a] < evid[b];
-	     }
-	     return time[a] < time[b];
-	   }
-	   return id[a] < id[b];
-	 });
+    ord = order(ivId, nvTime, ivEvid,
+		_["na.last"] = LogicalVector::create(NA_LOGICAL),
+		_["method"]="radix");
   }
+  ord = ord - 1;
+  idx = as<std::vector<int>>(ord);
   List lst(curEt.size());
 
   lst.attr("names") = curEt.attr("names");
@@ -1690,38 +1637,21 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
     }
   }
   std::vector<int> idx(time.size());
-  if (useRadix()){
-    IntegerVector ivId=wrap(id);
-    NumericVector nvTime=wrap(time);
-    IntegerVector ivEvid=wrap(evid);
-    Function order = getForder();
-    IntegerVector ord;
-    if (useForder()){
-      ord = order(ivId, nvTime, ivEvid,
-		  _["na.last"] = LogicalVector::create(NA_LOGICAL));
-    } else {
-      ord = order(ivId, nvTime, ivEvid,
-		  _["na.last"] = LogicalVector::create(NA_LOGICAL),
-		  _["method"]="radix");
-    }
-    ord = ord - 1;
-    idx = as<std::vector<int>>(ord);
+  IntegerVector ivId=wrap(id);
+  NumericVector nvTime=wrap(time);
+  IntegerVector ivEvid=wrap(evid);
+  Function order = getForder();
+  IntegerVector ord;
+  if (useForder()){
+    ord = order(ivId, nvTime, ivEvid,
+		_["na.last"] = LogicalVector::create(NA_LOGICAL));
   } else {
-    std::iota(idx.begin(),idx.end(),0);
-    SORT(idx.begin(),idx.end(),
-	 [id,time,evid](int a, int b){
-	   if (id[a] == id[b]){
-	     if (time[a] == time[b]){
-	       if (evid[a] == evid[b]){
-		 return a < b;
-	       }
-	       return evid[a] < evid[b];
-	     }
-	     return time[a] < time[b];
-	   }
-	   return id[a] < id[b];
-	 });
+    ord = order(ivId, nvTime, ivEvid,
+		_["na.last"] = LogicalVector::create(NA_LOGICAL),
+		_["method"]="radix");
   }
+  ord = ord - 1;
+  idx = as<std::vector<int>>(ord);
 
   List lst(curEt.size());
   IntegerVector tmpI = asIv(curEt["id"], "curEt[\"id\"]"), tmpI2;
@@ -3374,37 +3304,21 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
     }
   }
   if (needSort){
-    if (useRadix()){
-      IntegerVector ivId=wrap(id);
-      NumericVector nvTime=wrap(time);
-      IntegerVector ivEvid=wrap(evid);
-      Function order = getForder();
-      IntegerVector ord;
-      if (useForder()){
-	ord = order(ivId, nvTime, ivEvid,
-		    _["na.last"] = LogicalVector::create(NA_LOGICAL));
-      } else {
-	ord = order(ivId, nvTime, ivEvid,
-		    _["na.last"] = LogicalVector::create(NA_LOGICAL),
-		    _["method"]="radix");
-      }
-      ord = ord - 1;
-      idx = as<std::vector<int>>(ord);
+    IntegerVector ivId=wrap(id);
+    NumericVector nvTime=wrap(time);
+    IntegerVector ivEvid=wrap(evid);
+    Function order = getForder();
+    IntegerVector ord;
+    if (useForder()){
+      ord = order(ivId, nvTime, ivEvid,
+		  _["na.last"] = LogicalVector::create(NA_LOGICAL));
     } else {
-      SORT(idx.begin(),idx.end(),
-	   [id,time,evid](int a, int b){
-	     if (id[a] == id[b]){
-	       if (time[a] == time[b]){
-		 if (evid[a] == evid[b]){
-		   return a < b;
-		 }
-		 return evid[a] < evid[b];
-	       }
-	       return time[a] < time[b];
-	     }
-	     return id[a] < id[b];
-	   });
+      ord = order(ivId, nvTime, ivEvid,
+		  _["na.last"] = LogicalVector::create(NA_LOGICAL),
+		  _["method"]="radix");
     }
+    ord = ord - 1;
+    idx = as<std::vector<int>>(ord);
   }
   if (!gotUnits){
     stop(_("no events table found for 'seq'/'rep'/'rbind'/'c'"));

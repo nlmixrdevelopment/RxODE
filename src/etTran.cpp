@@ -322,27 +322,6 @@ bool rxSetIni0(bool ini0 = true){
 extern void setFkeep(List keep);
 IntegerVector convertMethod(RObject method);
 
-bool useRadix_=true;
-
-extern bool useRadix(){
-  return useRadix_;
-}
-
-//' Use Radix Sort when possible
-//'
-//' By default RxODE uses radix sort when possible.
-//'
-//' @param useRadix Use \code{order} with \code{method} = \code{radix}
-//'   when appropriate.  Otherwise use \code{timsort}.
-//'
-//' @export
-//' @author Matthew Fidler
-//[[Rcpp::export]] 
-bool rxUseRadixSort(bool useRadix = true){
-  useRadix_=useRadix;
-  return useRadix_;
-}
-
 SEXP convertId_(SEXP x);
 bool warnedNeg=false;
 //' Event translation for RxODE
@@ -1546,90 +1525,47 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   RSprintf("  Time7: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
 #endif
-  if (useRadix_){
-    IntegerVector ivId = wrap(id);
-    NumericVector nvTime = wrap(time);
-    IntegerVector ivEvid = clone(wrap(evid));
-    if (!keepDosingOnly && doseId.size() > 0){
-#define sortID if (ivEvid[j]==3){ \
-	  ivEvid[j] = NA_INTEGER+1; \
-	} else if (amt[j] == 0){ \
-	   ivEvid[j] = NA_INTEGER+2; \
-	} else { \
-	  ivEvid[j] = -ivEvid[j]; \
-	}
-      for (int j = ivId.size(); j--; ){
-	if (!(std::find(doseId.begin(), doseId.end(), ivId[j]) == doseId.end())){
-	  ivId[j] = NA_INTEGER; // Drop
-	}
-	// Duplicated below for speed.
-	sortID
-      }
-    } else {
-      for (int j = ivEvid.size(); j--; ){
-	sortID
-      }
+  IntegerVector ivId = wrap(id);
+  NumericVector nvTime = wrap(time);
+  IntegerVector ivEvid = clone(wrap(evid));
+  if (!keepDosingOnly && doseId.size() > 0){
+#define sortID if (ivEvid[j]==3){		\
+      ivEvid[j] = NA_INTEGER+1;			\
+    } else if (amt[j] == 0){			\
+      ivEvid[j] = NA_INTEGER+2;			\
+    } else {					\
+      ivEvid[j] = -ivEvid[j];			\
     }
-#undef sortID
-    Function order = getForder();
-    IntegerVector ord;
-    if (useForder()){
-      ord = order(ivId, nvTime, ivEvid,
-		  _["na.last"] = LogicalVector::create(true));
-      ord = ord - 1;
-      // na.last isn't =NA isn't quite working
-      idxO = as<std::vector<int>>(ord);
-      while (idxO.size() > 0 && IntegerVector::is_na(ivId[idxO.back()])){
-	idxO.pop_back();
+    for (int j = ivId.size(); j--; ){
+      if (!(std::find(doseId.begin(), doseId.end(), ivId[j]) == doseId.end())){
+	ivId[j] = NA_INTEGER; // Drop
       }
-    } else {
-      ord = order(ivId, nvTime, ivEvid,
-		  _["na.last"] = LogicalVector::create(NA_LOGICAL),
-		  _["method"]="radix");
-      ord = ord - 1;
-      idxO = as<std::vector<int>>(ord);
+      // Duplicated below for speed.
+      sortID
+	}
+  } else {
+    for (int j = ivEvid.size(); j--; ){
+      sortID
+	}
+  }
+#undef sortID
+  Function order = getForder();
+  IntegerVector ord;
+  if (useForder()){
+    ord = order(ivId, nvTime, ivEvid,
+		_["na.last"] = LogicalVector::create(true));
+    ord = ord - 1;
+    // na.last isn't =NA isn't quite working
+    idxO = as<std::vector<int>>(ord);
+    while (idxO.size() > 0 && IntegerVector::is_na(ivId[idxO.back()])){
+      idxO.pop_back();
     }
   } else {
-    SORT(idxO.begin(),idxO.end(),
-	 [id,time,evid,amt,doseId,keepDosingOnly](int a, int b){
-	   if (id[a] == id[b]){
-	     if (time[a] == time[b]){
-	       if (evid[a] == evid[b]){
-		 return a < b;
-	       }
-	       if (evid[a] == 3){
-		 return true;
-	       }
-	       if (evid[b] == 3){
-		 return false;
-	       }
-	       // Zero amts turn on and off compartments and should be first.
-	       if (evid[a] != 0 && amt[a] == 0){
-		 return true;
-	       }
-	       if (evid[b] != 0 && amt[b] == 0){
-		 return false;
-	       }
-	       return evid[a] > evid[b];
-	     }
-	     return time[a] < time[b];
-	   }
-	   // Bad IDs are pushed to the end to be popped off.
-	   if (!keepDosingOnly){
-	     if (doseId.size() > 0 && !(std::find(doseId.begin(), doseId.end(), id[a]) == doseId.end())){
-	       return false;
-	     }
-	     if (doseId.size() > 0 && !(std::find(doseId.begin(), doseId.end(), id[b]) == doseId.end())){
-	       return true;
-	     }
-	   }
-	   return id[a] < id[b];
-	 });
-    if (!keepDosingOnly && doseId.size() > 0){
-      while (idxO.size() > 0 && std::find(doseId.begin(), doseId.end(), id[idxO.back()]) != doseId.end()){
-	idxO.pop_back();
-      }
-    }
+    ord = order(ivId, nvTime, ivEvid,
+		_["na.last"] = LogicalVector::create(NA_LOGICAL),
+		_["method"]="radix");
+    ord = ord - 1;
+    idxO = as<std::vector<int>>(ord);
   }
 #ifdef rxSolveT
   RSprintf("  Time8: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);

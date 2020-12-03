@@ -123,19 +123,6 @@ rxSetIni0 <- function(ini0 = TRUE) {
     .Call(`_RxODE_rxSetIni0`, ini0)
 }
 
-#' Use Radix Sort when possible
-#'
-#' By default RxODE uses radix sort when possible.
-#'
-#' @param useRadix Use \code{order} with \code{method} = \code{radix}
-#'   when appropriate.  Otherwise use \code{timsort}.
-#'
-#' @export
-#' @author Matthew Fidler
-rxUseRadixSort <- function(useRadix = TRUE) {
-    .Call(`_RxODE_rxUseRadixSort`, useRadix)
-}
-
 #' Event translation for RxODE
 #'
 #' @param inData Data frame to translate
