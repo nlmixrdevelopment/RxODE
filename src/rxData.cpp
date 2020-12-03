@@ -4454,6 +4454,125 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS);
 
 extern "C" int getRxThreads(const int64_t n, const bool throttle);
 
+static inline void iniRx(rx_solve* rx) {
+  rx->nsub = 0;
+  rx->nsim = 0;
+  rx->neta=0;
+  rx->neps=0;
+  rx->nIndSim=0;
+  rx->simflg = 0;
+  rx->nall = 0;
+  rx->nevid9 = 0;
+  rx->nobs = 0;
+  rx->nobs2 = 0;
+  rx->nr = 0;
+  rx->add_cov = 0;
+  rx->matrix = 0;
+  rx->needSort = 0;
+  rx->nMtime = 0;
+  rx->stateTrimU = R_PosInf;
+  rx->stateTrimL = R_NegInf;
+  rx->stateIgnore = NULL;
+  rx->nCov0 = 0;
+  rx->cov0 = NULL;
+  rx->nKeep0 = 0;
+  rx->nKeepF = 0;
+  rx->istateReset=1;
+  rx->cens = 0;
+  rx->limit = R_NegInf;
+  rx->safeZero = 1;
+  rx->sumType = 1; // pairwise
+  rx->prodType = 1; // long double
+  rx->sensType = 4; // advan
+  rx->hasFactors = 0;
+  rx->keys = NULL; // keys per thread
+  rx->TMP = NULL;
+  rx->ordId = NULL;
+  rx->UGRP = NULL;
+  rx->nradix = NULL;
+  rx->ypNA = NULL;
+  rx->sample = false;
+  rx->par_sample = NULL;
+  rx->maxShift = 0.0;
+  rx->linKa  = 0;
+  rx->linNcmt = 0;
+  rx->maxwhile = 100000;
+  rx->whileexit= 0;
+
+  rx_solving_options* op = rx->op;
+  op->badSolve = 0;
+  op->naTime = 0;
+  op->ATOL = 1e-8; //absolute error
+  op->RTOL = 1e-8; //relative error
+  op->H0  = 0;
+  op->HMIN = 0;
+  op->mxstep = 70000;
+  op->MXORDN =12;
+  op->MXORDS = 5;
+  //
+  op->do_transit_abs=0;
+  op->nlhs = 0;
+  op->neq = 0;
+  op->stiff = 0;
+  op->ncov = 0;
+  op->par_cov = NULL;
+  op->inits = NULL;
+  op->scale = NULL;
+  op->do_par_cov=NULL;
+  // approx fun options
+  op->f1   = 0.0;
+  op->f2   = 1.0;
+  op->kind = 0;
+  op->is_locf = 1;
+  op->cores = 0;
+  op->extraCmt = 0;
+  op->hmax2 = 0; // Determined by diff
+  op->rtol2 = NULL;
+  op->atol2 = NULL;
+  op->ssRtol = NULL;
+  op->ssAtol = NULL;
+  op->indLin = NULL;
+  op->indLinN = 0;
+  op->indLinPhiTol = 1e-7;
+  op->indLinPhiM = 0;
+  op->indLinMatExpType = 2;
+  op->indLinMatExpOrder = 6;
+  op->nDisplayProgress = 10000;
+  op->isChol = 0;
+  op->svar = NULL;
+  op->ovar = NULL;
+  op->nsvar = 0;
+  op->abort = 0;
+  op->minSS = 10;
+  op->maxSS = 1000;
+  op->doIndLin  = 0;
+  op->strictSS = 1;
+  op->infSSstep = 12;
+  op->ncoresRV = 1;
+  op->mxhnil = 0;
+  op->hmxi = 0.0;
+  op->nlin = 0;
+  op->nlin2 = 0;
+  op->nlinR = 0;
+  op->linBflag = 0;
+  op->cTlag = false;
+  op->hTlag = 0;
+  op->cF = false;
+  op->hF = 0;
+  op->cRate = false;
+  op->hRate = 0;
+  op->cDur = false;
+  op->hDur = 0;
+  op->cTlag2 = false;
+  op->hTlag2 = 0;
+  op->cF2 = false;
+  op->hF2 = 0;
+  op->cRate2 = false;
+  op->hRate2 = 0;
+  op->cDur2 = false;
+  op->hDur2 = 0;
+}
+
 // [[Rcpp::export]]
 SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	      const Nullable<CharacterVector> &specParams,
@@ -4581,13 +4700,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
   }
   if (rxSolveDat->isRxSolve || rxSolveDat->isEnvironment){
     rx_solve* rx = getRxSolve_();
-    rx->nCov0    = 0;
-    rx->nKeep0   = 0;
-    rx->nKeepF   = 0;
-    rx->op->ncov = 0;
-    rx->maxShift = 0.0;
+    iniRx(rx);
     rx->maxwhile = asInt(rxControl[Rxc_maxwhile], "maxwhile");
-    rx->whileexit = 0;
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
     rx->sensType = asInt(rxControl[Rxc_sensType], "sensType");
@@ -4608,20 +4722,13 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // Get model
     // Get the C solve object
     rx_solve* rx = getRxSolve_();
-    rx->neta = 0;
-    rx->neps = 0;
+    iniRx(rx);
     rx->nIndSim = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_nIndSim];
     rx->simflg  = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_simflg];
     rx->sumType = asInt(rxControl[Rxc_sumType], "sumType");
     rx->prodType = asInt(rxControl[Rxc_prodType], "prodType");
     rx->sensType = asInt(rxControl[Rxc_sensType], "sensType");
-    rx->nCov0    = 0;
-    rx->nKeep0   = 0;
-    rx->nKeepF   = 0;
-    rx->op->ncov = 0;
-    rx->maxShift = 0.0;
     rx->maxwhile = asInt(rxControl[Rxc_maxwhile], "maxwhile");
-    rx->whileexit = 0;
     rx_solving_options* op = rx->op;
 #ifdef rxSolveT
     RSprintf("Time2: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
