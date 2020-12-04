@@ -2464,7 +2464,6 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
   int nall = rx->nsub*rx->nsim;
   // Perhaps throttle this to nall*X
   if (ini) {
-    REprintf("setup ordId");
     if (_globals.ordId != NULL) free(_globals.ordId);
     _globals.ordId=NULL;
     rx->ordId = _globals.ordId = (int*)malloc(nall*sizeof(int));
@@ -5191,7 +5190,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 			   pars, ev1, inits, rxSolveDat);
     if (op->stiff == 2) { // liblsoda
       // Order by the number of times per subject
-      REprintf("stiff: %d\n", op->stiff);
       sortIds(rx, 1);
     }
     if (setupOnly){
