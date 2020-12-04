@@ -2463,59 +2463,32 @@ extern "C" void sortIds(rx_solve* rx, int ini) {
   rx_solving_options_ind* ind;
   int nall = rx->nsub*rx->nsim;
   // Perhaps throttle this to nall*X
-  if (rx->op->cores == 1 || rx->op->cores >= nall*getThrottle()) {
-    // No point in sorting
-    if (ini) {
-      if (_globals.ordId != NULL) free(_globals.ordId);
-      _globals.ordId=NULL;
-      rx->ordId = _globals.ordId = (int*)malloc(nall*sizeof(int)); // lost
-      std::iota(rx->ordId,rx->ordId+nall,1);
-    } // else {
-    //   std::iota(rx->ordId,rx->ordId+nall,1);
-    // }
-  }  else {
-    if (ini) {
-      IntegerVector ntimes(nall);
-      IntegerVector ord;
-      for (int i = 0; i < nall; i++) {
-  	ind = &(rx->subjects[i]);
-  	ntimes[i] = ind->n_all_times;
-      }
-      // If we use data.table directly
-      Function order = getForder();
-      if (useForder()) {
-  	ord = order(ntimes, _["na.last"] = LogicalVector::create(NA_LOGICAL),
-  		    _["decreasing"] = LogicalVector::create(true));
-      } else {
-  	ord = order(ntimes, _["na.last"] = LogicalVector::create(NA_LOGICAL),
-  		    _["method"]="radix",
-  		    _["decreasing"] = LogicalVector::create(true));
-      }
-      if (_globals.ordId != NULL) free(_globals.ordId);
-      _globals.ordId=NULL;
-      rx->ordId = _globals.ordId = (int*)malloc(nall*sizeof(int));
-      std::copy(ord.begin(), ord.end(), rx->ordId);
-    } else {
-      // Here we order based on run times.  This way this iteratively
-      // changes the order based on run-time.
-      NumericVector solveTime(nall);
-      IntegerVector ord;
-      for (int i = 0; i < nall; i++) {
-  	ind = &(rx->subjects[i]);
-  	solveTime[i] = ind->solveTime;
-      }
-      Function order = getForder();
-      if (useForder()) {
-  	ord = order(solveTime, _["na.last"] = LogicalVector::create(NA_LOGICAL),
-  		    _["decreasing"] = LogicalVector::create(true));
-      } else {
-  	ord = order(solveTime, _["na.last"] = LogicalVector::create(NA_LOGICAL),
-  		    _["method"]="radix",
-  		    _["decreasing"] = LogicalVector::create(true));
-      }
-      // This assumes that this has already been created
-      std::copy(ord.begin(), ord.end(), rx->ordId);
+  if (ini) {
+    REprintf("setup ordId");
+    if (_globals.ordId != NULL) free(_globals.ordId);
+    _globals.ordId=NULL;
+    rx->ordId = _globals.ordId = (int*)malloc(nall*sizeof(int));
+    std::iota(rx->ordId,rx->ordId+nall,1);
+  } else if (rx->op->cores > 1 && rx->op->cores >= nall*getThrottle()) {
+    // Here we order based on run times.  This way this iteratively
+    // changes the order based on run-time.
+    NumericVector solveTime(nall);
+    IntegerVector ord;
+    for (int i = 0; i < nall; i++) {
+      ind = &(rx->subjects[i]);
+      solveTime[i] = ind->solveTime;
     }
+    Function order = getForder();
+    if (useForder()) {
+      ord = order(solveTime, _["na.last"] = LogicalVector::create(NA_LOGICAL),
+		  _["decreasing"] = LogicalVector::create(true));
+    } else {
+      ord = order(solveTime, _["na.last"] = LogicalVector::create(NA_LOGICAL),
+		  _["method"]="radix",
+		  _["decreasing"] = LogicalVector::create(true));
+    }
+    // This assumes that this has already been created
+    std::copy(ord.begin(), ord.end(), rx->ordId);
   }
 }
 
@@ -5218,6 +5191,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 			   pars, ev1, inits, rxSolveDat);
     if (op->stiff == 2) { // liblsoda
       // Order by the number of times per subject
+      REprintf("stiff: %d\n", op->stiff);
       sortIds(rx, 1);
     }
     if (setupOnly){
