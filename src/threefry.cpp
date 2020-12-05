@@ -1392,7 +1392,10 @@ extern "C" void simeta(int id) {
     double *par_ptr = ind->par_ptr;
     for (int j=0; j < rx->neta; j++){
       // The error pointer is updated if needed
+      REprintf("j: %d\n", j );
+      REprintf("ovar[j]: %d\n", ovar[j]);
       par_ptr[ovar[j]] = out[j];
+      REprintf("out[j]: %d\n", out[j]);
     }
   }
 }

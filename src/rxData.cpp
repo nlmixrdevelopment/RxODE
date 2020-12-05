@@ -4543,6 +4543,8 @@ static inline void iniRx(rx_solve* rx) {
   op->hRate2 = 0;
   op->cDur2 = false;
   op->hDur2 = 0;
+  op->ovar = NULL;
+  op->svar = NULL;
 }
 
 // [[Rcpp::export]]
