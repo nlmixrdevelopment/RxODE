@@ -3570,6 +3570,12 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
 	break;
       }
     }
+    for (j = rxSolveDat->sigmaN.size(); j--;){
+      if (rxSolveDat->sigmaN[j] == pars[i]){
+	_globals.gsvar[j] = i;
+	break;
+      }
+    }
     // Check to see if this is a covariate.
     for (j = op->ncov; j--;){
       if (_globals.gpar_cov[j] == (int)(i + 1)){
@@ -3583,7 +3589,6 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
     if (!curPar){
       for (j = rxSolveDat->sigmaN.size(); j--;){
 	if (rxSolveDat->sigmaN[j] == pars[i]){
-	  _globals.gsvar[j] = i;
 	  rxSolveDat->nsvar++;
 	  _globals.gParPos[i] = 0; // These are set at run-time and "dont" matter.
 	  curPar = true;
