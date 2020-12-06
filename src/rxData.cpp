@@ -3583,6 +3583,7 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
     if (!curPar){
       for (j = rxSolveDat->sigmaN.size(); j--;){
 	if (rxSolveDat->sigmaN[j] == pars[i]){
+	  REprintf("i: %d j: %d; %s\n", i, j, CHAR(pars[i]));
 	  _globals.gsvar[j] = i;
 	  rxSolveDat->nsvar++;
 	  _globals.gParPos[i] = 0; // These are set at run-time and "dont" matter.
