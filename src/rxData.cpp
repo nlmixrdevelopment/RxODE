@@ -3530,6 +3530,10 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
   }
 }
 
+extern "C" int *getOvar() {
+  return _globals.govar;
+}
+
 // Setup the parameter order and covariate from the dataset and input parameters
 static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
 				    const Nullable<CharacterVector> &specParams,
