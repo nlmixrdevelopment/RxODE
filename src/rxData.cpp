@@ -3562,6 +3562,7 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
   }
   int i, j;
   for (i = rxSolveDat->npars; i--;){
+    REprintf("check '%s'\n", CHAR(pars[i]));
     curPar = false;
     // Check for the omega-style simulated parameters.
     for (j = rxSolveDat->omegaN.size(); j--;){
