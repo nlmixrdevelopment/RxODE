@@ -4511,8 +4511,6 @@ static inline void iniRx(rx_solve* rx) {
   op->indLinMatExpOrder = 6;
   op->nDisplayProgress = 10000;
   op->isChol = 0;
-  op->svar = NULL;
-  op->ovar = NULL;
   op->nsvar = 0;
   op->abort = 0;
   op->minSS = 10;
@@ -4543,8 +4541,8 @@ static inline void iniRx(rx_solve* rx) {
   op->hRate2 = 0;
   op->cDur2 = false;
   op->hDur2 = 0;
-  op->ovar = NULL;
-  op->svar = NULL;
+  op->svar = _globals.gsvar;
+  op->ovar = _globals.govar;
 }
 
 // [[Rcpp::export]]
@@ -4992,8 +4990,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _lastT0 = clock();
 #endif // rxSolveT
 
-    op->svar = &_globals.gsvar[0];
-    op->ovar = &_globals.govar[0];
+    op->svar = _globals.gsvar;
+    op->ovar = _globals.govar;
     op->nsvar = rxSolveDat->nsvar;
     if (op->nsvar == 0){
       getRxModels();

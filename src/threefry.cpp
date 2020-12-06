@@ -1388,13 +1388,12 @@ extern "C" void simeta(int id) {
     // ind->id  = csub+csim*nsub;
     int csim = floor(ind->id/rx->nsub);
     simvar(&out[0], 1, csim, rx);
-    int *ovar = op->ovar;
     double *par_ptr = ind->par_ptr;
     for (int j=0; j < rx->neta; j++){
       // The error pointer is updated if needed
       REprintf("j: %d\n", j );
-      REprintf("ovar[j]: %d\n", ovar[j]);
-      par_ptr[ovar[j]] = out[j];
+      REprintf("ovar[j]: %d\n", op->ovar[j]);
+      par_ptr[op->ovar[j]] = out[j];
       REprintf("out[j]: %d\n", out[j]);
     }
   }
