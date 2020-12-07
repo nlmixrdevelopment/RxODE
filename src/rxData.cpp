@@ -3540,7 +3540,6 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
 				    rxSolve_t* rxSolveDat){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
-  REprintf("(Free)/Reallocate gParPos, gParPos2, gsvar and govar\n");
   if (_globals.gParPos != NULL) free(_globals.gParPos);
   _globals.gParPos = (int*)calloc(rxSolveDat->npars*2 + rxSolveDat->sigmaN.size() + rxSolveDat->omegaN.size(), sizeof(int));// [npars]
   if (_globals.gParPos == NULL){
@@ -3563,7 +3562,6 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
   }
   int i, j;
   for (i = rxSolveDat->npars; i--;){
-    REprintf("check '%s'\n", CHAR(pars[i]));
     curPar = false;
     // Check for the omega-style simulated parameters.
     for (j = rxSolveDat->omegaN.size(); j--;){
@@ -3585,7 +3583,6 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
     if (!curPar){
       for (j = rxSolveDat->sigmaN.size(); j--;){
 	if (rxSolveDat->sigmaN[j] == pars[i]){
-	  REprintf("i: %d j: %d; %s\n", i, j, CHAR(pars[i]));
 	  _globals.gsvar[j] = i;
 	  rxSolveDat->nsvar++;
 	  _globals.gParPos[i] = 0; // These are set at run-time and "dont" matter.
