@@ -4641,7 +4641,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if ((!Rf_isNull(rxControl[Rxc_thetaMat]) ||
     	 !Rf_isNull(rxControl[Rxc_omega]) ||
     	 !Rf_isNull(rxControl[Rxc_sigma])) &&
-	rxIs(rxControl[Rxc_omega], "lotri") &&
+	TYPEOF(rxControl[Rxc_omega]) != STRSXP &&
 	TYPEOF(rxControl[Rxc_sigma]) != STRSXP
 	) {
       // Update model, events and parameters based on nesting
