@@ -500,7 +500,7 @@ SEXP rxRmvnSEXP(SEXP nS, SEXP muS, SEXP sigmaS,
 		SEXP keepNamesS,
 		SEXP aS, SEXP tolS, SEXP nlTolS, SEXP nlMaxiterS);
 
-extern "C" void cliAlert(const char *format, ...);
+extern "C" void setZeroMatrix(int which);
 
 //[[Rcpp::export]]
 SEXP expandTheta_(SEXP thetaS, SEXP thetaMatS,
@@ -531,7 +531,7 @@ SEXP expandTheta_(SEXP thetaS, SEXP thetaMatS,
   NumericMatrix thetaMat = as<NumericMatrix>(thetaMatS);
   arma::mat tmpM = as<arma::mat>(thetaMat);
   if (tmpM.is_zero()){
-    cliAlert(_("zero 'thetaMat' specified, no uncertainty in fixed effects"));
+    setZeroMatrix(1);
   } else if (!tmpM.is_sympd()){
     rxSolveFree();
     stop(_("'thetaMat' must be a symmetric, positive definite matrix"));
@@ -701,7 +701,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       omega = omega * omega.t();
     }
     if (omega.is_zero()){
-      cliAlert(_("zero 'omega', no variability from random-effects"));
+      setZeroMatrix(2);
     } else if (!omega.is_sympd()){
       rxSolveFree();
       stop(_("'omega' must be symmetric, positive definite"));
@@ -920,7 +920,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
       sigma = sigma * sigma.t();
     }
     if (sigma.is_zero()){
-      cliAlert(_("zero 'sigma', no unexplained variability"));
+      setZeroMatrix(3);
     } else if (!sigma.is_sympd()){
       rxSolveFree();
       stop(_("'sigma' must be symmetric, positive definite"));

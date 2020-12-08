@@ -1427,9 +1427,28 @@ typedef struct {
   uint8_t *** keys = NULL;
   uint8_t * UGRP = NULL;
   int * TMP = NULL;
+  bool zeroTheta = false;
+  bool zeroOmega = false;
+  bool zeroSigma = false;
 } rx_globals;
 
+
+
 rx_globals _globals;
+
+extern "C" void setZeroMatrix(int which) {
+  switch(which){
+  case 1:
+    _globals.zeroTheta = true;
+    break;
+  case 2:
+    _globals.zeroOmega = true;
+    break;
+  case 3:
+    _globals.zeroSigma = true;
+    break;
+  }
+}
 
 double maxAtolRtolFactor = 0.1;
 
@@ -1588,7 +1607,9 @@ void rxSimTheta(CharacterVector &thetaN,
     }
     if (!thetaIsChol){
       arma::mat tmpM = as<arma::mat>(thetaMat);
-      if (!tmpM.is_sympd()){
+      if (tmpM.is_zero()) {
+	setZeroMatrix(1);
+      } else if (!tmpM.is_sympd()){
 	rxSolveFree();
 	stop(_("'thetaMat' must be symmetric"));
       }
@@ -1666,11 +1687,14 @@ void rxSimOmega(bool &simOmega,
       omegaMC = omegaM;
     } else {
       arma::mat tmpM = as<arma::mat>(omegaM);
-      if (!tmpM.is_sympd()){
+      if (tmpM.is_zero()){
+	omegaMC = omegaM;
+      } else if (!tmpM.is_sympd()){
 	rxSolveFree();
 	stop(_("'%s' must be symmetric"),omegatxt.c_str());
+      } else {
+	omegaMC = wrap(arma::chol(as<arma::mat>(omegaM)));
       }
-      omegaMC = wrap(arma::chol(as<arma::mat>(omegaM)));
     }
     omegaN = as<CharacterVector>((as<List>(omegaM.attr("dimnames")))[1]);
   }
@@ -1870,6 +1894,10 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 	     omegaList, thetaN, thetaM, "omega", omega, omegaDf,
 	     omegaLower, omegaUpper, omegaIsChol,
 	     omegaSeparation, omegaXform, dfSub, nStud, nSub);
+  arma::mat tmp = as<arma::mat>(omegaM);
+  if (tmp.is_zero()) {
+    setZeroMatrix(2);
+  }
   bool simSigma = false;
   bool sigmaSep=false;
   NumericMatrix sigmaM;
@@ -1881,6 +1909,10 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 	     sigmaLower, sigmaUpper, sigmaIsChol,
 	     sigmaSeparation, sigmaXform, dfObs, nStud, nObs);
 
+  tmp = as<arma::mat>(sigmaM);
+  if (tmp.is_zero()) {
+    setZeroMatrix(3);
+  }
   // Now create data frame of parameter values
   List iovList;
 
@@ -2396,6 +2428,10 @@ LogicalVector rxSolveFree(){
     free(_globals.TMP);
   }
   _globals.TMP = NULL;
+  
+  _globals.zeroTheta = false;
+  _globals.zeroOmega = false;
+  _globals.zeroSigma = false;
 
   if (_globals.UGRP != NULL) {
     free(_globals.UGRP);
@@ -3007,7 +3043,9 @@ static inline void rxSolve_simulate(const RObject &obj,
     if (rxIs(as<RObject>(thetaMat), "matrix")){
       if (!thetaIsChol){
 	arma::mat tmpM = as<arma::mat>(thetaMat);
-	if (!tmpM.is_sympd()){
+	if (tmpM.is_zero()) {
+	  setZeroMatrix(1);
+	} else if (!tmpM.is_sympd()){
 	  rxSolveFree();
 	  stop(_("'thetaMat' must be symmetric"));
 	}
@@ -4344,6 +4382,15 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
   if (rxSolveDat->throttle){
     rx->op->cores = getRxThreads(rx->nsim*rx->nsub, true);
   }
+  if (_globals.zeroTheta) {
+    cliAlert(_("zero 'thetaMat' specified, no uncertainty in fixed effects"));
+  }
+  if (_globals.zeroOmega) {
+    cliAlert(_("zero 'omega', no variability from random-effects"));
+  }
+  if (_globals.zeroSigma) {
+    cliAlert(_("zero 'sigma', no unexplained variability"));
+  }
   par_solve(rx);
 #ifdef rxSolveT
     RSprintf("  Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
@@ -4641,7 +4688,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     if ((!Rf_isNull(rxControl[Rxc_thetaMat]) ||
     	 !Rf_isNull(rxControl[Rxc_omega]) ||
     	 !Rf_isNull(rxControl[Rxc_sigma])) &&
-	TYPEOF(rxControl[Rxc_omega]) != STRSXP &&
+	rxIs(rxControl[Rxc_omega], "lotri") &&
 	TYPEOF(rxControl[Rxc_sigma]) != STRSXP
 	) {
       // Update model, events and parameters based on nesting

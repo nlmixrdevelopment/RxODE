@@ -28,6 +28,12 @@ SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
   arma::mat ch;
   if (sigma.is_zero()){
     ch = sigma;
+    for (int i = 0; i < d; ++i){
+      for (int j = 0; j < n; ++j) {
+	A_(j, i) = mu[i];
+      }
+    }
+    return R_NilValue;
   } else {
     if (isChol){
       ch=arma::trimatu(sigma);
