@@ -3579,6 +3579,7 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   if (_globals.gParPos != NULL) free(_globals.gParPos);
+  REprintf("npars: %d, sigmaN: %d omegaN: %d\n", rxSolveDat->npars + rxSolveDat->sigmaN.size() + rxSolveDat->omegaN.size());
   _globals.gParPos = (int*)calloc(rxSolveDat->npars*2 + rxSolveDat->sigmaN.size() + rxSolveDat->omegaN.size(), sizeof(int));// [npars]
   if (_globals.gParPos == NULL){
     rxSolveFree();
