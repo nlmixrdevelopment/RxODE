@@ -1515,6 +1515,27 @@ namespace RxODE {
         return Rcpp::as<NumericVector >(rcpp_result_gen);
     }
 
+    inline LogicalVector isNullZero(RObject obj) {
+        typedef SEXP(*Ptr_isNullZero)(SEXP);
+        static Ptr_isNullZero p_isNullZero = NULL;
+        if (p_isNullZero == NULL) {
+            validateSignature("LogicalVector(*isNullZero)(RObject)");
+            p_isNullZero = (Ptr_isNullZero)R_GetCCallable("RxODE", "_RxODE_isNullZero");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_isNullZero(Shield<SEXP>(Rcpp::wrap(obj)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<LogicalVector >(rcpp_result_gen);
+    }
+
     inline arma::mat rxrandnV(unsigned int nrow, unsigned int ncol) {
         typedef SEXP(*Ptr_rxrandnV)(SEXP,SEXP);
         static Ptr_rxrandnV p_rxrandnV = NULL;

@@ -42,13 +42,13 @@ format.rxSolveSimType <- function(x, ...) {
     .bound <- .getBound(x, parent.frame(2))
   }
   .uncert <- character(0)
-  if (!is.null(x$thetaMat)) {
+  if (!isNullZero(x$thetaMat)) {
     .uncert <- c(.uncert, paste0("parameters (", crayon::yellow(.bound), crayon::bold$blue("$thetaMat"), " for changes)"))
   }
-  if (!is.null(x$omegaList)) {
+  if (!isNullZero(x$omegaList)) {
     .uncert <- c(.uncert, paste0("omega matrix (", crayon::yellow(.bound), crayon::bold$blue("$omegaList"), ")"))
   }
-  if (!is.null(x$sigmaList)) {
+  if (!isNullZero(x$sigmaList)) {
     .uncert <- c(.uncert, paste0("sigma matrix (", crayon::yellow(.bound), crayon::bold$blue("$sigmaList"), ")"))
   }
   if (length(.uncert) == 0L) {

@@ -2909,6 +2909,40 @@ RcppExport SEXP _RxODE_rpp_(SEXP nSSEXP, SEXP lambdaSSEXP, SEXP gammaSSEXP, SEXP
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// isNullZero
+LogicalVector isNullZero(RObject obj);
+static SEXP _RxODE_isNullZero_try(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(isNullZero(obj));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _RxODE_isNullZero(SEXP objSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_RxODE_isNullZero_try(objSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 // rxrandnV
 arma::mat rxrandnV(unsigned int nrow, unsigned int ncol);
 static SEXP _RxODE_rxrandnV_try(SEXP nrowSEXP, SEXP ncolSEXP) {
@@ -3057,6 +3091,7 @@ static int _RxODE_RcppExport_validate(const char* sig) {
         signatures.insert("SEXP(*rxRmvn0)(NumericMatrix&,arma::rowvec,arma::mat,arma::vec,arma::vec,int,bool,double,double,double,int)");
         signatures.insert("SEXP(*rxRmvnSEXP)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP)");
         signatures.insert("NumericVector(*rpp_)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP)");
+        signatures.insert("LogicalVector(*isNullZero)(RObject)");
         signatures.insert("arma::mat(*rxrandnV)(unsigned int,unsigned int)");
         signatures.insert("NumericVector(*rxnormV_)(double,double,int,int)");
     }
@@ -3136,6 +3171,7 @@ RcppExport SEXP _RxODE_RcppExport_registerCCallable() {
     R_RegisterCCallable("RxODE", "_RxODE_rxRmvn0", (DL_FUNC)_RxODE_rxRmvn0_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxRmvnSEXP", (DL_FUNC)_RxODE_rxRmvnSEXP_try);
     R_RegisterCCallable("RxODE", "_RxODE_rpp_", (DL_FUNC)_RxODE_rpp__try);
+    R_RegisterCCallable("RxODE", "_RxODE_isNullZero", (DL_FUNC)_RxODE_isNullZero_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxrandnV", (DL_FUNC)_RxODE_rxrandnV_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxnormV_", (DL_FUNC)_RxODE_rxnormV__try);
     R_RegisterCCallable("RxODE", "_RxODE_RcppExport_validate", (DL_FUNC)_RxODE_RcppExport_validate);

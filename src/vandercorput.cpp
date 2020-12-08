@@ -17,7 +17,6 @@
 #endif
 using namespace Rcpp;
 using namespace arma;
-using namespace Rcpp;
 
 sitmo::vandercorput _engV;
 void seedEngV(uint32_t seed){

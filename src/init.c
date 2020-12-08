@@ -92,6 +92,8 @@ SEXP _cbindOme(SEXP et_, SEXP mat_, SEXP n_);
 
 SEXP _RxODE_nestingInfo_(SEXP omega, SEXP data);
 
+SEXP _RxODE_isNullZero(SEXP in);
+
 SEXP RxODE_get_mv();
 
 SEXP _gammap(SEXP, SEXP);
@@ -463,6 +465,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxrandnV", (DL_FUNC) _RxODE_rxrandnV, 2},
     {"_RxODE_rxQs", (DL_FUNC) _RxODE_rxQs, 1},
     {"_RxODE_rxQr", (DL_FUNC) _RxODE_rxQr, 1},
+    {"_RxODE_isNullZero", (DL_FUNC) _RxODE_isNullZero, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

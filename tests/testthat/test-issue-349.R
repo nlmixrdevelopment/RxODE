@@ -23,24 +23,28 @@ rxPermissive({
              Q=1.05E+01, V3=2.97E+02,                # peripheral
              Kin=1, Kout=1, EC50=200)                # effects
 
-             omega <- lotri(eta.Cl ~ 0.4^2)
-             sigma <- lotri(eff.err ~ 0.1, cp.err ~ 0.1)
-             tmp <- matrix(rnorm(8^2), 8, 8)
-             tMat <- tcrossprod(tmp, tmp) / (8 ^ 2)
-             dimnames(tMat) <- list(NULL, names(theta))
+  omega <- lotri(eta.Cl ~ 0.4^2)
+  sigma <- lotri(eff.err ~ 0.1, cp.err ~ 0.1)
+  tmp <- matrix(rnorm(8^2), 8, 8)
+  tMat <- tcrossprod(tmp, tmp) / (8 ^ 2)
+  dimnames(tMat) <- list(NULL, names(theta))
 
-             sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
-                             dfSub=10, dfObs=100)
+  sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+                  dfSub=10, dfObs=100)
 
 
-             omega <- lotri(eta.Cl ~ 0)
-             sigma <- lotri(eff.err ~ 0, cp.err ~ 0)
+  omega <- lotri(eta.Cl ~ 0)
+  sigma <- lotri(eff.err ~ 0, cp.err ~ 0)
 
-             tMat <- matrix(0, 8, 8)
-             dimnames(tMat) <- list(NULL, names(theta))
+  tMat <- matrix(0, 8, 8)
+  dimnames(tMat) <- list(NULL, names(theta))
 
-             expect_error(rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
-                                  dfSub=10, dfObs=100), NA)
+  x <- expect_error(rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+                            dfSub=10, dfObs=100), NA)
 
+  expect_true(RxODE:::isNullZero(x$thetaMat))
+  expect_true(RxODE:::isNullZero(x$omegaList))
+  expect_true(RxODE:::isNullZero(x$sigmaList))
+  expect_true(RxODE:::isNullZero(NULL))
 
 }, test="lvl2")

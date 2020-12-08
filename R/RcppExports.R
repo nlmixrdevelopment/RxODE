@@ -789,6 +789,10 @@ rpp_ <- function(nS, lambdaS, gammaS, probS, t0S, tmaxS, randomOrderS) {
     .Call(`_RxODE_rpp_`, nS, lambdaS, gammaS, probS, t0S, tmaxS, randomOrderS)
 }
 
+isNullZero <- function(obj) {
+    .Call(`_RxODE_isNullZero`, obj)
+}
+
 rxrandnV <- function(nrow, ncol) {
     .Call(`_RxODE_rxrandnV`, nrow, ncol)
 }
