@@ -115,8 +115,6 @@ typedef struct {
   int nDisplayProgress;
   int ncoresRV;
   int isChol;
-  int *svar;
-  int *ovar;
   int nsvar;
   int abort;
   int minSS;
@@ -288,6 +286,8 @@ typedef struct {
   int linNcmt;
   int maxwhile;
   int whileexit;
+  int *svar;
+  int *ovar;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);

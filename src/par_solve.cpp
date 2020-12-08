@@ -2649,7 +2649,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   int ii=0, jj = 0, ntimes;
   int nBadDose;
   int *BadDose;
-  int *svar = op->svar;
+  int *svar = rx->svar;
   int kk = 0;
   int wh, cmt, wh100, whI, wh0;
   int //dullEvid = 1,

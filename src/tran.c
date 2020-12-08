@@ -3052,13 +3052,13 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       break;
     case 15:
       // Case 15 is for declaring eps the sync parameters
-      sAppend(&sbOut,"  if (_solveData->op->svar[_svari] == %d) {", j);
+      sAppend(&sbOut,"  if (_solveData->svar[_svari] == %d) {", j);
       doDot(&sbOut, buf);
       sAppend(&sbOut, " = _PP[%d];}; ", j++);
       break;
     case 16:
       // Case 16 is for declaring eta the sync parameters
-      sAppend(&sbOut,"  if (_solveData->op->ovar[_ovari] == %d) {", j);
+      sAppend(&sbOut,"  if (_solveData->ovar[_ovari] == %d) {", j);
       doDot(&sbOut, buf);
       sAppend(&sbOut, " = _PP[%d];}; ", j++);
       break;
