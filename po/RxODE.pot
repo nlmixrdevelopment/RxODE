@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RxODE 1.0.0-0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-30 18:00-0600\n"
+"POT-Creation-Date: 2020-12-08 13:46-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -90,20 +90,12 @@ msgid ""
 "'data.frame'/'matrix'"
 msgstr ""
 
-#: cvPost.cpp:534
-msgid "zero 'thetaMat' specified, no uncertainty in fixed effects"
-msgstr ""
-
 #: cvPost.cpp:537
 msgid "'thetaMat' must be a symmetric, positive definite matrix"
 msgstr ""
 
 #: cvPost.cpp:584
 msgid "'theta' must be the same size as 'thetaMat'"
-msgstr ""
-
-#: cvPost.cpp:704
-msgid "zero 'omega', no variability from random-effects"
 msgstr ""
 
 #: cvPost.cpp:707
@@ -114,15 +106,11 @@ msgstr ""
 msgid "'omega' needs to be a matrix or lotri matrix"
 msgstr ""
 
-#: cvPost.cpp:764 cvPost.cpp:805 rxData.cpp:3017
+#: cvPost.cpp:764 cvPost.cpp:805 rxData.cpp:3025
 #, c-format
 msgid ""
 "provided multi-subject data (n=%d) trying to simulate a different number of "
 "subjects (n=%d)"
-msgstr ""
-
-#: cvPost.cpp:923
-msgid "zero 'sigma', no unexplained variability"
 msgstr ""
 
 #: cvPost.cpp:926
@@ -209,606 +197,606 @@ msgstr ""
 msgid "no dense output available for %uth component"
 msgstr ""
 
-#: et.cpp:120 rxData.cpp:5360
+#: et.cpp:119 rxData.cpp:5490
 #, c-format
 msgid "partial match of '%s' to '%s'"
 msgstr ""
 
-#: et.cpp:398
+#: et.cpp:380
 msgid "event table was not updated (no dose/sampling windows)"
 msgstr ""
 
-#: et.cpp:475
+#: et.cpp:457
 msgid ""
 "windows need to be a list of observation windows, each of 2 elements e.g. "
 "list(c(0,2), c(2,7))"
 msgstr ""
 
-#: et.cpp:477
+#: et.cpp:459
 msgid "windows need to be ordered list(c(2,0)) is invalid"
 msgstr ""
 
-#: et.cpp:889 et.cpp:906
+#: et.cpp:854 et.cpp:871
 #, c-format
 msgid "unknown method: '%s'"
 msgstr ""
 
-#: et.cpp:947 etTran.cpp:457
+#: et.cpp:912 etTran.cpp:437
 msgid "can only specify either 'amt' or 'value'"
 msgstr ""
 
-#: et.cpp:951 etTran.cpp:461
+#: et.cpp:916 etTran.cpp:441
 msgid "can only specify either 'cmt', 'ytype', 'state' or 'var'"
 msgstr ""
 
-#: et.cpp:959
+#: et.cpp:924
 msgid "can only specify either 'duration' or 'dur'"
 msgstr ""
 
-#: et.cpp:967
+#: et.cpp:932
 msgid "need a 'time' column"
 msgstr ""
 
-#: et.cpp:977
+#: et.cpp:942
 msgid "using 'mdv' instead of 'method'"
 msgstr ""
 
-#: et.cpp:987
+#: et.cpp:952
 msgid "using 'evid' instead of 'mdv'"
 msgstr ""
 
-#: et.cpp:1004
+#: et.cpp:969
 msgid "'ID' type is unknown"
 msgstr ""
 
-#: et.cpp:1091
+#: et.cpp:1056
 msgid "can not figure out how to import the compartment variable"
 msgstr ""
 
-#: et.cpp:1162 et.cpp:1164
+#: et.cpp:1127 et.cpp:1129
 msgid "replacement/multiplication events cannot be combined with infusions"
 msgstr ""
 
-#: et.cpp:1178
+#: et.cpp:1143
 msgid "old RxODE 'evid' values are not supported with string compartments"
 msgstr ""
 
-#: et.cpp:1391
+#: et.cpp:1356
 msgid ""
 "'amt'/'time' needs units to convert the rate to the right units to import "
 "the data"
 msgstr ""
 
-#: et.cpp:1663
+#: et.cpp:1611
 msgid "'do.sampling' is not supported with dose windows"
 msgstr ""
 
-#: et.cpp:1685
+#: et.cpp:1633
 msgid ""
 "dosing window you need to specify window in order, e.g. "
 "'et(time=list(c(0,2)),amt=3)'"
 msgstr ""
 
-#: et.cpp:1688
+#: et.cpp:1636
 msgid "dosing time or time windows must only be 1-2 elements"
 msgstr ""
 
-#: et.cpp:1968
+#: et.cpp:1899
 msgid "cannot mix named compartments and integer compartments"
 msgstr ""
 
-#: et.cpp:2072 et.cpp:2234
+#: et.cpp:2003 et.cpp:2165
 msgid "cannot add more 'ID's to this event table"
 msgstr ""
 
-#: et.cpp:2302
+#: et.cpp:2233
 msgid "can only have one of the following: 'amt', 'dose'"
 msgstr ""
 
-#: et.cpp:2309
+#: et.cpp:2240
 msgid ""
 "can only have one of the following: 'ii', 'dosing.interval', "
 "'dosingInterval' or 'dosing_interval'"
 msgstr ""
 
-#: et.cpp:2329
+#: et.cpp:2260
 msgid ""
 "can only have one of the following: 'cmt', 'dosing.to', 'dose.to', 'state'"
 msgstr ""
 
-#: et.cpp:2338
+#: et.cpp:2269
 msgid ""
 "can only have one of the following: 'amount.units', 'amt.units', 'dose.units'"
 msgstr ""
 
-#: et.cpp:2345
+#: et.cpp:2276
 msgid ""
 "can only have one of the following: 'time.units', 'timeUnits', 'time_units'"
 msgstr ""
 
-#: et.cpp:2353
+#: et.cpp:2284
 msgid "can only have one of the following: 'add.sampling', 'do.sampling'"
 msgstr ""
 
-#: et.cpp:2361
+#: et.cpp:2292
 msgid "can only have one of the following: 'time', 'start.time', 'from'"
 msgstr ""
 
-#: et.cpp:2367
+#: et.cpp:2298
 msgid "can only have one of the following: 'nbrDoses', 'nbr.doses'"
 msgstr ""
 
-#: et.cpp:2382
+#: et.cpp:2313
 msgid "can only have one of the following: 'dur', 'duration'"
 msgstr ""
 
-#: et.cpp:2389
+#: et.cpp:2320
 #, c-format
 msgid "unused argument '%s'"
 msgstr ""
 
-#: et.cpp:2400 et.cpp:2405 et.cpp:2420 et.cpp:2425
+#: et.cpp:2331 et.cpp:2336 et.cpp:2351 et.cpp:2356
 msgid ""
 "multiple event tables supplied, not sure what to do; try 'c', 'rbind', 'seq' "
 "or 'rep'"
 msgstr ""
 
-#: et.cpp:2443 et.cpp:2451 et.cpp:2696 et.cpp:2719 et.cpp:2754 et.cpp:2775
-#: et.cpp:2782 et.cpp:2793 et.cpp:2812 et.cpp:2877 et.cpp:2905 et.cpp:2928
-#: et.cpp:2941 et.cpp:2970 et.cpp:2974 et.cpp:2983 et.cpp:3107 et.cpp:3115
+#: et.cpp:2374 et.cpp:2382 et.cpp:2627 et.cpp:2650 et.cpp:2685 et.cpp:2706
+#: et.cpp:2713 et.cpp:2724 et.cpp:2743 et.cpp:2808 et.cpp:2836 et.cpp:2859
+#: et.cpp:2872 et.cpp:2901 et.cpp:2905 et.cpp:2914 et.cpp:3038 et.cpp:3046
 #, c-format
 msgid "'%s' cannot be a vector"
 msgstr ""
 
-#: et.cpp:2607 et.cpp:2611
+#: et.cpp:2538 et.cpp:2542
 msgid "nothing done"
 msgstr ""
 
-#: et.cpp:2657
+#: et.cpp:2588
 #, c-format
 msgid "cannot mix named and integer compartments in '%s'"
 msgstr ""
 
-#: et.cpp:2665
+#: et.cpp:2596
 #, c-format
 msgid "'%s' compartment cannot be a vector"
 msgstr ""
 
-#: et.cpp:2677
+#: et.cpp:2608
 #, c-format
 msgid "'%s' cannot be zero"
 msgstr ""
 
-#: et.cpp:2681
+#: et.cpp:2612
 #, c-format
 msgid "'%s' cannot be an vector"
 msgstr ""
 
-#: et.cpp:2684
+#: et.cpp:2615
 #, c-format
 msgid "'%s' must be an integer or a character"
 msgstr ""
 
-#: et.cpp:2723
+#: et.cpp:2654
 #, c-format
 msgid "turning off compartments can only be done when '%s'=2"
 msgstr ""
 
-#: et.cpp:2726
+#: et.cpp:2657
 #, c-format
 msgid "zero '%s' cannot be used with '%s'"
 msgstr ""
 
-#: et.cpp:2729
+#: et.cpp:2660
 #, c-format
 msgid "'%s' requires an '%s'"
 msgstr ""
 
-#: et.cpp:2733
+#: et.cpp:2664
 #, c-format
 msgid "'%s' is ignored when '%s'=2 or '%s'=3"
 msgstr ""
 
-#: et.cpp:2756 et.cpp:2763 et.cpp:2766 et.cpp:2777 et.cpp:2784
+#: et.cpp:2687 et.cpp:2694 et.cpp:2697 et.cpp:2708 et.cpp:2715
 #, c-format
 msgid "'%s' needs a '%s'"
 msgstr ""
 
-#: et.cpp:2771
+#: et.cpp:2702
 #, c-format
 msgid "can not specify '%s' and '%s' for a dose, please pick one"
 msgstr ""
 
-#: et.cpp:2795
+#: et.cpp:2726
 msgid "'ii' needs a 'dose'/'amt'"
 msgstr ""
 
-#: et.cpp:2806
+#: et.cpp:2737
 msgid "dosing interval of zero makes no sense with multiple dose events"
 msgstr ""
 
-#: et.cpp:2814 et.cpp:2946
+#: et.cpp:2745 et.cpp:2877
 #, c-format
 msgid "non-zero '%s' needs a '%s'"
 msgstr ""
 
-#: et.cpp:2851 et.cpp:2854 et.cpp:2857
+#: et.cpp:2782 et.cpp:2785 et.cpp:2788
 #, c-format
 msgid "can only specify '%s' or '%s', not both"
 msgstr ""
 
-#: et.cpp:2863
+#: et.cpp:2794
 #, c-format
 msgid "'%s' can only have one item"
 msgstr ""
 
-#: et.cpp:2866
+#: et.cpp:2797
 #, c-format
 msgid "'%s' must be logical"
 msgstr ""
 
-#: et.cpp:2873
+#: et.cpp:2804
 #, c-format
 msgid "cannot specify '%s' and '%s' for a dose, please pick one"
 msgstr ""
 
-#: et.cpp:2884
+#: et.cpp:2815
 msgid "-1 and -2 rates do not make sense with units"
 msgstr ""
 
-#: et.cpp:2889
+#: et.cpp:2820
 #, c-format
 msgid "'%s' is cannot be converted and added to this table"
 msgstr ""
 
-#: et.cpp:2896
+#: et.cpp:2827
 #, c-format
 msgid ""
 "steady state constant infusion dosing records must have '%s=-1' or positive "
 "rate"
 msgstr ""
 
-#: et.cpp:2915
+#: et.cpp:2846
 #, c-format
 msgid "'%s' cannot be converted and added to this table"
 msgstr ""
 
-#: et.cpp:2976
+#: et.cpp:2907
 #, c-format
 msgid "number of doses must be at least one ('%s': %d)"
 msgstr ""
 
-#: et.cpp:2985
+#: et.cpp:2916
 #, c-format
 msgid "'%s' can only be used with positive inter-dose intervals ('%s')"
 msgstr ""
 
-#: et.cpp:2995
+#: et.cpp:2926
 #, c-format
 msgid "'%s' does not make sense with multiple dosing times"
 msgstr ""
 
-#: et.cpp:3024
+#: et.cpp:2955
 msgid "dosing windows can only have 1-2 items in them"
 msgstr ""
 
-#: et.cpp:3033
+#: et.cpp:2964
 #, c-format
 msgid ""
 "'%s' requires non zero additional doses ('%s') or steady state dosing ('%s': "
 "%f, '%s': %d; '%s': %d), reset '%s' to zero."
 msgstr ""
 
-#: et.cpp:3039
+#: et.cpp:2970
 #, c-format
 msgid "'%s' must be 1 when specifying a steady-state constant infusion"
 msgstr ""
 
-#: et.cpp:3042
+#: et.cpp:2973
 #, c-format
 msgid "'%s' must be 0, 1 or 2"
 msgstr ""
 
-#: et.cpp:3045
+#: et.cpp:2976
 #, c-format
 msgid "'%s' required with '%s'"
 msgstr ""
 
-#: et.cpp:3049
+#: et.cpp:2980
 #, c-format
 msgid "'%s' cannot be used with steady state constant infusion"
 msgstr ""
 
-#: et.cpp:3052
+#: et.cpp:2983
 #, c-format
 msgid "steady state ('%s') is not supported with dosing windows"
 msgstr ""
 
-#: et.cpp:3055
+#: et.cpp:2986
 #, c-format
 msgid "additional doses must be positive ('%s'=%d)"
 msgstr ""
 
-#: et.cpp:3058
+#: et.cpp:2989
 #, c-format
 msgid "additional doses require an inter-dose interval ('%s')"
 msgstr ""
 
-#: et.cpp:3063
+#: et.cpp:2994
 #, c-format
 msgid "for steady state infusions, you need %s=0, %s>0, %s=1, %s=0"
 msgstr ""
 
-#: et.cpp:3076
+#: et.cpp:3007
 msgid "dosing time window lists can have 1-2 numeric entries in them"
 msgstr ""
 
-#: et.cpp:3081
+#: et.cpp:3012
 msgid "dosing window list needs to be numeric values only"
 msgstr ""
 
-#: et.cpp:3134
+#: et.cpp:3065
 msgid "cannot figure out what type of 'EventTable' you are trying to create"
 msgstr ""
 
-#: et.cpp:3219 et.cpp:3222
+#: et.cpp:3150 et.cpp:3153
 msgid "cannot have event tables with integer and character 'cmt'"
 msgstr ""
 
-#: et.cpp:3307
+#: et.cpp:3238
 #, c-format
 msgid ""
 "assumed a dose interval of %.1f between event tables; use 'ii' to adjust"
 msgstr ""
 
-#: et.cpp:3409
+#: et.cpp:3324
 msgid "no events table found for 'seq'/'rep'/'rbind'/'c'"
 msgstr ""
 
-#: et.cpp:3530
+#: et.cpp:3445
 msgid "'wait' cannot be a vector"
 msgstr ""
 
-#: etTran.cpp:137
+#: etTran.cpp:138
 #, c-format
 msgid ""
 "negative compartments on non-ode 'cmt' (%s) does not make sense (id: %s, "
 "row: %d)"
 msgstr ""
 
-#: etTran.cpp:272 etTran.cpp:282
+#: etTran.cpp:273 etTran.cpp:283
 #, c-format
 msgid ""
 "negative compartments on non-ode 'cmt' (%s) does not make sense (id: %s row: "
 "%d)"
 msgstr ""
 
-#: etTran.cpp:303
+#: etTran.cpp:304
 msgid "should not reach here"
 msgstr ""
 
-#: etTran.cpp:477
+#: etTran.cpp:457
 msgid "cannot keep 'evid'; try 'addDosing'"
 msgstr ""
 
-#: etTran.cpp:622
+#: etTran.cpp:602
 msgid "'time' is required in dataset"
 msgstr ""
 
-#: etTran.cpp:714
+#: etTran.cpp:694
 msgid "steady state column ('ss') needs to be an integer"
 msgstr ""
 
-#: etTran.cpp:725
+#: etTran.cpp:705
 msgid "event id ('evid') needs to be an integer"
 msgstr ""
 
-#: etTran.cpp:734
+#: etTran.cpp:714
 msgid "missing DV ('mdv') needs to be an integer"
 msgstr ""
 
-#: etTran.cpp:748
+#: etTran.cpp:728
 msgid "missing dependent variable ('mdv') needs to be an integer"
 msgstr ""
 
-#: etTran.cpp:756
+#: etTran.cpp:736
 msgid "'rate' needs to be a number"
 msgstr ""
 
-#: etTran.cpp:765
+#: etTran.cpp:745
 msgid "'dur' needs to be a number"
 msgstr ""
 
-#: etTran.cpp:780
+#: etTran.cpp:760
 msgid "amount ('amt') needs to be a number"
 msgstr ""
 
-#: etTran.cpp:788
+#: etTran.cpp:768
 msgid "inter-dose interval ('ii') needs to be a number"
 msgstr ""
 
-#: etTran.cpp:796
+#: etTran.cpp:776
 msgid "number of additional doses ('addl') needs to be an integer"
 msgstr ""
 
-#: etTran.cpp:804
+#: etTran.cpp:784
 msgid "dependent variable ('dv') needs to be a number"
 msgstr ""
 
-#: etTran.cpp:812
+#: etTran.cpp:792
 msgid "censoring variable ('cens') needs to be a number"
 msgstr ""
 
-#: etTran.cpp:820
+#: etTran.cpp:800
 msgid "limit variable ('limit') needs to be a number"
 msgstr ""
 
-#: etTran.cpp:869
+#: etTran.cpp:849
 #, c-format
 msgid "censoring column can only be -1, 0 or 1 (id: %s, row: %d)"
 msgstr ""
 
-#: etTran.cpp:894
+#: etTran.cpp:874
 #, c-format
 msgid "infinite times are not allowed (id: %s, row: %d)"
 msgstr ""
 
-#: etTran.cpp:952
+#: etTran.cpp:932
 #, c-format
 msgid ""
 "steady state records cannot be on negative compartments (id: %s, row: %d)"
 msgstr ""
 
-#: etTran.cpp:982
+#: etTran.cpp:962
 #, c-format
 msgid ""
 "when using steady state constant infusion modeling duration does not make "
 "sense (id: %s, row: %d)"
 msgstr ""
 
-#: etTran.cpp:1001
+#: etTran.cpp:981
 #, c-format
 msgid ""
 "specifying duration with a steady state constant infusion makes no sense "
 "(id: %s row: %d)"
 msgstr ""
 
-#: etTran.cpp:1007 etTran.cpp:1013
+#: etTran.cpp:987 etTran.cpp:993
 #, c-format
 msgid ""
 "specifying duration with a steady state constant infusion makes no sense "
 "(id: %d row: %d)"
 msgstr ""
 
-#: etTran.cpp:1024
+#: etTran.cpp:1004
 #, c-format
 msgid "'rate' and/or 'dur' are not specified correctly (id: %d row: %d)"
 msgstr ""
 
-#: etTran.cpp:1042
+#: etTran.cpp:1022
 #, c-format
 msgid ""
 "'amt' or 'dur'/'rate' are non-zero therefore MDV cannot = 0 (id: %s row: %d)"
 msgstr ""
 
-#: etTran.cpp:1080
+#: etTran.cpp:1060
 msgid "'addl' is ignored with observations"
 msgstr ""
 
-#: etTran.cpp:1102 etTran.cpp:1186
+#: etTran.cpp:1082 etTran.cpp:1166
 #, c-format
 msgid "'limit' (%f) cannot equal 'dv' (%f) id: %s row: %d"
 msgstr ""
 
-#: etTran.cpp:1135
+#: etTran.cpp:1115
 #, c-format
 msgid "'cmt' and 'dvid' specify different compartments (id: %s row: %d)"
 msgstr ""
 
-#: etTran.cpp:1156
+#: etTran.cpp:1136
 msgid "'DVID'/'CMT' translation:\n"
 msgstr ""
 
-#: etTran.cpp:1162
+#: etTran.cpp:1142
 #, c-format
 msgid ""
 "'dvid'->'cmt' or 'cmt' on observation record on a undefined compartment (use "
 "'cmt()' 'dvid()') id: %s row: %d"
 msgstr ""
 
-#: etTran.cpp:1201
+#: etTran.cpp:1181
 #, c-format
 msgid "'mdv' cannot be 0 when 'evid'=1 id: %s row: %d"
 msgstr ""
 
-#: etTran.cpp:1218
+#: etTran.cpp:1198
 msgid "'addl' is ignored with 'EVID=2'"
 msgstr ""
 
-#: etTran.cpp:1221
+#: etTran.cpp:1201
 msgid "'ss' is ignored with 'EVID=2'"
 msgstr ""
 
-#: etTran.cpp:1263
+#: etTran.cpp:1243
 msgid "'addl' is ignored with 'EVID=3'"
 msgstr ""
 
-#: etTran.cpp:1266
+#: etTran.cpp:1246
 msgid "'ss' is ignored with 'EVID=3'"
 msgstr ""
 
-#: etTran.cpp:1290
+#: etTran.cpp:1270
 #, c-format
 msgid "'mdv' cannot be 0 when 'evid'=4 id: %s row: %d"
 msgstr ""
 
-#: etTran.cpp:1316
+#: etTran.cpp:1296
 #, c-format
 msgid "cannot have an infusion event with a replacement event (id: %s row: %d)"
 msgstr ""
 
-#: etTran.cpp:1323
+#: etTran.cpp:1303
 #, c-format
 msgid ""
 "cannot have an infusion event with a multiplication event (id: %s row: %d)"
 msgstr ""
 
-#: etTran.cpp:1334
+#: etTran.cpp:1314
 msgid "'rate' or 'dur' is ignored with classic RxODE 'EVID's"
 msgstr ""
 
-#: etTran.cpp:1338
+#: etTran.cpp:1318
 msgid "'ss' is ignored with classic RxODE 'EVID's"
 msgstr ""
 
-#: etTran.cpp:1359
+#: etTran.cpp:1339
 #, c-format
 msgid "'ss' with 'addl' not supported (id: %s row: %d)"
 msgstr ""
 
-#: etTran.cpp:1370
+#: etTran.cpp:1350
 #, c-format
 msgid "'amt' value NA or 0 for dose event (id: %s row: %d)"
 msgstr ""
 
-#: etTran.cpp:1408
+#: etTran.cpp:1388
 #, c-format
 msgid ""
 "'amt' value NA for dose event; (id: %s, amt: %f, evid: %d RxODE evid: %d, "
 "row: %d)"
 msgstr ""
 
-#: etTran.cpp:1486
+#: etTran.cpp:1466
 msgid ""
 "there are evid=3/4 records in an incorrectly sorted dataset, system is "
 "reset, but time is not reset"
 msgstr ""
 
-#: etTran.cpp:1543
+#: etTran.cpp:1523
 msgid "censoring missing 'DV' values do not make sense"
 msgstr ""
 
-#: etTran.cpp:1639 etTran.cpp:1661
+#: etTran.cpp:1576 etTran.cpp:1598
 msgid "empty data"
 msgstr ""
 
-#: etTran.cpp:1677
+#: etTran.cpp:1614
 msgid "while censoring is included in dataset, no observations are censored"
 msgstr ""
 
-#: etTran.cpp:1681
+#: etTran.cpp:1618
 msgid "'dv' and 'limit' swapped since 'limit' > 'dv'"
 msgstr ""
 
-#: etTran.cpp:1802
+#: etTran.cpp:1739
 msgid "number of individuals not calculated correctly"
 msgstr ""
 
-#: etTran.cpp:1957
+#: etTran.cpp:1894
 msgid "corrupted event table"
 msgstr ""
 
-#: etTran.cpp:2071
+#: etTran.cpp:2008
 msgid ""
 "\n"
 "with negative times, compartments initialize at first negative observed "
@@ -1175,220 +1163,239 @@ msgstr ""
 msgid "parameter names must be specified"
 msgstr ""
 
-#: rxData.cpp:1477
+#: rxData.cpp:1496
 msgid "could not allocate memory for solving parameters"
 msgstr ""
 
-#: rxData.cpp:1521
+#: rxData.cpp:1540
 msgid "memory for residual errors could not be allocated"
 msgstr ""
 
-#: rxData.cpp:1528
+#: rxData.cpp:1547
 msgid "cannot allocate memory to simulate the residuals"
 msgstr ""
 
-#: rxData.cpp:1587
+#: rxData.cpp:1606
 msgid "'thetaMat' must be a named matrix"
 msgstr ""
 
-#: rxData.cpp:1593 rxData.cpp:3040
+#: rxData.cpp:1614 rxData.cpp:3050
 msgid "'thetaMat' must be symmetric"
 msgstr ""
 
-#: rxData.cpp:1614
+#: rxData.cpp:1635
 msgid "'thetaMat' is ignored since nStud <= 1"
 msgstr ""
 
-#: rxData.cpp:1654
+#: rxData.cpp:1675
 #, c-format
 msgid "parameter '%s' was not simulated in 'thetaMat'"
 msgstr ""
 
-#: rxData.cpp:1663
+#: rxData.cpp:1684
 #, c-format
 msgid "'%s' must be a named matrix"
 msgstr ""
 
-#: rxData.cpp:1671
+#: rxData.cpp:1694
 #, c-format
 msgid "'%s' must be symmetric"
 msgstr ""
 
-#: rxData.cpp:1841
+#: rxData.cpp:1865
 msgid "requires 'params'"
 msgstr ""
 
-#: rxData.cpp:1846
+#: rxData.cpp:1870
 msgid "'params' must be a named vector"
 msgstr ""
 
-#: rxData.cpp:1867
+#: rxData.cpp:1891
 msgid "multi-subject simulation without without 'omega'"
 msgstr ""
 
-#: rxData.cpp:2210
+#: rxData.cpp:2242
 msgid "ran out of memory during 'updateSolveEnvPost'"
 msgstr ""
 
-#: rxData.cpp:2579
+#: rxData.cpp:2587
 msgid "No additional parameters were specified, returning original object"
 msgstr ""
 
-#: rxData.cpp:2658
+#: rxData.cpp:2666
 msgid "can not update object"
 msgstr ""
 
-#: rxData.cpp:2706
+#: rxData.cpp:2714
 msgid "'from' must be of length 1"
 msgstr ""
 
-#: rxData.cpp:2714
+#: rxData.cpp:2722
 msgid "'to' must be of length 1"
 msgstr ""
 
-#: rxData.cpp:2724
+#: rxData.cpp:2732
 msgid "'by' must be of length 1"
 msgstr ""
 
-#: rxData.cpp:2732
+#: rxData.cpp:2740
 msgid "'length.out' must be of length 1"
 msgstr ""
 
-#: rxData.cpp:2738
+#: rxData.cpp:2746
 msgid "cannot use both 'by' and 'length.out' for RxODE simulations"
 msgstr ""
 
-#: rxData.cpp:2832
+#: rxData.cpp:2840
 msgid "RxODE only supports 500 factors"
 msgstr ""
 
-#: rxData.cpp:2974
+#: rxData.cpp:2982
 msgid ""
 "when specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a "
 "'data.frame'/'matrix'."
 msgstr ""
 
-#: rxData.cpp:3098 rxData.cpp:3236 rxData.cpp:3245
+#: rxData.cpp:3108 rxData.cpp:3246 rxData.cpp:3255
 msgid ""
 "if parameters are not named, they must match the order and size of the "
 "parameters in the model"
 msgstr ""
 
-#: rxData.cpp:3224
+#: rxData.cpp:3234
 msgid "matrix parameters with 'iCov' 'data.frame' is not supported"
 msgstr ""
 
-#: rxData.cpp:3323
+#: rxData.cpp:3333
 msgid "can not allocate enough memory to load 'evid'"
 msgstr ""
 
-#: rxData.cpp:3367
+#: rxData.cpp:3377
 msgid "nothing to solve"
 msgstr ""
 
-#: rxData.cpp:3421
+#: rxData.cpp:3431
 msgid "can not allocate memory for the covariates"
 msgstr ""
 
-#: rxData.cpp:3505
+#: rxData.cpp:3515
 msgid "data must be ordered by 'ID' and 'TIME' variables"
 msgstr ""
 
-#: rxData.cpp:3575
+#: rxData.cpp:3585
 msgid "cannot allocate enough memory to sort input parameters"
 msgstr ""
 
-#: rxData.cpp:3705
+#: rxData.cpp:3715
 msgid "'resample' must be NULL or a character vector"
 msgstr ""
 
-#: rxData.cpp:3834
+#: rxData.cpp:3844
 msgid "nPopPar != 1 but parameters are specified as a NumericVector"
 msgstr ""
 
-#: rxData.cpp:3945
+#: rxData.cpp:3955
 msgid "Something is wrong"
 msgstr ""
 
-#: rxData.cpp:4008
+#: rxData.cpp:4018
 msgid "aborted solve"
 msgstr ""
 
-#: rxData.cpp:4388
+#: rxData.cpp:4042
+#, c-format
+msgid ""
+"exited from at least one while after %d iterations, (increase with "
+"`rxSolve(..., maxwhile=#)`)"
+msgstr ""
+
+#: rxData.cpp:4386
+msgid "zero 'thetaMat' specified, no uncertainty in fixed effects"
+msgstr ""
+
+#: rxData.cpp:4389
+msgid "zero 'omega', no variability from random-effects"
+msgstr ""
+
+#: rxData.cpp:4392
+msgid "zero 'sigma', no unexplained variability"
+msgstr ""
+
+#: rxData.cpp:4410
 msgid ""
 "dropped key column, returning data.frame instead of special solved data.frame"
 msgstr ""
 
-#: rxData.cpp:4469
+#: rxData.cpp:4610
 msgid "control list not setup correctly"
 msgstr ""
 
-#: rxData.cpp:4532
+#: rxData.cpp:4673
 msgid "cannot solve without event information"
 msgstr ""
 
-#: rxData.cpp:4542
+#: rxData.cpp:4683
 msgid "cannot update this object"
 msgstr ""
 
-#: rxData.cpp:4603
+#: rxData.cpp:4739
 msgid "cannot load RxODE dlls for this model"
 msgstr ""
 
-#: rxData.cpp:4664
+#: rxData.cpp:4794
 msgid ""
 "thread safe method, but results may depend on system/load, using 1 core (can "
 "change with `cores=`)"
 msgstr ""
 
-#: rxData.cpp:4675 rxData.cpp:4693
+#: rxData.cpp:4805 rxData.cpp:4823
 msgid "not thread safe method, using 1 core"
 msgstr ""
 
-#: rxData.cpp:4684
+#: rxData.cpp:4814
 msgid "thread safe method, but results may depend on system/load"
 msgstr ""
 
-#: rxData.cpp:4749
+#: rxData.cpp:4879
 msgid "'infSSstep' needs to be positive"
 msgstr ""
 
-#: rxData.cpp:4795
+#: rxData.cpp:4925
 msgid "assumed transit compartment model since 'podo' is in the model"
 msgstr ""
 
-#: rxData.cpp:4831
+#: rxData.cpp:4961
 msgid "unknown covariate interpolation specified"
 msgstr ""
 
-#: rxData.cpp:4922
+#: rxData.cpp:5052
 #, c-format
 msgid ""
 "number of parameters (%d) solved by RxODE for multi-subject data needs to be "
 "a multiple of the number of subjects (%d)"
 msgstr ""
 
-#: rxData.cpp:5040
+#: rxData.cpp:5170
 msgid "could not allocate enough memory for solving"
 msgstr ""
 
-#: rxData.cpp:5433
+#: rxData.cpp:5563
 msgid "cannot update nonexistent parameters"
 msgstr ""
 
-#: rxData.cpp:5687
+#: rxData.cpp:5817
 msgid "Can not figure out the RxODE object"
 msgstr ""
 
-#: rxData.cpp:5793 rxData.cpp:5836
+#: rxData.cpp:5923 rxData.cpp:5966
 msgid "can not figure out the DLL for this object"
 msgstr ""
 
-#: rxData.cpp:6019
+#: rxData.cpp:6149
 msgid "package-based models cannot be unloaded"
 msgstr ""
 
-#: rxData.cpp:6066
+#: rxData.cpp:6196
 msgid "package-based models cannot be deleted"
 msgstr ""
 
@@ -1425,72 +1432,72 @@ msgstr ""
 msgid "Can only assign 'theta' in this environment"
 msgstr ""
 
-#: threefry.cpp:39 threefry.cpp:111 threefry.cpp:694
+#: threefry.cpp:45 threefry.cpp:117 threefry.cpp:700
 msgid "n should be a positive integer"
 msgstr ""
 
-#: threefry.cpp:40 threefry.cpp:112 threefry.cpp:619 threefry.cpp:695
+#: threefry.cpp:46 threefry.cpp:118 threefry.cpp:625 threefry.cpp:701
 msgid "'ncores' has to be greater than one"
 msgstr ""
 
-#: threefry.cpp:473
+#: threefry.cpp:479
 #, c-format
 msgid "dimension wrong in 'gradpsi' (d=%d)"
 msgstr ""
 
-#: threefry.cpp:575
+#: threefry.cpp:581
 msgid "covariance matrix is ill-conditioned and method failed (truncated mvn)"
 msgstr ""
 
-#: threefry.cpp:621
+#: threefry.cpp:627
 msgid "'lower' and 'upper' must have the same number of elements."
 msgstr ""
 
-#: threefry.cpp:622
+#: threefry.cpp:628
 msgid ""
 "'sigma' must be a square matrix with the same dimension as 'upper' and "
 "'lower'"
 msgstr ""
 
-#: threefry.cpp:624
+#: threefry.cpp:630
 msgid "'lower' is bigger than 'upper' for at least one item"
 msgstr ""
 
-#: threefry.cpp:634
+#: threefry.cpp:640
 msgid "truncated multivariate normal may fail as covariance matrix is singular"
 msgstr ""
 
-#: threefry.cpp:671
+#: threefry.cpp:677
 msgid "acceptance probability smaller than 0.001"
 msgstr ""
 
-#: threefry.cpp:674
+#: threefry.cpp:680
 msgid "could not sample from truncated normal"
 msgstr ""
 
-#: threefry.cpp:676
+#: threefry.cpp:682
 #, c-format
 msgid "sample of size %d which is smaller than requested 'n' returned"
 msgstr ""
 
-#: threefry.cpp:1442
+#: threefry.cpp:1450
 msgid "when 'sigma' is a list, it has to have at least 1 element"
 msgstr ""
 
-#: threefry.cpp:1445
+#: threefry.cpp:1453
 msgid "'sigma' must be a list of square symmetric matrices"
 msgstr ""
 
-#: threefry.cpp:1456
+#: threefry.cpp:1464
 #, c-format
 msgid "'sigma' list element %d does not match dimension of first matrix"
 msgstr ""
 
-#: threefry.cpp:1494
+#: threefry.cpp:1502
 msgid "'mu' length must match 'sigma' dimensions"
 msgstr ""
 
-#: threefry.cpp:1644
+#: threefry.cpp:1652
 msgid "'prob' function should return a vector the same length as the input"
 msgstr ""
 

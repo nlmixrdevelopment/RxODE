@@ -29,6 +29,7 @@ knitr::opts_chunk$set(
 [![CRAN total downloads](https://cranlogs.r-pkg.org/badges/grand-total/RxODE)](https://cran.r-project.org/package=RxODE)
 [![CRAN total downloads](https://cranlogs.r-pkg.org/badges/RxODE)](https://cran.r-project.org/package=RxODE)
 
+[![R build status](https://github.com/nlmixrdevelopment/RxODE/workflows/R-CMD-check/badge.svg)](https://github.com/nlmixrdevelopment/RxODE/actions)
 <!-- badges: end -->
 
 ## Overview

@@ -108,3 +108,4 @@ vignettes/build.R
 ^\.Rproj\.user$
 tests/testthat/*.d.*
 ..Rcheck
+^\.github$
