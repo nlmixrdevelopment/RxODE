@@ -42,13 +42,6 @@ jobs:
         run: |
           git config --global core.autocrlf false
 
-      - name: Install symengine from github
-        if: runner.os == 'macOS'
-        run: |
-          install.packages('devtools')
-          devtools::install_github("symengine/symengine.R")
-        shell: Rscript {0}
-
       - uses: actions/checkout@v2
 
       - uses: r-lib/actions/setup-r@v1
@@ -57,6 +50,13 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
 
       - uses: r-lib/actions/setup-pandoc@v1
+
+      - name: Install symengine from github
+        if: runner.os == 'macOS'
+        run: |
+          install.packages('devtools')
+          devtools::install_github("symengine/symengine.R")
+        shell: Rscript {0}
 
       - name: Query dependencies
         run: |
