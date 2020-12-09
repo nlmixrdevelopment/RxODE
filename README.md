@@ -15,8 +15,7 @@ output:
 # RxODE
 
 <!-- badges: start -->
-[![Build Status](https://travis-ci.org/nlmixrdevelopment/RxODE.svg?branch=master)](https://travis-ci.org/nlmixrdevelopment/RxODE)
-[![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/8vv1e3hncve9tnva?svg=true)](https://ci.appveyor.com/project/mattfidler/rxode)
+[![Build Status](https://travis-ci.org/nlmixrdevelopment/RxODE.svg?branch=master)](https://travis-ci.org/nlmixapprdevelopment/RxODE)
 [![codecov.io](https://codecov.io/github/nlmixrdevelopment/RxODE/coverage.svg)](https://codecov.io/github/nlmixrdevelopment/RxODE?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
 [![CRAN total downloads](https://cranlogs.r-pkg.org/badges/grand-total/RxODE)](https://cran.r-project.org/package=RxODE)
@@ -126,6 +125,8 @@ To load `RxODE` package and compile the model:
 
 ```r
 library(RxODE)
+#> detected new version of RxODE, cleaning cache
+#> RxODE 1.0.0.0 using 4 threads (see ?getRxThreads)
 library(units)
 #> udunits system database from /usr/share/xml/udunits
 
@@ -139,6 +140,10 @@ mod1 <-RxODE({
 })
 #> 
 #> qs v0.23.4.
+#> → creating RxODE include directory
+#> → getting R compile options
+#> → precompiling headers
+#> ✔ done
 ```
 
 ## Specify ODE parameters and initial conditions
