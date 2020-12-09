@@ -40,7 +40,7 @@ jobs:
     steps:
       - name: Set git to use LF
         run: |
-	  git config --global core.autocrlf false
+          git config --global core.autocrlf false
 
       - uses: actions/checkout@v2
 
