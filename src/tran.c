@@ -6210,9 +6210,16 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   for (i = 0; i < sbNrmL.n; i++){
     if (sbNrmL.lProp[i]== -100){
       char *line = sbNrmL.line[i];
+      REprintf("line: %s\n", line);
       if (line[0] != '\0') {
 	while (strncmp(line, "linCmt(", 7)){
-	  if (line[0] == '\0') break;
+	  if (line[0] == '\0') {
+	    sFree(&last2);
+	    UNPROTECT(pro);
+	    parseFree(0);
+	    Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
+	    return R_NilValue;
+	  }
 	  else sPut(&last2, line[0]);
 	  line++;
 	}
@@ -6222,18 +6229,26 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
 	sFree(&last2);
 	UNPROTECT(pro);
 	parseFree(0);
-	Rf_errorcall(R_NilValue, _("linCmt() doesn't seem to be found in the right place"));
+	Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
+	return R_NilValue;
       }
       sAppend(&last2, "%s", CHAR(STRING_ELT(VECTOR_ELT(linCmtP, 0), 0)));
       while (line[0] != ')'){
+	if (line[0] == '\0') {
+	  sFree(&last2);
+	  UNPROTECT(pro);
+	  parseFree(0);
+	  Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
+	  return R_NilValue;
+	}
 	if (line[0] == '('){
 	  sFree(&last2);
 	  UNPROTECT(pro);
 	  parseFree(0);
 	  Rf_errorcall(R_NilValue, _("linCmt() cannot have any extra parentheses in it"));
+	  return R_NilValue;
 	}
 	line++;
-	if (line[0] == '\0') break;
       }
       if (line[0] != '\0') sAppend(&last2, "%s", ++line);
     } else {
