@@ -56,6 +56,7 @@ jobs:
         run: |
           install.packages('devtools')
           devtools::install_github("symengine/symengine.R")
+	  devtools::install_github("nlmixrdevelopment/dparser")
         shell: Rscript {0}
 
       - name: Query dependencies
