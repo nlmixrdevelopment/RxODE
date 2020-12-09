@@ -93,6 +93,7 @@
 #endif
 
 void RSprintf(const char *format, ...);
+void parseFree(int last);
 
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
@@ -126,7 +127,10 @@ int rc_buf_read(const char *pathname, char **buf, int *len) {
   memset(&sb, 0, sizeof(sb));
   fstat(fd, &sb);
   *len = sb.st_size;
-  *buf = Calloc(*len + 3,char);
+  *buf = calloc(*len + 3,sizeof(char));
+  if (buf == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory during RxODE parsing"));
+  }
   // MINGW likes to convert cr lf => lf which messes with the size
   size_t real_size = read(fd, *buf, *len);
   (*buf)[real_size] = 0;
@@ -253,7 +257,10 @@ sbuf firstErr;
 int firstErrD=0;
 
 void sIniTo(sbuf *sbb, int to){
-  sbb->s = Calloc(to, char);
+  sbb->s = calloc(to, sizeof(char));
+  if (sbb->s == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory variable length buffer during RxODE parsing"));
+  }
   sbb->sN = to;
   sbb->s[0]='\0';
   sbb->o=0;
@@ -268,7 +275,7 @@ void sIni(sbuf *sbb){
 }
 
 void sFree(sbuf *sbb){
-  Free(sbb->s);
+  free(sbb->s);
   sbb->sN=0;
   sbb->o=0;
 }
@@ -344,19 +351,34 @@ void sPrint(sbuf *sbb, const char *format, ...) {
 }
 
 void lineIni(vLines *sbb){
-  Free(sbb->s);
-  sbb->s = Calloc(MXBUF, char);
+  free(sbb->s);
+  sbb->s = calloc(MXBUF, sizeof(char));
+  if (sbb->s == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for lines during RxODE parsing"));
+  }
   sbb->sN = MXBUF;
   sbb->s[0]='\0';
   sbb->o = 0;
-  Free(sbb->lProp);
-  Free(sbb->line);
-  Free(sbb->lType);
-  Free(sbb->os);
-  sbb->lProp = Calloc(MXLINE, int);
-  sbb->lType = Calloc(MXLINE, int);
-  sbb->line = Calloc(MXLINE, char*);
-  sbb->os = Calloc(MXLINE, int);
+  free(sbb->lProp);
+  free(sbb->line);
+  free(sbb->lType);
+  free(sbb->os);
+  sbb->lProp = calloc(MXLINE, sizeof(int));
+  if (sbb->lProp == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for lines during RxODE parsing"));
+  }
+  sbb->lType = calloc(MXLINE, sizeof(int));
+  if (sbb->lType == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for lines during RxODE parsing"));
+  }
+  sbb->line = calloc(MXLINE, sizeof(char*));
+  if (sbb->line == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for lines during RxODE parsing"));
+  }
+  sbb->os = calloc(MXLINE, sizeof(int));
+  if (sbb->os == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for lines during RxODE parsing"));
+  }
   sbb->nL=MXLINE;
   sbb->lProp[0] = -1;
   sbb->lType[0] = 0;
@@ -364,11 +386,11 @@ void lineIni(vLines *sbb){
 }
 
 void lineFree(vLines *sbb){
-  Free(sbb->s);
-  Free(sbb->lProp);
-  Free(sbb->lType);
-  Free(sbb->line);
-  Free(sbb->os);
+  free(sbb->s);
+  free(sbb->lProp);
+  free(sbb->lType);
+  free(sbb->line);
+  free(sbb->os);
   sbb->sN = 0;
   sbb->nL = 0;
   sbb->n  = 0;
@@ -999,7 +1021,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     sAppendN(&sbt, "&&", 2);
   }
 
-  /* Free(value); */
 
   //depth++;
   if (nch != 0) {
@@ -1017,7 +1038,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  updateSyntaxCol();
           trans_syntax_error_report_fn(NOASSIGN);
         }
-        /* Free(v); */
         continue;
       }
       if ((i == 3 || i == 4 || i < 2) &&
@@ -1141,7 +1161,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	addLine(&sbPmDt, "%s\n", sbDt.s);
 	sAppend(&sbNrm, "%s\n", sbt.s);
 	addLine(&sbNrmL, "%s\n", sbt.s);
-	/* Free(v); */
 	ENDLINE;
 	continue;
       }
@@ -1163,7 +1182,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppend(&sb, "%s, ", v);
 	  sAppend(&sbDt, "%s, ", v);
 	  sAppend(&sbt, "%s", v);
-	  /* Free(v); */
 	  continue;
 	}
 	if (i == 1) {
@@ -1174,7 +1192,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    aAppendN("0, ", 3);
 	  }
 	  sAppend(&sbt, "%s", v);
-	  /* Free(v); */
 	  continue;
 	}
 	if (i == 2) {
@@ -1190,7 +1207,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "%s, \"%s\")", v, v);
 	    sAppend(&sbt, "%s", v);
 	  }
-	  /* Free(v); */
 	  continue;
 	}
       }
@@ -1208,7 +1224,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "%s, \"%s\", ", v, v);
 	    sAppend(&sbt, "%s", v);
 	  }
-	  /* Free(v); */
 	  continue;
 	}
 	if (i == 1) {
@@ -1219,7 +1234,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    aAppendN("0, ", 3);
 	  }
 	  sAppend(&sbt, "%s", v);
-	  /* Free(v); */
 	  continue;
 	}
 	if (i == 2) {
@@ -1229,7 +1243,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppend(&sb, "%s)", v);
 	  sAppend(&sbDt, "%s)", v);
 	  sAppend(&sbt, "%s", v);
-	  /* Free(v); */
 	  continue;
 	}
       }
@@ -1240,7 +1253,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  xpn = d_get_child(pn,2);
 	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  tb.dvid[0]=atoi(v);
-	  /* Free(v); */
 	  if (tb.dvid[0] == 0){
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(ZERODVID);
@@ -1254,16 +1266,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    v = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
 	    tb.dvid[i+1]=atoi(v+1);
 	    if (tb.dvid[i+1] == 0){
-	      /* Free(v); */
 	      updateSyntaxCol();
 	      trans_syntax_error_report_fn(ZERODVID);
 	    }
 	    sAppend(&sbt, ",%d", tb.dvid[i+1]);
-	    /* Free(v); */
 	  }
 	  sAppend(&sbNrm, "%s);\n", sbt.s);
 	  addLine(&sbNrmL, "%s);\n", sbt.s);
-	  /* Free(v); */
 	  continue;
 	} else {
 	  updateSyntaxCol();
@@ -1290,12 +1299,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      updateSyntaxCol();
 	      trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
 	    }
-	    /* Free(v2); */
 	  } else {
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
 	  }
-	  /* Free(v); */
 	  i = nch;
 	  continue;
 	} else if ((isTad = !strcmp("tad", v)) || (isTafd = !strcmp("tafd", v)) ||
@@ -1322,8 +1329,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		  updateSyntaxCol();
 		  sPrint(&_gbuf,ODEFIRST,v2);
 		  trans_syntax_error_report_fn(_gbuf.s);
-		  /* Free(v2); */
-		  /* Free(v); */
 		  continue;
 		} else {
 		  tb.statei++;
@@ -1338,8 +1343,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      // tad(cmt)
 	    }
 	    sAppend(&sbt, "%s(%s)", v, v2);
-	    /* Free(v); */
-	    /* Free(v2); */
 	    /* RSprintf("i: %d / %d\n", i, nch); */
 	    /* i = nch;// skip next arguments */
 	    /* depth=0; */
@@ -1366,7 +1369,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_%s(%d, (double) ", v, ii);
 	  }
 	  sAppend(&sbt, "%s(", v);
-          /* Free(v); */
           i = 1;// Parse next arguments
 	  depth=1;
 	  continue;
@@ -1380,10 +1382,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      updateSyntaxCol();
 	      sPrint(&_gbuf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
 		     v, v);
-	      /* Free(v2); */
 	      trans_syntax_error_report_fn(_gbuf.s);
 	    }
-	    /* Free(v2); */
 	    sAppend(&sb, "_%s1(", v);
 	    sAppend(&sbDt,"_%s1(", v);
 	    sAppend(&sbt, "%s(", v);
@@ -1403,7 +1403,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
-	  /* Free(v); */
 	  continue;
 	} else if (!strcmp("lag", v) || (isLead = !strcmp("lead", v)) ||
 		   (isDiff = !strcmp("diff", v)) ||
@@ -1448,7 +1447,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppendN(&sb, "1(", 2);
 	    sAppendN(&sbDt, "1(", 2);
 	    sAppend(&sbt, "%s(", v);
-	    /* Free(v2); */
 	  } else if (ii != 2){
 	    if (isFirst || isLast){
 		updateSyntaxCol();
@@ -1476,7 +1474,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		lagNo = toInt(v2+1);
 		if (isLead && lagNo != NA_INTEGER) lagNo = -lagNo;
 	      }
-	      /* Free(v2); */
 	      if (lagNo == NA_INTEGER){
 		updateSyntaxCol();
 		sPrint(&_gbuf, _("'%s(parameter, k)' requires k to be an integer"), v);
@@ -1498,8 +1495,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		tb.fn=1;
 		if (lagNo == 0){
 		  doDot2(&sb, &sbDt, v2);
-		  /* Free(v2); */
-		  /* Free(v); */
 		  i = 4;// skip next arguments
 		  depth=1;
 		  continue;
@@ -1512,13 +1507,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		  sAppendN(&sbDt,   "(", 1);
 		  sAppend(&sbt,  "%s(", v);
 		}
-		/* Free(v2); */
 	      }
 	    }
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
-	  /* Free(v); */
 	  continue;
 	} else if ((isPnorm = !strcmp("pnorm", v)) ||
 		   !strcmp("qnorm", v)){
@@ -1527,7 +1520,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    D_ParseNode *xpn = d_get_child(pn, 2);
 	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	    int allSpace=allSpaces(v2);
-	    /* Free(v2); */
 	    if (allSpace){
 	      updateSyntaxCol();
 	      if (isPnorm){
@@ -1558,7 +1550,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
-	  /* Free(v); */
 	  continue;
 	} else if (!strcmp("transit", v)) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
@@ -1576,7 +1567,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
-	  /* Free(v); */
 	  continue;
 	} else if ((isNorm = !strcmp("rnorm", v) ||
 		    !strcmp("rxnorm", v) || (isInd = !strcmp("rinorm", v))) ||
@@ -1607,7 +1597,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      D_ParseNode *xpn = d_get_child(pn, 2);
 	      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	      int allSpace=allSpaces(v2);
-	      /* Free(v2); */
 	      if (allSpace){
 		if (isGamma){
 		  updateSyntaxCol();
@@ -1670,7 +1659,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
-	  /* Free(v); */
 	  /* if (isInd) { */
 	  /*   sAppendN(&sb, ")", 1); */
 	  /*   sAppendN(&sbDt, ")", 1); */
@@ -1695,7 +1683,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    D_ParseNode *xpn = d_get_child(pn, 2);
 	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	    int allSpace=allSpaces(v2);
-	    /* Free(v2); */
 	    if (allSpace){
 	      if (isExp){
 		if (isInd) {
@@ -1737,7 +1724,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
-	  /* Free(v); */
 	  /* if (isInd) { */
 	  /*   sAppendN(&sb, ")", 1); */
 	  /*   sAppendN(&sbDt, ")", 1); */
@@ -1764,7 +1750,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    D_ParseNode *xpn = d_get_child(pn, 2);
 	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	    int allSpace=allSpaces(v2);
-	    /* Free(v2); */
 	    if (allSpace){
 	      if (isPois){
 		updateSyntaxCol();
@@ -1787,7 +1772,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
-	  /* Free(v); */
 	  continue;
 	} else if (!strcmp("rbinom", v) ||
 		   !strcmp("rxbinom", v) ||
@@ -1809,7 +1793,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  i = 1;// Parse next arguments
 	  depth=1;
-	  /* Free(v); */
 	  /* if (isInd) { */
 	  /*   sAppendN(&sb, ")", 1); */
 	  /*   sAppendN(&sbDt, ")", 1); */
@@ -1820,7 +1803,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  D_ParseNode *xpn = d_get_child(pn, 2);
 	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  int allSpace=allSpaces(v2);
-	  /* Free(v2); */
 	  if (ii != 1 || (ii == 1 && allSpace)) {
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(_("'is.nan' takes 1 argument"));
@@ -1828,14 +1810,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppendN(&sb, "isnan", 5);
 	  sAppendN(&sbDt, "isnan", 5);
 	  sAppendN(&sbt, "is.nan", 6);
-	  /* Free(v); */
 	  continue;
 	} else if (!strcmp("is.na", v)) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  D_ParseNode *xpn = d_get_child(pn, 2);
 	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  int allSpace=allSpaces(v2);
-	  /* Free(v2); */
 	  if (ii != 1 || (ii == 1 && allSpace)) {
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(_("'is.na' takes 1 argument"));
@@ -1843,14 +1823,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppendN(&sb, "ISNA", 4);
 	  sAppendN(&sbDt, "ISNA", 4);
 	  sAppendN(&sbt, "is.na", 5);
-	  /* Free(v); */
 	  continue;
 	} else if (!strcmp("is.finite", v)) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  D_ParseNode *xpn = d_get_child(pn, 2);
 	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  int allSpace=allSpaces(v2);
-	  /* Free(v2); */
 	  if (ii != 1 || (ii == 1 && allSpace)) {
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(_("'is.finite' takes 1 argument"));
@@ -1858,14 +1836,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppendN(&sb, "R_FINITE", 8);
 	  sAppendN(&sbDt, "R_FINITE", 8);
 	  sAppendN(&sbt, "is.finite", 9);
-	  /* Free(v); */
 	  continue;
 	} else if (!strcmp("is.infinite", v)) {
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
 	  D_ParseNode *xpn = d_get_child(pn, 2);
 	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  int allSpace=allSpaces(v2);
-	  /* Free(v2); */
 	  if (ii != 1 || (ii == 1 && allSpace)) {
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(_("'is.infinite' takes 1 argument"));
@@ -1878,7 +1854,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppendN(&sb, "!R_FINITE", 9);
 	    sAppendN(&sbDt, "!R_FINITE", 9);
 	  }
-	  /* Free(v); */
 	  sAppendN(&sbt, "is.infinite", 11);
 	  continue;
 	} else if (!strcmp("linCmtA", v) || !strcmp("linCmtC", v) ||
@@ -1889,11 +1864,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  xpn2 = d_get_child(xpn1, 1);
 	  char *v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
 	  tb.linCmtN = toInt(v2+1);
-	  /* Free(v2); */
 	  xpn2 = d_get_child(xpn1, 2);
 	  v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
 	  tb.ncmt = toInt(v2+1);
-	  /* Free(v2); */
 	  if (isLinB) isLinB=1;
 	  tb.linB = isLinB;
 	  if (!tb.linExtra) {
@@ -1915,7 +1888,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
 	    }
-	    /* Free(v2); */
 	    // 11 f1
 	    xpn2 = d_get_child(xpn1, 11+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
@@ -1934,7 +1906,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
 	    }
-	    /* Free(v2); */
 	    // 13 dur1
 	    xpn2 = d_get_child(xpn1, 13+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
@@ -1953,7 +1924,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
 	    }
-	    /* Free(v2); */
 	    // 12 rate1
 	    xpn2 = d_get_child(xpn1, 12+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
@@ -1972,7 +1942,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
 	    }
-	    /* Free(v2); */
 	    // 14 -- ka
 	    xpn2 = d_get_child(xpn1, 14+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
@@ -1980,7 +1949,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		   !strcmp(v2, "0.")))) {
 	      tb.hasKa=1;
 	    }
-	    /* Free(v2); */
 	    // lag2 = 15
 	    xpn2 = d_get_child(xpn1, 15+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
@@ -1999,7 +1967,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
 	    }
-	    /* Free(v2); */
 	    // f2 = 16 ; This is 1 instead of zero
 	    xpn2 = d_get_child(xpn1, 16+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
@@ -2018,7 +1985,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
 	    }
-	    /* Free(v2); */
 	    // rate2 = 17
 	    xpn2 = d_get_child(xpn1, 17+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
@@ -2037,7 +2003,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
 	    }
-	    /* Free(v2); */
 	    // dur2 = 18
 	    xpn2 = d_get_child(xpn1, 18+isLinB);
 	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
@@ -2056,7 +2021,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      ENDLINE;
 	      tb.ixL= ixL; tb.didEq=didEq;
 	    }
-	    /* Free(v2); */
 	    tb.linExtra=true; // Only first call
 	  }
 	  aType(TLIN);
@@ -2071,9 +2035,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		tb.linCmtFlg += tmp;
 	      }
 	    }
-	    /* Free(v2); */
 	  }
-	  /* Free(v); */
         } else {
 	  // Check if this is a valid function
 	  int foundFun = 0;
@@ -2090,7 +2052,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    trans_syntax_error_report_fn(_gbuf.s);
 	  }
 	}
-        /* Free(v); */
       }
 
       if (nodeHas(theta)){
@@ -2106,7 +2067,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sAppend(&sb,"_THETA_%s_",v);
 	sAppend(&sbDt,"_THETA_%s_",v);
         sAppend(&sbt,"THETA[%s]",v);
-        /* Free(v); */
         continue;
       }
 
@@ -2123,7 +2083,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sAppend(&sb, "_ETA_%s_",v);
 	sAppend(&sbDt, "_ETA_%s_",v);
         sAppend(&sbt,"ETA[%s]",v);
-        /* Free(v); */
         continue;
       }
       wprint_parsetree(pt, xpn, depth, fn, client_data);
@@ -2150,7 +2109,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  }
 	  safe_zero = 0;
 	}
-	/* Free(v); */
       }
       if (nodeHas(printf_statement)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -2174,7 +2132,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  addLine(&sbNrmL, "%s;\n", sbt.s);
 	  ENDLINE
         }
-        /* Free(v); */
         continue;
       }
 
@@ -2234,7 +2191,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  new_or_ith(v);
 	  tb.cdf = tb.ix;
         }
-        /* Free(v); */
         continue;
       }
       if ((nodeHas(dfdy) || nodeHas(dfdy_rhs)) && i == 4){
@@ -2288,7 +2244,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    tb.cdf = -1;
           }
         }
-        /* Free(v); */
         continue;
       }
 
@@ -2296,14 +2251,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (nodeHas(selection_statement) && i== 0 ) {
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	isWhile = !strcmp("while", v);
-	/* Free(v); */
 	if (isWhile) {
 	  D_ParseNode *xpn2 = d_get_child(pn, 5);
 	  v = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
 	  if (v[0] == 0) {
-	    /* Free(v); */
 	  } else {
-	    /* Free(v); */
 	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(_("'while' cannot be followed by 'else' (did you mean 'if'/'else')"));
 	  }
@@ -2376,7 +2328,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  updateSyntaxCol();
           trans_syntax_error_report_fn(NEEDPOW);
         }
-        /* Free(v); */
       }
       if ((nodeHas(fbio) || nodeHas(alag) ||
 	   nodeHas(dur) || nodeHas(rate) ||
@@ -2507,7 +2458,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    aType(RATE);
           }
         }
-        /* Free(v); */
         continue;
       }
       if (nodeHas(derivative) && i==5) {
@@ -2519,7 +2469,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  // = + is output  or = InfusionRate + is outupt.
           aAppendN("+ ", 2);
         }
-	/* Free(v); */
 	continue;
       }
       if (nodeHas(derivative) && i==2) {
@@ -2552,7 +2501,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  tb.lh[tb.ix] = 9;
           tb.di[tb.de.n] = tb.ix;
 	  addLine(&(tb.de),"%s",v);
-	  /* Free(v); */
 	  xpn = d_get_child(pn,4);
           v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  tb.idu[tb.de.n-1] = 1;
@@ -2563,7 +2511,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    tb.idi[tb.de.n-1] = 0;
 	    sAppendN(&sbt, "=", 1);
 	  }
-	  /* Free(v); */
         } else {
 	  new_or_ith(v);
 	  /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
@@ -2580,7 +2527,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  aProp(tb.id);
 	  sbt.o=0;
 	  sAppend(&sbt, "d/dt(%s)", v);
-	  /* Free(v); */
           xpn = d_get_child(pn,4);
           v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
           if (!strcmp("~",v)){
@@ -2591,7 +2537,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    // keep it ignored.
 	    sAppendN(&sbt, "=", 1);
 	  }
-	  /* Free(v); */
         }
         continue;
       }
@@ -2642,7 +2587,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      aProp(tb.id);
 	      sAppend(&sbt, "d/dt(%s)", v);
 	    }
-	    /* Free(v); */
 	  }
 	}
         continue;
@@ -2656,7 +2600,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sAppend(&sb,  "%s",v);
 	sAppend(&sbDt,"%s",v);
 	sAppend(&sbt, "%s(0)",v);
-	/* Free(v); */
       }
 
       if ((i==0 && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0))) ||
@@ -2756,7 +2699,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             if (nodeHas(ini0)){
 	      tb.ini0[tb.ix] = 1;
 	      xpn = d_get_child(pn, 3);
-	      /* Free(v); */
 	      v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	      sscanf(v, "%lf", &d);
 	      tb.iniv[tb.ix] = d;
@@ -2767,14 +2709,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
                 tb.lh[tb.ix] = 1;
               } else {
 		xpn = d_get_child(pn, 2);
-		/* Free(v); */
 		v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 		sscanf(v, "%lf", &d);
 		tb.iniv[tb.ix] = d;
 		tb.ini_i++;
 	      }
             }
-	    /* Free(v); */
 	    continue;
           } else {
             // There is more than one call to this variable, it is a
@@ -2797,7 +2737,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    tb.ini0[tb.ix] = 0;
           }
         }
-        /* Free(v); */
       }
     }
     if (isWhile) {
@@ -2864,7 +2803,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	updateSyntaxCol();
         trans_syntax_error_report_fn(NOASSIGN);
       }
-      /* Free(v); */
     }
 
     if (nodeHas(selection_statement)){
@@ -3628,25 +3566,22 @@ void parseFree(int last){
   lineFree(&depotLines);
   lineFree(&centralLines);
   lineFree(&_dupStrs);
-  Free(tb.lh);
-  Free(tb.lag);
-  Free(tb.ini);
-  Free(tb.mtime);
-  Free(tb.iniv);
-  Free(tb.ini0);
-  Free(tb.di);
-  Free(tb.idi);
-  Free(tb.idu);
-  Free(tb.dvid);
-  Free(tb.df);
-  Free(tb.dy);
-  Free(tb.sdfdy);
+  free(tb.lh);
+  free(tb.lag);
+  free(tb.ini);
+  free(tb.mtime);
+  free(tb.iniv);
+  free(tb.ini0);
+  free(tb.di);
+  free(tb.idi);
+  free(tb.idu);
+  free(tb.dvid);
+  free(tb.df);
+  free(tb.dy);
+  free(tb.sdfdy);
   freeP();
   if (last){
-    Free(model_prefix);
-    Free(md5);
-    Free(gBuf);
-    Free(me_code);
+    free(gBuf);
     sFree(&sbOut);
     freeP();
     sFree(&_bufw);
@@ -3680,16 +3615,46 @@ void reset (){
   lineIni(&(tb.ss));
   lineIni(&(tb.de));
 
-  tb.lh		= Calloc(MXSYM, int);
-  tb.ini	= Calloc(MXSYM, int);
-  tb.mtime	= Calloc(MXSYM, int);
-  tb.iniv	= Calloc(MXSYM, double);
-  tb.ini0	= Calloc(MXSYM, int);
-  tb.di		= Calloc(MXDER, int);
-  tb.idi	= Calloc(MXDER, int);
-  tb.idu	= Calloc(MXDER, int);
-  tb.lag	= Calloc(MXSYM, int);
-  tb.dvid	= Calloc(MXDER, int);
+  tb.lh		= calloc(MXSYM, sizeof(int));
+  if (tb.lh == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for tb.lh during RxODE parsing"));
+  }
+  tb.ini	= calloc(MXSYM, sizeof(int));
+  if (tb.ini == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for tb.ini during RxODE parsing"));
+  }
+  tb.mtime	= calloc(MXSYM, sizeof(int));
+  if (tb.mtime == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for tb.mtime during RxODE parsing"));
+  }
+  tb.iniv	= calloc(MXSYM, sizeof(double));
+  if (tb.iniv == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for tb.iniv during RxODE parsing"));
+  }
+  tb.ini0	= calloc(MXSYM, sizeof(int));
+  if (tb.ini0 == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for tb.ini0 during RxODE parsing"));
+  }
+  tb.di		= calloc(MXDER, sizeof(int));
+  if (tb.di == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for tb.di during RxODE parsing"));
+  }
+  tb.idi	= calloc(MXDER, sizeof(int));
+  if (tb.idi == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for tb.idi during RxODE parsing"));
+  }
+  tb.idu	= calloc(MXDER, sizeof(int));
+  if (tb.idu == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for tb.idu during RxODE parsing"));
+  }
+  tb.lag	= calloc(MXSYM, sizeof(int));
+  if (tb.idu == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for tb.lag during RxODE parsing"));
+  }
+  tb.dvid	= calloc(MXDER, sizeof(int));
+  if (tb.dvid == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for tb.dvid during RxODE parsing"));
+  }
   tb.thread     = 1; // Thread safe flag
   tb.dvidn      = 0;
   tb.ix		= 0;
@@ -3711,9 +3676,18 @@ void reset (){
   tb.linCmt     = 0;
   tb.linCmtN    = -100;
   tb.linCmtFlg  = 0;
-  tb.df		= Calloc(MXSYM, int);
-  tb.dy		= Calloc(MXSYM, int);
-  tb.sdfdy	= Calloc(MXSYM, int);
+  tb.df		= calloc(MXSYM, sizeof(int));
+  if (tb.df == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for tb.df during RxODE parsing"));
+  }
+  tb.dy		= calloc(MXSYM, sizeof(int));
+  if (tb.dy == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for tb.dy during RxODE parsing"));
+  }
+  tb.sdfdy	= calloc(MXSYM, sizeof(int));
+  if (tb.sdfdy == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for tb.sdfdy during RxODE parsing"));
+  }
   tb.cdf	= 0;
   tb.ndfdy	= 0;
   tb.maxtheta   = 0;
@@ -3807,13 +3781,13 @@ void trans_internal(const char* parse_file, int isStr){
   curP->initial_scope = NULL;
   curP->syntax_error_fn = rxSyntaxError;
   if (isStr){
-    if (gBufFree) Free(gBuf);
+    if (gBufFree) free(gBuf);
     // Should be able to use gBuf directly, but I believe it cause
     // problems with R's garbage collection, so duplicate the string.
     gBuf = (char*)(parse_file);
     gBufFree=0;
   } else {
-    if (gBufFree) Free(gBuf);
+    if (gBufFree) free(gBuf);
     gBuf = rc_sbuf_read(parse_file);
     gBufFree=1;
     err_msg((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2);
@@ -4640,7 +4614,10 @@ char *getLine (char *src, int line, int *lloc)
   }
   for(col = 0; src[i + col] != '\n' && src[i + col] != '\0'; col++);
   *lloc=i+col;
-  char *buf = Calloc(col + 1, char);
+  char *buf = calloc(col + 1, sizeof(char));
+  if (buf == NULL){
+    parseFree(0); Rf_errorcall(R_NilValue, _("could not allocate memory for getLine() during RxODE parsing"));
+  }
   memcpy(buf, src + i, col);
   buf[col] = '\0';
   return buf;
@@ -4662,7 +4639,7 @@ static void rxSyntaxError(struct D_Parser *ap) {
     for (; lastSyntaxErrorLine < p->user.loc.line; lastSyntaxErrorLine++){
       buf = getLine(gBuf, lastSyntaxErrorLine, &gBufLast);
       RSprintf("\n:%03d: %s", lastSyntaxErrorLine, buf);
-      Free(buf);
+      free(buf);
 
     }
     char *after = 0;
@@ -4798,7 +4775,7 @@ static void rxSyntaxError(struct D_Parser *ap) {
 	sAppendN(&firstErr, "^", 1);
       }
     }
-    Free(buf);
+    free(buf);
     if (firstErrD == 0) {
       firstErrD = 1;
       sAppendN(&firstErr, "\nmore errors could be listed above", 34);
@@ -4844,7 +4821,7 @@ static void trans_syntax_error_report_fn(char *err) {
     for (; lastSyntaxErrorLine < p->user.loc.line; lastSyntaxErrorLine++){
       buf = getLine(gBuf, lastSyntaxErrorLine, &gBufLast);
       RSprintf("\n:%03d: %s", lastSyntaxErrorLine, buf);
-      Free(buf);
+      free(buf);
     }
     if (lastSyntaxErrorLine < p->user.loc.line){
       RSprintf("\n");
@@ -4873,7 +4850,7 @@ static void trans_syntax_error_report_fn(char *err) {
       RSprintf("%c", buf[i]);
     }
     RSprintf("\n      ");
-    Free(buf);
+    free(buf);
     for (int i = 0; i < p->user.loc.col; i++){
       RSprintf(" ");
       if (i == len-2) { i++; break;}
@@ -6207,8 +6184,9 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   SEXP linCmtP = PROTECT(_linCmtParse(vars, inStr, verbose)); pro++;
   sbuf last2;
   sIni(&last2);
-  for (i = 0; i < sbNrmL.n; i++){
-    if (sbNrmL.lProp[i]== -100){
+  REprintf("here (%d)\n", sbNrmL.n);
+  for (i = 0; i < sbNrmL.n; i++) {
+    if (sbNrmL.lProp[i]== -100) {
       char *line = sbNrmL.line[i];
       REprintf("line: %s\n", line);
       if (line[0] != '\0') {
@@ -6255,6 +6233,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
       sAppend(&last2, "%s", sbNrmL.line[i]);
     }
   }
+  REprintf("done\n");
   SEXP ret = PROTECT(Rf_allocVector(STRSXP,1)); pro++;
   SET_STRING_ELT(ret, 0, mkChar(last2.s));
   sFree(&last2);
