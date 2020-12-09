@@ -5682,28 +5682,22 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     }
   }
   linCmtStruct lin;
-  REprintf("linIni\n");
   linCmtIni(&lin);
   for (int i = Rf_length(vars); i--;){
     linCmtStr(&lin, CHAR(STRING_ELT(vars, i)), &i);
   }
-  REprintf("linCmtAdjustPars\n");
   linCmtAdjustPars(&lin);
   int trans =-1;
   int ncmt = -1;
   sbuf ret0, ret;
-  REprintf("sIni(ret0)\n");
   sIni(&ret0);
-  REprintf("sIni(ret)\n");
   sIni(&ret);
   if (lin.cl != -1) {
     trans = 1;
     if (lin.vss != -1) {
-      REprintf("linVss!=-1\n");
       ncmt = 2;
       trans = 3;
       if (lin.vStyle != -1) {
-	REprintf("linVss vStyle=-1\n");
 	sClear(&firstErr);
 	sAppendN(&firstErr, "cannot mix 'Vss' and '", 22);
 	linCmtVStr(&firstErr, lin.vStyle);
@@ -5714,14 +5708,12 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	Rf_errorcall(R_NilValue, firstErr.s);
       }
       if (lin.v == -1) {
-	REprintf("linVss v=-1\n");
 	parseFree(0);
 	sFree(&ret0);
 	sFree(&ret);
 	Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
       }
       if (lin.cl2 == -1) {
-	REprintf("linVss cl2=-1\n");
 	parseFree(0);
 	sFree(&ret0);
 	sFree(&ret);
@@ -5732,11 +5724,8 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl2)));
       sAppend(&ret0, "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.vss)));
-      REprintf("end linVss\n");
     } else {
-      REprintf("linVss==-1\n");
       if (lin.v == -1) {
-	REprintf("debug\n");
 	parseFree(0);
 	sFree(&ret0);
 	sFree(&ret);
@@ -5748,17 +5737,14 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl)));
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
       if (lin.v2 != -1 || lin.cl2 != -1) {
-	REprintf("v2 !=-1 | cl2 !=-1\n");
 	ncmt = 2;
 	if (lin.cl2 == -1) {
-	  REprintf("cl2 ==-1\n");
 	  parseFree(0);
 	  sFree(&ret0);
 	  sFree(&ret);
 	  Rf_errorcall(R_NilValue, _("cannot figure out distributional clearance"));
 	}
 	if (lin.v2 == -1) {
-	  REprintf("v2 ==-1\n");
 	  parseFree(0);
 	  sFree(&ret0);
 	  sFree(&ret);
@@ -5767,17 +5753,14 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.cl2)));
 	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v2)));
 	if (lin.v3 != -1 || lin.cl3 != -1) {
-	  REprintf("v3 ==-1\n");
 	  ncmt = 3;
 	  if (lin.cl3 == -1) {
-	    REprintf("cl3==-1\n");
 	    parseFree(0);
 	    sFree(&ret0);
 	    sFree(&ret);
 	    Rf_errorcall(R_NilValue, _("cannot figure out 2nd distributional clearance"));
 	  }
 	  if (lin.v3 == -1) {
-	    REprintf("v3==-1\n");
 	    parseFree(0);
 	    sFree(&ret0);
 	    sFree(&ret);
@@ -5794,7 +5777,6 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     }
     if (verbose) RSprintf(_("Detected %d-compartment model in terms of clearance"), ncmt);
   } else if (lin.kel != -1) {
-    REprintf("kel!=-1\n");
     if (lin.v == -1) {
       parseFree(0);
       sFree(&ret0);
@@ -5807,16 +5789,13 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.kel)));
     sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.v)));
     if (lin.k12 != -1 || lin.k21 != -1) {
-      REprintf("k12!=-1\n");
       if (lin.k12 == -1) {
 	if (lin.cmtc == 1){
-	  REprintf("cmtc==1\n");
 	  parseFree(0);
 	  sFree(&ret0);
 	  sFree(&ret);
 	  Rf_errorcall(R_NilValue, _("'k12' not found when 'k21' present"));
 	} else {
-	  REprintf("cmtc!=1\n");
 	  parseFree(0);
 	  sFree(&ret0);
 	  sFree(&ret);
@@ -5824,15 +5803,12 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	}
       }
       if (lin.k21 == -1) {
-	REprintf("lin.k21==-1\n");
 	if (lin.cmtc == 1){
-	  REprintf("cmtc==1\n");
 	  parseFree(0);
 	  sFree(&ret0);
 	  sFree(&ret);
 	  Rf_errorcall(R_NilValue, _("'k21' not found when 'k12' present"));
 	} else {
-	  REprintf("k32==1\n");
 	  parseFree(0);
 	  sFree(&ret0);
 	  sFree(&ret);
@@ -5843,17 +5819,13 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k12)));
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k21)));
       if (lin.k13 != -1 || lin.k31 != -1) {
-	REprintf("k13!=-1\n");
 	if (lin.k13 == -1) {
-	  REprintf("k13==-1\n");
 	  if (lin.cmtc == 1){
-	    REprintf("cmtc==1\n");
 	    sFree(&ret0);
 	    sFree(&ret);
 	    parseFree(0);
 	    Rf_errorcall(R_NilValue, _("'k13' not found when 'k31' present"));
 	  } else {
-	    REprintf("k13!=1\n");
 	    sFree(&ret0);
 	    sFree(&ret);
 	    parseFree(0);
@@ -5861,22 +5833,18 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	  }
 	}
 	if (lin.k31 == -1) {
-	  REprintf("k31==-1\n");
 	  if (lin.cmtc == 1){
-	    REprintf("cmtc==1\n");
 	    sFree(&ret0);
 	    sFree(&ret);
 	    parseFree(0);
 	    Rf_errorcall(R_NilValue, _("'k31' not found when 'k13' present"));
 	  } else {
-	    REprintf("cmtc!=1\n");
 	    sFree(&ret0);
 	    sFree(&ret);
 	    parseFree(0);
 	    Rf_errorcall(R_NilValue, _("'k42' not found when 'k24' present"));
 	  }
 	}
-	REprintf("cmt3\n");
 	ncmt = 3;
 	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k13)));
 	sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.k31)));
@@ -5884,15 +5852,12 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	sAppendN(&ret0, "0.0, 0.0, ", 10);
       }
     } else if (lin.k31 != -1 || lin.k13 != -1){
-      REprintf("k31!=-1\n");
       if (lin.cmtc == 1){
-	REprintf("cmtc==1\n");
 	sFree(&ret0);
 	sFree(&ret);
 	parseFree(0);
 	Rf_errorcall(R_NilValue, _("'k13' or 'k31' present when 'k12' and 'k21' not present"));
       } else {
-	REprintf("cmtc!=1\n");
 	sFree(&ret0);
 	sFree(&ret);
 	parseFree(0);
@@ -5903,25 +5868,21 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     }
     if (verbose) RSprintf(_("detected %d-compartment model in terms of micro-constants"), ncmt);
   } else if (lin.aob != -1) {
-    REprintf("aob!=1\n");
     ncmt = 2;
     trans = 5;
     if (lin.v == -1) {
-      REprintf("lin.v==1\n");
       parseFree(0);
       sFree(&ret0);
       sFree(&ret);
       Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
     }
     if (lin.alpha == -1) {
-      REprintf("lin.alpha==-1\n");
       parseFree(0);
       sFree(&ret0);
       sFree(&ret);
       Rf_errorcall(R_NilValue, _("need an 'alpha' with 'aob'"));
     }
     if (lin.beta == -1) {
-      REprintf("lin.beta==-1\n");
       parseFree(0);
       sFree(&ret0);
       sFree(&ret);
@@ -5937,21 +5898,18 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     ncmt = 2;
     trans = 4;
     if (lin.v == -1) {
-      REprintf("lin.v==-1\n");
       parseFree(0);
       sFree(&ret0);
       sFree(&ret);
       Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
     }
     if (lin.alpha == -1) {
-      REprintf("lin.alpha==-1\n");
       parseFree(0);
       sFree(&ret0);
       sFree(&ret);
       Rf_errorcall(R_NilValue, _("need an 'alpha'"));
     }
     if (lin.beta == -1) {
-      REprintf("lin.beta==-1\n");
       parseFree(0);
       sFree(&ret0);
       sFree(&ret);
@@ -5970,7 +5928,6 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       }
     }
   } else if (lin.alpha != -1) {
-    REprintf("lin.alpha!=-1\n");
     ncmt = 1;
     if (lin.a != -1){
       trans = 10;
@@ -5983,7 +5940,6 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.a)));
     } else {
       if (lin.v == -1) {
-	REprintf("lin.v==-1\n");
 	parseFree(0);
 	sFree(&ret0);
 	sFree(&ret);
@@ -5994,14 +5950,12 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     if (lin.beta != -1 || lin.b != -1) {
       ncmt =2;
       if (lin.beta == -1) {
-	REprintf("lin.beta==-1\n");
 	parseFree(0);
 	sFree(&ret0);
 	sFree(&ret);
 	Rf_errorcall(R_NilValue, _("need a 'beta'"));
       }
       if (lin.b == -1) {
-	REprintf("lin.b==-1\n");
 	parseFree(0);
 	sFree(&ret0);
 	sFree(&ret);
@@ -6010,17 +5964,14 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
       sAppend(&ret0, "%s, ", CHAR(STRING_ELT(vars, lin.b)));
       if (lin.gamma != -1 || lin.c != -1) {
-	REprintf("lin.gamma!=-1\n");
 	ncmt = 3;
 	if (lin.gamma == -1) {
-	  REprintf("lin.gamma==-1\n");
 	  parseFree(0);
 	  sFree(&ret0);
 	  sFree(&ret);
 	  Rf_errorcall(R_NilValue, _("need a 'gamma'"));
 	}
 	if (lin.c == -1) {
-	  REprintf("lin.c==-1\n");
 	  parseFree(0);
 	  sFree(&ret0);
 	  sFree(&ret);
@@ -6032,7 +5983,6 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	sAppendN(&ret0, "0.0, 0.0, ", 10);
       }
     } else if (lin.gamma != -1 || lin.c != -1) {
-      REprintf("lin.gamma==-1\n");
       parseFree(0);
       sFree(&ret0);
       sFree(&ret);
@@ -6048,7 +5998,6 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       }
     }
   }
-  REprintf("#10\n");
   sAppend(&ret, "%s", first);
   sAppend(&ret, "%d, %s", ncmt, ret0.s);
   sAppend(&ret, "%s", end1);
@@ -6085,9 +6034,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
   sFree(&ret0);
   sFree(&ret);
   UNPROTECT(pro);
-  REprintf("#11\n");
   if (trans == -1) {
-    REprintf("#12\n");
     UNPROTECT(_linCmtParsePro);
     _linCmtParsePro=0;
     parseFree(0);
@@ -6103,7 +6050,6 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   sbuf d_tlag, d_tlag2, d_F,  d_F2, d_rate1, d_dur1,
     d_rate2, d_dur2;
   int i = 0;
-  REprintf("#13\n");
   sIni(&last);
 
   sIni(&d_tlag);
@@ -6123,8 +6069,6 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   sAppendN(&d_dur1, "0.0, ", 5);
   sAppendN(&d_rate2, "0.0, ", 5);
   sAppendN(&d_dur2, "0.0)", 4);
-  REprintf("#14\n");
-
   if (tb.hasKa){
     // depot, central
     for (i = 0; i < depotLines.n; i++){
@@ -6149,9 +6093,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
 	RSprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
       }
     }
-    REprintf("#15\n");
     for (i = 0; i < centralLines.n; i++){
-      REprintf("#16\n");
       switch(centralLines.lType[i]){
       case FBIO:
 	sClear(&d_F2);
@@ -6172,7 +6114,6 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
       }
     }
   } else {
-    REprintf("#17\n");
     for (i = 0; i < depotLines.n; i++){
       switch(depotLines.lType[i]){
       case FBIO:
@@ -6192,7 +6133,6 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
       }
     }
     if (last.o) {
-      REprintf("#18\n");
       sClear(&firstErr);
       sAppend(&firstErr, "%s does not exist without a 'depot' compartment, specify a 'ka' parameter", last.s);
       sFree(&d_tlag);
@@ -6207,7 +6147,6 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
       parseFree(0);
       Rf_errorcall(R_NilValue, firstErr.s);
     }
-    REprintf("#19\n");
     // central only
     for (i = 0; i < centralLines.n; i++){
       switch(centralLines.lType[i]){
@@ -6230,7 +6169,6 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
       }
     }
   }
-  REprintf("#20\n");
   int pro=0;
   SEXP inStr = PROTECT(Rf_allocVector(STRSXP, 4)); pro++;
   int doSens = 0;
@@ -6243,7 +6181,6 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   sAppend(&last, "%s%s%s%s",d_tlag2.s, d_F2.s,  d_rate2.s, d_dur2.s);
   SET_STRING_ELT(inStr, 3, mkChar(last.s));
   sClear(&last);
-  REprintf("#22\n");
   if (doSens == 2){
     sAppend(&last, "linCmtB(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
     SET_STRING_ELT(inStr, 0, mkChar(last.s));
@@ -6266,38 +6203,36 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   sFree(&d_rate2);
   sFree(&d_dur2);
   sFree(&last);
-  REprintf("#23\n");
   _linCmtParsePro=pro;
   SEXP linCmtP = PROTECT(_linCmtParse(vars, inStr, verbose)); pro++;
-  sIni(&last);
+  sbuf last2;
+  sIni(&last2);
   for (i = 0; i < sbNrmL.n; i++){
     if (sbNrmL.lProp[i]== -100){
       char *line = sbNrmL.line[i];
       while (strncmp(line, "linCmt(", 7)){
-	sPut(&last, line[0]);
+	sPut(&last2, line[0]);
 	line++;
       }
       line +=7;
-      sAppend(&last, "%s", CHAR(STRING_ELT(VECTOR_ELT(linCmtP, 0), 0)));
+      sAppend(&last2, "%s", CHAR(STRING_ELT(VECTOR_ELT(linCmtP, 0), 0)));
       while (line[0] != ')'){
 	if (line[0] == '('){
-	  sFree(&last);
+	  sFree(&last2);
 	  UNPROTECT(pro);
 	  parseFree(0);
 	  Rf_errorcall(R_NilValue, _("linCmt() cannot have any extra parentheses in it"));
 	}
 	line++;
       }
-      sAppend(&last, "%s", ++line);
+      sAppend(&last2, "%s", ++line);
     } else {
-      sAppend(&last, "%s", sbNrmL.line[i]);
+      sAppend(&last2, "%s", sbNrmL.line[i]);
     }
   }
-  REprintf("#24\n");
   SEXP ret = PROTECT(Rf_allocVector(STRSXP,1)); pro++;
-  SET_STRING_ELT(ret, 0, mkChar(last.s));
-  sFree(&last);
-  REprintf("#25\n");
+  SET_STRING_ELT(ret, 0, mkChar(last2.s));
+  sFree(&last2);
   UNPROTECT(pro);
   return ret;
 }
