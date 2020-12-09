@@ -1676,7 +1676,7 @@ void rxSimOmega(bool &simOmega,
       }
     }
     simOmega = true;
-  } else if (rxIs(omega,"matrix") && nSub > 1){
+  } else if (rxIs(omega,"matrix") && nSub >= 1){
     simOmega = true;
     omegaM = as<NumericMatrix>(omega);
     if (!omegaM.hasAttribute("dimnames")){
@@ -1943,15 +1943,15 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     nm = NumericVector(nSub*nStud);
     ret0[i] = nm;
   }
-  for (i = 0; i < nStud; i++){
-    for (j = 0; j < pcol; j++){
+  for (i = 0; i < nStud; i++) {
+    for (j = 0; j < pcol; j++) {
       nm = ret0[j];
-      for (k = 0; k < nSub; k++){
+      for (k = 0; k < nSub; k++) {
         nm[nSub*i + k] = par[j];
       }
-      if (simTheta){
-        if(thetaPar[j] != -1){
-          for (k = 0; k < nSub; k++){
+      if (simTheta) {
+        if(thetaPar[j] != -1) {
+          for (k = 0; k < nSub; k++) {
             nm[nSub*i + k] += thetaM(i, thetaPar[j]);
           }
         }
@@ -1959,8 +1959,8 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
       ret0[j] = nm;
     }
     // Now Omega Covariates
-    if (ocol > 0){
-      if (dfSub > 0 && nStud > 1){
+    if (ocol > 0) {
+      if (dfSub > 0 && nStud > 1) {
         // nm = ret0[j]; // parameter column
         nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaList[i]), as<RObject>(omegaDf), nCoresRV, false, nSub,
 					   false, omegaLower, omegaUpper));
@@ -1968,39 +1968,39 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
         nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaMC), as<RObject>(omegaDf), nCoresRV, true, nSub,
 					   false, omegaLower, omegaUpper));
       }
-      for (j=pcol; j < pcol+ocol; j++){
+      for (j=pcol; j < pcol+ocol; j++) {
         nm = ret0[j];
-        for (k = 0; k < nSub; k++){
+        for (k = 0; k < nSub; k++) {
           nm[nSub*i + k] = nm1(k, j-pcol);
         }
         ret0[j] = nm;
       }
     }
-    if (scol > 0){
-      if (simSubjects){
-        if (dfObs > 0  && nStud > 1){
+    if (scol > 0) {
+      if (simSubjects) {
+        if (dfObs > 0  && nStud > 1) {
           nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, false, nObs*nSub,
 					     false, sigmaLower, sigmaUpper));
         } else {
           nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaMC), as<RObject>(sigmaDf), nCoresRV, true, nObs*nSub,
 					     false, sigmaLower, sigmaUpper));
         }
-        for (j = 0; j < scol; j++){
+        for (j = 0; j < scol; j++) {
           for (k = 0; k < nObs*nSub; k++){
             // ret1 = NumericMatrix(nObs*nStud, scol);
             ret1(nObs*nSub*i+k, j) = nm1(k, j);
           }
         }
       } else {
-        if (dfObs > 0  && nStud > 1){
+        if (dfObs > 0  && nStud > 1) {
           nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, false, nObs,
 					     false, sigmaLower, sigmaUpper));
         } else {
           nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaMC), as<RObject>(sigmaDf), nCoresRV, true, nObs,
 					     false, sigmaLower, sigmaUpper));
         }
-        for (j = 0; j < scol; j++){
-          for (k = 0; k < nObs; k++){
+        for (j = 0; j < scol; j++) {
+          for (k = 0; k < nObs; k++) {
             // ret1 = NumericMatrix(nObs*nStud, scol);
             ret1(nObs*i+k, j) = nm1(k, j);
           }
@@ -2012,32 +2012,31 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   for (i = 0; i < pcol; i++){
     dfName[i] = parN[i];
   }
-  for (i = pcol; i < pcol+ocol; i++){
+  for (i = pcol; i < pcol+ocol; i++) {
     dfName[i] = omegaN[i-pcol];
   }
-  for (i = pcol+ocol; i < ncol; i++){
+  for (i = pcol+ocol; i < ncol; i++) {
     dfName[i] = sigmaN[i-pcol-ocol];
   }
   ret0.attr("names") = dfName;
   ret0.attr("class") = "data.frame";
   ret0.attr("row.names") = IntegerVector::create(NA_INTEGER,-nSub*nStud);
   getRxModels();
-  if (ret1.nrow() > 1){
+  if (ret1.nrow() > 1) {
     ret1.attr("dimnames") = List::create(R_NilValue, sigmaN);
     _rxModels[".sigma"] = ret1;
   }
-  if (simTheta){
+  if (simTheta) {
     _rxModels[".theta"] = thetaM;
   }
-  if (dfSub > 0 && nStud > 1){
+  if (dfSub > 0 && nStud > 1) {
     _rxModels[".omegaL"] = omegaList;
     _rxModels[".omegaN"] = omegaN;
   }
-  if (dfObs > 0 && nStud > 1){
+  if (dfObs > 0 && nStud > 1) {
     _rxModels[".sigmaL"] = sigmaList;
   }
-
-  if (Rf_isNull(sigma) || rxIsChar(sigma)){
+  if (Rf_isNull(sigma) || rxIsChar(sigma)) {
   } else {
     // Fill in sigma information for simeta()
     arma::mat sigma0;
@@ -2075,7 +2074,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     // matrix list (n x n;  nStud matrices)
   }
 
-  if (Rf_isNull(omega) || rxIsChar(omega)){
+  if (Rf_isNull(omega) || rxIsChar(omega)) {
   } else {
     // Fill in omega information for simeta()
     arma::mat omega0;
@@ -2115,6 +2114,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   }
   return ret0;
 }
+
 extern "C" double *global_InfusionRate(unsigned int mx);
 
 #define defrx_params R_NilValue
@@ -2428,7 +2428,7 @@ LogicalVector rxSolveFree(){
     free(_globals.TMP);
   }
   _globals.TMP = NULL;
-  
+
   _globals.zeroTheta = false;
   _globals.zeroOmega = false;
   _globals.zeroSigma = false;
@@ -3026,6 +3026,9 @@ static inline void rxSolve_simulate(const RObject &obj,
     } else if (nSub > 1 && nSub0 == 1) {
       nSub0 = nSub;
       simSubjects = true;
+    } else if (nSub >= 1 && nSub0 == 1 && !rxIsNull(omega)) {
+      nSub0 = nSub;
+      simSubjects = true;
     }
     if (rxSolveDat->addDosing.isNull()){
       // only evid=0
@@ -3579,7 +3582,6 @@ static inline void rxSolve_parOrder(const RObject &obj, const List &rxControl,
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   if (_globals.gParPos != NULL) free(_globals.gParPos);
-  REprintf("npars: %d, sigmaN: %d omegaN: %d\n", rxSolveDat->npars + rxSolveDat->sigmaN.size() + rxSolveDat->omegaN.size());
   _globals.gParPos = (int*)calloc(rxSolveDat->npars*2 + rxSolveDat->sigmaN.size() + rxSolveDat->omegaN.size(), sizeof(int));// [npars]
   if (_globals.gParPos == NULL){
     rxSolveFree();
