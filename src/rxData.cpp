@@ -2032,6 +2032,8 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   if (dfSub > 0 && nStud > 1) {
     _rxModels[".omegaL"] = omegaList;
     _rxModels[".omegaN"] = omegaN;
+  } else if (Rf_isMatrix(omega)) {
+    _rxModels[".omegaN"]= as<CharacterVector>((as<List>((as<NumericMatrix>(omega)).attr("dimnames")))[1]);
   }
   if (dfObs > 0 && nStud > 1) {
     _rxModels[".sigmaL"] = sigmaList;
@@ -2625,7 +2627,7 @@ static inline SEXP rxSolve_update(const RObject &object,
   }
   if(e.exists(".omegaL")){
     _rxModels[".omegaL"] = as<List>(e[".omegaL"]);
-    _rxModels[".omegaN"] = as<List>(e[".omegaN"]);
+    _rxModels[".omegaN"] = as<CharacterVector>(e[".omegaN"]);
   }
   if(e.exists(".thetaL")){
     _rxModels[".thetaL"] = as<List>(e[".thetaL"]);
