@@ -6210,11 +6210,20 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   for (i = 0; i < sbNrmL.n; i++){
     if (sbNrmL.lProp[i]== -100){
       char *line = sbNrmL.line[i];
-      while (strncmp(line, "linCmt(", 7)){
-	sPut(&last2, line[0]);
-	line++;
+      if (line[0] != '\0') {
+	while (strncmp(line, "linCmt(", 7)){
+	  if (line[0] == '\0') break;
+	  else sPut(&last2, line[0]);
+	  line++;
+	}
       }
-      line +=7;
+      if (strlen(line) > 7) line +=7;
+      else {
+	sFree(&last2);
+	UNPROTECT(pro);
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("linCmt() doesn't seem to be found in the right place"));
+      }
       sAppend(&last2, "%s", CHAR(STRING_ELT(VECTOR_ELT(linCmtP, 0), 0)));
       while (line[0] != ')'){
 	if (line[0] == '('){
@@ -6224,8 +6233,9 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
 	  Rf_errorcall(R_NilValue, _("linCmt() cannot have any extra parentheses in it"));
 	}
 	line++;
+	if (line[0] == '\0') break;
       }
-      sAppend(&last2, "%s", ++line);
+      if (line[0] != '\0') sAppend(&last2, "%s", ++line);
     } else {
       sAppend(&last2, "%s", sbNrmL.line[i]);
     }
