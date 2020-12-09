@@ -3622,7 +3622,7 @@ void parseFree(int last){
   sFree(&_mv);
   lineFree(&sbPm);
   lineFree(&sbPmDt);
-  /* lineFree(&sbNrmL); */
+  lineFree(&sbNrmL);
   lineFree(&(tb.ss));
   lineFree(&(tb.de));
   lineFree(&depotLines);
@@ -3643,7 +3643,6 @@ void parseFree(int last){
   Free(tb.sdfdy);
   freeP();
   if (last){
-    lineFree(&sbNrmL);
     Free(model_prefix);
     Free(md5);
     Free(gBuf);
@@ -3673,7 +3672,7 @@ void reset (){
 
   lineIni(&sbPm);
   lineIni(&sbPmDt);
-  /* lineIni(&sbNrmL); */
+  lineIni(&sbNrmL);
   lineIni(&depotLines);
   lineIni(&centralLines);
   lineIni(&_dupStrs);
@@ -6211,6 +6210,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   for (i = 0; i < sbNrmL.n; i++){
     if (sbNrmL.lProp[i]== -100){
       char *line = sbNrmL.line[i];
+      REprintf("line: %s\n", line);
       if (line[0] != '\0') {
 	while (strncmp(line, "linCmt(", 7)){
 	  if (line[0] == '\0') {
