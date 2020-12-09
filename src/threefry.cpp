@@ -1368,7 +1368,6 @@ extern "C" void simeps(int id) {
   rx_solve* rx = getRxSolve_();
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   if (ind->inLhs == 1) { // only change while calculating the lhs
-    rx_solving_options *op = rx->op;
     // In this case the par_ptr will be updated with the new values, but they are out of order
     arma::mat out(1, rx->neps);
     // ind->id  = csub+csim*nsub;
@@ -1388,7 +1387,6 @@ extern "C" void simeta(int id) {
   rx_solve* rx = getRxSolve_();
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   if (ind->isIni == 1) { // only initialize at beginning
-    rx_solving_options *op = rx->op;
     // In this case the par_ptr will be updated with the new values, but they are out of order
     arma::mat out(1, rx->neta);
     // ind->id  = csub+csim*nsub;
