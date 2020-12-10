@@ -118,8 +118,3 @@ jobs:
         with:
           name: ${{ runner.os }}-r${{ matrix.config.r }}-results
           path: check
-
-      - name: Run covr on successful builds
-        if: success()
-        run: covr::codecov(token="c1a47ffb-e5b5-420a-a0ed-6df480bcb833")
-        shell: Rscript {0}
