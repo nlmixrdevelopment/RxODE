@@ -4,6 +4,8 @@ R_NegInf <- -Inf # nolint
 R_PosInf <- Inf # nolint
 
 .linCmtSens <- NULL
+.verbose <- FALSE
+.lastLin <- ""
 .clearME <- function(){
   assignInMyNamespace(".rxMECode", "")
 }
@@ -291,6 +293,8 @@ RxODE <- # nolint
            linCmtSens = c("linCmtA", "linCmtB", "linCmtC"),
            indLin = FALSE,
            verbose = FALSE) {
+    assignInMyNamespace(".linCmtSens", match.arg(linCmtSens))
+    assignInMyNamespace(".verbose", verbose)
     rxSuppressMsg()
     if (!missing(modName)) {
       if (!checkmate::testCharacter(modName, max.len = 1)) {
@@ -371,22 +375,9 @@ RxODE <- # nolint
     }
     .env <- new.env(parent = baseenv())
     .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel, indLin = indLin)
-    assignInMyNamespace(".linCmtSens", linCmtSens)
     if (.Call(`_RxODE_isLinCmt`) == 1L) {
       .env$.linCmtM <- rxNorm(.env$.mv)
-      .vars <- c(.env$.mv$params, .env$.mv$lhs, .env$.mv$slhs)
-      .env$.mv <- rxGetModel(.Call(
-        `_RxODE_linCmtGen`,
-        length(.env$.mv$state),
-        .vars,
-        setNames(
-          c(
-            "linCmtA" = 1L, "linCmtB" = 2L,
-            "linCmtC" = 3L
-          )[match.arg(linCmtSens)],
-          NULL
-        ), verbose
-      ))
+      .env$.mv <- rxGetModel(.lastLin)
     }
     model <- rxNorm(.env$.mv)
     class(model) <- "rxModelText"
@@ -1048,8 +1039,7 @@ rxMd5 <- function(model, # Model File
     .tmp <- c(
       RxODE.syntax.assign, RxODE.syntax.star.pow, RxODE.syntax.require.semicolon, RxODE.syntax.allow.dots,
       RxODE.syntax.allow.ini0, RxODE.syntax.allow.ini, RxODE.calculate.jacobian,
-      RxODE.calculate.sensitivity
-    )
+      RxODE.calculate.sensitivity, .linCmtSens)
     .ret <- c(
       .ret, .tmp, .rxIndLinStrategy, .rxIndLinState,
       .linCmtSens, ls(.symengineFs)
@@ -1161,7 +1151,14 @@ rxTrans.character <- memoise::memoise(function(model,
   .ret <- .Call(
     `_RxODE_trans`, model, modelPrefix, md5, .isStr,
     as.integer(crayon::has_color()),
-    .rxMECode, .rxSupportedFuns()
+    .rxMECode, .rxSupportedFuns(),
+    setNames(
+          c(
+            "linCmtA" = 1L, "linCmtB" = 2L,
+            "linCmtC" = 3L
+          )[.linCmtSens],
+          NULL
+        ), .verbose
   )
   if (inherits(.ret, "try-error")) {
     message("model")
@@ -1171,6 +1168,9 @@ rxTrans.character <- memoise::memoise(function(model,
       message(model)
     }
     stop("cannot create RxODE model", call. = FALSE)
+  } else if (!inherits(.ret, "rxModelVars")) {
+    assignInMyNamespace(".lastLin", .ret[[2]])
+    .ret <- .ret[[1]]
   }
   md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(c(
     .ret$model,
