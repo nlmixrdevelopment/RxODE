@@ -4586,15 +4586,15 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
     }
     if (badCentral && badDepot){
       fclose(fpIO);
-      reset();
+      /* reset(); */
       Rf_errorcall(R_NilValue, _("linCmt() and ode have 'central' and 'depot' compartments, rename ODE 'central'/'depot'"));
     } else if (badCentral) {
       fclose(fpIO);
-      reset();
+      /* reset(); */
       Rf_errorcall(R_NilValue, _("linCmt() and ode has a 'central' compartment, rename ODE 'central'"));
     } else if (badDepot) {
       fclose(fpIO);
-      reset();
+      /* reset(); */
       Rf_errorcall(R_NilValue, _("linCmt() and ode has a 'depot' compartment, rename ODE 'depot'"));
     }
     (&sbOut)->s[0]='\0';
@@ -4604,7 +4604,7 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
     } else if (tb.hasCentral == 1) {
       if (tb.hasDepot){
 	fclose(fpIO);
-	reset();
+	/* reset(); */
 	Rf_errorcall(R_NilValue, _("linCmt() does not have 'depot' compartment without a 'ka'"));
 	return R_NilValue;
       }
@@ -4625,7 +4625,7 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   gCode(11); //matF
   gCode(4); // Registration
   fclose(fpIO);
-  reset();
+  // reset();
   return R_NilValue;
 }
 
@@ -4678,8 +4678,7 @@ static void rxSyntaxError(struct D_Parser *ap) {
       if (firstErrD == 0) {
 	sAppend(&firstErr, _("RxODE syntax error after '%s':\n"), after);
       }
-    }
-    else{
+    } else {
       if (isEsc){
 	RSprintf(_("\n\n\033[1mRxODE syntax error\033[0m:\n"));
       }
@@ -4775,7 +4774,6 @@ static void rxSyntaxError(struct D_Parser *ap) {
 	if (firstErrD == 0) {
 	  sAppendN(&firstErr, "^", 1);
 	}
-
       }
     } else {
       for (int i = 0; i < p->user.loc.col; i++){
