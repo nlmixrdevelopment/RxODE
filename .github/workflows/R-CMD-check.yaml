@@ -44,8 +44,7 @@ jobs:
 
       - name: install libgit2-dev
         if: runner.os == 'Linux'
-        run: sudo apt-get update \
-            sudo apt-get install libgit2-dev -y
+        run: sudo apt-get update && apt-get install libgit2-dev -y
         shell: bash
 
       - uses: actions/checkout@v2
