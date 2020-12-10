@@ -93,7 +93,6 @@
 #endif
 
 void RSprintf(const char *format, ...);
-SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose);
 
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
@@ -3198,7 +3197,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
       sAppendN(&sbOut, "\\\\", 2);
     } else if (_mv.s[i] >= 33  && _mv.s[i] <= 126){ // ASCII only
       sPut(&sbOut, _mv.s[i]);
-    }
+    } 
   }
   sAppendN(&sbOut, "\");\n", 4);
   sAppend(&sbOut,"    char buf[%d];\n    __doBuf__\n#undef __doBuf__\n", off+1);
@@ -3887,7 +3886,7 @@ SEXP _RxODE_rxQs(SEXP);
 SEXP _RxODE_rxQr(SEXP);
 
 SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
-		  SEXP isEscIn, SEXP inME, SEXP goodFuns, SEXP linCmtSens, SEXP verbose){
+		  SEXP isEscIn, SEXP inME, SEXP goodFuns){
   _goodFuns = goodFuns;
   const char *in = NULL;
   char *buf, *df, *dy;
@@ -4453,41 +4452,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     } else {
       Rf_errorcall(R_NilValue, _("syntax errors (see above)"));
     }
-  }
-
-  if (tb.linCmt == 1) {
-    // state
-    pro = 0;
-    SEXP stateLenS = PROTECT(allocVector(INTSXP,1));pro++;
-    INTEGER(stateLenS)[0] = tb.statei-tb.nExtra;
-    int lenState = Rf_length(state);
-    SEXP nrmM = PROTECT(allocVector(STRSXP, 1)); pro++;
-    SET_STRING_ELT(nrmM,0,mkChar(sbNrm.s));
-    SEXP vars = PROTECT(allocVector(STRSXP, tb.pi+tb.li+tb.sli)); pro++;
-    int ivars = 0;
-    for (i=0; i<NV; i++) {
-      islhs = tb.lh[i];
-      if (islhs == 10){
-	SET_STRING_ELT(vars, ivars++, mkChar(tb.ss.line[i]));
-      }
-      if (islhs>1 && islhs != 19 && islhs != 70) {
-	continue;
-      }
-      if (islhs == 1 || islhs == 19 || islhs == 70){
-	SET_STRING_ELT(vars, ivars++, mkChar(tb.ss.line[i]));
-      } else {
-	// theta/eta don't affect parsing don't do anything special with them.
-	SET_STRING_ELT(vars, ivars++, mkChar(tb.ss.line[i]));
-      }
-    }
-    //.env$.linCmtM <- rxNorm(.env$.mv)
-    //.vars <- c(.env$.mv$params, .env$.mv$lhs, .env$.mv$slhs)
-    SEXP linCmtP = PROTECT(_RxODE_linCmtGen(stateLenS, vars, linCmtSens, verbose)); pro++;
-    SEXP ret2 = PROTECT(allocVector(VECSXP, 2)); pro++;
-    SET_VECTOR_ELT(ret2, 0, lst);
-    SET_VECTOR_ELT(ret2, 1, linCmtP);
-    UNPROTECT(pro);
-    return ret2;
   }
   return lst;
 }
@@ -6246,6 +6210,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   for (i = 0; i < sbNrmL.n; i++){
     if (sbNrmL.lProp[i]== -100){
       char *line = sbNrmL.line[i];
+      REprintf("line: %s\n", line);
       if (line[0] != '\0') {
 	while (strncmp(line, "linCmt(", 7)){
 	  if (line[0] == '\0') {
@@ -6305,3 +6270,4 @@ char * rc_dup_str(const char *s, const char *e) {
   addLine(&_dupStrs, "%.*s", l, s);
   return _dupStrs.line[_dupStrs.n-1];
 }
+
