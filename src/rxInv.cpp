@@ -19,7 +19,9 @@ extern "C" SEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn);
 //' Invert matrix using RcppArmadillo.  
 //'
 //' @param matrix matrix to be inverted.
+//' 
 //' @return inverse or pseudo inverse of matrix.
+//' 
 //' @export
 // [[Rcpp::export]]
 NumericVector rxInv(SEXP matrix){
@@ -63,32 +65,34 @@ arma::mat rxToCholOmega(arma::mat cholMat){
 //' Get Omega^-1 and derivatives
 //'
 //' @param invObjOrMatrix Object for inverse-type calculations.  If this is a matrix,
-//'     setup the object for inversion by \code{\link{rxSymInvCholCreate}} with the default arguments and return
+//'     setup the object for inversion [rxSymInvCholCreate()] with the default arguments and return
 //'     a reactive s3 object.  Otherwise, use the inversion object to calculate the requested derivative/inverse.
-//' @param theta Thetas to be used for calculation.  If missing (\code{NULL}), a
-//'     special s3 class is created and returned to access Omega^1
+//' @param theta Thetas to be used for calculation.  If missing (`NULL`), a
+//'     special s3 class is created and returned to access `Omega^1`
 //'     objects as needed and cache them based on the theta that is
 //'     used.
 //' @param type The type of object.  Currently the following types are
 //'     supported:
-//' \itemize{
-//' \item \code{cholOmegaInv} gives the
+//' * `cholOmegaInv` gives the
 //'     Cholesky decomposition of the Omega Inverse matrix.
-//' \item \code{omegaInv} gives the Omega Inverse matrix.
-//' \item \code{d(omegaInv)} gives the d(Omega^-1) withe respect to the
-//'     theta parameter specified in \code{thetaNumber}.
-//' \item \code{d(D)} gives the d(diagonal(Omega^-1)) with respect to
-//'     the theta parameter specified in the \code{thetaNumber}
+//' * `omegaInv` gives the Omega Inverse matrix.
+//' * `d(omegaInv)` gives the `d(Omega^-1)` withe respect to the
+//'     theta parameter specified in `thetaNumber`.
+//' * `d(D)` gives the `d(diagonal(Omega^-1))` with respect to
+//'     the theta parameter specified in the `thetaNumber`
 //'     parameter
 //' }
-//' @param thetaNumber For types \code{d(omegaInv)} and \code{d(D)},
+//' @param thetaNumber For types `d(omegaInv)` and `d(D)`,
 //'     the theta number that the derivative is taken against.  This
 //'     must be positive from 1 to the number of thetas defining the
 //'     Omega matrix.
+//' 
 //' @return Matrix based on parameters or environment with all the
-//'     matrixes calculated in variables omega, omegaInv, dOmega,
-//'     dOmegaInv.
+//'     matrixes calculated in variables `omega`, `omegaInv`, `dOmega`,
+//'     `dOmegaInv`.
+//' 
 //' @author Matthew L. Fidler
+//' 
 //' @export
 // [[Rcpp::export]]
 RObject rxSymInvChol(RObject invObjOrMatrix, Nullable<NumericVector> theta = R_NilValue, std::string type = "cholOmegaInv", int thetaNumber = 0){

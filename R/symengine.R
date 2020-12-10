@@ -209,7 +209,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 #' This adds a user function to RxODE that can be called.  If needed,
 #' these functions can be differentiated by numerical differences or
 #' by adding the derivatives to RxODE's internal derivative table
-#' with \code{\link{rxD}}
+#' with [rxD()]
 #'
 #' @param name This gives the name of the user function
 #' @param args This gives the arguments of the user function
@@ -651,7 +651,7 @@ rxD <- function(name, derivatives) {
 #'
 #' @param x expression
 #'
-#' @param envir default is \code{NULL}; Environment to put symengine
+#' @param envir default is `NULL`; Environment to put symengine
 #'     variables in.
 #'
 #' @param progress shows progress bar if true.

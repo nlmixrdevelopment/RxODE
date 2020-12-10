@@ -19,7 +19,7 @@ add.dosing(
 )
 }
 \arguments{
-\item{eventTable}{eventTable object}
+\item{eventTable}{eventTable object; When accessed from object it would be \verb{eventTable$}}
 
 \item{dose}{numeric scalar, dose amount in \code{amount.units};}
 
@@ -48,15 +48,15 @@ added at the dosing times? Defaults to \code{FALSE}.}
 Defaults to \code{"hours"} to indicate as per the original
 \code{EventTable} definition.}
 
-\item{...}{Other parameters passed to \code{\link{et}}.}
+\item{...}{Other parameters passed to \code{\link[=et]{et()}}.}
 }
 \value{
 eventTable with updated dosing (note the event table will
-    be updated anyway)
+be updated anyway)
 }
 \description{
 This adds a dosing event to the event table.  This is provided for
-piping syntax through magrittr
+piping syntax through magrittr.  It can also be accessed by \code{eventTable$add.dosing(...)}
 }
 \examples{
 
@@ -144,9 +144,9 @@ Pharmacometrics \& Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
 }
 \seealso{
 \code{\link{eventTable}}, \code{\link{add.sampling}},
-    \code{\link{add.dosing}}, \code{\link{et}},
-    \code{\link{etRep}}, \code{\link{etRbind}},
-    \code{\link{RxODE}}
+\code{\link{add.dosing}}, \code{\link{et}},
+\code{\link{etRep}}, \code{\link{etRbind}},
+\code{\link{RxODE}}
 }
 \author{
 Matthew L. Fidler

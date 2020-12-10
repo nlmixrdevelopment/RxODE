@@ -288,15 +288,19 @@ List rxDrop(CharacterVector drop, List input, bool warnDrop) {
 //'
 //' @param obj Object to check
 //' @param cls Type of class.  Only s3 classes for lists/environments and primitive classes are checked.
-//'    For matrix types they are distinguished as \code{numeric.matrix}, \code{integer.matrix},
-//'    \code{logical.matrix}, and \code{character.matrix} as well as the traditional \code{matrix}
-//'    class. Additionally checks for \code{event.data.frame} which is an \code{data.frame} object
-//'    with \code{time},  \code{evid} and \code{amt}. (UPPER, lower or Title cases accepted)
+//'    For matrix types they are distinguished as `numeric.matrix`, `integer.matrix`,
+//'    `logical.matrix`, and `character.matrix` as well as the traditional `matrix`
+//'    class. Additionally checks for `event.data.frame` which is an `data.frame` object
+//'    with `time`,  `evid` and `amt`. (UPPER, lower or Title cases accepted)
 //'
 //' @return A boolean indicating if the object is a member of the class.
+//' 
 //' @keywords internal
+//' 
 //' @author Matthew L. Fidler
+//' 
 //' @export
+//' 
 // [[Rcpp::export]]
 bool rxIs(const RObject &obj, std::string cls){
   if (obj == NULL) return false;
@@ -850,9 +854,10 @@ List rxModelVars_(const RObject &obj){
 //'
 //' If state is a string, return the compartment number of the named state.
 //'
-//' @seealso \code{\link{RxODE}}
+//' @seealso [RxODE()]
 //'
 //' @author Matthew L.Fidler
+//' 
 //' @export
 // [[Rcpp::export]]
 RObject rxState(const RObject &obj = R_NilValue, RObject state = R_NilValue){
@@ -899,7 +904,9 @@ CharacterVector rxParams_(const RObject &obj){
 //'
 //' @return A list of the jacobian parameters defined in this RxODE
 //'     object.
+//' 
 //' @author Matthew L. Fidler
+//' 
 //' @export
 //[[Rcpp::export]]
 CharacterVector rxDfdy(const RObject &obj){
@@ -1064,10 +1071,10 @@ NumericVector rxInits0(const RObject &obj,
 //' @param req Required names, and the required order for the ODE solver
 //'
 //' @param defaultValue a number or NA representing the default value for
-//'     parameters missing in \code{vec}, but required in \code{req}.
+//'     parameters missing in `vec`, but required in `req`.
 //'
 //' @param noerror is a boolean specifying if an error should be thrown
-//'     for missing parameter values when \code{default} = \code{NA}
+//'     for missing parameter values when `default` = `NA`
 //'
 //' @keywords internal
 //' @author Matthew L.Fidler
@@ -1774,11 +1781,11 @@ arma::vec fillVec(arma::vec& in, int len);
 //' @param thetaUpper Upper bounds for simulated population unexplained variability (by default Inf)
 //'
 //' @param thetaDf The degrees of freedom of a t-distribution for
-//'     simulation.  By default this is \code{NULL} which is
-//'     equivalent to \code{Inf} degrees, or to simulate from a normal
+//'     simulation.  By default this is `NULL` which is
+//'     equivalent to `Inf` degrees, or to simulate from a normal
 //'     distribution instead of a t-distribution.
 //'
-//' @param thetaIsChol Indicates if the \code{theta} supplied is a
+//' @param thetaIsChol Indicates if the `theta` supplied is a
 //'     Cholesky decomposed matrix instead of the traditional
 //'     symmetric matrix.
 //'
@@ -1792,11 +1799,11 @@ arma::vec fillVec(arma::vec& in, int len);
 //' @param omegaUpper Upper bounds for simulated ETAs (by default Inf)
 //'
 //' @param omegaDf The degrees of freedom of a t-distribution for
-//'     simulation.  By default this is \code{NULL} which is
-//'     equivalent to \code{Inf} degrees, or to simulate from a normal
+//'     simulation.  By default this is `NULL` which is
+//'     equivalent to `Inf` degrees, or to simulate from a normal
 //'     distribution instead of a t-distribution.
 //'
-//' @param omegaIsChol Indicates if the \code{omega} supplied is a
+//' @param omegaIsChol Indicates if the `omega` supplied is a
 //'     Cholesky decomposed matrix instead of the traditional
 //'     symmetric matrix.
 //'
@@ -1805,7 +1812,7 @@ arma::vec fillVec(arma::vec& in, int len);
 //' @param nStud Number virtual studies to characterize uncertainty in estimated
 //'        parameters.
 //'
-//' @param nObs Number of observations to simulate (with \code{sigma} matrix)
+//' @param nObs Number of observations to simulate (with `sigma` matrix)
 //'
 //' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the
 //'     individual parameters, residuals are updated after solve is completed.
@@ -1824,8 +1831,8 @@ arma::vec fillVec(arma::vec& in, int len);
 //' @param dfObs Degrees of freedom to sample the unexplained variability matrix from the
 //'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
 //'
-//' @param simSubjects boolean indicated RxODE should simulate subjects in studies (\code{TRUE},
-//'         default) or studies (\code{FALSE})
+//' @param simSubjects boolean indicated RxODE should simulate subjects in studies (`TRUE`,
+//'         default) or studies (`FALSE`)
 //'
 //' @author Matthew L.Fidler
 //'

@@ -14,91 +14,39 @@ that case, eventTable(obj) returns the eventTable that was used
 to solve the RxODE object.}
 
 \item{time.units}{string denoting the time units, e.g.,
-     \dQuote{hours}, \dQuote{days}. Default to \code{"hours"}.
+\dQuote{hours}, \dQuote{days}. Default to \code{"hours"}.
 
- An \code{eventTable} is an object that consists of a data.frame
- storing ordered time-stamped events of an (unspecified) PK/PD
- dynamic system, units (strings) for dosing and time records, plus a
- list of functions to add and extract event records.
+An \code{eventTable} is an object that consists of a data.frame
+storing ordered time-stamped events of an (unspecified) PK/PD
+dynamic system, units (strings) for dosing and time records, plus a
+list of functions to add and extract event records.
 
- Currently, events can be of two types: dosing events that represent
- inputs to the system and sampling time events that represent
- observations of the system with \sQuote{amount.units} and
- \sQuote{time.units}, respectively.}
+Currently, events can be of two types: dosing events that represent
+inputs to the system and sampling time events that represent
+observations of the system with \sQuote{amount.units} and
+\sQuote{time.units}, respectively.}
 }
 \value{
 A modified data.frame with the following accessible functions:
-
-\item{get.EventTable}{returns the current event table.}
-
-\item{add.dosing}{adds dosing records to the event table.
-
-Its arguments are
-
-  \code{dose}: numeric scalar, dose amount in \code{amount.units};
-
-  \code{nbr.doses}: integer, number of doses;
-
-  \code{dosing.interval}: required numeric scalar, time between doses
-     in \code{time.units}, defaults to 24 of \code{time.units="hours"};
-
-       \code{dosing.to}: integer, compartment the dose goes into
-       (first compartment by default);
-
-       \code{rate}: for infusions, the rate of infusion (default
-           is \code{NULL}, for bolus dosing;
-
-       \code{start.time}: required dosing start time;
-
-       \code{do.sampling}: logical, should observation sampling records
-           be added at the dosing times? Defaults to \code{FALSE}.
-
-       \code{amount.units}: optional string indicating the dosing units.
-          Defaults to \code{NA} to indicate as per the original \code{EventTable}
-          definition.
-
-       \code{time.units}: optional string indicating the time units.
-          Defaults to \code{"hours"} to indicate as per the original \code{EventTable} definition.
-    }
-
-   \item{get.dosing}{returns a data.frame of dosing records.}
-
-   \item{clear.dosing}{clears or deletes all dosing from event table}
-
-   \item{add.sampling}{adds sampling time observation records to the
-       event table. Its arguments are
-
-       \code{time} a vector of time values (in \code{time.units}).
-
-       \code{time.units} an optional string specifying the time
-       units. Defaults to the units specified when the \code{EventTable}
-       was initialized.
-
-       % TODO: should add.sampling() have similar calling sequence
-       % as add.dosing()?
-       %\code{sampling.interval}: scalar, time between samples.
-       %\code{start.time}: scalar, starting observation time.
-       %\code{end.time}: scalar, end observation time.
-   }
-
-   \item{get.sampling}{returns a data.frame of sampled observation
-       records.}
-
-   \item{clear.sampling}{removes all sampling from event table.}
-
-   \item{get.obs.rec}{returns a logical vector indicating
-       whether each event record represents an observation or not.}
-
-   \item{get.nobs}{returns the number of observation (not dosing) records.}
-
-   \item{get.units}{returns a two-element character vector with the
-       dosing and time units, respectively.}
-
-   \item{copy}{makes a copy of the current event table. To create
-       a copy of an event table object use \code{qd2 <- qd$copy()}.}
-
-   \item{expand}{Expands the event table for multi-subject solving.
-   This is done by qd$expand(400) for a 400 subject data expansion}
+\itemize{
+\item \code{get.EventTable()} returns the current event table
+\item \code{\link[=add.dosing]{add.dosing()}}  adds dosing records to the event table.
+\item \code{get.dosing()} returns a data.frame of dosing records.
+\item \code{clear.dosing()} clears or deletes all dosing from event table
+\item `\code{\link[=add.sampling]{add.sampling()}} adds sampling time observation records to the
+event table.
+\item \code{get.sampling()}returns a data.frame of sampled observation records.
+\item \code{clear.sampling()} removes all sampling from event table.
+\item \code{get.obs.rec()} returns a logical vector indicating whether each
+event record represents an observation or not.
+\item \code{get.nobs()} returns the number of observation (not dosing) records.
+\item \code{get.units()} returns a two-element character vector with the
+dosing and time units, respectively
+\item \code{copy()} makes a copy of the current event table. To create
+a copy of an event table object use \code{qd2 <- qd$copy()}
+\item \code{expand()} Expands the event table for multi-subject solving.
+This is done by \code{qd$expand(400)} for a 400 subject data expansion
+}
 }
 \description{
 Initializes an object of class \sQuote{EventTable} with methods for
@@ -150,7 +98,7 @@ print(qd3$get.nobs())
 
 }
 \seealso{
-\code{\link{et}}, \code{\link{RxODE}}
+\code{\link[=et]{et()}}, \code{\link[=RxODE]{RxODE()}}
 }
 \author{
 Matthew Fidler, Melissa Hallow and Wenping Wang

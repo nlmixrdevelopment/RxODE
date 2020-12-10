@@ -17,7 +17,7 @@ rxSumProdModel(model, expand = FALSE, sum = TRUE, prod = TRUE)
 }
 \value{
 model string with prod(.) and sum(.) for all these
-    operations.
+operations.
 }
 \description{
 Recast model in terms of sum/prod

@@ -25,7 +25,7 @@ summary.rxC <- function(object, ...) {
 #'
 #' @param object RxDll object
 #'
-#' @param ... Other arguments.  Includes \code{noprint}, which is a
+#' @param ... Other arguments.  Includes `noprint`, which is a
 #'     logical telling if the object should print the rxDll object
 #'     first. By default this is FALSE
 #'

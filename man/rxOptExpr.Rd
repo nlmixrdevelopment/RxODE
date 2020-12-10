@@ -10,17 +10,17 @@ rxOptExpr(x, msg = "model")
 \item{x}{RxODE model that can be accessed by rxNorm}
 
 \item{msg}{This is the name of type of object that RxODE is
-    optimizing that will in the message when optimizing.  For
-    example "model" will produce the following message while
-    optimizing the model:
+optimizing that will in the message when optimizing.  For
+example "model" will produce the following message while
+optimizing the model:
 
- finding duplicate expressions in model...}
+finding duplicate expressions in model...}
 }
 \value{
 Optimized RxODE model text.  The order and type lhs and
-    state variables is maintained while the evaluation is sped up.
-    While parameters names are maintained, their order may be
-    modified.
+state variables is maintained while the evaluation is sped up.
+While parameters names are maintained, their order may be
+modified.
 }
 \description{
 This optimizes RxODE code for computer evaluation by only

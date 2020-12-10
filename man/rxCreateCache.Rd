@@ -10,7 +10,7 @@ rxCreateCache()
 nothing
 }
 \description{
-When run, if the `R_user_dir` for RxODE's cache isn't present,
+When run, if the \code{R_user_dir} for RxODE's cache isn't present,
 create the cache
 }
 \author{

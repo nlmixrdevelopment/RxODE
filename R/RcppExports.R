@@ -8,10 +8,14 @@ removableDrive <- function(driveRoot) {
 #' Scaled Inverse Chi Squared distribution
 #'
 #' @param n Number of random samples
+#' 
 #' @param nu degrees of freedom of inverse chi square
+#' 
 #' @param scale  Scale of inverse chi squared distribution 
 #'         (default is 1).
-#' @return a vector of inverse chi squared deviates .
+#' 
+#' @return a vector of inverse chi squared deviates.
+#' 
 #' @examples
 #' rinvchisq(3, 4, 1) ## Scale = 1, degrees of freedom = 4
 #' rinvchisq(2, 4, 2) ## Scale = 2, degrees of freedom = 4
@@ -23,11 +27,14 @@ rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
 #' One correlation sample from the LKJ distribution
 #'
 #' @param d The dimension of the correlation matrix
+#' 
 #' @param eta The scaling parameter of the LKJ distribution.
 #'   Must be > 1.  Also related to the degrees of freedom nu.
 #'   eta = (nu-1)/2.
-#' @param cholesky boolean; If \code{TRUE} return the cholesky
+#' 
+#' @param cholesky boolean; If `TRUE` return the cholesky
 #'   decomposition.
+#' 
 #' @author Matthew Fidler (translated to RcppArmadillo) and Emma Schwager
 #' @export
 rLKJ1 <- function(d, eta = 1.0, cholesky = FALSE) {
@@ -48,8 +55,11 @@ rLKJcvLsd1 <- function(logSd, logSdSD, eta = 1.0) {
 #' random covariate to a correlation.
 #'
 #' @inheritParams rLKJ1
+#' 
 #' @param nu Degrees of freedom of the Wishart distribution
+#' 
 #' @inheritParams cvPost
+#' 
 #' @author Matthew Fidler
 #' @export
 invWR1d <- function(d, nu, omegaIsChol = FALSE) {
@@ -99,8 +109,8 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
 #' Force using base order for RxODE radix sorting
 #'
 #' @param forceBase boolean indicating if RxODE should use R's
-#'   \code{\link{order}} for radix sorting instead of
-#'   \code{data.table}'s parallel radix sorting.
+#'   [order()] for radix sorting instead of
+#'   `data.table`'s parallel radix sorting.
 #'
 #' @examples
 #' \donttest{
@@ -114,7 +124,7 @@ forderForceBase <- function(forceBase = FALSE) {
 
 #' Set Initial conditions to time zero instead of the first observed/dosed time
 #'
-#' @param ini0 When TRUE (default), set initial conditions to time
+#' @param ini0 When `TRUE` (default), set initial conditions to time
 #'   zero. Otherwise the initial conditions are the first observed
 #'   time.
 #'
@@ -126,20 +136,30 @@ rxSetIni0 <- function(ini0 = TRUE) {
 #' Event translation for RxODE
 #'
 #' @param inData Data frame to translate
-#' @param obj Model to translate data 
-#' @param addCmt Add compartment to data frame (default \code{FALSE}).
-#' @param dropUnits Boolean to drop the units (default \code{FALSE}).
+#' 
+#' @param obj Model to translate data
+#' 
+#' @param addCmt Add compartment to data frame (default `FALSE`).
+#' 
+#' @param dropUnits Boolean to drop the units (default `FALSE`).
+#' 
 #' @param allTimeVar Treat all covariates as if they were time-varying
+#' 
 #' @param keepDosingOnly keep the individuals who only have dosing records and any
 #'   trailing dosing records after the last observation.
-#' @param combineDvid is a boolean indicating if RxODE will use \code{DVID} on observation
-#'     records to change the \code{cmt} value; Useful for multiple-endpoint nlmixr models.  By default
-#'     this is determined by \code{option("RxODE.combine.dvid")} and if the option has not been set,
-#'     this is \code{TRUE}. This typically does not affect RxODE simulations.
+#' 
+#' @param combineDvid is a boolean indicating if RxODE will use `DVID` on observation
+#'     records to change the `cmt` value; Useful for multiple-endpoint nlmixr models.  By default
+#'     this is determined by `option("RxODE.combine.dvid")` and if the option has not been set,
+#'     this is `TRUE`. This typically does not affect RxODE simulations.
+#' 
 #' @param keep This is a named vector of items you want to keep in the final RxODE dataset.
 #'     For added RxODE event records (if seen), last observation carried forward will be used.
+#' 
 #' @return Object for solving in RxODE
+#' 
 #' @keywords internal
+#' 
 #' @export
 etTrans <- function(inData, obj, addCmt = FALSE, dropUnits = FALSE, allTimeVar = FALSE, keepDosingOnly = FALSE, combineDvid = NULL, keep = character(0)) {
     .Call(`_RxODE_etTrans`, inData, obj, addCmt, dropUnits, allTimeVar, keepDosingOnly, combineDvid, keep)
@@ -212,15 +232,19 @@ rxQr <- function(encoded_string) {
 #'
 #' @param obj Object to check
 #' @param cls Type of class.  Only s3 classes for lists/environments and primitive classes are checked.
-#'    For matrix types they are distinguished as \code{numeric.matrix}, \code{integer.matrix},
-#'    \code{logical.matrix}, and \code{character.matrix} as well as the traditional \code{matrix}
-#'    class. Additionally checks for \code{event.data.frame} which is an \code{data.frame} object
-#'    with \code{time},  \code{evid} and \code{amt}. (UPPER, lower or Title cases accepted)
+#'    For matrix types they are distinguished as `numeric.matrix`, `integer.matrix`,
+#'    `logical.matrix`, and `character.matrix` as well as the traditional `matrix`
+#'    class. Additionally checks for `event.data.frame` which is an `data.frame` object
+#'    with `time`,  `evid` and `amt`. (UPPER, lower or Title cases accepted)
 #'
 #' @return A boolean indicating if the object is a member of the class.
+#' 
 #' @keywords internal
+#' 
 #' @author Matthew L. Fidler
+#' 
 #' @export
+#' 
 rxIs <- function(obj, cls) {
     .Call(`_RxODE_rxIs`, obj, cls)
 }
@@ -250,9 +274,10 @@ rxModelVars_ <- function(obj) {
 #'
 #' If state is a string, return the compartment number of the named state.
 #'
-#' @seealso \code{\link{RxODE}}
+#' @seealso [RxODE()]
 #'
 #' @author Matthew L.Fidler
+#' 
 #' @export
 rxState <- function(obj = NULL, state = NULL) {
     .Call(`_RxODE_rxState`, obj, state)
@@ -270,7 +295,9 @@ rxParams_ <- function(obj) {
 #'
 #' @return A list of the jacobian parameters defined in this RxODE
 #'     object.
+#' 
 #' @author Matthew L. Fidler
+#' 
 #' @export
 rxDfdy <- function(obj) {
     .Call(`_RxODE_rxDfdy`, obj)
@@ -303,10 +330,10 @@ rxLhs <- function(obj) {
 #' @param req Required names, and the required order for the ODE solver
 #'
 #' @param defaultValue a number or NA representing the default value for
-#'     parameters missing in \code{vec}, but required in \code{req}.
+#'     parameters missing in `vec`, but required in `req`.
 #'
 #' @param noerror is a boolean specifying if an error should be thrown
-#'     for missing parameter values when \code{default} = \code{NA}
+#'     for missing parameter values when `default` = `NA`
 #'
 #' @keywords internal
 #' @author Matthew L.Fidler
@@ -358,11 +385,11 @@ atolRtolFactor_ <- function(factor) {
 #' @param thetaUpper Upper bounds for simulated population unexplained variability (by default Inf)
 #'
 #' @param thetaDf The degrees of freedom of a t-distribution for
-#'     simulation.  By default this is \code{NULL} which is
-#'     equivalent to \code{Inf} degrees, or to simulate from a normal
+#'     simulation.  By default this is `NULL` which is
+#'     equivalent to `Inf` degrees, or to simulate from a normal
 #'     distribution instead of a t-distribution.
 #'
-#' @param thetaIsChol Indicates if the \code{theta} supplied is a
+#' @param thetaIsChol Indicates if the `theta` supplied is a
 #'     Cholesky decomposed matrix instead of the traditional
 #'     symmetric matrix.
 #'
@@ -376,11 +403,11 @@ atolRtolFactor_ <- function(factor) {
 #' @param omegaUpper Upper bounds for simulated ETAs (by default Inf)
 #'
 #' @param omegaDf The degrees of freedom of a t-distribution for
-#'     simulation.  By default this is \code{NULL} which is
-#'     equivalent to \code{Inf} degrees, or to simulate from a normal
+#'     simulation.  By default this is `NULL` which is
+#'     equivalent to `Inf` degrees, or to simulate from a normal
 #'     distribution instead of a t-distribution.
 #'
-#' @param omegaIsChol Indicates if the \code{omega} supplied is a
+#' @param omegaIsChol Indicates if the `omega` supplied is a
 #'     Cholesky decomposed matrix instead of the traditional
 #'     symmetric matrix.
 #'
@@ -389,7 +416,7 @@ atolRtolFactor_ <- function(factor) {
 #' @param nStud Number virtual studies to characterize uncertainty in estimated
 #'        parameters.
 #'
-#' @param nObs Number of observations to simulate (with \code{sigma} matrix)
+#' @param nObs Number of observations to simulate (with `sigma` matrix)
 #'
 #' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the
 #'     individual parameters, residuals are updated after solve is completed.
@@ -408,8 +435,8 @@ atolRtolFactor_ <- function(factor) {
 #' @param dfObs Degrees of freedom to sample the unexplained variability matrix from the
 #'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
 #'
-#' @param simSubjects boolean indicated RxODE should simulate subjects in studies (\code{TRUE},
-#'         default) or studies (\code{FALSE})
+#' @param simSubjects boolean indicated RxODE should simulate subjects in studies (`TRUE`,
+#'         default) or studies (`FALSE`)
 #'
 #' @author Matthew L.Fidler
 #'
@@ -634,7 +661,9 @@ rxSetSilentErr <- function(silent) {
 #' Invert matrix using RcppArmadillo.  
 #'
 #' @param matrix matrix to be inverted.
+#' 
 #' @return inverse or pseudo inverse of matrix.
+#' 
 #' @export
 rxInv <- function(matrix) {
     .Call(`_RxODE_rxInv`, matrix)
@@ -643,32 +672,34 @@ rxInv <- function(matrix) {
 #' Get Omega^-1 and derivatives
 #'
 #' @param invObjOrMatrix Object for inverse-type calculations.  If this is a matrix,
-#'     setup the object for inversion by \code{\link{rxSymInvCholCreate}} with the default arguments and return
+#'     setup the object for inversion [rxSymInvCholCreate()] with the default arguments and return
 #'     a reactive s3 object.  Otherwise, use the inversion object to calculate the requested derivative/inverse.
-#' @param theta Thetas to be used for calculation.  If missing (\code{NULL}), a
-#'     special s3 class is created and returned to access Omega^1
+#' @param theta Thetas to be used for calculation.  If missing (`NULL`), a
+#'     special s3 class is created and returned to access `Omega^1`
 #'     objects as needed and cache them based on the theta that is
 #'     used.
 #' @param type The type of object.  Currently the following types are
 #'     supported:
-#' \itemize{
-#' \item \code{cholOmegaInv} gives the
+#' * `cholOmegaInv` gives the
 #'     Cholesky decomposition of the Omega Inverse matrix.
-#' \item \code{omegaInv} gives the Omega Inverse matrix.
-#' \item \code{d(omegaInv)} gives the d(Omega^-1) withe respect to the
-#'     theta parameter specified in \code{thetaNumber}.
-#' \item \code{d(D)} gives the d(diagonal(Omega^-1)) with respect to
-#'     the theta parameter specified in the \code{thetaNumber}
+#' * `omegaInv` gives the Omega Inverse matrix.
+#' * `d(omegaInv)` gives the `d(Omega^-1)` withe respect to the
+#'     theta parameter specified in `thetaNumber`.
+#' * `d(D)` gives the `d(diagonal(Omega^-1))` with respect to
+#'     the theta parameter specified in the `thetaNumber`
 #'     parameter
 #' }
-#' @param thetaNumber For types \code{d(omegaInv)} and \code{d(D)},
+#' @param thetaNumber For types `d(omegaInv)` and `d(D)`,
 #'     the theta number that the derivative is taken against.  This
 #'     must be positive from 1 to the number of thetas defining the
 #'     Omega matrix.
+#' 
 #' @return Matrix based on parameters or environment with all the
-#'     matrixes calculated in variables omega, omegaInv, dOmega,
-#'     dOmegaInv.
+#'     matrixes calculated in variables `omega`, `omegaInv`, `dOmega`,
+#'     `dOmegaInv`.
+#' 
 #' @author Matthew L. Fidler
+#' 
 #' @export
 rxSymInvChol <- function(invObjOrMatrix, theta = NULL, type = "cholOmegaInv", thetaNumber = 0L) {
     .Call(`_RxODE_rxSymInvChol`, invObjOrMatrix, theta, type, thetaNumber)

@@ -120,11 +120,11 @@ regIni <- rex::rex(or(
 #'
 #'
 #' @param model Model can be a character, or a RxODE model.  It needs
-#'     to have normalized syntax, that is \code{if (...)\{} has to be
-#'     on the same line.  The \code{else} statement must be on its
-#'     own line with the closing bracket of the \code{if} statement
-#'     on the previous line.  This \code{else} statment must also
-#'     contain the opening bracket, like the code \code{else \{}
+#'     to have normalized syntax, that is `if (...){}` has to be
+#'     on the same line.  The `else` statement must be on its
+#'     own line with the closing bracket of the `if` statement
+#'     on the previous line.  This `else` statment must also
+#'     contain the opening bracket, like the code `else {}`
 #' @param removeInis A boolean indicating if parameter
 #'     initializations should be removed from the model.
 #' @param removePrint A boolean indicating if printing statements

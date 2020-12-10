@@ -133,3 +133,4 @@ LinkingTo:
 Encoding: UTF-8
 LazyData: true
 Language: en-US
+Roxygen: list(markdown = TRUE)

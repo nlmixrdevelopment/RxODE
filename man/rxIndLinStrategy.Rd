@@ -8,13 +8,10 @@ rxIndLinStrategy(strategy = c("curState", "split"))
 }
 \arguments{
 \item{strategy}{The strategy for inductive linearization matrix building
-
 \itemize{
-
-\item[curState] Prefer parameterizing in terms of the current
-   state, followed by the first state observed in the term.
-
-\item[split] Split the parameterization between all states in the
+\item \code{curState} Prefer parameterizing in terms of the current
+state, followed by the first state observed in the term.
+\item \code{split} Split the parameterization between all states in the
 term by dividing each by the number of states in the term and then
 adding a matrix term for each state.
 }}

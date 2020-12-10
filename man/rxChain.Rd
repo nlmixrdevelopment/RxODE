@@ -16,7 +16,7 @@ rxChain(obj1, obj2)
 }
 \value{
 When \code{newObject} is an event table, return a new
-    solved object with the new event table.
+solved object with the new event table.
 }
 \description{
 Add item to solved system of equations

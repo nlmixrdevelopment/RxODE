@@ -7,43 +7,40 @@
 .s3register(generic, class, method = NULL)
 }
 \arguments{
-\item{generic}{Name of the generic in the form `pkg::generic`.}
+\item{generic}{Name of the generic in the form \code{pkg::generic}.}
 
 \item{class}{Name of the class}
 
 \item{method}{Optionally, the implementation of the method. By default,
-  this will be found by looking for a function called `generic.class`
-  in the package environment.
+this will be found by looking for a function called \code{generic.class}
+in the package environment.
 
-  Note that providing `method` can be dangerous if you use
-  devtools. When the namespace of the method is reloaded by
-  `devtools::load_all()`, the function will keep inheriting from
-  the old namespace. This might cause crashes because of dangling
-  `.Call()` pointers.}
+Note that providing \code{method} can be dangerous if you use
+devtools. When the namespace of the method is reloaded by
+\code{devtools::load_all()}, the function will keep inheriting from
+the old namespace. This might cause crashes because of dangling
+\code{.Call()} pointers.}
 }
 \description{
 Generally, the recommend way to register an S3 method is to use the
-`S3Method()` namespace directive (often generated automatically by the
-`@export` roxygen2 tag). However, this technique requires that the generic
+\code{S3Method()} namespace directive (often generated automatically by the
+\verb{@export} roxygen2 tag). However, this technique requires that the generic
 be in an imported package, and sometimes you want to suggest a package,
-and only provide a method when that package is loaded. `s3_register()`
-can be called from your package's `.onLoad()` to dynamically register
+and only provide a method when that package is loaded. \code{s3_register()}
+can be called from your package's \code{.onLoad()} to dynamically register
 a method only if the generic's package is loaded. (To avoid taking a
 dependency on vctrs for this one function, please feel free to copy
 and paste the function source into your own package.)
 }
 \details{
-For R 3.5.0 and later, `s3_register()` is also useful when demonstrating
+For R 3.5.0 and later, \code{s3_register()} is also useful when demonstrating
 class creation in a vignette, since method lookup no longer always involves
 the lexical scope. For R 3.6.0 and later, you can achieve a similar effect
 by using "delayed method registration", i.e. placing the following in your
-`NAMESPACE` file:
-
-```
-if (getRversion() >= "3.6.0") {
+\code{NAMESPACE} file:\preformatted{if (getRversion() >= "3.6.0") \{
   S3method(package::generic, class)
+\}
 }
-```
 }
 \examples{
 # A typical use case is to dynamically register tibble/pillar methods

@@ -10,7 +10,7 @@ etExpand(et)
 \item{et}{Event table to expand additional doses for.}
 }
 \value{
-New event table with `addl` doses expanded
+New event table with \code{addl} doses expanded
 }
 \description{
 Expand additional doses

@@ -10,7 +10,7 @@ probit(x, low = 0, high = 1)
 probitInv(x, low = 0, high = 1)
 }
 \arguments{
-\item{x}{Input value(s) in range [low,high] to translate -Inf to
+\item{x}{Input value(s) in range \link{low,high} to translate -Inf to
 Inf}
 
 \item{low}{Lowest value in the range}

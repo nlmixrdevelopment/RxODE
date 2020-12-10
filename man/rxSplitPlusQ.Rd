@@ -22,7 +22,7 @@ It uses the parser and does not disturb terms within other
 functions.  For example:
 }
 \details{
-a*exp(b+c)+d*log(e-f)-g*f
+a\emph{exp(b+c)+d}log(e-f)-g*f
 
 would return
 

@@ -56,38 +56,27 @@ type (list or numeric/integer).}
 \item{amt}{Amount of the dose. If specified, this assumes a dosing
 record, instead of a sampling record.}
 
-\item{evid}{Event ID; This can be:
+\item{evid}{Event ID; This can be:\tabular{ll}{
+   Numeric Value \tab Description \cr
+   0 \tab An observation. This can also be specified as \code{evid=obs} \cr
+   1 \tab A dose observation.  This can also be specified as \code{evid=dose} \cr
+   2 \tab A non-dose event. This can also be specified as \code{evid=other} \cr
+   3 \tab A reset event.  This can also be specified as \code{evid=reset}. \cr
+   4 \tab Dose and reset event.  This can also be specified as \code{evid=doseReset} or \code{evid=resetDose} \cr
+}
 
-\itemize{
 
-\item{0} An observation. This can also be specified as
-   \code{evid=obs}
-
-\item{1} A dose observation.  This can also be specified as
-   \code{evid=dose}
-
-\item{2} A non-dose event. This can also be specified as
-   \code{evid=other}.
-
-\item{3} A reset event.  A reset event resets all the compartment
-values to zero and turns off all infusions.  This can also be
-specified as \code{evid=reset}.
-
-\item{4} Dose and reset event.  This can also be specified as
-\code{evid=doseReset} or \code{evid=resetDose}
-
-}}
+Note a reset event resets all the compartment values to zero and turns off all infusions.}
 
 \item{cmt}{Compartment name or number.  If a number, this is an
-  integer starting at 1.  Negative compartments turn off a
-  compartment. If the compartment is a name, the compartment name
-  is changed to the correct state/compartment number before
-  running the simulation.  For a compartment named "-cmt" the
-  compartment is turned off.
-
-    Can also specify \code{cmt} as \code{dosing.to},
-    \code{dose.to}, \code{doseTo}, \code{dosingTo}, and
-    \code{state}.}
+integer starting at 1.  Negative compartments turn off a
+compartment. If the compartment is a name, the compartment name
+is changed to the correct state/compartment number before
+running the simulation.  For a compartment named "-cmt" the
+compartment is turned off.\preformatted{Can also specify `cmt` as `dosing.to`,
+`dose.to`, `doseTo`, `dosingTo`, and
+`state`.
+}}
 
 \item{ii}{When specifying a dose, this is the inter-dose interval
 for \code{ss}, \code{addl} and \code{until} options (described below).}
@@ -95,43 +84,34 @@ for \code{ss}, \code{addl} and \code{until} options (described below).}
 \item{addl}{The number of additional doses at a inter-dose
 interval after one dose.}
 
-\item{ss}{Steady state flag;  It can be one of:
-\itemize{
+\item{ss}{Steady state flag;  It can be one of:\tabular{ll}{
+   Value \tab Description \cr
+   0 \tab This dose is not a steady state dose \cr
+   1 \tab This dose is a steady state dose with the between/inter-dose interval of \code{ii} \cr
+   2 \tab Superposition steady state \cr
+}
 
-\item{0} This dose is not a steady state dose
 
-\item{1} This dose is a steady state dose with the between/inter
-dose interval of \code{ii}
-
-\item{2} This is a steady state dose that uses the super-position
+When \code{ss=2} the steady state dose that uses the super-position
 principle to allow more complex steady states, like 10 mg in the
 morning and 20 mg at night, or dosing at 8 am 12 pm and 8 pm
 instead of every 12 hours.  Since it uses the super positioning
 principle, it only makes sense when you know the kinetics are
 linear.
-}
 
 All other values of \code{SS} are currently invalid.}
 
-\item{rate}{When positive, this is the rate of infusion.  Otherwise:
-
-\itemize{
-
-\item{0} No infusion is on this record.
-
-\item{-1} Rate of this record is modeled by \code{rate(cmt) =} in
-the RxODE model.  You may also specify type or rate by
-\code{rate=model}
-
-\item{-2} Duration of this record is modeled by \code{dur(cmt) =}
-in the RxODE model. You may also specify this type of rate by
-\code{dur=model} or \code{rate=dur}.
-
+\item{rate}{When positive, this is the rate of infusion.  Otherwise:\tabular{ll}{
+   Value \tab Description \cr
+   0 \tab No infusion is on this record \cr
+   -1 \tab Modeled rate (in RxODE:\verb{rate(cmt) =}); Can be \code{et(rate=model)}. \cr
+   -2 \tab Modeled duration (in RxODE: \verb{dur(cmt) =}); Can be\code{et(dur=model)} or \code{et(rate=dur)}. \cr
 }
+
 
 When a modeled bioavailability is applied to positive rates
 (\code{rate} > 0), the duration of infusion is changed. This is
-because the data specify the rate and amount, the only think ghat
+because the data specify the rate and amount, the only think that
 modeled bioavailability can affect is duration.
 
 If instead you want the modeled bioavailability to increase the
@@ -260,9 +240,9 @@ Pharmacometrics \& Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
 }
 \seealso{
 \code{\link{eventTable}}, \code{\link{add.sampling}},
-    \code{\link{add.dosing}}, \code{\link{et}},
-    \code{\link{etRep}}, \code{\link{etRbind}},
-    \code{\link{RxODE}}
+\code{\link{add.dosing}}, \code{\link{et}},
+\code{\link{etRep}}, \code{\link{etRbind}},
+\code{\link{RxODE}}
 }
 \author{
 Matthew L Fidler, Wenping Wang

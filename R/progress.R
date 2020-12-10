@@ -1,12 +1,12 @@
 #' RxODE progress bar functions
 #'
-#' \code{rxProgress} sets up the progress bar
+#' `rxProgress` sets up the progress bar
 #'
-#' \code{rxTick} is a progress bar tick
+#' `rxTick` is a progress bar tick
 #'
-#' \code{rxProgressStop} stop progress bar
+#' `rxProgressStop` stop progress bar
 #'
-#' \code{rxProgressAbort} shows an abort if \code{rxProgressStop}
+#' `rxProgressAbort` shows an abort if `rxProgressStop`
 #' wasn't called.
 #'
 #' @param num Tot number of operations to track

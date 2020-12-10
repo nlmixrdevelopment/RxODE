@@ -405,7 +405,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
 #' @param loadSymengine Boolean indicating if the model should be
 #'   loaded into symengine.  This cause all the ODEs to be collapsed
 #'   into one expression that is eventually optimized if
-#'   \code{optExpression} is \code{TRUE}.
+#'   `optExpression` is `TRUE`.
 #' @return RxODE text
 #' @author Matthew Fidler
 #' @export

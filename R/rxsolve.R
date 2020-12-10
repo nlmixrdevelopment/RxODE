@@ -17,9 +17,9 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'     parameter in the ODE system; the names must correspond to the
 #'     parameter identifiers used in the ODE specification;
 #'
-#' @param events an \code{eventTable} object describing the input
+#' @param events an `eventTable` object describing the input
 #'     (e.g., doses) to the dynamic system and observation sampling
-#'     time points (see \code{\link{eventTable}});
+#'     time points (see [eventTable()]);
 #'
 #' @param inits a vector of initial values of the state variables
 #'     (e.g., amounts in each compartment), and the order in this
@@ -27,28 +27,26 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'     compartments);
 #'
 #' @param iCov A data frame of individual non-time varying covariates
-#'     to combine with the \code{params} to form a parameter
+#'     to combine with the `params` to form a parameter
 #'     data.frame.
 #'
 #' @param scale a numeric named vector with scaling for ode
 #'     parameters of the system.  The names must correspond to the
 #'     parameter identifiers in the ODE specification. Each of the
 #'     ODE variables will be divided by the scaling factor.  For
-#'     example \code{scale=c(center=2)} will divide the center ODE
+#'     example `scale=c(center=2)` will divide the center ODE
 #'     variable by 2.
 #'
 #' @param method The method for solving ODEs.  Currently this supports:
 #'
-#' \itemize{
-#' \item \code{"liblsoda"} thread safe lsoda.  This supports parallel
+#' * `"liblsoda"` thread safe lsoda.  This supports parallel
 #'            thread-based solving, and ignores user Jacobian specification.
-#' \item \code{"lsoda"} -- LSODA solver.  Does not support parallel thread-based
+#' * `"lsoda"` -- LSODA solver.  Does not support parallel thread-based
 #'       solving, but allows user Jacobian specification.
-#' \item \code{"dop853"} -- DOP853 solver.  Does not support parallel thread-based
+#' * `"dop853"` -- DOP853 solver.  Does not support parallel thread-based
 #'         solving nor user Jacobain specification
-#' \item \code{"indLin"} -- Solving through inductive linearization.  The RxODE dll
+#' * `"indLin"` -- Solving through inductive linearization.  The RxODE dll
 #'         must be setup specially to use this solving routine.
-#' }
 #'
 #' @param transitAbs boolean indicating if this is a transit
 #'     compartment absorption
@@ -70,10 +68,10 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'     value is 0.
 #'
 #' @param hmax The maximum absolute step size allowed.  When
-#'   \code{hmax=NA} (default), uses the average difference +
-#'   hmaxSd*sd in times and sampling events. The \code{hmaxSd} is a user
+#'   `hmax=NA` (default), uses the average difference +
+#'   hmaxSd*sd in times and sampling events. The `hmaxSd` is a user
 #'   specified parameter and which defaults to zero.  When
-#'   \code{hmax=NULL} RxODE uses the maximum difference in times in
+#'   `hmax=NULL` RxODE uses the maximum difference in times in
 #'   your sampling and events.  The value 0 is equivalent to infinite
 #'   maximum absolute step size.
 #'
@@ -107,24 +105,22 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'     like NONMEM.
 #'
 #' @param cores Number of cores used in parallel ODE solving.  This
-#'    is equivalent to calling \code{\link{setRxThreads}}
+#'    is equivalent to calling [setRxThreads()]
 #'
 #' @param covsInterpolation specifies the interpolation method for
 #'     time-varying covariates. When solving ODEs it often samples
-#'     times outside the sampling time specified in \code{events}.
+#'     times outside the sampling time specified in `events`.
 #'     When this happens, the time varying covariates are
 #'     interpolated.  Currently this can be:
 #'
-#' \itemize{
-#' \item \code{"linear"} interpolation, which interpolates the covariate
+#' * `"linear"` interpolation, which interpolates the covariate
 #'     by solving the line between the observed covariates and extrapolating the new
 #'     covariate value.
-#' \item \code{"constant"} -- Last observation carried forward (the default).
-#' \item \code{"NOCB"} -- Next Observation Carried Backward.  This is the same method
+#' * `"constant"` -- Last observation carried forward (the default).
+#' * `"NOCB"` -- Next Observation Carried Backward.  This is the same method
 #'       that NONMEM uses.
-#' \item \code{"midpoint"} Last observation carried forward to midpoint; Next observation
+#' * `"midpoint"` Last observation carried forward to midpoint; Next observation
 #'   carried backward to midpoint.
-#' }
 #'
 #' @param addCov A boolean indicating if covariates should be added
 #'     to the output matrix or data frame. By default this is
@@ -138,10 +134,10 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'     parameters that are simulated.  These are simulated for every
 #'     observation in the solved system.
 #'
-#' @param sigmaXform When taking \code{sigma} values from the @template Xform
+#' @param sigmaXform When taking `sigma` values from the @template Xform
 #'
 #' @param sigmaDf Degrees of freedom of the sigma t-distribution.  By
-#'     default it is equivalent to \code{Inf}, or a normal distribution.
+#'     default it is equivalent to `Inf`, or a normal distribution.
 #'
 #' @param nCoresRV Number of cores used for the simulation of the
 #'   sigma variables.  By default this is 1. To reproduce the results
@@ -168,16 +164,16 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'     supplied instead of an event table.  This is for importing the
 #'     data as an RxODE event table.
 #'
-#' @param stiff a logical (\code{TRUE} by default) indicating whether
+#' @param stiff a logical (`TRUE` by default) indicating whether
 #'     the ODE system is stiff or not.
 #'
-#'     For stiff ODE systems (\code{stiff = TRUE}), \code{RxODE} uses the
+#'     For stiff ODE systems (`stiff = TRUE`), `RxODE` uses the
 #'     LSODA (Livermore Solver for Ordinary Differential Equations)
 #'     Fortran package, which implements an automatic method switching
 #'     for stiff and non-stiff problems along the integration
 #'     interval, authored by Hindmarsh and Petzold (2003).
 #'
-#'     For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses
+#'     For non-stiff systems (`stiff = FALSE`), `RxODE` uses
 #'     DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
 #'     Dormand and Prince as implemented in C by Hairer and Wanner
 #'     (1993).
@@ -199,23 +195,21 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #' @param updateObject This is an internally used flag to update the
 #'     RxODE solved object (when supplying an RxODE solved object) as
 #'     well as returning a new object.  You probably should not
-#'     modify it's \code{FALSE} default unless you are willing to
+#'     modify it's `FALSE` default unless you are willing to
 #'     have unexpected results.
 #'
 #' @param returnType This tells what type of object is returned.  The currently supported types are:
-#' \itemize{
-#' \item \code{"rxSolve"} (default) will return a reactive data frame
+#' * `"rxSolve"` (default) will return a reactive data frame
 #'      that can change easily change different pieces of the solve and
 #'      update the data frame.  This is the currently standard solving
-#'      method in RxODE,  is used for \code{rxSolve(object, ...)}, \code{solve(object,...)},
-#' \item \code{"data.frame"} -- returns a plain, non-reactive data
-#'      frame; Currently very slightly faster than \code{returnType="matrix"}
-#' \item \code{"matrix"} -- returns a plain matrix with column names attached
-#'     to the solved object.  This is what is used \code{object$run} as well as \code{object$solve}
-#' \item \code{"data.table"} -- returns a \code{data.table}; The \code{data.table} is
-#'     created by reference (ie \code{setDt()}), which should be fast.
-#' \item \code{"tbl"} or \code{"tibble"} returns a tibble format.
-#' }
+#'      method in RxODE,  is used for `rxSolve(object, ...)`, `solve(object,...)`,
+#' * `"data.frame"` -- returns a plain, non-reactive data
+#'      frame; Currently very slightly faster than `returnType="matrix"`
+#' * `"matrix"` -- returns a plain matrix with column names attached
+#'     to the solved object.  This is what is used `object$run` as well as `object$solve`
+#' * `"data.table"` -- returns a `data.table`; The `data.table` is
+#'     created by reference (ie `setDt()`), which should be fast.
+#' * `"tbl"` or `"tibble"` returns a tibble format.
 #'
 #' @param seed an object specifying if and how the random number
 #'    generator should be initialized
@@ -224,19 +218,19 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'     assume it is a block matrix and convert it to a full matrix
 #'     for simulations.
 #'
-#' @param omegaXform When taking \code{omega} values from the @template Xform
+#' @param omegaXform When taking `omega` values from the @template Xform
 #'
 #'
 #' @inheritParams rxSimThetaOmega
 #'
 #' @inheritParams stats::simulate
 #'
-#' @param a when using \code{solve}, this is equivalent to the
-#'     \code{object} argument.  If you specify \code{object} later in
+#' @param a when using `solve`, this is equivalent to the
+#'     `object` argument.  If you specify `object` later in
 #'     the argument list it overwrites this parameter.
 #'
-#' @param b when using \code{solve}, this is equivalent to the
-#'     \code{params} argument.  If you specify \code{params} as a
+#' @param b when using `solve`, this is equivalent to the
+#'     `params` argument.  If you specify `params` as a
 #'     named argument, this overwrites the output
 #'
 #' @param nsim represents the number of simulations.  For RxODE, if
@@ -248,17 +242,17 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #' @param maxSS Maximum number of iterations for a steady-state dose
 #'
 #' @param strictSS Boolean indicating if a strict steady-state is
-#'     required. If a strict steady-state is (\code{TRUE}) required
-#'     then at least \code{minSS} doses are administered and the
+#'     required. If a strict steady-state is (`TRUE`) required
+#'     then at least `minSS` doses are administered and the
 #'     total number of steady states doses will continue until
-#'     \code{maxSS} is reached, or \code{atol} and \code{rtol} for
+#'     `maxSS` is reached, or `atol` and `rtol` for
 #'     every compartment have been reached.  However, if ODE solving
-#'     problems occur after the \code{minSS} has been reached the
+#'     problems occur after the `minSS` has been reached the
 #'     whole subject is considered an invalid solve. If
-#'     \code{strictSS} is \code{FALSE} then as long as \code{minSS}
+#'     `strictSS` is `FALSE` then as long as `minSS`
 #'     has been reached the last good solve before ODE solving
 #'     problems occur is considered the steady state, even though
-#'     either \code{atol}, \code{rtol} or \code{maxSS} have not
+#'     either `atol`, `rtol` or `maxSS` have not
 #'     been achieved.
 #'
 #' @param infSSstep Step size for determining if a constant infusion
@@ -271,44 +265,42 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #' @param ssRtol Steady state rtol convergence factor.  Can be a
 #'     vector based on each state.
 #'
-#' @param istateReset When \code{TRUE}, reset the \code{ISTATE} variable to 1 for
-#'     lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do
-#'     not reset the \code{ISTATE} variable with doses.
+#' @param istateReset When `TRUE`, reset the `ISTATE` variable to 1 for
+#'     lsoda and liblsoda with doses, like `deSolve`; When `FALSE`, do
+#'     not reset the `ISTATE` variable with doses.
 #'
 #' @param addDosing Boolean indicating if the solve should add RxODE
 #'     EVID and related columns.  This will also include dosing
 #'     information and estimates at the doses.  Be default, RxODE
 #'     only includes estimates at the observations. (default
-#'     \code{FALSE}). When \code{addDosing} is \code{NULL}, only
-#'     include \code{EVID=0} on solve and exclude any model-times or
-#'     \code{EVID=2}. If \code{addDosing} is \code{NA} the classic
-#'     \code{RxODE} EVID events are returned. When \code{addDosing} is \code{TRUE}
+#'     `FALSE`). When `addDosing` is `NULL`, only
+#'     include `EVID=0` on solve and exclude any model-times or
+#'     `EVID=2`. If `addDosing` is `NA` the classic
+#'     `RxODE` EVID events are returned. When `addDosing` is `TRUE`
 #'     add the event information in NONMEM-style format; If
-#'     \code{subsetNonmem=FALSE} RxODE will also include extra event types
-#'     (\code{EVID}) for ending infusion and modeled times:
+#'     `subsetNonmem=FALSE` RxODE will also include extra event types
+#'     (`EVID`) for ending infusion and modeled times:
 #'
-#' \itemize{
 #'
-#' \item \code{EVID=-1} when the modeled rate infusions are turned
-#' off (matches \code{rate=-1})
+#' * `EVID=-1` when the modeled rate infusions are turned
+#' off (matches `rate=-1`)
 #'
-#' \item \code{EVID=-2} When the modeled duration infusions are
-#' turned off (matches \code{rate=-2})
+#' * `EVID=-2` When the modeled duration infusions are
+#' turned off (matches `rate=-2`)
 #'
-#' \item \code{EVID=-10} When the specified \code{rate} infusions are
-#' turned off (matches \code{rate>0})
+#' * `EVID=-10` When the specified `rate` infusions are
+#' turned off (matches `rate>0`)
 #'
-#' \item \code{EVID=-20} When the specified \code{dur} infusions are
-#' turned off (matches \code{dur>0})
+#' * `EVID=-20` When the specified `dur` infusions are
+#' turned off (matches `dur>0`)
 #'
-#' \item \code{EVID=101,102,103,...} Modeled time where 101 is the
+#' * `EVID=101,102,103,...` Modeled time where 101 is the
 #' first model time, 102 is the second etc.
 #'
-#' }
 #'
 #' @param subsetNonmem subset to NONMEM compatible EVIDs only.  By default TRUE.
 #'
-#' @param maxAtolRtolFactor The maximum \code{atol}/\code{rtol} that
+#' @param maxAtolRtolFactor The maximum `atol`/`rtol` that
 #'     FOCEi and other routines may adjust to.  By default 0.1
 #'
 #' @param from When there is no observations in the event table,
@@ -322,11 +314,11 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'     isn't any observations in the event table. By default this is 200.
 #'
 #' @param by When there are no observations in the event table, this
-#'     is the amount to increment for the observations between \code{from}
-#'     and \code{to}.
+#'     is the amount to increment for the observations between `from`
+#'     and `to`.
 #'
 #' @param keep Columns to keep from either the input dataset or the
-#'     \code{iCov} dataset.  With the \code{iCov} dataset, the column
+#'     `iCov` dataset.  With the `iCov` dataset, the column
 #'     is kept once per line.  For the input dataset, if any records
 #'     are added to the data LOCF (Last Observation Carried forward)
 #'     imputation is performed.
@@ -356,32 +348,29 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'     updating of the solved object.
 #'
 #'     The operations for the object are similar to a data-frame, but
-#'     expand the \code{$} and \code{[[""]]} access operators and
+#'     expand the `$` and `[[""]]` access operators and
 #'     assignment operators to resolve based on different parameter
 #'     values, initial conditions, solver parameters, or events (by
-#'     updating the \code{time} variable).
+#'     updating the `time` variable).
 #'
-#'     You can call the \code{\link{eventTable}} methods on the solved
+#'     You can call the [eventTable()] methods on the solved
 #'     object to update the event table and resolve the system of
 #'     equations.  % Should be able to use roxygen templates...
 #'
 #' @param indLinMatExpType This is them matrix exponential type that
 #'     is use for RxODE.  Currently the following are supported:
 #'
-#' \itemize{
+#' * `Al-Mohy` Uses the exponential matrix method of Al-Mohy Higham (2009)
 #'
-#' \item{Al-Mohy} Uses the exponential matrix method of Al-Mohy Higham (2009)
+#' * `arma` Use the exponential matrix from RcppArmadillo
 #'
-#' \item{arma} Use the exponential matrix from RcppArmadillo
+#' * `expokit` Use the exponential matrix from Roger B. Sidje (1998)
 #'
-#' \item{expokit} Use the exponential matrix from Roger B. Sidje (1998)
-#'
-#' }
 #'
 #' @param indLinMatExpOrder an integer, the order of approximation to
-#'     be used, for the \code{Al-Mohy} and \code{expokit} values.
+#'     be used, for the `Al-Mohy` and `expokit` values.
 #'     The best value for this depends on machine precision (and
-#'     slightly on the matrix). We use \code{6} as a default.
+#'     slightly on the matrix). We use `6` as a default.
 #'
 #' @param indLinPhiTol the requested accuracy tolerance on
 #'     exponential matrix.
@@ -391,68 +380,66 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #' @param cacheEvent is a boolean.  If `TRUE` (default), events are cached in
 #'     memory to speed up solving.
 #'
-#' @param sumType Sum type to use for \code{sum()} in
+#' @param sumType Sum type to use for `sum()` in
 #'     RxODE code blocks.
 #'
-#' \code{pairwise} uses the pairwise sum (fast, default)
+#' `pairwise` uses the pairwise sum (fast, default)
 #'
-#' \code{fsum} uses Python's fsum function (most accurate)
+#' `fsum` uses Python's fsum function (most accurate)
 #'
-#' \code{kahan} uses Kahan correction
+#' `kahan` uses Kahan correction
 #'
-#' \code{neumaier} uses Neumaier correction
+#' `neumaier` uses Neumaier correction
 #'
-#' \code{c} uses no correction: default/native summing
+#' `c` uses no correction: default/native summing
 #'
-#' @param prodType Product to use for \code{prod()} in RxODE blocks
+#' @param prodType Product to use for `prod()` in RxODE blocks
 #'
-#' \code{long double} converts to long double, performs the
+#' `long double` converts to long double, performs the
 #' multiplication and then converts back.
 #'
-#' \code{double} uses the standard double scale for multiplication.
+#' `double` uses the standard double scale for multiplication.
 #'
 #' @param sensType Sensitivity type for `linCmt()` model:
 #'
-#' \code{advan} Use the direct advan solutions
+#' `advan` Use the direct advan solutions
 #'
-#' \code{autodiff} Use the autodiff advan solutions
+#' `autodiff` Use the autodiff advan solutions
 #'
-#' \code{forward} Use forward difference solutions
+#' `forward` Use forward difference solutions
 #'
-#' \code{central} Use central differences
+#' `central` Use central differences
 #'
 #' @param linDiff This gives the linear difference amount for all the
 #'   types of linear compartment model parameters where sensitivities
 #'   are not calculated. The named components of this numeric vector are:
 #'
-#' \itemize{
-#' \item \code{"lag"} Central compartment lag
-#' \item \code{"f"} Central compartment bioavailability
-#' \item \code{"rate"} Central compartment modeled rate
-#' \item \code{"dur"} Central compartment modeled duration
-#' \item \code{"lag2"} Depot compartment lag
-#' \item \code{"f2"} Depot compartment bioavailability
-#' \item \code{"rate2"} Depot compartment modeled rate
-#' \item \code{"dur2"} Depot compartment modeled duration
-#' }
+#' * `"lag"` Central compartment lag
+#' * `"f"` Central compartment bioavailability
+#' * `"rate"` Central compartment modeled rate
+#' * `"dur"` Central compartment modeled duration
+#' * `"lag2"` Depot compartment lag
+#' * `"f2"` Depot compartment bioavailability
+#' * `"rate2"` Depot compartment modeled rate
+#' * `"dur2"` Depot compartment modeled duration
 #'
 #' @param linDiffCentral This gives the which parameters use central
 #'   differences for the linear compartment model parameters.  The
-#'   are the same components as \code{linDiff}
+#'   are the same components as `linDiff`
 #'
 #' @param resample A character vector of model variables to resample
 #'   from the input dataset; This sampling is done with replacement.
-#'   When \code{NULL} or \code{FALSE} no resampling is done.  When
-#'   \code{TRUE} resampling is done on all covariates in the input
+#'   When `NULL` or `FALSE` no resampling is done.  When
+#'   `TRUE` resampling is done on all covariates in the input
 #'   dataset
 #'
 #' @param resampleID boolean representing if the resampling should be
-#'   done on an individual basis \code{TRUE} (ie. a whole patient is
+#'   done on an individual basis `TRUE` (ie. a whole patient is
 #'   selected) or each covariate is resampled independent of the
-#'   subject identifier \code{FALSE}.  When \code{resampleID=TRUE}
+#'   subject identifier `FALSE`.  When `resampleID=TRUE`
 #'   correlations of parameters are retained, where as when
-#'   \code{resampleID=FALSE} ignores patient covariate correaltions.
-#'   Hence the default is \code{resampleID=TRUE}.
+#'   `resampleID=FALSE` ignores patient covariate correaltions.
+#'   Hence the default is `resampleID=TRUE`.
 #'
 #' @param maxwhile represents the maximum times a while loop is
 #'   evaluated before exiting.  By default this is 100000
@@ -467,24 +454,24 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'
 #' Roger B. Sidje (1998).  EXPOKIT: Software package for computing
 #' matrix exponentials.  ACM - Transactions on Mathematical Software
-#' \emph{24}(1), 130-156.
+#' *24*(1), 130-156.
 #'
 #' Hindmarsh, A. C.
-#' \emph{ODEPACK, A Systematized Collection of ODE Solvers}.
+#' *ODEPACK, A Systematized Collection of ODE Solvers*.
 #' Scientific Computing, R. S. Stepleman et al. (Eds.),
 #' North-Holland, Amsterdam, 1983, pp. 55-64.
 #'
 #' Petzold, L. R.
-#' \emph{Automatic Selection of Methods for Solving Stiff and Nonstiff
-#' Systems of Ordinary Differential Equations}.
+#' *Automatic Selection of Methods for Solving Stiff and Nonstiff
+#' Systems of Ordinary Differential Equations*.
 #' Siam J. Sci. Stat. Comput. 4 (1983), pp. 136-148.
 #'
 #' Hairer, E., Norsett, S. P., and Wanner, G.
-#' \emph{Solving ordinary differential equations I, nonstiff problems}.
+#' *Solving ordinary differential equations I, nonstiff problems*.
 #' 2nd edition, Springer Series in Computational Mathematics,
 #' Springer-Verlag (1993).
 #'
-#' @seealso \code{\link{RxODE}}
+#' @seealso [RxODE()]
 #' @author Matthew Fidler, Melissa Hallow and  Wenping Wang
 #' @export
 rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,

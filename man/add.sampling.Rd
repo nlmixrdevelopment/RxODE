@@ -7,7 +7,7 @@
 add.sampling(eventTable, time, time.units = NA)
 }
 \arguments{
-\item{eventTable}{An eventTable object}
+\item{eventTable}{An eventTable object. When accessed from object it would be \verb{eventTable$}}
 
 \item{time}{a vector of time values (in \code{time.units}).}
 
@@ -17,11 +17,12 @@ units. Defaults to the units specified when the
 }
 \value{
 eventTable with updated sampling.  (Note the event table
-    will be updated even if you don't reassign the eventTable)
+will be updated even if you don't reassign the eventTable)
 }
 \description{
 This adds a dosing event to the event table.  This is provided for
-piping syntax through magrittr
+piping syntax through magrittr.  It can also be accessed by
+\code{eventTable$add.sampling()}
 }
 \examples{
 
@@ -109,9 +110,9 @@ Pharmacometrics \& Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
 }
 \seealso{
 \code{\link{eventTable}}, \code{\link{add.sampling}},
-    \code{\link{add.dosing}}, \code{\link{et}},
-    \code{\link{etRep}}, \code{\link{etRbind}},
-    \code{\link{RxODE}}
+\code{\link{add.dosing}}, \code{\link{et}},
+\code{\link{etRep}}, \code{\link{etRbind}},
+\code{\link{RxODE}}
 }
 \author{
 Matthew L Fidler, Wenping Wang

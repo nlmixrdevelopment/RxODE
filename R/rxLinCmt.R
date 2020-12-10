@@ -49,18 +49,16 @@ findLhs <- function(x) {
 #'
 #' @param ... The input can be:
 #'
-#' \itemize{
 #'
-#'  \item A data frame with PK parameters in it; This should ideally
+#'  * A data frame with PK parameters in it; This should ideally
 #'  be a data frame with one pk parameter per row since it will
 #'  output a data frame with one PK parameter per row.
 #'
-#'  \item PK parameters as either a vector or a scalar
+#'  * PK parameters as either a vector or a scalar
 #'
-#' }
 #'
 #' @param verbose boolean that when TRUE provides a message about the detected pk parameters
-#'   and the detected compartmental model.  By default this is \code{FALSE}.
+#'   and the detected compartmental model.  By default this is `FALSE`.
 #'
 #' @param digits represents the number of significant digits for the
 #'   output; If the number is zero or below (default), do not round.
@@ -71,59 +69,58 @@ findLhs <- function(x) {
 #'
 #' The model parameters that will be provided in the data frame are:
 #'
-#' \itemize{ \item \code{vc}: Central Volume (for 1-, 2- and 3-
+#' * `vc`: Central Volume (for 1-, 2- and 3-
 #'   compartment models)
 #'
-#'   \item \code{kel}: First-order elimination rate (for 1-, 2-, and
+#' * `kel`: First-order elimination rate (for 1-, 2-, and
 #'   3-compartment models)
 #'
-#'   \item \code{k12}: First-order rate of transfer from central to
+#' * `k12`: First-order rate of transfer from central to
 #'   first peripheral compartment; (for 2- and 3-compartment models)
 #'
-#'   \item \code{k21}: First-order rate of transfer from first
+#' * `k21`: First-order rate of transfer from first
 #'   peripheral to central compartment, (for 2- and 3-compartment
 #'   models)
 #'
-#'   \item \code{k13}: First-order rate of transfer from central to
+#' * `k13`: First-order rate of transfer from central to
 #'   second peripheral compartment; (3-compartment model)
 #'
-#'   \item \code{k31}: First-order rate of transfer from second
+#' * `k31`: First-order rate of transfer from second
 #'   peripheral to central compartment (3-compartment model)
 #'
-#'   \item \code{vp}: Peripheral Volume (for 2- and 3- compartment models)
+#' * `vp`: Peripheral Volume (for 2- and 3- compartment models)
 #'
-#'   \item \code{vp2}: Peripheral Volume for 3rd compartment (3- compartment model)
+#' * `vp2`: Peripheral Volume for 3rd compartment (3- compartment model)
 #'
-#'   \item \code{vss}: Volume of distribution at steady state; (1-, 2-, and 3-compartment models)
+#' * `vss`: Volume of distribution at steady state; (1-, 2-, and 3-compartment models)
 #'
-#'   \item \code{t12alpha}: \eqn{t_{1/2,\alpha}}; (1-, 2-, and 3-compartment models)
+#' * `t12alpha`: \eqn{t_{1/2,\alpha}}; (1-, 2-, and 3-compartment models)
 #'
-#'   \item \code{t12beta}: \eqn{t_{1/2,\beta}}; (2- and 3-compartment models)
+#' * `t12beta`: \eqn{t_{1/2,\beta}}; (2- and 3-compartment models)
 #'
-#'   \item \code{t12gamma}: \eqn{t_{1/2,\gamma}}; (3-compartment model)
+#' * `t12gamma`: \eqn{t_{1/2,\gamma}}; (3-compartment model)
 #'
-#'   \item \code{alpha}: \eqn{\alpha}; (1-, 2-, and 3-compartment models)
+#' * `alpha`: \eqn{\alpha}; (1-, 2-, and 3-compartment models)
 #'
-#'   \item \code{beta}: \eqn{\beta}; (2- and 3-compartment models)
+#' * `beta`: \eqn{\beta}; (2- and 3-compartment models)
 #'
-#'   \item \code{gamma}: \eqn{\beta}; (3-compartment model)
+#' * `gamma`: \eqn{\beta}; (3-compartment model)
 #'
-#'   \item \code{A}: true \code{A}; (1-, 2-, and 3-compartment models)
+#' * `A`: true `A`; (1-, 2-, and 3-compartment models)
 #'
-#'   \item \code{B}: true \code{B}; (2- and 3-compartment models)
+#' * `B`: true `B`; (2- and 3-compartment models)
 #'
-#'   \item \code{C}: true \code{C}; (3-compartment model)
+#' * `C`: true `C`; (3-compartment model)
 #'
-#'   \item \code{fracA}: fractional A; (1-, 2-, and 3-compartment models)
+#' * `fracA`: fractional A; (1-, 2-, and 3-compartment models)
 #'
-#'   \item \code{fracB}: fractional B; (2- and 3-compartment models)
+#' * `fracB`: fractional B; (2- and 3-compartment models)
 #'
-#'   \item \code{fracC}: fractional C; (3-compartment model)
-#'  }
+#' * `fracC`: fractional C; (3-compartment model)
 #'
 #' @author Matthew Fidler and documentation from Justin Wilkins, \email{justin.wilkins@@occams.com}
 #'
-#' @references Shafer S. L. \code{CONVERT.XLS}
+#' @references Shafer S. L. `CONVERT.XLS`
 #'
 #' @references Rowland M, Tozer TN. Clinical Pharmacokinetics and Pharmacodynamics: Concepts and Applications (4th). Clipping Williams & Wilkins, Philadelphia, 2010.
 #'

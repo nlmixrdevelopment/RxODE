@@ -36,62 +36,49 @@ the Cholesky decomposition. This is only used when code{type="invWishart"}}
 covariance matrix sample. This is only used when code{type="invWishart"}}
 
 \item{type}{The type of covariance posterior that is being
-    simulated.  This can be:
-
+simulated.  This can be:
 \itemize{
-
-\item{invWishart} The posterior is an inverse wishart; This allows
+\item \code{invWishart} The posterior is an inverse wishart; This allows
 for correlations between parameters to be modeled.  All the
 uncertainty in the parameter is captured in the degrees of freedom
 parameter.
-
-\item{lkj} The posterior separates the standard deviation
+\item \code{lkj} The posterior separates the standard deviation
 estimates (modeled outside and provided in the \code{omega}
 argument) and the correlation estimates. The correlation estimate
-is simulated with the \code{\link{rLKJ1}}.  This simulation uses
+is simulated with the \code{\link[=rLKJ1]{rLKJ1()}}.  This simulation uses
 the relationship \code{eta=(nu-1)/2}.  This is relationship based
 on the proof of the relationship between the restricted
 LKJ-distribution and inverse wishart distribution (XXXXXX).  Once
 the correlation posterior is calculated, the estimated standard
 deviations are then combined with the simulated correlation matrix
 to create the covariance matrix.
-
-\item{separation} Like the \code{lkj} option, this separates out
+\item \code{separation} Like the \code{lkj} option, this separates out
 the estimation of the correlation and standard deviation.  Instead
 of using the \code{LKJ} distribution to simulate the correlation,
 it simulates the inverse wishart of the identity matrix and
 converts the result to a correlation matrix.  This correlation
 matrix is then used with the standard deviation to calculate the
 simulated covariance matrix.
-
 }}
 
 \item{diagXformType}{Diagonal transformation type.  These could be:
-
 \itemize{
-
-\item{log} The standard deviations are log transformed, so the
-  actual standard deviations are exp(omega)
-
-\item{identity} The standard deviations are not transformed. The
+\item \code{log} The standard deviations are log transformed, so the
+actual standard deviations are exp(omega)
+\item \code{identity} The standard deviations are not transformed. The
 standard deviations are not transformed;  They should be positive.
-
-\item{variance} The variances are specified in the \code{omega}
+\item \code{variance} The variances are specified in the \code{omega}
 matrix; They are transformed into standard deviations.
-
-\item{nlmixrSqrt} These standard deviations come from an nlmixr
+\item \code{nlmixrSqrt} These standard deviations come from an nlmixr
 omega matrix where diag(chol(inv(omega))) = x^2
-
-\item{nlmixrLog} These standard deviations come from a nlmixr
+\item \code{nlmixrLog} These standard deviations come from a nlmixr
 omega matrix omega matrix where diag(chol(solve(omega))) = exp(x)
-
-\item{nlmixrIdentity} These standard deviations come from a nlmixr
+\item \code{nlmixrIdentity} These standard deviations come from a nlmixr
 omega matrix omega matrix where diag(chol(solve(omega))) = x
-
 }
 
- The nlmixr transformations only make sense when there is no
- off-diagonal correlations modeled.}
+The nlmixr transformations only make sense when there is no
+off-diagonal correlations modeled.}
 }
 \value{
 a matrix (n=1) or a list of matrices  (n > 1)
@@ -104,8 +91,6 @@ the covariance matrix.
 If your covariance matrix is a 1x1 matrix, this uses an scaled
 inverse chi-squared which is equivalent to the Inverse Wishart
 distribution in the uni-directional case.
-
-
 
 In general, the separation strategy is preferred for diagonal
 matrices.  If the dimension of the matrix is below 10, \code{lkj}
@@ -157,7 +142,6 @@ cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="separation",
 Alvarez I, Niemi J and Simpson M. (2014) \emph{Bayesian Inference for a
 Covariance Matrix}. Conference on Applied Statistics in Agriculture.
 \url{https://newprairiepress.org/cgi/viewcontent.cgi?article=1004&context=agstatconference}
-
 
 Wang1 Z, Wu Y, and Chu H. (2018) \emph{On Equivalence of the LKJ
 distribution and the restricted Wishart distribution}. arXiv:1809.04746

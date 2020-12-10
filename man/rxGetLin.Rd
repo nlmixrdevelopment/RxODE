@@ -12,26 +12,22 @@ rxGetLin(
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:
-
 \itemize{
+\item a string containing the set of ordinary differential
+equations (ODE) and other expressions defining the changes in
+the dynamic system.
+\item a file name where the ODE system equation is contained
+}
 
- \item a string containing the set of ordinary differential
-    equations (ODE) and other expressions defining the changes in
-    the dynamic system.
-
- \item a file name where the ODE system equation is contained
-
- \item An ODE expression enclosed in \code{\{\}}
-
-  }
+An ODE expression enclosed in \verb{\\\{\\\}}
 
 (see also the \code{filename} argument). For
-    details, see the sections \dQuote{Details} and
-    \dQuote{\code{RxODE Syntax}} below.}
+details, see the sections \dQuote{Details} and
+\verb{RxODE Syntax} below.}
 
 \item{linCmtSens}{The method to calculate the linCmt() solutions}
 
-\item{verbose}{When `TRUE` be verbose with the linear
+\item{verbose}{When \code{TRUE} be verbose with the linear
 compartmental model}
 }
 \value{

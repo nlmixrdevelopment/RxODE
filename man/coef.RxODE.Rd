@@ -13,13 +13,14 @@
 }
 \value{
 a rxCoef object with the following
-
-\item{params}{ is a list of strings for parameters for the RxODE object}
-\item{state}{ is a list of strings for the names of each state in
-    the RxODE object.}
-\item{ini}{ is the model specified default values for the
-    parameters.}
-\item{RxODE}{ is the referring RxODE object}
+\itemize{
+\item \code{params}  is a list of strings for parameters for the RxODE object
+\item \code{state} is a list of strings for the names of each state in
+the RxODE object.
+\item \code{ini} is the model specified default values for the
+parameters.
+\item \code{RxODE} is the referring RxODE object
+}
 }
 \description{
 This returns the parameters , state variables

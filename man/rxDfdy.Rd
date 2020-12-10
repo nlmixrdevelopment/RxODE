@@ -11,7 +11,7 @@ rxDfdy(obj)
 }
 \value{
 A list of the jacobian parameters defined in this RxODE
-    object.
+object.
 }
 \description{
 Return Jacobain and parameter derivatives

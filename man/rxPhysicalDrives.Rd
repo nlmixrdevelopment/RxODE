@@ -9,7 +9,7 @@ rxPhysicalDrives(duplicates = FALSE)
 }
 \arguments{
 \item{duplicates}{Return drives with duplicate entries in
-\code{SYSTEM\\MountedDevices}; These are likely removable media.  By default this is \code{FALSE}}
+\verb{SYSTEM\\\\MountedDevices}; These are likely removable media.  By default this is \code{FALSE}}
 }
 \value{
 Drives with letters

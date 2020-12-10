@@ -10,9 +10,9 @@ rxSuppressMsg()
 Nothing
 }
 \description{
-This turns on the silent REprintf in C when `suppressMessages()` is
-turned on. This makes the `REprintf` act like `messages` in R,
-they can be suppressed with `suppressMessages()`
+This turns on the silent REprintf in C when \code{suppressMessages()} is
+turned on. This makes the \code{REprintf} act like \code{messages} in R,
+they can be suppressed with \code{suppressMessages()}
 }
 \examples{
 

@@ -25,11 +25,11 @@ app, by default is \code{"shinyExample"}. The directory
 \item{verbose}{logical specifying whether to write messages as the
 shiny app is generated. Defaults to \code{TRUE}.}
 
-\item{ODE.config}{model name compiled and list of parameters sent to \code{\link{rxSolve}}.}
+\item{ODE.config}{model name compiled and list of parameters sent to \code{\link[=rxSolve]{rxSolve()}}.}
 
-\item{statevars}{List of statevars passed to to the \code{\link{write.template.ui}} function.  This usually isn't called directly.
+\item{statevars}{List of statevars passed to to the \code{\link[=write.template.ui]{write.template.ui()}} function.  This usually isn't called directly.
 
-A PK/PD model is defined using \code{\link{RxODE}}, and
+A PK/PD model is defined using \code{\link[=RxODE]{RxODE()}}, and
 a set of parameters and initial values are defined.  Then
 the appropriate R scripts for the shiny's user interface \code{ui.R}
 and the server logic \code{server.R} are created in the
@@ -59,9 +59,9 @@ given a (hardcoded) PK/PD model.
 }
 \note{
 These functions create a simple, but working example of a
-    dosing regimen simulation web application. Users may want to
-    modify the code to experiment creating shiny applications for
-    their specific \code{RxODE} models.
+dosing regimen simulation web application. Users may want to
+modify the code to experiment creating shiny applications for
+their specific \code{RxODE} models.
 }
 \examples{
 \donttest{
@@ -74,7 +74,7 @@ unlink("myapp", recursive=TRUE, force=TRUE) # remove myapp
 }
 }
 \seealso{
-\code{\link{RxODE}},\code{\link{eventTable}}, and the package \pkg{shiny} (\url{https://shiny.rstudio.com}).
+\code{\link[=RxODE]{RxODE()}},\code{\link[=eventTable]{eventTable()}}, and the package \pkg{shiny} (\url{https://shiny.rstudio.com}).
 }
 \concept{PK/PD}
 \concept{pharmacometrics}

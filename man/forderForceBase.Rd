@@ -8,7 +8,7 @@ forderForceBase(forceBase = FALSE)
 }
 \arguments{
 \item{forceBase}{boolean indicating if RxODE should use R's
-\code{\link{order}} for radix sorting instead of
+\code{\link[=order]{order()}} for radix sorting instead of
 \code{data.table}'s parallel radix sorting.}
 }
 \description{

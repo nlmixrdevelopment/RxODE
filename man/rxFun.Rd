@@ -23,7 +23,7 @@ nothing if successful
 This adds a user function to RxODE that can be called.  If needed,
 these functions can be differentiated by numerical differences or
 by adding the derivatives to RxODE's internal derivative table
-with \code{\link{rxD}}
+with \code{\link[=rxD]{rxD()}}
 }
 \examples{
 

@@ -78,8 +78,8 @@ sensitivity-based solutions.}
 derivatives.  By default FALSE}
 
 \item{addProp}{one of "combined1" and "combined2"; These are the
-  two forms of additive+proportional errors supported by
-  monolix/nonmem:
+two forms of additive+proportional errors supported by
+monolix/nonmem:
 
 combined1: transform(y)=transform(f)+(a+b*f^c)*eps
 
@@ -87,7 +87,7 @@ combined2: transform(y)=transform(f)+(a^2+b^2*f^(2c))*eps}
 }
 \value{
 RxODE object expanded with predfn and with calculated
-    sensitivities.
+sensitivities.
 }
 \description{
 This is for the so-called inner problem.

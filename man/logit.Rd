@@ -16,15 +16,15 @@ logitNormInfo(mean = 0, sd = 1, low = 0, high = 1, abs.tol = 1e-06, ...)
 probitNormInfo(mean = 0, sd = 1, low = 0, high = 1, abs.tol = 1e-06, ...)
 }
 \arguments{
-\item{x}{Input value(s) in range [low,high] to translate -Inf to
+\item{x}{Input value(s) in range \link{low,high} to translate -Inf to
 Inf}
 
 \item{low}{Lowest value in the range}
 
 \item{high}{Highest value in the range}
 
-\item{alpha}{Infinite value(s) to translate to range of [low,
-high]}
+\item{alpha}{Infinite value(s) to translate to range of \link[=low,
+high]{low, high}}
 
 \item{mean}{logit-scale mean}
 
@@ -32,7 +32,7 @@ high]}
 
 \item{abs.tol}{absolute accuracy requested.}
 
-\item{...}{other parameters passed to `integrate()`}
+\item{...}{other parameters passed to \code{integrate()}}
 }
 \description{
 logit and inverse logit (expit) functions
@@ -46,11 +46,11 @@ where:
 
 \deqn{p = \frac{x-low}{high-low}}
 
- expit is given by:
+expit is given by:
 
 \deqn{expit(p, low, high) = \frac{high-low}{1+exp(-alpha)}+low}
 
-The `logitNormInfo()` gives the mean, variance and coefficient of
+The \code{logitNormInfo()} gives the mean, variance and coefficient of
 variability on the untransformed scale.
 }
 \examples{

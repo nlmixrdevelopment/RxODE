@@ -10,7 +10,7 @@ rxCondition(obj, condition = NULL)
 \item{obj}{RxODE object}
 
 \item{condition}{If specified and is one of the conditions in the
-RxODE object (as determined by \code{\link{rxExpandIfElse}}),
+RxODE object (as determined by \code{\link[=rxExpandIfElse]{rxExpandIfElse()}}),
 assign the RxODE current condition to this parameter.  If the
 condition is not one of the known condition, the condition is
 set to \code{NULL}, implying no conditioning currently used.}

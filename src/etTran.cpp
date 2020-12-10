@@ -29,11 +29,12 @@ bool getForder_b=false;
 Function getRxFn(std::string name);
 bool dtForder = false;
 bool forderForceBase_ = false;
+
 //' Force using base order for RxODE radix sorting
 //'
 //' @param forceBase boolean indicating if RxODE should use R's
-//'   \code{\link{order}} for radix sorting instead of
-//'   \code{data.table}'s parallel radix sorting.
+//'   [order()] for radix sorting instead of
+//'   `data.table`'s parallel radix sorting.
 //'
 //' @examples
 //' \donttest{
@@ -308,7 +309,7 @@ IntegerVector toCmt(RObject inCmt, CharacterVector& state, const bool isDvid,
 bool _ini0=true;
 //' Set Initial conditions to time zero instead of the first observed/dosed time
 //'
-//' @param ini0 When TRUE (default), set initial conditions to time
+//' @param ini0 When `TRUE` (default), set initial conditions to time
 //'   zero. Otherwise the initial conditions are the first observed
 //'   time.
 //'
@@ -327,20 +328,30 @@ bool warnedNeg=false;
 //' Event translation for RxODE
 //'
 //' @param inData Data frame to translate
-//' @param obj Model to translate data 
-//' @param addCmt Add compartment to data frame (default \code{FALSE}).
-//' @param dropUnits Boolean to drop the units (default \code{FALSE}).
+//' 
+//' @param obj Model to translate data
+//' 
+//' @param addCmt Add compartment to data frame (default `FALSE`).
+//' 
+//' @param dropUnits Boolean to drop the units (default `FALSE`).
+//' 
 //' @param allTimeVar Treat all covariates as if they were time-varying
+//' 
 //' @param keepDosingOnly keep the individuals who only have dosing records and any
 //'   trailing dosing records after the last observation.
-//' @param combineDvid is a boolean indicating if RxODE will use \code{DVID} on observation
-//'     records to change the \code{cmt} value; Useful for multiple-endpoint nlmixr models.  By default
-//'     this is determined by \code{option("RxODE.combine.dvid")} and if the option has not been set,
-//'     this is \code{TRUE}. This typically does not affect RxODE simulations.
+//' 
+//' @param combineDvid is a boolean indicating if RxODE will use `DVID` on observation
+//'     records to change the `cmt` value; Useful for multiple-endpoint nlmixr models.  By default
+//'     this is determined by `option("RxODE.combine.dvid")` and if the option has not been set,
+//'     this is `TRUE`. This typically does not affect RxODE simulations.
+//' 
 //' @param keep This is a named vector of items you want to keep in the final RxODE dataset.
 //'     For added RxODE event records (if seen), last observation carried forward will be used.
+//' 
 //' @return Object for solving in RxODE
+//' 
 //' @keywords internal
+//' 
 //' @export
 //[[Rcpp::export]]
 List etTrans(List inData, const RObject &obj, bool addCmt=false,

@@ -11,11 +11,11 @@ rinvchisq(n = 1L, nu = 1, scale = 1)
 
 \item{nu}{degrees of freedom of inverse chi square}
 
-\item{scale}{Scale of inverse chi squared distribution 
+\item{scale}{Scale of inverse chi squared distribution
 (default is 1).}
 }
 \value{
-a vector of inverse chi squared deviates .
+a vector of inverse chi squared deviates.
 }
 \description{
 Scaled Inverse Chi Squared distribution

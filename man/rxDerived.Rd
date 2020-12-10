@@ -9,15 +9,11 @@ rxDerived(..., verbose = FALSE, digits = 0)
 }
 \arguments{
 \item{...}{The input can be:
-
 \itemize{
-
- \item A data frame with PK parameters in it; This should ideally
- be a data frame with one pk parameter per row since it will
- output a data frame with one PK parameter per row.
-
- \item PK parameters as either a vector or a scalar
-
+\item A data frame with PK parameters in it; This should ideally
+be a data frame with one pk parameter per row since it will
+output a data frame with one PK parameter per row.
+\item PK parameters as either a vector or a scalar
 }}
 
 \item{verbose}{boolean that when TRUE provides a message about the detected pk parameters
@@ -28,60 +24,40 @@ output; If the number is zero or below (default), do not round.}
 }
 \value{
 Return a data.frame of derived PK parameters for a 1-, 2-,
-  or 3-compartment linear model given provided clearances and
-  volumes based on the inferred model type.
+or 3-compartment linear model given provided clearances and
+volumes based on the inferred model type.
 
 The model parameters that will be provided in the data frame are:
-
-\itemize{ \item \code{vc}: Central Volume (for 1-, 2- and 3-
-  compartment models)
-
-  \item \code{kel}: First-order elimination rate (for 1-, 2-, and
-  3-compartment models)
-
-  \item \code{k12}: First-order rate of transfer from central to
-  first peripheral compartment; (for 2- and 3-compartment models)
-
-  \item \code{k21}: First-order rate of transfer from first
-  peripheral to central compartment, (for 2- and 3-compartment
-  models)
-
-  \item \code{k13}: First-order rate of transfer from central to
-  second peripheral compartment; (3-compartment model)
-
-  \item \code{k31}: First-order rate of transfer from second
-  peripheral to central compartment (3-compartment model)
-
-  \item \code{vp}: Peripheral Volume (for 2- and 3- compartment models)
-
-  \item \code{vp2}: Peripheral Volume for 3rd compartment (3- compartment model)
-
-  \item \code{vss}: Volume of distribution at steady state; (1-, 2-, and 3-compartment models)
-
-  \item \code{t12alpha}: \eqn{t_{1/2,\alpha}}; (1-, 2-, and 3-compartment models)
-
-  \item \code{t12beta}: \eqn{t_{1/2,\beta}}; (2- and 3-compartment models)
-
-  \item \code{t12gamma}: \eqn{t_{1/2,\gamma}}; (3-compartment model)
-
-  \item \code{alpha}: \eqn{\alpha}; (1-, 2-, and 3-compartment models)
-
-  \item \code{beta}: \eqn{\beta}; (2- and 3-compartment models)
-
-  \item \code{gamma}: \eqn{\beta}; (3-compartment model)
-
-  \item \code{A}: true \code{A}; (1-, 2-, and 3-compartment models)
-
-  \item \code{B}: true \code{B}; (2- and 3-compartment models)
-
-  \item \code{C}: true \code{C}; (3-compartment model)
-
-  \item \code{fracA}: fractional A; (1-, 2-, and 3-compartment models)
-
-  \item \code{fracB}: fractional B; (2- and 3-compartment models)
-
-  \item \code{fracC}: fractional C; (3-compartment model)
- }
+\itemize{
+\item \code{vc}: Central Volume (for 1-, 2- and 3-
+compartment models)
+\item \code{kel}: First-order elimination rate (for 1-, 2-, and
+3-compartment models)
+\item \code{k12}: First-order rate of transfer from central to
+first peripheral compartment; (for 2- and 3-compartment models)
+\item \code{k21}: First-order rate of transfer from first
+peripheral to central compartment, (for 2- and 3-compartment
+models)
+\item \code{k13}: First-order rate of transfer from central to
+second peripheral compartment; (3-compartment model)
+\item \code{k31}: First-order rate of transfer from second
+peripheral to central compartment (3-compartment model)
+\item \code{vp}: Peripheral Volume (for 2- and 3- compartment models)
+\item \code{vp2}: Peripheral Volume for 3rd compartment (3- compartment model)
+\item \code{vss}: Volume of distribution at steady state; (1-, 2-, and 3-compartment models)
+\item \code{t12alpha}: \eqn{t_{1/2,\alpha}}; (1-, 2-, and 3-compartment models)
+\item \code{t12beta}: \eqn{t_{1/2,\beta}}; (2- and 3-compartment models)
+\item \code{t12gamma}: \eqn{t_{1/2,\gamma}}; (3-compartment model)
+\item \code{alpha}: \eqn{\alpha}; (1-, 2-, and 3-compartment models)
+\item \code{beta}: \eqn{\beta}; (2- and 3-compartment models)
+\item \code{gamma}: \eqn{\beta}; (3-compartment model)
+\item \code{A}: true \code{A}; (1-, 2-, and 3-compartment models)
+\item \code{B}: true \code{B}; (2- and 3-compartment models)
+\item \code{C}: true \code{C}; (3-compartment model)
+\item \code{fracA}: fractional A; (1-, 2-, and 3-compartment models)
+\item \code{fracB}: fractional B; (2- and 3-compartment models)
+\item \code{fracC}: fractional C; (3-compartment model)
+}
 }
 \description{
 This calculates the derived parameters based on what is provided

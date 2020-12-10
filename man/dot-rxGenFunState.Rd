@@ -11,8 +11,8 @@
 }
 \value{
 character vector of initial preserved states (state),
-    extra states (statef) and dvid translation information
-    (dvid). This is used in generating the final RxODE model.
+extra states (statef) and dvid translation information
+(dvid). This is used in generating the final RxODE model.
 }
 \description{
 Get the state information for the current model

@@ -23,22 +23,18 @@ RxODE(
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:
-
 \itemize{
+\item a string containing the set of ordinary differential
+equations (ODE) and other expressions defining the changes in
+the dynamic system.
+\item a file name where the ODE system equation is contained
+}
 
- \item a string containing the set of ordinary differential
-    equations (ODE) and other expressions defining the changes in
-    the dynamic system.
-
- \item a file name where the ODE system equation is contained
-
- \item An ODE expression enclosed in \code{\{\}}
-
-  }
+An ODE expression enclosed in \verb{\\\{\\\}}
 
 (see also the \code{filename} argument). For
-    details, see the sections \dQuote{Details} and
-    \dQuote{\code{RxODE Syntax}} below.}
+details, see the sections \dQuote{Details} and
+\verb{RxODE Syntax} below.}
 
 \item{modName}{a string to be used as the model name. This string
 is used for naming various aspects of the computations,
@@ -53,7 +49,7 @@ specified, a subdirectory named after the
 C file, a dynamic loading library, plus various other working
 files. If missing, the files are created (and removed) in the
 temporary directory, and the RxODE DLL for the model is
-created in the current directory named \code{rx_????_platform}, for
+created in the current directory named \verb{rx_????_platform}, for
 example \code{rx_129f8f97fb94a87ca49ca8dafe691e1e_i386.dll}}
 
 \item{filename}{A file name or connection object where the
@@ -86,86 +82,83 @@ LHS variables when calculating sensitivities.}
 \item{indLin}{Calculate inductive linearization matrices and
 compile with inductive linearization support.}
 
-\item{verbose}{When `TRUE` be verbose with the linear
+\item{verbose}{When \code{TRUE} be verbose with the linear
 compartmental model}
 }
 \value{
-An object (environment) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang (2001))
-     consisting of the following list of strings and functions:
+An object (environment) of class \code{RxODE} (see Chambers and Temple Lang (2001))
+consisting of the following list of strings and functions:\preformatted{* `model` a character string holding the source model specification.
+* `get.modelVars`a function that returns a list with 3 character
+    vectors, `params`, `state`, and `lhs` of variable names used in the model
+    specification. These will be output when the model is computed (i.e., the ODE solved by integration).
 
-    \item{model}{a character string holding the source model specification.}
-    \item{get.modelVars}{a function that returns a list with 3 character
-        vectors, \code{params}, \code{state}, and \code{lhs} of variable names used in the model
-        specification. These will be output when the model is computed (i.e., the ODE solved by integration).}
+  * `solve`\{this function solves (integrates) the ODE. This
+      is done by passing the code to [rxSolve()].
+      This is as if you called `rxSolve(RxODEobject, ...)`,
+      but returns a matrix instead of a rxSolve object.
 
-      \item{solve}{this function solves (integrates) the ODE. This
-          is done by passing the code to \code{\link{rxSolve}}.
-          This is as if you called \code{rxSolve(RxODEobject, ...)},
-          but returns a matrix instead of a rxSolve object.
+      `params`: a numeric named vector with values for every parameter
+      in the ODE system; the names must correspond to the parameter
+      identifiers used in the ODE specification;
 
-          \code{params}: a numeric named vector with values for every parameter
-          in the ODE system; the names must correspond to the parameter
-          identifiers used in the ODE specification;
+      `events`: an `eventTable` object describing the
+      input (e.g., doses) to the dynamic system and observation
+      sampling time points (see  [eventTable()]);
 
-          \code{events}: an \code{eventTable} object describing the
-          input (e.g., doses) to the dynamic system and observation
-          sampling time points (see  \code{\link{eventTable}});
-
-          \code{inits}: a vector of initial values of the state variables
-          (e.g., amounts in each compartment), and the order in this vector
-          must be the same as the state variables (e.g., PK/PD compartments);
+      `inits`: a vector of initial values of the state variables
+      (e.g., amounts in each compartment), and the order in this vector
+      must be the same as the state variables (e.g., PK/PD compartments);
 
 
-          \code{stiff}: a logical (\code{TRUE} by default) indicating whether
-          the ODE system is stiff or not.
+      `stiff`: a logical (`TRUE` by default) indicating whether
+      the ODE system is stiff or not.
 
-          For stiff ODE systems (\code{stiff = TRUE}), \code{RxODE} uses
-          the LSODA (Livermore Solver for Ordinary Differential Equations)
-          Fortran package, which implements an automatic method switching
-          for stiff and non-stiff problems along the integration interval,
-          authored by Hindmarsh and Petzold (2003).
+      For stiff ODE systems (`stiff = TRUE`), `RxODE` uses
+      the LSODA (Livermore Solver for Ordinary Differential Equations)
+      Fortran package, which implements an automatic method switching
+      for stiff and non-stiff problems along the integration interval,
+      authored by Hindmarsh and Petzold (2003).
 
-          For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses \code{DOP853},
-          an explicit Runge-Kutta method of order 8(5, 3) of Dormand and Prince
-          as implemented in C by Hairer and Wanner (1993).
+      For non-stiff systems (`stiff = FALSE`), `RxODE` uses `DOP853`,
+      an explicit Runge-Kutta method of order 8(5, 3) of Dormand and Prince
+      as implemented in C by Hairer and Wanner (1993).
 
-          \code{trans_abs}: a logical (\code{FALSE} by default) indicating
-          whether to fit a transit absorption term
-          (TODO: need further documentation and example);
+      `trans_abs`: a logical (`FALSE` by default) indicating
+      whether to fit a transit absorption term
+      (TODO: need further documentation and example);
 
-          \code{atol}: a numeric absolute tolerance (1e-08 by default);
+      `atol`: a numeric absolute tolerance (1e-08 by default);
 
-          \code{rtol}: a numeric relative tolerance (1e-06 by default).e
+      `rtol`: a numeric relative tolerance (1e-06 by default).e
 
-          The output of \dQuote{solve} is a matrix with as many rows as there
-          are sampled time points and as many columns as system variables
-          (as defined by the ODEs and additional assignments in the RxODE model
-              code).}
+      The output of \\dQuote\{solve\} is a matrix with as many rows as there
+      are sampled time points and as many columns as system variables
+      (as defined by the ODEs and additional assignments in the RxODE model
+          code).\}
 
-      \item{isValid}{a function that (naively) checks for model validity,
-          namely that the C object code reflects the latest model
-          specification.}
-      \item{version}{a string with the version of the \code{RxODE}
-          object (not the package).}
-      \item{dynLoad}{a function with one \code{force = FALSE} argument
-          that dynamically loads the object code if needed.}
-      \item{dynUnload}{a function with no argument that unloads
-          the model object code.}
-      \item{delete}{removes all created model files, including C and DLL files.
-          The model object is no longer valid and should be removed, e.g.,
-          \code{rm(m1)}.}
-      \item{run}{deprecated, use \code{solve}.}
-      \item{parse}{deprecated.}
-      \item{compile}{deprecated.}
-      \item{get.index}{deprecated.}
-      \item{getObj}{internal (not user callable) function.}
+  * `isValid` a function that (naively) checks for model validity,
+      namely that the C object code reflects the latest model
+      specification.
+  * `version` a string with the version of the `RxODE`
+      object (not the package).
+  * `dynLoad` a function with one `force = FALSE` argument
+      that dynamically loads the object code if needed.
+  * `dynUnload` a function with no argument that unloads
+      the model object code.
+  * `delete` removes all created model files, including C and DLL files.
+      The model object is no longer valid and should be removed, e.g.,
+      `rm(m1)`.
+  * `run` deprecated, use `solve`.
+  * `get.index` deprecated.
+  * `getObj` internal (not user callable) function.
+}
 }
 \description{
 Create a dynamic ODE-based model object suitably for translation
 into fast C code
 }
 \details{
-The \dQuote{Rx} in the name \code{RxODE} is meant to suggest the
+The \code{Rx} in the name \code{RxODE} is meant to suggest the
 abbreviation \emph{Rx} for a medical prescription, and thus to
 suggest the package emphasis on pharmacometrics modeling, including
 pharmacokinetics (PK), pharmacodynamics (PD), disease progression,
@@ -184,7 +177,7 @@ For evaluating \code{RxODE} models, two types of inputs may be
 provided: a required set of time points for querying the state of
 the ODE system and an optional set of doses (input amounts).  These
 inputs are combined into a single \emph{event table} object created
-with the function \code{\link{eventTable}} or \code{\link{et}}.
+with the function \code{\link[=eventTable]{eventTable()}} or \code{\link[=et]{et()}}.
 
 An \code{RxODE} model specification consists of one or more statements
 optionally terminated by semi-colons \verb{;} and optional comments (comments
@@ -400,7 +393,7 @@ Plevyak, J.
 \emph{\code{dparser}}, \url{http://dparser.sourceforge.net}. Web. 12 Oct. 2015.
 }
 \seealso{
-\code{\link{eventTable}}, \code{\link{et}}, \code{\link{add.sampling}}, \code{\link{add.dosing}}
+\code{\link[=eventTable]{eventTable()}}, \code{\link[=et]{et()}}, \code{\link[=add.sampling]{add.sampling()}}, \code{\link[=add.dosing]{add.dosing()}}
 }
 \author{
 Melissa Hallow, Wenping Wang and Matthew Fidler

@@ -38,7 +38,7 @@ g.y.log10 <- function(breaks = g.log.breaks.major, minor_breaks = g.log.breaks.m
 #' @param ... Other arguments passed to rxShiny.  Currently doesn't
 #'     do anything.
 #' @param data Any data that you would like to plot.  If the data has
-#'     a \code{time} variable as well as a compartment or calculated
+#'     a `time` variable as well as a compartment or calculated
 #'     variable that matches the RxODE model, the data will be added
 #'     to the plot of a specific compartment or calculated variable.
 #' @return Nothing; Starts a shiny server

@@ -158,7 +158,7 @@ parameter identifiers used in the ODE specification;}
 
 \item{events}{an \code{eventTable} object describing the input
 (e.g., doses) to the dynamic system and observation sampling
-time points (see \code{\link{eventTable}});}
+time points (see \code{\link[=eventTable]{eventTable()}});}
 
 \item{inits}{a vector of initial values of the state variables
 (e.g., amounts in each compartment), and the order in this
@@ -177,16 +177,15 @@ example \code{scale=c(center=2)} will divide the center ODE
 variable by 2.}
 
 \item{method}{The method for solving ODEs.  Currently this supports:
-
 \itemize{
 \item \code{"liblsoda"} thread safe lsoda.  This supports parallel
-           thread-based solving, and ignores user Jacobian specification.
+thread-based solving, and ignores user Jacobian specification.
 \item \code{"lsoda"} -- LSODA solver.  Does not support parallel thread-based
-      solving, but allows user Jacobian specification.
+solving, but allows user Jacobian specification.
 \item \code{"dop853"} -- DOP853 solver.  Does not support parallel thread-based
-        solving nor user Jacobain specification
+solving nor user Jacobain specification
 \item \code{"indLin"} -- Solving through inductive linearization.  The RxODE dll
-        must be setup specially to use this solving routine.
+must be setup specially to use this solving routine.
 }}
 
 \item{transitAbs}{boolean indicating if this is a transit
@@ -200,7 +199,7 @@ if prior doses do not add anything to the solution.}
 \item{rtol}{a numeric relative tolerance (1e-6 by default) used
 by the ODE solver to determine if a good solution has been
 achieved. This is also used in the solved linear model to check
- if prior doses do not add anything to the solution.}
+if prior doses do not add anything to the solution.}
 
 \item{maxsteps}{maximum number of (internally defined) steps allowed
 during one call to the solver. (5000 by default)}
@@ -230,23 +229,22 @@ default value is determined by the solver (when hini = 0)}
 method.  The default value is 5.  This can be between 1 and 5.}
 
 \item{cores}{Number of cores used in parallel ODE solving.  This
-is equivalent to calling \code{\link{setRxThreads}}}
+is equivalent to calling \code{\link[=setRxThreads]{setRxThreads()}}}
 
 \item{covsInterpolation}{specifies the interpolation method for
-    time-varying covariates. When solving ODEs it often samples
-    times outside the sampling time specified in \code{events}.
-    When this happens, the time varying covariates are
-    interpolated.  Currently this can be:
-
+time-varying covariates. When solving ODEs it often samples
+times outside the sampling time specified in \code{events}.
+When this happens, the time varying covariates are
+interpolated.  Currently this can be:
 \itemize{
 \item \code{"linear"} interpolation, which interpolates the covariate
-    by solving the line between the observed covariates and extrapolating the new
-    covariate value.
+by solving the line between the observed covariates and extrapolating the new
+covariate value.
 \item \code{"constant"} -- Last observation carried forward (the default).
 \item \code{"NOCB"} -- Next Observation Carried Backward.  This is the same method
-      that NONMEM uses.
+that NONMEM uses.
 \item \code{"midpoint"} Last observation carried forward to midpoint; Next observation
-  carried backward to midpoint.
+carried backward to midpoint.
 }}
 
 \item{addCov}{A boolean indicating if covariates should be added
@@ -294,65 +292,57 @@ supplied instead of an event table.  This is for importing the
 data as an RxODE event table.}
 
 \item{stiff}{a logical (\code{TRUE} by default) indicating whether
-    the ODE system is stiff or not.
+the ODE system is stiff or not.\preformatted{For stiff ODE systems (`stiff = TRUE`), `RxODE` uses the
+LSODA (Livermore Solver for Ordinary Differential Equations)
+Fortran package, which implements an automatic method switching
+for stiff and non-stiff problems along the integration
+interval, authored by Hindmarsh and Petzold (2003).
 
-    For stiff ODE systems (\code{stiff = TRUE}), \code{RxODE} uses the
-    LSODA (Livermore Solver for Ordinary Differential Equations)
-    Fortran package, which implements an automatic method switching
-    for stiff and non-stiff problems along the integration
-    interval, authored by Hindmarsh and Petzold (2003).
+For non-stiff systems (`stiff = FALSE`), `RxODE` uses
+DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
+Dormand and Prince as implemented in C by Hairer and Wanner
+(1993).
+}}
 
-    For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses
-    DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
-    Dormand and Prince as implemented in C by Hairer and Wanner
-    (1993).}
-
-\item{theta}{A vector of parameters that will be named THETA[#] and
+\item{theta}{A vector of parameters that will be named THETA\link{#} and
 added to parameters}
 
 \item{thetaLower}{Lower bounds for simulated population parameter variability (by default -Inf)}
 
 \item{thetaUpper}{Upper bounds for simulated population unexplained variability (by default Inf)}
 
-\item{eta}{A vector of parameters that will be named ETA[#] and
+\item{eta}{A vector of parameters that will be named ETA\link{#} and
 added to parameters}
 
 \item{addDosing}{Boolean indicating if the solve should add RxODE
-    EVID and related columns.  This will also include dosing
-    information and estimates at the doses.  Be default, RxODE
-    only includes estimates at the observations. (default
-    \code{FALSE}). When \code{addDosing} is \code{NULL}, only
-    include \code{EVID=0} on solve and exclude any model-times or
-    \code{EVID=2}. If \code{addDosing} is \code{NA} the classic
-    \code{RxODE} EVID events are returned. When \code{addDosing} is \code{TRUE}
-    add the event information in NONMEM-style format; If
-    \code{subsetNonmem=FALSE} RxODE will also include extra event types
-    (\code{EVID}) for ending infusion and modeled times:
-
+EVID and related columns.  This will also include dosing
+information and estimates at the doses.  Be default, RxODE
+only includes estimates at the observations. (default
+\code{FALSE}). When \code{addDosing} is \code{NULL}, only
+include \code{EVID=0} on solve and exclude any model-times or
+\code{EVID=2}. If \code{addDosing} is \code{NA} the classic
+\code{RxODE} EVID events are returned. When \code{addDosing} is \code{TRUE}
+add the event information in NONMEM-style format; If
+\code{subsetNonmem=FALSE} RxODE will also include extra event types
+(\code{EVID}) for ending infusion and modeled times:
 \itemize{
-
 \item \code{EVID=-1} when the modeled rate infusions are turned
 off (matches \code{rate=-1})
-
 \item \code{EVID=-2} When the modeled duration infusions are
 turned off (matches \code{rate=-2})
-
 \item \code{EVID=-10} When the specified \code{rate} infusions are
 turned off (matches \code{rate>0})
-
 \item \code{EVID=-20} When the specified \code{dur} infusions are
 turned off (matches \code{dur>0})
-
-\item \code{EVID=101,102,103,...} Modeled time where 101 is the
+\item \verb{EVID=101,102,103,...} Modeled time where 101 is the
 first model time, 102 is the second etc.
-
 }}
 
 \item{stateTrim}{When amounts/concentrations in one of the states
 are above this value, trim them to be this value. By default
 Inf.  Also trims to -stateTrim for large negative
 amounts/concentrations.  If you want to trim between a range
-say `c(0, 2000000)` you may specify 2 values with a lower and
+say \code{c(0, 2000000)} you may specify 2 values with a lower and
 upper range to make sure all state values are in the
 reasonable range.}
 
@@ -409,15 +399,15 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
 \item{returnType}{This tells what type of object is returned.  The currently supported types are:
 \itemize{
 \item \code{"rxSolve"} (default) will return a reactive data frame
-     that can change easily change different pieces of the solve and
-     update the data frame.  This is the currently standard solving
-     method in RxODE,  is used for \code{rxSolve(object, ...)}, \code{solve(object,...)},
+that can change easily change different pieces of the solve and
+update the data frame.  This is the currently standard solving
+method in RxODE,  is used for \code{rxSolve(object, ...)}, \code{solve(object,...)},
 \item \code{"data.frame"} -- returns a plain, non-reactive data
-     frame; Currently very slightly faster than \code{returnType="matrix"}
+frame; Currently very slightly faster than \code{returnType="matrix"}
 \item \code{"matrix"} -- returns a plain matrix with column names attached
-    to the solved object.  This is what is used \code{object$run} as well as \code{object$solve}
+to the solved object.  This is what is used \code{object$run} as well as \code{object$solve}
 \item \code{"data.table"} -- returns a \code{data.table}; The \code{data.table} is
-    created by reference (ie \code{setDt()}), which should be fast.
+created by reference (ie \code{setDt()}), which should be fast.
 \item \code{"tbl"} or \code{"tibble"} returns a tibble format.
 }}
 
@@ -489,16 +479,11 @@ exponential matrix.}
 \item{indLinPhiM}{the maximum size for the Krylov basis}
 
 \item{indLinMatExpType}{This is them matrix exponential type that
-    is use for RxODE.  Currently the following are supported:
-
+is use for RxODE.  Currently the following are supported:
 \itemize{
-
-\item{Al-Mohy} Uses the exponential matrix method of Al-Mohy Higham (2009)
-
-\item{arma} Use the exponential matrix from RcppArmadillo
-
-\item{expokit} Use the exponential matrix from Roger B. Sidje (1998)
-
+\item \code{Al-Mohy} Uses the exponential matrix method of Al-Mohy Higham (2009)
+\item \code{arma} Use the exponential matrix from RcppArmadillo
+\item \code{expokit} Use the exponential matrix from Roger B. Sidje (1998)
 }}
 
 \item{indLinMatExpOrder}{an integer, the order of approximation to
@@ -540,11 +525,11 @@ vector based on each state.}
 \item{safeZero}{Use safe zero divide and log routines.  By default
 this is turned on but you may turn it off if you wish.}
 
-\item{cacheEvent}{is a boolean.  If `TRUE` (default), events are cached in
+\item{cacheEvent}{is a boolean.  If \code{TRUE} (default), events are cached in
 memory to speed up solving.}
 
 \item{sumType}{Sum type to use for \code{sum()} in
-    RxODE code blocks.
+RxODE code blocks.
 
 \code{pairwise} uses the pairwise sum (fast, default)
 
@@ -558,12 +543,12 @@ memory to speed up solving.}
 
 \item{prodType}{Product to use for \code{prod()} in RxODE blocks
 
-\code{long double} converts to long double, performs the
+\verb{long double} converts to long double, performs the
 multiplication and then converts back.
 
 \code{double} uses the standard double scale for multiplication.}
 
-\item{sensType}{Sensitivity type for `linCmt()` model:
+\item{sensType}{Sensitivity type for \code{linCmt()} model:
 
 \code{advan} Use the direct advan solutions
 
@@ -574,9 +559,8 @@ multiplication and then converts back.
 \code{central} Use central differences}
 
 \item{linDiff}{This gives the linear difference amount for all the
-  types of linear compartment model parameters where sensitivities
-  are not calculated. The named components of this numeric vector are:
-
+types of linear compartment model parameters where sensitivities
+are not calculated. The named components of this numeric vector are:
 \itemize{
 \item \code{"lag"} Central compartment lag
 \item \code{"f"} Central compartment bioavailability
@@ -619,21 +603,20 @@ named argument, this overwrites the output}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved
-    value in a matrix with as many rows as there are sampled time
-    points and as many columns as system variables (as defined by
-    the ODEs and additional assignments in the RxODE model code).
-    It also stores information about the call to allow dynamic
-    updating of the solved object.
+value in a matrix with as many rows as there are sampled time
+points and as many columns as system variables (as defined by
+the ODEs and additional assignments in the RxODE model code).
+It also stores information about the call to allow dynamic
+updating of the solved object.\preformatted{The operations for the object are similar to a data-frame, but
+expand the `$` and `[[""]]` access operators and
+assignment operators to resolve based on different parameter
+values, initial conditions, solver parameters, or events (by
+updating the `time` variable).
 
-    The operations for the object are similar to a data-frame, but
-    expand the \code{$} and \code{[[""]]} access operators and
-    assignment operators to resolve based on different parameter
-    values, initial conditions, solver parameters, or events (by
-    updating the \code{time} variable).
-
-    You can call the \code{\link{eventTable}} methods on the solved
-    object to update the event table and resolve the system of
-    equations.  % Should be able to use roxygen templates...
+You can call the [eventTable()] methods on the solved
+object to update the event table and resolve the system of
+equations.  \% Should be able to use roxygen templates...
+}
 }
 \description{
 This uses RxODE family of objects, file, or model specification to
@@ -657,7 +640,7 @@ than equal to 10.
 }
 \references{
 "New Scaling and Squaring Algorithm for the Matrix Exponential", by
- Awad H. Al-Mohy and Nicholas J. Higham, August 2009
+Awad H. Al-Mohy and Nicholas J. Higham, August 2009
 
 Roger B. Sidje (1998).  EXPOKIT: Software package for computing
 matrix exponentials.  ACM - Transactions on Mathematical Software
@@ -679,7 +662,7 @@ Hairer, E., Norsett, S. P., and Wanner, G.
 Springer-Verlag (1993).
 }
 \seealso{
-\code{\link{RxODE}}
+\code{\link[=RxODE]{RxODE()}}
 }
 \author{
 Matthew Fidler, Melissa Hallow and  Wenping Wang

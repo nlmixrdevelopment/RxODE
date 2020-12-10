@@ -20,16 +20,16 @@ rxPp(
 \item{lambda}{Rate of Poisson process}
 
 \item{gamma}{Asymmetry rate of Poisson process.  When gamma=1.0,
-  this simulates a homogenous Poisson process.  When gamma<1.0,
-  the Poisson process has more events early, when gamma > 1.0,
-  the Poisson process has more events late in the process.
+this simulates a homogenous Poisson process.  When gamma<1.0,
+the Poisson process has more events early, when gamma > 1.0,
+the Poisson process has more events late in the process.
 
-  When gamma is non-zero, the tmax should not be infinite but indicate
-  the end of the Poisson process to be simulated.  In most
-  pharamcometric cases, this will be the end of the study.
-  Internally this uses a rate of:
+When gamma is non-zero, the tmax should not be infinite but indicate
+the end of the Poisson process to be simulated.  In most
+pharamcometric cases, this will be the end of the study.
+Internally this uses a rate of:
 
-  l(t) = lambda*gamma*(t/tmax)^(gamma-1)}
+l(t) = lambda\emph{gamma}(t/tmax)^(gamma-1)}
 
 \item{prob}{When specified, this is a probability function with
 one argument, time, that gives the probability that a Poisson
@@ -39,8 +39,8 @@ time t is accepted as a rejection time.}
 
 \item{tmax}{the maximum time of the Poisson process}
 
-\item{randomOrder}{when `TRUE` randomize the order of the Poisson
-events.  By default (`FALSE`) it returns the Poisson process is
+\item{randomOrder}{when \code{TRUE} randomize the order of the Poisson
+events.  By default (\code{FALSE}) it returns the Poisson process is
 in order of how the events occurred.}
 }
 \value{

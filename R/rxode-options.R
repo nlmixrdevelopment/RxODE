@@ -283,11 +283,11 @@ rxSuppressMsg <- function() {
 }
 #' Options for RxODE
 #'
-#' This is a backend for \code{rxPermissive} (with
-#' \code{op.rx} = \code{2}) and \code{rxStrict} (with
-#' \code{op.rx} =\code{1})
+#' This is a backend for `rxPermissive` (with
+#' `op.rx` = `2`) and `rxStrict` (with
+#' `op.rx` =`1`)
 #'
-#' When \code{expr} is missing and \code{op.rx} is NULL, this
+#' When `expr` is missing and `op.rx` is NULL, this
 #' displays the current RxODE options.
 #'
 #' @inheritParams rxPermissive

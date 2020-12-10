@@ -246,9 +246,9 @@ rxSetProgressBar <- function(seconds = 1.0) {
 #'     the standard deviation simulated values
 #'
 #' @param n Number of Matrices to sample.  By default this is 1.
-#'     This is only useful when \code{omega} is a matrix.  Otherwise
+#'     This is only useful when `omega` is a matrix.  Otherwise
 #'     it is determined by the number of rows in the input
-#'     \code{omega} matrix of standard deviations
+#'     `omega` matrix of standard deviations
 #'
 #' @param omegaIsChol is an indicator of if the omega matrix is in
 #'   the Cholesky decomposition. This is only used when code{type="invWishart"}
@@ -258,27 +258,24 @@ rxSetProgressBar <- function(seconds = 1.0) {
 #'
 #' @param diagXformType Diagonal transformation type.  These could be:
 #'
-#' \itemize{
-#'
-#' \item{log} The standard deviations are log transformed, so the
+#' * `log` The standard deviations are log transformed, so the
 #'   actual standard deviations are exp(omega)
 #'
-#' \item{identity} The standard deviations are not transformed. The
+#' * `identity` The standard deviations are not transformed. The
 #' standard deviations are not transformed;  They should be positive.
 #'
-#' \item{variance} The variances are specified in the \code{omega}
+#' * `variance` The variances are specified in the `omega`
 #' matrix; They are transformed into standard deviations.
 #'
-#' \item{nlmixrSqrt} These standard deviations come from an nlmixr
+#' * `nlmixrSqrt` These standard deviations come from an nlmixr
 #' omega matrix where diag(chol(inv(omega))) = x^2
 #'
-#' \item{nlmixrLog} These standard deviations come from a nlmixr
+#' * `nlmixrLog` These standard deviations come from a nlmixr
 #' omega matrix omega matrix where diag(chol(solve(omega))) = exp(x)
 #'
-#' \item{nlmixrIdentity} These standard deviations come from a nlmixr
+#' * `nlmixrIdentity` These standard deviations come from a nlmixr
 #' omega matrix omega matrix where diag(chol(solve(omega))) = x
 #'
-#' }
 #'
 #'  The nlmixr transformations only make sense when there is no
 #'  off-diagonal correlations modeled.
@@ -286,44 +283,42 @@ rxSetProgressBar <- function(seconds = 1.0) {
 #' @param type The type of covariance posterior that is being
 #'     simulated.  This can be:
 #'
-#' \itemize{
 #'
-#' \item{invWishart} The posterior is an inverse wishart; This allows
+#' * `invWishart` The posterior is an inverse wishart; This allows
 #' for correlations between parameters to be modeled.  All the
 #' uncertainty in the parameter is captured in the degrees of freedom
 #' parameter.
 #'
-#' \item{lkj} The posterior separates the standard deviation
-#' estimates (modeled outside and provided in the \code{omega}
+#' * `lkj` The posterior separates the standard deviation
+#' estimates (modeled outside and provided in the `omega`
 #' argument) and the correlation estimates. The correlation estimate
-#' is simulated with the \code{\link{rLKJ1}}.  This simulation uses
-#' the relationship \code{eta=(nu-1)/2}.  This is relationship based
+#' is simulated with the [rLKJ1()].  This simulation uses
+#' the relationship `eta=(nu-1)/2`.  This is relationship based
 #' on the proof of the relationship between the restricted
 #' LKJ-distribution and inverse wishart distribution (XXXXXX).  Once
 #' the correlation posterior is calculated, the estimated standard
 #' deviations are then combined with the simulated correlation matrix
 #' to create the covariance matrix.
 #'
-#' \item{separation} Like the \code{lkj} option, this separates out
+#' * `separation` Like the `lkj` option, this separates out
 #' the estimation of the correlation and standard deviation.  Instead
-#' of using the \code{LKJ} distribution to simulate the correlation,
+#' of using the `LKJ` distribution to simulate the correlation,
 #' it simulates the inverse wishart of the identity matrix and
 #' converts the result to a correlation matrix.  This correlation
 #' matrix is then used with the standard deviation to calculate the
 #' simulated covariance matrix.
 #'
-#' }
 #'
 #' @return a matrix (n=1) or a list of matrices  (n > 1)
 #'
 #' @details
 #'
 #' In general, the separation strategy is preferred for diagonal
-#' matrices.  If the dimension of the matrix is below 10, \code{lkj}
-#' is numerically faster than \code{separation} method.  However, the
-#' \code{lkj} method has densities too close to zero (XXXX) when the
+#' matrices.  If the dimension of the matrix is below 10, `lkj`
+#' is numerically faster than `separation` method.  However, the
+#' `lkj` method has densities too close to zero (XXXX) when the
 #' dimension is above 10.  In that case, though computationally more
-#' expensive \code{separation} method performs better.
+#' expensive `separation` method performs better.
 #'
 #' For matrices with modeled covariances, the easiest method to use
 #' is the inverse Wishart which allows the simulation of correlation
@@ -338,13 +333,13 @@ rxSetProgressBar <- function(seconds = 1.0) {
 #'
 #' @references
 #'
-#' Alvarez I, Niemi J and Simpson M. (2014) \emph{Bayesian Inference for a
-#' Covariance Matrix}. Conference on Applied Statistics in Agriculture.
-#' \url{https://newprairiepress.org/cgi/viewcontent.cgi?article=1004&context=agstatconference}
+#' Alvarez I, Niemi J and Simpson M. (2014) *Bayesian Inference for a
+#' Covariance Matrix*. Conference on Applied Statistics in Agriculture.
+#' <https://newprairiepress.org/cgi/viewcontent.cgi?article=1004&context=agstatconference>
 #'
 #'
-#' Wang1 Z, Wu Y, and Chu H. (2018) \emph{On Equivalence of the LKJ
-#' distribution and the restricted Wishart distribution}. arXiv:1809.04746
+#' Wang1 Z, Wu Y, and Chu H. (2018) *On Equivalence of the LKJ
+#' distribution and the restricted Wishart distribution*. arXiv:1809.04746
 #'
 #' @examples
 #'
@@ -435,7 +430,7 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 #'
 #' @param ncores Number of cores used in the simulation
 #'
-#' @param isChol A boolean indicating if \code{sigma} is a cholesky
+#' @param isChol A boolean indicating if `sigma` is a cholesky
 #'     decomposition of the covariance matrix.
 #'
 #' @param keepNames Keep the names from either the mean or covariance
@@ -464,12 +459,12 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 #'
 #' @return
 #'
-#' If \code{n==integer} (default) the output is an (n x d) matrix
+#' If `n==integer` (default) the output is an (n x d) matrix
 #' where the i-th row is the i-th simulated vector.
 #'
-#' If \code{is.matrix(n)} then the random vector are store in \code{n},
+#' If `is.matrix(n)` then the random vector are store in `n`,
 #' which is provided by the user, and the function returns
-#' \code{NULL} invisibly.
+#' `NULL` invisibly.
 #'
 #' @references John K. Salmon, Mark A. Moraes, Ron O. Dror, and David
 #'     E. Shaw (2011). Parallel Random Numbers: As Easy as 1, 2, 3.
@@ -539,9 +534,9 @@ rxRmvn <- function(n, mu = NULL, sigma, lower = -Inf, upper = Inf, ncores = 1, i
 #' Collect warnings and just warn once.
 #'
 #' @param expr R expression
-#' @param lst When \code{TRUE} return a list with
+#' @param lst When `TRUE` return a list with
 #'     list(object,warnings) instead of issuing the warnings.
-#'     Otherwise, when \code{FALSE} issue the warnings and return the
+#'     Otherwise, when `FALSE` issue the warnings and return the
 #'     object.
 #' @return The value of the expression or a list with the value of
 #'     the expression and a list of warning messages

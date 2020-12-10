@@ -7,7 +7,7 @@
 rxSetIni0(ini0 = TRUE)
 }
 \arguments{
-\item{ini0}{When TRUE (default), set initial conditions to time
+\item{ini0}{When \code{TRUE} (default), set initial conditions to time
 zero. Otherwise the initial conditions are the first observed
 time.}
 }

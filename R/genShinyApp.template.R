@@ -5,20 +5,20 @@
 #' given a (hardcoded) PK/PD model.
 #'
 #' @param appDir a string with a directory where to store the shiny
-#'     app, by default is \code{"shinyExample"}. The directory
-#'     \code{appDir} will be created if it does not exist.
+#'     app, by default is `"shinyExample"`. The directory
+#'     `appDir` will be created if it does not exist.
 #'
 #'
 #' @param verbose logical specifying whether to write messages as the
-#'     shiny app is generated. Defaults to \code{TRUE}.
+#'     shiny app is generated. Defaults to `TRUE`.
 #'
-#' @param statevars List of statevars passed to to the \code{\link{write.template.ui}} function.  This usually isn't called directly.
+#' @param statevars List of statevars passed to to the [write.template.ui()] function.  This usually isn't called directly.
 #'
-#' A PK/PD model is defined using \code{\link{RxODE}}, and
+#' A PK/PD model is defined using [RxODE()], and
 #' a set of parameters and initial values are defined.  Then
-#' the appropriate R scripts for the shiny's user interface \code{ui.R}
-#' and the server logic \code{server.R} are created in the
-#' directory \code{appDir}.
+#' the appropriate R scripts for the shiny's user interface `ui.R`
+#' and the server logic `server.R` are created in the
+#' directory `appDir`.
 #'
 #' The function evaluates the following PK/PD model by default:
 #' \preformatted{
@@ -30,20 +30,20 @@
 #'     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 #' }
 #'
-#' This can be changed by the \code{ODE.config} parameter.
+#' This can be changed by the `ODE.config` parameter.
 #'
-#' To launch the shiny app, simply issue the \code{runApp(appDir)}
+#' To launch the shiny app, simply issue the `runApp(appDir)`
 #' R command.
 #'
-#' @param ODE.config model name compiled and list of parameters sent to \code{\link{rxSolve}}.
+#' @param ODE.config model name compiled and list of parameters sent to [rxSolve()].
 #'
 #' @return None, these functions are used for their side effects.
 #'
 #' @note These functions create a simple, but working example of a
 #'     dosing regimen simulation web application. Users may want to
 #'     modify the code to experiment creating shiny applications for
-#'     their specific \code{RxODE} models.
-#' @seealso \code{\link{RxODE}},\code{\link{eventTable}}, and the package \pkg{shiny} (\url{https://shiny.rstudio.com}).
+#'     their specific `RxODE` models.
+#' @seealso [RxODE()],[eventTable()], and the package \pkg{shiny} (<https://shiny.rstudio.com>).
 #'
 #' @examples
 #' \donttest{

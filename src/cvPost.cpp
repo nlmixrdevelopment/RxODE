@@ -108,10 +108,14 @@ NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
 //' Scaled Inverse Chi Squared distribution
 //'
 //' @param n Number of random samples
+//' 
 //' @param nu degrees of freedom of inverse chi square
+//' 
 //' @param scale  Scale of inverse chi squared distribution 
 //'         (default is 1).
-//' @return a vector of inverse chi squared deviates .
+//' 
+//' @return a vector of inverse chi squared deviates.
+//' 
 //' @examples
 //' rinvchisq(3, 4, 1) ## Scale = 1, degrees of freedom = 4
 //' rinvchisq(2, 4, 2) ## Scale = 2, degrees of freedom = 4
@@ -147,11 +151,14 @@ void rgbeta(int d, double shape, double* out){
 //' One correlation sample from the LKJ distribution
 //'
 //' @param d The dimension of the correlation matrix
+//' 
 //' @param eta The scaling parameter of the LKJ distribution.
 //'   Must be > 1.  Also related to the degrees of freedom nu.
 //'   eta = (nu-1)/2.
-//' @param cholesky boolean; If \code{TRUE} return the cholesky
+//' 
+//' @param cholesky boolean; If `TRUE` return the cholesky
 //'   decomposition.
+//' 
 //' @author Matthew Fidler (translated to RcppArmadillo) and Emma Schwager
 //' @export
 //[[Rcpp::export]]
@@ -220,8 +227,11 @@ arma::mat rLKJcvLsd1(arma::vec logSd, arma::vec logSdSD, double eta = 1.0){
 //' random covariate to a correlation.
 //'
 //' @inheritParams rLKJ1
+//' 
 //' @param nu Degrees of freedom of the Wishart distribution
+//' 
 //' @inheritParams cvPost
+//' 
 //' @author Matthew Fidler
 //' @export
 //[[Rcpp::export]]

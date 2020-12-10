@@ -14,7 +14,7 @@ rxexp(rate, n = 1L, ncores = 1L)
 
 \item{ncores}{Number of cores for the simulation
 
-`rxnorm` simulates using the threefry sitmo generator; `rxnormV`
+\code{rxnorm} simulates using the threefry sitmo generator; \code{rxnormV}
 uses the vandercorput generator}
 }
 \description{
@@ -32,7 +32,7 @@ random number generator calls are increased the probability that the
 birthday problem will increase.
 
 The key to avoid this problem is to run all simulations in the
-`RxODE` environment once (therefore one seed or series of seeds
+\code{RxODE} environment once (therefore one seed or series of seeds
 for the whole simulation) or to pre-generate all random variables
 used for the simulation.
 

@@ -8,11 +8,11 @@ rxExpandIfElse(model, removeInis = TRUE, removePrint = TRUE)
 }
 \arguments{
 \item{model}{Model can be a character, or a RxODE model.  It needs
-to have normalized syntax, that is \code{if (...)\{} has to be
-on the same line.  The \code{else} statement must be on its
+to have normalized syntax, that is \code{if (...){}} has to be
+on the same line.  The \verb{else} statement must be on its
 own line with the closing bracket of the \code{if} statement
-on the previous line.  This \code{else} statment must also
-contain the opening bracket, like the code \code{else \{}}
+on the previous line.  This \verb{else} statment must also
+contain the opening bracket, like the code \verb{else \{\}}}
 
 \item{removeInis}{A boolean indicating if parameter
 initializations should be removed from the model.}
@@ -22,8 +22,8 @@ should be removed from the model.}
 }
 \value{
 A named character vector. The names of the vector are the
-    logical conditions, the values are the lines that satisfy the
-    logical conditions.
+logical conditions, the values are the lines that satisfy the
+logical conditions.
 }
 \description{
 Expand if/else clauses into mutiple different types of lines.

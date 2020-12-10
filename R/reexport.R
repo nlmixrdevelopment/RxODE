@@ -1,8 +1,8 @@
 #' type_sum function for units
 #' @name tibble
-#' @param x see \link[pillar]{type_sum}
-#' @param ... see \link[pillar]{type_sum}
-#' @param width see \link[pillar]{type_sum}
+#' @param x see [type_sum][pillar::type_sum]
+#' @param ... see [type_sum][pillar::type_sum]
+#' @param width see [type_sum][pillar::type_sum]
 type_sum.units <- loadNamespace("units")$type_sum.units
 
 #' @name tibble

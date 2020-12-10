@@ -8,7 +8,7 @@ rxClean(wd)
 }
 \arguments{
 \item{wd}{What directory should be cleaned; (DEPRECIATED), this no
-    longer does anything.
+longer does anything.
 
 This unloads all RxODE anonymous dlls.}
 }

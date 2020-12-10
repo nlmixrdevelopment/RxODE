@@ -13,7 +13,7 @@ rxBlockZeros(mat, i)
 }
 \value{
 A logical matrix returning where the elements should be
-    zero.
+zero.
 }
 \description{
 Creates a logical matrix for block matrixes.

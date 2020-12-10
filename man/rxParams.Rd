@@ -119,7 +119,7 @@ parameters.}
 }
 \value{
 When extracting the parameters from an RxODE model, a
-    character vector listing the parameters in the model.
+character vector listing the parameters in the model.
 }
 \description{
 This returns the model's parameters that are required to solve the

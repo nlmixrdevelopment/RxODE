@@ -27,7 +27,7 @@ matrix to use for simulation (faster).}
 
 \item{sigma}{Covariance matrix for multivariate normal or a list
 of covariance matrices. If a list of covariance matrix, each
-matrix will simulate `n` matrices and combine them to a full
+matrix will simulate \code{n} matrices and combine them to a full
 matrix}
 
 \item{lower}{is a vector of the lower bound for the truncated
@@ -45,19 +45,19 @@ decomposition of the covariance matrix.}
 matrix.}
 
 \item{a}{threshold for switching between methods; They can be
-  tuned for maximum speed;  There are three cases that are considered:
+tuned for maximum speed;  There are three cases that are considered:
 
- case 1: a < l < u
+case 1: a < l < u
 
- case 2: l < u < -a
+case 2: l < u < -a
 
- case 3: otherwise
+case 3: otherwise
 
 where l=lower and u = upper}
 
 \item{tol}{When case 3 is used from the above possibilities, the
-  tol value controls the acceptance rejection and
-  inverse-transformation;
+tol value controls the acceptance rejection and
+inverse-transformation;
 
 When abs(u-l)>tol, uses accept-reject from randn}
 
@@ -127,8 +127,8 @@ rxRmvn(4, setNames(1:d,paste0("a",1:d)), matL)
 }
 \references{
 John K. Salmon, Mark A. Moraes, Ron O. Dror, and David
-    E. Shaw (2011). Parallel Random Numbers: As Easy as 1, 2, 3.
-    D. E. Shaw Research, New York, NY 10036, USA.
+E. Shaw (2011). Parallel Random Numbers: As Easy as 1, 2, 3.
+D. E. Shaw Research, New York, NY 10036, USA.
 }
 \author{
 Matthew Fidler, Zdravko Botev and some from Matteo Fasiolo

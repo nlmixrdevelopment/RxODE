@@ -7,15 +7,11 @@
 #'
 #' @param strategy The strategy for inductive linearization matrix building
 #'
-#' \itemize{
-#'
-#' \item[curState] Prefer parameterizing in terms of the current
+#' * `curState` Prefer parameterizing in terms of the current
 #'    state, followed by the first state observed in the term.
-#'
-#' \item[split] Split the parameterization between all states in the
-#' term by dividing each by the number of states in the term and then
-#' adding a matrix term for each state.
-#' }
+#' * `split` Split the parameterization between all states in the
+#'   term by dividing each by the number of states in the term and then
+#'   adding a matrix term for each state.
 #'
 #' @return Nothing
 #' @author Matthew L. Fidler
@@ -175,21 +171,19 @@ rxIndLinState <- function(preferred = NULL) {
 #' @param model RxODE model type of object
 #'
 #' @param doConst Replace constants with values; By default this is
-#'     \code{FALSE}.
+#'     `FALSE`.
 #'
 #' @return List:
-#' \itemize{
 #'
-#' \item Matrix Exponential initial matrix A for exp(t*A)
+#' *  Matrix Exponential initial matrix A for exp(t*A)
 #'
-#' \item Inductive Linerization vector for F
+#' * Inductive Linerization vector for F
 #'
-#' \item Extra RxODE code for model generation
+#' * Extra RxODE code for model generation
 #'
-#' \item Generated C code for model variables; With ME only this will
+#' * Generated C code for model variables; With ME only this will
 #' be a list of size 1, otherwise it is a list of size 2.
 #'
-#' }
 #' @author Matthew Fidler
 #' @noRd
 .rxIndLin <- function(model, doConst = FALSE) {

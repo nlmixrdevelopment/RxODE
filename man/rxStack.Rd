@@ -14,7 +14,7 @@ is all the variables when vars is NULL.}
 }
 \value{
 Stacked data with \code{value} and \code{trt}, where value is the values
-  and \code{trt} is the state and \code{lhs} variables.
+and \code{trt} is the state and \code{lhs} variables.
 }
 \description{
 Stack a solved object for things like ggplot
