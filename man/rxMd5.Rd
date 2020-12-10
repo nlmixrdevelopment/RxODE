@@ -26,7 +26,7 @@ details, see the sections \dQuote{Details} and
 \value{
 If this is a RxODE object, return a named list:
 \itemize{
-\item \code{file_md5} is the model's file's md5}
+\item \code{file_md5} is the model's file's md5
 \item \code{parsed_md5}  is the parsed model's file's md5.
 }
 

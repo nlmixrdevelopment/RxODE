@@ -58,11 +58,11 @@ jobs:
 
       - name: Install packages from github
         run: |
-          install.packages('devtools')
-          devtools::install_github("symengine/symengine.R")
-          devtools::install_github("nlmixrdevelopment/dparser-R")
-          devtools::install_github("r-lib/usethis")
-          devtools::install_github("r-lib/covr")
+          install.packages('remotes')
+          remotes::install_github("r-lib/usethis")
+          remotes::install_github("symengine/symengine.R")
+          remotes::install_github("nlmixrdevelopment/dparser-R")
+          remotes::install_github("r-lib/covr")
         shell: Rscript {0}
 
       - name: Query dependencies

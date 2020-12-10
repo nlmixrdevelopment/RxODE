@@ -179,8 +179,6 @@ the ODE system and an optional set of doses (input amounts).  These
 inputs are combined into a single \emph{event table} object created
 with the function \code{\link[=eventTable]{eventTable()}} or \code{\link[=et]{et()}}.
 
-\subsection{RxODE Syntax}{
-
 An \code{RxODE} model specification consists of one or more statements
 optionally terminated by semi-colons \verb{;} and optional comments (comments
 are delimited by \verb{#} and an end-of-line).
@@ -304,8 +302,6 @@ use these variables starting with either the \code{rx} or \code{nlmixr} prefixes
 
 The ODE specification mini-language is parsed with the help of the open
 source tool , Plevyak (2015).
-}
-
 }
 }
 \section{RxODE Syntax}{

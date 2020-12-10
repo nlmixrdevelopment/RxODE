@@ -23,8 +23,8 @@ Inf}
 
 \item{high}{Highest value in the range}
 
-\item{alpha}{Infinite value(s) to translate to range of \link[=low,
-high]{low, high}}
+\item{alpha}{Infinite value(s) to translate to range of [low,
+high]}
 
 \item{mean}{logit-scale mean}
 
@@ -40,15 +40,15 @@ logit and inverse logit (expit) functions
 \details{
 logit is given by:
 
-\deqn{logit(p) = -log(1/p-1)}
+$logit(p) = -log(1/p-1)$
 
 where:
 
-\deqn{p = \frac{x-low}{high-low}}
+$p = \frac{x-low}{high-low}$
 
 expit is given by:
 
-\deqn{expit(p, low, high) = \frac{high-low}{1+exp(-alpha)}+low}
+$expit(p, low, high) = \frac{high-low}{1+exp(-alpha)}+low$
 
 The \code{logitNormInfo()} gives the mean, variance and coefficient of
 variability on the untransformed scale.

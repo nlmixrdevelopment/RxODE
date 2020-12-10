@@ -854,7 +854,7 @@ gammapInva <- function(x, p) {
 #' @param x Input value(s) in range [low,high] to translate -Inf to
 #'   Inf
 #'
-#' @param alpha Infinite value(s) to translate to range of [low,
+#' @param alpha Infinite value(s) to translate to range of \[low,
 #'   high]
 #'
 #' @param low Lowest value in the range
@@ -873,15 +873,15 @@ gammapInva <- function(x, p) {
 #'
 #' logit is given by:
 #'
-#' \deqn{logit(p) = -log(1/p-1)}
+#' logit(p) = -log(1/p-1)
 #'
 #' where:
 #'
-#' \deqn{p = \frac{x-low}{high-low}}
+#' p = x-low/high-low
 #'
 #'  expit is given by:
 #'
-#' \deqn{expit(p, low, high) = \frac{high-low}{1+exp(-alpha)}+low}
+#' expit(p, low, high) = (high-low)/(1+exp(-alpha)) + low
 #'
 #' The `logitNormInfo()` gives the mean, variance and coefficient of
 #' variability on the untransformed scale.

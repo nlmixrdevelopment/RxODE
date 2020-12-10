@@ -1004,7 +1004,7 @@ coef.RxODE <- function(object,
 #'
 #' @return If this is a RxODE object, return a named list:
 #'
-#' * `file_md5` is the model's file's md5}
+#' * `file_md5` is the model's file's md5
 #'
 #' * `parsed_md5`  is the parsed model's file's md5.
 #'
