@@ -56,7 +56,8 @@ jobs:
           install.packages('devtools')
           devtools::install_github("symengine/symengine.R")
           devtools::install_github("nlmixrdevelopment/dparser-R")
-	  devtools::install_github("r-lib/usethis")
+          devtools::install_github("r-lib/usethis")
+          devtools::install_github("r-lib/covr")
         shell: Rscript {0}
 
       - name: Query dependencies
@@ -112,3 +113,8 @@ jobs:
         with:
           name: ${{ runner.os }}-r${{ matrix.config.r }}-results
           path: check
+
+      - name: Run covr on successful builds
+        if: success()
+        run: covr::codecov(token="c1a47ffb-e5b5-420a-a0ed-6df480bcb833")
+        shell: Rscript {0}
