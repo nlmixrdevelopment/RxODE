@@ -5016,6 +5016,10 @@ static inline void linCmtCmt(linCmtStruct *lin, const int cmt){
   }
 }
 
+#define errLinLen 150
+char errLin[errLinLen];
+int errOff = 0;
+
 static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
   // ke, kel, k10 or k20
   //
@@ -5121,16 +5125,19 @@ static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
 #define linCmtCld1style 2
 #define linCmtQstyle 3
 
-static inline void linCmtClStr(sbuf *buf, const int style){
+static inline void linCmtClStr(const int style){
   switch(style){
   case linCmtCl1style:
-    sAppendN(buf, "Cl#", 3);
+    snprintf(errLin + errOff, errLinLen - errOff, "Cl#");
+    errOff+=3;
     break;
   case linCmtCld1style:
-    sAppendN(buf, "Cld#", 4);
+    snprintf(errLin + errOff, errLinLen - errOff, "Cld#");
+    errOff+=4;
     break;
   case linCmtQstyle:
-    sAppendN(buf, "Q", 1);
+    snprintf(errLin + errOff, errLinLen - errOff, "Q");
+    errOff++;
     break;
   }
 }
@@ -5140,14 +5147,18 @@ static inline void linCmtClStyle(linCmtStruct *lin, const int style) {
     lin->clStyle = style;
   }
   if (lin->clStyle != style) {
-    sClear(&firstErr);
-    sAppendN(&firstErr, "cannot mix '", 12);
-    linCmtClStr(&firstErr, lin->clStyle);
-    sAppendN(&firstErr, "' and '", 7);
-    linCmtClStr(&firstErr, style);
-    sAppendN(&firstErr, "' clearance styles", 18);
+    errLin[0] = '\0';
+    errOff=0;
+    snprintf(errLin + errOff, errLinLen - errOff, "cannot mix '");
+    errOff+=12;
+    linCmtClStr(lin->clStyle);
+    snprintf(errLin + errOff, errLinLen - errOff, "' and '");
+    errOff+=7;
+    linCmtClStr(style);
+    snprintf(errLin + errOff, errLinLen - errOff, "' clearance styles");
+    errOff+=18;
     parseFree(0);
-    Rf_errorcall(R_NilValue, firstErr.s);
+    Rf_errorcall(R_NilValue, errLin);
   }
 }
 
@@ -5241,19 +5252,23 @@ static inline void linCmtC(linCmtStruct *lin, const char *in, int *index) {
 #define linCmtVpStyle 3
 #define linCmtVnStyle 4
 
-static inline void linCmtVStr(sbuf *buf, const int style){
+static inline void linCmtVStr(const int style){
   switch(style){
   case linCmtVdStyle:
-    sAppendN(buf, "Vd", 2);
+    snprintf(errLin + errOff, errLinLen-errOff, "Vd");
+    errOff+=2;
     break;
   case linCmtVtStyle:
-    sAppendN(buf, "Vt", 2);
+    snprintf(errLin + errOff, errLinLen-errOff, "Vt");
+    errOff+=2;
     break;
   case linCmtVpStyle:
-    sAppendN(buf, "Vp", 2);
+    snprintf(errLin + errOff, errLinLen-errOff, "Vp");
+    errOff+=2;
     break;
   case linCmtVnStyle:
-    sAppendN(buf, "V#", 2);
+    snprintf(errLin + errOff, errLinLen-errOff, "V#");
+    errOff+=2;
     break;
   }
 }
@@ -5263,14 +5278,18 @@ static inline void linCmtVStyle(linCmtStruct *lin, int style) {
     lin->vStyle = style;
   }
   if (lin->vStyle != style) {
-    sClear(&firstErr);
-    sAppendN(&firstErr, "cannot mix '", 12);
-    linCmtVStr(&firstErr, lin->vStyle);
-    sAppendN(&firstErr, "' and '", 7);
-    linCmtVStr(&firstErr, style);
-    sAppendN(&firstErr, "' volume styles", 15);
+    errLin[0] = '\0';
+    errOff = 0;
+    snprintf(errLin + errOff, errLinLen-errOff, "cannot mix '");
+    errOff += 12;
+    linCmtVStr(lin->vStyle);
+    snprintf(errLin + errOff, errLinLen-errOff, "' and '");
+    errOff += 7;
+    linCmtVStr(style);
+    snprintf(errLin + errOff, errLinLen-errOff, "' volume styles");
+    errOff += 15;
     parseFree(0);
-    Rf_errorcall(R_NilValue, firstErr.s);
+    Rf_errorcall(R_NilValue, errLin);
   }
 }
 
@@ -5695,14 +5714,17 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       ncmt = 2;
       trans = 3;
       if (lin.vStyle != -1) {
-	sClear(&firstErr);
-	sAppendN(&firstErr, "cannot mix 'Vss' and '", 22);
-	linCmtVStr(&firstErr, lin.vStyle);
-	sAppendN(&firstErr, "' volumes", 9);
+	errLin[0] = '\0';
+	errOff=0;
+	snprintf(errLin + errOff, errLinLen-errOff, "cannot mix 'Vss' and '");
+	errOff+=22;
+	linCmtVStr(lin.vStyle);
+	snprintf(errLin + errOff, errLinLen-errOff, "' volumes");
+	errOff+=9;
 	parseFree(0);
 	sFree(&ret0);
 	sFree(&ret);
-	Rf_errorcall(R_NilValue, firstErr.s);
+	Rf_errorcall(R_NilValue, errLin);
       }
       if (lin.v == -1) {
 	parseFree(0);
@@ -6130,8 +6152,10 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
       }
     }
     if (last.o) {
-      sClear(&firstErr);
-      sAppend(&firstErr, "%s does not exist without a 'depot' compartment, specify a 'ka' parameter", last.s);
+      errLin[0] = '\0';
+      errOff=0;
+      snprintf(errLin, errLinLen, "%s does not exist without a 'depot' compartment, specify a 'ka' parameter", last.s);
+      errOff=strlen(errLin);
       sFree(&d_tlag);
       sFree(&d_tlag2);
       sFree(&d_F);
@@ -6142,7 +6166,7 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
       sFree(&d_dur2);
       sFree(&last);
       parseFree(0);
-      Rf_errorcall(R_NilValue, firstErr.s);
+      Rf_errorcall(R_NilValue, errLin);
     }
     // central only
     for (i = 0; i < centralLines.n; i++){
@@ -6207,7 +6231,6 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   for (i = 0; i < sbNrmL.n; i++){
     if (sbNrmL.lProp[i]== -100){
       char *line = sbNrmL.line[i];
-      REprintf("line: %s\n", line);
       if (line[0] != '\0') {
 	while (strncmp(line, "linCmt(", 7)){
 	  if (line[0] == '\0') {
