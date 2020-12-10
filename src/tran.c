@@ -3643,10 +3643,7 @@ void parseFree(int last){
   Free(tb.sdfdy);
   freeP();
   if (last){
-    Free(model_prefix);
-    Free(md5);
     Free(gBuf);
-    Free(me_code);
     sFree(&sbOut);
     freeP();
     sFree(&_bufw);
