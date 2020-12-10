@@ -117,15 +117,15 @@
 }
 
 
-##' Prune branches (ie if/else) from RxODE
-##'
-##' This prunes branches (ie if/else) from RxODE.
-##'
-##' @param x RxODE model that can be accessed by rxNorm
-##' @return Pruned RxODE model text.
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
+#' Prune branches (ie if/else) from RxODE
+#'
+#' This prunes branches (ie if/else) from RxODE.
+#'
+#' @param x RxODE model that can be accessed by rxNorm
+#' @return Pruned RxODE model text.
+#' @author Matthew L. Fidler
+#' @keywords internal
+#' @export
 rxPrune <- function(x) {
   .env <- new.env(parent = emptyenv())
   .env$.if <- c()

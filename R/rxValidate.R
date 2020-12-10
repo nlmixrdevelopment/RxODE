@@ -1,11 +1,11 @@
-##' Validate RxODE
-##'
-##' This allows easy validation/qualification of nlmixr by running the
-##' testing suite on your system.
-##' @param type Type of test or filter of test type
-##' @param check Use devtools::check instead
-##' @author Matthew L. Fidler
-##' @export
+#' Validate RxODE
+#'
+#' This allows easy validation/qualification of nlmixr by running the
+#' testing suite on your system.
+#' @param type Type of test or filter of test type
+#' @param check Use devtools::check instead
+#' @author Matthew L. Fidler
+#' @export
 rxValidate <- function(type = NULL, check = FALSE) {
   ## rxVersion(" Validation", TRUE);
   .op <- options()
@@ -84,6 +84,6 @@ rxValidate <- function(type = NULL, check = FALSE) {
   }
 }
 
-##' @rdname rxValidate
-##' @export
+#' @rdname rxValidate
+#' @export
 rxTest <- rxValidate

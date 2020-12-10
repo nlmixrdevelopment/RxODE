@@ -1,36 +1,36 @@
 .rxIndLinStrategy <- "curState"
-##' This sets the inductive linearization strategy for matrix building
-##'
-##' When there is more than one state in a ODE that cannot be
-##' separated this specifies how it is incorporated into the matrix
-##' exponential.
-##'
-##' @param strategy The strategy for inductive linearization matrix building
-##'
-##' \itemize{
-##'
-##' \item[curState] Prefer parameterizing in terms of the current
-##'    state, followed by the first state observed in the term.
-##'
-##' \item[split] Split the parameterization between all states in the
-##' term by dividing each by the number of states in the term and then
-##' adding a matrix term for each state.
-##' }
-##'
-##' @return Nothing
-##' @author Matthew L. Fidler
-##' @export
+#' This sets the inductive linearization strategy for matrix building
+#'
+#' When there is more than one state in a ODE that cannot be
+#' separated this specifies how it is incorporated into the matrix
+#' exponential.
+#'
+#' @param strategy The strategy for inductive linearization matrix building
+#'
+#' \itemize{
+#'
+#' \item[curState] Prefer parameterizing in terms of the current
+#'    state, followed by the first state observed in the term.
+#'
+#' \item[split] Split the parameterization between all states in the
+#' term by dividing each by the number of states in the term and then
+#' adding a matrix term for each state.
+#' }
+#'
+#' @return Nothing
+#' @author Matthew L. Fidler
+#' @export
 rxIndLinStrategy <- function(strategy = c("curState", "split")) {
   assignInMyNamespace(".rxIndLinStrategy", match.arg(strategy))
 }
 
 .rxIndLinState <- NULL
-##' Set the preferred factoring by state
-##'
-##' @param preferred A list of each state's preferred factorization
-##' @return Nothing
-##' @author Matthew Fidler
-##' @export
+#' Set the preferred factoring by state
+#'
+#' @param preferred A list of each state's preferred factorization
+#' @return Nothing
+#' @author Matthew Fidler
+#' @export
 rxIndLinState <- function(preferred = NULL) {
   if (is.null(preferred)) {
     return(assignInMyNamespace(".rxIndLinState", preferred))
@@ -169,29 +169,29 @@ rxIndLinState <- function(preferred = NULL) {
 }
 
 .indLinInfo <- list()
-##' This creates the inductive linearization pieces to integrate into
-##' a RxODE model.
-##'
-##' @param model RxODE model type of object
-##'
-##' @param doConst Replace constants with values; By default this is
-##'     \code{FALSE}.
-##'
-##' @return List:
-##' \itemize{
-##'
-##' \item Matrix Exponential initial matrix A for exp(t*A)
-##'
-##' \item Inductive Linerization vector for F
-##'
-##' \item Extra RxODE code for model generation
-##'
-##' \item Generated C code for model variables; With ME only this will
-##' be a list of size 1, otherwise it is a list of size 2.
-##'
-##' }
-##' @author Matthew Fidler
-##' @noRd
+#' This creates the inductive linearization pieces to integrate into
+#' a RxODE model.
+#'
+#' @param model RxODE model type of object
+#'
+#' @param doConst Replace constants with values; By default this is
+#'     \code{FALSE}.
+#'
+#' @return List:
+#' \itemize{
+#'
+#' \item Matrix Exponential initial matrix A for exp(t*A)
+#'
+#' \item Inductive Linerization vector for F
+#'
+#' \item Extra RxODE code for model generation
+#'
+#' \item Generated C code for model variables; With ME only this will
+#' be a list of size 1, otherwise it is a list of size 2.
+#'
+#' }
+#' @author Matthew Fidler
+#' @noRd
 .rxIndLin <- function(model, doConst = FALSE) {
   .env <- .rxLoadPrune(model, doConst = doConst)
   .states <- rxState(.env)

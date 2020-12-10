@@ -1,4 +1,4 @@
-##' @export
+#' @export
 str.rxHidden <- function(object, ...) {
   cat("\r")
 }
@@ -127,7 +127,7 @@ str.rxSolve <- function(object, ..., nchar.max = 128) {
   }
 }
 
-##' @export
+#' @export
 str.rxEt <- function(object, ...) {
   cat("rxEt methods and properties:\n")
   cat(" $ get.EventTable   :function ()\n")
@@ -146,7 +146,7 @@ str.rxEt <- function(object, ...) {
   return(invisible(NextMethod("str", ...)))
 }
 
-##' @export
+#' @export
 str.rxSymInvCholEnv <- function(object, ...) {
   cat("Derivatives and Inverse of a matrix; Assigning theta will change these values.\n")
   cat(" $ theta             : Current parameters (on inverse Cholesky)\n")
@@ -163,7 +163,7 @@ str.rxSymInvCholEnv <- function(object, ...) {
   cat(" $ theta.diag        : indicator of diagonal theta values\n")
 }
 
-##' @export
+#' @export
 str.RxODE <- function(object, ...) {
   cat("RxODE object methods and properties:\n")
   cat(" $ assignPtr()    : Assign C pointers\n")

@@ -1,4 +1,4 @@
-##' @export
+#' @export
 confint.rxSolve <- function(object, parm = NULL, level = 0.95, ...) {
   sim.id <- id <- NULL # rcheck nonsense
   RxODE::rxReq("data.table")

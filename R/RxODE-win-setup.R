@@ -1,15 +1,15 @@
-##' Returns a list of physical drives that have been or currently are
-##' mounted to the computer.
-##'
-##' This excludes network drives.  See
-##' \url{https://www.forensicmag.com/article/2012/06/windows-7-registry-forensics-part-5}
-##'
-##' @param duplicates Return drives with duplicate entries in
-##'     \code{SYSTEM\\MountedDevices}; These are likely removable media.  By default this is \code{FALSE}
-##' @return Drives with letters
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
+#' Returns a list of physical drives that have been or currently are
+#' mounted to the computer.
+#'
+#' This excludes network drives.  See
+#' \url{https://www.forensicmag.com/article/2012/06/windows-7-registry-forensics-part-5}
+#'
+#' @param duplicates Return drives with duplicate entries in
+#'     \code{SYSTEM\\MountedDevices}; These are likely removable media.  By default this is \code{FALSE}
+#' @return Drives with letters
+#' @author Matthew L. Fidler
+#' @keywords internal
+#' @export
 rxPhysicalDrives <- memoise::memoise(function(duplicates = FALSE) {
   if (.Platform$OS.type == "unix") {
     return(NULL)
@@ -92,14 +92,14 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates = FALSE) {
     return(NULL)
   }
 })
-##' Setup Rtools path
-##'
-##' @param rm.rtools Remove the Rtools from the current path specs.
-##'
-##' @param retry Should you retry to find Rtools?  If NA, don't throw
-##'     an error if it isn't found.
-##'
-##' @author Matthew L. Fidler
+#' Setup Rtools path
+#'
+#' @param rm.rtools Remove the Rtools from the current path specs.
+#'
+#' @param retry Should you retry to find Rtools?  If NA, don't throw
+#'     an error if it isn't found.
+#'
+#' @author Matthew L. Fidler
 .rxWinRtoolsPath <- function(rm.rtools = TRUE, retry = FALSE) {
   ## Note that devtools seems to assume that rtools/bin is setup
   ## appropriately, and figures out the c compiler from there.
@@ -207,11 +207,11 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates = FALSE) {
     }
   }
 }
-##' Setup Windows components for RxODE
-##'
-##' @inheritParams .rxWinRtoolsPath
-##' @author Matthew L. Fidler
-##' @export
+#' Setup Windows components for RxODE
+#'
+#' @inheritParams .rxWinRtoolsPath
+#' @author Matthew L. Fidler
+#' @export
 rxWinSetup <- function(rm.rtools = TRUE) {
   if (!.rxWinRtoolsPath(rm.rtools = rm.rtools)) {
     message("RxODE requires 'rtools'\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding\n")

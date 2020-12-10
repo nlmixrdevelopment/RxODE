@@ -1,14 +1,14 @@
-##' Format rxSolve and related objects as html.
-##'
-##' @param x RxODE object
-##' @param ... Extra arguments sent to kable
-##' @author Matthew L. Fidler
-##' @export
+#' Format rxSolve and related objects as html.
+#'
+#' @param x RxODE object
+#' @param ... Extra arguments sent to kable
+#' @author Matthew L. Fidler
+#' @export
 rxHtml <- function(x, ...) {
   UseMethod("rxHtml")
 }
-##' @rdname rxHtml
-##' @export
+#' @rdname rxHtml
+#' @export
 rxHtml.rxSolve <- function(x, ...) {
   RxODE::rxReq("knitr")
   bound <- .getBound(x, parent.frame(2))

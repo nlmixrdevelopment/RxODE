@@ -1,14 +1,14 @@
 
-##' Creates a logical matrix for block matrixes.
-##'
-##' @param mat Matrix
-##' @param i Row/column where block matrix should be setup.
-##'
-##' @return A logical matrix returning where the elements should be
-##'     zero.
-##'
-##' @keywords internal
-##' @export
+#' Creates a logical matrix for block matrixes.
+#'
+#' @param mat Matrix
+#' @param i Row/column where block matrix should be setup.
+#'
+#' @return A logical matrix returning where the elements should be
+#'     zero.
+#'
+#' @keywords internal
+#' @export
 rxBlockZeros <- function(mat, i) {
   return(!((row(mat) > i & col(mat) > i) | (row(mat) <= i & col(mat) <= i)))
 }
@@ -228,10 +228,10 @@ rxSymInvC2 <- function(mat1, diag.xform = c("sqrt", "log", "identity"),
   }
 }
 
-##' Return the dimension of the built-in derivatives/inverses
-##'
-##' @keywords internal
-##' @export
+#' Return the dimension of the built-in derivatives/inverses
+#'
+#' @keywords internal
+#' @export
 rxSymInvCholN <- function() {
   .Call(`_rxCholInv`, 0L, NULL, NULL)
 }
@@ -468,16 +468,16 @@ rxSymInvCreateC_ <- function(mat, diag.xform = c("sqrt", "log", "identity")) {
   }
 }
 
-##' Creates an object for calculating Omega/Omega^-1 and derivatives
-##'
-##' @param mat Initial Omega matrix
-##' @param diag.xform transformation to diagonal elements of OMEGA. or \code{chol(Omega^-1)}
-##' @param create.env -- Create an environment to calculate the inverses. (By default TRUE)
-##' @param envir -- Environment to evaluate function, bu default it is the parent frame.
-##' @return A rxSymInv object OR a rxSymInv environment
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
+#' Creates an object for calculating Omega/Omega^-1 and derivatives
+#'
+#' @param mat Initial Omega matrix
+#' @param diag.xform transformation to diagonal elements of OMEGA. or \code{chol(Omega^-1)}
+#' @param create.env -- Create an environment to calculate the inverses. (By default TRUE)
+#' @param envir -- Environment to evaluate function, bu default it is the parent frame.
+#' @return A rxSymInv object OR a rxSymInv environment
+#' @author Matthew L. Fidler
+#' @keywords internal
+#' @export
 rxSymInvCholCreate <- function(mat,
                                diag.xform = c("sqrt", "log", "identity"),
                                create.env = TRUE, envir = parent.frame()) {
@@ -494,12 +494,12 @@ rxSymInvCholCreate <- function(mat,
 }
 
 
-##' @export
+#' @export
 `$.rxSymInvCholEnv` <- function(obj, arg, exact = TRUE) {
   return(.Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, arg, NULL))
 }
 
-##' @export
+#' @export
 "$<-.rxSymInvCholEnv" <- function(obj, arg, value) {
   return(.Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, arg, value))
 }

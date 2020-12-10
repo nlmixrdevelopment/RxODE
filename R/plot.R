@@ -179,7 +179,7 @@ rxTheme <- function(base_size = 11, base_family = "",
   return(list(.timex, .logx, .logy, .dat))
 }
 
-##' @export
+#' @export
 plot.rxSolve <- function(x, y, ..., log = "",
                          xlab = "Time", ylab = "") {
   .data <- NULL
@@ -303,7 +303,7 @@ plot.rxSolve <- function(x, y, ..., log = "",
 }
 
 
-##' @export
+#' @export
 plot.rxSolveConfint1 <- function(x, y, ..., xlab = "Time", ylab = "", log = "") {
   .data <- NULL
   .lvl <- attr(class(x), ".rx")$lvl
@@ -354,7 +354,7 @@ plot.rxSolveConfint1 <- function(x, y, ..., xlab = "Time", ylab = "", log = "") 
 }
 
 
-##' @export
+#' @export
 plot.rxSolveConfint2 <- function(x, y, ..., xlab = "Time", ylab = "", log = "") {
   .data <- NULL
   .lvl <- attr(class(x), ".rx")$lvl

@@ -26,29 +26,29 @@ g.y.log10 <- function(breaks = g.log.breaks.major, minor_breaks = g.log.breaks.m
   ggplot2::scale_y_log10(..., labels = labels, breaks = breaks, minor_breaks = minor_breaks)
 }
 
-##' Use Shiny to help develop an RxODE model
-##'
-##' @param object A RxODE family of objects. If not supplied a
-##'     2-compartment indirect effect model is used.  If it is
-##'     supplied, use the model associated with the RxODE object for
-##'     the model exploration.
-##' @param params Initial parameters for model
-##' @param events Event information (currently ignored)
-##' @param inits Initial estimates for model
-##' @param ... Other arguments passed to rxShiny.  Currently doesn't
-##'     do anything.
-##' @param data Any data that you would like to plot.  If the data has
-##'     a \code{time} variable as well as a compartment or calculated
-##'     variable that matches the RxODE model, the data will be added
-##'     to the plot of a specific compartment or calculated variable.
-##' @return Nothing; Starts a shiny server
-##' @author Zufar Mulyukov and Matthew L. Fidler
-##' @export
+#' Use Shiny to help develop an RxODE model
+#'
+#' @param object A RxODE family of objects. If not supplied a
+#'     2-compartment indirect effect model is used.  If it is
+#'     supplied, use the model associated with the RxODE object for
+#'     the model exploration.
+#' @param params Initial parameters for model
+#' @param events Event information (currently ignored)
+#' @param inits Initial estimates for model
+#' @param ... Other arguments passed to rxShiny.  Currently doesn't
+#'     do anything.
+#' @param data Any data that you would like to plot.  If the data has
+#'     a \code{time} variable as well as a compartment or calculated
+#'     variable that matches the RxODE model, the data will be added
+#'     to the plot of a specific compartment or calculated variable.
+#' @return Nothing; Starts a shiny server
+#' @author Zufar Mulyukov and Matthew L. Fidler
+#' @export
 rxShiny <- function(object, params = c(), events = NULL, inits = c(), ..., data = data.frame()) {
   UseMethod("rxShiny")
 }
-##' @rdname rxShiny
-##' @export
+#' @rdname rxShiny
+#' @export
 rxShiny.rxSolve <- function(object, params = NULL, events = NULL, inits = c(), ..., data = data.frame()) {
   if (is.null(params)) {
     if (dim(object$params)[1] > 1) {
@@ -61,8 +61,8 @@ rxShiny.rxSolve <- function(object, params = NULL, events = NULL, inits = c(), .
   }
   rxShiny.default(object = object, params = params, events = events, inits = inits, ..., data = data)
 }
-##' @rdname rxShiny
-##' @export
+#' @rdname rxShiny
+#' @export
 rxShiny.default <- function(object = NULL, params = c(), events = NULL, inits = c(), ...,
                             data = data.frame()) {
   rxReq("shiny")

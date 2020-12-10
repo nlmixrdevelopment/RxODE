@@ -204,67 +204,67 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
   return(invisible())
 }
 
-##' Add user function to RxODE
-##'
-##' This adds a user function to RxODE that can be called.  If needed,
-##' these functions can be differentiated by numerical differences or
-##' by adding the derivatives to RxODE's internal derivative table
-##' with \code{\link{rxD}}
-##'
-##' @param name This gives the name of the user function
-##' @param args This gives the arguments of the user function
-##' @param cCode This is the C-code for the new function
-##' @return nothing if successful
-##' @author Matthew L. Fidler
-##' @examples
-##'
-##'
-##' \donttest{
-##' ## Right now RxODE is not aware of the function f
-##' ## Therefore it cannot translate it to symengine or
-##' ## Compile a model with it.
-##'
-##' try(RxODE("a=fun(a,b,c)"))
-##'
-##' ## Note for this approach to work, it cannot interfere with C
-##' ## function names or reserved RxODE specical terms.  Therefore
-##' ## f(x) would not work since f is an alias for bioaviability.
-##'
-##' fun <- "
-##' double fun(double a, double b, double c) {
-##'   return a*a+b*a+c;
-##' }
-##' " ## C-code for function
-##'
-##' rxFun("fun",c("a","b","c"), fun) ## Added function
-##'
-##' ## Now RxODE knows how to translate this function to symengine
-##'
-##' rxToSE("fun(a,b,c)")
-##'
-##' ## And will take a central difference when calculating derivatives
-##'
-##' rxFromSE("Derivative(fun(a,b,c),a)")
-##'
-##' ## Of course, you could specify the derivative table manually
-##' rxD("fun", list(function(a,b,c){
-##'   paste0("2*",a,"+",b);
-##' },
-##'     function(a,b,c){
-##'      return(a)
-##'     },
-##'     function(a,b,c){
-##'       return("0.0")
-##' } ))
-##'
-##' rxFromSE("Derivative(fun(a,b,c),a)")
-##'
-##' # You can also remove the functions by `rxRmFun`
-##'
-##' rxRmFun("fun")
-##'
-##' }
-##' @export
+#' Add user function to RxODE
+#'
+#' This adds a user function to RxODE that can be called.  If needed,
+#' these functions can be differentiated by numerical differences or
+#' by adding the derivatives to RxODE's internal derivative table
+#' with \code{\link{rxD}}
+#'
+#' @param name This gives the name of the user function
+#' @param args This gives the arguments of the user function
+#' @param cCode This is the C-code for the new function
+#' @return nothing if successful
+#' @author Matthew L. Fidler
+#' @examples
+#'
+#'
+#' \donttest{
+#' ## Right now RxODE is not aware of the function f
+#' ## Therefore it cannot translate it to symengine or
+#' ## Compile a model with it.
+#'
+#' try(RxODE("a=fun(a,b,c)"))
+#'
+#' ## Note for this approach to work, it cannot interfere with C
+#' ## function names or reserved RxODE specical terms.  Therefore
+#' ## f(x) would not work since f is an alias for bioaviability.
+#'
+#' fun <- "
+#' double fun(double a, double b, double c) {
+#'   return a*a+b*a+c;
+#' }
+#' " ## C-code for function
+#'
+#' rxFun("fun",c("a","b","c"), fun) ## Added function
+#'
+#' ## Now RxODE knows how to translate this function to symengine
+#'
+#' rxToSE("fun(a,b,c)")
+#'
+#' ## And will take a central difference when calculating derivatives
+#'
+#' rxFromSE("Derivative(fun(a,b,c),a)")
+#'
+#' ## Of course, you could specify the derivative table manually
+#' rxD("fun", list(function(a,b,c){
+#'   paste0("2*",a,"+",b);
+#' },
+#'     function(a,b,c){
+#'      return(a)
+#'     },
+#'     function(a,b,c){
+#'       return("0.0")
+#' } ))
+#'
+#' rxFromSE("Derivative(fun(a,b,c),a)")
+#'
+#' # You can also remove the functions by `rxRmFun`
+#'
+#' rxRmFun("fun")
+#'
+#' }
+#' @export
 rxFun <- function(name, args, cCode) {
   if (!is.character(name) || length(name) != 1L) {
     stop("name argument must be a length-one character vector", call. = FALSE)
@@ -281,8 +281,8 @@ rxFun <- function(name, args, cCode) {
   return(invisible())
 }
 
-##' @rdname rxFun
-##' @export
+#' @rdname rxFun
+#' @export
 rxRmFun <- function(name) {
   if (!is.character(name) || length(name) != 1L) {
     stop("name argument must be a length-one character vector",
@@ -612,25 +612,25 @@ rxRmFun <- function(name) {
   lapply(1:15, .linCmtBgen)
 )
 
-##' Add to RxODE's derivative tables
-##'
-##' @param name Function Name
-##' @param derivatives A list of functions. Each function takes the
-##'     same number of arguments as the original function.  The first
-##'     function will construct the derivative with respect to the
-##'     first argument; The second function will construct the
-##'     derivitive with respect to the second argument, and so on.
-##' @return If successful, nothing
-##' @author Matthew Fidler
-##' @export
-##' @examples
-##' ## Add an arbitrary list of derivative functions
-##' ## In this case the fun(x,y) is assumed to be 0.5*x^2+0.5*y^2
-##'
-##' rxD("fun", list(function(x,y){return(x)},
-##'                 function(x,y){return(y)}
-##'                 ))
-##'
+#' Add to RxODE's derivative tables
+#'
+#' @param name Function Name
+#' @param derivatives A list of functions. Each function takes the
+#'     same number of arguments as the original function.  The first
+#'     function will construct the derivative with respect to the
+#'     first argument; The second function will construct the
+#'     derivitive with respect to the second argument, and so on.
+#' @return If successful, nothing
+#' @author Matthew Fidler
+#' @export
+#' @examples
+#' ## Add an arbitrary list of derivative functions
+#' ## In this case the fun(x,y) is assumed to be 0.5*x^2+0.5*y^2
+#'
+#' rxD("fun", list(function(x,y){return(x)},
+#'                 function(x,y){return(y)}
+#'                 ))
+#'
 rxD <- function(name, derivatives) {
   if (!inherits(derivatives, "list") || length(derivatives) == 0L) {
     stop("derivatives must be a list of functions with at least 1 element", call. = FALSE)
@@ -647,27 +647,27 @@ rxD <- function(name, derivatives) {
 
 
 .promoteLinB <- FALSE
-##' RxODE to symengine environment
-##'
-##' @param x expression
-##'
-##' @param envir default is \code{NULL}; Environment to put symengine
-##'     variables in.
-##'
-##' @param progress shows progress bar if true.
-##'
-##' @param promoteLinSens Promote solved linear compartment systems to
-##'     sensitivity-based solutions.
-##'
-##' @param unknownDerivatives When handling derivatives from unknown
-##'     functions, the translator will translate into different types
-##'     of numeric derivatives.  The currently supported methods are:
-##'
-##'     - `forward` for forward differences
-##'     - `central` for central differences
-##'     - `error` for throwing an error for unknown derivatives
-##' @author Matthew L. Fidler
-##' @export
+#' RxODE to symengine environment
+#'
+#' @param x expression
+#'
+#' @param envir default is \code{NULL}; Environment to put symengine
+#'     variables in.
+#'
+#' @param progress shows progress bar if true.
+#'
+#' @param promoteLinSens Promote solved linear compartment systems to
+#'     sensitivity-based solutions.
+#'
+#' @param unknownDerivatives When handling derivatives from unknown
+#'     functions, the translator will translate into different types
+#'     of numeric derivatives.  The currently supported methods are:
+#'
+#'     - `forward` for forward differences
+#'     - `central` for central differences
+#'     - `error` for throwing an error for unknown derivatives
+#' @author Matthew L. Fidler
+#' @export
 rxToSE <- function(x, envir = NULL, progress = FALSE,
                    promoteLinSens = TRUE) {
   assignInMyNamespace(".promoteLinB", promoteLinSens)
@@ -732,8 +732,8 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
   return(x)
 }
 
-##' @rdname rxToSE
-##' @export
+#' @rdname rxToSE
+#' @export
 .rxToSE <- function(x, envir = NULL, progress = FALSE) {
   .cnst <- names(.rxSEreserved)
   .isEnv <- inherits(envir, "rxS") || inherits(envir, "environment")
@@ -1456,8 +1456,8 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
 )
 
 
-##' @rdname rxToSE
-##' @export
+#' @rdname rxToSE
+#' @export
 rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
   .unknown <- c("central" = 2L, "forward" = 1L, "error" = 0L)
   assignInMyNamespace(".rxFromNumDer", .unknown[match.arg(unknownDerivatives)])
@@ -1661,8 +1661,8 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
   return(.ret)
 }
 
-##' @export
-##' @rdname rxToSE
+#' @export
+#' @rdname rxToSE
 .rxFromSE <- function(x) {
   .cnst <- setNames(
     names(.rxSEreserved),
@@ -2193,14 +2193,14 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
   return(.f)
 }
 
-##' Load a model into a symengine environment
-##'
-##' @param x RxODE object
-##' @param doConst Load constants into the environment as well.
-##' @inheritParams rxToSE
-##' @return RxODE/symengine environment
-##' @author Matthew Fidler
-##' @export
+#' Load a model into a symengine environment
+#'
+#' @param x RxODE object
+#' @param doConst Load constants into the environment as well.
+#' @inheritParams rxToSE
+#' @return RxODE/symengine environment
+#' @author Matthew Fidler
+#' @export
 rxS <- function(x, doConst = TRUE, promoteLinSens = FALSE) {
   .cnst <- names(.rxSEreserved)
   .env <- new.env(parent = loadNamespace("symengine"))
@@ -2855,25 +2855,25 @@ rxErrEnv <- function(expr) {
   return(symbol.env)
 }
 
-##' Parse PK function for inclusion in RxODE
-##'
-##' @param x PK function
-##' @inheritParams rxParseErr
-##' @return RxODE transformed text.
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
+#' Parse PK function for inclusion in RxODE
+#'
+#' @param x PK function
+#' @inheritParams rxParseErr
+#' @return RxODE transformed text.
+#' @author Matthew L. Fidler
+#' @keywords internal
+#' @export
 rxParsePk <- function(x, init = NULL) {
   return(rxParseErr(x, init = init, ret = ""))
 }
-##' Prepare Pred function for inclusion in RxODE
-##'
-##' @param x pred function
-##' @inheritParams rxParseErr
-##' @return RxODE transformed text.
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
+#' Prepare Pred function for inclusion in RxODE
+#'
+#' @param x pred function
+#' @inheritParams rxParseErr
+#' @return RxODE transformed text.
+#' @author Matthew L. Fidler
+#' @keywords internal
+#' @export
 rxParsePred <- function(x, init = NULL, err = NULL, addProp=c("combined2", "combined1")) {
   if (is.null(err)) {
     return(rxParseErr(x, ret = "rx_pred_", init = init, addProp=addProp))
@@ -2935,16 +2935,16 @@ rxParsePred <- function(x, init = NULL, err = NULL, addProp=c("combined2", "comb
     }
   }
 }
-##' Prepare Error function for inclusion in RxODE
-##'
-##' @param x error function
-##' @param baseTheta Base theta to start numbering add(.) and prop(.) from.
-##' @param ret Internal return type.  Should not be changed by the user...
-##' @param init Initialization vector
-##' @return RxODE transformed text
-##' @keywords internal
-##' @author Matthew L. Fidler
-##' @export
+#' Prepare Error function for inclusion in RxODE
+#'
+#' @param x error function
+#' @param baseTheta Base theta to start numbering add(.) and prop(.) from.
+#' @param ret Internal return type.  Should not be changed by the user...
+#' @param init Initialization vector
+#' @return RxODE transformed text
+#' @keywords internal
+#' @author Matthew L. Fidler
+#' @export
 rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL,
                        addProp=c("combined2", "combined1")) {
   addProp = match.arg(addProp)
@@ -3009,25 +3009,25 @@ rxSimpleExprP <- function(x) {
   }
 }
 
-##' This function splits a function based on + or - terms
-##'
-##' It uses the parser and does not disturb terms within other
-##' functions.  For example:
-##'
-##' a*exp(b+c)+d*log(e-f)-g*f
-##'
-##' would return
-##'
-##' c("a * exp(b + c)", "d * log(e - f)", "- g * f")
-##'
-##' @param x Quoted R expression for splitting
-##' @param level Internal level of parsing
-##' @param mult boolean to split based on * and / expressions instead.
-##'     By default this is turned off.
-##' @return character vector of the split expressions
-##' @author Matthew L. Fidler
-##' @export
-##' @keywords internal
+#' This function splits a function based on + or - terms
+#'
+#' It uses the parser and does not disturb terms within other
+#' functions.  For example:
+#'
+#' a*exp(b+c)+d*log(e-f)-g*f
+#'
+#' would return
+#'
+#' c("a * exp(b + c)", "d * log(e - f)", "- g * f")
+#'
+#' @param x Quoted R expression for splitting
+#' @param level Internal level of parsing
+#' @param mult boolean to split based on * and / expressions instead.
+#'     By default this is turned off.
+#' @return character vector of the split expressions
+#' @author Matthew L. Fidler
+#' @export
+#' @keywords internal
 rxSplitPlusQ <- function(x, level = 0, mult = FALSE) {
   if (is(x, "character") && level == 0) {
     return(eval(parse(text = sprintf("rxSplitPlusQ(quote(%s))", x))))
@@ -3111,11 +3111,11 @@ rxSplitPlusQ <- function(x, level = 0, mult = FALSE) {
 }
 
 
-##' Get list of supported functions
-##'
-##' @examples
-##' rxSupportedFuns()
-##'@export
+#' Get list of supported functions
+#'
+#' @examples
+#' rxSupportedFuns()
+#'@export
 rxSupportedFuns <- function() {
   .rxSupportedFuns(FALSE)
 }

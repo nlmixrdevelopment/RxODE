@@ -380,27 +380,27 @@
   }
 }
 
-##' Optimize RxODE for computer evaluation
-##'
-##' This optimizes RxODE code for computer evaluation by only
-##' calculating redundant expressions once.
-##'
-##' @param x RxODE model that can be accessed by rxNorm
-##'
-##' @param msg This is the name of type of object that RxODE is
-##'     optimizing that will in the message when optimizing.  For
-##'     example "model" will produce the following message while
-##'     optimizing the model:
-##'
-##'  finding duplicate expressions in model...
-##'
-##' @return Optimized RxODE model text.  The order and type lhs and
-##'     state variables is maintained while the evaluation is sped up.
-##'     While parameters names are maintained, their order may be
-##'     modified.
-##'
-##' @author Matthew L. Fidler
-##' @export
+#' Optimize RxODE for computer evaluation
+#'
+#' This optimizes RxODE code for computer evaluation by only
+#' calculating redundant expressions once.
+#'
+#' @param x RxODE model that can be accessed by rxNorm
+#'
+#' @param msg This is the name of type of object that RxODE is
+#'     optimizing that will in the message when optimizing.  For
+#'     example "model" will produce the following message while
+#'     optimizing the model:
+#'
+#'  finding duplicate expressions in model...
+#'
+#' @return Optimized RxODE model text.  The order and type lhs and
+#'     state variables is maintained while the evaluation is sped up.
+#'     While parameters names are maintained, their order may be
+#'     modified.
+#'
+#' @author Matthew L. Fidler
+#' @export
 rxOptExpr <- function(x, msg = "model") {
   .oldOpts <- options()
   options(digits = 22)

@@ -26,133 +26,133 @@
     return(x)
   }
 }
-##' Event Table Function
-##'
-##' @param ... Times or event tables.  They can also be one of the named arguments below.
-##'
-##' @param time Time is the time of the dose or the sampling times.
-##'     This can also be unspecified and is determined by the object
-##'     type (list or numeric/integer).
-##'
-##' @param amt Amount of the dose. If specified, this assumes a dosing
-##'     record, instead of a sampling record.
-##'
-##' @param evid Event ID; This can be:
-##'
-##' \itemize{
-##'
-##' \item{0} An observation. This can also be specified as
-##'    \code{evid=obs}
-##'
-##' \item{1} A dose observation.  This can also be specified as
-##'    \code{evid=dose}
-##'
-##' \item{2} A non-dose event. This can also be specified as
-##'    \code{evid=other}.
-##'
-##' \item{3} A reset event.  A reset event resets all the compartment
-##' values to zero and turns off all infusions.  This can also be
-##' specified as \code{evid=reset}.
-##'
-##' \item{4} Dose and reset event.  This can also be specified as
-##' \code{evid=doseReset} or \code{evid=resetDose}
-##'
-##' }
-##'
-##' @param cmt Compartment name or number.  If a number, this is an
-##'   integer starting at 1.  Negative compartments turn off a
-##'   compartment. If the compartment is a name, the compartment name
-##'   is changed to the correct state/compartment number before
-##'   running the simulation.  For a compartment named "-cmt" the
-##'   compartment is turned off.
-##'
-##'     Can also specify \code{cmt} as \code{dosing.to},
-##'     \code{dose.to}, \code{doseTo}, \code{dosingTo}, and
-##'     \code{state}.
-##'
-##' @param ii When specifying a dose, this is the inter-dose interval
-##'     for \code{ss}, \code{addl} and \code{until} options (described below).
-##'
-##' @param addl The number of additional doses at a inter-dose
-##'     interval after one dose.
-##'
-##' @param ss Steady state flag;  It can be one of:
-##' \itemize{
-##'
-##' \item{0} This dose is not a steady state dose
-##'
-##' \item{1} This dose is a steady state dose with the between/inter
-##' dose interval of \code{ii}
-##'
-##' \item{2} This is a steady state dose that uses the super-position
-##' principle to allow more complex steady states, like 10 mg in the
-##' morning and 20 mg at night, or dosing at 8 am 12 pm and 8 pm
-##' instead of every 12 hours.  Since it uses the super positioning
-##' principle, it only makes sense when you know the kinetics are
-##' linear.
-##' }
-##'
-##' All other values of \code{SS} are currently invalid.
-##'
-##' @param rate When positive, this is the rate of infusion.  Otherwise:
-##'
-##' \itemize{
-##'
-##' \item{0} No infusion is on this record.
-##'
-##' \item{-1} Rate of this record is modeled by \code{rate(cmt) =} in
-##' the RxODE model.  You may also specify type or rate by
-##' \code{rate=model}
-##'
-##' \item{-2} Duration of this record is modeled by \code{dur(cmt) =}
-##' in the RxODE model. You may also specify this type of rate by
-##' \code{dur=model} or \code{rate=dur}.
-##'
-##' }
-##'
-##' When a modeled bioavailability is applied to positive rates
-##' (\code{rate} > 0), the duration of infusion is changed. This is
-##' because the data specify the rate and amount, the only think ghat
-##' modeled bioavailability can affect is duration.
-##'
-##' If instead you want the modeled bioavailability to increase the
-##' rate of infusion instead of the duration of infusion, specify the
-##' \code{dur} instead or model the duration with \code{rate=2}.
-##'
-##' @param dur Duration of infusion.  When \code{amt} and \code{dur}
-##'     are specified the rate is calculated from the two data items.
-##'     When \code{dur} is specified instead of \code{rate}, the
-##'     bioavailability changes will increase rate instead of
-##'     duration.
-##'
-##' @param until This is the time until the dosing should end.  It can
-##'     be an easier way to figure out how many additional doses are
-##'     needed over your sampling period.
-##'
-##' @param id A integer vector of IDs to add or remove from the event
-##'     table.  If the event table is identical for each ID, then you
-##'     may expand it to include all the IDs in this vector.  All the
-##'     negative IDs in this vector will be removed.
-##'
-##' @param amountUnits The units for the dosing records (\code{amt})
-##'
-##' @param timeUnits The units for the time records (\code{time})
-##'
-##' @param addSampling This is a boolean indicating if a sampling time
-##'     should be added at the same time as a dosing time.  By default
-##'     this is \code{FALSE}.
-##'
-##' @param x This is the first argument supplied to the event table.
-##'     This is named to allow \code{et} to be used in a pipe-line
-##'     with arbitrary objects.
-##'
-##' @inheritParams base::eval
-##' @inheritParams rxSolve
-##' @return A new event table
-##'
-##' @template etExamples
-##'
-##' @export
+#' Event Table Function
+#'
+#' @param ... Times or event tables.  They can also be one of the named arguments below.
+#'
+#' @param time Time is the time of the dose or the sampling times.
+#'     This can also be unspecified and is determined by the object
+#'     type (list or numeric/integer).
+#'
+#' @param amt Amount of the dose. If specified, this assumes a dosing
+#'     record, instead of a sampling record.
+#'
+#' @param evid Event ID; This can be:
+#'
+#' \itemize{
+#'
+#' \item{0} An observation. This can also be specified as
+#'    \code{evid=obs}
+#'
+#' \item{1} A dose observation.  This can also be specified as
+#'    \code{evid=dose}
+#'
+#' \item{2} A non-dose event. This can also be specified as
+#'    \code{evid=other}.
+#'
+#' \item{3} A reset event.  A reset event resets all the compartment
+#' values to zero and turns off all infusions.  This can also be
+#' specified as \code{evid=reset}.
+#'
+#' \item{4} Dose and reset event.  This can also be specified as
+#' \code{evid=doseReset} or \code{evid=resetDose}
+#'
+#' }
+#'
+#' @param cmt Compartment name or number.  If a number, this is an
+#'   integer starting at 1.  Negative compartments turn off a
+#'   compartment. If the compartment is a name, the compartment name
+#'   is changed to the correct state/compartment number before
+#'   running the simulation.  For a compartment named "-cmt" the
+#'   compartment is turned off.
+#'
+#'     Can also specify \code{cmt} as \code{dosing.to},
+#'     \code{dose.to}, \code{doseTo}, \code{dosingTo}, and
+#'     \code{state}.
+#'
+#' @param ii When specifying a dose, this is the inter-dose interval
+#'     for \code{ss}, \code{addl} and \code{until} options (described below).
+#'
+#' @param addl The number of additional doses at a inter-dose
+#'     interval after one dose.
+#'
+#' @param ss Steady state flag;  It can be one of:
+#' \itemize{
+#'
+#' \item{0} This dose is not a steady state dose
+#'
+#' \item{1} This dose is a steady state dose with the between/inter
+#' dose interval of \code{ii}
+#'
+#' \item{2} This is a steady state dose that uses the super-position
+#' principle to allow more complex steady states, like 10 mg in the
+#' morning and 20 mg at night, or dosing at 8 am 12 pm and 8 pm
+#' instead of every 12 hours.  Since it uses the super positioning
+#' principle, it only makes sense when you know the kinetics are
+#' linear.
+#' }
+#'
+#' All other values of \code{SS} are currently invalid.
+#'
+#' @param rate When positive, this is the rate of infusion.  Otherwise:
+#'
+#' \itemize{
+#'
+#' \item{0} No infusion is on this record.
+#'
+#' \item{-1} Rate of this record is modeled by \code{rate(cmt) =} in
+#' the RxODE model.  You may also specify type or rate by
+#' \code{rate=model}
+#'
+#' \item{-2} Duration of this record is modeled by \code{dur(cmt) =}
+#' in the RxODE model. You may also specify this type of rate by
+#' \code{dur=model} or \code{rate=dur}.
+#'
+#' }
+#'
+#' When a modeled bioavailability is applied to positive rates
+#' (\code{rate} > 0), the duration of infusion is changed. This is
+#' because the data specify the rate and amount, the only think ghat
+#' modeled bioavailability can affect is duration.
+#'
+#' If instead you want the modeled bioavailability to increase the
+#' rate of infusion instead of the duration of infusion, specify the
+#' \code{dur} instead or model the duration with \code{rate=2}.
+#'
+#' @param dur Duration of infusion.  When \code{amt} and \code{dur}
+#'     are specified the rate is calculated from the two data items.
+#'     When \code{dur} is specified instead of \code{rate}, the
+#'     bioavailability changes will increase rate instead of
+#'     duration.
+#'
+#' @param until This is the time until the dosing should end.  It can
+#'     be an easier way to figure out how many additional doses are
+#'     needed over your sampling period.
+#'
+#' @param id A integer vector of IDs to add or remove from the event
+#'     table.  If the event table is identical for each ID, then you
+#'     may expand it to include all the IDs in this vector.  All the
+#'     negative IDs in this vector will be removed.
+#'
+#' @param amountUnits The units for the dosing records (\code{amt})
+#'
+#' @param timeUnits The units for the time records (\code{time})
+#'
+#' @param addSampling This is a boolean indicating if a sampling time
+#'     should be added at the same time as a dosing time.  By default
+#'     this is \code{FALSE}.
+#'
+#' @param x This is the first argument supplied to the event table.
+#'     This is named to allow \code{et} to be used in a pipe-line
+#'     with arbitrary objects.
+#'
+#' @inheritParams base::eval
+#' @inheritParams rxSolve
+#' @return A new event table
+#'
+#' @template etExamples
+#'
+#' @export
 et <- function(x, ..., envir = parent.frame()) {
   UseMethod("et")
 }
@@ -172,12 +172,12 @@ et <- function(x, ..., envir = parent.frame()) {
 .pipelineNSub <- NULL
 .pipelineNStud <- NULL
 
-##' Clear/Set pipeline
-##'
-##' @inheritParams rxControl
-##' @param rx RxODE object
-##' @keywords intenral
-##' @export
+#' Clear/Set pipeline
+#'
+#' @inheritParams rxControl
+#' @param rx RxODE object
+#' @keywords intenral
+#' @export
 .clearPipe <- function(rx = NULL, inits = NULL,
                        events = NULL, params = NULL,
                        iCov = NULL, keep = NULL,
@@ -200,15 +200,15 @@ et <- function(x, ..., envir = parent.frame()) {
   assignInMyNamespace(".pipelineNStud", nStud)
 }
 
-##' @rdname et
-##' @export
+#' @rdname et
+#' @export
 et.RxODE <- function(x, ..., envir = parent.frame()) {
   .clearPipe()
   assignInMyNamespace(".pipelineRx", x)
   do.call(et, c(list(...), list(envir = envir)), envir = envir)
 }
-##' @rdname et
-##' @export
+#' @rdname et
+#' @export
 et.rxSolve <- function(x, ..., envir = parent.frame()) {
   ## Need to extract:
   ## 1. RxODE model
@@ -232,8 +232,8 @@ et.rxSolve <- function(x, ..., envir = parent.frame()) {
   do.call(et, c(list(...), list(envir = envir)), envir = envir)
 }
 
-##' @rdname et
-##' @export
+#' @rdname et
+#' @export
 et.rxParams <- function(x, ..., envir = parent.frame()) {
   ## Need to extract:
   ## 1. RxODE model
@@ -259,8 +259,8 @@ et.rxParams <- function(x, ..., envir = parent.frame()) {
   do.call(et, c(list(...), list(envir = envir)), envir = envir)
 }
 
-##' @rdname et
-##' @export
+#' @rdname et
+#' @export
 et.default <- function(x, ..., time, amt, evid, cmt, ii, addl,
                        ss, rate, dur, until, id,
                        amountUnits, timeUnits, addSampling,
@@ -659,12 +659,12 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl,
   .Call(`_RxODE_et_`, .lst, list())
 }
 
-##' @export
+#' @export
 `$.rxEt` <- function(obj, arg, exact = FALSE) {
   return(.Call(`_RxODE_etUpdate`, obj, arg, NULL, exact))
 }
 
-##' @export
+#' @export
 simulate.rxEt <- # nolint
   function(object, nsim = 1, seed = NULL, ...) {
     .name <- as.character(substitute(object))
@@ -677,12 +677,12 @@ simulate.rxEt <- # nolint
     }
   }
 
-##' @export
+#' @export
 drop_units.rxEt <- function(x) {
   .Call(`_RxODE_et_`, list(amountUnits = NA_character_, timeUnits = NA_character_), x)
 }
 
-##' @export
+#' @export
 set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units_mode")) {
   if (missing(value)) {
     value <- units::unitless
@@ -713,36 +713,36 @@ set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units
   }
 }
 
-##' Add dosing to eventTable
-##'
-##' This adds a dosing event to the event table.  This is provided for
-##' piping syntax through magrittr
-##'
-##' @param eventTable eventTable object
-##' @param dose numeric scalar, dose amount in \code{amount.units};
-##' @param nbr.doses integer, number of doses;
-##' @param dosing.interval required numeric scalar, time between doses
-##'     in \code{time.units}, defaults to 24 of
-##'     \code{time.units="hours"};
-##' @param dosing.to integer, compartment the dose goes into (first
-##'     compartment by default);
-##' @param rate for infusions, the rate of infusion (default is
-##'     \code{NULL}, for bolus dosing;
-##' @param amount.units optional string indicating the dosing units.
-##'     Defaults to \code{NA} to indicate as per the original
-##'     \code{EventTable} definition.
-##' @param start.time required dosing start time;
-##' @param do.sampling logical, should observation sampling records be
-##'     added at the dosing times? Defaults to \code{FALSE}.
-##' @param time.units optional string indicating the time units.
-##'     Defaults to \code{"hours"} to indicate as per the original
-##'     \code{EventTable} definition.
-##' @param ... Other parameters passed to \code{\link{et}}.
-##' @return eventTable with updated dosing (note the event table will
-##'     be updated anyway)
-##' @author Matthew L. Fidler
-##' @template etExamples
-##' @export
+#' Add dosing to eventTable
+#'
+#' This adds a dosing event to the event table.  This is provided for
+#' piping syntax through magrittr
+#'
+#' @param eventTable eventTable object
+#' @param dose numeric scalar, dose amount in \code{amount.units};
+#' @param nbr.doses integer, number of doses;
+#' @param dosing.interval required numeric scalar, time between doses
+#'     in \code{time.units}, defaults to 24 of
+#'     \code{time.units="hours"};
+#' @param dosing.to integer, compartment the dose goes into (first
+#'     compartment by default);
+#' @param rate for infusions, the rate of infusion (default is
+#'     \code{NULL}, for bolus dosing;
+#' @param amount.units optional string indicating the dosing units.
+#'     Defaults to \code{NA} to indicate as per the original
+#'     \code{EventTable} definition.
+#' @param start.time required dosing start time;
+#' @param do.sampling logical, should observation sampling records be
+#'     added at the dosing times? Defaults to \code{FALSE}.
+#' @param time.units optional string indicating the time units.
+#'     Defaults to \code{"hours"} to indicate as per the original
+#'     \code{EventTable} definition.
+#' @param ... Other parameters passed to \code{\link{et}}.
+#' @return eventTable with updated dosing (note the event table will
+#'     be updated anyway)
+#' @author Matthew L. Fidler
+#' @template etExamples
+#' @export
 # nolint start
 add.dosing <- function(eventTable, dose, nbr.doses = 1L,
                        dosing.interval = 24, dosing.to = 1L,
@@ -768,20 +768,20 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L,
   .Call(`_RxODE_et_`, .lst, eventTable)
 }
 
-##' Add sampling to eventTable
-##'
-##' This adds a dosing event to the event table.  This is provided for
-##' piping syntax through magrittr
-##'
-##' @param eventTable An eventTable object
-##' @param time a vector of time values (in \code{time.units}).
-##' @param time.units an optional string specifying the time
-##'     units. Defaults to the units specified when the
-##'     \code{EventTable} was initialized.
-##' @return eventTable with updated sampling.  (Note the event table
-##'     will be updated even if you don't reassign the eventTable)
-##' @template etExamples
-##' @export
+#' Add sampling to eventTable
+#'
+#' This adds a dosing event to the event table.  This is provided for
+#' piping syntax through magrittr
+#'
+#' @param eventTable An eventTable object
+#' @param time a vector of time values (in \code{time.units}).
+#' @param time.units an optional string specifying the time
+#'     units. Defaults to the units specified when the
+#'     \code{EventTable} was initialized.
+#' @return eventTable with updated sampling.  (Note the event table
+#'     will be updated even if you don't reassign the eventTable)
+#' @template etExamples
+#' @export
 add.sampling <- function(eventTable, time, time.units = NA) {
   .lst <- list(time = time)
   if (!is.na(time.units)) .lst$time.units <- time.units
@@ -789,158 +789,158 @@ add.sampling <- function(eventTable, time, time.units = NA) {
 }
 
 
-##' Create an event table object
-##'
-##' Initializes an object of class \sQuote{EventTable} with methods for
-##' adding and querying dosing and observation records
-##'
-##' @param amount.units string denoting the amount dosing units, e.g.,
-##'      \dQuote{mg}, \dQuote{ug}. Default to \code{NA} to denote
-##'      unspecified units.  It could also be a solved RxODE object.  In
-##'      that case, eventTable(obj) returns the eventTable that was used
-##'      to solve the RxODE object.
-##'
-##' @param time.units string denoting the time units, e.g.,
-##'      \dQuote{hours}, \dQuote{days}. Default to \code{"hours"}.
-##'
-##'  An \code{eventTable} is an object that consists of a data.frame
-##'  storing ordered time-stamped events of an (unspecified) PK/PD
-##'  dynamic system, units (strings) for dosing and time records, plus a
-##'  list of functions to add and extract event records.
-##'
-##'  Currently, events can be of two types: dosing events that represent
-##'  inputs to the system and sampling time events that represent
-##'  observations of the system with \sQuote{amount.units} and
-##'  \sQuote{time.units}, respectively.
-##'
-##'
-##' @return A modified data.frame with the following accessible functions:
-##'
-##' \item{get.EventTable}{returns the current event table.}
-##'
-##' \item{add.dosing}{adds dosing records to the event table.
-##'
-##' Its arguments are
-##'
-##'   \code{dose}: numeric scalar, dose amount in \code{amount.units};
-##'
-##'   \code{nbr.doses}: integer, number of doses;
-##'
-##'   \code{dosing.interval}: required numeric scalar, time between doses
-##'      in \code{time.units}, defaults to 24 of \code{time.units="hours"};
-##'
-##'        \code{dosing.to}: integer, compartment the dose goes into
-##'        (first compartment by default);
-##'
-##'        \code{rate}: for infusions, the rate of infusion (default
-##'            is \code{NULL}, for bolus dosing;
-##'
-##'        \code{start.time}: required dosing start time;
-##'
-##'        \code{do.sampling}: logical, should observation sampling records
-##'            be added at the dosing times? Defaults to \code{FALSE}.
-##'
-##'        \code{amount.units}: optional string indicating the dosing units.
-##'           Defaults to \code{NA} to indicate as per the original \code{EventTable}
-##'           definition.
-##'
-##'        \code{time.units}: optional string indicating the time units.
-##'           Defaults to \code{"hours"} to indicate as per the original \code{EventTable} definition.
-##'     }
-##'
-##'    \item{get.dosing}{returns a data.frame of dosing records.}
-##'
-##'    \item{clear.dosing}{clears or deletes all dosing from event table}
-##'
-##'    \item{add.sampling}{adds sampling time observation records to the
-##'        event table. Its arguments are
-##'
-##'        \code{time} a vector of time values (in \code{time.units}).
-##'
-##'        \code{time.units} an optional string specifying the time
-##'        units. Defaults to the units specified when the \code{EventTable}
-##'        was initialized.
-##'
-##'        % TODO: should add.sampling() have similar calling sequence
-##'        % as add.dosing()?
-##'        %\code{sampling.interval}: scalar, time between samples.
-##'        %\code{start.time}: scalar, starting observation time.
-##'        %\code{end.time}: scalar, end observation time.
-##'    }
-##'
-##'    \item{get.sampling}{returns a data.frame of sampled observation
-##'        records.}
-##'
-##'    \item{clear.sampling}{removes all sampling from event table.}
-##'
-##'    \item{get.obs.rec}{returns a logical vector indicating
-##'        whether each event record represents an observation or not.}
-##'
-##'    \item{get.nobs}{returns the number of observation (not dosing) records.}
-##'
-##'    \item{get.units}{returns a two-element character vector with the
-##'        dosing and time units, respectively.}
-##'
-##'    \item{copy}{makes a copy of the current event table. To create
-##'        a copy of an event table object use \code{qd2 <- qd$copy()}.}
-##'
-##'    \item{expand}{Expands the event table for multi-subject solving.
-##'    This is done by qd$expand(400) for a 400 subject data expansion}
-##'
-##' @author Matthew Fidler, Melissa Hallow and Wenping Wang
-##'
-##' @seealso \code{\link{et}}, \code{\link{RxODE}}
-##'
-##' @examples
-##' # create dosing and observation (sampling) events
-##' # QD 50mg dosing, 5 days followed by 25mg 5 days
-##' #
-##' qd <- eventTable(amount.units = "mg", time.units = "days")
-##' #
-##' qd$add.dosing(dose=50, nbr.doses=5, dosing.interval = 1, do.sampling=FALSE)
-##' #
-##' # sample the system's drug amounts hourly the first day, then every 12 hours
-##' # for the next 4 days
-##' qd$add.sampling(seq(from = 0, to = 1, by = 1/24))
-##' qd$add.sampling(seq(from = 1, to = 5, by = 12/24))
-##' #
-##' #print(qd$get.dosing())     # table of dosing records
-##' print(qd$get.nobs())   # number of observation (not dosing) records
-##' #
-##' # BID dosing, 5 days
-##' bid <- eventTable("mg", "days")  # only dosing
-##' bid$add.dosing(dose=10000, nbr.doses=2*5,
-##'                dosing.interval = 12, do.sampling=FALSE)
-##' #
-##' # Use the copy() method to create a copy (clone) of an existing
-##' # event table (simple assignments just create a new reference to
-##' # the same event table object (closure)).
-##' #
-##' bid.ext <- bid$copy()      # three-day extension for a 2nd cohort
-##' bid.ext$add.dosing(dose = 5000, nbr.doses = 2*3,
-##'                    start.time = 120, dosing.interval = 12, do.sampling = FALSE)
-##'
-##' # You can also use the Piping operator to create a table
-##'
-##' qd2 <- eventTable(amount.units="mg", time.units="days") %>%
-##'     add.dosing(dose=50, nbr.doses=5, dosing.interval=1, do.sampling=FALSE) %>%
-##'     add.sampling(seq(from=0, to=1, by=1 / 24)) %>%
-##'     add.sampling(seq(from=1, to=5, by=12 / 24))
-##' #print(qd2$get.dosing())     # table of dosing records
-##' print(qd2$get.nobs())   # number of observation (not dosing) records
-##'
-##' # Note that piping with %>% will update the original table.
-##'
-##' qd3 <- qd2 %>% add.sampling(seq(from=5, to=10, by=6 / 24))
-##' print(qd2$get.nobs())
-##' print(qd3$get.nobs())
-##'
-##' @keywords models data
-##' @concept ordinary differential equations
-##' @concept Nonlinear regression
-##' @concept Pharmacokinetics (PK)
-##' @concept Pharmacodynamics (PD)
-##' @export
+#' Create an event table object
+#'
+#' Initializes an object of class \sQuote{EventTable} with methods for
+#' adding and querying dosing and observation records
+#'
+#' @param amount.units string denoting the amount dosing units, e.g.,
+#'      \dQuote{mg}, \dQuote{ug}. Default to \code{NA} to denote
+#'      unspecified units.  It could also be a solved RxODE object.  In
+#'      that case, eventTable(obj) returns the eventTable that was used
+#'      to solve the RxODE object.
+#'
+#' @param time.units string denoting the time units, e.g.,
+#'      \dQuote{hours}, \dQuote{days}. Default to \code{"hours"}.
+#'
+#'  An \code{eventTable} is an object that consists of a data.frame
+#'  storing ordered time-stamped events of an (unspecified) PK/PD
+#'  dynamic system, units (strings) for dosing and time records, plus a
+#'  list of functions to add and extract event records.
+#'
+#'  Currently, events can be of two types: dosing events that represent
+#'  inputs to the system and sampling time events that represent
+#'  observations of the system with \sQuote{amount.units} and
+#'  \sQuote{time.units}, respectively.
+#'
+#'
+#' @return A modified data.frame with the following accessible functions:
+#'
+#' \item{get.EventTable}{returns the current event table.}
+#'
+#' \item{add.dosing}{adds dosing records to the event table.
+#'
+#' Its arguments are
+#'
+#'   \code{dose}: numeric scalar, dose amount in \code{amount.units};
+#'
+#'   \code{nbr.doses}: integer, number of doses;
+#'
+#'   \code{dosing.interval}: required numeric scalar, time between doses
+#'      in \code{time.units}, defaults to 24 of \code{time.units="hours"};
+#'
+#'        \code{dosing.to}: integer, compartment the dose goes into
+#'        (first compartment by default);
+#'
+#'        \code{rate}: for infusions, the rate of infusion (default
+#'            is \code{NULL}, for bolus dosing;
+#'
+#'        \code{start.time}: required dosing start time;
+#'
+#'        \code{do.sampling}: logical, should observation sampling records
+#'            be added at the dosing times? Defaults to \code{FALSE}.
+#'
+#'        \code{amount.units}: optional string indicating the dosing units.
+#'           Defaults to \code{NA} to indicate as per the original \code{EventTable}
+#'           definition.
+#'
+#'        \code{time.units}: optional string indicating the time units.
+#'           Defaults to \code{"hours"} to indicate as per the original \code{EventTable} definition.
+#'     }
+#'
+#'    \item{get.dosing}{returns a data.frame of dosing records.}
+#'
+#'    \item{clear.dosing}{clears or deletes all dosing from event table}
+#'
+#'    \item{add.sampling}{adds sampling time observation records to the
+#'        event table. Its arguments are
+#'
+#'        \code{time} a vector of time values (in \code{time.units}).
+#'
+#'        \code{time.units} an optional string specifying the time
+#'        units. Defaults to the units specified when the \code{EventTable}
+#'        was initialized.
+#'
+#'        % TODO: should add.sampling() have similar calling sequence
+#'        % as add.dosing()?
+#'        %\code{sampling.interval}: scalar, time between samples.
+#'        %\code{start.time}: scalar, starting observation time.
+#'        %\code{end.time}: scalar, end observation time.
+#'    }
+#'
+#'    \item{get.sampling}{returns a data.frame of sampled observation
+#'        records.}
+#'
+#'    \item{clear.sampling}{removes all sampling from event table.}
+#'
+#'    \item{get.obs.rec}{returns a logical vector indicating
+#'        whether each event record represents an observation or not.}
+#'
+#'    \item{get.nobs}{returns the number of observation (not dosing) records.}
+#'
+#'    \item{get.units}{returns a two-element character vector with the
+#'        dosing and time units, respectively.}
+#'
+#'    \item{copy}{makes a copy of the current event table. To create
+#'        a copy of an event table object use \code{qd2 <- qd$copy()}.}
+#'
+#'    \item{expand}{Expands the event table for multi-subject solving.
+#'    This is done by qd$expand(400) for a 400 subject data expansion}
+#'
+#' @author Matthew Fidler, Melissa Hallow and Wenping Wang
+#'
+#' @seealso \code{\link{et}}, \code{\link{RxODE}}
+#'
+#' @examples
+#' # create dosing and observation (sampling) events
+#' # QD 50mg dosing, 5 days followed by 25mg 5 days
+#' #
+#' qd <- eventTable(amount.units = "mg", time.units = "days")
+#' #
+#' qd$add.dosing(dose=50, nbr.doses=5, dosing.interval = 1, do.sampling=FALSE)
+#' #
+#' # sample the system's drug amounts hourly the first day, then every 12 hours
+#' # for the next 4 days
+#' qd$add.sampling(seq(from = 0, to = 1, by = 1/24))
+#' qd$add.sampling(seq(from = 1, to = 5, by = 12/24))
+#' #
+#' #print(qd$get.dosing())     # table of dosing records
+#' print(qd$get.nobs())   # number of observation (not dosing) records
+#' #
+#' # BID dosing, 5 days
+#' bid <- eventTable("mg", "days")  # only dosing
+#' bid$add.dosing(dose=10000, nbr.doses=2*5,
+#'                dosing.interval = 12, do.sampling=FALSE)
+#' #
+#' # Use the copy() method to create a copy (clone) of an existing
+#' # event table (simple assignments just create a new reference to
+#' # the same event table object (closure)).
+#' #
+#' bid.ext <- bid$copy()      # three-day extension for a 2nd cohort
+#' bid.ext$add.dosing(dose = 5000, nbr.doses = 2*3,
+#'                    start.time = 120, dosing.interval = 12, do.sampling = FALSE)
+#'
+#' # You can also use the Piping operator to create a table
+#'
+#' qd2 <- eventTable(amount.units="mg", time.units="days") %>%
+#'     add.dosing(dose=50, nbr.doses=5, dosing.interval=1, do.sampling=FALSE) %>%
+#'     add.sampling(seq(from=0, to=1, by=1 / 24)) %>%
+#'     add.sampling(seq(from=1, to=5, by=12 / 24))
+#' #print(qd2$get.dosing())     # table of dosing records
+#' print(qd2$get.nobs())   # number of observation (not dosing) records
+#'
+#' # Note that piping with %>% will update the original table.
+#'
+#' qd3 <- qd2 %>% add.sampling(seq(from=5, to=10, by=6 / 24))
+#' print(qd2$get.nobs())
+#' print(qd3$get.nobs())
+#'
+#' @keywords models data
+#' @concept ordinary differential equations
+#' @concept Nonlinear regression
+#' @concept Pharmacokinetics (PK)
+#' @concept Pharmacodynamics (PD)
+#' @export
 eventTable <- function(amount.units = NA, time.units = NA) {
   .lst <- list()
   if (!missing(amount.units)) {
@@ -955,60 +955,60 @@ eventTable <- function(amount.units = NA, time.units = NA) {
 }
 # nolint end
 
-##' Sequence of event tables
-##'
-##' This combines a sequence of event tables.
-##'
-##' @param ... The event tables and optionally time between event
-##'     tables, called waiting times in this help document.
-##'
-##' @param samples How to handle samples when repeating an event
-##'     table.  The options are:
-##' \itemize{
-##'
-##' \item{"clear"} Clear
-##'     sampling records before combining the datasets
-##'
-##' \item{"use"}
-##'     Use the sampling records when combining the datasets
-##'
-##' }
-##'
-##' @param waitII This determines how waiting times between events are
-##'     handled. The options are:
-##'
-##' \itemize{
-##'
-##' \item \code{"smart"} This "smart" handling of waiting times is the
-##' default option.  In this case, if the waiting time is above the
-##' last observed inter-dose interval in the first combined event
-##' table, then the actual time between doses is given by the wait
-##' time.  If it is smaller than the last observed inter-dose
-##' interval, the time between event tables is given by the inter-dose
-##' interval + the waiting time between event tables.
-##'
-##' \item \code{"+ii"} In this case, the wait time is added to the
-##' inter-dose interval no matter the length of the wait time or
-##' inter-dose interval
-##'
-##' }
-##' @param ii If there was no inter-dose intervals found in the event
-##'     table, assume that the interdose interval is given by this
-##'     \code{ii} value.  By default this is \code{24}.
-##'
-##' @details
-##'
-##' This \code{seq}uences all the event tables in added in the
-##' argument list \code{...}.  By default when combining the event
-##' tables the offset is at least by the last inter-dose interval in
-##' the prior event table (or \code{ii}).  If you separate any of the
-##' event tables by a number, the event tables will be separated at
-##' least the wait time defined by that number or the last inter-dose
-##' interval.
-##'
-##' @template etExamples
-##'
-##' @export
+#' Sequence of event tables
+#'
+#' This combines a sequence of event tables.
+#'
+#' @param ... The event tables and optionally time between event
+#'     tables, called waiting times in this help document.
+#'
+#' @param samples How to handle samples when repeating an event
+#'     table.  The options are:
+#' \itemize{
+#'
+#' \item{"clear"} Clear
+#'     sampling records before combining the datasets
+#'
+#' \item{"use"}
+#'     Use the sampling records when combining the datasets
+#'
+#' }
+#'
+#' @param waitII This determines how waiting times between events are
+#'     handled. The options are:
+#'
+#' \itemize{
+#'
+#' \item \code{"smart"} This "smart" handling of waiting times is the
+#' default option.  In this case, if the waiting time is above the
+#' last observed inter-dose interval in the first combined event
+#' table, then the actual time between doses is given by the wait
+#' time.  If it is smaller than the last observed inter-dose
+#' interval, the time between event tables is given by the inter-dose
+#' interval + the waiting time between event tables.
+#'
+#' \item \code{"+ii"} In this case, the wait time is added to the
+#' inter-dose interval no matter the length of the wait time or
+#' inter-dose interval
+#'
+#' }
+#' @param ii If there was no inter-dose intervals found in the event
+#'     table, assume that the interdose interval is given by this
+#'     \code{ii} value.  By default this is \code{24}.
+#'
+#' @details
+#'
+#' This \code{seq}uences all the event tables in added in the
+#' argument list \code{...}.  By default when combining the event
+#' tables the offset is at least by the last inter-dose interval in
+#' the prior event table (or \code{ii}).  If you separate any of the
+#' event tables by a number, the event tables will be separated at
+#' least the wait time defined by that number or the last inter-dose
+#' interval.
+#'
+#' @template etExamples
+#'
+#' @export
 etSeq <- function(..., samples = c("clear", "use"), waitII = c("smart", "+ii"), ii = 24) {
   ## etSeq_(List ets, bool clearSampling=clearSampling);
   .sampleIx <- c(clear = 0L, use = 1L)
@@ -1019,30 +1019,30 @@ etSeq <- function(..., samples = c("clear", "use"), waitII = c("smart", "+ii"), 
     0L, TRUE, character(0), logical(0), FALSE
   ))
 }
-##' Combining event tables
-##'
-##' @inheritParams etSeq
-##' @param id This is how rbind will handle IDs.  There are two different types of options:
-##' \itemize{
-##'
-##' \item{merge} with \code{id="merge"}, the IDs are merged together,
-##' overlapping IDs would be merged into a single event table.
-##'
-##' \item{unique} with \code{id="unique"}, the IDs will be renumbered
-##' so that the IDs in all the event tables are not overlapping.
-##'
-##' }
-##' @param
-##' deparse.level The \code{deparse.level} of a traditional
-##'     \code{rbind} is ignored.
-##'
-##' @author Matthew L Fidler
-##'
-##' @return An event table
-##'
-##' @template etExamples
-##'
-##' @export
+#' Combining event tables
+#'
+#' @inheritParams etSeq
+#' @param id This is how rbind will handle IDs.  There are two different types of options:
+#' \itemize{
+#'
+#' \item{merge} with \code{id="merge"}, the IDs are merged together,
+#' overlapping IDs would be merged into a single event table.
+#'
+#' \item{unique} with \code{id="unique"}, the IDs will be renumbered
+#' so that the IDs in all the event tables are not overlapping.
+#'
+#' }
+#' @param
+#' deparse.level The \code{deparse.level} of a traditional
+#'     \code{rbind} is ignored.
+#'
+#' @author Matthew L Fidler
+#'
+#' @return An event table
+#'
+#' @template etExamples
+#'
+#' @export
 etRbind <- function(..., samples = c("use", "clear"), waitII = c("smart", "+ii"),
                     id = c("merge", "unique")) {
   .sampleIx <- c(clear = 0L, use = 1L)
@@ -1056,40 +1056,40 @@ etRbind <- function(..., samples = c("use", "clear"), waitII = c("smart", "+ii")
   ))
 }
 
-##' @rdname etRbind
-##' @export
+#' @rdname etRbind
+#' @export
 rbind.rxEt <- function(..., deparse.level = 1) {
   if (!missing(deparse.level)) warning("'deparse.level' not used with RxODE event tables", call. = FALSE)
   do.call(etRbind, list(...))
 }
 
-##' @rdname etSeq
-##' @export
+#' @rdname etSeq
+#' @export
 seq.rxEt <- function(...) {
   do.call(etSeq, list(...))
 }
 
-##' @export
+#' @export
 c.rxEt <- function(...) {
   do.call(etSeq, list(...))
 }
 
-##' Repeat an RxODE event table
-##'
-##' @param x An RxODE event table
-##' @param times Number of times to repeat the event table
-##' @param length.out Invalid with RxODE event tables, will throw an
-##'     error if used.
-##' @param each Invalid with RxODE event tables, will throw an error
-##'     if used.
-##' @param n The number of times to repeat the event table.  Overrides
-##'     \code{times}.
-##' @param wait Waiting time between each repeated event table.  By
-##'     default there is no waiting, or wait=0
-##' @inheritParams et
-##' @inheritParams etSeq
-##' @template etExamples
-##' @export
+#' Repeat an RxODE event table
+#'
+#' @param x An RxODE event table
+#' @param times Number of times to repeat the event table
+#' @param length.out Invalid with RxODE event tables, will throw an
+#'     error if used.
+#' @param each Invalid with RxODE event tables, will throw an error
+#'     if used.
+#' @param n The number of times to repeat the event table.  Overrides
+#'     \code{times}.
+#' @param wait Waiting time between each repeated event table.  By
+#'     default there is no waiting, or wait=0
+#' @inheritParams et
+#' @inheritParams etSeq
+#' @template etExamples
+#' @export
 etRep <- function(x, times = 1, length.out = NA, each = NA, n = NULL, wait = 0, id = integer(0),
                   samples = c("clear", "use"),
                   waitII = c("smart", "+ii"), ii = 24) {
@@ -1107,27 +1107,27 @@ etRep <- function(x, times = 1, length.out = NA, each = NA, n = NULL, wait = 0, 
   ))
 }
 
-##' @rdname etRep
-##' @export
+#' @rdname etRep
+#' @export
 rep.rxEt <- function(x, ...) {
   do.call(etRep, list(x = x, ...))
 }
-##' Coerce object to data.frame
-##'
-##' @param x Object to coerce to et.
-##' @param ... Other parameters
-##' @export
+#' Coerce object to data.frame
+#'
+#' @param x Object to coerce to et.
+#' @param ... Other parameters
+#' @export
 as.et <- function(x, ...) {
   UseMethod("as.et")
 }
-##' @rdname as.et
-##' @export
+#' @rdname as.et
+#' @export
 as.et.default <- function(x, ...) {
   .e <- et()
   .e$import.EventTable(as.data.frame(x))
   return(.e)
 }
-##' @export
+#' @export
 as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...) {
   if (rxIs(x, "rxEt")) {
     .x <- x
@@ -1140,26 +1140,26 @@ as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...) {
 }
 
 .datatable.aware <- TRUE
-##' Convert an event table to a data.table
-##'
-##' @inheritParams data.table::as.data.table
-##'
-##' @export as.data.table.rxEt
+#' Convert an event table to a data.table
+#'
+#' @inheritParams data.table::as.data.table
+#'
+#' @export as.data.table.rxEt
 as.data.table.rxEt <- function(x, keep.rownames = FALSE, ...) {
   rxReq("data.table")
   return(data.table::as.data.table(as.data.frame.rxEt(x, ...), keep.rownames = keep.rownames, ...))
 }
 
-##' Convert to tbl
-##'
-##' @param x RxODE event table
-##'
-##' @param ... Other arguments to \code{as_tibble}
-##'
-##' @return tibble of event table
-##'
-##' @export as_tibble.rxEt
-##'@export as_tibble.rxEt
+#' Convert to tbl
+#'
+#' @param x RxODE event table
+#'
+#' @param ... Other arguments to \code{as_tibble}
+#'
+#' @return tibble of event table
+#'
+#' @export as_tibble.rxEt
+#'@export as_tibble.rxEt
 as_tibble.rxEt <- function(x, ...) {
   rxReq("tibble")
   if (rxIs(x, "rxEt")) {
@@ -1173,71 +1173,71 @@ as_tibble.rxEt <- function(x, ...) {
   }
 }
 
-##' Check to see if this is an rxEt object.
-##'
-##' @param x object to check to see if it is rxEt
-##'
-##' If this is an rxEt object that has expired strip all rxEt
-##' information.
-##'
-##' @author Matthew L.Fidler
-##' @export
+#' Check to see if this is an rxEt object.
+#'
+#' @param x object to check to see if it is rxEt
+#'
+#' If this is an rxEt object that has expired strip all rxEt
+#' information.
+#'
+#' @author Matthew L.Fidler
+#' @export
 is.rxEt <- function(x) {
   .Call(`_RxODE_rxIs`, x, "rxEt")
 }
-##' Expand additional doses
-##'
-##' @param et Event table to expand additional doses for.
-##' @return New event table with `addl` doses expanded
-##' @author Matthew Fidler
-##' @examples
-##' ev <- et(amt=3,ii=24,until=240);
-##' print(ev)
-##' etExpand(ev) # expands event table, but doesn't modify it
-##'
-##' print(ev)
-##'
-##' ev$expand() ## Expands the current event table and saves it in ev
-##' @export
+#' Expand additional doses
+#'
+#' @param et Event table to expand additional doses for.
+#' @return New event table with `addl` doses expanded
+#' @author Matthew Fidler
+#' @examples
+#' ev <- et(amt=3,ii=24,until=240);
+#' print(ev)
+#' etExpand(ev) # expands event table, but doesn't modify it
+#'
+#' print(ev)
+#'
+#' ev$expand() ## Expands the current event table and saves it in ev
+#' @export
 etExpand <- function(et) {
   .Call(`_RxODE_et_`, list(expand = TRUE), et)
 }
 
-##' @importFrom magrittr %>%
-##' @export
+#' @importFrom magrittr %>%
+#' @export
 magrittr::`%>%`
 
-##' EVID formatting for tibble and other places.
-##'
-##' This is to make an EVID more readable by non
-##' pharmacometricians. It displays what each means and allows it to
-##' be displayed in a tibble.
-##'
-##' @param x Item to be converted to a RxODE EVID specification.
-##'
-##' @param ... Other parameters
-##'
-##' @examples
-##'
-##' rxEvid(1:7)
-##'
-##' @export
+#' EVID formatting for tibble and other places.
+#'
+#' This is to make an EVID more readable by non
+#' pharmacometricians. It displays what each means and allows it to
+#' be displayed in a tibble.
+#'
+#' @param x Item to be converted to a RxODE EVID specification.
+#'
+#' @param ... Other parameters
+#'
+#' @examples
+#'
+#' rxEvid(1:7)
+#'
+#' @export
 rxEvid <- function(x) {
   return(structure(x, class = "rxEvid"))
 }
 
-##' @rdname rxEvid
-##' @export
+#' @rdname rxEvid
+#' @export
 as.rxEvid <- rxEvid
 
-##' @rdname rxEvid
-##' @export
+#' @rdname rxEvid
+#' @export
 c.rxEvid <- function(x, ...) {
   return(as.rxEvid(NextMethod()))
 }
 
-##' @rdname rxEvid
-##' @export
+#' @rdname rxEvid
+#' @export
 `[.rxEvid` <- function(x, ...) {
   return(as.rxEvid(NextMethod()))
 }
@@ -1262,8 +1262,8 @@ c.rxEvid <- function(x, ...) {
   return(format(.x, justify = "left"))
 }
 
-##' @rdname rxEvid
-##' @export
+#' @rdname rxEvid
+#' @export
 as.character.rxEvid <- function(x, ...) {
   .x <- unclass(x)
   .x <-
@@ -1287,68 +1287,68 @@ as.character.rxEvid <- function(x, ...) {
 
 
 
-##' @rdname rxEvid
-##' @export
+#' @rdname rxEvid
+#' @export
 `[[.rxEvid` <- function(x, ...) {
   as.rxEvid(NextMethod())
 }
 
-##' @export
+#' @export
 `units<-.rxEvid` <- function(x, value) {
   stop("'evid' is unitless", call. = FALSE)
 }
 
 
-##' @export
+#' @export
 `[<-.rxEvid` <- function(x, i, value) {
   as.rxEvid(NextMethod())
 }
 
-##' @rdname rxEvid
-##' @export type_sum.rxEvid
+#' @rdname rxEvid
+#' @export type_sum.rxEvid
 type_sum.rxEvid <- function(x) {
   "evid"
 }
 
-##' @rdname rxEvid
-##' @export pillar_shaft.rxEvid
+#' @rdname rxEvid
+#' @export pillar_shaft.rxEvid
 pillar_shaft.rxEvid <- function(x, ...) {
   .x <- .colorFmt.rxEvid(x)
   pillar::new_pillar_shaft_simple(.x)
 }
 
-##' @export
+#' @export
 as.data.frame.rxEvid <- base::as.data.frame.difftime
 
-##' Creates a rxRateDur object
-##'
-##' This is primarily to display information about rate
-##'
-##' @param x rxRateDur data
-##' @param ... Other parameters
-##'
-##' @export
+#' Creates a rxRateDur object
+#'
+#' This is primarily to display information about rate
+#'
+#' @param x rxRateDur data
+#' @param ... Other parameters
+#'
+#' @export
 rxRateDur <- function(x) {
   return(structure(x, class = "rxRateDur"))
 }
 
-##' @rdname rxRateDur
-##' @export
+#' @rdname rxRateDur
+#' @export
 `[.rxRateDur` <- function(x, ...) {
   return(as.rxRateDur(NextMethod()))
 }
 
-##' @rdname rxRateDur
-##' @export
+#' @rdname rxRateDur
+#' @export
 as.rxRateDur <- rxRateDur
-##' @rdname rxEvid
-##' @export
+#' @rdname rxEvid
+#' @export
 c.rxRateDur <- function(x, ...) {
   return(as.rxRateDur(NextMethod()))
 }
 
-##' @rdname rxRateDur
-##' @export
+#' @rdname rxRateDur
+#' @export
 as.character.rxRateDur <- function(x, ...) {
   .x <- unclass(x)
   .x <-
@@ -1387,19 +1387,19 @@ as.character.rxRateDur <- function(x, ...) {
   return(.x)
 }
 
-##' @rdname rxRateDur
-##' @export
+#' @rdname rxRateDur
+#' @export
 `[[.rxRateDur` <- function(x, ...) {
   as.rxRateDur(NextMethod())
 }
 
-##' @export
+#' @export
 `[<-.rxRateDur` <- function(x, i, value) {
   as.rxRateDur(NextMethod())
 }
 
-##' @rdname rxRateDur
-##' @export type_sum.rxRateDur
+#' @rdname rxRateDur
+#' @export type_sum.rxRateDur
 type_sum.rxRateDur <- function(x) {
   .unit <- attr(x, "units")
   if (!is.null(.unit)) {
@@ -1411,8 +1411,8 @@ type_sum.rxRateDur <- function(x) {
   }
 }
 
-##' @rdname rxRateDur
-##' @export pillar_shaft.rxRateDur
+#' @rdname rxRateDur
+#' @export pillar_shaft.rxRateDur
 pillar_shaft.rxRateDur <- function(x, ...) {
   .x <- .colorFmt.rxRateDur(x)
   pillar::new_pillar_shaft_simple(.x, align = "left", width = 10)

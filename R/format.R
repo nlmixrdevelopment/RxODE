@@ -1,12 +1,12 @@
-##' @rdname rxEvid
-##' @export
+#' @rdname rxEvid
+#' @export
 format.rxEvid <- function(x, ...) {
   .x <- unclass(x)
   format(as.character.rxEvid(.x), align = "left", width = 12)
 }
 
-##' @rdname rxEvid
-##' @export
+#' @rdname rxEvid
+#' @export
 format.rxRateDur <- function(x, ...) {
   .x <- unclass(x)
   format(as.character.rxRateDur(.x), align = "left")
@@ -18,14 +18,14 @@ format.rxRateDur <- function(x, ...) {
     crayon::bold$blue(paste0("$", access)), "):"
   )
 }
-##' @export
+#' @export
 format.boundParams <- function(x, ...) {
   cli::cli_format_method({
     cli::cli_rule(left = .fmt3("Parameters", x, "params"))
   })
 }
 
-##' @export
+#' @export
 format.boundInits <- function(x, ...) {
   cli::cli_format_method({
     cli::cli_rule(left = .fmt3("Initial Conditions", x, "inits"))
@@ -33,7 +33,7 @@ format.boundInits <- function(x, ...) {
 }
 
 
-##' @export
+#' @export
 format.rxSolveSimType <- function(x, ...) {
   .args <- as.list(match.call(expand.dots = TRUE))
   if (any(names(.args) == "bound")) {

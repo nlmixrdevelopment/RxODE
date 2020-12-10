@@ -1,28 +1,28 @@
-##' Parameters specified by the model
-##'
-##' This returns the model's parameters that are required to solve the
-##' ODE system, and can be used to pipe parameters into an RxODE solve
-##'
-##' @inheritParams rxModelVars
-##'
-##' @param constants is a boolean indicting if constants should be
-##'     included in the list of parameters. Currently RxODE parses
-##'     constants into variables in case you wish to change them
-##'     without recompiling the RxODE model.
-##'
-##' @inheritParams rxControl
-##'
-##' @return When extracting the parameters from an RxODE model, a
-##'     character vector listing the parameters in the model.
-##'
-##' @author Matthew L.Fidler
-##' @export
+#' Parameters specified by the model
+#'
+#' This returns the model's parameters that are required to solve the
+#' ODE system, and can be used to pipe parameters into an RxODE solve
+#'
+#' @inheritParams rxModelVars
+#'
+#' @param constants is a boolean indicting if constants should be
+#'     included in the list of parameters. Currently RxODE parses
+#'     constants into variables in case you wish to change them
+#'     without recompiling the RxODE model.
+#'
+#' @inheritParams rxControl
+#'
+#' @return When extracting the parameters from an RxODE model, a
+#'     character vector listing the parameters in the model.
+#'
+#' @author Matthew L.Fidler
+#' @export
 rxParams <- function(obj, ...) {
   UseMethod("rxParams")
 }
 
-##' @rdname rxParams
-##' @export
+#' @rdname rxParams
+#' @export
 rxParams.RxODE <- function(obj, constants = TRUE, ...,
                            params = NULL, inits = NULL, iCov = NULL,
                            keep = NULL,
@@ -76,8 +76,8 @@ rxParams.RxODE <- function(obj, constants = TRUE, ...,
   }
 }
 
-##' @rdname rxParams
-##' @export
+#' @rdname rxParams
+#' @export
 rxParams.rxSolve <- function(obj, constants = TRUE, ...,
                              params = NULL, inits = NULL, iCov = NULL,
                              keep = NULL,
@@ -140,8 +140,8 @@ rxParams.rxSolve <- function(obj, constants = TRUE, ...,
   }
 }
 
-##' @rdname rxParams
-##' @export
+#' @rdname rxParams
+#' @export
 rxParams.rxEt <- function(obj, ...,
                           params = NULL, inits = NULL, iCov = NULL,
                           keep = NULL,
@@ -176,7 +176,7 @@ rxParams.rxEt <- function(obj, ...,
   }
   return(.ret)
 }
-##' @export
+#' @export
 rxParams.default <- function(obj, ..., constants = TRUE) {
   if (!missing(obj)) {
     return(.rxParams(obj, constants))
@@ -196,6 +196,6 @@ rxParams.default <- function(obj, ..., constants = TRUE) {
   }
 }
 
-##' @rdname rxParams
-##' @export
+#' @rdname rxParams
+#' @export
 rxParam <- rxParams

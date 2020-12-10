@@ -1,38 +1,38 @@
-##' Print expanded information about the RxODE object.
-##'
-##' This prints the expanded information about the RxODE object.
-##'
-##' @param object RxODE object
-##' @param ... Ignored parameters
-##' @author Matthew L.Fidler
-##' @export
+#' Print expanded information about the RxODE object.
+#'
+#' This prints the expanded information about the RxODE object.
+#'
+#' @param object RxODE object
+#' @param ... Ignored parameters
+#' @author Matthew L.Fidler
+#' @export
 summary.RxODE <- function(object, ...) {
   print.RxODE(object, rxSuppress = TRUE)
   summary.rxDll(object$cmpMgr$rxDll(), noprint = TRUE)
   invisible(object)
 }
 
-##' @export
+#' @export
 summary.rxC <- function(object, ...) {
   cat(sprintf("//C file: %s\n", object))
   cat("//\n")
   suppressWarnings(cat(paste0(paste(readLines(object), collapse = "\n"), "\n")))
 }
 
-##' Summary of rxDll object
-##'
-##' This gives expanded information about the rxDll object
-##'
-##' @param object RxDll object
-##'
-##' @param ... Other arguments.  Includes \code{noprint}, which is a
-##'     logical telling if the object should print the rxDll object
-##'     first. By default this is FALSE
-##'
-##'
-##' @keywords internal
-##' @author Matthew L.Fidler
-##' @export
+#' Summary of rxDll object
+#'
+#' This gives expanded information about the rxDll object
+#'
+#' @param object RxDll object
+#'
+#' @param ... Other arguments.  Includes \code{noprint}, which is a
+#'     logical telling if the object should print the rxDll object
+#'     first. By default this is FALSE
+#'
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
 summary.rxDll <- function(object, ...) {
   .args <- as.list(match.call(expand.dots = TRUE))
   if (any(names(.args) == "noprint")) {
@@ -73,8 +73,8 @@ summary.rxDll <- function(object, ...) {
 }
 
 
-##' @author Matthew L.Fidler
-##' @export
+#' @author Matthew L.Fidler
+#' @export
 summary.rxSolve <- function(object, ...) {
   if (rxIs(object, "rxSolve")) {
     cat(cli::cli_format_method({

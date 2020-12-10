@@ -87,10 +87,10 @@
 .cacheIsTemp <- TRUE
 .rxTempDir0 <- NULL
 .cacheDefault <- NULL
-##' Get the RxODE temporary directory
-##'
-##' @return RxODE temporary directory.
-##' @export
+#' Get the RxODE temporary directory
+#'
+#' @return RxODE temporary directory.
+#' @export
 rxTempDir <- function() {
   if (is.null(getFromNamespace(".rxTempDir0", "RxODE"))) {
     .tmp <- Sys.getenv("rxTempDir")
@@ -123,16 +123,16 @@ rxTempDir <- function() {
     return(.tmp)
   }
 }
-##' This will create the cache directory for RxODE to save between sessions
-##'
-##' When run, if the `R_user_dir` for RxODE's cache isn't present,
-##' create the cache
-##'
-##' @return nothing
-##'
-##' @author Matthew Fidler
-##'
-##' @export
+#' This will create the cache directory for RxODE to save between sessions
+#'
+#' When run, if the `R_user_dir` for RxODE's cache isn't present,
+#' create the cache
+#'
+#' @return nothing
+#'
+#' @author Matthew Fidler
+#'
+#' @export
 rxCreateCache <- function() {
   .tmp <- R_user_dir("RxODE", "cache")
   assignInMyNamespace(".cacheDefault", R_user_dir("RxODE", "cache"))
@@ -145,11 +145,11 @@ rxCreateCache <- function() {
 }
 
 
-##' Clear memoise cache for RxODE
-##'
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
+#' Clear memoise cache for RxODE
+#'
+#' @author Matthew L. Fidler
+#' @keywords internal
+#' @export
 rxForget <- function() {
   for (fn in ls(envir = getNamespace("RxODE"))) {
     if (memoise::is.memoised(getFromNamespace(fn, "RxODE"))) {
@@ -207,23 +207,23 @@ RxODE.unload.unused <- NULL
   return(regexpr("/tests/testthat/", getwd(), fixed = TRUE) != -1) # nolint
 }
 
-##' Permissive or Strict RxODE syntax options
-##'
-##' This sets the RxODE syntax to be permissive or strict
-##'
-##' @param expr Expression to evaluate in the permissive/strict
-##'     environment.  If unspecified, set the options for the current
-##'     environment.
-##' @param respect when TRUE, respect any options that are specified.
-##'     This is called at startup, but really should not be called
-##'     elsewhere, otherwise the options are not changed.
-##' @param silent when true, also silence the syntax errors and
-##'     interactive output (useful in testing).
-##' @param test When specified as a string, the enclosed test is
-##'     skipped unless the environmental variable "NOT_CRAN" equals this
-##'     value. Special values are "cran" which means test on CRAN
-##' @author Matthew L. Fidler
-##' @export
+#' Permissive or Strict RxODE syntax options
+#'
+#' This sets the RxODE syntax to be permissive or strict
+#'
+#' @param expr Expression to evaluate in the permissive/strict
+#'     environment.  If unspecified, set the options for the current
+#'     environment.
+#' @param respect when TRUE, respect any options that are specified.
+#'     This is called at startup, but really should not be called
+#'     elsewhere, otherwise the options are not changed.
+#' @param silent when true, also silence the syntax errors and
+#'     interactive output (useful in testing).
+#' @param test When specified as a string, the enclosed test is
+#'     skipped unless the environmental variable "NOT_CRAN" equals this
+#'     value. Special values are "cran" which means test on CRAN
+#' @author Matthew L. Fidler
+#' @export
 rxPermissive <- function(expr, silent = .isTestthat(),
                          respect = FALSE,
                          test = "cran") {
@@ -231,8 +231,8 @@ rxPermissive <- function(expr, silent = .isTestthat(),
   args$op.rx <- 2
   do.call(getFromNamespace("rxOptions", "RxODE"), args, envir = parent.frame(1))
 }
-##' @rdname rxPermissive
-##' @export
+#' @rdname rxPermissive
+#' @export
 rxStrict <- function(expr, silent = .isTestthat(), respect = FALSE) {
   ## nocov start
   args <- as.list(match.call())[-1]
@@ -241,34 +241,34 @@ rxStrict <- function(expr, silent = .isTestthat(), respect = FALSE) {
   ## nocov end
 }
 
-##' Respect suppress messages
-##'
-##' This turns on the silent REprintf in C when `suppressMessages()` is
-##' turned on. This makes the `REprintf` act like `messages` in R,
-##' they can be suppressed with `suppressMessages()`
-##'
-##' @return Nothing
-##' @author Matthew Fidler
-##' @export
-##' @examples
-##'
-##' # rxSupressMsg() is called with RxODE()
-##'
-##' # Note the errors are output to the console
-##'
-##' try(RxODE("d/dt(matt)=/3"),silent=TRUE)
-##'
-##' # When using suppressMessages, the output is suppressed
-##'
-##' suppressMessages(try(RxODE("d/dt(matt)=/3"),silent=TRUE))
-##'
-##' # In RxODE, we use REprintf so that interrupted threads do not crash R
-##' # if there is a user interrupt. This isn't captured by R's messages, but
-##' # This interface allows the `suppressMessages()` to suppress the C printing
-##' # as well
-##'
-##' # If you  want to suppress messages from RxODE in other packages, you can use
-##' # this function
+#' Respect suppress messages
+#'
+#' This turns on the silent REprintf in C when `suppressMessages()` is
+#' turned on. This makes the `REprintf` act like `messages` in R,
+#' they can be suppressed with `suppressMessages()`
+#'
+#' @return Nothing
+#' @author Matthew Fidler
+#' @export
+#' @examples
+#'
+#' # rxSupressMsg() is called with RxODE()
+#'
+#' # Note the errors are output to the console
+#'
+#' try(RxODE("d/dt(matt)=/3"),silent=TRUE)
+#'
+#' # When using suppressMessages, the output is suppressed
+#'
+#' suppressMessages(try(RxODE("d/dt(matt)=/3"),silent=TRUE))
+#'
+#' # In RxODE, we use REprintf so that interrupted threads do not crash R
+#' # if there is a user interrupt. This isn't captured by R's messages, but
+#' # This interface allows the `suppressMessages()` to suppress the C printing
+#' # as well
+#'
+#' # If you  want to suppress messages from RxODE in other packages, you can use
+#' # this function
 rxSuppressMsg <- function() {
   if (requireNamespace("knitr", quietly = TRUE)) {
     if (!is.null(knitr::opts_knit$get('rmarkdown.pandoc.to'))) {
@@ -281,19 +281,19 @@ rxSuppressMsg <- function() {
   }
   invisible(NULL)
 }
-##' Options for RxODE
-##'
-##' This is a backend for \code{rxPermissive} (with
-##' \code{op.rx} = \code{2}) and \code{rxStrict} (with
-##' \code{op.rx} =\code{1})
-##'
-##' When \code{expr} is missing and \code{op.rx} is NULL, this
-##' displays the current RxODE options.
-##'
-##' @inheritParams rxPermissive
-##' @param op.rx A numeric for strict (1) or permissive (2) syntax.
-##' @author Matthew L. Fidler
-##' @export
+#' Options for RxODE
+#'
+#' This is a backend for \code{rxPermissive} (with
+#' \code{op.rx} = \code{2}) and \code{rxStrict} (with
+#' \code{op.rx} =\code{1})
+#'
+#' When \code{expr} is missing and \code{op.rx} is NULL, this
+#' displays the current RxODE options.
+#'
+#' @inheritParams rxPermissive
+#' @param op.rx A numeric for strict (1) or permissive (2) syntax.
+#' @author Matthew L. Fidler
+#' @export
 rxOptions <- function(expr, op.rx = NULL, silent = .isTestthat(), respect = FALSE,
                       test = "cran") {
   if (!respect) rxUnloadAll()
@@ -398,13 +398,13 @@ rxOptions <- function(expr, op.rx = NULL, silent = .isTestthat(), respect = FALS
   }
 }
 
-##' Sync options with RxODE variables
-##'
-##' Accessing RxODE options via getOption slows down solving.  This
-##' allows the options to be synced with variables.
-##'
-##' @author Matthew L. Fidler
-##' @export
+#' Sync options with RxODE variables
+#'
+#' Accessing RxODE options via getOption slows down solving.  This
+#' allows the options to be synced with variables.
+#'
+#' @author Matthew L. Fidler
+#' @export
 rxSyncOptions <- function() {
   for (var in names(rxOpt)) {
     assignInMyNamespace(var, getOption(var, rxOpt[[var]][1]))

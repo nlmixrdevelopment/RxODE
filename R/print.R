@@ -1,4 +1,4 @@
-##' @export
+#' @export
 print.rxEtTran <- function(x, ...) {
   print(as.data.frame(x))
   .cls <- class(x)
@@ -13,25 +13,25 @@ print.rxEtTran <- function(x, ...) {
   ))
 }
 
-##' @export
+#' @export
 print.rxHidden <- function(x, ...) {
   cat("\r")
 }
 
-##' @rdname rxEvid
-##' @export
+#' @rdname rxEvid
+#' @export
 print.rxEvid <- function(x, ...) {
   cat(paste(.colorFmt.rxEvid(x), collapse = "\n"), "\n")
   return(invisible(x))
 }
 
-##' @export
+#' @export
 print.rxRateDur <- function(x, ...) {
   cat(paste(.colorFmt.rxRateDur(x), collapse = "\n"), "\n")
   return(invisible(x))
 }
 
-##' @export
+#' @export
 print.rxEt <- function(x, ...) {
   if (rxIs(x, "rxEt")) {
     bound <- .getBound(x, parent.frame(2))
@@ -107,14 +107,14 @@ print.rxEt <- function(x, ...) {
   }
 }
 
-##' Print information about the RxODE object.
-##'
-##' This prints the model name and its status for being able to be solved
-##'
-##' @param x An rxode object
-##' @param ... Ignored parameters
-##' @author Matthew L.Fidler
-##' @export
+#' Print information about the RxODE object.
+#'
+#' This prints the model name and its status for being able to be solved
+#'
+#' @param x An rxode object
+#' @param ... Ignored parameters
+#' @author Matthew L.Fidler
+#' @export
 print.RxODE <- function(x, ...) {
   rxModelVars(x)
   x <- .getReal(x)
@@ -199,7 +199,7 @@ print.RxODE <- function(x, ...) {
   invisible(x)
 }
 
-##' @export
+#' @export
 print.rxModelVars <- function(x, ...) {
   .bound <- .getBound(x, parent.frame(2))
   cat("RxODE model variables (see str to see all variables)\n")
@@ -222,15 +222,15 @@ print.rxModelVars <- function(x, ...) {
   invisible(x)
 }
 
-##' Print the rxCoef object
-##'
-##' This prints out the user supplied arguments for rxCoef object
-##'
-##' @param x rxCoef object
-##'
-##' @keywords internal
-##' @author Matthew L.Fidler
-##' @export
+#' Print the rxCoef object
+#'
+#' This prints out the user supplied arguments for rxCoef object
+#'
+#' @param x rxCoef object
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
 print.rxCoef <- function(x, ...) {
   .rxDllObj <- x$RxODE
   if (length(rxParams(.rxDllObj)) > 0) {
@@ -273,19 +273,19 @@ print.rxCoef <- function(x, ...) {
   return(invisible())
 }
 
-##' @export
+#' @export
 print.rxC <- function(x, ...) {
   cat(sprintf("C file: %s  ('summary' for code)\n", getOption("RxODE.c.print", x)))
 }
 
 
-##' Print rxDll object
-##'
-##' This tells if the rxDll is loaded, ready and/or deleted.
-##'
-##' @keywords internal
-##' @author Matthew L.Fidler
-##' @export
+#' Print rxDll object
+#'
+#' This tells if the rxDll is loaded, ready and/or deleted.
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
 print.rxDll <- function(x, ...) {
   if (file.exists(x$dll)) {
     cat(sprintf("RxODE DLL named \"%s\"", getOption("RxODE.basename.print", basename(x$dll))))
@@ -302,7 +302,7 @@ print.rxDll <- function(x, ...) {
 
 
 
-##' @export
+#' @export
 print.rxSolveCovs <- function(x, ...) {
   .args <- as.list(match.call(expand.dots = TRUE))
   if (any(names(.args) == "bound")) {
@@ -313,12 +313,12 @@ print.rxSolveCovs <- function(x, ...) {
   NextMethod()
 }
 
-##' @export
+#' @export
 print.boundInits <- function(x, ...) {
   cat(format(x, ...), sep = "\n")
 }
 
-##' @export
+#' @export
 print.rxSolveInits <- function(x, ...) {
   .args <- as.list(match.call(expand.dots = TRUE))
   if (any(names(.args) == "bound")) {
@@ -332,7 +332,7 @@ print.rxSolveInits <- function(x, ...) {
   NextMethod()
 }
 
-##' @export
+#' @export
 print.rxSolveSimType <- function(x, ...) {
   if (any(names(x) == "sim.id")) {
     cat(format(x, ...), sep = "\n")
@@ -340,7 +340,7 @@ print.rxSolveSimType <- function(x, ...) {
 }
 
 
-##' @export
+#' @export
 print.rxSolve <- function(x, ...) {
   if (rxIs(x, "rxSolve")) {
     .nb <- TRUE
@@ -447,7 +447,7 @@ print.rxSolve <- function(x, ...) {
   }
 }
 
-##' @export
+#' @export
 print.rxModelText <- function(x, ...) {
   .args <- as.list(match.call(expand.dots = TRUE))
   .summary <- any(names(.args) == ".summary")
@@ -484,12 +484,12 @@ print.rxModelText <- function(x, ...) {
   }
 }
 
-##' @export
+#' @export
 print.boundParams <- function(x, ...) {
   cat(format(x, ...), sep = "\n")
 }
 
-##' @export
+#' @export
 print.rxSolveParams <- function(x, ..., n = 0L) {
   .args <- as.list(match.call(expand.dots = TRUE))
   if (any(names(.args) == "bound")) {
@@ -512,7 +512,7 @@ print.rxSolveParams <- function(x, ..., n = 0L) {
   NextMethod()
 }
 
-##' @export
+#' @export
 print.rxSymInvCholEnv <- function(x, ...) {
   if (is.null(x$theta)) {
     cat(sprintf("Uninitialized $theta, please assign (requires %s arguments)!\n", x$ntheta))

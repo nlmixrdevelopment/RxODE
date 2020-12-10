@@ -83,11 +83,11 @@
 
 .rxUseCdir <- ""
 
-##' Use model object in your package
-##' @param obj model to save.
-##' @param internal If this is run internally.  By default this is FALSE
-##' @inheritParams usethis::use_data
-##' @export
+#' Use model object in your package
+#' @param obj model to save.
+#' @param internal If this is run internally.  By default this is FALSE
+#' @inheritParams usethis::use_data
+#' @export
 rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
                   internal = FALSE) {
   rxReq("usethis")
@@ -123,21 +123,21 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
           sink(.docFile)
           .tmp <- .env[[.f2]]
           .mv <- rxModelVars(.tmp)
-          cat(sprintf("##' %s RxODE model\n", .f2))
-          cat("##'\n")
+          cat(sprintf("#' %s RxODE model\n", .f2))
+          cat("#'\n")
           cat(sprintf(
-            "##' @format An \\emph{RxODE} model with %s parameters, %s ODE states, and %s calc vars.\n",
+            "#' @format An \\emph{RxODE} model with %s parameters, %s ODE states, and %s calc vars.\n",
             length(.tmp$params), length(.tmp$state) + .mv$extraCmt, length(.tmp$lhs)
           ))
-          cat("##'\n")
-          cat(sprintf("##'\\emph{Parameters (%s$params)}\n", .f2))
-          cat("##'\n")
-          cat("##' \\describe{\n")
+          cat("#'\n")
+          cat(sprintf("#'\\emph{Parameters (%s$params)}\n", .f2))
+          cat("#'\n")
+          cat("#' \\describe{\n")
           .def <- rxInits(.tmp)
           .defs <- paste0(" (default=", .def, ")")
           .defs[is.na(.def)] <- ""
-          cat(paste(paste0("##'   \\item{", .tmp$params, "}{", .defs, "}\n"), collapse = ""))
-          cat("##'}\n")
+          cat(paste(paste0("#'   \\item{", .tmp$params, "}{", .defs, "}\n"), collapse = ""))
+          cat("#'}\n")
           .state <- .tmp$state
           ##
           if (.mv$extraCmt == 2) {
@@ -146,36 +146,36 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
             .state <- c(.state, "central")
           }
           if (length(.state) > 0) {
-            cat("##'\n")
-            cat(sprintf("##' \\emph{State %s$state}\n", .f2))
-            cat("##'\n")
-            cat("##' \\describe{\n")
-            cat(paste(paste0("##'   \\item{", .state, "}{ (=", seq_along(.state), ")}\n"), collapse = ""))
-            cat("##' }\n")
+            cat("#'\n")
+            cat(sprintf("#' \\emph{State %s$state}\n", .f2))
+            cat("#'\n")
+            cat("#' \\describe{\n")
+            cat(paste(paste0("#'   \\item{", .state, "}{ (=", seq_along(.state), ")}\n"), collapse = ""))
+            cat("#' }\n")
           }
           .lhs <- .tmp$lhs
           if (length(.lhs) > 0) {
-            cat("##'\n")
-            cat(sprintf("##' \\emph{Calculated Variables %s$lhs}\n", .f2))
-            cat("##'\n")
-            cat("##' \\describe{\n")
-            cat(paste(paste0("##'   \\item{", .lhs, "}{}\n"), collapse = ""))
-            cat("##' }\n")
+            cat("#'\n")
+            cat(sprintf("#' \\emph{Calculated Variables %s$lhs}\n", .f2))
+            cat("#'\n")
+            cat("#' \\describe{\n")
+            cat(paste(paste0("#'   \\item{", .lhs, "}{}\n"), collapse = ""))
+            cat("#' }\n")
           }
-          cat("##'\n")
-          cat(sprintf("##' \\emph{Model Code}\n",.f2))
-          cat("##'\n")
+          cat("#'\n")
+          cat(sprintf("#' \\emph{Model Code}\n",.f2))
+          cat("#'\n")
           .code  <- deparse(body(eval(parse(text=paste("function(){",.norm2(.tmp),"}")))))
           .code[1]  <- "RxODE({"
           .code[length(.code)]  <- "})";
-          cat(paste(paste0("##' ",.code,"\n"),collapse=""));
-          cat("##'\n")
-          cat(paste(paste0("##' @seealso \\code{\\link[RxODE]{eventTable}}, \\code{\\link[RxODE]{et}}, \\code{\\link[RxODE]{rxSolve}}, \\code{\\link[RxODE]{RxODE}}\n")))
-          cat("##' \n")
-          cat("##' @examples\n")
-          cat("##' ## Showing the model code\n")
-          cat(sprintf("##' summary(%s)\n", .f2))
-          cat("##'\n")
+          cat(paste(paste0("#' ",.code,"\n"),collapse=""));
+          cat("#'\n")
+          cat(paste(paste0("#' @seealso \\code{\\link[RxODE]{eventTable}}, \\code{\\link[RxODE]{et}}, \\code{\\link[RxODE]{rxSolve}}, \\code{\\link[RxODE]{RxODE}}\n")))
+          cat("#' \n")
+          cat("#' @examples\n")
+          cat("#' ## Showing the model code\n")
+          cat(sprintf("#' summary(%s)\n", .f2))
+          cat("#'\n")
           cat(sprintf('"%s"\n', .f2))
           sink()
         }
@@ -270,17 +270,17 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
   }
 }
 
-##' Creates a package from compiled RxODE models
-##'
-##' @param ... Models to build a package from
-##' @param package String of the package name to create
-##' @param action Type of action to take after package is created
-##' @param name Full name of author
-##' @param license is the type of license for the package.
-##' @inheritParams usethis::create_package
-##' @inheritParams RxODE
-##' @author Matthew Fidler
-##' @export
+#' Creates a package from compiled RxODE models
+#'
+#' @param ... Models to build a package from
+#' @param package String of the package name to create
+#' @param action Type of action to take after package is created
+#' @param name Full name of author
+#' @param license is the type of license for the package.
+#' @inheritParams usethis::create_package
+#' @inheritParams RxODE
+#' @author Matthew Fidler
+#' @export
 rxPkg <- function(..., package,
                   wd=getwd(),
                   action=c("install", "build", "binary", "create"),
@@ -346,8 +346,8 @@ rxPkg <- function(..., package,
   .w <- which(regexpr("@useDynLib", .f) != -1)
 
   if (length(.w) == 0) {
-    .f <- c(paste0("##' @useDynLib ", package,", .registration=TRUE"),
-            "##' @import RxODE",
+    .f <- c(paste0("#' @useDynLib ", package,", .registration=TRUE"),
+            "#' @import RxODE",
             .f)
     writeLines(.f, .p)
   }

@@ -116,25 +116,25 @@ regIni <- rex::rex(or(
   group(one_of("_."), "0"),
   "0", "(0)", "[0]", "{0}"
 ), end)
-##' Expand if/else clauses into mutiple different types of lines.
-##'
-##'
-##' @param model Model can be a character, or a RxODE model.  It needs
-##'     to have normalized syntax, that is \code{if (...)\{} has to be
-##'     on the same line.  The \code{else} statement must be on its
-##'     own line with the closing bracket of the \code{if} statement
-##'     on the previous line.  This \code{else} statment must also
-##'     contain the opening bracket, like the code \code{else \{}
-##' @param removeInis A boolean indicating if parameter
-##'     initializations should be removed from the model.
-##' @param removePrint A boolean indicating if printing statements
-##'     should be removed from the model.
-##' @return A named character vector. The names of the vector are the
-##'     logical conditions, the values are the lines that satisfy the
-##'     logical conditions.
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
+#' Expand if/else clauses into mutiple different types of lines.
+#'
+#'
+#' @param model Model can be a character, or a RxODE model.  It needs
+#'     to have normalized syntax, that is \code{if (...)\{} has to be
+#'     on the same line.  The \code{else} statement must be on its
+#'     own line with the closing bracket of the \code{if} statement
+#'     on the previous line.  This \code{else} statment must also
+#'     contain the opening bracket, like the code \code{else \{}
+#' @param removeInis A boolean indicating if parameter
+#'     initializations should be removed from the model.
+#' @param removePrint A boolean indicating if printing statements
+#'     should be removed from the model.
+#' @return A named character vector. The names of the vector are the
+#'     logical conditions, the values are the lines that satisfy the
+#'     logical conditions.
+#' @author Matthew L. Fidler
+#' @keywords internal
+#' @export
 rxExpandIfElse <- function(model, removeInis = TRUE, removePrint = TRUE) {
   ## expand if/else blocks into a list with lines for conditions that are true
   x <- strsplit(rxNorm(model, FALSE), "\n")[[1]]
@@ -216,11 +216,11 @@ rxExpandIfElse <- function(model, removeInis = TRUE, removePrint = TRUE) {
   }
 }
 
-##' Remove INIs
-##' @param x RxODE list of lines to remove
-##' @return RxODE lines with inis removed.
-##' @author Matthew L. Fidler
-##' @keywords internal
+#' Remove INIs
+#' @param x RxODE list of lines to remove
+#' @return RxODE lines with inis removed.
+#' @author Matthew L. Fidler
+#' @keywords internal
 .rxRmIni <- function(x) {
   x <- x[regexpr(rex::rex(
     start, any_spaces,
@@ -235,20 +235,20 @@ rxExpandIfElse <- function(model, removeInis = TRUE, removePrint = TRUE) {
   return(x)
 }
 
-##' Remove print statements
-##' @param x RxODE lines to remove
-##' @return RxODE with print lines removed.
-##' @author Matthew L. Fidler
+#' Remove print statements
+#' @param x RxODE lines to remove
+#' @return RxODE with print lines removed.
+#' @author Matthew L. Fidler
 .rxRmPrint <- function(x) {
   return(x[regexpr(getFromNamespace("regPrint", "RxODE"), x) == -1])
 }
 
-##' Add a return statment to a function.
-##'
-##' @param fn Function to deparse
-##' @param ret boolean stating if a return statement will be added.
-##' @return Function with parens removed and add a return statment.
-##' @author Matthew L. Fidler
+#' Add a return statment to a function.
+#'
+#' @param fn Function to deparse
+#' @param ret boolean stating if a return statement will be added.
+#' @return Function with parens removed and add a return statment.
+#' @author Matthew L. Fidler
 rxAddReturn <- function(fn, ret = TRUE) {
   txt <- deparse(body(fn))
   if (txt[1] == "{") {
@@ -634,16 +634,16 @@ sumProdRxEnv <- function(expr) {
 rxSumProd <- function(x) {
   return(eval(x, sumProdRxEnv(x)))
 }
-##' Recast model in terms of sum/prod
-##'
-##' @param model RxODE model
-##' @param expand Boolean indicating if the expression is expanded.
-##' @param sum Use sum(...)
-##' @param prod Use prod(...)
-##' @return model string with prod(.) and sum(.) for all these
-##'     operations.
-##' @author Matthew L. Fidler
-##' @export
+#' Recast model in terms of sum/prod
+#'
+#' @param model RxODE model
+#' @param expand Boolean indicating if the expression is expanded.
+#' @param sum Use sum(...)
+#' @param prod Use prod(...)
+#' @return model string with prod(.) and sum(.) for all these
+#'     operations.
+#' @author Matthew L. Fidler
+#' @export
 rxSumProdModel <- function(model, expand = FALSE, sum = TRUE, prod = TRUE) {
   ## Sum for pairwise is equivalent to regular sum under 8 elements.
   assignInMyNamespace("rxSumProdSum", sum)
