@@ -178,10 +178,10 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'     Dormand and Prince as implemented in C by Hairer and Wanner
 #'     (1993).
 #'
-#' @param theta A vector of parameters that will be named THETA[#] and
+#' @param theta A vector of parameters that will be named `THETA\[#\]` and
 #'     added to parameters
 #'
-#' @param eta A vector of parameters that will be named ETA[#] and
+#' @param eta A vector of parameters that will be named `ETA\[#\]` and
 #'     added to parameters
 #'
 #' @param stateTrim When amounts/concentrations in one of the states

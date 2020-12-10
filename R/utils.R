@@ -851,11 +851,11 @@ gammapInva <- function(x, p) {
 
 #' logit and inverse logit (expit) functions
 #'
-#' @param x Input value(s) in range [low,high] to translate -Inf to
+#' @param x Input value(s) in range \[low,high\] to translate -Inf to
 #'   Inf
 #'
 #' @param alpha Infinite value(s) to translate to range of \[low,
-#'   high]
+#'   high\]
 #'
 #' @param low Lowest value in the range
 #'

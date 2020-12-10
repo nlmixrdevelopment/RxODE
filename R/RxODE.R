@@ -100,8 +100,6 @@ R_PosInf <- Inf # nolint
 #' inputs are combined into a single *event table* object created
 #' with the function [eventTable()] or [et()].
 #'
-#' @section RxODE Syntax:
-#'
 #' @includeRmd man/rmdhunks/RxODE-syntax-hunk.Rmd
 #'
 #' @return An object (environment) of class `RxODE` (see Chambers and Temple Lang (2001))

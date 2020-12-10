@@ -304,14 +304,14 @@ Dormand and Prince as implemented in C by Hairer and Wanner
 (1993).
 }}
 
-\item{theta}{A vector of parameters that will be named THETA\link{#} and
+\item{theta}{A vector of parameters that will be named \verb{THETA\[#\]} and
 added to parameters}
 
 \item{thetaLower}{Lower bounds for simulated population parameter variability (by default -Inf)}
 
 \item{thetaUpper}{Upper bounds for simulated population unexplained variability (by default Inf)}
 
-\item{eta}{A vector of parameters that will be named ETA\link{#} and
+\item{eta}{A vector of parameters that will be named \verb{ETA\[#\]} and
 added to parameters}
 
 \item{addDosing}{Boolean indicating if the solve should add RxODE

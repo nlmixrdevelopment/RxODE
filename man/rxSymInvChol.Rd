@@ -12,14 +12,29 @@ rxSymInvChol(
 )
 }
 \arguments{
-\item{invObjOrMatrix}{Object for inverse-type calculations.  If this is a matrix,
-setup the object for inversion \code{\link[=rxSymInvCholCreate]{rxSymInvCholCreate()}} with the default arguments and return
-a reactive s3 object.  Otherwise, use the inversion object to calculate the requested derivative/inverse.}
+\item{invObjOrMatrix}{Object for inverse-type calculations.  If
+this is a matrix, setup the object for inversion
+\code{\link[=rxSymInvCholCreate]{rxSymInvCholCreate()}} with the default arguments and return a
+reactive s3 object.  Otherwise, use the inversion object to
+calculate the requested derivative/inverse.}
 
 \item{theta}{Thetas to be used for calculation.  If missing (\code{NULL}), a
 special s3 class is created and returned to access \code{Omega^1}
 objects as needed and cache them based on the theta that is
 used.}
+
+\item{type}{The type of object.  Currently the following types are
+supported:
+\itemize{
+\item \code{cholOmegaInv} gives the
+Cholesky decomposition of the Omega Inverse matrix.
+\item \code{omegaInv} gives the Omega Inverse matrix.
+\item \code{d(omegaInv)} gives the \code{d(Omega^-1)} withe respect to the
+theta parameter specified in \code{thetaNumber}.
+\item \code{d(D)} gives the \code{d(diagonal(Omega^-1))} with respect to
+the theta parameter specified in the \code{thetaNumber}
+parameter
+}}
 
 \item{thetaNumber}{For types \code{d(omegaInv)} and \code{d(D)},
 the theta number that the derivative is taken against.  This

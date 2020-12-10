@@ -304,10 +304,6 @@ The ODE specification mini-language is parsed with the help of the open
 source tool , Plevyak (2015).
 }
 }
-\section{RxODE Syntax}{
-
-}
-
 \examples{
 # Step 1 - Create a model specification
 ode <- "

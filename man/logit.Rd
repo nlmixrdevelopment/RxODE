@@ -16,7 +16,7 @@ logitNormInfo(mean = 0, sd = 1, low = 0, high = 1, abs.tol = 1e-06, ...)
 probitNormInfo(mean = 0, sd = 1, low = 0, high = 1, abs.tol = 1e-06, ...)
 }
 \arguments{
-\item{x}{Input value(s) in range \link{low,high} to translate -Inf to
+\item{x}{Input value(s) in range [low,high] to translate -Inf to
 Inf}
 
 \item{low}{Lowest value in the range}
@@ -40,15 +40,15 @@ logit and inverse logit (expit) functions
 \details{
 logit is given by:
 
-$logit(p) = -log(1/p-1)$
+logit(p) = -log(1/p-1)
 
 where:
 
-$p = \frac{x-low}{high-low}$
+p = x-low/high-low
 
 expit is given by:
 
-$expit(p, low, high) = \frac{high-low}{1+exp(-alpha)}+low$
+expit(p, low, high) = (high-low)/(1+exp(-alpha)) + low
 
 The \code{logitNormInfo()} gives the mean, variance and coefficient of
 variability on the untransformed scale.

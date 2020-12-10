@@ -671,15 +671,20 @@ rxInv <- function(matrix) {
 
 #' Get Omega^-1 and derivatives
 #'
-#' @param invObjOrMatrix Object for inverse-type calculations.  If this is a matrix,
-#'     setup the object for inversion [rxSymInvCholCreate()] with the default arguments and return
-#'     a reactive s3 object.  Otherwise, use the inversion object to calculate the requested derivative/inverse.
+#' @param invObjOrMatrix Object for inverse-type calculations.  If
+#'   this is a matrix, setup the object for inversion
+#'   [rxSymInvCholCreate()] with the default arguments and return a
+#'   reactive s3 object.  Otherwise, use the inversion object to
+#'   calculate the requested derivative/inverse.
+#' 
 #' @param theta Thetas to be used for calculation.  If missing (`NULL`), a
 #'     special s3 class is created and returned to access `Omega^1`
 #'     objects as needed and cache them based on the theta that is
 #'     used.
+#' 
 #' @param type The type of object.  Currently the following types are
 #'     supported:
+#' 
 #' * `cholOmegaInv` gives the
 #'     Cholesky decomposition of the Omega Inverse matrix.
 #' * `omegaInv` gives the Omega Inverse matrix.
@@ -688,7 +693,7 @@ rxInv <- function(matrix) {
 #' * `d(D)` gives the `d(diagonal(Omega^-1))` with respect to
 #'     the theta parameter specified in the `thetaNumber`
 #'     parameter
-#' }
+#' 
 #' @param thetaNumber For types `d(omegaInv)` and `d(D)`,
 #'     the theta number that the derivative is taken against.  This
 #'     must be positive from 1 to the number of thetas defining the
