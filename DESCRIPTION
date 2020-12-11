@@ -80,7 +80,8 @@ Suggests:
     xgxr,
     pillar,
     tibble,
-    rsconnect
+    rsconnect,
+    patchwork
 Imports:
     PreciseSums (>= 0.3),
     Rcpp (>= 0.12.3),
