@@ -56,7 +56,7 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@v1
 
-      - name: Install packages from github
+      - name: Install packages from cran (source)
         run: |
           install.packages('remotes')
           install.packages("jsonlite", type="source")
