@@ -4391,9 +4391,9 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
 
   rxSolveSaveRxSolve(rxSolveDat);
   rx_solve* rx = getRxSolve_();
-  if (rxSolveDat->throttle){
-    rx->op->cores = getRxThreads(rx->nsim*rx->nsub, true);
-  }
+  // if (rxSolveDat->throttle){
+  //   rx->op->cores = getRxThreads(rx->nsim*rx->nsub, true);
+  // }
   if (_globals.zeroTheta) {
     cliAlert(_("zero 'thetaMat' specified, no uncertainty in fixed effects"));
   }
@@ -4827,7 +4827,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	  break;
 	case 1:
 	  // Thread safe, and reproducible
-	  op->cores = getRxThreads(INT_MAX, false);
 	  rxSolveDat->throttle = true;
 	  break;
 	case 0:
