@@ -283,11 +283,10 @@ exponential.</p>
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>strategy</th>
-      <td><p>The strategy for inductive linearization matrix building</p>
-<ul>
-<li><p>[curState] Prefer parameterizing in terms of the current
-   state, followed by the first state observed in the term.</p></li>
-<li><p>[split] Split the parameterization between all states in the
+      <td><p>The strategy for inductive linearization matrix building</p><ul>
+<li><p><code>curState</code> Prefer parameterizing in terms of the current
+state, followed by the first state observed in the term.</p></li>
+<li><p><code>split</code> Split the parameterization between all states in the
 term by dividing each by the number of states in the term and then
 adding a matrix term for each state.</p></li>
 </ul></td>

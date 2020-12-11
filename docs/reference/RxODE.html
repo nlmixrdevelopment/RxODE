@@ -296,18 +296,17 @@ into fast C code</p>
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>model</th>
-      <td><p>This is the ODE model specification.  It can be:</p>
-<ul>
+      <td><p>This is the ODE model specification.  It can be:</p><ul>
 <li><p>a string containing the set of ordinary differential
-    equations (ODE) and other expressions defining the changes in
-    the dynamic system.</p></li>
+equations (ODE) and other expressions defining the changes in
+the dynamic system.</p></li>
 <li><p>a file name where the ODE system equation is contained</p></li>
-<li><p>An ODE expression enclosed in <code>{}</code></p></li>
 </ul>
 
+<p>An ODE expression enclosed in <code>\{\}</code></p>
 <p>(see also the <code>filename</code> argument). For
-    details, see the sections &#8220;Details&#8221; and
-    &#8220;<code>RxODE Syntax</code>&#8221; below.</p></td>
+details, see the sections &#8220;Details&#8221; and
+<code>RxODE Syntax</code> below.</p></td>
     </tr>
     <tr>
       <th>modName</th>
@@ -381,65 +380,83 @@ compile with inductive linearization support.</p></td>
     </tr>
     <tr>
       <th>verbose</th>
-      <td><p>When `TRUE` be verbose with the linear
+      <td><p>When <code>TRUE</code> be verbose with the linear
 compartmental model</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>An object (environment) of class &#8220;<code>RxODE</code>&#8221; (see Chambers and Temple Lang (2001))
-     consisting of the following list of strings and functions:</p>
-<p></p>
-<dt>model</dt><dd><p>a character string holding the source model specification.</p></dd>
-    <dt>get.modelVars</dt><dd><p>a function that returns a list with 3 character
-        vectors, <code>params</code>, <code>state</code>, and <code>lhs</code> of variable names used in the model
-        specification. These will be output when the model is computed (i.e., the ODE solved by integration).</p></dd>
+    <p>An object (environment) of class <code>RxODE</code> (see Chambers and Temple Lang (2001))
+consisting of the following list of strings and functions:</p><pre>* `model` a character string holding the source model specification.
+* `get.modelVars`a function that returns a list with 3 character
+    vectors, `params`, `state`, and `lhs` of variable names used in the model
+    specification. These will be output when the model is computed (i.e., the ODE solved by integration).
 
-      <dt>solve</dt><dd><p>this function solves (integrates) the ODE. This
-          is done by passing the code to <code><a href='rxControl.html'>rxSolve</a></code>.
-          This is as if you called <code><a href='rxControl.html'>rxSolve(RxODEobject, ...)</a></code>,
-          but returns a matrix instead of a rxSolve object.          <code>params</code>: a numeric named vector with values for every parameter
-          in the ODE system; the names must correspond to the parameter
-          identifiers used in the ODE specification;          <code>events</code>: an <code>eventTable</code> object describing the
-          input (e.g., doses) to the dynamic system and observation
-          sampling time points (see  <code><a href='eventTable.html'>eventTable</a></code>);          <code>inits</code>: a vector of initial values of the state variables
-          (e.g., amounts in each compartment), and the order in this vector
-          must be the same as the state variables (e.g., PK/PD compartments);          <code>stiff</code>: a logical (<code>TRUE</code> by default) indicating whether
-          the ODE system is stiff or not.          For stiff ODE systems (<code>stiff = TRUE</code>), <code>RxODE</code> uses
-          the LSODA (Livermore Solver for Ordinary Differential Equations)
-          Fortran package, which implements an automatic method switching
-          for stiff and non-stiff problems along the integration interval,
-          authored by Hindmarsh and Petzold (2003).          For non-stiff systems (<code>stiff = FALSE</code>), <code>RxODE</code> uses <code>DOP853</code>,
-          an explicit Runge-Kutta method of order 8(5, 3) of Dormand and Prince
-          as implemented in C by Hairer and Wanner (1993).          <code>trans_abs</code>: a logical (<code>FALSE</code> by default) indicating
-          whether to fit a transit absorption term
-          (TODO: need further documentation and example);          <code>atol</code>: a numeric absolute tolerance (1e-08 by default);          <code>rtol</code>: a numeric relative tolerance (1e-06 by default).e          The output of &#8220;solve&#8221; is a matrix with as many rows as there
-          are sampled time points and as many columns as system variables
-          (as defined by the ODEs and additional assignments in the RxODE model
-              code).</p></dd>
+  * `solve`{this function solves (integrates) the ODE. This
+      is done by passing the code to [rxSolve()].
+      This is as if you called `rxSolve(RxODEobject, ...)`,
+      but returns a matrix instead of a rxSolve object.
 
-      <dt>isValid</dt><dd><p>a function that (naively) checks for model validity,
-          namely that the C object code reflects the latest model
-          specification.</p></dd>
-      <dt>version</dt><dd><p>a string with the version of the <code>RxODE</code>
-          object (not the package).</p></dd>
-      <dt>dynLoad</dt><dd><p>a function with one <code>force = FALSE</code> argument
-          that dynamically loads the object code if needed.</p></dd>
-      <dt>dynUnload</dt><dd><p>a function with no argument that unloads
-          the model object code.</p></dd>
-      <dt>delete</dt><dd><p>removes all created model files, including C and DLL files.
-          The model object is no longer valid and should be removed, e.g.,
-          <code><a href='https://rdrr.io/r/base/rm.html'>rm(m1)</a></code>.</p></dd>
-      <dt>run</dt><dd><p>deprecated, use <code>solve</code>.</p></dd>
-      <dt>parse</dt><dd><p>deprecated.</p></dd>
-      <dt>compile</dt><dd><p>deprecated.</p></dd>
-      <dt>get.index</dt><dd><p>deprecated.</p></dd>
-      <dt>getObj</dt><dd><p>internal (not user callable) function.</p></dd>
+      `params`: a numeric named vector with values for every parameter
+      in the ODE system; the names must correspond to the parameter
+      identifiers used in the ODE specification;
+
+      `events`: an `eventTable` object describing the
+      input (e.g., doses) to the dynamic system and observation
+      sampling time points (see  [eventTable()]);
+
+      `inits`: a vector of initial values of the state variables
+      (e.g., amounts in each compartment), and the order in this vector
+      must be the same as the state variables (e.g., PK/PD compartments);
+
+
+      `stiff`: a logical (`TRUE` by default) indicating whether
+      the ODE system is stiff or not.
+
+      For stiff ODE systems (`stiff = TRUE`), `RxODE` uses
+      the LSODA (Livermore Solver for Ordinary Differential Equations)
+      Fortran package, which implements an automatic method switching
+      for stiff and non-stiff problems along the integration interval,
+      authored by Hindmarsh and Petzold (2003).
+
+      For non-stiff systems (`stiff = FALSE`), `RxODE` uses `DOP853`,
+      an explicit Runge-Kutta method of order 8(5, 3) of Dormand and Prince
+      as implemented in C by Hairer and Wanner (1993).
+
+      `trans_abs`: a logical (`FALSE` by default) indicating
+      whether to fit a transit absorption term
+      (TODO: need further documentation and example);
+
+      `atol`: a numeric absolute tolerance (1e-08 by default);
+
+      `rtol`: a numeric relative tolerance (1e-06 by default).e
+
+      The output of \dQuote{solve} is a matrix with as many rows as there
+      are sampled time points and as many columns as system variables
+      (as defined by the ODEs and additional assignments in the RxODE model
+          code).}
+
+  * `isValid` a function that (naively) checks for model validity,
+      namely that the C object code reflects the latest model
+      specification.
+  * `version` a string with the version of the `RxODE`
+      object (not the package).
+  * `dynLoad` a function with one `force = FALSE` argument
+      that dynamically loads the object code if needed.
+  * `dynUnload` a function with no argument that unloads
+      the model object code.
+  * `delete` removes all created model files, including C and DLL files.
+      The model object is no longer valid and should be removed, e.g.,
+      `rm(m1)`.
+  * `run` deprecated, use `solve`.
+  * `get.index` deprecated.
+  * `getObj` internal (not user callable) function.
+</pre>
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>The &#8220;Rx&#8221; in the name <code>RxODE</code> is meant to suggest the
+    <p>The <code>Rx</code> in the name <code>RxODE</code> is meant to suggest the
 abbreviation <em>Rx</em> for a medical prescription, and thus to
 suggest the package emphasis on pharmacometrics modeling, including
 pharmacokinetics (PK), pharmacodynamics (PD), disease progression,
@@ -456,7 +473,7 @@ functions (see Section <em>Value</em> below).</p>
 provided: a required set of time points for querying the state of
 the ODE system and an optional set of doses (input amounts).  These
 inputs are combined into a single <em>event table</em> object created
-with the function <code><a href='eventTable.html'>eventTable</a></code> or <code><a href='et.html'>et</a></code>.</p>
+with the function <code><a href='eventTable.html'>eventTable()</a></code> or <code><a href='et.html'>et()</a></code>.</p>
 <p>An <code>RxODE</code> model specification consists of one or more statements
 optionally terminated by semi-colons <code>;</code> and optional comments (comments
 are delimited by <code>#</code> and an end-of-line).</p>
@@ -565,11 +582,6 @@ use these variables starting with either the <code>rx</code> or <code>nlmixr</co
 <p>The ODE specification mini-language is parsed with the help of the open
 source tool , Plevyak (2015).</p>
 
-    <h2 class="hasAnchor" id="rxode-syntax"><a class="anchor" href="#rxode-syntax"></a>RxODE Syntax</h2>
-
-    
-
-
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
     <p>Chamber, J. M. and Temple Lang, D. (2001)
@@ -592,7 +604,7 @@ Springer-Verlag (1993).</p>
 <em><code>dparser</code></em>, <a href='http://dparser.sourceforge.net'>http://dparser.sourceforge.net</a>. Web. 12 Oct. 2015.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='eventTable.html'>eventTable</a></code>, <code><a href='et.html'>et</a></code>, <code><a href='add.sampling.html'>add.sampling</a></code>, <code><a href='add.dosing.html'>add.dosing</a></code></p></div>
+    <div class='dont-index'><p><code><a href='eventTable.html'>eventTable()</a></code>, <code><a href='et.html'>et()</a></code>, <code><a href='add.sampling.html'>add.sampling()</a></code>, <code><a href='add.dosing.html'>add.dosing()</a></code></p></div>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
 
     <p>Melissa Hallow, Wenping Wang and Matthew Fidler</p>
@@ -612,8 +624,8 @@ Springer-Verlag (1993).</p>
 "</span>
 
 <span class='va'>m1</span> <span class='op'>&lt;-</span> <span class='fu'>RxODE</span><span class='op'>(</span>model <span class='op'>=</span> <span class='va'>ode</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='message'> </span></div><div class='output co'>#&gt; <span class='message'>qs v0.23.4.</span></div><div class='output co'>#&gt; <span class='message'>→ creating RxODE include directory</span></div><div class='output co'>#&gt; <span class='message'>→ getting R compile options</span></div><div class='output co'>#&gt; <span class='message'>→ precompiling headers</span></div><div class='output co'>#&gt; <span class='message'><span style='color: #00BB00;'>✔</span><span> done</span></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>m1</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; </span><span style='font-weight: bold;'>RxODE </span><span>1.0.0-0 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_da15885b669ba33521fea62afa9aa9d6</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
+</div><div class='output co'>#&gt; <span class='message'> </span></div><div class='output co'>#&gt; <span class='message'>qs v0.23.4.</span></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>m1</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>1.0.0-0 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_74fa68237b52c44edb24bb63faad82ba</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</div><div class='input'>

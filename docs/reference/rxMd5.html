@@ -285,18 +285,17 @@ version/repository.</p>
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>model</th>
-      <td><p>This is the ODE model specification.  It can be:</p>
-<ul>
+      <td><p>This is the ODE model specification.  It can be:</p><ul>
 <li><p>a string containing the set of ordinary differential
-    equations (ODE) and other expressions defining the changes in
-    the dynamic system.</p></li>
+equations (ODE) and other expressions defining the changes in
+the dynamic system.</p></li>
 <li><p>a file name where the ODE system equation is contained</p></li>
-<li><p>An ODE expression enclosed in <code>{}</code></p></li>
 </ul>
 
+<p>An ODE expression enclosed in <code>\{\}</code></p>
 <p>(see also the <code>filename</code> argument). For
-    details, see the sections &#8220;Details&#8221; and
-    &#8220;<code>RxODE Syntax</code>&#8221; below.</p></td>
+details, see the sections &#8220;Details&#8221; and
+<code>RxODE Syntax</code> below.</p></td>
     </tr>
     <tr>
       <th>...</th>
@@ -306,13 +305,12 @@ version/repository.</p>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>If this is a RxODE object, return a named list:</p>
-<dt><code>file_md5</code></dt><dd><p>is the model's file's md5</p></dd>
+    <p>If this is a RxODE object, return a named list:</p><ul>
+<li><p><code>file_md5</code> is the model's file's md5</p></li>
+<li><p><code>parsed_md5</code>  is the parsed model's file's md5.</p></li>
+</ul>
 
-<dt><code>parsed_md5</code></dt><dd><p>is the parsed model's file's md5.</p></dd>
-
-Otherwise return the md5 based on the arguments provided
-
+<p>Otherwise return the md5 based on the arguments provided</p>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
 
     <p>Matthew L.Fidler</p>

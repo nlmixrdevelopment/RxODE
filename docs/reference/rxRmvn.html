@@ -305,7 +305,7 @@ matrix to use for simulation (faster).</p></td>
       <th>sigma</th>
       <td><p>Covariance matrix for multivariate normal or a list
 of covariance matrices. If a list of covariance matrix, each
-matrix will simulate `n` matrices and combine them to a full
+matrix will simulate <code>n</code> matrices and combine them to a full
 matrix</p></td>
     </tr>
     <tr>
@@ -335,7 +335,7 @@ matrix.</p></td>
     <tr>
       <th>a</th>
       <td><p>threshold for switching between methods; They can be
-  tuned for maximum speed;  There are three cases that are considered:</p>
+tuned for maximum speed;  There are three cases that are considered:</p>
 <p>case 1: a &lt; l &lt; u</p>
 <p>case 2: l &lt; u &lt; -a</p>
 <p>case 3: otherwise</p>
@@ -344,8 +344,8 @@ matrix.</p></td>
     <tr>
       <th>tol</th>
       <td><p>When case 3 is used from the above possibilities, the
-  tol value controls the acceptance rejection and
-  inverse-transformation;</p>
+tol value controls the acceptance rejection and
+inverse-transformation;</p>
 <p>When abs(u-l)&gt;tol, uses accept-reject from randn</p></td>
     </tr>
     <tr>
@@ -368,8 +368,8 @@ which is provided by the user, and the function returns
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
     <p>John K. Salmon, Mark A. Moraes, Ron O. Dror, and David
-    E. Shaw (2011). Parallel Random Numbers: As Easy as 1, 2, 3.
-    D. E. Shaw Research, New York, NY 10036, USA.</p>
+E. Shaw (2011). Parallel Random Numbers: As Easy as 1, 2, 3.
+D. E. Shaw Research, New York, NY 10036, USA.</p>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
 
     <p>Matthew Fidler, Zdravko Botev and some from Matteo Fasiolo</p>

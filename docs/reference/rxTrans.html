@@ -306,18 +306,17 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>model</th>
-      <td><p>This is the ODE model specification.  It can be:</p>
-<ul>
+      <td><p>This is the ODE model specification.  It can be:</p><ul>
 <li><p>a string containing the set of ordinary differential
-    equations (ODE) and other expressions defining the changes in
-    the dynamic system.</p></li>
+equations (ODE) and other expressions defining the changes in
+the dynamic system.</p></li>
 <li><p>a file name where the ODE system equation is contained</p></li>
-<li><p>An ODE expression enclosed in <code>{}</code></p></li>
 </ul>
 
+<p>An ODE expression enclosed in <code>\{\}</code></p>
 <p>(see also the <code>filename</code> argument). For
-    details, see the sections &#8220;Details&#8221; and
-    &#8220;<code>RxODE Syntax</code>&#8221; below.</p></td>
+details, see the sections &#8220;Details&#8221; and
+<code>RxODE Syntax</code> below.</p></td>
     </tr>
     <tr>
       <th>modelPrefix</th>
@@ -329,7 +328,7 @@ in the same R session.</p></td>
       <th>md5</th>
       <td><p>Is the md5 of the model before parsing, and is used to
 embed the md5 into DLL, and then provide for functions like
-<code><a href='rxModelVars.html'>rxModelVars</a></code>.</p></td>
+<code><a href='rxModelVars.html'>rxModelVars()</a></code>.</p></td>
     </tr>
     <tr>
       <th>modName</th>
@@ -353,11 +352,11 @@ vector of translated properties.</p></td>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>a named vector of translated model properties
-      including what type of jacobian is specified, the <code>C</code> function prefixes,
-      as well as the <code>C</code> functions names to be called through the compiled model.</p>
+including what type of jacobian is specified, the <code>C</code> function prefixes,
+as well as the <code>C</code> functions names to be called through the compiled model.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='RxODE.html'>RxODE</a></code>, <code><a href='rxCompile.html'>rxCompile</a></code>.</p></div>
+    <div class='dont-index'><p><code><a href='RxODE.html'>RxODE()</a></code>, <code><a href='rxCompile.html'>rxCompile()</a></code>.</p></div>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
 
     <p>Matthew L.Fidler</p>

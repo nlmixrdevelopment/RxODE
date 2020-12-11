@@ -233,7 +233,7 @@
 <td>itle: “Changing RxODE compartment numbers”</td>
 </tr>
 <tr class="even">
-<td>ate: “2020-12-02”</td>
+<td>ate: “2020-12-10”</td>
 </tr>
 <tr class="odd">
 <td>utput:</td>
@@ -338,8 +338,8 @@
 <p>If you look at the summary, you can see where RxODE assigned the compartment number(s)</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">pbpk</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.0-0 model named rx_97260678a70972035a51e10076b8bf8b model (ready). 
-#&gt; DLL: /home/matt/.cache/R/RxODE/rx_97260678a70972035a51e10076b8bf8b__.rxd/rx_97260678a70972035a51e10076b8bf8b_.so
+<pre><code>#&gt; RxODE 1.0.0-0 model named rx_78b75059d0af240d3630634afa9b0395 model (ready). 
+#&gt; DLL: /home/matt/.cache/R/RxODE/rx_78b75059d0af240d3630634afa9b0395__.rxd/rx_78b75059d0af240d3630634afa9b0395_.so
 #&gt; NULL
 #&gt; 
 #&gt; Calculated Variables:
@@ -520,7 +520,7 @@
 <p>You can see this change in the simple printout</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">pbpk2</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.0-0 model named rx_adc632097ee4b4a45e4872531beb2dca model (ready). 
+<pre><code>#&gt; RxODE 1.0.0-0 model named rx_dfc43b162c4ff916310e6ca1def028ac model (ready). 
 #&gt; x$state: Venous_Blood, Skin, Lungs, Heart, Brain, Muscles, Adipose, Spleen, Pancreas, Liver, Stomach, Gut, Bones, Kidneys, Arterial_Blood, Rest_of_Body
 #&gt; x$params: lKbBR, lKbMU, lKbAD, lCLint, eta.LClint, lKbBO, lKbRB, WT, BP, fup
 #&gt; x$lhs: KbBR, KbMU, KbAD, CLint, KbBO, KbRB, CO, QHT, QBR, QMU, QAD, QSK, QSP, QPA, QLI, QST, QGU, QHA, QBO, QKI, QRB, QLU, VLU, VHT, VBR, VMU, VAD, VSK, VSP, VPA, VLI, VST, VGU, VBO, VKI, VAB, VVB, VRB, fub, KbLU, KbHT, KbSK, KbSP, KbPA, KbLI, KbST, KbGU, KbKI, S15, C15</code></pre>
@@ -539,7 +539,7 @@
     <span class="fu">cmt</span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>;
 <span class="op">}</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">ode.1c.ka</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.0-0 model named rx_77c2086a80f949225eb2ea13bc7a1d51 model (ready). 
+<pre><code>#&gt; RxODE 1.0.0-0 model named rx_de6db2c40ddb8e5bf666a1a942c0c10a model (ready). 
 #&gt; $state: depot, center
 #&gt; $stateExtra: eff
 #&gt; $params: V, KA, CL

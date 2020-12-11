@@ -290,67 +290,43 @@ to solve the RxODE object.</p></td>
     <tr>
       <th>time.units</th>
       <td><p>string denoting the time units, e.g.,
-     &#8220;hours&#8221;, &#8220;days&#8221;. Default to <code>"hours"</code>.</p>
+&#8220;hours&#8221;, &#8220;days&#8221;. Default to <code>"hours"</code>.</p>
 <p>An <code>eventTable</code> is an object that consists of a data.frame
- storing ordered time-stamped events of an (unspecified) PK/PD
- dynamic system, units (strings) for dosing and time records, plus a
- list of functions to add and extract event records.</p>
+storing ordered time-stamped events of an (unspecified) PK/PD
+dynamic system, units (strings) for dosing and time records, plus a
+list of functions to add and extract event records.</p>
 <p>Currently, events can be of two types: dosing events that represent
- inputs to the system and sampling time events that represent
- observations of the system with &#8216;amount.units&#8217; and
- &#8216;time.units&#8217;, respectively.</p></td>
+inputs to the system and sampling time events that represent
+observations of the system with &#8216;amount.units&#8217; and
+&#8216;time.units&#8217;, respectively.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A modified data.frame with the following accessible functions:</p>
-<dt>get.EventTable</dt><dd><p>returns the current event table.</p></dd>
-
-<dt>add.dosing</dt><dd><p>adds dosing records to the event table.Its arguments are  <code>dose</code>: numeric scalar, dose amount in <code>amount.units</code>;  <code>nbr.doses</code>: integer, number of doses;  <code>dosing.interval</code>: required numeric scalar, time between doses
-     in <code>time.units</code>, defaults to 24 of <code>time.units="hours"</code>;       <code>dosing.to</code>: integer, compartment the dose goes into
-       (first compartment by default);       <code>rate</code>: for infusions, the rate of infusion (default
-           is <code>NULL</code>, for bolus dosing;       <code>start.time</code>: required dosing start time;       <code>do.sampling</code>: logical, should observation sampling records
-           be added at the dosing times? Defaults to <code>FALSE</code>.       <code>amount.units</code>: optional string indicating the dosing units.
-          Defaults to <code>NA</code> to indicate as per the original <code>EventTable</code>
-          definition.       <code>time.units</code>: optional string indicating the time units.
-          Defaults to <code>"hours"</code> to indicate as per the original <code>EventTable</code> definition.</p></dd>
-
-   <dt>get.dosing</dt><dd><p>returns a data.frame of dosing records.</p></dd>
-
-   <dt>clear.dosing</dt><dd><p>clears or deletes all dosing from event table</p></dd>
-
-   <dt>add.sampling</dt><dd><p>adds sampling time observation records to the
-       event table. Its arguments are       <code>time</code> a vector of time values (in <code>time.units</code>).       <code>time.units</code> an optional string specifying the time
-       units. Defaults to the units specified when the <code>EventTable</code>
-       was initialized.       <!-- % TODO: should add.sampling() have similar calling sequence -->
-       <!-- % as add.dosing()? -->
-       <!-- %\code{sampling.interval}: scalar, time between samples. -->
-       <!-- %\code{start.time}: scalar, starting observation time. -->
-       <!-- %\code{end.time}: scalar, end observation time. --></p></dd>
-
-   <dt>get.sampling</dt><dd><p>returns a data.frame of sampled observation
-       records.</p></dd>
-
-   <dt>clear.sampling</dt><dd><p>removes all sampling from event table.</p></dd>
-
-   <dt>get.obs.rec</dt><dd><p>returns a logical vector indicating
-       whether each event record represents an observation or not.</p></dd>
-
-   <dt>get.nobs</dt><dd><p>returns the number of observation (not dosing) records.</p></dd>
-
-   <dt>get.units</dt><dd><p>returns a two-element character vector with the
-       dosing and time units, respectively.</p></dd>
-
-   <dt>copy</dt><dd><p>makes a copy of the current event table. To create
-       a copy of an event table object use <code>qd2 &lt;- qd$copy()</code>.</p></dd>
-
-   <dt>expand</dt><dd><p>Expands the event table for multi-subject solving.
-   This is done by qd$expand(400) for a 400 subject data expansion</p></dd>
+    <p>A modified data.frame with the following accessible functions:</p><ul>
+<li><p><code>get.EventTable()</code> returns the current event table</p></li>
+<li><p><code><a href='add.dosing.html'>add.dosing()</a></code>  adds dosing records to the event table.</p></li>
+<li><p><code>get.dosing()</code> returns a data.frame of dosing records.</p></li>
+<li><p><code>clear.dosing()</code> clears or deletes all dosing from event table</p></li>
+<li><p>`<code><a href='add.sampling.html'>add.sampling()</a></code> adds sampling time observation records to the
+event table.</p></li>
+<li><p><code>get.sampling()</code>returns a data.frame of sampled observation records.</p></li>
+<li><p><code>clear.sampling()</code> removes all sampling from event table.</p></li>
+<li><p><code>get.obs.rec()</code> returns a logical vector indicating whether each
+event record represents an observation or not.</p></li>
+<li><p><code>get.nobs()</code> returns the number of observation (not dosing) records.</p></li>
+<li><p><code>get.units()</code> returns a two-element character vector with the
+dosing and time units, respectively</p></li>
+<li><p><code>copy()</code> makes a copy of the current event table. To create
+a copy of an event table object use <code>qd2 &lt;- qd$copy()</code></p></li>
+<li><p><code>expand()</code> Expands the event table for multi-subject solving.
+This is done by <code>qd$expand(400)</code> for a 400 subject data expansion</p></li>
+</ul>
 
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='et.html'>et</a></code>, <code><a href='RxODE.html'>RxODE</a></code></p></div>
+    <div class='dont-index'><p><code><a href='et.html'>et()</a></code>, <code><a href='RxODE.html'>RxODE()</a></code></p></div>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
 
     <p>Matthew Fidler, Melissa Hallow and Wenping Wang</p>

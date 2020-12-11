@@ -30,7 +30,6 @@ The original code from the `RxODE` tutorial is below:
 library(RxODE)
 
 library(microbenchmark)
-library(mvnfast)
 library(ggplot2)
 
 mod1 <- RxODE({
@@ -52,7 +51,7 @@ ev <- et() %>%
 
 nsub <- 1000 # 1000 subproblems
 sigma <- matrix(c(0.09,0.08,0.08,0.25),2,2) # IIV covariance matrix
-mv <- rmvn(n=nsub, rep(0,2), sigma) # Sample from covariance matrix
+mv <- rxRmvn(n=nsub, rep(0,2), sigma) # Sample from covariance matrix
 CL <- 7*exp(mv[,1])
 V2 <- 40*exp(mv[,2])
 params.all <- cbind(KA=0.3, CL=CL, V2=V2, Q=10, V3=300,
@@ -278,10 +277,9 @@ print(endParallel - startParallel)
 You can see a striking time difference between the two methods; A few
 things to keep in mind:
 
- - `RxODE` uses `mvnfast` for simulation of `eta` values.  This uses
-   the thread safe sumo random number generator.  Therefore the
-   results are expected to be different (also the random samples are
-   taken in a different order which would be different)
+ - `RxODE` use the thread-safe sitmo `threefry` routines for simulation of `eta`
+   values. Therefore the results are expected to be different (also the random
+   samples are taken in a different order which would be different)
    
  - This prior simulation was run in R 3.5, which has a different
    random number generator so the results in this simulation will be

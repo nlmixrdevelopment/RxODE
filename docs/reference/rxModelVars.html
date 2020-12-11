@@ -285,18 +285,19 @@
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A list of RxODE model properties including:</p>
-<dt>params</dt><dd><p>a character vector of names of the model parameters</p></dd>
-<dt>lhs</dt><dd><p>a character vector of the names of the model calculated parameters</p></dd>
-<dt>state</dt><dd><p>a character vector of the compartments in RxODE object</p></dd>
-<dt>trans</dt><dd><p>a named vector of translated model properties
-      including what type of jacobian is specified, the <code>C</code> function prefixes,
-      as well as the <code>C</code> functions names to be called through the compiled model.</p></dd>
-<dt>md5</dt><dd><p>a named vector that gives the digest of the model (<code>file_md5</code>) and the parsed model
-     (<code>parsed_md5</code>)</p></dd>
-<dt>model</dt><dd><p>a named vector giving the input model (<code>model</code>),
-   normalized model (no comments and standard syntax for parsing, <code>normModel</code>),
-   and interim code that is used to generate the final C file <code>parseModel</code></p></dd>
+    <p>A list of RxODE model properties including:</p><ul>
+<li><p><code>params</code> a character vector of names of the model parameters</p></li>
+<li><p><code>lhs</code> a character vector of the names of the model calculated parameters</p></li>
+<li><p><code>state</code> a character vector of the compartments in RxODE object</p></li>
+<li><p><code>trans</code> a named vector of translated model properties
+including what type of jacobian is specified, the <code>C</code> function prefixes,
+as well as the <code>C</code> functions names to be called through the compiled model.</p></li>
+<li><p><code>md5</code>a named vector that gives the digest of the model (<code>file_md5</code>) and the parsed model
+(<code>parsed_md5</code>)</p></li>
+<li><p><code>model</code> a named vector giving the input model (<code>model</code>),
+normalized model (no comments and standard syntax for parsing, <code>normModel</code>),
+and interim code that is used to generate the final C file <code>parseModel</code></p></li>
+</ul>
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 

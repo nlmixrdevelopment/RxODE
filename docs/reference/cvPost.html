@@ -322,23 +322,22 @@ covariance matrix sample. This is only used when codetype="invWishart"</p></td>
     <tr>
       <th>type</th>
       <td><p>The type of covariance posterior that is being
-    simulated.  This can be:</p>
-<ul>
-<li><p>invWishart The posterior is an inverse wishart; This allows
+simulated.  This can be:</p><ul>
+<li><p><code>invWishart</code> The posterior is an inverse wishart; This allows
 for correlations between parameters to be modeled.  All the
 uncertainty in the parameter is captured in the degrees of freedom
 parameter.</p></li>
-<li><p>lkj The posterior separates the standard deviation
+<li><p><code>lkj</code> The posterior separates the standard deviation
 estimates (modeled outside and provided in the <code>omega</code>
 argument) and the correlation estimates. The correlation estimate
-is simulated with the <code><a href='rLKJ1.html'>rLKJ1</a></code>.  This simulation uses
+is simulated with the <code><a href='rLKJ1.html'>rLKJ1()</a></code>.  This simulation uses
 the relationship <code>eta=(nu-1)/2</code>.  This is relationship based
 on the proof of the relationship between the restricted
 LKJ-distribution and inverse wishart distribution (XXXXXX).  Once
 the correlation posterior is calculated, the estimated standard
 deviations are then combined with the simulated correlation matrix
 to create the covariance matrix.</p></li>
-<li><p>separation Like the <code>lkj</code> option, this separates out
+<li><p><code>separation</code> Like the <code>lkj</code> option, this separates out
 the estimation of the correlation and standard deviation.  Instead
 of using the <code>LKJ</code> distribution to simulate the correlation,
 it simulates the inverse wishart of the identity matrix and
@@ -349,24 +348,23 @@ simulated covariance matrix.</p></li>
     </tr>
     <tr>
       <th>diagXformType</th>
-      <td><p>Diagonal transformation type.  These could be:</p>
-<ul>
-<li><p>log The standard deviations are log transformed, so the
-  actual standard deviations are exp(omega)</p></li>
-<li><p>identity The standard deviations are not transformed. The
+      <td><p>Diagonal transformation type.  These could be:</p><ul>
+<li><p><code>log</code> The standard deviations are log transformed, so the
+actual standard deviations are exp(omega)</p></li>
+<li><p><code>identity</code> The standard deviations are not transformed. The
 standard deviations are not transformed;  They should be positive.</p></li>
-<li><p>variance The variances are specified in the <code>omega</code>
+<li><p><code>variance</code> The variances are specified in the <code>omega</code>
 matrix; They are transformed into standard deviations.</p></li>
-<li><p>nlmixrSqrt These standard deviations come from an nlmixr
+<li><p><code>nlmixrSqrt</code> These standard deviations come from an nlmixr
 omega matrix where diag(chol(inv(omega))) = x^2</p></li>
-<li><p>nlmixrLog These standard deviations come from a nlmixr
+<li><p><code>nlmixrLog</code> These standard deviations come from a nlmixr
 omega matrix omega matrix where diag(chol(solve(omega))) = exp(x)</p></li>
-<li><p>nlmixrIdentity These standard deviations come from a nlmixr
+<li><p><code>nlmixrIdentity</code> These standard deviations come from a nlmixr
 omega matrix omega matrix where diag(chol(solve(omega))) = x</p></li>
 </ul>
 
 <p>The nlmixr transformations only make sense when there is no
- off-diagonal correlations modeled.</p></td>
+off-diagonal correlations modeled.</p></td>
     </tr>
     </table>
 
@@ -378,8 +376,6 @@ omega matrix omega matrix where diag(chol(solve(omega))) = x</p></li>
     <p>If your covariance matrix is a 1x1 matrix, this uses an scaled
 inverse chi-squared which is equivalent to the Inverse Wishart
 distribution in the uni-directional case.</p>
-
-
 <p>In general, the separation strategy is preferred for diagonal
 matrices.  If the dimension of the matrix is below 10, <code>lkj</code>
 is numerically faster than <code>separation</code> method.  However, the
@@ -399,7 +395,6 @@ to use the inverse Wishart.</p>
     <p>Alvarez I, Niemi J and Simpson M. (2014) <em>Bayesian Inference for a
 Covariance Matrix</em>. Conference on Applied Statistics in Agriculture.
 <a href='https://newprairiepress.org/cgi/viewcontent.cgi?article=1004&amp;context=agstatconference'>https://newprairiepress.org/cgi/viewcontent.cgi?article=1004&amp;context=agstatconference</a></p>
-
 <p>Wang1 Z, Wu Y, and Chu H. (2018) <em>On Equivalence of the LKJ
 distribution and the restricted Wishart distribution</em>. arXiv:1809.04746</p>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>

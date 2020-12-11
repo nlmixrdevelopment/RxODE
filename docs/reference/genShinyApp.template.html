@@ -301,12 +301,12 @@ shiny app is generated. Defaults to <code>TRUE</code>.</p></td>
     </tr>
     <tr>
       <th>ODE.config</th>
-      <td><p>model name compiled and list of parameters sent to <code><a href='rxControl.html'>rxSolve</a></code>.</p></td>
+      <td><p>model name compiled and list of parameters sent to <code><a href='rxControl.html'>rxSolve()</a></code>.</p></td>
     </tr>
     <tr>
       <th>statevars</th>
-      <td><p>List of statevars passed to to the <code>write.template.ui</code> function.  This usually isn't called directly.</p>
-<p>A PK/PD model is defined using <code><a href='RxODE.html'>RxODE</a></code>, and
+      <td><p>List of statevars passed to to the <code>write.template.ui()</code> function.  This usually isn't called directly.</p>
+<p>A PK/PD model is defined using <code><a href='RxODE.html'>RxODE()</a></code>, and
 a set of parameters and initial values are defined.  Then
 the appropriate R scripts for the shiny's user interface <code>ui.R</code>
 and the server logic <code>server.R</code> are created in the
@@ -332,12 +332,12 @@ R command.</p></td>
     <h2 class="hasAnchor" id="note"><a class="anchor" href="#note"></a>Note</h2>
 
     <p>These functions create a simple, but working example of a
-    dosing regimen simulation web application. Users may want to
-    modify the code to experiment creating shiny applications for
-    their specific <code>RxODE</code> models.</p>
+dosing regimen simulation web application. Users may want to
+modify the code to experiment creating shiny applications for
+their specific <code>RxODE</code> models.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='RxODE.html'>RxODE</a></code>,<code><a href='eventTable.html'>eventTable</a></code>, and the package <span class="pkg">shiny</span> (<a href='https://shiny.rstudio.com'>https://shiny.rstudio.com</a>).</p></div>
+    <div class='dont-index'><p><code><a href='RxODE.html'>RxODE()</a></code>,<code><a href='eventTable.html'>eventTable()</a></code>, and the package <span class="pkg">shiny</span> (<a href='https://shiny.rstudio.com'>https://shiny.rstudio.com</a>).</p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='co'># \donttest{</span>

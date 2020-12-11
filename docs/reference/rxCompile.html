@@ -306,30 +306,30 @@ files.</p>
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>model</th>
-      <td><p>This is the ODE model specification.  It can be:</p>
-<ul>
+      <td><p>This is the ODE model specification.  It can be:</p><ul>
 <li><p>a string containing the set of ordinary differential
-    equations (ODE) and other expressions defining the changes in
-    the dynamic system.</p></li>
+equations (ODE) and other expressions defining the changes in
+the dynamic system.</p></li>
 <li><p>a file name where the ODE system equation is contained</p></li>
-<li><p>An ODE expression enclosed in <code>{}</code></p></li>
 </ul>
 
+<p>An ODE expression enclosed in <code>\{\}</code></p>
 <p>(see also the <code>filename</code> argument). For
-    details, see the sections &#8220;Details&#8221; and
-    &#8220;<code>RxODE Syntax</code>&#8221; below.</p></td>
+details, see the sections &#8220;Details&#8221; and
+<code>RxODE Syntax</code> below.</p></td>
     </tr>
     <tr>
       <th>dir</th>
       <td><p>This is the model directory where the C file will be
-    stored for compiling.</p>
-<p>If unspecified, the C code is stored in a temporary directory,
-    then the model is compiled and moved to the current directory.
-    Afterwards the C code is removed.</p>
-<p>If specified, the C code is stored in the specified directory
-    and then compiled in that directory.  The C code is not removed
-    after the DLL is created in the same directory.  This can be
-    useful to debug the c-code outputs.</p></td>
+stored for compiling.</p><pre>If unspecified, the C code is stored in a temporary directory,
+then the model is compiled and moved to the current directory.
+Afterwards the C code is removed.
+
+If specified, the C code is stored in the specified directory
+and then compiled in that directory.  The C code is not removed
+after the DLL is created in the same directory.  This can be
+useful to debug the c-code outputs.
+</pre></td>
     </tr>
     <tr>
       <th>prefix</th>
@@ -357,25 +357,26 @@ simple ASCII alphanumeric characters starting with a letter.</p></td>
     </tr>
     <tr>
       <th>...</th>
-      <td><p>Other arguments sent to the <code><a href='rxTrans.html'>rxTrans</a></code>
+      <td><p>Other arguments sent to the <code><a href='rxTrans.html'>rxTrans()</a></code>
 function.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>An rxDll object that has the following components</p>
-<dt>dll</dt><dd><p>DLL path</p></dd>
-<dt>model</dt><dd><p>model specification</p></dd>
-<dt>.c</dt><dd><p>A function to call C code in the correct context from the DLL
-         using the <code><a href='https://rdrr.io/r/base/Foreign.html'>.C</a></code> function.</p></dd>
-<dt>.call</dt><dd><p>A function to call C code in the correct context from the DLL
-         using the <code><a href='https://rdrr.io/r/base/CallExternal.html'>.Call</a></code> function.</p></dd>
-<dt>args</dt><dd><p>A list of the arguments used to create the rxDll object.</p></dd>
+    <p>An rxDll object that has the following components</p><ul>
+<li><p><code>dll</code>DLL path</p></li>
+<li><p><code>model</code>model specification</p></li>
+<li><p><code>.c</code>A function to call C code in the correct context from the DLL
+using the <code><a href='https://rdrr.io/r/base/Foreign.html'>.C()</a></code> function.</p></li>
+<li><p><code>.call</code>A function to call C code in the correct context from the DLL
+using the <code><a href='https://rdrr.io/r/base/CallExternal.html'>.Call()</a></code> function.</p></li>
+<li><p><code>args</code>A list of the arguments used to create the rxDll object.</p></li>
+</ul>
 
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='RxODE.html'>RxODE</a></code></p></div>
+    <div class='dont-index'><p><code><a href='RxODE.html'>RxODE()</a></code></p></div>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
 
     <p>Matthew L.Fidler</p>
