@@ -85,15 +85,15 @@ rtools directly.
 
 ### Mac OSX
 
-Installation on a mac is much similar to RxODE installation under
-windows.  To get the most speed you need OpenMP enabled.  Here is some discussion about this:
+To get the most speed you need OpenMP enabled and compile RxODE
+against that binary.  Here is some discussion about this:
 
 https://mac.r-project.org/openmp/
 
 ### Linux
 
-To install on linux make sure you install gcc (with openmp support)
-and gfortran using your distribution's package manager.
+To install on linux make sure you install `gcc` (with openmp support)
+and `gfortran` using your distribution's package manager.
 
 ## Development Version
 
@@ -123,6 +123,7 @@ To load `RxODE` package and compile the model:
 
 ```r
 library(RxODE)
+#> RxODE 1.0.0.0 using 4 threads (see ?getRxThreads)
 library(units)
 #> udunits system database from /usr/share/xml/udunits
 
@@ -136,10 +137,6 @@ mod1 <-RxODE({
 })
 #> 
 #> qs v0.23.4.
-#> → creating RxODE include directory
-#> → getting R compile options
-#> → precompiling headers
-#> ✔ done
 ```
 
 ## Specify ODE parameters and initial conditions
@@ -326,10 +323,11 @@ plot(x,eff)  + ylab("Effect")
 <img src="man/figures/README-intro-effect-1.png" title="plot of chunk intro-effect" alt="plot of chunk intro-effect" width="100%" />
 
 Note that the labels are automatically labeled with the units from the
-initial event table. This is because RxODE uses the `units` package to
-handle units.
+initial event table. RxODE extracts `units` to label the plot (if they
+are present).
 
 # Related R Packages
+
 ## ODE solving
 
 This is a brief comparison of pharmacometric ODE solving R packages to

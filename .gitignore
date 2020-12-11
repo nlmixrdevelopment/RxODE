@@ -32,3 +32,4 @@ inst/doc
 /inst/.Rhistory
 /src/RxODE.so
 /R/RxODE_md5.R
+/.github/workflows/.Rhistory

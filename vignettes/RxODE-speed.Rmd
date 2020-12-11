@@ -138,7 +138,7 @@ runThread <- function(n){
 }
 
 bench <- eval(parse(text=sprintf("microbenchmark(%s)",
-                                     paste(paste0("runThread(", seq(1, rxCores()),")"),
+                                     paste(paste0("runThread(", seq(1, 2 * rxCores()),")"),
                                            collapse=","))))
 print(bench)
 ```
