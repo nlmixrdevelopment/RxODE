@@ -2035,8 +2035,9 @@ extern "C" void par_liblsoda(rx_solve *rx){
   // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
   // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
   int abort = 0;
+  if (cores == 0) cores = max2(1, getRxThreads(nsim*nsub, false));
 #ifdef _OPENMP
-#pragma omp parallel for num_threads(op->cores)
+#pragma omp parallel for num_threads(cores)
 #endif
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     if (abort == 0){

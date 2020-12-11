@@ -4809,7 +4809,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	  break;
 	case 1:
 	  // Thread safe, and reproducible
-	  op->cores = getRxThreads(INT_MAX, false);
+	  op->cores = 0;//getRxThreads(INT_MAX, false);
 	  rxSolveDat->throttle = true;
 	  break;
 	case 0:
@@ -4827,7 +4827,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	  break;
 	case 1:
 	  // Thread safe, and reproducible
-	  op->cores = getRxThreads(INT_MAX, false);
+	  op->cores = 0;//getRxThreads(INT_MAX, false);
 	  rxSolveDat->throttle = true;
 	  break;
 	case 0:
