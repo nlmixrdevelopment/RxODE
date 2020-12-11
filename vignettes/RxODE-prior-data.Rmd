@@ -27,7 +27,7 @@ the `theo_sd` data frame
 
 ```{r}
 ## Load data from nlmixr
-d <- nlmixr::theo_sd
+d <- qs::qread("theo_sd.qs")
 
 ## Create RxODE model
 theo <- RxODE({

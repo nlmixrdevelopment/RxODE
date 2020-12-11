@@ -103,6 +103,7 @@ vignettes/*.html
 vignettes/cl-lincmt.csv
 vignettes/kel-lincmt.csv
 vignettes/build.R
+vignettes/theo_sd.qs
 ^README\.Rmd$
 ^.*\.Rproj$
 ^\.Rproj\.user$
