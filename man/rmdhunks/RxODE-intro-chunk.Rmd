@@ -147,5 +147,5 @@ plot(x,eff)  + ylab("Effect")
 ```
 
 Note that the labels are automatically labeled with the units from the
-initial event table. This is because RxODE uses the `units` package to
-handle units.
+initial event table. RxODE extracts `units` to label the plot (if they
+are present).

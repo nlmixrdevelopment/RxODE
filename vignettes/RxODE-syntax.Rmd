@@ -113,3 +113,8 @@ datatable(syntax, rownames = FALSE, filter="top", options = list(pageLength = 10
 ## Bugs and/or deficiencies
 
 - The modulo operator `%%` is currently unsupported. 
+
+## Note
+
+The ODE specification mini-language is parsed with the help of the
+open source tool \code{dparser}, Plevyak (2015).

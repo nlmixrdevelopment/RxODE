@@ -127,6 +127,20 @@ estimation and simulation.  These variables start with the either the
 not use these variables starting with either the `rx` or `nlmixr`
 prefixes.
 
+## Logical Operators
 
-The ODE specification mini-language is parsed with the help of the
-open source tool \code{dparser}, Plevyak (2015).
+Logical operators support the standard R operators `==`, `!=` `>=`
+`<=` `>` and `<`.  Like R these can be in `if()` or `while()`
+statements, `ifelse()` expressions.  Additionally they can be in a
+standard assignment.  For instance, the following is valid:
+
+```
+cov1 = covm*(sexf == "female") + covm*(sexf != "female")
+```
+
+Notice that you can also use character expressions in comparisons.
+This convenience comes at a cost since character comparisons are
+slower than numeric expressions.  Unlike R, `as.numeric` or
+`as.integer` for these logical statements is not only not needed, but
+will cause an syntax error if you try to use the function.
+
