@@ -54,10 +54,7 @@
 
 <meta property="og:title" content="Solving \&amp; Simulation of a ODE/solved system (and solving options) equation — rxControl" />
 <meta property="og:description" content="This uses RxODE family of objects, file, or model specification to
-solve a ODE system.
-&quot;lkj&quot; simulates the correlation matrix from the
-rLKJ1 matrix with the distribution parameter eta
-equal to the degrees of freedom nu by (nu-1)/2" />
+solve a ODE system." />
 <meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png" />
 
 
@@ -278,9 +275,6 @@ equal to the degrees of freedom nu by (nu-1)/2" />
     <div class="ref-description">
     <p>This uses RxODE family of objects, file, or model specification to
 solve a ODE system.</p>
-<p><code>"lkj"</code> simulates the correlation matrix from the
-<code>rLKJ1</code> matrix with the distribution parameter <code>eta</code>
-equal to the degrees of freedom <code>nu</code> by <code>(nu-1)/2</code></p>
     </div>
 
     <pre class="usage"><span class='fu'>rxControl</span><span class='op'>(</span><span class='va'>...</span>, params <span class='op'>=</span> <span class='cn'>NULL</span>, events <span class='op'>=</span> <span class='cn'>NULL</span>, inits <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span>
@@ -609,11 +603,48 @@ Cholesky decomposition instead of a symmetric covariance</p></td>
     </tr>
     <tr>
       <th>sigmaSeparation</th>
-      <td><p>separation strategy for sigma;</p></td>
+      <td><p>separation strategy for sigma;</p>
+<p>Tells the type of separation strategy when
+simulating covariance with parameter uncertainty with standard
+deviations modeled in the <code>thetaMat</code> matrix.</p>
+<p><code>"lkj"</code> simulates the correlation matrix from the
+<code>rLKJ1</code> matrix with the distribution parameter <code>eta</code>
+equal to the degrees of freedom <code>nu</code> by <code>(nu-1)/2</code></p>
+<p><code>"separation"</code> simulates from the identity inverse Wishart
+covariance matrix with <code>nu</code> degrees of freedom.  This is then
+converted to a covariance matrix and augmented with the modeled
+standard deviations.  While computationally more complex than the
+<code>"lkj"</code> prior, it performs better when the covariance matrix
+size is greater or equal to 10</p>
+<p><code>"auto"</code> chooses <code>"lkj"</code> when the dimension of the
+matrix is less than 10 and <code>"separation"</code> when greater
+than equal to 10.</p></td>
     </tr>
     <tr>
       <th>sigmaXform</th>
-      <td><p>When taking <code>sigma</code> values from the @template Xform</p></td>
+      <td><p>When taking <code>sigma</code> values from the <code>thetaMat</code>
+simulations (using the separation strategy for covariance
+simulation), how should the <code>thetaMat</code> values be turned int
+standard deviation values:</p><ul>
+<li><p><code>identity</code> This is when standard deviation values are
+directly modeled by the <code>params</code> and <code>thetaMat</code> matrix</p></li>
+<li><p><code>variance</code> This is when the <code>params</code> and <code>thetaMat</code>
+simulates the variance that are directly modeled by the
+<code>thetaMat</code> matrix</p></li>
+<li><p><code>log</code> This is when the <code>params</code> and <code>thetaMat</code>
+simulates <code><a href='https://rdrr.io/r/base/Log.html'>log(sd)</a></code></p></li>
+<li><p><code>nlmixrSqrt</code> This is when the <code>params</code> and
+<code>thetaMat</code> simulates the inverse cholesky decomposed matrix
+with the <code>x^2</code> modeled along the diagonal.  This only works
+with a diagonal matrix.</p></li>
+<li><p><code>nlmixrLog</code> This is when the <code>params</code> and
+<code>thetaMat</code> simulates the inverse cholesky decomposed matrix
+with the <code><a href='https://rdrr.io/r/base/Log.html'>exp(x^2)</a></code> along the diagonal.  This only works
+with a diagonal matrix.</p></li>
+<li><p><code>nlmixrIdentity</code> This is when the <code>params</code> and
+<code>thetaMat</code> simulates the inverse cholesky decomposed matrrix.
+This only works with a diagonal matrix.</p></li>
+</ul></td>
     </tr>
     <tr>
       <th>nDisplayProgress</th>
@@ -730,11 +761,48 @@ symmetric matrix.</p></td>
     </tr>
     <tr>
       <th>omegaSeparation</th>
-      <td><p>@template separation</p></td>
+      <td><p>Omega separation strategy</p>
+<p>Tells the type of separation strategy when
+simulating covariance with parameter uncertainty with standard
+deviations modeled in the <code>thetaMat</code> matrix.</p>
+<p><code>"lkj"</code> simulates the correlation matrix from the
+<code>rLKJ1</code> matrix with the distribution parameter <code>eta</code>
+equal to the degrees of freedom <code>nu</code> by <code>(nu-1)/2</code></p>
+<p><code>"separation"</code> simulates from the identity inverse Wishart
+covariance matrix with <code>nu</code> degrees of freedom.  This is then
+converted to a covariance matrix and augmented with the modeled
+standard deviations.  While computationally more complex than the
+<code>"lkj"</code> prior, it performs better when the covariance matrix
+size is greater or equal to 10</p>
+<p><code>"auto"</code> chooses <code>"lkj"</code> when the dimension of the
+matrix is less than 10 and <code>"separation"</code> when greater
+than equal to 10.</p></td>
     </tr>
     <tr>
       <th>omegaXform</th>
-      <td><p>When taking <code>omega</code> values from the @template Xform</p></td>
+      <td><p>When taking <code>omega</code> values from the <code>thetaMat</code>
+simulations (using the separation strategy for covariance
+simulation), how should the <code>thetaMat</code> values be turned int
+standard deviation values:</p><ul>
+<li><p><code>identity</code> This is when standard deviation values are
+directly modeled by the <code>params</code> and <code>thetaMat</code> matrix</p></li>
+<li><p><code>variance</code> This is when the <code>params</code> and <code>thetaMat</code>
+simulates the variance that are directly modeled by the
+<code>thetaMat</code> matrix</p></li>
+<li><p><code>log</code> This is when the <code>params</code> and <code>thetaMat</code>
+simulates <code><a href='https://rdrr.io/r/base/Log.html'>log(sd)</a></code></p></li>
+<li><p><code>nlmixrSqrt</code> This is when the <code>params</code> and
+<code>thetaMat</code> simulates the inverse cholesky decomposed matrix
+with the <code>x^2</code> modeled along the diagonal.  This only works
+with a diagonal matrix.</p></li>
+<li><p><code>nlmixrLog</code> This is when the <code>params</code> and
+<code>thetaMat</code> simulates the inverse cholesky decomposed matrix
+with the <code><a href='https://rdrr.io/r/base/Log.html'>exp(x^2)</a></code> along the diagonal.  This only works
+with a diagonal matrix.</p></li>
+<li><p><code>nlmixrIdentity</code> This is when the <code>params</code> and
+<code>thetaMat</code> simulates the inverse cholesky decomposed matrrix.
+This only works with a diagonal matrix.</p></li>
+</ul></td>
     </tr>
     <tr>
       <th>omegaLower</th>
@@ -1072,17 +1140,6 @@ object to update the event table and resolve the system of
 equations.  % Should be able to use roxygen templates...
 </pre>
 
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p><code>"separation"</code> simulates from the identity inverse Wishart
-covariance matrix with <code>nu</code> degrees of freedom.  This is then
-converted to a covariance matrix and augmented with the modeled
-standard deviations.  While computationally more complex than the
-<code>"lkj"</code> prior, it performs better when the covariance matrix
-size is greater or equal to 10</p>
-<p><code>"auto"</code> chooses <code>"lkj"</code> when the dimension of the
-matrix is less than 10 and <code>"separation"</code> when greater
-than equal to 10.</p>
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
     <p>"New Scaling and Squaring Algorithm for the Matrix Exponential", by

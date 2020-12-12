@@ -582,8 +582,21 @@ Similarly, nlmixr generates some variables that are used in nlmixr
 estimation and simulation. These variables start with the either the
 <code>rx</code> or <code>nlmixr</code> prefixes. To avoid any problems, it is suggested to not
 use these variables starting with either the <code>rx</code> or <code>nlmixr</code> prefixes.</p>
-<p>The ODE specification mini-language is parsed with the help of the open
-source tool , Plevyak (2015).</p>
+
+<h3 class='hasAnchor' id='arguments'><a class='anchor' href='#arguments'></a>Logical Operators</h3>
+
+
+<p>Logical operators support the standard R operators <code><a href='https://rdrr.io/r/base/Comparison.html'>==</a></code>, <code><a href='https://rdrr.io/r/base/Comparison.html'>!=</a></code> <code>&gt;=</code> <code>&lt;=</code>
+<code>&gt;</code> and <code>&lt;</code>. Like R these can be in <code>if()</code> or <code>while()</code> statements,
+<code><a href='https://rdrr.io/r/base/ifelse.html'>ifelse()</a></code> expressions. Additionally they can be in a standard
+assignment. For instance, the following is valid:</p><pre><span class='va'>cov1</span> <span class='op'>=</span> <span class='va'>covm</span><span class='op'>*</span><span class='op'>(</span><span class='va'>sexf</span> <span class='op'>==</span> <span class='st'>"female"</span><span class='op'>)</span> <span class='op'>+</span> <span class='va'>covm</span><span class='op'>*</span><span class='op'>(</span><span class='va'>sexf</span> <span class='op'>!=</span> <span class='st'>"female"</span><span class='op'>)</span>
+</pre>
+
+<p>Notice that you can also use character expressions in comparisons. This
+convenience comes at a cost since character comparisons are slower than
+numeric expressions. Unlike R, <code>as.numeric</code> or <code>as.integer</code> for these
+logical statements is not only not needed, but will cause an syntax
+error if you try to use the function.</p>
 
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
@@ -628,7 +641,7 @@ Springer-Verlag (1993).</p>
 
 <span class='va'>m1</span> <span class='op'>&lt;-</span> <span class='fu'>RxODE</span><span class='op'>(</span>model <span class='op'>=</span> <span class='va'>ode</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; <span class='message'> </span></div><div class='output co'>#&gt; <span class='message'>qs v0.23.4.</span></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>m1</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>1.0.0-0 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_ec21c31aca9be64ac7ef3ef89928fe57</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
+</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>1.0.0-0 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_fbe5557632a16ebe8704b04bf080d5e0</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</div><div class='input'>
