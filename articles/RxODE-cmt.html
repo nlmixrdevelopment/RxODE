@@ -219,7 +219,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Changing RxODE compartment numbers</h1>
             
-            <h4 class="date">2020-12-11</h4>
+            <h4 class="date">2020-12-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-cmt.Rmd"><code>vignettes/RxODE-cmt.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-cmt.Rmd</code></div>
@@ -323,7 +323,7 @@
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">pbpk</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; RxODE 1.0.0-0 model named rx_bac14965651725fd5f8300bc82b1d146 model (ready). 
-#&gt; DLL: /tmp/RtmpSG3zgS/RxODE/rx_bac14965651725fd5f8300bc82b1d146__.rxd/rx_bac14965651725fd5f8300bc82b1d146_.so
+#&gt; DLL: /tmp/Rtmp1aPdlo/RxODE/rx_bac14965651725fd5f8300bc82b1d146__.rxd/rx_bac14965651725fd5f8300bc82b1d146_.so
 #&gt; NULL
 #&gt; 
 #&gt; Calculated Variables:
@@ -528,14 +528,14 @@
 #&gt; $stateExtra: eff
 #&gt; $params: V, KA, CL
 #&gt; $lhs: C2</code></pre>
-<p>Where as this is not:</p>
+<p>But compartments defined before all the differential equations is not supported; So the model below:</p>
 <pre><code>ode.1c.ka &lt;- RxODE({
     cmt(eff);
     C2 = center/V;
     d / dt(depot) = -KA * depot
     d/dt(center) = KA * depot - CL*C2
 })</code></pre>
-<p>Which gives an error:</p>
+<p>will give an error:</p>
 <pre><code>Error in rxModelVars_(obj) : 
   Evaluation error: Compartment 'eff' needs differential equations defined.</code></pre>
 </div>
