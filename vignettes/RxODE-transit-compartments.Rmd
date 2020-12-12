@@ -12,6 +12,8 @@ options(knitr.table.format = "html")
 htmltools::img(src = knitr::image_uri("logo.png"), 
                alt = 'RxODE', 
                style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
+options(width=80, cli.width=80)
+Sys.setenv(RSTUDIO_CONSOLE_WIDTH=80)
 ```
 
 Savic 2008 first introduced the idea of transit compartments being a

@@ -6,8 +6,10 @@ output:
     self_contained: no
 ---
 ```{r, echo=FALSE}
-options(cli.unicode=FALSE, crayon.enabled=FALSE);
+options(cli.unicode=FALSE, crayon.enabled=FALSE)
 options(knitr.table.format = "html")
+options(width=80, cli.width=80)
+Sys.setenv(RSTUDIO_CONSOLE_WIDTH=80)
 ```
 
 As suggested in the name, RxODE is often concerned with solutions to

@@ -10,7 +10,7 @@ date: "`r Sys.Date()`"
 options(cli.unicode=FALSE, crayon.enabled=FALSE);
 options(knitr.table.format = "html")
 knitr::opts_chunk$set( comment = "#>")
-options(width=80)
+options(width=80, cli.width=80)
 Sys.setenv(RSTUDIO_CONSOLE_WIDTH=80)
 ```
 
