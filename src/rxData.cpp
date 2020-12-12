@@ -1437,6 +1437,7 @@ typedef struct {
   bool zeroTheta = false;
   bool zeroOmega = false;
   bool zeroSigma = false;
+  int *gindLin = NULL;
 } rx_globals;
 
 
@@ -2460,6 +2461,7 @@ LogicalVector rxSolveFree(){
     rxUnlock(rxSolveFreeObj);
     rxSolveFreeObj=R_NilValue;
   }
+  if (_globals.gindLin != NULL) Free(_globals.gindLin);
   rxOptionsFree(); // f77 losda free
   rxOptionsIni();// realloc f77 lsoda cache
   parseFree(0); //free parser
@@ -4444,7 +4446,6 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
     }
     if (rx->matrix == 2){
       dat.attr("class") = "data.frame";
-      // Free(op->indLin);
 #ifdef rxSolveT
     RSprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4456,7 +4457,6 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
 	tmpM(_,i) = as<NumericVector>(dat[i]);
       }
       tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
-      // Free(op->indLin);
 #ifdef rxSolveT
     RSprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4472,7 +4472,6 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
 					    inits, rxSolveDat);
     // eGparPos
     dat.attr("class") = cls;
-    // Free(op->indLin);
 #ifdef rxSolveT
     RSprintf("  Time4: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
     _lastT0 = clock();
@@ -4771,7 +4770,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     _rxModels[".lastMv"] = rxSolveDat->mv;
     _rxModels[".lastControl"] = rxControl;
     _rxModels[".lastInits"] = inits;
-    Free(op->indLin);
     rxSolveDat->addDosing = asNLv(rxControl[Rxc_addDosing], "addDosing");
 #ifdef rxSolveT
     RSprintf("Time3: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
@@ -4901,7 +4899,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	// Inductive linearization
 	IntegerVector indLinItems = as<IntegerVector>(indLin[3]);
 	op->indLinN = indLinItems.size();
-	op->indLin = Calloc(op->indLinN,int);
+	if (_globals.gindLin != NULL) Free(_globals.gindLin);
+	_globals.gindLin = Calloc(op->indLinN,int);
+	op->indLin = _globals.gindLin;
 	std::copy(indLinItems.begin(), indLinItems.end(), op->indLin);
 	if (me){
 	  // homogenous ME + IndLin
