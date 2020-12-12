@@ -161,6 +161,8 @@ navbar:
   right:
   - icon: fas fa-archive
     menu:
+      - text: RxODE User Guide
+        href: https://nlmixrdevelopment.github.io/RxODE-manual/
       - text: nlmixr
         href: https://nlmixrdevelopment.github.io/nlmixr/
   - icon: fa-github fa-lg
