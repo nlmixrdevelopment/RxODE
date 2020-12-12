@@ -67,7 +67,8 @@ to specify 10mg BID dosing for 5 days, followed by 20mg QD dosing for
 
 ```{r}
 ev$add.dosing(dose=10000, nbr.doses=10, dosing.interval=12)
-ev$add.dosing(dose=20000, nbr.doses=5, start.time=120, dosing.interval=24)
+ev$add.dosing(dose=20000, nbr.doses=5, start.time=120,
+              dosing.interval=24)
 ev$add.sampling(0:240)
 ```
 
@@ -75,9 +76,10 @@ If you wish you can also do this with the `mattigr` pipe operator `%>%`
 
 ```{r}
 ev <- eventTable(amount.units="mg", time.units="hours") %>%
-    add.dosing(dose=10000, nbr.doses=10, dosing.interval=12) %>%
-    add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24) %>%
-    add.sampling(0:240);
+  add.dosing(dose=10000, nbr.doses=10, dosing.interval=12) %>%
+  add.dosing(dose=20000, nbr.doses=5, start.time=120,
+             dosing.interval=24) %>%
+  add.sampling(0:240)
 ```
 
 The functions `get.dosing()` and `get.sampling()` can be used to
@@ -97,9 +99,9 @@ directly with the event table function `et`
 
 ```{r}
 ev  <- et(amountUnits="mg", timeUnits="hours") %>%
-    et(amt=10000, addl=9,ii=12,cmt="depot") %>%
-    et(time=120, amt=2000, addl=4, ii=14, cmt="depot") %>%
-    et(0:240) # Assumes sampling when there is no dosing information
+  et(amt=10000, addl=9,ii=12,cmt="depot") %>%
+  et(time=120, amt=2000, addl=4, ii=14, cmt="depot") %>%
+  et(0:240) # Add sampling 
 ```
 
 You can see from the above code, you can dose to the compartment named
