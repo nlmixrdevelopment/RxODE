@@ -134,7 +134,35 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'     parameters that are simulated.  These are simulated for every
 #'     observation in the solved system.
 #'
-#' @param sigmaXform When taking `sigma` values from the @template Xform
+#' @param sigmaXform When taking `sigma` values from the `thetaMat`
+#'   simulations (using the separation strategy for covariance
+#'   simulation), how should the `thetaMat` values be turned int
+#'   standard deviation values:
+#'
+#'  - `identity` This is when standard deviation values are
+#'    directly modeled by the `params` and `thetaMat` matrix
+#'
+#'  - `variance` This is when the `params` and `thetaMat`
+#'     simulates the variance that are directly modeled by the
+#'     `thetaMat` matrix
+#'
+#'  - `log` This is when the `params` and `thetaMat`
+#'     simulates `log(sd)`
+#'
+#'   - `nlmixrSqrt` This is when the `params` and
+#'     `thetaMat` simulates the inverse cholesky decomposed matrix
+#'     with the `x^2` modeled along the diagonal.  This only works
+#'      with a diagonal matrix.
+#'
+#'   - `nlmixrLog` This is when the `params` and
+#'     `thetaMat` simulates the inverse cholesky decomposed matrix
+#'      with the `exp(x^2)` along the diagonal.  This only works
+#'      with a diagonal matrix.
+#'
+#'   - `nlmixrIdentity` This is when the `params` and
+#'      `thetaMat` simulates the inverse cholesky decomposed matrrix.
+#'      This only works with a diagonal matrix.
+#'
 #'
 #' @param sigmaDf Degrees of freedom of the sigma t-distribution.  By
 #'     default it is equivalent to `Inf`, or a normal distribution.
@@ -150,7 +178,24 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'
 #' @param sigmaSeparation separation strategy for sigma;
 #'
-#' @template separation
+#' Tells the type of separation strategy when
+#' simulating covariance with parameter uncertainty with standard
+#' deviations modeled in the `thetaMat` matrix.
+#'
+#' `"lkj"` simulates the correlation matrix from the
+#' `rLKJ1` matrix with the distribution parameter `eta`
+#' equal to the degrees of freedom `nu` by `(nu-1)/2`
+#'
+#' `"separation"` simulates from the identity inverse Wishart
+#' covariance matrix with `nu` degrees of freedom.  This is then
+#' converted to a covariance matrix and augmented with the modeled
+#' standard deviations.  While computationally more complex than the
+#' `"lkj"` prior, it performs better when the covariance matrix
+#' size is greater or equal to 10
+#'
+#' `"auto"` chooses `"lkj"` when the dimension of the
+#' matrix is less than 10 and `"separation"` when greater
+#' than equal to 10.
 #'
 #' @param nDisplayProgress An integer indicating the minimum number
 #'     of c-based solves before a progress bar is shown.  By default
@@ -218,7 +263,34 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #'     assume it is a block matrix and convert it to a full matrix
 #'     for simulations.
 #'
-#' @param omegaXform When taking `omega` values from the @template Xform
+#' @param omegaXform When taking `omega` values from the `thetaMat`
+#'   simulations (using the separation strategy for covariance
+#'   simulation), how should the `thetaMat` values be turned int
+#'   standard deviation values:
+#'
+#'   - `identity` This is when standard deviation values are
+#'    directly modeled by the `params` and `thetaMat` matrix
+#'
+#'  - `variance` This is when the `params` and `thetaMat`
+#'     simulates the variance that are directly modeled by the
+#'     `thetaMat` matrix
+#'
+#'  - `log` This is when the `params` and `thetaMat`
+#'     simulates `log(sd)`
+#'
+#'   - `nlmixrSqrt` This is when the `params` and
+#'     `thetaMat` simulates the inverse cholesky decomposed matrix
+#'     with the `x^2` modeled along the diagonal.  This only works
+#'      with a diagonal matrix.
+#'
+#'   - `nlmixrLog` This is when the `params` and
+#'     `thetaMat` simulates the inverse cholesky decomposed matrix
+#'      with the `exp(x^2)` along the diagonal.  This only works
+#'      with a diagonal matrix.
+#'
+#'   - `nlmixrIdentity` This is when the `params` and
+#'      `thetaMat` simulates the inverse cholesky decomposed matrrix.
+#'      This only works with a diagonal matrix.
 #'
 #'
 #' @inheritParams rxSimThetaOmega

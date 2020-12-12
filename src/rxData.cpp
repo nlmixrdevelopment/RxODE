@@ -1808,7 +1808,26 @@ arma::vec fillVec(arma::vec& in, int len);
 //'     Cholesky decomposed matrix instead of the traditional
 //'     symmetric matrix.
 //'
-//' @param omegaSeparation @template separation
+//' @param omegaSeparation Omega separation strategy
+//'
+//' Tells the type of separation strategy when
+//' simulating covariance with parameter uncertainty with standard
+//' deviations modeled in the `thetaMat` matrix.
+//'
+//' `"lkj"` simulates the correlation matrix from the
+//' `rLKJ1` matrix with the distribution parameter `eta`
+//' equal to the degrees of freedom `nu` by `(nu-1)/2`
+//'
+//' `"separation"` simulates from the identity inverse Wishart
+//' covariance matrix with `nu` degrees of freedom.  This is then
+//' converted to a covariance matrix and augmented with the modeled
+//' standard deviations.  While computationally more complex than the
+//' `"lkj"` prior, it performs better when the covariance matrix
+//' size is greater or equal to 10
+//'
+//' `"auto"` chooses `"lkj"` when the dimension of the
+//' matrix is less than 10 and `"separation"` when greater
+//' than equal to 10.
 //'
 //' @param nStud Number virtual studies to characterize uncertainty in estimated
 //'        parameters.
@@ -1818,7 +1837,26 @@ arma::vec fillVec(arma::vec& in, int len);
 //' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the
 //'     individual parameters, residuals are updated after solve is completed.
 //'
-//' @param sigmaSeparation @template separation
+//' @param sigmaSeparation Sigma separation Strategy
+//'
+//' Tells the type of separation strategy when
+//' simulating covariance with parameter uncertainty with standard
+//' deviations modeled in the `thetaMat` matrix.
+//'
+//' `"lkj"` simulates the correlation matrix from the
+//' `rLKJ1` matrix with the distribution parameter `eta`
+//' equal to the degrees of freedom `nu` by `(nu-1)/2`
+//'
+//' `"separation"` simulates from the identity inverse Wishart
+//' covariance matrix with `nu` degrees of freedom.  This is then
+//' converted to a covariance matrix and augmented with the modeled
+//' standard deviations.  While computationally more complex than the
+//' `"lkj"` prior, it performs better when the covariance matrix
+//' size is greater or equal to 10
+//'
+//' `"auto"` chooses `"lkj"` when the dimension of the
+//' matrix is less than 10 and `"separation"` when greater
+//' than equal to 10.
 //'
 //' @param sigmaLower Lower bounds for simulated unexplained variability (by default -Inf)
 //'

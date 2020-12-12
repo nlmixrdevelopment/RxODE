@@ -299,9 +299,21 @@ Similarly, nlmixr generates some variables that are used in nlmixr
 estimation and simulation. These variables start with the either the
 \code{rx} or \code{nlmixr} prefixes. To avoid any problems, it is suggested to not
 use these variables starting with either the \code{rx} or \code{nlmixr} prefixes.
+}
 
-The ODE specification mini-language is parsed with the help of the open
-source tool , Plevyak (2015).
+\subsection{Logical Operators}{
+
+Logical operators support the standard R operators \code{==}, \code{!=} \code{>=} \code{<=}
+\code{>} and \code{<}. Like R these can be in \verb{if()} or \verb{while()} statements,
+\code{ifelse()} expressions. Additionally they can be in a standard
+assignment. For instance, the following is valid:\preformatted{cov1 = covm*(sexf == "female") + covm*(sexf != "female")
+}
+
+Notice that you can also use character expressions in comparisons. This
+convenience comes at a cost since character comparisons are slower than
+numeric expressions. Unlike R, \code{as.numeric} or \code{as.integer} for these
+logical statements is not only not needed, but will cause an syntax
+error if you try to use the function.
 }
 }
 \examples{
