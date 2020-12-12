@@ -32,7 +32,6 @@ LogicalVector isNullZero(RObject obj) {
   }
   if (t == VECSXP) {
     List cur = as<List>(obj);
-    bool allZero  = true;
     for (int i = cur.size(); i--;) {
       if (!_RxODE_isNullZero(cur[i])) {
 	return false;

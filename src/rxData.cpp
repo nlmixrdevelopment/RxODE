@@ -4549,7 +4549,7 @@ static inline void iniRx(rx_solve* rx) {
   op->par_cov = NULL;
   op->inits = NULL;
   op->scale = NULL;
-  op->do_par_cov=NULL;
+  op->do_par_cov=false;
   // approx fun options
   op->f1   = 0.0;
   op->f2   = 1.0;
