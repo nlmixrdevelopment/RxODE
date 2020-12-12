@@ -4510,7 +4510,7 @@ static inline void iniRx(rx_solve* rx) {
   rx->nKeepF = 0;
   rx->istateReset=1;
   rx->cens = 0;
-  rx->limit = R_NegInf;
+  rx->limit = 0;
   rx->safeZero = 1;
   rx->sumType = 1; // pairwise
   rx->prodType = 1; // long double
