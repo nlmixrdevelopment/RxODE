@@ -85,7 +85,6 @@ Suggests:
 Imports:
     PreciseSums (>= 0.3),
     Rcpp (>= 0.12.3),
-    RcppArmadillo (>= 0.9.300.2.0),
     assertthat,
     backports,
     checkmate,
@@ -127,6 +126,7 @@ LinkingTo:
     dparser (>= 0.1.8),
     PreciseSums (>= 0.3),
     RcppEigen (>= 0.3.3.3.0),
+    RcppArmadillo (>= 0.9.300.2.0),
     sitmo,
     StanHeaders (>= 2.18.0),
     BH,
