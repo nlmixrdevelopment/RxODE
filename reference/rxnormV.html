@@ -86,7 +86,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0-0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0.9000</span>
       </span>
     </div>
 
@@ -94,7 +94,7 @@
       <ul class="nav navbar-nav">
         <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    <span class="fas fa fas fa-book"></span>
+    <span class="fas fa-book"></span>
      
     Articles
      
@@ -145,7 +145,7 @@
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    <span class="fas fa fas fa-stethoscope"></span>
+    <span class="fas fa-stethoscope"></span>
      
     Dosing/Events
      
@@ -165,7 +165,7 @@
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    <span class="fas fa fas fa-desktop"></span>
+    <span class="fas fa-desktop"></span>
      
     Simulations
      
@@ -185,7 +185,7 @@
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    <span class="fas fa fas fa-life-ring"></span>
+    <span class="fas fa-life-ring"></span>
      
     Help
      
@@ -212,7 +212,7 @@
 </li>
 <li>
   <a href="https://nlmixrdevelopment.github.io/RxODE/reference/index.html">
-    <span class="fa fa-file-code-o"></span>
+    <span class="fas fa-file-code-o"></span>
      
     Functions
   </a>
@@ -221,7 +221,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    <span class="fas fa fas fa-archive"></span>
+    <span class="fas fa-archive"></span>
      
      
     <span class="caret"></span>
@@ -237,13 +237,13 @@
 </li>
 <li>
   <a href="https://github.com/nlmixrdevelopment/RxODE">
-    <span class="fa fa-github fa-lg"></span>
+    <span class="fas fa-github fa-lg"></span>
      
   </a>
 </li>
 <li>
   <a href="https://github.com/nlmixrdevelopment/RxODE/releases">
-    <span class="fa fa-download"></span>
+    <span class="fas fa-download"></span>
      
   </a>
 </li>
@@ -330,8 +330,8 @@ uses the vandercorput generator</p></td>
 <span class='fu'>rxnormV</span><span class='op'>(</span>n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxnorm you have to explicitly state n</span>
 </div><div class='output co'>#&gt;  [1]  0.8766283 -0.7818548  0.3652488 -0.9458966  0.8844971 -0.2515529
 #&gt;  [7]  0.1385289 -0.7635145  0.9702994 -0.5143096</div><div class='input'><span class='fu'>rxnormV</span><span class='op'>(</span>n<span class='op'>=</span><span class='fl'>10</span>,ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span>
-</div><div class='output co'>#&gt;  [1] -1.79242841  0.26696706 -0.53195331  0.43850494 -1.01766720  0.03515225
-#&gt;  [7] -0.50717978  0.92139728 -0.70992317  0.44365644</div><div class='input'>
+</div><div class='output co'>#&gt;  [1] -1.79242841  0.26696706 -0.53195331  0.43850494 -1.01766720  1.73006446
+#&gt;  [7]  0.03515225 -0.50717978  0.92139728 -0.70992317</div><div class='input'>
 <span class='fu'>rxnormV</span><span class='op'>(</span><span class='fl'>2</span>,<span class='fl'>3</span><span class='op'>)</span> <span class='co'>## The first 2 arguments are the mean and standard deviation</span>
 </div><div class='output co'>#&gt; [1] 4.698535</div><div class='input'>
 
