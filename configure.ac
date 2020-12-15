@@ -41,6 +41,9 @@ rm build.R
 rm build.Rout
 
 ${R_HOME}/bin/R CMD BATCH  inst/tools/r-stripper/stripper.R
+rm stripper.Rout
+${R_HOME}/bin/R CMD BATCH  inst/tools/r-stripper/workaround.R
+rm workaround.Rout
 
 echo --------[[begin src/Makevars]]--------
 cat src/Makevars
