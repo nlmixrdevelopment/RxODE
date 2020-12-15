@@ -154,7 +154,7 @@
 #'      with a diagonal matrix.
 #'
 #'   - `nlmixrIdentity` This is when the `params` and
-#'      `thetaMat` simulates the inverse cholesky decomposed matrrix.
+#'      `thetaMat` simulates the inverse cholesky decomposed matrix.
 #'      This only works with a diagonal matrix.
 #'
 #'
