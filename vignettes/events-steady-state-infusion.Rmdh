@@ -1,0 +1,43 @@
+
+The last type of steady state that RxODE supports is steady-state
+constant infusion rate.  This can be specified the same way as NONMEM,
+that is:
+
+- No inter-dose interval `ii`=`0`
+- A steady state dose, ie `ss`=`1`
+- Either a positive rate (`rate`>0) or a estimated rate `rate`=`-1`.
+- A zero dose, ie `amt`=`0`
+- Once the steady-state constant infusion is achieved, the infusion is
+  turned off when using this record, just like NONMEM.
+
+Note that `rate`=`-2` where we model the duration of infusion doesn't
+make much sense since we are solving the infusion until steady state.
+The duration is specified by the steady state solution.
+
+Also note that bioavailability changes on this steady state infusion
+also do not make sense because they neither change the `rate` or the
+duration of the steady state infusion.  Hence modeled bioavailability
+on this type of dosing event is ignored.
+
+Here is an example:
+
+```{r}
+ev <- et(timeUnits="hr") %>%
+    et(amt=0, ss=1,rate=10000/8)
+
+p1 <- rxSolve(m1, ev) %>% plot(C2, eff)
+
+
+ev <- et(timeUnits="hr") %>%
+    et(amt=200000, rate=10000/8) %>%
+    et(0, 250, length.out=1000)
+
+p2 <- rxSolve(m1, ev) %>% plot(C2, eff)
+
+library(patchwork)
+
+p1 / p2
+```
+
+Not only can this be used for PK, it can be used for steady-state
+disease processes.

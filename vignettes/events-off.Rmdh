@@ -1,0 +1,47 @@
+You may also turn off a compartment, which is similar to a reset event.
+
+```{r}
+ev <- et(timeUnits="hr") %>%
+    et(amt=10000, ii=12, addl=3) %>%
+    et(time=6, cmt="-depot", evid=2) %>%
+    et(seq(0, 24, length.out=100))
+
+ev
+```
+
+Solving shows what this does in the system:
+
+```{r}
+rxSolve(m1, ev) %>% plot(depot,C2, eff)
+```
+
+In this case, the depot is turned off, and the depot compartment
+concentrations are set to the initial values but the other compartment
+concentrations/levels are not reset. When another dose to the depot is
+administered the depot compartment is turned back on.
+
+Note that a dose to a compartment only turns back on the compartment
+that was dosed.  Hence if you turn off the effect compartment, it
+continues to be off after another dose to the depot.
+
+```{r}
+ev <- et(timeUnits="hr") %>%
+    et(amt=10000, ii=12, addl=3) %>%
+    et(time=6, cmt="-eff", evid=2) %>%
+    et(seq(0, 24, length.out=100))
+
+rxSolve(m1, ev) %>% plot(depot,C2, eff)
+```
+
+To turn back on the compartment, a zero-dose to the compartment or a
+evid=2 with the compartment would be needed.
+
+```{r}
+ev <- et(timeUnits="hr") %>%
+    et(amt=10000, ii=12, addl=3) %>%
+    et(time=6, cmt="-eff", evid=2) %>%
+    et(time=12,cmt="eff",evid=2) %>%
+    et(seq(0, 24, length.out=100))
+
+rxSolve(m1, ev) %>% plot(depot,C2, eff)
+```

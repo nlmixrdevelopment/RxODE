@@ -1,0 +1,16 @@
+A bolus dose is the default type of dose in RxODE and only requires
+the `amt`/`dose`.  Note that this uses the convenience function `et()`
+described in the [RxODE event tables](RxODE-event-table.html)
+
+```{r}
+ev <- et(timeUnits="hr") %>%
+    et(amt=10000, ii=12,until=24) %>%
+    et(seq(0, 24, length.out=100))
+
+ev
+```
+
+```{r}
+rxSolve(m1, ev) %>% plot(C2) +
+    xlab("Time")
+```

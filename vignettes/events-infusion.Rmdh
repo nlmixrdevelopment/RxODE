@@ -1,0 +1,6 @@
+There are a few different type of infusions that RxODE supports:
+
+- Constant Rate Infusion (`rate`)
+- Constant Duration Infusion (`dur`)
+- Estimated Rate of Infusion
+- Estimated Duration of Infusion

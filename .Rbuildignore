@@ -37,6 +37,7 @@ News.md
 ^/?man/figures/.*$
 ^/?man/figures$
 tests/testthat/_snaps$
+vignettes/*.Rmdh
 vignettes/RxODE-wt.Rmd
 vignettes/RxODE-nesting.Rmd
 vignettes/RxODE-tutorials.Rmd

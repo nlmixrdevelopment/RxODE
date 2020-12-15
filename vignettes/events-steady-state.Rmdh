@@ -1,0 +1,15 @@
+
+These doses are solved until a steady state is
+reached with a constant inter-dose interval.
+
+```{r}
+ev <- et(timeUnits="hr") %>%
+    et(amt=10000, ii=12, ss=1) %>%
+    et(seq(0, 24, length.out=100))
+
+ev
+```
+
+```{r}
+rxSolve(m1, ev) %>% plot(C2)
+```
