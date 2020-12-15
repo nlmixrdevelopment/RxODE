@@ -1,9 +1,3 @@
-#' @rdname rxSolve
-#' @export
-rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
-  rxSolve(object=NULL, params = params, events = events, inits = inits, ...)
-}
-
 #' Solving \& Simulation of a ODE/solved system (and solving options) equation
 #'
 #' This uses RxODE family of objects, file, or model specification to
@@ -412,22 +406,6 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #' @param safeZero Use safe zero divide and log routines.  By default
 #'     this is turned on but you may turn it off if you wish.
 #'
-#' @return An \dQuote{rxSolve} solve object that stores the solved
-#'     value in a matrix with as many rows as there are sampled time
-#'     points and as many columns as system variables (as defined by
-#'     the ODEs and additional assignments in the RxODE model code).
-#'     It also stores information about the call to allow dynamic
-#'     updating of the solved object.
-#'
-#'     The operations for the object are similar to a data-frame, but
-#'     expand the `$` and `[[""]]` access operators and
-#'     assignment operators to resolve based on different parameter
-#'     values, initial conditions, solver parameters, or events (by
-#'     updating the `time` variable).
-#'
-#'     You can call the [eventTable()] methods on the solved
-#'     object to update the event table and resolve the system of
-#'     equations.  % Should be able to use roxygen templates...
 #'
 #' @param indLinMatExpType This is them matrix exponential type that
 #'     is use for RxODE.  Currently the following are supported:
@@ -516,8 +494,22 @@ rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
 #' @param maxwhile represents the maximum times a while loop is
 #'   evaluated before exiting.  By default this is 100000
 #'
+#' @return An \dQuote{rxSolve} solve object that stores the solved
+#'     value in a matrix with as many rows as there are sampled time
+#'     points and as many columns as system variables (as defined by
+#'     the ODEs and additional assignments in the RxODE model code).
+#'     It also stores information about the call to allow dynamic
+#'     updating of the solved object.
 #'
+#'     The operations for the object are similar to a data-frame, but
+#'     expand the `$` and `[[""]]` access operators and
+#'     assignment operators to resolve based on different parameter
+#'     values, initial conditions, solver parameters, or events (by
+#'     updating the `time` variable).
 #'
+#'     You can call the [eventTable()] methods on the solved
+#'     object to update the event table and resolve the system of
+#'     equations.  % Should be able to use roxygen templates...
 #'
 #' @references
 #'
@@ -1294,3 +1286,9 @@ drop_units.rxSolve <- function(x) {
 ## [21] is.na         melt          merge         na.omit       names<-
 ## [26] Ops           print         show          slotsFromS3   split
 ## [31] subset        tail          transform     unique        within
+
+#' @rdname rxSolve
+#' @export
+rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
+  rxSolve(object=NULL, params = params, events = events, inits = inits, ...)
+}
