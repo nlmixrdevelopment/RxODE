@@ -54,7 +54,9 @@
 
 <meta property="og:title" content="Solving \&amp; Simulation of a ODE/solved system (and solving options) equation — rxSolve" />
 <meta property="og:description" content="This uses RxODE family of objects, file, or model specification to
-solve a ODE system." />
+solve a ODE system.  There are many options for a solved RxODE
+model, the first are the required object, and events with the
+some-times optional params and inits." />
 <meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png" />
 
 
@@ -274,7 +276,9 @@ solve a ODE system." />
 
     <div class="ref-description">
     <p>This uses RxODE family of objects, file, or model specification to
-solve a ODE system.</p>
+solve a ODE system.  There are many options for a solved RxODE
+model, the first are the required <code>object</code>, and <code>events</code> with the
+some-times optional <code>params</code> and <code>inits</code>.</p>
     </div>
 
     <pre class="usage"><span class='fu'>rxSolve</span><span class='op'>(</span>
@@ -364,7 +368,6 @@ solve a ODE system.</p>
   ssAtol <span class='op'>=</span> <span class='fl'>1e-08</span>,
   ssRtol <span class='op'>=</span> <span class='fl'>1e-06</span>,
   safeZero <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  cacheEvent <span class='op'>=</span> <span class='cn'>TRUE</span>,
   sumType <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"pairwise"</span>, <span class='st'>"fsum"</span>, <span class='st'>"kahan"</span>, <span class='st'>"neumaier"</span>, <span class='st'>"c"</span><span class='op'>)</span>,
   prodType <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"long double"</span>, <span class='st'>"double"</span>, <span class='st'>"logify"</span><span class='op'>)</span>,
   sensType <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"advan"</span>, <span class='st'>"autodiff"</span>, <span class='st'>"forward"</span>, <span class='st'>"central"</span><span class='op'>)</span>,
@@ -482,7 +485,7 @@ if prior doses do not add anything to the solution.</p></td>
     </tr>
     <tr>
       <th>rtol</th>
-      <td><p>a numeric relative tolerance (1e-6 by default) used
+      <td><p>a numeric relative tolerance (<code>1e-6</code> by default) used
 by the ODE solver to determine if a good solution has been
 achieved. This is also used in the solved linear model to check
 if prior doses do not add anything to the solution.</p></td>
@@ -515,7 +518,7 @@ difference to add to hmax. The default is 0</p></td>
     <tr>
       <th>hini</th>
       <td><p>The step size to be attempted on the first step. The
-default value is determined by the solver (when hini = 0)</p></td>
+default value is determined by the solver (when <code>hini = 0</code>)</p></td>
     </tr>
     <tr>
       <th>maxordn</th>
@@ -606,19 +609,20 @@ Cholesky decomposition instead of a symmetric covariance</p></td>
       <td><p>separation strategy for sigma;</p>
 <p>Tells the type of separation strategy when
 simulating covariance with parameter uncertainty with standard
-deviations modeled in the <code>thetaMat</code> matrix.</p>
-<p><code>"lkj"</code> simulates the correlation matrix from the
+deviations modeled in the <code>thetaMat</code> matrix.</p><ul>
+<li><p><code>"lkj"</code> simulates the correlation matrix from the
 <code>rLKJ1</code> matrix with the distribution parameter <code>eta</code>
-equal to the degrees of freedom <code>nu</code> by <code>(nu-1)/2</code></p>
-<p><code>"separation"</code> simulates from the identity inverse Wishart
+equal to the degrees of freedom <code>nu</code> by <code>(nu-1)/2</code></p></li>
+<li><p><code>"separation"</code> simulates from the identity inverse Wishart
 covariance matrix with <code>nu</code> degrees of freedom.  This is then
 converted to a covariance matrix and augmented with the modeled
 standard deviations.  While computationally more complex than the
 <code>"lkj"</code> prior, it performs better when the covariance matrix
-size is greater or equal to 10</p>
-<p><code>"auto"</code> chooses <code>"lkj"</code> when the dimension of the
+size is greater or equal to 10</p></li>
+<li><p><code>"auto"</code> chooses <code>"lkj"</code> when the dimension of the
 matrix is less than 10 and <code>"separation"</code> when greater
-than equal to 10.</p></td>
+than equal to 10.</p></li>
+</ul></td>
     </tr>
     <tr>
       <th>sigmaXform</th>
@@ -677,6 +681,8 @@ For non-stiff systems (`stiff = FALSE`), `RxODE` uses
 DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
 Dormand and Prince as implemented in C by Hairer and Wanner
 (1993).
+
+If stiff is not specified, the `method` argument is used instead.
 </pre></td>
     </tr>
     <tr>
@@ -686,11 +692,13 @@ added to parameters</p></td>
     </tr>
     <tr>
       <th>thetaLower</th>
-      <td><p>Lower bounds for simulated population parameter variability (by default -Inf)</p></td>
+      <td><p>Lower bounds for simulated population parameter
+variability (by default <code>-Inf</code>)</p></td>
     </tr>
     <tr>
       <th>thetaUpper</th>
-      <td><p>Upper bounds for simulated population unexplained variability (by default Inf)</p></td>
+      <td><p>Upper bounds for simulated population unexplained
+variability (by default <code>Inf</code>)</p></td>
     </tr>
     <tr>
       <th>eta</th>
@@ -764,19 +772,20 @@ symmetric matrix.</p></td>
       <td><p>Omega separation strategy</p>
 <p>Tells the type of separation strategy when
 simulating covariance with parameter uncertainty with standard
-deviations modeled in the <code>thetaMat</code> matrix.</p>
-<p><code>"lkj"</code> simulates the correlation matrix from the
+deviations modeled in the <code>thetaMat</code> matrix.</p><ul>
+<li><p><code>"lkj"</code> simulates the correlation matrix from the
 <code>rLKJ1</code> matrix with the distribution parameter <code>eta</code>
-equal to the degrees of freedom <code>nu</code> by <code>(nu-1)/2</code></p>
-<p><code>"separation"</code> simulates from the identity inverse Wishart
+equal to the degrees of freedom <code>nu</code> by <code>(nu-1)/2</code></p></li>
+<li><p><code>"separation"</code> simulates from the identity inverse Wishart
 covariance matrix with <code>nu</code> degrees of freedom.  This is then
 converted to a covariance matrix and augmented with the modeled
 standard deviations.  While computationally more complex than the
 <code>"lkj"</code> prior, it performs better when the covariance matrix
-size is greater or equal to 10</p>
-<p><code>"auto"</code> chooses <code>"lkj"</code> when the dimension of the
+size is greater or equal to 10</p></li>
+<li><p><code>"auto"</code> chooses <code>"lkj"</code> when the dimension of the
 matrix is less than 10 and <code>"separation"</code> when greater
-than equal to 10.</p></td>
+than equal to 10.</p></li>
+</ul></td>
     </tr>
     <tr>
       <th>omegaXform</th>
@@ -800,7 +809,7 @@ with a diagonal matrix.</p></li>
 with the <code><a href='https://rdrr.io/r/base/Log.html'>exp(x^2)</a></code> along the diagonal.  This only works
 with a diagonal matrix.</p></li>
 <li><p><code>nlmixrIdentity</code> This is when the <code>params</code> and
-<code>thetaMat</code> simulates the inverse cholesky decomposed matrrix.
+<code>thetaMat</code> simulates the inverse cholesky decomposed matrix.
 This only works with a diagonal matrix.</p></li>
 </ul></td>
     </tr>
@@ -814,7 +823,7 @@ This only works with a diagonal matrix.</p></li>
     </tr>
     <tr>
       <th>nSub</th>
-      <td><p>Number between subject variabilities (ETAs) simulated for every
+      <td><p>Number between subject variabilities (<code>ETAs</code>) simulated for every
 realization of the parameters.</p></td>
     </tr>
     <tr>
@@ -826,7 +835,7 @@ realization of the parameters.</p></td>
       <td><p>The degrees of freedom of a t-distribution for
 simulation.  By default this is <code>NULL</code> which is
 equivalent to <code>Inf</code> degrees, or to simulate from a normal
-distribution instead of a t-distribution.</p></td>
+distribution instead of a <code>t</code>-distribution.</p></td>
     </tr>
     <tr>
       <th>thetaIsChol</th>
@@ -874,7 +883,7 @@ generator should be initialized</p></td>
       <th>nsim</th>
       <td><p>represents the number of simulations.  For RxODE, if
 you supply single subject event tables (created with
-eventTable)</p></td>
+<code>[eventTable()]</code>)</p></td>
     </tr>
     <tr>
       <th>minSS</th>
@@ -996,17 +1005,14 @@ original dataset.  By default this is enabled.</p></td>
     <tr>
       <th>mxhnil</th>
       <td><p>maximum number of messages printed (per problem)
-warning that T + H = T on a step (H = step size).  This must
+warning that <code>T + H = T</code> on a step (<code>H</code> = step size).  This must
 be positive to result in a non-default value.  The default
 value is 0 (or infinite).</p></td>
     </tr>
     <tr>
       <th>hmxi</th>
-      <td><p>inverse of the maximum absolute value of H to be used.
-hmxi = 0.0 is allowed and corresponds to an infinite hmax
-(default).  hmin and hmxi may be changed at any time, but will
-not take effect until the next change of H is considered.
-This option is only considered with method=liblsoda.</p></td>
+      <td><p>inverse of the maximum absolute value of <code>H</code> to are used.
+hmxi = 0.0 is allowed and corresponds to an infinite <code>hmax1 (default).  </code>hmin<code>and</code>hmxi<code>may be changed at any time, but will not take effect until the next change of</code>H<code>is considered. This option is only considered with</code>method="liblsoda"`.</p></td>
     </tr>
     <tr>
       <th>warnIdSort</th>
@@ -1033,11 +1039,6 @@ vector based on each state.</p></td>
       <th>safeZero</th>
       <td><p>Use safe zero divide and log routines.  By default
 this is turned on but you may turn it off if you wish.</p></td>
-    </tr>
-    <tr>
-      <th>cacheEvent</th>
-      <td><p>is a boolean.  If <code>TRUE</code> (default), events are cached in
-memory to speed up solving.</p></td>
     </tr>
     <tr>
       <th>sumType</th>
@@ -1140,6 +1141,13 @@ object to update the event table and resolve the system of
 equations.  % Should be able to use roxygen templates...
 </pre>
 
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>The rest of the document focus on the different ODE solving
+methods, followed by the core solving method's options, RxODE event
+handling options, RxODE's numerical stability options, RxODE's
+output options, and finally internal RxODE options or compatibility
+options.</p>
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
     <p>"New Scaling and Squaring Algorithm for the Matrix Exponential", by

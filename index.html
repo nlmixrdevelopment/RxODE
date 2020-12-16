@@ -314,7 +314,6 @@
 <p>To load <code>RxODE</code> package and compile the model:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span>
-<span class="co">#&gt; RxODE 1.0.0.0 using 4 threads (see ?getRxThreads)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-quantities/units/">units</a></span><span class="op">)</span>
 <span class="co">#&gt; udunits system database from /usr/share/xml/udunits</span>
 
@@ -327,7 +326,11 @@
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>  <span class="op">=</span> <span class="va">Kin</span> <span class="op">-</span> <span class="va">Kout</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">C2</span><span class="op">/</span><span class="op">(</span><span class="va">EC50</span><span class="op">+</span><span class="va">C2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="va">eff</span>;
 <span class="op">}</span><span class="op">)</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; qs v0.23.4.</span></code></pre></div>
+<span class="co">#&gt; qs v0.23.4.</span>
+<span class="co">#&gt; → creating RxODE include directory</span>
+<span class="co">#&gt; → getting R compile options</span>
+<span class="co">#&gt; → precompiling headers</span>
+<span class="co">#&gt; ✔ done</span></code></pre></div>
 <div id="specify-ode-parameters-and-initial-conditions" class="section level2">
 <h2 class="hasAnchor">
 <a href="#specify-ode-parameters-and-initial-conditions" class="anchor"></a>Specify ODE parameters and initial conditions</h2>
@@ -352,14 +355,16 @@
 <p>Next, use the <code><a href="reference/add.dosing.html">add.dosing()</a></code> and <code><a href="reference/add.sampling.html">add.sampling()</a></code> functions of the <code>EventTable</code> object to specify the dosing (amounts, frequency and/or times, etc.) and observation times at which to sample the state of the system. These functions can be called multiple times to specify more complex dosing or sampling regiments. Here, these functions are used to specify 10mg BID dosing for 5 days, followed by 20mg QD dosing for 5 days:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span><span class="op">$</span><span class="fu">add.dosing</span><span class="op">(</span>dose<span class="op">=</span><span class="fl">10000</span>, nbr.doses<span class="op">=</span><span class="fl">10</span>, dosing.interval<span class="op">=</span><span class="fl">12</span><span class="op">)</span>
-<span class="va">ev</span><span class="op">$</span><span class="fu">add.dosing</span><span class="op">(</span>dose<span class="op">=</span><span class="fl">20000</span>, nbr.doses<span class="op">=</span><span class="fl">5</span>, start.time<span class="op">=</span><span class="fl">120</span>, dosing.interval<span class="op">=</span><span class="fl">24</span><span class="op">)</span>
+<span class="va">ev</span><span class="op">$</span><span class="fu">add.dosing</span><span class="op">(</span>dose<span class="op">=</span><span class="fl">20000</span>, nbr.doses<span class="op">=</span><span class="fl">5</span>, start.time<span class="op">=</span><span class="fl">120</span>,
+              dosing.interval<span class="op">=</span><span class="fl">24</span><span class="op">)</span>
 <span class="va">ev</span><span class="op">$</span><span class="fu">add.sampling</span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span></code></pre></div>
 <p>If you wish you can also do this with the <code>mattigr</code> pipe operator <code><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></code></p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/eventTable.html">eventTable</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">"mg"</span>, time.units<span class="op">=</span><span class="st">"hours"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="reference/add.dosing.html">add.dosing</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">10000</span>, nbr.doses<span class="op">=</span><span class="fl">10</span>, dosing.interval<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="reference/add.dosing.html">add.dosing</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">20000</span>, nbr.doses<span class="op">=</span><span class="fl">5</span>, start.time<span class="op">=</span><span class="fl">120</span>,dosing.interval<span class="op">=</span><span class="fl">24</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="reference/add.sampling.html">add.sampling</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span>;</code></pre></div>
+  <span class="fu"><a href="reference/add.dosing.html">add.dosing</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">10000</span>, nbr.doses<span class="op">=</span><span class="fl">10</span>, dosing.interval<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="reference/add.dosing.html">add.dosing</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">20000</span>, nbr.doses<span class="op">=</span><span class="fl">5</span>, start.time<span class="op">=</span><span class="fl">120</span>,
+             dosing.interval<span class="op">=</span><span class="fl">24</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="reference/add.sampling.html">add.sampling</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span></code></pre></div>
 <p>The functions <code>get.dosing()</code> and <code>get.sampling()</code> can be used to retrieve information from the event table.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">ev</span><span class="op">$</span><span class="fu">get.dosing</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
@@ -378,9 +383,9 @@
 <p>You may notice that these are similar to NONMEM event tables; If you are more familiar with NONMEM data and events you could use them directly with the event table function <code>et</code></p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span>  <span class="op">&lt;-</span> <span class="fu"><a href="reference/et.html">et</a></span><span class="op">(</span>amountUnits<span class="op">=</span><span class="st">"mg"</span>, timeUnits<span class="op">=</span><span class="st">"hours"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, addl<span class="op">=</span><span class="fl">9</span>,ii<span class="op">=</span><span class="fl">12</span>,cmt<span class="op">=</span><span class="st">"depot"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fl">120</span>, amt<span class="op">=</span><span class="fl">2000</span>, addl<span class="op">=</span><span class="fl">4</span>, ii<span class="op">=</span><span class="fl">14</span>, cmt<span class="op">=</span><span class="st">"depot"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="reference/et.html">et</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span> <span class="co"># Assumes sampling when there is no dosing information</span></code></pre></div>
+  <span class="fu"><a href="reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, addl<span class="op">=</span><span class="fl">9</span>,ii<span class="op">=</span><span class="fl">12</span>,cmt<span class="op">=</span><span class="st">"depot"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fl">120</span>, amt<span class="op">=</span><span class="fl">2000</span>, addl<span class="op">=</span><span class="fl">4</span>, ii<span class="op">=</span><span class="fl">14</span>, cmt<span class="op">=</span><span class="st">"depot"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="reference/et.html">et</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span> <span class="co"># Add sampling </span></code></pre></div>
 <p>You can see from the above code, you can dose to the compartment named in the RxODE model. This slight deviation from NONMEM can reduce the need for compartment renumbering.</p>
 <p>These events can also be combined and expanded (to multi-subject events and complex regimens) with <code>rbind</code>, <code>c</code>, <code>seq</code>, and <code>rep</code>. For more information about creating complex dosing regimens using RxODE see the <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-events.html">RxODE events vignette</a>.</p>
 </div>
@@ -389,107 +394,28 @@
 <a href="#solving-odes" class="anchor"></a>Solving ODEs</h2>
 <p>The ODE can now be solved by calling the model object’s <code>run</code> or <code>solve</code> function. Simulation results for all variables in the model are stored in the output matrix x.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span><span class="op">$</span><span class="fu">solve</span><span class="op">(</span><span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>;
-<span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<table class="table">
-<thead><tr class="header">
-<th align="right">time</th>
-<th align="right">C2</th>
-<th align="right">C3</th>
-<th align="right">depot</th>
-<th align="right">centr</th>
-<th align="right">peri</th>
-<th align="right">eff</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="right">0</td>
-<td align="right">0.00000</td>
-<td align="right">0.0000000</td>
-<td align="right">10000.000</td>
-<td align="right">0.000</td>
-<td align="right">0.0000</td>
-<td align="right">1.000000</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="right">44.37555</td>
-<td align="right">0.9198298</td>
-<td align="right">7452.765</td>
-<td align="right">1783.897</td>
-<td align="right">273.1895</td>
-<td align="right">1.084664</td>
-</tr>
-<tr class="odd">
-<td align="right">2</td>
-<td align="right">54.88296</td>
-<td align="right">2.6729825</td>
-<td align="right">5554.370</td>
-<td align="right">2206.295</td>
-<td align="right">793.8758</td>
-<td align="right">1.180825</td>
-</tr>
-<tr class="even">
-<td align="right">3</td>
-<td align="right">51.90343</td>
-<td align="right">4.4564927</td>
-<td align="right">4139.542</td>
-<td align="right">2086.518</td>
-<td align="right">1323.5783</td>
-<td align="right">1.228914</td>
-</tr>
-<tr class="odd">
-<td align="right">4</td>
-<td align="right">44.49738</td>
-<td align="right">5.9807076</td>
-<td align="right">3085.103</td>
-<td align="right">1788.795</td>
-<td align="right">1776.2702</td>
-<td align="right">1.234610</td>
-</tr>
-<tr class="even">
-<td align="right">5</td>
-<td align="right">36.48434</td>
-<td align="right">7.1774981</td>
-<td align="right">2299.255</td>
-<td align="right">1466.670</td>
-<td align="right">2131.7169</td>
-<td align="right">1.214742</td>
-</tr>
-</tbody>
-</table>
+<code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span><span class="op">$</span><span class="fu">solve</span><span class="op">(</span><span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>;</code></pre></div>
+<p>tlag f rate dur tlag2 f2 rate2 dur2 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05</p>
+<pre><code><a href="https://rdrr.io/pkg/knitr/man/kable.html">#&gt; Error in rxSolveSEXP(object, .ctl, .nms, .xtra, params, events, inits, : 'sensType' needs to be an integer
+knitr::kable(head(x))
+#&gt; Error in head(x): object 'x' not found</a></code></pre>
 <p>You can also solve this and create a RxODE data frame:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span> <span class="op">%&gt;%</span> <span class="fu"><a href="reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>;
-<span class="va">x</span>
-<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
-<span class="co">#&gt; ── Parameters (x$params): ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
-<span class="co">#&gt;      V2      V3      KA      CL       Q     Kin    Kout    EC50 </span>
-<span class="co">#&gt;  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000 </span>
-<span class="co">#&gt; ── Initial Conditions (x$inits): ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
-<span class="co">#&gt; depot centr  peri   eff </span>
-<span class="co">#&gt;     0     0     0     1 </span>
-<span class="co">#&gt; ── First part of data (object): ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
-<span class="co">#&gt; # A tibble: 241 x 7</span>
-<span class="co">#&gt;    time    C2    C3  depot centr  peri   eff</span>
-<span class="co">#&gt;     [h] &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span>
-<span class="co">#&gt; 1     0   0   0     10000     0     0   1   </span>
-<span class="co">#&gt; 2     1  44.4 0.920  7453. 1784.  273.  1.08</span>
-<span class="co">#&gt; 3     2  54.9 2.67   5554. 2206.  794.  1.18</span>
-<span class="co">#&gt; 4     3  51.9 4.46   4140. 2087. 1324.  1.23</span>
-<span class="co">#&gt; 5     4  44.5 5.98   3085. 1789. 1776.  1.23</span>
-<span class="co">#&gt; 6     5  36.5 7.18   2299. 1467. 2132.  1.21</span>
-<span class="co">#&gt; # … with 235 more rows</span>
-<span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span></code></pre></div>
-<p>This returns a modified data frame. You can see the compartment values in the plot below:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">C2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Central Concentration"</span><span class="op">)</span></code></pre></div>
-<p><img src="reference/figures/README-intro-central-1.png" title="plot of chunk intro-central" alt="plot of chunk intro-central" width="100%"></p>
-<p>Or,</p>
+<code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span> <span class="op">%&gt;%</span> <span class="fu"><a href="reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>;
+<span class="co">#&gt;    tlag       f    rate     dur   tlag2      f2   rate2    dur2 </span>
+<span class="co">#&gt; 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05</span>
+<span class="co">#&gt; Error in rxSolveSEXP(object, .ctl, .nms, .xtra, params, events, inits, : 'sensType' needs to be an integer</span>
+<span class="va">x</span>
+<span class="co">#&gt; Error in eval(expr, envir, enclos): object 'x' not found</span></code></pre></div>
+<p>This returns a modified data frame. You can see the compartment values in the plot below:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">eff</span><span class="op">)</span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Effect"</span><span class="op">)</span></code></pre></div>
-<p><img src="reference/figures/README-intro-effect-1.png" title="plot of chunk intro-effect" alt="plot of chunk intro-effect" width="100%"></p>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">C2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Central Concentration"</span><span class="op">)</span>
+<span class="co">#&gt; Error in plot(x, C2): object 'x' not found</span></code></pre></div>
+<p>Or,</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">eff</span><span class="op">)</span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Effect"</span><span class="op">)</span>
+<span class="co">#&gt; Error in plot(x, eff): object 'x' not found</span></code></pre></div>
 <p>Note that the labels are automatically labeled with the units from the initial event table. RxODE extracts <code>units</code> to label the plot (if they are present).</p>
 </div>
 </div>

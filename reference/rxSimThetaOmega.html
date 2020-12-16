@@ -342,19 +342,20 @@ symmetric matrix.</p></td>
       <td><p>Omega separation strategy</p>
 <p>Tells the type of separation strategy when
 simulating covariance with parameter uncertainty with standard
-deviations modeled in the <code>thetaMat</code> matrix.</p>
-<p><code>"lkj"</code> simulates the correlation matrix from the
+deviations modeled in the <code>thetaMat</code> matrix.</p><ul>
+<li><p><code>"lkj"</code> simulates the correlation matrix from the
 <code>rLKJ1</code> matrix with the distribution parameter <code>eta</code>
-equal to the degrees of freedom <code>nu</code> by <code>(nu-1)/2</code></p>
-<p><code>"separation"</code> simulates from the identity inverse Wishart
+equal to the degrees of freedom <code>nu</code> by <code>(nu-1)/2</code></p></li>
+<li><p><code>"separation"</code> simulates from the identity inverse Wishart
 covariance matrix with <code>nu</code> degrees of freedom.  This is then
 converted to a covariance matrix and augmented with the modeled
 standard deviations.  While computationally more complex than the
 <code>"lkj"</code> prior, it performs better when the covariance matrix
-size is greater or equal to 10</p>
-<p><code>"auto"</code> chooses <code>"lkj"</code> when the dimension of the
+size is greater or equal to 10</p></li>
+<li><p><code>"auto"</code> chooses <code>"lkj"</code> when the dimension of the
 matrix is less than 10 and <code>"separation"</code> when greater
-than equal to 10.</p></td>
+than equal to 10.</p></li>
+</ul></td>
     </tr>
     <tr>
       <th>omegaXform</th>
@@ -378,7 +379,7 @@ with a diagonal matrix.</p></li>
 with the <code><a href='https://rdrr.io/r/base/Log.html'>exp(x^2)</a></code> along the diagonal.  This only works
 with a diagonal matrix.</p></li>
 <li><p><code>nlmixrIdentity</code> This is when the <code>params</code> and
-<code>thetaMat</code> simulates the inverse cholesky decomposed matrrix.
+<code>thetaMat</code> simulates the inverse cholesky decomposed matrix.
 This only works with a diagonal matrix.</p></li>
 </ul></td>
     </tr>
@@ -445,19 +446,20 @@ Cholesky decomposition instead of a symmetric covariance</p></td>
       <td><p>Sigma separation Strategy</p>
 <p>Tells the type of separation strategy when
 simulating covariance with parameter uncertainty with standard
-deviations modeled in the <code>thetaMat</code> matrix.</p>
-<p><code>"lkj"</code> simulates the correlation matrix from the
+deviations modeled in the <code>thetaMat</code> matrix.</p><ul>
+<li><p><code>"lkj"</code> simulates the correlation matrix from the
 <code>rLKJ1</code> matrix with the distribution parameter <code>eta</code>
-equal to the degrees of freedom <code>nu</code> by <code>(nu-1)/2</code></p>
-<p><code>"separation"</code> simulates from the identity inverse Wishart
+equal to the degrees of freedom <code>nu</code> by <code>(nu-1)/2</code></p></li>
+<li><p><code>"separation"</code> simulates from the identity inverse Wishart
 covariance matrix with <code>nu</code> degrees of freedom.  This is then
 converted to a covariance matrix and augmented with the modeled
 standard deviations.  While computationally more complex than the
 <code>"lkj"</code> prior, it performs better when the covariance matrix
-size is greater or equal to 10</p>
-<p><code>"auto"</code> chooses <code>"lkj"</code> when the dimension of the
+size is greater or equal to 10</p></li>
+<li><p><code>"auto"</code> chooses <code>"lkj"</code> when the dimension of the
 matrix is less than 10 and <code>"separation"</code> when greater
-than equal to 10.</p></td>
+than equal to 10.#' <code>"lkj"</code> simulates the correlation matrix from the</p></li>
+</ul></td>
     </tr>
     <tr>
       <th>sigmaXform</th>
