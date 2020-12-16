@@ -28,5 +28,5 @@ rxPermissive(
     unlink("mytempdir", recursive = TRUE)
   },
   silent = TRUE,
-  test = "cran"
+  test = "lvl2"
 )

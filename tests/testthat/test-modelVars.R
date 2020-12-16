@@ -41,5 +41,5 @@ d/dt(y3) = a3*y1*y2
     })
   },
   silent = TRUE,
-  test = "cran"
+  test = "lvl2"
 )

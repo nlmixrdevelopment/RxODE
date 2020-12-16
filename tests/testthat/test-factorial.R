@@ -22,5 +22,5 @@ rxPermissive(
     transTo("d/dt(m)= lfactorial(1+fac)-cmt*ka", "lgamma1p(1+fac)")
   },
   silent = TRUE,
-  test = "cran"
+  test = "lvl2"
 )

@@ -21,5 +21,5 @@ rxPermissive(
       "gammapDer(x,y)"
     )
   },
-  test = "cran"
+  test = "lvl2"
 )

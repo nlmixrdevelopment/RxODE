@@ -177,5 +177,5 @@ rxPermissive(
     })
   },
   silent = TRUE,
-  test = "cran"
+  test = "lvl2"
 )

@@ -120,5 +120,5 @@ rxPermissive(
       expect_equal(ret$c, 3 + 2 + exp(3))
     })
   },
-  test = "cran"
+  test = "lvl2"
 )

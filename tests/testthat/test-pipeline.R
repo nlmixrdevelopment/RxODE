@@ -274,5 +274,5 @@ rxPermissive(
 
     expect_false(any(names(tmp) == "WT"))
   },
-  test = "cran"
+  test = "lvl2"
 )

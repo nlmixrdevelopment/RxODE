@@ -43,5 +43,5 @@ rxPermissive(
     options(old)
   },
   silent = TRUE,
-  test = "cran"
+  test = "lvl2"
 )

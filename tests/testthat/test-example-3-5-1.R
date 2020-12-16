@@ -85,5 +85,5 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     })
   },
   silent = TRUE,
-  test = "cran"
+  test = "lvl2"
 )

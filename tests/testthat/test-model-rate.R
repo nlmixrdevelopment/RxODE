@@ -304,7 +304,7 @@ rxPermissive(
     expect_error(rxSolve(mod, par, sim.ev, inits= ini, addDosing=TRUE), NA)
 
   },
-  test = "cran"
+  test = "lvl2"
 )
 
 

@@ -54,5 +54,5 @@ rxPermissive(
     expect_equal(expand3$b1, expand$b1)
     expect_equal(expand3$c1, expand$c1)
   },
-  test = "cran"
+  test = "lvl2"
 )

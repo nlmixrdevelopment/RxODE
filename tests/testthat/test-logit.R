@@ -115,5 +115,5 @@ rxPermissive(
     expect_error(expit(0.5, 0, c(1, 2)))
     expect_error(expit(0.5, 1, -2))
   },
-  test = "cran"
+  test = "lvl2"
 )

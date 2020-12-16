@@ -440,5 +440,5 @@ d/dt(blood) = - b*blood
     })
   },
   silent = TRUE,
-  test = "cran"
+  test = "lvl2"
 )

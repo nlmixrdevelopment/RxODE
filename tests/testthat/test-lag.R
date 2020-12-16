@@ -446,5 +446,5 @@ rxPermissive(
       expect_equal(unique(r1$first), c(0, 24))
     })
   },
-  test = "cran"
+  test = "lvl2"
 )

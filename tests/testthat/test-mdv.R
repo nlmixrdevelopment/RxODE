@@ -27,5 +27,5 @@ rxPermissive(
       expect_true(any(tmp$time == 25))
     })
   },
-  test = "cran"
+  test = "lvl2"
 )

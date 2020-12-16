@@ -69,5 +69,5 @@ d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
     rxSetIni0(TRUE)
   },
   silent = TRUE,
-  test = "cran"
+  test = "lvl2"
 )

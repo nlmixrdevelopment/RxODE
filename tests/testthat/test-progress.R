@@ -19,5 +19,5 @@ rxPermissive(
       expect_error(f(TRUE))
     })
   },
-  test = "cran"
+  test = "lvl2"
 )

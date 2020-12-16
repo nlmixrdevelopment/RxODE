@@ -42,6 +42,6 @@ rxPermissive(
       })
     }
   },
-  test = "cran",
+  test = "lvl2",
   silent = TRUE
 )
