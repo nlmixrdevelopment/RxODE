@@ -17,5 +17,5 @@ options(width=80, cli.width=80)
 Sys.setenv(RSTUDIO_CONSOLE_WIDTH=80)
 ```
 
-```{r child=RxODE-event-types.Rmdh'}
+```{r child='RxODE-event-types.Rmdh'}
 ```
