@@ -1,6 +1,4 @@
-# RxODE (development version)
-
-# RxODE 1.0.0.0 -- Submitted to CRAN 
+# RxODE 1.0.1
 ## Breaking changes
 
 * RxODE can only use supported functions (could be breaking); You may
