@@ -88,14 +88,15 @@ Using the `add.dosing()` function you have:
 ```{r}
 ev <- eventTable(amount.units="mg", time.units="hr")
 
-## The methods ar attached to the event table, so you can use them
-## directly
+## The methods ar attached to the event table, so you can use 
+## them directly
 ev$add.dosing(dose=10000, nbr.doses = 3)# loading doses
 ## Starts at time 0; Default dosing interval is 24
 
 ## You can also pipe the event tables to these methods.
 ev <- ev %>%
-    add.dosing(dose=5000, nbr.doses=14, dosing.interval=12)# maintenance
+  add.dosing(dose=5000, nbr.doses=14,
+             dosing.interval=12)# maintenance
 
 ev
 ```
@@ -159,8 +160,9 @@ Or if you use `et` you can simply add them in a similar way to `add.sampling`:
 
 ```{r}
 ev <- et(timeUnits="hr") %>%
-    et(amt=10000, until = set_units(3, days), ii=12) %>% # loading doses
-    et(seq(0,24,by=4))
+  et(amt=10000, until = set_units(3, days),
+     ii=12) %>% # loading doses
+  et(seq(0,24,by=4))
 
 ev
 ```
@@ -181,9 +183,10 @@ IDs that you want to expand;
 
 ```{r}
 ev <- et(timeUnits="hr") %>%
-    et(amt=10000, until = set_units(3, days), ii=12) %>% # loading doses
-    et(seq(0,48,length.out=200)) %>%
-    et(id=1:4)
+  et(amt=10000, until = set_units(3, days),
+     ii=12) %>% # loading doses
+  et(seq(0,48,length.out=200)) %>%
+  et(id=1:4)
 
 ev
 ```
@@ -209,8 +212,9 @@ In this example, you start with a dosing time with a 6 hour dosing window:
 ```{r}
 set.seed(42)
 ev <- et(timeUnits="hr") %>%
-    et(time=list(c(0,6)), amt=10000, until = set_units(2, days), ii=12) %>% # loading doses
-    et(id=1:4)
+  et(time=list(c(0,6)), amt=10000, until = set_units(2, days),
+     ii=12) %>% # loading doses
+  et(id=1:4)
 
 ev
 ```
@@ -219,7 +223,9 @@ You can clearly see different dosing times in the following simulation:
 ```{r}
 ev <- ev %>% et(seq(0,48,length.out=200))
 
-solve(m1, ev, params=data.frame(KA=0.294*exp(rnorm(4)), 18.6*exp(rnorm(4)))) %>% plot(C2)
+solve(m1, ev,
+      params=data.frame(KA=0.294*exp(rnorm(4)), 18.6*exp(rnorm(4)))) %>%
+  plot(C2)
 ```
 
 Of course in reality the dosing interval may only be 2 hours:
@@ -227,11 +233,14 @@ Of course in reality the dosing interval may only be 2 hours:
 ```{r}
 set.seed(42)
 ev <- et(timeUnits="hr") %>%
-    et(time=list(c(0,2)), amt=10000, until = set_units(2, days), ii=12) %>% # loading doses
-    et(id=1:4) %>%
-    et(seq(0,48,length.out=200))
+  et(time=list(c(0,2)), amt=10000, until = set_units(2, days),
+     ii=12) %>% # loading doses
+  et(id=1:4) %>%
+  et(seq(0,48,length.out=200))
 
-solve(m1, ev, params=data.frame(KA=0.294*exp(rnorm(4)), 18.6*exp(rnorm(4)))) %>% plot(C2)
+solve(m1, ev,
+      params=data.frame(KA=0.294*exp(rnorm(4)), 18.6*exp(rnorm(4)))) %>%
+  plot(C2)
 ```
 
 The same sort of thing can be specified with sampling times.  To
@@ -242,10 +251,12 @@ element ordered numeric vector.
 ```{r}
 set.seed(42)
 ev <- et(timeUnits="hr") %>%
-    et(time=list(c(0,2)), amt=10000, until = set_units(2, days), ii=12) %>% # loading doses
-    et(id=1:4)
+  et(time=list(c(0,2)), amt=10000, until = set_units(2, days),
+     ii=12) %>% # loading doses
+  et(id=1:4)
 
-## Create 20 samples in the first 24 hours and 20 samples in the second 24 hours
+## Create 20 samples in the first 24 hours and 20 samples in the
+## second 24 hours
 samples <- c(lapply(1:20, function(...){c(0,24)}),
              lapply(1:20, function(...){c(20,48)}))
 
@@ -323,7 +334,8 @@ For example 4 rounds of 2 weeks on QD therapy and 1 week off of
 therapy can be simply specified:
 
 ```{r}
-qd <-et(timeUnits = "hr") %>% et(amt=10000, ii=24, until=set_units(2, "weeks"), cmt="depot")
+qd <-et(timeUnits = "hr") %>%
+  et(amt=10000, ii=24, until=set_units(2, "weeks"), cmt="depot")
 
 et <- rep(qd, times=4, wait=set_units(1,"weeks")) %>%
       add.sampling(set_units(seq(0, 12.5,by=0.005),weeks))
