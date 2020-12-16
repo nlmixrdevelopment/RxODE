@@ -1,5 +1,7 @@
 ##' @examples
 ##'
+##' \donttest{
+##'
 ##' ## Model from RxODE tutorial
 ##' mod1 <-RxODE({
 ##'     KA=2.94E-01;
@@ -74,7 +76,7 @@
 ##'
 ##' plot(repCycle4, C2)
 ##'
-##'
+##' }
 ##' @author Matthew L Fidler, Wenping Wang
 ##'
 ##' @seealso \code{\link{eventTable}}, \code{\link{add.sampling}},

@@ -22,5 +22,5 @@ rxPermissive(
       expect_false(all(s$centr == 0))
     })
   },
-  test = "cran"
+  test = "lvl2"
 )

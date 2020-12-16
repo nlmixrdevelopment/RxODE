@@ -44,6 +44,8 @@ reproduce your results.
 }
 \examples{
 
+\donttest{
+
 ## Use threefry engine
 
 rxcauchy(0, 1, n=10) # with rxcauchy you have to explicitly state n
@@ -61,5 +63,7 @@ rx <- RxODE({
 et <- et(1,id=1:2)
 
 s <- rxSolve(rx,et)
+
+}
 
 }

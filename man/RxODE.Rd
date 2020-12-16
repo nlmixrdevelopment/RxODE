@@ -317,6 +317,8 @@ error if you try to use the function.
 }
 }
 \examples{
+
+\donttest{
 # Step 1 - Create a model specification
 ode <- "
    # A 4-compartment model, 3 PK and a PD (effect) compartment
@@ -374,6 +376,8 @@ qd.cp <- solve(m1, theta, events = qd, inits);
 print(qd.cp)
 
 plot(qd.cp)
+
+}
 
 }
 \references{

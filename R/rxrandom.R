@@ -185,6 +185,8 @@ rxunif <- function(min = 0, max = 1, n = 1L, ncores = 1L) {
 #' @template birthdayProblem
 #' @examples
 #'
+#' \donttest{
+#'
 #' ## Use threefry engine
 #'
 #' rxweibull(shape=1, scale=4, n=10) # with rxweibull you have to explicitly state n
@@ -203,6 +205,7 @@ rxunif <- function(min = 0, max = 1, n = 1L, ncores = 1L) {
 #'
 #' s <- rxSolve(rx,et)
 #'
+#' }
 #' @export
 rxweibull <- function(shape, scale = 1, n = 1L, ncores = 1L) {
   checkmate::assertNumeric(shape, len = 1)
@@ -454,6 +457,8 @@ rxchisq <- function(df, n = 1L, ncores = 1L) {
 #' @template birthdayProblem
 #' @examples
 #'
+#' \donttest{
+#'
 #' ## Use threefry engine
 #'
 #' rxcauchy(0, 1, n=10) # with rxcauchy you have to explicitly state n
@@ -471,6 +476,8 @@ rxchisq <- function(df, n = 1L, ncores = 1L) {
 #' et <- et(1,id=1:2)
 #'
 #' s <- rxSolve(rx,et)
+#'
+#' }
 #'
 #' @export
 rxcauchy <- function(location = 0, scale = 1, n = 1L, ncores = 1L) {

@@ -59,6 +59,8 @@ Combining event tables
 }
 \examples{
 
+\donttest{
+
 ## Model from RxODE tutorial
 mod1 <-RxODE({
     KA=2.94E-01;
@@ -133,7 +135,7 @@ repCycle4 <- rxSolve(mod1, et)
 
 plot(repCycle4, C2)
 
-
+}
 }
 \references{
 Wang W, Hallow K, James D (2015). "A Tutorial on RxODE: Simulating

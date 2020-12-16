@@ -68,5 +68,5 @@ rxPermissive(
       expect_equal((et(0.5) %>% et(1, 10, length.out = 7))$time, c(0.5, seq(1, 10, length.out = 7)))
     })
   },
-  test = "cran"
+  test = "lvl2"
 )

@@ -70,5 +70,5 @@ rxPermissive(
       }
     })
   },
-  test = "cran"
+  test = "lvl2"
 )

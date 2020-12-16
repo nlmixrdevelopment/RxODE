@@ -44,6 +44,8 @@ reproduce your results.
 }
 \examples{
 
+\donttest{
+
 ## Use threefry engine
 
 rxweibull(shape=1, scale=4, n=10) # with rxweibull you have to explicitly state n
@@ -62,4 +64,5 @@ et <- et(1,id=1:2)
 
 s <- rxSolve(rx,et)
 
+}
 }

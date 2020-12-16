@@ -110,5 +110,5 @@ d/dt(blood)     = a*intestine - b*blood
       expect_true(rxIs(mod, "RxODE"))
     })
   },
-  test = "cran"
+  test = "lvl2"
 )

@@ -200,6 +200,8 @@ R_PosInf <- Inf # nolint
 #' @seealso [eventTable()], [et()], [add.sampling()], [add.dosing()]
 #'
 #' @examples
+#'
+#' \donttest{
 #' # Step 1 - Create a model specification
 #' ode <- "
 #'    # A 4-compartment model, 3 PK and a PD (effect) compartment
@@ -257,6 +259,8 @@ R_PosInf <- Inf # nolint
 #' print(qd.cp)
 #'
 #' plot(qd.cp)
+#'
+#' }
 #'
 #' @keywords models nonlinear
 #' @concept Nonlinear regression
