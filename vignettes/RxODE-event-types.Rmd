@@ -17,53 +17,5 @@ options(width=80, cli.width=80)
 Sys.setenv(RSTUDIO_CONSOLE_WIDTH=80)
 ```
 
-# RxODE event tables
-
-```{r child='events-1.Rmdh'}
-```
- 
-
-# Bolus/Additive Doses
-
-```{r child='events-bolus.Rmdh'}
-```
-
-# Infusion Doses
-
-```{r child='events-infusion.Rmdh'}
-```
-
-## Constant Infusion (in terms of duration and rate)
-
-```{r child='events-infusion-constant.Rmdh'}
-```
-
-## Modeled Rate and Duration of Infusion
-
-```{r child='events-infusion-modeled.Rmdh'}
-```
-
-# Steady State
-
-```{r child='events-steady-state.Rmdh'}
-```
-
-## Steady state for complex dosing
-
-```{r child='events-steady-state-complex.Rmdh'}
-```
-
-## Steady state for constant infusion or zero order processes
-
-```{r child='events-steady-state-infusion.Rmdh'}
-```
-
-# Reset Events
-
-```{r child='events-reset.Rmdh'}
-```
-
-# Turning off compartments
-
-```{r child='events-off.Rmdh'}
+```{r child=RxODE-event-types.Rmdh'}
 ```
