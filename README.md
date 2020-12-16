@@ -123,7 +123,6 @@ To load `RxODE` package and compile the model:
 
 ```r
 library(RxODE)
-#> RxODE 1.0.0.0 using 4 threads (see ?getRxThreads)
 library(units)
 #> udunits system database from /usr/share/xml/udunits
 
@@ -137,6 +136,10 @@ mod1 <-RxODE({
 })
 #> 
 #> qs v0.23.4.
+#> → creating RxODE include directory
+#> → getting R compile options
+#> → precompiling headers
+#> ✔ done
 ```
 
 ## Specify ODE parameters and initial conditions
@@ -191,7 +194,8 @@ to specify 10mg BID dosing for 5 days, followed by 20mg QD dosing for
 
 ```r
 ev$add.dosing(dose=10000, nbr.doses=10, dosing.interval=12)
-ev$add.dosing(dose=20000, nbr.doses=5, start.time=120, dosing.interval=24)
+ev$add.dosing(dose=20000, nbr.doses=5, start.time=120,
+              dosing.interval=24)
 ev$add.sampling(0:240)
 ```
 
@@ -200,9 +204,10 @@ If you wish you can also do this with the `mattigr` pipe operator `%>%`
 
 ```r
 ev <- eventTable(amount.units="mg", time.units="hours") %>%
-    add.dosing(dose=10000, nbr.doses=10, dosing.interval=12) %>%
-    add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24) %>%
-    add.sampling(0:240);
+  add.dosing(dose=10000, nbr.doses=10, dosing.interval=12) %>%
+  add.dosing(dose=20000, nbr.doses=5, start.time=120,
+             dosing.interval=24) %>%
+  add.sampling(0:240)
 ```
 
 The functions `get.dosing()` and `get.sampling()` can be used to
@@ -235,9 +240,9 @@ directly with the event table function `et`
 
 ```r
 ev  <- et(amountUnits="mg", timeUnits="hours") %>%
-    et(amt=10000, addl=9,ii=12,cmt="depot") %>%
-    et(time=120, amt=2000, addl=4, ii=14, cmt="depot") %>%
-    et(0:240) # Assumes sampling when there is no dosing information
+  et(amt=10000, addl=9,ii=12,cmt="depot") %>%
+  et(time=120, amt=2000, addl=4, ii=14, cmt="depot") %>%
+  et(0:240) # Add sampling 
 ```
 
 You can see from the above code, you can dose to the compartment named
@@ -260,19 +265,16 @@ in the output matrix x.
 
 ```r
 x <- mod1$solve(theta, ev, inits);
-knitr::kable(head(x))
 ```
 
+   tlag       f    rate     dur   tlag2      f2   rate2    dur2 
+1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05 
 
-
-| time|       C2|        C3|     depot|    centr|      peri|      eff|
-|----:|--------:|---------:|---------:|--------:|---------:|--------:|
-|    0|  0.00000| 0.0000000| 10000.000|    0.000|    0.0000| 1.000000|
-|    1| 44.37555| 0.9198298|  7452.765| 1783.897|  273.1895| 1.084664|
-|    2| 54.88296| 2.6729825|  5554.370| 2206.295|  793.8758| 1.180825|
-|    3| 51.90343| 4.4564927|  4139.542| 2086.518| 1323.5783| 1.228914|
-|    4| 44.49738| 5.9807076|  3085.103| 1788.795| 1776.2702| 1.234610|
-|    5| 36.48434| 7.1774981|  2299.255| 1466.670| 2131.7169| 1.214742|
+```
+#> Error in rxSolveSEXP(object, .ctl, .nms, .xtra, params, events, inits, : 'sensType' needs to be an integer
+knitr::kable(head(x))
+#> Error in head(x): object 'x' not found
+```
 
 You can also solve this and create a RxODE data frame:
 
@@ -280,26 +282,11 @@ You can also solve this and create a RxODE data frame:
 
 ```r
 x <- mod1 %>% rxSolve(theta, ev, inits);
+#>    tlag       f    rate     dur   tlag2      f2   rate2    dur2 
+#> 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05 1.5e-05
+#> Error in rxSolveSEXP(object, .ctl, .nms, .xtra, params, events, inits, : 'sensType' needs to be an integer
 x
-#> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
-#> ── Parameters (x$params): ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-#>      V2      V3      KA      CL       Q     Kin    Kout    EC50 
-#>  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000 
-#> ── Initial Conditions (x$inits): ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-#> depot centr  peri   eff 
-#>     0     0     0     1 
-#> ── First part of data (object): ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-#> # A tibble: 241 x 7
-#>    time    C2    C3  depot centr  peri   eff
-#>     [h] <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>
-#> 1     0   0   0     10000     0     0   1   
-#> 2     1  44.4 0.920  7453. 1784.  273.  1.08
-#> 3     2  54.9 2.67   5554. 2206.  794.  1.18
-#> 4     3  51.9 4.46   4140. 2087. 1324.  1.23
-#> 5     4  44.5 5.98   3085. 1789. 1776.  1.23
-#> 6     5  36.5 7.18   2299. 1467. 2132.  1.21
-#> # … with 235 more rows
-#> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+#> Error in eval(expr, envir, enclos): object 'x' not found
 ```
 
 This returns a modified data frame.  You can see the compartment
@@ -309,18 +296,16 @@ values in the plot below:
 ```r
 library(ggplot2)
 plot(x,C2) + ylab("Central Concentration")
+#> Error in plot(x, C2): object 'x' not found
 ```
-
-<img src="man/figures/README-intro-central-1.png" title="plot of chunk intro-central" alt="plot of chunk intro-central" width="100%" />
 
 Or, 
 
 
 ```r
 plot(x,eff)  + ylab("Effect")
+#> Error in plot(x, eff): object 'x' not found
 ```
-
-<img src="man/figures/README-intro-effect-1.png" title="plot of chunk intro-effect" alt="plot of chunk intro-effect" width="100%" />
 
 Note that the labels are automatically labeled with the units from the
 initial event table. RxODE extracts `units` to label the plot (if they

@@ -105,7 +105,6 @@ rxSolve(
   ssAtol = 1e-08,
   ssRtol = 1e-06,
   safeZero = TRUE,
-  cacheEvent = TRUE,
   sumType = c("pairwise", "fsum", "kahan", "neumaier", "c"),
   prodType = c("long double", "double", "logify"),
   sensType = c("advan", "autodiff", "forward", "central"),
@@ -191,7 +190,7 @@ by the ODE solver to determine if a good solution has been
 achieved;  This is also used in the solved linear model to check
 if prior doses do not add anything to the solution.}
 
-\item{rtol}{a numeric relative tolerance (1e-6 by default) used
+\item{rtol}{a numeric relative tolerance (\code{1e-6} by default) used
 by the ODE solver to determine if a good solution has been
 achieved. This is also used in the solved linear model to check
 if prior doses do not add anything to the solution.}
@@ -214,7 +213,7 @@ maximum absolute step size.}
 difference to add to hmax. The default is 0}
 
 \item{hini}{The step size to be attempted on the first step. The
-default value is determined by the solver (when hini = 0)}
+default value is determined by the solver (when \code{hini = 0})}
 
 \item{maxordn}{The maximum order to be allowed for the nonstiff
 (Adams) method.  The default is 12.  It can be between 1 and
@@ -344,6 +343,8 @@ For non-stiff systems (`stiff = FALSE`), `RxODE` uses
 DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
 Dormand and Prince as implemented in C by Hairer and Wanner
 (1993).
+
+If stiff is not specified, the `method` argument is used instead.
 }}
 
 \item{theta}{A vector of parameters that will be named \verb{THETA\[#\]} and
@@ -583,15 +584,12 @@ ordered ID to a factor with the original ID values in the
 original dataset.  By default this is enabled.}
 
 \item{mxhnil}{maximum number of messages printed (per problem)
-warning that T + H = T on a step (H = step size).  This must
+warning that \code{T + H = T} on a step (\code{H} = step size).  This must
 be positive to result in a non-default value.  The default
 value is 0 (or infinite).}
 
-\item{hmxi}{inverse of the maximum absolute value of H to be used.
-hmxi = 0.0 is allowed and corresponds to an infinite hmax
-(default).  hmin and hmxi may be changed at any time, but will
-not take effect until the next change of H is considered.
-This option is only considered with method=liblsoda.}
+\item{hmxi}{inverse of the maximum absolute value of \code{H} to are used.
+hmxi = 0.0 is allowed and corresponds to an infinite \verb{hmax1 (default).  }hmin\code{and}hmxi\verb{may be changed at any time, but will not take effect until the next change of}H\verb{is considered. This option is only considered with}method="liblsoda"`.}
 
 \item{warnIdSort}{Warn if the ID is not present and RxODE assumes
 the order of the parameters/iCov are the same as the order of
@@ -608,9 +606,6 @@ vector based on each state.}
 
 \item{safeZero}{Use safe zero divide and log routines.  By default
 this is turned on but you may turn it off if you wish.}
-
-\item{cacheEvent}{is a boolean.  If \code{TRUE} (default), events are cached in
-memory to speed up solving.}
 
 \item{sumType}{Sum type to use for \code{sum()} in
 RxODE code blocks.

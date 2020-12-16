@@ -20,17 +20,6 @@
 #'     vector must be the same as the state variables (e.g., PK/PD
 #'     compartments);
 #'
-#' @param iCov A data frame of individual non-time varying covariates
-#'     to combine with the `params` to form a parameter
-#'     data.frame.
-#'
-#' @param scale a numeric named vector with scaling for ode
-#'     parameters of the system.  The names must correspond to the
-#'     parameter identifiers in the ODE specification. Each of the
-#'     ODE variables will be divided by the scaling factor.  For
-#'     example `scale=c(center=2)` will divide the center ODE
-#'     variable by 2.
-#'
 #' @param method The method for solving ODEs.  Currently this supports:
 #'
 #' * `"liblsoda"` thread safe lsoda.  This supports parallel
@@ -42,18 +31,31 @@
 #' * `"indLin"` -- Solving through inductive linearization.  The RxODE dll
 #'         must be setup specially to use this solving routine.
 #'
-#' @param transitAbs boolean indicating if this is a transit
-#'     compartment absorption
+#' @param stiff a logical (`TRUE` by default) indicating whether
+#'     the ODE system is stiff or not.
+#'
+#'     For stiff ODE systems (`stiff = TRUE`), `RxODE` uses the
+#'     LSODA (Livermore Solver for Ordinary Differential Equations)
+#'     Fortran package, which implements an automatic method switching
+#'     for stiff and non-stiff problems along the integration
+#'     interval, authored by Hindmarsh and Petzold (2003).
+#'
+#'     For non-stiff systems (`stiff = FALSE`), `RxODE` uses
+#'     DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
+#'     Dormand and Prince as implemented in C by Hairer and Wanner
+#'     (1993).
+#'
+#'     If stiff is not specified, the `method` argument is used instead.
 #'
 #' @param atol a numeric absolute tolerance (1e-8 by default) used
 #'     by the ODE solver to determine if a good solution has been
 #'     achieved;  This is also used in the solved linear model to check
 #'     if prior doses do not add anything to the solution.
 #'
-#' @param rtol a numeric relative tolerance (1e-6 by default) used
+#' @param rtol a numeric relative tolerance (`1e-6` by default) used
 #'     by the ODE solver to determine if a good solution has been
 #'     achieved. This is also used in the solved linear model to check
-#'      if prior doses do not add anything to the solution.
+#'     if prior doses do not add anything to the solution.
 #'
 #' @param maxsteps maximum number of (internally defined) steps allowed
 #'     during one call to the solver. (5000 by default)
@@ -73,7 +75,7 @@
 #'     difference to add to hmax. The default is 0
 #'
 #' @param hini The step size to be attempted on the first step. The
-#'     default value is determined by the solver (when hini = 0)
+#'     default value is determined by the solver (when `hini = 0`)
 #'
 #' @param maxordn The maximum order to be allowed for the nonstiff
 #'     (Adams) method.  The default is 12.  It can be between 1 and
@@ -83,15 +85,46 @@
 #'     method.  The default value is 5.  This can be between 1 and 5.
 #'
 #' @param mxhnil maximum number of messages printed (per problem)
-#'     warning that T + H = T on a step (H = step size).  This must
+#'     warning that `T + H = T` on a step (`H` = step size).  This must
 #'     be positive to result in a non-default value.  The default
 #'     value is 0 (or infinite).
 #'
-#' @param hmxi inverse of the maximum absolute value of H to be used.
-#'     hmxi = 0.0 is allowed and corresponds to an infinite hmax
-#'     (default).  hmin and hmxi may be changed at any time, but will
-#'     not take effect until the next change of H is considered.
-#'     This option is only considered with method=liblsoda.
+#' @param hmxi inverse of the maximum absolute value of `H` to are used.
+#'     hmxi = 0.0 is allowed and corresponds to an infinite `hmax1
+#'     (default).  `hmin` and `hmxi` may be changed at any time, but will
+#'     not take effect until the next change of `H` is considered.
+#'     This option is only considered with `method="liblsoda"`.
+#'
+#' @param indLinMatExpType This is them matrix exponential type that
+#'     is use for RxODE.  Currently the following are supported:
+#'
+#' * `Al-Mohy` Uses the exponential matrix method of Al-Mohy Higham (2009)
+#'
+#' * `arma` Use the exponential matrix from RcppArmadillo
+#'
+#' * `expokit` Use the exponential matrix from Roger B. Sidje (1998)
+#'
+#'
+#' @param indLinMatExpOrder an integer, the order of approximation to
+#'     be used, for the `Al-Mohy` and `expokit` values.
+#'     The best value for this depends on machine precision (and
+#'     slightly on the matrix). We use `6` as a default.
+#'
+#' @param indLinPhiTol the requested accuracy tolerance on
+#'     exponential matrix.
+#'
+#' @param indLinPhiM  the maximum size for the Krylov basis
+#'
+#'
+#' @param scale a numeric named vector with scaling for ode
+#'     parameters of the system.  The names must correspond to the
+#'     parameter identifiers in the ODE specification. Each of the
+#'     ODE variables will be divided by the scaling factor.  For
+#'     example `scale=c(center=2)` will divide the center ODE
+#'     variable by 2.
+#'
+#' @param transitAbs boolean indicating if this is a transit
+#'     compartment absorption
 #'
 #' @param ... Other arguments including scaling factors for each
 #'     compartment.  This includes S# = numeric will scale a compartment
@@ -100,6 +133,16 @@
 #'
 #' @param cores Number of cores used in parallel ODE solving.  This
 #'    is equivalent to calling [setRxThreads()]
+#'
+#' @param nCoresRV Number of cores used for the simulation of the
+#'   sigma variables.  By default this is 1. To reproduce the results
+#'   you need to run on the same platform with the same number of
+#'   cores. This is the reason this is set to be one, regardless of
+#'   what the number of cores are used in threaded ODE solving.
+#'
+#' @param iCov A data frame of individual non-time varying covariates
+#'     to combine with the `params` to form a parameter
+#'     data.frame.
 #'
 #' @param covsInterpolation specifies the interpolation method for
 #'     time-varying covariates. When solving ODEs it often samples
@@ -119,9 +162,6 @@
 #' @param addCov A boolean indicating if covariates should be added
 #'     to the output matrix or data frame. By default this is
 #'     disabled.
-#'
-#' @param matrix A boolean indicating if a matrix should be returned
-#'     instead of the RxODE's solved object.
 #'
 #' @param sigma Named sigma covariance or Cholesky decomposition of a
 #'     covariance matrix.  The names of the columns indicate
@@ -161,12 +201,6 @@
 #' @param sigmaDf Degrees of freedom of the sigma t-distribution.  By
 #'     default it is equivalent to `Inf`, or a normal distribution.
 #'
-#' @param nCoresRV Number of cores used for the simulation of the
-#'   sigma variables.  By default this is 1. To reproduce the results
-#'   you need to run on the same platform with the same number of
-#'   cores. This is the reason this is set to be one, regardless of
-#'   what the number of cores are used in threaded ODE solving.
-#'
 #' @param sigmaIsChol Boolean indicating if the sigma is in the
 #'     Cholesky decomposition instead of a symmetric covariance
 #'
@@ -203,20 +237,6 @@
 #'     supplied instead of an event table.  This is for importing the
 #'     data as an RxODE event table.
 #'
-#' @param stiff a logical (`TRUE` by default) indicating whether
-#'     the ODE system is stiff or not.
-#'
-#'     For stiff ODE systems (`stiff = TRUE`), `RxODE` uses the
-#'     LSODA (Livermore Solver for Ordinary Differential Equations)
-#'     Fortran package, which implements an automatic method switching
-#'     for stiff and non-stiff problems along the integration
-#'     interval, authored by Hindmarsh and Petzold (2003).
-#'
-#'     For non-stiff systems (`stiff = FALSE`), `RxODE` uses
-#'     DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
-#'     Dormand and Prince as implemented in C by Hairer and Wanner
-#'     (1993).
-#'
 #' @param theta A vector of parameters that will be named `THETA\[#\]` and
 #'     added to parameters
 #'
@@ -230,25 +250,7 @@
 #'     say `c(0, 2000000)` you may specify 2 values with a lower and
 #'     upper range to make sure all state values are in the
 #'     reasonable range.
-#'
-#' @param updateObject This is an internally used flag to update the
-#'     RxODE solved object (when supplying an RxODE solved object) as
-#'     well as returning a new object.  You probably should not
-#'     modify it's `FALSE` default unless you are willing to
-#'     have unexpected results.
-#'
-#' @param returnType This tells what type of object is returned.  The currently supported types are:
-#' * `"rxSolve"` (default) will return a reactive data frame
-#'      that can change easily change different pieces of the solve and
-#'      update the data frame.  This is the currently standard solving
-#'      method in RxODE,  is used for `rxSolve(object, ...)`, `solve(object,...)`,
-#' * `"data.frame"` -- returns a plain, non-reactive data
-#'      frame; Currently very slightly faster than `returnType="matrix"`
-#' * `"matrix"` -- returns a plain matrix with column names attached
-#'     to the solved object.  This is what is used `object$run` as well as `object$solve`
-#' * `"data.table"` -- returns a `data.table`; The `data.table` is
-#'     created by reference (ie `setDt()`), which should be fast.
-#' * `"tbl"` or `"tibble"` returns a tibble format.
+#
 #'
 #' @param seed an object specifying if and how the random number
 #'    generator should be initialized
@@ -334,6 +336,28 @@
 #'     lsoda and liblsoda with doses, like `deSolve`; When `FALSE`, do
 #'     not reset the `ISTATE` variable with doses.
 #'
+#' @param updateObject This is an internally used flag to update the
+#'     RxODE solved object (when supplying an RxODE solved object) as
+#'     well as returning a new object.  You probably should not
+#'     modify it's `FALSE` default unless you are willing to
+#'     have unexpected results.
+#'
+#' @param matrix A boolean indicating if a matrix should be returned
+#'     instead of the RxODE's solved object.
+#'
+#' @param returnType This tells what type of object is returned.  The currently supported types are:
+#' * `"rxSolve"` (default) will return a reactive data frame
+#'      that can change easily change different pieces of the solve and
+#'      update the data frame.  This is the currently standard solving
+#'      method in RxODE,  is used for `rxSolve(object, ...)`, `solve(object,...)`,
+#' * `"data.frame"` -- returns a plain, non-reactive data
+#'      frame; Currently very slightly faster than `returnType="matrix"`
+#' * `"matrix"` -- returns a plain matrix with column names attached
+#'     to the solved object.  This is what is used `object$run` as well as `object$solve`
+#' * `"data.table"` -- returns a `data.table`; The `data.table` is
+#'     created by reference (ie `setDt()`), which should be fast.
+#' * `"tbl"` or `"tibble"` returns a tibble format.
+#'
 #' @param addDosing Boolean indicating if the solve should add RxODE
 #'     EVID and related columns.  This will also include dosing
 #'     information and estimates at the doses.  Be default, RxODE
@@ -362,6 +386,18 @@
 #' * `EVID=101,102,103,...` Modeled time where 101 is the
 #' first model time, 102 is the second etc.
 #'
+#' @param keep Columns to keep from either the input dataset or the
+#'     `iCov` dataset.  With the `iCov` dataset, the column
+#'     is kept once per line.  For the input dataset, if any records
+#'     are added to the data LOCF (Last Observation Carried forward)
+#'     imputation is performed.
+#'
+#' @param drop Columns to drop from the output
+#'
+#' @param idFactor This boolean indicates if original ID values
+#'     should be maintained. This changes the default sequentially
+#'     ordered ID to a factor with the original ID values in the
+#'     original dataset.  By default this is enabled.
 #'
 #' @param subsetNonmem subset to NONMEM compatible EVIDs only.  By default TRUE.
 #'
@@ -382,19 +418,6 @@
 #'     is the amount to increment for the observations between `from`
 #'     and `to`.
 #'
-#' @param keep Columns to keep from either the input dataset or the
-#'     `iCov` dataset.  With the `iCov` dataset, the column
-#'     is kept once per line.  For the input dataset, if any records
-#'     are added to the data LOCF (Last Observation Carried forward)
-#'     imputation is performed.
-#'
-#' @param drop Columns to drop from the output
-#'
-#' @param idFactor This boolean indicates if original ID values
-#'     should be maintained. This changes the default sequentially
-#'     ordered ID to a factor with the original ID values in the
-#'     original dataset.  By default this is enabled.
-#'
 #' @param warnIdSort Warn if the ID is not present and RxODE assumes
 #'     the order of the parameters/iCov are the same as the order of
 #'     the parameters in the input dataset.
@@ -404,30 +427,6 @@
 #'
 #' @param safeZero Use safe zero divide and log routines.  By default
 #'     this is turned on but you may turn it off if you wish.
-#'
-#'
-#' @param indLinMatExpType This is them matrix exponential type that
-#'     is use for RxODE.  Currently the following are supported:
-#'
-#' * `Al-Mohy` Uses the exponential matrix method of Al-Mohy Higham (2009)
-#'
-#' * `arma` Use the exponential matrix from RcppArmadillo
-#'
-#' * `expokit` Use the exponential matrix from Roger B. Sidje (1998)
-#'
-#'
-#' @param indLinMatExpOrder an integer, the order of approximation to
-#'     be used, for the `Al-Mohy` and `expokit` values.
-#'     The best value for this depends on machine precision (and
-#'     slightly on the matrix). We use `6` as a default.
-#'
-#' @param indLinPhiTol the requested accuracy tolerance on
-#'     exponential matrix.
-#'
-#' @param indLinPhiM  the maximum size for the Krylov basis
-#'
-#' @param cacheEvent is a boolean.  If `TRUE` (default), events are cached in
-#'     memory to speed up solving.
 #'
 #' @param sumType Sum type to use for `sum()` in
 #'     RxODE code blocks.
@@ -587,7 +586,6 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
                     ssAtol = 1.0e-8,
                     ssRtol = 1.0e-6,
                     safeZero = TRUE,
-                    cacheEvent = TRUE,
                     sumType = c("pairwise", "fsum", "kahan", "neumaier", "c"),
                     prodType = c("long double", "double", "logify"),
                     sensType = c("advan", "autodiff", "forward", "central"),
@@ -812,7 +810,6 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
       idFactor = idFactor,
       mxhnil = mxhnil, hmxi = hmxi, warnIdSort = warnIdSort,
       ssAtol = ssAtol, ssRtol = ssRtol, safeZero = as.integer(safeZero),
-      cacheEvent = as.logical(cacheEvent),
       sumType = as.integer(.sum),
       prodType = as.integer(.prod),
       sensType = as.integer(.sensType),
