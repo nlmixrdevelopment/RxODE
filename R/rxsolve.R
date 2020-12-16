@@ -222,12 +222,6 @@
 #'   differences for the linear compartment model parameters.  The
 #'   are the same components as `linDiff`
 #'
-#' @param ... Other arguments including scaling factors for each
-#'     compartment.  This includes S# = numeric will scale a compartment
-#'     # by a dividing the compartment amount by the scale factor,
-#'     like NONMEM.
-#'
-#'
 #' @param iCov A data frame of individual non-time varying covariates
 #'     to combine with the `params` to form a parameter
 #'     data.frame.
@@ -309,7 +303,6 @@
 #'  * `"auto"` chooses `"lkj"` when the dimension of the
 #'     matrix is less than 10 and `"separation"` when greater
 #'    than equal to 10.
-
 #'
 #' @param omegaXform When taking `omega` values from the `thetaMat`
 #'   simulations (using the separation strategy for covariance
@@ -438,34 +431,23 @@
 #'   `resampleID=FALSE` ignores patient covariate correaltions.
 #'   Hence the default is `resampleID=TRUE`.
 #'
-#' @param amountUnits This supplies the dose units of a data frame
-#'     supplied instead of an event table.  This is for importing the
-#'     data as an RxODE event table.
+#' @param returnType This tells what type of object is returned.  The
+#'   currently supported types are:
 #'
-#' @param timeUnits This supplies the time units of a data frame
-#'     supplied instead of an event table.  This is for importing the
-#'     data as an RxODE event table.
-#'
-#' @param theta A vector of parameters that will be named `THETA\[#\]` and
-#'     added to parameters
-#'
-#' @param eta A vector of parameters that will be named `ETA\[#\]` and
-#'     added to parameters
-#'
-#' @param matrix A boolean indicating if a matrix should be returned
-#'     instead of the RxODE's solved object.
-#'
-#' @param returnType This tells what type of object is returned.  The currently supported types are:
 #' * `"rxSolve"` (default) will return a reactive data frame
 #'      that can change easily change different pieces of the solve and
 #'      update the data frame.  This is the currently standard solving
 #'      method in RxODE,  is used for `rxSolve(object, ...)`, `solve(object,...)`,
+#'
 #' * `"data.frame"` -- returns a plain, non-reactive data
 #'      frame; Currently very slightly faster than `returnType="matrix"`
+#'
 #' * `"matrix"` -- returns a plain matrix with column names attached
 #'     to the solved object.  This is what is used `object$run` as well as `object$solve`
+#'
 #' * `"data.table"` -- returns a `data.table`; The `data.table` is
 #'     created by reference (ie `setDt()`), which should be fast.
+#'
 #' * `"tbl"` or `"tibble"` returns a tibble format.
 #'
 #' @param addDosing Boolean indicating if the solve should add RxODE
@@ -509,7 +491,11 @@
 #'     ordered ID to a factor with the original ID values in the
 #'     original dataset.  By default this is enabled.
 #'
-#' @param subsetNonmem subset to NONMEM compatible EVIDs only.  By default TRUE.
+#' @param subsetNonmem subset to NONMEM compatible EVIDs only.  By
+#'   default `TRUE`.
+#'
+#' @param matrix A boolean indicating if a matrix should be returned
+#'     instead of the RxODE's solved object.
 #'
 #' @param scale a numeric named vector with scaling for ode
 #'     parameters of the system.  The names must correspond to the
@@ -517,6 +503,20 @@
 #'     ODE variables will be divided by the scaling factor.  For
 #'     example `scale=c(center=2)` will divide the center ODE
 #'     variable by 2.
+#'
+#' @param amountUnits This supplies the dose units of a data frame
+#'     supplied instead of an event table.  This is for importing the
+#'     data as an RxODE event table.
+#'
+#' @param timeUnits This supplies the time units of a data frame
+#'     supplied instead of an event table.  This is for importing the
+#'     data as an RxODE event table.
+#'
+#' @param theta A vector of parameters that will be named `THETA\[#\]` and
+#'     added to parameters
+#'
+#' @param eta A vector of parameters that will be named `ETA\[#\]` and
+#'     added to parameters
 #'
 #' @param from When there is no observations in the event table,
 #'     start observations at this value. By default this is zero.
@@ -539,10 +539,14 @@
 #' @param warnDrop Warn if column(s) were supposed to be dropped, but
 #'     were not present.
 #'
-#'
 #' @param nDisplayProgress An integer indicating the minimum number
 #'     of c-based solves before a progress bar is shown.  By default
 #'     this is 10,000.
+#'
+#' @param ... Other arguments including scaling factors for each
+#'     compartment.  This includes S# = numeric will scale a compartment
+#'     # by a dividing the compartment amount by the scale factor,
+#'     like NONMEM.
 #'
 #' @param a when using `solve()`, this is equivalent to the
 #'     `object` argument.  If you specify `object` later in
@@ -557,7 +561,6 @@
 #'     well as returning a new object.  You probably should not
 #'     modify it's `FALSE` default unless you are willing to
 #'     have unexpected results.
-#'
 #'
 #' @param cores Number of cores used in parallel ODE solving.  This
 #'    is equivalent to calling [setRxThreads()]

@@ -481,7 +481,8 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
 \item{dfObs}{Degrees of freedom to sample the unexplained variability matrix from the
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
-\item{returnType}{This tells what type of object is returned.  The currently supported types are:
+\item{returnType}{This tells what type of object is returned.  The
+currently supported types are:
 \itemize{
 \item \code{"rxSolve"} (default) will return a reactive data frame
 that can change easily change different pieces of the solve and
@@ -529,7 +530,8 @@ been achieved.}
 lsoda and liblsoda with doses, like \code{deSolve}; When \code{FALSE}, do
 not reset the \code{ISTATE} variable with doses.}
 
-\item{subsetNonmem}{subset to NONMEM compatible EVIDs only.  By default TRUE.}
+\item{subsetNonmem}{subset to NONMEM compatible EVIDs only.  By
+default \code{TRUE}.}
 
 \item{maxAtolRtolFactor}{The maximum \code{atol}/\code{rtol} that
 FOCEi and other routines may adjust to.  By default 0.1}
