@@ -290,12 +290,11 @@
 #' @inheritParams rxSimThetaOmega
 #'
 #' @inheritParams stats::simulate
-#'
-#' @param a when using `solve`, this is equivalent to the
+#' @param a when using `solve()`, this is equivalent to the
 #'     `object` argument.  If you specify `object` later in
 #'     the argument list it overwrites this parameter.
 #'
-#' @param b when using `solve`, this is equivalent to the
+#' @param b when using `solve()`, this is equivalent to the
 #'     `params` argument.  If you specify `params` as a
 #'     named argument, this overwrites the output
 #'

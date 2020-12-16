@@ -677,11 +677,11 @@ Hence the default is \code{resampleID=TRUE}.}
 \item{maxwhile}{represents the maximum times a while loop is
 evaluated before exiting.  By default this is 100000}
 
-\item{a}{when using \code{solve}, this is equivalent to the
+\item{a}{when using \code{solve()}, this is equivalent to the
 \code{object} argument.  If you specify \code{object} later in
 the argument list it overwrites this parameter.}
 
-\item{b}{when using \code{solve}, this is equivalent to the
+\item{b}{when using \code{solve()}, this is equivalent to the
 \code{params} argument.  If you specify \code{params} as a
 named argument, this overwrites the output}
 }
