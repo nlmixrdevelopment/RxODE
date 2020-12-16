@@ -111,3 +111,5 @@ vignettes/theo_sd.qs
 tests/testthat/*.d.*
 ..Rcheck
 ^\.github$
+tests/figs
+tests/testthat/test-plot.R
