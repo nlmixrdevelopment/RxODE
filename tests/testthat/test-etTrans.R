@@ -684,6 +684,6 @@ d/dt(blood)     = a*intestine - b*blood
 
     }
   },
-  test = "cran",
+  test = "lvl2",
   silent = TRUE
 )
