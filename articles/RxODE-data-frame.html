@@ -245,28 +245,29 @@
 
 <span class="co">## Setup example model</span>
 <span class="va">mod1</span> <span class="op">&lt;-</span><span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
-    <span class="va">C2</span> <span class="op">=</span> <span class="va">centr</span><span class="op">/</span><span class="va">V2</span>;
-    <span class="va">C3</span> <span class="op">=</span> <span class="va">peri</span><span class="op">/</span><span class="va">V3</span>;
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">=</span><span class="op">-</span><span class="va">KA</span><span class="op">*</span><span class="va">depot</span>;
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">centr</span><span class="op">)</span> <span class="op">=</span> <span class="va">KA</span><span class="op">*</span><span class="va">depot</span> <span class="op">-</span> <span class="va">CL</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">+</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">peri</span><span class="op">)</span>  <span class="op">=</span>                    <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>  <span class="op">=</span> <span class="va">Kin</span> <span class="op">-</span> <span class="va">Kout</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">C2</span><span class="op">/</span><span class="op">(</span><span class="va">EC50</span><span class="op">+</span><span class="va">C2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="va">eff</span>;
-<span class="op">}</span><span class="op">)</span>;
+  <span class="va">C2</span> <span class="op">=</span> <span class="va">centr</span><span class="op">/</span><span class="va">V2</span>;
+  <span class="va">C3</span> <span class="op">=</span> <span class="va">peri</span><span class="op">/</span><span class="va">V3</span>;
+  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">=</span><span class="op">-</span><span class="va">KA</span><span class="op">*</span><span class="va">depot</span>;
+  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">centr</span><span class="op">)</span> <span class="op">=</span> <span class="va">KA</span><span class="op">*</span><span class="va">depot</span> <span class="op">-</span> <span class="va">CL</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">+</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
+  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">peri</span><span class="op">)</span>  <span class="op">=</span>                    <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
+  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>  <span class="op">=</span> <span class="va">Kin</span> <span class="op">-</span> <span class="va">Kout</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">C2</span><span class="op">/</span><span class="op">(</span><span class="va">EC50</span><span class="op">+</span><span class="va">C2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="va">eff</span>;
+<span class="op">}</span><span class="op">)</span>
 
 <span class="co">## Seup parameters and initial conditions</span>
 
 <span class="va">theta</span> <span class="op">&lt;-</span> 
-    <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>KA<span class="op">=</span><span class="fl">2.94E-01</span>, CL<span class="op">=</span><span class="fl">1.86E+01</span>, V2<span class="op">=</span><span class="fl">4.02E+01</span>, <span class="co"># central </span>
-      Q<span class="op">=</span><span class="fl">1.05E+01</span>,  V3<span class="op">=</span><span class="fl">2.97E+02</span>,              <span class="co"># peripheral</span>
-      Kin<span class="op">=</span><span class="fl">1</span>, Kout<span class="op">=</span><span class="fl">1</span>, EC50<span class="op">=</span><span class="fl">200</span><span class="op">)</span>               <span class="co"># effects</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>KA<span class="op">=</span><span class="fl">2.94E-01</span>, CL<span class="op">=</span><span class="fl">1.86E+01</span>, V2<span class="op">=</span><span class="fl">4.02E+01</span>, <span class="co"># central </span>
+    Q<span class="op">=</span><span class="fl">1.05E+01</span>,  V3<span class="op">=</span><span class="fl">2.97E+02</span>,              <span class="co"># peripheral</span>
+    Kin<span class="op">=</span><span class="fl">1</span>, Kout<span class="op">=</span><span class="fl">1</span>, EC50<span class="op">=</span><span class="fl">200</span><span class="op">)</span>               <span class="co"># effects</span>
 
-<span class="va">inits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>eff<span class="op">=</span><span class="fl">1</span><span class="op">)</span>;
+<span class="va">inits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>eff<span class="op">=</span><span class="fl">1</span><span class="op">)</span>
 
 <span class="co">## Setup dosing event information</span>
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">"mg"</span>, time.units<span class="op">=</span><span class="st">"hours"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="../reference/add.dosing.html">add.dosing</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">10000</span>, nbr.doses<span class="op">=</span><span class="fl">10</span>, dosing.interval<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="../reference/add.dosing.html">add.dosing</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">20000</span>, nbr.doses<span class="op">=</span><span class="fl">5</span>, start.time<span class="op">=</span><span class="fl">120</span>,dosing.interval<span class="op">=</span><span class="fl">24</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="../reference/add.sampling.html">add.sampling</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span>;
+  <span class="fu"><a href="../reference/add.dosing.html">add.dosing</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">10000</span>, nbr.doses<span class="op">=</span><span class="fl">10</span>, dosing.interval<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/add.dosing.html">add.dosing</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">20000</span>, nbr.doses<span class="op">=</span><span class="fl">5</span>, start.time<span class="op">=</span><span class="fl">120</span>,
+             dosing.interval<span class="op">=</span><span class="fl">24</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/add.sampling.html">add.sampling</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span>;
 
 
 <span class="co">## Now solve</span>
@@ -337,6 +338,10 @@
 <span class="co">#&gt; 6     5  36.5 7.18   2299. 1467. 2132.  1.21</span>
 <span class="co">#&gt; # ... with 235 more rows</span>
 <span class="co">#&gt; ________________________________________________________________________________</span></code></pre></div>
+</div>
+<div id="rxode-solved-object-properties" class="section level2">
+<h2 class="hasAnchor">
+<a href="#rxode-solved-object-properties" class="anchor"></a>RxODE solved object properties</h2>
 </div>
 <div id="using-the-solved-object-as-a-simple-data-frame" class="section level2">
 <h2 class="hasAnchor">
@@ -459,7 +464,7 @@
 <span class="co">#&gt; [1] 0.294</span></code></pre></div>
 <p>And you may change it by assigning it to a new value.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">x</span><span class="op">$</span><span class="va">KA</span> <span class="op">&lt;-</span> <span class="fl">1</span>;
+<code class="sourceCode R"><span class="va">x</span><span class="op">$</span><span class="va">KA</span> <span class="op">&lt;-</span> <span class="fl">1</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
 <span class="co">#&gt; ______________________________ Solved RxODE object _____________________________</span>
 <span class="co">#&gt; -- Parameters ($params): -------------------------------------------------------</span>
