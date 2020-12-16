@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.1</span>
       </span>
     </div>
 
@@ -222,7 +222,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE Simulation</h1>
             
-            <h4 class="date">2020-12-15</h4>
+            <h4 class="date">2020-12-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-sim-var.Rmd"><code>vignettes/RxODE-sim-var.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-sim-var.Rmd</code></div>
@@ -244,7 +244,7 @@
 <a href="#setting-up-the-rxode-model" class="anchor"></a>Setting up the RxODE model</h3>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span>
-<span class="co">#&gt; RxODE 1.0.0.9000 using 1 threads (see ?getRxThreads)</span>
+<span class="co">#&gt; RxODE 1.0.1 using 1 threads (see ?getRxThreads)</span>
 <span class="co">#&gt;   no cache: create with `rxCreateCache()`</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">32</span><span class="op">)</span>
@@ -290,7 +290,7 @@
 <p>Note the <code>et</code> takes similar arguments as <code>seq</code> when adding sampling times. There are more methods to adding sampling times and events to make complex dosing regimens (See <a href="RxODE-events.html">the event vignette</a>). This includes ways to add variability to the <a href="RxODE-events.html#add-doses-and-samples-within-a-sampling-window">both the sampling and dosing times</a>).</p>
 <p>Once this is complete you can simulate using the <code>rxSolve</code> routine:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>,<span class="va">theta</span>,<span class="va">ev</span>,omega<span class="op">=</span><span class="va">omega</span>,nSub<span class="op">=</span><span class="fl">100</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>,<span class="va">theta</span>,<span class="va">ev</span>,omega<span class="op">=</span><span class="va">omega</span>,nSub<span class="op">=</span><span class="fl">100</span><span class="op">)</span></code></pre></div>
 <p>To quickly look and customize your simulation you use the default <code>plot</code> routine. Since this is an RxODE object, it will create a <code>ggplot2</code> object that you can modify as you wish. The extra parameter to the <code>plot</code> tells <code>RxODE</code>/<code>R</code> what piece of information you are interested in plotting. In this case, we are interested in looking at the derived parameter <code>C2</code>:</p>
 </div>
 <div id="checking-the-simulation-with-plot" class="section level3">
@@ -374,7 +374,7 @@
 <span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html">lotri</a></span><span class="op">(</span><span class="va">eff.err</span> <span class="op">~</span> <span class="fl">0.1</span>, <span class="va">cp.err</span> <span class="op">~</span> <span class="fl">0.1</span><span class="op">)</span>
 
 
-<span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">theta</span>, <span class="va">ev</span>, omega<span class="op">=</span><span class="va">omega</span>, nSub<span class="op">=</span><span class="fl">100</span>, sigma<span class="op">=</span><span class="va">sigma</span><span class="op">)</span>
+<span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">theta</span>, <span class="va">ev</span>, omega<span class="op">=</span><span class="va">omega</span>, nSub<span class="op">=</span><span class="fl">100</span>, sigma<span class="op">=</span><span class="va">sigma</span><span class="op">)</span>
 <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html">confint</a></span><span class="op">(</span><span class="va">sim</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"eff"</span>, <span class="st">"centr"</span><span class="op">)</span><span class="op">)</span>;
 <span class="co">#&gt; ! in order to put confidence bands around the intervals, you need at least 2500 simulations</span>
 <span class="co">#&gt; summarizing data...done</span>
@@ -409,7 +409,7 @@
 
 
 <span class="co">## Note the number of subject is not needed since it is determined by the data</span>
-<span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">theta</span>, <span class="va">dat</span>, omega<span class="op">=</span><span class="va">omega</span>, sigma<span class="op">=</span><span class="va">sigma</span><span class="op">)</span>
+<span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">theta</span>, <span class="va">dat</span>, omega<span class="op">=</span><span class="va">omega</span>, sigma<span class="op">=</span><span class="va">sigma</span><span class="op">)</span>
 
 <span class="va">sim</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">time</span>, <span class="va">e</span>, <span class="va">cp</span><span class="op">)</span>
 <span class="co">#&gt;    id          time         e          cp</span>
@@ -453,7 +453,7 @@
 <span class="va">tMat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html">tcrossprod</a></span><span class="op">(</span><span class="va">tmp</span>, <span class="va">tmp</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fl">8</span> <span class="op">^</span> <span class="fl">2</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/dimnames.html">dimnames</a></span><span class="op">(</span><span class="va">tMat</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="cn">NULL</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span><span class="op">)</span>
 
-<span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">theta</span>, <span class="va">ev</span>, omega<span class="op">=</span><span class="va">omega</span>, nSub<span class="op">=</span><span class="fl">100</span>, sigma<span class="op">=</span><span class="va">sigma</span>, thetaMat<span class="op">=</span><span class="va">tMat</span>, nStud<span class="op">=</span><span class="fl">10</span>,
+<span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">theta</span>, <span class="va">ev</span>, omega<span class="op">=</span><span class="va">omega</span>, nSub<span class="op">=</span><span class="fl">100</span>, sigma<span class="op">=</span><span class="va">sigma</span>, thetaMat<span class="op">=</span><span class="va">tMat</span>, nStud<span class="op">=</span><span class="fl">10</span>,
                 dfSub<span class="op">=</span><span class="fl">10</span>, dfObs<span class="op">=</span><span class="fl">100</span><span class="op">)</span>
 
 <span class="va">s</span> <span class="op">&lt;-</span><span class="va">sim</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html">confint</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"centr"</span>, <span class="st">"eff"</span><span class="op">)</span><span class="op">)</span>
@@ -567,7 +567,7 @@
 <span class="co">## From the run we know that:</span>
 <span class="co">##   total number of observations is: 476</span>
 <span class="co">##    Total number of individuals:     74</span>
-<span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">rx1</span>, <span class="va">theta</span>, <span class="va">evw</span>,  nSub<span class="op">=</span><span class="fl">100</span>, nStud<span class="op">=</span><span class="fl">10</span>,
+<span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">rx1</span>, <span class="va">theta</span>, <span class="va">evw</span>,  nSub<span class="op">=</span><span class="fl">100</span>, nStud<span class="op">=</span><span class="fl">10</span>,
                 thetaMat<span class="op">=</span><span class="va">thetaMat</span>,
                 <span class="co">## Match boundaries of problem</span>
                 thetaLower<span class="op">=</span><span class="fl">0</span>, 
@@ -620,7 +620,7 @@
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">24</span>, length.out<span class="op">=</span><span class="fl">50</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>id<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">)</span>
 
-<span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">rx1</span>, <span class="va">theta</span>, <span class="va">evw</span>,  nSub<span class="op">=</span><span class="fl">100</span>, nStud<span class="op">=</span><span class="fl">10</span>,
+<span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">rx1</span>, <span class="va">theta</span>, <span class="va">evw</span>,  nSub<span class="op">=</span><span class="fl">100</span>, nStud<span class="op">=</span><span class="fl">10</span>,
                 thetaMat<span class="op">=</span><span class="va">thetaMat</span>,
                 <span class="co">## Match boundaries of problem</span>
                 thetaLower<span class="op">=</span><span class="fl">0</span>, 
@@ -662,7 +662,7 @@
 <span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html">lotri</a></span><span class="op">(</span><span class="va">eff.err</span> <span class="op">~</span> <span class="fl">0.1</span>, <span class="va">cp.err</span> <span class="op">~</span> <span class="fl">0.1</span><span class="op">)</span>
 
 
-<span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">theta</span>, <span class="va">ev</span>, omega<span class="op">=</span><span class="va">omega</span>, nSub<span class="op">=</span><span class="fl">100</span>, sigma<span class="op">=</span><span class="va">sigma</span>,
+<span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">theta</span>, <span class="va">ev</span>, omega<span class="op">=</span><span class="va">omega</span>, nSub<span class="op">=</span><span class="fl">100</span>, sigma<span class="op">=</span><span class="va">sigma</span>,
                 thetaMat<span class="op">=</span><span class="va">tMat</span>, nStud<span class="op">=</span><span class="fl">10</span>,
                 simVariability<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span>
 
@@ -678,7 +678,7 @@
 <p>RxODE now supports multi-threaded solving on OpenMP supported compilers, including linux and windows. Mac OSX can also be supported By default it uses all your available cores for solving as determined by <code><a href="../reference/getRxThreads.html">rxCores()</a></code>. This may be overkill depending on your system, at a certain point the speed of solving is limited by things other than computing power.</p>
 <p>You can also speed up simulation by using the multi-cores to generate random deviates with <code>mvnfast</code> (either <code>mvnfast::rmvn()</code> or <code>mvnfast::rmvt()</code>). This is controlled by the <code>nCoresRV</code> parameter. For example:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">theta</span>, <span class="va">ev</span>, omega<span class="op">=</span><span class="va">omega</span>, nSub<span class="op">=</span><span class="fl">100</span>, sigma<span class="op">=</span><span class="va">sigma</span>, thetaMat<span class="op">=</span><span class="va">tMat</span>, nStud<span class="op">=</span><span class="fl">10</span>,
+<code class="sourceCode R"><span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">theta</span>, <span class="va">ev</span>, omega<span class="op">=</span><span class="va">omega</span>, nSub<span class="op">=</span><span class="fl">100</span>, sigma<span class="op">=</span><span class="va">sigma</span>, thetaMat<span class="op">=</span><span class="va">tMat</span>, nStud<span class="op">=</span><span class="fl">10</span>,
                 nCoresRV<span class="op">=</span><span class="fl">2</span><span class="op">)</span>;
 
 <span class="va">s</span> <span class="op">&lt;-</span><span class="va">sim</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html">confint</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"eff"</span>, <span class="st">"centr"</span><span class="op">)</span><span class="op">)</span>

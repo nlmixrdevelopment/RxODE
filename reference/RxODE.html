@@ -87,7 +87,7 @@ into fast C code" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.1</span>
       </span>
     </div>
 
@@ -562,7 +562,7 @@ variable.</p></li>
 <p>Currently, the <code>RxODE</code> modeling language only recognizes system state
 variables and “parameters”, thus, any values that need to be passed from
 R to the ODE model (e.g., <code>age</code>) should be either passed in the <code>params</code>
-argument of the integrator function <code><a href='rxControl.html'>rxSolve()</a></code> or be in the supplied
+argument of the integrator function <code><a href='rxSolve.html'>rxSolve()</a></code> or be in the supplied
 event data-set.</p>
 <p>There are certain variable names that are in the <code>RxODE</code> event tables.
 To avoid confusion, the following event table-related items cannot be
@@ -641,7 +641,7 @@ Springer-Verlag (1993).</p>
 
 <span class='va'>m1</span> <span class='op'>&lt;-</span> <span class='fu'>RxODE</span><span class='op'>(</span>model <span class='op'>=</span> <span class='va'>ode</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; <span class='message'> </span></div><div class='output co'>#&gt; <span class='message'>qs v0.23.4.</span></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>m1</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>1.0.0.9000 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_efc037031d65597b18be7aacd20c7a7b</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
+</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>1.0.1 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_ad53b803d8cae67ca97c22652bb4eef7</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50
 #&gt; </span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</div><div class='input'>

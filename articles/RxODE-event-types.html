@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.1</span>
       </span>
     </div>
 
@@ -222,7 +222,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE Event Types</h1>
             
-            <h4 class="date">2020-12-15</h4>
+            <h4 class="date">2020-12-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-event-types.Rmd"><code>vignettes/RxODE-event-types.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-event-types.Rmd</code></div>
@@ -354,7 +354,7 @@
 <p>To illustrate the event types we will use the model from the original RxODE tutorial.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.0.9000 using 1 threads (see ?getRxThreads)
+<pre><code>#&gt; RxODE 1.0.1 using 1 threads (see ?getRxThreads)
 #&gt;   no cache: create with `rxCreateCache()`</code></pre>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## Model from RxODE tutorial</span>
@@ -415,7 +415,7 @@
 #&gt; 10 1.9393939    NA    NA    NA 0:Observation
 #&gt; # ... with 91 more rows</code></pre>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Time"</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 </div>
@@ -461,7 +461,7 @@
 #&gt; 10 1.9393939    NA    NA    NA 0:Observation    NA
 #&gt; # ... with 91 more rows</code></pre>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>, <span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>, <span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Time"</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
 <p>It can be also specified by the <code>rate</code> component:</p>
@@ -492,18 +492,18 @@
 #&gt; 10 1.9393939    NA NA            NA    NA 0:Observation
 #&gt; # ... with 91 more rows</code></pre>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>, <span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>, <span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Time"</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
 <p>These are the same with the exception of how bioavailability changes the infusion.</p>
 <p>In the case of modeling <code>rate</code>, a bioavailability decrease, decreases the infusion duration, as in NONMEM. For example:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>fdepot<span class="op">=</span><span class="fl">0.25</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>, <span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>fdepot<span class="op">=</span><span class="fl">0.25</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>, <span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Time"</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
 <p>Similarly increasing the bioavailability increases the infusion duration.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>fdepot<span class="op">=</span><span class="fl">1.25</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>, <span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>fdepot<span class="op">=</span><span class="fl">1.25</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>, <span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Time"</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
 <p>The rationale for this behavior is that the <code>rate</code> and <code>amt</code> are specified by the event table, so the only thing that can change with a bioavailability increase is the duration of the infusion.</p>
@@ -517,10 +517,10 @@
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com">patchwork</a></span><span class="op">)</span>
 
-<span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>fdepot<span class="op">=</span><span class="fl">1.25</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">+</span>
+<span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>fdepot<span class="op">=</span><span class="fl">1.25</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Time"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5000</span><span class="op">)</span>
 
-<span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>fdepot<span class="op">=</span><span class="fl">0.25</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">+</span>
+<span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>fdepot<span class="op">=</span><span class="fl">0.25</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Time"</span><span class="op">)</span><span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5000</span><span class="op">)</span>
 
 <span class="co">## Use patchwork syntax to combine plots</span>
@@ -558,7 +558,7 @@
 #&gt; 10 1.9393939    NA NA            NA    NA 0:Observation
 #&gt; # ... with 91 more rows</code></pre>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>durDepot<span class="op">=</span><span class="fl">7</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>, <span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>durDepot<span class="op">=</span><span class="fl">7</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>, <span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Time"</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-24-1.png" width="700"></p>
 <p>Similarly, you may also model rate. This is equivalent to NONMEM’s <code>rate=-1</code> and is how RxODE’s event table specifies the data item as well. You can also use <code>rate=model</code> as a mnemonic:</p>
@@ -589,7 +589,7 @@
 #&gt; 10 1.9393939    NA NA            NA    NA 0:Observation
 #&gt; # ... with 91 more rows</code></pre>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>rateDepot<span class="op">=</span><span class="fl">10000</span><span class="op">/</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>, <span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>rateDepot<span class="op">=</span><span class="fl">10000</span><span class="op">/</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>, <span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Time"</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-26-1.png" width="700"></p>
 </div>
@@ -624,7 +624,7 @@
 #&gt; 10 1.9393939    NA    NA 0:Observation    NA
 #&gt; # ... with 91 more rows</code></pre>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-28-1.png" width="700"></p>
 <div id="steady-state-for-complex-dosing" class="section level2">
 <h2 class="hasAnchor">
@@ -645,7 +645,7 @@
 
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
 
-<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>,maxsteps<span class="op">=</span><span class="fl">10000</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
+<span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>,maxsteps<span class="op">=</span><span class="fl">10000</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotate.html">annotate</a></span><span class="op">(</span><span class="st">"rect"</span>, xmin<span class="op">=</span><span class="fl">0</span>, xmax<span class="op">=</span><span class="fl">24</span>, ymin<span class="op">=</span><span class="op">-</span><span class="cn">Inf</span>, ymax<span class="op">=</span><span class="cn">Inf</span>, alpha<span class="op">=</span><span class="fl">0.2</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotate.html">annotate</a></span><span class="op">(</span><span class="st">"text"</span>, x<span class="op">=</span><span class="fl">12.5</span>, y<span class="op">=</span><span class="fl">7</span>, label<span class="op">=</span><span class="st">"Initial Steady State Period"</span><span class="op">)</span> <span class="op">+</span>
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotate.html">annotate</a></span><span class="op">(</span><span class="st">"text"</span>, x<span class="op">=</span><span class="fl">44</span>,   y<span class="op">=</span><span class="fl">7</span>, label<span class="op">=</span><span class="st">"Steady State AM/PM dosing"</span><span class="op">)</span></code></pre></div>
@@ -673,14 +673,14 @@
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">0</span>, ss<span class="op">=</span><span class="fl">1</span>,rate<span class="op">=</span><span class="fl">10000</span><span class="op">/</span><span class="fl">8</span><span class="op">)</span>
 
-<span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span>
+<span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span>
 
 
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">200000</span>, rate<span class="op">=</span><span class="fl">10000</span><span class="op">/</span><span class="fl">8</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">250</span>, length.out<span class="op">=</span><span class="fl">1000</span><span class="op">)</span>
 
-<span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span>
+<span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span>
 
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com">patchwork</a></span><span class="op">)</span>
 
@@ -722,7 +722,7 @@
 #&gt; # ... with 92 more rows</code></pre>
 <p>The solving show what happens in this system when the system is reset at 6 hours post-dose.</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>,<span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>,<span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-32-1.png" width="700"></p>
 <p>You can see all the compartments are reset to their initial values. The next dose start the dosing cycle over.</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
@@ -754,7 +754,7 @@
 #&gt; # ... with 92 more rows</code></pre>
 <p>In this case, the whole system is reset and the dose is given</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>,<span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>,<span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-34-1.png" width="700"></p>
 </div>
 <div id="turning-off-compartments" class="section level1">
@@ -790,7 +790,7 @@
 #&gt; # ... with 92 more rows</code></pre>
 <p>Solving shows what this does in the system:</p>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>,<span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>,<span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-36-1.png" width="700"></p>
 <p>In this case, the depot is turned off, and the depot compartment concentrations are set to the initial values but the other compartment concentrations/levels are not reset. When another dose to the depot is administered the depot compartment is turned back on.</p>
 <p>Note that a dose to a compartment only turns back on the compartment that was dosed. Hence if you turn off the effect compartment, it continues to be off after another dose to the depot.</p>
@@ -800,7 +800,7 @@
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fl">6</span>, cmt<span class="op">=</span><span class="st">"-eff"</span>, evid<span class="op">=</span><span class="fl">2</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">24</span>, length.out<span class="op">=</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span>
 
-<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>,<span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
+<span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>,<span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-37-1.png" width="700"></p>
 <p>To turn back on the compartment, a zero-dose to the compartment or a evid=2 with the compartment would be needed.</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
@@ -810,7 +810,7 @@
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fl">12</span>,cmt<span class="op">=</span><span class="st">"eff"</span>,evid<span class="op">=</span><span class="fl">2</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">24</span>, length.out<span class="op">=</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span>
 
-<span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>,<span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
+<span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">depot</span>,<span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-event-types_files/figure-html/unnamed-chunk-38-1.png" width="700"></p>
 </div>
   </div>

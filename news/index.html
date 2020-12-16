@@ -85,7 +85,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.1</span>
       </span>
     </div>
 
@@ -269,21 +269,16 @@
       <small>Source: <a href='https://github.com/nlmixrdevelopment/RxODE/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
-    <div id="rxode-development-version" class="section level1">
-<h1 class="page-header" data-toc-text="development version">
-<a href="#rxode-development-version" class="anchor"></a>RxODE (development version)<small> Unreleased </small>
-</h1>
-</div>
-    <div id="rxode-1000--submitted-to-cran" class="section level1">
-<h1 class="page-header" data-toc-text="1.0.0.0">
-<a href="#rxode-1000--submitted-to-cran" class="anchor"></a>RxODE 1.0.0.0 – Submitted to CRAN<small> Unreleased </small>
+    <div id="rxode-101" class="section level1">
+<h1 class="page-header" data-toc-text="1.0.1">
+<a href="#rxode-101" class="anchor"></a>RxODE 1.0.1<small> Unreleased </small>
 </h1>
 <div id="breaking-changes" class="section level2">
 <h2 class="hasAnchor">
 <a href="#breaking-changes" class="anchor"></a>Breaking changes</h2>
 <ul>
 <li><p>RxODE can only use supported functions (could be breaking); You may add your own functions with <code>rxFun</code> and their derivatives with <code>rxD</code></p></li>
-<li><p>RxODE now uses its own internal truncated multivariate normal simulations based on the threefry sitmo library. Therefore random numbers generated within <code>RxODE</code> like providing <code><a href="../reference/rxControl.html">rxSolve(...,omega=)</a></code> will have different results with this new random number generator. This was done to allow internal re-sampling of sigmas/etas with thread-safe random number generators (calling R through <code>mvnfast</code> or R’s simulation engines are not thread safe).</p></li>
+<li><p>RxODE now uses its own internal truncated multivariate normal simulations based on the threefry sitmo library. Therefore random numbers generated within <code>RxODE</code> like providing <code><a href="../reference/rxSolve.html">rxSolve(...,omega=)</a></code> will have different results with this new random number generator. This was done to allow internal re-sampling of sigmas/etas with thread-safe random number generators (calling R through <code>mvnfast</code> or R’s simulation engines are not thread safe).</p></li>
 <li><p><code>RxODE</code> now moved the precise sum/product type options for <code><a href="https://rdrr.io/r/base/sum.html">sum()</a></code> and <code><a href="https://rdrr.io/r/base/prod.html">prod()</a></code> to <code>rxSolve</code> or <code>rxControl</code></p></li>
 <li><p><code>cvPost</code> now will returned a named list of matrices if the input matrix was named</p></li>
 <li><p><code>rxSolve</code> will now return an integer <code>id</code> instead of a factor <code>id</code> when <code>id</code> is integer or integerish (as defined by checkmate). Otherwise a factor will be returned.</p></li>
@@ -298,8 +293,8 @@
 <li><p>Add the ability to order input parameters with the <code>param()</code> pseudo-function</p></li>
 <li><p>Add the ability to resample covariates with <code>resample=TRUE</code> or <code>resample=c("SEX", "CRCL")</code>. You can resample all the covariates by <code>ID</code> with <code>resampleID=TRUE</code> or resample the covariates without respect to <code>ID</code> with <code>resampleID=FALSE</code></p></li>
 <li><p>Comparison of factors/strings is now supported in <code>RxODE</code>; Therefore ID==“Study-1” is now allowed.</p></li>
-<li><p>Completion for elements of <code><a href="../reference/rxControl.html">rxSolve()</a></code> objects, and <code><a href="../reference/et.html">et()</a></code> objects have been added (accessed through <code><a href="https://rdrr.io/r/base/Extract.html">$</a></code>)</p></li>
-<li><p>Completion of <code><a href="../reference/rxControl.html">rxSolve()</a></code> arguments are now included since they are part of the main method</p></li>
+<li><p>Completion for elements of <code><a href="../reference/rxSolve.html">rxSolve()</a></code> objects, and <code><a href="../reference/et.html">et()</a></code> objects have been added (accessed through <code><a href="https://rdrr.io/r/base/Extract.html">$</a></code>)</p></li>
+<li><p>Completion of <code><a href="../reference/rxSolve.html">rxSolve()</a></code> arguments are now included since they are part of the main method</p></li>
 <li><p>Allow simulation with zero matrices, that provide the simulation without variability. This affects <code>rxSolve</code> as well as <code>rxMvnrnd</code> and <code>cvPost</code> (which will give a zero matrix whenever one is specified)</p></li>
 <li><p><code><a href="../reference/et.html">et()</a></code> can dose with <code>length(amt) &gt; 1</code> as long as the other arguments can create a event table.</p></li>
 <li><p>Rstudio notebook output makes more sense</p></li>
@@ -314,7 +309,7 @@
 <li>See Issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/109'>#109</a></li>
 </ul>
 </li>
-<li><p>Allow <code>while(logical)</code> statements with ability to break out if them by <code>break</code>. The while has an escape valve controlled by <code>maxwhere</code> which by default is 10000 iterations. It can be change with <code><a href="../reference/rxControl.html">rxSolve(..., maxwhere = NNN)</a></code></p></li>
+<li><p>Allow <code>while(logical)</code> statements with ability to break out if them by <code>break</code>. The while has an escape valve controlled by <code>maxwhere</code> which by default is 10000 iterations. It can be change with <code><a href="../reference/rxSolve.html">rxSolve(..., maxwhere = NNN)</a></code></p></li>
 <li>
 <p>Allow accessing different time-varying components of an input dataset for each individual with:</p>
 <ul>

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Solving \&amp; Simulation of a ODE/solved system (and solving options) equation — rxControl • RxODE</title>
+<title>Solving \&amp; Simulation of a ODE/solved system (and solving options) equation — rxSolve • RxODE</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -52,7 +52,7 @@
 
 
 
-<meta property="og:title" content="Solving \&amp; Simulation of a ODE/solved system (and solving options) equation — rxControl" />
+<meta property="og:title" content="Solving \&amp; Simulation of a ODE/solved system (and solving options) equation — rxSolve" />
 <meta property="og:description" content="This uses RxODE family of objects, file, or model specification to
 solve a ODE system." />
 <meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png" />
@@ -87,7 +87,7 @@ solve a ODE system." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.1</span>
       </span>
     </div>
 
@@ -277,9 +277,7 @@ solve a ODE system." />
 solve a ODE system.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rxControl</span><span class='op'>(</span><span class='va'>...</span>, params <span class='op'>=</span> <span class='cn'>NULL</span>, events <span class='op'>=</span> <span class='cn'>NULL</span>, inits <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span>
-
-<span class='fu'>rxSolve</span><span class='op'>(</span>
+    <pre class="usage"><span class='fu'>rxSolve</span><span class='op'>(</span>
   <span class='va'>object</span>,
   params <span class='op'>=</span> <span class='cn'>NULL</span>,
   events <span class='op'>=</span> <span class='cn'>NULL</span>,
@@ -416,17 +414,18 @@ solve a ODE system.</p>
 <span class='fu'><a href='https://rdrr.io/r/base/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>a</span>, <span class='va'>b</span>, <span class='va'>...</span><span class='op'>)</span>
 
 <span class='co'># S3 method for rxEt</span>
-<span class='fu'><a href='https://rdrr.io/r/base/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>a</span>, <span class='va'>b</span>, <span class='va'>...</span><span class='op'>)</span></pre>
+<span class='fu'><a href='https://rdrr.io/r/base/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>a</span>, <span class='va'>b</span>, <span class='va'>...</span><span class='op'>)</span>
+
+<span class='fu'>rxControl</span><span class='op'>(</span><span class='va'>...</span>, params <span class='op'>=</span> <span class='cn'>NULL</span>, events <span class='op'>=</span> <span class='cn'>NULL</span>, inits <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>...</th>
-      <td><p>Other arguments including scaling factors for each
-compartment.  This includes S# = numeric will scale a compartment
-# by a dividing the compartment amount by the scale factor,
-like NONMEM.</p></td>
+      <th>object</th>
+      <td><p>is a either a RxODE family of objects, or a file-name
+with a RxODE model specification, or a string with a RxODE
+model specification.</p></td>
     </tr>
     <tr>
       <th>params</th>
@@ -446,12 +445,6 @@ time points (see <code><a href='eventTable.html'>eventTable()</a></code>);</p></
 (e.g., amounts in each compartment), and the order in this
 vector must be the same as the state variables (e.g., PK/PD
 compartments);</p></td>
-    </tr>
-    <tr>
-      <th>object</th>
-      <td><p>is a either a RxODE family of objects, or a file-name
-with a RxODE model specification, or a string with a RxODE
-model specification.</p></td>
     </tr>
     <tr>
       <th>scale</th>
@@ -534,6 +527,13 @@ default value is determined by the solver (when hini = 0)</p></td>
       <th>maxords</th>
       <td><p>The maximum order to be allowed for the stiff (BDF)
 method.  The default value is 5.  This can be between 1 and 5.</p></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>Other arguments including scaling factors for each
+compartment.  This includes S# = numeric will scale a compartment
+# by a dividing the compartment amount by the scale factor,
+like NONMEM.</p></td>
     </tr>
     <tr>
       <th>cores</th>
@@ -642,7 +642,7 @@ with a diagonal matrix.</p></li>
 with the <code><a href='https://rdrr.io/r/base/Log.html'>exp(x^2)</a></code> along the diagonal.  This only works
 with a diagonal matrix.</p></li>
 <li><p><code>nlmixrIdentity</code> This is when the <code>params</code> and
-<code>thetaMat</code> simulates the inverse cholesky decomposed matrrix.
+<code>thetaMat</code> simulates the inverse cholesky decomposed matrix.
 This only works with a diagonal matrix.</p></li>
 </ul></td>
     </tr>
@@ -1110,13 +1110,13 @@ evaluated before exiting.  By default this is 100000</p></td>
     </tr>
     <tr>
       <th>a</th>
-      <td><p>when using <code>solve</code>, this is equivalent to the
+      <td><p>when using <code><a href='https://rdrr.io/r/base/solve.html'>solve()</a></code>, this is equivalent to the
 <code>object</code> argument.  If you specify <code>object</code> later in
 the argument list it overwrites this parameter.</p></td>
     </tr>
     <tr>
       <th>b</th>
-      <td><p>when using <code>solve</code>, this is equivalent to the
+      <td><p>when using <code><a href='https://rdrr.io/r/base/solve.html'>solve()</a></code>, this is equivalent to the
 <code>params</code> argument.  If you specify <code>params</code> as a
 named argument, this overwrites the output</p></td>
     </tr>

@@ -51,7 +51,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.1</span>
       </span>
     </div>
 
@@ -252,7 +252,7 @@
 </ul>
 </li>
 <li>
-<code><a href="reference/rxControl.html">rxSolve()</a></code> which solves the system of equations using initial conditions and parameters to make predictions
+<code><a href="reference/rxSolve.html">rxSolve()</a></code> which solves the system of equations using initial conditions and parameters to make predictions
 <ul>
 <li>With multiple subject data, <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-speed.html">this may be parallelized</a>.</li>
 <li>With single subject the <a href="https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-data-frame.html">output data frame is adaptive</a>
@@ -460,7 +460,7 @@
 </table>
 <p>You can also solve this and create a RxODE data frame:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span> <span class="op">%&gt;%</span> <span class="fu"><a href="reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>;
+<code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span> <span class="op">%&gt;%</span> <span class="fu"><a href="reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>;
 <span class="va">x</span>
 <span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
 <span class="co">#&gt; ── Parameters (x$params): ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>

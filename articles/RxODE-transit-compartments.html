@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.1</span>
       </span>
     </div>
 
@@ -222,7 +222,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE Transit Compartment Models</h1>
             
-            <h4 class="date">2020-12-15</h4>
+            <h4 class="date">2020-12-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-transit-compartments.Rmd"><code>vignettes/RxODE-transit-compartments.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-transit-compartments.Rmd</code></div>
@@ -235,7 +235,7 @@
 <p>You can specify this in a similar manner as the original paper:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
-<pre><code>## RxODE 1.0.0.9000 using 1 threads (see ?getRxThreads)
+<pre><code>## RxODE 1.0.1 using 1 threads (see ?getRxThreads)
 ##   no cache: create with `rxCreateCache()`</code></pre>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
@@ -258,7 +258,7 @@
 <span class="va">et</span><span class="op">$</span><span class="fu">add.sampling</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">7</span>, length.out<span class="op">=</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span>;
 <span class="va">et</span><span class="op">$</span><span class="fu">add.dosing</span><span class="op">(</span><span class="fl">20</span>, start.time<span class="op">=</span><span class="fl">0</span><span class="op">)</span>;
 
-<span class="va">transit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">et</span>, transit_abs<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
+<span class="va">transit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">et</span>, transit_abs<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">transit</span>, <span class="va">cen</span>, ylab<span class="op">=</span><span class="st">"Central Concentration"</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-transit-compartments_files/figure-html/unnamed-chunk-2-1.png" width="100%"></p>
@@ -283,7 +283,7 @@
 <span class="va">et</span><span class="op">$</span><span class="fu">add.sampling</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">7</span>, length.out<span class="op">=</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span>;
 <span class="va">et</span><span class="op">$</span><span class="fu">add.dosing</span><span class="op">(</span><span class="fl">20</span>, start.time<span class="op">=</span><span class="fl">0</span><span class="op">)</span>;
 
-<span class="va">transit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxControl.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">et</span><span class="op">)</span></code></pre></div>
+<span class="va">transit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">et</span><span class="op">)</span></code></pre></div>
 <pre><code>## Warning: assumed transit compartment model since 'podo' is in the model</code></pre>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">transit</span>, <span class="va">cen</span>, ylab<span class="op">=</span><span class="st">"Central Concentration"</span><span class="op">)</span></code></pre></div>
