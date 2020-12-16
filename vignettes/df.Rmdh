@@ -1,4 +1,5 @@
 # Using RxODE data frames
+
 ## Creating an interactive data frame
 
 RxODE supports returning a solved object that is a modified data-frame.
@@ -54,7 +55,12 @@ x <- mod1 %>% solve(theta, ev, inits)
 print(x)
 ```
 
+## RxODE solved object properties
+
+
+
 ## Using the solved object as a simple data frame
+
 The solved object acts as a `data.frame` or `tbl` that can be filtered
 by `dpylr`.  For example you could filter it easily.
 

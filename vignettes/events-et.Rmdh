@@ -119,7 +119,8 @@ also specify dosing using `et` with the dose elements directly:
 
 ```{r}
 ev <- et(timeUnits="hr") %>%
-    et(amt=10000, until = set_units(3, days), ii=12) # loading doses
+  et(amt=10000, until = set_units(3, days),
+     ii=12) # loading doses
 
 ev
 ```
@@ -196,7 +197,8 @@ You can see in the following simulation there are 4 individuals that are solved 
 ```{r}
 set.seed(42)
 solve(m1, ev,
-      params=data.frame(KA=0.294*exp(rnorm(4)), 18.6*exp(rnorm(4)))) %>%
+      params=data.frame(KA=0.294*exp(rnorm(4)),
+                        18.6*exp(rnorm(4)))) %>%
     plot(C2)
 ```
 
@@ -224,7 +226,8 @@ You can clearly see different dosing times in the following simulation:
 ev <- ev %>% et(seq(0,48,length.out=200))
 
 solve(m1, ev,
-      params=data.frame(KA=0.294*exp(rnorm(4)), 18.6*exp(rnorm(4)))) %>%
+      params=data.frame(KA=0.294*exp(rnorm(4)),
+                        18.6*exp(rnorm(4)))) %>%
   plot(C2)
 ```
 
@@ -239,7 +242,8 @@ ev <- et(timeUnits="hr") %>%
   et(seq(0,48,length.out=200))
 
 solve(m1, ev,
-      params=data.frame(KA=0.294*exp(rnorm(4)), 18.6*exp(rnorm(4)))) %>%
+      params=data.frame(KA=0.294*exp(rnorm(4)),
+                        18.6*exp(rnorm(4)))) %>%
   plot(C2)
 ```
 
@@ -264,7 +268,9 @@ samples <- c(lapply(1:20, function(...){c(0,24)}),
 ev <- ev %>% et(samples)
 
 library(ggplot2)
-solve(m1, ev, params=data.frame(KA=0.294*exp(rnorm(4)), 18.6*exp(rnorm(4)))) %>% plot(C2) + geom_point()
+solve(m1, ev, params=data.frame(KA=0.294*exp(rnorm(4)),
+                                18.6*exp(rnorm(4)))) %>%
+  plot(C2) + geom_point()
 ```
 
 This shows the flexibility in dosing and sampling that the RxODE event tables allow.
@@ -403,3 +409,20 @@ et <- etRbind(bid,qd, id="unique") %>%
 library(ggplot2)
 rxSolve(m1, et) %>% plot(C2) + facet_wrap( ~ id)
 ```
+
+## Event tables in Rstudio Notebooks
+
+In addition to the output in the console which has been shown in the
+above examples, Rstudio notebook output is different and can be seen
+in the following screenshots; 
+
+The first screenshot shows how the event table looks after evaluating
+it in the Rstduio notebook
+
+![](eventTable-output-notebook-02.png)
+
+This is a simple dataframe that allows you to page through the
+contents.  If you click on the first box in the Rstudio notebook
+output, it will have the notes about the event table:
+
+![](eventTable-output-notebook-01.png)
