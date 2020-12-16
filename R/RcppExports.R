@@ -8,14 +8,14 @@ removableDrive <- function(driveRoot) {
 #' Scaled Inverse Chi Squared distribution
 #'
 #' @param n Number of random samples
-#' 
+#'
 #' @param nu degrees of freedom of inverse chi square
-#' 
-#' @param scale  Scale of inverse chi squared distribution 
+#'
+#' @param scale  Scale of inverse chi squared distribution
 #'         (default is 1).
-#' 
+#'
 #' @return a vector of inverse chi squared deviates.
-#' 
+#'
 #' @examples
 #' rinvchisq(3, 4, 1) ## Scale = 1, degrees of freedom = 4
 #' rinvchisq(2, 4, 2) ## Scale = 2, degrees of freedom = 4
@@ -27,14 +27,14 @@ rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
 #' One correlation sample from the LKJ distribution
 #'
 #' @param d The dimension of the correlation matrix
-#' 
+#'
 #' @param eta The scaling parameter of the LKJ distribution.
 #'   Must be > 1.  Also related to the degrees of freedom nu.
 #'   eta = (nu-1)/2.
-#' 
+#'
 #' @param cholesky boolean; If `TRUE` return the cholesky
 #'   decomposition.
-#' 
+#'
 #' @author Matthew Fidler (translated to RcppArmadillo) and Emma Schwager
 #' @export
 rLKJ1 <- function(d, eta = 1.0, cholesky = FALSE) {
@@ -55,11 +55,11 @@ rLKJcvLsd1 <- function(logSd, logSdSD, eta = 1.0) {
 #' random covariate to a correlation.
 #'
 #' @inheritParams rLKJ1
-#' 
+#'
 #' @param nu Degrees of freedom of the Wishart distribution
-#' 
+#'
 #' @inheritParams cvPost
-#' 
+#'
 #' @author Matthew Fidler
 #' @export
 invWR1d <- function(d, nu, omegaIsChol = FALSE) {
@@ -136,30 +136,30 @@ rxSetIni0 <- function(ini0 = TRUE) {
 #' Event translation for RxODE
 #'
 #' @param inData Data frame to translate
-#' 
+#'
 #' @param obj Model to translate data
-#' 
+#'
 #' @param addCmt Add compartment to data frame (default `FALSE`).
-#' 
+#'
 #' @param dropUnits Boolean to drop the units (default `FALSE`).
-#' 
+#'
 #' @param allTimeVar Treat all covariates as if they were time-varying
-#' 
+#'
 #' @param keepDosingOnly keep the individuals who only have dosing records and any
 #'   trailing dosing records after the last observation.
-#' 
+#'
 #' @param combineDvid is a boolean indicating if RxODE will use `DVID` on observation
 #'     records to change the `cmt` value; Useful for multiple-endpoint nlmixr models.  By default
 #'     this is determined by `option("RxODE.combine.dvid")` and if the option has not been set,
 #'     this is `TRUE`. This typically does not affect RxODE simulations.
-#' 
+#'
 #' @param keep This is a named vector of items you want to keep in the final RxODE dataset.
 #'     For added RxODE event records (if seen), last observation carried forward will be used.
-#' 
+#'
 #' @return Object for solving in RxODE
-#' 
+#'
 #' @keywords internal
-#' 
+#'
 #' @export
 etTrans <- function(inData, obj, addCmt = FALSE, dropUnits = FALSE, allTimeVar = FALSE, keepDosingOnly = FALSE, combineDvid = NULL, keep = character(0)) {
     .Call(`_RxODE_etTrans`, inData, obj, addCmt, dropUnits, allTimeVar, keepDosingOnly, combineDvid, keep)
@@ -203,11 +203,11 @@ rxExpandNesting <- function(obj, nestingInfo, compile = FALSE) {
 #'    When doIndLin == 0, cache > 0 = nInf-1
 #' @param ME the RxODE matrix exponential function
 #' @param IndF The RxODE Inductive Linearization function F
-#' 
+#'
 #' @return Returns a status for solving
-#' 
+#'
 #'   1 = Successful solve
-#' 
+#'
 #'   -1 = Maximum number of iterations reached when doing
 #'        inductive linearization
 NULL
@@ -238,13 +238,13 @@ rxQr <- function(encoded_string) {
 #'    with `time`,  `evid` and `amt`. (UPPER, lower or Title cases accepted)
 #'
 #' @return A boolean indicating if the object is a member of the class.
-#' 
+#'
 #' @keywords internal
-#' 
+#'
 #' @author Matthew L. Fidler
-#' 
+#'
 #' @export
-#' 
+#'
 rxIs <- function(obj, cls) {
     .Call(`_RxODE_rxIs`, obj, cls)
 }
@@ -277,7 +277,7 @@ rxModelVars_ <- function(obj) {
 #' @seealso [RxODE()]
 #'
 #' @author Matthew L.Fidler
-#' 
+#'
 #' @export
 rxState <- function(obj = NULL, state = NULL) {
     .Call(`_RxODE_rxState`, obj, state)
@@ -295,9 +295,9 @@ rxParams_ <- function(obj) {
 #'
 #' @return A list of the jacobian parameters defined in this RxODE
 #'     object.
-#' 
+#'
 #' @author Matthew L. Fidler
-#' 
+#'
 #' @export
 rxDfdy <- function(obj) {
     .Call(`_RxODE_rxDfdy`, obj)
@@ -402,36 +402,6 @@ atolRtolFactor_ <- function(factor) {
 #'
 #' @param omegaUpper Upper bounds for simulated ETAs (by default Inf)
 #'
-#' @param omegaDf The degrees of freedom of a t-distribution for
-#'     simulation.  By default this is `NULL` which is
-#'     equivalent to `Inf` degrees, or to simulate from a normal
-#'     distribution instead of a t-distribution.
-#'
-#' @param omegaIsChol Indicates if the `omega` supplied is a
-#'     Cholesky decomposed matrix instead of the traditional
-#'     symmetric matrix.
-#'
-#' @param omegaSeparation Omega separation strategy
-#'
-#' Tells the type of separation strategy when
-#' simulating covariance with parameter uncertainty with standard
-#' deviations modeled in the `thetaMat` matrix.
-#'
-#' `"lkj"` simulates the correlation matrix from the
-#' `rLKJ1` matrix with the distribution parameter `eta`
-#' equal to the degrees of freedom `nu` by `(nu-1)/2`
-#'
-#' `"separation"` simulates from the identity inverse Wishart
-#' covariance matrix with `nu` degrees of freedom.  This is then
-#' converted to a covariance matrix and augmented with the modeled
-#' standard deviations.  While computationally more complex than the
-#' `"lkj"` prior, it performs better when the covariance matrix
-#' size is greater or equal to 10
-#'
-#' `"auto"` chooses `"lkj"` when the dimension of the
-#' matrix is less than 10 and `"separation"` when greater
-#' than equal to 10.
-#'
 #' @param nStud Number virtual studies to characterize uncertainty in estimated
 #'        parameters.
 #'
@@ -446,20 +416,20 @@ atolRtolFactor_ <- function(factor) {
 #' simulating covariance with parameter uncertainty with standard
 #' deviations modeled in the `thetaMat` matrix.
 #'
-#' `"lkj"` simulates the correlation matrix from the
-#' `rLKJ1` matrix with the distribution parameter `eta`
-#' equal to the degrees of freedom `nu` by `(nu-1)/2`
+#'  * `"lkj"` simulates the correlation matrix from the
+#'    `rLKJ1` matrix with the distribution parameter `eta`
+#'    equal to the degrees of freedom `nu` by `(nu-1)/2`
 #'
-#' `"separation"` simulates from the identity inverse Wishart
-#' covariance matrix with `nu` degrees of freedom.  This is then
-#' converted to a covariance matrix and augmented with the modeled
-#' standard deviations.  While computationally more complex than the
-#' `"lkj"` prior, it performs better when the covariance matrix
-#' size is greater or equal to 10
+#' *  `"separation"` simulates from the identity inverse Wishart
+#'     covariance matrix with `nu` degrees of freedom.  This is then
+#'     converted to a covariance matrix and augmented with the modeled
+#'     standard deviations.  While computationally more complex than the
+#'    `"lkj"` prior, it performs better when the covariance matrix
+#'     size is greater or equal to 10
 #'
-#' `"auto"` chooses `"lkj"` when the dimension of the
-#' matrix is less than 10 and `"separation"` when greater
-#' than equal to 10.
+#'  * `"auto"` chooses `"lkj"` when the dimension of the
+#'     matrix is less than 10 and `"separation"` when greater
+#'    than equal to 10.#' `"lkj"` simulates the correlation matrix from the
 #'
 #' @param sigmaLower Lower bounds for simulated unexplained variability (by default -Inf)
 #'
@@ -696,12 +666,12 @@ rxSetSilentErr <- function(silent) {
     .Call(`_RxODE_rxSetSilentErr`, silent)
 }
 
-#' Invert matrix using RcppArmadillo.  
+#' Invert matrix using RcppArmadillo.
 #'
 #' @param matrix matrix to be inverted.
-#' 
+#'
 #' @return inverse or pseudo inverse of matrix.
-#' 
+#'
 #' @export
 rxInv <- function(matrix) {
     .Call(`_RxODE_rxInv`, matrix)
@@ -714,15 +684,15 @@ rxInv <- function(matrix) {
 #'   [rxSymInvCholCreate()] with the default arguments and return a
 #'   reactive s3 object.  Otherwise, use the inversion object to
 #'   calculate the requested derivative/inverse.
-#' 
+#'
 #' @param theta Thetas to be used for calculation.  If missing (`NULL`), a
 #'     special s3 class is created and returned to access `Omega^1`
 #'     objects as needed and cache them based on the theta that is
 #'     used.
-#' 
+#'
 #' @param type The type of object.  Currently the following types are
 #'     supported:
-#' 
+#'
 #' * `cholOmegaInv` gives the
 #'     Cholesky decomposition of the Omega Inverse matrix.
 #' * `omegaInv` gives the Omega Inverse matrix.
@@ -731,18 +701,18 @@ rxInv <- function(matrix) {
 #' * `d(D)` gives the `d(diagonal(Omega^-1))` with respect to
 #'     the theta parameter specified in the `thetaNumber`
 #'     parameter
-#' 
+#'
 #' @param thetaNumber For types `d(omegaInv)` and `d(D)`,
 #'     the theta number that the derivative is taken against.  This
 #'     must be positive from 1 to the number of thetas defining the
 #'     Omega matrix.
-#' 
+#'
 #' @return Matrix based on parameters or environment with all the
 #'     matrixes calculated in variables `omega`, `omegaInv`, `dOmega`,
 #'     `dOmegaInv`.
-#' 
+#'
 #' @author Matthew L. Fidler
-#' 
+#'
 #' @export
 rxSymInvChol <- function(invObjOrMatrix, theta = NULL, type = "cholOmegaInv", thetaNumber = 0L) {
     .Call(`_RxODE_rxSymInvChol`, invObjOrMatrix, theta, type, thetaNumber)
@@ -765,7 +735,7 @@ rxOptRep_ <- function(input) {
 #'
 #' @return Stacked data with \code{value} and \code{trt}, where value is the values
 #'   and \code{trt} is the state and \code{lhs} variables.
-#' 
+#'
 #' @author Matthew Fidler
 rxStack <- function(Data, vars = NULL) {
     .Call(`_RxODE_rxStack`, Data, vars)

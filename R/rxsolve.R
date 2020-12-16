@@ -1,7 +1,15 @@
 #' Solving \& Simulation of a ODE/solved system (and solving options) equation
 #'
 #' This uses RxODE family of objects, file, or model specification to
-#' solve a ODE system.
+#' solve a ODE system.  There are many options for a solved RxODE
+#' model, the first are the required `object`, and `events` with the
+#' some-times optional `params` and `inits`.
+#'
+#' The rest of the document focus on the different ODE solving
+#' methods, followed by the core solving method's options, RxODE event
+#' handling options, RxODE's numerical stability options, RxODE's
+#' output options, and finally internal RxODE options or compatibility
+#' options.
 #'
 #' @param object is a either a RxODE family of objects, or a file-name
 #'     with a RxODE model specification, or a string with a RxODE
@@ -95,6 +103,10 @@
 #'     not take effect until the next change of `H` is considered.
 #'     This option is only considered with `method="liblsoda"`.
 #'
+#' @param istateReset When `TRUE`, reset the `ISTATE` variable to 1 for
+#'     lsoda and liblsoda with doses, like `deSolve`; When `FALSE`, do
+#'     not reset the `ISTATE` variable with doses.
+#'
 #' @param indLinMatExpType This is them matrix exponential type that
 #'     is use for RxODE.  Currently the following are supported:
 #'
@@ -115,30 +127,106 @@
 #'
 #' @param indLinPhiM  the maximum size for the Krylov basis
 #'
+#' @param minSS Minimum number of iterations for a steady-state dose
 #'
-#' @param scale a numeric named vector with scaling for ode
-#'     parameters of the system.  The names must correspond to the
-#'     parameter identifiers in the ODE specification. Each of the
-#'     ODE variables will be divided by the scaling factor.  For
-#'     example `scale=c(center=2)` will divide the center ODE
-#'     variable by 2.
+#' @param maxSS Maximum number of iterations for a steady-state dose
+#'
+#' @param strictSS Boolean indicating if a strict steady-state is
+#'     required. If a strict steady-state is (`TRUE`) required
+#'     then at least `minSS` doses are administered and the
+#'     total number of steady states doses will continue until
+#'     `maxSS` is reached, or `atol` and `rtol` for
+#'     every compartment have been reached.  However, if ODE solving
+#'     problems occur after the `minSS` has been reached the
+#'     whole subject is considered an invalid solve. If
+#'     `strictSS` is `FALSE` then as long as `minSS`
+#'     has been reached the last good solve before ODE solving
+#'     problems occur is considered the steady state, even though
+#'     either `atol`, `rtol` or `maxSS` have not
+#'     been achieved.
+#'
+#' @param infSSstep Step size for determining if a constant infusion
+#'     has reached steady state.  By default this is large value,
+#'     420.
+#'
+#' @param ssAtol Steady state atol convergence factor.  Can be
+#'     a vector based on each state.
+#'
+#' @param ssRtol Steady state rtol convergence factor.  Can be a
+#'     vector based on each state.
+#'
+#' @param maxAtolRtolFactor The maximum `atol`/`rtol` that
+#'     FOCEi and other routines may adjust to.  By default 0.1
+#'
+#' @param stateTrim When amounts/concentrations in one of the states
+#'     are above this value, trim them to be this value. By default
+#'     Inf.  Also trims to -stateTrim for large negative
+#'     amounts/concentrations.  If you want to trim between a range
+#'     say `c(0, 2000000)` you may specify 2 values with a lower and
+#'     upper range to make sure all state values are in the
+#'     reasonable range.
+#'
+#' @param safeZero Use safe zero divide and log routines.  By default
+#'     this is turned on but you may turn it off if you wish.
+#'
+#' @param sumType Sum type to use for `sum()` in
+#'     RxODE code blocks.
+#'
+#' `pairwise` uses the pairwise sum (fast, default)
+#'
+#' `fsum` uses Python's fsum function (most accurate)
+#'
+#' `kahan` uses Kahan correction
+#'
+#' `neumaier` uses Neumaier correction
+#'
+#' `c` uses no correction: default/native summing
+#'
+#' @param prodType Product to use for `prod()` in RxODE blocks
+#'
+#' `long double` converts to long double, performs the
+#' multiplication and then converts back.
+#'
+#' `double` uses the standard double scale for multiplication.
+#'
+#' @param maxwhile represents the maximum times a while loop is
+#'   evaluated before exiting.  By default this is 100000
 #'
 #' @param transitAbs boolean indicating if this is a transit
 #'     compartment absorption
+#'
+#' @param sensType Sensitivity type for `linCmt()` model:
+#'
+#' `advan` Use the direct advan solutions
+#'
+#' `autodiff` Use the autodiff advan solutions
+#'
+#' `forward` Use forward difference solutions
+#'
+#' `central` Use central differences
+#'
+#' @param linDiff This gives the linear difference amount for all the
+#'   types of linear compartment model parameters where sensitivities
+#'   are not calculated. The named components of this numeric vector are:
+#'
+#' * `"lag"` Central compartment lag
+#' * `"f"` Central compartment bioavailability
+#' * `"rate"` Central compartment modeled rate
+#' * `"dur"` Central compartment modeled duration
+#' * `"lag2"` Depot compartment lag
+#' * `"f2"` Depot compartment bioavailability
+#' * `"rate2"` Depot compartment modeled rate
+#' * `"dur2"` Depot compartment modeled duration
+#'
+#' @param linDiffCentral This gives the which parameters use central
+#'   differences for the linear compartment model parameters.  The
+#'   are the same components as `linDiff`
 #'
 #' @param ... Other arguments including scaling factors for each
 #'     compartment.  This includes S# = numeric will scale a compartment
 #'     # by a dividing the compartment amount by the scale factor,
 #'     like NONMEM.
 #'
-#' @param cores Number of cores used in parallel ODE solving.  This
-#'    is equivalent to calling [setRxThreads()]
-#'
-#' @param nCoresRV Number of cores used for the simulation of the
-#'   sigma variables.  By default this is 1. To reproduce the results
-#'   you need to run on the same platform with the same number of
-#'   cores. This is the reason this is set to be one, regardless of
-#'   what the number of cores are used in threaded ODE solving.
 #'
 #' @param iCov A data frame of individual non-time varying covariates
 #'     to combine with the `params` to form a parameter
@@ -153,9 +241,12 @@
 #' * `"linear"` interpolation, which interpolates the covariate
 #'     by solving the line between the observed covariates and extrapolating the new
 #'     covariate value.
+#'
 #' * `"constant"` -- Last observation carried forward (the default).
+#'
 #' * `"NOCB"` -- Next Observation Carried Backward.  This is the same method
 #'       that NONMEM uses.
+#'
 #' * `"midpoint"` Last observation carried forward to midpoint; Next observation
 #'   carried backward to midpoint.
 #'
@@ -163,10 +254,115 @@
 #'     to the output matrix or data frame. By default this is
 #'     disabled.
 #'
+#' @param seed an object specifying if and how the random number
+#'    generator should be initialized
+#'
+#' @param nsim represents the number of simulations.  For RxODE, if
+#'     you supply single subject event tables (created with
+#'     `[eventTable()]`)
+#'
+#' @param thetaMat Named theta matrix.
+#'
+#' @param thetaLower Lower bounds for simulated population parameter
+#'   variability (by default `-Inf`)
+#'
+#' @param thetaUpper Upper bounds for simulated population unexplained
+#'   variability (by default `Inf`)
+#'
+#' @param thetaDf The degrees of freedom of a t-distribution for
+#'     simulation.  By default this is `NULL` which is
+#'     equivalent to `Inf` degrees, or to simulate from a normal
+#'     distribution instead of a `t`-distribution.
+#'
+#' @param thetaIsChol Indicates if the `theta` supplied is a
+#'     Cholesky decomposed matrix instead of the traditional
+#'     symmetric matrix.
+#'
+#' @param nStud Number virtual studies to characterize uncertainty in estimated
+#'        parameters.
+#'
+#' @param omega Estimate of Covariance matrix. When omega is a list,
+#'     assume it is a block matrix and convert it to a full matrix
+#'     for simulations.
+#'
+#' @param omegaIsChol Indicates if the `omega` supplied is a
+#'     Cholesky decomposed matrix instead of the traditional
+#'     symmetric matrix.
+#'
+#' @param omegaSeparation Omega separation strategy
+#'
+#' Tells the type of separation strategy when
+#' simulating covariance with parameter uncertainty with standard
+#' deviations modeled in the `thetaMat` matrix.
+#'
+#'  * `"lkj"` simulates the correlation matrix from the
+#'    `rLKJ1` matrix with the distribution parameter `eta`
+#'    equal to the degrees of freedom `nu` by `(nu-1)/2`
+#'
+#' *  `"separation"` simulates from the identity inverse Wishart
+#'     covariance matrix with `nu` degrees of freedom.  This is then
+#'     converted to a covariance matrix and augmented with the modeled
+#'     standard deviations.  While computationally more complex than the
+#'    `"lkj"` prior, it performs better when the covariance matrix
+#'     size is greater or equal to 10
+#'
+#'  * `"auto"` chooses `"lkj"` when the dimension of the
+#'     matrix is less than 10 and `"separation"` when greater
+#'    than equal to 10.
+
+#'
+#' @param omegaXform When taking `omega` values from the `thetaMat`
+#'   simulations (using the separation strategy for covariance
+#'   simulation), how should the `thetaMat` values be turned int
+#'   standard deviation values:
+#'
+#'   - `identity` This is when standard deviation values are
+#'    directly modeled by the `params` and `thetaMat` matrix
+#'
+#'  - `variance` This is when the `params` and `thetaMat`
+#'     simulates the variance that are directly modeled by the
+#'     `thetaMat` matrix
+#'
+#'  - `log` This is when the `params` and `thetaMat`
+#'     simulates `log(sd)`
+#'
+#'   - `nlmixrSqrt` This is when the `params` and
+#'     `thetaMat` simulates the inverse cholesky decomposed matrix
+#'     with the `x^2` modeled along the diagonal.  This only works
+#'      with a diagonal matrix.
+#'
+#'   - `nlmixrLog` This is when the `params` and
+#'     `thetaMat` simulates the inverse cholesky decomposed matrix
+#'      with the `exp(x^2)` along the diagonal.  This only works
+#'      with a diagonal matrix.
+#'
+#'   - `nlmixrIdentity` This is when the `params` and
+#'      `thetaMat` simulates the inverse cholesky decomposed matrix.
+#'      This only works with a diagonal matrix.
+#'
+#' @param omegaLower Lower bounds for simulated ETAs (by default -Inf)
+#'
+#' @param omegaUpper Upper bounds for simulated ETAs (by default Inf)
+#'
+#' @param omegaDf The degrees of freedom of a t-distribution for
+#'     simulation.  By default this is `NULL` which is
+#'     equivalent to `Inf` degrees, or to simulate from a normal
+#'     distribution instead of a t-distribution.
+#'
+#' @param nSub Number between subject variabilities (`ETAs`) simulated for every
+#'        realization of the parameters.
+#'
+#' @param dfSub Degrees of freedom to sample the between subject variability matrix from the
+#'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
+#'
 #' @param sigma Named sigma covariance or Cholesky decomposition of a
 #'     covariance matrix.  The names of the columns indicate
 #'     parameters that are simulated.  These are simulated for every
 #'     observation in the solved system.
+#'
+#' @param sigmaLower Lower bounds for simulated unexplained variability (by default -Inf)
+#'
+#' @param sigmaUpper Upper bounds for simulated unexplained variability (by default Inf)
 #'
 #' @param sigmaXform When taking `sigma` values from the `thetaMat`
 #'   simulations (using the separation strategy for covariance
@@ -210,24 +406,37 @@
 #' simulating covariance with parameter uncertainty with standard
 #' deviations modeled in the `thetaMat` matrix.
 #'
-#' `"lkj"` simulates the correlation matrix from the
-#' `rLKJ1` matrix with the distribution parameter `eta`
-#' equal to the degrees of freedom `nu` by `(nu-1)/2`
+#' * `"lkj"` simulates the correlation matrix from the
+#'   `rLKJ1` matrix with the distribution parameter `eta`
+#'   equal to the degrees of freedom `nu` by `(nu-1)/2`
 #'
-#' `"separation"` simulates from the identity inverse Wishart
-#' covariance matrix with `nu` degrees of freedom.  This is then
-#' converted to a covariance matrix and augmented with the modeled
-#' standard deviations.  While computationally more complex than the
-#' `"lkj"` prior, it performs better when the covariance matrix
-#' size is greater or equal to 10
+#' *  `"separation"` simulates from the identity inverse Wishart
+#'    covariance matrix with `nu` degrees of freedom.  This is then
+#'    converted to a covariance matrix and augmented with the modeled
+#'    standard deviations.  While computationally more complex than the
+#'    `"lkj"` prior, it performs better when the covariance matrix
+#'    size is greater or equal to 10
 #'
-#' `"auto"` chooses `"lkj"` when the dimension of the
-#' matrix is less than 10 and `"separation"` when greater
-#' than equal to 10.
+#' *  `"auto"` chooses `"lkj"` when the dimension of the
+#'    matrix is less than 10 and `"separation"` when greater
+#'    than equal to 10.
 #'
-#' @param nDisplayProgress An integer indicating the minimum number
-#'     of c-based solves before a progress bar is shown.  By default
-#'     this is 10,000.
+#' @param dfObs Degrees of freedom to sample the unexplained variability matrix from the
+#'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
+#'
+#' @param resample A character vector of model variables to resample
+#'   from the input dataset; This sampling is done with replacement.
+#'   When `NULL` or `FALSE` no resampling is done.  When
+#'   `TRUE` resampling is done on all covariates in the input
+#'   dataset
+#'
+#' @param resampleID boolean representing if the resampling should be
+#'   done on an individual basis `TRUE` (ie. a whole patient is
+#'   selected) or each covariate is resampled independent of the
+#'   subject identifier `FALSE`.  When `resampleID=TRUE`
+#'   correlations of parameters are retained, where as when
+#'   `resampleID=FALSE` ignores patient covariate correaltions.
+#'   Hence the default is `resampleID=TRUE`.
 #'
 #' @param amountUnits This supplies the dose units of a data frame
 #'     supplied instead of an event table.  This is for importing the
@@ -242,105 +451,6 @@
 #'
 #' @param eta A vector of parameters that will be named `ETA\[#\]` and
 #'     added to parameters
-#'
-#' @param stateTrim When amounts/concentrations in one of the states
-#'     are above this value, trim them to be this value. By default
-#'     Inf.  Also trims to -stateTrim for large negative
-#'     amounts/concentrations.  If you want to trim between a range
-#'     say `c(0, 2000000)` you may specify 2 values with a lower and
-#'     upper range to make sure all state values are in the
-#'     reasonable range.
-#
-#'
-#' @param seed an object specifying if and how the random number
-#'    generator should be initialized
-#'
-#' @param omega Estimate of Covariance matrix. When omega is a list,
-#'     assume it is a block matrix and convert it to a full matrix
-#'     for simulations.
-#'
-#' @param omegaXform When taking `omega` values from the `thetaMat`
-#'   simulations (using the separation strategy for covariance
-#'   simulation), how should the `thetaMat` values be turned int
-#'   standard deviation values:
-#'
-#'   - `identity` This is when standard deviation values are
-#'    directly modeled by the `params` and `thetaMat` matrix
-#'
-#'  - `variance` This is when the `params` and `thetaMat`
-#'     simulates the variance that are directly modeled by the
-#'     `thetaMat` matrix
-#'
-#'  - `log` This is when the `params` and `thetaMat`
-#'     simulates `log(sd)`
-#'
-#'   - `nlmixrSqrt` This is when the `params` and
-#'     `thetaMat` simulates the inverse cholesky decomposed matrix
-#'     with the `x^2` modeled along the diagonal.  This only works
-#'      with a diagonal matrix.
-#'
-#'   - `nlmixrLog` This is when the `params` and
-#'     `thetaMat` simulates the inverse cholesky decomposed matrix
-#'      with the `exp(x^2)` along the diagonal.  This only works
-#'      with a diagonal matrix.
-#'
-#'   - `nlmixrIdentity` This is when the `params` and
-#'      `thetaMat` simulates the inverse cholesky decomposed matrrix.
-#'      This only works with a diagonal matrix.
-#'
-#'
-#' @inheritParams rxSimThetaOmega
-#'
-#' @inheritParams stats::simulate
-#' @param a when using `solve()`, this is equivalent to the
-#'     `object` argument.  If you specify `object` later in
-#'     the argument list it overwrites this parameter.
-#'
-#' @param b when using `solve()`, this is equivalent to the
-#'     `params` argument.  If you specify `params` as a
-#'     named argument, this overwrites the output
-#'
-#' @param nsim represents the number of simulations.  For RxODE, if
-#'     you supply single subject event tables (created with
-#'     eventTable)
-#'
-#' @param minSS Minimum number of iterations for a steady-state dose
-#'
-#' @param maxSS Maximum number of iterations for a steady-state dose
-#'
-#' @param strictSS Boolean indicating if a strict steady-state is
-#'     required. If a strict steady-state is (`TRUE`) required
-#'     then at least `minSS` doses are administered and the
-#'     total number of steady states doses will continue until
-#'     `maxSS` is reached, or `atol` and `rtol` for
-#'     every compartment have been reached.  However, if ODE solving
-#'     problems occur after the `minSS` has been reached the
-#'     whole subject is considered an invalid solve. If
-#'     `strictSS` is `FALSE` then as long as `minSS`
-#'     has been reached the last good solve before ODE solving
-#'     problems occur is considered the steady state, even though
-#'     either `atol`, `rtol` or `maxSS` have not
-#'     been achieved.
-#'
-#' @param infSSstep Step size for determining if a constant infusion
-#'     has reached steady state.  By default this is large value,
-#'     420.
-#'
-#' @param ssAtol Steady state atol convergence factor.  Can be
-#'     a vector based on each state.
-#'
-#' @param ssRtol Steady state rtol convergence factor.  Can be a
-#'     vector based on each state.
-#'
-#' @param istateReset When `TRUE`, reset the `ISTATE` variable to 1 for
-#'     lsoda and liblsoda with doses, like `deSolve`; When `FALSE`, do
-#'     not reset the `ISTATE` variable with doses.
-#'
-#' @param updateObject This is an internally used flag to update the
-#'     RxODE solved object (when supplying an RxODE solved object) as
-#'     well as returning a new object.  You probably should not
-#'     modify it's `FALSE` default unless you are willing to
-#'     have unexpected results.
 #'
 #' @param matrix A boolean indicating if a matrix should be returned
 #'     instead of the RxODE's solved object.
@@ -401,8 +511,12 @@
 #'
 #' @param subsetNonmem subset to NONMEM compatible EVIDs only.  By default TRUE.
 #'
-#' @param maxAtolRtolFactor The maximum `atol`/`rtol` that
-#'     FOCEi and other routines may adjust to.  By default 0.1
+#' @param scale a numeric named vector with scaling for ode
+#'     parameters of the system.  The names must correspond to the
+#'     parameter identifiers in the ODE specification. Each of the
+#'     ODE variables will be divided by the scaling factor.  For
+#'     example `scale=c(center=2)` will divide the center ODE
+#'     variable by 2.
 #'
 #' @param from When there is no observations in the event table,
 #'     start observations at this value. By default this is zero.
@@ -425,72 +539,34 @@
 #' @param warnDrop Warn if column(s) were supposed to be dropped, but
 #'     were not present.
 #'
-#' @param safeZero Use safe zero divide and log routines.  By default
-#'     this is turned on but you may turn it off if you wish.
 #'
-#' @param sumType Sum type to use for `sum()` in
-#'     RxODE code blocks.
+#' @param nDisplayProgress An integer indicating the minimum number
+#'     of c-based solves before a progress bar is shown.  By default
+#'     this is 10,000.
 #'
-#' `pairwise` uses the pairwise sum (fast, default)
+#' @param a when using `solve()`, this is equivalent to the
+#'     `object` argument.  If you specify `object` later in
+#'     the argument list it overwrites this parameter.
 #'
-#' `fsum` uses Python's fsum function (most accurate)
+#' @param b when using `solve()`, this is equivalent to the
+#'     `params` argument.  If you specify `params` as a
+#'     named argument, this overwrites the output
 #'
-#' `kahan` uses Kahan correction
+#' @param updateObject This is an internally used flag to update the
+#'     RxODE solved object (when supplying an RxODE solved object) as
+#'     well as returning a new object.  You probably should not
+#'     modify it's `FALSE` default unless you are willing to
+#'     have unexpected results.
 #'
-#' `neumaier` uses Neumaier correction
 #'
-#' `c` uses no correction: default/native summing
+#' @param cores Number of cores used in parallel ODE solving.  This
+#'    is equivalent to calling [setRxThreads()]
 #'
-#' @param prodType Product to use for `prod()` in RxODE blocks
-#'
-#' `long double` converts to long double, performs the
-#' multiplication and then converts back.
-#'
-#' `double` uses the standard double scale for multiplication.
-#'
-#' @param sensType Sensitivity type for `linCmt()` model:
-#'
-#' `advan` Use the direct advan solutions
-#'
-#' `autodiff` Use the autodiff advan solutions
-#'
-#' `forward` Use forward difference solutions
-#'
-#' `central` Use central differences
-#'
-#' @param linDiff This gives the linear difference amount for all the
-#'   types of linear compartment model parameters where sensitivities
-#'   are not calculated. The named components of this numeric vector are:
-#'
-#' * `"lag"` Central compartment lag
-#' * `"f"` Central compartment bioavailability
-#' * `"rate"` Central compartment modeled rate
-#' * `"dur"` Central compartment modeled duration
-#' * `"lag2"` Depot compartment lag
-#' * `"f2"` Depot compartment bioavailability
-#' * `"rate2"` Depot compartment modeled rate
-#' * `"dur2"` Depot compartment modeled duration
-#'
-#' @param linDiffCentral This gives the which parameters use central
-#'   differences for the linear compartment model parameters.  The
-#'   are the same components as `linDiff`
-#'
-#' @param resample A character vector of model variables to resample
-#'   from the input dataset; This sampling is done with replacement.
-#'   When `NULL` or `FALSE` no resampling is done.  When
-#'   `TRUE` resampling is done on all covariates in the input
-#'   dataset
-#'
-#' @param resampleID boolean representing if the resampling should be
-#'   done on an individual basis `TRUE` (ie. a whole patient is
-#'   selected) or each covariate is resampled independent of the
-#'   subject identifier `FALSE`.  When `resampleID=TRUE`
-#'   correlations of parameters are retained, where as when
-#'   `resampleID=FALSE` ignores patient covariate correaltions.
-#'   Hence the default is `resampleID=TRUE`.
-#'
-#' @param maxwhile represents the maximum times a while loop is
-#'   evaluated before exiting.  By default this is 100000
+#' @param nCoresRV Number of cores used for the simulation of the
+#'   sigma variables.  By default this is 1. To reproduce the results
+#'   you need to run on the same platform with the same number of
+#'   cores. This is the reason this is set to be one, regardless of
+#'   what the number of cores are used in threaded ODE solving.
 #'
 #' @return An \dQuote{rxSolve} solve object that stores the solved
 #'     value in a matrix with as many rows as there are sampled time

@@ -111,7 +111,7 @@ observation in the solved system.}
 \item{dfObs}{Degrees of freedom to sample the unexplained variability matrix from the
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
-\item{nSub}{Number between subject variabilities (ETAs) simulated for every
+\item{nSub}{Number between subject variabilities (\code{ETAs}) simulated for every
 realization of the parameters.}
 
 \item{nStud}{Number virtual studies to characterize uncertainty in estimated
