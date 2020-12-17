@@ -2134,11 +2134,11 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
   return 0;
 }
 
-static inline int handleTheta(nodeInfo ni, char *name) {
+static inline int handleTheta(nodeInfo ni, char *name, D_ParseNode *xpn) {
   if (nodeHas(theta)){
     char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
     sPrint(&_gbuf,"_THETA_%s_",v);
-    ii = strtoimax(v,NULL,10);
+    int ii = strtoimax(v,NULL,10);
     if (ii > tb.maxtheta){
       tb.maxtheta =ii;
     }
@@ -2154,10 +2154,10 @@ static inline int handleTheta(nodeInfo ni, char *name) {
   return 0;
 }
 
-static inline int handleEta(nodeInfo ni, char *name) {
+static inline int handleEta(nodeInfo ni, char *name, D_ParseNode *xpn) {
   if (nodeHas(eta)){
     char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-    ii = strtoimax(v,NULL,10);
+    int ii = strtoimax(v,NULL,10);
     if (ii > tb.maxeta){
       tb.maxeta =ii;
     }
@@ -2298,8 +2298,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (handleDvidStatement(ni, name, xpn, pn)) continue;
       if (handleFunctions(ni, name, &i, &depth, nch, xpn, pn)) continue;
       
-      if (handleTheta(ni, name)) continue;
-      if (handleEta(ni, name)) continue;
+      if (handleTheta(ni, name, xpn)) continue;
+      if (handleEta(ni, name, xpn)) continue;
 
       // Recursively parse tree
       wprint_parsetree(pt, xpn, depth, fn, client_data);
