@@ -1061,25 +1061,21 @@ static inline void handleOperatorsOrPrintingIdentifiers(int depth, print_node_fn
   }
 }
 
-static inline int handleIndLinMat0(nodeInfo ni, char *name) {
+static inline void handleIndLinMat0(nodeInfo ni, char *name) {
   if (nodeHas(mat0)){
     aType(TMAT0);
     sb.o =0; sbDt.o =0;
     sAppend(&sb, "_mat[%d] = ", tb.matn++);
-    return 1;
   }
-  return 0;
 }
 
-static inline int handleIndLinMatf(nodeInfo ni, char *name) {
+static inline void handleIndLinMatf(nodeInfo ni, char *name) {
   if (nodeHas(matF)){
     aType(TMATF);
     sb.o =0; sbDt.o =0;
     sAppend(&sb, "_matf[%d] = _IR[%d] + ", tb.matnf, tb.matnf);
     tb.matnf++;
-    return 1;
   }
-  return 0;
 }
 
 static inline void setFunctionFlag(nodeInfo ni, char *name, int i, int *depth) {
@@ -2277,8 +2273,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (isSkipChild(ni, name, i)) continue;
 
       // Inductive linearization matrices
-      if (handleIndLinMat0(ni, name)) continue;
-      if (handleIndLinMatf(ni, name)) continue;
+      handleIndLinMat0(ni, name);
+      handleIndLinMatf(ni, name);
 
       // Determine if this is a function and change depth flag if needed
       setFunctionFlag(ni, name, i, &depth);
