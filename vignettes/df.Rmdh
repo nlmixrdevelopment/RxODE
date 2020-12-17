@@ -59,6 +59,7 @@ print(x)
 
 
 
+
 ## Using the solved object as a simple data frame
 
 The solved object acts as a `data.frame` or `tbl` that can be filtered

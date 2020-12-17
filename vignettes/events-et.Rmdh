@@ -9,13 +9,13 @@ events that RxODE supports](RxODE-event-types.html).
 
 ```{r}
 library(RxODE)
-(ev <- eventTable());
+(ev <- eventTable())
 ```
 
 or
 
 ```{r}
-(ev <- et());
+(ev <- et())
 ```
 
 With this event table you can add sampling/observations or doses by
@@ -410,11 +410,47 @@ library(ggplot2)
 rxSolve(m1, et) %>% plot(C2) + facet_wrap( ~ id)
 ```
 
+## Expanding events
+
+Event tables can be expanded so they contain an `addl` data item, like
+the following example:
+
+```{r}
+ev <- et() %>%
+  et(dose=50, ii=8, until=48)
+
+ev
+```
+
+You can expand the events so they do not have the `addl` items by
+`$expand()` or `etExpand(ev)`:
+
+The first, `etExpand(ev)` expands the event table without modifying the original data frame:
+
+```{r}
+etExpand(ev)
+```
+
+You can see the `addl` events were expanded, however the original data
+frame remained intact:
+
+```{r}
+print(ev)
+```
+
+If you use `ev$expand()` it will modify the `ev` object.  This is
+similar to an object-oriented method:
+
+
+```{r}
+ev$expand()
+ev
+```
+
+
 ## Event tables in Rstudio Notebooks
 
-In addition to the output in the console which has been shown in the
-above examples, Rstudio notebook output is different and can be seen
-in the following screenshots; 
+In addition to the output in the console which has been shown in the above examples, Rstudio notebook output is different and can be seen in the following screenshots;
 
 The first screenshot shows how the event table looks after evaluating
 it in the Rstduio notebook
