@@ -920,26 +920,83 @@ int depotAttr=0, centralAttr=0;
 
 sbuf _gbuf, _mv;
 
-// is the name an identifier
-static inline int isIdentifier(nodeInfo ni, char *name) {
+////////////////////////////////////////////////////////////////////////////////
+// parsing properties (logical expressions)
+static inline int isIdentifier(nodeInfo ni, const char *name) {
   return nodeHas(identifier) || nodeHas(identifier_r) ||
     nodeHas(identifier_r_no_output)  ||
     nodeHas(theta0_noout) ||
     nodeHas(theta0);
 }
 
-static inline int isTbsVar(char *value) {
+static inline int isTbsVar(const char *value) {
   return !strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value) ||
     !strcmp("rx_low_", value) || !strcmp("rx_hi_", value);
 }
 
-void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
-  char *name = (char*)pt.symbols[pn->symbol].name;
-  nodeInfo ni;
-  niReset(&ni);
-  int nch = d_get_number_of_children(pn), i, ii, found, safe_zero = 0;
-  char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
-  double d;
+static inline int isAtFunctionArg(const char *name) {
+  return !strcmp("(", name) ||
+    !strcmp(")", name) ||
+    !strcmp(",", name);
+}
+
+static inline int isDefiningParameterRecursively(const char *value) {
+  return tb.ix == tb.ixL && tb.didEq==1 &&
+    !strcmp(value, tb.ss.line[tb.ix]);
+}
+
+static inline int isOperatorOrPrintingIdentifier(nodeInfo ni, const char *name){
+  return nodeHas(identifier) ||
+    nodeHas(identifier_r) ||
+    nodeHas(constant) ||
+    nodeHas(theta0) ||
+    !strcmp("+", name) ||
+    !strcmp("-", name) ||
+    !strcmp("*", name) ||
+    !strcmp("/", name) ||
+
+    !strcmp("&&", name) ||
+    !strcmp("||", name) ||
+    !strcmp("!=", name) ||
+    !strcmp("==", name) ||
+    !strcmp("<=", name) ||
+    !strcmp(">=", name) ||
+    !strcmp("!", name) ||
+    !strcmp("<", name) ||
+    !strcmp(">", name);
+}
+
+static inline int isSkipChild(nodeInfo ni, const char *name, int i) {
+  if ((i == 3 || i == 4 || i < 2) &&
+      (nodeHas(derivative) ||nodeHas(fbio) || nodeHas(alag) ||
+       nodeHas(rate) || nodeHas(dur))) return 1;
+
+  if ((i == 3 || i < 2) && nodeHas(der_rhs)) return 1;
+
+  if (nodeHas(dfdy)     && i< 2)   return 1;
+  if (nodeHas(dfdy_rhs) && i< 2)   return 1;
+  if (nodeHas(dfdy)     && i == 3) return 1;
+  if (nodeHas(dfdy_rhs) && i == 3) return 1;
+  if (nodeHas(dfdy)     && i == 5) return 1;
+  if (nodeHas(dfdy_rhs) && i == 5) return 1;
+
+  if (nodeHas(dfdy)     && i == 6) return 1;
+  if (nodeHas(ini0)     && i == 1) return 1;
+
+  if (nodeHas(dvid_statementI) && i != 0) return 1;
+
+
+  if ((nodeHas(theta) || nodeHas(eta)) && i != 2) return 1;
+  if (nodeHas(mtime) && (i == 0 || i == 1 || i == 3)) return 1;
+  if (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) return 1;
+  if (i != 2 && (nodeHas(mat0) || nodeHas(matF))) return 1;
+  return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Parsing pieces
+static inline void handleIdentifier(nodeInfo ni, char *name, char *value) {
+  // Handles identifiers, add it as a symbol if needed.
   if (isIdentifier(ni, name)) {
     if (new_or_ith(value)){
       // If it is new, add it
@@ -949,8 +1006,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	// If it is Transform both sides, suppress printouts
 	tb.lh[NV-1] = isSuppressedParam; // Suppress param printout.
       }
-    } else if (tb.ix == tb.ixL && tb.didEq==1 &&
-	       !strcmp(value, tb.ss.line[tb.ix])){
+    } else if (isDefiningParameterRecursively(value)){
       // This is x = x*exp(matt)
       // lhs defined in terms of a parameter
       if (tb.lh[tb.ix] == isSuppressedLHS){
@@ -960,10 +1016,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
     }
   }
-  if (!strcmp("(", name) ||
-      !strcmp(")", name) ||
-      !strcmp(",", name)
-      ) {
+}
+
+static inline void handleFunctionArguments(char *name, int depth) {
+  if (isAtFunctionArg(name)) {
     sPut(&sb, name[0]);
     sPut(&sbDt, name[0]);
     if (!skipDouble && !(strcmp(",", name)) && depth == 1){
@@ -972,24 +1028,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     }
     sPut(&sbt, name[0]);
   }
-  if (nodeHas(identifier) ||
-      nodeHas(identifier_r) ||
-      nodeHas(constant) ||
-      nodeHas(theta0) ||
-      !strcmp("+", name) ||
-      !strcmp("-", name) ||
-      !strcmp("*", name) ||
-      !strcmp("/", name) ||
+}
 
-      !strcmp("&&", name) ||
-      !strcmp("||", name) ||
-      !strcmp("!=", name) ||
-      !strcmp("==", name) ||
-      !strcmp("<=", name) ||
-      !strcmp(">=", name) ||
-      !strcmp("!", name) ||
-      !strcmp("<", name) ||
-      !strcmp(">", name))
+static inline void handleOperatorsOrPrintingIdentifiers(int depth, print_node_fn_t fn, void *client_data,
+							nodeInfo ni, char *name, char *value) {
+  if (isOperatorOrPrintingIdentifier(ni, name))
     fn(depth, name, value, client_data);
   if (!strcmp("=", name)){
     tb.didEq=1;
@@ -1016,52 +1059,51 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     aAppendN(" &&", 3);
     sAppendN(&sbt, "&&", 2);
   }
+}
 
-  /* Free(value); */
+////////////////////////////////////////////////////////////////////////////////
+// assertions
+static inline int assertNoRAssign(nodeInfo ni, char *name, D_ParseNode *pn, int i){
+  if (!rx_syntax_assign  &&
+      ((i == 4 && nodeHas(derivative)) ||
+       (i == 6 && nodeHas(dfdy)))) {
+    D_ParseNode *xpn = d_get_child(pn,i);
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    if (!strcmp("<-",v)){
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(NOASSIGN);
+    }
+    /* Free(v); */
+    /* continue; */
+    return 1;
+  }
+  return 0;
+}
 
-  //depth++;
+void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
+  char *name = (char*)pt.symbols[pn->symbol].name;
+  nodeInfo ni;
+  niReset(&ni);
+  int nch = d_get_number_of_children(pn), i, ii, found, safe_zero = 0;
+  char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
+  double d;
+
+  // Add symbol, check/flag if recursive
+  handleIdentifier(ni, name, value);
+  // Add (double) in front of function arguments
+  handleFunctionArguments(name, depth);
+  // print/change identifier/operator and change operator information (if needed)
+  handleOperatorsOrPrintingIdentifiers(depth, fn, client_data, ni, name, value);
+  
   if (nch != 0) {
     int isWhile=0;
     if (nodeHas(power_expression)) {
       aAppendN("Rx_pow(_as_dbleps(", 18);
     }
     for (i = 0; i < nch; i++) {
-      if (!rx_syntax_assign  &&
-          ((i == 4 && nodeHas(derivative)) ||
-           (i == 6 && nodeHas(dfdy)))) {
-        D_ParseNode *xpn = d_get_child(pn,i);
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	if (!strcmp("<-",v)){
-	  updateSyntaxCol();
-          trans_syntax_error_report_fn(NOASSIGN);
-        }
-        /* Free(v); */
-        continue;
-      }
-      if ((i == 3 || i == 4 || i < 2) &&
-	  (nodeHas(derivative) ||nodeHas(fbio) || nodeHas(alag) ||
-	   nodeHas(rate) || nodeHas(dur))) continue;
-
-      if ((i == 3 || i < 2) && nodeHas(der_rhs)) continue;
-
-      if (nodeHas(dfdy)     && i< 2)   continue;
-      if (nodeHas(dfdy_rhs) && i< 2)   continue;
-      if (nodeHas(dfdy)     && i == 3) continue;
-      if (nodeHas(dfdy_rhs) && i == 3) continue;
-      if (nodeHas(dfdy)     && i == 5) continue;
-      if (nodeHas(dfdy_rhs) && i == 5) continue;
-
-      if (nodeHas(dfdy)     && i == 6) continue;
-      if (nodeHas(ini0)     && i == 1) continue;
-
-      if (nodeHas(dvid_statementI) && i != 0) continue;
-
-
-      if ((nodeHas(theta) || nodeHas(eta)) && i != 2) continue;
-      if (nodeHas(mtime) && (i == 0 || i == 1 || i == 3)) continue;
-      if (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) continue;
-      if (i != 2 && (nodeHas(mat0) || nodeHas(matF))) continue;
-
+      if (assertNoRAssign(ni, name, pn, i)) continue;
+      if (isSkipChild(ni, name, i)) continue;
+      
       if (nodeHas(mat0)){
 	aType(TMAT0);
 	sb.o =0; sbDt.o =0;
