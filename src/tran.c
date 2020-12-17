@@ -2134,6 +2134,96 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
   return 0;
 }
 
+static inline int handleTheta(nodeInfo ni, char *name) {
+  if (nodeHas(theta)){
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    sPrint(&_gbuf,"_THETA_%s_",v);
+    ii = strtoimax(v,NULL,10);
+    if (ii > tb.maxtheta){
+      tb.maxtheta =ii;
+    }
+    if (new_or_ith(_gbuf.s)){
+      addSymbolStr(_gbuf.s);
+    }
+    sAppend(&sb,"_THETA_%s_",v);
+    sAppend(&sbDt,"_THETA_%s_",v);
+    sAppend(&sbt,"THETA[%s]",v);
+    /* Free(v); */
+    return 1;
+  }
+  return 0;
+}
+
+static inline int handleEta(nodeInfo ni, char *name) {
+  if (nodeHas(eta)){
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    ii = strtoimax(v,NULL,10);
+    if (ii > tb.maxeta){
+      tb.maxeta =ii;
+    }
+    sPrint(&_gbuf,"_ETA_%s_",v);
+    if (new_or_ith(_gbuf.s)){
+      addSymbolStr(_gbuf.s);
+    }
+    sAppend(&sb, "_ETA_%s_",v);
+    sAppend(&sbDt, "_ETA_%s_",v);
+    sAppend(&sbt,"ETA[%s]",v);
+    /* Free(v); */
+    return 1;
+  }
+  return 0;
+}
+
+static inline void handleSafeZero(nodeInfo ni, char *name, int i, int *safe_zero, D_ParseNode *xpn) {
+  if (nodeHas(mult_part)){
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    if (i == 0){
+      if (!strcmp("/",v)){
+	aAppendN("safe_zero(", 10);
+	*safe_zero = 1;
+      } else {
+	*safe_zero = 0;
+      }
+    }
+    if (i == 1){
+      if (*safe_zero){
+	aAppendN(")", 1);
+      }
+      *safe_zero = 0;
+    }
+    /* Free(v); */
+  }
+}
+
+static inline int handlePrintf(nodeInfo ni, char *name, int i, D_ParseNode *xpn) {
+  if (nodeHas(printf_statement)){
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    if (i == 0){
+      sb.o =0; sbDt.o =0;
+      sbt.o=0;
+      aType(PPRN);
+      aAppendN("Rprintf(", 8);
+      sAppendN(&sbt,"printf(", 7);
+      sb.o--;sbDt.o--;sbt.o--;
+    }
+    if (i == 2){
+      sAppend(&sb,"%s",v);
+      sAppend(&sbDt,"%s",v);
+      sAppend(&sbt,"%s",v);
+    }
+    if (i == 4){
+      addLine(&sbPm, "%s;\n", sb.s);
+      addLine(&sbPmDt, "%s;\n", sbDt.s);
+      sAppend(&sbNrm, "%s;\n", sbt.s);
+      addLine(&sbNrmL, "%s;\n", sbt.s);
+      ENDLINE
+        }
+    /* Free(v); */
+    return 1;
+  }
+  return 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // assertions
 static inline int assertNoRAssign(nodeInfo ni, char *name, D_ParseNode *pn, int i){
@@ -2151,6 +2241,15 @@ static inline int assertNoRAssign(nodeInfo ni, char *name, D_ParseNode *pn, int 
     return 1;
   }
   return 0;
+}
+
+static inline void assertEndSemicolon(nodeInfo ni, char *name, int i, D_ParseNode *xpn) {
+  if (rx_syntax_require_semicolon && nodeHas(end_statement) && i == 0){
+    if (xpn->start_loc.s ==  xpn->end){
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(NEEDSEMI);
+    }
+  }
 }
 
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
@@ -2199,91 +2298,18 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (handleDvidStatement(ni, name, xpn, pn)) continue;
       if (handleFunctions(ni, name, &i, &depth, nch, xpn, pn)) continue;
       
-      if (nodeHas(theta)){
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        sPrint(&_gbuf,"_THETA_%s_",v);
-	ii = strtoimax(v,NULL,10);
-	if (ii > tb.maxtheta){
-	  tb.maxtheta =ii;
-	}
-	if (new_or_ith(_gbuf.s)){
-	  addSymbolStr(_gbuf.s);
-        }
-        sAppend(&sb,"_THETA_%s_",v);
-	sAppend(&sbDt,"_THETA_%s_",v);
-        sAppend(&sbt,"THETA[%s]",v);
-        /* Free(v); */
-        continue;
-      }
+      if (handleTheta(ni, name)) continue;
+      if (handleEta(ni, name)) continue;
 
-      if (nodeHas(eta)){
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	ii = strtoimax(v,NULL,10);
-        if (ii > tb.maxeta){
-          tb.maxeta =ii;
-        }
-        sPrint(&_gbuf,"_ETA_%s_",v);
-        if (new_or_ith(_gbuf.s)){
-	  addSymbolStr(_gbuf.s);
-        }
-        sAppend(&sb, "_ETA_%s_",v);
-	sAppend(&sbDt, "_ETA_%s_",v);
-        sAppend(&sbt,"ETA[%s]",v);
-        /* Free(v); */
-        continue;
-      }
+      // Recursively parse tree
       wprint_parsetree(pt, xpn, depth, fn, client_data);
-      if (rx_syntax_require_semicolon && nodeHas(end_statement) && i == 0){
-        if (xpn->start_loc.s ==  xpn->end){
-	  updateSyntaxCol();
-          trans_syntax_error_report_fn(NEEDSEMI);
-        }
-      }
 
-      if (nodeHas(mult_part)){
-	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	if (i == 0){
-	  if (!strcmp("/",v)){
-	    aAppendN("safe_zero(", 10);
-            safe_zero = 1;
-	  } else {
-	    safe_zero = 0;
-	  }
-	}
-	if (i == 1){
-	  if (safe_zero){
-	    aAppendN(")", 1);
-	  }
-	  safe_zero = 0;
-	}
-	/* Free(v); */
-      }
-      if (nodeHas(printf_statement)){
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (i == 0){
-	  sb.o =0; sbDt.o =0;
-	  sbt.o=0;
-	  aType(PPRN);
-	  aAppendN("Rprintf(", 8);
-	  sAppendN(&sbt,"printf(", 7);
-	  sb.o--;sbDt.o--;sbt.o--;
-        }
-        if (i == 2){
-          sAppend(&sb,"%s",v);
-	  sAppend(&sbDt,"%s",v);
-	  sAppend(&sbt,"%s",v);
-        }
-        if (i == 4){
-	  addLine(&sbPm, "%s;\n", sb.s);
-	  addLine(&sbPmDt, "%s;\n", sbDt.s);
-	  sAppend(&sbNrm, "%s;\n", sbt.s);
-	  addLine(&sbNrmL, "%s;\n", sbt.s);
-	  ENDLINE
-        }
-        /* Free(v); */
-        continue;
-      }
-
+      assertEndSemicolon(ni, name, i, xpn);
+      
+      handleSafeZero(ni, name, i, &safe_zero, xpn); // protect against divide by zeros
+      
+      if (handlePrintf(ni, name, i, xpn)) continue;
+      
       if ((nodeHas(dfdy) || nodeHas(dfdy_rhs)) && i == 2){
         found_jac = 1;
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
