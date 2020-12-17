@@ -168,6 +168,14 @@ int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
 sbuf s_aux_info;
 sbuf s_inits;
 
+#define notLHS 0
+#define isLHS 1
+#define isState 9
+#define isSuppressedLHS 10
+#define isSuppressedParam 11
+#define isLhsStateExtra 19
+#define isLHSparam 70
+
 /* char s_aux_info[64*MXSYM*4]; */
 typedef struct symtab {
   vLines ss; // Symbol string or symbol lines
@@ -912,6 +920,19 @@ int depotAttr=0, centralAttr=0;
 
 sbuf _gbuf, _mv;
 
+// is the name an identifier
+static inline int isIdentifier(nodeInfo ni, char *name) {
+  return nodeHas(identifier) || nodeHas(identifier_r) ||
+    nodeHas(identifier_r_no_output)  ||
+    nodeHas(theta0_noout) ||
+    nodeHas(theta0);
+}
+
+static inline int isTbsVar(char *value) {
+  return !strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value) ||
+    !strcmp("rx_low_", value) || !strcmp("rx_hi_", value);
+}
+
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
   nodeInfo ni;
@@ -919,26 +940,23 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   int nch = d_get_number_of_children(pn), i, ii, found, safe_zero = 0;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
   double d;
-  if ((nodeHas(identifier) || nodeHas(identifier_r) ||
-       nodeHas(identifier_r_no_output)  ||
-       nodeHas(theta0_noout) ||
-       nodeHas(theta0))) {
+  if (isIdentifier(ni, name)) {
     if (new_or_ith(value)){
+      // If it is new, add it
       addSymbolStr(value);
       // Ignored variables
-      if (!strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value) ||
-	  !strcmp("rx_low_", value) || !strcmp("rx_hi_", value)){
-	tb.lh[NV-1] = 11; // Suppress param printout.
+      if (isTbsVar(value)){
+	// If it is Transform both sides, suppress printouts
+	tb.lh[NV-1] = isSuppressedParam; // Suppress param printout.
       }
-      /* 	      pn->start_loc.col, pn->start_loc.line); */
     } else if (tb.ix == tb.ixL && tb.didEq==1 &&
 	       !strcmp(value, tb.ss.line[tb.ix])){
       // This is x = x*exp(matt)
       // lhs defined in terms of a parameter
-      if (tb.lh[tb.ix] == 10){
-	tb.lh[tb.ix] = 0;
+      if (tb.lh[tb.ix] == isSuppressedLHS){
+	tb.lh[tb.ix] = notLHS;
       } else {
-	tb.lh[tb.ix] = 70;
+	tb.lh[tb.ix] = isLHSparam;
       }
     }
   }
@@ -987,7 +1005,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     // Suppress LHS calculation with ~
     aAppendN(" =", 2);
     sAppendN(&sbt, "~", 1);
-    tb.lh[tb.ix] = 10; // Suppress LHS printout.
+    tb.lh[tb.ix] = isSuppressedLHS; // Suppress LHS printout.
     tb.didEq=1;
   } else if (!strcmp("=", name)){
     tb.didEq=1;
@@ -2258,7 +2276,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppend(&sbDt, "%s__",v);
           sAppend(&sbt, "%s)",v);
 	  new_or_ith(v);
-	  if (tb.lh[tb.ix] == 9){
+	  if (tb.lh[tb.ix] == isState){
 	    new_de(v);
 	    sAppend(&sb, "%d]",tb.id);
 	  } else {
@@ -2455,13 +2473,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  aProp(tb.de.n);
           /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
 	  if (hasLhs){
-	    if (tb.lh[tb.ix] == 10 || tb.lh[tb.ix] == 29){
+	    if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29){
 	      tb.lh[tb.ix] = 29;
 	    } else {
-	      tb.lh[tb.ix] = 19;
+	      tb.lh[tb.ix] = isLhsStateExtra;
 	    }
 	  } else {
-	    tb.lh[tb.ix] = 9;
+	    tb.lh[tb.ix] = isState;
 	  }
           tb.di[tb.de.n] = tb.ix;
 	  addLine(&(tb.de),"%s",v);
@@ -2544,12 +2562,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
           if (!rx_syntax_allow_assign_state &&
 	      ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
-	       (tb.lh[tb.ix] == 1 || tb.lh[tb.ix] == 70))){
+	       (tb.lh[tb.ix] == isLHS || tb.lh[tb.ix] == isLHSparam))){
 	    updateSyntaxCol();
             sPrint(&_gbuf,_("cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'"),v,v);
             trans_syntax_error_report_fn0(_gbuf.s);
           }
-	  tb.lh[tb.ix] = 9;
+	  tb.lh[tb.ix] = isState;
           tb.di[tb.de.n] = tb.ix;
 	  addLine(&(tb.de),"%s",v);
 	  /* Free(v); */
@@ -2670,10 +2688,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           if (nodeHas(ini) && !new_de(v)){
 	    if (tb.idu[tb.id] == 0){
 	      new_or_ith(v);
-	      if (tb.lh[tb.ix] == 10 || tb.lh[tb.ix] == 29){
+	      if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29){
 		tb.lh[tb.ix] = 29;
 	      } else {
-		tb.lh[tb.ix] = 19;
+		tb.lh[tb.ix] = isLhsStateExtra;
 	      }
 	    } else {
 	      updateSyntaxCol();
@@ -2693,10 +2711,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    if (tb.idu[tb.id] == 0){
 	      // Change to 19 for LHS w/stateExtra
 	      new_or_ith(v);
-	      if (tb.lh[tb.ix] == 10 || tb.lh[tb.ix] == 29){
+	      if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29){
 		tb.lh[tb.ix] = 29;
 	      } else {
-		tb.lh[tb.ix] = 19;
+		tb.lh[tb.ix] = isLhsStateExtra;
 	      }
 	    } else {
 	      sPrint(&_gbuf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
@@ -2724,13 +2742,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	new_or_ith(v);
 	aProp(tb.ix);
 	if (nodeHas(mtime)){
-	  tb.lh[tb.ix] = 1;
+	  tb.lh[tb.ix] = isLHS;
 	  tb.mtime[tb.ix] = 1;
 	} else if (nodeHas(assignment)  || (!rx_syntax_allow_ini && nodeHas(ini))) {
 	  if (tb.ix+1 == NV && tb.NEnd != NV){
 	    // New assignment
 	    tb.ixL = tb.ix;
-	    tb.lh[tb.ix] = 1;
+	    tb.lh[tb.ix] = isLHS;
 	  } else if (tb.ix < 0){
 	    sPrint(&_gbuf,"cannot assign protected variable '%s'",v);
 	    updateSyntaxCol();
@@ -2739,12 +2757,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    /* Rprintf("tb.ixL: %d; tb.ix: %d, NV: %d, %s\n", */
 	    /* 	    tb.ixL, tb.ix, NV, */
 	    /* 	    tb.ss.line[tb.ix]); */
-	    if (tb.lh[tb.ix] == 0){
+	    if (tb.lh[tb.ix] == notLHS){
 	      // This is not a new assignment, AND currently a parameter
-	      tb.lh[tb.ix] = 70;
+	      tb.lh[tb.ix] = isLHSparam;
 	      /* Rprintf("Found Dual LHS/PARAM #2: %s", tb.ss.line[tb.ix]); */
 	    } else {
-	      tb.lh[tb.ix] = 1;
+	      tb.lh[tb.ix] = isLHS;
 	    }
 	    tb.ixL=-1;
 	  }
@@ -2764,7 +2782,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             } else {
 	      tb.ini0[tb.ix] = 0;
               if (strncmp(v,"rx_",3)==0){
-                tb.lh[tb.ix] = 1;
+                tb.lh[tb.ix] = isLHS;
               } else {
 		xpn = d_get_child(pn, 2);
 		/* Free(v); */
@@ -2780,8 +2798,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             // There is more than one call to this variable, it is a
             // conditional variable
 	    /* Rprintf("Duplicate %s; %d %d\n", v, tb.lh[tb.ix], tb.ini0[tb.ix]); */
-	    if (tb.lh[tb.ix] != 1){
-	      tb.lh[tb.ix] = 1;
+	    if (tb.lh[tb.ix] != isLHS){
+	      tb.lh[tb.ix] = isLHS;
 	      if (nodeHas(ini0) && tb.ini0[tb.ix] == 1){
 		sPrint(&_gbuf,"cannot have conditional initial conditions for '%s'",v);
 		updateSyntaxCol();
@@ -2948,7 +2966,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     }
   }
   for (i=0, j=0; i<NV; i++) {
-    if (tb.lh[i] == 9){
+    if (tb.lh[i] == isState){
       int doCont=0;
       for (int j = 0; j < tb.de.n; j++) {
 	if (tb.di[j] == i) {
@@ -2960,15 +2978,15 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     }
     /* REprintf("%s: %d\n", tb.ss.line[i], tb.lh[i]); */
     if (scenario == 5){
-      if (tb.lag[i] == 0) continue;
-      if (tb.lh[i] == 1) continue;
+      if (tb.lag[i] == notLHS) continue;
+      if (tb.lh[i] == isState) continue;
     } else if(scenario == 4){
       if (tb.lag[i] == 0) continue;
-      if (tb.lh[i] != 1) continue;
+      if (tb.lh[i] != isLHS) continue;
     } else if (scenario == 3 || scenario == 4){
-      if (!(tb.lh[i] == 1 || tb.lh[i] == 19 || tb.lh[i] == 70)) continue;
+      if (!(tb.lh[i] == isLHS || tb.lh[i] == isLhsStateExtra || tb.lh[i] == isLHSparam)) continue;
     } else {
-      if (lhs && tb.lh[i]>0 && tb.lh[i] != 70) continue;
+      if (lhs && tb.lh[i]>0 && tb.lh[i] != isLHSparam) continue;
     }
     /* retieve_var(i, buf); */
     buf = tb.ss.line[i];
@@ -3079,7 +3097,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   /* char bufw[1024]; */
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
-    if (islhs>1 && islhs != 19 && islhs != 70 && islhs != 10) continue;      /* is a state var */
+    if (islhs>1 && islhs != isLhsStateExtra && islhs != isLHSparam && islhs != isSuppressedLHS) continue;      /* is a state var */
     buf = tb.ss.line[i];
     if (islhs == 10){
       sAppend(&s_aux_info, "  SET_STRING_ELT(slhs,%d,mkChar(\"%s\"));\n",
@@ -3476,7 +3494,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  if (show_ode != 10 && show_ode != 11){
 	    if (sbPm.lProp[i] >= 0 ){
 	      tb.ix = sbPm.lProp[i];
-	      if (tb.lh[tb.ix] == 1 || tb.lh[tb.ix] == 70){
+	      if (tb.lh[tb.ix] == isLHS || tb.lh[tb.ix] == isLHSparam){
 		sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
 	      }
 	    }
@@ -3581,7 +3599,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     } else if (show_ode == 0 && tb.li){
       sAppendN(&sbOut,  "\n", 1);
       for (i=0, j=0; i<NV; i++) {
-	if (tb.lh[i] != 1 && tb.lh[i] != 19 && tb.lh[i] != 70) continue;
+	if (tb.lh[i] != isLHS && tb.lh[i] != isLhsStateExtra && tb.lh[i] != isLHSparam) continue;
 	buf = tb.ss.line[i];
 	sAppend(&sbOut,  "  _lhs[%d]=", j);
 	doDot(&sbOut, buf);
@@ -3859,7 +3877,7 @@ void trans_internal(const char* parse_file, int isStr){
 	for (j=0; j<NV; j++) {
           islhs = tb.lh[j];
 	  buf2=tb.ss.line[j];
-          if (islhs>1 && tb.lh[i] != 19) continue; /* is a state var */
+          if (islhs>1 && tb.lh[i] != isLhsStateExtra) continue; /* is a state var */
           buf2=tb.ss.line[j];
           if ((islhs != 1 || tb.ini[j] == 1) &&!strcmp(buf1, buf2)){
 	    found=1;
@@ -3957,12 +3975,12 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   }
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
-    if (islhs>1 && islhs != 19 && islhs != 70 && islhs != 10) continue;      /* is a state var */
-    if (islhs == 10){
+    if (islhs>1 && islhs != isLhsStateExtra && islhs != isLHSparam && islhs != isSuppressedLHS) continue;      /* is a state var */
+    if (islhs == isSuppressedLHS){
       sli++;
-    } else if (islhs == 1 || islhs == 19 || islhs == 70){
+    } else if (islhs == isLHS || islhs == isLhsStateExtra || islhs == isLHSparam){
       li++;
-      if (islhs == 70) pi++;
+      if (islhs == isLHSparam) pi++;
     } else {
       pi++;
     }
@@ -4074,7 +4092,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   int redo = 0;
   for (i = 0; i < NV; i++){
     buf=tb.ss.line[i];
-    if (tb.ini[i] == 1 && tb.lh[i] != 1){
+    if (tb.ini[i] == 1 && tb.lh[i] != isLHS){
       if (tb.isPi && !strcmp("pi", buf)) {
 	redo=1;
 	tb.isPi=0;
@@ -4109,7 +4127,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     ini_i=0;
     for (i = 0; i < NV; i++){
       buf=tb.ss.line[i];
-      if (tb.ini[i] == 1 && tb.lh[i] != 1){
+      if (tb.ini[i] == 1 && tb.lh[i] != isLHS){
 	if (tb.isPi && !strcmp("pi", buf)) {
 	  redo=1;
 	  tb.isPi=0;
@@ -4186,13 +4204,13 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   li=0, pi=0, sli = 0;
   for (i=0; i<NV; i++) {
     islhs = tb.lh[i];
-    if (islhs == 10){
+    if (islhs == isSuppressedLHS){
       SET_STRING_ELT(slhs, sli++, mkChar(tb.ss.line[i]));
     }
-    if (islhs>1 && islhs != 19 && islhs != 70) {
+    if (islhs>1 && islhs != isLhsStateExtra && islhs != isLHSparam) {
       if (tb.lag[i] != 0){
 	buf=tb.ss.line[i];
-	if (islhs == 9){
+	if (islhs == isState){
 	  sPrint(&_bufw, _("state '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"), buf);
 	  trans_syntax_error_report_fn0(_bufw.s);
 	} else if (islhs == 10 || islhs == 11){
