@@ -1061,6 +1061,1079 @@ static inline void handleOperatorsOrPrintingIdentifiers(int depth, print_node_fn
   }
 }
 
+static inline int handleIndLinMat0(nodeInfo ni, char *name) {
+  if (nodeHas(mat0)){
+    aType(TMAT0);
+    sb.o =0; sbDt.o =0;
+    sAppend(&sb, "_mat[%d] = ", tb.matn++);
+    return 1;
+  }
+  return 0;
+}
+
+static inline int handleIndLinMatf(nodeInfo ni, char *name) {
+  if (nodeHas(matF)){
+    aType(TMATF);
+    sb.o =0; sbDt.o =0;
+    sAppend(&sb, "_matf[%d] = _IR[%d] + ", tb.matnf, tb.matnf);
+    tb.matnf++;
+    return 1;
+  }
+  return 0;
+}
+
+static inline void setFunctionFlag(nodeInfo ni, char *name, int i, int *depth) {
+  tb.fn = (i==0 && (nodeHas(function)) ? 1 : 0);
+  if (tb.fn == 0) tb.fn = (i==0 && (nodeHas(function_name)) ? 2 : 0);
+  if (tb.fn == 1) *depth = 0;
+}
+
+static inline int handleIfElse(nodeInfo ni, char *name, int i) {
+  if (nodeHas(ifelse)){
+    if (i == 0){
+      return 1;
+    } else if (i == 1){
+      aAppendN("((", 2);
+      sAppendN(&sbt,"ifelse(", 7);
+      return 1;
+    } else if (i == 3){
+      aAppendN(") ? (", 5);
+      sAppendN(&sbt,",", 1);
+      return 1;
+    } else if (i == 5){
+      aAppendN(") : (", 5);
+      sAppendN(&sbt,",", 1);
+      return 1;
+    } else if (i == 7){
+      aAppendN("))", 2);
+      sAppendN(&sbt,")", 1);
+      return 1;
+    }
+  }
+  if (nodeHas(ifelse_statement)){
+    if (i == 0){
+      return 1;
+    } else if (i == 1){
+      aAppendN("if (", 4);
+      sAppendN(&sbt, "if (", 4);
+      return 1;
+    } else if (i == 3){
+      aType(TLOGIC);
+      aAppendN(") {", 3);
+      sAppendN(&sbt,") {", 3);
+      addLine(&sbPm, "%s\n", sb.s);
+      addLine(&sbPmDt, "%s\n", sbDt.s);
+      sAppend(&sbNrm, "%s\n", sbt.s);
+      addLine(&sbNrmL, "%s\n", sbt.s);
+      sb.o=0;sbDt.o=0; sbt.o=0;
+      return 1;
+    } else if (i == 5){
+      sb.o=0;sbDt.o=0; sbt.o=0;
+      aType(TLOGIC);
+      aAppendN("}\nelse {", 8);
+      sAppendN(&sbt,"}\nelse {", 1);
+      addLine(&sbPm, "%s\n", sb.s);
+      addLine(&sbPmDt, "%s\n", sbDt.s);
+      sAppend(&sbNrm, "%s\n", sbt.s);
+      addLine(&sbNrmL, "%s\n", sbt.s);
+      return 1;
+    } else if (i == 7){
+      sb.o=0;sbDt.o=0; sbt.o=0;
+      aType(TLOGIC);
+      aAppendN("}", 1);
+      sAppendN(&sbt,"}", 1);
+      addLine(&sbPm, "%s\n", sb.s);
+      addLine(&sbPmDt, "%s\n", sbDt.s);
+      sAppend(&sbNrm, "%s\n", sbt.s);
+      addLine(&sbNrmL, "%s\n", sbt.s);
+      return 1;
+    } else if (i == 8){
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static inline int handleSimFunctions(nodeInfo ni, char *name, int *i, int nch,
+				     D_ParseNode *pn){
+  if (nodeHas(simfun_statement) && *i == 0) {
+    *i = nch; // done
+    if (tb.thread != 1) tb.thread = 2;
+    sb.o=0;sbDt.o=0; sbt.o=0;
+    D_ParseNode *xpn = d_get_child(pn, 0);
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    aType(TLOGIC);
+    if (!strcmp("simeta", v)) {
+      foundF0=1;
+      if ((tb.simflg & 1) == 0) tb.simflg += 1;
+    } else {
+      if ((tb.simflg & 2) == 0) tb.simflg += 2;
+    }
+    sAppend(&sb, "%s(_cSub);\n  _SYNC_%s_;", v, v);
+    sAppend(&sbDt, "%s(_cSub);\n  _SYNC_%s_;", v, v);
+    sAppend(&sbt, "%s();", v);
+    addLine(&sbPm, "%s\n", sb.s);
+    addLine(&sbPmDt, "%s\n", sbDt.s);
+    sAppend(&sbNrm, "%s\n", sbt.s);
+    addLine(&sbNrmL, "%s\n", sbt.s);
+    /* Free(v); */
+    ENDLINE;
+    return 1;
+  }
+  return 0;
+}
+
+static inline int handleStringEqualityStatements(nodeInfo ni, char *name, int i, D_ParseNode *xpn) {
+  if (nodeHas(equality_str1)){
+    if (i == 0){
+      // string
+      aAppendN("_cmp1(", 6);
+      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      sAppend(&sb, "%s, ", v);
+      sAppend(&sbDt, "%s, ", v);
+      sAppend(&sbt, "%s", v);
+      /* Free(v); */
+      return 1;
+    }
+    if (i == 1) {
+      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      if (!strcmp(v, "==")) {
+	aAppendN("1, ", 3);
+      } else {
+	aAppendN("0, ", 3);
+      }
+      sAppend(&sbt, "%s", v);
+      /* Free(v); */
+      return 1;
+    }
+    if (i == 2) {
+      // identifier_r
+      // val, valstr
+      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      if (!strcmp(v, "id") || !strcmp(v, "ID") || !strcmp(v, "Id")){
+	aAppendN("(&_solveData->subjects[_cSub])->idReal, \"ID\")", 45);
+	sAppendN(&sbt, "ID", 2);
+      } else {
+	if (new_or_ith(v)) addSymbolStr(v);
+	sAppend(&sb, "%s, \"%s\")", v, v);
+	sAppend(&sbDt, "%s, \"%s\")", v, v);
+	sAppend(&sbt, "%s", v);
+      }
+      /* Free(v); */
+      return 1;
+    }
+  }
+  if (nodeHas(equality_str2)){
+    if (i == 0){
+      // identifier_r
+      aAppendN("_cmp2(", 6);
+      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      if (!strcmp(v, "id") || !strcmp(v, "ID") || !strcmp(v, "Id")){
+	aAppendN("(&_solveData->subjects[_cSub])->idReal, \"ID\", ", 46);
+	sAppendN(&sbt, "ID", 2);
+      } else {
+	if (new_or_ith(v)) addSymbolStr(v);
+	sAppend(&sb, "%s, \"%s\", ", v, v);
+	sAppend(&sbDt, "%s, \"%s\", ", v, v);
+	sAppend(&sbt, "%s", v);
+      }
+      /* Free(v); */
+      return 1;
+    }
+    if (i == 1) {
+      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      if (!strcmp(v, "==")) {
+	aAppendN("1, ", 3);
+      } else {
+	aAppendN("0, ", 3);
+      }
+      sAppend(&sbt, "%s", v);
+      /* Free(v); */
+      return 1;
+    }
+    if (i == 2) {
+      // str
+      // val, valstr
+      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      sAppend(&sb, "%s)", v);
+      sAppend(&sbDt, "%s)", v);
+      sAppend(&sbt, "%s", v);
+      /* Free(v); */
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static inline int handleDvidStatement(nodeInfo ni, char *name, D_ParseNode *xpn, D_ParseNode *pn) {
+  if (nodeHas(dvid_statementI)){
+    if (tb.dvidn == 0){
+      // dvid->cmt translation
+      sb.o=0;sbDt.o=0; sbt.o=0;
+      xpn = d_get_child(pn,2);
+      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      tb.dvid[0]=atoi(v);
+      /* Free(v); */
+      if (tb.dvid[0] == 0){
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(ZERODVID);
+      }
+      sAppend(&sbt, "dvid(%d", tb.dvid[0]);
+      xpn = d_get_child(pn,3);
+      tb.dvidn = d_get_number_of_children(xpn)+1;
+      D_ParseNode *xpn2;
+      for (int i = 0; i < tb.dvidn-1; i++){
+	xpn2 = d_get_child(xpn, i);
+	v = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
+	tb.dvid[i+1]=atoi(v+1);
+	if (tb.dvid[i+1] == 0){
+	  /* Free(v); */
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn(ZERODVID);
+	}
+	sAppend(&sbt, ",%d", tb.dvid[i+1]);
+	/* Free(v); */
+      }
+      sAppend(&sbNrm, "%s);\n", sbt.s);
+      addLine(&sbNrmL, "%s);\n", sbt.s);
+      /* Free(v); */
+      return 1;
+    } else {
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(ZERODVID);
+    }
+    return 1;
+  }
+  return 0;
+}
+
+static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, int nch, D_ParseNode *xpn, D_ParseNode *pn) {
+  if (tb.fn == 1) {
+    int ii;
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    int isNorm=0, isExp=0, isF=0, isGamma=0, isBeta=0,
+      isPois=0, isT=0, isUnif=0, isWeibull=0, isNormV=0,
+      isLead=0, isFirst=0, isLast=0, isDiff=0, isLinB=0,
+      isPnorm=0, isTad=0, isTafd=0, isTlast = 0, isTfirst = 0,
+      isInd=0;
+    if (!strcmp("dosenum", v)) {
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      if (ii == 1){
+	D_ParseNode *xpn = d_get_child(pn, 2);
+	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	if (allSpaces(v2)){
+	  aAppendN("(double)(_solveData->subjects[_cSub].dosenum)", 45);
+	  sAppendN(&sbt, "dosenum()", 9);
+	} else {
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
+	}
+	/* Free(v2); */
+      } else {
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
+      }
+      /* Free(v); */
+      *
+	i = nch;
+      return 1;
+    } else if ((isTad = !strcmp("tad", v)) || (isTafd = !strcmp("tafd", v)) ||
+	       (isTlast = !strcmp("tlast", v)) || (isTfirst = !strcmp("tfirst", v))) {
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      if (ii == 1){
+	D_ParseNode *xpn = d_get_child(pn, 2);
+	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	if (allSpaces(v2)){
+	  // tad overall
+	  sAppend(&sb, "_%s0()", v);
+	  sAppend(&sbDt, "_%s0()", v);
+	} else {
+	  sAppend(&sb, "_%s1(", v);
+	  sAppend(&sbDt, "_%s1(", v);
+	  if (new_de(v2)){
+	    if (!strcmp("depot", v2)){
+	      tb.hasDepot = 1;
+	      aAppendN("_DEPOT_)", 8)
+		} else if (!strcmp("central", v2)){
+	      tb.hasCentral = 1;
+	      aAppendN("_CENTRAL_)", 10)
+		} else if (rx_syntax_require_ode_first){
+	      updateSyntaxCol();
+	      sPrint(&_gbuf,ODEFIRST,v2);
+	      trans_syntax_error_report_fn(_gbuf.s);
+	      /* Free(v2); */
+	      /* Free(v); */
+	      return 1;
+	    } else {
+	      tb.statei++;
+	      sAppend(&sb, "%d)", tb.de.n);
+	      sAppend(&sbDt, "%d)", tb.de.n);
+	    }
+	  } else {
+	    new_or_ith(v2);
+	    sAppend(&sb, "%d)", tb.id);
+	    sAppend(&sbDt, "%d)", tb.id);
+	  }
+	  // tad(cmt)
+	}
+	sAppend(&sbt, "%s(%s)", v, v2);
+	/* Free(v); */
+	/* Free(v2); */
+	/* RSprintf("i: %d / %d\n", i, nch); */
+	/* i = nch;// skip next arguments */
+	/* depth=0; */
+	*i = nch;
+	return 1;
+      }
+    } else if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
+	       !strcmp("max",v) || !strcmp("min",v)){
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      if (!strcmp("prod", v)){
+	sAppend(&sb, "_prod(_p, _input, _solveData->prodType, %d, (double) ", ii);
+	sAppend(&sbDt, "_prod(_p, _input, _solveData->prodType, %d, (double) ", ii);
+	if (maxSumProdN < ii){
+	  maxSumProdN = ii;
+	}
+      } else if (!strcmp("sum", v)){
+	sAppend(&sb, "_sum(_p, _pld, -__MAX_PROD__, _solveData->sumType, %d, (double) ", ii);
+	sAppend(&sbDt, "_sum(_p, _pld, -__MAX_PROD__, _solveData->sumType, %d, (double) ", ii);
+	if (SumProdLD < ii){
+	  SumProdLD = ii;
+	}
+      } else {
+	sAppend(&sb, "_%s(%d, (double) ", v, ii);
+	sAppend(&sbDt, "_%s(%d, (double) ", v, ii);
+      }
+      sAppend(&sbt, "%s(", v);
+      /* Free(v); */
+      *i = 1;// Parse next arguments
+      *depth=1;
+      return 1;
+    } else if (!strcmp("logit", v) || !strcmp("expit", v) ||
+	       !strcmp("invLogit", v) || !strcmp("logitInv", v)){
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      if (ii == 1){
+	D_ParseNode *xpn = d_get_child(pn, 2);
+	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	if (allSpaces(v2)){
+	  updateSyntaxCol();
+	  sPrint(&_gbuf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
+		 v, v);
+	  /* Free(v2); */
+	  trans_syntax_error_report_fn(_gbuf.s);
+	}
+	/* Free(v2); */
+	sAppend(&sb, "_%s1(", v);
+	sAppend(&sbDt,"_%s1(", v);
+	sAppend(&sbt, "%s(", v);
+      } else if (ii == 2) {
+	sAppend(&sb, "_%s2(", v);
+	sAppend(&sbDt,"_%s2(", v);
+	sAppend(&sbt, "%s(", v);
+      } else if (ii == 3) {
+	sAppend(&sb, "%s(", v);
+	sAppend(&sbDt,"%s(", v);
+	sAppend(&sbt, "%s(", v);
+      } else {
+	updateSyntaxCol();
+	sPrint(&_gbuf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
+	       v, v);
+	trans_syntax_error_report_fn(_gbuf.s);
+      }
+      *i = 1;// Parse next arguments
+      *depth=1;
+      /* Free(v); */
+      return 1;
+    } else if (!strcmp("lag", v) || (isLead = !strcmp("lead", v)) ||
+	       (isDiff = !strcmp("diff", v)) ||
+	       (isFirst = !strcmp("first", v)) ||
+	       (isLast = !strcmp("last", v))) {
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      // lag(par, 1) => lag_par(1)
+      // lag(par) => lag_par(1)
+      // Header what lag_par means.
+      if (ii == 1){
+	D_ParseNode *xpn = d_get_child(pn, 2);
+	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	int lagNo=0;
+	if (allSpaces(v2)){
+	  if (isFirst || isLast){
+	    updateSyntaxCol();
+	    sPrint(&_gbuf, _("'%s' takes 1 argument '%s(parameter)'"),
+		   v, v);
+	    trans_syntax_error_report_fn(_gbuf.s);
+	  } else {
+	    updateSyntaxCol();
+	    sPrint(&_gbuf, _("'%s' takes 1-2 arguments '%s(parameter, k)'"),
+		   v, v);
+	    trans_syntax_error_report_fn(_gbuf.s);
+	  }
+	} else {
+	  tb.fn=0;
+	  lagNo = 1;
+	  if (isLead) lagNo=-1;
+	  if (isFirst || isLast) lagNo=NA_INTEGER;
+	  if (new_or_ith(v2)){
+	    addSymbolStr(v2);
+	    tb.lag[NV-1] = lagNo;
+	  } else {
+	    tb.lag[tb.ix] = lagNo;
+	  }
+	  tb.fn=1;
+	}
+	sAppend(&sb,"%s_", v);
+	sAppend(&sbDt,"%s_", v);
+	doDot2(&sb, &sbDt, v2);
+	sAppendN(&sb, "1(", 2);
+	sAppendN(&sbDt, "1(", 2);
+	sAppend(&sbt, "%s(", v);
+	/* Free(v2); */
+      } else if (ii != 2){
+	if (isFirst || isLast){
+	  updateSyntaxCol();
+	  sPrint(&_gbuf, _("'%s' takes 1 argument %s(parameter)"),
+		 v, v);
+	  trans_syntax_error_report_fn(_gbuf.s);
+	} else {
+	  updateSyntaxCol();
+	  sPrint(&_gbuf, _("'%s' takes 1-2 arguments %s(parameter, k)"),
+		 v, v);
+	  trans_syntax_error_report_fn(_gbuf.s);
+	}
+      } else if (ii == 2){
+	if (isFirst || isLast){
+	  updateSyntaxCol();
+	  sPrint(&_gbuf, _("'%s' takes 1 argument %s(parameter)"),
+		 v, v);
+	  trans_syntax_error_report_fn(_gbuf.s);
+	} else {
+	  // Check lag(x, 1);  Its OK with lhs, but nothing else is...
+	  xpn = d_get_child(pn, 3);
+	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  int lagNo=0;
+	  if (strlen(v2) > 2){
+	    lagNo = toInt(v2+1);
+	    if (isLead && lagNo != NA_INTEGER) lagNo = -lagNo;
+	  }
+	  /* Free(v2); */
+	  if (lagNo == NA_INTEGER){
+	    updateSyntaxCol();
+	    sPrint(&_gbuf, _("'%s(parameter, k)' requires k to be an integer"), v);
+	    trans_syntax_error_report_fn(_gbuf.s);
+	  } else if (isDiff && lagNo <= 0){
+	    updateSyntaxCol();
+	    sPrint(&_gbuf, _("'%s(parameter, k)' requires k to be an integer >= 1"), v);
+	    trans_syntax_error_report_fn(_gbuf.s);
+	  } else {
+	    D_ParseNode *xpn = d_get_child(pn, 2);
+	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    tb.fn=0;
+	    if (new_or_ith(v2)){
+	      addSymbolStr(v2);
+	      tb.lag[NV-1] = lagNo;
+	    } else {
+	      tb.lag[tb.ix] = lagNo;
+	    }
+	    tb.fn=1;
+	    if (lagNo == 0){
+	      doDot2(&sb, &sbDt, v2);
+	      /* Free(v2); */
+	      /* Free(v); */
+	      *i = 4;// skip next arguments
+	      *depth=1;
+	      return 1;
+	    } else {
+	      skipDouble=1;
+	      sAppend(&sb,   "%s_", v);
+	      sAppend(&sbDt,   "%s_", v);
+	      doDot2(&sb, &sbDt, v2);
+	      sAppendN(&sb,   "(", 1);
+	      sAppendN(&sbDt,   "(", 1);
+	      sAppend(&sbt,  "%s(", v);
+	    }
+	    /* Free(v2); */
+	  }
+	}
+      }
+      *i = 1;// Parse next arguments
+      *depth=1;
+      /* Free(v); */
+      return 1;
+    } else if ((isPnorm = !strcmp("pnorm", v)) ||
+	       !strcmp("qnorm", v)){
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      if (ii == 1) {
+	D_ParseNode *xpn = d_get_child(pn, 2);
+	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	int allSpace=allSpaces(v2);
+	/* Free(v2); */
+	if (allSpace){
+	  updateSyntaxCol();
+	  if (isPnorm){
+	    trans_syntax_error_report_fn(_("'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"));
+	  } else {
+	    trans_syntax_error_report_fn(_("'qnorm' in RxODE takes 1-3 arguments pnorm(p, mean, sd)"));
+	  }
+	} else {
+	  sAppend(&sb, "_%s1(", v);
+	  sAppend(&sbDt,"_%s1(", v);
+	  sAppend(&sbt, "%s(", v);
+	}
+      } else if (ii == 2) {
+	sAppend(&sb,"_%s2(", v);
+	sAppend(&sbDt,"_%s2(", v);
+	sAppend(&sbt, "%s(", v);
+      } else if (ii == 3) {
+	sAppend(&sb,"_%s3(", v);
+	sAppend(&sbDt,"_%s3(", v);
+	sAppend(&sbt, "%s(", v);
+      } else {
+	updateSyntaxCol();
+	if (isPnorm){
+	  trans_syntax_error_report_fn(_("'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"));
+	} else {
+	  trans_syntax_error_report_fn(_("'qnorm' in RxODE takes 1-3 arguments pnorm(p, mean, sd)"));
+	}
+      }
+      *i = 1;// Parse next arguments
+      *depth=1;
+      /* Free(v); */
+      return 1;
+    } else if (!strcmp("transit", v)) {
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      if (ii == 2){
+	aAppendN("_transit3P(t, _cSub, ", 21);
+	sAppendN(&sbt,"transit(", 8);
+	rx_podo=1;
+      } else if (ii == 3){
+	aAppendN("_transit4P(t, _cSub, ", 21);
+	sAppendN(&sbt,"transit(", 8);
+	rx_podo = 1;
+      } else {
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_("'transit' takes 2-3 arguments transit(n, mtt, bio)"));
+      }
+      *i = 1;// Parse next arguments
+      *depth=1;
+      /* Free(v); */
+      return 1;
+    } else if ((isNorm = !strcmp("rnorm", v) ||
+		!strcmp("rxnorm", v) || (isInd = !strcmp("rinorm", v))) ||
+	       (isNormV = !strcmp("rnormV", v) ||
+		!strcmp("rxnormV", v) || (isInd = !strcmp("rinormV", v))) ||
+	       !strcmp("rxcauchy", v) || (isInd = !strcmp("ricauchy", v)) ||
+	       !strcmp("rcauchy", v) ||
+	       (isF = !strcmp("rxf", v) ||
+		!strcmp("rf", v) || (isInd = !strcmp("rif", v))) ||
+	       (isGamma = !strcmp("rxgamma", v) ||
+		!strcmp("rgamma", v) || (isInd = !strcmp("rigamma", v))) ||
+	       (isBeta = !strcmp("rxbeta", v) ||
+		!strcmp("rbeta", v) || (isInd = !strcmp("ribeta", v))) ||
+	       (isUnif = !strcmp("rxunif", v) ||
+		!strcmp("runif", v) || (isInd = !strcmp("riunif", v))) ||
+	       (isWeibull = !strcmp("rxweibull", v) ||
+		!strcmp("rweibull", v) || (isInd = !strcmp("riweibull", v)))) {
+      if (tb.thread != 0) tb.thread = 2;
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      if (ii == 1){
+	if (isF){
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn(_("'rif'/'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
+	} else if (isBeta){
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn(_("'ribeta'/'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"));
+	} else {
+	  D_ParseNode *xpn = d_get_child(pn, 2);
+	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  int allSpace=allSpaces(v2);
+	  /* Free(v2); */
+	  if (allSpace){
+	    if (isGamma){
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'rigamma'/'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"));
+	    } else if (isWeibull){
+	      updateSyntaxCol();
+	      trans_syntax_error_report_fn(_("'riweibull'/'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, scale)'"));
+	    } else if (isInd) {
+	      // rxnorm()
+	      sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, 0.0, 1.0",  v, tb.nInd);
+	      sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, 0.0, 1.0", v, tb.nInd++);
+	      foundF0=1;
+	    } else {
+	      sAppend(&sb,"%s(&_solveData->subjects[_cSub], 0.0, 1.0", v);
+	      sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 0.0, 1.0", v);
+	    }
+	    sAppend(&sbt, "%s(", v);
+	  } else {
+	    //rxnorm(x)
+	    if (isInd) {
+	      sAppend(&sb,"%s1(%d,", v, tb.nInd);
+	      sAppend(&sbDt,"%s1(%d,", v, tb.nInd++);
+	      foundF0=1;
+	    } else {
+	      sAppend(&sb,"%s1(", v);
+	      sAppend(&sbDt,"%s1(", v);
+	    }
+	    sAppend(&sbt, "%s(", v);
+	  }
+	}
+      } else if (ii == 2){
+	if (isInd){
+	  foundF0=1;
+	  sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd);
+	  sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd++);
+	} else {
+	  sAppend(&sb,"%s(&_solveData->subjects[_cSub], ", v);
+	  sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], ", v);
+	}
+	sAppend(&sbt, "%s(", v);
+      } else {
+	updateSyntaxCol();
+	if (isNormV){
+	  trans_syntax_error_report_fn(_("'rinormV'/'rxnormV'/'rnormV' takes 0-2 arguments 'rxnormV(mean, sd)'"));
+	} else if (isNorm){
+	  trans_syntax_error_report_fn(_("'rinorm'/'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"));
+	} else if (isF) {
+	  trans_syntax_error_report_fn(_("'rif'/'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
+	} else if (isBeta) {
+	  trans_syntax_error_report_fn(_("'ribeta'/'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"));
+	} else if (isGamma) {
+	  trans_syntax_error_report_fn(_("'rigamma'/'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"));
+	} else if (isWeibull) {
+	  trans_syntax_error_report_fn(_("'riweibull'/'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, scale)'"));
+	} else if (isUnif){
+	  trans_syntax_error_report_fn(_("'riunif'/'rxunif'/'runif' takes 0-2 arguments 'rxunif(min, max)'"));
+	} else {
+	  trans_syntax_error_report_fn(_("'ricauchy'/'rxcauchy'/'rcauchy' takes 0-2 arguments 'rxcauchy(location, scale)'"));
+	}
+      }
+      *i = 1;// Parse next arguments
+      *depth=1;
+      /* Free(v); */
+      /* if (isInd) { */
+      /*   sAppendN(&sb, ")", 1); */
+      /*   sAppendN(&sbDt, ")", 1); */
+      /* } */
+      return 1;
+    } else if (!strcmp("rchisq", v) ||
+	       !strcmp("rxchisq", v) ||
+	       (isInd = !strcmp("richisq", v)) ||
+	       (isExp = !strcmp("rxexp", v) ||
+		!strcmp("rexp", v) ||
+		(isInd = !strcmp("riexp", v))) ||
+	       (isT = !strcmp("rxt", v) ||
+		!strcmp("rt", v) ||
+		(isInd = !strcmp("rit", v)))) {
+      if (tb.thread != 0) tb.thread = 2;
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      if (ii != 1){
+	sPrint(&_gbuf, _("'%s' takes 1 arguments"), v);
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_gbuf.s);
+      } else {
+	D_ParseNode *xpn = d_get_child(pn, 2);
+	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	int allSpace=allSpaces(v2);
+	/* Free(v2); */
+	if (allSpace){
+	  if (isExp){
+	    if (isInd) {
+	      sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, 1.0", v, tb.nInd);
+	      sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, 1.0", v, tb.nInd++);
+	      foundF0=1;
+	    } else {
+	      sAppend(&sb,"%s(&_solveData->subjects[_cSub], 1.0", v);
+	      sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 1.0", v);
+	    }
+	    sAppend(&sbt, "%s(", v);
+	  } else {
+	    sPrint(&_gbuf, _("'%s' takes 1 argument"), v);
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_gbuf.s);
+	  }
+	} else if (isT){
+	  if (isInd) {
+	    sAppend(&sb,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd);
+	    sAppend(&sbDt,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd++);
+	    foundF0=1;
+	    sAppendN(&sbt, "rit(", 4);
+	  } else {
+	    sAppendN(&sb,"rxt_(&_solveData->subjects[_cSub], ", 35);
+	    sAppendN(&sbDt,"rxt_(&_solveData->subjects[_cSub], ", 35);
+	    sAppendN(&sbt, "rxt(", 4);
+	  }
+	} else {
+	  if (isInd) {
+	    sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd);
+	    sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd++);
+	    foundF0=1;
+	  } else {
+	    sAppend(&sb,"%s(&_solveData->subjects[_cSub], ", v);
+	    sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], ", v);
+	  }
+	  sAppend(&sbt, "%s(", v);
+	}
+      }
+      *i = 1;// Parse next arguments
+      *depth=1;
+      /* Free(v); */
+      /* if (isInd) { */
+      /*   sAppendN(&sb, ")", 1); */
+      /*   sAppendN(&sbDt, ")", 1); */
+      /* } */
+      return 1;
+    } else if (!strcmp("rxgeom", v) ||
+	       !strcmp("rgeom", v) ||
+	       (isInd = !strcmp("rigeom", v)) ||
+	       (isPois= !strcmp("rxpois", v) ||
+		!strcmp("rpois", v) ||
+		(isInd = !strcmp("ripois", v)))) {
+      if (tb.thread != 0) tb.thread = 2;
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      if (ii != 1){
+	updateSyntaxCol();
+	if (isPois){
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn(_("'ripois'/'rxpois'/'rpois' takes 1 argument 'rxpois(lambda)'"));
+	} else {
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn(_("'rigeom'/'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
+	}
+      } else {
+	D_ParseNode *xpn = d_get_child(pn, 2);
+	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	int allSpace=allSpaces(v2);
+	/* Free(v2); */
+	if (allSpace){
+	  if (isPois){
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'ripois'/'rxpois'/'rpois' takes 1 argument 'rxpois(lambda)'"));
+	  } else {
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_("'rigeom'/'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
+	  }
+	} else {
+	  if (isInd) {
+	    sAppend(&sb, "(double)%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd);
+	    sAppend(&sbDt, "(double)%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd++);
+	    foundF0=1;
+	  } else {
+	    sAppend(&sb, "(double)%s(&_solveData->subjects[_cSub], ", v);
+	    sAppend(&sbDt, "(double)%s(&_solveData->subjects[_cSub], ", v);
+	  }
+	  sAppend(&sbt, "%s(", v);
+	}
+      }
+      *i = 1;// Parse next arguments
+      *depth=1;
+      /* Free(v); */
+      return 1;
+    } else if (!strcmp("rbinom", v) ||
+	       !strcmp("rxbinom", v) ||
+	       (isInd = !strcmp("ribinom", v))) {
+      if (tb.thread != 0) tb.thread = 2;
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      if (ii != 2){
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_("'ribinom'/'rbinom'/'rxbinom' takes 2 arguments 'rxbinom(size, prob)'"));
+      } else {
+	if (isInd){
+	  sAppend(&sb,   "(double)ribinom(&_solveData->subjects[_cSub], %d, (int)" , tb.nInd);
+	  sAppend(&sbDt, "(double)ribinom(&_solveData->subjects[_cSub], %d, (int)", tb.nInd++);
+	  sAppendN(&sbt, "ribinom(", 8);
+	} else {
+	  aAppendN("(double)rxbinom(&_solveData->subjects[_cSub], (int)", 51);
+	  sAppendN(&sbt, "rxbinom(", 8);
+	}
+      }
+      *i = 1;// Parse next arguments
+      *depth=1;
+      /* Free(v); */
+      /* if (isInd) { */
+      /*   sAppendN(&sb, ")", 1); */
+      /*   sAppendN(&sbDt, ")", 1); */
+      /* } */
+      return 1;
+    } else if (!strcmp("is.nan", v)) {
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      D_ParseNode *xpn = d_get_child(pn, 2);
+      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      int allSpace=allSpaces(v2);
+      /* Free(v2); */
+      if (ii != 1 || (ii == 1 && allSpace)) {
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_("'is.nan' takes 1 argument"));
+      }
+      sAppendN(&sb, "isnan", 5);
+      sAppendN(&sbDt, "isnan", 5);
+      sAppendN(&sbt, "is.nan", 6);
+      /* Free(v); */
+      return 1;
+    } else if (!strcmp("is.na", v)) {
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      D_ParseNode *xpn = d_get_child(pn, 2);
+      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      int allSpace=allSpaces(v2);
+      /* Free(v2); */
+      if (ii != 1 || (ii == 1 && allSpace)) {
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_("'is.na' takes 1 argument"));
+      }
+      sAppendN(&sb, "ISNA", 4);
+      sAppendN(&sbDt, "ISNA", 4);
+      sAppendN(&sbt, "is.na", 5);
+      /* Free(v); */
+      return 1;
+    } else if (!strcmp("is.finite", v)) {
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      D_ParseNode *xpn = d_get_child(pn, 2);
+      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      int allSpace=allSpaces(v2);
+      /* Free(v2); */
+      if (ii != 1 || (ii == 1 && allSpace)) {
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_("'is.finite' takes 1 argument"));
+      }
+      sAppendN(&sb, "R_FINITE", 8);
+      sAppendN(&sbDt, "R_FINITE", 8);
+      sAppendN(&sbt, "is.finite", 9);
+      /* Free(v); */
+      return 1;
+    } else if (!strcmp("is.infinite", v)) {
+      ii = d_get_number_of_children(d_get_child(pn,3))+1;
+      D_ParseNode *xpn = d_get_child(pn, 2);
+      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      int allSpace=allSpaces(v2);
+      /* Free(v2); */
+      if (ii != 1 || (ii == 1 && allSpace)) {
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_("'is.infinite' takes 1 argument"));
+      }
+      if (sbt.o > 0 && sbt.s[sbt.o-1] == '!'){
+	sb.o--;sbDt.o--;
+	sAppendN(&sb, "R_FINITE", 8);
+	sAppendN(&sbDt, "R_FINITE", 8);
+      } else {
+	sAppendN(&sb, "!R_FINITE", 9);
+	sAppendN(&sbDt, "!R_FINITE", 9);
+      }
+      /* Free(v); */
+      sAppendN(&sbt, "is.infinite", 11);
+      return 1;
+    } else if (!strcmp("linCmtA", v) || !strcmp("linCmtC", v) ||
+	       (isLinB=!strcmp("linCmtB", v))){
+      D_ParseNode *xpn1;
+      xpn1 = d_get_child(pn, 3);
+      D_ParseNode *xpn2;
+      xpn2 = d_get_child(xpn1, 1);
+      char *v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
+      tb.linCmtN = toInt(v2+1);
+      /* Free(v2); */
+      xpn2 = d_get_child(xpn1, 2);
+      v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
+      tb.ncmt = toInt(v2+1);
+      /* Free(v2); */
+      if (isLinB) isLinB=1;
+      tb.linB = isLinB;
+      if (!tb.linExtra) {
+	// 10 tlag
+	xpn2 = d_get_child(xpn1, 10+isLinB);
+	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	       !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	  // has interesting tlag
+	  int ixL = tb.ixL;
+	  int didEq = tb.didEq;
+	  if (foundLag == 0) needSort+=2; // & 2 when alag
+	  foundLag=1;
+	  aType(ALAG);
+	  addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	  addLine(&sbPmDt, "_alag[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	  addLine(&sbNrmL, "");
+	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	  ENDLINE;
+	  tb.ixL= ixL; tb.didEq=didEq;
+	}
+	/* Free(v2); */
+	// 11 f1
+	xpn2 = d_get_child(xpn1, 11+isLinB);
+	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
+	       !strcmp(v2, "1.") || !strcmp(v2, "")))) {
+	  // has interesting f1
+	  int ixL = tb.ixL;
+	  int didEq = tb.didEq;
+	  if (foundF == 0) needSort+=1;// & 1 when F
+	  foundF=1;
+	  aType(FBIO);
+	  addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	  addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	  addLine(&sbNrmL, "");
+	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	  ENDLINE;
+	  tb.ixL= ixL; tb.didEq=didEq;
+	}
+	/* Free(v2); */
+	// 13 dur1
+	xpn2 = d_get_child(xpn1, 13+isLinB);
+	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	       !strcmp(v2, "0.")) || !strcmp(v2, ""))) {
+	  // has interesting rate
+	  int ixL = tb.ixL;
+	  int didEq = tb.didEq;
+	  if (foundDur == 0) needSort+=4;// & 4 when dur
+	  foundDur=1;
+	  aType(DUR);
+	  addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	  addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	  addLine(&sbNrmL, "");
+	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	  ENDLINE;
+	  tb.ixL= ixL; tb.didEq=didEq;
+	}
+	/* Free(v2); */
+	// 12 rate1
+	xpn2 = d_get_child(xpn1, 12+isLinB);
+	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	       !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	  // has interesting rate
+	  int ixL = tb.ixL;
+	  int didEq = tb.didEq;
+	  if (foundRate == 0) needSort+=8;// & 8 when rate
+	  foundRate=1;
+	  aType(RATE);
+	  addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	  addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	  addLine(&sbNrmL, "");
+	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	  ENDLINE;
+	  tb.ixL= ixL; tb.didEq=didEq;
+	}
+	/* Free(v2); */
+	// 14 -- ka
+	xpn2 = d_get_child(xpn1, 14+isLinB);
+	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	       !strcmp(v2, "0.")))) {
+	  tb.hasKa=1;
+	}
+	/* Free(v2); */
+	// lag2 = 15
+	xpn2 = d_get_child(xpn1, 15+isLinB);
+	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	       !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	  // has interesting tlag
+	  int ixL = tb.ixL;
+	  int didEq = tb.didEq;
+	  if (foundLag == 0) needSort+=2; // & 2 when alag
+	  foundLag=1;
+	  aType(ALAG);
+	  addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	  addLine(&sbPmDt, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	  addLine(&sbNrmL, "");
+	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	  ENDLINE;
+	  tb.ixL= ixL; tb.didEq=didEq;
+	}
+	/* Free(v2); */
+	// f2 = 16 ; This is 1 instead of zero
+	xpn2 = d_get_child(xpn1, 16+isLinB);
+	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
+	       !strcmp(v2, "1.") || !strcmp(v2, "")))) {
+	  // has interesting f1
+	  int ixL = tb.ixL;
+	  int didEq = tb.didEq;
+	  if (foundF == 0) needSort+=1;// & 1 when F
+	  foundF=1;
+	  aType(FBIO);
+	  addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	  addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	  addLine(&sbNrmL, "");
+	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	  ENDLINE;
+	  tb.ixL= ixL; tb.didEq=didEq;
+	}
+	/* Free(v2); */
+	// rate2 = 17
+	xpn2 = d_get_child(xpn1, 17+isLinB);
+	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	       !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	  // has interesting rate
+	  int ixL = tb.ixL;
+	  int didEq = tb.didEq;
+	  if (foundRate == 0) needSort+=8;// & 8 when rate
+	  foundRate=1;
+	  aType(RATE);
+	  addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	  addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	  addLine(&sbNrmL, "");
+	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	  ENDLINE;
+	  tb.ixL= ixL; tb.didEq=didEq;
+	}
+	/* Free(v2); */
+	// dur2 = 18
+	xpn2 = d_get_child(xpn1, 18+isLinB);
+	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	       !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	  // has interesting rate
+	  int ixL = tb.ixL;
+	  int didEq = tb.didEq;
+	  if (foundDur == 0) needSort+=4;// & 4 when dur
+	  foundDur=1;
+	  aType(DUR);
+	  addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	  addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	  addLine(&sbNrmL, "");
+	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	  ENDLINE;
+	  tb.ixL= ixL; tb.didEq=didEq;
+	}
+	/* Free(v2); */
+	tb.linExtra=true; // Only first call
+      }
+      aType(TLIN);
+      if (tb.linB){
+	xpn2 = d_get_child(xpn1, 4);
+	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+	int tmp = toInt(v2);
+	if (tmp > 0) {
+	  tmp--;
+	  tmp = 1 << tmp;
+	  if ((tb.linCmtFlg & tmp) == 0){
+	    tb.linCmtFlg += tmp;
+	  }
+	}
+	/* Free(v2); */
+      }
+      /* Free(v); */
+    } else {
+      // Check if this is a valid function
+      int foundFun = 0;
+      for (int j = length(_goodFuns); j--;){
+	if (!strcmp(CHAR(STRING_ELT(_goodFuns, j)),v)){
+	  foundFun = 1;
+	  j=0;
+	  break;
+	}
+      }
+      if (foundFun == 0){
+	sPrint(&_gbuf, _("function '%s' is not supported in RxODE"), v);
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_gbuf.s);
+      }
+    }
+    /* Free(v); */
+  }
+  return 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // assertions
 static inline int assertNoRAssign(nodeInfo ni, char *name, D_ParseNode *pn, int i){
@@ -1103,1056 +2176,29 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     for (i = 0; i < nch; i++) {
       if (assertNoRAssign(ni, name, pn, i)) continue;
       if (isSkipChild(ni, name, i)) continue;
-      
-      if (nodeHas(mat0)){
-	aType(TMAT0);
-	sb.o =0; sbDt.o =0;
-	sAppend(&sb, "_mat[%d] = ", tb.matn++);
-      }
-      if (nodeHas(matF)){
-	aType(TMATF);
-	sb.o =0; sbDt.o =0;
-	sAppend(&sb, "_matf[%d] = _IR[%d] + ", tb.matnf, tb.matnf);
-	tb.matnf++;
-      }
-      tb.fn = (i==0 && (nodeHas(function)) ? 1 : 0);
-      if (tb.fn == 0) tb.fn = (i==0 && (nodeHas(function_name)) ? 2 : 0);
 
-      if (nodeHas(ifelse)){
-	if (i == 0){
-	  continue;
-	} else if (i == 1){
-	  aAppendN("((", 2);
-	  sAppendN(&sbt,"ifelse(", 7);
-	  continue;
-	} else if (i == 3){
-	  aAppendN(") ? (", 5);
-	  sAppendN(&sbt,",", 1);
-	  continue;
-	} else if (i == 5){
-	  aAppendN(") : (", 5);
-	  sAppendN(&sbt,",", 1);
-	  continue;
-	} else if (i == 7){
-	  aAppendN("))", 2);
-	  sAppendN(&sbt,")", 1);
-	  continue;
-	}
-      }
-      if (nodeHas(ifelse_statement)){
-	if (i == 0){
-	  continue;
-	} else if (i == 1){
-	  aAppendN("if (", 4);
-	  sAppendN(&sbt, "if (", 4);
-	  continue;
-	} else if (i == 3){
-	  aType(TLOGIC);
-	  aAppendN(") {", 3);
-	  sAppendN(&sbt,") {", 3);
-	  addLine(&sbPm, "%s\n", sb.s);
-	  addLine(&sbPmDt, "%s\n", sbDt.s);
-	  sAppend(&sbNrm, "%s\n", sbt.s);
-	  addLine(&sbNrmL, "%s\n", sbt.s);
-	  sb.o=0;sbDt.o=0; sbt.o=0;
-	  continue;
-	} else if (i == 5){
-	  sb.o=0;sbDt.o=0; sbt.o=0;
-	  aType(TLOGIC);
-	  aAppendN("}\nelse {", 8);
-	  sAppendN(&sbt,"}\nelse {", 1);
-	  addLine(&sbPm, "%s\n", sb.s);
-	  addLine(&sbPmDt, "%s\n", sbDt.s);
-	  sAppend(&sbNrm, "%s\n", sbt.s);
-	  addLine(&sbNrmL, "%s\n", sbt.s);
-	  continue;
-	} else if (i == 7){
-	  sb.o=0;sbDt.o=0; sbt.o=0;
-	  aType(TLOGIC);
-	  aAppendN("}", 1);
-	  sAppendN(&sbt,"}", 1);
-	  addLine(&sbPm, "%s\n", sb.s);
-	  addLine(&sbPmDt, "%s\n", sbDt.s);
-	  sAppend(&sbNrm, "%s\n", sbt.s);
-	  addLine(&sbNrmL, "%s\n", sbt.s);
-	  continue;
-	} else if (i == 8){
-	  continue;
-	}
-      }
+      // Inductive linearization matrices
+      if (handleIndLinMat0(ni, name)) continue;
+      if (handleIndLinMatf(ni, name)) continue;
 
-      if (nodeHas(simfun_statement) && i == 0) {
-	i = nch; // done
-	if (tb.thread != 1) tb.thread = 2;
-	sb.o=0;sbDt.o=0; sbt.o=0;
-	D_ParseNode *xpn = d_get_child(pn, 0);
-	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	aType(TLOGIC);
-	if (!strcmp("simeta", v)) {
-	  foundF0=1;
-	  if ((tb.simflg & 1) == 0) tb.simflg += 1;
-	} else {
-	  if ((tb.simflg & 2) == 0) tb.simflg += 2;
-	}
-	sAppend(&sb, "%s(_cSub);\n  _SYNC_%s_;", v, v);
-	sAppend(&sbDt, "%s(_cSub);\n  _SYNC_%s_;", v, v);
-	sAppend(&sbt, "%s();", v);
-	addLine(&sbPm, "%s\n", sb.s);
-	addLine(&sbPmDt, "%s\n", sbDt.s);
-	sAppend(&sbNrm, "%s\n", sbt.s);
-	addLine(&sbNrmL, "%s\n", sbt.s);
-	/* Free(v); */
-	ENDLINE;
-	continue;
-      }
+      // Determine if this is a function and change depth flag if needed
+      setFunctionFlag(ni, name, i, &depth);
 
-      if (tb.fn == 1) depth = 0;
+      if (handleIfElse(ni, name, i)) continue;
+
+      // simeta()/simeps()
+      if (handleSimFunctions(ni, name, &i, nch, pn)) continue;
 
       D_ParseNode *xpn = d_get_child(pn,i);
+      if (handleStringEqualityStatements(ni, name, i, xpn)) continue;
 
       if (nodeHas(param_statement) && i == 0) {
 	sAppendN(&sbt,"param", 5);
 	sbDt.o = 0;
       }
-
-      if (nodeHas(equality_str1)){
-	if (i == 0){
-	  // string
-	  aAppendN("_cmp1(", 6);
-	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  sAppend(&sb, "%s, ", v);
-	  sAppend(&sbDt, "%s, ", v);
-	  sAppend(&sbt, "%s", v);
-	  /* Free(v); */
-	  continue;
-	}
-	if (i == 1) {
-	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  if (!strcmp(v, "==")) {
-	    aAppendN("1, ", 3);
-	  } else {
-	    aAppendN("0, ", 3);
-	  }
-	  sAppend(&sbt, "%s", v);
-	  /* Free(v); */
-	  continue;
-	}
-	if (i == 2) {
-	  // identifier_r
-	  // val, valstr
-	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  if (!strcmp(v, "id") || !strcmp(v, "ID") || !strcmp(v, "Id")){
-	    aAppendN("(&_solveData->subjects[_cSub])->idReal, \"ID\")", 45);
-	    sAppendN(&sbt, "ID", 2);
-	  } else {
-	    if (new_or_ith(v)) addSymbolStr(v);
-	    sAppend(&sb, "%s, \"%s\")", v, v);
-	    sAppend(&sbDt, "%s, \"%s\")", v, v);
-	    sAppend(&sbt, "%s", v);
-	  }
-	  /* Free(v); */
-	  continue;
-	}
-      }
-      if (nodeHas(equality_str2)){
-	if (i == 0){
-	  // identifier_r
-	  aAppendN("_cmp2(", 6);
-	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  if (!strcmp(v, "id") || !strcmp(v, "ID") || !strcmp(v, "Id")){
-	    aAppendN("(&_solveData->subjects[_cSub])->idReal, \"ID\", ", 46);
-	    sAppendN(&sbt, "ID", 2);
-	  } else {
-	    if (new_or_ith(v)) addSymbolStr(v);
-	    sAppend(&sb, "%s, \"%s\", ", v, v);
-	    sAppend(&sbDt, "%s, \"%s\", ", v, v);
-	    sAppend(&sbt, "%s", v);
-	  }
-	  /* Free(v); */
-	  continue;
-	}
-	if (i == 1) {
-	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  if (!strcmp(v, "==")) {
-	    aAppendN("1, ", 3);
-	  } else {
-	    aAppendN("0, ", 3);
-	  }
-	  sAppend(&sbt, "%s", v);
-	  /* Free(v); */
-	  continue;
-	}
-	if (i == 2) {
-	  // str
-	  // val, valstr
-	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  sAppend(&sb, "%s)", v);
-	  sAppend(&sbDt, "%s)", v);
-	  sAppend(&sbt, "%s", v);
-	  /* Free(v); */
-	  continue;
-	}
-      }
-      if (nodeHas(dvid_statementI)){
-	if (tb.dvidn == 0){
-	  // dvid->cmt translation
-	  sb.o=0;sbDt.o=0; sbt.o=0;
-	  xpn = d_get_child(pn,2);
-	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  tb.dvid[0]=atoi(v);
-	  /* Free(v); */
-	  if (tb.dvid[0] == 0){
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(ZERODVID);
-	  }
-	  sAppend(&sbt, "dvid(%d", tb.dvid[0]);
-	  xpn = d_get_child(pn,3);
-	  tb.dvidn = d_get_number_of_children(xpn)+1;
-	  D_ParseNode *xpn2;
-	  for (i = 0; i < tb.dvidn-1; i++){
-	    xpn2 = d_get_child(xpn, i);
-	    v = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
-	    tb.dvid[i+1]=atoi(v+1);
-	    if (tb.dvid[i+1] == 0){
-	      /* Free(v); */
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(ZERODVID);
-	    }
-	    sAppend(&sbt, ",%d", tb.dvid[i+1]);
-	    /* Free(v); */
-	  }
-	  sAppend(&sbNrm, "%s);\n", sbt.s);
-	  addLine(&sbNrmL, "%s);\n", sbt.s);
-	  /* Free(v); */
-	  continue;
-	} else {
-	  updateSyntaxCol();
-	  trans_syntax_error_report_fn(ZERODVID);
-	}
-	continue;
-      }
-      if (tb.fn == 1){
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	int isNorm=0, isExp=0, isF=0, isGamma=0, isBeta=0,
-	  isPois=0, isT=0, isUnif=0, isWeibull=0, isNormV=0,
-	  isLead=0, isFirst=0, isLast=0, isDiff=0, isLinB=0,
-	  isPnorm=0, isTad=0, isTafd=0, isTlast = 0, isTfirst = 0,
-	  isInd=0;
-	if (!strcmp("dosenum", v)) {
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  if (ii == 1){
-	    D_ParseNode *xpn = d_get_child(pn, 2);
-	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	    if (allSpaces(v2)){
-	      aAppendN("(double)(_solveData->subjects[_cSub].dosenum)", 45);
-	      sAppendN(&sbt, "dosenum()", 9);
-	    } else {
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
-	    }
-	    /* Free(v2); */
-	  } else {
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
-	  }
-	  /* Free(v); */
-	  i = nch;
-	  continue;
-	} else if ((isTad = !strcmp("tad", v)) || (isTafd = !strcmp("tafd", v)) ||
-	    (isTlast = !strcmp("tlast", v)) || (isTfirst = !strcmp("tfirst", v))) {
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  if (ii == 1){
-	    D_ParseNode *xpn = d_get_child(pn, 2);
-	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	    if (allSpaces(v2)){
-	      // tad overall
-	      sAppend(&sb, "_%s0()", v);
-	      sAppend(&sbDt, "_%s0()", v);
-	    } else {
-	      sAppend(&sb, "_%s1(", v);
-	      sAppend(&sbDt, "_%s1(", v);
-	      if (new_de(v2)){
-		if (!strcmp("depot", v2)){
-		  tb.hasDepot = 1;
-		  aAppendN("_DEPOT_)", 8)
-		} else if (!strcmp("central", v2)){
-		  tb.hasCentral = 1;
-		  aAppendN("_CENTRAL_)", 10)
-		} else if (rx_syntax_require_ode_first){
-		  updateSyntaxCol();
-		  sPrint(&_gbuf,ODEFIRST,v2);
-		  trans_syntax_error_report_fn(_gbuf.s);
-		  /* Free(v2); */
-		  /* Free(v); */
-		  continue;
-		} else {
-		  tb.statei++;
-		  sAppend(&sb, "%d)", tb.de.n);
-		  sAppend(&sbDt, "%d)", tb.de.n);
-		}
-	      } else {
-		new_or_ith(v2);
-		sAppend(&sb, "%d)", tb.id);
-		sAppend(&sbDt, "%d)", tb.id);
-	      }
-	      // tad(cmt)
-	    }
-	    sAppend(&sbt, "%s(%s)", v, v2);
-	    /* Free(v); */
-	    /* Free(v2); */
-	    /* RSprintf("i: %d / %d\n", i, nch); */
-	    /* i = nch;// skip next arguments */
-	    /* depth=0; */
-	    i = nch;
-	    continue;
-	  }
-	} else if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
-	    !strcmp("max",v) || !strcmp("min",v)){
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  if (!strcmp("prod", v)){
-            sAppend(&sb, "_prod(_p, _input, _solveData->prodType, %d, (double) ", ii);
-	    sAppend(&sbDt, "_prod(_p, _input, _solveData->prodType, %d, (double) ", ii);
-            if (maxSumProdN < ii){
-              maxSumProdN = ii;
-            }
-          } else if (!strcmp("sum", v)){
-	    sAppend(&sb, "_sum(_p, _pld, -__MAX_PROD__, _solveData->sumType, %d, (double) ", ii);
-	    sAppend(&sbDt, "_sum(_p, _pld, -__MAX_PROD__, _solveData->sumType, %d, (double) ", ii);
-            if (SumProdLD < ii){
-              SumProdLD = ii;
-            }
-	  } else {
-	    sAppend(&sb, "_%s(%d, (double) ", v, ii);
-	    sAppend(&sbDt, "_%s(%d, (double) ", v, ii);
-	  }
-	  sAppend(&sbt, "%s(", v);
-          /* Free(v); */
-          i = 1;// Parse next arguments
-	  depth=1;
-	  continue;
-	} else if (!strcmp("logit", v) || !strcmp("expit", v) ||
-		   !strcmp("invLogit", v) || !strcmp("logitInv", v)){
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  if (ii == 1){
-	    D_ParseNode *xpn = d_get_child(pn, 2);
-	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	    if (allSpaces(v2)){
-	      updateSyntaxCol();
-	      sPrint(&_gbuf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
-		     v, v);
-	      /* Free(v2); */
-	      trans_syntax_error_report_fn(_gbuf.s);
-	    }
-	    /* Free(v2); */
-	    sAppend(&sb, "_%s1(", v);
-	    sAppend(&sbDt,"_%s1(", v);
-	    sAppend(&sbt, "%s(", v);
-	  } else if (ii == 2) {
-	    sAppend(&sb, "_%s2(", v);
-	    sAppend(&sbDt,"_%s2(", v);
-	    sAppend(&sbt, "%s(", v);
-	  } else if (ii == 3) {
-	    sAppend(&sb, "%s(", v);
-	    sAppend(&sbDt,"%s(", v);
-	    sAppend(&sbt, "%s(", v);
-	  } else {
-	    updateSyntaxCol();
-	    sPrint(&_gbuf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
-		   v, v);
-	    trans_syntax_error_report_fn(_gbuf.s);
-	  }
-	  i = 1;// Parse next arguments
-	  depth=1;
-	  /* Free(v); */
-	  continue;
-	} else if (!strcmp("lag", v) || (isLead = !strcmp("lead", v)) ||
-		   (isDiff = !strcmp("diff", v)) ||
-		   (isFirst = !strcmp("first", v)) ||
-		   (isLast = !strcmp("last", v))) {
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  // lag(par, 1) => lag_par(1)
-	  // lag(par) => lag_par(1)
-	  // Header what lag_par means.
-	  if (ii == 1){
-	    D_ParseNode *xpn = d_get_child(pn, 2);
-	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	    int lagNo=0;
-	    if (allSpaces(v2)){
-	      if (isFirst || isLast){
-		updateSyntaxCol();
-		sPrint(&_gbuf, _("'%s' takes 1 argument '%s(parameter)'"),
-		       v, v);
-		trans_syntax_error_report_fn(_gbuf.s);
-	      } else {
-		updateSyntaxCol();
-		sPrint(&_gbuf, _("'%s' takes 1-2 arguments '%s(parameter, k)'"),
-		       v, v);
-		trans_syntax_error_report_fn(_gbuf.s);
-	      }
-	    } else {
-	      tb.fn=0;
-	      lagNo = 1;
-	      if (isLead) lagNo=-1;
-	      if (isFirst || isLast) lagNo=NA_INTEGER;
-	      if (new_or_ith(v2)){
-		addSymbolStr(v2);
-		tb.lag[NV-1] = lagNo;
-	      } else {
-		tb.lag[tb.ix] = lagNo;
-	      }
-	      tb.fn=1;
-	    }
-	    sAppend(&sb,"%s_", v);
-	    sAppend(&sbDt,"%s_", v);
-	    doDot2(&sb, &sbDt, v2);
-	    sAppendN(&sb, "1(", 2);
-	    sAppendN(&sbDt, "1(", 2);
-	    sAppend(&sbt, "%s(", v);
-	    /* Free(v2); */
-	  } else if (ii != 2){
-	    if (isFirst || isLast){
-		updateSyntaxCol();
-		sPrint(&_gbuf, _("'%s' takes 1 argument %s(parameter)"),
-		       v, v);
-		trans_syntax_error_report_fn(_gbuf.s);
-	    } else {
-	      updateSyntaxCol();
-	      sPrint(&_gbuf, _("'%s' takes 1-2 arguments %s(parameter, k)"),
-		     v, v);
-	      trans_syntax_error_report_fn(_gbuf.s);
-	    }
-	  } else if (ii == 2){
-	    if (isFirst || isLast){
-	      updateSyntaxCol();
-	      sPrint(&_gbuf, _("'%s' takes 1 argument %s(parameter)"),
-		     v, v);
-	      trans_syntax_error_report_fn(_gbuf.s);
-	    } else {
-	      // Check lag(x, 1);  Its OK with lhs, but nothing else is...
-	      xpn = d_get_child(pn, 3);
-	      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	      int lagNo=0;
-	      if (strlen(v2) > 2){
-		lagNo = toInt(v2+1);
-		if (isLead && lagNo != NA_INTEGER) lagNo = -lagNo;
-	      }
-	      /* Free(v2); */
-	      if (lagNo == NA_INTEGER){
-		updateSyntaxCol();
-		sPrint(&_gbuf, _("'%s(parameter, k)' requires k to be an integer"), v);
-		trans_syntax_error_report_fn(_gbuf.s);
-	      } else if (isDiff && lagNo <= 0){
-		updateSyntaxCol();
-		sPrint(&_gbuf, _("'%s(parameter, k)' requires k to be an integer >= 1"), v);
-		trans_syntax_error_report_fn(_gbuf.s);
-	      } else {
-		D_ParseNode *xpn = d_get_child(pn, 2);
-		char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-		tb.fn=0;
-		if (new_or_ith(v2)){
-		  addSymbolStr(v2);
-		  tb.lag[NV-1] = lagNo;
-		} else {
-		  tb.lag[tb.ix] = lagNo;
-		}
-		tb.fn=1;
-		if (lagNo == 0){
-		  doDot2(&sb, &sbDt, v2);
-		  /* Free(v2); */
-		  /* Free(v); */
-		  i = 4;// skip next arguments
-		  depth=1;
-		  continue;
-		} else {
-		  skipDouble=1;
-		  sAppend(&sb,   "%s_", v);
-		  sAppend(&sbDt,   "%s_", v);
-		  doDot2(&sb, &sbDt, v2);
-		  sAppendN(&sb,   "(", 1);
-		  sAppendN(&sbDt,   "(", 1);
-		  sAppend(&sbt,  "%s(", v);
-		}
-		/* Free(v2); */
-	      }
-	    }
-	  }
-	  i = 1;// Parse next arguments
-	  depth=1;
-	  /* Free(v); */
-	  continue;
-	} else if ((isPnorm = !strcmp("pnorm", v)) ||
-		   !strcmp("qnorm", v)){
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  if (ii == 1) {
-	    D_ParseNode *xpn = d_get_child(pn, 2);
-	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	    int allSpace=allSpaces(v2);
-	    /* Free(v2); */
-	    if (allSpace){
-	      updateSyntaxCol();
-	      if (isPnorm){
-		trans_syntax_error_report_fn(_("'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"));
-	      } else {
-		trans_syntax_error_report_fn(_("'qnorm' in RxODE takes 1-3 arguments pnorm(p, mean, sd)"));
-	      }
-	    } else {
-	      sAppend(&sb, "_%s1(", v);
-	      sAppend(&sbDt,"_%s1(", v);
-	      sAppend(&sbt, "%s(", v);
-	    }
-	  } else if (ii == 2) {
-	    sAppend(&sb,"_%s2(", v);
-	    sAppend(&sbDt,"_%s2(", v);
-	    sAppend(&sbt, "%s(", v);
-	  } else if (ii == 3) {
-	    sAppend(&sb,"_%s3(", v);
-	    sAppend(&sbDt,"_%s3(", v);
-	    sAppend(&sbt, "%s(", v);
-	  } else {
-	    updateSyntaxCol();
-	    if (isPnorm){
-	      trans_syntax_error_report_fn(_("'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"));
-	    } else {
-	      trans_syntax_error_report_fn(_("'qnorm' in RxODE takes 1-3 arguments pnorm(p, mean, sd)"));
-	    }
-	  }
-	  i = 1;// Parse next arguments
-	  depth=1;
-	  /* Free(v); */
-	  continue;
-	} else if (!strcmp("transit", v)) {
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  if (ii == 2){
-	    aAppendN("_transit3P(t, _cSub, ", 21);
-	    sAppendN(&sbt,"transit(", 8);
-	    rx_podo=1;
-	  } else if (ii == 3){
-	    aAppendN("_transit4P(t, _cSub, ", 21);
-	    sAppendN(&sbt,"transit(", 8);
-	    rx_podo = 1;
-	  } else {
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("'transit' takes 2-3 arguments transit(n, mtt, bio)"));
-	  }
-	  i = 1;// Parse next arguments
-	  depth=1;
-	  /* Free(v); */
-	  continue;
-	} else if ((isNorm = !strcmp("rnorm", v) ||
-		    !strcmp("rxnorm", v) || (isInd = !strcmp("rinorm", v))) ||
-		   (isNormV = !strcmp("rnormV", v) ||
-		    !strcmp("rxnormV", v) || (isInd = !strcmp("rinormV", v))) ||
-		   !strcmp("rxcauchy", v) || (isInd = !strcmp("ricauchy", v)) ||
-		   !strcmp("rcauchy", v) ||
-		   (isF = !strcmp("rxf", v) ||
-		    !strcmp("rf", v) || (isInd = !strcmp("rif", v))) ||
-		   (isGamma = !strcmp("rxgamma", v) ||
-		    !strcmp("rgamma", v) || (isInd = !strcmp("rigamma", v))) ||
-		   (isBeta = !strcmp("rxbeta", v) ||
-		    !strcmp("rbeta", v) || (isInd = !strcmp("ribeta", v))) ||
-		   (isUnif = !strcmp("rxunif", v) ||
-		    !strcmp("runif", v) || (isInd = !strcmp("riunif", v))) ||
-		   (isWeibull = !strcmp("rxweibull", v) ||
-		    !strcmp("rweibull", v) || (isInd = !strcmp("riweibull", v)))) {
-	  if (tb.thread != 0) tb.thread = 2;
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  if (ii == 1){
-	    if (isF){
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(_("'rif'/'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
-	    } else if (isBeta){
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(_("'ribeta'/'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"));
-	    } else {
-	      D_ParseNode *xpn = d_get_child(pn, 2);
-	      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	      int allSpace=allSpaces(v2);
-	      /* Free(v2); */
-	      if (allSpace){
-		if (isGamma){
-		  updateSyntaxCol();
-		  trans_syntax_error_report_fn(_("'rigamma'/'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"));
-		} else if (isWeibull){
-		  updateSyntaxCol();
-		  trans_syntax_error_report_fn(_("'riweibull'/'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, scale)'"));
-		} else if (isInd) {
-		  // rxnorm()
-		  sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, 0.0, 1.0",  v, tb.nInd);
-		  sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, 0.0, 1.0", v, tb.nInd++);
-		  foundF0=1;
-		} else {
-		  sAppend(&sb,"%s(&_solveData->subjects[_cSub], 0.0, 1.0", v);
-		  sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 0.0, 1.0", v);
-		}
-		sAppend(&sbt, "%s(", v);
-	      } else {
-		//rxnorm(x)
-		if (isInd) {
-		  sAppend(&sb,"%s1(%d,", v, tb.nInd);
-		  sAppend(&sbDt,"%s1(%d,", v, tb.nInd++);
-		  foundF0=1;
-		} else {
-		  sAppend(&sb,"%s1(", v);
-		  sAppend(&sbDt,"%s1(", v);
-		}
-		sAppend(&sbt, "%s(", v);
-	      }
-	    }
-	  } else if (ii == 2){
-	    if (isInd){
-	      foundF0=1;
-	      sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd);
-	      sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd++);
-	    } else {
-	      sAppend(&sb,"%s(&_solveData->subjects[_cSub], ", v);
-	      sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], ", v);
-	    }
-	    sAppend(&sbt, "%s(", v);
-	  } else {
-	    updateSyntaxCol();
-	    if (isNormV){
-	      trans_syntax_error_report_fn(_("'rinormV'/'rxnormV'/'rnormV' takes 0-2 arguments 'rxnormV(mean, sd)'"));
-	    } else if (isNorm){
-	      trans_syntax_error_report_fn(_("'rinorm'/'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"));
-	    } else if (isF) {
-	      trans_syntax_error_report_fn(_("'rif'/'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
-	    } else if (isBeta) {
-	      trans_syntax_error_report_fn(_("'ribeta'/'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"));
-	    } else if (isGamma) {
-	      trans_syntax_error_report_fn(_("'rigamma'/'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"));
-	    } else if (isWeibull) {
-	      trans_syntax_error_report_fn(_("'riweibull'/'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, scale)'"));
-	    } else if (isUnif){
-	      trans_syntax_error_report_fn(_("'riunif'/'rxunif'/'runif' takes 0-2 arguments 'rxunif(min, max)'"));
-	    } else {
-	      trans_syntax_error_report_fn(_("'ricauchy'/'rxcauchy'/'rcauchy' takes 0-2 arguments 'rxcauchy(location, scale)'"));
-	    }
-	  }
-	  i = 1;// Parse next arguments
-	  depth=1;
-	  /* Free(v); */
-	  /* if (isInd) { */
-	  /*   sAppendN(&sb, ")", 1); */
-	  /*   sAppendN(&sbDt, ")", 1); */
-	  /* } */
-	  continue;
-	} else if (!strcmp("rchisq", v) ||
-		   !strcmp("rxchisq", v) ||
-		   (isInd = !strcmp("richisq", v)) ||
-		   (isExp = !strcmp("rxexp", v) ||
-		    !strcmp("rexp", v) ||
-		    (isInd = !strcmp("riexp", v))) ||
-		   (isT = !strcmp("rxt", v) ||
-		    !strcmp("rt", v) ||
-		    (isInd = !strcmp("rit", v)))) {
-	  if (tb.thread != 0) tb.thread = 2;
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  if (ii != 1){
-	    sPrint(&_gbuf, _("'%s' takes 1 arguments"), v);
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_gbuf.s);
-	  } else {
-	    D_ParseNode *xpn = d_get_child(pn, 2);
-	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	    int allSpace=allSpaces(v2);
-	    /* Free(v2); */
-	    if (allSpace){
-	      if (isExp){
-		if (isInd) {
-		  sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, 1.0", v, tb.nInd);
-		  sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, 1.0", v, tb.nInd++);
-		  foundF0=1;
-		} else {
-		  sAppend(&sb,"%s(&_solveData->subjects[_cSub], 1.0", v);
-		  sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 1.0", v);
-		}
-		sAppend(&sbt, "%s(", v);
-	      } else {
-		sPrint(&_gbuf, _("'%s' takes 1 argument"), v);
-		updateSyntaxCol();
-		trans_syntax_error_report_fn(_gbuf.s);
-	      }
-	    } else if (isT){
-	      if (isInd) {
-		sAppend(&sb,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd);
-		sAppend(&sbDt,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd++);
-		foundF0=1;
-		sAppendN(&sbt, "rit(", 4);
-	      } else {
-		sAppendN(&sb,"rxt_(&_solveData->subjects[_cSub], ", 35);
-		sAppendN(&sbDt,"rxt_(&_solveData->subjects[_cSub], ", 35);
-		sAppendN(&sbt, "rxt(", 4);
-	      }
-	    } else {
-	      if (isInd) {
-		sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd);
-		sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd++);
-		foundF0=1;
-	      } else {
-		sAppend(&sb,"%s(&_solveData->subjects[_cSub], ", v);
-		sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], ", v);
-	      }
-	      sAppend(&sbt, "%s(", v);
-	    }
-	  }
-	  i = 1;// Parse next arguments
-	  depth=1;
-	  /* Free(v); */
-	  /* if (isInd) { */
-	  /*   sAppendN(&sb, ")", 1); */
-	  /*   sAppendN(&sbDt, ")", 1); */
-	  /* } */
-	  continue;
-	} else if (!strcmp("rxgeom", v) ||
-		   !strcmp("rgeom", v) ||
-		   (isInd = !strcmp("rigeom", v)) ||
-		   (isPois= !strcmp("rxpois", v) ||
-		    !strcmp("rpois", v) ||
-		    (isInd = !strcmp("ripois", v)))) {
-	  if (tb.thread != 0) tb.thread = 2;
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  if (ii != 1){
-	    updateSyntaxCol();
-	    if (isPois){
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(_("'ripois'/'rxpois'/'rpois' takes 1 argument 'rxpois(lambda)'"));
-	    } else {
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(_("'rigeom'/'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
-	    }
-	  } else {
-	    D_ParseNode *xpn = d_get_child(pn, 2);
-	    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	    int allSpace=allSpaces(v2);
-	    /* Free(v2); */
-	    if (allSpace){
-	      if (isPois){
-		updateSyntaxCol();
-		trans_syntax_error_report_fn(_("'ripois'/'rxpois'/'rpois' takes 1 argument 'rxpois(lambda)'"));
-	      } else {
-		updateSyntaxCol();
-		trans_syntax_error_report_fn(_("'rigeom'/'rxgeom'/'rgeom' takes 1 argument 'rxgeom(prob)'"));
-	      }
-	    } else {
-	      if (isInd) {
-		sAppend(&sb, "(double)%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd);
-		sAppend(&sbDt, "(double)%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd++);
-		foundF0=1;
-	      } else {
-		sAppend(&sb, "(double)%s(&_solveData->subjects[_cSub], ", v);
-		sAppend(&sbDt, "(double)%s(&_solveData->subjects[_cSub], ", v);
-	      }
-	      sAppend(&sbt, "%s(", v);
-	    }
-	  }
-	  i = 1;// Parse next arguments
-	  depth=1;
-	  /* Free(v); */
-	  continue;
-	} else if (!strcmp("rbinom", v) ||
-		   !strcmp("rxbinom", v) ||
-		   (isInd = !strcmp("ribinom", v))) {
-	  if (tb.thread != 0) tb.thread = 2;
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  if (ii != 2){
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("'ribinom'/'rbinom'/'rxbinom' takes 2 arguments 'rxbinom(size, prob)'"));
-	  } else {
-	    if (isInd){
-	      sAppend(&sb,   "(double)ribinom(&_solveData->subjects[_cSub], %d, (int)" , tb.nInd);
-	      sAppend(&sbDt, "(double)ribinom(&_solveData->subjects[_cSub], %d, (int)", tb.nInd++);
-	      sAppendN(&sbt, "ribinom(", 8);
-	    } else {
-	      aAppendN("(double)rxbinom(&_solveData->subjects[_cSub], (int)", 51);
-	      sAppendN(&sbt, "rxbinom(", 8);
-	    }
-	  }
-	  i = 1;// Parse next arguments
-	  depth=1;
-	  /* Free(v); */
-	  /* if (isInd) { */
-	  /*   sAppendN(&sb, ")", 1); */
-	  /*   sAppendN(&sbDt, ")", 1); */
-	  /* } */
-	  continue;
-	} else if (!strcmp("is.nan", v)) {
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  D_ParseNode *xpn = d_get_child(pn, 2);
-	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  int allSpace=allSpaces(v2);
-	  /* Free(v2); */
-	  if (ii != 1 || (ii == 1 && allSpace)) {
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("'is.nan' takes 1 argument"));
-	  }
-	  sAppendN(&sb, "isnan", 5);
-	  sAppendN(&sbDt, "isnan", 5);
-	  sAppendN(&sbt, "is.nan", 6);
-	  /* Free(v); */
-	  continue;
-	} else if (!strcmp("is.na", v)) {
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  D_ParseNode *xpn = d_get_child(pn, 2);
-	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  int allSpace=allSpaces(v2);
-	  /* Free(v2); */
-	  if (ii != 1 || (ii == 1 && allSpace)) {
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("'is.na' takes 1 argument"));
-	  }
-	  sAppendN(&sb, "ISNA", 4);
-	  sAppendN(&sbDt, "ISNA", 4);
-	  sAppendN(&sbt, "is.na", 5);
-	  /* Free(v); */
-	  continue;
-	} else if (!strcmp("is.finite", v)) {
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  D_ParseNode *xpn = d_get_child(pn, 2);
-	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  int allSpace=allSpaces(v2);
-	  /* Free(v2); */
-	  if (ii != 1 || (ii == 1 && allSpace)) {
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("'is.finite' takes 1 argument"));
-	  }
-	  sAppendN(&sb, "R_FINITE", 8);
-	  sAppendN(&sbDt, "R_FINITE", 8);
-	  sAppendN(&sbt, "is.finite", 9);
-	  /* Free(v); */
-	  continue;
-	} else if (!strcmp("is.infinite", v)) {
-	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	  D_ParseNode *xpn = d_get_child(pn, 2);
-	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  int allSpace=allSpaces(v2);
-	  /* Free(v2); */
-	  if (ii != 1 || (ii == 1 && allSpace)) {
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("'is.infinite' takes 1 argument"));
-	  }
-	  if (sbt.o > 0 && sbt.s[sbt.o-1] == '!'){
-	    sb.o--;sbDt.o--;
-	    sAppendN(&sb, "R_FINITE", 8);
-	    sAppendN(&sbDt, "R_FINITE", 8);
-	  } else {
-	    sAppendN(&sb, "!R_FINITE", 9);
-	    sAppendN(&sbDt, "!R_FINITE", 9);
-	  }
-	  /* Free(v); */
-	  sAppendN(&sbt, "is.infinite", 11);
-	  continue;
-	} else if (!strcmp("linCmtA", v) || !strcmp("linCmtC", v) ||
-		   (isLinB=!strcmp("linCmtB", v))){
-	  D_ParseNode *xpn1;
-	  xpn1 = d_get_child(pn, 3);
-	  D_ParseNode *xpn2;
-	  xpn2 = d_get_child(xpn1, 1);
-	  char *v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
-	  tb.linCmtN = toInt(v2+1);
-	  /* Free(v2); */
-	  xpn2 = d_get_child(xpn1, 2);
-	  v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
-	  tb.ncmt = toInt(v2+1);
-	  /* Free(v2); */
-	  if (isLinB) isLinB=1;
-	  tb.linB = isLinB;
-	  if (!tb.linExtra) {
-	    // 10 tlag
-	    xpn2 = d_get_child(xpn1, 10+isLinB);
-	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
-	      // has interesting tlag
-	      int ixL = tb.ixL;
-	      int didEq = tb.didEq;
-	      if (foundLag == 0) needSort+=2; // & 2 when alag
-	      foundLag=1;
-	      aType(ALAG);
-	      addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	      addLine(&sbPmDt, "_alag[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	      addLine(&sbNrmL, "");
-	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	      ENDLINE;
-	      tb.ixL= ixL; tb.didEq=didEq;
-	    }
-	    /* Free(v2); */
-	    // 11 f1
-	    xpn2 = d_get_child(xpn1, 11+isLinB);
-	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	    if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
-		   !strcmp(v2, "1.") || !strcmp(v2, "")))) {
-	      // has interesting f1
-	      int ixL = tb.ixL;
-	      int didEq = tb.didEq;
-	      if (foundF == 0) needSort+=1;// & 1 when F
-	      foundF=1;
-	      aType(FBIO);
-	      addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	      addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	      addLine(&sbNrmL, "");
-	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	      ENDLINE;
-	      tb.ixL= ixL; tb.didEq=didEq;
-	    }
-	    /* Free(v2); */
-	    // 13 dur1
-	    xpn2 = d_get_child(xpn1, 13+isLinB);
-	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.")) || !strcmp(v2, ""))) {
-	      // has interesting rate
-	      int ixL = tb.ixL;
-	      int didEq = tb.didEq;
-	      if (foundDur == 0) needSort+=4;// & 4 when dur
-	      foundDur=1;
-	      aType(DUR);
-	      addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	      addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	      addLine(&sbNrmL, "");
-	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	      ENDLINE;
-	      tb.ixL= ixL; tb.didEq=didEq;
-	    }
-	    /* Free(v2); */
-	    // 12 rate1
-	    xpn2 = d_get_child(xpn1, 12+isLinB);
-	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
-	      // has interesting rate
-	      int ixL = tb.ixL;
-	      int didEq = tb.didEq;
-	      if (foundRate == 0) needSort+=8;// & 8 when rate
-	      foundRate=1;
-	      aType(RATE);
-	      addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	      addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	      addLine(&sbNrmL, "");
-	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	      ENDLINE;
-	      tb.ixL= ixL; tb.didEq=didEq;
-	    }
-	    /* Free(v2); */
-	    // 14 -- ka
-	    xpn2 = d_get_child(xpn1, 14+isLinB);
-	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.")))) {
-	      tb.hasKa=1;
-	    }
-	    /* Free(v2); */
-	    // lag2 = 15
-	    xpn2 = d_get_child(xpn1, 15+isLinB);
-	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
-	      // has interesting tlag
-	      int ixL = tb.ixL;
-	      int didEq = tb.didEq;
-	      if (foundLag == 0) needSort+=2; // & 2 when alag
-	      foundLag=1;
-	      aType(ALAG);
-	      addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	      addLine(&sbPmDt, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	      addLine(&sbNrmL, "");
-	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	      ENDLINE;
-	      tb.ixL= ixL; tb.didEq=didEq;
-	    }
-	    /* Free(v2); */
-	    // f2 = 16 ; This is 1 instead of zero
-	    xpn2 = d_get_child(xpn1, 16+isLinB);
-	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	    if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
-		   !strcmp(v2, "1.") || !strcmp(v2, "")))) {
-	      // has interesting f1
-	      int ixL = tb.ixL;
-	      int didEq = tb.didEq;
-	      if (foundF == 0) needSort+=1;// & 1 when F
-	      foundF=1;
-	      aType(FBIO);
-	      addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	      addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	      addLine(&sbNrmL, "");
-	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	      ENDLINE;
-	      tb.ixL= ixL; tb.didEq=didEq;
-	    }
-	    /* Free(v2); */
-	    // rate2 = 17
-	    xpn2 = d_get_child(xpn1, 17+isLinB);
-	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
-	      // has interesting rate
-	      int ixL = tb.ixL;
-	      int didEq = tb.didEq;
-	      if (foundRate == 0) needSort+=8;// & 8 when rate
-	      foundRate=1;
-	      aType(RATE);
-	      addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	      addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	      addLine(&sbNrmL, "");
-	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	      ENDLINE;
-	      tb.ixL= ixL; tb.didEq=didEq;
-	    }
-	    /* Free(v2); */
-	    // dur2 = 18
-	    xpn2 = d_get_child(xpn1, 18+isLinB);
-	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	    if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-		   !strcmp(v2, "0.") || !strcmp(v2, "")))) {
-	      // has interesting rate
-	      int ixL = tb.ixL;
-	      int didEq = tb.didEq;
-	      if (foundDur == 0) needSort+=4;// & 4 when dur
-	      foundDur=1;
-	      aType(DUR);
-	      addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	      addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	      addLine(&sbNrmL, "");
-	      /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	      ENDLINE;
-	      tb.ixL= ixL; tb.didEq=didEq;
-	    }
-	    /* Free(v2); */
-	    tb.linExtra=true; // Only first call
-	  }
-	  aType(TLIN);
-	  if (tb.linB){
-	    xpn2 = d_get_child(xpn1, 4);
-	    v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	    int tmp = toInt(v2);
-	    if (tmp > 0) {
-	      tmp--;
-	      tmp = 1 << tmp;
-	      if ((tb.linCmtFlg & tmp) == 0){
-		tb.linCmtFlg += tmp;
-	      }
-	    }
-	    /* Free(v2); */
-	  }
-	  /* Free(v); */
-        } else {
-	  // Check if this is a valid function
-	  int foundFun = 0;
-	  for (int j = length(_goodFuns); j--;){
-	    if (!strcmp(CHAR(STRING_ELT(_goodFuns, j)),v)){
-	      foundFun = 1;
-	      j=0;
-	      break;
-	    }
-	  }
-	  if (foundFun == 0){
-	    sPrint(&_gbuf, _("function '%s' is not supported in RxODE"), v);
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_gbuf.s);
-	  }
-	}
-        /* Free(v); */
-      }
-
+      if (handleDvidStatement(ni, name, xpn, pn)) continue;
+      if (handleFunctions(ni, name, &i, &depth, nch, xpn, pn)) continue;
+      
       if (nodeHas(theta)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         sPrint(&_gbuf,"_THETA_%s_",v);
