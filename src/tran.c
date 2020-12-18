@@ -2747,7 +2747,172 @@ static inline int handleDdtAssign(nodeInfo ni, char *name, int i, D_ParseNode *p
     }
     return 1;
   }
+  if (nodeHas(derivative) && i==5) {
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    if (!strcmp("+", v) ||
+	!strcmp("-", v)){
+      // = + is output  or = InfusionRate + is outupt.
+    } else {
+      // = + is output  or = InfusionRate + is outupt.
+      aAppendN("+ ", 2);
+    }
+    /* Free(v); */
+    return 1;
+  }
   return 0;
+}
+
+static inline int handleRemainingAssignments(nodeInfo ni, char *name, int i, D_ParseNode *pn, D_ParseNode *xpn) {
+  double d;
+  if (nodeHas(ini0f) && rx_syntax_allow_ini && i == 0){
+    foundF0=1;
+    aType(TF0);
+    sb.o =0; sbDt.o=0; sbt.o = 0;
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    sAppend(&sb,  "%s",v);
+    sAppend(&sbDt,"%s",v);
+    sAppend(&sbt, "%s(0)",v);
+  }
+
+  if ((i==0 && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0))) ||
+      (i == 2 && nodeHas(mtime))){
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    if ((rx_syntax_allow_ini && nodeHas(ini)) || nodeHas(ini0)) {
+      sb.o =0; sbDt.o =0;
+      /* aAppendN("(__0__)", 7); */
+      aType(TINI);
+      doDot2(&sb, &sbDt, v);
+      if (nodeHas(ini) && !new_de(v)){
+	if (tb.idu[tb.id] == 0){
+	  new_or_ith(v);
+	  if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29){
+	    tb.lh[tb.ix] = 29;
+	  } else {
+	    tb.lh[tb.ix] = isLhsStateExtra;
+	  }
+	} else {
+	  updateSyntaxCol();
+	  sPrint(&_gbuf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
+	  trans_syntax_error_report_fn(_gbuf.s);
+	}
+      }
+      if (!rx_syntax_allow_ini0 && nodeHas(ini0)){
+	sPrint(&_gbuf,NOINI0,v);
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_gbuf.s);
+      }
+    } else {
+      sb.o = 0; sbDt.o = 0;
+      doDot2(&sb, &sbDt, v);
+      if (!new_de(v)){
+	if (tb.idu[tb.id] == 0){
+	  // Change to 19 for LHS w/stateExtra
+	  new_or_ith(v);
+	  if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29){
+	    tb.lh[tb.ix] = 29;
+	  } else {
+	    tb.lh[tb.ix] = isLhsStateExtra;
+	  }
+	} else {
+	  sPrint(&_gbuf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn(_gbuf.s);
+
+	}
+
+      }
+      aType(TASSIGN);
+    }
+    if (nodeHas(ini0)){
+      sbt.o=0;
+      sAppend(&sbt,"%s(0)",v);
+    } else if (nodeHas(mtime)){
+      sbt.o=0;
+      sAppend(&sbt, "mtime(%s)", v);
+      needSort=1;
+      aType(TMTIME);
+      nmtime++;
+    } else {
+      sbt.o=0;
+      sAppend(&sbt, "%s", v);
+    }
+    new_or_ith(v);
+    aProp(tb.ix);
+    if (nodeHas(mtime)){
+      tb.lh[tb.ix] = isLHS;
+      tb.mtime[tb.ix] = 1;
+    } else if (nodeHas(assignment)  || (!rx_syntax_allow_ini && nodeHas(ini))) {
+      if (tb.ix+1 == NV && tb.NEnd != NV){
+	// New assignment
+	tb.ixL = tb.ix;
+	tb.lh[tb.ix] = isLHS;
+      } else if (tb.ix < 0){
+	sPrint(&_gbuf,"cannot assign protected variable '%s'",v);
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_gbuf.s);
+      } else {
+	/* Rprintf("tb.ixL: %d; tb.ix: %d, NV: %d, %s\n", */
+	/* 	    tb.ixL, tb.ix, NV, */
+	/* 	    tb.ss.line[tb.ix]); */
+	if (tb.lh[tb.ix] == notLHS){
+	  // This is not a new assignment, AND currently a parameter
+	  tb.lh[tb.ix] = isLHSparam;
+	  /* Rprintf("Found Dual LHS/PARAM #2: %s", tb.ss.line[tb.ix]); */
+	} else {
+	  tb.lh[tb.ix] = isLHS;
+	}
+	tb.ixL=-1;
+      }
+    } else if (nodeHas(ini) || nodeHas(ini0)) {
+      if (tb.ini[tb.ix] == 0){
+	// If there is only one initialzation call, then assume
+	// this is a parameter with an initial value.
+	tb.ini[tb.ix] = 1;
+	if (nodeHas(ini0)){
+	  tb.ini0[tb.ix] = 1;
+	  xpn = d_get_child(pn, 3);
+	  /* Free(v); */
+	  v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  sscanf(v, "%lf", &d);
+	  tb.iniv[tb.ix] = d;
+	  tb.ini_i++;
+	} else {
+	  tb.ini0[tb.ix] = 0;
+	  if (strncmp(v,"rx_",3)==0){
+	    tb.lh[tb.ix] = isLHS;
+	  } else {
+	    xpn = d_get_child(pn, 2);
+	    /* Free(v); */
+	    v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    sscanf(v, "%lf", &d);
+	    tb.iniv[tb.ix] = d;
+	    tb.ini_i++;
+	  }
+	}
+	/* Free(v); */
+	return 1;
+      } else {
+	// There is more than one call to this variable, it is a
+	// conditional variable
+	/* Rprintf("Duplicate %s; %d %d\n", v, tb.lh[tb.ix], tb.ini0[tb.ix]); */
+	if (tb.lh[tb.ix] != isLHS){
+	  tb.lh[tb.ix] = isLHS;
+	  if (nodeHas(ini0) && tb.ini0[tb.ix] == 1){
+	    sPrint(&_gbuf,"cannot have conditional initial conditions for '%s'",v);
+	    updateSyntaxCol();
+	    trans_syntax_error_report_fn(_gbuf.s);
+	  } else if (tb.ini0[tb.ix] == 1){
+	    tb.iniv[tb.ix] = NA_REAL;
+	    tb.ini_i--;
+	  } else if (tb.ini[tb.ix] == 1){
+	    tb.iniv[tb.ix] = NA_REAL;
+	    tb.ini_i--;
+	  }
+	}
+	tb.ini0[tb.ix] = 0;
+      }
+    }
+  }
 }
 
 static int inline handleDdtRhs(nodeInfo ni, char *name, D_ParseNode *xpn) {
@@ -2839,7 +3004,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   niReset(&ni);
   int nch = d_get_number_of_children(pn), i, ii, found, safe_zero = 0;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
-  double d;
 
   // Add symbol, check/flag if recursive
   handleIdentifier(ni, name, value);
@@ -2907,170 +3071,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           trans_syntax_error_report_fn(NEEDPOW);
         }
       }
-      if (nodeHas(derivative) && i==5) {
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	if (!strcmp("+", v) ||
-	    !strcmp("-", v)){
-          // = + is output  or = InfusionRate + is outupt.
-        } else {
-	  // = + is output  or = InfusionRate + is outupt.
-          aAppendN("+ ", 2);
-        }
-	/* Free(v); */
-	continue;
-      }
-      
-      if (nodeHas(ini0f) && rx_syntax_allow_ini && i == 0){
-	foundF0=1;
-	aType(TF0);
-	sb.o =0; sbDt.o=0; sbt.o = 0;
-	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	sAppend(&sb,  "%s",v);
-	sAppend(&sbDt,"%s",v);
-	sAppend(&sbt, "%s(0)",v);
-	/* Free(v); */
-      }
-
-      if ((i==0 && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0))) ||
-	  (i == 2 && nodeHas(mtime))){
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if ((rx_syntax_allow_ini && nodeHas(ini)) || nodeHas(ini0)) {
-	  sb.o =0; sbDt.o =0;
-          /* aAppendN("(__0__)", 7); */
-	  aType(TINI);
-	  doDot2(&sb, &sbDt, v);
-          if (nodeHas(ini) && !new_de(v)){
-	    if (tb.idu[tb.id] == 0){
-	      new_or_ith(v);
-	      if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29){
-		tb.lh[tb.ix] = 29;
-	      } else {
-		tb.lh[tb.ix] = isLhsStateExtra;
-	      }
-	    } else {
-	      updateSyntaxCol();
-	      sPrint(&_gbuf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
-	      trans_syntax_error_report_fn(_gbuf.s);
-	    }
-          }
-          if (!rx_syntax_allow_ini0 && nodeHas(ini0)){
-            sPrint(&_gbuf,NOINI0,v);
-	    updateSyntaxCol();
-            trans_syntax_error_report_fn(_gbuf.s);
-          }
-        } else {
-          sb.o = 0; sbDt.o = 0;
-	  doDot2(&sb, &sbDt, v);
-          if (!new_de(v)){
-	    if (tb.idu[tb.id] == 0){
-	      // Change to 19 for LHS w/stateExtra
-	      new_or_ith(v);
-	      if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29){
-		tb.lh[tb.ix] = 29;
-	      } else {
-		tb.lh[tb.ix] = isLhsStateExtra;
-	      }
-	    } else {
-	      sPrint(&_gbuf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(_gbuf.s);
-
-	    }
-
-          }
-	  aType(TASSIGN);
-        }
-	if (nodeHas(ini0)){
-	  sbt.o=0;
-	  sAppend(&sbt,"%s(0)",v);
-	} else if (nodeHas(mtime)){
-	  sbt.o=0;
-	  sAppend(&sbt, "mtime(%s)", v);
-	  needSort=1;
-	  aType(TMTIME);
-	  nmtime++;
-	} else {
-	  sbt.o=0;
-	  sAppend(&sbt, "%s", v);
-	}
-	new_or_ith(v);
-	aProp(tb.ix);
-	if (nodeHas(mtime)){
-	  tb.lh[tb.ix] = isLHS;
-	  tb.mtime[tb.ix] = 1;
-	} else if (nodeHas(assignment)  || (!rx_syntax_allow_ini && nodeHas(ini))) {
-	  if (tb.ix+1 == NV && tb.NEnd != NV){
-	    // New assignment
-	    tb.ixL = tb.ix;
-	    tb.lh[tb.ix] = isLHS;
-	  } else if (tb.ix < 0){
-	    sPrint(&_gbuf,"cannot assign protected variable '%s'",v);
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_gbuf.s);
-	  } else {
-	    /* Rprintf("tb.ixL: %d; tb.ix: %d, NV: %d, %s\n", */
-	    /* 	    tb.ixL, tb.ix, NV, */
-	    /* 	    tb.ss.line[tb.ix]); */
-	    if (tb.lh[tb.ix] == notLHS){
-	      // This is not a new assignment, AND currently a parameter
-	      tb.lh[tb.ix] = isLHSparam;
-	      /* Rprintf("Found Dual LHS/PARAM #2: %s", tb.ss.line[tb.ix]); */
-	    } else {
-	      tb.lh[tb.ix] = isLHS;
-	    }
-	    tb.ixL=-1;
-	  }
-        } else if (nodeHas(ini) || nodeHas(ini0)) {
-          if (tb.ini[tb.ix] == 0){
-            // If there is only one initialzation call, then assume
-            // this is a parameter with an initial value.
-            tb.ini[tb.ix] = 1;
-            if (nodeHas(ini0)){
-	      tb.ini0[tb.ix] = 1;
-	      xpn = d_get_child(pn, 3);
-	      /* Free(v); */
-	      v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	      sscanf(v, "%lf", &d);
-	      tb.iniv[tb.ix] = d;
-	      tb.ini_i++;
-            } else {
-	      tb.ini0[tb.ix] = 0;
-              if (strncmp(v,"rx_",3)==0){
-                tb.lh[tb.ix] = isLHS;
-              } else {
-		xpn = d_get_child(pn, 2);
-		/* Free(v); */
-		v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-		sscanf(v, "%lf", &d);
-		tb.iniv[tb.ix] = d;
-		tb.ini_i++;
-	      }
-            }
-	    /* Free(v); */
-	    continue;
-          } else {
-            // There is more than one call to this variable, it is a
-            // conditional variable
-	    /* Rprintf("Duplicate %s; %d %d\n", v, tb.lh[tb.ix], tb.ini0[tb.ix]); */
-	    if (tb.lh[tb.ix] != isLHS){
-	      tb.lh[tb.ix] = isLHS;
-	      if (nodeHas(ini0) && tb.ini0[tb.ix] == 1){
-		sPrint(&_gbuf,"cannot have conditional initial conditions for '%s'",v);
-		updateSyntaxCol();
-		trans_syntax_error_report_fn(_gbuf.s);
-	      } else if (tb.ini0[tb.ix] == 1){
-		tb.iniv[tb.ix] = NA_REAL;
-		tb.ini_i--;
-	      } else if (tb.ini[tb.ix] == 1){
-		tb.iniv[tb.ix] = NA_REAL;
-		tb.ini_i--;
-	      }
-	    }
-	    tb.ini0[tb.ix] = 0;
-          }
-        }
-        /* Free(v); */
-      }
+      handleRemainingAssignments(ni, name, i, pn, xpn);
     }
     if (isWhile) {
       tb.nwhile--;
@@ -3155,7 +3156,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       addLine(&sbPmDt, "%s\n", sbDt.s);
       sAppend(&sbNrm,  "%s\n", sbt.s);
       addLine(&sbNrmL, "%s\n", sbt.s);
-      ENDLINE
+      ENDLINE;
     }
     if (nodeHas(power_expression)) {
       aAppendN(")", 1);
