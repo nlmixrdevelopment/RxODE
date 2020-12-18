@@ -1966,6 +1966,25 @@ static inline int handleFunctionIsNa(transFunctions *tf) {
   return 0;
 }
 
+static inline int handleFunctionIsFinite(transFunctions *tf) {
+  if (!strcmp("is.finite", tf->v)) {
+    int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
+    D_ParseNode *xpn = d_get_child(tf->pn, 2);
+    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    int allSpace=allSpaces(v2);
+    /* Free(v2); */
+    if (ii != 1 || (ii == 1 && allSpace)) {
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("'is.finite' takes 1 argument"));
+    }
+    sAppendN(&sb, "R_FINITE", 8);
+    sAppendN(&sbDt, "R_FINITE", 8);
+    sAppendN(&sbt, "is.finite", 9);
+    return 1;
+  }
+  return 0;
+}
+
 static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, int nch, D_ParseNode *xpn, D_ParseNode *pn) {
   if (tb.fn == 1) {
     transFunctions *tf = &_tf;
@@ -1997,22 +2016,8 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
 	handleFunctionRgeom(tf) ||
 	handleFunctionRbinom(tf) ||
 	handleFunctionIsNan(tf) ||
-	handleFunctionIsNa(tf)) {
-      return 1;
-    } else if (!strcmp("is.finite", v)) {
-      ii = d_get_number_of_children(d_get_child(pn,3))+1;
-      D_ParseNode *xpn = d_get_child(pn, 2);
-      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-      int allSpace=allSpaces(v2);
-      /* Free(v2); */
-      if (ii != 1 || (ii == 1 && allSpace)) {
-	updateSyntaxCol();
-	trans_syntax_error_report_fn(_("'is.finite' takes 1 argument"));
-      }
-      sAppendN(&sb, "R_FINITE", 8);
-      sAppendN(&sbDt, "R_FINITE", 8);
-      sAppendN(&sbt, "is.finite", 9);
-      /* Free(v); */
+	handleFunctionIsNa(tf) ||
+	handleFunctionIsFinite(tf)) {
       return 1;
     } else if (!strcmp("is.infinite", v)) {
       ii = d_get_number_of_children(d_get_child(pn,3))+1;
