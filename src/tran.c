@@ -1621,6 +1621,50 @@ static inline int handleFunctionDiff(transFunctions *tf) {
   return 0;
 }
 
+static inline int handleFunctionPnorm(transFunctions *tf) {
+  if ((tf->isPnorm = !strcmp("pnorm", tf->v)) ||
+      !strcmp("qnorm", tf->v)){
+    int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
+    if (ii == 1) {
+      D_ParseNode *xpn = d_get_child(tf->pn, 2);
+      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      int allSpace=allSpaces(v2);
+      /* Free(v2); */
+      if (allSpace){
+	updateSyntaxCol();
+	if (tf->isPnorm){
+	  trans_syntax_error_report_fn(_("'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"));
+	} else {
+	  trans_syntax_error_report_fn(_("'qnorm' in RxODE takes 1-3 arguments pnorm(p, mean, sd)"));
+	}
+      } else {
+	sAppend(&sb, "_%s1(", tf->v);
+	sAppend(&sbDt,"_%s1(", tf->v);
+	sAppend(&sbt, "%s(", tf->v);
+      }
+    } else if (ii == 2) {
+      sAppend(&sb,"_%s2(", tf->v);
+      sAppend(&sbDt,"_%s2(", tf->v);
+      sAppend(&sbt, "%s(", tf->v);
+    } else if (ii == 3) {
+      sAppend(&sb,"_%s3(", tf->v);
+      sAppend(&sbDt,"_%s3(", tf->v);
+      sAppend(&sbt, "%s(", tf->v);
+    } else {
+      updateSyntaxCol();
+      if (tf->isPnorm){
+	trans_syntax_error_report_fn(_("'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"));
+      } else {
+	trans_syntax_error_report_fn(_("'qnorm' in RxODE takes 1-3 arguments pnorm(p, mean, sd)"));
+      }
+    }
+    tf->i[0] = 1;// Parse next arguments
+    tf->depth[0]=1;
+    return 1;
+  }
+  return 0;
+}
+
 static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, int nch, D_ParseNode *xpn, D_ParseNode *pn) {
   if (tb.fn == 1) {
     transFunctions *tf = &_tf;
@@ -1644,47 +1688,8 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
 	handleFunctionTad(tf) ||
 	handleFunctionSum(tf) ||
 	handleFunctionLogit(tf) ||
-	handleFunctionDiff(tf)) {
-      return 1;
-    } else if ((isPnorm = !strcmp("pnorm", v)) ||
-	       !strcmp("qnorm", v)){
-      ii = d_get_number_of_children(d_get_child(pn,3))+1;
-      if (ii == 1) {
-	D_ParseNode *xpn = d_get_child(pn, 2);
-	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	int allSpace=allSpaces(v2);
-	/* Free(v2); */
-	if (allSpace){
-	  updateSyntaxCol();
-	  if (isPnorm){
-	    trans_syntax_error_report_fn(_("'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"));
-	  } else {
-	    trans_syntax_error_report_fn(_("'qnorm' in RxODE takes 1-3 arguments pnorm(p, mean, sd)"));
-	  }
-	} else {
-	  sAppend(&sb, "_%s1(", v);
-	  sAppend(&sbDt,"_%s1(", v);
-	  sAppend(&sbt, "%s(", v);
-	}
-      } else if (ii == 2) {
-	sAppend(&sb,"_%s2(", v);
-	sAppend(&sbDt,"_%s2(", v);
-	sAppend(&sbt, "%s(", v);
-      } else if (ii == 3) {
-	sAppend(&sb,"_%s3(", v);
-	sAppend(&sbDt,"_%s3(", v);
-	sAppend(&sbt, "%s(", v);
-      } else {
-	updateSyntaxCol();
-	if (isPnorm){
-	  trans_syntax_error_report_fn(_("'pnorm' in RxODE takes 1-3 arguments pnorm(q, mean, sd)"));
-	} else {
-	  trans_syntax_error_report_fn(_("'qnorm' in RxODE takes 1-3 arguments pnorm(p, mean, sd)"));
-	}
-      }
-      *i = 1;// Parse next arguments
-      *depth=1;
-      /* Free(v); */
+	handleFunctionDiff(tf) ||
+	handleFunctionPnorm(tf)) {
       return 1;
     } else if (!strcmp("transit", v)) {
       ii = d_get_number_of_children(d_get_child(pn,3))+1;
