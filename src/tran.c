@@ -2807,17 +2807,16 @@ static inline void handleRemainingAssignmentsRestProp(nodeInfo ni, char *name, i
   aType(TASSIGN);
 }
 
-static inline int handleRemainingAssignmentsCalcProps(nodeInfo ni, char *name, int i, D_ParseNode *pn, D_ParseNode *xpn, char *v) {
-  double d;
-  if (!handleRemainingAssignmentsIniProp(ni, name, i, pn, xpn, v)){
-    handleRemainingAssignmentsRestProp(ni, name, i, pn, xpn, v);
-  }
-  new_or_ith(v);
-  aProp(tb.ix);
+static inline int handleRemainingAssignmentsCalcPropMtime(nodeInfo ni, char *name){
   if (nodeHas(mtime)){
     tb.lh[tb.ix] = isLHS;
     tb.mtime[tb.ix] = 1;
-  } else if (nodeHas(assignment)  || (!rx_syntax_allow_ini && nodeHas(ini))) {
+    return 1;
+  }
+  return 0;
+}
+static inline int handleRemainingAssignmentsCalcPropComplexAssign(nodeInfo ni, char *name, char *v) {
+  if (nodeHas(assignment)  || (!rx_syntax_allow_ini && nodeHas(ini))) {
     if (tb.ix+1 == NV && tb.NEnd != NV){
       // New assignment
       tb.ixL = tb.ix;
@@ -2827,19 +2826,21 @@ static inline int handleRemainingAssignmentsCalcProps(nodeInfo ni, char *name, i
       updateSyntaxCol();
       trans_syntax_error_report_fn(_gbuf.s);
     } else {
-      /* Rprintf("tb.ixL: %d; tb.ix: %d, NV: %d, %s\n", */
-      /* 	    tb.ixL, tb.ix, NV, */
-      /* 	    tb.ss.line[tb.ix]); */
       if (tb.lh[tb.ix] == notLHS){
-	// This is not a new assignment, AND currently a parameter
 	tb.lh[tb.ix] = isLHSparam;
-	/* Rprintf("Found Dual LHS/PARAM #2: %s", tb.ss.line[tb.ix]); */
       } else {
 	tb.lh[tb.ix] = isLHS;
       }
       tb.ixL=-1;
     }
-  } else if (nodeHas(ini) || nodeHas(ini0)) {
+    return 1;
+  }
+  return 0;
+}
+static inline int handleRemainingAssignmentsCalcPropIni(nodeInfo ni, char *name, D_ParseNode *pn, char *v) {
+  if (nodeHas(ini) || nodeHas(ini0)) {
+    D_ParseNode *xpn;
+    double d;
     if (tb.ini[tb.ix] == 0){
       // If there is only one initialzation call, then assume
       // this is a parameter with an initial value.
@@ -2890,7 +2891,19 @@ static inline int handleRemainingAssignmentsCalcProps(nodeInfo ni, char *name, i
   }
   return 0;
 }
-      
+static inline int handleRemainingAssignmentsCalcProps(nodeInfo ni, char *name, int i, D_ParseNode *pn, D_ParseNode *xpn, char *v) {
+  if (!handleRemainingAssignmentsIniProp(ni, name, i, pn, xpn, v)){
+    handleRemainingAssignmentsRestProp(ni, name, i, pn, xpn, v);
+  }
+  new_or_ith(v);
+  aProp(tb.ix);
+  if (!(handleRemainingAssignmentsCalcPropMtime(ni, name) ||
+	handleRemainingAssignmentsCalcPropComplexAssign(ni, name, v))) {
+    return handleRemainingAssignmentsCalcPropIni(ni, name, pn, v);
+  }
+  return 0;
+}
+
 
 static inline int handleRemainingAssignments(nodeInfo ni, char *name, int i, D_ParseNode *pn, D_ParseNode *xpn) {
   if (nodeHas(ini0f) && rx_syntax_allow_ini && i == 0){
@@ -3218,7 +3231,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         aAppendN("),", 2);
         sAppendN(&sbt, "^", 1);
       }
-      
+
       if (!rx_syntax_star_pow && i == 1 && nodeHas(power_expression)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (!strcmp("**",v)){
