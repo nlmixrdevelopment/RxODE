@@ -467,13 +467,7 @@ static void trans_syntax_error_report_fn0(char *err);
 char *getLine (char *src, int line, int *lloc);
 void updateSyntaxCol();
 
-/* new symbol? if no, find it's ith */
-int new_or_ith(const char *s) {
-  int i;
-
-  if (tb.fn) {tb.ix=-2; return 0;}
-  if (!strcmp("t", s)) {tb.ix=-2; return 0;}
-  if (!strcmp("lhs", s)){tb.ix=-1; return 0;}
+static inline int assertForbiddenVariables(const char *s) {
   if (!strcmp("printf", s)){
     updateSyntaxCol();
     trans_syntax_error_report_fn(_("'printf' cannot be a variable in an RxODE model"));
@@ -499,16 +493,6 @@ int new_or_ith(const char *s) {
     tb.ix=-2;
     return 0;
   }
-  /* if (!strcmp("dur", s)){ */
-  /*   updateSyntaxCol(); */
-  /*   trans_syntax_error_report_fn(_("'dur' cannot be a variable in an RxODE model")); */
-  /*   tb.ix=-2;  */
-  /*   return 0; */
-  /* } */
-  if (!strcmp("amt", s)){
-    tb.ix=-2;
-    return 0;
-  }
   if (!strcmp("ifelse", s)){
     updateSyntaxCol();
     Rf_errorcall(R_NilValue, _("'ifelse' cannot be a state in an RxODE model"));
@@ -521,18 +505,6 @@ int new_or_ith(const char *s) {
     tb.ix=-2;
     return 0;
   }
-  /* if (!strcmp("ss", s)){ */
-  /*   updateSyntaxCol(); */
-  /*   trans_syntax_error_report_fn(_("'ss' cannot be a variable in an RxODE model")); */
-  /*   tb.ix=-2;  */
-  /*   return 0; */
-  /* } */
-  /* if (!strcmp("addl", s)){ */
-  /*   updateSyntaxCol(); */
-  /*   trans_syntax_error_report_fn(_("'addl' cannot be a variable in an RxODE model")); */
-  /*   tb.ix=-2;  */
-  /*   return 0; */
-  /* } */
   if (!strcmp("evid", s)){ // This is mangled by RxODE so don't use it.
     updateSyntaxCol();
     trans_syntax_error_report_fn(_("'evid' cannot be a variable in an RxODE model"));
@@ -543,6 +515,14 @@ int new_or_ith(const char *s) {
   			 // covariate table so don't use it.
     updateSyntaxCol();
     trans_syntax_error_report_fn(_("'ii' cannot be a variable in an RxODE model"));
+    tb.ix=-2;
+    return 0;
+  }
+  return 1;
+}
+
+static inline int skipReservedVariables(const char *s) {
+  if (!strcmp("amt", s)){
     tb.ix=-2;
     return 0;
   }
@@ -584,7 +564,18 @@ int new_or_ith(const char *s) {
   if (!tb.hasKa && !strcmp("kA", s)) tb.hasKa=1;
   if (!strcmp("newind", s)) {tb.ix=-2; return 0;}
   if (!strcmp("NEWIND", s)) {tb.ix=-2; return 0;}
-  // Ignore THETA[] and ETA
+  return 1;
+}
+
+/* new symbol? if no, find it's ith */
+int new_or_ith(const char *s) {
+  int i;
+  if (tb.fn) {tb.ix=-2; return 0;}
+  if (!strcmp("t", s)) {tb.ix=-2; return 0;}
+  if (!strcmp("lhs", s)){tb.ix=-1; return 0;}
+  if (assertForbiddenVariables(s) == 0) return 0;
+  if (skipReservedVariables(s) == 0) return 0;
+    // Ignore THETA[] and ETA
   if (strstr("[", s) != NULL) {tb.ix=-2;return 0;}
 
   for (i=0; i<NV; i++) {
