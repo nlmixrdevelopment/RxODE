@@ -2538,6 +2538,141 @@ static inline int handleLogicalExpr(nodeInfo ni, char *name, int i, D_ParseNode 
   return 0;
 }
 
+static inline int handleCmtProperty(nodeInfo ni, char *name, int i, D_ParseNode *xpn) {
+  if ((nodeHas(fbio) || nodeHas(alag) ||
+       nodeHas(dur) || nodeHas(rate) ||
+       nodeHas(cmt_statement)) && i==2) {
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    int hasLhs=0;
+    if (nodeHas(cmt_statement)){
+      new_or_ith(v);
+      if (tb.lh[tb.ix] || tb.ini[tb.ix]){
+	hasLhs=1;
+	tb.ini[tb.ix]=2;
+      }
+      if (!strcmp("depot", v)){
+	tb.hasDepotCmt = 1;
+      } else if (!strcmp("central", v)){
+	tb.hasCentralCmt = 1;
+      }
+    }
+    if (new_de(v)){
+      if (rx_syntax_require_ode_first){
+	if (nodeHas(cmt_statement)){
+	} else if (!strcmp("depot", v)){
+	  tb.hasDepot = 1;
+	} else if (!strcmp("central", v)){
+	  tb.hasCentral = 1;
+	} else {
+	  updateSyntaxCol();
+	  sPrint(&_gbuf,ODEFIRST,v);
+	  trans_syntax_error_report_fn(_gbuf.s);
+	}
+      }
+      tb.statei++;
+      if (nodeHas(fbio)){
+	sb.o=0;sbDt.o=0; sbt.o=0;
+	sAppend(&sb, "_f[%d] = ", tb.de.n);
+	sAppend(&sbDt, "_f[%d] = ", tb.de.n);
+	sAppend(&sbt, "f(%s)=", v);
+	tb.curPropN=tb.de.n;
+	if (foundF == 0) needSort+=1;// & 1 when F
+	foundF=1;
+	aType(FBIO);
+      } else if (nodeHas(alag)){
+	sb.o=0; sbDt.o=0; sbt.o=0;
+	sAppend(&sb, "_alag[%d] = ", tb.de.n);
+	sAppend(&sbDt, "_alag[%d] = ", tb.de.n);
+	sAppend(&sbt, "alag(%s)=", v);
+	tb.curPropN=tb.de.n;
+	if (foundLag == 0) needSort+=2; // & 2 when alag
+	foundLag=1;
+	aType(ALAG);
+      } else if (nodeHas(dur)){
+	sb.o=0;sbDt.o=0; sbt.o=0;
+	sAppend(&sb, "_dur[%d] = ", tb.de.n);
+	sAppend(&sbDt, "_dur[%d] = ", tb.de.n);
+	sAppend(&sbt, "dur(%s)=", v);
+	tb.curPropN=tb.de.n;
+	if (foundDur == 0) needSort+=4;// & 4 when dur
+	foundDur=1;
+	aType(DUR);
+      } else if (nodeHas(rate)){
+	sb.o=0;sbDt.o=0; sbt.o=0;
+	sAppend(&sb, "_rate[%d] = ", tb.de.n);
+	sAppend(&sbDt, "_rate[%d] = ", tb.de.n);
+	sAppend(&sbt, "rate(%s)=", v);
+	tb.curPropN=tb.de.n;
+	if (foundRate == 0) needSort+=8;// & 8 when rate
+	foundRate=1;
+	aType(RATE);
+      } else if (nodeHas(cmt_statement)){
+	sb.o=0;sbDt.o=0; sbt.o=0;
+	sAppend(&sbt, "cmt(%s)", v);
+	sAppend(&sbNrm, "%s;\n", sbt.s);
+	addLine(&sbNrmL, "%s;\n", sbt.s);
+      }
+      new_or_ith(v);
+      aProp(tb.de.n);
+      /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
+      if (hasLhs){
+	if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29){
+	  tb.lh[tb.ix] = 29;
+	} else {
+	  tb.lh[tb.ix] = isLhsStateExtra;
+	}
+      } else {
+	tb.lh[tb.ix] = isState;
+      }
+      tb.di[tb.de.n] = tb.ix;
+      addLine(&(tb.de),"%s",v);
+    } else {
+      new_or_ith(v);
+      aProp(tb.ix);
+      /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
+      if (nodeHas(fbio)){
+	sb.o=0;sbDt.o=0; sbt.o=0;
+	sAppend(&sb, "_f[%d] = ", tb.id);
+	sAppend(&sbDt, "_f[%d] = ", tb.id);
+	sAppend(&sbt, "f(%s)=", v);
+	tb.curPropN=tb.id;
+	if (foundF == 0) needSort+=1;// & 1 when F
+	foundF=1;
+	aType(FBIO);
+      } else if (nodeHas(alag)){
+	sb.o=0;sbDt.o=0; sbt.o=0;
+	sAppend(&sb, "_alag[%d] = ", tb.id);
+	sAppend(&sbDt, "_alag[%d] = ", tb.id);
+	sAppend(&sbt, "alag(%s)=", v);
+	tb.curPropN=tb.id;
+	if (foundLag == 0) needSort+=2; // & 2 when alag
+	foundLag=1;
+	aType(ALAG);
+      } else if (nodeHas(dur)){
+	sb.o=0;sbDt.o=0; sbt.o=0;
+	sAppend(&sb, "_dur[%d] = ", tb.id);
+	sAppend(&sbDt, "_dur[%d] = ", tb.id);
+	sAppend(&sbt, "dur(%s)=", v);
+	tb.curPropN=tb.id;
+	if (foundDur == 0) needSort+=4;// & 4 when dur
+	foundDur=1;
+	aType(DUR);
+      } else if (nodeHas(rate)){
+	sb.o=0;sbDt.o=0; sbt.o=0;
+	sAppend(&sb, "_rate[%d] = ", tb.id);
+	sAppend(&sbDt, "_rate[%d] = ", tb.id);
+	sAppend(&sbt, "rate(%s)=", v);
+	tb.curPropN=tb.id;
+	if (foundRate == 0) needSort+=8;// & 8 when rate
+	foundRate=1;
+	aType(RATE);
+      }
+    }
+    return 1;
+  }
+  return 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // assertions
 static inline int assertNoRAssign(nodeInfo ni, char *name, D_ParseNode *pn, int i){
@@ -2623,7 +2758,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
       if (handlePrintf(ni, name, i, xpn) ||
 	  handleJac(ni, name, i, xpn, &ii, &found) ||
-	  handleLogicalExpr(ni, name, i, pn, xpn, &isWhile)) continue;
+	  handleLogicalExpr(ni, name, i, pn, xpn, &isWhile) ||
+	  handleCmtProperty(ni, name, i, xpn)) continue;
 
       if (nodeHas(power_expression) && i==0) {
         aAppendN("),", 2);
@@ -2636,138 +2772,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  updateSyntaxCol();
           trans_syntax_error_report_fn(NEEDPOW);
         }
-      }
-      if ((nodeHas(fbio) || nodeHas(alag) ||
-	   nodeHas(dur) || nodeHas(rate) ||
-	   nodeHas(cmt_statement)) && i==2) {
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	int hasLhs=0;
-	if (nodeHas(cmt_statement)){
-	  new_or_ith(v);
-	  if (tb.lh[tb.ix] || tb.ini[tb.ix]){
-	    hasLhs=1;
-	    tb.ini[tb.ix]=2;
-	  }
-	  if (!strcmp("depot", v)){
-	    tb.hasDepotCmt = 1;
-	  } else if (!strcmp("central", v)){
-	    tb.hasCentralCmt = 1;
-	  }
-	}
-        if (new_de(v)){
-	  if (rx_syntax_require_ode_first){
-	    if (nodeHas(cmt_statement)){
-	    } else if (!strcmp("depot", v)){
-	      tb.hasDepot = 1;
-	    } else if (!strcmp("central", v)){
-	      tb.hasCentral = 1;
-	    } else {
-	      updateSyntaxCol();
-	      sPrint(&_gbuf,ODEFIRST,v);
-	      trans_syntax_error_report_fn(_gbuf.s);
-	    }
-	  }
-	  tb.statei++;
-	  if (nodeHas(fbio)){
-	    sb.o=0;sbDt.o=0; sbt.o=0;
-	    sAppend(&sb, "_f[%d] = ", tb.de.n);
-	    sAppend(&sbDt, "_f[%d] = ", tb.de.n);
-	    sAppend(&sbt, "f(%s)=", v);
-	    tb.curPropN=tb.de.n;
-	    if (foundF == 0) needSort+=1;// & 1 when F
-	    foundF=1;
-	    aType(FBIO);
-	  } else if (nodeHas(alag)){
-	    sb.o=0; sbDt.o=0; sbt.o=0;
-	    sAppend(&sb, "_alag[%d] = ", tb.de.n);
-	    sAppend(&sbDt, "_alag[%d] = ", tb.de.n);
-	    sAppend(&sbt, "alag(%s)=", v);
-	    tb.curPropN=tb.de.n;
-	    if (foundLag == 0) needSort+=2; // & 2 when alag
-	    foundLag=1;
-	    aType(ALAG);
-	  } else if (nodeHas(dur)){
-	    sb.o=0;sbDt.o=0; sbt.o=0;
-	    sAppend(&sb, "_dur[%d] = ", tb.de.n);
-	    sAppend(&sbDt, "_dur[%d] = ", tb.de.n);
-	    sAppend(&sbt, "dur(%s)=", v);
-	    tb.curPropN=tb.de.n;
-	    if (foundDur == 0) needSort+=4;// & 4 when dur
-	    foundDur=1;
-	    aType(DUR);
-          } else if (nodeHas(rate)){
-	    sb.o=0;sbDt.o=0; sbt.o=0;
-	    sAppend(&sb, "_rate[%d] = ", tb.de.n);
-	    sAppend(&sbDt, "_rate[%d] = ", tb.de.n);
-	    sAppend(&sbt, "rate(%s)=", v);
-	    tb.curPropN=tb.de.n;
-	    if (foundRate == 0) needSort+=8;// & 8 when rate
-	    foundRate=1;
-	    aType(RATE);
-          } else if (nodeHas(cmt_statement)){
-	    sb.o=0;sbDt.o=0; sbt.o=0;
-	    sAppend(&sbt, "cmt(%s)", v);
-	    sAppend(&sbNrm, "%s;\n", sbt.s);
-	    addLine(&sbNrmL, "%s;\n", sbt.s);
-	  }
-          new_or_ith(v);
-	  aProp(tb.de.n);
-          /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
-	  if (hasLhs){
-	    if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29){
-	      tb.lh[tb.ix] = 29;
-	    } else {
-	      tb.lh[tb.ix] = isLhsStateExtra;
-	    }
-	  } else {
-	    tb.lh[tb.ix] = isState;
-	  }
-          tb.di[tb.de.n] = tb.ix;
-	  addLine(&(tb.de),"%s",v);
-        } else {
-          new_or_ith(v);
-	  aProp(tb.ix);
-          /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
-          if (nodeHas(fbio)){
-	    sb.o=0;sbDt.o=0; sbt.o=0;
-	    sAppend(&sb, "_f[%d] = ", tb.id);
-	    sAppend(&sbDt, "_f[%d] = ", tb.id);
-	    sAppend(&sbt, "f(%s)=", v);
-	    tb.curPropN=tb.id;
-	    if (foundF == 0) needSort+=1;// & 1 when F
-	    foundF=1;
-	    aType(FBIO);
-          } else if (nodeHas(alag)){
-	    sb.o=0;sbDt.o=0; sbt.o=0;
-	    sAppend(&sb, "_alag[%d] = ", tb.id);
-	    sAppend(&sbDt, "_alag[%d] = ", tb.id);
-	    sAppend(&sbt, "alag(%s)=", v);
-	    tb.curPropN=tb.id;
-	    if (foundLag == 0) needSort+=2; // & 2 when alag
-	    foundLag=1;
-	    aType(ALAG);
-          } else if (nodeHas(dur)){
-	    sb.o=0;sbDt.o=0; sbt.o=0;
-	    sAppend(&sb, "_dur[%d] = ", tb.id);
-	    sAppend(&sbDt, "_dur[%d] = ", tb.id);
-	    sAppend(&sbt, "dur(%s)=", v);
-	    tb.curPropN=tb.id;
-	    if (foundDur == 0) needSort+=4;// & 4 when dur
-	    foundDur=1;
-	    aType(DUR);
-          } else if (nodeHas(rate)){
-	    sb.o=0;sbDt.o=0; sbt.o=0;
-	    sAppend(&sb, "_rate[%d] = ", tb.id);
-	    sAppend(&sbDt, "_rate[%d] = ", tb.id);
-	    sAppend(&sbt, "rate(%s)=", v);
-	    tb.curPropN=tb.id;
-	    if (foundRate == 0) needSort+=8;// & 8 when rate
-	    foundRate=1;
-	    aType(RATE);
-          }
-        }
-        /* Free(v); */
-        continue;
       }
       if (nodeHas(derivative) && i==5) {
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
