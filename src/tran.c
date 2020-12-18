@@ -2673,6 +2673,138 @@ static inline int handleCmtProperty(nodeInfo ni, char *name, int i, D_ParseNode 
   return 0;
 }
 
+static inline int handleDdtAssign(nodeInfo ni, char *name, int i, D_ParseNode *pn, D_ParseNode *xpn) {
+  if (nodeHas(derivative) && i==2) {
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    if (new_de(v)) {
+      tb.statei++;
+      if (strncmp(v, "rx__sens_", 3) == 0){
+	tb.sensi++;
+      }
+      if (rx_syntax_allow_dots == 0 && strstr(v, ".")){
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(NODOT);
+      }
+      sb.o =0; sbDt.o =0;
+      aType(TDDT);
+      aProp(tb.de.n);
+      sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(_IR[%d] ", tb.de.n, tb.de.n, tb.de.n);
+      sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(_IR[%d] ", tb.de.n, tb.de.n, tb.de.n);
+      sbt.o=0;
+      sAppend(&sbt, "d/dt(%s)", v);
+      new_or_ith(v);
+      /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
+      if (!rx_syntax_allow_assign_state &&
+	  ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
+	   (tb.lh[tb.ix] == isLHS || tb.lh[tb.ix] == isLHSparam))){
+	updateSyntaxCol();
+	sPrint(&_gbuf,_("cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'"),v,v);
+	trans_syntax_error_report_fn0(_gbuf.s);
+      }
+      tb.lh[tb.ix] = isState;
+      tb.di[tb.de.n] = tb.ix;
+      addLine(&(tb.de),"%s",v);
+      /* Free(v); */
+      xpn = d_get_child(pn,4);
+      v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      tb.idu[tb.de.n-1] = 1;
+      if (!strcmp("~",v)){
+	tb.idi[tb.de.n-1] = 1;
+	sAppendN(&sbt, "~", 1);
+      } else {
+	tb.idi[tb.de.n-1] = 0;
+	sAppendN(&sbt, "=", 1);
+      }
+      /* Free(v); */
+    } else {
+      new_or_ith(v);
+      /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
+      sb.o =0; sbDt.o =0;
+      if (tb.idu[tb.id] == 0){
+	sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(_IR[%d] ", tb.id, tb.id, tb.id);
+	sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(_IR[%d] ", tb.id, tb.id, tb.id);
+      } else {
+	sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(", tb.id, tb.id);
+	sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(", tb.id, tb.id);
+      }
+      tb.idu[tb.id]=1;
+      aType(TDDT);
+      aProp(tb.id);
+      sbt.o=0;
+      sAppend(&sbt, "d/dt(%s)", v);
+      /* Free(v); */
+      xpn = d_get_child(pn,4);
+      v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      if (!strcmp("~",v)){
+	tb.idi[tb.id] = 1;
+	sAppendN(&sbt, "~", 1);
+      } else {
+	// Don't switch idi back to 0; Once the state is ignored,
+	// keep it ignored.
+	sAppendN(&sbt, "=", 1);
+      }
+      /* Free(v); */
+    }
+    return 1;
+  }
+  return 0;
+}
+
+static int inline handleDdtRhs(nodeInfo ni, char *name, D_ParseNode *xpn) {
+  if (nodeHas(der_rhs)) {
+    switch(sbPm.lType[sbPm.n]){
+    case TMTIME:
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("modeling times cannot depend on state values"));
+      break;
+    case FBIO:
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("bioavailability cannot depend on state values"));
+      break;
+    case ALAG:
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("absorption lag-time cannot depend on state values"));
+      break;
+    case RATE:
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("model-based rate cannot depend on state values"));
+      break;
+    case DUR:
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("model-based duration cannot depend on state values"));
+      break;
+    case TMAT0:
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("model-based matricies cannot depend on state values"));
+    default:
+      {
+	updateSyntaxCol();
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	if (new_de(v)){
+	  /* sPrint(&buf2,"d/dt(%s)",v); */
+	  updateSyntaxCol();
+	  sPrint(&_gbuf,"Tried to use d/dt(%s) before it was defined",v);
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn(_gbuf.s);
+	} else {
+	  if (sbPm.lType[sbPm.n] == TJAC){
+	    sAppend(&sb,   "__DDtStateVar_%d__", tb.id);
+	    sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
+	  } else {
+	    sAppend(&sb,   "__DDtStateVar__[%d]", tb.id);
+	    sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
+	    aType(TDDT);
+	  }
+	  aProp(tb.id);
+	  sAppend(&sbt, "d/dt(%s)", v);
+	}
+      }
+    }
+    return 1;
+  }
+  return 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // assertions
 static inline int assertNoRAssign(nodeInfo ni, char *name, D_ParseNode *pn, int i){
@@ -2759,7 +2891,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (handlePrintf(ni, name, i, xpn) ||
 	  handleJac(ni, name, i, xpn, &ii, &found) ||
 	  handleLogicalExpr(ni, name, i, pn, xpn, &isWhile) ||
-	  handleCmtProperty(ni, name, i, xpn)) continue;
+	  handleCmtProperty(ni, name, i, xpn) ||
+	  handleDdtAssign(ni, name, i, pn, xpn) ||
+	  handleDdtRhs(ni, name, xpn)) continue;
 
       if (nodeHas(power_expression) && i==0) {
         aAppendN("),", 2);
@@ -2785,132 +2919,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	/* Free(v); */
 	continue;
       }
-      if (nodeHas(derivative) && i==2) {
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (new_de(v)) {
-	  tb.statei++;
-	  if (strncmp(v, "rx__sens_", 3) == 0){
-	    tb.sensi++;
-	  }
-	  if (rx_syntax_allow_dots == 0 && strstr(v, ".")){
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(NODOT);
-	  }
-	  sb.o =0; sbDt.o =0;
-	  aType(TDDT);
-	  aProp(tb.de.n);
-          sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(_IR[%d] ", tb.de.n, tb.de.n, tb.de.n);
-	  sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(_IR[%d] ", tb.de.n, tb.de.n, tb.de.n);
-	  sbt.o=0;
-          sAppend(&sbt, "d/dt(%s)", v);
-	  new_or_ith(v);
-          /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
-          if (!rx_syntax_allow_assign_state &&
-	      ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
-	       (tb.lh[tb.ix] == isLHS || tb.lh[tb.ix] == isLHSparam))){
-	    updateSyntaxCol();
-            sPrint(&_gbuf,_("cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'"),v,v);
-            trans_syntax_error_report_fn0(_gbuf.s);
-          }
-	  tb.lh[tb.ix] = isState;
-          tb.di[tb.de.n] = tb.ix;
-	  addLine(&(tb.de),"%s",v);
-	  /* Free(v); */
-	  xpn = d_get_child(pn,4);
-          v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  tb.idu[tb.de.n-1] = 1;
-          if (!strcmp("~",v)){
-            tb.idi[tb.de.n-1] = 1;
-	    sAppendN(&sbt, "~", 1);
-          } else {
-	    tb.idi[tb.de.n-1] = 0;
-	    sAppendN(&sbt, "=", 1);
-	  }
-	  /* Free(v); */
-        } else {
-	  new_or_ith(v);
-	  /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
-	  sb.o =0; sbDt.o =0;
-	  if (tb.idu[tb.id] == 0){
-	    sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(_IR[%d] ", tb.id, tb.id, tb.id);
-	    sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(_IR[%d] ", tb.id, tb.id, tb.id);
-	  } else {
-	    sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(", tb.id, tb.id);
-	    sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(", tb.id, tb.id);
-	  }
-	  tb.idu[tb.id]=1;
-	  aType(TDDT);
-	  aProp(tb.id);
-	  sbt.o=0;
-	  sAppend(&sbt, "d/dt(%s)", v);
-	  /* Free(v); */
-          xpn = d_get_child(pn,4);
-          v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-          if (!strcmp("~",v)){
-            tb.idi[tb.id] = 1;
-	    sAppendN(&sbt, "~", 1);
-          } else {
-	    // Don't switch idi back to 0; Once the state is ignored,
-	    // keep it ignored.
-	    sAppendN(&sbt, "=", 1);
-	  }
-	  /* Free(v); */
-        }
-        continue;
-      }
-      if (nodeHas(der_rhs)) {
-	switch(sbPm.lType[sbPm.n]){
-	case TMTIME:
-	  updateSyntaxCol();
-	  trans_syntax_error_report_fn(_("modeling times cannot depend on state values"));
-	  break;
-	case FBIO:
-	  updateSyntaxCol();
-	  trans_syntax_error_report_fn(_("bioavailability cannot depend on state values"));
-	  break;
-	case ALAG:
-	  updateSyntaxCol();
-	  trans_syntax_error_report_fn(_("absorption lag-time cannot depend on state values"));
-	  break;
-	case RATE:
-	  updateSyntaxCol();
-	  trans_syntax_error_report_fn(_("model-based rate cannot depend on state values"));
-	  break;
-	case DUR:
-	  updateSyntaxCol();
-	  trans_syntax_error_report_fn(_("model-based duration cannot depend on state values"));
-	  break;
-	case TMAT0:
-	  updateSyntaxCol();
-	  trans_syntax_error_report_fn(_("model-based matricies cannot depend on state values"));
-	default:
-	  {
-	    updateSyntaxCol();
-	    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	    if (new_de(v)){
-	      /* sPrint(&buf2,"d/dt(%s)",v); */
-	      updateSyntaxCol();
-	      sPrint(&_gbuf,"Tried to use d/dt(%s) before it was defined",v);
-	      updateSyntaxCol();
-	      trans_syntax_error_report_fn(_gbuf.s);
-	    } else {
-	      if (sbPm.lType[sbPm.n] == TJAC){
-		sAppend(&sb,   "__DDtStateVar_%d__", tb.id);
-		sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
-	      } else {
-		sAppend(&sb,   "__DDtStateVar__[%d]", tb.id);
-		sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
-		aType(TDDT);
-	      }
-	      aProp(tb.id);
-	      sAppend(&sbt, "d/dt(%s)", v);
-	    }
-	    /* Free(v); */
-	  }
-	}
-        continue;
-      }
-
+      
       if (nodeHas(ini0f) && rx_syntax_allow_ini && i == 0){
 	foundF0=1;
 	aType(TF0);
@@ -3094,23 +3103,23 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       addLine(&sbPm,     "%s;\n", sb.s);
       addLine(&sbPmDt,   "%s;\n", sbDt.s);
       sAppend(&sbNrm, "%s;\n", sbt.s);
-      ENDLINE
+      ENDLINE;
     } else if ((nodeHas(mat0) || nodeHas(matF))){
       addLine(&sbPm,     "%s;\n", sb.s);
       addLine(&sbPmDt,   "%s;\n", sbDt.s);
-      ENDLINE
+      ENDLINE;
       /* sAppend(&sbNrm, "", sbt.s); */
     } else if (nodeHas(derivative)){
       addLine(&sbPm,     "%s);\n", sb.s);
       addLine(&sbPmDt,   "%s);\n", sbDt.s);
       sAppend(&sbNrm, "%s;\n", sbt.s);
       addLine(&sbNrmL, "%s;\n", sbt.s);
-      ENDLINE
+      ENDLINE;
     } else if (nodeHas(param_statement)) {
       sbDt.o = 0; sbt.o = 0;
       sAppend(&sbNrm, "%s;\n", sbt.s);
       addLine(&sbNrmL, "%s;\n", sbt.s);
-      ENDLINE
+      ENDLINE;
     }
 
     if (!rx_syntax_assign && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0) || nodeHas(ini0f) || nodeHas(mtime))){
@@ -3129,7 +3138,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       /* Free(v); */
     }
-
     if (nodeHas(selection_statement)){
       sb.o = 0; sbDt.o = 0; sbt.o = 0;
       aType(TLOGIC);
@@ -3152,7 +3160,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     if (nodeHas(power_expression)) {
       aAppendN(")", 1);
     }
-
   }
 }
 
