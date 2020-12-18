@@ -2461,6 +2461,83 @@ static inline int handleJac(nodeInfo ni, char *name, int i, D_ParseNode *xpn, in
   return 0;
 }
 
+static inline int handleLogicalExpr(nodeInfo ni, char *name, int i, D_ParseNode *pn, D_ParseNode *xpn, int *isWhile) {
+  if (nodeHas(selection_statement) && i== 0 ) {
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    *isWhile = !strcmp("while", v);
+    /* Free(v); */
+    if (*isWhile) {
+      D_ParseNode *xpn2 = d_get_child(pn, 5);
+      v = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
+      if (v[0] == 0) {
+	/* Free(v); */
+      } else {
+	/* Free(v); */
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_("'while' cannot be followed by 'else' (did you mean 'if'/'else')"));
+      }
+    }
+    return 1;
+  }
+  if (nodeHas(selection_statement) && i==1) {
+    sb.o = 0; sbDt.o = 0; sbt.o = 0;
+    if (*isWhile) {
+      sAppendN(&sb, "_itwhile=0;\nwhile (", 19);
+      sAppendN(&sbDt, "_itwhile=0;\nwhile (", 19);
+      sAppendN(&sbt,"while (", 7);
+      tb.nwhile++;
+    } else {
+      sAppendN(&sb, "if (", 4);
+      sAppendN(&sbDt, "if (", 4);
+      sAppendN(&sbt,"if (", 4);
+    }
+    return 1;
+  }
+  if (nodeHas(break_statement) && i == 0) {
+    if (tb.nwhile > 0) {
+      aType(TLOGIC);
+      sb.o = 0; sbDt.o = 0; sbt.o = 0;
+      /* aType(100); */
+      aAppendN("break;", 6);
+      sAppendN(&sbt, "break;", 6);
+      addLine(&sbPm, "%s\n", sb.s);
+      addLine(&sbPmDt, "%s\n", sbDt.s);
+      sAppend(&sbNrm, "%s\n", sbt.s);
+      addLine(&sbNrmL, "%s\n", sbt.s);
+      ENDLINE;
+      return 1;
+    } else {
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("'break' can only be used in  'while' statement"));
+    }
+  }
+  if (nodeHas(selection_statement) && i==3) {
+    aType(TLOGIC);
+    /* aType(100); */
+    aAppendN("{", 1);
+    sAppendN(&sbt, "{", 1);
+    addLine(&sbPm, "%s\n", sb.s);
+    addLine(&sbPmDt, "%s\n", sbDt.s);
+    sAppend(&sbNrm, "%s\n", sbt.s);
+    addLine(&sbNrmL, "%s\n", sbt.s);
+    ENDLINE;
+    return 1;
+  }
+  if (nodeHas(selection_statement__9) && i==0) {
+    sb.o = 0; sbDt.o = 0; sbt.o = 0;
+    aType(TLOGIC);
+    aAppendN("}\nelse {", 8);
+    sAppendN(&sbt,"}\nelse {", 8);
+    addLine(&sbPm, "%s\n", sb.s);
+    addLine(&sbPmDt, "%s\n", sbDt.s);
+    sAppend(&sbNrm, "%s\n", sbt.s);
+    addLine(&sbNrmL, "%s\n", sbt.s);
+    ENDLINE;
+    return 1;
+  }
+  return 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // assertions
 static inline int assertNoRAssign(nodeInfo ni, char *name, D_ParseNode *pn, int i){
@@ -2545,92 +2622,20 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       handleSafeZero(ni, name, i, &safe_zero, xpn); // protect against divide by zeros
 
       if (handlePrintf(ni, name, i, xpn) ||
-	  handleJac(ni, name, i, xpn, &ii, &found)) continue;
-      //inits
-      if (nodeHas(selection_statement) && i== 0 ) {
-	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	isWhile = !strcmp("while", v);
-	/* Free(v); */
-	if (isWhile) {
-	  D_ParseNode *xpn2 = d_get_child(pn, 5);
-	  v = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
-	  if (v[0] == 0) {
-	    /* Free(v); */
-	  } else {
-	    /* Free(v); */
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("'while' cannot be followed by 'else' (did you mean 'if'/'else')"));
-	  }
-	}
-        continue;
-      }
-      if (nodeHas(selection_statement) && i==1) {
-	sb.o = 0; sbDt.o = 0; sbt.o = 0;
-	if (isWhile) {
-	  sAppendN(&sb, "_itwhile=0;\nwhile (", 19);
-	  sAppendN(&sbDt, "_itwhile=0;\nwhile (", 19);
-	  sAppendN(&sbt,"while (", 7);
-	  tb.nwhile++;
-	} else {
-	  sAppendN(&sb, "if (", 4);
-	  sAppendN(&sbDt, "if (", 4);
-	  sAppendN(&sbt,"if (", 4);
-	}
-        continue;
-      }
-      if (nodeHas(break_statement) && i == 0) {
-	if (tb.nwhile > 0) {
-	  aType(TLOGIC);
-	  sb.o = 0; sbDt.o = 0; sbt.o = 0;
-	  /* aType(100); */
-	  aAppendN("break;", 6);
-	  sAppendN(&sbt, "break;", 6);
-	  addLine(&sbPm, "%s\n", sb.s);
-	  addLine(&sbPmDt, "%s\n", sbDt.s);
-	  sAppend(&sbNrm, "%s\n", sbt.s);
-	  addLine(&sbNrmL, "%s\n", sbt.s);
-	  ENDLINE;
-	  continue;
-	} else {
-	  updateSyntaxCol();
-	  trans_syntax_error_report_fn(_("'break' can only be used in  'while' statement"));
-	}
-      }
-      if (nodeHas(selection_statement) && i==3) {
-	aType(TLOGIC);
-	/* aType(100); */
-        aAppendN("{", 1);
-        sAppendN(&sbt, "{", 1);
-	addLine(&sbPm, "%s\n", sb.s);
-	addLine(&sbPmDt, "%s\n", sbDt.s);
-	sAppend(&sbNrm, "%s\n", sbt.s);
-	addLine(&sbNrmL, "%s\n", sbt.s);
-	ENDLINE
-        continue;
-      }
-      if (nodeHas(selection_statement__9) && i==0) {
-	sb.o = 0; sbDt.o = 0; sbt.o = 0;
-	aType(TLOGIC);
-	aAppendN("}\nelse {", 8);
-	sAppendN(&sbt,"}\nelse {", 8);
-	addLine(&sbPm, "%s\n", sb.s);
-	addLine(&sbPmDt, "%s\n", sbDt.s);
-	sAppend(&sbNrm, "%s\n", sbt.s);
-	addLine(&sbNrmL, "%s\n", sbt.s);
-	ENDLINE
-        continue;
-      }
+	  handleJac(ni, name, i, xpn, &ii, &found) ||
+	  handleLogicalExpr(ni, name, i, pn, xpn, &isWhile)) continue;
+
       if (nodeHas(power_expression) && i==0) {
         aAppendN("),", 2);
         sAppendN(&sbt, "^", 1);
       }
-      if (!rx_syntax_star_pow && i == 1 &&nodeHas(power_expression)){
+      
+      if (!rx_syntax_star_pow && i == 1 && nodeHas(power_expression)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (!strcmp("**",v)){
 	  updateSyntaxCol();
           trans_syntax_error_report_fn(NEEDPOW);
         }
-        /* Free(v); */
       }
       if ((nodeHas(fbio) || nodeHas(alag) ||
 	   nodeHas(dur) || nodeHas(rate) ||
