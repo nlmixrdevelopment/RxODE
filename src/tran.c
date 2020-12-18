@@ -1902,6 +1902,32 @@ static inline int handleFunctionRgeom(transFunctions *tf) {
   return 0;
 }
 
+static inline int handleFunctionRbinom(transFunctions *tf){
+  if (!strcmp("rbinom", tf->v) ||
+      !strcmp("rxbinom", tf->v) ||
+      (tf->isInd = !strcmp("ribinom", tf->v))) {
+    if (tb.thread != 0) tb.thread = 2;
+    int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
+    if (ii != 2){
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("'ribinom'/'rbinom'/'rxbinom' takes 2 arguments 'rxbinom(size, prob)'"));
+    } else {
+      if (tf->isInd){
+	sAppend(&sb,   "(double)ribinom(&_solveData->subjects[_cSub], %d, (int)" , tb.nInd);
+	sAppend(&sbDt, "(double)ribinom(&_solveData->subjects[_cSub], %d, (int)", tb.nInd++);
+	sAppendN(&sbt, "ribinom(", 8);
+      } else {
+	aAppendN("(double)rxbinom(&_solveData->subjects[_cSub], (int)", 51);
+	sAppendN(&sbt, "rxbinom(", 8);
+      }
+    }
+    tf->i[0]     = 1;// Parse next arguments
+    tf->depth[0] =1;
+    return 1;
+  }
+  return 0;
+}
+
 static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, int nch, D_ParseNode *xpn, D_ParseNode *pn) {
   if (tb.fn == 1) {
     transFunctions *tf = &_tf;
@@ -1930,33 +1956,8 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
 	handleFunctionTransit(tf) ||
 	handleFunctionRxnorm(tf) ||
 	handleFunctionRchisq(tf) ||
-	handleFunctionRgeom(tf)) {
-      return 1;
-    } else if (!strcmp("rbinom", v) ||
-	       !strcmp("rxbinom", v) ||
-	       (isInd = !strcmp("ribinom", v))) {
-      if (tb.thread != 0) tb.thread = 2;
-      ii = d_get_number_of_children(d_get_child(pn,3))+1;
-      if (ii != 2){
-	updateSyntaxCol();
-	trans_syntax_error_report_fn(_("'ribinom'/'rbinom'/'rxbinom' takes 2 arguments 'rxbinom(size, prob)'"));
-      } else {
-	if (isInd){
-	  sAppend(&sb,   "(double)ribinom(&_solveData->subjects[_cSub], %d, (int)" , tb.nInd);
-	  sAppend(&sbDt, "(double)ribinom(&_solveData->subjects[_cSub], %d, (int)", tb.nInd++);
-	  sAppendN(&sbt, "ribinom(", 8);
-	} else {
-	  aAppendN("(double)rxbinom(&_solveData->subjects[_cSub], (int)", 51);
-	  sAppendN(&sbt, "rxbinom(", 8);
-	}
-      }
-      *i = 1;// Parse next arguments
-      *depth=1;
-      /* Free(v); */
-      /* if (isInd) { */
-      /*   sAppendN(&sb, ")", 1); */
-      /*   sAppendN(&sbDt, ")", 1); */
-      /* } */
+	handleFunctionRgeom(tf) ||
+	handleFunctionRbinom(tf)) {
       return 1;
     } else if (!strcmp("is.nan", v)) {
       ii = d_get_number_of_children(d_get_child(pn,3))+1;
