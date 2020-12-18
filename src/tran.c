@@ -2262,15 +2262,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   handleFunctionArguments(name, depth);
   // print/change identifier/operator and change operator information (if needed)
   handleOperatorsOrPrintingIdentifiers(depth, fn, client_data, ni, name, value);
-  
+
   if (nch != 0) {
     int isWhile=0;
     if (nodeHas(power_expression)) {
       aAppendN("Rx_pow(_as_dbleps(", 18);
     }
     for (i = 0; i < nch; i++) {
-      if (assertNoRAssign(ni, name, pn, i)) continue;
-      if (isSkipChild(ni, name, i)) continue;
+      if (assertNoRAssign(ni, name, pn, i) ||
+	  isSkipChild(ni, name, i))  continue;
 
       // Inductive linearization matrices
       handleIndLinMat0(ni, name);
@@ -2279,10 +2279,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       // Determine if this is a function and change depth flag if needed
       setFunctionFlag(ni, name, i, &depth);
 
-      if (handleIfElse(ni, name, i)) continue;
+      if (handleIfElse(ni, name, i) ||
+	  // simeta()/simeps()
+	  handleSimFunctions(ni, name, &i, nch, pn)) continue;
 
-      // simeta()/simeps()
-      if (handleSimFunctions(ni, name, &i, nch, pn)) continue;
 
       D_ParseNode *xpn = d_get_child(pn,i);
       if (handleStringEqualityStatements(ni, name, i, xpn)) continue;
@@ -2293,7 +2293,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       if (handleDvidStatement(ni, name, xpn, pn)) continue;
       if (handleFunctions(ni, name, &i, &depth, nch, xpn, pn)) continue;
-      
+
       if (handleTheta(ni, name, xpn)) continue;
       if (handleEta(ni, name, xpn)) continue;
 
@@ -2301,11 +2301,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       wprint_parsetree(pt, xpn, depth, fn, client_data);
 
       assertEndSemicolon(ni, name, i, xpn);
-      
+
       handleSafeZero(ni, name, i, &safe_zero, xpn); // protect against divide by zeros
-      
+
       if (handlePrintf(ni, name, i, xpn)) continue;
-      
+
       if ((nodeHas(dfdy) || nodeHas(dfdy_rhs)) && i == 2){
         found_jac = 1;
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -3325,7 +3325,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
       sAppendN(&sbOut, "\\\\", 2);
     } else if (_mv.s[i] >= 33  && _mv.s[i] <= 126){ // ASCII only
       sPut(&sbOut, _mv.s[i]);
-    } 
+    }
   }
   sAppendN(&sbOut, "\");\n", 4);
   sAppend(&sbOut,"    char buf[%d];\n    __doBuf__\n#undef __doBuf__\n", off+1);
@@ -6418,4 +6418,3 @@ char * rc_dup_str(const char *s, const char *e) {
   addLine(&_dupStrs, "%.*s", l, s);
   return _dupStrs.line[_dupStrs.n-1];
 }
-
