@@ -1665,6 +1665,28 @@ static inline int handleFunctionPnorm(transFunctions *tf) {
   return 0;
 }
 
+static inline int handleFunctionTransit(transFunctions *tf) {
+  if (!strcmp("transit", tf->v)) {
+    int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
+    if (ii == 2){
+      aAppendN("_transit3P(t, _cSub, ", 21);
+      sAppendN(&sbt,"transit(", 8);
+      rx_podo=1;
+    } else if (ii == 3){
+      aAppendN("_transit4P(t, _cSub, ", 21);
+      sAppendN(&sbt,"transit(", 8);
+      rx_podo = 1;
+    } else {
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("'transit' takes 2-3 arguments transit(n, mtt, bio)"));
+    }
+    tf->i[0] = 1;// Parse next arguments
+    tf->depth[0] = 1;
+    return 1;
+  }
+  return 0;
+}
+
 static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, int nch, D_ParseNode *xpn, D_ParseNode *pn) {
   if (tb.fn == 1) {
     transFunctions *tf = &_tf;
@@ -1689,25 +1711,8 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
 	handleFunctionSum(tf) ||
 	handleFunctionLogit(tf) ||
 	handleFunctionDiff(tf) ||
-	handleFunctionPnorm(tf)) {
-      return 1;
-    } else if (!strcmp("transit", v)) {
-      ii = d_get_number_of_children(d_get_child(pn,3))+1;
-      if (ii == 2){
-	aAppendN("_transit3P(t, _cSub, ", 21);
-	sAppendN(&sbt,"transit(", 8);
-	rx_podo=1;
-      } else if (ii == 3){
-	aAppendN("_transit4P(t, _cSub, ", 21);
-	sAppendN(&sbt,"transit(", 8);
-	rx_podo = 1;
-      } else {
-	updateSyntaxCol();
-	trans_syntax_error_report_fn(_("'transit' takes 2-3 arguments transit(n, mtt, bio)"));
-      }
-      *i = 1;// Parse next arguments
-      *depth=1;
-      /* Free(v); */
+	handleFunctionPnorm(tf) ||
+	handleFunctionTransit(tf)) {
       return 1;
     } else if ((isNorm = !strcmp("rnorm", v) ||
 		!strcmp("rxnorm", v) || (isInd = !strcmp("rinorm", v))) ||
