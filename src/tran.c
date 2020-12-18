@@ -292,7 +292,7 @@ void sAppendN(sbuf *sbb, const char *what, int n){
     sbb->s = Realloc(sbb->s, mx, char);
     sbb->sN = mx;
   }
-  sprintf(sbb->s+sbb->o, "%s", what);
+  snprintf(sbb->s+sbb->o, sbb->sN - sbb->o, "%s", what);
   sbb->o +=n;
 }
 
@@ -302,7 +302,7 @@ static void sPut(sbuf *sbb, char what) {
     sbb->s = Realloc(sbb->s, mx, char);
     sbb->sN = mx;
   }
-  sprintf(sbb->s+sbb->o, "%c", what);
+  snprintf(sbb->s+sbb->o, sbb->sN - sbb->o, "%c", what);
   sbb->o++;
 }
 
@@ -2199,13 +2199,7 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
     tf->xpn = xpn;
     tf->pn = pn;
     tf->v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-    int ii;
     char *v = tf->v;
-    int isNorm=0, isExp=0, isF=0, isGamma=0, isBeta=0,
-      isPois=0, isT=0, isUnif=0, isWeibull=0, isNormV=0,
-      isLead=0, isFirst=0, isLast=0, isDiff=0, isLinB=0,
-      isPnorm=0, isTad=0, isTafd=0, isTlast = 0, isTfirst = 0,
-      isInd=0;
     if (handleFunctionDosenum(tf) ||
 	handleFunctionTad(tf) ||
 	handleFunctionSum(tf) ||
@@ -4109,7 +4103,7 @@ void trans_internal(const char* parse_file, int isStr){
       }
       if (!found){
 	buf2=tb.ss.line[tb.dy[i]];
-	sprintf(bufe,NOSTATE,buf1,buf2,buf1);
+	snprintf(bufe, 2048, NOSTATE,buf1,buf2,buf1);
 	trans_syntax_error_report_fn0(bufe);
       }
       // Now the dy()
@@ -4139,7 +4133,7 @@ void trans_internal(const char* parse_file, int isStr){
       if (!found){
         buf2=tb.ss.line[tb.df[i]];
       	buf2=tb.ss.line[tb.dy[i]];
-      	sprintf(bufe,NOSTATEVAR,buf1,buf2,buf2);
+      	snprintf(bufe,2048, NOSTATEVAR,buf1,buf2,buf2);
         trans_syntax_error_report_fn0(bufe);
       }
     }
@@ -4154,6 +4148,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   _goodFuns = goodFuns;
   const char *in = NULL;
   char *buf, *df, *dy;
+  sbuf sb;
 
   int i, j, islhs, pi=0, li=0, sli = 0, ini_i = 0,k=0, m=0, p=0;
   // Make sure buffers are initialized.
@@ -4290,16 +4285,16 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       if (tb.linCmt == 0){
 	UNPROTECT(pro);
 	char *v = rc_dup_str(buf, 0);
-	sprintf(buf, "compartment '%s' needs differential equations defined", v);
+	sPrint(&sb, _("compartment '%s' needs differential equations defined"), v);
 	updateSyntaxCol();
-	trans_syntax_error_report_fn(buf);
+	trans_syntax_error_report_fn(sb.s);
       } else if (!strcmp("depot", buf) || !strcmp("central", buf)) {
       } else {
 	UNPROTECT(pro);
 	char *v = rc_dup_str(buf, 0);
-	sprintf(buf, _("compartment '%s' needs differential equations defined"), v);
+	sPrint(&sb, _("compartment '%s' needs differential equations defined"), v);
 	updateSyntaxCol();
-	trans_syntax_error_report_fn(buf);
+	trans_syntax_error_report_fn(sb.s);
       }
     } else if (offCmt == 1 && tb.idu[i] == 0){
       nExtra++;
