@@ -1434,6 +1434,45 @@ static inline int handleFunctionTad(transFunctions *tf) {
   return 0;
 }
 
+static inline int handleFunctionLogit(transFunctions *tf) {
+  if (!strcmp("logit", tf->v) || !strcmp("expit", tf->v) ||
+      !strcmp("invLogit", tf->v) || !strcmp("logitInv", tf->v)){
+    int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
+    if (ii == 1){
+      D_ParseNode *xpn = d_get_child(tf->pn, 2);
+      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      if (allSpaces(v2)){
+	updateSyntaxCol();
+	sPrint(&_gbuf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
+	       tf->v, tf->v);
+	/* Free(v2); */
+	trans_syntax_error_report_fn(_gbuf.s);
+      }
+      /* Free(v2); */
+      sAppend(&sb, "_%s1(", tf->v);
+      sAppend(&sbDt,"_%s1(", tf->v);
+      sAppend(&sbt, "%s(", tf->v);
+    } else if (ii == 2) {
+      sAppend(&sb, "_%s2(", tf->v);
+      sAppend(&sbDt,"_%s2(", tf->v);
+      sAppend(&sbt, "%s(", tf->v);
+    } else if (ii == 3) {
+      sAppend(&sb, "%s(", tf->v);
+      sAppend(&sbDt,"%s(", tf->v);
+      sAppend(&sbt, "%s(", tf->v);
+    } else {
+      updateSyntaxCol();
+      sPrint(&_gbuf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
+	     tf->v, tf->v);
+      trans_syntax_error_report_fn(_gbuf.s);
+    }
+    tf->i[0] = 1;// Parse next arguments
+    tf->depth[0]=1;
+    return 1;
+  }
+  return 0;
+}
+
 static inline int handleFunctionSum(transFunctions *tf) {
   if (!strcmp("prod",tf->v) || !strcmp("sum",tf->v) || !strcmp("sign",tf->v) ||
       !strcmp("max",tf->v) || !strcmp("min",tf->v)){
@@ -1484,44 +1523,10 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
       isInd=0;
     if (handleFunctionDosenum(tf) ||
 	handleFunctionTad(tf) ||
-	handleFunctionSum(tf)) {
+	handleFunctionSum(tf) ||
+	handleFunctionLogit(tf)) {
       return 1;
-    } else if (!strcmp("logit", v) || !strcmp("expit", v) ||
-	       !strcmp("invLogit", v) || !strcmp("logitInv", v)){
-      ii = d_get_number_of_children(d_get_child(pn,3))+1;
-      if (ii == 1){
-	D_ParseNode *xpn = d_get_child(pn, 2);
-	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	if (allSpaces(v2)){
-	  updateSyntaxCol();
-	  sPrint(&_gbuf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
-		 v, v);
-	  /* Free(v2); */
-	  trans_syntax_error_report_fn(_gbuf.s);
-	}
-	/* Free(v2); */
-	sAppend(&sb, "_%s1(", v);
-	sAppend(&sbDt,"_%s1(", v);
-	sAppend(&sbt, "%s(", v);
-      } else if (ii == 2) {
-	sAppend(&sb, "_%s2(", v);
-	sAppend(&sbDt,"_%s2(", v);
-	sAppend(&sbt, "%s(", v);
-      } else if (ii == 3) {
-	sAppend(&sb, "%s(", v);
-	sAppend(&sbDt,"%s(", v);
-	sAppend(&sbt, "%s(", v);
-      } else {
-	updateSyntaxCol();
-	sPrint(&_gbuf, _("'%s' takes 1-3 arguments '%s(x,low,high)'"),
-	       v, v);
-	trans_syntax_error_report_fn(_gbuf.s);
-      }
-      *i = 1;// Parse next arguments
-      *depth=1;
-      /* Free(v); */
-      return 1;
-    } else if (!strcmp("lag", v) || (isLead = !strcmp("lead", v)) ||
+    }  else if (!strcmp("lag", v) || (isLead = !strcmp("lead", v)) ||
 	       (isDiff = !strcmp("diff", v)) ||
 	       (isFirst = !strcmp("first", v)) ||
 	       (isLast = !strcmp("last", v))) {
