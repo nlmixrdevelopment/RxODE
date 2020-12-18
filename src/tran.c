@@ -1304,7 +1304,7 @@ static inline int handleDvidStatement(nodeInfo ni, char *name, D_ParseNode *xpn,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// RxODE function handling 
+// RxODE function handling
 typedef struct transFunctions {
   int isNorm;
   int isExp;
@@ -2344,6 +2344,123 @@ static inline int handlePrintf(nodeInfo ni, char *name, int i, D_ParseNode *xpn)
   return 0;
 }
 
+static inline int handleJac(nodeInfo ni, char *name, int i, D_ParseNode *xpn, int *ii, int *found) {
+  if ((nodeHas(dfdy) || nodeHas(dfdy_rhs)) && i == 2){
+    found_jac = 1;
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    if (nodeHas(dfdy_rhs)){
+      // Continuation statement
+      switch(sbPm.lType[sbPm.n]){
+      case FBIO:
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_("bioavailability cannot depend on Jacobian values"));
+	break;
+      case ALAG:
+	updateSyntaxCol();
+	trans_syntax_error_report_fn("absorption lag-time cannot depend on Jacobian values");
+	break;
+      case RATE:
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_("model-based rate cannot depend on Jacobian values"));
+	break;
+      case DUR:
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_("model-based duration cannot depend on Jacobian values"));
+	break;
+      case TMAT0:
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_("model-based matricies cannot depend on Jacobian values"));
+	break;
+      default: {
+	aType(TJAC);
+	sAppend(&sbDt, "__PDStateVar_%s_SeP_",v);
+	sAppend(&sbt,"df(%s)/dy(",v);
+	if (new_de(v)){
+	  updateSyntaxCol();
+	  sPrint(&_gbuf,_("d/dt(%s) needs to be defined before using a Jacobians for this state"),v);
+	  trans_syntax_error_report_fn(_gbuf.s);
+	} else {
+	  sAppend(&sb, "__PDStateVar__[%d*(__NROWPD__)+",tb.id);
+	}
+      }
+      }
+    } else {
+      // New statement
+      aType(TJAC);
+      sb.o = 0; sbDt.o = 0;
+      sbt.o = 0;
+      sAppend(&sbDt,"__PDStateVar_%s_SeP_",v);
+      sAppend(&sbt,"df(%s)/dy(",v);
+      if (new_de(v)){
+	updateSyntaxCol();
+	sPrint(&_gbuf,_("d/dt(%s) needs to be defined before using a Jacobians for this state"),v);
+	trans_syntax_error_report_fn(_gbuf.s);
+      } else {
+	sAppend(&sb,"__PDStateVar__[%d*(__NROWPD__)+",tb.id);
+      }
+      new_or_ith(v);
+      tb.cdf = tb.ix;
+    }
+    /* Free(v); */
+    return 1;
+  }
+  if ((nodeHas(dfdy) || nodeHas(dfdy_rhs)) && i == 4){
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    *ii = 0;
+    if (strstr(v,"THETA[") != NULL){
+      good_jac=0;
+      sPrint(&_gbuf,"_THETA_%.*s_",(int)(strlen(v))-7,v+6);
+      sAppend(&sbt, "%s)",v);
+      sAppendN(&sb, "0]", 2);
+      sAppend(&sbDt, "%s__",_gbuf.s);
+      *ii = 1;
+    } else if (strstr(v,"ETA[") != NULL) {
+      good_jac=0;
+      sPrint(&_gbuf,"_ETA_%.*s_",(int)(strlen(v))-5,v+4);
+      sAppend(&sbt, "%s)",v);
+      sAppendN(&sb, "0]",2);
+      sAppend(&sbDt, "%s__",_gbuf.s);
+      *ii = 1;
+    } else {
+      sAppend(&sbDt, "%s__",v);
+      sAppend(&sbt, "%s)",v);
+      new_or_ith(v);
+      if (tb.lh[tb.ix] == isState){
+	new_de(v);
+	sAppend(&sb, "%d]",tb.id);
+      } else {
+	sAppendN(&sb, "0]",2);
+	good_jac = 0;
+      }
+    }
+    if (nodeHas(dfdy)){
+      aAppendN(" = ", 3);
+      sAppendN(&sbt ,"=", 1);
+      if (*ii == 1){
+	new_or_ith(_gbuf.s);
+      } else {
+	new_or_ith(v);
+      }
+      *found = -1;
+      for (*ii = 0; *ii < tb.ndfdy; (*ii)++){
+	if (tb.df[*ii] == tb.cdf && tb.dy[*ii] == tb.ix){
+	  *found = *ii;
+	  break;
+	}
+      }
+      if (*found < 0){
+	tb.df[tb.ndfdy] = tb.cdf;
+	tb.dy[tb.ndfdy] = tb.ix;
+	tb.ndfdy = tb.ndfdy+1;
+	tb.cdf = -1;
+      }
+    }
+    /* Free(v); */
+    return 1;
+  }
+  return 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // assertions
 static inline int assertNoRAssign(nodeInfo ni, char *name, D_ParseNode *pn, int i){
@@ -2403,23 +2520,22 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       // Determine if this is a function and change depth flag if needed
       setFunctionFlag(ni, name, i, &depth);
 
+      D_ParseNode *xpn = d_get_child(pn, i);
+
       if (handleIfElse(ni, name, i) ||
 	  // simeta()/simeps()
-	  handleSimFunctions(ni, name, &i, nch, pn)) continue;
+	  handleSimFunctions(ni, name, &i, nch, pn) ||
+	  handleStringEqualityStatements(ni, name, i, xpn) ||
+	  handleDvidStatement(ni, name, xpn, pn) ||
+	  handleFunctions(ni, name, &i, &depth, nch, xpn, pn) ||
+	  handleTheta(ni, name, xpn) ||
+	  handleEta(ni, name, xpn)) continue;
 
-
-      D_ParseNode *xpn = d_get_child(pn,i);
-      if (handleStringEqualityStatements(ni, name, i, xpn)) continue;
 
       if (nodeHas(param_statement) && i == 0) {
 	sAppendN(&sbt,"param", 5);
 	sbDt.o = 0;
       }
-      if (handleDvidStatement(ni, name, xpn, pn)) continue;
-      if (handleFunctions(ni, name, &i, &depth, nch, xpn, pn)) continue;
-
-      if (handleTheta(ni, name, xpn)) continue;
-      if (handleEta(ni, name, xpn)) continue;
 
       // Recursively parse tree
       wprint_parsetree(pt, xpn, depth, fn, client_data);
@@ -2428,122 +2544,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
       handleSafeZero(ni, name, i, &safe_zero, xpn); // protect against divide by zeros
 
-      if (handlePrintf(ni, name, i, xpn)) continue;
-
-      if ((nodeHas(dfdy) || nodeHas(dfdy_rhs)) && i == 2){
-        found_jac = 1;
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (nodeHas(dfdy_rhs)){
-          // Continuation statement
-	  switch(sbPm.lType[sbPm.n]){
-	  case FBIO:
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("bioavailability cannot depend on Jacobian values"));
-	    break;
-	  case ALAG:
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("absorption lag-time cannot depend on Jacobian values");
-	    break;
-	  case RATE:
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("model-based rate cannot depend on Jacobian values"));
-	    break;
-	  case DUR:
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("model-based duration cannot depend on Jacobian values"));
-	    break;
-	  case TMAT0:
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("model-based matricies cannot depend on Jacobian values"));
-	    break;
-	  default: {
-	    aType(TJAC);
-	    sAppend(&sbDt, "__PDStateVar_%s_SeP_",v);
-	    sAppend(&sbt,"df(%s)/dy(",v);
-	    if (new_de(v)){
-	      updateSyntaxCol();
-	      sPrint(&_gbuf,_("d/dt(%s) needs to be defined before using a Jacobians for this state"),v);
-	      trans_syntax_error_report_fn(_gbuf.s);
-	    } else {
-	      sAppend(&sb, "__PDStateVar__[%d*(__NROWPD__)+",tb.id);
-	    }
-	  }
-	  }
-        } else {
-          // New statement
-	  aType(TJAC);
-          sb.o = 0; sbDt.o = 0;
-          sbt.o = 0;
-	  sAppend(&sbDt,"__PDStateVar_%s_SeP_",v);
-	  sAppend(&sbt,"df(%s)/dy(",v);
-	  if (new_de(v)){
-	    updateSyntaxCol();
-	    sPrint(&_gbuf,_("d/dt(%s) needs to be defined before using a Jacobians for this state"),v);
-            trans_syntax_error_report_fn(_gbuf.s);
-	  } else {
-	    sAppend(&sb,"__PDStateVar__[%d*(__NROWPD__)+",tb.id);
-	  }
-	  new_or_ith(v);
-	  tb.cdf = tb.ix;
-        }
-        /* Free(v); */
-        continue;
-      }
-      if ((nodeHas(dfdy) || nodeHas(dfdy_rhs)) && i == 4){
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	ii = 0;
-	if (strstr(v,"THETA[") != NULL){
-	  good_jac=0;
-	  sPrint(&_gbuf,"_THETA_%.*s_",(int)(strlen(v))-7,v+6);
-	  sAppend(&sbt, "%s)",v);
-	  sAppendN(&sb, "0]", 2);
-	  sAppend(&sbDt, "%s__",_gbuf.s);
-	  ii = 1;
-	} else if (strstr(v,"ETA[") != NULL) {
-	  good_jac=0;
-	  sPrint(&_gbuf,"_ETA_%.*s_",(int)(strlen(v))-5,v+4);
-          sAppend(&sbt, "%s)",v);
-          sAppendN(&sb, "0]",2);
-	  sAppend(&sbDt, "%s__",_gbuf.s);
-          ii = 1;
-        } else {
-	  sAppend(&sbDt, "%s__",v);
-          sAppend(&sbt, "%s)",v);
-	  new_or_ith(v);
-	  if (tb.lh[tb.ix] == isState){
-	    new_de(v);
-	    sAppend(&sb, "%d]",tb.id);
-	  } else {
-	    sAppendN(&sb, "0]",2);
-	    good_jac = 0;
-	  }
-        }
-        if (nodeHas(dfdy)){
-          aAppendN(" = ", 3);
-          sAppendN(&sbt ,"=", 1);
-	  if (ii == 1){
-	    new_or_ith(_gbuf.s);
-          } else {
-	    new_or_ith(v);
-          }
-	  found = -1;
-	  for (ii = 0; ii < tb.ndfdy; ii++){
-            if (tb.df[ii] == tb.cdf && tb.dy[ii] == tb.ix){
-	      found = ii;
-	      break;
-	    }
-	  }
-	  if (found < 0){
-            tb.df[tb.ndfdy] = tb.cdf;
-	    tb.dy[tb.ndfdy] = tb.ix;
-	    tb.ndfdy = tb.ndfdy+1;
-	    tb.cdf = -1;
-          }
-        }
-        /* Free(v); */
-        continue;
-      }
-
+      if (handlePrintf(ni, name, i, xpn) ||
+	  handleJac(ni, name, i, xpn, &ii, &found)) continue;
       //inits
       if (nodeHas(selection_statement) && i== 0 ) {
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
