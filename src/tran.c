@@ -2904,6 +2904,7 @@ static inline int handleRemainingAssignments(nodeInfo ni, char *name, int i, D_P
       }
     }
   }
+  return 0;
 }
 
 static int inline handleDdtRhs(nodeInfo ni, char *name, D_ParseNode *xpn) {
