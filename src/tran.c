@@ -4194,7 +4194,7 @@ void trans_internal(const char* parse_file, int isStr){
       }
       if (!found){
 	buf2=tb.ss.line[tb.dy[i]];
-	sprintf(bufe,NOSTATE,buf1,buf2,buf1);
+	snprintf(bufe, 2048, NOSTATE,buf1,buf2,buf1);
 	trans_syntax_error_report_fn0(bufe);
       }
       // Now the dy()
@@ -4224,7 +4224,7 @@ void trans_internal(const char* parse_file, int isStr){
       if (!found){
         buf2=tb.ss.line[tb.df[i]];
       	buf2=tb.ss.line[tb.dy[i]];
-      	sprintf(bufe,NOSTATEVAR,buf1,buf2,buf2);
+      	snprintf(bufe,2048,NOSTATEVAR,buf1,buf2,buf2);
         trans_syntax_error_report_fn0(bufe);
       }
     }
