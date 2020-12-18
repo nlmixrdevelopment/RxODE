@@ -2978,12 +2978,13 @@ static inline char * getLineAfterAssign(char *c) {
   while ((*c == '=') || (*c == '~') || (*c == ' ')){
     c++;
   }
+  return c;
 }
 
 static inline int isLineAssigmentProperty(nodeInfo ni, char *name, int *isDepot) {
   return (nodeHas(rate) || nodeHas(alag) || nodeHas(fbio) || nodeHas(dur)) &&
     ((*isDepot = (tb.depotN == tb.di[tb.curPropN])) ||
-     (tb.centralN == tb.di[tb.curPropN]))
+     (tb.centralN == tb.di[tb.curPropN]));
 }
 
 static inline int finalizeLineAssign(nodeInfo ni, char *name, D_ParseNode *pn) {
