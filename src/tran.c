@@ -1434,6 +1434,35 @@ static inline int handleFunctionTad(transFunctions *tf) {
   return 0;
 }
 
+static inline int handleFunctionSum(transFunctions *tf) {
+  if (!strcmp("prod",tf->v) || !strcmp("sum",tf->v) || !strcmp("sign",tf->v) ||
+      !strcmp("max",tf->v) || !strcmp("min",tf->v)){
+    int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
+    if (!strcmp("prod", tf->v)){
+      sAppend(&sb, "_prod(_p, _input, _solveData->prodType, %d, (double) ", ii);
+      sAppend(&sbDt, "_prod(_p, _input, _solveData->prodType, %d, (double) ", ii);
+      if (maxSumProdN < ii){
+	maxSumProdN = ii;
+      }
+    } else if (!strcmp("sum", tf->v)){
+      sAppend(&sb, "_sum(_p, _pld, -__MAX_PROD__, _solveData->sumType, %d, (double) ", ii);
+      sAppend(&sbDt, "_sum(_p, _pld, -__MAX_PROD__, _solveData->sumType, %d, (double) ", ii);
+      if (SumProdLD < ii){
+	SumProdLD = ii;
+      }
+    } else {
+      sAppend(&sb, "_%s(%d, (double) ", tf->v, ii);
+      sAppend(&sbDt, "_%s(%d, (double) ", tf->v, ii);
+    }
+    sAppend(&sbt, "%s(", tf->v);
+    /* Free(tf->v); */
+    tf->i[0] = 1;// Parse next arguments
+    tf->depth[0]=1;
+    return 1;
+  }
+  return 0;
+}
+
 static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, int nch, D_ParseNode *xpn, D_ParseNode *pn) {
   if (tb.fn == 1) {
     transFunctions *tf = &_tf;
@@ -1454,31 +1483,8 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
       isPnorm=0, isTad=0, isTafd=0, isTlast = 0, isTfirst = 0,
       isInd=0;
     if (handleFunctionDosenum(tf) ||
-	handleFunctionTad(tf)) {
-      return 1;
-    } else if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
-	       !strcmp("max",v) || !strcmp("min",v)){
-      ii = d_get_number_of_children(d_get_child(pn,3))+1;
-      if (!strcmp("prod", v)){
-	sAppend(&sb, "_prod(_p, _input, _solveData->prodType, %d, (double) ", ii);
-	sAppend(&sbDt, "_prod(_p, _input, _solveData->prodType, %d, (double) ", ii);
-	if (maxSumProdN < ii){
-	  maxSumProdN = ii;
-	}
-      } else if (!strcmp("sum", v)){
-	sAppend(&sb, "_sum(_p, _pld, -__MAX_PROD__, _solveData->sumType, %d, (double) ", ii);
-	sAppend(&sbDt, "_sum(_p, _pld, -__MAX_PROD__, _solveData->sumType, %d, (double) ", ii);
-	if (SumProdLD < ii){
-	  SumProdLD = ii;
-	}
-      } else {
-	sAppend(&sb, "_%s(%d, (double) ", v, ii);
-	sAppend(&sbDt, "_%s(%d, (double) ", v, ii);
-      }
-      sAppend(&sbt, "%s(", v);
-      /* Free(v); */
-      *i = 1;// Parse next arguments
-      *depth=1;
+	handleFunctionTad(tf) ||
+	handleFunctionSum(tf)) {
       return 1;
     } else if (!strcmp("logit", v) || !strcmp("expit", v) ||
 	       !strcmp("invLogit", v) || !strcmp("logitInv", v)){
