@@ -2910,7 +2910,7 @@ static inline int handleRemainingAssignments(nodeInfo ni, char *name, int i, D_P
   return 0;
 }
 
-static int inline handleDdtRhs(nodeInfo ni, char *name, D_ParseNode *xpn) {
+static inline int handleDdtRhs(nodeInfo ni, char *name, D_ParseNode *xpn) {
   if (nodeHas(der_rhs)) {
     switch(sbPm.lType[sbPm.n]){
     case TMTIME:
@@ -2965,21 +2965,32 @@ static int inline handleDdtRhs(nodeInfo ni, char *name, D_ParseNode *xpn) {
   return 0;
 }
 
-static inline int finalizeLineAssign(nodeInfo ni, char *name, D_ParseNode *pn) {
-  if (nodeHas(assignment) || nodeHas(ini) || nodeHas(dfdy) ||
+static inline int isLineAssignmentStatement(nodeInfo ni, char *name) {
+  return nodeHas(assignment) || nodeHas(ini) || nodeHas(dfdy) ||
       nodeHas(ini0) || nodeHas(ini0f) || nodeHas(fbio) || nodeHas(alag) || nodeHas(rate) ||
-      nodeHas(dur) || nodeHas(mtime)) {
+    nodeHas(dur) || nodeHas(mtime);
+}
+
+static inline char * getLineAfterAssign(char *c) {
+  while ((*c != '=') && (*c != '~')) {
+    c++;
+  }
+  while ((*c == '=') || (*c == '~') || (*c == ' ')){
+    c++;
+  }
+}
+
+static inline int isLineAssigmentProperty(nodeInfo ni, char *name, int *isDepot) {
+  return (nodeHas(rate) || nodeHas(alag) || nodeHas(fbio) || nodeHas(dur)) &&
+    ((*isDepot = (tb.depotN == tb.di[tb.curPropN])) ||
+     (tb.centralN == tb.di[tb.curPropN]))
+}
+
+static inline int finalizeLineAssign(nodeInfo ni, char *name, D_ParseNode *pn) {
+  if (isLineAssignmentStatement(ni, name)) {
     int isDepot;
-    if ((nodeHas(rate) || nodeHas(alag) || nodeHas(fbio) || nodeHas(dur)) &&
-	((isDepot = (tb.depotN == tb.di[tb.curPropN])) ||
-	 (tb.centralN == tb.di[tb.curPropN]))) {
-      char *c = sb.s;
-      while ((*c != '=') && (*c != '~')) {
-	c++;
-      }
-      while ((*c == '=') || (*c == '~') || (*c == ' ')){
-	c++;
-      }
+    if (isLineAssigmentProperty(ni, name, &isDepot)) {
+      char *c = getLineAfterAssign(sb.s);
       if (isDepot){
 	curLineType(&depotLines, sbPm.lType[sbPm.n]);
 	addLine(&depotLines, "%s", c);
