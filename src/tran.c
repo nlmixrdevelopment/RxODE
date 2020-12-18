@@ -2965,10 +2965,7 @@ static int inline handleDdtRhs(nodeInfo ni, char *name, D_ParseNode *xpn) {
   return 0;
 }
 
-static inline void finalizeLine(nodeInfo ni, char *name, D_ParseNode *pn, int isWhile, int i) {
-  if (isWhile) {
-    tb.nwhile--;
-  }
+static inline int finalizeLineAssign(nodeInfo ni, char *name, D_ParseNode *pn) {
   if (nodeHas(assignment) || nodeHas(ini) || nodeHas(dfdy) ||
       nodeHas(ini0) || nodeHas(ini0f) || nodeHas(fbio) || nodeHas(alag) || nodeHas(rate) ||
       nodeHas(dur) || nodeHas(mtime)) {
@@ -2998,40 +2995,45 @@ static inline void finalizeLine(nodeInfo ni, char *name, D_ParseNode *pn, int is
     addLine(&sbPmDt,   "%s;\n", sbDt.s);
     sAppend(&sbNrm, "%s;\n", sbt.s);
     ENDLINE;
-  } else if ((nodeHas(mat0) || nodeHas(matF))){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int finalizeLineMat(nodeInfo ni, char *name) {
+  if ((nodeHas(mat0) || nodeHas(matF))){
     addLine(&sbPm,     "%s;\n", sb.s);
     addLine(&sbPmDt,   "%s;\n", sbDt.s);
     ENDLINE;
-    /* sAppend(&sbNrm, "", sbt.s); */
-  } else if (nodeHas(derivative)){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int finalizeLineDdt(nodeInfo ni, char *name) {
+  if (nodeHas(derivative)){
     addLine(&sbPm,     "%s);\n", sb.s);
     addLine(&sbPmDt,   "%s);\n", sbDt.s);
     sAppend(&sbNrm, "%s;\n", sbt.s);
     addLine(&sbNrmL, "%s;\n", sbt.s);
     ENDLINE;
-  } else if (nodeHas(param_statement)) {
+    return 1;
+  }
+  return 0;
+}
+
+static inline int finalizeLineParam(nodeInfo ni, char *name) {
+  if (nodeHas(param_statement)) {
     sbDt.o = 0; sbt.o = 0;
     sAppend(&sbNrm, "%s;\n", sbt.s);
     addLine(&sbNrmL, "%s;\n", sbt.s);
     ENDLINE;
+    return 1;
   }
+  return 0;
+}
 
-  if (!rx_syntax_assign && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0) || nodeHas(ini0f) || nodeHas(mtime))){
-    if (nodeHas(mtime)){
-      i = 4;
-    } else if (nodeHas(ini0)){
-      i = 2;
-    } else {
-      i = 1;
-    }
-    D_ParseNode *xpn = d_get_child(pn,i);
-    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-    if (!strcmp("<-",v)){
-      updateSyntaxCol();
-      trans_syntax_error_report_fn(NOASSIGN);
-    }
-    /* Free(v); */
-  }
+static inline int finalizeLineSelectionStatement(nodeInfo ni, char *name, int isWhile) {
   if (nodeHas(selection_statement)){
     sb.o = 0; sbDt.o = 0; sbt.o = 0;
     aType(TLOGIC);
@@ -3050,10 +3052,50 @@ static inline void finalizeLine(nodeInfo ni, char *name, D_ParseNode *pn, int is
     sAppend(&sbNrm,  "%s\n", sbt.s);
     addLine(&sbNrmL, "%s\n", sbt.s);
     ENDLINE;
+    return 1;
   }
+  return 0;
+}
+
+static inline void assertLineEquals(nodeInfo ni, char *name, D_ParseNode *pn){
+  if (!rx_syntax_assign && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0) || nodeHas(ini0f) || nodeHas(mtime))){
+    int i;
+    if (nodeHas(mtime)){
+      i = 4;
+    } else if (nodeHas(ini0)){
+      i = 2;
+    } else {
+      i = 1;
+    }
+    D_ParseNode *xpn = d_get_child(pn,i);
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    if (!strcmp("<-",v)){
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(NOASSIGN);
+    }
+    /* Free(v); */
+  }
+}
+
+static inline int finalizeLinePower(nodeInfo ni, char *name) {
   if (nodeHas(power_expression)) {
     aAppendN(")", 1);
+    return 1;
   }
+  return 0;
+}
+
+static inline void finalizeLine(nodeInfo ni, char *name, D_ParseNode *pn, int isWhile, int i) {
+  if (isWhile) {
+    tb.nwhile--;
+  }
+  finalizeLineAssign(ni, name, pn) ||
+    finalizeLineMat(ni, name) ||
+    finalizeLineDdt(ni, name) ||
+    finalizeLineParam(ni, name) ||
+    finalizeLineSelectionStatement(ni, name, isWhile) ||
+    finalizeLinePower(ni, name);
+  assertLineEquals(ni, name, pn);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
