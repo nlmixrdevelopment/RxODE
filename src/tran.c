@@ -2009,6 +2009,192 @@ static inline int handleFunctionIsInfinite(transFunctions *tf) {
   }
   return 0;
 }
+static inline int handleFunctionLinCmt(transFunctions *tf) {
+  if (!strcmp("linCmtA", tf->v) || !strcmp("linCmtC", tf->v) ||
+      (tf->isLinB=!strcmp("linCmtB", tf->v))) {
+    D_ParseNode *xpn1 = d_get_child(tf->pn, 3);
+    D_ParseNode *xpn2 = d_get_child(xpn1, 1);
+    char *v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
+    tb.linCmtN = toInt(v2+1);
+    xpn2 = d_get_child(xpn1, 2);
+    v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
+    tb.ncmt = toInt(v2+1);
+    if (tf->isLinB) tf->isLinB=1;
+    tb.linB = tf->isLinB;
+    if (!tb.linExtra) {
+      // 10 tlag
+      xpn2 = d_get_child(xpn1, 10+tf->isLinB);
+      v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+      if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	     !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	// has interesting tlag
+	int ixL = tb.ixL;
+	int didEq = tb.didEq;
+	if (foundLag == 0) needSort+=2; // & 2 when alag
+	foundLag=1;
+	aType(ALAG);
+	addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	addLine(&sbPmDt, "_alag[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	addLine(&sbNrmL, "");
+	ENDLINE;
+	tb.ixL= ixL; tb.didEq=didEq;
+      }
+      // 11 f1
+      xpn2 = d_get_child(xpn1, 11+tf->isLinB);
+      v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+      if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
+	     !strcmp(v2, "1.") || !strcmp(v2, "")))) {
+	// has interesting f1
+	int ixL = tb.ixL;
+	int didEq = tb.didEq;
+	if (foundF == 0) needSort+=1;// & 1 when F
+	foundF=1;
+	aType(FBIO);
+	addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	addLine(&sbNrmL, "");
+	/* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	ENDLINE;
+	tb.ixL= ixL; tb.didEq=didEq;
+      }
+      // 13 dur1
+      xpn2 = d_get_child(xpn1, 13+tf->isLinB);
+      v2 = (char*)rc_dup_str(xpn2->start_loc.s + 2, xpn2->end);
+      if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	     !strcmp(v2, "0.")) || !strcmp(v2, ""))) {
+	// has interesting rate
+	int ixL = tb.ixL;
+	int didEq = tb.didEq;
+	if (foundDur == 0) needSort+=4;// & 4 when dur
+	foundDur=1;
+	aType(DUR);
+	addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	addLine(&sbNrmL, "");
+	/* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	ENDLINE;
+	tb.ixL= ixL; tb.didEq=didEq;
+      }
+      // 12 rate1
+      xpn2 = d_get_child(xpn1, 12+tf->isLinB);
+      v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+      if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	     !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	// has interesting rate
+	int ixL = tb.ixL;
+	int didEq = tb.didEq;
+	if (foundRate == 0) needSort+=8;// & 8 when rate
+	foundRate=1;
+	aType(RATE);
+	addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
+	addLine(&sbNrmL, "");
+	/* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	ENDLINE;
+	tb.ixL= ixL; tb.didEq=didEq;
+      }
+      // 14 -- ka
+      xpn2 = d_get_child(xpn1, 14+tf->isLinB);
+      v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+      if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	     !strcmp(v2, "0.")))) {
+	tb.hasKa=1;
+      }
+      /* Free(v2); */
+      // lag2 = 15
+      xpn2 = d_get_child(xpn1, 15+tf->isLinB);
+      v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+      if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	     !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	// has interesting tlag
+	int ixL = tb.ixL;
+	int didEq = tb.didEq;
+	if (foundLag == 0) needSort+=2; // & 2 when alag
+	foundLag=1;
+	aType(ALAG);
+	addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	addLine(&sbPmDt, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	addLine(&sbNrmL, "");
+	/* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	ENDLINE;
+	tb.ixL= ixL; tb.didEq=didEq;
+      }
+      // f2 = 16 ; This is 1 instead of zero
+      xpn2 = d_get_child(xpn1, 16+tf->isLinB);
+      v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+      if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
+	     !strcmp(v2, "1.") || !strcmp(v2, "")))) {
+	// has interesting f1
+	int ixL = tb.ixL;
+	int didEq = tb.didEq;
+	if (foundF == 0) needSort+=1;// & 1 when F
+	foundF=1;
+	aType(FBIO);
+	addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	addLine(&sbNrmL, "");
+	/* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	ENDLINE;
+	tb.ixL= ixL; tb.didEq=didEq;
+      }
+      /* Free(v2); */
+      // rate2 = 17
+      xpn2 = d_get_child(xpn1, 17+tf->isLinB);
+      v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+      if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	     !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	// has interesting rate
+	int ixL = tb.ixL;
+	int didEq = tb.didEq;
+	if (foundRate == 0) needSort+=8;// & 8 when rate
+	foundRate=1;
+	aType(RATE);
+	addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	addLine(&sbNrmL, "");
+	/* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	ENDLINE;
+	tb.ixL= ixL; tb.didEq=didEq;
+      }
+      /* Free(v2); */
+      // dur2 = 18
+      xpn2 = d_get_child(xpn1, 18+tf->isLinB);
+      v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+      if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
+	     !strcmp(v2, "0.") || !strcmp(v2, "")))) {
+	// has interesting rate
+	int ixL = tb.ixL;
+	int didEq = tb.didEq;
+	if (foundDur == 0) needSort+=4;// & 4 when dur
+	foundDur=1;
+	aType(DUR);
+	addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
+	addLine(&sbNrmL, "");
+	/* sAppend(&sbNrm, "%s;\n", sbt.s); */
+	ENDLINE;
+	tb.ixL= ixL; tb.didEq=didEq;
+      }
+      /* Free(v2); */
+      tb.linExtra=true; // Only first call
+    }
+    aType(TLIN);
+    if (tb.linB){
+      xpn2 = d_get_child(xpn1, 4);
+      v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
+      int tmp = toInt(v2);
+      if (tmp > 0) {
+	tmp--;
+	tmp = 1 << tmp;
+	if ((tb.linCmtFlg & tmp) == 0){
+	  tb.linCmtFlg += tmp;
+	}
+      }
+    }
+    return 1;
+  }
+  return 0;
+}
 
 static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, int nch, D_ParseNode *xpn, D_ParseNode *pn) {
   if (tb.fn == 1) {
@@ -2045,199 +2231,8 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
 	handleFunctionIsFinite(tf) ||
 	handleFunctionIsInfinite(tf)) {
       return 1;
-    } else if (!strcmp("linCmtA", v) || !strcmp("linCmtC", v) ||
-	       (isLinB=!strcmp("linCmtB", v))){
-      D_ParseNode *xpn1;
-      xpn1 = d_get_child(pn, 3);
-      D_ParseNode *xpn2;
-      xpn2 = d_get_child(xpn1, 1);
-      char *v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
-      tb.linCmtN = toInt(v2+1);
-      /* Free(v2); */
-      xpn2 = d_get_child(xpn1, 2);
-      v2 = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
-      tb.ncmt = toInt(v2+1);
-      /* Free(v2); */
-      if (isLinB) isLinB=1;
-      tb.linB = isLinB;
-      if (!tb.linExtra) {
-	// 10 tlag
-	xpn2 = d_get_child(xpn1, 10+isLinB);
-	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-	       !strcmp(v2, "0.") || !strcmp(v2, "")))) {
-	  // has interesting tlag
-	  int ixL = tb.ixL;
-	  int didEq = tb.didEq;
-	  if (foundLag == 0) needSort+=2; // & 2 when alag
-	  foundLag=1;
-	  aType(ALAG);
-	  addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	  addLine(&sbPmDt, "_alag[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	  addLine(&sbNrmL, "");
-	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	  ENDLINE;
-	  tb.ixL= ixL; tb.didEq=didEq;
-	}
-	/* Free(v2); */
-	// 11 f1
-	xpn2 = d_get_child(xpn1, 11+isLinB);
-	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
-	       !strcmp(v2, "1.") || !strcmp(v2, "")))) {
-	  // has interesting f1
-	  int ixL = tb.ixL;
-	  int didEq = tb.didEq;
-	  if (foundF == 0) needSort+=1;// & 1 when F
-	  foundF=1;
-	  aType(FBIO);
-	  addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	  addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	  addLine(&sbNrmL, "");
-	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	  ENDLINE;
-	  tb.ixL= ixL; tb.didEq=didEq;
-	}
-	/* Free(v2); */
-	// 13 dur1
-	xpn2 = d_get_child(xpn1, 13+isLinB);
-	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-	       !strcmp(v2, "0.")) || !strcmp(v2, ""))) {
-	  // has interesting rate
-	  int ixL = tb.ixL;
-	  int didEq = tb.didEq;
-	  if (foundDur == 0) needSort+=4;// & 4 when dur
-	  foundDur=1;
-	  aType(DUR);
-	  addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	  addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	  addLine(&sbNrmL, "");
-	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	  ENDLINE;
-	  tb.ixL= ixL; tb.didEq=didEq;
-	}
-	/* Free(v2); */
-	// 12 rate1
-	xpn2 = d_get_child(xpn1, 12+isLinB);
-	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-	       !strcmp(v2, "0.") || !strcmp(v2, "")))) {
-	  // has interesting rate
-	  int ixL = tb.ixL;
-	  int didEq = tb.didEq;
-	  if (foundRate == 0) needSort+=8;// & 8 when rate
-	  foundRate=1;
-	  aType(RATE);
-	  addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	  addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
-	  addLine(&sbNrmL, "");
-	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	  ENDLINE;
-	  tb.ixL= ixL; tb.didEq=didEq;
-	}
-	/* Free(v2); */
-	// 14 -- ka
-	xpn2 = d_get_child(xpn1, 14+isLinB);
-	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-	       !strcmp(v2, "0.")))) {
-	  tb.hasKa=1;
-	}
-	/* Free(v2); */
-	// lag2 = 15
-	xpn2 = d_get_child(xpn1, 15+isLinB);
-	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-	       !strcmp(v2, "0.") || !strcmp(v2, "")))) {
-	  // has interesting tlag
-	  int ixL = tb.ixL;
-	  int didEq = tb.didEq;
-	  if (foundLag == 0) needSort+=2; // & 2 when alag
-	  foundLag=1;
-	  aType(ALAG);
-	  addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	  addLine(&sbPmDt, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	  addLine(&sbNrmL, "");
-	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	  ENDLINE;
-	  tb.ixL= ixL; tb.didEq=didEq;
-	}
-	/* Free(v2); */
-	// f2 = 16 ; This is 1 instead of zero
-	xpn2 = d_get_child(xpn1, 16+isLinB);
-	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	if (!((!strcmp(v2, "1") || !strcmp(v2, "1.0") ||
-	       !strcmp(v2, "1.") || !strcmp(v2, "")))) {
-	  // has interesting f1
-	  int ixL = tb.ixL;
-	  int didEq = tb.didEq;
-	  if (foundF == 0) needSort+=1;// & 1 when F
-	  foundF=1;
-	  aType(FBIO);
-	  addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	  addLine(&sbPmDt, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	  addLine(&sbNrmL, "");
-	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	  ENDLINE;
-	  tb.ixL= ixL; tb.didEq=didEq;
-	}
-	/* Free(v2); */
-	// rate2 = 17
-	xpn2 = d_get_child(xpn1, 17+isLinB);
-	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-	       !strcmp(v2, "0.") || !strcmp(v2, "")))) {
-	  // has interesting rate
-	  int ixL = tb.ixL;
-	  int didEq = tb.didEq;
-	  if (foundRate == 0) needSort+=8;// & 8 when rate
-	  foundRate=1;
-	  aType(RATE);
-	  addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	  addLine(&sbPmDt, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	  addLine(&sbNrmL, "");
-	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	  ENDLINE;
-	  tb.ixL= ixL; tb.didEq=didEq;
-	}
-	/* Free(v2); */
-	// dur2 = 18
-	xpn2 = d_get_child(xpn1, 18+isLinB);
-	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	if (!((!strcmp(v2, "0") || !strcmp(v2, "0.0") ||
-	       !strcmp(v2, "0.") || !strcmp(v2, "")))) {
-	  // has interesting rate
-	  int ixL = tb.ixL;
-	  int didEq = tb.didEq;
-	  if (foundDur == 0) needSort+=4;// & 4 when dur
-	  foundDur=1;
-	  aType(DUR);
-	  addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	  addLine(&sbPmDt, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
-	  addLine(&sbNrmL, "");
-	  /* sAppend(&sbNrm, "%s;\n", sbt.s); */
-	  ENDLINE;
-	  tb.ixL= ixL; tb.didEq=didEq;
-	}
-	/* Free(v2); */
-	tb.linExtra=true; // Only first call
-      }
-      aType(TLIN);
-      if (tb.linB){
-	xpn2 = d_get_child(xpn1, 4);
-	v2 = (char*)rc_dup_str(xpn2->start_loc.s+2, xpn2->end);
-	int tmp = toInt(v2);
-	if (tmp > 0) {
-	  tmp--;
-	  tmp = 1 << tmp;
-	  if ((tb.linCmtFlg & tmp) == 0){
-	    tb.linCmtFlg += tmp;
-	  }
-	}
-	/* Free(v2); */
-      }
-      /* Free(v); */
+    } else if (handleFunctionLinCmt(tf)){
+      return 0;
     } else {
       // Check if this is a valid function
       int foundFun = 0;
