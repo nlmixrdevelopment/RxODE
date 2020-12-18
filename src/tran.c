@@ -1785,6 +1785,73 @@ static inline int handleFunctionRxnorm(transFunctions *tf) {
   return 0;
 }
 
+static inline int handleFunctionRchisq(transFunctions *tf) {
+  if (!strcmp("rchisq", tf->v) ||
+      !strcmp("rxchisq", tf->v) ||
+      (tf->isInd = !strcmp("richisq", tf->v)) ||
+      (tf->isExp = !strcmp("rxexp", tf->v) ||
+       !strcmp("rexp", tf->v) ||
+       (tf->isInd = !strcmp("riexp", tf->v))) ||
+      (tf->isT = !strcmp("rxt", tf->v) ||
+       !strcmp("rt", tf->v) ||
+       (tf->isInd = !strcmp("rit", tf->v)))) {
+    if (tb.thread != 0) tb.thread = 2;
+    int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
+    if (ii != 1){
+      sPrint(&_gbuf, _("'%s' takes 1 arguments"), tf->v);
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_gbuf.s);
+    } else {
+      D_ParseNode *xpn = d_get_child(tf->pn, 2);
+      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      int allSpace=allSpaces(v2);
+      /* Free(v2); */
+      if (allSpace){
+	if (tf->isExp){
+	  if (tf->isInd) {
+	    sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, 1.0", tf->v, tb.nInd);
+	    sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, 1.0", tf->v, tb.nInd++);
+	    foundF0=1;
+	  } else {
+	    sAppend(&sb,"%s(&_solveData->subjects[_cSub], 1.0", tf->v);
+	    sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 1.0", tf->v);
+	  }
+	  sAppend(&sbt, "%s(", tf->v);
+	} else {
+	  sPrint(&_gbuf, _("'%s' takes 1 argument"), tf->v);
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn(_gbuf.s);
+	}
+      } else if (tf->isT){
+	if (tf->isInd) {
+	  sAppend(&sb,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd);
+	  sAppend(&sbDt,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd++);
+	  foundF0=1;
+	  sAppendN(&sbt, "rit(", 4);
+	} else {
+	  sAppendN(&sb,"rxt_(&_solveData->subjects[_cSub], ", 35);
+	  sAppendN(&sbDt,"rxt_(&_solveData->subjects[_cSub], ", 35);
+	  sAppendN(&sbt, "rxt(", 4);
+	}
+      } else {
+	if (tf->isInd) {
+	  sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, ", tf->v, tb.nInd);
+	  sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, ", tf->v, tb.nInd++);
+	  foundF0=1;
+	} else {
+	  sAppend(&sb,"%s(&_solveData->subjects[_cSub], ", tf->v);
+	  sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], ", tf->v);
+	}
+	sAppend(&sbt, "%s(", tf->v);
+      }
+    }
+    tf->i[0] = 1;// Parse next arguments
+    tf->depth[0]=1;
+    return 1;
+  }
+  return 0;
+}
+
 static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, int nch, D_ParseNode *xpn, D_ParseNode *pn) {
   if (tb.fn == 1) {
     transFunctions *tf = &_tf;
@@ -1811,74 +1878,8 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
 	handleFunctionDiff(tf) ||
 	handleFunctionPnorm(tf) ||
 	handleFunctionTransit(tf) ||
-	handleFunctionRxnorm(tf)) {
-      return 1;
-    } else if (!strcmp("rchisq", v) ||
-	       !strcmp("rxchisq", v) ||
-	       (isInd = !strcmp("richisq", v)) ||
-	       (isExp = !strcmp("rxexp", v) ||
-		!strcmp("rexp", v) ||
-		(isInd = !strcmp("riexp", v))) ||
-	       (isT = !strcmp("rxt", v) ||
-		!strcmp("rt", v) ||
-		(isInd = !strcmp("rit", v)))) {
-      if (tb.thread != 0) tb.thread = 2;
-      ii = d_get_number_of_children(d_get_child(pn,3))+1;
-      if (ii != 1){
-	sPrint(&_gbuf, _("'%s' takes 1 arguments"), v);
-	updateSyntaxCol();
-	trans_syntax_error_report_fn(_gbuf.s);
-      } else {
-	D_ParseNode *xpn = d_get_child(pn, 2);
-	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	int allSpace=allSpaces(v2);
-	/* Free(v2); */
-	if (allSpace){
-	  if (isExp){
-	    if (isInd) {
-	      sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, 1.0", v, tb.nInd);
-	      sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, 1.0", v, tb.nInd++);
-	      foundF0=1;
-	    } else {
-	      sAppend(&sb,"%s(&_solveData->subjects[_cSub], 1.0", v);
-	      sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 1.0", v);
-	    }
-	    sAppend(&sbt, "%s(", v);
-	  } else {
-	    sPrint(&_gbuf, _("'%s' takes 1 argument"), v);
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_gbuf.s);
-	  }
-	} else if (isT){
-	  if (isInd) {
-	    sAppend(&sb,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd);
-	    sAppend(&sbDt,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd++);
-	    foundF0=1;
-	    sAppendN(&sbt, "rit(", 4);
-	  } else {
-	    sAppendN(&sb,"rxt_(&_solveData->subjects[_cSub], ", 35);
-	    sAppendN(&sbDt,"rxt_(&_solveData->subjects[_cSub], ", 35);
-	    sAppendN(&sbt, "rxt(", 4);
-	  }
-	} else {
-	  if (isInd) {
-	    sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd);
-	    sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, ", v, tb.nInd++);
-	    foundF0=1;
-	  } else {
-	    sAppend(&sb,"%s(&_solveData->subjects[_cSub], ", v);
-	    sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], ", v);
-	  }
-	  sAppend(&sbt, "%s(", v);
-	}
-      }
-      *i = 1;// Parse next arguments
-      *depth=1;
-      /* Free(v); */
-      /* if (isInd) { */
-      /*   sAppendN(&sb, ")", 1); */
-      /*   sAppendN(&sbDt, ")", 1); */
-      /* } */
+	handleFunctionRxnorm(tf) ||
+	handleFunctionRchisq(tf)) {
       return 1;
     } else if (!strcmp("rxgeom", v) ||
 	       !strcmp("rgeom", v) ||
