@@ -1985,6 +1985,31 @@ static inline int handleFunctionIsFinite(transFunctions *tf) {
   return 0;
 }
 
+static inline int handleFunctionIsInfinite(transFunctions *tf) {
+  if (!strcmp("is.infinite", tf->v)) {
+    int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
+    D_ParseNode *xpn = d_get_child(tf->pn, 2);
+    char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    int allSpace=allSpaces(v2);
+    /* Free(v2); */
+    if (ii != 1 || (ii == 1 && allSpace)) {
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("'is.infinite' takes 1 argument"));
+    }
+    if (sbt.o > 0 && sbt.s[sbt.o-1] == '!'){
+      sb.o--;sbDt.o--;
+      sAppendN(&sb, "R_FINITE", 8);
+      sAppendN(&sbDt, "R_FINITE", 8);
+    } else {
+      sAppendN(&sb, "!R_FINITE", 9);
+      sAppendN(&sbDt, "!R_FINITE", 9);
+    }
+    sAppendN(&sbt, "is.infinite", 11);
+    return 1;
+  }
+  return 0;
+}
+
 static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, int nch, D_ParseNode *xpn, D_ParseNode *pn) {
   if (tb.fn == 1) {
     transFunctions *tf = &_tf;
@@ -2017,28 +2042,8 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
 	handleFunctionRbinom(tf) ||
 	handleFunctionIsNan(tf) ||
 	handleFunctionIsNa(tf) ||
-	handleFunctionIsFinite(tf)) {
-      return 1;
-    } else if (!strcmp("is.infinite", v)) {
-      ii = d_get_number_of_children(d_get_child(pn,3))+1;
-      D_ParseNode *xpn = d_get_child(pn, 2);
-      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-      int allSpace=allSpaces(v2);
-      /* Free(v2); */
-      if (ii != 1 || (ii == 1 && allSpace)) {
-	updateSyntaxCol();
-	trans_syntax_error_report_fn(_("'is.infinite' takes 1 argument"));
-      }
-      if (sbt.o > 0 && sbt.s[sbt.o-1] == '!'){
-	sb.o--;sbDt.o--;
-	sAppendN(&sb, "R_FINITE", 8);
-	sAppendN(&sbDt, "R_FINITE", 8);
-      } else {
-	sAppendN(&sb, "!R_FINITE", 9);
-	sAppendN(&sbDt, "!R_FINITE", 9);
-      }
-      /* Free(v); */
-      sAppendN(&sbt, "is.infinite", 11);
+	handleFunctionIsFinite(tf) ||
+	handleFunctionIsInfinite(tf)) {
       return 1;
     } else if (!strcmp("linCmtA", v) || !strcmp("linCmtC", v) ||
 	       (isLinB=!strcmp("linCmtB", v))){
