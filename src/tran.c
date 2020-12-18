@@ -1303,84 +1303,159 @@ static inline int handleDvidStatement(nodeInfo ni, char *name, D_ParseNode *xpn,
   return 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// RxODE function handling 
+typedef struct transFunctions {
+  int isNorm;
+  int isExp;
+  int isF;
+  int isGamma;
+  int isBeta;
+  int isPois;
+  int isT;
+  int isUnif;
+  int isWeibull;
+  int isNormV;
+  int isLead;
+  int isFirst;
+  int isLast;
+  int isDiff;
+  int isLinB;
+  int isPnorm;
+  int isTad;
+  int isTafd;
+  int isTlast;
+  int isTfirst;
+  int isInd;
+  nodeInfo ni;
+  char *name;
+  int *i;
+  int *depth;
+  int nch;
+  D_ParseNode *xpn;
+  D_ParseNode *pn;
+  char *v;
+} transFunctions;
+
+static inline void transFunctionsIni(transFunctions *tf) {
+  tf->isNorm=0;
+  tf->isExp=0;
+  tf->isF=0;
+  tf->isGamma=0;
+  tf->isBeta=0;
+  tf->isPois=0;
+  tf->isT=0;
+  tf->isUnif=0;
+  tf->isWeibull=0;
+  tf->isNormV=0;
+  tf->isLead=0;
+  tf->isFirst=0;
+  tf->isLast=0;
+  tf->isDiff=0;
+  tf->isLinB=0;
+  tf->isPnorm=0;
+  tf->isTad=0;
+  tf->isTafd=0;
+  tf->isTlast = 0;
+  tf->isTfirst = 0;
+  tf->isInd=0;
+}
+
+transFunctions _tf;
+
+static inline int handleFunctionDosenum(transFunctions *tf) {
+  if (!strcmp("dosenum", tf->v)) {
+    int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
+    if (ii == 1){
+      D_ParseNode *xpn = d_get_child(tf->pn, 2);
+      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      if (allSpaces(v2)){
+	aAppendN("(double)(_solveData->subjects[_cSub].dosenum)", 45);
+	sAppendN(&sbt, "dosenum()", 9);
+      } else {
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
+      }
+    } else {
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
+    }
+    tf->i[0] = tf->nch;
+    return 1;
+  }
+  return 0;
+}
+
+static inline int handleFunctionTad(transFunctions *tf) {
+  if ((tf->isTad = !strcmp("tad", tf->v)) || (tf->isTafd = !strcmp("tafd", tf->v)) ||
+      (tf->isTlast = !strcmp("tlast", tf->v)) || (tf->isTfirst = !strcmp("tfirst", tf->v))) {
+    int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
+    if (ii == 1){
+      D_ParseNode *xpn = d_get_child(tf->pn, 2);
+      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      if (allSpaces(v2)){
+	// tad overall
+	sAppend(&sb, "_%s0()", tf->v);
+	sAppend(&sbDt, "_%s0()", tf->v);
+      } else {
+	sAppend(&sb, "_%s1(", tf->v);
+	sAppend(&sbDt, "_%s1(", tf->v);
+	if (new_de(v2)){
+	  if (!strcmp("depot", v2)){
+	    tb.hasDepot = 1;
+	    aAppendN("_DEPOT_)", 8);
+	  } else if (!strcmp("central", v2)){
+	    tb.hasCentral = 1;
+	    aAppendN("_CENTRAL_)", 10);
+	  } else if (rx_syntax_require_ode_first){
+	    updateSyntaxCol();
+	    sPrint(&_gbuf,ODEFIRST,v2);
+	    trans_syntax_error_report_fn(_gbuf.s);
+	    /* Free(v2); */
+	    /* Free(tf->v); */
+	    return 1;
+	  } else {
+	    tb.statei++;
+	    sAppend(&sb, "%d)", tb.de.n);
+	    sAppend(&sbDt, "%d)", tb.de.n);
+	  }
+	} else {
+	  new_or_ith(v2);
+	  sAppend(&sb, "%d)", tb.id);
+	  sAppend(&sbDt, "%d)", tb.id);
+	}
+	// tad(cmt)
+      }
+      sAppend(&sbt, "%s(%s)", tf->v, v2);
+      tf->i[0] = tf->nch;
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, int nch, D_ParseNode *xpn, D_ParseNode *pn) {
   if (tb.fn == 1) {
+    transFunctions *tf = &_tf;
+    transFunctionsIni(tf);
+    tf->ni = ni;
+    tf->name = name;
+    tf->i = i;
+    tf->depth = depth;
+    tf->nch = nch;
+    tf->xpn = xpn;
+    tf->pn = pn;
+    tf->v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
     int ii;
-    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    char *v = tf->v;
     int isNorm=0, isExp=0, isF=0, isGamma=0, isBeta=0,
       isPois=0, isT=0, isUnif=0, isWeibull=0, isNormV=0,
       isLead=0, isFirst=0, isLast=0, isDiff=0, isLinB=0,
       isPnorm=0, isTad=0, isTafd=0, isTlast = 0, isTfirst = 0,
       isInd=0;
-    if (!strcmp("dosenum", v)) {
-      ii = d_get_number_of_children(d_get_child(pn,3))+1;
-      if (ii == 1){
-	D_ParseNode *xpn = d_get_child(pn, 2);
-	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	if (allSpaces(v2)){
-	  aAppendN("(double)(_solveData->subjects[_cSub].dosenum)", 45);
-	  sAppendN(&sbt, "dosenum()", 9);
-	} else {
-	  updateSyntaxCol();
-	  trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
-	}
-	/* Free(v2); */
-      } else {
-	updateSyntaxCol();
-	trans_syntax_error_report_fn(_("'dosenum' does not currently take arguments 'dosenum()'"));
-      }
-      /* Free(v); */
-      *
-	i = nch;
+    if (handleFunctionDosenum(tf) ||
+	handleFunctionTad(tf)) {
       return 1;
-    } else if ((isTad = !strcmp("tad", v)) || (isTafd = !strcmp("tafd", v)) ||
-	       (isTlast = !strcmp("tlast", v)) || (isTfirst = !strcmp("tfirst", v))) {
-      ii = d_get_number_of_children(d_get_child(pn,3))+1;
-      if (ii == 1){
-	D_ParseNode *xpn = d_get_child(pn, 2);
-	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	if (allSpaces(v2)){
-	  // tad overall
-	  sAppend(&sb, "_%s0()", v);
-	  sAppend(&sbDt, "_%s0()", v);
-	} else {
-	  sAppend(&sb, "_%s1(", v);
-	  sAppend(&sbDt, "_%s1(", v);
-	  if (new_de(v2)){
-	    if (!strcmp("depot", v2)){
-	      tb.hasDepot = 1;
-	      aAppendN("_DEPOT_)", 8)
-		} else if (!strcmp("central", v2)){
-	      tb.hasCentral = 1;
-	      aAppendN("_CENTRAL_)", 10)
-		} else if (rx_syntax_require_ode_first){
-	      updateSyntaxCol();
-	      sPrint(&_gbuf,ODEFIRST,v2);
-	      trans_syntax_error_report_fn(_gbuf.s);
-	      /* Free(v2); */
-	      /* Free(v); */
-	      return 1;
-	    } else {
-	      tb.statei++;
-	      sAppend(&sb, "%d)", tb.de.n);
-	      sAppend(&sbDt, "%d)", tb.de.n);
-	    }
-	  } else {
-	    new_or_ith(v2);
-	    sAppend(&sb, "%d)", tb.id);
-	    sAppend(&sbDt, "%d)", tb.id);
-	  }
-	  // tad(cmt)
-	}
-	sAppend(&sbt, "%s(%s)", v, v2);
-	/* Free(v); */
-	/* Free(v2); */
-	/* RSprintf("i: %d / %d\n", i, nch); */
-	/* i = nch;// skip next arguments */
-	/* depth=0; */
-	*i = nch;
-	return 1;
-      }
     } else if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
 	       !strcmp("max",v) || !strcmp("min",v)){
       ii = d_get_number_of_children(d_get_child(pn,3))+1;
