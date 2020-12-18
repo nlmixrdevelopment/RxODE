@@ -2970,6 +2970,97 @@ static int inline handleDdtRhs(nodeInfo ni, char *name, D_ParseNode *xpn) {
   return 0;
 }
 
+static inline void finalizeLine(nodeInfo ni, char *name, D_ParseNode *pn, int isWhile, int i) {
+  if (isWhile) {
+    tb.nwhile--;
+  }
+  if (nodeHas(assignment) || nodeHas(ini) || nodeHas(dfdy) ||
+      nodeHas(ini0) || nodeHas(ini0f) || nodeHas(fbio) || nodeHas(alag) || nodeHas(rate) ||
+      nodeHas(dur) || nodeHas(mtime)) {
+    int isDepot;
+    if ((nodeHas(rate) || nodeHas(alag) || nodeHas(fbio) || nodeHas(dur)) &&
+	((isDepot = (tb.depotN == tb.di[tb.curPropN])) ||
+	 (tb.centralN == tb.di[tb.curPropN]))) {
+      char *c = sb.s;
+      while ((*c != '=') && (*c != '~')) {
+	c++;
+      }
+      while ((*c == '=') || (*c == '~') || (*c == ' ')){
+	c++;
+      }
+      if (isDepot){
+	curLineType(&depotLines, sbPm.lType[sbPm.n]);
+	addLine(&depotLines, "%s", c);
+      } else {
+	curLineType(&centralLines, sbPm.lType[sbPm.n]);
+	addLine(&centralLines, "%s", c);
+      }
+      /* RSprintf("c: %s, lType: %d\n", c, sbPm.lType[sbPm.n], isDepot); */
+    } else {
+      addLine(&sbNrmL, "%s;\n", sbt.s);
+    }
+    addLine(&sbPm,     "%s;\n", sb.s);
+    addLine(&sbPmDt,   "%s;\n", sbDt.s);
+    sAppend(&sbNrm, "%s;\n", sbt.s);
+    ENDLINE;
+  } else if ((nodeHas(mat0) || nodeHas(matF))){
+    addLine(&sbPm,     "%s;\n", sb.s);
+    addLine(&sbPmDt,   "%s;\n", sbDt.s);
+    ENDLINE;
+    /* sAppend(&sbNrm, "", sbt.s); */
+  } else if (nodeHas(derivative)){
+    addLine(&sbPm,     "%s);\n", sb.s);
+    addLine(&sbPmDt,   "%s);\n", sbDt.s);
+    sAppend(&sbNrm, "%s;\n", sbt.s);
+    addLine(&sbNrmL, "%s;\n", sbt.s);
+    ENDLINE;
+  } else if (nodeHas(param_statement)) {
+    sbDt.o = 0; sbt.o = 0;
+    sAppend(&sbNrm, "%s;\n", sbt.s);
+    addLine(&sbNrmL, "%s;\n", sbt.s);
+    ENDLINE;
+  }
+
+  if (!rx_syntax_assign && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0) || nodeHas(ini0f) || nodeHas(mtime))){
+    if (nodeHas(mtime)){
+      i = 4;
+    } else if (nodeHas(ini0)){
+      i = 2;
+    } else {
+      i = 1;
+    }
+    D_ParseNode *xpn = d_get_child(pn,i);
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    if (!strcmp("<-",v)){
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(NOASSIGN);
+    }
+    /* Free(v); */
+  }
+  if (nodeHas(selection_statement)){
+    sb.o = 0; sbDt.o = 0; sbt.o = 0;
+    aType(TLOGIC);
+    /* aType(300); */
+    if (isWhile) {
+      sAppendN(&sb,   "if (_itwhile > _solveData->maxwhile) {_solveData->whileexit=1;break;}\n}\n", 72);
+      sAppendN(&sbDt, "if (_itwhile > _solveData->maxwhile) {_solveData->whileexit=1;break;}\n}\n", 72);
+      sAppendN(&sbt, "}", 1);
+    } else {
+      sAppendN(&sb, "}", 1);
+      sAppendN(&sbDt, "}", 1);
+      sAppendN(&sbt, "}", 1);
+    }
+    addLine(&sbPm,   "%s\n", sb.s);
+    addLine(&sbPmDt, "%s\n", sbDt.s);
+    sAppend(&sbNrm,  "%s\n", sbt.s);
+    addLine(&sbNrmL, "%s\n", sbt.s);
+    ENDLINE;
+  }
+  if (nodeHas(power_expression)) {
+    aAppendN(")", 1);
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // assertions
 static inline int assertNoRAssign(nodeInfo ni, char *name, D_ParseNode *pn, int i){
@@ -3073,94 +3164,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       handleRemainingAssignments(ni, name, i, pn, xpn);
     }
-    if (isWhile) {
-      tb.nwhile--;
-    }
-    if (nodeHas(assignment) || nodeHas(ini) || nodeHas(dfdy) ||
-        nodeHas(ini0) || nodeHas(ini0f) || nodeHas(fbio) || nodeHas(alag) || nodeHas(rate) ||
-	nodeHas(dur) || nodeHas(mtime)) {
-      int isDepot;
-      if ((nodeHas(rate) || nodeHas(alag) || nodeHas(fbio) || nodeHas(dur)) &&
-	  ((isDepot = (tb.depotN == tb.di[tb.curPropN])) ||
-	   (tb.centralN == tb.di[tb.curPropN]))) {
-	char *c = sb.s;
-	while ((*c != '=') && (*c != '~')) {
-	  c++;
-	}
-	while ((*c == '=') || (*c == '~') || (*c == ' ')){
-	  c++;
-	}
-	if (isDepot){
-	  curLineType(&depotLines, sbPm.lType[sbPm.n]);
-	  addLine(&depotLines, "%s", c);
-	} else {
-	  curLineType(&centralLines, sbPm.lType[sbPm.n]);
-	  addLine(&centralLines, "%s", c);
-	}
-	/* RSprintf("c: %s, lType: %d\n", c, sbPm.lType[sbPm.n], isDepot); */
-      } else {
-	addLine(&sbNrmL, "%s;\n", sbt.s);
-      }
-      addLine(&sbPm,     "%s;\n", sb.s);
-      addLine(&sbPmDt,   "%s;\n", sbDt.s);
-      sAppend(&sbNrm, "%s;\n", sbt.s);
-      ENDLINE;
-    } else if ((nodeHas(mat0) || nodeHas(matF))){
-      addLine(&sbPm,     "%s;\n", sb.s);
-      addLine(&sbPmDt,   "%s;\n", sbDt.s);
-      ENDLINE;
-      /* sAppend(&sbNrm, "", sbt.s); */
-    } else if (nodeHas(derivative)){
-      addLine(&sbPm,     "%s);\n", sb.s);
-      addLine(&sbPmDt,   "%s);\n", sbDt.s);
-      sAppend(&sbNrm, "%s;\n", sbt.s);
-      addLine(&sbNrmL, "%s;\n", sbt.s);
-      ENDLINE;
-    } else if (nodeHas(param_statement)) {
-      sbDt.o = 0; sbt.o = 0;
-      sAppend(&sbNrm, "%s;\n", sbt.s);
-      addLine(&sbNrmL, "%s;\n", sbt.s);
-      ENDLINE;
-    }
-
-    if (!rx_syntax_assign && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0) || nodeHas(ini0f) || nodeHas(mtime))){
-      if (nodeHas(mtime)){
-	i = 4;
-      } else if (nodeHas(ini0)){
-        i = 2;
-      } else {
-        i = 1;
-      }
-      D_ParseNode *xpn = d_get_child(pn,i);
-      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-      if (!strcmp("<-",v)){
-	updateSyntaxCol();
-        trans_syntax_error_report_fn(NOASSIGN);
-      }
-      /* Free(v); */
-    }
-    if (nodeHas(selection_statement)){
-      sb.o = 0; sbDt.o = 0; sbt.o = 0;
-      aType(TLOGIC);
-      /* aType(300); */
-      if (isWhile) {
-	sAppendN(&sb,   "if (_itwhile > _solveData->maxwhile) {_solveData->whileexit=1;break;}\n}\n", 72);
-	sAppendN(&sbDt, "if (_itwhile > _solveData->maxwhile) {_solveData->whileexit=1;break;}\n}\n", 72);
-	sAppendN(&sbt, "}", 1);
-      } else {
-	sAppendN(&sb, "}", 1);
-	sAppendN(&sbDt, "}", 1);
-	sAppendN(&sbt, "}", 1);
-      }
-      addLine(&sbPm,   "%s\n", sb.s);
-      addLine(&sbPmDt, "%s\n", sbDt.s);
-      sAppend(&sbNrm,  "%s\n", sbt.s);
-      addLine(&sbNrmL, "%s\n", sbt.s);
-      ENDLINE;
-    }
-    if (nodeHas(power_expression)) {
-      aAppendN(")", 1);
-    }
+    finalizeLine(ni, name, pn, isWhile, i);
   }
 }
 
