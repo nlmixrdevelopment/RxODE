@@ -323,7 +323,7 @@ void sAppend(sbuf *sbb, const char *format, ...) {
     sbb->s = Realloc(sbb->s, mx, char);
     sbb->sN = mx;
   }
-  vsprintf(sbb->s+ sbb->o, format, argptr);
+  vsnprintf(sbb->s+ sbb->o, sbb->sN - sbb->o, format, argptr);
   va_end(argptr);
   sbb->o += n-1;
 }
@@ -346,7 +346,7 @@ void sPrint(sbuf *sbb, const char *format, ...) {
     sbb->s = Realloc(sbb->s, mx, char);
     sbb->sN = mx;
   }
-  vsprintf(sbb->s+ sbb->o, format, argptr);
+  vsnprintf(sbb->s+ sbb->o, sbb->sN - sbb->o, format, argptr);
   va_end(argptr);
   sbb->o += n-1;
 }
@@ -410,7 +410,7 @@ void addLine(vLines *sbb, const char *format, ...){
     }
     sbb->sN = mx;
   }
-  vsprintf(sbb->s + sbb->o, format, argptr);
+  vsnprintf(sbb->s + sbb->o, sbb->sN - sbb->o, format, argptr);
   va_end(argptr);
   if (sbb->n + 2 >= sbb->nL){
     int mx = sbb->nL + n + 2 + MXLINE;
