@@ -970,30 +970,23 @@ static inline int isOperatorOrPrintingIdentifier(nodeInfo ni, const char *name){
 }
 
 static inline int isSkipChild(nodeInfo ni, const char *name, int i) {
-  if ((i == 3 || i == 4 || i < 2) &&
-      (nodeHas(derivative) ||nodeHas(fbio) || nodeHas(alag) ||
-       nodeHas(rate) || nodeHas(dur))) return 1;
-
-  if ((i == 3 || i < 2) && nodeHas(der_rhs)) return 1;
-
-  if (nodeHas(dfdy)     && i< 2)   return 1;
-  if (nodeHas(dfdy_rhs) && i< 2)   return 1;
-  if (nodeHas(dfdy)     && i == 3) return 1;
-  if (nodeHas(dfdy_rhs) && i == 3) return 1;
-  if (nodeHas(dfdy)     && i == 5) return 1;
-  if (nodeHas(dfdy_rhs) && i == 5) return 1;
-
-  if (nodeHas(dfdy)     && i == 6) return 1;
-  if (nodeHas(ini0)     && i == 1) return 1;
-
-  if (nodeHas(dvid_statementI) && i != 0) return 1;
-
-
-  if ((nodeHas(theta) || nodeHas(eta)) && i != 2) return 1;
-  if (nodeHas(mtime) && (i == 0 || i == 1 || i == 3)) return 1;
-  if (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) return 1;
-  if (i != 2 && (nodeHas(mat0) || nodeHas(matF))) return 1;
-  return 0;
+  return ((i == 3 || i == 4 || i < 2) &&
+	  (nodeHas(derivative) ||nodeHas(fbio) || nodeHas(alag) ||
+	   nodeHas(rate) || nodeHas(dur))) ||
+    ((i == 3 || i < 2) && nodeHas(der_rhs)) ||
+    (nodeHas(dfdy)     && i< 2)  ||
+    (nodeHas(dfdy_rhs) && i< 2) ||
+    (nodeHas(dfdy)     && i == 3) ||
+    (nodeHas(dfdy_rhs) && i == 3) ||
+    (nodeHas(dfdy)     && i == 5) ||
+    (nodeHas(dfdy_rhs) && i == 5) ||
+    (nodeHas(dfdy)     && i == 6) ||
+    (nodeHas(ini0)     && i == 1) ||
+    (nodeHas(dvid_statementI) && i != 0) ||
+    ((nodeHas(theta) || nodeHas(eta)) && i != 2) ||
+    (nodeHas(mtime) && (i == 0 || i == 1 || i == 3)) ||
+    (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) ||
+    (i != 2 && (nodeHas(mat0) || nodeHas(matF)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
