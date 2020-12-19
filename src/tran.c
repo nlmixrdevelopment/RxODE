@@ -3192,13 +3192,38 @@ static inline int parseNodePossiblySkipRecursion(nodeInfo ni, char *name, D_Pars
   return 0;
 }
 
+static inline int parseNodeAfterRecursion(nodeInfo ni, char *name, D_ParseNode *pn, D_ParseNode *xpn,
+					  int *i, int nch, int *depth, int *safe_zero,
+					  int *ii, int *found, int *isWhile) {
+  assertEndSemicolon(ni, name, *i, xpn);
+  handleSafeZero(ni, name, *i, safe_zero, xpn);  // protect against divide by zeros
+  if (handlePrintf(ni, name, *i, xpn) ||
+      handleJac(ni, name, *i, xpn, ii, found) ||
+      handleLogicalExpr(ni, name, *i, pn, xpn, isWhile) ||
+      handleCmtProperty(ni, name, *i, xpn) ||
+      handleDdtAssign(ni, name, *i, pn, xpn) ||
+      handleDdtRhs(ni, name, xpn)) return 1;
+  if (*i==0 && nodeHas(power_expression)) {
+    aAppendN("),", 2);
+    sAppendN(&sbt, "^", 1);
+  }
+  if (!rx_syntax_star_pow && *i == 1 && nodeHas(power_expression)){
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    if (!strcmp("**",v)){
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(NEEDPOW);
+    }
+  }
+  handleRemainingAssignments(ni, name, *i, pn, xpn);
+  return 0;
+}
+
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
   nodeInfo ni;
   niReset(&ni);
   int nch = d_get_number_of_children(pn), i, ii, found, safe_zero = 0;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
-
   // Add symbol, check/flag if recursive
   handleIdentifier(ni, name, value);
   // Add (double) in front of function arguments
@@ -3219,30 +3244,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       // Recursively parse tree
       wprint_parsetree(pt, xpn, depth, fn, client_data);
 
-      assertEndSemicolon(ni, name, i, xpn);
-
-      handleSafeZero(ni, name, i, &safe_zero, xpn); // protect against divide by zeros
-
-      if (handlePrintf(ni, name, i, xpn) ||
-	  handleJac(ni, name, i, xpn, &ii, &found) ||
-	  handleLogicalExpr(ni, name, i, pn, xpn, &isWhile) ||
-	  handleCmtProperty(ni, name, i, xpn) ||
-	  handleDdtAssign(ni, name, i, pn, xpn) ||
-	  handleDdtRhs(ni, name, xpn)) continue;
-
-      if (nodeHas(power_expression) && i==0) {
-        aAppendN("),", 2);
-        sAppendN(&sbt, "^", 1);
-      }
-
-      if (!rx_syntax_star_pow && i == 1 && nodeHas(power_expression)){
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (!strcmp("**",v)){
-	  updateSyntaxCol();
-          trans_syntax_error_report_fn(NEEDPOW);
-        }
-      }
-      handleRemainingAssignments(ni, name, i, pn, xpn);
+      parseNodeAfterRecursion(ni, name, pn, xpn, &i, nch, &depth, &safe_zero,
+			      &ii, &found, &isWhile);
     }
     finalizeLine(ni, name, pn, isWhile, i);
   }
