@@ -3166,6 +3166,32 @@ static inline void assertEndSemicolon(nodeInfo ni, char *name, int i, D_ParseNod
   }
 }
 
+static inline int parseNodePossiblySkipRecursion(nodeInfo ni, char *name, D_ParseNode *pn, D_ParseNode *xpn,
+						 int *i, int nch, int *depth) {
+  if (assertNoRAssign(ni, name, pn, *i) ||
+      isSkipChild(ni, name, *i))  return 1;
+
+  // Inductive linearization matrices
+  handleIndLinMat0(ni, name);
+  handleIndLinMatf(ni, name);
+  // Determine if this is a function and change depth flag if needed
+  setFunctionFlag(ni, name, *i, depth);
+  if (handleIfElse(ni, name, *i) ||
+      // simeta()/simeps()
+      handleSimFunctions(ni, name, i, nch, pn) ||
+      handleStringEqualityStatements(ni, name, *i, xpn) ||
+      handleDvidStatement(ni, name, xpn, pn) ||
+      handleFunctions(ni, name, i, depth, nch, xpn, pn) ||
+      handleTheta(ni, name, xpn) ||
+      handleEta(ni, name, xpn)) return 1;
+
+  if (nodeHas(param_statement) && i == 0) {
+    sAppendN(&sbt,"param", 5);
+    sbDt.o = 0;
+  }
+  return 0;
+}
+
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
   nodeInfo ni;
@@ -3186,32 +3212,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       aAppendN("Rx_pow(_as_dbleps(", 18);
     }
     for (i = 0; i < nch; i++) {
-      if (assertNoRAssign(ni, name, pn, i) ||
-	  isSkipChild(ni, name, i))  continue;
-
-      // Inductive linearization matrices
-      handleIndLinMat0(ni, name);
-      handleIndLinMatf(ni, name);
-
-      // Determine if this is a function and change depth flag if needed
-      setFunctionFlag(ni, name, i, &depth);
-
       D_ParseNode *xpn = d_get_child(pn, i);
 
-      if (handleIfElse(ni, name, i) ||
-	  // simeta()/simeps()
-	  handleSimFunctions(ni, name, &i, nch, pn) ||
-	  handleStringEqualityStatements(ni, name, i, xpn) ||
-	  handleDvidStatement(ni, name, xpn, pn) ||
-	  handleFunctions(ni, name, &i, &depth, nch, xpn, pn) ||
-	  handleTheta(ni, name, xpn) ||
-	  handleEta(ni, name, xpn)) continue;
-
-
-      if (nodeHas(param_statement) && i == 0) {
-	sAppendN(&sbt,"param", 5);
-	sbDt.o = 0;
-      }
+      if (parseNodePossiblySkipRecursion(ni, name, pn, xpn, &i, nch, &depth)) continue;
 
       // Recursively parse tree
       wprint_parsetree(pt, xpn, depth, fn, client_data);
