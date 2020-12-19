@@ -1683,23 +1683,27 @@ static inline int handleFunctionTransit(transFunctions *tf) {
   return 0;
 }
 
+static inline int isRxnormOrRelatedNode(transFunctions *tf) {
+  return (tf->isNorm = !strcmp("rnorm", tf->v) ||
+	  !strcmp("rxnorm", tf->v) || (tf->isInd = !strcmp("rinorm", tf->v))) ||
+    (tf->isNormV = !strcmp("rnormV", tf->v) ||
+     !strcmp("rxnormV", tf->v) || (tf->isInd = !strcmp("rinormV", tf->v))) ||
+    !strcmp("rxcauchy", tf->v) || (tf->isInd = !strcmp("ricauchy", tf->v)) ||
+    !strcmp("rcauchy", tf->v) ||
+    (tf->isF = !strcmp("rxf", tf->v) ||
+     !strcmp("rf", tf->v) || (tf->isInd = !strcmp("rif", tf->v))) ||
+    (tf->isGamma = !strcmp("rxgamma", tf->v) ||
+     !strcmp("rgamma", tf->v) || (tf->isInd = !strcmp("rigamma", tf->v))) ||
+    (tf->isBeta = !strcmp("rxbeta", tf->v) ||
+     !strcmp("rbeta", tf->v) || (tf->isInd = !strcmp("ribeta", tf->v))) ||
+    (tf->isUnif = !strcmp("rxunif", tf->v) ||
+     !strcmp("runif", tf->v) || (tf->isInd = !strcmp("riunif", tf->v))) ||
+    (tf->isWeibull = !strcmp("rxweibull", tf->v) ||
+     !strcmp("rweibull", tf->v) || (tf->isInd = !strcmp("riweibull", tf->v)));
+}
+
 static inline int handleFunctionRxnorm(transFunctions *tf) {
-  if ((tf->isNorm = !strcmp("rnorm", tf->v) ||
-       !strcmp("rxnorm", tf->v) || (tf->isInd = !strcmp("rinorm", tf->v))) ||
-      (tf->isNormV = !strcmp("rnormV", tf->v) ||
-       !strcmp("rxnormV", tf->v) || (tf->isInd = !strcmp("rinormV", tf->v))) ||
-      !strcmp("rxcauchy", tf->v) || (tf->isInd = !strcmp("ricauchy", tf->v)) ||
-      !strcmp("rcauchy", tf->v) ||
-      (tf->isF = !strcmp("rxf", tf->v) ||
-       !strcmp("rf", tf->v) || (tf->isInd = !strcmp("rif", tf->v))) ||
-      (tf->isGamma = !strcmp("rxgamma", tf->v) ||
-       !strcmp("rgamma", tf->v) || (tf->isInd = !strcmp("rigamma", tf->v))) ||
-      (tf->isBeta = !strcmp("rxbeta", tf->v) ||
-       !strcmp("rbeta", tf->v) || (tf->isInd = !strcmp("ribeta", tf->v))) ||
-      (tf->isUnif = !strcmp("rxunif", tf->v) ||
-       !strcmp("runif", tf->v) || (tf->isInd = !strcmp("riunif", tf->v))) ||
-      (tf->isWeibull = !strcmp("rxweibull", tf->v) ||
-       !strcmp("rweibull", tf->v) || (tf->isInd = !strcmp("riweibull", tf->v)))) {
+  if (isRxnormOrRelatedNode(tf)) {
     if (tb.thread != 0) tb.thread = 2;
     int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
     if (ii == 1){
