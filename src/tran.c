@@ -307,6 +307,7 @@ static void sPut(sbuf *sbb, char what) {
 }
 
 void sAppend(sbuf *sbb, const char *format, ...) {
+  if (format == NULL) return;
   int n = 0;
   va_list argptr, copy;
   va_start(argptr, format);
@@ -330,6 +331,7 @@ void sAppend(sbuf *sbb, const char *format, ...) {
 
 void sPrint(sbuf *sbb, const char *format, ...) {
   sClear(sbb);
+  if (format == NULL) return;
   int n = 0;
   va_list argptr, copy;
   va_start(argptr, format);
@@ -384,6 +386,7 @@ void lineFree(vLines *sbb){
 }
 
 void addLine(vLines *sbb, const char *format, ...){
+  if (format == NULL) return;
   int n = 0;
   va_list argptr, copy;
   va_start(argptr, format);
