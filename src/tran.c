@@ -2606,63 +2606,73 @@ static inline int handleCmtPropertyCmtOrder(nodeInfo ni, char *name, char *v) {
   return 0;
 }
 
+static inline int isCmtLhsStatement(nodeInfo ni, char *name, char *v) {
+  int hasLhs = 0;
+  if (nodeHas(cmt_statement)){
+    new_or_ith(v);
+    if (tb.lh[tb.ix] || tb.ini[tb.ix]){
+      hasLhs=1;
+      tb.ini[tb.ix]=2;
+    }
+    if (!strcmp("depot", v)){
+      tb.hasDepotCmt = 1;
+    } else if (!strcmp("central", v)){
+      tb.hasCentralCmt = 1;
+    }
+  }
+  return hasLhs;
+}
+
+static inline void add_de(nodeInfo ni, char *name, char *v, int hasLhs) {
+  if (rx_syntax_require_ode_first){
+    if (nodeHas(cmt_statement)){
+    } else if (!strcmp("depot", v)){
+      tb.hasDepot = 1;
+    } else if (!strcmp("central", v)){
+      tb.hasCentral = 1;
+    } else {
+      updateSyntaxCol();
+      sPrint(&_gbuf,ODEFIRST,v);
+      trans_syntax_error_report_fn(_gbuf.s);
+    }
+  }
+  tb.statei++;
+  tb.id=tb.de.n;
+  new_or_ith(v);
+  /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
+  if (hasLhs){
+    if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29){
+      tb.lh[tb.ix] = 29;
+    } else {
+      tb.lh[tb.ix] = isLhsStateExtra;
+    }
+  } else {
+    tb.lh[tb.ix] = isState;
+  }
+  tb.di[tb.de.n] = tb.ix;
+  addLine(&(tb.de),"%s",v);
+}
+
 static inline int handleCmtProperty(nodeInfo ni, char *name, int i, D_ParseNode *xpn) {
   if ((nodeHas(fbio) || nodeHas(alag) ||
        nodeHas(dur) || nodeHas(rate) ||
        nodeHas(cmt_statement)) && i==2) {
     char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-    int hasLhs=0;
-    if (nodeHas(cmt_statement)){
-      new_or_ith(v);
-      if (tb.lh[tb.ix] || tb.ini[tb.ix]){
-	hasLhs=1;
-	tb.ini[tb.ix]=2;
-      }
-      if (!strcmp("depot", v)){
-	tb.hasDepotCmt = 1;
-      } else if (!strcmp("central", v)){
-	tb.hasCentralCmt = 1;
-      }
-    }
+    int hasLhs=isCmtLhsStatement(ni, name, v);
     if (new_de(v)){
-      if (rx_syntax_require_ode_first){
-	if (nodeHas(cmt_statement)){
-	} else if (!strcmp("depot", v)){
-	  tb.hasDepot = 1;
-	} else if (!strcmp("central", v)){
-	  tb.hasCentral = 1;
-	} else {
-	  updateSyntaxCol();
-	  sPrint(&_gbuf,ODEFIRST,v);
-	  trans_syntax_error_report_fn(_gbuf.s);
-	}
-      }
-      tb.statei++;
-      tb.id=tb.de.n;
-      handleCmtPropertyCmtOrder(ni, name, v);
-      new_or_ith(v);
+      add_de(ni, name, v, hasLhs);
       aProp(tb.de.n);
-      /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
-      if (hasLhs){
-	if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29){
-	  tb.lh[tb.ix] = 29;
-	} else {
-	  tb.lh[tb.ix] = isLhsStateExtra;
-	}
-      } else {
-	tb.lh[tb.ix] = isState;
-      }
-      tb.di[tb.de.n] = tb.ix;
-      addLine(&(tb.de),"%s",v);
+      handleCmtPropertyCmtOrder(ni, name, v);
     } else {
       new_or_ith(v);
       aProp(tb.ix);
       /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
     }
-    handleCmtPropertyFbio(ni, name, v) ||
+    int tmp = handleCmtPropertyFbio(ni, name, v) ||
       handleCmtPropertyAlag(ni, name, v) ||
       handleCmtPropertyDur(ni, name, v) ||
       handleCmtPropertyRate(ni, name, v);
+    (void) tmp;
     return 1;
   }
   return 0;
@@ -3130,12 +3140,13 @@ static inline void finalizeLine(nodeInfo ni, char *name, D_ParseNode *pn, int is
   if (isWhile) {
     tb.nwhile--;
   }
-  finalizeLineAssign(ni, name, pn) ||
+  int tmp = finalizeLineAssign(ni, name, pn) ||
     finalizeLineMat(ni, name) ||
     finalizeLineDdt(ni, name) ||
     finalizeLineParam(ni, name) ||
     finalizeLineSelectionStatement(ni, name, isWhile) ||
     finalizeLinePower(ni, name);
+  (void) tmp;
   assertLineEquals(ni, name, pn);
 }
 
