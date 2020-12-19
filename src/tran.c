@@ -1498,19 +1498,27 @@ static inline int handleFunctionSum(transFunctions *tf) {
   return 0;
 }
 
+static inline int isDiffFunction(transFunctions *tf) {
+  return !strcmp("lag", tf->v) || (tf->isLead = !strcmp("lead", tf->v)) ||
+    (tf->isDiff = !strcmp("diff", tf->v)) ||
+    (tf->isFirst = !strcmp("first", tf->v)) ||
+    (tf->isLast = !strcmp("last", tf->v));
+}
+
 static inline int handleFunctionDiff(transFunctions *tf) {
-  if (!strcmp("lag", tf->v) || (tf->isLead = !strcmp("lead", tf->v)) ||
-      (tf->isDiff = !strcmp("diff", tf->v)) ||
-      (tf->isFirst = !strcmp("first", tf->v)) ||
-      (tf->isLast = !strcmp("last", tf->v))) {
+  if (isDiffFunction(tf)) {
     int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
     // lag(par, 1) => lag_par(1)
     // lag(par) => lag_par(1)
     // Header what lag_par means.
-    if (ii == 1){
-      D_ParseNode *xpn = d_get_child(tf->pn, 2);
-      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-      int lagNo=0;
+    D_ParseNode *xpn;
+    char *v2;
+    int lagNo =0;
+    switch(ii) {
+    case 1:
+      xpn = d_get_child(tf->pn, 2);
+      v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      lagNo=0;
       if (allSpaces(v2)){
 	if (tf->isFirst || tf->isLast){
 	  updateSyntaxCol();
@@ -1542,20 +1550,8 @@ static inline int handleFunctionDiff(transFunctions *tf) {
       sAppendN(&sb, "1(", 2);
       sAppendN(&sbDt, "1(", 2);
       sAppend(&sbt, "%s(", tf->v);
-      /* Free(v2); */
-    } else if (ii != 2){
-      if (tf->isFirst || tf->isLast){
-	updateSyntaxCol();
-	sPrint(&_gbuf, _("'%s' takes 1 argument %s(parameter)"),
-	       tf->v, tf->v);
-	trans_syntax_error_report_fn(_gbuf.s);
-      } else {
-	updateSyntaxCol();
-	sPrint(&_gbuf, _("'%s' takes 1-2 arguments %s(parameter, k)"),
-	       tf->v, tf->v);
-	trans_syntax_error_report_fn(_gbuf.s);
-      }
-    } else if (ii == 2){
+      break;
+    case 2:
       if (tf->isFirst || tf->isLast){
 	updateSyntaxCol();
 	sPrint(&_gbuf, _("'%s' takes 1 argument %s(parameter)"),
@@ -1563,9 +1559,8 @@ static inline int handleFunctionDiff(transFunctions *tf) {
 	trans_syntax_error_report_fn(_gbuf.s);
       } else {
 	// Check lag(x, 1);  Its OK with lhs, but nothing else is...
-	D_ParseNode *xpn = d_get_child(tf->pn, 3);
-	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	int lagNo=0;
+	xpn = d_get_child(tf->pn, 3);
+	v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (strlen(v2) > 2){
 	  lagNo = toInt(v2+1);
 	  if (tf->isLead && lagNo != NA_INTEGER) lagNo = -lagNo;
@@ -1580,8 +1575,8 @@ static inline int handleFunctionDiff(transFunctions *tf) {
 	  sPrint(&_gbuf, _("'%s(parameter, k)' requires k to be an integer >= 1"), tf->v);
 	  trans_syntax_error_report_fn(_gbuf.s);
 	} else {
-	  D_ParseNode *xpn = d_get_child(tf->pn, 2);
-	  char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  xpn = d_get_child(tf->pn, 2);
+	  v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  tb.fn=0;
 	  if (new_or_ith(v2)){
 	    addSymbolStr(v2);
@@ -1609,6 +1604,20 @@ static inline int handleFunctionDiff(transFunctions *tf) {
 	  /* Free(v2); */
 	}
       }
+      break;
+    default:
+      if (tf->isFirst || tf->isLast){
+	updateSyntaxCol();
+	sPrint(&_gbuf, _("'%s' takes 1 argument %s(parameter)"),
+	       tf->v, tf->v);
+	trans_syntax_error_report_fn(_gbuf.s);
+      } else {
+	updateSyntaxCol();
+	sPrint(&_gbuf, _("'%s' takes 1-2 arguments %s(parameter, k)"),
+	       tf->v, tf->v);
+	trans_syntax_error_report_fn(_gbuf.s);
+      }
+      break;
     }
     tf->i[0]     = 1;// Parse next arguments
     tf->depth[0] =1;
@@ -2225,7 +2234,7 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
       handleFunctionIsFinite(tf) ||
       handleFunctionIsInfinite(tf);
     return 1;
-    if (!tmp & handleFunctionLinCmt(tf)){
+    if (!tmp && handleFunctionLinCmt(tf)){
       return 0;
     } 
     // Check if this is a valid function
