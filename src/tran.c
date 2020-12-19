@@ -2532,6 +2532,77 @@ static inline int handleLogicalExpr(nodeInfo ni, char *name, int i, D_ParseNode 
   return 0;
 }
 
+static inline int handleCmtPropertyFbio(nodeInfo ni, char *name, char *v) {
+  if (nodeHas(fbio)){
+    sb.o=0;sbDt.o=0; sbt.o=0;
+    sAppend(&sb, "_f[%d] = ", tb.id);
+    sAppend(&sbDt, "_f[%d] = ", tb.id);
+    sAppend(&sbt, "f(%s)=", v);
+    tb.curPropN=tb.id;
+    if (foundF == 0) needSort+=1;// & 1 when F
+    foundF=1;
+    aType(FBIO);
+    return 1;
+  }
+  return 0;
+}
+
+static inline int handleCmtPropertyAlag(nodeInfo ni, char *name, char *v) {
+  if (nodeHas(alag)){
+    sb.o=0;sbDt.o=0; sbt.o=0;
+    sAppend(&sb, "_alag[%d] = ", tb.id);
+    sAppend(&sbDt, "_alag[%d] = ", tb.id);
+    sAppend(&sbt, "alag(%s)=", v);
+    tb.curPropN=tb.id;
+    if (foundLag == 0) needSort+=2; // & 2 when alag
+    foundLag=1;
+    aType(ALAG);
+    return 1;
+  }
+  return 0;
+}
+
+static inline int handleCmtPropertyDur(nodeInfo ni, char *name, char *v) {
+  if (nodeHas(dur)) {
+    sb.o=0;sbDt.o=0; sbt.o=0;
+    sAppend(&sb, "_dur[%d] = ", tb.id);
+    sAppend(&sbDt, "_dur[%d] = ", tb.id);
+    sAppend(&sbt, "dur(%s)=", v);
+    tb.curPropN=tb.id;
+    if (foundDur == 0) needSort+=4;// & 4 when dur
+    foundDur=1;
+    aType(DUR);
+    return 1;
+  }
+  return 0;
+}
+
+static inline int handleCmtPropertyRate(nodeInfo ni, char *name, char *v) {
+  if (nodeHas(rate)){
+    sb.o=0;sbDt.o=0; sbt.o=0;
+    sAppend(&sb, "_rate[%d] = ", tb.id);
+    sAppend(&sbDt, "_rate[%d] = ", tb.id);
+    sAppend(&sbt, "rate(%s)=", v);
+    tb.curPropN=tb.id;
+    if (foundRate == 0) needSort+=8;// & 8 when rate
+    foundRate=1;
+    aType(RATE);
+    return 1;
+  }
+  return 0;
+}
+
+static inline int handleCmtPropertyCmtOrder(nodeInfo ni, char *name, char *v) {
+  if (nodeHas(cmt_statement)){
+    sb.o=0;sbDt.o=0; sbt.o=0;
+    sAppend(&sbt, "cmt(%s)", v);
+    sAppend(&sbNrm, "%s;\n", sbt.s);
+    addLine(&sbNrmL, "%s;\n", sbt.s);
+    return 1;
+  }
+  return 0;
+}
+
 static inline int handleCmtProperty(nodeInfo ni, char *name, int i, D_ParseNode *xpn) {
   if ((nodeHas(fbio) || nodeHas(alag) ||
        nodeHas(dur) || nodeHas(rate) ||
@@ -2564,48 +2635,8 @@ static inline int handleCmtProperty(nodeInfo ni, char *name, int i, D_ParseNode 
 	}
       }
       tb.statei++;
-      if (nodeHas(fbio)){
-	sb.o=0;sbDt.o=0; sbt.o=0;
-	sAppend(&sb, "_f[%d] = ", tb.de.n);
-	sAppend(&sbDt, "_f[%d] = ", tb.de.n);
-	sAppend(&sbt, "f(%s)=", v);
-	tb.curPropN=tb.de.n;
-	if (foundF == 0) needSort+=1;// & 1 when F
-	foundF=1;
-	aType(FBIO);
-      } else if (nodeHas(alag)){
-	sb.o=0; sbDt.o=0; sbt.o=0;
-	sAppend(&sb, "_alag[%d] = ", tb.de.n);
-	sAppend(&sbDt, "_alag[%d] = ", tb.de.n);
-	sAppend(&sbt, "alag(%s)=", v);
-	tb.curPropN=tb.de.n;
-	if (foundLag == 0) needSort+=2; // & 2 when alag
-	foundLag=1;
-	aType(ALAG);
-      } else if (nodeHas(dur)){
-	sb.o=0;sbDt.o=0; sbt.o=0;
-	sAppend(&sb, "_dur[%d] = ", tb.de.n);
-	sAppend(&sbDt, "_dur[%d] = ", tb.de.n);
-	sAppend(&sbt, "dur(%s)=", v);
-	tb.curPropN=tb.de.n;
-	if (foundDur == 0) needSort+=4;// & 4 when dur
-	foundDur=1;
-	aType(DUR);
-      } else if (nodeHas(rate)){
-	sb.o=0;sbDt.o=0; sbt.o=0;
-	sAppend(&sb, "_rate[%d] = ", tb.de.n);
-	sAppend(&sbDt, "_rate[%d] = ", tb.de.n);
-	sAppend(&sbt, "rate(%s)=", v);
-	tb.curPropN=tb.de.n;
-	if (foundRate == 0) needSort+=8;// & 8 when rate
-	foundRate=1;
-	aType(RATE);
-      } else if (nodeHas(cmt_statement)){
-	sb.o=0;sbDt.o=0; sbt.o=0;
-	sAppend(&sbt, "cmt(%s)", v);
-	sAppend(&sbNrm, "%s;\n", sbt.s);
-	addLine(&sbNrmL, "%s;\n", sbt.s);
-      }
+      tb.id=tb.de.n;
+      handleCmtPropertyCmtOrder(ni, name, v);
       new_or_ith(v);
       aProp(tb.de.n);
       /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
@@ -2624,44 +2655,11 @@ static inline int handleCmtProperty(nodeInfo ni, char *name, int i, D_ParseNode 
       new_or_ith(v);
       aProp(tb.ix);
       /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
-      if (nodeHas(fbio)){
-	sb.o=0;sbDt.o=0; sbt.o=0;
-	sAppend(&sb, "_f[%d] = ", tb.id);
-	sAppend(&sbDt, "_f[%d] = ", tb.id);
-	sAppend(&sbt, "f(%s)=", v);
-	tb.curPropN=tb.id;
-	if (foundF == 0) needSort+=1;// & 1 when F
-	foundF=1;
-	aType(FBIO);
-      } else if (nodeHas(alag)){
-	sb.o=0;sbDt.o=0; sbt.o=0;
-	sAppend(&sb, "_alag[%d] = ", tb.id);
-	sAppend(&sbDt, "_alag[%d] = ", tb.id);
-	sAppend(&sbt, "alag(%s)=", v);
-	tb.curPropN=tb.id;
-	if (foundLag == 0) needSort+=2; // & 2 when alag
-	foundLag=1;
-	aType(ALAG);
-      } else if (nodeHas(dur)){
-	sb.o=0;sbDt.o=0; sbt.o=0;
-	sAppend(&sb, "_dur[%d] = ", tb.id);
-	sAppend(&sbDt, "_dur[%d] = ", tb.id);
-	sAppend(&sbt, "dur(%s)=", v);
-	tb.curPropN=tb.id;
-	if (foundDur == 0) needSort+=4;// & 4 when dur
-	foundDur=1;
-	aType(DUR);
-      } else if (nodeHas(rate)){
-	sb.o=0;sbDt.o=0; sbt.o=0;
-	sAppend(&sb, "_rate[%d] = ", tb.id);
-	sAppend(&sbDt, "_rate[%d] = ", tb.id);
-	sAppend(&sbt, "rate(%s)=", v);
-	tb.curPropN=tb.id;
-	if (foundRate == 0) needSort+=8;// & 8 when rate
-	foundRate=1;
-	aType(RATE);
-      }
     }
+    handleCmtPropertyFbio(ni, name, v) ||
+      handleCmtPropertyAlag(ni, name, v) ||
+      handleCmtPropertyDur(ni, name, v) ||
+      handleCmtPropertyRate(ni, name, v);
     return 1;
   }
   return 0;
