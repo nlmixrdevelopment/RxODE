@@ -2695,31 +2695,9 @@ static inline int handleDdtAssign(nodeInfo ni, char *name, int i, D_ParseNode *p
   if (nodeHas(derivative) && i==2) {
     char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
     if (new_de(v)) {
-      //add_de(ni, name, v, 0);
-      tb.statei++;
-      if (strncmp(v, "rx__sens_", 3) == 0){
-	tb.sensi++;
-      }
-      if (rx_syntax_allow_dots == 0 && strstr(v, ".")){
-	updateSyntaxCol();
-	trans_syntax_error_report_fn(NODOT);
-      }
-      tb.id = tb.de.n;
-      new_or_ith(v);
-      if (!rx_syntax_allow_assign_state &&
-	  ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
-	   (tb.lh[tb.ix] == isLHS || tb.lh[tb.ix] == isLHSparam))){
-	updateSyntaxCol();
-	sPrint(&_gbuf,_("cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'"),v,v);
-	trans_syntax_error_report_fn0(_gbuf.s);
-      }
-      tb.lh[tb.ix] = isState;
-      tb.di[tb.de.n] = tb.ix;
-      addLine(&(tb.de),"%s",v);
-    } else {
-      new_or_ith(v);
-      /* Free(v); */
+      add_de(ni, name, v, 0);
     }
+    new_or_ith(v);
     /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
     sb.o =0; sbDt.o =0;
     if (tb.idu[tb.id] == 0){
