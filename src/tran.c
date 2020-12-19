@@ -2624,29 +2624,42 @@ static inline int isCmtLhsStatement(nodeInfo ni, char *name, char *v) {
 }
 
 static inline void add_de(nodeInfo ni, char *name, char *v, int hasLhs) {
-  if (rx_syntax_require_ode_first){
-    if (nodeHas(cmt_statement)){
-    } else if (!strcmp("depot", v)){
-      tb.hasDepot = 1;
-    } else if (!strcmp("central", v)){
-      tb.hasCentral = 1;
-    } else {
-      updateSyntaxCol();
-      sPrint(&_gbuf,ODEFIRST,v);
-      trans_syntax_error_report_fn(_gbuf.s);
-    }
-  }
   tb.statei++;
   tb.id=tb.de.n;
   new_or_ith(v);
   /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
   if (hasLhs){
+    if (rx_syntax_require_ode_first){
+      if (!strcmp("depot", v)){
+	tb.hasDepot = 1;
+      } else if (!strcmp("central", v)){
+	tb.hasCentral = 1;
+      } else {
+	updateSyntaxCol();
+	sPrint(&_gbuf,ODEFIRST,v);
+	trans_syntax_error_report_fn(_gbuf.s);
+      }
+    }
     if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29){
       tb.lh[tb.ix] = 29;
     } else {
       tb.lh[tb.ix] = isLhsStateExtra;
     }
   } else {
+    if (strncmp(v, "rx__sens_", 3) == 0){
+      tb.sensi++;
+    }
+    if (rx_syntax_allow_dots == 0 && strstr(v, ".")){
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(NODOT);
+    }
+    if (!rx_syntax_allow_assign_state &&
+	((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
+	 (tb.lh[tb.ix] == isLHS || tb.lh[tb.ix] == isLHSparam))){
+      updateSyntaxCol();
+      sPrint(&_gbuf,_("cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'"),v,v);
+      trans_syntax_error_report_fn0(_gbuf.s);
+    }
     tb.lh[tb.ix] = isState;
   }
   tb.di[tb.de.n] = tb.ix;
@@ -2682,6 +2695,7 @@ static inline int handleDdtAssign(nodeInfo ni, char *name, int i, D_ParseNode *p
   if (nodeHas(derivative) && i==2) {
     char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
     if (new_de(v)) {
+      //add_de(ni, name, v, 0);
       tb.statei++;
       if (strncmp(v, "rx__sens_", 3) == 0){
 	tb.sensi++;
@@ -2690,15 +2704,8 @@ static inline int handleDdtAssign(nodeInfo ni, char *name, int i, D_ParseNode *p
 	updateSyntaxCol();
 	trans_syntax_error_report_fn(NODOT);
       }
-      sb.o =0; sbDt.o =0;
-      aType(TDDT);
-      aProp(tb.de.n);
-      sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(_IR[%d] ", tb.de.n, tb.de.n, tb.de.n);
-      sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(_IR[%d] ", tb.de.n, tb.de.n, tb.de.n);
-      sbt.o=0;
-      sAppend(&sbt, "d/dt(%s)", v);
+      tb.id = tb.de.n;
       new_or_ith(v);
-      /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
       if (!rx_syntax_allow_assign_state &&
 	  ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
 	   (tb.lh[tb.ix] == isLHS || tb.lh[tb.ix] == isLHSparam))){
@@ -2709,46 +2716,34 @@ static inline int handleDdtAssign(nodeInfo ni, char *name, int i, D_ParseNode *p
       tb.lh[tb.ix] = isState;
       tb.di[tb.de.n] = tb.ix;
       addLine(&(tb.de),"%s",v);
-      /* Free(v); */
-      xpn = d_get_child(pn,4);
-      v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-      tb.idu[tb.de.n-1] = 1;
-      if (!strcmp("~",v)){
-	tb.idi[tb.de.n-1] = 1;
-	sAppendN(&sbt, "~", 1);
-      } else {
-	tb.idi[tb.de.n-1] = 0;
-	sAppendN(&sbt, "=", 1);
-      }
-      /* Free(v); */
     } else {
       new_or_ith(v);
-      /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
-      sb.o =0; sbDt.o =0;
-      if (tb.idu[tb.id] == 0){
-	sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(_IR[%d] ", tb.id, tb.id, tb.id);
-	sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(_IR[%d] ", tb.id, tb.id, tb.id);
-      } else {
-	sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(", tb.id, tb.id);
-	sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(", tb.id, tb.id);
-      }
-      tb.idu[tb.id]=1;
-      aType(TDDT);
-      aProp(tb.id);
-      sbt.o=0;
-      sAppend(&sbt, "d/dt(%s)", v);
       /* Free(v); */
-      xpn = d_get_child(pn,4);
-      v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-      if (!strcmp("~",v)){
-	tb.idi[tb.id] = 1;
-	sAppendN(&sbt, "~", 1);
-      } else {
-	// Don't switch idi back to 0; Once the state is ignored,
-	// keep it ignored.
-	sAppendN(&sbt, "=", 1);
-      }
-      /* Free(v); */
+    }
+    /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
+    sb.o =0; sbDt.o =0;
+    if (tb.idu[tb.id] == 0){
+      sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(_IR[%d] ", tb.id, tb.id, tb.id);
+      sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(_IR[%d] ", tb.id, tb.id, tb.id);
+    } else {
+      sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(", tb.id, tb.id);
+      sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(", tb.id, tb.id);
+    }
+    tb.idu[tb.id]=1;
+    aType(TDDT);
+    aProp(tb.id);
+    sbt.o=0;
+    sAppend(&sbt, "d/dt(%s)", v);
+    /* Free(v); */
+    xpn = d_get_child(pn,4);
+    v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    if (!strcmp("~",v)){
+      tb.idi[tb.id] = 1;
+      sAppendN(&sbt, "~", 1);
+    } else {
+      // Don't switch idi back to 0; Once the state is ignored,
+      // keep it ignored.
+      sAppendN(&sbt, "=", 1);
     }
     return 1;
   }
