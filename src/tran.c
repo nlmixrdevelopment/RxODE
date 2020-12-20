@@ -2684,7 +2684,7 @@ static inline void add_de(nodeInfo ni, char *name, char *v, int hasLhs, int from
     }
     new_or_ith(v);
   } else {
-    if (strncmp(v, "rx__sens_", 3) == 0) {
+    if (fromWhere == fromDDT && strncmp(v, "rx__sens_", 3) == 0) {
       tb.sensi++;
     }
     if (rx_syntax_allow_dots == 0 && strstr(v, ".")) {
