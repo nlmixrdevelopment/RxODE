@@ -2209,7 +2209,7 @@ static inline int handleFunctionLinCmt(transFunctions *tf) {
 }
 
 static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, int nch, D_ParseNode *xpn, D_ParseNode *pn) {
-  if (tb.fn) {
+  if (tb.fn == 1) {
     transFunctions *tf = &_tf;
     transFunctionsIni(tf);
     tf->ni = ni;
@@ -2221,39 +2221,41 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
     tf->pn = pn;
     tf->v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
     char *v = tf->v;
-    int tmp = handleFunctionDosenum(tf) ||
-      handleFunctionTad(tf) ||
-      handleFunctionSum(tf) ||
-      handleFunctionLogit(tf) ||
-      handleFunctionDiff(tf) ||
-      handleFunctionPnorm(tf) ||
-      handleFunctionTransit(tf) ||
-      handleFunctionRxnorm(tf) ||
-      handleFunctionRchisq(tf) ||
-      handleFunctionRgeom(tf) ||
-      handleFunctionRbinom(tf) ||
-      handleFunctionIsNan(tf) ||
-      handleFunctionIsNa(tf) ||
-      handleFunctionIsFinite(tf) ||
-      handleFunctionIsInfinite(tf);
-    return 1;
-    if (!tmp && handleFunctionLinCmt(tf)){
+    if (handleFunctionDosenum(tf) ||
+	handleFunctionTad(tf) ||
+	handleFunctionSum(tf) ||
+	handleFunctionLogit(tf) ||
+	handleFunctionDiff(tf) ||
+	handleFunctionPnorm(tf) ||
+	handleFunctionTransit(tf) ||
+	handleFunctionRxnorm(tf) ||
+	handleFunctionRchisq(tf) ||
+	handleFunctionRgeom(tf) ||
+	handleFunctionRbinom(tf) ||
+	handleFunctionIsNan(tf) ||
+	handleFunctionIsNa(tf) ||
+	handleFunctionIsFinite(tf) ||
+	handleFunctionIsInfinite(tf)) {
+      return 1;
+    } else if (handleFunctionLinCmt(tf)){
       return 0;
-    } 
-    // Check if this is a valid function
-    int foundFun = 0;
-    for (int j = length(_goodFuns); j--;){
-      if (!strcmp(CHAR(STRING_ELT(_goodFuns, j)),v)){
-	foundFun = 1;
-	j=0;
-	break;
+    } else {
+      // Check if this is a valid function
+      int foundFun = 0;
+      for (int j = length(_goodFuns); j--;){
+	if (!strcmp(CHAR(STRING_ELT(_goodFuns, j)),v)){
+	  foundFun = 1;
+	  j=0;
+	  break;
+	}
+      }
+      if (foundFun == 0){
+	sPrint(&_gbuf, _("function '%s' is not supported in RxODE"), v);
+	updateSyntaxCol();
+	trans_syntax_error_report_fn(_gbuf.s);
       }
     }
-    if (foundFun){
-      sPrint(&_gbuf, _("function '%s' is not supported in RxODE"), v);
-      updateSyntaxCol();
-      trans_syntax_error_report_fn(_gbuf.s);
-    }
+    /* Free(v); */
   }
   return 0;
 }
