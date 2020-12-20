@@ -73,6 +73,12 @@
 #define TMATF 20
 #define TLIN 21
 
+
+// new de type
+#define fromDDT 2
+#define fromCMTprop 1
+
+
 #define NOASSIGN _("'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'")
 #define NEEDSEMI _("lines need to end with ';'\n     to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'")
 #define NEEDPOW _("'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'")
@@ -1619,7 +1625,7 @@ static inline int handleFunctionDiff(transFunctions *tf) {
       }
       break;
     default:
-      
+
       break;
     }
     tf->i[0]     = 1;// Parse next arguments
@@ -2653,16 +2659,15 @@ static inline int isCmtLhsStatement(nodeInfo ni, char *name, char *v) {
   return hasLhs;
 }
 
-static inline void add_de(nodeInfo ni, char *name, char *v, int hasLhs) {
+
+static inline void add_de(nodeInfo ni, char *name, char *v, int hasLhs, int fromWhere) {
   tb.statei++;
   tb.id=tb.de.n;
-  new_or_ith(v);
-  /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
-  if (hasLhs){
-    if (rx_syntax_require_ode_first){
-      if (!strcmp("depot", v)){
+  if (fromWhere == fromCMTprop) {
+    if (rx_syntax_require_ode_first) {
+      if (!strcmp("depot", v)) {
 	tb.hasDepot = 1;
-      } else if (!strcmp("central", v)){
+      } else if (!strcmp("central", v)) {
 	tb.hasCentral = 1;
       } else {
 	updateSyntaxCol();
@@ -2670,19 +2675,23 @@ static inline void add_de(nodeInfo ni, char *name, char *v, int hasLhs) {
 	trans_syntax_error_report_fn(_gbuf.s);
       }
     }
-    if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29){
+  }
+  if (hasLhs == fromCMTprop) { // 1 only
+    if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29) {
       tb.lh[tb.ix] = 29;
     } else {
       tb.lh[tb.ix] = isLhsStateExtra;
     }
+    new_or_ith(v);
   } else {
-    if (strncmp(v, "rx__sens_", 3) == 0){
+    if (strncmp(v, "rx__sens_", 3) == 0) {
       tb.sensi++;
     }
-    if (rx_syntax_allow_dots == 0 && strstr(v, ".")){
+    if (rx_syntax_allow_dots == 0 && strstr(v, ".")) {
       updateSyntaxCol();
       trans_syntax_error_report_fn(NODOT);
     }
+    new_or_ith(v);
     if (!rx_syntax_allow_assign_state &&
 	((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
 	 (tb.lh[tb.ix] == isLHS || tb.lh[tb.ix] == isLHSparam))){
@@ -2703,7 +2712,7 @@ static inline int handleCmtProperty(nodeInfo ni, char *name, int i, D_ParseNode 
     char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
     int hasLhs=isCmtLhsStatement(ni, name, v);
     if (new_de(v)){
-      add_de(ni, name, v, hasLhs);
+      add_de(ni, name, v, hasLhs, fromCMTprop);
       aProp(tb.de.n);
       handleCmtPropertyCmtOrder(ni, name, v);
     } else {
@@ -2725,7 +2734,7 @@ static inline int handleDdtAssign(nodeInfo ni, char *name, int i, D_ParseNode *p
   if (nodeHas(derivative) && i==2) {
     char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
     if (new_de(v)) {
-      add_de(ni, name, v, 0);
+      add_de(ni, name, v, 0, fromDDT);
     }
     new_or_ith(v);
     /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
