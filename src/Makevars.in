@@ -7,9 +7,6 @@ SH=`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e 'cat(file.path(find.package("StanHea
 CXX_STD = CXX14
 @CXX14STD@
 
-
-OL=`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e 'cat(ifelse("$(WIN)"=="32","-O1",""))'`
-
 ################################################################################
 ## Package library flags.
 PKG_LIBS    = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
@@ -25,17 +22,7 @@ SOURCES_FORTAN = dlsoda.f opkda2.f matexp.f dsphiv.f dgpadm.f
 
 OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_CPP:.cpp=.o) $(SOURCES_FORTAN:.f=.o)
 
-# strippedLib: $(SHLIB)
-# 	if test -e "/usr/bin/strip"; then /usr/bin/strip -s $(SHLIB); fi
-
 .PHONY: all 
-# all: strippedLib
-# $(SHLIB): mylibs
 all: $(SHLIB)
 
-# lincmt.o: lincmt.c
-# 	$(CC) -I"$(R_INCLUDE_DIR)" $(CFLAGS) $(SHLIB_CFLAGS) $(CPICFLAGS) $(PKG_CFLAGS) -I../inst/include/ -fno-var-tracking $(OL) -c lincmt.c -o lincmt.o
-
-#lincmtB.o: lincmtB.cpp
-#	$(CXX) -I"$(R_INCLUDE_DIR)" -DNDEBUG $(CXXPICFLAGS) $(PKG_CXXFLAGS) $(CXXFLAGS) $(SHLIB_CXXFLAGS) -I../inst/include/ $(OL) -c lincmtB.cpp -o lincmtB.o
 
