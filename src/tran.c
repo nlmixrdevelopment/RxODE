@@ -2462,7 +2462,7 @@ static inline int handleJac(nodeInfo ni, char *name, int i, D_ParseNode *xpn, in
   return 0;
 }
 
-static inline int handleLogicalExpr(nodeInfo ni, char *name, int i, D_ParseNode *pn, D_ParseNode *xpn, int *isWhile) {
+static inline int assertLogicalNoWhileElse(nodeInfo ni, char *name, int i, D_ParseNode *pn, D_ParseNode *xpn, int *isWhile) {
   if (nodeHas(selection_statement) && i== 0 ) {
     char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
     *isWhile = !strcmp("while", v);
@@ -2480,6 +2480,10 @@ static inline int handleLogicalExpr(nodeInfo ni, char *name, int i, D_ParseNode 
     }
     return 1;
   }
+  return 0;
+}
+
+static inline int handleLogicalIfOrWhile(nodeInfo ni, char *name, int i, D_ParseNode *pn, D_ParseNode *xpn, int *isWhile) {
   if (nodeHas(selection_statement) && i==1) {
     sb.o = 0; sbDt.o = 0; sbt.o = 0;
     if (*isWhile) {
@@ -2494,6 +2498,10 @@ static inline int handleLogicalExpr(nodeInfo ni, char *name, int i, D_ParseNode 
     }
     return 1;
   }
+  return 0;
+}
+
+static inline int handleLogicalBreak(nodeInfo ni, char *name, int i, D_ParseNode *pn, D_ParseNode *xpn, int *isWhile) {
   if (nodeHas(break_statement) && i == 0) {
     if (tb.nwhile > 0) {
       aType(TLOGIC);
@@ -2506,12 +2514,16 @@ static inline int handleLogicalExpr(nodeInfo ni, char *name, int i, D_ParseNode 
       sAppend(&sbNrm, "%s\n", sbt.s);
       addLine(&sbNrmL, "%s\n", sbt.s);
       ENDLINE;
-      return 1;
     } else {
       updateSyntaxCol();
       trans_syntax_error_report_fn(_("'break' can only be used in  'while' statement"));
     }
+    return 1;
   }
+  return 0;
+}
+
+static inline int handleLogicalBeginParen(nodeInfo ni, char *name, int i, D_ParseNode *pn, D_ParseNode *xpn, int *isWhile) {
   if (nodeHas(selection_statement) && i==3) {
     aType(TLOGIC);
     /* aType(100); */
@@ -2524,6 +2536,10 @@ static inline int handleLogicalExpr(nodeInfo ni, char *name, int i, D_ParseNode 
     ENDLINE;
     return 1;
   }
+  return 0;
+}
+
+static inline int handleLogicalElse(nodeInfo ni, char *name, int i, D_ParseNode *pn, D_ParseNode *xpn, int *isWhile) {
   if (nodeHas(selection_statement__9) && i==0) {
     sb.o = 0; sbDt.o = 0; sbt.o = 0;
     aType(TLOGIC);
@@ -2536,6 +2552,16 @@ static inline int handleLogicalExpr(nodeInfo ni, char *name, int i, D_ParseNode 
     ENDLINE;
     return 1;
   }
+  return 0;
+}
+
+static inline int handleLogicalExpr(nodeInfo ni, char *name, int i, D_ParseNode *pn, D_ParseNode *xpn, int *isWhile) {
+  int tmp = assertLogicalNoWhileElse(ni, name, i, pn, xpn, isWhile) ||
+    handleLogicalIfOrWhile(ni, name, i, pn, xpn, isWhile) ||
+    handleLogicalBreak(ni, name, i, pn, xpn, isWhile) ||
+    handleLogicalBeginParen(ni, name, i, pn, xpn, isWhile) ||
+    handleLogicalElse(ni, name, i, pn, xpn, isWhile);
+  (void)tmp;
   return 0;
 }
 
