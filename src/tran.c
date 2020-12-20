@@ -2663,7 +2663,7 @@ static inline int isCmtLhsStatement(nodeInfo ni, char *name, char *v) {
 static inline void add_de(nodeInfo ni, char *name, char *v, int hasLhs, int fromWhere) {
   tb.statei++;
   tb.id=tb.de.n;
-  if (fromWhere == fromCMTprop) {
+  if (fromWhere == fromCMTprop && !nodeHas(cmt_statement)) {
     if (rx_syntax_require_ode_first) {
       if (!strcmp("depot", v)) {
 	tb.hasDepot = 1;
