@@ -1006,3 +1006,32 @@ static inline int handleFunctions(nodeInfo ni, char *name, int *i, int *depth, i
   }
   return 0;
 }
+
+static inline int handlePrintf(nodeInfo ni, char *name, int i, D_ParseNode *xpn) {
+  if (nodeHas(printf_statement)){
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    if (i == 0){
+      sb.o =0; sbDt.o =0;
+      sbt.o=0;
+      aType(PPRN);
+      aAppendN("Rprintf(", 8);
+      sAppendN(&sbt,"printf(", 7);
+      sb.o--;sbDt.o--;sbt.o--;
+    }
+    if (i == 2){
+      sAppend(&sb,"%s",v);
+      sAppend(&sbDt,"%s",v);
+      sAppend(&sbt,"%s",v);
+    }
+    if (i == 4){
+      addLine(&sbPm, "%s;\n", sb.s);
+      addLine(&sbPmDt, "%s;\n", sbDt.s);
+      sAppend(&sbNrm, "%s;\n", sbt.s);
+      addLine(&sbNrmL, "%s;\n", sbt.s);
+      ENDLINE
+        }
+    /* Free(v); */
+    return 1;
+  }
+  return 0;
+}
