@@ -1321,9 +1321,7 @@ static inline int assertLogicalNoWhileElse(nodeInfo ni, char *name, int i, D_Par
       D_ParseNode *xpn2 = d_get_child(pn, 5);
       v = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
       if (v[0] == 0) {
-	/* Free(v); */
       } else {
-	/* Free(v); */
 	updateSyntaxCol();
 	trans_syntax_error_report_fn(_("'while' cannot be followed by 'else' (did you mean 'if'/'else')"));
       }

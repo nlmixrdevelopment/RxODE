@@ -471,27 +471,39 @@ static inline int isRxnormOrRelatedNode(transFunctions *tf) {
      !strcmp("rweibull", tf->v) || (tf->isInd = !strcmp("riweibull", tf->v)));
 }
 
-static inline int assertCorrectRxnormArgs(transFunctions *tf, int nargs) {
-  if (tf->isF && nargs != 2) {
-    updateSyntaxCol();
-    trans_syntax_error_report_fn(_("'rif'/'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
-    return 1;
+static inline int assertCorrectRxnormArgs2(transFunctions *tf, int nargs) {
+  if (nargs != 2) {
+    if (tf->isF) {
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("'rif'/'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
+      return 1;
+    }
+    if (tf->isBeta) {
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("'ribeta'/'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"));
+      return 1;
+    }
   }
-  if (tf->isBeta && nargs != 2) {
-    updateSyntaxCol();
-    trans_syntax_error_report_fn(_("'ribeta'/'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"));
-    return 1;
+  return 0;
+}
+
+static inline int assertCorrectRxnormArgs12(transFunctions *tf, int nargs) {
+  if (!(nargs == 1 || nargs == 2)) {
+    if (tf->isGamma){
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("'rigamma'/'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"));
+      return 1;
+    }
+    if (tf->isWeibull){
+      updateSyntaxCol();
+      trans_syntax_error_report_fn(_("'riweibull'/'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, scale)'"));
+      return 1;
+    }
   }
-  if (tf->isGamma && !(nargs == 1 || nargs == 2)){
-    updateSyntaxCol();
-    trans_syntax_error_report_fn(_("'rigamma'/'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"));
-    return 1;
-  }
-  if (tf->isWeibull && !(nargs == 1 || nargs == 2)){
-    updateSyntaxCol();
-    trans_syntax_error_report_fn(_("'riweibull'/'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, scale)'"));
-    return 1;
-  }
+  return 0;
+}
+
+static inline int assertCorrectRxnormArgs02(transFunctions *tf, int nargs) {
   if (nargs > 2) {
     updateSyntaxCol();
     if (tf->isNormV) {
@@ -514,11 +526,18 @@ static inline int assertCorrectRxnormArgs(transFunctions *tf, int nargs) {
   return 0;
 }
 
+static inline int assertCorrectRxnormArgs(transFunctions *tf, int nargs) {
+  return assertCorrectRxnormArgs2(tf, nargs) ||
+    assertCorrectRxnormArgs12(tf, nargs) ||
+    assertCorrectRxnormArgs02(tf, nargs);
+}
+
 static inline int handleFunctionRxnorm(transFunctions *tf) {
   if (isRxnormOrRelatedNode(tf)) {
     if (tb.thread != 0) tb.thread = 2;
     int nargs = getFunctionNargs(tf, 3);
     if (assertCorrectRxnormArgs(tf, nargs)) return 1;
+    D_ParseNode *xpn;
     switch (nargs) {
     case 0:
       if (tf->isInd) {
