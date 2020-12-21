@@ -1503,6 +1503,38 @@ static inline int isCmtLhsStatement(nodeInfo ni, char *name, char *v) {
   return hasLhs;
 }
 
+static inline int add_deCmtProp(nodeInfo ni, char *name, char *v, int hasLhs, int fromWhere) {
+  if (hasLhs == fromCMTprop) { // 1 only
+    if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29) {
+      tb.lh[tb.ix] = 29;
+    } else {
+      tb.lh[tb.ix] = isLhsStateExtra;
+    }
+    new_or_ith(v);
+    return 1;
+  }
+  return 0;
+}
+
+static inline int add_deState(nodeInfo ni, char *name, char *v, int hasLhs, int fromWhere) {
+  if (fromWhere == fromDDT && strncmp(v, "rx__sens_", 3) == 0) {
+    tb.sensi++;
+  }
+  if (rx_syntax_allow_dots == 0 && strstr(v, ".")) {
+    updateSyntaxCol();
+    trans_syntax_error_report_fn(NODOT);
+  }
+  new_or_ith(v);
+  if (!rx_syntax_allow_assign_state &&
+      ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
+       (tb.lh[tb.ix] == isLHS || tb.lh[tb.ix] == isLHSparam))){
+    updateSyntaxCol();
+    sPrint(&_gbuf,_("cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'"),v,v);
+    trans_syntax_error_report_fn0(_gbuf.s);
+  }
+  tb.lh[tb.ix] = isState;
+  return 1;
+}
 
 static inline void add_de(nodeInfo ni, char *name, char *v, int hasLhs, int fromWhere) {
   tb.statei++;
@@ -1520,31 +1552,9 @@ static inline void add_de(nodeInfo ni, char *name, char *v, int hasLhs, int from
       }
     }
   }
-  if (hasLhs == fromCMTprop) { // 1 only
-    if (tb.lh[tb.ix] == isSuppressedLHS || tb.lh[tb.ix] == 29) {
-      tb.lh[tb.ix] = 29;
-    } else {
-      tb.lh[tb.ix] = isLhsStateExtra;
-    }
-    new_or_ith(v);
-  } else {
-    if (fromWhere == fromDDT && strncmp(v, "rx__sens_", 3) == 0) {
-      tb.sensi++;
-    }
-    if (rx_syntax_allow_dots == 0 && strstr(v, ".")) {
-      updateSyntaxCol();
-      trans_syntax_error_report_fn(NODOT);
-    }
-    new_or_ith(v);
-    if (!rx_syntax_allow_assign_state &&
-	((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
-	 (tb.lh[tb.ix] == isLHS || tb.lh[tb.ix] == isLHSparam))){
-      updateSyntaxCol();
-      sPrint(&_gbuf,_("cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'"),v,v);
-      trans_syntax_error_report_fn0(_gbuf.s);
-    }
-    tb.lh[tb.ix] = isState;
-  }
+  int tmp = add_deCmtProp(ni, name, v, hasLhs, fromWhere) ||
+    add_deState(ni, name, v, hasLhs, fromWhere);
+  (void) tmp;
   tb.di[tb.de.n] = tb.ix;
   addLine(&(tb.de),"%s",v);
 }
