@@ -67,6 +67,7 @@ typedef struct transFunctions {
   int isUnif;
   int isWeibull;
   int isNormV;
+  int isCauchy;
   int isLead;
   int isFirst;
   int isLast;
@@ -99,6 +100,7 @@ static inline void transFunctionsIni(transFunctions *tf) {
   tf->isUnif=0;
   tf->isWeibull=0;
   tf->isNormV=0;
+  tf->isCauchy=0;
   tf->isLead=0;
   tf->isFirst=0;
   tf->isLast=0;
@@ -455,8 +457,8 @@ static inline int isRxnormOrRelatedNode(transFunctions *tf) {
 	  !strcmp("rxnorm", tf->v) || (tf->isInd = !strcmp("rinorm", tf->v))) ||
     (tf->isNormV = !strcmp("rnormV", tf->v) ||
      !strcmp("rxnormV", tf->v) || (tf->isInd = !strcmp("rinormV", tf->v))) ||
-    !strcmp("rxcauchy", tf->v) || (tf->isInd = !strcmp("ricauchy", tf->v)) ||
-    !strcmp("rcauchy", tf->v) ||
+    (tf->isCauchy = !strcmp("rxcauchy", tf->v) || (tf->isInd = !strcmp("ricauchy", tf->v)) ||
+     !strcmp("rcauchy", tf->v)) ||
     (tf->isF = !strcmp("rxf", tf->v) ||
      !strcmp("rf", tf->v) || (tf->isInd = !strcmp("rif", tf->v))) ||
     (tf->isGamma = !strcmp("rxgamma", tf->v) ||
@@ -469,53 +471,80 @@ static inline int isRxnormOrRelatedNode(transFunctions *tf) {
      !strcmp("rweibull", tf->v) || (tf->isInd = !strcmp("riweibull", tf->v)));
 }
 
+static inline int assertCorrectRxnormArgs(transFunctions *tf, int nargs) {
+  if (tf->isF && nargs != 2) {
+    updateSyntaxCol();
+    trans_syntax_error_report_fn(_("'rif'/'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
+    return 1;
+  }
+  if (tf->isBeta && nargs != 2) {
+    updateSyntaxCol();
+    trans_syntax_error_report_fn(_("'ribeta'/'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"));
+    return 1;
+  }
+  if (tf->isGamma && !(nargs == 1 || nargs == 2)){
+    updateSyntaxCol();
+    trans_syntax_error_report_fn(_("'rigamma'/'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"));
+    return 1;
+  }
+  if (tf->isWeibull && !(nargs == 1 || nargs == 2)){
+    updateSyntaxCol();
+    trans_syntax_error_report_fn(_("'riweibull'/'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, scale)'"));
+    return 1;
+  }
+  if (nargs > 2) {
+    updateSyntaxCol();
+    if (tf->isNormV) {
+      trans_syntax_error_report_fn(_("'rinormV'/'rxnormV'/'rnormV' takes 0-2 arguments 'rxnormV(mean, sd)'"));
+      return 1;
+    }
+    if (tf->isNorm){
+      trans_syntax_error_report_fn(_("'rinorm'/'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"));
+      return 1;
+    }
+    if (tf->isUnif){
+      trans_syntax_error_report_fn(_("'riunif'/'rxunif'/'runif' takes 0-2 arguments 'rxunif(min, max)'"));
+      return 1;
+    }
+    if (tf->isCauchy) {
+      trans_syntax_error_report_fn(_("'ricauchy'/'rxcauchy'/'rcauchy' takes 0-2 arguments 'rxcauchy(location, scale)'"));
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static inline int handleFunctionRxnorm(transFunctions *tf) {
   if (isRxnormOrRelatedNode(tf)) {
     if (tb.thread != 0) tb.thread = 2;
-    int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
-    if (ii == 1){
-      if (tf->isF){
-	updateSyntaxCol();
-	trans_syntax_error_report_fn(_("'rif'/'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
-      } else if (tf->isBeta){
-	updateSyntaxCol();
-	trans_syntax_error_report_fn(_("'ribeta'/'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"));
+    int nargs = getFunctionNargs(tf, 3);
+    if (assertCorrectRxnormArgs(tf, nargs)) return 1;
+    switch (nargs) {
+    case 0:
+      if (tf->isInd) {
+	// rxnorm()
+	sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, 0.0, 1.0",  tf->v, tb.nInd);
+	sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, 0.0, 1.0", tf->v, tb.nInd++);
+	foundF0=1;
       } else {
-	D_ParseNode *xpn = d_get_child(tf->pn, 2);
-	char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	int allSpace=allSpaces(v2);
-	/* Free(v2); */
-	if (allSpace){
-	  if (tf->isGamma){
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("'rigamma'/'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"));
-	  } else if (tf->isWeibull){
-	    updateSyntaxCol();
-	    trans_syntax_error_report_fn(_("'riweibull'/'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, scale)'"));
-	  } else if (tf->isInd) {
-	    // rxnorm()
-	    sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, 0.0, 1.0",  tf->v, tb.nInd);
-	    sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, 0.0, 1.0", tf->v, tb.nInd++);
-	    foundF0=1;
-	  } else {
-	    sAppend(&sb,"%s(&_solveData->subjects[_cSub], 0.0, 1.0", tf->v);
-	    sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 0.0, 1.0", tf->v);
-	  }
-	  sAppend(&sbt, "%s(", tf->v);
-	} else {
-	  //rxnorm(x)
-	  if (tf->isInd) {
-	    sAppend(&sb,"%s1(%d,", tf->v, tb.nInd);
-	    sAppend(&sbDt,"%s1(%d,", tf->v, tb.nInd++);
-	    foundF0=1;
-	  } else {
-	    sAppend(&sb,"%s1(", tf->v);
-	    sAppend(&sbDt,"%s1(", tf->v);
-	  }
-	  sAppend(&sbt, "%s(", tf->v);
-	}
+	sAppend(&sb,"%s(&_solveData->subjects[_cSub], 0.0, 1.0", tf->v);
+	sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 0.0, 1.0", tf->v);
       }
-    } else if (ii == 2){
+      sAppend(&sbt, "%s(", tf->v);
+      break;
+    case 1:
+      xpn = d_get_child(tf->pn, 2);
+      if (tf->isInd) {
+	sAppend(&sb,"%s1(%d,", tf->v, tb.nInd);
+	sAppend(&sbDt,"%s1(%d,", tf->v, tb.nInd++);
+	foundF0=1;
+      } else {
+	sAppend(&sb,"%s1(", tf->v);
+	sAppend(&sbDt,"%s1(", tf->v);
+      }
+      sAppend(&sbt, "%s(", tf->v);
+      break;
+    case 2:
       if (tf->isInd){
 	foundF0=1;
 	sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, ", tf->v, tb.nInd);
@@ -525,25 +554,6 @@ static inline int handleFunctionRxnorm(transFunctions *tf) {
 	sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], ", tf->v);
       }
       sAppend(&sbt, "%s(", tf->v);
-    } else {
-      updateSyntaxCol();
-      if (tf->isNormV){
-	trans_syntax_error_report_fn(_("'rinormV'/'rxnormV'/'rnormV' takes 0-2 arguments 'rxnormV(mean, sd)'"));
-      } else if (tf->isNorm){
-	trans_syntax_error_report_fn(_("'rinorm'/'rxnorm'/'rnorm' takes 0-2 arguments 'rxnorm(mean, sd)'"));
-      } else if (tf->isF) {
-	trans_syntax_error_report_fn(_("'rif'/'rxf'/'rf' takes 2 arguments 'rxf(df1, df2)'"));
-      } else if (tf->isBeta) {
-	trans_syntax_error_report_fn(_("'ribeta'/'rxbeta'/'rbeta' takes 2 arguments 'rxbeta(shape1, shape2)'"));
-      } else if (tf->isGamma) {
-	trans_syntax_error_report_fn(_("'rigamma'/'rxgamma'/'rgamma' takes 1-2 arguments 'rxgamma(shape, rate)'"));
-      } else if (tf->isWeibull) {
-	trans_syntax_error_report_fn(_("'riweibull'/'rxweibull'/'rweibull' takes 1-2 arguments 'rxweibull(shape, scale)'"));
-      } else if (tf->isUnif){
-	trans_syntax_error_report_fn(_("'riunif'/'rxunif'/'runif' takes 0-2 arguments 'rxunif(min, max)'"));
-      } else {
-	trans_syntax_error_report_fn(_("'ricauchy'/'rxcauchy'/'rcauchy' takes 0-2 arguments 'rxcauchy(location, scale)'"));
-      }
     }
     tf->i[0] = 1;// Parse next arguments
     tf->depth[0]=1;
