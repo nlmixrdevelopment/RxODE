@@ -1130,20 +1130,19 @@ static inline int handleIfElse(nodeInfo ni, char *name, int i) {
   return 0;
 }
 
-static inline int handleStringEqualityStatements(nodeInfo ni, char *name, int i, D_ParseNode *xpn) {
+static inline int handleStringEqualRhs(nodeInfo ni, char *name, int i, D_ParseNode *xpn) {
   if (nodeHas(equality_str1)){
-    if (i == 0){
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    switch(i) {
+    case 0:
       // string
       aAppendN("_cmp1(", 6);
-      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
       sAppend(&sb, "%s, ", v);
       sAppend(&sbDt, "%s, ", v);
       sAppend(&sbt, "%s", v);
       /* Free(v); */
       return 1;
-    }
-    if (i == 1) {
-      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    case 1:
       if (!strcmp(v, "==")) {
 	aAppendN("1, ", 3);
       } else {
@@ -1152,11 +1151,9 @@ static inline int handleStringEqualityStatements(nodeInfo ni, char *name, int i,
       sAppend(&sbt, "%s", v);
       /* Free(v); */
       return 1;
-    }
-    if (i == 2) {
+    case 2:
       // identifier_r
       // val, valstr
-      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
       if (!strcmp(v, "id") || !strcmp(v, "ID") || !strcmp(v, "Id")){
 	aAppendN("(&_solveData->subjects[_cSub])->idReal, \"ID\")", 45);
 	sAppendN(&sbt, "ID", 2);
@@ -1166,15 +1163,18 @@ static inline int handleStringEqualityStatements(nodeInfo ni, char *name, int i,
 	sAppend(&sbDt, "%s, \"%s\")", v, v);
 	sAppend(&sbt, "%s", v);
       }
-      /* Free(v); */
       return 1;
     }
   }
+  return 0;
+}
+
+static inline int handleStringEqualLhs(nodeInfo ni, char *name, int i, D_ParseNode *xpn) {
   if (nodeHas(equality_str2)){
-    if (i == 0){
-      // identifier_r
+    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    switch(i) {
+    case 0:
       aAppendN("_cmp2(", 6);
-      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
       if (!strcmp(v, "id") || !strcmp(v, "ID") || !strcmp(v, "Id")){
 	aAppendN("(&_solveData->subjects[_cSub])->idReal, \"ID\", ", 46);
 	sAppendN(&sbt, "ID", 2);
@@ -1184,32 +1184,28 @@ static inline int handleStringEqualityStatements(nodeInfo ni, char *name, int i,
 	sAppend(&sbDt, "%s, \"%s\", ", v, v);
 	sAppend(&sbt, "%s", v);
       }
-      /* Free(v); */
       return 1;
-    }
-    if (i == 1) {
-      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    case 1:
       if (!strcmp(v, "==")) {
 	aAppendN("1, ", 3);
       } else {
 	aAppendN("0, ", 3);
       }
       sAppend(&sbt, "%s", v);
-      /* Free(v); */
       return 1;
-    }
-    if (i == 2) {
-      // str
-      // val, valstr
-      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+    case 2:
       sAppend(&sb, "%s)", v);
       sAppend(&sbDt, "%s)", v);
       sAppend(&sbt, "%s", v);
-      /* Free(v); */
       return 1;
     }
   }
   return 0;
+}
+
+static inline int handleStringEqualityStatements(nodeInfo ni, char *name, int i, D_ParseNode *xpn) {
+  return handleStringEqualRhs(ni, name, i, xpn) ||
+    handleStringEqualLhs(ni, name, i, xpn);
 }
 
 static inline int handleDvidStatement(nodeInfo ni, char *name, D_ParseNode *xpn, D_ParseNode *pn) {
