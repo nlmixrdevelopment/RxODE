@@ -512,7 +512,8 @@ static inline void postSolve(int *idid, int *rc, int *i, double *yp, const char*
   if (*idid <= 0) {
     if (err_msg != NULL) {
       int cid = -*idid-1;
-      if (cid < nerr) RSprintf("IDID=%d, %s\n", *idid, err_msg[-*idid-1]);
+      if (cid > 0 && cid < nerr) RSprintf("IDID=%d, %s\n", *idid, err_msg[-*idid-1]);
+      else RSprintf("IDID=%d, unhandled exception\n", *idid);
     }
     *rc = *idid;
     badSolveExit(*i);
