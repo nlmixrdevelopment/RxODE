@@ -1,3 +1,6 @@
+////////////////////////////////////////////////////////////////////////////////
+// RxODE parsing function routines
+
 static inline int isAtFunctionArg(const char *name) {
   return !strcmp("(", name) ||
     !strcmp(")", name) ||
