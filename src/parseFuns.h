@@ -579,44 +579,56 @@ static inline int handleFunctionRxnorm(transFunctions *tf) {
   return 0;
 }
 
-static inline int handleFunctionRchisq(transFunctions *tf) {
-  if (!strcmp("rchisq", tf->v) ||
-      !strcmp("rxchisq", tf->v) ||
-      (tf->isInd = !strcmp("richisq", tf->v)) ||
-      (tf->isExp = !strcmp("rxexp", tf->v) ||
-       !strcmp("rexp", tf->v) ||
-       (tf->isInd = !strcmp("riexp", tf->v))) ||
-      (tf->isT = !strcmp("rxt", tf->v) ||
-       !strcmp("rt", tf->v) ||
-       (tf->isInd = !strcmp("rit", tf->v)))) {
-    if (tb.thread != 0) tb.thread = 2;
-    int ii = d_get_number_of_children(d_get_child(tf->pn,3))+1;
-    if (ii != 1){
-      sPrint(&_gbuf, _("'%s' takes 1 arguments"), tf->v);
+static inline int isRchisqOrRelatedNode(transFunctions *tf) {
+  return !strcmp("rchisq", tf->v) ||
+    !strcmp("rxchisq", tf->v) ||
+    (tf->isInd = !strcmp("richisq", tf->v)) ||
+    (tf->isExp = (!strcmp("rxexp", tf->v) ||
+		  !strcmp("rexp", tf->v) ||
+		  (tf->isInd = !strcmp("riexp", tf->v)))) ||
+    (tf->isT = (!strcmp("rxt", tf->v) ||
+		!strcmp("rt", tf->v) ||
+		(tf->isInd = !strcmp("rit", tf->v))));
+}
+
+static inline int assertCorrectRxchisqArgs(transFunctions *tf, int nargs) {
+  if (tf->isExp) {
+    if (nargs > 1) {
+      sPrint(&_gbuf, _("'%s' takes 0-1 argument"), tf->v);
       updateSyntaxCol();
       trans_syntax_error_report_fn(_gbuf.s);
-    } else {
-      D_ParseNode *xpn = d_get_child(tf->pn, 2);
-      char *v2 = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-      int allSpace=allSpaces(v2);
-      /* Free(v2); */
-      if (allSpace){
-	if (tf->isExp){
-	  if (tf->isInd) {
-	    sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, 1.0", tf->v, tb.nInd);
-	    sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, 1.0", tf->v, tb.nInd++);
-	    foundF0=1;
-	  } else {
-	    sAppend(&sb,"%s(&_solveData->subjects[_cSub], 1.0", tf->v);
-	    sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 1.0", tf->v);
-	  }
-	  sAppend(&sbt, "%s(", tf->v);
-	} else {
-	  sPrint(&_gbuf, _("'%s' takes 1 argument"), tf->v);
-	  updateSyntaxCol();
-	  trans_syntax_error_report_fn(_gbuf.s);
-	}
-      } else if (tf->isT){
+      return 1;
+    }
+    return 0;
+  }
+  if (nargs != 1) {
+    sPrint(&_gbuf, _("'%s' takes 1 argument"), tf->v);
+    updateSyntaxCol();
+    trans_syntax_error_report_fn(_gbuf.s);
+    return 1;
+  }
+  return 0;
+}
+
+static inline int handleFunctionRchisq(transFunctions *tf) {
+  if (isRchisqOrRelatedNode(tf)) {
+    if (tb.thread != 0) tb.thread = 2;
+    int nargs = getFunctionNargs(tf, 3);
+    if (assertCorrectRxchisqArgs(tf, nargs)) return 1;
+    switch(nargs){
+    case 0:
+      if (tf->isInd) {
+	sAppend(&sb,"%s(&_solveData->subjects[_cSub], %d, 1.0", tf->v, tb.nInd);
+	sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], %d, 1.0", tf->v, tb.nInd++);
+	foundF0=1;
+      } else {
+	sAppend(&sb,"%s(&_solveData->subjects[_cSub], 1.0", tf->v);
+	sAppend(&sbDt,"%s(&_solveData->subjects[_cSub], 1.0", tf->v);
+      }
+      sAppend(&sbt, "%s(", tf->v);
+      break;
+    case 1:
+      if (tf->isT){
 	if (tf->isInd) {
 	  sAppend(&sb,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd);
 	  sAppend(&sbDt,"rit_(&_solveData->subjects[_cSub], %d, ", tb.nInd++);
@@ -638,6 +650,7 @@ static inline int handleFunctionRchisq(transFunctions *tf) {
 	}
 	sAppend(&sbt, "%s(", tf->v);
       }
+      break;
     }
     tf->i[0] = 1;// Parse next arguments
     tf->depth[0]=1;
