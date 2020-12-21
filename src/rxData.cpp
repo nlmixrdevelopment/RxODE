@@ -4768,7 +4768,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	switch (thread) {
 	case 2:
 	  // Thread safe, but possibly not reproducible
-	  warning(_("thread safe method, but results may depend on system/load"));
+	  if (op->cores > 1) warning(_("thread safe method, but results may depend on system/load"));
 	  break;
 	case 1:
 	  // Thread safe, and reproducible

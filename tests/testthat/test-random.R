@@ -14,7 +14,7 @@ rxPermissive(
 
       ev <- et(1, id = 1:30000)
 
-      f <- rxSolve(rx, ev, c(a = 3, b = 5, c = 2), cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, c(a = 3, b = 5, c = 2), cores = 2))
 
       expect_equal(mean(f$x1), 0, tol = 1e-2)
       expect_equal(sd(f$x1), 1, tol = 1e-2)
@@ -111,7 +111,7 @@ rxPermissive(
       ev <- et(1, id = 1:30000)
 
       set.seed(1024)
-      f <- rxSolve(rx, ev, cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, cores = 2))
 
       expect_equal(max(f$x1), 4)
       expect_equal(min(f$x1), 0)
@@ -169,7 +169,7 @@ rxPermissive(
 
       ev <- et(1, id = 1:100)
 
-      f <- rxSolve(rx, ev, c(a = 3, b = 5, c = 2), cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, c(a = 3, b = 5, c = 2), cores = 2))
       ## Seed tests
 
       ## Make sure seeds are reproducible
@@ -203,7 +203,7 @@ rxPermissive(
       ev <- et(1, id = 1:30000)
 
       set.seed(1024)
-      f <- rxSolve(rx, ev, cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, cores = 2))
 
       expect_equal(mean(f$x1), 15, tol = 0.1)
       expect_equal(sd(f$x1), sqrt(2 * 15), tol = 0.1)
@@ -250,7 +250,7 @@ rxPermissive(
       ev <- et(1, id = 1:30000)
 
       set.seed(1024)
-      f <- rxSolve(rx, ev, cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, cores = 2))
 
       expect_equal(mean(f$x1), 2, tol = 0.1)
       expect_equal(sd(f$x1), sqrt(1 / (0.5 * 0.5)), tol = 0.1)
@@ -292,7 +292,7 @@ rxPermissive(
       ev <- et(1, id = 1:30000)
 
       set.seed(1024)
-      f <- rxSolve(rx, ev, cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, cores = 2))
 
       sf <- function(d1, d2) {
         sqrt((2 * d2^2 * (d1 + d2 - 2)) / (d1 * (d2 - 2)^2 * (d2 - 4)))
@@ -350,7 +350,7 @@ rxPermissive(
       ev <- et(1, id = 1:30000)
 
       set.seed(1024)
-      f <- rxSolve(rx, ev, cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, cores = 2))
 
       sgamma <- function(k, theta = 1) {
         sqrt(k / (theta^2))
@@ -398,7 +398,7 @@ rxPermissive(
       ev <- et(1, id = 1:30000)
 
       set.seed(1024)
-      f <- rxSolve(rx, ev, cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, cores = 2))
 
 
       mbeta <- function(a, b) {
@@ -456,7 +456,7 @@ rxPermissive(
       ev <- et(1, id = 1:30000)
 
       set.seed(1024)
-      f <- rxSolve(rx, ev, cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, cores = 2))
 
       expect_equal(median(f$x1), -ceiling(1 / log2(1 - 0.5)))
       expect_equal(median(f$x2), -ceiling(1 / log2(1 - 0.1)))
@@ -496,7 +496,7 @@ rxPermissive(
       ev <- et(1, id = 1:30000)
 
       set.seed(1024)
-      f <- rxSolve(rx, ev, cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, cores = 2))
 
       expect_equal(mean(f$x1), 1, tol = 0.01)
       expect_equal(sd(f$x1), 1, tol = 0.01)
@@ -541,7 +541,7 @@ rxPermissive(
       ev <- et(1, id = 1:30000)
 
       set.seed(1024)
-      f <- rxSolve(rx, ev, cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, cores = 2))
 
       expect_equal(mean(f$x1), 0, tol = 0.1)
       expect_equal(sd(f$x1), sqrt(15 / (15 - 2)), tol = 0.1)
@@ -591,7 +591,7 @@ rxPermissive(
 
       ev <- et(1, id = 1:30000)
 
-      f <- rxSolve(rx, ev, c(a = 0.5, b = 0.25, c = 0.75), cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, c(a = 0.5, b = 0.25, c = 0.75), cores = 2))
 
       expect_equal(mean(f$x1), 0.5, tol = 1e-2)
       expect_equal(sd(f$x1), sqrt(1 / 12), tol = 1e-2)
@@ -647,7 +647,7 @@ rxPermissive(
       ev <- et(1, id = 1:30000)
 
       set.seed(1024)
-      f <- rxSolve(rx, ev, cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, cores = 2))
 
       mweibull <- function(shape, scale = 1) {
         lambda <- scale
@@ -734,7 +734,7 @@ rxPermissive(
 
       ev <- et(c(1, 2), id = 1:5)
 
-      f <- rxSolve(rx, ev, c(a = 3, b = 5, c = 2), cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, c(a = 3, b = 5, c = 2), cores = 2))
 
       expect_equal(sum(duplicated(f$x0)), 0)
 
@@ -778,7 +778,7 @@ rxPermissive(
 
       ev <- et(c(1, 2), id = 1:5)
 
-      f <- rxSolve(rx, ev, c(a = 3, b = 5, c = 2), cores = 2)
+      f <- expect_warning(rxSolve(rx, ev, c(a = 3, b = 5, c = 2), cores = 2))
 
       expect_equal(sum(duplicated(f$x0)), 0)
 
