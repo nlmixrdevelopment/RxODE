@@ -791,39 +791,123 @@ void doDot2(sbuf *sb, sbuf *sbDt, char *buf){
   }
 }
 
-void wprint_node(int depth, char *name, char *value, void *client_data) {
-  int i;
-  nodeInfo ni;
-  niReset(&ni);
+
+static inline int nodeTime(char *value) {
   if (!strcmp("time",value)){
     aAppendN("t", 1);
     sAppendN(&sbt, "t", 1);
-  } else if (!strcmp("podo",value)){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodePodo(char *value) {
+  if (!strcmp("podo",value)){
     aAppendN("_solveData->subjects[_cSub].podo", 32);
     sAppendN(&sbt, "podo", 4);
     rx_podo = 1;
-  } else if (!strcmp("CMT",value)){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodeCmt(char *value) {
+  if (!strcmp("CMT",value)){
     aAppendN("_CMT", 4);
     sAppendN(&sbt, "CMT", 3);
-  } else if (!strcmp("tlast",value)){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodeTlast(char *value) {
+  if (!strcmp("tlast",value)){
     aAppendN("_solveData->subjects[_cSub].tlast", 33);
     sAppendN(&sbt, "tlast", 5);
-  } else if (!strcmp("rx__PTR__",value)){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodePtr(char *value) {
+  if (!strcmp("rx__PTR__",value)){
     aAppendN("_solveData, _cSub", 17);
     sAppendN(&sbt, "rx__PTR__", 9);
-  } else if (nodeHas(identifier) && !strcmp("gamma",value)){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodeNaN(char *value){
+  if (!strcmp("NaN",value)){
+    aAppendN("NAN", 3);
+    sAppendN(&sbt,"NaN", 3);
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodeNA(char *value) {
+  if (!strcmp("NA",value)){
+    aAppendN("NA_REAL", 7);
+    sAppendN(&sbt,"NA", 2);
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodeInf(char *value) {
+  if (!strcmp("Inf",value)){
+    if (sbt.o > 0 && sbt.s[sbt.o-1] == '-'){
+      sb.o--; sbDt.o--;
+      aAppendN("R_NegInf", 8);
+    } else {
+      aAppendN("R_PosInf", 8);
+    }
+    sAppendN(&sbt,"Inf", 3);
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodeFunGamma(char *value) {
+  if (!strcmp("gamma",value)){
     aAppendN("lgammafn", 8);
     sAppendN(&sbt, "lgammafn", 8);
-  } else if (nodeHas(identifier) && !strcmp("lfactorial",value)){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodeFunLfactorial(char *value) {
+  if (!strcmp("lfactorial",value)){
     aAppendN("lgamma1p", 8);
     sAppendN(&sbt, "lgamma1p", 8);
-  } else if (nodeHas(identifier) && !strcmp("log",value)){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodeFunLog(char *value) {
+  if (!strcmp("log",value)){
     aAppendN("_safe_log", 9);
     sAppendN(&sbt, "log", 3);
-  } else if (nodeHas(identifier) && !strcmp("abs",value)){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodeFunAbs(char *value) {
+  if (!strcmp("abs",value)){
     aAppendN("fabs", 4);
     sAppendN(&sbt,"abs", 3);
-  } else if (nodeHas(identifier) && !strcmp("linCmt",value)) {
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodeFunLinCmt(char *value) {
+  if (!strcmp("linCmt",value)) {
     if (tb.linCmt == 0){
       aAppendN("linCmt", 6);
       aProp(-100);
@@ -833,33 +917,64 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
       updateSyntaxCol();
       trans_syntax_error_report_fn(_("only one 'linCmt()' per model"));
     }
-  } else if (nodeHas(identifier) && !strcmp("linCmtA",value)){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodeFunLinCmtA(char *value) {
+  if (!strcmp("linCmtA",value)){
     aAppendN("linCmtA", 7);
     sAppendN(&sbt,"linCmtA", 7);
     tb.linCmt=2;
-  } else if (nodeHas(identifier) && !strcmp("linCmtB",value)){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodeFunLinCmtB(char *value) {
+  if (!strcmp("linCmtB",value)){
     aAppendN("linCmtB", 7);
     sAppendN(&sbt,"linCmtB", 7);
     tb.linCmt=2;
-  } else if (nodeHas(identifier) && !strcmp("linCmtC",value)){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int nodeFunLinCmtC(char *value){
+  if (!strcmp("linCmtC",value)){
     aAppendN("linCmtC", 7);
     sAppendN(&sbt,"linCmtC", 7);
     tb.linCmt=2;
-  } else if (!strcmp("NaN",value)){
-    aAppendN("NAN", 3);
-    sAppendN(&sbt,"NaN", 3);
-  } else if (!strcmp("NA",value)){
-    aAppendN("NA_REAL", 7);
-    sAppendN(&sbt,"NA", 2);
-  } else if (!strcmp("Inf",value)){
-    if (sbt.o > 0 && sbt.s[sbt.o-1] == '-'){
-      sb.o--; sbDt.o--;
-      aAppendN("R_NegInf", 8);
-    } else {
-      aAppendN("R_PosInf", 8);
-    }
-    sAppendN(&sbt,"Inf", 3);
-  } else {
+    return 1;
+  }
+  return 0;
+}
+
+void wprint_node(int depth, char *name, char *value, void *client_data) {
+  int i;
+  nodeInfo ni;
+  niReset(&ni);
+  int tmp = nodeTime(value) ||
+    nodePodo(value) ||
+    nodeCmt(value) ||
+    nodeTlast(value) ||
+    nodePtr(value) ||
+    nodeNaN(value) ||
+    nodeNA(value) ||
+    nodeInf(value);
+  if (!tmp && nodeHas(identifier)) {
+    tmp = nodeFunGamma(value) ||
+      nodeFunLfactorial(value) ||
+      nodeFunLog(value) ||
+      nodeFunAbs(value) ||
+      nodeFunLinCmt(value) ||
+      nodeFunLinCmtA(value) ||
+      nodeFunLinCmtB(value) ||
+      nodeFunLinCmtC(value);
+  }
+  if (!tmp) {
     // Apply fix for dot.syntax
     for (i = 0; i < (int)strlen(value); i++){
       if (value[i] == '.' && nodeHas(identifier_r)){
