@@ -2248,168 +2248,244 @@ void err_msg(int chk, const char *msg, int code)
     Rf_errorcall(R_NilValue, "%s",msg);
   }
 }
+// show_ode = 1 dydt
+// show_ode = 2 Jacobian
+// show_ode = 3 Ini statement
+// show_ode = 0 LHS
+// show_ode = 5 functional bioavailibility
+// show_ode == 6 functional lag
+// show_ode == 7 functional rate
+// show_ode == 8 functional duration
+// show_ode == 9 functional mtimes
+// show_ode == 10 ME matrix
+// show_ode == 11 Inductive vector
+// show_ode == 12 initialize lhs to last value
+// show_ode == 13 #define lags for lhs values
+// show_ode == 14 #define lags for params/covs
+// show_ode == 15 #define sync lhs for simeps
+// show_ode == 16 #define sync lhs for simeps
+
+#define ode_lhs 0
+#define ode_dydt 1
+#define ode_jac  2
+#define ode_ini 3
+#define ode_simeps 15
+#define ode_simeta 16
+
+// Scenarios
+#define print_double 0
+#define print_populateParameters 1
+#define print_void 2
+#define print_lastLhsValue  3
+#define print_lhsLags 4
+#define print_paramLags 5
+#define print_simeps 15
+#define print_simeta 16
+
+
+static inline void printDdtDefine(int show_ode, int scenario) {
+  if (show_ode == ode_jac || show_ode == ode_lhs){
+    //__DDtStateVar_#__
+    // These will be defined and used in Jacobian or LHS functions
+    for (int i = 0; i < tb.de.n; i++){
+      if (scenario == print_double){
+	sAppend(&sbOut,"  double  __DDtStateVar_%d__;\n",i);
+      } else {
+	sAppend(&sbOut,"  (void)__DDtStateVar_%d__;\n",i);
+      }
+    }
+  }
+}
+
+static inline void printPDStateVar(int show_ode, int scenario) {
+  // Now get Jacobain information  __PDStateVar_df_dy__ if needed
+  char *buf1, *buf2;
+  if (show_ode != ode_ini && show_ode != ode_simeps){
+    for (int i = 0; i < tb.ndfdy; i++){
+      buf1 = tb.ss.line[tb.df[i]];
+      buf2 = tb.ss.line[tb.dy[i]];
+      // This is for dydt/ LHS/ or jacobian for df(state)/dy(parameter)
+      if (show_ode == ode_dydt || show_ode == ode_lhs || tb.sdfdy[i] == 1){
+	if (scenario == print_double){
+	  sAppend(&sbOut,"  double __PDStateVar_%s_SeP_%s__;\n",buf1,buf2);
+	} else {
+	  sAppend(&sbOut,"  (void)__PDStateVar_%s_SeP_%s__;\n",buf1,buf2);
+	}
+      }
+    }
+  }
+}
+
+static inline int isStateLhsI(int i) {
+  if (tb.lh[i] == isState){
+    int doCont=0;
+    for (int j = 0; j < tb.de.n; j++) {
+      if (tb.di[j] == i) {
+	if (!tb.idu[j]) doCont = 1;
+	break;
+      }
+    }
+    if (doCont) return 1;
+  }
+  return 0;
+}
+
+static inline int shouldSkipPrintLhsI(int scenario, int lhs, int i) {
+  if (scenario == print_paramLags) {
+    if (tb.lag[i] == notLHS) return 1;
+    if (tb.lh[i] == isState) return 1;
+  } else if(scenario == print_lhsLags){
+    if (tb.lag[i] == 0) return 1;
+    if (tb.lh[i] != isLHS) return 1;
+  } else if (scenario == print_lastLhsValue || scenario == print_lhsLags){
+    if (!(tb.lh[i] == isLHS || tb.lh[i] == isLhsStateExtra || tb.lh[i] == isLHSparam)) return 1;
+  } else {
+    if (lhs && tb.lh[i]>0 && tb.lh[i] != isLHSparam) return 1;
+  }
+  if (isStateLhsI(i)) return 1;
+  return 0;
+}
+
+static inline void printParamLags(char *buf, int *j) {
+  sAppendN(&sbOut, "#define diff_", 13);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "1(x) (x - _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - 1))\n", *j);
+  sAppendN(&sbOut, "#define diff_", 13);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "(x,y) (x - _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - (y)))\n", *j);
+  sAppendN(&sbOut, "#define first_", 14);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, NA_INTEGER)\n", *j);
+  sAppendN(&sbOut, "#define last_", 13);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->n_all_times - 1)\n", *j);
+  sAppendN(&sbOut, "#define lead_", 13);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx + 1)\n", *j);
+  sAppendN(&sbOut, "#define lead_", 13);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "(x, y) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx + (y))\n", *j);
+  sAppendN(&sbOut, "#define lag_", 12);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - 1)\n", *j);
+  sAppendN(&sbOut, "#define lag_", 12);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "(x,y) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - (y))\n", *j);
+  j[0]=j[0]+1;
+}
+
+static inline void printLhsLag(char *buf, int *j) {
+  sAppendN(&sbOut, "#define lead_", 13);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", *j);
+  sAppendN(&sbOut, "#define lead_", 13);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "(x,y) _solveData->subjects[_cSub].lhs[%d]\n", *j);
+  sAppendN(&sbOut, "#define diff_", 13);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", *j);
+  sAppendN(&sbOut, "#define diff_", 13);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "(x,y) _solveData->subjects[_cSub].lhs[%d]\n", *j);
+  sAppendN(&sbOut, "#define lag_", 12);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", *j);
+  sAppendN(&sbOut, "#define lag_", 12);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, "(x, y) _solveData->subjects[_cSub].lhs[%d]\n", *j);
+  j[0] = j[0]+1;
+}
+
+static inline void printLastLhsValue(char *buf, int *j) {
+  sAppendN(&sbOut, "  ", 2);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, " = _PL[%d];\n", *j);
+  j[0] = j[0]+1;
+}
+
+static inline void printDoubleDeclaration(char *buf) {
+  sAppendN(&sbOut,"  double ", 9);
+  doDot(&sbOut, buf);
+  if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf) ||
+      !strcmp("rx_hi_", buf) || !strcmp("rx_low_", buf)){
+    sAppendN(&sbOut, "__", 2);
+  }
+  sAppendN(&sbOut, ";\n", 2);
+}
+
+static inline void printVoidDeclaration(char *buf) {
+  sAppend(&sbOut,"  ");
+  sAppend(&sbOut,"(void)");
+  doDot(&sbOut, buf);
+  if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf) ||
+      !strcmp("rx_low_", buf) || !strcmp("rx_hi_", buf)){
+    sAppendN(&sbOut, "__", 2);
+  }
+  sAppendN(&sbOut, ";\n", 2);
+}
+
+static inline void printPopulateParameters(char *buf, int *j) {
+  sAppendN(&sbOut,"  ", 2);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, " = _PP[%d];\n", *j);
+  j[0] = j[0]+1;
+}
+
+static inline void printSimEps(char *buf, int *j) {
+  sAppend(&sbOut,"  if (_solveData->svar[_svari] == %d) {", *j);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, " = _PP[%d];}; ", *j);
+  j[0] = j[0]+1;
+}
+
+static inline void printSimEta(char *buf, int *j) {
+  sAppend(&sbOut,"  if (_solveData->ovar[_ovari] == %d) {", *j);
+  doDot(&sbOut, buf);
+  sAppend(&sbOut, " = _PP[%d];}; ", *j);
+  j[0] = j[0]+1;
+}
+
 
 /* when prnt_vars() is called, user defines the behavior in "case" */
 void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str, int show_ode) {
   int i, j;
-  char *buf, *buf1, *buf2;
+  char *buf;
   sAppend(&sbOut, "%s", pre_str);
-  if (scenario == 0 || scenario == 2){
-    // show_ode = 1 dydt
-    // show_ode = 2 Jacobian
-    // show_ode = 3 Ini statement
-    // show_ode = 0 LHS
-    // show_ode = 5 functional bioavailibility
-    // show_ode == 6 functional lag
-    // show_ode == 7 functional rate
-    // show_ode == 8 functional duration
-    // show_ode == 9 functional mtimes
-    // show_ode == 10 ME matrix
-    // show_ode == 11 Inductive vector
-    // show_ode == 12 initialize lhs to last value
-    // show_ode == 13 #define lags for lhs values
-    // show_ode == 14 #define lags for params/covs
-    // show_ode == 15 #define sync lhs for simeps
-    if (show_ode == 2 || show_ode == 0){
-      //__DDtStateVar_#__
-      for (i = 0; i < tb.de.n; i++){
-	if (scenario == 0){
-	  sAppend(&sbOut,"  double  __DDtStateVar_%d__;\n",i);
-	} else {
-	  sAppend(&sbOut,"  (void)__DDtStateVar_%d__;\n",i);
-	}
-      }
-    }
-    // Now get Jacobain information  __PDStateVar_df_dy__ if needed
-    if (show_ode != 3 && show_ode != 15){
-      for (i = 0; i < tb.ndfdy; i++){
-	buf1 = tb.ss.line[tb.df[i]];
-	buf2 = tb.ss.line[tb.dy[i]];
-        // This is for dydt/ LHS/ or jacobian for df(state)/dy(parameter)
-        if (show_ode == 1 || show_ode == 0 || tb.sdfdy[i] == 1){
-	  if (scenario == 0){
-	    sAppend(&sbOut,"  double __PDStateVar_%s_SeP_%s__;\n",buf1,buf2);
-          } else {
-	    sAppend(&sbOut,"  (void)__PDStateVar_%s_SeP_%s__;\n",buf1,buf2);
-	  }
-        }
-      }
-    }
+  if (scenario == print_double || scenario == print_void){
+    printDdtDefine(show_ode, scenario);
+    printPDStateVar(show_ode, scenario);
   }
   for (i=0, j=0; i<NV; i++) {
-    if (tb.lh[i] == isState){
-      int doCont=0;
-      for (int j = 0; j < tb.de.n; j++) {
-	if (tb.di[j] == i) {
-	  if (!tb.idu[j]) doCont = 1;
-	  break;
-	}
-      }
-      if (doCont) continue;
-    }
-    /* REprintf("%s: %d\n", tb.ss.line[i], tb.lh[i]); */
-    if (scenario == 5){
-      if (tb.lag[i] == notLHS) continue;
-      if (tb.lh[i] == isState) continue;
-    } else if(scenario == 4){
-      if (tb.lag[i] == 0) continue;
-      if (tb.lh[i] != isLHS) continue;
-    } else if (scenario == 3 || scenario == 4){
-      if (!(tb.lh[i] == isLHS || tb.lh[i] == isLhsStateExtra || tb.lh[i] == isLHSparam)) continue;
-    } else {
-      if (lhs && tb.lh[i]>0 && tb.lh[i] != isLHSparam) continue;
-    }
-    /* retieve_var(i, buf); */
+    if (shouldSkipPrintLhsI(scenario, lhs, i)) continue;
     buf = tb.ss.line[i];
     switch(scenario) {
-    case 5: // Case 5 is for using #define lag_var(x)
-      sAppendN(&sbOut, "#define diff_", 13);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "1(x) (x - _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - 1))\n", j);
-      sAppendN(&sbOut, "#define diff_", 13);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "(x,y) (x - _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - (y)))\n", j);
-      sAppendN(&sbOut, "#define first_", 14);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, NA_INTEGER)\n", j);
-      sAppendN(&sbOut, "#define last_", 13);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->n_all_times - 1)\n", j);
-      sAppendN(&sbOut, "#define lead_", 13);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx + 1)\n", j);
-      sAppendN(&sbOut, "#define lead_", 13);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "(x, y) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx + (y))\n", j);
-      sAppendN(&sbOut, "#define lag_", 12);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "1(x) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - 1)\n", j);
-      sAppendN(&sbOut, "#define lag_", 12);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "(x,y) _getParCov(_cSub, _solveData, %d, (&_solveData->subjects[_cSub])->idx - (y))\n", j++);
+    case print_paramLags: // Case 5 is for using #define lag_var(x)
+      printParamLags(buf, &j);
       break;
-    case 4: // Case 4 is for using #define lag_var(x)
-      sAppendN(&sbOut, "#define lead_", 13);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", j);
-      sAppendN(&sbOut, "#define lead_", 13);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "(x,y) _solveData->subjects[_cSub].lhs[%d]\n", j);
-      sAppendN(&sbOut, "#define diff_", 13);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", j);
-      sAppendN(&sbOut, "#define diff_", 13);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "(x,y) _solveData->subjects[_cSub].lhs[%d]\n", j);
-      sAppendN(&sbOut, "#define lag_", 12);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "1(x) _solveData->subjects[_cSub].lhs[%d]\n", j);
-      sAppendN(&sbOut, "#define lag_", 12);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, "(x, y) _solveData->subjects[_cSub].lhs[%d]\n", j++);
+    case print_lhsLags: // Case 4 is for using #define lag_var(x)
+      printLhsLag(buf, &j);
       break;
-    case 3: // Case 3 is for using the last lhs value
-      sAppendN(&sbOut, "  ", 2);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, " = _PL[%d];\n", j++);
+    case print_lastLhsValue: // Case 3 is for using the last lhs value
+      printLastLhsValue(buf, &j);
       break;
-    case 0:   // Case 0 is for declaring the variables
-      sAppendN(&sbOut,"  double ", 9);
-      doDot(&sbOut, buf);
-      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf) ||
-	  !strcmp("rx_hi_", buf) || !strcmp("rx_low_", buf)){
-	sAppendN(&sbOut, "__", 2);
-      }
-      sAppendN(&sbOut, ";\n", 2);
+    case print_double:   // Case 0 is for declaring the variables
+      printDoubleDeclaration(buf);
       break;
-    case 2: // Case 2 is for suppressing all the warnings for the variables by using (void)var;
+    case print_void: // Case 2 is for suppressing all the warnings for the variables by using (void)var;
       // See https://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
-      sAppend(&sbOut,"  ");
-      sAppend(&sbOut,"(void)");
-      doDot(&sbOut, buf);
-      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf) ||
-	  !strcmp("rx_low_", buf) || !strcmp("rx_hi_", buf)){
-        sAppendN(&sbOut, "__", 2);
-      }
-      sAppendN(&sbOut, ";\n", 2);
+      printVoidDeclaration(buf);
       break;
-    case 1:
+    case print_populateParameters:
       // Case 1 is for declaring the par_ptr.
-      sAppendN(&sbOut,"  ", 2);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, " = _PP[%d];\n", j++);
+      printPopulateParameters(buf, &j);
       break;
-    case 15:
+    case print_simeps:
       // Case 15 is for declaring eps the sync parameters
-      sAppend(&sbOut,"  if (_solveData->svar[_svari] == %d) {", j);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, " = _PP[%d];}; ", j++);
+      printSimEps(buf, &j);
       break;
-    case 16:
+    case print_simeta:
       // Case 16 is for declaring eta the sync parameters
-      sAppend(&sbOut,"  if (_solveData->ovar[_ovari] == %d) {", j);
-      doDot(&sbOut, buf);
-      sAppend(&sbOut, " = _PP[%d];}; ", j++);
+      printSimEta(buf, &j);
       break;
     default: break;
     }
@@ -2621,12 +2697,12 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppendN(&sbOut,"#define _CMT CMT\n", 17);
       }
       // Now define lhs lags
-      prnt_vars(4, 1, "", "", 13);
+      prnt_vars(print_lhsLags, 1, "", "", 13);
       // And covariate/parameter lags
-      prnt_vars(5, 1, "", "", 15);
+      prnt_vars(print_paramLags, 1, "", "", 15);
       // Add sync PP define
-      prnt_vars(15, 1, "#define _SYNC_simeps_ for (int _svari=_solveData->neps; _svari--;){", "}\n", 15);
-      prnt_vars(16, 1, "#define _SYNC_simeta_ for (int _ovari=_solveData->neta; _ovari--;){", "}\n", 16);
+      prnt_vars(print_simeps, 1, "#define _SYNC_simeps_ for (int _svari=_solveData->neps; _svari--;){", "}\n", 15);
+      prnt_vars(print_simeta, 1, "#define _SYNC_simeta_ for (int _ovari=_solveData->neta; _ovari--;){", "}\n", 16);
       sAppendN(&sbOut,"#include \"extraC.h\"\n", 20);
       sAppendN(&sbOut,"#include <RxODE_model_shared.c>\n", 32);
       sAppend(&sbOut, "extern void  %sode_solver_solvedata (rx_solve *solve){\n  _solveData = solve;\n}\n",prefix);
@@ -2747,7 +2823,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	(show_ode == 9 && nmtime) ||
 	(show_ode == 10 && tb.matn) ||
 	(show_ode == 11 && tb.matnf)){
-      prnt_vars(0, 0, "", "\n",show_ode);     /* declare all used vars */
+      prnt_vars(print_double, 0, "", "\n",show_ode);     /* declare all used vars */
       if (maxSumProdN > 0 || SumProdLD > 0){
 	int mx = maxSumProdN;
 	if (SumProdLD > mx) mx = SumProdLD;
@@ -2756,14 +2832,14 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppend(&sbOut,  "  for (int ddd=%d; ddd--;){_p[ddd]=_input[ddd]=_pld[ddd]=0.0;}", mx);
 
       }
-      else prnt_vars(2, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
+      else prnt_vars(print_void, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
       if (maxSumProdN){
 	sAppendN(&sbOut,  "  (void)_p;\n  (void)_input;\n", 28);
 	if (SumProdLD){
 	  sAppendN(&sbOut,  "  (void)_pld;\n", 14);
 	}
       }
-      prnt_vars(3, 0,"","\n", 12);
+      prnt_vars(print_lastLhsValue, 0,"","\n", 12);
       if (show_ode == 3){
 	sAppendN(&sbOut, "  _update_par_ptr(0.0, _cSub, _solveData, _idx);\n", 49);
       } else if (show_ode == 6 || show_ode == 7 || show_ode == 8 || show_ode == 9){
@@ -2774,7 +2850,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       } else {
 	sAppendN(&sbOut, "  _update_par_ptr(__t, _cSub, _solveData, _idx);\n", 49);
       }
-      prnt_vars(1, 1, "", "\n",show_ode);                   /* pass system pars */
+      prnt_vars(print_populateParameters, 1, "", "\n",show_ode);                   /* pass system pars */
       if (show_ode != 9 && show_ode != 11){
 	for (i=0; i<tb.de.n; i++) {                   /* name state vars */
 	  buf = tb.ss.line[tb.di[i]];
