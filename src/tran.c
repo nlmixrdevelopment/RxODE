@@ -2331,19 +2331,16 @@ static inline int isStateLhsI(int i) {
 }
 
 static inline int shouldSkipPrintLhsI(int scenario, int lhs, int i) {
-  if (scenario == print_paramLags) {
-    if (tb.lag[i] == notLHS) return 1;
-    if (tb.lh[i] == isState) return 1;
-  } else if(scenario == print_lhsLags){
-    if (tb.lag[i] == 0) return 1;
-    if (tb.lh[i] != isLHS) return 1;
-  } else if (scenario == print_lastLhsValue || scenario == print_lhsLags){
-    if (!(tb.lh[i] == isLHS || tb.lh[i] == isLhsStateExtra || tb.lh[i] == isLHSparam)) return 1;
-  } else {
-    if (lhs && tb.lh[i]>0 && tb.lh[i] != isLHSparam) return 1;
-  }
   if (isStateLhsI(i)) return 1;
-  return 0;
+  switch(scenario){
+  case print_paramLags:
+    return (tb.lag[i] == notLHS || tb.lh[i] == isState);
+  case print_lhsLags:
+    return (tb.lag[i] == 0 ||tb.lh[i] != isLHS);
+  case print_lastLhsValue:
+    return !(tb.lh[i] == isLHS || tb.lh[i] == isLhsStateExtra || tb.lh[i] == isLHSparam);
+  }
+  return (lhs && tb.lh[i]>0 && tb.lh[i] != isLHSparam);
 }
 
 static inline void printParamLags(char *buf, int *j) {
