@@ -2490,102 +2490,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
   sAppend(&sbOut, "%s", post_str);
 }
 
-void print_aux_info(char *model, const char *prefix, const char *libname, const char *pMd5, const char *timeId,
-		    const char *libname2){
-  int i, j, islhs,pi = 0,li = 0, sli = 0,
-    statei = 0, sensi=0, normi=0;
-  char *buf;
-  sbuf bufw;
-  sIniTo(&bufw, 1024);
-  sClear(&s_aux_info);
-  /* char bufw[1024]; */
-  for (i=0; i<NV; i++) {
-    islhs = tb.lh[i];
-    if (islhs>1 && islhs != isLhsStateExtra && islhs != isLHSparam && islhs != isSuppressedLHS) continue;      /* is a state var */
-    buf = tb.ss.line[i];
-    if (islhs == 10){
-      sAppend(&s_aux_info, "  SET_STRING_ELT(slhs,%d,mkChar(\"%s\"));\n",
-	      sli++, buf);
-    } else if (islhs == 1 || islhs == 19 || islhs == 70){
-      sAppend(&s_aux_info, "  SET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n",
-	      li++, buf);
-      if (islhs == 70){
-	sAppend(&s_aux_info, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n",
-		pi++, buf);
-      }
-    } else {
-      int foundIt=0;
-      for (j = 1; j <= tb.maxtheta;j++){
-	sPrint(&bufw,"_THETA_%d_",j);
-        if (!strcmp(buf,bufw.s)){
-          sPrint(&bufw,"THETA[%d]",j);
-	  foundIt=1;
-	  break;
-        }
-      }
-      if (!foundIt){
-	for (j = 1; j <= tb.maxeta;j++){
-	  sPrint(&bufw,"_ETA_%d_",j);
-	  if (!strcmp(buf,bufw.s)){
-	    sPrint(&bufw,"ETA[%d]",j);
-	    foundIt=1;
-	    break;
-	  }
-	}
-      }
-      if (!foundIt){
-	sPrint(&bufw, "%s", buf);
-      }
-      sAppend(&s_aux_info, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, bufw.s);
-    }
-  }
-  int nExtra=0;
-  for (i=0; i<tb.de.n; i++) {                     /* name state vars */
-    buf = tb.ss.line[tb.di[i]];
-    if (tb.idu[i] == 1){
-      if (strncmp(buf, "rx__sens_", 9) == 0){
-	sAppend(&s_aux_info, "    SET_STRING_ELT(sens,%d,mkChar(\"%s\"));\n", sensi++, buf);
-	sAppend(&s_aux_info, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
-	sAppend(&s_aux_info, "    _SR[%d] = %d;\n", statei-1, tb.idi[i]);
-      } else {
-	sAppend(&s_aux_info, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
-	sAppend(&s_aux_info, "    SET_STRING_ELT(normState,%d,mkChar(\"%s\"));\n", normi++, buf);
-	sAppend(&s_aux_info, "    _SR[%d] = %d;\n", statei-1, tb.idi[i]);
-      }
-    } else {
-      sAppend(&s_aux_info, "    SET_STRING_ELT(extraState, %d, mkChar(\"%s\"));\n", nExtra++, buf);
-    }
-  }
-  for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
-    buf=tb.ss.line[tb.df[i]];
-    sAppend(&s_aux_info, "    SET_STRING_ELT(dfdy,%d,mkChar(\"df(%s)/dy(", i, buf);
-    buf = tb.ss.line[tb.dy[i]];
-    int foundIt=0;
-    for (j = 1; j <= tb.maxtheta;j++){
-      sPrint(&bufw,"_THETA_%d_",j);
-      if (!strcmp(buf,bufw.s)){
-        sPrint(&bufw,"THETA[%d]",j);
-	foundIt=1;
-	break;
-      }
-    }
-    if (!foundIt){
-      for (j = 1; j <= tb.maxeta;j++){
-	sPrint(&bufw,"_ETA_%d_",j);
-	if (!strcmp(buf,bufw.s)){
-	  sAppend(&bufw,"ETA[%d]",j);
-	  foundIt=1;
-	  break;
-	}
-      }
-    }
-    if (!foundIt){
-      sClear(&bufw);
-      sAppend(&bufw,"%s",buf);
-    }
-
-    sAppend(&s_aux_info, "%s)\"));\n",bufw.s);
-  }
+static inline void printCModelVars(const char *prefix) {
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
@@ -2593,7 +2498,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "#define __doBuf__  sprintf(buf, \"", _mv.o+1);
   int off=0;
   int off2 = 0;
-  for (i = 0; i < _mv.o; i++){
+  for (int i = 0; i < _mv.o; i++){
     if (off != 0 && off % 4095 == 0) {
       sAppend(&sbOut, "\"); \\\n sprintf(buf+%d, \"", off2);
     }
@@ -2634,12 +2539,9 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    return _mv;\n", 16);
   sAppendN(&sbOut, "  }\n", 4);
   sAppendN(&sbOut, "}\n", 2);
+}
 
-  sAppend(&sbOut,"extern void %sdydt_lsoda(int *neq, double *t, double *A, double *DADT)\n{\n  %sdydt(neq, *t, A, DADT);\n}\n", prefix, prefix);
-  sAppend(&sbOut, "extern int %sdydt_liblsoda(double __t, double *y, double *ydot, void *data)\n{\n  int *neq = (int*)(data);\n  %sdydt(neq, __t, y, ydot);\n  return(0);\n}\n",
-	  prefix,prefix);
-  sAppend(&sbOut,"extern void %scalc_jac_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){\n  // Update all covariate parameters\n  %scalc_jac(neq, *t, A, JAC, *nrowpd);\n}\n",
-	  prefix, prefix);
+static inline void printRInit(const char *libname, const char *libname2, const char *prefix) {
   sAppend(&sbOut,"\n//Create function to call from R's main thread that assigns the required functions. Sometimes they don't get assigned.\nextern void %sassignFuns(){\n  _assignFuns();\n}\n", prefix);
   sAppend(&sbOut,"\n//Initialize the dll to match RxODE's calls\nvoid R_init0_%s(){\n  // Get C callables on load; Otherwise it isn't thread safe\n", libname2);
   sAppendN(&sbOut, "  _assignFuns();\n", 17);
@@ -2667,6 +2569,24 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "\nvoid R_unload_%s (DllInfo *info){\n  // Free resources required for single subject solve.\n  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));\n",
 	  libname2, prefix);
   sAppend(&sbOut, "  if (!isNull(_mv)){\n    _rxRmModelLib(\"%smodel_vars\");\n  }\n  UNPROTECT(1);\n}\n", prefix);
+}
+
+void print_aux_info(char *model, const char *prefix, const char *libname, const char *pMd5, const char *timeId,
+		    const char *libname2){
+  sbuf bufw;
+  sIniTo(&bufw, 1024);
+  sClear(&s_aux_info);
+  /* char bufw[1024]; */
+  printCModelVars(prefix);
+
+  sAppend(&sbOut,"extern void %sdydt_lsoda(int *neq, double *t, double *A, double *DADT)\n{\n  %sdydt(neq, *t, A, DADT);\n}\n", prefix, prefix);
+  sAppend(&sbOut, "extern int %sdydt_liblsoda(double __t, double *y, double *ydot, void *data)\n{\n  int *neq = (int*)(data);\n  %sdydt(neq, __t, y, ydot);\n  return(0);\n}\n",
+	  prefix,prefix);
+  sAppend(&sbOut,"extern void %scalc_jac_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){\n  // Update all covariate parameters\n  %scalc_jac(neq, *t, A, JAC, *nrowpd);\n}\n",
+	  prefix, prefix);
+
+  printRInit(libname, libname2, prefix);
+
   sFree(&bufw);
 }
 
