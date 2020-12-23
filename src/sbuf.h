@@ -24,6 +24,9 @@
 #define SBUF_MXBUF 48000
 #define SBUF_MXLINE 100
 
+#define NODOT _("'.' in variables and states not supported, use '_' instead or set 'options(RxODE.syntax.allow.dots = TRUE)'")
+
+
 int rc_buf_read(const char *pathname, char **buf, int *len);
 
 char * rc_sbuf_read(const char *pathname);
@@ -66,5 +69,9 @@ void addLine(vLines *sbb, const char *format, ...);
 void curLineProp(vLines *sbb, int propId);
 
 void curLineType(vLines *sbb, int propId);
+
+void doDot(sbuf *out, char *buf);
+
+void doDot2(sbuf *sb, sbuf *sbDt, char *buf);
 
 #endif // __SBUF_H__
