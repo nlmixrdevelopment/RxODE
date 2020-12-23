@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdint.h>   /* dj: import intptr_t */
 #include "ode.h"
+#include "getOption.h"
 #include <errno.h>
 #include <dparser.h>
 #include <R.h>
@@ -102,23 +103,6 @@ void RSprintf(const char *format, ...);
 
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
-
-int R_get_option(const char *option, int def){
-  SEXP s, t;
-  int ret, pro=0;
-  PROTECT(t = s = allocList(3));pro++;
-  SET_TYPEOF(s, LANGSXP);
-  SETCAR(t, install("getOption")); t = CDR(t);
-  SETCAR(t, mkString(option)); t = CDR(t);
-  if (def){
-    SETCAR(t, ScalarLogical(1));
-  } else {
-    SETCAR(t, ScalarLogical(0));
-  }
-  ret = INTEGER(eval(s,R_GlobalEnv))[0];
-  UNPROTECT(pro);
-  return ret;
-}
 
 // Taken from dparser and changed to use Calloc
 int rc_buf_read(const char *pathname, char **buf, int *len) {
