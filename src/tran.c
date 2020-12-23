@@ -1847,57 +1847,101 @@ void trans_internal(const char* parse_file, int isStr){
   }
 }
 
-SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
-		  SEXP isEscIn, SEXP inME, SEXP goodFuns){
-  _goodFuns = goodFuns;
-  const char *in = NULL;
-  char *buf, *df, *dy;
+static inline SEXP calcSLinCmt() {
+  SEXP sLinCmt = PROTECT(allocVector(INTSXP,11));
+  INTEGER(sLinCmt)[0] = tb.ncmt;
+  INTEGER(sLinCmt)[1] = tb.hasKa;
+  INTEGER(sLinCmt)[2] = tb.linB;
+  INTEGER(sLinCmt)[3] = tb.maxeta;
+  INTEGER(sLinCmt)[4] = tb.maxtheta;
+  INTEGER(sLinCmt)[6] = tb.linCmtN;
+  INTEGER(sLinCmt)[7] = tb.linCmtFlg;
+  INTEGER(sLinCmt)[8] = tb.nInd;
+  INTEGER(sLinCmt)[9] = tb.simflg;
+  INTEGER(sLinCmt)[10]= tb.thread;
 
-  int i, j, islhs, pi=0, li=0, sli = 0, ini_i = 0,k=0, m=0, p=0;
-  // Make sure buffers are initialized.
-  isEsc=INTEGER(isEscIn)[0];
+  SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 11));
+  SET_STRING_ELT(sLinCmtN, 0, mkChar("ncmt"));
+  SET_STRING_ELT(sLinCmtN, 1, mkChar("ka"));
+  SET_STRING_ELT(sLinCmtN, 2, mkChar("linB"));
+  SET_STRING_ELT(sLinCmtN, 3, mkChar("maxeta"));
+  SET_STRING_ELT(sLinCmtN, 4, mkChar("maxtheta"));
+  SET_STRING_ELT(sLinCmtN, 5, mkChar("hasCmt"));
+  SET_STRING_ELT(sLinCmtN, 6, mkChar("linCmt"));
+  SET_STRING_ELT(sLinCmtN, 7, mkChar("linCmtFlg"));
+  SET_STRING_ELT(sLinCmtN, 8, mkChar("nIndSim"));
+  SET_STRING_ELT(sLinCmtN, 9, mkChar("simflg"));
+  SET_STRING_ELT(sLinCmtN, 10, mkChar("thread"));
+  setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);
+  UNPROTECT(2);
+  return(sLinCmt);
+}
 
-  int isStr =INTEGER(parseStr)[0];
-  reset();
-  rx_syntax_assign = R_get_option("RxODE.syntax.assign",1);
-  rx_syntax_star_pow = R_get_option("RxODE.syntax.star.pow",1);
-  rx_syntax_require_semicolon = R_get_option("RxODE.syntax.require.semicolon",0);
-  rx_syntax_allow_dots = R_get_option("RxODE.syntax.allow.dots",1);
-  rx_suppress_syntax_info = R_get_option("RxODE.suppress.syntax.info",0);
-  rx_syntax_allow_ini0 = R_get_option("RxODE.syntax.allow.ini0",1);
-  rx_syntax_allow_ini  = R_get_option("RxODE.syntax.allow.ini",1);
-  rx_syntax_allow_assign_state = R_get_option("RxODE.syntax.assign.state",0);
-  rx_syntax_require_ode_first = R_get_option("RxODE.syntax.require.ode.first",1);
-  set_d_use_r_headers(0);
-  set_d_rdebug_grammar_level(0);
-  set_d_verbose_level(0);
-  rx_podo = 0;
+static inline SEXP calcVersionInfo() {
+  SEXP version  = PROTECT(allocVector(STRSXP, 3));
+  SEXP versionn = PROTECT(allocVector(STRSXP, 3));
 
-  if (isString(prefix) && length(prefix) == 1){
-    model_prefix = CHAR(STRING_ELT(prefix,0));
-  } else {
-    Rf_errorcall(R_NilValue, _("model prefix must be specified"));
-  }
+  SET_STRING_ELT(versionn,0,mkChar("version"));
+  SET_STRING_ELT(versionn,1,mkChar("repo"));
+  SET_STRING_ELT(versionn,2,mkChar("md5"));
 
-  if (isString(inME) && length(inME) == 1){
-    me_code = CHAR(STRING_ELT(inME,0));
-  } else {
-    freeP();
-    Rf_errorcall(R_NilValue, _("extra ME code must be specified"));
-  }
+  SET_STRING_ELT(version,0,mkChar(__VER_ver__));
+  SET_STRING_ELT(version,1,mkChar(__VER_repo__));
+  SET_STRING_ELT(version,2,mkChar(__VER_md5__));
+  setAttrib(version,   R_NamesSymbol, versionn);
+  UNPROTECT(2);
+  return version;
+}
 
-  if (isString(model_md5) && length(model_md5) == 1){
-    md5 = CHAR(STRING_ELT(model_md5,0));
-    badMd5 = 0;
-    if (strlen(md5)!= 32){
-      badMd5=1;
+void calcNparamsNlhsNslhs() {
+  int sli=0, li=0, pi=0;
+  for (int i=0; i<NV; i++) {
+    int islhs = tb.lh[i];
+    if (islhs>1 && islhs != isLhsStateExtra && islhs != isLHSparam && islhs != isSuppressedLHS) continue;      /* is a state var */
+    if (islhs == isSuppressedLHS){
+      sli++;
+    } else if (islhs == isLHS || islhs == isLhsStateExtra || islhs == isLHSparam){
+      li++;
+      if (islhs == isLHSparam) pi++;
+    } else {
+      pi++;
     }
-  } else {
-    badMd5=1;
   }
+  tb.pi=pi;
+  tb.li=li;
+  tb.sli=sli;
+}
 
-  in = CHAR(STRING_ELT(parse_file,0));
-  trans_internal(in, isStr);
+void calcNextra() {
+  int offCmt=0,nExtra = 0;
+  char *buf;
+  for (int i = 0; i < tb.statei; i++){
+    if (offCmt == 0 && tb.idu[i] == 0){
+      offCmt = 1;
+      nExtra++;
+      buf=tb.ss.line[tb.di[i]];
+    } else if (offCmt == 1 && tb.idu[i] == 1){
+      // There is an compartment that doesn't have a derivative
+      if (tb.linCmt == 0){
+	char *v = rc_dup_str(buf, 0);
+	sprintf(buf, "compartment '%s' needs differential equations defined", v);
+	updateSyntaxCol();
+	trans_syntax_error_report_fn0(buf);
+      } else if (!strcmp("depot", buf) || !strcmp("central", buf)) {
+      } else {
+	char *v = rc_dup_str(buf, 0);
+	sprintf(buf, _("compartment '%s' needs differential equations defined"), v);
+	updateSyntaxCol();
+	trans_syntax_error_report_fn0(buf);
+      }
+    } else if (offCmt == 1 && tb.idu[i] == 0){
+      nExtra++;
+    }
+  }
+  tb.nExtra=nExtra;
+}
+
+void calcExtracmt() {
   extraCmt = 0;
   if (tb.linCmt){
     if (tb.hasKa){
@@ -1920,124 +1964,18 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       trans_syntax_error_report_fn0(_bufw2.s);
     }
   }
-  for (i=0; i<NV; i++) {
-    islhs = tb.lh[i];
-    if (islhs>1 && islhs != isLhsStateExtra && islhs != isLHSparam && islhs != isSuppressedLHS) continue;      /* is a state var */
-    if (islhs == isSuppressedLHS){
-      sli++;
-    } else if (islhs == isLHS || islhs == isLhsStateExtra || islhs == isLHSparam){
-      li++;
-      if (islhs == isLHSparam) pi++;
-    } else {
-      pi++;
-    }
-  }
-  tb.pi=pi;
-  tb.li=li;
-  tb.sli=sli;
 
-  int pro = 0;
-  SEXP lst   = PROTECT(allocVector(VECSXP, 20));pro++;
-  SEXP names = PROTECT(allocVector(STRSXP, 20));pro++;
+}
 
-  SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;
-  int *iNeedSort  = INTEGER(sNeedSort);
-  iNeedSort[0] = needSort;
-
-  SEXP sLinCmt = PROTECT(allocVector(INTSXP,11));pro++;
-  INTEGER(sLinCmt)[0] = tb.ncmt;
-  INTEGER(sLinCmt)[1] = tb.hasKa;
-  INTEGER(sLinCmt)[2] = tb.linB;
-  INTEGER(sLinCmt)[3] = tb.maxeta;
-  INTEGER(sLinCmt)[4] = tb.maxtheta;
-  INTEGER(sLinCmt)[6] = tb.linCmtN;
-  INTEGER(sLinCmt)[7] = tb.linCmtFlg;
-  INTEGER(sLinCmt)[8] = tb.nInd;
-  INTEGER(sLinCmt)[9] = tb.simflg;
-  INTEGER(sLinCmt)[10]= tb.thread;
-
-  SEXP sLinCmtN = PROTECT(allocVector(STRSXP, 11));pro++;
-  SET_STRING_ELT(sLinCmtN, 0, mkChar("ncmt"));
-  SET_STRING_ELT(sLinCmtN, 1, mkChar("ka"));
-  SET_STRING_ELT(sLinCmtN, 2, mkChar("linB"));
-  SET_STRING_ELT(sLinCmtN, 3, mkChar("maxeta"));
-  SET_STRING_ELT(sLinCmtN, 4, mkChar("maxtheta"));
-  SET_STRING_ELT(sLinCmtN, 5, mkChar("hasCmt"));
-  SET_STRING_ELT(sLinCmtN, 6, mkChar("linCmt"));
-  SET_STRING_ELT(sLinCmtN, 7, mkChar("linCmtFlg"));
-  SET_STRING_ELT(sLinCmtN, 8, mkChar("nIndSim"));
-  SET_STRING_ELT(sLinCmtN, 9, mkChar("simflg"));
-  SET_STRING_ELT(sLinCmtN, 10, mkChar("thread"));
-  setAttrib(sLinCmt,   R_NamesSymbol, sLinCmtN);
-
-  SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;
-  int *iMtime  = INTEGER(sMtime);
-  iMtime[0] = (int)nmtime;
-
-  SEXP tran  = PROTECT(allocVector(STRSXP, 22));pro++;
-  SEXP trann = PROTECT(allocVector(STRSXP, 22));pro++;
-
-  int offCmt=0,nExtra = 0;
-  for (int i = 0; i < tb.statei; i++){
-    if (offCmt == 0 && tb.idu[i] == 0){
-      offCmt = 1;
-      nExtra++;
-      buf=tb.ss.line[tb.di[i]];
-    } else if (offCmt == 1 && tb.idu[i] == 1){
-      // There is an compartment that doesn't have a derivative
-      if (tb.linCmt == 0){
-	UNPROTECT(pro);
-	char *v = rc_dup_str(buf, 0);
-	sprintf(buf, "compartment '%s' needs differential equations defined", v);
-	updateSyntaxCol();
-	trans_syntax_error_report_fn(buf);
-      } else if (!strcmp("depot", buf) || !strcmp("central", buf)) {
-      } else {
-	UNPROTECT(pro);
-	char *v = rc_dup_str(buf, 0);
-	sprintf(buf, _("compartment '%s' needs differential equations defined"), v);
-	updateSyntaxCol();
-	trans_syntax_error_report_fn(buf);
-      }
-    } else if (offCmt == 1 && tb.idu[i] == 0){
-      nExtra++;
-    }
-  }
-  tb.nExtra=nExtra;
-
-  SEXP state      = PROTECT(allocVector(STRSXP,tb.statei-tb.nExtra));pro++;
-  SEXP stateRmS   = PROTECT(allocVector(INTSXP,tb.statei-tb.nExtra));pro++;
-  int *stateRm    = INTEGER(stateRmS);
-  SEXP extraState = PROTECT(allocVector(STRSXP,nExtra));pro++;
-
-  SEXP sens     = PROTECT(allocVector(STRSXP,tb.sensi));pro++;
-  SEXP normState= PROTECT(allocVector(STRSXP,tb.statei-tb.sensi-nExtra));pro++;
-
-  SEXP dfdy = PROTECT(allocVector(STRSXP,tb.ndfdy));pro++;
-
-  SEXP params = PROTECT(allocVector(STRSXP, tb.pi));pro++;
-  SEXP lhs    = PROTECT(allocVector(STRSXP, tb.li));pro++;
-  SEXP slhs   = PROTECT(allocVector(STRSXP, tb.sli));pro++;
-
-  SEXP inin  = PROTECT(allocVector(STRSXP, tb.isPi + tb.ini_i));pro++;
-  SEXP ini   = PROTECT(allocVector(REALSXP, tb.isPi + tb.ini_i));pro++;
+static inline SEXP calcIniVals() {
+  int pro=0;
+  SEXP inin  = PROTECT(allocVector(STRSXP, tb.isPi + tb.ini_i)); pro++;
+  SEXP ini   = PROTECT(allocVector(REALSXP, tb.isPi + tb.ini_i)); pro++;
+  char *buf;
   for (int i=tb.isPi + tb.ini_i;i--;) REAL(ini)[i] = NA_REAL;
-
-  SEXP version  = PROTECT(allocVector(STRSXP, 3));pro++;
-  SEXP versionn = PROTECT(allocVector(STRSXP, 3)); pro++;
-
-  SET_STRING_ELT(versionn,0,mkChar("version"));
-  SET_STRING_ELT(versionn,1,mkChar("repo"));
-  SET_STRING_ELT(versionn,2,mkChar("md5"));
-
-  SET_STRING_ELT(version,0,mkChar(__VER_ver__));
-  SET_STRING_ELT(version,1,mkChar(__VER_repo__));
-  SET_STRING_ELT(version,2,mkChar(__VER_md5__));
-  setAttrib(version,   R_NamesSymbol, versionn);
-
-  ini_i=0;
+  int ini_i=0;
   int redo = 0;
-  for (i = 0; i < NV; i++){
+  for (int i = 0; i < NV; i++){
     buf=tb.ss.line[i];
     if (tb.ini[i] == 1 && tb.lh[i] != isLHS){
       if (tb.isPi && !strcmp("pi", buf)) {
@@ -2057,7 +1995,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     ini   = PROTECT(allocVector(REALSXP, tb.ini_i));pro++;
     for (int i = tb.ini_i; i--;) REAL(ini)[i] = NA_REAL;
     ini_i=0;
-    for (i = 0; i < NV; i++){
+    for (int i = 0; i < NV; i++){
       buf=tb.ss.line[i];
       if (tb.ini[i] == 1 && tb.lh[i] != isLHS){
 	if (tb.isPi && !strcmp("pi", buf)) {
@@ -2073,11 +2011,14 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   tb.ini_i = ini_i;
 
   setAttrib(ini,   R_NamesSymbol, inin);
+  UNPROTECT(pro);
+  return ini;
+}
 
-  SEXP model  = PROTECT(allocVector(STRSXP,2));pro++;
-  SEXP modeln = PROTECT(allocVector(STRSXP,2));pro++;
-  k=0;j=0;m=0,p=0;
-  for (i=0; i<tb.de.n; i++) {                     /* name state vars */
+static inline void populateStateVectors(SEXP state, SEXP sens, SEXP normState, int *stateRm, SEXP extraState) {
+  int k=0, j=0, m=0, p=0;
+  char *buf;
+  for (int i=0; i<tb.de.n; i++) {                     /* name state vars */
     buf=tb.ss.line[tb.di[i]];
     if (tb.idu[i] == 1){
       if (strncmp(buf,"rx__sens_", 9) == 0){
@@ -2093,11 +2034,15 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       SET_STRING_ELT(extraState, p++, mkChar(buf));
     }
   }
-  for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
+}
+
+static inline void populateDfdy(SEXP dfdy) {
+  char *df, *dy;
+  for (int i=0; i<tb.ndfdy; i++) {                     /* name state vars */
     df=tb.ss.line[tb.df[i]];
     dy=tb.ss.line[tb.dy[i]];
     int foundIt=0;
-    for (j = 1; j <= tb.maxtheta;j++){
+    for (int j = 1; j <= tb.maxtheta;j++){
       sPrint(&_bufw,"_THETA_%d_",j);
       if (!strcmp(dy,_bufw.s)){
         sPrint(&_bufw,"THETA[%d]",j);
@@ -2106,7 +2051,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       }
     }
     if (!foundIt){
-      for (j = 1; j <= tb.maxeta;j++){
+      for (int j = 1; j <= tb.maxeta;j++){
 	sPrint(&_bufw,"_ETA_%d_",j);
 	if (!strcmp(dy,_bufw.s)){
 	  sPrint(&_bufw,"ETA[%d]",j);
@@ -2120,9 +2065,13 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
     sPrint(&_bufw2,"df(%s)/dy(%s)",df,_bufw.s);
     SET_STRING_ELT(dfdy,i,mkChar(_bufw2.s));
   }
-  li=0, pi=0, sli = 0;
-  for (i=0; i<NV; i++) {
-    islhs = tb.lh[i];
+}
+
+static inline void populateParamsLhsSlhs(SEXP params, SEXP lhs, SEXP slhs) {
+  int li=0, pi=0, sli = 0;
+  char *buf;
+  for (int i=0; i<NV; i++) {
+    int islhs = tb.lh[i];
     if (islhs == isSuppressedLHS){
       SET_STRING_ELT(slhs, sli++, mkChar(tb.ss.line[i]));
     }
@@ -2138,7 +2087,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 	}
       }
       continue;
-    }      /* is a state var */
+    }
+    /* is a state var */
     buf=tb.ss.line[i];
     if (tb.lag[i] != 0){
       if (islhs == 70){
@@ -2159,7 +2109,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       }
     } else {
       int foundIt=0;
-      for (j = 1; j <= tb.maxtheta;j++){
+      for (int j = 1; j <= tb.maxtheta;j++){
 	sPrint(&_bufw,"_THETA_%d_",j);
 	if (!strcmp(buf, _bufw.s)){
 	  sPrint(&_bufw,"THETA[%d]",j);
@@ -2168,7 +2118,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 	}
       }
       if (!foundIt){
-	for (j = 1; j <= tb.maxeta;j++){
+	for (int j = 1; j <= tb.maxeta;j++){
 	  sPrint(&_bufw,"_ETA_%d_",j);
 	  if (!strcmp(buf, _bufw.s)){
 	    sPrint(&_bufw,"ETA[%d]",j);
@@ -2186,6 +2136,57 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       SET_STRING_ELT(params, pi++, mkChar(_bufw.s));
     }
   }
+}
+
+SEXP generateModelVars() {
+  calcExtracmt();
+  calcNparamsNlhsNslhs();
+  calcNextra();
+
+  int pro = 0;
+  SEXP lst   = PROTECT(allocVector(VECSXP, 20));pro++;
+  SEXP names = PROTECT(allocVector(STRSXP, 20));pro++;
+
+  SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;
+  int *iNeedSort  = INTEGER(sNeedSort);
+  iNeedSort[0] = needSort;
+
+  SEXP sLinCmt =PROTECT(calcSLinCmt());pro++;
+
+  SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;
+  int *iMtime  = INTEGER(sMtime);
+  iMtime[0] = (int)nmtime;
+
+  SEXP tran  = PROTECT(allocVector(STRSXP, 22));pro++;
+  SEXP trann = PROTECT(allocVector(STRSXP, 22));pro++;
+
+  SEXP state      = PROTECT(allocVector(STRSXP,tb.statei-tb.nExtra));pro++;
+  SEXP stateRmS   = PROTECT(allocVector(INTSXP,tb.statei-tb.nExtra));pro++;
+  int *stateRm    = INTEGER(stateRmS);
+  SEXP extraState = PROTECT(allocVector(STRSXP,tb.nExtra));pro++;
+  SEXP sens     = PROTECT(allocVector(STRSXP,tb.sensi));pro++;
+  SEXP normState= PROTECT(allocVector(STRSXP,tb.statei-tb.sensi-tb.nExtra));pro++;
+
+  populateStateVectors(state, sens, normState, stateRm, extraState);
+
+  SEXP dfdy = PROTECT(allocVector(STRSXP,tb.ndfdy));pro++;
+  populateDfdy(dfdy);
+
+
+  SEXP params = PROTECT(allocVector(STRSXP, tb.pi));pro++;
+  SEXP lhs    = PROTECT(allocVector(STRSXP, tb.li));pro++;
+  SEXP slhs   = PROTECT(allocVector(STRSXP, tb.sli));pro++;
+
+  SEXP version = PROTECT(calcVersionInfo());pro++;
+  SEXP ini = PROTECT(calcIniVals()); pro++;
+
+
+  SEXP model  = PROTECT(allocVector(STRSXP,2));pro++;
+  SEXP modeln = PROTECT(allocVector(STRSXP,2));pro++;
+
+  populateParamsLhsSlhs(params, lhs, slhs);
+
+
   INTEGER(sLinCmt)[5] = tb.hasCmt;
   tb.ini_i = length(ini);
   gnini = length(ini);
@@ -2242,7 +2243,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 
   SET_STRING_ELT(names, 16, mkChar("dvid"));
   SEXP sDvid = PROTECT(allocVector(INTSXP,tb.dvidn));pro++;
-  for (i = 0; i < tb.dvidn; i++) INTEGER(sDvid)[i]=tb.dvid[i];
+  for (int i = 0; i < tb.dvidn; i++) INTEGER(sDvid)[i]=tb.dvid[i];
   SET_VECTOR_ELT(lst,  16, sDvid);
 
   SET_STRING_ELT(names, 17, mkChar("indLin"));
@@ -2358,7 +2359,60 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   SEXP cls = PROTECT(allocVector(STRSXP, 1));pro++;
   SET_STRING_ELT(cls, 0, mkChar("rxModelVars"));
   classgets(lst, cls);
+
   UNPROTECT(pro);
+  return lst;
+}
+
+SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
+		  SEXP isEscIn, SEXP inME, SEXP goodFuns){
+  _goodFuns = goodFuns;
+  const char *in = NULL;
+  // Make sure buffers are initialized.
+  isEsc=INTEGER(isEscIn)[0];
+
+  int isStr =INTEGER(parseStr)[0];
+  reset();
+  rx_syntax_assign = R_get_option("RxODE.syntax.assign",1);
+  rx_syntax_star_pow = R_get_option("RxODE.syntax.star.pow",1);
+  rx_syntax_require_semicolon = R_get_option("RxODE.syntax.require.semicolon",0);
+  rx_syntax_allow_dots = R_get_option("RxODE.syntax.allow.dots",1);
+  rx_suppress_syntax_info = R_get_option("RxODE.suppress.syntax.info",0);
+  rx_syntax_allow_ini0 = R_get_option("RxODE.syntax.allow.ini0",1);
+  rx_syntax_allow_ini  = R_get_option("RxODE.syntax.allow.ini",1);
+  rx_syntax_allow_assign_state = R_get_option("RxODE.syntax.assign.state",0);
+  rx_syntax_require_ode_first = R_get_option("RxODE.syntax.require.ode.first",1);
+  set_d_use_r_headers(0);
+  set_d_rdebug_grammar_level(0);
+  set_d_verbose_level(0);
+  rx_podo = 0;
+
+  if (isString(prefix) && length(prefix) == 1){
+    model_prefix = CHAR(STRING_ELT(prefix,0));
+  } else {
+    Rf_errorcall(R_NilValue, _("model prefix must be specified"));
+  }
+
+  if (isString(inME) && length(inME) == 1){
+    me_code = CHAR(STRING_ELT(inME,0));
+  } else {
+    freeP();
+    Rf_errorcall(R_NilValue, _("extra ME code must be specified"));
+  }
+
+  if (isString(model_md5) && length(model_md5) == 1){
+    md5 = CHAR(STRING_ELT(model_md5,0));
+    badMd5 = 0;
+    if (strlen(md5)!= 32){
+      badMd5=1;
+    }
+  } else {
+    badMd5=1;
+  }
+
+  in = CHAR(STRING_ELT(parse_file,0));
+  trans_internal(in, isStr);
+  SEXP lst = PROTECT(generateModelVars());
   if (rx_syntax_error){
     if(!rx_suppress_syntax_info){
       if (gBuf[gBufLast] != '\0'){
@@ -2386,6 +2440,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       Rf_errorcall(R_NilValue, _("syntax errors (see above)"));
     }
   }
+  UNPROTECT(1);
   return lst;
 }
 
