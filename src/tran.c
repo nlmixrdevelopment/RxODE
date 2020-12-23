@@ -1,10 +1,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>   /* dj: import intptr_t */
 #include "ode.h"
+#include "sbuf.h"
 #include "getOption.h"
 #include <errno.h>
 #include <dparser.h>
@@ -26,8 +26,7 @@
 #define MXSYM 50000
 #define MXDER 5000
 #define MXLEN 12000
-#define MXBUF 48000
-/* #define MXBUF 5 */
+/* #define SBUF_MXBUF 5 */
 #define MXLINE 100
 /* #define MXLINE 5 */
 #define SBPTR sb.s+sb.o
@@ -103,37 +102,6 @@ void RSprintf(const char *format, ...);
 
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
-
-// Taken from dparser and changed to use Calloc
-int rc_buf_read(const char *pathname, char **buf, int *len) {
-  struct stat sb;
-  int fd;
-  *buf = 0;
-  *len = 0;
-  fd = open(pathname, O_RDONLY);
-  if (fd <= 0)
-    return -1;
-  memset(&sb, 0, sizeof(sb));
-  fstat(fd, &sb);
-  *len = sb.st_size;
-  *buf = Calloc(*len + 3,char);
-  // MINGW likes to convert cr lf => lf which messes with the size
-  size_t real_size = read(fd, *buf, *len);
-  (*buf)[real_size] = 0;
-  (*buf)[real_size + 1] = 0;
-  *len = real_size;
-  close(fd);
-  return *len;
-}
-
-// Taken from dparser and changed to use Calloc
-char * rc_sbuf_read(const char *pathname) {
-  char *buf;
-  int len;
-  if (rc_buf_read(pathname, &buf, &len) < 0)
-    return NULL;
-  return buf;
-}
 
 int syntaxErrorExtra = 0;
 int isEsc=0;
@@ -244,193 +212,7 @@ lhs symbols?
 } symtab;
 symtab tb;
 
-sbuf sb, sbDt; /* buffer w/ current parsed & translated line */
-sbuf sbt;
-
-sbuf firstErr;
-int firstErrD=0;
-
-void sIniTo(sbuf *sbb, int to){
-  sbb->s = Calloc(to, char);
-  sbb->sN = to;
-  sbb->s[0]='\0';
-  sbb->o=0;
-}
-static inline void sClear(sbuf *sbb){
-  sbb->s[0]='\0';
-  sbb->o=0;
-}
-
-void sIni(sbuf *sbb){
-  sIniTo(sbb, MXBUF);
-}
-
-void sFree(sbuf *sbb){
-  Free(sbb->s);
-  sbb->sN=0;
-  sbb->o=0;
-}
-
-void sFreeIni(sbuf *sbb){
-  sFree(sbb);
-  sIni(sbb);
-}
-
-void sAppendN(sbuf *sbb, const char *what, int n){
-  if (sbb->sN <= 2 + n + sbb->o){
-    int mx = sbb->o + 2 + n + MXBUF;
-    sbb->s = Realloc(sbb->s, mx, char);
-    sbb->sN = mx;
-  }
-  sprintf(sbb->s+sbb->o, "%s", what);
-  sbb->o +=n;
-}
-
-static void sPut(sbuf *sbb, char what) {
-  if (sbb->sN <= 2 + sbb->o) {
-    int mx = sbb->o + 2 + MXBUF;
-    sbb->s = Realloc(sbb->s, mx, char);
-    sbb->sN = mx;
-  }
-  sprintf(sbb->s+sbb->o, "%c", what);
-  sbb->o++;
-}
-
-void sAppend(sbuf *sbb, const char *format, ...) {
-  if (format == NULL) return;
-  int n = 0;
-  va_list argptr, copy;
-  va_start(argptr, format);
-  va_copy(copy, argptr);
-#if defined(_WIN32) || defined(WIN32)
-  n = vsnprintf(NULL, 0, format, copy) + 1;
-#else
-  char zero[2];
-  n = vsnprintf(zero, 0, format, copy) + 1;
-#endif
-  va_end(copy);
-  if (sbb->sN <= sbb->o + n + 1) {
-    int mx = sbb->o + n + 1 + MXBUF;
-    sbb->s = Realloc(sbb->s, mx, char);
-    sbb->sN = mx;
-  }
-  vsnprintf(sbb->s+ sbb->o, sbb->sN - sbb->o, format, argptr);
-  va_end(argptr);
-  sbb->o += n-1;
-}
-
-void sPrint(sbuf *sbb, const char *format, ...) {
-  sClear(sbb);
-  if (format == NULL) return;
-  int n = 0;
-  va_list argptr, copy;
-  va_start(argptr, format);
-  va_copy(copy, argptr);
-#if defined(_WIN32) || defined(WIN32)
-  n = vsnprintf(NULL, 0, format, copy) + 1;
-#else
-  char zero[2];
-  n = vsnprintf(zero, 0, format, copy) + 1;
-#endif
-  va_end(copy);
-  if (sbb->sN <= sbb->o + n + 1){
-    int mx = sbb->o + n + 1 + MXBUF;
-    sbb->s = Realloc(sbb->s, mx, char);
-    sbb->sN = mx;
-  }
-  vsnprintf(sbb->s+ sbb->o, sbb->sN - sbb->o, format, argptr);
-  va_end(argptr);
-  sbb->o += n-1;
-}
-
-void lineIni(vLines *sbb){
-  Free(sbb->s);
-  sbb->s = Calloc(MXBUF, char);
-  sbb->sN = MXBUF;
-  sbb->s[0]='\0';
-  sbb->o = 0;
-  Free(sbb->lProp);
-  Free(sbb->line);
-  Free(sbb->lType);
-  Free(sbb->os);
-  sbb->lProp = Calloc(MXLINE, int);
-  sbb->lType = Calloc(MXLINE, int);
-  sbb->line = Calloc(MXLINE, char*);
-  sbb->os = Calloc(MXLINE, int);
-  sbb->nL=MXLINE;
-  sbb->lProp[0] = -1;
-  sbb->lType[0] = 0;
-  sbb->n = 0;
-}
-
-void lineFree(vLines *sbb){
-  Free(sbb->s);
-  Free(sbb->lProp);
-  Free(sbb->lType);
-  Free(sbb->line);
-  Free(sbb->os);
-  sbb->sN = 0;
-  sbb->nL = 0;
-  sbb->n  = 0;
-  sbb->o  = 0;
-}
-
-void addLine(vLines *sbb, const char *format, ...){
-  if (format == NULL) return;
-  int n = 0;
-  va_list argptr, copy;
-  va_start(argptr, format);
-  va_copy(copy, argptr);
-  errno = 0;
-  // Try first.
-#if defined(_WIN32) || defined(WIN32)
-  n = vsnprintf(NULL, 0, format, copy);
-#else
-  char zero[2];
-  n = vsnprintf(zero, 0, format, copy);
-#endif
-  if (n < 0){
-    Rf_errorcall(R_NilValue, _("encoding error in 'addLine' format: '%s' n: %d; errno: %d"), format, n, errno);
-  }
-  va_end(copy);
-  if (sbb->sN <= sbb->o + n){
-    int mx = sbb->sN + n + 2 + MXBUF;
-    sbb->s = Realloc(sbb->s, mx, char);
-    // The sbb->line are not correct any longer because the pointer for sbb->s has been updated;
-    // Fix them
-    for (int i = sbb->n; i--;){
-      sbb->line[i] = &(sbb->s[sbb->os[i]]);
-    }
-    sbb->sN = mx;
-  }
-  vsnprintf(sbb->s + sbb->o, sbb->sN - sbb->o, format, argptr);
-  va_end(argptr);
-  if (sbb->n + 2 >= sbb->nL){
-    int mx = sbb->nL + n + 2 + MXLINE;
-    sbb->lProp = Realloc(sbb->lProp, mx, int);
-    sbb->lType = Realloc(sbb->lType, mx, int);
-    sbb->line = Realloc(sbb->line, mx, char*);
-    sbb->os = Realloc(sbb->os, mx, int);
-    sbb->nL = mx;
-  }
-  sbb->line[sbb->n]=&(sbb->s[sbb->o]);
-  sbb->os[sbb->n]= sbb->o;
-  sbb->o += n + 1; // n should include the \0 character
-  sbb->n = sbb->n+1;
-  sbb->lProp[sbb->n] = -1;
-  sbb->lType[sbb->n] = 0;
-  sbb->os[sbb->n]= sbb->o;
-}
-
-void curLineProp(vLines *sbb, int propId){
-  sbb->lProp[sbb->n] = propId;
-}
-
-void curLineType(vLines *sbb, int propId){
-  sbb->lType[sbb->n] = propId;
-}
-
-static inline void addSymbolStr(char *value){
+static inline void addSymbolStr(char *value) {
   addLine(&(tb.ss),"%s",value);
   if (tb.depotN == -1 && !strcmp("depot", value)) {
     tb.depotN = NV-1;
@@ -439,6 +221,12 @@ static inline void addSymbolStr(char *value){
   }
 }
 
+
+sbuf sb, sbDt; /* buffer w/ current parsed & translated line */
+sbuf sbt;
+
+sbuf firstErr;
+int firstErrD=0;
 
 vLines sbPm, sbPmDt, sbNrmL;
 sbuf sbNrm;
@@ -2983,12 +2771,12 @@ void reset (){
   sIniTo(&_bufw2, 2100);
   sIniTo(&sb, MXSYM);
   sIniTo(&sbDt, MXDER);
-  sIniTo(&sbt, MXBUF);
-  sIniTo(&sbNrm, MXBUF);
+  sIniTo(&sbt, SBUF_MXBUF);
+  sIniTo(&sbNrm, SBUF_MXBUF);
   sIniTo(&s_aux_info, 64*MXSYM);
   sIniTo(&_gbuf, 1024);
   sIni(&_mv);
-  sIniTo(&firstErr, MXBUF);
+  sIniTo(&firstErr, SBUF_MXBUF);
   firstErrD=0;
 
   sIniTo(&s_inits, MXSYM);
@@ -3142,7 +2930,7 @@ void trans_internal(const char* parse_file, int isStr){
     err_msg((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2);
   }
   sFree(&sbNrm);
-  sIniTo(&sbNrm, MXBUF);
+  sIniTo(&sbNrm, SBUF_MXBUF);
   lineIni(&sbPm);
   lineIni(&sbPmDt);
   lineIni(&sbNrmL);
