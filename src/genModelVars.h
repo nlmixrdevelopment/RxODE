@@ -243,6 +243,66 @@ static inline void populateDfdy(SEXP dfdy) {
   }
 }
 
+static inline int assertStateCannotHaveDiff(int islhs, int i, char *buf) {
+  if (islhs>1 && islhs != isLhsStateExtra && islhs != isLHSparam) {
+    if (tb.lag[i] != 0){
+      buf=tb.ss.line[i];
+      if (islhs == isState){
+	sPrint(&_bufw, _("state '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"), buf);
+	trans_syntax_error_report_fn0(_bufw.s);
+      } else if (islhs == 10 || islhs == 11){
+	sPrint(&_bufw, _("suppress '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"), buf);
+	trans_syntax_error_report_fn0(_bufw.s);
+      }
+    }
+    return 1;
+  }
+  return 0;
+}
+
+static inline int setLhsAndDualLhsParam(int islhs, SEXP lhs, SEXP params, char *buf,
+				    int *li, int *pi) {
+  if (islhs == 1 || islhs == 19 || islhs == 70) {
+    SET_STRING_ELT(lhs, li[0]++, mkChar(buf));
+    if (islhs == 70) {
+      if (!strcmp("CMT", buf)) {
+	tb.hasCmt = 1;
+      }
+      SET_STRING_ELT(params, pi[0]++, mkChar(buf));
+    }
+    return 1;
+  }
+  return 0;
+}
+
+static inline void paramSubThetaEtaToBufw(char *buf) {
+  int foundIt=0;
+  for (int j = 1; j <= tb.maxtheta;j++){
+    sPrint(&_bufw,"_THETA_%d_",j);
+    if (!strcmp(buf, _bufw.s)){
+      sPrint(&_bufw,"THETA[%d]",j);
+      foundIt=1;
+      break;
+    }
+  }
+  if (!foundIt){
+    for (int j = 1; j <= tb.maxeta;j++){
+      sPrint(&_bufw,"_ETA_%d_",j);
+      if (!strcmp(buf, _bufw.s)){
+	sPrint(&_bufw,"ETA[%d]",j);
+	foundIt=1;
+	break;
+      }
+    }
+  }
+  if (!foundIt){
+    sPrint(&_bufw, "%s", buf);
+  }
+  if (!strcmp("CMT", _bufw.s)) {
+    tb.hasCmt = 1;
+  }
+}
+
 static inline void populateParamsLhsSlhs(SEXP params, SEXP lhs, SEXP slhs) {
   int li=0, pi=0, sli = 0;
   char *buf;
@@ -251,64 +311,12 @@ static inline void populateParamsLhsSlhs(SEXP params, SEXP lhs, SEXP slhs) {
     if (islhs == isSuppressedLHS){
       SET_STRING_ELT(slhs, sli++, mkChar(tb.ss.line[i]));
     }
-    if (islhs>1 && islhs != isLhsStateExtra && islhs != isLHSparam) {
-      if (tb.lag[i] != 0){
-	buf=tb.ss.line[i];
-	if (islhs == isState){
-	  sPrint(&_bufw, _("state '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"), buf);
-	  trans_syntax_error_report_fn0(_bufw.s);
-	} else if (islhs == 10 || islhs == 11){
-	  sPrint(&_bufw, _("suppress '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"), buf);
-	  trans_syntax_error_report_fn0(_bufw.s);
-	}
-      }
-      continue;
-    }
-    /* is a state var */
     buf=tb.ss.line[i];
-    if (tb.lag[i] != 0){
-      if (islhs == 70){
-	sPrint(&_bufw, _("redefined '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"), buf);
-	trans_syntax_error_report_fn0(_bufw.s);
-      } else if (islhs == 1 && tb.lag[i] != 1){
-	sPrint(&_bufw, _("lhs '%s': only 'lag(%s,1)' and 'diff(%s,1)' supported"), buf, buf, buf);
-	trans_syntax_error_report_fn0(_bufw.s);
-      }
-    }
-    if (islhs == 1 || islhs == 19 || islhs == 70){
-      SET_STRING_ELT(lhs, li++, mkChar(buf));
-      if (islhs == 70) {
-	if (!strcmp("CMT", buf)) {
-	  tb.hasCmt = 1;
-	}
-	SET_STRING_ELT(params, pi++, mkChar(buf));
-      }
-    } else {
-      int foundIt=0;
-      for (int j = 1; j <= tb.maxtheta;j++){
-	sPrint(&_bufw,"_THETA_%d_",j);
-	if (!strcmp(buf, _bufw.s)){
-	  sPrint(&_bufw,"THETA[%d]",j);
-	  foundIt=1;
-	  break;
-	}
-      }
-      if (!foundIt){
-	for (int j = 1; j <= tb.maxeta;j++){
-	  sPrint(&_bufw,"_ETA_%d_",j);
-	  if (!strcmp(buf, _bufw.s)){
-	    sPrint(&_bufw,"ETA[%d]",j);
-	    foundIt=1;
-	    break;
-	  }
-	}
-      }
-      if (!foundIt){
-	sPrint(&_bufw, "%s", buf);
-      }
-      if (!strcmp("CMT", _bufw.s)) {
-	tb.hasCmt = 1;
-      }
+
+    if (assertStateCannotHaveDiff(islhs, i, buf))  continue;
+    /* is a state var */
+    if (!setLhsAndDualLhsParam(islhs, lhs, params, buf, &li, &pi)) {
+      paramSubThetaEtaToBufw(buf);
       SET_STRING_ELT(params, pi++, mkChar(_bufw.s));
     }
   }
