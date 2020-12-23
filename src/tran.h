@@ -6,7 +6,6 @@ void trans_syntax_error_report_fn(char *err);
 void parseFree(int last);
 void RSprintf(const char *format, ...);
 
-/* char s_aux_info[64*MXSYM*4]; */
 typedef struct symtab {
   vLines ss; // Symbol string or symbol lines
   /* char ss[64*MXSYM]; */                     /* symbol string: all vars*/
@@ -265,8 +264,6 @@ extern sbuf _gbuf, _mv;
 extern char *gBuf;
 extern int gBufFree;
 extern int gBufLast;
-
-extern sbuf s_aux_info;
 
 extern int maxSumProdN, SumProdLD, foundF0, foundF, foundLag, foundRate, foundDur, 
   good_jac, extraCmt, badMd5;

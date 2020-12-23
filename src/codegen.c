@@ -58,7 +58,6 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
 		    const char *libname2){
   sbuf bufw;
   sIniTo(&bufw, 1024);
-  sClear(&s_aux_info);
   /* char bufw[1024]; */
   printCModelVars(prefix);
 

@@ -70,7 +70,6 @@ int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
   rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1, rx_syntax_allow_assign_state = 0,
   maxSumProdN = 0, SumProdLD = 0, good_jac=1, extraCmt=0, gnini=0;
 
-sbuf s_aux_info;
 sbuf s_inits;
 
 symtab tb;
@@ -1604,7 +1603,6 @@ void parseFree(int last){
   sFree(&sbDt);
   sFree(&sbt);
   sFree(&sbNrm);
-  sFree(&s_aux_info);
   sFree(&s_inits);
   sFree(&_bufw);
   sFree(&_bufw2);
@@ -1650,7 +1648,6 @@ void reset (){
   sIniTo(&sbDt, MXDER);
   sIniTo(&sbt, SBUF_MXBUF);
   sIniTo(&sbNrm, SBUF_MXBUF);
-  sIniTo(&s_aux_info, 64*MXSYM);
   sIniTo(&_gbuf, 1024);
   sIni(&_mv);
   sIniTo(&firstErr, SBUF_MXBUF);
@@ -2048,26 +2045,11 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 	tb.isPi=0;
 	break;
       }
-      sAppend(&s_aux_info,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i,
-	      buf);
       SET_STRING_ELT(inin,ini_i,mkChar(buf));
-      if (ISNA(tb.iniv[i])){
-	sAppend(&s_aux_info,"    REAL(ini)[%d] = NA_REAL;\n",ini_i);
-      } else if (ISNAN(tb.iniv[i])){
-	sAppend(&s_aux_info,"    REAL(ini)[%d] = R_NaN;\n",ini_i);
-      } else if (R_FINITE(tb.iniv[i])){
-	sAppend(&s_aux_info,"    REAL(ini)[%d] = %.16f;\n",ini_i, tb.iniv[i]);
-      } else if (tb.iniv[i] > 0){
-	sAppend(&s_aux_info,"    REAL(ini)[%d] = R_PosInf;\n",ini_i);
-      } else {
-	sAppend(&s_aux_info,"    REAL(ini)[%d] = R_NegInf;\n",ini_i);
-      }
       REAL(ini)[ini_i++] = tb.iniv[i];
     }
   }
   if (tb.isPi){
-    sAppend(&s_aux_info,"    SET_STRING_ELT(inin,%d,mkChar(\"pi\"));\n",ini_i);
-    sAppend(&s_aux_info,"    REAL(ini)[%d] = M_PI;\n",ini_i);
     SET_STRING_ELT(inin,ini_i,mkChar("pi"));
     REAL(ini)[ini_i++] = M_PI;
   } else if (redo){
@@ -2083,20 +2065,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 	  tb.isPi=0;
 	  break;
 	}
-	sAppend(&s_aux_info,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i,
-		buf);
 	SET_STRING_ELT(inin,ini_i,mkChar(buf));
-	if (ISNA(tb.iniv[i])){
-	  sAppend(&s_aux_info,"    REAL(ini)[%d] = NA_REAL;\n",ini_i);
-	} else if (ISNAN(tb.iniv[i])){
-	  sAppend(&s_aux_info,"    REAL(ini)[%d] = R_NaN;\n",ini_i);
-	} else if (R_FINITE(tb.iniv[i])){
-	  sAppend(&s_aux_info,"    REAL(ini)[%d] = %.16f;\n",ini_i, tb.iniv[i]);
-	} else if (tb.iniv[i] > 0){
-	  sAppend(&s_aux_info,"    REAL(ini)[%d] = R_PosInf;\n",ini_i);
-	} else {
-	  sAppend(&s_aux_info,"    REAL(ini)[%d] = R_NegInf;\n",ini_i);
-	}
 	REAL(ini)[ini_i++] = tb.iniv[i];
       }
     }
@@ -2219,7 +2188,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   }
   INTEGER(sLinCmt)[5] = tb.hasCmt;
   tb.ini_i = length(ini);
-  sPrint(&s_inits,"%s", s_aux_info.s);
   gnini = length(ini);
 
   SET_STRING_ELT(names,0,mkChar("params"));
