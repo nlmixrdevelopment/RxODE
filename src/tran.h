@@ -1,6 +1,6 @@
 #ifndef __TRAN_H__
 #define __TRAN_H__
-extern int rx_syntax_allow_dots;
+extern int rx_syntax_allow_dots, rx_syntax_require_ode_first, rx_podo, needSort;
 void updateSyntaxCol();
 void trans_syntax_error_report_fn(char *err);
 void parseFree(int last);
@@ -281,5 +281,12 @@ extern const char *model_prefix;
 extern const char *me_code;
 
 void reset();
+char * rc_dup_str(const char *s, const char *e);
+
+void trans_syntax_error_report_fn(char *err);
+void trans_syntax_error_report_fn0(char *err);
+
+extern sbuf _bufw, _bufw2;
+
 
 #endif // __TRAN_H__
