@@ -87,7 +87,8 @@ extern symtab tb;
 
 extern vLines depotLines;
 extern vLines centralLines;
-extern vLines sbNrmL;
+extern vLines sbPm, sbPmDt, sbNrmL;
+
 
 
 #define FBIO 1
@@ -127,5 +128,161 @@ extern vLines sbNrmL;
 #define ODEFIRST _("ODEs compartment 'd/dt(%s)' must be defined before changing/accessing its properties (f/alag/rate/dur/tad/tafd)\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this may number compartments based on first occurance of property or ODE")
 #define ZERODVID _("'dvid()' cannot have zeros in it")
 #define ONEDVID _("RxODE only supports one dvid() statement per model")
+
+typedef struct nodeInfo {
+  int alag;
+  int assignment;
+  int constant;
+  int der_rhs;
+  int derivative;
+  int dfdy;
+  int dfdy_rhs;
+  int dur;
+  int end_statement;
+  int eta;
+  int factorial;
+  int factorial_exp;
+  int fbio;
+  int function;
+  int function_name;
+  int identifier;
+  int identifier_r;
+  int identifier_r_no_output;
+  int ini0;
+  int ini0f;
+  int ini;
+  int jac;
+  int jac_rhs;
+  int lfactorial;
+  int lfactorial_exp;
+  int max;
+  int min;
+  int mtime;
+  int mult_part;
+  int power_expression;
+  /* int print_command; */
+  int printf_statement;
+  int prod;
+  int rate;
+  int selection_statement;
+  int selection_statement__9;
+  int break_statement;
+  int sign;
+  int sum;
+  int theta0;
+  int theta0_noout;
+  int theta;
+  int cmt_statement;
+  int param_statement;
+  int dvid_statementI;
+  int ifelse;
+  int ifelse_statement;
+  int mat0;
+  int matF;
+  int equality_str1;
+  int equality_str2;
+  int simfun_statement;
+} nodeInfo;
+
+static inline void niReset(nodeInfo *ni){
+  ni->mtime = -1;
+  ni->alag = -1;
+  ni->assignment = -1;
+  ni->constant = -1;
+  ni->der_rhs = -1;
+  ni->derivative = -1;
+  ni->dfdy = -1;
+  ni->dfdy_rhs = -1;
+  ni->dur = -1;
+  ni->end_statement = -1;
+  ni->eta = -1;
+  ni->factorial = -1;
+  ni->factorial_exp = -1;
+  ni->fbio = -1;
+  ni->function = -1;
+  ni->function_name=-1;
+  ni->identifier = -1;
+  ni->identifier_r = -1;
+  ni->identifier_r_no_output = -1;
+  ni->ini = -1;
+  ni->ini0 = -1;
+  ni->ini0f = -1;
+  ni->jac = -1;
+  ni->jac_rhs = -1;
+  ni->lfactorial = -1;
+  ni->lfactorial_exp = -1;
+  ni->max = -1;
+  ni->min = -1;
+  ni->mult_part = -1;
+  ni->power_expression = -1;
+  /* ni->print_command = -1; */
+  ni->printf_statement = -1;
+  ni->prod = -1;
+  ni->rate = -1;
+  ni->rate = -1;
+  ni->selection_statement = -1;
+  ni->selection_statement__9 = -1;
+  ni->break_statement = -1;
+  ni->sign = -1;
+  ni->sum = -1;
+  ni->theta = -1;
+  ni->theta0 = -1;
+  ni->theta0_noout = -1;
+  ni->cmt_statement = -1;
+  ni->param_statement = -1;
+  ni->dvid_statementI = -1;
+  ni->ifelse = -1;
+  ni->ifelse_statement=-1;
+  ni->mat0 = -1;
+  ni->matF = -1;
+  ni->equality_str1 = -1;
+  ni->equality_str2 = -1;
+  ni->simfun_statement = -1;
+}
+
+#define STRINGIFY(...) STRINGIFY_AUX(__VA_ARGS__)
+#define STRINGIFY_AUX(...) #__VA_ARGS__
+
+#define NIB(what) ni.what
+#define nodeHas(what) (NIB(what) == -1 ? (NIB(what) = !strcmp(STRINGIFY(what), name)) : NIB(what))
+
+extern sbuf sbOut;
+
+#define notLHS 0
+#define isLHS 1
+#define isState 9
+#define isSuppressedLHS 10
+#define isSuppressedParam 11
+#define isLhsStateExtra 19
+#define isLHSparam 70
+
+extern sbuf _gbuf, _mv;
+
+#define SBPTR sb.s+sb.o
+#define SBTPTR sbt.s+sbt.o
+#define NV tb.ss.n
+
+extern char *gBuf;
+extern int gBufFree;
+extern int gBufLast;
+
+extern sbuf s_aux_info;
+
+extern int maxSumProdN, SumProdLD, foundF0, foundF, foundLag, foundRate, foundDur, 
+  good_jac, extraCmt, badMd5;
+extern unsigned int found_jac, nmtime;
+
+extern sbuf sbNrm;
+
+#define max(a,b) (a)>(b) ? (a):(b)
+#define min(a,b) (a)<(b) ? (a):(b)
+
+void err_msg(int chk, const char *msg, int code);
+
+extern const char *md5;
+extern const char *model_prefix;
+extern const char *me_code;
+
+void reset();
 
 #endif // __TRAN_H__
