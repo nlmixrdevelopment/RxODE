@@ -443,175 +443,177 @@ SEXP _linCmtParse(SEXP vars0, SEXP inStr, SEXP verboseSXP) {
   return linCmtParseSEXP(&lin);
 }
 
-SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
-  /* SEXP ret = PROTECT(allocVector(STRSXP, 1)); */
-  int i = 0;
-  linCmtGenStruct linG;
-  linCmtGenIni(&linG);
-  if (tb.hasKa){
-    // depot, central
-    for (i = 0; i < depotLines.n; i++){
-      switch(depotLines.lType[i]){
-      case FBIO:
-	sClear(&(linG.d_F));
-	sAppend(&(linG.d_F), "%s, ", depotLines.line[i]);
-	break;
-      case ALAG:
-	sClear(&(linG.d_tlag));
-	sAppend(&(linG.d_tlag), "%s, ", depotLines.line[i]);
-	break;
-      case RATE:
-	sClear(&(linG.d_rate1));
-	sAppend(&(linG.d_rate1), "%s, ", depotLines.line[i]);
-	break;
-      case DUR:
-	sClear(&(linG.d_dur1));
-	sAppend(&(linG.d_dur1), "%s, ", depotLines.line[i]);
-	break;
-      default:
-	RSprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
-      }
-    }
-    for (i = 0; i < centralLines.n; i++){
-      switch(centralLines.lType[i]){
-      case FBIO:
-	sClear(&(linG.d_F2));
-	sAppend(&(linG.d_F2), "%s, ", centralLines.line[i]);
-	break;
-      case ALAG:
-	sClear(&(linG.d_tlag2));
-	sAppend(&(linG.d_tlag2), ", %s, ", centralLines.line[i]);
-	break;
-      case RATE:
-	sClear(&(linG.d_rate2));
-	sAppend(&(linG.d_rate2), "%s, ", centralLines.line[i]);
-	break;
-      case DUR:
-	sClear(&(linG.d_dur2));
-	sAppend(&(linG.d_dur2), "%s)", centralLines.line[i]);
-	break;
-      }
-    }
-  } else {
-    for (i = 0; i < depotLines.n; i++){
-      switch(depotLines.lType[i]){
-      case FBIO:
-	sAppendN(&(linG.last), "'f(depot)' ", 11);
-	break;
-      case ALAG:
-	sAppendN(&(linG.last), "'alag(depot)' ", 14);
-	break;
-      case RATE:
-	sAppend(&(linG.last), "'rate(depot)' ", 14);
-	break;
-      case DUR:
-	sAppend(&(linG.last), "'dur(depot)' ", 13);
-	break;
-      default:
-	RSprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
-      }
-    }
-    if (linG.last.o) {
-      errLin[0] = '\0';
-      errOff=0;
-      snprintf(errLin, errLinLen, "%s does not exist without a 'depot' compartment, specify a 'ka' parameter", linG.last.s);
-      errOff=strlen(errLin);
-      sFree(&(linG.d_tlag));
-      sFree(&(linG.d_tlag2));
-      sFree(&(linG.d_F));
-      sFree(&(linG.d_F2));
-      sFree(&(linG.d_rate1));
-      sFree(&(linG.d_dur1));
-      sFree(&(linG.d_rate2));
-      sFree(&(linG.d_dur2));
-      sFree(&(linG.last));
-      parseFree(0);
-      Rf_errorcall(R_NilValue, errLin);
-    }
-    // central only
-    for (i = 0; i < centralLines.n; i++){
-      switch(centralLines.lType[i]){
-      case FBIO:
-	sClear(&(linG.d_F));
-	sAppend(&(linG.d_F), "%s, ", centralLines.line[i]);
-	break;
-      case ALAG:
-	sClear(&(linG.d_tlag));
-	sAppend(&(linG.d_tlag), "%s, ", centralLines.line[i]);
-	break;
-      case RATE:
-	sClear(&(linG.d_rate1));
-	sAppend(&(linG.d_rate1), "%s, ", centralLines.line[i]);
-	break;
-      case DUR:
-	sClear(&(linG.d_dur1));
-	sAppend(&(linG.d_dur1), "%s, ", centralLines.line[i]);
-	break;
-      }
+static inline void linCmtGenKa(linCmtGenStruct *linG) {
+  // depot, central
+  int i;
+  for (i = 0; i < depotLines.n; i++){
+    switch(depotLines.lType[i]){
+    case FBIO:
+      sClear(&(linG->d_F));
+      sAppend(&(linG->d_F), "%s, ", depotLines.line[i]);
+      break;
+    case ALAG:
+      sClear(&(linG->d_tlag));
+      sAppend(&(linG->d_tlag), "%s, ", depotLines.line[i]);
+      break;
+    case RATE:
+      sClear(&(linG->d_rate1));
+      sAppend(&(linG->d_rate1), "%s, ", depotLines.line[i]);
+      break;
+    case DUR:
+      sClear(&(linG->d_dur1));
+      sAppend(&(linG->d_dur1), "%s, ", depotLines.line[i]);
+      break;
+    default:
+      RSprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
     }
   }
+  for (i = 0; i < centralLines.n; i++){
+    switch(centralLines.lType[i]){
+    case FBIO:
+      sClear(&(linG->d_F2));
+      sAppend(&(linG->d_F2), "%s, ", centralLines.line[i]);
+      break;
+    case ALAG:
+      sClear(&(linG->d_tlag2));
+      sAppend(&(linG->d_tlag2), ", %s, ", centralLines.line[i]);
+      break;
+    case RATE:
+      sClear(&(linG->d_rate2));
+      sAppend(&(linG->d_rate2), "%s, ", centralLines.line[i]);
+      break;
+    case DUR:
+      sClear(&(linG->d_dur2));
+      sAppend(&(linG->d_dur2), "%s)", centralLines.line[i]);
+      break;
+    }
+  }
+}
+
+static inline void linCmtGenBolus(linCmtGenStruct *linG) {
+  int i;
+  for (i = 0; i < depotLines.n; i++){
+    switch(depotLines.lType[i]){
+    case FBIO:
+      sAppendN(&(linG->last), "'f(depot)' ", 11);
+      break;
+    case ALAG:
+      sAppendN(&(linG->last), "'alag(depot)' ", 14);
+      break;
+    case RATE:
+      sAppend(&(linG->last), "'rate(depot)' ", 14);
+      break;
+    case DUR:
+      sAppend(&(linG->last), "'dur(depot)' ", 13);
+      break;
+    default:
+      RSprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
+    }
+  }
+  if (linG->last.o) {
+    errLin[0] = '\0';
+    errOff=0;
+    snprintf(errLin, errLinLen, "%s does not exist without a 'depot' compartment, specify a 'ka' parameter", linG->last.s);
+    errOff=strlen(errLin);
+    sFree(&(linG->d_tlag));
+    sFree(&(linG->d_tlag2));
+    sFree(&(linG->d_F));
+    sFree(&(linG->d_F2));
+    sFree(&(linG->d_rate1));
+    sFree(&(linG->d_dur1));
+    sFree(&(linG->d_rate2));
+    sFree(&(linG->d_dur2));
+    sFree(&(linG->last));
+    parseFree(0);
+    Rf_errorcall(R_NilValue, errLin);
+  }
+  // central only
+  for (i = 0; i < centralLines.n; i++){
+    switch(centralLines.lType[i]){
+    case FBIO:
+      sClear(&(linG->d_F));
+      sAppend(&(linG->d_F), "%s, ", centralLines.line[i]);
+      break;
+    case ALAG:
+      sClear(&(linG->d_tlag));
+      sAppend(&(linG->d_tlag), "%s, ", centralLines.line[i]);
+      break;
+    case RATE:
+      sClear(&(linG->d_rate1));
+      sAppend(&(linG->d_rate1), "%s, ", centralLines.line[i]);
+      break;
+    case DUR:
+      sClear(&(linG->d_dur1));
+      sAppend(&(linG->d_dur1), "%s, ", centralLines.line[i]);
+      break;
+    }
+  }
+}
+
+static inline SEXP linCmtGenSEXP(linCmtGenStruct *linG, SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   int pro=0;
   SEXP inStr = PROTECT(Rf_allocVector(STRSXP, 4)); pro++;
   int doSens = 0;
   if (TYPEOF(linCmtSens) == INTSXP){
     doSens = INTEGER(linCmtSens)[0];
   }
-  sAppend(&(linG.last), "%s%s%s%s", linG.d_tlag.s, linG.d_F.s, linG.d_rate1.s, linG.d_dur1.s);
-  SET_STRING_ELT(inStr, 2, mkChar(linG.last.s));
-  sClear(&(linG.last));
-  sAppend(&(linG.last), "%s%s%s%s",linG.d_tlag2.s, linG.d_F2.s,  linG.d_rate2.s, linG.d_dur2.s);
-  SET_STRING_ELT(inStr, 3, mkChar(linG.last.s));
-  sClear(&(linG.last));
+  sAppend(&(linG->last), "%s%s%s%s", linG->d_tlag.s, linG->d_F.s, linG->d_rate1.s, linG->d_dur1.s);
+  SET_STRING_ELT(inStr, 2, mkChar(linG->last.s));
+  sClear(&(linG->last));
+  sAppend(&(linG->last), "%s%s%s%s",linG->d_tlag2.s, linG->d_F2.s,  linG->d_rate2.s, linG->d_dur2.s);
+  SET_STRING_ELT(inStr, 3, mkChar(linG->last.s));
+  sClear(&(linG->last));
   if (doSens == 2){
-    sAppend(&(linG.last), "linCmtB(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
-    SET_STRING_ELT(inStr, 0, mkChar(linG.last.s));
+    sAppend(&(linG->last), "linCmtB(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+    SET_STRING_ELT(inStr, 0, mkChar(linG->last.s));
     SET_STRING_ELT(inStr, 1, mkChar("0, "));
   } else {
     if (doSens == 1){
-      sAppend(&(linG.last), "linCmtA(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+      sAppend(&(linG->last), "linCmtA(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
     } else if (doSens == 3) {
-      sAppend(&(linG.last), "linCmtC(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+      sAppend(&(linG->last), "linCmtC(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
     }
-    SET_STRING_ELT(inStr, 0, mkChar(linG.last.s));
+    SET_STRING_ELT(inStr, 0, mkChar(linG->last.s));
     SET_STRING_ELT(inStr, 1, mkChar(""));
   }
   _linCmtParsePro=pro;
   SEXP linCmtP = PROTECT(_linCmtParse(vars, inStr, verbose)); pro++;
+  int i;
   for (i = 0; i < sbNrmL.n; i++){
     if (sbNrmL.lProp[i]== -100){
       char *line = sbNrmL.line[i];
       if (line[0] != '\0') {
 	while (strncmp(line, "linCmt(", 7)){
 	  if (line[0] == '\0') {
-	    linCmtGenFree(&linG);
+	    linCmtGenFree(linG);
 	    UNPROTECT(pro);
 	    parseFree(0);
 	    Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
 	    return R_NilValue;
 	  }
-	  else sPut(&(linG.last2), line[0]);
+	  else sPut(&(linG->last2), line[0]);
 	  line++;
 	}
       }
       if (strlen(line) > 7) line +=7;
       else {
-	linCmtGenFree(&linG);
+	linCmtGenFree(linG);
 	UNPROTECT(pro);
 	parseFree(0);
 	Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
 	return R_NilValue;
       }
-      sAppend(&(linG.last2), "%s", CHAR(STRING_ELT(VECTOR_ELT(linCmtP, 0), 0)));
+      sAppend(&(linG->last2), "%s", CHAR(STRING_ELT(VECTOR_ELT(linCmtP, 0), 0)));
       while (line[0] != ')'){
 	if (line[0] == '\0') {
-	  linCmtGenFree(&linG);
+	  linCmtGenFree(linG);
 	  UNPROTECT(pro);
 	  parseFree(0);
 	  Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
 	  return R_NilValue;
 	}
 	if (line[0] == '('){
-	  linCmtGenFree(&linG);
+	  linCmtGenFree(linG);
 	  UNPROTECT(pro);
 	  parseFree(0);
 	  Rf_errorcall(R_NilValue, _("linCmt() cannot have any extra parentheses in it"));
@@ -619,14 +621,26 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
 	}
 	line++;
       }
-      if (line[0] != '\0') sAppend(&(linG.last2), "%s", ++line);
+      if (line[0] != '\0') sAppend(&(linG->last2), "%s", ++line);
     } else {
-      sAppend(&(linG.last2), "%s", sbNrmL.line[i]);
+      sAppend(&(linG->last2), "%s", sbNrmL.line[i]);
     }
   }
   SEXP ret = PROTECT(Rf_allocVector(STRSXP,1)); pro++;
-  SET_STRING_ELT(ret, 0, mkChar(linG.last2.s));
-  linCmtGenFree(&linG);
+  SET_STRING_ELT(ret, 0, mkChar(linG->last2.s));
+  linCmtGenFree(linG);
   UNPROTECT(pro);
   return ret;
+}
+
+SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
+  /* SEXP ret = PROTECT(allocVector(STRSXP, 1)); */
+  linCmtGenStruct linG;
+  linCmtGenIni(&linG);
+  if (tb.hasKa){
+    linCmtGenKa(&linG);
+  } else {
+    linCmtGenBolus(&linG);
+  }
+  return linCmtGenSEXP(&linG, linCmt, vars, linCmtSens, verbose);
 }
