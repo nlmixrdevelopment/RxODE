@@ -102,6 +102,71 @@ static inline void linCmtParseTransCl(linCmtStruct *lin, int verbose) {
   if (verbose) RSprintf(_("Detected %d-compartment model in terms of clearance"), lin->ncmt);
 }
 
+static inline void linCmtParseTranKelK12(linCmtStruct *lin, int verbose) {
+  if (lin->k12 == -1) {
+    if (lin->cmtc == 1){
+      parseFree(0);
+      sFree(&(lin->ret0));
+      sFree(&(lin->ret));
+      Rf_errorcall(R_NilValue, _("'k12' not found when 'k21' present"));
+    } else {
+      parseFree(0);
+      sFree(&(lin->ret0));
+      sFree(&(lin->ret));
+      Rf_errorcall(R_NilValue, _("'k23' not found when 'k32' present"));
+    }
+  }
+  if (lin->k21 == -1) {
+    if (lin->cmtc == 1){
+      parseFree(0);
+      sFree(&(lin->ret0));
+      sFree(&(lin->ret));
+      Rf_errorcall(R_NilValue, _("'k21' not found when 'k12' present"));
+    } else {
+      parseFree(0);
+      sFree(&(lin->ret0));
+      sFree(&(lin->ret));
+      Rf_errorcall(R_NilValue, _("'k32' not found when 'k23' present"));
+    }
+  }
+  lin->ncmt = 2;
+  sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->k12)));
+  sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->k21)));
+  if (lin->k13 != -1 || lin->k31 != -1) {
+    if (lin->k13 == -1) {
+      if (lin->cmtc == 1){
+	sFree(&(lin->ret0));
+	sFree(&(lin->ret));
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("'k13' not found when 'k31' present"));
+      } else {
+	sFree(&(lin->ret0));
+	sFree(&(lin->ret));
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("'k24' not found when 'k42' present"));
+      }
+    }
+    if (lin->k31 == -1) {
+      if (lin->cmtc == 1){
+	sFree(&(lin->ret0));
+	sFree(&(lin->ret));
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("'k31' not found when 'k13' present"));
+      } else {
+	sFree(&(lin->ret0));
+	sFree(&(lin->ret));
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("'k42' not found when 'k24' present"));
+      }
+    }
+    lin->ncmt = 3;
+    sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->k13)));
+    sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->k31)));
+  } else {
+    sAppendN(&(lin->ret0), "0.0, 0.0, ", 10);
+  }
+}
+
 static inline void linCmtParseTranKel(linCmtStruct *lin, int verbose) {
   if (lin->v == -1) {
     parseFree(0);
@@ -115,68 +180,7 @@ static inline void linCmtParseTranKel(linCmtStruct *lin, int verbose) {
   sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->kel)));
   sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->v)));
   if (lin->k12 != -1 || lin->k21 != -1) {
-    if (lin->k12 == -1) {
-      if (lin->cmtc == 1){
-	parseFree(0);
-	sFree(&(lin->ret0));
-	sFree(&(lin->ret));
-	Rf_errorcall(R_NilValue, _("'k12' not found when 'k21' present"));
-      } else {
-	parseFree(0);
-	sFree(&(lin->ret0));
-	sFree(&(lin->ret));
-	Rf_errorcall(R_NilValue, _("'k23' not found when 'k32' present"));
-      }
-    }
-    if (lin->k21 == -1) {
-      if (lin->cmtc == 1){
-	parseFree(0);
-	sFree(&(lin->ret0));
-	sFree(&(lin->ret));
-	Rf_errorcall(R_NilValue, _("'k21' not found when 'k12' present"));
-      } else {
-	parseFree(0);
-	sFree(&(lin->ret0));
-	sFree(&(lin->ret));
-	Rf_errorcall(R_NilValue, _("'k32' not found when 'k23' present"));
-      }
-    }
-    lin->ncmt = 2;
-    sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->k12)));
-    sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->k21)));
-    if (lin->k13 != -1 || lin->k31 != -1) {
-      if (lin->k13 == -1) {
-	if (lin->cmtc == 1){
-	  sFree(&(lin->ret0));
-	  sFree(&(lin->ret));
-	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("'k13' not found when 'k31' present"));
-	} else {
-	  sFree(&(lin->ret0));
-	  sFree(&(lin->ret));
-	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("'k24' not found when 'k42' present"));
-	}
-      }
-      if (lin->k31 == -1) {
-	if (lin->cmtc == 1){
-	  sFree(&(lin->ret0));
-	  sFree(&(lin->ret));
-	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("'k31' not found when 'k13' present"));
-	} else {
-	  sFree(&(lin->ret0));
-	  sFree(&(lin->ret));
-	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("'k42' not found when 'k24' present"));
-	}
-      }
-      lin->ncmt = 3;
-      sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->k13)));
-      sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->k31)));
-    } else {
-      sAppendN(&(lin->ret0), "0.0, 0.0, ", 10);
-    }
+    linCmtParseTranKelK12(lin, verbose);
   } else if (lin->k31 != -1 || lin->k13 != -1){
     if (lin->cmtc == 1){
       sFree(&(lin->ret0));
