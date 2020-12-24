@@ -69,6 +69,12 @@ typedef struct linCmtStruct {
 
   int clStyle;
   int vStyle;
+
+  int trans;
+  int ncmt;
+
+  sbuf ret0;
+  sbuf ret;
 } linCmtStruct;
 
 
@@ -789,5 +795,3 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP);
 SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose);
 
 #endif // __PARSELINCMT_H__
-
-
