@@ -259,6 +259,43 @@ static inline void linCmtParseTransK21(linCmtStruct *lin, int verbose) {
   }
 }
 
+static inline void linCmtParseTransAlphaBeta(linCmtStruct *lin, int verbose) {
+  lin->ncmt =2;
+  if (lin->beta == -1) {
+    parseFree(0);
+    sFree(&(lin->ret0));
+    sFree(&(lin->ret));
+    Rf_errorcall(R_NilValue, _("need a 'beta'"));
+  }
+  if (lin->b == -1) {
+    parseFree(0);
+    sFree(&(lin->ret0));
+    sFree(&(lin->ret));
+    Rf_errorcall(R_NilValue, _("need a 'b'"));
+  }
+  sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->beta)));
+  sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->b)));
+  if (lin->gamma != -1 || lin->c != -1) {
+    lin->ncmt = 3;
+    if (lin->gamma == -1) {
+      parseFree(0);
+      sFree(&(lin->ret0));
+      sFree(&(lin->ret));
+      Rf_errorcall(R_NilValue, _("need a 'gamma'"));
+    }
+    if (lin->c == -1) {
+      parseFree(0);
+      sFree(&(lin->ret0));
+      sFree(&(lin->ret));
+      Rf_errorcall(R_NilValue, _("need a 'c'"));
+    }
+    sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->gamma)));
+    sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->c)));
+  } else {
+    sAppendN(&(lin->ret0), "0.0, 0.0, ", 10);
+  }
+}
+
 static inline void linCmtParseTransAlpha(linCmtStruct *lin, int verbose) {
   lin->ncmt = 1;
   if (lin->a != -1){
@@ -280,40 +317,7 @@ static inline void linCmtParseTransAlpha(linCmtStruct *lin, int verbose) {
     sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->v)));
   }
   if (lin->beta != -1 || lin->b != -1) {
-    lin->ncmt =2;
-    if (lin->beta == -1) {
-      parseFree(0);
-      sFree(&(lin->ret0));
-      sFree(&(lin->ret));
-      Rf_errorcall(R_NilValue, _("need a 'beta'"));
-    }
-    if (lin->b == -1) {
-      parseFree(0);
-      sFree(&(lin->ret0));
-      sFree(&(lin->ret));
-      Rf_errorcall(R_NilValue, _("need a 'b'"));
-    }
-    sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->beta)));
-    sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->b)));
-    if (lin->gamma != -1 || lin->c != -1) {
-      lin->ncmt = 3;
-      if (lin->gamma == -1) {
-	parseFree(0);
-	sFree(&(lin->ret0));
-	sFree(&(lin->ret));
-	Rf_errorcall(R_NilValue, _("need a 'gamma'"));
-      }
-      if (lin->c == -1) {
-	parseFree(0);
-	sFree(&(lin->ret0));
-	sFree(&(lin->ret));
-	Rf_errorcall(R_NilValue, _("need a 'c'"));
-      }
-      sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->gamma)));
-      sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->c)));
-    } else {
-      sAppendN(&(lin->ret0), "0.0, 0.0, ", 10);
-    }
+    linCmtParseTransAlphaBeta(lin, verbose);
   } else if (lin->gamma != -1 || lin->c != -1) {
     parseFree(0);
     sFree(&(lin->ret0));
