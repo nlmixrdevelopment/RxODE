@@ -5,9 +5,9 @@ int errOff = 0;
 
 int _linCmtParsePro=0;
 
-SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
+SEXP _linCmtParse(SEXP vars0, SEXP inStr, SEXP verboseSXP) {
   const char *first = "linCmtB(rx__PTR__, t, ";
-  const char *mid = "0, ";
+  const char *mid0 = "0, ";
   const char *end1 = "rx_tlag, rx_F, rx_rate, rx_dur,";
   const char *end2 = ", yrx_tlag2, rx_F2, rx_rate2, rx_dur2)";
   int verbose = 0;
@@ -21,7 +21,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       first = CHAR(STRING_ELT(inStr, 0));
     }
     if (len > 1) {
-      mid = CHAR(STRING_ELT(inStr, 1));
+      mid0 = CHAR(STRING_ELT(inStr, 1));
     }
     if (len > 2) {
       end1 = CHAR(STRING_ELT(inStr, 2));
@@ -32,8 +32,10 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
   }
   linCmtStruct lin;
   linCmtIni(&lin);
-  for (int i = Rf_length(vars); i--;){
-    linCmtStr(&lin, CHAR(STRING_ELT(vars, i)), &i);
+  lin.mid = mid0;
+  lin.vars = vars0;
+  for (int i = Rf_length(lin.vars); i--;){
+    linCmtStr(&lin, CHAR(STRING_ELT(lin.vars, i)), &i);
   }
   linCmtAdjustPars(&lin);
   lin.trans =-1;
@@ -70,11 +72,11 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	sFree(&(lin.ret));
 	Rf_errorcall(R_NilValue, _("cannot figure out distributional clearance"));
       }
-      sAppend(&(lin.ret0), "%d, %s", lin.trans, mid);
-      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.cl)));
-      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.v)));
-      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.cl2)));
-      sAppend(&(lin.ret0), "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.vss)));
+      sAppend(&(lin.ret0), "%d, %s", lin.trans, lin.mid);
+      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.cl)));
+      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.v)));
+      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.cl2)));
+      sAppend(&(lin.ret0), "%s, 0.0, 0.0, ", CHAR(STRING_ELT(lin.vars, lin.vss)));
     } else {
       if (lin.v == -1) {
 	parseFree(0);
@@ -84,9 +86,9 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       }
       lin.ncmt = 1;
       lin.trans = 1;
-      sAppend(&(lin.ret0), "%d, %s", lin.trans, mid);
-      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.cl)));
-      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+      sAppend(&(lin.ret0), "%d, %s", lin.trans, lin.mid);
+      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.cl)));
+      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.v)));
       if (lin.v2 != -1 || lin.cl2 != -1) {
 	lin.ncmt = 2;
 	if (lin.cl2 == -1) {
@@ -101,8 +103,8 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	  sFree(&(lin.ret));
 	  Rf_errorcall(R_NilValue, _("cannot figure out distributional volume"));
 	}
-	sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.cl2)));
-	sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.v2)));
+	sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.cl2)));
+	sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.v2)));
 	if (lin.v3 != -1 || lin.cl3 != -1) {
 	  lin.ncmt = 3;
 	  if (lin.cl3 == -1) {
@@ -117,8 +119,8 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	    sFree(&(lin.ret));
 	    Rf_errorcall(R_NilValue, _("cannot figure out 2nd distributional volume"));
 	  }
-	  sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.cl3)));
-	  sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.v3)));
+	  sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.cl3)));
+	  sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.v3)));
 	} else {
 	  sAppendN(&(lin.ret0), "0.0, 0.0, ", 10);
 	}
@@ -136,9 +138,9 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     }
     lin.ncmt = 1;
     lin.trans = 2;
-    sAppend(&(lin.ret0), "%d, %s", lin.trans, mid);
-    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.kel)));
-    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+    sAppend(&(lin.ret0), "%d, %s", lin.trans, lin.mid);
+    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.kel)));
+    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.v)));
     if (lin.k12 != -1 || lin.k21 != -1) {
       if (lin.k12 == -1) {
 	if (lin.cmtc == 1){
@@ -167,8 +169,8 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	}
       }
       lin.ncmt = 2;
-      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.k12)));
-      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.k21)));
+      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.k12)));
+      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.k21)));
       if (lin.k13 != -1 || lin.k31 != -1) {
 	if (lin.k13 == -1) {
 	  if (lin.cmtc == 1){
@@ -197,8 +199,8 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	  }
 	}
 	lin.ncmt = 3;
-	sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.k13)));
-	sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.k31)));
+	sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.k13)));
+	sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.k31)));
       } else {
 	sAppendN(&(lin.ret0), "0.0, 0.0, ", 10);
       }
@@ -239,11 +241,11 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       sFree(&(lin.ret));
       Rf_errorcall(R_NilValue, _("need a 'beta' with 'aob'"));
     }
-    sAppend(&(lin.ret0), "%d, %s", lin.trans, mid);
-    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
-    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.v)));
-    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
-    sAppend(&(lin.ret0), "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.aob)));
+    sAppend(&(lin.ret0), "%d, %s", lin.trans, lin.mid);
+    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.alpha)));
+    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.v)));
+    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.beta)));
+    sAppend(&(lin.ret0), "%s, 0.0, 0.0, ", CHAR(STRING_ELT(lin.vars, lin.aob)));
     if (verbose) RSprintf(_("detected %d-compartment model in terms of 'alpha' and 'aob'"), lin.ncmt);
   } else if (lin.k21 != -1) {
     lin.ncmt = 2;
@@ -266,11 +268,11 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
       sFree(&(lin.ret));
       Rf_errorcall(R_NilValue, _("need a 'beta'"));
     }
-    sAppend(&(lin.ret0), "%d, %s", lin.trans, mid);
-    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
-    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.v)));
-    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
-    sAppend(&(lin.ret0), "%s, 0.0, 0.0, ", CHAR(STRING_ELT(vars, lin.k21)));
+    sAppend(&(lin.ret0), "%d, %s", lin.trans, lin.mid);
+    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.alpha)));
+    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.v)));
+    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.beta)));
+    sAppend(&(lin.ret0), "%s, 0.0, 0.0, ", CHAR(STRING_ELT(lin.vars, lin.k21)));
     if (verbose) {
       if (lin.cmtc == 1) {
 	RSprintf(_("detected %d-compartment model in terms of 'alpha' or 'k21'"), lin.ncmt);
@@ -285,10 +287,10 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     } else {
       lin.trans = 11;
     }
-    sAppend(&(lin.ret0), "%d, %s", lin.trans, mid);
-    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.alpha)));
+    sAppend(&(lin.ret0), "%d, %s", lin.trans, lin.mid);
+    sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.alpha)));
     if (lin.a != -1) {
-      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.a)));
+      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.a)));
     } else {
       if (lin.v == -1) {
 	parseFree(0);
@@ -296,7 +298,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	sFree(&(lin.ret));
 	Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
       }
-      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.v)));
+      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.v)));
     }
     if (lin.beta != -1 || lin.b != -1) {
       lin.ncmt =2;
@@ -312,8 +314,8 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	sFree(&(lin.ret));
 	Rf_errorcall(R_NilValue, _("need a 'b'"));
       }
-      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.beta)));
-      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.b)));
+      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.beta)));
+      sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.b)));
       if (lin.gamma != -1 || lin.c != -1) {
 	lin.ncmt = 3;
 	if (lin.gamma == -1) {
@@ -328,8 +330,8 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 	  sFree(&(lin.ret));
 	  Rf_errorcall(R_NilValue, _("need a 'c'"));
 	}
-	sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.gamma)));
-	sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(vars, lin.c)));
+	sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.gamma)));
+	sAppend(&(lin.ret0), "%s, ", CHAR(STRING_ELT(lin.vars, lin.c)));
       } else {
 	sAppendN(&(lin.ret0), "0.0, 0.0, ", 10);
       }
@@ -356,7 +358,7 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
     sAppendN(&(lin.ret), "0.0", 3);
     if (verbose) RSprintf("\n");
   } else {
-    sAppend(&(lin.ret), "%s", CHAR(STRING_ELT(vars, lin.ka)));
+    sAppend(&(lin.ret), "%s", CHAR(STRING_ELT(lin.vars, lin.ka)));
     if (verbose) RSprintf(_(" with first order absorption\n"));
   }
   sAppend(&(lin.ret), "%s", end2);
@@ -397,48 +399,28 @@ SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP) {
 
 SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   /* SEXP ret = PROTECT(allocVector(STRSXP, 1)); */
-  sbuf last;
-  sbuf d_tlag, d_tlag2, d_F,  d_F2, d_rate1, d_dur1,
-    d_rate2, d_dur2;
   int i = 0;
-  sIni(&last);
-
-  sIni(&d_tlag);
-  sIni(&d_tlag2);
-  sIni(&d_F);
-  sIni(&d_F2);
-  sIni(&d_rate1);
-  sIni(&d_dur1);
-  sIni(&d_rate2);
-  sIni(&d_dur2);
-
-  sAppendN(&d_tlag,"0.0, ", 5);
-  sAppendN(&d_tlag2, ", 0.0, ", 7);
-  sAppendN(&d_F, "1.0, ", 5);
-  sAppendN(&d_F2, "1.0, ", 5);
-  sAppendN(&d_rate1, "0.0, ", 5);
-  sAppendN(&d_dur1, "0.0, ", 5);
-  sAppendN(&d_rate2, "0.0, ", 5);
-  sAppendN(&d_dur2, "0.0)", 4);
+  linCmtGenStruct linG;
+  linCmtGenIni(&linG);
   if (tb.hasKa){
     // depot, central
     for (i = 0; i < depotLines.n; i++){
       switch(depotLines.lType[i]){
       case FBIO:
-	sClear(&d_F);
-	sAppend(&d_F, "%s, ", depotLines.line[i]);
+	sClear(&(linG.d_F));
+	sAppend(&(linG.d_F), "%s, ", depotLines.line[i]);
 	break;
       case ALAG:
-	sClear(&d_tlag);
-	sAppend(&d_tlag, "%s, ", depotLines.line[i]);
+	sClear(&(linG.d_tlag));
+	sAppend(&(linG.d_tlag), "%s, ", depotLines.line[i]);
 	break;
       case RATE:
-	sClear(&d_rate1);
-	sAppend(&d_rate1, "%s, ", depotLines.line[i]);
+	sClear(&(linG.d_rate1));
+	sAppend(&(linG.d_rate1), "%s, ", depotLines.line[i]);
 	break;
       case DUR:
-	sClear(&d_dur1);
-	sAppend(&d_dur1, "%s, ", depotLines.line[i]);
+	sClear(&(linG.d_dur1));
+	sAppend(&(linG.d_dur1), "%s, ", depotLines.line[i]);
 	break;
       default:
 	RSprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
@@ -447,20 +429,20 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
     for (i = 0; i < centralLines.n; i++){
       switch(centralLines.lType[i]){
       case FBIO:
-	sClear(&d_F2);
-	sAppend(&d_F2, "%s, ", centralLines.line[i]);
+	sClear(&(linG.d_F2));
+	sAppend(&(linG.d_F2), "%s, ", centralLines.line[i]);
 	break;
       case ALAG:
-	sClear(&d_tlag2);
-	sAppend(&d_tlag2, ", %s, ", centralLines.line[i]);
+	sClear(&(linG.d_tlag2));
+	sAppend(&(linG.d_tlag2), ", %s, ", centralLines.line[i]);
 	break;
       case RATE:
-	sClear(&d_rate2);
-	sAppend(&d_rate2, "%s, ", centralLines.line[i]);
+	sClear(&(linG.d_rate2));
+	sAppend(&(linG.d_rate2), "%s, ", centralLines.line[i]);
 	break;
       case DUR:
-	sClear(&d_dur2);
-	sAppend(&d_dur2, "%s)", centralLines.line[i]);
+	sClear(&(linG.d_dur2));
+	sAppend(&(linG.d_dur2), "%s)", centralLines.line[i]);
 	break;
       }
     }
@@ -468,35 +450,35 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
     for (i = 0; i < depotLines.n; i++){
       switch(depotLines.lType[i]){
       case FBIO:
-	sAppendN(&last, "'f(depot)' ", 11);
+	sAppendN(&(linG.last), "'f(depot)' ", 11);
 	break;
       case ALAG:
-	sAppendN(&last, "'alag(depot)' ", 14);
+	sAppendN(&(linG.last), "'alag(depot)' ", 14);
 	break;
       case RATE:
-	sAppend(&last, "'rate(depot)' ", 14);
+	sAppend(&(linG.last), "'rate(depot)' ", 14);
 	break;
       case DUR:
-	sAppend(&last, "'dur(depot)' ", 13);
+	sAppend(&(linG.last), "'dur(depot)' ", 13);
 	break;
       default:
 	RSprintf("unknown depot line(%d): %s \n", depotLines.lType[i], depotLines.line[i]);
       }
     }
-    if (last.o) {
+    if (linG.last.o) {
       errLin[0] = '\0';
       errOff=0;
-      snprintf(errLin, errLinLen, "%s does not exist without a 'depot' compartment, specify a 'ka' parameter", last.s);
+      snprintf(errLin, errLinLen, "%s does not exist without a 'depot' compartment, specify a 'ka' parameter", linG.last.s);
       errOff=strlen(errLin);
-      sFree(&d_tlag);
-      sFree(&d_tlag2);
-      sFree(&d_F);
-      sFree(&d_F2);
-      sFree(&d_rate1);
-      sFree(&d_dur1);
-      sFree(&d_rate2);
-      sFree(&d_dur2);
-      sFree(&last);
+      sFree(&(linG.d_tlag));
+      sFree(&(linG.d_tlag2));
+      sFree(&(linG.d_F));
+      sFree(&(linG.d_F2));
+      sFree(&(linG.d_rate1));
+      sFree(&(linG.d_dur1));
+      sFree(&(linG.d_rate2));
+      sFree(&(linG.d_dur2));
+      sFree(&(linG.last));
       parseFree(0);
       Rf_errorcall(R_NilValue, errLin);
     }
@@ -504,20 +486,20 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
     for (i = 0; i < centralLines.n; i++){
       switch(centralLines.lType[i]){
       case FBIO:
-	sClear(&d_F);
-	sAppend(&d_F, "%s, ", centralLines.line[i]);
+	sClear(&(linG.d_F));
+	sAppend(&(linG.d_F), "%s, ", centralLines.line[i]);
 	break;
       case ALAG:
-	sClear(&d_tlag);
-	sAppend(&d_tlag, "%s, ", centralLines.line[i]);
+	sClear(&(linG.d_tlag));
+	sAppend(&(linG.d_tlag), "%s, ", centralLines.line[i]);
 	break;
       case RATE:
-	sClear(&d_rate1);
-	sAppend(&d_rate1, "%s, ", centralLines.line[i]);
+	sClear(&(linG.d_rate1));
+	sAppend(&(linG.d_rate1), "%s, ", centralLines.line[i]);
 	break;
       case DUR:
-	sClear(&d_dur1);
-	sAppend(&d_dur1, "%s, ", centralLines.line[i]);
+	sClear(&(linG.d_dur1));
+	sAppend(&(linG.d_dur1), "%s, ", centralLines.line[i]);
 	break;
       }
     }
@@ -528,73 +510,62 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   if (TYPEOF(linCmtSens) == INTSXP){
     doSens = INTEGER(linCmtSens)[0];
   }
-  sAppend(&last, "%s%s%s%s", d_tlag.s, d_F.s, d_rate1.s, d_dur1.s);
-  SET_STRING_ELT(inStr, 2, mkChar(last.s));
-  sClear(&last);
-  sAppend(&last, "%s%s%s%s",d_tlag2.s, d_F2.s,  d_rate2.s, d_dur2.s);
-  SET_STRING_ELT(inStr, 3, mkChar(last.s));
-  sClear(&last);
+  sAppend(&(linG.last), "%s%s%s%s", linG.d_tlag.s, linG.d_F.s, linG.d_rate1.s, linG.d_dur1.s);
+  SET_STRING_ELT(inStr, 2, mkChar(linG.last.s));
+  sClear(&(linG.last));
+  sAppend(&(linG.last), "%s%s%s%s",linG.d_tlag2.s, linG.d_F2.s,  linG.d_rate2.s, linG.d_dur2.s);
+  SET_STRING_ELT(inStr, 3, mkChar(linG.last.s));
+  sClear(&(linG.last));
   if (doSens == 2){
-    sAppend(&last, "linCmtB(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
-    SET_STRING_ELT(inStr, 0, mkChar(last.s));
+    sAppend(&(linG.last), "linCmtB(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+    SET_STRING_ELT(inStr, 0, mkChar(linG.last.s));
     SET_STRING_ELT(inStr, 1, mkChar("0, "));
   } else {
     if (doSens == 1){
-      sAppend(&last, "linCmtA(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+      sAppend(&(linG.last), "linCmtA(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
     } else if (doSens == 3) {
-      sAppend(&last, "linCmtC(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
+      sAppend(&(linG.last), "linCmtC(rx__PTR__, t, %d, ", INTEGER(linCmt)[0]);
     }
-    SET_STRING_ELT(inStr, 0, mkChar(last.s));
+    SET_STRING_ELT(inStr, 0, mkChar(linG.last.s));
     SET_STRING_ELT(inStr, 1, mkChar(""));
   }
-  sFree(&d_tlag);
-  sFree(&d_tlag2);
-  sFree(&d_F);
-  sFree(&d_F2);
-  sFree(&d_rate1);
-  sFree(&d_dur1);
-  sFree(&d_rate2);
-  sFree(&d_dur2);
-  sFree(&last);
   _linCmtParsePro=pro;
   SEXP linCmtP = PROTECT(_linCmtParse(vars, inStr, verbose)); pro++;
-  sbuf last2;
-  sIni(&last2);
   for (i = 0; i < sbNrmL.n; i++){
     if (sbNrmL.lProp[i]== -100){
       char *line = sbNrmL.line[i];
       if (line[0] != '\0') {
 	while (strncmp(line, "linCmt(", 7)){
 	  if (line[0] == '\0') {
-	    sFree(&last2);
+	    linCmtGenFree(&linG);
 	    UNPROTECT(pro);
 	    parseFree(0);
 	    Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
 	    return R_NilValue;
 	  }
-	  else sPut(&last2, line[0]);
+	  else sPut(&(linG.last2), line[0]);
 	  line++;
 	}
       }
       if (strlen(line) > 7) line +=7;
       else {
-	sFree(&last2);
+	linCmtGenFree(&linG);
 	UNPROTECT(pro);
 	parseFree(0);
 	Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
 	return R_NilValue;
       }
-      sAppend(&last2, "%s", CHAR(STRING_ELT(VECTOR_ELT(linCmtP, 0), 0)));
+      sAppend(&(linG.last2), "%s", CHAR(STRING_ELT(VECTOR_ELT(linCmtP, 0), 0)));
       while (line[0] != ')'){
 	if (line[0] == '\0') {
-	  sFree(&last2);
+	  linCmtGenFree(&linG);
 	  UNPROTECT(pro);
 	  parseFree(0);
 	  Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
 	  return R_NilValue;
 	}
 	if (line[0] == '('){
-	  sFree(&last2);
+	  linCmtGenFree(&linG);
 	  UNPROTECT(pro);
 	  parseFree(0);
 	  Rf_errorcall(R_NilValue, _("linCmt() cannot have any extra parentheses in it"));
@@ -602,14 +573,14 @@ SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
 	}
 	line++;
       }
-      if (line[0] != '\0') sAppend(&last2, "%s", ++line);
+      if (line[0] != '\0') sAppend(&(linG.last2), "%s", ++line);
     } else {
-      sAppend(&last2, "%s", sbNrmL.line[i]);
+      sAppend(&(linG.last2), "%s", sbNrmL.line[i]);
     }
   }
   SEXP ret = PROTECT(Rf_allocVector(STRSXP,1)); pro++;
-  SET_STRING_ELT(ret, 0, mkChar(last2.s));
-  sFree(&last2);
+  SET_STRING_ELT(ret, 0, mkChar(linG.last2.s));
+  linCmtGenFree(&linG);
   UNPROTECT(pro);
   return ret;
 }

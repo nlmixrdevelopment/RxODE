@@ -75,6 +75,8 @@ typedef struct linCmtStruct {
 
   sbuf ret0;
   sbuf ret;
+  const char *mid;
+  SEXP vars;
 } linCmtStruct;
 
 
@@ -793,5 +795,53 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
 
 SEXP _linCmtParse(SEXP vars, SEXP inStr, SEXP verboseSXP);
 SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose);
+
+typedef struct linCmtGenStruct {
+  sbuf last;
+  sbuf d_tlag;
+  sbuf d_tlag2;
+  sbuf d_F;
+  sbuf d_F2;
+  sbuf d_rate1;
+  sbuf d_dur1;
+  sbuf d_rate2;
+  sbuf d_dur2;
+  sbuf last2;
+} linCmtGenStruct;
+
+static inline void linCmtGenIni(linCmtGenStruct *linG) {
+  sIni(&(linG->last));
+  sIni(&(linG->d_tlag));
+  sIni(&(linG->d_tlag2));
+  sIni(&(linG->d_F));
+  sIni(&(linG->d_F2));
+  sIni(&(linG->d_rate1));
+  sIni(&(linG->d_dur1));
+  sIni(&(linG->d_rate2));
+  sIni(&(linG->d_dur2));
+  sIni(&(linG->last2));
+
+  sAppendN(&(linG->d_tlag),"0.0, ", 5);
+  sAppendN(&(linG->d_tlag2), ", 0.0, ", 7);
+  sAppendN(&(linG->d_F), "1.0, ", 5);
+  sAppendN(&(linG->d_F2), "1.0, ", 5);
+  sAppendN(&(linG->d_rate1), "0.0, ", 5);
+  sAppendN(&(linG->d_dur1), "0.0, ", 5);
+  sAppendN(&(linG->d_rate2), "0.0, ", 5);
+  sAppendN(&(linG->d_dur2), "0.0)", 4);
+}
+
+static inline void linCmtGenFree(linCmtGenStruct *linG) {
+  sFree(&(linG->last));
+  sFree(&(linG->d_tlag));
+  sFree(&(linG->d_tlag2));
+  sFree(&(linG->d_F));
+  sFree(&(linG->d_F2));
+  sFree(&(linG->d_rate1));
+  sFree(&(linG->d_dur1));
+  sFree(&(linG->d_rate2));
+  sFree(&(linG->d_dur2));
+  sFree(&(linG->last2));
+}
 
 #endif // __PARSELINCMT_H__
