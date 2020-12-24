@@ -232,4 +232,8 @@ static inline void linCmtGenFree(linCmtGenStruct *linG) {
   sFree(&(linG->last2));
 }
 
+#include "parseLinCmtTransAlpha.h"
+#include "parseLinCmtTransCl.h"
+#include "parseLinCmtTransK.h"
+
 #endif // __PARSELINCMT_H__
