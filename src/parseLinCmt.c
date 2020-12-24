@@ -323,15 +323,89 @@ static inline void linCmtParseTransAlpha(linCmtStruct *lin, int verbose) {
   }
 }
 
+static inline void linCmtParseFinalizeStrings(linCmtStruct *lin, int verbose,
+					      const char *first, const char *end1, const char *end2) {
+  for (int i = Rf_length(lin->vars); i--;){
+    linCmtStr(lin, CHAR(STRING_ELT(lin->vars, i)), &i);
+  }
+  linCmtAdjustPars(lin);
+  lin->trans =-1;
+  lin->ncmt = -1;
+  sIni(&(lin->ret0));
+  sIni(&(lin->ret));
+  if (lin->cl != -1) {
+    linCmtParseTransCl(lin, verbose);
+  } else if (lin->kel != -1) {
+    linCmtParseTranKel(lin, verbose);
+  } else if (lin->aob != -1) {
+    linCmtParseAOB(lin, verbose);
+  }  else if (lin->k21 != -1) {
+    linCmtParseTransK21(lin, verbose);
+  } else if (lin->alpha != -1) {
+    linCmtParseTransAlpha(lin, verbose);
+  }
+  sAppend(&(lin->ret), "%s", first);
+  sAppend(&(lin->ret), "%d, %s", lin->ncmt, lin->ret0.s);
+  sAppend(&(lin->ret), "%s", end1);
+  if (lin->ka == -1) {
+    sAppendN(&(lin->ret), "0.0", 3);
+    if (verbose) RSprintf("\n");
+  } else {
+    sAppend(&(lin->ret), "%s", CHAR(STRING_ELT(lin->vars, lin->ka)));
+    if (verbose) RSprintf(_(" with first order absorption\n"));
+  }
+  sAppend(&(lin->ret), "%s", end2);
+}
+
+static inline SEXP linCmtParseSEXP(linCmtStruct *lin) {
+  int pro = 0;
+  SEXP strV = PROTECT(allocVector(STRSXP, 1)); pro++;
+  SEXP lst = PROTECT(allocVector(VECSXP, 3)); pro++;
+  SEXP lstN = PROTECT(allocVector(STRSXP, 3)); pro++;
+
+  SEXP transSXP = PROTECT(allocVector(INTSXP, 1)); pro++;
+  INTEGER(transSXP)[0] = lin->trans;
+
+  SEXP ncmtSXP = PROTECT(allocVector(INTSXP, 1)); pro++;
+  INTEGER(ncmtSXP)[0] = lin->ncmt;
+
+  SET_STRING_ELT(strV, 0, mkChar(lin->ret.s));
+  SET_VECTOR_ELT(lst,  0, strV);
+  SET_STRING_ELT(lstN, 0, mkChar("str"));
+
+  SET_STRING_ELT(lstN, 1, mkChar("ncmt"));
+  SET_VECTOR_ELT(lst,  1, ncmtSXP);
+
+  SET_STRING_ELT(lstN, 2, mkChar("trans"));
+  SET_VECTOR_ELT(lst,  2, transSXP);
+
+  setAttrib(lst, R_NamesSymbol, lstN);
+  sFree(&(lin->ret0));
+  sFree(&(lin->ret));
+  UNPROTECT(pro);
+  if (lin->trans == -1) {
+    UNPROTECT(_linCmtParsePro);
+    _linCmtParsePro=0;
+    parseFree(0);
+    Rf_errorcall(R_NilValue, _("could not figure out linCmt() model"));
+  }
+  _linCmtParsePro=0;
+  return lst;
+}
+
+
 SEXP _linCmtParse(SEXP vars0, SEXP inStr, SEXP verboseSXP) {
-  const char *first = "linCmtB(rx__PTR__, t, ";
-  const char *mid0 = "0, ";
-  const char *end1 = "rx_tlag, rx_F, rx_rate, rx_dur,";
-  const char *end2 = ", yrx_tlag2, rx_F2, rx_rate2, rx_dur2)";
+  linCmtStruct lin;
+  linCmtIni(&lin);
+  lin.vars = vars0;
   int verbose = 0;
   if (TYPEOF(verboseSXP) == LGLSXP) {
     verbose = INTEGER(verboseSXP)[0];
   }
+  const char *first = "linCmtB(rx__PTR__, t, ";
+  const char *mid0 = "0, ";
+  const char *end1 = "rx_tlag, rx_F, rx_rate, rx_dur,";
+  const char *end2 = ", yrx_tlag2, rx_F2, rx_rate2, rx_dur2)";  
   int type = TYPEOF(inStr);
   if (type == STRSXP) {
     int len = Rf_length(inStr);
@@ -348,73 +422,9 @@ SEXP _linCmtParse(SEXP vars0, SEXP inStr, SEXP verboseSXP) {
       end2 = CHAR(STRING_ELT(inStr, 3));
     }
   }
-  linCmtStruct lin;
-  linCmtIni(&lin);
   lin.mid = mid0;
-  lin.vars = vars0;
-  for (int i = Rf_length(lin.vars); i--;){
-    linCmtStr(&lin, CHAR(STRING_ELT(lin.vars, i)), &i);
-  }
-  linCmtAdjustPars(&lin);
-  lin.trans =-1;
-  lin.ncmt = -1;
-  sIni(&(lin.ret0));
-  sIni(&(lin.ret));
-  if (lin.cl != -1) {
-    linCmtParseTransCl(&lin, verbose);
-  } else if (lin.kel != -1) {
-    linCmtParseTranKel(&lin, verbose);
-  } else if (lin.aob != -1) {
-    linCmtParseAOB(&lin, verbose);
-  }  else if (lin.k21 != -1) {
-    linCmtParseTransK21(&lin, verbose);
-  } else if (lin.alpha != -1) {
-    linCmtParseTransAlpha(&lin, verbose);
-  }
-  sAppend(&(lin.ret), "%s", first);
-  sAppend(&(lin.ret), "%d, %s", lin.ncmt, lin.ret0.s);
-  sAppend(&(lin.ret), "%s", end1);
-  if (lin.ka == -1) {
-    sAppendN(&(lin.ret), "0.0", 3);
-    if (verbose) RSprintf("\n");
-  } else {
-    sAppend(&(lin.ret), "%s", CHAR(STRING_ELT(lin.vars, lin.ka)));
-    if (verbose) RSprintf(_(" with first order absorption\n"));
-  }
-  sAppend(&(lin.ret), "%s", end2);
-  int pro = 0;
-  SEXP strV = PROTECT(allocVector(STRSXP, 1)); pro++;
-  SEXP lst = PROTECT(allocVector(VECSXP, 3)); pro++;
-  SEXP lstN = PROTECT(allocVector(STRSXP, 3)); pro++;
-
-  SEXP transSXP = PROTECT(allocVector(INTSXP, 1)); pro++;
-  INTEGER(transSXP)[0] = lin.trans;
-
-  SEXP ncmtSXP = PROTECT(allocVector(INTSXP, 1)); pro++;
-  INTEGER(ncmtSXP)[0] = lin.ncmt;
-
-  SET_STRING_ELT(strV, 0, mkChar(lin.ret.s));
-  SET_VECTOR_ELT(lst,  0, strV);
-  SET_STRING_ELT(lstN, 0, mkChar("str"));
-
-  SET_STRING_ELT(lstN, 1, mkChar("ncmt"));
-  SET_VECTOR_ELT(lst,  1, ncmtSXP);
-
-  SET_STRING_ELT(lstN, 2, mkChar("trans"));
-  SET_VECTOR_ELT(lst,  2, transSXP);
-
-  setAttrib(lst, R_NamesSymbol, lstN);
-  sFree(&(lin.ret0));
-  sFree(&(lin.ret));
-  UNPROTECT(pro);
-  if (lin.trans == -1) {
-    UNPROTECT(_linCmtParsePro);
-    _linCmtParsePro=0;
-    parseFree(0);
-    Rf_errorcall(R_NilValue, _("could not figure out linCmt() model"));
-  }
-  _linCmtParsePro=0;
-  return lst;
+  linCmtParseFinalizeStrings(&lin, verbose, first, end1, end2);
+  return linCmtParseSEXP(&lin);
 }
 
 SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
