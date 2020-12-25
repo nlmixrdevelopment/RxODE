@@ -145,29 +145,55 @@ extern int errOff;
 #include "parseLinCmtV.h"
 #include "parseLinCmtAB.h"
 
-static inline void linCmtStr(linCmtStruct *lin, const char *in, int *index) {
+static inline int linCmtStartsWithV(linCmtStruct *lin, const char *in, int *index) {
   if (in[0] == 'v' || in[0] == 'V') {
     linCmtV(lin, in, index);
-    return;
+    return 1;
   }
+  return 0;
+}
+
+static inline int linCmtStartsWithC(linCmtStruct *lin, const char *in, int *index){
   if (in[0] == 'c' || in[0] == 'C') {
     linCmtC(lin, in, index);
-    return;
+    return 1;
   }
+  return 0;
+}
+
+static inline int linCmtStartsWithK(linCmtStruct *lin, const char *in, int *index) {
   if (in[0] == 'k' || in[0] == 'K') {
     linCmtK(lin, in, index);
-    return;
+    return 1;
   }
+  return 0;
+}
+
+static inline int linCmtStartsWithQ(linCmtStruct *lin, const char *in, int *index){
   if (in[0] == 'Q' || in[0] == 'q') {
     linCmtQ(lin, in, index);
-    return;
+    return 1;
   }
+  return 0;
+}
+
+static inline int linCmtStartsWithA(linCmtStruct *lin, const char *in, int *index) {
   if (in[0] == 'A' || in[0] == 'a') {
     linCmtA(lin, in, index);
+    return 1;
   }
+  return 0;
+}
+
+static inline int linCmtStartsWithB(linCmtStruct *lin, const char *in, int *index) {
   if (in[0] == 'B' || in[0] == 'b') {
     linCmtB(lin, in, index);
+    return 1;
   }
+  return 0;
+}
+
+static inline int isLinCmtGamma(linCmtStruct *lin, const char *in, int *index) {
   if ((in[0] == 'G' || in[0] == 'g') &&
       (in[1] == 'A' || in[1] == 'a') &&
       (in[2] == 'M' || in[2] == 'm') &&
@@ -175,8 +201,20 @@ static inline void linCmtStr(linCmtStruct *lin, const char *in, int *index) {
       (in[4] == 'A' || in[4] == 'a') &&
       in[5] == '\0') {
     lin->gamma = *index;
-    return;
+    return 1;
   }
+  return 0;
+}
+
+static inline void linCmtStr(linCmtStruct *lin, const char *in, int *index) {
+  int tmp = linCmtStartsWithV(lin, in, index) ||
+    linCmtStartsWithC(lin, in, index) ||
+    linCmtStartsWithK(lin, in, index) ||
+    linCmtStartsWithQ(lin, in, index) ||
+    linCmtStartsWithA(lin, in, index) ||
+    linCmtStartsWithB(lin, in, index) ||
+    isLinCmtGamma(lin, in, index);
+  (void)tmp;
 }
 
 #include "parseLinCmtAdjustPars.h"
