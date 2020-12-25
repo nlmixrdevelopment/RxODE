@@ -200,61 +200,110 @@ static inline void linCmtQ(linCmtStruct *lin, const char *in, int *index) {
   }
 }
 
+static inline int isLinCmtC(linCmtStruct *lin, const char *in, int *index) {
+  if (in[1] == '\0'){
+    // C
+    lin->c = *index;
+    return 1;
+  }
+  return 0;
+}
+
+static inline int isLinCmtCl0(linCmtStruct *lin, const char *in, int *index) {
+  if (in[2] == '\0') {
+    lin->cl = *index;
+    return 1;
+  }
+  return 0;
+}
+static inline int isLinCmtCl1(linCmtStruct *lin, const char *in, int *index) {
+  if (in[2] == '1' && in[3] == '\0') {
+    linCmtClStyle(lin, linCmtCl1style);
+    lin->cl1 = *index;
+    return 1;
+  }
+  return 0;
+}
+static inline int isLinCmtCl2(linCmtStruct *lin, const char *in, int *index) {
+  if (in[2] == '2' && in[3] == '\0') {
+    linCmtClStyle(lin, linCmtCl1style);
+    lin->cl2 = *index;
+    return 1;
+  }
+  return 0;
+}
+static inline int isLinCmtCl3(linCmtStruct *lin, const char *in, int *index) {
+  if (in[2] == '3' && in[3] == '\0') {
+    linCmtClStyle(lin, linCmtCl1style);
+    lin->cl3 = *index;
+    return 1;
+  }
+  return 0;
+}
+static inline int isLinCmtCl4(linCmtStruct *lin, const char *in, int *index) {
+  if (in[2] == '4' && in[3] == '\0') {
+    linCmtClStyle(lin, linCmtCl1style);
+    lin->cl4 = *index;
+    return 1;
+  }
+  return 0;
+}
+
+static inline int isLinCmtCld0(linCmtStruct *lin, const char *in, int *index){
+  if (in[3] == '\0') {
+    linCmtClStyle(lin, linCmtCld1style);
+    lin->cl1 = *index;
+    return 1;
+  }
+  return 0;
+}
+
+static inline int isLinCmtCld1(linCmtStruct *lin, const char *in, int *index){
+  if (in[3] == '1' && in[4] == '\0') {
+    linCmtClStyle(lin, linCmtCld1style);
+    lin->cl2 = *index;
+    return 1;
+  }
+  return 0;
+}
+static inline int isLinCmtCld2(linCmtStruct *lin, const char *in, int *index){
+  if (in[3] == '2' && in[4] == '\0') {
+    linCmtClStyle(lin, linCmtCld1style);
+    lin->cl3 = *index;
+    return 1;
+  }
+  return 0;
+}
+static inline int isLinCmtCld3(linCmtStruct *lin, const char *in, int *index){
+  if (in[3] == '3' && in[4] == '\0') {
+    linCmtClStyle(lin, linCmtCld1style);
+    lin->cl4 = *index;
+    return 1;
+  }
+  return 0;
+}
+static inline int isLinCmtCl(linCmtStruct *lin, const char *in, int *index) {
+  if (in[1] == 'l' || in[1] == 'L') {
+    if  (isLinCmtCl0(lin, in, index) ||
+	 isLinCmtCl1(lin, in, index) ||
+	 isLinCmtCl2(lin, in, index) ||
+	 isLinCmtCl3(lin, in, index) ||
+	 isLinCmtCl4(lin, in, index)){
+      return 1;
+    } else if (in[2] == 'd' || in[2] == 'D') {
+      return isLinCmtCld0(lin, in, index) ||
+	 isLinCmtCld1(lin, in, index) ||
+	 isLinCmtCld2(lin, in, index) ||
+	isLinCmtCld3(lin, in, index);
+    }
+  }
+  return 0;
+}
 
 static inline void linCmtC(linCmtStruct *lin, const char *in, int *index) {
   // CL, CL1, CL2, CL3, CL4
   // CLD, CLD1, CLD2, CLD3, CL4
-  if (in[1] == '\0'){
-    // C
-    lin->c = *index;
-    return;
-  }
-  if (in[1] == 'l' || in[1] == 'L') {
-    if (in[2] == '\0') {
-      lin->cl = *index;
-      return;
-    }
-    if (in[2] == '1' && in[3] == '\0') {
-      linCmtClStyle(lin, linCmtCl1style);
-      lin->cl1 = *index;
-      return;
-    }
-    if (in[2] == '2' && in[3] == '\0') {
-      linCmtClStyle(lin, linCmtCl1style);
-      lin->cl2 = *index;
-      return;
-    }
-    if (in[2] == '3' && in[3] == '\0') {
-      linCmtClStyle(lin, linCmtCl1style);
-      lin->cl3 = *index;
-      return;
-    }
-    if (in[2] == '4' && in[3] == '\0') {
-      linCmtClStyle(lin, linCmtCl1style);
-      lin->cl4 = *index;
-      return;
-    }
-    if (in[2] == 'd' || in[2] == 'D') {
-      if (in[3] == '\0') {
-	linCmtClStyle(lin, linCmtCld1style);
-	lin->cl1 = *index;
-	return;
-      }
-      if (in[3] == '1' && in[4] == '\0') {
-	linCmtClStyle(lin, linCmtCld1style);
-	  lin->cl2 = *index;
-	return;
-      }
-      if (in[3] == '2' && in[4] == '\0') {
-	linCmtClStyle(lin, linCmtCld1style);
-	lin->cl3 = *index;
-	return;
-      }
-      if (in[3] == '3' && in[4] == '\0') {
-	linCmtClStyle(lin, linCmtCld1style);
-	lin->cl4 = *index;
-	return;
-      }
-    }
-  }
+  int tmp = isLinCmtC(lin, in, index) ||
+    isLinCmtCl(lin, in, index);
+  (void) tmp;
 }
