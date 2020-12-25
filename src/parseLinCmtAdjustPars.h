@@ -1,58 +1,83 @@
+static inline void assertQorCldNeedsCl(linCmtStruct *lin){
+  if (lin->cl == -1){
+    if (lin->clStyle == linCmtCld1style){
+      parseFree(0);
+      Rf_errorcall(R_NilValue, _("'Cld' parameterization needs 'Cl'"));
+    } else {
+      parseFree(0);
+      Rf_errorcall(R_NilValue, _("'Q' parameterization needs 'Cl'"));
+    }
+  }
+}
+
+static inline int linCmtAdjustParsQstyleOrCldStyleCl1(linCmtStruct *lin) {
+  if (lin->cl1 != -1) {
+    if (lin->cl2  != -1) {
+      // Cl, Q, Q1
+      if (lin->clStyle == linCmtQstyle){
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("cannot mix 'Q' and 'Q1'"));
+      } else {
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("cannot mix 'Cld' and 'Cld1'"));
+      }
+    } else if (lin->cl3 != -1) {
+      // Cl, Q (cl1->cl2), Q2 (cl3->cl3)
+      lin->cl2 = lin->cl1;
+      lin->cl1 = -1;
+    } else if (lin->cl4 != -1){
+      // Cl, Q, Q3
+      if (lin->clStyle == linCmtQstyle){
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("cannot mix 'Q' and 'Q3'"));
+      } else {
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("cannot mix 'Cld' and 'Cld3'"));
+      }
+    } else {
+      // Cl, Q (cl1->cl2), Q2 (cl3->cl3)
+      lin->cl2 = lin->cl1;
+      lin->cl1 = -1;
+    }
+    return 1;
+  }
+  return 0;
+}
+
+static inline int linCmtAdjustParsQstyleOrCldStyleCl2(linCmtStruct *lin) {
+  if (lin->cl2  != -1) {
+    // Cl, Q1
+    if (lin->cl4 != -1) {
+      if (lin->clStyle == linCmtQstyle){
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("cannot mix 'Q1' and 'Q3'"));
+      } else {
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("cannot mix 'Cld1' and 'Cld3'"));
+      }
+    }
+    return 1;
+  }
+  return 0;
+}
+
+static inline int linCmtAdjustParsQstyleOrCldStyleCl3(linCmtStruct *lin) {
+  if (lin->cl3 != -1){
+    lin->cl2 = lin->cl3;
+    lin->cl3 = lin->cl4;
+    return 1;
+  }
+  return 0;
+}
+
 static inline int linCmtAdjustParsQstyleOrCldStyle(linCmtStruct *lin) {
   if (lin->clStyle == linCmtQstyle || lin->clStyle == linCmtCld1style) {
     // cl,
-    if (lin->cl == -1){
-      if (lin->clStyle == linCmtCld1style){
-	parseFree(0);
-	Rf_errorcall(R_NilValue, _("'Cld' parameterization needs 'Cl'"));
-      } else {
-	parseFree(0);
-	Rf_errorcall(R_NilValue, _("'Q' parameterization needs 'Cl'"));
-      }
-    }
-    if (lin->cl1 != -1) {
-      if (lin->cl2  != -1) {
-	// Cl, Q, Q1
-	if (lin->clStyle == linCmtQstyle){
-	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("cannot mix 'Q' and 'Q1'"));
-	} else {
-	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("cannot mix 'Cld' and 'Cld1'"));
-	}
-      } else if (lin->cl3 != -1) {
-	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
-	lin->cl2 = lin->cl1;
-	lin->cl1 = -1;
-      } else if (lin->cl4 != -1){
-	// Cl, Q, Q3
-	if (lin->clStyle == linCmtQstyle){
-	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("cannot mix 'Q' and 'Q3'"));
-	} else {
-	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("cannot mix 'Cld' and 'Cld3'"));
-	}
-      } else {
-	// Cl, Q (cl1->cl2), Q2 (cl3->cl3)
-	lin->cl2 = lin->cl1;
-	lin->cl1 = -1;
-      }
-    } else if (lin->cl2  != -1) {
-      // Cl, Q1
-      if (lin->cl4 != -1) {
-	if (lin->clStyle == linCmtQstyle){
-	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("cannot mix 'Q1' and 'Q3'"));
-	} else {
-	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("cannot mix 'Cld1' and 'Cld3'"));
-	}
-      }
-    } else if (lin->cl3 != -1){
-      lin->cl2 = lin->cl3;
-      lin->cl3 = lin->cl4;
-    }
+    assertQorCldNeedsCl(lin);
+    int tmp = linCmtAdjustParsQstyleOrCldStyleCl1(lin) ||
+      linCmtAdjustParsQstyleOrCldStyleCl2(lin) ||
+      linCmtAdjustParsQstyleOrCldStyleCl3(lin);
+    (void)tmp;
     return 1;
   }
   return 0;
