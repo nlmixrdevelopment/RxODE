@@ -1,10 +1,12 @@
-static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
-  // ke, kel, k10 or k20
-  //
+static inline int isLinCmtK(linCmtStruct *lin, const char *in, int *index) {
   if (in[1] == '\0') {
     lin->kel = *index;
-    return;
+    return 1;
   }
+  return 0;
+}
+
+static inline int isLinCmtKeOrKel(linCmtStruct *lin, const char *in, int *index) {
   if ((in[1] == 'e' || in[1] == 'E')) {
     if (in[2] == '\0') {
       if (lin->kel != -1) {
@@ -12,7 +14,7 @@ static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
 	Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
       }
       lin->kel = *index;
-      return;
+      return 1;
     }
     if ((in[2] == 'l' || in[2] == 'L') && in[3] == '\0') {
       if (lin->kel != -1) {
@@ -20,16 +22,22 @@ static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
 	Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
       }
       lin->kel = *index;
-      return;
+      return 1;
     }
   }
+  return 0;
+}
+
+static inline int isLinCmtKa(linCmtStruct *lin, const char *in, int *index) {
   if ((in[1] == 'a' || in[1] == 'A') &&
       in[2] == '\0') {
     lin->ka = *index;
-    return;
+    return 1;
   }
-  // Support: k12, k21, k13, k31 when central compartment is 1
-  // Also support:  k23, k32, k24, k42 when central compartment is 2
+  return 0;
+}
+
+static inline int isLinCmtK10orK12orK13(linCmtStruct *lin, const char *in, int *index) {
   if (in[1] == '1') {
     if (in[2] == '0' && in[3] == '\0') {
       linCmtCmt(lin, 1);
@@ -38,19 +46,23 @@ static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
 	Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
       }
       lin->kel = *index;
-      return;
+      return 1;
     }
     if (in[2] == '2' && in[3] == '\0') {
       linCmtCmt(lin, 1);
       lin->k12 = *index;
-      return;
+      return 1;
     }
     if (in[2] == '3' && in[3] == '\0') {
       linCmtCmt(lin, 1);
       lin->k13 = *index;
-      return;
+      return 1;
     }
   }
+  return 0;
+}
+
+static inline int isLinCmtK20orK21orK23orK24(linCmtStruct *lin, const char *in, int *index){
   if (in[1] == '2') {
     if (in[2] == '0' && in[3] == '\0') {
       linCmtCmt(lin, 2);
@@ -59,44 +71,65 @@ static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
 	Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
       }
       lin->kel = *index;
-      return;
+      return 1;
     }
     if (in[2] == '1' && in[3] == '\0') {
       linCmtCmt(lin, 1);
       lin->k21 = *index;
-      return;
+      return 1;
     }
     if (in[2] == '3' && in[3] == '\0') {
       linCmtCmt(lin, 2);
       // k23->k12
       lin->k12 = *index;
-      return;
+      return 1;
     }
     if (in[2] == '4' && in[3] == '\0') {
       linCmtCmt(lin, 2);
       // k24->k13
       lin->k13 = *index;
-      return;
+      return 1;
     }
   }
+  return 0;
+}
+
+static inline int isLinCmtK31orK32(linCmtStruct *lin, const char *in, int *index){
   if (in[1] == '3')  {
     if (in[2] == '1' && in[3] == '\0') {
       linCmtCmt(lin, 1);
       lin->k31 = *index;
-      return;
+      return 1;
     }
     if (in[2] == '2' && in[3] == '\0') {
       linCmtCmt(lin, 2);
       // k32->k21
       lin->k21 = *index;
-      return;
+      return 1;
     }
   }
+  return 0;
+}
+
+static inline int isLinCmtK42(linCmtStruct *lin, const char *in, int *index) {
   if (in[1] == '4' && in[2] == '2' && in[3] == '\0') {
     linCmtCmt(lin, 2);
     // k42 -> k31
     lin->k31 = *index;
+    return 1;
   }
+  return 0;
+}
+
+static inline void linCmtK(linCmtStruct *lin, const char *in, int *index) {
+  int tmp = isLinCmtK(lin, in, index) ||
+    isLinCmtKeOrKel(lin, in, index) ||
+    isLinCmtKa(lin, in, index) ||
+    isLinCmtK10orK12orK13(lin, in, index) ||
+    isLinCmtK20orK21orK23orK24(lin, in, index) ||
+    isLinCmtK31orK32(lin, in, index) ||
+    isLinCmtK42(lin, in, index);
+  (void)tmp;
 }
 
 #define linCmtCl1style 1
