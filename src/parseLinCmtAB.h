@@ -27,7 +27,7 @@ static inline int isOnlyAOB(linCmtStruct *lin, const char *in, int *index){
     lin->aob = *index;
     return 1;
   }
-  return 0
+  return 0;
 }
 
 static inline int isOnlyAlpha(linCmtStruct *lin, const char *in, int *index) {
