@@ -1,5 +1,5 @@
-static inline void linCmtAdjustPars(linCmtStruct *lin) {
-  if (lin->clStyle == linCmtQstyle || lin->clStyle == linCmtCld1style){
+static inline int linCmtAdjustParsQstyleOrCldStyle(linCmtStruct *lin) {
+  if (lin->clStyle == linCmtQstyle || lin->clStyle == linCmtCld1style) {
     // cl,
     if (lin->cl == -1){
       if (lin->clStyle == linCmtCld1style){
@@ -53,54 +53,62 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
       lin->cl2 = lin->cl3;
       lin->cl3 = lin->cl4;
     }
-  } else {
-    if (lin->cl1 != -1){
-      // Cl1, Cl2, Cl3
-      // -> cl, cl2, cl3
-      if (lin->cl != -1) {
-	// cl, cl1,
-	if (lin->cl2 == -1){
-	  if (lin->cl4 != -1){
-	    parseFree(0);
-	    Rf_errorcall(R_NilValue, _("error parsing higher 'cl'"));
-	  }
-	  lin->cl4 = lin->cl3;
-	  lin->cl3 = lin->cl2;
-	  lin->cl2 = lin->cl1;
-	  lin->cl1 = -1;
-	} else {
-	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("cannot mix 'Cl' and 'Cl1'"));
-	}
-      } else {
-	linCmtCmt(lin, 1);
-	lin->cl = lin->cl1;
-	lin->cl1 = -1;
+    return 1;
+  }
+  return 0;
+}
+
+static inline int linCmtAdjustParsClNumStyle(linCmtStruct *lin) {
+  if (lin->cl1 != -1){
+    // Cl1, Cl2, Cl3
+    // -> cl, cl2, cl3
+    if (lin->cl != -1) {
+      // cl, cl1,
+      if (lin->cl2 == -1){
 	if (lin->cl4 != -1){
 	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("specified clearance for 4th compartment, which does not make sense in this context"));
+	  Rf_errorcall(R_NilValue, _("error parsing higher 'cl'"));
 	}
+	lin->cl4 = lin->cl3;
+	lin->cl3 = lin->cl2;
+	lin->cl2 = lin->cl1;
+	lin->cl1 = -1;
+      } else {
+	parseFree(0);
+	Rf_errorcall(R_NilValue, _("cannot mix 'Cl' and 'Cl1'"));
       }
-    } else if (lin->cl2 != -1){
-      if (lin->cl == -1){
-	//  Cl2, Cl3, Cl4
-	// -> Cl, cl2, cl3
-	linCmtCmt(lin, 2);
-      } else if (lin->cl4 != -1) {
-	// Cl, Cl2, Cl3 keeps the same;  Cl4 doesn't make sense
+    } else {
+      linCmtCmt(lin, 1);
+      lin->cl = lin->cl1;
+      lin->cl1 = -1;
+      if (lin->cl4 != -1){
 	parseFree(0);
 	Rf_errorcall(R_NilValue, _("specified clearance for 4th compartment, which does not make sense in this context"));
       }
-    } else if (lin->cl != -1){
-      if (lin->cl3 != -1){
-	// Cl, Cl3, Cl4
-	//-> Cl, Cl2, cl3
-	lin->cl2 = lin->cl3;
-	lin->cl3 = lin->cl4;
-	lin->cl4 = -1;
-      }
+    }
+  } else if (lin->cl2 != -1){
+    if (lin->cl == -1){
+      //  Cl2, Cl3, Cl4
+      // -> Cl, cl2, cl3
+      linCmtCmt(lin, 2);
+    } else if (lin->cl4 != -1) {
+      // Cl, Cl2, Cl3 keeps the same;  Cl4 doesn't make sense
+      parseFree(0);
+      Rf_errorcall(R_NilValue, _("specified clearance for 4th compartment, which does not make sense in this context"));
+    }
+  } else if (lin->cl != -1){
+    if (lin->cl3 != -1){
+      // Cl, Cl3, Cl4
+      //-> Cl, Cl2, cl3
+      lin->cl2 = lin->cl3;
+      lin->cl3 = lin->cl4;
+      lin->cl4 = -1;
     }
   }
+  return 0;
+}
+
+static inline int linCmtAdjustParsV(linCmtStruct *lin) {
   if (lin->v != -1) {
     if (lin->v1 != -1){
       parseFree(0);
@@ -134,14 +142,20 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
 	linCmtCmt(lin, 2);
       }
     } else if (lin->vp1 != -1) {
-	// v, vp1, vp2
-	lin->v2 = lin->vp1;
-	lin->v3 = lin->vp2;
+      // v, vp1, vp2
+      lin->v2 = lin->vp1;
+      lin->v3 = lin->vp2;
     } else if (lin->vp2 != -1) {
-	lin->v2 = lin->vp2;
-	lin->v3 = lin->vp3;
+      lin->v2 = lin->vp2;
+      lin->v3 = lin->vp3;
     }
-  } else if (lin->v1 != -1) {
+    return 1;
+  }
+  return 0;
+}
+
+static inline int linCmtAdjustParsV1(linCmtStruct *lin) {
+  if (lin->v1 != -1) {
     linCmtCmt(lin, 1);
     lin->v = lin->v1;
     if (lin->v2 != -1) {
@@ -164,7 +178,13 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
 	linCmtCmt(lin, 2);
       }
     }
-  } else if (lin->v2 != -1){
+    return 1;
+  }
+  return 0;
+}
+
+static inline int linCmtAdjustParsV2(linCmtStruct *lin) {
+  if (lin->v2 != -1) {
     linCmtCmt(lin, 2);
     lin->v = lin->v2;
     lin->v2 = -1;
@@ -185,7 +205,12 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
 	linCmtCmt(lin, 2);
       }
     }
+    return 1;
   }
+  return 0;
+}
+
+static inline void assertCorrectClV(linCmtStruct *lin) {
   if (lin->cl != -1 && lin->v != -1) {
     if (lin->cl2 != -1) {
       if (lin->v2 == -1 && lin->vss == -1) {
@@ -212,6 +237,9 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
       }
     }
   }
+}
+
+static inline void assertCorrectV(linCmtStruct *lin) {
   if (lin->v != -1 && lin->v2 != -1) {
     if (lin->v == lin->v2) {
       parseFree(0);
@@ -237,4 +265,16 @@ static inline void linCmtAdjustPars(linCmtStruct *lin) {
       Rf_errorcall(R_NilValue, _("cannot distinguish between 1st and 2nd distributional clearances"));
     }
   }
+}
+
+
+static inline void linCmtAdjustPars(linCmtStruct *lin) {
+  int tmp = linCmtAdjustParsQstyleOrCldStyle(lin) ||
+    linCmtAdjustParsClNumStyle(lin);
+  tmp = linCmtAdjustParsV(lin) ||
+    linCmtAdjustParsV1(lin) ||
+    linCmtAdjustParsV2(lin);
+  assertCorrectClV(lin);
+  assertCorrectV(lin);
+  (void)tmp;
 }
