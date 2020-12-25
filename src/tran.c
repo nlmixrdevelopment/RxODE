@@ -1759,9 +1759,58 @@ void reset (){
 
 static void rxSyntaxError(struct D_Parser *ap);
 
-void trans_internal(const char* parse_file, int isStr){
+static inline void assertCorrectDfDy() {
   char *buf1, *buf2, bufe[2048];
-  int i,j,found,islhs;
+  int i, j, found, islhs;
+  for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
+    buf1=tb.ss.line[tb.df[i]];
+    found=0;
+    for (j=0; j<tb.de.n; j++) {                     /* name state vars */
+      buf2=tb.ss.line[tb.di[j]];
+      if (!strcmp(buf1, buf2)){
+	found=1;
+	break;
+      }
+    }
+    if (!found){
+      buf2=tb.ss.line[tb.dy[i]];
+      snprintf(bufe, 2048, NOSTATE,buf1,buf2,buf1);
+      trans_syntax_error_report_fn0(bufe);
+    }
+    // Now the dy()
+    buf1=tb.ss.line[tb.dy[i]];
+    found=0;
+    for (j=0; j<tb.de.n; j++) {                     /* name state vars */
+      buf2=tb.ss.line[tb.di[j]];
+      if (!strcmp(buf1, buf2)){
+	found=1;
+	break;
+      }
+    }
+    if (!found){
+      for (j=0; j<NV; j++) {
+	islhs = tb.lh[j];
+	buf2=tb.ss.line[j];
+	if (islhs>1 && tb.lh[i] != isLhsStateExtra) continue; /* is a state var */
+	buf2=tb.ss.line[j];
+	if ((islhs != 1 || tb.ini[j] == 1) &&!strcmp(buf1, buf2)){
+	  found=1;
+	  // This is a df(State)/dy(Parameter)
+	  tb.sdfdy[i] = 1;
+	  break;
+	}
+      }
+    }
+    if (!found){
+      buf2=tb.ss.line[tb.df[i]];
+      buf2=tb.ss.line[tb.dy[i]];
+      snprintf(bufe,2048,NOSTATEVAR,buf1,buf2,buf2);
+      trans_syntax_error_report_fn0(bufe);
+    }
+  }
+}
+
+void trans_internal(const char* parse_file, int isStr){
   freeP();
   curP = new_D_Parser(&parser_tables_RxODE, sizeof(D_ParseNode_User));
   curP->save_parse_tree = 1;
@@ -1795,52 +1844,7 @@ void trans_internal(const char* parse_file, int isStr){
   } else {
     wprint_parsetree(parser_tables_RxODE, _pn, 0, wprint_node, NULL);
     // Determine Jacobian vs df/dvar
-    for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
-      buf1=tb.ss.line[tb.df[i]];
-      found=0;
-      for (j=0; j<tb.de.n; j++) {                     /* name state vars */
-        buf2=tb.ss.line[tb.di[j]];
-	if (!strcmp(buf1, buf2)){
-	  found=1;
-          break;
-	}
-      }
-      if (!found){
-	buf2=tb.ss.line[tb.dy[i]];
-	snprintf(bufe, 2048, NOSTATE,buf1,buf2,buf1);
-	trans_syntax_error_report_fn0(bufe);
-      }
-      // Now the dy()
-      buf1=tb.ss.line[tb.dy[i]];
-      found=0;
-      for (j=0; j<tb.de.n; j++) {                     /* name state vars */
-        buf2=tb.ss.line[tb.di[j]];
-        if (!strcmp(buf1, buf2)){
-          found=1;
-          break;
-        }
-      }
-      if (!found){
-	for (j=0; j<NV; j++) {
-          islhs = tb.lh[j];
-	  buf2=tb.ss.line[j];
-          if (islhs>1 && tb.lh[i] != isLhsStateExtra) continue; /* is a state var */
-          buf2=tb.ss.line[j];
-          if ((islhs != 1 || tb.ini[j] == 1) &&!strcmp(buf1, buf2)){
-	    found=1;
-	    // This is a df(State)/dy(Parameter)
-	    tb.sdfdy[i] = 1;
-	    break;
-	  }
-        }
-      }
-      if (!found){
-        buf2=tb.ss.line[tb.df[i]];
-      	buf2=tb.ss.line[tb.dy[i]];
-      	snprintf(bufe,2048,NOSTATEVAR,buf1,buf2,buf2);
-        trans_syntax_error_report_fn0(bufe);
-      }
-    }
+    assertCorrectDfDy();
   }
 }
 
