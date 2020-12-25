@@ -2169,68 +2169,84 @@ void trans_syntax_error_report_fn0(char *err){
   rx_syntax_error = 1;
 }
 
+static inline void printSyntaxErrorHeader(){
+  if (lastSyntaxErrorLine == 0){
+    if (isEsc) {
+      RSprintf(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
+    }
+    else {
+      RSprintf(_("RxODE model syntax error:\n================================================================================"));
+    }
+    lastSyntaxErrorLine=1;
+  }
+}
+
+static inline void printPriorLines(Parser *p) {
+  char *buf;
+  for (; lastSyntaxErrorLine < p->user.loc.line; lastSyntaxErrorLine++){
+    buf = getLine(gBuf, lastSyntaxErrorLine, &gBufLast);
+    RSprintf("\n:%03d: %s", lastSyntaxErrorLine, buf);
+    Free(buf);
+  }
+  if (lastSyntaxErrorLine < p->user.loc.line){
+    RSprintf("\n");
+    lastSyntaxErrorLine++;
+  }
+}
+
+static inline void printErrorLineAndErr(Parser *p, char *err) {
+  if (isEsc) {
+    RSprintf("\n\033[1m:%03d:\033[0m %s:\n", p->user.loc.line, err);
+  }
+  else {
+    RSprintf("\n:%03d: %s:\n", p->user.loc.line, err);
+  }
+}
+
+static inline void printErrorLineHighlightRegion(Parser *p) {
+  char *buf = getLine(gBuf, p->user.loc.line, &gBufLast);
+  RSprintf("      ");
+  int i, len = strlen(buf);
+  for (i = 0; i < p->user.loc.col; i++){
+    RSprintf("%c", buf[i]);
+    if (i == len-2) { i++; break;}
+  }
+  if (isEsc) {
+    RSprintf("\033[35m\033[1m%c\033[0m", buf[i++]);
+  }
+  else {
+    RSprintf("%c", buf[i++]);
+  }
+  for (; i < len; i++){
+    RSprintf("%c", buf[i]);
+  }
+  RSprintf("\n      ");
+  Free(buf);
+  for (int i = 0; i < p->user.loc.col; i++){
+    RSprintf(" ");
+    if (i == len-2) { i++; break;}
+  }
+  if (isEsc) {
+    RSprintf("\033[35m\033[1m^\033[0m");
+  }
+  else {
+    RSprintf("^");
+  }
+  if (syntaxErrorExtra > 0 && syntaxErrorExtra < 40){
+    for (int i = syntaxErrorExtra; i--;) {
+      RSprintf("~");
+    }
+  }
+  syntaxErrorExtra=0;
+}
+
 void trans_syntax_error_report_fn(char *err) {
   if (!rx_suppress_syntax_info){
-    if (lastSyntaxErrorLine == 0){
-      if (isEsc) {
-	RSprintf(_("\033[1mRxODE model syntax error:\n================================================================================\033[0m"));
-      }
-      else {
-	RSprintf(_("RxODE model syntax error:\n================================================================================"));
-      }
-      lastSyntaxErrorLine=1;
-    }
+    printSyntaxErrorHeader();
     Parser *p = (Parser *)curP;
-    char *buf;
-    for (; lastSyntaxErrorLine < p->user.loc.line; lastSyntaxErrorLine++){
-      buf = getLine(gBuf, lastSyntaxErrorLine, &gBufLast);
-      RSprintf("\n:%03d: %s", lastSyntaxErrorLine, buf);
-      Free(buf);
-    }
-    if (lastSyntaxErrorLine < p->user.loc.line){
-      RSprintf("\n");
-      lastSyntaxErrorLine++;
-    }
-    if (isEsc) {
-      RSprintf("\n\033[1m:%03d:\033[0m %s:\n", p->user.loc.line, err);
-    }
-    else {
-      RSprintf("\n:%03d: %s:\n", p->user.loc.line, err);
-    }
-    buf = getLine(gBuf, p->user.loc.line, &gBufLast);
-    RSprintf("      ");
-    int i, len = strlen(buf);
-    for (i = 0; i < p->user.loc.col; i++){
-      RSprintf("%c", buf[i]);
-      if (i == len-2) { i++; break;}
-    }
-    if (isEsc) {
-      RSprintf("\033[35m\033[1m%c\033[0m", buf[i++]);
-    }
-    else {
-      RSprintf("%c", buf[i++]);
-    }
-    for (; i < len; i++){
-      RSprintf("%c", buf[i]);
-    }
-    RSprintf("\n      ");
-    Free(buf);
-    for (int i = 0; i < p->user.loc.col; i++){
-      RSprintf(" ");
-      if (i == len-2) { i++; break;}
-    }
-    if (isEsc) {
-      RSprintf("\033[35m\033[1m^\033[0m");
-    }
-    else {
-      RSprintf("^");
-    }
-    if (syntaxErrorExtra > 0 && syntaxErrorExtra < 40){
-      for (int i = syntaxErrorExtra; i--;) {
-	RSprintf("~");
-      }
-    }
-    syntaxErrorExtra=0;
+    printPriorLines(p);
+    printErrorLineAndErr(p, err);
+    printErrorLineHighlightRegion(p);
   }
   rx_syntax_error = 1;
 }
