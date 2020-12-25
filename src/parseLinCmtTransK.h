@@ -1,4 +1,4 @@
-static inline void linCmtParseTranKelK12(linCmtStruct *lin, int verbose) {
+static inline void assertK12andK21mustBePresent(linCmtStruct *lin, int verbose) {
   if (lin->k12 == -1) {
     if (lin->cmtc == 1){
       parseFree(0);
@@ -25,36 +25,44 @@ static inline void linCmtParseTranKelK12(linCmtStruct *lin, int verbose) {
       Rf_errorcall(R_NilValue, _("'k32' not found when 'k23' present"));
     }
   }
+}
+
+static inline void assertK13andK31mustBePresent(linCmtStruct *lin, int verbose) {
+  if (lin->k13 == -1) {
+    if (lin->cmtc == 1){
+      sFree(&(lin->ret0));
+      sFree(&(lin->ret));
+      parseFree(0);
+      Rf_errorcall(R_NilValue, _("'k13' not found when 'k31' present"));
+    } else {
+      sFree(&(lin->ret0));
+      sFree(&(lin->ret));
+      parseFree(0);
+      Rf_errorcall(R_NilValue, _("'k24' not found when 'k42' present"));
+    }
+  }
+  if (lin->k31 == -1) {
+    if (lin->cmtc == 1){
+      sFree(&(lin->ret0));
+      sFree(&(lin->ret));
+      parseFree(0);
+      Rf_errorcall(R_NilValue, _("'k31' not found when 'k13' present"));
+    } else {
+      sFree(&(lin->ret0));
+      sFree(&(lin->ret));
+      parseFree(0);
+      Rf_errorcall(R_NilValue, _("'k42' not found when 'k24' present"));
+    }
+  }
+}
+
+static inline void linCmtParseTranKelK12(linCmtStruct *lin, int verbose) {
+  assertK12andK21mustBePresent(lin, verbose);
   lin->ncmt = 2;
   sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->k12)));
   sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->k21)));
   if (lin->k13 != -1 || lin->k31 != -1) {
-    if (lin->k13 == -1) {
-      if (lin->cmtc == 1){
-	sFree(&(lin->ret0));
-	sFree(&(lin->ret));
-	parseFree(0);
-	Rf_errorcall(R_NilValue, _("'k13' not found when 'k31' present"));
-      } else {
-	sFree(&(lin->ret0));
-	sFree(&(lin->ret));
-	parseFree(0);
-	Rf_errorcall(R_NilValue, _("'k24' not found when 'k42' present"));
-      }
-    }
-    if (lin->k31 == -1) {
-      if (lin->cmtc == 1){
-	sFree(&(lin->ret0));
-	sFree(&(lin->ret));
-	parseFree(0);
-	Rf_errorcall(R_NilValue, _("'k31' not found when 'k13' present"));
-      } else {
-	sFree(&(lin->ret0));
-	sFree(&(lin->ret));
-	parseFree(0);
-	Rf_errorcall(R_NilValue, _("'k42' not found when 'k24' present"));
-      }
-    }
+    assertK13andK31mustBePresent(lin, verbose);
     lin->ncmt = 3;
     sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->k13)));
     sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->k31)));
