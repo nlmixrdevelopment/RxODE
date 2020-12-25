@@ -89,7 +89,7 @@ SEXP _linCmtParse(SEXP vars0, SEXP inStr, SEXP verboseSXP) {
   const char *first = "linCmtB(rx__PTR__, t, ";
   const char *mid0 = "0, ";
   const char *end1 = "rx_tlag, rx_F, rx_rate, rx_dur,";
-  const char *end2 = ", yrx_tlag2, rx_F2, rx_rate2, rx_dur2)";  
+  const char *end2 = ", yrx_tlag2, rx_F2, rx_rate2, rx_dur2)";
   int type = TYPEOF(inStr);
   if (type == STRSXP) {
     int len = Rf_length(inStr);
@@ -218,6 +218,51 @@ static inline void linCmtGenBolus(linCmtGenStruct *linG) {
   }
 }
 
+static inline int linCmtGenFinalize(linCmtGenStruct *linG, SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose, SEXP linCmtP) {
+  for (int i = 0; i < sbNrmL.n; i++){
+    if (sbNrmL.lProp[i]== -100){
+      char *line = sbNrmL.line[i];
+      if (line[0] != '\0') {
+	while (strncmp(line, "linCmt(", 7)){
+	  if (line[0] == '\0') {
+	    return 1;
+	  }
+	  else sPut(&(linG->last2), line[0]);
+	  line++;
+	}
+      }
+      if (strlen(line) > 7) line +=7;
+      else {
+	/* linCmtGenFree(linG); */
+	/* UNPROTECT(pro); */
+	/* parseFree(0); */
+	/* Rf_errorcall(R_NilValue, _("linCmt() bad parse")); */
+	/* return R_NilValue; */
+	return 1;
+      }
+      sAppend(&(linG->last2), "%s", CHAR(STRING_ELT(VECTOR_ELT(linCmtP, 0), 0)));
+      while (line[0] != ')'){
+	if (line[0] == '\0') {
+	  /* linCmtGenFree(linG); */
+	  /* UNPROTECT(pro); */
+	  /* parseFree(0); */
+	  /* Rf_errorcall(R_NilValue, _("linCmt() bad parse")); */
+	  /* return R_NilValue; */
+	  return 1;
+	}
+	if (line[0] == '('){
+	  return 2;
+	}
+	line++;
+      }
+      if (line[0] != '\0') sAppend(&(linG->last2), "%s", ++line);
+    } else {
+      sAppend(&(linG->last2), "%s", sbNrmL.line[i]);
+    }
+  }
+  return 0;
+}
+
 static inline SEXP linCmtGenSEXP(linCmtGenStruct *linG, SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
   int pro=0;
   SEXP inStr = PROTECT(Rf_allocVector(STRSXP, 4)); pro++;
@@ -246,53 +291,20 @@ static inline SEXP linCmtGenSEXP(linCmtGenStruct *linG, SEXP linCmt, SEXP vars, 
   }
   _linCmtParsePro=pro;
   SEXP linCmtP = PROTECT(_linCmtParse(vars, inStr, verbose)); pro++;
-  int i;
-  for (i = 0; i < sbNrmL.n; i++){
-    if (sbNrmL.lProp[i]== -100){
-      char *line = sbNrmL.line[i];
-      if (line[0] != '\0') {
-	while (strncmp(line, "linCmt(", 7)){
-	  if (line[0] == '\0') {
-	    linCmtGenFree(linG);
-	    UNPROTECT(pro);
-	    parseFree(0);
-	    Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
-	    return R_NilValue;
-	  }
-	  else sPut(&(linG->last2), line[0]);
-	  line++;
-	}
-      }
-      if (strlen(line) > 7) line +=7;
-      else {
-	linCmtGenFree(linG);
-	UNPROTECT(pro);
-	parseFree(0);
-	Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
-	return R_NilValue;
-      }
-      sAppend(&(linG->last2), "%s", CHAR(STRING_ELT(VECTOR_ELT(linCmtP, 0), 0)));
-      while (line[0] != ')'){
-	if (line[0] == '\0') {
-	  linCmtGenFree(linG);
-	  UNPROTECT(pro);
-	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
-	  return R_NilValue;
-	}
-	if (line[0] == '('){
-	  linCmtGenFree(linG);
-	  UNPROTECT(pro);
-	  parseFree(0);
-	  Rf_errorcall(R_NilValue, _("linCmt() cannot have any extra parentheses in it"));
-	  return R_NilValue;
-	}
-	line++;
-      }
-      if (line[0] != '\0') sAppend(&(linG->last2), "%s", ++line);
-    } else {
-      sAppend(&(linG->last2), "%s", sbNrmL.line[i]);
-    }
+  switch(linCmtGenFinalize(linG, linCmt, vars, linCmtSens, verbose, linCmtP)) {
+  case 1:
+    linCmtGenFree(linG);
+    UNPROTECT(pro);
+    parseFree(0);
+    Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
+    return R_NilValue;
+  case 2:
+    linCmtGenFree(linG);
+    UNPROTECT(pro);
+    parseFree(0);
+    Rf_errorcall(R_NilValue, _("linCmt() cannot have any extra parentheses in it"));
+    return R_NilValue;
+    break;
   }
   SEXP ret = PROTECT(Rf_allocVector(STRSXP,1)); pro++;
   SET_STRING_ELT(ret, 0, mkChar(linG->last2.s));
