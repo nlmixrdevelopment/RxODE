@@ -19,9 +19,7 @@ linters: with_defaults(
     trailing_whitespace_linter = NULL, # 23
     seq_linter = NULL, # 2
     dummy_linter = NULL,
-    sapply = NULL,
-    sink=NULL,
-    options=NULL
+    undesirable_function_linter = NULL
   )
 exclusions: list(
     "tests/testthat.R",
