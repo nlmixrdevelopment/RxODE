@@ -18,7 +18,8 @@ linters: with_defaults(
     function_left_parentheses = NULL, # 27
     trailing_whitespace_linter = NULL, # 23
     seq_linter = NULL, # 2
-    dummy_linter = NULL
+    dummy_linter = NULL,
+    sapply = NULL
   )
 exclusions: list(
     "tests/testthat.R",
