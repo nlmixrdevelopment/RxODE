@@ -18,7 +18,7 @@ rxPermissive(
     et <- eventTable()
     et$add.sampling(seq(0, 20, by = 0.01))
 
-    out <- solve(rigid, et, theta = c(-2, 1.25, -0.5), eta = c(0))
+    out <- solve(rigid, et, theta = c(-2, 1.25, -0.5), eta = 0)
 
     test_that("Test rigid body example", {
       expect_equal(
@@ -27,7 +27,7 @@ rxPermissive(
       )
     })
 
-    out <- solve(rigid, et, theta = c(-2, 1.25, -0.5), eta = c(1))
+    out <- solve(rigid, et, theta = c(-2, 1.25, -0.5), eta = 1)
 
     test_that("Test rigid body example", {
       expect_equal(
