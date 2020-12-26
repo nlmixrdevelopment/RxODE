@@ -8,9 +8,9 @@
 \usage{
 rxShiny(
   object,
-  params = c(),
+  params = NULL,
   events = NULL,
-  inits = c(),
+  inits = NULL,
   ...,
   data = data.frame()
 )
@@ -19,16 +19,16 @@ rxShiny(
   object,
   params = NULL,
   events = NULL,
-  inits = c(),
+  inits = NULL,
   ...,
   data = data.frame()
 )
 
 \method{rxShiny}{default}(
   object = NULL,
-  params = c(),
+  params = NULL,
   events = NULL,
-  inits = c(),
+  inits = NULL,
   ...,
   data = data.frame()
 )
