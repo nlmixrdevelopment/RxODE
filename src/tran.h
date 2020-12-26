@@ -1,5 +1,7 @@
 #ifndef __TRAN_H__
 #define __TRAN_H__
+#include <stdio.h>
+#include <ctype.h>
 extern int rx_syntax_allow_dots, rx_syntax_require_ode_first, rx_podo, needSort;
 void updateSyntaxCol();
 void trans_syntax_error_report_fn(char *err);
@@ -296,5 +298,32 @@ extern sbuf sbt;
 #define aAppendN(str, len) sAppendN(&sb, str, len); sAppendN(&sbDt, str, len);
 #define aProp(prop) curLineProp(&sbPm, prop); curLineProp(&sbPmDt, prop); curLineProp(&sbNrmL, prop);
 #define aType(type) curLineType(&sbPm, type); curLineType(&sbPmDt, type); curLineType(&sbNrmL, type);
+
+static inline int toInt(char *v2){
+  errno = 0;
+  char *v3 = v2;
+  char *endptr = NULL;
+  long lagNoL = strtol(v3, &endptr, 10);
+  int lagNo;
+  if (errno == 0 && v3 && !*endptr){
+    lagNo = (int)(lagNoL);
+  } else {
+    lagNo = NA_INTEGER;
+  }
+  errno=0;
+  return lagNo;
+}
+
+static inline int allSpaces(char *v2) {
+  int iii=0;
+  int allSpace=1;
+  while(v2[iii] != '\0'){
+    if (!isspace(v2[iii])){
+      allSpace=0;
+      break;
+    }
+  }
+  return allSpace;
+}
 
 #endif // __TRAN_H__
