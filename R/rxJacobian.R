@@ -330,6 +330,32 @@ rxExpandGrid <- function(x, y, type = 0L) {
   .newmod$..extraPars <- .extraPars
   return(.newmod)
 }
+
+.rxIsOp <- function(x) {
+  (identical(x, quote(`*`)) ||
+     identical(x, quote(`**`)) ||
+     identical(x, quote(`^`)) ||
+     identical(x, quote(`+`)) ||
+     identical(x, quote(`-`)) ||
+     identical(x, quote(`/`)) ||
+     identical(x, quote(`==`)) ||
+     identical(x, quote(`!=`)) ||
+     identical(x, quote(`>=`)) ||
+     identical(x, quote(`<=`)) ||
+     identical(x, quote(`<`)) ||
+     identical(x, quote(`>`)) ||
+     identical(x, quote(`&&`)) ||
+     identical(x, quote(`&`)) ||
+     identical(x, quote(`||`)) ||
+     identical(x, quote(`|`)))
+}
+
+.rxIsEqOrTilde <- function(x) {
+  identical(x, quote(`=`)) ||
+    identical(x, quote(`<-`)) ||
+    identical(x, quote(`~`))
+}
+
 .rxGenSaemHide0 <- function(x) {
   if (is.name(x) || is.atomic(x)) {
     return(as.character(x))
@@ -337,30 +363,18 @@ rxExpandGrid <- function(x, y, type = 0L) {
     if (identical(x[[1]], quote(`(`))) {
       return(paste0("(", .rxGenSaemHide0(x[[2]]), ")"))
     } else if (identical(x[[1]], quote(`{`))) {
-      return(paste0("{\n", paste(lapply(x[-1], .rxGenSaemHide0), collapse = "\n"), "\n}"))
+      return(paste0("{\n", paste(lapply(x[-1], .rxGenSaemHide0),
+                                 collapse = "\n"), "\n}"))
     } else if (as.character(x[[1]]) == "if") {
       if (length(x) == 3) {
-        return(paste0("if (", .rxGenSaemHide0(x[[2]]), ") ", .rxGenSaemHide0(x[[3]])))
+        return(paste0("if (", .rxGenSaemHide0(x[[2]]), ") ",
+                      .rxGenSaemHide0(x[[3]])))
       } else if (length(x) == 4) {
-        return(paste0("if (", .rxGenSaemHide0(x[[2]]), ") ", .rxGenSaemHide0(x[[3]]), " else ", .rxGenSaemHide0(x[[4]])))
+        return(paste0("if (", .rxGenSaemHide0(x[[2]]), ") ",
+                      .rxGenSaemHide0(x[[3]]), " else ",
+                      .rxGenSaemHide0(x[[4]])))
       }
-    } else if (identical(x[[1]], quote(`*`)) ||
-                 identical(x[[1]], quote(`**`)) ||
-                 identical(x[[1]], quote(`^`)) ||
-                 identical(x[[1]], quote(`+`)) ||
-                 identical(x[[1]], quote(`-`)) ||
-                 identical(x[[1]], quote(`/`)) ||
-                 identical(x[[1]], quote(`==`)) ||
-                 identical(x[[1]], quote(`!=`)) ||
-                 identical(x[[1]], quote(`>=`)) ||
-                 identical(x[[1]], quote(`<=`)) ||
-                 identical(x[[1]], quote(`<`)) ||
-                 identical(x[[1]], quote(`>`)) ||
-                 identical(x[[1]], quote(`&&`)) ||
-                 identical(x[[1]], quote(`&`)) ||
-                 identical(x[[1]], quote(`||`)) ||
-                 identical(x[[1]], quote(`|`))
-                 ) {
+    } else if (.rxIsOp(x[[1]])) {
       if (length(x) == 3) {
         return(paste0(.rxGenSaemHide0(x[[2]]),
                       as.character(x[[1]]),
@@ -372,9 +386,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
           .rxGenSaemHide0(x[[2]])
         ))
       }
-    } else if (identical(x[[1]], quote(`=`)) ||
-                 identical(x[[1]], quote(`<-`)) ||
-                 identical(x[[1]], quote(`~`))) {
+    } else if (.rxIsEqOrTilde(x[[1]])) {
       .x2 <- .rxGenSaemHide0(x[[2]])
       if (.x2 == "nlmixr_pred" || regexpr("[(]", .x2) != -1) {
         return(paste0(.x2, "=",
@@ -384,7 +396,9 @@ rxExpandGrid <- function(x, y, type = 0L) {
                       .rxGenSaemHide0(x[[3]])))
       }
     } else {
-      return(paste0(as.character(x[[1]]), "(", paste(unlist(lapply(x[-1], .rxGenSaemHide0)), collapse=", "), ")"))
+      return(paste0(as.character(x[[1]]), "(", paste(unlist(lapply(x[-1],
+                                                            .rxGenSaemHide0)),
+                                                     collapse = ", "), ")"))
     }
   }
 }

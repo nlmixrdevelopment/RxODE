@@ -37,7 +37,7 @@ rxPermissive({
     nlmixr_pred <- T
   })
 
-  err <- function () {
+  err <- function() {
     return(prop(prop.err) + add(add.err))
   }
 

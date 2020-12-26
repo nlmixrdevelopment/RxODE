@@ -992,7 +992,7 @@ getRxThreads <- function(verbose=FALSE){
 
 #'@rdname getRxThreads
 #'@export
-setRxThreads <- function (threads = NULL, percent = NULL, throttle=NULL)
+setRxThreads <- function(threads = NULL, percent = NULL, throttle=NULL)
 {
   if (!missing(percent)) {
     if (!missing(threads)) stop("provide either threads= or percent= but not both")
