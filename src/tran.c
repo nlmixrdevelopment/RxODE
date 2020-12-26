@@ -494,10 +494,9 @@ void trans_internal(const char* parse_file, int isStr){
   }
 }
 
-SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
-		  SEXP isEscIn, SEXP inME, SEXP goodFuns){
+static inline int setupTrans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
+			     SEXP isEscIn, SEXP inME, SEXP goodFuns) {
   _goodFuns = goodFuns;
-  const char *in = NULL;
   // Make sure buffers are initialized.
   isEsc=INTEGER(isEscIn)[0];
 
@@ -539,10 +538,10 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
   } else {
     badMd5=1;
   }
+  return isStr;
+}
 
-  in = CHAR(STRING_ELT(parse_file,0));
-  trans_internal(in, isStr);
-  SEXP lst = PROTECT(generateModelVars());
+static inline void finalizeSyntaxError() {
   if (rx_syntax_error){
     if(!rx_suppress_syntax_info){
       if (gBuf[gBufLast] != '\0'){
@@ -570,6 +569,16 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
       Rf_errorcall(R_NilValue, _("syntax errors (see above)"));
     }
   }
+}
+
+SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
+		  SEXP isEscIn, SEXP inME, SEXP goodFuns){
+  const char *in = NULL;
+  int isStr = setupTrans(parse_file, prefix, model_md5, parseStr, isEscIn, inME, goodFuns);
+  in = CHAR(STRING_ELT(parse_file,0));
+  trans_internal(in, isStr);
+  SEXP lst = PROTECT(generateModelVars());
+  finalizeSyntaxError();
   UNPROTECT(1);
   return lst;
 }
