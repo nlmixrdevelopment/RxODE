@@ -61,6 +61,7 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     })
 
     test_that("Jacobian specified but sensitivity not specified.", {
+
       jac <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
@@ -77,6 +78,7 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     })
 
     test_that("Sensitivity specified.", {
+
       sens <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y

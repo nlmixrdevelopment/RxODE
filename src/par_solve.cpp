@@ -507,11 +507,13 @@ static inline double getDur(rx_solving_options_ind *ind, int id, int cmt, double
   return ret;
 }
 
-static inline void postSolve(int *idid, int *rc, int *i, double *yp, const char** err_msg, bool doPrint,
+static inline void postSolve(int *idid, int *rc, int *i, double *yp, const char** err_msg, int nerr, bool doPrint,
 			     rx_solving_options_ind *ind, rx_solving_options *op, rx_solve *rx) {
   if (*idid <= 0) {
     if (err_msg != NULL) {
-      RSprintf("IDID=%d, %s\n", *idid, err_msg[-*idid-1]);
+      int cid = -*idid-1;
+      if (cid > 0 && cid < nerr) RSprintf("IDID=%d, %s\n", *idid, err_msg[-*idid-1]);
+      else RSprintf("IDID=%d, unhandled exception\n", *idid);
     }
     *rc = *idid;
     badSolveExit(*i);
@@ -1800,7 +1802,7 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
 	idid = indLin(solveid, op, xoutp, yp, xout, ind->InfusionRate, ind->on, 
 		      ME, IndF);
 	xoutp=xout;
-	postSolve(&idid, rc, &i, yp, NULL, true, ind, op, rx);
+	postSolve(&idid, rc, &i, yp, NULL, 0, true, ind, op, rx);
       }
     }
     ind->_newind = 2;
@@ -1940,7 +1942,7 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
 	badSolveExit(i);
       } else {
 	lsoda(ctx, yp, &xp, xout);
-	postSolve(&(ctx->state), rc, &i, yp, NULL, false, ind, op, rx);
+	postSolve(&(ctx->state), rc, &i, yp, NULL, 0, false, ind, op, rx);
       }
     }
     ind->_newind = 2;
@@ -2209,7 +2211,7 @@ extern "C" void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, in
       } else {
 	F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &gitol, &(op->RTOL), &(op->ATOL), &gitask,
 			 &istate, &giopt, rwork, &lrw, iwork, &liw, jdum, &jt);
-	postSolve(&istate, ind->rc, &i, yp, err_msg_ls, true, ind, op, rx);
+	postSolve(&istate, ind->rc, &i, yp, err_msg_ls, 7, true, ind, op, rx);
 	//dadt_counter = 0;
       }
     }
@@ -2387,7 +2389,7 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
 		      0                       /* declared length of icon */
 		      );
       }
-      postSolve(&idid, rc, &i, yp, err_msg, true, ind, op, rx);
+      postSolve(&idid, rc, &i, yp, err_msg, 4, true, ind, op, rx);
       xp = xRead();
       //dadt_counter = 0;
     }
