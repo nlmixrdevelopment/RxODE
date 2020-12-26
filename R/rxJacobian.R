@@ -45,7 +45,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
         1L
       )
     } else {
-      .pars <- c()
+      .pars <- NULL
       .jac <- rxExpandGrid(
         rxState(model),
         rxState(model),
@@ -225,7 +225,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
 #' @author Matthew L Fidler
 .rxGenPred <- function(obj, predfn, errfn, init,
                        addProp=c("combined2", "combined1")) {
-  .extraPars <- c()
+  .extraPars <- NULL
   add <- function(...) {} # maker rcheck happy
   if (is.null(errfn)) {
     errfn <- function() {
@@ -510,7 +510,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
   .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
     promoteLinSens = promoteLinSens, addProp=addProp
   )
-  .etaVars <- c()
+  .etaVars <- NULL
   if (theta && exists("..maxTheta", .s)) {
     .etaVars <- paste0("THETA_", seq(1, .s$..maxTheta), "_")
   } else if (exists("..maxEta", .s)) {
@@ -779,10 +779,10 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
 }
 
 rxSymPyAbsLog <- FALSE
-rxSymPyLogSign <- c()
+rxSymPyLogSign <- NULL
 
-rxSymPyExpThetas <- c()
-rxSymPyExpEtas <- c()
+rxSymPyExpThetas <- NULL
+rxSymPyExpEtas <- NULL
 
 
 #' Setup Pred function based on RxODE object.
@@ -848,8 +848,8 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   assignInMyNamespace("rxErrEnv.yj", NULL)
   assignInMyNamespace("rxErrEnv.hi", "1")
   assignInMyNamespace("rxErrEnv.low", "0")
-  assignInMyNamespace("rxSymPyExpThetas", c())
-  assignInMyNamespace("rxSymPyExpEtas", c())
+  assignInMyNamespace("rxSymPyExpThetas", NULL)
+  assignInMyNamespace("rxSymPyExpEtas", NULL)
   if (only.numeric) {
     .s <- .rxGenEBE(obj, predfn, pkpars, errfn, init, pred.minus.dv,
                     sum.prod, optExpression,

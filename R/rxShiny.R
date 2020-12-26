@@ -5,7 +5,7 @@ g.y.log10 <- function(breaks = g.log.breaks.major, minor_breaks = g.log.breaks.m
     r <- r1
     r[1] <- floor(r[1])
     r[2] <- ceiling(r[2]) + 1
-    breaks <- c()
+    breaks <- NULL
     for (i in seq(r[1], r[2])) {
       breaks <- c(breaks, seq(2 * 10^(i - 1), 10^i - 10^(i - 1), by = 10^(i - 1)))
     }
@@ -44,12 +44,12 @@ g.y.log10 <- function(breaks = g.log.breaks.major, minor_breaks = g.log.breaks.m
 #' @return Nothing; Starts a shiny server
 #' @author Zufar Mulyukov and Matthew L. Fidler
 #' @export
-rxShiny <- function(object, params = c(), events = NULL, inits = c(), ..., data = data.frame()) {
+rxShiny <- function(object, params = NULL, events = NULL, inits = NULL, ..., data = data.frame()) {
   UseMethod("rxShiny")
 }
 #' @rdname rxShiny
 #' @export
-rxShiny.rxSolve <- function(object, params = NULL, events = NULL, inits = c(), ..., data = data.frame()) {
+rxShiny.rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, ..., data = data.frame()) {
   if (is.null(params)) {
     if (dim(object$params)[1] > 1) {
       warning("using the first solved parameters for rxShiny", call. = FALSE)
@@ -63,7 +63,7 @@ rxShiny.rxSolve <- function(object, params = NULL, events = NULL, inits = c(), .
 }
 #' @rdname rxShiny
 #' @export
-rxShiny.default <- function(object = NULL, params = c(), events = NULL, inits = c(), ...,
+rxShiny.default <- function(object = NULL, params = NULL, events = NULL, inits = NULL, ...,
                             data = data.frame()) {
   rxReq("shiny")
   rxReq("ggplot2")

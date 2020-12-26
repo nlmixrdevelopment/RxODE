@@ -543,7 +543,7 @@ rxRmvn <- function(n, mu = NULL, sigma, lower = -Inf, upper = Inf, ncores = 1, i
 #' @author Matthew L. Fidler
 #' @noRd
 .collectWarnings <- function(expr, lst = FALSE) {
-  .ws <- c()
+  .ws <- NULL
   .thisEnv <- environment()
   .ret <- suppressWarnings(
     withCallingHandlers(expr,

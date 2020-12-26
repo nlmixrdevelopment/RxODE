@@ -102,7 +102,7 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
       unlink,
       force = TRUE, recursive = TRUE
     )
-    .models <- c()
+    .models <- NULL
     for (.f in list.files(
       path = devtools::package_file("data"),
       pattern = "\\.rda$", full.names = TRUE

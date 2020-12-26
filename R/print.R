@@ -237,11 +237,11 @@ print.rxCoef <- function(x, ...) {
     cat(cli::cli_format_method({
       cli::cli_rule(left = "User supplied parameters:")
     }), "\n")
-    print(RxODE::rxInits(.rxDllObj, c(), RxODE::rxParams(.rxDllObj), NA, TRUE))
+    print(RxODE::rxInits(.rxDllObj, NULL, RxODE::rxParams(.rxDllObj), NA, TRUE))
     cat(cli::cli_format_method({
       cli::cli_rule(left = "User initial conditions:")
     }), "\n")
-    .tmp <- RxODE::rxInits(.rxDllObj, c(), RxODE::rxState(.rxDllObj), 0, TRUE)
+    .tmp <- RxODE::rxInits(.rxDllObj, NULL, RxODE::rxState(.rxDllObj), 0, TRUE)
     if (length(x$sens) > 0) {
       .tmp <- .tmp[regexpr(getFromNamespace("regSens", "RxODE"), names(.tmp)) == -1]
     }

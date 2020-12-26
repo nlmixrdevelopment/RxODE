@@ -128,8 +128,8 @@
 #' @export
 rxPrune <- function(x) {
   .env <- new.env(parent = emptyenv())
-  .env$.if <- c()
-  .env$.def1 <- c()
+  .env$.if <- NULL
+  .env$.def1 <- NULL
   .ret <- .rxPrune(eval(parse(text = paste0("quote({", rxNorm(x), "})"))), envir = .env)
   return(.ret)
 }

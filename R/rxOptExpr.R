@@ -121,8 +121,8 @@
 .rxOptEnv$.list <- list()
 .rxOptEnv$.rep <- list()
 .rxOptEnv$.exclude <- ""
-.rxOptEnv$.new <- c()
-.rxOptEnv$.added <- c()
+.rxOptEnv$.new <- NULL
+.rxOptEnv$.added <- NULL
 .rxOptGetEnv <- function(expr) {
   ## Known functions
   .calls <- allCalls(expr)
@@ -313,7 +313,7 @@
     } else if (identical(x[[1]], quote(`~`)) ||
       identical(x[[1]], quote(`=`)) ||
       identical(x[[1]], quote(`<-`))) {
-      .rxOptEnv$.new <- c()
+      .rxOptEnv$.new <- NULL
       .x3 <- .rxOptExpr(x[[3]])
       if (length(.x3) == 3){
         if (any(.x3[1] == c("/", "*", "+", "-"))){
@@ -328,7 +328,7 @@
         ifelse(identical(x[[1]], quote(`<-`)),
           "=", as.character(x[[1]])),
         .x3)
-      .extra <- c()
+      .extra <- NULL
       if (length(.rxOptEnv$.new) > 0) {
         for (.i in seq_along(.rxOptEnv$.rep)) {
           if (any(.rxOptEnv$.rep[[.i]] == .rxOptEnv$.new) &&
@@ -409,7 +409,7 @@ rxOptExpr <- function(x, msg = "model") {
   .params <- .mv$params
   .rxOptEnv$.list <- list()
   .rxOptEnv$.rep <- list()
-  .rxOptEnv$.added <- c()
+  .rxOptEnv$.added <- NULL
   .rxOptEnv$.exclude <- ""
   .malert(sprintf("finding duplicate expressions in %s...", msg))
   .p <- eval(parse(text = paste0("quote({", rxNorm(x), "})")))

@@ -181,9 +181,9 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 
 
 
-.rxSEeqUsr <- c()
+.rxSEeqUsr <- NULL
 
-.rxCcode <- c()
+.rxCcode <- NULL
 .symengineFs <- new.env(parent = emptyenv())
 
 .extraCnow <- ""
@@ -2205,14 +2205,14 @@ rxS <- function(x, doConst = TRUE, promoteLinSens = FALSE) {
   .cnst <- names(.rxSEreserved)
   .env <- new.env(parent = loadNamespace("symengine"))
   .env$..mv <- rxModelVars(x)
-  .env$..jac0 <- c()
+  .env$..jac0 <- NULL
   .env$..jac0.. <- list()
-  .env$..ddt <- c()
+  .env$..ddt <- NULL
   .env$..ddt.. <- list()
-  .env$..sens0 <- c()
+  .env$..sens0 <- NULL
   .env$..sens0.. <- list()
-  .env$..lhs <- c()
-  .env$..lhs0 <- c()
+  .env$..lhs <- NULL
+  .env$..lhs0 <- NULL
   .env$..doConst <- doConst
   for (.f in c(ls(.rxD), "linCmtA", "linCmtB", "rxEq", "rxNeq", "rxGeq", "rxLeq", "rxLt",
                "rxGt", "rxAnd", "rxOr", "rxNot", "rxTBS","rxTBSd", "rxTBSd2", "lag", "lead")) {
@@ -2225,8 +2225,8 @@ rxS <- function(x, doConst = TRUE, promoteLinSens = FALSE) {
   .env$..extraTheta <- list()
   .env$..extraEta <- list()
   .env$..curCall <- character(0)
-  .env$..eventVars <- c()
-  .env$..mtimeVars <- c()
+  .env$..eventVars <- NULL
+  .env$..mtimeVars <- NULL
   .env$polygamma <- function(a, b) {
     ## symengine::subs(symengine::subs(..polygamma, ..a, a), ..b,  b)
     symengine::psigamma(b, a)
@@ -2432,7 +2432,7 @@ rxErrEnvF$"if" <- function(lg, tr, fl) {
   }
 }
 rxErrEnv.theta <- 1
-rxErrEnv.diag.est <- c()
+rxErrEnv.diag.est <- NULL
 rxErrEnv.ret <- "rx_r_"
 rxErrEnv.init <- NULL
 rxErrEnv.lambda <- NULL
@@ -2445,7 +2445,7 @@ rxErrEnv.low <- "0"
 .rxErrEnvInit <- function() {
   assignInMyNamespace("rxErrEnv.hasAdd", FALSE)
   assignInMyNamespace("rxErrEnv.theta", 1)
-  assignInMyNamespace("rxErrEnv.diag.est", c())
+  assignInMyNamespace("rxErrEnv.diag.est", NULL)
   assignInMyNamespace("rxErrEnv.ret", "rx_r_")
   assignInMyNamespace("rxErrEnv.init", NULL)
   assignInMyNamespace("rxErrEnv.lambda", NULL)
@@ -2971,20 +2971,20 @@ rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL,
   if (is(substitute(x), "character")) {
     ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(quote({%s}),addProp=\"%s\")", x, addProp)))
     ret <- substring(ret, 3, nchar(ret) - 2)
-    assignInMyNamespace("rxErrEnv.diag.est", c())
+    assignInMyNamespace("rxErrEnv.diag.est", NULL)
     assignInMyNamespace("rxErrEnv.theta", 1)
     assignInMyNamespace("rxErrEnv.ret", "rx_r_")
     assignInMyNamespace("rxErrEnv.init", NULL)
     return(ret)
   } else if (is(substitute(x), "name")) {
     ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(%s, addProp=\"%s\")", deparse1(x), addProp)))
-    assignInMyNamespace("rxErrEnv.diag.est", c())
+    assignInMyNamespace("rxErrEnv.diag.est", NULL)
     assignInMyNamespace("rxErrEnv.theta", 1)
     assignInMyNamespace("rxErrEnv.ret", "rx_r_")
     assignInMyNamespace("rxErrEnv.init", NULL)
     return(ret)
   } else {
-    ret <- c()
+    ret <- NULL
     if (is(x, "character")) {
       ret <- eval(parse(text = sprintf("RxODE:::rxParseErr(quote({%s}))", paste(x, collapse = "\n"))))
       ret <- substring(ret, 3, nchar(ret) - 2)
@@ -2993,7 +2993,7 @@ rxParseErr <- function(x, baseTheta, ret = "rx_r_", init = NULL,
       ret <- eval(x, rxErrEnv(x))
     }
     attr(ret, "ini") <- rxErrEnv.diag.est
-    assignInMyNamespace("rxErrEnv.diag.est", c())
+    assignInMyNamespace("rxErrEnv.diag.est", NULL)
     assignInMyNamespace("rxErrEnv.theta", 1)
     assignInMyNamespace("rxErrEnv.ret", "rx_r_")
     assignInMyNamespace("rxErrEnv.init", NULL)

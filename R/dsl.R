@@ -182,9 +182,9 @@ rxExpandIfElse <- function(model, removeInis = TRUE, removePrint = TRUE) {
       }
     }
     ret <- list()
-    rm <- c()
+    rm <- NULL
     for (i in seq_along(known)) {
-      mod <- c()
+      mod <- NULL
       for (j in seq_along(model)) {
         if (identical(lst[[j]], c(""))) {
           mod[length(mod) + 1] <- model[j]
