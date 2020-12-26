@@ -76,7 +76,7 @@ rxPermissive({
     as_tibble()
 
   ev_ref <- ev_ref%>%
-    left_join(.,tabtot,by=c('id'))%>%
+    left_join(.,tabtot,by='id')%>%
     as_tibble()
 
   PK.ev_ref2 <-  rxSolve(mod1, events=ev_ref, cores=2,

@@ -148,7 +148,7 @@ rxExpandIfElse <- function(model, removeInis = TRUE, removePrint = TRUE) {
   w1 <- which(regexpr(regIfOrElse, model) != -1)
   w2 <- which(regexpr(regEnd, model) != -1)
   if (length(w1) > 0) {
-    currExpr <- c("")
+    currExpr <- ""
     lst <- list()
     last <- ""
     known <- list()
@@ -186,7 +186,7 @@ rxExpandIfElse <- function(model, removeInis = TRUE, removePrint = TRUE) {
     for (i in seq_along(known)) {
       mod <- NULL
       for (j in seq_along(model)) {
-        if (identical(lst[[j]], c(""))) {
+        if (identical(lst[[j]], "")) {
           mod[length(mod) + 1] <- model[j]
         } else {
           i1 <- lst[[j]][-1]
