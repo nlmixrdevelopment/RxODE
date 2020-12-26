@@ -332,6 +332,8 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 
 * Pre-compile RxODE headers once (if cache is enabled), which
   increases compilation speed for models in RxODE
+  
+* `RxODE`'s translation from the mini-language to C has been refactored
 
 ## Bug fixes:
  - Occasionally RxODE misidentified dual `lhs`/`param` values.  An
