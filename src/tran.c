@@ -2153,57 +2153,63 @@ static inline void printErrorLineHighlight1(Parser *p, char *buf, char *after, i
   }
 }
 
-static inline void printErrorLineHighlight2(Parser *p, char *buf, char *after, int len){
-  int col = 0, lenv;
-  if (after){
-    lenv = strlen(after);
-    while (col != len && strncmp(buf + col, after, lenv) != 0) col++;
-    if (col == len) col = 0;
-    if (col){
-      for (int i = 0; i < col; i++){
-	RSprintf(" ");
-	if (firstErrD == 0) {
-	  sAppendN(&firstErr, " ", 1);
-	}
-	if (i == len-2) { i++; break;}
-      }
-      len = p->user.loc.col - col;
-      if (len > 0 && len < 40){
-	for (int i = len; i--;) {
-	  RSprintf("~");
-	  if (firstErrD == 0) {
-	    sAppendN(&firstErr, "~", 1);
-	  }
-	}
-      }
-      if (isEsc) {
-	RSprintf("\033[35m\033[1m^\033[0m");
-      }
-      else {
-	RSprintf("^");
-      }
-      if (firstErrD == 0) {
-	sAppendN(&firstErr, "^", 1);
-      }
-    } else {
-      for (int i = 0; i < p->user.loc.col; i++){
-	RSprintf(" ");
-	if (firstErrD == 0) {
-	  sAppendN(&firstErr, " ", 1);
-	}
-	if (i == len-2) { i++; break;}
-      }
-      if (isEsc) {
-	RSprintf("\033[35m\033[1m^\033[0m");
-      }
-      else {
-	RSprintf("^");
-      }
-      if (firstErrD == 0) {
-	sAppendN(&firstErr, "^", 1);
-      }
-
+static inline int printErrorLineHighligt2afterCol(Parser *p, char *buf, char *after, int len, int col) {
+  if (!col || col == len) return 0;
+  for (int i = 0; i < col; i++){
+    RSprintf(" ");
+    if (firstErrD == 0) {
+      sAppendN(&firstErr, " ", 1);
     }
+    if (i == len-2) { i++; break;}
+  }
+  len = p->user.loc.col - col;
+  if (len > 0 && len < 40){
+    for (int i = len; i--;) {
+      RSprintf("~");
+      if (firstErrD == 0) {
+	sAppendN(&firstErr, "~", 1);
+      }
+    }
+  }
+  if (isEsc) {
+    RSprintf("\033[35m\033[1m^\033[0m");
+  }
+  else {
+    RSprintf("^");
+  }
+  if (firstErrD == 0) {
+    sAppendN(&firstErr, "^", 1);
+  }
+  return 1;
+}
+
+static inline void printErrorLineHighligt2after(Parser *p, char *buf, char *after, int len) {
+  int col = 0, lenv = strlen(after);
+  while (col != len && strncmp(buf + col, after, lenv) != 0) col++;
+  if (col == len) col = 0;
+  if (!printErrorLineHighligt2afterCol(p, buf, after, len, col)) {
+    for (int i = 0; i < p->user.loc.col; i++){
+      RSprintf(" ");
+      if (firstErrD == 0) {
+	sAppendN(&firstErr, " ", 1);
+      }
+      if (i == len-2) { i++; break;}
+    }
+    if (isEsc) {
+      RSprintf("\033[35m\033[1m^\033[0m");
+    }
+    else {
+      RSprintf("^");
+    }
+    if (firstErrD == 0) {
+      sAppendN(&firstErr, "^", 1);
+    }
+  }
+}
+
+static inline void printErrorLineHighlight2(Parser *p, char *buf, char *after, int len) {
+  if (after){
+    printErrorLineHighligt2after(p, buf, after, len);
   } else {
     for (int i = 0; i < p->user.loc.col; i++){
       RSprintf(" ");
