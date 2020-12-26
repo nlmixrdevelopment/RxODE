@@ -287,6 +287,14 @@ void trans_syntax_error_report_fn(char *err);
 void trans_syntax_error_report_fn0(char *err);
 
 extern sbuf _bufw, _bufw2;
+extern sbuf sb, sbDt; /* buffer w/ current parsed & translated line */
+extern sbuf sbt;
 
+
+#define ENDLINE tb.ixL=-1; tb.didEq=0; tb.NEnd=NV;
+
+#define aAppendN(str, len) sAppendN(&sb, str, len); sAppendN(&sbDt, str, len);
+#define aProp(prop) curLineProp(&sbPm, prop); curLineProp(&sbPmDt, prop); curLineProp(&sbNrmL, prop);
+#define aType(type) curLineType(&sbPm, type); curLineType(&sbPmDt, type); curLineType(&sbNrmL, type);
 
 #endif // __TRAN_H__
