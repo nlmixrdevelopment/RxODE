@@ -708,8 +708,8 @@ List rxModelVars_character(const RObject &obj){
 	}
       }
       Function filePath("file.path", R_BaseNamespace);
-      Function getwd("getwd", R_BaseNamespace);
-      sobj1 = as<std::string>(getwd());
+      Function wd("getwd", R_BaseNamespace);
+      sobj1 = as<std::string>(wd());
       std::string sobj2 = sobj + ".d";
       std::string sobj3 = sobj + "_" + as<std::string>(platform["r_arch"]) +
 	as<std::string>(platform["dynlib.ext"]);
