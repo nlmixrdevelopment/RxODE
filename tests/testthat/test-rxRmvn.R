@@ -76,9 +76,9 @@ rxPermissive(
       r2 <- rxRmvn(10, c(1, 1, 1), diag(3), c(-1, -1, -1), c(3, 3, 3), ncores = 2)
       expect_equal(r1, r2)
 
-      rxRmvn(10, 1, diag(1) * 0.01, -1, 1.1)
+      rxRmvn(10, c(1), diag(1) * 0.01, c(-1), c(1.1))
 
-      rxRmvn(10, 1, diag(1) * 0.01)
+      rxRmvn(10, c(1), diag(1) * 0.01)
     })
 
     ## test simulating with zero variance

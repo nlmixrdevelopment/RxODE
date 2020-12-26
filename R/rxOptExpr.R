@@ -333,7 +333,7 @@
         for (.i in seq_along(.rxOptEnv$.rep)) {
           if (any(.rxOptEnv$.rep[[.i]] == .rxOptEnv$.new) &&
             !any(.rxOptEnv$.rep[[.i]] == .rxOptEnv$.added)) {
-            .cur <- .rxOptEnv$.rep[[.i]]
+            .cur <- c(.rxOptEnv$.rep[[.i]])
             if (.i != 1) {
               for (.j in seq(1, .i - 1)) {
                 while (!any(.rxOptEnv$.rep[[.j]] == .rxOptEnv$.added) &&

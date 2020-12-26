@@ -902,7 +902,7 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
           if (any(as.character(x[[2]][[1]]) == c("alag", "lag", "F", "f", "rate", "dur"))) {
             envir$..eventVars <- unique(c(.var, envir$..eventVars))
           }
-          if (as.character(x[[2]][[1]]) == "mtime") {
+          if (any(as.character(x[[2]][[1]]) == c("mtime"))) {
             envir$..mtimeVars <- unique(c(.var, envir$..mtimeVars))
           }
         }

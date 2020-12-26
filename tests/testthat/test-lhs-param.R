@@ -128,11 +128,11 @@ rxPermissive(
 
       mod1 <- RxODE("a~NA;\nb~2;\nc=a+b")
       expect_equal(mod1$params, character(0))
-      expect_equal(mod1$lhs, "c")
+      expect_equal(mod1$lhs, c("c"))
 
       mod1 <- RxODE("a~2;\nb~NA;\nc=a+b")
       expect_equal(mod1$params, character(0))
-      expect_equal(mod1$lhs, "c")
+      expect_equal(mod1$lhs, c("c"))
     })
   },
   test = "parsing"

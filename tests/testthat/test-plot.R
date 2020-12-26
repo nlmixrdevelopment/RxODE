@@ -133,14 +133,14 @@ rxPermissive(
       vdiffr::expect_doppelganger("sim.id-unitless-notheme", plot(sim3, C2))
       options(RxODE.theme = TRUE)
 
-      ci1.C2 <- confint(sim, "C2")
+      ci1.C2 <- confint(sim, c("C2"))
 
       ci1.C2.eff <- confint(sim, c("C2", "eff"))
 
       sim2 <- rxSolve(m2, ev, omega = omega, nSub = 2500)
       sim2R <- rxSolve(m2, evR, omega = omega, nSub = 2500)
 
-      ci2.C2 <- confint(sim2, "C2")
+      ci2.C2 <- confint(sim2, c("C2"))
 
       ci2.C2.eff <- confint(sim2, c("C2", "eff"))
 

@@ -543,13 +543,13 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
         sprintf("var=%s", v)
       )
     }
-    for (v in "tlast") {
+    for (v in c("tlast")) {
       goodParse(
         desc = sprintf("good variables: %s", v),
         sprintf("var=%s", v)
       )
     }
-    for (v in "abs") {
+    for (v in c("abs")) {
       goodParse(
         desc = sprintf("good functions: %s", v),
         sprintf("var=%s(x)", v)

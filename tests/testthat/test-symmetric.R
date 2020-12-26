@@ -69,9 +69,9 @@ rxPermissive(
     omega1 <- matrix(c(0.0887, -0.192, 0.0855, 0.0, 0.73, -0.12, 0.0, 0.0, 0.165), 3, 3,
       dimnames = list(NULL, c("eta.Vg", "eta.Q", "eta.Vi"))
     )
-    omega2 <- matrix(0.352, dimnames = list(NULL, "eta.Clg"))
-    omega3 <- matrix(0.207, dimnames = list(NULL, "eta.Clgi"))
-    omega4 <- matrix(0.0852, dimnames = list(NULL, "eta.Cli"))
+    omega2 <- matrix(0.352, dimnames = list(NULL, c("eta.Clg")))
+    omega3 <- matrix(0.207, dimnames = list(NULL, c("eta.Clgi")))
+    omega4 <- matrix(0.0852, dimnames = list(NULL, c("eta.Cli")))
 
     et <- eventTable(amount.units = "mg", time.units = "min")
     et$add.dosing(dose = 75000, nbr.doses = 1, start.time = 0, dosing.to = 1)
