@@ -501,6 +501,7 @@
 </li>
 <li><p>No longer produces C code that create the model variables. Instead, use <code>qs</code> to serialize, compress and encode in base91 and then write the string into the C file. The <code>qs</code> package then decodes all of that into the model variables. This also increases the compilation speed for models in RxODE.</p></li>
 <li><p>Pre-compile RxODE headers once (if cache is enabled), which increases compilation speed for models in RxODE</p></li>
+<li><p><code>RxODE</code>’s translation from the mini-language to C has been refactored</p></li>
 </ul>
 </div>
 <div id="bug-fixes" class="section level2">
