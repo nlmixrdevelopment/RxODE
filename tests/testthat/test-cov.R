@@ -1,4 +1,3 @@
-library(RxODE)
 rxPermissive(
   {
     for (meth in c("liblsoda", "lsoda")) { ## Dop is very close but doesn't match precisely.
