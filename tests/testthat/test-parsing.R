@@ -1,7 +1,6 @@
 ## test ODE parsing for syntax errors
 rxPermissive(
   {
-    library("RxODE")
     context("Test Parsing of models")
 
     badParse <- function(desc, code) {
