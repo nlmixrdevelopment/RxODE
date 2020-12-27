@@ -70,17 +70,13 @@ rxPermissive({
     })
 
     et_1 <-
-      #et(amount.units='mg', time.units='hours') %>%
       et(dose=10000, addl=0, ii=0) %>%
-      #et(amt=20000, nbr.doses=5, start.time=120, dosing.interval=24) %>%
       et(0:8)
 
     et_reset <- et(evid=3)
 
     et_2 <-
-      #et(amount.units='mg', time.units='hours') %>%
       et(dose=20000, addl=0, ii=0) %>%
-      #et(amt=20000, nbr.doses=5, start.time=120, dosing.interval=24) %>%
       et(0:8)
 
     et <- dplyr::bind_rows(et_1, et_reset, et_2)
@@ -92,9 +88,6 @@ rxPermissive({
       cat("t\n")
       x <- rxSolve(mod1, et)
     })
-
-    d <- read.csv(t)
-    unlink(t)
 
     d <- read.csv(t)
     unlink(t)
@@ -138,6 +131,8 @@ rxPermissive({
       et(0:8)
 
     et <- dplyr::bind_rows(et1, et_reset, et_2)
+
+    t <- tempfile("test-evid3", fileext=".csv")
 
     .rxWithSink(t, {
       cat("t\n")
