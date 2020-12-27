@@ -1,8 +1,11 @@
 rxPermissive(
-  {
+{
+
+  .rx <- loadNamespace("RxODE")
+
     for (radi in 1:2) {
 
-      RxODE:::forderForceBase(switch(radi, TRUE, FALSE))
+      .rx$forderForceBase(switch(radi, TRUE, FALSE))
       radix <- switch(radi, "base::order", "data.table::forder")
       context(sprintf("etTrans checks (radix: %s)", radix))
       rxSetIni0(FALSE)
@@ -29,15 +32,15 @@ d/dt(blood)     = a*intestine - b*blood
 
       test_that("error for empty data", {
         expect_error(suppressWarnings({
-          RxODE:::etTrans(et, mod)
+          .rx$etTrans(et, mod)
         }))
       })
 
-      ett1 <- RxODE:::etTrans(et, mod, keepDosingOnly = TRUE)
+      ett1 <- .rx$etTrans(et, mod, keepDosingOnly = TRUE)
       tmp1 <- sort(unique(ett1$EVID))
 
       et$cmt <- factor(et$cmt)
-      ett2 <- RxODE:::etTrans(et, mod, keepDosingOnly = TRUE)
+      ett2 <- .rx$etTrans(et, mod, keepDosingOnly = TRUE)
 
       test_that("factor and character give same compartment information", {
         expect_equal(attr(class(ett2), ".RxODE.lst")$cmtInfo, attr(class(ett1), ".RxODE.lst")$cmtInfo)
@@ -61,7 +64,7 @@ d/dt(blood)     = a*intestine - b*blood
 
       et <- et0
       et$cmt[1:2] <- NA_integer_
-      ett2 <- RxODE:::etTrans(et, mod, keepDosingOnly = TRUE, addCmt = TRUE)
+      ett2 <- .rx$etTrans(et, mod, keepDosingOnly = TRUE, addCmt = TRUE)
 
       test_that("factor NA gives 1 for default compartment", {
         expect_equal(ett2$EVID, ett1$EVID)
@@ -71,7 +74,7 @@ d/dt(blood)     = a*intestine - b*blood
 
       et$cmt[1:2] <- NA_integer_
 
-      ett2 <- RxODE:::etTrans(et, mod, keepDosingOnly = TRUE, addCmt = TRUE)
+      ett2 <- .rx$etTrans(et, mod, keepDosingOnly = TRUE, addCmt = TRUE)
 
       test_that("factor NA gives 1 for default compartment", {
         expect_equal(ett2$EVID[1:2], ett1$EVID[1:2])
@@ -88,9 +91,9 @@ d/dt(blood)     = a*intestine - b*blood
         as.data.frame()
 
       test_that("error for negative non ODE compartments", {
-        expect_error(RxODE:::etTrans(et, mod, keepDosingOnly = TRUE))
+        expect_error(.rx$etTrans(et, mod, keepDosingOnly = TRUE))
         et$cmt <- factor(et$cmt)
-        expect_error(RxODE:::etTrans(et, mod, keepDosingOnly = TRUE))
+        expect_error(.rx$etTrans(et, mod, keepDosingOnly = TRUE))
       })
 
       et <- eventTable()
@@ -105,15 +108,15 @@ d/dt(blood)     = a*intestine - b*blood
         as.data.frame()
 
       test_that("error for negative non ODE compartments after defined compartment", {
-        expect_error(RxODE:::etTrans(et, mod, keepDosingOnly = TRUE))
+        expect_error(.rx$etTrans(et, mod, keepDosingOnly = TRUE))
         et$cmt <- factor(et$cmt)
-        expect_error(RxODE:::etTrans(et, mod, keepDosingOnly = TRUE))
+        expect_error(.rx$etTrans(et, mod, keepDosingOnly = TRUE))
       })
 
       et <- et() %>% et(amt = 3, time = 0.24, evid = 4)
 
       test_that("EVID=4 makes sense", {
-        expect_equal(expect_warning(RxODE:::etTrans(et, mod, keepDosingOnly = TRUE)$EVID), c(3L, 101L))
+        expect_equal(expect_warning(.rx$etTrans(et, mod, keepDosingOnly = TRUE)$EVID), c(3L, 101L))
       })
 
 
@@ -511,7 +514,7 @@ d/dt(blood)     = a*intestine - b*blood
         tmp$cens <- 0
         tmp$cens[1] <- 2
 
-        expect_error(RxODE:::etTrans(tmp, mod))
+        expect_error(.rx$etTrans(tmp, mod))
 
         tmp <- et
         tmp$cens <- 0
