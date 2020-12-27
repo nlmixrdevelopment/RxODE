@@ -1014,3 +1014,24 @@ rxCores <- getRxThreads
 rxUnloadAll <- function(){
     try(rxUnloadAll_(), silent=TRUE)
 }
+
+##' With one sink, then release
+##'
+##' @param file the path to the file sink while running the `code`
+##' @param code The code to run during the sink
+##' @return Will return the results of the `code` section
+##' @export
+##' @author Matthew Fidler
+##' @examples
+##'
+##' t <- tempfile()
+##' .rxWithSink(t,cat("message\n"))
+##' cat("cat2\n") # now you can see the cat2
+##' lines <- readLines(t)
+##' unlink(t)
+##'
+.rxWithSink <- function(file, code) {
+  sink(file) #nolint
+  on.exit(sink()) #nolint
+  force(code)
+}
