@@ -262,13 +262,15 @@ static inline int assertStateCannotHaveDiff(int islhs, int i, char *buf) {
 
 static inline int setLhsAndDualLhsParam(int islhs, SEXP lhs, SEXP params, char *buf,
 				    int *li, int *pi) {
-  if (islhs == 1 || islhs == 19 || islhs == 70) {
-    SET_STRING_ELT(lhs, li[0]++, mkChar(buf));
-    if (islhs == 70) {
+  if (islhs == isLHS || islhs == isLhsStateExtra || islhs == isLHSparam) {
+    SET_STRING_ELT(lhs, li[0], mkChar(buf));
+    li[0] = li[0]+1;
+    if (islhs == isLHSparam) {
       if (!strcmp("CMT", buf)) {
 	tb.hasCmt = 1;
       }
-      SET_STRING_ELT(params, pi[0]++, mkChar(buf));
+      SET_STRING_ELT(params, pi[0], mkChar(buf));
+      pi[0] = pi[0]+1;
     }
     return 1;
   }
@@ -303,6 +305,18 @@ static inline void paramSubThetaEtaToBufw(char *buf) {
   }
 }
 
+static inline void assertLhsAndDualLhsDiffNotLegal(int islhs, int i, char *buf) {
+  if (tb.lag[i] != 0){
+    if (islhs == isLHSparam){
+      sPrint(&_bufw, _("redefined '%s': 'lag', 'lead', 'first', 'last', 'diff' not legal"), buf);
+      trans_syntax_error_report_fn0(_bufw.s);
+    } else if (islhs == isLHS && tb.lag[i] != 1){
+      sPrint(&_bufw, _("lhs '%s': only 'lag(%s,1)' and 'diff(%s,1)' supported"), buf, buf, buf);
+      trans_syntax_error_report_fn0(_bufw.s);
+    }
+  }
+}
+
 static inline void populateParamsLhsSlhs(SEXP params, SEXP lhs, SEXP slhs) {
   int li=0, pi=0, sli = 0;
   char *buf;
@@ -313,7 +327,8 @@ static inline void populateParamsLhsSlhs(SEXP params, SEXP lhs, SEXP slhs) {
     }
     buf=tb.ss.line[i];
 
-    if (assertStateCannotHaveDiff(islhs, i, buf))  continue;
+    if (assertStateCannotHaveDiff(islhs, i, buf)) continue;
+    assertLhsAndDualLhsDiffNotLegal(islhs, i, buf);
     /* is a state var */
     if (!setLhsAndDualLhsParam(islhs, lhs, params, buf, &li, &pi)) {
       paramSubThetaEtaToBufw(buf);
