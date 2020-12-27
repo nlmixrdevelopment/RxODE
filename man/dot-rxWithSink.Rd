@@ -17,6 +17,11 @@ Will return the results of the \code{code} section
 \description{
 With one sink, then release
 }
+\details{
+\code{.rxWithSink} captures output from \code{cat}
+
+\code{.rxWithSinkBoth} captures output from \code{cat} and \code{message}
+}
 \examples{
 
 t <- tempfile()
@@ -29,3 +34,4 @@ unlink(t)
 \author{
 Matthew Fidler
 }
+\keyword{internal}

@@ -1014,24 +1014,77 @@ rxCores <- getRxThreads
 rxUnloadAll <- function(){
     try(rxUnloadAll_(), silent=TRUE)
 }
-
-##' With one sink, then release
-##'
-##' @param file the path to the file sink while running the `code`
-##' @param code The code to run during the sink
-##' @return Will return the results of the `code` section
-##' @export
-##' @author Matthew Fidler
-##' @examples
-##'
-##' t <- tempfile()
-##' .rxWithSink(t,cat("message\n"))
-##' cat("cat2\n") # now you can see the cat2
-##' lines <- readLines(t)
-##' unlink(t)
-##'
+#' With one sink, then release
+#'
+#' @param file the path to the file sink while running the `code`
+#'
+#' @param code The code to run during the sink
+#'
+#' @return Will return the results of the `code` section
+#'
+#' @details
+#'
+#' `.rxWithSink` captures output from `cat`
+#'
+#' `.rxWithSinkBoth` captures output from `cat` and `message`
+#'
+#' @export
+#'
+#' @keywords internal
+#'
+#' @author Matthew Fidler
+#'
+#' @examples
+#'
+#' t <- tempfile()
+#' .rxWithSink(t,cat("message\n"))
+#' cat("cat2\n") # now you can see the cat2
+#' lines <- readLines(t)
+#' unlink(t)
+#'
 .rxWithSink <- function(file, code) {
   sink(file) #nolint
   on.exit(sink()) #nolint
+  force(code)
+}
+
+#' @rdname .rxWithSink
+#' @export
+.rxWithSinkBoth <- function(file, code) {
+  zz <- file(file, open = "wt")
+  sink(zz) # nolint
+  sink(zz, type = "message") # nolint
+  on.exit({
+    sink() # nolint
+    sink(type = "message") # nolint
+    close(zz)
+  })
+  force(code)
+}
+
+
+#' Temporarily set options then restore them while running code
+#'
+#' @param ops list of options that will be temporarily set for the
+#'   `code`
+#'
+#' @inheritParams .rxWithSink
+#'
+#' @export
+#' @examples
+#'
+#' .rxWithOptions(list(digits=21), {
+#'    print(pi)
+#' })
+#'
+#' print(pi)
+.rxWithOptions <- function(ops, code) {
+  .old <- options() # nolint
+  rxSyncOptions()
+  do.call(options, as.list(ops)) # nolint
+  on.exit({
+    options(.old) # nolint
+    rxSyncOptions()
+  })
   force(code)
 }
