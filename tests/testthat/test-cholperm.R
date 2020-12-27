@@ -1,6 +1,9 @@
 ## These functions are taken from TruncatedNormal for testing
 rxPermissive(
-  {
+{
+
+  .rx <- loadNamespace("RxODE")
+
     lnNpr <-
       function(a, b) { ## computes ln(P(a<Z<b))
         ## where Z~N(0,1) very accurately for any 'a', 'b'
@@ -177,7 +180,7 @@ rxPermissive(
       mcov <- tcrossprod(tmp, tmp)
 
       r1 <- cholperm(mcov, -(1:5), 1:5)
-      r2 <- RxODE:::rxCholperm(mcov, -(1:5), 1:5)
+      r2 <- .rx$rxCholperm(mcov, -(1:5), 1:5)
 
       expect_equal(r1$L, r2$L)
       expect_equal(r1$l, r2$l)
@@ -185,7 +188,7 @@ rxPermissive(
       expect_equal(r1$perm, r2$perm + 1)
 
       r1 <- cholperm(mcov, 1:5, 2 * (1:5))
-      r2 <- RxODE:::rxCholperm(mcov, 1:5, 2 * 1:5)
+      r2 <- .rx$rxCholperm(mcov, 1:5, 2 * 1:5)
 
       expect_equal(r1$L, r2$L)
       expect_equal(r1$l, r2$l)
@@ -193,7 +196,7 @@ rxPermissive(
       expect_equal(r1$perm, r2$perm + 1)
 
       r1 <- cholperm(mcov, -2 * (1:5), -(1:5))
-      r2 <- RxODE:::rxCholperm(mcov, -2 * (1:5), -(1:5))
+      r2 <- .rx$rxCholperm(mcov, -2 * (1:5), -(1:5))
 
       expect_equal(r1$L, r2$L)
       expect_equal(r1$l, r2$l)
@@ -214,7 +217,7 @@ rxPermissive(
       ## Creating covariance matrix
       tmp <- matrix(rnorm(d^2), d, d)
       mcov <- tcrossprod(tmp, tmp)
-      r2 <- RxODE:::rxCholperm(mcov, -(1:5), 1:5)
+      r2 <- .rx$rxCholperm(mcov, -(1:5), 1:5)
 
       d <- length(r2$l)
       y <- seq(0, 2 * d - 2)
@@ -223,24 +226,24 @@ rxPermissive(
       L <- r2$L
 
       r1 <- gradpsi(y, L, l, u)
-      r2 <- RxODE:::rxGradpsi(y, L, l, u)
+      r2 <- .rx$rxGradpsi(y, L, l, u)
 
       expect_equal(r1$Jac, r2$Jac)
       expect_equal(r1$grad, r2$grad)
 
       r1 <- gradpsi(rep(1, 2 * d - 2), L, l, u)
-      r2 <- RxODE:::rxGradpsi(rep(1, 2 * d - 2), L, l, u)
+      r2 <- .rx$rxGradpsi(rep(1, 2 * d - 2), L, l, u)
 
       expect_equal(r1$Jac, r2$Jac)
       expect_equal(r1$grad, r2$grad)
 
       r1 <- gradpsi(rep(-1, 2 * d - 2), L, l, u)
-      r2 <- RxODE:::rxGradpsi(rep(-1, 2 * d - 2), L, l, u)
+      r2 <- .rx$rxGradpsi(rep(-1, 2 * d - 2), L, l, u)
 
       expect_equal(r1$Jac, r2$Jac)
       expect_equal(r1$grad, r2$grad)
 
-      ## microbenchmark::microbenchmark(gradpsi(rep(-1,2*d-2), L, l, u), RxODE:::rxGradpsi(rep(-1,2*d-2), L, l, u));
+      ## microbenchmark::microbenchmark(gradpsi(rep(-1,2*d-2), L, l, u), .rx$rxGradpsi(rep(-1,2*d-2), L, l, u));
 
       d <- 2
 
@@ -249,7 +252,7 @@ rxPermissive(
       ## Creating covariance matrix
       tmp <- matrix(rnorm(d^2), d, d)
       mcov <- tcrossprod(tmp, tmp)
-      r2 <- RxODE:::rxCholperm(mcov, -(1:d), 1:d)
+      r2 <- .rx$rxCholperm(mcov, -(1:d), 1:d)
 
       d <- length(r2$l)
       y <- seq(0, 2 * d - 2)
@@ -259,7 +262,7 @@ rxPermissive(
 
 
       r1 <- gradpsi(rep(-1, 2 * d - 2), L, l, u)
-      r2 <- RxODE:::rxGradpsi(rep(-1, 2 * d - 2), L, l, u)
+      r2 <- .rx$rxGradpsi(rep(-1, 2 * d - 2), L, l, u)
 
       expect_equal(r1$Jac, r2$Jac)
       expect_equal(r1$grad, r2$grad)
@@ -277,9 +280,9 @@ rxPermissive(
       ## Creating covariance matrix
       tmp <- matrix(rnorm(d^2), d, d)
       mcov <- tcrossprod(tmp, tmp)
-      r2 <- RxODE:::rxCholperm(mcov, -3 * (1:d), 2 * (1:d))
+      r2 <- .rx$rxCholperm(mcov, -3 * (1:d), 2 * (1:d))
 
-      expect_equal(RxODE:::rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
+      expect_equal(.rx$rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
       ## microbenchmark::microbenchmark(rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
 
       d <- 2
@@ -289,9 +292,9 @@ rxPermissive(
       ## Creating covariance matrix
       tmp <- matrix(rnorm(d^2), d, d)
       mcov <- tcrossprod(tmp, tmp)
-      r2 <- RxODE:::rxCholperm(mcov, -2 * (1:d), 3 * 1:d)
+      r2 <- .rx$rxCholperm(mcov, -2 * (1:d), 3 * 1:d)
 
-      expect_equal(RxODE:::rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
+      expect_equal(.rx$rxNleq(r2$l, r2$u, r2$L), nleq(r2$l, r2$u, r2$L))
     })
 
     context("rxMvnrnd")
@@ -306,7 +309,7 @@ rxPermissive(
       tmp <- matrix(rnorm(d^2), d, d)
       mcov <- tcrossprod(tmp, tmp)
 
-      out <- RxODE:::rxCholperm(mcov, -2 * (1:5), 1:5)
+      out <- .rx$rxCholperm(mcov, -2 * (1:5), 1:5)
 
       Lfull <- out$L
       l <- out$l
@@ -326,7 +329,7 @@ rxPermissive(
       mu <- xmu[d:(2 * d - 2)] # assign saddlepoint x* and mu*
 
       fun <- function(n) {
-        r1 <- RxODE:::rxMvnrnd(5, L, l, u, mu)
+        r1 <- .rx$rxMvnrnd(5, L, l, u, mu)
         expect_equal(length(r1$logpr), 5)
         expect_true(all(!duplicated(r1$logpr)))
         expect_equal(length(r1$Z[1, ]), 5)
