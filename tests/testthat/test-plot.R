@@ -1,6 +1,5 @@
 rxPermissive(
   {
-    library(units)
     context("plot tests")
 
     test_that("plot tests", {
@@ -51,7 +50,7 @@ rxPermissive(
       sR <- rxSolve(m1, evR)
 
       ev <- et(timeUnits = "hr") %>%
-        et(amt = 10000, until = set_units(3, days), ii = 12) %>% # loading doses
+        et(amt = 10000, until = units::set_units(3, days), ii = 12) %>% # loading doses
         et(seq(0, 48, length.out = 200)) %>%
         et(id = 1:4)
 
@@ -129,9 +128,9 @@ rxPermissive(
 
       vdiffr::expect_doppelganger("sim.id-unitless", plot(sim3, C2))
 
-      options(RxODE.theme = FALSE)
+      options(RxODE.theme = FALSE) # nolint
       vdiffr::expect_doppelganger("sim.id-unitless-notheme", plot(sim3, C2))
-      options(RxODE.theme = TRUE)
+      options(RxODE.theme = TRUE) # nolint
 
       ci1.C2 <- confint(sim, "C2")
 
@@ -147,10 +146,10 @@ rxPermissive(
       f <- function(xgxr = FALSE, repel = FALSE) {
         if (xgxr) {
           .xgxtxt <- "xgxr-"
-          options(RxODE.xgxr = TRUE)
+          options(RxODE.xgxr = TRUE) # nolint
         } else {
           .xgxtxt <- ""
-          options(RxODE.xgxr = FALSE)
+          options(RxODE.xgxr = FALSE) # nolint
         }
 
         vdiffr::expect_doppelganger(paste0("plot-", .xgxtxt, "C2"), suppressWarnings(s %>% plot(C2)))
@@ -227,10 +226,10 @@ rxPermissive(
         for (repel in c(TRUE, FALSE)) {
           if (repel) {
             .repel <- "repel-"
-            options(RxODE.ggrepel = TRUE)
+            options(RxODE.ggrepel = TRUE) # nolint
           } else {
             .repel <- ""
-            options(RxODE.ggrepel = FALSE)
+            options(RxODE.ggrepel = FALSE) # nolint
           }
 
           vdiffr::expect_doppelganger(paste0("plot-multi-", .repel, .xgxtxt, "C2"), s2 %>% plot(C2))
@@ -271,9 +270,9 @@ rxPermissive(
       f(FALSE)
     })
 
-    options(RxODE.xgxr = TRUE)
-    options(RxODE.ggrepel = TRUE)
-    options(RxODE.theme = TRUE)
+    options(RxODE.xgxr = TRUE) # nolint
+    options(RxODE.ggrepel = TRUE) # nolint
+    options(RxODE.theme = TRUE) # nolint
   },
   silent = TRUE,
   test = "plot"
