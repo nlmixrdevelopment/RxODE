@@ -1,15 +1,17 @@
 rxPermissive({
 
+  .rx <- loadNamespace("RxODE")
+
   ## Zero variances
   mod <- RxODE({
     eff(0) =  1
-    C2 = centr/V2;
-    C3 = peri/V3;
+    C2 = centr/V2
+    C3 = peri/V3
     CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
-    d/dt(depot) =-KA*depot;
-    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
-    d/dt(peri)  =                    Q*C2 - Q*C3;
-    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+    d/dt(depot) =-KA*depot
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3
+    d/dt(peri)  =                    Q*C2 - Q*C3
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff
     e = eff+eff.err
     cp = centr*(1+cp.err)
   })
@@ -42,9 +44,9 @@ rxPermissive({
   x <- expect_error(rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
                             dfSub=10, dfObs=100), NA)
 
-  expect_true(RxODE:::isNullZero(x$thetaMat))
-  expect_true(RxODE:::isNullZero(x$omegaList))
-  expect_true(RxODE:::isNullZero(x$sigmaList))
-  expect_true(RxODE:::isNullZero(NULL))
+  expect_true(.rx$isNullZero(x$thetaMat))
+  expect_true(.rx$isNullZero(x$omegaList))
+  expect_true(.rx$isNullZero(x$sigmaList))
+  expect_true(.rx$isNullZero(NULL))
 
 }, test="lvl2")
