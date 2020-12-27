@@ -2,18 +2,20 @@ rxPermissive(
   {
     context("Logical expressons test")
 
+    .rx <- loadNamespace("RxODE")
+
     transTo <- function(model, syntax, match = TRUE) {
       mod <- rxModelVars(model)
 
       if (match) {
         test_that(
           sprintf("%s includes %s", model, syntax),
-          expect_true(regexpr(syntax, RxODE:::.rxGetParseModel(), fixed = TRUE) != -1)
+          expect_true(regexpr(syntax, .rx$.rxGetParseModel(), fixed = TRUE) != -1)
         )
       } else {
         test_that(
           sprintf("%s dose not include %s", model, syntax),
-          expect_false(regexpr(syntax, RxODE:::.rxGetParseModel(), fixed = TRUE) != -1)
+          expect_false(regexpr(syntax, .rx$.rxGetParseModel(), fixed = TRUE) != -1)
         )
       }
     }

@@ -2,6 +2,8 @@ rxPermissive(
   {
     context("Compartment order & extra CMTs with cmt()")
 
+    .rx <- loadNamespace("RxODE")
+
     load(test_path("warfarin.rda"))
     test_that("cmt() syntax makes sense", {
 
@@ -74,7 +76,7 @@ rxPermissive(
       })
 
       w2 <- warfarin
-      tmp <- RxODE:::etTrans(w2, w, addCmt = TRUE)
+      tmp <- .rx$etTrans(w2, w, addCmt = TRUE)
       expect_equal(
         tmp$CMT[tmp$ID == 1],
         c(
@@ -111,7 +113,7 @@ rxPermissive(
       })
 
       w2 <- warfarin
-      tmp <- RxODE:::etTrans(w2, w, addCmt = TRUE)
+      tmp <- .rx$etTrans(w2, w, addCmt = TRUE)
       expect_equal(
         tmp$CMT[tmp$ID == 1],
         c(
@@ -121,7 +123,7 @@ rxPermissive(
       )
 
       w2$dvid <- paste(w2$dvid)
-      tmp <- RxODE:::etTrans(w2, w, addCmt = TRUE)
+      tmp <- .rx$etTrans(w2, w, addCmt = TRUE)
       expect_equal(
         tmp$CMT[tmp$ID == 1],
         c(
@@ -132,7 +134,7 @@ rxPermissive(
 
       w2 <- warfarin
       w2$dvid <- as.integer(w2$dvid)
-      tmp <- RxODE:::etTrans(w2, w, addCmt = TRUE)
+      tmp <- .rx$etTrans(w2, w, addCmt = TRUE)
       expect_equal(
         tmp$CMT[tmp$ID == 1],
         c(
@@ -143,7 +145,7 @@ rxPermissive(
 
       w2 <- warfarin
       w2$dvid <- as.integer(w2$dvid) * 10
-      tmp <- expect_warning(RxODE:::etTrans(w2, w, addCmt = TRUE))
+      tmp <- expect_warning(.rx$etTrans(w2, w, addCmt = TRUE))
       expect_equal(
         tmp$CMT[tmp$ID == 1],
         c(
@@ -219,7 +221,7 @@ rxPermissive(
 
       w2 <- warfarin
       w2$dvid <- as.integer(w2$dvid)
-      tmp <- RxODE:::etTrans(w2, w, addCmt = TRUE)
+      tmp <- .rx$etTrans(w2, w, addCmt = TRUE)
       expect_equal(
         tmp$CMT[tmp$ID == 1],
         c(

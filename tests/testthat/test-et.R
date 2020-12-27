@@ -1,8 +1,9 @@
 require(dplyr)
 rxPermissive(
-  {
+{
+  .rx <- loadNamespace("RxODE")
     for (radi in c(1, 2)) {
-      RxODE:::forderForceBase(switch(radi, TRUE, FALSE))
+      .rx$forderForceBase(switch(radi, TRUE, FALSE))
       radix <- switch(radi, "base::order", "data.table::forder")
       context(sprintf("Test event Table et(...) sort:%s", radix))
       library(units)
