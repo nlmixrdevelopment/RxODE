@@ -7,7 +7,8 @@
 .rxWithOptions(ops, code)
 }
 \arguments{
-\item{ops}{Options to temporarily set}
+\item{ops}{list of options that will be temporarily set for the
+\code{code}}
 
 \item{code}{The code to run during the sink}
 }
@@ -16,7 +17,9 @@ Temporarily set options then restore them while running code
 }
 \examples{
 
-.rxWithOptions(digits=21, {
+.rxWithOptions(list(digits=21), {
    print(pi)
 })
+
+print(pi)
 }
