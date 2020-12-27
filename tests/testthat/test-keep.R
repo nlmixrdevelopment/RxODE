@@ -2,14 +2,10 @@ rxPermissive({
 
   context("Individual keep AGE==AGE2")
 
-  ### Typical parameters
-  library(dplyr)
-  library(tidyr)
-
   TVQ     <- 4
   TVV3    <- 7
   dat <- data.frame(AGE=c(20,30),ID=c(10,20)) %>%
-    dplyr::mutate(id=seq(from=1,to=n()))%>%
+    dplyr::mutate(id=seq(from=1,to=dplyr::n()))%>%
     dplyr::rename(NMID=ID)
 
 
@@ -17,7 +13,7 @@ rxPermissive({
                         ThetaCl=c(4.6,5.4),
                         ThetaV2=c(7,8),
                         ID=c(10,20))%>%
-    dplyr::mutate(id=seq(from=1,to=n()))%>%
+    dplyr::mutate(id=seq(from=1,to=dplyr::n()))%>%
     dplyr::mutate(ThetaQ=TVQ,ThetaV3= TVV3)%>%
     dplyr::rename(NMID=ID)
 
@@ -70,9 +66,9 @@ rxPermissive({
     dplyr::group_by(id) %>%
     tidyr::fill(DOSE,.direction='downup')%>%
     dplyr::ungroup() %>%
-    dplyr::mutate(Cycle=case_when(time<=12 ~ 1, #
-                                  time>=12 ~ 2,  #
-                                  TRUE~ 0)) %>%
+    dplyr::mutate(Cycle=dplyr::case_when(time<=12 ~ 1, #
+                                         time>=12 ~ 2,  #
+                                         TRUE~ 0)) %>%
     dplyr::as_tibble()
 
   ev_ref <- ev_ref%>%
