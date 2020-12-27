@@ -7,333 +7,314 @@ rxPermissive(
     badParse <- function(desc, code) {
       test_that(desc, {
         tmp <- normalizePath(tempfile(), mustWork = FALSE)
-        zz <- file(tmp, open = "wt")
-        sink(zz)
-        sink(zz, type = "message")
-        on.exit({
-          sink()
-          sink(type = "message")
-          close(zz)
-          unlink(tmp)
+        on.exit(unlink(tmp))
+        .rxWithSinkBoth(tmp, {
+          expect_error(RxODE(code))
         })
-        expect_error(RxODE(code))
       })
     }
 
     goodParse <- function(desc, code) {
       test_that(desc, {
         tmp <- normalizePath(tempfile(), mustWork = FALSE)
-        zz <- file(tmp, open = "wt")
-        sink(zz)
-        sink(zz, type = "message")
-        on.exit({
-          sink()
-          sink(type = "message")
-          close(zz)
-          unlink(tmp)
+        on.exit(unlink(tmp))
+        .rxWithSinkBoth(tmp, {
+          rx <- RxODE(code)
+          expect_equal(class(rx), "RxODE")
+          rxDelete(rx)
         })
-        rx <- RxODE(code)
-        expect_equal(class(rx), "RxODE")
-        rxDelete(rx)
       })
     }
 
     equivSyntax <- function(desc, code1, code2) {
       test_that(desc, {
         tmp <- normalizePath(tempfile(), mustWork = FALSE)
-        zz <- file(tmp, open = "wt")
-        sink(zz)
-        sink(zz, type = "message")
-        on.exit({
-          sink()
-          sink(type = "message")
-          close(zz)
-          unlink(tmp)
+        on.exit(unlink(tmp))
+        .rxWithSinkBoth(tmp, {
+          rx1 <- RxODE(code1)
+          rx2 <- RxODE(code2)
+          expect_equal(rxMd5(rx1)["parsed_md5"], rxMd5(rx2)["parsed_md5"])
+          rxDelete(rx1)
+          rxDelete(rx2)
         })
-        rx1 <- RxODE(code1)
-        rx2 <- RxODE(code2)
-        expect_equal(rxMd5(rx1)["parsed_md5"], rxMd5(rx2)["parsed_md5"])
-        rxDelete(rx1)
-        rxDelete(rx2)
       })
     }
 
     badParse("incorrect d/dt operator", "d/dt(y = 1);")
 
     ## Statements don't require ; now.
-    options(RxODE.syntax.require.semicolon = FALSE)
-    rxSyncOptions()
-    goodParse("comments must be outside statements #1", "d/dt(y) = 1   # bad comment;")
-    goodParse(
-      'missing end of statement ";" dosen\'t cause errors',
-      paste(
-        sep = "\n",
-        "d/dt(depot) = -ka * depot",
-        "d/dt(centr) =  ka * depot - kout * centr;"
-      )
-    )
+    .rxWithOptions(list(RxODE.syntax.require.semicolon = FALSE), {
+      goodParse("comments must be outside statements #1",
+                "d/dt(y) = 1   # bad comment;")
+      goodParse(
+        'missing end of statement ";" dosen\'t cause errors',
+        paste(
+          sep = "\n",
+          "d/dt(depot) = -ka * depot",
+          "d/dt(centr) =  ka * depot - kout * centr;"
+        ))
+    })
 
-    options(RxODE.syntax.require.semicolon = TRUE)
-    rxSyncOptions()
-    badParse("comments must be outside statements #2", "d/dt(y) = 1   # bad comment;")
-    badParse(
-      'missing end of statement ";"',
-      paste(
-        sep = "\n",
-        "d/dt(depot) = -ka * depot",
-        "d/dt(centr) =  ka * depot - kout * centr;"
+    .rxWithOptions(list(RxODE.syntax.require.semicolon = TRUE), {
+      rxSyncOptions()
+      badParse("comments must be outside statements #2",
+               "d/dt(y) = 1   # bad comment;")
+      badParse(
+        'missing end of statement ";"',
+        paste(
+          sep = "\n",
+          "d/dt(depot) = -ka * depot",
+          "d/dt(centr) =  ka * depot - kout * centr;"
+        )
       )
-    )
+    })
 
-    options(RxODE.syntax.require.semicolon = FALSE)
-    rxSyncOptions()
-    badParse(
-      "arithmetic syntax error",
-      paste(
-        sep = "\n",
-        "# comment, just to show error in line 3",
-        "d/dt(y) = -ka;",
-        "C1 = /y;"
-      )
-    )
+
+    .rxWithOptions(list(RxODE.syntax.require.semicolon = FALSE), {
+      badParse(
+        "arithmetic syntax error",
+        paste(
+          sep = "\n",
+          "# comment, just to show error in line 3",
+          "d/dt(y) = -ka;",
+          "C1 = /y;"
+        )
+      )})
+
     ## added ** operator
-    options(RxODE.syntax.star.pow = TRUE)
-    rxSyncOptions()
-    goodParse("existing operator **",
-      code = paste(
-        sep = "\n",
-        "d/dt(y) = -ka;",
-        "C1 = ka *  y**2;"
+    .rxWithOptions(list(RxODE.syntax.star.pow = TRUE), {
+      goodParse("existing operator **",
+                code = paste(
+                  sep = "\n",
+                  "d/dt(y) = -ka;",
+                  "C1 = ka *  y**2;"
+                ))
+    })
+
+    .rxWithOptions(list(RxODE.syntax.star.pow = FALSE), {
+      badParse("existing operator **",
+               code = paste(
+                 sep = "\n",
+                 "d/dt(y) = -ka;",
+                 "C1 = ka *  y**2;"
+               )
+               )
+      badParse("unexistent operator %",
+               code = paste(
+                 sep = "\n",
+                 "remainder = 4 % 3;",
+                 "d/dt(y) = -ka;",
+                 "C1 = ka * y;"
+               ))
+      badParse(
+        desc = 'incorrect "if" statement',
+        code = paste(
+          sep = "\n",
+          "if(comed==0){",
+          "   F = 1.0;",
+          "else {", # missing "}"'
+          "   F = 0.75;",
+          "};",
+          "d/dt(y) = F * y;"
+        )
       )
-    )
-    options(RxODE.syntax.star.pow = FALSE)
-    rxSyncOptions()
-    badParse("existing operator **",
-      code = paste(
-        sep = "\n",
-        "d/dt(y) = -ka;",
-        "C1 = ka *  y**2;"
+
+      badParse(
+        desc = "illegal variable name (starting w. a digit)",
+        code = paste(
+          sep = "\n",
+          "F = 0.75;",
+          "12foo_bar = 1.0/2.0;",
+          "d/dt(y) = F * y;"
+        )
       )
-    )
 
+    })
 
-    badParse("unexistent operator %",
-      code = paste(
-        sep = "\n",
-        "remainder = 4 % 3;",
-        "d/dt(y) = -ka;",
-        "C1 = ka * y;"
+    .rxWithOptions(list(RxODE.syntax.allow.dots = TRUE), {
+      goodParse(
+        desc = "dot in variable name (ini0)",
+        code = paste(
+          sep = "\n",
+          "F = 0.75;",
+          "foo.bar = 1.0/2.0;",
+          "d/dt(y) = F * y;"
+        )
       )
-    )
 
-    badParse(
-      desc = 'incorrect "if" statement',
-      code = paste(
-        sep = "\n",
-        "if(comed==0){",
-        "   F = 1.0;",
-        "else {", # missing "}"'
-        "   F = 0.75;",
-        "};",
-        "d/dt(y) = F * y;"
+      goodParse(
+        desc = "dot in variable name in d/dt()",
+        code = paste(
+          sep = "\n",
+          "d/dt(y_1) = F * y;", # okay
+          "d/dt(y.1) = F * y;"
+        ) # not okay
       )
-    )
 
-    badParse(
-      desc = "illegal variable name (starting w. a digit)",
-      code = paste(
-        sep = "\n",
-        "F = 0.75;",
-        "12foo_bar = 1.0/2.0;",
-        "d/dt(y) = F * y;"
+      goodParse(
+        desc = "leading dot in variable name",
+        code = paste(
+          sep = "\n",
+          "F = 0.75;",
+          ".foo.bar = 0.5;",
+          "d/dt(y) = F * y;"
+        )
       )
-    )
 
-    options(RxODE.syntax.allow.dots = TRUE)
-    rxSyncOptions()
-
-    goodParse(
-      desc = "dot in variable name (ini0)",
-      code = paste(
-        sep = "\n",
-        "F = 0.75;",
-        "foo.bar = 1.0/2.0;",
-        "d/dt(y) = F * y;"
+      goodParse(
+        desc = "leading dot in variable name (ini0)",
+        code = paste(
+          sep = "\n",
+          "F = 0.75;",
+          ".foo.bar = 1.0/2.0;",
+          "d/dt(y) = F * y;"
+        )
       )
-    )
 
-    goodParse(
-      desc = "dot in variable name in d/dt()",
-      code = paste(
-        sep = "\n",
-        "d/dt(y_1) = F * y;", # okay
-        "d/dt(y.1) = F * y;"
-      ) # not okay
-    )
-
-    goodParse(
-      desc = "leading dot in variable name",
-      code = paste(
-        sep = "\n",
-        "F = 0.75;",
-        ".foo.bar = 0.5;",
-        "d/dt(y) = F * y;"
+      goodParse(
+        desc = "leading dot in variable name in d/dt()",
+        code = paste(
+          sep = "\n",
+          "d/dt(y_1) = F * y;", # okay
+          "d/dt(.y.1) = F * y;"
+        ) # not okay
       )
-    )
 
-    goodParse(
-      desc = "leading dot in variable name (ini0)",
-      code = paste(
-        sep = "\n",
-        "F = 0.75;",
-        ".foo.bar = 1.0/2.0;",
-        "d/dt(y) = F * y;"
+      goodParse(
+        desc = "leading dot in variable name",
+        code = paste(
+          sep = "\n",
+          "F = 0.75;",
+          ".foo.bar = 0.5;",
+          "d/dt(y) = F * y;"
+        )
       )
-    )
+    })
 
-    goodParse(
-      desc = "leading dot in variable name in d/dt()",
-      code = paste(
-        sep = "\n",
-        "d/dt(y_1) = F * y;", # okay
-        "d/dt(.y.1) = F * y;"
-      ) # not okay
-    )
 
-    goodParse(
-      desc = "leading dot in variable name",
-      code = paste(
-        sep = "\n",
-        "F = 0.75;",
-        ".foo.bar = 0.5;",
-        "d/dt(y) = F * y;"
+    .rxWithOptions(list(RxODE.syntax.allow.dots = FALSE), {
+      badParse(
+        desc = "dot in variable name (ini0)",
+        code = paste(
+          sep = "\n",
+          "F = 0.75;",
+          "foo.bar = 1.0/2.0;",
+          "d/dt(y) = F * y;"
+        )
       )
-    )
 
-    options(RxODE.syntax.allow.dots = FALSE)
-    rxSyncOptions()
-    badParse(
-      desc = "dot in variable name (ini0)",
-      code = paste(
-        sep = "\n",
-        "F = 0.75;",
-        "foo.bar = 1.0/2.0;",
-        "d/dt(y) = F * y;"
+      badParse(
+        desc = "dot in variable name in d/dt()",
+        code = paste(
+          sep = "\n",
+          "d/dt(y_1) = F * y;", # okay
+          "d/dt(y.1) = F * y;"
+        ) # not okay
       )
-    )
 
-    badParse(
-      desc = "dot in variable name in d/dt()",
-      code = paste(
-        sep = "\n",
-        "d/dt(y_1) = F * y;", # okay
-        "d/dt(y.1) = F * y;"
-      ) # not okay
-    )
-
-    badParse(
-      desc = "leading dot in variable name",
-      code = paste(
-        sep = "\n",
-        "F = 0.75;",
-        ".foo.bar = 0.5;",
-        "d/dt(y) = F * y;"
+      badParse(
+        desc = "leading dot in variable name",
+        code = paste(
+          sep = "\n",
+          "F = 0.75;",
+          ".foo.bar = 0.5;",
+          "d/dt(y) = F * y;"
+        )
       )
-    )
 
-    badParse(
-      desc = "leading dot in variable name (ini0)",
-      code = paste(
-        sep = "\n",
-        "F = 0.75;",
-        ".foo.bar = 1.0/2.0;",
-        "d/dt(y) = F * y;"
+      badParse(
+        desc = "leading dot in variable name (ini0)",
+        code = paste(
+          sep = "\n",
+          "F = 0.75;",
+          ".foo.bar = 1.0/2.0;",
+          "d/dt(y) = F * y;"
+        )
       )
-    )
 
-    badParse(
-      desc = "leading dot in variable name in d/dt()",
-      code = paste(
-        sep = "\n",
-        "d/dt(y_1) = F * y;", # okay
-        "d/dt(.y.1) = F * y;"
-      ) # not okay
-    )
-
-    badParse(
-      desc = "leading dot in variable name",
-      code = paste(
-        sep = "\n",
-        "F = 0.75;",
-        ".foo.bar = 0.5;",
-        "d/dt(y) = F * y;"
+      badParse(
+        desc = "leading dot in variable name in d/dt()",
+        code = paste(
+          sep = "\n",
+          "d/dt(y_1) = F * y;", # okay
+          "d/dt(.y.1) = F * y;"
+        ) # not okay
       )
-    )
 
-    badParse(
-      desc = "Assignment with <<- not supported",
-      "d/dt(y_1) <<- F*y"
-    )
+      badParse(
+        desc = "leading dot in variable name",
+        code = paste(
+          sep = "\n",
+          "F = 0.75;",
+          ".foo.bar = 0.5;",
+          "d/dt(y) = F * y;"
+        )
+      )
 
-    options(RxODE.syntax.assign = TRUE)
-    rxSyncOptions()
-    goodParse(
-      desc = "Assignment with <- supported #1",
-      "d/dt(y_1) <- F*y"
-    )
+      badParse(
+        desc = "Assignment with <<- not supported",
+        "d/dt(y_1) <<- F*y"
+      )
+    })
 
-    goodParse(
-      desc = "Assignment with <- supported #2",
-      "y_1(0) <- 1;d/dt(y_1) = F*y_1"
-    )
+    .rxWithOptions(list(RxODE.syntax.allow.dots = FALSE), {
+      goodParse(
+        desc = "Assignment with <- supported #1",
+        "d/dt(y_1) <- F*y"
+      )
 
-    goodParse(
-      desc = "Assignment with <- supported #3",
-      "y_2 <- 1;d/dt(y_1) = F*y"
-    )
+      goodParse(
+        desc = "Assignment with <- supported #2",
+        "y_1(0) <- 1;d/dt(y_1) = F*y_1"
+      )
 
-    goodParse(
-      desc = "Assignment with <- supported #4",
-      "y_2 <- 1+7;d/dt(y_1) = F*y"
-    )
+      goodParse(
+        desc = "Assignment with <- supported #3",
+        "y_2 <- 1;d/dt(y_1) = F*y"
+      )
 
-    goodParse(
-      desc = "Assignment with <- supported #7",
-      "d/dt(y_1) = F*y; df(y_1)/dy(y_1) <- 0"
-    )
+      goodParse(
+        desc = "Assignment with <- supported #4",
+        "y_2 <- 1+7;d/dt(y_1) = F*y"
+      )
 
-    options(RxODE.syntax.assign = FALSE)
-    rxSyncOptions()
-    badParse(
-      desc = "Assignment with <- not supported #1",
-      "d/dt(y_1) <- F*y"
-    )
+      goodParse(
+        desc = "Assignment with <- supported #7",
+        "d/dt(y_1) = F*y; df(y_1)/dy(y_1) <- 0"
+      )
+    })
 
-    badParse(
-      desc = "Assignment with <- not supported #2",
-      "y_1(0) <- 1;d/dt(y_1) = F*y"
-    )
+    .rxWithOptions(list(RxODE.syntax.assign = FALSE), {
+      badParse(
+        desc = "Assignment with <- not supported #1",
+        "d/dt(y_1) <- F*y"
+      )
 
-    badParse(
-      desc = "Assignment with <- not supported #3",
-      "y_2 <- 1;d/dt(y_1) = F*y"
-    )
+      badParse(
+        desc = "Assignment with <- not supported #2",
+        "y_1(0) <- 1;d/dt(y_1) = F*y"
+      )
 
-    badParse(
-      desc = "Assignment with <- not supported #4",
-      "y_2 <- 1+7;d/dt(y_1) = F*y"
-    )
+      badParse(
+        desc = "Assignment with <- not supported #3",
+        "y_2 <- 1;d/dt(y_1) = F*y"
+      )
 
-    badParse(
-      desc = "Assignment with <- not supported #7",
-      "d/dt(y_1) = F*y; df(y_1)/dy(F) <- y"
-    )
-    equivSyntax(
-      desc = "time and t are equivalent",
-      "d/dt(depot) = time^2", "d/dt(depot) = t^2"
-    )
+      badParse(
+        desc = "Assignment with <- not supported #4",
+        "y_2 <- 1+7;d/dt(y_1) = F*y"
+      )
 
-    badParse(desc = "Assignment of state varaible #1", "
+      badParse(
+        desc = "Assignment with <- not supported #7",
+        "d/dt(y_1) = F*y; df(y_1)/dy(F) <- y"
+      )
+      equivSyntax(
+        desc = "time and t are equivalent",
+        "d/dt(depot) = time^2", "d/dt(depot) = t^2"
+      )
+
+      badParse(desc = "Assignment of state varaible #1", "
 a       = 1.0E4+0
 x       = 1
 d/dt(x) = a*y*z - 0.04*x
@@ -341,7 +322,7 @@ d/dt(z) = 3.0e7*y^2
 d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
 ")
 
-    badParse(desc = "Assignment of state varaible #2", "
+      badParse(desc = "Assignment of state varaible #2", "
 a       = 1.0E4+0
 x       = 1+2
 d/dt(x) = a*y*z - 0.04*x
@@ -349,7 +330,7 @@ d/dt(z) = 3.0e7*y^2
 d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
 ")
 
-    goodParse(desc = "Assignment of state varaible #3", "
+      goodParse(desc = "Assignment of state varaible #3", "
 a       = 1.0E4+0
 x(0)    = 1+2
 d/dt(x) = a*y*z - 0.04*x
@@ -357,7 +338,7 @@ d/dt(z) = 3.0e7*y^2
 d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
 ")
 
-    badParse(desc = "Assignment of state varaible #4", "
+      badParse(desc = "Assignment of state varaible #4", "
 a       = 1.0E4+0
 d/dt(x) = a*y*z - 0.04*x
 d/dt(z) = 3.0e7*y^2
@@ -366,7 +347,7 @@ x       = 1
 ")
 
 
-    badParse(desc = "Assignment of state varaible #5", "
+      badParse(desc = "Assignment of state varaible #5", "
 a       = 1.0E4+0
 d/dt(x) = a*y*z - 0.04*x
 d/dt(z) = 3.0e7*y^2
@@ -374,7 +355,7 @@ d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
 x       = 1+2
 ")
 
-    goodParse(desc = "Initial Condition Assignment #1", "
+      goodParse(desc = "Initial Condition Assignment #1", "
 a       = 1.0E4+0
 d/dt(x) = a*y*z - 0.04*x
 d/dt(z) = 3.0e7*y^2
@@ -382,7 +363,7 @@ d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
 x(0)     = 1
 ")
 
-    goodParse(desc = "Initial Condition Assignment #2", "
+      goodParse(desc = "Initial Condition Assignment #2", "
 a       = 1.0E4+0
 x(0)    = 1
 d/dt(x) = a*y*z - 0.04*x
@@ -390,7 +371,7 @@ d/dt(z) = 3.0e7*y^2
 d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
 ")
 
-    badParse(desc = "Initial conditions based on if/then statements", "
+      badParse(desc = "Initial conditions based on if/then statements", "
 if (a > 1){
 x(0)    = 1
 } else {
@@ -404,24 +385,26 @@ d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
 ")
 
 
-    badParse(desc = "RHS d/dt(x) before defined", "
+      badParse(desc = "RHS d/dt(x) before defined", "
 d/dt
 d/dt(x) = a*y*z - 0.04*x
 d/dt(z) = 3.0e7*y^2
 d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
 ")
-    options(RxODE.syntax.allow.ini0 = FALSE)
-    rxSyncOptions()
-    badParse(
-      desc = "y_1(0) unsupported when RxODE.syntax.allow.ini0=FALSE",
-      "y_1(0) = 1;d/dt(y_1) = F*y_1"
-    )
-    options(RxODE.syntax.allow.ini0 = TRUE)
-    rxSyncOptions()
+    })
 
-    badParse(
-      desc = "Defining df(var1)/dy(var2) where var1 is not a state variable.",
-      "
+    .rxWithOptions(list(RxODE.syntax.allow.ini0 = FALSE), {
+      badParse(
+        desc = "y_1(0) unsupported when RxODE.syntax.allow.ini0=FALSE",
+        "y_1(0) = 1;d/dt(y_1) = F*y_1"
+      )
+    })
+
+
+    .rxWithOptions(list(RxODE.syntax.allow.ini0 = TRUE), {
+      badParse(
+        desc = "Defining df(var1)/dy(var2) where var1 is not a state variable.",
+        "
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
 ## Jacobian
@@ -435,11 +418,11 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 "
-    )
+)
 
-    badParse(
-      desc = "Defining df(var1)/dy(var2) where var1 is not a state variable.",
-      "
+      badParse(
+        desc = "Defining df(var1)/dy(var2) where var1 is not a state variable.",
+        "
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
 ## Jacobian
@@ -453,11 +436,11 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 "
-    )
+)
 
-    goodParse(
-      desc = "Defining df(var1)/dy(var2) where var1 is a state variable.",
-      "
+      goodParse(
+        desc = "Defining df(var1)/dy(var2) where var1 is a state variable.",
+        "
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
 ## Jacobian
@@ -470,11 +453,11 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 "
-    )
+)
 
-    goodParse(
-      desc = "Defining df(var1)/dy(var2) where var2 is a variable.",
-      "
+      goodParse(
+        desc = "Defining df(var1)/dy(var2) where var2 is a variable.",
+        "
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
 ## Jacobian
@@ -488,11 +471,11 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 "
-    )
+)
 
-    badParse(
-      desc = "Defining df(var1)/dy(var2) where var2 is a calculated value.",
-      "
+      badParse(
+        desc = "Defining df(var1)/dy(var2) where var2 is a calculated value.",
+        "
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
 ## Jacobian
@@ -506,139 +489,123 @@ dy(0) = 0
 ## mu
 mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
 "
-    )
+)
 
-    goodParse(
-      desc = "a*b/c^2",
-      "d/dt(x)=a*b/c^2*x"
-    )
+      goodParse(
+        desc = "a*b/c^2",
+        "d/dt(x)=a*b/c^2*x"
+      )
 
-    goodParse(
-      desc = "a*b/c^2/d",
-      "d/dt(x)=a*b/c^2/d*x"
-    )
+      goodParse(
+        desc = "a*b/c^2/d",
+        "d/dt(x)=a*b/c^2/d*x"
+      )
 
-    goodParse(
-      desc = "Transit as a compartment",
-      "d/dt(transit) = -(1/mtt) * transit
+      goodParse(
+        desc = "Transit as a compartment",
+        "d/dt(transit) = -(1/mtt) * transit
         d/dt(depot)   =  (1/mtt) * transit - ka * depot
         d/dt(center)  = ka * depot - (cl/v1) * center - (q/v1) * center + (q/v2) * periph
         d/dt(periph)  = (q / v1) * center - (q / v2) * periph
         cp = center / v1"
-    )
+      )
 
-    goodParse(
-      desc = "=+ parsing",
-      "C2 = +centr/V2;
+      goodParse(
+        desc = "=+ parsing",
+        "C2 = +centr/V2;
               C3 = peri/V3;
               d/dt(depot) =-KA*depot;
               d/dt(centr) = +KA*depot - CL*C2 - Q*C2 + Q*C3;
               d/dt(peri)  =                    Q*C2 - Q*C3;
               d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;"
-    )
-
-    for (v in c("ii", "evid")) {
-      badParse(
-        desc = sprintf("bad variables: %s", v),
-        sprintf("var=%s", v)
       )
-    }
-    for (v in "tlast") {
+
+      for (v in c("ii", "evid")) {
+        badParse(
+          desc = sprintf("bad variables: %s", v),
+          sprintf("var=%s", v)
+        )
+      }
+      for (v in "tlast") {
+        goodParse(
+          desc = sprintf("good variables: %s", v),
+          sprintf("var=%s", v)
+        )
+      }
+      for (v in "abs") {
+        goodParse(
+          desc = sprintf("good functions: %s", v),
+          sprintf("var=%s(x)", v)
+        )
+      }
+
+      badParse(desc = "No duplicate dvid()", "a=b;dvid(1,2,3);dvid(3,4,5)")
+
+      badParse(desc = "Bad dvid(0)", "a=b;dvid(0);")
+      badParse(desc = "Bad dvid(0, 1)", "a=b;dvid(1,0);")
+
+      goodParse(desc = "THETA/ETA parsing", "a=THETA[1]+ETA[2];")
+
+      goodParse(desc = "Duplicate d/dt(x)", "d/dt(depot) = -depot*ka;\nd/dt(depot) = d/dt(depot)+0")
+
+      goodParse(desc = "Duplicate d/dt(x)", "d/dt(depot) ~ -depot*ka;\nd/dt(depot) = d/dt(depot)+0")
+      goodParse(desc = "Duplicate d/dt(x)", "d/dt(depot) = -depot*ka;\nd/dt(depot) ~ d/dt(depot)+0")
+
+      goodParse(desc = "pi Parse", "a = pi+e2")
+
+      for (v in c("f", "F", "alag", "lag", "rate", "dur")) {
+        badParse(
+          sprintf("%s cannot depend on d/dt(state)", v),
+          sprintf("d/dt(depot)=-depot*ka;\nd/dt(central)=ka*depot-kel*central\n%s(depot)=d/dt(central)+3", v)
+        )
+      }
+
+      badParse(desc = "Using d/dt(x) before defined", "y=d/dt(x)+3")
+
       goodParse(
-        desc = sprintf("good variables: %s", v),
-        sprintf("var=%s", v)
+        desc = "Jacobain with theta and eta",
+        "d/dt(x)=(THETA[1]+ETA[1])*x\ndf(x)/dy(THETA[1]) = 1\ndf(x)/dy(ETA[1]) = 1\n"
       )
-    }
-    for (v in "abs") {
-      goodParse(
-        desc = sprintf("good functions: %s", v),
-        sprintf("var=%s(x)", v)
-      )
-    }
 
-    badParse(desc = "No duplicate dvid()", "a=b;dvid(1,2,3);dvid(3,4,5)")
 
-    badParse(desc = "Bad dvid(0)", "a=b;dvid(0);")
-    badParse(desc = "Bad dvid(0, 1)", "a=b;dvid(1,0);")
+      for (v in c("f", "F", "alag", "lag", "rate", "dur")) {
+        badParse(
+          sprintf("%s cannot depend on jacobain info", v),
+          sprintf("d/dt(x)=(THETA[1]+ETA[1])*x\ndf(x)/dy(THETA[1]) = 1\ndf(x)/dy(ETA[1]) = 1\n%s(x)=df(x)/dt(ETA[1])+3", v)
+        )
+      }
 
-    goodParse(desc = "THETA/ETA parsing", "a=THETA[1]+ETA[2];")
-
-    goodParse(desc = "Duplicate d/dt(x)", "d/dt(depot) = -depot*ka;\nd/dt(depot) = d/dt(depot)+0")
-
-    goodParse(desc = "Duplicate d/dt(x)", "d/dt(depot) ~ -depot*ka;\nd/dt(depot) = d/dt(depot)+0")
-    goodParse(desc = "Duplicate d/dt(x)", "d/dt(depot) = -depot*ka;\nd/dt(depot) ~ d/dt(depot)+0")
-
-    goodParse(desc = "pi Parse", "a = pi+e2")
-
-    for (v in c("f", "F", "alag", "lag", "rate", "dur")) {
       badParse(
-        sprintf("%s cannot depend on d/dt(state)", v),
-        sprintf("d/dt(depot)=-depot*ka;\nd/dt(central)=ka*depot-kel*central\n%s(depot)=d/dt(central)+3", v)
+        "mtime cannot depend on df(x)/dt(ETA[1])",
+        "d/dt(x)=(THETA[1]+ETA[1])*x\ndf(x)/dy(THETA[1]) = 1\ndf(x)/dy(ETA[1]) = 1\nmtime(z)=df(x)/dt(ETA[1])+3"
       )
-    }
-
-    badParse(desc = "Using d/dt(x) before defined", "y=d/dt(x)+3")
-
-    goodParse(
-      desc = "Jacobain with theta and eta",
-      "d/dt(x)=(THETA[1]+ETA[1])*x\ndf(x)/dy(THETA[1]) = 1\ndf(x)/dy(ETA[1]) = 1\n"
-    )
-
-
-    for (v in c("f", "F", "alag", "lag", "rate", "dur")) {
       badParse(
-        sprintf("%s cannot depend on jacobain info", v),
-        sprintf("d/dt(x)=(THETA[1]+ETA[1])*x\ndf(x)/dy(THETA[1]) = 1\ndf(x)/dy(ETA[1]) = 1\n%s(x)=df(x)/dt(ETA[1])+3", v)
+        "mtime cannot depend on d/dt(x)",
+        "d/dt(x)=(THETA[1]+ETA[1])*x\ndf(x)/dy(THETA[1]) = 1\ndf(x)/dy(ETA[1]) = 1\nmtime(z)=d/dt(x)+3"
       )
-    }
 
-    badParse(
-      "mtime cannot depend on df(x)/dt(ETA[1])",
-      "d/dt(x)=(THETA[1]+ETA[1])*x\ndf(x)/dy(THETA[1]) = 1\ndf(x)/dy(ETA[1]) = 1\nmtime(z)=df(x)/dt(ETA[1])+3"
-    )
-    badParse(
-      "mtime cannot depend on d/dt(x)",
-      "d/dt(x)=(THETA[1]+ETA[1])*x\ndf(x)/dy(THETA[1]) = 1\ndf(x)/dy(ETA[1]) = 1\nmtime(z)=d/dt(x)+3"
-    )
-
-    goodParse(
-      "functional initialization ok",
-      "x(0) = y + 3\nd/dt(x) =-3*z"
-    )
-
-    ## test_that("large model parse",{
-    ##     skip_on_cran()
-    ##     if (file.exists("model_default.txt")){
-    ##         env  <- new.env();
-    ##         m  <- microbenchmark::microbenchmark(assign("model", RxODE("model_default.txt"),env),times=1);
-    ##         tmp  <- summary(m, "s")
-    ##         context(sprintf("Large parse works (#61; %s s)", tmp$median))
-    ##         expect_true(inherits(env$model, "RxODE"))
-    ##     }
-    ## })
-
-    ## Bad parse:
-    ## for (var in c('rate', 'dur', 'dvid')){
-    ##     badParse(sprintf("Cannot use the reserved %s variable", var),
-    ##               sprintf("x = %s + 3"))
-    ## }
-
-    ## 'rate' and 'dur' can be data items, so they cannot be variables
-    ## in an RxODE model
-    for (var in c("alag", "f", "F")) {
       goodParse(
-        sprintf("Parsing of %s as a variable and function work.", var),
-        sprintf("d/dt(x) = -k*x;%s(x) = %s;", var, var)
+        "functional initialization ok",
+        "x(0) = y + 3\nd/dt(x) =-3*z"
       )
-    }
 
-    options(RxODE.syntax.assign = TRUE)
+      ## 'rate' and 'dur' can be data items, so they cannot be variables
+      ## in an RxODE model
+      for (var in c("alag", "f", "F")) {
+        goodParse(
+          sprintf("Parsing of %s as a variable and function work.", var),
+          sprintf("d/dt(x) = -k*x;%s(x) = %s;", var, var)
+        )
+      }
+    })
 
-    goodParse("x=ifelse(!matt,0,1)", "x=ifelse(!matt,0,1)")
-    goodParse("x=ifelse(!(matt),0,1)", "x=ifelse(!(matt),0,1)")
-    goodParse("x=ifelse((!matt),0,1)", "x=ifelse((!matt),0,1)")
+    .rxWithOptions(list(RxODE.syntax.assign = TRUE), {
 
-    goodParse("mix lincmt with lags etc", "popCl <- 1
+      goodParse("x=ifelse(!matt,0,1)", "x=ifelse(!matt,0,1)")
+      goodParse("x=ifelse(!(matt),0,1)", "x=ifelse(!(matt),0,1)")
+      goodParse("x=ifelse((!matt),0,1)", "x=ifelse((!matt),0,1)")
+
+      goodParse("mix lincmt with lags etc", "popCl <- 1
     popV <- 20
     popKa <- 1
     popVp <- 10
@@ -680,9 +647,9 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     d/dt(ce) = keo*(cp-ce)
     effect = E0 - Emax*(Ce^gamma)/((Ce^gamma)+(Ec50^gamma));")
 
-    badParse(
-      "Still cannot take undefined compartments",
-      "popCl <- 1
+      badParse(
+        "Still cannot take undefined compartments",
+        "popCl <- 1
     popV <- 20
     popKa <- 1
     popVp <- 10
@@ -726,7 +693,7 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     effect = E0 - Emax*(Ce^gamma)/((Ce^gamma)+(Ec50^gamma));"
     )
 
-    badParse("cmt(depot) doesn't work with linCmt()", "popCl <- 1
+      badParse("cmt(depot) doesn't work with linCmt()", "popCl <- 1
     cmt(depot)
     popV <- 20
     popKa <- 1
@@ -769,7 +736,7 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     d/dt(ce) = keo*(cp-ce)
     effect = E0 - Emax*(Ce^gamma)/((Ce^gamma)+(Ec50^gamma));")
 
-    badParse("cmt(central) doesn't work with linCmt()", "popCl <- 1
+      badParse("cmt(central) doesn't work with linCmt()", "popCl <- 1
     cmt(central)
     popV <- 20
     popKa <- 1
@@ -812,85 +779,86 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     d/dt(ce) = keo*(cp-ce)
     effect = E0 - Emax*(Ce^gamma)/((Ce^gamma)+(Ec50^gamma));")
 
-    badParse("theta0", "a = theta[0]")
-    badParse("eta0", "a = eta[0]")
-    goodParse("theta1", "a = theta[1]")
-    goodParse("eta1", "a = eta[1]")
-    badParse("matt1", "a = matt[1]")
+      badParse("theta0", "a = theta[0]")
+      badParse("eta0", "a = eta[0]")
+      goodParse("theta1", "a = theta[1]")
+      goodParse("eta1", "a = eta[1]")
+      badParse("matt1", "a = matt[1]")
 
-    badParse("ifelse1", "ifelse=3")
-    badParse("ifelse2", "a=ifelse+3")
-    badParse("ifelse3", "d/dt(ifelse)=matt")
+      badParse("ifelse1", "ifelse=3")
+      badParse("ifelse2", "a=ifelse+3")
+      badParse("ifelse3", "d/dt(ifelse)=matt")
 
-    badParse("if1", "if=3")
-    badParse("if2", "a=if+3")
-    badParse("if3", "d/dt(if)=matt")
+      badParse("if1", "if=3")
+      badParse("if2", "a=if+3")
+      badParse("if3", "d/dt(if)=matt")
 
 
-    badParse("cmt1", "cmt=3")
-    goodParse("cmt2", "a=cmt+3")
-    badParse("cmt3", "d/dt(cmt)=matt")
+      badParse("cmt1", "cmt=3")
+      goodParse("cmt2", "a=cmt+3")
+      badParse("cmt3", "d/dt(cmt)=matt")
 
-    badParse("dvid1", "dvid=3")
-    goodParse("dvid2", "a=dvid+3")
-    badParse("dvid3", "d/dt(dvid)=matt")
+      badParse("dvid1", "dvid=3")
+      goodParse("dvid2", "a=dvid+3")
+      badParse("dvid3", "d/dt(dvid)=matt")
 
-    badParse("addl1", "addl=3")
-    goodParse("addl2", "a=addl+3")
-    badParse("addl3", "d/dt(addl)=matt")
+      badParse("addl1", "addl=3")
+      goodParse("addl2", "a=addl+3")
+      badParse("addl3", "d/dt(addl)=matt")
 
-    badParse("ss1", "ss=3")
-    goodParse("ss2", "a=ss+3")
-    badParse("ss3", "d/dt(ss)=matt")
+      badParse("ss1", "ss=3")
+      goodParse("ss2", "a=ss+3")
+      badParse("ss3", "d/dt(ss)=matt")
 
-    badParse("amt1", "amt=3")
-    goodParse("amt2", "a=amt+3")
-    badParse("amt3", "d/dt(amt)=matt")
+      badParse("amt1", "amt=3")
+      goodParse("amt2", "a=amt+3")
+      badParse("amt3", "d/dt(amt)=matt")
 
-    badParse("rate1", "rate=3")
-    goodParse("rate2", "a=rate+3")
-    badParse("rate3", "d/dt(rate)=matt")
+      badParse("rate1", "rate=3")
+      goodParse("rate2", "a=rate+3")
+      badParse("rate3", "d/dt(rate)=matt")
 
-    badParse("printf1", "printf=3")
-    badParse("printf2", "a=printf+3")
-    badParse("printf3", "d/dt(printf)=matt")
+      badParse("printf1", "printf=3")
+      badParse("printf2", "a=printf+3")
+      badParse("printf3", "d/dt(printf)=matt")
 
-    badParse("Rprintf1", "Rprintf=3")
-    badParse("Rprintf2", "a=Rprintf+3")
-    badParse("Rprintf3", "d/dt(Rprintf)=matt")
+      badParse("Rprintf1", "Rprintf=3")
+      badParse("Rprintf2", "a=Rprintf+3")
+      badParse("Rprintf3", "d/dt(Rprintf)=matt")
 
-    badParse("print1", "print=3")
-    badParse("print2", "a=print+3")
-    badParse("print3", "d/dt(print)=matt")
+      badParse("print1", "print=3")
+      badParse("print2", "a=print+3")
+      badParse("print3", "d/dt(print)=matt")
 
-    goodParse("sum1", "a=sum(1,2,3,a,b,c)")
-    goodParse("sum2", "a=lag(b, 1)")
+      goodParse("sum1", "a=sum(1,2,3,a,b,c)")
+      goodParse("sum2", "a=lag(b, 1)")
 
-    goodParse("transit1", "a=transit(n, mtt, bio)")
-    goodParse("transit2", "a=transit(n, mtt)")
-    badParse("transit3", "a=transit(n, mtt, bio,ack)")
+      goodParse("transit1", "a=transit(n, mtt, bio)")
+      goodParse("transit2", "a=transit(n, mtt)")
+      badParse("transit3", "a=transit(n, mtt, bio,ack)")
 
-    goodParse("fun1", "a=is.nan(x)")
-    badParse("fun2", "a=is.nan(x,b)")
-    badParse("fun3", "a=is.nan()")
+      goodParse("fun1", "a=is.nan(x)")
+      badParse("fun2", "a=is.nan(x,b)")
+      badParse("fun3", "a=is.nan()")
 
-    goodParse("fun4", "a=is.finite(x)")
-    badParse("fun5", "a=is.finite(x,a)")
-    badParse("fun6", "a=is.finite()")
+      goodParse("fun4", "a=is.finite(x)")
+      badParse("fun5", "a=is.finite(x,a)")
+      badParse("fun6", "a=is.finite()")
 
-    goodParse("fun7", "a=is.infinite(x)")
-    badParse("fun8", "a=is.infinite(x,a)")
-    badParse("fun9", "a=is.infinite()")
+      goodParse("fun7", "a=is.infinite(x)")
+      badParse("fun8", "a=is.infinite(x,a)")
+      badParse("fun9", "a=is.infinite()")
 
-    badParse("fun10", "t=tinf")
-    badParse("fun11", "time=tinf")
+      badParse("fun10", "t=tinf")
+      badParse("fun11", "time=tinf")
 
-    badParse("while/else", "a=1;while(1){a=a+3} else { a=3}")
+      badParse("while/else", "a=1;while(1){a=a+3} else { a=3}")
 
-    goodParse("while", "a=1;while(1){a=a+3}")
+      goodParse("while", "a=1;while(1){a=a+3}")
 
-    goodParse("while-break", "a=1;while(1){a=a+3; break;}")
-    badParse("while-break-bad", "a=1;while(1){a=a+3;}; break;")
+      goodParse("while-break", "a=1;while(1){a=a+3; break;}")
+      badParse("while-break-bad", "a=1;while(1){a=a+3;}; break;")
+    })
   },
   silent = TRUE,
   test = "parsing"
