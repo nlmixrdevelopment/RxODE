@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     test_that("progress_bar", {
       context("Test progress bar")

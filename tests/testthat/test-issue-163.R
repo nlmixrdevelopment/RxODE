@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Test Issue #163 -- Keep doesn't work with iCov")
 

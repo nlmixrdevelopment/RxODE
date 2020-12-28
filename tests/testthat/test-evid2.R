@@ -1,6 +1,6 @@
 require(RxODE)
 require(digest)
-rxPermissive({
+rxodeTest({
   context("evid=2 solves")
 
   mod <- RxODE("

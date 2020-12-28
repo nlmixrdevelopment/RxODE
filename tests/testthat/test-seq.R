@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("seq test for rxSolve")
     test_that("seq tests", {

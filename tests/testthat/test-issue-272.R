@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
   test_that("issue 272 and 273", {
     m1 <-RxODE({
       KA=2.94E-01

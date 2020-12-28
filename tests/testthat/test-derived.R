@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("v1 rate constants")
     test_that("v1 rate constants", {

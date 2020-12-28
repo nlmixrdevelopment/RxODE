@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
 
   set.seed(42)
 

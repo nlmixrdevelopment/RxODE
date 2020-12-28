@@ -1,89 +1,59 @@
 #' Validate RxODE
-#'
 #' This allows easy validation/qualification of nlmixr by running the
 #' testing suite on your system.
+#'
 #' @param type Type of test or filter of test type
-#' @param check Use devtools::check instead
 #' @author Matthew L. Fidler
 #' @export
-rxValidate <- function(type = NULL, check = FALSE) {
-  ## rxVersion(" Validation", TRUE);
-  .op <- options()
-  on.exit(options(.op))
-  options(testthat.progress.max_fails=10000000000)
-  .tests <- c(
-    "cran", "norm", "demo", "lvl2", "parsing",
-    "focei", "indLin", "lincmt",
-    "plot", "print",
-    "parseLincmt", "rxuse"
-  )
+rxValidate <- function(type = NULL) {
+  pt <- proc.time()
+  .filter <- NULL
+  if (is.null(type)) type <- FALSE
   if (is.character(type)) {
-    if (type == "covr") {
-      Sys.setenv("NOT_CRAN" = "true", "covr" = "true")
-      on.exit({
-        setwd(old.wd)
-        Sys.unsetenv("rxCran")
-      })
-      covr::report()
-    } else {
-      if (any(type == .tests)) {
-        if (check) {
-          devtools::check(env_vars = c(
-            NOT_CRAN = "true",
-            rxCran = type
-          ))
-        } else {
-          old.wd <- getwd()
-          on.exit({
-            setwd(old.wd)
-            Sys.unsetenv("rxCran")
-          })
-          Sys.setenv("rxCran" = type)
-          path <- file.path(system.file("tests", package = "RxODE"), "testthat")
-          setwd(path)
-          pt <- proc.time()
-          try(testthat::test_dir(path))
-          message("================================================================================")
-          print(proc.time() - pt)
-          message("================================================================================")
-        }
-      } else {
-        old.wd <- getwd()
-        on.exit({
-          setwd(old.wd)
-          Sys.unsetenv("rxCran")
-        })
-        Sys.setenv("rxCran" = "true")
-        path <- file.path(system.file("tests", package = "RxODE"), "testthat")
-        setwd(path)
-        pt <- proc.time()
-        try(testthat::test_dir(path, filter = type))
-        message("================================================================================")
-        print(proc.time() - pt)
-        message("================================================================================")
-      }
-    }
-  } else {
-    old.wd <- getwd()
-    on.exit({
-      setwd(old.wd)
-      Sys.unsetenv("rxCran")
-    })
+    .filter <- type
+    type <- TRUE
+  }
+  if (type == TRUE) {
+    .oldCran <- Sys.getenv("NOT_CRAN")
+    Sys.setenv("NOT_CRAN"="true")
+    on.exit(Sys.setenv("NOT_CRAN"=.oldCran))
+  }
+  .oldWd <- getwd()
+  on.exit({
+    setwd(.oldWd)
+  }, add=TRUE)
+
+  .rxWithOptions(list(testthat.progress.max_fails=10000000000), {
     path <- file.path(system.file("tests", package = "RxODE"), "testthat")
     setwd(path)
-    for (t in .tests) {
-      Sys.setenv("rxCran" = t)
-      message(sprintf("%s only tests", t))
-      message("================================================================================")
-      pt <- proc.time()
-      try(testthat::test_dir(path))
-      message("================================================================================")
-      print(proc.time() - pt)
-      message("================================================================================")
-    }
-  }
+    try(testthat::test_dir(path, filter = .filter))
+    message("================================================================================")
+    print(proc.time() - pt)
+    message("================================================================================")
+  })
 }
 
 #' @rdname rxValidate
 #' @export
 rxTest <- rxValidate
+
+#' Wrap a test in RxODE
+#'
+#' .. content for \details{} ..
+#' @param code Code to be evaluated
+#' @param test Test to be run.  Currently only accepts CRAN and not cran
+#' @param silent is an ignored argument now
+#' @return value of code or NULL
+#' @keywords internal
+#' @author Matthew Fidler
+rxodeTest <- function(code, test="cran", silent="ignore") {
+  on.exit(rxUnloadAll())
+  .notCran <- Sys.getenv("NOT_CRAN") == "true"
+  if (test == "cran") {
+    return(force(code))
+  } else if (.notCran) {
+    return(force(code))
+  } else {
+    return(invisible())
+  }
+}

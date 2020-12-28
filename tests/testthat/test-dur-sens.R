@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Capture which ETAs are in events")
 

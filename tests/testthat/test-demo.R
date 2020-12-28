@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     test_that("Demo runs successfully", {
       expect_error(suppressWarnings({

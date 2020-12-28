@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("deSolve event")
     test_that("deSolve events", {

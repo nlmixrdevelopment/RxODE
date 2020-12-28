@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Conditional statements")
     ## else if is actually already supported...

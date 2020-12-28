@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Test Initial conditions -> sensitivity initial conditions")
 

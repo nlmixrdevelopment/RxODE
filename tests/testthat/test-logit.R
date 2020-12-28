@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("logit tests")
     expect_equal(

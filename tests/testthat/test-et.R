@@ -1,5 +1,5 @@
 require(dplyr)
-rxPermissive(
+rxodeTest(
 {
   .rx <- loadNamespace("RxODE")
     for (radi in c(1, 2)) {

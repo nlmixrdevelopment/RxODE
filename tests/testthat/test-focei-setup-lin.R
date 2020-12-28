@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Linear model FOCEi setup checks")
     pred <- function() {

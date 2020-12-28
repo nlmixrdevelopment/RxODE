@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("User function tests")
 

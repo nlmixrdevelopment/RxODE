@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("issue #233")
 

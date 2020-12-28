@@ -1,5 +1,5 @@
 
-rxPermissive(
+rxodeTest(
   {
     require(RxODE)
     context("Example 6")

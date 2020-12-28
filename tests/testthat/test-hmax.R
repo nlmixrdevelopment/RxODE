@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Solve with all zeros")
 

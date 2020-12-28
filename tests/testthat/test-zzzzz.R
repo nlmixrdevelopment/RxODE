@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
   context("Cleanly unloads all dlls")
   test_that("Cleanly unloads all dlls", {
     val <- rxUnloadAll()

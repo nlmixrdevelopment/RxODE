@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
 
   context("Individual keep AGE==AGE2")
 

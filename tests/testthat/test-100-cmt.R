@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Use of initial conditions works")
 

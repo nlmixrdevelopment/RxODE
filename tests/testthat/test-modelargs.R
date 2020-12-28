@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Test that model specification can take string, file name or rxode expressions")
     ode <- RxODE(model = "d/dt(y) = r * y * (1 - y/K);")

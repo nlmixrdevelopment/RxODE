@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Test Transit compartment model")
     library(digest)

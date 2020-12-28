@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     test_that("missing evid", {
       ode.1c <- RxODE({

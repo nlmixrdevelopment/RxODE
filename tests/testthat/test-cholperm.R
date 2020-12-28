@@ -1,5 +1,5 @@
 ## These functions are taken from TruncatedNormal for testing
-rxPermissive(
+rxodeTest(
 {
 
   .rx <- loadNamespace("RxODE")

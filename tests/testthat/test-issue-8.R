@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Test Issue #8")
     test_that("Assign statement", {

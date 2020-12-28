@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Absolute Working Directory + Model Name (Issue #56)")
     test_that("Issue #56", {

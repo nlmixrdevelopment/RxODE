@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Test Issue #169 -- NAs everywhere")
     test_that("Test Issue #169", {

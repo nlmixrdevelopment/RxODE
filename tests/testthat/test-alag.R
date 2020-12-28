@@ -1,5 +1,5 @@
 ## Tests for absorption lag time.
-rxPermissive(
+rxodeTest(
 {
 
     ## 6.1

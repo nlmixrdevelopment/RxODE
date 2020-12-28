@@ -1,5 +1,5 @@
 ## Prior FOCEi
-rxPermissive(
+rxodeTest(
   {
     context("focei cross-check with old sympy RxODE")
     ## Test Wang 2007 focei earlier

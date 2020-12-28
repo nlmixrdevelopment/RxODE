@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Issue #178: deactivate active compiled model")
     test_that("178", {

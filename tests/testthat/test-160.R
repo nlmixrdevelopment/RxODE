@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Issue #160; F w/ other compartments")
     test_that("Bioavailability doesn't impact other cmts", {

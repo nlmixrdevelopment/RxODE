@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Test reset event EVID=3")
 

@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Removing dlls")
     ode <- RxODE({

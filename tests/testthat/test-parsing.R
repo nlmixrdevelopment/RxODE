@@ -1,5 +1,5 @@
 ## test ODE parsing for syntax errors
-rxPermissive(
+rxodeTest(
   {
     context("Test Parsing of models")
 

@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("If/Else expansion tests")
     rx1 <- RxODE({

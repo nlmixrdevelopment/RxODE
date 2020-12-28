@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     library(RxODE)
     context("Basic Tests")

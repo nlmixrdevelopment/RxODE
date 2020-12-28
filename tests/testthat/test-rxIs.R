@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("rxIs")
     test_that("rxIs tests", {

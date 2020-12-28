@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     test_that("Matrix exponential alone works", {
       context("Test inductive linearization")

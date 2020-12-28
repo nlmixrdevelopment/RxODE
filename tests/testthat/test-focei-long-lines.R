@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Michelis Menton test (long lines)")
 

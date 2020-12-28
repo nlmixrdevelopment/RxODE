@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
 
   context("tad family of functions with odes")
 

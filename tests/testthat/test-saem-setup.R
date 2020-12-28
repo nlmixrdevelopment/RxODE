@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
   context("SAEM setup")
 
   ## wbc

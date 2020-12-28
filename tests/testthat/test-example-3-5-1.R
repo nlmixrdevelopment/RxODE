@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     require(RxODE)
     context("Test Jacobian specification")

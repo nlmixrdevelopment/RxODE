@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     modelCode <- "
 TVBASE=14.3;

@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Test large model compiles")
 

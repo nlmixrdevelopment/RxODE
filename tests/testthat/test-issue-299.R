@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
   context("Issue 299")
   test_that("issue #229", {
 

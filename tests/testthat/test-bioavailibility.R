@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     ms <- c("liblsoda", "lsoda", "dop853")
     if (grepl("SunOS", Sys.info()["sysname"])) ms <- "lsoda"

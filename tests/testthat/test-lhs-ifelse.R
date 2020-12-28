@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("lhs for different compartments make sense")
 

@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
 {
   context("duplicate central/depot #246")
 

@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
 {
   .rx <- loadNamespace("RxODE")
 

@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Dual lhs/param values (Issue #135)")
 

@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("rxMvn")
     ## Tests adapted from

@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Test Scaling Factors")
     ode <-

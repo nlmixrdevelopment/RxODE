@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
   context("test id==\"item\"")
 
   f1 <- RxODE({

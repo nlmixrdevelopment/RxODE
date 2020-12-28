@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Test PythonFsum")
     test_that("Fsum", {

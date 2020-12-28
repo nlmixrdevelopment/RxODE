@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Testing solving with ID(s) in the dataset")
 

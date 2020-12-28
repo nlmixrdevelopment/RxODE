@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Bad dosing")
     ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf p11

@@ -1,4 +1,4 @@
-## rxPermissive(
+## rxodeTest(
 ##   {
 ##     options(RxODE.unload.unused = TRUE)
 ##     library(RxODE)

@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Test RxODE THETA/ETA support")
     library(digest)

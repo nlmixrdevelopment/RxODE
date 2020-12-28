@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     library(RxODE)
     context("Test pipeline style of interacting with RxODE")

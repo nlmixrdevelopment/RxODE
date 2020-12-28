@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
   context("1e+5 doesn't drop, Issue #213")
   test_that("issue #213 doesn't drop patients", {
     rx <- RxODE({

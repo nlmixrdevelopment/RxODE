@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     library(dplyr)
     library(testthat)

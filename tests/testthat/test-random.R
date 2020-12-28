@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("normal random variables")
 

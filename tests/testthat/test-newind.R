@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("test newind flag")
     ode.1c <- RxODE({

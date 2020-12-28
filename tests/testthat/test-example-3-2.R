@@ -3,7 +3,7 @@
 ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf Example #2
 ## Lorenz model in Vingette.
 
-rxPermissive(
+rxodeTest(
   {
     library("RxODE")
     library("digest")

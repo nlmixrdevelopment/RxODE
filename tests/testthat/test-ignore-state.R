@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
 
     context("Make sure the right state is ignored.")
     ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf p11

@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("tests the internal df repetition routines")
 

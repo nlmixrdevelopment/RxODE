@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
   context("Issue #243: reserved symengine variables")
 
   pars <- function(){

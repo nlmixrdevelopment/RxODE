@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
 {
 
   tol <- 5e-6 ## Current difference for all equations

@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
 
   test_that("parsing for nlmixr issue #281", {
 

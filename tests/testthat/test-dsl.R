@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Test symengine<->RxODE dsl")
 

@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
   context("param order")
 
   test_that("param order", {

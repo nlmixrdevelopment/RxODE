@@ -1,4 +1,4 @@
-rxPermissive(
+rxodeTest(
   {
     context("Compartment order & extra CMTs with cmt()")
 

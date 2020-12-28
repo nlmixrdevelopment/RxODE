@@ -25,7 +25,7 @@
   backports::import(pkgname)
   ## Setup RxODE.prefer.tbl
   .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO") == "1")
-  rxPermissive(respect = TRUE) ## need to call respect on the first time
+  rxSyncOptions("permissive")
   suppressMessages(.rxWinRtoolsPath(retry = NA))
   rxTempDir()
   if (!interactive()) {
@@ -38,7 +38,7 @@
 .onAttach <- function(libname, pkgname) {
   ## For some strange reason, mvnfast needs to be loaded before RxODE to work correctly
   .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO") == "1")
-  rxPermissive(respect = TRUE) ## need to call respect on the first time
+  rxSyncOptions("permissive")
   if (!.rxWinRtoolsPath(retry = NA)) {
     ## nocov start
     packageStartupMessage("Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to compile models\n")
@@ -181,6 +181,7 @@ rxOpt <- list(
   RxODE.compile.O = c("3", "3"),
   RxODE.unload.unused = c(FALSE, FALSE)
 )
+
 RxODE.prefer.tbl <- NULL
 RxODE.warn.on.assign <- NULL
 RxODE.syntax.assign <- NULL
@@ -206,41 +207,6 @@ RxODE.unload.unused <- NULL
 .isTestthat <- function() {
   return(regexpr("/tests/testthat/", getwd(), fixed = TRUE) != -1) # nolint
 }
-
-#' Permissive or Strict RxODE syntax options
-#'
-#' This sets the RxODE syntax to be permissive or strict
-#'
-#' @param expr Expression to evaluate in the permissive/strict
-#'     environment.  If unspecified, set the options for the current
-#'     environment.
-#' @param respect when TRUE, respect any options that are specified.
-#'     This is called at startup, but really should not be called
-#'     elsewhere, otherwise the options are not changed.
-#' @param silent when true, also silence the syntax errors and
-#'     interactive output (useful in testing).
-#' @param test When specified as a string, the enclosed test is
-#'     skipped unless the environmental variable "NOT_CRAN" equals this
-#'     value. Special values are "cran" which means test on CRAN
-#' @author Matthew L. Fidler
-#' @export
-rxPermissive <- function(expr, silent = .isTestthat(),
-                         respect = FALSE,
-                         test = "cran") {
-  args <- as.list(match.call())[-1]
-  args$op.rx <- 2
-  do.call(getFromNamespace("rxOptions", "RxODE"), args, envir = parent.frame(1))
-}
-#' @rdname rxPermissive
-#' @export
-rxStrict <- function(expr, silent = .isTestthat(), respect = FALSE) {
-  ## nocov start
-  args <- as.list(match.call())[-1]
-  args$op.rx <- 1
-  do.call(getFromNamespace("rxOptions", "RxODE"), args, envir = parent.frame(1))
-  ## nocov end
-}
-
 #' Respect suppress messages
 #'
 #' This turns on the silent REprintf in C when `suppressMessages()` is
@@ -274,128 +240,12 @@ rxSuppressMsg <- function() {
     if (!is.null(knitr::opts_knit$get('rmarkdown.pandoc.to'))) {
       return(invisible(NULL))
     } else {
-      rxSetSilentErr(as.integer(length(capture.output(message(" "),type="message"))==0L))
+      rxSetSilentErr(as.integer(length(capture.output(message(" "),type="message")) == 0L))
     }
   } else {
-    rxSetSilentErr(as.integer(length(capture.output(message(" "),type="message"))==0L))
+    rxSetSilentErr(as.integer(length(capture.output(message(" "),type="message")) == 0L))
   }
   invisible(NULL)
-}
-#' Options for RxODE
-#'
-#' This is a backend for `rxPermissive` (with
-#' `op.rx` = `2`) and `rxStrict` (with
-#' `op.rx` =`1`)
-#'
-#' When `expr` is missing and `op.rx` is NULL, this
-#' displays the current RxODE options.
-#'
-#' @inheritParams rxPermissive
-#' @param op.rx A numeric for strict (1) or permissive (2) syntax.
-#' @author Matthew L. Fidler
-#' @export
-rxOptions <- function(expr, op.rx = NULL, silent = .isTestthat(), respect = FALSE,
-                      test = "cran") {
-  if (!respect) rxUnloadAll()
-  rxSetSilentErr(1L)
-  do.it <- TRUE
-  .test <- .test0 <- Sys.getenv("NOT_CRAN")
-  if (Sys.getenv("rxCran") != "") {
-    .test <- .test0 <- Sys.getenv("rxCran")
-  }
-  ## (identical to cran testing)
-  on.exit({
-    rxSetSilentErr(0L)
-    if (!respect) rxUnloadAll()
-  })
-  if (any(.test == c("false", "", "cran"))) {
-    ## devtools sets NOT_CRAN=false for revdep testing
-    ## I don't believe CRAN sets this at all.
-    ## Sys.unsetenv("NOT_CRAN")
-    if (any(test == c("false", "", "cran"))) {
-      do.it <- TRUE
-    } else {
-      do.it <- FALSE
-    }
-  } else {
-    ## devtools sets NOT_CRAN=true for testing everything
-    if (test == .test || .test == "true") {
-      do.it <- TRUE
-    } else {
-      do.it <- FALSE
-    }
-  }
-  if (do.it) {
-    .lastCran <- Sys.getenv("NOT_CRAN")
-    Sys.setenv("NOT_CRAN" = "true")
-    on.exit(
-      {
-        Sys.setenv("NOT_CRAN" = .lastCran)
-      },
-      add = TRUE
-    )
-    if (missing(expr) && is.null(op.rx)) {
-      op <- options()
-      op <- op[regexpr(rex::rex("RxODE."), names(op)) != -1]
-      op <- op[order(names(op))]
-      sapply(names(op), function(n) {
-        message(sprintf("%s: %s", n, op[[n]]))
-      })
-      return(invisible(op))
-    } else {
-      if (is(op.rx, "character")) {
-        if (op.rx == "strict") {
-          op.rx <- 1
-        } else {
-          op.rx <- 2
-        }
-      }
-      if (is(op.rx, "numeric")) {
-        if (op.rx <= 2) {
-          x <- op.rx
-          op.rx <- list()
-          for (v in names(rxOpt)) {
-            op.rx[[v]] <- rxOpt[[v]][x]
-          }
-        }
-      }
-      if (!missing(silent)) {
-        op.rx$RxODE.verbose <- !silent
-        op.rx$RxODE.suppress.syntax.info <- silent
-      }
-      if (!missing(expr)) {
-        opOld <- options()
-        .oldProg <- getProgSupported()
-        if (silent) {
-          setProgSupported(-1)
-        }
-        on.exit(
-          {
-            options(opOld)
-            setProgSupported(.oldProg)
-            rxSyncOptions()
-          },
-          add = TRUE
-        )
-      }
-      if (respect) {
-        op <- options()
-        w <- !(names(op.rx) %in% names(op))
-        if (any(w)) options(op.rx[w])
-        rxSyncOptions()
-      } else if (length(op.rx) > 0) {
-        options(op.rx)
-        rxSyncOptions()
-      }
-      if (is(substitute(expr), "{")) {
-        if (silent) {
-          return(suppressMessages(eval(substitute(expr), envir = parent.frame(1))))
-        } else {
-          return(eval(substitute(expr), envir = parent.frame(1)))
-        }
-      }
-    }
-  }
 }
 
 #' Sync options with RxODE variables
@@ -403,18 +253,27 @@ rxOptions <- function(expr, op.rx = NULL, silent = .isTestthat(), respect = FALS
 #' Accessing RxODE options via getOption slows down solving.  This
 #' allows the options to be synced with variables.
 #'
+#' @param setDefaults This will setup RxODE's default solving options with the following options:
+#'
+#' - `"none"` leave the options alone
+#' - `"permissive"` This is a permissive option set similar to R language specifications.
+#' - `"strict"` This is a strict option set similar to the original
+#'    RxODE(). It requires semicolons at the end of lines and equals for
+#'    assignment
+#'
 #' @author Matthew L. Fidler
 #' @export
-rxSyncOptions <- function() {
+rxSyncOptions <- function(setDefaults=c("none", "permissive", "strict")) {
+  x <- c("none" = 0L, "permissive" = 2L,
+         "strict" = 1L)[match.arg(setDefaults)]
+  if (x > 0) {
+    op.rx <- list()
+    for (v in names(rxOpt)) {
+      op.rx[[v]] <- rxOpt[[v]][x]
+    }
+    options(op.rx) # nolint
+  }
   for (var in names(rxOpt)) {
     assignInMyNamespace(var, getOption(var, rxOpt[[var]][1]))
   }
 }
-
-rxSkipValidate <- function() {
-  if (!identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true")) {
-    testthat::skip("Only run on full validation")
-  }
-}
-
-rxSyncOptions()

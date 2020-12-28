@@ -1,4 +1,4 @@
-rxPermissive({
+rxodeTest({
   context("evid=3 solves")
 
   test_that("evid=3 reset time", {
