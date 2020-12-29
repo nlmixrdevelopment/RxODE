@@ -2,22 +2,19 @@ static inline void linCmtParseAOB(linCmtStruct *lin, int verbose) {
   lin->ncmt = 2;
   lin->trans = 5;
   if (lin->v == -1) {
-    parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
-    Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
+    err_trans("cannot figure out a central volume");
   }
   if (lin->alpha == -1) {
-    parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
-    Rf_errorcall(R_NilValue, _("need an 'alpha' with 'aob'"));
+    err_trans("need an 'alpha' with 'aob'");
   }
   if (lin->beta == -1) {
-    parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
-    Rf_errorcall(R_NilValue, _("need a 'beta' with 'aob'"));
+    err_trans("need a 'beta' with 'aob'");
   }
   sAppend(&(lin->ret0), "%d, %s", lin->trans, lin->mid);
   sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->alpha)));
@@ -30,16 +27,14 @@ static inline void linCmtParseAOB(linCmtStruct *lin, int verbose) {
 static inline void linCmtParseTransAlphaBeta(linCmtStruct *lin, int verbose) {
   lin->ncmt =2;
   if (lin->beta == -1) {
-    parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
-    Rf_errorcall(R_NilValue, _("need a 'beta'"));
+    err_trans("need a 'beta'");
   }
   if (lin->b == -1) {
-    parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
-    Rf_errorcall(R_NilValue, _("need a 'b'"));
+    err_trans("need a 'b'");
   }
   sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->beta)));
   sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->b)));
@@ -49,13 +44,12 @@ static inline void linCmtParseTransAlphaBeta(linCmtStruct *lin, int verbose) {
       parseFree(0);
       sFree(&(lin->ret0));
       sFree(&(lin->ret));
-      Rf_errorcall(R_NilValue, _("need a 'gamma'"));
+      err_trans("need a 'gamma'");
     }
     if (lin->c == -1) {
-      parseFree(0);
       sFree(&(lin->ret0));
       sFree(&(lin->ret));
-      Rf_errorcall(R_NilValue, _("need a 'c'"));
+      err_trans("need a 'c'");
     }
     sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->gamma)));
     sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->c)));
@@ -77,20 +71,18 @@ static inline void linCmtParseTransAlpha(linCmtStruct *lin, int verbose) {
     sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->a)));
   } else {
     if (lin->v == -1) {
-      parseFree(0);
       sFree(&(lin->ret0));
       sFree(&(lin->ret));
-      Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
+      err_trans("cannot figure out a central volume");
     }
     sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->v)));
   }
   if (lin->beta != -1 || lin->b != -1) {
     linCmtParseTransAlphaBeta(lin, verbose);
   } else if (lin->gamma != -1 || lin->c != -1) {
-    parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
-    Rf_errorcall(R_NilValue, _("a 'gamma' or 'c' specified without 'b' or 'beta'"));
+    err_trans("a 'gamma' or 'c' specified without 'b' or 'beta'");
   } else {
     sAppendN(&(lin->ret0), "0.0, 0.0, 0.0, 0.0, ", 20);
   }

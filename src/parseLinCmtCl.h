@@ -10,16 +10,14 @@ static inline int isLinCmtKeOrKel(linCmtStruct *lin, const char *in, int *index)
   if ((in[1] == 'e' || in[1] == 'E')) {
     if (in[2] == '\0') {
       if (lin->kel != -1) {
-	parseFree(0);
-	Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
+	err_trans("Ambiguous 'kel'");
       }
       lin->kel = *index;
       return 1;
     }
     if ((in[2] == 'l' || in[2] == 'L') && in[3] == '\0') {
       if (lin->kel != -1) {
-	parseFree(0);
-	Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
+	err_trans("Ambiguous 'kel'");
       }
       lin->kel = *index;
       return 1;
@@ -42,8 +40,7 @@ static inline int isLinCmtK10orK12orK13(linCmtStruct *lin, const char *in, int *
     if (in[2] == '0' && in[3] == '\0') {
       linCmtCmt(lin, 1);
       if (lin->kel != -1) {
-	parseFree(0);
-	Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
+	err_trans("Ambiguous 'kel'");
       }
       lin->kel = *index;
       return 1;
@@ -67,8 +64,7 @@ static inline int isLinCmtK20orK21orK23orK24(linCmtStruct *lin, const char *in, 
     if (in[2] == '0' && in[3] == '\0') {
       linCmtCmt(lin, 2);
       if (lin->kel != -1) {
-	parseFree(0);
-	Rf_errorcall(R_NilValue, _("Ambiguous 'kel'"));
+	err_trans("Ambiguous 'kel'");
       }
       lin->kel = *index;
       return 1;
@@ -168,8 +164,7 @@ static inline void linCmtClStyle(linCmtStruct *lin, const int style) {
     linCmtClStr(style);
     snprintf(errLin + errOff, errLinLen - errOff, "' clearance styles");
     errOff+=18;
-    parseFree(0);
-    Rf_errorcall(R_NilValue, errLin);
+    err_trans(errLin);
   }
 }
 

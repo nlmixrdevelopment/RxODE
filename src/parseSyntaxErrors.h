@@ -1,5 +1,4 @@
-char *getLine (char *src, int line, int *lloc)
-{
+char *getLine (char *src, int line, int *lloc) {
   int cur = 1, col=0, i;
   for(i = 0; src[i] != '\0' && cur != line; i++){
     if(src[i] == '\n') cur++;

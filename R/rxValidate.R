@@ -39,13 +39,15 @@ rxTest <- rxValidate
 
 #' Wrap a test in RxODE
 #'
-#' .. content for \details{} ..
+#' This wraps tests in RxODE to allow testing on cran or not on cran
+#'
 #' @param code Code to be evaluated
 #' @param test Test to be run.  Currently only accepts CRAN and not cran
 #' @param silent is an ignored argument now
 #' @return value of code or NULL
 #' @keywords internal
 #' @author Matthew Fidler
+#' @export
 rxodeTest <- function(code, test="cran", silent="ignore") {
   on.exit(rxUnloadAll())
   .notCran <- Sys.getenv("NOT_CRAN") == "true"

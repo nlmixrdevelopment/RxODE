@@ -35,21 +35,20 @@ char * rc_sbuf_read(const char *pathname) {
 
 
 void sIniTo(sbuf *sbb, int to) {
-  sbb->s = Calloc(to, char);
-  sbb->sN = to;
-  sbb->s[0]='\0';
-  sbb->o=0;
+  if (sbb->s != NULL) Free(sbb->s);
+  sbb->s    = Calloc(to, char);
+  sbb->sN   = to;
+  sbb->s[0] = '\0';
+  sbb->o    = 0;
 }
-
 
 void sIni(sbuf *sbb) {
   sIniTo(sbb, SBUF_MXBUF);
 }
 
 void sFree(sbuf *sbb) {
-  Free(sbb->s);
-  sbb->sN=0;
-  sbb->o=0;
+  if (sbb->s != NULL) Free(sbb->s);
+  sNull(sbb);
 }
 
 void sFreeIni(sbuf *sbb) {
@@ -58,6 +57,7 @@ void sFreeIni(sbuf *sbb) {
 }
 
 void sAppendN(sbuf *sbb, const char *what, int n) {
+  if (sbb->sN == 0) sIni(sbb);
   if (sbb->sN <= 2 + n + sbb->o){
     int mx = sbb->o + 2 + n + SBUF_MXBUF;
     sbb->s = Realloc(sbb->s, mx, char);
@@ -68,6 +68,7 @@ void sAppendN(sbuf *sbb, const char *what, int n) {
 }
 
 void sAppend(sbuf *sbb, const char *format, ...) {
+  if (sbb->sN == 0) sIni(sbb);
   if (format == NULL) return;
   int n = 0;
   va_list argptr, copy;
@@ -91,6 +92,7 @@ void sAppend(sbuf *sbb, const char *format, ...) {
 }
 
 void sPrint(sbuf *sbb, const char *format, ...) {
+  if (sbb->sN == 0) sIni(sbb);
   sClear(sbb);
   if (format == NULL) return;
   int n = 0;
@@ -115,15 +117,15 @@ void sPrint(sbuf *sbb, const char *format, ...) {
 }
 
 void lineIni(vLines *sbb) {
-  Free(sbb->s);
+  if (sbb->s != NULL) Free(sbb->s);
   sbb->s = Calloc(SBUF_MXBUF, char);
   sbb->sN = SBUF_MXBUF;
   sbb->s[0]='\0';
   sbb->o = 0;
-  Free(sbb->lProp);
-  Free(sbb->line);
-  Free(sbb->lType);
-  Free(sbb->os);
+  if (sbb->lProp != NULL) Free(sbb->lProp);
+  if (sbb->line != NULL) Free(sbb->line);
+  if (sbb->lType != NULL) Free(sbb->lType);
+  if (sbb->os != NULL) Free(sbb->os);
   sbb->lProp = Calloc(SBUF_MXLINE, int);
   sbb->lType = Calloc(SBUF_MXLINE, int);
   sbb->line = Calloc(SBUF_MXLINE, char*);
@@ -135,18 +137,16 @@ void lineIni(vLines *sbb) {
 }
 
 void lineFree(vLines *sbb) {
-  Free(sbb->s);
-  Free(sbb->lProp);
-  Free(sbb->lType);
-  Free(sbb->line);
-  Free(sbb->os);
-  sbb->sN = 0;
-  sbb->nL = 0;
-  sbb->n  = 0;
-  sbb->o  = 0;
+  if (sbb->s != NULL) Free(sbb->s);
+  if (sbb->lProp != NULL) Free(sbb->lProp);
+  if (sbb->line != NULL) Free(sbb->line);
+  if (sbb->lType != NULL) Free(sbb->lType);
+  if (sbb->os != NULL) Free(sbb->os);
+  lineNull(sbb);
 }
 
 void addLine(vLines *sbb, const char *format, ...) {
+  if (sbb->sN == 0) lineIni(sbb);
   if (format == NULL) return;
   int n = 0;
   va_list argptr, copy;
@@ -161,6 +161,8 @@ void addLine(vLines *sbb, const char *format, ...) {
   n = vsnprintf(zero, 0, format, copy);
 #endif
   if (n < 0){
+    reset();
+    parseFreeLast();
     Rf_errorcall(R_NilValue, _("encoding error in 'addLine' format: '%s' n: %d; errno: %d"), format, n, errno);
   }
   va_end(copy);

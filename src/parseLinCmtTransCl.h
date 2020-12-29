@@ -12,19 +12,19 @@ static inline void linCmtParseTransClVss(linCmtStruct *lin, int verbose) {
     parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
-    Rf_errorcall(R_NilValue, errLin);
+    err_trans(errLin);
   }
   if (lin->v == -1) {
     parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
-    Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
+    err_trans("cannot figure out a central volume");
   }
   if (lin->cl2 == -1) {
     parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
-    Rf_errorcall(R_NilValue, _("cannot figure out distributional clearance"));
+    err_trans("cannot figure out distributional clearance");
   }
   sAppend(&(lin->ret0), "%d, %s", lin->trans, lin->mid);
   sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->cl)));
@@ -38,7 +38,7 @@ static inline void linCmtParseTransClV(linCmtStruct *lin, int verbose) {
     parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
-    Rf_errorcall(R_NilValue, _("cannot figure out a central volume"));
+    err_trans("cannot figure out a central volume");
   }
   lin->ncmt = 1;
   lin->trans = 1;
@@ -51,13 +51,13 @@ static inline void linCmtParseTransClV(linCmtStruct *lin, int verbose) {
       parseFree(0);
       sFree(&(lin->ret0));
       sFree(&(lin->ret));
-      Rf_errorcall(R_NilValue, _("cannot figure out distributional clearance"));
+      err_trans("cannot figure out distributional clearance");
     }
     if (lin->v2 == -1) {
       parseFree(0);
       sFree(&(lin->ret0));
       sFree(&(lin->ret));
-      Rf_errorcall(R_NilValue, _("cannot figure out distributional volume"));
+      err_trans("cannot figure out distributional volume");
     }
     sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->cl2)));
     sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->v2)));
@@ -67,13 +67,13 @@ static inline void linCmtParseTransClV(linCmtStruct *lin, int verbose) {
 	parseFree(0);
 	sFree(&(lin->ret0));
 	sFree(&(lin->ret));
-	Rf_errorcall(R_NilValue, _("cannot figure out 2nd distributional clearance"));
+	err_trans("cannot figure out 2nd distributional clearance");
       }
       if (lin->v3 == -1) {
 	parseFree(0);
 	sFree(&(lin->ret0));
 	sFree(&(lin->ret));
-	Rf_errorcall(R_NilValue, _("cannot figure out 2nd distributional volume"));
+	err_trans("cannot figure out 2nd distributional volume");
       }
       sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->cl3)));
       sAppend(&(lin->ret0), "%s, ", CHAR(STRING_ELT(lin->vars, lin->v3)));

@@ -58,6 +58,11 @@ extern "C" void RSprintf(const char *format, ...);
 
 rx_solve rx_global;
 
+extern "C" void nullGlobals() {
+  lineNull(&(rx_global.factors));
+  lineNull(&(rx_global.factorNames));
+}
+
 static inline const char *getId(int id) {
   rx_solve *rx = &rx_global;
   int curLen=  rx->factorNs[0];

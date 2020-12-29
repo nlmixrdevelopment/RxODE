@@ -70,8 +70,7 @@ static inline SEXP linCmtParseSEXP(linCmtStruct *lin) {
   if (lin->trans == -1) {
     UNPROTECT(_linCmtParsePro);
     _linCmtParsePro=0;
-    parseFree(0);
-    Rf_errorcall(R_NilValue, _("could not figure out linCmt() model"));
+    err_trans("could not figure out linCmt() model");
   }
   _linCmtParsePro=0;
   return lst;
@@ -192,8 +191,7 @@ static inline void linCmtGenBolus(linCmtGenStruct *linG) {
     sFree(&(linG->d_rate2));
     sFree(&(linG->d_dur2));
     sFree(&(linG->last));
-    parseFree(0);
-    Rf_errorcall(R_NilValue, errLin);
+    err_trans(errLin);
   }
   // central only
   for (i = 0; i < centralLines.n; i++){
@@ -235,8 +233,7 @@ static inline int linCmtGenFinalize(linCmtGenStruct *linG, SEXP linCmt, SEXP var
       else {
 	/* linCmtGenFree(linG); */
 	/* UNPROTECT(pro); */
-	/* parseFree(0); */
-	/* Rf_errorcall(R_NilValue, _("linCmt() bad parse")); */
+	/* err_trans("linCmt() bad parse"); */
 	/* return R_NilValue; */
 	return 1;
       }
@@ -245,8 +242,7 @@ static inline int linCmtGenFinalize(linCmtGenStruct *linG, SEXP linCmt, SEXP var
 	if (line[0] == '\0') {
 	  /* linCmtGenFree(linG); */
 	  /* UNPROTECT(pro); */
-	  /* parseFree(0); */
-	  /* Rf_errorcall(R_NilValue, _("linCmt() bad parse")); */
+	  /* err_trans("linCmt() bad parse"); */
 	  /* return R_NilValue; */
 	  return 1;
 	}
@@ -295,14 +291,12 @@ static inline SEXP linCmtGenSEXP(linCmtGenStruct *linG, SEXP linCmt, SEXP vars, 
   case 1:
     linCmtGenFree(linG);
     UNPROTECT(pro);
-    parseFree(0);
-    Rf_errorcall(R_NilValue, _("linCmt() bad parse"));
+    err_trans("linCmt() bad parse");
     return R_NilValue;
   case 2:
     linCmtGenFree(linG);
     UNPROTECT(pro);
-    parseFree(0);
-    Rf_errorcall(R_NilValue, _("linCmt() cannot have any extra parentheses in it"));
+    err_trans("linCmt() cannot have any extra parentheses in it");
     return R_NilValue;
     break;
   }

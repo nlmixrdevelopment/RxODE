@@ -79,7 +79,6 @@ typedef struct linCmtStruct {
   SEXP vars;
 } linCmtStruct;
 
-
 static inline void linCmtIni(linCmtStruct *lin){
   lin->ka   = -1;
 
@@ -125,6 +124,9 @@ static inline void linCmtIni(linCmtStruct *lin){
 
   lin->clStyle=-1;
   lin->vStyle = -1;
+
+  sNull(&(lin->ret0));
+  sNull(&(lin->ret));
 }
 
 static inline void linCmtCmt(linCmtStruct *lin, const int cmt){
@@ -132,8 +134,7 @@ static inline void linCmtCmt(linCmtStruct *lin, const int cmt){
     lin->cmtc = cmt;
   }
   if (lin->cmtc != cmt){
-    parseFree(0);
-    Rf_errorcall(R_NilValue, _("inconsistent central compartment numbers, not sure if central compartment no is '1' or '2'"));
+    err_trans("inconsistent central compartment numbers, not sure if central compartment no is '1' or '2'");
   }
 }
 
@@ -236,6 +237,17 @@ typedef struct linCmtGenStruct {
 } linCmtGenStruct;
 
 static inline void linCmtGenIni(linCmtGenStruct *linG) {
+  sNull(&(linG->last));
+  sNull(&(linG->d_tlag));
+  sNull(&(linG->d_tlag2));
+  sNull(&(linG->d_F));
+  sNull(&(linG->d_F2));
+  sNull(&(linG->d_rate1));
+  sNull(&(linG->d_dur1));
+  sNull(&(linG->d_rate2));
+  sNull(&(linG->d_dur2));
+  sNull(&(linG->last2));
+  
   sIni(&(linG->last));
   sIni(&(linG->d_tlag));
   sIni(&(linG->d_tlag2));

@@ -82,6 +82,8 @@ sbuf sb, sbDt; /* buffer w/ current parsed & translated line */
 sbuf sbt;
 
 sbuf firstErr;
+
+
 int firstErrD=0;
 
 vLines sbPm, sbPmDt, sbNrmL;
@@ -236,11 +238,21 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 void err_msg(int chk, const char *msg, int code)
 {
   if(!chk) {
+    reset();
+    parseFreeLast();
     Rf_errorcall(R_NilValue, "%s",msg);
   }
 }
 
 sbuf _bufw, _bufw2;
+
+void parseFreeLast() {
+  if (gBufFree) Free(gBuf);
+  sFree(&sbOut);
+  freeP();
+  sFree(&_bufw);
+  sFree(&_bufw2);
+}
 
 void parseFree(int last){
   sFree(&sb);
@@ -276,14 +288,12 @@ void parseFree(int last){
   Free(tb.sdfdy);
   freeP();
   if (last){
-    Free(gBuf);
-    sFree(&sbOut);
-    freeP();
-    sFree(&_bufw);
-    sFree(&_bufw2);
+    parseFreeLast();
   }
 }
-void reset (){
+
+
+void reset() {
   // Reset sb/sbt string buffers
   parseFree(0);
   sIniTo(&_bufw, 1024);
@@ -294,6 +304,7 @@ void reset (){
   sIniTo(&sbNrm, SBUF_MXBUF);
   sIniTo(&_gbuf, 1024);
   sIni(&_mv);
+  sClear(&_mv);
   sIniTo(&firstErr, SBUF_MXBUF);
   firstErrD=0;
 
@@ -519,14 +530,14 @@ static inline int setupTrans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP 
   if (isString(prefix) && length(prefix) == 1){
     model_prefix = CHAR(STRING_ELT(prefix,0));
   } else {
-    Rf_errorcall(R_NilValue, _("model prefix must be specified"));
+    err_trans("model prefix must be specified");
   }
 
   if (isString(inME) && length(inME) == 1){
     me_code = CHAR(STRING_ELT(inME,0));
   } else {
     freeP();
-    Rf_errorcall(R_NilValue, _("extra ME code must be specified"));
+    err_trans("extra ME code must be specified");
   }
 
   if (isString(model_md5) && length(model_md5) == 1){
@@ -564,15 +575,17 @@ static inline void finalizeSyntaxError() {
     }
     if (firstErrD == 1) {
       firstErrD=0;
-      Rf_errorcall(R_NilValue, firstErr.s);
+      err_trans(firstErr.s);
     } else {
-      Rf_errorcall(R_NilValue, _("syntax errors (see above)"));
+      err_trans("syntax errors (see above)");
     }
   }
 }
 
 SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 		  SEXP isEscIn, SEXP inME, SEXP goodFuns){
+  reset();
+  parseFreeLast();
   const char *in = NULL;
   int isStr = setupTrans(parse_file, prefix, model_md5, parseStr, isEscIn, inME, goodFuns);
   in = CHAR(STRING_ELT(parse_file,0));
@@ -585,7 +598,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 
 SEXP _RxODE_parseModel(SEXP type){
   if (!sbPm.o){
-    Rf_errorcall(R_NilValue, _("model no longer loaded in memory"));
+    err_trans("model no longer loaded in memory");
   }
   int iT = INTEGER(type)[0];
   SEXP pm;
@@ -596,6 +609,7 @@ SEXP _RxODE_parseModel(SEXP type){
       SET_STRING_ELT(pm, i, mkChar(sbPmDt.line[i]));
     }
     break;
+    
   default:
     pm = PROTECT(allocVector(STRSXP, sbPm.n));
     for (int i = 0; i < sbPm.n; i++){
@@ -637,4 +651,26 @@ char * rc_dup_str(const char *s, const char *e) {
   syntaxErrorExtra=min(l-1, 40);
   addLine(&_dupStrs, "%.*s", l, s);
   return _dupStrs.line[_dupStrs.n-1];
+}
+
+void transIniNull() {
+  sNull(&(s_inits));
+  lineNull(&(tb.ss));
+  lineNull(&(tb.de));
+  sNull(&(sb));
+  sNull(&(sbDt));
+  sNull(&(sbt));
+  sNull(&(firstErr));
+  sNull(&(sbNrm));
+  sNull(&(sbOut));
+  lineNull(&(sbPm));
+  lineNull(&(sbPmDt));
+  lineNull(&(sbNrmL));
+  lineNull(&(depotLines));
+  lineNull(&(centralLines));
+  sNull(&(_gbuf));
+  sNull(&(_mv));
+  sNull(&(_bufw));
+  sNull(&(_bufw2));
+  lineNull(&(_dupStrs));
 }

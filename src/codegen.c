@@ -57,6 +57,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
 void print_aux_info(char *model, const char *prefix, const char *libname, const char *pMd5, const char *timeId,
 		    const char *libname2){
   sbuf bufw;
+  sNull(&bufw);
   sIniTo(&bufw, 1024);
   /* char bufw[1024]; */
   printCModelVars(prefix);
@@ -440,27 +441,27 @@ void writeSb(sbuf *sbb, FILE *fp){
     register unsigned written = fwrite(sbb->s + totalWritten, 1, toWrite, fp);
     if( toWrite != written){
       fclose(fp);
-      Rf_errorcall(R_NilValue, _("IO error writing parsed C file"));
+      err_trans("IO error writing parsed C file");
     } else{
       totalWritten += written; // add the written bytes
     }
   }
   if (totalWritten != sbb->o) {
     fclose(fp);
-    Rf_errorcall(R_NilValue, _("IO error writing parsed C file"));
+    err_trans("IO error writing parsed C file");
   }
 }
 
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
 		    SEXP pMd5, SEXP timeId, SEXP mvLast){
   if (!sbPm.o || !sbNrm.o){
-    Rf_errorcall(R_NilValue, _("nothing in output queue to write"));
+    err_trans("nothing in output queue to write");
   }
   if (!isString(c_file) || length(c_file) != 1){
-    Rf_errorcall(R_NilValue, _("c_file should only be 1 file"));
+    err_trans("c_file should only be 1 file");
   }
   if (length(libname) != 2){
-    Rf_errorcall(R_NilValue, _("libname needs 2 elements"));
+    err_trans("libname needs 2 elements");
   }
   fpIO = fopen(CHAR(STRING_ELT(c_file,0)), "wb");
   err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
@@ -472,7 +473,7 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   SET_STRING_ELT(VECTOR_ELT(mvLast, RxMv_model), 1, mkChar(me_code));
   int pro = 0;
   SEXP trans = PROTECT(VECTOR_ELT(mvLast, RxMv_trans)); pro++;
-  sbuf buf;
+  sbuf buf; sNull(&buf);
   sIni(&buf);
   if (strcmp(CHAR(STRING_ELT(trans, 0)), CHAR(STRING_ELT(libname, 0)))) {
     SET_STRING_ELT(trans, 0, STRING_ELT(libname, 0)); // libname
@@ -542,16 +543,13 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
     }
     if (badCentral && badDepot){
       fclose(fpIO);
-      reset();
-      Rf_errorcall(R_NilValue, _("linCmt() and ode have 'central' and 'depot' compartments, rename ODE 'central'/'depot'"));
+      err_trans("linCmt() and ode have 'central' and 'depot' compartments, rename ODE 'central'/'depot'");
     } else if (badCentral) {
       fclose(fpIO);
-      reset();
-      Rf_errorcall(R_NilValue, _("linCmt() and ode has a 'central' compartment, rename ODE 'central'"));
+      err_trans("linCmt() and ode has a 'central' compartment, rename ODE 'central'");
     } else if (badDepot) {
       fclose(fpIO);
-      reset();
-      Rf_errorcall(R_NilValue, _("linCmt() and ode has a 'depot' compartment, rename ODE 'depot'"));
+      err_trans("linCmt() and ode has a 'depot' compartment, rename ODE 'depot'");
     }
     (&sbOut)->s[0]='\0';
     if (tb.hasKa == 1) {
@@ -560,8 +558,7 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
     } else if (tb.hasCentral == 1) {
       if (tb.hasDepot){
 	fclose(fpIO);
-	reset();
-	Rf_errorcall(R_NilValue, _("linCmt() does not have 'depot' compartment without a 'ka'"));
+	err_trans("linCmt() does not have 'depot' compartment without a 'ka'");
 	return R_NilValue;
       }
       sAppend(&sbOut, "#define _CENTRAL_ %d\n", tb.statei);
@@ -582,5 +579,6 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   gCode(4); // Registration
   fclose(fpIO);
   reset();
+  parseFreeLast();
   return R_NilValue;
 }

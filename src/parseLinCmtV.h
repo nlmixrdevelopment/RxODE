@@ -39,8 +39,7 @@ static inline void linCmtVStyle(linCmtStruct *lin, int style) {
     linCmtVStr(style);
     snprintf(errLin + errOff, errLinLen-errOff, "' volume styles");
     errOff += 15;
-    parseFree(0);
-    Rf_errorcall(R_NilValue, errLin);
+    err_trans(errLin);
   }
 }
 

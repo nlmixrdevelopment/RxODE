@@ -326,4 +326,12 @@ static inline int allSpaces(char *v2) {
   return allSpace;
 }
 
+void parseFreeLast();
+
+static inline int err_trans(const char *chr) {
+    reset();
+    parseFreeLast();
+    Rf_errorcall(R_NilValue, _(chr));
+}
+
 #endif // __TRAN_H__

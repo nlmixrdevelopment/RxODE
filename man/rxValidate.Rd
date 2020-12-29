@@ -3,18 +3,19 @@
 \name{rxValidate}
 \alias{rxValidate}
 \alias{rxTest}
-\title{Validate RxODE}
+\title{Validate RxODE
+This allows easy validation/qualification of nlmixr by running the
+testing suite on your system.}
 \usage{
-rxValidate(type = NULL, check = FALSE)
+rxValidate(type = NULL)
 
-rxTest(type = NULL, check = FALSE)
+rxTest(type = NULL)
 }
 \arguments{
 \item{type}{Type of test or filter of test type}
-
-\item{check}{Use devtools::check instead}
 }
 \description{
+Validate RxODE
 This allows easy validation/qualification of nlmixr by running the
 testing suite on your system.
 }

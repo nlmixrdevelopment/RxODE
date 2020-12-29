@@ -329,7 +329,8 @@ void simeps(int id);
 void simeta(int id);
 
 double getTime(int idx, rx_solving_options_ind *ind);
-
+void transIniNull();
+void nullGlobals();
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
@@ -569,6 +570,8 @@ void R_init_RxODE(DllInfo *info){
   rxOptionsIni();
   initRxThreads();
   avoid_openmp_hang_within_fork();
+  transIniNull();
+  nullGlobals();
   /* rxOptionsIniFocei(); */
 }
 

@@ -1,16 +1,16 @@
 static inline int new_de(const char *s) {
   int i;
-  if (!strcmp("cmt", s)) Rf_errorcall(R_NilValue, _("'cmt' cannot be a state or lhs expression"));
-  if (!strcmp("dvid", s)) Rf_errorcall(R_NilValue, _("'dvid' cannot be a state or lhs expression"));
-  if (!strcmp("addl", s)) Rf_errorcall(R_NilValue, _("'addl' cannot be a state or lhs expression"));
-  if (!strcmp("ii", s)) Rf_errorcall(R_NilValue, _("'ii' cannot be a state or lhs expression"));
-  if (!strcmp("ss", s)) Rf_errorcall(R_NilValue, _("'ss' cannot be a state or lhs expression"));
-  if (!strcmp("amt", s)) Rf_errorcall(R_NilValue, _("'amt' cannot be a state or lhs expression"));
-  if (!strcmp("dur", s)) Rf_errorcall(R_NilValue, _("'dur' cannot be a state or lhs expression"));
-  if (!strcmp("rate", s)) Rf_errorcall(R_NilValue, _("'rate' cannot be a state or lhs expression"));
-  if (!strcmp("Rprintf", s)) Rf_errorcall(R_NilValue, _("'Rprintf' cannot be a state"));
-  if (!strcmp("printf", s)) Rf_errorcall(R_NilValue, _("'printf' cannot be a state"));
-  if (!strcmp("print", s)) Rf_errorcall(R_NilValue, _("'print' cannot be a state"));
+  if (!strcmp("cmt", s))  err_trans("'cmt' cannot be a state or lhs expression");
+  if (!strcmp("dvid", s)) err_trans("'dvid' cannot be a state or lhs expression");
+  if (!strcmp("addl", s)) err_trans("'addl' cannot be a state or lhs expression");
+  if (!strcmp("ii", s)) err_trans("'ii' cannot be a state or lhs expression");
+  if (!strcmp("ss", s)) err_trans("'ss' cannot be a state or lhs expression");
+  if (!strcmp("amt", s)) err_trans("'amt' cannot be a state or lhs expression");
+  if (!strcmp("dur", s)) err_trans("'dur' cannot be a state or lhs expression");
+  if (!strcmp("rate", s)) err_trans("'rate' cannot be a state or lhs expression");
+  if (!strcmp("Rprintf", s)) err_trans("'Rprintf' cannot be a state");
+  if (!strcmp("printf", s)) err_trans("'printf' cannot be a state");
+  if (!strcmp("print", s)) err_trans("'print' cannot be a state");
   for (i=0; i<tb.de.n; i++) {
     if (!strcmp(tb.de.line[i], s)) {
       tb.id = i;

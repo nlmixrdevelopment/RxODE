@@ -662,6 +662,24 @@ static inline double dabs2(double x) {
   return 0.0;
 }
 
+static inline void sNull(sbuf *sbb) {
+  sbb->s = NULL;
+  sbb->sN=0;
+  sbb->o=0;
+}
+
+static inline void lineNull(vLines *sbb) {
+  sbb->s = NULL;
+  sbb->lProp = NULL;
+  sbb->lType = NULL;
+  sbb->line = NULL;
+  sbb->os = NULL;
+  sbb->sN = 0;
+  sbb->nL = 0;
+  sbb->n  = 0;
+  sbb->o  = 0;
+}
+
 #endif
 #if defined(__cplusplus)
 }

@@ -2,21 +2,24 @@
 % Please edit documentation in R/rxValidate.R
 \name{rxodeTest}
 \alias{rxodeTest}
-\title{Wrap a test}
+\title{Wrap a test in RxODE}
 \usage{
-rxodeTest(code, test = "cran")
+rxodeTest(code, test = "cran", silent = "ignore")
 }
 \arguments{
-\item{type}{Type of test or filter of test type}
+\item{code}{Code to be evaluated}
 
-\item{check}{Use devtools::check instead}
+\item{test}{Test to be run.  Currently only accepts CRAN and not cran}
+
+\item{silent}{is an ignored argument now}
 }
 \value{
-
+value of code or NULL
 }
 \description{
-.. content for \details{} ..
+This wraps tests in RxODE to allow testing on cran or not on cran
 }
 \author{
 Matthew Fidler
 }
+\keyword{internal}
