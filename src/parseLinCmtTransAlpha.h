@@ -41,7 +41,6 @@ static inline void linCmtParseTransAlphaBeta(linCmtStruct *lin, int verbose) {
   if (lin->gamma != -1 || lin->c != -1) {
     lin->ncmt = 3;
     if (lin->gamma == -1) {
-      parseFree(0);
       sFree(&(lin->ret0));
       sFree(&(lin->ret));
       err_trans("need a 'gamma'");

@@ -238,7 +238,6 @@ void err_msg(int chk, const char *msg, int code)
 {
   if(!chk) {
     parseFree(0);
-    reset();
     Rf_errorcall(R_NilValue, "%s",msg);
   }
 }

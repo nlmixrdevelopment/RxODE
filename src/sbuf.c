@@ -162,7 +162,6 @@ void addLine(vLines *sbb, const char *format, ...) {
 #endif
   if (n < 0){
     parseFree(0);
-    reset();
     Rf_errorcall(R_NilValue, _("encoding error in 'addLine' format: '%s' n: %d; errno: %d"), format, n, errno);
   }
   va_end(copy);

@@ -9,19 +9,16 @@ static inline void linCmtParseTransClVss(linCmtStruct *lin, int verbose) {
     linCmtVStr(lin->vStyle);
     snprintf(errLin + errOff, errLinLen-errOff, "' volumes");
     errOff+=9;
-    parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
     err_trans(errLin);
   }
   if (lin->v == -1) {
-    parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
     err_trans("cannot figure out a central volume");
   }
   if (lin->cl2 == -1) {
-    parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
     err_trans("cannot figure out distributional clearance");
@@ -35,7 +32,6 @@ static inline void linCmtParseTransClVss(linCmtStruct *lin, int verbose) {
 
 static inline void linCmtParseTransClV(linCmtStruct *lin, int verbose) {
   if (lin->v == -1) {
-    parseFree(0);
     sFree(&(lin->ret0));
     sFree(&(lin->ret));
     err_trans("cannot figure out a central volume");
@@ -48,13 +44,11 @@ static inline void linCmtParseTransClV(linCmtStruct *lin, int verbose) {
   if (lin->v2 != -1 || lin->cl2 != -1) {
     lin->ncmt = 2;
     if (lin->cl2 == -1) {
-      parseFree(0);
       sFree(&(lin->ret0));
       sFree(&(lin->ret));
       err_trans("cannot figure out distributional clearance");
     }
     if (lin->v2 == -1) {
-      parseFree(0);
       sFree(&(lin->ret0));
       sFree(&(lin->ret));
       err_trans("cannot figure out distributional volume");
@@ -64,13 +58,11 @@ static inline void linCmtParseTransClV(linCmtStruct *lin, int verbose) {
     if (lin->v3 != -1 || lin->cl3 != -1) {
       lin->ncmt = 3;
       if (lin->cl3 == -1) {
-	parseFree(0);
 	sFree(&(lin->ret0));
 	sFree(&(lin->ret));
 	err_trans("cannot figure out 2nd distributional clearance");
       }
       if (lin->v3 == -1) {
-	parseFree(0);
 	sFree(&(lin->ret0));
 	sFree(&(lin->ret));
 	err_trans("cannot figure out 2nd distributional volume");
