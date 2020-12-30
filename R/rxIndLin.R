@@ -165,6 +165,7 @@ rxIndLinState <- function(preferred = NULL) {
 }
 
 .indLinInfo <- list()
+
 #' This creates the inductive linearization pieces to integrate into
 #' a RxODE model.
 #'

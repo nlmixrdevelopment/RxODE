@@ -38,6 +38,7 @@ d/dt(y3) = a3*y1*y2
       expect_equal(rigid0$normal.state, rxModelVars(rigid)$normal.state)
       expect_equal(rigid0$md5, rxModelVars(rigid)$md5)
       expect_equal(rigid0, rxModelVars(rigid))
+      saveRDS(list(rigid0, rxModelVars(rigid)), "~/both.rds")
     })
   },
   silent = TRUE,

@@ -4,8 +4,9 @@ R_NegInf <- -Inf # nolint
 R_PosInf <- Inf # nolint
 
 .linCmtSens <- NULL
-.clearME <- function(){
+.clearME <- function() {
   assignInMyNamespace(".rxMECode", "")
+  assignInMyNamespace(".indLinInfo", list())
 }
 
 #' Create an ODE-based model specification
@@ -1032,10 +1033,12 @@ rxMd5 <- function(model, # Model File
       if (any(names(model) == "normModel")) {
         .ret <- setNames(model["normModel"], NULL)
         if (any(names(model) == "indLin")) {
-          .ret <- setNames(paste0(
-            .ret, "\n",
-            model["indLin"]
-          ), NULL)
+          if (model["indLin"] != "") {
+            .ret <- setNames(paste0(
+              .ret, "\n",
+              model["indLin"]
+            ), NULL)
+          }
         }
       } else {
         stop("unknown model", call. = FALSE)

@@ -49,7 +49,9 @@ rxTest <- rxValidate
 #' @author Matthew Fidler
 #' @export
 rxodeTest <- function(code, test="cran", silent="ignore") {
-  on.exit(rxUnloadAll())
+  on.exit({
+    rxUnloadAll()
+  })
   .notCran <- Sys.getenv("NOT_CRAN") == "true"
   if (test == "cran") {
     return(force(code))
