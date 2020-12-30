@@ -578,7 +578,7 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   gCode(11); //matF
   gCode(4); // Registration
   fclose(fpIO);
+  parseFree(0);
   reset();
-  parseFreeLast();
   return R_NilValue;
 }

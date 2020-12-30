@@ -3,8 +3,8 @@ static inline void assertQorCldNeedsCl(linCmtStruct *lin){
     if (lin->clStyle == linCmtCld1style){
       err_trans("'Cld' parameterization needs 'Cl'");
     } else {
+      parseFree(0);
       reset();
-      parseFreeLast();
       err_trans("'Q' parameterization needs 'Cl'");
     }
   }

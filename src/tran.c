@@ -238,8 +238,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 void err_msg(int chk, const char *msg, int code)
 {
   if(!chk) {
+    parseFree(0);
     reset();
-    parseFreeLast();
     Rf_errorcall(R_NilValue, "%s",msg);
   }
 }
@@ -584,8 +584,8 @@ static inline void finalizeSyntaxError() {
 
 SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 		  SEXP isEscIn, SEXP inME, SEXP goodFuns){
+  parseFree(0);
   reset();
-  parseFreeLast();
   const char *in = NULL;
   int isStr = setupTrans(parse_file, prefix, model_md5, parseStr, isEscIn, inME, goodFuns);
   in = CHAR(STRING_ELT(parse_file,0));

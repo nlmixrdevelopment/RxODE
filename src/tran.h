@@ -326,7 +326,6 @@ static inline int allSpaces(char *v2) {
   return allSpace;
 }
 
-void parseFreeLast();
 void parseFree(int last);
 
 static inline int err_trans(const char *chr) {
