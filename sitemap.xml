@@ -301,9 +301,6 @@
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxOptExpr.html</loc>
   </url>
   <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxOptions.html</loc>
-  </url>
-  <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxParams.html</loc>
   </url>
   <url>
@@ -314,9 +311,6 @@
   </url>
   <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxParsePred.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxPermissive.html</loc>
   </url>
   <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxPhysicalDrives.html</loc>
@@ -470,6 +464,9 @@
   </url>
   <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxnormV.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxodeTest.html</loc>
   </url>
   <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxpois.html</loc>
