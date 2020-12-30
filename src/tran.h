@@ -329,9 +329,10 @@ static inline int allSpaces(char *v2) {
 void parseFree(int last);
 
 static inline int err_trans(const char *chr) {
-    reset();
     parseFree(0);
     Rf_errorcall(R_NilValue, _(chr));
 }
+
+char *getLine (char *src, int line, int *lloc);
 
 #endif // __TRAN_H__

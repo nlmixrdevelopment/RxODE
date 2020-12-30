@@ -99,14 +99,13 @@ int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0, needSort=0;
 sbuf sbOut;
 
 int lastSyntaxErrorLine=0;
-char *getLine (char *src, int line, int *lloc);
 void updateSyntaxCol();
 
 #include "parseVars.h"
 
 char *gBuf;
 int gBufFree=0;
-int gBufLast;
+int gBufLast = 0;
 D_Parser *curP=NULL;
 D_ParseNode *_pn = 0;
 
@@ -584,8 +583,6 @@ static inline void finalizeSyntaxError() {
 
 SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
 		  SEXP isEscIn, SEXP inME, SEXP goodFuns){
-  parseFree(0);
-  reset();
   const char *in = NULL;
   int isStr = setupTrans(parse_file, prefix, model_md5, parseStr, isEscIn, inME, goodFuns);
   in = CHAR(STRING_ELT(parse_file,0));
