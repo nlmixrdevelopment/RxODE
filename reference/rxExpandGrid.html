@@ -995,8 +995,8 @@ type=1L is jacobian expand grid (adds symbols)</p></td>
  <span class='fu'>microbenchmark</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html'>microbenchmark</a></span><span class='op'>(</span><span class='fu'>rxExpandGrid</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span>, <span class='fu'>expand.grid.jc</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; Unit: microseconds
 #&gt;                              expr  min    lq   mean median    uq   max neval
-#&gt;    rxExpandGrid(letters, letters) 19.0 20.45 22.294  21.50 22.60  48.8   100
-#&gt;  expand.grid.jc(letters, letters) 24.8 27.20 31.349  28.75 30.75 123.7   100</div><div class='input'><span class='co'># }</span>
+#&gt;    rxExpandGrid(letters, letters) 17.7 19.05 22.315   20.2 21.75  91.7   100
+#&gt;  expand.grid.jc(letters, letters) 22.7 25.20 35.134   27.7 32.20 378.4   100</div><div class='input'><span class='co'># }</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
