@@ -683,7 +683,7 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
   } else {
     .xc <- as.character(substitute(x))
     x <- substitute(x)
-    if (length(.xc == 1)) {
+    if (length(.xc) == 1) {
       .found <- FALSE
       .frames <- seq(1, sys.nframe())
       .frames <- .frames[.frames != 0]
@@ -1475,7 +1475,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
   } else {
     .xc <- as.character(substitute(x))
     x <- substitute(x)
-    if (length(.xc)  == 1) {
+    if (length(.xc) == 1) {
       .found <- FALSE
       .frames <- seq(1, sys.nframe())
       .frames <- .frames[.frames != 0]
