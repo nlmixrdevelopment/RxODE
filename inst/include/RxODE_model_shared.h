@@ -154,21 +154,21 @@ typedef void(*_simfun)(int id);
 
 extern _simfun simeps, simeta;
 
-double _sum(double *input, double *pld, int m, int type, int n, ...);
+extern double _sum(double *input, double *pld, int m, int type, int n, ...);
 
 typedef double(*_rxProdType)(double*, double*, int, int);
 
-double _prod(double *input, double *p, int type, int n, ...);
+extern double _prod(double *input, double *p, int type, int n, ...);
 
-double _sign(unsigned int n, ...);
+extern double _sign(unsigned int n, ...);
 
-double _max(unsigned int n, ...);
+extern double _max(unsigned int n, ...);
 
-double _min(unsigned int n, ...);
+extern double _min(unsigned int n, ...);
 
-double _transit4P(double t, unsigned int id, double n, double mtt, double bio);
+extern double _transit4P(double t, unsigned int id, double n, double mtt, double bio);
 
-double _transit3P(double t, unsigned int id, double n, double mtt);
+extern double _transit3P(double t, unsigned int id, double n, double mtt);
 
 typedef double (*linCmtA_p) (rx_solve *rx, unsigned int id, double t, int linCmt,
 			     int ncmt, int trans, double d_ka,
@@ -200,14 +200,14 @@ typedef rx_solve *(*_getRxSolve_t)();
 typedef int (*RxODEi_rxbinom) (rx_solving_options_ind* ind, int n, double prob);
 typedef int (*RxODEi2_ribinom) (rx_solving_options_ind* ind, int id, int n, double prob);
 
-void _assignFuns();
-double _sum(double *input, double *pld, int m, int type, int n, ...);
-double _prod(double *input, double *p, int type, int n, ...);
-double _sign(unsigned int n, ...);
-double _max(unsigned int n, ...);
-double _min(unsigned int n, ...);
-double _transit4P(double t, unsigned int id, double n, double mtt, double bio);
-double _transit3P(double t, unsigned int id, double n, double mtt);
+extern void _assignFuns();
+extern double _sum(double *input, double *pld, int m, int type, int n, ...);
+extern double _prod(double *input, double *p, int type, int n, ...);
+extern double _sign(unsigned int n, ...);
+extern double _max(unsigned int n, ...);
+extern double _min(unsigned int n, ...);
+extern double _transit4P(double t, unsigned int id, double n, double mtt, double bio);
+extern double _transit3P(double t, unsigned int id, double n, double mtt);
 
 extern _getRxSolve_t _getRxSolve_;
 
@@ -276,7 +276,5 @@ extern RxODEi2_fn2 riunif;
 extern RxODEi2_fn2 riweibull;
 
 extern RxODE_compareFactorVal_fn _compareFactorVal;
-
-
 
 #endif // __RxODE_model_shared_H__
