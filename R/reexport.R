@@ -150,6 +150,6 @@ ggplot2::expand_limits
 
 
 .SD <- NULL
-`:=` <- function(...) {
+`:=` <- function(...) { ## nocov start
   stop("this is only used in 'data.table'", .call = FALSE)
-}
+} ## nocov end
