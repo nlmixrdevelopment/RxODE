@@ -17,6 +17,9 @@ rxodeTest(
 
       expect_true(f())
       expect_error(f(TRUE))
+
+      expect_error(rxSetProgressBar(seconds = 1.0), NA)
+
     })
   },
   test = "lvl2"

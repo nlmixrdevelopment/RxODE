@@ -35,6 +35,10 @@ rxodeTest(
       expect_identical(s$s6, 10000000000000002.0)
       expect_identical(s$s7, 0.0)
       expect_identical(s$s8, 2.0)
+
+      expect_error(rxSetSum("c"))
+      expect_error(rxSetProd("double"))
+
     })
   },
   test = "cran"
