@@ -1,12 +1,9 @@
 R/RxODE-win-setup.R
-R/dsl.R
 R/genShinyApp.template.R
-R/progress.R
 R/rxFormat.R
 R/rxShiny.R
 R/rxSolve-gen.R
 R/rxValidate.R
-R/rxsympy.R
 R/version.R
 R/register-s3.R
 inst/include/RxODE_RcppExports.h
