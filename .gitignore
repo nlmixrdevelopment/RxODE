@@ -35,3 +35,4 @@ inst/doc
 /.github/workflows/.Rhistory
 docs/
 .RData
+/src/ode.h

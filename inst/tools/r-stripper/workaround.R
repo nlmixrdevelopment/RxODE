@@ -10,3 +10,22 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
 }
 
 
+unlink("R/RxODE_md5.R")
+
+cpp <- list.files("src", pattern = ".(c|h|cpp|f)$")
+include <- list.files("inst/include")
+Rfiles <- list.files("R/", pattern = ".R")
+md5 <- digest::digest(lapply(c(paste0("src/", cpp),
+                               paste0("inst/include/", include),
+                               paste0("R/", Rfiles)), digest::digest, file = TRUE))
+writeLines(sprintf("RxODE.md5 <- \"%s\"\n", md5), "R/RxODE_md5.R")
+
+l <- readLines("DESCRIPTION")
+w <- which(regexpr("Version[:] *(.*)$", l) != -1)
+v <- gsub("Version[:] *(.*)$", "\\1", l[w])
+
+unlink("src/ode.h")
+writeLines(c(sprintf("#define __VER_md5__ \"%s\"", md5),
+             "#define __VER_repo__ \"https://github.com/nlmixrdevelopment/RxODE\"",
+             sprintf("#define __VER_ver__ \"%s\"", v)),
+           "src/ode.h")

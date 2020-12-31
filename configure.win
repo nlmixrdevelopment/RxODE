@@ -1,22 +1,4 @@
 #! /bin/sh
-if [ -z ${APPVEYOR_CACHE_SKIP_SAVE+x} ]; then
-    echo ""
-else
-    mkdir ~/.R
-    echo "# Makvars.win" > ~/.R/Makevars.win
-    echo 'CXX14=$(BINPREF)g++ $(M_ARCH)' >> ~/.R/Makevars.win
-    echo "CXX14STD=-std=c++1y" >> ~/.R/Makevars.win
-    echo "CXX14FLAGS=-O2 -Wall" >> ~/.R/Makevars.win
-    echo --------[[begin ~/.R/Makevars.win]]--------
-    cat ~/.R/Makevars.win
-    echo --------[[end ~/.R/Makevars.win]]--------
-fi
-
-echo "if(!file.exists(\"src/Makevars.win\")) writeLines(gsub(\"@ISYSTEM@\",\"I\",gsub(\"@CXX14STD@\",\"CXX14STD = -std=c++1y\",suppressWarnings(readLines(\"src/Makevars.in\")))),\"src/Makevars.win\"); unlink(\"R/RxODE_md5.R\"); writeLines(sprintf(\"RxODE.md5 <- \\\"%s\\\"\\n\", digest::digest(sapply(c(paste0(\"src/\", list.files(\"src\", pattern = \"[.](c|h|cpp|f)$\")), paste0(\"inst/include/\", list.files(\"inst/include\")), paste0(\"R/\", list.files(\"R/\", pattern = \"[.]R\"))), digest::digest, file = TRUE))), \"R/RxODE_md5.R\")" > build.R
-
-${R_HOME}/bin/R CMD BATCH build.R
-rm build.R
-rm build.Rout
 
 ${R_HOME}/bin/R CMD BATCH inst/tools/r-stripper/stripper.R
 rm stripper.Rout
@@ -27,3 +9,7 @@ rm workaround.Rout
 echo --------[[begin src/Makevars.win]]--------
 cat src/Makevars.win
 echo --------[[end src/Makevars.win]]--------
+
+echo --------[begin R/RxODE_md5.R]--------
+cat R/RxODE_md5.R
+echo --------[end R/RxODE_md5.R]--------
