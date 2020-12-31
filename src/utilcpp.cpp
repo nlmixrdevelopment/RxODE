@@ -29,15 +29,24 @@ LogicalVector isNullZero(RObject obj) {
 	return true;
       }
     }
-  }
-  if (t == VECSXP) {
+  } else if (t == VECSXP) {
     List cur = as<List>(obj);
     for (int i = cur.size(); i--;) {
-      if (!_RxODE_isNullZero(cur[i])) {
+      RObject curs = cur[i];
+      t = TYPEOF(wrap(curs));
+      if (t == INTSXP || t == REALSXP) {
+	if (curs.hasAttribute("dim")) {
+	  mat curm = as<arma::mat>(curs);
+	  if (curm.is_zero()) {
+	    return true;
+	  }
+	} else {
+	  return false;
+	}
+      } else {
 	return false;
       }
     }
-    return true;
   }
   return false;
 }

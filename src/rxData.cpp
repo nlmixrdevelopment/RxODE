@@ -5223,7 +5223,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 
 
 RObject rxSolveGet_rxSolve(RObject &obj, std::string &sarg, LogicalVector &exact,
-			   List &lst){
+			   List &lst) {
   int i, j, n;
   rxCurObj = obj;
   CharacterVector cls = lst.attr("class");
