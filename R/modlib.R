@@ -167,8 +167,8 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
           cat("#'\n")
           .code  <- deparse(body(eval(parse(text=paste("function(){",.norm2(.tmp),"}")))))
           .code[1]  <- "RxODE({"
-          .code[length(.code)]  <- "})";
-          cat(paste(paste0("#' ",.code,"\n"),collapse=""));
+          .code[length(.code)]  <- "})"
+          cat(paste(paste0("#' ",.code,"\n"),collapse=""))
           cat("#'\n")
           cat(paste(paste0("#' @seealso \\code{\\link[RxODE]{eventTable}}, \\code{\\link[RxODE]{et}}, \\code{\\link[RxODE]{rxSolve}}, \\code{\\link[RxODE]{RxODE}}\n")))
           cat("#' \n")

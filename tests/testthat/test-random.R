@@ -794,7 +794,7 @@ rxodeTest(
     test_that("simeps", {
       rx1 <- RxODE({
         c <- 0 + err
-        i = 0;
+        i = 0
       })
 
       e <- et(0, 10)
@@ -806,12 +806,12 @@ rxodeTest(
 
       rx <- RxODE({
         c <- 0 + err
-        i = 0;
+        i = 0
         while (c < 0) {
           simeps()
           c <- 0 + err
           i = i + 1
-          if (i > 10) break;
+          if (i > 10) break
         }
       })
 
@@ -893,10 +893,10 @@ rxodeTest(
         wt <- 70 * exp(eta.wt)
         i <- 0
         while((wt < 60) || (wt > 80)) {
-          i <- i + 1;
-          if(i > 100) break;
-          simeta();
-          wt = 70*exp(eta.wt);
+          i <- i + 1
+          if(i > 100) break
+          simeta()
+          wt <- 70*exp(eta.wt)
         }
       })
 

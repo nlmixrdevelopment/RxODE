@@ -275,22 +275,22 @@ rxodeTest({
   test_that("ode mixed", {
 
     mod3 <- RxODE({
-      KA=2.94E-01;
-      CL=1.86E+01;
-      V2=4.02E+01;
-      Q=1.05E+01;
-      V3=2.97E+02;
-      Kin0=1;
-      Kout=1;
-      EC50=200;
+      KA=2.94E-01
+      CL=1.86E+01
+      V2=4.02E+01
+      Q=1.05E+01
+      V3=2.97E+02
+      Kin0=1
+      Kout=1
+      EC50=200
       ## The linCmt() picks up the variables from above
-      C2   = linCmt();
+      C2   = linCmt()
       Tz= 8
       amp=0.1
       eff(0) = 1  ## This specifies that the effect compartment starts at 1.
       ## Kin changes based on time of day (like cortosol)
       Kin =   Kin0 +amp *cos(2*pi*(ctime-Tz)/24)
-      d/dt(eff) =  Kin - Kout*(1-C2/(EC50+C2))*eff;
+      d/dt(eff) =  Kin - Kout*(1-C2/(EC50+C2))*eff
       tadd <- tad(depot)
       tad <- tad()
       tade <- tad(eff)
@@ -298,7 +298,7 @@ rxodeTest({
 
     ev <- eventTable(amount.units="mg", time.units="hours") %>%
       add.dosing(dose=10000, nbr.doses=1, dosing.to=1) %>%
-      add.sampling(seq(0,48,length.out=100));
+      add.sampling(seq(0,48,length.out=100))
 
 
     ## Create data frame of 8 am dosing for the first dose This is done
@@ -313,7 +313,7 @@ rxodeTest({
     ev <- eventTable(amount.units="mg", time.units="hours") %>%
       add.dosing(dose=10000, nbr.doses=1, dosing.to=1) %>%
       add.dosing(dose=-1, start.time=6, nbr.doses=1, dosing.to=3) %>%
-      add.sampling(seq(0,48,length.out=20));
+      add.sampling(seq(0,48,length.out=20))
 
 
     ## Create data frame of 8 am dosing for the first dose This is done

@@ -1975,9 +1975,9 @@ rxodeTest(
     test_that("Issue #258", {
 
       m258 <- RxODE({
-        ka=1;
-        cl=3.5;
-        vc=40;
+        ka=1
+        cl=3.5
+        vc=40
         Conc = linCmt()
         alag(depot) = 1
       },

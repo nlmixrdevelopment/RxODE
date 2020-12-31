@@ -5,7 +5,7 @@ rxodeTest({
   m1 <- RxODE({
     CL ~ (1-0.2*SEX)*(0.807+0.00514*(CRCL-91.2))*exp(eta.cl)
     V1 ~ 4.8*exp(eta.v1)
-    Q ~ (3.46+0.0593*(WT-75.1))*exp(eta.q);
+    Q ~ (3.46+0.0593*(WT-75.1))*exp(eta.q)
     V2 ~ 1.93*(3.13+0.0458*(WT-75.1))*exp(eta.v2)
     cp = max(linCmt() + err.sd, 0.01)
     if (cp == 0.01) cp = NA

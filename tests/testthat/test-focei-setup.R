@@ -116,9 +116,9 @@ rxodeTest(
     ## FIXME should work without a return...
     ## err4 <- function(){
     ##     if (cmt == 2){
-    ##         add(0.3);
+    ##         add(0.3)
     ##     } else {
-    ##         prop(0.3) + add(0.2);
+    ##         prop(0.3) + add(0.2)
     ##     }
     ## }
 
@@ -182,7 +182,7 @@ rxodeTest(
     ## }
 
     ## m1 <- RxODE({
-    ##     C2 = centr/V;
+    ##     C2 = centr/V
     ##     d/dt(centr) = - CL*C2
     ## })
 
@@ -192,7 +192,7 @@ rxodeTest(
 
     ## m1g <- rxSymPySetupPred(m1, pred, mypar1, err, grad=TRUE, logify=FALSE)
 
-    ## ETA <- c(0, 0);
+    ## ETA <- c(0, 0)
 
     ## symo <- rxSymInvCreate(structure(c(0.1, 0, 0, 0.11), .Dim = c(2L, 2L)),
     ##                        diag.xform="sqrt")
@@ -431,8 +431,8 @@ rxodeTest(
       d/dt(Mp) = M1 * k1p - Mp * kp1
       d/dt(eff) = ef0/kout * (1 + Emax/(1 + (fct * ic50/cvit)^gamma)) - kout * eff * (1 + sM1 * M1)
       eff(0) = ef0
-      M1(0) = 1;
-      cmt(eff);
+      M1(0) = 1
+      cmt(eff)
       nlmixr_pred <- eff
     })
 
@@ -465,7 +465,7 @@ rxodeTest(
       d/dt(center) = ka * depot - cl/v * center
       ipre = center/v
       nlmixr_pred <- ipre
-      cmt(ipre);
+      cmt(ipre)
     })
 
     ## Deparse will split to multiple lines

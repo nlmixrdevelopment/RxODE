@@ -31,8 +31,8 @@ rxodeTest({
     E(0) = e0
     d/dt(E) = (-alpha * E - gammaM * E * (1 - tless) + tless * (beta * E))
     d/dt(M) = (gammaM * E - deltaM * M) * (1 - tless)
-    T = E + M;
-    cmt(T);
+    T = E + M
+    cmt(T)
 
     nlmixr_pred <- T
   })

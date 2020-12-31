@@ -60,7 +60,7 @@ rxodeTest({
   }
 
   pred <- function(){
-    CIRC;
+    CIRC
   }
 
   expect_error(rxGenSaem(rx, pred, pars,

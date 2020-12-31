@@ -1259,20 +1259,20 @@ dimnames.rxSolve <- function(x) {
 
 #' @export
 "dimnames<-.rxSolve" <- function(x, value){
-    class(x) <- "data.frame";
-    "dimnames<-.data.frame"(x, value);
+    class(x) <- "data.frame"
+    "dimnames<-.data.frame"(x, value)
 }
 
 #'@export
 "[<-.rxSolve" <- function(x, i, j, value){
   if (missing(i) && !missing(j)){
     if (rxIs(j, "character")) {
-      ret <- .Call(`_RxODE_rxSolveUpdate`, x, j, value);
+      ret <- .Call(`_RxODE_rxSolveUpdate`, x, j, value)
       if (is.null(ret)){
-        class(x) <- "data.frame";
+        class(x) <- "data.frame"
         return(`[<-.data.frame`(x,, j, value = value))
       } else {
-        return(ret);
+        return(ret)
       }
     }
   }
