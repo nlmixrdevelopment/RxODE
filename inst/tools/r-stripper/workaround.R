@@ -9,6 +9,13 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
   }
 }
 
+if (.Platform$OS.type == "windows" && !file.exists("src/Makevars.win")){
+  writeLines(gsub("@ISYSTEM@", "I",
+                  gsub("@CXX14STD@", "CXX14STD = -std=c++1y",
+                       suppressWarnings(readLines("src/Makevars.in")))),
+             "src/Makevars.win")
+}
+
 
 unlink("R/RxODE_md5.R")
 
