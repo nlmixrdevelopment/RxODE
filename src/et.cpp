@@ -951,8 +951,6 @@ List etImportEventTable(List inData, bool warnings = true){
     if (mdvCol != -1 && warnings){
       Rf_warningcall(R_NilValue, _("using 'evid' instead of 'mdv'"));
     }
-    if (methodCol != -1){
-    }
     oldEvid=asIv(inData[evidCol], "inData[evidCol]");
   }
   std::vector<int> evid;
@@ -1800,8 +1798,6 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   if (curTime.size() == 2){
     show["low"] = true;
     show["high"] = true;
-    if (addl != 0){
-    }
   } else {
     if (ii != 0){
       show["ii"] = true;
