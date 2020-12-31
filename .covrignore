@@ -8,7 +8,7 @@ R/rxSolve-gen.R
 R/rxValidate.R
 R/rxsympy.R
 R/version.R
-inst/include/RxODE.h
+R/register-s3.R
 inst/include/RxODE_RcppExports.h
 src/WinDrive.cpp
 src/call_dvode.c
