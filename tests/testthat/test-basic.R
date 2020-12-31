@@ -1,6 +1,8 @@
 rxodeTest(
-  {
-    library(RxODE)
+{
+  td <- tempdir()
+
+  .rxWithWd(td, {
     context("Basic Tests")
     test.dir <- tempfile("Rx_base-")
     dir.create(test.dir)
@@ -23,7 +25,9 @@ rxodeTest(
     })
 
     unlink(test.dir, recursive = TRUE)
-  },
-  silent = TRUE,
-  test = "cran"
+  })
+
+},
+silent = TRUE,
+test = "cran"
 )

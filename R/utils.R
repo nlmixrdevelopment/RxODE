@@ -1088,3 +1088,28 @@ rxUnloadAll <- function(){
   })
   force(code)
 }
+
+
+#' Temporarily set options then restore them while running code
+#'
+#' @param wd working directory to temporarily set the system to while
+#'   evaluating the code
+#'
+#' @inheritParams .rxWithSink
+#'
+#' @export
+#' @examples
+#'
+#' .rxWithWd(tempdir(), {
+#'    getwd()
+#' })
+#'
+#' getwd()
+.rxWithWd <- function(wd, code) {
+  .old <- getwd() # nolint
+  on.exit({
+    setwd(.old) #nolint
+  })
+  setwd(wd) # nolint
+  force(code)
+}
