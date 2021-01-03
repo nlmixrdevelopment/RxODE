@@ -36,11 +36,11 @@ rxodeTest(
       }
 
       set.seed(42)
-      lkj <- cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="lkj",
+      lkj <- cvPost(3,vapply(1:3,function(...){rnorm(10)}, numeric(10)), type="lkj",
                     returnChol=TRUE)
 
       set.seed(42)
-      lkjTn <- cvPost(3,sapply(1:3,function(...){rnorm(10)}), type=2,
+      lkjTn <- cvPost(3,vapply(1:3,function(...){rnorm(10)}, numeric(10)), type=2,
                       returnChol=TRUE, diagXformType=5)
 
       expect_equal(lkj, lkjTn)
