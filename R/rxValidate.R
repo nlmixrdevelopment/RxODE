@@ -18,18 +18,14 @@ rxValidate <- function(type = NULL) {
     Sys.setenv("NOT_CRAN"="true")
     on.exit(Sys.setenv("NOT_CRAN"=.oldCran))
   }
-  .oldWd <- getwd()
-  on.exit({
-    setwd(.oldWd)
-  }, add=TRUE)
-
   .rxWithOptions(list(testthat.progress.max_fails=10000000000), {
     path <- file.path(system.file("tests", package = "RxODE"), "testthat")
-    setwd(path)
-    try(testthat::test_dir(path, filter = .filter))
-    message("================================================================================")
-    print(proc.time() - pt)
-    message("================================================================================")
+    .rxWithWd(path, {
+      try(testthat::test_dir(path, filter = .filter))
+      message("================================================================================")
+      print(proc.time() - pt)
+      message("================================================================================")
+    })
   })
 }
 

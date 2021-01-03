@@ -300,20 +300,6 @@ RxODE <- # nolint
         stop("'extraC' needs to point to a file that exists and is readable", call. = FALSE)
       }
     }
-    ## if (!missing(calcJac)){
-    ##     if (!checkmate::checkLogical(calcJac, max.len=1, any.missing=FALSE)){
-    ##         if (!checkmate::checkCharacter(calcJac)){
-    ##             stop("'calcJac' needs to be logical or a list of states")
-    ##         }
-    ##     }
-    ## }
-    ## if (!missing(calcSens)){
-    ##     if (!checkmate::checkLogical(calcSens, max.len=1, any.missing=FALSE)){
-    ##         if (!checkmate::checkCharacter(calcSens, any.missing=FALSE)){
-    ##             stop("'calcSens' needs to be logical or a list of states")
-    ##         }
-    ##     }
-    ## }
     if (!checkmate::checkLogical(collapseModel, max.len = 1, any.missing = FALSE)) {
       stop("'collapseModel' needs to be logical", call. = FALSE)
     }
@@ -330,7 +316,6 @@ RxODE <- # nolint
           call. = FALSE
         )
       }
-
       if (missing(modName)) {
         stop("with packages 'modName' is required",
           call. = FALSE
@@ -420,35 +405,32 @@ RxODE <- # nolint
     }
     .env$compile <- eval(bquote(function() {
       with(.(.env), {
-        .lwd <- getwd()
         .rx <- base::loadNamespace("RxODE")
         if (!file.exists(wd)) {
           dir.create(wd, recursive = TRUE)
         }
-        if (file.exists(wd)) {
-          setwd(wd)
-        }
         on.exit({
-          setwd(.lwd)
           .rx$.clearME()
         })
-        .rx$.extraC(extraC)
-        if (missing.modName) {
-          .rxDll <- .rx$rxCompile(.mv,
-            debug = debug,
-            package = .(.env$package)
-          )
-        } else {
-          .rxDll <- .rx$rxCompile(.mv,
-            dir = mdir,
-            debug = debug, modName = modName,
-            package = .(.env$package)
-          )
-        }
-        .rxDll$linCmtM <- .(ifelse(exists(".linCmtM", .env),
-                                   get(".linCmtM", .env), NA))
-        assign("rxDll", .rxDll, envir = .(.env))
-        assign(".mv", .rxDll$modVars, envir = .(.env))
+        .rx$.rxWithWd(wd, {
+          .rx$.extraC(extraC)
+          if (missing.modName) {
+            .rxDll <- .rx$rxCompile(.mv,
+                                    debug = debug,
+                                    package = .(.env$package)
+                                    )
+          } else {
+            .rxDll <- .rx$rxCompile(.mv,
+                                    dir = mdir,
+                                    debug = debug, modName = modName,
+                                    package = .(.env$package)
+                                    )
+          }
+          .rxDll$linCmtM <- .(ifelse(exists(".linCmtM", .env),
+                                     get(".linCmtM", .env), NA))
+          assign("rxDll", .rxDll, envir = .(.env))
+          assign(".mv", .rxDll$modVars, envir = .(.env))
+        })
       })
     }))
     .extraC(extraC)
@@ -1399,8 +1381,6 @@ rxCompile.rxModelVars <- function(model, # Model
       }
       if (force || .needCompile) {
         ## Setup Makevars
-        .owd <- getwd()
-        on.exit(setwd(.owd), add = TRUE)
         ## Now create C file
         .mv <- model
         .j <- 0
@@ -1445,12 +1425,9 @@ rxCompile.rxModelVars <- function(model, # Model
         sink(.normalizePath(file.path(.dir, "extraC.h")))
         cat(.extraCnow)
         sink()
-        ## Change working directory
-        setwd(.dir)
         try(dyn.unload(.cDllFile), silent = TRUE)
         try(unlink(.cDllFile))
         .cmd <- file.path(R.home("bin"), "R")
-        RxODE::rxReq("sys")
         .args <- c("CMD", "SHLIB", basename(.cFile))
         .rxBinpref <- Sys.getenv("rxBINPREF")
         if (.rxBinpref != "") {
@@ -1458,8 +1435,10 @@ rxCompile.rxModelVars <- function(model, # Model
           Sys.setenv("BINPREF" = .rxBinpref)
           on.exit(Sys.setenv("BINPREF" = .oldBinpref), add = TRUE)
         }
-
-        .out <- sys::exec_internal(cmd = .cmd, args = .args, error = FALSE)
+        RxODE::rxReq("sys")
+        .rxWithWd(.dir, {
+          .out <- sys::exec_internal(cmd = .cmd, args = .args, error = FALSE)
+        })
         .stderr <- rawToChar(.out$stderr)
         if (!(all(.stderr == "") & length(.stderr) == 1)) {
           message(paste(.stderr, sep="\n"))
