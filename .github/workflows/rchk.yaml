@@ -1,0 +1,24 @@
+# For help debugging build failures open an issue on the RStudio community with the 'github-actions' tag.
+# https://community.rstudio.com/new-topic?category=Package%20development&tags=github-actions
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+name: rchk
+
+jobs:
+  rchk:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: randy3k/github-action-rchk@master
+      with:
+        apt: libssh2-1-dev libgit2-dev libudunits2-dev cmake libgmp-dev libmpfr-dev libmpc-dev
+
+
