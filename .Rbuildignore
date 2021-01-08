@@ -55,6 +55,7 @@ vignettes/RxODE-shiny.Rmd
 vignettes/RxODE-sim-var.Rmd
 vignettes/RxODE-speed.Rmd
 vignettes/RxODE-stiff.Rmd
+vignettes/RxODE-datasets.Rmd
 vignettes/RxODE-transit-compartments.Rmd
 vignettes/rxode-single-subject.Rmd
 vignettes/RxODE-wt_files
@@ -64,6 +65,7 @@ vignettes/RxODE-cmt_files
 vignettes/RxODE-covariates_files
 vignettes/RxODE-data-frame_files
 vignettes/RxODE-event-types_files
+vignettes/RxODE-dataset_files
 vignettes/RxODE-event-table_files
 vignettes/RxODE-events-classic_files
 vignettes/RxODE-model-types_files
@@ -113,3 +115,4 @@ tests/testthat/*.d.*
 ^\.github$
 tests/figs
 tests/testthat/test-plot.R
+man/rmdhunks/RxODE-datasets.Rmd

@@ -126,6 +126,8 @@ navbar:
   - text: "Dosing/Events"
     icon: fas fa-stethoscope
     menu:
+        - text: "nlmixr/RxODE dataset overview"
+          href: articles/RxODE-dataset.html 
         - text: "Supported Event Types"
           href: articles/RxODE-event-types.html 
         - text: "Easy RxODE Event Tables"

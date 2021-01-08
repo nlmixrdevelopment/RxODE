@@ -1,30 +1,6 @@
----
-title: "Dataset Creation for nlmixr"
-date: "`r Sys.Date()`"
-output:
-  html_document:
-    self_contained: no
----
+# Datasets for RxODE & nlmixr
 
-```{r,echo=FALSE}
-## To allow nlmixr to reload runs without large run times
-## To run the actual models on your system, take the save options off.
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  message = FALSE,
-  warning = FALSE,
-  out.width = "100%"
-  )
-options(huxtable.knit_print_df = FALSE)
-```
-
-
-![nlmixr](logo.png)
-
-# Datasets for nlmixr
-
-Data for input into `nlmixr` is a superset of data input for `RxODE`, and it is similar to data for NONMEM (most NONMEM-ready datasets can be used directly in `nlmixr`).
+Data for input into `nlmixr` is the same type of data input for `RxODE`, and it is similar to data for NONMEM (most NONMEM-ready datasets can be used directly in `nlmixr`).
 
 # Columns Described by Type of Use
 
@@ -40,6 +16,7 @@ Observation columns are used to indicate the dependent variable and how to use o
 
 * `DV`: A numeric column with the measurement
 * `CENS`: A numeric column for indication of censoring, such as below the limit of quantification for an assay.
+* `LIMIT`: A numeric column for helping indicate the type of censoring, such as below the limit of quantification for an assay.
 * `MDV`: An indicator for missing `DV` values
 * `CMT`: The name or number of the compartment
 * `DVID`: The dependent variable identifier
@@ -67,13 +44,26 @@ For observation rows, it should be `0` or `NA`.
 
 For dosing rows, it is the amount of the dose administered to the `CMT`.  If the dose has a zero-order rate (such as a constant infusion), the infusion may be setup using the `RATE` or `DUR` column.
 
-## `CENS` Column
+## `CENS`/`LIMIT` Columns
 
-The `CENS` column is an indicator column indicating if censoring occurred.  For pharmacokinetic modeling, censoring is typically when a sample is below the limit of quantification.
+The `CENS` column is an indicator column indicating if censoring occurred.  For pharmacokinetic modeling, censoring is typically when a sample is below the limit of quantification.  Internally `RxODE` saves these values so that `nlmixr` can use them in likelihood calculations.
 
 `CENS = 0` indicates that the value in `DV` is measured without censoring.
 
-`CENS = 1` indicates that a value is left censored and that the value in `DV` is the upper limit of what the value may be.
+`CENS = 1` indicates that a value is left censored (or below the limit of quantitation) and that the value in `DV` is censoring/quantitation limit.
+
+`CENS = -1` indicates that a value is right censored (or above limit of quantitation) and that the value in `DV` is censoring/quantitation limit.
+
+
+The `LIMIT` is additional information about how censoring is handled with `nlmixr` and is stored in `RxODE`'s data structure as well. When a value is left censored, like below a limit of `1` you may also believe that the value is above a certain threshold, like zero.  In this case, a limit of `0` indicates that the censored value is between `0` and `1`.
+
+In short when:
+
+`CENS = 0` a `LIMIT` is ignored because the observation is not censored
+
+`CENS = 1` the value is censored between (`LIMIT`, `DV`)
+
+`CENS = 2` the value is censored between (`DV`, `LIMIT`)
 
 ## `CMT` Column
 
