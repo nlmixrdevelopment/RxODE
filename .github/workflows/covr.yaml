@@ -24,7 +24,7 @@ jobs:
 
       - name: Install X11 dependencies on MacOS
         if: runner.os == 'macOS'
-        run: brew cask install xquartz
+        run: brew install --cask cairo xquartz
         shell: bash
 
       - name: Install packages from cran (source)
