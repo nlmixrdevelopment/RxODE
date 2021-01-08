@@ -127,9 +127,9 @@ navbar:
     icon: fas fa-stethoscope
     menu:
         - text: "nlmixr/RxODE dataset overview"
-          href: articles/RxODE-dataset.html 
+          href: articles/RxODE-dataset.html
         - text: "Supported Event Types"
-          href: articles/RxODE-event-types.html 
+          href: articles/RxODE-event-types.html
         - text: "Easy RxODE Event Tables"
           href: articles/RxODE-event-table.html
         - text: "Classic RxODE events explained"
@@ -153,7 +153,7 @@ navbar:
        - text: "--------------------------"
        - text: Adding Circadian Rythmn (time-varying covariates)
          href: articles/RxODE-covariates.html
-       - text: Weight Based Dosing 
+       - text: Weight Based Dosing
          href: articles/RxODE-wt.html
        - text: Simulating Multiple levels of nesting (iov, between study etc)
          href: articles/RxODE-nesting.html
