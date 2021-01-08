@@ -5,6 +5,7 @@ articles:
   RxODE-cmt: RxODE-cmt.html
   RxODE-covariates: RxODE-covariates.html
   RxODE-data-frame: RxODE-data-frame.html
+  RxODE-datasets: RxODE-datasets.html
   RxODE-event-table: RxODE-event-table.html
   RxODE-event-types: RxODE-event-types.html
   RxODE-events-classic: RxODE-events-classic.html
@@ -23,7 +24,7 @@ articles:
   RxODE-tutorials: RxODE-tutorials.html
   RxODE-wt: RxODE-wt.html
   rxode-single-subject: rxode-single-subject.html
-last_built: 2021-01-08T03:08Z
+last_built: 2021-01-08T03:24Z
 urls:
   reference: https://nlmixrdevelopment.github.io/RxODE/reference
   article: https://nlmixrdevelopment.github.io/RxODE/articles
