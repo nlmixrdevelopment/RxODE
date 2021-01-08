@@ -222,7 +222,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Changing RxODE compartment numbers</h1>
             
-            <h4 class="date">2021-01-05</h4>
+            <h4 class="date">2021-01-08</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-cmt.Rmd"><code>vignettes/RxODE-cmt.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-cmt.Rmd</code></div>
@@ -328,12 +328,12 @@
       <span class="va">QRB</span><span class="op">*</span><span class="va">Rest_of_Body</span><span class="op">/</span><span class="va">KbRB</span><span class="op">/</span><span class="va">VRB</span> <span class="op">-</span> <span class="va">QLU</span><span class="op">*</span><span class="va">Venous_Blood</span><span class="op">/</span><span class="va">VVB</span>;
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">Rest_of_Body</span><span class="op">)</span> <span class="op">=</span> <span class="va">QRB</span><span class="op">*</span><span class="op">(</span><span class="va">Arterial_Blood</span><span class="op">/</span><span class="va">VAB</span> <span class="op">-</span> <span class="va">Rest_of_Body</span><span class="op">/</span><span class="va">KbRB</span><span class="op">/</span><span class="va">VRB</span><span class="op">)</span>;
 <span class="op">}</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; qs v0.23.4.</code></pre>
+<pre><code>#&gt; qs v0.23.5.</code></pre>
 <p>If you look at the summary, you can see where RxODE assigned the compartment number(s)</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">pbpk</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; RxODE 1.0.1 model named rx_8c222758edc40d5d71f47d6d63910523 model (ready). 
-#&gt; DLL: /tmp/RtmpttYiG6/RxODE/rx_8c222758edc40d5d71f47d6d63910523__.rxd/rx_8c222758edc40d5d71f47d6d63910523_.so
+#&gt; DLL: /tmp/RtmpsNjpLi/RxODE/rx_8c222758edc40d5d71f47d6d63910523__.rxd/rx_8c222758edc40d5d71f47d6d63910523_.so
 #&gt; NULL
 #&gt; 
 #&gt; Calculated Variables:
