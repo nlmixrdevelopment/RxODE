@@ -337,8 +337,8 @@ reproduce your results.</p>
 <span class='fu'>rxcauchy</span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>1</span>, n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxcauchy you have to explicitly state n</span>
 </div><div class='output co'>#&gt;  [1]  0.03752474  0.10876558 -1.14976598  2.49870842 -0.24859469  1.29031192
 #&gt;  [7] 10.07034009  0.39573746 -0.43030507  1.89221143</div><div class='input'><span class='fu'>rxcauchy</span><span class='op'>(</span><span class='fl'>0.5</span>, n<span class='op'>=</span><span class='fl'>10</span>, ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span>
-</div><div class='output co'>#&gt;  [1]  0.6077905  0.5909654  0.9589334  0.8760746  0.3761471  0.6765873
-#&gt;  [7]  1.9960719  0.9020657 -0.1637524  0.4143919</div><div class='input'>
+</div><div class='output co'>#&gt;  [1]  0.6765873  1.9960719  0.9020657 -0.1637524  0.4143919  0.6077905
+#&gt;  [7]  0.5909654  0.9589334  0.8760746  0.3761471</div><div class='input'>
 <span class='fu'>rxcauchy</span><span class='op'>(</span><span class='fl'>3</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; [1] 10.78601</div><div class='input'>
 
