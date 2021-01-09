@@ -2444,8 +2444,22 @@ extern "C" double get_fkeep(int col, int id, rx_solving_options_ind *ind){
   List keep = _rxModels[".fkeep"];
   List keepFcov=keep;
   List keepFcovI= keepFcov.attr("keepCov");
+  if (col < 0 || col >= keepFcovI.size()) {
+    //REprintf("bad col: %d %d\n", col, keepFcovI.size());
+      Rf_warningcall(R_NilValue, "get_keep(), requested out of range col %d [0, %d]",
+                     col, keepFcovI.size());
+    return NA_REAL;
+  }
   int idx = keepFcovI[col];
-  if (idx == 0) return REAL(keepFcov[col])[id];
+  if (idx == 0) {
+    NumericVector cur = keepFcov[col];
+    if (id < 0 || id >= cur.size()) {
+      //REprintf("bad id %d %d\nˆ", id, cur.size());
+        Rf_warningcall(R_NilValue, "get_keep(), requested out of range id %d [0, %d]",
+                   id, cur.size());
+    }
+    return REAL(keepFcov[col])[id];
+  }
   return ind->par_ptr[idx-1];
 }
 
