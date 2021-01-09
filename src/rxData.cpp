@@ -2352,6 +2352,7 @@ extern "C" void lineFree(vLines *sbb);
 //' @export
 // [[Rcpp::export]]
 LogicalVector rxSolveFree(){
+  resetFkeep(); // make sure _rxModels[".fkeep"]=list(0)
   rx_solve* rx = getRxSolve_();
   // Free the solve id order
   if (rx->par_sample != NULL) free(rx->par_sample);
@@ -2427,6 +2428,11 @@ List keepIcov;
 extern void setFkeep0(List keep){
   getRxModels();
   _rxModels[".fkeep"] = keep;
+}
+
+extern void resetFkeep() {
+  getRxModels();
+  _rxModels[".fkeep"] = List::create();
 }
 
 extern "C" double get_ikeep(int col, int id){
