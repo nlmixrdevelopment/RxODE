@@ -999,9 +999,9 @@ type=1L is jacobian expand grid (adds symbols)</p></td>
 <span class='co'># \donttest{</span>
  <span class='fu'>microbenchmark</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html'>microbenchmark</a></span><span class='op'>(</span><span class='fu'>rxExpandGrid</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span>, <span class='fu'>expand.grid.jc</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; Unit: microseconds
-#&gt;                              expr  min   lq   mean median    uq   max neval
-#&gt;    rxExpandGrid(letters, letters) 15.0 15.8 18.142   16.3 18.05  42.3   100
-#&gt;  expand.grid.jc(letters, letters) 19.9 21.3 27.872   22.5 24.00 386.1   100</div><div class='input'><span class='co'># }</span>
+#&gt;                              expr  min    lq   mean median   uq   max neval
+#&gt;    rxExpandGrid(letters, letters) 15.3 17.85 22.088   21.1 22.1 168.2   100
+#&gt;  expand.grid.jc(letters, letters) 20.6 26.00 35.830   27.6 29.8 549.1   100</div><div class='input'><span class='co'># }</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
