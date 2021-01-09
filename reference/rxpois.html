@@ -331,7 +331,7 @@ reproduce your results.</p>
 
 <span class='fu'>rxpois</span><span class='op'>(</span>lambda<span class='op'>=</span><span class='fl'>3</span>, n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxpois you have to explicitly state n</span>
 </div><div class='output co'>#&gt;  [1] 5 0 3 2 7 0 1 2 3 8</div><div class='input'><span class='fu'>rxpois</span><span class='op'>(</span>lambda<span class='op'>=</span><span class='fl'>3</span>, n<span class='op'>=</span><span class='fl'>10</span>, ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span>
-</div><div class='output co'>#&gt;  [1] 2 3 1 4 2 1 2 4 1 1</div><div class='input'>
+</div><div class='output co'>#&gt;  [1] 1 2 4 1 1 2 3 1 4 2</div><div class='input'>
 <span class='fu'>rxpois</span><span class='op'>(</span><span class='fl'>4</span><span class='op'>)</span> <span class='co'>## The first arguments are the lambda parameter</span>
 </div><div class='output co'>#&gt; [1] 3</div><div class='input'>
 
