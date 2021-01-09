@@ -2426,10 +2426,6 @@ extern "C" void rxSolveFreeC() {
 extern "C" void RxODE_assign_fn_pointers(SEXP);
 
 List keepIcov;
-extern void setFkeep0(List keep){
-  getRxModels();
-  _rxModels[".fkeep"] = keep;
-}
 
 extern void resetFkeep() {
   getRxModels();
@@ -2446,8 +2442,8 @@ extern "C" double get_fkeep(int col, int id, rx_solving_options_ind *ind){
   List keepFcovI= keepFcov.attr("keepCov");
   if (col < 0 || col >= keepFcovI.size()) {
     //REprintf("bad col: %d %d\n", col, keepFcovI.size());
-      Rf_warningcall(R_NilValue, "get_keep(), requested out of range col %d [0, %d]",
-                     col, keepFcovI.size());
+    Rf_warningcall(R_NilValue, "get_keep(), requested out of range col %d [0, %d]",
+		   col, keepFcovI.size());
     return NA_REAL;
   }
   int idx = keepFcovI[col];
@@ -2455,8 +2451,8 @@ extern "C" double get_fkeep(int col, int id, rx_solving_options_ind *ind){
     NumericVector cur = keepFcov[col];
     if (id < 0 || id >= cur.size()) {
       //REprintf("bad id %d %d\nˆ", id, cur.size());
-        Rf_warningcall(R_NilValue, "get_keep(), requested out of range id %d [0, %d]",
-                   id, cur.size());
+      Rf_warningcall(R_NilValue, "get_keep(), requested out of range id %d [0, %d]",
+		     id, cur.size());
     }
     return REAL(keepFcov[col])[id];
   }
@@ -2682,7 +2678,8 @@ static inline void rxSolve_ev1Update(const RObject &obj,
       CharacterVector tmpC = ev1a.attr("class");
       List tmpL = tmpC.attr(".RxODE.lst");
       rxSolveDat->idLevels = asCv(tmpL[RxTrans_idLvl], "idLvl");
-      List keep = _rxModels[".fkeep"];
+      List keep = tmpL[RxTrans_keepL];
+      _rxModels[".fkeep"] = keep;
       List keepFcov=keep;
       rx->nKeepF = keepFcov.size();
       int lenOut = 200;
@@ -2754,7 +2751,8 @@ static inline void rxSolve_ev1Update(const RObject &obj,
     CharacterVector tmpC = ev1.attr("class");
     List tmpL = tmpC.attr(".RxODE.lst");
     rxSolveDat->idLevels = asCv(tmpL[RxTrans_idLvl], "idLvl");
-    List keep = _rxModels[".fkeep"];
+    List keep = tmpL[RxTrans_keepL];
+    _rxModels[".fkeep"] = keep;
     List keepFcov=keep;
     rx->nKeepF = keepFcov.size();
     rxcEvid = 2;
