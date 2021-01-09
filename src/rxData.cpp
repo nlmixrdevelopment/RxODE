@@ -2430,15 +2430,35 @@ extern void setFkeep0(List keep){
 }
 
 extern "C" double get_ikeep(int col, int id){
-  return REAL(keepIcov[col])[id];
+  if (keepIcov.size() >= col || col < 0) {
+    Rf_warningcall(R_NilValue, "C error ikeep col: %d/%d, id: %d", col, keepIcov.size(), id);
+    return NA_REAL;
+  }
+  SEXP cur = keepIcov[col];
+  if (Rf_length(cur) >= id || id < 0) {
+    Rf_warningcall(R_NilValue, "C error ikeep col: %d/%d, id: %d/%d", col, keepIcov.size(), id, Rf_length(cur));
+    return NA_REAL;
+  }
+  return REAL(cur)[id];
 }
 
 extern "C" double get_fkeep(int col, int id, rx_solving_options_ind *ind){
   List keep = _rxModels[".fkeep"];
   List keepFcov=keep;
   List keepFcovI= keepFcov.attr("keepCov");
+  if (keepFcovI.size() >= col || col < 0) {
+    Rf_warningcall(R_NilValue, "C error kfeep col: %d/%d, id: %d", col, keepFcovI.size(), id);
+    return NA_REAL;
+  }
   int idx = keepFcovI[col];
-  if (idx == 0) return REAL(keepFcov[col])[id];
+  if (idx == 0) {
+    SEXP cur = keepFcov[col];
+    if (Rf_length(cur) >= id) {
+      Rf_warningcall(R_NilValue, "C error kfeep col: %d/%d, id: %d", col, keepFcovI.size(), id, Rf_length(cur));
+      return NA_REAL;
+    }
+    return REAL(keepFcov[col])[id];
+  }
   return ind->par_ptr[idx-1];
 }
 
