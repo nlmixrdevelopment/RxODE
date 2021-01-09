@@ -2344,6 +2344,7 @@ extern "C" void parseFree(int last);
 extern "C" void rxClearFuns();
 extern "C" void rxFreeLast();
 extern "C" void lineFree(vLines *sbb);
+void resetFkeep();
 //' Free the C solving/parsing information.
 //'
 //' Take the ODE C system and free it.
