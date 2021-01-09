@@ -9,11 +9,16 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
   }
 }
 
-if (.Platform$OS.type == "windows" && !file.exists("src/Makevars.win")){
+if (.Platform$OS.type == "windows" && !file.exists("src/Makevars.win")) {
   writeLines(gsub("@ISYSTEM@", "I",
                   gsub("@CXX14STD@", "CXX14STD = -std=c++1y",
                        suppressWarnings(readLines("src/Makevars.in")))),
              "src/Makevars.win")
+} else {
+  writeLines(gsub("@ISYSTEM@", "isystem",
+                  gsub("@CXX14STD@", "CXX14STD = -std=gnu++14",
+                       suppressWarnings(readLines("src/Makevars.in")))),
+             "src/Makevars")
 }
 
 
