@@ -89,7 +89,129 @@ rtools directly.
 To get the most speed you need OpenMP enabled and compile RxODE
 against that binary.  Here is some discussion about this:
 
-https://mac.r-project.org/openmp/
+https://ryanhomer.github.io/posts/build-openmp-macos-catalina-complete
+
+Briefly, I would install R from CRAN and then install `RxODE` (which
+installs the additional dependencies).  Then for best speed, install
+homebrew to compile `OpenMP` dependencies so they can run in
+multi-threaded mode.  You could do this with Mac's Xcode, but it often
+requires the very latest MacOS version; Depending on when you do this
+it can possibly break R packages, so it is no longer recommended.
+
+Once [homebrew is installed](https://brew.sh/), use it to install
+OpenMP enabled compilers:
+
+```sh
+brew install llvm libomp
+```
+
+And the gfortran compiler needed for `RxODE`:
+
+```sh
+brew install gcc
+```
+
+Some of the functions of `RxODE` and `nlmixr` rely on extra components
+being installed, to be safe I would install the following:
+
+```sh
+brew install cairo # Installs some items needed to optionally compile componets for ggplot2
+brew install --cask xquartz # Installs components for huxtable/officer
+```
+
+Then edit the file `~/.R/Makevars` to use the OpenMP.  In R/Rstudio
+you can edit this file by:
+
+```
+dir.create("~/.R") # may error if exists
+file.edit("~/.R/Makevars")
+```
+
+```
+# macOS Makevars configuration for LLVM/GCC
+# for OpenMP support
+#
+# For installation details, see
+# http://ryanhomer.github.io/posts/build-openmp-macos-catalina-complete
+#
+# Some sources used as reference:
+# https://github.com/Rdatatable/data.table/wiki/Installation
+# https://asieira.github.io/using-openmp-with-r-packages-in-os-x.html
+# https://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/
+# https://bit.ly/3d16TuW
+# https://www.kthohr.com/r-mac-source.html
+
+XCBASE:=$(shell xcrun --show-sdk-path)
+LLVMBASE:=$(shell brew --prefix llvm)
+GCCBASE:=$(shell brew --prefix gcc)
+GETTEXT:=$(shell brew --prefix gettext)
+
+CC=$(LLVMBASE)/bin/clang -fopenmp
+CXX=$(LLVMBASE)/bin/clang++ -fopenmp
+CXX11=$(LLVMBASE)/bin/clang++ -fopenmp
+CXX14=$(LLVMBASE)/bin/clang++ -fopenmp
+CXX17=$(LLVMBASE)/bin/clang++ -fopenmp
+CXX1X=$(LLVMBASE)/bin/clang++ -fopenmp
+
+CPPFLAGS=-isystem "$(LLVMBASE)/include" -isysroot "$(XCBASE)"
+LDFLAGS=-L"$(LLVMBASE)/lib" -L"$(GETTEXT)/lib" --sysroot="$(XCBASE)"
+
+FC=$(GCCBASE)/bin/gfortran
+F77=$(GCCBASE)/bin/gfortran
+# This # matches the gfortran version, you can see the version by the command
+# `gfortran --version`
+FLIBS=-L$(GCCBASE)/lib/gcc/10/ -lm
+```
+
+This works to install `data.table`, `RxODE` and `nlmixr` with `OpenMP`
+in R 4.0+ support.  However, some R packages that use `autoconf` will
+not work with this `Makevars`; So I would use:
+
+```r
+install.packages("data.table", type="source")
+install.packages("RxODE", type="source") # or remotes::install_github("nlmixrdevelopment/RxODE")
+install.packages("nlmixr", type="source") # or remotes::instal_github("nlmixrdevelopment/nlmixr")
+```
+
+To be safe, do not install packages that require compiled binaries
+with this approach.  Once complete you can remove the `-fopenmp` flag in the `Makevars`
+and the compiler will work without enabling `OpenMP`:
+
+```
+# macOS Makevars configuration for LLVM/GCC
+# for OpenMP support
+#
+# For installation details, see
+# http://ryanhomer.github.io/posts/build-openmp-macos-catalina-complete
+#
+# Some sources used as reference:
+# https://github.com/Rdatatable/data.table/wiki/Installation
+# https://asieira.github.io/using-openmp-with-r-packages-in-os-x.html
+# https://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/
+# https://bit.ly/3d16TuW
+# https://www.kthohr.com/r-mac-source.html
+
+XCBASE:=$(shell xcrun --show-sdk-path)
+LLVMBASE:=$(shell brew --prefix llvm)
+GCCBASE:=$(shell brew --prefix gcc)
+GETTEXT:=$(shell brew --prefix gettext)
+
+CC=$(LLVMBASE)/bin/clang 
+CXX=$(LLVMBASE)/bin/clang++ 
+CXX11=$(LLVMBASE)/bin/clang++ 
+CXX14=$(LLVMBASE)/bin/clang++ 
+CXX17=$(LLVMBASE)/bin/clang++
+CXX1X=$(LLVMBASE)/bin/clang++
+
+CPPFLAGS=-isystem "$(LLVMBASE)/include" -isysroot "$(XCBASE)"
+LDFLAGS=-L"$(LLVMBASE)/lib" -L"$(GETTEXT)/lib" --sysroot="$(XCBASE)"
+
+FC=$(GCCBASE)/bin/gfortran
+F77=$(GCCBASE)/bin/gfortran
+# This # matches the gfortran version, you can see the version by the command
+# `gfortran --version`
+FLIBS=-L$(GCCBASE)/lib/gcc/10/ -lm
+```
 
 ### Linux
 
@@ -138,7 +260,7 @@ mod1 <-RxODE({
     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 })
 #> 
-#> qs v0.23.4.
+#> qs v0.23.5.
 #> → creating RxODE include directory
 #> → getting R compile options
 #> → precompiling headers
