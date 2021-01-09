@@ -2579,8 +2579,6 @@ extern "C" double get_fkeep(int col, int id, rx_solving_options_ind *ind);
 extern "C" int get_fkeepi(int col, int id);
 extern "C" const SEXP get_fkeepn();
 
-extern "C" void setFkeepF();
-
 extern "C" SEXP getDfLevels(const char *item, rx_solve *rx){
   int totN = rx->factorNames.n;
   int base = 0, curLen= rx->factorNs[0], curG=0;
@@ -2763,7 +2761,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
     // amt
     SET_VECTOR_ELT(df, i++, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
-  setFkeepF();
   SEXP paramNames = PROTECT(rxParamNames(op->modNamePtr)); pro++;
   SEXP ikeepNames = PROTECT(get_ikeepn()); pro++;
   SEXP fkeepNames = PROTECT(get_fkeepn()); pro++;

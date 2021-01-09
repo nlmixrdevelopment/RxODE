@@ -294,13 +294,13 @@ List rxDrop(CharacterVector drop, List input, bool warnDrop) {
 //'    with `time`,  `evid` and `amt`. (UPPER, lower or Title cases accepted)
 //'
 //' @return A boolean indicating if the object is a member of the class.
-//' 
+//'
 //' @keywords internal
-//' 
+//'
 //' @author Matthew L. Fidler
-//' 
+//'
 //' @export
-//' 
+//'
 // [[Rcpp::export]]
 bool rxIs(const RObject &obj, std::string cls){
   if (obj == NULL) return false;
@@ -857,7 +857,7 @@ List rxModelVars_(const RObject &obj){
 //' @seealso [RxODE()]
 //'
 //' @author Matthew L.Fidler
-//' 
+//'
 //' @export
 // [[Rcpp::export]]
 RObject rxState(const RObject &obj = R_NilValue, RObject state = R_NilValue){
@@ -904,9 +904,9 @@ CharacterVector rxParams_(const RObject &obj){
 //'
 //' @return A list of the jacobian parameters defined in this RxODE
 //'     object.
-//' 
+//'
 //' @author Matthew L. Fidler
-//' 
+//'
 //' @export
 //[[Rcpp::export]]
 CharacterVector rxDfdy(const RObject &obj){
@@ -2424,17 +2424,9 @@ extern "C" void rxSolveFreeC() {
 extern "C" void RxODE_assign_fn_pointers(SEXP);
 
 List keepIcov;
-List keepFcov;
-IntegerVector keepFcovI;
 extern void setFkeep0(List keep){
   getRxModels();
   _rxModels[".fkeep"] = keep;
-}
-
-extern "C" void setFkeepF() {
-  List keep = _rxModels[".fkeep"];
-  keepFcov=keep;
-  keepFcovI= keepFcov.attr("keepCov");
 }
 
 extern "C" double get_ikeep(int col, int id){
@@ -2442,6 +2434,9 @@ extern "C" double get_ikeep(int col, int id){
 }
 
 extern "C" double get_fkeep(int col, int id, rx_solving_options_ind *ind){
+  List keep = _rxModels[".fkeep"];
+  List keepFcov=keep;
+  List keepFcovI= keepFcov.attr("keepCov");
   int idx = keepFcovI[col];
   if (idx == 0) return REAL(keepFcov[col])[id];
   return ind->par_ptr[idx-1];
@@ -2452,6 +2447,8 @@ extern "C" SEXP get_ikeepn(){
 }
 
 extern "C" SEXP get_fkeepn(){
+  List keep = _rxModels[".fkeep"];
+  List keepFcov=keep;
   return as<SEXP>(keepFcov.attr("names"));
 }
 
@@ -2664,6 +2661,8 @@ static inline void rxSolve_ev1Update(const RObject &obj,
       CharacterVector tmpC = ev1a.attr("class");
       List tmpL = tmpC.attr(".RxODE.lst");
       rxSolveDat->idLevels = asCv(tmpL[RxTrans_idLvl], "idLvl");
+      List keep = _rxModels[".fkeep"];
+      List keepFcov=keep;
       rx->nKeepF = keepFcov.size();
       int lenOut = 200;
       double by = NA_REAL;
@@ -2734,6 +2733,8 @@ static inline void rxSolve_ev1Update(const RObject &obj,
     CharacterVector tmpC = ev1.attr("class");
     List tmpL = tmpC.attr(".RxODE.lst");
     rxSolveDat->idLevels = asCv(tmpL[RxTrans_idLvl], "idLvl");
+    List keep = _rxModels[".fkeep"];
+    List keepFcov=keep;
     rx->nKeepF = keepFcov.size();
     rxcEvid = 2;
     rxcTime = 1;
