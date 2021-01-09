@@ -320,7 +320,7 @@ bool rxSetIni0(bool ini0 = true){
   return _ini0;
 }
 
-extern void setFkeep(List keep);
+extern void setFkeep0(List keep);
 IntegerVector convertMethod(RObject method);
 
 SEXP convertId_(SEXP x);
@@ -1986,7 +1986,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   Rf_setAttrib(keepL, R_RowNamesSymbol,
 	       IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt));
   Rf_setAttrib(keepL, Rf_install("keepCov"), wrap(keepLc));
-  setFkeep(keepL);
+  setFkeep0(keepL);
   Rf_setAttrib(e, R_ClassSymbol, wrap("rxHidden"));
   cls.attr(".RxODE.lst") = e;
   tmp = lstF[0];

@@ -2426,7 +2426,13 @@ extern "C" void RxODE_assign_fn_pointers(SEXP);
 List keepIcov;
 List keepFcov;
 IntegerVector keepFcovI;
-extern void setFkeep(List keep){
+extern void setFkeep0(List keep){
+  getRxModels();
+  _rxModels[".fkeep"] = keep;
+}
+
+extern "C" void setFkeepF() {
+  List keep = _rxModels[".fkeep"];
   keepFcov=keep;
   keepFcovI= keepFcov.attr("keepCov");
 }
