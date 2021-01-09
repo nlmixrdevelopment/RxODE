@@ -107,7 +107,9 @@ LDFLAGS=-L"$(LLVMBASE)/lib" -L"$(GETTEXT)/lib" --sysroot="$(XCBASE)"
 
 FC=$(GCCBASE)/bin/gfortran
 F77=$(GCCBASE)/bin/gfortran
-FLIBS=-L$(GCCBASE)/lib/gcc/9/ -lm
+# This # matches the gfortran version, you can see the version by the command
+# `gfortran --version`
+FLIBS=-L$(GCCBASE)/lib/gcc/10/ -lm
 ```
 
 ### Linux
