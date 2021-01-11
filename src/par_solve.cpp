@@ -2794,9 +2794,9 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
   // Now create the data frame
-  int curi = 0;
   int resetno = 0;
   for (int csim = 0; csim < nsim; csim++){
+    int curi = 0;
     for (csub = 0; csub < nsub; csub++){
       resetno=0;
       neq[1] = csub+csim*nsub;
