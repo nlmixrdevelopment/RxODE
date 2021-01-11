@@ -320,7 +320,6 @@ bool rxSetIni0(bool ini0 = true){
   return _ini0;
 }
 
-extern void setFkeep0(List keep);
 IntegerVector convertMethod(RObject method);
 
 SEXP convertId_(SEXP x);
