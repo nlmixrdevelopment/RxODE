@@ -646,6 +646,7 @@ rxSumProd <- function(x) {
 #' @export
 rxSumProdModel <- function(model, expand = FALSE, sum = TRUE, prod = TRUE) {
   ## Sum for pairwise is equivalent to regular sum under 8 elements.
+  rxReq("symengine")
   assignInMyNamespace("rxSumProdSum", sum)
   assignInMyNamespace("rxSumProdProd", prod)
   lines <- strsplit(rxNorm(model), "\n")[[1]]

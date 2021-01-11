@@ -188,6 +188,7 @@ rxIndLinState <- function(preferred = NULL) {
 #' @author Matthew Fidler
 #' @noRd
 .rxIndLin <- function(model, doConst = FALSE) {
+  rxReq("symengine")
   .env <- .rxLoadPrune(model, doConst = doConst)
   .states <- rxState(.env)
   rxProgress(length(.states))

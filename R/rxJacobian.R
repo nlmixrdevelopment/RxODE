@@ -425,6 +425,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
 #' @export
 rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=TRUE,
                       loadSymengine=TRUE) {
+  rxReq("symengine")
   .digest <- digest::digest(list(rxModelVars(obj)$md5["parsed_md5"],
                                  ifelse(is.function(pkpars), paste(deparse1(body(pkpars)), collapse=""), ""),
                                  sum.prod, optExpression, loadSymengine))
@@ -842,6 +843,7 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
                       grad = FALSE, sum.prod = FALSE, pred.minus.dv = TRUE,
                       only.numeric = FALSE, optExpression = TRUE, interaction = TRUE, ...,
                       promoteLinSens = TRUE, theta = FALSE, addProp=c("combined2", "combined1")) {
+  rxReq("symengine")
   addProp <- match.arg(addProp)
   .digest <- digest::digest(list(rxModelVars(obj)$md5["parsed_md5"],
                                  ifelse(is.function(predfn), paste(deparse1(body(predfn)), collapse=""), ""),

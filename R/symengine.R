@@ -735,6 +735,7 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
 #' @rdname rxToSE
 #' @export
 .rxToSE <- function(x, envir = NULL, progress = FALSE) {
+  rxReq("symengine")
   .cnst <- names(.rxSEreserved)
   .isEnv <- inherits(envir, "rxS") || inherits(envir, "environment")
   if (is.name(x) || is.atomic(x)) {
@@ -1459,6 +1460,7 @@ rxToSE <- function(x, envir = NULL, progress = FALSE,
 #' @rdname rxToSE
 #' @export
 rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
+  rxReq("symengine")
   .unknown <- c("central" = 2L, "forward" = 1L, "error" = 0L)
   assignInMyNamespace(".rxFromNumDer", .unknown[match.arg(unknownDerivatives)])
   if (is(substitute(x), "character")) {
@@ -1664,6 +1666,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
 #' @export
 #' @rdname rxToSE
 .rxFromSE <- function(x) {
+  rxReq("symengine")
   .cnst <- setNames(
     names(.rxSEreserved),
     paste0("rx_SymPy_Res_", names(.rxSEreserved))
@@ -2202,6 +2205,7 @@ rxFromSE <- function(x, unknownDerivatives = c("forward", "central", "error")) {
 #' @author Matthew Fidler
 #' @export
 rxS <- function(x, doConst = TRUE, promoteLinSens = FALSE) {
+  rxReq("symengine")
   .cnst <- names(.rxSEreserved)
   .env <- new.env(parent = loadNamespace("symengine"))
   .env$..mv <- rxModelVars(x)

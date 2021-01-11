@@ -29,6 +29,7 @@ rxIsBlock <- function(mat, i) {
 ## Version #2
 rxSymInvC2 <- function(mat1, diag.xform = c("sqrt", "log", "identity"),
                        allow.cache = TRUE) {
+  rxReq("symengine")
   if (!all(as.vector(mat1) == 1)) {
     stop("this has to be a matrix of all 1s or 0s", call. = FALSE)
   }
