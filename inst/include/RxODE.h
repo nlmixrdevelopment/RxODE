@@ -317,8 +317,8 @@ static inline double erfinv(double x) {
   return Rf_qnorm5((1 + x)/2.0, 0, 1, 1, 0)*M_SQRT1_2;
 }
 // Inverse 
-static double _powerDi(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
-static double _powerDi(double x, double lambda, int yj, double low, double high){
+static inline double _powerDi(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
+static inline double _powerDi(double x, double lambda, int yj, double low, double high){
   double x0=x, ret, l2, yjd;
   switch(yj){
   case 7: // inverse-Yeo Johnson followed by pnorm
@@ -389,8 +389,8 @@ static double _powerDi(double x, double lambda, int yj, double low, double high)
   return NA_REAL;
 }
 
-static double _powerD(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
-static double _powerD(double x, double lambda, int yj, double low, double high) {
+static inline double _powerD(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
+static inline double _powerD(double x, double lambda, int yj, double low, double high) {
   double x0=x, l2, p;
   switch (yj){
   case 7:
@@ -458,8 +458,8 @@ static double _powerD(double x, double lambda, int yj, double low, double high) 
   return NA_REAL;
 }
 
-static double _powerDD(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
-static double _powerDD(double x, double lambda, int yj, double low, double high){
+static inline double _powerDD(double x, double lambda, int yj, double low, double high)  __attribute__((unused));
+static inline double _powerDD(double x, double lambda, int yj, double low, double high){
   double x0 = x, xl, hl,eri;
   switch(yj){
   case 7:
@@ -501,8 +501,8 @@ static double _powerDD(double x, double lambda, int yj, double low, double high)
   return NA_REAL;
 }
 
-static double _powerDDD(double x, double lambda, int yj,double low, double high) __attribute__((unused));
-static double _powerDDD(double x, double lambda, int yj,double low, double high){
+static inline double _powerDDD(double x, double lambda, int yj,double low, double high) __attribute__((unused));
+static inline double _powerDDD(double x, double lambda, int yj,double low, double high){
   double x0 = x, hl, hl2, xl,  t1, dL, eri;
   switch(yj){
   case 7:
@@ -548,8 +548,8 @@ static double _powerDDD(double x, double lambda, int yj,double low, double high)
   return NA_REAL;
 }
 
-static double _powerL(double x, double lambda, int yj, double low, double high) __attribute__((unused));
-static double _powerL(double x, double lambda, int yj, double low, double high){
+static inline double _powerL(double x, double lambda, int yj, double low, double high) __attribute__((unused));
+static inline double _powerL(double x, double lambda, int yj, double low, double high){
   double x0 = x, hl, xl, hl2, eri;
   switch(yj){
   case 7:
@@ -601,8 +601,8 @@ static double _powerL(double x, double lambda, int yj, double low, double high){
 }
 
 // extra liklihood
-static double _powerDL(double x, double lambda, int yj, double low, double hi) __attribute__((unused));
-static double _powerDL(double x, double lambda, int yj, double low, double hi){
+static inline double _powerDL(double x, double lambda, int yj, double low, double hi) __attribute__((unused));
+static inline double _powerDL(double x, double lambda, int yj, double low, double hi){
   // d(logLik/dlambda)
   double x0 = x;
   switch (yj){

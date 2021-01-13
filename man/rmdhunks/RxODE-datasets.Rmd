@@ -63,7 +63,7 @@ In short when:
 
 `CENS = 1` the value is censored between (`LIMIT`, `DV`)
 
-`CENS = 2` the value is censored between (`DV`, `LIMIT`)
+`CENS = -1` the value is censored between (`DV`, `LIMIT`)
 
 ## `CMT` Column
 
