@@ -2611,6 +2611,44 @@ extern "C" SEXP getDfLevels(const char *item, rx_solve *rx){
 
 extern "C" void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
 
+static inline void dfCountRowsForNmOutput(rx_solve *rx, int nsim, int nsub) {
+  rx_solving_options_ind *ind;
+  int ntimes, di, wh, cmt, wh100, whI, wh0, evid;
+  double *dose;
+  int neq[2];
+  rx->nr=0;
+  for (int csim = 0; csim < nsim; csim++){
+    for (int csub = 0; csub < nsub; csub++){
+      neq[1] = csub+csim*nsub;
+      ind = &(rx->subjects[neq[1]]);
+      ind->id = neq[1];
+      ntimes = ind->n_all_times;
+      dose = ind->dose;
+      di = 0;
+      for (int i = 0; i < ntimes; i++){
+	evid = ind->evid[ind->ix[i]];
+	if (evid == 9) continue; // not output in NONMEM
+	if (isDose(evid)) {
+	  getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
+	  if (whI == 7  || whI == 6){
+	    di++;
+	    continue;
+	  }
+	  if (dose[di] <= 0) {
+	    di++;
+	    continue;
+	  }
+	  di++;
+	  rx->nr++;
+	} else if (isObs(evid)) {
+	  rx->nr++;
+	}
+      }
+    }
+  }
+  di = 0;
+}
+
 extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   rx_solve *rx;
   rx = &rx_global;
@@ -2671,35 +2709,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   double *scale;
   rx_solving_options_ind *ind;
   if (subsetEvid == 1){
-    rx->nr=0;
-    for (int csim = 0; csim < nsim; csim++){
-      for (csub = 0; csub < nsub; csub++){
-	neq[1] = csub+csim*nsub;
-	ind = &(rx->subjects[neq[1]]);
-	ind->id = neq[1];
-	ntimes = ind->n_all_times;
-	dose = ind->dose;
-	di = 0;
-	for (i = 0; i < ntimes; i++){
-	  evid = ind->evid[ind->ix[i]];
-	  if (isDose(evid)){
-	    getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
-	    if (whI != 7  && whI != 6){
-	      if (whI != 1 || (whI == 1 && dose[di++] > 0)) {
-		rx->nr++; 
-	      }
-	    } else {
-	      di++;
-	    }
-	  } else if (isObs(evid)){ 
-	    if (evid != 9){
-	      rx->nr++;
-	    }
-	  }
-	}
-      }
-    }
-    di = 0;
+    dfCountRowsForNmOutput(rx, nsim, nsub);
   } else {
     rx->nr = (doDose == 1 ? nall : nobs)*nsim;
   }

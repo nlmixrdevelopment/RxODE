@@ -27,10 +27,26 @@ d/dt(blood)     = a*intestine - b*blood
   s4 <- solve(mod, et, addDosing = TRUE)
 
 
+  s1tbs <- solve(mod, et, addDosing = FALSE, returnType="data.frame.TBS")
+
+  s2tbs <- solve(mod, et, addDosing = NULL, returnType="data.frame.TBS")
+
+  s3tbs <- solve(mod, et, addDosing = NA, returnType="data.frame.TBS")
+
+  s4tbs <- solve(mod, et, addDosing = TRUE, returnType="data.frame.TBS")
+
+
 
   test_that("Includes and ignores EVID=2", {
     expect_true(any(s1$time == 0.05))
+    expect_true(any(s1tbs$time == 0.05))
     expect_false(any(s2$time == 0.05))
+    expect_false(any(s2tbs$time == 0.05))
+  })
+
+  test_that("addDosing=TRUE does not add an extra row", {
+    expect_equal(sort(unique(s4$evid)), c(0L, 1L, 2L))
+    expect_equal(sort(unique(s4tbs$evid)), c(0L, 1L, 2L))
   })
 
   ## Test mixed solved and ODEs
@@ -77,4 +93,5 @@ d/dt(blood)     = a*intestine - b*blood
     expect_true(any(pk4$time == 0.5))
     expect_false(any(pk5$time == 0.5))
   })
+
 })
