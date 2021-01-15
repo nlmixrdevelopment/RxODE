@@ -2736,8 +2736,9 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
     } else {
       warning(_("some ID(s) could not solve the ODEs correctly; These values are replaced with 'NA'"));
     }
-  }  
-  SEXP df = PROTECT(allocVector(VECSXP,ncols+ncols2+nidCols+doseCols+doTBS*4+5*nmevid)); pro++;
+  }
+  int ncol = ncols+ncols2+nidCols+doseCols+doTBS*4+5*nmevid;
+  SEXP df = PROTECT(allocVector(VECSXP,ncol)); pro++;
   for (i = nidCols; i--;){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, rx->nr))); pro++;
   }
@@ -3252,7 +3253,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   INTEGER(sexp_rownames)[0] = NA_INTEGER;
   INTEGER(sexp_rownames)[1] = -rx->nr;
   setAttrib(df, R_RowNamesSymbol, sexp_rownames);
-  SEXP sexp_colnames = PROTECT(allocVector(STRSXP,ncols+nidCols+doseCols+doTBS*4+5*nmevid)); pro++;
+  SEXP sexp_colnames = PROTECT(allocVector(STRSXP,ncol)); pro++;
   jj = 0;
   if (sm){
     SET_STRING_ELT(sexp_colnames, jj, mkChar("sim.id"));
