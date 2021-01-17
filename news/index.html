@@ -289,6 +289,7 @@
 <li><p><code>rxSolve</code> will now return an integer <code>id</code> instead of a factor <code>id</code> when <code>id</code> is integer or integerish (as defined by checkmate). Otherwise a factor will be returned.</p></li>
 <li><p>When mixing ODEs and <code>linCmt()</code> models, the <code>linCmt()</code> compartments are 1 and possibly 2 instead of right after the last internal ODE. This is more aligned with how PK/PD models are typically defined.</p></li>
 <li><p><code>EVID=3</code> and <code>EVID=4</code> now (possibly) reset time as well. This occurs when the input dataset is sorted before solving.</p></li>
+<li><p>When <code>EVID=2</code> is present, an <code>evid</code> column is output to distinguish <code>evid=0</code> and <code>evid=2</code></p></li>
 </ul>
 </div>
 <div id="new-features" class="section level2">
