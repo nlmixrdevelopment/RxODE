@@ -288,6 +288,7 @@ typedef struct {
   int whileexit;
   int *svar;
   int *ovar;
+  int hasEvid2;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);

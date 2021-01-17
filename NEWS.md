@@ -28,6 +28,9 @@
 
 * `EVID=3` and `EVID=4` now (possibly) reset time as well.  This
   occurs when the input dataset is sorted before solving.
+  
+* When `EVID=2` is present, an `evid` column is output to distinguish
+  `evid=0` and `evid=2`
 
 ## New features
 

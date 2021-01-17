@@ -3474,7 +3474,10 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
 	ndoses++; nall++; j++;
       } else {
 	nobs++; nobst++; nall++;
-	if (_globals.gevid[i] == 2) ind->nevid2++;
+	if (_globals.gevid[i] == 2) {
+	  ind->nevid2++;
+	  rx->hasEvid2 = 1;
+	}
 	if (_globals.gevid[i] == 0) nobs2t++;
 	if (_globals.gevid[i] == 9) nevid9++;
 	if (!ISNA(tlast)){
@@ -4440,6 +4443,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS);
 extern "C" int getRxThreads(const int64_t n, const bool throttle);
 
 static inline void iniRx(rx_solve* rx) {
+  rx->hasEvid2 = 0;
   rx->nsub = 0;
   rx->nsim = 0;
   rx->neta=0;
