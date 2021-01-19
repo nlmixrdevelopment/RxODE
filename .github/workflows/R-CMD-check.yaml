@@ -57,9 +57,14 @@ jobs:
         run: brew install cairo
         shell: bash
 
+      - name: Install gcc on MacOS (for gfortran)
+        if: runner.os == 'macOS'
+        run: brew install gcc
+        shell: bash
+
       - uses: actions/checkout@v2
 
-      - uses: r-lib/actions/setup-r
+      - uses: r-lib/actions/setup-r@v1
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
