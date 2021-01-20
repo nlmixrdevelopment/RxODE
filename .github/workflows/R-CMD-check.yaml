@@ -59,7 +59,7 @@ jobs:
 
       - name: Install gcc on MacOS (for gfortran)
         if: runner.os == 'macOS'
-        run: brew install gcc@9
+        run: brew install gcc@10
         shell: bash
 
       - uses: actions/checkout@v2
