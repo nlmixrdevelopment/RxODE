@@ -59,7 +59,7 @@ jobs:
 
       - name: Link gfortran on MacOS
         if: runner.os == 'macOS'
-        run: sudo ln -s /usr/local/bin/gfortran-9 /usr/local/bin/gfortran
+        run: sudo ln -s /usr/local/bin/gfortran-10 /usr/local/bin/gfortran
         shell: bash
 
       - uses: actions/checkout@v2
