@@ -37,6 +37,13 @@ jobs:
         run: sudo ln -s /usr/local/bin/gfortran-10 /usr/local/bin/gfortran
         shell: bash
 
+      - name: Create Makevars for Fortran linking options
+        if: runner.os == 'macOS'
+        run: |
+          try(dir.create("~/.R"))
+          writeLines(c("GCCBASE:=$(shell brew --prefix gcc)","FLIBS=-L$(GCCBASE)/lib/gcc/10/ -lm",""),"~/.R/Makevars")
+        shell: Rscript {0}
+
       - name: Install packages from cran (source)
         run: |
           install.packages('remotes')
