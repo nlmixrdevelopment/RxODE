@@ -37,7 +37,7 @@ jobs:
         run: sudo ln -s /usr/local/bin/gfortran-10 /usr/local/bin/gfortran
         shell: bash
 
-      - name: Create Makevars for Fortran linking options
+      - name: Create Makevars for Fortran linking options on MacOs
         if: runner.os == 'macOS'
         run: |
           try(dir.create("~/.R"))
