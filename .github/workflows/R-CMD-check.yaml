@@ -59,14 +59,17 @@ jobs:
 
       - name: Link gfortran on MacOS
         if: runner.os == 'macOS'
-        run: sudo ln -s /usr/local/bin/gfortran-10 /usr/local/bin/gfortran
+        run: |
+          sudo ln -s /usr/local/bin/gfortran-10 /usr/local/bin/gfortran
+          sudo mkdir /usr/local/gfortran
+          sudo ln -s "$(brew --prefix gcc)/lib/gcc/10/lib" /usr/local/gfortran/lib
         shell: bash
 
       - name: Create Makevars for Fortran linking options on macOS
         if: runner.os == 'macOS'
         run: |
           try(dir.create("~/.R"))
-          writeLines(c("GCCBASE:=$(shell brew --prefix gcc)","FLIBS=-L$(GCCBASE)/lib/gcc/10/ -lm",""),"~/.R/Makevars")
+          writeLines(c("GCCBASE:=$(shell brew --prefix gcc)","FLIBS=-L$(GCCBASE)/lib/gcc/10/lib -lm",""),"~/.R/Makevars")
         shell: Rscript {0}
 
       - uses: actions/checkout@v2
