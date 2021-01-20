@@ -6,6 +6,12 @@ You can install the released version of RxODE from
 install.packages("RxODE")
 ```
 
+You can install the development version of RxODE with
+
+```r
+devtools::install_github("nlmixrdevelopment/RxODE")
+```
+
 To build models with RxODE, you need a working c compiler.  To use parallel threaded
 solving in RxODE, this c compiler needs to support open-mp.
 
