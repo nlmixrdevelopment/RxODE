@@ -57,9 +57,9 @@ jobs:
         run: brew install cairo
         shell: bash
 
-      - name: Install gcc on MacOS (for gfortran)
+      - name: Link gfortran on MacOS
         if: runner.os == 'macOS'
-        run: brew install gcc@10
+        run: sudo ln -s /usr/local/bin/gfortran-9 /usr/local/bin/gfortran
         shell: bash
 
       - uses: actions/checkout@v2
