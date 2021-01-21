@@ -27,9 +27,11 @@ jobs:
         run: brew install --cask xquartz
         shell: bash
 
-      - name: Install cairo on MacOS
+      - name: Install deps on MacOS
         if: runner.os == 'macOS'
-        run: brew install cairo
+        run: |
+          brew install cairo
+          brew install libgit2
         shell: bash
 
       - name: Link gfortran on MacOS
@@ -53,7 +55,7 @@ jobs:
           install.packages("jsonlite", type="source")
           install.packages("usethis", type="source")
           install.packages("symengine", type="source")
-	  remotes::install_github("nlmixrdevelopment/dparser-R")
+          remotes::install_github("nlmixrdevelopment/dparser-R")
           remotes::install_cran("covr")
         shell: Rscript {0}
 
