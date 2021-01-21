@@ -24,23 +24,31 @@ inline SEXP sexp_unique( Rcpp::Vector< RTYPE > x ) {
 // returns unique values in their original input order
 inline SEXP get_sexp_unique( SEXP s ) {
 
-  SEXP s2 = Rcpp::clone( s );
+  SEXP s2 = PROTECT(Rcpp::clone( s ));
 
   switch( TYPEOF( s2 ) ) {
   case LGLSXP: {
+    UNPROTECT(1);
     return sexp_unique< bool, LGLSXP >( s2 );
   }
   case REALSXP: {
+    UNPROTECT(1);
     return sexp_unique< double, REALSXP >( s2 );
   }
   case INTSXP: {
+    UNPROTECT(1);
     return sexp_unique< int, INTSXP >( s2 );
   }
   case STRSXP: {
+    UNPROTECT(1);
     return sexp_unique< char* , STRSXP >( s2 );
   }
-  default: Rcpp::stop("unknown vector type");
+  default: {
+    UNPROTECT(1);
+    Rcpp::stop("unknown vector type");
   }
+  }
+  UNPROTECT(1);
   return 0;
 }
 
@@ -60,23 +68,31 @@ inline int sexp_uniqueL( Rcpp::Vector< RTYPE > x ) {
 
 int get_sexp_uniqueL( SEXP s ) {
 
-  SEXP s2 = Rcpp::clone( s );
+  SEXP s2 = PROTECT(Rcpp::clone( s ));
 
   switch( TYPEOF( s2 ) ) {
   case LGLSXP: {
+    UNPROTECT(1);
     return sexp_uniqueL< bool, LGLSXP >( s2 );
   }
   case REALSXP: {
+    UNPROTECT(1);
     return sexp_uniqueL< double, REALSXP >( s2 );
   }
   case INTSXP: {
+    UNPROTECT(1);
     return sexp_uniqueL< int, INTSXP >( s2 );
   }
   case STRSXP: {
+    UNPROTECT(1);
     return sexp_uniqueL< char* , STRSXP >( s2 );
   }
-  default: Rcpp::stop("unknown vector type");
+  default: {
+    UNPROTECT(1);
+    Rcpp::stop("unknown vector type");
   }
+  }
+  UNPROTECT(1);
   return 0;
 }
 
@@ -86,14 +102,15 @@ template <int RTYPE>
 SEXP fast_factor_unsorted( const Vector<RTYPE>& x, SEXP oldLvl) {
   Vector<RTYPE> levs = get_sexp_unique(x); 
   IntegerVector out = match(x, levs);
-  SEXP outS = wrap(out);
-  SEXP lvl = R_NilValue;
-  SEXP fac = wrap(CharacterVector("factor"));
+  int pro = 0;
+  SEXP outS = PROTECT(wrap(out)); pro++;
+  SEXP lvl = PROTECT(R_NilValue); pro++; // Obsessive about protection; probably dosen't need to be protected.
+  SEXP fac = PROTECT(wrap(CharacterVector("factor"))); pro++;
   if (Rf_isNull(oldLvl)) {
-    lvl = wrap(as<CharacterVector>(levs));
+    lvl = PROTECT(wrap(as<CharacterVector>(levs))); pro++;
   } else {
     // RTYPE should be INTSXP
-    SEXP levsSEXP = wrap(levs);
+    SEXP levsSEXP = PROTECT(wrap(levs)); pro++;
     IntegerVector lvlI = as<IntegerVector>(levsSEXP);
     int hasNa = 0;
     for (int i = lvlI.size(); i--;) {
@@ -114,9 +131,9 @@ SEXP fast_factor_unsorted( const Vector<RTYPE>& x, SEXP oldLvl) {
     }
   }
   Rf_setAttrib(outS, R_LevelsSymbol, lvl);
-  SEXP cls = PROTECT(Rf_install("class"));
+  SEXP cls = PROTECT(Rf_install("class")); pro++;
   Rf_setAttrib(outS, cls, fac);
-  UNPROTECT(1);
+  UNPROTECT(pro);
   return outS;
 }
 //[[Rcpp::export]]
