@@ -3176,7 +3176,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	  int didUpdate = 0;
           if (add_cov*ncov > 0){
 	    // This takes care of the time varying covariates that may be shuffled.
-	    _update_par_ptr(curT, solveId, rx, ii);
+	    _update_par_ptr(curT, solveId, rx, ind->idx);
 	    didUpdate=1;
 	    for (j = 0; j < add_cov*ncov; j++){
 	      tmp = VECTOR_ELT(df, jj);
@@ -3219,7 +3219,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	    }
 	    jj++;
 	  }
-	  if (nkeep && didUpdate==0) _update_par_ptr(curT, solveId, rx, ii);
+	  if (nkeep && didUpdate==0) _update_par_ptr(curT, solveId, rx, ind->idx);
 	  for (j = 0; j < nkeep; j++){
 	    tmp = VECTOR_ELT(df, jj);
 	    if (TYPEOF(tmp) == REALSXP){
