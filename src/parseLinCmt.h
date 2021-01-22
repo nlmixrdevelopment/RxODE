@@ -236,6 +236,8 @@ typedef struct linCmtGenStruct {
   sbuf last2;
 } linCmtGenStruct;
 
+extern linCmtGenStruct _linCmtGenStruct;
+
 static inline void linCmtGenIni(linCmtGenStruct *linG) {
   sNull(&(linG->last));
   sNull(&(linG->d_tlag));

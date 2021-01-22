@@ -271,6 +271,7 @@ void parseFree(int last){
   lineFree(&depotLines);
   lineFree(&centralLines);
   lineFree(&_dupStrs);
+  linCmtGenFree(&_linCmtGenStruct);
   Free(tb.lh);
   Free(tb.lag);
   Free(tb.ini);

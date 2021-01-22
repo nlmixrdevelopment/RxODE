@@ -182,7 +182,6 @@ static inline void linCmtGenBolus(linCmtGenStruct *linG) {
     errOff=0;
     snprintf(errLin, errLinLen, "%s does not exist without a 'depot' compartment, specify a 'ka' parameter", linG->last.s);
     errOff=strlen(errLin);
-    linCmtGenFree(linG);
     err_trans(errLin);
   }
   // central only
@@ -273,12 +272,10 @@ static inline SEXP linCmtGenSEXP(linCmtGenStruct *linG, SEXP linCmt, SEXP vars, 
   SEXP linCmtP = PROTECT(_linCmtParse(vars, inStr, verbose)); pro++;
   switch(linCmtGenFinalize(linG, linCmt, vars, linCmtSens, verbose, linCmtP)) {
   case 1:
-    linCmtGenFree(linG);
     UNPROTECT(pro);
     err_trans("linCmt() bad parse");
     return R_NilValue;
   case 2:
-    linCmtGenFree(linG);
     UNPROTECT(pro);
     err_trans("linCmt() cannot have any extra parentheses in it");
     return R_NilValue;
@@ -286,19 +283,19 @@ static inline SEXP linCmtGenSEXP(linCmtGenStruct *linG, SEXP linCmt, SEXP vars, 
   }
   SEXP ret = PROTECT(Rf_allocVector(STRSXP,1)); pro++;
   SET_STRING_ELT(ret, 0, mkChar(linG->last2.s));
-  linCmtGenFree(linG);
   UNPROTECT(pro);
   return ret;
 }
 
+linCmtGenStruct _linCmtGenStruct;
+
 SEXP _RxODE_linCmtGen(SEXP linCmt, SEXP vars, SEXP linCmtSens, SEXP verbose) {
+  linCmtGenIni(&_linCmtGenStruct);
   /* SEXP ret = PROTECT(allocVector(STRSXP, 1)); */
-  linCmtGenStruct linG;
-  linCmtGenIni(&linG);
   if (tb.hasKa){
-    linCmtGenKa(&linG);
+    linCmtGenKa(&_linCmtGenStruct);
   } else {
-    linCmtGenBolus(&linG);
+    linCmtGenBolus(&_linCmtGenStruct);
   }
-  return linCmtGenSEXP(&linG, linCmt, vars, linCmtSens, verbose);
+  return linCmtGenSEXP(&_linCmtGenStruct, linCmt, vars, linCmtSens, verbose);
 }
