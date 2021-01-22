@@ -182,15 +182,7 @@ static inline void linCmtGenBolus(linCmtGenStruct *linG) {
     errOff=0;
     snprintf(errLin, errLinLen, "%s does not exist without a 'depot' compartment, specify a 'ka' parameter", linG->last.s);
     errOff=strlen(errLin);
-    sFree(&(linG->d_tlag));
-    sFree(&(linG->d_tlag2));
-    sFree(&(linG->d_F));
-    sFree(&(linG->d_F2));
-    sFree(&(linG->d_rate1));
-    sFree(&(linG->d_dur1));
-    sFree(&(linG->d_rate2));
-    sFree(&(linG->d_dur2));
-    sFree(&(linG->last));
+    linCmtGenFree(linG);
     err_trans(errLin);
   }
   // central only
@@ -231,19 +223,11 @@ static inline int linCmtGenFinalize(linCmtGenStruct *linG, SEXP linCmt, SEXP var
       }
       if (strlen(line) > 7) line +=7;
       else {
-	/* linCmtGenFree(linG); */
-	/* UNPROTECT(pro); */
-	/* err_trans("linCmt() bad parse"); */
-	/* return R_NilValue; */
 	return 1;
       }
       sAppend(&(linG->last2), "%s", CHAR(STRING_ELT(VECTOR_ELT(linCmtP, 0), 0)));
       while (line[0] != ')'){
 	if (line[0] == '\0') {
-	  /* linCmtGenFree(linG); */
-	  /* UNPROTECT(pro); */
-	  /* err_trans("linCmt() bad parse"); */
-	  /* return R_NilValue; */
 	  return 1;
 	}
 	if (line[0] == '('){
