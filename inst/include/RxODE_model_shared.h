@@ -201,6 +201,7 @@ typedef int (*RxODEi_rxbinom) (rx_solving_options_ind* ind, int n, double prob);
 typedef int (*RxODEi2_ribinom) (rx_solving_options_ind* ind, int id, int n, double prob);
 
 extern void _assignFuns();
+extern void _assignFuns0();
 extern double _sum(double *input, double *pld, int m, int type, int n, ...);
 extern double _prod(double *input, double *p, int type, int n, ...);
 extern double _sign(unsigned int n, ...);
