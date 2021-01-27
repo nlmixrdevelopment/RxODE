@@ -1000,8 +1000,8 @@ type=1L is jacobian expand grid (adds symbols)</p></td>
  <span class='fu'>microbenchmark</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html'>microbenchmark</a></span><span class='op'>(</span><span class='fu'>rxExpandGrid</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span>, <span class='fu'>expand.grid.jc</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; Unit: microseconds
 #&gt;                              expr  min    lq   mean median    uq   max neval
-#&gt;    rxExpandGrid(letters, letters) 19.5 21.80 23.422   22.7 24.05  49.5   100
-#&gt;  expand.grid.jc(letters, letters) 26.2 29.65 32.591   31.7 34.00 109.5   100</div><div class='input'><span class='co'># }</span>
+#&gt;    rxExpandGrid(letters, letters) 15.2 18.35 21.263  21.70 22.85  48.1   100
+#&gt;  expand.grid.jc(letters, letters) 20.6 28.15 36.282  29.75 31.60 712.4   100</div><div class='input'><span class='co'># }</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
