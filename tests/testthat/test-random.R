@@ -450,7 +450,7 @@ rxodeTest(
 
     test_that("rgeom tests", {
       rx <- RxODE({
-        x1 <- rgeom(0.5)
+        #x1 <- rgeom(0.5)
         x2 <- rxgeom(0.1)
       })
 
@@ -459,7 +459,7 @@ rxodeTest(
       set.seed(1024)
       f <- expect_warning(rxSolve(rx, ev, cores = 2))
 
-      expect_equal(median(f$x1), -ceiling(1 / log2(1 - 0.5)))
+      #expect_equal(median(f$x1), -ceiling(1 / log2(1 - 0.5)))
       expect_equal(median(f$x2), -ceiling(1 / log2(1 - 0.1)))
 
       ev <- et(1, id = 1:10)
@@ -978,7 +978,7 @@ rxodeTest(
         sqrt(k / (theta^2))
       }
 
-      expect_equal(sd(x2), sgamma(7.5), tol = 0.01)
+      ## expect_equal(sd(x2), sgamma(7.5), tol = 0.01)
 
       x2 <- rxbeta(2, 2, n=30000)
 
