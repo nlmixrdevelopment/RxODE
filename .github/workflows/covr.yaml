@@ -21,12 +21,14 @@ jobs:
       - uses: actions/checkout@v2
 
       - uses: r-lib/actions/setup-r@v1
-        with:
-          r-version: release
-          http-user-agent: R/4.0.0 (ubuntu-16.04) R (4.0.0 x86_64-pc-linux-gnu x86_64 linux-gnu) on GitHub Actions
+
+      - name: install linux deps
+        if: runner.os == 'Linux'
+        run: sudo add-apt-repository ppa:cran/libgit2 && sudo apt-get update && sudo apt-get install libssh2-1-dev libgit2-dev libudunits2-dev  libgmp-dev libmpfr-dev libmpc-dev -y
+        shell: bash
 
       - uses: r-lib/actions/setup-pandoc@v1
-      
+
       - uses: r-lib/actions/setup-tinytex@v1
 
       - name: Install packages from cran (source)
