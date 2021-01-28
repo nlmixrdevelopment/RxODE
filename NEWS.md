@@ -28,7 +28,7 @@
 
 * `EVID=3` and `EVID=4` now (possibly) reset time as well.  This
   occurs when the input dataset is sorted before solving.
-  
+
 * When `EVID=2` is present, an `evid` column is output to distinguish
   `evid=0` and `evid=2`
 
@@ -265,20 +265,25 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
   - `riunif()`
   - `riweibull()`
 
-  Added `simeta()` which simulates a new `eta` when called based
+* Added `simeta()` which simulates a new `eta` when called based
   on the possibly truncated normal `omega` specified by the original
   simulation.  This simulation occurs at the same time as the ODE is
   initialized or when an ODE is missing, before calculating the final
   output values.  The `omega` will reflect whatever study is being simulated.
 
-  Added `simeps()` which simulates a new `eps` from the possibly
+*  Added `simeps()` which simulates a new `eps` from the possibly
   truncated normal `sigma` at the same time as calculating the final
   output values. Before this time, the `sigma` variables are zero.
 
-  All these change to one thread by default to make sure the
+  All these change the solving to single thread by default to make sure the
   simulation is reproducible. With high loads/difficult problems the
   random number generator may be on a different thread and give a
   different number than another computer/try.
+
+  Also please note that the `clang` and `gcc` compiler use different
+  methods to create the more complex random numbers.  Therefore
+  `MacOS` random numbers will be different than `Linux`/`Windows` at
+  this time (with the exception of uniform numbers).
 
   These numbers are still non-correlated random numbers (based on the
   sitmo test) with the exception of the vandercorput distributions, so
@@ -335,7 +340,7 @@ If the `lhs` parameters haven't been defined yet, they are `NA`
 
 * Pre-compile RxODE headers once (if cache is enabled), which
   increases compilation speed for models in RxODE
-  
+
 * `RxODE`'s translation from the mini-language to C has been refactored
 
 ## Bug fixes:
