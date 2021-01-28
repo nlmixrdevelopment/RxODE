@@ -50,37 +50,43 @@ few key parts:
 
 
 
+
+
+
+
+
 You can install the released version of RxODE from
 [CRAN](https://CRAN.R-project.org) with:
 
-``` r
+``` {.r}
 install.packages("RxODE")
 ```
 
 You can install the development version of RxODE with
 
-```r
+``` {.r}
 devtools::install_github("nlmixrdevelopment/RxODE")
 ```
 
-To build models with RxODE, you need a working c compiler.  To use parallel threaded
-solving in RxODE, this c compiler needs to support open-mp.
+To build models with RxODE, you need a working c compiler. To use
+parallel threaded solving in RxODE, this c compiler needs to support
+open-mp.
 
 You can check to see if R has working c compiler you can check with:
 
-```r
+``` {.r}
 ## install.packages("pkgbuild")
 pkgbuild::has_build_tools(debug = TRUE)
 ```
 
-If you do not have the toolchain, you can set it up as described by
-the platform information below:
+If you do not have the toolchain, you can set it up as described by the
+platform information below:
 
 ### Windows
 
 In windows you may simply use installr to install rtools:
 
-```r
+``` {.r}
 install.packages("installr")
 library(installr)
 install.rtools()
@@ -92,132 +98,12 @@ rtools directly.
 
 ### Mac OSX
 
-To get the most speed you need OpenMP enabled and compile RxODE
-against that binary.  Here is some discussion about this:
-
-https://ryanhomer.github.io/posts/build-openmp-macos-catalina-complete
-
-Briefly, I would install R from CRAN and then install `RxODE` (which
-installs the additional dependencies).  Then for best speed, install
-homebrew to compile `OpenMP` dependencies so they can run in
-multi-threaded mode.  You could do this with Mac's Xcode, but it often
-requires the very latest MacOS version; Depending on when you do this
-it can possibly break R packages, so it is no longer recommended.
-
-Once [homebrew is installed](https://brew.sh/), use it to install
-OpenMP enabled compilers:
-
-```sh
-brew install llvm libomp
-```
-
-And the gfortran compiler needed for `RxODE`:
-
-```sh
-brew install gcc
-```
-
-Some of the functions of `RxODE` and `nlmixr` rely on extra components
-being installed, to be safe I would install the following:
-
-```sh
-brew install cairo # Installs some items needed to optionally compile componets for ggplot2
-brew install --cask xquartz # Installs components for huxtable/officer
-```
-
-Then edit the file `~/.R/Makevars` to use the OpenMP.  In R/Rstudio
-you can edit this file by:
-
-```
-dir.create("~/.R") # may error if exists
-file.edit("~/.R/Makevars")
-```
-
-```
-# macOS Makevars configuration for LLVM/GCC
-# for OpenMP support
-#
-# For installation details, see
-# http://ryanhomer.github.io/posts/build-openmp-macos-catalina-complete
-#
-# Some sources used as reference:
-# https://github.com/Rdatatable/data.table/wiki/Installation
-# https://asieira.github.io/using-openmp-with-r-packages-in-os-x.html
-# https://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/
-# https://bit.ly/3d16TuW
-# https://www.kthohr.com/r-mac-source.html
-
-XCBASE:=$(shell xcrun --show-sdk-path)
-LLVMBASE:=$(shell brew --prefix llvm)
-GCCBASE:=$(shell brew --prefix gcc)
-GETTEXT:=$(shell brew --prefix gettext)
-
-CC=$(LLVMBASE)/bin/clang -fopenmp
-CXX=$(LLVMBASE)/bin/clang++ -fopenmp
-CXX11=$(LLVMBASE)/bin/clang++ -fopenmp
-CXX14=$(LLVMBASE)/bin/clang++ -fopenmp
-CXX17=$(LLVMBASE)/bin/clang++ -fopenmp
-CXX1X=$(LLVMBASE)/bin/clang++ -fopenmp
-
-CPPFLAGS=-isystem "$(LLVMBASE)/include" -isysroot "$(XCBASE)"
-LDFLAGS=-L"$(LLVMBASE)/lib" -L"$(GETTEXT)/lib" --sysroot="$(XCBASE)"
-
-FC=$(GCCBASE)/bin/gfortran
-F77=$(GCCBASE)/bin/gfortran
-# This # matches the gfortran version, you can see the version by the command
-# `gfortran --version`
-FLIBS=-L$(GCCBASE)/lib/gcc/10/ -lm
-```
-
-This works to install `data.table`, `RxODE` and `nlmixr` with `OpenMP`
-in R 4.0+ support.  However, some R packages that use `autoconf` will
-not work with this `Makevars`; So I would use:
-
-```r
-install.packages("data.table", type="source")
-install.packages("RxODE", type="source") # or remotes::install_github("nlmixrdevelopment/RxODE")
-install.packages("nlmixr", type="source") # or remotes::instal_github("nlmixrdevelopment/nlmixr")
-```
-
-To be safe, do not install packages that require compiled binaries
-with this approach.  Once complete you can remove the `-fopenmp` flag in the `Makevars`
-and the compiler will work without enabling `OpenMP`:
-
-```
-# macOS Makevars configuration for LLVM/GCC
-# for OpenMP support
-#
-# For installation details, see
-# http://ryanhomer.github.io/posts/build-openmp-macos-catalina-complete
-#
-# Some sources used as reference:
-# https://github.com/Rdatatable/data.table/wiki/Installation
-# https://asieira.github.io/using-openmp-with-r-packages-in-os-x.html
-# https://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/
-# https://bit.ly/3d16TuW
-# https://www.kthohr.com/r-mac-source.html
-
-XCBASE:=$(shell xcrun --show-sdk-path)
-LLVMBASE:=$(shell brew --prefix llvm)
-GCCBASE:=$(shell brew --prefix gcc)
-GETTEXT:=$(shell brew --prefix gettext)
-
-CC=$(LLVMBASE)/bin/clang 
-CXX=$(LLVMBASE)/bin/clang++ 
-CXX11=$(LLVMBASE)/bin/clang++ 
-CXX14=$(LLVMBASE)/bin/clang++ 
-CXX17=$(LLVMBASE)/bin/clang++
-CXX1X=$(LLVMBASE)/bin/clang++
-
-CPPFLAGS=-isystem "$(LLVMBASE)/include" -isysroot "$(XCBASE)"
-LDFLAGS=-L"$(LLVMBASE)/lib" -L"$(GETTEXT)/lib" --sysroot="$(XCBASE)"
-
-FC=$(GCCBASE)/bin/gfortran
-F77=$(GCCBASE)/bin/gfortran
-# This # matches the gfortran version, you can see the version by the command
-# `gfortran --version`
-FLIBS=-L$(GCCBASE)/lib/gcc/10/ -lm
-```
+To get the most speed you need OpenMP enabled and compile RxODE against
+that binary. Likely the most up to date discussion about this is the
+[data.table installation faq for
+MacOS](https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac),
+there are many ways to enable OpenMP in mac; Maybe someday OpenMP will
+be included in the default OS compilers.
 
 ### Linux
 
@@ -228,13 +114,16 @@ and `gfortran` using your distribution's package manager.
 
 Since the development version of RxODE uses StanHeaders, you will need
 to make sure your compiler is setup to support C++14, as described in
-the [rstan setup page](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started#configuration-of-the-c-toolchain)
+the [rstan setup
+page](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started#configuration-of-the-c-toolchain).
+For R 4.0, I do not believe this requires modifying the windows
+toolchain any longer (so it is much easier to setup).
 
 Once the C++ toolchain is setup appropriately, you can install the
 development version from
 [GitHub](https://github.com/nlmixrdevelopment/RxODE) with:
 
-``` r
+``` {.r}
 # install.packages("devtools")
 devtools::install_github("nlmixrdevelopment/RxODE")
 ```
@@ -254,7 +143,7 @@ To load `RxODE` package and compile the model:
 library(RxODE)
 #> RxODE 1.0.2 using 4 threads (see ?getRxThreads)
 library(units)
-#> udunits system database from /usr/share/xml/udunits
+#> udunits system database from C:/R/r-4.0.3/library/units/share/udunits
 
 mod1 <-RxODE({
     C2 = centr/V2;
@@ -266,6 +155,10 @@ mod1 <-RxODE({
 })
 #> 
 #> qs v0.23.5.
+#> > creating RxODE include directory
+#> > getting R compile options
+#> > precompiling headers
+#> v done
 ```
 
 ## Specify ODE parameters and initial conditions
@@ -412,14 +305,14 @@ You can also solve this and create a RxODE data frame:
 ```r
 x <- mod1 %>% rxSolve(theta, ev, inits);
 x
-#> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
-#> ── Parameters (x$params): ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+#> ____________________________________________________ Solved RxODE object ____________________________________________________
+#> -- Parameters (x$params): ---------------------------------------------------------------------------------------------------
 #>      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 #>  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000 
-#> ── Initial Conditions (x$inits): ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+#> -- Initial Conditions (x$inits): --------------------------------------------------------------------------------------------
 #> depot centr  peri   eff 
 #>     0     0     0     1 
-#> ── First part of data (object): ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+#> -- First part of data (object): ---------------------------------------------------------------------------------------------
 #> # A tibble: 241 x 7
 #>    time    C2    C3  depot centr  peri   eff
 #>     [h] <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>
@@ -429,8 +322,8 @@ x
 #> 4     3  51.9 4.46   4140. 2087. 1324.  1.23
 #> 5     4  44.5 5.98   3085. 1789. 1776.  1.23
 #> 6     5  36.5 7.18   2299. 1467. 2132.  1.21
-#> # … with 235 more rows
-#> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+#> # ... with 235 more rows
+#> _____________________________________________________________________________________________________________________________
 ```
 
 This returns a modified data frame.  You can see the compartment
@@ -459,6 +352,12 @@ are present).
 
 # Related R Packages
 
+
+
+
+
+
+
 ## ODE solving
 
 This is a brief comparison of pharmacometric ODE solving R packages to
@@ -471,47 +370,47 @@ The most popular is
 
 However for pharmacometrics-specific ODE solving, there are only 2
 packages other than [RxODE](https://CRAN.R-project.org/package=RxODE)
-released on CRAN.  Each uses compiled code to have faster ODE solving.
+released on CRAN. Each uses compiled code to have faster ODE solving.
 
-- [mrgsolve](https://CRAN.R-project.org/package=mrgsolve), which uses
-  C++ lsoda solver to solve ODE systems.  The user is
-  required to write hybrid R/C++ code to create a mrgsolve
-  model which is translated to C++ for solving.
+-   [mrgsolve](https://CRAN.R-project.org/package=mrgsolve), which uses
+    C++ lsoda solver to solve ODE systems. The user is required to write
+    hybrid R/C++ code to create a mrgsolve model which is translated to
+    C++ for solving.
 
-  In contrast, `RxODE` has a R-like mini-language that is parsed into
-  C code that solves the ODE system.
+    In contrast, `RxODE` has a R-like mini-language that is parsed into
+    C code that solves the ODE system.
 
-  Unlike `RxODE`, `mrgsolve` does not currently support symbolic
-  manipulation of ODE systems, like automatic Jacobian calculation or
-  forward sensitivity calculation (`RxODE` currently supports this and
-  this is the basis of
-  [nlmixr](https://cran.r-project.org/package=nlmixr)'s FOCEi
-  algorithm)
+    Unlike `RxODE`, `mrgsolve` does not currently support symbolic
+    manipulation of ODE systems, like automatic Jacobian calculation or
+    forward sensitivity calculation (`RxODE` currently supports this and
+    this is the basis of
+    [nlmixr](https://cran.r-project.org/package=nlmixr)'s FOCEi
+    algorithm)
 
-- [dMod](https://cran.r-project.org/package=dMod), which uses a unique
-  syntax to create "reactions".  These reactions create the underlying
-  ODEs and then created c code for a compiled deSolve model.
+-   [dMod](https://cran.r-project.org/package=dMod), which uses a unique
+    syntax to create "reactions". These reactions create the underlying
+    ODEs and then created c code for a compiled deSolve model.
 
-  In contrast `RxODE` defines ODE systems at a lower level.  `RxODE`'s
-  parsing of the mini-language comes from C, whereas `dMod`'s parsing
-  comes from R.
+    In contrast `RxODE` defines ODE systems at a lower level. `RxODE`'s
+    parsing of the mini-language comes from C, whereas `dMod`'s parsing
+    comes from R.
 
-  Like `RxODE`, `dMod` supports symbolic manipulation of ODE systems
-  and calculates forward sensitivities and adjoint sensitivities of
-  systems.
+    Like `RxODE`, `dMod` supports symbolic manipulation of ODE systems
+    and calculates forward sensitivities and adjoint sensitivities of
+    systems.
 
-  Unlike `RxODE`, `dMod` is not thread-safe since `deSolve` is not yet
-  thread-safe.
+    Unlike `RxODE`, `dMod` is not thread-safe since `deSolve` is not yet
+    thread-safe.
 
 And there is one package that is not released on CRAN:
 
-- [PKPDsim](https://github.com/InsightRX/PKPDsim) which defines models
-  in an R-like syntax and converts the system to compiled code.
+-   [PKPDsim](https://github.com/InsightRX/PKPDsim) which defines models
+    in an R-like syntax and converts the system to compiled code.
 
-  Like `mrgsolve`, `PKPDsim` does not currently support symbolic
-  manipulation of ODE systems.
+    Like `mrgsolve`, `PKPDsim` does not currently support symbolic
+    manipulation of ODE systems.
 
-  `PKPDsim` is not thread-safe.
+    `PKPDsim` is not thread-safe.
 
 The open pharmacometrics open source community is fairly friendly, and
 the RxODE maintainers has had positive interactions with all of the
@@ -519,25 +418,25 @@ ODE-solving pharmacometric projects listed.
 
 ## PK Solved systems
 
-RxODE supports 1-3 compartment models with gradients (using stan
-math's auto-differentiation).  This currently uses the same
-equations as PKADVAN to allow time-varying covariates.
+`RxODE` supports 1-3 compartment models with gradients (using stan
+math's auto-differentiation). This currently uses the same equations as
+`PKADVAN` to allow time-varying covariates.
 
-RxODE can mix ODEs and solved systems.
+`RxODE` can mix ODEs and solved systems.
 
 ### The following packages for solved PK systems are on CRAN
 
- - [mrgsolve](https://CRAN.R-project.org/package=mrgsolve) currently
-   has 1-2 compartment (poly-exponential models) models built-in.  The
-   solved systems and ODEs cannot currently be mixed.
- - [pmxTools](https://github.com/kestrel99/pmxTools) currently have
-   1-3 compartment (super-positioning) models built-in. This is a
-   R-only implementation.
- - [PKPDmodels](https://cran.r-project.org/web/packages/PKPDmodels/index.html)
-   has a one-compartment model with gradients.
+-   [mrgsolve](https://CRAN.R-project.org/package=mrgsolve) currently
+    has 1-2 compartment (poly-exponential models) models built-in. The
+    solved systems and ODEs cannot currently be mixed.
+-   [pmxTools](https://github.com/kestrel99/pmxTools) currently have 1-3
+    compartment (super-positioning) models built-in. This is a R-only
+    implementation.
+-   [PKPDmodels](https://cran.r-project.org/web/packages/PKPDmodels/index.html)
+    has a one-compartment model with gradients.
 
 ### Non-CRAN libraries:
 
- - [PKADVAN](https://github.com/abuhelwa/PKADVAN_Rpackage) Provides
-   1-3 compartment models using non-superpositioning.  This allows
-   time-varying covariates.
+-   [PKADVAN](https://github.com/abuhelwa/PKADVAN_Rpackage) Provides 1-3
+    compartment models using non-superpositioning. This allows
+    time-varying covariates.
