@@ -478,11 +478,14 @@
 <li><code>riunif()</code></li>
 <li><code>riweibull()</code></li>
 </ul>
-<p>Added <code>simeta()</code> which simulates a new <code>eta</code> when called based on the possibly truncated normal <code>omega</code> specified by the original simulation. This simulation occurs at the same time as the ODE is initialized or when an ODE is missing, before calculating the final output values. The <code>omega</code> will reflect whatever study is being simulated.</p>
-<p>Added <code>simeps()</code> which simulates a new <code>eps</code> from the possibly truncated normal <code>sigma</code> at the same time as calculating the final output values. Before this time, the <code>sigma</code> variables are zero.</p>
-<p>All these change to one thread by default to make sure the simulation is reproducible. With high loads/difficult problems the random number generator may be on a different thread and give a different number than another computer/try.</p>
-<p>These numbers are still non-correlated random numbers (based on the sitmo test) with the exception of the vandercorput distributions, so if you increase the number of threads (cores=…) the results should still be valid, though maybe harder to reproduce. The faster the random number generation, the more likely these results will be reproduced across platforms.</p>
 </li>
+<li><p>Added <code>simeta()</code> which simulates a new <code>eta</code> when called based on the possibly truncated normal <code>omega</code> specified by the original simulation. This simulation occurs at the same time as the ODE is initialized or when an ODE is missing, before calculating the final output values. The <code>omega</code> will reflect whatever study is being simulated.</p></li>
+<li><p>Added <code>simeps()</code> which simulates a new <code>eps</code> from the possibly truncated normal <code>sigma</code> at the same time as calculating the final output values. Before this time, the <code>sigma</code> variables are zero.</p></li>
+</ul>
+<p>All these change the solving to single thread by default to make sure the simulation is reproducible. With high loads/difficult problems the random number generator may be on a different thread and give a different number than another computer/try.</p>
+<p>Also please note that the <code>clang</code> and <code>gcc</code> compiler use different methods to create the more complex random numbers. Therefore <code>MacOS</code> random numbers will be different than <code>Linux</code>/<code>Windows</code> at this time (with the exception of uniform numbers).</p>
+<p>These numbers are still non-correlated random numbers (based on the sitmo test) with the exception of the vandercorput distributions, so if you increase the number of threads (cores=…) the results should still be valid, though maybe harder to reproduce. The faster the random number generation, the more likely these results will be reproduced across platforms.</p>
+<ul>
 <li><p>Added the ability to integrate standard deviations/errors of omega diagonals and sigma diagonals. This is done by specifying the omega diagonals in the theta matrix and having them represent the variabilities or standard deviations. Then these standard deviations are simulated along with the correlations using the IJK correlation matrix (omega dimension &lt; 10) or a correlation matrix or Inverse Wishart-based correlation matrix (omega dimension &gt; 10). The information about how to simulate this is in the variability simulation vignette.</p></li>
 <li><p>Now have a method to use <code>lotri</code> to simulate between occasion variability and other levels of nesting.</p></li>
 <li><p>Added lower gamma functions See Issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/185'>#185</a></p></li>
