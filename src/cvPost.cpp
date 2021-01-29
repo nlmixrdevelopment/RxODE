@@ -233,6 +233,8 @@ arma::mat rLKJcvLsd1(arma::vec logSd, arma::vec logSdSD, double eta = 1.0){
 //' @inheritParams cvPost
 //' 
 //' @author Matthew Fidler
+//' @export
+//[[Rcpp::export]]
 arma::mat invWR1d(int d, double nu, bool omegaIsChol = false){
   if (nu <= d - 1) stop(_("'nu' must be greater than 'd'-1"));
   arma::mat I(d,d,arma::fill::eye);

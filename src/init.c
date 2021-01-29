@@ -193,6 +193,8 @@ SEXP _RxODE_rxRmvn0(SEXP, SEXP, SEXP, SEXP, SEXP,
 		    SEXP, SEXP, SEXP, SEXP, SEXP,
 		    SEXP);
 
+SEXP _RxODE_invWR1d(SEXP dSEXP, SEXP nuSEXP, SEXP omegaIsCholSEXP);
+
 SEXP _RxODE_convertId_(SEXP);
 
 SEXP _RxODE_rpp_(SEXP nS, SEXP lambdaS, SEXP gammaS, SEXP probS, SEXP t0S,
@@ -431,6 +433,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxQs", (DL_FUNC) _RxODE_rxQs, 1},
     {"_RxODE_rxQr", (DL_FUNC) _RxODE_rxQr, 1},
     {"_RxODE_isNullZero", (DL_FUNC) _RxODE_isNullZero, 1},
+    {"_RxODE_invWR1d", (DL_FUNC) _RxODE_invWR1d, 3},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

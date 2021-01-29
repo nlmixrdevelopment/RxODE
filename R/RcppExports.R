@@ -5,20 +5,6 @@ removableDrive <- function(driveRoot) {
     .Call(`_RxODE_removableDrive`, driveRoot)
 }
 
-#' One correlation sample from the Inverse Wishart distribution
-#'
-#' This correlation is constructed by transformation of the Inverse Wishart
-#' random covariate to a correlation.
-#'
-#' @inheritParams rLKJ1
-#' 
-#' @param nu Degrees of freedom of the Wishart distribution
-#' 
-#' @inheritParams cvPost
-#' 
-#' @author Matthew Fidler
-NULL
-
 #' Scaled Inverse Chi Squared distribution
 #'
 #' @param n Number of random samples
@@ -61,6 +47,23 @@ rLKJcv1 <- function(sd, eta = 1.0) {
 
 rLKJcvLsd1 <- function(logSd, logSdSD, eta = 1.0) {
     .Call(`_RxODE_rLKJcvLsd1`, logSd, logSdSD, eta)
+}
+
+#' One correlation sample from the Inverse Wishart distribution
+#'
+#' This correlation is constructed by transformation of the Inverse Wishart
+#' random covariate to a correlation.
+#'
+#' @inheritParams rLKJ1
+#' 
+#' @param nu Degrees of freedom of the Wishart distribution
+#' 
+#' @inheritParams cvPost
+#' 
+#' @author Matthew Fidler
+#' @export
+invWR1d <- function(d, nu, omegaIsChol = FALSE) {
+    .Call(`_RxODE_invWR1d`, d, nu, omegaIsChol)
 }
 
 rcvC1 <- function(sdEst, nu = 3.0, diagXformType = 1L, rType = 1L, returnChol = FALSE) {
