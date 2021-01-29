@@ -35,6 +35,28 @@ extern "C" uint64_t dtwiddle(const void *p, int i);
 extern "C" void calcNradix(int *nbyte, int *nradix, int *spare, uint64_t *maxD, uint64_t *minD);
 extern "C" void RSprintf(const char *format, ...);
 extern "C" int getRxThreads(const int64_t n, const bool throttle);
+extern "C" double *global_InfusionRate(unsigned int mx);
+extern "C" void rxOptionsFree();
+extern "C" void rxOptionsIni();
+extern "C" void rxOptionsIniEnsure(int mx);
+extern "C" void parseFree(int last);
+extern "C" void rxClearFuns();
+extern "C" void rxFreeLast();
+extern "C" void lineFree(vLines *sbb);
+extern "C" void RxODE_assign_fn_pointers(SEXP);
+extern "C" int getThrottle();
+extern "C" void lineIni(vLines *sbb);
+extern "C" void addLine(vLines *sbb, const char *format, ...);
+extern "C" void seedEng(int ncores);
+extern "C" int getRxThreads(const int64_t n, const bool throttle);
+extern "C" void RxODE_assign_fn_pointers_(const char *mv);
+extern "C" double getTime(int idx, rx_solving_options_ind *ind);
+extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
+extern "C" void setSilentErr(int silent);
+
+bool useForder();
+Function getForder();
+
 
 // https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L193-L211
 // range_d is modified because it DOES NOT count na/inf because RxODE assumes times cannot be NA, NaN, -Inf, Inf
@@ -1476,7 +1498,7 @@ extern "C" double * getAol(int n, double atol){
   return _globals.gatol2;
 }
 
-extern "C" double * getRol(int n, double rtol){
+extern "C" double * getRol(int n, double rtol) {
   return _globals.grtol2;
 }
 // This sets up the constant covariates if ev1 is rxEtTran
@@ -2072,8 +2094,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   return ret0;
 }
 
-extern "C" double *global_InfusionRate(unsigned int mx);
-
 #define defrx_params R_NilValue
 #define defrx_events R_NilValue
 #define defrx_inits R_NilValue
@@ -2337,13 +2357,6 @@ void updateSolveEnvPost(Environment e){
   getEtRxsolve(e);
 }
 
-extern "C" void rxOptionsFree();
-extern "C" void rxOptionsIni();
-extern "C" void rxOptionsIniEnsure(int mx);
-extern "C" void parseFree(int last);
-extern "C" void rxClearFuns();
-extern "C" void rxFreeLast();
-extern "C" void lineFree(vLines *sbb);
 void resetFkeep();
 //' Free the C solving/parsing information.
 //'
@@ -2423,7 +2436,6 @@ extern "C" void rxSolveFreeC() {
   rxSolveFree();
 }
 
-extern "C" void RxODE_assign_fn_pointers(SEXP);
 
 List keepIcov;
 List keepFcov;
@@ -2433,28 +2445,24 @@ extern void resetFkeep() {
   keepIcov = List::create();
 }
 
-extern "C" double get_ikeep(int col, int id){
+extern "C" double get_ikeep(int col, int id) {
   return REAL(keepIcov[col])[id];
 }
 
-extern "C" double get_fkeep(int col, int id, rx_solving_options_ind *ind){
+extern "C" double get_fkeep(int col, int id, rx_solving_options_ind *ind) {
   List keepFcovI= keepFcov.attr("keepCov");
   int idx = keepFcovI[col];
   if (idx == 0) return REAL(keepFcov[col])[id];
   return ind->par_ptr[idx-1];
 }
 
-extern "C" SEXP get_ikeepn(){
+extern "C" SEXP get_ikeepn() {
   return as<SEXP>(keepIcov.attr("names"));
 }
 
-extern "C" SEXP get_fkeepn(){
+extern "C" SEXP get_fkeepn() {
   return as<SEXP>(keepFcov.attr("names"));
 }
-
-bool useForder();
-Function getForder();
-extern "C" int getThrottle();
 
 extern "C" void sortIds(rx_solve* rx, int ini) {
   rx_solving_options_ind* ind;
@@ -2631,9 +2639,6 @@ static inline SEXP rxSolve_update(const RObject &object,
   e[".real.update"] = true;
   return dat;
 }
-
-extern "C" void lineIni(vLines *sbb);
-extern "C" void addLine(vLines *sbb, const char *format, ...);
 
 // This updates the event table with sequences and other similar items
 // This is useful when there is an event table without any
@@ -4171,7 +4176,6 @@ static inline Environment rxSolve_genenv(const RObject &object,
   return e;
 }
 
-extern "C" void seedEng(int ncores);
 void rxAssignPtr(SEXP object);
 
 int getNRows(RObject obj){
@@ -4439,8 +4443,6 @@ static inline SEXP rxSolve_finalize(const RObject &obj,
 }
 
 SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS);
-
-extern "C" int getRxThreads(const int64_t n, const bool throttle);
 
 static inline void iniRx(rx_solve* rx) {
   rx->hasEvid2 = 0;
@@ -5816,8 +5818,6 @@ bool rxIsCurrent(RObject obj){
   }
 }
 
-extern "C" void RxODE_assign_fn_pointers_(const char *mv);
-
 //' Assign pointer based on model variables
 //' @param object RxODE family of objects
 //' @export
@@ -6178,27 +6178,27 @@ bool rxDelete(RObject obj){
   return false;
 }
 
-extern "C" SEXP rxModelVarsC(char *ptr){
+extern "C" SEXP rxModelVarsC(char *ptr) {
   // Rcout << "rxModelVars C: ";
   return rxGetFromChar(ptr, "");
 }
 
-extern "C" SEXP rxStateNames(char *ptr){
+extern "C" SEXP rxStateNames(char *ptr) {
   // Rcout << "State: ";
   return rxGetFromChar(ptr, "state");
 }
 
-extern "C" SEXP rxLhsNames(char *ptr){
+extern "C" SEXP rxLhsNames(char *ptr) {
   // Rcout << "Lhs: ";
   return rxGetFromChar(ptr, "lhs");
 }
 
-extern "C" SEXP rxParamNames(char *ptr){
+extern "C" SEXP rxParamNames(char *ptr) {
   // Rcout << "Param: ";
   return rxGetFromChar(ptr, "params");
 }
 
-extern "C" int rxIsCurrentC(SEXP obj){
+extern "C" int rxIsCurrentC(SEXP obj) {
   RObject robj = as<RObject>(obj);
   if (robj.isNULL()) return 0;
   bool ret = rxIsCurrent(robj);
@@ -6206,7 +6206,7 @@ extern "C" int rxIsCurrentC(SEXP obj){
   return 0;
 }
 
-extern "C" int Rcat(char *msg){
+extern "C" int Rcat(char *msg) {
   std::string str(msg);
   Rcpp::Function msgF("message");
   msgF(str, _["appendLF"]=false);
@@ -6235,7 +6235,7 @@ SEXP setProgSupported(int isSupported=1){
   return wrap(isProgSupportedI);
 }
 
-extern "C" int isProgSupported(){
+extern "C" int isProgSupported() {
   return isProgSupportedI;
 }
 
@@ -6321,11 +6321,6 @@ List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
   return(ret);
 }
 
-extern "C" {
-  double getTime(int idx, rx_solving_options_ind *ind);
-}
-
-extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 //[[Rcpp::export]]
 List dropUnitsRxSolve(List x){
   List ret;
@@ -6341,8 +6336,6 @@ List dropUnitsRxSolve(List x){
   }
   return ret;
 }
-
-extern "C" void setSilentErr(int silent);
 
 //' Silence some of RxODE's C/C++ messages
 //'

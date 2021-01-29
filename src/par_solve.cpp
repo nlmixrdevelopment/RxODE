@@ -39,9 +39,10 @@ extern "C" {
 #endif
 int _isRstudio = 0;
 
-extern "C" void setRstudioPrint(int rstudio);
+#include "rxData.h"
 
-extern "C" void rxSolveFreeC();
+extern "C" void setRstudioPrint(int rstudio);
+extern "C" void RSprintf(const char *format, ...);
 
 extern "C" SEXP _rxHasOpenMp(){
   SEXP ret = PROTECT(allocVector(LGLSXP,1));
@@ -53,8 +54,6 @@ extern "C" SEXP _rxHasOpenMp(){
   UNPROTECT(1);
   return ret;
 }
-
-extern "C" void RSprintf(const char *format, ...);
 
 rx_solve rx_global;
 
@@ -2563,21 +2562,6 @@ extern "C" double rxLhsP(int i, rx_solve *rx, unsigned int id){
   }
   return 0;
 }
-
-extern "C" SEXP rxStateNames(char *ptr);
-extern "C" SEXP rxLhsNames(char *ptr);
-extern "C" SEXP rxParamNames(char *ptr);
-
-extern "C" double *rxGetErrs();
-extern "C" int rxGetErrsNcol();
-extern "C" int rxGetErrsNrow();
-
-extern "C" double get_ikeep(int col, int id);
-extern "C" int get_ikeepi(int col, int id);
-extern "C" const SEXP get_ikeepn();
-extern "C" double get_fkeep(int col, int id, rx_solving_options_ind *ind);
-extern "C" int get_fkeepi(int col, int id);
-extern "C" const SEXP get_fkeepn();
 
 extern "C" SEXP getDfLevels(const char *item, rx_solve *rx){
   int totN = rx->factorNames.n;
