@@ -319,7 +319,9 @@
     </tr>
     <tr>
       <th>omega</th>
-      <td><p>Named omega matrix.</p></td>
+      <td><p>Estimate of Covariance matrix. When omega is a list,
+assume it is a block matrix and convert it to a full matrix
+for simulations.</p></td>
     </tr>
     <tr>
       <th>omegaDf</th>
@@ -390,7 +392,7 @@ This only works with a diagonal matrix.</p></li>
     </tr>
     <tr>
       <th>nSub</th>
-      <td><p>Number between subject variabilities (ETAs) simulated for every
+      <td><p>Number between subject variabilities (<code>ETAs</code>) simulated for every
 realization of the parameters.</p></td>
     </tr>
     <tr>
@@ -399,18 +401,20 @@ realization of the parameters.</p></td>
     </tr>
     <tr>
       <th>thetaLower</th>
-      <td><p>Lower bounds for simulated population parameter variability (by default -Inf)</p></td>
+      <td><p>Lower bounds for simulated population parameter
+variability (by default <code>-Inf</code>)</p></td>
     </tr>
     <tr>
       <th>thetaUpper</th>
-      <td><p>Upper bounds for simulated population unexplained variability (by default Inf)</p></td>
+      <td><p>Upper bounds for simulated population unexplained
+variability (by default <code>Inf</code>)</p></td>
     </tr>
     <tr>
       <th>thetaDf</th>
       <td><p>The degrees of freedom of a t-distribution for
 simulation.  By default this is <code>NULL</code> which is
 equivalent to <code>Inf</code> degrees, or to simulate from a normal
-distribution instead of a t-distribution.</p></td>
+distribution instead of a <code>t</code>-distribution.</p></td>
     </tr>
     <tr>
       <th>thetaIsChol</th>
@@ -425,8 +429,10 @@ parameters.</p></td>
     </tr>
     <tr>
       <th>sigma</th>
-      <td><p>Matrix for residual variation.  Adds a "NA" value for each of the
-individual parameters, residuals are updated after solve is completed.</p></td>
+      <td><p>Named sigma covariance or Cholesky decomposition of a
+covariance matrix.  The names of the columns indicate
+parameters that are simulated.  These are simulated for every
+observation in the solved system.</p></td>
     </tr>
     <tr>
       <th>sigmaLower</th>
@@ -448,7 +454,7 @@ Cholesky decomposition instead of a symmetric covariance</p></td>
     </tr>
     <tr>
       <th>sigmaSeparation</th>
-      <td><p>Sigma separation Strategy</p>
+      <td><p>separation strategy for sigma;</p>
 <p>Tells the type of separation strategy when
 simulating covariance with parameter uncertainty with standard
 deviations modeled in the <code>thetaMat</code> matrix.</p><ul>
@@ -463,7 +469,7 @@ standard deviations.  While computationally more complex than the
 size is greater or equal to 10</p></li>
 <li><p><code>"auto"</code> chooses <code>"lkj"</code> when the dimension of the
 matrix is less than 10 and <code>"separation"</code> when greater
-than equal to 10.#' <code>"lkj"</code> simulates the correlation matrix from the</p></li>
+than equal to 10.</p></li>
 </ul></td>
     </tr>
     <tr>
