@@ -1793,21 +1793,6 @@ arma::mat getArmaMat(int type, int csim, rx_solve* rx) {
 
 arma::vec fillVec(arma::vec& in, int len);
 
-//' Simulate Parameters from a Theta/Omega specification
-//'
-//' @param params Named Vector of RxODE model parameters
-//'
-//' @param nObs Number of observations to simulate (with `sigma` matrix)
-//'
-//' @inheritParams rxSolve
-//'
-//' @param simSubjects boolean indicated RxODE should simulate subjects in studies (`TRUE`,
-//'         default) or studies (`FALSE`)
-//'
-//' @author Matthew L.Fidler
-//'
-//' @export
-//[[Rcpp::export]]
 List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
                      const RObject &omega= R_NilValue,
                      const Nullable<NumericVector> &omegaDf= R_NilValue,
