@@ -99,7 +99,7 @@
 *
 *---  H2 = scale2*H*H ...
 *
-      call DGEMM( 'n','n',m,m,m,scale2,H,ldh,H,ldh,0.0d0,wsp(ih2),m )
+      call DGEXX( 'n','n',m,m,m,scale2,H,ldh,H,ldh,0.0d0,wsp(ih2),m )
 *
 *---  initialize p (numerator) and q (denominator) ...
 *
@@ -120,7 +120,7 @@
       k = ideg - 1
  100  continue
       iused = iodd*iq + (1-iodd)*ip
-      call DGEMM( 'n','n',m,m,m, 1.0d0,wsp(iused),m,
+      call DGEXX( 'n','n',m,m,m, 1.0d0,wsp(iused),m,
      .             wsp(ih2),m, 0.0d0,wsp(ifree),m )
       do j = 1,m
          wsp(ifree+(j-1)*(m+1)) = wsp(ifree+(j-1)*(m+1))+wsp(icoef+k-1)
@@ -135,11 +135,11 @@
 *---  Obtain (+/-)(I + 2*(p\q)) ...
 *
       if ( iodd .eq. 1 ) then
-         call DGEMM( 'n','n',m,m,m, scale,wsp(iq),m,
+         call DGEXX( 'n','n',m,m,m, scale,wsp(iq),m,
      .                H,ldh, 0.0d0,wsp(ifree),m )
          iq = ifree
       else
-         call DGEMM( 'n','n',m,m,m, scale,wsp(ip),m,
+         call DGEXX( 'n','n',m,m,m, scale,wsp(ip),m,
      .                H,ldh, 0.0d0,wsp(ifree),m )
          ip = ifree
       endif
@@ -162,7 +162,7 @@
       do k = 1,ns
          iget = iodd*ip + (1-iodd)*iq
          iput = (1-iodd)*ip + iodd*iq
-         call DGEMM( 'n','n',m,m,m, 1.0d0,wsp(iget),m, wsp(iget),m,
+         call DGEXX( 'n','n',m,m,m, 1.0d0,wsp(iget),m, wsp(iget),m,
      .                0.0d0,wsp(iput),m )
          iodd = 1-iodd
       enddo

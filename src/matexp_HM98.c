@@ -26,6 +26,7 @@
 // #include <assert.h>
 #include <math.h>
 
+#include <Rconfig.h> 
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/Lapack.h>
