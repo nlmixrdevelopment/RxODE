@@ -47,12 +47,13 @@ rtools directly.
 
 ### Mac OSX
 
-To get the most speed you need OpenMP enabled and compile RxODE against
-that binary. Likely the most up to date discussion about this is the
-[data.table installation faq for
-MacOS](https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac),
-there are many ways to enable OpenMP in mac; Maybe someday OpenMP will
-be included in the default OS compilers.
+To get the most speed you need OpenMP enabled and compile RxODE with
+that compiler. There are various options and the most up to date
+discussion about this is likely the [data.table installation faq for
+MacOS](https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac).
+The last thing to keep in mind is that `RxODE` uses the code very
+similar to the original `lsoda` which requires the `gfortran` compiler
+to be setup as well as the `OpenMP` compilers.s
 
 ### Linux
 

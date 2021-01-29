@@ -276,7 +276,7 @@ R_PosInf <- Inf # nolint
 #' @importFrom utils getFromNamespace assignInMyNamespace download.file head sessionInfo
 #' @importFrom stats setNames update dnorm integrate
 #' @importFrom methods signature is
-#' @importFrom memoise memoise
+#' @importFrom memoise memoise is.memoised
 #' @importFrom utils capture.output
 #' @importFrom qs qsave
 #' @import tools
@@ -1224,6 +1224,7 @@ rxDllLoaded <- rxIsLoaded
 #' @inheritParams RxODE
 #' @seealso [RxODE()]
 #' @author Matthew L.Fidler
+#' @importFrom sys exec_internal
 #' @export
 rxCompile <- function(model, dir, prefix, force = FALSE, modName = NULL,
                       package = NULL,
