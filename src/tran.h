@@ -2,11 +2,15 @@
 #define __TRAN_H__
 #include <stdio.h>
 #include <ctype.h>
+#include <errno.h>
 extern int rx_syntax_allow_dots, rx_syntax_require_ode_first, rx_podo, needSort;
 void updateSyntaxCol();
 void trans_syntax_error_report_fn(char *err);
 void parseFree(int last);
 void RSprintf(const char *format, ...);
+
+SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP parseStr,
+		  SEXP isEscIn, SEXP inME, SEXP goodFuns);
 
 typedef struct symtab {
   vLines ss; // Symbol string or symbol lines
@@ -114,11 +118,9 @@ extern vLines sbPm, sbPmDt, sbNrmL;
 #define TMATF 20
 #define TLIN 21
 
-
 // new de type
 #define fromDDT 2
 #define fromCMTprop 1
-
 
 #define NOASSIGN _("'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'")
 #define NEEDSEMI _("lines need to end with ';'\n     to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'")

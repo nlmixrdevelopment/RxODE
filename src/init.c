@@ -7,6 +7,9 @@
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
 
+#include "tran.h"
+#include "threefry.h"
+
 SEXP _rxHasOpenMp();
 
 SEXP _vecDF(SEXP cv, SEXP n_);
@@ -38,7 +41,6 @@ SEXP _rxProgressStop(SEXP);
 SEXP _rxProgressAbort(SEXP);
 SEXP _RxODE_codeLoaded();
 
-SEXP _RxODE_trans(SEXP parse_file, SEXP prefix, SEXP model_md5, SEXP isStr, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname, SEXP pMd5, SEXP timeId, SEXP lastMv);
 SEXP _RxODE_parseModel(SEXP type);
 SEXP _RxODE_isLinCmt();
@@ -256,35 +258,6 @@ void ind_solve(rx_solve *rx, unsigned int cid, t_dydt_liblsoda dydt_lls,
 void par_solve(rx_solve *rx);
 int isRstudio();
 
-int rxbinom(rx_solving_options_ind* ind, int n, double prob);
-double rxcauchy(rx_solving_options_ind* ind, double location, double scale);
-double rxchisq(rx_solving_options_ind* ind, double df);
-double rxexp(rx_solving_options_ind* ind, double rate);
-double rxf(rx_solving_options_ind* ind, double df1, double df2);
-int rxgeom(rx_solving_options_ind* ind, double prob);
-double rxnorm(rx_solving_options_ind* ind, double mean, double sd);
-int rxpois(rx_solving_options_ind* ind, double lambda);
-double rxt_(rx_solving_options_ind* ind, double df);
-double rxunif(rx_solving_options_ind* ind, double low, double hi);
-double rxweibull(rx_solving_options_ind* ind, double shape, double scale);
-double rxgamma(rx_solving_options_ind* ind, double shape, double rate);
-double rxbeta(rx_solving_options_ind* ind, double shape1, double shape2);
-double rxnormV(rx_solving_options_ind* ind, double mean, double sd);
-
-int ribinom(rx_solving_options_ind* ind, int id, int n, double prob);
-double ricauchy(rx_solving_options_ind* ind, int id, double location, double scale);
-double richisq(rx_solving_options_ind* ind, int id, double df);
-double riexp(rx_solving_options_ind* ind, int id, double rate);
-double rif(rx_solving_options_ind* ind, int id, double df1, double df2);
-int rigeom(rx_solving_options_ind* ind, int id, double prob);
-double rinorm(rx_solving_options_ind* ind, int id, double mean, double sd);
-int ripois(rx_solving_options_ind* ind, int id, double lambda);
-double rit_(rx_solving_options_ind* ind, int id, double df);
-double riunif(rx_solving_options_ind* ind, int id, double low, double hi);
-double riweibull(rx_solving_options_ind* ind, int id, double shape, double scale);
-double rigamma(rx_solving_options_ind* ind, int id, double shape, double rate);
-double ribeta(rx_solving_options_ind* ind, int id, double shape1, double shape2);
-double rinormV(rx_solving_options_ind* ind, int id, double mean, double sd);
 const char *rxGetId(int id);
 
 

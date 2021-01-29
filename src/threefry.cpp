@@ -19,6 +19,7 @@
 using namespace Rcpp;
 using namespace arma;
 #include "../inst/include/RxODE_as.h"
+#include "threefry.h"
 
 //[[Rcpp::export]]
 SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
@@ -1163,7 +1164,7 @@ extern "C" double rxt_(rx_solving_options_ind* ind, double df){
   return d(_eng);
 }
 
-extern "C" int rit_(rx_solving_options_ind* ind, int id, double df){
+extern "C" double rit_(rx_solving_options_ind* ind, int id, double df){
   if (ind->isIni == 1){
     std::student_t_distribution<double> d(df);
     ind->simIni[id] =  d(_eng);
