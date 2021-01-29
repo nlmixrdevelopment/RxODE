@@ -195,6 +195,13 @@ SEXP _RxODE_rxRmvn0(SEXP, SEXP, SEXP, SEXP, SEXP,
 
 SEXP _RxODE_invWR1d(SEXP dSEXP, SEXP nuSEXP, SEXP omegaIsCholSEXP);
 
+SEXP _RxODE_rxSimThetaOmega(SEXP paramsSEXP, SEXP omegaSEXP, SEXP omegaDfSEXP, SEXP omegaLowerSEXP, SEXP omegaUpperSEXP,
+			    SEXP omegaIsCholSEXP, SEXP omegaSeparationSEXP, SEXP omegaXformSEXP, SEXP nSubSEXP, SEXP thetaMatSEXP,
+			    SEXP thetaLowerSEXP, SEXP thetaUpperSEXP, SEXP thetaDfSEXP, SEXP thetaIsCholSEXP, SEXP nStudSEXP,
+			    SEXP sigmaSEXP, SEXP sigmaLowerSEXP, SEXP sigmaUpperSEXP, SEXP sigmaDfSEXP, SEXP sigmaIsCholSEXP,
+			    SEXP sigmaSeparationSEXP, SEXP sigmaXformSEXP, SEXP nCoresRVSEXP, SEXP nObsSEXP, SEXP dfSubSEXP,
+			    SEXP dfObsSEXP, SEXP simSubjectsSEXP);
+
 SEXP _RxODE_convertId_(SEXP);
 
 SEXP _RxODE_rpp_(SEXP nS, SEXP lambdaS, SEXP gammaS, SEXP probS, SEXP t0S,
@@ -434,6 +441,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxQr", (DL_FUNC) _RxODE_rxQr, 1},
     {"_RxODE_isNullZero", (DL_FUNC) _RxODE_isNullZero, 1},
     {"_RxODE_invWR1d", (DL_FUNC) _RxODE_invWR1d, 3},
+    {"_RxODE_rxSimThetaOmega", (DL_FUNC) _RxODE_rxSimThetaOmega, 27},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
