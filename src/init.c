@@ -171,7 +171,6 @@ SEXP _RxODE_rxRepR0_(SEXP);
 SEXP _RxODE_rLKJ1(SEXP, SEXP, SEXP);
 SEXP _RxODE_rLKJcv1(SEXP, SEXP);
 SEXP _RxODE_rLKJcvLsd1(SEXP, SEXP, SEXP);
-SEXP _RxODE_invWR1d(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rcvC1(SEXP, SEXP, SEXP, SEXP, SEXP);
 
 SEXP _RxODE_rxSeedEng(SEXP);
@@ -373,7 +372,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rLKJ1", (DL_FUNC) &_RxODE_rLKJ1, 3},
     {"_RxODE_rLKJcv1", (DL_FUNC) &_RxODE_rLKJcv1, 2},
     {"_RxODE_rLKJcvLsd1", (DL_FUNC) &_RxODE_rLKJcvLsd1, 3},
-    {"_RxODE_invWR1d", (DL_FUNC) &_RxODE_invWR1d, 3},
     {"_RxODE_rcvC1", (DL_FUNC) &_RxODE_rcvC1, 5},
     {"_RxODE_rxRmvn_", (DL_FUNC) &_RxODE_rxRmvn_, 5},
     {"_RxODE_rxCholperm", (DL_FUNC) &_RxODE_rxCholperm, 4},
