@@ -1,4 +1,3 @@
-
 #' Creates a logical matrix for block matrixes.
 #'
 #' @param mat Matrix
@@ -14,7 +13,7 @@ rxBlockZeros <- function(mat, i) {
 }
 rxIsBlock <- function(mat, i) {
   if (missing(i)) {
-    for (j in 1:(dim(mat) - 1)) {
+    for (j in 1:(dim(mat)[1] - 1)) {
       if (rxIsBlock(mat, j)) {
         return(TRUE)
       } else {

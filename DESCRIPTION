@@ -104,7 +104,7 @@ Imports:
     tools,
     utils
 Description: Facilities for running simulations from ordinary
-    differential equation (ODE) models, such as pharmacometrics and other
+    differential equation ('ODE') models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
     into C, compiles it, and dynamically loads the object code into R for
     improved computational efficiency.  An event table object facilitates
@@ -113,7 +113,7 @@ Description: Facilities for running simulations from ordinary
     Fortran compilers, for details on their use with R please see
     Section 6.3, Appendix A, and Appendix D in the "R Administration and
     Installation" manual. Also the code is mostly released under GPL.  The
-    VODE and LSODA are in the public domain.  The information is available
+    'VODE' and 'LSODA' are in the public domain.  The information is available
     in the inst/COPYRIGHTS. 
 BugReports: https://github.com/nlmixrdevelopment/RxODE/issues
 NeedsCompilation: yes
