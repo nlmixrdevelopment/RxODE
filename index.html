@@ -270,21 +270,25 @@
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
 <p>You can install the released version of RxODE from <a href="https://CRAN.R-project.org">CRAN</a> with:</p>
-<pre class="{.r}"><code><a href="https://rdrr.io/r/utils/install.packages.html">install.packages("RxODE")</a></code></pre>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"RxODE"</span><span class="op">)</span></code></pre></div>
 <p>You can install the development version of RxODE with</p>
-<pre class="{.r}"><code><a href="https://devtools.r-lib.org//reference/remote-reexports.html">devtools::install_github("nlmixrdevelopment/RxODE")</a></code></pre>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"nlmixrdevelopment/RxODE"</span><span class="op">)</span></code></pre></div>
 <p>To build models with RxODE, you need a working c compiler. To use parallel threaded solving in RxODE, this c compiler needs to support open-mp.</p>
 <p>You can check to see if R has working c compiler you can check with:</p>
-<pre class="{.r}"><code><a href="https://rdrr.io/pkg/pkgbuild/man/has_build_tools.html">## install.packages("pkgbuild")
-pkgbuild::has_build_tools(debug = TRUE)</a></code></pre>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co">## install.packages("pkgbuild")</span>
+<span class="fu">pkgbuild</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pkgbuild/man/has_build_tools.html">has_build_tools</a></span><span class="op">(</span>debug <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 <p>If you do not have the toolchain, you can set it up as described by the platform information below:</p>
 <div id="windows" class="section level3">
 <h3 class="hasAnchor">
 <a href="#windows" class="anchor"></a>Windows</h3>
 <p>In windows you may simply use installr to install rtools:</p>
-<pre class="{.r}"><code><a href="https://rdrr.io/r/utils/install.packages.html">install.packages("installr")
-library(installr)
-install.rtools()</a></code></pre>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"installr"</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">installr</span><span class="op">)</span>
+<span class="fu">install.rtools</span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p>Alternatively you can <a href="https://cran.r-project.org/bin/windows/Rtools/">download</a> and install rtools directly.</p>
 </div>
 <div id="mac-osx" class="section level3">
@@ -303,8 +307,9 @@ install.rtools()</a></code></pre>
 <a href="#development-version" class="anchor"></a>Development Version</h2>
 <p>Since the development version of RxODE uses StanHeaders, you will need to make sure your compiler is setup to support C++14, as described in the <a href="https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started#configuration-of-the-c-toolchain">rstan setup page</a>. For R 4.0, I do not believe this requires modifying the windows toolchain any longer (so it is much easier to setup).</p>
 <p>Once the C++ toolchain is setup appropriately, you can install the development version from <a href="https://github.com/nlmixrdevelopment/RxODE">GitHub</a> with:</p>
-<pre class="{.r}"><code><a href="https://devtools.r-lib.org//reference/remote-reexports.html"># install.packages("devtools")
-devtools::install_github("nlmixrdevelopment/RxODE")</a></code></pre>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># install.packages("devtools")</span>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"nlmixrdevelopment/RxODE"</span><span class="op">)</span></code></pre></div>
 </div>
 </div>
 <div id="illustrated-example" class="section level1">
