@@ -1133,21 +1133,19 @@ named argument, this overwrites the output</p></td>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>An &#8220;rxSolve&#8221; solve object that stores the solved
-value in a matrix with as many rows as there are sampled time
-points and as many columns as system variables (as defined by
-the ODEs and additional assignments in the RxODE model code).
-It also stores information about the call to allow dynamic
-updating of the solved object.</p><pre>The operations for the object are similar to a data-frame, but
-expand the `$` and `[[""]]` access operators and
-assignment operators to resolve based on different parameter
-values, initial conditions, solver parameters, or events (by
-updating the `time` variable).
-
-You can call the [eventTable()] methods on the solved
-object to update the event table and resolve the system of
-equations.  % Should be able to use roxygen templates...
-</pre>
-
+value in a special data.frame or other type as determined by
+<code>returnType</code>. By default this has as many rows as there are
+sampled time points and as many columns as system variables (as
+defined by the ODEs and additional assignments in the RxODE model
+code).  It also stores information about the call to allow
+dynamic updating of the solved object.</p>
+<p>The operations for the object are similar to a data-frame, but
+expand the <code><a href='https://rdrr.io/r/base/Extract.html'>$</a></code> and <code>[[""]]</code> access operators and assignment
+operators to resolve based on different parameter values, initial
+conditions, solver parameters, or events (by updating the <code>time</code>
+variable).</p>
+<p>You can call the <code><a href='eventTable.html'>eventTable()</a></code> methods on the solved object to
+update the event table and resolve the system of equations.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>The rest of the document focus on the different ODE solving

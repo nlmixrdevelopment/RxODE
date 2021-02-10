@@ -225,7 +225,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE Covariates</h1>
             
-            <h4 class="date">2021-02-04</h4>
+            <h4 class="date">2021-02-10</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-covariates.Rmd"><code>vignettes/RxODE-covariates.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-covariates.Rmd</code></div>
@@ -265,7 +265,7 @@
     <span class="fu">eff</span><span class="op">(</span><span class="fl">0</span><span class="op">)</span> <span class="op">=</span> <span class="fl">1</span>  <span class="co">## This specifies that the effect compartment starts at 1.</span>
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span> <span class="op">=</span>  <span class="va">Kin</span> <span class="op">-</span> <span class="va">Kout</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">C2</span><span class="op">/</span><span class="op">(</span><span class="va">EC50</span><span class="op">+</span><span class="va">C2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="va">eff</span>;
 <span class="op">}</span><span class="op">)</span></code></pre></div>
-<pre><code>## qs v0.23.5.</code></pre>
+<pre><code>## qs v0.23.6.</code></pre>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">"mg"</span>, time.units<span class="op">=</span><span class="st">"hours"</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, cmt<span class="op">=</span><span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
